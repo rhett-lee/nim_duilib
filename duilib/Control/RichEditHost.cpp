@@ -134,7 +134,7 @@ void RichEditHost::Init()
 
     //设置字体颜色
     if (pRichEdit != nullptr) {
-        std::wstring textColor;
+        DString textColor;
         if (pRichEdit->IsEnabled()) {
             textColor = pRichEdit->GetTextColor();
         }
@@ -225,7 +225,7 @@ void RichEditHost::OnTxPropertyBitsChange(DWORD dwMask, DWORD dwBits)
     }
 }
 
-void RichEditHost::GetLogFont(RichEdit* pRichEdit, const std::wstring& fontId, LOGFONT& lf)
+void RichEditHost::GetLogFont(RichEdit* pRichEdit, const DString& fontId, LOGFONT& lf)
 {
     //优先获取默认字体
     lf = { 0 };
@@ -979,7 +979,7 @@ void RichEditHost::SetAutoHScroll(bool bEnable)
     }
 }
 
-void RichEditHost::SetFontId(const std::wstring& fontId)
+void RichEditHost::SetFontId(const DString& fontId)
 {
     //fontId不需要判空，如果fontId为空，则使用默认字体
     LOGFONT lf = { 0, };

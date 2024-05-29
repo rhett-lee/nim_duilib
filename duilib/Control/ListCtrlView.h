@@ -16,8 +16,8 @@ public:
     ListCtrlView(Window* pWindow, Layout* pLayout);
     virtual ~ListCtrlView();
 
-    virtual std::wstring GetType() const override { return _T("ListCtrlView"); }
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue);
+    virtual DString GetType() const override { return _T("ListCtrlView"); }
+    virtual void SetAttribute(const DString& strName, const DString& strValue);
     virtual void HandleEvent(const EventArgs& msg) override;
 
     /** DPI发生变化，更新控件大小和布局

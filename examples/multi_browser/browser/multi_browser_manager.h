@@ -30,7 +30,7 @@ public:
     * @param[in] url 初始化URL
     * @return BorwserBox*    浏览器盒子指针
     */
-    BrowserBox* CreateBorwserBox(MultiBrowserForm *browser_form, const std::string &id, const std::wstring &url);
+    BrowserBox* CreateBorwserBox(MultiBrowserForm *browser_form, const std::string &id, const DString &url);
 
     /**
     * 判断某个浏览器盒子是否处于激活状态

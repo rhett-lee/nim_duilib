@@ -9,7 +9,7 @@
 namespace ui
 {
 
-/** 控件使用的字符串，用于替代std::wstring，以减少控件的内存占用
+/** 控件使用的字符串，用于替代DString，以减少控件的内存占用
 *   该类适合用于较低的内存空间来存储字符串，性能方面由于字符串复制偏多，性能偏弱
 */
 class UILIB_API UiString
@@ -57,7 +57,7 @@ public:
         }
     }
 
-    UiString& operator=(const std::wstring& str)
+    UiString& operator=(const DString& str)
     {
         if (m_pData != nullptr) {
             delete m_pData;
@@ -71,7 +71,7 @@ public:
         return *this;
     }
 
-    bool equals(const std::wstring& str) const
+    bool equals(const DString& str) const
     {
         if (str.empty()) {
             return empty();
@@ -104,19 +104,19 @@ public:
     friend bool operator==(const UiString& a, const UiString& b) {
         return a.equals(b);
     }
-    friend bool operator==(const UiString& a, const std::wstring& b) {
+    friend bool operator==(const UiString& a, const DString& b) {
         return a.equals(b);
     }
-    friend bool operator==(const std::wstring& a, const UiString& b) {
+    friend bool operator==(const DString& a, const UiString& b) {
         return b.equals(a);
     }
     friend bool operator!=(const UiString& a, const UiString& b) {
         return !a.equals(b);
     }
-    friend bool operator!=(const UiString& a, const std::wstring& b) {
+    friend bool operator!=(const UiString& a, const DString& b) {
         return !a.equals(b);
     }
-    friend bool operator!=(const std::wstring& a, const UiString& b) {
+    friend bool operator!=(const DString& a, const UiString& b) {
         return !b.equals(a);
     }
 private:

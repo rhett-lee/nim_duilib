@@ -15,7 +15,7 @@ public:
 private:
     /** 是否为图片文件
     */
-    bool IsImageFile(const std::wstring& filePath) const;
+    bool IsImageFile(const DString& filePath) const;
 
 private:
     //元素的索引号

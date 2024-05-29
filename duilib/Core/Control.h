@@ -35,18 +35,18 @@ public:
 
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override;
+    virtual DString GetType() const override;
 
     /// 图形相关
     /**@brief 获取背景颜色
      * @return 返回背景颜色的字符串，该值在 global.xml 中定义
      */
-    std::wstring GetBkColor() const { return m_strBkColor.c_str(); }
+    DString GetBkColor() const { return m_strBkColor.c_str(); }
 
     /** 设置背景颜色
      * @param [in] strColor 要设置的背景颜色值，该值必须在 global.xml 中存在
      */
-    void SetBkColor(const std::wstring& strColor);
+    void SetBkColor(const DString& strColor);
 
     /** 设置背景颜色
      * @param [in] color 要设置的背景颜色值
@@ -56,28 +56,28 @@ public:
     /** 设置第二背景色（实现渐变背景色）
      * @param [in] strColor 要设置的背景颜色值，该值必须在 global.xml 中存在
      */
-    void SetBkColor2(const std::wstring& strColor);
+    void SetBkColor2(const DString& strColor);
 
     /** 获取第二背景色（实现渐变背景色）
      */
-    std::wstring GetBkColor2() const;
+    DString GetBkColor2() const;
 
     /** 设置第二背景色的方向
      * @param [in] direction 第二背景色的方向："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
      */
-    void SetBkColor2Direction(const std::wstring& direction);
+    void SetBkColor2Direction(const DString& direction);
 
     /** 获取第二背景色的方向
     * @return 返回第二背景色的方向："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
      */
-    std::wstring GetBkColor2Direction() const;
+    DString GetBkColor2Direction() const;
 
     /**
      * @brief 获取某个状态下的控件颜色
      * @param[in] stateType 要获取何种状态下的颜色值，参考 ControlStateType 枚举
      * @return 指定状态下设定的颜色字符串，对应 global.xml 中指定色值
      */
-    std::wstring GetStateColor(ControlStateType stateType) const;
+    DString GetStateColor(ControlStateType stateType) const;
 
     /**
      * @brief 设置某个状态下的控件颜色
@@ -85,13 +85,13 @@ public:
      * @param[in] strColor 要设置的颜色值，该值必须在 global.xml 中存在
      * @return 无
      */
-    void SetStateColor(ControlStateType stateType, const std::wstring& strColor);
+    void SetStateColor(ControlStateType stateType, const DString& strColor);
 
     /**
      * @brief 获取背景图片位置
      * @return 背景图片位置  
      */
-    std::wstring GetBkImage() const;
+    DString GetBkImage() const;
 
     /**
      * @brief 获取 UTF8 格式的背景图片位置
@@ -104,7 +104,7 @@ public:
      * @param[in] strImage 要设置的图片路径
      * @return 无
      */
-    void SetBkImage(const std::wstring& strImage);
+    void SetBkImage(const DString& strImage);
 
     /**
      * @brief 设置背景图片（UTF8 格式字符串）
@@ -117,12 +117,12 @@ public:
     /** 设置loading图片
     * @param[in] strImage 要设置的图片路径及属性
     */
-    void SetLoadingImage(const std::wstring& strImage);
+    void SetLoadingImage(const DString& strImage);
 
     /** 设置loading背景色
     * @param[in] strColor 背景色
     */
-    void SetLoadingBkColor(const std::wstring& strColor);
+    void SetLoadingBkColor(const DString& strColor);
 
     /** 开启loading状态
     * @param[in] start_angle loading图片旋转的角度
@@ -140,7 +140,7 @@ public:
      * @param[in] 要获取何种状态下的图片，参考 ControlStateType 枚举
      * @return 指定状态下的图片位置
      */
-    std::wstring GetStateImage(ControlStateType stateType) const;
+    DString GetStateImage(ControlStateType stateType) const;
 
     /**
      * @brief 设置某个状态下的图片
@@ -148,14 +148,14 @@ public:
      * @param[in] strImage 要设置的图片路径
      * @return 无
      */
-    void SetStateImage(ControlStateType stateType, const std::wstring& strImage);
+    void SetStateImage(ControlStateType stateType, const DString& strImage);
 
     /**
      * @brief 获取指定状态下的前景图片
      * @param[in] 要获取何种状态下的图片，参考 `ControlStateType` 枚举
      * @return 指定状态下前景图片位置
      */
-    std::wstring GetForeStateImage(ControlStateType stateType) const;
+    DString GetForeStateImage(ControlStateType stateType) const;
 
     /**
      * @brief 设置某个状态下前景图片
@@ -163,7 +163,7 @@ public:
      * @param[in] strImage 要设置的前景图片路径
      * @return 无
      */
-    void SetForeStateImage(ControlStateType stateType, const std::wstring& strImage);
+    void SetForeStateImage(ControlStateType stateType, const DString& strImage);
 
     /**@brief 获取控件状态
      * @return 控件的状态，请参考 `ControlStateType` 枚举
@@ -188,26 +188,26 @@ public:
      * @param [in] stateType 控件状态
      * @return 边框的颜色字符串，对应 global.xml 中的具体颜色值
      */
-    virtual std::wstring GetBorderColor(ControlStateType stateType) const;
+    virtual DString GetBorderColor(ControlStateType stateType) const;
 
     /** 设置边框颜色，应用于所有状态
      * @param [in] strBorderColor 设置边框的颜色字符串值，该值必须在 global.xml 中存在
      */
-    void SetBorderColor(const std::wstring& strBorderColor);
+    void SetBorderColor(const DString& strBorderColor);
 
     /** 设置指定状态下的边框颜色
      * @param [in] stateType 控件状态
      * @param [in] strBorderColor 设置边框的颜色字符串值，该值必须在 global.xml 中存在
      */
-    void SetBorderColor(ControlStateType stateType, const std::wstring& strBorderColor);
+    void SetBorderColor(ControlStateType stateType, const DString& strBorderColor);
 
     /** 设置焦点状态下的边框颜色
     */
-    void SetFocusBorderColor(const std::wstring& strBorderColor);
+    void SetFocusBorderColor(const DString& strBorderColor);
 
     /** 获取焦点状态下的边框颜色
     */
-    std::wstring GetFocusBorderColor() const;
+    DString GetFocusBorderColor() const;
 
     /** 设置边框的大小(left、top、right、bottom分别对应左边框大小，上边框大小，右边框大小、下边框大小)
      * @param [in] rc 一个 `UiRect` 结构的边框大小集合
@@ -275,7 +275,7 @@ public:
     /** 设置边框阴影
      * @param[in] 要设置的阴影属性
      */
-    void SetBoxShadow(const std::wstring& strShadow);
+    void SetBoxShadow(const DString& strShadow);
 
     /// 鼠标相关
     /**
@@ -292,7 +292,7 @@ public:
      * @brief 获取控件在鼠标悬浮状态下的提示文本
      * @return 返回当前鼠标悬浮状态提示的文本
      */
-    virtual std::wstring GetToolTipText() const;
+    virtual DString GetToolTipText() const;
 
     /**
      * @brief 获取控件在鼠标悬浮状态下的提示文本（UTF8 格式）
@@ -305,7 +305,7 @@ public:
      * @param[in] strText 要设置的文本
      * @return 无
      */
-    virtual void SetToolTipText(const std::wstring& strText);
+    virtual void SetToolTipText(const DString& strText);
 
     /**
      * @brief 设置鼠标悬浮到控件显示的提示文本（UTF8 格式）
@@ -319,7 +319,7 @@ public:
      * @param[in] strTextId 在语言文件中对应的提示文字 ID
      * @return 无
      */
-    virtual void SetToolTipTextId(const std::wstring& strTextId);
+    virtual void SetToolTipTextId(const DString& strTextId);
 
     /**
      * @brief 设置鼠标悬浮到控件显示的提示文本在语言文件中对应的文字（UTF8 格式）
@@ -359,7 +359,7 @@ public:
     /** 获取用户绑定到控件的数据字符串
      * @return 返回具体数据字符串
      */
-    std::wstring GetDataID() const;
+    DString GetDataID() const;
 
     /** 获取用户绑定到控件的数据字符串（UTF8 格式）
      * @return 返回具体数据字符串
@@ -369,7 +369,7 @@ public:
     /** 绑定一个字符串数据到控件
      * @param[in] strText 要绑定的字符串数据
      */
-    void SetDataID(const std::wstring& strText);
+    void SetDataID(const DString& strText);
 
     /** 绑定一个字符串数据到控件（UTF8 格式）
      * @param[in] strText 要绑定的字符串数据
@@ -471,11 +471,11 @@ public:
 
     /** 设置焦点状态虚线矩形的颜色(线条的颜色)
     */
-    void SetFocusRectColor(const std::wstring& focusRectColor);
+    void SetFocusRectColor(const DString& focusRectColor);
 
     /** 获取焦点状态虚线矩形的颜色(线条的颜色)
     */
-    std::wstring GetFocusRectColor() const;
+    DString GetFocusRectColor() const;
 
     /** 判断当前鼠标焦点是否在控件上
      * @return 返回鼠标焦点是否在控件上，true 鼠标焦点在控件上，false 鼠标焦点不在控件上
@@ -577,28 +577,28 @@ public:
      * @param[in] strValue 要设置的属性值（如 100）
      * @return 无
      */
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue);
+    virtual void SetAttribute(const DString& strName, const DString& strValue);
 
     /**
      * @brief 设置控件的 class 全局属性
      * @param[in] strClass 要设置的 class 名称，该名称必须在 global.xml 中存在
      * @return 无
      */
-    void SetClass(const std::wstring& strClass);
+    void SetClass(const DString& strClass);
 
     /**
      * @brief 应用一套属性列表
      * @param[in] strList 属性列表的字符串表示，如 `width="100" height="30"`
      * @return 无
      */
-    void ApplyAttributeList(const std::wstring& strList);
+    void ApplyAttributeList(const DString& strList);
 
     /**
      * @brief 待补充
      * @param[in] 待补充
      * @return 待补充
      */
-    bool OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, const EventArgs& eventArgs);
+    bool OnApplyAttributeList(const DString& strReceiver, const DString& strList, const EventArgs& eventArgs);
 
     /// 绘制操作
     /**
@@ -614,7 +614,7 @@ public:
      * @return 成功返回 true，失败返回 false
      */
     bool PaintImage(IRender* pRender, Image* pImage,
-                    const std::wstring& strModify = _T(""),
+                    const DString& strModify = _T(""),
                     int32_t nFade = DUI_NOSET_VALUE,
                     IMatrix* pMatrix = nullptr,
                     UiRect* pInRect = nullptr,
@@ -891,7 +891,7 @@ public:
     *           (3) 优先级3：在global.xml中的<Global>节点中定义子节点，举例：<TextColor name="white" value="#FFFFFFFF"/>                    
     *           (4) 优先级4：参见ui::UiColors::UiColorConsts函数中的定义
     */
-    bool HasUiColor(const std::wstring& colorName) const;
+    bool HasUiColor(const DString& colorName) const;
 
     /** 获取某个颜色对应的值
     * @param [in] colorName 颜色的名称，有效的颜色名称可以是以下定义（按获取优先级顺序）：
@@ -901,13 +901,13 @@ public:
     *           (4) 优先级4：直接指定预定义的颜色别名，参见ui::UiColors::UiColorConsts函数中的定义
     * @return ARGB颜色值
     */
-    UiColor GetUiColor(const std::wstring& colorName) const;
+    UiColor GetUiColor(const DString& colorName) const;
 
     /** 获取颜色值对应的字符串, 返回该颜色对应的字符串
     * @param [in] color 颜色值
     * @return 返回颜色值对应的字符串，比如"#FF123456"
     */
-    std::wstring GetColorString(const UiColor& color) const;
+    DString GetColorString(const UiColor& color) const;
 
     /** 判断控件类型是否为可选择的
      * @return 默认返回false
@@ -1056,11 +1056,11 @@ protected:
 
     /** 获取指定状态下的图片位置
      */
-    std::wstring GetStateImage(StateImageType imageType, ControlStateType stateType) const;
+    DString GetStateImage(StateImageType imageType, ControlStateType stateType) const;
 
     /** 设置某个状态下的图片
      */
-    void SetStateImage(StateImageType imageType, ControlStateType stateType, const std::wstring& strImage);
+    void SetStateImage(StateImageType imageType, ControlStateType stateType, const DString& strImage);
 
     /** 绘制指定类型、指定状态的图片
     * @param [in] pRender 绘制接口
@@ -1073,7 +1073,7 @@ protected:
     bool PaintStateImage(IRender* pRender, 
                          StateImageType stateImageType, 
                          ControlStateType stateType, 
-                         const std::wstring& sImageModify = _T(""),
+                         const DString& sImageModify = _T(""),
                          UiRect* pDestRect = nullptr);
 
     /** 清除所有状态图片属性
@@ -1107,7 +1107,7 @@ protected:
 
     /** 获取背景图片路径（不含属性）
     */
-    std::wstring GetBkImagePath() const;
+    DString GetBkImagePath() const;
 
     /** 获取背景图片大小(按需加载图片)
     */
@@ -1191,13 +1191,13 @@ public:
     * @param[in] strFontId 要设置的字体ID，该字体ID必须在 global.xml 中存在
     * @return 成功返回字体接口，外部调用不需要释放资源；如果失败则返回nullptr
     */
-    IFont* GetIFontById(const std::wstring& strFontId) const;
+    IFont* GetIFontById(const DString& strFontId) const;
 
 private:
 
     /** 获取颜色名称对应的颜色值
     */
-    UiColor GetUiColorByName(const std::wstring& colorName) const;
+    UiColor GetUiColorByName(const DString& colorName) const;
 
     /** 是否含有BoxShadow
     */

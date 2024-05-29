@@ -95,11 +95,11 @@ public:
     virtual void FillPath(const IPath* path, const IBrush* brush) override;
     virtual void FillPath(const IPath* path, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) override;
 
-    virtual UiRect MeasureString(const std::wstring& strText, IFont* pFont,
+    virtual UiRect MeasureString(const DString& strText, IFont* pFont,
                                  uint32_t uFormat, int width = DUI_NOSET_VALUE) override;
 
 
-    virtual void DrawString(const UiRect& rc, const std::wstring& strText,
+    virtual void DrawString(const UiRect& rc, const DString& strText,
                             UiColor dwTextColor, IFont* pFont,
                             uint32_t uFormat, uint8_t uFade = 255) override;
 
@@ -137,7 +137,7 @@ private:
 
     /** 按设置的属性，绘制文字
     */
-    void DrawTextString(const UiRect& rc, const std::wstring& strText, uint32_t uFormat,
+    void DrawTextString(const UiRect& rc, const DString& strText, uint32_t uFormat,
                         const SkPaint& skPaint, IFont* pFont) const;
 
     /** 设置颜色渐变的绘制属性

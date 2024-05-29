@@ -18,7 +18,7 @@ FontManager::~FontManager()
     RemoveAllFontFiles();
 }
 
-bool FontManager::AddFont(const std::wstring& fontId, const UiFont& fontInfo, bool bDefault)
+bool FontManager::AddFont(const DString& fontId, const UiFont& fontInfo, bool bDefault)
 {
     ASSERT(!fontId.empty());
     if (fontId.empty()) {
@@ -46,21 +46,21 @@ bool FontManager::AddFont(const std::wstring& fontId, const UiFont& fontInfo, bo
     return true;
 }
 
-std::wstring FontManager::GetDpiFontId(const std::wstring& fontId, const DpiManager& dpi) const
+DString FontManager::GetDpiFontId(const DString& fontId, const DpiManager& dpi) const
 {
-    std::wstring dpiFontId;
+    DString dpiFontId;
     if (!fontId.empty()) {
         dpiFontId = fontId + _T("@") + StringUtil::UInt32ToString(dpi.GetScale());
     }
     return dpiFontId;
 }
 
-IFont* FontManager::GetIFont(const std::wstring& fontId, const DpiManager& dpi)
+IFont* FontManager::GetIFont(const DString& fontId, const DpiManager& dpi)
 {
     //先在缓存中查找
     IFont* pFont = nullptr;
     if (!fontId.empty()) {        
-        std::wstring dpiFontId = GetDpiFontId(fontId, dpi);
+        DString dpiFontId = GetDpiFontId(fontId, dpi);
         auto iter = m_fontMap.find(dpiFontId);
         if (iter != m_fontMap.end()) {
             pFont = iter->second;
@@ -70,7 +70,7 @@ IFont* FontManager::GetIFont(const std::wstring& fontId, const DpiManager& dpi)
         auto iter = m_fontIdMap.find(fontId);
         if ((iter == m_fontIdMap.end()) && !m_defaultFontId.empty()) {
             //没有这个字体ID，使用默认的字体ID
-            std::wstring dpiFontId = GetDpiFontId(m_defaultFontId, dpi);
+            DString dpiFontId = GetDpiFontId(m_defaultFontId, dpi);
             auto pos = m_fontMap.find(dpiFontId);
             if (pos != m_fontMap.end()) {
                 pFont = pos->second;
@@ -84,7 +84,7 @@ IFont* FontManager::GetIFont(const std::wstring& fontId, const DpiManager& dpi)
 
     //缓存中不存在，需要创建字体
     UiFont fontInfo;
-    std::wstring realFontId = fontId;
+    DString realFontId = fontId;
     auto iter = m_fontIdMap.find(realFontId);
     if (iter == m_fontIdMap.end()) {
         realFontId = m_defaultFontId;
@@ -104,7 +104,7 @@ IFont* FontManager::GetIFont(const std::wstring& fontId, const DpiManager& dpi)
         //无此字体ID
         return nullptr;
     }
-    std::wstring dpiFontId = GetDpiFontId(realFontId, dpi);    
+    DString dpiFontId = GetDpiFontId(realFontId, dpi);    
     if (fontInfo.m_fontName.empty() || 
         StringUtil::IsEqualNoCase(fontInfo.m_fontName, _T("system"))) {
         //字体使用英文名称，保持兼容性
@@ -149,10 +149,10 @@ void FontManager::RemoveAllFonts()
     m_fontIdMap.clear();
 }
 
-void FontManager::AddFontFile(const std::wstring& strFontFile, const std::wstring& strFontName)
+void FontManager::AddFontFile(const DString& strFontFile, const DString& strFontName)
 {
     FontFileInfo fontFileInfo;
-    std::wstring path = GlobalManager::Instance().GetResFullPath(_T(""), _T("font\\") + strFontFile);
+    DString path = GlobalManager::Instance().GetResFullPath(_T(""), _T("font\\") + strFontFile);
     bool res = false;
     if (GlobalManager::Instance().Zip().IsUseZip()) {
         std::vector<unsigned char> file_data;
@@ -187,37 +187,37 @@ void FontManager::RemoveAllFontFiles()
 }
 
 //字体的中英文名称映射表
-static void GetFontNameList(std::vector<std::pair<std::wstring, std::wstring>>& fontNameList)
+static void GetFontNameList(std::vector<std::pair<DString, DString>>& fontNameList)
 {
     //系统字体
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("宋体"), _T("SimSun")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("黑体"), _T("SimHei")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("微软雅黑"), _T("Microsoft YaHei")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("微软正黑体"), _T("Microsoft JhengHei")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("楷体"), _T("KaiTi")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("新宋体"), _T("NSimSun")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("仿宋"), _T("FangSong")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("宋体"), _T("SimSun")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("黑体"), _T("SimHei")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("微软雅黑"), _T("Microsoft YaHei")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("微软正黑体"), _T("Microsoft JhengHei")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("楷体"), _T("KaiTi")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("新宋体"), _T("NSimSun")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("仿宋"), _T("FangSong")));
     
     //Office字体
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("幼圆"), _T("YouYuan")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("隶书"), _T("LiSu")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文细黑"), _T("STXiHei")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文楷体"), _T("STKaiTi")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文宋体"), _T("STSong")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文仿宋"), _T("STFangSong")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文中宋"), _T("STZhongSong")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文彩云"), _T("STCaiYun")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文琥珀"), _T("STHuPo")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文新魏"), _T("STXinWei")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文隶书"), _T("STLiTi")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文行楷"), _T("STXingKai")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("方正舒体"), _T("FZShuTi")));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("方正姚体"), _T("FZYaoTi")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("幼圆"), _T("YouYuan")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("隶书"), _T("LiSu")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文细黑"), _T("STXiHei")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文楷体"), _T("STKaiTi")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文宋体"), _T("STSong")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文仿宋"), _T("STFangSong")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文中宋"), _T("STZhongSong")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文彩云"), _T("STCaiYun")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文琥珀"), _T("STHuPo")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文新魏"), _T("STXinWei")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文隶书"), _T("STLiTi")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文行楷"), _T("STXingKai")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("方正舒体"), _T("FZShuTi")));
+    fontNameList.push_back(std::make_pair<DString, DString>(_T("方正姚体"), _T("FZYaoTi")));
 }
 
-std::wstring FontManager::GetFontEnglishName(const std::wstring& fontName)
+DString FontManager::GetFontEnglishName(const DString& fontName)
 {
-    std::vector<std::pair<std::wstring, std::wstring>> fontNameList;
+    std::vector<std::pair<DString, DString>> fontNameList;
     GetFontNameList(fontNameList);
     for (const auto& pair : fontNameList) {
         if (fontName == pair.first) {
@@ -227,9 +227,9 @@ std::wstring FontManager::GetFontEnglishName(const std::wstring& fontName)
     return fontName;
 }
 
-std::wstring FontManager::GetFontSystemName(const std::wstring& fontName)
+DString FontManager::GetFontSystemName(const DString& fontName)
 {
-    std::vector<std::pair<std::wstring, std::wstring>> fontNameList;
+    std::vector<std::pair<DString, DString>> fontNameList;
     GetFontNameList(fontNameList);
     for (const auto& pair : fontNameList) {
         if (ui::StringUtil::IsEqualNoCase(fontName, pair.second)) {

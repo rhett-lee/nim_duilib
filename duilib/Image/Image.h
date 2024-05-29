@@ -38,19 +38,19 @@ public:
     * @param [in] strImageString 图片属性字符串
     * @param [in] dpi DPI缩放接口
     */
-    void SetImageString(const std::wstring& strImageString, const DpiManager& dpi);
+    void SetImageString(const DString& strImageString, const DpiManager& dpi);
 
     /** 获取图片属性（含文件名，和图片设置属性等）
     */
-    std::wstring GetImageString() const;
+    DString GetImageString() const;
 
     /** 判断图片属性是否相等
     */
-    bool EqualToImageString(const std::wstring& imageString) const;
+    bool EqualToImageString(const DString& imageString) const;
 
     /** 获取图片文件名（含相对路径，不含图片属性）
     */
-    std::wstring GetImagePath() const;
+    DString GetImagePath() const;
 
     /** 获取图片属性的内边距
     * @param [in] dpi DPI缩放管理器

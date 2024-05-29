@@ -18,8 +18,8 @@ public:
     virtual ~Progress();
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintStateImages(IRender* pRender) override;
     virtual void ClearImageCache() override;
 
@@ -82,22 +82,22 @@ public:
     /** 获取滚动条背景图片
      * @return 返回背景图片位置
      */
-    std::wstring GetProgressImage() const;
+    DString GetProgressImage() const;
 
     /** 设置进度条背景图片
      * @param [in] strImage 图片地址
      */
-    void SetProgressImage(const std::wstring& strImage);
+    void SetProgressImage(const DString& strImage);
 
     /** 获取进度条背景颜色
      * @return 返回背景颜色的字符串值，对应 global.xml 中的指定色值
      */
-    std::wstring GetProgressColor() const;
+    DString GetProgressColor() const;
 
     /** 设置进度条背景颜色
      * @param [in] 要设置的背景颜色字符串，该字符串必须在 global.xml 中存在
      */
-    void SetProgressColor(const std::wstring& strProgressColor);
+    void SetProgressColor(const DString& strProgressColor);
 
     /** 获取进度条位置
      */

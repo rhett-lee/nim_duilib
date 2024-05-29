@@ -103,7 +103,7 @@ private:
 
     /** 根据图片文件的扩展名获取图片格式
     */
-    static ImageFormat GetImageFormat(const std::wstring& path);
+    static ImageFormat GetImageFormat(const DString& path);
 };
 
 } // namespace ui

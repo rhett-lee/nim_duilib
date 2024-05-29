@@ -74,8 +74,8 @@ private:
     */
     bool GetDpiScaleImageFullPath(uint32_t dpiScale, 
                                   bool bIsUseZip,
-                                  const std::wstring& imageFullPath,
-                                  std::wstring& dpiImageFullPath,
+                                  const DString& imageFullPath,
+                                  DString& dpiImageFullPath,
                                   uint32_t& nImageDpiScale) const;
 
     /** 查找指定DPI缩放百分比下的图片，可以每个DPI设置一个图片，以提高不同DPI下的图片质量
@@ -87,8 +87,8 @@ private:
     */
     bool FindDpiScaleImageFullPath(uint32_t dpiScale, 
                                   bool bIsUseZip,
-                                  const std::wstring& imageFullPath,
-                                  std::wstring& dpiImageFullPath) const;
+                                  const DString& imageFullPath,
+                                  DString& dpiImageFullPath) const;
 
     /** 获取指定DPI缩放百分比下的图片资源路径
     *   举例：DPI缩放百分比为120（即放大到120%）的图片："image.png" 对应于 "image@120.png"
@@ -96,7 +96,7 @@ private:
     * @param [in] imageFullPath 图片资源的完整路径
     * @return 返回指定DPI下的图片资源路径, 如果失败则返回空串
     */
-    std::wstring GetDpiScaledPath(uint32_t dpiScale, const std::wstring& imageFullPath) const;
+    DString GetDpiScaledPath(uint32_t dpiScale, const DString& imageFullPath) const;
 
 #ifdef DUILIB_PLATFORM_WIN
     /** 从HICON句柄加载一个图片
@@ -118,11 +118,11 @@ private:
 
     /** 图片资源映射表（图片的Key与图片数据）
     */
-    std::unordered_map<std::wstring, std::weak_ptr<ImageInfo>> m_imageMap;
+    std::unordered_map<DString, std::weak_ptr<ImageInfo>> m_imageMap;
 
     /** 图片资源Key映射表（图片的加载Key与图片Key）
     */
-    std::unordered_map <std::wstring, std::wstring> m_loadKeyMap;
+    std::unordered_map <DString, DString> m_loadKeyMap;
 };
 
 }

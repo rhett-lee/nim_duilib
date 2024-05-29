@@ -18,17 +18,17 @@ public:
 
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
 public:
     /** 设置绑定的TabBox控件名称
     */
-    void SetTabBoxName(const std::wstring& tabBoxName);
+    void SetTabBoxName(const DString& tabBoxName);
 
     /** 获取绑定的TabBox控件名称
     */
-    std::wstring GetTabBoxName() const;
+    DString GetTabBoxName() const;
 
     /** 设置绑定的TabBox接口
     */
@@ -103,29 +103,29 @@ public:
 
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void SetVisible(bool bVisible) override;
-    virtual std::wstring GetToolTipText() const override;
+    virtual DString GetToolTipText() const override;
 
 public:
     /** 设置图标
     * @param [in] iconImageString 图标资源字符串
     */
-    void SetIcon(const std::wstring& iconImageString);
+    void SetIcon(const DString& iconImageString);
 
     /** 获取图标
     * @return 返回图标资源字符串
     */
-    std::wstring GetIcon() const;
+    DString GetIcon() const;
 
     /** 设置文字内容
     */
-    void SetTitle(const std::wstring& title);
+    void SetTitle(const DString& title);
 
     /** 获取文字内容
     */
-    std::wstring GetTitle() const;
+    DString GetTitle() const;
 
 public:
     /** 设置绑定的TabBox子项索引号
@@ -152,23 +152,23 @@ public:
 public:
     /** 图标控件的Class
     */
-    void SetIconClass(const std::wstring& iconClass);
-    std::wstring GetIconClass() const;
+    void SetIconClass(const DString& iconClass);
+    DString GetIconClass() const;
 
     /** 文本控件的Class
     */
-    void SetTitleClass(const std::wstring& titleClass);
-    std::wstring GetTitleClass() const;
+    void SetTitleClass(const DString& titleClass);
+    DString GetTitleClass() const;
 
     /** 关闭按钮控件的Class
     */
-    void SetCloseButtonClass(const std::wstring& closeButtonClass);
-    std::wstring GetCloseButtonClass() const;
+    void SetCloseButtonClass(const DString& closeButtonClass);
+    DString GetCloseButtonClass() const;
 
     /** 分割线控件的Class
     */
-    void SetLineClass(const std::wstring& lineClass);
-    std::wstring GetLineClass() const;
+    void SetLineClass(const DString& lineClass);
+    DString GetLineClass() const;
 
 public:
     /** 设置选择状态的标签圆角大小

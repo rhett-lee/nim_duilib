@@ -24,9 +24,9 @@ ListBox::ListBox(Window* pWindow, Layout* pLayout) :
 {
 }
 
-std::wstring ListBox::GetType() const { return _T("ListBox"); }
+DString ListBox::GetType() const { return _T("ListBox"); }
 
-void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void ListBox::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("multi_select")) {
         SetMultiSelect(strValue == _T("true"));
@@ -1214,7 +1214,7 @@ bool ListBox::ScrollItemToTop(size_t iIndex)
     return false;
 }
 
-bool ListBox::ScrollItemToTop(const std::wstring& itemName)
+bool ListBox::ScrollItemToTop(const DString& itemName)
 {
     const size_t itemCount = m_items.size();
     for (size_t iIndex = 0; iIndex < itemCount; ++iIndex) {

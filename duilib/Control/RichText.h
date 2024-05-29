@@ -73,8 +73,8 @@ public:
     virtual ~RichText();
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintText(IRender* pRender) override;
 
     /** DPI发生变化，更新控件大小和布局
@@ -103,20 +103,20 @@ public:
     /** 获取当前字体ID
      * @return 返回字体ID，该编号在 global.xml 中标识
      */
-    std::wstring GetFontId() const;
+    DString GetFontId() const;
 
     /** 设置当前字体ID
      * @param [in] strFontId 要设置的字体ID，该ID可在 global.xml 中存在
      */
-    void SetFontId(const std::wstring& strFontId);
+    void SetFontId(const DString& strFontId);
 
     /** 获取默认文本颜色
      */
-    std::wstring GetTextColor() const;
+    DString GetTextColor() const;
 
     /** 设置默认文本颜色
      */
-    void SetTextColor(const std::wstring& sTextColor);
+    void SetTextColor(const DString& sTextColor);
 
     /** 获取行间距倍数
     */
@@ -130,12 +130,12 @@ public:
     /** 设置格式的文本
     * @param [in] richText 带有格式的文本内容
     */
-    bool SetText(const std::wstring& richText);
+    bool SetText(const DString& richText);
 
     /** 设置格式的文本ID
     * @param [in] richTextId 带有格式的文本内容ID
     */
-    bool SetTextId(const std::wstring& richTextId);
+    bool SetTextId(const DString& richTextId);
 
     /** 清空原来的格式文本
     */
@@ -153,18 +153,18 @@ public:
     * @param [in,out] text 传入需要处理的文本，传出处理完成后的文本
     * @return 返回text的引用
     */
-    const std::wstring& TrimText(std::wstring& text);
+    const DString& TrimText(DString& text);
 
     /** 根据Trim方案，对文本进行Trim处理，去掉多余的空格
     * @param [in] text 传入需要处理的文本
     * @return 返回处理好的字符串
     */
-    std::wstring TrimText(const wchar_t* text);
+    DString TrimText(const wchar_t* text);
 
 public:
     /** 输出带格式化文本
     */
-    std::wstring ToString() const;
+    DString ToString() const;
 
     /** 监听超级链接被点击事件
      * @param[in] callback 超级链接被点击后的回调函数
@@ -175,7 +175,7 @@ private:
     /** 设置格式的文本, 但不重绘
     * @param [in] richText 带有格式的文本内容
     */
-    bool DoSetText(const std::wstring& richText);
+    bool DoSetText(const DString& richText);
 
     /** 解析格式化文本, 生成解析后的数据结构
     */
@@ -196,7 +196,7 @@ private:
 
     /** 输出带格式化文本
     */
-    std::wstring ToString(const RichTextSlice& textSlice, const std::wstring& indent) const;
+    DString ToString(const RichTextSlice& textSlice, const DString& indent) const;
 
     /** 计算绘制后的目标区域大小
     */

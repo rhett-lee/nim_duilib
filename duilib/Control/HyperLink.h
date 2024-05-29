@@ -17,8 +17,8 @@ public:
     {
     }
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override { return DUI_CTR_HYPER_LINK; }
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override
+    virtual DString GetType() const override { return DUI_CTR_HYPER_LINK; }
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override
     {
         if (strName == _T("url")) {
             m_url = strValue;
@@ -33,7 +33,7 @@ public:
         if (!IsActivatable()) {
             return;
         }
-        std::wstring url = m_url.c_str();
+        DString url = m_url.c_str();
         SendEvent(kEventLinkClick, (WPARAM)url.c_str());
     }
 

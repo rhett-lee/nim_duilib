@@ -22,8 +22,8 @@ public:
     //更新窗口的位置
     void UpdateWndPos();
 
-    virtual std::wstring GetWindowClassName() const override;
-    virtual std::wstring GetSuperClassName() const override;
+    virtual DString GetWindowClassName() const override;
+    virtual DString GetSuperClassName() const override;
     virtual void OnFinalMessage() override;
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
@@ -127,7 +127,7 @@ bool DateTimeWnd::Init(DateTime* pOwner)
     }
 
     ::SendMessage(GetHWND(), DTM_SETSYSTEMTIME, 0, (LPARAM)&m_oldSysTime);    
-    std::wstring sEditFormat;
+    DString sEditFormat;
     switch (editFormat) {
     case DateTime::EditFormat::kDateCalendar:
     case DateTime::EditFormat::kDateUpDown:
@@ -240,12 +240,12 @@ UiRect DateTimeWnd::CalPos()
     return rcPos;
 }
 
-std::wstring DateTimeWnd::GetWindowClassName() const
+DString DateTimeWnd::GetWindowClassName() const
 {
     return _T("DateTimeWnd");
 }
 
-std::wstring DateTimeWnd::GetSuperClassName() const
+DString DateTimeWnd::GetSuperClassName() const
 {
     return DATETIMEPICK_CLASS;
 }
@@ -328,9 +328,9 @@ DateTime::~DateTime()
 {
 }
 
-std::wstring DateTime::GetType() const { return DUI_CTR_DATETIME; }
+DString DateTime::GetType() const { return DUI_CTR_DATETIME; }
 
-void DateTime::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void DateTime::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("format")) {
         SetStringFormat(strValue);
@@ -394,9 +394,9 @@ void DateTime::SetDateTime(const std::tm& dateTime)
     }
 }
 
-std::wstring DateTime::GetDateTimeString() const
+DString DateTime::GetDateTimeString() const
 {
-    std::wstring dateTime;
+    DString dateTime;
     if (IsValidDateTime()) {
         std::tm tmSystemDate = m_dateTime;
         std::wstringstream ss;
@@ -406,17 +406,17 @@ std::wstring DateTime::GetDateTimeString() const
     return dateTime;
 }
 
-bool DateTime::SetDateTimeString(const std::wstring& dateTime)
+bool DateTime::SetDateTimeString(const DString& dateTime)
 {
     bool bRet = false;
-    std::wstring sFormat = GetStringFormat();
+    DString sFormat = GetStringFormat();
     ASSERT(!sFormat.empty());
     std::tm t = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
     std::wistringstream ss(dateTime);
     ss >> std::get_time(&t, sFormat.c_str());
     if (ss.fail()) {
         //失败后，智能识别年月日的分隔符
-        if (dateTime.find(_T('-')) != std::wstring::npos) {
+        if (dateTime.find(_T('-')) != DString::npos) {
             StringUtil::ReplaceAll(_T("/"), _T("-"), sFormat);
             std::wistringstream ss2(dateTime);
             ss2 >> std::get_time(&t, sFormat.c_str());
@@ -426,7 +426,7 @@ bool DateTime::SetDateTimeString(const std::wstring& dateTime)
                 m_dateSeparator = _T('-');
             }
         }
-        else if (dateTime.find(_T('/')) != std::wstring::npos) {
+        else if (dateTime.find(_T('/')) != DString::npos) {
             StringUtil::ReplaceAll(_T("-"), _T("/"), sFormat);
             std::wistringstream ss2(dateTime);
             ss2 >> std::get_time(&t, sFormat.c_str());
@@ -507,7 +507,7 @@ bool DateTime::IsValidDateTime() const
     return true;
 }
 
-void DateTime::SetStringFormat(const std::wstring& sFormat)
+void DateTime::SetStringFormat(const DString& sFormat)
 {
     if (!IsInited()) {
         m_sFormat = sFormat;
@@ -522,9 +522,9 @@ void DateTime::SetStringFormat(const std::wstring& sFormat)
     }
 }
 
-std::wstring DateTime::GetStringFormat() const
+DString DateTime::GetStringFormat() const
 {
-    std::wstring sFormat = m_sFormat.c_str();
+    DString sFormat = m_sFormat.c_str();
     if (sFormat.empty()) {
         EditFormat editFormat = GetEditFormat();
         switch (editFormat) {
@@ -549,7 +549,7 @@ std::wstring DateTime::GetStringFormat() const
             break;
         }
         if (m_dateSeparator != _T('-')) {
-            std::wstring separator;
+            DString separator;
             separator = m_dateSeparator;
             StringUtil::ReplaceAll(_T("-"), separator, sFormat);
         }        
@@ -563,7 +563,7 @@ void DateTime::SetEditFormat(EditFormat editFormat)
         m_editFormat = editFormat;
     }
     else if (m_editFormat != editFormat) {
-        std::wstring oldFormat = GetStringFormat();
+        DString oldFormat = GetStringFormat();
         m_editFormat = editFormat;
         if (oldFormat != GetStringFormat()) {
             //更新显示文本
@@ -680,7 +680,7 @@ void DateTime::OnInit()
     __super::OnInit();
 
     if (!IsValidDateTime()) {
-        std::wstring text = GetText();
+        DString text = GetText();
         //将显示的文本内容，转换成日期时间格式
         if (!text.empty()) {
             SetDateTimeString(text);

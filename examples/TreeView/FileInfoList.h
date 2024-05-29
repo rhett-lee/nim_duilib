@@ -9,9 +9,9 @@
 struct FileInfo
 {
     //文件名, 不含路径
-    std::wstring m_fileName;
+    DString m_fileName;
     //文件完整路径名
-    std::wstring m_filePath;
+    DString m_filePath;
     //是否为文件夹
     bool m_isFolder = false;
     //关联的图标(资源的生命周期该类内部管理)

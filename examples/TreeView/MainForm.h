@@ -21,9 +21,9 @@ public:
      * GetSkinFile            接口设置你要绘制的窗口的 xml 描述文件
      * GetWindowClassName    接口设置窗口唯一的类名称
      */
-    virtual std::wstring GetSkinFolder() override;
-    virtual std::wstring GetSkinFile() override;
-    virtual std::wstring GetWindowClassName() const override;
+    virtual DString GetSkinFolder() override;
+    virtual DString GetSkinFile() override;
+    virtual DString GetWindowClassName() const override;
 
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
@@ -35,46 +35,46 @@ public:
 
     /** 窗口类名
     */
-    static const std::wstring kClassName;
+    static const DString kClassName;
 
     /** 触发树节点点击事件
      */
-    void CheckExpandTreeNode(ui::TreeNode* pTreeNode, const std::wstring& filePath);
+    void CheckExpandTreeNode(ui::TreeNode* pTreeNode, const DString& filePath);
 
 private:
     //目录列表数据结构
     struct FolderStatus
     {
-        std::wstring path;
+        DString path;
         bool bShow = false;
         HICON hIcon = nullptr;
         ui::TreeNode* pTreeNode = nullptr;
     };
 
     //显示虚拟目录节点（比如桌面、我的文档等）
-    void ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const std::wstring& name);
+    void ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const DString& name);
 
     //显示磁盘节点, 返回第一个新节点接口
     ui::TreeNode* ShowAllDiskNode();
 
     //显示指定目录的子目录
-    void ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path);
+    void ShowSubFolders(ui::TreeNode* pTreeNode, const DString& path);
 
     //在树中添加一个节点, 返回新添加的节点接口
     ui::TreeNode* InsertTreeNode(ui::TreeNode* pTreeNode,
-                                 const std::wstring& displayName,
-                                 const std::wstring& path,
+                                 const DString& displayName,
+                                 const DString& path,
                                  bool isFolder,
                                  HICON hIcon);
 
     //批量在树中插入一个节点
     void InsertTreeNodes(ui::TreeNode* pTreeNode, 
-                        const std::wstring& path,
+                        const DString& path,
                         const std::vector<FolderStatus>& fileList,
                         bool isFolder);
 
     //显示指定目录的内容
-    void ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& path);
+    void ShowFolderContents(ui::TreeNode* pTreeNode, const DString& path);
 
     /** 树节点展开事件
      * @param[in] args 消息体
@@ -96,7 +96,7 @@ private:
 
     /** 判断一个路径是否为目录
     */
-    bool IsDirectory(const std::wstring& filePath) const;
+    bool IsDirectory(const DString& filePath) const;
 
 private:
     //树节点的接口

@@ -24,7 +24,7 @@ std::string& TaskbarTabItem::GetId()
     return id_;
 }
 
-void TaskbarTabItem::Init(const std::wstring &taskbar_title, const std::string &id)
+void TaskbarTabItem::Init(const DString &taskbar_title, const std::string &id)
 {
     id_ = id;
     if (!is_win7_or_greater_)
@@ -48,7 +48,7 @@ void TaskbarTabItem::UnInit()
         DestroyWindow(GetHWND());
 }
 
-void TaskbarTabItem::SetTaskbarTitle(const std::wstring &title)
+void TaskbarTabItem::SetTaskbarTitle(const DString &title)
 {
     ::SetWindowTextW(GetHWND(), title.c_str());
 }
@@ -107,7 +107,7 @@ void TaskbarTabItem::OnSendPreview()
     }
 }
 
-std::wstring TaskbarTabItem::GetWindowClassName() const
+DString TaskbarTabItem::GetWindowClassName() const
 {
     return _T("Nim.TaskbarItem");
 }

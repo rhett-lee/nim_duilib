@@ -3,7 +3,7 @@
 #include "RenderTest2.h"
 #include "RenderTest3.h"
 
-const std::wstring RenderForm::kClassName = _T("render");
+const DString RenderForm::kClassName = _T("render");
 
 RenderForm::RenderForm()
 {
@@ -14,17 +14,17 @@ RenderForm::~RenderForm()
 {
 }
 
-std::wstring RenderForm::GetSkinFolder()
+DString RenderForm::GetSkinFolder()
 {
     return _T("render");
 }
 
-std::wstring RenderForm::GetSkinFile()
+DString RenderForm::GetSkinFile()
 {
     return _T("render.xml");
 }
 
-std::wstring RenderForm::GetWindowClassName() const
+DString RenderForm::GetWindowClassName() const
 {
     return kClassName;
 }
@@ -41,7 +41,7 @@ void RenderForm::OnCloseWindow()
     PostQuitMessage(0L);
 }
 
-ui::Control* RenderForm::CreateControl(const std::wstring& strClass)
+ui::Control* RenderForm::CreateControl(const DString& strClass)
 {
     if (strClass == _T("RenderTest1")) {
         return new ui::RenderTest1(this);
@@ -167,12 +167,12 @@ void RenderForm::CheckPropertyGridResult()
 
     struct PropertyData
     {
-        std::wstring name;
-        std::wstring oldValue;
-        std::wstring newValue;
+        DString name;
+        DString oldValue;
+        DString newValue;
     };
     typedef std::vector<PropertyData> PropertyDataList;
-    std::map<std::wstring, PropertyDataList> propertyMap;
+    std::map<DString, PropertyDataList> propertyMap;
 
     std::vector<ui::PropertyGridProperty*> properties;
     std::vector<ui::PropertyGridGroup*> groups;

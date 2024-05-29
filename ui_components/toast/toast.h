@@ -21,16 +21,16 @@ public:
      * @param[in] parent 父窗口句柄，如果提供的话toast会显示在父窗口的中心
      * @return void 无返回值
      */
-    static void ShowToast(const std::wstring &content, int duration = 0, HWND parent = NULL);
+    static void ShowToast(const DString &content, int duration = 0, HWND parent = NULL);
 public:
     Toast(){};
     ~Toast(){};
 
     //覆盖虚函数
-    virtual std::wstring GetSkinFolder() override;
-    virtual std::wstring GetSkinFile() override;
-    virtual std::wstring GetWindowClassName() const override;
-    virtual std::wstring GetWindowId() const /*override*/;
+    virtual DString GetSkinFolder() override;
+    virtual DString GetSkinFile() override;
+    virtual DString GetWindowClassName() const override;
+    virtual DString GetWindowId() const /*override*/;
     virtual UINT GetClassStyle() const override;
 
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
@@ -66,7 +66,7 @@ private:
      * @param[in] str 提示内容
      * @return void    无返回值
      */
-    void SetContent(const std::wstring &str);
+    void SetContent(const DString &str);
 
     public:
         static const LPCTSTR kClassName;

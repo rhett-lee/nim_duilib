@@ -14,9 +14,9 @@ Line::Line(Window* pWindow):
     SetLineWidth(1, true);
 }
 
-std::wstring Line::GetType() const { return DUI_CTR_LINE; }
+DString Line::GetType() const { return DUI_CTR_LINE; }
 
-void Line::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void Line::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("vertical")) {
         SetLineVertical(strValue == _T("true"));
@@ -82,7 +82,7 @@ bool Line::IsLineVertical() const
     return m_bLineVertical;
 }
 
-void Line::SetLineColor(const std::wstring& lineColor)
+void Line::SetLineColor(const DString& lineColor)
 {
     if (m_lineColor != lineColor) {
         m_lineColor = lineColor;
@@ -90,12 +90,12 @@ void Line::SetLineColor(const std::wstring& lineColor)
     }    
 }
 
-std::wstring Line::GetLineColor() const
+DString Line::GetLineColor() const
 {
     return m_lineColor.c_str();
 }
 
-void Line::SetLineDashStyle(const std::wstring& dashStyle)
+void Line::SetLineDashStyle(const DString& dashStyle)
 {
     int32_t oldDashStyle = m_dashStyle;
     if (dashStyle == _T("solid")) {
@@ -121,7 +121,7 @@ void Line::SetLineDashStyle(const std::wstring& dashStyle)
     }
 }
 
-std::wstring Line::GetLineDashStyle() const
+DString Line::GetLineDashStyle() const
 {
     if (m_dashStyle == IPen::kDashStyleSolid) {
         return _T("solid");
@@ -155,7 +155,7 @@ void Line::Paint(IRender* pRender, const UiRect& rcPaint)
         return;
     }
 
-    std::wstring sLineColor = m_lineColor.c_str();
+    DString sLineColor = m_lineColor.c_str();
     if (sLineColor.empty()) {
         sLineColor = GlobalManager::Instance().Color().GetDefaultTextColor();
     }

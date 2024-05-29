@@ -24,7 +24,7 @@ ListCtrlView::~ListCtrlView()
 {
 }
 
-void ListCtrlView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void ListCtrlView::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("enable_frame_selection")) {
         m_bEnableFrameSelection = (strValue == _T("true"));

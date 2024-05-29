@@ -68,7 +68,7 @@ UiSize VirtualHLayout::EstimateSizeByChild(const std::vector<Control*>& items, u
     return size;
 }
 
-bool VirtualHLayout::SetAttribute(const std::wstring& strName, const std::wstring& strValue, const DpiManager& dpiManager)
+bool VirtualHLayout::SetAttribute(const DString& strName, const DString& strValue, const DpiManager& dpiManager)
 {
     bool hasAttribute = true;
     if ((strName == _T("item_size")) || (strName == _T("itemsize"))) {

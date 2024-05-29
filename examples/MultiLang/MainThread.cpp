@@ -43,7 +43,7 @@ void MainThread::OnInit()
     constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
     if (resType == ui::ResourceType::kLocalFiles) {
         //使用本地文件夹作为资源
-        std::wstring resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
+        DString resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
         resourcePath += _T("resources\\");
         ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
     }

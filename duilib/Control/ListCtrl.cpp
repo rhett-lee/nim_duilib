@@ -78,7 +78,7 @@ ListCtrl::~ListCtrl()
     }
 }
 
-std::wstring ListCtrl::GetType() const { return DUI_CTR_LISTCTRL; }
+DString ListCtrl::GetType() const { return DUI_CTR_LISTCTRL; }
 
 void ListCtrl::SetImageList(ListCtrlType type, ImageList* pImageList)
 {
@@ -140,7 +140,7 @@ const ImageList* ListCtrl::GetImageList(ListCtrlType type) const
     }
 }
 
-void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void ListCtrl::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("header_class")) {
         SetHeaderClass(strValue);
@@ -601,7 +601,7 @@ ListCtrlType ListCtrl::GetListCtrlType() const
     return m_listCtrlType;
 }
 
-void ListCtrl::SetHeaderClass(const std::wstring& className)
+void ListCtrl::SetHeaderClass(const DString& className)
 {
     m_headerClass = className;
     if (IsInited() && (m_pHeaderCtrl != nullptr)) {
@@ -609,47 +609,47 @@ void ListCtrl::SetHeaderClass(const std::wstring& className)
     }
 }
 
-void ListCtrl::SetHeaderItemClass(const std::wstring& className)
+void ListCtrl::SetHeaderItemClass(const DString& className)
 {
     m_headerItemClass = className;
 }
 
-std::wstring ListCtrl::GetHeaderItemClass() const
+DString ListCtrl::GetHeaderItemClass() const
 {
     return m_headerItemClass.c_str();
 }
 
-void ListCtrl::SetHeaderSplitBoxClass(const std::wstring& className)
+void ListCtrl::SetHeaderSplitBoxClass(const DString& className)
 {
     m_headerSplitBoxClass = className;
 }
 
-std::wstring ListCtrl::GetHeaderSplitBoxClass() const
+DString ListCtrl::GetHeaderSplitBoxClass() const
 {
     return m_headerSplitBoxClass.c_str();
 }
 
-void ListCtrl::SetHeaderSplitControlClass(const std::wstring& className)
+void ListCtrl::SetHeaderSplitControlClass(const DString& className)
 {
     m_headerSplitControlClass = className;
 }
 
-std::wstring ListCtrl::GetHeaderSplitControlClass() const
+DString ListCtrl::GetHeaderSplitControlClass() const
 {
     return m_headerSplitControlClass.c_str();
 }
 
-void ListCtrl::SetCheckBoxClass(const std::wstring& className)
+void ListCtrl::SetCheckBoxClass(const DString& className)
 {
     m_checkBoxClass = className;
 }
 
-std::wstring ListCtrl::GetCheckBoxClass() const
+DString ListCtrl::GetCheckBoxClass() const
 {
     return m_checkBoxClass.c_str();
 }
 
-void ListCtrl::SetReportViewClass(const std::wstring& className)
+void ListCtrl::SetReportViewClass(const DString& className)
 {
     m_reportViewClass = className;
     if (IsInited() && (m_pReportView != nullptr)) {
@@ -657,22 +657,22 @@ void ListCtrl::SetReportViewClass(const std::wstring& className)
     }
 }
 
-std::wstring ListCtrl::GetReportViewClass() const
+DString ListCtrl::GetReportViewClass() const
 {
     return m_reportViewClass.c_str();
 }
 
-void ListCtrl::SetDataItemClass(const std::wstring& className)
+void ListCtrl::SetDataItemClass(const DString& className)
 {
     m_dataItemClass = className;
 }
 
-std::wstring ListCtrl::GetDataItemClass() const
+DString ListCtrl::GetDataItemClass() const
 {
     return m_dataItemClass.c_str();
 }
 
-void ListCtrl::SetDataSubItemClass(const std::wstring& className)
+void ListCtrl::SetDataSubItemClass(const DString& className)
 {
     m_dataSubItemClass = className;
     if (IsInited() && !className.empty()) {
@@ -682,12 +682,12 @@ void ListCtrl::SetDataSubItemClass(const std::wstring& className)
     }
 }
 
-std::wstring ListCtrl::GetDataSubItemClass() const
+DString ListCtrl::GetDataSubItemClass() const
 {
     return m_dataSubItemClass.c_str();
 }
 
-void ListCtrl::SetIconViewClass(const std::wstring& className)
+void ListCtrl::SetIconViewClass(const DString& className)
 {
     m_iconViewClass = className;
     if (IsInited() && (m_pIconView != nullptr)) {
@@ -695,42 +695,42 @@ void ListCtrl::SetIconViewClass(const std::wstring& className)
     }
 }
 
-std::wstring ListCtrl::GetIconViewClass() const
+DString ListCtrl::GetIconViewClass() const
 {
     return m_iconViewClass.c_str();
 }
 
-void ListCtrl::SetIconViewItemClass(const std::wstring& className)
+void ListCtrl::SetIconViewItemClass(const DString& className)
 {
     m_iconViewItemClass = className;
 }
 
-std::wstring ListCtrl::GetIconViewItemClass() const
+DString ListCtrl::GetIconViewItemClass() const
 {
     return m_iconViewItemClass.c_str();
 }
 
-void ListCtrl::SetIconViewItemImageClass(const std::wstring& className)
+void ListCtrl::SetIconViewItemImageClass(const DString& className)
 {
     m_iconViewItemImageClass = className;
 }
 
-std::wstring ListCtrl::GetIconViewItemImageClass() const
+DString ListCtrl::GetIconViewItemImageClass() const
 {
     return m_iconViewItemImageClass.c_str();
 }
 
-void ListCtrl::SetIconViewItemLabelClass(const std::wstring& className)
+void ListCtrl::SetIconViewItemLabelClass(const DString& className)
 {
     m_iconViewItemLabelClass = className;
 }
 
-std::wstring ListCtrl::GetIconViewItemLabelClass() const
+DString ListCtrl::GetIconViewItemLabelClass() const
 {
     return m_iconViewItemLabelClass.c_str();
 }
 
-void ListCtrl::SetListViewClass(const std::wstring& className)
+void ListCtrl::SetListViewClass(const DString& className)
 {
     m_listViewClass = className;
     if (IsInited() && (m_pListView != nullptr)) {
@@ -738,42 +738,42 @@ void ListCtrl::SetListViewClass(const std::wstring& className)
     }
 }
 
-std::wstring ListCtrl::GetListViewClass() const
+DString ListCtrl::GetListViewClass() const
 {
     return m_listViewClass.c_str();
 }
 
-void ListCtrl::SetListViewItemClass(const std::wstring& className)
+void ListCtrl::SetListViewItemClass(const DString& className)
 {
     m_listViewItemClass = className;
 }
 
-std::wstring ListCtrl::GetListViewItemClass() const
+DString ListCtrl::GetListViewItemClass() const
 {
     return m_listViewItemClass.c_str();
 }
 
-void ListCtrl::SetListViewItemImageClass(const std::wstring& className)
+void ListCtrl::SetListViewItemImageClass(const DString& className)
 {
     m_listViewItemImageClass = className;
 }
 
-std::wstring ListCtrl::GetListViewItemImageClass() const
+DString ListCtrl::GetListViewItemImageClass() const
 {
     return m_listViewItemImageClass.c_str();
 }
 
-void ListCtrl::SetListViewItemLabelClass(const std::wstring& className)
+void ListCtrl::SetListViewItemLabelClass(const DString& className)
 {
     m_listViewItemLabelClass = className;
 }
 
-std::wstring ListCtrl::GetListViewItemLabelClass() const
+DString ListCtrl::GetListViewItemLabelClass() const
 {
     return m_listViewItemLabelClass.c_str();
 }
 
-void ListCtrl::SetRichEditClass(const std::wstring& richEditClass)
+void ListCtrl::SetRichEditClass(const DString& richEditClass)
 {
     if (m_listCtrlRichEditClass != richEditClass) {
         m_listCtrlRichEditClass = richEditClass;
@@ -798,7 +798,7 @@ RichEdit* ListCtrl::GetRichEdit() const
     return m_pRichEdit;
 }
 
-std::wstring ListCtrl::GetRichEditClass() const
+DString ListCtrl::GetRichEditClass() const
 {
     return m_listCtrlRichEditClass.c_str();
 }
@@ -813,12 +813,12 @@ int32_t ListCtrl::GetRowGridLineWidth() const
     return m_pReportView->GetRowGridLineWidth();
 }
 
-void ListCtrl::SetRowGridLineColor(const std::wstring& color)
+void ListCtrl::SetRowGridLineColor(const DString& color)
 {
     m_pReportView->SetRowGridLineColor(color);
 }
 
-std::wstring ListCtrl::GetRowGridLineColor() const
+DString ListCtrl::GetRowGridLineColor() const
 {
     return m_pReportView->GetRowGridLineColor();
 }
@@ -833,12 +833,12 @@ int32_t ListCtrl::GetColumnGridLineWidth() const
     return m_pReportView->GetColumnGridLineWidth();
 }
 
-void ListCtrl::SetColumnGridLineColor(const std::wstring& color)
+void ListCtrl::SetColumnGridLineColor(const DString& color)
 {
     m_pReportView->SetColumnGridLineColor(color);
 }
 
-std::wstring ListCtrl::GetColumnGridLineColor() const
+DString ListCtrl::GetColumnGridLineColor() const
 {
     return m_pReportView->GetColumnGridLineColor();
 }
@@ -1514,12 +1514,12 @@ int32_t ListCtrl::GetDataItemHeight(size_t itemIndex) const
     return m_pData->GetDataItemHeight(itemIndex);
 }
 
-bool ListCtrl::SetSubItemText(size_t itemIndex, size_t columnIndex, const std::wstring& text)
+bool ListCtrl::SetSubItemText(size_t itemIndex, size_t columnIndex, const DString& text)
 {
     return m_pData->SetSubItemText(itemIndex, GetColumnId(columnIndex), text);
 }
 
-std::wstring ListCtrl::GetSubItemText(size_t itemIndex, size_t columnIndex) const
+DString ListCtrl::GetSubItemText(size_t itemIndex, size_t columnIndex) const
 {
     return m_pData->GetSubItemText(itemIndex, GetColumnId(columnIndex));
 }
@@ -1936,7 +1936,7 @@ void ListCtrl::OnItemEnterEditMode(size_t itemIndex, size_t nColumnId,
         return;
     }
 
-    std::wstring editClass = GetRichEditClass();
+    DString editClass = GetRichEditClass();
     ASSERT(!editClass.empty());
     if (editClass.empty()) {
         return;
@@ -2109,7 +2109,7 @@ bool ListCtrl::IsValidItemEditParam(const ListCtrlEditParam& editParam) const
 
 void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
 {
-    std::wstring editClass = GetRichEditClass();
+    DString editClass = GetRichEditClass();
     ASSERT(!editClass.empty());
     if (editClass.empty()) {
         return;
@@ -2138,7 +2138,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
     ListCtrlLabel* pSubItem = editParam.pSubItem;
     size_t nDataItemIndex = editParam.nItemIndex;
 
-    std::wstring sOldItemText = pSubItem->GetText();
+    DString sOldItemText = pSubItem->GetText();
     UiRect rcItem = pSubItem->GetTextRect();
     UiPoint offsetPt = pSubItem->GetScrollOffsetInScrollBox();
     rcItem.Offset(-offsetPt.x, -offsetPt.y);
@@ -2196,7 +2196,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
 
     //编辑结束的时候，触发事件
     auto OnLeaveRichEdit = [this, sOldItemText, RestoreItemFocus, editParam]() {
-        std::wstring sNewItemText;
+        DString sNewItemText;
         if ((m_pRichEdit != nullptr) && m_pRichEdit->IsVisible()) {
             sNewItemText = m_pRichEdit->GetText();
             m_pRichEdit->SetVisible(false);                     
@@ -2315,7 +2315,7 @@ void ListCtrl::UpdateRichEditSize(ListCtrlLabel* pSubItem)
     }
 }
 
-void ListCtrl::OnItemEdited(const ListCtrlEditParam& editParam, const std::wstring& newItemText)
+void ListCtrl::OnItemEdited(const ListCtrlEditParam& editParam, const DString& newItemText)
 {
     //触发事件：结束编辑，如果用户取消编辑，那么不执行修改操作
     ListCtrlEditParam leaveEditParam = editParam;

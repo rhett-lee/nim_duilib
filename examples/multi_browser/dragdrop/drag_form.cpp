@@ -84,17 +84,17 @@ DragForm::DragForm()
     bitmap_control_ = NULL;
 }
 
-std::wstring DragForm::GetSkinFolder()
+DString DragForm::GetSkinFolder()
 {
     return _T("multi_browser");
 }
 
-std::wstring DragForm::GetSkinFile()
+DString DragForm::GetSkinFile()
 {
     return _T("drag_form.xml");
 }
 
-ui::Control* DragForm::CreateControl(const std::wstring& pstrClass)
+ui::Control* DragForm::CreateControl(const DString& pstrClass)
 {
     if (pstrClass == _T("BitmapControl"))
     {
@@ -104,7 +104,7 @@ ui::Control* DragForm::CreateControl(const std::wstring& pstrClass)
     return NULL;
 }
 
-std::wstring DragForm::GetWindowClassName() const
+DString DragForm::GetWindowClassName() const
 {
     return kClassName;
 }

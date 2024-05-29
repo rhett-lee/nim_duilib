@@ -24,10 +24,10 @@ public:
     virtual ~ComboButton();
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual bool CanPlaceCaptionBar() const override;
-    virtual std::wstring GetBorderColor(ControlStateType stateType) const override;
+    virtual DString GetBorderColor(ControlStateType stateType) const override;
 
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
@@ -59,23 +59,23 @@ public:
 
     /** 设置左侧按钮控件的Class属性
     */
-    void SetLeftButtonClass(const std::wstring& classValue);
+    void SetLeftButtonClass(const DString& classValue);
 
     /** 设置左侧按钮上侧的Label控件的Class属性
     */
-    void SetLeftButtonTopLabelClass(const std::wstring& classValue);
+    void SetLeftButtonTopLabelClass(const DString& classValue);
 
     /** 设置左侧按钮下侧的Label控件的Class属性
     */
-    void SetLeftButtonBottomLabelClass(const std::wstring& classValue);
+    void SetLeftButtonBottomLabelClass(const DString& classValue);
 
     /** 设置右侧按钮控件的Class属性
     */
-    void SetRightButtonClass(const std::wstring& classValue);
+    void SetRightButtonClass(const DString& classValue);
 
     /** 设置下拉列表容器的Class属性
     */
-    void SetComboBoxClass(const std::wstring& classValue);
+    void SetComboBoxClass(const DString& classValue);
 
 public:
     /** 获取下拉列表的容器接口
@@ -169,12 +169,12 @@ protected:
 private:
     /** 解析属性列表
     */
-    void ParseAttributeList(const std::wstring& strList,
-                            std::vector<std::pair<std::wstring, std::wstring>>& attributeList) const;
+    void ParseAttributeList(const DString& strList,
+                            std::vector<std::pair<DString, DString>>& attributeList) const;
 
     /** 设置控件的属性列表
     */
-    void SetAttributeList(Control* pControl, const std::wstring& classValue);
+    void SetAttributeList(Control* pControl, const DString& classValue);
 
     /** 移除控件
     */

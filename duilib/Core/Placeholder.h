@@ -26,11 +26,11 @@ public:
 
     /** 控件类型
     */
-    virtual std::wstring GetType() const;
+    virtual DString GetType() const;
 
     /** 获取控件名称，对应 xml 中 name 属性
      */
-    std::wstring GetName() const;
+    DString GetName() const;
 
     /** 获取控件名称，对应 xml 中 name 属性
      * @return 返回控件名称（UTF8 编码）
@@ -40,7 +40,7 @@ public:
     /** 设置控件名称，内存中设置不会写入 xml 中
      * @param [in] strName 要设置的名称
      */
-    void SetName(const std::wstring& strName);
+    void SetName(const DString& strName);
 
     /** 设置控件名称，内存中设置不会写入 xml 中（UTF8 编码）
      * @param[in] strName 要设置的名称
@@ -49,12 +49,12 @@ public:
 
     /** 判断控件名称是否相等
     */
-    bool IsNameEquals(const std::wstring& name) const;
+    bool IsNameEquals(const DString& name) const;
 
     /** 根据名称获取祖先容器指针
     * @param [in] strName 要获取的祖先容器名称
     */
-    Box* GetAncestor(const std::wstring& strName);
+    Box* GetAncestor(const DString& strName);
 
     /** 设置容器所属窗口
      * @param [in] pParent 父容器指针

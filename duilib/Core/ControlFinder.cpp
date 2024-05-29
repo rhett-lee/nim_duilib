@@ -57,7 +57,7 @@ Box* ControlFinder::FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const
     return nullptr;
 }
 
-Control* ControlFinder::FindControl2(const std::wstring& strName) const
+Control* ControlFinder::FindControl2(const DString& strName) const
 {
     Control* pFindedControl = nullptr;
     auto it = m_mNameHash.find(strName);
@@ -80,7 +80,7 @@ Control* ControlFinder::FindSubControlByPoint(Control* pParent, const UiPoint& p
     return nullptr;
 }
 
-Control* ControlFinder::FindSubControlByName(Control* pParent, const std::wstring& strName) const
+Control* ControlFinder::FindSubControlByName(Control* pParent, const DString& strName) const
 {
     if (pParent == nullptr) {
         pParent = m_pRoot;
@@ -97,7 +97,7 @@ void ControlFinder::RemoveControl(Control* pControl)
     if (pControl == nullptr) {
         return;
     }
-    const std::wstring sName = pControl->GetName();
+    const DString sName = pControl->GetName();
     if (!sName.empty()) {
         auto it = m_mNameHash.find(sName);
         if (it != m_mNameHash.end()) {
@@ -111,7 +111,7 @@ void ControlFinder::AddControl(Control* pControl)
     if (pControl == nullptr) {
         return;
     }
-    const std::wstring sName = pControl->GetName();
+    const DString sName = pControl->GetName();
     if (sName.empty()) {
         return;
     }
@@ -181,7 +181,7 @@ Control* CALLBACK ControlFinder::__FindControlFromName(Control* pThis, LPVOID pD
     if ((pstrName == nullptr) || (pThis == nullptr)) {
         return nullptr;
     }
-    const std::wstring sName = pThis->GetName();
+    const DString sName = pThis->GetName();
     if (sName.empty()) {
         return nullptr;
     }

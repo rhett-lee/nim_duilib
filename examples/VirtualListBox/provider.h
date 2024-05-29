@@ -67,7 +67,7 @@ public:
 public:
     void SetTotal(int nTotal);
     void RemoveTask(size_t nIndex);
-    void ChangeTaskName(size_t nIndex, const std::wstring& sName);
+    void ChangeTaskName(size_t nIndex, const DString& sName);
 
 private:
     int m_nTotal;

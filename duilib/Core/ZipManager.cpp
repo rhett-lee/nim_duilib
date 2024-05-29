@@ -44,21 +44,21 @@ bool ZipManager::OpenResZip(HMODULE hModule, LPCTSTR resourceName, LPCTSTR resou
 }
 #endif
 
-bool ZipManager::OpenZipFile(const std::wstring& path, const std::string& password)
+bool ZipManager::OpenZipFile(const DString& path, const std::string& password)
 {
     CloseResZip();
     m_hzip = OpenZip(path.c_str(), password.c_str());
     return m_hzip != nullptr;
 }
 
-bool ZipManager::GetZipData(const std::wstring& path, std::vector<unsigned char>& file_data) const
+bool ZipManager::GetZipData(const DString& path, std::vector<unsigned char>& file_data) const
 {
     GlobalManager::Instance().AssertUIThread();
     ASSERT(m_hzip != nullptr);
     if (m_hzip == nullptr) {
         return false;
     }
-    std::wstring file_path = GetZipFilePath(path);
+    DString file_path = GetZipFilePath(path);
     ASSERT(!file_path.empty());
     if (file_path.empty()) {
         return false;
@@ -81,12 +81,12 @@ bool ZipManager::GetZipData(const std::wstring& path, std::vector<unsigned char>
     return false;
 }
 
-std::wstring ZipManager::GetZipFilePath(const std::wstring& path) const
+DString ZipManager::GetZipFilePath(const DString& path) const
 {
     if (!PathUtil::IsRelativePath(path)) {
         return _T("");
     }
-    std::wstring file_path = path;
+    DString file_path = path;
     StringUtil::ReplaceAll(_T("\\"), _T("/"), file_path);
     StringUtil::ReplaceAll(_T("//"), _T("/"), file_path);
     for (size_t i = 0; i < file_path.size();)
@@ -124,11 +124,11 @@ std::wstring ZipManager::GetZipFilePath(const std::wstring& path) const
     return file_path;
 }
 
-bool ZipManager::IsZipResExist(const std::wstring& path) const
+bool ZipManager::IsZipResExist(const DString& path) const
 {
     GlobalManager::Instance().AssertUIThread();
     if ((m_hzip != nullptr) && !path.empty()) {
-        std::wstring file_path = GetZipFilePath(path);
+        DString file_path = GetZipFilePath(path);
         if (file_path.empty()) {
             return false;
         }
@@ -157,11 +157,11 @@ void ZipManager::CloseResZip()
     m_zipPathCache.clear();
 }
 
-bool ZipManager::GetZipFileList(const std::wstring& path, std::vector<std::wstring>& fileList) const
+bool ZipManager::GetZipFileList(const DString& path, std::vector<DString>& fileList) const
 {
     GlobalManager::Instance().AssertUIThread();
     if ((m_hzip != nullptr) && !path.empty()) {
-        std::wstring innerPath = GetZipFilePath(path);
+        DString innerPath = GetZipFilePath(path);
         if (innerPath.empty()) {
             return false;
         }
@@ -169,7 +169,7 @@ bool ZipManager::GetZipFileList(const std::wstring& path, std::vector<std::wstri
         if (GetZipItem((HZIP)m_hzip, -1, &ze) != ZR_OK) {
             ze.index = 0;
         }
-        std::wstring fileName;
+        DString fileName;
         int32_t numitems = ze.index;
         for (int32_t i = 0; i < numitems; i++) {
             if (GetZipItem((HZIP)m_hzip, i, &ze) != ZR_OK) {

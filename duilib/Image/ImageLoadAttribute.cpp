@@ -5,8 +5,8 @@
 
 namespace ui 
 {
-ImageLoadAttribute::ImageLoadAttribute(std::wstring srcWidth,
-                                       std::wstring srcHeight,
+ImageLoadAttribute::ImageLoadAttribute(DString srcWidth,
+                                       DString srcHeight,
                                        bool srcDpiScale,
                                        bool bHasSrcDpiScale,
                                        uint32_t iconSize):
@@ -20,23 +20,23 @@ ImageLoadAttribute::ImageLoadAttribute(std::wstring srcWidth,
     m_srcHeight = srcHeight;    
 }
 
-void ImageLoadAttribute::SetImageFullPath(const std::wstring& imageFullPath)
+void ImageLoadAttribute::SetImageFullPath(const DString& imageFullPath)
 {
-    std::wstring fullPath = PathUtil::NormalizeFilePath(imageFullPath);
+    DString fullPath = PathUtil::NormalizeFilePath(imageFullPath);
     StringUtil::Trim(fullPath);
     m_srcImageFullPath = fullPath;    
 }
 
-std::wstring ImageLoadAttribute::GetImageFullPath() const
+DString ImageLoadAttribute::GetImageFullPath() const
 {
     ASSERT(!m_srcImageFullPath.empty());
     return m_srcImageFullPath.c_str();
 }
 
-std::wstring ImageLoadAttribute::GetCacheKey(uint32_t nDpiScale) const
+DString ImageLoadAttribute::GetCacheKey(uint32_t nDpiScale) const
 {
     ASSERT(!m_srcImageFullPath.empty());
-    std::wstring fullPath = m_srcImageFullPath.c_str();
+    DString fullPath = m_srcImageFullPath.c_str();
     if ((nDpiScale != 0) && (nDpiScale != 100)) {
         //追加缩放百分比
         fullPath += _T("@");
@@ -101,7 +101,7 @@ bool ImageLoadAttribute::CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nIma
     return isScaled;
 }
 
-uint32_t ImageLoadAttribute::GetScacledSize(const std::wstring& srcSize, uint32_t nImageSize) const
+uint32_t ImageLoadAttribute::GetScacledSize(const DString& srcSize, uint32_t nImageSize) const
 {
     if (srcSize.empty()) {
         return 0;

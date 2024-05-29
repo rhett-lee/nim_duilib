@@ -21,7 +21,7 @@ public:
 public:
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual void Activate() override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
@@ -31,7 +31,7 @@ public:
 
 public:
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
+    virtual DString GetType() const override;
     virtual bool AddItem(Control* pControl) override;
     virtual bool AddItemAt(Control* pControl, size_t iIndex) override;
     virtual bool RemoveItem(Control* pControl) override;
@@ -44,11 +44,11 @@ public:
 
     /** 添加一个下拉框的列表项
     */
-    bool AddTextItem(const std::wstring& itemText);
+    bool AddTextItem(const DString& itemText);
 
     /** 获取选择的文本列表
     */
-    void GetSelectedText(std::vector<std::wstring>& selectedText) const;
+    void GetSelectedText(std::vector<DString>& selectedText) const;
 
     /** 清除所有列表项和选择项
     */
@@ -62,7 +62,7 @@ public:
     /** 设置下拉框的属性信息
     * @param [in] pstrList 转义后的 XML 格式属性列表
     */
-    void SetDropBoxAttributeList(const std::wstring& pstrList);
+    void SetDropBoxAttributeList(const DString& pstrList);
 
     /** 获取下拉框容器大小
     */
@@ -85,11 +85,11 @@ public:
 
     /** 设置下拉列表中每一个列表项的属性
     */
-    void SetDropboxItemClass(const std::wstring& classValue);
+    void SetDropboxItemClass(const DString& classValue);
 
     /** 设置选择项中每一个子项的属性
     */
-    void SetSelectedItemClass(const std::wstring& classValue);
+    void SetSelectedItemClass(const DString& classValue);
 
     /** 更新下拉列表窗口的位置
     */
@@ -112,12 +112,12 @@ private:
 private:
     /** 解析属性列表
     */
-    void ParseAttributeList(const std::wstring& strList,
-                            std::vector<std::pair<std::wstring, std::wstring>>& attributeList) const;
+    void ParseAttributeList(const DString& strList,
+                            std::vector<std::pair<DString, DString>>& attributeList) const;
 
     /** 设置控件的属性列表
     */
-    void SetAttributeList(Control* pControl, const std::wstring& classValue);
+    void SetAttributeList(Control* pControl, const DString& classValue);
 
     /** 更新选择列表的高度
     */

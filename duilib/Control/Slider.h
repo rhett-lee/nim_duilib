@@ -17,10 +17,10 @@ public:
     explicit Slider(Window* pWindow);
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
+    virtual DString GetType() const override;
     virtual UiRect GetProgressPos() override;
     virtual void HandleEvent(const EventArgs& msg) override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintStateImages(IRender* pRender) override;
     virtual void PaintBkColor(IRender* pRender) override;
     virtual void ClearImageCache() override;
@@ -60,13 +60,13 @@ public:
      * @param[in] stateType 要获取的状态标识，参考 ControlStateType 枚举
      * @return 返回图片路径
      */
-    std::wstring GetThumbStateImage(ControlStateType stateType) const;
+    DString GetThumbStateImage(ControlStateType stateType) const;
 
     /** 设置指定状态下滑块的图片
      * @param[in] stateType 要设置的状态标识，参考 ControlStateType 枚举
      * @param[in] pStrImage 要设置的图片位置
      */
-    void SetThumbStateImage(ControlStateType stateType, const std::wstring& pStrImage);
+    void SetThumbStateImage(ControlStateType stateType, const DString& pStrImage);
 
     /** 获取进度条内边距
      */

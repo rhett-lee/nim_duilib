@@ -42,8 +42,8 @@ public:
 
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
@@ -55,8 +55,8 @@ public:
     /** 设置是否显示表头
     */
     void SetEnableHeaderCtrl(bool bEnable,
-                             const std::wstring& sLeftColumn = _T(""), 
-                             const std::wstring& sRightColumn = _T(""));
+                             const DString& sLeftColumn = _T(""), 
+                             const DString& sRightColumn = _T(""));
     /** 判断当前是否显示表头
     */
     bool IsEnableHeaderCtrl() const { return m_bHeaderCtrl; }
@@ -84,8 +84,8 @@ public:
     * @param [in] nGroupData 用户自定义数据
     * @return 返回该分组的接口，可用于添加属性
     */
-    PropertyGridGroup* AddGroup(const std::wstring& groupName, 
-                                const std::wstring& description = _T(""),
+    PropertyGridGroup* AddGroup(const DString& groupName, 
+                                const DString& description = _T(""),
                                 size_t nGroupData = 0);
 
     /** 获取所有的分组
@@ -117,9 +117,9 @@ public:
     * @return 返回该属性的接口
     */
     PropertyGridTextProperty* AddTextProperty(PropertyGridGroup* pGroup,
-                                              const std::wstring& propertyName, 
-                                              const std::wstring& propertyValue,
-                                              const std::wstring& description = _T(""),
+                                              const DString& propertyName, 
+                                              const DString& propertyValue,
+                                              const DString& description = _T(""),
                                               size_t nPropertyData = 0);
 
     /** 增加一个属性(下拉框)
@@ -131,9 +131,9 @@ public:
     * @return 返回该属性的接口
     */
     PropertyGridComboProperty* AddComboProperty(PropertyGridGroup* pGroup,
-                                                const std::wstring& propertyName, 
-                                                const std::wstring& propertyValue,
-                                                const std::wstring& description = _T(""),
+                                                const DString& propertyName, 
+                                                const DString& propertyValue,
+                                                const DString& description = _T(""),
                                                 size_t nPropertyData = 0);
 
     /** 增加一个属性(字体名称)
@@ -145,9 +145,9 @@ public:
     * @return 返回该属性的接口
     */
     PropertyGridFontProperty* AddFontProperty(PropertyGridGroup* pGroup,
-                                              const std::wstring& propertyName, 
-                                              const std::wstring& propertyValue,
-                                              const std::wstring& description = _T(""),
+                                              const DString& propertyName, 
+                                              const DString& propertyValue,
+                                              const DString& description = _T(""),
                                               size_t nPropertyData = 0);
 
     /** 增加一个属性(字体大小)
@@ -159,9 +159,9 @@ public:
     * @return 返回该属性的接口
     */
     PropertyGridFontSizeProperty* AddFontSizeProperty(PropertyGridGroup* pGroup,
-                                                      const std::wstring& propertyName, 
-                                                      const std::wstring& propertyValue,
-                                                      const std::wstring& description = _T(""),
+                                                      const DString& propertyName, 
+                                                      const DString& propertyValue,
+                                                      const DString& description = _T(""),
                                                       size_t nPropertyData = 0);
 
     /** 增加一个属性(颜色)
@@ -173,9 +173,9 @@ public:
     * @return 返回该属性的接口
     */
     PropertyGridColorProperty* AddColorProperty(PropertyGridGroup* pGroup,
-                                                const std::wstring& propertyName, 
-                                                const std::wstring& propertyValue,
-                                                const std::wstring& description = _T(""),
+                                                const DString& propertyName, 
+                                                const DString& propertyValue,
+                                                const DString& description = _T(""),
                                                 size_t nPropertyData = 0);
 
     /** 增加一个属性(日期时间)
@@ -188,9 +188,9 @@ public:
     * @return 返回该属性的接口
     */
     PropertyGridDateTimeProperty* AddDateTimeProperty(PropertyGridGroup* pGroup,
-                                                      const std::wstring& propertyName, 
-                                                      const std::wstring& dateTimeValue,                                                      
-                                                      const std::wstring& description = _T(""),
+                                                      const DString& propertyName, 
+                                                      const DString& dateTimeValue,                                                      
+                                                      const DString& description = _T(""),
                                                       size_t nPropertyData = 0,
                                                       DateTime::EditFormat editFormat = DateTime::EditFormat::kDateCalendar);
     
@@ -203,9 +203,9 @@ public:
     * @return 返回该属性的接口
     */
     PropertyGridIPAddressProperty* AddIPAddressProperty(PropertyGridGroup* pGroup,
-                                                        const std::wstring& propertyName, 
-                                                        const std::wstring& propertyValue,
-                                                        const std::wstring& description = _T(""),
+                                                        const DString& propertyName, 
+                                                        const DString& propertyValue,
+                                                        const DString& description = _T(""),
                                                         size_t nPropertyData = 0);
 
     /** 增加一个属性(热键)
@@ -217,9 +217,9 @@ public:
     * @return 返回该属性的接口
     */
     PropertyGridHotKeyProperty* AddHotKeyProperty(PropertyGridGroup* pGroup,
-                                                  const std::wstring& propertyName, 
-                                                  const std::wstring& propertyValue,
-                                                  const std::wstring& description = _T(""),
+                                                  const DString& propertyName, 
+                                                  const DString& propertyValue,
+                                                  const DString& description = _T(""),
                                                   size_t nPropertyData = 0);
 
     /** 增加一个属性(文件路径)
@@ -235,14 +235,14 @@ public:
     * @return 返回该属性的接口
     */
     PropertyGridFileProperty* AddFileProperty(PropertyGridGroup* pGroup,
-                                              const std::wstring& propertyName, 
-                                              const std::wstring& propertyValue,                                              
-                                              const std::wstring& description = _T(""),
+                                              const DString& propertyName, 
+                                              const DString& propertyValue,                                              
+                                              const DString& description = _T(""),
                                               size_t nPropertyData = 0,
                                               bool bOpenFileDialog = true,
                                               const std::vector<FileDialog::FileType>& fileTypes = std::vector<FileDialog::FileType>(),
                                               int32_t nFileTypeIndex = -1,
-                                              const std::wstring& defaultExt = _T(""));
+                                              const DString& defaultExt = _T(""));
 
     /** 增加一个属性(文件夹)
     * @param [in] pGroup 该属性所属的分组
@@ -253,9 +253,9 @@ public:
     * @return 返回该属性的接口
     */
     PropertyGridDirectoryProperty* AddDirectoryProperty(PropertyGridGroup* pGroup,
-                                                        const std::wstring& propertyName, 
-                                                        const std::wstring& propertyValue,
-                                                        const std::wstring& description = _T(""),
+                                                        const DString& propertyName, 
+                                                        const DString& propertyValue,
+                                                        const DString& description = _T(""),
                                                         size_t nPropertyData = 0);
 
     /** 设置左侧一列的宽度
@@ -310,8 +310,8 @@ public:
     /** 横向网格线的颜色
     * @param [in] color 横向网格线的颜色
     */
-    void SetRowGridLineColor(const std::wstring& color);
-    std::wstring GetRowGridLineColor() const;
+    void SetRowGridLineColor(const DString& color);
+    DString GetRowGridLineColor() const;
 
     /** 纵向网格线的宽度
     * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示纵向网格线
@@ -323,23 +323,23 @@ public:
     /** 纵向网格线的颜色
     * @param [in] color 纵向网格线的颜色
     */
-    void SetColumnGridLineColor(const std::wstring& color);
-    std::wstring GetColumnGridLineColor() const;
+    void SetColumnGridLineColor(const DString& color);
+    DString GetColumnGridLineColor() const;
 
     /** 表头的Class
     */
-    void SetHeaderClass(const std::wstring& headerClass);
-    std::wstring GetHeaderClass() const;
+    void SetHeaderClass(const DString& headerClass);
+    DString GetHeaderClass() const;
 
     /** 分组的Class
     */
-    void SetGroupClass(const std::wstring& groupClass);
-    std::wstring GetGroupClass() const;
+    void SetGroupClass(const DString& groupClass);
+    DString GetGroupClass() const;
 
     /** 属性的Class
     */
-    void SetPropertyClass(const std::wstring& propertyClass);
-    std::wstring GetPropertyClass() const;
+    void SetPropertyClass(const DString& propertyClass);
+    DString GetPropertyClass() const;
 
 protected:
     /** 初始化函数
@@ -461,18 +461,18 @@ public:
     * @param [in] nGroupData 用户自定义数据
     */
     explicit PropertyGridGroup(Window* pWindow,
-                               const std::wstring& groupName,
-                               const std::wstring& description = _T(""),
+                               const DString& groupName,
+                               const DString& description = _T(""),
                                size_t nGroupData = 0);
 
 public:
     /** 获取属性名称
     */
-    std::wstring GetGroupName() const { return m_groupName.c_str(); }
+    DString GetGroupName() const { return m_groupName.c_str(); }
 
     /** 获取组的描述信息
     */
-    std::wstring GetDescriptiion() const { return m_description.c_str(); }
+    DString GetDescriptiion() const { return m_description.c_str(); }
 
     /** 获取用户自定义数据
     */
@@ -559,9 +559,9 @@ public:
     * @param [in] nPropertyData 用户自定义数据
     */
     PropertyGridProperty(Window* pWindow, 
-                         const std::wstring& propertyName,
-                         const std::wstring& propertyValue,
-                         const std::wstring& description = _T(""),
+                         const DString& propertyName,
+                         const DString& propertyValue,
+                         const DString& description = _T(""),
                          size_t nPropertyData = 0);
 
 public:
@@ -574,15 +574,15 @@ public:
 
     /** 获取属性名称
     */
-    std::wstring GetPropertyName() const { return m_propertyName.c_str(); }
+    DString GetPropertyName() const { return m_propertyName.c_str(); }
 
     /** 获取属性值(原值)
     */
-    std::wstring GetPropertyValue() const { return m_propertyValue.c_str(); }
+    DString GetPropertyValue() const { return m_propertyValue.c_str(); }
 
     /** 获取属性的描述信息
     */
-    std::wstring GetDescriptiion() const { return m_description.c_str(); }
+    DString GetDescriptiion() const { return m_description.c_str(); }
 
     /** 获取用户自定义数据
     */
@@ -614,7 +614,7 @@ public:
 
     /** 获取新的属性值（修改后的属性值, 如果无修改则返回原值）
     */
-    virtual std::wstring GetPropertyNewValue() const;
+    virtual DString GetPropertyNewValue() const;
 
 protected:
     /** 初始化函数
@@ -645,16 +645,16 @@ protected:
     * @param [in] text 文本内容
     * @param [in] bChanged 是否标记为变化
     */
-    void SetPropertyText(const std::wstring& text, bool bChanged);
+    void SetPropertyText(const DString& text, bool bChanged);
 
     /** 获取属性值文本(显示控件)
     */
-    std::wstring GetPropertyText() const;
+    DString GetPropertyText() const;
 
     /** 设置属性值的文字颜色(显示控件)
     * @param [in] text 文本内容
     */
-    void SetPropertyTextColor(const std::wstring& textColor);
+    void SetPropertyTextColor(const DString& textColor);
 
     /** 将焦点设置到属性值文本显示控件
     */
@@ -718,9 +718,9 @@ public:
     * @param [in] nPropertyData 用户自定义数据
     */
     PropertyGridTextProperty(Window* pWindow,
-                             const std::wstring& propertyName,
-                             const std::wstring& propertyValue,
-                             const std::wstring& description = _T(""),
+                             const DString& propertyName,
+                             const DString& propertyValue,
+                             const DString& description = _T(""),
                              size_t nPropertyData = 0);
 
 public:
@@ -733,7 +733,7 @@ public:
 
     /** 获取新的属性值（修改后的属性值, 如果无修改则返回原值）
     */
-    virtual std::wstring GetPropertyNewValue() const override;
+    virtual DString GetPropertyNewValue() const override;
 
     /** 获取编辑框控件
     */
@@ -788,9 +788,9 @@ public:
     * @param [in] nPropertyData 用户自定义数据
     */
     PropertyGridComboProperty(Window* pWindow, 
-                              const std::wstring& propertyName,
-                              const std::wstring& propertyValue,
-                              const std::wstring& description = _T(""),
+                              const DString& propertyName,
+                              const DString& propertyValue,
+                              const DString& description = _T(""),
                               size_t nPropertyData = 0);
 
 public:
@@ -803,13 +803,13 @@ public:
 
     /** 获取新的属性值（修改后的属性值, 如果无修改则返回原值）
     */
-    virtual std::wstring GetPropertyNewValue() const override;
+    virtual DString GetPropertyNewValue() const override;
 
     /** 增加一个下拉框选项
     * @param [in] optionText 下拉框列表项的内容
     * @return 返回该子项的下标值
     */
-    size_t AddOption(const std::wstring& optionText);
+    size_t AddOption(const DString& optionText);
 
     /** 获取下拉框选项的格式
     */
@@ -818,7 +818,7 @@ public:
     /** 获取下拉表子项的文本
     * @param [in] nIndex 子项的下标值，有效范围：[0, GetOptionCount())
     */
-    std::wstring GetOption(size_t nIndex) const;
+    DString GetOption(size_t nIndex) const;
 
     /** 设置子项关联的数据
     * @param [in] nIndex 子项的下标值，有效范围：[0, GetOptionCount())
@@ -893,9 +893,9 @@ public:
     * @param [in] nPropertyData 用户自定义数据
     */
     PropertyGridFontProperty(Window* pWindow,
-                             const std::wstring& propertyName,
-                             const std::wstring& propertyValue,
-                             const std::wstring& description = _T(""),
+                             const DString& propertyName,
+                             const DString& propertyValue,
+                             const DString& description = _T(""),
                              size_t nPropertyData = 0);
 
 public:
@@ -908,7 +908,7 @@ public:
 
     /** 获取新的字体值（修改后的属性值, 如果无修改则返回原值）
     */
-    virtual std::wstring GetPropertyNewValue() const override;
+    virtual DString GetPropertyNewValue() const override;
 
 protected:
 
@@ -919,7 +919,7 @@ protected:
 private:
     /** 获取系统字体列表
     */
-    void GetSystemFontList(std::vector<std::wstring>& fontList) const;
+    void GetSystemFontList(std::vector<DString>& fontList) const;
 };
 
 /** 设置字体大小的属性
@@ -934,9 +934,9 @@ public:
     * @param [in] nPropertyData 用户自定义数据
     */
     PropertyGridFontSizeProperty(Window* pWindow, 
-                                 const std::wstring& propertyName,
-                                 const std::wstring& propertyValue,
-                                 const std::wstring& description = _T(""),
+                                 const DString& propertyName,
+                                 const DString& propertyValue,
+                                 const DString& description = _T(""),
                                  size_t nPropertyData = 0);
 
 public:
@@ -949,27 +949,27 @@ public:
 
     /** 获取新的字体大小值, 显示值（修改后的属性值, 如果无修改则返回原值）
     */
-    virtual std::wstring GetPropertyNewValue() const override;
+    virtual DString GetPropertyNewValue() const override;
 
     /** 获取字体大小值，浮点数，未做DPI自适应值
     * @return 如果从列表中选择，返回值为非空；如果未能从列表中选择，则返回空
     */
-    std::wstring GetFontSize() const;
+    DString GetFontSize() const;
 
     /** 获取字体大小值，浮点数，已做DPI自适应值
     * @return 如果从列表中选择，返回值为非空；如果未能从列表中选择，则返回空
     */
-    std::wstring GetDpiFontSize() const;
+    DString GetDpiFontSize() const;
 
     /** 获取字体大小显示名称对应的字体大小值，浮点数，未做DPI自适应值
     * @param [in] fontSizeName 比如："五号"
     */
-    std::wstring GetFontSize(const std::wstring& fontSizeName) const;
+    DString GetFontSize(const DString& fontSizeName) const;
 
     /** 获取字体大小显示名称对应的字体大小值，浮点数，已做DPI自适应值
     * @param [in] fontSizeName 比如："五号"
     */
-    std::wstring GetDpiFontSize(const std::wstring& fontSizeName) const;
+    DString GetDpiFontSize(const DString& fontSizeName) const;
 
 protected:
 
@@ -980,7 +980,7 @@ protected:
 private:
     struct FontSizeInfo
     {
-        std::wstring fontSizeName; //字体大小的显示名称，比如"五号"
+        DString fontSizeName; //字体大小的显示名称，比如"五号"
         float fFontSize;           //单位：像素，未做DPI自适应
         float fDpiFontSize;           //单位：像素，已做DPI自适应
     };
@@ -1007,9 +1007,9 @@ public:
     * @param [in] nPropertyData 用户自定义数据
     */
     PropertyGridColorProperty(Window* pWindow, 
-                              const std::wstring& propertyName,
-                              const std::wstring& propertyValue,
-                              const std::wstring& description = _T(""),
+                              const DString& propertyName,
+                              const DString& propertyValue,
+                              const DString& description = _T(""),
                               size_t nPropertyData = 0);
 
 
@@ -1051,7 +1051,7 @@ private:
 
     /** 设置选择颜色
     */
-    void OnSelectColor(const std::wstring& color);
+    void OnSelectColor(const DString& color);
 
 private:
     /** 颜色选择控件
@@ -1072,9 +1072,9 @@ public:
     * @param [in] editFormat 日期时间的格式
     */
     PropertyGridDateTimeProperty(Window* pWindow, 
-                                 const std::wstring& propertyName,
-                                 const std::wstring& dateTimeValue,
-                                 const std::wstring& description = _T(""),
+                                 const DString& propertyName,
+                                 const DString& dateTimeValue,
+                                 const DString& description = _T(""),
                                  size_t nPropertyData = 0,
                                  DateTime::EditFormat editFormat = DateTime::EditFormat::kDateCalendar);
 
@@ -1128,9 +1128,9 @@ public:
     * @param [in] nPropertyData 用户自定义数据
     */
     PropertyGridIPAddressProperty(Window* pWindow, 
-                                  const std::wstring& propertyName,
-                                  const std::wstring& propertyValue,
-                                  const std::wstring& description = _T(""),
+                                  const DString& propertyName,
+                                  const DString& propertyValue,
+                                  const DString& description = _T(""),
                                   size_t nPropertyData = 0);
 
 
@@ -1175,9 +1175,9 @@ public:
     @param [in] nPropertyData 用户自定义数据
     */
     PropertyGridHotKeyProperty(Window* pWindow, 
-                               const std::wstring& propertyName,
-                               const std::wstring& propertyValue,
-                               const std::wstring& description = _T(""),
+                               const DString& propertyName,
+                               const DString& propertyValue,
+                               const DString& description = _T(""),
                                size_t nPropertyData = 0);
 
 
@@ -1226,14 +1226,14 @@ public:
     * @param [in] defaultExt 默认的文件类型, 举例："doc;docx"
     */
     PropertyGridFileProperty(Window* pWindow, 
-                             const std::wstring& propertyName,
-                             const std::wstring& propertyValue,
-                             const std::wstring& description = _T(""),
+                             const DString& propertyName,
+                             const DString& propertyValue,
+                             const DString& description = _T(""),
                              size_t nPropertyData = 0,
                              bool bOpenFileDialog = true,
                              const std::vector<FileDialog::FileType>& fileTypes = std::vector<FileDialog::FileType>(),
                              int32_t nFileTypeIndex = -1,
-                             const std::wstring& defaultExt = _T(""));
+                             const DString& defaultExt = _T(""));
 
 
 protected:
@@ -1272,7 +1272,7 @@ private:
 
     /** 默认的文件类型
     */
-    std::wstring m_defaultExt;
+    DString m_defaultExt;
 };
 
 /** 设置文件夹属性
@@ -1287,9 +1287,9 @@ public:
     * @param [in] nPropertyData 用户自定义数据
     */
     PropertyGridDirectoryProperty(Window* pWindow, 
-                                  const std::wstring& propertyName,
-                                  const std::wstring& propertyValue,
-                                  const std::wstring& description = _T(""),
+                                  const DString& propertyName,
+                                  const DString& propertyValue,
+                                  const DString& description = _T(""),
                                   size_t nPropertyData = 0);
 
 

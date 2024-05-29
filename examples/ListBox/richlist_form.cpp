@@ -1,7 +1,7 @@
 #include "richlist_form.h"
 #include "item.h"
 
-const std::wstring RichlistForm::kClassName = _T("Basic");
+const DString RichlistForm::kClassName = _T("Basic");
 
 RichlistForm::RichlistForm():
     m_pListBox(nullptr)
@@ -13,17 +13,17 @@ RichlistForm::~RichlistForm()
 {
 }
 
-std::wstring RichlistForm::GetSkinFolder()
+DString RichlistForm::GetSkinFolder()
 {
     return _T("list_box");
 }
 
-std::wstring RichlistForm::GetSkinFile()
+DString RichlistForm::GetSkinFile()
 {
     return _T("list_box.xml");
 }
 
-std::wstring RichlistForm::GetWindowClassName() const
+DString RichlistForm::GetWindowClassName() const
 {
     return kClassName;
 }
@@ -48,8 +48,8 @@ void RichlistForm::OnInitWindow()
             item->SetFixedWidth(ui::UiFixedInt(200), true, true);
         }
 
-        std::wstring img = _T("icon.png");
-        std::wstring title = ui::StringUtil::Printf(_T("任务 [%02d]"), i);
+        DString img = _T("icon.png");
+        DString title = ui::StringUtil::Printf(_T("任务 [%02d]"), i);
 
         item->InitSubControls(img, title);
         m_pListBox->AddItem(item);

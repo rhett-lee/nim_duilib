@@ -582,7 +582,7 @@ UiSize VTileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSi
     return size;
 }
 
-bool VTileLayout::SetAttribute(const std::wstring& strName, const std::wstring& strValue, const DpiManager& dpiManager)
+bool VTileLayout::SetAttribute(const DString& strName, const DString& strValue, const DpiManager& dpiManager)
 {
     bool hasAttribute = true;
     if((strName == _T("item_size")) || (strName == _T("itemsize"))){

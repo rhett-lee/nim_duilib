@@ -22,11 +22,11 @@ public:
 
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override;
+    virtual DString GetType() const override;
 
     /** 设置属性
     */
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比

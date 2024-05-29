@@ -23,23 +23,23 @@ void Image::InitImageAttribute()
     m_imageAttribute.Init();
 }
 
-void Image::SetImageString(const std::wstring& strImageString, const DpiManager& dpi)
+void Image::SetImageString(const DString& strImageString, const DpiManager& dpi)
 {
     ClearImageCache();
     m_imageAttribute.InitByImageString(strImageString, dpi);
 }
 
-std::wstring Image::GetImageString() const
+DString Image::GetImageString() const
 {
     return m_imageAttribute.sImageString.c_str();
 }
 
-bool Image::EqualToImageString(const std::wstring& imageString) const
+bool Image::EqualToImageString(const DString& imageString) const
 {
     return m_imageAttribute.sImageString == imageString;
 }
 
-std::wstring Image::GetImagePath() const
+DString Image::GetImagePath() const
 {
     return m_imageAttribute.sImagePath.c_str();
 }

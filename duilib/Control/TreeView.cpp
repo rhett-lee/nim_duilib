@@ -39,9 +39,9 @@ TreeNode::~TreeNode()
     }
 }
 
-std::wstring TreeNode::GetType() const { return DUI_CTR_TREENODE; }
+DString TreeNode::GetType() const { return DUI_CTR_TREENODE; }
 
-void TreeNode::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void TreeNode::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("expand_normal_image")) {
         SetExpandStateImage(kControlStateNormal, strValue);
@@ -172,7 +172,7 @@ uint16_t TreeNode::GetIconIndent() const
     return m_iconIndent;
 }
 
-std::wstring TreeNode::GetExpandStateImage(ControlStateType stateType)
+DString TreeNode::GetExpandStateImage(ControlStateType stateType)
 {
     Image* pImage = nullptr;
     if (m_expandImage != nullptr) {
@@ -181,10 +181,10 @@ std::wstring TreeNode::GetExpandStateImage(ControlStateType stateType)
     if (pImage != nullptr) {
         return pImage->GetImageString();
     }
-    return std::wstring();
+    return DString();
 }
 
-void TreeNode::SetExpandStateImage(ControlStateType stateType, const std::wstring& strImage)
+void TreeNode::SetExpandStateImage(ControlStateType stateType, const DString& strImage)
 {
     if (m_expandImage == nullptr) {
         m_expandImage.reset(new StateImage);
@@ -193,7 +193,7 @@ void TreeNode::SetExpandStateImage(ControlStateType stateType, const std::wstrin
     m_expandImage->SetImageString(stateType, strImage, Dpi());
 }
 
-std::wstring TreeNode::GetCollapseStateImage(ControlStateType stateType)
+DString TreeNode::GetCollapseStateImage(ControlStateType stateType)
 {
     Image* pImage = nullptr;
     if (m_collapseImage != nullptr) {
@@ -202,10 +202,10 @@ std::wstring TreeNode::GetCollapseStateImage(ControlStateType stateType)
     if (pImage != nullptr) {
         return pImage->GetImageString();
     }
-    return std::wstring();
+    return DString();
 }
 
-void TreeNode::SetCollapseStateImage(ControlStateType stateType, const std::wstring& strImage)
+void TreeNode::SetCollapseStateImage(ControlStateType stateType, const DString& strImage)
 {
     if (m_collapseImage == nullptr) {
         m_collapseImage.reset(new StateImage);
@@ -411,11 +411,11 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
     pTreeNode->SetPadding(padding, false);
 
     //[未展开/展开]图片标志
-    std::wstring expandImageClass = m_pTreeView->GetExpandImageClass();
+    DString expandImageClass = m_pTreeView->GetExpandImageClass();
     pTreeNode->SetExpandImageClass(expandImageClass);
 
     //CheckBox选项
-    std::wstring checkBoxClass = m_pTreeView->GetCheckBoxClass();
+    DString checkBoxClass = m_pTreeView->GetCheckBoxClass();
     pTreeNode->SetCheckBoxClass(checkBoxClass);
 
     //是否显示图标
@@ -463,7 +463,7 @@ void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
         return;
     }
     GlobalManager::Instance().Icon().AddIcon(hIcon);
-    std::wstring iconString = GlobalManager::Instance().Icon().GetIconString(hIcon);
+    DString iconString = GlobalManager::Instance().Icon().GetIconString(hIcon);
     if (iconString.empty()) {
         SetBkImage(_T(""));
         AdjustIconPadding();
@@ -484,7 +484,7 @@ void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
         iconString = StringUtil::Printf(_T("file='%s' halign='left' valign='center'"),
                                            iconString.c_str());
     }
-    std::wstring oldIconString = GetBkImage();
+    DString oldIconString = GetBkImage();
     if (iconString == oldIconString) {
         //没有变化，直接返回
         return;
@@ -506,7 +506,7 @@ void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
 
 #endif //DUILIB_PLATFORM_WIN
 
-void TreeNode::SetExpandImageClass(const std::wstring& expandClass)
+void TreeNode::SetExpandImageClass(const DString& expandClass)
 {
     if (!expandClass.empty()) {
         //开启展开标志功能
@@ -528,7 +528,7 @@ void TreeNode::SetExpandImageClass(const std::wstring& expandClass)
     AdjustExpandImagePadding();
 }
 
-bool TreeNode::SetCheckBoxClass(const std::wstring& checkBoxClass)
+bool TreeNode::SetCheckBoxClass(const DString& checkBoxClass)
 {
     bool bSetOk = true;
     if (!checkBoxClass.empty()) {
@@ -660,7 +660,7 @@ void TreeNode::AdjustCheckBoxPadding()
 
 void TreeNode::AdjustIconPadding()
 {
-    std::wstring iconString = GetBkImagePath();
+    DString iconString = GetBkImagePath();
     if (!IsBkImagePaintEnabled()) {
         //禁止绘制图标
         iconString.clear();
@@ -1035,9 +1035,9 @@ TreeView::~TreeView()
     m_rootNode.reset();
 }
 
-std::wstring TreeView::GetType() const { return DUI_CTR_TREEVIEW; }
+DString TreeView::GetType() const { return DUI_CTR_TREEVIEW; }
 
-void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void TreeView::SetAttribute(const DString& strName, const DString& strValue)
 {
     //支持的属性列表: 基类实现的直接转发
     if (strName == _T("indent")) {
@@ -1292,12 +1292,12 @@ void TreeView::SetIndent(int32_t indent, bool bNeedDpiScale)
     }    
 }
 
-void TreeView::SetCheckBoxClass(const std::wstring& className)
+void TreeView::SetCheckBoxClass(const DString& className)
 {
     if (m_checkBoxClass == className) {
         return;
     }
-    std::wstring oldCheckBoxClass = m_checkBoxClass.c_str();
+    DString oldCheckBoxClass = m_checkBoxClass.c_str();
     m_checkBoxClass = className;
     bool bSetOk = true;
     bool hasSetOk = false;
@@ -1364,12 +1364,12 @@ void TreeView::SetCheckBoxClass(const std::wstring& className)
     }
 }
 
-std::wstring TreeView::GetCheckBoxClass() const
+DString TreeView::GetCheckBoxClass() const
 {
     return m_checkBoxClass.c_str();
 }
 
-void TreeView::SetExpandImageClass(const std::wstring& className)
+void TreeView::SetExpandImageClass(const DString& className)
 {
     bool isChanged = m_expandImageClass != className;
     m_expandImageClass = className;
@@ -1383,7 +1383,7 @@ void TreeView::SetExpandImageClass(const std::wstring& className)
     }
 }
 
-std::wstring TreeView::GetExpandImageClass() const
+DString TreeView::GetExpandImageClass() const
 {
     return m_expandImageClass.c_str();
 }

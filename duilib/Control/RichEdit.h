@@ -150,30 +150,30 @@ public:
     /** 获取当前设置的字体索引
      * @return 返回字体索引（对应 global.xml 中字体的顺序）
      */
-    std::wstring GetFontId() const;
+    DString GetFontId() const;
 
     /** 设置字体索引
      * @param[in] index 要设置的字体索引（对应 global.xml 中字体的顺序）
      */
-    void SetFontId(const std::wstring& strFontId);
+    void SetFontId(const DString& strFontId);
 
     /** 设置正常文本颜色
      * @param[in] dwTextColor 要设置的文本颜色，该颜色可在 global.xml 中存在
      */
-    void SetTextColor(const std::wstring& dwTextColor);
+    void SetTextColor(const DString& dwTextColor);
 
     /** 获取正常文本颜色
      */
-    std::wstring GetTextColor() const;
+    DString GetTextColor() const;
 
     /** 设置Disabled状态的文本颜色
      * @param[in] dwTextColor 要设置的文本颜色，该颜色可在 global.xml 中存在
      */
-    void SetDisabledTextColor(const std::wstring& dwTextColor);
+    void SetDisabledTextColor(const DString& dwTextColor);
 
     /** 获取Disabled状态的文本颜色
      */
-    std::wstring GetDisabledTextColor() const;
+    DString GetDisabledTextColor() const;
 
     /** 获取限制字符数量
      * @return 返回限制字符数量
@@ -187,12 +187,12 @@ public:
 
     /** 获取允许输入哪些字符
     */
-    std::wstring GetLimitChars() const;
+    DString GetLimitChars() const;
 
     /** 设置允许输入哪些字符，比如颜色值可以设置：limit_chars="#0123456789ABCDEFabcdef"
     * @param [in] limitChars 允许输入的字符列表
     */
-    void SetLimitChars(const std::wstring& limitChars);
+    void SetLimitChars(const DString& limitChars);
 
     /** 是否允许发出Beep声音
     */
@@ -210,7 +210,7 @@ public:
     /** 获取控件中的文本
      * @return 返回控件中的文本内容
      */
-    std::wstring GetText() const;
+    DString GetText() const;
 
     /** 获取控件中的文本
      * @return 返回控件中的文本内容 UTF8 格式
@@ -220,17 +220,17 @@ public:
     /** 设置控件的文本, 会触发文本变化事件
      * @param [in] strText 要设置的文本内容
      */
-    void SetText(const std::wstring& strText);
+    void SetText(const DString& strText);
 
     /** 设置控件的文本，不触发文本变化事件
      * @param [in] strText 要设置的文本内容
      */
-    void SetTextNoEvent(const std::wstring& strText);
+    void SetTextNoEvent(const DString& strText);
 
     /** 设置控件的文本对应 ID
      * @param[in] strTextId 要设置的 ID，该 ID 必须在加载的语言文件中存在
      */
-    void SetTextId(const std::wstring& strTextId);
+    void SetTextId(const DString& strTextId);
 
     /** 设置控件的文本对应 ID
      * @param[in] strTextId 要设置的 UTF8 格式 ID，该 ID 必须在加载的语言文件中存在
@@ -275,12 +275,12 @@ public:
      * @param[in] lpszNewText 要替换的文字
      * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false
      */
-    void ReplaceSel(const std::wstring& lpszNewText, bool bCanUndo);
+    void ReplaceSel(const DString& lpszNewText, bool bCanUndo);
 
     /** 获取所选文字内容
      * @return 返回所选文字内容
      */
-    std::wstring GetSelText() const;
+    DString GetSelText() const;
 
     /** 全选
      * @return 返回选择的内容数量
@@ -355,7 +355,7 @@ public:
      * @param[in] nEndChar 结束为止
      * @return 返回设置的指定位置的内容
      */
-    std::wstring GetTextRange(long nStartChar, long nEndChar) const;
+    DString GetTextRange(long nStartChar, long nEndChar) const;
 
     /** 设置是否隐藏或显示选择的值
      * @param[in] bHide 是否显示，true 为显示，false 为不显示
@@ -380,7 +380,7 @@ public:
      * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false，默认为 false
      * @return 返回追加后的文字位置
      */
-    int AppendText(const std::wstring& strText, bool bCanUndo = false);
+    int AppendText(const DString& strText, bool bCanUndo = false);
 
     /** 获取字符格式
      * @param[out] cf 返回获取的字符格式
@@ -481,7 +481,7 @@ public:
      * @param[in] nMaxLength 要获取当前行最大的数据长度
      * @return 返回获取的一行数据
      */
-    std::wstring GetLine(int nIndex, int nMaxLength) const;
+    DString GetLine(int nIndex, int nMaxLength) const;
 
     /** 获取指定行的第一个字符索引
      * @param[in] nLine 要获取第几行数据，默认为 -1
@@ -598,7 +598,7 @@ public:
 
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override;
+    virtual DString GetType() const override;
     
     /** 设置控件可用状态
      * @param[in] bEnable 为 true 时控件可用，为 false 时控件为禁用状态则不可用
@@ -607,7 +607,7 @@ public:
     
     /** 设置属性
     */
-    virtual void SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue) override;
+    virtual void SetAttribute(const DString& pstrName, const DString& pstrValue) override;
 
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
@@ -654,12 +654,12 @@ public:
      * @param[in] dwColor 要设置的颜色值，该值必须在 global.xml 中存在
      * @return 无
      */
-    void SetCaretColor(const std::wstring& dwColor);
+    void SetCaretColor(const DString& dwColor);
 
     /** 获取光标颜色
      * @return 返回光标颜色
      */
-    std::wstring GetCaretColor();
+    DString GetCaretColor();
 
     /** 获取光标矩形位置
      * @return 返回光标矩形位置
@@ -690,7 +690,7 @@ public:
 
     /** 获取提示文字
      */
-    std::wstring GetPromptText() const;
+    DString GetPromptText() const;
 
     /** 获取提示文字
      * @return 返回 UTF8 格式的提示文字
@@ -700,7 +700,7 @@ public:
     /** 设置提示文字
      * @param[in] strText 要设置的提示文字
      */
-    void SetPromptText(const std::wstring& strText);
+    void SetPromptText(const DString& strText);
 
     /** 设置提示文字
      * @param[in] strText 要设置的 UTF8 格式提示文字
@@ -710,7 +710,7 @@ public:
     /** 设置提示文字 ID
      * @param[in] strText 要设置的提示文字 ID，该 ID 必须在加载的语言文件中存在
      */
-    void SetPromptTextId(const std::wstring& strTextId);
+    void SetPromptTextId(const DString& strTextId);
 
     /** 设置提示文字 ID
      * @param[in] strText 要设置的 UTF8 格式提示文字 ID，该 ID 必须在加载的语言文件中存在
@@ -725,12 +725,12 @@ public:
     /** 获取焦点状态下的图片
      * @return 返回焦点状态下的图片
      */
-    std::wstring GetFocusedImage();
+    DString GetFocusedImage();
 
     /** 设置焦点状态下的图片
      * @param[in] strImage 要设置的图片位置
      */
-    void SetFocusedImage(const std::wstring& strImage);
+    void SetFocusedImage(const DString& strImage);
 
     /** 绘制指定状态下的图片
      * @param[in] pRender 绘制引擎
@@ -763,14 +763,14 @@ public:
      * @param[in] str 文本内容
      * @param[in] color 颜色值，该值必须在 global.xml 中存在
      */
-    void AddColorText(const std::wstring &str, const std::wstring &color);
+    void AddColorText(const DString &str, const DString &color);
 
     /** 添加一个带有文字颜色的超链接
      * @param[in] str 文字内容
      * @param[in] color 文字颜色
      * @param[in] linkInfo 链接地址
      */
-    void AddLinkColorText(const std::wstring &str, const std::wstring &color, const std::wstring &linkInfo = _T(""));
+    void AddLinkColorText(const DString &str, const DString &color, const DString &linkInfo = _T(""));
 
     /** 添加一个指定字体带有文字颜色的超链接
      * @param[in] str 文字内容
@@ -778,27 +778,27 @@ public:
      * @param[in] linkInfo 链接地址
      * @param[in] font 字体索引
      */
-    void AddLinkColorTextEx(const std::wstring& str, const std::wstring &color, const std::wstring &linkInfo = _T(""), const std::wstring& strFontId = _T(""));
+    void AddLinkColorTextEx(const DString& str, const DString &color, const DString &linkInfo = _T(""), const DString& strFontId = _T(""));
 
     /** 添加一个范围用于 hittest 判断是否是链接信息
      * @param[in] cr 范围的起始位置和结束位置
      * @param[in] linkInfo 自定义 link 属性
      */
-    void AddLinkInfo(const CHARRANGE cr, const std::wstring &linkInfo);
+    void AddLinkInfo(const CHARRANGE cr, const DString &linkInfo);
 
     /** 添加一个范围用于 hittest 判断是否是链接信息,并将该范围内文字样式改为系统链接样式
      * @param[in] str 文字内容
      * @param[in] cr 范围的起始位置和结束位置
      * @param[in] linkInfo 自定义 link 属性
      */
-    void AddLinkInfoEx(const CHARRANGE cr, const std::wstring& linkInfo);
+    void AddLinkInfoEx(const CHARRANGE cr, const DString& linkInfo);
 
     /** 根据point来hittest自定义link的数据
      * @param[in] pt 位置信息
      * @param[in] info 表示 link 的自定义属性
      * @return 返回 true 表示在 link 上
      */
-    bool HittestCustomLink(UiPoint pt, std::wstring& info);
+    bool HittestCustomLink(UiPoint pt, DString& info);
 
     /** 清理图片缓存
      */
@@ -849,7 +849,7 @@ public:
     * @param [in] nMin 表示设置数字的最小值
     * @param [in] nMax 表示设置数字的最大值，如果 nMin和nMax同时为0, 表示不设置数字的最小值和最大值
     */
-    bool SetEnableSpin(bool bEnable, const std::wstring& spinClass, int32_t nMin = 0, int32_t nMax = 0);
+    bool SetEnableSpin(bool bEnable, const DString& spinClass, int32_t nMin = 0, int32_t nMax = 0);
 
 public:
     /** 监听回车按键按下事件
@@ -966,7 +966,7 @@ private:
 
     /** 设置Spin功能的Class名称
     */
-    bool SetSpinClass(const std::wstring& spinClass);
+    bool SetSpinClass(const DString& spinClass);
 
     /** 获取文本内容，并转换为数字
     */
@@ -995,27 +995,27 @@ private:
 private:
     /** 设置清除按钮功能的Class名称
     */
-    void SetClearBtnClass(const std::wstring& btnClass);
+    void SetClearBtnClass(const DString& btnClass);
 
     /** 设置显示密码按钮功能的Class名称
     */
-    void SetShowPasswordBtnClass(const std::wstring& btnClass);
+    void SetShowPasswordBtnClass(const DString& btnClass);
 
 private:
     //判断是否是字节： 可打印字符（0x20-0x7e）
     static bool IsAsciiChar(const wchar_t ch);
 
     //获取字符串的字节数
-    static int GetAsciiCharNumber(const std::wstring& str);
+    static int GetAsciiCharNumber(const DString& str);
 
     //删除字符串中超过limit字节个数之后的字符
-    static void LimitAsciiNumber(std::wstring& src, int limit);
+    static void LimitAsciiNumber(DString& src, int limit);
 
     //获取粘贴板字符串
-    static void GetClipboardText(std::wstring& out);
+    static void GetClipboardText(DString& out);
 
     //设置粘贴板字符串
-    static void SetClipBoardText(const std::wstring& str);
+    static void SetClipBoardText(const DString& str);
 
 protected:
     //RichEdit控制辅助工具类

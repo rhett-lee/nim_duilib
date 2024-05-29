@@ -46,7 +46,7 @@ public:
     * @param[in] is_enable_offset_render 是否开启离屏渲染
     * @return bool true 继续运行，false 应该结束程序
     */
-    bool Initialize(const std::wstring& app_data_dir, CefSettings &settings, bool is_enable_offset_render = true);
+    bool Initialize(const DString& app_data_dir, CefSettings &settings, bool is_enable_offset_render = true);
 
     /**
     * 清理cef组件
@@ -77,7 +77,7 @@ private:
     * @param[out] settings cef配置类
     * @return void    无返回值
     */
-    void GetCefSetting(const std::wstring& app_data_dir, CefSettings &settings);
+    void GetCefSetting(const DString& app_data_dir, CefSettings &settings);
 
 private:
     int browser_count_;

@@ -31,18 +31,18 @@ public:
     * @param [in] dpi DPI缩放管理接口
     */
     void SetImageString(ControlStateType stateType, 
-                        const std::wstring& strImageString,
+                        const DString& strImageString,
                         const DpiManager& dpi);
 
     /** 获取图片属性
     *@param [in] stateType 图片类型
     */
-    std::wstring GetImageString(ControlStateType stateType) const;
+    DString GetImageString(ControlStateType stateType) const;
 
     /** 获取图片文件名
     *@param [in] stateType 图片类型
     */
-    std::wstring GetImagePath(ControlStateType stateType) const;
+    DString GetImagePath(ControlStateType stateType) const;
 
     /** 比较两个状态的图片源区域是否相同
     *@param [in] stateType1 图片类型1
@@ -76,7 +76,7 @@ public:
     * @return 绘制成功返回true, 否则返回false
     */
     bool PaintStateImage(IRender* pRender, ControlStateType stateType, 
-                         const std::wstring& sImageModify = _T(""),
+                         const DString& sImageModify = _T(""),
                          UiRect* pDestRect = nullptr);
 
     /** 获取用于估算Control控件大小（宽和高）的图片接口

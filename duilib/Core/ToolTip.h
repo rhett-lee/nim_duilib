@@ -36,7 +36,7 @@ public:
                      const UiRect& rect, 
                      uint32_t maxWidth,
                      const UiPoint& trackPos,
-                     const std::wstring& text);
+                     const DString& text);
 
     /**@brief 隐藏ToolTip信息
     */

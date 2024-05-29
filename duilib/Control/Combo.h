@@ -21,10 +21,10 @@ public:
     virtual ~Combo();
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual bool CanPlaceCaptionBar() const override;
-    virtual std::wstring GetBorderColor(ControlStateType stateType) const override;
+    virtual DString GetBorderColor(ControlStateType stateType) const override;
 
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
@@ -77,23 +77,23 @@ public:
 
     /** 设置下拉表TreeView的Class属性
     */
-    void SetComboTreeClass(const std::wstring& classValue);
+    void SetComboTreeClass(const DString& classValue);
 
     /** 设置下拉表TreeView的节点Class属性
     */
-    void SetComboTreeNodeClass(const std::wstring& classValue);
+    void SetComboTreeNodeClass(const DString& classValue);
 
     /** 设置显示图标的Class属性
     */
-    void SetIconControlClass(const std::wstring& classValue);
+    void SetIconControlClass(const DString& classValue);
 
     /** 设置编辑控件的Class属性
     */
-    void SetEditControlClass(const std::wstring& classValue);
+    void SetEditControlClass(const DString& classValue);
 
     /** 设置按钮控件的Class属性
     */
-    void SetButtonControlClass(const std::wstring& classValue);
+    void SetButtonControlClass(const DString& classValue);
 
 public:
     /** 获取Combo列表中的子项个数
@@ -126,25 +126,25 @@ public:
     /** 获取子项的文本
     * @param [in] iIndex 子项索引号
     */
-    std::wstring GetItemText(size_t iIndex) const;
+    DString GetItemText(size_t iIndex) const;
 
     /** 设置子项的文本
     * @param [in] iIndex 子项索引号
     * @param [in] itemText 子项的文本内容
     */
-    bool SetItemText(size_t iIndex, const std::wstring& itemText);
+    bool SetItemText(size_t iIndex, const DString& itemText);
 
     /** 添加一个子项字符串
     * @param [in] itemText 子项的文本内容
     * @return 返回新添加的子项索引号
     */
-    size_t AddTextItem(const std::wstring& itemText);
+    size_t AddTextItem(const DString& itemText);
 
     /** 在指定索引号位置, 插入一个子项字符串, 返回新添加的子项索引号
     * @param [in] iIndex 子项索引号
     * @param [in] itemText 子项的文本内容
     */
-    size_t InsertTextItem(size_t iIndex, const std::wstring& itemText);
+    size_t InsertTextItem(size_t iIndex, const DString& itemText);
 
     /** 删除一个子项
     * @param [in] iIndex 子项索引号
@@ -160,16 +160,16 @@ public:
     * @param [in] bTriggerEvent bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
     * @return 返回该选中项的索引号，如果未能选中，则返回Box::InvalidIndex
     */
-    size_t SelectTextItem(const std::wstring& itemText, bool bTriggerEvent = true);
+    size_t SelectTextItem(const DString& itemText, bool bTriggerEvent = true);
 
 public:
     /** 获取当前编辑框内的文本
      */
-    std::wstring GetText() const;
+    DString GetText() const;
 
     /** 设置编辑框内的文本
     */
-    void SetText(const std::wstring& text);
+    void SetText(const DString& text);
 
     /** 让控件获取焦点
      */
@@ -233,7 +233,7 @@ protected:
     */
     virtual void OnComboWndClosed(bool bCanceled, 
                                   bool needUpdateSelItem,
-                                  const std::wstring& oldEditText);
+                                  const DString& oldEditText);
 
     /** 鼠标按下按钮
      * @param[in] args 参数列表
@@ -302,12 +302,12 @@ protected:
 private:
     /** 解析属性列表
     */
-    void ParseAttributeList(const std::wstring& strList,
-                            std::vector<std::pair<std::wstring, std::wstring>>& attributeList) const;
+    void ParseAttributeList(const DString& strList,
+                            std::vector<std::pair<DString, DString>>& attributeList) const;
 
     /** 设置控件的属性列表
     */
-    void SetAttributeList(Control* pControl, const std::wstring& classValue);
+    void SetAttributeList(Control* pControl, const DString& classValue);
 
     /** 移除控件
     */
@@ -315,7 +315,7 @@ private:
 
     /** 创建一个新的树节点
     */
-    TreeNode* CreateTreeNode(const std::wstring& itemText);
+    TreeNode* CreateTreeNode(const DString& itemText);
 
     /** 挂载该控件的鼠标事件，设置焦点
     */

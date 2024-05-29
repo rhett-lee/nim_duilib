@@ -14,7 +14,7 @@ ColorControl::ColorControl(Window* pWindow):
     m_bMouseDown = false;
 }
 
-std::wstring ColorControl::GetType() const { return DUI_CTR_COLOR_CONTROL; }
+DString ColorControl::GetType() const { return DUI_CTR_COLOR_CONTROL; }
 
 void ColorControl::PaintBkImage(IRender* pRender)
 {
@@ -186,7 +186,7 @@ void ColorControl::OnSelectPosChanged(const UiRect& rect, const UiPoint& pt)
     //                uint32_t colorData = pData[index];
     //                UiColor color = UiColor(colorData);
     //                color = UiColor(color.GetR(), color.GetG(), color.GetB());
-    //                std::wstring strColor = StringUtil::Printf(_T("#%02X%02X%02X "), color.GetR(), color.GetG(), color.GetB());
+    //                DString strColor = StringUtil::Printf(_T("#%02X%02X%02X "), color.GetR(), color.GetG(), color.GetB());
     //                ::OutputDebugString(strColor.c_str());
     //            }
     //            ::OutputDebugString(_T("\n"));

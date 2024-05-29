@@ -80,9 +80,9 @@ typedef std::string  DStringA;
 /** String 类型宏定义
 */
 #ifdef DUILIB_UNICODE
-    typedef DStringW  DString;
+    typedef std::wstring  DString;
 #else
-    typedef DStringA  DString;
+    typedef std::string   DString;
 #endif
 
 #endif //DUILIB_CONFIG_H_

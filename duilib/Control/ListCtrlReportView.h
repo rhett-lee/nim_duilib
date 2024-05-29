@@ -21,7 +21,7 @@ public:
     explicit ListCtrlReportView(Window* pWindow);
     virtual ~ListCtrlReportView();
 
-    virtual std::wstring GetType() const override { return _T("ListCtrlReportView"); }
+    virtual DString GetType() const override { return _T("ListCtrlReportView"); }
     virtual void HandleEvent(const EventArgs& msg) override;
 
     /** 设置ListCtrl控件接口
@@ -142,8 +142,8 @@ public:
     /** 横向网格线的颜色
     * @param [in] color 横向网格线的颜色
     */
-    void SetRowGridLineColor(const std::wstring& color);
-    std::wstring GetRowGridLineColor() const;
+    void SetRowGridLineColor(const DString& color);
+    DString GetRowGridLineColor() const;
 
     /** 纵向网格线的宽度
     * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示纵向网格线
@@ -155,8 +155,8 @@ public:
     /** 纵向网格线的颜色
     * @param [in] color 纵向网格线的颜色
     */
-    void SetColumnGridLineColor(const std::wstring& color);
-    std::wstring GetColumnGridLineColor() const;
+    void SetColumnGridLineColor(const DString& color);
+    DString GetColumnGridLineColor() const;
 
     /** 调整列的宽度: 数组中第1个值是列的序号，第2个值列宽度
     */

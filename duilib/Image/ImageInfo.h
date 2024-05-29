@@ -25,11 +25,11 @@ public:
 public:
     /** 设置图片路径
     */
-    void SetImageFullPath(const std::wstring& path);
+    void SetImageFullPath(const DString& path);
 
     /** 获取图片路径
     */
-    std::wstring GetImageFullPath() const;
+    DString GetImageFullPath() const;
 
     /** 设置该图片的大小是否已经做过适应DPI处理
     *  （这个属性值影响：图片的"source"和"corner"属性的DPI缩放操作）
@@ -90,11 +90,11 @@ public:
     /** 设置图片的加载KEY, 用于图片的生命周期管理
     * @param [in] loadKey 图片加载时的KEY
     */
-    void SetLoadKey(const std::wstring& loadKey);
+    void SetLoadKey(const DString& loadKey);
 
     /** 获取图片的加载KEY
     */
-    std::wstring GetLoadKey() const;
+    DString GetLoadKey() const;
 
     /** 设置生成图片加载时的DPI界面缩放比
     */
@@ -107,11 +107,11 @@ public:
     /** 设置实际图片的KEY, 用于图片的生命周期管理
     * @param [in] imageKey 实际图片时的KEY
     */
-    void SetImageKey(const std::wstring& imageKey);
+    void SetImageKey(const DString& imageKey);
 
     /** 获取实际图片的KEY
     */
-    std::wstring GetImageKey() const;
+    DString GetImageKey() const;
 
 private:
     //图片的完整路径

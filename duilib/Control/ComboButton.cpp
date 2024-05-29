@@ -13,7 +13,7 @@ class ComboButtonWnd: public Window
 public:
     void InitComboWnd(ComboButton* pOwner, bool bActivated);
     void UpdateComboWnd();
-    virtual std::wstring GetWindowClassName() const override;
+    virtual DString GetWindowClassName() const override;
     virtual void OnFinalMessage() override;
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
@@ -108,7 +108,7 @@ void ComboButtonWnd::UpdateComboWnd()
     SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
-std::wstring ComboButtonWnd::GetWindowClassName() const
+DString ComboButtonWnd::GetWindowClassName() const
 {
     return _T("ComboWnd");
 }
@@ -248,9 +248,9 @@ ComboButton::~ComboButton()
     }
 }
 
-std::wstring ComboButton::GetType() const { return DUI_CTR_COMBO_BUTTON; }
+DString ComboButton::GetType() const { return DUI_CTR_COMBO_BUTTON; }
 
-void ComboButton::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void ComboButton::SetAttribute(const DString& strName, const DString& strValue)
 {
     if ((strName == _T("dropbox_size")) || (strName == _T("dropboxsize")) ) {
         //设置下拉列表的大小（宽度和高度）
@@ -316,7 +316,7 @@ void ComboButton::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
-void ComboButton::SetLeftButtonClass(const std::wstring& classValue)
+void ComboButton::SetLeftButtonClass(const DString& classValue)
 {
     if (classValue.empty()) {
         RemoveControl(m_pLeftButton);
@@ -342,7 +342,7 @@ void ComboButton::SetLeftButtonClass(const std::wstring& classValue)
     }
 }
 
-void ComboButton::SetLeftButtonTopLabelClass(const std::wstring& classValue)
+void ComboButton::SetLeftButtonTopLabelClass(const DString& classValue)
 {
     if (classValue.empty()) {
         if ((m_pLeftButton != nullptr) && (m_pLabelTop != nullptr)) {
@@ -361,7 +361,7 @@ void ComboButton::SetLeftButtonTopLabelClass(const std::wstring& classValue)
     }
 }
 
-void ComboButton::SetLeftButtonBottomLabelClass(const std::wstring& classValue)
+void ComboButton::SetLeftButtonBottomLabelClass(const DString& classValue)
 {
     if (classValue.empty()) {
         if ((m_pLabelBottom != nullptr) && (m_pLabelBottom != nullptr)) {
@@ -380,7 +380,7 @@ void ComboButton::SetLeftButtonBottomLabelClass(const std::wstring& classValue)
     }
 }
 
-void ComboButton::SetRightButtonClass(const std::wstring& classValue)
+void ComboButton::SetRightButtonClass(const DString& classValue)
 {
     if (classValue.empty()) {
         RemoveControl(m_pRightButton);
@@ -397,7 +397,7 @@ void ComboButton::SetRightButtonClass(const std::wstring& classValue)
     }
 }
 
-void ComboButton::SetComboBoxClass(const std::wstring& classValue)
+void ComboButton::SetComboBoxClass(const DString& classValue)
 {
     ASSERT(m_pComboBox != nullptr);
     ASSERT(!classValue.empty());
@@ -406,27 +406,27 @@ void ComboButton::SetComboBoxClass(const std::wstring& classValue)
     }
 }
 
-void ComboButton::ParseAttributeList(const std::wstring& strList,
-                               std::vector<std::pair<std::wstring, std::wstring>>& attributeList) const
+void ComboButton::ParseAttributeList(const DString& strList,
+                               std::vector<std::pair<DString, DString>>& attributeList) const
 {
     if (strList.empty()) {
         return;
     }
-    std::wstring strValue = strList;
+    DString strValue = strList;
     //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
     StringUtil::ReplaceAll(_T("{"), _T("\""), strValue);
     StringUtil::ReplaceAll(_T("}"), _T("\""), strValue);
-    if (strValue.find(_T("\"")) != std::wstring::npos) {
+    if (strValue.find(_T("\"")) != DString::npos) {
         AttributeUtil::ParseAttributeList(strValue, _T('\"'), attributeList);
     }
-    else if (strValue.find(_T("\'")) != std::wstring::npos) {
+    else if (strValue.find(_T("\'")) != DString::npos) {
         AttributeUtil::ParseAttributeList(strValue, _T('\''), attributeList);
     }
 }
 
-void ComboButton::SetAttributeList(Control* pControl, const std::wstring& classValue)
+void ComboButton::SetAttributeList(Control* pControl, const DString& classValue)
 {
-    std::vector<std::pair<std::wstring, std::wstring>> attributeList;
+    std::vector<std::pair<DString, DString>> attributeList;
     ParseAttributeList(classValue, attributeList);
     if (!attributeList.empty()) {
         //按属性列表设置
@@ -455,9 +455,9 @@ bool ComboButton::CanPlaceCaptionBar() const
     return true;
 }
 
-std::wstring ComboButton::GetBorderColor(ControlStateType stateType) const
+DString ComboButton::GetBorderColor(ControlStateType stateType) const
 {
-    std::wstring borderColor;
+    DString borderColor;
     if (borderColor.empty() && (m_pLeftButton != nullptr)) {
         if (m_pLeftButton->IsFocused() || m_pLeftButton->IsMouseFocused() || m_pLeftButton->IsHotState()) {
             borderColor = __super::GetBorderColor(kControlStateHot);

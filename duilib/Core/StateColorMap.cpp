@@ -34,16 +34,16 @@ bool StateColorMap::HasStateColor(ControlStateType stateType) const
     return m_stateColorMap.find(stateType) != m_stateColorMap.end();
 }
 
-std::wstring StateColorMap::GetStateColor(ControlStateType stateType) const
+DString StateColorMap::GetStateColor(ControlStateType stateType) const
 {
     auto iter = m_stateColorMap.find(stateType);
     if (iter != m_stateColorMap.end()) {
         return iter->second.c_str();
     }
-    return std::wstring();
+    return DString();
 }
 
-void StateColorMap::SetStateColor(ControlStateType stateType, const std::wstring& color)
+void StateColorMap::SetStateColor(ControlStateType stateType, const DString& color)
 {
     if (!color.empty()) {
         m_stateColorMap[stateType] = color;
@@ -68,7 +68,7 @@ void StateColorMap::PaintStateColor(IRender* pRender, UiRect rcPaint, ControlSta
         int32_t nHotAlpha = m_pControl->GetHotAlpha();
         if (bFadeHot) {
             if ((stateType == kControlStateNormal || stateType == kControlStateHot) && HasStateColor(kControlStateHot)) {
-                std::wstring strColor = GetStateColor(kControlStateNormal);
+                DString strColor = GetStateColor(kControlStateNormal);
                 if (!strColor.empty()) {
                     pRender->FillRect(rcPaint, m_pControl->GetUiColor(strColor));
                 }
@@ -89,7 +89,7 @@ void StateColorMap::PaintStateColor(IRender* pRender, UiRect rcPaint, ControlSta
     if (stateType == kControlStateDisabled && !HasStateColor(kControlStateDisabled)) {
         stateType = kControlStateNormal;
     }
-    std::wstring strColor = GetStateColor(stateType);
+    DString strColor = GetStateColor(stateType);
     if (!strColor.empty()) {
         UiColor color = m_pControl ? m_pControl->GetUiColor(strColor) :
                                      GlobalManager::Instance().Color().GetColor(strColor);

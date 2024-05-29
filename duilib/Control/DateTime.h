@@ -40,15 +40,15 @@ public:
 
     /** 获取日期时间字符串, 日期的格式可以通过SetStringFormat()函数设置
     */
-    std::wstring GetDateTimeString() const;
+    DString GetDateTimeString() const;
 
     /** 设置日期时间字符串, 按照GetStringFormat()指定的格式, 更新日期时间值
     */
-    bool SetDateTimeString(const std::wstring& dateTime);
+    bool SetDateTimeString(const DString& dateTime);
 
     /** 获取日期的字符串格式
     */
-    std::wstring GetStringFormat() const;
+    DString GetStringFormat() const;
     
     /** 设置日期格式，默认值取决于EditFormat的值
     * @param [in] sFormat 日期的格式，具体可参考：std::put_time 函数的说明：
@@ -89,7 +89,7 @@ public:
         %z，%Z 时区名称，如果不能得到时区名称则返回空字符。
         %% 百分号
     */
-    void SetStringFormat(const std::wstring& sFormat);
+    void SetStringFormat(const DString& sFormat);
 
     /** 日期时间的编辑格式
     */
@@ -121,8 +121,8 @@ public:
 
 public:
     //基类的虚函数
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void HandleEvent(const EventArgs& msg) override;
 
     //用于初始化xml属性

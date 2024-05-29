@@ -27,13 +27,13 @@ public:
     /** 设置"加载中"图片的路径等配置信息
     * @return 如果变化返回true，否则返回false
     */
-    bool SetLoadingImage(const std::wstring& strImage);
+    bool SetLoadingImage(const DString& strImage);
 
     /** 设置loading背景色
     * @param[in] strColor 背景色
     * @return 如果变化返回true，否则返回false
     */
-    bool SetLoadingBkColor(const std::wstring& strColor);
+    bool SetLoadingBkColor(const DString& strColor);
 
     /** 绘制"加载中"图片
     */

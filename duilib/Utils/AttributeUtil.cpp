@@ -89,12 +89,12 @@ void AttributeUtil::ParseRectValue(const wchar_t* strValue, UiRect& rect)
     ASSERT((rect.Width() >= 0) && (rect.Height() >= 0));
 }
 
-void AttributeUtil::ParseAttributeList(const std::wstring& strList,
+void AttributeUtil::ParseAttributeList(const DString& strList,
                                        wchar_t seperateChar,
-                                       std::vector<std::pair<std::wstring, std::wstring>>& attributeList)
+                                       std::vector<std::pair<DString, DString>>& attributeList)
 {
-    std::wstring sName;
-    std::wstring sValue;
+    DString sName;
+    DString sValue;
     const wchar_t* pstrList = strList.c_str();
     while (*pstrList != _T('\0')) {
         sName.clear();

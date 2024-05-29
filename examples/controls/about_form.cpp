@@ -12,17 +12,17 @@ AboutForm::~AboutForm()
 {
 }
 
-std::wstring AboutForm::GetSkinFolder()
+DString AboutForm::GetSkinFolder()
 {
     return _T("controls");
 }
 
-std::wstring AboutForm::GetSkinFile()
+DString AboutForm::GetSkinFile()
 {
     return _T("about.xml");
 }
 
-std::wstring AboutForm::GetWindowClassName() const
+DString AboutForm::GetWindowClassName() const
 {
     return kClassName;
 }

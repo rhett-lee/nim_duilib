@@ -14,26 +14,26 @@ class Control;
 class UILIB_API ImageLoadAttribute
 {
 public:
-    ImageLoadAttribute(std::wstring srcWidth,
-                       std::wstring srcHeight,
+    ImageLoadAttribute(DString srcWidth,
+                       DString srcHeight,
                        bool srcDpiScale,
                        bool bHasSrcDpiScale,
                        uint32_t iconSize);
 
     /** 设置图片路径（本地绝对路径或者压缩包内的相对路径）
     */
-    void SetImageFullPath(const std::wstring& imageFullPath);
+    void SetImageFullPath(const DString& imageFullPath);
 
     /** 获取图片路径（本地绝对路径或者压缩包内的相对路径）
     */
-    std::wstring GetImageFullPath() const;
+    DString GetImageFullPath() const;
 
     /** 获取加载图片的缓存KEY
     *   完整的格式是：<图片完整路径>@<界面缩放百分比>@<宽度>:<高度>
     *          举例: "C:\Test.jpg@200@80:40"
     * @param [in] nDpiScale 请求图片对应的DPI缩放百分比
     */
-    std::wstring GetCacheKey(uint32_t nDpiScale) const;
+    DString GetCacheKey(uint32_t nDpiScale) const;
 
     /** 设置加载图片时，是否需要按照DPI缩放图片大小
     */
@@ -62,7 +62,7 @@ private:
     /** 获取设置的缩放后的大小
     * @return 返回缩放后的大小，如果失败则返回0
     */
-    uint32_t GetScacledSize(const std::wstring& srcSize, uint32_t nImageSize) const;
+    uint32_t GetScacledSize(const DString& srcSize, uint32_t nImageSize) const;
 
 private:
     //(属性名称："file")本地绝对路径或者压缩包内的相对路径，不包含属性

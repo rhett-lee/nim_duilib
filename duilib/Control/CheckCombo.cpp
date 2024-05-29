@@ -15,7 +15,7 @@ public:
     void UpdateComboWnd();
     void CloseComboWnd();
 
-    virtual std::wstring GetWindowClassName() const override;
+    virtual DString GetWindowClassName() const override;
     virtual void OnFinalMessage() override;
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
@@ -119,7 +119,7 @@ void CCheckComboWnd::CloseComboWnd()
     CloseWnd();
 }
 
-std::wstring CCheckComboWnd::GetWindowClassName() const
+DString CCheckComboWnd::GetWindowClassName() const
 {
     return _T("CCheckComboWnd");
 }
@@ -217,7 +217,7 @@ CheckCombo::~CheckCombo()
     m_pDropList.reset();
 }
 
-std::wstring CheckCombo::GetType() const { return DUI_CTR_CHECK_COMBO; }
+DString CheckCombo::GetType() const { return DUI_CTR_CHECK_COMBO; }
 
 bool CheckCombo::AddItem(Control* pControl)
 {
@@ -296,7 +296,7 @@ size_t CheckCombo::GetItemCount() const
     return m_pDropList->GetItemCount();
 }
 
-bool CheckCombo::AddTextItem(const std::wstring& itemText)
+bool CheckCombo::AddTextItem(const DString& itemText)
 {
     if (itemText.empty()) {
         return false;
@@ -336,7 +336,7 @@ void CheckCombo::Activate()
     Invalidate();
 }
 
-void CheckCombo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void CheckCombo::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("dropbox")) {
         SetDropBoxAttributeList(strValue);
@@ -394,17 +394,17 @@ void CheckCombo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
-void CheckCombo::SetDropBoxAttributeList(const std::wstring& pstrList)
+void CheckCombo::SetDropBoxAttributeList(const DString& pstrList)
 {
     SetAttributeList(m_pDropList.get(), pstrList);
 }
 
-void CheckCombo::SetDropboxItemClass(const std::wstring& classValue)
+void CheckCombo::SetDropboxItemClass(const DString& classValue)
 {
     m_dropboxItemClass = classValue;
 }
 
-void CheckCombo::SetSelectedItemClass(const std::wstring& classValue)
+void CheckCombo::SetSelectedItemClass(const DString& classValue)
 {
     m_selectedItemClass = classValue;
 }
@@ -416,27 +416,27 @@ void CheckCombo::UpdateComboWndPos()
     }
 }
 
-void CheckCombo::ParseAttributeList(const std::wstring& strList,
-                                    std::vector<std::pair<std::wstring, std::wstring>>& attributeList) const
+void CheckCombo::ParseAttributeList(const DString& strList,
+                                    std::vector<std::pair<DString, DString>>& attributeList) const
 {
     if (strList.empty()) {
         return;
     }
-    std::wstring strValue = strList;
+    DString strValue = strList;
     //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
     StringUtil::ReplaceAll(_T("{"), _T("\""), strValue);
     StringUtil::ReplaceAll(_T("}"), _T("\""), strValue);
-    if (strValue.find(_T("\"")) != std::wstring::npos) {
+    if (strValue.find(_T("\"")) != DString::npos) {
         AttributeUtil::ParseAttributeList(strValue, _T('\"'), attributeList);
     }
-    else if (strValue.find(_T("\'")) != std::wstring::npos) {
+    else if (strValue.find(_T("\'")) != DString::npos) {
         AttributeUtil::ParseAttributeList(strValue, _T('\''), attributeList);
     }
 }
 
-void CheckCombo::SetAttributeList(Control* pControl, const std::wstring& classValue)
+void CheckCombo::SetAttributeList(Control* pControl, const DString& classValue)
 {
-    std::vector<std::pair<std::wstring, std::wstring>> attributeList;
+    std::vector<std::pair<DString, DString>> attributeList;
     ParseAttributeList(classValue, attributeList);
     if (!attributeList.empty()) {
         //按属性列表设置
@@ -477,7 +477,7 @@ bool CheckCombo::OnSelectItem(const ui::EventArgs& args)
     if (pCheckBox == nullptr) {
         return true;
     }
-    std::wstring itemText = pCheckBox->GetText();
+    DString itemText = pCheckBox->GetText();
     if (itemText.empty()) {
         return true;
     }
@@ -499,7 +499,7 @@ bool CheckCombo::OnUnSelectItem(const ui::EventArgs& args)
     if (pCheckBox == nullptr) {
         return true;
     }
-    std::wstring itemText = pCheckBox->GetText();
+    DString itemText = pCheckBox->GetText();
     if (itemText.empty()) {
         return true;
     }
@@ -533,7 +533,7 @@ void CheckCombo::UpdateSelectedListHeight()
     }
 }
 
-void CheckCombo::GetSelectedText(std::vector<std::wstring>& selectedText) const
+void CheckCombo::GetSelectedText(std::vector<DString>& selectedText) const
 {
     size_t itemCount = m_pList->GetItemCount();
     for (size_t index = 0; index < itemCount; ++index) {

@@ -11,7 +11,7 @@
 namespace ui
 {
 
-const std::wstring ColorPicker::kClassName = _T("ColorPicker");
+const DString ColorPicker::kClassName = _T("ColorPicker");
 
 ColorPicker::ColorPicker():
     m_pNewColor(nullptr),
@@ -27,17 +27,17 @@ ColorPicker::~ColorPicker()
 {
 }
 
-std::wstring ColorPicker::GetSkinFolder()
+DString ColorPicker::GetSkinFolder()
 {
     return _T("public");
 }
 
-std::wstring ColorPicker::GetSkinFile()
+DString ColorPicker::GetSkinFile()
 {
     return _T("color/color_picker.xml");
 }
 
-std::wstring ColorPicker::GetWindowClassName() const
+DString ColorPicker::GetWindowClassName() const
 {
     return kClassName;
 }
@@ -48,7 +48,7 @@ LRESULT ColorPicker::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHan
     if (wParam == 0) {
         //只有点击"确认"按钮的时候，才保存所选择的颜色
         if (m_pNewColor != nullptr) {
-            std::wstring bkColor = m_pNewColor->GetBkColor();
+            DString bkColor = m_pNewColor->GetBkColor();
             if (!bkColor.empty()) {
                 selectedColor = m_pNewColor->GetUiColor(bkColor);
             }
@@ -121,7 +121,7 @@ void ColorPicker::OnInitWindow()
         pTabBox->AttachTabSelect([this](const ui::EventArgs& args) {
             UiColor selectedColor;
             if (m_pNewColor != nullptr) {
-                std::wstring bkColor = m_pNewColor->GetBkColor();
+                DString bkColor = m_pNewColor->GetBkColor();
                 if (!bkColor.empty()) {
                     selectedColor = m_pNewColor->GetUiColor(bkColor);
                 }                
@@ -182,7 +182,7 @@ void ColorPicker::OnSelectColor(const UiColor& newColor)
 {
     UiColor oldColor;
     if (m_pNewColor != nullptr) {
-        std::wstring colorString = m_pNewColor->GetBkColor();
+        DString colorString = m_pNewColor->GetBkColor();
         if (!colorString.empty()) {
             oldColor = m_pNewColor->GetUiColor(colorString);
         }
@@ -397,7 +397,7 @@ private:
     virtual bool OnSetCursor(const EventArgs& /*msg*/) override
     {
         if (m_hCursor == nullptr) {
-            std::wstring cursorPath = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), _T("public\\color\\dropcur.cur"));
+            DString cursorPath = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), _T("public\\color\\dropcur.cur"));
             m_hCursor = (HCURSOR)::LoadImage(NULL, cursorPath.c_str(), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
         }
         if (m_hCursor != nullptr) {
@@ -465,7 +465,7 @@ private:
             m_pColorPreview->SetBkColor(selColor);
 
             //设置文本
-            std::wstring text = m_pColorPreview->GetColorString(selColor);
+            DString text = m_pColorPreview->GetColorString(selColor);
             m_pColorPreview->SetText(text);
             m_pColorPreview->SetAttribute(_T("text_align"), _T("hcenter,vcenter"));
             m_pColorPreview->SetTextPadding(UiPadding(0, m_pColorPreview->GetHeight() / 2, 0, 0), false);
@@ -611,15 +611,15 @@ public:
      * GetSkinFile            接口设置你要绘制的窗口的 xml 描述文件
      * GetWindowClassName    接口设置窗口唯一的类名称
      */
-    virtual std::wstring GetSkinFolder() override { return _T("public");}
-    virtual std::wstring GetSkinFile() override { return _T("color/screen_color_picker.xml"); }
-    virtual std::wstring GetWindowClassName() const override { return _T("ScreenColorPicker"); }
+    virtual DString GetSkinFolder() override { return _T("public");}
+    virtual DString GetSkinFile() override { return _T("color/screen_color_picker.xml"); }
+    virtual DString GetWindowClassName() const override { return _T("ScreenColorPicker"); }
 
     /** 当要创建的控件不是标准的控件名称时会调用该函数
     * @param [in] strClass 控件名称
     * @return 返回一个自定义控件指针，一般情况下根据 strClass 参数创建自定义的控件
     */
-    virtual Control* CreateControl(const std::wstring& strClass)
+    virtual Control* CreateControl(const DString& strClass)
     {
         if (strClass == _T("ScreenColorPicker")) {
             if (m_pScreenColorPicker == nullptr) {
@@ -651,7 +651,7 @@ public:
 
     /** 窗口类名
     */
-    static std::wstring ClassName() { return _T("ScreenColorPicker"); }
+    static DString ClassName() { return _T("ScreenColorPicker"); }
 
     /** 抓取屏幕位图
     */

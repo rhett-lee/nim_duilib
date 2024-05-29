@@ -961,7 +961,7 @@ void Render_GdiPlus::FillPath(const IPath* /*path*/, const UiRect& /*rc*/, UiCol
     ASSERT(!"No Impl!");
 }
 
-void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
+void Render_GdiPlus::DrawString(const UiRect& rc, const DString& strText,
                                 UiColor dwTextColor, IFont* pFont, uint32_t uFormat, uint8_t uFade /*= 255*/)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -1037,7 +1037,7 @@ void Render_GdiPlus::DrawString(const UiRect& rc, const std::wstring& strText,
     graphics.DrawString(strText.c_str(), (int)strText.length(), &font, rcPaint, &stringFormat, &tBrush);
 }
 
-UiRect Render_GdiPlus::MeasureString(const std::wstring& strText, IFont* pFont,
+UiRect Render_GdiPlus::MeasureString(const DString& strText, IFont* pFont,
                                      uint32_t uFormat, int width /*= DUI_NOSET_VALUE*/)
 {
     ASSERT(pFont != nullptr);

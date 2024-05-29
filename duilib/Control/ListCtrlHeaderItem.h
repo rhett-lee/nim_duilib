@@ -24,11 +24,11 @@ public:
 
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override;
+    virtual DString GetType() const override;
 
     /** 设置属性
     */
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
@@ -66,11 +66,11 @@ public:
 
     /** 设置排序图标：降序
     */
-    void SetSortedDownImage(const std::wstring& sImageString);
+    void SetSortedDownImage(const DString& sImageString);
 
     /** 设置排序图标：升序
     */
-    void SetSortedUpImage(const std::wstring& sImageString);
+    void SetSortedUpImage(const DString& sImageString);
 
     /** 获取唯一ID
     */

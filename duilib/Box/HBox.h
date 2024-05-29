@@ -19,7 +19,7 @@ public:
     {
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_HBOX; }
+    virtual DString GetType() const override { return DUI_CTR_HBOX; }
 };
 
 }

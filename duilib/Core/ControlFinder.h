@@ -72,7 +72,7 @@ public:
      * @param[in] strName 控件名称
      * @return 返回控件指针
      */
-    Control* FindControl2(const std::wstring& strName) const;
+    Control* FindControl2(const DString& strName) const;
 
     /**
      * @brief 根据坐标查找子控件
@@ -88,7 +88,7 @@ public:
      * @param[in] strName 要查找的名称
      * @return 返回控件指针
      */
-    Control* FindSubControlByName(Control* pParent, const std::wstring& strName) const;
+    Control* FindSubControlByName(Control* pParent, const DString& strName) const;
 
     /** 添加一个控件，对控件名称做索引
     */
@@ -114,7 +114,7 @@ private:
 
     /** 控件的name与接口之间的映射
     */
-    std::map<std::wstring, Control*> m_mNameHash;
+    std::map<DString, Control*> m_mNameHash;
 };
 
 } // namespace ui

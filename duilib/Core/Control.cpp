@@ -94,9 +94,9 @@ Control::~Control()
     }
 }
 
-std::wstring Control::GetType() const { return DUI_CTR_CONTROL; }
+DString Control::GetType() const { return DUI_CTR_CONTROL; }
 
-void Control::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void Control::SetAttribute(const DString& strName, const DString& strValue)
 {
     ASSERT(GetWindow() != nullptr);//由于需要做DPI感知功能，所以必须先设置关联窗口
     if (strName == _T("class")) {
@@ -156,8 +156,8 @@ void Control::SetAttribute(const std::wstring& strName, const std::wstring& strV
         SetBkColor2Direction(strValue);
     }
     else if ((strName == _T("border_size")) || (strName == _T("bordersize"))) {
-        std::wstring nValue = strValue;
-        if (nValue.find(_T(',')) == std::wstring::npos) {
+        DString nValue = strValue;
+        if (nValue.find(_T(',')) == DString::npos) {
             int32_t nBorderSize = _wtoi(strValue.c_str());
             if (nBorderSize < 0) {
                 nBorderSize = 0;
@@ -539,14 +539,14 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     SetReEstimateSize(true);
 }
 
-void Control::SetClass(const std::wstring& strClass)
+void Control::SetClass(const DString& strClass)
 {
     if (strClass.empty()) {
         return;
     }
-    std::list<std::wstring> splitList = StringUtil::Split(strClass, _T(" "));
+    std::list<DString> splitList = StringUtil::Split(strClass, _T(" "));
     for (auto it = splitList.begin(); it != splitList.end(); it++) {
-        std::wstring pDefaultAttributes = GlobalManager::Instance().GetClassAttributes((*it));
+        DString pDefaultAttributes = GlobalManager::Instance().GetClassAttributes((*it));
         Window* pWindow = GetWindow();
         if (pDefaultAttributes.empty() && (pWindow != nullptr)) {
             pDefaultAttributes = pWindow->GetClassAttributes(*it);
@@ -559,17 +559,17 @@ void Control::SetClass(const std::wstring& strClass)
     }
 }
 
-void Control::ApplyAttributeList(const std::wstring& strList)
+void Control::ApplyAttributeList(const DString& strList)
 {
     //属性列表，先解析，然后再应用
     if (strList.empty()) {
         return;
     }
-    std::vector<std::pair<std::wstring, std::wstring>> attributeList;
-    if (strList.find(_T('\"')) != std::wstring::npos) {
+    std::vector<std::pair<DString, DString>> attributeList;
+    if (strList.find(_T('\"')) != DString::npos) {
         AttributeUtil::ParseAttributeList(strList, _T('\"'), attributeList);
     }    
-    else if (strList.find(_T('\'')) != std::wstring::npos) {
+    else if (strList.find(_T('\'')) != DString::npos) {
         AttributeUtil::ParseAttributeList(strList, _T('\''), attributeList);
     }
     for (const auto& attribute : attributeList) {
@@ -577,10 +577,10 @@ void Control::ApplyAttributeList(const std::wstring& strList)
     }
 }
 
-bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::wstring& strList, const EventArgs& /*eventArgs*/)
+bool Control::OnApplyAttributeList(const DString& strReceiver, const DString& strList, const EventArgs& /*eventArgs*/)
 {
     bool isFindSubControl = false;
-    std::wstring receiverName = strReceiver;
+    DString receiverName = strReceiver;
     if (receiverName.size() >= 2) {
         if (receiverName.substr(0, 2) == _T(".\\") || receiverName.substr(0, 2) == _T("./")) {
             receiverName = receiverName.substr(2);
@@ -602,7 +602,7 @@ bool Control::OnApplyAttributeList(const std::wstring& strReceiver, const std::w
     }
 
     if (pReceiverControl != nullptr) {
-        std::wstring strValueList = strList;
+        DString strValueList = strList;
         //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
         StringUtil::ReplaceAll(_T("{"), _T("\""), strValueList);
         StringUtil::ReplaceAll(_T("}"), _T("\""), strValueList);
@@ -624,7 +624,7 @@ AnimationManager& Control::GetAnimationManager()
     return *m_animationManager;
 }
 
-void Control::SetBkColor(const std::wstring& strColor)
+void Control::SetBkColor(const DString& strColor)
 {
     ASSERT(strColor.empty() || HasUiColor(strColor));
     if (m_strBkColor == strColor) {
@@ -644,7 +644,7 @@ void Control::SetBkColor(const UiColor& color)
     }    
 }
 
-void Control::SetBkColor2(const std::wstring& strColor)
+void Control::SetBkColor2(const DString& strColor)
 {
     ASSERT(strColor.empty() || HasUiColor(strColor));
     if (m_strBkColor2 == strColor) {
@@ -654,12 +654,12 @@ void Control::SetBkColor2(const std::wstring& strColor)
     Invalidate();
 }
 
-std::wstring Control::GetBkColor2() const
+DString Control::GetBkColor2() const
 {
     return m_strBkColor2.c_str();
 }
 
-void Control::SetBkColor2Direction(const std::wstring& direction)
+void Control::SetBkColor2Direction(const DString& direction)
 {
     if (m_strBkColor2Direction == direction) {
         return;
@@ -668,7 +668,7 @@ void Control::SetBkColor2Direction(const std::wstring& direction)
     Invalidate();
 }
 
-std::wstring Control::GetBkColor2Direction() const
+DString Control::GetBkColor2Direction() const
 {
     return m_strBkColor2Direction.c_str();
 }
@@ -689,15 +689,15 @@ int8_t Control::GetColor2Direction(const UiString& bkColor2Direction) const
     return nColor2Direction;
 }
 
-std::wstring Control::GetStateColor(ControlStateType stateType) const
+DString Control::GetStateColor(ControlStateType stateType) const
 {
     if (m_pColorMap != nullptr) {
         return m_pColorMap->GetStateColor(stateType);
     }
-    return std::wstring();
+    return DString();
 }
 
-void Control::SetStateColor(ControlStateType stateType, const std::wstring& strColor)
+void Control::SetStateColor(ControlStateType stateType, const DString& strColor)
 {
     ASSERT(strColor.empty() || HasUiColor(strColor));
     if (m_pColorMap != nullptr) {
@@ -716,12 +716,12 @@ void Control::SetStateColor(ControlStateType stateType, const std::wstring& strC
     Invalidate();
 }
 
-std::wstring Control::GetBkImage() const
+DString Control::GetBkImage() const
 {
     if (m_pBkImage != nullptr) {
         return m_pBkImage->GetImageString();
     }
-    return std::wstring();
+    return DString();
 }
 
 std::string Control::GetUTF8BkImage() const
@@ -731,7 +731,7 @@ std::string Control::GetUTF8BkImage() const
     return strOut;
 }
 
-void Control::SetBkImage(const std::wstring& strImage)
+void Control::SetBkImage(const DString& strImage)
 {
     CheckStopGifPlay();
     if (!strImage.empty()) {
@@ -748,12 +748,12 @@ void Control::SetBkImage(const std::wstring& strImage)
 
 void Control::SetUTF8BkImage(const std::string& strImage)
 {
-    std::wstring strOut;
+    DString strOut;
     StringUtil::MBCSToUnicode(strImage, strOut, CP_UTF8);
     SetBkImage(strOut);
 }
 
-void Control::SetLoadingImage(const std::wstring& strImage) 
+void Control::SetLoadingImage(const DString& strImage) 
 {
     if (!strImage.empty()) {
         if (m_pLoading == nullptr) {
@@ -767,7 +767,7 @@ void Control::SetLoadingImage(const std::wstring& strImage)
     }
 }
 
-void Control::SetLoadingBkColor(const std::wstring& strColor) 
+void Control::SetLoadingBkColor(const DString& strColor) 
 {
     if (m_pLoading != nullptr) {
         if (m_pLoading->SetLoadingBkColor(strColor)) {
@@ -807,15 +807,15 @@ bool Control::HasStateImage(StateImageType stateImageType) const
     return false;
 }
 
-std::wstring Control::GetStateImage(StateImageType imageType, ControlStateType stateType) const
+DString Control::GetStateImage(StateImageType imageType, ControlStateType stateType) const
 {
     if (m_pImageMap != nullptr) {
         return m_pImageMap->GetImageString(imageType, stateType);
     }
-    return std::wstring();
+    return DString();
 }
 
-void Control::SetStateImage(StateImageType imageType, ControlStateType stateType, const std::wstring& strImage)
+void Control::SetStateImage(StateImageType imageType, ControlStateType stateType, const DString& strImage)
 {
     if (m_pImageMap == nullptr) {
         m_pImageMap = std::make_unique<StateImageMap>();
@@ -826,7 +826,7 @@ void Control::SetStateImage(StateImageType imageType, ControlStateType stateType
 
 bool Control::PaintStateImage(IRender* pRender, StateImageType stateImageType, 
                               ControlStateType stateType, 
-                              const std::wstring& sImageModify,
+                              const DString& sImageModify,
                               UiRect* pDestRect)
 {
     if (m_pImageMap != nullptr) {
@@ -859,12 +859,12 @@ void Control::ClearStateImages()
     RelayoutOrRedraw();
 }
 
-std::wstring Control::GetStateImage(ControlStateType stateType) const
+DString Control::GetStateImage(ControlStateType stateType) const
 {
     return GetStateImage(kStateImageBk, stateType);
 }
 
-void Control::SetStateImage(ControlStateType stateType, const std::wstring& strImage)
+void Control::SetStateImage(ControlStateType stateType, const DString& strImage)
 {
     if (stateType == kControlStateHot) {
         GetAnimationManager().SetFadeHot(true);
@@ -873,12 +873,12 @@ void Control::SetStateImage(ControlStateType stateType, const std::wstring& strI
     RelayoutOrRedraw();
 }
 
-std::wstring Control::GetForeStateImage(ControlStateType stateType) const
+DString Control::GetForeStateImage(ControlStateType stateType) const
 {
     return GetStateImage(kStateImageFore, stateType);
 }
 
-void Control::SetForeStateImage(ControlStateType stateType, const std::wstring& strImage)
+void Control::SetForeStateImage(ControlStateType stateType, const DString& strImage)
 {
     if (stateType == kControlStateHot) {
         GetAnimationManager().SetFadeHot(true);
@@ -962,12 +962,12 @@ void Control::SetBkImagePaintEnabled(bool bEnable)
     }
 }
 
-std::wstring Control::GetBkImagePath() const
+DString Control::GetBkImagePath() const
 {
     if (m_pBkImage != nullptr) {
         return m_pBkImage->GetImagePath();
     }
-    return std::wstring();
+    return DString();
 }
 
 UiSize Control::GetBkImageSize() const
@@ -1016,16 +1016,16 @@ bool Control::IsHotState() const
     return (GetState() == kControlStateHot) ? true : false;
 }
 
-std::wstring Control::GetBorderColor(ControlStateType stateType) const
+DString Control::GetBorderColor(ControlStateType stateType) const
 {
-    std::wstring borderColor;
+    DString borderColor;
     if (m_pBorderColorMap != nullptr) {
         borderColor = m_pBorderColorMap->GetStateColor(stateType);
     }
     return borderColor;
 }
 
-void Control::SetBorderColor(const std::wstring& strBorderColor)
+void Control::SetBorderColor(const DString& strBorderColor)
 {
     SetBorderColor(kControlStateNormal, strBorderColor);
     SetBorderColor(kControlStateHot, strBorderColor);
@@ -1033,7 +1033,7 @@ void Control::SetBorderColor(const std::wstring& strBorderColor)
     SetBorderColor(kControlStateDisabled, strBorderColor);
 }
 
-void Control::SetBorderColor(ControlStateType stateType, const std::wstring& strBorderColor)
+void Control::SetBorderColor(ControlStateType stateType, const DString& strBorderColor)
 {
     if (m_pBorderColorMap == nullptr) {
         m_pBorderColorMap = std::make_unique<StateColorMap>();
@@ -1045,7 +1045,7 @@ void Control::SetBorderColor(ControlStateType stateType, const std::wstring& str
     }
 }
 
-void Control::SetFocusBorderColor(const std::wstring& strBorderColor)
+void Control::SetFocusBorderColor(const DString& strBorderColor)
 {
     if (m_focusBorderColor != strBorderColor) {
         m_focusBorderColor = strBorderColor;
@@ -1053,7 +1053,7 @@ void Control::SetFocusBorderColor(const std::wstring& strBorderColor)
     }
 }
 
-std::wstring Control::GetFocusBorderColor() const
+DString Control::GetFocusBorderColor() const
 {
     return m_focusBorderColor.c_str();
 }
@@ -1177,7 +1177,7 @@ void Control::SetBorderRound(UiSize cxyRound, bool bNeedDpiScale)
     }    
 }
 
-void Control::SetBoxShadow(const std::wstring& strShadow)
+void Control::SetBoxShadow(const DString& strShadow)
 {
     if (strShadow.empty()) {
         return;
@@ -1198,9 +1198,9 @@ void Control::SetCursorType(CursorType cursorType)
     m_cursorType = TruncateToInt8(cursorType);
 }
 
-std::wstring Control::GetToolTipText() const
+DString Control::GetToolTipText() const
 {
-    std::wstring strText = m_sToolTipText.c_str();
+    DString strText = m_sToolTipText.c_str();
     if (strText.empty() && !m_sToolTipTextId.empty()) {
         strText = GlobalManager::Instance().Lang().GetStringViaID(m_sToolTipTextId.c_str());
     }
@@ -1214,10 +1214,10 @@ std::string Control::GetUTF8ToolTipText() const
     return strOut;
 }
 
-void Control::SetToolTipText(const std::wstring& strText)
+void Control::SetToolTipText(const DString& strText)
 {
     if (strText != m_sToolTipText) {
-        std::wstring strTemp(strText);
+        DString strTemp(strText);
         StringUtil::ReplaceAll(_T("<n>"), _T("\r\n"), strTemp);
         m_sToolTipText = strTemp;
         Invalidate();
@@ -1234,7 +1234,7 @@ void Control::SetToolTipText(const std::wstring& strText)
 
 void Control::SetUTF8ToolTipText(const std::string& strText)
 {
-    std::wstring strOut;
+    DString strOut;
     StringUtil::MBCSToUnicode(strText, strOut, CP_UTF8);
     if (strOut.empty()) {
         m_sToolTipText.clear();
@@ -1247,7 +1247,7 @@ void Control::SetUTF8ToolTipText(const std::string& strText)
     }
 }
 
-void Control::SetToolTipTextId(const std::wstring& strTextId)
+void Control::SetToolTipTextId(const DString& strTextId)
 {
     if (m_sToolTipTextId == strTextId) {
         return;
@@ -1258,7 +1258,7 @@ void Control::SetToolTipTextId(const std::wstring& strTextId)
 
 void Control::SetUTF8ToolTipTextId(const std::string& strTextId)
 {
-    std::wstring strOut;
+    DString strOut;
     StringUtil::MBCSToUnicode(strTextId, strOut, CP_UTF8);
     SetToolTipTextId(strOut);
 }
@@ -1284,7 +1284,7 @@ void Control::SetContextMenuUsed(bool bMenuUsed)
     m_bContextMenuUsed = bMenuUsed;
 }
 
-std::wstring Control::GetDataID() const
+DString Control::GetDataID() const
 {
     return m_sUserDataID.c_str();
 }
@@ -1296,14 +1296,14 @@ std::string Control::GetUTF8DataID() const
     return strOut;
 }
 
-void Control::SetDataID(const std::wstring& strText)
+void Control::SetDataID(const DString& strText)
 {
     m_sUserDataID = strText;
 }
 
 void Control::SetUTF8DataID(const std::string& strText)
 {
-    std::wstring strOut;
+    DString strOut;
     StringUtil::MBCSToUnicode(strText, strOut, CP_UTF8);
     m_sUserDataID = strOut;
 }
@@ -1420,12 +1420,12 @@ bool Control::IsShowFocusRect() const
     return m_bShowFocusRect;
 }
 
-void Control::SetFocusRectColor(const std::wstring& focusRectColor)
+void Control::SetFocusRectColor(const DString& focusRectColor)
 {
     m_focusRectColor = focusRectColor;
 }
 
-std::wstring Control::GetFocusRectColor() const
+DString Control::GetFocusRectColor() const
 {
     return m_focusRectColor.c_str();
 }
@@ -1666,8 +1666,8 @@ void Control::SendEvent(EventType eventType,
 void Control::SendEvent(const EventArgs& msg)
 {
 //#ifdef _DEBUG
-//    std::wstring eventType = EventTypeToString(msg.Type);
-//    std::wstring type = GetType();
+//    DString eventType = EventTypeToString(msg.Type);
+//    DString type = GetType();
 //    wchar_t buf[256] = {};
 //    swprintf_s(buf, _T("Control::SendEvent: type=%s, eventType=%s\r\n"), type.c_str(), eventType.c_str());
 //    ::OutputDebugStringW(buf);    
@@ -2104,7 +2104,7 @@ bool Control::OnImeEndComposition(const EventArgs& /*msg*/)
 }
 
 bool Control::PaintImage(IRender* pRender, Image* pImage,
-                        const std::wstring& strModify, int32_t nFade, 
+                        const DString& strModify, int32_t nFade, 
                         IMatrix* pMatrix, UiRect* pInRect, UiRect* pPaintedRect) const
 {
     //注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
@@ -2496,7 +2496,7 @@ void Control::PaintBorder(IRender* pRender)
         return;
     }
     UiColor dwBorderColor;
-    std::wstring borderColor;
+    DString borderColor;
     if (IsFocused()) {
         if (IsHotState()) {
             borderColor = GetBorderColor(GetState());
@@ -2645,7 +2645,7 @@ void Control::DoPaintFocusRect(IRender* pRender)
     }
     int32_t nWidth =  Dpi().GetScaleInt(1); //画笔宽度
     UiColor dwBorderColor;//画笔颜色
-    std::wstring focusRectColor = GetFocusRectColor();
+    DString focusRectColor = GetFocusRectColor();
     if (!focusRectColor.empty()) {
         dwBorderColor = GetUiColor(focusRectColor);
     }
@@ -2974,11 +2974,11 @@ bool Control::LoadImageData(Image& duiImage) const
         return false;
     }
 
-    std::wstring sImagePath = duiImage.GetImagePath();
+    DString sImagePath = duiImage.GetImagePath();
     if (sImagePath.empty()) {
         return false;
     }
-    std::wstring imageFullPath;
+    DString imageFullPath;
 
 #ifdef DUILIB_PLATFORM_WIN
     if (GlobalManager::Instance().Icon().IsIconString(sImagePath)) {
@@ -3178,7 +3178,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
     return bRet && !weakflag.expired();
 }
 
-bool Control::HasUiColor(const std::wstring& colorName) const
+bool Control::HasUiColor(const DString& colorName) const
 {
     if (colorName.empty()) {
         return false;
@@ -3187,7 +3187,7 @@ bool Control::HasUiColor(const std::wstring& colorName) const
     return color.GetARGB() != 0;
 }
 
-UiColor Control::GetUiColor(const std::wstring& colorName) const
+UiColor Control::GetUiColor(const DString& colorName) const
 {
     if (colorName.empty()) {
         return UiColor();
@@ -3197,7 +3197,7 @@ UiColor Control::GetUiColor(const std::wstring& colorName) const
     return color;
 }
 
-UiColor Control::GetUiColorByName(const std::wstring& colorName) const
+UiColor Control::GetUiColorByName(const DString& colorName) const
 {
     UiColor color;
     if (colorName.empty()) {
@@ -3226,10 +3226,10 @@ UiColor Control::GetUiColorByName(const std::wstring& colorName) const
     return color;
 }
 
-std::wstring Control::GetColorString(const UiColor& color) const
+DString Control::GetColorString(const UiColor& color) const
 {
     if (color.IsEmpty()) {
-        return std::wstring();
+        return DString();
     }
     else {
         return StringUtil::Printf(_T("#%02X%02X%02X%02X"), color.GetA(), color.GetR(), color.GetG(), color.GetB());
@@ -3321,7 +3321,7 @@ uint8_t Control::GetPaintOrder() const
     return m_nPaintOrder;
 }
 
-IFont* Control::GetIFontById(const std::wstring& strFontId) const
+IFont* Control::GetIFontById(const DString& strFontId) const
 {
     return GlobalManager::Instance().Font().GetIFont(strFontId, this->Dpi());
 }

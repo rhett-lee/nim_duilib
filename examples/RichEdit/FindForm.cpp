@@ -16,17 +16,17 @@ FindForm::~FindForm()
 {
 }
 
-std::wstring FindForm::GetSkinFolder()
+DString FindForm::GetSkinFolder()
 {
     return _T("rich_edit");
 }
 
-std::wstring FindForm::GetSkinFile()
+DString FindForm::GetSkinFile()
 {
     return _T("find.xml");
 }
 
-std::wstring FindForm::GetWindowClassName() const
+DString FindForm::GetWindowClassName() const
 {
     return kClassName;
 }
@@ -49,7 +49,7 @@ void FindForm::OnInitWindow()
         if (m_pMainForm != nullptr) {
             pRichEdit = m_pMainForm->GetRichEdit();
         }
-        std::wstring selText;
+        DString selText;
         if (pRichEdit != nullptr) {
             selText = pRichEdit->GetSelText();
         }
@@ -84,7 +84,7 @@ void FindForm::OnFindNext()
     if (m_pFindText == nullptr) {
         return;
     }
-    std::wstring findText = m_pFindText->GetText();
+    DString findText = m_pFindText->GetText();
     if (findText.empty()) {
         return;
     }

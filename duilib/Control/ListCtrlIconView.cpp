@@ -32,7 +32,7 @@ ListCtrlIconView::~ListCtrlIconView()
 {
 }
 
-void ListCtrlIconView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void ListCtrlIconView::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("horizontal_layout")) {
         SetHorizontalLayout(strValue == _T("true"));
@@ -232,7 +232,7 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
         pItemLabel->SetClass(m_pListCtrl->GetIconViewItemLabelClass());
     }
 
-    std::wstring imageString;
+    DString imageString;
     UiSize imageSize;
     if (nImageId >= 0) {
         ImageList* pImageList = nullptr;

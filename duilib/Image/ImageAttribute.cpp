@@ -173,7 +173,7 @@ ImageAttribute::~ImageAttribute()
     }
 }
 
-void ImageAttribute::InitByImageString(const std::wstring& strImageString, const DpiManager& dpi)
+void ImageAttribute::InitByImageString(const DString& strImageString, const DpiManager& dpi)
 {
     Init();
     sImageString = strImageString;
@@ -181,21 +181,21 @@ void ImageAttribute::InitByImageString(const std::wstring& strImageString, const
     ModifyAttribute(strImageString, dpi);
 }
 
-void ImageAttribute::ModifyAttribute(const std::wstring& strImageString, const DpiManager& dpi)
+void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiManager& dpi)
 {
-    if (strImageString.find(_T('=')) == std::wstring::npos) {
+    if (strImageString.find(_T('=')) == DString::npos) {
         //不含有等号，说明没有属性，直接返回
         return;
     }
-    std::vector<std::pair<std::wstring, std::wstring>> attributeList;
+    std::vector<std::pair<DString, DString>> attributeList;
     AttributeUtil::ParseAttributeList(strImageString, _T('\''), attributeList);
 
     ImageAttribute& imageAttribute = *this;
     imageAttribute.bHasSrcDpiScale = false;
     imageAttribute.bHasDestDpiScale = false;
     for (const auto& attribute : attributeList) {
-        const std::wstring& name = attribute.first;
-        const std::wstring& value = attribute.second;
+        const DString& name = attribute.first;
+        const DString& value = attribute.second;
         if (name.empty() || value.empty()) {
             continue;
         }

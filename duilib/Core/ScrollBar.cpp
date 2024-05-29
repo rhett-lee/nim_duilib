@@ -64,9 +64,9 @@ void ScrollBar::SetOwner(ScrollBox* pOwner)
     m_pOwner = pOwner;
 }
 
-std::wstring ScrollBar::GetType() const { return DUI_CTR_SCROLLBAR; }
+DString ScrollBar::GetType() const { return DUI_CTR_SCROLLBAR; }
 
-void ScrollBar::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void ScrollBar::SetAttribute(const DString& strName, const DString& strValue)
 {
     if ((strName == _T("button1_normal_image")) || (strName == _T("button1normalimage"))) {
         SetButton1StateImage(kControlStateNormal, strValue);
@@ -785,12 +785,12 @@ void ScrollBar::SetShowButton1(bool bShow)
     SetPos(GetRect());
 }
 
-std::wstring ScrollBar::GetButton1StateImage(ControlStateType stateType)
+DString ScrollBar::GetButton1StateImage(ControlStateType stateType)
 {
     return (*m_button1StateImage).GetImageString(stateType);
 }
 
-void ScrollBar::SetButton1StateImage(ControlStateType stateType, const std::wstring& pStrImage)
+void ScrollBar::SetButton1StateImage(ControlStateType stateType, const DString& pStrImage)
 {
     (*m_button1StateImage).SetImageString(stateType, pStrImage, Dpi());
     Invalidate();
@@ -807,45 +807,45 @@ void ScrollBar::SetShowButton2(bool bShow)
     SetPos(GetRect());
 }
 
-std::wstring ScrollBar::GetButton2StateImage(ControlStateType stateType)
+DString ScrollBar::GetButton2StateImage(ControlStateType stateType)
 {
     return (*m_button2StateImage).GetImageString(stateType);
 }
 
-void ScrollBar::SetButton2StateImage(ControlStateType stateType, const std::wstring& pStrImage)
+void ScrollBar::SetButton2StateImage(ControlStateType stateType, const DString& pStrImage)
 {
     (*m_button2StateImage).SetImageString(stateType, pStrImage, Dpi());
     Invalidate();
 }
 
-std::wstring ScrollBar::GetThumbStateImage(ControlStateType stateType)
+DString ScrollBar::GetThumbStateImage(ControlStateType stateType)
 {
     return (*m_thumbStateImage).GetImageString(stateType);
 }
 
-void ScrollBar::SetThumbStateImage(ControlStateType stateType, const std::wstring& pStrImage)
+void ScrollBar::SetThumbStateImage(ControlStateType stateType, const DString& pStrImage)
 {
     (*m_thumbStateImage).SetImageString(stateType, pStrImage, Dpi());
     Invalidate();
 }
 
-std::wstring ScrollBar::GetRailStateImage(ControlStateType stateType)
+DString ScrollBar::GetRailStateImage(ControlStateType stateType)
 {
     return (*m_railStateImage).GetImageString(stateType);
 }
 
-void ScrollBar::SetRailStateImage(ControlStateType stateType, const std::wstring& pStrImage)
+void ScrollBar::SetRailStateImage(ControlStateType stateType, const DString& pStrImage)
 {
     (*m_railStateImage).SetImageString(stateType, pStrImage, Dpi());
     Invalidate();
 }
 
-std::wstring ScrollBar::GetBkStateImage(ControlStateType stateType)
+DString ScrollBar::GetBkStateImage(ControlStateType stateType)
 {
     return (*m_bkStateImage).GetImageString(stateType);
 }
 
-void ScrollBar::SetBkStateImage(ControlStateType stateType, const std::wstring& pStrImage)
+void ScrollBar::SetBkStateImage(ControlStateType stateType, const DString& pStrImage)
 {
     (*m_bkStateImage).SetImageString(stateType, pStrImage, Dpi());
     Invalidate();

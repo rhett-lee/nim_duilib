@@ -12,7 +12,7 @@ ColorPickerStatard::ColorPickerStatard(Window* pWindow):
     InitColorMap();
 }
 
-std::wstring ColorPickerStatard::GetType() const { return DUI_CTR_COLOR_PICKER_STANDARD; }
+DString ColorPickerStatard::GetType() const { return DUI_CTR_COLOR_PICKER_STANDARD; }
 
 void ColorPickerStatard::SelectColor(const UiColor& color)
 {
@@ -140,7 +140,7 @@ bool ColorPickerStatard::MouseMove(const EventArgs& msg)
     if (GetRect().ContainsPt(msg.ptMouse)) {
         UiColor color;
         if (GetColorInfo(msg.ptMouse, color)) {
-            std::wstring colorString = StringUtil::Printf(_T("#%02X%02X%02X%02X"), color.GetA(), color.GetR(), color.GetG(), color.GetB());
+            DString colorString = StringUtil::Printf(_T("#%02X%02X%02X%02X"), color.GetA(), color.GetR(), color.GetG(), color.GetB());
             SetToolTipText(colorString);
         }
         else {

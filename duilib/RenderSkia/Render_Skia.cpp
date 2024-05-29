@@ -1322,7 +1322,7 @@ void Render_Skia::FillPath(const IPath* path, const UiRect& rc, UiColor dwColor,
 }
 
 void Render_Skia::DrawString(const UiRect& rc, 
-                             const std::wstring& strText,
+                             const DString& strText,
                              UiColor dwTextColor, 
                              IFont* pFont, 
                              uint32_t uFormat, 
@@ -1422,13 +1422,13 @@ void Render_Skia::DrawString(const UiRect& rc,
     }
     skTextBox.draw(m_pSkCanvas, 
                    (const char*)strText.c_str(), 
-                   strText.size() * sizeof(std::wstring::value_type),
+                   strText.size() * sizeof(DString::value_type),
                    textEncoding, 
                    *pSkFont,
                    skPaint);
 }
 
-UiRect Render_Skia::MeasureString(const std::wstring& strText, 
+UiRect Render_Skia::MeasureString(const DString& strText, 
                                   IFont* pFont, 
                                   uint32_t uFormat, 
                                   int width /*= DUI_NOSET_VALUE*/)
@@ -1471,7 +1471,7 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
     if (isSingleLineMode || (width <= 0)) {
         //单行模式, 或者没有限制宽度
         SkScalar textWidth = pSkFont->measureText(strText.c_str(),
-                                                  strText.size() * sizeof(std::wstring::value_type),
+                                                  strText.size() * sizeof(DString::value_type),
                                                   SkTextEncoding::kUTF16,
                                                   nullptr,
                                                   &skPaint);
@@ -1505,7 +1505,7 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
         //多行模式，并且限制宽度width为有效值
         ASSERT(width > 0);
         int lineCount = SkTextLineBreaker::CountLines((const char*)strText.c_str(),
-                                                      strText.size() * sizeof(std::wstring::value_type),
+                                                      strText.size() * sizeof(DString::value_type),
                                                       SkTextEncoding::kUTF16,
                                                       *pSkFont,
                                                       skPaint,
@@ -1551,7 +1551,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
         size_t m_nRows = 0;
 
         //待绘制文本
-        std::wstring m_text;
+        DString m_text;
 
         //绘制目标区域
         UiRect m_destRect;
@@ -1615,7 +1615,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
             continue;
         }
 
-        std::wstring textValue = textData.m_text.c_str();
+        DString textValue = textData.m_text.c_str();
         //统一换行标志
         StringUtil::ReplaceAll(_T("\r\n"), _T("\n"), textValue);
         StringUtil::ReplaceAll(_T("\r"), _T("\n"), textValue);
@@ -1636,8 +1636,8 @@ void Render_Skia::DrawRichText(const UiRect& rc,
         bool bBreakAll = false;//标记是否终止
 
         //按换行符进行文本切分
-        std::list<std::wstring> textList = StringUtil::Split(textValue, _T("\n"));
-        for (const std::wstring& text : textList) {
+        std::list<DString> textList = StringUtil::Split(textValue, _T("\n"));
+        for (const DString& text : textList) {
             //绘制的文本下标开始值        
             const size_t textCount = text.size();
             size_t textStartIndex = 0;
@@ -1738,7 +1738,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
     }
 }
 
-void Render_Skia::DrawTextString(const UiRect& rc, const std::wstring& strText, uint32_t uFormat,
+void Render_Skia::DrawTextString(const UiRect& rc, const DString& strText, uint32_t uFormat,
                                  const SkPaint& skPaint, IFont* pFont) const
 {
     ASSERT(!strText.empty());
@@ -1824,7 +1824,7 @@ void Render_Skia::DrawTextString(const UiRect& rc, const std::wstring& strText, 
     }
     skTextBox.draw(m_pSkCanvas,
                    (const char*)strText.c_str(),
-                   strText.size() * sizeof(std::wstring::value_type),
+                   strText.size() * sizeof(DString::value_type),
                    textEncoding,
                    *pSkFont,
                    skPaint);
