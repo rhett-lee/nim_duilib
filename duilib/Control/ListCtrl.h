@@ -32,8 +32,8 @@ public:
 
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void HandleEvent(const EventArgs& msg) override;
 
     /** DPI发生变化，更新控件大小和布局
@@ -295,14 +295,14 @@ public:
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] text 需要设置的文本内容
     */
-    bool SetSubItemText(size_t itemIndex, size_t columnIndex, const std::wstring& text);
+    bool SetSubItemText(size_t itemIndex, size_t columnIndex, const DString& text);
 
     /** 获取指定数据项的文本
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @return 数据项关联的文本内容
     */
-    std::wstring GetSubItemText(size_t itemIndex, size_t columnIndex) const;
+    DString GetSubItemText(size_t itemIndex, size_t columnIndex) const;
 
     /** 设置指定数据项的文本颜色
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
@@ -601,8 +601,8 @@ public:
     /** 横向网格线的颜色
     * @param [in] color 横向网格线的颜色
     */
-    void SetRowGridLineColor(const std::wstring& color);
-    std::wstring GetRowGridLineColor() const;
+    void SetRowGridLineColor(const DString& color);
+    DString GetRowGridLineColor() const;
 
     /** 纵向网格线的宽度
     * @param [in] nLineWidth 网格线的宽度，如果为0表示不显示纵向网格线
@@ -614,8 +614,8 @@ public:
     /** 纵向网格线的颜色
     * @param [in] color 纵向网格线的颜色
     */
-    void SetColumnGridLineColor(const std::wstring& color);
-    std::wstring GetColumnGridLineColor() const;
+    void SetColumnGridLineColor(const DString& color);
+    DString GetColumnGridLineColor() const;
 
     /** 是否支持双击Header的分割条自动调整列宽
     */
@@ -701,87 +701,87 @@ protected:
 
     /** 设置ListCtrlHeader的属性Class
     */
-    void SetHeaderClass(const std::wstring& className);
+    void SetHeaderClass(const DString& className);
 
     /** ListCtrlHeaderItem的属性Class
     */
-    void SetHeaderItemClass(const std::wstring& className);
-    std::wstring GetHeaderItemClass() const;
+    void SetHeaderItemClass(const DString& className);
+    DString GetHeaderItemClass() const;
 
     /** ListCtrlHeader/SplitBox的属性Class
     */
-    void SetHeaderSplitBoxClass(const std::wstring& className);
-    std::wstring GetHeaderSplitBoxClass() const;
+    void SetHeaderSplitBoxClass(const DString& className);
+    DString GetHeaderSplitBoxClass() const;
 
     /** ListCtrlHeader/SplitBox/Control的属性Class
     */
-    void SetHeaderSplitControlClass(const std::wstring& className);
-    std::wstring GetHeaderSplitControlClass() const;
+    void SetHeaderSplitControlClass(const DString& className);
+    DString GetHeaderSplitControlClass() const;
 
     /** CheckBox的Class属性(应用于Header和ListCtrl数据)
     */
-    void SetCheckBoxClass(const std::wstring& className);
-    std::wstring GetCheckBoxClass() const;
+    void SetCheckBoxClass(const DString& className);
+    DString GetCheckBoxClass() const;
 
     /** 数据Report视图中的ListBox的Class属性
     */
-    void SetReportViewClass(const std::wstring& className);
-    std::wstring GetReportViewClass() const;
+    void SetReportViewClass(const DString& className);
+    DString GetReportViewClass() const;
 
     /** ListCtrlItem的Class属性
     */
-    void SetDataItemClass(const std::wstring& className);
-    std::wstring GetDataItemClass() const;
+    void SetDataItemClass(const DString& className);
+    DString GetDataItemClass() const;
 
     /** ListCtrlItem/ListCtrlSubItem的Class属性
     */
-    void SetDataSubItemClass(const std::wstring& className);
-    std::wstring GetDataSubItemClass() const;
+    void SetDataSubItemClass(const DString& className);
+    DString GetDataSubItemClass() const;
 
     /** 数据Icon视图中的ListBox的Class属性
     */
-    void SetIconViewClass(const std::wstring& className);
-    std::wstring GetIconViewClass() const;
+    void SetIconViewClass(const DString& className);
+    DString GetIconViewClass() const;
 
     /** 数据Icon视图中的ListBox的子项Class属性
     */
-    void SetIconViewItemClass(const std::wstring& className);
-    std::wstring GetIconViewItemClass() const;
+    void SetIconViewItemClass(const DString& className);
+    DString GetIconViewItemClass() const;
 
     /** 数据Icon视图中的ListBox的子项中图片的Class属性
     */
-    void SetIconViewItemImageClass(const std::wstring& className);
-    std::wstring GetIconViewItemImageClass() const;
+    void SetIconViewItemImageClass(const DString& className);
+    DString GetIconViewItemImageClass() const;
 
     /** 数据Icon视图中的ListBox的子项中Label的Class属性
     */
-    void SetIconViewItemLabelClass(const std::wstring& className);
-    std::wstring GetIconViewItemLabelClass() const;
+    void SetIconViewItemLabelClass(const DString& className);
+    DString GetIconViewItemLabelClass() const;
 
     /** 数据List视图中的ListBox的Class属性
     */
-    void SetListViewClass(const std::wstring& className);
-    std::wstring GetListViewClass() const;
+    void SetListViewClass(const DString& className);
+    DString GetListViewClass() const;
 
     /** 数据List视图中的ListBox的子项Class属性
     */
-    void SetListViewItemClass(const std::wstring& className);
-    std::wstring GetListViewItemClass() const;
+    void SetListViewItemClass(const DString& className);
+    DString GetListViewItemClass() const;
 
     /** 数据List视图中的ListBox的子项的图片的Class属性
     */
-    void SetListViewItemImageClass(const std::wstring& className);
-    std::wstring GetListViewItemImageClass() const;
+    void SetListViewItemImageClass(const DString& className);
+    DString GetListViewItemImageClass() const;
 
     /** 数据List视图中的ListBox的子项的Label的Class属性
     */
-    void SetListViewItemLabelClass(const std::wstring& className);
-    std::wstring GetListViewItemLabelClass() const;
+    void SetListViewItemLabelClass(const DString& className);
+    DString GetListViewItemLabelClass() const;
 
     /** 编辑框的Class属性
     */
-    void SetRichEditClass(const std::wstring& richEditClass);
-    std::wstring GetRichEditClass() const;
+    void SetRichEditClass(const DString& richEditClass);
+    DString GetRichEditClass() const;
 
 protected:
     /** 增加一列
@@ -871,7 +871,7 @@ private:
 
     /** 子项编辑事件
     */
-    void OnItemEdited(const ListCtrlEditParam& editParam, const std::wstring& newItemText);
+    void OnItemEdited(const ListCtrlEditParam& editParam, const DString& newItemText);
 
     /** 视图接收到鼠标消息
     */

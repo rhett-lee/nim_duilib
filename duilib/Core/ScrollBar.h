@@ -24,7 +24,7 @@ public:
     void SetOwner(ScrollBox* pOwner);
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
+    virtual DString GetType() const override;
     virtual void SetEnabled(bool bEnable = true) override;
     virtual void SetFocus() override;
     virtual void SetVisible(bool bVisible) override;
@@ -35,7 +35,7 @@ public:
 
     virtual void SetPos(UiRect rc) override;
     virtual void HandleEvent(const EventArgs& msg) override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
     virtual void ClearImageCache() override;
 
@@ -132,7 +132,7 @@ public:
      * @param[in] stateType 要获取的状态，参考 ControlStateType 枚举
      * @return 返回图片位置
      */
-    std::wstring GetButton1StateImage(ControlStateType stateType);
+    DString GetButton1StateImage(ControlStateType stateType);
 
     /**
      * @brief 设置指定状态下的向左或向上按钮图片
@@ -140,7 +140,7 @@ public:
      * @param[in] pStrImage 图片位置
      * @return 无
      */
-    void SetButton1StateImage(ControlStateType stateType, const std::wstring& pStrImage);
+    void SetButton1StateImage(ControlStateType stateType, const DString& pStrImage);
 
     /**
      * @brief 是否显示右或下按钮
@@ -160,7 +160,7 @@ public:
      * @param[in] stateType 要获取的状态，参考 ControlStateType 枚举
      * @return 返回图片位置
      */
-    std::wstring GetButton2StateImage(ControlStateType stateType);
+    DString GetButton2StateImage(ControlStateType stateType);
 
     /**
      * @brief 设置指定状态下的向右或向下按钮图片
@@ -168,14 +168,14 @@ public:
      * @param[in] pStrImage 图片位置
      * @return 无
      */
-    void SetButton2StateImage(ControlStateType stateType, const std::wstring& pStrImage);
+    void SetButton2StateImage(ControlStateType stateType, const DString& pStrImage);
 
     /**
      * @brief 获取滑块指定状态下的图片
      * @param[in] stateType 要获取的状态标识，参考 ControlStateType 枚举
      * @return 返回图片位置
      */
-    std::wstring GetThumbStateImage(ControlStateType stateType);
+    DString GetThumbStateImage(ControlStateType stateType);
 
     /**
      * @brief 设置滑块指定状态下的图片
@@ -183,14 +183,14 @@ public:
      * @param[in] pStrImage 图片位置
      * @return 无
      */
-    void SetThumbStateImage(ControlStateType stateType, const std::wstring& pStrImage);
+    void SetThumbStateImage(ControlStateType stateType, const DString& pStrImage);
 
     /**
      * @brief 获取指定状态下滑块中间标识图片
      * @param[in] stateType 要获取的状态标识，参考 ControlStateType 枚举
      * @return 返回图片位置
      */
-    std::wstring GetRailStateImage(ControlStateType stateType);
+    DString GetRailStateImage(ControlStateType stateType);
 
     /**
      * @brief 设置指定状态下滑块中间标识图片
@@ -198,14 +198,14 @@ public:
      * @param[in] pStrImage 图片位置
      * @return 无
      */
-    void SetRailStateImage(ControlStateType stateType, const std::wstring& pStrImage);
+    void SetRailStateImage(ControlStateType stateType, const DString& pStrImage);
 
     /**
      * @brief 获取指定状态下的背景图片
      * @param[in] stateType 要获取的状态标识，参考 ControlStateType 枚举
      * @return 返回图片位置
      */
-    std::wstring GetBkStateImage(ControlStateType stateType);
+    DString GetBkStateImage(ControlStateType stateType);
 
     /**
      * @brief 设置指定状态下的背景图片
@@ -213,7 +213,7 @@ public:
      * @param[in] pStrImage 图片位置
      * @return 无
      */
-    void SetBkStateImage(ControlStateType stateType, const std::wstring& pStrImage);
+    void SetBkStateImage(ControlStateType stateType, const DString& pStrImage);
 
     /**
      * @brief 是否自动隐藏滚动条
@@ -309,7 +309,7 @@ private:
     ControlStateType m_uThumbState;
 
     //图片的目标区域，绘制用
-    std::wstring m_sImageModify;
+    DString m_sImageModify;
 
     //背景各个状态的图片
     std::unique_ptr<StateImage> m_bkStateImage;

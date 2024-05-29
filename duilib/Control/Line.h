@@ -16,8 +16,8 @@ public:
 
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
@@ -45,19 +45,19 @@ public:
 
     /** 设置线条颜色
     */
-    void SetLineColor(const std::wstring& lineColor);
+    void SetLineColor(const DString& lineColor);
 
     /** 获取线条颜色
     */
-    std::wstring GetLineColor() const;
+    DString GetLineColor() const;
 
     /** 设置线条类型
     */
-    void SetLineDashStyle(const std::wstring& dashStyle);
+    void SetLineDashStyle(const DString& dashStyle);
 
     /** 获取线条类型
     */
-    std::wstring GetLineDashStyle() const;
+    DString GetLineDashStyle() const;
 
 protected:
     /** 绘制控件的入口函数

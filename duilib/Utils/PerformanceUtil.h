@@ -26,12 +26,12 @@ public:
     /** 代码开始执行，开始计时
     * @param [in] name 统计项的名称
     */
-    void BeginStat(const std::wstring& name);
+    void BeginStat(const DString& name);
 
     /** 代码结束执行，统计执行性能
     * @param [in] name 统计项的名称
     */
-    void EndStat(const std::wstring& name);
+    void EndStat(const DString& name);
     
 private:
     /** 记录每项统计的结果
@@ -58,13 +58,13 @@ private:
         std::chrono::microseconds maxTime = std::chrono::microseconds::zero();
     };
 
-    std::map<std::wstring, TStat> m_stat;
+    std::map<DString, TStat> m_stat;
 };
 
 class PerformanceStat
 {
 public:
-    PerformanceStat(const std::wstring& statName):
+    PerformanceStat(const DString& statName):
         m_statName(statName)
     {
         PerformanceUtil::Instance().BeginStat(m_statName);
@@ -74,7 +74,7 @@ public:
         PerformanceUtil::Instance().EndStat(m_statName);
     }
 private:
-    std::wstring m_statName;
+    DString m_statName;
 };
 
 }

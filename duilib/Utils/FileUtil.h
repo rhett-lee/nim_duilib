@@ -15,7 +15,7 @@ public:
     * @param [in] filePath 本地文件路径
     * @param [out] fileData 文件数据，按二进制数据读取
     */
-    static bool ReadFileData(const std::wstring& filePath, std::vector<uint8_t>& fileData);
+    static bool ReadFileData(const DString& filePath, std::vector<uint8_t>& fileData);
 };
 
 }

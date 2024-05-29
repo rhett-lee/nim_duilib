@@ -19,7 +19,7 @@ public:
     {
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_VTILE_BOX; }
+    virtual DString GetType() const override { return DUI_CTR_VTILE_BOX; }
 };
 
 /** 瓦片布局的Box(水平布局)
@@ -32,7 +32,7 @@ public:
     {
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_HTILE_BOX; }
+    virtual DString GetType() const override { return DUI_CTR_HTILE_BOX; }
 };
 
 }

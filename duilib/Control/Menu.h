@@ -68,13 +68,13 @@ public:
     /** 设置资源加载的文件夹名称，如果没设置，内部默认为 "menu"
     *   XML文件中的资源（图片、XML等），均在这个文件夹中查找
     */
-    void SetSkinFolder(const std::wstring& skinFolder);
+    void SetSkinFolder(const DString& skinFolder);
 
     /** 设置多级子菜单的XML模板文件及属性
     @param [in] submenuXml 子菜单的XML模板文件名，如果没设置，内部默认为 "submenu.xml"
     @param [in] submenuNodeName 子菜单XML文件中，子菜单项插入位置的节点名称，如果没设置，内部默认为 "submenu"
     */
-    void SetSubMenuXml(const std::wstring& submenuXml, const std::wstring& submenuNodeName);
+    void SetSubMenuXml(const DString& submenuXml, const DString& submenuNodeName);
 
     /** 初始化菜单配置，并且显示菜单
     *   返回后，可以通过FindControl函数来找到菜单项，进行后续操作
@@ -84,7 +84,7 @@ public:
     * @param [in] noFocus 菜单弹出后，不激活窗口，避免抢焦点
     * @Param [in] pOwner 父菜单的接口，如果这个值不是nullptr，则这个菜单是多级菜单模式
     */
-    void ShowMenu(const std::wstring& xml, 
+    void ShowMenu(const DString& xml, 
                   const UiPoint& point,
                   MenuPopupPosType popupPosType = MenuPopupPosType::LEFT_TOP, 
                   bool noFocus = false,
@@ -108,7 +108,7 @@ public:
 
     //获取菜单项接口
     MenuItem* GetMenuItemAt(size_t iIndex) const;
-    MenuItem* GetMenuItemByName(const std::wstring& name) const;
+    MenuItem* GetMenuItemByName(const DString& name) const;
 
 private:
     friend MenuItem; //需要访问部分私有成员函数
@@ -130,10 +130,10 @@ private:
 
     virtual bool Receive(ContextMenuParam param) override;
 
-    virtual ui::Control* CreateControl(const std::wstring& pstrClass) override;
-    virtual std::wstring GetSkinFolder() override;
-    virtual std::wstring GetSkinFile() override;
-    virtual std::wstring GetWindowClassName() const override;
+    virtual ui::Control* CreateControl(const DString& pstrClass) override;
+    virtual DString GetSkinFolder() override;
+    virtual DString GetSkinFile() override;
+    virtual DString GetWindowClassName() const override;
     virtual void OnInitWindow() override;
     virtual void OnFinalMessage() override;
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
@@ -191,7 +191,7 @@ public:
 
     //获取子菜单项接口
     MenuItem* GetSubMenuItemAt(size_t iIndex) const;
-    MenuItem* GetSubMenuItemByName(const std::wstring& name) const;
+    MenuItem* GetSubMenuItemByName(const DString& name) const;
 
 
 private:

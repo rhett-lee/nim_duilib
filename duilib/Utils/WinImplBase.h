@@ -38,19 +38,19 @@ public:
     /**  创建窗口时被调用，由子类实现用以获取窗口皮肤目录
     * @return 子类需实现并返回窗口皮肤目录
     */
-    virtual std::wstring GetSkinFolder() = 0;
+    virtual DString GetSkinFolder() = 0;
 
     /**  创建窗口时被调用，由子类实现用以获取窗口皮肤 XML 描述文件
     * @return 子类需实现并返回窗口皮肤 XML 描述文件
     *         返回的内容，可以是XML文件内容（以字符'<'为开始的字符串），
     *         或者是文件路径（不是以'<'字符开始的字符串），文件要在GetSkinFolder()路径中能够找到
     */
-    virtual std::wstring GetSkinFile() = 0;
+    virtual DString GetSkinFile() = 0;
 
     /** 创建窗口时被调用，由子类实现用以获取窗口唯一的类名称
     * @return 子类需实现并返回窗口唯一的类名称
     */
-    virtual std::wstring GetWindowClassName() const override = 0;
+    virtual DString GetWindowClassName() const override = 0;
 
     /** 获取窗口样式
     * @return 默认返回当前窗口的样式去掉WS_CAPTION属性
@@ -63,7 +63,7 @@ public:
     * @param [in] strClass 控件名称
     * @return 返回一个自定义控件指针，一般情况下根据 strClass 参数创建自定义的控件
     */
-    virtual Control* CreateControl(const std::wstring& strClass);
+    virtual Control* CreateControl(const DString& strClass);
 
 protected:
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作

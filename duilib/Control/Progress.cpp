@@ -34,7 +34,7 @@ Progress::~Progress()
     }
 }
 
-std::wstring Progress::GetType() const { return DUI_CTR_PROGRESS; }
+DString Progress::GetType() const { return DUI_CTR_PROGRESS; }
 
 bool Progress::IsHorizontal() const
 {
@@ -106,15 +106,15 @@ void Progress::SetStretchForeImage(bool bStretchForeImage /*= true*/)
     Invalidate();
 }
 
-std::wstring Progress::GetProgressImage() const
+DString Progress::GetProgressImage() const
 {
     if (m_pProgressImage != nullptr) {
         return m_pProgressImage->GetImageString();
     }
-    return std::wstring();
+    return DString();
 }
 
-void Progress::SetProgressImage(const std::wstring& strImage)
+void Progress::SetProgressImage(const DString& strImage)
 {
     if (m_pProgressImage == nullptr) {
         m_pProgressImage = new Image;
@@ -123,12 +123,12 @@ void Progress::SetProgressImage(const std::wstring& strImage)
     Invalidate();
 }
 
-std::wstring Progress::GetProgressColor() const
+DString Progress::GetProgressColor() const
 {
     return m_sProgressColor.c_str();
 }
 
-void Progress::SetProgressColor(const std::wstring& strProgressColor)
+void Progress::SetProgressColor(const DString& strProgressColor)
 {
     ASSERT(strProgressColor.empty() || HasUiColor(strProgressColor));
     if (m_sProgressColor == strProgressColor) {
@@ -138,7 +138,7 @@ void Progress::SetProgressColor(const std::wstring& strProgressColor)
     Invalidate();
 }
 
-void Progress::SetAttribute(const std::wstring& srName, const std::wstring& strValue)
+void Progress::SetAttribute(const DString& srName, const DString& strValue)
 {
     if ((srName == _T("horizontal")) || (srName == _T("hor"))){
         SetHorizontal(strValue == _T("true"));
@@ -254,7 +254,7 @@ void Progress::PaintStateImages(IRender* pRender)
     const UiRect corner = m_pProgressImage->GetImageAttribute().GetImageCorner();
     if (IsHorizontal()) {
         if (corner.left != 0 && corner.left >= rc.right) {
-            std::wstring imageModify = m_sProgressImageModify.c_str();
+            DString imageModify = m_sProgressImageModify.c_str();
             imageModify += StringUtil::Printf(_T(" corner='%d,%d,%d,%d'"),
                 rc.right,
                 corner.top,
@@ -265,7 +265,7 @@ void Progress::PaintStateImages(IRender* pRender)
     }
     else {
         if (corner.top != 0 && corner.top >= rc.bottom) {
-            std::wstring imageModify = m_sProgressImageModify.c_str();
+            DString imageModify = m_sProgressImageModify.c_str();
             imageModify += StringUtil::Printf(_T(" corner='%d,%d,%d,%d'"),
                 corner.left,
                 corner.bottom,

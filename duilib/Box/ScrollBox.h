@@ -25,8 +25,8 @@ public:
     ScrollBox& operator=(const ScrollBox& r) = delete;
     virtual ~ScrollBox();
 
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& pstrName, const DString& pstrValue) override;
     virtual void SetPos(UiRect rc) override;
     virtual void HandleEvent(const EventArgs& msg) override;
     virtual bool MouseEnter(const EventArgs& msg) override;
@@ -328,7 +328,7 @@ public:
     {
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_HSCROLLBOX; }
+    virtual DString GetType() const override { return DUI_CTR_HSCROLLBOX; }
 };
 
 /** 纵向布局的ScrollBox
@@ -341,7 +341,7 @@ public:
     {
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_VSCROLLBOX; }
+    virtual DString GetType() const override { return DUI_CTR_VSCROLLBOX; }
 };
 
 /** 瓦片布局的ScrollBox(横向布局)
@@ -354,7 +354,7 @@ public:
     {
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_HTILE_SCROLLBOX; }
+    virtual DString GetType() const override { return DUI_CTR_HTILE_SCROLLBOX; }
 };
 
 /** 瓦片布局的ScrollBox(纵向布局)
@@ -367,7 +367,7 @@ public:
     {
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_VTILE_SCROLLBOX; }
+    virtual DString GetType() const override { return DUI_CTR_VTILE_SCROLLBOX; }
 };
 
 } // namespace ui

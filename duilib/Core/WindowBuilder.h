@@ -26,7 +26,7 @@ class RichTextSlice;
 
 /** 创建控件的回调函数
 */
-typedef std::function<Control* (const std::wstring&)> CreateControlCallback;
+typedef std::function<Control* (const DString&)> CreateControlCallback;
 
 /** 根据XML文件，解析并创建控件和布局
 */
@@ -46,7 +46,7 @@ public:
     @param [in] pWindow 关联的窗口
     @param [in] pParent 父容器
     */
-    Box* Create(const std::wstring& xml, 
+    Box* Create(const DString& xml, 
                 CreateControlCallback pCallback = CreateControlCallback(),
                 Window* pWindow = nullptr, 
                 Box* pParent = nullptr, 
@@ -61,7 +61,7 @@ public:
 public:
     /** 解析带格式的文本内容，并设置到RichText Control对象
     */
-    static bool ParseRichTextXmlText(const std::wstring& xmlText, Control* pControl);
+    static bool ParseRichTextXmlText(const DString& xmlText, Control* pControl);
     
     /** 解析带格式的文本内容，并设置到RichText Control对象
     */
@@ -69,12 +69,12 @@ public:
 
 private:
     Control* ParseXmlNode(const pugi::xml_node& xmlNode, Control* pParent = nullptr, Window* pWindow = nullptr);
-    Control* CreateControlByClass(const std::wstring& strControlClass, Window* pWindow);
+    Control* CreateControlByClass(const DString& strControlClass, Window* pWindow);
     void AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent);
 
     /** 判断XML文件是否存在
     */
-    bool IsXmlFileExists(const std::wstring& xml) const;
+    bool IsXmlFileExists(const DString& xml) const;
 
     /** 解析字体节点
     */
@@ -92,7 +92,7 @@ private:
 
     /** 当前解析的XML文件路径
     */
-    std::wstring m_xmlFilePath;
+    DString m_xmlFilePath;
 };
 
 } // namespace ui

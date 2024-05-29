@@ -17,13 +17,13 @@ public:
     virtual void OnInit() override;
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
+    virtual DString GetType() const override;
     virtual bool AddItem(Control* pControl) override;
     virtual bool AddItemAt(Control* pControl, size_t iIndex) override;
     virtual bool RemoveItem(Control* pControl) override;
     virtual bool RemoveItemAt(size_t iIndex) override;
     virtual void RemoveAllItems() override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
     /**
      * @brief 获取当前选择项
@@ -50,7 +50,7 @@ public:
      * @param[in] pControlName 要选择的控件名称
      * @return 成功返回 true，否则返回 false
      */
-    bool SelectItem(const std::wstring& pControlName);
+    bool SelectItem(const DString& pControlName);
 
     /**
      * @brief 设置是否显示动画效果

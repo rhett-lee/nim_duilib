@@ -170,7 +170,7 @@ std::string CefControlBase::GetUTF8URL()
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get())
     {
-        return ui::StringUtil::UTF16ToUTF8(std::wstring(GetURL().c_str()));
+        return ui::StringUtil::UToUTF8(DString(GetURL().c_str()));
     }
 
     return CefString();
@@ -184,7 +184,7 @@ CefString CefControlBase::GetMainURL(const CefString& url)
     return CefString(temp.c_str());
 }
 
-bool CefControlBase::RegisterCppFunc(const std::wstring& function_name, nim_comp::CppFunction function, bool global_function/* = false*/)
+bool CefControlBase::RegisterCppFunc(const DString& function_name, nim_comp::CppFunction function, bool global_function/* = false*/)
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() && js_bridge_.get())
     {
@@ -194,7 +194,7 @@ bool CefControlBase::RegisterCppFunc(const std::wstring& function_name, nim_comp
     return false;
 }
 
-void CefControlBase::UnRegisterCppFunc(const std::wstring& function_name)
+void CefControlBase::UnRegisterCppFunc(const DString& function_name)
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() && js_bridge_.get())
     {
@@ -202,7 +202,7 @@ void CefControlBase::UnRegisterCppFunc(const std::wstring& function_name)
     }
 }
 
-bool CefControlBase::CallJSFunction(const std::wstring& js_function_name, const std::wstring& params, nim_comp::CallJsFunctionCallback callback, const std::wstring& frame_name /*= _T("")*/)
+bool CefControlBase::CallJSFunction(const DString& js_function_name, const DString& params, nim_comp::CallJsFunctionCallback callback, const DString& frame_name /*= _T("")*/)
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() && js_bridge_.get())
     {
@@ -220,7 +220,7 @@ bool CefControlBase::CallJSFunction(const std::wstring& js_function_name, const 
     return false;
 }
 
-bool CefControlBase::CallJSFunction(const std::wstring& js_function_name, const std::wstring& params, nim_comp::CallJsFunctionCallback callback, int frame_id)
+bool CefControlBase::CallJSFunction(const DString& js_function_name, const DString& params, nim_comp::CallJsFunctionCallback callback, int frame_id)
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() && js_bridge_.get())
     {

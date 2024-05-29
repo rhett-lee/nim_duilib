@@ -13,7 +13,7 @@ LangManager::~LangManager()
     m_stringTable.clear();
 };
 
-bool LangManager::LoadStringTable(const std::wstring& strFilePath)
+bool LangManager::LoadStringTable(const DString& strFilePath)
 {
     m_stringTable.clear();
     std::vector<uint8_t> fileData;
@@ -27,7 +27,7 @@ bool LangManager::LoadStringTable(const std::wstring& strFilePath)
 
 bool LangManager::LoadStringTable(const std::vector<uint8_t>& fileData)
 {
-    std::vector<std::wstring> string_list;
+    std::vector<DString> string_list;
     if (fileData.empty()) {
         return false;
     }
@@ -44,7 +44,7 @@ bool LangManager::LoadStringTable(const std::vector<uint8_t>& fileData)
     StringUtil::ReplaceAll("\r", "\n", fragment);
     fragment.append("\n");
     std::string src;
-    std::wstring string_resourse;
+    DString string_resourse;
     for (const auto& it : fragment)    {
         if (it == '\0' || it == '\n') {
             if (!src.empty()) {
@@ -69,22 +69,22 @@ void LangManager::ClearStringTable()
     m_stringTable.clear();
 }
 
-bool LangManager::AnalyzeStringTable(const std::vector<std::wstring>& list)
+bool LangManager::AnalyzeStringTable(const std::vector<DString>& list)
 {
     int    nCount = (int)list.size();
     if (nCount <= 0) {
         return false;
     }
-    std::wstring id;
-    std::wstring strResource;
+    DString id;
+    DString strResource;
     for (int i = 0; i < nCount; ++i) {
-        const std::wstring& strSrc = list[i];
+        const DString& strSrc = list[i];
         if (strSrc.empty() || strSrc.at(0) == _T(';')) {
             //注释以";"开头
             continue;
         }
         size_t pos = strSrc.find(_T('='));
-        if (pos == std::wstring::npos) {
+        if (pos == DString::npos) {
             //无分隔符，忽略
             continue;
         }
@@ -110,9 +110,9 @@ bool LangManager::AnalyzeStringTable(const std::vector<std::wstring>& list)
     return true;
 }
 
-std::wstring LangManager::GetStringViaID(const std::wstring& id)
+DString LangManager::GetStringViaID(const DString& id)
 {
-    std::wstring text;
+    DString text;
     if (id.empty()) {
         return text;
     }

@@ -18,7 +18,7 @@ void Layout::SetOwner(Box* pOwner)
     m_pOwner = pOwner;
 }
 
-bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strValue, const DpiManager& dpiManager)
+bool Layout::SetAttribute(const DString& strName, const DString& strValue, const DpiManager& dpiManager)
 {
     bool hasAttribute = true;
     if ((strName == _T("child_margin")) || (strName == _T("childmargin"))) {

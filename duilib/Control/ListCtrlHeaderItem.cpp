@@ -34,9 +34,9 @@ ListCtrlHeaderItem::~ListCtrlHeaderItem()
     }
 }
  
-std::wstring ListCtrlHeaderItem::GetType() const { return _T("ListCtrlHeaderItem"); }
+DString ListCtrlHeaderItem::GetType() const { return _T("ListCtrlHeaderItem"); }
 
-void ListCtrlHeaderItem::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void ListCtrlHeaderItem::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("sorted_up_image")) {
         SetSortedUpImage(strValue);
@@ -386,7 +386,7 @@ ListCtrlHeaderItem::SortMode ListCtrlHeaderItem::GetSortMode() const
     return m_sortMode;
 }
 
-void ListCtrlHeaderItem::SetSortedDownImage(const std::wstring& sImageString)
+void ListCtrlHeaderItem::SetSortedDownImage(const DString& sImageString)
 {
     if (m_pSortedDownImage == nullptr) {
         m_pSortedDownImage = new Image;
@@ -395,7 +395,7 @@ void ListCtrlHeaderItem::SetSortedDownImage(const std::wstring& sImageString)
     Invalidate();
 }
 
-void ListCtrlHeaderItem::SetSortedUpImage(const std::wstring& sImageString)
+void ListCtrlHeaderItem::SetSortedUpImage(const DString& sImageString)
 {
     if (m_pSortedUpImage == nullptr) {
         m_pSortedUpImage = new Image;
@@ -582,7 +582,7 @@ bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)
         if (pCheckBox == nullptr) {
             pCheckBox = new ListCtrlCheckBox(GetWindow());
             AddItem(pCheckBox);
-            std::wstring checkBoxClass;
+            DString checkBoxClass;
             if (pListCtrl != nullptr) {
                 checkBoxClass = pListCtrl->GetCheckBoxClass();
             }

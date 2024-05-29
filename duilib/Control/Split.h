@@ -20,8 +20,8 @@ class UILIB_API SplitTemplate : public InheritType
 public:
     explicit SplitTemplate(Window* pWindow);
 
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
  
     /** 是否可以拖动
     */
@@ -110,13 +110,13 @@ SplitTemplate<InheritType>::SplitTemplate(Window* pWindow):
 }
 
 template<typename InheritType>
-inline std::wstring SplitTemplate<InheritType>::GetType() const { return DUI_CTR_SPLIT; }
+inline DString SplitTemplate<InheritType>::GetType() const { return DUI_CTR_SPLIT; }
 
 template<>
-inline std::wstring SplitTemplate<Box>::GetType() const { return DUI_CTR_SPLITBOX; }
+inline DString SplitTemplate<Box>::GetType() const { return DUI_CTR_SPLITBOX; }
 
 template<typename InheritType>
-void SplitTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void SplitTemplate<InheritType>::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("enable_split_single")) {
         SetEnableSplitSingle(strValue == _T("true"));

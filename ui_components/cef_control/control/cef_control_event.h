@@ -21,10 +21,10 @@ namespace nim_comp
     typedef std::function<void(CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)> OnBeforeMenuEvent;
     typedef std::function<bool(CefRefPtr<CefContextMenuParams> params, int command_id, CefContextMenuHandler::EventFlags event_flags)> OnMenuCommandEvent;
 
-    typedef std::function<void(const std::wstring& title)> OnTitleChangeEvent;
-    typedef std::function<void(const std::wstring& url)> OnUrlChangeEvent;
+    typedef std::function<void(const DString& title)> OnTitleChangeEvent;
+    typedef std::function<void(const DString& url)> OnUrlChangeEvent;
 
-    typedef std::function<bool(const std::wstring& url)> OnLinkClickEvent;
+    typedef std::function<bool(const DString& url)> OnLinkClickEvent;
     typedef std::function<CefRequestHandler::ReturnValue(CefRefPtr<CefRequest> request, bool is_redirect)> OnBeforeResourceLoadEvent;
     typedef std::function<void(const CefString& old_url, const CefString& new_url)> OnMainURLChengeEvent;
 

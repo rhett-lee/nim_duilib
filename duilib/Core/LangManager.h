@@ -25,7 +25,7 @@ public:
     /** 从本地文件加载所有语言映射表
      * @param[in] strFilePath 语言文件的完整路径
      */
-    bool LoadStringTable(const std::wstring& strFilePath);
+    bool LoadStringTable(const DString& strFilePath);
 
     /** 从内存中加载所有语言映射表
      * @param[in] fileData 要加载的语言映射表的数据
@@ -41,18 +41,18 @@ public:
      * @param[in] id 指定字符串 ID
      * @return 返回 ID 对应的语言字符串
      */
-    std::wstring GetStringViaID(const std::wstring& id);
+    DString GetStringViaID(const DString& id);
 
 private:
     /** 分析语言映射表内容
      * @param[in] list 读取出来的映射表内容列表
      */
-    bool AnalyzeStringTable(const std::vector<std::wstring>& list);
+    bool AnalyzeStringTable(const std::vector<DString>& list);
 
 private:
     /** 字符串的ID和取值映射表
     */
-    std::unordered_map<std::wstring, std::wstring> m_stringTable;
+    std::unordered_map<DString, DString> m_stringTable;
 };
 
 }

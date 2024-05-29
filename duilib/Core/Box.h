@@ -30,10 +30,10 @@ public:
 
 public:
     /// 重写父类接口，提供个性化功能。方法具体说明请查看 Control 控件
-    virtual std::wstring GetType() const override;
+    virtual DString GetType() const override;
     virtual void SetParent(Box* pParent) override;
     virtual void SetWindow(Window* pManager) override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
     virtual void PaintFocusRect(IRender* pRender);
     virtual void SetEnabled(bool bEnabled) override;
@@ -142,7 +142,7 @@ public:
      * @param[in] pstrSubControlName 子控件名称
      * @return 返回子控件指针
      */
-    Control* FindSubControl(const std::wstring& pstrSubControlName);
+    Control* FindSubControl(const DString& pstrSubControlName);
 
     /**
      * @brief 判断是否自动销毁

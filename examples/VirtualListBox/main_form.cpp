@@ -1,7 +1,7 @@
 #include "main_form.h"
 #include "provider.h"
 
-const std::wstring MainForm::kClassName = _T("VirtualListBox");
+const DString MainForm::kClassName = _T("VirtualListBox");
 
 
 MainForm::MainForm()
@@ -11,17 +11,17 @@ MainForm::MainForm()
 MainForm::~MainForm()
 = default;
 
-std::wstring MainForm::GetSkinFolder()
+DString MainForm::GetSkinFolder()
 {
     return _T("virtual_list_box");
 }
 
-std::wstring MainForm::GetSkinFile()
+DString MainForm::GetSkinFile()
 {
     return _T("main.xml");
 }
 
-std::wstring MainForm::GetWindowClassName() const
+DString MainForm::GetWindowClassName() const
 {
     return kClassName;
 }

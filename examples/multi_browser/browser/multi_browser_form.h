@@ -24,9 +24,9 @@ public:
     virtual ~MultiBrowserForm();
     
     //覆盖虚函数
-    virtual std::wstring GetSkinFolder() override;
-    virtual std::wstring GetSkinFile() override;
-    virtual std::wstring GetWindowClassName() const override;
+    virtual DString GetSkinFolder() override;
+    virtual DString GetSkinFile() override;
+    virtual DString GetWindowClassName() const override;
     virtual UINT GetClassStyle() const override;    
 
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
@@ -38,7 +38,7 @@ public:
     * @param[in] pstrClass 控件类名
     * @return Control* 创建的控件的指针
     */
-    virtual ui::Control* CreateControl(const std::wstring& pstrClass) override;
+    virtual ui::Control* CreateControl(const DString& pstrClass) override;
 
     /**
     * 拦截并处理底层窗体消息
@@ -77,7 +77,7 @@ public:
     * @param[in] url 初始化URL
     * @return BrowserBox* 浏览器盒子
     */
-    BrowserBox* CreateBox(const std::string &browser_id, std::wstring url);
+    BrowserBox* CreateBox(const std::string &browser_id, DString url);
 
     /**
     * 关闭本窗口内的一个浏览器盒子
@@ -125,7 +125,7 @@ public:
     * @param[in] browser_id 浏览器id
     * @return bool true 是，false 否
     */
-    bool IsActiveBox(const std::wstring &browser_id);
+    bool IsActiveBox(const DString &browser_id);
 
     /**
     * 获取本窗口内浏览器盒子的总量
@@ -138,7 +138,7 @@ public:
     * @param[in] browser_id 浏览器id
     * @return void    无返回值
     */
-    void OnBeforeDragBoxCallback(const std::wstring &browser_id);
+    void OnBeforeDragBoxCallback(const DString &browser_id);
 
     /**
     * 在执行拖拽操作后，如果被拖拽的浏览器盒子属于本窗口，则通知本窗口操作结果
@@ -169,21 +169,21 @@ private:
     * @param[in] browser_id 浏览器id
     * @return BrowserBox* 浏览器盒子
     */
-    BrowserBox* FindBox(const std::wstring &browser_id);
+    BrowserBox* FindBox(const DString &browser_id);
 
     /**
     * 在本窗口内查找标签控件
     * @param[in] browser_id 浏览器id
     * @return BrowserBox* 浏览器盒子
     */
-    BrowserTabItem* FindTabItem(const std::wstring &browser_id);
+    BrowserTabItem* FindTabItem(const DString &browser_id);
 
     /**
     * 切换某个浏览器盒子为显示状态
     * @param[in] browser_id 浏览器id
     * @return bool true 成功，false 失败
     */
-    bool ChangeToBox(const std::wstring &browser_id);
+    bool ChangeToBox(const DString &browser_id);
 
 public:
     /**
@@ -218,7 +218,7 @@ public:
     * @param[in] name 标题
     * @return void    无返回值
     */
-    void SetTabItemName(const std::wstring &browser_id, const std::wstring &name);
+    void SetTabItemName(const DString &browser_id, const DString &name);
 
     /**
     * 设置某个浏览器对应的标签控件的URL
@@ -226,7 +226,7 @@ public:
     * @param[in] url URL
     * @return void    无返回值
     */
-    void SetURL(const std::string &browser_id, const std::wstring &url);
+    void SetURL(const std::string &browser_id, const DString &url);
 
 public:
 
@@ -290,7 +290,7 @@ private:
     // 处理浏览器盒子拖拽事件
     bool                is_drag_state_;
     POINT                old_drag_point_;
-    std::wstring        draging_browser_id_;
+    DString        draging_browser_id_;
 
     // 任务栏缩略图管理器
     TaskbarManager        taskbar_manager_;

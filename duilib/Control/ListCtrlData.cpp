@@ -1151,7 +1151,7 @@ bool ListCtrlData::GetSubItemData(size_t itemIndex, size_t columnId, ListCtrlSub
     return bRet;
 }
 
-bool ListCtrlData::SetSubItemText(size_t itemIndex, size_t columnId, const std::wstring& text)
+bool ListCtrlData::SetSubItemText(size_t itemIndex, size_t columnId, const DString& text)
 {
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
@@ -1166,13 +1166,13 @@ bool ListCtrlData::SetSubItemText(size_t itemIndex, size_t columnId, const std::
     return true;
 }
 
-std::wstring ListCtrlData::GetSubItemText(size_t itemIndex, size_t columnId) const
+DString ListCtrlData::GetSubItemText(size_t itemIndex, size_t columnId) const
 {
     StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
     if (pStorage == nullptr) {
         //索引号无效
-        return std::wstring();
+        return DString();
     }
     return pStorage->text.c_str();
 }

@@ -27,14 +27,14 @@ public:
     * @param[in] name 标题
     * @return void    无返回值
     */
-    void SetTitle(std::wstring name);
+    void SetTitle(DString name);
 
     /**
     * 设置显示的浏览器头像
     * @param[in] icon 头像路径
     * @return void    无返回值
     */
-    void SetIcon(std::wstring icon);
+    void SetIcon(DString icon);
 
 private:
 
@@ -78,6 +78,6 @@ private:
     ui::Label        *name_;
     ui::Button        *button_close_;
 
-    std::wstring    session_id_;
+    DString    session_id_;
 };
 #endif //EXAMPLES_BROWSER_TAB_ITEM_H_

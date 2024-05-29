@@ -2,18 +2,18 @@
 #include <shellapi.h>
 #include <memory>
 
-bool DiskUtils::GetLogicalDriveList(std::vector<std::wstring>& driveList)
+bool DiskUtils::GetLogicalDriveList(std::vector<DString>& driveList)
 {
     const int32_t maxBufLen = 1022;
-    std::wstring::value_type tempBuf[maxBufLen + 2];
+    DString::value_type tempBuf[maxBufLen + 2];
     DWORD dwSize = ::GetLogicalDriveStrings(maxBufLen, tempBuf);
     if (dwSize == 0) {
         return false;
     }
-    const std::wstring::value_type* driveStr = tempBuf;
-    std::unique_ptr<std::wstring::value_type> spBuf;
+    const DString::value_type* driveStr = tempBuf;
+    std::unique_ptr<DString::value_type> spBuf;
     if (dwSize > maxBufLen) {
-        std::wstring::value_type* szBuf = new std::wstring::value_type[dwSize + 2];
+        DString::value_type* szBuf = new DString::value_type[dwSize + 2];
         spBuf.reset(szBuf);
         DWORD dwRetSize = ::GetLogicalDriveStrings(dwSize, szBuf);
         if ( (dwRetSize == 0) || (dwRetSize > dwSize) )
@@ -41,7 +41,7 @@ bool DiskUtils::GetLogicalDriveList(std::vector<std::wstring>& driveList)
     return true;
 }
 
-bool DiskUtils::GetLogicalDriveInfo(const std::wstring& driveString, DiskInfo& diskInfo)
+bool DiskUtils::GetLogicalDriveInfo(const DString& driveString, DiskInfo& diskInfo)
 { 
     HMODULE hShell32Dll = ::LoadLibraryW(_T("Shell32.dll"));
     ASSERT(hShell32Dll != NULL);
@@ -68,12 +68,12 @@ bool DiskUtils::GetLogicalDriveInfo(const std::wstring& driveString, DiskInfo& d
     currentDiskInfo.m_volumeName = shellInfo.szDisplayName;
     currentDiskInfo.m_volumeType = shellInfo.szTypeName;
     
-    std::wstring::value_type volumeNameBuffer[MAX_PATH + 1] = {0};
+    DString::value_type volumeNameBuffer[MAX_PATH + 1] = {0};
     DWORD volumeNameSize = MAX_PATH;
     DWORD volumeSerialNumber = 0;
     DWORD maximumComponentLength = 0;
     DWORD fileSystemFlags = 0;
-    std::wstring::value_type fileSystemNameBuffer[MAX_PATH + 1] = {0};
+    DString::value_type fileSystemNameBuffer[MAX_PATH + 1] = {0};
     DWORD fileSystemNameSize = MAX_PATH;
 
     if (::GetVolumeInformation( driveString.c_str(), 
@@ -108,26 +108,26 @@ bool DiskUtils::GetLogicalDriveInfo(const std::wstring& driveString, DiskInfo& d
     return true;
 }
 
-std::wstring DiskUtils::GetDriveFromDirectoryPath(std::wstring path) 
+DString DiskUtils::GetDriveFromDirectoryPath(DString path) 
 {
     if ( (path.size() < 2)) {
-        return std::wstring();
+        return DString();
     }
     if ( (path[1] != _T(':'))) {
-        return std::wstring();
+        return DString();
     }    
     return path.substr(0, 3);
 }
 
-std::wstring DiskUtils::GetMaxFreeSpaceLocalDisk()
+DString DiskUtils::GetMaxFreeSpaceLocalDisk()
 {
     uint64_t freeBytes = 0;
-    std::wstring maxFreedrive;
-    std::wstring defaultPath;
-    std::vector<std::wstring> driveList;
+    DString maxFreedrive;
+    DString defaultPath;
+    std::vector<DString> driveList;
     GetLogicalDriveList(driveList);
     for (size_t i = 0; i < driveList.size(); ++i) {
-        std::wstring drive = driveList[i];
+        DString drive = driveList[i];
         UINT uType = ::GetDriveType(drive.c_str());
         if (uType != DRIVE_FIXED) {
             //只需要本地磁盘
@@ -148,10 +148,10 @@ std::wstring DiskUtils::GetMaxFreeSpaceLocalDisk()
     return maxFreedrive;
 }
 
-uint64_t DiskUtils::GetFreeDiskSpace(const std::wstring& fullDirectory)
+uint64_t DiskUtils::GetFreeDiskSpace(const DString& fullDirectory)
 {
     uint64_t freeSize = 0;
-    std::wstring drive = GetDriveFromDirectoryPath(fullDirectory);
+    DString drive = GetDriveFromDirectoryPath(fullDirectory);
     if (!drive.empty()) {
         DiskInfo diskInfo;
         GetLogicalDriveInfo(drive, diskInfo);

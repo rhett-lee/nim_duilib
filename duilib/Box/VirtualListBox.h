@@ -434,7 +434,7 @@ public:
         SetVirtualLayout(pVirtualLayout);
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_HLISTBOX; }
+    virtual DString GetType() const override { return DUI_CTR_VIRTUAL_HLISTBOX; }
 };
 
 /** 纵向布局的虚表ListBox
@@ -449,7 +449,7 @@ public:
         SetVirtualLayout(pVirtualLayout);
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_VLISTBOX; }
+    virtual DString GetType() const override { return DUI_CTR_VIRTUAL_VLISTBOX; }
 };
 
 /** 瓦片布局的虚表ListBox(横向布局)
@@ -464,7 +464,7 @@ public:
         SetVirtualLayout(pVirtualLayout);
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_HTILE_LISTBOX; }
+    virtual DString GetType() const override { return DUI_CTR_VIRTUAL_HTILE_LISTBOX; }
 };
 
 /** 瓦片布局的虚表ListBox(纵向布局)
@@ -479,7 +479,7 @@ public:
         SetVirtualLayout(pVirtualLayout);
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_VIRTUAL_VTILE_LISTBOX; }
+    virtual DString GetType() const override { return DUI_CTR_VIRTUAL_VTILE_LISTBOX; }
 };
 
 }

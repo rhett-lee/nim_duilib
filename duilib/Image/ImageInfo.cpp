@@ -31,12 +31,12 @@ ImageInfo::~ImageInfo()
     }
 }
 
-void ImageInfo::SetImageFullPath(const std::wstring& path)
+void ImageInfo::SetImageFullPath(const DString& path)
 {
     m_imageFullPath = path;
 }
 
-std::wstring ImageInfo::GetImageFullPath() const
+DString ImageInfo::GetImageFullPath() const
 {
     return m_imageFullPath.c_str();
 }
@@ -127,12 +127,12 @@ int32_t ImageInfo::GetPlayCount() const
     return m_nPlayCount;
 }
 
-void ImageInfo::SetLoadKey(const std::wstring& loadKey)
+void ImageInfo::SetLoadKey(const DString& loadKey)
 {
     m_loadKey = loadKey;
 }
 
-std::wstring ImageInfo::GetLoadKey() const
+DString ImageInfo::GetLoadKey() const
 {
     return m_loadKey.c_str();
 }
@@ -147,12 +147,12 @@ uint32_t ImageInfo::GetLoadDpiScale() const
     return m_loadDpiScale;
 }
 
-void ImageInfo::SetImageKey(const std::wstring& imageKey)
+void ImageInfo::SetImageKey(const DString& imageKey)
 {
     m_imageKey = imageKey;
 }
 
-std::wstring ImageInfo::GetImageKey() const
+DString ImageInfo::GetImageKey() const
 {
     return m_imageKey.c_str();
 }

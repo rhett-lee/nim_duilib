@@ -308,14 +308,14 @@ public:
     * @param [in] columnId 列的ID
     * @param [in] text 需要设置的文本内容
     */
-    bool SetSubItemText(size_t itemIndex, size_t columnId, const std::wstring& text);
+    bool SetSubItemText(size_t itemIndex, size_t columnId, const DString& text);
 
     /** 获取指定数据项的文本
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnId 列的ID
     * @return 数据项关联的文本内容
     */
-    std::wstring GetSubItemText(size_t itemIndex, size_t columnId) const;
+    DString GetSubItemText(size_t itemIndex, size_t columnId) const;
 
     /** 设置指定数据项的文本颜色，并刷新界面显示
     * @param [in] itemIndex 数据项的索引号

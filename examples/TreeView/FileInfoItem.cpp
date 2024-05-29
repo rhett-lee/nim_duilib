@@ -30,7 +30,7 @@ void FileInfoItem::InitSubControls(const FileInfo& fileInfo, size_t nElementInde
         if (!fileInfo.m_isFolder && IsImageFile(fileInfo.m_fileName)) {
             //图片文件，直接显示图片（屏蔽了，运行速度太慢，待优化）
             int32_t itemWidth = 64;// this->GetWidth();
-            std::wstring imageString = fileInfo.m_filePath;
+            DString imageString = fileInfo.m_filePath;
             if (itemWidth > 0) {
                 imageString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center' width='%d'"), imageString.c_str(), itemWidth);
             }
@@ -41,7 +41,7 @@ void FileInfoItem::InitSubControls(const FileInfo& fileInfo, size_t nElementInde
         }
         else {
             //非图片文件或者文件夹，显示图标
-            std::wstring iconString = ui::GlobalManager::Instance().Icon().GetIconString(fileInfo.m_hIcon);
+            DString iconString = ui::GlobalManager::Instance().Icon().GetIconString(fileInfo.m_hIcon);
             if (!iconString.empty()) {
                 iconString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center'"), iconString.c_str());
                 m_pIconControl->SetBkImage(iconString);
@@ -50,11 +50,11 @@ void FileInfoItem::InitSubControls(const FileInfo& fileInfo, size_t nElementInde
     }
 }
 
-bool FileInfoItem::IsImageFile(const std::wstring& filePath) const
+bool FileInfoItem::IsImageFile(const DString& filePath) const
 {
-    std::wstring fileExt;
+    DString fileExt;
     size_t pos = filePath.rfind(_T('.'));
-    if (pos != std::wstring::npos) {
+    if (pos != DString::npos) {
         fileExt = filePath.substr(pos);
     }
     fileExt = ui::StringUtil::MakeLowerString(fileExt);

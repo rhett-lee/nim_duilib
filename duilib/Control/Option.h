@@ -18,9 +18,9 @@ public:
     ~OptionTemplate();
         
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
+    virtual DString GetType() const override;
     virtual void SetWindow(Window* pManager) override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void Selected(bool bSelected, bool bTriggerEvent = false) override;
     virtual void Activate() override;
 
@@ -28,14 +28,14 @@ public:
      * @brief 获取所属组名称
      * @return 返回组名称
      */
-    virtual std::wstring GetGroup() const;
+    virtual DString GetGroup() const;
 
     /**
      * @brief 设置所属组
      * @param[in] strGroupName 组名称
      * @return 无
      */
-    virtual void SetGroup(const std::wstring& strGroupName);
+    virtual void SetGroup(const DString& strGroupName);
 
 private:
 
@@ -59,10 +59,10 @@ OptionTemplate<InheritType>::~OptionTemplate()
 }
 
 template<typename InheritType>
-inline std::wstring OptionTemplate<InheritType>::GetType() const { return DUI_CTR_OPTION; }
+inline DString OptionTemplate<InheritType>::GetType() const { return DUI_CTR_OPTION; }
 
 template<>
-inline std::wstring OptionTemplate<Box>::GetType() const { return DUI_CTR_OPTIONBOX; }
+inline DString OptionTemplate<Box>::GetType() const { return DUI_CTR_OPTIONBOX; }
 
 template<typename InheritType>
 void OptionTemplate<InheritType>::SetWindow(Window* pManager)
@@ -76,7 +76,7 @@ void OptionTemplate<InheritType>::SetWindow(Window* pManager)
 }
 
 template<typename InheritType>
-void OptionTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void OptionTemplate<InheritType>::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("group")) {
         SetGroup(strValue);
@@ -132,13 +132,13 @@ void OptionTemplate<InheritType>::Activate()
 }
 
 template<typename InheritType>
-std::wstring OptionTemplate<InheritType>::GetGroup() const
+DString OptionTemplate<InheritType>::GetGroup() const
 {
     return m_sGroupName.c_str();
 }
 
 template<typename InheritType>
-void OptionTemplate<InheritType>::SetGroup(const std::wstring& strGroupName)
+void OptionTemplate<InheritType>::SetGroup(const DString& strGroupName)
 {
     if (strGroupName.empty()) {
         if (m_sGroupName.empty()) {

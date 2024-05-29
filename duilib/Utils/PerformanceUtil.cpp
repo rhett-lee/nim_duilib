@@ -31,7 +31,7 @@ PerformanceUtil& PerformanceUtil::Instance()
     return self;
 }
 
-void PerformanceUtil::BeginStat(const std::wstring& name)
+void PerformanceUtil::BeginStat(const DString& name)
 {
     ASSERT(!name.empty());
     TStat& stat = m_stat[name];
@@ -39,7 +39,7 @@ void PerformanceUtil::BeginStat(const std::wstring& name)
     stat.hasStarted = true;
 }
 
-void PerformanceUtil::EndStat(const std::wstring& name)
+void PerformanceUtil::EndStat(const DString& name)
 {
     ASSERT(!name.empty());
     TStat& stat = m_stat[name];

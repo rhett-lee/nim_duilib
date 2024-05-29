@@ -35,6 +35,15 @@
 #include "include/base/cef_atomic_ref_count.h"
 #include "include/base/cef_build.h"
 #include "include/base/cef_macros.h"
+#include <string>
+
+/** String 类型宏定义
+*/
+#ifdef _UNICODE
+    typedef std::wstring  DString;
+#else
+    typedef std::string   DString;
+#endif
 
 // Bring in common C++ type definitions used by CEF consumers.
 #include "include/internal/cef_ptr.h"

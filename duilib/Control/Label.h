@@ -28,18 +28,18 @@ public:
     virtual ~LabelTemplate();
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
-    virtual std::wstring GetText() const;
+    virtual DString GetType() const override;
+    virtual DString GetText() const;
     virtual std::string GetUTF8Text() const;
-    virtual void SetText(const std::wstring& strText);
+    virtual void SetText(const DString& strText);
     virtual void SetUTF8Text(const std::string& strText);
-    virtual void SetTextId(const std::wstring& strTextId);
+    virtual void SetTextId(const DString& strTextId);
     virtual void SetUTF8TextId(const std::string& strTextId);
     virtual bool HasHotState() override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintText(IRender* pRender) override;
     virtual void SetPos(UiRect rc) override;
-    virtual std::wstring GetToolTipText() const override;
+    virtual DString GetToolTipText() const override;
 
     /** 计算文本区域大小（宽和高）
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
@@ -75,7 +75,7 @@ public:
      * @param[in] stateType 要获取的状态标志
      * @return 返回指定状态下的文本颜色
      */
-    std::wstring GetStateTextColor(ControlStateType stateType) const;
+    DString GetStateTextColor(ControlStateType stateType) const;
 
     /**
      * @brief 设置指定状态下的文本颜色
@@ -83,7 +83,7 @@ public:
      * @param[in] dwTextColor 要设置的状态颜色字符串，该值必须在 global.xml 中存在
      * @return 无
      */
-    void SetStateTextColor(ControlStateType stateType, const std::wstring& dwTextColor);
+    void SetStateTextColor(ControlStateType stateType, const DString& dwTextColor);
 
     /**
      * @brief 获取指定状态下的实际被渲染文本颜色
@@ -91,17 +91,17 @@ public:
      * @param[out] stateType 实际被渲染的状态
      * @return 返回颜色字符串，该值在 global.xml 中定义
      */
-    std::wstring GetPaintStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType);
+    DString GetPaintStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType);
 
     /** 获取当前字体ID
      * @return 返回字体ID，该字体ID在 global.xml 中标识
      */
-    std::wstring GetFontId() const;
+    DString GetFontId() const;
 
     /** 设置当前字体ID
      * @param[in] strFontId 要设置的字体ID，该字体ID必须在 global.xml 中存在
      */
-    void SetFontId(const std::wstring& strFontId);
+    void SetFontId(const DString& strFontId);
 
     /** 获取文字内边距
      * @return 返回文字的内边距信息
@@ -189,25 +189,25 @@ LabelTemplate<InheritType>::~LabelTemplate()
 }
 
 template<typename InheritType>
-inline std::wstring LabelTemplate<InheritType>::GetType() const { return DUI_CTR_LABEL; }
+inline DString LabelTemplate<InheritType>::GetType() const { return DUI_CTR_LABEL; }
 
 template<>
-inline std::wstring LabelTemplate<Box>::GetType() const { return DUI_CTR_LABELBOX; }
+inline DString LabelTemplate<Box>::GetType() const { return DUI_CTR_LABELBOX; }
 
 template<typename InheritType>
-void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void LabelTemplate<InheritType>::SetAttribute(const DString& strName, const DString& strValue)
 {
     if ((strName == _T("text_align")) || (strName == _T("align"))) {
-        if (strValue.find(_T("left")) != std::wstring::npos) {
+        if (strValue.find(_T("left")) != DString::npos) {
             m_uTextStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
             m_uTextStyle |= TEXT_LEFT;
         }
         //center这个属性有歧义，保留以保持兼容性，新的属性是"hcenter"
         size_t centerPos = strValue.find(_T("center"));
-        if (centerPos != std::wstring::npos) {
+        if (centerPos != DString::npos) {
             bool isCenter = true;
             size_t vCenterPos = strValue.find(_T("vcenter"));
-            if (vCenterPos != std::wstring::npos) {
+            if (vCenterPos != DString::npos) {
                 if ((vCenterPos + 1) == centerPos) {
                     isCenter = false;
                 }
@@ -217,23 +217,23 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
                 m_uTextStyle |= TEXT_CENTER;
             }
         }
-        if (strValue.find(_T("hcenter")) != std::wstring::npos) {
+        if (strValue.find(_T("hcenter")) != DString::npos) {
             m_uTextStyle &= ~(TEXT_LEFT | TEXT_RIGHT);
             m_uTextStyle |= TEXT_CENTER;
         }
-        if (strValue.find(_T("right")) != std::wstring::npos) {
+        if (strValue.find(_T("right")) != DString::npos) {
             m_uTextStyle &= ~(TEXT_LEFT | TEXT_CENTER);
             m_uTextStyle |= TEXT_RIGHT;
         }
-        if (strValue.find(_T("top")) != std::wstring::npos) {
+        if (strValue.find(_T("top")) != DString::npos) {
             m_uTextStyle &= ~(TEXT_BOTTOM | TEXT_VCENTER);
             m_uTextStyle |= TEXT_TOP;
         }
-        if (strValue.find(_T("vcenter")) != std::wstring::npos) {
+        if (strValue.find(_T("vcenter")) != DString::npos) {
             m_uTextStyle &= ~(TEXT_TOP | TEXT_BOTTOM);
             m_uTextStyle |= TEXT_VCENTER;
         }
-        if (strValue.find(_T("bottom")) != std::wstring::npos) {
+        if (strValue.find(_T("bottom")) != DString::npos) {
             m_uTextStyle &= ~(TEXT_TOP | TEXT_VCENTER);
             m_uTextStyle |= TEXT_BOTTOM;
         }
@@ -309,9 +309,9 @@ void LabelTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t 
 }
 
 template<typename InheritType>
-std::wstring LabelTemplate<InheritType>::GetText() const
+DString LabelTemplate<InheritType>::GetText() const
 {
-    std::wstring strText = m_sText.c_str();
+    DString strText = m_sText.c_str();
     if (strText.empty() && !m_sTextId.empty()) {
         strText = GlobalManager::Instance().Lang().GetStringViaID(m_sTextId.c_str());
     }
@@ -334,9 +334,9 @@ void ui::LabelTemplate<InheritType>::SetPos(UiRect rc)
 }
 
 template<typename InheritType>
-std::wstring LabelTemplate<InheritType>::GetToolTipText() const
+DString LabelTemplate<InheritType>::GetToolTipText() const
 {
-    std::wstring toolTip = __super::GetToolTipText();
+    DString toolTip = __super::GetToolTipText();
     if (!toolTip.empty()) {
         return toolTip;
     }
@@ -357,7 +357,7 @@ void LabelTemplate<InheritType>::CheckShowToolTip()
     if (pRender == nullptr) {
         return;
     }    
-    std::wstring sText = this->GetText();
+    DString sText = this->GetText();
     if (sText.empty()) {
         return;
     }
@@ -396,14 +396,14 @@ void LabelTemplate<InheritType>::CheckShowToolTip()
 template<typename InheritType>
 std::string LabelTemplate<InheritType>::GetUTF8Text() const
 {
-    std::wstring strIn = GetText();
+    DString strIn = GetText();
     std::string strOut;
     StringUtil::UnicodeToMBCS(strIn, strOut, CP_UTF8);
     return strOut;
 }
 
 template<typename InheritType>
-void LabelTemplate<InheritType>::SetText(const std::wstring& strText)
+void LabelTemplate<InheritType>::SetText(const DString& strText)
 {
     if (m_sText == strText) {
         return;
@@ -416,13 +416,13 @@ void LabelTemplate<InheritType>::SetText(const std::wstring& strText)
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetUTF8Text(const std::string& strText)
 {
-    std::wstring strOut;
+    DString strOut;
     StringUtil::MBCSToUnicode(strText, strOut, CP_UTF8);
     SetText(strOut);
 }
 
 template<typename InheritType>
-void LabelTemplate<InheritType>::SetTextId(const std::wstring& strTextId)
+void LabelTemplate<InheritType>::SetTextId(const DString& strTextId)
 {
     if (m_sTextId == strTextId) {
         return;
@@ -435,7 +435,7 @@ void LabelTemplate<InheritType>::SetTextId(const std::wstring& strTextId)
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetUTF8TextId(const std::string& strTextId)
 {
-    std::wstring strOut;
+    DString strOut;
     StringUtil::MBCSToUnicode(strTextId, strOut, CP_UTF8);
     SetTextId(strOut);
 }
@@ -478,7 +478,7 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
         width = 0;
     }
     UiSize fixedSize;
-    std::wstring textValue = GetText();
+    DString textValue = GetText();
     if (!textValue.empty() && (this->GetWindow() != nullptr)) {
         auto pRender = this->GetWindow()->GetRender();
         if (pRender != nullptr) {
@@ -508,7 +508,7 @@ void LabelTemplate<InheritType>::PaintText(IRender* pRender)
 template<typename InheritType>
 void LabelTemplate<InheritType>::DoPaintText(const UiRect & rc, IRender * pRender)
 {
-    std::wstring textValue = this->GetText();
+    DString textValue = this->GetText();
     if (textValue.empty() || (pRender == nullptr)) {
         return;
     }
@@ -522,18 +522,18 @@ void LabelTemplate<InheritType>::DoPaintText(const UiRect & rc, IRender * pRende
     else {
         m_uTextStyle &= ~TEXT_SINGLELINE;
     }
-    std::wstring fontId = GetFontId();
+    DString fontId = GetFontId();
     if (this->GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot)) {
         if ((stateType == kControlStateNormal || stateType == kControlStateHot) && 
             !GetStateTextColor(kControlStateHot).empty()) {
-            std::wstring clrColor = GetStateTextColor(kControlStateNormal);
+            DString clrColor = GetStateTextColor(kControlStateNormal);
             if (!clrColor.empty()) {
                 UiColor dwTextColor = this->GetUiColor(clrColor);
                 pRender->DrawString(rc, textValue, dwTextColor, this->GetIFontById(fontId), m_uTextStyle);
             }
 
             if (this->GetHotAlpha() > 0) {
-                std::wstring textColor = GetStateTextColor(kControlStateHot);
+                DString textColor = GetStateTextColor(kControlStateHot);
                 if (!textColor.empty()) {
                     UiColor dwTextColor = this->GetUiColor(textColor);
                     pRender->DrawString(rc, textValue, dwTextColor, this->GetIFontById(fontId), m_uTextStyle, (BYTE)this->GetHotAlpha());
@@ -575,9 +575,9 @@ UINT LabelTemplate<InheritType>::GetTextStyle() const
 }
 
 template<typename InheritType>
-std::wstring LabelTemplate<InheritType>::GetStateTextColor(ControlStateType stateType) const
+DString LabelTemplate<InheritType>::GetStateTextColor(ControlStateType stateType) const
 {
-    std::wstring stateColor;
+    DString stateColor;
     if (m_pTextColorMap != nullptr) {
         stateColor = m_pTextColorMap->GetStateColor(stateType);
     }
@@ -591,7 +591,7 @@ std::wstring LabelTemplate<InheritType>::GetStateTextColor(ControlStateType stat
 }
 
 template<typename InheritType>
-void LabelTemplate<InheritType>::SetStateTextColor(ControlStateType stateType, const std::wstring& dwTextColor)
+void LabelTemplate<InheritType>::SetStateTextColor(ControlStateType stateType, const DString& dwTextColor)
 {
     if (stateType == kControlStateHot) {
         this->GetAnimationManager().SetFadeHot(true);
@@ -605,7 +605,7 @@ void LabelTemplate<InheritType>::SetStateTextColor(ControlStateType stateType, c
 }
 
 template<typename InheritType /*= Control*/>
-std::wstring ui::LabelTemplate<InheritType>::GetPaintStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType)
+DString ui::LabelTemplate<InheritType>::GetPaintStateTextColor(ControlStateType buttonStateType, ControlStateType& stateType)
 {
     stateType = buttonStateType;
     if (stateType == kControlStatePushed && GetStateTextColor(kControlStatePushed).empty()) {
@@ -621,13 +621,13 @@ std::wstring ui::LabelTemplate<InheritType>::GetPaintStateTextColor(ControlState
 }
 
 template<typename InheritType>
-std::wstring LabelTemplate<InheritType>::GetFontId() const
+DString LabelTemplate<InheritType>::GetFontId() const
 {
     return m_sFontId.c_str();
 }
 
 template<typename InheritType>
-void LabelTemplate<InheritType>::SetFontId(const std::wstring& strFontId)
+void LabelTemplate<InheritType>::SetFontId(const DString& strFontId)
 {
     m_sFontId = strFontId;
     this->Invalidate();

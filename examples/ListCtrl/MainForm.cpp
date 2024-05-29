@@ -1,7 +1,7 @@
 #include "MainForm.h"
 #include "MainThread.h"
 
-const std::wstring MainForm::kClassName = _T("MainForm");
+const DString MainForm::kClassName = _T("MainForm");
 
 MainForm::MainForm()
 {
@@ -11,17 +11,17 @@ MainForm::~MainForm()
 {
 }
 
-std::wstring MainForm::GetSkinFolder()
+DString MainForm::GetSkinFolder()
 {
     return _T("list_ctrl");
 }
 
-std::wstring MainForm::GetSkinFile()
+DString MainForm::GetSkinFile()
 {
     return _T("list_ctrl.xml");
 }
 
-std::wstring MainForm::GetWindowClassName() const
+DString MainForm::GetWindowClassName() const
 {
     return kClassName;
 }
@@ -484,7 +484,7 @@ void MainForm::OnInitWindow()
             ui::ListCtrlItem* pItem = (ui::ListCtrlItem*)args.wParam;
             size_t itemIndex = args.lParam;
             ui::UiPoint mousePt = args.ptMouse;
-            std::wstring text;
+            DString text;
             if (pItem != nullptr) {
                 size_t columnIndex = pItem->GetSubItemIndex(mousePt);
                 if (columnIndex != ui::Box::InvalidIndex) {
@@ -493,7 +493,7 @@ void MainForm::OnInitWindow()
             }
 
             if (args.Type == ui::kEventSelect) {
-                std::wstring sInfo = ui::StringUtil::Printf(_T("kEventSelect，数据索引号：%d"), (int32_t)itemIndex);
+                DString sInfo = ui::StringUtil::Printf(_T("kEventSelect，数据索引号：%d"), (int32_t)itemIndex);
                 //::MessageBox(nullptr, sInfo.c_str(), _T(""), MB_OK);
             }
             else if (args.Type == ui::kEventSelChange) {
@@ -509,7 +509,7 @@ void MainForm::OnInitWindow()
                 //::MessageBox(nullptr, _T("kEventRClick"), text.c_str(), MB_OK);
             }
             else if (args.Type == ui::kEventReturn) {
-                std::wstring sInfo = ui::StringUtil::Printf(_T("kEventReturn，数据索引号：%d"), (int32_t)itemIndex);
+                DString sInfo = ui::StringUtil::Printf(_T("kEventReturn，数据索引号：%d"), (int32_t)itemIndex);
                 //::MessageBox(nullptr, sInfo.c_str(), _T(""), MB_OK);
             }
         };
@@ -703,7 +703,7 @@ void MainForm::RunListCtrlTest()
 #ifdef _DEBUG
 
     //基本功能测试
-    const std::wstring text = _T("1");
+    const DString text = _T("1");
     ui::ListCtrlSubItemData subItemData;
     subItemData.text = text;
     const size_t nDataItemIndex = pListCtrl->AddDataItem(subItemData);
@@ -752,7 +752,7 @@ void MainForm::RunListCtrlTest()
 
     ui::ListCtrlSubItemData dataItem2;
     pListCtrl->GetSubItemData(nDataItemIndex, nColumnIndex, dataItem2);
-    ASSERT(subItemData.text == std::wstring(dataItem2.text));
+    ASSERT(subItemData.text == DString(dataItem2.text));
     ASSERT(subItemData.textColor == dataItem2.textColor);
     ASSERT(subItemData.bkColor == dataItem2.bkColor);
     ASSERT(subItemData.bShowCheckBox == dataItem2.bShowCheckBox);
@@ -884,7 +884,7 @@ void MainForm::RunListCtrlTest()
     ASSERT(!pListCtrl->IsDataItemSelected(60));
 
     //添加删除测试
-    std::wstring text60 = pListCtrl->GetSubItemText(60, 0);
+    DString text60 = pListCtrl->GetSubItemText(60, 0);
     pListCtrl->SetDataItemSelected(60, true);
     ASSERT(pListCtrl->IsDataItemSelected(60));
 

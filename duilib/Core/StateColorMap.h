@@ -24,11 +24,11 @@ public:
 
     /** 获取颜色值，如果不包含此颜色，则返回空
     */
-    std::wstring GetStateColor(ControlStateType stateType) const;
+    DString GetStateColor(ControlStateType stateType) const;
 
     /** 设置颜色值
     */
-    void SetStateColor(ControlStateType stateType, const std::wstring& color);
+    void SetStateColor(ControlStateType stateType, const DString& color);
 
     /** 是否包含Hot状态的颜色
     */

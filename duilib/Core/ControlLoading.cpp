@@ -18,7 +18,7 @@ ControlLoading::~ControlLoading()
 {
 }
 
-bool ControlLoading::SetLoadingImage(const std::wstring& strImage)
+bool ControlLoading::SetLoadingImage(const DString& strImage)
 {
     if (!strImage.empty()) {
         if (m_pLoadingImage == nullptr) {
@@ -36,7 +36,7 @@ bool ControlLoading::SetLoadingImage(const std::wstring& strImage)
     return bChanged;
 }
 
-bool ControlLoading::SetLoadingBkColor(const std::wstring& strColor)
+bool ControlLoading::SetLoadingBkColor(const DString& strColor)
 {
     if (m_strLoadingBkColor == strColor) {
         return false;

@@ -18,9 +18,9 @@ public:
      * GetSkinFile            接口设置你要绘制的窗口的 xml 描述文件
      * GetWindowClassName    接口设置窗口唯一的类名称
      */
-    virtual std::wstring GetSkinFolder() override;
-    virtual std::wstring GetSkinFile() override;
-    virtual std::wstring GetWindowClassName() const override;
+    virtual DString GetSkinFolder() override;
+    virtual DString GetSkinFile() override;
+    virtual DString GetWindowClassName() const override;
 
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
@@ -32,7 +32,7 @@ public:
 
     /** 窗口类名
     */
-    static const std::wstring kClassName;
+    static const DString kClassName;
 
 private:
     /** 填充数据

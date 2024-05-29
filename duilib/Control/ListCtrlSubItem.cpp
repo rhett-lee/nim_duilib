@@ -12,9 +12,9 @@ ListCtrlSubItem::ListCtrlSubItem(Window* pWindow):
     SetIconSpacing(2, true);
 }
 
-std::wstring ListCtrlSubItem::GetType() const { return _T("ListCtrlSubItem"); }
+DString ListCtrlSubItem::GetType() const { return _T("ListCtrlSubItem"); }
 
-void ListCtrlSubItem::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void ListCtrlSubItem::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("icon_spacing")) {
         SetIconSpacing(_wtoi(strValue.c_str()), true);
@@ -63,7 +63,7 @@ bool ListCtrlSubItem::SetCheckBoxVisible(bool bVisible)
             pCheckBox = new ListCtrlCheckBox(GetWindow());
             AddItem(pCheckBox);
             ListCtrl* pListCtrl = pItem->GetListCtrl();            
-            std::wstring checkBoxClass;
+            DString checkBoxClass;
             if (pListCtrl != nullptr) {
                 checkBoxClass = pListCtrl->GetCheckBoxClass();
             }

@@ -40,30 +40,30 @@ public:
      * @param[in] path 压缩包文件路径
      * @param[in] password 压缩包密码
      */
-    bool OpenZipFile(const std::wstring& path, const std::string& password);
+    bool OpenZipFile(const DString& path, const std::string& password);
 
     /** 获取压缩包中的内容到内存
      * @param[in] path 要获取的文件的路径
      * @param[out] file_data 要获取的文件的路径
      */
-    bool GetZipData(const std::wstring& path, std::vector<unsigned char>& file_data) const;
+    bool GetZipData(const DString& path, std::vector<unsigned char>& file_data) const;
 
     /** 获取文件在压缩包中的位置
      * @param[in] path 要获取的文件路径
      * @return 返回在压缩包中的文件位置
      */
-    std::wstring GetZipFilePath(const std::wstring& path) const;
+    DString GetZipFilePath(const DString& path) const;
 
     /** 判断资源是否存在zip当中
      * @param[in] path 要判断的资源路径
      */
-    bool IsZipResExist(const std::wstring& path) const;
+    bool IsZipResExist(const DString& path) const;
 
     /** 获取指定目录下的文件名称列表
     * @param [in] path 目录名称
     * @param [out] fileList 返回该目录下的文件列表
     */
-    bool GetZipFileList(const std::wstring& path, std::vector<std::wstring>& fileList) const;
+    bool GetZipFileList(const DString& path, std::vector<DString>& fileList) const;
 
     /** 关闭压缩包
     */
@@ -77,7 +77,7 @@ private:
 
     /** 路径缓存
     */
-    mutable std::unordered_set<std::wstring> m_zipPathCache;
+    mutable std::unordered_set<DString> m_zipPathCache;
 };
 
 }

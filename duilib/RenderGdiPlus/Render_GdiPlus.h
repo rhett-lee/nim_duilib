@@ -87,12 +87,12 @@ public:
     virtual void FillPath(const IPath* path, const IBrush* brush) override;
     virtual void FillPath(const IPath* path, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) override;
 
-    virtual UiRect MeasureString(const std::wstring& strText,
+    virtual UiRect MeasureString(const DString& strText,
                                  IFont* pFont, 
                                  uint32_t uFormat, int width = DUI_NOSET_VALUE) override;
 
 
-    virtual void DrawString(const UiRect& rc, const std::wstring& strText,
+    virtual void DrawString(const UiRect& rc, const DString& strText,
                             UiColor dwTextColor, IFont* pFont,
                             uint32_t uFormat, uint8_t uFade = 255) override;
 

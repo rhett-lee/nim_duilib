@@ -27,12 +27,12 @@ nim_comp::CefControlBase* BrowserBox::GetCefControl()
     return cef_control_;
 }
 
-std::wstring& BrowserBox::GetTitle()
+DString& BrowserBox::GetTitle()
 {
     return title_;
 }
 
-void BrowserBox::InitBrowserBox(const std::wstring &url)
+void BrowserBox::InitBrowserBox(const DString &url)
 {
     cef_control_ = static_cast<nim_comp::CefControlBase*>(FindSubControl(_T("cef_control")));
     cef_control_->AttachBeforeContextMenu(UiBind(&BrowserBox::OnBeforeMenu, this, std::placeholders::_1, std::placeholders::_2));
@@ -47,7 +47,7 @@ void BrowserBox::InitBrowserBox(const std::wstring &url)
     cef_control_->AttachLoadError(UiBind(&BrowserBox::OnLoadError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     // 加载默认网页
-    std::wstring html_path = url;
+    DString html_path = url;
     if (html_path.empty())
         html_path = ui::PathUtil::GetCurrentModuleDirectory() + _T("resources\\themes\\default\\cef\\cef.html");
 
@@ -77,7 +77,7 @@ void BrowserBox::UninitBrowserBox()
         taskbar_item_->UnInit();
 }
 
-ui::Control* BrowserBox::CreateControl(const std::wstring& pstrClass)
+ui::Control* BrowserBox::CreateControl(const DString& pstrClass)
 {
     if (pstrClass == _T("CefControl"))
     {
@@ -129,19 +129,19 @@ bool BrowserBox::OnMenuCommand(CefRefPtr<CefContextMenuParams> params, int comma
     return false;
 }
 
-void BrowserBox::OnTitleChange(const std::wstring& title)
+void BrowserBox::OnTitleChange(const DString& title)
 {
     title_ = title;
     browser_form_->SetTabItemName(ui::StringUtil::UTF8ToUTF16(browser_id_), title);
 }
 
-void BrowserBox::OnUrlChange(const std::wstring& url)
+void BrowserBox::OnUrlChange(const DString& url)
 {
     url_ = url;
     browser_form_->SetURL(browser_id_, url);
 }
 
-bool BrowserBox::OnLinkClick(const std::wstring& url)
+bool BrowserBox::OnLinkClick(const DString& url)
 {
     return true;
 }

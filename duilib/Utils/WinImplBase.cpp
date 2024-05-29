@@ -26,7 +26,7 @@ void WindowImplBase::OnFinalMessage()
     __super::OnFinalMessage();
 }
 
-Control* WindowImplBase::CreateControl(const std::wstring& /*strClass*/)
+Control* WindowImplBase::CreateControl(const DString& /*strClass*/)
 {
     return nullptr;
 }
@@ -74,8 +74,8 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
     bHandled = false;
     SetResourcePath(GetSkinFolder());
 
-    std::wstring strSkinFile;
-    std::wstring xmlFile = GetSkinFile();
+    DString strSkinFile;
+    DString xmlFile = GetSkinFile();
     if (!xmlFile.empty() && xmlFile.front() == _T('<')) {
         //返回的内容是XML文件内容，而不是文件路径
         strSkinFile = std::move(xmlFile);
@@ -168,7 +168,7 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
     if (msg.pSender == nullptr) {
         return false;
     }
-    std::wstring sCtrlName = msg.pSender->GetName();
+    DString sCtrlName = msg.pSender->GetName();
     if (sCtrlName == DUI_CTR_BUTTON_CLOSE) {
         //关闭按钮
         CloseWnd();

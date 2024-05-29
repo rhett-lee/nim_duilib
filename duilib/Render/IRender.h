@@ -721,7 +721,7 @@ public:
     * @param [in] width 当前区域的限制宽度
     * @return 返回文本字符串的宽度和高度，以矩形表示结果
     */
-    virtual UiRect MeasureString(const std::wstring& strText, 
+    virtual UiRect MeasureString(const DString& strText, 
                                  IFont* pFont, 
                                  uint32_t uFormat,
                                  int width = DUI_NOSET_VALUE) = 0;
@@ -734,7 +734,7 @@ public:
     * @param [in] uFade 透明度（0 - 255）
     */
     virtual void DrawString(const UiRect& rc,
-                            const std::wstring& strText,
+                            const DString& strText,
                             UiColor dwTextColor,
                             IFont* pFont, 
                             uint32_t uFormat,

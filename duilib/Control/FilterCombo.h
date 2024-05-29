@@ -19,8 +19,8 @@ public:
     virtual ~FilterCombo();
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
 protected:
     virtual void OnInit() override;
@@ -48,11 +48,11 @@ private:
 
     /** 对下拉框列表里面的内容进行过滤
     */
-    void FilterComboList(const std::wstring& filterText);
+    void FilterComboList(const DString& filterText);
 
     /** 判断文本是否满足过滤条件
     */
-    bool IsFilterText(const std::wstring& filterText, const std::wstring& itemText) const;
+    bool IsFilterText(const DString& filterText, const DString& itemText) const;
 };
 
 } // namespace ui

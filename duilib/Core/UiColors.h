@@ -160,7 +160,7 @@ namespace UiColors
 
     /** 常见颜色值，对应的字符串常量
     */
-    void GetUiColorsString(std::vector<std::pair<std::wstring, int32_t>>& uiColors);
+    void GetUiColorsString(std::vector<std::pair<DString, int32_t>>& uiColors);
 
 }// namespace UiColors
 } // namespace ui

@@ -7,7 +7,7 @@
 class LayoutsForm : public ui::WindowImplBase
 {
 public:
-    LayoutsForm(const std::wstring& class_name, const std::wstring& theme_directory, const std::wstring& layout_xml);
+    LayoutsForm(const DString& class_name, const DString& theme_directory, const DString& layout_xml);
     ~LayoutsForm();
 
     /**
@@ -16,9 +16,9 @@ public:
      * GetSkinFile            接口设置你要绘制的窗口的 xml 描述文件
      * GetWindowClassName    接口设置窗口唯一的类名称
      */
-    virtual std::wstring GetSkinFolder() override;
-    virtual std::wstring GetSkinFile() override;
-    virtual std::wstring GetWindowClassName() const override;
+    virtual DString GetSkinFolder() override;
+    virtual DString GetSkinFile() override;
+    virtual DString GetWindowClassName() const override;
 
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
@@ -29,12 +29,12 @@ public:
     virtual void OnCloseWindow() override;
 
 public:
-    static void ShowCustomWindow(const std::wstring& class_name, const std::wstring& theme_directory, const std::wstring& layout_xml);
+    static void ShowCustomWindow(const DString& class_name, const DString& theme_directory, const DString& layout_xml);
 
 private:
-    std::wstring class_name_;
-    std::wstring theme_directory_;
-    std::wstring layout_xml_;
+    DString class_name_;
+    DString theme_directory_;
+    DString layout_xml_;
 };
 
 #endif //EXAMPLES_LAYOUTS_FORM_H_

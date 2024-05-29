@@ -4,7 +4,7 @@ namespace nim_comp {
 
 const LPCTSTR Toast::kClassName = _T("Toast");
 
-void Toast::ShowToast(const std::wstring &content, int duration, HWND parent)
+void Toast::ShowToast(const DString &content, int duration, HWND parent)
 {
     Toast *toast = new Toast;
     if (!toast->CreateWnd(parent, _T(""), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED)) {
@@ -17,22 +17,22 @@ void Toast::ShowToast(const std::wstring &content, int duration, HWND parent)
     toast->ShowWindow(true);
 }
 
-std::wstring Toast::GetSkinFolder()
+DString Toast::GetSkinFolder()
 {
     return _T("toast");
 }
 
-std::wstring Toast::GetSkinFile()
+DString Toast::GetSkinFile()
 {
     return _T("toast.xml");
 }
 
-std::wstring Toast::GetWindowClassName() const
+DString Toast::GetWindowClassName() const
 {
     return kClassName;
 }
 
-std::wstring Toast::GetWindowId() const
+DString Toast::GetWindowId() const
 {
     return kClassName;
 }
@@ -97,7 +97,7 @@ void Toast::SetDuration(int duration)
 
 bool Toast::OnClicked(const ui::EventArgs& msg)
 {
-    std::wstring name = msg.pSender->GetName();
+    DString name = msg.pSender->GetName();
     if (name == _T("close_btn"))
     {
         this->CloseWnd();
@@ -106,7 +106,7 @@ bool Toast::OnClicked(const ui::EventArgs& msg)
     return true;
 }
 
-void Toast::SetContent(const std::wstring &str)
+void Toast::SetContent(const DString &str)
 {
     content_->SetText(str);
 

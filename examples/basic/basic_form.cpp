@@ -1,6 +1,6 @@
 #include "basic_form.h"
 
-const std::wstring BasicForm::kClassName = _T("Basic");
+const DString BasicForm::kClassName = _T("Basic");
 
 BasicForm::BasicForm()
 {
@@ -10,17 +10,17 @@ BasicForm::~BasicForm()
 {
 }
 
-std::wstring BasicForm::GetSkinFolder()
+DString BasicForm::GetSkinFolder()
 {
     return _T("basic");
 }
 
-std::wstring BasicForm::GetSkinFile()
+DString BasicForm::GetSkinFile()
 {
     return _T("basic.xml");
 }
 
-std::wstring BasicForm::GetWindowClassName() const
+DString BasicForm::GetWindowClassName() const
 {
     return kClassName;
 }

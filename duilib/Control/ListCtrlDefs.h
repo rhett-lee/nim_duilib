@@ -23,7 +23,7 @@ enum class ListCtrlType
 */
 struct ListCtrlColumn
 {
-    std::wstring text;              //表头的文本
+    DString text;              //表头的文本
     int32_t nColumnWidth = 100;     //列宽，如果bNeedDpiScale为true，则执行DPI自适应处理
     int32_t nColumnWidthMin = 0;    //列宽最小值，0表示用默认设置，如果bNeedDpiScale为true，则执行DPI自适应处理
     int32_t nColumnWidthMax = 0;    //列宽最大值，0表示用默认设置，如果bNeedDpiScale为true，则执行DPI自适应处理
@@ -52,7 +52,7 @@ struct ListCtrlItemData
 */
 struct ListCtrlSubItemData
 {
-    std::wstring text;              //文本内容
+    DString text;              //文本内容
     int32_t nTextFormat = -1;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
     int32_t nImageId = -1;          //图标资源Id，如果为-1表示不显示图标
     UiColor textColor;              //文本颜色
@@ -276,8 +276,8 @@ public:
 
     /** 获取控件类型和设置属性
     */
-    virtual std::wstring GetType() const override { return _T("ListCtrlCheckBox"); }
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override
+    virtual DString GetType() const override { return _T("ListCtrlCheckBox"); }
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override
     {
         if (strName == _T("check_box_width")) {
             SetCheckBoxWidth(_wtoi(strValue.c_str()), true);
@@ -363,7 +363,7 @@ public:
     }
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override { return _T("ListCtrlIconViewItem"); }
+    virtual DString GetType() const override { return _T("ListCtrlIconViewItem"); }
 
     /** 事件处理函数
     */
@@ -396,7 +396,7 @@ public:
     }
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override { return _T("ListCtrlListViewItem"); }
+    virtual DString GetType() const override { return _T("ListCtrlListViewItem"); }
 
     /** 事件处理函数
     */

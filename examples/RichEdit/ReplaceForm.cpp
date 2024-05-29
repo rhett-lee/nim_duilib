@@ -18,17 +18,17 @@ ReplaceForm::~ReplaceForm()
 {
 }
 
-std::wstring ReplaceForm::GetSkinFolder()
+DString ReplaceForm::GetSkinFolder()
 {
     return _T("rich_edit");
 }
 
-std::wstring ReplaceForm::GetSkinFile()
+DString ReplaceForm::GetSkinFile()
 {
     return _T("replace.xml");
 }
 
-std::wstring ReplaceForm::GetWindowClassName() const
+DString ReplaceForm::GetWindowClassName() const
 {
     return kClassName;
 }
@@ -53,7 +53,7 @@ void ReplaceForm::OnInitWindow()
         if (m_pMainForm != nullptr) {
             pRichEdit = m_pMainForm->GetRichEdit();
         }
-        std::wstring selText;
+        DString selText;
         if (pRichEdit != nullptr) {
             selText = pRichEdit->GetSelText();
         }
@@ -106,7 +106,7 @@ void ReplaceForm::OnFindNext()
     if (m_pFindText == nullptr) {
         return;
     }
-    std::wstring findText = m_pFindText->GetText();
+    DString findText = m_pFindText->GetText();
     if (findText.empty()) {
         return;
     }
@@ -135,14 +135,14 @@ void ReplaceForm::OnReplace()
     if (m_pFindText == nullptr) {
         return;
     }
-    std::wstring findText = m_pFindText->GetText();
+    DString findText = m_pFindText->GetText();
     if (findText.empty()) {
         return;
     }
     if (m_pReplaceText == nullptr) {
         return;
     }
-    std::wstring replaceText = m_pReplaceText->GetText();
+    DString replaceText = m_pReplaceText->GetText();
     if (replaceText.empty()) {
         return;
     }
@@ -171,14 +171,14 @@ void ReplaceForm::OnReplaceAll()
     if (m_pFindText == nullptr) {
         return;
     }
-    std::wstring findText = m_pFindText->GetText();
+    DString findText = m_pFindText->GetText();
     if (findText.empty()) {
         return;
     }
     if (m_pReplaceText == nullptr) {
         return;
     }
-    std::wstring replaceText = m_pReplaceText->GetText();
+    DString replaceText = m_pReplaceText->GetText();
     if (replaceText.empty()) {
         return;
     }

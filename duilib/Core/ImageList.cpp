@@ -51,7 +51,7 @@ void ImageList::ChangeDpiScale(const DpiManager& dpi, uint32_t nOldDpiScale)
     }
 }
 
-int32_t ImageList::AddImageString(const std::wstring& imageString, const DpiManager& dpi)
+int32_t ImageList::AddImageString(const DString& imageString, const DpiManager& dpi)
 {
     int32_t imageId = -1;
     if (!imageString.empty()) {
@@ -66,9 +66,9 @@ int32_t ImageList::AddImageString(const std::wstring& imageString, const DpiMana
     return imageId;
 }
 
-std::wstring ImageList::GetImageString(int32_t imageId) const
+DString ImageList::GetImageString(int32_t imageId) const
 {
-    std::wstring imageString;
+    DString imageString;
     auto iter = m_imageMap.find(imageId);
     if (iter != m_imageMap.end()) {
         imageString = iter->second->GetImageString();
@@ -86,7 +86,7 @@ ImagePtr ImageList::GetImageData(int32_t imageId) const
     return spImage;
 }
 
-int32_t ImageList::GetImageStringId(const std::wstring& imageString) const
+int32_t ImageList::GetImageStringId(const DString& imageString) const
 {
     int32_t imageId = -1;
     if (!imageString.empty()) {

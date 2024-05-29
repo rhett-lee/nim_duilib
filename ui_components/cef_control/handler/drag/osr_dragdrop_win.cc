@@ -73,7 +73,7 @@ void GetStorageForString(STGMEDIUM* stgmed, const std::basic_string<T>& data) {
 }
 
 void GetStorageForFileDescriptor(STGMEDIUM* storage,
-                                 const std::wstring& file_name) {
+                                 const DString& file_name) {
   DCHECK(!file_name.empty());
   HANDLE hdata = GlobalAlloc(GPTR, sizeof(FILEGROUPDESCRIPTOR));
 

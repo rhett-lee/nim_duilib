@@ -555,16 +555,16 @@ namespace WebPImageLoader
     }
 }
 
-ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const std::wstring& path)
+ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const DString& path)
 {
     ImageFormat imageFormat = ImageFormat::kUnknown;
     if (path.size() < 4) {
         return imageFormat;
     }
-    std::wstring fileExt;
+    DString fileExt;
     size_t pos = path.rfind(_T("."));
-    if ((pos != std::wstring::npos) && ((pos + 1) < path.size())) {
-        fileExt = path.substr(pos + 1, std::wstring::npos);
+    if ((pos != DString::npos) && ((pos + 1) < path.size())) {
+        fileExt = path.substr(pos + 1, DString::npos);
         fileExt = StringUtil::MakeUpperString(fileExt);
     }
     if (fileExt == _T("PNG")) {
@@ -597,7 +597,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
                                                        uint32_t nImageDpiScale,
                                                        const DpiManager& dpi)
 {
-    std::wstring imageFullPath = imageLoadAttribute.GetImageFullPath();
+    DString imageFullPath = imageLoadAttribute.GetImageFullPath();
     ASSERT(!fileData.empty() && !imageFullPath.empty());
     if (fileData.empty() || imageFullPath.empty()) {
         return nullptr;
@@ -753,7 +753,7 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
     bDpiScaled = false;
 
     bool isLoaded = false;
-    std::wstring imageFullPath = imageLoadAttribute.GetImageFullPath();
+    DString imageFullPath = imageLoadAttribute.GetImageFullPath();
     ImageFormat imageFormat = GetImageFormat(imageFullPath);
     switch (imageFormat) {
     case ImageFormat::kPNG:

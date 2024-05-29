@@ -47,26 +47,26 @@ public:
     *   如果 resType == kLocalFiles，需要设置资源所在的本地路径（绝对路径）
     *   如果 resType == kZipFile 或者 resType == kResZipFile，设置资源所在的起始目录（相对路径），比如：_T("resources\\")
     */
-    std::wstring resourcePath;
+    DString resourcePath;
 
 public:
     /** 主题路径名称（相对路径）
     */
-    std::wstring themePath = _T("themes\\default");
+    DString themePath = _T("themes\\default");
 
     /** 语言文件所在路径，可以是相对路径或者是绝对路径（多语言版时，所有的语言文件都放在这个目录中）
     *   如果是绝对路径，则在这个绝对路径中查找语言文件
     *   如果是相对路径，则根据resType和resourcePath决定的资源路径下，按相对路径查找资源文件
     */
-    std::wstring languagePath = _T("lang");
+    DString languagePath = _T("lang");
 
     /** 当前使用语言文件的文件名（不含路径）
     */
-    std::wstring languageFileName = _T("zh_CN.txt");
+    DString languageFileName = _T("zh_CN.txt");
 
     /** 全局资源描述XML文件的文件名，默认为："global.xml"
     */
-    std::wstring globalXmlFileName = _T("global.xml");
+    DString globalXmlFileName = _T("global.xml");
 };
 
 /** 加载全局资源所需的参数（本地文件形式，对应资源类型：kLocalFiles）
@@ -81,7 +81,7 @@ public:
     /** 构造一个本地文件形式的参数
     * @param [in] resPath 本地资源文件所在的路径（绝对路径）
     */
-    explicit LocalFilesResParam(const std::wstring& resPath) : 
+    explicit LocalFilesResParam(const DString& resPath) : 
         ResourceParam(ResourceType::kLocalFiles)
     {
         resourcePath = resPath;
@@ -99,7 +99,7 @@ public:
 
     /** 压缩包的本地路径（绝对路径）
     */
-    std::wstring zipFilePath;
+    DString zipFilePath;
 
     /** 可选参数：可以设置压缩包的解压密码；如果压缩包无密码，不需要设置
     *   注意事项：需要使用"ZIP legacy encryption"模式的密码，否则无法解压

@@ -15,7 +15,7 @@ Slider::Slider(Window* pWindow) :
     SetTextStyle(TEXT_SINGLELINE | TEXT_CENTER, false);
 }
 
-std::wstring Slider::GetType() const { return DUI_CTR_SLIDER; }
+DString Slider::GetType() const { return DUI_CTR_SLIDER; }
 
 UiRect Slider::GetProgressPos()
 {
@@ -145,7 +145,7 @@ void Slider::HandleEvent(const EventArgs& msg)
     Progress::HandleEvent(msg);
 }
 
-void Slider::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void Slider::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("step")) {
         SetChangeStep(_wtoi(strValue.c_str()));
@@ -300,12 +300,12 @@ UiRect Slider::GetThumbRect() const
     }
 }
 
-std::wstring Slider::GetThumbStateImage(ControlStateType stateType) const
+DString Slider::GetThumbStateImage(ControlStateType stateType) const
 {
     return m_thumbStateImage.GetImageString(stateType);
 }
 
-void Slider::SetThumbStateImage(ControlStateType stateType, const std::wstring& pStrImage)
+void Slider::SetThumbStateImage(ControlStateType stateType, const DString& pStrImage)
 {
     m_thumbStateImage.SetImageString(stateType, pStrImage, Dpi());
     Invalidate();

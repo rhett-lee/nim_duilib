@@ -173,27 +173,27 @@ void GlobalManager::Shutdown()
 #endif
 }
 
-const std::wstring& GlobalManager::GetResourcePath() const
+const DString& GlobalManager::GetResourcePath() const
 {
     return m_resourcePath;
 }
 
-void GlobalManager::SetResourcePath(const std::wstring& strPath)
+void GlobalManager::SetResourcePath(const DString& strPath)
 {
     m_resourcePath = PathUtil::NormalizeDirPath(strPath);
 }
 
-void GlobalManager::SetLanguagePath(const std::wstring& strPath)
+void GlobalManager::SetLanguagePath(const DString& strPath)
 {
     m_languagePath = PathUtil::NormalizeDirPath(strPath);
 }
 
-const std::wstring& GlobalManager::GetLanguagePath() const
+const DString& GlobalManager::GetLanguagePath() const
 {
     return m_languagePath;
 }
 
-const std::wstring& GlobalManager::GetLanguageFileName() const
+const DString& GlobalManager::GetLanguageFileName() const
 {
     return m_languageFileName;
 }
@@ -202,7 +202,7 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
 {
     AssertUIThread();
     //校验输入参数
-    std::wstring strResourcePath = resParam.resourcePath;
+    DString strResourcePath = resParam.resourcePath;
     if (resParam.GetResType() == ResourceType::kLocalFiles) {
         //本地文件的形式，所有资源都已本地文件的形式存在
         //const LocalFilesResParam& param = static_cast<const LocalFilesResParam&>(resParam);
@@ -254,7 +254,7 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
 
     //加载多语言文件(可选)
     if (!resParam.languagePath.empty() && !resParam.languageFileName.empty()) {
-        std::wstring languagePath = PathUtil::JoinFilePath(strResourcePath, resParam.languagePath);
+        DString languagePath = PathUtil::JoinFilePath(strResourcePath, resParam.languagePath);
         ReloadLanguage(languagePath, resParam.languageFileName, false);
     }
     else if (!resParam.languagePath.empty()) {
@@ -277,8 +277,8 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
     return true;
 }
 
-bool GlobalManager::ReloadLanguage(const std::wstring& languagePath,
-                                   const std::wstring& languageFileName,
+bool GlobalManager::ReloadLanguage(const DString& languagePath,
+                                   const DString& languageFileName,
                                    bool bInvalidate)
 {
     AssertUIThread();
@@ -287,7 +287,7 @@ bool GlobalManager::ReloadLanguage(const std::wstring& languagePath,
         return false;
     }
 
-    std::wstring newLanguagePath = GetLanguagePath();
+    DString newLanguagePath = GetLanguagePath();
     if (!languagePath.empty()) {
         newLanguagePath = PathUtil::NormalizeDirPath(languagePath);
     }
@@ -297,7 +297,7 @@ bool GlobalManager::ReloadLanguage(const std::wstring& languagePath,
     if ( (newLanguagePath.empty() || !PathUtil::IsAbsolutePath(newLanguagePath)) &&
          m_zipManager.IsUseZip() ) {
         std::vector<unsigned char> fileData;
-        std::wstring filePath = PathUtil::JoinFilePath(newLanguagePath, languageFileName);
+        DString filePath = PathUtil::JoinFilePath(newLanguagePath, languageFileName);
         if (m_zipManager.GetZipData(filePath, fileData)) {
             bReadOk = m_langManager.LoadStringTable(fileData);
         }
@@ -306,7 +306,7 @@ bool GlobalManager::ReloadLanguage(const std::wstring& languagePath,
         }
     }
     else {
-        std::wstring filePath = PathUtil::JoinFilePath(newLanguagePath, languageFileName);
+        DString filePath = PathUtil::JoinFilePath(newLanguagePath, languageFileName);
         bReadOk = m_langManager.LoadStringTable(filePath);
     }
 
@@ -341,10 +341,10 @@ bool GlobalManager::ReloadLanguage(const std::wstring& languagePath,
     return bReadOk;
 }
 
-bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wstring>>& languageList,
-                                    const std::wstring& languageNameID) const
+bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& languageList,
+                                    const DString& languageNameID) const
 {
-    std::wstring languagePath = GetLanguagePath();
+    DString languagePath = GetLanguagePath();
     ASSERT(!languagePath.empty());
     if (languagePath.empty()) {
         return false;
@@ -361,10 +361,10 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wst
         }
         if (!languageNameID.empty()) {
             for (auto& lang : languageList) {
-                const std::wstring& fileName = lang.first;
-                std::wstring& displayName = lang.second;
+                const DString& fileName = lang.first;
+                DString& displayName = lang.second;
 
-                std::wstring filePath = PathUtil::JoinFilePath(languagePath, fileName);
+                DString filePath = PathUtil::JoinFilePath(languagePath, fileName);
                 ui::LangManager langManager;
                 if (langManager.LoadStringTable(filePath)) {
                     displayName = langManager.GetStringViaID(languageNameID);
@@ -374,7 +374,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wst
     }
     else if(m_zipManager.IsUseZip()){
         //相对路径，语言文件应该都在压缩包内
-        std::vector<std::wstring> fileList;
+        std::vector<DString> fileList;
         m_zipManager.GetZipFileList(languagePath, fileList);
         for (auto const& file : fileList) {
             languageList.push_back({ file, _T("") });
@@ -382,10 +382,10 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wst
 
         if (!languageNameID.empty()) {
             for (auto& lang : languageList) {
-                const std::wstring& fileName = lang.first;
-                std::wstring& displayName = lang.second;
+                const DString& fileName = lang.first;
+                DString& displayName = lang.second;
 
-                std::wstring filePath = PathUtil::JoinFilePath(languagePath, fileName);
+                DString filePath = PathUtil::JoinFilePath(languagePath, fileName);
                 std::vector<unsigned char> fileData;
                 if (m_zipManager.GetZipData(filePath, fileData)) {
                     ui::LangManager langManager;
@@ -403,13 +403,13 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wst
     return true;
 }
 
-std::wstring GlobalManager::GetResFullPath(const std::wstring& windowResPath, const std::wstring& resPath)
+DString GlobalManager::GetResFullPath(const DString& windowResPath, const DString& resPath)
 {
     if (resPath.empty() || !PathUtil::IsRelativePath(resPath)) {
         return resPath;
     }
 
-    std::wstring imageFullPath = PathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);
+    DString imageFullPath = PathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);
     imageFullPath = PathUtil::JoinFilePath(imageFullPath, resPath);
     imageFullPath = PathUtil::NormalizeFilePath(imageFullPath);
     if (!m_zipManager.IsZipResExist(imageFullPath) && !PathUtil::IsExistsPath(imageFullPath)) {
@@ -466,7 +466,7 @@ IRenderFactory* GlobalManager::GetRenderFactory()
     return m_renderFactory.get();
 }
 
-void GlobalManager::AddClass(const std::wstring& strClassName, const std::wstring& strControlAttrList)
+void GlobalManager::AddClass(const DString& strClassName, const DString& strControlAttrList)
 {
     AssertUIThread();
     ASSERT(!strClassName.empty() && !strControlAttrList.empty());
@@ -475,14 +475,14 @@ void GlobalManager::AddClass(const std::wstring& strClassName, const std::wstrin
     }    
 }
 
-std::wstring GlobalManager::GetClassAttributes(const std::wstring& strClassName) const
+DString GlobalManager::GetClassAttributes(const DString& strClassName) const
 {
     AssertUIThread();
     auto it = m_globalClass.find(strClassName);
     if (it != m_globalClass.end()) {
         return it->second;
     }
-    return std::wstring();
+    return DString();
 }
 
 void GlobalManager::RemoveAllClasss()
@@ -538,7 +538,7 @@ LangManager& GlobalManager::Lang()
     return m_langManager;
 }
 
-Box* GlobalManager::CreateBox(const std::wstring& strXmlPath, CreateControlCallback callback)
+Box* GlobalManager::CreateBox(const DString& strXmlPath, CreateControlCallback callback)
 {
     WindowBuilder builder;
     Box* box = builder.Create(strXmlPath, callback);
@@ -546,7 +546,7 @@ Box* GlobalManager::CreateBox(const std::wstring& strXmlPath, CreateControlCallb
     return box;
 }
 
-Box* GlobalManager::CreateBoxWithCache(const std::wstring& strXmlPath, CreateControlCallback callback)
+Box* GlobalManager::CreateBoxWithCache(const DString& strXmlPath, CreateControlCallback callback)
 {
     Box* box = nullptr;
     auto it = m_builderMap.find(strXmlPath);
@@ -568,7 +568,7 @@ Box* GlobalManager::CreateBoxWithCache(const std::wstring& strXmlPath, CreateCon
     return box;
 }
 
-void GlobalManager::FillBox(Box* pUserDefinedBox, const std::wstring& strXmlPath, CreateControlCallback callback)
+void GlobalManager::FillBox(Box* pUserDefinedBox, const DString& strXmlPath, CreateControlCallback callback)
 {
     ASSERT(pUserDefinedBox != nullptr);
     if (pUserDefinedBox != nullptr) {
@@ -578,7 +578,7 @@ void GlobalManager::FillBox(Box* pUserDefinedBox, const std::wstring& strXmlPath
     }    
 }
 
-void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const std::wstring& strXmlPath, CreateControlCallback callback)
+void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const DString& strXmlPath, CreateControlCallback callback)
 {
     ASSERT(pUserDefinedBox != nullptr);
     if (pUserDefinedBox == nullptr) {
@@ -605,7 +605,7 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const std::wstring& s
     ASSERT_UNUSED_VARIABLE(box != nullptr);
 }
 
-Control* GlobalManager::CreateControl(const std::wstring& strControlName)
+Control* GlobalManager::CreateControl(const DString& strControlName)
 {
     if (m_pfnCreateControlCallback) {
         return m_pfnCreateControlCallback(strControlName);
