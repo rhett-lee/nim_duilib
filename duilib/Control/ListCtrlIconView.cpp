@@ -34,8 +34,8 @@ ListCtrlIconView::~ListCtrlIconView()
 
 void ListCtrlIconView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"horizontal_layout") {
-        SetHorizontalLayout(strValue == L"true");
+    if (strName == _T("horizontal_layout")) {
+        SetHorizontalLayout(strValue == _T("true"));
     }
     else {
         __super::SetAttribute(strName, strValue);
@@ -261,7 +261,7 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
         pItemLabel->SetText(pSubItemData->text.c_str());
     }
     else {
-        pItemLabel->SetText(L"");
+        pItemLabel->SetText(_T(""));
     }
 
     //设置不获取焦点等属性

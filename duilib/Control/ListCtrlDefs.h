@@ -276,10 +276,10 @@ public:
 
     /** 获取控件类型和设置属性
     */
-    virtual std::wstring GetType() const override { return L"ListCtrlCheckBox"; }
+    virtual std::wstring GetType() const override { return _T("ListCtrlCheckBox"); }
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override
     {
-        if (strName == L"check_box_width") {
+        if (strName == _T("check_box_width")) {
             SetCheckBoxWidth(_wtoi(strValue.c_str()), true);
         }
         else {
@@ -363,7 +363,7 @@ public:
     }
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override { return L"ListCtrlIconViewItem"; }
+    virtual std::wstring GetType() const override { return _T("ListCtrlIconViewItem"); }
 
     /** 事件处理函数
     */
@@ -396,7 +396,7 @@ public:
     }
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override { return L"ListCtrlListViewItem"; }
+    virtual std::wstring GetType() const override { return _T("ListCtrlListViewItem"); }
 
     /** 事件处理函数
     */

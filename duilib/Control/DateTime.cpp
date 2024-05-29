@@ -105,7 +105,7 @@ bool DateTimeWnd::Init(DateTime* pOwner)
         UiPoint pt2 = { rcPos.right, rcPos.bottom };
         pOwner->GetWindow()->ClientToScreen(pt1);
         pOwner->GetWindow()->ClientToScreen(pt2);
-        CreateWnd(m_pOwner->GetWindow()->GetHWND(), L"", uStyle, 0, {pt1.x, pt1.y, pt2.x, pt2.y});
+        CreateWnd(m_pOwner->GetWindow()->GetHWND(), _T(""), uStyle, 0, {pt1.x, pt1.y, pt2.x, pt2.y});
         ASSERT(GetHWND() != nullptr);
 
         HFONT hFont = CreateHFont();
@@ -131,22 +131,22 @@ bool DateTimeWnd::Init(DateTime* pOwner)
     switch (editFormat) {
     case DateTime::EditFormat::kDateCalendar:
     case DateTime::EditFormat::kDateUpDown:
-        sEditFormat = L"yyy-MM-dd";
+        sEditFormat = _T("yyy-MM-dd");
         break;
     case DateTime::EditFormat::kDateTimeUpDown:
-        sEditFormat = L"yyy-MM-dd HH:mm:ss";
+        sEditFormat = _T("yyy-MM-dd HH:mm:ss");
         break;
     case DateTime::EditFormat::kDateMinuteUpDown:
-        sEditFormat = L"yyy-MM-dd HH:mm";
+        sEditFormat = _T("yyy-MM-dd HH:mm");
         break;
     case DateTime::EditFormat::kTimeUpDown:
-        sEditFormat = L"HH:mm:ss";
+        sEditFormat = _T("HH:mm:ss");
         break;
     case DateTime::EditFormat::kMinuteUpDown:
-        sEditFormat = L"HH:mm";
+        sEditFormat = _T("HH:mm");
         break;
     default:
-        sEditFormat = L"yyy-MM-dd";
+        sEditFormat = _T("yyy-MM-dd");
         break;
     }
     ::SendMessage(GetHWND(), DTM_SETFORMAT, 0, (LPARAM)sEditFormat.c_str());
@@ -186,9 +186,9 @@ void DateTimeWnd::UpdateWndPos()
 HFONT DateTimeWnd::CreateHFont() const
 {
     //优先获取默认字体
-    IFont* pFont = GlobalManager::Instance().Font().GetIFont(L"", Dpi());
+    IFont* pFont = GlobalManager::Instance().Font().GetIFont(_T(""), Dpi());
     if (pFont == nullptr) {
-        pFont = GlobalManager::Instance().Font().GetIFont(L"system_12", Dpi());
+        pFont = GlobalManager::Instance().Font().GetIFont(_T("system_12"), Dpi());
     }
     ASSERT(pFont != nullptr);
     if (pFont == nullptr) {
@@ -242,7 +242,7 @@ UiRect DateTimeWnd::CalPos()
 
 std::wstring DateTimeWnd::GetWindowClassName() const
 {
-    return L"DateTimeWnd";
+    return _T("DateTimeWnd");
 }
 
 std::wstring DateTimeWnd::GetSuperClassName() const
@@ -315,13 +315,13 @@ DateTime::DateTime(Window* pWindow):
     m_dateTime({0,}),
     m_pDateWindow(nullptr),
     m_editFormat(EditFormat::kDateCalendar),
-    m_dateSeparator(L'-')
+    m_dateSeparator(_T('-'))
 {
     //设置默认属性
-    SetAttribute(L"border_size", L"1");
-    SetAttribute(L"border_color", L"gray");
-    SetAttribute(L"text_align", L"vcenter");
-    SetAttribute(L"text_padding", L"2,0,0,0");
+    SetAttribute(_T("border_size"), _T("1"));
+    SetAttribute(_T("border_color"), _T("gray"));
+    SetAttribute(_T("text_align"), _T("vcenter"));
+    SetAttribute(_T("text_padding"), _T("2,0,0,0"));
 }
 
 DateTime::~DateTime()
@@ -332,26 +332,26 @@ std::wstring DateTime::GetType() const { return DUI_CTR_DATETIME; }
 
 void DateTime::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"format") {
+    if (strName == _T("format")) {
         SetStringFormat(strValue);
     }
-    else if (strName == L"edit_format") {
-        if (strValue == L"date_calendar") {
+    else if (strName == _T("edit_format")) {
+        if (strValue == _T("date_calendar")) {
             SetEditFormat(EditFormat::kDateCalendar);
         }
-        else if (strValue == L"date_up_down") {
+        else if (strValue == _T("date_up_down")) {
             SetEditFormat(EditFormat::kDateUpDown);
         }
-        else if (strValue == L"date_time_up_down") {
+        else if (strValue == _T("date_time_up_down")) {
             SetEditFormat(EditFormat::kDateTimeUpDown);
         }
-        else if (strValue == L"date_minute_up_down") {
+        else if (strValue == _T("date_minute_up_down")) {
             SetEditFormat(EditFormat::kDateMinuteUpDown);
         }
-        else if (strValue == L"time_up_down") {
+        else if (strValue == _T("time_up_down")) {
             SetEditFormat(EditFormat::kTimeUpDown);
         }
-        else if (strValue == L"minute_up_down") {
+        else if (strValue == _T("minute_up_down")) {
             SetEditFormat(EditFormat::kMinuteUpDown);
         }
         else {
@@ -416,24 +416,24 @@ bool DateTime::SetDateTimeString(const std::wstring& dateTime)
     ss >> std::get_time(&t, sFormat.c_str());
     if (ss.fail()) {
         //失败后，智能识别年月日的分隔符
-        if (dateTime.find(L'-') != std::wstring::npos) {
-            StringUtil::ReplaceAll(L"/", L"-", sFormat);
+        if (dateTime.find(_T('-')) != std::wstring::npos) {
+            StringUtil::ReplaceAll(_T("/"), _T("-"), sFormat);
             std::wistringstream ss2(dateTime);
             ss2 >> std::get_time(&t, sFormat.c_str());
             if (!ss2.fail()) {
                 m_dateTime = t;
                 bRet = true;
-                m_dateSeparator = L'-';
+                m_dateSeparator = _T('-');
             }
         }
-        else if (dateTime.find(L'/') != std::wstring::npos) {
-            StringUtil::ReplaceAll(L"-", L"/", sFormat);
+        else if (dateTime.find(_T('/')) != std::wstring::npos) {
+            StringUtil::ReplaceAll(_T("-"), _T("/"), sFormat);
             std::wistringstream ss2(dateTime);
             ss2 >> std::get_time(&t, sFormat.c_str());
             if (!ss2.fail()) {
                 m_dateTime = t;
                 bRet = true;
-                m_dateSeparator = L'/';
+                m_dateSeparator = _T('/');
             }
         }
     }
@@ -530,28 +530,28 @@ std::wstring DateTime::GetStringFormat() const
         switch (editFormat) {
         case EditFormat::kDateCalendar:
         case EditFormat::kDateUpDown:
-            sFormat = L"%Y-%m-%d";
+            sFormat = _T("%Y-%m-%d");
             break;
         case EditFormat::kDateTimeUpDown:
-            sFormat = L"%Y-%m-%d %H:%M:%S";
+            sFormat = _T("%Y-%m-%d %H:%M:%S");
             break;
         case EditFormat::kDateMinuteUpDown:
-            sFormat = L"%Y-%m-%d %H:%M";
+            sFormat = _T("%Y-%m-%d %H:%M");
             break;
         case EditFormat::kTimeUpDown:
-            sFormat = L"%H:%M:%S";
+            sFormat = _T("%H:%M:%S");
             break;
         case EditFormat::kMinuteUpDown:
-            sFormat = L"%H:%M";
+            sFormat = _T("%H:%M");
             break;
         default:
-            sFormat = L"%Y-%m-%d";
+            sFormat = _T("%Y-%m-%d");
             break;
         }
-        if (m_dateSeparator != L'-') {
+        if (m_dateSeparator != _T('-')) {
             std::wstring separator;
             separator = m_dateSeparator;
-            StringUtil::ReplaceAll(L"-", separator, sFormat);
+            StringUtil::ReplaceAll(_T("-"), separator, sFormat);
         }        
     }
     return sFormat;

@@ -33,23 +33,23 @@ ShadowWndBase::ShadowWndBase():
 
 std::wstring ShadowWndBase::GetSkinFolder()
 {
-    return L"";
+    return _T("");
 }
 
 std::wstring ShadowWndBase::GetSkinFile()
 {
-    return L"public/shadow/shadow.xml";
+    return _T("public/shadow/shadow.xml");
 }
 
 std::wstring ShadowWndBase::GetWindowClassName() const
 {
-    return L"ShadowWnd";
+    return _T("ShadowWnd");
 }
 
 bool ShadowWndBase::Create(Window* window)
 {
     m_pWindow = window;
-    return Window::CreateWnd(NULL, L"ShadowWnd", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_LAYERED);
+    return Window::CreateWnd(NULL, _T("ShadowWnd"), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_LAYERED);
 }
 
 LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)

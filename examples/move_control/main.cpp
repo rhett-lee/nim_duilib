@@ -31,11 +31,11 @@ void MainThread::OnInit()
 {
     //初始化全局资源, 使用本地文件夹作为资源
     std::wstring resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
-    resourcePath += L"resources\\";
+    resourcePath += _T("resources\\");
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
     
-    MoveControlForm* window = new MoveControlForm(L"move_control", L"move_control", L"main.xml");
-    window->CreateWnd(NULL, L"move_control", UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    MoveControlForm* window = new MoveControlForm(_T("move_control"), _T("move_control"), _T("main.xml"));
+    window->CreateWnd(NULL, _T("move_control"), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
     window->CenterWindow();
     window->ShowWindow();
 }

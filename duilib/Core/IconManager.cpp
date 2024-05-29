@@ -10,7 +10,7 @@ namespace ui
 
 IconManager::IconManager():
     m_nNextID(1),
-    m_prefix(L"icon:")
+    m_prefix(_T("icon:"))
 {
 }
 

@@ -483,7 +483,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     if (!UiRect::Intersect(rcTestTemp, rcDest, rcPaint)) {
         return;
     }
-    PerformanceStat statPerformance(L"Render_Skia::DrawImage");
+    PerformanceStat statPerformance(_T("Render_Skia::DrawImage"));
 
     ASSERT(pBitmap != nullptr);
     if (pBitmap == nullptr) {
@@ -1328,7 +1328,7 @@ void Render_Skia::DrawString(const UiRect& rc,
                              uint32_t uFormat, 
                              uint8_t uFade /*= 255*/)
 {
-    PerformanceStat statPerformance(L"Render_Skia::DrawString");
+    PerformanceStat statPerformance(_T("Render_Skia::DrawString"));
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     ASSERT(!strText.empty());
     if (strText.empty()) {
@@ -1433,7 +1433,7 @@ UiRect Render_Skia::MeasureString(const std::wstring& strText,
                                   uint32_t uFormat, 
                                   int width /*= DUI_NOSET_VALUE*/)
 {
-    PerformanceStat statPerformance(L"Render_Skia::MeasureString");
+    PerformanceStat statPerformance(_T("Render_Skia::MeasureString"));
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     ASSERT(!strText.empty());
     if (strText.empty()) {
@@ -1536,7 +1536,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
                                bool bMeasureOnly,
                                uint8_t uFade)
 {
-    PerformanceStat statPerformance(L"Render_Skia::DrawRichText");
+    PerformanceStat statPerformance(_T("Render_Skia::DrawRichText"));
     if (rc.IsEmpty()) {
         return;
     }
@@ -1617,9 +1617,9 @@ void Render_Skia::DrawRichText(const UiRect& rc,
 
         std::wstring textValue = textData.m_text.c_str();
         //统一换行标志
-        StringUtil::ReplaceAll(L"\r\n", L"\n", textValue);
-        StringUtil::ReplaceAll(L"\r", L"\n", textValue);
-        if (textValue == L"\n") {
+        StringUtil::ReplaceAll(_T("\r\n"), _T("\n"), textValue);
+        StringUtil::ReplaceAll(_T("\r"), _T("\n"), textValue);
+        if (textValue == _T("\n")) {
             //文本内容是分隔符，执行换行操作
             xPos = rc.left;
             yPos += nRowHeight;
@@ -1636,7 +1636,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
         bool bBreakAll = false;//标记是否终止
 
         //按换行符进行文本切分
-        std::list<std::wstring> textList = StringUtil::Split(textValue, L"\n");
+        std::list<std::wstring> textList = StringUtil::Split(textValue, _T("\n"));
         for (const std::wstring& text : textList) {
             //绘制的文本下标开始值        
             const size_t textCount = text.size();

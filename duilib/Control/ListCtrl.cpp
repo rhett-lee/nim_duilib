@@ -142,108 +142,108 @@ const ImageList* ListCtrl::GetImageList(ListCtrlType type) const
 
 void ListCtrl::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"header_class") {
+    if (strName == _T("header_class")) {
         SetHeaderClass(strValue);
     }
-    else if (strName == L"header_item_class") {
+    else if (strName == _T("header_item_class")) {
         SetHeaderItemClass(strValue);
     }
-    else if (strName == L"header_split_box_class") {
+    else if (strName == _T("header_split_box_class")) {
         SetHeaderSplitBoxClass(strValue);
     }
-    else if (strName == L"header_split_control_class") {
+    else if (strName == _T("header_split_control_class")) {
         SetHeaderSplitControlClass(strValue);
     }
-    else if (strName == L"enable_header_drag_order") {
-        SetEnableHeaderDragOrder(strValue == L"true");
+    else if (strName == _T("enable_header_drag_order")) {
+        SetEnableHeaderDragOrder(strValue == _T("true"));
     }
-    else if (strName == L"check_box_class") {
+    else if (strName == _T("check_box_class")) {
         SetCheckBoxClass(strValue);
     }
-    else if (strName == L"data_item_class") {
+    else if (strName == _T("data_item_class")) {
         SetDataItemClass(strValue);
     }
-    else if (strName == L"data_sub_item_class") {
+    else if (strName == _T("data_sub_item_class")) {
         SetDataSubItemClass(strValue);
     }
-    else if (strName == L"row_grid_line_width") {
+    else if (strName == _T("row_grid_line_width")) {
         SetRowGridLineWidth(_wtoi(strValue.c_str()), true);
     }
-    else if (strName == L"row_grid_line_color") {
+    else if (strName == _T("row_grid_line_color")) {
         SetRowGridLineColor(strValue);
     }
-    else if (strName == L"column_grid_line_width") {
+    else if (strName == _T("column_grid_line_width")) {
         SetColumnGridLineWidth(_wtoi(strValue.c_str()), true);
     }
-    else if (strName == L"column_grid_line_color") {
+    else if (strName == _T("column_grid_line_color")) {
         SetColumnGridLineColor(strValue);
     }
-    else if (strName == L"report_view_class") {
+    else if (strName == _T("report_view_class")) {
         SetReportViewClass(strValue);
     }
-    else if (strName == L"header_height") {
+    else if (strName == _T("header_height")) {
         SetHeaderHeight(_wtoi(strValue.c_str()), true);
     }
-    else if (strName == L"data_item_height") {
+    else if (strName == _T("data_item_height")) {
         SetDataItemHeight(_wtoi(strValue.c_str()), true);
     }
-    else if (strName == L"show_header") {
-        SetHeaderVisible(strValue == L"true");
+    else if (strName == _T("show_header")) {
+        SetHeaderVisible(strValue == _T("true"));
     }
-    else if (strName == L"multi_select") {
-        SetMultiSelect(strValue == L"true");
+    else if (strName == _T("multi_select")) {
+        SetMultiSelect(strValue == _T("true"));
     }
-    else if (strName == L"enable_column_width_auto") {
-        SetEnableColumnWidthAuto(strValue == L"true");
+    else if (strName == _T("enable_column_width_auto")) {
+        SetEnableColumnWidthAuto(strValue == _T("true"));
     }
-    else if (strName == L"auto_check_select") {
-        SetAutoCheckSelect(strValue == L"true");
+    else if (strName == _T("auto_check_select")) {
+        SetAutoCheckSelect(strValue == _T("true"));
     }
-    else if (strName == L"show_header_checkbox") {
-        SetHeaderShowCheckBox(strValue == L"true");
+    else if (strName == _T("show_header_checkbox")) {
+        SetHeaderShowCheckBox(strValue == _T("true"));
     }
-    else if (strName == L"show_data_item_checkbox") {
-        SetDataItemShowCheckBox(strValue == L"true");
+    else if (strName == _T("show_data_item_checkbox")) {
+        SetDataItemShowCheckBox(strValue == _T("true"));
     }
-    else if (strName == L"type") {
-        if (strValue == L"report") {
+    else if (strName == _T("type")) {
+        if (strValue == _T("report")) {
             SetListCtrlType(ListCtrlType::Report);
         }
-        else if (strValue == L"icon") {
+        else if (strValue == _T("icon")) {
             SetListCtrlType(ListCtrlType::Icon);
         }
-        else if (strValue == L"list") {
+        else if (strValue == _T("list")) {
             SetListCtrlType(ListCtrlType::List);
         }
     }
-    else if (strName == L"icon_view_class") {
+    else if (strName == _T("icon_view_class")) {
         SetIconViewClass(strValue);
     }
-    else if (strName == L"icon_view_item_class") {
+    else if (strName == _T("icon_view_item_class")) {
         SetIconViewItemClass(strValue);
     }
-    else if (strName == L"icon_view_item_image_class") {
+    else if (strName == _T("icon_view_item_image_class")) {
         SetIconViewItemImageClass(strValue);
     }
-    else if (strName == L"icon_view_item_label_class") {
+    else if (strName == _T("icon_view_item_label_class")) {
         SetIconViewItemLabelClass(strValue);
     }
-    else if (strName == L"list_view_class") {
+    else if (strName == _T("list_view_class")) {
         SetListViewClass(strValue);
     }
-    else if (strName == L"list_view_item_class") {
+    else if (strName == _T("list_view_item_class")) {
         SetListViewItemClass(strValue);
     }
-    else if (strName == L"list_view_item_image_class") {
+    else if (strName == _T("list_view_item_image_class")) {
         SetListViewItemImageClass(strValue);
     }
-    else if (strName == L"list_view_item_label_class") {
+    else if (strName == _T("list_view_item_label_class")) {
         SetListViewItemLabelClass(strValue);
     }
-    else if (strName == L"enable_item_edit") {
-        SetEnableItemEdit(strValue == L"true");
+    else if (strName == _T("enable_item_edit")) {
+        SetEnableItemEdit(strValue == _T("true"));
     }
-    else if (strName == L"list_ctrl_richedit_class") {
+    else if (strName == _T("list_ctrl_richedit_class")) {
         SetRichEditClass(strValue);
     }
     else {

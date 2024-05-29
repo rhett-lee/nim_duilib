@@ -19,13 +19,13 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // 在项目属性->连接器->输入，延迟加载 nim_libcef.dll
     nim_comp::CefManager::GetInstance()->AddCefDllToPath();
 
-    _wsetlocale(LC_ALL, L"chs");
+    _wsetlocale(LC_ALL, _T("chs"));
 
 #ifdef _DEBUG
     AllocConsole();
     FILE* fp = NULL;
     freopen_s(&fp, "CONOUT$", "w+t", stdout);
-    wprintf_s(L"Command:\n%s\n\n", lpCmdLine);
+    wprintf_s(_T("Command:\n%s\n\n"), lpCmdLine);
 #endif
 
     HRESULT hr = ::OleInitialize(NULL);
@@ -37,7 +37,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // 初始化 CEF
     CefSettings settings;
-    if (!nim_comp::CefManager::GetInstance()->Initialize(ui::PathUtil::GetCurrentModuleDirectory() + L"cef_temp\\", settings, true))
+    if (!nim_comp::CefManager::GetInstance()->Initialize(ui::PathUtil::GetCurrentModuleDirectory() + _T("cef_temp\\"), settings, true))
     {
         return 0;
     }
@@ -69,12 +69,12 @@ void MainThread::OnInit()
 {   
     //初始化全局资源, 使用本地文件夹作为资源
     std::wstring resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
-    resourcePath += L"resources\\";
+    resourcePath += _T("resources\\");
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), dpiInitParam);
 
     uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
     std::string timeStamp = ui::StringUtil::Printf("%I64u", nTimeMS);
-    MultiBrowserManager::GetInstance()->CreateBorwserBox(NULL, timeStamp, L"");
+    MultiBrowserManager::GetInstance()->CreateBorwserBox(NULL, timeStamp, _T(""));
 }
 
 void MainThread::OnCleanup()

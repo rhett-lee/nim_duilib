@@ -17,7 +17,7 @@ std::wstring FilterCombo::GetType() const { return DUI_CTR_FILTER_COMBO; }
 
 void FilterCombo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"combo_type") {
+    if (strName == _T("combo_type")) {
         //忽略该属性设置
     }
     else {

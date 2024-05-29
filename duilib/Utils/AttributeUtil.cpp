@@ -8,7 +8,7 @@ namespace ui
 
 void AttributeUtil::SkipSepChar(wchar_t*& pPtr)
 {
-    if ((pPtr != nullptr) && (*pPtr != L'\0')) {
+    if ((pPtr != nullptr) && (*pPtr != _T('\0'))) {
         //跳过分隔字符，但避免跳过尾0，防止字符串越界
         pPtr++;
     }
@@ -17,7 +17,7 @@ void AttributeUtil::SkipSepChar(wchar_t*& pPtr)
 void AttributeUtil::ParseSizeValue(const wchar_t* strValue, UiSize& size)
 {
     size.Clear();
-    if ((strValue == nullptr) || (*strValue == L'\0')) {
+    if ((strValue == nullptr) || (*strValue == _T('\0'))) {
         return;
     }
     wchar_t* pstr = nullptr;
@@ -39,7 +39,7 @@ void AttributeUtil::ParsePointValue(const wchar_t* strValue, UiPoint& pt)
 void AttributeUtil::ParsePaddingValue(const wchar_t* strValue, UiPadding& padding)
 {
     padding.Clear();
-    if ((strValue == nullptr) || (*strValue == L'\0')) {
+    if ((strValue == nullptr) || (*strValue == _T('\0'))) {
         return;
     }
     wchar_t* pstr = nullptr;
@@ -57,7 +57,7 @@ void AttributeUtil::ParsePaddingValue(const wchar_t* strValue, UiPadding& paddin
 void AttributeUtil::ParseMarginValue(const wchar_t* strValue, UiMargin& margin)
 {
     margin.Clear();
-    if ((strValue == nullptr) || (*strValue == L'\0')) {
+    if ((strValue == nullptr) || (*strValue == _T('\0'))) {
         return;
     }
     wchar_t* pstr = nullptr;
@@ -75,7 +75,7 @@ void AttributeUtil::ParseMarginValue(const wchar_t* strValue, UiMargin& margin)
 void AttributeUtil::ParseRectValue(const wchar_t* strValue, UiRect& rect)
 {
     rect.Clear();
-    if ((strValue == nullptr) || (*strValue == L'\0')) {
+    if ((strValue == nullptr) || (*strValue == _T('\0'))) {
         return;
     }
     wchar_t* pstr = nullptr;
@@ -96,19 +96,19 @@ void AttributeUtil::ParseAttributeList(const std::wstring& strList,
     std::wstring sName;
     std::wstring sValue;
     const wchar_t* pstrList = strList.c_str();
-    while (*pstrList != L'\0') {
+    while (*pstrList != _T('\0')) {
         sName.clear();
         sValue.clear();
         //读取等号前面的内容，作为Name
-        while (*pstrList != L'\0' && *pstrList != L'=') {
+        while (*pstrList != _T('\0') && *pstrList != _T('=')) {
             const wchar_t* pstrTemp = ::CharNext(pstrList);
             while (pstrList < pstrTemp) {
                 sName += *pstrList++;
             }
         }
         //当前字符应该是个等号
-        ASSERT(*pstrList == L'=');
-        if (*pstrList != L'=') {
+        ASSERT(*pstrList == _T('='));
+        if (*pstrList != _T('=')) {
             return;
         }
         //跳到等号字符后面的字符，这个字符应该是个分隔字符
@@ -120,7 +120,7 @@ void AttributeUtil::ParseAttributeList(const std::wstring& strList,
 
         //跳到第一个分隔字符后面的字符，读取属性值
         pstrList++;
-        while (*pstrList != L'\0' && *pstrList != seperateChar) {
+        while (*pstrList != _T('\0') && *pstrList != seperateChar) {
             LPTSTR pstrTemp = ::CharNext(pstrList);
             while (pstrList < pstrTemp) {
                 sValue += *pstrList++;
@@ -137,7 +137,7 @@ void AttributeUtil::ParseAttributeList(const std::wstring& strList,
 
         //跳到分隔字符后面的字符，这个字符应该是空格，如果不是空格，认为已经结束
         pstrList++;
-        if (*pstrList != L' ') {
+        if (*pstrList != _T(' ')) {
             return;
         }
 
@@ -149,7 +149,7 @@ void AttributeUtil::ParseAttributeList(const std::wstring& strList,
 std::tuple<int32_t, float> AttributeUtil::ParseString(const wchar_t* strValue, wchar_t** pEndPtr)
 {
     wchar_t* pstr = nullptr;
-    if ((strValue == nullptr) || (*strValue == L'\0')) {
+    if ((strValue == nullptr) || (*strValue == _T('\0'))) {
         if (pEndPtr != nullptr) {
             *pEndPtr = pstr;
         }
@@ -158,7 +158,7 @@ std::tuple<int32_t, float> AttributeUtil::ParseString(const wchar_t* strValue, w
     int32_t xValue = 0;
     float xPercent = wcstof(strValue, &pstr);
     ASSERT(pstr != nullptr);
-    if ((pstr != nullptr) && (*pstr == L'%')) {
+    if ((pstr != nullptr) && (*pstr == _T('%'))) {
         //该值是百分比，跳过'%'字符
         pstr++;
     }

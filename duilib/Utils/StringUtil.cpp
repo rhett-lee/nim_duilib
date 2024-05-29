@@ -305,8 +305,8 @@ void StringUtil::LowerString(std::wstring& str)
     wchar_t* end = start + str.length();
     for (; start < end; start++)
     {
-        if (*start >= L'A' && *start <= L'Z')
-            *start += L'a' - L'A';
+        if (*start >= _T('A') && *start <= _T('Z'))
+            *start += _T('a') - _T('A');
     }
 }
 
@@ -331,8 +331,8 @@ void StringUtil::UpperString(std::wstring& str)
     wchar_t* end = start + str.length();
     for (; start < end; start++)
     {
-        if (*start >= L'a' && *start <= L'z')
-            *start -= L'a' - L'A';
+        if (*start >= _T('a') && *start <= _T('z'))
+            *start -= _T('a') - _T('A');
     }
 }
 
@@ -340,13 +340,13 @@ std::wstring StringUtil::MakeLowerString(const std::wstring &str)
 {
     std::wstring resStr = str;
     if (resStr.empty())
-        return L"";
+        return _T("");
     wchar_t *start = &resStr[0];
     wchar_t *end = start + resStr.length();
     for (; start < end; start++)
     {
-        if (*start >= L'A' && *start <= L'Z')
-            *start += L'a' - L'A';
+        if (*start >= _T('A') && *start <= _T('Z'))
+            *start += _T('a') - _T('A');
     }
     
     return resStr;
@@ -372,13 +372,13 @@ std::wstring StringUtil::MakeUpperString(const std::wstring &str)
 {
     std::wstring resStr = str;
     if (resStr.empty())
-        return L"";
+        return _T("");
     wchar_t *start = &resStr[0];
     wchar_t *end = start + resStr.length();
     for (; start < end; start++)
     {
-        if (*start >= L'a' && *start <= L'z')
-            *start -= L'a' - L'A';
+        if (*start >= _T('a') && *start <= _T('z'))
+            *start -= _T('a') - _T('A');
     }
 
     return resStr;
@@ -849,7 +849,7 @@ std::wstring StringUtil::UInt64ToString(uint64_t value)
     wchar_t temp[32] = {0};
     int pos = 0;
     do {
-        temp[pos++] = (wchar_t)(L'0' + (int)(value % 10));
+        temp[pos++] = (wchar_t)(_T('0') + (int)(value % 10));
         value /= 10;
     } while (value != 0);
 

@@ -356,7 +356,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wst
         //绝对路径，语言文件在本地磁盘中
         for (auto const& dir_entry : std::filesystem::directory_iterator{ path }) {
             if (dir_entry.is_regular_file()) {
-                languageList.push_back({ dir_entry.path().filename().c_str(), L"" });
+                languageList.push_back({ dir_entry.path().filename().c_str(), _T("") });
             }
         }
         if (!languageNameID.empty()) {
@@ -377,7 +377,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<std::wstring, std::wst
         std::vector<std::wstring> fileList;
         m_zipManager.GetZipFileList(languagePath, fileList);
         for (auto const& file : fileList) {
-            languageList.push_back({ file, L"" });
+            languageList.push_back({ file, _T("") });
         }
 
         if (!languageNameID.empty()) {

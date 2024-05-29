@@ -64,7 +64,7 @@ public:
 public:
     /** 设置皮肤资源所在路径
      *   如果 resType == kLocalFiles，需要设置资源所在的本地路径（绝对路径）
-     *   如果 resType == kZipFile 或者 resType == kResZip，设置资源所在的起始目录（相对路径），比如：L"resources\\"
+     *   如果 resType == kZipFile 或者 resType == kResZip，设置资源所在的起始目录（相对路径），比如：_T("resources\\")
      */
     void SetResourcePath(const std::wstring& strPath);
 
@@ -107,8 +107,8 @@ public:
      * @param [in] languageFileName 当前使用语言文件的文件名（不含路径）
      * @param [in] bInvalidate 是否刷新界面显示：true表示更新完语言文件后刷新界面显示，false表示不刷新界面显示
      */
-    bool ReloadLanguage(const std::wstring& languagePath = L"",
-                        const std::wstring& languageFileName = L"zh_CN.txt",
+    bool ReloadLanguage(const std::wstring& languagePath = _T(""),
+                        const std::wstring& languageFileName = _T("zh_CN.txt"),
                         bool bInvalidate = false);
 
     /** 获取语言文件列表和显示名称（以支持多语言切换）
@@ -116,7 +116,7 @@ public:
     * @param [out] languageList 返回语言文件和显示名称的列表
     */
     bool GetLanguageList(std::vector<std::pair<std::wstring, std::wstring>>& languageList,
-                         const std::wstring& languageNameID = L"LANGUAGE_DISPLAY_NAME") const;
+                         const std::wstring& languageNameID = _T("LANGUAGE_DISPLAY_NAME")) const;
 
 public:
     /** 添加一个窗口接口（主要用于换肤、切换语言之后的重绘、资源同步等操作）

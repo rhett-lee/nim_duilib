@@ -55,7 +55,7 @@ UiColor ColorManager::ConvertToUiColor(const std::wstring& strColor)
     if (strColor.empty()) {
         return color;
     }
-    if (strColor.at(0) != L'#') {
+    if (strColor.at(0) != _T('#')) {
         //按标准颜色值获取
         color = GlobalManager::Instance().Color().GetStandardColor(strColor);
         if (!color.IsEmpty()) {
@@ -68,15 +68,15 @@ UiColor ColorManager::ConvertToUiColor(const std::wstring& strColor)
     if ((strColor.size() != 9) && (strColor.size() != 7)) {
         return color;
     }
-    ASSERT(strColor.at(0) == L'#');
-    if (strColor.at(0) != L'#') {
+    ASSERT(strColor.at(0) == _T('#'));
+    if (strColor.at(0) != _T('#')) {
         return color;
     }
     for (size_t i = 1; i < strColor.size(); ++i) {
         wchar_t ch = strColor.at(i);
-        bool isValid = (((ch >= L'0') && (ch <= L'9')) ||
-            ((ch >= L'a') && (ch <= L'f')) ||
-            ((ch >= L'A') && (ch <= L'F')));
+        bool isValid = (((ch >= _T('0')) && (ch <= _T('9'))) ||
+            ((ch >= _T('a')) && (ch <= _T('f'))) ||
+            ((ch >= _T('A')) && (ch <= _T('F'))));
         ASSERT(isValid);
         if (!isValid) {
             return color;
@@ -85,7 +85,7 @@ UiColor ColorManager::ConvertToUiColor(const std::wstring& strColor)
     std::wstring colorValue = strColor.substr(1);
     if (colorValue.size() == 6) {
         //如果是#FFFFFF格式，自动补上Alpha值
-        colorValue = L"FF" + colorValue;
+        colorValue = _T("FF") + colorValue;
     }
     UiColor::ARGB argb = wcstoul(colorValue.c_str(), nullptr, 16);
     return UiColor(argb);

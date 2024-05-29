@@ -585,14 +585,14 @@ UiSize VTileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSi
 bool VTileLayout::SetAttribute(const std::wstring& strName, const std::wstring& strValue, const DpiManager& dpiManager)
 {
     bool hasAttribute = true;
-    if((strName == L"item_size") || (strName == L"itemsize")){
+    if((strName == _T("item_size")) || (strName == _T("itemsize"))){
         UiSize szItem;
         AttributeUtil::ParseSizeValue(strValue.c_str(), szItem);
         dpiManager.ScaleSize(szItem);
         SetItemSize(szItem);
     }
-    else if( (strName == L"columns") || (strName == L"rows")) {
-        if (strValue == L"auto") {
+    else if( (strName == _T("columns")) || (strName == _T("rows"))) {
+        if (strValue == _T("auto")) {
             //自动计算列数
             SetAutoCalcColumns(true);
         }
@@ -601,8 +601,8 @@ bool VTileLayout::SetAttribute(const std::wstring& strName, const std::wstring& 
             SetColumns(_wtoi(strValue.c_str()));
         }
     }
-    else if ((strName == L"scale_down") || (strName == L"scaledown")) {
-        SetScaleDown(strValue == L"true");
+    else if ((strName == _T("scale_down")) || (strName == _T("scaledown"))) {
+        SetScaleDown(strValue == _T("true"));
     }
     else {
         hasAttribute = Layout::SetAttribute(strName, strValue, dpiManager);

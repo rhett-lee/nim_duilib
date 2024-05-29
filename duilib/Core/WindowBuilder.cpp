@@ -173,20 +173,20 @@ Box* WindowBuilder::Create(const std::wstring& xml,
                            Box* pParent, 
                            Box* pUserDefinedBox)
 {
-    ASSERT(!xml.empty() && L"xml 参数为空！");
+    ASSERT(!xml.empty() && _T("xml 参数为空！"));
     if (xml.empty()) {
         return nullptr;
     }
     bool isLoaded = false;
     //字符串以<开头认为是XML字符串，否则认为是XML文件
     //如果使用了 zip 压缩包，则从内存中读取
-    if (xml.front() == L'<') {
+    if (xml.front() == _T('<')) {
         pugi::xml_parse_result result = m_xml->load_buffer(xml.c_str(), 
                                                            xml.size() * sizeof(std::wstring::value_type), 
                                                            pugi::parse_default, 
                                                            pugi::xml_encoding::encoding_utf16);
         if (result.status != pugi::status_ok) {
-            ASSERT(!L"WindowBuilder::Create load xml from string data failed!");
+            ASSERT(!_T("WindowBuilder::Create load xml from string data failed!"));
             return nullptr;
         }
         isLoaded = true;
@@ -197,7 +197,7 @@ Box* WindowBuilder::Create(const std::wstring& xml,
         if (GlobalManager::Instance().Zip().GetZipData(sFile, file_data)) {
             pugi::xml_parse_result result = m_xml->load_buffer(file_data.data(), file_data.size());
             if (result.status != pugi::status_ok) {
-                ASSERT(!L"WindowBuilder::Create load xml from zip data failed!");
+                ASSERT(!_T("WindowBuilder::Create load xml from zip data failed!"));
                 return nullptr;
             }
             isLoaded = true;
@@ -213,7 +213,7 @@ Box* WindowBuilder::Create(const std::wstring& xml,
         }
         pugi::xml_parse_result result = m_xml->load_file(xmlFilePath.c_str());
         if (result.status != pugi::status_ok) {
-            ASSERT(!L"WindowBuilder::Create load xml file failed!");
+            ASSERT(!_T("WindowBuilder::Create load xml file failed!"));
             return nullptr;
         }
         isLoaded = true;
@@ -237,18 +237,18 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
         std::wstring strValue;
         strClass = root.name();
 
-        if( strClass == L"Window" ) {
+        if( strClass == _T("Window") ) {
             if( pWindow->GetHWND() ) {
                 //首先处理mininfo和maxinfo，因为其他属性有用到这两个属性的
                 for (pugi::xml_attribute attr : root.attributes()) {
                     strName = attr.name();
                     strValue = attr.value();
-                    if (strName == L"mininfo") {
+                    if (strName == _T("mininfo")) {
                         UiSize size;
                         AttributeUtil::ParseSizeValue(strValue.c_str(), size);
                         pWindow->SetMinInfo(size.cx, size.cy, false, true);
                     }
-                    else if (strName == L"maxinfo") {
+                    else if (strName == _T("maxinfo")) {
                         UiSize size;
                         AttributeUtil::ParseSizeValue(strValue.c_str(), size);
                         pWindow->SetMaxInfo(size.cx, size.cy, false, true);
@@ -257,7 +257,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                 for (pugi::xml_attribute attr : root.attributes()) {
                     strName = attr.name();
                     strValue = attr.value();
-                    if (strName == L"size") {
+                    if (strName == _T("size")) {
                         UiSize windowSize;
                         AttributeUtil::ParseWindowSize(pWindow, strValue.c_str(), windowSize);
                         int32_t cx = windowSize.cx;
@@ -278,57 +278,57 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                         }
                         pWindow->SetInitSize(cx, cy, false, false);
                     }
-                    else if( strName == L"sizebox" ) {
+                    else if( strName == _T("sizebox") ) {
                         UiRect rcSizeBox;
                         AttributeUtil::ParseRectValue(strValue.c_str(), rcSizeBox);
                         pWindow->SetSizeBox(rcSizeBox, true);
                     }
-                    else if( strName == L"caption" ) {
+                    else if( strName == _T("caption") ) {
                         UiRect rcCaption;
                         AttributeUtil::ParseRectValue(strValue.c_str(), rcCaption);
                         pWindow->SetCaptionRect(rcCaption, true);
                     }
-                    else if (strName == L"use_system_caption") {
-                        pWindow->SetUseSystemCaption(strValue == L"true");
+                    else if (strName == _T("use_system_caption")) {
+                        pWindow->SetUseSystemCaption(strValue == _T("true"));
                     }
-                    else if( strName == L"text" ) {
+                    else if( strName == _T("text") ) {
                         pWindow->SetText(strValue);
                     }
-                    else if ((strName == L"text_id") || (strName == L"textid")) {
+                    else if ((strName == _T("text_id")) || (strName == _T("textid"))) {
                         pWindow->SetTextId(strValue);
                     }
-                    else if (strName == L"round_corner" || strName == L"roundcorner" ) {
+                    else if (strName == _T("round_corner") || strName == _T("roundcorner") ) {
                         UiSize size;
                         AttributeUtil::ParseSizeValue(strValue.c_str(), size);
                         pWindow->SetRoundCorner(size.cx, size.cy, true);
                     }                                
-                    else if (strName == L"alpha_fix_corner" || strName == L"alphafixcorner") {
+                    else if (strName == _T("alpha_fix_corner") || strName == _T("alphafixcorner")) {
                         UiRect rc;
                         AttributeUtil::ParseRectValue(strValue.c_str(), rc);
                         pWindow->SetAlphaFixCorner(rc, true);
                     }
-                    else if (strName == L"render_transparent") {
-                        pWindow->SetRenderTransparent(strValue == L"true");
+                    else if (strName == _T("render_transparent")) {
+                        pWindow->SetRenderTransparent(strValue == _T("true"));
                     }
-                    else if ((strName == L"shadow_attached") || (strName == L"shadowattached")) {
+                    else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
                         //设置是否支持窗口阴影（阴影实现有两种：层窗口和普通窗口）
-                        pWindow->SetShadowAttached(strValue == L"true");
+                        pWindow->SetShadowAttached(strValue == _T("true"));
                     }
-                    else if ((strName == L"shadow_image") || (strName == L"shadowimage")) {
+                    else if ((strName == _T("shadow_image")) || (strName == _T("shadowimage"))) {
                         //设置阴影图片
                         pWindow->SetShadowImage(strValue);
                     }
-                    else if ((strName == L"shadow_corner") || (strName == L"shadowcorner")) {
+                    else if ((strName == _T("shadow_corner")) || (strName == _T("shadowcorner"))) {
                         //设置窗口阴影的九宫格属性
                         UiPadding padding;
                         AttributeUtil::ParsePaddingValue(strValue.c_str(), padding);
                         pWindow->SetShadowCorner(padding, true);
                     }
-                    else if ((strName == L"layered_window") || (strName == L"layeredwindow")) {
+                    else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
                         //设置是否设置层窗口属性（层窗口还是普通窗口）
-                        pWindow->SetLayeredWindow(strValue == L"true");
+                        pWindow->SetLayeredWindow(strValue == _T("true"));
                     }
-                    else if (strName == L"alpha") {
+                    else if (strName == _T("alpha")) {
                         //设置窗口的透明度（0 - 255），仅当使用层窗口时有效
                         int nAlpha = wcstol(strValue.c_str(), nullptr, 10);
                         ASSERT(nAlpha >= 0 && nAlpha <= 255);
@@ -340,22 +340,22 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
             }
         }
 
-        if( strClass == L"Global" ) {
+        if( strClass == _T("Global") ) {
             for(pugi::xml_node node : root.children()) {
                 strClass = node.name();
-                if( strClass == L"Image" ) {
+                if( strClass == _T("Image") ) {
                     ASSERT(FALSE);    //废弃
                 }
-                else if (strClass == L"FontResource") {
+                else if (strClass == _T("FontResource")) {
                     std::wstring strFontFile;
                     std::wstring strFontName;
                     for (pugi::xml_attribute attr : node.attributes()) {
                         strName = attr.name();
                         strValue = attr.value();
-                        if (strName == L"file") {
+                        if (strName == _T("file")) {
                             strFontFile = strValue;
                         }
-                        else if (strName == L"name") {
+                        else if (strName == _T("name")) {
                             strFontName = strValue;
                         }
                     }
@@ -363,20 +363,20 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                         GlobalManager::Instance().Font().AddFontFile(strFontFile, strFontName);
                     }
                 }
-                else if( strClass == L"Font") {
+                else if( strClass == _T("Font")) {
                     ParseFontXmlNode(node);
                 }
-                else if( strClass == L"Class" ) {
+                else if( strClass == _T("Class") ) {
                     std::wstring strClassName;
                     std::wstring strAttribute;
                     for (pugi::xml_attribute attr : node.attributes()) {
                         strName = attr.name();
                         strValue = attr.value();
-                        if( strName == L"name" ) {
+                        if( strName == _T("name") ) {
                             strClassName = strValue;
                         }
                         else {
-                            strAttribute.append(StringUtil::Printf(L" %s=\"%s\"",
+                            strAttribute.append(StringUtil::Printf(_T(" %s=\"%s\""),
                                                 strName.c_str(), strValue.c_str()));
                         }
                     }
@@ -385,37 +385,37 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                         GlobalManager::Instance().AddClass(strClassName, strAttribute);
                     }
                 }
-                else if( strClass == L"TextColor" ) {
-                    std::wstring colorName = node.attribute(L"name").as_string();
-                    std::wstring colorValue = node.attribute(L"value").as_string();
+                else if( strClass == _T("TextColor") ) {
+                    std::wstring colorName = node.attribute(_T("name")).as_string();
+                    std::wstring colorValue = node.attribute(_T("value")).as_string();
                     if(!colorName.empty() && !colorValue.empty()) {
                         ColorManager& colorManager = GlobalManager::Instance().Color();
                         colorManager.AddColor(colorName, colorValue);
-                        if (colorName == L"default_font_color") {
+                        if (colorName == _T("default_font_color")) {
                             colorManager.SetDefaultTextColor(colorName);
                         }
-                        else if (colorName == L"disabled_font_color") {
+                        else if (colorName == _T("disabled_font_color")) {
                             colorManager.SetDefaultDisabledTextColor(colorName);
                         }
                     }
                 }
             }
         }
-        else if (strClass == L"Window")
+        else if (strClass == _T("Window"))
         {
             for (pugi::xml_node node : root.children()) {
                 strClass = node.name();
-                if (strClass == L"Class") {
+                if (strClass == _T("Class")) {
                     std::wstring strClassName;
                     std::wstring strAttribute;
                     for (pugi::xml_attribute attr : node.attributes()) {
                         strName = attr.name();
                         strValue = attr.value();
-                        if (strName == L"name") {
+                        if (strName == _T("name")) {
                             strClassName = strValue;
                         }
                         else {
-                            strAttribute.append(StringUtil::Printf(L" %s=\"%s\"",
+                            strAttribute.append(StringUtil::Printf(_T(" %s=\"%s\""),
                                                 strName.c_str(), strValue.c_str()));
                         }
                     }
@@ -425,16 +425,16 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                         pWindow->AddClass(strClassName, strAttribute);
                     }
                 }
-                else if (strClass == L"TextColor") {
+                else if (strClass == _T("TextColor")) {
                     std::wstring strColorName;
                     std::wstring strColor;
                     for (pugi::xml_attribute attr : node.attributes()) {
                         strName = attr.name();
                         strValue = attr.value();
-                        if (strName == L"name") {
+                        if (strName == _T("name")) {
                             strColorName = strValue;
                         }
-                        else if (strName == L"value") {
+                        else if (strName == _T("value")) {
                             strColor = strValue;
                         }
                     }
@@ -442,7 +442,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                         pWindow->AddTextColor(strColorName, strColor);
                     }
                 }
-                else if (strClass == L"Font") {
+                else if (strClass == _T("Font")) {
                     //Window节点下，允许定义字体
                     ParseFontXmlNode(node);
                 }
@@ -452,8 +452,8 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 
     for (pugi::xml_node node : root.children()) {
         std::wstring strClass = node.name();
-        if (strClass == L"Image" || strClass == L"FontResource" || strClass == L"Font"
-            || strClass == L"Class" || strClass == L"TextColor") {
+        if (strClass == _T("Image") || strClass == _T("FontResource") || strClass == _T("Font")
+            || strClass == _T("Class") || strClass == _T("TextColor")) {
 
         }
         else {
@@ -464,7 +464,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                 ParseXmlNode(node, pUserDefinedBox, pWindow);
                 int i = 0;
                 for (pugi::xml_attribute attr : node.attributes()) {
-                    if (wcscmp(attr.name(), L"class") == 0) {
+                    if (wcscmp(attr.name(), _T("class")) == 0) {
                         //class必须是第一个属性
                         ASSERT(i == 0);
                     }
@@ -495,30 +495,30 @@ void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode) const
     for (pugi::xml_attribute attr : xmlNode.attributes()) {
         strName = attr.name();
         strValue = attr.value();
-        if (strName == L"id")
+        if (strName == _T("id"))
         {
             strFontId = strValue;
         }
-        else if (strName == L"name") {
+        else if (strName == _T("name")) {
             strFontName = strValue;
         }
-        else if (strName == L"size") {
+        else if (strName == _T("size")) {
             size = wcstol(strValue.c_str(), nullptr, 10);
         }
-        else if (strName == L"bold") {
-            bold = (strValue == L"true");
+        else if (strName == _T("bold")) {
+            bold = (strValue == _T("true"));
         }
-        else if (strName == L"underline") {
-            underline = (strValue == L"true");
+        else if (strName == _T("underline")) {
+            underline = (strValue == _T("true"));
         }
-        else if (strName == L"strikeout") {
-            strikeout = (strValue == L"true");
+        else if (strName == _T("strikeout")) {
+            strikeout = (strValue == _T("true"));
         }
-        else if (strName == L"italic") {
-            italic = (strValue == L"true");
+        else if (strName == _T("italic")) {
+            italic = (strValue == _T("true"));
         }
-        else if (strName == L"default") {
-            isDefault = (strValue == L"true");
+        else if (strName == _T("default")) {
+            isDefault = (strValue == _T("true"));
         }
     }
     if (!strFontName.empty() && !strFontId.empty()) {
@@ -541,35 +541,35 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
     Control* pReturn = nullptr;
     for (pugi::xml_node node : xmlNode.children()) {
         std::wstring strClass = node.name();
-        if( (strClass == L"Image") || 
-            (strClass == L"Font")  ||
-            (strClass == L"Class") || 
-            (strClass == L"TextColor") ) {
+        if( (strClass == _T("Image")) || 
+            (strClass == _T("Font"))  ||
+            (strClass == _T("Class")) || 
+            (strClass == _T("TextColor")) ) {
                 continue;
         }
 
         Control* pControl = nullptr;
-        if (strClass == L"Include") {
+        if (strClass == _T("Include")) {
             if (node.attributes().empty()) {
                 continue;
             }
-            pugi::xml_attribute countAttr = node.attribute(L"count");
+            pugi::xml_attribute countAttr = node.attribute(_T("count"));
             int nCount = countAttr.as_int();
             if (nCount <= 0) {
                 //默认值设置为1，count这个属性参数为可选
                 nCount = 1;
             }
-            pugi::xml_attribute sourceAttr = node.attribute(L"src");
+            pugi::xml_attribute sourceAttr = node.attribute(_T("src"));
             std::wstring sourceValue = sourceAttr.as_string();
             if (sourceValue.empty()) {
-                sourceAttr = node.attribute(L"source");
+                sourceAttr = node.attribute(_T("source"));
                 sourceValue = sourceAttr.as_string();                
             }
             if (!sourceValue.empty()) {
-                StringUtil::ReplaceAll(L"/", L"\\", sourceValue);
+                StringUtil::ReplaceAll(_T("/"), _T("\\"), sourceValue);
                 if (!m_xmlFilePath.empty()) {
                     //优先尝试在原XML文件相同目录加载
-                    size_t pos = m_xmlFilePath.find_last_of(L"\\/");
+                    size_t pos = m_xmlFilePath.find_last_of(_T("\\/"));
                     if (pos != std::wstring::npos) {
                         std::wstring filePath = m_xmlFilePath.substr(0, pos);
                         filePath = PathUtil::JoinFilePath(filePath, sourceValue);
@@ -592,9 +592,9 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
         else {
             pControl = CreateControlByClass(strClass, pWindow);
             if (pControl == nullptr) {
-                if ((strClass == L"Event") || 
-                    (strClass == L"BubbledEvent")) {
-                    bool bBubbled = (strClass == L"BubbledEvent");
+                if ((strClass == _T("Event")) || 
+                    (strClass == _T("BubbledEvent"))) {
+                    bool bBubbled = (strClass == _T("BubbledEvent"));
                     AttachXmlEvent(bBubbled, node, pParent);
                     continue;
                 }
@@ -653,7 +653,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
             //读取节点的属性，设置控件的属性
             int i = 0;
             for (pugi::xml_attribute attr : node.attributes()) {
-                ASSERT(i == 0 || wcscmp(attr.name(), L"class") != 0);    //class必须是第一个属性
+                ASSERT(i == 0 || wcscmp(attr.name(), _T("class")) != 0);    //class必须是第一个属性
                 ++i;
                 pControl->SetAttribute(attr.name(), attr.value());
             }
@@ -710,7 +710,7 @@ bool WindowBuilder::ParseRichTextXmlText(const std::wstring& xmlText, Control* p
                                                     pugi::parse_default,
                                                     pugi::xml_encoding::encoding_utf16);
     if (result.status != pugi::status_ok) {
-        ASSERT(!L"WindowBuilder::ParseRichTextXmlText load xml text failed!");
+        ASSERT(!_T("WindowBuilder::ParseRichTextXmlText load xml text failed!"));
         return false;
     }
     pugi::xml_node root = doc.root();
@@ -750,41 +750,41 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
             //无节点名称，只读取文本内容, 不需要递归遍历子节点
             bParseChildren = false;
         }        
-        else if (nodeName == L"a") {            
+        else if (nodeName == _T("a")) {            
             textSlice.m_text = pRichText->TrimText(node.first_child().value());
-            textSlice.m_linkUrl = StringUtil::Trim(node.attribute(L"href").as_string());
+            textSlice.m_linkUrl = StringUtil::Trim(node.attribute(_T("href")).as_string());
             //超级链接节点, 不需要递归遍历子节点
             bParseChildren = false;
         }
-        else if (nodeName == L"b") {
+        else if (nodeName == _T("b")) {
             //粗体字
             textSlice.m_fontInfo.m_bBold = true;
         }
-        else if (nodeName == L"i") {
+        else if (nodeName == _T("i")) {
             //斜体字
             textSlice.m_fontInfo.m_bItalic = true;
         }
-        else if ((nodeName == L"del") || (nodeName == L"s") || (nodeName == L"strike")) {
+        else if ((nodeName == _T("del")) || (nodeName == _T("s")) || (nodeName == _T("strike"))) {
             //删除字
             textSlice.m_fontInfo.m_bStrikeOut = true;
         }
-        else if ( (nodeName == L"ins") || (nodeName == L"u") ){
+        else if ( (nodeName == _T("ins")) || (nodeName == _T("u")) ){
             //下划线
             textSlice.m_fontInfo.m_bUnderline = true;
         }
-        else if (nodeName == L"bgcolor") {
+        else if (nodeName == _T("bgcolor")) {
             //背景颜色
-            textSlice.m_bgColor = StringUtil::Trim(node.attribute(L"color").as_string());
+            textSlice.m_bgColor = StringUtil::Trim(node.attribute(_T("color")).as_string());
         }
-        else if (nodeName == L"font") {
+        else if (nodeName == _T("font")) {
             //字体设置：文本颜色
-            textSlice.m_textColor = node.attribute(L"color").as_string();
-            textSlice.m_fontInfo.m_fontName = node.attribute(L"face").as_string();
+            textSlice.m_textColor = node.attribute(_T("color")).as_string();
+            textSlice.m_fontInfo.m_fontName = node.attribute(_T("face")).as_string();
             //字号不需要进行DPI缩放，绘制的时候，会根据当时的DPI进行缩放
-            textSlice.m_fontInfo.m_fontSize = node.attribute(L"size").as_int();            
+            textSlice.m_fontInfo.m_fontSize = node.attribute(_T("size")).as_int();            
         }
-        else if (nodeName == L"br") {
-            textSlice.m_text = L"\n";
+        else if (nodeName == _T("br")) {
+            textSlice.m_text = _T("\n");
             //换行节点, 不需要递归遍历子节点
             bParseChildren = false;
         }
@@ -823,26 +823,26 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
     for (pugi::xml_attribute attr : node.attributes()) {
         strName = attr.name();
         strValue = attr.value();
-        ASSERT(i != 0 || strName == L"type");
-        ASSERT(i != 1 || strName == L"receiver");
-        ASSERT(i != 2 || strName == L"applyattribute");
+        ASSERT(i != 0 || strName == _T("type"));
+        ASSERT(i != 1 || strName == _T("receiver"));
+        ASSERT(i != 2 || strName == _T("applyattribute"));
         ++i;
-        if( strName == L"type" ) {
+        if( strName == _T("type") ) {
             strType = strValue;
         }
-        else if( strName == L"receiver" ) {
+        else if( strName == _T("receiver") ) {
             strReceiver = strValue;
         }
-        else if( strName == L"applyattribute" ) {
+        else if( strName == _T("applyattribute") ) {
             strApplyAttribute = strValue;
         }
     }
 
-    auto typeList = StringUtil::Split(strType, L" ");
-    auto receiverList = StringUtil::Split(strReceiver, L" ");
+    auto typeList = StringUtil::Split(strType, _T(" "));
+    auto receiverList = StringUtil::Split(strReceiver, _T(" "));
     for (auto itType = typeList.begin(); itType != typeList.end(); itType++) {
         if (receiverList.empty()) {
-            receiverList.push_back(L"");
+            receiverList.push_back(_T(""));
         }
         for (auto itReceiver = receiverList.begin(); itReceiver != receiverList.end(); itReceiver++) {
             EventType eventType = StringToEventType(*itType);

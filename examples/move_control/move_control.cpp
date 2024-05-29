@@ -41,8 +41,8 @@ void MoveControlForm::OnInitWindow()
     std::vector<AppItem> applist;
     CAppDb::GetInstance().LoadFromDb(applist);
 
-    m_frequent_app = static_cast<ui::Box*>(FindControl(L"frequent_app"));
-    m_my_app = static_cast<ui::Box*>(FindControl(L"my_app"));
+    m_frequent_app = static_cast<ui::Box*>(FindControl(_T("frequent_app")));
+    m_my_app = static_cast<ui::Box*>(FindControl(_T("my_app")));
     ASSERT(m_frequent_app != nullptr);
     ASSERT(m_my_app != nullptr);
     

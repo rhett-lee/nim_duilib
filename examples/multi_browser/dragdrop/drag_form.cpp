@@ -6,7 +6,7 @@ using namespace ui;
 DragForm *DragForm::s_drag_form = NULL;
 HHOOK DragForm::s_mouse_hook = NULL;
 POINT DragForm::s_point_offset = { 0, 0 };
-const LPCTSTR DragForm::kClassName = L"NimDragForm";
+const LPCTSTR DragForm::kClassName = _T("NimDragForm");
 
 LRESULT CALLBACK DragForm::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
@@ -86,17 +86,17 @@ DragForm::DragForm()
 
 std::wstring DragForm::GetSkinFolder()
 {
-    return L"multi_browser";
+    return _T("multi_browser");
 }
 
 std::wstring DragForm::GetSkinFile()
 {
-    return L"drag_form.xml";
+    return _T("drag_form.xml");
 }
 
 ui::Control* DragForm::CreateControl(const std::wstring& pstrClass)
 {
-    if (pstrClass == L"BitmapControl")
+    if (pstrClass == _T("BitmapControl"))
     {
         return new BitmapControl(this);
     }
@@ -116,7 +116,7 @@ UINT DragForm::GetClassStyle() const
 
 void DragForm::OnInitWindow()
 {
-    bitmap_control_ = static_cast<BitmapControl*>(FindControl(L"bitmap"));
+    bitmap_control_ = static_cast<BitmapControl*>(FindControl(_T("bitmap")));
     ASSERT(NULL != bitmap_control_);
 
     // 设置背景透明度

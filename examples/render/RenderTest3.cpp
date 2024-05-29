@@ -47,7 +47,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawLine", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawLine"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
 
     //画一个正六边形
     UiRect hexagonRect = rect;
@@ -78,7 +78,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawRect", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
 
     //填充矩形
     rect.left = rect.right + marginLeft;
@@ -87,7 +87,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"FillRect", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
@@ -95,7 +95,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"FillRect Alpha", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillRect Alpha"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
 
     //换行
     currentBottom = textRect.bottom;//记录当前的bottom值
@@ -114,7 +114,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawRoundRect", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawRoundRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
 
     //填充圆角矩形
     rect.left = rect.right + marginLeft;
@@ -123,7 +123,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"FillRoundRect", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillRoundRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
@@ -131,7 +131,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"FillRoundRect Alpha", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillRoundRect Alpha"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
 
     //画圆形/填充圆形
     rect.left = rect.right + marginLeft;
@@ -141,7 +141,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawCircle", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawCircle"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
@@ -149,7 +149,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"FillCircle", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillCircle"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
@@ -157,7 +157,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"FillCircle Alpha", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillCircle Alpha"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
     
     //换行
     currentBottom = textRect.bottom;//记录当前的bottom值
@@ -194,7 +194,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawPath", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawPath"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
 
     //用FillPath画圆角四边形
     rect.left = rect.right + marginLeft;
@@ -225,7 +225,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"FillPath", UiColor(UiColors::Blue), GetIFontById(L"system_14"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillPath"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
 
     //DrawBoxShadow
     rect.left = rect.right + marginLeft * 2;
@@ -237,7 +237,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawBoxShadow", UiColor(UiColors::Blue), GetIFontById(L"system_12"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawBoxShadow"), UiColor(UiColors::Blue), GetIFontById(_T("system_12")), TEXT_CENTER);
 
     //DrawBoxShadow
     rect.left = rect.right + marginLeft * 2 + 40;
@@ -249,7 +249,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawBoxShadow", UiColor(UiColors::Blue), GetIFontById(L"system_12"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawBoxShadow"), UiColor(UiColors::Blue), GetIFontById(_T("system_12")), TEXT_CENTER);
 
     //DrawBoxShadow
     rect.left = rect.right + marginLeft * 2 + 40;
@@ -261,7 +261,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, L"DrawBoxShadow", UiColor(UiColors::Blue), GetIFontById(L"system_12"), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawBoxShadow"), UiColor(UiColors::Blue), GetIFontById(_T("system_12")), TEXT_CENTER);
 }
 
 void RenderTest3::PaintChild(IRender* pRender, const UiRect& rcPaint)

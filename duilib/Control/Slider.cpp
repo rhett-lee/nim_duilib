@@ -147,27 +147,27 @@ void Slider::HandleEvent(const EventArgs& msg)
 
 void Slider::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"step") {
+    if (strName == _T("step")) {
         SetChangeStep(_wtoi(strValue.c_str()));
     }
-    else if ((strName == L"thumb_normal_image") || (strName == L"thumbnormalimage")) {
+    else if ((strName == _T("thumb_normal_image")) || (strName == _T("thumbnormalimage"))) {
         SetThumbStateImage(kControlStateNormal, strValue);
     }
-    else if ((strName == L"thumb_hot_image") || (strName == L"thumbhotimage")) {
+    else if ((strName == _T("thumb_hot_image")) || (strName == _T("thumbhotimage"))) {
         SetThumbStateImage(kControlStateHot, strValue);
     }
-    else if ((strName == L"thumb_pushed_image") || (strName == L"thumbpushedimage")) {
+    else if ((strName == _T("thumb_pushed_image")) || (strName == _T("thumbpushedimage"))) {
         SetThumbStateImage(kControlStatePushed, strValue);
     }
-    else if ((strName == L"thumb_disabled_image") || (strName == L"thumbdisabledimage")) {
+    else if ((strName == _T("thumb_disabled_image")) || (strName == _T("thumbdisabledimage"))) {
         SetThumbStateImage(kControlStateDisabled, strValue);
     }
-    else if ((strName == L"thumb_size") || (strName == L"thumbsize")) {
+    else if ((strName == _T("thumb_size")) || (strName == _T("thumbsize"))) {
         UiSize szXY;
         AttributeUtil::ParseSizeValue(strValue.c_str(), szXY);
         SetThumbSize(szXY, true);
     }
-    else if ((strName == L"progress_bar_padding") || (strName == L"progressbarpadding")) {
+    else if ((strName == _T("progress_bar_padding")) || (strName == _T("progressbarpadding"))) {
         UiPadding rcPadding;
         AttributeUtil::ParsePaddingValue(strValue.c_str(), rcPadding);
         SetProgressBarPadding(rcPadding, true);
@@ -233,21 +233,21 @@ void Slider::PaintStateImages(IRender* pRender)
 
     if (IsMouseFocused()) {
         m_sImageModify.clear();
-        m_sImageModify = StringUtil::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
+        m_sImageModify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
         if (PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStatePushed), m_sImageModify.c_str())) {
             return;
         }
     }
     else if (GetState() == kControlStateHot) {
         m_sImageModify.clear();
-        m_sImageModify = StringUtil::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
+        m_sImageModify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
         if (PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStateHot), m_sImageModify.c_str())) {
             return;
         }
     }
 
     m_sImageModify.clear();
-    m_sImageModify = StringUtil::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
+    m_sImageModify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rcThumb.left, rcThumb.top, rcThumb.right, rcThumb.bottom);
     PaintImage(pRender, m_thumbStateImage.GetStateImage(kControlStateNormal), m_sImageModify.c_str());
 }
 

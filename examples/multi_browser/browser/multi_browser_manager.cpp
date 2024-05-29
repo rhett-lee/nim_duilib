@@ -20,7 +20,7 @@ BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form
     if (enable_merge_) {
         if (!browser_form) {
             browser_form = new MultiBrowserForm;
-            if (!browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0)) {
+            if (!browser_form->CreateWnd(NULL, _T("MultiBrowser"), UI_WNDSTYLE_FRAME, 0)) {
                 browser_form = nullptr;
                 return nullptr;
             }
@@ -33,7 +33,7 @@ BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form
     }
     else {
         browser_form = new MultiBrowserForm;
-        if (!browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0)) {
+        if (!browser_form->CreateWnd(NULL, _T("MultiBrowser"), UI_WNDSTYLE_FRAME, 0)) {
             return nullptr;
         }
         browser_box = browser_form->CreateBox(id, url);
@@ -161,7 +161,7 @@ void MultiBrowserManager::SetEnableMerge(bool enable)
             else if (parent_form->DetachBox(it_box.second))
             {
                 MultiBrowserForm *browser_form = new MultiBrowserForm;
-                if (!browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0)) {
+                if (!browser_form->CreateWnd(NULL, _T("MultiBrowser"), UI_WNDSTYLE_FRAME, 0)) {
                     ASSERT(0);
                     continue;
                 }
@@ -364,7 +364,7 @@ void MultiBrowserManager::OnAfterDragBorwserBox()
             if (drag_browser_form->DetachBox(draging_box_))
             {
                 MultiBrowserForm *browser_form = new MultiBrowserForm;
-                if (browser_form->CreateWnd(NULL, L"MultiBrowser", UI_WNDSTYLE_FRAME, 0)) {
+                if (browser_form->CreateWnd(NULL, _T("MultiBrowser"), UI_WNDSTYLE_FRAME, 0)) {
                     if (browser_form->AttachBox(draging_box_)) {
                         // 这里设置新浏览器窗口的位置，设置到偏移鼠标坐标100,20的位置
                         POINT pt_mouse;

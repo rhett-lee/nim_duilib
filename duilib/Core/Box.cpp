@@ -38,17 +38,17 @@ std::wstring Box::GetType() const { return DUI_CTR_BOX; }
 
 void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if ((strName == L"mouse_child") || (strName == L"mousechild")) {
-        SetMouseChildEnabled(strValue == L"true");
+    if ((strName == _T("mouse_child")) || (strName == _T("mousechild"))) {
+        SetMouseChildEnabled(strValue == _T("true"));
     }
     else if (m_pLayout->SetAttribute(strName, strValue, Dpi())) {
         return;
     }
-    else if (strName == L"drag_out_id") {
+    else if (strName == _T("drag_out_id")) {
         uint8_t nValue = ui::TruncateToUInt8(_wtoi(strValue.c_str()));
         SetDragOutId(nValue);
     }
-    else if (strName == L"drop_in_id") {
+    else if (strName == _T("drop_in_id")) {
         uint8_t nValue = ui::TruncateToUInt8(_wtoi(strValue.c_str()));
         SetDropInId(nValue);
     }

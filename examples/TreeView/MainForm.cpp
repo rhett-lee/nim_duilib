@@ -3,7 +3,7 @@
 #include "DiskUtils.h"
 #include <ShellApi.h>
 
-const std::wstring MainForm::kClassName = L"MainForm";
+const std::wstring MainForm::kClassName = _T("MainForm");
 
 MainForm::MainForm():
     m_fileList(this),
@@ -28,12 +28,12 @@ MainForm::~MainForm()
 
 std::wstring MainForm::GetSkinFolder()
 {
-    return L"tree_view";
+    return _T("tree_view");
 }
 
 std::wstring MainForm::GetSkinFile()
 {
-    return L"tree_view.xml";
+    return _T("tree_view.xml");
 }
 
 std::wstring MainForm::GetWindowClassName() const
@@ -43,27 +43,27 @@ std::wstring MainForm::GetWindowClassName() const
 
 void MainForm::OnInitWindow()
 {
-    m_pTree = dynamic_cast<ui::TreeView*>(FindControl(L"tree"));
+    m_pTree = dynamic_cast<ui::TreeView*>(FindControl(_T("tree")));
     ASSERT(m_pTree != nullptr);
-    m_pListBox = dynamic_cast<ui::VirtualListBox*>(FindControl(L"list"));
+    m_pListBox = dynamic_cast<ui::VirtualListBox*>(FindControl(_T("list")));
     ASSERT(m_pListBox != nullptr);
     if (m_pListBox != nullptr) {
         m_pListBox->SetDataProvider(&m_fileList);
     }
     //设置开启树节点的CheckBox功能
-    m_pTree->SetCheckBoxClass(L"tree_node_checkbox");
+    m_pTree->SetCheckBoxClass(_T("tree_node_checkbox"));
     //设置开启数节点的[展开/收起]图标功能
-    m_pTree->SetExpandImageClass(L"tree_node_expand");
+    m_pTree->SetExpandImageClass(_T("tree_node_expand"));
     //设置是否支持多选
     m_pTree->SetMultiSelect(true);
     
     //显示虚拟路径
-    ShowVirtualDirectoryNode(CSIDL_DESKTOP, FOLDERID_Desktop, L"桌面");
-    ShowVirtualDirectoryNode(CSIDL_PERSONAL, FOLDERID_Documents, L"文档");
-    ShowVirtualDirectoryNode(CSIDL_MYPICTURES, FOLDERID_Pictures, L"图片");
-    ShowVirtualDirectoryNode(CSIDL_MYMUSIC, FOLDERID_Music, L"音乐");
-    ShowVirtualDirectoryNode(CSIDL_MYVIDEO, FOLDERID_Videos, L"视频");
-    ShowVirtualDirectoryNode(-1, FOLDERID_Downloads, L"下载"); 
+    ShowVirtualDirectoryNode(CSIDL_DESKTOP, FOLDERID_Desktop, _T("桌面"));
+    ShowVirtualDirectoryNode(CSIDL_PERSONAL, FOLDERID_Documents, _T("文档"));
+    ShowVirtualDirectoryNode(CSIDL_MYPICTURES, FOLDERID_Pictures, _T("图片"));
+    ShowVirtualDirectoryNode(CSIDL_MYMUSIC, FOLDERID_Music, _T("音乐"));
+    ShowVirtualDirectoryNode(CSIDL_MYVIDEO, FOLDERID_Videos, _T("视频"));
+    ShowVirtualDirectoryNode(-1, FOLDERID_Downloads, _T("下载")); 
 
     //显示磁盘
     ui::TreeNode* pFirstDiskNode = ShowAllDiskNode();
@@ -71,7 +71,7 @@ void MainForm::OnInitWindow()
     //在磁盘前面，放一个横线分隔符
     if (pFirstDiskNode != nullptr) {
         ui::Control* pLineControl = new ui::Control(this);
-        pLineControl->SetClass(L"splitline_hor_level1");
+        pLineControl->SetClass(_T("splitline_hor_level1"));
         pLineControl->SetMargin(ui::UiMargin(12, 8, 12, 8), true);
         m_pTree->InsertControlBeforeNode(pFirstDiskNode, pLineControl);
     }
@@ -118,7 +118,7 @@ ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
     }
 
     ui::TreeNode* node = new ui::TreeNode(this);
-    node->SetClass(L"tree_node");//在"global.xml"中定义
+    node->SetClass(_T("tree_node"));//在"global.xml"中定义
     node->SetText(displayName);
         
     FolderStatus* pFolder = new FolderStatus;
@@ -155,7 +155,7 @@ ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
 void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const std::wstring& name)
 {
     if (m_hShell32Dll == nullptr) {
-        m_hShell32Dll = ::LoadLibraryW(L"Shell32.dll");
+        m_hShell32Dll = ::LoadLibraryW(_T("Shell32.dll"));
     }
 
     typedef HRESULT (CALLBACK *PFN_SHGetKnownFolderPath)( REFKNOWNFOLDERID rfid,
@@ -186,7 +186,7 @@ void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const 
         pfnSHGetKnownFolderIDList(rfid, 0, nullptr, &lpPidl);
     }
 
-    if (folder[0] == L'\0') {
+    if (folder[0] == _T('\0')) {
         if (csidl < 0) {
             return;
         }
@@ -231,8 +231,8 @@ ui::TreeNode* MainForm::ShowAllDiskNode()
     for (auto iter = driveList.begin(); iter != driveList.end(); ++iter) {
         std::wstring driverName = *iter;
         // 过滤A:盘和B:盘
-        if (ui::StringUtil::IsEqualNoCase(driverName, L"A:\\") ||
-            ui::StringUtil::IsEqualNoCase(driverName, L"B:\\")) {
+        if (ui::StringUtil::IsEqualNoCase(driverName, _T("A:\\")) ||
+            ui::StringUtil::IsEqualNoCase(driverName, _T("B:\\"))) {
             continue;
         }
 
@@ -324,7 +324,7 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
 {
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadWorker, ToWeakCallback([this, path, pTreeNode]() {
         //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
-        std::wstring findPath = ui::PathUtil::JoinFilePath(path, L"*.*");
+        std::wstring findPath = ui::PathUtil::JoinFilePath(path, _T("*.*"));
         WIN32_FIND_DATA findData;
         HANDLE hFile = ::FindFirstFile(findPath.c_str(), &findData);
         if (hFile == INVALID_HANDLE_VALUE) {
@@ -340,8 +340,8 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
                 continue;
             }
 
-            if (ui::StringUtil::IsEqualNoCase(findData.cFileName, L".") ||
-                ui::StringUtil::IsEqualNoCase(findData.cFileName, L"..")) {
+            if (ui::StringUtil::IsEqualNoCase(findData.cFileName, _T(".")) ||
+                ui::StringUtil::IsEqualNoCase(findData.cFileName, _T(".."))) {
                 continue;
             }
 
@@ -428,7 +428,7 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& p
 {
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadWorker, ToWeakCallback([this, pTreeNode, path]() {
         //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
-        std::wstring findPath = ui::PathUtil::JoinFilePath(path, L"*.*");
+        std::wstring findPath = ui::PathUtil::JoinFilePath(path, _T("*.*"));
         WIN32_FIND_DATA findData;
         HANDLE hFile = ::FindFirstFile(findPath.c_str(), &findData);
         if (hFile == INVALID_HANDLE_VALUE) {
@@ -444,8 +444,8 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& p
                 continue;
             }
 
-            if (ui::StringUtil::IsEqualNoCase(findData.cFileName, L".") ||
-                ui::StringUtil::IsEqualNoCase(findData.cFileName, L"..")) {
+            if (ui::StringUtil::IsEqualNoCase(findData.cFileName, _T(".")) ||
+                ui::StringUtil::IsEqualNoCase(findData.cFileName, _T(".."))) {
                 continue;
             }
 

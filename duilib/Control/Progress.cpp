@@ -140,38 +140,38 @@ void Progress::SetProgressColor(const std::wstring& strProgressColor)
 
 void Progress::SetAttribute(const std::wstring& srName, const std::wstring& strValue)
 {
-    if ((srName == L"horizontal") || (srName == L"hor")){
-        SetHorizontal(strValue == L"true");
+    if ((srName == _T("horizontal")) || (srName == _T("hor"))){
+        SetHorizontal(strValue == _T("true"));
     }
-    else if (srName == L"min") {
+    else if (srName == _T("min")) {
         SetMinValue(_wtoi(strValue.c_str()));
     }
-    else if (srName == L"max") {
+    else if (srName == _T("max")) {
         SetMaxValue(_wtoi(strValue.c_str()));
     }
-    else if (srName == L"value") {
+    else if (srName == _T("value")) {
         SetValue(_wtoi(strValue.c_str()));
     }
-    else if ((srName == L"progress_image") || (srName == L"progressimage")){
+    else if ((srName == _T("progress_image")) || (srName == _T("progressimage"))){
         SetProgressImage(strValue);
     }
-    else if ((srName == L"stretch_fore_image") || (srName == L"is_stretch_fore") || (srName == L"isstretchfore")){
-        SetStretchForeImage(strValue == L"true");
+    else if ((srName == _T("stretch_fore_image")) || (srName == _T("is_stretch_fore")) || (srName == _T("isstretchfore"))){
+        SetStretchForeImage(strValue == _T("true"));
     }
-    else if ((srName == L"progress_color") || (srName == L"progresscolor")) {
+    else if ((srName == _T("progress_color")) || (srName == _T("progresscolor"))) {
         SetProgressColor(strValue);
     }
-    else if (srName == L"marquee") {
-        SetMarquee(strValue == L"true");
+    else if (srName == _T("marquee")) {
+        SetMarquee(strValue == _T("true"));
     }
-    else if ((srName == L"marquee_width") || (srName == L"marqueewidth")){
+    else if ((srName == _T("marquee_width")) || (srName == _T("marqueewidth"))){
         SetMarqueeWidth(_wtoi(strValue.c_str()), true);
     }
-    else if ((srName == L"marquee_step") || (srName == L"marqueestep")){
+    else if ((srName == _T("marquee_step")) || (srName == _T("marqueestep"))){
         SetMarqueeStep(_wtoi(strValue.c_str()), true);
     }
-    else if (srName == L"reverse") {
-        SetReverse(strValue == L"true");
+    else if (srName == _T("reverse")) {
+        SetReverse(strValue == _T("true"));
     }
     else {
         Label::SetAttribute(srName, strValue);
@@ -232,7 +232,7 @@ void Progress::PaintStateImages(IRender* pRender)
 
     m_sProgressImageModify.clear();
     if (m_bStretchForeImage) {
-        m_sProgressImageModify = StringUtil::Printf(L"destscale='false' dest='%d,%d,%d,%d'", rc.left, rc.top, rc.right, rc.bottom);
+        m_sProgressImageModify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rc.left, rc.top, rc.right, rc.bottom);
     }
     else {
         ui::UiRect m_rcSrc = rc;
@@ -245,7 +245,7 @@ void Progress::PaintStateImages(IRender* pRender)
                 m_rcSrc.bottom = pProgressImageCache->GetHeight();
             }
         }
-        m_sProgressImageModify = StringUtil::Printf(L"destscale='false' dest='%d,%d,%d,%d' source='%d,%d,%d,%d'"
+        m_sProgressImageModify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d' source='%d,%d,%d,%d'")
             , rc.left, rc.top, rc.right, rc.bottom
             , m_rcSrc.left, m_rcSrc.top, m_rcSrc.right, m_rcSrc.bottom);
     }
@@ -255,7 +255,7 @@ void Progress::PaintStateImages(IRender* pRender)
     if (IsHorizontal()) {
         if (corner.left != 0 && corner.left >= rc.right) {
             std::wstring imageModify = m_sProgressImageModify.c_str();
-            imageModify += StringUtil::Printf(L" corner='%d,%d,%d,%d'",
+            imageModify += StringUtil::Printf(_T(" corner='%d,%d,%d,%d'"),
                 rc.right,
                 corner.top,
                 0,
@@ -266,7 +266,7 @@ void Progress::PaintStateImages(IRender* pRender)
     else {
         if (corner.top != 0 && corner.top >= rc.bottom) {
             std::wstring imageModify = m_sProgressImageModify.c_str();
-            imageModify += StringUtil::Printf(L" corner='%d,%d,%d,%d'",
+            imageModify += StringUtil::Printf(_T(" corner='%d,%d,%d,%d'"),
                 corner.left,
                 corner.bottom,
                 corner.right,

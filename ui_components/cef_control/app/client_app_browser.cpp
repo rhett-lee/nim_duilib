@@ -22,7 +22,7 @@ void ClientApp::OnContextInitialized()
     manager->SetSupportedSchemes(cookieable_schemes_, NULL);
 
     // 这里可以删除了保存的Cooies信息
-    // manager->DeleteCookies(L"", L"", nullptr);
+    // manager->DeleteCookies(_T(""), _T(""), nullptr);
 }
 
 void ClientApp::OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line)

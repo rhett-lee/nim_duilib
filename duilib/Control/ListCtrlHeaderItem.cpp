@@ -34,21 +34,21 @@ ListCtrlHeaderItem::~ListCtrlHeaderItem()
     }
 }
  
-std::wstring ListCtrlHeaderItem::GetType() const { return L"ListCtrlHeaderItem"; }
+std::wstring ListCtrlHeaderItem::GetType() const { return _T("ListCtrlHeaderItem"); }
 
 void ListCtrlHeaderItem::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"sorted_up_image") {
+    if (strName == _T("sorted_up_image")) {
         SetSortedUpImage(strValue);
     }
-    else if (strName == L"sorted_down_image") {
+    else if (strName == _T("sorted_down_image")) {
         SetSortedDownImage(strValue);
     }
-    else if (strName == L"icon_spacing") {
+    else if (strName == _T("icon_spacing")) {
         SetIconSpacing(_wtoi(strValue.c_str()), true);
     }
-    else if (strName == L"show_icon_at_top") {
-        SetShowIconAtTop(strValue == L"true");
+    else if (strName == _T("show_icon_at_top")) {
+        SetShowIconAtTop(strValue == _T("true"));
     }
     else {
         __super::SetAttribute(strName, strValue);
@@ -154,7 +154,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         }
 
         //绘制排序图标
-        PaintImage(pRender, pSortImage, L"", -1, nullptr, &rc, nullptr);
+        PaintImage(pRender, pSortImage, _T(""), -1, nullptr, &rc, nullptr);
         pSortImage = nullptr;
     }
 
@@ -226,7 +226,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
             itemRect.Validate();
             itemRect.right = itemRect.left + itemImageSize.cx;
             VAlignRect(itemRect, GetTextStyle(), itemImageSize.cy);
-            PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &itemRect, nullptr);
+            PaintImage(pRender, pItemImage.get(), _T(""), -1, nullptr, &itemRect, nullptr);
         }
         if (pSortImage != nullptr) {
             UiRect sortRect = rc;
@@ -235,7 +235,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
             sortRect.right = sortRect.left + sortImageSize.cx;
             sortRect.Validate();
             VAlignRect(sortRect, GetTextStyle(), sortImageSize.cy);
-            PaintImage(pRender, pSortImage, L"", -1, nullptr, &sortRect, nullptr);
+            PaintImage(pRender, pSortImage, _T(""), -1, nullptr, &sortRect, nullptr);
         }
 
         DoPaintText(textRect, pRender);
@@ -247,7 +247,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
             sortRect.left = sortRect.right - sortImageSize.cx;
             sortRect.Validate();
             VAlignRect(sortRect, GetTextStyle(), sortImageSize.cy);
-            PaintImage(pRender, pSortImage, L"", -1, nullptr, &sortRect, nullptr);
+            PaintImage(pRender, pSortImage, _T(""), -1, nullptr, &sortRect, nullptr);
             rc.right = sortRect.left;
             rc.right -= nIconTextSpacing;
             rc.Validate();
@@ -273,7 +273,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
             }
             UiRect itemRect = rc;
             VAlignRect(itemRect, GetTextStyle(), itemImageSize.cy);
-            PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &itemRect, nullptr);
+            PaintImage(pRender, pItemImage.get(), _T(""), -1, nullptr, &itemRect, nullptr);
         }
     }
     else {
@@ -282,7 +282,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
             UiRect itemRect = rc;
             itemRect.right = itemRect.left + itemImageSize.cx;
             VAlignRect(itemRect, GetTextStyle(), itemImageSize.cy);
-            PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &itemRect, nullptr);
+            PaintImage(pRender, pItemImage.get(), _T(""), -1, nullptr, &itemRect, nullptr);
             rc.left += itemImageSize.cx;
             rc.left += nIconTextSpacing;
         }
@@ -302,7 +302,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
         if (pSortImage != nullptr) {
             UiRect sortRect = rc;
             VAlignRect(sortRect, GetTextStyle(), sortImageSize.cy);
-            PaintImage(pRender, pSortImage, L"", -1, nullptr, &sortRect, nullptr);
+            PaintImage(pRender, pSortImage, _T(""), -1, nullptr, &sortRect, nullptr);
         }
     }
 }

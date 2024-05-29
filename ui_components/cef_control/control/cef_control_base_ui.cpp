@@ -17,7 +17,7 @@ CefControlBase::CefControlBase(ui::Window* pWindow):
 {
     devtool_attached_ = false;
 #if !defined(SUPPORT_CEF)
-    ASSERT(FALSE && L"要使用Cef功能请开启SUPPORT_CEF宏");
+    ASSERT(FALSE && _T("要使用Cef功能请开启SUPPORT_CEF宏"));
 #endif
     //这个标记必须为false，否则绘制有问题
     SetUseCache(false);
@@ -202,11 +202,11 @@ void CefControlBase::UnRegisterCppFunc(const std::wstring& function_name)
     }
 }
 
-bool CefControlBase::CallJSFunction(const std::wstring& js_function_name, const std::wstring& params, nim_comp::CallJsFunctionCallback callback, const std::wstring& frame_name /*= L""*/)
+bool CefControlBase::CallJSFunction(const std::wstring& js_function_name, const std::wstring& params, nim_comp::CallJsFunctionCallback callback, const std::wstring& frame_name /*= _T("")*/)
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() && js_bridge_.get())
     {
-        CefRefPtr<CefFrame> frame = frame_name == L"" ? browser_handler_->GetBrowser()->GetMainFrame() : browser_handler_->GetBrowser()->GetFrame(frame_name);
+        CefRefPtr<CefFrame> frame = frame_name == _T("") ? browser_handler_->GetBrowser()->GetMainFrame() : browser_handler_->GetBrowser()->GetFrame(frame_name);
 
         if (!js_bridge_->CallJSFunction(ui::StringUtil::UTF16ToUTF8(js_function_name).c_str(),
             ui::StringUtil::UTF16ToUTF8(params).c_str(), frame, callback))

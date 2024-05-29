@@ -1,6 +1,6 @@
 #include "cef_form.h"
 
-const std::wstring CefForm::kClassName = L"CEF_Control_Example";
+const std::wstring CefForm::kClassName = _T("CEF_Control_Example");
 
 CefForm::CefForm()
 {
@@ -12,12 +12,12 @@ CefForm::~CefForm()
 
 std::wstring CefForm::GetSkinFolder()
 {
-    return L"cef";
+    return _T("cef");
 }
 
 std::wstring CefForm::GetSkinFile()
 {
-    return L"cef.xml";
+    return _T("cef.xml");
 }
 
 std::wstring CefForm::GetWindowClassName() const
@@ -28,7 +28,7 @@ std::wstring CefForm::GetWindowClassName() const
 ui::Control* CefForm::CreateControl(const std::wstring& pstrClass)
 {
     // 扫描 XML 发现有名称为 CefControl 的节点，则创建一个 ui::CefControl 控件
-    if (pstrClass == L"CefControl")
+    if (pstrClass == _T("CefControl"))
     {
         if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
             return new nim_comp::CefControl(this);
@@ -45,10 +45,10 @@ void CefForm::OnInitWindow()
     GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&CefForm::OnClicked, this, std::placeholders::_1));
 
     // 从 XML 中查找指定控件
-    cef_control_        = dynamic_cast<nim_comp::CefControlBase*>(FindControl(L"cef_control"));
-    cef_control_dev_    = dynamic_cast<nim_comp::CefControlBase*>(FindControl(L"cef_control_dev"));
-    btn_dev_tool_        = dynamic_cast<ui::Button*>(FindControl(L"btn_dev_tool"));
-    edit_url_            = dynamic_cast<ui::RichEdit*>(FindControl(L"edit_url"));
+    cef_control_        = dynamic_cast<nim_comp::CefControlBase*>(FindControl(_T("cef_control")));
+    cef_control_dev_    = dynamic_cast<nim_comp::CefControlBase*>(FindControl(_T("cef_control_dev")));
+    btn_dev_tool_        = dynamic_cast<ui::Button*>(FindControl(_T("btn_dev_tool")));
+    edit_url_            = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_url")));
 
     // 设置输入框样式
     edit_url_->SetSelAllOnFocus(true);
@@ -61,7 +61,7 @@ void CefForm::OnInitWindow()
     cef_control_->AttachDevTools(cef_control_dev_);
 
     // 加载皮肤目录下的 html 文件
-    cef_control_->LoadURL(ui::PathUtil::GetCurrentModuleDirectory() + L"resources\\themes\\default\\cef\\cef.html");
+    cef_control_->LoadURL(ui::PathUtil::GetCurrentModuleDirectory() + _T("resources\\themes\\default\\cef\\cef.html"));
 
     if (!nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
         cef_control_dev_->SetFadeVisible(false);
@@ -77,7 +77,7 @@ bool CefForm::OnClicked(const ui::EventArgs& msg)
 {
     std::wstring name = msg.pSender->GetName();
 
-    if (name == L"btn_dev_tool")
+    if (name == _T("btn_dev_tool"))
     {
         if (cef_control_->IsAttachedDevTools())
         {
@@ -93,20 +93,20 @@ bool CefForm::OnClicked(const ui::EventArgs& msg)
             cef_control_dev_->SetFadeVisible(cef_control_->IsAttachedDevTools());
         }
     }
-    else if (name == L"btn_back")
+    else if (name == _T("btn_back"))
     {
         cef_control_->GoBack();
     }
-    else if (name == L"btn_forward")
+    else if (name == _T("btn_forward"))
     {
         cef_control_->GoForward();
     }
-    else if (name == L"btn_navigate")
+    else if (name == _T("btn_navigate"))
     {
         ui::EventArgs emptyMsg;
         OnNavigate(emptyMsg);
     }
-    else if (name == L"btn_refresh")
+    else if (name == _T("btn_refresh"))
     {
         cef_control_->Refresh();
     }
@@ -127,11 +127,11 @@ bool CefForm::OnNavigate(const ui::EventArgs& /*msg*/)
 
 void CefForm::OnLoadEnd(int httpStatusCode)
 {
-    FindControl(L"btn_back")->SetEnabled(cef_control_->CanGoBack());
-    FindControl(L"btn_forward")->SetEnabled(cef_control_->CanGoForward());
+    FindControl(_T("btn_back"))->SetEnabled(cef_control_->CanGoBack());
+    FindControl(_T("btn_forward"))->SetEnabled(cef_control_->CanGoForward());
 
     // 注册一个方法提供前端调用
-    cef_control_->RegisterCppFunc(L"ShowMessageBox", ToWeakCallback([this](const std::string& params, nim_comp::ReportResultFunction callback) {
+    cef_control_->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([this](const std::string& params, nim_comp::ReportResultFunction callback) {
         std::wstring value;
         ui::StringUtil::MBCSToUnicode(params, value, CP_UTF8);
         nim_comp::Toast::ShowToast(value, 3000, GetHWND());

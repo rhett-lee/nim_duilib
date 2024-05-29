@@ -78,7 +78,7 @@ void OptionTemplate<InheritType>::SetWindow(Window* pManager)
 template<typename InheritType>
 void OptionTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"group") {
+    if (strName == _T("group")) {
         SetGroup(strValue);
     }
     else {

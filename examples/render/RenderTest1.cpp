@@ -41,7 +41,7 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     
     //绘图相同接口
     Image image;
-    image.SetImageString(L"autumn.png", Dpi());
+    image.SetImageString(_T("autumn.png"), Dpi());
     LoadImageData(image);
     rect.right = rect.left + image.GetImageCache()->GetWidth();
     rect.bottom = rect.top + image.GetImageCache()->GetHeight();

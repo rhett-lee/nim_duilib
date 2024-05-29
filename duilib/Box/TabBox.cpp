@@ -19,7 +19,7 @@ std::wstring TabBox::GetType() const { return DUI_CTR_TABBOX; }
 
 void TabBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if ((strName == L"selected_id") || (strName == L"selectedid")) {
+    if ((strName == _T("selected_id")) || (strName == _T("selectedid"))) {
         size_t iSel = (size_t)_wtoi(strValue.c_str());
         if (IsInited()) {
             SelectItem(iSel);
@@ -28,8 +28,8 @@ void TabBox::SetAttribute(const std::wstring& strName, const std::wstring& strVa
             m_iInitSel = iSel;
         }
     }
-    else if ((strName == L"fade_switch") || (strName == L"fadeswitch")) {
-        SetFadeSwitch(strValue == L"true");
+    else if ((strName == _T("fade_switch")) || (strName == _T("fadeswitch"))) {
+        SetFadeSwitch(strValue == _T("true"));
     }
     else {
         Box::SetAttribute(strName, strValue);

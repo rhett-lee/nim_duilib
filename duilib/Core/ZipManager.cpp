@@ -84,34 +84,34 @@ bool ZipManager::GetZipData(const std::wstring& path, std::vector<unsigned char>
 std::wstring ZipManager::GetZipFilePath(const std::wstring& path) const
 {
     if (!PathUtil::IsRelativePath(path)) {
-        return L"";
+        return _T("");
     }
     std::wstring file_path = path;
-    StringUtil::ReplaceAll(L"\\", L"/", file_path);
-    StringUtil::ReplaceAll(L"//", L"/", file_path);
+    StringUtil::ReplaceAll(_T("\\"), _T("/"), file_path);
+    StringUtil::ReplaceAll(_T("//"), _T("/"), file_path);
     for (size_t i = 0; i < file_path.size();)
     {
         bool start_node = false;
-        if (i == 0 || file_path.at(i - 1) == L'/') {
+        if (i == 0 || file_path.at(i - 1) == _T('/')) {
             start_node = true;
         }
         WCHAR wch = file_path.at(i);
-        if (start_node && wch == L'/') {//"//"
+        if (start_node && wch == _T('/')) {//"//"
             file_path.erase(i, 1);
             continue;
         }
-        if (start_node && wch == L'.') {
-            if (i + 1 < file_path.size() && file_path.at(i + 1) == L'/') {// "./"
+        if (start_node && wch == _T('.')) {
+            if (i + 1 < file_path.size() && file_path.at(i + 1) == _T('/')) {// "./"
                 file_path.erase(i, 2);
                 continue;
             }
-            else if (i + 2 < file_path.size() && file_path.at(i + 1) == L'.' && file_path.at(i + 2) == L'/') {// "../"
+            else if (i + 2 < file_path.size() && file_path.at(i + 1) == _T('.') && file_path.at(i + 2) == _T('/')) {// "../"
                 file_path.erase(i, 2);
                 int i_erase = (int)i - 2;
                 if (i_erase < 0){
                     ASSERT(0);
                 }
-                while (i_erase > 0 && file_path.at(i_erase) != L'/') {
+                while (i_erase > 0 && file_path.at(i_erase) != _T('/')) {
                     i_erase--;
                 }
                 file_path.erase(i_erase, i - i_erase);

@@ -139,7 +139,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
         m_imageMap[imageKey] = sharedImage;
 
 #ifdef _DEBUG
-        std::wstring log = L"Loaded Image: " + imageKey + L"\n";
+        std::wstring log = _T("Loaded Image: ") + imageKey + _T("\n");
         ::OutputDebugString(log.c_str());
 #endif
     }
@@ -209,7 +209,7 @@ void ImageManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
         }
         delete pImageInfo;
 #ifdef _DEBUG
-        std::wstring log = L"Removed Image: " + imageKey + L"\n";
+        std::wstring log = _T("Removed Image: ") + imageKey + _T("\n");
         ::OutputDebugString(log.c_str());
 #endif
     }    
@@ -336,14 +336,14 @@ std::wstring ImageManager::GetDpiScaledPath(uint32_t dpiScale, const std::wstrin
 {
     std::wstring strPathDir;
     std::wstring strPathFileName;
-    std::list<std::wstring> strPathList = StringUtil::Split(imageFullPath, L"\\");
+    std::list<std::wstring> strPathList = StringUtil::Split(imageFullPath, _T("\\"));
     for (auto it = strPathList.begin(); it != strPathList.end(); ++it) {
         auto itTemp = it;
         if (++itTemp == strPathList.end()) {
             strPathFileName = *it;
         }
         else {
-            strPathDir += *it + L"\\";
+            strPathDir += *it + _T("\\");
         }
     }
 
@@ -355,7 +355,7 @@ std::wstring ImageManager::GetDpiScaledPath(uint32_t dpiScale, const std::wstrin
     std::wstring strFileExtension = strPathFileName.substr(iPointPos, strPathFileName.size() - iPointPos);
     std::wstring strFile = strPathFileName.substr(0, iPointPos);
     //返回指定DPI下的图片，举例DPI缩放百分比为120（即放大到120%）的图片："image.png" 对应于 "image@120.png"
-    strPathFileName = StringUtil::Printf(L"%s%s%d%s", strFile.c_str(), L"@", dpiScale, strFileExtension.c_str());
+    strPathFileName = StringUtil::Printf(_T("%s%s%d%s"), strFile.c_str(), _T("@"), dpiScale, strFileExtension.c_str());
     std::wstring strNewFilePath = strPathDir + strPathFileName;
     return strNewFilePath;
 }

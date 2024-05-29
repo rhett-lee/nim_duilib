@@ -16,7 +16,7 @@ public:
         //关闭控件自身的内边距，否则阴影绘制不出来
         SetEnableControlPadding(false);
     }
-    virtual std::wstring GetType() const override { return L"ShadowBox"; }
+    virtual std::wstring GetType() const override { return _T("ShadowBox"); }
 
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override
     {
@@ -166,7 +166,7 @@ UiPadding Shadow::GetShadowCorner() const
 void Shadow::ResetDefaultShadow()
 {
     m_bUseDefaultImage = true;
-    m_strImage = L"file='public/shadow/bk_shadow.png' corner='30,30,30,30'";
+    m_strImage = _T("file='public/shadow/bk_shadow.png' corner='30,30,30,30'");
 
     m_rcShadowCorner = { 14, 14, 14, 14 };
     ASSERT(m_pWindow != nullptr);

@@ -144,7 +144,7 @@ public:
     * @param[in] frame_name 要调用哪个名称 frame 下的方法，默认使用主 frame
     * @return 返回 true 表示成功调用，false 表示调用失败，方法可能不存在
     */
-    bool CallJSFunction(const std::wstring& js_function_name, const std::wstring& params, nim_comp::CallJsFunctionCallback callback, const std::wstring& frame_name = L"");
+    bool CallJSFunction(const std::wstring& js_function_name, const std::wstring& params, nim_comp::CallJsFunctionCallback callback, const std::wstring& frame_name = _T(""));
 
     /**
     * @brief 调用一个前端已经注册好的方法

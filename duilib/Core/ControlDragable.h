@@ -280,16 +280,16 @@ inline std::wstring ControlDragableT<VBox>::GetType() const { return DUI_CTR_VBO
 template<typename T>
 void ControlDragableT<T>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"drag_order") {
+    if (strName == _T("drag_order")) {
         //是否支持拖动调整顺序（在同一个容器内）
-        SetEnableDragOrder(strValue == L"true");
+        SetEnableDragOrder(strValue == _T("true"));
     }
-    else if (strName == L"drag_alpha") {
+    else if (strName == _T("drag_alpha")) {
         SetDragAlpha((uint8_t)_wtoi(strValue.c_str()));
     }
-    else if (strName == L"drag_out") {
+    else if (strName == _T("drag_out")) {
         //是否支持拖出操纵（在相同窗口的不同容器内）
-        SetEnableDragOut(strValue == L"true");
+        SetEnableDragOut(strValue == _T("true"));
     }
     else {
         __super::SetAttribute(strName, strValue);
@@ -834,9 +834,9 @@ template<typename T>
 Control* ControlDragableT<T>::CreateDestControl(Box* pTargetBox)
 {
     Control* pDestControl = new Control(this->GetWindow());
-    pDestControl->SetAttribute(L"bkcolor", L"#FF5D6B99");
-    pDestControl->SetAttribute(L"valign", L"center");
-    pDestControl->SetAttribute(L"halign", L"center");
+    pDestControl->SetAttribute(_T("bkcolor"), _T("#FF5D6B99"));
+    pDestControl->SetAttribute(_T("valign"), _T("center"));
+    pDestControl->SetAttribute(_T("halign"), _T("center"));
 
     Layout* pLayout = nullptr;
     if (pTargetBox != nullptr) {
@@ -856,12 +856,12 @@ Control* ControlDragableT<T>::CreateDestControl(Box* pTargetBox)
     }
     if (!bInited) {        
         if (pLayout->IsVLayout()) {
-            pDestControl->SetAttribute(L"height", L"4");
-            pDestControl->SetAttribute(L"width", L"80%");
+            pDestControl->SetAttribute(_T("height"), _T("4"));
+            pDestControl->SetAttribute(_T("width"), _T("80%"));
         }
         else {
-            pDestControl->SetAttribute(L"width", L"4");
-            pDestControl->SetAttribute(L"height", L"80%");
+            pDestControl->SetAttribute(_T("width"), _T("4"));
+            pDestControl->SetAttribute(_T("height"), _T("80%"));
         }
     }
     return pDestControl;
@@ -1102,7 +1102,7 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
         ASSERT(m_pDragWindow != nullptr);
         if (m_pDragWindow != nullptr) {
             m_pDragWindow->AddRef();
-            m_pDragWindow->CreateWnd(this->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_LAYERED);
+            m_pDragWindow->CreateWnd(this->GetWindow()->GetHWND(), _T(""), WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_LAYERED);
             if (m_pDragWindow->IsWindow()) {
                 m_pDragWindow->AddRef();
             }

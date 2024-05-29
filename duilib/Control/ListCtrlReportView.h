@@ -21,7 +21,7 @@ public:
     explicit ListCtrlReportView(Window* pWindow);
     virtual ~ListCtrlReportView();
 
-    virtual std::wstring GetType() const override { return L"ListCtrlReportView"; }
+    virtual std::wstring GetType() const override { return _T("ListCtrlReportView"); }
     virtual void HandleEvent(const EventArgs& msg) override;
 
     /** 设置ListCtrl控件接口

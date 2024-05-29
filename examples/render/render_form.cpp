@@ -3,7 +3,7 @@
 #include "RenderTest2.h"
 #include "RenderTest3.h"
 
-const std::wstring RenderForm::kClassName = L"render";
+const std::wstring RenderForm::kClassName = _T("render");
 
 RenderForm::RenderForm()
 {
@@ -16,12 +16,12 @@ RenderForm::~RenderForm()
 
 std::wstring RenderForm::GetSkinFolder()
 {
-    return L"render";
+    return _T("render");
 }
 
 std::wstring RenderForm::GetSkinFile()
 {
-    return L"render.xml";
+    return _T("render.xml");
 }
 
 std::wstring RenderForm::GetWindowClassName() const
@@ -43,13 +43,13 @@ void RenderForm::OnCloseWindow()
 
 ui::Control* RenderForm::CreateControl(const std::wstring& strClass)
 {
-    if (strClass == L"RenderTest1") {
+    if (strClass == _T("RenderTest1")) {
         return new ui::RenderTest1(this);
     }
-    else if (strClass == L"RenderTest2") {
+    else if (strClass == _T("RenderTest2")) {
         return new ui::RenderTest2(this);
     }
-    if (strClass == L"RenderTest3") {
+    if (strClass == _T("RenderTest3")) {
         return new ui::RenderTest3(this);
     }
     return nullptr;
@@ -57,110 +57,110 @@ ui::Control* RenderForm::CreateControl(const std::wstring& strClass)
 
 void RenderForm::TestPropertyGrid()
 {
-    ui::PropertyGrid* pPropertyGrid = dynamic_cast<ui::PropertyGrid*>(FindControl(L"property_grid_test"));
+    ui::PropertyGrid* pPropertyGrid = dynamic_cast<ui::PropertyGrid*>(FindControl(_T("property_grid_test")));
     if (pPropertyGrid == nullptr) {
         return;
     }
-    pPropertyGrid->SetEnableHeaderCtrl(true, L"Property", L"Value");
+    pPropertyGrid->SetEnableHeaderCtrl(true, _T("Property"), _T("Value"));
     pPropertyGrid->SetEnableDescriptionArea(true);
 
     ui::PropertyGridGroup* pGroup = nullptr;
     
-    pGroup = pPropertyGrid->AddGroup(L"分组一", L"描述信息一", (size_t)this);
+    pGroup = pPropertyGrid->AddGroup(_T("分组一"), _T("描述信息一"), (size_t)this);
     ASSERT(pGroup->GetGroupData() == (size_t)this);
-    auto p = pPropertyGrid->AddTextProperty(pGroup, L"属性1", L"值1", L"属性1的描述信息", (size_t)this);
+    auto p = pPropertyGrid->AddTextProperty(pGroup, _T("属性1"), _T("值1"), _T("属性1的描述信息"), (size_t)this);
     ASSERT(p->GetPropertyData() == (size_t)this);
-    auto p00 = pPropertyGrid->AddTextProperty(pGroup, L"属性2", L"值2", L"属性2的描述信息：Disable");
+    auto p00 = pPropertyGrid->AddTextProperty(pGroup, _T("属性2"), _T("值2"), _T("属性2的描述信息：Disable"));
     p00->SetEnabled(false);
 
-    pGroup = pPropertyGrid->AddGroup(L"分组二", L"描述信息二");
-    pPropertyGrid->AddTextProperty(pGroup, L"属性2", L"值2", L"属性2的描述信息");
+    pGroup = pPropertyGrid->AddGroup(_T("分组二"), _T("描述信息二"));
+    pPropertyGrid->AddTextProperty(pGroup, _T("属性2"), _T("值2"), _T("属性2的描述信息"));
 
-    pGroup = pPropertyGrid->AddGroup(L"分组三", L"描述信息三");
-    auto p0 = pPropertyGrid->AddTextProperty(pGroup, L"属性3-0(文本)", L"文本值3-0", L"属性3的描述信息");
-    auto p1 = pPropertyGrid->AddTextProperty(pGroup, L"属性3-1(数字)", L"3", L"属性3的描述信息，带有Spin控件的数字");
+    pGroup = pPropertyGrid->AddGroup(_T("分组三"), _T("描述信息三"));
+    auto p0 = pPropertyGrid->AddTextProperty(pGroup, _T("属性3-0(文本)"), _T("文本值3-0"), _T("属性3的描述信息"));
+    auto p1 = pPropertyGrid->AddTextProperty(pGroup, _T("属性3-1(数字)"), _T("3"), _T("属性3的描述信息，带有Spin控件的数字"));
     p1->SetEnableSpin(true, -10, 10);
 
-    auto p2 = pPropertyGrid->AddTextProperty(pGroup, L"属性3-2(只读)", L"值3-2", L"属性3的描述信息");
+    auto p2 = pPropertyGrid->AddTextProperty(pGroup, _T("属性3-2(只读)"), _T("值3-2"), _T("属性3的描述信息"));
     p2->SetReadOnly(true);
 
-    auto p3 = pPropertyGrid->AddTextProperty(pGroup, L"属性3-3(密码)", L"值3-3", L"属性3的描述信息");
+    auto p3 = pPropertyGrid->AddTextProperty(pGroup, _T("属性3-3(密码)"), _T("值3-3"), _T("属性3的描述信息"));
     p3->SetPassword(true);
 
-    pGroup = pPropertyGrid->AddGroup(L"分组四", L"描述信息四");
-    auto p10 = pPropertyGrid->AddComboProperty(pGroup, L"属性4-1(下拉表)", L"文本值4", L"属性4的描述信息");
-    p10->AddOption(L"取值1");
-    p10->AddOption(L"取值2");
-    p10->AddOption(L"取值3");
+    pGroup = pPropertyGrid->AddGroup(_T("分组四"), _T("描述信息四"));
+    auto p10 = pPropertyGrid->AddComboProperty(pGroup, _T("属性4-1(下拉表)"), _T("文本值4"), _T("属性4的描述信息"));
+    p10->AddOption(_T("取值1"));
+    p10->AddOption(_T("取值2"));
+    p10->AddOption(_T("取值3"));
     p10->SetComboListMode(true);
 
-    auto p11 = pPropertyGrid->AddComboProperty(pGroup, L"属性4-1(下拉框)", L"文本值4", L"属性4的描述信息");
-    p11->AddOption(L"取值1");
-    p11->AddOption(L"取值2");
-    p11->AddOption(L"取值3");
+    auto p11 = pPropertyGrid->AddComboProperty(pGroup, _T("属性4-1(下拉框)"), _T("文本值4"), _T("属性4的描述信息"));
+    p11->AddOption(_T("取值1"));
+    p11->AddOption(_T("取值2"));
+    p11->AddOption(_T("取值3"));
     p11->SetComboListMode(false);//默认
 
-    pGroup = pPropertyGrid->AddGroup(L"分组五", L"描述信息五：字体");
-    auto p20 = pPropertyGrid->AddFontProperty(pGroup, L"字体", L"宋体", L"描述信息：设置字体名称");
-    auto p21 = pPropertyGrid->AddFontSizeProperty(pGroup, L"字号", L"五号", L"描述信息：设置字体大小");
+    pGroup = pPropertyGrid->AddGroup(_T("分组五"), _T("描述信息五：字体"));
+    auto p20 = pPropertyGrid->AddFontProperty(pGroup, _T("字体"), _T("宋体"), _T("描述信息：设置字体名称"));
+    auto p21 = pPropertyGrid->AddFontSizeProperty(pGroup, _T("字号"), _T("五号"), _T("描述信息：设置字体大小"));
 
     auto s000 = p21->GetPropertyNewValue();
     auto s001 = p21->GetFontSize();
     auto s002 = p21->GetDpiFontSize();
-    auto s003 = p21->GetFontSize(L"六号");
-    auto s004 = p21->GetDpiFontSize(L"六号");
+    auto s003 = p21->GetFontSize(_T("六号"));
+    auto s004 = p21->GetDpiFontSize(_T("六号"));
 
-    auto p22 = pPropertyGrid->AddColorProperty(pGroup, L"颜色", L"Blue", L"描述信息：设置字体颜色");
+    auto p22 = pPropertyGrid->AddColorProperty(pGroup, _T("颜色"), _T("Blue"), _T("描述信息：设置字体颜色"));
 
-    pGroup = pPropertyGrid->AddGroup(L"分组六", L"描述信息六：日期时间");
-    pPropertyGrid->AddDateTimeProperty(pGroup, L"日期", L"2023-12-07", L"描述信息：设置日期");
-    pPropertyGrid->AddDateTimeProperty(pGroup, L"日期", L"2023/12/07", L"描述信息：设置日期");
-    pPropertyGrid->AddDateTimeProperty(pGroup, L"日期", L"2023-12-07", L"描述信息：设置日期", 0,
+    pGroup = pPropertyGrid->AddGroup(_T("分组六"), _T("描述信息六：日期时间"));
+    pPropertyGrid->AddDateTimeProperty(pGroup, _T("日期"), _T("2023-12-07"), _T("描述信息：设置日期"));
+    pPropertyGrid->AddDateTimeProperty(pGroup, _T("日期"), _T("2023/12/07"), _T("描述信息：设置日期"));
+    pPropertyGrid->AddDateTimeProperty(pGroup, _T("日期"), _T("2023-12-07"), _T("描述信息：设置日期"), 0,
                                         ui::DateTime::EditFormat::kDateUpDown);
-    pPropertyGrid->AddDateTimeProperty(pGroup, L"日期时间", L"2023-12-07 17:30:02", L"描述信息：设置日期时间", 0, 
+    pPropertyGrid->AddDateTimeProperty(pGroup, _T("日期时间"), _T("2023-12-07 17:30:02"), _T("描述信息：设置日期时间"), 0, 
                                         ui::DateTime::EditFormat::kDateTimeUpDown);
-    pPropertyGrid->AddDateTimeProperty(pGroup, L"日期时间", L"2023-12-07 17:30", L"描述信息：设置日期时间", 0,
+    pPropertyGrid->AddDateTimeProperty(pGroup, _T("日期时间"), _T("2023-12-07 17:30"), _T("描述信息：设置日期时间"), 0,
                                         ui::DateTime::EditFormat::kDateMinuteUpDown);
-    pPropertyGrid->AddDateTimeProperty(pGroup, L"时间", L"17:30:02", L"描述信息：设置时间", 0,
+    pPropertyGrid->AddDateTimeProperty(pGroup, _T("时间"), _T("17:30:02"), _T("描述信息：设置时间"), 0,
                                         ui::DateTime::EditFormat::kTimeUpDown);
-    pPropertyGrid->AddDateTimeProperty(pGroup, L"时间", L"17:30", L"描述信息：设置时间", 0,
+    pPropertyGrid->AddDateTimeProperty(pGroup, _T("时间"), _T("17:30"), _T("描述信息：设置时间"), 0,
                                         ui::DateTime::EditFormat::kMinuteUpDown);
 
-    pGroup = pPropertyGrid->AddGroup(L"分组七", L"描述信息七");
-    pPropertyGrid->AddIPAddressProperty(pGroup, L"IP地址", L"192.168.0.1", L"描述信息：IP地址");
-    pPropertyGrid->AddHotKeyProperty(pGroup, L"热键1", L"Ctrl+C", L"描述信息：热键 HotKey控件1");
-    pPropertyGrid->AddHotKeyProperty(pGroup, L"热键2", L"Ctrl+Shift+C", L"描述信息：热键 HotKey控件2");
-    pPropertyGrid->AddHotKeyProperty(pGroup, L"热键3", L"Ctrl+Shift+Alt+C", L"描述信息：热键 HotKey控件3");
-    pPropertyGrid->AddHotKeyProperty(pGroup, L"热键4", L"Ctrl+Shift", L"描述信息：热键 HotKey控件4");
+    pGroup = pPropertyGrid->AddGroup(_T("分组七"), _T("描述信息七"));
+    pPropertyGrid->AddIPAddressProperty(pGroup, _T("IP地址"), _T("192.168.0.1"), _T("描述信息：IP地址"));
+    pPropertyGrid->AddHotKeyProperty(pGroup, _T("热键1"), _T("Ctrl+C"), _T("描述信息：热键 HotKey控件1"));
+    pPropertyGrid->AddHotKeyProperty(pGroup, _T("热键2"), _T("Ctrl+Shift+C"), _T("描述信息：热键 HotKey控件2"));
+    pPropertyGrid->AddHotKeyProperty(pGroup, _T("热键3"), _T("Ctrl+Shift+Alt+C"), _T("描述信息：热键 HotKey控件3"));
+    pPropertyGrid->AddHotKeyProperty(pGroup, _T("热键4"), _T("Ctrl+Shift"), _T("描述信息：热键 HotKey控件4"));
 
-    pGroup = pPropertyGrid->AddGroup(L"分组八", L"描述信息八");
-    auto p80 = pPropertyGrid->AddFileProperty(pGroup, L"文件路径", L"C:\\Test-Save.txt", L"描述信息：文件路径", 0,
+    pGroup = pPropertyGrid->AddGroup(_T("分组八"), _T("描述信息八"));
+    auto p80 = pPropertyGrid->AddFileProperty(pGroup, _T("文件路径"), _T("C:\\Test-Save.txt"), _T("描述信息：文件路径"), 0,
                                               false, 
                                               { 
-                                                  {L"Text文件", L"*.txt"},
-                                                  {L"CSV文件", L"*.csv"},
-                                                  {L"INI文件", L"*.ini"},
-                                                  {L"所有文件", L"*.*"}
+                                                  {_T("Text文件"), _T("*.txt")},
+                                                  {_T("CSV文件"), _T("*.csv")},
+                                                  {_T("INI文件"), _T("*.ini")},
+                                                  {_T("所有文件"), _T("*.*")}
                                               }, 
-                                              0, L"txt");
-    auto p81 = pPropertyGrid->AddFileProperty(pGroup, L"文件路径", L"C:\\Test-Open.txt", L"描述信息：文件路径", 0,
+                                              0, _T("txt"));
+    auto p81 = pPropertyGrid->AddFileProperty(pGroup, _T("文件路径"), _T("C:\\Test-Open.txt"), _T("描述信息：文件路径"), 0,
                                               true, 
                                               { 
-                                                  {L"Text文件", L"*.txt"},
-                                                  {L"CSV文件", L"*.csv"},
-                                                  {L"INI文件", L"*.ini"},
-                                                  {L"所有文件", L"*.*"}
+                                                  {_T("Text文件"), _T("*.txt")},
+                                                  {_T("CSV文件"), _T("*.csv")},
+                                                  {_T("INI文件"), _T("*.ini")},
+                                                  {_T("所有文件"), _T("*.*")}
                                               }, 
-                                              0, L"txt");
+                                              0, _T("txt"));
 
-    auto p82 = pPropertyGrid->AddDirectoryProperty(pGroup, L"文件夹", L"C:\\Test\\", L"描述信息：文件夹");
+    auto p82 = pPropertyGrid->AddDirectoryProperty(pGroup, _T("文件夹"), _T("C:\\Test\\"), _T("描述信息：文件夹"));
 
     return;
 }
 
 void RenderForm::CheckPropertyGridResult()
 {
-    ui::PropertyGrid* pPropertyGrid = dynamic_cast<ui::PropertyGrid*>(FindControl(L"property_grid_test"));
+    ui::PropertyGrid* pPropertyGrid = dynamic_cast<ui::PropertyGrid*>(FindControl(_T("property_grid_test")));
     if (pPropertyGrid == nullptr) {
         return;
     }

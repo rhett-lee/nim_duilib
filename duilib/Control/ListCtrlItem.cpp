@@ -18,11 +18,11 @@ ListCtrlItem::~ListCtrlItem()
 {
 }
 
-std::wstring ListCtrlItem::GetType() const { return L"ListCtrlItem"; }
+std::wstring ListCtrlItem::GetType() const { return _T("ListCtrlItem"); }
 
 void ListCtrlItem::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"icon_spacing") {
+    if (strName == _T("icon_spacing")) {
         SetIconSpacing(_wtoi(strValue.c_str()), true);
     }
     else {
@@ -242,7 +242,7 @@ void ListCtrlItem::Paint(IRender* pRender, const UiRect& rcPaint)
         rc.Validate();
         rc.right = rc.left + imageSize.cx;
         VAlignRect(rc, TEXT_VCENTER, imageSize.cy);
-        PaintImage(pRender, pItemImage.get(), L"", -1, nullptr, &rc, nullptr);
+        PaintImage(pRender, pItemImage.get(), _T(""), -1, nullptr, &rc, nullptr);
     }
 }
 

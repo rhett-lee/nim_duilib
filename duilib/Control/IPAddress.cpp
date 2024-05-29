@@ -15,7 +15,7 @@ std::wstring IPAddress::GetType() const { return DUI_CTR_IPADDRESS; }
 
 void IPAddress::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"ip") {
+    if (strName == _T("ip")) {
         SetIPAddress(strValue);
     }    
     else {
@@ -32,19 +32,19 @@ void IPAddress::OnInit()
     m_editList.clear();
     for (size_t index = 0; index < 4; ++index) {
         RichEdit* pRichEdit = new RichEdit(GetWindow());
-        pRichEdit->SetText(L"");
-        pRichEdit->SetAttribute(L"text_align", L"vcenter,hcenter");
-        pRichEdit->SetAttribute(L"limit_text", L"3");
-        pRichEdit->SetAttribute(L"want_return_msg", L"true");
-        pRichEdit->SetAttribute(L"want_tab", L"false");
-        pRichEdit->SetAttribute(L"number_only", L"true");        
+        pRichEdit->SetText(_T(""));
+        pRichEdit->SetAttribute(_T("text_align"), _T("vcenter,hcenter"));
+        pRichEdit->SetAttribute(_T("limit_text"), _T("3"));
+        pRichEdit->SetAttribute(_T("want_return_msg"), _T("true"));
+        pRichEdit->SetAttribute(_T("want_tab"), _T("false"));
+        pRichEdit->SetAttribute(_T("number_only"), _T("true"));        
         AddItem(pRichEdit);
         m_editList.push_back(pRichEdit);
         if (index != 3) {
             Label* pLabel = new Label(GetWindow());
-            pLabel->SetText(L".");
-            pLabel->SetAttribute(L"text_align", L"bottom,hcenter");
-            pLabel->SetAttribute(L"width", L"4");
+            pLabel->SetText(_T("."));
+            pLabel->SetAttribute(_T("text_align"), _T("bottom,hcenter"));
+            pLabel->SetAttribute(_T("width"), _T("4"));
             pLabel->SetTabStop(false);
             pLabel->SetNoFocus();
             pLabel->SetMouseEnabled(false);
@@ -72,11 +72,11 @@ void IPAddress::OnInit()
                 int32_t nValue = _wtoi(text.c_str());
                 if (nValue < 0) {
                     nValue = 0;
-                    pRichEdit->SetTextNoEvent(L"0");
+                    pRichEdit->SetTextNoEvent(_T("0"));
                 }
                 else if (nValue > 255) {
                     nValue = 255;
-                    pRichEdit->SetTextNoEvent(L"255");
+                    pRichEdit->SetTextNoEvent(_T("255"));
                 }
             }
             return true;
@@ -114,7 +114,7 @@ void IPAddress::SetIPAddress(const std::wstring& ipAddress)
 {
     m_ipAddress = ipAddress;
     if (!ipAddress.empty() && m_editList.size() == 4) {
-        std::list<std::wstring> ipList = StringUtil::Split(ipAddress, L".");
+        std::list<std::wstring> ipList = StringUtil::Split(ipAddress, _T("."));
         if (ipList.size() == 4) {
             auto iter = ipList.begin();
             int32_t ip1 = std::min(_wtoi((*iter++).c_str()), 255);
@@ -125,10 +125,10 @@ void IPAddress::SetIPAddress(const std::wstring& ipAddress)
             ip2 = std::max(ip2, 0);
             ip3 = std::max(ip3, 0);
             ip4 = std::max(ip4, 0);
-            m_editList[0]->SetText(StringUtil::Printf(L"%d", ip1));
-            m_editList[1]->SetText(StringUtil::Printf(L"%d", ip2));
-            m_editList[2]->SetText(StringUtil::Printf(L"%d", ip3));
-            m_editList[3]->SetText(StringUtil::Printf(L"%d", ip4));
+            m_editList[0]->SetText(StringUtil::Printf(_T("%d"), ip1));
+            m_editList[1]->SetText(StringUtil::Printf(_T("%d"), ip2));
+            m_editList[2]->SetText(StringUtil::Printf(_T("%d"), ip3));
+            m_editList[3]->SetText(StringUtil::Printf(_T("%d"), ip4));
         }
     }
 }
@@ -145,7 +145,7 @@ std::wstring IPAddress::GetIPAddress() const
         ip2 = std::max(ip2, 0);
         ip3 = std::max(ip3, 0);
         ip4 = std::max(ip4, 0);
-        ipAddress = StringUtil::Printf(L"%d.%d.%d.%d", ip1, ip2, ip3, ip4);
+        ipAddress = StringUtil::Printf(_T("%d.%d.%d.%d"), ip1, ip2, ip3, ip4);
     }
     else {
         ipAddress = m_ipAddress.c_str();

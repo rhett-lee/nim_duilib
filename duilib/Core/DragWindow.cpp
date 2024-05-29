@@ -76,20 +76,20 @@ void DragWindow::Release()
 
 std::wstring DragWindow::GetSkinFolder()
 {
-    return L"";
+    return _T("");
 }
 
 std::wstring DragWindow::GetSkinFile()
 {
-    return L"<?xml version = \"1.0\" encoding=\"utf-8\"?>"
-           L"<Window size=\"90,90\" >"
-           L"    <VBox width=\"stretch\" height=\"stretch\" visible=\"true\" bkcolor=\"white\"/>"
-           L"</Window>";
+    return _T("<?xml version = \"1.0\" encoding=\"utf-8\"?>")
+           _T("<Window size=\"90,90\" >")
+           _T("    <VBox width=\"stretch\" height=\"stretch\" visible=\"true\" bkcolor=\"white\"/>")
+           _T("</Window>");
 }
 
 std::wstring DragWindow::GetWindowClassName() const
 {
-    return L"DragWindow";
+    return _T("DragWindow");
 }
 
 void DragWindow::OnFinalMessage()
@@ -128,9 +128,9 @@ void DragWindow::SetDragImage(const std::shared_ptr<IBitmap>& pBitmap)
 
     DragWindowBitmap* pBitmapControl = new DragWindowBitmap(this);
     pBitmapControl->SetBitmap(pBitmap);
-    pBitmapControl->SetAttribute(L"width", L"100%");
-    pBitmapControl->SetAttribute(L"height", L"100%");
-    pBitmapControl->SetAttribute(L"bkcolor", L"white");
+    pBitmapControl->SetAttribute(_T("width"), _T("100%"));
+    pBitmapControl->SetAttribute(_T("height"), _T("100%"));
+    pBitmapControl->SetAttribute(_T("bkcolor"), _T("white"));
     pBox->AddItem(pBitmapControl);
 
     //根据位图的大小，调整窗口大小

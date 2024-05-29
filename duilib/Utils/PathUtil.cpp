@@ -9,19 +9,19 @@ std::wstring PathUtil::NormalizeDirPath(const std::wstring& strFilePath)
 {
     try {
         std::wstring dirPath(strFilePath);
-        StringUtil::ReplaceAll(L"/", L"\\", dirPath);
-        StringUtil::ReplaceAll(L"\\\\", L"\\", dirPath);
+        StringUtil::ReplaceAll(_T("/"), _T("\\"), dirPath);
+        StringUtil::ReplaceAll(_T("\\\\"), _T("\\"), dirPath);
         std::filesystem::path dir_path(dirPath);
         dir_path = dir_path.lexically_normal();
         dirPath = dir_path.native();
         if (!dirPath.empty()) {
             //确保路径最后字符是分割字符
             auto cEnd = dirPath.back();
-            if (cEnd != L'\\' && cEnd != L'/') {
+            if (cEnd != _T('\\') && cEnd != _T('/')) {
 #ifdef DUILIB_PLATFORM_WIN
-                dirPath += L'\\';
+                dirPath += _T('\\');
 #else
-                dirPath += L'/';
+                dirPath += _T('/');
 #endif
             }
         }
@@ -36,8 +36,8 @@ std::wstring PathUtil::NormalizeFilePath(const std::wstring& strFilePath)
 {
     try {
         std::wstring tmp(strFilePath);
-        StringUtil::ReplaceAll(L"/", L"\\", tmp);
-        StringUtil::ReplaceAll(L"\\\\", L"\\", tmp);
+        StringUtil::ReplaceAll(_T("/"), _T("\\"), tmp);
+        StringUtil::ReplaceAll(_T("\\\\"), _T("\\"), tmp);
         std::filesystem::path file_path(tmp);
         file_path = file_path.lexically_normal();
         tmp = file_path.native();
@@ -141,13 +141,13 @@ std::wstring PathUtil::GetCurrentModuleDirectory()
     std::wstring dirPath;
     dirPath.resize(1024, 0);
     dirPath.resize(::GetModuleFileNameW(nullptr, &dirPath[0], (uint32_t)dirPath.size()));
-    size_t nPos = dirPath.find_last_of(L"/\\");
+    size_t nPos = dirPath.find_last_of(_T("/\\"));
     if (nPos != std::wstring::npos) {
         dirPath = dirPath.substr(0, nPos);
 #ifdef DUILIB_PLATFORM_WIN
-        dirPath += L'\\';
+        dirPath += _T('\\');
 #else
-        dirPath += L'/';
+        dirPath += _T('/');
 #endif
     }
     else {

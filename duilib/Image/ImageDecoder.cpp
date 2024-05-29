@@ -562,30 +562,30 @@ ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const std::wstring& path)
         return imageFormat;
     }
     std::wstring fileExt;
-    size_t pos = path.rfind(L".");
+    size_t pos = path.rfind(_T("."));
     if ((pos != std::wstring::npos) && ((pos + 1) < path.size())) {
         fileExt = path.substr(pos + 1, std::wstring::npos);
         fileExt = StringUtil::MakeUpperString(fileExt);
     }
-    if (fileExt == L"PNG") {
+    if (fileExt == _T("PNG")) {
         imageFormat = ImageFormat::kPNG;
     }
-    else if (fileExt == L"SVG") {
+    else if (fileExt == _T("SVG")) {
         imageFormat = ImageFormat::kSVG;
     }
-    else if (fileExt == L"GIF") {
+    else if (fileExt == _T("GIF")) {
         imageFormat = ImageFormat::kGIF;
     }
-    else if (fileExt == L"WEBP") {
+    else if (fileExt == _T("WEBP")) {
         imageFormat = ImageFormat::kWEBP;
     }
-    else if ((fileExt == L"JPEG") || (fileExt == L"JPG")) {
+    else if ((fileExt == _T("JPEG")) || (fileExt == _T("JPG"))) {
         imageFormat = ImageFormat::kJPEG;
     }
-    else if (fileExt == L"BMP") {
+    else if (fileExt == _T("BMP")) {
         imageFormat = ImageFormat::kBMP;
     }
-    else if (fileExt == L"ICO") {
+    else if (fileExt == _T("ICO")) {
         imageFormat = ImageFormat::kICO;
     }
     return imageFormat;
@@ -612,11 +612,11 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
     bool bDpiScaled = false; //是否根据DPI做过按比例缩放操作
     int32_t playCount = -1;
 
-    PerformanceUtil::Instance().BeginStat(L"DecodeImageData");
+    PerformanceUtil::Instance().BeginStat(_T("DecodeImageData"));
     bool isLoaded = DecodeImageData(fileData, imageLoadAttribute, 
                                     bEnableDpiScale, nImageDpiScale, dpi, 
                                     imageData, playCount, bDpiScaled);
-    PerformanceUtil::Instance().EndStat(L"DecodeImageData");
+    PerformanceUtil::Instance().EndStat(_T("DecodeImageData"));
     if (!isLoaded || imageData.empty()) {
         return nullptr;
     }
@@ -635,11 +635,11 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
         if ((nImageWidth != image.m_imageWidth) ||
             (nImageHeight != image.m_imageHeight)) {
             //加载图像后，根据配置属性，进行大小调整(用算法对原图缩放，图片质量显示效果会好些)
-            PerformanceUtil::Instance().BeginStat(L"ResizeImageData");
+            PerformanceUtil::Instance().BeginStat(_T("ResizeImageData"));
             if (!ResizeImageData(imageData, nImageWidth, nImageHeight)) {
                 bDpiScaled = false;
             }
-            PerformanceUtil::Instance().EndStat(L"ResizeImageData");
+            PerformanceUtil::Instance().EndStat(_T("ResizeImageData"));
         }
     }
 

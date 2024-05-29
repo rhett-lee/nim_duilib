@@ -42,7 +42,7 @@ void ComboButtonWnd::InitComboWnd(ComboButton* pOwner, bool bActivated)
     }
     m_pOwner = pOwner;
     m_bIsClosed = false;
-    CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW);
+    CreateWnd(pOwner->GetWindow()->GetHWND(), _T(""), WS_POPUP, WS_EX_TOOLWINDOW);
     UpdateComboWnd();
     if (bActivated) {
         HWND hWndParent = GetHWND();
@@ -110,7 +110,7 @@ void ComboButtonWnd::UpdateComboWnd()
 
 std::wstring ComboButtonWnd::GetWindowClassName() const
 {
-    return L"ComboWnd";
+    return _T("ComboWnd");
 }
 
 void ComboButtonWnd::OnFinalMessage()
@@ -252,49 +252,49 @@ std::wstring ComboButton::GetType() const { return DUI_CTR_COMBO_BUTTON; }
 
 void ComboButton::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if ((strName == L"dropbox_size") || (strName == L"dropboxsize") ) {
+    if ((strName == _T("dropbox_size")) || (strName == _T("dropboxsize")) ) {
         //设置下拉列表的大小（宽度和高度）
         UiSize szDropBoxSize;
         AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
         SetDropBoxSize(szDropBoxSize, true);
     }
-    else if ((strName == L"popup_top") || (strName == L"popuptop")) {
+    else if ((strName == _T("popup_top")) || (strName == _T("popuptop"))) {
         //下拉列表是否向上弹出
-        SetPopupTop(strValue == L"true");
+        SetPopupTop(strValue == _T("true"));
     }
-    else if (strName == L"combo_box_class") {
+    else if (strName == _T("combo_box_class")) {
         SetComboBoxClass(strValue);
     }
-    else if (strName == L"left_button_class") {
+    else if (strName == _T("left_button_class")) {
         SetLeftButtonClass(strValue);
     }
-    else if (strName == L"left_button_top_label_class") {
+    else if (strName == _T("left_button_top_label_class")) {
         SetLeftButtonTopLabelClass(strValue);
     }
-    else if (strName == L"left_button_bottom_label_class") {
+    else if (strName == _T("left_button_bottom_label_class")) {
         SetLeftButtonBottomLabelClass(strValue);
     }
-    else if (strName == L"left_button_top_label_text") {
+    else if (strName == _T("left_button_top_label_text")) {
         if (m_pLabelTop != nullptr) {
             m_pLabelTop->SetText(strValue);
         }
     }
-    else if (strName == L"left_button_bottom_label_text") {
+    else if (strName == _T("left_button_bottom_label_text")) {
         if (m_pLabelBottom != nullptr) {
             m_pLabelBottom->SetText(strValue);
         }
     }
-    else if (strName == L"left_button_top_label_bkcolor") {
+    else if (strName == _T("left_button_top_label_bkcolor")) {
         if (m_pLabelTop != nullptr) {
             m_pLabelTop->SetBkColor(strValue);
         }
     }
-    else if (strName == L"left_button_bottom_label_bkcolor") {
+    else if (strName == _T("left_button_bottom_label_bkcolor")) {
         if (m_pLabelBottom != nullptr) {
             m_pLabelBottom->SetBkColor(strValue);
         }
     }
-    else if (strName == L"right_button_class") {
+    else if (strName == _T("right_button_class")) {
         SetRightButtonClass(strValue);
     }
     else {
@@ -414,13 +414,13 @@ void ComboButton::ParseAttributeList(const std::wstring& strList,
     }
     std::wstring strValue = strList;
     //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
-    StringUtil::ReplaceAll(L"{", L"\"", strValue);
-    StringUtil::ReplaceAll(L"}", L"\"", strValue);
-    if (strValue.find(L"\"") != std::wstring::npos) {
-        AttributeUtil::ParseAttributeList(strValue, L'\"', attributeList);
+    StringUtil::ReplaceAll(_T("{"), _T("\""), strValue);
+    StringUtil::ReplaceAll(_T("}"), _T("\""), strValue);
+    if (strValue.find(_T("\"")) != std::wstring::npos) {
+        AttributeUtil::ParseAttributeList(strValue, _T('\"'), attributeList);
     }
-    else if (strValue.find(L"\'") != std::wstring::npos) {
-        AttributeUtil::ParseAttributeList(strValue, L'\'', attributeList);
+    else if (strValue.find(_T("\'")) != std::wstring::npos) {
+        AttributeUtil::ParseAttributeList(strValue, _T('\''), attributeList);
     }
 }
 

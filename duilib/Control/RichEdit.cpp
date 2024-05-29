@@ -207,9 +207,9 @@ RichEdit::~RichEdit()
 
 void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"vscrollbar") {
+    if (strName == _T("vscrollbar")) {
         //纵向滚动条
-        if (strValue == L"true") {
+        if (strValue == _T("true")) {
             EnableScrollBar(true, GetHScrollBar() != NULL);
             if (m_pRichHost != nullptr) {
                 m_pRichHost->SetVScrollBar(true);
@@ -222,9 +222,9 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
             }
         }
     }
-    else if (strName == L"hscrollbar") {
+    else if (strName == _T("hscrollbar")) {
         //横向滚动条
-        if (strValue == L"true") {
+        if (strValue == _T("true")) {
             EnableScrollBar(GetVScrollBar() != NULL, true);
             if (m_pRichHost != nullptr) {
                 m_pRichHost->SetHScrollBar(true);
@@ -237,174 +237,174 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
             }
         }
     }
-    else if ((strName == L"auto_vscroll") || (strName == L"autovscroll")) {
+    else if ((strName == _T("auto_vscroll")) || (strName == _T("autovscroll"))) {
         //当用户在最后一行按 ENTER 时，自动将文本向上滚动一页。
         if (m_pRichHost != nullptr) {
-            m_pRichHost->SetAutoVScroll(strValue == L"true");
+            m_pRichHost->SetAutoVScroll(strValue == _T("true"));
         }
     }
-    else if ((strName == L"auto_hscroll") || (strName == L"autohscroll")) {
+    else if ((strName == _T("auto_hscroll")) || (strName == _T("autohscroll"))) {
         //当用户在行尾键入一个字符时，自动将文本向右滚动 10 个字符。
         //当用户按 Enter 时，控件会将所有文本滚动回零位置。
         if (m_pRichHost != nullptr) {
-            m_pRichHost->SetAutoHScroll(strValue == L"true");
+            m_pRichHost->SetAutoHScroll(strValue == _T("true"));
         }
     }
-    else if ((strName == L"single_line") || (strName == L"singleline")) {
-        SetMultiLine(strValue != L"true");
+    else if ((strName == _T("single_line")) || (strName == _T("singleline"))) {
+        SetMultiLine(strValue != _T("true"));
     }
-    else if ((strName == L"multi_line") || (strName == L"multiline")) {
-        SetMultiLine(strValue == L"true");
+    else if ((strName == _T("multi_line")) || (strName == _T("multiline"))) {
+        SetMultiLine(strValue == _T("true"));
     }
-    else if (strName == L"readonly") {
-        SetReadOnly(strValue == L"true");
+    else if (strName == _T("readonly")) {
+        SetReadOnly(strValue == _T("true"));
     }
-    else if (strName == L"password") {
-        SetPassword(strValue == L"true");
+    else if (strName == _T("password")) {
+        SetPassword(strValue == _T("true"));
     }
-    else if (strName == L"show_password") {
-        SetShowPassword(strValue == L"true");
+    else if (strName == _T("show_password")) {
+        SetShowPassword(strValue == _T("true"));
     }
-    else if (strName == L"password_char") {
+    else if (strName == _T("password_char")) {
         if (!strValue.empty()) {
             SetPasswordChar(strValue.front());
         }
     }
-    else if (strName == L"flash_password_char") {
-        SetFlashPasswordChar(strValue == L"true");
+    else if (strName == _T("flash_password_char")) {
+        SetFlashPasswordChar(strValue == _T("true"));
     }
-    else if ((strName == L"number_only") || (strName == L"number")) {
-        SetNumberOnly(strValue == L"true");
+    else if ((strName == _T("number_only")) || (strName == _T("number"))) {
+        SetNumberOnly(strValue == _T("true"));
     }
-    else if (strName == L"max_number") {
+    else if (strName == _T("max_number")) {
         SetMaxNumber(_wtoi(strValue.c_str()));
     }
-    else if (strName == L"min_number") {
+    else if (strName == _T("min_number")) {
         SetMinNumber(_wtoi(strValue.c_str()));
     }
-    else if (strName == L"text_align") {
-        if (strValue.find(L"left") != std::wstring::npos) {
+    else if (strName == _T("text_align")) {
+        if (strValue.find(_T("left")) != std::wstring::npos) {
             if (m_pRichHost != nullptr) {
                 m_pRichHost->SetHAlignType(kHorAlignLeft);
             }
         }
-        if (strValue.find(L"right") != std::wstring::npos) {
+        if (strValue.find(_T("right")) != std::wstring::npos) {
             if (m_pRichHost != nullptr) {
                 m_pRichHost->SetHAlignType(kHorAlignRight);
             }
         }
-        if (strValue.find(L"hcenter") != std::wstring::npos) {
+        if (strValue.find(_T("hcenter")) != std::wstring::npos) {
             if (m_pRichHost != nullptr) {
                 m_pRichHost->SetHAlignType(kHorAlignCenter);
             }
         }
 
-        if (strValue.find(L"top") != std::wstring::npos) {
+        if (strValue.find(_T("top")) != std::wstring::npos) {
             if (m_pRichHost != nullptr) {
                 m_pRichHost->SetVAlignType(kVerAlignTop);
             }
         }
-        if (strValue.find(L"bottom") != std::wstring::npos) {
+        if (strValue.find(_T("bottom")) != std::wstring::npos) {
             if (m_pRichHost != nullptr) {
                 m_pRichHost->SetVAlignType(kVerAlignBottom);
             }
         }
-        if (strValue.find(L"vcenter") != std::wstring::npos) {
+        if (strValue.find(_T("vcenter")) != std::wstring::npos) {
             if (m_pRichHost != nullptr) {
                 m_pRichHost->SetVAlignType(kVerAlignCenter);
             }
         }
     }
-    else if ((strName == L"text_padding") || (strName == L"textpadding")) {
+    else if ((strName == _T("text_padding")) || (strName == _T("textpadding"))) {
         UiPadding rcTextPadding;
         AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
         SetTextPadding(rcTextPadding, true);
     }
-    else if ((strName == L"normal_text_color") || (strName == L"normaltextcolor")) {
+    else if ((strName == _T("normal_text_color")) || (strName == _T("normaltextcolor"))) {
         SetTextColor(strValue);
     }
-    else if ((strName == L"disabled_text_color") || (strName == L"disabledtextcolor")) {
+    else if ((strName == _T("disabled_text_color")) || (strName == _T("disabledtextcolor"))) {
         SetDisabledTextColor(strValue);
     }
-    else if ((strName == L"caret_color") || (strName == L"caretcolor")) {
+    else if ((strName == _T("caret_color")) || (strName == _T("caretcolor"))) {
         //设置光标的颜色
         SetCaretColor(strValue);
     }
-    else if ((strName == L"prompt_mode") || (strName == L"promptmode")) {
+    else if ((strName == _T("prompt_mode")) || (strName == _T("promptmode"))) {
         //提示模式
-        m_bAllowPrompt = (strValue == L"true") ? true : false;
+        m_bAllowPrompt = (strValue == _T("true")) ? true : false;
     }
-    else if ((strName == L"prompt_color") || (strName == L"promptcolor")) {
+    else if ((strName == _T("prompt_color")) || (strName == _T("promptcolor"))) {
         //提示文字的颜色
         m_sPromptColor = strValue;
     }
-    else if ((strName == L"prompt_text") || (strName == L"prompttext")) {
+    else if ((strName == _T("prompt_text")) || (strName == _T("prompttext"))) {
         //提示文字
         SetPromptText(strValue);
     }
-    else if ((strName == L"prompt_text_id") || (strName == L"prompt_textid") || (strName == L"prompttextid")) {
+    else if ((strName == _T("prompt_text_id")) || (strName == _T("prompt_textid")) || (strName == _T("prompttextid"))) {
         //提示文字ID
         SetPromptTextId(strValue);
     }
-    else if ((strName == L"focused_image") || (strName == L"focusedimage")) {
+    else if ((strName == _T("focused_image")) || (strName == _T("focusedimage"))) {
         SetFocusedImage(strValue);
     }
-    else if (strName == L"font") {
+    else if (strName == _T("font")) {
         SetFontId(strValue);
     }
-    else if (strName == L"text") {
+    else if (strName == _T("text")) {
         SetText(strValue);
     }
-    else if ((strName == L"text_id") || (strName == L"textid")) {
+    else if ((strName == _T("text_id")) || (strName == _T("textid"))) {
         SetTextId(strValue);
     }
-    else if ((strName == L"want_tab") || (strName == L"wanttab")) {
-        SetWantTab(strValue == L"true");
+    else if ((strName == _T("want_tab")) || (strName == _T("wanttab"))) {
+        SetWantTab(strValue == _T("true"));
     }
-    else if ((strName == L"want_return_msg") || (strName == L"wantreturnmsg")) {
-        SetNeedReturnMsg(strValue == L"true");
+    else if ((strName == _T("want_return_msg")) || (strName == _T("wantreturnmsg"))) {
+        SetNeedReturnMsg(strValue == _T("true"));
     }
-    else if ((strName == L"return_msg_want_ctrl") || (strName == L"returnmsgwantctrl")) {
-        SetReturnMsgWantCtrl(strValue == L"true");
+    else if ((strName == _T("return_msg_want_ctrl")) || (strName == _T("returnmsgwantctrl"))) {
+        SetReturnMsgWantCtrl(strValue == _T("true"));
     }
-    else if ((strName == L"rich_text") || (strName == L"rich")) {
+    else if ((strName == _T("rich_text")) || (strName == _T("rich"))) {
         //是否为富文本属性
-        SetRichText(strValue == L"true");
+        SetRichText(strValue == _T("true"));
     }
-    else if (strName == L"auto_detect_url") {
+    else if (strName == _T("auto_detect_url")) {
         //是否自动检测URL，如果是URL则显示为超链接
-        SetAutoURLDetect(strValue == L"true");
+        SetAutoURLDetect(strValue == _T("true"));
     }
-    else if ((strName == L"limit_text") || (strName == L"max_char") || (strName == L"maxchar")) {
+    else if ((strName == _T("limit_text")) || (strName == _T("max_char")) || (strName == _T("maxchar"))) {
         //限制最多字符数
         SetLimitText(_wtoi(strValue.c_str()));
     }
-    else if (strName == L"limit_chars") {
+    else if (strName == _T("limit_chars")) {
         //限制允许输入哪些字符
         SetLimitChars(strValue);
     }
-    else if (strName == L"allow_beep") {
+    else if (strName == _T("allow_beep")) {
         //是否允许发出Beep声音
-        SetAllowBeep(strValue == L"true");
+        SetAllowBeep(strValue == _T("true"));
     }
-    else if (strName == L"word_wrap") {
+    else if (strName == _T("word_wrap")) {
         //是否自动换行
-        SetWordWrap(strValue == L"true");
+        SetWordWrap(strValue == _T("true"));
     }
-    else if (strName == L"no_caret_readonly") {
+    else if (strName == _T("no_caret_readonly")) {
         //只读模式，不显示光标
         SetNoCaretReadonly();
     }
-    else if (strName == L"save_selection") {
+    else if (strName == _T("save_selection")) {
         //如果 为 TRUE，则当控件处于非活动状态时，应保存所选内容的边界。
         //如果 为 FALSE，则当控件再次处于活动状态时，可以选择边界重置为 start = 0，length = 0。
-        SetSaveSelection(strValue == L"true");
+        SetSaveSelection(strValue == _T("true"));
     }
-    else if (strName == L"hide_selection") {
+    else if (strName == _T("hide_selection")) {
         //是否隐藏选择内容
-        SetHideSelection(strValue == L"true");
+        SetHideSelection(strValue == _T("true"));
     }
-    else if (strName == L"zoom") {
+    else if (strName == _T("zoom")) {
         //缩放比例：
         //设置缩放比例：设 wParam：缩放比例的分子，lParam：缩放比例的分母，
         // "wParam,lParam" 表示按缩放比例分子/分母显示的缩放，取值范围：1/64 < (wParam / lParam) < 64。
@@ -416,25 +416,25 @@ void RichEdit::SetAttribute(const std::wstring& strName, const std::wstring& str
             m_richCtrl.SetZoom(zoomValue.cx, zoomValue.cy);
         }
     }
-    else if (strName == L"wheel_zoom") {
+    else if (strName == _T("wheel_zoom")) {
         //设置是否允许Ctrl + 滚轮来调整缩放比例
-        SetEnableWheelZoom(strValue == L"true");
+        SetEnableWheelZoom(strValue == _T("true"));
     }
-    else if (strName == L"default_context_menu") {
+    else if (strName == _T("default_context_menu")) {
         //是否使用默认的右键菜单
-        SetEnableDefaultContextMenu(strValue == L"true");
+        SetEnableDefaultContextMenu(strValue == _T("true"));
     }
-    else if (strName == L"enable_drag_drop") {
+    else if (strName == _T("enable_drag_drop")) {
         //是否允许拖放操作
-        SetEnableDragDrop(strValue == L"true");
+        SetEnableDragDrop(strValue == _T("true"));
     }
-    else if (strName == L"spin_class") {
+    else if (strName == _T("spin_class")) {
         SetSpinClass(strValue);
     }
-    else if (strName == L"clear_btn_class") {
+    else if (strName == _T("clear_btn_class")) {
         SetClearBtnClass(strValue);
     }
-    else if (strName == L"show_passowrd_btn_class") {
+    else if (strName == _T("show_passowrd_btn_class")) {
         SetShowPasswordBtnClass(strValue);
     }
     else {
@@ -525,7 +525,7 @@ void RichEdit::SetRichText(bool bRichText)
     //切换文本模式的时候，RichEdit的文本内容必须为空
     std::wstring text = GetText();
     if (!text.empty()) {        
-        SetText(L"");
+        SetText(_T(""));
         m_richCtrl.EmptyUndoBuffer();
     }
     m_pRichHost->SetRichText(bRichText);
@@ -996,7 +996,7 @@ bool RichEdit::SetDefaultCharFormat(CHARFORMAT2& cf)
             //同步文本颜色
             UiColor textColor;
             textColor.SetFromCOLORREF(cf.crTextColor);
-            m_sTextColor = ui::StringUtil::Printf(L"#%02X%02X%02X%02X", textColor.GetA(), textColor.GetR(), textColor.GetG(), textColor.GetB());
+            m_sTextColor = ui::StringUtil::Printf(_T("#%02X%02X%02X%02X"), textColor.GetA(), textColor.GetR(), textColor.GetG(), textColor.GetB());
         }
         if (m_pRichHost != nullptr) {
             CHARFORMAT2 newCf;
@@ -1191,13 +1191,13 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
                 GetSel(oldSel);
                 SetSel(link->chrg);
                 std::wstring url = GetSelText();
-                const std::wstring prefix = L"HYPERLINK ";
+                const std::wstring prefix = _T("HYPERLINK ");
                 size_t pos = url.find(prefix);
                 if (pos == 0) {
                     url = url.substr(prefix.size());
-                    if (!url.empty() && url.front() == L'\"') {
+                    if (!url.empty() && url.front() == _T('\"')) {
                         url.erase(url.begin());
-                        pos = url.find(L'\"');
+                        pos = url.find(_T('\"'));
                         if (pos != std::wstring::npos) {
                             url = url.substr(0, pos);
                         }
@@ -1855,7 +1855,7 @@ bool RichEdit::OnChar(const EventArgs& msg)
     //Number
     if (IsNumberOnly()) {
         if (msg.wParam < '0' || msg.wParam > '9') {
-            if (msg.wParam == L'-') {
+            if (msg.wParam == _T('-')) {
                 if (GetTextLength() > 0) {
                     //不是第一个字符，禁止输入负号
                     return true;
@@ -1886,11 +1886,11 @@ bool RichEdit::OnChar(const EventArgs& msg)
 bool RichEdit::IsInLimitChars(wchar_t charValue) const
 {
     const wchar_t* ch = m_limitChars.c_str();
-    if ((ch == nullptr) || (*ch == L'\0')) {
+    if ((ch == nullptr) || (*ch == _T('\0'))) {
         return true;
     }
     bool bInLimitChars = false;
-    while (*ch != L'\0') {
+    while (*ch != _T('\0')) {
         if (*ch == charValue) {
             bInLimitChars = true;
             break;
@@ -1909,7 +1909,7 @@ bool RichEdit::IsPasteLimited() const
         if (!strClipText.empty()) {
             size_t count = strClipText.size();
             for (size_t index = 0; index < count; ++index) {
-                if (strClipText[index] == L'\0') {
+                if (strClipText[index] == _T('\0')) {
                     break;
                 }
                 if (!IsInLimitChars(strClipText[index])) {
@@ -1926,16 +1926,16 @@ bool RichEdit::IsPasteLimited() const
         if (!strClipText.empty()) {
             size_t count = strClipText.size();
             for (size_t index = 0; index < count; ++index) {
-                if (strClipText[index] == L'\0') {
+                if (strClipText[index] == _T('\0')) {
                     break;
                 }
-                if (strClipText[index] == L'-') {
+                if (strClipText[index] == _T('-')) {
                     if ((index == 0) && (strClipText.size() > 1)) {
                         //允许第一个字符是负号
                         continue;
                     }
                 }
-                if ((strClipText[index] > L'9') || (strClipText[index] < L'0')) {
+                if ((strClipText[index] > _T('9')) || (strClipText[index] < _T('0'))) {
                     //有不是数字的字符，禁止粘贴
                     return true;
                 }
@@ -2711,7 +2711,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
         }
     }
     
-    std::wstring skinFolder = L"public/menu/";
+    std::wstring skinFolder = _T("public/menu/");
     HWND hParent = nullptr;
     Window* pWindow = GetWindow();
     if (pWindow != nullptr) {
@@ -2719,7 +2719,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
     }    
     Menu* menu = new Menu(hParent);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
     menu->SetSkinFolder(skinFolder);
-    std::wstring xml(L"rich_edit_menu.xml");
+    std::wstring xml(_T("rich_edit_menu.xml"));
 
     //菜单弹出位置的坐标应为屏幕坐标
     UiPoint pt = point;
@@ -2729,7 +2729,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
     ui::MenuItem* menu_item = nullptr;
     //更新命令状态，并添加菜单命令响应
     bool hasSelText = nEndChar > nStartChar ? true : false;
-    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_copy"));
+    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("edit_menu_copy")));
     if (menu_item != nullptr) {
         if (!hasSelText) {
             menu_item->SetEnabled(false);
@@ -2739,7 +2739,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
             return true;
             });
     }
-    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_cut"));
+    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("edit_menu_cut")));
     if (menu_item != nullptr) {
         if (!hasSelText) {
             menu_item->SetEnabled(false);
@@ -2752,7 +2752,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
             return true;
             });
     }
-    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_paste"));
+    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("edit_menu_paste")));
     if (menu_item != nullptr) {
         if (!pRichEdit->CanPaste()) {
             menu_item->SetEnabled(false);
@@ -2765,7 +2765,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
             return true;
             });
     }
-    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_del"));
+    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("edit_menu_del")));
     if (menu_item != nullptr) {
         if (!hasSelText) {
             menu_item->SetEnabled(false);
@@ -2778,7 +2778,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
             return true;
             });
     }
-    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_sel_all"));
+    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("edit_menu_sel_all")));
     if (menu_item != nullptr) {
         if ((nStartChar == 0) && (nEndChar == pRichEdit->GetTextLength())) {
             menu_item->SetEnabled(false);
@@ -2788,7 +2788,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
             return true;
             });
     }
-    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_undo"));
+    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("edit_menu_undo")));
     if (menu_item != nullptr) {
         if (!pRichEdit->CanUndo()) {
             menu_item->SetEnabled(false);
@@ -2801,7 +2801,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
             return true;
             });
     }
-    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(L"edit_menu_redo"));
+    menu_item = dynamic_cast<ui::MenuItem*>(menu->FindControl(_T("edit_menu_redo")));
     if (menu_item != nullptr) {
         if (!pRichEdit->CanRedo()) {
             menu_item->SetEnabled(false);
@@ -2877,7 +2877,7 @@ void RichEdit::OnTextChanged()
             if (n < GetMinNumber()) {
                 //超过最小数字，进行修正
                 int32_t newValue = GetMinNumber();
-                SetTextNoEvent(StringUtil::Printf(L"%d", newValue));
+                SetTextNoEvent(StringUtil::Printf(_T("%d"), newValue));
                 if (!m_bDisableTextChangeEvent) {
                     SendEvent(kEventTextChange);
                 }
@@ -2886,7 +2886,7 @@ void RichEdit::OnTextChanged()
             else if (n > GetMaxNumber()) {
                 //超过最大数字，进行修正
                 int32_t newValue = GetMaxNumber();
-                SetTextNoEvent(StringUtil::Printf(L"%d", newValue));
+                SetTextNoEvent(StringUtil::Printf(_T("%d"), newValue));
                 if (!m_bDisableTextChangeEvent) {
                     SendEvent(kEventTextChange);
                 }
@@ -2904,7 +2904,7 @@ bool RichEdit::SetSpinClass(const std::wstring& spinClass)
     std::wstring spinBoxClass;
     std::wstring spinBtnUpClass;
     std::wstring spinBtnDownClass;
-    std::list<std::wstring> classNames = StringUtil::Split(spinClass, L",");
+    std::list<std::wstring> classNames = StringUtil::Split(spinClass, _T(","));
     if (classNames.size() == 3) {
         auto iter = classNames.begin();
         spinBoxClass = *iter++;
@@ -3020,7 +3020,7 @@ bool RichEdit::SetEnableSpin(bool bEnable, const std::wstring& spinClass, int32_
     }
     else {
         bool hasSpin = m_pSpinBox != nullptr;
-        SetSpinClass(L"");
+        SetSpinClass(_T(""));
         bRet = true;
         if (hasSpin) {
             SetNumberOnly(false);
@@ -3043,7 +3043,7 @@ int64_t RichEdit::GetTextNumber() const
 
 void RichEdit::SetTextNumber(int64_t nValue)
 {
-    SetText(StringUtil::Printf(L"%I64d", nValue));
+    SetText(StringUtil::Printf(_T("%I64d"), nValue));
 }
 
 void RichEdit::AdjustTextNumber(int32_t nDelta)
@@ -3109,7 +3109,7 @@ void RichEdit::SetClearBtnClass(const std::wstring& btnClass)
 
         //响应按钮点击事件
         pClearButton->AttachClick([this](const EventArgs& /*args*/) {
-            SetText(L"");
+            SetText(_T(""));
             return true;
             });
     }

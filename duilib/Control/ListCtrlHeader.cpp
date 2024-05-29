@@ -18,11 +18,11 @@ ListCtrlHeader::~ListCtrlHeader()
 {
 }
 
-std::wstring ListCtrlHeader::GetType() const { return L"ListCtrlHeader"; }
+std::wstring ListCtrlHeader::GetType() const { return _T("ListCtrlHeader"); }
 
 void ListCtrlHeader::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"icon_spacing") {
+    if (strName == _T("icon_spacing")) {
         SetIconSpacing(_wtoi(strValue.c_str()), true);
     }
     else {

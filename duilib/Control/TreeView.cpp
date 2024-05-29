@@ -43,39 +43,39 @@ std::wstring TreeNode::GetType() const { return DUI_CTR_TREENODE; }
 
 void TreeNode::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"expand_normal_image") {
+    if (strName == _T("expand_normal_image")) {
         SetExpandStateImage(kControlStateNormal, strValue);
     }
-    else if (strName == L"expand_hot_image") {
+    else if (strName == _T("expand_hot_image")) {
         SetExpandStateImage(kControlStateHot, strValue);
     }
-    else if (strName == L"expand_pushed_image") {
+    else if (strName == _T("expand_pushed_image")) {
         SetExpandStateImage(kControlStatePushed, strValue);
     }
-    else if (strName == L"expand_disabled_image") {
+    else if (strName == _T("expand_disabled_image")) {
         SetExpandStateImage(kControlStateDisabled, strValue);
     }
-    else if (strName == L"collapse_normal_image") {
+    else if (strName == _T("collapse_normal_image")) {
         SetCollapseStateImage(kControlStateNormal, strValue);
     }
-    else if (strName == L"collapse_hot_image") {
+    else if (strName == _T("collapse_hot_image")) {
         SetCollapseStateImage(kControlStateHot, strValue);
     }
-    else if (strName == L"collapse_pushed_image") {
+    else if (strName == _T("collapse_pushed_image")) {
         SetCollapseStateImage(kControlStatePushed, strValue);
     }
-    else if (strName == L"collapse_disabled_image") {
+    else if (strName == _T("collapse_disabled_image")) {
         SetCollapseStateImage(kControlStateDisabled, strValue);
     }
-    else if (strName == L"expand_image_right_space") {
+    else if (strName == _T("expand_image_right_space")) {
         int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
         SetExpandIndent(iValue, true);
     }
-    else if (strName == L"check_box_image_right_space") {
+    else if (strName == _T("check_box_image_right_space")) {
         int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
         SetCheckBoxIndent(iValue, true);
     }
-    else if (strName == L"icon_image_right_space") {
+    else if (strName == _T("icon_image_right_space")) {
         int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
         SetIconIndent(iValue, true);
     }
@@ -223,7 +223,7 @@ void TreeNode::PaintStateImages(IRender* pRender)
             if (m_pExpandImageRect == nullptr) {
                 m_pExpandImageRect = new UiRect;
             }
-            m_expandImage->PaintStateImage(pRender, GetState(), L"", m_pExpandImageRect);
+            m_expandImage->PaintStateImage(pRender, GetState(), _T(""), m_pExpandImageRect);
         }
     }
     else {
@@ -232,7 +232,7 @@ void TreeNode::PaintStateImages(IRender* pRender)
             if (m_pCollapseImageRect == nullptr) {
                 m_pCollapseImageRect = new UiRect;
             }
-            m_collapseImage->PaintStateImage(pRender, GetState(), L"", m_pCollapseImageRect);
+            m_collapseImage->PaintStateImage(pRender, GetState(), _T(""), m_pCollapseImageRect);
         }
     }
 }
@@ -458,30 +458,30 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
 void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
 {
     if (hIcon == nullptr) {
-        SetBkImage(L"");
+        SetBkImage(_T(""));
         AdjustIconPadding();
         return;
     }
     GlobalManager::Instance().Icon().AddIcon(hIcon);
     std::wstring iconString = GlobalManager::Instance().Icon().GetIconString(hIcon);
     if (iconString.empty()) {
-        SetBkImage(L"");
+        SetBkImage(_T(""));
         AdjustIconPadding();
         return;
     }
 
     if (nIconSize > 0) {
         if (bNeedDpiScale) {
-            iconString = StringUtil::Printf(L"file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='true'",
+            iconString = StringUtil::Printf(_T("file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='true'"),
                                               iconString.c_str(), nIconSize, nIconSize);
         }
         else {
-            iconString = StringUtil::Printf(L"file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='false'",
+            iconString = StringUtil::Printf(_T("file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='false'"),
                                               iconString.c_str(), nIconSize, nIconSize);
         }
     }
     else {
-        iconString = StringUtil::Printf(L"file='%s' halign='left' valign='center'",
+        iconString = StringUtil::Printf(_T("file='%s' halign='left' valign='center'"),
                                            iconString.c_str());
     }
     std::wstring oldIconString = GetBkImage();
@@ -491,7 +491,7 @@ void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
     }
     if (!oldIconString.empty()) {
         //旧图标存在，并且图标大小不同，首先清除原来的图标
-        SetBkImage(L"");
+        SetBkImage(_T(""));
         AdjustIconPadding();
     }
 
@@ -1040,25 +1040,25 @@ std::wstring TreeView::GetType() const { return DUI_CTR_TREEVIEW; }
 void TreeView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
     //支持的属性列表: 基类实现的直接转发
-    if (strName == L"indent") {
+    if (strName == _T("indent")) {
         //树节点的缩进（每层节点缩进一个indent单位）
         SetIndent(_wtoi(strValue.c_str()), true);
     }
-    else if (strName == L"multi_select") {
+    else if (strName == _T("multi_select")) {
         //多选，默认是单选，在基类实现
-        SetMultiSelect(strValue == L"true");
+        SetMultiSelect(strValue == _T("true"));
     }
-    else if (strName == L"check_box_class") {
+    else if (strName == _T("check_box_class")) {
         //是否显示CheckBox
         SetCheckBoxClass(strValue);
     }
-    else if (strName == L"expand_image_class") {
+    else if (strName == _T("expand_image_class")) {
         //是否显示[展开/收起]图标
         SetExpandImageClass(strValue);
     }
-    else if (strName == L"show_icon") {
+    else if (strName == _T("show_icon")) {
         //是否显示图标
-        SetEnableIcon(strValue == L"true");
+        SetEnableIcon(strValue == _T("true"));
     }
     else {
         ListBox::SetAttribute(strName, strValue);

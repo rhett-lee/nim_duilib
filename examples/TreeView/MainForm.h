@@ -112,7 +112,7 @@ private:
     //文件列表的接口
     ui::VirtualListBox* m_pListBox;
 
-    /** L"Shell32.dll" 句柄
+    /** _T("Shell32.dll") 句柄
     */
     HMODULE m_hShell32Dll;
 };

@@ -50,7 +50,7 @@ std::wstring FontManager::GetDpiFontId(const std::wstring& fontId, const DpiMana
 {
     std::wstring dpiFontId;
     if (!fontId.empty()) {
-        dpiFontId = fontId + L"@" + StringUtil::UInt32ToString(dpi.GetScale());
+        dpiFontId = fontId + _T("@") + StringUtil::UInt32ToString(dpi.GetScale());
     }
     return dpiFontId;
 }
@@ -106,10 +106,10 @@ IFont* FontManager::GetIFont(const std::wstring& fontId, const DpiManager& dpi)
     }
     std::wstring dpiFontId = GetDpiFontId(realFontId, dpi);    
     if (fontInfo.m_fontName.empty() || 
-        StringUtil::IsEqualNoCase(fontInfo.m_fontName, L"system")) {
+        StringUtil::IsEqualNoCase(fontInfo.m_fontName, _T("system"))) {
         //字体使用英文名称，保持兼容性
         static bool bOsOverXp = IsWindowsVistaOrGreater();
-        fontInfo.m_fontName = bOsOverXp ? L"Microsoft YaHei" : L"SimSun";
+        fontInfo.m_fontName = bOsOverXp ? _T("Microsoft YaHei") : _T("SimSun");
     }
 
     //对字体大小进行DPI缩放
@@ -152,7 +152,7 @@ void FontManager::RemoveAllFonts()
 void FontManager::AddFontFile(const std::wstring& strFontFile, const std::wstring& strFontName)
 {
     FontFileInfo fontFileInfo;
-    std::wstring path = GlobalManager::Instance().GetResFullPath(L"", L"font\\" + strFontFile);
+    std::wstring path = GlobalManager::Instance().GetResFullPath(_T(""), _T("font\\") + strFontFile);
     bool res = false;
     if (GlobalManager::Instance().Zip().IsUseZip()) {
         std::vector<unsigned char> file_data;
@@ -190,29 +190,29 @@ void FontManager::RemoveAllFontFiles()
 static void GetFontNameList(std::vector<std::pair<std::wstring, std::wstring>>& fontNameList)
 {
     //系统字体
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"宋体", L"SimSun"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"黑体", L"SimHei"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"微软雅黑", L"Microsoft YaHei"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"微软正黑体", L"Microsoft JhengHei"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"楷体", L"KaiTi"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"新宋体", L"NSimSun"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"仿宋", L"FangSong"));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("宋体"), _T("SimSun")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("黑体"), _T("SimHei")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("微软雅黑"), _T("Microsoft YaHei")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("微软正黑体"), _T("Microsoft JhengHei")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("楷体"), _T("KaiTi")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("新宋体"), _T("NSimSun")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("仿宋"), _T("FangSong")));
     
     //Office字体
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"幼圆", L"YouYuan"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"隶书", L"LiSu"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"华文细黑", L"STXiHei"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"华文楷体", L"STKaiTi"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"华文宋体", L"STSong"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"华文仿宋", L"STFangSong"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"华文中宋", L"STZhongSong"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"华文彩云", L"STCaiYun"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"华文琥珀", L"STHuPo"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"华文新魏", L"STXinWei"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"华文隶书", L"STLiTi"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"华文行楷", L"STXingKai"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"方正舒体", L"FZShuTi"));
-    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(L"方正姚体", L"FZYaoTi"));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("幼圆"), _T("YouYuan")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("隶书"), _T("LiSu")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文细黑"), _T("STXiHei")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文楷体"), _T("STKaiTi")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文宋体"), _T("STSong")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文仿宋"), _T("STFangSong")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文中宋"), _T("STZhongSong")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文彩云"), _T("STCaiYun")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文琥珀"), _T("STHuPo")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文新魏"), _T("STXinWei")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文隶书"), _T("STLiTi")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("华文行楷"), _T("STXingKai")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("方正舒体"), _T("FZShuTi")));
+    fontNameList.push_back(std::make_pair<std::wstring, std::wstring>(_T("方正姚体"), _T("FZYaoTi")));
 }
 
 std::wstring FontManager::GetFontEnglishName(const std::wstring& fontName)

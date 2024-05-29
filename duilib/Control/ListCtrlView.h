@@ -16,7 +16,7 @@ public:
     ListCtrlView(Window* pWindow, Layout* pLayout);
     virtual ~ListCtrlView();
 
-    virtual std::wstring GetType() const override { return L"ListCtrlView"; }
+    virtual std::wstring GetType() const override { return _T("ListCtrlView"); }
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue);
     virtual void HandleEvent(const EventArgs& msg) override;
 

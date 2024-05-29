@@ -183,12 +183,12 @@ void ImageAttribute::InitByImageString(const std::wstring& strImageString, const
 
 void ImageAttribute::ModifyAttribute(const std::wstring& strImageString, const DpiManager& dpi)
 {
-    if (strImageString.find(L'=') == std::wstring::npos) {
+    if (strImageString.find(_T('=')) == std::wstring::npos) {
         //不含有等号，说明没有属性，直接返回
         return;
     }
     std::vector<std::pair<std::wstring, std::wstring>> attributeList;
-    AttributeUtil::ParseAttributeList(strImageString, L'\'', attributeList);
+    AttributeUtil::ParseAttributeList(strImageString, _T('\''), attributeList);
 
     ImageAttribute& imageAttribute = *this;
     imageAttribute.bHasSrcDpiScale = false;
@@ -199,26 +199,26 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString, const D
         if (name.empty() || value.empty()) {
             continue;
         }
-        if (name == L"file" || name == L"res") {
+        if (name == _T("file") || name == _T("res")) {
             //图片资源文件名，根据此设置去加载图片资源
             imageAttribute.sImagePath = value;
         }
-        else if (name == L"width") {
+        else if (name == _T("width")) {
             //设置图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
             imageAttribute.srcWidth = value;
         }
-        else if (name == L"height") {
+        else if (name == _T("height")) {
             //设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
             imageAttribute.srcHeight = value;
         }
-        else if (name == L"source") {
+        else if (name == _T("source")) {
             //图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源）
             if (imageAttribute.rcSource == nullptr) {
                 imageAttribute.rcSource = new UiRect;
             }
             AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcSource);
         }
-        else if (name == L"corner") {
+        else if (name == _T("corner")) {
             //图片的圆角属性，如果设置此属性，绘制图片的时候，采用九宫格绘制方式绘制图片：
             //    四个角不拉伸图片，四个边部分拉伸，中间部分可以拉伸或者根据xtiled、ytiled属性来平铺绘制
             if (imageAttribute.rcCorner == nullptr) {
@@ -226,73 +226,73 @@ void ImageAttribute::ModifyAttribute(const std::wstring& strImageString, const D
             }
             AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcCorner);
         }
-        else if ((name == L"dpi_scale") || (name == L"dpiscale")) {
+        else if ((name == _T("dpi_scale")) || (name == _T("dpiscale"))) {
             //加载图片时，按照DPI缩放图片大小（会影响width属性、height属性、sources属性、corner属性）
-            imageAttribute.srcDpiScale = (value == L"true");
+            imageAttribute.srcDpiScale = (value == _T("true"));
             imageAttribute.bHasSrcDpiScale = true;
         }
-        else if (name == L"dest") {
+        else if (name == _T("dest")) {
             //设置目标区域，该区域是指相对于所属控件的Rect区域
             if (imageAttribute.rcDest == nullptr) {
                 imageAttribute.rcDest = new UiRect;
             }
             AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcDest);
         }
-        else if ((name == L"dest_scale") || (name == L"destscale")) {
+        else if ((name == _T("dest_scale")) || (name == _T("destscale"))) {
             //加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）
             //绘制时（内部使用），控制是否对dest属性进行DPI缩放
-            imageAttribute.destDpiScale = (value == L"true");
+            imageAttribute.destDpiScale = (value == _T("true"));
             imageAttribute.bHasDestDpiScale = true;
         }
-        else if (name == L"padding") {
+        else if (name == _T("padding")) {
             //在目标区域中设置内边距
             UiPadding padding;
             AttributeUtil::ParsePaddingValue(value.c_str(), padding);
             imageAttribute.SetImagePadding(padding, true, dpi);
         }
-        else if (name == L"halign") {
+        else if (name == _T("halign")) {
             //在目标区域中设置横向对齐方式            
-            ASSERT((value == L"left") || (value == L"center") || (value == L"right"));
-            if ((value == L"left") || (value == L"center") || (value == L"right")) {
+            ASSERT((value == _T("left")) || (value == _T("center")) || (value == _T("right")));
+            if ((value == _T("left")) || (value == _T("center")) || (value == _T("right"))) {
                 imageAttribute.hAlign = value;
             }
         }
-        else if (name == L"valign") {
+        else if (name == _T("valign")) {
             //在目标区域中设置纵向对齐方式
-            ASSERT((value == L"top") || (value == L"center") || (value == L"bottom"));
-            if ((value == L"top") || (value == L"center") || (value == L"bottom")) {
+            ASSERT((value == _T("top")) || (value == _T("center")) || (value == _T("bottom")));
+            if ((value == _T("top")) || (value == _T("center")) || (value == _T("bottom"))) {
                 imageAttribute.vAlign = value;
             }
         }
-        else if (name == L"fade") {
+        else if (name == _T("fade")) {
             //图片的透明度
             imageAttribute.bFade = (uint8_t)wcstoul(value.c_str(), nullptr, 10);
         }
-        else if (name == L"xtiled") {
+        else if (name == _T("xtiled")) {
             //横向平铺
-            imageAttribute.bTiledX = (value == L"true");
+            imageAttribute.bTiledX = (value == _T("true"));
         }
-        else if ((name == L"full_xtiled") || (name == L"fullxtiled")) {
+        else if ((name == _T("full_xtiled")) || (name == _T("fullxtiled"))) {
             //横向平铺时，保证整张图片绘制
-            imageAttribute.bFullTiledX = (value == L"true");
+            imageAttribute.bFullTiledX = (value == _T("true"));
         }
-        else if (name == L"ytiled") {
+        else if (name == _T("ytiled")) {
             //纵向平铺
-            imageAttribute.bTiledY = (value == L"true");
+            imageAttribute.bTiledY = (value == _T("true"));
         }
-        else if ((name == L"full_ytiled") || (name == L"fullytiled")) {
+        else if ((name == _T("full_ytiled")) || (name == _T("fullytiled"))) {
             //纵向平铺时，保证整张图片绘制
-            imageAttribute.bFullTiledY = (value == L"true");
+            imageAttribute.bFullTiledY = (value == _T("true"));
         }
-        else if ((name == L"tiled_margin") || (name == L"tiledmargin")) {
+        else if ((name == _T("tiled_margin")) || (name == _T("tiledmargin"))) {
             //平铺绘制时，各平铺图片之间的间隔，包括横向平铺和纵向平铺
             imageAttribute.nTiledMargin = wcstol(value.c_str(), nullptr, 10);
         }
-        else if ((name == L"icon_size") || (name == L"iconsize")) {
+        else if ((name == _T("icon_size")) || (name == _T("iconsize"))) {
             //指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)
             imageAttribute.iconSize = (uint32_t)wcstol(value.c_str(), nullptr, 10);
         }
-        else if ((name == L"play_count") || (name == L"playcount")) {
+        else if ((name == _T("play_count")) || (name == _T("playcount"))) {
             //如果是GIF、APNG、WEBP等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
             imageAttribute.nPlayCount = wcstol(value.c_str(), nullptr, 10);
             if (imageAttribute.nPlayCount < 0) {

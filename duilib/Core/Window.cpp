@@ -536,7 +536,7 @@ LRESULT CALLBACK Window::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
     }
 }
 
-static const wchar_t* sPropName = L"DuiLibWndX"; // 属性名称
+static const wchar_t* sPropName = _T("DuiLibWndX"); // 属性名称
 
 Window* Window::GetWindowObject(HWND hWnd)
 {
@@ -801,8 +801,8 @@ void Window::SetResourcePath(const std::wstring& strPath)
     if (!m_strResourcePath.empty()) {
         //确保路径最后字符是分割字符
         wchar_t cEnd = m_strResourcePath.back();
-        if (cEnd != L'\\' && cEnd != L'/') {
-            m_strResourcePath += L'\\';
+        if (cEnd != _T('\\') && cEnd != _T('/')) {
+            m_strResourcePath += _T('\\');
         }
     }
 }
@@ -820,7 +820,7 @@ std::wstring Window::GetClassAttributes(const std::wstring& strClassName) const
     if (it != m_defaultAttrHash.end()) {
         return it->second;
     }
-    return L"";
+    return _T("");
 }
 
 bool Window::RemoveClass(const std::wstring& strClassName)
@@ -1918,7 +1918,7 @@ LRESULT Window::OnPaintMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_PAINT);
     bHandled = true;
-    PerformanceStat statPerformance(L"Window::OnPaintMsg");
+    PerformanceStat statPerformance(_T("Window::OnPaintMsg"));
     Paint();
     return 0;
 }

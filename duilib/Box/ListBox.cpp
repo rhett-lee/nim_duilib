@@ -24,26 +24,26 @@ ListBox::ListBox(Window* pWindow, Layout* pLayout) :
 {
 }
 
-std::wstring ListBox::GetType() const { return L"ListBox"; }
+std::wstring ListBox::GetType() const { return _T("ListBox"); }
 
 void ListBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"multi_select") {
-        SetMultiSelect(strValue == L"true");
+    if (strName == _T("multi_select")) {
+        SetMultiSelect(strValue == _T("true"));
     }
-    else if (strName == L"paint_selected_colors") {
-        if (strValue == L"true") {
+    else if (strName == _T("paint_selected_colors")) {
+        if (strValue == _T("true")) {
             m_uPaintSelectedColors = PAINT_SELECTED_COLORS_YES;
         }
         else {
             m_uPaintSelectedColors = PAINT_SELECTED_COLORS_NO;
         }
     }
-    else if ((strName == L"scroll_select") || (strName == L"scrollselect")) {
-        SetScrollSelect(strValue == L"true");
+    else if ((strName == _T("scroll_select")) || (strName == _T("scrollselect"))) {
+        SetScrollSelect(strValue == _T("true"));
     }
-    else if (strName == L"select_next_when_active_removed") {
-        SetSelectNextWhenActiveRemoved(strValue == L"true");
+    else if (strName == _T("select_next_when_active_removed")) {
+        SetSelectNextWhenActiveRemoved(strValue == _T("true"));
     }
     else {
         ScrollBox::SetAttribute(strName, strValue);

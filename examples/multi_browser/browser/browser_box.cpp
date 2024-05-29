@@ -34,7 +34,7 @@ std::wstring& BrowserBox::GetTitle()
 
 void BrowserBox::InitBrowserBox(const std::wstring &url)
 {
-    cef_control_ = static_cast<nim_comp::CefControlBase*>(FindSubControl(L"cef_control"));
+    cef_control_ = static_cast<nim_comp::CefControlBase*>(FindSubControl(_T("cef_control")));
     cef_control_->AttachBeforeContextMenu(UiBind(&BrowserBox::OnBeforeMenu, this, std::placeholders::_1, std::placeholders::_2));
     cef_control_->AttachMenuCommand(UiBind(&BrowserBox::OnMenuCommand, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     cef_control_->AttachTitleChange(UiBind(&BrowserBox::OnTitleChange, this, std::placeholders::_1));
@@ -49,7 +49,7 @@ void BrowserBox::InitBrowserBox(const std::wstring &url)
     // 加载默认网页
     std::wstring html_path = url;
     if (html_path.empty())
-        html_path = ui::PathUtil::GetCurrentModuleDirectory() + L"resources\\themes\\default\\cef\\cef.html";
+        html_path = ui::PathUtil::GetCurrentModuleDirectory() + _T("resources\\themes\\default\\cef\\cef.html");
 
     cef_control_->LoadURL(html_path);
 
@@ -79,7 +79,7 @@ void BrowserBox::UninitBrowserBox()
 
 ui::Control* BrowserBox::CreateControl(const std::wstring& pstrClass)
 {
-    if (pstrClass == L"CefControl")
+    if (pstrClass == _T("CefControl"))
     {
         if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
             return new nim_comp::CefControl(GetWindow());
@@ -165,8 +165,8 @@ void BrowserBox::OnLoadStart()
 void BrowserBox::OnLoadEnd(int httpStatusCode)
 {
     // 注册一个方法提供前端调用
-    cef_control_->RegisterCppFunc(L"ShowMessageBox", ToWeakCallback([](const std::string& params, nim_comp::ReportResultFunction callback) {
-        MessageBox(NULL, ui::StringUtil::UTF8ToUTF16(params).c_str(), L"接收到 JavaScript 发来的消息", MB_OK);
+    cef_control_->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([](const std::string& params, nim_comp::ReportResultFunction callback) {
+        MessageBox(NULL, ui::StringUtil::UTF8ToUTF16(params).c_str(), _T("接收到 JavaScript 发来的消息"), MB_OK);
         callback(false, R"({ "message": "Success." })");
     }));
 }

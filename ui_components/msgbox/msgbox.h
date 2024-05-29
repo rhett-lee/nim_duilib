@@ -17,10 +17,10 @@ enum MsgBoxRet
 typedef std::function<void(MsgBoxRet)> MsgboxCallback;
 
 void ShowMsgBox(HWND hwnd, MsgboxCallback cb,
-    const std::wstring &content = L"", bool content_is_id = true,
-    const std::wstring &title = L"STRING_TIPS", bool title_is_id = true,
-    const std::wstring &yes = L"STRING_OK", bool btn_yes_is_id = true,
-    const std::wstring &no = L"", bool btn_no_is_id = false);
+    const std::wstring &content = _T(""), bool content_is_id = true,
+    const std::wstring &title = _T("STRING_TIPS"), bool title_is_id = true,
+    const std::wstring &yes = _T("STRING_OK"), bool btn_yes_is_id = true,
+    const std::wstring &no = _T(""), bool btn_no_is_id = false);
 
 class MsgBox : public ui::WindowImplBase
 {

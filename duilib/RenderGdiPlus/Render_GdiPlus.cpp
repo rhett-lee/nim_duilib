@@ -1067,7 +1067,7 @@ UiRect Render_GdiPlus::MeasureString(const std::wstring& strText, IFont* pFont,
         Gdiplus::REAL height = 0;
         if ((uFormat & TEXT_SINGLELINE) != 0) {
             Gdiplus::RectF rcEmpty((Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)0);
-            graphics.MeasureString(L"测试", 2, &font, rcEmpty, &stringFormat, &bounds);
+            graphics.MeasureString(_T("测试"), 2, &font, rcEmpty, &stringFormat, &bounds);
             height = bounds.Height;
         }
         Gdiplus::RectF rcText((Gdiplus::REAL)0, (Gdiplus::REAL)0, (Gdiplus::REAL)width, height);

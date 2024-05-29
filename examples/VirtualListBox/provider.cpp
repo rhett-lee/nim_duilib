@@ -22,7 +22,7 @@ ui::Control* Provider::CreateElement(ui::VirtualListBox* pVirtualListBox)
     }
     ASSERT(pVirtualListBox->GetWindow() != nullptr);
     Item* item = new Item(pVirtualListBox->GetWindow());
-    ui::GlobalManager::Instance().FillBoxWithCache(item, L"virtual_list_box/item.xml");
+    ui::GlobalManager::Instance().FillBoxWithCache(item, _T("virtual_list_box/item.xml"));
     return item;
 }
 
@@ -36,8 +36,8 @@ bool Provider::FillElement(ui::Control* pControl, size_t nElementIndex)
         return false;
     }
     const DownloadTask& task = m_vTasks[nElementIndex];
-    std::wstring img = L"icon.png";
-    std::wstring title = ui::StringUtil::Printf(L"%s [%02d]", task.sName, task.nId);
+    std::wstring img = _T("icon.png");
+    std::wstring title = ui::StringUtil::Printf(_T("%s [%02d]"), task.sName, task.nId);
     pItem->InitSubControls(img, title, nElementIndex);
     return true;
 }
@@ -109,7 +109,7 @@ void Provider::SetTotal(int nTotal)
         delete [] task.sName;
     }
     m_vTasks.clear();
-    std::wstring name = L"任务名称";
+    std::wstring name = _T("任务名称");
     m_vTasks.reserve(nTotal);
     for (auto i=0; i < nTotal; i++)
     {

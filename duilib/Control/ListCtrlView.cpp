@@ -26,20 +26,20 @@ ListCtrlView::~ListCtrlView()
 
 void ListCtrlView::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"enable_frame_selection") {
-        m_bEnableFrameSelection = (strValue == L"true");
+    if (strName == _T("enable_frame_selection")) {
+        m_bEnableFrameSelection = (strValue == _T("true"));
     }
-    else if (strName == L"frame_selection_color") {
+    else if (strName == _T("frame_selection_color")) {
         m_frameSelectionColor = strValue;
     }
-    else if (strName == L"frame_selection_alpha") {
+    else if (strName == _T("frame_selection_alpha")) {
         m_frameSelectionAlpha = (uint8_t)_wtoi(strValue.c_str());
     }
-    else if (strName == L"frame_selection_border") {
+    else if (strName == _T("frame_selection_border")) {
         int32_t iValue = _wtoi(strValue.c_str());
         SetFrameSelectionBorderSize(iValue, true);    
     }
-    else if (strName == L"frame_selection_border_color") {
+    else if (strName == _T("frame_selection_border_color")) {
         m_frameSelectionBorderColor = strValue;
     }
     else {
@@ -713,7 +713,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
 {
     ASSERT(msg.Type == kEventKeyDown);
     bool bHandled = false;
-    bool bCtrlADown = (msg.Type == kEventKeyDown) && ((msg.chKey == L'A') || (msg.chKey == L'a'));
+    bool bCtrlADown = (msg.Type == kEventKeyDown) && ((msg.chKey == _T('A')) || (msg.chKey == _T('a')));
     if (bCtrlADown) {
         //Ctrl + A 全选操作
         bHandled = true;

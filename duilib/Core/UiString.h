@@ -46,9 +46,9 @@ public:
     }
 public:
 
-    bool empty() const { return (m_pData == nullptr) || (m_pData[0] == L'\0'); }
+    bool empty() const { return (m_pData == nullptr) || (m_pData[0] == _T('\0')); }
     const wchar_t* data() const { return c_str(); }
-    const wchar_t* c_str() const { return (m_pData != nullptr) ? m_pData : L""; }
+    const wchar_t* c_str() const { return (m_pData != nullptr) ? m_pData : _T(""); }
     void clear() 
     {
         if (m_pData != nullptr) {

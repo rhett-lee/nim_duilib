@@ -13,9 +13,9 @@ void BrowserTabItem::InitControl(std::string browser_id)
     this->AttachMouseEnter(UiBind(&BrowserTabItem::OnMouseEnter, this, std::placeholders::_1));
     this->AttachMouseLeave(UiBind(&BrowserTabItem::OnMouseLeave, this, std::placeholders::_1));
 
-    icon_ = (Button*) this->FindSubControl(L"tab_item_icon");
-    name_ = (Label*) this->FindSubControl(L"tab_item_name");
-    button_close_ = (Button*) this->FindSubControl(L"tab_item_close");
+    icon_ = (Button*) this->FindSubControl(_T("tab_item_icon"));
+    name_ = (Label*) this->FindSubControl(_T("tab_item_name"));
+    button_close_ = (Button*) this->FindSubControl(_T("tab_item_close"));
 
     this->SetUTF8Name(browser_id);
 }

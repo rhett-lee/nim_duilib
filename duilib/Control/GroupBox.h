@@ -71,8 +71,8 @@ GroupBoxTemplate<InheritType>::GroupBoxTemplate(Window* pWindow):
     LabelTemplate<InheritType>(pWindow),
     m_nLineWidth(0)
 {
-    SetAttribute(L"text_align", L"top,left");
-    SetAttribute(L"text_padding", L"8,0,0,0");
+    SetAttribute(_T("text_align"), _T("top,left"));
+    SetAttribute(_T("text_padding"), _T("8,0,0,0"));
 }
 
 template<typename InheritType>
@@ -81,7 +81,7 @@ GroupBoxTemplate<InheritType>::~GroupBoxTemplate()
 }
 
 template<typename InheritType>
-inline std::wstring GroupBoxTemplate<InheritType>::GetType() const { return L"GroupBoxTemplate"; }
+inline std::wstring GroupBoxTemplate<InheritType>::GetType() const { return _T("GroupBoxTemplate"); }
 
 template<>
 inline std::wstring GroupBoxTemplate<Box>::GetType() const { return DUI_CTR_GROUP_BOX; }
@@ -169,22 +169,22 @@ UiColor GroupBoxTemplate<InheritType>::GetFadeColor(UiColor color, uint8_t nFade
 template<typename InheritType>
 void GroupBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"corner_size") {
+    if (strName == _T("corner_size")) {
         //圆角大小
         UiSize cxyRound;
         AttributeUtil::ParseSizeValue(strValue.c_str(), cxyRound);
         this->SetCornerSize(cxyRound, true);
     }
-    else if (strName == L"line_width") {
+    else if (strName == _T("line_width")) {
         //线条宽度
         ASSERT(_wtoi(strValue.c_str()) >= 0);
         this->SetLineWidth(_wtoi(strValue.c_str()), true);
     }
-    else if (strName == L"line_color") {
+    else if (strName == _T("line_color")) {
         //线条颜色
         this->SetLineColor(strValue);
     }
-    else if (strName == L"text") {
+    else if (strName == _T("text")) {
         //设置文本内容
         __super::SetAttribute(strName, strValue);
     }

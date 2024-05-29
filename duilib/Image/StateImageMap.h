@@ -58,7 +58,7 @@ public:
     bool PaintStateImage(IRender* pRender, 
                          StateImageType stateImageType, 
                          ControlStateType stateType, 
-                         const std::wstring& sImageModify = L"",
+                         const std::wstring& sImageModify = _T(""),
                          UiRect* pDestRect = nullptr);
     
     /** 获取用于估算Control控件大小（宽和高）的图片接口

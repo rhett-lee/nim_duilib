@@ -31,7 +31,7 @@ PlaceHolder::~PlaceHolder()
 {
 }
 
-std::wstring PlaceHolder::GetType() const { return L"PlaceHolder"; }
+std::wstring PlaceHolder::GetType() const { return _T("PlaceHolder"); }
 
 ui::Box* PlaceHolder::GetAncestor(const std::wstring& strName)
 {

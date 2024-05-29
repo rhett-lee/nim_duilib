@@ -76,7 +76,7 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
     std::wstring strSkinFile;
     std::wstring xmlFile = GetSkinFile();
-    if (!xmlFile.empty() && xmlFile.front() == L'<') {
+    if (!xmlFile.empty() && xmlFile.front() == _T('<')) {
         //返回的内容是XML文件内容，而不是文件路径
         strSkinFile = std::move(xmlFile);
     }
@@ -87,7 +87,7 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
     WindowBuilder builder;
     Box* pRoot = builder.Create(strSkinFile, callback, this);
 
-    ASSERT(pRoot && L"Faield to load xml file.");
+    ASSERT(pRoot && _T("Faield to load xml file."));
     if (pRoot == nullptr) {
         return -1;
     }

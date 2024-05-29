@@ -31,33 +31,33 @@ std::wstring PropertyGrid::GetType() const { return DUI_CTR_PROPERTY_GRID; }
 
 void PropertyGrid::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"property_grid_xml") {
+    if (strName == _T("property_grid_xml")) {
         if (!strValue.empty()) {
             m_configXml = strValue;
         }
     }
-    else if (strName == L"row_grid_line_width") {
+    else if (strName == _T("row_grid_line_width")) {
         SetRowGridLineWidth(_wtoi(strValue.c_str()), true);
     }
-    else if (strName == L"row_grid_line_color") {
+    else if (strName == _T("row_grid_line_color")) {
         SetRowGridLineColor(strValue);
     }
-    else if (strName == L"column_grid_line_width") {
+    else if (strName == _T("column_grid_line_width")) {
         SetColumnGridLineWidth(_wtoi(strValue.c_str()), true);
     }
-    else if (strName == L"column_grid_line_color") {
+    else if (strName == _T("column_grid_line_color")) {
         SetColumnGridLineColor(strValue);
     }
-    else if (strName == L"header_class") {
+    else if (strName == _T("header_class")) {
         SetHeaderClass(strValue);
     }
-    else if (strName == L"group_class") {
+    else if (strName == _T("group_class")) {
         SetGroupClass(strValue);
     }
-    else if (strName == L"propterty_class") {
+    else if (strName == _T("propterty_class")) {
         SetPropertyClass(strValue);
     }
-    else if (strName == L"left_column_width") {
+    else if (strName == _T("left_column_width")) {
         SetLeftColumnWidth(_wtoi(strValue.c_str()), true);
     }
     else {
@@ -97,13 +97,13 @@ void PropertyGrid::OnInit()
     //初始化基本结构
     if (m_configXml.empty()) {
         //默认的配置文件
-        m_configXml = L"public/property_grid/property_grid.xml";
+        m_configXml = _T("public/property_grid/property_grid.xml");
     }
     ui::GlobalManager::Instance().FillBoxWithCache(this, m_configXml.c_str());
-    m_pHeaderCtrl = FindSubControl(L"duilib_property_grid_header");
-    m_pHeaderLeft = dynamic_cast<Label*>(FindSubControl(L"duilib_property_grid_header_left"));
-    m_pHeaderRight = dynamic_cast<Label*>(FindSubControl(L"duilib_property_grid_header_right"));
-    m_pHeaderSplit = dynamic_cast<Split*>(FindSubControl(L"duilib_property_grid_header_split"));
+    m_pHeaderCtrl = FindSubControl(_T("duilib_property_grid_header"));
+    m_pHeaderLeft = dynamic_cast<Label*>(FindSubControl(_T("duilib_property_grid_header_left")));
+    m_pHeaderRight = dynamic_cast<Label*>(FindSubControl(_T("duilib_property_grid_header_right")));
+    m_pHeaderSplit = dynamic_cast<Split*>(FindSubControl(_T("duilib_property_grid_header_split")));
     if (m_pHeaderCtrl != nullptr) {
         ASSERT(m_pHeaderLeft != nullptr);
         ASSERT(m_pHeaderRight != nullptr);
@@ -114,11 +114,11 @@ void PropertyGrid::OnInit()
         m_bHeaderCtrl = false;
     }
 
-    m_pDescriptionArea = dynamic_cast<RichText*>(FindSubControl(L"duilib_property_grid_description_area"));
+    m_pDescriptionArea = dynamic_cast<RichText*>(FindSubControl(_T("duilib_property_grid_description_area")));
     m_bDescriptionArea = m_pDescriptionArea != nullptr;
-    m_pDescriptionAreaSplit = dynamic_cast<Split*>(FindSubControl(L"duilib_property_grid_description_area_split"));
+    m_pDescriptionAreaSplit = dynamic_cast<Split*>(FindSubControl(_T("duilib_property_grid_description_area_split")));
 
-    m_pTreeView = dynamic_cast<TreeView*>(FindSubControl(L"duilib_property_grid_tree"));
+    m_pTreeView = dynamic_cast<TreeView*>(FindSubControl(_T("duilib_property_grid_tree")));
     ASSERT(m_pTreeView != nullptr);
 
     //挂载拖动响应事件, 调整列的宽度
@@ -158,7 +158,7 @@ void PropertyGrid::OnInit()
             }
             if (m_pDescriptionArea != nullptr) {
                 if (!name.empty()) {
-                    description = L"<b>" + name + L"</b><br/>" + description;
+                    description = _T("<b>") + name + _T("</b><br/>") + description;
                 }
                 m_pDescriptionArea->SetText(description);
             }
@@ -907,7 +907,7 @@ void PropertyGridProperty::OnInit()
     m_pHBox = new HBox(GetWindow());
     AddItem(m_pHBox);
     //背景色：在property_grid.xml中定义
-    m_pHBox->SetBkColor(L"property_grid_propterty_bkcolor");
+    m_pHBox->SetBkColor(_T("property_grid_propterty_bkcolor"));
 
     m_pHBox->SetMouseEnabled(false);
     m_pHBox->SetNoFocus();
@@ -920,7 +920,7 @@ void PropertyGridProperty::OnInit()
     m_pHBox->AddItem(m_pLabelBoxRight);
     m_pLabelBoxRight->SetText(m_propertyValue.c_str());
     //属性值的正常字体：在property_grid.xml中定义
-    m_pLabelBoxRight->SetFontId(L"property_grid_propterty_font_normal");
+    m_pLabelBoxRight->SetFontId(_T("property_grid_propterty_font_normal"));
 
     //挂载鼠标左键按下事件
     m_pLabelBoxRight->AttachButtonDown([this](const EventArgs&) {
@@ -972,10 +972,10 @@ void PropertyGridProperty::SetPropertyText(const std::wstring& text, bool bChang
     if (m_pLabelBoxRight != nullptr) {
         m_pLabelBoxRight->SetText(text);
         if (bChanged) {
-            m_pLabelBoxRight->SetFontId(L"property_grid_propterty_font_bold");
+            m_pLabelBoxRight->SetFontId(_T("property_grid_propterty_font_bold"));
         }
         else {
-            m_pLabelBoxRight->SetFontId(L"property_grid_propterty_font_normal");
+            m_pLabelBoxRight->SetFontId(_T("property_grid_propterty_font_normal"));
         }
     }
 }
@@ -1134,7 +1134,7 @@ void PropertyGridTextProperty::EnableEditControl(bool bEnable)
         return;
     }
     m_pRichEdit = new PropertyGridRichEdit(GetWindow());
-    m_pRichEdit->SetClass(L"property_grid_propterty_edit");
+    m_pRichEdit->SetClass(_T("property_grid_propterty_edit"));
     if (!AddPropertySubItem(m_pRichEdit)) {
         delete m_pRichEdit;
         m_pRichEdit = nullptr;
@@ -1170,7 +1170,7 @@ Control* PropertyGridTextProperty::ShowEditControl(bool bShow)
         bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
         if (IsPassword()) {
             std::wstring showText;
-            showText.resize(newText.size(), L'*');
+            showText.resize(newText.size(), _T('*'));
             SetPropertyText(showText, bChanged);
         }
         else {
@@ -1193,7 +1193,7 @@ void PropertyGridTextProperty::SetPassword(bool bPassword)
     bool bChanged = text != GetPropertyValue(); //相对原值，是否有修改
     if (bPassword) {
         std::wstring showText;
-        showText.resize(text.size(), L'*');
+        showText.resize(text.size(), _T('*'));
         SetPropertyText(showText, bChanged);
     }
     else {
@@ -1206,7 +1206,7 @@ void PropertyGridTextProperty::SetEnableSpin(bool bEnable, int32_t nMin, int32_t
     RichEdit* pRichEdit = GetRichEdit();
     ASSERT(pRichEdit != nullptr);
     if (pRichEdit != nullptr) {
-        std::wstring spinClass = L"property_grid_spin_box,property_grid_spin_btn_up,property_grid_spin_btn_down";
+        std::wstring spinClass = _T("property_grid_spin_box,property_grid_spin_btn_up,property_grid_spin_btn_down");
         pRichEdit->SetEnableSpin(bEnable, spinClass, nMin, nMax);
     }
 }
@@ -1249,7 +1249,7 @@ void PropertyGridComboProperty::EnableEditControl(bool bEnable)
         return;
     }
     m_pCombo = new PropertyGridCombo(GetWindow());
-    m_pCombo->SetClass(L"property_grid_combo");
+    m_pCombo->SetClass(_T("property_grid_combo"));
     if (!AddPropertySubItem(m_pCombo)) {
         delete m_pCombo;
         m_pCombo = nullptr;
@@ -1460,7 +1460,7 @@ namespace PropertyGridFontPropertyImpl
         HDC hDC = pWindow != nullptr ? pWindow->GetPaintDC() : nullptr;        
         LOGFONT logfont = {};
         logfont.lfCharSet = DEFAULT_CHARSET;
-        logfont.lfFaceName[0] = L'\0';
+        logfont.lfFaceName[0] = _T('\0');
         logfont.lfPitchAndFamily = 0;
         ::EnumFontFamiliesEx(hDC, &logfont, EnumFontFamExProc, (LPARAM)&fontList, 0);
 
@@ -1470,7 +1470,7 @@ namespace PropertyGridFontPropertyImpl
             if (font.lf.lfWeight != FW_NORMAL) {
                 continue;
             }
-            if (font.lf.lfFaceName[0] == L'@') {
+            if (font.lf.lfFaceName[0] == _T('@')) {
                 continue;
             }
             fontMap[font.lf.lfFaceName] = font;
@@ -1522,42 +1522,42 @@ void PropertyGridFontSizeProperty::OnInit()
 void PropertyGridFontSizeProperty::GetSystemFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const
 {
     fontSizeList.clear();
-    fontSizeList.push_back({ L"8",  8.0f, 0 });
-    fontSizeList.push_back({ L"9",  9.0f, 0 });
-    fontSizeList.push_back({ L"10", 10.0f, 0 });
-    fontSizeList.push_back({ L"11", 11.0f, 0 });
-    fontSizeList.push_back({ L"12", 12.0f, 0 });
-    fontSizeList.push_back({ L"14", 14.0f, 0 });
-    fontSizeList.push_back({ L"16", 16.0f, 0 });
-    fontSizeList.push_back({ L"18", 18.0f, 0 });
-    fontSizeList.push_back({ L"20", 20.0f, 0 });
-    fontSizeList.push_back({ L"22", 22.0f, 0 });
-    fontSizeList.push_back({ L"24", 24.0f, 0 });
-    fontSizeList.push_back({ L"26", 26.0f, 0 });
-    fontSizeList.push_back({ L"28", 28.0f, 0 });
-    fontSizeList.push_back({ L"32", 32.0f, 0 });
-    fontSizeList.push_back({ L"36", 36.0f, 0 });
-    fontSizeList.push_back({ L"48", 48.0f, 0 });
-    fontSizeList.push_back({ L"72", 72.0f, 0 });
-    fontSizeList.push_back({ L"1英寸", 95.6f, 0 });
-    fontSizeList.push_back({ L"大特号", 83.7f, 0 });
-    fontSizeList.push_back({ L"特号", 71.7f, 0 });
-    fontSizeList.push_back({ L"初号", 56.0f, 0 });
-    fontSizeList.push_back({ L"小初", 48.0f, 0 });
-    fontSizeList.push_back({ L"一号", 34.7f, 0 });
-    fontSizeList.push_back({ L"小一", 32.0f, 0 });
-    fontSizeList.push_back({ L"二号", 29.3f, 0 });
-    fontSizeList.push_back({ L"小二", 24.0f, 0 });
-    fontSizeList.push_back({ L"三号", 21.3f, 0 });
-    fontSizeList.push_back({ L"小三", 20.0f, 0 });
-    fontSizeList.push_back({ L"四号", 18.7f, 0 });
-    fontSizeList.push_back({ L"小四", 16.0f, 0 });
-    fontSizeList.push_back({ L"五号", 14.0f, 0 });
-    fontSizeList.push_back({ L"小五", 12.0f, 0 });
-    fontSizeList.push_back({ L"六号", 10.0f, 0 });
-    fontSizeList.push_back({ L"小六", 8.7f, 0 });
-    fontSizeList.push_back({ L"七号", 7.3f, 0 });
-    fontSizeList.push_back({ L"八号", 6.7f, 0 });
+    fontSizeList.push_back({ _T("8"),  8.0f, 0 });
+    fontSizeList.push_back({ _T("9"),  9.0f, 0 });
+    fontSizeList.push_back({ _T("10"), 10.0f, 0 });
+    fontSizeList.push_back({ _T("11"), 11.0f, 0 });
+    fontSizeList.push_back({ _T("12"), 12.0f, 0 });
+    fontSizeList.push_back({ _T("14"), 14.0f, 0 });
+    fontSizeList.push_back({ _T("16"), 16.0f, 0 });
+    fontSizeList.push_back({ _T("18"), 18.0f, 0 });
+    fontSizeList.push_back({ _T("20"), 20.0f, 0 });
+    fontSizeList.push_back({ _T("22"), 22.0f, 0 });
+    fontSizeList.push_back({ _T("24"), 24.0f, 0 });
+    fontSizeList.push_back({ _T("26"), 26.0f, 0 });
+    fontSizeList.push_back({ _T("28"), 28.0f, 0 });
+    fontSizeList.push_back({ _T("32"), 32.0f, 0 });
+    fontSizeList.push_back({ _T("36"), 36.0f, 0 });
+    fontSizeList.push_back({ _T("48"), 48.0f, 0 });
+    fontSizeList.push_back({ _T("72"), 72.0f, 0 });
+    fontSizeList.push_back({ _T("1英寸"), 95.6f, 0 });
+    fontSizeList.push_back({ _T("大特号"), 83.7f, 0 });
+    fontSizeList.push_back({ _T("特号"), 71.7f, 0 });
+    fontSizeList.push_back({ _T("初号"), 56.0f, 0 });
+    fontSizeList.push_back({ _T("小初"), 48.0f, 0 });
+    fontSizeList.push_back({ _T("一号"), 34.7f, 0 });
+    fontSizeList.push_back({ _T("小一"), 32.0f, 0 });
+    fontSizeList.push_back({ _T("二号"), 29.3f, 0 });
+    fontSizeList.push_back({ _T("小二"), 24.0f, 0 });
+    fontSizeList.push_back({ _T("三号"), 21.3f, 0 });
+    fontSizeList.push_back({ _T("小三"), 20.0f, 0 });
+    fontSizeList.push_back({ _T("四号"), 18.7f, 0 });
+    fontSizeList.push_back({ _T("小四"), 16.0f, 0 });
+    fontSizeList.push_back({ _T("五号"), 14.0f, 0 });
+    fontSizeList.push_back({ _T("小五"), 12.0f, 0 });
+    fontSizeList.push_back({ _T("六号"), 10.0f, 0 });
+    fontSizeList.push_back({ _T("小六"), 8.7f, 0 });
+    fontSizeList.push_back({ _T("七号"), 7.3f, 0 });
+    fontSizeList.push_back({ _T("八号"), 6.7f, 0 });
 
     //更新DPI自适应值
     for (FontSizeInfo& fontSize : fontSizeList) {
@@ -1574,7 +1574,7 @@ std::wstring PropertyGridFontSizeProperty::GetFontSize() const
     if (nCurSel != Box::InvalidIndex) {
         size_t nIndex = GetOptionData(nCurSel);
         if (nIndex < m_fontSizeList.size()) {
-            fontSize = StringUtil::Printf(L"%.01f", m_fontSizeList[nIndex].fFontSize);
+            fontSize = StringUtil::Printf(_T("%.01f"), m_fontSizeList[nIndex].fFontSize);
         }
     }
     if (fontSize.empty()) {
@@ -1590,7 +1590,7 @@ std::wstring PropertyGridFontSizeProperty::GetDpiFontSize() const
     if (nCurSel != Box::InvalidIndex) {
         size_t nIndex = GetOptionData(nCurSel);
         if (nIndex < m_fontSizeList.size()) {
-            fontSize = StringUtil::Printf(L"%.01f", m_fontSizeList[nIndex].fDpiFontSize);
+            fontSize = StringUtil::Printf(_T("%.01f"), m_fontSizeList[nIndex].fDpiFontSize);
         }
     }
     if (fontSize.empty()) {
@@ -1605,7 +1605,7 @@ std::wstring PropertyGridFontSizeProperty::GetFontSize(const std::wstring& fontS
     const size_t nCount = m_fontSizeList.size();
     for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
         if (m_fontSizeList[nIndex].fontSizeName == fontSizeName) {
-            fontSize = StringUtil::Printf(L"%.01f", m_fontSizeList[nIndex].fFontSize);
+            fontSize = StringUtil::Printf(_T("%.01f"), m_fontSizeList[nIndex].fFontSize);
             break;
         }
     }
@@ -1618,7 +1618,7 @@ std::wstring PropertyGridFontSizeProperty::GetDpiFontSize(const std::wstring& fo
     const size_t nCount = m_fontSizeList.size();
     for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
         if (m_fontSizeList[nIndex].fontSizeName == fontSizeName) {
-            fontSize = StringUtil::Printf(L"%.01f", m_fontSizeList[nIndex].fDpiFontSize);
+            fontSize = StringUtil::Printf(_T("%.01f"), m_fontSizeList[nIndex].fDpiFontSize);
             break;
         }
     }
@@ -1650,7 +1650,7 @@ void PropertyGridColorProperty::EnableEditControl(bool bEnable)
     }
     m_pComboButton = new ComboButton(GetWindow());
     //属性：在property_grid.xml中定义    
-    m_pComboButton->SetClass(L"property_grid_combo_button");
+    m_pComboButton->SetClass(_T("property_grid_combo_button"));
     if (!AddPropertySubItem(m_pComboButton)) {
         delete m_pComboButton;
         m_pComboButton = nullptr;
@@ -1723,7 +1723,7 @@ void PropertyGridColorProperty::InitColorCombo()
         return;
     }
     pComboBox->SetWindow(GetWindow());
-    GlobalManager::Instance().FillBoxWithCache(pComboBox, L"public/property_grid/color_combox.xml");
+    GlobalManager::Instance().FillBoxWithCache(pComboBox, _T("public/property_grid/color_combox.xml"));
     pComboBox->SetFixedHeight(UiFixedInt(boxSize.cy), false, false);
     pComboBox->SetFixedWidth(UiFixedInt(boxSize.cx), false, false);
 
@@ -1732,7 +1732,7 @@ void PropertyGridColorProperty::InitColorCombo()
         pComboBox->GetItemAt(0)->SetFixedWidth(UiFixedInt(boxSize.cx), false, false);
     }
 
-    ColorPickerRegular* pColorPicker = dynamic_cast<ColorPickerRegular*>(pComboBox->FindSubControl(L"color_combo_picker"));
+    ColorPickerRegular* pColorPicker = dynamic_cast<ColorPickerRegular*>(pComboBox->FindSubControl(_T("color_combo_picker")));
     if (pColorPicker != nullptr) {
         //响应选择颜色事件
         pColorPicker->AttachSelectColor([this, pColorComboBtn](const EventArgs& args) {
@@ -1747,7 +1747,7 @@ void PropertyGridColorProperty::InitColorCombo()
             });
     }
 
-    Button* pMoreColorButton = dynamic_cast<Button*>(pComboBox->FindSubControl(L"color_combo_picker_more"));
+    Button* pMoreColorButton = dynamic_cast<Button*>(pComboBox->FindSubControl(_T("color_combo_picker_more")));
     if (pMoreColorButton != nullptr) {
         pMoreColorButton->AttachClick([this](const EventArgs& /*args*/) {
             ShowColorPicker();
@@ -1851,7 +1851,7 @@ void PropertyGridDateTimeProperty::EnableEditControl(bool bEnable)
     }
     m_pDateTime = new PropertyGridDateTime(GetWindow());
     //属性：在property_grid.xml中定义
-    m_pDateTime->SetClass(L"property_grid_date_time");
+    m_pDateTime->SetClass(_T("property_grid_date_time"));
     if (!AddPropertySubItem(m_pDateTime)) {
         delete m_pDateTime;
         m_pDateTime = nullptr;
@@ -1930,7 +1930,7 @@ void PropertyGridIPAddressProperty::EnableEditControl(bool bEnable)
     }
     m_pIPAddress = new IPAddress(GetWindow());
     //属性：在property_grid.xml中定义    
-    m_pIPAddress->SetClass(L"property_grid_ip_address");
+    m_pIPAddress->SetClass(_T("property_grid_ip_address"));
     if (!AddPropertySubItem(m_pIPAddress)) {
         delete m_pIPAddress;
         m_pIPAddress = nullptr;
@@ -1991,7 +1991,7 @@ void PropertyGridHotKeyProperty::EnableEditControl(bool bEnable)
     }
     m_pHotKey = new HotKey(GetWindow());
     //属性：在property_grid.xml中定义    
-    m_pHotKey->SetClass(L"property_grid_hot_key");
+    m_pHotKey->SetClass(_T("property_grid_hot_key"));
     if (!AddPropertySubItem(m_pHotKey)) {
         delete m_pHotKey;
         m_pHotKey = nullptr;
@@ -2065,7 +2065,7 @@ void PropertyGridFileProperty::EnableEditControl(bool bEnable)
     }
     if (m_pBrowseBtn == nullptr) {
         m_pBrowseBtn = new Button(GetWindow());
-        m_pBrowseBtn->SetClass(L"property_grid_button");
+        m_pBrowseBtn->SetClass(_T("property_grid_button"));
         m_pBrowseBtn->SetNoFocus();
         pRichEdit->AddItem(m_pBrowseBtn);
 
@@ -2119,7 +2119,7 @@ void PropertyGridDirectoryProperty::EnableEditControl(bool bEnable)
     }
     if (m_pBrowseBtn == nullptr) {
         m_pBrowseBtn = new Button(GetWindow());
-        m_pBrowseBtn->SetClass(L"property_grid_button");
+        m_pBrowseBtn->SetClass(_T("property_grid_button"));
         m_pBrowseBtn->SetNoFocus();
         pRichEdit->AddItem(m_pBrowseBtn);
 

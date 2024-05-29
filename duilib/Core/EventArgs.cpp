@@ -108,125 +108,125 @@ std::wstring EventTypeToString(EventType eventType)
 {
     switch (eventType) {
     case kEventNone:
-        return L"kEventNone";
+        return _T("kEventNone");
     case kEventFirst:
-        return L"kEventFirst";
+        return _T("kEventFirst");
     case kEventAll:
-        return L"kEventAll";
+        return _T("kEventAll");
     case kEventKeyBegin:
-        return L"kEventKeyBegin";
+        return _T("kEventKeyBegin");
     case kEventKeyDown:
-        return L"kEventKeyDown";
+        return _T("kEventKeyDown");
     case kEventKeyUp:
-        return L"kEventKeyUp";
+        return _T("kEventKeyUp");
     case kEventSysKeyDown:
-        return L"kEventSysKeyDown";
+        return _T("kEventSysKeyDown");
     case kEventSysKeyUp:
-        return L"kEventSysKeyUp";
+        return _T("kEventSysKeyUp");
     case kEventChar:
-        return L"kEventChar";
+        return _T("kEventChar");
     case kEventKeyEnd:
-        return L"kEventKeyEnd";
+        return _T("kEventKeyEnd");
     case kEventMouseBegin:
-        return L"kEventMouseBegin";
+        return _T("kEventMouseBegin");
     case kEventMouseEnter:
-        return L"kEventMouseEnter";
+        return _T("kEventMouseEnter");
     case kEventMouseLeave:
-        return L"kEventMouseLeave";
+        return _T("kEventMouseLeave");
     case kEventMouseMove:
-        return L"kEventMouseMove";
+        return _T("kEventMouseMove");
     case kEventMouseHover:
-        return L"kEventMouseHover";
+        return _T("kEventMouseHover");
     case kEventMouseWheel:
-        return L"kEventMouseWheel";
+        return _T("kEventMouseWheel");
     case kEventMouseButtonDown:
-        return L"kEventMouseButtonDown";
+        return _T("kEventMouseButtonDown");
     case kEventMouseButtonUp:
-        return L"kEventMouseButtonUp";
+        return _T("kEventMouseButtonUp");
     case kEventMouseDoubleClick:
-        return L"kEventMouseDoubleClick";
+        return _T("kEventMouseDoubleClick");
     case kEventMouseRButtonDown:
-        return L"kEventMouseRButtonDown";
+        return _T("kEventMouseRButtonDown");
     case kEventMouseRButtonUp:
-        return L"kEventMouseRButtonUp";
+        return _T("kEventMouseRButtonUp");
     case kEventMouseRDoubleClick:
-        return L"kEventMouseRDoubleClick";
+        return _T("kEventMouseRDoubleClick");
     case kEventMouseMenu:
-        return L"kEventMouseMenu";
+        return _T("kEventMouseMenu");
     case kEventMouseEnd:
-        return L"kEventMouseEnd";
+        return _T("kEventMouseEnd");
     case kEventSetFocus:
-        return L"kEventSetFocus";
+        return _T("kEventSetFocus");
     case kEventKillFocus:
-        return L"kEventKillFocus";
+        return _T("kEventKillFocus");
     case kEventSetCursor:
-        return L"kEventSetCursor";
+        return _T("kEventSetCursor");
     case kEventImeStartComposition:
-        return L"kEventImeStartComposition";
+        return _T("kEventImeStartComposition");
     case kEventImeEndComposition:
-        return L"kEventImeEndComposition";
+        return _T("kEventImeEndComposition");
     case kEventWindowKillFocus:
-        return L"kEventWindowKillFocus";
+        return _T("kEventWindowKillFocus");
     case kEventWindowSize:
-        return L"kEventWindowSize";
+        return _T("kEventWindowSize");
     case kEventWindowMove:
-        return L"kEventWindowMove";
+        return _T("kEventWindowMove");
     case kEventWindowClose:
-        return L"kEventWindowClose";
+        return _T("kEventWindowClose");
     case kEventClick:
-        return L"kEventClick";
+        return _T("kEventClick");
     case kEventRClick:
-        return L"kEventRClick";
+        return _T("kEventRClick");
     case kEventMouseClickChanged:
-        return L"kEventMouseClickChanged";
+        return _T("kEventMouseClickChanged");
     case kEventMouseClickEsc:
-        return L"kEventMouseClickEsc";
+        return _T("kEventMouseClickEsc");
     case kEventSelect:
-        return L"kEventSelect";
+        return _T("kEventSelect");
     case kEventUnSelect:
-        return L"kEventUnSelect";
+        return _T("kEventUnSelect");
     case kEventChecked:
-        return L"kEventChecked";
+        return _T("kEventChecked");
     case kEventUnCheck:
-        return L"kEventUnCheck";
+        return _T("kEventUnCheck");
     case kEventTabSelect:
-        return L"kEventTabSelect";
+        return _T("kEventTabSelect");
     case kEventExpand:
-        return L"kEventExpand";
+        return _T("kEventExpand");
     case kEventCollapse:
-        return L"kEventCollapse";
+        return _T("kEventCollapse");
     case kEventZoom:
-        return L"kEventZoom";
+        return _T("kEventZoom");
     case kEventTextChange:
-        return L"kEventTextChange";
+        return _T("kEventTextChange");
     case kEventSelChange:
-        return L"kEventSelChange";
+        return _T("kEventSelChange");
     case kEventReturn:
-        return L"kEventReturn";
+        return _T("kEventReturn");
     case kEventTab:
-        return L"kEventTab";
+        return _T("kEventTab");
     case kEventLinkClick:
-        return L"kEventLinkClick";
+        return _T("kEventLinkClick");
     case kEventScrollChange:
-        return L"kEventScrollChange";
+        return _T("kEventScrollChange");
     case kEventValueChange:
-        return L"kEventValueChange";
+        return _T("kEventValueChange");
     case kEventResize:
-        return L"kEventResize";
+        return _T("kEventResize");
     case kEventVisibleChange:
-        return L"kEventVisibleChange";
+        return _T("kEventVisibleChange");
     case kEventStateChange:
-        return L"kEventStateChange";
+        return _T("kEventStateChange");
     case kEventSelectColor:
-        return L"kEventSelectColor";
+        return _T("kEventSelectColor");
     case kEventSplitDraged:
-        return L"kEventSplitDraged";
+        return _T("kEventSplitDraged");
     case kEventEnterEdit:
-        return L"kEventEnterEdit";
+        return _T("kEventEnterEdit");
     case kEventLeaveEdit:
-        return L"kEventLeaveEdit";
+        return _T("kEventLeaveEdit");
     case kEventLast:
-        return L"kEventLast";
+        return _T("kEventLast");
     default:
         break;
     }

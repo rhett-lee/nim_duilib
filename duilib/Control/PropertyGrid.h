@@ -55,8 +55,8 @@ public:
     /** 设置是否显示表头
     */
     void SetEnableHeaderCtrl(bool bEnable,
-                             const std::wstring& sLeftColumn = L"", 
-                             const std::wstring& sRightColumn = L"");
+                             const std::wstring& sLeftColumn = _T(""), 
+                             const std::wstring& sRightColumn = _T(""));
     /** 判断当前是否显示表头
     */
     bool IsEnableHeaderCtrl() const { return m_bHeaderCtrl; }
@@ -85,7 +85,7 @@ public:
     * @return 返回该分组的接口，可用于添加属性
     */
     PropertyGridGroup* AddGroup(const std::wstring& groupName, 
-                                const std::wstring& description = L"",
+                                const std::wstring& description = _T(""),
                                 size_t nGroupData = 0);
 
     /** 获取所有的分组
@@ -119,7 +119,7 @@ public:
     PropertyGridTextProperty* AddTextProperty(PropertyGridGroup* pGroup,
                                               const std::wstring& propertyName, 
                                               const std::wstring& propertyValue,
-                                              const std::wstring& description = L"",
+                                              const std::wstring& description = _T(""),
                                               size_t nPropertyData = 0);
 
     /** 增加一个属性(下拉框)
@@ -133,7 +133,7 @@ public:
     PropertyGridComboProperty* AddComboProperty(PropertyGridGroup* pGroup,
                                                 const std::wstring& propertyName, 
                                                 const std::wstring& propertyValue,
-                                                const std::wstring& description = L"",
+                                                const std::wstring& description = _T(""),
                                                 size_t nPropertyData = 0);
 
     /** 增加一个属性(字体名称)
@@ -147,7 +147,7 @@ public:
     PropertyGridFontProperty* AddFontProperty(PropertyGridGroup* pGroup,
                                               const std::wstring& propertyName, 
                                               const std::wstring& propertyValue,
-                                              const std::wstring& description = L"",
+                                              const std::wstring& description = _T(""),
                                               size_t nPropertyData = 0);
 
     /** 增加一个属性(字体大小)
@@ -161,7 +161,7 @@ public:
     PropertyGridFontSizeProperty* AddFontSizeProperty(PropertyGridGroup* pGroup,
                                                       const std::wstring& propertyName, 
                                                       const std::wstring& propertyValue,
-                                                      const std::wstring& description = L"",
+                                                      const std::wstring& description = _T(""),
                                                       size_t nPropertyData = 0);
 
     /** 增加一个属性(颜色)
@@ -175,7 +175,7 @@ public:
     PropertyGridColorProperty* AddColorProperty(PropertyGridGroup* pGroup,
                                                 const std::wstring& propertyName, 
                                                 const std::wstring& propertyValue,
-                                                const std::wstring& description = L"",
+                                                const std::wstring& description = _T(""),
                                                 size_t nPropertyData = 0);
 
     /** 增加一个属性(日期时间)
@@ -190,7 +190,7 @@ public:
     PropertyGridDateTimeProperty* AddDateTimeProperty(PropertyGridGroup* pGroup,
                                                       const std::wstring& propertyName, 
                                                       const std::wstring& dateTimeValue,                                                      
-                                                      const std::wstring& description = L"",
+                                                      const std::wstring& description = _T(""),
                                                       size_t nPropertyData = 0,
                                                       DateTime::EditFormat editFormat = DateTime::EditFormat::kDateCalendar);
     
@@ -205,7 +205,7 @@ public:
     PropertyGridIPAddressProperty* AddIPAddressProperty(PropertyGridGroup* pGroup,
                                                         const std::wstring& propertyName, 
                                                         const std::wstring& propertyValue,
-                                                        const std::wstring& description = L"",
+                                                        const std::wstring& description = _T(""),
                                                         size_t nPropertyData = 0);
 
     /** 增加一个属性(热键)
@@ -219,7 +219,7 @@ public:
     PropertyGridHotKeyProperty* AddHotKeyProperty(PropertyGridGroup* pGroup,
                                                   const std::wstring& propertyName, 
                                                   const std::wstring& propertyValue,
-                                                  const std::wstring& description = L"",
+                                                  const std::wstring& description = _T(""),
                                                   size_t nPropertyData = 0);
 
     /** 增加一个属性(文件路径)
@@ -237,12 +237,12 @@ public:
     PropertyGridFileProperty* AddFileProperty(PropertyGridGroup* pGroup,
                                               const std::wstring& propertyName, 
                                               const std::wstring& propertyValue,                                              
-                                              const std::wstring& description = L"",
+                                              const std::wstring& description = _T(""),
                                               size_t nPropertyData = 0,
                                               bool bOpenFileDialog = true,
                                               const std::vector<FileDialog::FileType>& fileTypes = std::vector<FileDialog::FileType>(),
                                               int32_t nFileTypeIndex = -1,
-                                              const std::wstring& defaultExt = L"");
+                                              const std::wstring& defaultExt = _T(""));
 
     /** 增加一个属性(文件夹)
     * @param [in] pGroup 该属性所属的分组
@@ -255,7 +255,7 @@ public:
     PropertyGridDirectoryProperty* AddDirectoryProperty(PropertyGridGroup* pGroup,
                                                         const std::wstring& propertyName, 
                                                         const std::wstring& propertyValue,
-                                                        const std::wstring& description = L"",
+                                                        const std::wstring& description = _T(""),
                                                         size_t nPropertyData = 0);
 
     /** 设置左侧一列的宽度
@@ -462,7 +462,7 @@ public:
     */
     explicit PropertyGridGroup(Window* pWindow,
                                const std::wstring& groupName,
-                               const std::wstring& description = L"",
+                               const std::wstring& description = _T(""),
                                size_t nGroupData = 0);
 
 public:
@@ -561,7 +561,7 @@ public:
     PropertyGridProperty(Window* pWindow, 
                          const std::wstring& propertyName,
                          const std::wstring& propertyValue,
-                         const std::wstring& description = L"",
+                         const std::wstring& description = _T(""),
                          size_t nPropertyData = 0);
 
 public:
@@ -720,7 +720,7 @@ public:
     PropertyGridTextProperty(Window* pWindow,
                              const std::wstring& propertyName,
                              const std::wstring& propertyValue,
-                             const std::wstring& description = L"",
+                             const std::wstring& description = _T(""),
                              size_t nPropertyData = 0);
 
 public:
@@ -790,7 +790,7 @@ public:
     PropertyGridComboProperty(Window* pWindow, 
                               const std::wstring& propertyName,
                               const std::wstring& propertyValue,
-                              const std::wstring& description = L"",
+                              const std::wstring& description = _T(""),
                               size_t nPropertyData = 0);
 
 public:
@@ -895,7 +895,7 @@ public:
     PropertyGridFontProperty(Window* pWindow,
                              const std::wstring& propertyName,
                              const std::wstring& propertyValue,
-                             const std::wstring& description = L"",
+                             const std::wstring& description = _T(""),
                              size_t nPropertyData = 0);
 
 public:
@@ -936,7 +936,7 @@ public:
     PropertyGridFontSizeProperty(Window* pWindow, 
                                  const std::wstring& propertyName,
                                  const std::wstring& propertyValue,
-                                 const std::wstring& description = L"",
+                                 const std::wstring& description = _T(""),
                                  size_t nPropertyData = 0);
 
 public:
@@ -1009,7 +1009,7 @@ public:
     PropertyGridColorProperty(Window* pWindow, 
                               const std::wstring& propertyName,
                               const std::wstring& propertyValue,
-                              const std::wstring& description = L"",
+                              const std::wstring& description = _T(""),
                               size_t nPropertyData = 0);
 
 
@@ -1074,7 +1074,7 @@ public:
     PropertyGridDateTimeProperty(Window* pWindow, 
                                  const std::wstring& propertyName,
                                  const std::wstring& dateTimeValue,
-                                 const std::wstring& description = L"",
+                                 const std::wstring& description = _T(""),
                                  size_t nPropertyData = 0,
                                  DateTime::EditFormat editFormat = DateTime::EditFormat::kDateCalendar);
 
@@ -1130,7 +1130,7 @@ public:
     PropertyGridIPAddressProperty(Window* pWindow, 
                                   const std::wstring& propertyName,
                                   const std::wstring& propertyValue,
-                                  const std::wstring& description = L"",
+                                  const std::wstring& description = _T(""),
                                   size_t nPropertyData = 0);
 
 
@@ -1177,7 +1177,7 @@ public:
     PropertyGridHotKeyProperty(Window* pWindow, 
                                const std::wstring& propertyName,
                                const std::wstring& propertyValue,
-                               const std::wstring& description = L"",
+                               const std::wstring& description = _T(""),
                                size_t nPropertyData = 0);
 
 
@@ -1228,12 +1228,12 @@ public:
     PropertyGridFileProperty(Window* pWindow, 
                              const std::wstring& propertyName,
                              const std::wstring& propertyValue,
-                             const std::wstring& description = L"",
+                             const std::wstring& description = _T(""),
                              size_t nPropertyData = 0,
                              bool bOpenFileDialog = true,
                              const std::vector<FileDialog::FileType>& fileTypes = std::vector<FileDialog::FileType>(),
                              int32_t nFileTypeIndex = -1,
-                             const std::wstring& defaultExt = L"");
+                             const std::wstring& defaultExt = _T(""));
 
 
 protected:
@@ -1289,7 +1289,7 @@ public:
     PropertyGridDirectoryProperty(Window* pWindow, 
                                   const std::wstring& propertyName,
                                   const std::wstring& propertyValue,
-                                  const std::wstring& description = L"",
+                                  const std::wstring& description = _T(""),
                                   size_t nPropertyData = 0);
 
 

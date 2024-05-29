@@ -17,10 +17,10 @@ void Item::InitSubControls(const std::wstring& img, const std::wstring& title, s
     // 查找 Item 下的控件
     if (control_img_ == nullptr)
     {
-        control_img_ = dynamic_cast<ui::Control*>(FindSubControl(L"control_img"));
-        label_title_ = dynamic_cast<ui::Label*>(FindSubControl(L"label_title"));
-        progress_ = dynamic_cast<ui::Progress*>(FindSubControl(L"progress"));
-        btn_del_ = dynamic_cast<ui::Button*>(FindSubControl(L"btn_del"));
+        control_img_ = dynamic_cast<ui::Control*>(FindSubControl(_T("control_img")));
+        label_title_ = dynamic_cast<ui::Label*>(FindSubControl(_T("label_title")));
+        progress_ = dynamic_cast<ui::Progress*>(FindSubControl(_T("progress")));
+        btn_del_ = dynamic_cast<ui::Button*>(FindSubControl(_T("btn_del")));
         // 模拟进度条进度
         t_time = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
         progress_->SetValue((double)(t_time % 100));
@@ -31,7 +31,7 @@ void Item::InitSubControls(const std::wstring& img, const std::wstring& title, s
     }
 
 
-    label_title_->SetText(ui::StringUtil::Printf(L"%s %d%%", title.c_str(), t_time % 100));
+    label_title_->SetText(ui::StringUtil::Printf(_T("%s %d%%"), title.c_str(), t_time % 100));
     m_nDataIndex = nDataIndex;
 
 }

@@ -2,12 +2,12 @@
 
 namespace nim_comp {
 
-const LPCTSTR Toast::kClassName = L"Toast";
+const LPCTSTR Toast::kClassName = _T("Toast");
 
 void Toast::ShowToast(const std::wstring &content, int duration, HWND parent)
 {
     Toast *toast = new Toast;
-    if (!toast->CreateWnd(parent, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED)) {
+    if (!toast->CreateWnd(parent, _T(""), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED)) {
         delete toast;
         return;
     }
@@ -19,12 +19,12 @@ void Toast::ShowToast(const std::wstring &content, int duration, HWND parent)
 
 std::wstring Toast::GetSkinFolder()
 {
-    return L"toast";
+    return _T("toast");
 }
 
 std::wstring Toast::GetSkinFile()
 {
-    return L"toast.xml";
+    return _T("toast.xml");
 }
 
 std::wstring Toast::GetWindowClassName() const
@@ -78,8 +78,8 @@ void Toast::OnInitWindow()
 {
     GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&Toast::OnClicked, this, std::placeholders::_1));
 
-    content_ = dynamic_cast<ui::RichEdit*>(FindControl(L"content"));
-    close_button_ = dynamic_cast<ui::Button*>(FindControl(L"close_btn"));
+    content_ = dynamic_cast<ui::RichEdit*>(FindControl(_T("content")));
+    close_button_ = dynamic_cast<ui::Button*>(FindControl(_T("close_btn")));
     ASSERT(content_ != nullptr);
     ASSERT(close_button_ != nullptr);
 }
@@ -98,7 +98,7 @@ void Toast::SetDuration(int duration)
 bool Toast::OnClicked(const ui::EventArgs& msg)
 {
     std::wstring name = msg.pSender->GetName();
-    if (name == L"close_btn")
+    if (name == _T("close_btn"))
     {
         this->CloseWnd();
     }

@@ -56,9 +56,9 @@ bool FrameworkThread::RunOnCurrentThreadWithLoop()
     wc.cbSize = sizeof(wc);
     wc.lpfnWndProc = WndMsgProc;
     wc.hInstance = hinst;
-    wc.lpszClassName = L"duilib_FrameworkThread";
+    wc.lpszClassName = _T("duilib_FrameworkThread");
     ::RegisterClassExW(&wc);
-    m_hMessageWnd = ::CreateWindowW(L"duilib_FrameworkThread", 0, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hinst, 0);
+    m_hMessageWnd = ::CreateWindowW(_T("duilib_FrameworkThread"), 0, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hinst, 0);
     ASSERT(m_hMessageWnd != nullptr);
     ::SetWindowLongPtr(m_hMessageWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(this));
 #endif

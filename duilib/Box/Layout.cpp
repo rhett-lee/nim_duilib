@@ -21,17 +21,17 @@ void Layout::SetOwner(Box* pOwner)
 bool Layout::SetAttribute(const std::wstring& strName, const std::wstring& strValue, const DpiManager& dpiManager)
 {
     bool hasAttribute = true;
-    if ((strName == L"child_margin") || (strName == L"childmargin")) {
+    if ((strName == _T("child_margin")) || (strName == _T("childmargin"))) {
         int32_t iMargin = _wtoi(strValue.c_str());
         dpiManager.ScaleInt(iMargin);
         SetChildMargin(iMargin);
     }
-    else if ((strName == L"child_margin_x") || (strName == L"childmarginx")) {
+    else if ((strName == _T("child_margin_x")) || (strName == _T("childmarginx"))) {
         int32_t iMargin = _wtoi(strValue.c_str());
         dpiManager.ScaleInt(iMargin);
         SetChildMarginX(iMargin);
     }
-    else if ((strName == L"child_margin_y") || (strName == L"childmarginy")) {
+    else if ((strName == _T("child_margin_y")) || (strName == _T("childmarginy"))) {
         int32_t iMargin = _wtoi(strValue.c_str());
         dpiManager.ScaleInt(iMargin);
         SetChildMarginY(iMargin);

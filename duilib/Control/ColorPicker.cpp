@@ -11,7 +11,7 @@
 namespace ui
 {
 
-const std::wstring ColorPicker::kClassName = L"ColorPicker";
+const std::wstring ColorPicker::kClassName = _T("ColorPicker");
 
 ColorPicker::ColorPicker():
     m_pNewColor(nullptr),
@@ -29,12 +29,12 @@ ColorPicker::~ColorPicker()
 
 std::wstring ColorPicker::GetSkinFolder()
 {
-    return L"public";
+    return _T("public");
 }
 
 std::wstring ColorPicker::GetSkinFile()
 {
-    return L"color/color_picker.xml";
+    return _T("color/color_picker.xml");
 }
 
 std::wstring ColorPicker::GetWindowClassName() const
@@ -70,16 +70,16 @@ void ColorPicker::AttachWindowClose(const EventCallback& callback)
 
 void ColorPicker::OnInitWindow()
 {
-    m_pNewColor = dynamic_cast<Label*>(FindControl(L"color_picker_new_color"));
-    m_pOldColor = dynamic_cast<Label*>(FindControl(L"color_picker_old_color"));
+    m_pNewColor = dynamic_cast<Label*>(FindControl(_T("color_picker_new_color")));
+    m_pOldColor = dynamic_cast<Label*>(FindControl(_T("color_picker_old_color")));
 
     ASSERT(m_pNewColor != nullptr);
     ASSERT(m_pOldColor != nullptr);
 
-    m_pRegularPicker = dynamic_cast<ColorPickerRegular*>(FindControl(L"color_picker_regular"));
-    m_pStatardPicker = dynamic_cast<ColorPickerStatard*>(FindControl(L"color_picker_standard"));
-    m_pStatardGrayPicker = dynamic_cast<ColorPickerStatardGray*>(FindControl(L"color_picker_standard_gray"));
-    m_pCustomPicker = dynamic_cast<ColorPickerCustom*>(FindControl(L"color_picker_custom"));
+    m_pRegularPicker = dynamic_cast<ColorPickerRegular*>(FindControl(_T("color_picker_regular")));
+    m_pStatardPicker = dynamic_cast<ColorPickerStatard*>(FindControl(_T("color_picker_standard")));
+    m_pStatardGrayPicker = dynamic_cast<ColorPickerStatardGray*>(FindControl(_T("color_picker_standard_gray")));
+    m_pCustomPicker = dynamic_cast<ColorPickerCustom*>(FindControl(_T("color_picker_custom")));
 
     if (m_pRegularPicker != nullptr) {
         m_pRegularPicker->AttachSelectColor([this](const ui::EventArgs& args) {
@@ -116,7 +116,7 @@ void ColorPicker::OnInitWindow()
             });
     }
 
-    TabBox* pTabBox = dynamic_cast<TabBox*>(FindControl(L"color_picker_tab"));
+    TabBox* pTabBox = dynamic_cast<TabBox*>(FindControl(_T("color_picker_tab")));
     if (pTabBox != nullptr) {
         pTabBox->AttachTabSelect([this](const ui::EventArgs& args) {
             UiColor selectedColor;
@@ -152,7 +152,7 @@ void ColorPicker::OnInitWindow()
     }
 
     //确定按钮
-    Button* pButton = dynamic_cast<Button*>(FindControl(L"color_picker_ok"));
+    Button* pButton = dynamic_cast<Button*>(FindControl(_T("color_picker_ok")));
     if (pButton != nullptr) {
         pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
             this->CloseWnd(0);
@@ -160,7 +160,7 @@ void ColorPicker::OnInitWindow()
             });
     }
     //取消按钮
-    pButton = dynamic_cast<Button*>(FindControl(L"color_picker_cancel"));
+    pButton = dynamic_cast<Button*>(FindControl(_T("color_picker_cancel")));
     if (pButton != nullptr) {
         pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
             this->CloseWnd(2);
@@ -169,7 +169,7 @@ void ColorPicker::OnInitWindow()
     }
 
     //选择：屏幕取色
-    pButton = dynamic_cast<Button*>(FindControl(L"color_picker_choose"));
+    pButton = dynamic_cast<Button*>(FindControl(_T("color_picker_choose")));
     if (pButton != nullptr) {
         pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
             OnPickColorFromScreen();
@@ -397,7 +397,7 @@ private:
     virtual bool OnSetCursor(const EventArgs& /*msg*/) override
     {
         if (m_hCursor == nullptr) {
-            std::wstring cursorPath = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), L"public\\color\\dropcur.cur");
+            std::wstring cursorPath = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), _T("public\\color\\dropcur.cur"));
             m_hCursor = (HCURSOR)::LoadImage(NULL, cursorPath.c_str(), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
         }
         if (m_hCursor != nullptr) {
@@ -467,7 +467,7 @@ private:
             //设置文本
             std::wstring text = m_pColorPreview->GetColorString(selColor);
             m_pColorPreview->SetText(text);
-            m_pColorPreview->SetAttribute(L"text_align", L"hcenter,vcenter");
+            m_pColorPreview->SetAttribute(_T("text_align"), _T("hcenter,vcenter"));
             m_pColorPreview->SetTextPadding(UiPadding(0, m_pColorPreview->GetHeight() / 2, 0, 0), false);
             //设置文本颜色
             UiColor textColor = UiColor(255 - selColor.GetR(), 255 - selColor.GetG(), 255 - selColor.GetB());
@@ -611,9 +611,9 @@ public:
      * GetSkinFile            接口设置你要绘制的窗口的 xml 描述文件
      * GetWindowClassName    接口设置窗口唯一的类名称
      */
-    virtual std::wstring GetSkinFolder() override { return L"public";}
-    virtual std::wstring GetSkinFile() override { return L"color/screen_color_picker.xml"; }
-    virtual std::wstring GetWindowClassName() const override { return L"ScreenColorPicker"; }
+    virtual std::wstring GetSkinFolder() override { return _T("public");}
+    virtual std::wstring GetSkinFile() override { return _T("color/screen_color_picker.xml"); }
+    virtual std::wstring GetWindowClassName() const override { return _T("ScreenColorPicker"); }
 
     /** 当要创建的控件不是标准的控件名称时会调用该函数
     * @param [in] strClass 控件名称
@@ -621,7 +621,7 @@ public:
     */
     virtual Control* CreateControl(const std::wstring& strClass)
     {
-        if (strClass == L"ScreenColorPicker") {
+        if (strClass == _T("ScreenColorPicker")) {
             if (m_pScreenColorPicker == nullptr) {
                 m_pScreenColorPicker = new ScreenColorPicker(this);
                 if (m_spBitmap != nullptr) {
@@ -631,7 +631,7 @@ public:
             }
             return m_pScreenColorPicker;
         }
-        else if (strClass == L"ScreenColorPreview") {
+        else if (strClass == _T("ScreenColorPreview")) {
             ScreenColorPreview* pScreenColorPreview = new ScreenColorPreview(this);
             if (m_pScreenColorPicker != nullptr) {
                 m_pScreenColorPicker->SetColorPreview(pScreenColorPreview);
@@ -651,7 +651,7 @@ public:
 
     /** 窗口类名
     */
-    static std::wstring ClassName() { return L"ScreenColorPicker"; }
+    static std::wstring ClassName() { return _T("ScreenColorPicker"); }
 
     /** 抓取屏幕位图
     */
@@ -764,7 +764,7 @@ private:
 void ColorPicker::OnPickColorFromScreen()
 {
     bool bHideWindow = true;
-    CheckBox* pCheckBox = dynamic_cast<CheckBox*>(FindControl(L"color_picker_choose_hide"));
+    CheckBox* pCheckBox = dynamic_cast<CheckBox*>(FindControl(_T("color_picker_choose_hide")));
     if (pCheckBox != nullptr) {
         bHideWindow = pCheckBox->IsSelected();
     }

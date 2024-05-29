@@ -27,87 +27,87 @@ std::wstring RichText::GetType() const { return DUI_CTR_RICHTEXT; }
 
 void RichText::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"text_align") {
-        if (strValue.find(L"left") != std::wstring::npos) {
+    if (strName == _T("text_align")) {
+        if (strValue.find(_T("left")) != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
             m_uTextStyle |= TEXT_LEFT;
         }
-        if (strValue.find(L"hcenter") != std::wstring::npos) {
+        if (strValue.find(_T("hcenter")) != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_LEFT | TEXT_RIGHT);
             m_uTextStyle |= TEXT_CENTER;
         }
-        if (strValue.find(L"right") != std::wstring::npos) {
+        if (strValue.find(_T("right")) != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_LEFT | TEXT_CENTER);
             m_uTextStyle |= TEXT_RIGHT;
         }
-        if (strValue.find(L"top") != std::wstring::npos) {
+        if (strValue.find(_T("top")) != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_BOTTOM | TEXT_VCENTER);
             m_uTextStyle |= TEXT_TOP;
         }
-        if (strValue.find(L"vcenter") != std::wstring::npos) {
+        if (strValue.find(_T("vcenter")) != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_TOP | TEXT_BOTTOM);
             m_uTextStyle |= TEXT_VCENTER;
         }
-        if (strValue.find(L"bottom") != std::wstring::npos) {
+        if (strValue.find(_T("bottom")) != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_TOP | TEXT_VCENTER);
             m_uTextStyle |= TEXT_BOTTOM;
         }
         m_textData.clear();
     }    
-    else if (strName == L"font") {
+    else if (strName == _T("font")) {
         SetFontId(strValue);
     }
-    else if (strName == L"text_color") {
+    else if (strName == _T("text_color")) {
         SetTextColor(strValue);
     }    
-    else if ((strName == L"text_padding") || (strName == L"textpadding")) {
+    else if ((strName == _T("text_padding")) || (strName == _T("textpadding"))) {
         UiPadding rcTextPadding;
         AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
         SetTextPadding(rcTextPadding);
     }
-    else if (strName == L"row_spacing_mul") {
+    else if (strName == _T("row_spacing_mul")) {
         SetRowSpacingMul(wcstof(strValue.c_str(), nullptr));
     }
-    else if (strName == L"default_link_font_color") {
+    else if (strName == _T("default_link_font_color")) {
         //超级链接：常规文本颜色值
         m_linkNormalTextColor = strValue;
     }
-    else if (strName == L"hover_link_font_color") {
+    else if (strName == _T("hover_link_font_color")) {
         //超级链接：Hover状态文本颜色值
         m_linkHoverTextColor = strValue;
     }
-    else if (strName == L"mouse_down_link_font_color") {
+    else if (strName == _T("mouse_down_link_font_color")) {
         //超级链接：鼠标按下状态文本颜色值
         m_linkMouseDownTextColor = strValue;
     }
-    else if (strName == L"link_font_underline") {
+    else if (strName == _T("link_font_underline")) {
         //超级链接：是否使用带下划线的字体
-        m_bLinkUnderlineFont = (strValue == L"true");
+        m_bLinkUnderlineFont = (strValue == _T("true"));
     }
-    else if (strName == L"text") {
+    else if (strName == _T("text")) {
         //允许使用'{'代替'<'，'}'代替'>'
-        if (((strValue.find(L'<') == std::wstring::npos) && (strValue.find(L'>') == std::wstring::npos)) &&
-            ((strValue.find(L'{') != std::wstring::npos) && (strValue.find(L'}') != std::wstring::npos))) {
+        if (((strValue.find(_T('<')) == std::wstring::npos) && (strValue.find(_T('>')) == std::wstring::npos)) &&
+            ((strValue.find(_T('{')) != std::wstring::npos) && (strValue.find(_T('}')) != std::wstring::npos))) {
             std::wstring richText(strValue);
-            StringUtil::ReplaceAll(L"{", L"<", richText);
-            StringUtil::ReplaceAll(L"}", L">", richText);
+            StringUtil::ReplaceAll(_T("{"), _T("<"), richText);
+            StringUtil::ReplaceAll(_T("}"), _T(">"), richText);
             SetText(richText);
         }
         else {
             SetText(strValue);
         }        
     }
-    else if ((strName == L"text_id") || (strName == L"textid")) {
+    else if ((strName == _T("text_id")) || (strName == _T("textid"))) {
         SetTextId(strValue);
     }
-    else if (strName == L"trim_policy") {
-        if (strValue == L"all") {
+    else if (strName == _T("trim_policy")) {
+        if (strValue == _T("all")) {
             m_trimPolicy = TrimPolicy::kAll;
         }
-        else if (strValue == L"none") {
+        else if (strValue == _T("none")) {
             m_trimPolicy = TrimPolicy::kNone;
         }
-        else if (strValue == L"keep_one") {
+        else if (strValue == _T("keep_one")) {
             m_trimPolicy = TrimPolicy::kKeepOne;
         }
         else {
@@ -446,18 +446,18 @@ const std::wstring& RichText::TrimText(std::wstring& text)
     else if (m_trimPolicy == TrimPolicy::kKeepOne) {
         //只保留一个空格
         if (!text.empty()) {
-            bool bFirst = (text.front() == L' ');
-            bool bLast = text[text.size() - 1] == L' ';
+            bool bFirst = (text.front() == _T(' '));
+            bool bLast = text[text.size() - 1] == _T(' ');
             StringUtil::Trim(text);
             if (text.empty()) {
-                text = L" ";
+                text = _T(" ");
             }
             else {
                 if (bFirst) {
-                    text = L" " + text;
+                    text = _T(" ") + text;
                 }
                 else if (bLast) {
-                    text += L" ";
+                    text += _T(" ");
                 }
             }
         }
@@ -500,8 +500,8 @@ bool RichText::DoSetText(const std::wstring& richText)
     //XML解析的内容，全部封装在WindowBuilder这个类中，以避免到处使用XML解析器，从而降低代码维护复杂度
     bool bResult = true;
     if (!richText.empty()) {
-        if (richText.find(L"<RichText") == std::wstring::npos) {
-            std::wstring formatedText = L"<RichText>" + richText + L"</RichText>";
+        if (richText.find(_T("<RichText")) == std::wstring::npos) {
+            std::wstring formatedText = _T("<RichText>") + richText + _T("</RichText>");
             bResult = WindowBuilder::ParseRichTextXmlText(formatedText, this);
         }
         else {
@@ -601,14 +601,14 @@ void RichText::AppendTextSlice(const RichTextSlice& textSlice)
 
 std::wstring RichText::ToString() const
 {
-    const std::wstring indentValue = L"    ";
-    const std::wstring lineBreak = L"\r\n";
-    std::wstring richText = L"<RichText>";
+    const std::wstring indentValue = _T("    ");
+    const std::wstring lineBreak = _T("\r\n");
+    std::wstring richText = _T("<RichText>");
     richText += lineBreak;
     for (const RichTextSlice& textSlice : m_textSlice) {
         richText += ToString(textSlice, indentValue);
     }
-    richText += L"</RichText>";
+    richText += _T("</RichText>");
     return richText;
 }
 
@@ -616,7 +616,7 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
 {
     // 支持的标签列表(兼容HTML的标签):
     // 
-    // 超级链接：    <a href="URL">文本</a>
+    // 超级链接：   <a href="URL">文本</a>
     // 粗体字:      <b> </b>
     // 斜体字:      <i> </i>
     // 删除字:      <s> </s> 或 <del> </del> 或者 <strike> </strike>
@@ -624,8 +624,8 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
     // 设置背景色:  <bgcolor color="#000000"> </bgcolor>
     // 设置字体:    <font face="宋体" size="12" color="#000000">
     // 换行标签：   <br/>
-    const std::wstring indentValue = L"    ";
-    const std::wstring lineBreak = L"\r\n";
+    const std::wstring indentValue = _T("    ");
+    const std::wstring lineBreak = _T("\r\n");
     std::wstring richText;
     if (textSlice.m_nodeName.empty()) {
         if (!textSlice.m_text.empty()) {
@@ -640,42 +640,42 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
     //生成属性列表
     std::wstring attrList;    
     if (!textSlice.m_linkUrl.empty()) {
-        attrList += L"href=\"";
+        attrList += _T("href=\"");
         std::wstring url = textSlice.m_linkUrl.c_str();
         attrList += textSlice.m_linkUrl.c_str();
-        attrList += L"\"";
+        attrList += _T("\"");
     }
     if (!textSlice.m_bgColor.empty()) {
-        attrList += L"color=\"";
+        attrList += _T("color=\"");
         attrList += textSlice.m_bgColor.c_str();
-        attrList += L"\"";
+        attrList += _T("\"");
     }
     if (!textSlice.m_textColor.empty()) {
-        attrList += L"color=\"";
+        attrList += _T("color=\"");
         attrList += textSlice.m_textColor.c_str();
-        attrList += L"\"";
+        attrList += _T("\"");
     }
     if (!textSlice.m_fontInfo.m_fontName.empty()) {
-        attrList += L"face=\"";
+        attrList += _T("face=\"");
         attrList += textSlice.m_fontInfo.m_fontName;
-        attrList += L"\"";
+        attrList += _T("\"");
     }
     if (textSlice.m_fontInfo.m_fontSize != 0) {
-        attrList += L"size=\"";
-        attrList += StringUtil::Printf(L"%d", textSlice.m_fontInfo.m_fontSize);
-        attrList += L"\"";
+        attrList += _T("size=\"");
+        attrList += StringUtil::Printf(_T("%d"), textSlice.m_fontInfo.m_fontSize);
+        attrList += _T("\"");
     }
 
     if(!textSlice.m_childs.empty()) {
         //有子节点：节点开始
         richText += indent;
-        richText += L"<";
+        richText += _T("<");
         richText += textSlice.m_nodeName.c_str();
         if (!attrList.empty()) {
-            richText += L" ";
+            richText += _T(" ");
             richText += attrList;
         }
-        richText += L">";
+        richText += _T(">");
         richText += lineBreak;
 
         //添加子节点
@@ -685,41 +685,41 @@ std::wstring RichText::ToString(const RichTextSlice& textSlice, const std::wstri
 
         //节点结束
         richText += indent;
-        richText += L"</";
+        richText += _T("</");
         richText += textSlice.m_nodeName.c_str();
-        richText += L">";
+        richText += _T(">");
         richText += lineBreak;
     }
     else if (!textSlice.m_linkUrl.empty()) {
         //超级链接节点：需要特殊处理
         richText += indent;
-        richText += L"<";
+        richText += _T("<");
         richText += textSlice.m_nodeName.c_str();
         if (!attrList.empty()) {
-            richText += L" ";
+            richText += _T(" ");
             richText += attrList;
         }
-        richText += L">";
+        richText += _T(">");
 
         //添加超链接的文本
         richText += textSlice.m_text.c_str();
 
         //节点结束
-        richText += L"</";
+        richText += _T("</");
         richText += textSlice.m_nodeName.c_str();
-        richText += L">";
+        richText += _T(">");
         richText += lineBreak;
     }
     else {
         //没有子节点：放一行中表示
         richText += indent;
-        richText += L"<";
+        richText += _T("<");
         richText += textSlice.m_nodeName.c_str();
-        richText += L" ";
+        richText += _T(" ");
         if (!attrList.empty()) {            
             richText += attrList;
         }
-        richText += L"/>";
+        richText += _T("/>");
         richText += lineBreak;
     }
     return richText;
@@ -803,7 +803,7 @@ bool RichText::MouseMove(const EventArgs& msg)
         }
     }
     if (!bOnLinkUrl) {
-        SetToolTipText(L"");
+        SetToolTipText(_T(""));
     }
     return bRet;
 }
@@ -825,7 +825,7 @@ bool RichText::MouseHover(const EventArgs& msg)
         }        
     }
     if (!hasHover) {
-        SetToolTipText(L"");
+        SetToolTipText(_T(""));
     }
     return bRet;
 }

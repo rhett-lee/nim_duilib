@@ -19,7 +19,7 @@ namespace nim_comp
 // 这样操作之后就不会出现菜单无法关闭的bug了，虽然不知道为什么但是bug解决了
 void FixContextMenuBug(HWND hwnd)
 {
-    ::CreateWindow(L"Static", L"", WS_CHILD, 0, 0, 0, 0, hwnd, NULL, NULL, NULL);
+    ::CreateWindow(_T("Static"), _T(""), WS_CHILD, 0, 0, 0, 0, hwnd, NULL, NULL, NULL);
     ::PostMessage(hwnd, WM_CLOSE, 0, 0);
 }
 
@@ -48,29 +48,29 @@ void CefManager::AddCefDllToPath()
 #endif
 
     TCHAR path_envirom[4096] = { 0 };
-    GetEnvironmentVariable(L"path", path_envirom, 4096);
+    GetEnvironmentVariable(_T("path"), path_envirom, 4096);
     
     std::wstring cef_path = ui::PathUtil::GetCurrentModuleDirectory();
 
 #ifdef _WIN64
-    cef_path += L"cef_x64";
+    cef_path += _T("cef_x64");
 #else
-    cef_path += L"cef";
+    cef_path += _T("cef");
 #endif
 
     if (!ui::PathUtil::FilePathIsExist(cef_path, true))
     {
-        MessageBox(NULL, L"请解压Cef.rar压缩包", L"提示", MB_OK);
+        MessageBox(NULL, _T("请解压Cef.rar压缩包"), _T("提示"), MB_OK);
         exit(0);
     }
     std::wstring new_envirom(cef_path);
-    new_envirom.append(L";").append(path_envirom);
-    SetEnvironmentVariable(L"path", new_envirom.c_str());
+    new_envirom.append(_T(";")).append(path_envirom);
+    SetEnvironmentVariable(_T("path"), new_envirom.c_str());
 
     // 解决播放flash弹出黑框的问题
     // https://blog.csdn.net/zhuhongshu/article/details/77482985
-    std::wstring cmd_path = cef_path + L"\\dummy_cmd.exe";
-    SetEnvironmentVariable(L"ComSpec", cmd_path.c_str());
+    std::wstring cmd_path = cef_path + _T("\\dummy_cmd.exe");
+    SetEnvironmentVariable(_T("ComSpec"), cmd_path.c_str());
 }
 
 // Cef的初始化接口，同时备注了使用各个版本的Cef时遇到的各种坑
@@ -100,7 +100,7 @@ bool CefManager::Initialize(const std::wstring& app_data_dir, CefSettings &setti
     
     if (is_enable_offset_render_)
     {
-        HWND hwnd = CreateWindow(L"Static", L"", WS_POPUP, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
+        HWND hwnd = CreateWindow(_T("Static"), _T(""), WS_POPUP, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
         CefPostTask(TID_UI, base::Bind(&FixContextMenuBug, hwnd));
     }
 
@@ -207,10 +207,10 @@ void CefManager::GetCefSetting(const std::wstring& app_data_dir, CefSettings &se
     settings.no_sandbox = true;
 
     // 设置localstorage，不要在路径末尾加"\\"，否则运行时会报错
-    CefString(&settings.cache_path) = app_data_dir + L"CefLocalStorage";
+    CefString(&settings.cache_path) = app_data_dir + _T("CefLocalStorage");
 
     // 设置debug log文件位置
-    CefString(&settings.log_file) = app_data_dir + L"cef.log";
+    CefString(&settings.log_file) = app_data_dir + _T("cef.log");
 
     // 调试模型下使用单进程，但是千万不要在release发布版本中使用，官方已经不推荐使用单进程模式
     // cef1916版本debug模式:在单进程模式下程序退出时会触发中断

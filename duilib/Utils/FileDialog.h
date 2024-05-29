@@ -48,7 +48,7 @@ public:
                        bool bOpenFileDialog, 
                        const std::vector<FileType>& fileTypes = std::vector<FileType>(),
                        int32_t nFileTypeIndex = -1,
-                       const std::wstring& defaultExt = L"");
+                       const std::wstring& defaultExt = _T(""));
 
     /** 选择文件（多选）
     * @param [in] pWindow 父窗口
@@ -61,7 +61,7 @@ public:
                         std::vector<std::wstring>& filePaths,                        
                         const std::vector<FileType>& fileTypes = std::vector<FileType>(),
                         int32_t nFileTypeIndex = -1,
-                        const std::wstring& defaultExt = L"");
+                        const std::wstring& defaultExt = _T(""));
 
 };
 

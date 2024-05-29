@@ -1,6 +1,6 @@
 #include "MainForm.h"
 
-const std::wstring MainForm::kClassName = L"MultiLang";
+const std::wstring MainForm::kClassName = _T("MultiLang");
 
 MainForm::MainForm()
 {
@@ -13,12 +13,12 @@ MainForm::~MainForm()
 
 std::wstring MainForm::GetSkinFolder()
 {
-    return L"MultiLang";
+    return _T("MultiLang");
 }
 
 std::wstring MainForm::GetSkinFile()
 {
-    return L"MultiLang.xml";
+    return _T("MultiLang.xml");
 }
 
 std::wstring MainForm::GetWindowClassName() const
@@ -31,7 +31,7 @@ void MainForm::OnInitWindow()
     //窗口初始化完成，可以进行本Form的初始化
 
     /* Show select language menu */
-    ui::Button* select = static_cast<ui::Button*>(FindControl(L"language"));
+    ui::Button* select = static_cast<ui::Button*>(FindControl(_T("language")));
     ASSERT(select != nullptr);
     if (select == nullptr) {
         return;
@@ -59,7 +59,7 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
     ui::Menu* menu = new ui::Menu(GetHWND());//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
     //设置菜单xml所在的目录
     menu->SetSkinFolder(GetResourcePath());
-    std::wstring xml(L"lang_menu.xml");
+    std::wstring xml(_T("lang_menu.xml"));
     menu->ShowMenu(xml, point);
 
     //当前语言文件
@@ -69,7 +69,7 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
     std::vector<std::pair<std::wstring, std::wstring>> languageList;
     ui::GlobalManager::Instance().GetLanguageList(languageList);
     if (languageList.empty()) {
-        languageList.push_back({ currentLangFileName , L""});
+        languageList.push_back({ currentLangFileName , _T("")});
     }
 
     //动态添加菜单项
@@ -78,10 +78,10 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
         std::wstring& displayName = lang.second;
 
         ui::MenuItem* pMenuItem = new ui::MenuItem(this);
-        pMenuItem->SetClass(L"menu_element");
+        pMenuItem->SetClass(_T("menu_element"));
         ui::CheckBox* pCheckBox = new ui::CheckBox(this);
-        pCheckBox->SetClass(L"menu_checkbox");
-        pCheckBox->SetAttribute(L"margin", L"0,5,0,10");
+        pCheckBox->SetClass(_T("menu_checkbox"));
+        pCheckBox->SetAttribute(_T("margin"), _T("0,5,0,10"));
         pCheckBox->SetText(!displayName.empty() ? displayName : fileName);
         pMenuItem->AddItem(pCheckBox);
         menu->AddMenuItem(pMenuItem);
@@ -95,7 +95,7 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
             //切换语言
             ui::GlobalManager& globalManager = ui::GlobalManager::Instance();
             if (globalManager.GetLanguageFileName() != fileName) {
-                globalManager.ReloadLanguage(L"", fileName, true);
+                globalManager.ReloadLanguage(_T(""), fileName, true);
             }            
             return true;
             });

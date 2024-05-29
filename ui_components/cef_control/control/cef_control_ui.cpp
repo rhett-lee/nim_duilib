@@ -71,7 +71,7 @@ void CefControl::ReCreateBrowser()
         CefBrowserSettings browser_settings;
         //browser_settings.file_access_from_file_urls = STATE_ENABLED;
         //browser_settings.universal_access_from_file_urls = STATE_ENABLED;
-        CefBrowserHost::CreateBrowser(window_info, browser_handler_, L"", browser_settings, NULL);
+        CefBrowserHost::CreateBrowser(window_info, browser_handler_, _T(""), browser_settings, NULL);
     }    
 }
 

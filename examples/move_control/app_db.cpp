@@ -18,89 +18,89 @@ bool CAppDb::LoadFromDb(std::vector<AppItem>& app_list)
     {
         AppItem item;
         item.m_id = "1";
-        item.m_icon = L"1.png";
+        item.m_icon = _T("1.png");
         item.m_isFrequent = false;
-        item.m_name = L"城市服务";
+        item.m_name = _T("城市服务");
         app_list.emplace_back(item);
     }
     {
         AppItem item;
         item.m_id = "2";
-        item.m_icon = L"2.png";
+        item.m_icon = _T("2.png");
         item.m_isFrequent = false;
-        item.m_name = L"天气预报";
+        item.m_name = _T("天气预报");
         app_list.emplace_back(item);
     }
     {
         AppItem item;
         item.m_id = "3";
-        item.m_icon = L"3.png";
+        item.m_icon = _T("3.png");
         item.m_isFrequent = true;
-        item.m_name = L"考勤";
+        item.m_name = _T("考勤");
         app_list.emplace_back(item);
     }
     {
         AppItem item;
         item.m_id = "4";
-        item.m_icon = L"4.png";
+        item.m_icon = _T("4.png");
         item.m_isFrequent = true;
-        item.m_name = L"工资单";
+        item.m_name = _T("工资单");
         app_list.emplace_back(item);
     }
     {
         AppItem item;
         item.m_id = "5";
-        item.m_icon = L"5.png";
+        item.m_icon = _T("5.png");
         item.m_isFrequent = false;
-        item.m_name = L"测试5";
+        item.m_name = _T("测试5");
         app_list.emplace_back(item);
     }
     {
         AppItem item;
         item.m_id = "6";
-        item.m_icon = L"5.png";
+        item.m_icon = _T("5.png");
         item.m_isFrequent = false;
-        item.m_name = L"测试6";
+        item.m_name = _T("测试6");
         app_list.emplace_back(item);
     }
     {
         AppItem item;
         item.m_id = "7";
-        item.m_icon = L"5.png";
+        item.m_icon = _T("5.png");
         item.m_isFrequent = false;
-        item.m_name = L"测试7";
+        item.m_name = _T("测试7");
         app_list.emplace_back(item);
     }
     {
         AppItem item;
         item.m_id = "8";
-        item.m_icon = L"5.png";
+        item.m_icon = _T("5.png");
         item.m_isFrequent = false;
-        item.m_name = L"测试8";
+        item.m_name = _T("测试8");
         app_list.emplace_back(item);
     }
     {
         AppItem item;
         item.m_id = "9";
-        item.m_icon = L"5.png";
+        item.m_icon = _T("5.png");
         item.m_isFrequent = false;
-        item.m_name = L"测试9";
+        item.m_name = _T("测试9");
         app_list.emplace_back(item);
     }
     {
         AppItem item;
         item.m_id = "10";
-        item.m_icon = L"5.png";
+        item.m_icon = _T("5.png");
         item.m_isFrequent = false;
-        item.m_name = L"测试10";
+        item.m_name = _T("测试10");
         app_list.emplace_back(item);
     }
     {
         AppItem item;
         item.m_id = "11";
-        item.m_icon = L"5.png";
+        item.m_icon = _T("5.png");
         item.m_isFrequent = false;
-        item.m_name = L"测试11";
+        item.m_name = _T("测试11");
         app_list.emplace_back(item);
     }
     

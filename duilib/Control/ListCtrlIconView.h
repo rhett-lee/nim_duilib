@@ -20,7 +20,7 @@ public:
     ListCtrlIconView(Window* pWindow, bool bListMode);
     virtual ~ListCtrlIconView();
 
-    virtual std::wstring GetType() const override { return L"ListCtrlIconView"; }
+    virtual std::wstring GetType() const override { return _T("ListCtrlIconView"); }
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue);
     virtual void HandleEvent(const EventArgs& msg) override;
 

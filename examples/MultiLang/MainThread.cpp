@@ -44,25 +44,25 @@ void MainThread::OnInit()
     if (resType == ui::ResourceType::kLocalFiles) {
         //使用本地文件夹作为资源
         std::wstring resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
-        resourcePath += L"resources\\";
+        resourcePath += _T("resources\\");
         ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
     }
     else if (resType == ui::ResourceType::kZipFile) {
         //使用本地zip压缩包作为资源（压缩包位于exe相同目录）    
         ui::ZipFileResParam resParam;
-        resParam.resourcePath = L"resources\\";
+        resParam.resourcePath = _T("resources\\");
         resParam.zipFilePath = ui::PathUtil::GetCurrentModuleDirectory();
-        resParam.zipFilePath += L"resources.zip";
+        resParam.zipFilePath += _T("resources.zip");
         resParam.zipPassword = "";
         ui::GlobalManager::Instance().Startup(resParam);
     }
     else if (resType == ui::ResourceType::kResZipFile) {
         //使用exe资源文件中的zip压缩包
         ui::ResZipFileResParam resParam;
-        resParam.resourcePath = L"resources\\";
+        resParam.resourcePath = _T("resources\\");
         resParam.hResModule = nullptr;
         resParam.resourceName = MAKEINTRESOURCE(IDR_THEME);
-        resParam.resourceType = L"THEME";
+        resParam.resourceType = _T("THEME");
         resParam.zipPassword = "";
         ui::GlobalManager::Instance().Startup(resParam);
     }

@@ -209,8 +209,8 @@ void CFHtmlToHtml(const std::string& cf_html,
   }
 }
 
-const DWORD moz_url_format = ::RegisterClipboardFormat(L"text/x-moz-url");
-const DWORD html_format = ::RegisterClipboardFormat(L"HTML Format");
+const DWORD moz_url_format = ::RegisterClipboardFormat(_T("text/x-moz-url"));
+const DWORD html_format = ::RegisterClipboardFormat(_T("HTML Format"));
 const DWORD file_desc_format =
     ::RegisterClipboardFormat(CFSTR_FILEDESCRIPTOR);
 const DWORD file_contents_format =

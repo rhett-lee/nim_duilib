@@ -15,13 +15,13 @@ std::wstring TabCtrl::GetType() const { return DUI_CTR_TAB_CTRL; }
 
 void TabCtrl::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"selected_id") {
+    if (strName == _T("selected_id")) {
         int32_t nValue = _wtoi(strValue.c_str());
         if (nValue >= 0) {
             m_nSelectedId = nValue;
         }
     }
-    else if (strName == L"tab_box_name") {
+    else if (strName == _T("tab_box_name")) {
         //绑定的TabBox控件名称，绑定后TabCtrl的选择项变化时，TabBox的选择项会跟随变化
         SetTabBoxName(strValue);
     }
@@ -216,44 +216,44 @@ std::wstring TabCtrlItem::GetType() const { return DUI_CTR_TAB_CTRL_ITEM; }
 
 void TabCtrlItem::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"tab_box_item_index") {
+    if (strName == _T("tab_box_item_index")) {
         SetTabBoxItemIndex((size_t)_wtoi(strValue.c_str()));
     }
-    else if (strName == L"title") {
+    else if (strName == _T("title")) {
         SetTitle(strValue);
     }
-    else if (strName == L"icon") {
+    else if (strName == _T("icon")) {
         SetIcon(strValue);
     }
-    else if (strName == L"icon_class") {
+    else if (strName == _T("icon_class")) {
         SetIconClass(strValue);
     }
-    else if (strName == L"title_class") {
+    else if (strName == _T("title_class")) {
         SetTitleClass(strValue);
     }
-    else if (strName == L"close_button_class") {
+    else if (strName == _T("close_button_class")) {
         SetCloseButtonClass(strValue);
     }
-    else if (strName == L"line_class") {
+    else if (strName == _T("line_class")) {
         SetLineClass(strValue);
     }
-    else if (strName == L"selected_round_corner") {
+    else if (strName == _T("selected_round_corner")) {
         UiSize sz;
         AttributeUtil::ParseSizeValue(strValue.c_str(), sz);
         SetSelectedRoundCorner(sz, true);
     }
-    else if (strName == L"hot_round_corner") {
+    else if (strName == _T("hot_round_corner")) {
         UiSize sz;
         AttributeUtil::ParseSizeValue(strValue.c_str(), sz);
         SetHotRoundCorner(sz, true);
     }
-    else if (strName == L"hot_padding") {
+    else if (strName == _T("hot_padding")) {
         UiPadding rcPadding;
         AttributeUtil::ParsePaddingValue(strValue.c_str(), rcPadding);
         SetHotPadding(rcPadding, true);
     }
-    else if (strName == L"auto_hide_close_button") {
-        SetAutoHideCloseButton(strValue == L"true");
+    else if (strName == _T("auto_hide_close_button")) {
+        SetAutoHideCloseButton(strValue == _T("true"));
     }
     else {
         __super::SetAttribute(strName, strValue);

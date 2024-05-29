@@ -52,7 +52,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     m_iOldSel = m_pOwner->GetCurSel();
     m_editText = m_pOwner->GetText();
     m_bIsClosed = false;
-    CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW);
+    CreateWnd(pOwner->GetWindow()->GetHWND(), _T(""), WS_POPUP, WS_EX_TOOLWINDOW);
     UpdateComboWnd();
     if (bActivated) {
         HWND hWndParent = GetHWND();
@@ -128,7 +128,7 @@ void CComboWnd::UpdateComboWnd()
 
 std::wstring CComboWnd::GetWindowClassName() const
 {
-    return L"ComboWnd";
+    return _T("ComboWnd");
 }
 
 void CComboWnd::OnFinalMessage()
@@ -267,37 +267,37 @@ std::wstring Combo::GetType() const { return DUI_CTR_COMBO; }
 
 void Combo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"combo_type") {
-        if (strValue == L"drop_list") {
+    if (strName == _T("combo_type")) {
+        if (strValue == _T("drop_list")) {
             SetComboType(kCombo_DropList);
         }
-        else if (strValue == L"drop_down") {
+        else if (strValue == _T("drop_down")) {
             SetComboType(kCombo_DropDown);
         }
     }
-    else if ((strName == L"dropbox_size") || (strName == L"dropboxsize") ) {
+    else if ((strName == _T("dropbox_size")) || (strName == _T("dropboxsize")) ) {
         //设置下拉列表的大小（宽度和高度）
         UiSize szDropBoxSize;
         AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
         SetDropBoxSize(szDropBoxSize, true);
     }
-    else if ((strName == L"popup_top") || (strName == L"popuptop")) {
+    else if ((strName == _T("popup_top")) || (strName == _T("popuptop"))) {
         //下拉列表是否向上弹出
-        SetPopupTop(strValue == L"true");
+        SetPopupTop(strValue == _T("true"));
     }
-    else if (strName == L"combo_tree_view_class") {
+    else if (strName == _T("combo_tree_view_class")) {
         SetComboTreeClass(strValue);
     }
-    else if (strName == L"combo_tree_node_class") {
+    else if (strName == _T("combo_tree_node_class")) {
         SetComboTreeNodeClass(strValue);
     }
-    else if (strName == L"combo_icon_class") {
+    else if (strName == _T("combo_icon_class")) {
         SetIconControlClass(strValue);
     }
-    else if (strName == L"combo_edit_class") {
+    else if (strName == _T("combo_edit_class")) {
         SetEditControlClass(strValue);
     }
-    else if (strName == L"combo_button_class") {
+    else if (strName == _T("combo_button_class")) {
         SetButtonControlClass(strValue);
     }
     else {
@@ -397,13 +397,13 @@ void Combo::ParseAttributeList(const std::wstring& strList,
     }
     std::wstring strValue = strList;
     //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
-    StringUtil::ReplaceAll(L"{", L"\"", strValue);
-    StringUtil::ReplaceAll(L"}", L"\"", strValue);
-    if (strValue.find(L"\"") != std::wstring::npos) {
-        AttributeUtil::ParseAttributeList(strValue, L'\"', attributeList);
+    StringUtil::ReplaceAll(_T("{"), _T("\""), strValue);
+    StringUtil::ReplaceAll(_T("}"), _T("\""), strValue);
+    if (strValue.find(_T("\"")) != std::wstring::npos) {
+        AttributeUtil::ParseAttributeList(strValue, _T('\"'), attributeList);
     }
-    else if (strValue.find(L"\'") != std::wstring::npos) {
-        AttributeUtil::ParseAttributeList(strValue, L'\'', attributeList);
+    else if (strValue.find(_T("\'")) != std::wstring::npos) {
+        AttributeUtil::ParseAttributeList(strValue, _T('\''), attributeList);
     }
 }
 

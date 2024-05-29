@@ -614,7 +614,7 @@ public:
      * @return 成功返回 true，失败返回 false
      */
     bool PaintImage(IRender* pRender, Image* pImage,
-                    const std::wstring& strModify = L"",
+                    const std::wstring& strModify = _T(""),
                     int32_t nFade = DUI_NOSET_VALUE,
                     IMatrix* pMatrix = nullptr,
                     UiRect* pInRect = nullptr,
@@ -1073,7 +1073,7 @@ protected:
     bool PaintStateImage(IRender* pRender, 
                          StateImageType stateImageType, 
                          ControlStateType stateType, 
-                         const std::wstring& sImageModify = L"",
+                         const std::wstring& sImageModify = _T(""),
                          UiRect* pDestRect = nullptr);
 
     /** 清除所有状态图片属性

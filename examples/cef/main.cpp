@@ -26,7 +26,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // 初始化 CEF
     CefSettings settings;
-    if (!nim_comp::CefManager::GetInstance()->Initialize(ui::PathUtil::GetCurrentModuleDirectory() + L"cef_temp\\", settings, kEnableOffsetRender))
+    if (!nim_comp::CefManager::GetInstance()->Initialize(ui::PathUtil::GetCurrentModuleDirectory() + _T("cef_temp\\"), settings, kEnableOffsetRender))
     {
         return 0;
     }
@@ -58,7 +58,7 @@ void MainThread::OnInit()
 {
     //初始化全局资源, 使用本地文件夹作为资源
     std::wstring resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
-    resourcePath += L"resources\\";
+    resourcePath += _T("resources\\");
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), dpiInitParam);
 
     // 创建一个默认带有阴影的居中窗口

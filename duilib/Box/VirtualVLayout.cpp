@@ -73,7 +73,7 @@ UiSize VirtualVLayout::EstimateSizeByChild(const std::vector<Control*>& items, u
 bool VirtualVLayout::SetAttribute(const std::wstring& strName, const std::wstring& strValue, const DpiManager& dpiManager)
 {
     bool hasAttribute = true;
-    if ((strName == L"item_size") || (strName == L"itemsize")) {
+    if ((strName == _T("item_size")) || (strName == _T("itemsize"))) {
         UiSize szItem;
         AttributeUtil::ParseSizeValue(strValue.c_str(), szItem);
         dpiManager.ScaleSize(szItem);

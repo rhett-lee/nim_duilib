@@ -172,7 +172,7 @@ public:
         std::wstring sKeyName;
         uint8_t wCode = 0;
         uint8_t wModifiers = 0;
-        const wchar_t szPlus[] = L"+";
+        const wchar_t szPlus[] = _T("+");
         GetHotKey(wCode, wModifiers);
         if (wModifiers == 0) {
             //必须有组合键，才是有效的热键
@@ -262,7 +262,7 @@ std::wstring HotKey::GetType() const { return DUI_CTR_HOTKEY; }
 
 void HotKey::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"default_text") {
+    if (strName == _T("default_text")) {
         m_defaultText = strValue;
     }
     else {
@@ -281,10 +281,10 @@ void HotKey::OnInit()
     ASSERT(pRichEdit != nullptr);
     pRichEdit->SetDefaultText(m_defaultText.c_str());
     pRichEdit->SetText(m_defaultText.c_str());
-    pRichEdit->SetAttribute(L"text_align", L"vcenter,hcenter");
-    pRichEdit->SetAttribute(L"want_tab", L"false");
-    pRichEdit->SetAttribute(L"width", L"100%");
-    pRichEdit->SetAttribute(L"height", L"100%");
+    pRichEdit->SetAttribute(_T("text_align"), _T("vcenter,hcenter"));
+    pRichEdit->SetAttribute(_T("want_tab"), _T("false"));
+    pRichEdit->SetAttribute(_T("width"), _T("100%"));
+    pRichEdit->SetAttribute(_T("height"), _T("100%"));
     AddItem(pRichEdit);
 
     //以RichEdit控件的焦点作为整个控件的焦点
@@ -358,7 +358,7 @@ std::wstring HotKey::GetHotKeyName() const
 
 bool HotKey::SetHotKeyName(const std::wstring& hotKeyName)
 {
-    std::list<std::wstring> hotKeyList = StringUtil::Split(hotKeyName, L"+");
+    std::list<std::wstring> hotKeyList = StringUtil::Split(hotKeyName, _T("+"));
     for (std::wstring& hotKey : hotKeyList) {
         StringUtil::Trim(hotKey);
         hotKey = StringUtil::MakeLowerString(hotKey);

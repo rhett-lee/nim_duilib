@@ -27,26 +27,26 @@ std::wstring CircleProgress::GetType() const { return DUI_CTR_CIRCLEPROGRESS; }
 
 void CircleProgress::SetAttribute(const std::wstring& srName, const std::wstring& strValue)
 {
-    if (srName == L"circular") {
-        SetCircular(strValue == L"true");
+    if (srName == _T("circular")) {
+        SetCircular(strValue == _T("true"));
     }
-    else if ((srName == L"circle_width") || (srName == L"circlewidth")) {
+    else if ((srName == _T("circle_width")) || (srName == _T("circlewidth"))) {
         int32_t iValue = _wtoi(strValue.c_str());
         SetCircleWidth(iValue, true);
     }
-    else if (srName == L"indicator") {
+    else if (srName == _T("indicator")) {
         SetIndicator(strValue);
     }
-    else if (srName == L"clockwise") {
-        SetClockwiseRotation(strValue == L"true");
+    else if (srName == _T("clockwise")) {
+        SetClockwiseRotation(strValue == _T("true"));
     }
-    else if (srName == L"bgcolor") {
+    else if (srName == _T("bgcolor")) {
         SetBackgroudColor(strValue);
     }
-    else if (srName == L"fgcolor") {
+    else if (srName == _T("fgcolor")) {
         SetForegroudColor(strValue);
     }
-    else if ((srName == L"gradient_color") || (srName == L"gradientcolor")) {
+    else if ((srName == _T("gradient_color")) || (srName == _T("gradientcolor"))) {
         SetCircleGradientColor(strValue);
     }
     else {
@@ -161,7 +161,7 @@ void CircleProgress::PaintStateImages(IRender* pRender)
         imageRect.right = imageRect.left + pIndicatorImageInfo->GetWidth();
         imageRect.bottom = imageRect.top + pIndicatorImageInfo->GetHeight();
         imageRect.Offset(-GetRect().left, -GetRect().top);
-        std::wstring imageModify = StringUtil::Printf(L"destscale='false' dest='%d,%d,%d,%d'", 
+        std::wstring imageModify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), 
             imageRect.left, imageRect.top, imageRect.right, imageRect.bottom);
         PaintImage(pRender, m_pIndicatorImage, imageModify, -1, spMatrix.get());
     }

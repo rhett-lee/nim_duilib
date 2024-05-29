@@ -8,7 +8,7 @@ bool FileUtil::ReadFileData(const std::wstring& filePath, std::vector<uint8_t>& 
 {
     bool isReadOk = false;
     FILE* f = nullptr;
-    errno_t ret = ::_wfopen_s(&f, filePath.c_str(), L"rb");
+    errno_t ret = ::_wfopen_s(&f, filePath.c_str(), _T("rb"));
     if ((ret == 0) && (f != nullptr)) {
         isReadOk = true;
         ::fseek(f, 0, SEEK_END);

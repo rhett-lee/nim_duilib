@@ -36,7 +36,7 @@ void CefNativeControl::Init()
     {
         LONG style = ::GetWindowLong(GetWindow()->GetHWND(), GWL_STYLE);
         SetWindowLong(GetWindow()->GetHWND(), GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-        ASSERT((::GetWindowLong(GetWindow()->GetHWND(), GWL_EXSTYLE) & WS_EX_LAYERED) == 0 && L"无法在分层窗口内使用本控件");
+        ASSERT((::GetWindowLong(GetWindow()->GetHWND(), GWL_EXSTYLE) & WS_EX_LAYERED) == 0 && _T("无法在分层窗口内使用本控件"));
 
         browser_handler_ = new nim_comp::BrowserHandler;
         browser_handler_->SetHostWindow(GetWindow());
@@ -62,7 +62,7 @@ void CefNativeControl::ReCreateBrowser()
         window_info.SetAsChild(this->GetWindow()->GetHWND(), rect);
 
         CefBrowserSettings browser_settings;
-        CefBrowserHost::CreateBrowser(window_info, browser_handler_, L"", browser_settings, NULL);
+        CefBrowserHost::CreateBrowser(window_info, browser_handler_, _T(""), browser_settings, NULL);
     }
 }
 
@@ -161,7 +161,7 @@ bool CefNativeControl::AttachDevTools(Control* /*view*/)
     else
     {
         CefWindowInfo windowInfo;
-        windowInfo.SetAsPopup(NULL, L"cef_devtools");
+        windowInfo.SetAsPopup(NULL, _T("cef_devtools"));
         CefBrowserSettings settings;
         windowInfo.width = 900;
         windowInfo.height = 700;

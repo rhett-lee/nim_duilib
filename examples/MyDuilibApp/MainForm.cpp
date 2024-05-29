@@ -1,7 +1,7 @@
 //MainForm.cpp
 #include "MainForm.h"
 
-const std::wstring MainForm::kClassName = L"MainForm";
+const std::wstring MainForm::kClassName = _T("MainForm");
 
 MainForm::MainForm()
 {
@@ -14,12 +14,12 @@ MainForm::~MainForm()
 
 std::wstring MainForm::GetSkinFolder()
 {
-    return L"my_duilib_app";
+    return _T("my_duilib_app");
 }
 
 std::wstring MainForm::GetSkinFile()
 {
-    return L"MyDuilibForm.xml";
+    return _T("MyDuilibForm.xml");
 }
 
 std::wstring MainForm::GetWindowClassName() const

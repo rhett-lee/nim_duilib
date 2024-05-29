@@ -11,7 +11,7 @@ void ShowMsgBox(HWND hwnd, MsgboxCallback cb,
     const std::wstring &no, bool btn_no_is_id)
 {
     MsgBox* msgbox = new MsgBox;
-    if (!msgbox->CreateWnd(hwnd, L"", WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED)) {
+    if (!msgbox->CreateWnd(hwnd, _T(""), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED)) {
         delete msgbox;
         return;
     }
@@ -21,7 +21,7 @@ void ShowMsgBox(HWND hwnd, MsgboxCallback cb,
     msgbox->Show(hwnd, cb);
 }
 
-const LPCTSTR MsgBox::kClassName = L"MsgBox";
+const LPCTSTR MsgBox::kClassName = _T("MsgBox");
 
 MsgBox::MsgBox()
 {
@@ -33,17 +33,17 @@ MsgBox::~MsgBox()
 
 std::wstring MsgBox::GetSkinFolder()
 {
-    return L"msgbox";
+    return _T("msgbox");
 }
 
 std::wstring MsgBox::GetSkinFile()
 {
-    return L"msgbox.xml";
+    return _T("msgbox.xml");
 }
 
 std::wstring MsgBox::GetZIPFileName() const
 {
-    return (L"msgbox.zip");
+    return (_T("msgbox.zip"));
 }
 
 std::wstring MsgBox::GetWindowClassName() const
@@ -81,24 +81,24 @@ void MsgBox::OnInitWindow()
 {
     GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MsgBox::OnClicked, this, std::placeholders::_1));
 
-    title_ = (ui::Label*)FindControl(L"title");
-    content_ = (ui::RichEdit*)FindControl(L"content");
-    btn_yes_ = (ui::Button*)FindControl(L"btn_yes");
-    btn_no_ = (ui::Button*)FindControl(L"btn_no");
+    title_ = (ui::Label*)FindControl(_T("title"));
+    content_ = (ui::RichEdit*)FindControl(_T("content"));
+    btn_yes_ = (ui::Button*)FindControl(_T("btn_yes"));
+    btn_no_ = (ui::Button*)FindControl(_T("btn_no"));
 }
 
 bool MsgBox::OnClicked(const ui::EventArgs& msg)
 {
     std::wstring name = msg.pSender->GetName();
-    if (name == L"btn_yes")
+    if (name == _T("btn_yes"))
     {
         EndMsgBox(MB_YES);
     }
-    else if (name == L"btn_no")
+    else if (name == _T("btn_no"))
     {
         EndMsgBox(MB_NO);
     }
-    else if (name == L"closebtn")
+    else if (name == _T("closebtn"))
     {
         EndMsgBox(MB_NO);
     }

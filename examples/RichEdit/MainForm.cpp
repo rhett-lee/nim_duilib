@@ -6,7 +6,7 @@
 #include <commdlg.h>
 #include <fstream>
 
-const std::wstring MainForm::kClassName = L"MainForm";
+const std::wstring MainForm::kClassName = _T("MainForm");
 
 #ifndef LY_PER_INCH
     #define LY_PER_INCH 1440
@@ -25,12 +25,12 @@ MainForm::~MainForm()
 
 std::wstring MainForm::GetSkinFolder()
 {
-    return L"rich_edit";
+    return _T("rich_edit");
 }
 
 std::wstring MainForm::GetSkinFile()
 {
-    return L"rich_edit.xml";
+    return _T("rich_edit.xml");
 }
 
 std::wstring MainForm::GetWindowClassName() const
@@ -40,26 +40,26 @@ std::wstring MainForm::GetWindowClassName() const
 
 void MainForm::OnInitWindow()
 {
-    ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"test_url"));
+    ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("test_url")));
     if (pRichEdit != nullptr) {
         pRichEdit->AttachLinkClick([this, pRichEdit](const ui::EventArgs& args) {
                 //点击了超级链接
                 if (args.pSender == pRichEdit) {
                     const wchar_t* pUrl = (const wchar_t*)args.wParam;
                     if (pUrl != nullptr) {
-                        ::ShellExecute(GetHWND(), L"open", pUrl, NULL, NULL, SW_SHOWNORMAL);
+                        ::ShellExecute(GetHWND(), _T("open"), pUrl, NULL, NULL, SW_SHOWNORMAL);
                     }
                 }
                 return true;
             });
     }
-    m_pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"rich_edit"));
+    m_pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("rich_edit")));
     ASSERT(m_pRichEdit != nullptr);
     m_findReplace.SetRichEdit(m_pRichEdit);
     LoadRichEditData();
 
     //文件操作：打开、保存、另存
-    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(L"open_file"));
+    ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("open_file")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
                 if (args.pSender == pButton) {
@@ -68,7 +68,7 @@ void MainForm::OnInitWindow()
                 return true;
             });
     }
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"save_file"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("save_file")));
     if (pButton != nullptr) {
         m_saveBtnText = pButton->GetText();
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
@@ -78,7 +78,7 @@ void MainForm::OnInitWindow()
                 return true;
             });
     }
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"save_as_file"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("save_as_file")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
                 if (args.pSender == pButton) {
@@ -89,7 +89,7 @@ void MainForm::OnInitWindow()
     }
 
     //编辑操作
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"btn_copy"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_copy")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
             if (args.pSender == pButton) {
@@ -101,7 +101,7 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"btn_cut"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_cut")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
             if (args.pSender == pButton) {
@@ -113,7 +113,7 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"btn_paste"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_paste")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
             if (args.pSender == pButton) {
@@ -125,7 +125,7 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"btn_delete"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_delete")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
             if (args.pSender == pButton) {
@@ -137,7 +137,7 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"btn_sel_all"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_sel_all")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
             if (args.pSender == pButton) {
@@ -149,7 +149,7 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"btn_sel_none"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_sel_none")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
             if (args.pSender == pButton) {
@@ -161,7 +161,7 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"btn_undo"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_undo")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
             if (args.pSender == pButton) {
@@ -173,7 +173,7 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"btn_redo"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_redo")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
             if (args.pSender == pButton) {
@@ -187,7 +187,7 @@ void MainForm::OnInitWindow()
     }
 
     //查找操作
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"btn_find_text"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_find_text")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
             if (args.pSender == pButton) {
@@ -196,7 +196,7 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"btn_find_next"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_find_next")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
             if (args.pSender == pButton) {
@@ -205,7 +205,7 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"btn_replace_text"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_replace_text")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
             if (args.pSender == pButton) {
@@ -216,7 +216,7 @@ void MainForm::OnInitWindow()
     }
 
     //设置字体
-    pButton = dynamic_cast<ui::Button*>(FindControl(L"set_font"));
+    pButton = dynamic_cast<ui::Button*>(FindControl(_T("set_font")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
             if (args.pSender == pButton) {
@@ -227,7 +227,7 @@ void MainForm::OnInitWindow()
     }
 
     //初始化字体信息
-    ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(L"combo_font_name")); 
+    ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_name"))); 
     if (pFontNameCombo != nullptr) {        
         GetSystemFontList(m_fontList);
         for (size_t nIndex = 0; nIndex < m_fontList.size(); ++nIndex) {
@@ -248,7 +248,7 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-    ui::Combo* pFontSizeCombo = dynamic_cast<ui::Combo*>(FindControl(L"combo_font_size"));
+    ui::Combo* pFontSizeCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_size")));
     if (pFontSizeCombo != nullptr) {
         GetFontSizeList(m_fontSizeList);
         for (size_t nIndex = 0; nIndex < m_fontSizeList.size(); ++nIndex) {
@@ -271,7 +271,7 @@ void MainForm::OnInitWindow()
     }
 
     //更新是否粗体
-    ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_bold"));
+    ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_bold")));
     if (pCheckBox != nullptr) {
         pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
             SetFontBold(pCheckBox->IsSelected());
@@ -284,7 +284,7 @@ void MainForm::OnInitWindow()
     }
 
     //更新是否斜体
-    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_italic"));
+    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_italic")));
     if (pCheckBox != nullptr) {
         pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
             SetFontItalic(pCheckBox->IsSelected());
@@ -297,7 +297,7 @@ void MainForm::OnInitWindow()
     }
 
     //更新是否下划线
-    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_underline"));
+    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_underline")));
     if (pCheckBox != nullptr) {
         pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
             SetFontUnderline(pCheckBox->IsSelected());
@@ -310,7 +310,7 @@ void MainForm::OnInitWindow()
     }
 
     //更新是否删除线
-    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_strikeout"));
+    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_strikeout")));
     if (pCheckBox != nullptr) {
         pCheckBox->AttachSelect([this, pCheckBox](const ui::EventArgs& args) {
             SetFontStrikeOut(pCheckBox->IsSelected());
@@ -323,7 +323,7 @@ void MainForm::OnInitWindow()
     }
 
     //增加字体大小
-    ui::Button* pFontButton = dynamic_cast<ui::Button*>(FindControl(L"btn_font_size_increase"));
+    ui::Button* pFontButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_font_size_increase")));
     if (pFontButton != nullptr) {
         pFontButton->AttachClick([this](const ui::EventArgs& args) {
             AdjustFontSize(true);
@@ -331,7 +331,7 @@ void MainForm::OnInitWindow()
             });
     }
     //减小字体大小
-    pFontButton = dynamic_cast<ui::Button*>(FindControl(L"btn_font_size_decrease"));
+    pFontButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_font_size_decrease")));
     if (pFontButton != nullptr) {
         pFontButton->AttachClick([this](const ui::EventArgs& args) {
             AdjustFontSize(false);
@@ -341,7 +341,7 @@ void MainForm::OnInitWindow()
 
     //设置颜色
     InitColorCombo();
-    ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(L"color_combo_button"));
+    ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(_T("color_combo_button")));
     if (pColorComboBtn != nullptr) {
         std::wstring textColor;
         if (m_pRichEdit != nullptr) {
@@ -393,7 +393,7 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-    ui::Button* pZoomButtom = dynamic_cast<ui::Button*>(FindControl(L"btn_zoom_in"));
+    ui::Button* pZoomButtom = dynamic_cast<ui::Button*>(FindControl(_T("btn_zoom_in")));
     if (pZoomButtom != nullptr) {
         pZoomButtom->AttachClick([this, zoomInfoList](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
@@ -426,7 +426,7 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-    pZoomButtom = dynamic_cast<ui::Button*>(FindControl(L"btn_zoom_out"));
+    pZoomButtom = dynamic_cast<ui::Button*>(FindControl(_T("btn_zoom_out")));
     if (pZoomButtom != nullptr) {
         pZoomButtom->AttachClick([this, zoomInfoList](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
@@ -461,7 +461,7 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-    pZoomButtom = dynamic_cast<ui::Button*>(FindControl(L"btn_zoom_off"));
+    pZoomButtom = dynamic_cast<ui::Button*>(FindControl(_T("btn_zoom_off")));
     if (pZoomButtom != nullptr) {
         pZoomButtom->AttachClick([this](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
@@ -474,27 +474,27 @@ void MainForm::OnInitWindow()
     }
 
     //是否自动换行
-    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_word_wrap"));
+    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_word_wrap")));
     if ((pCheckBox != nullptr) && (m_pRichEdit != nullptr)) {
         pCheckBox->SetSelected(m_pRichEdit->GetWordWrap());
         pCheckBox->AttachSelect([this](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
                 m_pRichEdit->SetWordWrap(true);
-                m_pRichEdit->SetAttribute(L"hscrollbar", L"false");
+                m_pRichEdit->SetAttribute(_T("hscrollbar"), _T("false"));
             }
             return true;
             });
         pCheckBox->AttachUnSelect([this](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
                 m_pRichEdit->SetWordWrap(false);
-                m_pRichEdit->SetAttribute(L"hscrollbar", L"true");
+                m_pRichEdit->SetAttribute(_T("hscrollbar"), _T("true"));
             }
             return true;
             });
     }
 
     //是否支持富文本格式
-    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_rich_text"));
+    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_rich_text")));
     if ((pCheckBox != nullptr) && (m_pRichEdit != nullptr)) {
         pCheckBox->SetSelected(m_pRichEdit->IsRichText());
         pCheckBox->AttachSelect([this](const ui::EventArgs& args) {
@@ -519,7 +519,7 @@ void MainForm::OnInitWindow()
         m_pRichEdit->AttachLinkClick([this](const ui::EventArgs& args) {
             const wchar_t* url = (const wchar_t*)args.wParam;
             if (url != nullptr) {
-                ::MessageBox(GetHWND(), url, L"RichEdit点击超链接", MB_OK);
+                ::MessageBox(GetHWND(), url, _T("RichEdit点击超链接"), MB_OK);
             }
             return true;
             });
@@ -537,7 +537,7 @@ void MainForm::OnInitWindow()
 
 void MainForm::InitColorCombo()
 {
-    ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(L"color_combo_button"));
+    ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(_T("color_combo_button")));
     if (pColorComboBtn == nullptr) {
         return;
     }
@@ -547,7 +547,7 @@ void MainForm::InitColorCombo()
         return;
     }
     pComboBox->SetWindow(this);
-    ui::GlobalManager::Instance().FillBoxWithCache(pComboBox, L"rich_edit/color_combox.xml");
+    ui::GlobalManager::Instance().FillBoxWithCache(pComboBox, _T("rich_edit/color_combox.xml"));
     pComboBox->SetFixedHeight(ui::UiFixedInt(boxSize.cy), false, false);
     pComboBox->SetFixedWidth(ui::UiFixedInt(boxSize.cx), false, false);
 
@@ -556,7 +556,7 @@ void MainForm::InitColorCombo()
         pComboBox->GetItemAt(0)->SetFixedWidth(ui::UiFixedInt(boxSize.cx), false, false);
     }
 
-    ui::ColorPickerRegular* pColorPicker = dynamic_cast<ui::ColorPickerRegular*>(pComboBox->FindSubControl(L"color_combo_picker"));
+    ui::ColorPickerRegular* pColorPicker = dynamic_cast<ui::ColorPickerRegular*>(pComboBox->FindSubControl(_T("color_combo_picker")));
     if (pColorPicker != nullptr) {
         //响应选择颜色事件
         pColorPicker->AttachSelectColor([this, pColorComboBtn](const ui::EventArgs& args) {
@@ -571,7 +571,7 @@ void MainForm::InitColorCombo()
             });
     }
 
-    ui::Button* pMoreColorButton = dynamic_cast<ui::Button*>(pComboBox->FindSubControl(L"color_combo_picker_more"));
+    ui::Button* pMoreColorButton = dynamic_cast<ui::Button*>(pComboBox->FindSubControl(_T("color_combo_picker_more")));
     if (pMoreColorButton != nullptr) {
         pMoreColorButton->AttachClick([this](const ui::EventArgs& args) {
             ShowColorPicker();
@@ -582,7 +582,7 @@ void MainForm::InitColorCombo()
 
 void MainForm::ShowColorPicker()
 {
-    ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(L"color_combo_button"));
+    ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(_T("color_combo_button")));
     if (pColorComboBtn == nullptr) {
         return;
     }
@@ -638,7 +638,7 @@ void MainForm::UpdateFontStatus()
     GetRichEditLogFont(logFont);
 
     //更新字体名称
-    ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(L"combo_font_name"));
+    ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_name")));
     if (pFontNameCombo != nullptr) {
         pFontNameCombo->SelectTextItem(logFont.lfFaceName);
     }
@@ -647,25 +647,25 @@ void MainForm::UpdateFontStatus()
     UpdateFontSizeStatus();
 
     //更新是否粗体
-    ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_bold"));
+    ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_bold")));
     if (pCheckBox != nullptr) {
         pCheckBox->SetSelected(logFont.lfWeight >= FW_BOLD);
     }
 
     //更新是否斜体
-    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_italic"));
+    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_italic")));
     if (pCheckBox != nullptr) {
         pCheckBox->SetSelected(logFont.lfItalic != FALSE);
     }
 
     //更新是否下划线
-    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_underline"));
+    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_underline")));
     if (pCheckBox != nullptr) {
         pCheckBox->SetSelected(logFont.lfUnderline != FALSE);
     }
 
     //更新是否删除线
-    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"btn_font_strikeout"));
+    pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_strikeout")));
     if (pCheckBox != nullptr) {
         pCheckBox->SetSelected(logFont.lfStrikeOut != FALSE);
     }
@@ -676,7 +676,7 @@ void MainForm::UpdateFontSizeStatus()
     LOGFONT logFont = {};
     GetRichEditLogFont(logFont);
 
-    ui::Combo* pFontSizeCombo = dynamic_cast<ui::Combo*>(FindControl(L"combo_font_size"));
+    ui::Combo* pFontSizeCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_size")));
     if (pFontSizeCombo != nullptr) {
         int32_t fHeight = -logFont.lfHeight;
         size_t maxItemIndex = 0;
@@ -972,10 +972,10 @@ LRESULT MainForm::OnKeyUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandle
 void MainForm::UpdateSaveStatus()
 {
     if (m_pRichEdit != nullptr) {
-        ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(L"save_file"));
+        ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("save_file")));
         if (m_pRichEdit->GetModify()) {
             if (pButton != nullptr) {
-                pButton->SetText(m_saveBtnText + L"*");
+                pButton->SetText(m_saveBtnText + _T("*"));
             }
         }
         else {
@@ -1014,10 +1014,10 @@ void MainForm::LoadRichEditData()
     }
 }
 
-LPCTSTR g_defualtFilter = L"所有文件 (*.*)\0*.*\0"
-                          L"文本文件 (*.txt)\0*.txt\0"
-                          L"RTF文件 (*.rtf)\0*.rtf\0"
-                          L"";
+LPCTSTR g_defualtFilter = _T("所有文件 (*.*)\0*.*\0")
+                          _T("文本文件 (*.txt)\0*.txt\0")
+                          _T("RTF文件 (*.rtf)\0*.rtf\0")
+                          _T("");
 
 void MainForm::OnOpenFile()
 {
@@ -1133,12 +1133,12 @@ bool MainForm::SaveFile(const std::wstring& filePath)
 bool MainForm::IsRtfFile(const std::wstring& filePath) const
 {
     std::wstring fileExt;
-    size_t pos = filePath.find_last_of(L".");
+    size_t pos = filePath.find_last_of(_T("."));
     if (pos != std::wstring::npos) {
         fileExt = filePath.substr(pos);
         fileExt = ui::StringUtil::MakeLowerString(fileExt);
     }
-    return fileExt == L".rtf";
+    return fileExt == _T(".rtf");
 }
 
 DWORD MainForm::StreamReadCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb)
@@ -1237,7 +1237,7 @@ void MainForm::GetSystemFontList(std::vector<FontInfo>& fontList) const
     fontList.clear();
     LOGFONT logfont = {};
     logfont.lfCharSet = DEFAULT_CHARSET;
-    logfont.lfFaceName[0] = L'\0';
+    logfont.lfFaceName[0] = _T('\0');
     logfont.lfPitchAndFamily = 0;
     ::EnumFontFamiliesEx(pRichEdit->GetWindowDC(), &logfont, EnumFontFamExProc, (LPARAM)&fontList, 0);
 
@@ -1247,7 +1247,7 @@ void MainForm::GetSystemFontList(std::vector<FontInfo>& fontList) const
         if (font.lf.lfWeight != FW_NORMAL) {
             continue;
         }
-        if (font.lf.lfFaceName[0] == L'@') {
+        if (font.lf.lfFaceName[0] == _T('@')) {
             continue;
         }
         fontMap[font.lf.lfFaceName] = font;
@@ -1262,42 +1262,42 @@ void MainForm::GetSystemFontList(std::vector<FontInfo>& fontList) const
 void MainForm::GetFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const
 {
     fontSizeList.clear();
-    fontSizeList.push_back({ L"8",  8.0f, 0});
-    fontSizeList.push_back({ L"9",  9.0f, 0 });
-    fontSizeList.push_back({ L"10", 10.0f, 0 });
-    fontSizeList.push_back({ L"11", 11.0f, 0 });
-    fontSizeList.push_back({ L"12", 12.0f, 0 });
-    fontSizeList.push_back({ L"14", 14.0f, 0 });
-    fontSizeList.push_back({ L"16", 16.0f, 0 });
-    fontSizeList.push_back({ L"18", 18.0f, 0 });
-    fontSizeList.push_back({ L"20", 20.0f, 0 });
-    fontSizeList.push_back({ L"22", 22.0f, 0 });
-    fontSizeList.push_back({ L"24", 24.0f, 0 });
-    fontSizeList.push_back({ L"26", 26.0f, 0 });
-    fontSizeList.push_back({ L"28", 28.0f, 0 });
-    fontSizeList.push_back({ L"32", 32.0f, 0 });
-    fontSizeList.push_back({ L"36", 36.0f, 0 });
-    fontSizeList.push_back({ L"48", 48.0f, 0 });
-    fontSizeList.push_back({ L"72", 72.0f, 0 });
-    fontSizeList.push_back({ L"1英寸", 95.6f, 0 });
-    fontSizeList.push_back({ L"大特号", 83.7f, 0 });
-    fontSizeList.push_back({ L"特号", 71.7f, 0 });
-    fontSizeList.push_back({ L"初号", 56.0f, 0 });
-    fontSizeList.push_back({ L"小初", 48.0f, 0 });
-    fontSizeList.push_back({ L"一号", 34.7f, 0 });
-    fontSizeList.push_back({ L"小一", 32.0f, 0 });
-    fontSizeList.push_back({ L"二号", 29.3f, 0 });
-    fontSizeList.push_back({ L"小二", 24.0f, 0 });
-    fontSizeList.push_back({ L"三号", 21.3f, 0 });
-    fontSizeList.push_back({ L"小三", 20.0f, 0 });
-    fontSizeList.push_back({ L"四号", 18.7f, 0 });
-    fontSizeList.push_back({ L"小四", 16.0f, 0 });
-    fontSizeList.push_back({ L"五号", 14.0f, 0 });
-    fontSizeList.push_back({ L"小五", 12.0f, 0 });
-    fontSizeList.push_back({ L"六号", 10.0f, 0 });
-    fontSizeList.push_back({ L"小六", 8.7f, 0 });
-    fontSizeList.push_back({ L"七号", 7.3f, 0 });
-    fontSizeList.push_back({ L"八号", 6.7f, 0 });
+    fontSizeList.push_back({ _T("8"),  8.0f, 0});
+    fontSizeList.push_back({ _T("9"),  9.0f, 0 });
+    fontSizeList.push_back({ _T("10"), 10.0f, 0 });
+    fontSizeList.push_back({ _T("11"), 11.0f, 0 });
+    fontSizeList.push_back({ _T("12"), 12.0f, 0 });
+    fontSizeList.push_back({ _T("14"), 14.0f, 0 });
+    fontSizeList.push_back({ _T("16"), 16.0f, 0 });
+    fontSizeList.push_back({ _T("18"), 18.0f, 0 });
+    fontSizeList.push_back({ _T("20"), 20.0f, 0 });
+    fontSizeList.push_back({ _T("22"), 22.0f, 0 });
+    fontSizeList.push_back({ _T("24"), 24.0f, 0 });
+    fontSizeList.push_back({ _T("26"), 26.0f, 0 });
+    fontSizeList.push_back({ _T("28"), 28.0f, 0 });
+    fontSizeList.push_back({ _T("32"), 32.0f, 0 });
+    fontSizeList.push_back({ _T("36"), 36.0f, 0 });
+    fontSizeList.push_back({ _T("48"), 48.0f, 0 });
+    fontSizeList.push_back({ _T("72"), 72.0f, 0 });
+    fontSizeList.push_back({ _T("1英寸"), 95.6f, 0 });
+    fontSizeList.push_back({ _T("大特号"), 83.7f, 0 });
+    fontSizeList.push_back({ _T("特号"), 71.7f, 0 });
+    fontSizeList.push_back({ _T("初号"), 56.0f, 0 });
+    fontSizeList.push_back({ _T("小初"), 48.0f, 0 });
+    fontSizeList.push_back({ _T("一号"), 34.7f, 0 });
+    fontSizeList.push_back({ _T("小一"), 32.0f, 0 });
+    fontSizeList.push_back({ _T("二号"), 29.3f, 0 });
+    fontSizeList.push_back({ _T("小二"), 24.0f, 0 });
+    fontSizeList.push_back({ _T("三号"), 21.3f, 0 });
+    fontSizeList.push_back({ _T("小三"), 20.0f, 0 });
+    fontSizeList.push_back({ _T("四号"), 18.7f, 0 });
+    fontSizeList.push_back({ _T("小四"), 16.0f, 0 });
+    fontSizeList.push_back({ _T("五号"), 14.0f, 0 });
+    fontSizeList.push_back({ _T("小五"), 12.0f, 0 });
+    fontSizeList.push_back({ _T("六号"), 10.0f, 0 });
+    fontSizeList.push_back({ _T("小六"), 8.7f, 0 });
+    fontSizeList.push_back({ _T("七号"), 7.3f, 0 });
+    fontSizeList.push_back({ _T("八号"), 6.7f, 0 });
 
     //更新DPI自适应值
     for (FontSizeInfo& fontSize : fontSizeList) {
@@ -1447,7 +1447,7 @@ void MainForm::OnSetFont()
         SetCharFormat(charFormat);
 
         //更新颜色
-        ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(L"color_combo_button"));
+        ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(_T("color_combo_button")));
         if (pColorComboBtn != nullptr) {
             if (pColorComboBtn->GetLabelBottom() != nullptr) {
                 ui::UiColor textColor;
@@ -1488,7 +1488,7 @@ void MainForm::UpdateZoomValue()
         return;
     }
 
-    ui::Label* pZoomLabel = dynamic_cast<ui::Label*>(FindControl(L"lavel_zoom_value"));
+    ui::Label* pZoomLabel = dynamic_cast<ui::Label*>(FindControl(_T("lavel_zoom_value")));
     if (pZoomLabel != nullptr) {
         int32_t nNum = 0;
         int32_t nDen = 0;
@@ -1500,7 +1500,7 @@ void MainForm::UpdateZoomValue()
         else {
             zoomValue = nNum * 1000 / nDen;
         }
-        std::wstring strZoom = ui::StringUtil::Printf(L"%.01f%%", zoomValue / 10.0);
+        std::wstring strZoom = ui::StringUtil::Printf(_T("%.01f%%"), zoomValue / 10.0);
         pZoomLabel->SetText(strZoom);
     }
 }

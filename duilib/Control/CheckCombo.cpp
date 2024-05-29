@@ -35,7 +35,7 @@ void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
     }
     m_pOwner = pOwner;
     m_bIsClosed = false;
-    CreateWnd(pOwner->GetWindow()->GetHWND(), L"", WS_POPUP, WS_EX_TOOLWINDOW);
+    CreateWnd(pOwner->GetWindow()->GetHWND(), _T(""), WS_POPUP, WS_EX_TOOLWINDOW);
     UpdateComboWnd();
 
     HWND hWndParent = GetHWND();
@@ -121,7 +121,7 @@ void CCheckComboWnd::CloseComboWnd()
 
 std::wstring CCheckComboWnd::GetWindowClassName() const
 {
-    return L"CCheckComboWnd";
+    return _T("CCheckComboWnd");
 }
 
 void CCheckComboWnd::OnFinalMessage()
@@ -338,28 +338,28 @@ void CheckCombo::Activate()
 
 void CheckCombo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"dropbox") {
+    if (strName == _T("dropbox")) {
         SetDropBoxAttributeList(strValue);
     }
-    else if (strName == L"dropbox_item_class") {        
+    else if (strName == _T("dropbox_item_class")) {        
         SetDropboxItemClass(strValue);
     }
-    else if (strName == L"selected_item_class") {
+    else if (strName == _T("selected_item_class")) {
         SetSelectedItemClass(strValue);
     }
-    else if (strName == L"vscrollbar") {
+    else if (strName == _T("vscrollbar")) {
     }
-    else if ((strName == L"dropbox_size") || (strName == L"dropboxsize")) {
+    else if ((strName == _T("dropbox_size")) || (strName == _T("dropboxsize"))) {
         UiSize szDropBoxSize;
         AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
         SetDropBoxSize(szDropBoxSize, true);
     }
-    else if ((strName == L"popup_top") || (strName == L"popuptop")) {
-        SetPopupTop(strValue == L"true");
+    else if ((strName == _T("popup_top")) || (strName == _T("popuptop"))) {
+        SetPopupTop(strValue == _T("true"));
     }
-    else if (strName == L"height") {
+    else if (strName == _T("height")) {
         __super::SetAttribute(strName, strValue);
-        if (strValue != L"stretch" && strValue != L"auto") {
+        if (strValue != _T("stretch") && strValue != _T("auto")) {
             ASSERT(_wtoi(strValue.c_str()) >= 0);
             m_iOrgHeight = _wtoi(strValue.c_str());
             SetMaxHeight(m_iOrgHeight * 3, true);
@@ -424,13 +424,13 @@ void CheckCombo::ParseAttributeList(const std::wstring& strList,
     }
     std::wstring strValue = strList;
     //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
-    StringUtil::ReplaceAll(L"{", L"\"", strValue);
-    StringUtil::ReplaceAll(L"}", L"\"", strValue);
-    if (strValue.find(L"\"") != std::wstring::npos) {
-        AttributeUtil::ParseAttributeList(strValue, L'\"', attributeList);
+    StringUtil::ReplaceAll(_T("{"), _T("\""), strValue);
+    StringUtil::ReplaceAll(_T("}"), _T("\""), strValue);
+    if (strValue.find(_T("\"")) != std::wstring::npos) {
+        AttributeUtil::ParseAttributeList(strValue, _T('\"'), attributeList);
     }
-    else if (strValue.find(L"\'") != std::wstring::npos) {
-        AttributeUtil::ParseAttributeList(strValue, L'\'', attributeList);
+    else if (strValue.find(_T("\'")) != std::wstring::npos) {
+        AttributeUtil::ParseAttributeList(strValue, _T('\''), attributeList);
     }
 }
 

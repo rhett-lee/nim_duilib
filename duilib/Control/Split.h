@@ -118,8 +118,8 @@ inline std::wstring SplitTemplate<Box>::GetType() const { return DUI_CTR_SPLITBO
 template<typename InheritType>
 void SplitTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"enable_split_single") {
-        SetEnableSplitSingle(strValue == L"true");
+    if (strName == _T("enable_split_single")) {
+        SetEnableSplitSingle(strValue == _T("true"));
     }
     else {
         __super::SetAttribute(strName, strValue);

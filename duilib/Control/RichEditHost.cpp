@@ -800,8 +800,8 @@ bool RichEditHost::IsReadOnly() const
 
 void RichEditHost::SetPasswordChar(WCHAR chPasswordChar)
 {
-    ASSERT(chPasswordChar != L'\0');
-    if (chPasswordChar == L'\0') {
+    ASSERT(chPasswordChar != _T('\0'));
+    if (chPasswordChar == _T('\0')) {
         return;
     }
     //启用密码

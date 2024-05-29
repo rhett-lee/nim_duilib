@@ -109,7 +109,7 @@ void TaskbarTabItem::OnSendPreview()
 
 std::wstring TaskbarTabItem::GetWindowClassName() const
 {
-    return L"Nim.TaskbarItem";
+    return _T("Nim.TaskbarItem");
 }
 
 LRESULT TaskbarTabItem::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)

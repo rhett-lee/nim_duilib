@@ -301,92 +301,92 @@ inline std::wstring CheckBoxTemplate<Box>::GetType() const { return DUI_CTR_CHEC
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if (strName == L"selected") {
-        Selected(strValue == L"true", true);
+    if (strName == _T("selected")) {
+        Selected(strValue == _T("true"), true);
     }
-    else if ((strName == L"normal_first") || (strName == L"normalfirst")) {
-        SetPaintNormalFirst(strValue == L"true");
+    else if ((strName == _T("normal_first")) || (strName == _T("normalfirst"))) {
+        SetPaintNormalFirst(strValue == _T("true"));
     }
-    else if ((strName == L"selected_normal_image") || (strName == L"selectednormalimage")) {
+    else if ((strName == _T("selected_normal_image")) || (strName == _T("selectednormalimage"))) {
         SetSelectedStateImage(kControlStateNormal, strValue);
     }
-    else if ((strName == L"selected_hot_image") || (strName == L"selectedhotimage")) {
+    else if ((strName == _T("selected_hot_image")) || (strName == _T("selectedhotimage"))) {
         SetSelectedStateImage(kControlStateHot, strValue);
     }
-    else if ((strName == L"selected_pushed_image") || (strName == L"selectedpushedimage")) {
+    else if ((strName == _T("selected_pushed_image")) || (strName == _T("selectedpushedimage"))) {
         SetSelectedStateImage(kControlStatePushed, strValue);
     }
-    else if ((strName == L"selected_disabled_image") || (strName == L"selecteddisabledimage")) {
+    else if ((strName == _T("selected_disabled_image")) || (strName == _T("selecteddisabledimage"))) {
         SetSelectedStateImage(kControlStateDisabled, strValue);
     }
-    else if ((strName == L"selected_fore_normal_image") || (strName == L"selectedforenormalimage")) {
+    else if ((strName == _T("selected_fore_normal_image")) || (strName == _T("selectedforenormalimage"))) {
         SetSelectedForeStateImage(kControlStateNormal, strValue);
     }
-    else if ((strName == L"selected_fore_hot_image") || (strName == L"selectedforehotimage")) {
+    else if ((strName == _T("selected_fore_hot_image")) || (strName == _T("selectedforehotimage"))) {
         SetSelectedForeStateImage(kControlStateHot, strValue);
     }
-    else if ((strName == L"selected_fore_pushed_image") || (strName == L"selectedforepushedimage")) {
+    else if ((strName == _T("selected_fore_pushed_image")) || (strName == _T("selectedforepushedimage"))) {
         SetSelectedForeStateImage(kControlStatePushed, strValue);
     }
-    else if ((strName == L"selected_fore_disabled_image") || (strName == L"selectedforedisabledimage")) {
+    else if ((strName == _T("selected_fore_disabled_image")) || (strName == _T("selectedforedisabledimage"))) {
         SetSelectedForeStateImage(kControlStateDisabled, strValue);
     }
-    else if (strName == L"part_selected_normal_image") {
+    else if (strName == _T("part_selected_normal_image")) {
         SetPartSelectedStateImage(kControlStateNormal, strValue);
     }
-    else if (strName == L"part_selected_hot_image") {
+    else if (strName == _T("part_selected_hot_image")) {
         SetPartSelectedStateImage(kControlStateHot, strValue);
     }
-    else if (strName == L"part_selected_pushed_image") {
+    else if (strName == _T("part_selected_pushed_image")) {
         SetPartSelectedStateImage(kControlStatePushed, strValue);
     }
-    else if (strName == L"part_selected_disabled_image") {
+    else if (strName == _T("part_selected_disabled_image")) {
         SetPartSelectedStateImage(kControlStateDisabled, strValue);
     }
-    else if (strName == L"part_selected_fore_normal_image") {
+    else if (strName == _T("part_selected_fore_normal_image")) {
         SetPartSelectedForeStateImage(kControlStateNormal, strValue);
     }
-    else if (strName == L"part_selected_fore_hot_image") {
+    else if (strName == _T("part_selected_fore_hot_image")) {
         SetPartSelectedForeStateImage(kControlStateHot, strValue);
     }
-    else if (strName == L"part_selected_fore_pushed_image") {
+    else if (strName == _T("part_selected_fore_pushed_image")) {
         SetPartSelectedForeStateImage(kControlStatePushed, strValue);
     }
-    else if (strName == L"part_selected_fore_disabled_image") {
+    else if (strName == _T("part_selected_fore_disabled_image")) {
         SetPartSelectedForeStateImage(kControlStateDisabled, strValue);
     }
-    else if ((strName == L"selected_text_color") || (strName == L"selectedtextcolor")) {
+    else if ((strName == _T("selected_text_color")) || (strName == _T("selectedtextcolor"))) {
         SetSelectedTextColor(strValue);
     }
-    else if ((strName == L"selected_normal_text_color") || (strName == L"selectednormaltextcolor")) {
+    else if ((strName == _T("selected_normal_text_color")) || (strName == _T("selectednormaltextcolor"))) {
         SetSelectedStateTextColor(kControlStateNormal, strValue);
     }
-    else if ((strName == L"selected_hot_text_color") || (strName == L"selectedhottextcolor")) {
+    else if ((strName == _T("selected_hot_text_color")) || (strName == _T("selectedhottextcolor"))) {
         SetSelectedStateTextColor(kControlStateHot, strValue);
     }
-    else if ((strName == L"selected_pushed_text_color") || (strName == L"selectedpushedtextcolor")) {
+    else if ((strName == _T("selected_pushed_text_color")) || (strName == _T("selectedpushedtextcolor"))) {
         SetSelectedStateTextColor(kControlStatePushed, strValue);
     }
-    else if ((strName == L"selected_disabled_text_color") || (strName == L"selecteddisabledtextcolor")) {
+    else if ((strName == _T("selected_disabled_text_color")) || (strName == _T("selecteddisabledtextcolor"))) {
         SetSelectedStateTextColor(kControlStateDisabled, strValue);
     }
-    else if ((strName == L"selected_normal_color") || (strName == L"selectednormalcolor")) {
+    else if ((strName == _T("selected_normal_color")) || (strName == _T("selectednormalcolor"))) {
         SetSelectedStateColor(kControlStateNormal, strValue);
     }
-    else if ((strName == L"selected_hot_color") || (strName == L"selectedhotcolor")) {
+    else if ((strName == _T("selected_hot_color")) || (strName == _T("selectedhotcolor"))) {
         SetSelectedStateColor(kControlStateHot, strValue);
     }
-    else if ((strName == L"selected_pushed_color") || (strName == L"selectedpushedcolor")) {
+    else if ((strName == _T("selected_pushed_color")) || (strName == _T("selectedpushedcolor"))) {
         SetSelectedStateColor(kControlStatePushed, strValue);
     }
-    else if ((strName == L"selected_disabled_color") || (strName == L"selecteddisabledcolor")) {
+    else if ((strName == _T("selected_disabled_color")) || (strName == _T("selecteddisabledcolor"))) {
         SetSelectedStateColor(kControlStateDisabled, strValue);
     }
-    else if ((strName == L"switch_select") || (strName == L"switchselect")) {
+    else if ((strName == _T("switch_select")) || (strName == _T("switchselect"))) {
         Selected(!IsSelected());
     }
-    else if (strName == L"auto_check_select") {
-        SetAutoCheckSelect(strValue == L"true");
+    else if (strName == _T("auto_check_select")) {
+        SetAutoCheckSelect(strValue == _T("true"));
     }
     else {
         __super::SetAttribute(strName, strValue);
@@ -605,8 +605,8 @@ void CheckBoxTemplate<InheritType>::PaintStateImages(IRender* pRender)
 
     if (isSelectNone) {
         //未选择状态
-        this->PaintStateImage(pRender, kStateImageBk, this->GetState(), L"", m_pCheckBoxImageRect);
-        this->PaintStateImage(pRender, kStateImageFore, this->GetState(), L"", m_pCheckBoxImageRect);
+        this->PaintStateImage(pRender, kStateImageBk, this->GetState(), _T(""), m_pCheckBoxImageRect);
+        this->PaintStateImage(pRender, kStateImageFore, this->GetState(), _T(""), m_pCheckBoxImageRect);
         return;
     }
 
@@ -614,11 +614,11 @@ void CheckBoxTemplate<InheritType>::PaintStateImages(IRender* pRender)
         //部分选择状态
         bool bPainted = false;
         if (this->HasStateImage(kStateImagePartSelectedBk)) {
-            this->PaintStateImage(pRender, kStateImagePartSelectedBk, this->GetState(), L"", m_pCheckBoxImageRect);
+            this->PaintStateImage(pRender, kStateImagePartSelectedBk, this->GetState(), _T(""), m_pCheckBoxImageRect);
             bPainted = true;
         }
         if (this->HasStateImage(kStateImagePartSelectedFore)) {
-            this->PaintStateImage(pRender, kStateImagePartSelectedFore, this->GetState(), L"", m_pCheckBoxImageRect);
+            this->PaintStateImage(pRender, kStateImagePartSelectedFore, this->GetState(), _T(""), m_pCheckBoxImageRect);
             bPainted = true;
         }
         if (bPainted) {
@@ -629,17 +629,17 @@ void CheckBoxTemplate<InheritType>::PaintStateImages(IRender* pRender)
 
     //全部选择状态
     if (IsPaintNormalFirst() && !this->HasStateImage(kStateImageSelectedBk)) {
-        this->PaintStateImage(pRender, kStateImageBk, this->GetState(), L"", m_pCheckBoxImageRect);
+        this->PaintStateImage(pRender, kStateImageBk, this->GetState(), _T(""), m_pCheckBoxImageRect);
     }
     else {
-        this->PaintStateImage(pRender, kStateImageSelectedBk, this->GetState(), L"", m_pCheckBoxImageRect);
+        this->PaintStateImage(pRender, kStateImageSelectedBk, this->GetState(), _T(""), m_pCheckBoxImageRect);
     }
 
     if (IsPaintNormalFirst() && !this->HasStateImage(kStateImageSelectedFore)) {
-        this->PaintStateImage(pRender, kStateImageFore, this->GetState(), L"", m_pCheckBoxImageRect);
+        this->PaintStateImage(pRender, kStateImageFore, this->GetState(), _T(""), m_pCheckBoxImageRect);
     }
     else {
-        this->PaintStateImage(pRender, kStateImageSelectedFore, this->GetState(), L"", m_pCheckBoxImageRect);
+        this->PaintStateImage(pRender, kStateImageSelectedFore, this->GetState(), _T(""), m_pCheckBoxImageRect);
     }
 }
 

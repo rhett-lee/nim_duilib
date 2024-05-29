@@ -1,7 +1,7 @@
 #include "MainForm.h"
 #include "MainThread.h"
 
-const std::wstring MainForm::kClassName = L"MainForm";
+const std::wstring MainForm::kClassName = _T("MainForm");
 
 MainForm::MainForm()
 {
@@ -13,12 +13,12 @@ MainForm::~MainForm()
 
 std::wstring MainForm::GetSkinFolder()
 {
-    return L"list_ctrl";
+    return _T("list_ctrl");
 }
 
 std::wstring MainForm::GetSkinFile()
 {
-    return L"list_ctrl.xml";
+    return _T("list_ctrl.xml");
 }
 
 std::wstring MainForm::GetWindowClassName() const
@@ -34,7 +34,7 @@ void MainForm::OnCloseWindow()
 
 void MainForm::OnInitWindow()
 {
-    ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(L"list_ctrl"));
+    ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
     ASSERT(pListCtrl != nullptr);
     if (pListCtrl == nullptr) {
         return;
@@ -51,15 +51,15 @@ void MainForm::OnInitWindow()
     pIconImageList->SetImageSize(ui::UiSize(64, 64), Dpi(), true);
 
     //添加图片资源
-    uint32_t imageId = pReportImageList->AddImageString(L"file='1.svg' width='18' height='18'", Dpi());
-    pListImageList->AddImageString(L"file='1.svg' width='32' height='32' valign='center' halign='center'", Dpi());
-    pIconImageList->AddImageString(L"file='1.svg' width='64' height='64' valign='center' halign='center'", Dpi());
+    uint32_t imageId = pReportImageList->AddImageString(_T("file='1.svg' width='18' height='18'"), Dpi());
+    pListImageList->AddImageString(_T("file='1.svg' width='32' height='32' valign='center' halign='center'"), Dpi());
+    pIconImageList->AddImageString(_T("file='1.svg' width='64' height='64' valign='center' halign='center'"), Dpi());
 
     //填充数据
     InsertItemData(400, 9, (int32_t)imageId);
 
     // 表格类型
-    ui::Combo* pTypeCombo = dynamic_cast<ui::Combo*>(FindControl(L"list_ctrl_type_combo"));
+    ui::Combo* pTypeCombo = dynamic_cast<ui::Combo*>(FindControl(_T("list_ctrl_type_combo")));
     if (pTypeCombo != nullptr) {
         pTypeCombo->SetCurSel((int32_t)pListCtrl->GetListCtrlType());
         pTypeCombo->AttachSelect([this, pListCtrl, pTypeCombo](const ui::EventArgs& args) {
@@ -85,9 +85,9 @@ void MainForm::OnInitWindow()
     }
 
     //表头高度控制
-    ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"header_height_edit"));
+    ui::RichEdit* pHeaderHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("header_height_edit")));
     if (pHeaderHeightEdit != nullptr) {
-        pHeaderHeightEdit->SetText(ui::StringUtil::Printf(L"%d", pListCtrl->GetHeaderHeight()));
+        pHeaderHeightEdit->SetText(ui::StringUtil::Printf(_T("%d"), pListCtrl->GetHeaderHeight()));
         pHeaderHeightEdit->AttachTextChange([this, pHeaderHeightEdit, pListCtrl](const ui::EventArgs&) {
             int32_t height = _wtoi(pHeaderHeightEdit->GetText().c_str());
             if (height >= 0) {
@@ -98,9 +98,9 @@ void MainForm::OnInitWindow()
     }
 
     //表格每行高度控制
-    ui::RichEdit* pItemHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(L"list_item_height_edit"));
+    ui::RichEdit* pItemHeightEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("list_item_height_edit")));
     if (pItemHeightEdit != nullptr) {
-        pItemHeightEdit->SetText(ui::StringUtil::Printf(L"%d", pListCtrl->GetDataItemHeight()));
+        pItemHeightEdit->SetText(ui::StringUtil::Printf(_T("%d"), pListCtrl->GetDataItemHeight()));
         pItemHeightEdit->AttachTextChange([this, pItemHeightEdit, pListCtrl](const ui::EventArgs&) {
             int32_t height = _wtoi(pItemHeightEdit->GetText().c_str());
             if (height >= 0) {
@@ -111,7 +111,7 @@ void MainForm::OnInitWindow()
     }
 
     //列控制
-    ui::Combo* pColumnCombo = dynamic_cast<ui::Combo*>(FindControl(L"column_combo"));
+    ui::Combo* pColumnCombo = dynamic_cast<ui::Combo*>(FindControl(_T("column_combo")));
     if (pColumnCombo != nullptr) {
         //填充列数据
         size_t nColumnCount = pListCtrl->GetColumnCount();
@@ -137,30 +137,30 @@ void MainForm::OnInitWindow()
         OnColumnChanged(pColumnCombo->GetItemData(0));
     }
 
-    ui::CheckBox* pColumnShow = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show"));
-    ui::CheckBox* pColumnWidth = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_width"));
-    ui::CheckBox* pColumnSort = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_sort"));
-    ui::CheckBox* pColumnIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_icon_at_top"));
-    ui::CheckBox* pColumnDragOrder = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_drag_order"));
-    ui::CheckBox* pColumnEditable = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_editable"));
-    ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_checkbox"));
-    ui::CheckBox* pColumnShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_checkbox"));
+    ui::CheckBox* pColumnShow = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_show")));
+    ui::CheckBox* pColumnWidth = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_width")));
+    ui::CheckBox* pColumnSort = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_sort")));
+    ui::CheckBox* pColumnIcon = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_icon_at_top")));
+    ui::CheckBox* pColumnDragOrder = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_drag_order")));
+    ui::CheckBox* pColumnEditable = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_editable")));
+    ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_show_header_checkbox")));
+    ui::CheckBox* pColumnShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_show_checkbox")));
 
-    ui::CheckBox* pColumnHeaderIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_icon"));
-    ui::CheckBox* pColumnShowIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_icon"));
+    ui::CheckBox* pColumnHeaderIcon = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_show_header_icon")));
+    ui::CheckBox* pColumnShowIcon = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_show_icon")));
 
-    ui::Option* pColumnHeaderTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_left"));
-    ui::Option* pColumnHeaderTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_center"));
-    ui::Option* pColumnHeaderTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_right"));
+    ui::Option* pColumnHeaderTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(_T("header_text_align_left")));
+    ui::Option* pColumnHeaderTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(_T("header_text_align_center")));
+    ui::Option* pColumnHeaderTextAlignRight = dynamic_cast<ui::Option*>(FindControl(_T("header_text_align_right")));
 
-    ui::Option* pColumnTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"column_text_align_left"));
-    ui::Option* pColumnTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"column_text_align_center"));
-    ui::Option* pColumnTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"column_text_align_right"));
+    ui::Option* pColumnTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(_T("column_text_align_left")));
+    ui::Option* pColumnTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(_T("column_text_align_center")));
+    ui::Option* pColumnTextAlignRight = dynamic_cast<ui::Option*>(FindControl(_T("column_text_align_right")));
 
-    ui::CheckBox* pHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_show_header_checkbox"));
-    ui::CheckBox* pShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_show_checkbox"));
+    ui::CheckBox* pHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_show_header_checkbox")));
+    ui::CheckBox* pShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_show_checkbox")));
 
-    ui::CheckBox* pShowIcon= dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_show_icon"));
+    ui::CheckBox* pShowIcon= dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_show_icon")));
 
     //实现显示该列
     auto OnColumnShowHide = [this, pColumnCombo, pListCtrl](bool bColumnVisible) {
@@ -416,7 +416,7 @@ void MainForm::OnInitWindow()
         });
 
     //是否支持多选
-    ui::CheckBox* pMultiSelect = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_multi_select"));
+    ui::CheckBox* pMultiSelect = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_multi_select")));
     if (pMultiSelect != nullptr) {
         pMultiSelect->Selected(pListCtrl->IsMultiSelect(), false);
     }
@@ -424,7 +424,7 @@ void MainForm::OnInitWindow()
     ui::ListCtrlHeader* pHeaderCtrl = pListCtrl->GetHeaderCtrl();
     if (pHeaderCtrl != nullptr) {
         pHeaderCtrl->AttachRClick([this](const ui::EventArgs&) {
-            if (::MessageBox(nullptr, L"ListCtrlHeader RClick! 是否执行功能测试？", L"", MB_YESNO) == IDYES) {
+            if (::MessageBox(nullptr, _T("ListCtrlHeader RClick! 是否执行功能测试？"), _T(""), MB_YESNO) == IDYES) {
                 RunListCtrlTest();
             }            
             return true;
@@ -493,24 +493,24 @@ void MainForm::OnInitWindow()
             }
 
             if (args.Type == ui::kEventSelect) {
-                std::wstring sInfo = ui::StringUtil::Printf(L"kEventSelect，数据索引号：%d", (int32_t)itemIndex);
-                //::MessageBox(nullptr, sInfo.c_str(), L"", MB_OK);
+                std::wstring sInfo = ui::StringUtil::Printf(_T("kEventSelect，数据索引号：%d"), (int32_t)itemIndex);
+                //::MessageBox(nullptr, sInfo.c_str(), _T(""), MB_OK);
             }
             else if (args.Type == ui::kEventSelChange) {
-                //::MessageBox(nullptr, L"kEventSelChange", L"", MB_OK);
+                //::MessageBox(nullptr, _T("kEventSelChange"), _T(""), MB_OK);
             }
             else if(args.Type == ui::kEventMouseDoubleClick) {                
-                //::MessageBox(nullptr, L"kEventMouseDoubleClick", text.c_str(), MB_OK);
+                //::MessageBox(nullptr, _T("kEventMouseDoubleClick"), text.c_str(), MB_OK);
             }
             else if (args.Type == ui::kEventClick) {
-                //::MessageBox(nullptr, L"kEventClick", text.c_str(), MB_OK);
+                //::MessageBox(nullptr, _T("kEventClick"), text.c_str(), MB_OK);
             }
             else if (args.Type == ui::kEventRClick) {
-                //::MessageBox(nullptr, L"kEventRClick", text.c_str(), MB_OK);
+                //::MessageBox(nullptr, _T("kEventRClick"), text.c_str(), MB_OK);
             }
             else if (args.Type == ui::kEventReturn) {
-                std::wstring sInfo = ui::StringUtil::Printf(L"kEventReturn，数据索引号：%d", (int32_t)itemIndex);
-                //::MessageBox(nullptr, sInfo.c_str(), L"", MB_OK);
+                std::wstring sInfo = ui::StringUtil::Printf(_T("kEventReturn，数据索引号：%d"), (int32_t)itemIndex);
+                //::MessageBox(nullptr, sInfo.c_str(), _T(""), MB_OK);
             }
         };
 
@@ -543,7 +543,7 @@ void MainForm::OnInitWindow()
 
 void MainForm::OnColumnChanged(size_t nColumnId)
 {
-    ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(L"list_ctrl"));
+    ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
     ASSERT(pListCtrl != nullptr);
     if (pListCtrl == nullptr) {
         return;
@@ -556,25 +556,25 @@ void MainForm::OnColumnChanged(size_t nColumnId)
     }
 
 
-    ui::CheckBox* pColumnShow = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show"));
-    ui::CheckBox* pColumnWidth = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_width"));
-    ui::CheckBox* pColumnSort = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_sort"));
-    ui::CheckBox* pColumnIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_icon_at_top"));
-    ui::CheckBox* pColumnDragOrder = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_drag_order"));
-    ui::CheckBox* pColumnEditable = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_editable"));
-    ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_checkbox"));
-    ui::CheckBox* pColumnShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_checkbox"));
+    ui::CheckBox* pColumnShow = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_show")));
+    ui::CheckBox* pColumnWidth = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_width")));
+    ui::CheckBox* pColumnSort = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_sort")));
+    ui::CheckBox* pColumnIcon = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_icon_at_top")));
+    ui::CheckBox* pColumnDragOrder = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_drag_order")));
+    ui::CheckBox* pColumnEditable = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_editable")));
+    ui::CheckBox* pColumnHeaderCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_show_header_checkbox")));
+    ui::CheckBox* pColumnShowCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_show_checkbox")));
 
-    ui::CheckBox* pColumnHeaderIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_header_icon"));
-    ui::CheckBox* pColumnShowIcon = dynamic_cast<ui::CheckBox*>(FindControl(L"checkbox_column_show_icon"));
+    ui::CheckBox* pColumnHeaderIcon = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_show_header_icon")));
+    ui::CheckBox* pColumnShowIcon = dynamic_cast<ui::CheckBox*>(FindControl(_T("checkbox_column_show_icon")));
 
-    ui::Option* pColumnHeaderTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_left"));
-    ui::Option* pColumnHeaderTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_center"));
-    ui::Option* pColumnHeaderTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"header_text_align_right"));
+    ui::Option* pColumnHeaderTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(_T("header_text_align_left")));
+    ui::Option* pColumnHeaderTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(_T("header_text_align_center")));
+    ui::Option* pColumnHeaderTextAlignRight = dynamic_cast<ui::Option*>(FindControl(_T("header_text_align_right")));
 
-    ui::Option* pColumnTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(L"column_text_align_left"));
-    ui::Option* pColumnTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(L"column_text_align_center"));
-    ui::Option* pColumnTextAlignRight = dynamic_cast<ui::Option*>(FindControl(L"column_text_align_right"));
+    ui::Option* pColumnTextAlignLeft = dynamic_cast<ui::Option*>(FindControl(_T("column_text_align_left")));
+    ui::Option* pColumnTextAlignCenter = dynamic_cast<ui::Option*>(FindControl(_T("column_text_align_center")));
+    ui::Option* pColumnTextAlignRight = dynamic_cast<ui::Option*>(FindControl(_T("column_text_align_right")));
 
     ASSERT(pHeaderItem->IsColumnVisible() == pHeaderItem->IsVisible());
     pColumnShow->Selected(pHeaderItem->IsColumnVisible(), false);
@@ -632,7 +632,7 @@ void MainForm::OnColumnChanged(size_t nColumnId)
 
 void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
 {
-    ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(L"list_ctrl"));
+    ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
     ASSERT(pListCtrl != nullptr);
     if (pListCtrl == nullptr) {
         return;
@@ -645,7 +645,7 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
         ui::ListCtrlColumn columnInfo;
         columnInfo.nColumnWidth = 200;
         //columnInfo.nTextFormat = TEXT_LEFT | TEXT_VCENTER;
-        columnInfo.text = ui::StringUtil::Printf(L"第 %d 列", i);
+        columnInfo.text = ui::StringUtil::Printf(_T("第 %d 列"), i);
         columnInfo.bShowCheckBox = bShowCheckBox;
         columnInfo.nImageId = nImageId;
         pListCtrl->InsertColumn(-1, columnInfo);
@@ -656,11 +656,11 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
     for (size_t itemIndex = 0; itemIndex < rowCount; ++itemIndex) {
         for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
             ui::ListCtrlSubItemData subItemData;
-            subItemData.text = ui::StringUtil::Printf(L"第 %03d 行/第 %02d 列", itemIndex, columnIndex);
+            subItemData.text = ui::StringUtil::Printf(_T("第 %03d 行/第 %02d 列"), itemIndex, columnIndex);
             subItemData.bShowCheckBox = bShowCheckBox;
             subItemData.nImageId = nImageId;
             if (columnIndex == 0) {
-                subItemData.text += L"-测试1234567890-测试1234567890-测试1234567890-测试1234567890";
+                subItemData.text += _T("-测试1234567890-测试1234567890-测试1234567890-测试1234567890");
             }
             pListCtrl->SetSubItemData(itemIndex, columnIndex, subItemData);
         }
@@ -689,7 +689,7 @@ void MainForm::InsertItemData(int32_t nRows, int32_t nColumns, int32_t nImageId)
 
 void MainForm::RunListCtrlTest()
 {
-    ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(L"list_ctrl"));
+    ui::ListCtrl* pListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("list_ctrl")));
     ASSERT(pListCtrl != nullptr);
     if (pListCtrl == nullptr) {
         return;
@@ -703,7 +703,7 @@ void MainForm::RunListCtrlTest()
 #ifdef _DEBUG
 
     //基本功能测试
-    const std::wstring text = L"1";
+    const std::wstring text = _T("1");
     ui::ListCtrlSubItemData subItemData;
     subItemData.text = text;
     const size_t nDataItemIndex = pListCtrl->AddDataItem(subItemData);
@@ -742,7 +742,7 @@ void MainForm::RunListCtrlTest()
     pListCtrl->SetDataItemUserData(nDataItemIndex, 0);
 
     size_t nColumnIndex = 1;
-    subItemData.text = L"3";
+    subItemData.text = _T("3");
     subItemData.textColor = ui::UiColor(ui::UiColors::Crimson);
     subItemData.bkColor = ui::UiColor(ui::UiColors::BlanchedAlmond);
     subItemData.bShowCheckBox = false;
@@ -759,9 +759,9 @@ void MainForm::RunListCtrlTest()
     ASSERT(subItemData.nImageId == dataItem2.nImageId);
     ASSERT(subItemData.nTextFormat == dataItem2.nTextFormat);
 
-    ASSERT(pListCtrl->GetSubItemText(nDataItemIndex, nColumnIndex) == L"3");
+    ASSERT(pListCtrl->GetSubItemText(nDataItemIndex, nColumnIndex) == _T("3"));
 
-    subItemData.text = L"2";
+    subItemData.text = _T("2");
     nColumnIndex = 2;
     pListCtrl->SetSubItemText(nDataItemIndex, nColumnIndex, subItemData.text);
     ASSERT(pListCtrl->GetSubItemText(nDataItemIndex, nColumnIndex) == subItemData.text);
@@ -792,10 +792,10 @@ void MainForm::RunListCtrlTest()
     pListCtrl->SetSubItemImageId(nDataItemIndex, nColumnIndex, 667);
     ASSERT(pListCtrl->GetSubItemImageId(nDataItemIndex, nColumnIndex) == 667);
 
-    subItemData.text = L"3";
+    subItemData.text = _T("3");
     nColumnIndex = 0;
     pListCtrl->InsertDataItem(nDataItemIndex, subItemData);
-    ASSERT(pListCtrl->GetSubItemText(nDataItemIndex, nColumnIndex) == L"3");
+    ASSERT(pListCtrl->GetSubItemText(nDataItemIndex, nColumnIndex) == _T("3"));
     //pListCtrl->DeleteDataItem(nDataItemIndex);
     //pListCtrl->DeleteAllDataItems();
 
@@ -890,7 +890,7 @@ void MainForm::RunListCtrlTest()
 
     ui::ListCtrlSubItemData dataItem3;
     nColumnIndex = 0;
-    dataItem3.text = L"Test";
+    dataItem3.text = _T("Test");
     size_t nDataItemIndex3 = pListCtrl->AddDataItem(dataItem3);
     ASSERT(nDataItemIndex3 > 60);
     ASSERT(pListCtrl->IsDataItemSelected(60));

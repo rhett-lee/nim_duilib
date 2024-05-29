@@ -64,9 +64,9 @@ Menu::Menu(HWND hParent) :
     m_pOwner(nullptr),
     m_pLayout(nullptr)
 {
-    m_skinFolder = std::wstring(L"menu");
-    m_submenuXml = std::wstring(L"submenu.xml");
-    m_submenuNodeName = std::wstring(L"submenu");
+    m_skinFolder = std::wstring(_T("menu"));
+    m_submenuXml = std::wstring(_T("submenu.xml"));
+    m_submenuNodeName = std::wstring(_T("submenu"));
 }
 
 void Menu::SetSkinFolder(const std::wstring& skinFolder)
@@ -91,7 +91,7 @@ void Menu::ShowMenu(const std::wstring& xml, const UiPoint& point, MenuPopupPosT
 
     Menu::GetMenuObserver().AddReceiver(this);
 
-    CreateWnd(m_hParent, L"DUILIB_MENU_WINDOW", WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_LAYERED);
+    CreateWnd(m_hParent, _T("DUILIB_MENU_WINDOW"), WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_LAYERED);
     // HACK: Don't deselect the parent's caption
     HWND hWndParent = GetHWND();
     while (::GetParent(hWndParent) != NULL) {
@@ -182,7 +182,7 @@ std::wstring Menu::GetSkinFile()
 
 std::wstring Menu::GetWindowClassName() const
 {
-    return L"MenuWnd";
+    return _T("MenuWnd");
 }
 
 LRESULT Menu::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)

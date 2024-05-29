@@ -79,11 +79,11 @@ bool LangManager::AnalyzeStringTable(const std::vector<std::wstring>& list)
     std::wstring strResource;
     for (int i = 0; i < nCount; ++i) {
         const std::wstring& strSrc = list[i];
-        if (strSrc.empty() || strSrc.at(0) == L';') {
+        if (strSrc.empty() || strSrc.at(0) == _T(';')) {
             //注释以";"开头
             continue;
         }
-        size_t pos = strSrc.find(L'=');
+        size_t pos = strSrc.find(_T('='));
         if (pos == std::wstring::npos) {
             //无分隔符，忽略
             continue;
@@ -97,8 +97,8 @@ bool LangManager::AnalyzeStringTable(const std::vector<std::wstring>& list)
             strResource = strSrc.substr(pos + 1);
             strResource = StringUtil::Trim(strResource);
             //将\n和\r替换为真实的换行符、回车符
-            StringUtil::ReplaceAll(L"\\r", L"\r", strResource);
-            StringUtil::ReplaceAll(L"\\n", L"\n", strResource);
+            StringUtil::ReplaceAll(_T("\\r"), _T("\r"), strResource);
+            StringUtil::ReplaceAll(_T("\\n"), _T("\n"), strResource);
         }
         else {
             strResource.clear();

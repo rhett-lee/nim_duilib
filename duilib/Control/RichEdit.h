@@ -770,7 +770,7 @@ public:
      * @param[in] color 文字颜色
      * @param[in] linkInfo 链接地址
      */
-    void AddLinkColorText(const std::wstring &str, const std::wstring &color, const std::wstring &linkInfo = L"");
+    void AddLinkColorText(const std::wstring &str, const std::wstring &color, const std::wstring &linkInfo = _T(""));
 
     /** 添加一个指定字体带有文字颜色的超链接
      * @param[in] str 文字内容
@@ -778,7 +778,7 @@ public:
      * @param[in] linkInfo 链接地址
      * @param[in] font 字体索引
      */
-    void AddLinkColorTextEx(const std::wstring& str, const std::wstring &color, const std::wstring &linkInfo = L"", const std::wstring& strFontId = L"");
+    void AddLinkColorTextEx(const std::wstring& str, const std::wstring &color, const std::wstring &linkInfo = _T(""), const std::wstring& strFontId = _T(""));
 
     /** 添加一个范围用于 hittest 判断是否是链接信息
      * @param[in] cr 范围的起始位置和结束位置

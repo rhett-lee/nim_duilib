@@ -39,13 +39,13 @@ std::wstring ImageLoadAttribute::GetCacheKey(uint32_t nDpiScale) const
     std::wstring fullPath = m_srcImageFullPath.c_str();
     if ((nDpiScale != 0) && (nDpiScale != 100)) {
         //追加缩放百分比
-        fullPath += L"@";
+        fullPath += _T("@");
         fullPath += StringUtil::UInt32ToString(nDpiScale);
     }
     if (!m_srcWidth.empty() || !m_srcHeight.empty()) {
-        fullPath += L"@";
+        fullPath += _T("@");
         fullPath += m_srcWidth.c_str();
-        fullPath += L":";
+        fullPath += _T(":");
         fullPath += m_srcHeight.c_str();
     }
     return fullPath;
@@ -107,7 +107,7 @@ uint32_t ImageLoadAttribute::GetScacledSize(const std::wstring& srcSize, uint32_
         return 0;
     }
     uint32_t nScaledSize = 0;
-    if (srcSize.back() == L'%') {
+    if (srcSize.back() == _T('%')) {
         //按照百分比缩放
         double ratio = wcstod(srcSize.c_str(), nullptr);
         nScaledSize = static_cast<uint32_t>(nImageSize * ratio / 100);

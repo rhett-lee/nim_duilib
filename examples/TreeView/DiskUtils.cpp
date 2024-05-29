@@ -33,7 +33,7 @@ bool DiskUtils::GetLogicalDriveList(std::vector<std::wstring>& driveList)
 
     DWORD begin = 0;
     for (DWORD i = 0; i < dwSize; ++i) {
-        if (driveStr[i] == L'\0' && begin != i) {
+        if (driveStr[i] == _T('\0') && begin != i) {
             driveList.push_back(driveStr + begin);
             begin = i + 1;
         }
@@ -43,7 +43,7 @@ bool DiskUtils::GetLogicalDriveList(std::vector<std::wstring>& driveList)
 
 bool DiskUtils::GetLogicalDriveInfo(const std::wstring& driveString, DiskInfo& diskInfo)
 { 
-    HMODULE hShell32Dll = ::LoadLibraryW(L"Shell32.dll");
+    HMODULE hShell32Dll = ::LoadLibraryW(_T("Shell32.dll"));
     ASSERT(hShell32Dll != NULL);
     if (hShell32Dll == NULL) {
         return false;
@@ -113,7 +113,7 @@ std::wstring DiskUtils::GetDriveFromDirectoryPath(std::wstring path)
     if ( (path.size() < 2)) {
         return std::wstring();
     }
-    if ( (path[1] != L':')) {
+    if ( (path[1] != _T(':'))) {
         return std::wstring();
     }    
     return path.substr(0, 3);

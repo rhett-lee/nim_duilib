@@ -33,7 +33,7 @@ public:
     /** 解析属性列表，格式如    : font="system_bold_14" normaltextcolor="white" bkcolor="red"
     *                 或者    : color='black' offset='1,1' blur_radius='2' spread_radius='2'
     *   分隔符可以是双引号或者单引号，由参数传入
-    * @param [in] seperateChar 字符串分隔符，可以是 L'\"' 或者 L'\''
+    * @param [in] seperateChar 字符串分隔符，可以是 _T('\"') 或者 _T('\')'
     */
     static void ParseAttributeList(const std::wstring& strList,
                                    wchar_t seperateChar,

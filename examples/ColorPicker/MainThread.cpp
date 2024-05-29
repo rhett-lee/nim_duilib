@@ -38,7 +38,7 @@ void MainThread::OnInit()
 
     //初始化全局资源, 使用本地文件夹作为资源
     std::wstring resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
-    resourcePath += L"resources\\";
+    resourcePath += _T("resources\\");
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;

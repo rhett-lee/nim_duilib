@@ -197,16 +197,16 @@ inline std::wstring LabelTemplate<Box>::GetType() const { return DUI_CTR_LABELBO
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
 {
-    if ((strName == L"text_align") || (strName == L"align")) {
-        if (strValue.find(L"left") != std::wstring::npos) {
+    if ((strName == _T("text_align")) || (strName == _T("align"))) {
+        if (strValue.find(_T("left")) != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
             m_uTextStyle |= TEXT_LEFT;
         }
         //center这个属性有歧义，保留以保持兼容性，新的属性是"hcenter"
-        size_t centerPos = strValue.find(L"center");
+        size_t centerPos = strValue.find(_T("center"));
         if (centerPos != std::wstring::npos) {
             bool isCenter = true;
-            size_t vCenterPos = strValue.find(L"vcenter");
+            size_t vCenterPos = strValue.find(_T("vcenter"));
             if (vCenterPos != std::wstring::npos) {
                 if ((vCenterPos + 1) == centerPos) {
                     isCenter = false;
@@ -217,74 +217,74 @@ void LabelTemplate<InheritType>::SetAttribute(const std::wstring& strName, const
                 m_uTextStyle |= TEXT_CENTER;
             }
         }
-        if (strValue.find(L"hcenter") != std::wstring::npos) {
+        if (strValue.find(_T("hcenter")) != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_LEFT | TEXT_RIGHT);
             m_uTextStyle |= TEXT_CENTER;
         }
-        if (strValue.find(L"right") != std::wstring::npos) {
+        if (strValue.find(_T("right")) != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_LEFT | TEXT_CENTER);
             m_uTextStyle |= TEXT_RIGHT;
         }
-        if (strValue.find(L"top") != std::wstring::npos) {
+        if (strValue.find(_T("top")) != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_BOTTOM | TEXT_VCENTER);
             m_uTextStyle |= TEXT_TOP;
         }
-        if (strValue.find(L"vcenter") != std::wstring::npos) {
+        if (strValue.find(_T("vcenter")) != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_TOP | TEXT_BOTTOM);
             m_uTextStyle |= TEXT_VCENTER;
         }
-        if (strValue.find(L"bottom") != std::wstring::npos) {
+        if (strValue.find(_T("bottom")) != std::wstring::npos) {
             m_uTextStyle &= ~(TEXT_TOP | TEXT_VCENTER);
             m_uTextStyle |= TEXT_BOTTOM;
         }
     }
-    else if ((strName == L"end_ellipsis") || (strName == L"endellipsis")) {
-        if (strValue == L"true") {
+    else if ((strName == _T("end_ellipsis")) || (strName == _T("endellipsis"))) {
+        if (strValue == _T("true")) {
             m_uTextStyle |= TEXT_END_ELLIPSIS;
         }
         else {
             m_uTextStyle &= ~TEXT_END_ELLIPSIS;
         }
     }
-    else if ((strName == L"path_ellipsis") || (strName == L"pathellipsis")) {
-        if (strValue == L"true") {
+    else if ((strName == _T("path_ellipsis")) || (strName == _T("pathellipsis"))) {
+        if (strValue == _T("true")) {
             m_uTextStyle |= TEXT_PATH_ELLIPSIS;
         }
         else {
             m_uTextStyle &= ~TEXT_PATH_ELLIPSIS;
         }
     }
-    else if ((strName == L"single_line") || (strName == L"singleline")) {
-        SetSingleLine(strValue == L"true");
+    else if ((strName == _T("single_line")) || (strName == _T("singleline"))) {
+        SetSingleLine(strValue == _T("true"));
     }
-    else if ((strName == L"multi_line") || (strName == L"multiline")) {
-        SetSingleLine(strValue != L"true");
+    else if ((strName == _T("multi_line")) || (strName == _T("multiline"))) {
+        SetSingleLine(strValue != _T("true"));
     }
-    else if (strName == L"text") {
+    else if (strName == _T("text")) {
         SetText(strValue);
     }
-    else if ((strName == L"text_id") || (strName == L"textid")){
+    else if ((strName == _T("text_id")) || (strName == _T("textid"))){
         SetTextId(strValue);
     }
-    else if ((strName == L"auto_tooltip") || (strName == L"autotooltip")) {
-        SetAutoToolTip(strValue == L"true");
+    else if ((strName == _T("auto_tooltip")) || (strName == _T("autotooltip"))) {
+        SetAutoToolTip(strValue == _T("true"));
     }
-    else if (strName == L"font") {
+    else if (strName == _T("font")) {
         SetFontId(strValue);
     }
-    else if ((strName == L"normal_text_color") || (strName == L"normaltextcolor")) {
+    else if ((strName == _T("normal_text_color")) || (strName == _T("normaltextcolor"))) {
         SetStateTextColor(kControlStateNormal, strValue);
     }
-    else if ((strName == L"hot_text_color") || (strName == L"hottextcolor")) {
+    else if ((strName == _T("hot_text_color")) || (strName == _T("hottextcolor"))) {
         SetStateTextColor(kControlStateHot, strValue);
     }
-    else if ((strName == L"pushed_text_color") || (strName == L"pushedtextcolor")) {
+    else if ((strName == _T("pushed_text_color")) || (strName == _T("pushedtextcolor"))) {
         SetStateTextColor(kControlStatePushed, strValue);
     }
-    else if ((strName == L"disabled_text_color") || (strName == L"disabledtextcolor")) {
+    else if ((strName == _T("disabled_text_color")) || (strName == _T("disabledtextcolor"))) {
         SetStateTextColor(kControlStateDisabled, strValue);
     }
-    else if ((strName == L"text_padding") || (strName == L"textpadding")) {
+    else if ((strName == _T("text_padding")) || (strName == _T("textpadding"))) {
         UiPadding rcTextPadding;
         AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
         SetTextPadding(rcTextPadding, true);

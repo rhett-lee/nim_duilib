@@ -39,12 +39,12 @@ void MainThread::OnInit()
 
     //初始化全局资源, 使用本地文件夹作为资源
     std::wstring resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
-    resourcePath += L"resources\\";
+    resourcePath += _T("resources\\");
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     //创建主窗口
     MainForm* pWindow = new MainForm();
-    pWindow->CreateWnd(NULL, L"ListCtrl控件测试程序", UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    pWindow->CreateWnd(NULL, _T("ListCtrl控件测试程序"), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
     pWindow->SetIcon(IDI_LISTCTRL);
     pWindow->CenterWindow();
     pWindow->ShowWindow();

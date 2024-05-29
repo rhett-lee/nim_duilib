@@ -56,9 +56,9 @@ TimerManager::TimerManager() :
     wc.cbSize = sizeof(wc);
     wc.lpfnWndProc = WndProcThunk;
     wc.hInstance = hinst;
-    wc.lpszClassName = L"UI_ANIMATION_TIMERMANAGER_H_";
+    wc.lpszClassName = _T("UI_ANIMATION_TIMERMANAGER_H_");
     ::RegisterClassExW(&wc);
-    m_hMessageWnd = ::CreateWindowW(L"UI_ANIMATION_TIMERMANAGER_H_", 0, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hinst, 0);
+    m_hMessageWnd = ::CreateWindowW(_T("UI_ANIMATION_TIMERMANAGER_H_"), 0, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hinst, 0);
 }
 
 TimerManager::~TimerManager()

@@ -20,7 +20,7 @@ public:
     virtual std::wstring GetType() const override { return DUI_CTR_HYPER_LINK; }
     virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override
     {
-        if (strName == L"url") {
+        if (strName == _T("url")) {
             m_url = strValue;
         }
         else {
