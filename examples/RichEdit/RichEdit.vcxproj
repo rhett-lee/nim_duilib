@@ -171,13 +171,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="FindForm.h" />
-    <ClInclude Include="framework.h" />
     <ClInclude Include="MainForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="ReplaceForm.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="RichEditFindReplace.h" />
-    <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RichEdit.rc" />

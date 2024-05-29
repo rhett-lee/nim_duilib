@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_RICHLIST_FORM_H_
+#define EXAMPLES_RICHLIST_FORM_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 class RichlistForm : public ui::WindowImplBase
 {
@@ -35,3 +39,4 @@ private:
     ui::ListBox* m_pListBox;
 };
 
+#endif //EXAMPLES_RICHLIST_FORM_H_

@@ -1,5 +1,5 @@
-#ifndef __DiskUtils_h_
-#define __DiskUtils_h_
+#ifndef EXAMPLES_DISK_UTILS_H_
+#define EXAMPLES_DISK_UTILS_H_
 
 #include "duilib/duilib_config.h"
 #include <string>
@@ -77,4 +77,4 @@ public:
     static uint64_t GetFreeDiskSpace(const std::wstring& fullDirectory);
 };
 
-#endif //__DiskUtils_h_
+#endif //EXAMPLES_DISK_UTILS_H_

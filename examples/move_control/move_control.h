@@ -1,4 +1,6 @@
-#pragma once
+#ifndef EXAMPLES_MOVE_CONTROL_H_
+#define EXAMPLES_MOVE_CONTROL_H_
+
 #include "app_db.h"
 
 class MoveControlForm : public ui::WindowImplBase
@@ -33,4 +35,4 @@ private:
     ui::Box* m_frequent_app=nullptr;
     ui::Box* m_my_app = nullptr;
 };
-
+#endif //EXAMPLES_MOVE_CONTROL_H_

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXAMPLES_MAIN_FORM_H_
+#define EXAMPLES_MAIN_FORM_H_
 
 #include "resource.h"
 
@@ -184,5 +185,4 @@ private:
     //字体大小列表
     std::vector<FontSizeInfo> m_fontSizeList;
 };
-
-
+#endif //EXAMPLES_MAIN_FORM_H_

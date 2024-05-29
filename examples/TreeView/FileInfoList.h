@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXAMPLES_FILEINFO_LIST_H_
+#define EXAMPLES_FILEINFO_LIST_H_
 
 // duilib
 #include "duilib/duilib.h"
@@ -96,3 +97,4 @@ private:
     std::vector<FileInfo> m_pathList;
 };
 
+#endif //EXAMPLES_FILEINFO_LIST_H_

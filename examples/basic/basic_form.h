@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_BASIC_FORM_H_
+#define EXAMPLES_BASIC_FORM_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 class BasicForm : public ui::WindowImplBase
 {
@@ -29,3 +33,4 @@ public:
     static const std::wstring kClassName;
 };
 
+#endif //EXAMPLES_BASIC_FORM_H_

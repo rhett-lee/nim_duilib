@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "main_form.h"
 #include "provider.h"
 

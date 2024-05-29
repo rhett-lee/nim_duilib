@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_PROVIDER_H_
+#define EXAMPLES_PROVIDER_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 #include <map>
 #include <mutex>
@@ -72,3 +76,4 @@ private:
     mutable std::mutex m_lock;
 };
 
+#endif //EXAMPLES_PROVIDER_H_

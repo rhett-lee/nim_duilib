@@ -1,4 +1,6 @@
-#pragma once
+#ifndef EXAMPLES_MULTI_BROWSER_MANAGER_H_
+#define EXAMPLES_MULTI_BROWSER_MANAGER_H_
+
 #include "browser_box.h"
 
 /** @class MultiBrowserManager
@@ -133,3 +135,4 @@ private:
 
     std::map<std::string, BrowserBox*>    box_map_;
 };
+#endif //EXAMPLES_MULTI_BROWSER_MANAGER_H_

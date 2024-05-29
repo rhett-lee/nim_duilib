@@ -1,6 +1,4 @@
-#include "stdafx.h"
 #include "item.h"
-
 
 Item::Item(ui::Window* pWindow):
     ui::ListBoxItem(pWindow)

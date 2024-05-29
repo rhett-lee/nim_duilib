@@ -160,7 +160,7 @@ void TimerManager::Poll()
                 //调用定时器的回调函数
                 taskGuard.unlock();
                 timerTask.timerCallback();
-                LogUtil::OutputLine(StringUtil::Printf(_T("timerTask.timerCallback(): exec.")));
+                //LogUtil::OutputLine(StringUtil::Printf(_T("timerTask.timerCallback(): exec. TimerId: %u, ElapseMs: %u"), timerTask.m_nTimerId, timerTask.uElapseMs));
                 taskGuard.lock();
             }
             if (timerTask.uRepeatTime > 0) {
@@ -219,14 +219,14 @@ void TimerManager::WorkerThreadProc()
 
             if (nDetaTimeMs > 0) {
                 //延迟等待超时
-                LogUtil::OutputLine(StringUtil::Printf(_T("condition_variable: wait_for timer event(%u ms)"), nDetaTimeMs));
+                //LogUtil::OutputLine(StringUtil::Printf(_T("condition_variable: wait_for timer event(%u ms)"), nDetaTimeMs));
                 //该函数精确度10ms左右
                 //注意事项：发现gcc版本和glibc版本对wait_for都有问题（使用的时系统时间），gcc >=10 且 glibc >= 2.30 才会对程序行为没有影响。
                 m_cv.wait_for(taskGuard, std::chrono::milliseconds(nDetaTimeMs));
             }
             //通知处理
             ::PostMessage(m_hMessageWnd, WM_USER_DEFINED_TIMER, 0, 0);
-            LogUtil::OutputLine(StringUtil::Printf(_T("PostMessage: send timer event")));
+            //LogUtil::OutputLine(StringUtil::Printf(_T("PostMessage: send timer event")));
             if (m_bRunning) {
                 m_cv.wait(taskGuard);
             }
@@ -248,7 +248,7 @@ LRESULT TimerManager::WndProcThunk(HWND hwnd, UINT message, WPARAM wparam, LPARA
             }
             ASSERT(msg.message == WM_USER_DEFINED_TIMER);
         }
-        LogUtil::OutputLine(StringUtil::Printf(_T("WndProcThunk: received timer event")));
+        //LogUtil::OutputLine(StringUtil::Printf(_T("WndProcThunk: received timer event")));
         GlobalManager::Instance().Timer().Poll();
         return 1;
     }

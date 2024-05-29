@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXAMPLES_APP_DB_H_
+#define EXAMPLES_APP_DB_H_
 
 #include "app_item.h"
 
@@ -23,3 +24,4 @@ private:
 
 };
 
+#endif //EXAMPLES_APP_DB_H_

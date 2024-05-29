@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXAMPLES_RENDER_TEST3_H_
+#define EXAMPLES_RENDER_TEST3_H_
 
 // duilib
 #include "duilib/duilib.h"
@@ -69,3 +70,4 @@ private:
 };
 
 } //end of namespace ui
+#endif //EXAMPLES_RENDER_TEST3_H_

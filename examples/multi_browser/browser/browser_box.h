@@ -1,11 +1,19 @@
+#ifndef EXAMPLES_BROWSER_BOX_H_
+#define EXAMPLES_BROWSER_BOX_H_
+
+// duilib
+#include "duilib/duilib.h"
+
+// ui components
+#include "ui_components/ui_components.h"
+#include "ui_components/ui_cef_control.h"
+
 /** @file browser_box.h
 * @brief 标签页盒子
 * @copyright (c) 2016, NetEase Inc. All rights reserved
 * @author Redrain
 * @date 2019/3/20
 */
-#pragma once
-
 class TaskbarTabItem;
 class MultiBrowserForm;
 class BrowserBox : public ui::VBox
@@ -114,3 +122,5 @@ private:
     std::wstring        url_;
     std::wstring        title_;
 };
+
+#endif //EXAMPLES_BROWSER_BOX_H_

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "move_control.h"
 
 using namespace ui;

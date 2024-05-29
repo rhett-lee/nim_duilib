@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_ITEM_H_
+#define EXAMPLES_ITEM_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 // 从 ui::ListBoxItem 中继承所有可用功能
 class Item : public ui::ListBoxItem
@@ -23,3 +27,4 @@ private:
     size_t m_nDataIndex;
 };
 
+#endif //EXAMPLES_ITEM_H_

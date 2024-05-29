@@ -1,10 +1,15 @@
+#ifndef EXAMPLES_MULTI_BROWSER_FORM_H_
+#define EXAMPLES_MULTI_BROWSER_FORM_H_
+
+// duilib
+#include "duilib/duilib.h"
+
 /** @file multi_browser_form.h
 * @brief 离屏模式Cef多标签浏览器窗口
 * @copyright (c) 2016, NetEase Inc. All rights reserved
 * @author Redrain
 * @date 2019/3/20
 */
-#pragma once
 #include "taskbar/taskbar_manager.h"
 #include "ShObjidl.h"
 
@@ -290,3 +295,4 @@ private:
     // 任务栏缩略图管理器
     TaskbarManager        taskbar_manager_;
 };
+#endif //EXAMPLES_MULTI_BROWSER_FORM_H_

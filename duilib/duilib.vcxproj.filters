@@ -929,5 +929,8 @@
     <ClInclude Include="Utils\LogUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="duilib_config_windows.h">
+      <Filter>duilib</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

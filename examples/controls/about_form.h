@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_ABOUT_FORM_H_
+#define EXAMPLES_ABOUT_FORM_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 class AboutForm : public ui::WindowImplBase
 {
@@ -26,3 +30,4 @@ public:
     static const LPCTSTR kClassName;
 };
 
+#endif //EXAMPLES_ABOUT_FORM_H_

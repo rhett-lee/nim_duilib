@@ -1,4 +1,9 @@
-#pragma once
+#ifndef EXAMPLES_MAIN_FORM_H_
+#define EXAMPLES_MAIN_FORM_H_
+
+// duilib
+#include "duilib/duilib.h"
+
 #include "provider.h"
 
 class MainForm : public ui::WindowImplBase
@@ -47,3 +52,5 @@ private:
     ui::RichEdit* m_EditChildMarginX;
     ui::RichEdit* m_EditChildMarginY;
 };
+
+#endif //EXAMPLES_MAIN_FORM_H_

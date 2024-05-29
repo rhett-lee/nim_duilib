@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXAMPLES_MAIN_THREAD_H_
+#define EXAMPLES_MAIN_THREAD_H_
 
 #include "resource.h"
 
@@ -45,5 +46,4 @@ private:
     */
     std::unique_ptr<WorkerThread> m_workerThread;
 };
-
-
+#endif //EXAMPLES_MAIN_THREAD_H_

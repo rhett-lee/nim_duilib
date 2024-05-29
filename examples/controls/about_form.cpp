@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "about_form.h"
 #include <shellapi.h>
 

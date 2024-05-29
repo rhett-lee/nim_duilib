@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXAMPLES_REPLACE_FORM_H_
+#define EXAMPLES_REPLACE_FORM_H_
 
 #include "resource.h"
 
@@ -59,3 +60,4 @@ private:
     ui::RichEdit* m_pReplaceText;
 };
 
+#endif //EXAMPLES_REPLACE_FORM_H_

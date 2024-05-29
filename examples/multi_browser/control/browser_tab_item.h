@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_BROWSER_TAB_ITEM_H_
+#define EXAMPLES_BROWSER_TAB_ITEM_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 /** @class BrowserTabItem
   * @brief 多标签浏览器窗口顶部标签控件
@@ -76,3 +80,4 @@ private:
 
     std::wstring    session_id_;
 };
+#endif //EXAMPLES_BROWSER_TAB_ITEM_H_

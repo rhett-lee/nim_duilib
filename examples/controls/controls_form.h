@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_CONTROLS_FORM_H_
+#define EXAMPLES_CONTROLS_FORM_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 class ControlForm : public ui::WindowImplBase
 {
@@ -65,3 +69,4 @@ private:
     virtual LRESULT OnHotKey(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 };
 
+#endif //EXAMPLES_CONTROLS_FORM_H_

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "controls_form.h"
 #include "about_form.h"
 #include "duilib/Utils/StringUtil.h"

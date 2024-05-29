@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_TASKBAR_MANAGER_H_
+#define EXAMPLES_TASKBAR_MANAGER_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 interface ITaskbarList4;
 
@@ -239,3 +243,5 @@ private:
     ITaskbarDelegate    *taskbar_delegate_;
     ITaskbarList4        *taskbar_list_;
 };
+
+#endif //EXAMPLES_TASKBAR_MANAGER_H_

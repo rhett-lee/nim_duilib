@@ -1,8 +1,6 @@
 // MyDuilibApp.cpp : Defines the entry point for the application.
 //
 
-#include "framework.h"
-#include "MyDuilibApp.h"
 #include "MainThread.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
