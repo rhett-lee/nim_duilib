@@ -25,19 +25,19 @@ public:
     /**  创建窗口时被调用，由子类实现用以获取窗口皮肤目录
     * @return 子类需实现并返回窗口皮肤目录
     */
-    virtual std::wstring GetSkinFolder() override;
+    virtual DString GetSkinFolder() override;
 
     /**  创建窗口时被调用，由子类实现用以获取窗口皮肤 XML 描述文件
     * @return 子类需实现并返回窗口皮肤 XML 描述文件
     *         返回的内容，可以是XML文件内容（以字符'<'为开始的字符串），
     *         或者是文件路径（不是以'<'字符开始的字符串），文件要在GetSkinFolder()路径中能够找到
     */
-    virtual std::wstring GetSkinFile() override;
+    virtual DString GetSkinFile() override;
 
     /** 创建窗口时被调用，由子类实现用以获取窗口唯一的类名称
     * @return 子类需实现并返回窗口唯一的类名称
     */
-    virtual std::wstring GetWindowClassName() const override;
+    virtual DString GetWindowClassName() const override;
 
     /** 在窗口收到 WM_NCDESTROY 消息时会被调用
     * @param [in] hWnd 要销毁的窗口句柄

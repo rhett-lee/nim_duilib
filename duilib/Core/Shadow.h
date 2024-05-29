@@ -64,11 +64,11 @@ public:
 
     /** 设置阴影图片属性
      */
-    void SetShadowImage(const std::wstring& image);
+    void SetShadowImage(const DString& image);
 
     /** 获取阴影图片属性
      */
-    const std::wstring& GetShadowImage() const;
+    const DString& GetShadowImage() const;
 
     /** 将阴影附加到窗口
      * @param[in] pRoot 窗口的顶层容器
@@ -103,7 +103,7 @@ private:
     bool m_bUseDefaultShadowAttached;
 
     //阴影图片属性
-    std::wstring m_strImage;
+    DString m_strImage;
 
     //当前阴影图片属性，是否为默认值
     bool m_bUseDefaultImage;

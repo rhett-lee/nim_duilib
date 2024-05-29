@@ -36,7 +36,7 @@ void StateImage::SetControl(Control* pControl)
 }
 
 void StateImage::SetImageString(ControlStateType stateType, 
-                                const std::wstring& strImageString,
+                                const DString& strImageString,
                                 const DpiManager& dpi)
 {
     Image* pImage = nullptr;
@@ -58,9 +58,9 @@ void StateImage::SetImageString(ControlStateType stateType,
     pImage->SetImageString(strImageString, dpi);
 }
 
-std::wstring StateImage::GetImageString(ControlStateType stateType) const
+DString StateImage::GetImageString(ControlStateType stateType) const
 {
-    std::wstring imageString;
+    DString imageString;
     auto iter = m_stateImageMap.find(stateType);
     if (iter != m_stateImageMap.end()) {
         imageString = iter->second->GetImageString();
@@ -68,9 +68,9 @@ std::wstring StateImage::GetImageString(ControlStateType stateType) const
     return imageString;
 }
 
-std::wstring StateImage::GetImagePath(ControlStateType stateType) const
+DString StateImage::GetImagePath(ControlStateType stateType) const
 {
-    std::wstring imageFilePath;
+    DString imageFilePath;
     auto iter = m_stateImageMap.find(stateType);
     if (iter != m_stateImageMap.end()) {
         imageFilePath = iter->second->GetImagePath();
@@ -124,15 +124,15 @@ bool StateImage::HasImage() const
 }
 
 bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType, 
-                                 const std::wstring& sImageModify, UiRect* pDestRect)
+                                 const DString& sImageModify, UiRect* pDestRect)
 {
     if (m_pControl != nullptr) {
         bool bFadeHot = m_pControl->GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot) != nullptr;
         int32_t nHotAlpha = m_pControl->GetHotAlpha();
         if (bFadeHot) {
             if (stateType == kControlStateNormal || stateType == kControlStateHot) {
-                std::wstring strNormalImagePath = GetImagePath(kControlStateNormal);
-                std::wstring strHotImagePath = GetImagePath(kControlStateHot);
+                DString strNormalImagePath = GetImagePath(kControlStateNormal);
+                DString strHotImagePath = GetImagePath(kControlStateHot);
                 if (strNormalImagePath.empty() || 
                     strHotImagePath.empty()    || 
                     (strNormalImagePath != strHotImagePath) || 

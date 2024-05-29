@@ -25,7 +25,7 @@ public:
      * @param[in] strBoxShadow 要设置的属性,如 "color='black' offset='1,1' blur_radius='2' spread_radius='2'"
      * @return 无
      */
-    void SetBoxShadowString(const std::wstring& strBoxShadow);
+    void SetBoxShadowString(const DString& strBoxShadow);
 
     /**
      * @brief 是否有阴影
@@ -39,7 +39,7 @@ public:
 
     /** 阴影的颜色值
     */
-    std::wstring m_strColor;
+    DString m_strColor;
 
     /** 设置阴影偏移量（offset-x 和 offset-y）
      *                 <offset-x> 设置水平偏移量，如果是负值则阴影位于矩形左边。 

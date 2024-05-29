@@ -1,6 +1,6 @@
 #include "cef_form.h"
 
-const std::wstring CefForm::kClassName = _T("CEF_Control_Example");
+const DString CefForm::kClassName = _T("CEF_Control_Example");
 
 CefForm::CefForm()
 {
@@ -10,22 +10,22 @@ CefForm::~CefForm()
 {
 }
 
-std::wstring CefForm::GetSkinFolder()
+DString CefForm::GetSkinFolder()
 {
     return _T("cef");
 }
 
-std::wstring CefForm::GetSkinFile()
+DString CefForm::GetSkinFile()
 {
     return _T("cef.xml");
 }
 
-std::wstring CefForm::GetWindowClassName() const
+DString CefForm::GetWindowClassName() const
 {
     return kClassName;
 }
 
-ui::Control* CefForm::CreateControl(const std::wstring& pstrClass)
+ui::Control* CefForm::CreateControl(const DString& pstrClass)
 {
     // 扫描 XML 发现有名称为 CefControl 的节点，则创建一个 ui::CefControl 控件
     if (pstrClass == _T("CefControl"))
@@ -75,7 +75,7 @@ void CefForm::OnCloseWindow()
 
 bool CefForm::OnClicked(const ui::EventArgs& msg)
 {
-    std::wstring name = msg.pSender->GetName();
+    DString name = msg.pSender->GetName();
 
     if (name == _T("btn_dev_tool"))
     {
@@ -132,8 +132,7 @@ void CefForm::OnLoadEnd(int httpStatusCode)
 
     // 注册一个方法提供前端调用
     cef_control_->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([this](const std::string& params, nim_comp::ReportResultFunction callback) {
-        std::wstring value;
-        ui::StringUtil::MBCSToUnicode(params, value, CP_UTF8);
+        DString value = ui::StringUtil::UTF8ToT(params);
         nim_comp::Toast::ShowToast(value, 3000, GetHWND());
         callback(false, R"({ "message": "Success." })");
     }));

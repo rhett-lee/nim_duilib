@@ -4,7 +4,7 @@
 
 namespace ui
 {
-bool FileDialog::BrowseForFolder(Window* pWindow, std::wstring& folderPath)
+bool FileDialog::BrowseForFolder(Window* pWindow, DString& folderPath)
 {
     folderPath.clear();
     IFileDialog* pfd = nullptr;//仅Win7以及上支持
@@ -34,7 +34,7 @@ bool FileDialog::BrowseForFolder(Window* pWindow, std::wstring& folderPath)
     return !folderPath.empty();
 }
 
-bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<std::wstring>& folderPaths)
+bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<DString>& folderPaths)
 {
     folderPaths.clear();
     IFileOpenDialog* pfd = nullptr;//仅Win7以及上支持
@@ -61,7 +61,7 @@ bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<std::wstring>& fo
                         LPWSTR pName = nullptr;
                         hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pName);
                         if (SUCCEEDED(hr) && (pName != nullptr)) {
-                            std::wstring folderPath = pName;
+                            DString folderPath = pName;
                             ::CoTaskMemFree(pName);
                             pName = nullptr;
                             if (!folderPath.empty()) {
@@ -80,11 +80,11 @@ bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<std::wstring>& fo
 }
 
 bool FileDialog::BrowseForFile(Window* pWindow, 
-                               std::wstring& filePath,                               
+                               DString& filePath,                               
                                bool bOpenFileDialog,
                                const std::vector<FileType>& fileTypes,
                                int32_t nFileTypeIndex,
-                               const std::wstring& defaultExt)
+                               const DString& defaultExt)
 {
     filePath.clear();
     IFileDialog* pfd = nullptr;//仅Win7以及上支持
@@ -136,10 +136,10 @@ bool FileDialog::BrowseForFile(Window* pWindow,
 }
 
 bool FileDialog::BrowseForFiles(Window* pWindow, 
-                                std::vector<std::wstring>& filePaths,                                
+                                std::vector<DString>& filePaths,                                
                                 const std::vector<FileType>& fileTypes,
                                 int32_t nFileTypeIndex,
-                                const std::wstring& defaultExt)
+                                const DString& defaultExt)
 {
     filePaths.clear();
     IFileOpenDialog* pfd = nullptr;//仅Win7以及上支持
@@ -181,7 +181,7 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
                         LPWSTR pName = nullptr;
                         hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pName);
                         if (SUCCEEDED(hr) && (pName != nullptr)) {
-                            std::wstring folderPath = pName;
+                            DString folderPath = pName;
                             ::CoTaskMemFree(pName);
                             pName = nullptr;
                             if (!folderPath.empty()) {

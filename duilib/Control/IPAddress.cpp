@@ -11,9 +11,9 @@ IPAddress::IPAddress(Window* pWindow):
 {
 }
 
-std::wstring IPAddress::GetType() const { return DUI_CTR_IPADDRESS; }
+DString IPAddress::GetType() const { return DUI_CTR_IPADDRESS; }
 
-void IPAddress::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void IPAddress::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("ip")) {
         SetIPAddress(strValue);
@@ -68,7 +68,7 @@ void IPAddress::OnInit()
             });
         pRichEdit->AttachTextChange([this, pRichEdit](const ui::EventArgs& /*args*/) {
             if (pRichEdit != nullptr) {
-                std::wstring text = pRichEdit->GetText();
+                DString text = pRichEdit->GetText();
                 int32_t nValue = _wtoi(text.c_str());
                 if (nValue < 0) {
                     nValue = 0;
@@ -110,11 +110,11 @@ void IPAddress::SetFocus()
     }
 }
 
-void IPAddress::SetIPAddress(const std::wstring& ipAddress)
+void IPAddress::SetIPAddress(const DString& ipAddress)
 {
     m_ipAddress = ipAddress;
     if (!ipAddress.empty() && m_editList.size() == 4) {
-        std::list<std::wstring> ipList = StringUtil::Split(ipAddress, _T("."));
+        std::list<DString> ipList = StringUtil::Split(ipAddress, _T("."));
         if (ipList.size() == 4) {
             auto iter = ipList.begin();
             int32_t ip1 = std::min(_wtoi((*iter++).c_str()), 255);
@@ -133,9 +133,9 @@ void IPAddress::SetIPAddress(const std::wstring& ipAddress)
     }
 }
 
-std::wstring IPAddress::GetIPAddress() const
+DString IPAddress::GetIPAddress() const
 {
-    std::wstring ipAddress;
+    DString ipAddress;
     if (m_editList.size() == 4) {
         int32_t ip1 = std::min(_wtoi(m_editList[0]->GetText().c_str()), 255);
         int32_t ip2 = std::min(_wtoi(m_editList[1]->GetText().c_str()), 255);

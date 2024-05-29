@@ -3,7 +3,7 @@
 namespace ui
 {
 
-EventType StringToEventType(const std::wstring& messageType)
+EventType StringToEventType(const DString& messageType)
 {
     if (messageType == EVENTSTR_ALL) {
         return kEventAll;
@@ -104,7 +104,7 @@ EventType StringToEventType(const std::wstring& messageType)
     }
 }
 
-std::wstring EventTypeToString(EventType eventType)
+DString EventTypeToString(EventType eventType)
 {
     switch (eventType) {
     case kEventNone:
@@ -230,7 +230,7 @@ std::wstring EventTypeToString(EventType eventType)
     default:
         break;
     }
-    return std::wstring();
+    return DString();
 }
 
 }

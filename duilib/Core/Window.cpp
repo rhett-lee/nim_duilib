@@ -88,7 +88,7 @@ bool Window::RegisterWindowClass()
     wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = NULL;
     wc.lpszMenuName = NULL;
-    std::wstring className = GetWindowClassName();
+    DString className = GetWindowClassName();
     wc.lpszClassName = className.c_str();
     ATOM ret = ::RegisterClass(&wc);
     ASSERT(ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
@@ -101,7 +101,7 @@ bool Window::RegisterSuperClass()
     // window so we can subclass it later on...
     WNDCLASSEX wc = { 0 };
     wc.cbSize = sizeof(WNDCLASSEX);
-    std::wstring superClassName = GetSuperClassName();
+    DString superClassName = GetSuperClassName();
     if (!::GetClassInfoEx(NULL, superClassName.c_str(), &wc)) {
         if (!::GetClassInfoEx(GetResModuleHandle(), superClassName.c_str(), &wc)) {
             ASSERT(!"Unable to locate window class");
@@ -111,21 +111,21 @@ bool Window::RegisterSuperClass()
     m_OldWndProc = wc.lpfnWndProc;
     wc.lpfnWndProc = Window::__ControlProc;
     wc.hInstance = GetResModuleHandle();
-    std::wstring className = GetWindowClassName();
+    DString className = GetWindowClassName();
     wc.lpszClassName = className.c_str();
     ATOM ret = ::RegisterClassEx(&wc);
     ASSERT(ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
     return ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
 }
-std::wstring Window::GetWindowClassName() const
+DString Window::GetWindowClassName() const
 {
     ASSERT(FALSE);
-    return std::wstring();
+    return DString();
 }
 
-std::wstring Window::GetSuperClassName() const
+DString Window::GetSuperClassName() const
 {
-    return std::wstring();
+    return DString();
 }
 
 UINT Window::GetClassStyle() const
@@ -183,7 +183,7 @@ bool Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwSt
             return false;
         }
     }
-    std::wstring className = GetWindowClassName();
+    DString className = GetWindowClassName();
 
     //初始化层窗口属性
     m_bIsLayeredWindow = false;
@@ -790,12 +790,12 @@ void Window::ReapObjects(Control* pControl)
     m_controlFinder.RemoveControl(pControl);
 }
 
-const std::wstring& Window::GetResourcePath() const
+const DString& Window::GetResourcePath() const
 {
     return m_strResourcePath;
 }
 
-void Window::SetResourcePath(const std::wstring& strPath)
+void Window::SetResourcePath(const DString& strPath)
 {
     m_strResourcePath = strPath;
     if (!m_strResourcePath.empty()) {
@@ -807,14 +807,14 @@ void Window::SetResourcePath(const std::wstring& strPath)
     }
 }
 
-void Window::AddClass(const std::wstring& strClassName, const std::wstring& strControlAttrList)
+void Window::AddClass(const DString& strClassName, const DString& strControlAttrList)
 {
     ASSERT(!strClassName.empty());
     ASSERT(!strControlAttrList.empty());
     m_defaultAttrHash[strClassName] = strControlAttrList;
 }
 
-std::wstring Window::GetClassAttributes(const std::wstring& strClassName) const
+DString Window::GetClassAttributes(const DString& strClassName) const
 {
     auto it = m_defaultAttrHash.find(strClassName);
     if (it != m_defaultAttrHash.end()) {
@@ -823,7 +823,7 @@ std::wstring Window::GetClassAttributes(const std::wstring& strClassName) const
     return _T("");
 }
 
-bool Window::RemoveClass(const std::wstring& strClassName)
+bool Window::RemoveClass(const DString& strClassName)
 {
     auto it = m_defaultAttrHash.find(strClassName);
     if (it != m_defaultAttrHash.end()) {
@@ -838,22 +838,22 @@ void Window::RemoveAllClass()
     m_defaultAttrHash.clear();
 }
 
-void Window::AddTextColor(const std::wstring& strName, const std::wstring& strValue)
+void Window::AddTextColor(const DString& strName, const DString& strValue)
 {
     m_colorMap.AddColor(strName, strValue);
 }
 
-void Window::AddTextColor(const std::wstring& strName, UiColor argb)
+void Window::AddTextColor(const DString& strName, UiColor argb)
 {
     m_colorMap.AddColor(strName, argb);
 }
 
-UiColor Window::GetTextColor(const std::wstring& strName) const
+UiColor Window::GetTextColor(const DString& strName) const
 {
     return m_colorMap.GetColor(strName);
 }
 
-bool Window::AddOptionGroup(const std::wstring& strGroupName, Control* pControl)
+bool Window::AddOptionGroup(const DString& strGroupName, Control* pControl)
 {
     ASSERT(!strGroupName.empty());
     ASSERT(pControl != nullptr);
@@ -874,7 +874,7 @@ bool Window::AddOptionGroup(const std::wstring& strGroupName, Control* pControl)
     return true;
 }
 
-std::vector<Control*>* Window::GetOptionGroup(const std::wstring& strGroupName)
+std::vector<Control*>* Window::GetOptionGroup(const DString& strGroupName)
 {
     auto it = m_mOptionGroup.find(strGroupName);
     if (it != m_mOptionGroup.end()) {
@@ -883,7 +883,7 @@ std::vector<Control*>* Window::GetOptionGroup(const std::wstring& strGroupName)
     return nullptr;
 }
 
-void Window::RemoveOptionGroup(const std::wstring& strGroupName, Control* pControl)
+void Window::RemoveOptionGroup(const DString& strGroupName, Control* pControl)
 {
     ASSERT(!strGroupName.empty());
     ASSERT(pControl != nullptr);
@@ -1054,26 +1054,26 @@ void Window::SetAlphaFixCorner(const UiRect& rc, bool bNeedDpiScale)
     }
 }
 
-void Window::SetText(const std::wstring& strText)
+void Window::SetText(const DString& strText)
 {
     ASSERT(::IsWindow(m_hWnd));
     ::SetWindowText(m_hWnd, strText.c_str());
     m_text = strText;
 }
 
-std::wstring Window::GetText() const
+DString Window::GetText() const
 {
     return m_text;
 }
 
-void Window::SetTextId(const std::wstring& strTextId)
+void Window::SetTextId(const DString& strTextId)
 {
     ASSERT(::IsWindow(m_hWnd));
     ::SetWindowText(m_hWnd, GlobalManager::Instance().Lang().GetStringViaID(strTextId).c_str());
     m_textId = strTextId;
 }
 
-std::wstring Window::GetTextId() const
+DString Window::GetTextId() const
 {
     return m_textId;
 }
@@ -1098,18 +1098,18 @@ void Window::SetShadowAttached(bool bShadowAttached)
     }
 }
 
-std::wstring Window::GetShadowImage() const
+DString Window::GetShadowImage() const
 {
     ASSERT(m_shadow != nullptr);
     if (m_shadow != nullptr) {
         return m_shadow->GetShadowImage();
     }
     else {
-        return std::wstring();
+        return DString();
     }
 }
 
-void Window::SetShadowImage(const std::wstring& strImage)
+void Window::SetShadowImage(const DString& strImage)
 {
     ASSERT(m_shadow != nullptr);
     if (m_shadow != nullptr) {
@@ -1949,7 +1949,7 @@ LRESULT Window::OnMouseHoverMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, boo
         UiRect rect = pHover->GetPos();
         uint32_t maxWidth = pHover->GetToolTipWidth();
         HMODULE hModule = GetResModuleHandle();
-        std::wstring toolTipText = pHover->GetToolTipText();
+        DString toolTipText = pHover->GetToolTipText();
         m_toolTip->ShowToolTip(m_hWnd, hModule, rect, maxWidth, trackPos, toolTipText);
     }
     return 0;
@@ -3146,7 +3146,7 @@ Box* Window::FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const
     return pControl;
 }
 
-Control* Window::FindControl(const std::wstring& strName) const
+Control* Window::FindControl(const DString& strName) const
 {
     return m_controlFinder.FindSubControlByName(m_pRoot, strName);
 }
@@ -3156,7 +3156,7 @@ Control* Window::FindSubControlByPoint(Control* pParent, const UiPoint& pt) cons
     return m_controlFinder.FindSubControlByPoint(pParent, pt);
 }
 
-Control* Window::FindSubControlByName(Control* pParent, const std::wstring& strName) const
+Control* Window::FindSubControlByName(Control* pParent, const DString& strName) const
 {
     return m_controlFinder.FindSubControlByName(pParent, strName);
 }

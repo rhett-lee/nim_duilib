@@ -22,8 +22,8 @@ public:
     virtual ~CircleProgress();
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintStateImages(IRender* pRender) override;
     virtual void ClearImageCache() override;
 
@@ -56,22 +56,22 @@ public:
     /** 设置进度条背景颜色
     * @param [in] strColor要设置的背景颜色字符串，该字符串必须在 global.xml 中存在
     */
-    void SetBackgroudColor(const std::wstring& strColor);
+    void SetBackgroudColor(const DString& strColor);
 
     /** 设置进度条前景颜色
     * @param [in] strColor要设置的前景颜色字符串，该字符串必须在 global.xml 中存在
     */
-    void SetForegroudColor(const std::wstring& strColor);
+    void SetForegroudColor(const DString& strColor);
 
     /** 设置进度条前景渐变颜色，与 SetForegroudColor 同时使用，可以不设置,则无渐变效果
     * @param [in] strColor要设置的前景渐变颜色字符串，该字符串必须在 global.xml 中存在
     */
-    void SetCircleGradientColor(const std::wstring& strColor);
+    void SetCircleGradientColor(const DString& strColor);
 
     /** 设置进度指示移动图标
     * @param [in] sIndicatorImage 要设置的图片
     */
-    void SetIndicator(const std::wstring& sIndicatorImage);
+    void SetIndicator(const DString& sIndicatorImage);
 
 protected:
     bool m_bCircular;

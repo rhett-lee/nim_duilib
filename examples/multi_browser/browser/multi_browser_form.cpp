@@ -49,17 +49,17 @@ MultiBrowserForm::~MultiBrowserForm()
     drop_helper_ = nullptr;
 }
 
-std::wstring MultiBrowserForm::GetSkinFolder()
+DString MultiBrowserForm::GetSkinFolder()
 {
     return _T("multi_browser");
 }
 
-std::wstring MultiBrowserForm::GetSkinFile()
+DString MultiBrowserForm::GetSkinFile()
 {
     return _T("multi_browser.xml");
 }
 
-std::wstring MultiBrowserForm::GetWindowClassName() const
+DString MultiBrowserForm::GetWindowClassName() const
 {
     return kClassName;
 }
@@ -69,7 +69,7 @@ UINT MultiBrowserForm::GetClassStyle() const
     return (UI_CLASSSTYLE_FRAME | CS_DBLCLKS);
 }
 
-ui::Control* MultiBrowserForm::CreateControl(const std::wstring& pstrClass)
+ui::Control* MultiBrowserForm::CreateControl(const DString& pstrClass)
 {
     if (pstrClass == _T("CustomTabBox"))
     {
@@ -213,7 +213,7 @@ void MultiBrowserForm::OnWndSizeMax(bool max)
 
 bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
 {
-    std::wstring name = arg.pSender->GetName();
+    DString name = arg.pSender->GetName();
     if (name == _T("btn_max_restore"))
     {
         DWORD style = GetWindowLong(GetHWND(), GWL_STYLE);
@@ -267,7 +267,7 @@ bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
 
 bool MultiBrowserForm::OnReturn(const ui::EventArgs& arg)
 {
-    std::wstring name = arg.pSender->GetName();
+    DString name = arg.pSender->GetName();
     if (name == _T("edit_url"))
     {
 #if 0
@@ -285,9 +285,9 @@ bool MultiBrowserForm::OnReturn(const ui::EventArgs& arg)
     return false;
 }
 
-BrowserBox* MultiBrowserForm::CreateBox(const std::string &browser_id, std::wstring url)
+BrowserBox* MultiBrowserForm::CreateBox(const std::string &browser_id, DString url)
 {
-    std::wstring id = ui::StringUtil::UTF8ToUTF16(browser_id);
+    DString id = ui::StringUtil::UTF8ToUTF16(browser_id);
     if (NULL != FindTabItem(id))
     {
         ASSERT(0);
@@ -334,7 +334,7 @@ void MultiBrowserForm::CloseBox(const std::string &browser_id)
         return;
     }
 
-    std::wstring id = ui::StringUtil::UTF8ToUTF16(browser_id);
+    DString id = ui::StringUtil::UTF8ToUTF16(browser_id);
 
     // 从左侧会话列表项移除对应item
     BrowserTabItem *tab_item = FindTabItem(id);
@@ -380,7 +380,7 @@ bool MultiBrowserForm::AttachBox(BrowserBox *browser_box)
     if (NULL == browser_box)
         return false;
 
-    std::wstring id = ui::StringUtil::UTF8ToUTF16(browser_box->GetId());
+    DString id = ui::StringUtil::UTF8ToUTF16(browser_box->GetId());
     if (NULL != FindTabItem(id))
     {
         ASSERT(0);
@@ -425,7 +425,7 @@ bool MultiBrowserForm::DetachBox(BrowserBox *browser_box)
     if (NULL == browser_box)
         return false;
 
-    std::wstring id = ui::StringUtil::UTF8ToUTF16(browser_box->GetId());
+    DString id = ui::StringUtil::UTF8ToUTF16(browser_box->GetId());
 
     // 从顶部标签页移除对应item
     BrowserTabItem *tab_item = FindTabItem(id);
@@ -473,7 +473,7 @@ void MultiBrowserForm::SetActiveBox(const std::string &browser_id)
     ActiveWindow();
 
     // 从窗口左侧会话列表找到要激活的浏览器盒子项
-    std::wstring id = ui::StringUtil::UTF8ToUTF16(browser_id);
+    DString id = ui::StringUtil::UTF8ToUTF16(browser_id);
     BrowserTabItem *tab_item = FindTabItem(id);
     if (NULL == tab_item)
         return;
@@ -489,7 +489,7 @@ bool MultiBrowserForm::IsActiveBox(const BrowserBox *browser_box)
     return (browser_box == active_browser_box_ && ::GetForegroundWindow() == GetHWND() && !::IsIconic(GetHWND()) && IsWindowVisible(GetHWND()));
 }
 
-bool MultiBrowserForm::IsActiveBox(const std::wstring &browser_id)
+bool MultiBrowserForm::IsActiveBox(const DString &browser_id)
 {
     ASSERT(!browser_id.empty());
     return (::GetForegroundWindow() == GetHWND() && !::IsIconic(GetHWND()) && IsWindowVisible(GetHWND()) && FindBox(browser_id) == active_browser_box_);
@@ -500,7 +500,7 @@ int MultiBrowserForm::GetBoxCount() const
     return (int)tab_list_->GetItemCount() - 1; // 减去右边那个加号的数量
 }
 
-void MultiBrowserForm::OnBeforeDragBoxCallback(const std::wstring &browser_id)
+void MultiBrowserForm::OnBeforeDragBoxCallback(const DString &browser_id)
 {
     // 如果当前被拖拽的浏览器盒子所属的浏览器窗口只有一个浏览器盒子，则在拖拽时隐藏浏览器窗口
     int box_count = this->GetBoxCount();
@@ -587,7 +587,7 @@ bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs& param)
 {
     if (kEventSelect == param.Type)
     {
-        std::wstring name = param.pSender->GetName();
+        DString name = param.pSender->GetName();
 
         if (name == _T("tab_list"))
         {
@@ -597,7 +597,7 @@ bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs& param)
             if (NULL == select_item)
                 return true;
 
-            std::wstring session_id = select_item->GetName();
+            DString session_id = select_item->GetName();
             ChangeToBox(session_id);
         }
     }
@@ -606,7 +606,7 @@ bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs& param)
         BrowserTabItem *tab_item = dynamic_cast<BrowserTabItem*>(param.pSender);
         if (tab_item)
         {
-            std::wstring browser_id = tab_item->GetName();
+            DString browser_id = tab_item->GetName();
             ChangeToBox(browser_id);
         }
     }
@@ -623,7 +623,7 @@ bool MultiBrowserForm::OnTabItemClose(const ui::EventArgs& param, const std::str
     return false;
 }
 
-BrowserBox* MultiBrowserForm::FindBox(const std::wstring &browser_id)
+BrowserBox* MultiBrowserForm::FindBox(const DString &browser_id)
 {
     for (int i = 0; i < (int)borwser_box_tab_->GetItemCount(); i++)    {
         Control *box_item = borwser_box_tab_->GetItemAt(i);
@@ -639,7 +639,7 @@ BrowserBox* MultiBrowserForm::FindBox(const std::wstring &browser_id)
     return nullptr;
 }
 
-BrowserTabItem* MultiBrowserForm::FindTabItem(const std::wstring &browser_id)
+BrowserTabItem* MultiBrowserForm::FindTabItem(const DString &browser_id)
 {
     for (int i = 0; i < GetBoxCount(); i++)
     {
@@ -655,7 +655,7 @@ BrowserTabItem* MultiBrowserForm::FindTabItem(const std::wstring &browser_id)
     return NULL;
 }
 
-void MultiBrowserForm::SetTabItemName(const std::wstring &browser_id, const std::wstring &name)
+void MultiBrowserForm::SetTabItemName(const DString &browser_id, const DString &name)
 {
     BrowserTabItem *tab_item = FindTabItem(browser_id);
     if (NULL != tab_item)
@@ -664,13 +664,13 @@ void MultiBrowserForm::SetTabItemName(const std::wstring &browser_id, const std:
     }
 }
 
-void MultiBrowserForm::SetURL(const std::string &browser_id, const std::wstring &url)
+void MultiBrowserForm::SetURL(const std::string &browser_id, const DString &url)
 {
     if (active_browser_box_ && active_browser_box_->GetId() == browser_id)
         edit_url_->SetText(url);
 }
 
-bool MultiBrowserForm::ChangeToBox(const std::wstring &browser_id)
+bool MultiBrowserForm::ChangeToBox(const DString &browser_id)
 {
     if (browser_id.empty())
         return false;

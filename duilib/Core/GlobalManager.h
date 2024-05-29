@@ -66,11 +66,11 @@ public:
      *   如果 resType == kLocalFiles，需要设置资源所在的本地路径（绝对路径）
      *   如果 resType == kZipFile 或者 resType == kResZip，设置资源所在的起始目录（相对路径），比如：_T("resources\\")
      */
-    void SetResourcePath(const std::wstring& strPath);
+    void SetResourcePath(const DString& strPath);
 
     /** 获取当前资源所在路径
      */
-    const std::wstring& GetResourcePath() const;
+    const DString& GetResourcePath() const;
 
     /** 重新加载皮肤资源（可通过此接口实现动态换肤功能）
     * @param [in] resParam 资源相关的参数，根据资源类型不同，有以下可选项
@@ -89,15 +89,15 @@ public:
     *   如果是绝对路径，则在这个绝对路径中查找语言文件
     *   如果是相对路径，则根据resType和resourcePath决定的资源路径下，按相对路径查找资源文件
     */
-    void SetLanguagePath(const std::wstring& strPath);
+    void SetLanguagePath(const DString& strPath);
 
     /** 获取语言文件所在路径
     */
-    const std::wstring& GetLanguagePath() const;
+    const DString& GetLanguagePath() const;
 
     /** 获取语言文件名，不含路径
     */
-    const std::wstring& GetLanguageFileName() const;
+    const DString& GetLanguageFileName() const;
 
     /** 重新加载语言资源（通过此接口实现多语言动态切换功能）
      * @param [in] languagePath 语言文件所在路径
@@ -107,16 +107,16 @@ public:
      * @param [in] languageFileName 当前使用语言文件的文件名（不含路径）
      * @param [in] bInvalidate 是否刷新界面显示：true表示更新完语言文件后刷新界面显示，false表示不刷新界面显示
      */
-    bool ReloadLanguage(const std::wstring& languagePath = _T(""),
-                        const std::wstring& languageFileName = _T("zh_CN.txt"),
+    bool ReloadLanguage(const DString& languagePath = _T(""),
+                        const DString& languageFileName = _T("zh_CN.txt"),
                         bool bInvalidate = false);
 
     /** 获取语言文件列表和显示名称（以支持多语言切换）
     * @param [in] languageNameID 用于读取显示名称的字符串ID，如果为空则不读取显示名称
     * @param [out] languageList 返回语言文件和显示名称的列表
     */
-    bool GetLanguageList(std::vector<std::pair<std::wstring, std::wstring>>& languageList,
-                         const std::wstring& languageNameID = _T("LANGUAGE_DISPLAY_NAME")) const;
+    bool GetLanguageList(std::vector<std::pair<DString, DString>>& languageList,
+                         const DString& languageNameID = _T("LANGUAGE_DISPLAY_NAME")) const;
 
 public:
     /** 添加一个窗口接口（主要用于换肤、切换语言之后的重绘、资源同步等操作）
@@ -133,13 +133,13 @@ public:
      * @param[in] strClassName 全局 Class 名称
      * @param[in] strControlAttrList 属性列表，需要做 XML 转义
      */
-    void AddClass(const std::wstring& strClassName, const std::wstring& strControlAttrList);
+    void AddClass(const DString& strClassName, const DString& strControlAttrList);
 
     /** 获取一个全局 class 属性的值
      * @param[in] strClassName 全局 class 名称
      * @return 返回字符串形式的 class 属性值
      */
-    std::wstring GetClassAttributes(const std::wstring& strClassName) const;
+    DString GetClassAttributes(const DString& strClassName) const;
 
     /** 从全局属性中删除所有 class 属性
      * @return 返回绘制区域对象
@@ -199,41 +199,41 @@ public:
               （1）如果是使用ZIP压缩包，返回："resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
               （2）如果未使用ZIP压缩包，返回："<程序所在目录>\resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
      */
-    std::wstring GetResFullPath(const std::wstring& windowResPath, const std::wstring& resPath);
+    DString GetResFullPath(const DString& windowResPath, const DString& resPath);
 
     /** 根据 XML 创建一个 Box
      * @param[in] strXmlPath XML 文件路径
      * @param[in] callback 自定义控件的回调处理函数
      * @return 指定布局模块的对象指针
      */
-    Box* CreateBox(const std::wstring& strXmlPath, CreateControlCallback callback = CreateControlCallback());
+    Box* CreateBox(const DString& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
     /** 根据 XML 在缓存中查找指定 Box，如果没有则创建
      * @param[in] strXmlPath XML 文件路径
      * @param[in] callback 自定义控件的回调处理函数
      * @return 指定布局模块的对象指针
      */
-    Box* CreateBoxWithCache(const std::wstring& strXmlPath, CreateControlCallback callback = CreateControlCallback());
+    Box* CreateBoxWithCache(const DString& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
     /** 使用 XML 填充指定 Box
      * @param[in] pUserDefinedBox 要填充的 box 指针
      * @param[in] strXmlPath XML 文件路径
      * @param[in] callback 自定义控件的回调处理函数
      */
-    void FillBox(Box* pUserDefinedBox, const std::wstring& strXmlPath, CreateControlCallback callback = CreateControlCallback());
+    void FillBox(Box* pUserDefinedBox, const DString& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
     /** 使用构建过的缓存填充指定 Box，如果没有则重新构建
      * @param[in] pUserDefinedBox 要填充的 box 指针
      * @param[in] strXmlPath XML 文件路径
      * @param[in] callback 自定义控件的回调处理函数
      */
-    void FillBoxWithCache(Box* pUserDefinedBox, const std::wstring& strXmlPath, CreateControlCallback callback = CreateControlCallback());
+    void FillBoxWithCache(Box* pUserDefinedBox, const DString& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
     /** 自定义控件创建后的全局回调函数
      * @param[in] strControlName 自定义控件名称
      * @return 返回一个自定义控件的对象指针
      */
-    Control* CreateControl(const std::wstring& strControlName);
+    Control* CreateControl(const DString& strControlName);
 
     /** 如果该函数不是在UI线程中调用的，进行断言报错
     */
@@ -252,19 +252,19 @@ private:
 
     /** 全局的资源路径，换肤的时候修改这个变量（绝对路径）
     */
-    std::wstring m_resourcePath; 
+    DString m_resourcePath; 
 
     /** 全局语言文件路径（绝对路径）
     */
-    std::wstring m_languagePath; 
+    DString m_languagePath; 
 
     /** 全局语言文件名（不含路径）
     */
-    std::wstring m_languageFileName;
+    DString m_languageFileName;
     
     /** 窗口构建管理接口，KEY是XML文件路径，VALUE是窗口构建管理接口（已经解析后的XML，可避免重复解析）
     */
-    std::map<std::wstring, std::unique_ptr<WindowBuilder>> m_builderMap;
+    std::map<DString, std::unique_ptr<WindowBuilder>> m_builderMap;
 
     /** 控件创建函数，用于用户自定义控件的创建
     */
@@ -272,7 +272,7 @@ private:
 
     /** 每个Class的名称(KEY)和属性列表(VALUE)（比如global.xml中定义的Class）
     */
-    std::map<std::wstring, std::wstring> m_globalClass;
+    std::map<DString, DString> m_globalClass;
 
     /** 主线程ID
     */

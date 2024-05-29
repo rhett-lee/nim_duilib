@@ -35,9 +35,9 @@ public:
     *   分隔符可以是双引号或者单引号，由参数传入
     * @param [in] seperateChar 字符串分隔符，可以是 _T('\"') 或者 _T('\')'
     */
-    static void ParseAttributeList(const std::wstring& strList,
+    static void ParseAttributeList(const DString& strList,
                                    wchar_t seperateChar,
-                                   std::vector<std::pair<std::wstring, std::wstring>>& attributeList);
+                                   std::vector<std::pair<DString, DString>>& attributeList);
 
     /** 解析一个字符串（格式为："500,"或者"50%,"，逗号可有可无，也可以是其他字符），得到整型值或者浮点数
     * @param [in] strValue 待解析的字符串地址

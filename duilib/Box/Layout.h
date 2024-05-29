@@ -100,8 +100,8 @@ public:
      * @param [in] dpiManager DPI管理接口
      * @return true 设置成功，false 属性不存在
      */
-    virtual bool SetAttribute(const std::wstring& strName, 
-                              const std::wstring& strValue,
+    virtual bool SetAttribute(const DString& strName, 
+                              const DString& strValue,
                               const DpiManager& dpiManager);
 
     /** 调整内部所有控件的位置信息

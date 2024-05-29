@@ -72,7 +72,7 @@ public:
     explicit ListBoxItemTemplate(Window* pWindow);
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;    
+    virtual DString GetType() const override;    
     virtual void HandleEvent(const EventArgs& msg) override;
 
     /** 是否绘制选择状态下的背景色，提供虚函数作为可选项
@@ -190,7 +190,7 @@ ListBoxItemTemplate<InheritType>::ListBoxItemTemplate(Window* pWindow):
 }
 
 template<typename InheritType>
-std::wstring ListBoxItemTemplate<InheritType>::GetType() const { return DUI_CTR_LISTBOX_ITEM; }
+DString ListBoxItemTemplate<InheritType>::GetType() const { return DUI_CTR_LISTBOX_ITEM; }
 
 template<typename InheritType>
 void ListBoxItemTemplate<InheritType>::SetItemSelected(bool bSelected)

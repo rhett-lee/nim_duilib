@@ -15,20 +15,20 @@ public:
 
 public:
     //查找
-    bool FindRichText(const std::wstring& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
+    bool FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
 
     //查找下一个
     bool FindNext();
 
     //替换
-    bool ReplaceRichText(const std::wstring& findText, const std::wstring& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
+    bool ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
     
     //全部替换
-    bool ReplaceAllRichText(const std::wstring& findText, const std::wstring& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
+    bool ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
 
 protected:
     //没找到，回调函数
-    virtual void OnTextNotFound(const std::wstring& findText);
+    virtual void OnTextNotFound(const DString& findText);
 
     //开始全部替换
     virtual void OnReplaceAllCoreBegin();
@@ -38,16 +38,16 @@ protected:
 
 private:
     //查找函数实现
-    bool FindTextSimple(const std::wstring& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord);
+    bool FindTextSimple(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord);
 
     //查找并选择
     long FindAndSelect(DWORD dwFlags, FINDTEXTEX& ft);
 
     //比较当前选择与文本是否匹配
-    bool SameAsSelected(const std::wstring& replaceText, BOOL bMatchCase);
+    bool SameAsSelected(const DString& replaceText, BOOL bMatchCase);
 
     //没找到，回调函数
-    void TextNotFound(const std::wstring& findText);
+    void TextNotFound(const DString& findText);
 
     //调整查找替换窗口的位置
     void AdjustDialogPosition(HWND hWndDialog);
@@ -57,10 +57,10 @@ private:
     ui::RichEdit* m_pRichEdit;
 
     //查找文字
-    std::wstring m_sFindNext;
+    DString m_sFindNext;
 
     //替换文字
-    std::wstring m_sReplaceWith;
+    DString m_sReplaceWith;
 
     //搜索方向选项
     bool m_bFindDown;

@@ -48,16 +48,16 @@ public:
 
     /**
     * 获取网页标题
-    * @return std::wstring& 网页标题
+    * @return DString& 网页标题
     */
-    std::wstring& GetTitle();
+    DString& GetTitle();
 
     /**
     * 初始化浏览器盒子
     * @param[in] url 初始化URL
     * @return void    无返回值
     */
-    virtual void InitBrowserBox(const std::wstring &url);
+    virtual void InitBrowserBox(const DString &url);
 
     /**
     * 反初始化浏览器盒子
@@ -70,7 +70,7 @@ public:
     * @param[in] pstrClass 控件类名
     * @return Control* 创建的控件的指针
     */
-    ui::Control* CreateControl(const std::wstring& pstrClass);
+    ui::Control* CreateControl(const DString& pstrClass);
 
     //////////////////////////////////////////////////////////////////////////
     //窗口合并功能相关的操作
@@ -103,9 +103,9 @@ public:
 private:
     void OnBeforeMenu(CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model);
     bool OnMenuCommand(CefRefPtr<CefContextMenuParams> params, int command_id, CefContextMenuHandler::EventFlags event_flags);
-    void OnTitleChange(const std::wstring& title);
-    void OnUrlChange(const std::wstring& url);
-    bool OnLinkClick(const std::wstring& url);
+    void OnTitleChange(const DString& title);
+    void OnUrlChange(const DString& url);
+    bool OnLinkClick(const DString& url);
     CefRequestHandler::ReturnValue OnBeforeNavigate(CefRefPtr<CefRequest> request, bool is_redirect);
     void OnLoadingStateChange(bool isLoading, bool canGoBack, bool canGoForward);
     void OnLoadStart();
@@ -119,8 +119,8 @@ private:
     TaskbarTabItem        *taskbar_item_;
     MultiBrowserForm    *browser_form_;
     std::string            browser_id_;
-    std::wstring        url_;
-    std::wstring        title_;
+    DString        url_;
+    DString        title_;
 };
 
 #endif //EXAMPLES_BROWSER_BOX_H_

@@ -59,13 +59,13 @@ public:
     * @param [in] dpi DPI缩放管理接口
     * @return 返回图片资源的ID，如果失败返回-1，否则返回大于等于0的ID
     */
-    int32_t AddImageString(const std::wstring& imageString, const DpiManager& dpi);
+    int32_t AddImageString(const DString& imageString, const DpiManager& dpi);
 
     /** 获取图片资源字符串
     * @param [in] imageId 图片资源的ID，由AddImage函数返回的值
     * @return 如果没有关联资源，返回空串
     */
-    std::wstring GetImageString(int32_t imageId) const;
+    DString GetImageString(int32_t imageId) const;
 
     /** 获取图片资源接口(共享资源)
     * @param [in] imageId 图片资源的ID，由AddImage函数返回的值
@@ -77,7 +77,7 @@ public:
     * @param [in] imageString 图片资源字符串，格式同：Image::SetImageString函数
     * @return 返回关联图片资源的ID，如果没有关联资源，返回-1
     */
-    int32_t GetImageStringId(const std::wstring& imageString) const;
+    int32_t GetImageStringId(const DString& imageString) const;
 
     /** 移除一个图片资源
     * @param [in] imageId 图片资源的ID，由AddImage函数返回的值

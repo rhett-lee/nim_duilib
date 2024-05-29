@@ -74,12 +74,12 @@ void DragWindow::Release()
     }
 }
 
-std::wstring DragWindow::GetSkinFolder()
+DString DragWindow::GetSkinFolder()
 {
     return _T("");
 }
 
-std::wstring DragWindow::GetSkinFile()
+DString DragWindow::GetSkinFile()
 {
     return _T("<?xml version = \"1.0\" encoding=\"utf-8\"?>")
            _T("<Window size=\"90,90\" >")
@@ -87,7 +87,7 @@ std::wstring DragWindow::GetSkinFile()
            _T("</Window>");
 }
 
-std::wstring DragWindow::GetWindowClassName() const
+DString DragWindow::GetWindowClassName() const
 {
     return _T("DragWindow");
 }

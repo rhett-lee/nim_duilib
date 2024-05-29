@@ -62,7 +62,7 @@ public:
 
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override;
+    virtual DString GetType() const override;
 
     /** 设置颜色信息(ARGB格式的颜色)
     */

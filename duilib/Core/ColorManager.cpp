@@ -5,7 +5,7 @@
 
 namespace ui 
 {
-void ColorMap::AddColor(const std::wstring& strName, const std::wstring& strValue)
+void ColorMap::AddColor(const DString& strName, const DString& strValue)
 {
     ASSERT(!strName.empty() && !strValue.empty());
     if (strName.empty() || strValue.empty()) {
@@ -15,7 +15,7 @@ void ColorMap::AddColor(const std::wstring& strName, const std::wstring& strValu
     AddColor(strName, color);
 }
 
-void ColorMap::AddColor(const std::wstring& strName, UiColor argb)
+void ColorMap::AddColor(const DString& strName, UiColor argb)
 {
     ASSERT(!strName.empty() && (argb.GetARGB() != 0));
     if (strName.empty() || (argb.GetARGB() == 0)) {
@@ -24,7 +24,7 @@ void ColorMap::AddColor(const std::wstring& strName, UiColor argb)
     m_colorMap[strName] = argb;
 }
 
-UiColor ColorMap::GetColor(const std::wstring& strName) const
+UiColor ColorMap::GetColor(const DString& strName) const
 {
     auto it = m_colorMap.find(strName);
     if (it != m_colorMap.end()) {
@@ -41,14 +41,14 @@ void ColorMap::RemoveAllColors()
 ColorManager::ColorManager()
 {
     //初始化标准颜色表, 字符串不区分大小写
-    std::vector<std::pair<std::wstring, int32_t>> uiColors;
+    std::vector<std::pair<DString, int32_t>> uiColors;
     UiColors::GetUiColorsString(uiColors);
     for (auto iter : uiColors) {        
         m_standardColorMap.AddColor(StringUtil::MakeLowerString(iter.first), UiColor(iter.second));
     }
 }
 
-UiColor ColorManager::ConvertToUiColor(const std::wstring& strColor)
+UiColor ColorManager::ConvertToUiColor(const DString& strColor)
 {
     ASSERT(!strColor.empty());
     UiColor color;
@@ -82,7 +82,7 @@ UiColor ColorManager::ConvertToUiColor(const std::wstring& strColor)
             return color;
         }
     }
-    std::wstring colorValue = strColor.substr(1);
+    DString colorValue = strColor.substr(1);
     if (colorValue.size() == 6) {
         //如果是#FFFFFF格式，自动补上Alpha值
         colorValue = _T("FF") + colorValue;
@@ -91,22 +91,22 @@ UiColor ColorManager::ConvertToUiColor(const std::wstring& strColor)
     return UiColor(argb);
 }
 
-void ColorManager::AddColor(const std::wstring& strName, const std::wstring& strValue)
+void ColorManager::AddColor(const DString& strName, const DString& strValue)
 {
     m_colorMap.AddColor(strName, strValue);
 }
 
-void ColorManager::AddColor(const std::wstring& strName, UiColor argb)
+void ColorManager::AddColor(const DString& strName, UiColor argb)
 {
     m_colorMap.AddColor(strName, argb);
 }
 
-UiColor ColorManager::GetColor(const std::wstring& strName) const
+UiColor ColorManager::GetColor(const DString& strName) const
 {
     return m_colorMap.GetColor(strName);
 }
 
-UiColor ColorManager::GetStandardColor(const std::wstring& strName) const
+UiColor ColorManager::GetStandardColor(const DString& strName) const
 {
     //名称不区分大小写
     return m_standardColorMap.GetColor(StringUtil::MakeLowerString(strName));
@@ -125,22 +125,22 @@ void ColorManager::Clear()
     m_standardColorMap.RemoveAllColors();
 }
 
-const std::wstring& ColorManager::GetDefaultDisabledTextColor()
+const DString& ColorManager::GetDefaultDisabledTextColor()
 {
     return m_defaultDisabledTextColor;
 }
 
-void ColorManager::SetDefaultDisabledTextColor(const std::wstring& strColor)
+void ColorManager::SetDefaultDisabledTextColor(const DString& strColor)
 {
     m_defaultDisabledTextColor = strColor;
 }
 
-const std::wstring& ColorManager::GetDefaultTextColor()
+const DString& ColorManager::GetDefaultTextColor()
 {
     return m_defaultTextColor;
 }
 
-void ColorManager::SetDefaultTextColor(const std::wstring& strColor)
+void ColorManager::SetDefaultTextColor(const DString& strColor)
 {
     m_defaultTextColor = strColor;
 }

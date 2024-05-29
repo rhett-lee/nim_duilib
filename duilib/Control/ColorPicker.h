@@ -27,13 +27,13 @@ public:
      * GetSkinFile            接口设置你要绘制的窗口的 xml 描述文件
      * GetWindowClassName    接口设置窗口唯一的类名称
      */
-    virtual std::wstring GetSkinFolder() override;
-    virtual std::wstring GetSkinFile() override;
-    virtual std::wstring GetWindowClassName() const override;
+    virtual DString GetSkinFolder() override;
+    virtual DString GetSkinFile() override;
+    virtual DString GetWindowClassName() const override;
 
     /** 窗口类名
     */
-    static const std::wstring kClassName;
+    static const DString kClassName;
 
 public:
     /** 设置所选颜色

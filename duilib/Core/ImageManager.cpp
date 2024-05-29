@@ -26,10 +26,10 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
 {
     const DpiManager& dpi = (pWindow != nullptr) ? pWindow->Dpi() : GlobalManager::Instance().Dpi();
     //查找对应关系：LoadKey ->(多对一) ImageKey ->(一对一) SharedImage
-    std::wstring loadKey = loadAtrribute.GetCacheKey(dpi.GetScale());
+    DString loadKey = loadAtrribute.GetCacheKey(dpi.GetScale());
     auto iter = m_loadKeyMap.find(loadKey);
     if (iter != m_loadKeyMap.end()) {
-        const std::wstring& imageKey = iter->second;
+        const DString& imageKey = iter->second;
         auto it = m_imageMap.find(imageKey);
         if (it != m_imageMap.end()) {
             std::shared_ptr<ImageInfo> sharedImage = it->second.lock();
@@ -42,7 +42,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
 
     //重新加载资源    
     std::unique_ptr<ImageInfo> imageInfo;
-    std::wstring loadImageFullPath = loadAtrribute.GetImageFullPath();
+    DString loadImageFullPath = loadAtrribute.GetImageFullPath();
     bool isIcon = false;
 #ifdef DUILIB_PLATFORM_WIN
     if (GlobalManager::Instance().Icon().IsIconString(loadImageFullPath)) {
@@ -54,9 +54,9 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
 
     bool isDpiScaledImageFile = false;
     if (!isIcon) {
-        std::wstring imageFullPath = loadAtrribute.GetImageFullPath();
+        DString imageFullPath = loadAtrribute.GetImageFullPath();
         bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();
-        std::wstring dpiImageFullPath;
+        DString dpiImageFullPath;
         uint32_t nImageDpiScale = 0;
         //仅在DPI缩放图片功能开启的情况下，查找对应DPI的图片是否存在
         const bool bEnableImageDpiScale = IsDpiScaleAllImages();
@@ -75,7 +75,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
         //加载图片的KEY
         ImageLoadAttribute realLoadAttribute = loadAtrribute;
         realLoadAttribute.SetImageFullPath(imageFullPath);
-        std::wstring imageKey;
+        DString imageKey;
         if (isDpiScaledImageFile) {
             //有对应DPI的图片文件
             imageKey = realLoadAttribute.GetCacheKey(nImageDpiScale);
@@ -122,7 +122,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
     }    
     std::shared_ptr<ImageInfo> sharedImage;
     if (imageInfo != nullptr) {
-        std::wstring imageKey = imageInfo->GetImageKey();
+        DString imageKey = imageInfo->GetImageKey();
         sharedImage.reset(imageInfo.release(), &OnImageInfoDestroy);
         sharedImage->SetLoadKey(loadKey);
         sharedImage->SetLoadDpiScale(dpi.GetScale());
@@ -139,7 +139,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
         m_imageMap[imageKey] = sharedImage;
 
 #ifdef _DEBUG
-        std::wstring log = _T("Loaded Image: ") + imageKey + _T("\n");
+        DString log = _T("Loaded Image: ") + imageKey + _T("\n");
         ::OutputDebugString(log.c_str());
 #endif
     }
@@ -153,7 +153,7 @@ void ImageManager::LoadIconData(const Window* pWindow,
 {
     imageInfo.reset();
     //加载HICON句柄，作为图片，仅在Windows平台有这个句柄
-    std::wstring iconString = loadAtrribute.GetImageFullPath();
+    DString iconString = loadAtrribute.GetImageFullPath();
     bool bEnableDpiScale = IsDpiScaleAllImages();
     std::vector<uint8_t> bitmapData;
     uint32_t imageWidth = 0;
@@ -192,8 +192,8 @@ void ImageManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
     ASSERT(pImageInfo != nullptr);
     ImageManager& imageManager = GlobalManager::Instance().Image();
     if (pImageInfo != nullptr) {
-        std::wstring imageKey;
-        std::wstring loadKey = pImageInfo->GetLoadKey();
+        DString imageKey;
+        DString loadKey = pImageInfo->GetLoadKey();
         if (!loadKey.empty()) {            
             auto iter = imageManager.m_loadKeyMap.find(loadKey);
             if (iter != imageManager.m_loadKeyMap.end()) {
@@ -209,7 +209,7 @@ void ImageManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
         }
         delete pImageInfo;
 #ifdef _DEBUG
-        std::wstring log = _T("Removed Image: ") + imageKey + _T("\n");
+        DString log = _T("Removed Image: ") + imageKey + _T("\n");
         ::OutputDebugString(log.c_str());
 #endif
     }    
@@ -242,8 +242,8 @@ bool ImageManager::IsAutoMatchScaleImage() const
 
 bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
                                             bool bIsUseZip,
-                                            const std::wstring& imageFullPath,
-                                            std::wstring& dpiImageFullPath,
+                                            const DString& imageFullPath,
+                                            DString& dpiImageFullPath,
                                             uint32_t& nImageDpiScale) const
 {
     nImageDpiScale = 0;
@@ -257,9 +257,9 @@ bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
         return false;
     }
 
-    std::wstring dpiFullPath;
+    DString dpiFullPath;
     std::vector<uint32_t> allScales = {125, 150, 175, 200, 225, 250, 300};
-    std::vector<std::pair<uint32_t, std::wstring>> allDpiImagePath;
+    std::vector<std::pair<uint32_t, DString>> allDpiImagePath;
     for (auto scale : allScales) {
         if (FindDpiScaleImageFullPath(scale, bIsUseZip, imageFullPath, dpiFullPath)) {
             allDpiImagePath.push_back({ scale, dpiFullPath });
@@ -270,7 +270,7 @@ bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
     size_t nCount = allDpiImagePath.size();
     for (size_t index = 0; index < nCount; ++index) {
         uint32_t nScale = allDpiImagePath[index].first;
-        const std::wstring& sPath = allDpiImagePath[index].second;
+        const DString& sPath = allDpiImagePath[index].second;
         if (nScale > dpiScale) {
             if (index == 0) {
                 //第一个
@@ -306,8 +306,8 @@ bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,
 
 bool ImageManager::FindDpiScaleImageFullPath(uint32_t dpiScale,
                                              bool bIsUseZip,
-                                             const std::wstring& imageFullPath,
-                                             std::wstring& dpiImageFullPath) const
+                                             const DString& imageFullPath,
+                                             DString& dpiImageFullPath) const
 {
     dpiImageFullPath.clear();
     if ((dpiScale == 100) || (dpiScale == 0)) {
@@ -332,11 +332,11 @@ bool ImageManager::FindDpiScaleImageFullPath(uint32_t dpiScale,
     return bExists;
 }
 
-std::wstring ImageManager::GetDpiScaledPath(uint32_t dpiScale, const std::wstring& imageFullPath) const
+DString ImageManager::GetDpiScaledPath(uint32_t dpiScale, const DString& imageFullPath) const
 {
-    std::wstring strPathDir;
-    std::wstring strPathFileName;
-    std::list<std::wstring> strPathList = StringUtil::Split(imageFullPath, _T("\\"));
+    DString strPathDir;
+    DString strPathFileName;
+    std::list<DString> strPathList = StringUtil::Split(imageFullPath, _T("\\"));
     for (auto it = strPathList.begin(); it != strPathList.end(); ++it) {
         auto itTemp = it;
         if (++itTemp == strPathList.end()) {
@@ -348,15 +348,15 @@ std::wstring ImageManager::GetDpiScaledPath(uint32_t dpiScale, const std::wstrin
     }
 
     size_t iPointPos = strPathFileName.rfind('.');
-    ASSERT(iPointPos != std::wstring::npos);
-    if (iPointPos == std::wstring::npos) {
-        return std::wstring();
+    ASSERT(iPointPos != DString::npos);
+    if (iPointPos == DString::npos) {
+        return DString();
     }
-    std::wstring strFileExtension = strPathFileName.substr(iPointPos, strPathFileName.size() - iPointPos);
-    std::wstring strFile = strPathFileName.substr(0, iPointPos);
+    DString strFileExtension = strPathFileName.substr(iPointPos, strPathFileName.size() - iPointPos);
+    DString strFile = strPathFileName.substr(0, iPointPos);
     //返回指定DPI下的图片，举例DPI缩放百分比为120（即放大到120%）的图片："image.png" 对应于 "image@120.png"
     strPathFileName = StringUtil::Printf(_T("%s%s%d%s"), strFile.c_str(), _T("@"), dpiScale, strFileExtension.c_str());
-    std::wstring strNewFilePath = strPathDir + strPathFileName;
+    DString strNewFilePath = strPathDir + strPathFileName;
     return strNewFilePath;
 }
 

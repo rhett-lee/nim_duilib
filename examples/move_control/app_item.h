@@ -12,8 +12,8 @@
 struct AppItem
 {
     std::string m_id;
-    std::wstring m_name;
-    std::wstring m_icon;
+    DString m_name;
+    DString m_icon;
     bool m_isFrequent=false;
 };
 

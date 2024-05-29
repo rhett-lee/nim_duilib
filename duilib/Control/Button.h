@@ -14,7 +14,7 @@ public:
     explicit ButtonTemplate(Window* pWindow);
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
+    virtual DString GetType() const override;
     virtual void Activate() override;
     virtual void HandleEvent(const EventArgs& msg) override;
     virtual uint32_t GetControlFlags() const override;
@@ -33,10 +33,10 @@ ButtonTemplate<InheritType>::ButtonTemplate(Window* pWindow):
 }
 
 template<typename InheritType>
-inline std::wstring ButtonTemplate<InheritType>::GetType() const { return DUI_CTR_BUTTON; }
+inline DString ButtonTemplate<InheritType>::GetType() const { return DUI_CTR_BUTTON; }
 
 template<>
-inline std::wstring ButtonTemplate<Box>::GetType() const { return DUI_CTR_BUTTONBOX; }
+inline DString ButtonTemplate<Box>::GetType() const { return DUI_CTR_BUTTONBOX; }
 
 template<typename InheritType>
 uint32_t ui::ButtonTemplate<InheritType>::GetControlFlags() const

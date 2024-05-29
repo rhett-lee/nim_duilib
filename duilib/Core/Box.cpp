@@ -34,9 +34,9 @@ Box::~Box()
     }
 }
 
-std::wstring Box::GetType() const { return DUI_CTR_BOX; }
+DString Box::GetType() const { return DUI_CTR_BOX; }
 
-void Box::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void Box::SetAttribute(const DString& strName, const DString& strValue)
 {
     if ((strName == _T("mouse_child")) || (strName == _T("mousechild"))) {
         SetMouseChildEnabled(strValue == _T("true"));
@@ -344,7 +344,7 @@ Control* Box::FindControlInItems(const std::vector<Control*>& items,
     return pResult;
 }
 
-Control* Box::FindSubControl(const std::wstring& pstrSubControlName)
+Control* Box::FindSubControl(const DString& pstrSubControlName)
 {
     Control* pSubControl = GetWindow()->FindSubControlByName(this, pstrSubControlName);
     return pSubControl;

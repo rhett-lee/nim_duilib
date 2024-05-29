@@ -11,9 +11,9 @@ TabCtrl::TabCtrl(Window* pWindow):
 {
 }
 
-std::wstring TabCtrl::GetType() const { return DUI_CTR_TAB_CTRL; }
+DString TabCtrl::GetType() const { return DUI_CTR_TAB_CTRL; }
 
-void TabCtrl::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void TabCtrl::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("selected_id")) {
         int32_t nValue = _wtoi(strValue.c_str());
@@ -82,7 +82,7 @@ void TabCtrl::HandleEvent(const EventArgs& msg)
     __super::HandleEvent(msg);
 }
 
-void TabCtrl::SetTabBoxName(const std::wstring& tabBoxName)
+void TabCtrl::SetTabBoxName(const DString& tabBoxName)
 {
     if (m_tabBoxName != tabBoxName) {
         m_tabBoxName = tabBoxName;
@@ -103,7 +103,7 @@ void TabCtrl::SetTabBoxName(const std::wstring& tabBoxName)
     }
 }
 
-std::wstring TabCtrl::GetTabBoxName() const
+DString TabCtrl::GetTabBoxName() const
 {
     return m_tabBoxName.c_str();
 }
@@ -212,9 +212,9 @@ TabCtrlItem::TabCtrlItem(Window* pWindow):
     m_hotPadding.bottom = 0;
 }
 
-std::wstring TabCtrlItem::GetType() const { return DUI_CTR_TAB_CTRL_ITEM; }
+DString TabCtrlItem::GetType() const { return DUI_CTR_TAB_CTRL_ITEM; }
 
-void TabCtrlItem::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void TabCtrlItem::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("tab_box_item_index")) {
         SetTabBoxItemIndex((size_t)_wtoi(strValue.c_str()));
@@ -300,9 +300,9 @@ void TabCtrlItem::SetVisible(bool bVisible)
     AdjustItemLineStatus();
 }
 
-std::wstring TabCtrlItem::GetToolTipText() const
+DString TabCtrlItem::GetToolTipText() const
 {
-    std::wstring tooltip = __super::GetToolTipText();
+    DString tooltip = __super::GetToolTipText();
     if (tooltip.empty()) {
         if (m_pLabel != nullptr) {
             tooltip = m_pLabel->GetToolTipText();
@@ -311,7 +311,7 @@ std::wstring TabCtrlItem::GetToolTipText() const
     return tooltip;
 }
 
-void TabCtrlItem::SetIconClass(const std::wstring& iconClass)
+void TabCtrlItem::SetIconClass(const DString& iconClass)
 {
     bool bChanged = m_iconClass != iconClass;
     if (bChanged) {
@@ -342,12 +342,12 @@ void TabCtrlItem::SetIconClass(const std::wstring& iconClass)
     }
 }
 
-std::wstring TabCtrlItem::GetIconClass() const
+DString TabCtrlItem::GetIconClass() const
 {
     return m_iconClass.c_str();
 }
 
-void TabCtrlItem::SetTitleClass(const std::wstring& titleClass)
+void TabCtrlItem::SetTitleClass(const DString& titleClass)
 {
     bool bChanged = m_titleClass != titleClass;
     if (bChanged) {
@@ -378,12 +378,12 @@ void TabCtrlItem::SetTitleClass(const std::wstring& titleClass)
     }
 }
 
-std::wstring TabCtrlItem::GetTitleClass() const
+DString TabCtrlItem::GetTitleClass() const
 {
     return m_titleClass.c_str();
 }
 
-void TabCtrlItem::SetCloseButtonClass(const std::wstring& closeButtonClass)
+void TabCtrlItem::SetCloseButtonClass(const DString& closeButtonClass)
 {
     bool bChanged = m_closeBtnClass != closeButtonClass;
     if (bChanged) {
@@ -411,12 +411,12 @@ void TabCtrlItem::SetCloseButtonClass(const std::wstring& closeButtonClass)
     }
 }
 
-std::wstring TabCtrlItem::GetCloseButtonClass() const
+DString TabCtrlItem::GetCloseButtonClass() const
 {
     return m_closeBtnClass.c_str();
 }
 
-void TabCtrlItem::SetLineClass(const std::wstring& lineClass)
+void TabCtrlItem::SetLineClass(const DString& lineClass)
 {
     bool bChanged = m_lineClass != lineClass;
     if (bChanged) {
@@ -444,7 +444,7 @@ void TabCtrlItem::SetLineClass(const std::wstring& lineClass)
     }
 }
 
-std::wstring TabCtrlItem::GetLineClass() const
+DString TabCtrlItem::GetLineClass() const
 {
     return m_lineClass.c_str();
 }
@@ -697,7 +697,7 @@ void TabCtrlItem::PaintTabItemSelected(IRender* pRender)
         roundSize.cx = rc.Width() / 3;
     }
 
-    std::wstring color = GetSelectStateColor(ControlStateType::kControlStateNormal);
+    DString color = GetSelectStateColor(ControlStateType::kControlStateNormal);
     if (color.empty()) {
         return;
     }
@@ -767,7 +767,7 @@ void TabCtrlItem::PaintTabItemHot(IRender* pRender)
     rc.bottom -= hotPadding.bottom;
  
     UiSize roundSize = GetHotRoundCorner();
-    std::wstring color = GetStateColor(ControlStateType::kControlStateHot);
+    DString color = GetStateColor(ControlStateType::kControlStateHot);
     if (color.empty()) {
         return;
     }
@@ -775,7 +775,7 @@ void TabCtrlItem::PaintTabItemHot(IRender* pRender)
     pRender->FillRoundRect(rc, roundSize, dwColor);
 }
 
-void TabCtrlItem::SetIcon(const std::wstring& iconImageString)
+void TabCtrlItem::SetIcon(const DString& iconImageString)
 {
     Control* pIconControl = GetIconControl();
     if (pIconControl != nullptr) {
@@ -788,9 +788,9 @@ void TabCtrlItem::SetIcon(const std::wstring& iconImageString)
     }
 }
 
-std::wstring TabCtrlItem::GetIcon() const
+DString TabCtrlItem::GetIcon() const
 {
-    std::wstring iconString;
+    DString iconString;
     Control* pIconControl = GetIconControl();
     if (pIconControl != nullptr) {
         iconString = pIconControl->GetBkImage();
@@ -801,7 +801,7 @@ std::wstring TabCtrlItem::GetIcon() const
     return iconString;
 }
 
-void TabCtrlItem::SetTitle(const std::wstring& title)
+void TabCtrlItem::SetTitle(const DString& title)
 {
     Label* pLabel = GetTextLabel();
     if (pLabel != nullptr) {
@@ -813,9 +813,9 @@ void TabCtrlItem::SetTitle(const std::wstring& title)
     }
 }
 
-std::wstring TabCtrlItem::GetTitle() const
+DString TabCtrlItem::GetTitle() const
 {
-    std::wstring title;
+    DString title;
     Label* pLabel = GetTextLabel();
     if (pLabel != nullptr) {
         title = pLabel->GetText();

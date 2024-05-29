@@ -28,28 +28,28 @@ public:
     /** 获取ICON的资源字符串（可用作为图片文件路径使用）
     * @return 返回资源字符串，例如："icon:1"
     */
-    std::wstring GetIconString(HICON hIcon) const;
+    DString GetIconString(HICON hIcon) const;
 
     /** 获取ICON的资源字符串（可用作为图片文件路径使用）
     * @return 返回资源字符串，例如："icon:1"
     */
-    std::wstring GetIconString(uint32_t id) const;
+    DString GetIconString(uint32_t id) const;
 
     /** 判断是否为ICON的资源字符串
     *@param [in] str 资源字符串，正确形式例如："icon:1"
     */
-    bool IsIconString(const std::wstring& str) const;
+    bool IsIconString(const DString& str) const;
 
     /** 获取资源字符串对应的ICON的图标句柄，如果没有该资源，则返回nullptr
     *@param [in] str 资源字符串，正确形式例如："icon:1"
     */
-    HICON GetIcon(const std::wstring& str) const;
+    HICON GetIcon(const DString& str) const;
 
     /** 获取ICON资源字符串对应图标的大小
     *@param [in] str 资源字符串，正确形式例如："icon:1"
     *@return 返回图标的大小，如果失败返回空
     */
-    UiSize GetIconSize(const std::wstring& str) const;
+    UiSize GetIconSize(const DString& str) const;
 
     /** 将ICON资源字符串对应的HICON句柄，解码为位图数据（32位，ARGB位图）
     * @param [in] str 资源字符串，正确形式例如："icon:1"
@@ -61,7 +61,7 @@ public:
     * @param [out] bitmapHeight 成功时，返回位图的高度
     * @param [out] bDpiScaled 返回图片是否做过DPI缩放
     */
-    bool LoadIconData(const std::wstring& str,
+    bool LoadIconData(const DString& str,
                       const Window* pWindow,
                       const ImageLoadAttribute& loadAtrribute,
                       bool bEnableDpiScale,
@@ -114,7 +114,7 @@ private:
 
     /** ICON资源字符串前缀
     */
-    std::wstring m_prefix;
+    DString m_prefix;
 };
 
 } //namespace ui 

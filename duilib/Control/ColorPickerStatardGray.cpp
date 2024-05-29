@@ -11,7 +11,7 @@ ColorPickerStatardGray::ColorPickerStatardGray(Window* pWindow):
     InitColorMap();
 }
 
-std::wstring ColorPickerStatardGray::GetType() const { return DUI_CTR_COLOR_PICKER_STANDARD_GRAY; }
+DString ColorPickerStatardGray::GetType() const { return DUI_CTR_COLOR_PICKER_STANDARD_GRAY; }
 
 void ColorPickerStatardGray::SelectColor(const UiColor& color)
 {
@@ -244,7 +244,7 @@ bool ColorPickerStatardGray::MouseMove(const EventArgs& msg)
     if (GetRect().ContainsPt(msg.ptMouse)) {
         UiColor color;
         if (GetColorInfo(msg.ptMouse, color)) {
-            std::wstring colorString = StringUtil::Printf(_T("#%02X%02X%02X%02X"), color.GetA(), color.GetR(), color.GetG(), color.GetB());
+            DString colorString = StringUtil::Printf(_T("#%02X%02X%02X%02X"), color.GetA(), color.GetR(), color.GetG(), color.GetB());
             SetToolTipText(colorString);
         }
         else {

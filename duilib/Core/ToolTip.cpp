@@ -42,13 +42,13 @@ void ToolTip::ShowToolTip(HWND hParentWnd,
                           const UiRect& rect,
                           uint32_t maxWidth,
                           const UiPoint& trackPos,
-                          const std::wstring& text)
+                          const DString& text)
 {
     if (text.empty()) {
         return;
     }
     //如果超过长度，则截断
-    std::wstring newText(text);
+    DString newText(text);
     if (newText.size() > TOOLTIP_MAX_LEN) {
         newText = newText.substr(0, TOOLTIP_MAX_LEN);
     }
@@ -58,11 +58,11 @@ void ToolTip::ShowToolTip(HWND hParentWnd,
         toolTip.cbSize = sizeof(TOOLINFO);
         toolTip.hwnd = hParentWnd;
         toolTip.uId = (UINT_PTR)hParentWnd;
-        std::wstring oldText;
+        DString oldText;
         oldText.resize(TOOLTIP_MAX_LEN + 1);
         toolTip.lpszText = const_cast<LPTSTR>((LPCTSTR)oldText.c_str());
         ::SendMessage(m_hwndTooltip, TTM_GETTOOLINFO, 0, (LPARAM)&toolTip);
-        oldText = std::wstring(oldText.c_str());
+        oldText = DString(oldText.c_str());
         if (newText == oldText) {
             //文本内容均没有变化，不再设置
             return;

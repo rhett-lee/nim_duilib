@@ -40,7 +40,7 @@ public:
     * @param[in] id 缩略图Tab的唯一id
     * @return void    无返回值
     */
-    void Init(const std::wstring &taskbar_title, const std::string &id);
+    void Init(const DString &taskbar_title, const std::string &id);
 
     /**
     * 反初始化函数
@@ -53,7 +53,7 @@ public:
     * @param[in] title 标题
     * @return void    无返回值
     */
-    void SetTaskbarTitle(const std::wstring &title);
+    void SetTaskbarTitle(const DString &title);
 
     /**
     * 设置本Tab所属的窗体对应的TaskbarManager
@@ -77,9 +77,9 @@ public:
 private:
     /**
     * 返回本窗口的窗口类名
-    * @return std::wstring 窗口类名
+    * @return DString 窗口类名
     */
-    virtual std::wstring GetWindowClassName() const override;
+    virtual DString GetWindowClassName() const override;
 
     /**
     * 拦截并处理底层窗体消息

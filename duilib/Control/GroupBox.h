@@ -20,8 +20,8 @@ public:
     virtual ~GroupBoxTemplate();
         
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintText(IRender* pRender) override;
 
     /** DPI发生变化，更新控件大小和布局
@@ -48,7 +48,7 @@ public:
 
     /** 设置线条颜色
     */
-    void SetLineColor(const std::wstring& lineColor);
+    void SetLineColor(const DString& lineColor);
 
 private:
     /** 获取一定透明度的颜色
@@ -81,16 +81,16 @@ GroupBoxTemplate<InheritType>::~GroupBoxTemplate()
 }
 
 template<typename InheritType>
-inline std::wstring GroupBoxTemplate<InheritType>::GetType() const { return _T("GroupBoxTemplate"); }
+inline DString GroupBoxTemplate<InheritType>::GetType() const { return _T("GroupBoxTemplate"); }
 
 template<>
-inline std::wstring GroupBoxTemplate<Box>::GetType() const { return DUI_CTR_GROUP_BOX; }
+inline DString GroupBoxTemplate<Box>::GetType() const { return DUI_CTR_GROUP_BOX; }
 
 template<>
-inline std::wstring GroupBoxTemplate<HBox>::GetType() const { return DUI_CTR_GROUP_HBOX; }
+inline DString GroupBoxTemplate<HBox>::GetType() const { return DUI_CTR_GROUP_HBOX; }
 
 template<>
-inline std::wstring GroupBoxTemplate<VBox>::GetType() const { return DUI_CTR_GROUP_VBOX; }
+inline DString GroupBoxTemplate<VBox>::GetType() const { return DUI_CTR_GROUP_VBOX; }
 
 template<typename InheritType>
 void GroupBoxTemplate<InheritType>::SetCornerSize(UiSize cxyRound, bool bNeedDpiScale)
@@ -151,7 +151,7 @@ int32_t GroupBoxTemplate<InheritType>::GetLineWidth() const
 }
 
 template<typename InheritType>
-void GroupBoxTemplate<InheritType>::SetLineColor(const std::wstring& lineColor)
+void GroupBoxTemplate<InheritType>::SetLineColor(const DString& lineColor)
 {
     if (m_lineColor != lineColor) {
         m_lineColor = lineColor;
@@ -167,7 +167,7 @@ UiColor GroupBoxTemplate<InheritType>::GetFadeColor(UiColor color, uint8_t nFade
 }
 
 template<typename InheritType>
-void GroupBoxTemplate<InheritType>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void GroupBoxTemplate<InheritType>::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("corner_size")) {
         //圆角大小
@@ -221,7 +221,7 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
     }
 
     UiPadding rcPadding = this->GetControlPadding();
-    std::wstring textValue = this->GetText();//文本内容
+    DString textValue = this->GetText();//文本内容
     UiRect drawTextRect;//文本的绘制区域
     bool hasClip = false;
     if (!textValue.empty()) {

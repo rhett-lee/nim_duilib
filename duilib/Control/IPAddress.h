@@ -17,8 +17,8 @@ public:
 
     /** 获取控件类型
     */
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
     /** 让控件获取焦点
      */
@@ -26,11 +26,11 @@ public:
 
     /** 设置IP地址
     */
-    void SetIPAddress(const std::wstring& ipAddress);
+    void SetIPAddress(const DString& ipAddress);
 
     /** 获取IP地址
     */
-    std::wstring GetIPAddress() const;
+    DString GetIPAddress() const;
 
 protected:
 

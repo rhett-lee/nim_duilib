@@ -27,13 +27,13 @@ public:
     * @param [in] strImageString 图片参数字符串
     * @param [in] dpi DPI缩放接口
     */
-    void InitByImageString(const std::wstring& strImageString, const DpiManager& dpi);
+    void InitByImageString(const DString& strImageString, const DpiManager& dpi);
 
     /** 根据图片参数修改属性值（仅更新新设置的图片属性, 未包含的属性不进行更新）
     * @param [in] strImageString 图片参数字符串
     * @param [in] dpi DPI缩放接口
     */
-    void ModifyAttribute(const std::wstring& strImageString, const DpiManager& dpi);
+    void ModifyAttribute(const DString& strImageString, const DpiManager& dpi);
 
 public:
     /** 判断rcDest区域是否含有有效值

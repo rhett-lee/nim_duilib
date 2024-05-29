@@ -9,7 +9,7 @@ Item::~Item()
 {
 }
 
-void Item::InitSubControls(const std::wstring& img, const std::wstring& title)
+void Item::InitSubControls(const DString& img, const DString& title)
 {
     // 查找 Item 下的控件
     control_img_    = dynamic_cast<ui::Control*>(FindSubControl(_T("control_img")));

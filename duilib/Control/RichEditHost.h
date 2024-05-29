@@ -82,7 +82,7 @@ public:
     void SetAutoHScroll(bool bEnable);
 
     // 设置字体
-    void SetFontId(const std::wstring& fontId);
+    void SetFontId(const DString& fontId);
 
     /** 按DPI变化来修改字体大小
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
@@ -115,7 +115,7 @@ public:
 
 public:
 
-    static void GetLogFont(RichEdit* pRichEdit, const std::wstring& fontId, LOGFONT& lf);
+    static void GetLogFont(RichEdit* pRichEdit, const DString& fontId, LOGFONT& lf);
 
 public:
     // -----------------------------

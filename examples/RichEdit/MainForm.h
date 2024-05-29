@@ -22,9 +22,9 @@ public:
      * GetSkinFile            接口设置你要绘制的窗口的 xml 描述文件
      * GetWindowClassName    接口设置窗口唯一的类名称
      */
-    virtual std::wstring GetSkinFolder() override;
-    virtual std::wstring GetSkinFile() override;
-    virtual std::wstring GetWindowClassName() const override;
+    virtual DString GetSkinFolder() override;
+    virtual DString GetSkinFile() override;
+    virtual DString GetWindowClassName() const override;
 
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
@@ -37,12 +37,12 @@ public:
     virtual LRESULT OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
     virtual LRESULT OnKeyUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
-    static const std::wstring kClassName;
+    static const DString kClassName;
 
     //查找/替换接口
-    void FindRichText(const std::wstring& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
-    void ReplaceRichText(const std::wstring& findText, const std::wstring& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
-    void ReplaceAllRichText(const std::wstring& findText, const std::wstring& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
+    void FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
+    void ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
+    void ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
 
     //获取RichEdit接口
     ui::RichEdit* GetRichEdit() const;
@@ -56,11 +56,11 @@ private:
     void OnSaveFile();
     void OnSaveAsFile();
 
-    bool LoadFile(const std::wstring& filePath);
-    bool SaveFile(const std::wstring& filePath);
+    bool LoadFile(const DString& filePath);
+    bool SaveFile(const DString& filePath);
 
     //判断一个文件扩展名是否为RTF文件
-    bool IsRtfFile(const std::wstring& filePath) const;
+    bool IsRtfFile(const DString& filePath) const;
 
     static DWORD CALLBACK StreamReadCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb);
     static DWORD CALLBACK StreamWriteCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb);
@@ -83,7 +83,7 @@ private://设置字体相关
 
     struct FontSizeInfo
     {
-        std::wstring fontSizeName;
+        DString fontSizeName;
         float fFontSize;    //单位：像素，未做DPI自适应
         int32_t fontSize;   //单位：像素，已做DPI自适应
     };
@@ -110,10 +110,10 @@ private://设置字体相关
     void UpdateFontSizeStatus();
 
     //设置字体名称
-    void SetFontName(const std::wstring& fontName);
+    void SetFontName(const DString& fontName);
 
     //设置字体大小
-    void SetFontSize(const std::wstring& fontSize);
+    void SetFontSize(const DString& fontSize);
 
     //调整字体大小: bIncreaseFontSize 为true表示增加字体大小，为false表示减小字体大小
     void AdjustFontSize(bool bIncreaseFontSize);
@@ -132,7 +132,7 @@ private://设置字体相关
 
     /** 设置文本颜色
     */
-    void SetTextColor(const std::wstring& newColor);
+    void SetTextColor(const DString& newColor);
 
     //枚举字体回调函数
     static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* lpntme, DWORD fontType, LPARAM lParam);
@@ -164,10 +164,10 @@ private:
     ui::RichEdit* m_pRichEdit;
 
     //当前打开的文件
-    std::wstring m_filePath;
+    DString m_filePath;
 
     //保存按钮的文字
-    std::wstring m_saveBtnText;
+    DString m_saveBtnText;
 
     //查找
     FindForm* m_pFindForm;

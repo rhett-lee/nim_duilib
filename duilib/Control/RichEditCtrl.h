@@ -210,7 +210,7 @@ public:
         return (LONG)TxSendMessage(EM_GETSELTEXT, 0, (LPARAM)lpstrBuff);
     }
 
-    BOOL GetSelText(std::wstring& text) const
+    BOOL GetSelText(DString& text) const
     {
         ASSERT(m_pTextServices != nullptr);
 

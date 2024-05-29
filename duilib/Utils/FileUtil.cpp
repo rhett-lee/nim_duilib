@@ -4,7 +4,7 @@
 namespace ui
 {
 
-bool FileUtil::ReadFileData(const std::wstring& filePath, std::vector<uint8_t>& fileData)
+bool FileUtil::ReadFileData(const DString& filePath, std::vector<uint8_t>& fileData)
 {
     bool isReadOk = false;
     FILE* f = nullptr;

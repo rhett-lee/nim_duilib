@@ -24,31 +24,31 @@ IconManager::~IconManager()
     }
 }
 
-std::wstring IconManager::GetIconString(HICON hIcon) const
+DString IconManager::GetIconString(HICON hIcon) const
 {
     uint32_t id = GetIconID(hIcon);
     if (id == 0) {
-        return std::wstring();
+        return DString();
     }
     else {
         return GetIconString(id);
     }
 }
 
-std::wstring IconManager::GetIconString(uint32_t id) const
+DString IconManager::GetIconString(uint32_t id) const
 {
     ASSERT(id > 0);
-    std::wstring str = m_prefix;
+    DString str = m_prefix;
     str += StringUtil::UInt32ToString(id);
     return str;
 }
 
-bool IconManager::IsIconString(const std::wstring& str) const
+bool IconManager::IsIconString(const DString& str) const
 {
     return str.find(m_prefix) == 0;
 }
 
-HICON IconManager::GetIcon(const std::wstring& str) const
+HICON IconManager::GetIcon(const DString& str) const
 {
     if (str.empty()) {
         return nullptr;
@@ -58,12 +58,12 @@ HICON IconManager::GetIcon(const std::wstring& str) const
     if (pos != 0) {
         return nullptr;
     }
-    std::wstring idStr = str.substr(pos + m_prefix.size());
+    DString idStr = str.substr(pos + m_prefix.size());
     uint32_t id = wcstoul(idStr.c_str(), nullptr, 10);
     return GetIcon(id);
 }
 
-UiSize IconManager::GetIconSize(const std::wstring& str) const
+UiSize IconManager::GetIconSize(const DString& str) const
 {
     return GetIconSize(GetIcon(str));
 }
@@ -84,7 +84,7 @@ struct ScopedICONINFO :
     }
 };
 
-bool IconManager::LoadIconData(const std::wstring& str,
+bool IconManager::LoadIconData(const DString& str,
                                const Window* pWindow,
                                const ImageLoadAttribute& loadAtrribute,
                                bool bEnableDpiScale,

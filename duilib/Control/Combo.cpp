@@ -14,7 +14,7 @@ class CComboWnd: public Window
 public:
     void InitComboWnd(Combo* pOwner, bool bActivated);
     void UpdateComboWnd();
-    virtual std::wstring GetWindowClassName() const override;
+    virtual DString GetWindowClassName() const override;
     virtual void OnFinalMessage() override;
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
@@ -126,7 +126,7 @@ void CComboWnd::UpdateComboWnd()
     SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
-std::wstring CComboWnd::GetWindowClassName() const
+DString CComboWnd::GetWindowClassName() const
 {
     return _T("ComboWnd");
 }
@@ -263,9 +263,9 @@ Combo::~Combo()
     }
 }
 
-std::wstring Combo::GetType() const { return DUI_CTR_COMBO; }
+DString Combo::GetType() const { return DUI_CTR_COMBO; }
 
-void Combo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void Combo::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("combo_type")) {
         if (strValue == _T("drop_list")) {
@@ -325,7 +325,7 @@ void Combo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
-void Combo::SetComboTreeClass(const std::wstring& classValue)
+void Combo::SetComboTreeClass(const DString& classValue)
 {
     if (m_treeView.GetWindow() == nullptr) {
         m_treeView.SetWindow(GetWindow());
@@ -333,12 +333,12 @@ void Combo::SetComboTreeClass(const std::wstring& classValue)
     SetAttributeList(&m_treeView, classValue);
 }
 
-void Combo::SetComboTreeNodeClass(const std::wstring& classValue)
+void Combo::SetComboTreeNodeClass(const DString& classValue)
 {
     m_treeNodeClass = classValue;
 }
 
-void Combo::SetIconControlClass(const std::wstring& classValue)
+void Combo::SetIconControlClass(const DString& classValue)
 {
     if (classValue.empty()) {
         RemoveControl(m_pIconControl);
@@ -355,7 +355,7 @@ void Combo::SetIconControlClass(const std::wstring& classValue)
     }
 }
 
-void Combo::SetEditControlClass(const std::wstring& classValue)
+void Combo::SetEditControlClass(const DString& classValue)
 {
     if (classValue.empty()) {
         RemoveControl(m_pEditControl);
@@ -372,7 +372,7 @@ void Combo::SetEditControlClass(const std::wstring& classValue)
     }    
 }
 
-void Combo::SetButtonControlClass(const std::wstring& classValue)
+void Combo::SetButtonControlClass(const DString& classValue)
 {
     if (classValue.empty()) {
         RemoveControl(m_pButtonControl);
@@ -389,27 +389,27 @@ void Combo::SetButtonControlClass(const std::wstring& classValue)
     }
 }
 
-void Combo::ParseAttributeList(const std::wstring& strList,
-                               std::vector<std::pair<std::wstring, std::wstring>>& attributeList) const
+void Combo::ParseAttributeList(const DString& strList,
+                               std::vector<std::pair<DString, DString>>& attributeList) const
 {
     if (strList.empty()) {
         return;
     }
-    std::wstring strValue = strList;
+    DString strValue = strList;
     //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
     StringUtil::ReplaceAll(_T("{"), _T("\""), strValue);
     StringUtil::ReplaceAll(_T("}"), _T("\""), strValue);
-    if (strValue.find(_T("\"")) != std::wstring::npos) {
+    if (strValue.find(_T("\"")) != DString::npos) {
         AttributeUtil::ParseAttributeList(strValue, _T('\"'), attributeList);
     }
-    else if (strValue.find(_T("\'")) != std::wstring::npos) {
+    else if (strValue.find(_T("\'")) != DString::npos) {
         AttributeUtil::ParseAttributeList(strValue, _T('\''), attributeList);
     }
 }
 
-void Combo::SetAttributeList(Control* pControl, const std::wstring& classValue)
+void Combo::SetAttributeList(Control* pControl, const DString& classValue)
 {
-    std::vector<std::pair<std::wstring, std::wstring>> attributeList;
+    std::vector<std::pair<DString, DString>> attributeList;
     ParseAttributeList(classValue, attributeList);
     if (!attributeList.empty()) {
         //按属性列表设置
@@ -438,9 +438,9 @@ bool Combo::CanPlaceCaptionBar() const
     return true;
 }
 
-std::wstring Combo::GetBorderColor(ControlStateType stateType) const
+DString Combo::GetBorderColor(ControlStateType stateType) const
 {
-    std::wstring borderColor;
+    DString borderColor;
     if (m_pIconControl != nullptr) {
         if (m_pIconControl->IsFocused() || m_pIconControl->IsMouseFocused()) {
             borderColor = __super::GetBorderColor(kControlStateHot);
@@ -625,7 +625,7 @@ bool Combo::SetItemData(size_t iIndex, size_t itemData)
     return false;
 }
 
-std::wstring Combo::GetItemText(size_t iIndex) const
+DString Combo::GetItemText(size_t iIndex) const
 {
     Control* pControl = m_treeView.GetItemAt(iIndex);
     if (pControl != nullptr) {
@@ -635,10 +635,10 @@ std::wstring Combo::GetItemText(size_t iIndex) const
             return pTreeNode->GetText();
         }        
     }
-    return std::wstring();
+    return DString();
 }
 
-bool Combo::SetItemText(size_t iIndex, const std::wstring& itemText)
+bool Combo::SetItemText(size_t iIndex, const DString& itemText)
 {
     Control* pControl = m_treeView.GetItemAt(iIndex);
     if (pControl != nullptr) {
@@ -652,12 +652,12 @@ bool Combo::SetItemText(size_t iIndex, const std::wstring& itemText)
     return false;
 }
 
-size_t Combo::AddTextItem(const std::wstring& itemText)
+size_t Combo::AddTextItem(const DString& itemText)
 {
     return InsertTextItem(GetCount(), itemText);
 }
 
-size_t Combo::InsertTextItem(size_t iIndex, const std::wstring& itemText)
+size_t Combo::InsertTextItem(size_t iIndex, const DString& itemText)
 {
     ASSERT(iIndex <= GetCount());
     if (iIndex > GetCount()) {
@@ -715,7 +715,7 @@ void Combo::DeleteAllItems()
     m_treeView.GetRootNode()->RemoveAllChildNodes();
 }
 
-size_t Combo::SelectTextItem(const std::wstring& itemText, bool bTriggerEvent)
+size_t Combo::SelectTextItem(const DString& itemText, bool bTriggerEvent)
 {
     size_t nSelIndex = Box::InvalidIndex;
     size_t itemCount = m_treeView.GetItemCount();
@@ -738,7 +738,7 @@ size_t Combo::SelectTextItem(const std::wstring& itemText, bool bTriggerEvent)
     return nSelIndex;
 }
 
-TreeNode* Combo::CreateTreeNode(const std::wstring& itemText)
+TreeNode* Combo::CreateTreeNode(const DString& itemText)
 {
     TreeNode* pNewNode = new TreeNode(GetWindow());
     if (!m_treeNodeClass.empty()) {
@@ -748,15 +748,15 @@ TreeNode* Combo::CreateTreeNode(const std::wstring& itemText)
     return pNewNode;
 }
 
-std::wstring Combo::GetText() const
+DString Combo::GetText() const
 {
     if (m_pEditControl != nullptr) {
         return m_pEditControl->GetText();
     }
-    return std::wstring();
+    return DString();
 }
 
-void Combo::SetText(const std::wstring& text)
+void Combo::SetText(const DString& text)
 {
     if (m_pEditControl != nullptr) {
         m_pEditControl->SetText(text);
@@ -784,7 +784,7 @@ bool Combo::OnSelectItem(const EventArgs& /*args*/)
     return true;
 }
 
-void Combo::OnComboWndClosed(bool bCanceled, bool needUpdateSelItem, const std::wstring& oldEditText)
+void Combo::OnComboWndClosed(bool bCanceled, bool needUpdateSelItem, const DString& oldEditText)
 {
     if (bCanceled) {
         size_t iOldSel = m_iCurSel;
@@ -968,7 +968,7 @@ void Combo::OnSelectedItemChanged()
 bool Combo::OnEditTextChanged(const ui::EventArgs& /*args*/)
 {
     if ((m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
-        std::wstring editText = GetText();
+        DString editText = GetText();
         //转换成小写，比较的时候，不区分大小写
         editText = StringUtil::MakeLowerString(editText);
         size_t itemCount = m_treeView.GetItemCount();
@@ -979,8 +979,8 @@ bool Combo::OnEditTextChanged(const ui::EventArgs& /*args*/)
                 ASSERT(pTreeNode != nullptr);
                 if (pTreeNode != nullptr) {
                     pTreeNode->SetExpand(true, false);
-                    std::wstring nodeText = StringUtil::MakeLowerString(pTreeNode->GetText());
-                    if (nodeText.find(editText) != std::wstring::npos) {
+                    DString nodeText = StringUtil::MakeLowerString(pTreeNode->GetText());
+                    if (nodeText.find(editText) != DString::npos) {
                         m_treeView.EnsureVisible(iIndex, ListBoxVerVisible::kVisibleAtCenter);
                         break;
                     }

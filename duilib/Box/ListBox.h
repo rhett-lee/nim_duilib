@@ -127,8 +127,8 @@ public:
     ListBox& operator=(const ListBox& r) = delete;
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void HandleEvent(const EventArgs& msg) override;
     virtual bool ButtonDown(const EventArgs& msg) override;
     virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
@@ -265,7 +265,7 @@ public:
     /** 滚动到指定子项位置
      * @param [in] itemName 子项名称(即：Control::GetName())
      */
-    virtual bool ScrollItemToTop(const std::wstring& itemName);
+    virtual bool ScrollItemToTop(const DString& itemName);
 
     /** 获取当前矩形区域(Control::GetPos())中的第一个子项
      */
@@ -513,7 +513,7 @@ public:
     {
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_HLISTBOX; }
+    virtual DString GetType() const override { return DUI_CTR_HLISTBOX; }
 };
 
 /** 纵向布局的ListBox
@@ -526,7 +526,7 @@ public:
     {
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_VLISTBOX; }
+    virtual DString GetType() const override { return DUI_CTR_VLISTBOX; }
 };
 
 /** 瓦片布局的ListBox(横向布局)
@@ -539,7 +539,7 @@ public:
     {
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_HTILE_LISTBOX; }
+    virtual DString GetType() const override { return DUI_CTR_HTILE_LISTBOX; }
 };
 
 /** 瓦片布局的ListBox(纵向布局)
@@ -552,7 +552,7 @@ public:
     {
     }
 
-    virtual std::wstring GetType() const override { return DUI_CTR_VTILE_LISTBOX; }
+    virtual DString GetType() const override { return DUI_CTR_VTILE_LISTBOX; }
 };
 
 } // namespace ui

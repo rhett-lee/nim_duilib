@@ -12,7 +12,7 @@ public:
     ~Item();
 
     // 提供外部调用来初始化 item 数据
-    void InitSubControls(const std::wstring& img, const std::wstring& title, size_t nDataIndex);
+    void InitSubControls(const DString& img, const DString& title, size_t nDataIndex);
 private:
     bool OnRemove(const ui::EventArgs& args);
 

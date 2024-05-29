@@ -1,7 +1,7 @@
 //MainForm.cpp
 #include "MainForm.h"
 
-const std::wstring MainForm::kClassName = _T("MainForm");
+const DString MainForm::kClassName = _T("MainForm");
 
 MainForm::MainForm()
 {
@@ -12,17 +12,17 @@ MainForm::~MainForm()
 {
 }
 
-std::wstring MainForm::GetSkinFolder()
+DString MainForm::GetSkinFolder()
 {
     return _T("dpi_aware");
 }
 
-std::wstring MainForm::GetSkinFile()
+DString MainForm::GetSkinFile()
 {
     return _T("DpiAware.xml");
 }
 
-std::wstring MainForm::GetWindowClassName() const
+DString MainForm::GetWindowClassName() const
 {
     return kClassName;
 }
@@ -82,7 +82,7 @@ void MainForm::UpdateUI()
 {
     ui::Label* pLabel = dynamic_cast<ui::Label*>(FindControl(_T("dpi_awareness")));
     if (pLabel != nullptr) {
-        std::wstring text;
+        DString text;
         ui::DpiAwarenessMode mode = ui::GlobalManager::Instance().Dpi().GetDpiAwareness();
         if (mode == ui::DpiAwarenessMode::kDpiUnaware) {
             text = _T("kDpiUnaware");
@@ -101,25 +101,25 @@ void MainForm::UpdateUI()
     pLabel = dynamic_cast<ui::Label*>(FindControl(_T("system_dpi")));
     if (pLabel != nullptr) {
         uint32_t nDPI = ui::GlobalManager::Instance().Dpi().GetDPI();
-        std::wstring text = ui::StringUtil::UInt32ToString(nDPI);
+        DString text = ui::StringUtil::UInt32ToString(nDPI);
         pLabel->SetText(text);
     }
     pLabel = dynamic_cast<ui::Label*>(FindControl(_T("system_dpi_percent")));
     if (pLabel != nullptr) {
         uint32_t nScale = ui::GlobalManager::Instance().Dpi().GetScale();
-        std::wstring text = ui::StringUtil::UInt32ToString(nScale);
+        DString text = ui::StringUtil::UInt32ToString(nScale);
         pLabel->SetText(text);
     }
     pLabel = dynamic_cast<ui::Label*>(FindControl(_T("window_dpi")));
     if (pLabel != nullptr) {
         uint32_t nDPI = Dpi().GetDPI();
-        std::wstring text = ui::StringUtil::UInt32ToString(nDPI);
+        DString text = ui::StringUtil::UInt32ToString(nDPI);
         pLabel->SetText(text);
     }
     pLabel = dynamic_cast<ui::Label*>(FindControl(_T("window_dpi_percent")));
     if (pLabel != nullptr) {
         uint32_t nScale = Dpi().GetScale();
-        std::wstring text = ui::StringUtil::UInt32ToString(nScale);
+        DString text = ui::StringUtil::UInt32ToString(nScale);
         pLabel->SetText(text);
     }
 }

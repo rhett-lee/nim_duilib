@@ -127,14 +127,14 @@ public:
     * @param[in] global_function 是否是一个全局方法
     * @return 返回 true 表示注册成功，false 可能已经注册
     */
-    bool RegisterCppFunc(const std::wstring& function_name, nim_comp::CppFunction function, bool global_function = false);
+    bool RegisterCppFunc(const DString& function_name, nim_comp::CppFunction function, bool global_function = false);
 
     /**
     * @brief 反注册一个 C++ 方法
     * @param[in] function_name 方法名称
     * @return 无
     */
-    void UnRegisterCppFunc(const std::wstring& function_name);
+    void UnRegisterCppFunc(const DString& function_name);
 
     /**
     * @brief 调用一个前端已经注册好的方法
@@ -144,7 +144,7 @@ public:
     * @param[in] frame_name 要调用哪个名称 frame 下的方法，默认使用主 frame
     * @return 返回 true 表示成功调用，false 表示调用失败，方法可能不存在
     */
-    bool CallJSFunction(const std::wstring& js_function_name, const std::wstring& params, nim_comp::CallJsFunctionCallback callback, const std::wstring& frame_name = _T(""));
+    bool CallJSFunction(const DString& js_function_name, const DString& params, nim_comp::CallJsFunctionCallback callback, const DString& frame_name = _T(""));
 
     /**
     * @brief 调用一个前端已经注册好的方法
@@ -154,7 +154,7 @@ public:
     * @param[in] frame_id 要调用哪个 ID frame 下的方法，默认使用主 frame
     * @return 返回 true 表示成功调用，false 表示调用失败，方法可能不存在
     */
-    bool CallJSFunction(const std::wstring& js_function_name, const std::wstring& params, nim_comp::CallJsFunctionCallback callback, int frame_id);
+    bool CallJSFunction(const DString& js_function_name, const DString& params, nim_comp::CallJsFunctionCallback callback, int frame_id);
 
     /**
     * @brief 修复浏览器

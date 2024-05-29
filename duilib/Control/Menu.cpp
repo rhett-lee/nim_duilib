@@ -19,7 +19,7 @@ public:
     }
 };
 
-ui::Control* Menu::CreateControl(const std::wstring& pstrClass)
+ui::Control* Menu::CreateControl(const DString& pstrClass)
 {
     if (pstrClass == DUI_CTR_MENU_ITEM){
         return new MenuItem(this);
@@ -64,23 +64,23 @@ Menu::Menu(HWND hParent) :
     m_pOwner(nullptr),
     m_pLayout(nullptr)
 {
-    m_skinFolder = std::wstring(_T("menu"));
-    m_submenuXml = std::wstring(_T("submenu.xml"));
-    m_submenuNodeName = std::wstring(_T("submenu"));
+    m_skinFolder = DString(_T("menu"));
+    m_submenuXml = DString(_T("submenu.xml"));
+    m_submenuNodeName = DString(_T("submenu"));
 }
 
-void Menu::SetSkinFolder(const std::wstring& skinFolder)
+void Menu::SetSkinFolder(const DString& skinFolder)
 {
     m_skinFolder = skinFolder;
 }
 
-void Menu::SetSubMenuXml(const std::wstring& submenuXml, const std::wstring& submenuNodeName)
+void Menu::SetSubMenuXml(const DString& submenuXml, const DString& submenuNodeName)
 {
     m_submenuXml = submenuXml;
     m_submenuNodeName = submenuNodeName;
 }
 
-void Menu::ShowMenu(const std::wstring& xml, const UiPoint& point, MenuPopupPosType popupPosType, bool noFocus, MenuItem* pOwner)
+void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType popupPosType, bool noFocus, MenuItem* pOwner)
 {
     m_menuPoint = point;
     m_popupPosType = popupPosType;
@@ -170,17 +170,17 @@ void Menu::OnFinalMessage()
     __super::OnFinalMessage();
 }
 
-std::wstring Menu::GetSkinFolder()
+DString Menu::GetSkinFolder()
 {
     return m_skinFolder.c_str();
 }
 
-std::wstring Menu::GetSkinFile() 
+DString Menu::GetSkinFile() 
 {
     return m_xml.c_str();
 }
 
-std::wstring Menu::GetWindowClassName() const
+DString Menu::GetWindowClassName() const
 {
     return _T("MenuWnd");
 }
@@ -559,7 +559,7 @@ MenuItem* Menu::GetMenuItemAt(size_t iIndex) const
     return pElementUI;
 }
 
-MenuItem* Menu::GetMenuItemByName(const std::wstring& name) const
+MenuItem* Menu::GetMenuItemByName(const DString& name) const
 {
     //目前只有一级菜单可以访问这个接口
     ASSERT(m_pOwner == nullptr);
@@ -787,7 +787,7 @@ MenuItem* MenuItem::GetSubMenuItemAt(size_t iIndex) const
     return foundItem;
 }
 
-MenuItem* MenuItem::GetSubMenuItemByName(const std::wstring& name) const
+MenuItem* MenuItem::GetSubMenuItemByName(const DString& name) const
 {
     std::vector<MenuItem*> submenuItems;
     GetAllSubMenuItem(this, submenuItems);

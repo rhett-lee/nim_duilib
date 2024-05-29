@@ -13,9 +13,9 @@ FilterCombo::~FilterCombo()
 {
 }
 
-std::wstring FilterCombo::GetType() const { return DUI_CTR_FILTER_COMBO; }
+DString FilterCombo::GetType() const { return DUI_CTR_FILTER_COMBO; }
 
-void FilterCombo::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void FilterCombo::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("combo_type")) {
         //忽略该属性设置
@@ -47,7 +47,7 @@ bool FilterCombo::OnEditButtonUp(const EventArgs& /*args*/)
 
 bool FilterCombo::OnEditTextChanged(const ui::EventArgs& /*args*/)
 {
-    std::wstring editText = GetText();
+    DString editText = GetText();
     //转换成小写，比较的时候，不区分大小写
     editText = StringUtil::MakeLowerString(editText);
     ShowComboList();
@@ -55,7 +55,7 @@ bool FilterCombo::OnEditTextChanged(const ui::EventArgs& /*args*/)
     return true;
 }
 
-void FilterCombo::FilterComboList(const std::wstring& filterText)
+void FilterCombo::FilterComboList(const DString& filterText)
 {
     TreeView* pTreeView = GetTreeView();
     if (pTreeView == nullptr) {
@@ -81,13 +81,13 @@ void FilterCombo::FilterComboList(const std::wstring& filterText)
     UpdateComboList();
 }
 
-bool FilterCombo::IsFilterText(const std::wstring& filterText, const std::wstring& itemText) const
+bool FilterCombo::IsFilterText(const DString& filterText, const DString& itemText) const
 {
-    std::wstring lowerItemText = StringUtil::MakeLowerString(itemText);
+    DString lowerItemText = StringUtil::MakeLowerString(itemText);
     if (filterText.empty()) {
         return true;
     }
-    return (lowerItemText.find(filterText) != std::wstring::npos) ? true : false;
+    return (lowerItemText.find(filterText) != DString::npos) ? true : false;
 }
 
 } // namespace ui

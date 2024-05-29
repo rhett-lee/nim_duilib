@@ -39,7 +39,7 @@ void MainThread::OnInit()
     m_workerThread->Start();
 
     //初始化全局资源, 使用本地文件夹作为资源
-    std::wstring resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
+    DString resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
     resourcePath += _T("resources\\");
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 

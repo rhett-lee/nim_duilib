@@ -36,8 +36,8 @@ bool Provider::FillElement(ui::Control* pControl, size_t nElementIndex)
         return false;
     }
     const DownloadTask& task = m_vTasks[nElementIndex];
-    std::wstring img = _T("icon.png");
-    std::wstring title = ui::StringUtil::Printf(_T("%s [%02d]"), task.sName, task.nId);
+    DString img = _T("icon.png");
+    DString title = ui::StringUtil::Printf(_T("%s [%02d]"), task.sName, task.nId);
     pItem->InitSubControls(img, title, nElementIndex);
     return true;
 }
@@ -109,13 +109,13 @@ void Provider::SetTotal(int nTotal)
         delete [] task.sName;
     }
     m_vTasks.clear();
-    std::wstring name = _T("任务名称");
+    DString name = _T("任务名称");
     m_vTasks.reserve(nTotal);
     for (auto i=0; i < nTotal; i++)
     {
         DownloadTask task;
         task.nId = i;
-        //不适用std::wstring，因为它占用的内存很多，当数据量达到千万级别以上时，占的内存太多
+        //不适用DString，因为它占用的内存很多，当数据量达到千万级别以上时，占的内存太多
         task.sName = new wchar_t[name.size() + 1];
         wcscpy_s(task.sName, name.size() + 1, name.c_str());
         m_vTasks.emplace_back(std::move(task));
@@ -143,7 +143,7 @@ void Provider::RemoveTask(size_t nIndex)
     }    
 }
 
-void Provider::ChangeTaskName(size_t nIndex, const std::wstring& sName)
+void Provider::ChangeTaskName(size_t nIndex, const DString& sName)
 {
     m_lock.lock();
     bool bUpdated = false;

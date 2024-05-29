@@ -61,10 +61,10 @@ WindowBuilder::~WindowBuilder()
 }
 
 
-Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass, Window* pWindow)
+Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Window* pWindow)
 {
     typedef std::function<Control* (Window* pWindow)> CreateControlFunction;
-    static std::map<std::wstring, CreateControlFunction> createControlMap =
+    static std::map<DString, CreateControlFunction> createControlMap =
     {
         {DUI_CTR_BOX,  [](Window* pWindow) { return new Box(pWindow); }},
         {DUI_CTR_HBOX, [](Window* pWindow) { return new HBox(pWindow); }},
@@ -146,18 +146,18 @@ Control* WindowBuilder::CreateControlByClass(const std::wstring& strControlClass
     return pControl;
 }
 
-bool WindowBuilder::IsXmlFileExists(const std::wstring& xml) const
+bool WindowBuilder::IsXmlFileExists(const DString& xml) const
 {
     if (xml.empty()) {
         return false;
     }
     if (GlobalManager::Instance().Zip().IsUseZip()) {
-        std::wstring sFile = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xml);
+        DString sFile = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xml);
         if (GlobalManager::Instance().Zip().IsZipResExist(sFile)) {
             return true;
         }
     }
-    std::wstring xmlFilePath = GlobalManager::Instance().GetResourcePath();
+    DString xmlFilePath = GlobalManager::Instance().GetResourcePath();
     if (PathUtil::IsRelativePath(xml)) {
         xmlFilePath = PathUtil::JoinFilePath(xmlFilePath, xml);
     }
@@ -167,7 +167,7 @@ bool WindowBuilder::IsXmlFileExists(const std::wstring& xml) const
     return PathUtil::IsExistsPath(xmlFilePath);
 }
 
-Box* WindowBuilder::Create(const std::wstring& xml, 
+Box* WindowBuilder::Create(const DString& xml, 
                            CreateControlCallback pCallback,
                            Window* pWindow, 
                            Box* pParent, 
@@ -182,7 +182,7 @@ Box* WindowBuilder::Create(const std::wstring& xml,
     //如果使用了 zip 压缩包，则从内存中读取
     if (xml.front() == _T('<')) {
         pugi::xml_parse_result result = m_xml->load_buffer(xml.c_str(), 
-                                                           xml.size() * sizeof(std::wstring::value_type), 
+                                                           xml.size() * sizeof(DString::value_type), 
                                                            pugi::parse_default, 
                                                            pugi::xml_encoding::encoding_utf16);
         if (result.status != pugi::status_ok) {
@@ -192,7 +192,7 @@ Box* WindowBuilder::Create(const std::wstring& xml,
         isLoaded = true;
     }
     if (!isLoaded && GlobalManager::Instance().Zip().IsUseZip()) {
-        std::wstring sFile = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xml);
+        DString sFile = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xml);
         std::vector<unsigned char> file_data;
         if (GlobalManager::Instance().Zip().GetZipData(sFile, file_data)) {
             pugi::xml_parse_result result = m_xml->load_buffer(file_data.data(), file_data.size());
@@ -204,7 +204,7 @@ Box* WindowBuilder::Create(const std::wstring& xml,
         }
     }
     if(!isLoaded) {
-        std::wstring xmlFilePath = GlobalManager::Instance().GetResourcePath();
+        DString xmlFilePath = GlobalManager::Instance().GetResourcePath();
         if (PathUtil::IsRelativePath(xml)) {
             xmlFilePath = PathUtil::JoinFilePath(xmlFilePath, xml);
         }
@@ -232,9 +232,9 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
     }
 
     if( pWindow != nullptr) {
-        std::wstring strClass;
-        std::wstring strName;
-        std::wstring strValue;
+        DString strClass;
+        DString strName;
+        DString strValue;
         strClass = root.name();
 
         if( strClass == _T("Window") ) {
@@ -347,8 +347,8 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                     ASSERT(FALSE);    //废弃
                 }
                 else if (strClass == _T("FontResource")) {
-                    std::wstring strFontFile;
-                    std::wstring strFontName;
+                    DString strFontFile;
+                    DString strFontName;
                     for (pugi::xml_attribute attr : node.attributes()) {
                         strName = attr.name();
                         strValue = attr.value();
@@ -367,8 +367,8 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                     ParseFontXmlNode(node);
                 }
                 else if( strClass == _T("Class") ) {
-                    std::wstring strClassName;
-                    std::wstring strAttribute;
+                    DString strClassName;
+                    DString strAttribute;
                     for (pugi::xml_attribute attr : node.attributes()) {
                         strName = attr.name();
                         strValue = attr.value();
@@ -386,8 +386,8 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                     }
                 }
                 else if( strClass == _T("TextColor") ) {
-                    std::wstring colorName = node.attribute(_T("name")).as_string();
-                    std::wstring colorValue = node.attribute(_T("value")).as_string();
+                    DString colorName = node.attribute(_T("name")).as_string();
+                    DString colorValue = node.attribute(_T("value")).as_string();
                     if(!colorName.empty() && !colorValue.empty()) {
                         ColorManager& colorManager = GlobalManager::Instance().Color();
                         colorManager.AddColor(colorName, colorValue);
@@ -406,8 +406,8 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
             for (pugi::xml_node node : root.children()) {
                 strClass = node.name();
                 if (strClass == _T("Class")) {
-                    std::wstring strClassName;
-                    std::wstring strAttribute;
+                    DString strClassName;
+                    DString strAttribute;
                     for (pugi::xml_attribute attr : node.attributes()) {
                         strName = attr.name();
                         strValue = attr.value();
@@ -426,8 +426,8 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                     }
                 }
                 else if (strClass == _T("TextColor")) {
-                    std::wstring strColorName;
-                    std::wstring strColor;
+                    DString strColorName;
+                    DString strColor;
                     for (pugi::xml_attribute attr : node.attributes()) {
                         strName = attr.name();
                         strValue = attr.value();
@@ -451,7 +451,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
     }
 
     for (pugi::xml_node node : root.children()) {
-        std::wstring strClass = node.name();
+        DString strClass = node.name();
         if (strClass == _T("Image") || strClass == _T("FontResource") || strClass == _T("Font")
             || strClass == _T("Class") || strClass == _T("TextColor")) {
 
@@ -481,11 +481,11 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 
 void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode) const
 {
-    std::wstring strName;
-    std::wstring strValue;
+    DString strName;
+    DString strValue;
 
-    std::wstring strFontId;
-    std::wstring strFontName;
+    DString strFontId;
+    DString strFontName;
     int size = 12;
     bool bold = false;
     bool underline = false;
@@ -540,7 +540,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
     }
     Control* pReturn = nullptr;
     for (pugi::xml_node node : xmlNode.children()) {
-        std::wstring strClass = node.name();
+        DString strClass = node.name();
         if( (strClass == _T("Image")) || 
             (strClass == _T("Font"))  ||
             (strClass == _T("Class")) || 
@@ -560,7 +560,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
                 nCount = 1;
             }
             pugi::xml_attribute sourceAttr = node.attribute(_T("src"));
-            std::wstring sourceValue = sourceAttr.as_string();
+            DString sourceValue = sourceAttr.as_string();
             if (sourceValue.empty()) {
                 sourceAttr = node.attribute(_T("source"));
                 sourceValue = sourceAttr.as_string();                
@@ -570,8 +570,8 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
                 if (!m_xmlFilePath.empty()) {
                     //优先尝试在原XML文件相同目录加载
                     size_t pos = m_xmlFilePath.find_last_of(_T("\\/"));
-                    if (pos != std::wstring::npos) {
-                        std::wstring filePath = m_xmlFilePath.substr(0, pos);
+                    if (pos != DString::npos) {
+                        DString filePath = m_xmlFilePath.substr(0, pos);
                         filePath = PathUtil::JoinFilePath(filePath, sourceValue);
                         if (IsXmlFileExists(filePath)) {
                             sourceValue = filePath;
@@ -611,7 +611,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
         }
 
         if(pControl == nullptr) {
-            std::wstring nodeName = strClass;
+            DString nodeName = strClass;
             ASSERT(!"Found unknown node name, can't create control!");
             continue;
         }
@@ -664,7 +664,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 #ifdef _DEBUG
             //测试效果：反向生成带格式的文本，用于测试验证解析的正确性
             RichText* pRichText = dynamic_cast<RichText*>(pControl);
-            std::wstring richText;
+            DString richText;
             if (pRichText) {
                 richText = pRichText->ToString();
             }
@@ -702,11 +702,11 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
     return pReturn;
 }
 
-bool WindowBuilder::ParseRichTextXmlText(const std::wstring& xmlText, Control* pControl)
+bool WindowBuilder::ParseRichTextXmlText(const DString& xmlText, Control* pControl)
 {
     pugi::xml_document doc;
     pugi::xml_parse_result result = doc.load_buffer(xmlText.c_str(),
-                                                    xmlText.size() * sizeof(std::wstring::value_type),
+                                                    xmlText.size() * sizeof(DString::value_type),
                                                     pugi::parse_default,
                                                     pugi::xml_encoding::encoding_utf16);
     if (result.status != pugi::status_ok) {
@@ -714,8 +714,8 @@ bool WindowBuilder::ParseRichTextXmlText(const std::wstring& xmlText, Control* p
         return false;
     }
     pugi::xml_node root = doc.root();
-    std::wstring rootName = root.name();
-    std::wstring rootValue = root.value();
+    DString rootName = root.name();
+    DString rootValue = root.value();
     if (rootName.empty() && rootValue.empty()) {
         root = doc.root().first_child();
     }
@@ -735,7 +735,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
         return false;
     }
 
-    std::wstring nodeName;
+    DString nodeName;
     for (pugi::xml_node node : xmlNode.children()) {
         RichTextSlice textSlice;
         textSlice.m_nodeName = node.name();
@@ -743,7 +743,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
 
         bool bParseChildren = true;
         if (nodeName.empty()) {
-            std::wstring nodeValue = node.value();
+            DString nodeValue = node.value();
             if (!nodeValue.empty()) {
                 textSlice.m_text = pRichText->TrimText(nodeValue);
             }
@@ -814,11 +814,11 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
     if (pParent == nullptr) {
         return;
     }
-    std::wstring strType;
-    std::wstring strReceiver;
-    std::wstring strApplyAttribute;
-    std::wstring strName;
-    std::wstring strValue;
+    DString strType;
+    DString strReceiver;
+    DString strApplyAttribute;
+    DString strName;
+    DString strValue;
     int i = 0;
     for (pugi::xml_attribute attr : node.attributes()) {
         strName = attr.name();

@@ -4,7 +4,7 @@
 
 #include <fstream>
 
-const std::wstring ControlForm::kClassName = _T("Controls");
+const DString ControlForm::kClassName = _T("Controls");
 
 //系统全局热键的ID
 #define SYSTEM_HOTKEY_ID 111
@@ -18,17 +18,17 @@ ControlForm::~ControlForm()
 {
 }
 
-std::wstring ControlForm::GetSkinFolder()
+DString ControlForm::GetSkinFolder()
 {
     return _T("controls");
 }
 
-std::wstring ControlForm::GetSkinFile()
+DString ControlForm::GetSkinFile()
 {
     return _T("controls.xml");
 }
 
-std::wstring ControlForm::GetWindowClassName() const
+DString ControlForm::GetWindowClassName() const
 {
     return kClassName;
 }
@@ -215,7 +215,7 @@ void ControlForm::OnInitWindow()
 
             //if (1) {
             //    //测试代码
-            //    std::wstring hotKeyName = pHotKey->GetHotKeyName();
+            //    DString hotKeyName = pHotKey->GetHotKeyName();
             //    uint8_t wVirtualKeyCode = 0;
             //    uint8_t wModifiers = 0;
             //    pHotKey->GetHotKey(wVirtualKeyCode, wModifiers);
@@ -265,7 +265,7 @@ void ControlForm::ShowColorPicker()
 
     ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit")));
     if (pEdit != nullptr) {
-        std::wstring oldTextColor = pEdit->GetTextColor();
+        DString oldTextColor = pEdit->GetTextColor();
         if (!oldTextColor.empty() && (pColorPicker != nullptr)) {
             pColorPicker->SetSelectedColor(pEdit->GetUiColor(oldTextColor));
         }
@@ -296,7 +296,7 @@ void ControlForm::ShowColorPicker()
 void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 {
     ui::Menu* menu = new ui::Menu(GetHWND());//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
-    std::wstring xml(_T("settings_menu.xml"));
+    DString xml(_T("settings_menu.xml"));
     menu->ShowMenu(xml, point);
 
     //在二级菜单中，添加子菜单项
@@ -376,7 +376,7 @@ void ControlForm::LoadRichEditData()
 {
     std::streamoff length = 0;
     std::string xml;
-    std::wstring controls_xml = ui::GlobalManager::Instance().GetResourcePath() + GetResourcePath() + GetSkinFile();
+    DString controls_xml = ui::GlobalManager::Instance().GetResourcePath() + GetResourcePath() + GetSkinFile();
 
     std::ifstream ifs(controls_xml.c_str());
     if (ifs.is_open())
@@ -390,14 +390,13 @@ void ControlForm::LoadRichEditData()
 
         ifs.close();
     }
-    std::wstring xmlU;
-    ui::StringUtil::MBCSToUnicode(xml.c_str(), xmlU, CP_UTF8);
+    DString xmlU = ui::StringUtil::UTF8ToT(xml);
 
     // Post task to UI thread
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&ControlForm::OnResourceFileLoaded, this, xmlU));
 }
 
-void ControlForm::OnResourceFileLoaded(const std::wstring& xml)
+void ControlForm::OnResourceFileLoaded(const DString& xml)
 {
     if (xml.empty())
         return;

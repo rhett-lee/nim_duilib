@@ -15,9 +15,9 @@ TabBox::TabBox(Window* pWindow, Layout* pLayout)
 
 }
 
-std::wstring TabBox::GetType() const { return DUI_CTR_TABBOX; }
+DString TabBox::GetType() const { return DUI_CTR_TABBOX; }
 
-void TabBox::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void TabBox::SetAttribute(const DString& strName, const DString& strValue)
 {
     if ((strName == _T("selected_id")) || (strName == _T("selectedid"))) {
         size_t iSel = (size_t)_wtoi(strValue.c_str());
@@ -278,7 +278,7 @@ bool TabBox::SelectItem( Control* pControl )
     }        
 }
 
-bool TabBox::SelectItem(const std::wstring& pControlName)
+bool TabBox::SelectItem(const DString& pControlName)
 {
     Control* pControl = FindSubControl(pControlName);
     ASSERT(pControl != nullptr);

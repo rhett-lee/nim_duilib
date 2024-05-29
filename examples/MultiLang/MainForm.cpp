@@ -1,6 +1,6 @@
 #include "MainForm.h"
 
-const std::wstring MainForm::kClassName = _T("MultiLang");
+const DString MainForm::kClassName = _T("MultiLang");
 
 MainForm::MainForm()
 {
@@ -11,17 +11,17 @@ MainForm::~MainForm()
 {
 }
 
-std::wstring MainForm::GetSkinFolder()
+DString MainForm::GetSkinFolder()
 {
     return _T("MultiLang");
 }
 
-std::wstring MainForm::GetSkinFile()
+DString MainForm::GetSkinFile()
 {
     return _T("MultiLang.xml");
 }
 
-std::wstring MainForm::GetWindowClassName() const
+DString MainForm::GetWindowClassName() const
 {
     return kClassName;
 }
@@ -59,14 +59,14 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
     ui::Menu* menu = new ui::Menu(GetHWND());//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
     //设置菜单xml所在的目录
     menu->SetSkinFolder(GetResourcePath());
-    std::wstring xml(_T("lang_menu.xml"));
+    DString xml(_T("lang_menu.xml"));
     menu->ShowMenu(xml, point);
 
     //当前语言文件
-    std::wstring currentLangFileName = ui::GlobalManager::Instance().GetLanguageFileName();
+    DString currentLangFileName = ui::GlobalManager::Instance().GetLanguageFileName();
 
     //可用语言文件列表和显示名称
-    std::vector<std::pair<std::wstring, std::wstring>> languageList;
+    std::vector<std::pair<DString, DString>> languageList;
     ui::GlobalManager::Instance().GetLanguageList(languageList);
     if (languageList.empty()) {
         languageList.push_back({ currentLangFileName , _T("")});
@@ -74,8 +74,8 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
 
     //动态添加菜单项
     for (auto& lang : languageList) {
-        const std::wstring fileName = lang.first;
-        std::wstring& displayName = lang.second;
+        const DString fileName = lang.first;
+        DString& displayName = lang.second;
 
         ui::MenuItem* pMenuItem = new ui::MenuItem(this);
         pMenuItem->SetClass(_T("menu_element"));

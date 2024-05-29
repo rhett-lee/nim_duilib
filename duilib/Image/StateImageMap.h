@@ -26,14 +26,14 @@ public:
     */
     void SetImageString(StateImageType stateImageType, 
                         ControlStateType stateType, 
-                        const std::wstring& strImagePath,
+                        const DString& strImagePath,
                         const DpiManager& dpi);
 
     /** 获取图片属性
     *@param [in] stateImageType 图片类型，比如正常状态前景图片、背景图片；选择状态的前景图片、背景图片等
     *@param [in] stateType 图片状态，比如正常、焦点、按下、禁用状态等
     */
-    std::wstring GetImageString(StateImageType stateImageType, ControlStateType stateType) const;
+    DString GetImageString(StateImageType stateImageType, ControlStateType stateType) const;
 
     /** 是否含有Hot状态的图片
     */
@@ -58,7 +58,7 @@ public:
     bool PaintStateImage(IRender* pRender, 
                          StateImageType stateImageType, 
                          ControlStateType stateType, 
-                         const std::wstring& sImageModify = _T(""),
+                         const DString& sImageModify = _T(""),
                          UiRect* pDestRect = nullptr);
     
     /** 获取用于估算Control控件大小（宽和高）的图片接口

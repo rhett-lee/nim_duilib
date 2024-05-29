@@ -5,10 +5,10 @@
 namespace nim_comp {
 
 void ShowMsgBox(HWND hwnd, MsgboxCallback cb,
-    const std::wstring &content, bool content_is_id,
-    const std::wstring &title, bool title_is_id,
-    const std::wstring &yes, bool btn_yes_is_id,
-    const std::wstring &no, bool btn_no_is_id)
+    const DString &content, bool content_is_id,
+    const DString &title, bool title_is_id,
+    const DString &yes, bool btn_yes_is_id,
+    const DString &no, bool btn_no_is_id)
 {
     MsgBox* msgbox = new MsgBox;
     if (!msgbox->CreateWnd(hwnd, _T(""), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED)) {
@@ -31,27 +31,27 @@ MsgBox::~MsgBox()
 {
 }
 
-std::wstring MsgBox::GetSkinFolder()
+DString MsgBox::GetSkinFolder()
 {
     return _T("msgbox");
 }
 
-std::wstring MsgBox::GetSkinFile()
+DString MsgBox::GetSkinFile()
 {
     return _T("msgbox.xml");
 }
 
-std::wstring MsgBox::GetZIPFileName() const
+DString MsgBox::GetZIPFileName() const
 {
     return (_T("msgbox.zip"));
 }
 
-std::wstring MsgBox::GetWindowClassName() const
+DString MsgBox::GetWindowClassName() const
 {
     return kClassName;
 }
 
-std::wstring MsgBox::GetWindowId() const
+DString MsgBox::GetWindowId() const
 {
     return kClassName;
 }
@@ -89,7 +89,7 @@ void MsgBox::OnInitWindow()
 
 bool MsgBox::OnClicked(const ui::EventArgs& msg)
 {
-    std::wstring name = msg.pSender->GetName();
+    DString name = msg.pSender->GetName();
     if (name == _T("btn_yes"))
     {
         EndMsgBox(MB_YES);
@@ -105,14 +105,14 @@ bool MsgBox::OnClicked(const ui::EventArgs& msg)
     return true;
 }
 
-void MsgBox::SetTitle(const std::wstring &str)
+void MsgBox::SetTitle(const DString &str)
 {
     title_->SetText(str);
 
     ::SetWindowText(GetHWND(), str.c_str());
 }
 
-void MsgBox::SetContent(const std::wstring &str)
+void MsgBox::SetContent(const DString &str)
 {
     content_->SetText(str);
 
@@ -122,7 +122,7 @@ void MsgBox::SetContent(const std::wstring &str)
     content_->SetFixedHeight(ui::UiFixedInt(sz.cy), true, false);
 }
 
-void MsgBox::SetButton(const std::wstring &yes, const std::wstring &no)
+void MsgBox::SetButton(const DString &yes, const DString &no)
 {
     if (!yes.empty())
     {

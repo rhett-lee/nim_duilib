@@ -39,9 +39,9 @@ public:
 
 public:    
     // 覆盖虚函数
-    virtual std::wstring GetSkinFolder() override;
-    virtual std::wstring GetSkinFile() override;
-    virtual std::wstring GetWindowClassName() const override;
+    virtual DString GetSkinFolder() override;
+    virtual DString GetSkinFile() override;
+    virtual DString GetWindowClassName() const override;
     virtual UINT GetClassStyle() const override;
 
     /**
@@ -49,7 +49,7 @@ public:
     * @param[in] pstrClass 控件类名
     * @return Control* 创建的控件的指针
     */
-    virtual ui::Control* CreateControl(const std::wstring& pstrClass) override;
+    virtual ui::Control* CreateControl(const DString& pstrClass) override;
 
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */

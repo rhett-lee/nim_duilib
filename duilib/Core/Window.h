@@ -117,12 +117,12 @@ protected:
     /** 创建窗口时被调用，由子类实现用以获取窗口唯一的类名称
     * @return 基类返回空串，在子类中需实现并返回窗口唯一的类名称
     */
-    virtual std::wstring GetWindowClassName() const;
+    virtual DString GetWindowClassName() const;
 
     /** 获取控件窗口类
     * @return 返回控件窗口类，该基类返回空串
     */
-    virtual std::wstring GetSuperClassName() const;
+    virtual DString GetSuperClassName() const;
 
     /** 获取窗口类的样式，该方法由实例化的子类实现，https://docs.microsoft.com/en-us/windows/desktop/winmsg/window-class-styles
     * @return 返回窗口类的样式，该方法基类返回 CS_DBLCLKS
@@ -294,20 +294,20 @@ public:
     /** 设置窗口标题栏文本
     * @param [in] strText 窗口标题栏文本
     */
-    void SetText(const std::wstring& strText);
+    void SetText(const DString& strText);
 
     /** 获取窗口标题栏文本
     */
-    std::wstring GetText() const;
+    DString GetText() const;
 
     /** 根据语言列表中的文本 ID， 根据ID设置窗口标题栏文本
     * @param [in] strTextId 语言 ID，该 ID 必须在语言文件中存在
     */
-    void SetTextId(const std::wstring& strTextId);
+    void SetTextId(const DString& strTextId);
 
     /** 获取窗口标题栏文本的文本ID
     */
-    std::wstring GetTextId() const;
+    DString GetTextId() const;
 
     /** @} */
 
@@ -425,12 +425,12 @@ public:
 
     /** 获取窗口资源路径
     */
-    const std::wstring& GetResourcePath() const;
+    const DString& GetResourcePath() const;
 
     /** 设置窗口资源路径
     * @param [in] strPath 要设置的路径
     */
-    void SetResourcePath(const std::wstring& strPath);
+    void SetResourcePath(const DString& strPath);
 
     /** 初始化控件，在容器中添加控件时会被调用（用于对控件名称做缓存）
     * @param [in] pControl 控件指针
@@ -455,18 +455,18 @@ public:
     * @param [in] strClassName 通用样式的名称
     * @param [in] strControlAttrList 通用样式的 XML 转义格式数据
     */
-    void AddClass(const std::wstring& strClassName, const std::wstring& strControlAttrList);
+    void AddClass(const DString& strClassName, const DString& strControlAttrList);
 
     /** 获取指定通用样式的内容
     * @param [in] strClassName 通用样式名称
     * @return 返回指定名称的通用样式内容，XML 转义格式数据
     */
-    std::wstring GetClassAttributes(const std::wstring& strClassName) const;
+    DString GetClassAttributes(const DString& strClassName) const;
 
     /** 删除一个通用样式
     * @param [in] strClassName 要删除的通用样式名称
     */
-    bool RemoveClass(const std::wstring& strClassName);
+    bool RemoveClass(const DString& strClassName);
 
     /** 删除所有通用样式
     */
@@ -476,37 +476,37 @@ public:
     * @param [in] strName 颜色名称（如 white）
     * @param [in] strValue 颜色具体数值（如 #FFFFFFFF）
     */
-    void AddTextColor(const std::wstring& strName, const std::wstring& strValue);
+    void AddTextColor(const DString& strName, const DString& strValue);
 
     /** 添加一个颜色值提供窗口内使用
     * @param [in] strName 颜色名称（如 white）
     * @param [in] argb 颜色具体数值, 以ARGB格式表示
     */
-    void AddTextColor(const std::wstring& strName, UiColor argb);
+    void AddTextColor(const DString& strName, UiColor argb);
 
     /** 根据名称获取一个颜色的具体数值
     * @param [in] strName 要获取的颜色名称
     * @return 返回 DWORD 格式的颜色描述值
     */
-    UiColor GetTextColor(const std::wstring& strName) const;
+    UiColor GetTextColor(const DString& strName) const;
 
     /** 添加一个选项组
     * @param [in] strGroupName 组名称
     * @param [in] pControl 控件指针
     */
-    bool AddOptionGroup(const std::wstring& strGroupName, Control* pControl);
+    bool AddOptionGroup(const DString& strGroupName, Control* pControl);
 
     /** 获取指定选项组中控件列表
     * @param [in] strGroupName 指定组名称
     * @return 返回该组下的所有控件列表
     */
-    std::vector<Control*>* GetOptionGroup(const std::wstring& strGroupName);
+    std::vector<Control*>* GetOptionGroup(const DString& strGroupName);
 
     /** 删除一个选项组
     * @param [in] strGroupName 组名称
     * @param [in] pControl 控件名称
     */
-    void RemoveOptionGroup(const std::wstring& strGroupName, Control* pControl);
+    void RemoveOptionGroup(const DString& strGroupName, Control* pControl);
 
     /** 删除所有选项组
     */
@@ -777,12 +777,12 @@ public:
 
     /** 获取阴影图片
     */
-    std::wstring GetShadowImage() const;
+    DString GetShadowImage() const;
 
     /** 设置窗口阴影图片
     * @param [in] strImage 图片位置
     */
-    void SetShadowImage(const std::wstring& strImage);
+    void SetShadowImage(const DString& strImage);
 
     /** 获取阴影的九宫格描述信息
     */
@@ -880,7 +880,7 @@ public:
     /** 根据控件名称查找控件
     * @param [in] strName 控件名称
     */
-    Control* FindControl(const std::wstring& strName) const;
+    Control* FindControl(const DString& strName) const;
 
     /** 根据坐标查找子控件
     * @param [in] pParent 要搜索的控件
@@ -892,7 +892,7 @@ public:
     * @param [in] pParent 要搜索的控件
     * @param [in] strName 要查找的名称
     */
-    Control* FindSubControlByName(Control* pParent, const std::wstring& strName) const;
+    Control* FindSubControlByName(Control* pParent, const DString& strName) const;
 
     /** @} */
 
@@ -1203,16 +1203,16 @@ private:
 
 private:
     //每个窗口的资源路径(相对于资源根目录的路径)
-    std::wstring m_strResourcePath;
+    DString m_strResourcePath;
 
     //窗口配置中class名称与属性映射关系
-    std::map<std::wstring, std::wstring> m_defaultAttrHash;
+    std::map<DString, DString> m_defaultAttrHash;
 
     //窗口颜色字符串与颜色值（ARGB）的映射关系
     ColorMap m_colorMap;
 
     //该窗口下每个Option group下的控件（即单选控件是分组的）
-    std::map<std::wstring, std::vector<Control*>> m_mOptionGroup;
+    std::map<DString, std::vector<Control*>> m_mOptionGroup;
 
     //该窗口消息过滤器列表
     std::vector<IUIMessageFilter*> m_aMessageFilters;
@@ -1273,11 +1273,11 @@ private:
 private:
     /** 窗口标题栏文本的文本ID
     */
-    std::wstring m_text;
+    DString m_text;
 
     /** 窗口标题栏文本的文本ID
     */
-    std::wstring m_textId;
+    DString m_textId;
 };
 
 } // namespace ui

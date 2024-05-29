@@ -6,7 +6,7 @@
 #include <commdlg.h>
 #include <fstream>
 
-const std::wstring MainForm::kClassName = _T("MainForm");
+const DString MainForm::kClassName = _T("MainForm");
 
 #ifndef LY_PER_INCH
     #define LY_PER_INCH 1440
@@ -23,17 +23,17 @@ MainForm::~MainForm()
 {
 }
 
-std::wstring MainForm::GetSkinFolder()
+DString MainForm::GetSkinFolder()
 {
     return _T("rich_edit");
 }
 
-std::wstring MainForm::GetSkinFile()
+DString MainForm::GetSkinFile()
 {
     return _T("rich_edit.xml");
 }
 
-std::wstring MainForm::GetWindowClassName() const
+DString MainForm::GetWindowClassName() const
 {
     return kClassName;
 }
@@ -238,12 +238,12 @@ void MainForm::OnInitWindow()
             }
         }
         pFontNameCombo->AttachSelect([this, pFontNameCombo](const ui::EventArgs& args) {
-            std::wstring fontName = pFontNameCombo->GetText();
+            DString fontName = pFontNameCombo->GetText();
             SetFontName(fontName);
             return true;
             });
         pFontNameCombo->AttachWindowClose([this, pFontNameCombo](const ui::EventArgs& args) {
-            std::wstring fontName = pFontNameCombo->GetText();
+            DString fontName = pFontNameCombo->GetText();
             SetFontName(fontName);
             return true;
             });
@@ -259,12 +259,12 @@ void MainForm::OnInitWindow()
             }
         }
         pFontSizeCombo->AttachSelect([this, pFontSizeCombo](const ui::EventArgs& args) {
-            std::wstring fontName = pFontSizeCombo->GetText();
+            DString fontName = pFontSizeCombo->GetText();
             SetFontSize(fontName);
             return true;
             });
         pFontSizeCombo->AttachWindowClose([this, pFontSizeCombo](const ui::EventArgs& args) {
-            std::wstring fontName = pFontSizeCombo->GetText();
+            DString fontName = pFontSizeCombo->GetText();
             SetFontSize(fontName);
             return true;
             });
@@ -343,7 +343,7 @@ void MainForm::OnInitWindow()
     InitColorCombo();
     ui::ComboButton* pColorComboBtn = dynamic_cast<ui::ComboButton*>(FindControl(_T("color_combo_button")));
     if (pColorComboBtn != nullptr) {
-        std::wstring textColor;
+        DString textColor;
         if (m_pRichEdit != nullptr) {
             textColor = m_pRichEdit->GetTextColor();
         }
@@ -590,7 +590,7 @@ void MainForm::ShowColorPicker()
     if (pLeftColorLabel == nullptr) {
         return;
     }
-    std::wstring oldTextColor = pLeftColorLabel->GetBkColor();
+    DString oldTextColor = pLeftColorLabel->GetBkColor();
 
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;
     pColorPicker->CreateWnd(GetHWND(), ui::ColorPicker::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
@@ -716,7 +716,7 @@ void MainForm::UpdateFontSizeStatus()
     }
 }
 
-void MainForm::SetFontName(const std::wstring& fontName)
+void MainForm::SetFontName(const DString& fontName)
 {
     if (m_pRichEdit == nullptr) {
         return;
@@ -761,7 +761,7 @@ int32_t MainForm::ConvertToFontHeight(int32_t fontSize) const
     return lfHeight;
 }
 
-void MainForm::SetFontSize(const std::wstring& fontSize)
+void MainForm::SetFontSize(const DString& fontSize)
 {
     if (m_pRichEdit == nullptr) {
         return;
@@ -905,7 +905,7 @@ void MainForm::SetFontStrikeOut(bool bStrikeOut)
     SetCharFormat(charFormat);
 }
 
-void MainForm::SetTextColor(const std::wstring& newColor)
+void MainForm::SetTextColor(const DString& newColor)
 {
     if (m_pRichEdit == nullptr) {
         return;
@@ -990,7 +990,7 @@ void MainForm::LoadRichEditData()
 {
     std::streamoff length = 0;
     std::string xml;
-    std::wstring controls_xml = ui::GlobalManager::Instance().GetResourcePath() + GetResourcePath() + GetSkinFile();
+    DString controls_xml = ui::GlobalManager::Instance().GetResourcePath() + GetResourcePath() + GetSkinFile();
 
     std::ifstream ifs(controls_xml.c_str());
     if (ifs.is_open()) {
@@ -1002,8 +1002,7 @@ void MainForm::LoadRichEditData()
         ifs.read(&xml[0], length);
         ifs.close();
     }
-    std::wstring xmlU;
-    ui::StringUtil::MBCSToUnicode(xml.c_str(), xmlU, CP_UTF8);
+    DString xmlU = ui::StringUtil::UTF8ToT(xml);
 
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->SetText(xmlU);
@@ -1090,7 +1089,7 @@ void MainForm::OnSaveAsFile()
     }
 }
 
-bool MainForm::LoadFile(const std::wstring& filePath)
+bool MainForm::LoadFile(const DString& filePath)
 {
     if (m_pRichEdit == nullptr) {
         return false;
@@ -1110,7 +1109,7 @@ bool MainForm::LoadFile(const std::wstring& filePath)
     return !(BOOL)es.dwError;
 }
 
-bool MainForm::SaveFile(const std::wstring& filePath)
+bool MainForm::SaveFile(const DString& filePath)
 {
     if (m_pRichEdit == nullptr) {
         return false;
@@ -1130,11 +1129,11 @@ bool MainForm::SaveFile(const std::wstring& filePath)
     return !(BOOL)es.dwError;
 }
 
-bool MainForm::IsRtfFile(const std::wstring& filePath) const
+bool MainForm::IsRtfFile(const DString& filePath) const
 {
-    std::wstring fileExt;
+    DString fileExt;
     size_t pos = filePath.find_last_of(_T("."));
-    if (pos != std::wstring::npos) {
+    if (pos != DString::npos) {
         fileExt = filePath.substr(pos);
         fileExt = ui::StringUtil::MakeLowerString(fileExt);
     }
@@ -1197,12 +1196,12 @@ void MainForm::OnReplaceText()
     }
 }
 
-void MainForm::FindRichText(const std::wstring& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog)
+void MainForm::FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog)
 {
     m_findReplace.FindRichText(findText, bFindDown, bMatchCase, bMatchWholeWord, hWndDialog);
 }
 
-void MainForm::ReplaceRichText(const std::wstring& findText, const std::wstring& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog)
+void MainForm::ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog)
 {
     if (m_findReplace.ReplaceRichText(findText, replaceText, bFindDown, bMatchCase, bMatchWholeWord, hWndDialog)) {
         if (m_pRichEdit != nullptr) {
@@ -1212,7 +1211,7 @@ void MainForm::ReplaceRichText(const std::wstring& findText, const std::wstring&
     }
 }
 
-void MainForm::ReplaceAllRichText(const std::wstring& findText, const std::wstring& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog)
+void MainForm::ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog)
 {
     if (m_findReplace.ReplaceAllRichText(findText, replaceText, bFindDown, bMatchCase, bMatchWholeWord, hWndDialog)) {
         if (m_pRichEdit != nullptr) {
@@ -1242,7 +1241,7 @@ void MainForm::GetSystemFontList(std::vector<FontInfo>& fontList) const
     ::EnumFontFamiliesEx(pRichEdit->GetWindowDC(), &logfont, EnumFontFamExProc, (LPARAM)&fontList, 0);
 
     //字体名称列表
-    std::map<std::wstring, FontInfo> fontMap;
+    std::map<DString, FontInfo> fontMap;
     for (auto font : fontList) {
         if (font.lf.lfWeight != FW_NORMAL) {
             continue;
@@ -1350,7 +1349,7 @@ bool MainForm::GetRichEditLogFont(LOGFONT& lf) const
         lf.lfPitchAndFamily = cf.bPitchAndFamily;
 
         //替换为系统字体名称
-        std::wstring fontName = ui::FontManager::GetFontSystemName(cf.szFaceName);
+        DString fontName = ui::FontManager::GetFontSystemName(cf.szFaceName);
         wcscpy_s(lf.lfFaceName, LF_FACESIZE, fontName.c_str());
     }
     return true;
@@ -1500,7 +1499,7 @@ void MainForm::UpdateZoomValue()
         else {
             zoomValue = nNum * 1000 / nDen;
         }
-        std::wstring strZoom = ui::StringUtil::Printf(_T("%.01f%%"), zoomValue / 10.0);
+        DString strZoom = ui::StringUtil::Printf(_T("%.01f%%"), zoomValue / 10.0);
         pZoomLabel->SetText(strZoom);
     }
 }

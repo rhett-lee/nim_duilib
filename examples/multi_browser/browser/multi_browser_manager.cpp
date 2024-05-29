@@ -12,7 +12,7 @@ namespace
     const int kDragFormYOffset = -20;    //拖拽出新浏览器窗口后的相对鼠标的y偏移坐标
 }
 
-BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form, const std::string &id, const std::wstring &url)
+BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form, const std::string &id, const DString &url)
 {
     BrowserBox *browser_box = NULL;
     // 如果启用了窗口合并功能，就把新浏览器盒子都集中创建到某一个浏览器窗口里

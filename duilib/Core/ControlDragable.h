@@ -22,8 +22,8 @@ public:
     virtual ~ControlDragableT();
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;    
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;    
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
     /** 设置是否支持拖动改变控件的顺序
     */
@@ -266,19 +266,19 @@ ControlDragableT<T>::~ControlDragableT()
 }
 
 template<typename T>
-inline std::wstring ControlDragableT<T>::GetType() const { return DUI_CTR_CONTROL_DRAGABLE; }
+inline DString ControlDragableT<T>::GetType() const { return DUI_CTR_CONTROL_DRAGABLE; }
 
 template<>
-inline std::wstring ControlDragableT<Box>::GetType() const { return DUI_CTR_BOX_DRAGABLE; }
+inline DString ControlDragableT<Box>::GetType() const { return DUI_CTR_BOX_DRAGABLE; }
 
 template<>
-inline std::wstring ControlDragableT<HBox>::GetType() const { return DUI_CTR_HBOX_DRAGABLE; }
+inline DString ControlDragableT<HBox>::GetType() const { return DUI_CTR_HBOX_DRAGABLE; }
 
 template<>
-inline std::wstring ControlDragableT<VBox>::GetType() const { return DUI_CTR_VBOX_DRAGABLE; }
+inline DString ControlDragableT<VBox>::GetType() const { return DUI_CTR_VBOX_DRAGABLE; }
 
 template<typename T>
-void ControlDragableT<T>::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void ControlDragableT<T>::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("drag_order")) {
         //是否支持拖动调整顺序（在同一个容器内）

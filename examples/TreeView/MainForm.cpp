@@ -3,7 +3,7 @@
 #include "DiskUtils.h"
 #include <ShellApi.h>
 
-const std::wstring MainForm::kClassName = _T("MainForm");
+const DString MainForm::kClassName = _T("MainForm");
 
 MainForm::MainForm():
     m_fileList(this),
@@ -26,17 +26,17 @@ MainForm::~MainForm()
     }
 }
 
-std::wstring MainForm::GetSkinFolder()
+DString MainForm::GetSkinFolder()
 {
     return _T("tree_view");
 }
 
-std::wstring MainForm::GetSkinFile()
+DString MainForm::GetSkinFile()
 {
     return _T("tree_view.xml");
 }
 
-std::wstring MainForm::GetWindowClassName() const
+DString MainForm::GetWindowClassName() const
 {
     return kClassName;
 }
@@ -86,7 +86,7 @@ void MainForm::OnCloseWindow()
 }
 
 void MainForm::InsertTreeNodes(ui::TreeNode* pTreeNode,
-                               const std::wstring& path,
+                               const DString& path,
                                const std::vector<FolderStatus>& fileList,
                                bool isFolder)
 {
@@ -100,7 +100,7 @@ void MainForm::InsertTreeNodes(ui::TreeNode* pTreeNode,
         return;
     }
     
-    std::wstring folderPath;
+    DString folderPath;
     for (const FolderStatus& folder : fileList) {
         folderPath = ui::PathUtil::JoinFilePath(path, folder.path);
         InsertTreeNode(pTreeNode, folder.path, folderPath, isFolder, folder.hIcon);
@@ -108,8 +108,8 @@ void MainForm::InsertTreeNodes(ui::TreeNode* pTreeNode,
 }
 
 ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
-                                       const std::wstring& displayName,
-                                       const std::wstring& path,
+                                       const DString& displayName,
+                                       const DString& path,
                                        bool isFolder,
                                        HICON hIcon)
 {
@@ -152,7 +152,7 @@ ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
     return node;
 }
 
-void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const std::wstring& name)
+void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const DString& name)
 {
     if (m_hShell32Dll == nullptr) {
         m_hShell32Dll = ::LoadLibraryW(_T("Shell32.dll"));
@@ -211,7 +211,7 @@ void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const 
         &shFileInfo,
         sizeof(SHFILEINFO),
         SHGFI_PIDL | SHGFI_DISPLAYNAME | SHGFI_ICON | SHGFI_SMALLICON)) {
-        std::wstring displayName = shFileInfo.szDisplayName;
+        DString displayName = shFileInfo.szDisplayName;
         if (displayName.empty()) {
             displayName = name;
         }
@@ -226,10 +226,10 @@ void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const 
 ui::TreeNode* MainForm::ShowAllDiskNode()
 {
     ui::TreeNode* pFirstNode = nullptr;
-    std::vector<std::wstring> driveList;
+    std::vector<DString> driveList;
     DiskUtils::GetLogicalDriveList(driveList);
     for (auto iter = driveList.begin(); iter != driveList.end(); ++iter) {
-        std::wstring driverName = *iter;
+        DString driverName = *iter;
         // 过滤A:盘和B:盘
         if (ui::StringUtil::IsEqualNoCase(driverName, _T("A:\\")) ||
             ui::StringUtil::IsEqualNoCase(driverName, _T("B:\\"))) {
@@ -245,7 +245,7 @@ ui::TreeNode* MainForm::ShowAllDiskNode()
             continue;
         }
 
-        std::wstring name;
+        DString name;
         int32_t imageIndex = 0;
 
         SHFILEINFO shFileInfo;
@@ -278,7 +278,7 @@ bool MainForm::OnTreeNodeExpand(const ui::EventArgs& args)
     return true;
 }
 
-void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const std::wstring& filePath)
+void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const DString& filePath)
 {
     if (pTreeNode == nullptr) {
         return;
@@ -320,11 +320,11 @@ void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const std::wstring& 
     }));
 }
 
-void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
+void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const DString& path)
 {
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadWorker, ToWeakCallback([this, path, pTreeNode]() {
         //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
-        std::wstring findPath = ui::PathUtil::JoinFilePath(path, _T("*.*"));
+        DString findPath = ui::PathUtil::JoinFilePath(path, _T("*.*"));
         WIN32_FIND_DATA findData;
         HANDLE hFile = ::FindFirstFile(findPath.c_str(), &findData);
         if (hFile == INVALID_HANDLE_VALUE) {
@@ -345,7 +345,7 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const std::wstring& path)
                 continue;
             }
 
-            std::wstring folderPath = ui::PathUtil::JoinFilePath(path, findData.cFileName);
+            DString folderPath = ui::PathUtil::JoinFilePath(path, findData.cFileName);
 
             SHFILEINFO shFileInfo;
             ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
@@ -415,7 +415,7 @@ bool MainForm::OnTreeNodeSelect(const ui::EventArgs& args)
     return OnTreeNodeClick(args);
 }
 
-bool MainForm::IsDirectory(const std::wstring& filePath) const
+bool MainForm::IsDirectory(const DString& filePath) const
 {
     DWORD dwAttr = ::GetFileAttributes(filePath.c_str());
     if (dwAttr != INVALID_FILE_ATTRIBUTES) {
@@ -424,11 +424,11 @@ bool MainForm::IsDirectory(const std::wstring& filePath) const
     return false;
 }
 
-void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& path)
+void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const DString& path)
 {
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadWorker, ToWeakCallback([this, pTreeNode, path]() {
         //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
-        std::wstring findPath = ui::PathUtil::JoinFilePath(path, _T("*.*"));
+        DString findPath = ui::PathUtil::JoinFilePath(path, _T("*.*"));
         WIN32_FIND_DATA findData;
         HANDLE hFile = ::FindFirstFile(findPath.c_str(), &findData);
         if (hFile == INVALID_HANDLE_VALUE) {
@@ -449,7 +449,7 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& p
                 continue;
             }
 
-            std::wstring folderPath = ui::PathUtil::JoinFilePath(path, findData.cFileName);
+            DString folderPath = ui::PathUtil::JoinFilePath(path, findData.cFileName);
 
             SHFILEINFO shFileInfo;
             ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
@@ -468,7 +468,7 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const std::wstring& p
         hFile = INVALID_HANDLE_VALUE;
 
         std::vector<FileInfo> pathList;
-        std::wstring folderPath;
+        DString folderPath;
         for (const FolderStatus& folder : folderList) {
             folderPath = ui::PathUtil::JoinFilePath(path, folder.path);
             pathList.push_back({ folder.path, folderPath, true, folder.hIcon });

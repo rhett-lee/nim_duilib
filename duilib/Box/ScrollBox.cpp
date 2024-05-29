@@ -37,9 +37,9 @@ ScrollBox::~ScrollBox()
     }
 }
 
-std::wstring ScrollBox::GetType() const { return DUI_CTR_SCROLLBOX; }//ScrollBox
+DString ScrollBox::GetType() const { return DUI_CTR_SCROLLBOX; }//ScrollBox
 
-void ScrollBox::SetAttribute(const std::wstring& pstrName, const std::wstring& pstrValue)
+void ScrollBox::SetAttribute(const DString& pstrName, const DString& pstrValue)
 {
     if (pstrName == _T("vscrollbar")) {
         EnableScrollBar(pstrValue == _T("true"), GetHScrollBar() != nullptr);

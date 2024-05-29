@@ -657,7 +657,7 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
     int32_t nRowLineWidth = GetRowGridLineWidth();   //横向边线宽度
     UiColor columnLineColor;
     UiColor rowLineColor;
-    std::wstring color = GetColumnGridLineColor();
+    DString color = GetColumnGridLineColor();
     if (!color.empty()) {
         columnLineColor = GetUiColor(color);
     }
@@ -909,7 +909,7 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
     }
 
     //默认属性
-    std::wstring defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
+    DString defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
     ListCtrlSubItem defaultSubItem(m_pListCtrl->GetWindow());
     defaultSubItem.SetClass(defaultSubItemClass);
 
@@ -1029,7 +1029,7 @@ int32_t ListCtrlReportView::GetMaxDataItemWidth(const std::vector<ListCtrlSubIte
     defaultItem.SetListCtrl(m_pListCtrl);
     defaultItem.SetClass(m_pListCtrl->GetDataItemClass());
 
-    std::wstring defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
+    DString defaultSubItemClass = m_pListCtrl->GetDataSubItemClass();
     ListCtrlSubItem defaultSubItem(m_pListCtrl->GetWindow());
     defaultSubItem.SetClass(defaultSubItemClass);
     defaultSubItem.SetListCtrlItem(&defaultItem);
@@ -1349,7 +1349,7 @@ int32_t ListCtrlReportView::GetRowGridLineWidth() const
     return m_nRowGridLineWidth;
 }
 
-void ListCtrlReportView::SetRowGridLineColor(const std::wstring& color)
+void ListCtrlReportView::SetRowGridLineColor(const DString& color)
 {
     if (m_rowGridLineColor != color) {
         m_rowGridLineColor = color;
@@ -1357,7 +1357,7 @@ void ListCtrlReportView::SetRowGridLineColor(const std::wstring& color)
     }
 }
 
-std::wstring ListCtrlReportView::GetRowGridLineColor() const
+DString ListCtrlReportView::GetRowGridLineColor() const
 {
     return m_rowGridLineColor.c_str();
 }
@@ -1381,7 +1381,7 @@ int32_t ListCtrlReportView::GetColumnGridLineWidth() const
     return m_nColumnGridLineWidth;
 }
 
-void ListCtrlReportView::SetColumnGridLineColor(const std::wstring& color)
+void ListCtrlReportView::SetColumnGridLineColor(const DString& color)
 {
     if (m_columnGridLineColor != color) {
         m_columnGridLineColor = color;
@@ -1389,7 +1389,7 @@ void ListCtrlReportView::SetColumnGridLineColor(const std::wstring& color)
     }
 }
 
-std::wstring ListCtrlReportView::GetColumnGridLineColor() const
+DString ListCtrlReportView::GetColumnGridLineColor() const
 {
     return m_columnGridLineColor.c_str();
 }

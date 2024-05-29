@@ -29,8 +29,8 @@ public:
     virtual ~TreeNode();
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual bool IsVisible() const override;
     virtual bool SupportCheckedMode() const override;
 
@@ -168,7 +168,7 @@ private:
     *   应用范围：该节点本身
     * @param [in] expandClass 展开标志图片的Class属性
     */
-    void SetExpandImageClass(const std::wstring& expandClass);
+    void SetExpandImageClass(const DString& expandClass);
 
     /** 设置CheckBox关联的Class，如果不为空表示开启CheckBox功能，为空则关闭CheckBox功能
     *   应用范围：该节点本身
@@ -176,7 +176,7 @@ private:
                   normal_image：正常状态的图片，必选属性(即不打勾时的图片)
                   selected_normal_image：选择时，正常状态的图片，必选属性(即打勾时的图片)
     */
-    bool SetCheckBoxClass(const std::wstring& checkBoxClass);
+    bool SetCheckBoxClass(const DString& checkBoxClass);
 
     /** 更改所有子节点的勾选状态，但不触发选择变化事件
     * @param [in] bChecked 勾选状态（打勾或者不打勾）
@@ -205,25 +205,25 @@ private:
      * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
      * @return 返回图片路径和属性
      */
-    std::wstring GetExpandStateImage(ControlStateType stateType);
+    DString GetExpandStateImage(ControlStateType stateType);
 
     /** 设置展开状态的图片
      * @param [in] stateType 要设置哪中状态下的图片
      * @param [in] strImage 图片路径和属性
      */
-    void SetExpandStateImage(ControlStateType stateType, const std::wstring& strImage);
+    void SetExpandStateImage(ControlStateType stateType, const DString& strImage);
 
     /** 获取未展开状态的图片
      * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
      * @return 返回图片路径和属性
      */
-    std::wstring GetCollapseStateImage(ControlStateType stateType);
+    DString GetCollapseStateImage(ControlStateType stateType);
 
     /** 设置未展开状态的图片
      * @param [in] stateType 要设置哪中状态下的图片
      * @param [in] strImage 图片路径和属性
      */
-    void SetCollapseStateImage(ControlStateType stateType, const std::wstring& strImage);
+    void SetCollapseStateImage(ControlStateType stateType, const DString& strImage);
 
 private:
     /** 删除自身
@@ -341,8 +341,8 @@ public:
     virtual ~TreeView();
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual std::wstring GetType() const override;
-    virtual void SetAttribute(const std::wstring& strName, const std::wstring& strValue) override;
+    virtual DString GetType() const override;
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void SetParent(Box* pParent) override;
     virtual void SetWindow(Window* pManager) override;
 
@@ -372,11 +372,11 @@ public:
     *   应用范围：该树的所有节点
     * @param [in] className 展开标志图片的Class属性
     */
-    void SetExpandImageClass(const std::wstring& className);
+    void SetExpandImageClass(const DString& className);
 
     /** 获取[未展开/展开]标志图片关联的Class
     */
-    std::wstring GetExpandImageClass() const;
+    DString GetExpandImageClass() const;
 
     /** 设置CheckBox关联的Class，如果不为空表示开启CheckBox功能，为空则关闭CheckBox功能
     *   应用范围：该树的所有节点
@@ -384,11 +384,11 @@ public:
                   normal_image：正常状态的图片，必选属性(即不打勾时的图片)
                   selected_normal_image：选择时，正常状态的图片，必选属性(即打勾时的图片)
     */
-    void SetCheckBoxClass(const std::wstring& className);
+    void SetCheckBoxClass(const DString& className);
 
     /** 获取CheckBox关联的Class
     */
-    std::wstring GetCheckBoxClass() const;
+    DString GetCheckBoxClass() const;
 
     /** 设置是否显示图标
     */

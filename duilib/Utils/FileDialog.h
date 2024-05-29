@@ -18,21 +18,21 @@ public:
     * @param [in] pWindow 父窗口
     * @param [out] folderPath 返回选择的文件夹路径
     */
-    bool BrowseForFolder(Window* pWindow, std::wstring& folderPath);
+    bool BrowseForFolder(Window* pWindow, DString& folderPath);
 
     /** 选择文件夹（多选）
     * @param [in] pWindow 父窗口
     * @param [out] folderPaths 返回选择的文件夹路径
     */
-    bool BrowseForFolders(Window* pWindow, std::vector<std::wstring>& folderPaths);
+    bool BrowseForFolders(Window* pWindow, std::vector<DString>& folderPaths);
 
 public:
     /** 文件类型筛选器
     */
     struct FileType
     {
-        std::wstring szName; //文件类型筛选器的显示名称, 举例: "Text files"
-        std::wstring szExt;  //文件类型筛选器, 举例："*.txt"
+        DString szName; //文件类型筛选器的显示名称, 举例: "Text files"
+        DString szExt;  //文件类型筛选器, 举例："*.txt"
     };
 
     /** 选择文件（单选）
@@ -44,11 +44,11 @@ public:
     * @param [out] filePath 返回选择的文件路径
     */
     bool BrowseForFile(Window* pWindow, 
-                       std::wstring& filePath,                       
+                       DString& filePath,                       
                        bool bOpenFileDialog, 
                        const std::vector<FileType>& fileTypes = std::vector<FileType>(),
                        int32_t nFileTypeIndex = -1,
-                       const std::wstring& defaultExt = _T(""));
+                       const DString& defaultExt = _T(""));
 
     /** 选择文件（多选）
     * @param [in] pWindow 父窗口
@@ -58,10 +58,10 @@ public:
     * @param [out] filePaths 返回选择的文件路径
     */
     bool BrowseForFiles(Window* pWindow, 
-                        std::vector<std::wstring>& filePaths,                        
+                        std::vector<DString>& filePaths,                        
                         const std::vector<FileType>& fileTypes = std::vector<FileType>(),
                         int32_t nFileTypeIndex = -1,
-                        const std::wstring& defaultExt = _T(""));
+                        const DString& defaultExt = _T(""));
 
 };
 

@@ -12,7 +12,7 @@ public:
     /** 设置颜色数据
     * @param [in] uiColors 外部提供的颜色数据，第一个是颜色名称，第二个是颜色值
     */
-    void SetColors(const std::vector<std::pair<std::wstring, int32_t>>& uiColors);
+    void SetColors(const std::vector<std::pair<DString, int32_t>>& uiColors);
 
     /** 创建一个数据项
     * @param [in] pVirtualListBox 关联的虚表的接口
@@ -68,11 +68,11 @@ public:
 public:
     /** 常见颜色值，对应的字符串常量
     */
-    void GetDefaultColors(std::vector<std::pair<std::wstring, int32_t>>& uiColors);
+    void GetDefaultColors(std::vector<std::pair<DString, int32_t>>& uiColors);
 
     /** 基本颜色值，对应的字符串常量
     */
-    void GetBasicColors(std::vector<std::pair<std::wstring, int32_t>>& uiColors);
+    void GetBasicColors(std::vector<std::pair<DString, int32_t>>& uiColors);
 
 private:
     /** 颜色结构
@@ -109,7 +109,7 @@ ColorPickerRegular::ColorPickerRegular(Window* pWindow):
     AttachSelect([this](const ui::EventArgs& args) {
         Control* pControl = GetItemAt(args.wParam);
         if (pControl != nullptr) {
-            std::wstring colorString = pControl->GetBkColor();
+            DString colorString = pControl->GetBkColor();
             if (!colorString.empty()) {
                 UiColor newColor = pControl->GetUiColor(colorString);
                 SendEvent(kEventSelectColor, newColor.GetARGB());
@@ -119,7 +119,7 @@ ColorPickerRegular::ColorPickerRegular(Window* pWindow):
         });
 }
 
-std::wstring ColorPickerRegular::GetType() const { return DUI_CTR_COLOR_PICKER_REGULAR; }
+DString ColorPickerRegular::GetType() const { return DUI_CTR_COLOR_PICKER_REGULAR; }
 
 void ColorPickerRegular::SelectColor(const UiColor& color)
 {
@@ -199,18 +199,18 @@ void ColorPickerRegular::SetColumns(int32_t nColumns)
     }
 }
 
-void ColorPickerRegular::SetAttribute(const std::wstring& strName, const std::wstring& strValue)
+void ColorPickerRegular::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("color_type")) {
         if (strValue == _T("basic")) {
             //使用基本颜色
-            std::vector<std::pair<std::wstring, int32_t>> uiColors;
+            std::vector<std::pair<DString, int32_t>> uiColors;
             m_regularColors->GetBasicColors(uiColors);
             m_regularColors->SetColors(uiColors);
         }
         else {
             //使用默认颜色
-            std::vector<std::pair<std::wstring, int32_t>> uiColors;
+            std::vector<std::pair<DString, int32_t>> uiColors;
             m_regularColors->GetDefaultColors(uiColors);
             m_regularColors->SetColors(uiColors);
         }
@@ -224,24 +224,24 @@ void ColorPickerRegular::SetAttribute(const std::wstring& strName, const std::ws
 //
 ColorPickerRegularProvider::ColorPickerRegularProvider()
 {
-    std::vector<std::pair<std::wstring, int32_t>> uiColors;
+    std::vector<std::pair<DString, int32_t>> uiColors;
     GetDefaultColors(uiColors);
     SetColors(uiColors);
 }
 
-void ColorPickerRegularProvider::SetColors(const std::vector<std::pair<std::wstring, int32_t>>& uiColors)
+void ColorPickerRegularProvider::SetColors(const std::vector<std::pair<DString, int32_t>>& uiColors)
 {
     m_colors.clear();
     RegularColor regularColor;
     regularColor.m_bSelected = false;
     for (const auto& color : uiColors) {
         regularColor.colorValue = UiColor(color.second);
-        std::wstring colorString = ui::StringUtil::Printf(_T("#%02X%02X%02X%02X"),
+        DString colorString = ui::StringUtil::Printf(_T("#%02X%02X%02X%02X"),
             regularColor.colorValue.GetA(),
             regularColor.colorValue.GetR(),
             regularColor.colorValue.GetG(),
             regularColor.colorValue.GetB());
-        std::wstring colorName = color.first;
+        DString colorName = color.first;
         StringUtil::ReplaceAll(_T(","), _T(", "), colorName);
         colorName = colorString + _T(", ") + colorName;
         regularColor.colorName = colorName;
@@ -347,7 +347,7 @@ UiColor ColorPickerRegularProvider::GetSelectedColor() const
     return UiColor();
 }
 
-void ColorPickerRegularProvider::GetDefaultColors(std::vector<std::pair<std::wstring, int32_t>>& uiColors)
+void ColorPickerRegularProvider::GetDefaultColors(std::vector<std::pair<DString, int32_t>>& uiColors)
 {
     uiColors = {
                 {_T("AliceBlue,爱丽丝蓝"),UiColors::AliceBlue},
@@ -494,7 +494,7 @@ void ColorPickerRegularProvider::GetDefaultColors(std::vector<std::pair<std::wst
     };
 }
 
-void ColorPickerRegularProvider::GetBasicColors(std::vector<std::pair<std::wstring, int32_t>>& uiColors)
+void ColorPickerRegularProvider::GetBasicColors(std::vector<std::pair<DString, int32_t>>& uiColors)
 {
     uiColors = {
         {_T("玫瑰红"),0xFFF08784},

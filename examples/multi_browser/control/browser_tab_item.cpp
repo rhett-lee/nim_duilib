@@ -20,13 +20,13 @@ void BrowserTabItem::InitControl(std::string browser_id)
     this->SetUTF8Name(browser_id);
 }
 
-void BrowserTabItem::SetTitle(std::wstring name)
+void BrowserTabItem::SetTitle(DString name)
 {
     this->SetToolTipText(name);
     name_->SetText(name);
 }
 
-void BrowserTabItem::SetIcon(std::wstring icon)
+void BrowserTabItem::SetIcon(DString icon)
 {
     icon_->SetBkImage(icon);
 }

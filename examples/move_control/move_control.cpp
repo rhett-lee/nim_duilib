@@ -4,7 +4,7 @@ using namespace ui;
 using namespace std;
 
 
-MoveControlForm::MoveControlForm(const std::wstring& class_name, const std::wstring& theme_directory, const std::wstring& layout_xml)
+MoveControlForm::MoveControlForm(const DString& class_name, const DString& theme_directory, const DString& layout_xml)
     : m_class_name(class_name)
     , m_theme_directory(theme_directory)
     , m_layout_xml(layout_xml)
@@ -16,17 +16,17 @@ MoveControlForm::~MoveControlForm()
 {
 }
 
-std::wstring MoveControlForm::GetSkinFolder()
+DString MoveControlForm::GetSkinFolder()
 {
     return m_theme_directory;
 }
 
-std::wstring MoveControlForm::GetSkinFile()
+DString MoveControlForm::GetSkinFile()
 {
     return m_layout_xml;
 }
 
-std::wstring MoveControlForm::GetWindowClassName() const
+DString MoveControlForm::GetWindowClassName() const
 {
     return m_class_name;
 }

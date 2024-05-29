@@ -25,7 +25,7 @@ public:
 
     /** 字体名称
     */
-    std::wstring m_fontName;
+    DString m_fontName;
 
     /** 字体大小（单位：像素）
     */
