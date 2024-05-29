@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "provider.h"
 #include "item.h"
 

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXAMPLES_RENDER_H_
+#define EXAMPLES_RENDER_H_
 
 #include "resource.h"
 
@@ -27,3 +28,4 @@ private:
     virtual void OnCleanup() override;
 };
 
+#endif //EXAMPLES_RENDER_H_

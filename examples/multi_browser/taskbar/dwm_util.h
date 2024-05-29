@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_DWM_UTIL_H_
+#define EXAMPLES_DWM_UTIL_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 #define WM_DWMSENDICONICTHUMBNAIL           0x0323
 #define WM_DWMSENDICONICLIVEPREVIEWBITMAP   0x0326
@@ -28,3 +32,5 @@ HRESULT DwmSetIconicThumbnail(HWND hwnd, HBITMAP hbmp, DWORD dwSITFlags);
 HRESULT DwmSetIconicLivePreviewBitmap(HWND hwnd, HBITMAP hbmp, POINT *pptClient, DWORD dwSITFlags);
 HRESULT DwmInvalidateIconicBitmaps(HWND hwnd);
 HRESULT DwmSetWindowAttribute(HWND hwnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+
+#endif //EXAMPLES_DWM_UTIL_H_

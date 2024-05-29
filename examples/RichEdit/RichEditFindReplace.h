@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXAMPLES_FIND_REPLACE_FORM_H_
+#define EXAMPLES_FIND_REPLACE_FORM_H_
 
 // duilib
 #include "duilib/duilib.h"
@@ -81,3 +82,4 @@ private:
     HCURSOR m_hOldCursor;
 };
 
+#endif //EXAMPLES_FIND_REPLACE_FORM_H_

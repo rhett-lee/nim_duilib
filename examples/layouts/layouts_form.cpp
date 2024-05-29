@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "layouts_form.h"
 
 LayoutsForm::LayoutsForm(const std::wstring& class_name, const std::wstring& theme_directory, const std::wstring& layout_xml)

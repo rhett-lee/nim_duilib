@@ -1,9 +1,10 @@
-#pragma once
-
-#include "resource.h"
+#ifndef EXAMPLES_MAIN_THREAD_H_
+#define EXAMPLES_MAIN_THREAD_H_
 
 // duilib
 #include "duilib/duilib.h"
+
+#include "resource.h"
 
 /** 工作线程
 */
@@ -46,4 +47,4 @@ private:
     std::unique_ptr<WorkerThread> m_workerThread;
 };
 
-
+#endif //EXAMPLES_MAIN_THREAD_H_

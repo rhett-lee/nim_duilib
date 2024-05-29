@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_MAIN_H_
+#define EXAMPLES_MAIN_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 #include "resource.h"
 
@@ -48,3 +52,5 @@ private:
     */
     std::unique_ptr<MiscThread> m_misc_thread;
 };
+
+#endif //EXAMPLES_MAIN_H_

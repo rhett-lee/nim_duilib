@@ -170,11 +170,9 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="framework.h" />
     <ClInclude Include="MainForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ListCtrl.rc" />

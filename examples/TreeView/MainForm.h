@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXAMPLES_MAIN_FORM_H_
+#define EXAMPLES_MAIN_FORM_H_
 
 #include "resource.h"
 
@@ -116,4 +117,4 @@ private:
     HMODULE m_hShell32Dll;
 };
 
-
+#endif //EXAMPLES_MAIN_FORM_H_

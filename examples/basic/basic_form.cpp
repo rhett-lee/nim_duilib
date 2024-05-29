@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "basic_form.h"
 
 const std::wstring BasicForm::kClassName = L"Basic";

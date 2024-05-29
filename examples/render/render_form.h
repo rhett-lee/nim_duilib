@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXAMPLES_RENDER_FORM_H_
+#define EXAMPLES_RENDER_FORM_H_
 
 // duilib
 #include "duilib/duilib.h"
@@ -45,3 +46,4 @@ private:
     void CheckPropertyGridResult();
 };
 
+#endif //EXAMPLES_RENDER_FORM_H_

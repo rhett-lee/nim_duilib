@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "item.h"
 #include "provider.h"
 #include <chrono>

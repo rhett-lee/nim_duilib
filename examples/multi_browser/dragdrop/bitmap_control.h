@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_BITMAP_CONTROL_H_
+#define EXAMPLES_BITMAP_CONTROL_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 /** @class BitmapControl
   * @brief 把HBITMAP作为背景的控件,控件不负责销毁HBITMAP
@@ -29,3 +33,5 @@ public:
 private:
     HBITMAP bitmap_;
 };
+
+#endif //EXAMPLES_BITMAP_CONTROL_H_

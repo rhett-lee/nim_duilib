@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_MAIN_H_
+#define EXAMPLES_MAIN_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 #include "resource.h"
 
@@ -23,3 +27,5 @@ private:
     */
     virtual void OnCleanup() override;
 };
+
+#endif //#define EXAMPLES_MAIN_H_

@@ -1,3 +1,6 @@
+#ifndef EXAMPLES_DRAG_DROP_H_
+#define EXAMPLES_DRAG_DROP_H_
+
 // Copyright (c) 2015, NetEase Inc.
 // All rights reserved.
 //
@@ -5,10 +8,14 @@
 // Date: 2015/09/24
 //
 // brife: 实现控件的拖拽和窗体的拖放功能
-#pragma once
+
+// duilib
+#include "duilib/duilib.h"
+
 #include "OleIdl.h"
 #include "ShObjIdl.h"
 #include <shlobj.h>
+#include <vector>
 
 typedef struct _DATASTORAGE
 {
@@ -106,3 +113,4 @@ public:
 private:
     IDragSourceHelper* m_pDragSourceHelper;
 };
+#endif //EXAMPLES_DRAG_DROP_H_

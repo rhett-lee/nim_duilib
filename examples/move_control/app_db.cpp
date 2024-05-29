@@ -1,11 +1,9 @@
-#include "stdafx.h"
 #include "app_db.h"
 
 CAppDb::CAppDb()
 {
     //这里可以打开db的一些操作 
 }
-
 
 CAppDb::~CAppDb()
 {

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "app_item.h"
 #include "app_db.h"
 

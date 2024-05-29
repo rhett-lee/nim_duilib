@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXAMPLES_FIND_FORM_H_
+#define EXAMPLES_FIND_FORM_H_
 
 #include "resource.h"
 
@@ -52,3 +53,4 @@ private:
     ui::RichEdit* m_pFindText;
 };
 
+#endif //EXAMPLES_FIND_FORM_H_

@@ -1,9 +1,10 @@
-#pragma once
-
-#include "resource.h"
+#ifndef EXAMPLES_MAIN_FORM_H_
+#define EXAMPLES_MAIN_FORM_H_
 
 // duilib
 #include "duilib/duilib.h"
+
+#include "resource.h"
 
 class MainForm : public ui::WindowImplBase
 {
@@ -47,4 +48,4 @@ private:
     void OnColumnChanged(size_t nColumnId);
 };
 
-
+#endif //EXAMPLES_MAIN_FORM_H_

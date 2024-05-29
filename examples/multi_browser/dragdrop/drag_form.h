@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_DRAG_FROM_H_
+#define EXAMPLES_DRAG_FROM_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 /** @class DragForm
   * @brief 模仿系统拖拽功能的半透明窗体，因为使用了低级键盘钩子所以一些安全软件会拦截
@@ -78,3 +82,4 @@ private:
     static POINT    s_point_offset;
     BitmapControl    *bitmap_control_;
 };
+#endif //EXAMPLES_DRAG_FROM_H_

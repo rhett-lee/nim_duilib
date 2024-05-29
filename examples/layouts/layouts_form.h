@@ -1,4 +1,8 @@
-#pragma once
+#ifndef EXAMPLES_LAYOUTS_FORM_H_
+#define EXAMPLES_LAYOUTS_FORM_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 class LayoutsForm : public ui::WindowImplBase
 {
@@ -33,3 +37,4 @@ private:
     std::wstring layout_xml_;
 };
 
+#endif //EXAMPLES_LAYOUTS_FORM_H_

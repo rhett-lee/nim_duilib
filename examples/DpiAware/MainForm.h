@@ -1,6 +1,6 @@
 //MainForm.h
-#ifndef MAIN_FORM_H_
-#define MAIN_FORM_H_
+#ifndef EXAMPLES_MAIN_FORM_H_
+#define EXAMPLES_MAIN_FORM_H_
 
 #pragma once
 
@@ -56,4 +56,4 @@ private:
     void UpdateUI();
 };
 
-#endif //MAIN_FORM_H_
+#endif //EXAMPLES_MAIN_FORM_H_

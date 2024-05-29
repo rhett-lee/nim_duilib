@@ -1,10 +1,12 @@
-#pragma once
+#ifndef EXAMPLES_APP_ITEM_H_
+#define EXAMPLES_APP_ITEM_H_
+
+// duilib
+#include "duilib/duilib.h"
 
 #define APP_HEIGHT 90
 #define APP_WIDTH  90
 #define EACH_LINE  6
-
-#include <string>
 
 //app的具体信息，这里假定有id，name，_icon,_isFrequent自行拓展
 struct AppItem
@@ -54,3 +56,4 @@ private:
     */
     Box* m_pFrequentBox = nullptr;
 };
+#endif //EXAMPLES_APP_ITEM_H_

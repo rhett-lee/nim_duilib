@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EXAMPLES_FILEINFO_ITEM_H_
+#define EXAMPLES_FILEINFO_ITEM_H_
 
 // duilib
 #include "duilib/duilib.h"
@@ -27,3 +28,4 @@ private:
     ui::Label* m_pTextControl;
 };
 
+#endif //EXAMPLES_FILEINFO_ITEM_H_

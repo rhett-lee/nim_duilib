@@ -1,6 +1,6 @@
 //WorkerThread.h
-#ifndef UI_MAINTHREAD_H_
-#define UI_MAINTHREAD_H_
+#ifndef EXAMPLES_MAIN_THREAD_H_
+#define EXAMPLES_MAIN_THREAD_H_
 
 #pragma once
 
@@ -48,4 +48,4 @@ private:
     std::unique_ptr<WorkerThread> m_workerThread;
 };
 
-#endif // UI_MAINTHREAD_H_
+#endif // EXAMPLES_MAIN_THREAD_H_
