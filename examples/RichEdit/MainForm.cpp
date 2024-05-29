@@ -1002,8 +1002,7 @@ void MainForm::LoadRichEditData()
         ifs.read(&xml[0], length);
         ifs.close();
     }
-    DString xmlU;
-    ui::StringUtil::MBCSToUnicode(xml.c_str(), xmlU, CP_UTF8);
+    DString xmlU = ui::StringUtil::UTF8ToT(xml);
 
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->SetText(xmlU);

@@ -726,8 +726,7 @@ DString Control::GetBkImage() const
 
 std::string Control::GetUTF8BkImage() const
 {
-    std::string strOut;
-    StringUtil::UnicodeToMBCS(GetBkImage(), strOut, CP_UTF8);
+    std::string strOut = StringUtil::TToUTF8(GetBkImage());
     return strOut;
 }
 
@@ -748,8 +747,7 @@ void Control::SetBkImage(const DString& strImage)
 
 void Control::SetUTF8BkImage(const std::string& strImage)
 {
-    DString strOut;
-    StringUtil::MBCSToUnicode(strImage, strOut, CP_UTF8);
+    DString strOut = StringUtil::UTF8ToT(strImage);
     SetBkImage(strOut);
 }
 
@@ -1209,8 +1207,7 @@ DString Control::GetToolTipText() const
 
 std::string Control::GetUTF8ToolTipText() const
 {
-    std::string strOut;
-    StringUtil::UnicodeToMBCS(GetToolTipText(), strOut, CP_UTF8);
+    std::string strOut = StringUtil::TToUTF8(GetToolTipText());
     return strOut;
 }
 
@@ -1234,8 +1231,7 @@ void Control::SetToolTipText(const DString& strText)
 
 void Control::SetUTF8ToolTipText(const std::string& strText)
 {
-    DString strOut;
-    StringUtil::MBCSToUnicode(strText, strOut, CP_UTF8);
+    DString strOut = StringUtil::UTF8ToT(strText);
     if (strOut.empty()) {
         m_sToolTipText.clear();
         Invalidate();
@@ -1258,8 +1254,7 @@ void Control::SetToolTipTextId(const DString& strTextId)
 
 void Control::SetUTF8ToolTipTextId(const std::string& strTextId)
 {
-    DString strOut;
-    StringUtil::MBCSToUnicode(strTextId, strOut, CP_UTF8);
+    DString strOut = StringUtil::UTF8ToT(strTextId);
     SetToolTipTextId(strOut);
 }
 
@@ -1291,8 +1286,7 @@ DString Control::GetDataID() const
 
 std::string Control::GetUTF8DataID() const
 {
-    std::string strOut;
-    StringUtil::UnicodeToMBCS(GetDataID(), strOut, CP_UTF8);
+    std::string strOut = StringUtil::TToUTF8(GetDataID());
     return strOut;
 }
 
@@ -1303,9 +1297,7 @@ void Control::SetDataID(const DString& strText)
 
 void Control::SetUTF8DataID(const std::string& strText)
 {
-    DString strOut;
-    StringUtil::MBCSToUnicode(strText, strOut, CP_UTF8);
-    m_sUserDataID = strOut;
+    m_sUserDataID = StringUtil::UTF8ToT(strText);
 }
 
 void Control::SetUserDataID(size_t dataID)

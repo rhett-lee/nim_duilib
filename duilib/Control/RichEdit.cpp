@@ -798,8 +798,7 @@ DString RichEdit::GetText() const
 
 std::string RichEdit::GetUTF8Text() const
 {
-    std::string strOut;
-    StringUtil::UnicodeToMBCS(GetText(), strOut, CP_UTF8);
+    std::string strOut = StringUtil::TToUTF8(GetText());
     return strOut;
 }
 
@@ -828,8 +827,7 @@ void RichEdit::SetTextId(const DString& strTextId)
 
 void RichEdit::SetUTF8Text( const std::string& strText )
 {
-    DString strOut;
-    StringUtil::MBCSToUnicode(strText, strOut, CP_UTF8);
+    DString strOut = StringUtil::UTF8ToT(strText);
     SetText(strOut);
 }
 
@@ -2245,8 +2243,7 @@ DString RichEdit::GetPromptText() const
 
 std::string RichEdit::GetUTF8PromptText() const
 {
-    std::string strOut;
-    StringUtil::UnicodeToMBCS(GetPromptText(), strOut, CP_UTF8);
+    std::string strOut = StringUtil::TToUTF8(GetPromptText());
     return strOut;
 }
 
@@ -2260,8 +2257,7 @@ void RichEdit::SetPromptText(const DString& strText)
 
 void RichEdit::SetUTF8PromptText(const std::string& strText)
 {
-    DString strOut;
-    StringUtil::MBCSToUnicode(strText, strOut, CP_UTF8);
+    DString strOut = StringUtil::UTF8ToT(strText);
     SetPromptText(strOut);
 }
 
@@ -2275,8 +2271,7 @@ void RichEdit::SetPromptTextId(const DString& strTextId)
 
 void RichEdit::SetUTF8PromptTextId(const std::string& strTextId)
 {
-    DString strOut;
-    StringUtil::MBCSToUnicode(strTextId, strOut, CP_UTF8);
+    DString strOut = StringUtil::UTF8ToT(strTextId);
     SetPromptTextId(strOut);
 }
 
@@ -2600,7 +2595,6 @@ void RichEdit::GetClipboardText( DString &out )
                 if(buf != NULL)    {
                     std::string str(buf, GlobalSize(h));
                     StringUtil::MBCSToUnicode(str, out);
-
                     ::GlobalUnlock(h);
                 }
             }

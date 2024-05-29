@@ -170,7 +170,7 @@ std::string CefControlBase::GetUTF8URL()
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get())
     {
-        return ui::StringUtil::UToUTF8(DString(GetURL().c_str()));
+        return ui::StringUtil::TToUTF8(GetURL().c_str());
     }
 
     return CefString();

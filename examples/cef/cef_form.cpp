@@ -132,8 +132,7 @@ void CefForm::OnLoadEnd(int httpStatusCode)
 
     // 注册一个方法提供前端调用
     cef_control_->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([this](const std::string& params, nim_comp::ReportResultFunction callback) {
-        DString value;
-        ui::StringUtil::MBCSToUnicode(params, value, CP_UTF8);
+        DString value = ui::StringUtil::UTF8ToT(params);
         nim_comp::Toast::ShowToast(value, 3000, GetHWND());
         callback(false, R"({ "message": "Success." })");
     }));
