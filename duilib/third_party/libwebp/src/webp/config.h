@@ -52,7 +52,7 @@
 #define PACKAGE_NAME "WebP"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "WebP 1.3.0"
+#define PACKAGE_STRING "WebP 1.4.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "WebP"
@@ -61,10 +61,10 @@
 #define PACKAGE_URL "https://developers.google.com/speed/webp"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "1.3.0"
+#define PACKAGE_VERSION "1.4.0"
 
 /* Version number of package */
-#define VERSION "1.3.0"
+#define VERSION "1.4.0"
 
 /* Set to 1 if GIF library is installed */
 /* #undef WEBP_HAVE_GIF */
