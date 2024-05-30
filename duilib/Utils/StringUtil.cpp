@@ -2,6 +2,8 @@
 #include "duilib/third_party/convert_utf/ConvertUTF.h"
 #include <filesystem>
 
+using namespace llvm; //for ConvertUTF.h
+
 namespace ui
 {
 
