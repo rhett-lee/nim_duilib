@@ -1205,6 +1205,8 @@ static void nsvg__rasterizeSortedEdges(NSVGrasterizer *r, float tx, float ty, fl
 
 static void nsvg__unpremultiplyAlpha(unsigned char* image, int w, int h, int stride)
 {
+    //如果执行以下代码，一些图形最终会有白边现象，暂时注释掉，影响未知。
+    return;
 	int x,y;
 
 	// Unpremultiply
