@@ -1,7 +1,7 @@
 
 /* pngpread.c - read a png file in push mode
  *
- * Copyright (c) 2018 Cosmin Truta
+ * Copyright (c) 2018-2024 Cosmin Truta
  * Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson
  * Copyright (c) 1996-1997 Andreas Dilger
  * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
@@ -19,11 +19,6 @@
 #define PNG_READ_SIG_MODE   0
 #define PNG_READ_CHUNK_MODE 1
 #define PNG_READ_IDAT_MODE  2
-
-#ifdef PNG_READ_APNG_SUPPORTED
-#define PNG_SKIP_MODE       3
-#endif
-
 #define PNG_READ_tEXt_MODE  4
 #define PNG_READ_zTXt_MODE  5
 #define PNG_READ_DONE_MODE  6
@@ -92,82 +87,6 @@ png_process_data_skip(png_structrp png_ptr)
    return 0;
 }
 
-#ifdef PNG_READ_APNG_SUPPORTED
-void /* PRIVATE */
-png_push_crc_skip(png_structp png_ptr, png_uint_32 skip)
-{
-    png_ptr->process_mode = PNG_SKIP_MODE;
-    png_ptr->skip_length = skip;
-}
-
-void /* PRIVATE */
-png_push_crc_finish(png_structp png_ptr)
-{
-    if (png_ptr->process_mode != PNG_SKIP_MODE) {
-        return;
-    }
-    if (png_ptr->skip_length && png_ptr->save_buffer_size)
-    {
-        png_size_t save_size = png_ptr->save_buffer_size;
-        png_uint_32 skip_length = png_ptr->skip_length;
-
-        /* We want the smaller of 'skip_length' and 'save_buffer_size', but
-         * they are of different types and we don't know which variable has the
-         * fewest bits.  Carefully select the smaller and cast it to the type of
-         * the larger - this cannot overflow.  Do not cast in the following test
-         * - it will break on either 16 or 64 bit platforms.
-         */
-        if (skip_length < save_size)
-            save_size = (png_size_t)skip_length;
-
-        else
-            skip_length = (png_uint_32)save_size;
-
-        png_calculate_crc(png_ptr, png_ptr->save_buffer_ptr, save_size);
-
-        png_ptr->skip_length -= skip_length;
-        png_ptr->buffer_size -= save_size;
-        png_ptr->save_buffer_size -= save_size;
-        png_ptr->save_buffer_ptr += save_size;
-    }
-
-    if (png_ptr->skip_length && png_ptr->current_buffer_size)
-    {
-        png_size_t save_size = png_ptr->current_buffer_size;
-        png_uint_32 skip_length = png_ptr->skip_length;
-
-        /* We want the smaller of 'skip_length' and 'current_buffer_size', here,
-         * the same problem exists as above and the same solution.
-         */
-        if (skip_length < save_size)
-            save_size = (png_size_t)skip_length;
-
-        else
-            skip_length = (png_uint_32)save_size;
-
-        png_calculate_crc(png_ptr, png_ptr->current_buffer_ptr, save_size);
-
-        png_ptr->skip_length -= skip_length;
-        png_ptr->buffer_size -= save_size;
-        png_ptr->current_buffer_size -= save_size;
-        png_ptr->current_buffer_ptr += save_size;
-    }
-
-    if (!png_ptr->skip_length)
-    {
-        if (png_ptr->buffer_size < 4)
-        {
-            png_push_save_buffer(png_ptr);
-            return;
-        }
-
-        png_crc_finish(png_ptr, 0);
-        png_ptr->process_mode = PNG_READ_CHUNK_MODE;
-    }
-}
-
-#endif //PNG_READ_APNG_SUPPORTED
-
 /* What we do with the incoming data depends on what we were previously
  * doing before we ran out of data...
  */
@@ -195,12 +114,6 @@ png_process_some_data(png_structrp png_ptr, png_inforp info_ptr)
       {
          png_push_read_IDAT(png_ptr);
          break;
-      }
-
-      case PNG_SKIP_MODE:
-      {
-          png_push_crc_finish(png_ptr);
-          break;
       }
 
       default:
@@ -232,10 +145,10 @@ png_push_read_sig(png_structrp png_ptr, png_inforp info_ptr)
        num_to_check);
    png_ptr->sig_bytes = (png_byte)(png_ptr->sig_bytes + num_to_check);
 
-   if (png_sig_cmp(info_ptr->signature, num_checked, num_to_check))
+   if (png_sig_cmp(info_ptr->signature, num_checked, num_to_check) != 0)
    {
       if (num_checked < 4 &&
-          png_sig_cmp(info_ptr->signature, num_checked, num_to_check - 4))
+          png_sig_cmp(info_ptr->signature, num_checked, num_to_check - 4) != 0)
          png_error(png_ptr, "Not a PNG file");
 
       else
@@ -281,7 +194,7 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
    }
 
    chunk_name = png_ptr->chunk_name;
-   
+
 #ifdef PNG_READ_APNG_SUPPORTED
    if (png_ptr->num_frames_read > 0 &&
        png_ptr->num_frames_read < info_ptr->num_frames)
@@ -298,7 +211,6 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
             return;
          }
 
-         png_push_crc_skip(png_ptr, png_ptr->push_length);
          png_ptr->mode &= ~PNG_HAVE_CHUNK_HEADER;
          return;
       }
@@ -324,7 +236,6 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
                return;
             }
 
-            png_push_crc_skip(png_ptr, png_ptr->push_length);
             png_ptr->mode &= ~PNG_HAVE_CHUNK_HEADER;
             return;
          }
@@ -376,7 +287,6 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
          }
          png_warning(png_ptr, "Skipped (ignored) a chunk "
                               "between APNG chunks");
-         png_push_crc_skip(png_ptr, png_ptr->push_length);
          png_ptr->mode &= ~PNG_HAVE_CHUNK_HEADER;
          return;
       }
@@ -485,6 +395,14 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
    {
       PNG_PUSH_SAVE_BUFFER_IF_FULL
       png_handle_cHRM(png_ptr, info_ptr, png_ptr->push_length);
+   }
+
+#endif
+#ifdef PNG_READ_eXIf_SUPPORTED
+   else if (png_ptr->chunk_name == png_eXIf)
+   {
+      PNG_PUSH_SAVE_BUFFER_IF_FULL
+      png_handle_eXIf(png_ptr, info_ptr, png_ptr->push_length);
    }
 
 #endif
@@ -599,7 +517,6 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
       png_handle_iTXt(png_ptr, info_ptr, png_ptr->push_length);
    }
 #endif
-
 #ifdef PNG_READ_APNG_SUPPORTED
    else if (chunk_name == png_acTL)
    {
@@ -608,6 +525,7 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
          png_push_save_buffer(png_ptr);
          return;
       }
+
       png_handle_acTL(png_ptr, info_ptr, png_ptr->push_length);
    }
 
@@ -618,9 +536,12 @@ png_push_read_chunk(png_structrp png_ptr, png_inforp info_ptr)
          png_push_save_buffer(png_ptr);
          return;
       }
+
       png_handle_fcTL(png_ptr, info_ptr, png_ptr->push_length);
    }
+
 #endif /* PNG_READ_APNG_SUPPORTED */
+
    else
    {
       PNG_PUSH_SAVE_BUFFER_IF_FULL
@@ -810,11 +731,12 @@ png_push_read_IDAT(png_structrp png_ptr)
             (*(png_ptr->frame_end_fn))(png_ptr, png_ptr->num_frames_read);
          png_ptr->num_frames_read++;
 #endif
+
          return;
       }
 
       png_ptr->idat_size = png_ptr->push_length;
-      
+
 #ifdef PNG_READ_APNG_SUPPORTED
       if (png_ptr->num_frames_read > 0)
       {
@@ -1374,7 +1296,7 @@ png_voidp PNGAPI
 png_get_progressive_ptr(png_const_structrp png_ptr)
 {
    if (png_ptr == NULL)
-      return (NULL);
+      return NULL;
 
    return png_ptr->io_ptr;
 }

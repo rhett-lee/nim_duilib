@@ -1,7 +1,7 @@
 
 /* pngwutil.c - utilities to write a PNG file
  *
- * Copyright (c) 2018-2022 Cosmin Truta
+ * Copyright (c) 2018-2024 Cosmin Truta
  * Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson
  * Copyright (c) 1996-1997 Andreas Dilger
  * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
@@ -820,7 +820,7 @@ png_write_IHDR(png_structrp png_ptr, png_uint_32 width, png_uint_32 height,
 
    /* Write the chunk */
    png_write_complete_chunk(png_ptr, png_IHDR, buf, 13);
-   
+
 #ifdef PNG_WRITE_APNG_SUPPORTED
    png_ptr->first_frame_width = width;
    png_ptr->first_frame_height = height;
@@ -1007,30 +1007,17 @@ png_compress_IDAT(png_structrp png_ptr, png_const_bytep input,
                optimize_cmf(data, png_image_size(png_ptr));
 #endif
 
+            if (size > 0)
 #ifdef PNG_WRITE_APNG_SUPPORTED
-            if (png_ptr->num_frames_written == 0)
-#endif
-         if (size > 0)
-            png_write_complete_chunk(png_ptr, png_IDAT, data, size);
-
-#ifdef PNG_WRITE_APNG_SUPPORTED
-            else
             {
-                png_byte buf[4];
-
-                png_write_chunk_header(png_ptr, png_fdAT, (png_uint_32)(4 + size));
-
-                png_save_uint_32(buf, png_ptr->next_seq_num);
-                png_write_chunk_data(png_ptr, buf, 4);
-
-                png_write_chunk_data(png_ptr, data, size);
-
-                png_write_chunk_end(png_ptr);
-
-                png_ptr->next_seq_num++;
+               if (png_ptr->num_frames_written == 0)
+#endif
+               png_write_complete_chunk(png_ptr, png_IDAT, data, size);
+#ifdef PNG_WRITE_APNG_SUPPORTED
+               else
+                  png_write_fdAT(png_ptr, data, size);
             }
 #endif /* PNG_WRITE_APNG_SUPPORTED */
-            
          png_ptr->mode |= PNG_HAVE_IDAT;
 
          png_ptr->zstream.next_out = data;
@@ -1077,7 +1064,17 @@ png_compress_IDAT(png_structrp png_ptr, png_const_bytep input,
 #endif
 
          if (size > 0)
+#ifdef PNG_WRITE_APNG_SUPPORTED
+         {
+            if (png_ptr->num_frames_written == 0)
+#endif
             png_write_complete_chunk(png_ptr, png_IDAT, data, size);
+#ifdef PNG_WRITE_APNG_SUPPORTED
+            else
+               png_write_fdAT(png_ptr, data, size);
+         }
+#endif /* PNG_WRITE_APNG_SUPPORTED */
+
          png_ptr->zstream.avail_out = 0;
          png_ptr->zstream.next_out = NULL;
          png_ptr->mode |= PNG_HAVE_IDAT | PNG_AFTER_IDAT;
@@ -1968,6 +1965,24 @@ png_write_fcTL(png_structp png_ptr, png_uint_32 width, png_uint_32 height,
 
     png_ptr->next_seq_num++;
 }
+
+void /* PRIVATE */
+png_write_fdAT(png_structp png_ptr,
+    png_const_bytep data, png_size_t length)
+{
+    png_byte buf[4];
+
+    png_write_chunk_header(png_ptr, png_fdAT, (png_uint_32)(4 + length));
+
+    png_save_uint_32(buf, png_ptr->next_seq_num);
+    png_write_chunk_data(png_ptr, buf, 4);
+
+    png_write_chunk_data(png_ptr, data, length);
+
+    png_write_chunk_end(png_ptr);
+
+    png_ptr->next_seq_num++;
+}
 #endif /* PNG_WRITE_APNG_SUPPORTED */
 
 /* Initializes the row writing capability of libpng */
@@ -2396,7 +2411,7 @@ png_setup_sub_row(png_structrp png_ptr, png_uint_32 bpp,
         break;
    }
 
-   return (sum);
+   return sum;
 }
 
 static void /* PRIVATE */
@@ -2446,7 +2461,7 @@ png_setup_up_row(png_structrp png_ptr, size_t row_bytes, size_t lmins)
         break;
    }
 
-   return (sum);
+   return sum;
 }
 static void /* PRIVATE */
 png_setup_up_row_only(png_structrp png_ptr, size_t row_bytes)
@@ -2502,7 +2517,7 @@ png_setup_avg_row(png_structrp png_ptr, png_uint_32 bpp,
         break;
    }
 
-   return (sum);
+   return sum;
 }
 static void /* PRIVATE */
 png_setup_avg_row_only(png_structrp png_ptr, png_uint_32 bpp,
@@ -2585,7 +2600,7 @@ png_setup_paeth_row(png_structrp png_ptr, png_uint_32 bpp,
         break;
    }
 
-   return (sum);
+   return sum;
 }
 static void /* PRIVATE */
 png_setup_paeth_row_only(png_structrp png_ptr, png_uint_32 bpp,
@@ -2898,5 +2913,4 @@ png_write_reinit(png_structp png_ptr, png_infop info_ptr,
     png_ptr->usr_width = png_ptr->width;
 }
 #endif /* PNG_WRITE_APNG_SUPPORTED */
-
 #endif /* WRITE */

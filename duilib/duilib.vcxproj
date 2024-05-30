@@ -435,7 +435,7 @@
     <ClCompile Include="Render\AutoClip.cpp" />
     <ClCompile Include="Render\BitmapAlpha.cpp" />
     <ClCompile Include="third_party\apng\decoder-apng.cpp" />
-    <ClCompile Include="third_party\convert_utf\ConvertUTF.c" />
+    <ClCompile Include="third_party\convert_utf\ConvertUTF.cpp" />
     <ClCompile Include="third_party\unzip\UnZip.cpp" />
     <ClCompile Include="third_party\xml\pugixml.cpp" />
     <ClCompile Include="Utils\ApiWrapper.cpp" />

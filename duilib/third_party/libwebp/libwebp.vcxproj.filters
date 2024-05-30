@@ -147,6 +147,9 @@
     <ClCompile Include="src\utils\utils.c">
       <Filter>utilsdecode</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils\palette.c">
+      <Filter>utilsdecode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\dec\alphai_dec.h">
@@ -256,6 +259,9 @@
     </ClInclude>
     <ClInclude Include="src\webp\types.h">
       <Filter>webp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\palette.h">
+      <Filter>utilsdecode</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

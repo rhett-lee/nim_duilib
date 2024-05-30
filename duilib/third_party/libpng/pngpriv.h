@@ -1,7 +1,7 @@
 
 /* pngpriv.h - private declarations for use inside libpng
  *
- * Copyright (c) 2018-2022 Cosmin Truta
+ * Copyright (c) 2018-2024 Cosmin Truta
  * Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson
  * Copyright (c) 1996-1997 Andreas Dilger
  * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
@@ -36,7 +36,7 @@
  * still required (as of 2011-05-02.)
  */
 #ifndef _POSIX_SOURCE
-# define _POSIX_SOURCE 1 /* Just the POSIX 1003.1 and C89 APIs */
+#  define _POSIX_SOURCE 1 /* Just the POSIX 1003.1 and C89 APIs */
 #endif
 
 #ifndef PNG_VERSION_INFO_ONLY
@@ -190,10 +190,24 @@
 #endif /* PNG_ARM_NEON_OPT > 0 */
 
 #ifndef PNG_MIPS_MSA_OPT
-#  if defined(__mips_msa) && (__mips_isa_rev >= 5) && defined(PNG_ALIGNED_MEMORY_SUPPORTED)
+#  if defined(__mips_msa) && (__mips_isa_rev >= 5) && \
+   defined(PNG_ALIGNED_MEMORY_SUPPORTED)
 #     define PNG_MIPS_MSA_OPT 2
 #  else
 #     define PNG_MIPS_MSA_OPT 0
+#  endif
+#endif
+
+#ifndef PNG_MIPS_MMI_OPT
+#  ifdef PNG_MIPS_MMI
+#    if defined(__mips_loongson_mmi) && (_MIPS_SIM == _ABI64) && \
+     defined(PNG_ALIGNED_MEMORY_SUPPORTED)
+#       define PNG_MIPS_MMI_OPT 1
+#    else
+#       define PNG_MIPS_MMI_OPT 0
+#    endif
+#  else
+#    define PNG_MIPS_MMI_OPT 0
 #  endif
 #endif
 
@@ -205,13 +219,21 @@
 #  endif
 #endif
 
+#ifndef PNG_LOONGARCH_LSX_OPT
+#  if defined(__loongarch_sx)
+#     define PNG_LOONGARCH_LSX_OPT 1
+#  else
+#     define PNG_LOONGARCH_LSX_OPT 0
+#  endif
+#endif
+
 #ifndef PNG_INTEL_SSE_OPT
 #   ifdef PNG_INTEL_SSE
       /* Only check for SSE if the build configuration has been modified to
        * enable SSE optimizations.  This means that these optimizations will
        * be off by default.  See contrib/intel for more details.
        */
-#     if defined(__SSE4_1__) || defined(__AVX__) || defined(__SSSE3__) || \
+#      if defined(__SSE4_1__) || defined(__AVX__) || defined(__SSSE3__) || \
        defined(__SSE2__) || defined(_M_X64) || defined(_M_AMD64) || \
        (defined(_M_IX86_FP) && _M_IX86_FP >= 2)
 #         define PNG_INTEL_SSE_OPT 1
@@ -248,7 +270,6 @@
 #endif
 
 #if PNG_MIPS_MSA_OPT > 0
-#  define PNG_FILTER_OPTIMIZATIONS png_init_filter_functions_msa
 #  ifndef PNG_MIPS_MSA_IMPLEMENTATION
 #     if defined(__mips_msa)
 #        if defined(__clang__)
@@ -264,10 +285,27 @@
 
 #  ifndef PNG_MIPS_MSA_IMPLEMENTATION
 #     define PNG_MIPS_MSA_IMPLEMENTATION 1
+#     define PNG_FILTER_OPTIMIZATIONS png_init_filter_functions_mips
 #  endif
 #else
 #  define PNG_MIPS_MSA_IMPLEMENTATION 0
 #endif /* PNG_MIPS_MSA_OPT > 0 */
+
+#if PNG_MIPS_MMI_OPT > 0
+#  ifndef PNG_MIPS_MMI_IMPLEMENTATION
+#     if defined(__mips_loongson_mmi) && (_MIPS_SIM == _ABI64)
+#        define PNG_MIPS_MMI_IMPLEMENTATION 2
+#     else /* !defined __mips_loongson_mmi  || _MIPS_SIM != _ABI64 */
+#        define PNG_MIPS_MMI_IMPLEMENTATION 0
+#     endif /* __mips_loongson_mmi  && _MIPS_SIM == _ABI64 */
+#  endif /* !PNG_MIPS_MMI_IMPLEMENTATION */
+
+#   if PNG_MIPS_MMI_IMPLEMENTATION > 0
+#      define PNG_FILTER_OPTIMIZATIONS png_init_filter_functions_mips
+#   endif
+#else
+#   define PNG_MIPS_MMI_IMPLEMENTATION 0
+#endif /* PNG_MIPS_MMI_OPT > 0 */
 
 #if PNG_POWERPC_VSX_OPT > 0
 #  define PNG_FILTER_OPTIMIZATIONS png_init_filter_functions_vsx
@@ -276,6 +314,12 @@
 #  define PNG_POWERPC_VSX_IMPLEMENTATION 0
 #endif
 
+#if PNG_LOONGARCH_LSX_OPT > 0
+#   define PNG_FILTER_OPTIMIZATIONS png_init_filter_functions_lsx
+#   define PNG_LOONGARCH_LSX_IMPLEMENTATION 1
+#else
+#   define PNG_LOONGARCH_LSX_IMPLEMENTATION 0
+#endif
 
 /* Is this a build of a DLL where compilation of the object modules requires
  * different preprocessor settings to those required for a simple library?  If
@@ -514,18 +558,8 @@
     */
 #  include <float.h>
 
-#  if (defined(__MWERKS__) && defined(macintosh)) || defined(applec) || \
-    defined(THINK_C) || defined(__SC__) || defined(TARGET_OS_MAC)
-   /* We need to check that <math.h> hasn't already been included earlier
-    * as it seems it doesn't agree with <fp.h>, yet we should really use
-    * <fp.h> if possible.
-    */
-#    if !defined(__MATH_H__) && !defined(__MATH_H) && !defined(__cmath__)
-#      include <fp.h>
-#    endif
-#  else
-#    include <math.h>
-#  endif
+#  include <math.h>
+
 #  if defined(_AMIGA) && defined(__SASC) && defined(_M68881)
    /* Amiga SAS/C: We must include builtin FPU functions when compiling using
     * MATH=68881
@@ -626,13 +660,11 @@
 #define PNG_BACKGROUND_IS_GRAY     0x800U
 #define PNG_HAVE_PNG_SIGNATURE    0x1000U
 #define PNG_HAVE_CHUNK_AFTER_IDAT 0x2000U /* Have another chunk after IDAT */
-                   /*             0x4000U (unused) */
-
+#define PNG_WROTE_eXIf            0x4000U
 #define PNG_IS_READ_STRUCT        0x8000U /* Else is a write struct */
-
 #ifdef PNG_APNG_SUPPORTED
-#define PNG_HAVE_acTL             0x10000U
-#define PNG_HAVE_fcTL             0x20000U
+#define PNG_HAVE_acTL            0x10000U
+#define PNG_HAVE_fcTL            0x20000U
 #endif
 
 /* Flags for the transformations the PNG library does on the image data */
@@ -871,13 +903,13 @@
 #define png_zTXt PNG_U32(122,  84,  88, 116)
 
 #ifdef PNG_APNG_SUPPORTED
-    #define png_acTL PNG_U32( 97,  99,  84,  76)
-    #define png_fcTL PNG_U32(102,  99,  84,  76)
-    #define png_fdAT PNG_U32(102, 100,  65,  84)
+#define png_acTL PNG_U32( 97,  99,  84,  76)
+#define png_fcTL PNG_U32(102,  99,  84,  76)
+#define png_fdAT PNG_U32(102, 100,  65,  84)
 
-    /* For png_struct.apng_flags: */
-    #define PNG_FIRST_FRAME_HIDDEN       0x0001
-    #define PNG_APNG_APP                 0x0002
+/* For png_struct.apng_flags: */
+#define PNG_FIRST_FRAME_HIDDEN       0x0001U
+#define PNG_APNG_APP                 0x0002U
 #endif
 
 /* The following will work on (signed char*) strings, whereas the get_uint_32
@@ -1322,7 +1354,7 @@ PNG_INTERNAL_FUNCTION(void,png_read_filter_row_paeth4_neon,(png_row_infop
     row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
 #endif
 
-#if PNG_MIPS_MSA_OPT > 0
+#if PNG_MIPS_MSA_IMPLEMENTATION == 1
 PNG_INTERNAL_FUNCTION(void,png_read_filter_row_up_msa,(png_row_infop row_info,
     png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
 PNG_INTERNAL_FUNCTION(void,png_read_filter_row_sub3_msa,(png_row_infop
@@ -1336,6 +1368,23 @@ PNG_INTERNAL_FUNCTION(void,png_read_filter_row_avg4_msa,(png_row_infop
 PNG_INTERNAL_FUNCTION(void,png_read_filter_row_paeth3_msa,(png_row_infop
     row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
 PNG_INTERNAL_FUNCTION(void,png_read_filter_row_paeth4_msa,(png_row_infop
+    row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+#endif
+
+#if PNG_MIPS_MMI_IMPLEMENTATION > 0
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_up_mmi,(png_row_infop row_info,
+    png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_sub3_mmi,(png_row_infop
+    row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_sub4_mmi,(png_row_infop
+    row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_avg3_mmi,(png_row_infop
+    row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_avg4_mmi,(png_row_infop
+    row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_paeth3_mmi,(png_row_infop
+    row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_paeth4_mmi,(png_row_infop
     row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
 #endif
 
@@ -1368,6 +1417,23 @@ PNG_INTERNAL_FUNCTION(void,png_read_filter_row_avg4_sse2,(png_row_infop
 PNG_INTERNAL_FUNCTION(void,png_read_filter_row_paeth3_sse2,(png_row_infop
     row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
 PNG_INTERNAL_FUNCTION(void,png_read_filter_row_paeth4_sse2,(png_row_infop
+    row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+#endif
+
+#if PNG_LOONGARCH_LSX_IMPLEMENTATION == 1
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_up_lsx,(png_row_infop
+    row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_sub3_lsx,(png_row_infop
+    row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_sub4_lsx,(png_row_infop
+    row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_avg3_lsx,(png_row_infop
+    row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_avg4_lsx,(png_row_infop
+    row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_paeth3_lsx,(png_row_infop
+    row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_filter_row_paeth4_lsx,(png_row_infop
     row_info, png_bytep row, png_const_bytep prev_row),PNG_EMPTY);
 #endif
 
@@ -1587,7 +1653,6 @@ PNG_INTERNAL_FUNCTION(void,png_push_read_chunk,(png_structrp png_ptr,
 PNG_INTERNAL_FUNCTION(void,png_push_read_sig,(png_structrp png_ptr,
     png_inforp info_ptr),PNG_EMPTY);
 PNG_INTERNAL_FUNCTION(void,png_push_check_crc,(png_structrp png_ptr),PNG_EMPTY);
-PNG_INTERNAL_FUNCTION(void,png_push_crc_skip,(png_structp png_ptr, png_uint_32 length),PNG_EMPTY);
 PNG_INTERNAL_FUNCTION(void,png_push_save_buffer,(png_structrp png_ptr),
     PNG_EMPTY);
 PNG_INTERNAL_FUNCTION(void,png_push_restore_buffer,(png_structrp png_ptr,
@@ -1632,45 +1697,6 @@ PNG_INTERNAL_FUNCTION(void,png_push_read_iTXt,(png_structrp png_ptr,
 
 #endif /* PROGRESSIVE_READ */
 
-#ifdef PNG_APNG_SUPPORTED
-PNG_INTERNAL_FUNCTION(void, png_ensure_fcTL_is_valid, (png_structp png_ptr,
-   png_uint_32 width, png_uint_32 height,
-   png_uint_32 x_offset, png_uint_32 y_offset,
-   png_uint_16 delay_num, png_uint_16 delay_den,
-   png_byte dispose_op, png_byte blend_op), PNG_EMPTY);
-
-#ifdef PNG_READ_APNG_SUPPORTED
-PNG_INTERNAL_FUNCTION(void, png_handle_acTL, (png_structp png_ptr, png_infop info_ptr,
-   png_uint_32 length), PNG_EMPTY);
-PNG_INTERNAL_FUNCTION(void, png_handle_fcTL, (png_structp png_ptr, png_infop info_ptr,
-   png_uint_32 length), PNG_EMPTY);
-PNG_INTERNAL_FUNCTION(void, png_handle_fdAT, (png_structp png_ptr, png_infop info_ptr,
-   png_uint_32 length), PNG_EMPTY);
-PNG_INTERNAL_FUNCTION(void, png_have_info, (png_structp png_ptr, png_infop info_ptr), PNG_EMPTY);
-PNG_INTERNAL_FUNCTION(void, png_ensure_sequence_number, (png_structp png_ptr,
-   png_uint_32 length), PNG_EMPTY);
-PNG_INTERNAL_FUNCTION(void, png_read_reset, (png_structp png_ptr), PNG_EMPTY);
-PNG_INTERNAL_FUNCTION(void, png_read_reinit, (png_structp png_ptr,
-   png_infop info_ptr), PNG_EMPTY);
-#ifdef PNG_PROGRESSIVE_READ_SUPPORTED
-PNG_INTERNAL_FUNCTION(void, png_progressive_read_reset, (png_structp png_ptr), PNG_EMPTY);
-#endif /* PNG_PROGRESSIVE_READ_SUPPORTED */
-#endif /* PNG_READ_APNG_SUPPORTED */
-
-#ifdef PNG_WRITE_APNG_SUPPORTED
-PNG_INTERNAL_FUNCTION(void, png_write_acTL, (png_structp png_ptr,
-   png_uint_32 num_frames, png_uint_32 num_plays), PNG_EMPTY);
-PNG_INTERNAL_FUNCTION(void, png_write_fcTL, (png_structp png_ptr,
-   png_uint_32 width, png_uint_32 height,
-   png_uint_32 x_offset, png_uint_32 y_offset,
-   png_uint_16 delay_num, png_uint_16 delay_den,
-   png_byte dispose_op, png_byte blend_op), PNG_EMPTY);
-PNG_INTERNAL_FUNCTION(void, png_write_reset, (png_structp png_ptr), PNG_EMPTY);
-PNG_INTERNAL_FUNCTION(void, png_write_reinit, (png_structp png_ptr,
-   png_infop info_ptr, png_uint_32 width, png_uint_32 height), PNG_EMPTY);
-#endif /* PNG_WRITE_APNG_SUPPORTED */
-#endif /* PNG_APNG_SUPPORTED */
-
 /* Added at libpng version 1.6.0 */
 #ifdef PNG_GAMMA_SUPPORTED
 PNG_INTERNAL_FUNCTION(void,png_colorspace_set_gamma,(png_const_structrp png_ptr,
@@ -1690,6 +1716,47 @@ PNG_INTERNAL_FUNCTION(void,png_colorspace_sync,(png_const_structrp png_ptr,
     * synchronize the flags.  Checks for NULL info_ptr and does nothing.
     */
 #endif
+
+#ifdef PNG_APNG_SUPPORTED
+PNG_INTERNAL_FUNCTION(void,png_ensure_fcTL_is_valid,(png_structp png_ptr,
+   png_uint_32 width, png_uint_32 height,
+   png_uint_32 x_offset, png_uint_32 y_offset,
+   png_uint_16 delay_num, png_uint_16 delay_den,
+   png_byte dispose_op, png_byte blend_op), PNG_EMPTY);
+
+#ifdef PNG_READ_APNG_SUPPORTED
+PNG_INTERNAL_FUNCTION(void,png_handle_acTL,(png_structp png_ptr, png_infop info_ptr,
+   png_uint_32 length),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_handle_fcTL,(png_structp png_ptr, png_infop info_ptr,
+   png_uint_32 length),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_handle_fdAT,(png_structp png_ptr, png_infop info_ptr,
+   png_uint_32 length),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_have_info,(png_structp png_ptr, png_infop info_ptr),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_ensure_sequence_number,(png_structp png_ptr,
+   png_uint_32 length),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_reset,(png_structp png_ptr),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_read_reinit,(png_structp png_ptr,
+   png_infop info_ptr),PNG_EMPTY);
+#ifdef PNG_PROGRESSIVE_READ_SUPPORTED
+PNG_INTERNAL_FUNCTION(void,png_progressive_read_reset,(png_structp png_ptr),PNG_EMPTY);
+#endif /* PNG_PROGRESSIVE_READ_SUPPORTED */
+#endif /* PNG_READ_APNG_SUPPORTED */
+
+#ifdef PNG_WRITE_APNG_SUPPORTED
+PNG_INTERNAL_FUNCTION(void,png_write_acTL,(png_structp png_ptr,
+   png_uint_32 num_frames, png_uint_32 num_plays),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_write_fcTL,(png_structp png_ptr,
+   png_uint_32 width, png_uint_32 height,
+   png_uint_32 x_offset, png_uint_32 y_offset,
+   png_uint_16 delay_num, png_uint_16 delay_den,
+   png_byte dispose_op, png_byte blend_op),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_write_fdAT,(png_structp png_ptr,
+   png_const_bytep data, png_size_t length),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_write_reset,(png_structp png_ptr),PNG_EMPTY);
+PNG_INTERNAL_FUNCTION(void,png_write_reinit,(png_structp png_ptr,
+   png_infop info_ptr, png_uint_32 width, png_uint_32 height),PNG_EMPTY);
+#endif /* PNG_WRITE_APNG_SUPPORTED */
+#endif /* PNG_APNG_SUPPORTED */
 
 /* Added at libpng version 1.4.0 */
 #ifdef PNG_COLORSPACE_SUPPORTED
@@ -1966,7 +2033,7 @@ PNG_INTERNAL_FUNCTION(void,png_ascii_from_fixed,(png_const_structrp png_ptr,
  */
 #define PNG_FP_INVALID  512  /* Available for callers as a distinct value */
 
-/* Result codes for the parser (boolean - true meants ok, false means
+/* Result codes for the parser (boolean - true means ok, false means
  * not ok yet.)
  */
 #define PNG_FP_MAYBE      0  /* The number may be valid in the future */
@@ -2150,15 +2217,25 @@ PNG_INTERNAL_FUNCTION(void, png_init_filter_functions_neon,
    (png_structp png_ptr, unsigned int bpp), PNG_EMPTY);
 #endif
 
-#if PNG_MIPS_MSA_OPT > 0
-PNG_INTERNAL_FUNCTION(void, png_init_filter_functions_msa,
+#if PNG_MIPS_MSA_IMPLEMENTATION == 1
+PNG_INTERNAL_FUNCTION(void, png_init_filter_functions_mips,
    (png_structp png_ptr, unsigned int bpp), PNG_EMPTY);
 #endif
+
+#  if PNG_MIPS_MMI_IMPLEMENTATION > 0
+PNG_INTERNAL_FUNCTION(void, png_init_filter_functions_mips,
+   (png_structp png_ptr, unsigned int bpp), PNG_EMPTY);
+#  endif
 
 #  if PNG_INTEL_SSE_IMPLEMENTATION > 0
 PNG_INTERNAL_FUNCTION(void, png_init_filter_functions_sse2,
    (png_structp png_ptr, unsigned int bpp), PNG_EMPTY);
 #  endif
+#endif
+
+#if PNG_LOONGARCH_LSX_OPT > 0
+PNG_INTERNAL_FUNCTION(void, png_init_filter_functions_lsx,
+    (png_structp png_ptr, unsigned int bpp), PNG_EMPTY);
 #endif
 
 PNG_INTERNAL_FUNCTION(png_uint_32, png_check_keyword, (png_structrp png_ptr,

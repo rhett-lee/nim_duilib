@@ -56,6 +56,7 @@
     <ClCompile Include="src\utils\color_cache_utils.c" />
     <ClCompile Include="src\utils\filters_utils.c" />
     <ClCompile Include="src\utils\huffman_utils.c" />
+    <ClCompile Include="src\utils\palette.c" />
     <ClCompile Include="src\utils\quant_levels_dec_utils.c" />
     <ClCompile Include="src\utils\random_utils.c" />
     <ClCompile Include="src\utils\rescaler_utils.c" />
@@ -86,6 +87,7 @@
     <ClInclude Include="src\utils\endian_inl_utils.h" />
     <ClInclude Include="src\utils\filters_utils.h" />
     <ClInclude Include="src\utils\huffman_utils.h" />
+    <ClInclude Include="src\utils\palette.h" />
     <ClInclude Include="src\utils\quant_levels_dec_utils.h" />
     <ClInclude Include="src\utils\random_utils.h" />
     <ClInclude Include="src\utils\rescaler_utils.h" />

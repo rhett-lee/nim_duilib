@@ -49,6 +49,9 @@
     <Filter Include="third_party\xml">
       <UniqueIdentifier>{94f29640-b8f0-4c7e-ad1d-dae80f83d3f5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="third_party\utf">
+      <UniqueIdentifier>{cb38dc5a-5965-410d-9a6a-60d420e4f226}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -417,11 +420,11 @@
     <ClCompile Include="Core\ThreadManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="third_party\convert_utf\ConvertUTF.c">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\LogUtil.cpp">
       <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\convert_utf\ConvertUTF.cpp">
+      <Filter>third_party\utf</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -920,9 +923,6 @@
     <ClInclude Include="Core\ThreadManager.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="third_party\convert_utf\ConvertUTF.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\Unicode.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -931,6 +931,9 @@
     </ClInclude>
     <ClInclude Include="duilib_config_windows.h">
       <Filter>duilib</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\convert_utf\ConvertUTF.h">
+      <Filter>third_party\utf</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
