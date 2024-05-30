@@ -1,7 +1,7 @@
 
 /* pngread.c - read a PNG file
  *
- * Copyright (c) 2018-2019 Cosmin Truta
+ * Copyright (c) 2018-2024 Cosmin Truta
  * Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson
  * Copyright (c) 1996-1997 Andreas Dilger
  * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
@@ -161,9 +161,6 @@ png_read_info(png_structrp png_ptr, png_inforp info_ptr)
 
       else if (chunk_name == png_IDAT)
       {
-#ifdef PNG_READ_APNG_SUPPORTED
-         png_have_info(png_ptr, info_ptr);
-#endif
          png_ptr->idat_size = length;
          break;
       }
@@ -258,91 +255,12 @@ png_read_info(png_structrp png_ptr, png_inforp info_ptr)
          png_handle_iTXt(png_ptr, info_ptr, length);
 #endif
 
-#ifdef PNG_READ_APNG_SUPPORTED
-      else if (chunk_name == png_acTL)
-         png_handle_acTL(png_ptr, info_ptr, length);
-
-      else if (chunk_name == png_fcTL)
-         png_handle_fcTL(png_ptr, info_ptr, length);
-
-      else if (chunk_name == png_fdAT)
-         png_handle_fdAT(png_ptr, info_ptr, length);
-#endif
-
       else
          png_handle_unknown(png_ptr, info_ptr, length,
              PNG_HANDLE_CHUNK_AS_DEFAULT);
    }
 }
 #endif /* SEQUENTIAL_READ */
-
-#ifdef PNG_READ_APNG_SUPPORTED
-void PNGAPI
-png_read_frame_head(png_structp png_ptr, png_infop info_ptr)
-{
-    png_byte have_chunk_after_DAT; /* after IDAT or after fdAT */
-
-    png_debug(0, "Reading frame head");
-
-    if (!(png_ptr->mode & PNG_HAVE_acTL))
-        png_error(png_ptr, "attempt to png_read_frame_head() but "
-                           "no acTL present");
-
-    /* do nothing for the main IDAT */
-    if (png_ptr->num_frames_read == 0)
-        return;
-
-    //png_crc_finish(png_ptr, 0); /* CRC from last IDAT or fdAT chunk */
-
-    png_read_reset(png_ptr);
-    png_ptr->flags &= ~PNG_FLAG_ROW_INIT;
-    png_ptr->mode &= ~PNG_HAVE_fcTL;
-
-    have_chunk_after_DAT = 0;
-    for (;;)
-    {
-        png_uint_32 length = png_read_chunk_header(png_ptr);
-
-        if (png_ptr->chunk_name == png_IDAT)
-        {
-            /* discard trailing IDATs for the first frame */
-            if (have_chunk_after_DAT || png_ptr->num_frames_read > 1)
-                png_error(png_ptr, "png_read_frame_head(): out of place IDAT");
-            png_crc_finish(png_ptr, length);
-        }
-
-        else if (png_ptr->chunk_name == png_fcTL)
-        {
-            png_handle_fcTL(png_ptr, info_ptr, length);
-            have_chunk_after_DAT = 1;
-        }
-
-        else if (png_ptr->chunk_name == png_fdAT)
-        {
-            png_ensure_sequence_number(png_ptr, length);
-
-            /* discard trailing fdATs for frames other than the first */
-            if (!have_chunk_after_DAT && png_ptr->num_frames_read > 1)
-                png_crc_finish(png_ptr, length - 4);
-            else if(png_ptr->mode & PNG_HAVE_fcTL)
-            {
-                png_ptr->idat_size = length - 4;
-                png_ptr->mode |= PNG_HAVE_IDAT;
-
-                break;
-            }
-            else
-                png_error(png_ptr, "png_read_frame_head(): out of place fdAT");
-        }
-        else
-        {
-            png_warning(png_ptr, "Skipped (ignored) a chunk "
-                                 "between APNG chunks");
-            png_crc_finish(png_ptr, length);
-        }
-    }
-}
-#endif /* PNG_READ_APNG_SUPPORTED */
 
 /* Optional call to update the users info_ptr structure */
 void PNGAPI
@@ -650,7 +568,11 @@ png_read_row(png_structrp png_ptr, png_bytep row, png_bytep dsp_row)
 #endif
 
 #ifdef PNG_READ_TRANSFORMS_SUPPORTED
-   if (png_ptr->transformations)
+   if (png_ptr->transformations
+#     ifdef PNG_CHECK_FOR_INVALID_INDEX_SUPPORTED
+         || png_ptr->num_palette_max >= 0
+#     endif
+      )
       png_do_read_transformations(png_ptr, &row_info);
 #endif
 
@@ -867,7 +789,7 @@ png_read_end(png_structrp png_ptr, png_inforp info_ptr)
 #ifdef PNG_READ_CHECK_FOR_INVALID_INDEX_SUPPORTED
    /* Report invalid palette index; added at libng-1.5.10 */
    if (png_ptr->color_type == PNG_COLOR_TYPE_PALETTE &&
-       png_ptr->num_palette_max > png_ptr->num_palette)
+       png_ptr->num_palette_max >= png_ptr->num_palette)
       png_benign_error(png_ptr, "Read palette index exceeding num_palette");
 #endif
 
@@ -1131,6 +1053,8 @@ void PNGAPI
 png_read_png(png_structrp png_ptr, png_inforp info_ptr,
     int transforms, voidp params)
 {
+   png_debug(1, "in png_read_png");
+
    if (png_ptr == NULL || info_ptr == NULL)
       return;
 
