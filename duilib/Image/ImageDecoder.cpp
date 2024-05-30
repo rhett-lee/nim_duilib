@@ -20,7 +20,8 @@
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #define STBIR_DEFAULT_FILTER_UPSAMPLE STBIR_FILTER_TRIANGLE
-#include "duilib/third_party/stb_image/stb_image_resize.h"
+#pragma warning (disable: 4505)
+#include "duilib/third_party/stb_image/stb_image_resize2.h"
 #pragma warning (pop)
 
 #pragma warning (push)
@@ -717,11 +718,11 @@ bool ImageDecoder::ResizeImageData(std::vector<ImageData>& imageData,
         int output_w = nNewWidth;
         int output_h = nNewHeight;
         int output_stride_in_bytes = 0;
-        int num_channels = 4;
-        int result = stbir_resize_uint8(input_pixels, input_w, input_h, input_stride_in_bytes,
-                                        output_pixels, output_w, output_h, output_stride_in_bytes,
-                                        num_channels);
-        if (result == 1) {
+        stbir_pixel_layout num_channels = STBIR_RGBA;
+        unsigned char* result = stbir_resize_uint8_linear(input_pixels, input_w, input_h, input_stride_in_bytes,
+                                                          output_pixels, output_w, output_h, output_stride_in_bytes,
+                                                          num_channels);
+        if (result != nullptr) {
             image.m_bitmapData.swap(resizedBitmapData);
             image.m_imageWidth = nNewWidth;
             image.m_imageHeight = nNewHeight;
