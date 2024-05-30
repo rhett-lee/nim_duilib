@@ -39,6 +39,7 @@
 　　├─ unzip 用于对zip格式的资源包的支持     
 　　├─ zlib 用于对PNG/APNG图片格式的支持     
 　　├─ xml 用于对资源描述XML的解析支持     
+　　├─ convert_utf 用于Unicode编码的相互转换（UTF-8 和 UTF-16）    
 
 ## 开始
 
