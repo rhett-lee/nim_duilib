@@ -21,24 +21,17 @@
  - CEF 控件支持
 
 ## 目录
-
-├─`duilib` nim_duilib 的核心代码    
-├─`ui_components` 基于 duilib 封装的常用组件库如 `msgbox`、`toast`、`cef_control` 等  
-├─`examples` 各类示例程序源代码  
-├─`docs` 说明文档  
-├─`libs` 静态库编译后的输出目录，包含预设的一些 CEF 组件静态库  
-├─`bin` 各个示例程序输出目录，包含预设的皮肤和语言文件以及 CEF 依赖     
-├─`licenses` 引用的其他开源代码对应的licenses    
-├─`duilib/third_party` nim_duilib 核心代码依赖的第三方库    
-　　├─ apng 用于对APNG图片格式的支持     
-　　├─ libpng 用于对PNG图片格式的支持     
-　　├─ cximage 用于对GIF/ICO图片格式的支持      
-　　├─ libwebp 用于对WebP图片格式的支持     
-　　├─ stb_image 用于对JPEG/BMP图片格式的支持     
-　　├─ svg 用于对SVG图片格式的支持       
-　　├─ zlib 用于对PNG/APNG图片格式的支持     
-　　├─ xml 用于对资源描述XML的解析支持     
-　　├─ convert_utf 用于Unicode编码的相互转换（UTF-8 和 UTF-16）    
+| 目录          | 说明 |
+| :---          | :--- |
+| duilib        | 项目的核心代码|
+| docs          | 项目的说明文档|
+| libs          | 静态库编译后的输出目录，包含预设的一些 CEF 组件静态库|
+| bin           | 各个示例程序输出目录，包含预设的皮肤和语言文件以及 CEF 依赖|
+| manifest      | Windows平台的应用程序清单文件|
+| licenses      | 引用的其他开源代码对应的licenses文件|
+| examples      | 项目的示例程序源代码|
+| duilib/third_party| 项目代码依赖的第三方库，详细内容见后续文档|
+| ui_components | 基于 nim_duilib 封装的常用组件库如 msgbox、toast、cef_control 等|
 
 ## 开始
 
@@ -68,12 +61,6 @@ git clone https://github.com/rhett-lee/skia_compile
 （4）渲染引擎的支持：nim_duilib内部支持Skia绘制引擎和Gdiplus绘制引擎，默认是Skia引擎，不建议选择Gdiplus引擎，因为Gdiplus引擎下有些控件的功能不完善；  
 （5）如何配置切换渲染引擎：可修改[duilib\Core\GlobalManager.cpp](duilib/Core/GlobalManager.cpp)文件顶部的源码来切换渲染引擎。
 
-## 文档
-
- - [快速上手](docs/Getting-Started.md)
- - [参考文档](docs/Summary.md)
- - [示例程序](docs/Examples.md)
- 
 ## 基于NIM_Duilib_Framework源码做的主要修改
 1. 调整了代码的组织结构，按照功能模块划分，大文件按类拆分为多个小文件，有利于理解整个库的体系结构；
 2. 梳理了代码的接口文件，补充各个接口的注释和功能注释，有利于阅读和理解代码；
@@ -132,9 +119,35 @@ git clone https://github.com/rhett-lee/skia_compile
 14. 减少依赖
 - 移除对base库的依赖，消息循环和线程通信相关功能改为自己实现
 
+## 使用的第三方库说明
+| 名称     |代码子目录| 用途 | license文件|
+| :---     | :---     |:---  |:---        |
+|apng      |third_party/libpng| 支持APNG图片格式|zlib/libpng License|
+|libpng    |third_party/libpng| 支持PNG图片格式|[libpng.LICENSE.txt](licenses/libpng.LICENSE.txt)|
+|zlib      |third_party/zlib| 支持PNG/APNG图片格式、Zip文件解压|[zlib.LICENSE.txt](licenses/zlib.LICENSE.txt)|
+|cximage   |third_party/cximage| 支持GIF/ICO图片格式|[cximage.LICENSE.txt](licenses/cximage.LICENSE.txt)|
+|libwebp   |third_party/libwebp| 支持WebP图片格式|[libWebP.LICENSE.txt](licenses/libwebp.LICENSE.txt)|
+|stb_image |third_party/stb_image| 支持JPEG/BMP图片格式，调整图片大小|[stb_image.LICENSE.txt](licenses/stb_image.LICENSE.txt)|
+|nanosvg   |third_party/svg| 支持SVG图片格式|[nanosvg.LICENSE.txt](licenses/nanosvg.LICENSE.txt)|
+|pugixml   |third_party/xml| 支持资源描述XML的解析|[pugixml.LICENSE.txt](licenses/pugixml.LICENSE.txt)|
+|ConvertUTF|third_party/convert_utf| 用于UTF-8/UTF-16编码的相互转换|[llvm.LICENSE.txt](licenses/llvm.LICENSE.txt)|
+|skia      |项目未包含skia源码     | 界面库渲染引擎|[skia.LICENSE.txt](licenses/skia.LICENSE.txt)|
+|directui  |                       | 借鉴界面库框架|[directui.LICENSE.txt](licenses/directui.LICENSE.txt)|
+|duilib    |                       | 最早基于duilib开发|[duilib.LICENSE.txt](licenses/duilib.LICENSE.txt)|
+|NIM_Duilib Framework|             | 基于NIM_Duilib_Framework开发|[NIM_Duilib_Framework.LICENSE.txt](licenses/NIM_Duilib_Framework.LICENSE.txt)|
+
+备注：    
+1. 本项目最早是基于duilib开发的，项目地址：[duilib](https://github.com/duilib/duilib)
+2. 本项目是直接在NIM_Duilib_Framework项目的基础上继续开发的，项目地址：[NIM_Duilib_Framework](https://github.com/netease-im/NIM_Duilib_Framework/)
+
 ## 开发计划
  - 窗口的封装优化：支持跨平台的窗口引擎（尝试）
  - 动画功能的加强
  - 不断测试发现缺陷并修复，不断完善代码
  - 其他待补充
 
+## 参考文档
+
+ - [快速上手](docs/Getting-Started.md)
+ - [参考文档](docs/Summary.md)
+ - [示例程序](docs/Examples.md)
