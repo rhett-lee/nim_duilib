@@ -129,9 +129,6 @@
     <ClCompile Include="Image\ImageDecoder.cpp">
       <Filter>Image</Filter>
     </ClCompile>
-    <ClCompile Include="third_party\unzip\UnZip.cpp">
-      <Filter>third_party\unzip</Filter>
-    </ClCompile>
     <ClCompile Include="third_party\apng\decoder-apng.cpp">
       <Filter>third_party\apng</Filter>
     </ClCompile>
@@ -426,6 +423,15 @@
     <ClCompile Include="third_party\convert_utf\ConvertUTF.cpp">
       <Filter>third_party\utf</Filter>
     </ClCompile>
+    <ClCompile Include="third_party\zlib\contrib\minizip\unzip.c">
+      <Filter>third_party\unzip</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\zlib\contrib\minizip\ioapi.c">
+      <Filter>third_party\unzip</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ZipStreamIO.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -547,9 +553,6 @@
     </ClInclude>
     <ClInclude Include="third_party\svg\nanosvgrast.h">
       <Filter>third_party\svg</Filter>
-    </ClInclude>
-    <ClInclude Include="third_party\unzip\UnZip.h">
-      <Filter>third_party\unzip</Filter>
     </ClInclude>
     <ClInclude Include="third_party\stb_image\stb_image.h">
       <Filter>third_party\stb_image</Filter>
@@ -934,6 +937,15 @@
     </ClInclude>
     <ClInclude Include="third_party\convert_utf\ConvertUTF.h">
       <Filter>third_party\utf</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\zlib\contrib\minizip\unzip.h">
+      <Filter>third_party\unzip</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\zlib\contrib\minizip\ioapi.h">
+      <Filter>third_party\unzip</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ZipStreamIO.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

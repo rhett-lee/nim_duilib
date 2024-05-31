@@ -40,7 +40,7 @@ void MainThread::OnInit()
     m_workerThread->Start();
 
     //初始化全局资源
-    constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
+    constexpr ui::ResourceType resType = ui::ResourceType::kResZipFile;
     if (resType == ui::ResourceType::kLocalFiles) {
         //使用本地文件夹作为资源
         DString resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
@@ -53,7 +53,7 @@ void MainThread::OnInit()
         resParam.resourcePath = _T("resources\\");
         resParam.zipFilePath = ui::PathUtil::GetCurrentModuleDirectory();
         resParam.zipFilePath += _T("resources.zip");
-        resParam.zipPassword = "";
+        resParam.zipPassword = _T("");
         ui::GlobalManager::Instance().Startup(resParam);
     }
     else if (resType == ui::ResourceType::kResZipFile) {
@@ -63,7 +63,7 @@ void MainThread::OnInit()
         resParam.hResModule = nullptr;
         resParam.resourceName = MAKEINTRESOURCE(IDR_THEME);
         resParam.resourceType = _T("THEME");
-        resParam.zipPassword = "";
+        resParam.zipPassword = _T("");
         ui::GlobalManager::Instance().Startup(resParam);
     }
     else {

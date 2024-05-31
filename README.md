@@ -35,8 +35,7 @@
 　　├─ cximage 用于对GIF/ICO图片格式的支持      
 　　├─ libwebp 用于对WebP图片格式的支持     
 　　├─ stb_image 用于对JPEG/BMP图片格式的支持     
-　　├─ svg 用于对SVG图片格式的支持     
-　　├─ unzip 用于对zip格式的资源包的支持     
+　　├─ svg 用于对SVG图片格式的支持       
 　　├─ zlib 用于对PNG/APNG图片格式的支持     
 　　├─ xml 用于对资源描述XML的解析支持     
 　　├─ convert_utf 用于Unicode编码的相互转换（UTF-8 和 UTF-16）    
