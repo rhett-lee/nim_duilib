@@ -68,11 +68,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef NOUNCRYPT
-        #define NOUNCRYPT
-#endif
+//Support password
+//#ifndef NOUNCRYPT
+//        #define NOUNCRYPT
+//#endif
 
-#include "zlib.h"
+#include "../../zlib.h"
 #include "unzip.h"
 
 #ifdef STDC
