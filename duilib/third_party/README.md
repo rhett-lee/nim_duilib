@@ -12,7 +12,6 @@
 | libwebp     | 2024-05-30 |v1.4.0 |无 |https://github.com/webmproject/libwebp|tag/v1.4.0，config.h文件需要用cmake生成后再更新，使用了src目录下的子目录，覆盖后，删除不必要的文件即可|
 | stb_image   | 2024-05-30 |v2.29  |无 |https://github.com/nothings/stb||
 | svg         | 2024-05-30 |无     |有 |https://github.com/memononen/nanosvg| 代码更新到2023-12-30，修改参见提交记录|
-| unzip       | 2024-05-30 |       |   |||
 | zlib        | 2024-05-30 |v1.3.1 |无 |https://github.com/madler/zlib | |
 | xml         | 2024-05-30 |v1.14  |无 |https://github.com/zeux/pugixml| pugixml|
 | convert_utf | 2024-05-30 |v18.1.6|无 |https://releases.llvm.org      | 下载最新版的源码包，解压后找到这两个文件  |

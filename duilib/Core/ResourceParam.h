@@ -104,7 +104,7 @@ public:
     /** 可选参数：可以设置压缩包的解压密码；如果压缩包无密码，不需要设置
     *   注意事项：需要使用"ZIP legacy encryption"模式的密码，否则无法解压
     */
-    std::string zipPassword;
+    DString zipPassword;
 };
 
 #ifdef DUILIB_PLATFORM_WIN
@@ -133,7 +133,7 @@ public:
     /** 可选参数：可以设置压缩包的解压密码；如果压缩包无密码，不需要设置
     *   注意事项：需要使用"ZIP legacy encryption"模式的密码，否则无法解压
     */
-    std::string zipPassword;
+    DString zipPassword;
 };
 
 #endif

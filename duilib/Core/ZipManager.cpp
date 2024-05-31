@@ -1,14 +1,21 @@
 #include "ZipManager.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/ZipStreamIO.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/PathUtil.h"
-#include "duilib/third_party/unzip/UnZip.h"
+
+#include "duilib/third_party/zlib/zlib.h"
+#include "duilib/third_party/zlib/contrib/minizip/unzip.h"
 
 namespace ui 
 {
+/** 压缩包内的路径，最大长度
+*/
+#define MAX_PATH_LEN (size_t)(1024)
 
 ZipManager::ZipManager():
-    m_hzip(nullptr)
+    m_hzip(nullptr),
+    m_bUtf8(false)
 {
 }
 
@@ -25,125 +32,142 @@ bool ZipManager::IsUseZip() const
 
 #ifdef DUILIB_PLATFORM_WIN
 
-bool ZipManager::OpenResZip(HMODULE hModule, LPCTSTR resourceName, LPCTSTR resourceType, const std::string& password)
+bool ZipManager::OpenResZip(HMODULE hModule, LPCTSTR resourceName, LPCTSTR resourceType, const DString& password)
 {
     HRSRC rsc = ::FindResource(hModule, resourceName, resourceType);
     ASSERT(rsc != nullptr);
     if (rsc == nullptr) {
         return false;
     }
-    HGLOBAL resource = ::LoadResource(NULL, rsc);
-    DWORD size = ::SizeofResource(NULL, rsc);
-    ASSERT((resource != nullptr) && (size > 0));
-    if ((resource == nullptr) || (size == 0)) {
+    uint8_t* pData = (uint8_t*)::LoadResource(NULL, rsc);
+    uint32_t nDataSize = ::SizeofResource(NULL, rsc);
+    ASSERT((pData != nullptr) && (nDataSize > 0));
+    if ((pData == nullptr) || (nDataSize == 0)) {
         return false;
     }
     CloseResZip();
-    m_hzip = OpenZip(resource, size, password.c_str());
+    m_password = password;
+    m_pZipStreamIO = std::make_unique<ZipStreamIO>(pData, nDataSize);
+    zlib_filefunc_def pzlib_filefunc_def;
+    m_pZipStreamIO->FillFopenFileFunc(&pzlib_filefunc_def);
+    m_hzip = ::unzOpen2(nullptr, &pzlib_filefunc_def);
+    InitUtf8();
     return m_hzip != nullptr;
 }
 #endif
 
-bool ZipManager::OpenZipFile(const DString& path, const std::string& password)
+bool ZipManager::OpenZipFile(const DString& path, const DString& password)
 {
     CloseResZip();
-    m_hzip = OpenZip(path.c_str(), password.c_str());
+    m_password = password;
+    std::string filePath;
+#ifdef DUILIB_PLATFORM_WIN
+    StringUtil::UnicodeToMBCS(path, filePath);
+#else
+    filePath = TToUTF8(path);
+#endif
+    m_hzip = ::unzOpen(filePath.c_str());
+    InitUtf8();
     return m_hzip != nullptr;
 }
 
-bool ZipManager::GetZipData(const DString& path, std::vector<unsigned char>& file_data) const
+void ZipManager::InitUtf8()
 {
+    //读取压缩包内文件名编码是否为UTF8格式（只读取第一个文件）
+    m_bUtf8 = false;
+    if (m_hzip != nullptr) {
+        unz_file_info file_info = { 0, };
+        int nRet = ::unzGetCurrentFileInfo(m_hzip, &file_info, nullptr, 0, nullptr, 0, nullptr, 0);
+        if (nRet == UNZ_OK) {
+            m_bUtf8 = file_info.flag & (1 << 11);
+        }
+    }
+}
+
+bool ZipManager::GetZipData(const DString& path, std::vector<unsigned char>& fileData) const
+{
+    fileData.clear();
     GlobalManager::Instance().AssertUIThread();
     ASSERT(m_hzip != nullptr);
     if (m_hzip == nullptr) {
         return false;
     }
-    DString file_path = GetZipFilePath(path);
-    ASSERT(!file_path.empty());
-    if (file_path.empty()) {
+    std::string filePathA = GetZipFilePathA(path, m_bUtf8);
+    ASSERT(!filePathA.empty());
+    if (filePathA.empty()) {
         return false;
     }
 
-    ZIPENTRY ze = { 0 };
-    int i = 0;
-    if (FindZipItem((HZIP)m_hzip, file_path.c_str(), true, &i, &ze) == ZR_OK) {
-        if ((ze.index >= 0) && (ze.unc_size > 0)) {
-            file_data.resize(ze.unc_size);
-            ZRESULT res = UnzipItem((HZIP)m_hzip, ze.index, file_data.data(), ze.unc_size);
-            if (res == ZR_OK) {
-                return true;
-            }
-            else {
-                file_data.clear();
-            }
-        }
+    int nRet = ::unzLocateFile(m_hzip, filePathA.c_str(), 0);
+    if (nRet != UNZ_OK) {
+        return false;
     }
-    return false;
-}
+    size_t fileNameLen = std::max(filePathA.size() + 1, MAX_PATH_LEN);
+    std::vector<char> szFileName;
+    szFileName.resize(fileNameLen, 0);
+    unz_file_info file_info = {0, };
+    nRet = ::unzGetCurrentFileInfo(m_hzip, &file_info, &szFileName[0], (uLong)szFileName.size() - 1, nullptr, 0, nullptr, 0);
+    if (nRet != UNZ_OK) {
+        return false;
+    }
+    if (file_info.uncompressed_size == 0) {
+        return false;
+    }
 
-DString ZipManager::GetZipFilePath(const DString& path) const
-{
-    if (!PathUtil::IsRelativePath(path)) {
-        return _T("");
+    //文件是否加密
+    bool bFileEncrypted = file_info.flag & 1;
+
+    nRet = ::unzStringFileNameCompare(szFileName.data(), filePathA.c_str(), 0);
+    ASSERT(nRet == 0);
+    if (nRet != 0) {
+        return false;
     }
-    DString file_path = path;
-    StringUtil::ReplaceAll(_T("\\"), _T("/"), file_path);
-    StringUtil::ReplaceAll(_T("//"), _T("/"), file_path);
-    for (size_t i = 0; i < file_path.size();)
-    {
-        bool start_node = false;
-        if (i == 0 || file_path.at(i - 1) == _T('/')) {
-            start_node = true;
-        }
-        WCHAR wch = file_path.at(i);
-        if (start_node && wch == _T('/')) {//"//"
-            file_path.erase(i, 1);
-            continue;
-        }
-        if (start_node && wch == _T('.')) {
-            if (i + 1 < file_path.size() && file_path.at(i + 1) == _T('/')) {// "./"
-                file_path.erase(i, 2);
-                continue;
-            }
-            else if (i + 2 < file_path.size() && file_path.at(i + 1) == _T('.') && file_path.at(i + 2) == _T('/')) {// "../"
-                file_path.erase(i, 2);
-                int i_erase = (int)i - 2;
-                if (i_erase < 0){
-                    ASSERT(0);
-                }
-                while (i_erase > 0 && file_path.at(i_erase) != _T('/')) {
-                    i_erase--;
-                }
-                file_path.erase(i_erase, i - i_erase);
-                i = i_erase;
-                continue;
-            }
-        }
-        i++;
+    if (!m_password.empty() && bFileEncrypted) {
+        //密码是本地编码的（ANSI）
+        std::string password;
+#ifdef DUILIB_PLATFORM_WIN
+        StringUtil::UnicodeToMBCS(m_password, password);
+#else
+        password = TToUTF8(m_password);
+#endif
+        nRet = ::unzOpenCurrentFilePassword(m_hzip, password.c_str());
     }
-    return file_path;
+    else {
+        nRet = ::unzOpenCurrentFile(m_hzip);
+    }
+    if (nRet != UNZ_OK) {
+        return false;
+    }
+
+    fileData.resize(file_info.uncompressed_size);
+    nRet = ::unzReadCurrentFile(m_hzip, &fileData[0], (uLong)fileData.size());
+    ::unzCloseCurrentFile(m_hzip);
+    ASSERT(nRet == fileData.size());
+    if (nRet != fileData.size()) {
+        fileData.clear();
+        return false;
+    }
+    return true;
 }
 
 bool ZipManager::IsZipResExist(const DString& path) const
 {
     GlobalManager::Instance().AssertUIThread();
     if ((m_hzip != nullptr) && !path.empty()) {
-        DString file_path = GetZipFilePath(path);
-        if (file_path.empty()) {
+        std::string filePathA = GetZipFilePathA(path, m_bUtf8);
+        ASSERT(!filePathA.empty());
+        if (filePathA.empty()) {
             return false;
         }
-        auto it = m_zipPathCache.find(path);
+        auto it = m_zipPathCache.find(filePathA);
         if (it != m_zipPathCache.end()) {
             return true;
         }
-
-        ZIPENTRY ze = { 0 };
-        int i = 0;
-        bool find = FindZipItem((HZIP)m_hzip, file_path.c_str(), true, &i, &ze) == ZR_OK;
-        if (find) {
-            m_zipPathCache.insert(path);
+        int nRet = ::unzLocateFile(m_hzip, filePathA.c_str(), 0);
+        if (nRet == UNZ_OK) {
+            m_zipPathCache.insert(filePathA);
+            return true;
         }
-        return find;
     }
     return false;
 }
@@ -151,39 +175,124 @@ bool ZipManager::IsZipResExist(const DString& path) const
 void ZipManager::CloseResZip()
 {
     if (m_hzip != nullptr) {
-        CloseZip((HZIP)m_hzip);
+        ::unzClose(m_hzip);
         m_hzip = nullptr;
     }
     m_zipPathCache.clear();
+    m_bUtf8 = false;
+    m_pZipStreamIO.reset();
 }
 
 bool ZipManager::GetZipFileList(const DString& path, std::vector<DString>& fileList) const
 {
+    fileList.clear();
     GlobalManager::Instance().AssertUIThread();
-    if ((m_hzip != nullptr) && !path.empty()) {
-        DString innerPath = GetZipFilePath(path);
-        if (innerPath.empty()) {
+    DString filePath = path;
+    if (!filePath.empty() &&
+        (filePath[filePath.size() - 1] != _T('\\')) &&
+        (filePath[filePath.size() - 1] != _T('/'))) {
+        filePath += _T("/");
+    }
+    DString innerPath = GetZipFilePath(filePath);
+    if (innerPath.empty() || (m_hzip == nullptr)) {
+        return false;
+    }
+    int nRet = ::unzGoToFirstFile(m_hzip);
+    if (nRet != UNZ_OK) {
+        return false;
+    }
+    DString fileName;
+    while (nRet == UNZ_OK) {
+        size_t fileNameLen = MAX_PATH_LEN;
+        std::vector<char> szFileName;
+        szFileName.resize(fileNameLen, 0);
+        unz_file_info file_info = { 0, };
+        nRet = ::unzGetCurrentFileInfo(m_hzip, &file_info, &szFileName[0], (uLong)szFileName.size() - 1, nullptr, 0, nullptr, 0);
+        if (nRet != UNZ_OK) {
             return false;
         }
-        ZIPENTRY ze = {0, };
-        if (GetZipItem((HZIP)m_hzip, -1, &ze) != ZR_OK) {
-            ze.index = 0;
+
+        //文件名的编码是否为UTF8格式
+        bool bUtf8 = file_info.flag & (1 << 11);
+        fileName = GetZipFilePath(szFileName.data(), bUtf8);
+
+        // zip has an 'attribute' 32bit value. Its lower half is windows stuff
+        // its upper half is standard unix stat.st_mode. We'll start trying
+        // to read it in unix mode
+
+        //文件名是否是目录
+        bool bDir = (file_info.external_fa & 0x40000000) != 0;
+        // but in normal hostmodes these are overridden by the lower half...
+        int host = file_info.version >> 8;
+        if (host == 0 || host == 7 || host == 11 || host == 14) {
+            //0 - FAT filesystem (MS-DOS, OS/2, NT/Win32)
+            //7 - Macintosh
+            //11 - NTFS filesystem (NT)
+            //14 - VFAT
+            bDir = (file_info.external_fa & 0x00000010) != 0;
         }
-        DString fileName;
-        int32_t numitems = ze.index;
-        for (int32_t i = 0; i < numitems; i++) {
-            if (GetZipItem((HZIP)m_hzip, i, &ze) != ZR_OK) {
-                break;
-            }
-            fileName = ze.name;
+        if (!bDir) {
             size_t nPos = fileName.find(innerPath);
             if ((nPos == 0) && (fileName.size() > innerPath.size())) {
-                fileList.push_back(fileName.substr(innerPath.size()));
+                fileName = fileName.substr(innerPath.size());
+                if (fileName.find(_T('/')) == DString::npos) {
+                    fileList.push_back(fileName);
+                }
             }
         }
-        return true;
+
+        //跳到下一个文件
+        nRet = ::unzGoToNextFile(m_hzip);
     }
-    return false;
+    return true;
+}
+
+
+DString ZipManager::GetZipFilePath(const DString& path) const
+{
+    if (path.empty() || !PathUtil::IsRelativePath(path)) {
+        return _T("");
+    }
+    DString filePath;
+    if ((path[path.size() - 1] == _T('\\')) || (path[path.size() - 1] == _T('/'))) {
+        filePath = PathUtil::NormalizeDirPath(path);
+    }
+    else {
+        filePath = PathUtil::NormalizeFilePath(path);
+    }
+    StringUtil::ReplaceAll(_T("\\"), _T("/"), filePath);
+    StringUtil::ReplaceAll(_T("//"), _T("/"), filePath);
+    return filePath;
+}
+
+std::string ZipManager::GetZipFilePathA(const DString& path, bool bUtf8) const
+{
+    DString filePath = GetZipFilePath(path);
+    ASSERT(!filePath.empty());
+    if (filePath.empty()) {
+        return std::string();
+    }
+    std::string filePathA;
+#ifdef DUILIB_PLATFORM_WIN
+    StringUtil::UnicodeToMBCS(filePath, filePathA, bUtf8 ? CP_UTF8 : CP_ACP);
+#else
+    filePathA = TToUTF8(filePath);
+#endif
+    return filePathA;
+}
+
+DString ZipManager::GetZipFilePath(const char* szInZipFilePath, bool bUtf8) const
+{
+    DString filePath;
+    if (szInZipFilePath == nullptr) {
+        return filePath;
+    }
+#ifdef DUILIB_PLATFORM_WIN
+    StringUtil::MBCSToUnicode(szInZipFilePath, filePath, bUtf8 ? CP_UTF8 : CP_ACP);
+#else
+    filePath = UTF8ToT(szInZipFilePath);
+#endif
+    return filePath;
 }
 
 }
