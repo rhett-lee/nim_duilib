@@ -207,7 +207,7 @@ typedef struct tagCxImageInfo {
     int32_t    xDPI;                ///< horizontal resolution
     int32_t    yDPI;                ///< vertical resolution
     RECT    rSelectionBox;        ///< bounding rectangle
-    uint8_t    nAlphaMax;            ///< max opacity (fade)
+    uint8_t    nAlphaMax;            ///< std::max opacity (fade)
     bool    bAlphaPaletteEnabled; ///< true if alpha values in the palette are enabled.
     bool    bEnabled;            ///< enables the painting functions
     int32_t    xOffset;

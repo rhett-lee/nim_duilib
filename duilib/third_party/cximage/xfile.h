@@ -41,10 +41,7 @@
 #if !defined(__xfile_h)
 #define __xfile_h
 
-#if defined (WIN32) || defined (_WIN32_WCE)
- #include <windows.h>
-#endif
-
+#include "../../duilib_config.h"
 #include <stdio.h>
 #include <stdlib.h>
 

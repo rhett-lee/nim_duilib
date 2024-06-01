@@ -398,8 +398,8 @@ void CxImage::RGBtoBGR(uint8_t *buffer, int32_t length)
 {
     if (buffer && (head.biClrUsed==0)){
         uint8_t temp;
-        length = min(length,(int32_t)info.dwEffWidth);
-        length = min(length,(int32_t)(3*head.biWidth));
+        length = std::min(length,(int32_t)info.dwEffWidth);
+        length = std::min(length,(int32_t)(3*head.biWidth));
         for (int32_t i=0;i<length;i+=3){
             temp = buffer[i]; buffer[i] = buffer[i+2]; buffer[i+2] = temp;
         }
@@ -444,7 +444,7 @@ void CxImage::SetPalette(uint32_t n, uint8_t *r, uint8_t *g, uint8_t *b)
     if (!g) g = r;
     if (!b) b = g;
     RGBQUAD* ppal=GetPalette();
-    uint32_t m=min(n,head.biClrUsed);
+    uint32_t m=std::min(n, (uint32_t)head.biClrUsed);
     for (uint32_t i=0; i<m;i++){
         ppal[i].rgbRed=r[i];
         ppal[i].rgbGreen=g[i];
@@ -457,7 +457,7 @@ void CxImage::SetPalette(rgb_color *rgb,uint32_t nColors)
 {
     if ((!rgb)||(pDib==NULL)||(head.biClrUsed==0)) return;
     RGBQUAD* ppal=GetPalette();
-    uint32_t m=min(nColors,head.biClrUsed);
+    uint32_t m=std::min(nColors, (uint32_t)head.biClrUsed);
     for (uint32_t i=0; i<m;i++){
         ppal[i].rgbRed=rgb[i].r;
         ppal[i].rgbGreen=rgb[i].g;
@@ -469,7 +469,7 @@ void CxImage::SetPalette(rgb_color *rgb,uint32_t nColors)
 void CxImage::SetPalette(RGBQUAD* pPal,uint32_t nColors)
 {
     if ((pPal==NULL)||(pDib==NULL)||(head.biClrUsed==0)) return;
-    memcpy(GetPalette(),pPal,min(GetPaletteSize(),nColors*sizeof(RGBQUAD)));
+    memcpy(GetPalette(),pPal,std::min(GetPaletteSize(), (uint32_t)(nColors*sizeof(RGBQUAD))));
     info.last_c_isvalid = false;
 }
 ////////////////////////////////////////////////////////////////////////////////
@@ -654,10 +654,10 @@ void CxImage::SetClrImportant(uint32_t ncolors)
 
     switch(head.biBitCount){
     case 1:
-        head.biClrImportant = min(ncolors,2);
+        head.biClrImportant = std::min(ncolors, (uint32_t)2);
         break;
     case 4:
-        head.biClrImportant = min(ncolors,16);
+        head.biClrImportant = std::min(ncolors, (uint32_t)16);
         break;
     case 8:
         head.biClrImportant = ncolors;
@@ -778,10 +778,10 @@ bool CxImage::SetRectColor(int32_t left, int32_t top, int32_t right, int32_t bot
 {
     if (!pDib) return false;
 
-    int32_t startx = max(0L,min(left,head.biWidth));
-    int32_t endx = max(0L,min(right,head.biWidth));
-    int32_t starty = head.biHeight - max(0L,min(top,head.biHeight));
-    int32_t endy = head.biHeight - max(0L,min(bottom,head.biHeight));
+    int32_t startx = std::max(0, std::min(left, (int32_t)head.biWidth));
+    int32_t endx = std::max(0, std::min(right, (int32_t)head.biWidth));
+    int32_t starty = head.biHeight - std::max(0, std::min(top, (int32_t)head.biHeight));
+    int32_t endy = head.biHeight - std::max(0,std::min(bottom, (int32_t)head.biHeight));
 
     if (startx==endx || starty==endy) return true;
 

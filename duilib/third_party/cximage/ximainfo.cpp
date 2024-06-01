@@ -5,7 +5,7 @@
 
 #include "ximage.h"
 
-#if defined(_LINUX) || defined(__APPLE__)
+#if defined(linux) || defined(__linux) || defined(__linux__)
  #define _tcsnicmp(a,b,c) strcasecmp(a,b)
 #endif
 
@@ -301,6 +301,7 @@ uint32_t CxImage::GetNumTypes()
 {
     return CMAX_IMAGE_FORMATS-1;
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 uint32_t CxImage::GetTypeIdFromName(const TCHAR* ext)
 {
