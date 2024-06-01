@@ -8,7 +8,11 @@ bool FileUtil::ReadFileData(const DString& filePath, std::vector<uint8_t>& fileD
 {
     bool isReadOk = false;
     FILE* f = nullptr;
+#ifdef DUILIB_UNICODE
     errno_t ret = ::_wfopen_s(&f, filePath.c_str(), _T("rb"));
+#else
+    f = ::fopen(filePath.c_str(), _T("rb"));
+#endif
     if ((ret == 0) && (f != nullptr)) {
         isReadOk = true;
         ::fseek(f, 0, SEEK_END);

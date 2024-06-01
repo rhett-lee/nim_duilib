@@ -14,7 +14,7 @@
 
 /** 64位操作系统标识
 */
-#if defined(_M_X64) || defined(_M_AMD64) || defined(__x86_64__) 
+#if defined(_M_X64) || defined(_M_AMD64) || defined(_WIN64) || defined(__x86_64__) 
     #define DUILIB_BIT_64   1
 #endif
 
@@ -43,15 +43,17 @@
     #ifndef ASSERT
         #define ASSERT(expr)  _ASSERTE(expr)
     #endif
+
 #elif defined  DUILIB_PLATFORM_LINUX
+    #include "duilib_config_linux.h"
     #include <cassert>
 
-    #define UILIB_API
     #ifdef _DEBUG
         #define ASSERT(expr)  assert(expr)
     #else
         #define ASSERT(expr)  ((void)(0))
     #endif
+
 #endif
 
 //字符串类

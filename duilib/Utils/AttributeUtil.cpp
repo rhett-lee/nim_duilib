@@ -8,22 +8,44 @@ namespace ui
 
 void AttributeUtil::SkipSepChar(wchar_t*& pPtr)
 {
-    if ((pPtr != nullptr) && (*pPtr != _T('\0'))) {
+    if ((pPtr != nullptr) && (*pPtr != L'\0')) {
         //跳过分隔字符，但避免跳过尾0，防止字符串越界
-        pPtr++;
+        ++pPtr;
+    }
+}
+
+void AttributeUtil::SkipSepChar(char*& pPtr)
+{
+    if ((pPtr != nullptr) && (*pPtr != '\0')) {
+        //跳过分隔字符，但避免跳过尾0，防止字符串越界
+        ++pPtr;
     }
 }
 
 void AttributeUtil::ParseSizeValue(const wchar_t* strValue, UiSize& size)
 {
     size.Clear();
-    if ((strValue == nullptr) || (*strValue == _T('\0'))) {
+    if ((strValue == nullptr) || (*strValue == L'\0')) {
         return;
     }
     wchar_t* pstr = nullptr;
     int32_t cx = wcstol(strValue, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
     int32_t cy = wcstol(pstr, &pstr, 10);
+    size.cx = cx;
+    size.cy = cy;
+}
+
+void AttributeUtil::ParseSizeValue(const char* strValue, UiSize& size)
+{
+    size.Clear();
+    if ((strValue == nullptr) || (*strValue == '\0')) {
+        return;
+    }
+    char* pstr = nullptr;
+    int32_t cx = strtol(strValue, &pstr, 10); ASSERT(pstr);
+    SkipSepChar(pstr);
+    int32_t cy = strtol(pstr, &pstr, 10);
     size.cx = cx;
     size.cy = cy;
 }
@@ -36,10 +58,18 @@ void AttributeUtil::ParsePointValue(const wchar_t* strValue, UiPoint& pt)
     pt.y = size.cy;
 }
 
+void AttributeUtil::ParsePointValue(const char* strValue, UiPoint& pt)
+{
+    UiSize size;
+    AttributeUtil::ParseSizeValue(strValue, size);
+    pt.x = size.cx;
+    pt.y = size.cy;
+}
+
 void AttributeUtil::ParsePaddingValue(const wchar_t* strValue, UiPadding& padding)
 {
     padding.Clear();
-    if ((strValue == nullptr) || (*strValue == _T('\0'))) {
+    if ((strValue == nullptr) || (*strValue == L'\0')) {
         return;
     }
     wchar_t* pstr = nullptr;
@@ -54,10 +84,28 @@ void AttributeUtil::ParsePaddingValue(const wchar_t* strValue, UiPadding& paddin
     padding.Validate();
 }
 
+void AttributeUtil::ParsePaddingValue(const char* strValue, UiPadding& padding)
+{
+    padding.Clear();
+    if ((strValue == nullptr) || (*strValue == '\0')) {
+        return;
+    }
+    char* pstr = nullptr;
+    padding.left = strtol(strValue, &pstr, 10); ASSERT(pstr);
+    SkipSepChar(pstr);
+    padding.top = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    SkipSepChar(pstr);
+    padding.right = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    SkipSepChar(pstr);
+    padding.bottom = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    ASSERT((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0));
+    padding.Validate();
+}
+
 void AttributeUtil::ParseMarginValue(const wchar_t* strValue, UiMargin& margin)
 {
     margin.Clear();
-    if ((strValue == nullptr) || (*strValue == _T('\0'))) {
+    if ((strValue == nullptr) || (*strValue == L'\0')) {
         return;
     }
     wchar_t* pstr = nullptr;
@@ -72,10 +120,28 @@ void AttributeUtil::ParseMarginValue(const wchar_t* strValue, UiMargin& margin)
     margin.Validate();
 }
 
+void AttributeUtil::ParseMarginValue(const char* strValue, UiMargin& margin)
+{
+    margin.Clear();
+    if ((strValue == nullptr) || (*strValue == '\0')) {
+        return;
+    }
+    char* pstr = nullptr;
+    margin.left = strtol(strValue, &pstr, 10); ASSERT(pstr);
+    SkipSepChar(pstr);
+    margin.top = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    SkipSepChar(pstr);
+    margin.right = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    SkipSepChar(pstr);
+    margin.bottom = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    ASSERT((margin.left >= 0) && (margin.top >= 0) && (margin.right >= 0) && (margin.bottom >= 0));
+    margin.Validate();
+}
+
 void AttributeUtil::ParseRectValue(const wchar_t* strValue, UiRect& rect)
 {
     rect.Clear();
-    if ((strValue == nullptr) || (*strValue == _T('\0'))) {
+    if ((strValue == nullptr) || (*strValue == L'\0')) {
         return;
     }
     wchar_t* pstr = nullptr;
@@ -89,22 +155,37 @@ void AttributeUtil::ParseRectValue(const wchar_t* strValue, UiRect& rect)
     ASSERT((rect.Width() >= 0) && (rect.Height() >= 0));
 }
 
+void AttributeUtil::ParseRectValue(const char* strValue, UiRect& rect)
+{
+    rect.Clear();
+    if ((strValue == nullptr) || (*strValue == '\0')) {
+        return;
+    }
+    char* pstr = nullptr;
+    rect.left = strtol(strValue, &pstr, 10); ASSERT(pstr);
+    SkipSepChar(pstr);
+    rect.top = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    SkipSepChar(pstr);
+    rect.right = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    SkipSepChar(pstr);
+    rect.bottom = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    ASSERT((rect.Width() >= 0) && (rect.Height() >= 0));
+}
+
 void AttributeUtil::ParseAttributeList(const DString& strList,
-                                       wchar_t seperateChar,
+                                       DString::value_type seperateChar,
                                        std::vector<std::pair<DString, DString>>& attributeList)
 {
+    //示例：normal_image="file='../public/button/window-minimize.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"
     DString sName;
     DString sValue;
-    const wchar_t* pstrList = strList.c_str();
+    const DString::value_type* pstrList = strList.c_str();
     while (*pstrList != _T('\0')) {
         sName.clear();
         sValue.clear();
         //读取等号前面的内容，作为Name
         while (*pstrList != _T('\0') && *pstrList != _T('=')) {
-            const wchar_t* pstrTemp = ::CharNext(pstrList);
-            while (pstrList < pstrTemp) {
-                sName += *pstrList++;
-            }
+            sName += *pstrList++;
         }
         //当前字符应该是个等号
         ASSERT(*pstrList == _T('='));
@@ -121,10 +202,7 @@ void AttributeUtil::ParseAttributeList(const DString& strList,
         //跳到第一个分隔字符后面的字符，读取属性值
         pstrList++;
         while (*pstrList != _T('\0') && *pstrList != seperateChar) {
-            LPTSTR pstrTemp = ::CharNext(pstrList);
-            while (pstrList < pstrTemp) {
-                sValue += *pstrList++;
-            }
+            sValue += *pstrList++;
         }
         ASSERT(*pstrList == seperateChar);
         if (*pstrList != seperateChar) {
@@ -149,7 +227,7 @@ void AttributeUtil::ParseAttributeList(const DString& strList,
 std::tuple<int32_t, float> AttributeUtil::ParseString(const wchar_t* strValue, wchar_t** pEndPtr)
 {
     wchar_t* pstr = nullptr;
-    if ((strValue == nullptr) || (*strValue == _T('\0'))) {
+    if ((strValue == nullptr) || (*strValue == L'\0')) {
         if (pEndPtr != nullptr) {
             *pEndPtr = pstr;
         }
@@ -158,7 +236,7 @@ std::tuple<int32_t, float> AttributeUtil::ParseString(const wchar_t* strValue, w
     int32_t xValue = 0;
     float xPercent = wcstof(strValue, &pstr);
     ASSERT(pstr != nullptr);
-    if ((pstr != nullptr) && (*pstr == _T('%'))) {
+    if ((pstr != nullptr) && (*pstr == L'%')) {
         //该值是百分比，跳过'%'字符
         pstr++;
     }
@@ -174,7 +252,35 @@ std::tuple<int32_t, float> AttributeUtil::ParseString(const wchar_t* strValue, w
     return std::tuple<int32_t, float>(xValue, xPercent);
 }
 
-void AttributeUtil::ParseWindowSize(Window* pWindow, const wchar_t* strValue, UiSize& size)
+std::tuple<int32_t, float> AttributeUtil::ParseString(const char* strValue, char** pEndPtr)
+{
+    char* pstr = nullptr;
+    if ((strValue == nullptr) || (*strValue == '\0')) {
+        if (pEndPtr != nullptr) {
+            *pEndPtr = pstr;
+        }
+        return std::tuple<int32_t, float>(0, 0.0f);
+    }
+    int32_t xValue = 0;
+    float xPercent = strtof(strValue, &pstr);
+    ASSERT(pstr != nullptr);
+    if ((pstr != nullptr) && (*pstr == '%')) {
+        //该值是百分比，跳过'%'字符
+        pstr++;
+    }
+    else {
+        //不是百分比, 而是整型值
+        xPercent = 0.0f;
+        xValue = strtol(strValue, &pstr, 10);
+        ASSERT(pstr != nullptr);
+    }
+    if (pEndPtr != nullptr) {
+        *pEndPtr = pstr;
+    }
+    return std::tuple<int32_t, float>(xValue, xPercent);
+}
+
+void AttributeUtil::ParseWindowSize(Window* pWindow, const DString::value_type* strValue, UiSize& size)
 {
     //支持的格式：size="1200,800",或者size="50%,50%",或者size="1200,50%",size="50%,800"
     //百分比是指屏幕宽度或者高度的百分比
@@ -184,7 +290,7 @@ void AttributeUtil::ParseWindowSize(Window* pWindow, const wchar_t* strValue, Ui
     }
     UiRect rcWork;
     pWindow->GetMonitorWorkRect(rcWork);
-    wchar_t* pstr = nullptr;
+    DString::value_type* pstr = nullptr;
     std::tuple<int32_t, float> x = ParseString(strValue, &pstr);
     AttributeUtil::SkipSepChar(pstr);
     std::tuple<int32_t, float> y = ParseString(pstr, &pstr);

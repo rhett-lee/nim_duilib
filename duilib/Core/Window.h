@@ -38,6 +38,12 @@ public:
     virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
 };
 
+#define UI_WNDSTYLE_FRAME       (WS_VISIBLE | WS_OVERLAPPEDWINDOW)
+#define UI_WNDSTYLE_DIALOG      (WS_VISIBLE | WS_POPUPWINDOW | WS_CAPTION | WS_DLGFRAME | WS_CLIPSIBLINGS | WS_CLIPCHILDREN)
+
+#define UI_CLASSSTYLE_FRAME     (CS_VREDRAW | CS_HREDRAW)
+#define UI_CLASSSTYLE_DIALOG    (CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS | CS_SAVEBITS)
+
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
@@ -252,6 +258,14 @@ public:
     /** 更新窗口，执行重绘 
     */
     bool UpdateWindow() const;
+
+    /** 窗口是否为最大化状态
+    */
+    bool IsZoomed() const;
+
+    /** 窗口是否为最小花状态
+    */
+    bool IsIconic() const;
 
 public:
     /** 获取窗口位置信息

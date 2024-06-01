@@ -8,13 +8,6 @@
 
 namespace ui
 {
-
-#define UI_WNDSTYLE_FRAME        (WS_VISIBLE | WS_OVERLAPPEDWINDOW)
-#define UI_WNDSTYLE_DIALOG        (WS_VISIBLE | WS_POPUPWINDOW | WS_CAPTION | WS_DLGFRAME | WS_CLIPSIBLINGS | WS_CLIPCHILDREN)
-
-#define UI_CLASSSTYLE_FRAME        (CS_VREDRAW | CS_HREDRAW)
-#define UI_CLASSSTYLE_DIALOG    (CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS | CS_SAVEBITS)
-
 /** 实现一个带有标题栏的窗体，带有最大化、最小化、还原按钮的支持
 * 该实现支持窗口阴影，单仅提供带有 WS_EX_LAYERED 属性窗口阴影。
 * 该类实现，封装了2种窗口模式：

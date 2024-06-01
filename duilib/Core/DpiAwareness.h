@@ -27,14 +27,14 @@ enum class UILIB_API DpiAwarenessMode
     /** 每显示器
      *  引入的Windows版本：8.1
      *  应用程序的 DPI 视图：应用程序窗口主要位于的显示器的 DPI
-     *    DPI 更改时的行为：通知顶级 HWND DPI 更改，没有任何 UI 元素的 DPI 缩放。
+     *    DPI 更改时的行为：通知顶级窗口 DPI 更改，没有任何 UI 元素的 DPI 缩放。
      */
     kPerMonitorDpiAware = 2,
 
     /** 每显示器 V2
      *  引入的Windows版本：Windows 10 创意者更新 (1703)
      *  应用程序的 DPI 视图：应用程序窗口主要位于的显示器的 DPI
-     *    DPI 更改时的行为：通知顶级 HWND DPI 更改，自动 DPI 缩放：非工作区、常用控件中的主题绘制位图 (comctl32 V6)、对话框 (CreateDialog)。
+     *    DPI 更改时的行为：通知顶级窗口 DPI 更改，自动 DPI 缩放：非工作区、常用控件中的主题绘制位图 (comctl32 V6)、对话框 (CreateDialog)。
      */
     kPerMonitorDpiAware_V2 = 3
 };

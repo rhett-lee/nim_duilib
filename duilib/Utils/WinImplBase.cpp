@@ -140,6 +140,7 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
 LRESULT WindowImplBase::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+#ifdef DUILIB_PLATFORM_WIN
     bHandled = true;
     if (wParam == SC_CLOSE) {
         //立即关闭窗口
@@ -147,16 +148,18 @@ LRESULT WindowImplBase::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
         return 0;
     }
     //首先调用默认的窗口函数，使得命令生效
-    BOOL bZoomed = ::IsZoomed(GetHWND());
+    bool bZoomed = IsZoomed();
     LRESULT lRes = this->CallDefaultWindowProc(uMsg, wParam, lParam);
-    if (::IsZoomed(GetHWND()) != bZoomed) {
+    if (IsZoomed() != bZoomed) {
         if (wParam == 0xF012) {
             //修复窗口最大化和还原按钮的状态（当在最大化时，向下拖动标题栏，窗口会改变为非最大化状态）
             ProcessMaxRestoreStatus();
         }
     }
-
     return lRes;
+#else
+    return 0;
+#endif
 }
 
 bool WindowImplBase::OnButtonClick(const EventArgs& msg)

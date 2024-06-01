@@ -15,14 +15,17 @@ public:
     /** 配置字符串解析：跳过一个分隔符
     */
     static void SkipSepChar(wchar_t*& pPtr);
+    static void SkipSepChar(char*& pPtr);
 
     /** 从配置中解析一个Size结构，输入格式如："800,500"
     */
     static void ParseSizeValue(const wchar_t* strValue, UiSize& size);
+    static void ParseSizeValue(const char* strValue, UiSize& size);
 
     /** 从配置中解析一个Point结构，输入格式如："800,500"
     */
     static void ParsePointValue(const wchar_t* strValue, UiPoint& size);
+    static void ParsePointValue(const char* strValue, UiPoint& size);
 
     /** 从配置中解析一个Rect结构，输入格式如："80,50,60,70"
     */
@@ -30,13 +33,17 @@ public:
     static void ParsePaddingValue(const wchar_t* strValue, UiPadding& padding);
     static void ParseMarginValue(const wchar_t* strValue, UiMargin& margin);
 
+    static void ParseRectValue(const char* strValue, UiRect& rect);
+    static void ParsePaddingValue(const char* strValue, UiPadding& padding);
+    static void ParseMarginValue(const char* strValue, UiMargin& margin);
+
     /** 解析属性列表，格式如    : font="system_bold_14" normaltextcolor="white" bkcolor="red"
     *                 或者    : color='black' offset='1,1' blur_radius='2' spread_radius='2'
     *   分隔符可以是双引号或者单引号，由参数传入
     * @param [in] seperateChar 字符串分隔符，可以是 _T('\"') 或者 _T('\')'
     */
     static void ParseAttributeList(const DString& strList,
-                                   wchar_t seperateChar,
+                                   DString::value_type seperateChar,
                                    std::vector<std::pair<DString, DString>>& attributeList);
 
     /** 解析一个字符串（格式为："500,"或者"50%,"，逗号可有可无，也可以是其他字符），得到整型值或者浮点数
@@ -45,10 +52,11 @@ public:
     * @return 返回整型值或者百分比，返回值中，0 或者 0.0f 表示无效值
     */
     static std::tuple<int32_t, float> ParseString(const wchar_t* strValue, wchar_t** pEndPtr);
+    static std::tuple<int32_t, float> ParseString(const char* strValue, char** pEndPtr);
 
     /** 获取配置中的窗口大小
     */
-    static void ParseWindowSize(Window* pWindow, const wchar_t* strValue, UiSize& size);
+    static void ParseWindowSize(Window* pWindow, const DString::value_type* strValue, UiSize& size);
 };
 
 } //namespace ui

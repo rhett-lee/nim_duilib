@@ -459,6 +459,16 @@ bool Window::UpdateWindow() const
     return bRet;
 }
 
+bool Window::IsZoomed() const
+{
+    return ::IsZoomed(GetHWND()) != FALSE;
+}
+
+bool Window::IsIconic() const
+{
+    return ::IsIconic(GetHWND()) != FALSE;
+}
+
 void Window::SetIcon(UINT nRes)
 {
     ASSERT(::IsWindow(m_hWnd));
