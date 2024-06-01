@@ -58,25 +58,18 @@
  #define CXIMAGE_SUPPORT_WINDOWS 0
 #endif
 
-#ifndef min
-#define min(a,b) (((a)<(b))?(a):(b))
-#endif
-#ifndef max
-#define max(a,b) (((a)>(b))?(a):(b))
-#endif
-
 #ifndef PI
  #define PI 3.141592653589793f
 #endif
 
-
+#include "../../duilib_config.h"
 #if defined(WIN32) || defined(_WIN32_WCE)
-#include <windows.h>
-#include <tchar.h>
+    #include <tchar.h>
 #endif
 
 #include <stdio.h>
 #include <math.h>
+#include <algorithm>
 
 #ifdef __BORLANDC__
 
@@ -121,7 +114,6 @@ typedef void*      HRGN;
 
 #ifndef TCHAR
 #define TCHAR char
-#define _T
 #endif
 
 typedef struct tagRECT
