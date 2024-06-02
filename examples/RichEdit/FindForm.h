@@ -30,7 +30,7 @@ public:
     /**
      * 标识窗口 class name
      */
-    static const LPCTSTR kClassName;
+    static const DString kClassName;
 
 private:
     //查找下一个

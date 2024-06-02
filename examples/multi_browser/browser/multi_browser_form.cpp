@@ -22,7 +22,7 @@ namespace
     };
 }
 
-const LPCTSTR MultiBrowserForm::kClassName = _T("MultiBrowserForm");
+const DString MultiBrowserForm::kClassName = _T("MultiBrowserForm");
 
 MultiBrowserForm::MultiBrowserForm()
 {

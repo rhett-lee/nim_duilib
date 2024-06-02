@@ -74,7 +74,7 @@ private:
     */
     void SetDragImage(HBITMAP bitmap);
 public:
-    static const LPCTSTR kClassName;
+    static const DString kClassName;
 
 private:
     static HHOOK    s_mouse_hook;

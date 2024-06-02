@@ -2706,12 +2706,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
     }
     
     DString skinFolder = _T("public/menu/");
-    HWND hParent = nullptr;
-    Window* pWindow = GetWindow();
-    if (pWindow != nullptr) {
-        hParent = pWindow->GetHWND();
-    }    
-    Menu* menu = new Menu(hParent);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+    Menu* menu = new Menu(GetWindow());//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
     menu->SetSkinFolder(skinFolder);
     DString xml(_T("rich_edit_menu.xml"));
 

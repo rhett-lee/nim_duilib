@@ -35,7 +35,7 @@ void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
     }
     m_pOwner = pOwner;
     m_bIsClosed = false;
-    CreateWnd(pOwner->GetWindow()->GetHWND(), _T(""), WS_POPUP, WS_EX_TOOLWINDOW);
+    CreateWnd(pOwner->GetWindow(), _T(""), WS_POPUP, WS_EX_TOOLWINDOW);
     UpdateComboWnd();
 
     HWND hWndParent = GetHWND();

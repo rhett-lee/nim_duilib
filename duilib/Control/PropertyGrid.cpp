@@ -1773,9 +1773,9 @@ void PropertyGridColorProperty::ShowColorPicker()
     DString oldTextColor = pColorLabel->GetBkColor(); //原来的颜色
 
     ColorPicker* pColorPicker = new ColorPicker;
-    pColorPicker->CreateWnd(pWindow->GetHWND(), ColorPicker::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    pColorPicker->CreateWnd(pWindow, ColorPicker::kClassName, UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
     pColorPicker->CenterWindow();
-    pColorPicker->ShowModalFake(pWindow->GetHWND());
+    pColorPicker->ShowModalFake();
 
     if (!oldTextColor.empty() && (pColorPicker != nullptr)) {
         pColorPicker->SetSelectedColor(GetUiColor(oldTextColor));

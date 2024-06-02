@@ -39,13 +39,13 @@ bool Menu::Receive(ContextMenuParam param)
         break;
         case MenuCloseType::eMenuCloseThis:
         {
-            HWND hParent = GetParent(GetHWND());
-            while (hParent != NULL) {
-                if (hParent == param.hWnd) {
+            Window* pParentWindow = GetParentWindow();
+            while (pParentWindow != NULL) {
+                if (pParentWindow == param.pWindow) {
                     CloseMenu();
                     break;
                 }
-                hParent = GetParent(hParent);
+                pParentWindow = pParentWindow->GetParentWindow();
             }
         }
         break;
@@ -56,8 +56,8 @@ bool Menu::Receive(ContextMenuParam param)
     return true;
 }
 
-Menu::Menu(HWND hParent) :
-    m_hParent(hParent),
+Menu::Menu(Window* pParentWindow) :
+    m_pParentWindow(pParentWindow),
     m_menuPoint({ 0, 0 }),
     m_popupPosType(MenuPopupPosType::RIGHT_TOP),
     m_noFocus(false),
@@ -91,20 +91,22 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
 
     Menu::GetMenuObserver().AddReceiver(this);
 
-    CreateWnd(m_hParent, _T("DUILIB_MENU_WINDOW"), WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_LAYERED);
-    // HACK: Don't deselect the parent's caption
-    HWND hWndParent = GetHWND();
-    while (::GetParent(hWndParent) != NULL) {
-        hWndParent = ::GetParent(hWndParent);
-    }
-    ::ShowWindow(GetHWND(), noFocus ? SW_SHOWNOACTIVATE : SW_SHOW);
+    CreateWnd(m_pParentWindow, _T("DUILIB_MENU_WINDOW"), WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_LAYERED);
+    ShowWindow(true, !noFocus);
     if (m_pOwner) {
         ResizeSubMenu();
     }
     else {
         ResizeMenu();
     }
+#ifdef DUILIB_PLATFORM_WIN
+    // HACK: Don't deselect the parent's caption
+    HWND hWndParent = GetHWND();
+    while (::GetParent(hWndParent) != NULL) {
+        hWndParent = ::GetParent(hWndParent);
+    }
     ::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
+#endif
     //修正菜单项的宽度，保持一致
     UpdateWindow();
     if (m_pLayout != nullptr) {
@@ -138,7 +140,7 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
 void Menu::CloseMenu()
 {
     //立即关闭，避免连续操作时相互干扰
-    PostMsg(WM_CLOSE);
+    CloseWnd(0);
 }
 
 void Menu::DetachOwner()
@@ -196,7 +198,7 @@ LRESULT Menu::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
 
             bool bInMenuWindowList = false;
             ContextMenuParam param;
-            param.hWnd = GetHWND();
+            param.pWindow = this;
 
             ContextMenuObserver::Iterator<bool, ContextMenuParam> iterator(GetMenuObserver());
             ReceiverImplBase<bool, ContextMenuParam>* pReceiver = iterator.next();
@@ -238,7 +240,7 @@ LRESULT Menu::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
                 if (pItem != nullptr) {
                     if (!pItem->CheckSubMenuItem()) {
                         ContextMenuParam param;
-                        param.hWnd = GetHWND();
+                        param.pWindow = this;
                         param.wParam = MenuCloseType::eMenuCloseAll;
                         Menu::GetMenuObserver().RBroadcast(param);
                     }
@@ -814,7 +816,7 @@ bool MenuItem::ButtonUp(const ui::EventArgs& msg)
         //这里处理下如果有子菜单则显示子菜单
         if (!CheckSubMenuItem()){
             ContextMenuParam param;
-            param.hWnd = pWindow->GetHWND();
+            param.pWindow = pWindow;
             param.wParam = MenuCloseType::eMenuCloseAll;
             Menu::GetMenuObserver().RBroadcast(param);
         }
@@ -835,7 +837,7 @@ bool MenuItem::MouseEnter(const ui::EventArgs& msg)
         //这里处理下如果有子菜单则显示子菜单
         if (!CheckSubMenuItem()) {
             ContextMenuParam param;
-            param.hWnd = pWindow->GetHWND();
+            param.pWindow = pWindow;
             param.wParam = MenuCloseType::eMenuCloseThis;
             Menu::GetMenuObserver().RBroadcast(param);
             //这里得把之前选中的置为未选中
@@ -906,14 +908,10 @@ void MenuItem::CreateMenuWnd()
         return;
     }
 
-    HWND hWnd = nullptr;
     Window* pWindow = GetWindow();
-    if (pWindow != nullptr) {
-        hWnd = pWindow->GetHWND();
-    }
-    m_pSubWindow = new Menu(hWnd);
+    m_pSubWindow = new Menu(pWindow);
     ContextMenuParam param;
-    param.hWnd = hWnd;
+    param.pWindow = pWindow;
     param.wParam = MenuCloseType::eMenuCloseThis;
     Menu::GetMenuObserver().RBroadcast(param);
 

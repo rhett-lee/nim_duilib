@@ -1,7 +1,7 @@
 #include "FindForm.h"
 #include "MainForm.h"
 
-const LPCTSTR FindForm::kClassName = _T("FindForm");
+const DString FindForm::kClassName = _T("FindForm");
 
 FindForm::FindForm(MainForm* pMainForm):
     m_pMainForm(pMainForm),

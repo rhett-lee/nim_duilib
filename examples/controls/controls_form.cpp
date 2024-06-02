@@ -259,9 +259,9 @@ void ControlForm::OnInitWindow()
 void ControlForm::ShowColorPicker()
 {
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;
-    pColorPicker->CreateWnd(GetHWND(), ui::ColorPicker::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    pColorPicker->CreateWnd(this, ui::ColorPicker::kClassName, UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
     pColorPicker->CenterWindow();
-    pColorPicker->ShowModalFake(this->GetHWND());
+    pColorPicker->ShowModalFake();
 
     ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit")));
     if (pEdit != nullptr) {
@@ -295,7 +295,7 @@ void ControlForm::ShowColorPicker()
 
 void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 {
-    ui::Menu* menu = new ui::Menu(GetHWND());//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+    ui::Menu* menu = new ui::Menu(this);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
     DString xml(_T("settings_menu.xml"));
     menu->ShowMenu(xml, point);
 
@@ -358,9 +358,9 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
     if (menu_about != nullptr) {
         menu_about->AttachClick([this](const ui::EventArgs& args) {
             AboutForm* about_form = new AboutForm();
-            about_form->CreateWnd(GetHWND(), AboutForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
+            about_form->CreateWnd(this, AboutForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
             about_form->CenterWindow();
-            about_form->ShowModalFake(GetHWND());
+            about_form->ShowModalFake();
             return true;
             });
     }

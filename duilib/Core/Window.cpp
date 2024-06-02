@@ -19,6 +19,7 @@ namespace ui
 {
 Window::Window() :
     m_hWnd(nullptr),
+    m_pParentWindow(nullptr),
     m_pRoot(nullptr),
     m_OnEvent(),
     m_OldWndProc(::DefWindowProc),
@@ -74,6 +75,16 @@ bool Window::IsWindow() const
 HWND Window::GetHWND() const
 {
     return m_hWnd;
+}
+
+Window* Window::GetParentWindow() const
+{
+    if (!m_parentFlag.expired()) {
+        return m_pParentWindow;
+    }
+    else {
+        return nullptr;
+    }
 }
 
 bool Window::RegisterWindowClass()
@@ -171,7 +182,8 @@ void Window::Unsubclass()
     }
 }
 
-bool Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwStyle, uint32_t dwExStyle, const UiRect& rc)
+bool Window::CreateWnd(Window* pParentWindow, const DString& windowName,
+                       uint32_t dwStyle, uint32_t dwExStyle, const UiRect& rc)
 {
     if (!GetSuperClassName().empty()) {
         if (!RegisterSuperClass()) {
@@ -190,12 +202,18 @@ bool Window::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwSt
     if (dwExStyle & WS_EX_LAYERED) {
         m_bIsLayeredWindow = true;
     }
+    m_pParentWindow = pParentWindow;
+    m_parentFlag.reset();
+    if (pParentWindow != nullptr) {
+        m_parentFlag = pParentWindow->GetWeakFlag();
+    }
+    HWND hParentWnd = pParentWindow != nullptr ? pParentWindow->GetHWND() : nullptr;
     HWND hWnd = ::CreateWindowEx(dwExStyle,
                                  className.c_str(),
-                                 windowName,
+                                 windowName.c_str(),
                                  dwStyle,
                                  rc.left, rc.top, rc.Width(), rc.Height(),
-                                 hwndParent, NULL, GetResModuleHandle(), this);
+                                 hParentWnd, NULL, GetResModuleHandle(), this);
     ASSERT(::IsWindow(hWnd));
     if (hWnd != m_hWnd) {
         m_hWnd = hWnd;
@@ -230,14 +248,19 @@ void Window::ShowWindow(bool bShow /*= true*/, bool bTakeFocus /*= false*/)
     ::ShowWindow(m_hWnd, bShow ? (bTakeFocus ? SW_SHOWNORMAL : SW_SHOWNOACTIVATE) : SW_HIDE);
 }
 
-void Window::ShowModalFake(HWND hParentWnd)
+void Window::ShowModalFake()
 {
     ASSERT(::IsWindow(m_hWnd));
-    ASSERT(::IsWindow(hParentWnd));
-    auto hOwnerWnd = GetWindowOwner();
-    ASSERT(::IsWindow(hOwnerWnd));
-    ASSERT_UNUSED_VARIABLE(hOwnerWnd == hParentWnd);
-    ::EnableWindow(hParentWnd, FALSE);
+    Window* pParentWindow = GetParentWindow();
+    ASSERT((pParentWindow != nullptr) && (pParentWindow->GetHWND() != nullptr));
+    if (pParentWindow != nullptr) {
+        auto hOwnerWnd = GetWindowOwner();
+        ASSERT(::IsWindow(hOwnerWnd));
+        ASSERT_UNUSED_VARIABLE(hOwnerWnd == pParentWindow->GetHWND());
+        if (pParentWindow != nullptr) {
+            pParentWindow->EnableWindow(false);
+        }
+    }
     ShowWindow();
     m_bFakeModal = true;
 }
@@ -467,6 +490,28 @@ bool Window::IsZoomed() const
 bool Window::IsIconic() const
 {
     return ::IsIconic(GetHWND()) != FALSE;
+}
+
+bool Window::EnableWindow(bool bEnable)
+{
+    return ::EnableWindow(GetHWND(), bEnable ? TRUE : false) != FALSE;
+}
+
+bool Window::IsWindowEnabled() const
+{
+    return ::IsWindowEnabled(GetHWND()) != FALSE;
+}
+
+bool Window::SetWindowFocus()
+{
+    ::SetFocus(GetHWND());
+    return ::GetFocus() == GetHWND();
+}
+
+bool Window::KillWindowFocus()
+{
+    ::SetFocus(nullptr);
+    return ::GetFocus() != GetHWND();
 }
 
 void Window::SetIcon(UINT nRes)
@@ -730,6 +775,8 @@ void Window::ClearWindow(bool bSendClose)
     }
     m_shadow.reset();
     m_dpi.reset();
+    m_pParentWindow = nullptr;
+    m_parentFlag.reset();
     m_hWnd = nullptr;
 }
 
@@ -1650,10 +1697,11 @@ LRESULT Window::OnCloseMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool
     ASSERT_UNUSED_VARIABLE(uMsg == WM_CLOSE);
     bHandled = false;
     if (m_bFakeModal) {
-        HWND hOwnerWnd = GetWindowOwner();
-        ASSERT(::IsWindow(hOwnerWnd));
-        ::EnableWindow(hOwnerWnd, TRUE);
-        ::SetFocus(hOwnerWnd);
+        Window* pParentWindow = GetParentWindow();
+        if (pParentWindow != nullptr) {
+            pParentWindow->EnableWindow(true);
+            pParentWindow->SetWindowFocus();
+        }
         m_bFakeModal = false;
     }
 

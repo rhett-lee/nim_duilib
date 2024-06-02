@@ -52,7 +52,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     m_iOldSel = m_pOwner->GetCurSel();
     m_editText = m_pOwner->GetText();
     m_bIsClosed = false;
-    CreateWnd(pOwner->GetWindow()->GetHWND(), _T(""), WS_POPUP, WS_EX_TOOLWINDOW);
+    CreateWnd(pOwner->GetWindow(), _T(""), WS_POPUP, WS_EX_TOOLWINDOW);
     UpdateComboWnd();
     if (bActivated) {
         HWND hWndParent = GetHWND();

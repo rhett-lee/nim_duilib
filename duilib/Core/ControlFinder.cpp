@@ -177,7 +177,7 @@ Control* CALLBACK ControlFinder::__FindControlFromUpdate(Control* pThis, LPVOID 
 
 Control* CALLBACK ControlFinder::__FindControlFromName(Control* pThis, LPVOID pData)
 {
-    LPCTSTR pstrName = static_cast<LPCTSTR>(pData);
+    const DString::value_type* pstrName = static_cast<const DString::value_type*>(pData);
     if ((pstrName == nullptr) || (pThis == nullptr)) {
         return nullptr;
     }
@@ -185,7 +185,11 @@ Control* CALLBACK ControlFinder::__FindControlFromName(Control* pThis, LPVOID pD
     if (sName.empty()) {
         return nullptr;
     }
+#ifdef DUILIB_UNICODE
     return (_wcsicmp(sName.c_str(), pstrName) == 0) ? pThis : nullptr;
+#else
+    return (stricmp(sName.c_str(), pstrName) == 0) ? pThis : nullptr;
+#endif
 }
 
 Control* CALLBACK ControlFinder::__FindContextMenuControl(Control* pThis, LPVOID /*pData*/)

@@ -43,7 +43,7 @@ void MainForm::OnInitWindow()
             };
 
             MainForm2* window = new MainForm2();
-            window->CreateWnd(nullptr, MainForm2::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+            window->CreateWnd(nullptr, MainForm2::kClassName, UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
             window->CenterWindow();
             window->ShowWindow();
             return true;

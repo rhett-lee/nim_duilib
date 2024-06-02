@@ -593,9 +593,9 @@ void MainForm::ShowColorPicker()
     DString oldTextColor = pLeftColorLabel->GetBkColor();
 
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;
-    pColorPicker->CreateWnd(GetHWND(), ui::ColorPicker::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    pColorPicker->CreateWnd(this, ui::ColorPicker::kClassName, UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
     pColorPicker->CenterWindow();
-    pColorPicker->ShowModalFake(this->GetHWND());
+    pColorPicker->ShowModalFake();
 
     ui::RichEdit* pEdit = m_pRichEdit;
     if (pEdit != nullptr) {
@@ -1013,10 +1013,10 @@ void MainForm::LoadRichEditData()
     }
 }
 
-LPCTSTR g_defualtFilter = _T("所有文件 (*.*)\0*.*\0")
-                          _T("文本文件 (*.txt)\0*.txt\0")
-                          _T("RTF文件 (*.rtf)\0*.rtf\0")
-                          _T("");
+const DString::value_type* g_defualtFilter = _T("所有文件 (*.*)\0*.*\0")
+                                             _T("文本文件 (*.txt)\0*.txt\0")
+                                             _T("RTF文件 (*.rtf)\0*.rtf\0")
+                                             _T("");
 
 void MainForm::OnOpenFile()
 {
@@ -1160,7 +1160,7 @@ void MainForm::OnFindText()
 {
     if (m_pFindForm == nullptr) {
         m_pFindForm = new FindForm(this);
-        m_pFindForm->CreateWnd(GetHWND(), FindForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
+        m_pFindForm->CreateWnd(this, FindForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
         m_pFindForm->CenterWindow();
         m_pFindForm->ShowWindow();
 
@@ -1183,7 +1183,7 @@ void MainForm::OnReplaceText()
 {
     if (m_pReplaceForm == nullptr) {
         m_pReplaceForm = new ReplaceForm(this);
-        m_pReplaceForm->CreateWnd(GetHWND(), ReplaceForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
+        m_pReplaceForm->CreateWnd(this, ReplaceForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
         m_pReplaceForm->CenterWindow();
         m_pReplaceForm->ShowWindow();
         m_pReplaceForm->AttachWindowClose([this](const ui::EventArgs& args) {

@@ -37,7 +37,7 @@ void MainThread::OnInit()
 
     // 创建一个默认带有阴影的居中窗口
     RichlistForm* window = new RichlistForm();
-    window->CreateWnd(NULL, RichlistForm::kClassName.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    window->CreateWnd(nullptr, RichlistForm::kClassName, UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
     window->CenterWindow();
     window->ShowWindow();
 }

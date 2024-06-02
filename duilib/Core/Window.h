@@ -70,14 +70,14 @@ public:
     */
 
     /** 创建窗口, 可使用 OnInitWindow 接口来实现窗口创建完成后的自定义需求
-    * @param [in] hwndParent 父窗口句柄
+    * @param [in] pParentWindow 父窗口
     * @param [in] windowName 窗口名称
     * @param [in] dwStyle 窗口样式
     * @param [in] dwExStyle 窗口拓展样式, 可以设置层窗口（WS_EX_LAYERED）等属性
     * @param [in] rc 窗口大小
     */
-    virtual bool CreateWnd(HWND hwndParent,
-                           const wchar_t* windowName,
+    virtual bool CreateWnd(Window* pParentWindow,
+                           const DString& windowName,
                            uint32_t dwStyle,
                            uint32_t dwExStyle,
                            const UiRect& rc = UiRect(0, 0, 0, 0));
@@ -89,6 +89,10 @@ public:
     /** 获取窗口所属的 Windows 句柄
     */
     HWND GetHWND() const;
+
+    /** 获取父窗口
+    */
+    Window* GetParentWindow() const;
 
     /** 子类化窗口（更改窗口过程函数）
     * @param [in] 窗口句柄
@@ -175,10 +179,9 @@ public:
     */
     virtual void ShowWindow(bool bShow = true, bool bTakeFocus = true);
 
-    /** 显示模态对话框
-    * @param [in] hParentWnd 父窗口句柄
+    /** 显示模态对话框(父窗口在创建的时候指定)
     */
-    void ShowModalFake(HWND hParentWnd);
+    void ShowModalFake();
 
     /** 是否是模态显示
     */
@@ -266,6 +269,23 @@ public:
     /** 窗口是否为最小花状态
     */
     bool IsIconic() const;
+
+    /** 将窗口的Enable状态
+    * @param [in] bEnable true表示设置为Enable状态，false表示设置为disable状态
+    */
+    bool EnableWindow(bool bEnable);
+
+    /** 获取窗口的Enable状态
+    */
+    bool IsWindowEnabled() const;
+
+    /** 设置窗口为焦点窗口
+    */
+    bool SetWindowFocus();
+
+    /** 让窗口失去焦点
+    */
+    bool KillWindowFocus();
 
 public:
     /** 获取窗口位置信息
@@ -1129,6 +1149,14 @@ private:
 private:
     //窗口句柄
     HWND m_hWnd;
+
+    /** 父窗口
+    */
+    Window* m_pParentWindow;
+
+    /** 父窗口的WeakFlag
+    */
+    std::weak_ptr<WeakFlag> m_parentFlag;
 
     //原来的窗口过程函数
     WNDPROC m_OldWndProc;

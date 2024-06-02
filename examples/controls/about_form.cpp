@@ -1,7 +1,7 @@
 #include "about_form.h"
 #include <shellapi.h>
 
-const LPCTSTR AboutForm::kClassName = _T("About");
+const DString AboutForm::kClassName = _T("About");
 
 AboutForm::AboutForm()
 {

@@ -27,7 +27,7 @@ public:
     /**
      * 标识窗口 class name
      */
-    static const LPCTSTR kClassName;
+    static const DString kClassName;
 };
 
 #endif //EXAMPLES_ABOUT_FORM_H_

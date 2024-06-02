@@ -1,7 +1,7 @@
 #include "ReplaceForm.h"
 #include "MainForm.h"
 
-const LPCTSTR ReplaceForm::kClassName = _T("FindForm");
+const DString ReplaceForm::kClassName = _T("FindForm");
 
 ReplaceForm::ReplaceForm(MainForm* pMainForm):
     m_pMainForm(pMainForm),

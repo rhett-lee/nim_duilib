@@ -6,7 +6,7 @@ using namespace ui;
 DragForm *DragForm::s_drag_form = NULL;
 HHOOK DragForm::s_mouse_hook = NULL;
 POINT DragForm::s_point_offset = { 0, 0 };
-const LPCTSTR DragForm::kClassName = _T("NimDragForm");
+const DString DragForm::kClassName = _T("NimDragForm");
 
 LRESULT CALLBACK DragForm::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
@@ -59,7 +59,7 @@ DragForm* DragForm::CreateDragForm(HBITMAP bitmap, POINT pt_offset)
 {
     DragForm *drag_form = new DragForm;
 
-    drag_form->CreateWnd(NULL, kClassName, UI_WNDSTYLE_FRAME, WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
+    drag_form->CreateWnd(nullptr, kClassName, UI_WNDSTYLE_FRAME, WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
     ASSERT(drag_form->GetHWND() != NULL);
     drag_form->SetDragImage(bitmap);
 

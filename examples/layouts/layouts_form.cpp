@@ -41,7 +41,7 @@ void LayoutsForm::OnCloseWindow()
 void LayoutsForm::ShowCustomWindow(const DString& class_name, const DString& theme_directory, const DString& layout_xml)
 {
     LayoutsForm* window = new LayoutsForm(class_name, theme_directory, layout_xml);
-    window->CreateWnd(NULL, class_name.c_str(), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    window->CreateWnd(nullptr, class_name, UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
     window->CenterWindow();
     window->ShowWindow();
 }

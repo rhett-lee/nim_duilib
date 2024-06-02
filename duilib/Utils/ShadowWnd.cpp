@@ -49,7 +49,7 @@ DString ShadowWndBase::GetWindowClassName() const
 bool ShadowWndBase::Create(Window* window)
 {
     m_pWindow = window;
-    return Window::CreateWnd(NULL, _T("ShadowWnd"), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_LAYERED);
+    return Window::CreateWnd(nullptr, _T("ShadowWnd"), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_LAYERED);
 }
 
 LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
@@ -96,7 +96,8 @@ ShadowWnd::ShadowWnd():
 {
 }
 
-bool ShadowWnd::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t dwStyle, uint32_t dwExStyle, const ui::UiRect& rc )
+bool ShadowWnd::CreateWnd(Window* pParentWindow, const DString& windowName,
+                          uint32_t dwStyle, uint32_t dwExStyle, const UiRect& rc)
 {
     ASSERT((m_pShadowWnd == nullptr) && (GetHWND() == nullptr));
     if ((m_pShadowWnd != nullptr) || (GetHWND() != nullptr)){
@@ -104,7 +105,7 @@ bool ShadowWnd::CreateWnd(HWND hwndParent, const wchar_t* windowName, uint32_t d
     }
     //取消层窗口属性
     dwExStyle &= ~WS_EX_LAYERED;
-    __super::CreateWnd(hwndParent, windowName, dwStyle, dwExStyle, rc);
+    __super::CreateWnd(pParentWindow, windowName, dwStyle, dwExStyle, rc);
 
     bool needCreateShadowWnd = NeedCreateShadowWnd();
     if (!needCreateShadowWnd) {

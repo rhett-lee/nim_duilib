@@ -776,7 +776,7 @@ void ColorPicker::OnPickColorFromScreen()
     //抓取屏幕位图
     ScreenColorPickerWnd* pScreenColorPicker = new ScreenColorPickerWnd;    
     pScreenColorPicker->ScreenCapture();    
-    pScreenColorPicker->CreateWnd(GetHWND(), ScreenColorPickerWnd::ClassName().c_str(), UI_WNDSTYLE_FRAME, WS_EX_TRANSPARENT);
+    pScreenColorPicker->CreateWnd(this, ScreenColorPickerWnd::ClassName(), UI_WNDSTYLE_FRAME, WS_EX_TRANSPARENT);
     pScreenColorPicker->CenterWindow();
     pScreenColorPicker->ShowWindow();
     pScreenColorPicker->EnterFullScreen();

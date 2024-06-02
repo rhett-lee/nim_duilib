@@ -44,7 +44,7 @@ void MainThread::OnInit()
 
     //创建主窗口
     MainForm* pWindow = new MainForm();
-    pWindow->CreateWnd(NULL, _T("ListCtrl控件测试程序"), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    pWindow->CreateWnd(nullptr, _T("ListCtrl控件测试程序"), UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
     pWindow->SetIcon(IDI_LISTCTRL);
     pWindow->CenterWindow();
     pWindow->ShowWindow();

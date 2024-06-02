@@ -12,11 +12,11 @@ namespace ui {
 //菜单对齐方式
 enum MenuAlignment
 {
-    eMenuAlignment_Left            = 1 << 1,
-    eMenuAlignment_Top            = 1 << 2,
+    eMenuAlignment_Left         = 1 << 1,
+    eMenuAlignment_Top          = 1 << 2,
     eMenuAlignment_Right        = 1 << 3,
-    eMenuAlignment_Bottom        = 1 << 4,
-    eMenuAlignment_Intelligent    = 1 << 5    //智能的防止被遮蔽
+    eMenuAlignment_Bottom       = 1 << 4,
+    eMenuAlignment_Intelligent  = 1 << 5    //智能的防止被遮蔽
 };
 
 //菜单关闭类型
@@ -32,21 +32,21 @@ enum class MenuPopupPosType
     //                                     |     |
     //这里假定用户是喜欢智能的                3.-----.4       3左下 4右下
     RIGHT_BOTTOM    = eMenuAlignment_Right | eMenuAlignment_Bottom | eMenuAlignment_Intelligent,
-    RIGHT_TOP        = eMenuAlignment_Right | eMenuAlignment_Top    | eMenuAlignment_Intelligent,
-    LEFT_BOTTOM        = eMenuAlignment_Left  | eMenuAlignment_Bottom | eMenuAlignment_Intelligent,
+    RIGHT_TOP       = eMenuAlignment_Right | eMenuAlignment_Top    | eMenuAlignment_Intelligent,
+    LEFT_BOTTOM     = eMenuAlignment_Left  | eMenuAlignment_Bottom | eMenuAlignment_Intelligent,
     LEFT_TOP        = eMenuAlignment_Left  | eMenuAlignment_Top    | eMenuAlignment_Intelligent,
     //这里是normal，非智能的
-    RIGHT_BOTTOM_N    = eMenuAlignment_Right | eMenuAlignment_Bottom,
-    RIGHT_TOP_N        = eMenuAlignment_Right | eMenuAlignment_Top,
-    LEFT_BOTTOM_N    = eMenuAlignment_Left  | eMenuAlignment_Bottom,
-    LEFT_TOP_N        = eMenuAlignment_Left  | eMenuAlignment_Top
+    RIGHT_BOTTOM_N  = eMenuAlignment_Right | eMenuAlignment_Bottom,
+    RIGHT_TOP_N     = eMenuAlignment_Right | eMenuAlignment_Top,
+    LEFT_BOTTOM_N   = eMenuAlignment_Left  | eMenuAlignment_Bottom,
+    LEFT_TOP_N      = eMenuAlignment_Left  | eMenuAlignment_Top
 };
 
 #include "observer_impl_base.hpp"
 struct ContextMenuParam
 {
     MenuCloseType wParam;
-    HWND hWnd;
+    Window* pWindow;
 };
 
 typedef class ObserverImpl<bool, ContextMenuParam> ContextMenuObserver;
@@ -63,7 +63,7 @@ class Menu : public ui::WindowImplBase, public ContextMenuReceiver
 public:
     /** 构造函数，初始化菜单的父窗口句柄
     */
-    explicit Menu(HWND hParent);
+    explicit Menu(Window* pParentWindow);
 
     /** 设置资源加载的文件夹名称，如果没设置，内部默认为 "menu"
     *   XML文件中的资源（图片、XML等），均在这个文件夹中查找
@@ -139,8 +139,8 @@ private:
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
 private:
-    //菜单父窗口句柄
-    HWND m_hParent;
+    //菜单父窗口
+    Window* m_pParentWindow;
 
     //菜单弹出位置
     UiPoint m_menuPoint;

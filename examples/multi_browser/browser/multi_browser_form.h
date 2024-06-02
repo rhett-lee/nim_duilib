@@ -273,7 +273,7 @@ private:
     ui::IBitmap* GenerateBoxWindowBitmap();
 
 public:
-    static const LPCTSTR kClassName;
+    static const DString kClassName;
 
 private:
     ui::Label        *lbl_title_;

@@ -18,10 +18,10 @@ public:
      * 在屏幕中间显示一个提示框
      * @param[in] content 提示内容
      * @param[in] duration 持续时间(毫秒),0代表一直显示
-     * @param[in] parent 父窗口句柄，如果提供的话toast会显示在父窗口的中心
+     * @param[in] pParentWindow 父窗口，如果提供的话toast会显示在父窗口的中心
      * @return void 无返回值
      */
-    static void ShowToast(const DString &content, int duration = 0, HWND parent = NULL);
+    static void ShowToast(const DString& content, int duration = 0, Window* pParentWindow = nullptr);
 public:
     Toast(){};
     ~Toast(){};
@@ -66,12 +66,12 @@ private:
      * @param[in] str 提示内容
      * @return void    无返回值
      */
-    void SetContent(const DString &str);
+    void SetContent(const DString& str);
 
     public:
-        static const LPCTSTR kClassName;
+        static const DString kClassName;
     private:
-        ui::RichEdit    *content_ = nullptr;
-        ui::Button        *close_button_ = nullptr;
+        ui::RichEdit* m_content = nullptr;
+        ui::Button* m_close_button = nullptr;
     };
 }

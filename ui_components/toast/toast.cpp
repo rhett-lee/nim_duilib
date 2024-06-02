@@ -2,12 +2,12 @@
 
 namespace nim_comp {
 
-const LPCTSTR Toast::kClassName = _T("Toast");
+const DString Toast::kClassName = _T("Toast");
 
-void Toast::ShowToast(const DString &content, int duration, HWND parent)
+void Toast::ShowToast(const DString &content, int duration, Window* pParentWindow)
 {
     Toast *toast = new Toast;
-    if (!toast->CreateWnd(parent, _T(""), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED)) {
+    if (!toast->CreateWnd(pParentWindow, _T(""), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED)) {
         delete toast;
         return;
     }
@@ -44,23 +44,20 @@ UINT Toast::GetClassStyle() const
 
 LRESULT Toast::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-    if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE)
-    {
+    if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
         this->CloseWnd();
     }
     // 整个toast界面都在标题栏，所以要处理WM_NC消息
-    else if (uMsg == WM_NCLBUTTONDBLCLK || uMsg == WM_LBUTTONDBLCLK)
-    {
+    else if (uMsg == WM_NCLBUTTONDBLCLK || uMsg == WM_LBUTTONDBLCLK) {
         this->CloseWnd();
     }
     // duilib在WM_MOUSELEAVE消息中会发送一个lparam为-1的WM_MOUSEMOVE消息
-    else if ((uMsg == WM_NCMOUSEMOVE || uMsg == WM_MOUSEMOVE) && lParam != -1)
-    {
-        if (NULL != close_button_ && !close_button_->IsVisible())
-            close_button_->SetFadeVisible(true);
+    else if ((uMsg == WM_NCMOUSEMOVE || uMsg == WM_MOUSEMOVE) && lParam != -1) {
+        if (nullptr != m_close_button && !m_close_button->IsVisible()) {
+            m_close_button->SetFadeVisible(true);
+        }
     }
-    else if (uMsg == WM_NCMOUSELEAVE || uMsg == WM_MOUSELEAVE)
-    {
+    else if (uMsg == WM_NCMOUSELEAVE || uMsg == WM_MOUSELEAVE) {
         ui::UiPoint pt;
         GetCursorPos(pt);
         ScreenToClient(pt);        
@@ -68,27 +65,31 @@ LRESULT Toast::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
         GetClientRect(clientRect);
         // leave消息触发时，获取的鼠标坐标有可能还在client_rect范围内，会偏差1像素，这里缩减1像素
         clientRect.Deflate(1, 1, 1, 1);
-        if (NULL != close_button_ && !clientRect.ContainsPt(ui::UiPoint(pt.x, pt.y)))
-            close_button_->SetFadeVisible(false);
+        if (nullptr != m_close_button && !clientRect.ContainsPt(ui::UiPoint(pt.x, pt.y))) {
+            m_close_button->SetFadeVisible(false);
+        }
     }
     return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
 void Toast::OnInitWindow()
 {
-    GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&Toast::OnClicked, this, std::placeholders::_1));
+    if (GetRoot() != nullptr) {
+        GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&Toast::OnClicked, this, std::placeholders::_1));
+    }
 
-    content_ = dynamic_cast<ui::RichEdit*>(FindControl(_T("content")));
-    close_button_ = dynamic_cast<ui::Button*>(FindControl(_T("close_btn")));
-    ASSERT(content_ != nullptr);
-    ASSERT(close_button_ != nullptr);
+    m_content = dynamic_cast<ui::RichEdit*>(FindControl(_T("content")));
+    m_close_button = dynamic_cast<ui::Button*>(FindControl(_T("close_btn")));
+    ASSERT(m_content != nullptr);
+    ASSERT(m_close_button != nullptr);
 }
 
 void Toast::SetDuration(int duration)
 {
-    if (duration <= 0)
+    ASSERT(duration > 0);
+    if (duration <= 0){
         return;
-
+    }
     ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, ToWeakCallback([this]()
     {
         this->CloseWnd();
@@ -97,22 +98,24 @@ void Toast::SetDuration(int duration)
 
 bool Toast::OnClicked(const ui::EventArgs& msg)
 {
-    DString name = msg.pSender->GetName();
-    if (name == _T("close_btn"))
-    {
+    DString name;
+    if (msg.pSender != nullptr) {
+        name = msg.pSender->GetName();
+    }
+    if (name == _T("close_btn")) {
         this->CloseWnd();
     }
-
     return true;
 }
 
 void Toast::SetContent(const DString &str)
 {
-    content_->SetText(str);
-
-    int width = content_->GetFixedWidth().GetInt32();
-
-    ui::UiSize sz = content_->GetNaturalSize(width, 0);
-    content_->SetFixedHeight(ui::UiFixedInt(sz.cy), true, true);
+    ASSERT(m_content != nullptr);
+    if (m_content != nullptr) {
+        m_content->SetText(str);
+        int width = m_content->GetFixedWidth().GetInt32();
+        ui::UiSize sz = m_content->GetNaturalSize(width, 0);
+        m_content->SetFixedHeight(ui::UiFixedInt(sz.cy), true, true);
+    }
 }
 }
