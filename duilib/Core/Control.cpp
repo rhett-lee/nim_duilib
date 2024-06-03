@@ -2029,25 +2029,7 @@ bool Control::OnSetCursor(const EventArgs& /*msg*/)
 
 void Control::SetCursor(CursorType cursorType)
 {
-    switch (cursorType) {
-    case kCursorArrow:
-        ::SetCursor(::LoadCursor(NULL, IDC_ARROW));
-        break;
-    case kCursorHand:
-        ::SetCursor(::LoadCursor(NULL, IDC_HAND));
-        break;
-    case kCursorHandIbeam:
-        ::SetCursor(::LoadCursor(NULL, IDC_IBEAM));
-        break;
-    case kCursorSizeWE:
-        ::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
-        break;
-    case kCursorSizeNS:
-        ::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
-        break;
-    default:
-        break;
-    }
+    GlobalManager::Instance().Cursor().SetCursor(cursorType);
 }
 
 bool Control::OnSetFocus(const EventArgs& /*msg*/)

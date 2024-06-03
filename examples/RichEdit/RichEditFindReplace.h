@@ -79,7 +79,7 @@ private:
     long m_nInitialSearchPos;
 
     //旧的光标
-    HCURSOR m_hOldCursor;
+    ui::CursorID m_nOldCursor;
 };
 
 #endif //EXAMPLES_FIND_REPLACE_FORM_H_

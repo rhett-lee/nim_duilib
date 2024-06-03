@@ -240,7 +240,8 @@ namespace ui
         kCursorHand,        // 手型
         kCursorHandIbeam,   // “I”形状
         kCursorSizeWE,      // 左右拖动
-        kCursorSizeNS       // 上下拖动
+        kCursorSizeNS,      // 上下拖动
+        kCursorWait         // 等待
     };
 
     //定义所有消息类型

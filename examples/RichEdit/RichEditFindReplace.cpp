@@ -8,7 +8,7 @@ RichEditFindReplace::RichEditFindReplace():
     m_bMatchWholeWord(false),
     m_bFirstSearch(true),
     m_nInitialSearchPos(0),
-    m_hOldCursor(nullptr)
+    m_nOldCursor(0)
 {
 }
 
@@ -307,7 +307,8 @@ void RichEditFindReplace::OnTextNotFound(const DString& findText)
 
 void RichEditFindReplace::OnReplaceAllCoreBegin()
 {
-    m_hOldCursor = ::SetCursor(::LoadCursor(NULL, IDC_WAIT));
+    m_nOldCursor = ui::GlobalManager::Instance().Cursor().GetCursorID();
+    ui::GlobalManager::Instance().Cursor().SetCursor(ui::kCursorWait);    
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->HideSelection(true, false);
     }
@@ -318,8 +319,8 @@ void RichEditFindReplace::OnReplaceAllCoreEnd(int /*replaceCount*/)
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->HideSelection(false, false);
     }
-    if (m_hOldCursor != nullptr) {
-        ::SetCursor(m_hOldCursor);
-        m_hOldCursor = nullptr;
+    if (m_nOldCursor != 0) {
+        ui::GlobalManager::Instance().Cursor().SetCursorByID(m_nOldCursor);
+        m_nOldCursor = 0;
     }
 }

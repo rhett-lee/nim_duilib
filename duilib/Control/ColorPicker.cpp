@@ -326,17 +326,13 @@ class ScreenColorPicker : public Control
 public:
     explicit ScreenColorPicker(Window* pWindow):
         Control(pWindow),
-        m_hCursor(nullptr),
+        m_cursorId(0),
         m_pColorPreview(nullptr)
     {
     }
 
     virtual ~ScreenColorPicker()
     {
-        if (m_hCursor != nullptr) {
-            ::DestroyCursor(m_hCursor);
-            m_hCursor = nullptr;
-        }
         m_pColorPreview = nullptr;
         m_selColor = UiColor();
     }
@@ -396,13 +392,16 @@ private:
     */
     virtual bool OnSetCursor(const EventArgs& /*msg*/) override
     {
-        if (m_hCursor == nullptr) {
+        if (m_cursorId != 0) {
+            GlobalManager::Instance().Cursor().SetCursorByID(m_cursorId);
+        }
+        else {
             DString cursorPath = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), _T("public\\color\\dropcur.cur"));
-            m_hCursor = (HCURSOR)::LoadImage(NULL, cursorPath.c_str(), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+            if (GlobalManager::Instance().Cursor().SetImageCursor(cursorPath)) {
+                m_cursorId = GlobalManager::Instance().Cursor().GetCursorID();
+            }
         }
-        if (m_hCursor != nullptr) {
-            ::SetCursor(m_hCursor);
-        }
+        
         return true;
     }
 
@@ -580,9 +579,9 @@ private:
     }
 
 private:
-    /** 光标句柄
+    /** 光标ID
     */
-    HCURSOR m_hCursor;
+    CursorID m_cursorId;
 
     /** 屏幕位图
     */

@@ -14,6 +14,7 @@
 #include "duilib/Core/TimerManager.h"
 #include "duilib/Core/ThreadManager.h"
 #include "duilib/Core/ResourceParam.h"
+#include "duilib/Core/CursorManager.h"
 
 #include <string>
 #include <vector>
@@ -190,6 +191,10 @@ public:
     */
     LangManager& Lang();
 
+    /** 光标管理器
+    */
+    CursorManager& Cursor();
+
 public:
     /** 根据资源加载方式，返回对应的资源路径
      * @param[in] path 要获取的资源路径
@@ -329,6 +334,10 @@ private:
     */
     IconManager m_iconManager;
 #endif
+
+    /** 光标管理器
+    */
+    CursorManager m_cursorManager;
 };
 
 } // namespace ui

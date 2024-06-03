@@ -538,6 +538,11 @@ LangManager& GlobalManager::Lang()
     return m_langManager;
 }
 
+CursorManager& GlobalManager::Cursor()
+{
+    return m_cursorManager;
+}
+
 Box* GlobalManager::CreateBox(const DString& strXmlPath, CreateControlCallback callback)
 {
     WindowBuilder builder;
