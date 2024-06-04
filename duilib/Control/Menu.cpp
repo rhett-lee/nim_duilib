@@ -1,5 +1,6 @@
 #include "Menu.h"
 #include "duilib/Utils/Macros.h"
+#include "duilib/Core/Keyboard.h"
 
 namespace ui {
 
@@ -220,10 +221,10 @@ LRESULT Menu::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
         }
         break;
     case WM_KEYDOWN:
-        if (wParam == VK_ESCAPE || wParam == VK_LEFT) {
+        if (wParam == kVK_ESCAPE || wParam == kVK_LEFT) {
             CloseMenu();
         }
-        else if (wParam == VK_RIGHT) {
+        else if (wParam == kVK_RIGHT) {
             if (m_pLayout) {
                 size_t index = m_pLayout->GetCurSel();
                 MenuItem* pItem = dynamic_cast<MenuItem*>(m_pLayout->GetItemAt(index));
@@ -232,7 +233,7 @@ LRESULT Menu::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
                 }
             }
         }
-        else if (wParam == VK_RETURN || wParam == VK_SPACE)
+        else if (wParam == kVK_RETURN || wParam == kVK_SPACE)
         {
             if (m_pLayout) {
                 size_t index = m_pLayout->GetCurSel();

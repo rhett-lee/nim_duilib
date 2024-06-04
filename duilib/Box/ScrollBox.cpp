@@ -2,6 +2,7 @@
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/Keyboard.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/AttributeUtil.h"
 
@@ -216,22 +217,22 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
     if( (m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid() && m_pVScrollBar->IsEnabled() ) {
         if(msg.Type == kEventKeyDown ) {
             switch(msg.chKey ) {
-            case VK_DOWN:
+            case kVK_DOWN:
                 LineDown();
                 return;
-            case VK_UP:
+            case kVK_UP:
                 LineUp();
                 return;
-            case VK_NEXT:
+            case kVK_NEXT:
                 PageDown();
                 return;
-            case VK_PRIOR:
+            case kVK_PRIOR:
                 PageUp();
                 return;
-            case VK_HOME:
+            case kVK_HOME:
                 HomeUp();
                 return;
-            case VK_END:
+            case kVK_END:
                 EndDown();
                 return;
             }
@@ -262,22 +263,22 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
     else if( (m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid() && m_pHScrollBar->IsEnabled() ) {
         if(msg.Type == kEventKeyDown ) {
             switch(msg.chKey ) {
-            case VK_DOWN:
+            case kVK_DOWN:
                 LineRight();
                 return;
-            case VK_UP:
+            case kVK_UP:
                 LineLeft();
                 return;
-            case VK_NEXT:
+            case kVK_NEXT:
                 PageRight();
                 return;
-            case VK_PRIOR:
+            case kVK_PRIOR:
                 PageLeft();
                 return;
-            case VK_HOME:
+            case kVK_HOME:
                 HomeLeft();
                 return;
-            case VK_END:
+            case kVK_END:
                 EndRight();
                 return;
             }

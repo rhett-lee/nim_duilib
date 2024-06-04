@@ -1,5 +1,6 @@
 #include "ComboButton.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/Keyboard.h"
 #include "duilib/Utils/Macros.h"
 #include "duilib/Box/HBox.h"
 
@@ -194,11 +195,11 @@ LRESULT ComboButtonWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
             CloseComboWnd(false);
         }
     }
-    else if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
+    else if (uMsg == WM_KEYDOWN && wParam == kVK_ESCAPE) {
         //按住ESC键，取消
         CloseComboWnd(true);
     }
-    else if (uMsg == WM_KEYDOWN && wParam == VK_RETURN) {
+    else if (uMsg == WM_KEYDOWN && wParam == kVK_RETURN) {
         //按回车键，关闭窗口，正常关闭
         CloseComboWnd(false);
     }

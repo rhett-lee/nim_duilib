@@ -2,6 +2,7 @@
 #include "duilib/Control/ListCtrlReportView.h"
 #include "duilib/Control/ListCtrlIconView.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Keyboard.h"
 #include <set>
 
 namespace ui
@@ -2218,7 +2219,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
     //按ESC键：取消修改
     m_pRichEdit->DetachEvent(kEventKeyDown);
     m_pRichEdit->AttachEvent(kEventKeyDown, [this, RestoreItemFocus](const EventArgs& msg) {
-        if ((msg.Type == kEventKeyDown) && (msg.chKey == VK_ESCAPE)) {
+        if ((msg.Type == kEventKeyDown) && (msg.chKey == kVK_ESCAPE)) {
             ClearEditEvents();
             RestoreItemFocus();
             return false;

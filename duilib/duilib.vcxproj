@@ -392,6 +392,7 @@
     <ClCompile Include="Core\IconManager.cpp" />
     <ClCompile Include="Core\ImageList.cpp" />
     <ClCompile Include="Core\ImageManager.cpp" />
+    <ClCompile Include="Core\Keyboard.cpp" />
     <ClCompile Include="Core\LangManager.cpp" />
     <ClCompile Include="Core\Placeholder.cpp" />
     <ClCompile Include="Core\ScrollBar.cpp" />
@@ -534,6 +535,8 @@
     <ClInclude Include="Core\IconManager.h" />
     <ClInclude Include="Core\ImageList.h" />
     <ClInclude Include="Core\ImageManager.h" />
+    <ClInclude Include="Core\Keyboard.h" />
+    <ClInclude Include="Core\KeyCode.h" />
     <ClInclude Include="Core\LangManager.h" />
     <ClInclude Include="Core\Placeholder.h" />
     <ClInclude Include="Core\ResourceParam.h" />

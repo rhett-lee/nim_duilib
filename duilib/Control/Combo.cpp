@@ -1,5 +1,6 @@
 #include "Combo.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/Keyboard.h"
 #include "duilib/Utils/Macros.h"
 #include "duilib/Box/ListBox.h"
 #include "duilib/Box/HBox.h"
@@ -215,11 +216,11 @@ LRESULT CComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool
             CloseComboWnd(false, false);
         }
     }
-    else if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
+    else if (uMsg == WM_KEYDOWN && wParam == kVK_ESCAPE) {
         //按住ESC键，取消
         CloseComboWnd(true, false);
     }
-    else if (uMsg == WM_KEYDOWN && wParam == VK_RETURN) {
+    else if (uMsg == WM_KEYDOWN && wParam == kVK_RETURN) {
         //按回车键，关闭窗口，正常关闭
         CloseComboWnd(false, true);
     }
@@ -852,7 +853,7 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
     if (m_comboType == kCombo_DropList) {
         return true;
     }
-    if (args.wParam == VK_DOWN) {
+    if (args.wParam == kVK_DOWN) {
         if ((m_pWindow == nullptr) || m_pWindow->IsClosingWnd()) {
             //按向下箭头的时候: 如果下拉列表未显示，则显示下拉列表
             ShowComboList();
@@ -881,7 +882,7 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
             }
         }
     }
-    else if (args.wParam == VK_UP) {
+    else if (args.wParam == kVK_UP) {
         //按向上箭头
         if ((m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
             const size_t itemCount = GetCount();
@@ -902,13 +903,13 @@ bool Combo::OnEditKeyDown(const EventArgs& args)
             }
         }
     }
-    else if (args.wParam == VK_ESCAPE) {
+    else if (args.wParam == kVK_ESCAPE) {
         //按住ESC键，取消
         if (m_pWindow != nullptr) {
             m_pWindow->CloseComboWnd(true, false);
         }
     }
-    else if (args.wParam == VK_RETURN) {
+    else if (args.wParam == kVK_RETURN) {
         //按回车键，关闭窗口，正常关闭
         if (m_pWindow != nullptr) {
             m_pWindow->CloseComboWnd(false, false);
