@@ -1,6 +1,7 @@
 #include "HotKey.h"
 #include "duilib/Control/RichEdit.h"
 #include "duilib/Control/Label.h"
+#include "duilib/Core/Keyboard.h"
 
 namespace ui
 {
@@ -31,9 +32,9 @@ public:
     virtual bool OnKeyDown(const EventArgs& msg) override
     {
         SetHotKey(0, 0);
-        bool bShiftDown = ::GetAsyncKeyState(VK_SHIFT) < 0;
-        bool bControlDown = ::GetAsyncKeyState(VK_CONTROL) < 0;
-        bool bAltDown = ::GetAsyncKeyState(VK_MENU) < 0;
+        bool bShiftDown = Keyboard::IsKeyDown(kVK_SHIFT);
+        bool bControlDown = Keyboard::IsKeyDown(kVK_CONTROL);
+        bool bAltDown = Keyboard::IsKeyDown(kVK_MENU);
         uint8_t wModifiers = 0;
         if (bShiftDown) {
             wModifiers |= HOTKEYF_SHIFT;
@@ -44,25 +45,25 @@ public:
         if (bAltDown) {
             wModifiers |= HOTKEYF_ALT;
         }
-        if (msg.lParam & KF_EXTENDED) {
+        if ((msg.lParam >> 16) & kKF_EXTENDED) {
             wModifiers |= HOTKEYF_EXT;
         }
 
-        if ((msg.wParam == VK_DELETE) || (msg.wParam == VK_BACK)) {
+        if ((msg.wParam == kVK_DELETE) || (msg.wParam == kVK_BACK)) {
             //清空文本
             SetTextNoEvent(m_defaultText.c_str());
         }
-        else if (msg.wParam == VK_MENU) {
+        else if (msg.wParam == kVK_MENU) {
             SetHotKey(0, wModifiers);
         }
-        else if (msg.wParam == VK_SHIFT) {
+        else if (msg.wParam == kVK_SHIFT) {
             SetHotKey(0, wModifiers);
         }
-        else if (msg.wParam == VK_CONTROL) {
+        else if (msg.wParam == kVK_CONTROL) {
             SetHotKey(0, wModifiers);
         }
         else {
-            DString keyName = GetKeyName(msg.lParam);
+            DString keyName = Keyboard::GetKeyName(msg.lParam);
             if (!keyName.empty()) {
                 SetHotKey(static_cast<uint8_t>(msg.wParam), wModifiers);
             }
@@ -81,9 +82,9 @@ public:
         uint8_t wVirtualKeyCode = 0;
         uint8_t wModifiers = 0;
         GetHotKey(wVirtualKeyCode, wModifiers);
-        if ((wVirtualKeyCode == VK_MENU) ||
-            (wVirtualKeyCode == VK_SHIFT) ||
-            (wVirtualKeyCode == VK_CONTROL)) {
+        if ((wVirtualKeyCode == kVK_MENU) ||
+            (wVirtualKeyCode == kVK_SHIFT) ||
+            (wVirtualKeyCode == kVK_CONTROL)) {
             wVirtualKeyCode = 0;
         }
         if ((wVirtualKeyCode == 0) || (wModifiers == 0)) {
@@ -105,48 +106,6 @@ public:
     virtual bool OnSysKeyUp(const EventArgs& msg) override
     {
         return OnKeyUp(msg);
-    }
-
-    /** 获取键的显示名称
-    */
-    static DString GetKeyName(uint8_t wParam, bool fExtended)
-    {
-        UINT nScanCode = ::MapVirtualKeyEx(wParam, 0, ::GetKeyboardLayout(0));
-        switch (wParam)
-        {
-            // Keys which are "extended" (except for Return which is Numeric Enter as extended)
-        case VK_INSERT:
-        case VK_DELETE:
-        case VK_HOME:
-        case VK_END:
-        case VK_NEXT:  // Page down
-        case VK_PRIOR: // Page up
-        case VK_LEFT:
-        case VK_RIGHT:
-        case VK_UP:
-        case VK_DOWN:
-            nScanCode |= 0x100; // Add extended bit
-            break;
-        default:
-            break;
-        }
-        if (fExtended) {
-            nScanCode |= 0x01000000L;
-        }
-
-        TCHAR szStr[MAX_PATH] = { 0 };
-        ::GetKeyNameText(nScanCode << 16, szStr, MAX_PATH);
-        return DString(szStr);
-    }
-
-    /** 获取键的显示名称
-    */
-    DString GetKeyName(LPARAM lParam) const
-    {
-        TCHAR szStr[MAX_PATH] = { 0 };
-        ::GetKeyNameText((LONG)lParam, szStr, MAX_PATH);
-        DString keyName = szStr;
-        return keyName;
     }
 
     /** 设置热键
@@ -172,7 +131,7 @@ public:
         DString sKeyName;
         uint8_t wCode = 0;
         uint8_t wModifiers = 0;
-        const wchar_t szPlus[] = _T("+");
+        const DString::value_type szPlus[] = _T("+");
         GetHotKey(wCode, wModifiers);
         if (wModifiers == 0) {
             //必须有组合键，才是有效的热键
@@ -180,7 +139,7 @@ public:
         }
         if (wCode != 0 || wModifiers != 0) {
             if (wModifiers & HOTKEYF_CONTROL) {
-                DString sKey = GetKeyName(VK_CONTROL, wModifiers & HOTKEYF_EXT);
+                DString sKey = Keyboard::GetKeyName(kVK_CONTROL, wModifiers & HOTKEYF_EXT);
                 if (!sKey.empty()) {
                     if (!sKeyName.empty()) {
                         sKeyName += szPlus;
@@ -189,7 +148,7 @@ public:
                 }
             }
             if (wModifiers & HOTKEYF_SHIFT) {
-                DString sKey = GetKeyName(VK_SHIFT, wModifiers & HOTKEYF_EXT);
+                DString sKey = Keyboard::GetKeyName(kVK_SHIFT, wModifiers & HOTKEYF_EXT);
                 if (!sKey.empty()) {
                     if (!sKeyName.empty()) {
                         sKeyName += szPlus;
@@ -198,7 +157,7 @@ public:
                 }
             }
             if (wModifiers & HOTKEYF_ALT) {
-                DString sKey = GetKeyName(VK_MENU, wModifiers & HOTKEYF_EXT);
+                DString sKey = Keyboard::GetKeyName(kVK_MENU, wModifiers & HOTKEYF_EXT);
                 if (!sKey.empty()) {
                     if (!sKeyName.empty()) {
                         sKeyName += szPlus;
@@ -206,8 +165,8 @@ public:
                     sKeyName += sKey;
                 }
             }
-            if ((wCode != VK_SHIFT) && (wCode != VK_CONTROL) && (wCode != VK_MENU)) {
-                DString sKey = GetKeyName(wCode, wModifiers & HOTKEYF_EXT);
+            if ((wCode != kVK_SHIFT) && (wCode != kVK_CONTROL) && (wCode != kVK_MENU)) {
+                DString sKey = Keyboard::GetKeyName((VirtualKeyCode)wCode, wModifiers & HOTKEYF_EXT);
                 if (!sKey.empty()) {
                     if (!sKeyName.empty()) {
                         sKeyName += szPlus;
@@ -366,9 +325,9 @@ bool HotKey::SetHotKeyName(const DString& hotKeyName)
     if (hotKeyList.empty()) {
         return false;
     }
-    DString keyCtrl = GetKeyName(VK_CONTROL, false);
-    DString keyShift = GetKeyName(VK_SHIFT, false);
-    DString keyAlt = GetKeyName(VK_MENU, false);
+    DString keyCtrl = GetKeyName(kVK_CONTROL, false);
+    DString keyShift = GetKeyName(kVK_SHIFT, false);
+    DString keyAlt = GetKeyName(kVK_MENU, false);
     keyCtrl = StringUtil::MakeLowerString(keyCtrl);
     keyShift = StringUtil::MakeLowerString(keyShift);
     keyAlt = StringUtil::MakeLowerString(keyAlt);
@@ -445,7 +404,7 @@ bool HotKey::SetHotKeyName(const DString& hotKeyName)
 
 DString HotKey::GetKeyName(uint8_t wVirtualKeyCode, bool fExtended)
 {
-    return HotKeyRichEdit::GetKeyName(wVirtualKeyCode, fExtended);
+    return Keyboard::GetKeyName((VirtualKeyCode)wVirtualKeyCode, fExtended);
 }
 
 }//namespace ui

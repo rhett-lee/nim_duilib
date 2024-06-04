@@ -1,5 +1,6 @@
 #include "CheckCombo.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/Keyboard.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Box/ListBox.h"
 #include "duilib/Utils/StringUtil.h"
@@ -177,7 +178,7 @@ LRESULT CCheckComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
             CloseComboWnd();
         }
     }
-    else if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
+    else if (uMsg == WM_KEYDOWN && wParam == kVK_ESCAPE) {
         //按住ESC键，取消
         CloseComboWnd();
     }

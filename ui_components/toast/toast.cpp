@@ -1,4 +1,5 @@
 #include "toast.h"
+#include "duilib/Core/Keyboard.h"
 
 namespace nim_comp {
 
@@ -44,7 +45,7 @@ UINT Toast::GetClassStyle() const
 
 LRESULT Toast::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-    if (uMsg == WM_KEYDOWN && wParam == VK_ESCAPE) {
+    if (uMsg == WM_KEYDOWN && wParam == ui::kVK_ESCAPE) {
         this->CloseWnd();
     }
     // 整个toast界面都在标题栏，所以要处理WM_NC消息

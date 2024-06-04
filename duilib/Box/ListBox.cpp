@@ -1,5 +1,6 @@
 #include "ListBox.h"
 #include "duilib/Core/ScrollBar.h"
+#include "duilib/Core/Keyboard.h"
 
 namespace ui 
 {
@@ -80,10 +81,10 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
     ASSERT(msg.Type == kEventKeyDown);
     bool bHandled = false;
     bool bArrowKeyDown = (msg.Type == kEventKeyDown) &&
-                          ((msg.chKey == VK_UP) || (msg.chKey == VK_DOWN) ||
-                          (msg.chKey == VK_LEFT) || (msg.chKey == VK_RIGHT) ||
-                          (msg.chKey == VK_PRIOR) || (msg.chKey == VK_NEXT) ||
-                          (msg.chKey == VK_HOME) || (msg.chKey == VK_END));
+                          ((msg.chKey == kVK_UP)    || (msg.chKey == kVK_DOWN) ||
+                           (msg.chKey == kVK_LEFT)  || (msg.chKey == kVK_RIGHT) ||
+                           (msg.chKey == kVK_PRIOR) || (msg.chKey == kVK_NEXT) ||
+                           (msg.chKey == kVK_HOME)  || (msg.chKey == kVK_END));
     if (!bArrowKeyDown) {
         return bHandled;
     }
@@ -99,7 +100,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
     }
     if (IsMultiSelect() || (GetItemCount() == 0) || !bHasSelectItem) {
         //在无数据、支持多选、无选中项的情况下，不支持单选快捷键逻辑，但支持HOME和END键的响应(滚动)
-        if (msg.chKey == VK_HOME) {
+        if (msg.chKey == kVK_HOME) {
             if (IsHorizontalScrollBar()) {
                 HomeLeft();
             }
@@ -108,7 +109,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
             }
             bHandled = true;
         }
-        else if (msg.chKey == VK_END) {
+        else if (msg.chKey == kVK_END) {
             if (IsHorizontalScrollBar()) {
                 EndRight();
             }
@@ -123,7 +124,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
     //单选、有数据、有选中项的情况
     bHandled = true;
     switch (msg.chKey) {
-    case VK_UP:
+    case kVK_UP:
         if (IsHorizontalScrollBar()) {
             //横向滚动条，向上1条
             SelectItemPrevious(true, true);
@@ -140,7 +141,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
             }
         }        
         break;
-    case VK_DOWN:
+    case kVK_DOWN:
         if (IsHorizontalScrollBar()) {
             //横向滚动条，向下1条
             SelectItemNext(true, true);
@@ -160,7 +161,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
             }
         }
         break;
-    case VK_LEFT:
+    case kVK_LEFT:
         if (IsHorizontalScrollBar()) {
             //横向滚动条，向上1列
             size_t nColumns = 0;
@@ -176,7 +177,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
             SelectItemPrevious(true, true);
         }
         break;
-    case VK_RIGHT:
+    case kVK_RIGHT:
         if (IsHorizontalScrollBar()) {
             //横向滚动条，向下1行
             size_t nColumns = 0;
@@ -196,16 +197,16 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
             SelectItemNext(true, true);
         }
         break;
-    case VK_PRIOR:
+    case kVK_PRIOR:
         SelectItemPage(true, true, false, 0);
         break;
-    case VK_NEXT:
+    case kVK_NEXT:
         SelectItemPage(true, true, true, 0);
         break;
-    case VK_HOME:
+    case kVK_HOME:
         SelectItemHome(true, true);
         break;
-    case VK_END:
+    case kVK_END:
         SelectItemEnd(true, true);
         break;
     default:

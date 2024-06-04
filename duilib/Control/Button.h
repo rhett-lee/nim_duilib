@@ -4,6 +4,7 @@
 #pragma once
 
 #include "duilib/Control/Label.h"
+#include "duilib/Core/Keyboard.h"
 
 namespace ui {
 
@@ -50,7 +51,7 @@ void ButtonTemplate<InheritType>::HandleEvent(const EventArgs& msg)
     if (msg.Type == kEventKeyDown) {
         if (this->IsEnabled() && this->IsKeyboardEnabled()) {
             //按下回车键或者空格键的时候，触发按钮响应动作
-            if (msg.chKey == VK_SPACE || msg.chKey == VK_RETURN) {
+            if (msg.chKey == kVK_SPACE || msg.chKey == kVK_RETURN) {
                 Activate();
                 return;
             }

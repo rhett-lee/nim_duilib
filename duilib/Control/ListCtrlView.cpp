@@ -1,6 +1,7 @@
 #include "ListCtrlView.h" 
 #include "duilib/Control/ListCtrl.h"
 #include "duilib/Control/ListCtrlData.h"
+#include "duilib/Core/Keyboard.h"
 
 namespace ui
 {
@@ -727,25 +728,19 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
 
     //方向键操作
     bool bArrowKeyDown = (msg.Type == kEventKeyDown) &&
-                         ((msg.chKey == VK_UP) || (msg.chKey == VK_DOWN) ||
-                          (msg.chKey == VK_LEFT) || (msg.chKey == VK_RIGHT) ||
-                          (msg.chKey == VK_PRIOR) || (msg.chKey == VK_NEXT) ||
-                          (msg.chKey == VK_HOME) || (msg.chKey == VK_END));
+                         ((msg.chKey == kVK_UP) || (msg.chKey == kVK_DOWN) ||
+                          (msg.chKey == kVK_LEFT) || (msg.chKey == kVK_RIGHT) ||
+                          (msg.chKey == kVK_PRIOR) || (msg.chKey == kVK_NEXT) ||
+                          (msg.chKey == kVK_HOME) || (msg.chKey == kVK_END));
     const size_t nElementCount = GetElementCount();
     if (!bArrowKeyDown || !IsMultiSelect() || (nElementCount == 0)) {
         //在方向键按下消息、无数据、不支持多选的情况下，走默认处理流程
         return bHandled;
     }
 
-#ifdef DUILIB_PLATFORM_WIN
-    bool bShiftDown = ::GetAsyncKeyState(VK_SHIFT) < 0;
-    bool bControlDown = ::GetAsyncKeyState(VK_CONTROL) < 0;
-    bool bAltDown = ::GetAsyncKeyState(VK_MENU) < 0;
-#else
-    bool bShiftDown = false;
-    bool bControlDown = false;
-    bool bAltDown = false;
-#endif
+    bool bShiftDown = Keyboard::IsKeyDown(kVK_SHIFT);
+    bool bControlDown = Keyboard::IsKeyDown(kVK_CONTROL);
+    bool bAltDown = Keyboard::IsKeyDown(kVK_MENU);
 
     if (bAltDown || bControlDown) {
         //如果按住Ctrl键 或者 Alt键走默认流程
@@ -808,8 +803,8 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
     if (nCurSel < GetItemCount()) {
         nIndexCurSel = GetDisplayItemElementIndex(nCurSel);
     }
-    const bool bForward = (msg.chKey == VK_DOWN) || (msg.chKey == VK_RIGHT) || 
-                          (msg.chKey == VK_NEXT) || (msg.chKey == VK_HOME);
+    const bool bForward = (msg.chKey == kVK_DOWN) || (msg.chKey == kVK_RIGHT) || 
+                          (msg.chKey == kVK_NEXT) || (msg.chKey == kVK_HOME);
     if (nIndexCurSel < nElementCount) {
         //匹配可选择项
         nIndexCurSel = FindSelectableElement(nIndexCurSel, bForward);
@@ -826,7 +821,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
     size_t nIndexEnd = Box::InvalidIndex;
     //实现Shift键 + 方向键的选择逻辑
     switch (msg.chKey) {
-    case VK_UP:
+    case kVK_UP:
         if (IsHorizontalLayout()) {
             //横向布局
             if (nIndexCurSel >= 1) {
@@ -846,7 +841,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
             }
         }
         break;
-    case VK_DOWN:
+    case kVK_DOWN:
         if (IsHorizontalLayout()) {
             //横向布局
             if ((nIndexCurSel + 1) < nElementCount) {
@@ -866,7 +861,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
             }
         }
         break;
-    case VK_LEFT:
+    case kVK_LEFT:
         if (IsHorizontalLayout()) {
             //横向布局
             if ((int32_t)nIndexCurSel >= nRows) {
@@ -893,7 +888,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
             }
         }
         break;
-    case VK_RIGHT:
+    case kVK_RIGHT:
         if (IsHorizontalLayout()) {
             //横向布局
             if ((nIndexCurSel + nRows) < nElementCount) {
@@ -920,7 +915,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
             }
         }
         break;
-    case VK_PRIOR:
+    case kVK_PRIOR:
     {
         size_t nShowColumns = 0;
         size_t nShowRows = 0;
@@ -960,7 +955,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         }
     }
     break;
-    case VK_NEXT:
+    case kVK_NEXT:
     {
         size_t nShowColumns = 0;
         size_t nShowRows = 0;
@@ -1002,10 +997,10 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
         }
     }
     break;
-    case VK_HOME:
+    case kVK_HOME:
         nIndexEnd = 0;
         break;
-    case VK_END:
+    case kVK_END:
         nIndexEnd = nElementCount - 1;
         break;
     default:

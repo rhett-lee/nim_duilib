@@ -77,6 +77,10 @@
 #include "Core/ControlDragable.h"
 #include "Core/Callback.h"
 
+#include "Core/KeyCode.h"
+#include "Core/Keyboard.h"
+#include "Core/CursorManager.h"
+
 #include "Box/VBox.h"
 #include "Box/HBox.h"
 #include "Box/TileBox.h"

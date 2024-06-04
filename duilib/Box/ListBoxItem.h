@@ -6,6 +6,7 @@
 #include "duilib/Box/VBox.h"
 #include "duilib/Box/HBox.h"
 #include "duilib/Control/Option.h"
+#include "duilib/Core/Keyboard.h"
 
 namespace ui 
 {
@@ -297,7 +298,7 @@ void ListBoxItemTemplate<InheritType>::HandleEvent(const EventArgs& msg)
         }
     }
     else if (msg.Type == kEventKeyDown && this->IsEnabled()) {
-        if (msg.chKey == VK_RETURN) {
+        if (msg.chKey == kVK_RETURN) {
             if (this->IsActivatable()) {
                 this->SendEvent(kEventReturn);
             }

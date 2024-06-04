@@ -4,6 +4,7 @@
 #include "duilib/Core/Shadow.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/ToolTip.h"
+#include "duilib/Core/Keyboard.h"
 #include "duilib/Core/WindowDropTarget.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
@@ -2289,14 +2290,14 @@ LRESULT Window::OnKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHan
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_KEYDOWN);
     bHandled = false;
-    if (IsWindowFullScreen() && (wParam == VK_ESCAPE)) {
+    if (IsWindowFullScreen() && (wParam == kVK_ESCAPE)) {
         //按ESC键时，退出全屏
         ExitFullScreen();
         return 0;
     }
 
     if (m_pFocus != nullptr) {
-        if (wParam == VK_TAB) {
+        if (wParam == kVK_TAB) {
             if (m_pFocus->IsVisible() &&
                 m_pFocus->IsEnabled() &&
                 m_pFocus->IsWantTab()) {
@@ -2304,7 +2305,7 @@ LRESULT Window::OnKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHan
             }
             else {
                 //通过TAB键切换焦点控件
-                SetNextTabControl(::GetKeyState(VK_SHIFT) >= 0);
+                SetNextTabControl(!Keyboard::IsKeyDown(kVK_SHIFT));
             }
         }
         else {
@@ -2312,7 +2313,7 @@ LRESULT Window::OnKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHan
             m_pFocus->SendEvent(kEventKeyDown, wParam, lParam, static_cast<TCHAR>(wParam));
         }
     }
-    if ((wParam == VK_ESCAPE) && (m_pEventClick != nullptr)) {
+    if ((wParam == kVK_ESCAPE) && (m_pEventClick != nullptr)) {
         m_pEventClick->SendEvent(kEventMouseClickEsc);
     }
     return 0;

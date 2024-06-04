@@ -995,7 +995,7 @@ public:
 
 public:
     /** 设置系统激活窗口热键，注册后按此热键，系统可以自动激活本窗口
-    * @param [in] wVirtualKeyCode 虚拟键盘码，比如：VK_DOWN等，可参考：https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
+    * @param [in] wVirtualKeyCode 虚拟键盘码，比如：kVK_DOWN等，可参考：https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
     *             如果wVirtualKeyCode为0，表示取消管理窗口激活热键
     * @param [in] wModifiers 热键组合键标志位，参见HotKeyModifiers枚举类型的值
     * @return 返回值说明:
@@ -1007,14 +1007,14 @@ public:
     int32_t SetWindowHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers);
 
     /** 获取系统激活窗口热键
-    * @param [out] wVirtualKeyCode 虚拟键盘码，比如：VK_DOWN等
+    * @param [out] wVirtualKeyCode 虚拟键盘码，比如：kVK_DOWN等
     * @param [out] wModifiers 热键组合键标志位，参见HotKeyModifiers枚举类型的值
     * @return 如果返回false表示没有注册窗口激活热键，否则表示有注册窗口激活热键
     */
     bool GetWindowHotKey(uint8_t& wVirtualKeyCode, uint8_t& wModifiers) const;
 
     /** 注册系统全局热键，注册成功后，按此热键后，该窗口会收到WM_HOTKEY消息
-    * @param [in] wVirtualKeyCode 虚拟键盘码，比如：VK_DOWN等
+    * @param [in] wVirtualKeyCode 虚拟键盘码，比如：kVK_DOWN等
     * @param [in] wModifiers 热键组合键标志位，参见HotKeyModifiers枚举类型的值
     * @param [in] id 命令ID，应用程序必须在0x0000到0xBFFF的范围内指定 ID 值。 
                   为了避免与其他共享 DLL 定义的热键标识符冲突，DLL 应使用 GlobalAddAtom 函数获取热键标识符。

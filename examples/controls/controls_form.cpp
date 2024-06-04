@@ -222,7 +222,7 @@ void ControlForm::OnInitWindow()
             //    ASSERT(pHotKey->GetHotKey() == MAKEWORD(wVirtualKeyCode, wModifiers));
 
             //    const uint8_t wModifiers2 = ui::kHotKey_Shift | ui::kHotKey_Contrl | ui::kHotKey_Alt | ui::kHotKey_Ext;
-            //    const uint8_t wVirtualKeyCode2 = VK_HOME;
+            //    const uint8_t wVirtualKeyCode2 = kVK_HOME;
 
             //    pHotKey->SetHotKey(wVirtualKeyCode2, wModifiers2);
             //    pHotKey->GetHotKey(wVirtualKeyCode, wModifiers);

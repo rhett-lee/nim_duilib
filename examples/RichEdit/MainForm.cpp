@@ -927,8 +927,8 @@ void MainForm::OnCloseWindow()
 LRESULT MainForm::OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     LRESULT lResult = __super::OnKeyUp(uMsg, wParam, lParam, bHandled);
-    bool bControlDown = ::GetKeyState(VK_CONTROL) < 0;
-    bool bShiftDown = ::GetKeyState(VK_SHIFT) < 0;
+    bool bControlDown = ui::Keyboard::IsKeyDown(ui::kVK_CONTROL);
+    bool bShiftDown = ui::Keyboard::IsKeyDown(ui::kVK_SHIFT);
     if (bControlDown) {
         if ((wParam == 'O') && !bShiftDown){
             //打开
@@ -955,7 +955,7 @@ LRESULT MainForm::OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHand
             }
         }
     }
-    if (!bControlDown && !bShiftDown && (::GetKeyState(VK_F3) < 0)) {
+    if (!bControlDown && !bShiftDown && ui::Keyboard::IsKeyDown(ui::kVK_F3)) {
         //查找下一个
         OnFindNext();
     }

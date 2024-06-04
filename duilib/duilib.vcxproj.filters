@@ -435,6 +435,9 @@
     <ClCompile Include="Core\CursorManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\Keyboard.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -951,6 +954,12 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\CursorManager.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Keyboard.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\KeyCode.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
