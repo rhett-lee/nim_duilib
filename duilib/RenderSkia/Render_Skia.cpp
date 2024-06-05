@@ -63,7 +63,6 @@ Render_Skia::Render_Skia(IRenderFactory* pRenderFactory, Window* pWindow):
     m_pSkPaint = new SkPaint;
     m_pSkPaint->setAntiAlias(true);
     m_pSkPaint->setDither(true);
-    m_pSkPaint->setStyle(SkPaint::kStrokeAndFill_Style);
     if (pWindow != nullptr) {
         m_windowFlag = pWindow->GetWeakFlag();
     }
