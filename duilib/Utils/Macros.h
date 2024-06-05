@@ -8,16 +8,6 @@
 namespace ui
 {
 ///////////////////////////////////////////////////////
-// windowsx.h
-#define GET_X_LPARAM(lp)                        ((int)(short)LOWORD(lp))
-#define GET_Y_LPARAM(lp)                        ((int)(short)HIWORD(lp))
-
-/* Value for rolling one detent */
-#define WHEEL_DELTA                     120
-#define GET_WHEEL_DELTA_WPARAM(wParam)  ((short)HIWORD(wParam))
-#define GET_KEYSTATE_WPARAM(wParam)     (LOWORD(wParam))
-
-///////////////////////////////////////////////////////
 // WM_TOUCH触摸消息
 #define WM_TOUCH                        0x0240
 #define WM_GESTURE                      0x0119

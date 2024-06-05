@@ -3,7 +3,6 @@
 #include "ui_components/cef_control/manager/cef_manager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
-#include "duilib/Utils/Macros.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)

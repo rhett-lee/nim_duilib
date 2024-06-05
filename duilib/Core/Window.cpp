@@ -1,4 +1,5 @@
 #include "Window.h"
+#include "duilib/Core/WindowMessage.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Shadow.h"

@@ -4,7 +4,6 @@
 #include "duilib/Box/VBox.h"
 #include "duilib/Box/ListBox.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/Macros.h"
 #include "duilib/Utils/AttributeUtil.h"
 
 namespace ui

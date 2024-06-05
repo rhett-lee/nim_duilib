@@ -1917,9 +1917,10 @@ HDC Render_Skia::GetDC()
     if (m_windowFlag.expired()) {
         pWindow = nullptr;
     }
-    HDC hDeskDC = ::GetDC((pWindow != nullptr) ? pWindow->GetHWND() : nullptr);
+    HWND hWnd = (pWindow != nullptr) ? pWindow->GetHWND() : nullptr;
+    HDC hDeskDC = ::GetDC(hWnd);
     HDC hGetDC = ::CreateCompatibleDC(hDeskDC);
-    ::ReleaseDC(NULL, hDeskDC);
+    ::ReleaseDC(hWnd, hDeskDC);
     hDeskDC = nullptr;
 
     ::SelectObject(hGetDC, hBitmap);

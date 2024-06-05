@@ -10,15 +10,6 @@ namespace ui {
 */
 #define kKF_EXTENDED    0x0100
 
-#ifndef DUILIB_PLATFORM_WIN
-    #define MAKEWORD(a, b)      ((uint16_t)(((uint8_t)(((size_t)(a)) & 0xff)) | ((uint16_t)((uint8_t)(((size_t)(b)) & 0xff))) << 8))
-    #define MAKELONG(a, b)      ((uint32_t)(((uint16_t)(((size_t)(a)) & 0xffff)) | ((uint32_t)((uint16_t)(((size_t)(b)) & 0xffff))) << 16))
-    #define LOWORD(l)           ((uint16_t)(((size_t)(l)) & 0xffff))
-    #define HIWORD(l)           ((uint16_t)((((size_t)(l)) >> 16) & 0xffff))
-    #define LOBYTE(w)           ((uint8_t)(((size_t)(w)) & 0xff))
-    #define HIBYTE(w)           ((uint8_t)((((size_t)(w)) >> 8) & 0xff))
-#endif
-
 /** 虚拟键编码(和Windows系统定义一致，WinUser.h)
 */
 enum VirtualKeyCode{

@@ -46,8 +46,6 @@
 #include <functional>
 
 #include "duilib_defs.h"
-#include "Utils/Macros.h"
-#include "Utils/ApiWrapper.h"
 #include "Utils/Delegate.h"
 #include "Utils/StringUtil.h"
 #include "Utils/PathUtil.h"

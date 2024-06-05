@@ -449,6 +449,7 @@
     <ClCompile Include="Utils\LogUtil.cpp" />
     <ClCompile Include="Utils\PathUtil.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
+    <ClCompile Include="Utils\ScreenCapture.cpp" />
     <ClCompile Include="Utils\ShadowWnd.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
     <ClCompile Include="Control\Combo.cpp" />
@@ -563,6 +564,7 @@
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\WindowBuilder.h" />
     <ClInclude Include="Core\WindowDropTarget.h" />
+    <ClInclude Include="Core\WindowMessage.h" />
     <ClInclude Include="Core\ZipManager.h" />
     <ClInclude Include="Core\ZipStreamIO.h" />
     <ClInclude Include="duilib.h" />
@@ -619,6 +621,7 @@
     <ClInclude Include="Utils\Macros.h" />
     <ClInclude Include="Utils\PathUtil.h" />
     <ClInclude Include="Utils\PerformanceUtil.h" />
+    <ClInclude Include="Utils\ScreenCapture.h" />
     <ClInclude Include="Utils\ShadowWnd.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Delegate.h" />
