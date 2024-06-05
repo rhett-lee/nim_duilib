@@ -1,10 +1,8 @@
 #ifndef UI_UTILS_APIWRAPPER_H_
 #define UI_UTILS_APIWRAPPER_H_
 
-#pragma once
-
-#include "duilib/Utils/Macros.h"
 #include "duilib/duilib_defs.h"
+#include "duilib/Utils/Macros.h"
 
 namespace ui
 {

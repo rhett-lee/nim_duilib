@@ -255,8 +255,8 @@ namespace ui
         kEventKeyBegin,
         kEventKeyDown,              //Window类：当收到WM_KEYDOWN消息时触发，发送给Focus控件
         kEventKeyUp,                //Window类：当收到WM_KEYUP消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
-        kEventSysKeyDown,           //Window类：当收到WM_SYSKEYDOWN消息时触发，发送给Focus控件
-        kEventSysKeyUp,             //Window类：当收到WM_SYSKEYUP消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
+        kEventSysKeyDown,           //需要移除 Window类：当收到WM_SYSKEYDOWN消息时触发，发送给Focus控件
+        kEventSysKeyUp,             //需要移除 Window类：当收到WM_SYSKEYUP消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
         kEventChar,                 //Window类：当收到WM_CHAR消息时触发，发送给WM_KEYDOWN事件中的那个Focus控件
         kEventKeyEnd,
 

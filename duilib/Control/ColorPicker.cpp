@@ -5,8 +5,8 @@
 #include "duilib/Control/ColorPickerStatardGray.h"
 #include "duilib/Control/ColorPickerCustom.h"
 #include "duilib/Core/GlobalManager.h"
-#include "duilib/Utils/ApiWrapper.h"
 #include "duilib/Utils/PathUtil.h"
+#include "duilib/Utils/ScreenCapture.h"
 
 namespace ui
 {
@@ -656,51 +656,7 @@ public:
     */
     void ScreenCapture()
     {
-        std::shared_ptr<IBitmap> spBitmap;
-        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        ASSERT(pRenderFactory != nullptr);
-        if (pRenderFactory != nullptr) {
-            spBitmap.reset(pRenderFactory->CreateBitmap());
-        }
-        if (spBitmap == nullptr) {
-            return;
-        }
-
-        //抓取屏幕位图
-        int32_t xScreen = GetSystemMetricsForDpiWrapper(SM_XVIRTUALSCREEN, Dpi().GetDPI());
-        int32_t yScreen = GetSystemMetricsForDpiWrapper(SM_YVIRTUALSCREEN, Dpi().GetDPI());
-        int32_t cxScreen = GetSystemMetricsForDpiWrapper(SM_CXVIRTUALSCREEN, Dpi().GetDPI());
-        int32_t cyScreen = GetSystemMetricsForDpiWrapper(SM_CYVIRTUALSCREEN, Dpi().GetDPI());
-        if ((cxScreen <= 0) || (cyScreen <= 0)) {
-            return;
-        }
-        HDC hdcSrc = ::GetDC(NULL); // 获取屏幕句柄
-        if (hdcSrc == nullptr) {
-            return;
-        }
-        HDC hdcDst = ::CreateCompatibleDC(hdcSrc); // 创建一个兼容屏幕的DC
-        if (hdcDst == nullptr) {
-            ::ReleaseDC(NULL, hdcSrc);
-            return;
-        }
-
-        LPVOID pBits = nullptr;
-        HBITMAP hBitmap = CreateBitmap(cxScreen, cyScreen, true, &pBits);
-        if (hBitmap == nullptr) {
-            ::ReleaseDC(NULL, hdcSrc); // 释放句柄
-            ::DeleteDC(hdcDst);
-            return;
-        }
-        ::SelectObject(hdcDst, hBitmap);
-        ::BitBlt(hdcDst, 0, 0, cxScreen, cyScreen, hdcSrc, xScreen, yScreen, SRCCOPY); // 复制屏幕内容到位图
-        ::ReleaseDC(NULL, hdcSrc); // 释放句柄
-        ::DeleteDC(hdcDst);
-
-        if (!spBitmap->Init(cxScreen, cyScreen, true, pBits)) {
-            spBitmap.reset();
-        }
-        ::DeleteObject(hBitmap);
-        m_spBitmap = spBitmap;
+        m_spBitmap = ScreenCapture::CaptureBitmap(this);
     }
 
     /** 获取选择的颜色值
@@ -713,43 +669,6 @@ public:
         }
         return selColor;
     }
-
-private:
-
-    /** 创建位图
-    */
-    HBITMAP CreateBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits)
-    {
-        ASSERT((nWidth > 0) && (nHeight > 0));
-        if (nWidth == 0 || nHeight == 0) {
-            return nullptr;
-        }
-
-        BITMAPINFO bmi = { 0 };
-        ::ZeroMemory(&bmi, sizeof(BITMAPINFO));
-        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-        bmi.bmiHeader.biWidth = nWidth;
-        if (flipHeight) {
-            bmi.bmiHeader.biHeight = -nHeight;//负数表示位图方向：从上到下，左上角为圆点
-        }
-        else {
-            bmi.bmiHeader.biHeight = nHeight; //正数表示位图方向：从下到上，左下角为圆点
-        }
-        bmi.bmiHeader.biPlanes = 1;
-        bmi.bmiHeader.biBitCount = 32;
-        bmi.bmiHeader.biCompression = BI_RGB;
-        bmi.bmiHeader.biSizeImage = nWidth * nHeight * sizeof(DWORD);
-
-        HBITMAP hBitmap = nullptr;
-        HDC hdc = ::GetDC(NULL);
-        ASSERT(hdc != nullptr);
-        if (hdc != nullptr) {
-            hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, NULL, 0);
-        }
-        ::ReleaseDC(NULL, hdc);
-        return hBitmap;
-    }
-
 private:
     /** 位图显示控件
     */

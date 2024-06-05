@@ -1,5 +1,4 @@
 #include "msgbox.h"
-#include "duilib/Utils/Macros.h"
 #include "duilib/Core/GlobalManager.h"
 
 namespace nim_comp {
