@@ -88,6 +88,7 @@ const SkFont* Font_Skia::GetFontHandle()
     m_skFont->setTypeface(spTypeface);
     m_skFont->setSize(SkIntToScalar(std::abs(m_uiFont.m_fontSize)));
     m_skFont->setEdging(SkFont::Edging::kSubpixelAntiAlias);
+    m_skFont->setSubpixel(true);
     return m_skFont;
 }
 

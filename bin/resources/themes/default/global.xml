@@ -46,9 +46,9 @@
     <Font id="arial_bold_22" name="arial" size="22" bold="true"/>
     
     <!-- 默认文本颜色值：常规状态 -->
-    <TextColor name="default_font_color" value="#ff333333"/>
+    <TextColor name="default_font_color" value="#FF000000"/>
     <!-- 默认文本颜色值：禁止状态 -->
-    <TextColor name="disabled_font_color" value="#ffa1aebc"/>
+    <TextColor name="disabled_font_color" value="#FFA1AEBC"/>
     
     <!-- 超级链接：常规文本颜色值 -->
     <TextColor name="default_link_font_color" value="#FF0000FF"/>
