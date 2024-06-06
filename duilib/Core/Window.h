@@ -94,15 +94,6 @@ public:
     */
     Window* GetParentWindow() const;
 
-    /** 子类化窗口（更改窗口过程函数）
-    * @param [in] 窗口句柄
-    */
-    bool Subclass(HWND hWnd);
-
-    /** 取消子类化窗口（恢复原来的窗口过程函数）
-    */
-    void Unsubclass();
-
     /** 关闭窗口, 异步关闭，当函数返回后，IsClosing() 状态为true
     * @param [in] nRet 关闭消息, 含义如下：
                 0 - 表示 "确认" 关闭本窗口
@@ -129,7 +120,7 @@ protected:
     */
     virtual DString GetWindowClassName() const;
 
-    /** 获取控件窗口类
+    /** 获取控件窗口类(DateTime控件使用)
     * @return 返回控件窗口类，该基类返回空串
     */
     virtual DString GetSuperClassName() const;
@@ -1160,9 +1151,6 @@ private:
 
     //原来的窗口过程函数
     WNDPROC m_OldWndProc;
-
-    //是否子类化（Subclass函数）
-    bool m_bSubclassed;
 
     //事件回调管理器
     EventMap m_OnEvent;

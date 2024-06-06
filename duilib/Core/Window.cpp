@@ -25,7 +25,6 @@ Window::Window() :
     m_pRoot(nullptr),
     m_OnEvent(),
     m_OldWndProc(::DefWindowProc),
-    m_bSubclassed(false),
     m_renderOffset(),
     m_hDcPaint(nullptr),
     m_pFocus(nullptr),
@@ -149,39 +148,6 @@ UINT Window::GetClassStyle() const
 HMODULE Window::GetResModuleHandle() const
 {
     return ::GetModuleHandle(NULL);
-}
-
-bool Window::Subclass(HWND hWnd)
-{
-    ASSERT(::IsWindow(hWnd));
-    if (!::IsWindow(hWnd)) {
-        return false;
-    }
-    ASSERT(m_hWnd == nullptr);
-    if (m_hWnd != nullptr) {
-        return false;
-    }
-    m_OldWndProc = SubclassWindow(hWnd, __WndProc);
-    if (m_OldWndProc == nullptr) {
-        return false;
-    }
-    m_bSubclassed = true;
-    m_hWnd = hWnd;
-    ::SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(this));
-    return m_hWnd != nullptr;
-}
-
-void Window::Unsubclass()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    if (!::IsWindow(m_hWnd)) {
-        return;
-    }
-    if (m_bSubclassed) {
-        SubclassWindow(m_hWnd, m_OldWndProc);
-        m_OldWndProc = ::DefWindowProc;
-        m_bSubclassed = false;
-    }
 }
 
 bool Window::CreateWnd(Window* pParentWindow, const DString& windowName,
@@ -575,9 +541,6 @@ LRESULT CALLBACK Window::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM l
         if (uMsg == WM_NCDESTROY && pThis != nullptr) {
             LRESULT lRes = ::CallWindowProc(pThis->m_OldWndProc, hWnd, uMsg, wParam, lParam);
             ::SetWindowLongPtr(pThis->m_hWnd, GWLP_USERDATA, 0L);
-            if (pThis->m_bSubclassed) {
-                pThis->Unsubclass();
-            }
             ASSERT(hWnd == pThis->GetHWND());
             pThis->OnFinalMessage();
             return lRes;
@@ -625,9 +588,6 @@ LRESULT CALLBACK Window::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
         pThis = reinterpret_cast<Window*>(::GetPropW(hWnd, sPropName));
         if (uMsg == WM_NCDESTROY && pThis != nullptr) {
             LRESULT lRes = ::CallWindowProc(pThis->m_OldWndProc, hWnd, uMsg, wParam, lParam);
-            if (pThis->m_bSubclassed) {
-                pThis->Unsubclass();
-            }
             ::SetPropW(hWnd, sPropName, NULL);
             ASSERT(hWnd == pThis->GetHWND());
             pThis->OnFinalMessage();
