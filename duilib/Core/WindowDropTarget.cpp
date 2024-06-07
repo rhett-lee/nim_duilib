@@ -1,6 +1,6 @@
 #include "WindowDropTarget.h"
 #include "duilib/Core/ControlDropTarget.h"
-#include "duilib/Core/Window.h"
+#include "duilib/Core/WindowBase.h"
 #include <ole2.h>
 
 namespace ui 
@@ -221,7 +221,7 @@ WindowDropTarget::~WindowDropTarget()
     }
 }
 
-void WindowDropTarget::SetWindow(Window* pWindow)
+void WindowDropTarget::SetWindow(WindowBase* pWindow)
 {
     m_pWindow = pWindow;
 }

@@ -1,15 +1,13 @@
 #ifndef UI_CORE_WINDOW_DROP_TARGET_H_
 #define UI_CORE_WINDOW_DROP_TARGET_H_
 
-#pragma once
-
 #include "duilib/Core/UiTypes.h"
 
 namespace ui 
 {
 
 class ControlDropTarget;
-class Window;
+class WindowBase;
 
 /** 窗口的拖放支持
 */
@@ -25,7 +23,7 @@ public:
     /** 设置容器所属窗口
      * @param [in] pWindow 窗口指针
      */
-    void SetWindow(Window* pWindow);
+    void SetWindow(WindowBase* pWindow);
 
     /** 注册一个拖放接口
     */
@@ -42,7 +40,7 @@ public:
 private:
     /** 窗口指针
     */
-    Window* m_pWindow;
+    WindowBase* m_pWindow;
 
     /** 注册的控件列表
     */

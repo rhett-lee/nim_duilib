@@ -1,4 +1,6 @@
 #include "ToolTip.h"
+#include "duilib/Core/WindowBase.h"
+#include <CommCtrl.h>
 
 namespace ui
 {
@@ -6,7 +8,55 @@ namespace ui
 //ToolTip最大长度
 #define TOOLTIP_MAX_LEN 511
 
-ToolTip::ToolTip():
+class ToolTip::ToolTipImpl
+{
+public:
+    ToolTipImpl();
+    ~ToolTipImpl();
+
+public:
+    /** 设置鼠标跟踪状态
+    * @param [in] pParentWnd 父窗口
+    * @param [in] bTracking 是否跟踪鼠标状态
+    */
+    void SetMouseTracking(WindowBase* pParentWnd, bool bTracking);
+
+    /**@brief 显示ToolTip信息
+    * @param [in] pParentWnd 父窗口
+    * @param [in] rect Tooltip显示区域
+    * @param [in] maxWidth Tooltip显示最大宽度
+    * @param [in] trackPos 跟踪的位置
+    * @param [in] text Tooltip显示内容
+    */
+    void ShowToolTip(WindowBase* pParentWnd,
+                     const UiRect& rect, 
+                     uint32_t maxWidth,
+                     const UiPoint& trackPos,
+                     const DString& text);
+
+    /**@brief 隐藏ToolTip信息
+    */
+    void HideToolTip();
+
+    /**@brief 清除鼠标跟踪状态
+    */
+    void ClearMouseTracking();
+
+public:
+    //鼠标跟踪状态
+    bool m_bMouseTracking;
+
+    //Tooltip信息
+    TOOLINFO m_ToolTip;
+
+    //Tooltip窗口
+    HWND m_hwndTooltip;
+
+    //主窗口
+    HWND m_hParentWnd;
+};
+
+ToolTip::ToolTipImpl::ToolTipImpl():
     m_bMouseTracking(false),
     m_hwndTooltip(nullptr),
     m_hParentWnd(nullptr)
@@ -15,7 +65,7 @@ ToolTip::ToolTip():
     m_ToolTip.cbSize = sizeof(TOOLINFO);
 }
 
-ToolTip::~ToolTip()
+ToolTip::ToolTipImpl::~ToolTipImpl()
 {
     if (m_hwndTooltip != nullptr) {
         ::DestroyWindow(m_hwndTooltip);
@@ -23,27 +73,34 @@ ToolTip::~ToolTip()
     }
 }
 
-void ToolTip::SetMouseTracking(HWND hParentWnd, bool bTracking)
+void ToolTip::ToolTipImpl::SetMouseTracking(WindowBase* pParentWnd, bool bTracking)
 {
+    ASSERT(pParentWnd != nullptr);
+    if (pParentWnd == nullptr) {
+        return;
+    }
     if (bTracking && !m_bMouseTracking) {
         TRACKMOUSEEVENT tme = { 0 };
         tme.cbSize = sizeof(TRACKMOUSEEVENT);
         tme.dwFlags = TME_HOVER | TME_LEAVE;
-        tme.hwndTrack = hParentWnd;
+        tme.hwndTrack = pParentWnd->GetHWND();
         tme.dwHoverTime = (m_hwndTooltip == nullptr) ? 400UL : (DWORD) ::SendMessage(m_hwndTooltip, TTM_GETDELAYTIME, TTDT_INITIAL, 0L);
         _TrackMouseEvent(&tme);
     }
-    m_hParentWnd = hParentWnd;
+    m_hParentWnd = pParentWnd->GetHWND();
     m_bMouseTracking = bTracking;
 }
 
-void ToolTip::ShowToolTip(HWND hParentWnd,
-                           HMODULE hModule,
-                          const UiRect& rect,
-                          uint32_t maxWidth,
-                          const UiPoint& trackPos,
-                          const DString& text)
+void ToolTip::ToolTipImpl::ShowToolTip(WindowBase* pParentWnd,
+                                       const UiRect& rect,
+                                       uint32_t maxWidth,
+                                       const UiPoint& trackPos,
+                                       const DString& text)
 {
+    ASSERT(pParentWnd != nullptr);
+    if (pParentWnd == nullptr) {
+        return;
+    }
     if (text.empty()) {
         return;
     }
@@ -53,6 +110,7 @@ void ToolTip::ShowToolTip(HWND hParentWnd,
         newText = newText.substr(0, TOOLTIP_MAX_LEN);
     }
 
+    HWND hParentWnd = pParentWnd->GetHWND();
     if ((m_hwndTooltip != nullptr) && IsWindowVisible(m_hwndTooltip)) {
         TOOLINFO toolTip = { 0 };
         toolTip.cbSize = sizeof(TOOLINFO);
@@ -68,6 +126,9 @@ void ToolTip::ShowToolTip(HWND hParentWnd,
             return;
         }
     }
+
+    //资源所在模块句柄
+    HMODULE hModule = pParentWnd->GetResModuleHandle();
 
     ::ZeroMemory(&m_ToolTip, sizeof(TOOLINFO));
     m_ToolTip.cbSize = sizeof(TOOLINFO);
@@ -97,19 +158,56 @@ void ToolTip::ShowToolTip(HWND hParentWnd,
     m_hParentWnd = hParentWnd;
 }
 
-void ToolTip::HideToolTip()
+void ToolTip::ToolTipImpl::HideToolTip()
 {
     if (m_hwndTooltip != nullptr) {
         ::SendMessage(m_hwndTooltip, TTM_TRACKACTIVATE, FALSE, (LPARAM)&m_ToolTip);
     }
 }
 
-void ToolTip::ClearMouseTracking()
+void ToolTip::ToolTipImpl::ClearMouseTracking()
 {
     if (m_bMouseTracking) {
         ::SendMessage(m_hParentWnd, WM_MOUSEMOVE, 0, (LPARAM)-1);
     }
     m_bMouseTracking = false;
+}
+
+ToolTip::ToolTip()
+{
+    m_impl = new ToolTipImpl;
+}
+
+ToolTip::~ToolTip()
+{
+    if (m_impl != nullptr) {
+        delete m_impl;
+        m_impl = nullptr;
+    }
+}
+
+void ToolTip::SetMouseTracking(WindowBase* pParentWnd, bool bTracking)
+{
+    m_impl->SetMouseTracking(pParentWnd, bTracking);
+}
+
+void ToolTip::ShowToolTip(WindowBase* pParentWnd,
+                          const UiRect& rect,
+                          uint32_t maxWidth,
+                          const UiPoint& trackPos,
+                          const DString& text)
+{
+    m_impl->ShowToolTip(pParentWnd, rect, maxWidth, trackPos, text);
+}
+
+void ToolTip::HideToolTip()
+{
+    m_impl->HideToolTip();
+}
+
+void ToolTip::ClearMouseTracking()
+{
+    m_impl->ClearMouseTracking();
 }
 
 } // namespace ui

@@ -1,15 +1,14 @@
 #ifndef UI_CORE_TOOLTIP_H_
 #define UI_CORE_TOOLTIP_H_
 
-#pragma once
-
 #include "duilib/Core/UiPoint.h"
 #include "duilib/Core/UiRect.h"
 #include <string>
-#include <CommCtrl.h>
 
 namespace ui 
 {
+class WindowBase;
+
 /** ToolTip的实现
 */
 class UILIB_API ToolTip
@@ -19,45 +18,37 @@ public:
     ~ToolTip();
     
 public:
-    /**@brief 设置鼠标跟踪状态
+    /** 设置鼠标跟踪状态
+    * @param [in] pParentWnd 父窗口
+    * @param [in] bTracking 是否跟踪鼠标状态
     */
-    void SetMouseTracking(HWND hParentWnd, bool bTracking);
+    void SetMouseTracking(WindowBase* pParentWnd, bool bTracking);
 
     /**@brief 显示ToolTip信息
-    * @param [in] hParentWnd 主窗口句柄
-    * @param [in] hModule 窗口关联的资源句柄
+    * @param [in] pParentWnd 父窗口
     * @param [in] rect Tooltip显示区域
     * @param [in] maxWidth Tooltip显示最大宽度
     * @param [in] trackPos 跟踪的位置
     * @param [in] text Tooltip显示内容
     */
-    void ShowToolTip(HWND hParentWnd, 
-                     HMODULE hModule, 
+    void ShowToolTip(WindowBase* pParentWnd,
                      const UiRect& rect, 
                      uint32_t maxWidth,
                      const UiPoint& trackPos,
                      const DString& text);
 
-    /**@brief 隐藏ToolTip信息
+    /** 隐藏ToolTip信息
     */
     void HideToolTip();
 
-    /**@brief 清除鼠标跟踪状态
+    /** 清除鼠标跟踪状态
     */
     void ClearMouseTracking();
 
 private:
-    //鼠标跟踪状态
-    bool m_bMouseTracking;
-    
-    //Tooltip信息
-    TOOLINFO m_ToolTip;
-    
-    //Tooltip窗口
-    HWND m_hwndTooltip;
-    
-    //主窗口
-    HWND m_hParentWnd;
+    //内部实现
+    class ToolTipImpl;
+    ToolTipImpl* m_impl;
 };
 
 } // namespace ui

@@ -6,7 +6,6 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/ToolTip.h"
 #include "duilib/Core/Keyboard.h"
-#include "duilib/Core/WindowDropTarget.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationManager.h"
@@ -34,8 +33,7 @@ Window::Window() :
     m_aDelayedCleanup(),
     m_mOptionGroup(),
     m_defaultAttrHash(),
-    m_strResourcePath(),
-    m_pWindowDropTarget(nullptr)
+    m_strResourcePath()
 {
     m_toolTip = std::make_unique<ToolTip>();
 }
@@ -118,18 +116,6 @@ void Window::ClearWindow(bool bSendClose)
         SendNotify(kEventWindowClose);
     }
     
-    std::vector<int32_t> hotKeyIds = m_hotKeyIds;
-    for (int32_t id : hotKeyIds) {
-        UnregisterHotKey(id);
-    }
-
-    //注销拖放操作
-    if (m_pWindowDropTarget != nullptr) {
-        m_pWindowDropTarget->Clear();
-        delete m_pWindowDropTarget;
-        m_pWindowDropTarget = nullptr;
-    }
-
     //回收控件
     GlobalManager::Instance().RemoveWindow(this);
     ReapObjects(GetRoot());
@@ -927,7 +913,7 @@ LRESULT Window::OnMouseHoverMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, boo
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_MOUSEHOVER);
     bHandled = false;
-    m_toolTip->SetMouseTracking(m_hWnd, false);
+    m_toolTip->SetMouseTracking(this, false);
     if (IsCaptured()) {
         //如果处于Capture状态，不显示ToolTip
         return 0;
@@ -948,9 +934,8 @@ LRESULT Window::OnMouseHoverMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, boo
         //检查按需显示ToolTip信息    
         UiRect rect = pHover->GetPos();
         uint32_t maxWidth = pHover->GetToolTipWidth();
-        HMODULE hModule = GetResModuleHandle();
         DString toolTipText = pHover->GetToolTipText();
-        m_toolTip->ShowToolTip(m_hWnd, hModule, rect, maxWidth, trackPos, toolTipText);
+        m_toolTip->ShowToolTip(this, rect, maxWidth, trackPos, toolTipText);
     }
     return 0;
 }
@@ -1106,7 +1091,7 @@ void Window::OnButtonUp(EventType eventType, WPARAM wParam, LPARAM lParam, const
 
 void Window::OnMouseMove(WPARAM wParam, LPARAM lParam, const UiPoint& pt)
 {
-    m_toolTip->SetMouseTracking(m_hWnd, true);
+    m_toolTip->SetMouseTracking(this, true);
     m_ptLastMousePos = pt;
 
     // Do not move the focus to the new control when the mouse is pressed
@@ -1907,80 +1892,6 @@ Control* Window::FindSubControlByPoint(Control* pParent, const UiPoint& pt) cons
 Control* Window::FindSubControlByName(Control* pParent, const DString& strName) const
 {
     return m_controlFinder.FindSubControlByName(pParent, strName);
-}
-
-bool Window::RegisterDragDrop(ControlDropTarget* pDropTarget)
-{
-    if (m_pWindowDropTarget == nullptr) {
-        m_pWindowDropTarget = new WindowDropTarget;
-        m_pWindowDropTarget->SetWindow(this);
-    }
-    return m_pWindowDropTarget->RegisterDragDrop(pDropTarget);
-}
-
-bool Window::UnregisterDragDrop(ControlDropTarget* pDropTarget)
-{
-    if (m_pWindowDropTarget == nullptr) {
-        return false;
-    }
-    return m_pWindowDropTarget->UnregisterDragDrop(pDropTarget);
-}
-
-int32_t Window::SetWindowHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
-{
-    ASSERT(::IsWindow(GetHWND()));
-    return (int32_t)::SendMessage(GetHWND(), WM_SETHOTKEY, MAKEWORD(wVirtualKeyCode, wModifiers), 0);
-}
-
-bool Window::GetWindowHotKey(uint8_t& wVirtualKeyCode, uint8_t& wModifiers) const
-{
-    ASSERT(::IsWindow(GetHWND()));
-    DWORD dw = (DWORD)::SendMessage(GetHWND(), HKM_GETHOTKEY, 0, 0L);
-    wVirtualKeyCode = LOBYTE(LOWORD(dw));
-    wModifiers = HIBYTE(LOWORD(dw));
-    return dw != 0;
-}
-
-bool Window::RegisterHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers, int32_t id)
-{
-    ASSERT(::IsWindow(GetHWND()));
-    if (wVirtualKeyCode != 0) {
-        UINT fsModifiers = 0;
-        if (wModifiers & HOTKEYF_ALT)     fsModifiers |= MOD_ALT;
-        if (wModifiers & HOTKEYF_CONTROL) fsModifiers |= MOD_CONTROL;
-        if (wModifiers & HOTKEYF_SHIFT)   fsModifiers |= MOD_SHIFT;
-        if (wModifiers & HOTKEYF_EXT)     fsModifiers |= MOD_WIN;
-
-#ifndef MOD_NOREPEAT
-        if (::IsWindows7OrGreater()) {
-            fsModifiers |= 0x4000;
-        }
-#else
-        fsModifiers |= MOD_NOREPEAT;
-#endif
-
-        LRESULT lResult = ::RegisterHotKey(this->GetHWND(), id, fsModifiers, wVirtualKeyCode);
-        ASSERT(lResult != 0);
-        if (lResult != 0) {
-            auto iter = std::find(m_hotKeyIds.begin(), m_hotKeyIds.end(), id);
-            if (iter != m_hotKeyIds.end()) {
-                m_hotKeyIds.erase(iter);
-            }
-            m_hotKeyIds.push_back(id);
-            return true;
-        }
-    }
-    return false;
-}
-
-bool Window::UnregisterHotKey(int32_t id)
-{
-    ASSERT(::IsWindow(GetHWND()));
-    auto iter = std::find(m_hotKeyIds.begin(), m_hotKeyIds.end(), id);
-    if (iter != m_hotKeyIds.end()) {
-        m_hotKeyIds.erase(iter);
-    }
-    return ::UnregisterHotKey(GetHWND(), id);
 }
 
 } // namespace ui
