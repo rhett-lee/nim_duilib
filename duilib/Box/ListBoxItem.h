@@ -306,11 +306,6 @@ void ListBoxItemTemplate<InheritType>::HandleEvent(const EventArgs& msg)
         }
     }
     OptionTemplate<InheritType>::HandleEvent(msg);
-
-    // An important twist: The list-item will send the event not to its immediate
-    // parent but to the "attached" list. A list may actually embed several components
-    // in its path to the item, but key-presses etc. needs to go to the actual list.
-    //if( m_pOwner != NULL ) m_pOwner->HandleMessage(event); else Control::HandleMessage(event);
 }
 
 template<typename InheritType>

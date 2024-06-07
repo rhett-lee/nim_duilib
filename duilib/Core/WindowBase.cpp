@@ -1,8 +1,11 @@
 #include "WindowBase.h"
+#include "duilib/Core/WindowMessage.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/WindowDropTarget.h"
 #include "duilib/Utils/ApiWrapper.h"
+
 #include <CommCtrl.h>
+#include <Olectl.h>
 
 namespace ui
 {
@@ -351,7 +354,7 @@ LRESULT WindowBase::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
         InitWindow();
     }
 
-    //第一优先级：将消息发给过滤器进行过滤
+    //第一优先级：将消息发给过滤器进行过滤（可以通过设置bHandled为true来截获消息处理）
     for (auto filter : m_aMessageFilters) {
         bool bHandled = false;
         LRESULT lResult = filter->FilterMessage(uMsg, wParam, lParam, bHandled);
@@ -361,21 +364,29 @@ LRESULT WindowBase::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
     }
 
-    //第二优先级：派发给子类回调函数
+    //第二优先级：派发给子类回调函数（子类可以通过设置bHandled为true来截获消息处理）
     bool bHandled = false;
-    LRESULT lResult = OnWindowMessage(uMsg, wParam, lParam, bHandled);
+    LRESULT lResult = 0;
+    if (!bHandled) {
+        lResult = OnWindowMessage(uMsg, wParam, lParam, bHandled);
+    }
+
+    //第三优先级：内部处理的消息，处理后，不再派发
+    if (!bHandled) {
+        lResult = OnInternalMessage(uMsg, wParam, lParam, bHandled);
+    }
 
     if (!bHandled && (uMsg == WM_CLOSE)) {
         //窗口即将关闭
         OnCloseWindow();
     }
 
-    //第三优先级：内部处理函数，优先保证自身功能正常
+    //第四优先级：内部处理函数，优先保证自身功能正常
     if (!bHandled) {
         lResult = HandleMessage(uMsg, wParam, lParam, bHandled);
     }
 
-    //第四优先级：系统默认的窗口函数
+    //第五优先级：系统默认的窗口函数
     if (!bHandled && ::IsWindow(hWnd)) {
         lResult = CallDefaultWindowProc(uMsg, wParam, lParam);
     }
@@ -1420,6 +1431,358 @@ bool WindowBase::UnregisterDragDrop(ControlDropTarget* pDropTarget)
         return false;
     }
     return m_pWindowDropTarget->UnregisterDragDrop(pDropTarget);
+}
+
+LRESULT WindowBase::OnInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    LRESULT lResult = 0;
+    bHandled = false;
+    bool bInternalMsg = true;
+    switch (uMsg)
+    {
+    case WM_NCACTIVATE:         lResult = OnNcActivateMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_NCCALCSIZE:         lResult = OnNcCalcSizeMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_NCHITTEST:          lResult = OnNcHitTestMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_NCLBUTTONDBLCLK:    lResult = OnNcLButtonDbClickMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_GETMINMAXINFO:      lResult = OnGetMinMaxInfoMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_ERASEBKGND:         lResult = OnEraseBkGndMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_DPICHANGED:         lResult = OnDpiChangedMsg(uMsg, wParam, lParam, bHandled); break;    
+    case WM_WINDOWPOSCHANGING:  lResult = OnWindowPosChangingMsg(uMsg, wParam, lParam, bHandled); break;
+
+    case WM_NOTIFY:             lResult = OnNotifyMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_COMMAND:            lResult = OnCommandMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_CTLCOLOREDIT:       lResult = OnCtlColorMsgs(uMsg, wParam, lParam, bHandled); break;
+    case WM_CTLCOLORSTATIC:     lResult = OnCtlColorMsgs(uMsg, wParam, lParam, bHandled); break;
+        
+        
+
+    //case WM_SIZE:                lResult = OnSizeMsg(uMsg, wParam, lParam, bHandled); break;//部分逻辑要处理，但不截获
+    //case WM_PAINT:                lResult = OnPaintMsg(uMsg, wParam, lParam, bHandled); break;//待确认
+    //case WM_MOUSEHOVER:            lResult = OnMouseHoverMsg(uMsg, wParam, lParam, bHandled); break;
+
+    //case WM_MOUSELEAVE:            lResult = OnMouseLeaveMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_MOUSEMOVE:            lResult = OnMouseMoveMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_MOUSEWHEEL:            lResult = OnMouseWheelMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_LBUTTONDOWN:        lResult = OnLButtonDownMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_RBUTTONDOWN:        lResult = OnRButtonDownMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_LBUTTONDBLCLK:        lResult = OnLButtonDoubleClickMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_RBUTTONDBLCLK:        lResult = OnRButtonDoubleClickMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_LBUTTONUP:            lResult = OnLButtonUpMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_RBUTTONUP:            lResult = OnRButtonUpMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_CONTEXTMENU:        lResult = OnContextMenuMsg(uMsg, wParam, lParam, bHandled); break;
+
+    //case WM_SETFOCUS:            lResult = OnSetFocusMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_KILLFOCUS:            lResult = OnKillFocusMsg(uMsg, wParam, lParam, bHandled); break;
+
+    //case WM_CHAR:                lResult = OnCharMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_KEYDOWN:            lResult = OnKeyDownMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_KEYUP:                lResult = OnKeyUpMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_SYSKEYDOWN:            lResult = OnSysKeyDownMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_SYSKEYUP:            lResult = OnSysKeyUpMsg(uMsg, wParam, lParam, bHandled); break;
+
+    //case WM_IME_STARTCOMPOSITION: lResult = OnIMEStartCompositionMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_IME_ENDCOMPOSITION:      lResult = OnIMEEndCompositionMsg(uMsg, wParam, lParam, bHandled); break;
+
+    //case WM_SETCURSOR:            lResult = OnSetCusorMsg(uMsg, wParam, lParam, bHandled); break;
+    
+    //case WM_SYSCOMMAND:            lResult = OnSysCommandMsg(uMsg, wParam, lParam, bHandled); break;
+    //case WM_HOTKEY:                lResult = OnHotKeyMsg(uMsg, wParam, lParam, bHandled); break;
+    
+    //case WM_TOUCH:              lResult = OnTouchMsg(uMsg, wParam, lParam, bHandled); break;
+    /*case WM_POINTERDOWN:
+    case WM_POINTERUP:
+    case WM_POINTERUPDATE:
+    case WM_POINTERLEAVE:
+    case WM_POINTERWHEEL:
+    case WM_POINTERCAPTURECHANGED:
+        lResult = OnPointerMsgs(uMsg, wParam, lParam, bHandled);
+        break;*/
+
+    default:
+        bInternalMsg = false;
+        break;
+    }//end of switch
+
+    if (bInternalMsg && !bHandled) {
+        //调用窗口函数，然后不再继续传递此消息
+        //bHandled = true;
+        //lResult = CallDefaultWindowProc(uMsg, wParam, lParam);
+    }
+    return lResult;
+}
+
+LRESULT WindowBase::OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_NCACTIVATE);
+    if (IsUseSystemCaption()) {
+        bHandled = false;
+        return 0;
+    }
+
+    LRESULT lResult = 0;
+    if (IsWindowMinimized()) {
+        bHandled = false;
+    }
+    else {
+        //MSDN: wParam 参数为 FALSE 时，应用程序应返回 TRUE 以指示系统应继续执行默认处理
+        bHandled = true;
+        lResult = (wParam == FALSE) ? TRUE : FALSE;
+    }
+    return lResult;
+}
+
+LRESULT WindowBase::OnNcCalcSizeMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_NCCALCSIZE);
+    if (IsUseSystemCaption()) {
+        bHandled = false;
+        return 0;
+    }
+
+    //截获，让系统不处理此消息
+    bHandled = true;
+    return 0;
+}
+
+LRESULT WindowBase::OnNcHitTestMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_NCHITTEST);
+    if (IsUseSystemCaption()) {
+        bHandled = false;
+        return 0;
+    }
+
+    bHandled = true;
+    UiPoint pt;
+    pt.x = GET_X_LPARAM(lParam);
+    pt.y = GET_Y_LPARAM(lParam);
+    ScreenToClient(pt);
+
+    UiRect rcClient;
+    GetClientRect(rcClient);
+
+    //客户区域，排除掉阴影部分区域
+    UiPadding rcCorner;
+    GetShadowCorner(rcCorner);
+    rcClient.Deflate(rcCorner);
+
+    if (!IsWindowMaximized()) {
+        //非最大化状态
+        UiRect rcSizeBox = GetSizeBox();
+        if (pt.y < rcClient.top + rcSizeBox.top) {
+            if (pt.y >= rcClient.top) {
+                if (pt.x < (rcClient.left + rcSizeBox.left) && pt.x >= rcClient.left) {
+                    return HTTOPLEFT;//在窗口边框的左上角。
+                }
+                else if (pt.x > (rcClient.right - rcSizeBox.right) && pt.x <= rcClient.right) {
+                    return HTTOPRIGHT;//在窗口边框的右上角
+                }
+                else {
+                    return HTTOP;//在窗口的上水平边框中
+                }
+            }
+            else {
+                return HTCLIENT;//在工作区中
+            }
+        }
+        else if (pt.y > rcClient.bottom - rcSizeBox.bottom) {
+            if (pt.y <= rcClient.bottom) {
+                if (pt.x < (rcClient.left + rcSizeBox.left) && pt.x >= rcClient.left) {
+                    return HTBOTTOMLEFT;//在窗口边框的左下角
+                }
+                else if (pt.x > (rcClient.right - rcSizeBox.right) && pt.x <= rcClient.right) {
+                    return HTBOTTOMRIGHT;//在窗口边框的右下角
+                }
+                else {
+                    return HTBOTTOM;//在窗口的下水平边框中
+                }
+            }
+            else {
+                return HTCLIENT;//在工作区中
+            }
+        }
+
+        if (pt.x < rcClient.left + rcSizeBox.left) {
+            if (pt.x >= rcClient.left) {
+                return HTLEFT;//在窗口的左边框
+            }
+            else {
+                return HTCLIENT;//在工作区中
+            }
+        }
+        if (pt.x > rcClient.right - rcSizeBox.right) {
+            if (pt.x <= rcClient.right) {
+                return HTRIGHT;//在窗口的右边框中
+            }
+            else {
+                return HTCLIENT;//在工作区中
+            }
+        }
+    }
+
+    UiRect rcCaption = GetCaptionRect();
+    if ( (pt.x >= rcClient.left + rcCaption.left) && (pt.x < rcClient.right - rcCaption.right) &&
+         (pt.y >= rcClient.top + rcCaption.top && pt.y < rcClient.top + rcCaption.bottom)) {
+        if (IsPtInCaptionBarControl(pt)) {
+            return HTCLIENT;//在工作区中（放在标题栏上的控件，视为工作区）
+        }
+        else {
+            return HTCAPTION;//在标题栏中
+        }
+    }
+    //其他，在工作区中
+    return HTCLIENT;
+}
+
+LRESULT WindowBase::OnNcLButtonDbClickMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_NCLBUTTONDBLCLK);
+    if (IsUseSystemCaption()) {
+        bHandled = false;
+        return 0;
+    }
+
+    bHandled = true;
+    if (!IsWindowMaximized()) {
+        //最大化
+        Maximized();
+    }
+    else {
+        //还原
+        Restore();
+    }
+    return 0;
+}
+
+LRESULT WindowBase::OnEraseBkGndMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_ERASEBKGND);
+    bHandled = true;
+    return 1;
+}
+
+LRESULT WindowBase::OnGetMinMaxInfoMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_GETMINMAXINFO);
+    bHandled = false;
+    LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
+    UiRect rcWork;
+    UiRect rcMonitor;
+    GetMonitorRect(rcMonitor, rcWork);
+    rcWork.Offset(-rcMonitor.left, -rcMonitor.top);
+
+    //最大化时，默认设置为当前屏幕的最大区域
+    lpMMI->ptMaxPosition.x = rcWork.left;
+    lpMMI->ptMaxPosition.y = rcWork.top;
+    lpMMI->ptMaxSize.x = rcWork.Width();
+    lpMMI->ptMaxSize.y = rcWork.Height();
+
+    if (GetMaxInfo(false).cx != 0) {
+        lpMMI->ptMaxTrackSize.x = GetMaxInfo(true).cx;
+    }
+    if (GetMaxInfo(false).cy != 0) {
+        lpMMI->ptMaxTrackSize.y = GetMaxInfo(true).cy;
+    }
+    if (GetMinInfo(false).cx != 0) {
+        lpMMI->ptMinTrackSize.x = GetMinInfo(true).cx;
+    }
+    if (GetMinInfo(false).cy != 0) {
+        lpMMI->ptMinTrackSize.y = GetMinInfo(true).cy;
+    }
+    return 0;
+}
+
+LRESULT WindowBase::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_DPICHANGED);
+    bHandled = false;//需要重新测试
+
+    uint32_t nNewDPI = HIWORD(wParam);
+    UiRect rcNewWindow;
+    const RECT* prcNewWindow = (RECT*)lParam;
+    if (prcNewWindow != nullptr) {
+        rcNewWindow.left = prcNewWindow->left;
+        rcNewWindow.top = prcNewWindow->top;
+        rcNewWindow.right = prcNewWindow->right;
+        rcNewWindow.bottom = prcNewWindow->bottom;
+    }
+    ProcessDpiChangedMsg(nNewDPI, rcNewWindow);
+    return 0;
+}
+
+LRESULT WindowBase::OnWindowPosChangingMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_WINDOWPOSCHANGING);
+    bHandled = false;
+    if (IsWindowMaximized()) {
+        //最大化状态
+        LPWINDOWPOS lpPos = (LPWINDOWPOS)lParam;
+        if (lpPos->flags & SWP_FRAMECHANGED) // 第一次最大化，而不是最大化之后所触发的WINDOWPOSCHANGE
+        {
+            POINT pt = { 0, 0 };
+            HMONITOR hMontorPrimary = ::MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
+            HMONITOR hMonitorTo = ::MonitorFromWindow(m_hWnd, MONITOR_DEFAULTTOPRIMARY);
+
+            // 先把窗口最大化，再最小化，然后恢复，此时MonitorFromWindow拿到的HMONITOR不准确
+            // 判断GetWindowRect的位置如果不正确（最小化时得到的位置信息是-38000），则改用normal状态下的位置，来获取HMONITOR
+            UiRect rc;
+            GetWindowRect(rc);
+            if (rc.left < -10000 && rc.top < -10000 && rc.bottom < -10000 && rc.right < -10000) {
+                WINDOWPLACEMENT wp = { sizeof(WINDOWPLACEMENT) };
+                ::GetWindowPlacement(m_hWnd, &wp);
+                hMonitorTo = ::MonitorFromRect(&wp.rcNormalPosition, MONITOR_DEFAULTTOPRIMARY);
+            }
+            if (hMonitorTo != hMontorPrimary) {
+                // 解决无边框窗口在双屏下面（副屏分辨率大于主屏）时，最大化不正确的问题
+                MONITORINFO  miTo = { sizeof(miTo), 0 };
+                ::GetMonitorInfo(hMonitorTo, &miTo);
+
+                lpPos->x = miTo.rcWork.left;
+                lpPos->y = miTo.rcWork.top;
+                lpPos->cx = miTo.rcWork.right - miTo.rcWork.left;
+                lpPos->cy = miTo.rcWork.bottom - miTo.rcWork.top;
+            }
+        }
+    }
+    return 0;
+}
+
+LRESULT WindowBase::OnNotifyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_NOTIFY);
+    bHandled = false;
+    LPNMHDR lpNMHDR = (LPNMHDR)lParam;
+    if (lpNMHDR != nullptr) {
+        bHandled = true;
+        return ::SendMessage(lpNMHDR->hwndFrom, OCM__BASE + uMsg, wParam, lParam);
+    }
+    return 0;
+}
+
+LRESULT WindowBase::OnCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_COMMAND);
+    bHandled = false;
+    if (lParam == 0) {
+        return 0;
+    }
+    HWND hWndChild = (HWND)lParam;
+    bHandled = true;
+    return ::SendMessage(hWndChild, OCM__BASE + uMsg, wParam, lParam);
+}
+
+LRESULT WindowBase::OnCtlColorMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_CTLCOLOREDIT || uMsg == WM_CTLCOLORSTATIC);
+    bHandled = false;
+    // Refer To: http://msdn.microsoft.com/en-us/library/bb761691(v=vs.85).aspx
+    // Read-only or disabled edit controls do not send the WM_CTLCOLOREDIT message; instead, they send the WM_CTLCOLORSTATIC message.
+    if (lParam == 0) {
+        return 0;
+    }
+    HWND hWndChild = (HWND)lParam;
+    bHandled = true;
+    return ::SendMessage(hWndChild, OCM__BASE + uMsg, wParam, lParam);
 }
 
 } // namespace ui

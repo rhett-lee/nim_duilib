@@ -177,10 +177,6 @@ public:
     /** @}*/
 
 public:
-    /** @name 窗口消息相关的接口
-    * @{
-    */
-
     /** 主动发起一个消息, 发送给该窗口的事件回调管理器（m_OnEvent）中注册的消息处理函数
     * @param [in] eventType 转化后的消息体
     * @param [in] wParam 消息附加参数
@@ -189,18 +185,6 @@ public:
     bool SendNotify(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0);
 
 protected:
-
-    /** 窗口消息的派发函数，优先调用内部处理函数，如果内部无处理逻辑，则调用Windows默认处理函数处理此消息
-    * @param [in] uMsg 消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @param[out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，否则将消息继续传递给窗口过程
-    * @return 返回消息的处理结果
-    */
-    virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
-
-    /** @}*/
-
     /** 切换系统标题栏与自绘标题栏
     */
     virtual void OnUseSystemCaptionBarChanged() override;
@@ -218,23 +202,30 @@ protected:
     */
     virtual void GetShadowCorner(UiPadding& rcShadow) const override;
 
+    /** 判断一个点是否在放置在标题栏上的控件上
+    */
+    virtual bool IsPtInCaptionBarControl(const UiPoint& pt) const override;
+
 private:
     /** @name 私有窗口消息处理相关
     * @{
     */
-    //部分消息处理函数，以实现基本功能    
-    LRESULT OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnNcCalcSizeMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnNcHitTestMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnNcLButtonDbClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    /** 窗口消息的派发函数，优先调用内部处理函数，如果内部无处理逻辑，则调用Windows默认处理函数处理此消息
+     * @param [in] uMsg 消息体
+     * @param [in] wParam 消息附加参数
+     * @param [in] lParam 消息附加参数
+     * @param[out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，否则将消息继续传递给窗口过程
+     * @return 返回消息的处理结果
+     */
+    virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override final;
 
-    LRESULT OnCloseMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnGetMinMaxInfoMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnWindowPosChangingMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    //部分消息处理函数，以实现基本功能
+    LRESULT OnCloseMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);    
+    
     LRESULT OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    
     LRESULT OnMoveMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnEraseBkGndMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    
     LRESULT OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
     LRESULT OnMouseHoverMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
@@ -259,12 +250,11 @@ private:
     LRESULT OnSysKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnSysKeyUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnSetCusorMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnNotifyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    
+    
     LRESULT OnSysCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnHotKeyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnCtlColorMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-
+    
     LRESULT OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 

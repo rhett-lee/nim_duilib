@@ -643,6 +643,10 @@ protected:
     */
     virtual void GetShadowCorner(UiPadding& rcShadow) const { (void)rcShadow; }
 
+    /** 判断一个点是否在放置在标题栏上的控件上
+    */
+    virtual bool IsPtInCaptionBarControl(const UiPoint& pt) const { (void)pt;  return false; }
+
 protected:
     /** 获取一个点对应的窗口接口
     */
@@ -699,6 +703,36 @@ private:
     */
     static WindowBase* GetWindowObject(HWND hWnd);
 
+private:
+    /** @name 私有窗口消息处理相关
+     * @{
+     */
+    /** 窗口消息的内部处理函数
+     * @param [in] uMsg 消息体
+     * @param [in] wParam 消息附加参数
+     * @param [in] lParam 消息附加参数
+     * @param[out] bHandled 消息是否已经处理，
+     *             返回 true  表明已经成功处理消息，不需要再传递给窗口过程；
+     *             返回 false 表示将消息继续传递给窗口过程处理
+     * @return 返回消息的处理结果
+    */
+    LRESULT OnInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+
+    //部分消息处理函数，以实现基本功能
+    LRESULT OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnNcCalcSizeMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnNcHitTestMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnNcLButtonDbClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnGetMinMaxInfoMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnEraseBkGndMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnWindowPosChangingMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+
+    LRESULT OnNotifyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnCtlColorMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+
+    /** @}*/
 private:
     /** 将屏幕坐标转换为指定窗口的客户区坐标
     */
