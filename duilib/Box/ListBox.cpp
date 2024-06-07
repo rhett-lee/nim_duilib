@@ -501,7 +501,7 @@ size_t ListBox::SelectEnsureVisible(size_t itemIndex, bool bTakeFocus)
         }
         ASSERT(pSelectedControl != nullptr);
         ASSERT(pSelectedControl->IsVisible());
-        ASSERT(GetWindow()->GetFocus() == pSelectedControl);
+        ASSERT(GetWindow()->GetFocusControl() == pSelectedControl);
     }
     return itemIndex;
 }

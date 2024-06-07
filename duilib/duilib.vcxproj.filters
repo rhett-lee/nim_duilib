@@ -441,6 +441,9 @@
     <ClCompile Include="Utils\ScreenCapture.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Core\WindowBase.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -970,6 +973,9 @@
     </ClInclude>
     <ClInclude Include="Utils\ScreenCapture.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WindowBase.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

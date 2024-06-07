@@ -20,495 +20,39 @@
 namespace ui
 {
 Window::Window() :
-    m_hWnd(nullptr),
-    m_pParentWindow(nullptr),
     m_pRoot(nullptr),
     m_OnEvent(),
-    m_OldWndProc(::DefWindowProc),
     m_renderOffset(),
-    m_hDcPaint(nullptr),
     m_pFocus(nullptr),
     m_pEventHover(nullptr),
     m_pEventClick(nullptr),
     m_pEventKey(nullptr),
     m_ptLastMousePos(-1, -1),
-    m_szMinWindow(),
-    m_szMaxWindow(),
-    m_rcMaximizeInfo(0, 0, 0, 0),
-    m_rcSizeBox(),
     m_rcAlphaFix(0, 0, 0, 0),
-    m_szRoundCorner(),
-    m_rcCaption(),
-    m_bUseSystemCaption(false),
     m_bFirstLayout(true),
     m_bIsArranged(false),
-    m_bMouseCapture(false),
-    m_bIsLayeredWindow(false),
-    m_nWindowAlpha(255),
-    m_aMessageFilters(),
     m_aDelayedCleanup(),
     m_mOptionGroup(),
     m_defaultAttrHash(),
     m_strResourcePath(),
-    m_closeFlag(),
-    m_pWindowDropTarget(nullptr),
-    m_bFakeModal(false),
-    m_bCloseing(false),
-    m_bFullScreen(false),
-    m_dwLastStyle(0)
+    m_pWindowDropTarget(nullptr)
 {
-    m_rcLastWindowPlacement = {sizeof(WINDOWPLACEMENT), };
     m_toolTip = std::make_unique<ToolTip>();
 }
 
 Window::~Window()
 {
-    if (m_hWnd != nullptr) {
-        ClearWindow(false);
-    }
-}
-
-bool Window::IsWindow() const
-{
-    return (m_hWnd != nullptr) && ::IsWindow(m_hWnd);
-}
-
-HWND Window::GetHWND() const
-{
-    return m_hWnd;
+    ClearWindow(false);
 }
 
 Window* Window::GetParentWindow() const
 {
     if (!m_parentFlag.expired()) {
-        return m_pParentWindow;
+        return dynamic_cast<Window*>(m_pParentWindow);
     }
     else {
         return nullptr;
     }
-}
-
-bool Window::RegisterWindowClass()
-{
-    WNDCLASS wc = { 0 };
-    wc.style = GetClassStyle();
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
-    wc.hIcon = NULL;
-    wc.lpfnWndProc = Window::__WndProc;
-    wc.hInstance = GetResModuleHandle();
-    wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = NULL;
-    wc.lpszMenuName = NULL;
-    DString className = GetWindowClassName();
-    wc.lpszClassName = className.c_str();
-    ATOM ret = ::RegisterClass(&wc);
-    ASSERT(ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
-    return ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
-}
-
-bool Window::RegisterSuperClass()
-{
-    // Get the class information from an existing
-    // window so we can subclass it later on...
-    WNDCLASSEX wc = { 0 };
-    wc.cbSize = sizeof(WNDCLASSEX);
-    DString superClassName = GetSuperClassName();
-    if (!::GetClassInfoEx(NULL, superClassName.c_str(), &wc)) {
-        if (!::GetClassInfoEx(GetResModuleHandle(), superClassName.c_str(), &wc)) {
-            ASSERT(!"Unable to locate window class");
-            return false;
-        }
-    }
-    m_OldWndProc = wc.lpfnWndProc;
-    wc.lpfnWndProc = Window::__ControlProc;
-    wc.hInstance = GetResModuleHandle();
-    DString className = GetWindowClassName();
-    wc.lpszClassName = className.c_str();
-    ATOM ret = ::RegisterClassEx(&wc);
-    ASSERT(ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
-    return ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
-}
-DString Window::GetWindowClassName() const
-{
-    ASSERT(FALSE);
-    return DString();
-}
-
-DString Window::GetSuperClassName() const
-{
-    return DString();
-}
-
-UINT Window::GetClassStyle() const
-{
-    return CS_DBLCLKS;
-}
-
-HMODULE Window::GetResModuleHandle() const
-{
-    return ::GetModuleHandle(NULL);
-}
-
-bool Window::CreateWnd(Window* pParentWindow, const DString& windowName,
-                       uint32_t dwStyle, uint32_t dwExStyle, const UiRect& rc)
-{
-    if (!GetSuperClassName().empty()) {
-        if (!RegisterSuperClass()) {
-            return false;
-        }
-    }
-    else {
-        if (!RegisterWindowClass()) {
-            return false;
-        }
-    }
-    DString className = GetWindowClassName();
-
-    //初始化层窗口属性
-    m_bIsLayeredWindow = false;
-    if (dwExStyle & WS_EX_LAYERED) {
-        m_bIsLayeredWindow = true;
-    }
-    m_pParentWindow = pParentWindow;
-    m_parentFlag.reset();
-    if (pParentWindow != nullptr) {
-        m_parentFlag = pParentWindow->GetWeakFlag();
-    }
-    HWND hParentWnd = pParentWindow != nullptr ? pParentWindow->GetHWND() : nullptr;
-    HWND hWnd = ::CreateWindowEx(dwExStyle,
-                                 className.c_str(),
-                                 windowName.c_str(),
-                                 dwStyle,
-                                 rc.left, rc.top, rc.Width(), rc.Height(),
-                                 hParentWnd, NULL, GetResModuleHandle(), this);
-    ASSERT(::IsWindow(hWnd));
-    if (hWnd != m_hWnd) {
-        m_hWnd = hWnd;
-    }
-    OnInitWindow();
-    return hWnd != nullptr;
-}
-
-void Window::CloseWnd(UINT nRet)
-{
-    m_bCloseing = true;
-    ASSERT(::IsWindow(m_hWnd));
-    if (!::IsWindow(m_hWnd)) {
-        return;
-    }    
-    ::PostMessage(m_hWnd, WM_CLOSE, (WPARAM)nRet, 0L);
-}
-
-void Window::Close()
-{
-    m_bCloseing = true;
-    ASSERT(::IsWindow(m_hWnd));
-    if (!::IsWindow(m_hWnd)) {
-        return;
-    }    
-    ::SendMessage(m_hWnd, WM_CLOSE, 0L, 0L);
-}
-
-void Window::ShowWindow(bool bShow /*= true*/, bool bTakeFocus /*= false*/)
-{
-    ASSERT(::IsWindow(m_hWnd));
-    ::ShowWindow(m_hWnd, bShow ? (bTakeFocus ? SW_SHOWNORMAL : SW_SHOWNOACTIVATE) : SW_HIDE);
-}
-
-void Window::ShowModalFake()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    Window* pParentWindow = GetParentWindow();
-    ASSERT((pParentWindow != nullptr) && (pParentWindow->GetHWND() != nullptr));
-    if (pParentWindow != nullptr) {
-        auto hOwnerWnd = GetWindowOwner();
-        ASSERT(::IsWindow(hOwnerWnd));
-        ASSERT_UNUSED_VARIABLE(hOwnerWnd == pParentWindow->GetHWND());
-        if (pParentWindow != nullptr) {
-            pParentWindow->EnableWindow(false);
-        }
-    }
-    ShowWindow();
-    m_bFakeModal = true;
-}
-
-bool Window::IsFakeModal() const
-{
-    return m_bFakeModal;
-}
-
-void Window::CenterWindow()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    ASSERT((::GetWindowLong(m_hWnd, GWL_STYLE) & WS_CHILD) == 0);
-    UiRect rcDlg;
-    GetWindowRect(rcDlg);
-    UiRect rcArea;
-    UiRect rcCenter;
-    HWND hWnd = GetHWND();
-    HWND hWndCenter = GetWindowOwner();
-    if (hWndCenter != nullptr) {
-        hWnd = hWndCenter;
-    }
-
-    // 处理多显示器模式下屏幕居中
-    GetMonitorWorkRect(hWnd, rcArea);
-    if (hWndCenter == nullptr) {
-        rcCenter = rcArea;
-    }
-    else if (::IsIconic(hWndCenter)) {
-        rcCenter = rcArea;
-    }
-    else {
-        GetWindowRect(hWndCenter, rcCenter);
-    }
-
-    int DlgWidth = rcDlg.right - rcDlg.left;
-    int DlgHeight = rcDlg.bottom - rcDlg.top;
-
-    // Find dialog's upper left based on rcCenter
-    int xLeft = (rcCenter.left + rcCenter.right) / 2 - DlgWidth / 2;
-    int yTop = (rcCenter.top + rcCenter.bottom) / 2 - DlgHeight / 2;
-
-    // The dialog is outside the screen, move it inside
-    if (xLeft < rcArea.left) {
-        xLeft = rcArea.left;
-    }
-    else if (xLeft + DlgWidth > rcArea.right) {
-        xLeft = rcArea.right - DlgWidth;
-    }
-    if (yTop < rcArea.top) {
-        yTop = rcArea.top;
-    }
-    else if (yTop + DlgHeight > rcArea.bottom) {
-        yTop = rcArea.bottom - DlgHeight;
-    }
-    ::SetWindowPos(m_hWnd, NULL, xLeft, yTop, -1, -1, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
-}
-
-void Window::ToTopMost()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    ::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-}
-
-void Window::BringToTop()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    ::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-    ::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-}
-
-void Window::ActiveWindow()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    if (IsWindowMinimized()) {
-        ::ShowWindow(m_hWnd, SW_RESTORE);
-    }
-    else {
-        if (!::IsWindowVisible(m_hWnd)) {
-            ::ShowWindow(m_hWnd, SW_SHOW);
-        }
-        ::SetForegroundWindow(m_hWnd);
-    }
-}
-
-bool Window::Maximized()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
-    OnWindowMaximized();
-    return true;
-}
-
-bool Window::Restore()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_RESTORE, 0);
-    OnWindowRestored();
-    return true;
-}
-
-bool Window::Minimized()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
-    OnWindowMinimized();
-    return true;
-}
-
-bool Window::EnterFullScreen()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    if (!::IsWindow(m_hWnd)) {
-        return false;
-    }
-    if (IsWindowMinimized()) {
-        //最小化的时候，不允许激活全屏
-        return false;
-    }
-    if (m_bFullScreen) {
-        return true;
-    }
-    //保存窗口风格
-    m_dwLastStyle = ::GetWindowLong(m_hWnd, GWL_STYLE);
-
-    //保存窗口大小位置信息
-    m_rcLastWindowPlacement.length = sizeof(WINDOWPLACEMENT);
-    ::GetWindowPlacement(m_hWnd, &m_rcLastWindowPlacement);
-
-    int32_t xScreen = GetSystemMetricsForDpiWrapper(SM_XVIRTUALSCREEN, Dpi().GetDPI());
-    int32_t yScreen = GetSystemMetricsForDpiWrapper(SM_YVIRTUALSCREEN, Dpi().GetDPI());
-    int32_t cxScreen = GetSystemMetricsForDpiWrapper(SM_CXVIRTUALSCREEN, Dpi().GetDPI());
-    int32_t cyScreen = GetSystemMetricsForDpiWrapper(SM_CYVIRTUALSCREEN, Dpi().GetDPI());
-
-    // 去掉标题栏、边框
-    DWORD dwFullScreenStyle = (m_dwLastStyle | WS_VISIBLE | WS_POPUP | WS_MAXIMIZE) & ~WS_CAPTION & ~WS_BORDER & ~WS_THICKFRAME & ~WS_DLGFRAME;
-    ::SetWindowLongPtr(m_hWnd, GWL_STYLE, dwFullScreenStyle);
-    ::SetWindowPos(m_hWnd, NULL, xScreen, yScreen, cxScreen, cyScreen, SWP_FRAMECHANGED); // 设置位置和大小
-
-    m_bFullScreen = true;
-    OnWindowEnterFullScreen();
-    return true;
-}
-
-bool Window::ExitFullScreen()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    if (!::IsWindow(m_hWnd)) {
-        return false;
-    }
-    if (!m_bFullScreen) {
-        return false;
-    }
-    m_bFullScreen = false;
-
-    //恢复窗口风格
-    ::SetWindowLong(m_hWnd, GWL_STYLE, m_dwLastStyle);
-
-    //恢复窗口位置/大小信息
-    ::SetWindowPlacement(m_hWnd, &m_rcLastWindowPlacement);
-
-    OnWindowExitFullScreen();
-
-    if (IsWindowMaximized()) {
-        Restore();
-    }
-    return true;
-}
-
-bool Window::SetForeground()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    if (::GetForegroundWindow() != m_hWnd) {
-        ::SetForegroundWindow(m_hWnd);
-    }
-    return ::GetForegroundWindow() == m_hWnd;
-}
-
-bool Window::SetFocused()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    if (::GetFocus() != m_hWnd) {
-        ::SetFocus(m_hWnd);
-    }
-    return ::GetFocus() == m_hWnd;
-}
-
-bool Window::IsWindowFocused() const
-{
-    return ::IsWindow(m_hWnd) && (m_hWnd == ::GetFocus());
-}
-
-bool Window::IsWindowForeground() const
-{
-    return ::IsWindow(m_hWnd) && (m_hWnd == ::GetForegroundWindow());
-}
-
-bool Window::IsWindowMaximized() const
-{
-    return ::IsWindow(m_hWnd) && ::IsZoomed(m_hWnd);
-}
-
-bool Window::IsWindowMinimized() const
-{
-    return ::IsWindow(m_hWnd) && ::IsIconic(m_hWnd);
-}
-
-bool Window::IsWindowFullScreen() const
-{
-    return m_bFullScreen;
-}
-
-bool Window::UpdateWindow() const
-{
-    bool bRet = false;
-    if ((m_hWnd != nullptr) && ::IsWindow(m_hWnd)) {
-        bRet = ::UpdateWindow(m_hWnd) != FALSE;
-    }
-    return bRet;
-}
-
-bool Window::IsZoomed() const
-{
-    return ::IsZoomed(GetHWND()) != FALSE;
-}
-
-bool Window::IsIconic() const
-{
-    return ::IsIconic(GetHWND()) != FALSE;
-}
-
-bool Window::EnableWindow(bool bEnable)
-{
-    return ::EnableWindow(GetHWND(), bEnable ? TRUE : false) != FALSE;
-}
-
-bool Window::IsWindowEnabled() const
-{
-    return ::IsWindowEnabled(GetHWND()) != FALSE;
-}
-
-bool Window::SetWindowFocus()
-{
-    ::SetFocus(GetHWND());
-    return ::GetFocus() == GetHWND();
-}
-
-bool Window::KillWindowFocus()
-{
-    ::SetFocus(nullptr);
-    return ::GetFocus() != GetHWND();
-}
-
-void Window::SetIcon(UINT nRes)
-{
-    ASSERT(::IsWindow(m_hWnd));
-    HICON hIcon = (HICON)::LoadImage(GetResModuleHandle(), MAKEINTRESOURCE(nRes), IMAGE_ICON, 
-                                     GetSystemMetricsForDpiWrapper(SM_CXICON, Dpi().GetDPI()),
-                                     GetSystemMetricsForDpiWrapper(SM_CYICON, Dpi().GetDPI()),
-                                      LR_DEFAULTCOLOR | LR_SHARED);
-    ASSERT(hIcon);
-    ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)TRUE, (LPARAM)hIcon);
-    hIcon = (HICON)::LoadImage(GetResModuleHandle(), MAKEINTRESOURCE(nRes), IMAGE_ICON, 
-                               GetSystemMetricsForDpiWrapper(SM_CXSMICON, Dpi().GetDPI()),
-                               GetSystemMetricsForDpiWrapper(SM_CYSMICON, Dpi().GetDPI()),
-                               LR_DEFAULTCOLOR | LR_SHARED);
-    ASSERT(hIcon);
-    ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)FALSE, (LPARAM)hIcon);
-}
-
-LRESULT Window::SendMsg(UINT uMsg, WPARAM wParam /*= 0*/, LPARAM lParam /*= 0*/)
-{
-    ASSERT(::IsWindow(m_hWnd));
-    return ::SendMessage(m_hWnd, uMsg, wParam, lParam);
-}
-
-LRESULT Window::PostMsg(UINT uMsg, WPARAM wParam /*= 0*/, LPARAM lParam /*= 0*/)
-{
-    ASSERT(::IsWindow(m_hWnd));
-    return ::PostMessage(m_hWnd, uMsg, wParam, lParam);
 }
 
 void Window::AttachWindowClose(const EventCallback& callback)
@@ -516,112 +60,16 @@ void Window::AttachWindowClose(const EventCallback& callback)
     m_OnEvent[kEventWindowClose] += callback;
 }
 
-uint32_t Window::GetWindowStyle() const
-{
-    ASSERT(::IsWindow(GetHWND()));
-    uint32_t styleValue = (uint32_t)::GetWindowLong(GetHWND(), GWL_STYLE);
-    //使用自绘的标题栏：从原来窗口样式中，移除 WS_CAPTION 属性
-    styleValue &= ~WS_CAPTION;
-    return styleValue;
-}
-
-LRESULT CALLBACK Window::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    Window* pThis = nullptr;
-    if (uMsg == WM_NCCREATE) {
-        LPCREATESTRUCT lpcs = reinterpret_cast<LPCREATESTRUCT>(lParam);
-        pThis = static_cast<Window*>(lpcs->lpCreateParams);
-        if (pThis != nullptr) {
-            pThis->m_hWnd = hWnd;
-        }
-        ::SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(pThis));
-    }
-    else {
-        pThis = reinterpret_cast<Window*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
-        if (uMsg == WM_NCDESTROY && pThis != nullptr) {
-            LRESULT lRes = ::CallWindowProc(pThis->m_OldWndProc, hWnd, uMsg, wParam, lParam);
-            ::SetWindowLongPtr(pThis->m_hWnd, GWLP_USERDATA, 0L);
-            ASSERT(hWnd == pThis->GetHWND());
-            pThis->OnFinalMessage();
-            return lRes;
-        }
-    }
-
-    if (pThis != nullptr) {
-        ASSERT(hWnd == pThis->GetHWND());
-        return pThis->WindowMessageProc(uMsg, wParam, lParam);
-    }
-    else {
-        return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
-    }
-}
-
-static const wchar_t* sPropName = _T("DuiLibWndX"); // 属性名称
-
-Window* Window::GetWindowObject(HWND hWnd)
-{
-    Window* pThis = reinterpret_cast<Window*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
-    if ((pThis != nullptr) && (pThis->m_hWnd != hWnd)) {
-        pThis = nullptr;
-    }
-    if (pThis == nullptr) {
-        pThis = reinterpret_cast<Window*>(::GetPropW(hWnd, sPropName));
-        if ((pThis != nullptr) && (pThis->m_hWnd != hWnd)) {
-            pThis = nullptr;
-        }
-    }
-    return pThis;
-}
-
-LRESULT CALLBACK Window::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    Window* pThis = nullptr;
-    if (uMsg == WM_NCCREATE) {
-        LPCREATESTRUCT lpcs = reinterpret_cast<LPCREATESTRUCT>(lParam);
-        pThis = static_cast<Window*>(lpcs->lpCreateParams);
-        if (pThis != nullptr) {
-            ::SetPropW(hWnd, sPropName, (HANDLE)pThis);
-            pThis->m_hWnd = hWnd;
-        }
-    }
-    else {
-        pThis = reinterpret_cast<Window*>(::GetPropW(hWnd, sPropName));
-        if (uMsg == WM_NCDESTROY && pThis != nullptr) {
-            LRESULT lRes = ::CallWindowProc(pThis->m_OldWndProc, hWnd, uMsg, wParam, lParam);
-            ::SetPropW(hWnd, sPropName, NULL);
-            ASSERT(hWnd == pThis->GetHWND());
-            pThis->OnFinalMessage();
-            return lRes;
-        }
-    }
-    if (pThis != nullptr) {
-        ASSERT(hWnd == pThis->GetHWND());
-        return pThis->WindowMessageProc(uMsg, wParam, lParam);
-    }
-    else {
-        return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
-    }
-}
-
 void Window::InitWindow()
 {
-    HWND hWnd = GetHWND();
-    ASSERT(::IsWindow(hWnd));
-    if (!::IsWindow(hWnd)) {
+    __super::InitWindow();
+    if (!IsWindow()) {
         return;
     }
     //根据窗口是否为层窗口，重新初始化阴影附加属性值(层窗口为true，否则为false)
     ASSERT(m_shadow == nullptr);
     if (m_shadow != nullptr) {
         return;
-    }
-
-    //初始化窗口自身的DPI管理器
-    const DpiManager& dpiManager = GlobalManager::Instance().Dpi();
-    if (!dpiManager.IsUserDefineDpi() && dpiManager.IsPerMonitorDpiAware()) {
-        //每个显示器，有独立的DPI：初始化窗口自己的DPI管理器
-        m_dpi = std::make_unique<DpiManager>();
-        m_dpi->SetDpiByWindow(this);
     }
 
     //创建窗口阴影
@@ -631,23 +79,8 @@ void Window::InitWindow()
         m_shadow->SetUseDefaultShadowAttached(true);
     }
 
-    ASSERT(m_hDcPaint == nullptr);
-    if (m_hDcPaint != nullptr) {
-        //避免重复初始化
-        return;
-    }
     //添加到全局管理器
     GlobalManager::Instance().AddWindow(this);
-
-    //设置窗口风格
-    uint32_t nStyle = GetWindowStyle();
-    if (nStyle != 0) {
-        ::SetWindowLong(hWnd, GWL_STYLE, nStyle);
-    }
-
-    //创建绘制设备上下文
-    m_hDcPaint = ::GetDC(hWnd);
-    ASSERT(m_hDcPaint != nullptr);
 
     //创建渲染接口
     ASSERT(m_render == nullptr);
@@ -667,43 +100,34 @@ void Window::InitWindow()
             m_render->Resize(rcClient.Width(), rcClient.Height());
         }
     }
-
-    //注册接受Touch消息
-    RegisterTouchWindowWrapper(hWnd, 0);
 }
 
-void Window::OnInitWindow()
+void Window::OnFinalMessage()
 {
-}
-
-void Window::OnCloseWindow()
-{
+    ClearWindow(true);
+    WindowBase::OnFinalMessage();
 }
 
 void Window::ClearWindow(bool bSendClose)
 {
-    HWND hWnd = m_hWnd;
-    //取消异步关闭窗口回调，避免访问非法资源
-    m_closeFlag.Cancel();
-
+    if (!IsWindow()) {
+        return;
+    }
+    //发送关闭事件
+    if (bSendClose) {
+        SendNotify(kEventWindowClose);
+    }
+    
     std::vector<int32_t> hotKeyIds = m_hotKeyIds;
     for (int32_t id : hotKeyIds) {
         UnregisterHotKey(id);
     }
-
-    //注销平板消息
-    UnregisterTouchWindowWrapper(hWnd);
 
     //注销拖放操作
     if (m_pWindowDropTarget != nullptr) {
         m_pWindowDropTarget->Clear();
         delete m_pWindowDropTarget;
         m_pWindowDropTarget = nullptr;
-    }
-
-    //发送关闭事件
-    if (bSendClose) {
-        SendNotify(kEventWindowClose);
     }
 
     //回收控件
@@ -725,38 +149,13 @@ void Window::ClearWindow(bool bSendClose)
     RemoveAllOptionGroups();
 
     m_toolTip.reset();
-
-    if (m_pWindowDropTarget != nullptr) {
-        delete m_pWindowDropTarget;
-        m_pWindowDropTarget = nullptr;
-    }
-
-    if (m_hDcPaint != nullptr) {
-        ::ReleaseDC(m_hWnd, m_hDcPaint);
-        m_hDcPaint = nullptr;
-    }
     m_shadow.reset();
-    m_dpi.reset();
-    m_pParentWindow = nullptr;
-    m_parentFlag.reset();
-    m_hWnd = nullptr;
-}
-
-void Window::OnFinalMessage()
-{
-    ClearWindow(true);
-    OnDeleteSelf();
-}
-
-void Window::OnDeleteSelf()
-{
-    delete this;
 }
 
 bool Window::AttachBox(Box* pRoot)
 {
     ASSERT(::IsWindow(m_hWnd));
-    SetFocus(nullptr); //设置m_pFocus相关的状态
+    SetFocusControl(nullptr); //设置m_pFocus相关的状态
     m_pEventKey = nullptr;
     m_pEventHover = nullptr;
     m_pEventClick = nullptr;
@@ -944,116 +343,41 @@ const UiPoint& Window::GetLastMousePos() const
     return m_ptLastMousePos;
 }
 
-const UiRect& Window::GetSizeBox() const
-{
-    return m_rcSizeBox;
-}
-
-void Window::SetSizeBox(const UiRect& rcSizeBox, bool bNeedDpiScale)
-{
-    m_rcSizeBox = rcSizeBox;
-    if (bNeedDpiScale) {
-        Dpi().ScaleRect(m_rcSizeBox);
-    }
-    if (m_rcSizeBox.left < 0) {
-        m_rcSizeBox.left = 0;
-    }
-    if (m_rcSizeBox.top < 0) {
-        m_rcSizeBox.top = 0;
-    }
-    if (m_rcSizeBox.right < 0) {
-        m_rcSizeBox.right = 0;
-    }
-    if (m_rcSizeBox.bottom < 0) {
-        m_rcSizeBox.bottom = 0;
-    }
-}
-
-const UiRect& Window::GetCaptionRect() const
-{
-    return m_rcCaption;
-}
-
-void Window::SetCaptionRect(const UiRect& rcCaption, bool bNeedDpiScale)
-{
-    m_rcCaption = rcCaption;
-    if (bNeedDpiScale) {
-        Dpi().ScaleRect(m_rcCaption);
-    }
-}
-
-void Window::SetUseSystemCaption(bool bUseSystemCaption)
-{
-    m_bUseSystemCaption = bUseSystemCaption;
-    OnUseSystemCaptionBarChanged();
-}
-
-bool Window::IsUseSystemCaption() const
-{
-    return m_bUseSystemCaption;
-}
-
 void Window::OnUseSystemCaptionBarChanged()
 {
+    WindowBase::OnUseSystemCaptionBarChanged();
     if (IsUseSystemCaption()) {
-        //使用系统默认标题栏, 需要增加标题栏风格
-        if (::IsWindow(GetHWND())) {            
-            UINT oldStyleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
-            UINT newStyleValue = oldStyleValue | WS_CAPTION;
-            if (newStyleValue != oldStyleValue) {
-                ::SetWindowLong(GetHWND(), GWL_STYLE, newStyleValue);
-            }            
-        }
-        //关闭层窗口
-        SetLayeredWindow(false);
-
         //关闭阴影
         SetShadowAttached(false);
     }
 }
 
-const UiSize& Window::GetRoundCorner() const
+void Window::OnWindowAlphaChanged()
 {
-    return m_szRoundCorner;
+    WindowBase::OnWindowAlphaChanged();
+    if (m_pRoot != nullptr) {
+        Invalidate(m_pRoot->GetPos());
+    }
 }
 
-void Window::SetRoundCorner(int cx, int cy, bool bNeedDpiScale)
+void Window::OnLayeredWindowChanged()
 {
-    ASSERT(cx >= 0);
-    ASSERT(cy >= 0);
-    if ((cx < 0) || (cy < 0)) {
-        return;
+    //根据窗口是否为层窗口，重新初始化阴影附加属性值(层窗口为true，否则为false)
+    if ((m_shadow != nullptr) && m_shadow->IsUseDefaultShadowAttached()) {
+        m_shadow->SetShadowAttached(m_bIsLayeredWindow);
+        m_shadow->SetUseDefaultShadowAttached(true);
     }
-    //两个参数要么同时等于0，要么同时大于0，否则参数无效
-    ASSERT(((cx > 0) && (cy > 0)) || ((cx == 0) && (cy == 0)));
-    if (cx == 0) {
-        if (cy != 0) {
-            return;
-        }
+    if (m_pRoot != nullptr) {
+        Invalidate(m_pRoot->GetPos());
     }
-    else {
-        if (cy == 0) {
-            return;
-        }
-    }
-    if (bNeedDpiScale) {
-        Dpi().ScaleInt(cx);
-        Dpi().ScaleInt(cy);
-    }    
-    m_szRoundCorner.cx = cx;
-    m_szRoundCorner.cy = cy;
 }
 
-const UiRect& Window::GetMaximizeInfo() const
+void Window::GetShadowCorner(UiPadding& rcShadow) const
 {
-    return m_rcMaximizeInfo;
-}
-
-void Window::SetMaximizeInfo(const UiRect& rcMaximize, bool bNeedDpiScale)
-{
-    m_rcMaximizeInfo = rcMaximize;
-    if (bNeedDpiScale) {
-        Dpi().ScaleRect(m_rcMaximizeInfo);
+    rcShadow.Clear();
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        rcShadow = m_shadow->GetShadowCorner();
     }
 }
 
@@ -1071,30 +395,6 @@ void Window::SetAlphaFixCorner(const UiRect& rc, bool bNeedDpiScale)
             Dpi().ScaleRect(m_rcAlphaFix);
         }
     }
-}
-
-void Window::SetText(const DString& strText)
-{
-    ASSERT(::IsWindow(m_hWnd));
-    ::SetWindowText(m_hWnd, strText.c_str());
-    m_text = strText;
-}
-
-DString Window::GetText() const
-{
-    return m_text;
-}
-
-void Window::SetTextId(const DString& strTextId)
-{
-    ASSERT(::IsWindow(m_hWnd));
-    ::SetWindowText(m_hWnd, GlobalManager::Instance().Lang().GetStringViaID(strTextId).c_str());
-    m_textId = strTextId;
-}
-
-DString Window::GetTextId() const
-{
-    return m_textId;
 }
 
 Box* Window::AttachShadow(Box* pRoot)
@@ -1185,238 +485,12 @@ void Window::SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale)
     }
 }
 
-UiRect Window::GetWindowPos(bool bContainShadow) const
-{
-    ASSERT(::IsWindow(m_hWnd));
-    UiRect rcPos;
-    GetWindowRect(rcPos);
-    if (!bContainShadow) {
-        ASSERT(m_shadow != nullptr);
-        if (m_shadow != nullptr) {
-            UiPadding padding = m_shadow->GetShadowCorner();
-            rcPos.Deflate(padding);
-        }        
-    }
-    return rcPos;
-}
-
-bool Window::SetWindowPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWndInsertAfter, bool bContainShadow)
-{
-    UiRect rcNewPos = rc;
-    if (bNeedDpiScale) {
-        Dpi().ScaleRect(rcNewPos);
-    }
-
-    ASSERT(::IsWindow(m_hWnd));
-    if (!bContainShadow) {
-        ASSERT(m_shadow != nullptr);
-        if (m_shadow != nullptr) {
-            UiPadding rcCorner = m_shadow->GetShadowCorner();
-            rcNewPos.Inflate(rcCorner);
-        }
-    }
-    return SetWindowPos(hWndInsertAfter, rcNewPos.left, rcNewPos.top, rcNewPos.Width(), rcNewPos.Height(), uFlags);
-}
-
-bool Window::SetWindowPos(HWND hWndInsertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, UINT uFlags)
-{
-    ASSERT(::IsWindow(m_hWnd));
-    return ::SetWindowPos(m_hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags) != FALSE;
-}
-
-UiSize Window::GetMinInfo(bool bContainShadow) const
-{
-    UiSize xy = m_szMinWindow;
-    if (!bContainShadow) {
-        ASSERT(m_shadow != nullptr);
-        if (m_shadow != nullptr) {
-            UiPadding rcShadow = m_shadow->GetShadowCorner();
-            if (xy.cx != 0) {
-                xy.cx -= rcShadow.left + rcShadow.right;
-            }
-            if (xy.cy != 0) {
-                xy.cy -= rcShadow.top + rcShadow.bottom;
-            }
-        }
-    }
-    return xy;
-}
-
-void Window::SetMinInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
-{
-    ASSERT(cx >= 0 && cy >= 0);
-    if (cx < 0) {
-        cx = 0;
-    }
-    if (cy < 0) {
-        cy = 0;
-    }
-    if (bNeedDpiScale) {
-        Dpi().ScaleInt(cx);
-        Dpi().ScaleInt(cy);
-    }
-    if (!bContainShadow) {
-        ASSERT(m_shadow != nullptr);
-        if (m_shadow != nullptr) {
-            UiPadding rcShadow = m_shadow->GetShadowCorner();
-            if (cx != 0) {
-                cx += rcShadow.left + rcShadow.right;
-            }
-            if (cy != 0) {
-                cy += rcShadow.top + rcShadow.bottom;
-            }
-        }
-    }
-    m_szMinWindow.cx = cx;
-    m_szMinWindow.cy = cy;
-}
-
-UiSize Window::GetMaxInfo(bool bContainShadow) const
-{
-    UiSize xy = m_szMaxWindow;
-    if (!bContainShadow) {
-        ASSERT(m_shadow != nullptr);
-        if (m_shadow != nullptr) {
-            UiPadding rcShadow = m_shadow->GetShadowCorner();
-            if (xy.cx != 0) {
-                xy.cx -= rcShadow.left + rcShadow.right;
-            }
-            if (xy.cy != 0) {
-                xy.cy -= rcShadow.top + rcShadow.bottom;
-            }
-        }
-    }
-
-    return xy;
-}
-
-void Window::SetMaxInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
-{
-    ASSERT(cx >= 0 && cy >= 0);
-    if (cx < 0) {
-        cx = 0;
-    }
-    if (cy < 0) {
-        cy = 0;
-    }
-    if (bNeedDpiScale) {
-        Dpi().ScaleInt(cx);
-        Dpi().ScaleInt(cy);
-    }
-    if (!bContainShadow) {
-        ASSERT(m_shadow != nullptr);
-        if (m_shadow != nullptr) {
-            UiPadding rcShadow = m_shadow->GetShadowCorner();
-            if (cx != 0) {
-                cx += rcShadow.left + rcShadow.right;
-            }
-            if (cy != 0) {
-                cy += rcShadow.top + rcShadow.bottom;
-            }
-        }
-    }
-    m_szMaxWindow.cx = cx;
-    m_szMaxWindow.cy = cy;
-}
-
-void Window::Resize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
-{
-    ASSERT(cx >= 0 && cy >= 0);
-    if (cx < 0) {
-        cx = 0;
-    }
-    if (cy < 0) {
-        cy = 0;
-    }
-    if (bNeedDpiScale) {
-        Dpi().ScaleInt(cy);
-        Dpi().ScaleInt(cx);
-    }
-
-    if (!bContainShadow) {
-        ASSERT(m_shadow != nullptr);
-        if (m_shadow != nullptr) {
-            UiPadding rcShadow = m_shadow->GetShadowCorner();
-            cx += rcShadow.left + rcShadow.right;
-            cy += rcShadow.top + rcShadow.bottom;
-        }
-    }
-    ASSERT(::IsWindow(m_hWnd));
-    ::SetWindowPos(m_hWnd, NULL, 0, 0, cx, cy, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
-}
-
 void Window::SetInitSize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 {
-    ASSERT((m_hWnd != nullptr) && ::IsWindow(m_hWnd));
+    ASSERT(IsWindow());
     if (m_pRoot == nullptr) {
         Resize(cx, cy, bContainShadow, bNeedDpiScale);
     }
-}
-
-bool Window::AddMessageFilter(IUIMessageFilter* pFilter)
-{
-    if (std::find(m_aMessageFilters.begin(), m_aMessageFilters.end(), pFilter) != m_aMessageFilters.end()) {
-        ASSERT(false);
-        return false;
-    }
-    if (pFilter != nullptr) {
-        m_aMessageFilters.push_back(pFilter);
-    }
-    return true;
-}
-bool Window::RemoveMessageFilter(IUIMessageFilter* pFilter)
-{
-    auto iter = std::find(m_aMessageFilters.begin(), m_aMessageFilters.end(), pFilter);
-    if (iter != m_aMessageFilters.end()) {
-        m_aMessageFilters.erase(iter);
-        return true;
-    }
-    return false;
-}
-
-LRESULT Window::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    HWND hWnd = m_hWnd;
-    if (uMsg == WM_CREATE) {
-        //执行窗口的初始化工作        
-        InitWindow();
-    }
-
-    //第一优先级：将消息发给过滤器进行过滤
-    for (auto filter : m_aMessageFilters) {
-        bool bHandled = false;
-        LRESULT lResult = filter->FilterMessage(uMsg, wParam, lParam, bHandled);
-        if (bHandled) {
-            //过滤器处理后截获此消息，不再进行派发
-            return lResult;
-        }
-    }
-
-    //第二优先级：派发给子类回调函数
-    bool bHandled = false;
-    LRESULT lResult = OnWindowMessage(uMsg, wParam, lParam, bHandled);
-
-    if (!bHandled && (uMsg == WM_CLOSE)) {
-        //窗口即将关闭
-        OnCloseWindow();
-    }
-
-    //第三优先级：内部处理函数，优先保证自身功能正常
-    if (!bHandled) {
-        lResult = HandleMessage(uMsg, wParam, lParam, bHandled);
-    }
-
-    //第四优先级：系统默认的窗口函数
-    if (!bHandled && ::IsWindow(hWnd)) {
-        lResult = CallDefaultWindowProc(uMsg, wParam, lParam);
-    }
-    return lResult;
-}
-
-LRESULT Window::OnWindowMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
 }
 
 LRESULT Window::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -1499,12 +573,6 @@ LRESULT Window::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
         break;
     }//end of switch
     return lResult;
-}
-
-LRESULT Window::CallDefaultWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    ASSERT(m_OldWndProc != nullptr);
-    return ::CallWindowProc(m_OldWndProc, m_hWnd, uMsg, wParam, lParam);
 }
 
 LRESULT Window::OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
@@ -1668,11 +736,8 @@ LRESULT Window::OnCloseMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool
     }
 
     ClearStatus();
-    if (::GetFocus() == m_hWnd) {
-        HWND hwndParent = GetWindowOwner();
-        if (hwndParent != nullptr) {
-            ::SetFocus(hwndParent);
-        }
+    if (IsWindowFocused()) {
+        SetOwnerWindowFocus();        
     }
     return 0;
 }
@@ -1684,23 +749,14 @@ LRESULT Window::OnGetMinMaxInfoMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, 
     LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
     UiRect rcWork;
     UiRect rcMonitor;
-    GetMonitorRect(GetHWND(), rcMonitor, rcWork);
+    GetMonitorRect(rcMonitor, rcWork);
     rcWork.Offset(-rcMonitor.left, -rcMonitor.top);
 
-    UiRect rcMaximize = GetMaximizeInfo();
-    if (rcMaximize.Width() > 0 && rcMaximize.Height() > 0) {
-        lpMMI->ptMaxPosition.x = rcWork.left + rcMaximize.left;
-        lpMMI->ptMaxPosition.y = rcWork.top + rcMaximize.top;
-        lpMMI->ptMaxSize.x = rcMaximize.Width();
-        lpMMI->ptMaxSize.y = rcMaximize.Height();
-    }
-    else {
-        // 计算最大化时，正确的原点坐标
-        lpMMI->ptMaxPosition.x = rcWork.left;
-        lpMMI->ptMaxPosition.y = rcWork.top;
-        lpMMI->ptMaxSize.x = rcWork.Width();
-        lpMMI->ptMaxSize.y = rcWork.Height();
-    }
+    //最大化时，默认设置为当前屏幕的最大区域
+    lpMMI->ptMaxPosition.x = rcWork.left;
+    lpMMI->ptMaxPosition.y = rcWork.top;
+    lpMMI->ptMaxSize.x = rcWork.Width();
+    lpMMI->ptMaxSize.y = rcWork.Height();
 
     if (GetMaxInfo(false).cx != 0) {
         lpMMI->ptMaxTrackSize.x = GetMaxInfo(true).cx;
@@ -1767,13 +823,11 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
         rcWnd.Offset(-rcWnd.left, -rcWnd.top);
         rcWnd.right++;
         rcWnd.bottom++;
-        HRGN hRgn = ::CreateRoundRectRgn(rcWnd.left, rcWnd.top, rcWnd.right, rcWnd.bottom, szRoundCorner.cx, szRoundCorner.cy);
-        ::SetWindowRgn(GetHWND(), hRgn, TRUE);
-        ::DeleteObject(hRgn);//TODO: 检查是否需要删除，按MSDN说法，是不需要删除的。
+        SetWindowRoundRectRgn(rcWnd, szRoundCorner, true);
     }
     else if (!isIconic) {
         //不需要设置RGN的时候，清除原RGN设置，避免最大化以后显示不正确
-        ::SetWindowRgn(GetHWND(), NULL, TRUE);
+        ClearWindowRgn(true);
     }
     if (m_pRoot != nullptr) {
         m_pRoot->Arrange();
@@ -1797,88 +851,19 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
 LRESULT Window::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     ASSERT_UNUSED_VARIABLE(uMsg == WM_DPICHANGED);
-    bHandled = false;
+    bHandled = false;//需要重新测试
 
-    //此消息必须处理，否则窗口大小与界面的比例将失调
-    const DpiManager& dpiManager = GlobalManager::Instance().Dpi();
-    if ((m_dpi != nullptr) && dpiManager.IsPerMonitorDpiAware()) {
-        //调整DPI值
-        uint32_t nOldDPI = m_dpi->GetDPI();
-        uint32_t nOldDpiScale = m_dpi->GetScale();        
-        uint32_t nNewDPI = HIWORD(wParam);     
-
-        //更新窗口的DPI值为新值
-        m_dpi->SetDPI(nNewDPI);        
-        ASSERT(nNewDPI == m_dpi->GetDPI());
-        uint32_t nNewDpiScale = m_dpi->GetScale();
-
-        //按新的DPI更新窗口布局
-        OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);
-
-        //更新窗口的位置和大小
-        RECT* const prcNewWindow = (RECT*)lParam;
-        if (prcNewWindow != nullptr) {
-            ::SetWindowPos(m_hWnd,
-                           NULL,
-                           prcNewWindow->left,
-                           prcNewWindow->top,
-                           prcNewWindow->right - prcNewWindow->left,
-                           prcNewWindow->bottom - prcNewWindow->top,
-                           SWP_NOZORDER | SWP_NOACTIVATE);
-        }
-        OnWindowDpiChanged(nOldDPI, nNewDPI);
+    uint32_t nNewDPI = HIWORD(wParam);
+    UiRect rcNewWindow;
+    const RECT* prcNewWindow = (RECT*)lParam;
+    if (prcNewWindow != nullptr) {
+        rcNewWindow.left = prcNewWindow->left;
+        rcNewWindow.top = prcNewWindow->top;
+        rcNewWindow.right = prcNewWindow->right;
+        rcNewWindow.bottom = prcNewWindow->bottom;
     }
+    ProcessDpiChangedMsg(nNewDPI, rcNewWindow);
     return 0;
-}
-
-bool Window::ChangeDpi(uint32_t nNewDPI)
-{
-    ASSERT(m_hWnd != nullptr);
-    if (m_hWnd == nullptr) {
-        return false;
-    }
-    //DPI值限制在60到300之间(小于50的时候，会出问题，比如原来是1的，经过DPI转换后，会变成0，导致很多逻辑失效)
-    ASSERT((nNewDPI >= 60) && (nNewDPI <= 300)) ;
-    if ((nNewDPI < 60) || (nNewDPI > 300)) {
-        return false;
-    }
-
-    uint32_t nOldDPI = Dpi().GetDPI();
-    uint32_t nOldDpiScale = Dpi().GetScale();
-    if (m_dpi == nullptr) {
-        m_dpi = std::make_unique<DpiManager>();
-    }
-    //更新窗口的DPI值为新值
-    m_dpi->SetDPI(nNewDPI);
-
-    ASSERT(nNewDPI == m_dpi->GetDPI());
-    uint32_t nNewDpiScale = m_dpi->GetScale();
-
-    //按新的DPI更新窗口布局
-    OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);
-
-    //更新窗口大小和位置
-    UiRect rcOldWindow;
-    GetWindowRect(rcOldWindow);
-    UiRect rcNewWindow = Dpi().GetScaleRect(rcOldWindow, nOldDpiScale);
-    ::SetWindowPos(m_hWnd,
-                   NULL,
-                   rcOldWindow.left,
-                   rcOldWindow.top,
-                   rcNewWindow.Width(),
-                   rcNewWindow.Height(),
-                   SWP_NOZORDER | SWP_NOACTIVATE);
-    OnWindowDpiChanged(nOldDPI, nNewDPI);
-    return true;
-}
-
-void Window::OnWindowDpiChanged(uint32_t /*nOldDPI*/, uint32_t /*nNewDPI*/)
-{
-}
-
-const DpiManager& Window::Dpi() const
-{
-    return (m_dpi != nullptr) ? *m_dpi : GlobalManager::Instance().Dpi();
 }
 
 void Window::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
@@ -1890,19 +875,14 @@ void Window::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (nNewDpiScale != Dpi().GetScale()) {
         return;
     }
+    WindowBase::OnDpiScaleChanged(nOldDpiScale, nNewDpiScale);
     //窗口阴影
     if (m_shadow != nullptr) {
         m_shadow->ChangeDpiScale(Dpi(), nOldDpiScale, nNewDpiScale);
     }
 
     //更新窗口自身的DPI关联属性
-    m_szMinWindow = Dpi().GetScaleSize(m_szMinWindow, nOldDpiScale);
-    m_szMaxWindow = Dpi().GetScaleSize(m_szMaxWindow, nOldDpiScale);
-    m_rcMaximizeInfo = Dpi().GetScaleRect(m_rcMaximizeInfo, nOldDpiScale);
-    m_rcSizeBox = Dpi().GetScaleRect(m_rcSizeBox, nOldDpiScale);
     m_rcAlphaFix = Dpi().GetScaleRect(m_rcAlphaFix, nOldDpiScale);
-    m_szRoundCorner = Dpi().GetScaleSize(m_szRoundCorner, nOldDpiScale);
-    m_rcCaption = Dpi().GetScaleRect(m_rcCaption, nOldDpiScale);
     m_renderOffset = Dpi().GetScalePoint(m_renderOffset, nOldDpiScale);
     m_ptLastMousePos = Dpi().GetScalePoint(m_ptLastMousePos, nOldDpiScale);
 
@@ -2098,7 +1078,7 @@ void Window::OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, con
            eventType == kEventMouseRButtonDown || 
            eventType == kEventMouseDoubleClick ||
            eventType == kEventMouseRDoubleClick);
-    CheckSetFocusWindow();
+    CheckSetWindowFocus();
     m_ptLastMousePos = pt;
     Control* pControl = FindControl(pt);
     if (pControl != nullptr) {
@@ -2167,7 +1147,7 @@ void Window::ClearStatus()
         m_pEventKey->SendEvent(kEventMouseLeave);
         m_pEventKey = nullptr;
     }
-    KillFocus();
+    KillFocusControl();
 }
 
 bool Window::HandleMouseEnterLeave(const UiPoint& pt, WPARAM wParam, LPARAM lParam)
@@ -2498,7 +1478,7 @@ LRESULT Window::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
     return 0;
 }
 
-Control* Window::GetFocus() const
+Control* Window::GetFocusControl() const
 {
     return m_pFocus;
 }
@@ -2508,11 +1488,11 @@ Control* Window::GetEventClick() const
     return m_pEventClick;
 }
 
-void Window::SetFocus(Control* pControl)
+void Window::SetFocusControl(Control* pControl)
 {
     // Paint manager window has focus?
     if (pControl != nullptr) {
-        CheckSetFocusWindow();
+        CheckSetWindowFocus();
     }
     // Already has focus?
     if (pControl == m_pFocus) {
@@ -2534,7 +1514,7 @@ void Window::SetFocus(Control* pControl)
     }
 }
 
-void Window::KillFocus()
+void Window::KillFocusControl()
 {
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventKillFocus);
@@ -2542,201 +1522,13 @@ void Window::KillFocus()
     }
 }
 
-void Window::CheckSetFocusWindow()
-{
-    if (::GetFocus() != m_hWnd) {
-        ::SetFocus(m_hWnd);
-    }
-}
-
-void Window::GetClientRect(UiRect& rcClient) const
-{
-    GetClientRect(m_hWnd, rcClient);
-}
-
-void Window::GetClientRect(HWND hWnd, UiRect& rcClient) const
-{
-    RECT rc = { 0, 0, 0, 0 };
-    ::GetClientRect(hWnd, &rc);
-    rcClient = UiRect(rc.left, rc.top, rc.right, rc.bottom);
-}
-
-void Window::GetWindowRect(UiRect& rcWindow) const
-{
-    GetWindowRect(m_hWnd, rcWindow);
-}
-
-void Window::GetWindowRect(HWND hWnd, UiRect& rcWindow) const
-{
-    RECT rc = { 0, 0, 0, 0 };
-    ::GetWindowRect(hWnd, &rc);
-    rcWindow = UiRect(rc.left, rc.top, rc.right, rc.bottom);
-}
-
-void Window::ScreenToClient(UiPoint& pt) const
-{
-    ScreenToClient(m_hWnd, pt);
-}
-
-void Window::ScreenToClient(HWND hWnd, UiPoint& pt) const
-{
-    POINT ptClient = { pt.x, pt.y };
-    ::ScreenToClient(hWnd, &ptClient);
-    pt = UiPoint(ptClient.x, ptClient.y);
-}
-
-void Window::ClientToScreen(UiPoint& pt) const
-{
-    ClientToScreen(m_hWnd, pt);
-}
-
-void Window::ClientToScreen(HWND hWnd, UiPoint& pt) const
-{
-    POINT ptClient = { pt.x, pt.y };
-    ::ClientToScreen(hWnd, &ptClient);
-    pt = UiPoint(ptClient.x, ptClient.y);
-}
-
-void Window::GetCursorPos(UiPoint& pt) const
-{
-    POINT ptPos;
-    ::GetCursorPos(&ptPos);
-    pt = { ptPos.x, ptPos.y };
-}
-
-void Window::MapWindowRect(UiRect& rc) const
-{
-    ASSERT(IsWindow());
-    MapWindowRect(GetHWND(), HWND_DESKTOP, rc);
-}
-
-void Window::MapWindowRect(HWND hwndFrom, HWND hwndTo, UiRect& rc) const
-{
-    POINT pts[2];
-    pts[0].x = rc.left;
-    pts[0].y = rc.top;
-    pts[1].x = rc.right;
-    pts[1].y = rc.bottom;
-    ::MapWindowPoints((hwndFrom), (hwndTo), &pts[0], 2);
-    rc.left = pts[0].x;
-    rc.top = pts[0].y;
-    rc.right = pts[1].x;
-    rc.bottom = pts[1].y;
-}
-
 Window* Window::WindowFromPoint(const UiPoint& pt)
 {
-    Window* pWindow = nullptr;
-    HWND hWnd = ::WindowFromPoint({ pt.x, pt.y });
-    if (::IsWindow(hWnd)) {
-        if (hWnd == m_hWnd) {
-            pWindow = this;
-        }
-        else {
-            pWindow = GetWindowObject(hWnd);
-        }
+    WindowBase* pWindow = WindowBaseFromPoint(pt);
+    if (pWindow != nullptr) {
+        return dynamic_cast<Window*>(pWindow);
     }
-    return pWindow;
-}
-
-HWND Window::GetWindowOwner() const
-{
-    return ::GetWindow(m_hWnd, GW_OWNER);
-}
-
-WNDPROC Window::SubclassWindow(HWND hWnd, WNDPROC pfnWndProc) const
-{
-    return (WNDPROC)::SetWindowLongPtr((hWnd), GWLP_WNDPROC, (LPARAM)(WNDPROC)(pfnWndProc));
-}
-
-bool Window::GetMonitorWorkRect(UiRect& rcWork) const
-{
-    return GetMonitorWorkRect(m_hWnd, rcWork);
-}
-
-bool Window::GetMonitorWorkRect(HWND hWnd, UiRect& rcWork) const
-{
-    rcWork.Clear();
-    HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
-    ASSERT(hMonitor != nullptr);
-    if (hMonitor == nullptr) {
-        return false;
-    }
-    MONITORINFO oMonitor = { 0, };
-    oMonitor.cbSize = sizeof(oMonitor);
-    if (::GetMonitorInfo(hMonitor, &oMonitor)) {
-        rcWork = UiRect(oMonitor.rcWork.left, oMonitor.rcWork.top,
-            oMonitor.rcWork.right, oMonitor.rcWork.bottom);
-        return true;
-    }
-    else {
-        ASSERT(!"Window::GetMonitorWorkRect failed!");
-        return false;
-    }
-}
-
-bool Window::GetMonitorWorkRect(const UiPoint& pt, UiRect& rcWork) const
-{
-    rcWork.Clear();
-    HMONITOR hMonitor = ::MonitorFromPoint({ pt.x, pt.y }, MONITOR_DEFAULTTONEAREST);
-    ASSERT(hMonitor != nullptr);
-    if (hMonitor == nullptr) {
-        return false;
-    }
-    MONITORINFO oMonitor = { 0, };
-    oMonitor.cbSize = sizeof(oMonitor);
-    if (::GetMonitorInfo(hMonitor, &oMonitor)) {
-        rcWork = UiRect(oMonitor.rcWork.left, oMonitor.rcWork.top,
-            oMonitor.rcWork.right, oMonitor.rcWork.bottom);
-        return true;
-    }
-    else {
-        ASSERT(!"Window::GetMonitorWorkRect failed!");
-        return false;
-    }
-}
-
-bool Window::GetMonitorRect(HWND hWnd, UiRect& rcMonitor, UiRect& rcWork) const
-{
-    rcMonitor.Clear();
-    rcWork.Clear();
-    HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
-    ASSERT(hMonitor != nullptr);
-    if (hMonitor == nullptr) {
-        return false;
-    }
-    MONITORINFO oMonitor = { 0, };
-    oMonitor.cbSize = sizeof(oMonitor);
-    if (::GetMonitorInfo(hMonitor, &oMonitor)) {
-        rcWork = UiRect(oMonitor.rcWork.left, oMonitor.rcWork.top,
-            oMonitor.rcWork.right, oMonitor.rcWork.bottom);
-        rcMonitor = UiRect(oMonitor.rcMonitor.left, oMonitor.rcMonitor.top,
-            oMonitor.rcMonitor.right, oMonitor.rcMonitor.bottom);
-        return true;
-    }
-    else {
-        ASSERT(!"Window::GetMonitorWorkRect failed!");
-        return false;
-    }
-}
-
-void Window::SetCapture()
-{
-    ::SetCapture(m_hWnd);
-    m_bMouseCapture = true;
-}
-
-void Window::ReleaseCapture()
-{
-    if (m_bMouseCapture) {
-        ::ReleaseCapture();
-        m_bMouseCapture = false;
-    }
-}
-
-bool Window::IsCaptured() const
-{
-    return m_bMouseCapture;
+    return nullptr;
 }
 
 Control* Window::GetHoverControl() const
@@ -2767,7 +1559,7 @@ bool Window::SetNextTabControl(bool bForward)
         }
     }
     if (pControl != nullptr) {
-        SetFocus(pControl);
+        SetFocusControl(pControl);
     }
     return true;
 }
@@ -2814,11 +1606,6 @@ bool Window::SendNotify(EventType eventType, WPARAM wParam, LPARAM lParam)
     return true;
 }
 
-HDC Window::GetPaintDC() const
-{
-    return m_hDcPaint;
-}
-
 ui::IRender* Window::GetRender() const
 {
     if ((m_render.get() != nullptr) && 
@@ -2834,18 +1621,6 @@ ui::IRender* Window::GetRender() const
         }
     }
     return m_render.get();
-}
-
-void Window::Invalidate(const UiRect& rcItem)
-{
-    GlobalManager::Instance().AssertUIThread();
-    RECT rc = { rcItem.left, rcItem.top, rcItem.right, rcItem.bottom };
-    ::InvalidateRect(m_hWnd, &rc, FALSE);
-    // Invalidating a layered window will not trigger a WM_PAINT message,
-    // thus we have to post WM_PAINT by ourselves.
-    if (m_bIsLayeredWindow) {
-        ::PostMessage(m_hWnd, WM_PAINT, 0, 0);
-    }
 }
 
 void Window::Paint()
@@ -3046,23 +1821,6 @@ void Window::ArrangeRoot()
     }
 }
 
-void Window::SetWindowAlpha(int nAlpha)
-{
-    ASSERT(nAlpha >= 0 && nAlpha <= 255);
-    if ((nAlpha < 0) || (nAlpha > 255)) {
-        return;
-    }
-    m_nWindowAlpha = static_cast<uint8_t>(nAlpha);
-    if (m_pRoot != nullptr) {
-        Invalidate(m_pRoot->GetPos());
-    }
-}
-
-uint8_t Window::GetWindowAlpha() const
-{
-    return m_nWindowAlpha;
-}
-
 bool Window::IsRenderTransparent() const
 {
     return m_render->IsRenderTransparent();
@@ -3071,36 +1829,6 @@ bool Window::IsRenderTransparent() const
 bool Window::SetRenderTransparent(bool bCanvasTransparent)
 {
     return m_render->SetRenderTransparent(bCanvasTransparent);
-}
-
-void Window::SetLayeredWindow(bool bIsLayeredWindow)
-{
-    m_bIsLayeredWindow = bIsLayeredWindow;
-
-    //根据窗口是否为层窗口，重新初始化阴影附加属性值(层窗口为true，否则为false)
-    if ((m_shadow != nullptr) && m_shadow->IsUseDefaultShadowAttached()) {
-        m_shadow->SetShadowAttached(m_bIsLayeredWindow);
-        m_shadow->SetUseDefaultShadowAttached(true);
-    }
-
-    if (::IsWindow(m_hWnd)) {
-        LONG dwExStyle = ::GetWindowLong(m_hWnd, GWL_EXSTYLE);
-        if (m_bIsLayeredWindow) {
-            dwExStyle |= WS_EX_LAYERED;
-        }
-        else {
-            dwExStyle &= ~WS_EX_LAYERED;
-        }
-        ::SetWindowLong(m_hWnd, GWL_EXSTYLE, dwExStyle);
-        if (m_pRoot != nullptr) {
-            Invalidate(m_pRoot->GetPos());
-        }
-    }
-}
-
-bool Window::IsLayeredWindow() const
-{
-    return m_bIsLayeredWindow;
 }
 
 void Window::SetRenderOffset(UiPoint renderOffset)

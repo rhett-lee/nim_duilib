@@ -121,7 +121,7 @@ void DragForm::OnInitWindow()
 
     // 设置背景透明度
     bitmap_control_->SetAlpha(128);
-    this->SetFocus(bitmap_control_);
+    this->SetFocusControl(bitmap_control_);
 }
 
 void DragForm::SetDragImage(HBITMAP bitmap)

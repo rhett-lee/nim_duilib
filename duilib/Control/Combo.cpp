@@ -60,7 +60,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
             hWndParent = ::GetParent(hWndParent);
         }
         ::ShowWindow(GetHWND(), SW_SHOW);
-        ::SetForegroundWindow(GetHWND());
+        SetForeground();
         ::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
         pOwner->GetTreeView()->SetFocus();
         pOwner->SetState(kControlStateHot);
@@ -109,7 +109,7 @@ void CComboWnd::UpdateComboWnd()
     }
     rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
 
-    pOwner->GetWindow()->MapWindowRect(rc);
+    pOwner->GetWindow()->MapWindowDesktopRect(rc);
 
     UiRect rcWork;
     GetMonitorWorkRect(rcWork);
@@ -121,7 +121,7 @@ void CComboWnd::UpdateComboWnd()
         }
         rc.top = rcOwner.top - std::min(cyFixed, szDrop.cy);
         rc.bottom = rcOwner.top;
-        pOwner->GetWindow()->MapWindowRect(rc);
+        pOwner->GetWindow()->MapWindowDesktopRect(rc);
     }
     SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
 }

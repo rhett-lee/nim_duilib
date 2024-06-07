@@ -91,7 +91,7 @@ void ComboButtonWnd::UpdateComboWnd()
     }
     rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
 
-    pOwner->GetWindow()->MapWindowRect(rc);
+    pOwner->GetWindow()->MapWindowDesktopRect(rc);
 
     UiRect rcWork;
     GetMonitorWorkRect(rcWork);
@@ -103,7 +103,7 @@ void ComboButtonWnd::UpdateComboWnd()
         }
         rc.top = rcOwner.top - std::min(cyFixed, szDrop.cy);
         rc.bottom = rcOwner.top;
-        pOwner->GetWindow()->MapWindowRect(rc);
+        pOwner->GetWindow()->MapWindowDesktopRect(rc);
     }
     SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
 }

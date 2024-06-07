@@ -311,8 +311,8 @@ void Menu::ResizeMenu()
         }
     }
     if (!m_noFocus) {
-        SetForegroundWindow(GetHWND());
-        SetFocus(m_pLayout);
+        SetForeground();
+        SetFocusControl(m_pLayout);
     }
     SetWindowPos(HWND_TOPMOST, point.x - rcCorner.left, point.y - rcCorner.top,
                  szAvailable.cx, szAvailable.cy,
@@ -357,7 +357,7 @@ void Menu::ResizeSubMenu()
     //去阴影
     rcWindow.Deflate(rcCorner);
 
-    m_pOwner->GetWindow()->MapWindowRect(rc);
+    m_pOwner->GetWindow()->MapWindowDesktopRect(rc);
     
     rc.left = rcWindow.right;
     rc.right = rc.left + cxFixed;
@@ -414,8 +414,8 @@ void Menu::ResizeSubMenu()
     }
 
     if (!m_noFocus) {
-        SetForegroundWindow(GetHWND());
-        SetFocus(m_pLayout);
+        SetForeground();
+        SetFocusControl(m_pLayout);
     }
     SetWindowPos(HWND_TOPMOST, rc.left - rcCorner.left, rc.top - rcCorner.top,
                  rc.right - rc.left, rc.bottom - rc.top,

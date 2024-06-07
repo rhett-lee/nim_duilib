@@ -96,7 +96,7 @@ ShadowWnd::ShadowWnd():
 {
 }
 
-bool ShadowWnd::CreateWnd(Window* pParentWindow, const DString& windowName,
+bool ShadowWnd::CreateWnd(WindowBase* pParentWindow, const DString& windowName,
                           uint32_t dwStyle, uint32_t dwExStyle, const UiRect& rc)
 {
     ASSERT((m_pShadowWnd == nullptr) && (GetHWND() == nullptr));

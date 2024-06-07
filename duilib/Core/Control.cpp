@@ -1377,7 +1377,7 @@ void Control::SetKeyboardEnabled(bool bEnabled)
 bool Control::IsFocused() const
 {
     Window* pWindow = GetWindow();
-    return ((pWindow != nullptr) && (pWindow->GetFocus() == this) );
+    return ((pWindow != nullptr) && (pWindow->GetFocusControl() == this) );
 }
 
 void Control::SetFocus()
@@ -1387,7 +1387,7 @@ void Control::SetFocus()
     }
     Window* pWindow = GetWindow();
     if (pWindow != nullptr) {
-        pWindow->SetFocus(this);
+        pWindow->SetFocusControl(this);
     }
 }
 
@@ -3253,13 +3253,13 @@ bool Control::CheckVisibleAncestor(void) const
 void Control::EnsureNoFocus()
 {
     Window* pWindow = GetWindow();
-    if ((pWindow != nullptr) && pWindow->GetFocus() != nullptr) {
-        if (pWindow->GetFocus() == this) {
-            pWindow->SetFocus(nullptr);
+    if ((pWindow != nullptr) && pWindow->GetFocusControl() != nullptr) {
+        if (pWindow->GetFocusControl() == this) {
+            pWindow->SetFocusControl(nullptr);
         }
         /*
         else if (IsChild(this, pWindow->GetFocus())) {
-            pWindow->SetFocus(nullptr);
+            pWindow->SetFocusControl(nullptr);
         }
         */
     }

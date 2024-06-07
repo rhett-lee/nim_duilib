@@ -30,7 +30,7 @@ public:
     * @param [in] dwExStyle 窗口拓展样式, 可以设置层窗口（WS_EX_LAYERED）等属性
     * @param [in] rc 窗口大小
     */
-    virtual bool CreateWnd(Window* pParentWindow,
+    virtual bool CreateWnd(WindowBase* pParentWindow,
                            const DString& windowName,
                            uint32_t dwStyle,
                            uint32_t dwExStyle,
