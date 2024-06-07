@@ -23,17 +23,33 @@ public:
             m_pData = nullptr;
         }
         if (!str.empty()) {
+#ifdef DUILIB_UNICODE
             size_t strSize = (uint32_t)wcslen(str.c_str());
-            m_pData = new wchar_t[strSize + 1];
-            wcscpy_s(m_pData, strSize + 1, str.c_str());
+#else
+            size_t strSize = (uint32_t)strlen(str.c_str());
+#endif
+            m_pData = new DString::value_type[strSize + 1];
+#ifdef DUILIB_UNICODE
+            wcscpy_s(m_pData, strSize + 1, str.c_str());            
+#else
+            strcpy_s(m_pData, strSize + 1, str.c_str());
+#endif
         }
     }
     UiString& operator=(const UiString& str)
     {
         if (!str.empty()) {
+#ifdef DUILIB_UNICODE
             size_t strSize = (uint32_t)wcslen(str.c_str());
-            m_pData = new wchar_t[strSize + 1];
+#else
+            size_t strSize = (uint32_t)strlen(str.c_str());
+#endif
+            m_pData = new DString::value_type[strSize + 1];
+#ifdef DUILIB_UNICODE
             wcscpy_s(m_pData, strSize + 1, str.c_str());
+#else
+            strcpy_s(m_pData, strSize + 1, str.c_str());
+#endif
         }
         return *this;
     }
@@ -47,8 +63,8 @@ public:
 public:
 
     bool empty() const { return (m_pData == nullptr) || (m_pData[0] == _T('\0')); }
-    const wchar_t* data() const { return c_str(); }
-    const wchar_t* c_str() const { return (m_pData != nullptr) ? m_pData : _T(""); }
+    const DString::value_type* data() const { return c_str(); }
+    const DString::value_type* c_str() const { return (m_pData != nullptr) ? m_pData : _T(""); }
     void clear() 
     {
         if (m_pData != nullptr) {
@@ -65,8 +81,12 @@ public:
         }
         if (!str.empty()) {
             size_t strSize = (uint32_t)str.size();
-            m_pData = new wchar_t[strSize + 1];
+            m_pData = new DString::value_type[strSize + 1];
+#ifdef DUILIB_UNICODE
             wcscpy_s(m_pData, strSize + 1, str.c_str());
+#else
+            strcpy_s(m_pData, strSize + 1, str.c_str());
+#endif
         }
         return *this;
     }
@@ -81,7 +101,11 @@ public:
                 return false;
             }
             else {
+#ifdef DUILIB_UNICODE
                 return wcscmp(m_pData, str.c_str()) == 0;
+#else
+                return strcmp(m_pData, str.c_str()) == 0;
+#endif
             }
         }
     }
@@ -96,7 +120,11 @@ public:
                 return false;
             }
             else {
+#ifdef DUILIB_UNICODE
                 return wcscmp(m_pData, str.c_str()) == 0;
+#else
+                return strcmp(m_pData, str.c_str()) == 0;
+#endif
             }
         }
     }
@@ -121,7 +149,7 @@ public:
     }
 private:
     //字符串数据
-    wchar_t* m_pData;
+    DString::value_type* m_pData;
 };
 
 }//namespace ui

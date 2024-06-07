@@ -1,6 +1,6 @@
 #ifndef _UI_CONTROL_DATETIME_H_
 #define _UI_CONTROL_DATETIME_H_
-#pragma once
+
 #include "duilib/Control/Label.h"
 
 namespace ui
@@ -148,7 +148,7 @@ private:
 
     /** 年月日的分隔符
     */
-    wchar_t m_dateSeparator;
+    DString::value_type m_dateSeparator;
 
     /** 设置日期控件窗口接口
     */
