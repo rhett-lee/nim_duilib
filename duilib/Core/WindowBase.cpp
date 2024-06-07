@@ -12,7 +12,6 @@ namespace ui
 WindowBase::WindowBase():
     m_hWnd(nullptr),
     m_pParentWindow(nullptr),
-    m_OldWndProc(::DefWindowProc),
     m_bIsLayeredWindow(false),
     m_bFakeModal(false),
     m_bCloseing(false),
@@ -36,18 +35,10 @@ WindowBase::~WindowBase()
 bool WindowBase::CreateWnd(WindowBase* pParentWindow, const DString& windowName,
                            uint32_t dwStyle, uint32_t dwExStyle, const UiRect& rc)
 {
-    if (!GetSuperClassName().empty()) {
-        if (!RegisterSuperClass()) {
-            return false;
-        }
-    }
-    else {
-        if (!RegisterWindowClass()) {
-            return false;
-        }
-    }
     DString className = GetWindowClassName();
-
+    if (!RegisterWindowClass(className)) {
+        return false;
+    }
     //初始化层窗口属性
     m_bIsLayeredWindow = false;
     if (dwExStyle & WS_EX_LAYERED) {
@@ -81,11 +72,6 @@ HMODULE WindowBase::GetResModuleHandle() const
 DString WindowBase::GetWindowClassName() const
 {
     ASSERT(FALSE);
-    return DString();
-}
-
-DString WindowBase::GetSuperClassName() const
-{
     return DString();
 }
 
@@ -170,7 +156,7 @@ void WindowBase::Close()
     ::SendMessage(m_hWnd, WM_CLOSE, 0L, 0L);
 }
 
-bool WindowBase::RegisterWindowClass()
+bool WindowBase::RegisterWindowClass(const DString& className)
 {
     WNDCLASS wc = { 0 };
     wc.style = GetClassStyle();
@@ -182,32 +168,8 @@ bool WindowBase::RegisterWindowClass()
     wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
     wc.hbrBackground = NULL;
     wc.lpszMenuName = NULL;
-    DString className = GetWindowClassName();
     wc.lpszClassName = className.c_str();
     ATOM ret = ::RegisterClass(&wc);
-    ASSERT(ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
-    return ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
-}
-
-bool WindowBase::RegisterSuperClass()
-{
-    // Get the class information from an existing
-    // window so we can subclass it later on...
-    WNDCLASSEX wc = { 0 };
-    wc.cbSize = sizeof(WNDCLASSEX);
-    DString superClassName = GetSuperClassName();
-    if (!::GetClassInfoEx(NULL, superClassName.c_str(), &wc)) {
-        if (!::GetClassInfoEx(GetResModuleHandle(), superClassName.c_str(), &wc)) {
-            ASSERT(!"Unable to locate window class");
-            return false;
-        }
-    }
-    m_OldWndProc = wc.lpfnWndProc;
-    wc.lpfnWndProc = WindowBase::__ControlProc;
-    wc.hInstance = GetResModuleHandle();
-    DString className = GetWindowClassName();
-    wc.lpszClassName = className.c_str();
-    ATOM ret = ::RegisterClassEx(&wc);
     ASSERT(ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
     return ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
 }
@@ -226,7 +188,7 @@ LRESULT CALLBACK WindowBase::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
     else {
         pThis = reinterpret_cast<WindowBase*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
         if (uMsg == WM_NCDESTROY && pThis != nullptr) {
-            LRESULT lRes = ::CallWindowProc(pThis->m_OldWndProc, hWnd, uMsg, wParam, lParam);
+            LRESULT lRes = ::DefWindowProc(hWnd, uMsg, wParam, lParam);
             ::SetWindowLongPtr(pThis->m_hWnd, GWLP_USERDATA, 0L);
             ASSERT(hWnd == pThis->GetHWND());
             pThis->OnFinalMessage();
@@ -243,57 +205,9 @@ LRESULT CALLBACK WindowBase::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPAR
     }
 }
 
-static const wchar_t* sPropName = _T("DuiLibWndX"); // 属性名称
-
-WindowBase* WindowBase::GetWindowObject(HWND hWnd)
-{
-    WindowBase* pThis = reinterpret_cast<WindowBase*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
-    if ((pThis != nullptr) && (pThis->m_hWnd != hWnd)) {
-        pThis = nullptr;
-    }
-    if (pThis == nullptr) {
-        pThis = reinterpret_cast<WindowBase*>(::GetPropW(hWnd, sPropName));
-        if ((pThis != nullptr) && (pThis->m_hWnd != hWnd)) {
-            pThis = nullptr;
-        }
-    }
-    return pThis;
-}
-
-LRESULT CALLBACK WindowBase::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    WindowBase* pThis = nullptr;
-    if (uMsg == WM_NCCREATE) {
-        LPCREATESTRUCT lpcs = reinterpret_cast<LPCREATESTRUCT>(lParam);
-        pThis = static_cast<WindowBase*>(lpcs->lpCreateParams);
-        if (pThis != nullptr) {
-            ::SetPropW(hWnd, sPropName, (HANDLE)pThis);
-            pThis->m_hWnd = hWnd;
-        }
-    }
-    else {
-        pThis = reinterpret_cast<WindowBase*>(::GetPropW(hWnd, sPropName));
-        if (uMsg == WM_NCDESTROY && pThis != nullptr) {
-            LRESULT lRes = ::CallWindowProc(pThis->m_OldWndProc, hWnd, uMsg, wParam, lParam);
-            ::SetPropW(hWnd, sPropName, NULL);
-            ASSERT(hWnd == pThis->GetHWND());
-            pThis->OnFinalMessage();
-            return lRes;
-        }
-    }
-    if (pThis != nullptr) {
-        ASSERT(hWnd == pThis->GetHWND());
-        return pThis->WindowMessageProc(uMsg, wParam, lParam);
-    }
-    else {
-        return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
-    }
-}
-
 LRESULT WindowBase::CallDefaultWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    ASSERT(m_OldWndProc != nullptr);
-    return ::CallWindowProc(m_OldWndProc, m_hWnd, uMsg, wParam, lParam);
+    return ::DefWindowProc(m_hWnd, uMsg, wParam, lParam);
 }
 
 bool WindowBase::AddMessageFilter(IUIMessageFilter* pFilter)
@@ -408,7 +322,10 @@ WindowBase* WindowBase::WindowBaseFromPoint(const UiPoint& pt)
             pWindow = this;
         }
         else {
-            pWindow = GetWindowObject(hWnd);
+            pWindow = reinterpret_cast<WindowBase*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
+            if ((pWindow != nullptr) && (pWindow->m_hWnd != hWnd)) {
+                pWindow = nullptr;
+            }
         }
     }
     return pWindow;

@@ -74,11 +74,6 @@ public:
     */
     virtual DString GetWindowClassName() const;
 
-    /** 获取控件窗口类(DateTime控件使用)
-    * @return 返回控件窗口类，该基类返回空串
-    */
-    virtual DString GetSuperClassName() const;
-
     /** 获取窗口类的样式，该方法由实例化的子类实现，https://docs.microsoft.com/en-us/windows/desktop/winmsg/window-class-styles
     * @return 返回窗口类的样式，该方法基类返回 CS_DBLCLKS
     */
@@ -665,11 +660,7 @@ protected:
 private:
     /** 注册窗口类
     */
-    bool RegisterWindowClass();
-
-    /** 注册控件窗口类（与窗口的过程函数不同）
-    */
-    bool RegisterSuperClass();
+    bool RegisterWindowClass(const DString& className);
 
     /** 窗口消息的处理函数, 从系统接收到消息后，进入的第一个处理函数
     * @param [in] uMsg 消息体
@@ -679,7 +670,7 @@ private:
     */
     LRESULT WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-    /** 窗口过程函数(当GetSuperClassName()函数返回不为空串时使用)
+    /** 窗口过程函数
     * @param [in] hWnd 窗口句柄
     * @param [in] uMsg 消息体
     * @param [in] wParam 消息附加参数
@@ -687,21 +678,6 @@ private:
     * @return 返回消息处理结果
     */
     static LRESULT CALLBACK __WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-    /** 窗口过程函数(当GetSuperClassName()函数返回空串时使用)
-    * @param [in] hWnd 窗口句柄
-    * @param [in] uMsg 消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @return 返回消息处理结果
-    */
-    static LRESULT CALLBACK __ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-    /** 获取窗口对应的Window对象接口
-    * @param [in] hWnd 窗口句柄
-    * @return 返回窗口句柄对应的Window对象接口
-    */
-    static WindowBase* GetWindowObject(HWND hWnd);
 
 private:
     /** @name 私有窗口消息处理相关
@@ -783,9 +759,6 @@ protected:
     /** 父窗口的WeakFlag
     */
     std::weak_ptr<WeakFlag> m_parentFlag;
-
-    //原来的窗口过程函数
-    WNDPROC m_OldWndProc;
 
     //是否为层窗口
     bool m_bIsLayeredWindow;
