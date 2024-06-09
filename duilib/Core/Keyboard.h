@@ -6,6 +6,17 @@
 
 namespace ui {
 
+/** 键盘的按键标志位
+*/
+enum ModifierKey {
+    kNone       = 0,
+    kShift      = 1 << 0,   //按住了Shift键
+    kControl    = 1 << 1,   //按住了Control键
+    kAlt        = 1 << 2,   //按住了Alt键
+    kWin        = 1 << 3,   //按住了Win键
+    kFirstPress = 1 << 4,   //第一次按键标志（即如果在发送消息之前，键处于未按下状态）
+};
+
 /** 键盘操作
 */
 class UILIB_API Keyboard

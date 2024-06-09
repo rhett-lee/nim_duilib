@@ -21,7 +21,8 @@ WindowBase::WindowBase():
     m_bUseSystemCaption(false),
     m_nWindowAlpha(255),
     m_bMouseCapture(false),
-    m_pWindowDropTarget(nullptr)
+    m_pWindowDropTarget(nullptr),
+    m_ptLastMousePos(-1, -1)
 {
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
 }
@@ -287,7 +288,12 @@ LRESULT WindowBase::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     //第三优先级：内部处理的消息，处理后，不再派发
     if (!bHandled) {
-        lResult = OnInternalMessage(uMsg, wParam, lParam, bHandled);
+        lResult = ProcessInternalMessage(uMsg, wParam, lParam, bHandled);
+    }
+
+    //第四优先级：内部处理函数，优先保证自身功能正常
+    if (!bHandled) {
+        lResult = ProcessWindowMessage(uMsg, wParam, lParam, bHandled);
     }
 
     if (!bHandled && (uMsg == WM_CLOSE)) {
@@ -295,9 +301,9 @@ LRESULT WindowBase::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
         OnCloseWindow();
     }
 
-    //第四优先级：内部处理函数，优先保证自身功能正常
-    if (!bHandled) {
-        lResult = HandleMessage(uMsg, wParam, lParam, bHandled);
+    //自定义窗口消息的派发函数，仅供内部实现使用
+    if (!bHandled && (uMsg >= WM_USER)) {
+        lResult = HandleUserMessage(uMsg, wParam, lParam, bHandled);
     }
 
     //第五优先级：系统默认的窗口函数
@@ -909,6 +915,12 @@ bool WindowBase::SetWindowPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags,
     return SetWindowPos(hWndInsertAfter, rcNewPos.left, rcNewPos.top, rcNewPos.Width(), rcNewPos.Height(), uFlags);
 }
 
+bool WindowBase::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHeight, bool bRepaint)
+{
+    ASSERT(IsWindow());
+    return ::MoveWindow(m_hWnd, X, Y, nWidth, nHeight, bRepaint ? TRUE : FALSE) != FALSE;
+}
+
 UiRect WindowBase::GetWindowPos(bool bContainShadow) const
 {
     ASSERT(IsWindow());
@@ -1074,6 +1086,7 @@ void WindowBase::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     m_rcSizeBox = Dpi().GetScaleRect(m_rcSizeBox, nOldDpiScale);
     m_szRoundCorner = Dpi().GetScaleSize(m_szRoundCorner, nOldDpiScale);
     m_rcCaption = Dpi().GetScaleRect(m_rcCaption, nOldDpiScale);
+    m_ptLastMousePos = Dpi().GetScalePoint(m_ptLastMousePos, nOldDpiScale);
 }
 
 void WindowBase::OnWindowDpiChanged(uint32_t /*nOldDPI*/, uint32_t /*nNewDPI*/)
@@ -1350,7 +1363,7 @@ bool WindowBase::UnregisterDragDrop(ControlDropTarget* pDropTarget)
     return m_pWindowDropTarget->UnregisterDragDrop(pDropTarget);
 }
 
-LRESULT WindowBase::OnInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT WindowBase::ProcessInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     LRESULT lResult = 0;
     bHandled = false;
@@ -1370,50 +1383,17 @@ LRESULT WindowBase::OnInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, b
     case WM_COMMAND:            lResult = OnCommandMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_CTLCOLOREDIT:       lResult = OnCtlColorMsgs(uMsg, wParam, lParam, bHandled); break;
     case WM_CTLCOLORSTATIC:     lResult = OnCtlColorMsgs(uMsg, wParam, lParam, bHandled); break;
-        
-        
+    case WM_SYSCOMMAND:         lResult = OnSysCommandMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_TOUCH:              lResult = OnTouchMsg(uMsg, wParam, lParam, bHandled); break;
 
-    //case WM_SIZE:                lResult = OnSizeMsg(uMsg, wParam, lParam, bHandled); break;//部分逻辑要处理，但不截获
-    //case WM_PAINT:                lResult = OnPaintMsg(uMsg, wParam, lParam, bHandled); break;//待确认
-    //case WM_MOUSEHOVER:            lResult = OnMouseHoverMsg(uMsg, wParam, lParam, bHandled); break;
-
-    //case WM_MOUSELEAVE:            lResult = OnMouseLeaveMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_MOUSEMOVE:            lResult = OnMouseMoveMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_MOUSEWHEEL:            lResult = OnMouseWheelMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_LBUTTONDOWN:        lResult = OnLButtonDownMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_RBUTTONDOWN:        lResult = OnRButtonDownMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_LBUTTONDBLCLK:        lResult = OnLButtonDoubleClickMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_RBUTTONDBLCLK:        lResult = OnRButtonDoubleClickMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_LBUTTONUP:            lResult = OnLButtonUpMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_RBUTTONUP:            lResult = OnRButtonUpMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_CONTEXTMENU:        lResult = OnContextMenuMsg(uMsg, wParam, lParam, bHandled); break;
-
-    //case WM_SETFOCUS:            lResult = OnSetFocusMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_KILLFOCUS:            lResult = OnKillFocusMsg(uMsg, wParam, lParam, bHandled); break;
-
-    //case WM_CHAR:                lResult = OnCharMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_KEYDOWN:            lResult = OnKeyDownMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_KEYUP:                lResult = OnKeyUpMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_SYSKEYDOWN:            lResult = OnSysKeyDownMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_SYSKEYUP:            lResult = OnSysKeyUpMsg(uMsg, wParam, lParam, bHandled); break;
-
-    //case WM_IME_STARTCOMPOSITION: lResult = OnIMEStartCompositionMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_IME_ENDCOMPOSITION:      lResult = OnIMEEndCompositionMsg(uMsg, wParam, lParam, bHandled); break;
-
-    //case WM_SETCURSOR:            lResult = OnSetCusorMsg(uMsg, wParam, lParam, bHandled); break;
-    
-    //case WM_SYSCOMMAND:            lResult = OnSysCommandMsg(uMsg, wParam, lParam, bHandled); break;
-    //case WM_HOTKEY:                lResult = OnHotKeyMsg(uMsg, wParam, lParam, bHandled); break;
-    
-    //case WM_TOUCH:              lResult = OnTouchMsg(uMsg, wParam, lParam, bHandled); break;
-    /*case WM_POINTERDOWN:
+    case WM_POINTERDOWN:
     case WM_POINTERUP:
     case WM_POINTERUPDATE:
     case WM_POINTERLEAVE:
     case WM_POINTERWHEEL:
     case WM_POINTERCAPTURECHANGED:
         lResult = OnPointerMsgs(uMsg, wParam, lParam, bHandled);
-        break;*/
+        break;
 
     default:
         bInternalMsg = false;
@@ -1700,6 +1680,582 @@ LRESULT WindowBase::OnCtlColorMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool
     HWND hWndChild = (HWND)lParam;
     bHandled = true;
     return ::SendMessage(hWndChild, OCM__BASE + uMsg, wParam, lParam);
+}
+
+LRESULT WindowBase::OnSysCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_SYSCOMMAND);
+    bHandled = true;
+    if (GET_SC_WPARAM(wParam) == SC_CLOSE) {
+        //立即关闭窗口
+        Close();
+        return 0;
+    }
+    //首先调用默认的窗口函数，使得命令生效
+    bool bZoomed = IsZoomed();
+    LRESULT lRes = CallDefaultWindowProc(uMsg, wParam, lParam);
+    if (IsZoomed() != bZoomed) {
+        if (GET_SC_WPARAM(wParam) == 0xF012) {
+            //修复窗口最大化和还原按钮的状态（当在最大化时，向下拖动标题栏，窗口会改变为非最大化状态）
+            OnWindowRestored();
+        }
+    }
+    return lRes;
+}
+
+LRESULT WindowBase::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_TOUCH);
+    LRESULT lResult = 0;
+    bHandled = false;
+    unsigned int nNumInputs = LOWORD(wParam);
+    if (nNumInputs < 1) {
+        nNumInputs = 1;
+    }
+    TOUCHINPUT* pInputs = new TOUCHINPUT[nNumInputs];
+    // 只关心第一个触摸位置
+    if (!GetTouchInputInfoWrapper((HTOUCHINPUT)lParam, nNumInputs, pInputs, sizeof(TOUCHINPUT))) {
+        delete[] pInputs;
+        return lResult;
+    }
+    else {
+        CloseTouchInputHandleWrapper((HTOUCHINPUT)lParam);
+        if (pInputs[0].dwID == 0) {
+            return lResult;
+        }
+    }
+    //获取触摸点的坐标，并转换为窗口内的客户区坐标
+    UiPoint pt = { TOUCH_COORD_TO_PIXEL(pInputs[0].x) , TOUCH_COORD_TO_PIXEL(pInputs[0].y) };
+    ScreenToClient(pt);
+
+    DWORD dwFlags = pInputs[0].dwFlags;
+    delete[] pInputs;
+    pInputs = nullptr;
+
+    if (dwFlags & TOUCHEVENTF_DOWN) {
+        lResult = OnMouseLButtonDownMsg(pt, 0, bHandled);
+    }
+    else if (dwFlags & TOUCHEVENTF_MOVE) {
+        UiPoint lastMousePos = m_ptLastMousePos;
+        lResult = OnMouseMoveMsg(pt, 0, bHandled);
+        int detaValue = pt.y - lastMousePos.y;
+        if (detaValue != 0) {
+            //触发滚轮功能（lParam参数故意设置为0，有特殊含义）
+            lResult = OnMouseWheelMsg(detaValue, pt, 0, bHandled);
+        }
+    }
+    else if (dwFlags & TOUCHEVENTF_UP) {
+        lResult = OnMouseLButtonUpMsg(pt, 0, bHandled);
+    }
+    return lResult;
+}
+
+LRESULT WindowBase::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    ASSERT_UNUSED_VARIABLE(uMsg == WM_POINTERDOWN ||
+                           uMsg == WM_POINTERUP ||
+                           uMsg == WM_POINTERUPDATE ||
+                           uMsg == WM_POINTERLEAVE ||
+                           uMsg == WM_POINTERCAPTURECHANGED ||
+                           uMsg == WM_POINTERWHEEL);
+
+    LRESULT lResult = 0;
+    bHandled = false;
+    // 只关心第一个触摸点
+    if (!IS_POINTER_PRIMARY_WPARAM(wParam)) {
+        bHandled = true;
+        return lResult;
+    }
+    //获取指针位置，并且将屏幕坐标转换为窗口客户区坐标
+    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    ScreenToClient(pt);
+    switch (uMsg)
+    {
+    case WM_POINTERDOWN:
+        lResult = OnMouseLButtonDownMsg(pt, 0, bHandled);
+        bHandled = true;
+        break;
+    case WM_POINTERUPDATE:
+        lResult = OnMouseMoveMsg(pt, 0, bHandled);
+        bHandled = true;
+        break;
+    case WM_POINTERUP:
+        lResult = OnMouseLButtonUpMsg(pt, 0, bHandled);
+        bHandled = true;
+        break;
+    case WM_POINTERWHEEL:
+        {
+            int32_t wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+            lResult = OnMouseWheelMsg(wheelDelta, pt, 0, bHandled);
+            bHandled = true;
+        }
+        break;
+    case WM_POINTERLEAVE:
+        lResult = OnMouseLeaveMsg(pt, 0, bHandled);
+        break;
+    case WM_POINTERCAPTURECHANGED:
+        lResult = OnCaptureChangedMsg(bHandled);        
+        //如果不设置bHandled，程序会转换为WM_BUTTON类消息
+        bHandled = true;
+        break;
+    default:
+        break;
+    }
+    return 0;
+}
+
+LRESULT WindowBase::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    LRESULT lResult = 0;
+    bHandled = false;
+    switch (uMsg)
+    {
+        case WM_SIZE:
+        {
+            WindowSizeType sizeType = static_cast<WindowSizeType>(wParam);
+            UiSize newWindowSize;
+            newWindowSize.cx = (int)(short)LOWORD(lParam);
+            newWindowSize.cy = (int)(short)HIWORD(lParam);
+            lResult = OnSizeMsg(sizeType, newWindowSize, bHandled);
+            break;
+        }
+        case WM_MOVE:
+        {
+            UiPoint ptTopLeft;
+            ptTopLeft.x = (int)(short)LOWORD(lParam);   // horizontal position 
+            ptTopLeft.y = (int)(short)HIWORD(lParam);   // vertical position 
+            lResult = OnMoveMsg(ptTopLeft, bHandled);
+            break;
+        }
+        case WM_PAINT:
+        {
+            lResult = OnPaintMsg(bHandled);
+            break;
+        }
+        case WM_SETFOCUS:
+        {
+            lResult = OnSetFocusMsg(bHandled);
+            break;
+        }
+        case WM_KILLFOCUS:
+        {
+            lResult = OnKillFocusMsg(bHandled);
+            break;
+        }
+        case WM_IME_STARTCOMPOSITION:
+        {
+            lResult = OnImeStartCompositionMsg(bHandled);
+            break;
+        }
+        case WM_IME_ENDCOMPOSITION:
+        {
+            lResult = OnImeEndCompositionMsg(bHandled);
+            break;
+        }
+        case WM_SETCURSOR:
+        {
+            if (LOWORD(lParam) == HTCLIENT) {
+                //只处理设置客户区的光标
+                lResult = OnSetCursorMsg(bHandled);
+            }            
+            break;
+        }
+        case WM_CONTEXTMENU:
+        {
+            UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+            if ((pt.x != -1) && (pt.y != -1)) {
+                ScreenToClient(pt);
+            }
+            lResult = OnContextMenuMsg(pt, bHandled);
+            break;
+        }
+        case WM_KEYDOWN:
+        case WM_SYSKEYDOWN:
+        {
+            VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(wParam);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnKeyDownMsg(vkCode, modifierKey, bHandled);
+            break;
+        }
+        case WM_KEYUP:
+        case WM_SYSKEYUP:
+        {
+            VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(wParam);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnKeyUpMsg(vkCode, modifierKey, bHandled);
+            break;
+        }
+        case WM_CHAR:
+        {
+            VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(wParam);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnCharMsg(vkCode, modifierKey, bHandled);
+            break;
+        }
+        case WM_HOTKEY:
+        {
+            int32_t hotkeyId = (int32_t)wParam;
+            VirtualKeyCode vkCode = static_cast<VirtualKeyCode>((int32_t)(int16_t)HIWORD(lParam));
+            uint32_t modifierKey = (uint32_t)(int16_t)LOWORD(lParam);
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnHotKeyMsg(hotkeyId, vkCode, modifierKey, bHandled);
+            break;
+        }
+        case WM_MOUSEWHEEL:
+        {
+            int32_t wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
+            UiPoint pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            ScreenToClient(pt);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnMouseWheelMsg(wheelDelta, pt, modifierKey, bHandled);
+            break;
+        }        
+        case WM_MOUSEMOVE:
+        {
+            UiPoint pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnMouseMoveMsg(pt, modifierKey, bHandled);
+            break;
+        }
+        case WM_MOUSEHOVER:
+        {
+            UiPoint pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnMouseHoverMsg(pt, modifierKey, bHandled);
+            break;
+        }
+        case WM_MOUSELEAVE:
+        {
+            UiPoint pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnMouseLeaveMsg(pt, modifierKey, bHandled);
+            break;
+        }
+        case WM_LBUTTONDOWN:
+        {
+            UiPoint pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnMouseLButtonDownMsg(pt, modifierKey, bHandled);
+            break;
+        }
+        case WM_LBUTTONUP:
+        {
+            UiPoint pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnMouseLButtonUpMsg(pt, modifierKey, bHandled);
+            break;
+        }
+        case WM_LBUTTONDBLCLK:
+        {
+            UiPoint pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnMouseLButtonDbClickMsg(pt, modifierKey, bHandled);
+            break;
+        }
+        case WM_RBUTTONDOWN:
+        {
+            UiPoint pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnMouseRButtonDownMsg(pt, modifierKey, bHandled);
+            break;
+        }
+        case WM_RBUTTONUP:
+        {
+            UiPoint pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnMouseRButtonUpMsg(pt, modifierKey, bHandled);
+            break;
+        }
+        case WM_RBUTTONDBLCLK:
+        {
+            UiPoint pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            uint32_t modifierKey = 0;
+            GetModifiers(uMsg, wParam, lParam, modifierKey);
+            lResult = OnMouseRButtonDbClickMsg(pt, modifierKey, bHandled);
+            break;
+        }
+        case WM_CAPTURECHANGED:
+        {
+            lResult = OnCaptureChangedMsg(bHandled);
+            break;
+        }
+        case WM_CLOSE:
+        {
+            lResult = OnWindowCloseMsg((uint32_t)wParam, bHandled);
+            break;
+        }
+        default:
+            break;
+    }//end of switch
+    return lResult;
+}
+
+LRESULT WindowBase::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize*/, bool& bHandled)
+{
+    bHandled = false;
+    UiSize szRoundCorner = GetRoundCorner();
+    bool isIconic = IsWindowMinimized();
+    if (!isIconic && (sizeType != WindowSizeType::kSIZE_MAXIMIZED) && (szRoundCorner.cx > 0 && szRoundCorner.cy > 0)) {
+        //最大化、最小化时，均不设置圆角RGN，只有普通状态下设置
+        UiRect rcWnd;
+        GetWindowRect(rcWnd);
+        rcWnd.Offset(-rcWnd.left, -rcWnd.top);
+        rcWnd.right++;
+        rcWnd.bottom++;
+        SetWindowRoundRectRgn(rcWnd, szRoundCorner, true);
+    }
+    else if (!isIconic) {
+        //不需要设置RGN的时候，清除原RGN设置，避免最大化以后显示不正确
+        ClearWindowRgn(true);
+    }
+    return 0;
+}
+
+LRESULT WindowBase::OnMoveMsg(const UiPoint& /*ptTopLeft*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnPaintMsg(bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnSetFocusMsg(bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnKillFocusMsg(bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnImeStartCompositionMsg(bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnImeEndCompositionMsg(bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnSetCursorMsg(bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnContextMenuMsg(const UiPoint& /*pt*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+bool WindowBase::GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint32_t& modifierKey) const
+{
+    bool bRet = true;
+    modifierKey = ModifierKey::kNone;
+    switch (message) {
+    case WM_CHAR:
+        if (0 == (lParam & (1 << 30))) {
+            modifierKey |= ModifierKey::kFirstPress;
+        }
+        if (lParam & (1 << 29)) {
+            modifierKey |= ModifierKey::kAlt;
+        }
+        break;
+
+    case WM_KEYDOWN:
+    case WM_SYSKEYDOWN:
+        if (0 == (lParam & (1 << 30))) {
+            modifierKey |= ModifierKey::kFirstPress;
+        }
+        if (lParam & (1 << 29)) {
+            modifierKey |= ModifierKey::kAlt;
+        }
+        break;
+
+    case WM_KEYUP:
+    case WM_SYSKEYUP:
+        if (lParam & (1 << 29)) {
+            modifierKey |= ModifierKey::kAlt;
+        }
+        break;
+
+    case WM_MOUSEWHEEL:
+        {
+            WORD fwKeys = GET_KEYSTATE_WPARAM(wParam);
+            if (fwKeys & MK_CONTROL) {
+                modifierKey |= ModifierKey::kControl;
+            }
+            if (fwKeys & MK_SHIFT) {
+                modifierKey |= ModifierKey::kShift;
+            }
+        }
+        break;
+    case WM_MOUSEHOVER:
+    case WM_MOUSEMOVE:
+    case WM_LBUTTONDOWN:
+    case WM_LBUTTONUP:
+    case WM_LBUTTONDBLCLK:
+    case WM_RBUTTONDOWN:
+    case WM_RBUTTONUP:
+    case WM_RBUTTONDBLCLK:
+    case WM_MBUTTONDOWN:
+    case WM_MBUTTONUP:
+    case WM_MBUTTONDBLCLK:
+    case WM_XBUTTONDOWN:
+    case WM_XBUTTONUP:
+    case WM_XBUTTONDBLCLK:
+        if (wParam & MK_CONTROL) {
+            modifierKey |= ModifierKey::kControl;
+        }
+        if (wParam & MK_SHIFT) {
+            modifierKey |= ModifierKey::kShift;
+        }
+        break;
+    default:
+        bRet = false;
+        break;
+    }
+    ASSERT(bRet);
+    return bRet;
+}
+
+LRESULT WindowBase::OnKeyDownMsg(VirtualKeyCode /*vkCode*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnKeyUpMsg(VirtualKeyCode /*vkCode*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnCharMsg(VirtualKeyCode /*vkCode*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnHotKeyMsg(int32_t /*hotkeyId*/, VirtualKeyCode /*vkCode*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnMouseWheelMsg(int32_t /*wheelDelta*/, const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnMouseMoveMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnMouseHoverMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnMouseLeaveMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnMouseLButtonDownMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnMouseLButtonUpMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnMouseLButtonDbClickMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnMouseRButtonDownMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnMouseRButtonUpMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnMouseRButtonDbClickMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnCaptureChangedMsg(bool& bHandled)
+{
+    bHandled = false;
+    return 0;
+}
+
+LRESULT WindowBase::OnWindowCloseMsg(uint32_t /*wParam*/, bool& bHandled)
+{
+    bHandled = false;
+    return 0;
 }
 
 } // namespace ui

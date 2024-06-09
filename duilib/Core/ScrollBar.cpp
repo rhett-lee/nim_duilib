@@ -574,7 +574,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
             Invalidate();
         }
 
-        ButtonUp(msg);
+        ButtonUp(msg);//这里的msg.Type不对
         return;
     }
     else if (msg.Type == kEventMouseEnter) {

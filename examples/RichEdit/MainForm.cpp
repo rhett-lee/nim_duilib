@@ -924,17 +924,17 @@ void MainForm::OnCloseWindow()
     PostQuitMessage(0L);
 }
 
-LRESULT MainForm::OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKeyUp(uMsg, wParam, lParam, bHandled);
-    bool bControlDown = ui::Keyboard::IsKeyDown(ui::kVK_CONTROL);
-    bool bShiftDown = ui::Keyboard::IsKeyDown(ui::kVK_SHIFT);
+    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, bHandled);
+    bool bControlDown = modifierKey & ui::ModifierKey::kControl;
+    bool bShiftDown = modifierKey & ui::ModifierKey::kShift;
     if (bControlDown) {
-        if ((wParam == 'O') && !bShiftDown){
+        if ((vkCode == 'O') && !bShiftDown){
             //打开
             OnOpenFile();
         }
-        else if (wParam == 'S') {
+        else if (vkCode == 'S') {
             if (bShiftDown) {
                 //另存为
                 OnSaveAsFile();                
@@ -945,11 +945,11 @@ LRESULT MainForm::OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHand
             }
         }
         if (!bShiftDown) {
-            if (wParam == 'F') {
+            if (vkCode == 'F') {
                 //查找
                 OnFindText();
             }
-            else if (wParam == 'H') {
+            else if (vkCode == 'H') {
                 //替换
                 OnReplaceText();
             }
@@ -962,9 +962,9 @@ LRESULT MainForm::OnKeyDown(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHand
     return lResult;
 }
 
-LRESULT MainForm::OnKeyUp(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT MainForm::OnKeyUpMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKeyUp(uMsg, wParam, lParam, bHandled);
+    LRESULT lResult = __super::OnKeyUpMsg(vkCode, modifierKey, bHandled);
     UpdateSaveStatus();
     return lResult;
 }

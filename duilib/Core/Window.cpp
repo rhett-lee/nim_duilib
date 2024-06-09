@@ -15,6 +15,9 @@
 
 #include <VersionHelpers.h>
 
+//清理控件资源的自定义消息
+#define WM_CLEANUP_MSG  (WM_USER + 1)
+
 namespace ui
 {
 Window::Window() :
@@ -25,7 +28,6 @@ Window::Window() :
     m_pEventHover(nullptr),
     m_pEventClick(nullptr),
     m_pEventKey(nullptr),
-    m_ptLastMousePos(-1, -1),
     m_rcAlphaFix(0, 0, 0, 0),
     m_bFirstLayout(true),
     m_bIsArranged(false),
@@ -96,6 +98,29 @@ void Window::InitWindow()
         if ((rcClient.Width() > 0) && (rcClient.Height() > 0)) {
             m_render->Resize(rcClient.Width(), rcClient.Height());
         }
+    }
+}
+
+void Window::OnInitWindow()
+{
+    __super::OnInitWindow();
+}
+
+void Window::OnCloseWindow()
+{
+    __super::OnCloseWindow();
+    if (m_bFakeModal) {
+        Window* pParentWindow = GetParentWindow();
+        if (pParentWindow != nullptr) {
+            pParentWindow->EnableWindow(true);
+            pParentWindow->SetWindowFocus();
+        }
+        m_bFakeModal = false;
+    }
+
+    ClearStatus();
+    if (IsWindowFocused()) {
+        SetOwnerWindowFocus();
     }
 }
 
@@ -203,9 +228,13 @@ void Window::SetResourcePath(const DString& strPath)
     m_strResourcePath = strPath;
     if (!m_strResourcePath.empty()) {
         //确保路径最后字符是分割字符
-        wchar_t cEnd = m_strResourcePath.back();
+        DString::value_type cEnd = m_strResourcePath.back();
         if (cEnd != _T('\\') && cEnd != _T('/')) {
+#ifdef DUILIB_PLATFORM_WIN
             m_strResourcePath += _T('\\');
+#else
+            m_strResourcePath += _T('/');
+#endif // DUILIB_PLATFORM_WIN
         }
     }
 }
@@ -489,119 +518,39 @@ void Window::SetInitSize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale
     }
 }
 
-LRESULT Window::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::HandleUserMessage(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
 {
     LRESULT lResult = 0;
     bHandled = false;
-    // Custom handling of events
     switch (uMsg)
     {
-    case WM_APP + 1:
-    {
-        for (Control* pControl : m_aDelayedCleanup) {
-            delete pControl;
+    case WM_CLEANUP_MSG:
+        {
+            for (Control* pControl : m_aDelayedCleanup) {
+                delete pControl;
+            }
+            m_aDelayedCleanup.clear();
+            bHandled = true;
         }
-        m_aDelayedCleanup.clear();
-        bHandled = true;
-    }
-    break;
-    case WM_CLOSE:                lResult = OnCloseMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_SIZE:                lResult = OnSizeMsg(uMsg, wParam, lParam, bHandled); break;//部分
-    case WM_MOVE:                lResult = OnMoveMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_PAINT:                lResult = OnPaintMsg(uMsg, wParam, lParam, bHandled); break;//需要确认
-
-    case WM_MOUSEHOVER:            lResult = OnMouseHoverMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_MOUSELEAVE:            lResult = OnMouseLeaveMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_MOUSEMOVE:            lResult = OnMouseMoveMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_MOUSEWHEEL:            lResult = OnMouseWheelMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_LBUTTONDOWN:        lResult = OnLButtonDownMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_RBUTTONDOWN:        lResult = OnRButtonDownMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_LBUTTONDBLCLK:        lResult = OnLButtonDoubleClickMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_RBUTTONDBLCLK:        lResult = OnRButtonDoubleClickMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_LBUTTONUP:            lResult = OnLButtonUpMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_RBUTTONUP:            lResult = OnRButtonUpMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_CONTEXTMENU:        lResult = OnContextMenuMsg(uMsg, wParam, lParam, bHandled); break;
-
-    case WM_SETFOCUS:            lResult = OnSetFocusMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_KILLFOCUS:            lResult = OnKillFocusMsg(uMsg, wParam, lParam, bHandled); break;
-
-    case WM_CHAR:                lResult = OnCharMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_KEYDOWN:            lResult = OnKeyDownMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_KEYUP:                lResult = OnKeyUpMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_SYSKEYDOWN:            lResult = OnSysKeyDownMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_SYSKEYUP:            lResult = OnSysKeyUpMsg(uMsg, wParam, lParam, bHandled); break;
-
-    case WM_IME_STARTCOMPOSITION: lResult = OnIMEStartCompositionMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_IME_ENDCOMPOSITION:      lResult = OnIMEEndCompositionMsg(uMsg, wParam, lParam, bHandled); break;
-
-    case WM_SETCURSOR:            lResult = OnSetCusorMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_SYSCOMMAND:            lResult = OnSysCommandMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_HOTKEY:                lResult = OnHotKeyMsg(uMsg, wParam, lParam, bHandled); break;
-
-    case WM_TOUCH:                  lResult = OnTouchMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_POINTERDOWN:
-    case WM_POINTERUP:
-    case WM_POINTERUPDATE:
-    case WM_POINTERLEAVE:
-    case WM_POINTERWHEEL:
-    case WM_POINTERCAPTURECHANGED:
-        lResult = OnPointerMsgs(uMsg, wParam, lParam, bHandled);
         break;
-
     default:
         break;
-    }//end of switch
+    }
     return lResult;
 }
 
-LRESULT Window::OnCloseMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_CLOSE);
-    bHandled = false;
-    if (m_bFakeModal) {
-        Window* pParentWindow = GetParentWindow();
-        if (pParentWindow != nullptr) {
-            pParentWindow->EnableWindow(true);
-            pParentWindow->SetWindowFocus();
-        }
-        m_bFakeModal = false;
-    }
-
-    ClearStatus();
-    if (IsWindowFocused()) {
-        SetOwnerWindowFocus();        
-    }
-    return 0;
-}
-
-LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
-{
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_SIZE);
-    bHandled = false;
-    UiSize szRoundCorner = GetRoundCorner();
-    bool isIconic = IsWindowMinimized();
-    if (!isIconic && (wParam != SIZE_MAXIMIZED) && (szRoundCorner.cx > 0 && szRoundCorner.cy > 0)) {
-        //最大化、最小化时，均不设置圆角RGN，只有普通状态下设置
-        UiRect rcWnd;
-        GetWindowRect(rcWnd);
-        rcWnd.Offset(-rcWnd.left, -rcWnd.top);
-        rcWnd.right++;
-        rcWnd.bottom++;
-        SetWindowRoundRectRgn(rcWnd, szRoundCorner, true);
-    }
-    else if (!isIconic) {
-        //不需要设置RGN的时候，清除原RGN设置，避免最大化以后显示不正确
-        ClearWindowRgn(true);
-    }
+    LRESULT lResult = __super::OnSizeMsg(sizeType, newWindowSize, bHandled);
     if (m_pRoot != nullptr) {
         m_pRoot->Arrange();
     }
-    if (wParam == SIZE_MAXIMIZED) {
+    if (sizeType == WindowSizeType::kSIZE_MAXIMIZED) {
         if (m_shadow != nullptr) {
             m_shadow->MaximizedOrRestored(true);
         }
     }
-    else if (wParam == SIZE_RESTORED) {
+    else if (sizeType == WindowSizeType::kSIZE_RESTORED) {
         if (m_shadow != nullptr) {
             m_shadow->MaximizedOrRestored(false);
         }
@@ -609,7 +558,7 @@ LRESULT Window::OnSizeMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHa
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventWindowSize);
     }
-    return 0;
+    return lResult;
 }
 
 void Window::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
@@ -630,7 +579,6 @@ void Window::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     //更新窗口自身的DPI关联属性
     m_rcAlphaFix = Dpi().GetScaleRect(m_rcAlphaFix, nOldDpiScale);
     m_renderOffset = Dpi().GetScalePoint(m_renderOffset, nOldDpiScale);
-    m_ptLastMousePos = Dpi().GetScalePoint(m_ptLastMousePos, nOldDpiScale);
 
     //更新布局和控件的DPI关联属性
     SetArrange(true);
@@ -643,44 +591,41 @@ void Window::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     }
 }
 
-LRESULT Window::OnMoveMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+LRESULT Window::OnMoveMsg(const UiPoint& ptTopLeft, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_MOVE);
+    LRESULT lResult = __super::OnMoveMsg(ptTopLeft, bHandled);
     bHandled = false;
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventWindowMove);
     }
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnPaintMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+LRESULT Window::OnPaintMsg(bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_PAINT);
     bHandled = true;
     PerformanceStat statPerformance(_T("Window::OnPaintMsg"));
     Paint();
-    return 0;
+    LRESULT lResult = __super::OnPaintMsg(bHandled);
+    return lResult;
 }
 
-LRESULT Window::OnMouseHoverMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_MOUSEHOVER);
-    bHandled = false;
+    LRESULT lResult = __super::OnMouseHoverMsg(pt, modifierKey, bHandled);
     m_toolTip->SetMouseTracking(this, false);
     if (IsCaptured()) {
         //如果处于Capture状态，不显示ToolTip
-        return 0;
+        return lResult;
     }
-
-    UiPoint trackPos = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-    Control* pHover = FindControl(trackPos);
+    Control* pHover = FindControl(pt);
     if (pHover == nullptr) {
-        return 0;
+        return lResult;
     }
 
     Control* pOldHover = GetHoverControl();
     if (pHover != nullptr) {
-        pHover->SendEvent(kEventMouseHover, 0, 0, 0, trackPos);
+        pHover->SendEvent(kEventMouseHover, 0, 0, 0, pt);
     }
 
     if (pOldHover == GetHoverControl()) {
@@ -688,18 +633,17 @@ LRESULT Window::OnMouseHoverMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, boo
         UiRect rect = pHover->GetPos();
         uint32_t maxWidth = pHover->GetToolTipWidth();
         DString toolTipText = pHover->GetToolTipText();
-        m_toolTip->ShowToolTip(this, rect, maxWidth, trackPos, toolTipText);
+        m_toolTip->ShowToolTip(this, rect, maxWidth, pt, toolTipText);
     }
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnMouseLeaveMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+LRESULT Window::OnMouseLeaveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_MOUSELEAVE);
-    bHandled = false;
+    LRESULT lResult = __super::OnMouseLeaveMsg(pt, modifierKey, bHandled);
     m_toolTip->HideToolTip();
     m_toolTip->ClearMouseTracking();
-    return 0;
+    return lResult;
 }
 
 void Window::UpdateToolTip()
@@ -709,94 +653,121 @@ void Window::UpdateToolTip()
     m_toolTip->ClearMouseTracking();
 }
 
-LRESULT Window::OnMouseMoveMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_MOUSEMOVE);
-    bHandled = false;
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    LRESULT lResult = __super::OnMouseMoveMsg(pt, modifierKey, bHandled);
+
+    //TODO: 待实现
+    int wParam = 0;
+    int lParam = 0;
     OnMouseMove(wParam, lParam, pt);
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnMouseWheelMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_MOUSEWHEEL);
-    bHandled = false;
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-    ScreenToClient(pt);
+    LRESULT lResult = __super::OnMouseWheelMsg(wheelDelta, pt, modifierKey, bHandled);
+    //TODO: 待实现
+    int wParam = 0;
+    int lParam = 0;
+    
     OnMouseWheel(wParam, lParam, pt);
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnLButtonDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_LBUTTONDOWN);
-
-    bHandled = false;
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    LRESULT lResult = __super::OnMouseLButtonDownMsg(pt, modifierKey, bHandled);
+    //TODO: 待实现
+    int wParam = 0;
+    int lParam = 0;
     OnButtonDown(kEventMouseButtonDown, wParam, lParam, pt);
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnRButtonDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_RBUTTONDOWN);
-    bHandled = false;
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    LRESULT lResult = __super::OnMouseRButtonDownMsg(pt, modifierKey, bHandled);
+    //TODO: 待实现
+    int wParam = 0;
+    int lParam = 0;
     OnButtonDown(kEventMouseRButtonDown, wParam, lParam, pt);
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnLButtonDoubleClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_LBUTTONDBLCLK);
-    bHandled = false;
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    LRESULT lResult = __super::OnMouseLButtonDbClickMsg(pt, modifierKey, bHandled);
+    //TODO: 待实现
+    int wParam = 0;
+    int lParam = 0;
     OnButtonDown(kEventMouseDoubleClick, wParam, lParam, pt);
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnRButtonDoubleClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT  Window::OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_RBUTTONDBLCLK);
-    bHandled = false;
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    LRESULT lResult = __super::OnMouseRButtonDbClickMsg(pt, modifierKey, bHandled);
+    //TODO: 待实现
+    int wParam = 0;
+    int lParam = 0;
     OnButtonDown(kEventMouseRDoubleClick, wParam, lParam, pt);
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnLButtonUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_LBUTTONUP);
-    bHandled = false;
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    LRESULT lResult = __super::OnMouseLButtonUpMsg(pt, modifierKey, bHandled);
+    //TODO: 待实现
+    int wParam = 0;
+    int lParam = 0;
     OnButtonUp(kEventMouseButtonUp, wParam, lParam, pt);
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnRButtonUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_RBUTTONUP);
-    bHandled = false;
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    LRESULT lResult = __super::OnMouseRButtonUpMsg(pt, modifierKey, bHandled);
+    //TODO: 待实现
+    int wParam = 0;
+    int lParam = 0;
     OnButtonUp(kEventMouseRButtonUp, wParam, lParam, pt);
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnContextMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnCaptureChangedMsg(bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_CONTEXTMENU);
-    bHandled = false;
+    //if (uMsg != WM_POINTERLEAVE) {
+    //    // Refer to LBUTTONUP and MOUSELEAVE，LBUTTOUP ReleaseCapture while MOUSELEAVE DONOT ReleaseCapture
+    //    ReleaseCapture();
+    //}
+    //if (m_pEventClick) {
+    //    //如果没有收到WM_POINTERUP消息，需要补一个（TODO：检查是否有副作用）
+    //    m_pEventClick->SendEvent(kEventMouseButtonUp, wParam, lParam, 0, lastMousePos);
+    //    m_pEventClick = nullptr;
+    //}
+
+    LRESULT lResult = __super::OnCaptureChangedMsg(bHandled);
+    ReleaseCapture();
+    return lResult;
+}
+
+LRESULT Window::OnWindowCloseMsg(uint32_t wParam, bool& bHandled)
+{
+    return __super::OnWindowCloseMsg(wParam, bHandled);
+}
+
+LRESULT Window::OnContextMenuMsg(const UiPoint& pt, bool& bHandled)
+{
+    LRESULT lResult = __super::OnContextMenuMsg(pt, bHandled);
     ReleaseCapture();
 
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
     if ((pt.x != -1) && (pt.y != -1)) {
-        ScreenToClient(pt);
         m_ptLastMousePos = pt;
         Control* pControl = FindContextMenuControl(&pt);
         if (pControl != nullptr) {
             Control* ptControl = FindControl(pt);//当前点击点所在的控件
-            pControl->SendEvent(kEventMouseMenu, wParam, (LPARAM)ptControl, 0, UiPoint(pt));
+            pControl->SendEvent(kEventMouseMenu, 0, (LPARAM)ptControl, 0, UiPoint(pt));
         }
     }
     else {
@@ -804,10 +775,10 @@ LRESULT Window::OnContextMenuMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
         //应用程序应在当前所选内容的位置（而不是 (xPos、yPos) ）显示上下文菜单。
         Control* pControl = FindContextMenuControl(nullptr);
         if (pControl != nullptr) {
-            pControl->SendEvent(kEventMouseMenu, wParam, 0, 0, UiPoint(pt));
+            pControl->SendEvent(kEventMouseMenu, 0, 0, 0, UiPoint(pt));
         }
     }
-    return 0;
+    return lResult;
 }
 
 void Window::OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt)
@@ -911,76 +882,91 @@ bool Window::HandleMouseEnterLeave(const UiPoint& pt, WPARAM wParam, LPARAM lPar
     return true;
 }
 
-LRESULT Window::OnIMEStartCompositionMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnImeStartCompositionMsg(bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_IME_STARTCOMPOSITION);
+    LRESULT lResult = __super::OnImeStartCompositionMsg(bHandled);
     bHandled = false;
     if (m_pFocus != nullptr) {
-        m_pFocus->SendEvent(kEventImeStartComposition, wParam, lParam, static_cast<TCHAR>(wParam));
+        m_pFocus->SendEvent(kEventImeStartComposition);
     }
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnIMEEndCompositionMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnImeEndCompositionMsg(bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_IME_ENDCOMPOSITION);
+    LRESULT lResult = __super::OnImeEndCompositionMsg(bHandled);
     bHandled = false;
     if (m_pFocus != nullptr) {
-        m_pFocus->SendEvent(kEventImeEndComposition, wParam, lParam, static_cast<TCHAR>(wParam));
+        m_pFocus->SendEvent(kEventImeEndComposition);
     }
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnSetFocusMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+LRESULT Window::OnSetFocusMsg(bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_SETFOCUS);
-    bHandled = false;
-    return 0;
+    return __super::OnSetFocusMsg(bHandled);
 }
 
-LRESULT Window::OnKillFocusMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnKillFocusMsg(bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_KILLFOCUS);
+    LRESULT lResult = __super::OnKillFocusMsg(bHandled);
     bHandled = false;
     Control* pEventClick = m_pEventClick;
     m_pEventClick = nullptr;
     ReleaseCapture();
     if (pEventClick != nullptr) {
-        pEventClick->SendEvent(kEventWindowKillFocus, wParam, lParam, 0, UiPoint());
+        pEventClick->SendEvent(kEventWindowKillFocus);
     }
     Control* pFocus = m_pFocus;
     if ((pFocus != nullptr) && (pFocus != pEventClick)){
-        pFocus->SendEvent(kEventWindowKillFocus, wParam, lParam, 0, UiPoint());
+        pFocus->SendEvent(kEventWindowKillFocus);
     }
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnCharMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_CHAR);
+    LRESULT lResult = __super::OnCharMsg(vkCode, modifierKey, bHandled);
+    //TODO: 待实现
+    WPARAM wParam = 0;
+    LPARAM lParam = 0;
     bHandled = false;
     if (m_pEventKey != nullptr) {
         m_pEventKey->SendEvent(kEventChar, wParam, lParam, static_cast<TCHAR>(wParam));
     }
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnHotKeyMsg(int32_t hotkeyId, VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_KEYDOWN);
-    bHandled = false;
-    if (IsWindowFullScreen() && (wParam == kVK_ESCAPE)) {
-        //按ESC键时，退出全屏
-        ExitFullScreen();
-        return 0;
+    return __super::OnHotKeyMsg(hotkeyId, vkCode, modifierKey, bHandled);
+}
+
+LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
+{
+    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, bHandled);
+    if (modifierKey & (ModifierKey::kShift | ModifierKey::kControl | ModifierKey::kAlt | ModifierKey::kWin)) {
+        //TODO: 待实现(kEventSysKeyDown 已经删除 WM_SYSKEYDOWN)
+        WPARAM wParam = 0;
+        LPARAM lParam = 0;
+        m_pEventKey = m_pFocus;
+        if (m_pEventKey != nullptr) {
+            m_pEventKey->SendEvent(kEventSysKeyDown, wParam, lParam, static_cast<TCHAR>(wParam));
+        }
+        return lResult;
     }
 
+    if ((vkCode == kVK_ESCAPE) && IsWindowFullScreen()) {
+        //按ESC键时，退出全屏
+        ExitFullScreen();
+        return lResult;
+    }
     if (m_pFocus != nullptr) {
-        if (wParam == kVK_TAB) {
+        if (vkCode == kVK_TAB) {
             if (m_pFocus->IsVisible() &&
                 m_pFocus->IsEnabled() &&
                 m_pFocus->IsWantTab()) {
-                return 0;
+                return lResult;
             }
             else {
                 //通过TAB键切换焦点控件
@@ -989,55 +975,39 @@ LRESULT Window::OnKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHan
         }
         else {
             m_pEventKey = m_pFocus;
+
+            //TODO: 待实现(kEventSysKeyDown 已经删除 WM_SYSKEYDOWN)
+            WPARAM wParam = 0;
+            LPARAM lParam = 0;
             m_pFocus->SendEvent(kEventKeyDown, wParam, lParam, static_cast<TCHAR>(wParam));
         }
     }
-    if ((wParam == kVK_ESCAPE) && (m_pEventClick != nullptr)) {
+    else {
+        m_pEventKey = nullptr;
+    }
+    if ((vkCode == kVK_ESCAPE) && (m_pEventClick != nullptr)) {
         m_pEventClick->SendEvent(kEventMouseClickEsc);
     }
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnKeyUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_KEYUP);
+    LRESULT lResult = __super::OnKeyUpMsg(vkCode, modifierKey, bHandled);
+    //TODO: 待实现(kEventSysKeyUp 已经删除 WM_SYSKEYUP)
+    WPARAM wParam = 0;
+    LPARAM lParam = 0;
     bHandled = false;
     if (m_pEventKey != nullptr) {
         m_pEventKey->SendEvent(kEventKeyUp, wParam, lParam, static_cast<TCHAR>(wParam));
         m_pEventKey = nullptr;
     }
-    return 0;
+    return lResult;
 }
 
-LRESULT Window::OnSysKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT Window::OnSetCursorMsg(bool& bHandled)
 {
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_SYSKEYDOWN);
-    bHandled = false;
-    m_pEventKey = m_pFocus;
-    if (m_pEventKey != nullptr) {
-        m_pEventKey->SendEvent(kEventSysKeyDown, wParam, lParam, static_cast<TCHAR>(wParam));
-    }
-    return 0;
-}
-
-LRESULT Window::OnSysKeyUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_SYSKEYUP);
-    bHandled = false;
-    if (m_pEventKey != nullptr) {
-        m_pEventKey->SendEvent(kEventSysKeyUp, wParam, lParam, static_cast<TCHAR>(wParam));
-        m_pEventKey = nullptr;
-    }
-    return 0;
-}
-
-LRESULT Window::OnSetCusorMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_SETCURSOR);
-    bHandled = false;
-    if (LOWORD(lParam) != HTCLIENT) {
-        return 0;
-    }
+    LRESULT lResult = __super::OnSetCursorMsg(bHandled);
     if (m_pEventClick != nullptr) {
         bHandled = true;
         return 0;
@@ -1049,133 +1019,11 @@ LRESULT Window::OnSetCusorMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
     m_ptLastMousePos = pt;
     Control* pControl = FindControl(pt);
     if (pControl != nullptr) {
-        pControl->SendEvent(kEventSetCursor, wParam, lParam, 0, pt);
+        //返回值待确认：如果应用程序处理了此消息，它应返回 TRUE 以停止进一步处理或 FALSE 以继续。
+        pControl->SendEvent(kEventSetCursor, 0, 0, 0, pt);
         bHandled = true;
     }
-    return 0;
-}
-
-LRESULT Window::OnSysCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_SYSCOMMAND);
-    UNUSED_VARIABLE(wParam);
-    UNUSED_VARIABLE(lParam);
-    bHandled = false;
-    return 0;
-}
-
-LRESULT Window::OnHotKeyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_HOTKEY);
-    UNUSED_VARIABLE(wParam);
-    UNUSED_VARIABLE(lParam);
-    bHandled = false;
-    return 0;
-}
-
-LRESULT Window::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_TOUCH);
-    bHandled = false;
-    unsigned int nNumInputs = LOWORD(wParam);
-    if (nNumInputs < 1) {
-        nNumInputs = 1;
-    }
-    TOUCHINPUT* pInputs = new TOUCHINPUT[nNumInputs];
-    // 只关心第一个触摸位置
-    if (!GetTouchInputInfoWrapper((HTOUCHINPUT)lParam, nNumInputs, pInputs, sizeof(TOUCHINPUT))) {
-        delete[] pInputs;
-        return 0;
-    }
-    else {
-        CloseTouchInputHandleWrapper((HTOUCHINPUT)lParam);
-        if (pInputs[0].dwID == 0) {
-            return 0;
-        }
-    }
-    //获取触摸点的坐标，并转换为窗口内的客户区坐标
-    UiPoint pt = { TOUCH_COORD_TO_PIXEL(pInputs[0].x) , TOUCH_COORD_TO_PIXEL(pInputs[0].y) };
-    ScreenToClient(pt);
-
-    DWORD dwFlags = pInputs[0].dwFlags;
-    delete[] pInputs;
-    pInputs = nullptr;
-
-    if (dwFlags & TOUCHEVENTF_DOWN) {
-        OnButtonDown(kEventMouseButtonDown, 0, 0, pt);
-    }
-    else if (dwFlags & TOUCHEVENTF_MOVE) {
-        UiPoint lastMousePos = m_ptLastMousePos;
-        OnMouseMove(0, 0, pt);
-        int detaValue = pt.y - lastMousePos.y;
-        if (detaValue != 0) {
-            //触发滚轮功能（lParam参数故意设置为0，有特殊含义）
-            OnMouseWheel((WPARAM)detaValue, 0, pt);
-        }
-    }
-    else if (dwFlags & TOUCHEVENTF_UP) {
-        OnButtonUp(kEventMouseButtonUp, 0, 0, pt);
-    }
-    return 0;
-}
-
-LRESULT Window::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_POINTERDOWN ||
-        uMsg == WM_POINTERUP ||
-        uMsg == WM_POINTERUPDATE ||
-        uMsg == WM_POINTERLEAVE ||
-        uMsg == WM_POINTERCAPTURECHANGED ||
-        uMsg == WM_POINTERWHEEL);
-
-    bHandled = false;
-    // 只关心第一个触摸点
-    if (!IS_POINTER_PRIMARY_WPARAM(wParam)) {
-        bHandled = true;
-        return 0;
-    }
-    //获取指针位置，并且将屏幕坐标转换为窗口客户区坐标
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-    ScreenToClient(pt);
-    UiPoint lastMousePos = m_ptLastMousePos;
-
-    switch (uMsg)
-    {
-    case WM_POINTERDOWN:
-        OnButtonDown(kEventMouseButtonDown, wParam, lParam, pt);
-        bHandled = true;
-        break;
-    case WM_POINTERUPDATE:
-        OnMouseMove(wParam, lParam, pt);
-        bHandled = true;
-        break;
-    case WM_POINTERUP:
-        OnButtonUp(kEventMouseButtonUp, wParam, lParam, pt);
-        bHandled = true;
-        break;
-    case WM_POINTERWHEEL:
-        OnMouseWheel(wParam, lParam, pt);
-        bHandled = true;
-        break;
-    case WM_POINTERLEAVE:
-    case WM_POINTERCAPTURECHANGED:
-        m_ptLastMousePos = pt;
-        if (uMsg != WM_POINTERLEAVE) {
-            // Refer to LBUTTONUP and MOUSELEAVE，LBUTTOUP ReleaseCapture while MOUSELEAVE DONOT ReleaseCapture
-            ReleaseCapture();
-        }
-        if (m_pEventClick) {
-            //如果没有收到WM_POINTERUP消息，需要补一个（TODO：检查是否有副作用）
-            m_pEventClick->SendEvent(kEventMouseButtonUp, wParam, lParam, 0, lastMousePos);
-            m_pEventClick = nullptr;
-        }
-        //如果不设置bHandled，程序会转换为WM_BUTTON类消息
-        bHandled = true;
-        break;
-    default:
-        break;
-    }
-    return 0;
+    return lResult;
 }
 
 Control* Window::GetFocusControl() const
@@ -1279,7 +1127,7 @@ void Window::AddDelayedCleanup(Control* pControl)
     if (pControl != nullptr) {
         pControl->SetWindow(this);
         m_aDelayedCleanup.push_back(pControl);
-        ::PostMessage(m_hWnd, WM_APP + 1, 0, 0L);
+        PostMsg(WM_CLEANUP_MSG);
     }
 }
 
@@ -1488,7 +1336,7 @@ void Window::AutoResizeWindow(bool bRepaint)
             UiRect rect;
             GetWindowRect(rect);
             if ((rect.Width() != needSize.cx) || (rect.Height() != needSize.cy)) {
-                ::MoveWindow(m_hWnd, rect.left, rect.top, needSize.cx, needSize.cy, bRepaint ? TRUE : FALSE);
+                MoveWindow(rect.left, rect.top, needSize.cx, needSize.cy, bRepaint);
             }
         }
     }

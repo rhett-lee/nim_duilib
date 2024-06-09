@@ -443,13 +443,13 @@ void ControlForm::OnProgressValueChagned(float value)
     }
 }
 
-LRESULT ControlForm::OnHotKey(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT ControlForm::OnHotKeyMsg(int32_t hotkeyId, ui::VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
 {
-    LRESULT lResult = __super::OnHotKey(uMsg, wParam, lParam, bHandled);
+    LRESULT lResult = __super::OnHotKeyMsg(hotkeyId, vkCode, modifierKey, bHandled);
     bHandled = true;
-    if (wParam == SYSTEM_HOTKEY_ID) {
+    if (hotkeyId == SYSTEM_HOTKEY_ID) {
         SetForeground();
-        ::MessageBox(GetHWND(), _T("接收到系统热键命令"), _T("ControlForm::OnHotKey"), MB_OK);
+        ::MessageBox(GetHWND(), _T("接收到系统热键命令"), _T("ControlForm::OnHotKeyMsg"), MB_OK);
     }
     return lResult;
 }

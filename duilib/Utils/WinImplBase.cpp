@@ -15,63 +15,7 @@ WindowImplBase::~WindowImplBase()
 
 void WindowImplBase::OnInitWindow()
 {
-}
-
-void WindowImplBase::OnCloseWindow()
-{
-}
-
-void WindowImplBase::OnFinalMessage()
-{
-    __super::OnFinalMessage();
-}
-
-Control* WindowImplBase::CreateControl(const DString& /*strClass*/)
-{
-    return nullptr;
-}
-
-uint32_t WindowImplBase::GetWindowStyle() const
-{
-    return __super::GetWindowStyle();
-}
-
-LRESULT WindowImplBase::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    LRESULT lRes = 0;
-    bHandled = false;
-    switch (uMsg)
-    {
-    case WM_CREATE:            lRes = OnCreate(uMsg, wParam, lParam, bHandled); break;
-    case WM_SYSCOMMAND:        lRes = OnSysCommand(uMsg, wParam, lParam, bHandled); break;
-    //以下消息，无具体实现
-    case WM_CLOSE:            lRes = OnClose(uMsg, wParam, lParam, bHandled); break;
-    case WM_DESTROY:        lRes = OnDestroy(uMsg, wParam, lParam, bHandled); break;
-    case WM_MOUSEMOVE:        lRes = OnMouseMove(uMsg, wParam, lParam, bHandled); break;
-    case WM_MOUSEWHEEL:        lRes = OnMouseWheel(uMsg, wParam, lParam, bHandled); break;
-    case WM_MOUSEHOVER:        lRes = OnMouseHover(uMsg, wParam, lParam, bHandled); break;
-    case WM_LBUTTONDOWN:    lRes = OnLButtonDown(uMsg, wParam, lParam, bHandled); break;
-    case WM_LBUTTONUP:        lRes = OnLButtonUp(uMsg, wParam, lParam, bHandled); break;
-    case WM_LBUTTONDBLCLK:    lRes = OnLButtonDbClk(uMsg, wParam, lParam, bHandled); break;
-    case WM_RBUTTONDOWN:    lRes = OnRButtonDown(uMsg, wParam, lParam, bHandled); break;
-    case WM_RBUTTONUP:        lRes = OnRButtonUp(uMsg, wParam, lParam, bHandled); break;
-    case WM_RBUTTONDBLCLK:    lRes = OnRButtonDbClk(uMsg, wParam, lParam, bHandled); break;
-    case WM_CHAR:            lRes = OnChar(uMsg, wParam, lParam, bHandled); break;
-    case WM_KEYDOWN:        lRes = OnKeyDown(uMsg, wParam, lParam, bHandled); break;
-    case WM_KEYUP:            lRes = OnKeyUp(uMsg, wParam, lParam, bHandled); break;
-    case WM_SYSKEYDOWN:        lRes = OnSysKeyDown(uMsg, wParam, lParam, bHandled); break;
-    case WM_SYSKEYUP:        lRes = OnSysKeyUp(uMsg, wParam, lParam, bHandled); break;
-    case WM_HOTKEY:            lRes = OnHotKey(uMsg, wParam, lParam, bHandled); break;
-    default:
-        bHandled = false;
-        break;
-    }
-    return lRes;
-}
-
-LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
+    __super::OnInitWindow();
     SetResourcePath(GetSkinFolder());
 
     DString strSkinFile;
@@ -89,7 +33,7 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
 
     ASSERT(pRoot && _T("Faield to load xml file."));
     if (pRoot == nullptr) {
-        return -1;
+        return;
     }
 
     if (IsUseSystemCaption()) {
@@ -135,31 +79,26 @@ LRESULT WindowImplBase::OnCreate(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPar
             pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
     }
-    return 0;
 }
 
-LRESULT WindowImplBase::OnSysCommand(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+void WindowImplBase::OnCloseWindow()
 {
-#ifdef DUILIB_PLATFORM_WIN
-    bHandled = true;
-    if (wParam == SC_CLOSE) {
-        //立即关闭窗口
-        Close();
-        return 0;
-    }
-    //首先调用默认的窗口函数，使得命令生效
-    bool bZoomed = IsZoomed();
-    LRESULT lRes = this->CallDefaultWindowProc(uMsg, wParam, lParam);
-    if (IsZoomed() != bZoomed) {
-        if (wParam == 0xF012) {
-            //修复窗口最大化和还原按钮的状态（当在最大化时，向下拖动标题栏，窗口会改变为非最大化状态）
-            ProcessMaxRestoreStatus();
-        }
-    }
-    return lRes;
-#else
-    return 0;
-#endif
+    __super::OnCloseWindow();
+}
+
+void WindowImplBase::OnFinalMessage()
+{
+    __super::OnFinalMessage();
+}
+
+Control* WindowImplBase::CreateControl(const DString& /*strClass*/)
+{
+    return nullptr;
+}
+
+uint32_t WindowImplBase::GetWindowStyle() const
+{
+    return __super::GetWindowStyle();
 }
 
 bool WindowImplBase::OnButtonClick(const EventArgs& msg)
@@ -265,111 +204,6 @@ void WindowImplBase::ProcessMaxRestoreStatus()
     if (pRestoreButton != nullptr) {
         pRestoreButton->SetFadeVisible(bWindowMax ? true : false);
     }
-}
-
-LRESULT WindowImplBase::OnClose(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnDestroy(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnMouseMove(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnMouseWheel(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnMouseHover(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnLButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnLButtonUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnLButtonDbClk(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnRButtonDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnRButtonUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnRButtonDbClk(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnChar(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnKeyDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnKeyUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnSysKeyDown(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnSysKeyUp(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    bHandled = false;
-    return 0;
-}
-
-LRESULT WindowImplBase::OnHotKey(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_HOTKEY);
-    UNUSED_VARIABLE(wParam);
-    UNUSED_VARIABLE(lParam);
-    bHandled = false;
-    return 0;
 }
 
 }

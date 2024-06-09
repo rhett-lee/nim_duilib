@@ -38,12 +38,12 @@ public:
     virtual DString GetSkinFile() override;
     virtual DString GetZIPFileName() const;
     virtual void OnEsc(BOOL &bHandled);
-    virtual void CloseWnd(UINT nRet = IDOK) override;
 
     virtual DString GetWindowClassName() const override;
     virtual DString GetWindowId() const /*override*/;
     virtual UINT GetClassStyle() const override;
     virtual void OnInitWindow() override;
+    virtual void OnCloseWindow() override;
 private:
     bool OnClicked(const ui::EventArgs& msg);
 

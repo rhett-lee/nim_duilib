@@ -2731,7 +2731,7 @@ void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
     bool isDrawOk = false;
     if (IsRootBox() && IsWindowRoundRect()) {
         //使用与Windows一致的绘制方式，避免与Windows的不一致
-        //参见：Window::OnSizeMsg中的CreateRoundRectRgn（Skia的圆角画法和CreateRoundRectRgn不一样）
+        //参见：WindowBase::OnSizeMsg中的CreateRoundRectRgn（Skia的圆角画法和CreateRoundRectRgn不一样）
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         if (pRenderFactory != nullptr) {
             std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, nBorderSize));
@@ -2764,7 +2764,7 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
     bool isDrawOk = false;
     if (IsRootBox() && IsWindowRoundRect()) {
         //使用与Windows一致的绘制方式，避免与Windows的不一致
-        //参见：Window::OnSizeMsg中的CreateRoundRectRgn（Skia的圆角画法和CreateRoundRectRgn不一样）
+        //参见：WindowBase::OnSizeMsg中的CreateRoundRectRgn（Skia的圆角画法和CreateRoundRectRgn不一样）
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         if (pRenderFactory != nullptr) {
             std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(dwColor));

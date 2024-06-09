@@ -42,7 +42,7 @@ DString ColorPicker::GetWindowClassName() const
     return kClassName;
 }
 
-LRESULT ColorPicker::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT ColorPicker::OnWindowCloseMsg(uint32_t wParam, bool& bHandled)
 {
     UiColor selectedColor;
     if (wParam == 0) {
@@ -55,7 +55,7 @@ LRESULT ColorPicker::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHan
         }
     }    
     m_selectedColor = selectedColor;
-    return __super::OnClose(uMsg, wParam, lParam, bHandled);
+    return __super::OnWindowCloseMsg(wParam, bHandled);
 }
 
 void ColorPicker::AttachSelectColor(const EventCallback& callback)

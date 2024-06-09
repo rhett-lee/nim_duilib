@@ -50,16 +50,12 @@ public:
     */
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
-    /**
-    * 拦截并处理WM_CLOSE消息
-    * @param[in] uMsg 消息类型
-    * @param[in] wParam 附加参数
-    * @param[in] lParam 附加参数
-    * @param[in] lParam 附加参数
-    * @param[in] bHandled 是否处理了消息，如果处理了不继续传递消息
-    * @return LRESULT 处理结果
+    /** 窗口关闭消息（WM_CLOSE）
+    * @param [in] wParam 消息的wParam参数
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
-    virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+    virtual LRESULT OnWindowCloseMsg(uint32_t wParam, bool& bHandled) override;
 
     /** 在窗口销毁时会被调用，这是该窗口的最后一个消息
     */

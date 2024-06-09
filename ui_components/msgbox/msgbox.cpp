@@ -65,15 +65,6 @@ void MsgBox::OnEsc(BOOL &bHandled)
     bHandled = TRUE;
     EndMsgBox(MB_NO);
 }
-void MsgBox::CloseWnd(UINT nRet)
-{
-    // 提示框关闭之前先Enable父窗口，防止父窗口隐到后面去。
-    if (m_pParentWindow != nullptr) {
-        m_pParentWindow->EnableWindow(true);
-        m_pParentWindow->SetWindowFocus();
-    }
-    __super::CloseWnd(nRet);
-}
 
 void MsgBox::OnInitWindow()
 {
@@ -84,6 +75,17 @@ void MsgBox::OnInitWindow()
     m_content = (ui::RichEdit*)FindControl(_T("content"));
     m_btn_yes = (ui::Button*)FindControl(_T("btn_yes"));
     m_btn_no = (ui::Button*)FindControl(_T("btn_no"));
+    __super::OnInitWindow();
+}
+
+void MsgBox::OnCloseWindow()
+{
+    // 提示框关闭之前先Enable父窗口，防止父窗口隐到后面去。
+    if (m_pParentWindow != nullptr) {
+        m_pParentWindow->EnableWindow(true);
+        m_pParentWindow->SetWindowFocus();
+    }
+    __super::OnCloseWindow();
 }
 
 bool MsgBox::OnClicked(const ui::EventArgs& msg)

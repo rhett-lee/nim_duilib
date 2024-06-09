@@ -4,6 +4,7 @@
 #include "duilib/Core/Callback.h"
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Core/DpiManager.h"
+#include "duilib/Core/Keyboard.h"
 #include <string>
 
 namespace ui
@@ -117,11 +118,11 @@ public:
                 1 - 表示点击窗口的 "关闭" 按钮关闭本窗口(默认值)
                 2 - 表示 "取消" 关闭本窗口
     */
-    virtual void CloseWnd(UINT nRet = 1);
+    void CloseWnd(UINT nRet = 1);
 
     /** 关闭窗口, 同步关闭
     */
-    virtual void Close();
+    void Close();
 
     /** 是否将要关闭
     */
@@ -136,7 +137,7 @@ public:
      * @param [in] bShow 为 true 时显示窗口，为 false 时为隐藏窗口，默认为 true
      * @param [in] bTakeFocus 是否获得焦点（激活窗口），默认为 true
     */
-    virtual void ShowWindow(bool bShow = true, bool bTakeFocus = true);
+    void ShowWindow(bool bShow = true, bool bTakeFocus = true);
 
     /** 显示模态对话框(父窗口在创建的时候指定)
     */
@@ -260,6 +261,15 @@ public:
     * @param [in] bContainShadow rc区域是否包含阴影范围，默认为 false
     */
     bool SetWindowPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWndInsertAfter = NULL, bool bContainShadow = false);
+
+    /** 设置窗口位置和大小
+    * @param [in] X 窗口的X坐标
+    * @param [in] Y 窗口的Y坐标
+    * @param [in] nWidth 窗口的宽度
+    * @param [in] nHeight 窗口的高度
+    * @param [in] uFlags 对应 ::SetWindowPos API 的 uFlags 选项
+    */
+    bool MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHeight, bool bRepaint);
 
     /** 获取窗口位置信息
      * @param [in] bContainShadow 是否包含阴影，true 为包含，默认为 false 不包含
@@ -580,14 +590,14 @@ protected:
     */
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
-    /** 窗口消息的派发函数，优先调用内部处理函数，如果内部无处理逻辑，则调用Windows默认处理函数处理此消息
+    /** 自定义窗口消息的派发函数，仅供内部实现使用
     * @param [in] uMsg 消息体
     * @param [in] wParam 消息附加参数
     * @param [in] lParam 消息附加参数
     * @param[out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，否则将消息继续传递给窗口过程
     * @return 返回消息的处理结果
     */
-    virtual LRESULT HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
+    virtual LRESULT HandleUserMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
 
     /** 进入全屏状态
     */
@@ -642,6 +652,204 @@ protected:
     */
     virtual bool IsPtInCaptionBarControl(const UiPoint& pt) const { (void)pt;  return false; }
 
+    /** @name 窗口消息处理相关
+     * @{
+     */
+    enum class WindowSizeType
+    {
+        kSIZE_RESTORED  = 0,    //窗口已调整大小，但 kSIZE_MINIMIZED 和 kSIZE_MAXIMIZED 值都不适用
+        kSIZE_MINIMIZED = 1,    //窗口已最小化
+        kSIZE_MAXSHOW   = 2,    //当其他一些窗口还原到其之前的大小时，消息将发送到所有弹出窗口
+        kSIZE_MAXIMIZED = 3,    //窗口已最大化
+        kSIZE_MAXHIDE   = 4     //当其他一些窗口最大化时，消息将发送到所有弹出窗口
+    };
+    /** 窗口大小发生改变(WM_SIZE)
+    * @param [in] sizeType 触发窗口大小改变的类型
+    * @param [in] newWindowSize 新的窗口大小（宽度和高度）
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, bool& bHandled);
+
+    /** 窗口移动(WM_MOVE)
+    * @param [in] ptTopLeft 窗口客户端区域左上角的 x 坐标和 y 坐标（坐标为屏幕坐标）
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMoveMsg(const UiPoint& ptTopLeft, bool& bHandled);
+
+    /** 窗口绘制(WM_PAINT)
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnPaintMsg(bool& bHandled);
+
+    /** 窗口获得焦点(WM_SETFOCUS)
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnSetFocusMsg(bool& bHandled);
+
+    /** 窗口失去焦点(WM_KILLFOCUS)
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnKillFocusMsg(bool& bHandled);
+
+    /** 输入法开始生成组合字符串(WM_IME_STARTCOMPOSITION)
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnImeStartCompositionMsg(bool& bHandled);
+
+    /** 输入法结束组合(WM_IME_ENDCOMPOSITION)
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnImeEndCompositionMsg(bool& bHandled);
+
+    /** 设置光标(WM_SETCURSOR)
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 如果应用程序处理了此消息，它应返回 TRUE 以停止进一步处理或 FALSE 以继续
+    */
+    virtual LRESULT OnSetCursorMsg(bool& bHandled);
+
+    /** 通知窗口用户希望显示上下文菜单(WM_CONTEXTMENU)，用户可能单击了鼠标右键 (在窗口中右键单击) ，按下了 Shift+F10 或按下了应用程序键， (上下文菜单键) 某些键盘上可用。
+    * @param [in] pt 鼠标所在位置，客户区坐标, 如果是(-1,-1)表示用户键入了 SHIFT+F10
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnContextMenuMsg(const UiPoint& pt, bool& bHandled);
+
+    /** 键盘按下(WM_KEYDOWN 或者 WM_SYSKEYDOWN)
+    * @param [in] vkCode 虚拟键盘代码
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled);
+
+    /** 键盘按下(WM_KEYUP 或者 WM_SYSKEYUP)
+    * @param [in] vkCode 虚拟键盘代码
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled);
+
+    /** 键盘按下(WM_CHAR)
+    * @param [in] vkCode 虚拟键盘代码
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled);
+
+    /** 快捷键消息（WM_HOTKEY）
+    * @param [in] hotkeyId 热键的ID
+    * @param [in] vkCode 虚拟键盘代码
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnHotKeyMsg(int32_t hotkeyId, VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled);
+
+    /** 旋转鼠标滚轮(WM_MOUSEWHEEL)
+    * @param [in] wheelDelta 滚轮旋转的距离，以 WHEEL_DELTA (120) 的倍数或除法表示。 正值表示滚轮向前旋转（远离用户）；负值表示滚轮向后旋转（朝向用户）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, bool& bHandled);
+
+    /** 鼠标移动消息（WM_MOUSEMOVE）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled);
+
+    /** 鼠标悬停消息（WM_MOUSEHOVER）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled);
+
+    /** 鼠标离开消息（WM_MOUSELEAVE）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseLeaveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled);
+
+    /** 鼠标左键按下消息（WM_LBUTTONDOWN）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled);
+
+    /** 鼠标左键弹起消息（WM_LBUTTONUP）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled);
+
+    /** 鼠标左键双击消息（WM_LBUTTONDBLCLK）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled);
+
+    /** 鼠标右键按下消息（WM_RBUTTONDOWN）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled);
+
+    /** 鼠标右键弹起消息（WM_RBUTTONUP）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled);
+
+    /** 鼠标右键双击消息（WM_RBUTTONDBLCLK）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled);
+
+    /** 窗口丢失鼠标捕获（WM_CAPTURECHANGED）
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnCaptureChangedMsg(bool& bHandled);
+
+    /** 窗口关闭消息（WM_CLOSE）
+    * @param [in] wParam 消息的wParam参数
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnWindowCloseMsg(uint32_t wParam, bool& bHandled);
+
+    /** @}*/
+
 protected:
     /** 获取一个点对应的窗口接口
     */
@@ -687,12 +895,10 @@ private:
      * @param [in] uMsg 消息体
      * @param [in] wParam 消息附加参数
      * @param [in] lParam 消息附加参数
-     * @param[out] bHandled 消息是否已经处理，
-     *             返回 true  表明已经成功处理消息，不需要再传递给窗口过程；
-     *             返回 false 表示将消息继续传递给窗口过程处理
+     * @param[out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
      * @return 返回消息的处理结果
     */
-    LRESULT OnInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT ProcessInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
     //部分消息处理函数，以实现基本功能
     LRESULT OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
@@ -707,7 +913,19 @@ private:
     LRESULT OnNotifyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnCtlColorMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnSysCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
+    LRESULT OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+
+    /** 窗口消息的派发函数，将Window消息转换为内部格式，然后派发出去
+    * @param [in] uMsg 消息体
+    * @param [in] wParam 消息附加参数
+    * @param [in] lParam 消息附加参数
+    * @param[out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果
+    */
+    LRESULT ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     /** @}*/
 private:
     /** 将屏幕坐标转换为指定窗口的客户区坐标
@@ -748,6 +966,11 @@ private:
     */
     void ClearWindow();
 
+    /** 获取一个消息的按键标志位
+    * @param [out] modifierKey 返回标志位，参见类型定义：ModifierKey
+    */
+    bool GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint32_t& modifierKey) const;
+
 protected:
     //窗口句柄
     HWND m_hWnd;
@@ -780,6 +1003,9 @@ protected:
 
     //鼠标事件的捕获状态
     bool m_bMouseCapture;
+
+    //鼠标所在位置
+    UiPoint m_ptLastMousePos;
 
  private:
     /**@name 全屏相关状态
