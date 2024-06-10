@@ -447,6 +447,9 @@
     <ClCompile Include="Control\DateTimeWnd_Windows.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Core\NativeWindow_Windows.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -982,6 +985,9 @@
     </ClInclude>
     <ClInclude Include="Control\DateTimeWnd_Windows.h">
       <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NativeWindow_Windows.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

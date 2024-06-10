@@ -53,4 +53,13 @@
 #include <crtdbg.h>
 #include <tchar.h>
 
+///////////////////////////////////////////////////////
+// windowsx.h
+#define GET_X_LPARAM(lp)    ((int)(short)LOWORD(lp))
+#define GET_Y_LPARAM(lp)    ((int)(short)HIWORD(lp))
+
+/* Value for rolling one detent */
+#define GET_WHEEL_DELTA_WPARAM(wParam)  ((short)HIWORD(wParam))
+#define GET_KEYSTATE_WPARAM(wParam)     (LOWORD(wParam))
+
 #endif //DUILIB_CONFIG_WINDOWS_H_

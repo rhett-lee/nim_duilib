@@ -5,15 +5,14 @@
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Core/DpiManager.h"
 #include "duilib/Core/Keyboard.h"
-#include <string>
+#include "duilib/Core/WindowMessage.h"
+
+#ifdef DUILIB_PLATFORM_WIN
+    #include "duilib/Core/NativeWindow_Windows.h"
+#endif
 
 namespace ui
 {
-#define UI_WNDSTYLE_FRAME       (WS_VISIBLE | WS_OVERLAPPEDWINDOW)
-#define UI_WNDSTYLE_DIALOG      (WS_VISIBLE | WS_POPUPWINDOW | WS_CAPTION | WS_DLGFRAME | WS_CLIPSIBLINGS | WS_CLIPCHILDREN)
-
-#define UI_CLASSSTYLE_FRAME     (CS_VREDRAW | CS_HREDRAW)
-#define UI_CLASSSTYLE_DIALOG    (CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS | CS_SAVEBITS)
 
 /**  窗口消息过滤接口，用于截获窗口过程的消息，优先于Window类进行消息处理
 */
@@ -54,37 +53,15 @@ public:
 
     /** 创建窗口, 可使用 OnInitWindow 接口来实现窗口创建完成后的自定义需求
     * @param [in] pParentWindow 父窗口
-    * @param [in] windowName 窗口名称
-    * @param [in] dwStyle 窗口样式
-    * @param [in] dwExStyle 窗口拓展样式, 可以设置层窗口（WS_EX_LAYERED）等属性
+    * @param [in] pCreateParam 创建窗口所需的参数
     * @param [in] rc 窗口大小
     */
-    virtual bool CreateWnd(WindowBase* pParentWindow,
-                           const DString& windowName,
-                           uint32_t dwStyle,
-                           uint32_t dwExStyle,
-                           const UiRect& rc = UiRect(0, 0, 0, 0));
+    bool CreateWnd(WindowBase* pParentWindow, const WindowCreateParam* pCreateParam, const UiRect& rc = UiRect(0, 0, 0, 0));
 
     /** 获取资源的句柄
     * @return 默认返回当前进程exe的句柄
     */
-    virtual HMODULE GetResModuleHandle() const;
-
-    /** 创建窗口时被调用，由子类实现用以获取窗口唯一的类名称
-    * @return 基类返回空串，在子类中需实现并返回窗口唯一的类名称
-    */
-    virtual DString GetWindowClassName() const;
-
-    /** 获取窗口类的样式，该方法由实例化的子类实现，https://docs.microsoft.com/en-us/windows/desktop/winmsg/window-class-styles
-    * @return 返回窗口类的样式，该方法基类返回 CS_DBLCLKS
-    */
-    virtual UINT GetClassStyle() const;
-
-    /** 获取窗口样式
-    * @return 默认返回当前窗口的样式去掉WS_CAPTION属性
-    *         如果子类重写该函数后，返回值为0，则不改变当前窗口的样式
-    */
-    virtual uint32_t GetWindowStyle() const;
+    HMODULE GetResModuleHandle() const;
 
     /** 设置是否使用系统标题栏
     */
@@ -402,6 +379,10 @@ public:
     */
     HWND GetHWND() const;
 
+    /** 获取父窗口
+    */
+    WindowBase* GetParentWindow() const;
+
     /** 是否含有有效的窗口句柄
     */
     bool IsWindow() const;
@@ -434,6 +415,11 @@ public:
     * @return 返回窗口对消息的处理结果
     */
     LRESULT PostMsg(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0L);
+
+    /** 向消息队列发送退出消息
+    * @param [in] nExitCode 退出码
+    */
+    void PostQuitMsg(int32_t nExitCode);
 
     /** 调用系统默认的窗口处理函数，对 CallWindowProc API 的一层封装
     * @param [in] uMsg 消息体
@@ -558,18 +544,30 @@ public:
     */
     bool UnregisterDragDrop(ControlDropTarget* pDropTarget);
 
+    /** 获取鼠标最后的坐标
+    */
+    const UiPoint& GetLastMousePos() const;
+
+    /** 设置鼠标最后的坐标
+    */
+    void SetLastMousePos(const UiPoint& pt);
+
 protected:
-    /** 初始化窗口数据
+    /** 初始化窗口数据（内部函数，子类重写后，必须调用基类函数，否则影响功能）
     */
     virtual void InitWindow();
 
+    /** 窗口正在关闭，处理内部状态（内部函数，子类重写后，必须调用基类函数，否则影响功能）
+    */
+    virtual void ClosingWindow();
+
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
-    virtual void OnInitWindow();
+    virtual void OnInitWindow() {};
 
     /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */
-    virtual void OnCloseWindow();
+    virtual void OnCloseWindow() {};
 
     /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并调用OnDeleteSelf函数销毁该窗口对象）
     */
@@ -578,26 +576,6 @@ protected:
     /** 销毁自己（子类可用重载这个方法，避免自身被销毁）
     */
     virtual void OnDeleteSelf();
-
-    /** 窗口消息的派发函数
-    * @param [in] uMsg 消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @param[out] bHandled 消息是否已经处理，
-                返回 true  表明已经成功处理消息，不需要再传递给窗口过程；
-                返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果
-    */
-    virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-
-    /** 自定义窗口消息的派发函数，仅供内部实现使用
-    * @param [in] uMsg 消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @param[out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，否则将消息继续传递给窗口过程
-    * @return 返回消息的处理结果
-    */
-    virtual LRESULT HandleUserMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
 
     /** 进入全屏状态
     */
@@ -619,18 +597,6 @@ protected:
     */
     virtual void OnWindowMinimized() {}
 
-    /** 窗口的DPI发生变化，更新控件大小和布局
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
-    */
-    virtual void OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
-
-    /** 窗口的DPI发生了变化(供子类使用)
-    * @param [in] nOldDPI 旧的DPI值
-    * @param [in] nNewDPI 新的DPI值
-    */
-    virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI);
-
     /** 切换系统标题栏与自绘标题栏
     */
     virtual void OnUseSystemCaptionBarChanged();
@@ -643,6 +609,18 @@ protected:
     */
     virtual void OnLayeredWindowChanged() {};
 
+    /** 窗口的DPI发生变化，更新控件大小和布局
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
+    */
+    virtual void OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale);
+
+    /** 窗口的DPI发生了变化(供子类使用)
+    * @param [in] nOldDPI 旧的DPI值
+    * @param [in] nNewDPI 新的DPI值
+    */
+    virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) { (void)nOldDPI; (void)nNewDPI; };
+
     /** 获取窗口阴影的大小
     * @param [out] rcShadow 获取圆角的大小 
     */
@@ -652,9 +630,28 @@ protected:
     */
     virtual bool IsPtInCaptionBarControl(const UiPoint& pt) const { (void)pt;  return false; }
 
+protected:
     /** @name 窗口消息处理相关
      * @{
      */
+    /** 窗口消息的派发函数
+    * @param [in] uMsg 消息体
+    * @param [in] wParam 消息附加参数
+    * @param [in] lParam 消息附加参数
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果
+    */
+    virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+
+    /** 自定义窗口消息的派发函数，仅供内部实现使用
+    * @param [in] uMsg 消息体
+    * @param [in] wParam 消息附加参数
+    * @param [in] lParam 消息附加参数
+    * @param[out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，否则将消息继续传递给窗口过程
+    * @return 返回消息的处理结果
+    */
+    virtual LRESULT HandleUserMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
+
     enum class WindowSizeType
     {
         kSIZE_RESTORED  = 0,    //窗口已调整大小，但 kSIZE_MINIMIZED 和 kSIZE_MAXIMIZED 值都不适用
@@ -866,10 +863,6 @@ protected:
     void CheckSetWindowFocus();
 
 private:
-    /** 注册窗口类
-    */
-    bool RegisterWindowClass(const DString& className);
-
     /** 窗口消息的处理函数, 从系统接收到消息后，进入的第一个处理函数
     * @param [in] uMsg 消息体
     * @param [in] wParam 消息附加参数
@@ -971,9 +964,13 @@ private:
     */
     bool GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint32_t& modifierKey) const;
 
-protected:
+private:
     //窗口句柄
     HWND m_hWnd;
+
+    /** 资源模块句柄
+    */
+    HMODULE m_hResModule;
 
     /** 父窗口
     */
@@ -988,6 +985,7 @@ protected:
 
     //窗口透明度(仅当使用层窗口时有效)
     uint8_t m_nWindowAlpha;
+
 
     //该窗口消息过滤器列表
     std::vector<IUIMessageFilter*> m_aMessageFilters;

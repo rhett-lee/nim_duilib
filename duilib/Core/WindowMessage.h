@@ -2,6 +2,7 @@
 #define UI_CORE_WINDOW_MESSAGE_H_
 
 #include "duilib/duilib_defs.h"
+#include <string>
 
 namespace ui {
     

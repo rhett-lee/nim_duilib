@@ -23,20 +23,11 @@ class ShadowWnd: public ui::WindowImplBase
 public:
     ShadowWnd();
 
-    /** 创建窗口, 可使用 OnInitWindow 接口来实现窗口创建完成后的自定义需求
-    * @param [in] pParentWindow 父窗口
-    * @param [in] windowName 窗口名称
-    * @param [in] dwStyle 窗口样式
-    * @param [in] dwExStyle 窗口拓展样式, 可以设置层窗口（WS_EX_LAYERED）等属性
-    * @param [in] rc 窗口大小
-    */
-    virtual bool CreateWnd(WindowBase* pParentWindow,
-                           const DString& windowName,
-                           uint32_t dwStyle,
-                           uint32_t dwExStyle,
-                           const UiRect& rc = UiRect(0, 0, 0, 0)) override;
-
 private:
+    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
+    */
+    virtual void OnInitWindow();
+
     /** 附加窗口阴影
     */
     virtual Box* AttachShadow(Box* pRoot) override;

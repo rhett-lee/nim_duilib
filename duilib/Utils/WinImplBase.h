@@ -40,17 +40,6 @@ public:
     */
     virtual DString GetSkinFile() = 0;
 
-    /** 创建窗口时被调用，由子类实现用以获取窗口唯一的类名称
-    * @return 子类需实现并返回窗口唯一的类名称
-    */
-    virtual DString GetWindowClassName() const override = 0;
-
-    /** 获取窗口样式
-    * @return 默认返回当前窗口的样式去掉WS_CAPTION属性
-    *         如果子类重写该函数后，返回值为0，则不改变当前窗口的样式
-    */
-    virtual uint32_t GetWindowStyle() const override;
-
 public:
     /** 当要创建的控件不是标准的控件名称时会调用该函数
     * @param [in] strClass 控件名称
@@ -101,6 +90,11 @@ protected:
     * @param [in] nNewDPI 新的DPI值
     */
     virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) override;
+
+private:
+    /** 初始化窗口数据（内部函数）
+    */
+    virtual void InitWindow() override final;
 
 private:
     /** 窗口功能按钮被点击时调用

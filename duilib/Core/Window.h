@@ -99,10 +99,6 @@ public:
     */
     bool InitControls(Control* pControl);
 
-    /** 初始化布局
-    */
-    virtual void OnInitLayout();
-
     /** 回收控件
     * @param [in] pControl 控件指针
     */
@@ -463,10 +459,6 @@ public:
     */
     Control* GetHoverControl() const;
 
-    /** 获取鼠标最后的坐标
-    */
-    const UiPoint& GetLastMousePos() const;
-
     /** 切换控件焦点到下一个（或上一个）控件
     * @param [in] bForward true 为上一个控件，否则为 false，默认为 true
     */
@@ -638,18 +630,26 @@ private:
     */
     void ClearWindow(bool bSendClose);
 
+    /** 初始化布局
+    */
+    void OnInitLayout();
+
 protected:
-    /** 初始化窗口数据
+    /** 初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
     */
     virtual void InitWindow() override;
 
+    /** 窗口正在关闭，处理内部状态（内部函数，子类重写后，必须调用基类函数，否则影响功能）
+    */
+    virtual void ClosingWindow() override final;
+
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
-    virtual void OnInitWindow();
+    virtual void OnInitWindow() override;
 
     /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */
-    virtual void OnCloseWindow();
+    virtual void OnCloseWindow() override;
 
     /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并调用OnDeleteSelf函数销毁该窗口对象）
     */

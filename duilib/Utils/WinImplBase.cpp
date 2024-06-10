@@ -13,11 +13,10 @@ WindowImplBase::~WindowImplBase()
 {
 }
 
-void WindowImplBase::OnInitWindow()
+void WindowImplBase::InitWindow()
 {
-    __super::OnInitWindow();
+    __super::InitWindow();
     SetResourcePath(GetSkinFolder());
-
     DString strSkinFile;
     DString xmlFile = GetSkinFile();
     if (!xmlFile.empty() && xmlFile.front() == _T('<')) {
@@ -81,6 +80,11 @@ void WindowImplBase::OnInitWindow()
     }
 }
 
+void WindowImplBase::OnInitWindow()
+{
+    __super::OnInitWindow();    
+}
+
 void WindowImplBase::OnCloseWindow()
 {
     __super::OnCloseWindow();
@@ -94,11 +98,6 @@ void WindowImplBase::OnFinalMessage()
 Control* WindowImplBase::CreateControl(const DString& /*strClass*/)
 {
     return nullptr;
-}
-
-uint32_t WindowImplBase::GetWindowStyle() const
-{
-    return __super::GetWindowStyle();
 }
 
 bool WindowImplBase::OnButtonClick(const EventArgs& msg)

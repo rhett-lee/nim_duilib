@@ -46,8 +46,9 @@ Window::~Window()
 
 Window* Window::GetParentWindow() const
 {
-    if (!m_parentFlag.expired()) {
-        return dynamic_cast<Window*>(m_pParentWindow);
+    WindowBase* pWindowBase = WindowBase::GetParentWindow();
+    if (pWindowBase != nullptr) {
+        return dynamic_cast<Window*>(pWindowBase);
     }
     else {
         return nullptr;
@@ -74,7 +75,7 @@ void Window::InitWindow()
     //创建窗口阴影
     m_shadow = std::make_unique<Shadow>(this);
     if (m_shadow->IsUseDefaultShadowAttached()) {
-        m_shadow->SetShadowAttached(m_bIsLayeredWindow);
+        m_shadow->SetShadowAttached(IsLayeredWindow());
         m_shadow->SetUseDefaultShadowAttached(true);
     }
 
@@ -101,6 +102,12 @@ void Window::InitWindow()
     }
 }
 
+void Window::ClosingWindow()
+{
+    __super::ClosingWindow();
+    ClearStatus();
+}
+
 void Window::OnInitWindow()
 {
     __super::OnInitWindow();
@@ -108,20 +115,7 @@ void Window::OnInitWindow()
 
 void Window::OnCloseWindow()
 {
-    __super::OnCloseWindow();
-    if (m_bFakeModal) {
-        Window* pParentWindow = GetParentWindow();
-        if (pParentWindow != nullptr) {
-            pParentWindow->EnableWindow(true);
-            pParentWindow->SetWindowFocus();
-        }
-        m_bFakeModal = false;
-    }
-
-    ClearStatus();
-    if (IsWindowFocused()) {
-        SetOwnerWindowFocus();
-    }
+    __super::OnCloseWindow(); 
 }
 
 void Window::OnFinalMessage()
@@ -164,7 +158,7 @@ void Window::ClearWindow(bool bSendClose)
 
 bool Window::AttachBox(Box* pRoot)
 {
-    ASSERT(::IsWindow(m_hWnd));
+    ASSERT(IsWindow());
     SetFocusControl(nullptr); //设置m_pFocus相关的状态
     m_pEventKey = nullptr;
     m_pEventHover = nullptr;
@@ -352,11 +346,6 @@ void Window::ClearImageCache()
     }
 }
 
-const UiPoint& Window::GetLastMousePos() const
-{
-    return m_ptLastMousePos;
-}
-
 void Window::OnUseSystemCaptionBarChanged()
 {
     WindowBase::OnUseSystemCaptionBarChanged();
@@ -378,7 +367,7 @@ void Window::OnLayeredWindowChanged()
 {
     //根据窗口是否为层窗口，重新初始化阴影附加属性值(层窗口为true，否则为false)
     if ((m_shadow != nullptr) && m_shadow->IsUseDefaultShadowAttached()) {
-        m_shadow->SetShadowAttached(m_bIsLayeredWindow);
+        m_shadow->SetShadowAttached(IsLayeredWindow());
         m_shadow->SetUseDefaultShadowAttached(true);
     }
     if (m_pRoot != nullptr) {
@@ -763,7 +752,7 @@ LRESULT Window::OnContextMenuMsg(const UiPoint& pt, bool& bHandled)
     ReleaseCapture();
 
     if ((pt.x != -1) && (pt.y != -1)) {
-        m_ptLastMousePos = pt;
+        SetLastMousePos(pt);
         Control* pControl = FindContextMenuControl(&pt);
         if (pControl != nullptr) {
             Control* ptControl = FindControl(pt);//当前点击点所在的控件
@@ -788,7 +777,7 @@ void Window::OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, con
            eventType == kEventMouseDoubleClick ||
            eventType == kEventMouseRDoubleClick);
     CheckSetWindowFocus();
-    m_ptLastMousePos = pt;
+    SetLastMousePos(pt);
     Control* pControl = FindControl(pt);
     if (pControl != nullptr) {
         Control* pOldEventClick = m_pEventClick;
@@ -805,7 +794,7 @@ void Window::OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, con
 void Window::OnButtonUp(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt)
 {
     ASSERT(eventType == kEventMouseButtonUp || eventType == kEventMouseRButtonUp);
-    m_ptLastMousePos = pt;
+    SetLastMousePos(pt);
     ReleaseCapture();
     if (m_pEventClick != nullptr) {
         m_pEventClick->SendEvent(eventType, wParam, lParam, 0, pt);
@@ -816,7 +805,7 @@ void Window::OnButtonUp(EventType eventType, WPARAM wParam, LPARAM lParam, const
 void Window::OnMouseMove(WPARAM wParam, LPARAM lParam, const UiPoint& pt)
 {
     m_toolTip->SetMouseTracking(this, true);
-    m_ptLastMousePos = pt;
+    SetLastMousePos(pt);
 
     // Do not move the focus to the new control when the mouse is pressed
     if (!IsCaptured()) {
@@ -835,7 +824,7 @@ void Window::OnMouseMove(WPARAM wParam, LPARAM lParam, const UiPoint& pt)
 
 void Window::OnMouseWheel(WPARAM wParam, LPARAM lParam, const UiPoint& pt)
 {
-    m_ptLastMousePos = pt;
+    SetLastMousePos(pt);
     Control* pControl = FindControl(pt);
     if (pControl != nullptr) {
         pControl->SendEvent(kEventMouseWheel, wParam, lParam, 0, pt);
@@ -1016,7 +1005,7 @@ LRESULT Window::OnSetCursorMsg(bool& bHandled)
     UiPoint pt;
     GetCursorPos(pt);
     ScreenToClient(pt);
-    m_ptLastMousePos = pt;
+    SetLastMousePos(pt);
     Control* pControl = FindControl(pt);
     if (pControl != nullptr) {
         //返回值待确认：如果应用程序处理了此消息，它应返回 TRUE 以停止进一步处理或 FALSE 以继续。
@@ -1055,7 +1044,7 @@ void Window::SetFocusControl(Control* pControl)
     // Set focus to new control    
     if ((pControl != nullptr) && pControl->IsVisible() && pControl->IsEnabled()) {
         ASSERT(pControl->GetWindow() == this);
-        ASSERT(::GetFocus() == m_hWnd);
+        ASSERT(IsWindowFocused());
 
         m_pFocus = pControl;
         m_pFocus->SendEvent(kEventSetFocus);
@@ -1174,11 +1163,14 @@ ui::IRender* Window::GetRender() const
 void Window::Paint()
 {
     GlobalManager::Instance().AssertUIThread();
-
+    HWND hWnd = GetHWND();
+    if (hWnd == nullptr) {
+        return;
+    }
     if (IsWindowMinimized() || (m_pRoot == nullptr)) {
         PAINTSTRUCT ps = { 0 };
-        ::BeginPaint(m_hWnd, &ps);
-        ::EndPaint(m_hWnd, &ps);
+        ::BeginPaint(hWnd, &ps);
+        ::EndPaint(hWnd, &ps);
         return;
     }
 
@@ -1213,13 +1205,13 @@ void Window::Paint()
 
     // Should we paint?
     RECT rectPaint = { 0, };
-    if (!::GetUpdateRect(m_hWnd, &rectPaint, FALSE) && !bFirstLayout) {
+    if (!::GetUpdateRect(hWnd, &rectPaint, FALSE) && !bFirstLayout) {
         return;
     }
     UiRect rcPaint(rectPaint.left, rectPaint.top, rectPaint.right, rectPaint.bottom);
 
     //使用层窗口时，窗口部分在屏幕外时，获取到的无效区域仅仅是屏幕内的部分，这里做修正处理
-    if (m_bIsLayeredWindow) {
+    if (IsLayeredWindow()) {
         int32_t xScreen = GetSystemMetricsForDpiWrapper(SM_XVIRTUALSCREEN, Dpi().GetDPI());
         int32_t yScreen = GetSystemMetricsForDpiWrapper(SM_YVIRTUALSCREEN, Dpi().GetDPI());
         int32_t cxScreen = GetSystemMetricsForDpiWrapper(SM_CXVIRTUALSCREEN, Dpi().GetDPI());
@@ -1239,10 +1231,10 @@ void Window::Paint()
     }
 
     PAINTSTRUCT ps = { 0 };
-    ::BeginPaint(m_hWnd, &ps);
+    ::BeginPaint(hWnd, &ps);
 
     // 去掉alpha通道
-    if (m_bIsLayeredWindow) {
+    if (IsLayeredWindow()) {
         m_render->ClearAlpha(rcPaint);
     }
 
@@ -1263,7 +1255,7 @@ void Window::Paint()
     }
 
     // alpha修复
-    if (m_bIsLayeredWindow) {
+    if (IsLayeredWindow()) {
         if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() && m_renderOffset.x == 0 && m_renderOffset.y == 0) {
             //补救由于Gdi绘制造成的alpha通道为0
             UiRect rcNewPaint = rcPaint;
@@ -1295,13 +1287,13 @@ void Window::Paint()
     }
 
     // 渲染到窗口
-    if (m_bIsLayeredWindow) {
+    if (IsLayeredWindow()) {
         POINT pt = { rcWindow.left, rcWindow.top };
         SIZE szWindow = { rcClient.right - rcClient.left, rcClient.bottom - rcClient.top };
         POINT ptSrc = { 0, 0 };
-        BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(m_nWindowAlpha), AC_SRC_ALPHA };
+        BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(GetWindowAlpha()), AC_SRC_ALPHA };
         HDC hdc = m_render->GetDC();
-        ::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA);
+        ::UpdateLayeredWindow(hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA);
         m_render->ReleaseDC(hdc);
     }
     else {
@@ -1311,7 +1303,7 @@ void Window::Paint()
         m_render->ReleaseDC(hdc);
     }
 
-    ::EndPaint(m_hWnd, &ps);
+    ::EndPaint(hWnd, &ps);
 }
 
 void Window::AutoResizeWindow(bool bRepaint)

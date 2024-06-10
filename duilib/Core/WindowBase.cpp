@@ -11,6 +11,7 @@ namespace ui
 {
 WindowBase::WindowBase():
     m_hWnd(nullptr),
+    m_hResModule(nullptr),
     m_pParentWindow(nullptr),
     m_bIsLayeredWindow(false),
     m_bFakeModal(false),
@@ -33,16 +34,51 @@ WindowBase::~WindowBase()
     ClearWindow();
 }
 
-bool WindowBase::CreateWnd(WindowBase* pParentWindow, const DString& windowName,
-                           uint32_t dwStyle, uint32_t dwExStyle, const UiRect& rc)
+bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam* pCreateParam, const UiRect& rc)
 {
-    DString className = GetWindowClassName();
-    if (!RegisterWindowClass(className)) {
+    WindowCreateParam createParam;
+    if (pCreateParam != nullptr) {
+        createParam = *pCreateParam;
+    }
+    ASSERT(!createParam.m_className.empty());
+    if (createParam.m_className.empty()) {
         return false;
     }
+
+    m_hResModule = createParam.m_hResModule;
+    if (m_hResModule == nullptr) {
+        m_hResModule = ::GetModuleHandle(nullptr);
+    }
+
+    //注册窗口类
+    WNDCLASSEX wc = { 0 };
+    wc.style = createParam.m_dwClassStyle;
+    wc.cbClsExtra = 0;
+    wc.cbWndExtra = 0;
+    wc.lpfnWndProc = WindowBase::__WndProc;
+    wc.hInstance = GetResModuleHandle();
+    wc.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
+    wc.hbrBackground = nullptr;
+    wc.lpszMenuName = nullptr;
+    wc.lpszClassName = createParam.m_className.c_str();
+    if (createParam.m_nClassLogoResId > 0) {
+        wc.hIcon = LoadIcon(GetResModuleHandle(), (LPCTSTR)MAKEINTRESOURCE(createParam.m_nClassLogoResId));
+        wc.hIconSm = LoadIcon(GetResModuleHandle(), (LPCTSTR)MAKEINTRESOURCE(createParam.m_nClassLogoResId));
+    }
+    else {
+        wc.hIcon = nullptr;
+        wc.hIconSm = nullptr;
+    }
+    ATOM ret = ::RegisterClassEx(&wc);
+    bool bRet = (ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
+    ASSERT(bRet);
+    if (!bRet) {
+        return false;
+    }
+
     //初始化层窗口属性
     m_bIsLayeredWindow = false;
-    if (dwExStyle & WS_EX_LAYERED) {
+    if (createParam.m_dwExStyle & WS_EX_LAYERED) {
         m_bIsLayeredWindow = true;
     }
     m_pParentWindow = pParentWindow;
@@ -51,10 +87,10 @@ bool WindowBase::CreateWnd(WindowBase* pParentWindow, const DString& windowName,
         m_parentFlag = pParentWindow->GetWeakFlag();
     }
     HWND hParentWnd = pParentWindow != nullptr ? pParentWindow->GetHWND() : nullptr;
-    HWND hWnd = ::CreateWindowEx(dwExStyle,
-                                 className.c_str(),
-                                 windowName.c_str(),
-                                 dwStyle,
+    HWND hWnd = ::CreateWindowEx(createParam.m_dwExStyle,
+                                 createParam.m_className.c_str(),
+                                 createParam.m_windowTitle.c_str(),
+                                 createParam.m_dwStyle,
                                  rc.left, rc.top, rc.Width(), rc.Height(),
                                  hParentWnd, NULL, GetResModuleHandle(), this);
     ASSERT(::IsWindow(hWnd));
@@ -67,27 +103,7 @@ bool WindowBase::CreateWnd(WindowBase* pParentWindow, const DString& windowName,
 
 HMODULE WindowBase::GetResModuleHandle() const
 {
-    return ::GetModuleHandle(NULL);
-}
-
-DString WindowBase::GetWindowClassName() const
-{
-    ASSERT(FALSE);
-    return DString();
-}
-
-UINT WindowBase::GetClassStyle() const
-{
-    return CS_DBLCLKS;
-}
-
-uint32_t WindowBase::GetWindowStyle() const
-{
-    ASSERT(::IsWindow(GetHWND()));
-    uint32_t styleValue = (uint32_t)::GetWindowLong(GetHWND(), GWL_STYLE);
-    //使用自绘的标题栏：从原来窗口样式中，移除 WS_CAPTION 属性
-    styleValue &= ~WS_CAPTION;
-    return styleValue;
+    return (m_hResModule != nullptr) ? m_hResModule : (::GetModuleHandle(nullptr));
 }
 
 void WindowBase::SetUseSystemCaption(bool bUseSystemCaption)
@@ -155,24 +171,6 @@ void WindowBase::Close()
         return;
     }
     ::SendMessage(m_hWnd, WM_CLOSE, 0L, 0L);
-}
-
-bool WindowBase::RegisterWindowClass(const DString& className)
-{
-    WNDCLASS wc = { 0 };
-    wc.style = GetClassStyle();
-    wc.cbClsExtra = 0;
-    wc.cbWndExtra = 0;
-    wc.hIcon = NULL;
-    wc.lpfnWndProc = WindowBase::__WndProc;
-    wc.hInstance = GetResModuleHandle();
-    wc.hCursor = ::LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = NULL;
-    wc.lpszMenuName = NULL;
-    wc.lpszClassName = className.c_str();
-    ATOM ret = ::RegisterClass(&wc);
-    ASSERT(ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
-    return ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
 }
 
 LRESULT CALLBACK WindowBase::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -244,6 +242,11 @@ LRESULT WindowBase::PostMsg(UINT uMsg, WPARAM wParam /*= 0*/, LPARAM lParam /*= 
     return ::PostMessage(m_hWnd, uMsg, wParam, lParam);
 }
 
+void WindowBase::PostQuitMsg(int32_t nExitCode)
+{
+    ::PostQuitMessage(nExitCode);
+}
+
 HDC WindowBase::GetPaintDC() const
 {
     return m_hDcPaint;
@@ -298,6 +301,7 @@ LRESULT WindowBase::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
     if (!bHandled && (uMsg == WM_CLOSE)) {
         //窗口即将关闭
+        ClosingWindow();
         OnCloseWindow();
     }
 
@@ -342,6 +346,16 @@ HWND WindowBase::GetHWND() const
     return m_hWnd;
 }
 
+WindowBase* WindowBase::GetParentWindow() const
+{
+    if (!m_parentFlag.expired()) {
+        return m_pParentWindow;
+    }
+    else {
+        return nullptr;
+    }
+}
+
 bool WindowBase::IsWindow() const
 {
     return (m_hWnd != nullptr) && ::IsWindow(m_hWnd);
@@ -359,11 +373,13 @@ void WindowBase::InitWindow()
         return;
     }
 
-    //设置窗口风格
+    //设置窗口风格（去除标题栏）
     HWND hWnd = GetHWND();
-    uint32_t nStyle = GetWindowStyle();
-    if (nStyle != 0) {
-        ::SetWindowLong(hWnd, GWL_STYLE, nStyle);
+    uint32_t dwStyle = (uint32_t)::GetWindowLong(hWnd, GWL_STYLE);
+    //使用自绘的标题栏：从原来窗口样式中，移除 WS_CAPTION 属性
+    uint32_t dwNewStyle = dwStyle & ~WS_CAPTION;
+    if (dwNewStyle != dwStyle) {
+        ::SetWindowLong(hWnd, GWL_STYLE, dwNewStyle);
     }
 
     //创建绘制设备上下文
@@ -379,6 +395,20 @@ void WindowBase::InitWindow()
         //每个显示器，有独立的DPI：初始化窗口自己的DPI管理器
         m_dpi = std::make_unique<DpiManager>();
         m_dpi->SetDpiByWindow(this);
+    }
+}
+
+void WindowBase::ClosingWindow()
+{
+    if (m_bFakeModal) {
+        if (m_pParentWindow != nullptr) {
+            m_pParentWindow->EnableWindow(true);
+            m_pParentWindow->SetWindowFocus();
+        }
+        m_bFakeModal = false;
+    }
+    if (IsWindowFocused()) {
+        SetOwnerWindowFocus();
     }
 }
 
@@ -411,14 +441,6 @@ void WindowBase::ClearWindow()
     m_parentFlag.reset();
     m_dpi.reset();
     m_hWnd = nullptr;
-}
-
-void WindowBase::OnInitWindow()
-{
-}
-
-void WindowBase::OnCloseWindow()
-{
 }
 
 void WindowBase::OnFinalMessage()
@@ -1089,11 +1111,6 @@ void WindowBase::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     m_ptLastMousePos = Dpi().GetScalePoint(m_ptLastMousePos, nOldDpiScale);
 }
 
-void WindowBase::OnWindowDpiChanged(uint32_t /*nOldDPI*/, uint32_t /*nNewDPI*/)
-{
-
-}
-
 bool WindowBase::SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoundCorner, bool bRedraw)
 {
     ASSERT((szRoundCorner.cx > 0) && (szRoundCorner.cy > 0));
@@ -1361,6 +1378,16 @@ bool WindowBase::UnregisterDragDrop(ControlDropTarget* pDropTarget)
         return false;
     }
     return m_pWindowDropTarget->UnregisterDragDrop(pDropTarget);
+}
+
+const UiPoint& WindowBase::GetLastMousePos() const
+{
+    return m_ptLastMousePos;
+}
+
+void WindowBase::SetLastMousePos(const UiPoint& pt)
+{
+    m_ptLastMousePos = pt;
 }
 
 LRESULT WindowBase::ProcessInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)

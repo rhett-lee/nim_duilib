@@ -395,6 +395,7 @@
     <ClCompile Include="Core\ImageManager.cpp" />
     <ClCompile Include="Core\Keyboard.cpp" />
     <ClCompile Include="Core\LangManager.cpp" />
+    <ClCompile Include="Core\NativeWindow_Windows.cpp" />
     <ClCompile Include="Core\Placeholder.cpp" />
     <ClCompile Include="Core\ScrollBar.cpp" />
     <ClCompile Include="Core\Shadow.cpp" />
@@ -542,6 +543,7 @@
     <ClInclude Include="Core\Keyboard.h" />
     <ClInclude Include="Core\KeyCode.h" />
     <ClInclude Include="Core\LangManager.h" />
+    <ClInclude Include="Core\NativeWindow_Windows.h" />
     <ClInclude Include="Core\Placeholder.h" />
     <ClInclude Include="Core\ResourceParam.h" />
     <ClInclude Include="Core\ScrollBar.h" />
