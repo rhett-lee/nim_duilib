@@ -1650,7 +1650,7 @@ void Control::SendEvent(EventType eventType,
     else {
         msg.ptMouse = mousePos;
     }
-    msg.dwTimestamp = ::GetTickCount();
+    msg.dwTimestamp = std::chrono::steady_clock::now();
 
     SendEvent(msg);
 }

@@ -1211,7 +1211,7 @@ bool Window::SendNotify(EventType eventType, WPARAM wParam, LPARAM lParam)
     msg.SetSender(nullptr);
     msg.Type = eventType;
     msg.ptMouse = GetLastMousePos();
-    msg.dwTimestamp = ::GetTickCount();
+    msg.dwTimestamp = std::chrono::steady_clock::now();
     msg.wParam = wParam;
     msg.lParam = lParam;
 

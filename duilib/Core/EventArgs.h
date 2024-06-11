@@ -6,6 +6,7 @@
 #include "duilib/Core/UiPoint.h"
 #include <string>
 #include <memory>
+#include <chrono>
 
 namespace ui
 {
@@ -20,7 +21,6 @@ public:
     EventArgs() :
         Type(kEventNone),
         pSender(nullptr),
-        dwTimestamp(0),
         chKey(0),
         wParam(0),
         lParam(0)
@@ -35,7 +35,7 @@ public:
 
     /** 产生事件时的时间戳
     */
-    size_t dwTimestamp;
+    std::chrono::steady_clock::time_point dwTimestamp;
 
     /** 产生事件时的鼠标所在坐标
     */
