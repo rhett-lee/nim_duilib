@@ -626,8 +626,8 @@ void VirtualListBox::VSendEvent(const EventArgs& args, bool bFromItem)
 {
     if (bFromItem) {
         EventArgs msg = args;
-        msg.pSender = this;
-        size_t nItemIndex = GetItemIndex(args.pSender);
+        msg.SetSender(this);
+        size_t nItemIndex = GetItemIndex(args.GetSender());
         if (nItemIndex < GetItemCount()) {
             msg.wParam = nItemIndex;
             msg.lParam = GetDisplayItemElementIndex(nItemIndex);
@@ -641,7 +641,7 @@ void VirtualListBox::VSendEvent(const EventArgs& args, bool bFromItem)
     else if ((args.Type == kEventMouseDoubleClick) ||
              (args.Type == kEventClick) ||
              (args.Type == kEventRClick)) {
-        if (args.pSender == this) {
+        if (args.GetSender() == this) {
             ASSERT(args.wParam == 0);
             ASSERT(args.lParam == 0);
             EventArgs msg = args;

@@ -213,7 +213,7 @@ void MultiBrowserForm::OnWndSizeMax(bool max)
 
 bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
 {
-    DString name = arg.pSender->GetName();
+    DString name = arg.GetSender()->GetName();
     if (name == _T("btn_max_restore"))
     {
         DWORD style = GetWindowLong(GetHWND(), GWL_STYLE);
@@ -267,7 +267,7 @@ bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
 
 bool MultiBrowserForm::OnReturn(const ui::EventArgs& arg)
 {
-    DString name = arg.pSender->GetName();
+    DString name = arg.GetSender()->GetName();
     if (name == _T("edit_url"))
     {
 #if 0
@@ -587,7 +587,7 @@ bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs& param)
 {
     if (kEventSelect == param.Type)
     {
-        DString name = param.pSender->GetName();
+        DString name = param.GetSender()->GetName();
 
         if (name == _T("tab_list"))
         {
@@ -603,7 +603,7 @@ bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs& param)
     }
     else if (kEventMouseButtonDown == param.Type)
     {
-        BrowserTabItem *tab_item = dynamic_cast<BrowserTabItem*>(param.pSender);
+        BrowserTabItem *tab_item = dynamic_cast<BrowserTabItem*>(param.GetSender());
         if (tab_item)
         {
             DString browser_id = tab_item->GetName();
@@ -615,7 +615,7 @@ bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs& param)
 
 bool MultiBrowserForm::OnTabItemClose(const ui::EventArgs& param, const std::string& browser_id)
 {
-    if (param.pSender->GetName() == _T("tab_item_close"))
+    if (param.GetSender()->GetName() == _T("tab_item_close"))
     {
         CloseBox(browser_id);
     }

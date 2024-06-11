@@ -153,23 +153,23 @@ void ListCtrlView::AttachMouseEvents(Control* pListBoxItem)
     if (pListBoxItem != nullptr) {
         //挂载鼠标事件
         pListBoxItem->AttachButtonDown([this](const EventArgs& args) {
-            OnButtonDown(args.ptMouse, args.pSender);
+            OnButtonDown(args.ptMouse, args.GetSender());
             return true;
             });
         pListBoxItem->AttachButtonUp([this](const EventArgs& args) {
-            OnButtonUp(args.ptMouse, args.pSender);
+            OnButtonUp(args.ptMouse, args.GetSender());
             return true;
             });
         pListBoxItem->AttachRButtonDown([this](const EventArgs& args) {
-            OnRButtonDown(args.ptMouse, args.pSender);
+            OnRButtonDown(args.ptMouse, args.GetSender());
             return true;
             });
         pListBoxItem->AttachRButtonUp([this](const EventArgs& args) {
-            OnButtonUp(args.ptMouse, args.pSender);
+            OnButtonUp(args.ptMouse, args.GetSender());
             return true;
             });
         pListBoxItem->AttachMouseMove([this](const EventArgs& args) {
-            OnMouseMove(args.ptMouse, args.pSender);
+            OnMouseMove(args.ptMouse, args.GetSender());
             return true;
             });
         pListBoxItem->AttachWindowKillFocus([this](const EventArgs&) {
@@ -182,15 +182,21 @@ void ListCtrlView::AttachMouseEvents(Control* pListBoxItem)
 bool ListCtrlView::ButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::ButtonDown(msg);
-    OnButtonDown(msg.ptMouse, msg.pSender);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    OnButtonDown(msg.ptMouse, msg.GetSender());
     return bRet;
 }
 
 bool ListCtrlView::ButtonUp(const EventArgs& msg)
 {
     bool bRet = __super::ButtonUp(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     //按住Ctrl或者Shift的时候，不触发清空选择操作，避免误操作
-    Control* pSender = msg.pSender;
+    Control* pSender = msg.GetSender();
     if (msg.wParam & MK_CONTROL) {
         pSender = nullptr;
     }
@@ -204,27 +210,39 @@ bool ListCtrlView::ButtonUp(const EventArgs& msg)
 bool ListCtrlView::RButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::RButtonDown(msg);
-    OnRButtonDown(msg.ptMouse, msg.pSender);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    OnRButtonDown(msg.ptMouse, msg.GetSender());
     return bRet;
 }
 
 bool ListCtrlView::RButtonUp(const EventArgs& msg)
 {
     bool bRet = __super::RButtonUp(msg);
-    OnRButtonUp(msg.ptMouse, msg.pSender);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    OnRButtonUp(msg.ptMouse, msg.GetSender());
     return bRet;
 }
 
 bool ListCtrlView::MouseMove(const EventArgs& msg)
 {
     bool bRet = __super::MouseMove(msg);
-    OnMouseMove(msg.ptMouse, msg.pSender);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    OnMouseMove(msg.ptMouse, msg.GetSender());
     return bRet;
 }
 
 bool ListCtrlView::OnWindowKillFocus(const EventArgs& msg)
 {
     bool bRet = __super::OnWindowKillFocus(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     OnWindowKillFocus();
     return bRet;
 }

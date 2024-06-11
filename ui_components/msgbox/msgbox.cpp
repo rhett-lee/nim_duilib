@@ -91,8 +91,8 @@ void MsgBox::OnCloseWindow()
 bool MsgBox::OnClicked(const ui::EventArgs& msg)
 {
     DString name;
-    if (msg.pSender != nullptr) {
-        name = msg.pSender->GetName();
+    if (msg.GetSender() != nullptr) {
+        name = msg.GetSender()->GetName();
     }
     if (name == _T("btn_yes")) {
         EndMsgBox(MB_YES);

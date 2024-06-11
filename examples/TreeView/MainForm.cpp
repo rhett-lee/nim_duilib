@@ -262,7 +262,7 @@ ui::TreeNode* MainForm::ShowAllDiskNode()
 
 bool MainForm::OnTreeNodeExpand(const ui::EventArgs& args)
 {
-    ui::TreeNode* pTreeNode = dynamic_cast<ui::TreeNode*>(args.pSender);
+    ui::TreeNode* pTreeNode = dynamic_cast<ui::TreeNode*>(args.GetSender());
     ASSERT(pTreeNode != nullptr);
     if (pTreeNode != nullptr) {
         FolderStatus* pFolder = (FolderStatus*)pTreeNode->GetUserDataID();
@@ -393,7 +393,7 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const DString& path)
 
 bool MainForm::OnTreeNodeClick(const ui::EventArgs& args)
 {
-    ui::TreeNode* pTreeNode = dynamic_cast<ui::TreeNode*>(args.pSender);
+    ui::TreeNode* pTreeNode = dynamic_cast<ui::TreeNode*>(args.GetSender());
     ASSERT(pTreeNode != nullptr);
     if (pTreeNode != nullptr) {
         FolderStatus* pFolder = (FolderStatus*)pTreeNode->GetUserDataID();

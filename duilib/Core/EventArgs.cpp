@@ -1,7 +1,38 @@
 #include "EventArgs.h"
+#include "duilib/Core/Control.h"
 
 namespace ui
 {
+
+void EventArgs::SetSender(Control* pControl)
+{
+    if (pControl != nullptr) {
+        pSender = pControl;
+        m_senderFlag = pControl->GetWeakFlag();
+    }
+    else {
+        pSender = nullptr;
+        m_senderFlag.reset();
+    }
+}
+
+Control* EventArgs::GetSender() const
+{
+    if (m_senderFlag.expired()) {
+        return nullptr;
+    }
+    else {
+        return pSender;
+    }
+}
+
+bool EventArgs::IsSenderExpired() const
+{
+    if (pSender != nullptr) {
+        return m_senderFlag.expired();
+    }
+    return false;
+}
 
 EventType StringToEventType(const DString& messageType)
 {

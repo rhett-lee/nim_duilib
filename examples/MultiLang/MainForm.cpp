@@ -37,7 +37,7 @@ void MainForm::OnInitWindow()
         return;
     }
     select->AttachClick([this](const ui::EventArgs& args) {
-        ui::UiRect rect = args.pSender->GetPos();
+        ui::UiRect rect = args.GetSender()->GetPos();
         ui::UiPoint point;
         point.x = rect.left;
         point.y = rect.bottom;

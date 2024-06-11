@@ -1142,6 +1142,9 @@ bool ListBox::CanPaintSelectedColors(bool bHasStateImages) const
 bool ListBox::ButtonDown(const EventArgs& msg)
 {
     bool ret = __super::ButtonDown(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     StopScroll();
     return ret;
 }

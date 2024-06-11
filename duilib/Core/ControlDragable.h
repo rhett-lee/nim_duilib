@@ -349,6 +349,9 @@ bool ControlDragableT<T>::ButtonDown(const EventArgs& msg)
 {
     m_bMouseDown = false;
     bool bRet = __super::ButtonDown(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     if (!IsEnableDragOrder() && !IsEnableDragOut()) {
         return bRet;
     }
@@ -388,6 +391,9 @@ template<typename T>
 bool ControlDragableT<T>::ButtonUp(const EventArgs& msg)
 {
     bool bRet = __super::ButtonUp(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     if (!DragOutMouseUp(msg)) {
         DragOrderMouseUp(msg);
     }

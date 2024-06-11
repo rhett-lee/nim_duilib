@@ -122,7 +122,7 @@ void ControlForm::OnInitWindow()
     /* Show settings menu */
     ui::Button* settings = static_cast<ui::Button*>(FindControl(_T("settings")));
     settings->AttachClick([this](const ui::EventArgs& args) {
-        ui::UiRect rect = args.pSender->GetPos();
+        ui::UiRect rect = args.GetSender()->GetPos();
         ui::UiPoint point;
         point.x = rect.left - 175;
         point.y = rect.top + 10;

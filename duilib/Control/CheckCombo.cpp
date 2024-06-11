@@ -470,10 +470,10 @@ void CheckCombo::SetDropBoxSize(UiSize szDropBox, bool bNeedScaleDpi)
 
 bool CheckCombo::OnSelectItem(const ui::EventArgs& args)
 {
-    if (args.pSender == nullptr) {
+    if (args.GetSender() == nullptr) {
         return true;
     }
-    CheckBox* pCheckBox = dynamic_cast<CheckBox*>(args.pSender);
+    CheckBox* pCheckBox = dynamic_cast<CheckBox*>(args.GetSender());
     if (pCheckBox == nullptr) {
         return true;
     }
@@ -492,10 +492,10 @@ bool CheckCombo::OnSelectItem(const ui::EventArgs& args)
 
 bool CheckCombo::OnUnSelectItem(const ui::EventArgs& args)
 {
-    if (args.pSender == nullptr) {
+    if (args.GetSender() == nullptr) {
         return true;
     }
-    CheckBox* pCheckBox = dynamic_cast<CheckBox*>(args.pSender);
+    CheckBox* pCheckBox = dynamic_cast<CheckBox*>(args.GetSender());
     if (pCheckBox == nullptr) {
         return true;
     }

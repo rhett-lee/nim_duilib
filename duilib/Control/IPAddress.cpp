@@ -164,7 +164,7 @@ void IPAddress::SendEvent(EventType eventType,
 
 void IPAddress::SendEvent(const EventArgs& msg)
 {
-    if ((msg.pSender == this) && (msg.Type == kEventKillFocus)) {
+    if ((msg.GetSender() == this) && (msg.Type == kEventKillFocus)) {
         Control* pNewFocus = (Control*)msg.wParam;
         if (std::find(m_editList.begin(), m_editList.end(), pNewFocus) != m_editList.end()) {
             //焦点切换到编辑框，不发出KillFocus事件
