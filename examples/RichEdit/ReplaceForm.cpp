@@ -66,7 +66,7 @@ void ReplaceForm::OnInitWindow()
     ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_cancel")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-                if (args.pSender == pButton) {
+                if (args.GetSender() == pButton) {
                     CloseWnd();
                 }
                 return true;
@@ -75,7 +75,7 @@ void ReplaceForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_find_next")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-                if (args.pSender == pButton) {
+                if (args.GetSender() == pButton) {
                     OnFindNext();
                 }
                 return true;
@@ -84,7 +84,7 @@ void ReplaceForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_replace")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-                if (args.pSender == pButton) {
+                if (args.GetSender() == pButton) {
                     OnReplace();
                 }
                 return true;
@@ -93,7 +93,7 @@ void ReplaceForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_replace_all")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-                if (args.pSender == pButton) {
+                if (args.GetSender() == pButton) {
                     OnReplaceAll();
                 }
                 return true;

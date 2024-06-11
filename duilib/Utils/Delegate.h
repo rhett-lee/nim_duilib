@@ -17,9 +17,12 @@ typedef std::function<bool(const ui::EventArgs&)> EventCallback;
 class CEventSource : public std::vector<EventCallback>
 {
 public:
-    CEventSource& operator += (const EventCallback& item) 
+    CEventSource& operator += (const EventCallback& callback)
     {
-        push_back(item);
+        ASSERT(callback != nullptr);
+        if (callback != nullptr) {
+            push_back(callback);
+        }        
         return *this;
     }
 
@@ -27,8 +30,11 @@ public:
     {
         //支持在回调函数中，操作此容器
         for (size_t index = 0; index < this->size(); ++index) {
+            if (param.IsSenderExpired()) {
+                return false;
+            }
             EventCallback callback = this->at(index);
-            if (!callback(param)) {
+            if ((callback == nullptr) || !callback(param)) {
                 return false;
             }
         }

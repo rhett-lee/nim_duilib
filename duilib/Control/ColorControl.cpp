@@ -51,6 +51,9 @@ void ColorControl::PaintBkImage(IRender* pRender)
 bool ColorControl::ButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::ButtonDown(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     UiRect rect = GetRect();
     if (rect.ContainsPt(msg.ptMouse)) {
         m_bMouseDown = true;
@@ -62,7 +65,10 @@ bool ColorControl::ButtonDown(const EventArgs& msg)
 
 bool ColorControl::MouseMove(const EventArgs& msg)
 {
-    bool bRet = __super::MouseMove(msg);        
+    bool bRet = __super::MouseMove(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     if (m_bMouseDown) {
         UiRect rect = GetRect();
         OnSelectPosChanged(rect, msg.ptMouse);

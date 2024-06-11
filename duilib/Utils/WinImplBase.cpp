@@ -167,11 +167,12 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
     if (IsUseSystemCaption()) {
         return true;
     }
-    ASSERT(msg.pSender != nullptr);
-    if (msg.pSender == nullptr) {
+    Control* pSender = msg.GetSender();
+    ASSERT(pSender != nullptr);
+    if (pSender == nullptr) {
         return false;
     }
-    DString sCtrlName = msg.pSender->GetName();
+    DString sCtrlName = pSender->GetName();
     if (sCtrlName == DUI_CTR_BUTTON_CLOSE) {
         //关闭按钮
         CloseWnd();

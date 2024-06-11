@@ -812,7 +812,7 @@ bool MenuItem::ButtonUp(const ui::EventArgs& msg)
     }
     std::weak_ptr<WeakFlag> weakFlag = pWindow->GetWeakFlag();
     bool ret = __super::ButtonUp(msg);
-    if (ret && !weakFlag.expired()) {
+    if (ret && !weakFlag.expired() && !msg.IsSenderExpired()) {
         //这里处理下如果有子菜单则显示子菜单
         if (!CheckSubMenuItem()){
             ContextMenuParam param;
@@ -833,7 +833,7 @@ bool MenuItem::MouseEnter(const ui::EventArgs& msg)
     }
     std::weak_ptr<WeakFlag> weakFlag = pWindow->GetWeakFlag();
     bool ret = __super::MouseEnter(msg);
-    if (!weakFlag.expired() && IsHotState()) {
+    if (!weakFlag.expired() && IsHotState() && !msg.IsSenderExpired()) {
         //这里处理下如果有子菜单则显示子菜单
         if (!CheckSubMenuItem()) {
             ContextMenuParam param;

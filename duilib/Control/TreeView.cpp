@@ -240,6 +240,9 @@ void TreeNode::PaintStateImages(IRender* pRender)
 bool TreeNode::ButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::ButtonDown(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     if (!IsEnabled()) {
         return bRet;
     }
@@ -308,7 +311,7 @@ TreeView* TreeNode::GetTreeView() const
 
 bool TreeNode::OnDoubleClickItem(const EventArgs& args)
 {
-    TreeNode* pItem = dynamic_cast<TreeNode*>(args.pSender);
+    TreeNode* pItem = dynamic_cast<TreeNode*>(args.GetSender());
     ASSERT(pItem != nullptr);
     if (pItem != nullptr) {
         pItem->SetExpand(!pItem->IsExpand(), true);
@@ -318,7 +321,7 @@ bool TreeNode::OnDoubleClickItem(const EventArgs& args)
 
 bool TreeNode::OnNodeCheckStatusChanged(const EventArgs& args)
 {
-    TreeNode* pItem = dynamic_cast<TreeNode*>(args.pSender);
+    TreeNode* pItem = dynamic_cast<TreeNode*>(args.GetSender());
     ASSERT(pItem != nullptr);
     if ((pItem != nullptr) && (m_pTreeView != nullptr)) {
         m_pTreeView->OnNodeCheckStatusChanged(pItem);

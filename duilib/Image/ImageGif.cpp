@@ -162,7 +162,7 @@ void ImageGif::BroadcastGifEvent(int32_t nVirtualEvent) const
     auto callback = m_OnGifEvent.find(nVirtualEvent);
     if (callback != m_OnGifEvent.end()) {
         EventArgs param;
-        param.pSender = m_pControl;
+        param.SetSender(m_pControl);
         callback->second(param);
     }
 }

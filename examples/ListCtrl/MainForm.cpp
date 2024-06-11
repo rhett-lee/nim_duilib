@@ -480,7 +480,7 @@ void MainForm::OnInitWindow()
 
     //事件挂载，测试事件接口
     auto OnListCtrlEvent = [this, pListCtrl](const ui::EventArgs& args) {
-            ASSERT(pListCtrl == args.pSender);
+            ASSERT(pListCtrl == args.GetSender());
             ui::ListCtrlItem* pItem = (ui::ListCtrlItem*)args.wParam;
             size_t itemIndex = args.lParam;
             ui::UiPoint mousePt = args.ptMouse;

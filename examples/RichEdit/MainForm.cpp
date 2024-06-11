@@ -44,7 +44,7 @@ void MainForm::OnInitWindow()
     if (pRichEdit != nullptr) {
         pRichEdit->AttachLinkClick([this, pRichEdit](const ui::EventArgs& args) {
                 //点击了超级链接
-                if (args.pSender == pRichEdit) {
+                if (args.GetSender() == pRichEdit) {
                     const wchar_t* pUrl = (const wchar_t*)args.wParam;
                     if (pUrl != nullptr) {
                         ::ShellExecute(GetHWND(), _T("open"), pUrl, NULL, NULL, SW_SHOWNORMAL);
@@ -62,7 +62,7 @@ void MainForm::OnInitWindow()
     ui::Button* pButton = dynamic_cast<ui::Button*>(FindControl(_T("open_file")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-                if (args.pSender == pButton) {
+                if (args.GetSender() == pButton) {
                     this->OnOpenFile();
                 }
                 return true;
@@ -72,7 +72,7 @@ void MainForm::OnInitWindow()
     if (pButton != nullptr) {
         m_saveBtnText = pButton->GetText();
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-                if (args.pSender == pButton) {
+                if (args.GetSender() == pButton) {
                     this->OnSaveFile();
                 }
                 return true;
@@ -81,7 +81,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("save_as_file")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-                if (args.pSender == pButton) {
+                if (args.GetSender() == pButton) {
                     this->OnSaveAsFile();
                 }
                 return true;
@@ -92,7 +92,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_copy")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.pSender == pButton) {
+            if (args.GetSender() == pButton) {
                 if (m_pRichEdit != nullptr) {
                     m_pRichEdit->Copy();
                     UpdateSaveStatus();
@@ -104,7 +104,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_cut")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.pSender == pButton) {
+            if (args.GetSender() == pButton) {
                 if (m_pRichEdit != nullptr) {
                     m_pRichEdit->Cut();
                     UpdateSaveStatus();
@@ -116,7 +116,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_paste")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.pSender == pButton) {
+            if (args.GetSender() == pButton) {
                 if (m_pRichEdit != nullptr) {
                     m_pRichEdit->Paste();
                     UpdateSaveStatus();
@@ -128,7 +128,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_delete")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.pSender == pButton) {
+            if (args.GetSender() == pButton) {
                 if (m_pRichEdit != nullptr) {
                     m_pRichEdit->Clear();
                     UpdateSaveStatus();
@@ -140,7 +140,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_sel_all")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.pSender == pButton) {
+            if (args.GetSender() == pButton) {
                 if (m_pRichEdit != nullptr) {
                     m_pRichEdit->SetSelAll();
                     UpdateSaveStatus();
@@ -152,7 +152,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_sel_none")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.pSender == pButton) {
+            if (args.GetSender() == pButton) {
                 if (m_pRichEdit != nullptr) {
                     m_pRichEdit->SetSelNone();
                     UpdateSaveStatus();
@@ -164,7 +164,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_undo")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.pSender == pButton) {
+            if (args.GetSender() == pButton) {
                 if (m_pRichEdit != nullptr) {
                     m_pRichEdit->Undo();
                     UpdateSaveStatus();
@@ -176,7 +176,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_redo")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.pSender == pButton) {
+            if (args.GetSender() == pButton) {
                 if (m_pRichEdit != nullptr) {
                     m_pRichEdit->Redo();
                     UpdateSaveStatus();
@@ -190,7 +190,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_find_text")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.pSender == pButton) {
+            if (args.GetSender() == pButton) {
                 OnFindText();
             }
             return true;
@@ -199,7 +199,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_find_next")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.pSender == pButton) {
+            if (args.GetSender() == pButton) {
                 OnFindNext();
             }
             return true;
@@ -208,7 +208,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("btn_replace_text")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.pSender == pButton) {
+            if (args.GetSender() == pButton) {
                 OnReplaceText();
             }
             return true;
@@ -219,7 +219,7 @@ void MainForm::OnInitWindow()
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("set_font")));
     if (pButton != nullptr) {
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
-            if (args.pSender == pButton) {
+            if (args.GetSender() == pButton) {
                 OnSetFont();
             }
             return true;

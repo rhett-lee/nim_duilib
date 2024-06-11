@@ -153,6 +153,9 @@ bool ColorPickerStatard::MouseMove(const EventArgs& msg)
 bool ColorPickerStatard::ButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::ButtonDown(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     if (GetRect().ContainsPt(msg.ptMouse)) {
         UiColor color;
         if (GetColorInfo(msg.ptMouse, color)) {

@@ -410,6 +410,9 @@ private:
     virtual bool ButtonDown(const EventArgs& msg)
     {
         bool bRet = __super::ButtonDown(msg);
+        if (msg.IsSenderExpired()) {
+            return false;
+        }
 
         //更新选择颜色
         m_selColor = GetMousePosColor(msg.ptMouse);

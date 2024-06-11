@@ -1636,7 +1636,7 @@ void Control::SendEvent(EventType eventType,
                         const UiPoint& mousePos)
 {
     EventArgs msg;
-    msg.pSender = this;
+    msg.SetSender(this);
     msg.Type = eventType;
     msg.chKey = tChar;
     msg.wParam = wParam;
@@ -1848,8 +1848,11 @@ bool Control::HasHotState()
     return bState;
 }
 
-bool Control::MouseEnter(const EventArgs& /*msg*/)
+bool Control::MouseEnter(const EventArgs& msg)
 {
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     if( IsEnabled() ) {
         if (GetState() == kControlStateNormal) {
             PrivateSetState(kControlStateHot);
@@ -1866,8 +1869,11 @@ bool Control::MouseEnter(const EventArgs& /*msg*/)
     return false;
 }
 
-bool Control::MouseLeave(const EventArgs& /*msg*/)
+bool Control::MouseLeave(const EventArgs& msg)
 {
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     if( IsEnabled() ) {
         if (GetState() == kControlStateHot) {
             PrivateSetState(kControlStateNormal);
@@ -1885,8 +1891,11 @@ bool Control::MouseLeave(const EventArgs& /*msg*/)
     return false;
 }
 
-bool Control::ButtonDown(const EventArgs& /*msg*/)
+bool Control::ButtonDown(const EventArgs& msg)
 {
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     if( IsEnabled() ) {
         PrivateSetState(kControlStatePushed);
         SetMouseFocused(true);
@@ -1897,6 +1906,9 @@ bool Control::ButtonDown(const EventArgs& /*msg*/)
 
 bool Control::ButtonUp(const EventArgs& msg)
 {
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     if( IsMouseFocused() ) {
         SetMouseFocused(false);
         auto player = GetAnimationManager().GetAnimationPlayer(AnimationType::kAnimationHot);
@@ -1922,8 +1934,11 @@ bool Control::ButtonDoubleClick(const EventArgs& /*msg*/)
     return true;
 }
 
-bool Control::RButtonDown(const EventArgs& /*msg*/)
+bool Control::RButtonDown(const EventArgs& msg)
 {
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     if (IsEnabled()) {
         SetMouseFocused(true);
     }
@@ -1932,6 +1947,9 @@ bool Control::RButtonDown(const EventArgs& /*msg*/)
 
 bool Control::RButtonUp(const EventArgs& msg)
 {
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     if (IsMouseFocused()) {
         SetMouseFocused(false);
         if (IsPointInWithScrollOffset(msg.ptMouse)) {
@@ -2041,8 +2059,11 @@ bool Control::OnSetFocus(const EventArgs& /*msg*/)
     return true;
 }
 
-bool Control::OnKillFocus(const EventArgs& /*msg*/)
+bool Control::OnKillFocus(const EventArgs& msg)
 {
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     if (GetState() == kControlStateHot) {
         SetState(kControlStateNormal);
     }
@@ -3073,16 +3094,19 @@ void Control::DetachXmlBubbledEvent(EventType eventType)
 
 bool Control::FireAllEvents(const EventArgs& msg)
 {
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     std::weak_ptr<WeakFlag> weakflag = GetWeakFlag();
     bool bRet = true;//当值为false时，就不再调用回调函数和处理函数
 
-    if (msg.pSender == this) {
+    if (msg.GetSender() == this) {
         if (bRet && (m_pOnEvent != nullptr) && !m_pOnEvent->empty()) {
             auto callback = m_pOnEvent->find(msg.Type);
             if (callback != m_pOnEvent->end()) {
                 bRet = callback->second(msg);
             }
-            if (weakflag.expired()) {
+            if (weakflag.expired() || msg.IsSenderExpired()) {
                 return false;
             }
 
@@ -3090,7 +3114,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
             if (callback != m_pOnEvent->end()) {
                 bRet = callback->second(msg);
             }
-            if (weakflag.expired()) {
+            if (weakflag.expired() || msg.IsSenderExpired()) {
                 return false;
             }
         }
@@ -3100,7 +3124,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
             if (callback != m_pOnXmlEvent->end()) {
                 bRet = callback->second(msg);
             }
-            if (weakflag.expired()) {
+            if (weakflag.expired() || msg.IsSenderExpired()) {
                 return false;
             }
 
@@ -3108,7 +3132,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
             if (callback != m_pOnXmlEvent->end()) {
                 bRet = callback->second(msg);
             }
-            if (weakflag.expired()) {
+            if (weakflag.expired() || msg.IsSenderExpired()) {
                 return false;
             }
         }
@@ -3119,7 +3143,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
         if (callback != m_pOnBubbledEvent->end()) {
             bRet = callback->second(msg);
         }
-        if (weakflag.expired()) {
+        if (weakflag.expired() || msg.IsSenderExpired()) {
             return false;
         }
 
@@ -3127,7 +3151,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
         if (callback != m_pOnBubbledEvent->end()) {
             bRet = callback->second(msg);
         }
-        if (weakflag.expired()) {
+        if (weakflag.expired() || msg.IsSenderExpired()) {
             return false;
         }
     }
@@ -3137,7 +3161,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
         if (callback != m_pOnXmlBubbledEvent->end()) {
             bRet = callback->second(msg);
         }
-        if (weakflag.expired()) {
+        if (weakflag.expired() || msg.IsSenderExpired()) {
             return false;
         }
 
@@ -3145,7 +3169,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
         if (callback != m_pOnXmlBubbledEvent->end()) {
             bRet = callback->second(msg);
         }
-        if (weakflag.expired()) {
+        if (weakflag.expired() || msg.IsSenderExpired()) {
             return false;
         }
     }
