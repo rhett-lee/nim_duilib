@@ -320,21 +320,17 @@ protected:
     */
     virtual void InitWindow() override;
 
-    /** 窗口正在关闭，处理内部状态（内部函数，子类重写后，必须调用基类函数，否则影响功能）
-    */
-    virtual void ClosingWindow() override final;
-
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
-    virtual void OnInitWindow() override;
+    virtual void OnInitWindow() {};
 
     /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */
-    virtual void OnCloseWindow() override;
+    virtual void OnCloseWindow() {};
 
-    /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并调用OnDeleteSelf函数销毁该窗口对象）
+    /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是调用delete销毁自身，若不想销毁自身，可重写该函数）
     */
-    virtual void OnFinalMessage() override;
+    virtual void OnFinalMessage();
 
 protected:
     /** 切换系统标题栏与自绘标题栏
@@ -549,6 +545,14 @@ protected:
     /** @}*/
 
 private:
+    /** 窗口正在关闭，处理内部状态（内部函数，子类重写后，必须调用基类函数，否则影响功能）
+    */
+    virtual void PreCloseWindow() override final;
+
+    /** 在窗口销毁时会被调用，这是该窗口的最后一个消息
+    */
+    virtual void FinalMessage() override final;
+
     /** 窗口的DPI发生变化，更新控件大小和布局(该函数不允许重写，如果需要此事件，可以重写OnWindowDpiChanged函数，实现功能)
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
     * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致

@@ -67,7 +67,7 @@ void MainThread::OnInit()
     window->SetIcon(IDI_BASIC);
     window->CenterWindow();
     window->ShowWindow();
-    //window->Maximized();
+    //window->Maximize();
 }
 
 void MainThread::OnCleanup()

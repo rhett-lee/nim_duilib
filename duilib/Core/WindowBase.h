@@ -31,6 +31,18 @@ public:
     */
     bool CreateWnd(WindowBase* pParentWindow, const WindowCreateParam* pCreateParam, const UiRect& rc = UiRect(0, 0, 0, 0));
 
+    /** 是否含有有效的窗口句柄
+    */
+    bool IsWindow() const;
+
+    /** 获取父窗口
+    */
+    WindowBase* GetParentWindow() const;
+
+    /** 获取窗口的实现接口
+    */
+    NativeWindow* NativeWnd() const;
+
     /** 设置是否使用系统标题栏
     */
     void SetUseSystemCaption(bool bUseSystemCaption);
@@ -140,7 +152,7 @@ public:
 
     /** 窗口最大化
     */
-    bool Maximized();
+    bool Maximize();
 
     /** 还原窗口，退出最大化
     */
@@ -148,7 +160,7 @@ public:
 
     /** 窗口最小化
     */
-    bool Minimized();
+    bool Minimize();
 
     /** 使窗口进入全屏状态
     */
@@ -170,15 +182,7 @@ public:
     */
     bool IsWindowFullScreen() const;
 
-    /** 窗口是否为最大化状态
-    */
-    bool IsZoomed() const;
-
-    /** 窗口是否为最小花状态
-    */
-    bool IsIconic() const;
-
-    /** 将窗口的Enable状态
+     /** 将窗口的Enable状态
     * @param [in] bEnable true表示设置为Enable状态，false表示设置为disable状态
     */
     bool EnableWindow(bool bEnable);
@@ -370,18 +374,6 @@ public:
     /** @}*/
 
 public:
-    /** 获取窗口的实现接口
-    */
-    NativeWindow* NativeWnd() const;
-
-    /** 获取父窗口
-    */
-    WindowBase* GetParentWindow() const;
-
-    /** 是否含有有效的窗口句柄
-    */
-    bool IsWindow() const;
-
     /** @name 窗口消息相关的接口
     * @{
 
@@ -531,49 +523,38 @@ public:
     void SetLastMousePos(const UiPoint& pt);
 
 protected:
-    /** 初始化窗口数据（内部函数，子类重写后，必须调用基类函数，否则影响功能）
+    /** 初始化窗口数据
     */
-    virtual void InitWindow();
+    virtual void InitWindow() = 0;
 
-    /** 窗口正在关闭，处理内部状态（内部函数，子类重写后，必须调用基类函数，否则影响功能）
+    /** 窗口正在关闭，处理内部状态
     */
-    virtual void ClosingWindow();
+    virtual void PreCloseWindow() = 0;
 
-    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
+    /** 在窗口销毁时会被调用，这是该窗口的最后一个消息
     */
-    virtual void OnInitWindow() {};
+    virtual void FinalMessage() = 0;
 
-    /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
-    */
-    virtual void OnCloseWindow() {};
-
-    /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并调用OnDeleteSelf函数销毁该窗口对象）
-    */
-    virtual void OnFinalMessage();
-
-    /** 销毁自己（子类可用重载这个方法，避免自身被销毁）
-    */
-    virtual void OnDeleteSelf();
-
+protected:
     /** 进入全屏状态
     */
-    virtual void OnWindowEnterFullScreen() {}
+    virtual void OnWindowEnterFullScreen() {};
 
     /** 退出全屏状态
     */
-    virtual void OnWindowExitFullScreen() {}
+    virtual void OnWindowExitFullScreen() {};
 
     /** 进入最大化状态
     */
-    virtual void OnWindowMaximized() {}
+    virtual void OnWindowMaximized() {};
 
     /** 从最大化还原
     */
-    virtual void OnWindowRestored() {}
+    virtual void OnWindowRestored() {};
 
     /** 进入最小化状态
     */
-    virtual void OnWindowMinimized() {}
+    virtual void OnWindowMinimized() {};
 
     /** 切换系统标题栏与自绘标题栏
     */
@@ -829,9 +810,17 @@ protected:
     void ProcessDpiChangedMsg(uint32_t nNewDPI, const UiRect& rcNewWindow);
 
 private:
+    /** 初始化窗口数据（内部函数，子类重写后，必须调用基类函数，否则影响功能）
+    */
+    void InitWindowBase();
+
     /** 清理窗口资源
     */
-    void ClearWindow();
+    void ClearWindowBase();
+
+    /** 窗口大小变化，处理内部业务
+    */
+    void OnWindowSize(WindowSizeType sizeType);
 
 private:
     //来自实现窗口的事件

@@ -18,7 +18,7 @@ WindowBase::~WindowBase()
         delete m_pNativeWindow;
         m_pNativeWindow = nullptr;
     }
-    ClearWindow();
+    ClearWindowBase();
 }
 
 bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam* pCreateParam, const UiRect& rc)
@@ -30,10 +30,23 @@ bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam* p
     }
     bool bRet = m_pNativeWindow->CreateWnd(pParentWindow, pCreateParam, rc);
     if (bRet) {
+        InitWindowBase();
         InitWindow();
-        OnInitWindow();
     }    
     return bRet;
+}
+
+void WindowBase::ClearWindowBase()
+{
+    //注销拖放操作
+    if (m_pWindowDropTarget != nullptr) {
+        m_pWindowDropTarget->Clear();
+        delete m_pWindowDropTarget;
+        m_pWindowDropTarget = nullptr;
+    }
+    m_pParentWindow = nullptr;
+    m_parentFlag.reset();
+    m_dpi.reset();
 }
 
 void WindowBase::SetUseSystemCaption(bool bUseSystemCaption)
@@ -155,13 +168,12 @@ bool WindowBase::IsWindow() const
     return m_pNativeWindow->IsWindow();
 }
 
-void WindowBase::InitWindow()
+void WindowBase::InitWindowBase()
 {
     ASSERT(IsWindow());
     if (!IsWindow()) {
         return;
     }
-
     //初始化窗口自身的DPI管理器
     const DpiManager& dpiManager = GlobalManager::Instance().Dpi();
     if (!dpiManager.IsUserDefineDpi() && dpiManager.IsPerMonitorDpiAware()) {
@@ -169,35 +181,6 @@ void WindowBase::InitWindow()
         m_dpi = std::make_unique<DpiManager>();
         m_dpi->SetDpiByWindow(this);
     }
-}
-
-void WindowBase::ClosingWindow()
-{
-    m_pNativeWindow->OnCloseModalFake(GetParentWindow());
-}
-
-void WindowBase::ClearWindow()
-{    
-    //注销拖放操作
-    if (m_pWindowDropTarget != nullptr) {
-        m_pWindowDropTarget->Clear();
-        delete m_pWindowDropTarget;
-        m_pWindowDropTarget = nullptr;
-    }
-    m_pParentWindow = nullptr;
-    m_parentFlag.reset();
-    m_dpi.reset();
-}
-
-void WindowBase::OnFinalMessage()
-{
-    ClearWindow();
-    OnDeleteSelf();
-}
-
-void WindowBase::OnDeleteSelf()
-{
-    delete this;
 }
 
 void WindowBase::GetClientRect(UiRect& rcClient) const
@@ -330,9 +313,9 @@ void WindowBase::CheckSetWindowFocus()
     return m_pNativeWindow->CheckSetWindowFocus();
 }
 
-bool WindowBase::Maximized()
+bool WindowBase::Maximize()
 {
-    return m_pNativeWindow->Maximized();
+    return m_pNativeWindow->Maximize();
 }
 
 bool WindowBase::Restore()
@@ -340,9 +323,9 @@ bool WindowBase::Restore()
     return m_pNativeWindow->Restore();
 }
 
-bool WindowBase::Minimized()
+bool WindowBase::Minimize()
 {
-    return m_pNativeWindow->Minimized();
+    return m_pNativeWindow->Minimize();
 }
 
 bool WindowBase::EnterFullScreen()
@@ -368,16 +351,6 @@ bool WindowBase::IsWindowMinimized() const
 bool WindowBase::IsWindowFullScreen() const
 {
     return m_pNativeWindow->IsWindowFullScreen();
-}
-
-bool WindowBase::IsZoomed() const
-{
-    return m_pNativeWindow->IsZoomed();
-}
-
-bool WindowBase::IsIconic() const
-{
-    return m_pNativeWindow->IsIconic();
 }
 
 bool WindowBase::EnableWindow(bool bEnable)
@@ -797,9 +770,8 @@ void WindowBase::SetLastMousePos(const UiPoint& pt)
     m_pNativeWindow->SetLastMousePos(pt);
 }
 
-LRESULT WindowBase::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize*/, bool& bHandled)
+void WindowBase::OnWindowSize(WindowSizeType sizeType)
 {
-    bHandled = false;
     UiSize szRoundCorner = GetRoundCorner();
     bool isIconic = IsWindowMinimized();
     if (!isIconic && (sizeType != WindowSizeType::kSIZE_MAXIMIZED) && (szRoundCorner.cx > 0 && szRoundCorner.cy > 0)) {
@@ -815,6 +787,11 @@ LRESULT WindowBase::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindow
         //不需要设置RGN的时候，清除原RGN设置，避免最大化以后显示不正确
         ClearWindowRgn(true);
     }
+}
+
+LRESULT WindowBase::OnSizeMsg(WindowSizeType /*sizeType*/, const UiSize& /*newWindowSize*/, bool& bHandled)
+{
+    bHandled = false;    
     return 0;
 }
 
@@ -1019,8 +996,8 @@ UiSize WindowBase::OnNativeGetMaxInfo(bool bContainShadow) const
 
 void WindowBase::OnNativeCloseWindow()
 {
-    ClosingWindow();
-    OnCloseWindow();
+    m_pNativeWindow->OnCloseModalFake(GetParentWindow());
+    PreCloseWindow();
 }
 
 void WindowBase::OnNativeUseSystemCaptionBarChanged()
@@ -1035,7 +1012,8 @@ void WindowBase::OnNativeProcessDpiChangedMsg(uint32_t nNewDPI, const UiRect& rc
 
 void WindowBase::OnNativeFinalMessage()
 {
-    OnFinalMessage();
+    ClearWindowBase();
+    FinalMessage();
 }
 
 LRESULT WindowBase::OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -1064,7 +1042,8 @@ LRESULT WindowBase::OnNativeUserMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 LRESULT WindowBase::OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, bool& bHandled)
 {
-    return OnNativeSizeMsg(sizeType, newWindowSize, bHandled);
+    OnWindowSize(sizeType);
+    return OnSizeMsg(sizeType, newWindowSize, bHandled);
 }
 
 LRESULT WindowBase::OnNativeMoveMsg(const UiPoint& ptTopLeft, bool& bHandled)

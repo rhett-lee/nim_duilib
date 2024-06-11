@@ -440,7 +440,7 @@ void NativeWindow::PostQuitMsg(int32_t nExitCode)
     ::PostQuitMessage(nExitCode);
 }
 
-bool NativeWindow::Maximized()
+bool NativeWindow::Maximize()
 {
     ASSERT(::IsWindow(m_hWnd));
     ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
@@ -456,7 +456,7 @@ bool NativeWindow::Restore()
     return true;
 }
 
-bool NativeWindow::Minimized()
+bool NativeWindow::Minimize()
 {
     ASSERT(::IsWindow(m_hWnd));
     ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
@@ -537,16 +537,6 @@ bool NativeWindow::IsWindowMinimized() const
 bool NativeWindow::IsWindowFullScreen() const
 {
     return m_bFullScreen;
-}
-
-bool NativeWindow::IsZoomed() const
-{
-    return ::IsZoomed(GetHWND()) != FALSE;
-}
-
-bool NativeWindow::IsIconic() const
-{
-    return ::IsIconic(GetHWND()) != FALSE;
 }
 
 bool NativeWindow::EnableWindow(bool bEnable)
@@ -1270,10 +1260,11 @@ LRESULT NativeWindow::OnNcLButtonDbClickMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM
         return 0;
     }
 
+    //TODO：需要判断是否可以最大化
     bHandled = true;
     if (!IsWindowMaximized()) {
         //最大化
-        Maximized();
+        Maximize();
     }
     else {
         //还原
@@ -1433,9 +1424,9 @@ LRESULT NativeWindow::OnSysCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, b
         return 0;
     }
     //首先调用默认的窗口函数，使得命令生效
-    bool bZoomed = IsZoomed();
+    bool bMaximized = IsWindowMaximized();
     LRESULT lRes = CallDefaultWindowProc(uMsg, wParam, lParam);
-    if (IsZoomed() != bZoomed) {
+    if (IsWindowMaximized() != bMaximized) {
         if (GET_SC_WPARAM(wParam) == 0xF012) {
             //修复窗口最大化和还原按钮的状态（当在最大化时，向下拖动标题栏，窗口会改变为非最大化状态）
             m_pOwner->OnNativeWindowRestored();

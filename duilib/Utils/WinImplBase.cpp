@@ -16,6 +16,7 @@ WindowImplBase::~WindowImplBase()
 void WindowImplBase::InitWindow()
 {
     __super::InitWindow();
+
     SetResourcePath(GetSkinFolder());
     DString strSkinFile;
     DString xmlFile = GetSkinFile();
@@ -117,11 +118,11 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
     }
     else if (sCtrlName == DUI_CTR_BUTTON_MIN) {
         //最小化按钮
-        Minimized();
+        Minimize();
     }
     else if (sCtrlName == DUI_CTR_BUTTON_MAX) {
         //最大化按钮        
-        Maximized();
+        Maximize();
     }
     else if (sCtrlName == DUI_CTR_BUTTON_RESTORE) {
         //还原按钮        

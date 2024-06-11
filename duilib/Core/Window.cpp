@@ -57,7 +57,6 @@ void Window::AttachWindowClose(const EventCallback& callback)
 
 void Window::InitWindow()
 {
-    __super::InitWindow();
     if (!IsWindow()) {
         return;
     }
@@ -95,28 +94,24 @@ void Window::InitWindow()
             m_render->Resize(rcClient.Width(), rcClient.Height());
         }
     }
+    OnInitWindow();
 }
 
-void Window::ClosingWindow()
+void Window::PreCloseWindow()
 {
-    __super::ClosingWindow();
     ClearStatus();
+    OnCloseWindow();
 }
 
-void Window::OnInitWindow()
+void Window::FinalMessage()
 {
-    __super::OnInitWindow();
-}
-
-void Window::OnCloseWindow()
-{
-    __super::OnCloseWindow(); 
+    ClearWindow(true);
+    OnFinalMessage();
 }
 
 void Window::OnFinalMessage()
 {
-    ClearWindow(true);
-    WindowBase::OnFinalMessage();
+    delete this;
 }
 
 void Window::ClearWindow(bool bSendClose)

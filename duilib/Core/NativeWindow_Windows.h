@@ -215,7 +215,7 @@ public:
 public:
     /** 窗口最大化
     */
-    bool Maximized();
+    bool Maximize();
 
     /** 还原窗口，退出最大化
     */
@@ -223,7 +223,7 @@ public:
 
     /** 窗口最小化
     */
-    bool Minimized();
+    bool Minimize();
 
     /** 使窗口进入全屏状态
     */
@@ -244,14 +244,6 @@ public:
     /** 窗口是否为全屏状态
     */
     bool IsWindowFullScreen() const;
-
-    /** 窗口是否为最大化状态
-    */
-    bool IsZoomed() const;
-
-    /** 窗口是否为最小花状态
-    */
-    bool IsIconic() const;
 
     /** 将窗口的Enable状态
     * @param [in] bEnable true表示设置为Enable状态，false表示设置为disable状态
