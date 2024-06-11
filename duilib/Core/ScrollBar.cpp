@@ -213,6 +213,9 @@ void ScrollBar::SetVisible(bool bVisible)
 
 bool ScrollBar::ButtonUp(const EventArgs& msg)
 {
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     UiPoint pt(msg.ptMouse);
     pt.Offset(GetScrollOffsetInScrollBox());
     bool ret = false;
@@ -245,7 +248,7 @@ bool ScrollBar::HasHotState()
 bool ScrollBar::MouseEnter(const EventArgs& msg)
 {
     bool ret = __super::MouseEnter(msg);
-    if (IsHotState()) {
+    if (IsHotState() && !msg.IsSenderExpired()) {
         m_uButton1State = kControlStateHot;
         m_uButton2State = kControlStateHot;
         m_uThumbState = kControlStateHot;
@@ -256,7 +259,7 @@ bool ScrollBar::MouseEnter(const EventArgs& msg)
 bool ScrollBar::MouseLeave(const EventArgs& msg)
 {
     bool ret = __super::MouseLeave(msg);
-    if (!IsHotState()) {
+    if (!IsHotState() && !msg.IsSenderExpired()) {
         m_uButton1State = kControlStateNormal;
         m_uButton2State = kControlStateNormal;
         m_uThumbState = kControlStateNormal;

@@ -75,7 +75,7 @@ void CefForm::OnCloseWindow()
 
 bool CefForm::OnClicked(const ui::EventArgs& msg)
 {
-    DString name = msg.pSender->GetName();
+    DString name = msg.GetSender()->GetName();
 
     if (name == _T("btn_dev_tool"))
     {

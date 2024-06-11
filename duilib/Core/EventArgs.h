@@ -5,15 +5,18 @@
 
 #include "duilib/Core/UiPoint.h"
 #include <string>
+#include <memory>
 
 namespace ui
 {
 class Control;
+class WeakFlag;
 
 /** 事件通知的参数
 */
 struct EventArgs
 {
+public:
     EventArgs() :
         Type(kEventNone),
         pSender(nullptr),
@@ -29,10 +32,6 @@ struct EventArgs
     /** 事件类型
     */
     EventType Type;
-
-    /** 发送事件的控件
-    */
-    Control* pSender;
 
     /** 产生事件时的时间戳
     */
@@ -53,6 +52,28 @@ struct EventArgs
     /** 产生事件时的参数
     */
     LPARAM lParam;
+
+public:
+    /** 设置发送事件的控件
+    */
+    void SetSender(Control* pControl);
+
+    /** 获取发送事件的控件
+    */
+    Control* GetSender() const;
+
+    /** 判断发送事件的控件是否失效
+    */
+    bool IsSenderExpired() const;
+
+private:
+    /** 发送事件的控件
+    */
+    Control* pSender;
+
+    /** 控件的生命周期标志
+    */
+    std::weak_ptr<WeakFlag> m_senderFlag;
 };
 
 /** 将字符串转换为事件类型

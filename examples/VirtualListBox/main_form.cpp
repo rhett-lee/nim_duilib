@@ -77,7 +77,7 @@ void MainForm::OnCloseWindow()
 
 bool MainForm::OnClicked(const ui::EventArgs& args)
 {
-    auto sName = args.pSender->GetName();
+    auto sName = args.GetSender()->GetName();
     if (sName == _T("btn_set_total"))
     {
         if (!m_EditChildMarginX->GetText().empty())    {

@@ -380,12 +380,12 @@ void ListCtrl::InitReportView()
                 EventArgs msg = args;
                 msg.wParam = (WPARAM)pItem;
                 msg.lParam = pItem->GetElementIndex();
-                msg.pSender = this;
+                msg.SetSender(this);
                 SendEvent(msg);
             }
             else if (args.Type == kEventSelChange) {
                 EventArgs msg = args;
-                msg.pSender = this;
+                msg.SetSender(this);
                 SendEvent(msg);
             }
         };
@@ -437,12 +437,12 @@ void ListCtrl::InitIconView()
                 EventArgs msg = args;
                 msg.wParam = (WPARAM)pItem;
                 msg.lParam = pItem->GetElementIndex();
-                msg.pSender = this;
+                msg.SetSender(this);
                 SendEvent(msg);
             }
             else if (args.Type == kEventSelChange) {
                 EventArgs msg = args;
-                msg.pSender = this;
+                msg.SetSender(this);
                 SendEvent(msg);
             }
         };
@@ -496,12 +496,12 @@ void ListCtrl::InitListView()
                 EventArgs msg = args;
                 msg.wParam = (WPARAM)pItem;
                 msg.lParam = pItem->GetElementIndex();
-                msg.pSender = this;
+                msg.SetSender(this);
                 SendEvent(msg);
             }
             else if (args.Type == kEventSelChange) {
                 EventArgs msg = args;
-                msg.pSender = this;
+                msg.SetSender(this);
                 SendEvent(msg);
             }
         };
@@ -2339,7 +2339,7 @@ void ListCtrl::OnViewMouseEvents(const EventArgs& msg)
         (msg.Type == kEventMouseRButtonUp) ||
         (msg.Type == kEventMouseRDoubleClick) ||
         (msg.Type == kEventMouseMenu)) {
-        if (msg.pSender != m_pRichEdit) {
+        if (msg.GetSender() != m_pRichEdit) {
             LeaveEditMode();
         }
     }    
@@ -2347,7 +2347,7 @@ void ListCtrl::OnViewMouseEvents(const EventArgs& msg)
 
 void ListCtrl::OnViewKeyboardEvents(const EventArgs& msg)
 {
-    if (msg.pSender != m_pRichEdit) {
+    if (msg.GetSender() != m_pRichEdit) {
         LeaveEditMode();
     }    
 }

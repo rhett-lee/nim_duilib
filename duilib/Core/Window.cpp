@@ -1416,6 +1416,7 @@ bool Window::RemoveMessageFilter(IUIMessageFilter* pFilter)
 
 LRESULT Window::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     HWND hWnd = m_hWnd;
     if (uMsg == WM_CREATE) {
         //执行窗口的初始化工作        
@@ -1426,7 +1427,7 @@ LRESULT Window::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
     for (auto filter : m_aMessageFilters) {
         bool bHandled = false;
         LRESULT lResult = filter->FilterMessage(uMsg, wParam, lParam, bHandled);
-        if (bHandled) {
+        if (bHandled || windowFlag.expired()) {
             //过滤器处理后截获此消息，不再进行派发
             return lResult;
         }
@@ -1435,6 +1436,9 @@ LRESULT Window::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
     //第二优先级：派发给子类回调函数
     bool bHandled = false;
     LRESULT lResult = OnWindowMessage(uMsg, wParam, lParam, bHandled);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
 
     if (!bHandled && (uMsg == WM_CLOSE)) {
         //窗口即将关闭
@@ -1444,6 +1448,9 @@ LRESULT Window::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
     //第三优先级：内部处理函数，优先保证自身功能正常
     if (!bHandled) {
         lResult = HandleMessage(uMsg, wParam, lParam, bHandled);
+        if (windowFlag.expired()) {
+            return lResult;
+        }
     }
 
     //第四优先级：系统默认的窗口函数
@@ -2001,7 +2008,11 @@ LRESULT Window::OnMouseHoverMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, boo
 
     Control* pOldHover = GetHoverControl();
     if (pHover != nullptr) {
+        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         pHover->SendEvent(kEventMouseHover, 0, 0, 0, trackPos);
+        if (windowFlag.expired()) {
+            return 0;
+        }
     }
 
     if (pOldHover == GetHoverControl()) {
@@ -2146,10 +2157,13 @@ void Window::OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, con
         m_pEventClick = pControl;
         pControl->SetFocus();
         SetCapture();
+        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         pControl->SendEvent(eventType, wParam, lParam, 0, pt);
-        if ((pOldEventClick != nullptr) && (pOldEventClick != pControl)) {
-            pOldEventClick->SendEvent(kEventMouseClickChanged);
-        }
+        if (!windowFlag.expired()) {
+            if ((pOldEventClick != nullptr) && (pOldEventClick != pControl)) {
+                pOldEventClick->SendEvent(kEventMouseClickChanged);
+            }
+        }        
     }
 }
 
@@ -2159,8 +2173,11 @@ void Window::OnButtonUp(EventType eventType, WPARAM wParam, LPARAM lParam, const
     m_ptLastMousePos = pt;
     ReleaseCapture();
     if (m_pEventClick != nullptr) {
+        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         m_pEventClick->SendEvent(eventType, wParam, lParam, 0, pt);
-        m_pEventClick = nullptr;
+        if (!windowFlag.expired()) {
+            m_pEventClick = nullptr;
+        }        
     }
 }
 
@@ -2195,16 +2212,26 @@ void Window::OnMouseWheel(WPARAM wParam, LPARAM lParam, const UiPoint& pt)
 
 void Window::ClearStatus()
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     if (m_pEventHover != nullptr) {
         m_pEventHover->SendEvent(kEventMouseLeave);
+        if (windowFlag.expired()) {
+            return;
+        }
         m_pEventHover = nullptr;
     }
     if (m_pEventClick != nullptr) {
         m_pEventClick->SendEvent(kEventMouseLeave);
+        if (windowFlag.expired()) {
+            return;
+        }
         m_pEventClick = nullptr;
     }
     if (m_pEventKey != nullptr) {
         m_pEventKey->SendEvent(kEventMouseLeave);
+        if (windowFlag.expired()) {
+            return;
+        }
         m_pEventKey = nullptr;
     }
     KillFocus();
@@ -2216,10 +2243,13 @@ bool Window::HandleMouseEnterLeave(const UiPoint& pt, WPARAM wParam, LPARAM lPar
     //设置为新的Hover控件
     Control* pOldHover = m_pEventHover;
     m_pEventHover = pNewHover;
-
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     if ((pNewHover != pOldHover) && (pOldHover != nullptr)) {
         //Hover状态的控件发生变化，原来Hover控件的Tooltip应消失
         pOldHover->SendEvent(kEventMouseLeave, 0, 0, 0, pt);
+        if (windowFlag.expired()) {
+            return false;
+        }
         m_toolTip->HideToolTip();
     }
     ASSERT(pNewHover == m_pEventHover);
@@ -2229,6 +2259,9 @@ bool Window::HandleMouseEnterLeave(const UiPoint& pt, WPARAM wParam, LPARAM lPar
 
     if ((pNewHover != pOldHover) && (pNewHover != nullptr)) {
         pNewHover->SendEvent(kEventMouseEnter, wParam, lParam, 0, pt);
+        if (windowFlag.expired()) {
+            return false;
+        }
     }
     return true;
 }
@@ -2267,12 +2300,19 @@ LRESULT Window::OnKillFocusMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
     Control* pEventClick = m_pEventClick;
     m_pEventClick = nullptr;
     ReleaseCapture();
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     if (pEventClick != nullptr) {
         pEventClick->SendEvent(kEventWindowKillFocus, wParam, lParam, 0, UiPoint());
+        if (windowFlag.expired()) {
+            return 0;
+        }
     }
     Control* pFocus = m_pFocus;
     if ((pFocus != nullptr) && (pFocus != pEventClick)){
         pFocus->SendEvent(kEventWindowKillFocus, wParam, lParam, 0, UiPoint());
+        if (windowFlag.expired()) {
+            return 0;
+        }
     }
     return 0;
 }
@@ -2296,7 +2336,7 @@ LRESULT Window::OnKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHan
         ExitFullScreen();
         return 0;
     }
-
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     if (m_pFocus != nullptr) {
         if (wParam == kVK_TAB) {
             if (m_pFocus->IsVisible() &&
@@ -2312,6 +2352,9 @@ LRESULT Window::OnKeyDownMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHan
         else {
             m_pEventKey = m_pFocus;
             m_pFocus->SendEvent(kEventKeyDown, wParam, lParam, static_cast<TCHAR>(wParam));
+            if (windowFlag.expired()) {
+                return 0;
+            }
         }
     }
     if ((wParam == kVK_ESCAPE) && (m_pEventClick != nullptr)) {
@@ -2325,8 +2368,11 @@ LRESULT Window::OnKeyUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandl
     ASSERT_UNUSED_VARIABLE(uMsg == WM_KEYUP);
     bHandled = false;
     if (m_pEventKey != nullptr) {
+        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         m_pEventKey->SendEvent(kEventKeyUp, wParam, lParam, static_cast<TCHAR>(wParam));
-        m_pEventKey = nullptr;
+        if (!windowFlag.expired()) {
+            m_pEventKey = nullptr;
+        }
     }
     return 0;
 }
@@ -2347,8 +2393,11 @@ LRESULT Window::OnSysKeyUpMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
     ASSERT_UNUSED_VARIABLE(uMsg == WM_SYSKEYUP);
     bHandled = false;
     if (m_pEventKey != nullptr) {
+        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         m_pEventKey->SendEvent(kEventSysKeyUp, wParam, lParam, static_cast<TCHAR>(wParam));
-        m_pEventKey = nullptr;
+        if (!windowFlag.expired()) {
+            m_pEventKey = nullptr;
+        }
     }
     return 0;
 }
@@ -2526,8 +2575,11 @@ LRESULT Window::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
         }
         if (m_pEventClick) {
             //如果没有收到WM_POINTERUP消息，需要补一个（TODO：检查是否有副作用）
+            std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
             m_pEventClick->SendEvent(kEventMouseButtonUp, wParam, lParam, 0, lastMousePos);
-            m_pEventClick = nullptr;
+            if (!windowFlag.expired()) {
+                m_pEventClick = nullptr;
+            }
         }
         //如果不设置bHandled，程序会转换为WM_BUTTON类消息
         bHandled = true;
@@ -2561,8 +2613,11 @@ void Window::SetFocus(Control* pControl)
     // Remove focus from old control
     if (m_pFocus != nullptr) {
         //WPARAM 是新的焦点控件接口
+        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         m_pFocus->SendEvent(kEventKillFocus, (WPARAM)pControl);
-        m_pFocus = nullptr;
+        if (!windowFlag.expired()) {
+            m_pFocus = nullptr;
+        }        
     }
     // Set focus to new control    
     if ((pControl != nullptr) && pControl->IsVisible() && pControl->IsEnabled()) {
@@ -2577,8 +2632,11 @@ void Window::SetFocus(Control* pControl)
 void Window::KillFocus()
 {
     if (m_pFocus != nullptr) {
+        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         m_pFocus->SendEvent(kEventKillFocus);
-        m_pFocus = nullptr;
+        if (!windowFlag.expired()) {
+            m_pFocus = nullptr;
+        }        
     }
 }
 
@@ -2834,7 +2892,7 @@ void Window::AddDelayedCleanup(Control* pControl)
 bool Window::SendNotify(EventType eventType, WPARAM wParam, LPARAM lParam)
 {
     EventArgs msg;
-    msg.pSender = nullptr;
+    msg.SetSender(nullptr);
     msg.Type = eventType;
     msg.ptMouse = GetLastMousePos();
     msg.dwTimestamp = ::GetTickCount();

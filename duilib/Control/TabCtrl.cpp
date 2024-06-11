@@ -48,7 +48,7 @@ void TabCtrl::OnInit()
 
 void TabCtrl::HandleEvent(const EventArgs& msg)
 {
-    if ((msg.pSender == this) && (msg.Type == kEventSelect)) {
+    if ((msg.GetSender() == this) && (msg.Type == kEventSelect)) {
         //尝试设置关联的TabBox
         if ((m_pTabBox == nullptr) && !m_tabBoxName.empty()) {
             SetTabBoxName(m_tabBoxName.c_str());
@@ -68,7 +68,7 @@ void TabCtrl::HandleEvent(const EventArgs& msg)
             }
         }
     }
-    if ((msg.pSender == this) && ((msg.Type == kEventSelect) || (msg.Type == kEventUnSelect))) {
+    if ((msg.GetSender() == this) && ((msg.Type == kEventSelect) || (msg.Type == kEventUnSelect))) {
         TabCtrlItem* pItem = nullptr;
         size_t nSelectIndex = msg.wParam;
         Control* pControl = GetItemAt(nSelectIndex);
@@ -281,7 +281,7 @@ void TabCtrlItem::OnInit()
 
 void TabCtrlItem::HandleEvent(const EventArgs& msg)
 {
-    if ((msg.pSender == this) && (msg.Type == kEventStateChange) && (m_pLine != nullptr)) {
+    if ((msg.GetSender() == this) && (msg.Type == kEventStateChange) && (m_pLine != nullptr)) {
         //处理分割线的状态
         AdjustItemLineStatus();
     }
@@ -659,6 +659,9 @@ void TabCtrlItem::OnPrivateSetSelected()
 bool TabCtrlItem::ButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::ButtonDown(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     if (!IsSelected() && IsActivatable()) {
         //按鼠标左键的时候，选择
         Selected(true, true);

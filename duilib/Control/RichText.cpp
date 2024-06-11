@@ -728,6 +728,9 @@ DString RichText::ToString(const RichTextSlice& textSlice, const DString& indent
 bool RichText::ButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::ButtonDown(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     for (size_t index = 0; index < m_textData.size(); ++index) {
         RichTextDataEx& textData = m_textData[index];
         textData.m_bMouseDown = false;
@@ -748,6 +751,9 @@ bool RichText::ButtonDown(const EventArgs& msg)
 bool RichText::ButtonUp(const EventArgs& msg)
 {
     bool bRet = __super::ButtonUp(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     for (size_t index = 0; index < m_textData.size(); ++index) {
         RichTextDataEx& textData = m_textData[index];
         if (textData.m_linkUrl.empty()) {

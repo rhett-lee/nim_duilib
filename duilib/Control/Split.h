@@ -208,6 +208,9 @@ template<typename InheritType>
 bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
 {
     bool bRet = __super::ButtonDown(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     Box* pParent = this->GetParent();
     if (!this->IsEnabled() || (pParent == nullptr)) {
         return bRet;
@@ -302,6 +305,9 @@ template<typename InheritType>
 bool SplitTemplate<InheritType>::ButtonUp(const EventArgs& msg)
 {
     bool bRet = __super::ButtonUp(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
     StopSplitDrag();
     return bRet;
 }

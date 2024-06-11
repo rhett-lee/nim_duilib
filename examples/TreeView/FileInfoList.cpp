@@ -95,7 +95,7 @@ void FileInfoList::ClearFileList()
 
 bool FileInfoList::OnDoubleClickItem(const ui::EventArgs& args)
 {
-    FileInfoItem* pItem = dynamic_cast<FileInfoItem*>(args.pSender);
+    FileInfoItem* pItem = dynamic_cast<FileInfoItem*>(args.GetSender());
     if (pItem != nullptr) {
         size_t nElementIndex = pItem->GetUserDataID();
         if (nElementIndex < m_pathList.size()) {
