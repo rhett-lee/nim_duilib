@@ -540,6 +540,7 @@
     <ClInclude Include="Core\IconManager.h" />
     <ClInclude Include="Core\ImageList.h" />
     <ClInclude Include="Core\ImageManager.h" />
+    <ClInclude Include="Core\INativeWindow.h" />
     <ClInclude Include="Core\Keyboard.h" />
     <ClInclude Include="Core\KeyCode.h" />
     <ClInclude Include="Core\LangManager.h" />

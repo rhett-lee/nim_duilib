@@ -989,5 +989,8 @@
     <ClInclude Include="Core\NativeWindow_Windows.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="Core\INativeWindow.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

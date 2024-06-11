@@ -1,8 +1,6 @@
 #ifndef UI_CORE_WINDOW_H_
 #define UI_CORE_WINDOW_H_
 
-#pragma once
-
 #include "duilib/Core/WindowBase.h"
 #include "duilib/Utils/Delegate.h"
 #include "duilib/Core/ControlFinder.h"
@@ -35,9 +33,23 @@ public:
     virtual ~Window();
 
 public:
-    /** @name 窗口创建、销毁、事件监听等相关接口
-    * @{
+    /** 设置窗口资源路径
+    * @param [in] strPath 要设置的路径
     */
+    void SetResourcePath(const DString& strPath);
+
+    /** 获取窗口资源路径
+    */
+    const DString& GetResourcePath() const;
+
+    /** 绑定窗口的顶层容器
+    * @param [in] pRoot 容器指针
+    */
+    bool AttachBox(Box* pRoot);
+
+    /** 获取窗口最外层的容器
+    */
+    Box* GetRoot() const;
 
     /** 获取父窗口
     */
@@ -51,7 +63,162 @@ public:
     */
     void AttachWindowClose(const EventCallback& callback);
 
+    /** 主动发起一个消息, 发送给该窗口的事件回调管理器（m_OnEvent）中注册的消息处理函数
+    * @param [in] eventType 转化后的消息体
+    * @param [in] wParam 消息附加参数
+    * @param [in] lParam 消息附加参数
+    */
+    bool SendNotify(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0);
+
+public:
+    /** @name 窗口阴影相关接口
+    * @{
+    */
+    /** 附加窗口阴影
+    */
+    virtual Box* AttachShadow(Box* pRoot);
+
+    /** 设置窗口是否附加阴影效果
+    * @param [in] bShadowAttached 为 true 时附加，false 时不附加
+    */
+    void SetShadowAttached(bool bShadowAttached);
+
+    /** 获取是否附加阴影效果
+    */
+    bool IsShadowAttached() const;
+
+    /** 当前阴影效果值，是否为默认值
+    */
+    bool IsUseDefaultShadowAttached() const;
+
+    /** 设置当前阴影效果值，是否为默认值
+    */
+    void SetUseDefaultShadowAttached(bool isDefault);
+
+    /** 获取阴影图片
+    */
+    DString GetShadowImage() const;
+
+    /** 设置窗口阴影图片
+    * @param [in] strImage 图片位置
+    */
+    void SetShadowImage(const DString& strImage);
+
+    /** 获取阴影的九宫格描述信息
+    */
+    UiPadding GetShadowCorner() const;
+
+    /** 指定阴影素材的九宫格描述
+    * @param [in] padding 九宫格描述信息
+    * @param [in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
+    */
+    void SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale);
+
+    /** @}*/
+
+public:
+    /** 获取当前持有焦点的控件
+    */
+    Control* GetFocusControl() const;
+
+    /** 获取当前鼠标事件的控件
+    */
+    Control* GetEventClick() const;
+
+    /** 设置焦点到指定控件上(设置窗口为焦点窗口，并设置该控件为焦点控件)
+    * @param [in] pControl 控件指针
+    */
+    void SetFocusControl(Control* pControl);
+
+    /** 让控件失去焦点（不影响窗口焦点）
+    */
+    void KillFocusControl();
+
+    /** 获取当前鼠标在哪个控件上
+    */
+    Control* GetHoverControl() const;
+
+    /** 切换控件焦点到下一个（或上一个）控件
+    * @param [in] bForward true 为上一个控件，否则为 false，默认为 true
+    */
+    bool SetNextTabControl(bool bForward = true);
+
+public:
+    /** @name 窗口绘制相关接口
+    * @{
+    */
+    /** 设置控件是否已经布局
+    * @param [in] bArrange true 为已经排列，否则为 false
+    */
+    void SetArrange(bool bArrange);
+
+    /** 获取绘制对象
+    */
+    IRender* GetRender() const;
+
+     /** 判断当前是否渲染透明图层
+    */
+    bool IsRenderTransparent() const;
+
+    /** 设置渲染透明图层
+    * @param [in] bCanvasTransparent 设置 true 为渲染透明图层，否则为 false
+    */
+    bool SetRenderTransparent(bool bCanvasTransparent);
+
+    /** 清理图片缓存
+    */
+    void ClearImageCache();
+
     /** @} */
+
+public:
+    /**@name 控件查找相关接口
+    * @{
+    */
+    /** 根据坐标查找指定控件，采用默认属性：UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST
+    * @param [in] pt 指定坐标
+    */
+    Control* FindControl(const UiPoint& pt) const;
+
+    /**
+    *  根据坐标查找可以响应WM_CONTEXTMENU的控件
+    * @param [in] pt 指定坐标
+    */
+    Control* FindContextMenuControl(const UiPoint* pt) const;
+
+    /** 查找可以支持拖放的Box容器
+    * @param [in] pt 指定坐标
+    * @param [in] nDropInId 拖放的ID值（每个控件可以设置一个ID，来接收拖放）
+    */
+    Box* FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const;
+
+    /** 根据控件名称查找控件
+    * @param [in] strName 控件名称
+    */
+    Control* FindControl(const DString& strName) const;
+
+    /** 根据坐标查找子控件
+    * @param [in] pParent 要搜索的控件
+    * @param [in] pt 要查找的坐标
+    */
+    Control* FindSubControlByPoint(Control* pParent, const UiPoint& pt) const;
+
+    /** 根据名字查找子控件
+    * @param [in] pParent 要搜索的控件
+    * @param [in] strName 要查找的名称
+    */
+    Control* FindSubControlByName(Control* pParent, const DString& strName) const;
+
+    /** @} */
+
+public:
+    /** 获取一个点对应的窗口接口
+    */
+    Window* WindowFromPoint(const UiPoint& pt);
+
+    /** 更新ToolTip信息（此时ToolTip的信息已经发生变化）
+    */
+    void UpdateToolTip();
 
 public:
     /** 获取透明通道修补范围的的九宫格描述，对应 XML 中 alphafixcorner 属性
@@ -64,35 +231,13 @@ public:
     */
     void SetAlphaFixCorner(const UiRect& rc, bool bNeedDpiScale);
 
-    /** 设置窗口初始大小
+    /** 设置窗口初始大小, 对应XML文件中的 size 属性
     * @param [in] cx 宽度
     * @param [in] cy 高度
     * @param [in] bContainShadow 为 false 表示 cx cy 不包含阴影
     * @param [in] bNeedDpiScale 为 false 表示不根据 DPI 调整
     */
     void SetInitSize(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
-
-public:
-    /** @name 窗口布局相关接口
-    * @{
-    */
-    /** 绑定窗口的顶层容器
-    * @param [in] pRoot 容器指针
-    */
-    bool AttachBox(Box* pRoot);
-
-    /** 获取窗口最外层的容器
-    */
-    Box* GetRoot() const;
-
-    /** 获取窗口资源路径
-    */
-    const DString& GetResourcePath() const;
-
-    /** 设置窗口资源路径
-    * @param [in] strPath 要设置的路径
-    */
-    void SetResourcePath(const DString& strPath);
 
     /** 初始化控件，在容器中添加控件时会被调用（用于对控件名称做缓存）
     * @param [in] pControl 控件指针
@@ -170,15 +315,26 @@ public:
     */
     void RemoveAllOptionGroups();
 
-    /** @}*/
-
-public:
-    /** 主动发起一个消息, 发送给该窗口的事件回调管理器（m_OnEvent）中注册的消息处理函数
-    * @param [in] eventType 转化后的消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
+protected:
+    /** 初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
     */
-    bool SendNotify(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0);
+    virtual void InitWindow() override;
+
+    /** 窗口正在关闭，处理内部状态（内部函数，子类重写后，必须调用基类函数，否则影响功能）
+    */
+    virtual void ClosingWindow() override final;
+
+    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
+    */
+    virtual void OnInitWindow() override;
+
+    /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
+    */
+    virtual void OnCloseWindow() override;
+
+    /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并调用OnDeleteSelf函数销毁该窗口对象）
+    */
+    virtual void OnFinalMessage() override;
 
 protected:
     /** 切换系统标题栏与自绘标题栏
@@ -203,9 +359,9 @@ protected:
     virtual bool IsPtInCaptionBarControl(const UiPoint& pt) const override;
 
     /** @name 窗口消息处理相关
-     * @{
-     */
-     /** 窗口大小发生改变(WM_SIZE)
+        * @{
+        */
+        /** 窗口大小发生改变(WM_SIZE)
     * @param [in] sizeType 触发窗口大小改变的类型
     * @param [in] newWindowSize 新的窗口大小（宽度和高度）
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
@@ -390,18 +546,22 @@ protected:
     */
     virtual LRESULT OnWindowCloseMsg(uint32_t wParam, bool& bHandled) override;
 
-     /** @}*/
+    /** @}*/
+
 private:
-    /** @name 私有窗口消息处理相关
-    * @{
+    /** 窗口的DPI发生变化，更新控件大小和布局(该函数不允许重写，如果需要此事件，可以重写OnWindowDpiChanged函数，实现功能)
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
     */
+    virtual void OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override final;
+
     /** 自定义窗口消息的派发函数，仅供内部实现使用
-     * @param [in] uMsg 消息体
-     * @param [in] wParam 消息附加参数
-     * @param [in] lParam 消息附加参数
-     * @param[out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，否则将消息继续传递给窗口过程
-     * @return 返回消息的处理结果
-     */
+    * @param [in] uMsg 消息体
+    * @param [in] wParam 消息附加参数
+    * @param [in] lParam 消息附加参数
+    * @param[out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，否则将消息继续传递给窗口过程
+    * @return 返回消息的处理结果
+    */
     virtual LRESULT HandleUserMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override final;
 
 private:
@@ -431,169 +591,6 @@ private:
     * @return 返回 true 需要发送鼠标进入或离开消息，返回 false 为不需要
     */
     bool HandleMouseEnterLeave(const UiPoint& pt, WPARAM wParam, LPARAM lParam);
-
-    /** @}*/
-
-public:
-    /** @name 窗口焦点相关接口
-    * @{
-    */
-    /** 获取当前持有焦点的控件
-    */
-    Control* GetFocusControl() const;
-
-    /** 获取当前鼠标事件的控件
-    */
-    Control* GetEventClick() const;
-
-    /** 设置焦点到指定控件上(设置窗口为焦点窗口，并设置该控件为焦点控件)
-    * @param [in] pControl 控件指针
-    */
-    void SetFocusControl(Control* pControl);
-
-    /** 让控件失去焦点（不影响窗口焦点）
-    */
-    void KillFocusControl();
-
-    /** 获取当前鼠标在哪个控件上
-    */
-    Control* GetHoverControl() const;
-
-    /** 切换控件焦点到下一个（或上一个）控件
-    * @param [in] bForward true 为上一个控件，否则为 false，默认为 true
-    */
-    bool SetNextTabControl(bool bForward = true);
-
-    /** @}*/
-
-public:
-    /** @name 窗口阴影、层窗口透明度相关接口
-    * @{
-    */
-    /** 附加窗口阴影
-    */
-    virtual Box* AttachShadow(Box* pRoot);
-
-    /** 设置窗口是否附加阴影效果
-    * @param [in] bShadowAttached 为 true 时附加，false 时不附加
-    */
-    void SetShadowAttached(bool bShadowAttached);
-
-    /** 获取是否附加阴影效果
-    */
-    bool IsShadowAttached() const;
-
-    /** 当前阴影效果值，是否为默认值
-    */
-    bool IsUseDefaultShadowAttached() const;
-
-    /** 设置当前阴影效果值，是否为默认值
-    */
-    void SetUseDefaultShadowAttached(bool isDefault);
-
-    /** 获取阴影图片
-    */
-    DString GetShadowImage() const;
-
-    /** 设置窗口阴影图片
-    * @param [in] strImage 图片位置
-    */
-    void SetShadowImage(const DString& strImage);
-
-    /** 获取阴影的九宫格描述信息
-    */
-    UiPadding GetShadowCorner() const;
-
-    /** 指定阴影素材的九宫格描述
-    * @param [in] padding 九宫格描述信息
-    * @param [in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
-    */
-    void SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale);
-
-    /** @}*/
-
-public:
-    /** @name 窗口绘制相关接口
-    * @{
-    */
-    /** 设置控件是否已经布局
-    * @param [in] bArrange true 为已经排列，否则为 false
-    */
-    void SetArrange(bool bArrange);
-
-    /** 获取绘制对象
-    */
-    IRender* GetRender() const;
-
-    /** 绘制函数体
-    */
-    void Paint();
-
-    /** 判断当前是否渲染透明图层
-    */
-    bool IsRenderTransparent() const;
-
-    /** 设置渲染透明图层
-    * @param [in] bCanvasTransparent 设置 true 为渲染透明图层，否则为 false
-    */
-    bool SetRenderTransparent(bool bCanvasTransparent);
-
-    /** 清理图片缓存
-    */
-    void ClearImageCache();
-
-    /** @} */
-
-public:
-
-    /**@name 控件查找相关接口
-    * @{
-    */
-    /** 根据坐标查找指定控件，采用默认属性：UIFIND_VISIBLE | UIFIND_HITTEST | UIFIND_TOP_FIRST
-    * @param [in] pt 指定坐标
-    */
-    Control* FindControl(const UiPoint& pt) const;
-
-    /**
-    *  根据坐标查找可以响应WM_CONTEXTMENU的控件
-    * @param [in] pt 指定坐标
-    */
-    Control* FindContextMenuControl(const UiPoint* pt) const;
-
-    /** 查找可以支持拖放的Box容器
-    * @param [in] pt 指定坐标
-    * @param [in] nDropInId 拖放的ID值（每个控件可以设置一个ID，来接收拖放）
-    */
-    Box* FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const;
-
-    /** 根据控件名称查找控件
-    * @param [in] strName 控件名称
-    */
-    Control* FindControl(const DString& strName) const;
-
-    /** 根据坐标查找子控件
-    * @param [in] pParent 要搜索的控件
-    * @param [in] pt 要查找的坐标
-    */
-    Control* FindSubControlByPoint(Control* pParent, const UiPoint& pt) const;
-
-    /** 根据名字查找子控件
-    * @param [in] pParent 要搜索的控件
-    * @param [in] strName 要查找的名称
-    */
-    Control* FindSubControlByName(Control* pParent, const DString& strName) const;
-
-    /** @} */
-
-public:
-
-    /** 获取一个点对应的窗口接口
-    */
-    Window* WindowFromPoint(const UiPoint& pt);
-
-    /** 更新ToolTip信息（此时ToolTip的信息已经发生变化）
-    */
-    void UpdateToolTip();
 
 private:
     /**@name 动画效果相关接口
@@ -634,33 +631,9 @@ private:
     */
     void OnInitLayout();
 
-protected:
-    /** 初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
+    /** 绘制函数体
     */
-    virtual void InitWindow() override;
-
-    /** 窗口正在关闭，处理内部状态（内部函数，子类重写后，必须调用基类函数，否则影响功能）
-    */
-    virtual void ClosingWindow() override final;
-
-    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
-    */
-    virtual void OnInitWindow() override;
-
-    /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
-    */
-    virtual void OnCloseWindow() override;
-
-    /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并调用OnDeleteSelf函数销毁该窗口对象）
-    */
-    virtual void OnFinalMessage() override;
-
-private:
-    /** 窗口的DPI发生变化，更新控件大小和布局(该函数不允许重写，如果需要此事件，可以重写OnWindowDpiChanged函数，实现功能)
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
-    */
-    virtual void OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override final;
+    void Paint();
 
 private:
     //事件回调管理器
@@ -708,7 +681,6 @@ private:
     //布局是否需要初始化
     bool m_bFirstLayout;
 
-private:
     //绘制时的偏移量（动画用）
     UiPoint m_renderOffset;
 
@@ -728,7 +700,6 @@ private:
     //该窗口下每个Option group下的控件（即单选控件是分组的）
     std::map<DString, std::vector<Control*>> m_mOptionGroup;
 
-private:
     //Tooltip
     std::unique_ptr<ToolTip> m_toolTip;
 };

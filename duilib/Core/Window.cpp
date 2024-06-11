@@ -8,12 +8,7 @@
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
-#include "duilib/Animation/AnimationManager.h"
-#include "duilib/Animation/AnimationPlayer.h"
-#include "duilib/Utils/ApiWrapper.h"
 #include "duilib/Utils/PerformanceUtil.h"
-
-#include <VersionHelpers.h>
 
 //清理控件资源的自定义消息
 #define WM_CLEANUP_MSG  (WM_USER + 1)
@@ -1027,21 +1022,18 @@ Control* Window::GetEventClick() const
 
 void Window::SetFocusControl(Control* pControl)
 {
-    // Paint manager window has focus?
     if (pControl != nullptr) {
+        //确保窗口有焦点
         CheckSetWindowFocus();
     }
-    // Already has focus?
     if (pControl == m_pFocus) {
         return;
     }
-    // Remove focus from old control
     if (m_pFocus != nullptr) {
         //WPARAM 是新的焦点控件接口
         m_pFocus->SendEvent(kEventKillFocus, (WPARAM)pControl);
         m_pFocus = nullptr;
     }
-    // Set focus to new control    
     if ((pControl != nullptr) && pControl->IsVisible() && pControl->IsEnabled()) {
         ASSERT(pControl->GetWindow() == this);
         ASSERT(IsWindowFocused());
@@ -1163,14 +1155,13 @@ ui::IRender* Window::GetRender() const
 void Window::Paint()
 {
     GlobalManager::Instance().AssertUIThread();
-    HWND hWnd = GetHWND();
-    if (hWnd == nullptr) {
+    if (!IsWindow()) {
         return;
     }
     if (IsWindowMinimized() || (m_pRoot == nullptr)) {
-        PAINTSTRUCT ps = { 0 };
-        ::BeginPaint(hWnd, &ps);
-        ::EndPaint(hWnd, &ps);
+        UiRect rcPaint;
+        BeginPaint(rcPaint);
+        EndPaint(rcPaint, nullptr);
         return;
     }
 
@@ -1193,45 +1184,30 @@ void Window::Paint()
 
     UiRect rcClient;
     GetClientRect(rcClient);
-    UiRect rcWindow;
-    GetWindowRect(rcWindow);
     if (rcClient.IsEmpty()) {
+        UiRect rcPaint;
+        BeginPaint(rcPaint);
+        EndPaint(rcPaint, nullptr);
         return;
     }
     if (!m_render->Resize(rcClient.Width(), rcClient.Height())) {
         ASSERT(!"m_render->Resize resize failed!");
+        UiRect rcPaint;
+        BeginPaint(rcPaint);
+        EndPaint(rcPaint, nullptr);
         return;
     }
 
-    // Should we paint?
-    RECT rectPaint = { 0, };
-    if (!::GetUpdateRect(hWnd, &rectPaint, FALSE) && !bFirstLayout) {
+    UiRect rectPaint;
+    if (!GetUpdateRect(rectPaint) && !bFirstLayout) {
         return;
     }
-    UiRect rcPaint(rectPaint.left, rectPaint.top, rectPaint.right, rectPaint.bottom);
 
-    //使用层窗口时，窗口部分在屏幕外时，获取到的无效区域仅仅是屏幕内的部分，这里做修正处理
-    if (IsLayeredWindow()) {
-        int32_t xScreen = GetSystemMetricsForDpiWrapper(SM_XVIRTUALSCREEN, Dpi().GetDPI());
-        int32_t yScreen = GetSystemMetricsForDpiWrapper(SM_YVIRTUALSCREEN, Dpi().GetDPI());
-        int32_t cxScreen = GetSystemMetricsForDpiWrapper(SM_CXVIRTUALSCREEN, Dpi().GetDPI());
-        int32_t cyScreen = GetSystemMetricsForDpiWrapper(SM_CYVIRTUALSCREEN, Dpi().GetDPI());
-        if (rcWindow.left < xScreen && rcWindow.left + rcPaint.left == xScreen) {
-            rcPaint.left = rcClient.left;
-        }
-        if (rcWindow.top < yScreen && rcWindow.top + rcPaint.top == yScreen) {
-            rcPaint.top = rcClient.top;
-        }
-        if (rcWindow.right > cxScreen && rcWindow.left + rcPaint.right == xScreen + cxScreen) {
-            rcPaint.right = rcClient.right;
-        }
-        if (rcWindow.bottom > cyScreen && rcWindow.top + rcPaint.bottom == yScreen + cyScreen) {
-            rcPaint.bottom = rcClient.bottom;
-        }
+    //开始绘制
+    UiRect rcPaint;
+    if (!BeginPaint(rcPaint)) {
+        return;
     }
-
-    PAINTSTRUCT ps = { 0 };
-    ::BeginPaint(hWnd, &ps);
 
     // 去掉alpha通道
     if (IsLayeredWindow()) {
@@ -1256,7 +1232,8 @@ void Window::Paint()
 
     // alpha修复
     if (IsLayeredWindow()) {
-        if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() && m_renderOffset.x == 0 && m_renderOffset.y == 0) {
+        if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() &&
+            (m_renderOffset.x == 0) && (m_renderOffset.y == 0)) {
             //补救由于Gdi绘制造成的alpha通道为0
             UiRect rcNewPaint = rcPaint;
             rcNewPaint.Intersect(m_pRoot->GetPosWithoutPadding());
@@ -1272,12 +1249,12 @@ void Window::Paint()
         }
         else {
             UiRect rcAlphaFixCorner = GetAlphaFixCorner();
-            if (rcAlphaFixCorner.left > 0 || rcAlphaFixCorner.top > 0 || rcAlphaFixCorner.right > 0 || rcAlphaFixCorner.bottom > 0)
-            {
+            if ((rcAlphaFixCorner.left > 0) || (rcAlphaFixCorner.top > 0) ||
+                (rcAlphaFixCorner.right > 0) || (rcAlphaFixCorner.bottom > 0)) {
                 UiRect rcNewPaint = rcPaint;
                 UiRect rcRootPaddingPos = m_pRoot->GetPosWithoutPadding();
                 rcRootPaddingPos.Deflate(rcAlphaFixCorner.left, rcAlphaFixCorner.top,
-                    rcAlphaFixCorner.right, rcAlphaFixCorner.bottom);
+                                         rcAlphaFixCorner.right, rcAlphaFixCorner.bottom);
                 rcNewPaint.Intersect(rcRootPaddingPos);
 
                 UiPadding rcRootPadding;
@@ -1286,24 +1263,8 @@ void Window::Paint()
         }
     }
 
-    // 渲染到窗口
-    if (IsLayeredWindow()) {
-        POINT pt = { rcWindow.left, rcWindow.top };
-        SIZE szWindow = { rcClient.right - rcClient.left, rcClient.bottom - rcClient.top };
-        POINT ptSrc = { 0, 0 };
-        BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(GetWindowAlpha()), AC_SRC_ALPHA };
-        HDC hdc = m_render->GetDC();
-        ::UpdateLayeredWindow(hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA);
-        m_render->ReleaseDC(hdc);
-    }
-    else {
-        HDC hdc = m_render->GetDC();
-        ::BitBlt(ps.hdc, rcPaint.left, rcPaint.top, rcPaint.Width(), rcPaint.Height(),
-                 hdc, rcPaint.left, rcPaint.top, SRCCOPY);
-        m_render->ReleaseDC(hdc);
-    }
-
-    ::EndPaint(hWnd, &ps);
+    //结束绘制，渲染到窗口
+    EndPaint(rcPaint, m_render.get());
 }
 
 void Window::AutoResizeWindow(bool bRepaint)
@@ -1397,10 +1358,8 @@ void Window::SetRenderOffsetY(int renderOffsetY)
 
 void Window::OnInitLayout()
 {
-    if ((m_pRoot != nullptr) && ::IsWindowsVistaOrGreater()) {
-        if (m_pRoot->IsVisible()) {
-            m_pRoot->SetFadeVisible(true);
-        }
+    if ((m_pRoot != nullptr) && m_pRoot->IsVisible()) {
+        m_pRoot->SetFadeVisible(true);
     }
 }
 
