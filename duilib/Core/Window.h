@@ -337,13 +337,39 @@ protected:
     */
     virtual void OnUseSystemCaptionBarChanged() override;
 
+    /** 窗口的层窗口属性发生变化
+    */
+    virtual void OnLayeredWindowChanged() override;
+
     /** 窗口的透明度发生变化
     */
     virtual void OnWindowAlphaChanged() override;
 
-    /** 窗口的层窗口属性发生变化
+    /** 进入全屏状态
     */
-    virtual void OnLayeredWindowChanged() override;
+    virtual void OnWindowEnterFullScreen() override;
+
+    /** 退出全屏状态
+    */
+    virtual void OnWindowExitFullScreen() override;
+
+    /** 进入最大化状态
+    */
+    virtual void OnWindowMaximized() override;
+
+    /** 从最大化还原
+    */
+    virtual void OnWindowRestored() override;
+
+    /** 进入最小化状态
+    */
+    virtual void OnWindowMinimized() override;
+
+    /** 窗口的DPI发生了变化(供子类使用)
+    * @param [in] nOldDPI 旧的DPI值
+    * @param [in] nNewDPI 新的DPI值
+    */
+    virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) override;
 
     /** 获取窗口阴影的大小
     * @param [out] rcShadow 获取圆角的大小
@@ -356,8 +382,17 @@ protected:
 
     /** @name 窗口消息处理相关
         * @{
-        */
-        /** 窗口大小发生改变(WM_SIZE)
+    */
+    /** 窗口消息的派发函数
+    * @param [in] uMsg 消息体
+    * @param [in] wParam 消息附加参数
+    * @param [in] lParam 消息附加参数
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果
+    */
+    virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+
+    /** 窗口大小发生改变(WM_SIZE)
     * @param [in] sizeType 触发窗口大小改变的类型
     * @param [in] newWindowSize 新的窗口大小（宽度和高度）
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理

@@ -86,6 +86,7 @@ public:
     */
     virtual void OnNativeUseSystemCaptionBarChanged() = 0;
 
+public:
     /** @name 窗口消息处理相关
      * @{
      */
