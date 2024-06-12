@@ -46,10 +46,10 @@ void ListCtrlItem::HandleEvent(const EventArgs& msg)
 {
     __super::HandleEvent(msg);
     if (m_pListCtrl != nullptr) {
-        if ((msg.Type > kEventKeyBegin) && (msg.Type < kEventKeyEnd)) {
+        if ((msg.eventType > kEventKeyBegin) && (msg.eventType < kEventKeyEnd)) {
             m_pListCtrl->OnViewKeyboardEvents(msg);
         }
-        else if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+        else if ((msg.eventType > kEventMouseBegin) && (msg.eventType < kEventMouseEnd)) {
             m_pListCtrl->OnViewMouseEvents(msg);
         }
     }

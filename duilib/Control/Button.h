@@ -48,10 +48,10 @@ uint32_t ui::ButtonTemplate<InheritType>::GetControlFlags() const
 template<typename InheritType>
 void ButtonTemplate<InheritType>::HandleEvent(const EventArgs& msg)
 {
-    if (msg.Type == kEventKeyDown) {
+    if (msg.eventType == kEventKeyDown) {
         if (this->IsEnabled() && this->IsKeyboardEnabled()) {
             //按下回车键或者空格键的时候，触发按钮响应动作
-            if (msg.chKey == kVK_SPACE || msg.chKey == kVK_RETURN) {
+            if (msg.vkCode == kVK_SPACE || msg.vkCode == kVK_RETURN) {
                 Activate();
                 return;
             }

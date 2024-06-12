@@ -451,7 +451,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 
     UiPoint pt(msg.ptMouse);
     pt.Offset(GetScrollOffsetInScrollBox());
-    if ((msg.Type == kEventMouseButtonDown) || (msg.Type == kEventMouseDoubleClick)) {
+    if ((msg.eventType == kEventMouseButtonDown) || (msg.eventType == kEventMouseDoubleClick)) {
         m_nLastScrollOffset = 0;
         m_nScrollRepeatDelay = 0;
 
@@ -554,7 +554,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
         ButtonDown(msg);
         return;
     }
-    else if ((msg.Type == kEventMouseButtonUp) || (msg.Type == kEventWindowKillFocus) ){
+    else if ((msg.eventType == kEventMouseButtonUp) || (msg.eventType == kEventWindowKillFocus) ){
         m_nScrollRepeatDelay = 0;
         m_nLastScrollOffset = 0;
 
@@ -577,16 +577,16 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
             Invalidate();
         }
 
-        ButtonUp(msg);//这里的msg.Type不对
+        ButtonUp(msg);//这里的msg.eventType不对
         return;
     }
-    else if (msg.Type == kEventMouseEnter) {
+    else if (msg.eventType == kEventMouseEnter) {
         MouseEnter(msg);
     }
-    else if (msg.Type == kEventMouseLeave) {
+    else if (msg.eventType == kEventMouseLeave) {
         MouseLeave(msg);
     }
-    else if (msg.Type == kEventMouseMove) {
+    else if (msg.eventType == kEventMouseMove) {
         if (IsMouseFocused()) {
             if (!m_bHorizontal) {
                 //垂直滚动条
@@ -620,7 +620,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
 
         return;
     }
-    else if (msg.Type == kEventSetCursor) {
+    else if (msg.eventType == kEventSetCursor) {
         if (GetCursorType() == kCursorHand) {
             SetCursor(kCursorHand);
             return;

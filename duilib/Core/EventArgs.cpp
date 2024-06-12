@@ -3,6 +3,16 @@
 
 namespace ui
 {
+EventArgs::EventArgs() :
+    eventType(EventType::kEventNone),
+    vkCode(VirtualKeyCode::kVK_None),
+    wParam(0),
+    lParam(0),
+    pSender(nullptr)
+{
+    ptMouse.x = 0;
+    ptMouse.y = 0;
+}
 
 void EventArgs::SetSender(Control* pControl)
 {

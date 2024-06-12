@@ -292,13 +292,13 @@ void ListBoxItemTemplate<InheritType>::HandleEvent(const EventArgs& msg)
         }
         return;
     }
-    if (msg.Type == kEventMouseDoubleClick) {
+    if (msg.eventType == kEventMouseDoubleClick) {
         if (!this->IsActivatable()) {
             return;
         }
     }
-    else if (msg.Type == kEventKeyDown && this->IsEnabled()) {
-        if (msg.chKey == kVK_RETURN) {
+    else if (msg.eventType == kEventKeyDown && this->IsEnabled()) {
+        if (msg.vkCode == kVK_RETURN) {
             if (this->IsActivatable()) {
                 this->SendEvent(kEventReturn);
             }

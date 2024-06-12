@@ -1637,8 +1637,8 @@ void Control::SendEvent(EventType eventType,
 {
     EventArgs msg;
     msg.SetSender(this);
-    msg.Type = eventType;
-    msg.chKey = tChar;
+    msg.eventType = eventType;
+    msg.vkCode = tChar;
     msg.wParam = wParam;
     msg.lParam = lParam;
     if ((mousePos.x == 0) && (mousePos.y == 0)) {
@@ -1650,15 +1650,13 @@ void Control::SendEvent(EventType eventType,
     else {
         msg.ptMouse = mousePos;
     }
-    msg.dwTimestamp = std::chrono::steady_clock::now();
-
     SendEvent(msg);
 }
 
 void Control::SendEvent(const EventArgs& msg)
 {
 //#ifdef _DEBUG
-//    DString eventType = EventTypeToString(msg.Type);
+//    DString eventType = EventTypeToString(msg.eventType);
 //    DString type = GetType();
 //    wchar_t buf[256] = {};
 //    swprintf_s(buf, _T("Control::SendEvent: type=%s, eventType=%s\r\n"), type.c_str(), eventType.c_str());
@@ -1672,19 +1670,19 @@ void Control::SendEvent(const EventArgs& msg)
 
 bool Control::IsDisabledEvents(const EventArgs& msg) const
 {
-    if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+    if ((msg.eventType > kEventMouseBegin) && (msg.eventType < kEventMouseEnd)) {
         //当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
         if (!IsEnabled() || !IsMouseEnabled()) {
             return true;
         }
     }
-    else if ((msg.Type > kEventKeyBegin) && (msg.Type < kEventKeyEnd)) {
+    else if ((msg.eventType > kEventKeyBegin) && (msg.eventType < kEventKeyEnd)) {
         //当前控件禁止接收键盘消息时，将键盘相关消息转发给上层处理
         if (!IsEnabled() || !IsKeyboardEnabled()) {
             return true;
         }
     }
-    else if (msg.Type == kEventLast) {
+    else if (msg.eventType == kEventLast) {
         //转发给上层控件
         return true;
     }
@@ -1702,37 +1700,37 @@ void Control::HandleEvent(const EventArgs& msg)
         }
         return;
     }
-    if( msg.Type == kEventSetCursor ) {
+    if( msg.eventType == kEventSetCursor ) {
         if (OnSetCursor(msg)) {
             return;
         }        
     }
-    else if (msg.Type == kEventSetFocus) {
+    else if (msg.eventType == kEventSetFocus) {
         if (OnSetFocus(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventKillFocus) {
+    else if (msg.eventType == kEventKillFocus) {
         if (OnKillFocus(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventWindowKillFocus) {
+    else if (msg.eventType == kEventWindowKillFocus) {
         if (OnWindowKillFocus(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventImeStartComposition) {
+    else if (msg.eventType == kEventImeStartComposition) {
         if (OnImeStartComposition(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventImeEndComposition) {
+    else if (msg.eventType == kEventImeEndComposition) {
         if (OnImeEndComposition(msg)) {
             return;
         }
     }
-    else if( msg.Type == kEventMouseEnter ) {
+    else if( msg.eventType == kEventMouseEnter ) {
         if (GetWindow()) {
             if (!IsChild(this, GetWindow()->GetHoverControl())) {
                 return;
@@ -1742,7 +1740,7 @@ void Control::HandleEvent(const EventArgs& msg)
             return;
         }
     }
-    else if( msg.Type == kEventMouseLeave ) {
+    else if( msg.eventType == kEventMouseLeave ) {
         if (GetWindow()) {
             if (IsChild(this, GetWindow()->GetHoverControl())) {
                 return;
@@ -1752,77 +1750,77 @@ void Control::HandleEvent(const EventArgs& msg)
             return;
         }
     }
-    else if (msg.Type == kEventMouseButtonDown) {
+    else if (msg.eventType == kEventMouseButtonDown) {
         if (ButtonDown(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventMouseButtonUp) {
+    else if (msg.eventType == kEventMouseButtonUp) {
         if (ButtonUp(msg)) {
             return;
         }        
     }
-    else if (msg.Type == kEventMouseDoubleClick) {
+    else if (msg.eventType == kEventMouseDoubleClick) {
         if (ButtonDoubleClick(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventMouseRButtonDown) {
+    else if (msg.eventType == kEventMouseRButtonDown) {
         if (RButtonDown(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventMouseRButtonUp) {
+    else if (msg.eventType == kEventMouseRButtonUp) {
         if (RButtonUp(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventMouseRDoubleClick) {
+    else if (msg.eventType == kEventMouseRDoubleClick) {
         if (RButtonDoubleClick(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventMouseMove) {
+    else if (msg.eventType == kEventMouseMove) {
         if (MouseMove(msg)) {
             return;
         }        
     }
-    else if (msg.Type == kEventMouseHover) {
+    else if (msg.eventType == kEventMouseHover) {
         if (MouseHover(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventMouseWheel) {
+    else if (msg.eventType == kEventMouseWheel) {
         if (MouseWheel(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventMouseMenu) {
+    else if (msg.eventType == kEventMouseMenu) {
         if (MouseMenu(msg)) {
             return;
         }        
     }
-    else if (msg.Type == kEventChar) {
+    else if (msg.eventType == kEventChar) {
         if (OnChar(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventKeyDown) {
+    else if (msg.eventType == kEventKeyDown) {
         if (OnKeyDown(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventKeyUp) {
+    else if (msg.eventType == kEventKeyUp) {
         if (OnKeyUp(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventSysKeyDown) {
+    else if (msg.eventType == kEventSysKeyDown) {
         if (OnSysKeyDown(msg)) {
             return;
         }
     }
-    else if (msg.Type == kEventSysKeyUp) {
+    else if (msg.eventType == kEventSysKeyUp) {
         if (OnSysKeyUp(msg)) {
             return;
         }
@@ -3102,7 +3100,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
 
     if (msg.GetSender() == this) {
         if (bRet && (m_pOnEvent != nullptr) && !m_pOnEvent->empty()) {
-            auto callback = m_pOnEvent->find(msg.Type);
+            auto callback = m_pOnEvent->find(msg.eventType);
             if (callback != m_pOnEvent->end()) {
                 bRet = callback->second(msg);
             }
@@ -3120,7 +3118,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
         }
 
         if (bRet && (m_pOnXmlEvent != nullptr) && !m_pOnXmlEvent->empty()) {
-            auto callback = m_pOnXmlEvent->find(msg.Type);
+            auto callback = m_pOnXmlEvent->find(msg.eventType);
             if (callback != m_pOnXmlEvent->end()) {
                 bRet = callback->second(msg);
             }
@@ -3139,7 +3137,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
     }
 
     if (bRet && (m_pOnBubbledEvent != nullptr) && !m_pOnBubbledEvent->empty()) {
-        auto callback = m_pOnBubbledEvent->find(msg.Type);
+        auto callback = m_pOnBubbledEvent->find(msg.eventType);
         if (callback != m_pOnBubbledEvent->end()) {
             bRet = callback->second(msg);
         }
@@ -3157,7 +3155,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
     }
 
     if (bRet && (m_pOnXmlBubbledEvent != nullptr) && !m_pOnXmlBubbledEvent->empty()) {
-        auto callback = m_pOnXmlBubbledEvent->find(msg.Type);
+        auto callback = m_pOnXmlBubbledEvent->find(msg.eventType);
         if (callback != m_pOnXmlBubbledEvent->end()) {
             bRet = callback->second(msg);
         }

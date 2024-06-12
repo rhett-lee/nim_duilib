@@ -305,10 +305,10 @@ void ListCtrl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 void ListCtrl::HandleEvent(const EventArgs& msg)
 {
     __super::HandleEvent(msg);
-    if ((msg.Type > kEventKeyBegin) && (msg.Type < kEventKeyEnd)) {
+    if ((msg.eventType > kEventKeyBegin) && (msg.eventType < kEventKeyEnd)) {
         OnViewKeyboardEvents(msg);
     }
-    else if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+    else if ((msg.eventType > kEventMouseBegin) && (msg.eventType < kEventMouseEnd)) {
         OnViewMouseEvents(msg);
     }
 }
@@ -383,7 +383,7 @@ void ListCtrl::InitReportView()
                 msg.SetSender(this);
                 SendEvent(msg);
             }
-            else if (args.Type == kEventSelChange) {
+            else if (args.eventType == kEventSelChange) {
                 EventArgs msg = args;
                 msg.SetSender(this);
                 SendEvent(msg);
@@ -440,7 +440,7 @@ void ListCtrl::InitIconView()
                 msg.SetSender(this);
                 SendEvent(msg);
             }
-            else if (args.Type == kEventSelChange) {
+            else if (args.eventType == kEventSelChange) {
                 EventArgs msg = args;
                 msg.SetSender(this);
                 SendEvent(msg);
@@ -499,7 +499,7 @@ void ListCtrl::InitListView()
                 msg.SetSender(this);
                 SendEvent(msg);
             }
-            else if (args.Type == kEventSelChange) {
+            else if (args.eventType == kEventSelChange) {
                 EventArgs msg = args;
                 msg.SetSender(this);
                 SendEvent(msg);
@@ -2219,7 +2219,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
     //按ESC键：取消修改
     m_pRichEdit->DetachEvent(kEventKeyDown);
     m_pRichEdit->AttachEvent(kEventKeyDown, [this, RestoreItemFocus](const EventArgs& msg) {
-        if ((msg.Type == kEventKeyDown) && (msg.chKey == kVK_ESCAPE)) {
+        if ((msg.eventType == kEventKeyDown) && (msg.vkCode == kVK_ESCAPE)) {
             ClearEditEvents();
             RestoreItemFocus();
             return false;
@@ -2331,14 +2331,14 @@ void ListCtrl::OnItemEdited(const ListCtrlEditParam& editParam, const DString& n
 
 void ListCtrl::OnViewMouseEvents(const EventArgs& msg)
 {
-    if ((msg.Type == kEventMouseWheel) ||
-        (msg.Type == kEventMouseButtonDown) ||
-        (msg.Type == kEventMouseButtonUp) ||
-        (msg.Type == kEventMouseDoubleClick) ||
-        (msg.Type == kEventMouseRButtonDown) ||
-        (msg.Type == kEventMouseRButtonUp) ||
-        (msg.Type == kEventMouseRDoubleClick) ||
-        (msg.Type == kEventMouseMenu)) {
+    if ((msg.eventType == kEventMouseWheel) ||
+        (msg.eventType == kEventMouseButtonDown) ||
+        (msg.eventType == kEventMouseButtonUp) ||
+        (msg.eventType == kEventMouseDoubleClick) ||
+        (msg.eventType == kEventMouseRButtonDown) ||
+        (msg.eventType == kEventMouseRButtonUp) ||
+        (msg.eventType == kEventMouseRDoubleClick) ||
+        (msg.eventType == kEventMouseMenu)) {
         if (msg.GetSender() != m_pRichEdit) {
             LeaveEditMode();
         }

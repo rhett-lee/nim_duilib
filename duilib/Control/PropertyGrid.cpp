@@ -1077,7 +1077,7 @@ public:
             }
         }
         else {
-            if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+            if ((msg.eventType > kEventMouseBegin) && (msg.eventType < kEventMouseEnd)) {
                 //鼠标消息，转给父控件
                 Box* pParent = this->GetParent();
                 if (pParent != nullptr) {

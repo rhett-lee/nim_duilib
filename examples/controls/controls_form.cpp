@@ -138,7 +138,7 @@ void ControlForm::OnInitWindow()
     ui::RichEdit* edit = static_cast<ui::RichEdit*>(FindControl(_T("edit")));
     if (edit != nullptr) {
         edit->AttachMenu([this](const ui::EventArgs& args) {
-            if (args.Type == ui::kEventMouseMenu) {
+            if (args.eventType == ui::kEventMouseMenu) {
                 ui::UiPoint pt = args.ptMouse;
                 if ((pt.x != -1) && (pt.y != -1)) {
                     ui::Control* pControl = (ui::Control*)args.lParam;//当前点击点所在的控件

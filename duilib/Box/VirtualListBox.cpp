@@ -638,9 +638,9 @@ void VirtualListBox::VSendEvent(const EventArgs& args, bool bFromItem)
         }        
         __super::SendEvent(msg);
     }
-    else if ((args.Type == kEventMouseDoubleClick) ||
-             (args.Type == kEventClick) ||
-             (args.Type == kEventRClick)) {
+    else if ((args.eventType == kEventMouseDoubleClick) ||
+             (args.eventType == kEventClick) ||
+             (args.eventType == kEventRClick)) {
         if (args.GetSender() == this) {
             ASSERT(args.wParam == 0);
             ASSERT(args.lParam == 0);

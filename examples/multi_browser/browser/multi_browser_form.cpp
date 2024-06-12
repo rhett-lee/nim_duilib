@@ -585,7 +585,7 @@ void MultiBrowserForm::OnAfterDragBoxCallback(bool drop_succeed)
 
 bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs& param)
 {
-    if (kEventSelect == param.Type)
+    if (kEventSelect == param.eventType)
     {
         DString name = param.GetSender()->GetName();
 
@@ -601,7 +601,7 @@ bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs& param)
             ChangeToBox(session_id);
         }
     }
-    else if (kEventMouseButtonDown == param.Type)
+    else if (kEventMouseButtonDown == param.eventType)
     {
         BrowserTabItem *tab_item = dynamic_cast<BrowserTabItem*>(param.GetSender());
         if (tab_item)

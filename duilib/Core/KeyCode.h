@@ -13,6 +13,7 @@ namespace ui {
 /** 虚拟键编码(和Windows系统定义一致，WinUser.h)
 */
 enum VirtualKeyCode{
+    kVK_None = 0x00, //无虚拟键
     kVK_LBUTTON = 0x01, //鼠标左键
     kVK_RBUTTON = 0x02, //鼠标右键
     kVK_CANCEL = 0x03, //控制中断处理

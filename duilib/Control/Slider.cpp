@@ -47,7 +47,7 @@ void Slider::HandleEvent(const EventArgs& msg)
         }
         return;
     }
-    if (msg.Type == kEventMouseButtonDown || msg.Type == kEventMouseDoubleClick) {
+    if (msg.eventType == kEventMouseButtonDown || msg.eventType == kEventMouseDoubleClick) {
         UiPoint newPtMouse(msg.ptMouse);
         newPtMouse.Offset(GetScrollOffsetInScrollBox());
         UiRect rcThumb = GetThumbRect();
@@ -56,7 +56,7 @@ void Slider::HandleEvent(const EventArgs& msg)
         }
         return;
     }
-    if (msg.Type == kEventMouseButtonUp) {
+    if (msg.eventType == kEventMouseButtonUp) {
         UiSize szThumb = GetThumbSize();
         double oldValue = GetValue();
         if(IsMouseFocused()) {
@@ -92,7 +92,7 @@ void Slider::HandleEvent(const EventArgs& msg)
         Invalidate();
         return;
     }
-    if (msg.Type == kEventMouseWheel) {
+    if (msg.eventType == kEventMouseWheel) {
         double oldValue = GetValue();
         int detaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
         if (detaValue > 0) {
@@ -106,7 +106,7 @@ void Slider::HandleEvent(const EventArgs& msg)
             return;
         }
     }
-    if (msg.Type == kEventMouseMove) {
+    if (msg.eventType == kEventMouseMove) {
         UiSize szThumb = GetThumbSize();
         const int32_t nMin = GetMinValue();
         const int32_t nMax = GetMaxValue();

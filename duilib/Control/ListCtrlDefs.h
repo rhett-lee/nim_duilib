@@ -147,11 +147,11 @@ public:
     */
     virtual void HandleEvent(const EventArgs& msg) override
     {
-        if ((msg.Type > kEventMouseBegin) && (msg.Type < kEventMouseEnd)) {
+        if ((msg.eventType > kEventMouseBegin) && (msg.eventType < kEventMouseEnd)) {
             //当前控件禁止接收鼠标消息时，将鼠标相关消息转发给上层处理
             bool bButtonUpEvent = false;
             if (IsEnabled() && IsMouseEnabled()) {
-                if (msg.Type == kEventMouseButtonDown) {
+                if (msg.eventType == kEventMouseButtonDown) {
                     m_bMouseDown = false;
                     if (GetWindow() != nullptr) {
                         Control* pFocus = GetWindow()->GetFocusControl();
@@ -161,7 +161,7 @@ public:
                         }
                     }
                 }
-                else if (msg.Type == kEventMouseButtonUp) {
+                else if (msg.eventType == kEventMouseButtonUp) {
                     if (m_bMouseDown) {
                         m_bMouseDown = false;
                         bButtonUpEvent = true;

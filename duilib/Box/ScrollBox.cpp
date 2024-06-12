@@ -215,8 +215,8 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
         return;
     }
     if( (m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid() && m_pVScrollBar->IsEnabled() ) {
-        if(msg.Type == kEventKeyDown ) {
-            switch(msg.chKey ) {
+        if(msg.eventType == kEventKeyDown ) {
+            switch(msg.vkCode ) {
             case kVK_DOWN:
                 LineDown();
                 return;
@@ -237,7 +237,7 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
                 return;
             }
         }
-        else if(msg.Type == kEventMouseWheel ) {
+        else if(msg.eventType == kEventMouseWheel ) {
             int deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
             if (msg.lParam != 0) {
                 //正常逻辑滚动
@@ -261,8 +261,8 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
         }        
     }
     else if( (m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid() && m_pHScrollBar->IsEnabled() ) {
-        if(msg.Type == kEventKeyDown ) {
-            switch(msg.chKey ) {
+        if(msg.eventType == kEventKeyDown ) {
+            switch(msg.vkCode ) {
             case kVK_DOWN:
                 LineRight();
                 return;
@@ -283,7 +283,7 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
                 return;
             }
         }
-        else if(msg.Type == kEventMouseWheel )    {
+        else if(msg.eventType == kEventMouseWheel )    {
             int deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
             if (deltaValue > 0 ) {
                 LineLeft();

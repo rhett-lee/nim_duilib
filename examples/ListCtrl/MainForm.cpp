@@ -492,23 +492,23 @@ void MainForm::OnInitWindow()
                 }                
             }
 
-            if (args.Type == ui::kEventSelect) {
+            if (args.eventType == ui::kEventSelect) {
                 DString sInfo = ui::StringUtil::Printf(_T("kEventSelect，数据索引号：%d"), (int32_t)itemIndex);
                 //::MessageBox(nullptr, sInfo.c_str(), _T(""), MB_OK);
             }
-            else if (args.Type == ui::kEventSelChange) {
+            else if (args.eventType == ui::kEventSelChange) {
                 //::MessageBox(nullptr, _T("kEventSelChange"), _T(""), MB_OK);
             }
-            else if(args.Type == ui::kEventMouseDoubleClick) {                
+            else if(args.eventType == ui::kEventMouseDoubleClick) {                
                 //::MessageBox(nullptr, _T("kEventMouseDoubleClick"), text.c_str(), MB_OK);
             }
-            else if (args.Type == ui::kEventClick) {
+            else if (args.eventType == ui::kEventClick) {
                 //::MessageBox(nullptr, _T("kEventClick"), text.c_str(), MB_OK);
             }
-            else if (args.Type == ui::kEventRClick) {
+            else if (args.eventType == ui::kEventRClick) {
                 //::MessageBox(nullptr, _T("kEventRClick"), text.c_str(), MB_OK);
             }
-            else if (args.Type == ui::kEventReturn) {
+            else if (args.eventType == ui::kEventReturn) {
                 DString sInfo = ui::StringUtil::Printf(_T("kEventReturn，数据索引号：%d"), (int32_t)itemIndex);
                 //::MessageBox(nullptr, sInfo.c_str(), _T(""), MB_OK);
             }

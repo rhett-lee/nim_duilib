@@ -65,10 +65,10 @@ void ListBox::HandleEvent(const EventArgs& msg)
         return;
     }
     bool bHandled = false;
-    if (msg.Type == kEventKeyDown) {
+    if (msg.eventType == kEventKeyDown) {
         bHandled = OnListBoxKeyDown(msg);
     }
-    else if (msg.Type == kEventMouseWheel) {
+    else if (msg.eventType == kEventMouseWheel) {
         bHandled = OnListBoxMouseWheel(msg);
     }    
     if(!bHandled) {
@@ -78,13 +78,13 @@ void ListBox::HandleEvent(const EventArgs& msg)
 
 bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
 {
-    ASSERT(msg.Type == kEventKeyDown);
+    ASSERT(msg.eventType == kEventKeyDown);
     bool bHandled = false;
-    bool bArrowKeyDown = (msg.Type == kEventKeyDown) &&
-                          ((msg.chKey == kVK_UP)    || (msg.chKey == kVK_DOWN) ||
-                           (msg.chKey == kVK_LEFT)  || (msg.chKey == kVK_RIGHT) ||
-                           (msg.chKey == kVK_PRIOR) || (msg.chKey == kVK_NEXT) ||
-                           (msg.chKey == kVK_HOME)  || (msg.chKey == kVK_END));
+    bool bArrowKeyDown = (msg.eventType == kEventKeyDown) &&
+                          ((msg.vkCode == kVK_UP)    || (msg.vkCode == kVK_DOWN) ||
+                           (msg.vkCode == kVK_LEFT)  || (msg.vkCode == kVK_RIGHT) ||
+                           (msg.vkCode == kVK_PRIOR) || (msg.vkCode == kVK_NEXT) ||
+                           (msg.vkCode == kVK_HOME)  || (msg.vkCode == kVK_END));
     if (!bArrowKeyDown) {
         return bHandled;
     }
@@ -100,7 +100,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
     }
     if (IsMultiSelect() || (GetItemCount() == 0) || !bHasSelectItem) {
         //在无数据、支持多选、无选中项的情况下，不支持单选快捷键逻辑，但支持HOME和END键的响应(滚动)
-        if (msg.chKey == kVK_HOME) {
+        if (msg.vkCode == kVK_HOME) {
             if (IsHorizontalScrollBar()) {
                 HomeLeft();
             }
@@ -109,7 +109,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
             }
             bHandled = true;
         }
-        else if (msg.chKey == kVK_END) {
+        else if (msg.vkCode == kVK_END) {
             if (IsHorizontalScrollBar()) {
                 EndRight();
             }
@@ -123,7 +123,7 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
 
     //单选、有数据、有选中项的情况
     bHandled = true;
-    switch (msg.chKey) {
+    switch (msg.vkCode) {
     case kVK_UP:
         if (IsHorizontalScrollBar()) {
             //横向滚动条，向上1条
@@ -218,9 +218,9 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
 
 bool ListBox::OnListBoxMouseWheel(const EventArgs& msg)
 {
-    ASSERT(msg.Type == kEventMouseWheel);
+    ASSERT(msg.eventType == kEventMouseWheel);
     bool bHandled = false;
-    if (m_bScrollSelect && (msg.Type == kEventMouseWheel)) {
+    if (m_bScrollSelect && (msg.eventType == kEventMouseWheel)) {
         int32_t deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
         if (deltaValue != 0) {
             bool bForward = deltaValue > 0 ? false : true;

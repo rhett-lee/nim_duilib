@@ -85,7 +85,7 @@ void ListCtrlView::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, 
 void ListCtrlView::SendEvent(const EventArgs& event)
 {
     __super::SendEvent(event);
-    if ((event.Type == kEventSelect) || (event.Type == kEventUnSelect)) {
+    if ((event.eventType == kEventSelect) || (event.eventType == kEventUnSelect)) {
         SendEvent(kEventSelChange);
     }
 }
@@ -720,7 +720,7 @@ void ListCtrlView::HandleEvent(const EventArgs& msg)
         return;
     }
     bool bHandled = false;
-    if (msg.Type == kEventKeyDown) {
+    if (msg.eventType == kEventKeyDown) {
         bHandled = OnListCtrlKeyDown(msg);
     }
     if (!bHandled) {
@@ -730,9 +730,9 @@ void ListCtrlView::HandleEvent(const EventArgs& msg)
 
 bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
 {
-    ASSERT(msg.Type == kEventKeyDown);
+    ASSERT(msg.eventType == kEventKeyDown);
     bool bHandled = false;
-    bool bCtrlADown = (msg.Type == kEventKeyDown) && ((msg.chKey == _T('A')) || (msg.chKey == _T('a')));
+    bool bCtrlADown = (msg.eventType == kEventKeyDown) && ((msg.vkCode == _T('A')) || (msg.vkCode == _T('a')));
     if (bCtrlADown) {
         //Ctrl + A 全选操作
         bHandled = true;
@@ -745,11 +745,11 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
     }
 
     //方向键操作
-    bool bArrowKeyDown = (msg.Type == kEventKeyDown) &&
-                         ((msg.chKey == kVK_UP) || (msg.chKey == kVK_DOWN) ||
-                          (msg.chKey == kVK_LEFT) || (msg.chKey == kVK_RIGHT) ||
-                          (msg.chKey == kVK_PRIOR) || (msg.chKey == kVK_NEXT) ||
-                          (msg.chKey == kVK_HOME) || (msg.chKey == kVK_END));
+    bool bArrowKeyDown = (msg.eventType == kEventKeyDown) &&
+                         ((msg.vkCode == kVK_UP) || (msg.vkCode == kVK_DOWN) ||
+                          (msg.vkCode == kVK_LEFT) || (msg.vkCode == kVK_RIGHT) ||
+                          (msg.vkCode == kVK_PRIOR) || (msg.vkCode == kVK_NEXT) ||
+                          (msg.vkCode == kVK_HOME) || (msg.vkCode == kVK_END));
     const size_t nElementCount = GetElementCount();
     if (!bArrowKeyDown || !IsMultiSelect() || (nElementCount == 0)) {
         //在方向键按下消息、无数据、不支持多选的情况下，走默认处理流程
@@ -821,8 +821,8 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
     if (nCurSel < GetItemCount()) {
         nIndexCurSel = GetDisplayItemElementIndex(nCurSel);
     }
-    const bool bForward = (msg.chKey == kVK_DOWN) || (msg.chKey == kVK_RIGHT) || 
-                          (msg.chKey == kVK_NEXT) || (msg.chKey == kVK_HOME);
+    const bool bForward = (msg.vkCode == kVK_DOWN) || (msg.vkCode == kVK_RIGHT) || 
+                          (msg.vkCode == kVK_NEXT) || (msg.vkCode == kVK_HOME);
     if (nIndexCurSel < nElementCount) {
         //匹配可选择项
         nIndexCurSel = FindSelectableElement(nIndexCurSel, bForward);
@@ -838,7 +838,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
     size_t nIndexEnsureVisible = Box::InvalidIndex; //需要保证可见的元素
     size_t nIndexEnd = Box::InvalidIndex;
     //实现Shift键 + 方向键的选择逻辑
-    switch (msg.chKey) {
+    switch (msg.vkCode) {
     case kVK_UP:
         if (IsHorizontalLayout()) {
             //横向布局

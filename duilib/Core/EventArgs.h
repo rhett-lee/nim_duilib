@@ -1,12 +1,10 @@
 #ifndef UI_CORE_EVENTARGS_H_
 #define UI_CORE_EVENTARGS_H_
 
-#pragma once
-
 #include "duilib/Core/UiPoint.h"
+#include "duilib/Core/KeyCode.h"
 #include <string>
 #include <memory>
-#include <chrono>
 
 namespace ui
 {
@@ -18,32 +16,9 @@ class WeakFlag;
 struct EventArgs
 {
 public:
-    EventArgs() :
-        Type(kEventNone),
-        pSender(nullptr),
-        chKey(0),
-        wParam(0),
-        lParam(0)
-    {
-        ptMouse.x = 0;
-        ptMouse.y = 0;
-    }
-
     /** 事件类型
     */
-    EventType Type;
-
-    /** 产生事件时的时间戳
-    */
-    std::chrono::steady_clock::time_point dwTimestamp;
-
-    /** 产生事件时的鼠标所在坐标
-    */
-    UiPoint ptMouse;
-
-    /** 产生事件时的按键
-    */
-    wchar_t chKey;
+    EventType eventType;
 
     /** 产生事件时的参数
     */
@@ -53,7 +28,19 @@ public:
     */
     LPARAM lParam;
 
+    /** 产生事件时的鼠标所在坐标
+    */
+    UiPoint ptMouse;
+
+    /** 产生事件时的按键
+    */
+    VirtualKeyCode vkCode;
+
 public:
+    /** 构造函数
+    */
+    EventArgs();
+
     /** 设置发送事件的控件
     */
     void SetSender(Control* pControl);

@@ -1703,11 +1703,11 @@ void RichEdit::HandleEvent(const EventArgs& msg)
         }
         return;
     }
-    if (msg.Type == kEventMouseMove) {
+    if (msg.eventType == kEventMouseMove) {
         OnMouseMessage(WM_MOUSEMOVE, msg);
         return;
     }
-    if (msg.Type == kEventMouseWheel) {
+    if (msg.eventType == kEventMouseWheel) {
         uint16_t fwKeys = GET_KEYSTATE_WPARAM(msg.wParam);
         if ((fwKeys & MK_CONTROL) && IsEnableWheelZoom()) {
             //Ctrl + 滚轮：缩放功能
@@ -1723,7 +1723,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
         return;
     }
 
-    if (msg.Type == kEventMouseButtonDown) {
+    if (msg.eventType == kEventMouseButtonDown) {
         if (m_linkInfo.size() > 0)    {
             DString url;
             if (HittestCustomLink(UiPoint(msg.ptMouse), url)) {
@@ -1734,7 +1734,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
         OnMouseMessage(WM_LBUTTONDOWN, msg);
         return;
     }
-    if (msg.Type == kEventMouseButtonUp) {
+    if (msg.eventType == kEventMouseButtonUp) {
         if (IsEnabled() && !m_bSelAllEver) {
             m_bSelAllEver = true;
             if (m_bSelAllOnFocus) {
@@ -1751,7 +1751,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
         OnMouseMessage(WM_LBUTTONUP, msg);
         return;
     }
-    if (msg.Type == kEventMouseDoubleClick) {
+    if (msg.eventType == kEventMouseDoubleClick) {
         if (IsReadOnly()) {
             SetSelAll();
             return;
@@ -1760,15 +1760,15 @@ void RichEdit::HandleEvent(const EventArgs& msg)
         OnMouseMessage(WM_LBUTTONDBLCLK, msg);
         return;
     }
-    if (msg.Type == kEventMouseRButtonDown) {
+    if (msg.eventType == kEventMouseRButtonDown) {
         OnMouseMessage(WM_RBUTTONDOWN, msg);
         return;
     }
-    if (msg.Type == kEventMouseRButtonUp) {
+    if (msg.eventType == kEventMouseRButtonUp) {
         OnMouseMessage(WM_RBUTTONUP, msg);
         return;
     }
-    else if (msg.Type == kEventKeyDown) {
+    else if (msg.eventType == kEventKeyDown) {
         OnKeyDown(msg);
         return;
     }
@@ -2660,7 +2660,7 @@ void RichEdit::SetEnableDefaultContextMenu(bool bEnable)
         m_bEnableDefaultContextMenu = bEnable;
         if (bEnable) {
             AttachMenu([this](const ui::EventArgs& args) {
-                if (args.Type == ui::kEventMouseMenu) {
+                if (args.eventType == ui::kEventMouseMenu) {
                     ui::UiPoint pt = args.ptMouse;
                     if ((pt.x != -1) && (pt.y != -1)) {
                         //鼠标右键点击产生的上下文菜单                        

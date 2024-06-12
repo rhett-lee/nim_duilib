@@ -159,7 +159,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
     if (!MultiBrowserManager::GetInstance()->IsEnableMerge())
         return true;
 
-    switch (param.Type)
+    switch (param.eventType)
     {
     case kEventMouseMove:
     {

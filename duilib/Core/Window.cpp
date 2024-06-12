@@ -581,7 +581,7 @@ LRESULT Window::OnWindowMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
     return 0;
 }
 
-LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, bool& bHandled)
+LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize*/, bool& bHandled)
 {
     bHandled = false;
     if (m_pRoot != nullptr) {
@@ -1247,14 +1247,13 @@ bool Window::SendNotify(EventType eventType, WPARAM wParam, LPARAM lParam)
 {
     EventArgs msg;
     msg.SetSender(nullptr);
-    msg.Type = eventType;
+    msg.eventType = eventType;
     msg.ptMouse = GetLastMousePos();
-    msg.dwTimestamp = std::chrono::steady_clock::now();
     msg.wParam = wParam;
     msg.lParam = lParam;
 
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-    auto callback = m_OnEvent.find(msg.Type);
+    auto callback = m_OnEvent.find(msg.eventType);
     if (callback != m_OnEvent.end()) {
         callback->second(msg);
     }

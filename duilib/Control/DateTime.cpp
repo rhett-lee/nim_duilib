@@ -292,21 +292,21 @@ void DateTime::HandleEvent(const EventArgs& msg)
         }
         return;
     }
-    if ((msg.Type == kEventSetCursor)) {
+    if ((msg.eventType == kEventSetCursor)) {
         SetCursor(kCursorHandIbeam);
         return;
     }
-    if (msg.Type == kEventWindowSize) {
+    if (msg.eventType == kEventWindowSize) {
         if (m_pDateWindow != nullptr) {
             return;
         }
     }
-    if (msg.Type == kEventScrollChange) {
+    if (msg.eventType == kEventScrollChange) {
         if (m_pDateWindow != nullptr) {
             return;
         }
     }
-    if (msg.Type == kEventSetFocus) {
+    if (msg.eventType == kEventSetFocus) {
         if (m_pDateWindow != nullptr) {
             return;
         }
@@ -325,12 +325,12 @@ void DateTime::HandleEvent(const EventArgs& msg)
             }
         }        
     }
-    if (msg.Type == kEventKillFocus) {
+    if (msg.eventType == kEventKillFocus) {
         Invalidate();
     }
-    if ((msg.Type == kEventMouseButtonDown) ||
-        (msg.Type == kEventMouseDoubleClick) ||
-        (msg.Type == kEventMouseRButtonDown)) {
+    if ((msg.eventType == kEventMouseButtonDown) ||
+        (msg.eventType == kEventMouseDoubleClick) ||
+        (msg.eventType == kEventMouseRButtonDown)) {
         if (GetWindow() != nullptr) {
             GetWindow()->ReleaseCapture();
         }            
@@ -347,19 +347,19 @@ void DateTime::HandleEvent(const EventArgs& msg)
             }
         }
     }
-    if (msg.Type == kEventMouseMove) {
+    if (msg.eventType == kEventMouseMove) {
         return;
     }
-    if (msg.Type == kEventMouseButtonUp) {
+    if (msg.eventType == kEventMouseButtonUp) {
         return;
     }
-    if (msg.Type == kEventMouseMenu) {
+    if (msg.eventType == kEventMouseMenu) {
         return;
     }
-    if (msg.Type == kEventMouseEnter) {
+    if (msg.eventType == kEventMouseEnter) {
         return;
     }
-    if (msg.Type == kEventMouseLeave) {
+    if (msg.eventType == kEventMouseLeave) {
         return;
     }
     __super::HandleEvent(msg);

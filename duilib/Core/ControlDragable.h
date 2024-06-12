@@ -413,9 +413,9 @@ template<typename T>
 void ControlDragableT<T>::HandleEvent(const EventArgs& msg)
 {
     __super::HandleEvent(msg);
-    if ((msg.Type == kEventMouseClickChanged) ||
-        (msg.Type == kEventMouseClickEsc) ||
-        (msg.Type == kEventMouseRButtonDown)) {
+    if ((msg.eventType == kEventMouseClickChanged) ||
+        (msg.eventType == kEventMouseClickEsc) ||
+        (msg.eventType == kEventMouseRButtonDown)) {
         //取消拖动调序或者拖出操作
         ClearDragStatus();
     }
