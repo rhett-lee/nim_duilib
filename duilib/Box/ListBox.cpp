@@ -57,7 +57,7 @@ void ListBox::HandleEvent(const EventArgs& msg)
         //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
         Box* pParent = GetParent();
         if (pParent != nullptr) {
-            pParent->SendEvent(msg);
+            pParent->SendEventMsg(msg);
         }
         else {
             __super::HandleEvent(msg);
@@ -740,14 +740,9 @@ int32_t ListBox::CalcVTileRows(VTileLayout* pVTileLayout) const
     return nRows;
 }
 
-void ListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
+void ListBox::SendEventMsg(const EventArgs& msg)
 {
-    ScrollBox::SendEvent(eventType, wParam, lParam, tChar, mousePos);
-}
-
-void ListBox::SendEvent(const EventArgs& event)
-{
-    ScrollBox::SendEvent(event);
+    ScrollBox::SendEventMsg(msg);
 }
 
 size_t ListBox::GetCurSel() const

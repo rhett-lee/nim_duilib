@@ -381,12 +381,12 @@ void ListCtrl::InitReportView()
                 msg.wParam = (WPARAM)pItem;
                 msg.lParam = pItem->GetElementIndex();
                 msg.SetSender(this);
-                SendEvent(msg);
+                SendEventMsg(msg);
             }
             else if (args.eventType == kEventSelChange) {
                 EventArgs msg = args;
                 msg.SetSender(this);
-                SendEvent(msg);
+                SendEventMsg(msg);
             }
         };
 
@@ -438,12 +438,12 @@ void ListCtrl::InitIconView()
                 msg.wParam = (WPARAM)pItem;
                 msg.lParam = pItem->GetElementIndex();
                 msg.SetSender(this);
-                SendEvent(msg);
+                SendEventMsg(msg);
             }
             else if (args.eventType == kEventSelChange) {
                 EventArgs msg = args;
                 msg.SetSender(this);
-                SendEvent(msg);
+                SendEventMsg(msg);
             }
         };
 
@@ -497,12 +497,12 @@ void ListCtrl::InitListView()
                 msg.wParam = (WPARAM)pItem;
                 msg.lParam = pItem->GetElementIndex();
                 msg.SetSender(this);
-                SendEvent(msg);
+                SendEventMsg(msg);
             }
             else if (args.eventType == kEventSelChange) {
                 EventArgs msg = args;
                 msg.SetSender(this);
-                SendEvent(msg);
+                SendEventMsg(msg);
             }
         };
 

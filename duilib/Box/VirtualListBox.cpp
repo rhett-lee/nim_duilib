@@ -612,49 +612,44 @@ void VirtualListBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
     __super::PaintChild(pRender, rcPaint);
 }
 
-void VirtualListBox::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
+void VirtualListBox::SendEventMsg(const EventArgs& msg)
 {
-    __super::SendEvent(eventType, wParam, lParam, tChar, mousePos);
+    VSendEvent(msg, false);
 }
 
-void VirtualListBox::SendEvent(const EventArgs& event)
-{
-    VSendEvent(event, false);
-}
-
-void VirtualListBox::VSendEvent(const EventArgs& args, bool bFromItem)
+void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem)
 {
     if (bFromItem) {
-        EventArgs msg = args;
-        msg.SetSender(this);
+        EventArgs newMsg = msg;
+        newMsg.SetSender(this);
         size_t nItemIndex = GetItemIndex(args.GetSender());
         if (nItemIndex < GetItemCount()) {
-            msg.wParam = nItemIndex;
-            msg.lParam = GetDisplayItemElementIndex(nItemIndex);
+            newMsg.wParam = nItemIndex;
+            newMsg.lParam = GetDisplayItemElementIndex(nItemIndex);
         }
         else {
-            msg.wParam = Box::InvalidIndex;
-            msg.lParam = Box::InvalidIndex;
+            newMsg.wParam = Box::InvalidIndex;
+            newMsg.lParam = Box::InvalidIndex;
         }        
-        __super::SendEvent(msg);
+        __super::SendEventMsg(newMsg);
     }
-    else if ((args.eventType == kEventMouseDoubleClick) ||
-             (args.eventType == kEventClick) ||
-             (args.eventType == kEventRClick)) {
-        if (args.GetSender() == this) {
-            ASSERT(args.wParam == 0);
-            ASSERT(args.lParam == 0);
-            EventArgs msg = args;
-            msg.wParam = Box::InvalidIndex;
-            msg.lParam = Box::InvalidIndex;
-            __super::SendEvent(args);
+    else if ((msg.eventType == kEventMouseDoubleClick) ||
+             (msg.eventType == kEventClick) ||
+             (msg.eventType == kEventRClick)) {
+        if (msg.GetSender() == this) {
+            ASSERT(msg.wParam == 0);
+            ASSERT(msg.lParam == 0);
+            EventArgs newMsg = msg;
+            newMsg.wParam = Box::InvalidIndex;
+            newMsg.lParam = Box::InvalidIndex;
+            __super::SendEventMsg(newMsg);
         }
         else {
-            __super::SendEvent(args);
+            __super::SendEventMsg(msg);
         }
     }
     else {
-        __super::SendEvent(args);
+        __super::SendEventMsg(msg);
     }
 }
 

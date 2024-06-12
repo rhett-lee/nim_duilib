@@ -545,24 +545,27 @@ public:
      */
     virtual bool IsPointInWithScrollOffset(const UiPoint& point) const;
 
-    // 消息处理
-    /** @brief 控件统一的消息处理入口，将传统 Windows 消息转换为自定义格式的消息
-     * @param[in] eventType    消息内容
-     * @param[in] wParam    消息附加内容
-     * @param[in] lParam    消息附加内容
-     * @param[in] tChar        按键信息
-     * @param[in] mousePos    鼠标信息
+    /** 控件统一的消息处理入口，将传统 Windows 消息转换为自定义格式的消息
+     * @param [in] eventType 消息类型
+     * @param [in] wParam 产生事件时的参数1
+     * @param [in] lParam 产生事件时的参数2
+     * @param [in] vkCode 消息关联的按键
+     * @param [in] ptMouse 消息关联的鼠标所在坐标
+     * @param [in] modifierKey 消息关联的按键标志位
+     * @param [in] eventData 消息关联的整型数据
      */
-    virtual void SendEvent(EventType eventType,
-                           WPARAM wParam = 0, 
-                           LPARAM lParam = 0, 
-                           TCHAR tChar = 0, 
-                           const UiPoint& mousePos = UiPoint());
+    void SendEvent(EventType eventType,
+                   WPARAM wParam = 0, 
+                   LPARAM lParam = 0, 
+                   VirtualKeyCode vkCode = VirtualKeyCode::kVK_None,
+                   const UiPoint& ptMouse = UiPoint(),
+                   uint32_t modifierKey = 0,
+                   int32_t eventData = 0);
 
-    /** @brief 将转换后的消息派发到消息处理函数
-     * @param[in] msg 消息内容
+    /** 将消息派发到消息处理函数
+     * @param [in] msg 消息内容
      */
-    virtual void SendEvent(const EventArgs& msg);
+    virtual void SendEventMsg(const EventArgs& msg);
 
     /**
      * @brief 判断控件是否有 HOT 状态

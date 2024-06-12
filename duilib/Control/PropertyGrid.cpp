@@ -859,7 +859,7 @@ public:
     {
         Box* pParent = GetParent();
         if (pParent != nullptr) {
-            pParent->SendEvent(msg);
+            pParent->SendEventMsg(msg);
         }
         if (!IsDisabledEvents(msg)) {
             __super::HandleEvent(msg);
@@ -1073,7 +1073,7 @@ public:
             //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
             Box* pParent = this->GetParent();
             if (pParent != nullptr) {
-                pParent->SendEvent(msg);
+                pParent->SendEventMsg(msg);
             }
         }
         else {
@@ -1081,7 +1081,7 @@ public:
                 //鼠标消息，转给父控件
                 Box* pParent = this->GetParent();
                 if (pParent != nullptr) {
-                    pParent->SendEvent(msg);
+                    pParent->SendEventMsg(msg);
                 }
             }
             __super::HandleEvent(msg);

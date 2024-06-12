@@ -77,15 +77,10 @@ int32_t ListCtrlView::GetFrameSelectionBorderSize() const
     return m_frameSelectionBorderSize;
 }
 
-void ListCtrlView::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam, TCHAR tChar, const UiPoint& mousePos)
+void ListCtrlView::SendEventMsg(const EventArgs& msg)
 {
-    __super::SendEvent(eventType, wParam, lParam, tChar, mousePos);
-}
-
-void ListCtrlView::SendEvent(const EventArgs& event)
-{
-    __super::SendEvent(event);
-    if ((event.eventType == kEventSelect) || (event.eventType == kEventUnSelect)) {
+    __super::SendEventMsg(msg);
+    if ((msg.eventType == kEventSelect) || (msg.eventType == kEventUnSelect)) {
         SendEvent(kEventSelChange);
     }
 }
@@ -712,7 +707,7 @@ void ListCtrlView::HandleEvent(const EventArgs& msg)
         //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
         Box* pParent = GetParent();
         if (pParent != nullptr) {
-            pParent->SendEvent(msg);
+            pParent->SendEventMsg(msg);
         }
         else {
             __super::HandleEvent(msg);

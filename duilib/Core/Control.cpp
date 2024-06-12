@@ -1629,37 +1629,41 @@ bool Control::IsPointInWithScrollOffset(const UiPoint& point) const
     return GetRect().ContainsPt(newPoint);
 }
 
-void Control::SendEvent(EventType eventType, 
-                        WPARAM wParam, 
-                        LPARAM lParam, 
-                        TCHAR tChar, 
-                        const UiPoint& mousePos)
+void Control::SendEvent(EventType eventType,
+                        WPARAM wParam,
+                        LPARAM lParam,
+                        VirtualKeyCode vkCode,
+                        const UiPoint& ptMouse,
+                        uint32_t modifierKey,
+                        int32_t eventData)
 {
     EventArgs msg;
     msg.SetSender(this);
     msg.eventType = eventType;
-    msg.vkCode = tChar;
+    msg.vkCode = vkCode;
     msg.wParam = wParam;
     msg.lParam = lParam;
-    if ((mousePos.x == 0) && (mousePos.y == 0)) {
+    msg.ptMouse = ptMouse;
+    if ((ptMouse.x == 0) && (ptMouse.y == 0)) {
         Window* pWindow = GetWindow();
         if (pWindow != nullptr) {
             msg.ptMouse = pWindow->GetLastMousePos();
         }
     }
-    else {
-        msg.ptMouse = mousePos;
-    }
-    SendEvent(msg);
+    msg.modifierKey = modifierKey;
+    msg.eventData = eventData;
+
+    //派发消息
+    SendEventMsg(msg);
 }
 
-void Control::SendEvent(const EventArgs& msg)
+void Control::SendEventMsg(const EventArgs& msg)
 {
 //#ifdef _DEBUG
 //    DString eventType = EventTypeToString(msg.eventType);
 //    DString type = GetType();
 //    wchar_t buf[256] = {};
-//    swprintf_s(buf, _T("Control::SendEvent: type=%s, eventType=%s\r\n"), type.c_str(), eventType.c_str());
+//    swprintf_s(buf, _T("Control::SendEventMsg: type=%s, eventType=%s\r\n"), type.c_str(), eventType.c_str());
 //    ::OutputDebugStringW(buf);    
 //#endif
     bool bRet = FireAllEvents(msg);    
@@ -1696,7 +1700,7 @@ void Control::HandleEvent(const EventArgs& msg)
         //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
         Box* pParent = GetParent();
         if (pParent != nullptr) {
-            pParent->SendEvent(msg);
+            pParent->SendEventMsg(msg);
         }
         return;
     }
@@ -1827,7 +1831,7 @@ void Control::HandleEvent(const EventArgs& msg)
     }
 
     if (!weakFlag.expired() && (GetParent() != nullptr)) {
-        GetParent()->SendEvent(msg);
+        GetParent()->SendEventMsg(msg);
     }
 }
 

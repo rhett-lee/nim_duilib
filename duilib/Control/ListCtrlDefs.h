@@ -170,7 +170,7 @@ public:
             }
             Box* pParent = GetParent();
             if (pParent != nullptr) {
-                pParent->SendEvent(msg);
+                pParent->SendEventMsg(msg);
             }
             if (bButtonUpEvent) {
                 //进入编辑状态

@@ -43,9 +43,7 @@ public:
 
     /** 发送事件的函数
     */
-    virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
-                           const UiPoint& mousePos = UiPoint()) override;
-    virtual void SendEvent(const EventArgs& event) override;
+    virtual void SendEventMsg(const EventArgs& msg) override;
 
 public:
     /** 获取顶部元素的索引号

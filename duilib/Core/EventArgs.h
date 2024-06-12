@@ -20,21 +20,21 @@ public:
     */
     EventType eventType;
 
-    /** 产生事件时的参数1（一般用于传递指针）
+    /** 产生事件时的参数1（可用于传递指针）
     */
     WPARAM wParam;
 
-    /** 产生事件时的参数2（一般用于传递指针）
+    /** 产生事件时的参数2（可用于传递指针）
     */
     LPARAM lParam;
-
-    /** 消息关联的鼠标所在坐标
-    */
-    UiPoint ptMouse;
 
     /** 消息关联的按键
     */
     VirtualKeyCode vkCode;
+
+    /** 消息关联的鼠标所在坐标
+    */
+    UiPoint ptMouse;
 
     /** 消息关联的按键标志位，参见 Keyboard.h中的enum ModifierKey定义
     */

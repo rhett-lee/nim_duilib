@@ -285,7 +285,7 @@ void ListBoxItemTemplate<InheritType>::HandleEvent(const EventArgs& msg)
     if (this->IsDisabledEvents(msg)) {
         //如果是鼠标键盘消息，并且控件是Disabled的，转发给Owner控件
         if (m_pOwner != nullptr) {
-            m_pOwner->SendEvent(msg);
+            m_pOwner->SendEventMsg(msg);
         }
         else {
             OptionTemplate<InheritType>::HandleEvent(msg);

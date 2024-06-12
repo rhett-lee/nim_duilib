@@ -40,7 +40,7 @@ void Slider::HandleEvent(const EventArgs& msg)
         //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
         Box* pParent = GetParent();
         if (pParent != nullptr) {
-            pParent->SendEvent(msg);
+            pParent->SendEventMsg(msg);
         }
         else {
             __super::HandleEvent(msg);

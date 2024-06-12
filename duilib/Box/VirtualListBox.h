@@ -297,9 +297,7 @@ public:
     virtual void SetScrollPos(UiSize64 szPos) override;
     virtual void SetPos(UiRect rc) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
-    virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
-                           const UiPoint& mousePos = UiPoint()) override;
-    virtual void SendEvent(const EventArgs& event) override;
+    virtual void SendEventMsg(const EventArgs& msg) override;
 
 protected:
     //重载删除函数，禁止外部调用
@@ -403,10 +401,10 @@ protected:
     bool IsEnableUpdateProvider() const;
 
     /** 发送事件的函数
-    * @param [in] args 事件内容
+    * @param [in] msg 事件内容
     * @param [in] bFromItem true表示来自子控件，false表示来自自身
     */
-    void VSendEvent(const EventArgs& args, bool bFromItem);
+    void VSendEvent(const EventArgs& msg, bool bFromItem);
 
 private:
     /** 数据代理对象接口，提供展示数据

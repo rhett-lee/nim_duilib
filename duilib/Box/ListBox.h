@@ -47,7 +47,7 @@ class UILIB_API IListBoxOwner
 public:
     /** 触发事件
     */
-    virtual void SendEvent(const EventArgs& event) = 0;
+    virtual void SendEventMsg(const EventArgs& msg) = 0;
 
     /** 获取当前选择的索引，(如果无有效索引，则返回Box::InvalidIndex)
     */
@@ -131,9 +131,7 @@ public:
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void HandleEvent(const EventArgs& msg) override;
     virtual bool ButtonDown(const EventArgs& msg) override;
-    virtual void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0, TCHAR tChar = 0,
-                           const UiPoint& mousePos = UiPoint()) override;
-    virtual void SendEvent(const EventArgs& event) override;
+    virtual void SendEventMsg(const EventArgs& msg) override;
 
     //IListBoxOwner 接口的实现
     virtual void StopScroll() override;

@@ -153,16 +153,7 @@ DString IPAddress::GetIPAddress() const
     return ipAddress;
 }
 
-void IPAddress::SendEvent(EventType eventType,
-                          WPARAM wParam,
-                          LPARAM lParam,
-                          TCHAR tChar,
-                          const UiPoint& mousePos)
-{
-    __super::SendEvent(eventType, wParam, lParam, tChar, mousePos);
-}
-
-void IPAddress::SendEvent(const EventArgs& msg)
+void IPAddress::SendEventMsg(const EventArgs& msg)
 {
     if ((msg.GetSender() == this) && (msg.eventType == kEventKillFocus)) {
         Control* pNewFocus = (Control*)msg.wParam;
@@ -171,7 +162,7 @@ void IPAddress::SendEvent(const EventArgs& msg)
             return;
         }
     }
-    __super::SendEvent(msg);
+    __super::SendEventMsg(msg);
 }
 
 void IPAddress::OnKillFocusEvent(RichEdit* pRichEdit, Control* pNewFocus)

@@ -193,14 +193,14 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
         EventArgs msg(args);
         msg.SetSender(this);
         msg.wParam = (WPARAM)pHeaderItem;
-        SendEvent(msg);
+        SendEventMsg(msg);
         return true;
         });
     pHeaderSplit->AttachRClick([this, pHeaderItem](const EventArgs& args) {
         EventArgs msg(args);
         msg.SetSender(this);
         msg.wParam = (WPARAM)pHeaderItem;
-        SendEvent(msg);
+        SendEventMsg(msg);
         return true;
         });
 
