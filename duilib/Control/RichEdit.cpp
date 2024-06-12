@@ -2659,8 +2659,8 @@ void RichEdit::SetEnableDefaultContextMenu(bool bEnable)
     if (m_bEnableDefaultContextMenu != bEnable) {
         m_bEnableDefaultContextMenu = bEnable;
         if (bEnable) {
-            AttachMenu([this](const ui::EventArgs& args) {
-                if (args.eventType == ui::kEventMouseMenu) {
+            AttachContextMenu([this](const ui::EventArgs& args) {
+                if (args.eventType == ui::kEventContextMenu) {
                     ui::UiPoint pt = args.ptMouse;
                     if ((pt.x != -1) && (pt.y != -1)) {
                         //鼠标右键点击产生的上下文菜单                        
@@ -2676,7 +2676,7 @@ void RichEdit::SetEnableDefaultContextMenu(bool bEnable)
                 });
         }
         else {
-            DetachEvent(kEventMouseMenu);
+            DetachEvent(kEventContextMenu);
         }
     }
 }

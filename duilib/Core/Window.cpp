@@ -712,7 +712,7 @@ LRESULT Window::OnContextMenuMsg(const UiPoint& pt, bool& bHandled)
         if (pControl != nullptr) {
             Control* ptControl = FindControl(pt);//当前点击点所在的控件
             std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-            pControl->SendEvent(kEventMouseMenu, 0, (LPARAM)ptControl, 0, UiPoint(pt));
+            pControl->SendEvent(kEventContextMenu, 0, (LPARAM)ptControl, 0, UiPoint(pt));
             if (windowFlag.expired()) {
                 return 0;
             }
@@ -724,7 +724,7 @@ LRESULT Window::OnContextMenuMsg(const UiPoint& pt, bool& bHandled)
         Control* pControl = FindContextMenuControl(nullptr);
         if (pControl != nullptr) {
             std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-            pControl->SendEvent(kEventMouseMenu, 0, 0, 0, UiPoint(pt));
+            pControl->SendEvent(kEventContextMenu, 0, 0, 0, UiPoint(pt));
             if (windowFlag.expired()) {
                 return 0;
             }

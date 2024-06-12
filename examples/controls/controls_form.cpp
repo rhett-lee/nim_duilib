@@ -134,11 +134,11 @@ void ControlForm::OnInitWindow()
 
     //注册一个Context Menu，演示功能（用这两种方法都可以注册上下文菜单功能）
     //m_pRoot->AttachAllEvents([this](ui::EventArgs& args) {
-    //m_pRoot->AttachMenu([this](ui::EventArgs& args) {
+    //m_pRoot->AttachContextMenu([this](ui::EventArgs& args) {
     ui::RichEdit* edit = static_cast<ui::RichEdit*>(FindControl(_T("edit")));
     if (edit != nullptr) {
-        edit->AttachMenu([this](const ui::EventArgs& args) {
-            if (args.eventType == ui::kEventMouseMenu) {
+        edit->AttachContextMenu([this](const ui::EventArgs& args) {
+            if (args.eventType == ui::kEventContextMenu) {
                 ui::UiPoint pt = args.ptMouse;
                 if ((pt.x != -1) && (pt.y != -1)) {
                     ui::Control* pControl = (ui::Control*)args.lParam;//当前点击点所在的控件

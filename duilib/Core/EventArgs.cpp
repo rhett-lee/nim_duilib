@@ -113,7 +113,7 @@ EventType StringToEventType(const DString& messageType)
         return kEventTabSelect;
     }
     else if (messageType == EVENTSTR_MENU) {
-        return kEventMouseMenu;
+        return kEventContextMenu;
     }
     else if (messageType == EVENTSTR_EXPAND) {
         return kEventExpand;
@@ -192,8 +192,8 @@ DString EventTypeToString(EventType eventType)
         return _T("kEventMouseRButtonUp");
     case kEventMouseRDoubleClick:
         return _T("kEventMouseRDoubleClick");
-    case kEventMouseMenu:
-        return _T("kEventMouseMenu");
+    case kEventContextMenu:
+        return _T("kEventContextMenu");
     case kEventMouseEnd:
         return _T("kEventMouseEnd");
     case kEventSetFocus:

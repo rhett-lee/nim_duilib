@@ -109,7 +109,7 @@ public:
     void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback);}
 
     /** 监听下拉窗关闭事件
-     * @param[in] callback 下拉窗关闭后触发的回调函数，WPARAM 为1表示取消，为0表示正常关闭
+     * @param[in] callback 下拉窗关闭后触发的回调函数，wParam 为1表示取消，为0表示正常关闭
      */
     void AttachWindowClose(const EventCallback& callback) { AttachEvent(kEventWindowClose, callback); }
 

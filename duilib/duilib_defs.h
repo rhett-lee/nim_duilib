@@ -249,7 +249,7 @@ namespace ui
     {
         kEventNone,
         kEventFirst,                //第一个消息（暂时没用到）
-        kEventAll,                  //代表所有消息
+        kEventAll,                  //代表所有消息（无参数关联数据）
 
         //键盘消息
         kEventKeyBegin,
@@ -273,7 +273,7 @@ namespace ui
         kEventMouseRButtonDown,     //Window类：当收到WM_RBUTTONDOWN消息时触发，发送给鼠标右键按下时对应的控件
         kEventMouseRButtonUp,       //Window类：当收到WM_RBUTTONUP消息时触发，发送给鼠标右键按下时对应的控件
         kEventMouseRDoubleClick,    //Window类：当收到WM_RBUTTONDBLCLK消息时触发，发送给当前鼠标所在位置对应的控件    
-        kEventMouseMenu,            //需要改名，Window类：当收到WM_CONTEXTMENU消息时触发，发送给所有注册回调函数的控件
+        kEventContextMenu,          //Window类：当收到WM_CONTEXTMENU消息时触发，发送给所有注册回调函数的控件
         kEventMouseEnd,
 
         //焦点/光标/输入法相关消息

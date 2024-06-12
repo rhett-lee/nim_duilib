@@ -353,7 +353,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
     if (msg.eventType == kEventMouseButtonUp) {
         return;
     }
-    if (msg.eventType == kEventMouseMenu) {
+    if (msg.eventType == kEventContextMenu) {
         return;
     }
     if (msg.eventType == kEventMouseEnter) {

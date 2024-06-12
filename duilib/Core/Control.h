@@ -846,7 +846,7 @@ public:
     /** 监听右键菜单事件
      * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
      */
-    void AttachMenu(const EventCallback& callback) { AttachEvent(kEventMouseMenu, callback); }
+    void AttachContextMenu(const EventCallback& callback) { AttachEvent(kEventContextMenu, callback); }
 
     /** 监听控件大小改变事件
      * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明

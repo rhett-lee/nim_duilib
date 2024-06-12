@@ -2338,7 +2338,7 @@ void ListCtrl::OnViewMouseEvents(const EventArgs& msg)
         (msg.eventType == kEventMouseRButtonDown) ||
         (msg.eventType == kEventMouseRButtonUp) ||
         (msg.eventType == kEventMouseRDoubleClick) ||
-        (msg.eventType == kEventMouseMenu)) {
+        (msg.eventType == kEventContextMenu)) {
         if (msg.GetSender() != m_pRichEdit) {
             LeaveEditMode();
         }

@@ -1795,7 +1795,7 @@ void Control::HandleEvent(const EventArgs& msg)
             return;
         }
     }
-    else if (msg.eventType == kEventMouseMenu) {
+    else if (msg.eventType == kEventContextMenu) {
         if (MouseMenu(msg)) {
             return;
         }        
@@ -3011,7 +3011,7 @@ void Control::AttachEvent(EventType type, const EventCallback& callback)
         m_pOnEvent = new EventMap;
     }
     (*m_pOnEvent)[type] += callback;
-    if ((type == kEventMouseMenu) || (type == kEventAll)) {
+    if ((type == kEventContextMenu) || (type == kEventAll)) {
         SetContextMenuUsed(true);
     }
 }
@@ -3025,9 +3025,9 @@ void Control::DetachEvent(EventType type)
     if (event != m_pOnEvent->end()) {
         m_pOnEvent->erase(event);
     }
-    if ((type == kEventMouseMenu) || (type == kEventAll)) {
+    if ((type == kEventContextMenu) || (type == kEventAll)) {
         if ((m_pOnEvent->find(kEventAll) == m_pOnEvent->end()) &&
-            (m_pOnEvent->find(kEventMouseMenu) == m_pOnEvent->end())) {
+            (m_pOnEvent->find(kEventContextMenu) == m_pOnEvent->end())) {
             SetContextMenuUsed(false);
         }
     }

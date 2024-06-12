@@ -9,7 +9,7 @@ BrowserTabItem::BrowserTabItem(ui::Window* pWindow):
 
 void BrowserTabItem::InitControl(std::string browser_id)
 {
-    this->AttachMenu(UiBind(&BrowserTabItem::OnItemMenu, this, std::placeholders::_1));
+    this->AttachContextMenu(UiBind(&BrowserTabItem::OnItemMenu, this, std::placeholders::_1));
     this->AttachMouseEnter(UiBind(&BrowserTabItem::OnMouseEnter, this, std::placeholders::_1));
     this->AttachMouseLeave(UiBind(&BrowserTabItem::OnMouseLeave, this, std::placeholders::_1));
 
