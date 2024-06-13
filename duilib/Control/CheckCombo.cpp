@@ -318,7 +318,7 @@ bool CheckCombo::AddTextItem(const DString& itemText)
     return AddItem(item);
 }
 
-void CheckCombo::Activate()
+void CheckCombo::Activate(const EventArgs* /*pMsg*/)
 {
     if (!IsActivatable()) {
         return;
@@ -551,9 +551,9 @@ void CheckCombo::ClearAll()
     SetFixedHeight(ui::UiFixedInt(m_iOrgHeight), true, true);
 }
 
-bool CheckCombo::OnListButtonDown(const ui::EventArgs& /*args*/)
+bool CheckCombo::OnListButtonDown(const EventArgs& args)
 {
-    Activate();
+    Activate(&args);
     return true;
 }
 

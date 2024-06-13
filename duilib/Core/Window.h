@@ -605,31 +605,20 @@ private:
 
 private:
     //鼠标等按下消息处理函数
-    void OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt);
+    void OnButtonDown(EventType eventType, const UiPoint& pt, uint32_t modifierKey);
 
     //鼠标等弹起消息处理函数
-    void OnButtonUp(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt);
-
-    //鼠标移动消息处理函数
-    void OnMouseMove(WPARAM wParam, LPARAM lParam, const UiPoint& pt);
-
-    /** 鼠标滚轮消息处理函数
-    *  @param [in] wParam 滚轮旋转的距离，正值表示滚轮向前旋转，远离用户;负值表示滚轮向后向用户旋转。
-    *  @param [in] lParam 含有特殊处理， 0表示严格按照wParam指定的距离滚动, 非0表示按照常规逻辑处理滚轮旋转的距离
-    *  @param [in] pt 鼠标所在的坐标值，为窗口客户区坐标
-    */
-    void OnMouseWheel(WPARAM wParam, LPARAM lParam, const UiPoint& pt);
+    void OnButtonUp(EventType eventType, const UiPoint& pt, uint32_t modifierKey);
 
     //清除鼠标键盘操作状态
     void ClearStatus();
 
     /** 判断是否需要发送鼠标进入或离开消息
     * @param [in] pt 鼠标当前位置
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
+    * @param [in] modifierKey 按键标志
     * @return 返回 true 需要发送鼠标进入或离开消息，返回 false 为不需要
     */
-    bool HandleMouseEnterLeave(const UiPoint& pt, WPARAM wParam, LPARAM lParam);
+    bool HandleMouseEnterLeave(const UiPoint& pt, uint32_t modifierKey);
 
 private:
     /**@name 动画效果相关接口

@@ -42,7 +42,7 @@ public:
 
     /** 按钮点击事件
     */
-    virtual void Activate() override;
+    virtual void Activate(const EventArgs* pMsg) override;
 
 public:
     /** 排序方式

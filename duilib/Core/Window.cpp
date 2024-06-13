@@ -599,7 +599,9 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
     }
     if (m_pFocus != nullptr) {
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-        m_pFocus->SendEvent(kEventWindowSize);
+        EventArgs msgData;
+        msgData.eventData = (int32_t)sizeType;
+        m_pFocus->SendEvent(kEventWindowSize, msgData);
         if (windowFlag.expired()) {
             return 0;
         }
@@ -612,7 +614,9 @@ LRESULT Window::OnMoveMsg(const UiPoint& ptTopLeft, bool& bHandled)
     bHandled = false;
     if (m_pFocus != nullptr) {
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-        m_pFocus->SendEvent(kEventWindowMove);
+        EventArgs msgData;
+        msgData.ptMouse = ptTopLeft;
+        m_pFocus->SendEvent(kEventWindowMove, msgData);
         if (windowFlag.expired()) {
             return 0;
         }
@@ -692,7 +696,9 @@ LRESULT Window::OnSetCursorMsg(bool& bHandled)
     if (pControl != nullptr) {
         //返回值待确认：如果应用程序处理了此消息，它应返回 TRUE 以停止进一步处理或 FALSE 以继续。
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-        pControl->SendEvent(kEventSetCursor, 0, 0, 0, pt);
+        EventArgs msgData;
+        msgData.ptMouse = pt;
+        pControl->SendEvent(kEventSetCursor, msgData);
         bHandled = true;
         if (windowFlag.expired()) {
             return 0;
@@ -712,7 +718,10 @@ LRESULT Window::OnContextMenuMsg(const UiPoint& pt, bool& bHandled)
         if (pControl != nullptr) {
             Control* ptControl = FindControl(pt);//当前点击点所在的控件
             std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-            pControl->SendEvent(kEventContextMenu, 0, (LPARAM)ptControl, 0, UiPoint(pt));
+            EventArgs msgData;
+            msgData.ptMouse = pt;
+            msgData.lParam = (LPARAM)ptControl;
+            pControl->SendEvent(kEventContextMenu, msgData);
             if (windowFlag.expired()) {
                 return 0;
             }
@@ -724,7 +733,10 @@ LRESULT Window::OnContextMenuMsg(const UiPoint& pt, bool& bHandled)
         Control* pControl = FindContextMenuControl(nullptr);
         if (pControl != nullptr) {
             std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-            pControl->SendEvent(kEventContextMenu, 0, 0, 0, UiPoint(pt));
+            EventArgs msgData;
+            msgData.ptMouse = pt;
+            msgData.lParam = 0;
+            pControl->SendEvent(kEventContextMenu, msgData);
             if (windowFlag.expired()) {
                 return 0;
             }
@@ -738,13 +750,14 @@ LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& 
     bHandled = false;
     LRESULT lResult = 0;
     if (modifierKey & (ModifierKey::kShift | ModifierKey::kControl | ModifierKey::kAlt | ModifierKey::kWin)) {
-        //TODO: 待实现(kEventSysKeyDown 已经删除 WM_SYSKEYDOWN)
-        WPARAM wParam = 0;
-        LPARAM lParam = 0;
+        //含有组合按键
         m_pEventKey = m_pFocus;
         if (m_pEventKey != nullptr) {
             std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-            m_pEventKey->SendEvent(kEventSysKeyDown, wParam, lParam, static_cast<TCHAR>(wParam));
+            EventArgs msgData;
+            msgData.vkCode = vkCode;
+            msgData.modifierKey = modifierKey;
+            m_pEventKey->SendEvent(kEventKeyDown, msgData);
             if (windowFlag.expired()) {
                 return lResult;
             }
@@ -771,12 +784,11 @@ LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& 
         }
         else {
             m_pEventKey = m_pFocus;
-
-            //TODO: 待实现(kEventSysKeyDown 已经删除 WM_SYSKEYDOWN)
-            WPARAM wParam = 0;
-            LPARAM lParam = 0;
             std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-            m_pFocus->SendEvent(kEventKeyDown, wParam, lParam, static_cast<TCHAR>(wParam));
+            EventArgs msgData;
+            msgData.vkCode = vkCode;
+            msgData.modifierKey = modifierKey;
+            m_pFocus->SendEvent(kEventKeyDown, msgData);
             if (windowFlag.expired()) {
                 return lResult;
             }
@@ -799,12 +811,12 @@ LRESULT Window::OnKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bH
 {
     bHandled = false;
     LRESULT lResult = 0;
-    //TODO: 待实现(kEventSysKeyUp 已经删除 WM_SYSKEYUP)
-    WPARAM wParam = 0;
-    LPARAM lParam = 0;    
     if (m_pEventKey != nullptr) {
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-        m_pEventKey->SendEvent(kEventKeyUp, wParam, lParam, static_cast<TCHAR>(wParam));
+        EventArgs msgData;
+        msgData.vkCode = vkCode;
+        msgData.modifierKey = modifierKey;
+        m_pEventKey->SendEvent(kEventKeyUp, msgData);
         if (windowFlag.expired()) {
             return lResult;
         }
@@ -817,18 +829,18 @@ LRESULT Window::OnCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHa
 {
     bHandled = false;
     LRESULT lResult = 0;
-    //TODO: 待实现
-    WPARAM wParam = 0;
-    LPARAM lParam = 0;
-    bHandled = false;
     if (m_pEventKey != nullptr) {
-        m_pEventKey->SendEvent(kEventChar, wParam, lParam, static_cast<TCHAR>(wParam));
+        EventArgs msgData;
+        msgData.vkCode = vkCode;
+        msgData.modifierKey = modifierKey;
+        m_pEventKey->SendEvent(kEventChar, msgData);
     }
     return lResult;
 }
 
 LRESULT Window::OnHotKeyMsg(int32_t /*hotkeyId*/, VirtualKeyCode /*vkCode*/, uint32_t /*modifierKey*/, bool& bHandled)
 {
+    //待添加（需确认，应该是要加在窗口上的）
     bHandled = false;
     return 0;
 }
@@ -837,11 +849,15 @@ LRESULT Window::OnMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t 
 {
     bHandled = false;
     LRESULT lResult = 0;
-    //TODO: 待实现
-    int wParam = 0;
-    int lParam = 0;
-
-    OnMouseWheel(wParam, lParam, pt);
+    SetLastMousePos(pt);
+    Control* pControl = FindControl(pt);
+    if (pControl != nullptr) {
+        EventArgs msgData;
+        msgData.eventData = wheelDelta;
+        msgData.modifierKey = modifierKey;
+        msgData.ptMouse = pt;
+        pControl->SendEvent(kEventMouseWheel, msgData);
+    }
     return lResult;
 }
 
@@ -849,12 +865,67 @@ LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bH
 {
     bHandled = false;
     LRESULT lResult = 0;
+    m_toolTip->SetMouseTracking(this, true);
+    SetLastMousePos(pt);
 
-    //TODO: 待实现
-    int wParam = 0;
-    int lParam = 0;
-    OnMouseMove(wParam, lParam, pt);
+    // Do not move the focus to the new control when the mouse is pressed
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    if (!IsCaptured()) {
+        if (!HandleMouseEnterLeave(pt, modifierKey)) {
+            return lResult;
+        }
+    }
+    if (windowFlag.expired()) {
+        return lResult;
+    }
+
+    EventArgs msgData;
+    msgData.modifierKey = modifierKey;
+    msgData.ptMouse = pt;
+    if (m_pEventClick != nullptr) {        
+        m_pEventClick->SendEvent(kEventMouseMove, msgData);
+    }
+    else if (m_pEventHover != nullptr) {
+        m_pEventHover->SendEvent(kEventMouseMove, msgData);
+    }
     return lResult;
+}
+
+
+bool Window::HandleMouseEnterLeave(const UiPoint& pt, uint32_t modifierKey)
+{
+    Control* pNewHover = FindControl(pt);
+    //设置为新的Hover控件
+    Control* pOldHover = m_pEventHover;
+    m_pEventHover = pNewHover;
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+
+    if ((pNewHover != pOldHover) && (pOldHover != nullptr)) {
+        //Hover状态的控件发生变化，原来Hover控件的Tooltip应消失
+        EventArgs msgData;
+        msgData.modifierKey = modifierKey;
+        msgData.ptMouse = pt;
+        pOldHover->SendEvent(kEventMouseLeave, msgData);
+        if (windowFlag.expired()) {
+            return false;
+        }
+        m_toolTip->HideToolTip();
+    }
+    ASSERT(pNewHover == m_pEventHover);
+    if (pNewHover != m_pEventHover) {
+        return false;
+    }
+
+    if ((pNewHover != pOldHover) && (pNewHover != nullptr)) {
+        EventArgs msgData;
+        msgData.modifierKey = modifierKey;
+        msgData.ptMouse = pt;
+        pNewHover->SendEvent(kEventMouseEnter, msgData);
+        if (windowFlag.expired()) {
+            return false;
+        }
+    }
+    return true;
 }
 
 LRESULT Window::OnMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
@@ -874,7 +945,10 @@ LRESULT Window::OnMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, bool& b
     Control* pOldHover = GetHoverControl();
     if (pHover != nullptr) {
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-        pHover->SendEvent(kEventMouseHover, 0, 0, 0, pt);
+        EventArgs msgData;
+        msgData.modifierKey = modifierKey;
+        msgData.ptMouse = pt;
+        pHover->SendEvent(kEventMouseHover, msgData);
         if (windowFlag.expired()) {
             return lResult;
         }
@@ -890,7 +964,7 @@ LRESULT Window::OnMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, bool& b
     return lResult;
 }
 
-LRESULT Window::OnMouseLeaveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT Window::OnMouseLeaveMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
 {
     bHandled = false;
     m_toolTip->HideToolTip();
@@ -901,98 +975,66 @@ LRESULT Window::OnMouseLeaveMsg(const UiPoint& pt, uint32_t modifierKey, bool& b
 LRESULT Window::OnMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
     bHandled = false;
-    LRESULT lResult = 0;
-    
-    //TODO: 待实现
-    int wParam = 0;
-    int lParam = 0;
-    OnButtonDown(kEventMouseButtonDown, wParam, lParam, pt);
-    return lResult;
+    OnButtonDown(kEventMouseButtonDown, pt, modifierKey);
+    return 0;
 }
 
 LRESULT Window::OnMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
     bHandled = false;
-    LRESULT lResult = 0;
-
-    //TODO: 待实现
-    int wParam = 0;
-    int lParam = 0;
-    OnButtonUp(kEventMouseButtonUp, wParam, lParam, pt);
-    return lResult;
+    OnButtonUp(kEventMouseButtonUp, pt, modifierKey);
+    return 0;
 }
 
 LRESULT Window::OnMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
     bHandled = false;
-    LRESULT lResult = 0;
-
-    //TODO: 待实现
-    int wParam = 0;
-    int lParam = 0;
-    OnButtonDown(kEventMouseDoubleClick, wParam, lParam, pt);
-    return lResult;
+    OnButtonDown(kEventMouseDoubleClick, pt, modifierKey);
+    return 0;
 }
 
 LRESULT Window::OnMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
     bHandled = false;
-    LRESULT lResult = 0;
-
-    //TODO: 待实现
-    int wParam = 0;
-    int lParam = 0;
-    OnButtonDown(kEventMouseRButtonDown, wParam, lParam, pt);
-    return lResult;
+    OnButtonDown(kEventMouseRButtonDown, pt, modifierKey);
+    return 0;
 }
 
 LRESULT Window::OnMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
     bHandled = false;
-    LRESULT lResult = 0;
-
-    //TODO: 待实现
-    int wParam = 0;
-    int lParam = 0;
-    OnButtonUp(kEventMouseRButtonUp, wParam, lParam, pt);
-    return lResult;
+    OnButtonUp(kEventMouseRButtonUp, pt, modifierKey);
+    return 0;
 }
 
 LRESULT  Window::OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
 {
     bHandled = false;
-    LRESULT lResult = 0;
-
-    //TODO: 待实现
-    int wParam = 0;
-    int lParam = 0;
-    OnButtonDown(kEventMouseRDoubleClick, wParam, lParam, pt);
-    return lResult;
+    OnButtonDown(kEventMouseRDoubleClick, pt, modifierKey);
+    return 0;
 }
 
 LRESULT Window::OnCaptureChangedMsg(bool& bHandled)
 {
-    //if (uMsg != WM_POINTERLEAVE) {
-    //    // Refer to LBUTTONUP and MOUSELEAVE，LBUTTOUP ReleaseCapture while MOUSELEAVE DONOT ReleaseCapture
-    //    ReleaseCapture();
-    //}
+    bHandled = false;
+
     //if (m_pEventClick) {
     //    //如果没有收到WM_POINTERUP消息，需要补一个（TODO：检查是否有副作用）
     //    m_pEventClick->SendEvent(kEventMouseButtonUp, wParam, lParam, 0, lastMousePos);
     //    m_pEventClick = nullptr;
     //}
 
-    LRESULT lResult = __super::OnCaptureChangedMsg(bHandled);
     ReleaseCapture();
-    return lResult;
+    return 0;
 }
 
-LRESULT Window::OnWindowCloseMsg(uint32_t wParam, bool& bHandled)
+LRESULT Window::OnWindowCloseMsg(uint32_t /*wParam*/, bool& bHandled)
 {
-    return __super::OnWindowCloseMsg(wParam, bHandled);
+    bHandled = false;
+    return 0;
 }
 
-void Window::OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt)
+void Window::OnButtonDown(EventType eventType, const UiPoint& pt, uint32_t modifierKey)
 {
     ASSERT(eventType == kEventMouseButtonDown || 
            eventType == kEventMouseRButtonDown || 
@@ -1007,7 +1049,10 @@ void Window::OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, con
         pControl->SetFocus();
         SetCapture();
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-        pControl->SendEvent(eventType, wParam, lParam, 0, pt);
+        EventArgs msgData;
+        msgData.modifierKey = modifierKey;
+        msgData.ptMouse = pt;
+        pControl->SendEvent(eventType, msgData);
         if (windowFlag.expired()) {
             return;
         }
@@ -1020,47 +1065,21 @@ void Window::OnButtonDown(EventType eventType, WPARAM wParam, LPARAM lParam, con
     }
 }
 
-void Window::OnButtonUp(EventType eventType, WPARAM wParam, LPARAM lParam, const UiPoint& pt)
+void Window::OnButtonUp(EventType eventType, const UiPoint& pt, uint32_t modifierKey)
 {
     ASSERT(eventType == kEventMouseButtonUp || eventType == kEventMouseRButtonUp);
     SetLastMousePos(pt);
     ReleaseCapture();
     if (m_pEventClick != nullptr) {
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-        m_pEventClick->SendEvent(eventType, wParam, lParam, 0, pt);
+        EventArgs msgData;
+        msgData.modifierKey = modifierKey;
+        msgData.ptMouse = pt;
+        m_pEventClick->SendEvent(eventType, msgData);
         if (windowFlag.expired()) {
             return;
         }
         m_pEventClick = nullptr;
-    }
-}
-
-void Window::OnMouseMove(WPARAM wParam, LPARAM lParam, const UiPoint& pt)
-{
-    m_toolTip->SetMouseTracking(this, true);
-    SetLastMousePos(pt);
-
-    // Do not move the focus to the new control when the mouse is pressed
-    if (!IsCaptured()) {
-        if (!HandleMouseEnterLeave(pt, wParam, lParam)) {
-            return;
-        }
-    }
-
-    if (m_pEventClick != nullptr) {
-        m_pEventClick->SendEvent(kEventMouseMove, 0, lParam, 0, pt);
-    }
-    else if (m_pEventHover != nullptr) {
-        m_pEventHover->SendEvent(kEventMouseMove, 0, lParam, 0, pt);
-    }
-}
-
-void Window::OnMouseWheel(WPARAM wParam, LPARAM lParam, const UiPoint& pt)
-{
-    SetLastMousePos(pt);
-    Control* pControl = FindControl(pt);
-    if (pControl != nullptr) {
-        pControl->SendEvent(kEventMouseWheel, wParam, lParam, 0, pt);
     }
 }
 
@@ -1089,36 +1108,6 @@ void Window::ClearStatus()
         m_pEventKey = nullptr;
     }
     KillFocusControl();
-}
-
-bool Window::HandleMouseEnterLeave(const UiPoint& pt, WPARAM wParam, LPARAM lParam)
-{
-    Control* pNewHover = FindControl(pt);
-    //设置为新的Hover控件
-    Control* pOldHover = m_pEventHover;
-    m_pEventHover = pNewHover;
-    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-
-    if ((pNewHover != pOldHover) && (pOldHover != nullptr)) {
-        //Hover状态的控件发生变化，原来Hover控件的Tooltip应消失
-        pOldHover->SendEvent(kEventMouseLeave, 0, 0, 0, pt);
-        if (windowFlag.expired()) {
-            return true;
-        }
-        m_toolTip->HideToolTip();
-    }
-    ASSERT(pNewHover == m_pEventHover);
-    if (pNewHover != m_pEventHover) {
-        return false;
-    }
-
-    if ((pNewHover != pOldHover) && (pNewHover != nullptr)) {
-        pNewHover->SendEvent(kEventMouseEnter, wParam, lParam, 0, pt);
-        if (windowFlag.expired()) {
-            return true;
-        }
-    }
-    return true;
 }
 
 Control* Window::GetFocusControl() const

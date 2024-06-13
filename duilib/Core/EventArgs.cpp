@@ -160,10 +160,6 @@ DString EventTypeToString(EventType eventType)
         return _T("kEventKeyDown");
     case kEventKeyUp:
         return _T("kEventKeyUp");
-    case kEventSysKeyDown:
-        return _T("kEventSysKeyDown");
-    case kEventSysKeyUp:
-        return _T("kEventSysKeyUp");
     case kEventChar:
         return _T("kEventChar");
     case kEventKeyEnd:

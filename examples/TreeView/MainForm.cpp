@@ -312,7 +312,7 @@ void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const DString& fileP
                 if (folder->path == filePath) {
                     ui::TreeNode* pSubTreeNode = folder->pTreeNode;
                     if (pSubTreeNode != nullptr) {
-                        pSubTreeNode->Activate();
+                        pSubTreeNode->Activate(nullptr);
                     }
                 }
             }

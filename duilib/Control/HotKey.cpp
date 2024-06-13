@@ -94,20 +94,6 @@ public:
         return true;
     }
 
-    /** 按键：F10 或者 Alt
-    */
-    virtual bool OnSysKeyDown(const EventArgs& msg) override
-    {
-        return OnKeyDown(msg);
-    }
-
-    /** 按键：F10 或者 Alt
-    */
-    virtual bool OnSysKeyUp(const EventArgs& msg) override
-    {
-        return OnKeyUp(msg);
-    }
-
     /** 设置热键
     */
     void SetHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)

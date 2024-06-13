@@ -16,7 +16,7 @@ public:
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
-    virtual void Activate() override;
+    virtual void Activate(const EventArgs* pMsg) override;
     virtual void HandleEvent(const EventArgs& msg) override;
     virtual uint32_t GetControlFlags() const override;
 
@@ -52,7 +52,7 @@ void ButtonTemplate<InheritType>::HandleEvent(const EventArgs& msg)
         if (this->IsEnabled() && this->IsKeyboardEnabled()) {
             //按下回车键或者空格键的时候，触发按钮响应动作
             if (msg.vkCode == kVK_SPACE || msg.vkCode == kVK_RETURN) {
-                Activate();
+                Activate(&msg);
                 return;
             }
         }
@@ -61,12 +61,17 @@ void ButtonTemplate<InheritType>::HandleEvent(const EventArgs& msg)
 }
 
 template<typename InheritType>
-void ButtonTemplate<InheritType>::Activate()
+void ButtonTemplate<InheritType>::Activate(const EventArgs* pMsg)
 {
     if (!this->IsActivatable()) {
         return;
     }
-    this->SendEvent(kEventClick);
+    if (pMsg != nullptr) {
+        this->SendEvent(kEventClick, *pMsg);
+    }
+    else {
+        this->SendEvent(kEventClick);
+    }    
 }
 
 template<typename InheritType>

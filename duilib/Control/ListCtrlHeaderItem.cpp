@@ -327,7 +327,7 @@ void ListCtrlHeaderItem::VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nIma
     }
 }
 
-void ListCtrlHeaderItem::Activate()
+void ListCtrlHeaderItem::Activate(const EventArgs* pMsg)
 {
     if (IsInDraggingOrder() || IsInDraggingOut()) {
         //处于拖动改变列顺序的状态
@@ -354,7 +354,7 @@ void ListCtrlHeaderItem::Activate()
             pHeader->OnHeaderColumnSorted(this);
         }
     }
-    __super::Activate();
+    __super::Activate(pMsg);
 }
 
 void ListCtrlHeaderItem::SetFadeVisible(bool bVisible)

@@ -18,7 +18,7 @@ public:
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
-    virtual void Activate() override;
+    virtual void Activate(const EventArgs* pMsg) override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintStateColors(IRender* pRender) override;
     virtual void PaintStateImages(IRender* pRender) override;
@@ -444,7 +444,7 @@ void CheckBoxTemplate<InheritType>::SetChecked(bool bChecked, bool bTriggerEvent
 }
 
 template<typename InheritType>
-void CheckBoxTemplate<InheritType>::Activate()
+void CheckBoxTemplate<InheritType>::Activate(const EventArgs* /*pMsg*/)
 {
     if (!this->IsActivatable()) {
         return;

@@ -249,11 +249,16 @@ public:
 protected:
     /** 激活函数
     */
-    virtual void Activate() override
+    virtual void Activate(const EventArgs* pMsg) override
     {
         //重写基类的实现逻辑，这里只发出一个Click事件
         if (this->IsActivatable()) {
-            this->SendEvent(kEventClick);
+            if (pMsg != nullptr) {
+                this->SendEvent(kEventClick, *pMsg);
+            }
+            else {
+                this->SendEvent(kEventClick);
+            }            
         }
     }
 

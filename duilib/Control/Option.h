@@ -22,7 +22,7 @@ public:
     virtual void SetWindow(Window* pManager) override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void Selected(bool bSelected, bool bTriggerEvent = false) override;
-    virtual void Activate() override;
+    virtual void Activate(const EventArgs* pMsg) override;
 
     /**
      * @brief 获取所属组名称
@@ -122,13 +122,13 @@ void OptionTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
 }
 
 template<typename InheritType>
-void OptionTemplate<InheritType>::Activate()
+void OptionTemplate<InheritType>::Activate(const EventArgs* pMsg)
 {
     if (!this->IsActivatable()) {
         return;
     }
     Selected(true, true);
-    ButtonTemplate<InheritType>::Activate();
+    ButtonTemplate<InheritType>::Activate(pMsg);
 }
 
 template<typename InheritType>

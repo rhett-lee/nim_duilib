@@ -495,12 +495,10 @@ public:
      */
     virtual bool IsActivatable() const;
 
-    /**
-     * @brief 激活控件，如点击、选中、展开等操作
-     * @param[in] 待补充
-     * @return 待补充
+    /** 激活控件，如点击、选中、展开等操作
+     * @param [in] pMsg 激活时对应的消息，可能为nullptr
      */
-    virtual void Activate();
+    virtual void Activate(const EventArgs* pMsg);
 
     /** 根据坐标查找指定控件
      * @param [in] Proc 查找的匹配函数
@@ -545,22 +543,18 @@ public:
      */
     virtual bool IsPointInWithScrollOffset(const UiPoint& point) const;
 
-    /** 控件统一的消息处理入口，将传统 Windows 消息转换为自定义格式的消息
+    /** 控件的消息处理入口，将消息转换为自定义格式的消息
      * @param [in] eventType 消息类型
      * @param [in] wParam 产生事件时的参数1
      * @param [in] lParam 产生事件时的参数2
-     * @param [in] vkCode 消息关联的按键
-     * @param [in] ptMouse 消息关联的鼠标所在坐标
-     * @param [in] modifierKey 消息关联的按键标志位
-     * @param [in] eventData 消息关联的整型数据
      */
-    void SendEvent(EventType eventType,
-                   WPARAM wParam = 0, 
-                   LPARAM lParam = 0, 
-                   VirtualKeyCode vkCode = VirtualKeyCode::kVK_None,
-                   const UiPoint& ptMouse = UiPoint(),
-                   uint32_t modifierKey = 0,
-                   int32_t eventData = 0);
+    void SendEvent(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0);
+
+    /** 控件的消息处理入口，将消息转换为自定义格式的消息
+     * @param [in] eventType 消息类型
+     * @param [in] msg 消息内容，可不必设置eventType
+     */
+    void SendEvent(EventType eventType, EventArgs msg);
 
     /** 将消息派发到消息处理函数
      * @param [in] msg 消息内容
@@ -1026,8 +1020,6 @@ protected:
     virtual bool OnChar(const EventArgs& msg);
     virtual bool OnKeyDown(const EventArgs& msg);
     virtual bool OnKeyUp(const EventArgs& msg);
-    virtual bool OnSysKeyDown(const EventArgs& msg);
-    virtual bool OnSysKeyUp(const EventArgs& msg);
 
     //光标与焦点相关消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
     virtual bool OnSetCursor(const EventArgs& msg);

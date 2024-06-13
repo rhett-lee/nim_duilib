@@ -1422,9 +1422,8 @@ DString Control::GetFocusRectColor() const
     return m_focusRectColor.c_str();
 }
 
-void Control::Activate()
+void Control::Activate(const EventArgs* /*pMsg*/)
 {
-
 }
 
 bool Control::IsActivatable() const
@@ -1629,30 +1628,36 @@ bool Control::IsPointInWithScrollOffset(const UiPoint& point) const
     return GetRect().ContainsPt(newPoint);
 }
 
-void Control::SendEvent(EventType eventType,
-                        WPARAM wParam,
-                        LPARAM lParam,
-                        VirtualKeyCode vkCode,
-                        const UiPoint& ptMouse,
-                        uint32_t modifierKey,
-                        int32_t eventData)
+void Control::SendEvent(EventType eventType, WPARAM wParam, LPARAM lParam)
 {
     EventArgs msg;
     msg.SetSender(this);
     msg.eventType = eventType;
-    msg.vkCode = vkCode;
+    msg.vkCode = VirtualKeyCode::kVK_None;
     msg.wParam = wParam;
     msg.lParam = lParam;
-    msg.ptMouse = ptMouse;
-    if ((ptMouse.x == 0) && (ptMouse.y == 0)) {
+    Window* pWindow = GetWindow();
+    if (pWindow != nullptr) {
+        msg.ptMouse = pWindow->GetLastMousePos();
+    }
+    msg.modifierKey = 0;
+    msg.eventData = 0;
+
+    //派发消息
+    SendEventMsg(msg);
+}
+
+void Control::SendEvent(EventType eventType, EventArgs msg)
+{
+    ASSERT((msg.eventType == eventType) || (msg.eventType == EventType::kEventNone));
+    msg.eventType = eventType;
+    msg.SetSender(this);
+    if ((msg.ptMouse.x == 0) && (msg.ptMouse.y == 0)) {
         Window* pWindow = GetWindow();
         if (pWindow != nullptr) {
             msg.ptMouse = pWindow->GetLastMousePos();
         }
     }
-    msg.modifierKey = modifierKey;
-    msg.eventData = eventData;
-
     //派发消息
     SendEventMsg(msg);
 }
@@ -1819,17 +1824,6 @@ void Control::HandleEvent(const EventArgs& msg)
             return;
         }
     }
-    else if (msg.eventType == kEventSysKeyDown) {
-        if (OnSysKeyDown(msg)) {
-            return;
-        }
-    }
-    else if (msg.eventType == kEventSysKeyUp) {
-        if (OnSysKeyUp(msg)) {
-            return;
-        }
-    }
-
     if (!weakFlag.expired() && (GetParent() != nullptr)) {
         GetParent()->SendEventMsg(msg);
     }
@@ -1921,7 +1915,7 @@ bool Control::ButtonUp(const EventArgs& msg)
         if( IsPointInWithScrollOffset(msg.ptMouse) ) {
             PrivateSetState(kControlStateHot);
             m_nHotAlpha = 255;
-            Activate();
+            Activate(&msg);
         }
         else {
             PrivateSetState(kControlStateNormal);
@@ -1955,7 +1949,10 @@ bool Control::RButtonUp(const EventArgs& msg)
     if (IsMouseFocused()) {
         SetMouseFocused(false);
         if (IsPointInWithScrollOffset(msg.ptMouse)) {
-            SendEvent(kEventRClick);
+            EventArgs msgData;
+            msgData.ptMouse = msg.ptMouse;
+            msgData.modifierKey = msg.modifierKey;
+            SendEvent(kEventRClick, msgData);
         }
     }
     return true;
@@ -2002,18 +1999,6 @@ bool Control::OnKeyDown(const EventArgs& /*msg*/)
 }
 
 bool Control::OnKeyUp(const EventArgs& /*msg*/)
-{
-    //默认不处理，交由父控件处理
-    return false;
-}
-
-bool Control::OnSysKeyDown(const EventArgs& /*msg*/)
-{
-    //默认不处理，交由父控件处理
-    return false;
-}
-
-bool Control::OnSysKeyUp(const EventArgs& /*msg*/)
 {
     //默认不处理，交由父控件处理
     return false;

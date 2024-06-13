@@ -28,7 +28,7 @@ public:
         }
     }
 
-    virtual void Activate() override
+    virtual void Activate(const EventArgs* /*pMsg*/) override
     {
         if (!IsActivatable()) {
             return;
