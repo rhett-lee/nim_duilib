@@ -133,7 +133,6 @@ private:
     virtual ui::Control* CreateControl(const DString& pstrClass) override;
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
-    virtual DString GetWindowClassName() const override;
     virtual void OnInitWindow() override;
     virtual void OnFinalMessage() override;
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;

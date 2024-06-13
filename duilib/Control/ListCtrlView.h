@@ -254,7 +254,10 @@ protected:
         //重写基类的实现逻辑，这里只发出一个Click事件
         if (this->IsActivatable()) {
             if (pMsg != nullptr) {
-                this->SendEvent(kEventClick, *pMsg);
+                EventArgs newMsg = *pMsg;
+                newMsg.eventData = pMsg->eventType;
+                newMsg.eventType = kEventNone;
+                this->SendEvent(kEventClick, newMsg);
             }
             else {
                 this->SendEvent(kEventClick);

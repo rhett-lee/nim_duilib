@@ -53,10 +53,10 @@ bool ShadowWndBase::Create(Window* window)
 LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
 {
     bHandled = false;
-    if ((m_pWindow == nullptr) || (m_pWindow->GetHWND() == nullptr)) {
+    if ((m_pWindow == nullptr) || (m_pWindow->NativeWnd()->GetHWND() == nullptr)) {
         return 0;
     }
-    HWND hWnd = m_pWindow->GetHWND();
+    HWND hWnd = m_pWindow->NativeWnd()->GetHWND();
     switch (uMsg)
     {
         case WM_ERASEBKGND:
@@ -98,8 +98,8 @@ void ShadowWnd::OnInitWindow()
 {
     __super::OnInitWindow();
 
-    ASSERT((m_pShadowWnd == nullptr) && (GetHWND() == nullptr));
-    if ((m_pShadowWnd != nullptr) || (GetHWND() != nullptr)) {
+    ASSERT((m_pShadowWnd == nullptr) && (NativeWnd()->GetHWND() == nullptr));
+    if ((m_pShadowWnd != nullptr) || (NativeWnd()->GetHWND() != nullptr)) {
         return;
     }
     bool needCreateShadowWnd = NeedCreateShadowWnd();
@@ -127,8 +127,8 @@ void ShadowWnd::OnInitWindow()
     //   layered_window = "false" shadow_attached = "true";
     if (m_pShadowWnd != nullptr) {
         m_pShadowWnd->Create(this);
-        ::EnableWindow(m_pShadowWnd->GetHWND(), FALSE);
-        if (::IsWindowVisible(GetHWND())) {
+        ::EnableWindow(m_pShadowWnd->NativeWnd()->GetHWND(), FALSE);
+        if (::IsWindowVisible(NativeWnd()->GetHWND())) {
             m_pShadowWnd->ShowWindow();
         }
     }

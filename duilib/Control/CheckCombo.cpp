@@ -8,14 +8,13 @@
 
 namespace ui
 {
-class CCheckComboWnd : public ui::Window
+class CCheckComboWnd : public Window
 {
 public:
     void InitComboWnd(CheckCombo* pOwner);
     void UpdateComboWnd();
     void CloseComboWnd();
 
-    virtual DString GetWindowClassName() const override;
     virtual void OnFinalMessage() override;
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
@@ -35,15 +34,15 @@ void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
     }
     m_pOwner = pOwner;
     m_bIsClosed = false;
-    CreateWnd(pOwner->GetWindow(), _T(""), WS_POPUP, WS_EX_TOOLWINDOW);
+    WindowCreateParam createWndParam;
+    //TODO: 平台相关
+    createWndParam.m_dwStyle = WS_POPUP;
+    createWndParam.m_dwExStyle = WS_EX_TOOLWINDOW;
+    CreateWnd(pOwner->GetWindow(), &createWndParam);
     UpdateComboWnd();
 
-    HWND hWndParent = GetHWND();
-    while (::GetParent(hWndParent) != NULL) {
-        hWndParent = ::GetParent(hWndParent);
-    }
-    ::ShowWindow(GetHWND(), SW_SHOW);
-    ::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
+    ShowWindow();
+    KeepParentActive();
 }
 
 void CCheckComboWnd::UpdateComboWnd()
@@ -92,6 +91,7 @@ void CCheckComboWnd::UpdateComboWnd()
         rc.bottom = rcOwner.top;
         pOwner->GetWindow()->MapWindowDesktopRect(rc);
     }
+    //TODO：平台相关
     SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
@@ -108,20 +108,13 @@ void CCheckComboWnd::CloseComboWnd()
         pRootBox->RemoveAllItems();
     }
     //先将前端窗口切换为父窗口，避免前端窗口关闭后，切换到其他窗口
-    HWND hWnd = GetHWND();
-    HWND hParentWnd = ::GetParent(hWnd);
-    HWND hForeWnd = ::GetForegroundWindow();
-    if ((hForeWnd == hWnd) || hForeWnd == hParentWnd) {
-        if (hParentWnd != nullptr) {
-            ::SetForegroundWindow(hParentWnd);
-        }
+    CheckCombo* pOwner = m_pOwner;
+    if ((pOwner != nullptr) && (pOwner->GetWindow() != nullptr)) {
+        if (IsWindowForeground()) {
+            pOwner->GetWindow()->SetWindowForeground();
+        }        
     }
     CloseWnd();
-}
-
-DString CCheckComboWnd::GetWindowClassName() const
-{
-    return _T("CCheckComboWnd");
 }
 
 void CCheckComboWnd::OnFinalMessage()
@@ -142,6 +135,7 @@ void CCheckComboWnd::OnFinalMessage()
 
 void CCheckComboWnd::OnSeleteItem()
 {
+    //TODO: 平台相关
     PostMsg(WM_KILLFOCUS);
 }
 
@@ -173,9 +167,10 @@ LRESULT CCheckComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
     }
     if (uMsg == WM_KILLFOCUS) {
         //失去焦点，关闭窗口
-        if (GetHWND() != (HWND)wParam) {
+		//TODO：平台
+        //    if (GetHWND() != (HWND)wParam) {
             CloseComboWnd();
-        }
+        //    }
     }
     else if (uMsg == WM_KEYDOWN && wParam == kVK_ESCAPE) {
         //按住ESC键，取消

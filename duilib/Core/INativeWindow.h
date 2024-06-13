@@ -29,7 +29,7 @@ class INativeWindow
 public:
     /** 获取该窗口对应的DPI管理器
     */
-    virtual const DpiManager& OnNativeGetDpi() const;
+    virtual const DpiManager& OnNativeGetDpi() const = 0;
 
     /** 获取窗口阴影的大小
     * @param [out] rcShadow 获取圆角的大小
@@ -225,12 +225,10 @@ public:
     virtual LRESULT OnNativeMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled) = 0;
 
     /** 鼠标离开消息（WM_MOUSELEAVE）
-    * @param [in] pt 鼠标所在位置，客户区坐标
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
-    virtual LRESULT OnNativeMouseLeaveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled) = 0;
+    virtual LRESULT OnNativeMouseLeaveMsg(bool& bHandled) = 0;
 
     /** 鼠标左键按下消息（WM_LBUTTONDOWN）
     * @param [in] pt 鼠标所在位置，客户区坐标

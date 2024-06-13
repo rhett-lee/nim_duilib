@@ -964,7 +964,7 @@ LRESULT Window::OnMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, bool& b
     return lResult;
 }
 
-LRESULT Window::OnMouseLeaveMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+LRESULT Window::OnMouseLeaveMsg(bool& bHandled)
 {
     bHandled = false;
     m_toolTip->HideToolTip();

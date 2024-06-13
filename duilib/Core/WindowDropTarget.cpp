@@ -239,10 +239,10 @@ bool WindowDropTarget::RegisterDragDrop(ControlDropTarget* pDropTarget)
     if (m_pDropTargetImpl == nullptr) {
         ASSERT(m_pWindow != nullptr);
         if (m_pWindow != nullptr) {
-            ASSERT(::IsWindow(m_pWindow->GetHWND()));
+            ASSERT(::IsWindow(m_pWindow->NativeWnd()->GetHWND()));
             m_pDropTargetImpl = new WindowDropTargetImpl(this);
             m_pDropTargetImpl->AddRef();
-            HRESULT hr = ::RegisterDragDrop(m_pWindow->GetHWND(), m_pDropTargetImpl);
+            HRESULT hr = ::RegisterDragDrop(m_pWindow->NativeWnd()->GetHWND(), m_pDropTargetImpl);
             ASSERT(hr == S_OK);
             if (hr != S_OK) {
                 m_pDropTargetImpl->Release();
@@ -268,8 +268,8 @@ bool WindowDropTarget::UnregisterDragDrop(ControlDropTarget* pDropTarget)
         if (m_pDropTargetImpl != nullptr) {
             ASSERT(m_pWindow != nullptr);
             if (m_pWindow != nullptr) {
-                ASSERT(::IsWindow(m_pWindow->GetHWND()));
-                HRESULT hr = ::RevokeDragDrop(m_pWindow->GetHWND());
+                ASSERT(::IsWindow(m_pWindow->NativeWnd()->GetHWND()));
+                HRESULT hr = ::RevokeDragDrop(m_pWindow->NativeWnd()->GetHWND());
                 ASSERT_UNUSED_VARIABLE(hr == S_OK);
             }
             m_pDropTargetImpl->Release();
@@ -283,8 +283,8 @@ void WindowDropTarget::Clear()
 {
     if (!m_dropTargets.empty()) {
         if (m_pWindow != nullptr) {
-            ASSERT(::IsWindow(m_pWindow->GetHWND()));
-            HRESULT hr = ::RevokeDragDrop(m_pWindow->GetHWND());
+            ASSERT(::IsWindow(m_pWindow->NativeWnd()->GetHWND()));
+            HRESULT hr = ::RevokeDragDrop(m_pWindow->NativeWnd()->GetHWND());
             ASSERT_UNUSED_VARIABLE(hr == S_OK);
         }
     }

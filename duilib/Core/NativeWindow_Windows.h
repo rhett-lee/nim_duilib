@@ -19,7 +19,7 @@ public:
 
     /** 窗口类名（可选参数）
     */
-    DString m_className = _T("nim_duilib_window");
+    DString m_className = _T("duilib_window");
 
     /** 窗口类的风格（可选参数）, 参考：https://docs.microsoft.com/en-us/windows/desktop/winmsg/window-class-styles
     */
@@ -165,7 +165,7 @@ public:
 
     /** 设置窗口为前端窗口
     */
-    bool SetForeground();
+    bool SetWindowForeground();
 
     /** 当前窗口是否为前端窗口
     */
@@ -337,6 +337,10 @@ public:
     * @return 如果无更新区域返回false，否则返回true
     */
     bool GetUpdateRect(UiRect& rcPaint);
+
+    /** 使父窗口保持激活状态
+    */
+    void KeepParentActive();
 
     /** 获取当前窗口的客户区矩形
     * @param [out] rcClient 返回窗口的客户区坐标

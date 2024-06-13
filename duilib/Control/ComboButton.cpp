@@ -13,7 +13,6 @@ class ComboButtonWnd: public Window
 public:
     void InitComboWnd(ComboButton* pOwner, bool bActivated);
     void UpdateComboWnd();
-    virtual DString GetWindowClassName() const override;
     virtual void OnFinalMessage() override;
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
@@ -21,10 +20,6 @@ public:
     * @param [in] bCanceled true表示取消，否则表示正常关闭
     */
     void CloseComboWnd(bool bCanceled);
-
-    /** 当前是否为焦点窗口
-    */
-    bool IsFocusWindow() const;
 
 private:
     //关联的Combo接口
@@ -42,19 +37,19 @@ void ComboButtonWnd::InitComboWnd(ComboButton* pOwner, bool bActivated)
     }
     m_pOwner = pOwner;
     m_bIsClosed = false;
-    CreateWnd(pOwner->GetWindow(), _T(""), WS_POPUP, WS_EX_TOOLWINDOW);
+    WindowCreateParam createWndParam;
+    //TODO: 平台相关
+    createWndParam.m_dwStyle = WS_POPUP;
+    createWndParam.m_dwExStyle = WS_EX_TOOLWINDOW;
+    CreateWnd(pOwner->GetWindow(), &createWndParam);
     UpdateComboWnd();
     if (bActivated) {
-        HWND hWndParent = GetHWND();
-        while (::GetParent(hWndParent) != NULL) {
-            hWndParent = ::GetParent(hWndParent);
-        }
-        ::ShowWindow(GetHWND(), SW_SHOW);
-        ::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
+        ShowWindow();
+        KeepParentActive();
         pOwner->SetState(kControlStateHot);
     }
     else {
-        ::ShowWindow(GetHWND(), SW_SHOWNOACTIVATE);
+        ShowWindow(true, false);
     }
 }
 
@@ -108,11 +103,6 @@ void ComboButtonWnd::UpdateComboWnd()
     SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
-DString ComboButtonWnd::GetWindowClassName() const
-{
-    return _T("ComboWnd");
-}
-
 void ComboButtonWnd::OnFinalMessage()
 {
     if (m_pOwner != nullptr) {
@@ -142,23 +132,16 @@ void ComboButtonWnd::CloseComboWnd(bool bCanceled)
         pRootBox->RemoveAllItems();
     }
     //先将前端窗口切换为父窗口，避免前端窗口关闭后，切换到其他窗口
-    HWND hWnd = GetHWND();
-    HWND hParentWnd = ::GetParent(hWnd);
-    HWND hForeWnd = ::GetForegroundWindow();
-    if ((hForeWnd == hWnd) || hForeWnd == hParentWnd) {
-        if (hParentWnd != nullptr) {
-            ::SetForegroundWindow(hParentWnd);
+    ComboButton* pOwner = m_pOwner;
+    if ((pOwner != nullptr) && (pOwner->GetWindow() != nullptr)) {
+        if (IsWindowForeground()) {
+            pOwner->GetWindow()->SetWindowForeground();
         }
     }
     CloseWnd();
     if (m_pOwner != nullptr) {
         m_pOwner->OnComboWndClosed(bCanceled);
     }
-}
-
-bool ComboButtonWnd::IsFocusWindow() const
-{
-    return ::GetFocus() == GetHWND();
 }
 
 LRESULT ComboButtonWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -189,10 +172,11 @@ LRESULT ComboButtonWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
         lResult = __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
     }
     if (uMsg == WM_KILLFOCUS) {
+        //TODO: 
         //失去焦点，关闭窗口，正常关闭
-        if (GetHWND() != (HWND)wParam) {
+        //    if (GetHWND() != (HWND)wParam) {
             CloseComboWnd(false);
-        }
+        //    }
     }
     else if (uMsg == WM_KEYDOWN && wParam == kVK_ESCAPE) {
         //按住ESC键，取消
@@ -620,7 +604,7 @@ bool ComboButton::OnRightButtonClicked(const EventArgs& /*args*/)
 bool ComboButton::OnWindowKillFocus(const EventArgs& /*args*/)
 {
     if (m_pWindow != nullptr) {
-        if (m_pWindow->IsFocusWindow()) {
+        if (m_pWindow->IsWindowFocused()) {
             return true;
         }
     }

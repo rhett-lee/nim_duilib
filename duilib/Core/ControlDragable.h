@@ -1108,7 +1108,12 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
         ASSERT(m_pDragWindow != nullptr);
         if (m_pDragWindow != nullptr) {
             m_pDragWindow->AddRef();
-            m_pDragWindow->CreateWnd(this->GetWindow(), _T(""), WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_LAYERED);
+
+            WindowCreateParam createWndParam;
+            //TODO: 平台相关
+            createWndParam.m_dwStyle = WS_POPUP;
+            createWndParam.m_dwExStyle = WS_EX_TOOLWINDOW | WS_EX_LAYERED;
+            m_pDragWindow->CreateWnd(this->GetWindow(), &createWndParam);
             if (m_pDragWindow->IsWindow()) {
                 m_pDragWindow->AddRef();
             }

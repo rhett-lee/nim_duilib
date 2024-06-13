@@ -1455,9 +1455,10 @@ namespace PropertyGridFontPropertyImpl
 
     static void GetSystemFontList(Window* pWindow, std::vector<DString>& fontNameList)
     {
+        //TODO: 平台
         fontNameList.clear();
         std::vector<FontInfo> fontList;
-        HDC hDC = pWindow != nullptr ? pWindow->GetPaintDC() : nullptr;        
+        HDC hDC = pWindow != nullptr ? pWindow->NativeWnd()->GetPaintDC() : nullptr;
         LOGFONT logfont = {};
         logfont.lfCharSet = DEFAULT_CHARSET;
         logfont.lfFaceName[0] = _T('\0');
@@ -1773,7 +1774,10 @@ void PropertyGridColorProperty::ShowColorPicker()
     DString oldTextColor = pColorLabel->GetBkColor(); //原来的颜色
 
     ColorPicker* pColorPicker = new ColorPicker;
-    pColorPicker->CreateWnd(pWindow, ColorPicker::kClassName, UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    WindowCreateParam createWndParam;
+    //TODO: 平台相关
+    createWndParam.m_dwExStyle = WS_EX_LAYERED;
+    pColorPicker->CreateWnd(pWindow, &createWndParam);
     pColorPicker->CenterWindow();
     pColorPicker->ShowModalFake();
 

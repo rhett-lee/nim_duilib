@@ -8,7 +8,11 @@ const DString Toast::kClassName = _T("Toast");
 void Toast::ShowToast(const DString &content, int duration, Window* pParentWindow)
 {
     Toast *toast = new Toast;
-    if (!toast->CreateWnd(pParentWindow, _T(""), WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED)) {
+    ui::WindowCreateParam createWndParam;
+    //TODO: 平台相关
+    createWndParam.m_dwStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
+    createWndParam.m_dwExStyle = WS_EX_LAYERED;
+    if (!toast->CreateWnd(pParentWindow, &createWndParam)) {
         delete toast;
         return;
     }
@@ -28,19 +32,9 @@ DString Toast::GetSkinFile()
     return _T("toast.xml");
 }
 
-DString Toast::GetWindowClassName() const
-{
-    return kClassName;
-}
-
 DString Toast::GetWindowId() const
 {
     return kClassName;
-}
-
-UINT Toast::GetClassStyle() const
-{
-    return (UI_CLASSSTYLE_FRAME | CS_DBLCLKS);
 }
 
 LRESULT Toast::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)

@@ -33,9 +33,10 @@ void CefNativeControl::Init()
 {
     if (browser_handler_.get() == nullptr)
     {
-        LONG style = ::GetWindowLong(GetWindow()->GetHWND(), GWL_STYLE);
-        SetWindowLong(GetWindow()->GetHWND(), GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-        ASSERT((::GetWindowLong(GetWindow()->GetHWND(), GWL_EXSTYLE) & WS_EX_LAYERED) == 0 && _T("无法在分层窗口内使用本控件"));
+        HWND hWnd = GetWindow()->NativeWnd()->GetHWND();
+        LONG style = ::GetWindowLong(hWnd, GWL_STYLE);
+        ::SetWindowLong(hWnd, GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+        ASSERT((::GetWindowLong(hWnd, GWL_EXSTYLE) & WS_EX_LAYERED) == 0 && _T("无法在分层窗口内使用本控件"));
 
         browser_handler_ = new nim_comp::BrowserHandler;
         browser_handler_->SetHostWindow(GetWindow());
@@ -58,7 +59,7 @@ void CefNativeControl::ReCreateBrowser()
         // 使用有窗模式
         CefWindowInfo window_info;
         RECT rect = { GetRect().left, GetRect().top, GetRect().right, GetRect().bottom};
-        window_info.SetAsChild(this->GetWindow()->GetHWND(), rect);
+        window_info.SetAsChild(this->GetWindow()->NativeWnd()->GetHWND(), rect);
 
         CefBrowserSettings browser_settings;
         CefBrowserHost::CreateBrowser(window_info, browser_handler_, _T(""), browser_settings, NULL);
@@ -131,11 +132,11 @@ void CefNativeControl::SetWindow(ui::Window* pManager)
     // 设置Cef窗口句柄为新的主窗口的子窗口
     auto hwnd = GetCefHandle();
     if (hwnd)
-        ::SetParent(hwnd, pManager->GetHWND());
+        ::SetParent(hwnd, pManager->NativeWnd()->GetHWND());
 
     // 为新的主窗口重新设置WS_CLIPSIBLINGS、WS_CLIPCHILDREN样式，否则Cef窗口刷新会出问题
-    LONG style = GetWindowLong(pManager->GetHWND(), GWL_STYLE);
-    SetWindowLong(pManager->GetHWND(), GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+    LONG style = GetWindowLong(pManager->NativeWnd()->GetHWND(), GWL_STYLE);
+    SetWindowLong(pManager->NativeWnd()->GetHWND(), GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 
     __super::SetWindow(pManager);
 }

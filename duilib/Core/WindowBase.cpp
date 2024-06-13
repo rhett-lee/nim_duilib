@@ -272,9 +272,9 @@ void WindowBase::ActiveWindow()
     m_pNativeWindow->ActiveWindow();
 }
 
-bool WindowBase::SetForeground()
+bool WindowBase::SetWindowForeground()
 {
-    return m_pNativeWindow->SetForeground();
+    return m_pNativeWindow->SetWindowForeground();
 }
 
 bool WindowBase::IsWindowForeground() const
@@ -560,6 +560,11 @@ bool WindowBase::GetUpdateRect(UiRect& rcPaint)
     return m_pNativeWindow->GetUpdateRect(rcPaint);
 }
 
+void WindowBase::KeepParentActive()
+{
+    m_pNativeWindow->KeepParentActive();
+}
+
 const UiRect& WindowBase::GetSizeBox() const
 {
     return m_rcSizeBox;
@@ -793,6 +798,11 @@ void WindowBase::OnNativeWindowRestored()
     OnWindowRestored();
 }
 
+void WindowBase::OnNativeWindowMinimized()
+{
+    OnWindowMinimized();
+}
+
 void WindowBase::OnNativeWindowEnterFullScreen()
 {
     OnWindowEnterFullScreen();
@@ -965,9 +975,9 @@ LRESULT WindowBase::OnNativeMouseHoverMsg(const UiPoint& pt, uint32_t modifierKe
     return OnMouseHoverMsg(pt, modifierKey, bHandled);
 }
 
-LRESULT WindowBase::OnNativeMouseLeaveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeMouseLeaveMsg(bool& bHandled)
 {
-    return OnMouseLeaveMsg(pt, modifierKey, bHandled);
+    return OnMouseLeaveMsg(bHandled);
 }
 
 LRESULT WindowBase::OnNativeMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)

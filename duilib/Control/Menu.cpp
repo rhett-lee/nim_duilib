@@ -90,8 +90,11 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
     m_pOwner = pOwner;
 
     Menu::GetMenuObserver().AddReceiver(this);
-
-    CreateWnd(m_pParentWindow, _T("DUILIB_MENU_WINDOW"), WS_POPUP, WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_LAYERED);
+    WindowCreateParam createWndParam;
+    //TODO: 平台相关
+    createWndParam.m_dwStyle = WS_POPUP;
+    createWndParam.m_dwExStyle = WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_LAYERED;
+    CreateWnd(m_pParentWindow, &createWndParam);
     ShowWindow(true, !noFocus);
     if (m_pOwner) {
         ResizeSubMenu();
@@ -99,14 +102,7 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
     else {
         ResizeMenu();
     }
-#ifdef DUILIB_PLATFORM_WIN
-    // HACK: Don't deselect the parent's caption
-    HWND hWndParent = GetHWND();
-    while (::GetParent(hWndParent) != NULL) {
-        hWndParent = ::GetParent(hWndParent);
-    }
-    ::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
-#endif
+    KeepParentActive();
     //修正菜单项的宽度，保持一致
     UpdateWindow();
     if (m_pLayout != nullptr) {
@@ -182,11 +178,6 @@ DString Menu::GetSkinFile()
     return m_xml.c_str();
 }
 
-DString Menu::GetWindowClassName() const
-{
-    return _T("MenuWnd");
-}
-
 LRESULT Menu::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     bHandled = true;
@@ -204,7 +195,7 @@ LRESULT Menu::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHa
             ReceiverImplBase<bool, ContextMenuParam>* pReceiver = iterator.next();
             while (pReceiver != nullptr) {
                 Menu* pContextMenu = dynamic_cast<Menu*>(pReceiver);
-                if ((pContextMenu != nullptr) && (pContextMenu->GetHWND() == hFocusWnd)) {
+                if ((pContextMenu != nullptr) && (pContextMenu->NativeWnd()->GetHWND() == hFocusWnd)) {
                     bInMenuWindowList = true;
                     break;
                 }
@@ -311,7 +302,7 @@ void Menu::ResizeMenu()
         }
     }
     if (!m_noFocus) {
-        SetForeground();
+        SetWindowForeground();
         SetFocusControl(m_pLayout);
     }
     SetWindowPos(HWND_TOPMOST, point.x - rcCorner.left, point.y - rcCorner.top,
@@ -376,7 +367,7 @@ void Menu::ResizeSubMenu()
 
             bReachRight = (rcPreWindow.left + rcCorner.left) >= rcWindow.right;
             bReachBottom = (rcPreWindow.top + rcCorner.top) >= rcWindow.bottom;
-            if (pContextMenu->GetHWND() == m_pOwner->GetWindow()->GetHWND()
+            if (pContextMenu->NativeWnd()->GetHWND() == m_pOwner->GetWindow()->NativeWnd()->GetHWND()
                 || bReachBottom || bReachRight) {
                 break;
             }
@@ -414,7 +405,7 @@ void Menu::ResizeSubMenu()
     }
 
     if (!m_noFocus) {
-        SetForeground();
+        SetWindowForeground();
         SetFocusControl(m_pLayout);
     }
     SetWindowPos(HWND_TOPMOST, rc.left - rcCorner.left, rc.top - rcCorner.top,

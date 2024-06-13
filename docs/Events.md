@@ -17,7 +17,7 @@
 |kEventMouseRButtonUp       |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
 |kEventMouseRDoubleClick    |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
 |kEventContextMenu          |     |Control*<br> 鼠标所在位置的控件| 鼠标所在位置<br>的客户区坐标    |     |       |     | 如果用户键入 SHIFT+F10，<br> 则ptMouse为(-1,-1)，lParam为0 |
-|kEventClick                |     |     |鼠标所在位置<br>的客户区坐标   | 参数(vkCode)   | 按键标志   |     | 参数可能性较多，需要检测  |
+|kEventClick                |     |     |鼠标所在位置<br>的客户区坐标   | 参数(vkCode)   | 按键标志   | 旧的事件类型  | 参数可能性较多，需要检测  |
 |kEventRClick               |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
 |kEventMouseClickChanged    |     |     |     |     |       |     | 无参数 |
 |kEventMouseClickEsc        |     |     |     |     |       |     | 无参数 |

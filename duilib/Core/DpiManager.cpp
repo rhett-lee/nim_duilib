@@ -114,11 +114,11 @@ void DpiManager::SetDpiByWindow(WindowBase* pWindow)
     uint32_t uDPI = 0;
     HWND hWnd = nullptr;
     if (pWindow != nullptr) {
-        hWnd = pWindow->GetHWND();
+        hWnd = pWindow->NativeWnd()->GetHWND();
     }
     if (hWnd != nullptr) {
         if (::IsWindows10OrGreater()) {
-            if (!GetDpiForWindowWrapper(pWindow->GetHWND(), uDPI)) {
+            if (!GetDpiForWindowWrapper(hWnd, uDPI)) {
                 uDPI = 0;
             }
         }

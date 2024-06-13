@@ -60,8 +60,8 @@ bool DateTimeWnd::Init(DateTime* pOwner)
         if (!RegisterSuperClass()) {
             return false;
         }
-        HWND hParentWnd = m_pOwner->GetWindow()->GetHWND();
-        HMODULE hModule = m_pOwner->GetWindow()->GetResModuleHandle();
+        HWND hParentWnd = m_pOwner->GetWindow()->NativeWnd()->GetHWND();
+        HMODULE hModule = m_pOwner->GetWindow()->NativeWnd()->GetResModuleHandle();
         DString className = GetWindowClassName();
         UiRect rc = { pt1.x, pt1.y, pt2.x, pt2.y };
         m_hDateTimeWnd = ::CreateWindowEx(0,
@@ -132,7 +132,7 @@ bool DateTimeWnd::RegisterSuperClass()
     if (m_pOwner == nullptr) {
         return false;
     }
-    HMODULE hModule = m_pOwner->GetWindow()->GetResModuleHandle();
+    HMODULE hModule = m_pOwner->GetWindow()->NativeWnd()->GetResModuleHandle();
     // Get the class information from an existing
     // window so we can subclass it later on...
     WNDCLASSEX wc = { 0 };

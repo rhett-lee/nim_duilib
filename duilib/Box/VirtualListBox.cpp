@@ -622,7 +622,7 @@ void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem)
     if (bFromItem) {
         EventArgs newMsg = msg;
         newMsg.SetSender(this);
-        size_t nItemIndex = GetItemIndex(args.GetSender());
+        size_t nItemIndex = GetItemIndex(msg.GetSender());
         if (nItemIndex < GetItemCount()) {
             newMsg.wParam = nItemIndex;
             newMsg.lParam = GetDisplayItemElementIndex(nItemIndex);

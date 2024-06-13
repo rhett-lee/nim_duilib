@@ -51,6 +51,7 @@ bool NativeWindow::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam*
 
     //注册窗口类
     WNDCLASSEX wc = { 0 };
+    wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = createParam.m_dwClassStyle;
     wc.cbClsExtra = 0;
     wc.cbWndExtra = 0;
@@ -369,7 +370,7 @@ void NativeWindow::ActiveWindow()
     }
 }
 
-bool NativeWindow::SetForeground()
+bool NativeWindow::SetWindowForeground()
 {
     ASSERT(::IsWindow(m_hWnd));
     if (::GetForegroundWindow() != m_hWnd) {
@@ -736,6 +737,19 @@ bool NativeWindow::GetUpdateRect(UiRect& rcPaint)
         rcPaint.right = rectPaint.right;
         rcPaint.bottom = rectPaint.bottom;
         return true;
+    }
+}
+
+void NativeWindow::KeepParentActive()
+{
+    HWND hWndParent = GetHWND();
+    if (::IsWindow(hWndParent)) {
+        while (::GetParent(hWndParent) != NULL) {
+            hWndParent = ::GetParent(hWndParent);
+        }
+    }
+    if (::IsWindow(hWndParent)) {
+        ::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
     }
 }
 
@@ -1523,7 +1537,7 @@ LRESULT NativeWindow::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, boo
     }
     break;
     case WM_POINTERLEAVE:
-        lResult = m_pOwner->OnNativeMouseLeaveMsg(pt, 0, bHandled);
+        lResult = m_pOwner->OnNativeMouseLeaveMsg(bHandled);
         break;
     case WM_POINTERCAPTURECHANGED:
         lResult = m_pOwner->OnNativeCaptureChangedMsg(bHandled);
@@ -1670,12 +1684,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case WM_MOUSELEAVE:
     {
-        UiPoint pt;
-        pt.x = GET_X_LPARAM(lParam);
-        pt.y = GET_Y_LPARAM(lParam);
-        uint32_t modifierKey = 0;
-        GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeMouseLeaveMsg(pt, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeMouseLeaveMsg(bHandled);
         break;
     }
     case WM_LBUTTONDOWN:

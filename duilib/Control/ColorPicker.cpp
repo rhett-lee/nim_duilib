@@ -37,11 +37,6 @@ DString ColorPicker::GetSkinFile()
     return _T("color/color_picker.xml");
 }
 
-DString ColorPicker::GetWindowClassName() const
-{
-    return kClassName;
-}
-
 LRESULT ColorPicker::OnWindowCloseMsg(uint32_t wParam, bool& bHandled)
 {
     UiColor selectedColor;
@@ -615,7 +610,6 @@ public:
      */
     virtual DString GetSkinFolder() override { return _T("public");}
     virtual DString GetSkinFile() override { return _T("color/screen_color_picker.xml"); }
-    virtual DString GetWindowClassName() const override { return _T("ScreenColorPicker"); }
 
     /** 当要创建的控件不是标准的控件名称时会调用该函数
     * @param [in] strClass 控件名称
@@ -696,8 +690,11 @@ void ColorPicker::OnPickColorFromScreen()
 
     //抓取屏幕位图
     ScreenColorPickerWnd* pScreenColorPicker = new ScreenColorPickerWnd;    
-    pScreenColorPicker->ScreenCapture();    
-    pScreenColorPicker->CreateWnd(this, ScreenColorPickerWnd::ClassName(), UI_WNDSTYLE_FRAME, WS_EX_TRANSPARENT);
+    pScreenColorPicker->ScreenCapture();
+    WindowCreateParam createWndParam;
+    //TODO: 平台相关
+    createWndParam.m_dwExStyle = WS_EX_TRANSPARENT;
+    pScreenColorPicker->CreateWnd(this, &createWndParam);
     pScreenColorPicker->CenterWindow();
     pScreenColorPicker->ShowWindow();
     pScreenColorPicker->EnterFullScreen();

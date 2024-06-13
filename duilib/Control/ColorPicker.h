@@ -29,7 +29,6 @@ public:
      */
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
-    virtual DString GetWindowClassName() const override;
 
     /** 窗口类名
     */

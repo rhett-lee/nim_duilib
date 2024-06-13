@@ -124,7 +124,7 @@ public:
 
     /** 设置窗口为前端窗口
     */
-    bool SetForeground();
+    bool SetWindowForeground();
 
     /** 当前窗口是否为前端窗口
     */
@@ -308,6 +308,10 @@ public:
     * @return 如果无更新区域返回false，否则返回true
     */
     bool GetUpdateRect(UiRect& rcPaint);
+
+    /** 使父窗口保持激活状态
+    */
+    void KeepParentActive();
 
 public:
     /** @name 窗口大小、标题栏等相关接口
@@ -728,12 +732,10 @@ protected:
     virtual LRESULT OnMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled) = 0;
 
     /** 鼠标离开消息（WM_MOUSELEAVE）
-    * @param [in] pt 鼠标所在位置，客户区坐标
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
-    virtual LRESULT OnMouseLeaveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled) = 0;
+    virtual LRESULT OnMouseLeaveMsg(bool& bHandled) = 0;
 
     /** 鼠标左键按下消息（WM_LBUTTONDOWN）
     * @param [in] pt 鼠标所在位置，客户区坐标
@@ -859,7 +861,7 @@ private:
     virtual LRESULT OnNativeMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, bool& bHandled) override;
     virtual LRESULT OnNativeMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled) override;
     virtual LRESULT OnNativeMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseLeaveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled) override;
+    virtual LRESULT OnNativeMouseLeaveMsg(bool& bHandled) override;
     virtual LRESULT OnNativeMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled) override;
     virtual LRESULT OnNativeMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled) override;
     virtual LRESULT OnNativeMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled) override;

@@ -238,7 +238,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
         strClass = root.name();
 
         if( strClass == _T("Window") ) {
-            if( pWindow->GetHWND() ) {
+            if( pWindow->IsWindow() ) {
                 //首先处理mininfo和maxinfo，因为其他属性有用到这两个属性的
                 for (pugi::xml_attribute attr : root.attributes()) {
                     strName = attr.name();

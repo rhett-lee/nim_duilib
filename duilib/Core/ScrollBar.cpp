@@ -934,10 +934,9 @@ void ScrollBar::ScrollTimeHandle()
         if (m_nScrollRepeatDelay <= 5) {
             return;
         }
-        POINT ptClient = { 0 };
-        ::GetCursorPos(&ptClient);
-        ::ScreenToClient(GetWindow()->GetHWND(), &ptClient);
-        UiPoint pt(ptClient.x, ptClient.y);
+        UiPoint pt;
+        GetWindow()->GetCursorPos(pt);
+        GetWindow()->ScreenToClient(pt);
         pt.Offset(GetScrollOffsetInScrollBox());
         if( !m_bHorizontal ) {
             //垂直滚动条

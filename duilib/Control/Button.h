@@ -67,7 +67,10 @@ void ButtonTemplate<InheritType>::Activate(const EventArgs* pMsg)
         return;
     }
     if (pMsg != nullptr) {
-        this->SendEvent(kEventClick, *pMsg);
+        EventArgs newMsg = *pMsg;
+        newMsg.eventData = pMsg->eventType;
+        newMsg.eventType = kEventNone;
+        this->SendEvent(kEventClick, newMsg);
     }
     else {
         this->SendEvent(kEventClick);

@@ -28,7 +28,7 @@ static HBITMAP CreateBitmap(Window* pWindow, int32_t nWidth, int32_t nHeight, bo
     bmi.bmiHeader.biCompression = BI_RGB;
     bmi.bmiHeader.biSizeImage = nWidth * nHeight * sizeof(DWORD);
 
-    HWND hWnd = (pWindow != nullptr) ? pWindow->GetHWND() : nullptr;
+    HWND hWnd = (pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr;
     HBITMAP hBitmap = nullptr;
     HDC hdc = ::GetDC(hWnd);
     ASSERT(hdc != nullptr);
@@ -60,7 +60,7 @@ std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(Window* pWindow)
     if ((cxScreen <= 0) || (cyScreen <= 0)) {
         return nullptr;
     }
-    HWND hWnd = (pWindow != nullptr) ? pWindow->GetHWND() : nullptr;
+    HWND hWnd = (pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr;
     HDC hdcSrc = ::GetDC(hWnd); // 获取屏幕句柄
     if (hdcSrc == nullptr) {
         return nullptr;

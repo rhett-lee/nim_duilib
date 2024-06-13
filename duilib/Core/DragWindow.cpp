@@ -87,20 +87,9 @@ DString DragWindow::GetSkinFile()
            _T("</Window>");
 }
 
-DString DragWindow::GetWindowClassName() const
-{
-    return _T("DragWindow");
-}
-
 void DragWindow::OnFinalMessage()
 {
-    __super::OnFinalMessage();
     Release();
-}
-
-void DragWindow::OnDeleteSelf()
-{
-    //不调用基类，避免对象被删除
 }
 
 /** 设置显示的图片

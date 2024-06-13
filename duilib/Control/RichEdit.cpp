@@ -1242,13 +1242,13 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
 HWND RichEdit::GetWindowHandle()
 {
     auto window = GetWindow();
-    return window ? window->GetHWND() : nullptr;
+    return window ? window->NativeWnd()->GetHWND() : nullptr;
 }
 
 HDC RichEdit::GetWindowDC()
 {
     auto window = GetWindow();
-    return window ? window->GetPaintDC() : nullptr;
+    return window ? window->NativeWnd()->GetPaintDC() : nullptr;
 }
 
 UiSize RichEdit::GetNaturalSize(LONG width, LONG height)
@@ -1591,7 +1591,7 @@ UiSize RichEdit::EstimateText(UiSize szAvailable)
     LONG iHeight = 0;
     SIZEL szExtent = { -1, -1 };
     pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
-                                    GetWindow()->GetPaintDC(),
+                                    GetWindow()->NativeWnd()->GetPaintDC(),
                                     NULL,
                                     NULL,
                                     TXTNS_FITTOCONTENT,

@@ -1917,7 +1917,7 @@ HDC Render_Skia::GetDC()
     if (m_windowFlag.expired()) {
         pWindow = nullptr;
     }
-    HWND hWnd = (pWindow != nullptr) ? pWindow->GetHWND() : nullptr;
+    HWND hWnd = (pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr;
     HDC hDeskDC = ::GetDC(hWnd);
     HDC hGetDC = ::CreateCompatibleDC(hDeskDC);
     ::ReleaseDC(hWnd, hDeskDC);

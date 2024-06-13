@@ -14,7 +14,7 @@ bool FileDialog::BrowseForFolder(Window* pWindow, DString& folderPath)
         pfd->GetOptions(&fos);
         fos |= FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM;
         pfd->SetOptions(fos);
-        hr = pfd->Show((pWindow != nullptr) ? pWindow->GetHWND() : nullptr);
+        hr = pfd->Show((pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr);
         if (SUCCEEDED(hr)) {
             IShellItem* pItem = nullptr;
             hr = pfd->GetResult(&pItem);
@@ -44,7 +44,7 @@ bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<DString>& folderP
         pfd->GetOptions(&fos);
         fos |= FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM | FOS_ALLOWMULTISELECT;
         pfd->SetOptions(fos);
-        hr = pfd->Show((pWindow != nullptr) ? pWindow->GetHWND() : nullptr);
+        hr = pfd->Show((pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr);
         if (SUCCEEDED(hr)) {
             IShellItemArray* pSelResultArray = nullptr;
             hr = pfd->GetResults(&pSelResultArray);
@@ -116,7 +116,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
             ASSERT(SUCCEEDED(hr));
         }
 
-        if (pfd->Show((pWindow != nullptr) ? pWindow->GetHWND() : nullptr) == S_OK) {
+        if (pfd->Show((pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr) == S_OK) {
             IShellItem* pItem = nullptr;
             hr = pfd->GetResult(&pItem);
             if (SUCCEEDED(hr) && (pItem != nullptr)) {
@@ -164,7 +164,7 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
             hr = pfd->SetDefaultExtension(defaultExt.c_str());
             ASSERT(SUCCEEDED(hr));
         }
-        hr = pfd->Show((pWindow != nullptr) ? pWindow->GetHWND() : nullptr);
+        hr = pfd->Show((pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr);
         if (SUCCEEDED(hr)) {
             IShellItemArray* pSelResultArray = nullptr;
             hr = pfd->GetResults(&pSelResultArray);

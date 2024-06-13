@@ -34,19 +34,10 @@ public:
     */
     virtual DString GetSkinFile() override;
 
-    /** 创建窗口时被调用，由子类实现用以获取窗口唯一的类名称
-    * @return 子类需实现并返回窗口唯一的类名称
-    */
-    virtual DString GetWindowClassName() const override;
-
     /** 在窗口收到 WM_NCDESTROY 消息时会被调用
     * @param [in] hWnd 要销毁的窗口句柄
     */
     virtual void OnFinalMessage() override;
-
-    /** 销毁自己（子类可用重载这个方法，避免自身被销毁）
-    */
-    virtual void OnDeleteSelf() override;
 
 public:
     /** 设置显示的图片

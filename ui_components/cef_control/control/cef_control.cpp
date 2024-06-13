@@ -14,7 +14,7 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
     if (type == PET_VIEW)
     {
         if (dc_cef_.GetWidth() != width || dc_cef_.GetHeight() != height)
-            dc_cef_.Init(GetWindow()->GetPaintDC(), width, height);
+            dc_cef_.Init(GetWindow()->NativeWnd()->GetPaintDC(), width, height);
 
         LPBYTE pDst = (LPBYTE)dc_cef_.GetBits();
         if (pDst)
@@ -24,7 +24,7 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
     {
         // 单独保存popup窗口的位图
         if (dc_cef_popup_.GetWidth() != width || dc_cef_popup_.GetHeight() != height)
-            dc_cef_popup_.Init(GetWindow()->GetPaintDC(), width, height);
+            dc_cef_popup_.Init(GetWindow()->NativeWnd()->GetPaintDC(), width, height);
 
         LPBYTE pDst = (LPBYTE)dc_cef_popup_.GetBits();
         if (pDst)

@@ -83,11 +83,11 @@ void ToolTip::ToolTipImpl::SetMouseTracking(WindowBase* pParentWnd, bool bTracki
         TRACKMOUSEEVENT tme = { 0 };
         tme.cbSize = sizeof(TRACKMOUSEEVENT);
         tme.dwFlags = TME_HOVER | TME_LEAVE;
-        tme.hwndTrack = pParentWnd->GetHWND();
+        tme.hwndTrack = pParentWnd->NativeWnd()->GetHWND();
         tme.dwHoverTime = (m_hwndTooltip == nullptr) ? 400UL : (DWORD) ::SendMessage(m_hwndTooltip, TTM_GETDELAYTIME, TTDT_INITIAL, 0L);
         _TrackMouseEvent(&tme);
     }
-    m_hParentWnd = pParentWnd->GetHWND();
+    m_hParentWnd = pParentWnd->NativeWnd()->GetHWND();
     m_bMouseTracking = bTracking;
 }
 
@@ -110,7 +110,7 @@ void ToolTip::ToolTipImpl::ShowToolTip(WindowBase* pParentWnd,
         newText = newText.substr(0, TOOLTIP_MAX_LEN);
     }
 
-    HWND hParentWnd = pParentWnd->GetHWND();
+    HWND hParentWnd = pParentWnd->NativeWnd()->GetHWND();
     if ((m_hwndTooltip != nullptr) && IsWindowVisible(m_hwndTooltip)) {
         TOOLINFO toolTip = { 0 };
         toolTip.cbSize = sizeof(TOOLINFO);
@@ -128,7 +128,7 @@ void ToolTip::ToolTipImpl::ShowToolTip(WindowBase* pParentWnd,
     }
 
     //资源所在模块句柄
-    HMODULE hModule = pParentWnd->GetResModuleHandle();
+    HMODULE hModule = pParentWnd->NativeWnd()->GetResModuleHandle();
 
     ::ZeroMemory(&m_ToolTip, sizeof(TOOLINFO));
     m_ToolTip.cbSize = sizeof(TOOLINFO);

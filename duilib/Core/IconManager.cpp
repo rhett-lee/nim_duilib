@@ -168,7 +168,7 @@ bool IconManager::LoadIconData(const DString& str,
     bi.biBitCount = 32;
     bi.biCompression = BI_RGB;
 
-    HWND hWnd = (pWindow != nullptr) ? pWindow->GetHWND() : nullptr;
+    HWND hWnd = (pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr;
     HDC hdc = ::GetDC(hWnd);
     uint32_t* bits = nullptr;
     HBITMAP dib = ::CreateDIBSection(hdc,

@@ -14,7 +14,6 @@ class CComboWnd: public Window
 public:
     void InitComboWnd(Combo* pOwner, bool bActivated);
     void UpdateComboWnd();
-    virtual DString GetWindowClassName() const override;
     virtual void OnFinalMessage() override;
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
@@ -23,10 +22,6 @@ public:
     * @param [in] needUpdateSelItem true表示需要更新选择项，否则不需要更新选择项
     */
     void CloseComboWnd(bool bCanceled, bool needUpdateSelItem);
-
-    /** 当前是否为焦点窗口
-    */
-    bool IsFocusWindow() const;
 
 private:
     //关联的Combo接口
@@ -52,25 +47,27 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     m_iOldSel = m_pOwner->GetCurSel();
     m_editText = m_pOwner->GetText();
     m_bIsClosed = false;
-    CreateWnd(pOwner->GetWindow(), _T(""), WS_POPUP, WS_EX_TOOLWINDOW);
+
+    WindowCreateParam createWndParam;
+    //TODO: 平台相关
+    createWndParam.m_dwStyle = WS_POPUP;
+    createWndParam.m_dwExStyle = WS_EX_TOOLWINDOW;
+    CreateWnd(pOwner->GetWindow(), &createWndParam);
+
     UpdateComboWnd();
     if (bActivated) {
-        HWND hWndParent = GetHWND();
-        while (::GetParent(hWndParent) != NULL) {
-            hWndParent = ::GetParent(hWndParent);
-        }
-        ::ShowWindow(GetHWND(), SW_SHOW);
-        SetForeground();
-        ::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
+        ShowWindow();
+        SetWindowForeground();
+        KeepParentActive();
         pOwner->GetTreeView()->SetFocus();
         pOwner->SetState(kControlStateHot);
     }
     else {
-        ::ShowWindow(GetHWND(), SW_SHOWNOACTIVATE);
+        ShowWindow(true, false);
     }
     if (Box::IsValidItemIndex(m_iOldSel)) {
         //展开的时候，确保选择可见
-        ::UpdateWindow(GetHWND());
+        UpdateWindow();
         UiRect rc = pOwner->GetTreeView()->GetPos();
         pOwner->GetTreeView()->EnsureVisible(m_iOldSel, ListBoxVerVisible::kVisibleAtCenter);
     }
@@ -126,11 +123,6 @@ void CComboWnd::UpdateComboWnd()
     SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
-DString CComboWnd::GetWindowClassName() const
-{
-    return _T("ComboWnd");
-}
-
 void CComboWnd::OnFinalMessage()
 {
     if (m_pOwner != nullptr) {
@@ -160,14 +152,13 @@ void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
         pRootBox->RemoveAllItems();
     }
     //先将前端窗口切换为父窗口，避免前端窗口关闭后，切换到其他窗口
-    HWND hWnd = GetHWND();
-    HWND hParentWnd = ::GetParent(hWnd);
-    HWND hForeWnd = ::GetForegroundWindow();
-    if ((hForeWnd == hWnd) || hForeWnd == hParentWnd) {
-        if (hParentWnd != nullptr) {
-            ::SetForegroundWindow(hParentWnd);
-        }        
+    Combo* pOwner = m_pOwner;
+    if ((pOwner != nullptr) && (pOwner->GetWindow() != nullptr)) {
+        if (IsWindowForeground()) {
+            pOwner->GetWindow()->SetWindowForeground();
+        }
     }
+
     CloseWnd();
     if (m_pOwner != nullptr) {
         if (bCanceled) {
@@ -175,11 +166,6 @@ void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
         }
         m_pOwner->OnComboWndClosed(bCanceled, needUpdateSelItem, m_editText.c_str());
     }
-}
-
-bool CComboWnd::IsFocusWindow() const
-{
-    return ::GetFocus() == GetHWND();
 }
 
 LRESULT CComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -210,10 +196,11 @@ LRESULT CComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool
         lResult = __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
     }
     if (uMsg == WM_KILLFOCUS) {
+        //TODO: 
         //失去焦点，关闭窗口，正常关闭
-        if (GetHWND() != (HWND)wParam) {
+        //    if (GetHWND() != (HWND)wParam) {
             CloseComboWnd(false, false);
-        }
+        //    }
     }
     else if (uMsg == WM_KEYDOWN && wParam == kVK_ESCAPE) {
         //按住ESC键，取消
@@ -927,7 +914,7 @@ bool Combo::OnEditSetFocus(const EventArgs& /*args*/)
 bool Combo::OnEditKillFocus(const EventArgs& /*args*/)
 {
     if (m_pWindow != nullptr) {
-        if (m_pWindow->IsFocusWindow()) {
+        if (m_pWindow->IsWindowFocused()) {
             return true;
         }
     }
@@ -941,7 +928,7 @@ bool Combo::OnEditKillFocus(const EventArgs& /*args*/)
 bool Combo::OnWindowKillFocus(const EventArgs& /*args*/)
 {
     if (m_pWindow != nullptr) {
-        if (m_pWindow->IsFocusWindow()) {
+        if (m_pWindow->IsWindowFocused()) {
             return true;
         }
     }

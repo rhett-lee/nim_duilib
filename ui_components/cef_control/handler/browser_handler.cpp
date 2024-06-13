@@ -181,7 +181,7 @@ void BrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
     // 所以哪个线程调用RegisterDragDrop，就会在哪个线程阻塞并触发IDragTarget回调
     // 见https://docs.microsoft.com/zh-cn/windows/win32/api/ole2/nf-ole2-registerdragdrop
     if ((window_ != nullptr) && !window_flag_.expired()) {
-        drop_target_ = CefManager::GetInstance()->GetDropTarget(window_->GetHWND());
+        drop_target_ = CefManager::GetInstance()->GetDropTarget(window_->NativeWnd()->GetHWND());
     }
 }
 
@@ -229,7 +229,7 @@ bool BrowserHandler::GetRootScreenRect(CefRefPtr<CefBrowser> browser, CefRect& r
         return false;
     }
     RECT window_rect = { 0 };
-    HWND root_window = GetAncestor(window_->GetHWND(), GA_ROOT);
+    HWND root_window = GetAncestor(window_->NativeWnd()->GetHWND(), GA_ROOT);
     if (::GetWindowRect(root_window, &window_rect))
     {
         rect = CefRect(window_rect.left, window_rect.top, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top);
@@ -262,9 +262,8 @@ bool BrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
     }
     else
     {
-        RECT clientRect;
-        if (!::GetClientRect(window_->GetHWND(), &clientRect))
-            return false;
+        ui::UiRect clientRect;
+        window_->GetClientRect(clientRect);
         rect.x = rect.y = 0;
         rect.width = clientRect.right;
         rect.height = clientRect.bottom;
@@ -278,12 +277,12 @@ bool BrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, in
     if ((window_ == nullptr) || window_flag_.expired()) {
         return false;
     }
-    if (!::IsWindow(window_->GetHWND())) {
+    if (!window_->IsWindow()) {
         return false;
     }
 
     // Convert the point from view coordinates to actual screen coordinates.
-    POINT screen_pt = { viewX, viewY};
+    ui::UiPoint screen_pt = { viewX, viewY};
     if (CefManager::GetInstance()->IsEnableOffsetRender()) {
         //离屏渲染模式下，给到的参数是原始坐标，未经DPI自适应，所以需要做DPI自适应处理，否则页面的右键菜单位置显示不对
         uint32_t dpiScale = window_->Dpi().GetScale();
@@ -295,7 +294,7 @@ bool BrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, in
     //将页面坐标转换为窗口客户区坐标，否则页面弹出的右键菜单位置不正确
     screen_pt.x = screen_pt.x + rect_cef_control_.left;
     screen_pt.y = screen_pt.y + rect_cef_control_.top;
-    ::ClientToScreen(window_->GetHWND(), &screen_pt);
+    window_->ClientToScreen(screen_pt);
     screenX = screen_pt.x;
     screenY = screen_pt.y;
     return true;
@@ -355,7 +354,7 @@ void BrowserHandler::OnPaint(CefRefPtr<CefBrowser> browser,
 void BrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser, CefCursorHandle cursor, CursorType /*type*/, const CefCursorInfo& /*custom_cursor_info*/)
 {
     if ((window_ != nullptr) && !window_flag_.expired()) {
-        SetClassLongPtr(window_->GetHWND(), GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
+        SetClassLongPtr(window_->NativeWnd()->GetHWND(), GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
     }
     SetCursor(cursor);
 }
