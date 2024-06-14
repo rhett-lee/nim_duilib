@@ -688,7 +688,7 @@ void ColorPicker::OnPickColorFromScreen()
     WindowCreateParam createWndParam;
     //TODO: 平台相关
     createWndParam.m_dwExStyle = WS_EX_TRANSPARENT;
-    pScreenColorPicker->CreateWnd(this, &createWndParam);
+    pScreenColorPicker->CreateWnd(this, createWndParam);
     pScreenColorPicker->CenterWindow();
     pScreenColorPicker->ShowWindow();
     pScreenColorPicker->EnterFullScreen();

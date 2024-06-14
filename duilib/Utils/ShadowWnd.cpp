@@ -47,7 +47,7 @@ bool ShadowWndBase::Create(Window* window)
     createParam.m_dwStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
     createParam.m_dwExStyle = WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_LAYERED;
     createParam.m_className = _T("ShadowWnd");
-    return Window::CreateWnd(nullptr, &createParam);
+    return Window::CreateWnd(nullptr, createParam);
 }
 
 LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
@@ -94,46 +94,6 @@ ShadowWnd::ShadowWnd():
 {
 }
 
-void ShadowWnd::OnInitWindow()
-{
-    __super::OnInitWindow();
-
-    ASSERT((m_pShadowWnd == nullptr) && (NativeWnd()->GetHWND() == nullptr));
-    if ((m_pShadowWnd != nullptr) || (NativeWnd()->GetHWND() != nullptr)) {
-        return;
-    }
-    bool needCreateShadowWnd = NeedCreateShadowWnd();
-    if (!needCreateShadowWnd) {
-        //配置文件，设置了层窗口，或者关闭阴影，不再附加透明阴影        
-        return;
-    }
-    //关闭默认的窗口阴影
-    if (IsShadowAttached()) {
-        if (IsUseDefaultShadowAttached()) {
-            SetShadowAttached(false);
-            SetUseDefaultShadowAttached(true);
-        }
-        else {
-            SetShadowAttached(false);
-        }
-    }
-
-    //取消层窗口属性
-    if (IsLayeredWindow()) {
-        SetLayeredWindow(false, false);
-    }
-
-    //通过XML配置文件<Window>如下配置时，开启非透明窗口的阴影：
-    //   layered_window = "false" shadow_attached = "true";
-    if (m_pShadowWnd != nullptr) {
-        m_pShadowWnd->Create(this);
-        ::EnableWindow(m_pShadowWnd->NativeWnd()->GetHWND(), FALSE);
-        if (::IsWindowVisible(NativeWnd()->GetHWND())) {
-            m_pShadowWnd->ShowWindow();
-        }
-    }
-}
-
 Box* ShadowWnd::AttachShadow(Box* pRoot)
 {
     ASSERT(m_pShadowWnd == nullptr);
@@ -155,6 +115,7 @@ Box* ShadowWnd::AttachShadow(Box* pRoot)
         UiSize borderRound = Shadow::GetChildBoxBorderRound(pRoot);
         SetRoundCorner(borderRound.cx, borderRound.cy, false);
         pRoot->SetBorderRound(borderRound, false);
+        InitShadow();
         return pRoot;
     }
 }
@@ -173,6 +134,37 @@ bool ShadowWnd::NeedCreateShadowWnd() const
         //配置文件中有设置，以配置文件中的属性为准
         return IsShadowAttached();
     }    
+}
+
+void ShadowWnd::InitShadow()
+{
+    //关闭默认的窗口阴影
+    if (IsShadowAttached()) {
+        if (IsUseDefaultShadowAttached()) {
+            SetShadowAttached(false);
+            SetUseDefaultShadowAttached(true);
+        }
+        else {
+            SetShadowAttached(false);
+        }
+    }
+
+    //取消层窗口属性
+    if (IsLayeredWindow()) {
+        SetLayeredWindow(false, true);
+    }
+
+    //通过XML配置文件<Window>如下配置时，开启非透明窗口的阴影：
+    //   layered_window = "false" shadow_attached = "true";
+    if (m_pShadowWnd != nullptr) {
+        m_pShadowWnd->Create(this);
+        ASSERT(m_pShadowWnd->IsWindow());
+        //阴影窗口不接受鼠标和键盘消息
+        m_pShadowWnd->EnableWindow(false);
+        if (IsWindowVisible()) {
+            m_pShadowWnd->ShowWindow();
+        }
+    }
 }
 
 } // namespace ui

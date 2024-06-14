@@ -1,7 +1,5 @@
 #include "cef_form.h"
 
-const DString CefForm::kClassName = _T("CEF_Control_Example");
-
 CefForm::CefForm()
 {
 }
@@ -18,11 +16,6 @@ DString CefForm::GetSkinFolder()
 DString CefForm::GetSkinFile()
 {
     return _T("cef.xml");
-}
-
-DString CefForm::GetWindowClassName() const
-{
-    return kClassName;
 }
 
 ui::Control* CefForm::CreateControl(const DString& pstrClass)

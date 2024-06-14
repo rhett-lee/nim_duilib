@@ -67,7 +67,11 @@ void MainThread::OnInit()
     if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender()) {
         dwExStyle |= WS_EX_LAYERED;
     }
-    window->CreateWnd(nullptr, CefForm::kClassName, UI_WNDSTYLE_FRAME, dwExStyle);
+    ui::WindowCreateParam createWndParam;
+    createWndParam.m_className = _T("cef");
+    createWndParam.m_windowTitle = createWndParam.m_className;
+    createWndParam.m_dwExStyle = dwExStyle;
+    window->CreateWnd(nullptr, createWndParam);
     window->CenterWindow();
     window->ShowWindow();
 }

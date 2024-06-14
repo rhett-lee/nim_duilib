@@ -70,6 +70,11 @@ public:
     */
     bool SendNotify(EventType eventType, WPARAM wParam = 0, LPARAM lParam = 0);
 
+    /** 窗口关闭的时候，发送退出消息循环的请求
+    * @param [in] bPostQuitMsg 如果为true，表示窗口关闭的时候，发送退出消息循环请求
+    */
+    void PostQuitMsgWhenClosed(bool bPostQuitMsg);
+
 public:
     /** @name 窗口阴影相关接口
     * @{
@@ -578,9 +583,13 @@ protected:
     /** @}*/
 
 private:
-    /** 窗口正在关闭，处理内部状态（内部函数，子类重写后，必须调用基类函数，否则影响功能）
+    /** 窗口正在关闭，处理内部状态（内部函数）
     */
     virtual void PreCloseWindow() override final;
+
+    /** 窗口已经关闭，处理内部状态（内部函数）
+    */
+    virtual void PostCloseWindow() override final;
 
     /** 在窗口销毁时会被调用，这是该窗口的最后一个消息
     */
@@ -729,6 +738,10 @@ private:
 
     //Tooltip
     std::unique_ptr<ToolTip> m_toolTip;
+
+    /** 窗口关闭的时候，发送退出消息循环的请求
+    */
+    bool m_bPostQuitMsgWhenClosed;
 };
 
 } // namespace ui

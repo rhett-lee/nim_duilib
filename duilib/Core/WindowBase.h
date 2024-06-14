@@ -15,7 +15,7 @@ class IRender;
 
 /** 窗口的基本功能封装（平台相关的窗口功能封装）
 */
-class UILIB_API WindowBase : public virtual SupportWeakCallback, private INativeWindow
+class UILIB_API WindowBase: public virtual SupportWeakCallback, private INativeWindow
 {
 public:
     WindowBase();
@@ -26,10 +26,12 @@ public:
 public:
     /** 创建窗口, 可使用 OnInitWindow 接口来实现窗口创建完成后的自定义需求
     * @param [in] pParentWindow 父窗口
-    * @param [in] pCreateParam 创建窗口所需的参数
-    * @param [in] rc 窗口大小
+    * @param [in] createParam 创建窗口所需的参数
+    * @param [in] rc 窗口位置和大小
     */
-    bool CreateWnd(WindowBase* pParentWindow, const WindowCreateParam* pCreateParam, const UiRect& rc = UiRect(0, 0, 0, 0));
+    bool CreateWnd(WindowBase* pParentWindow,
+                   const WindowCreateParam& createParam,
+                   const UiRect& rc = UiRect(0, 0, 0, 0));
 
     /** 是否含有有效的窗口句柄
     */
@@ -192,6 +194,10 @@ public:
     /** 获取窗口的Enable状态
     */
     bool IsWindowEnabled() const;
+
+    /** 窗口是否可见
+    */
+    bool IsWindowVisible() const;
 
     /** 设置窗口位置（对 ::SetWindowPos API 的一层封装，内部无DPI缩放）
     * @param [in] hWndInsertAfter 对应 SetWindowPos 的 hWndInsertAfter 选项
@@ -541,6 +547,10 @@ protected:
     */
     virtual void PreCloseWindow() = 0;
 
+    /** 窗口已经关闭，处理内部状态
+    */
+    virtual void PostCloseWindow() = 0;
+
     /** 在窗口销毁时会被调用，这是该窗口的最后一个消息
     */
     virtual void FinalMessage() = 0;
@@ -844,7 +854,8 @@ private:
     virtual bool OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const override;
     virtual UiSize OnNativeGetMinInfo(bool bContainShadow /*= false*/) const override;
     virtual UiSize OnNativeGetMaxInfo(bool bContainShadow /*= false*/) const override;
-    virtual void OnNativeCloseWindow() override;
+    virtual void OnNativePreCloseWindow() override;
+    virtual void OnNativePostCloseWindow() override;
     virtual void OnNativeUseSystemCaptionBarChanged() override;
 
     virtual void    OnNativeFinalMessage() override;

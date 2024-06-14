@@ -29,7 +29,8 @@ Window::Window() :
     m_aDelayedCleanup(),
     m_mOptionGroup(),
     m_defaultAttrHash(),
-    m_strResourcePath()
+    m_strResourcePath(),
+    m_bPostQuitMsgWhenClosed(false)
 {
     m_toolTip = std::make_unique<ToolTip>();
 }
@@ -99,6 +100,13 @@ void Window::InitWindow()
 void Window::PreCloseWindow()
 {
     ClearStatus();
+}
+
+void Window::PostCloseWindow()
+{
+    if (m_bPostQuitMsgWhenClosed) {
+        this->PostQuitMsg(0);
+    }
     OnCloseWindow();
 }
 
@@ -1260,6 +1268,11 @@ bool Window::SendNotify(EventType eventType, WPARAM wParam, LPARAM lParam)
     }
 
     return true;
+}
+
+void Window::PostQuitMsgWhenClosed(bool bPostQuitMsg)
+{
+    m_bPostQuitMsgWhenClosed = bPostQuitMsg;
 }
 
 ui::IRender* Window::GetRender() const

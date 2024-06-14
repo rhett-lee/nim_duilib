@@ -22,10 +22,6 @@ public:
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() override;
-
-    /** 在窗口销毁时会被调用，这是该窗口的最后一个消息
-    */
-    virtual void OnFinalMessage() override;
 };
 
 #endif //EXAMPLES_BASIC_FORM_H_

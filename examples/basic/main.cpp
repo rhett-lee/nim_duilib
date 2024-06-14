@@ -66,10 +66,11 @@ void MainThread::OnInit()
     ui::WindowCreateParam createWndParam;
     createWndParam.m_className = _T("basic");
     createWndParam.m_windowTitle = createWndParam.m_className;
-    window->CreateWnd(nullptr, &createWndParam);
+    window->CreateWnd(nullptr, createWndParam);
+    window->PostQuitMsgWhenClosed(true);
     window->SetIcon(IDI_BASIC);
     window->CenterWindow();
-    window->ShowWindow();
+    window->ShowWindow();    
    // window->Maximize();
 }
 

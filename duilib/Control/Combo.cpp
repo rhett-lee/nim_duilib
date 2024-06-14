@@ -52,7 +52,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     //TODO: 平台相关
     createWndParam.m_dwStyle = WS_POPUP;
     createWndParam.m_dwExStyle = WS_EX_TOOLWINDOW;
-    CreateWnd(pOwner->GetWindow(), &createWndParam);
+    CreateWnd(pOwner->GetWindow(), createWndParam);
 
     UpdateComboWnd();
     if (bActivated) {

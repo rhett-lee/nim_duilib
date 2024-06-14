@@ -14,7 +14,7 @@ void ShowMsgBox(ui::Window* pWindow, MsgboxCallback cb,
     //TODO: 平台相关
     createWndParam.m_dwStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
     createWndParam.m_dwExStyle = WS_EX_LAYERED;
-    if (!msgbox->CreateWnd(pWindow, &createWndParam)) {
+    if (!msgbox->CreateWnd(pWindow, createWndParam)) {
         delete msgbox;
         return;
     }

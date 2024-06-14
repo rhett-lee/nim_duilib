@@ -94,7 +94,7 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
     //TODO: 平台相关
     createWndParam.m_dwStyle = WS_POPUP;
     createWndParam.m_dwExStyle = WS_EX_TOOLWINDOW | WS_EX_TOPMOST | WS_EX_LAYERED;
-    CreateWnd(m_pParentWindow, &createWndParam);
+    CreateWnd(m_pParentWindow, createWndParam);
     ShowWindow(true, !noFocus);
     if (m_pOwner) {
         ResizeSubMenu();

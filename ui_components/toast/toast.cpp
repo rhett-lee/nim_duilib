@@ -12,7 +12,7 @@ void Toast::ShowToast(const DString &content, int duration, Window* pParentWindo
     //TODO: 平台相关
     createWndParam.m_dwStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
     createWndParam.m_dwExStyle = WS_EX_LAYERED;
-    if (!toast->CreateWnd(pParentWindow, &createWndParam)) {
+    if (!toast->CreateWnd(pParentWindow, createWndParam)) {
         delete toast;
         return;
     }

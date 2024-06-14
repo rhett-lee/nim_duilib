@@ -46,19 +46,15 @@ void MainThread::OnInit()
     createWndParam.m_className = _T("basic");
     createWndParam.m_windowTitle = createWndParam.m_className;
     createWndParam.m_dwExStyle = WS_EX_LAYERED;
-    pColorPicker->CreateWnd(nullptr, &createWndParam);
+    pColorPicker->CreateWnd(nullptr, createWndParam);
     pColorPicker->CenterWindow();
     pColorPicker->ShowWindow();
 
     //设置选择前的颜色
     pColorPicker->SetSelectedColor(ui::UiColor(ui::UiColors::White));
 
-    //窗口关闭事件
-    pColorPicker->AttachWindowClose([pColorPicker, this](const ui::EventArgs& args) {
-        //关闭窗口后，退出主线程
-        pColorPicker->PostQuitMsg(0L);
-        return true;
-        });
+    //关闭窗口后，退出主线程
+    pColorPicker->PostQuitMsgWhenClosed(true);
 }
 
 void MainThread::OnCleanup()

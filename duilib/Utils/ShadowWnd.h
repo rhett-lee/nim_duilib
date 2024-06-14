@@ -23,11 +23,7 @@ class ShadowWnd: public ui::WindowImplBase
 public:
     ShadowWnd();
 
-private:
-    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
-    */
-    virtual void OnInitWindow();
-
+protected:
     /** 附加窗口阴影
     */
     virtual Box* AttachShadow(Box* pRoot) override;
@@ -36,6 +32,10 @@ private:
     /** 判断是否需要创建透明窗口的跟随阴影
     */
     bool NeedCreateShadowWnd() const;
+
+    /** 初始化阴影
+    */
+    void InitShadow();
 
 private:
     //阴影窗口，透明的

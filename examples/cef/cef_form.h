@@ -29,7 +29,6 @@ public:
      */
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
-    virtual DString GetWindowClassName() const override;
     virtual ui::Control* CreateControl(const DString& pstrClass) override;
 
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
@@ -39,10 +38,6 @@ public:
     /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */
     virtual void OnCloseWindow() override;
-
-    /** 窗口类名
-    */
-    static const DString kClassName;
 
 private:
     bool OnClicked(const ui::EventArgs& msg);

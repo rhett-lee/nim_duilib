@@ -21,14 +21,16 @@ WindowBase::~WindowBase()
     }
 }
 
-bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam* pCreateParam, const UiRect& rc)
+bool WindowBase::CreateWnd(WindowBase* pParentWindow,
+                           const WindowCreateParam& createParam,
+                           const UiRect& rc)
 {
     m_pParentWindow = pParentWindow;
     m_parentFlag.reset();
     if (pParentWindow != nullptr) {
         m_parentFlag = pParentWindow->GetWeakFlag();
     }
-    bool bRet = m_pNativeWindow->CreateWnd(pParentWindow, pCreateParam, rc);
+    bool bRet = m_pNativeWindow->CreateWnd(pParentWindow, createParam, rc);
     if (bRet) {
         InitWindowBase();
         InitWindow();
@@ -360,6 +362,11 @@ bool WindowBase::EnableWindow(bool bEnable)
 bool WindowBase::IsWindowEnabled() const
 {
     return m_pNativeWindow->IsWindowEnabled();
+}
+
+bool WindowBase::IsWindowVisible() const
+{
+    return m_pNativeWindow->IsWindowVisible();
 }
 
 bool WindowBase::SetWindowPos(HWND hWndInsertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, UINT uFlags)
@@ -853,10 +860,15 @@ UiSize WindowBase::OnNativeGetMaxInfo(bool bContainShadow) const
     return GetMaxInfo(bContainShadow);
 }
 
-void WindowBase::OnNativeCloseWindow()
+void WindowBase::OnNativePreCloseWindow()
 {
     m_pNativeWindow->OnCloseModalFake(GetParentWindow());
     PreCloseWindow();
+}
+
+void WindowBase::OnNativePostCloseWindow()
+{
+    PostCloseWindow();
 }
 
 void WindowBase::OnNativeUseSystemCaptionBarChanged()

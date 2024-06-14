@@ -33,12 +33,9 @@ NativeWindow::~NativeWindow()
     ClearNativeWindow();
 }
 
-bool NativeWindow::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam* pCreateParam, const UiRect& rc)
+bool NativeWindow::CreateWnd(WindowBase* pParentWindow,
+                             const WindowCreateParam& createParam, const UiRect& rc)
 {
-    WindowCreateParam createParam;
-    if (pCreateParam != nullptr) {
-        createParam = *pCreateParam;
-    }
     ASSERT(!createParam.m_className.empty());
     if (createParam.m_className.empty()) {
         return false;
@@ -582,12 +579,17 @@ bool NativeWindow::IsWindowFullScreen() const
 
 bool NativeWindow::EnableWindow(bool bEnable)
 {
-    return ::EnableWindow(GetHWND(), bEnable ? TRUE : false) != FALSE;
+    return ::EnableWindow(m_hWnd, bEnable ? TRUE : false) != FALSE;
 }
 
 bool NativeWindow::IsWindowEnabled() const
 {
-    return ::IsWindowEnabled(GetHWND()) != FALSE;
+    return ::IsWindow(m_hWnd) && ::IsWindowEnabled(m_hWnd) != FALSE;
+}
+
+bool NativeWindow::IsWindowVisible() const
+{
+    return ::IsWindow(m_hWnd) && ::IsWindowVisible(m_hWnd) != FALSE;
 }
 
 bool NativeWindow::SetWindowPos(HWND hWndInsertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, UINT uFlags)
@@ -1113,32 +1115,51 @@ LRESULT CALLBACK NativeWindow::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LP
 LRESULT NativeWindow::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     LRESULT lResult = 0;
-    bool bHandled = false;
     HWND hWnd = m_hWnd;
+    INativeWindow* pOwner = m_pOwner;
+    if (pOwner == nullptr) {
+        lResult = CallDefaultWindowProc(uMsg, wParam, lParam);
+        return lResult;
+    }
+    //接口的生命周期标志
+    std::weak_ptr<WeakFlag> ownerFlag = pOwner->GetWeakFlag();
+
+    //消息首先转给过滤器(全部消息)
+    bool bHandled = false;
+    if (!bHandled && !ownerFlag.expired()) {
+        lResult = pOwner->OnNativeWindowMessage(uMsg, wParam, lParam, bHandled);
+    }
+
     //第三优先级：内部处理的消息，处理后，不再派发
-    if (!bHandled) {
+    if (!bHandled && !ownerFlag.expired()) {
         lResult = ProcessInternalMessage(uMsg, wParam, lParam, bHandled);
     }
 
     //第四优先级：内部处理函数，优先保证自身功能正常
-    if (!bHandled) {
+    if (!bHandled && !ownerFlag.expired()) {
         lResult = ProcessWindowMessage(uMsg, wParam, lParam, bHandled);
     }
 
-    if (!bHandled && (uMsg == WM_CLOSE)) {
-        //窗口即将关闭
-        m_pOwner->OnNativeCloseWindow();
+    //自定义窗口消息的派发函数，仅供内部实现使用
+    if (!bHandled && !ownerFlag.expired() && (uMsg >= WM_USER)) {
+        lResult = pOwner->OnNativeUserMessage(uMsg, wParam, lParam, bHandled);
     }
 
-    //自定义窗口消息的派发函数，仅供内部实现使用
-    if (!bHandled && (uMsg >= WM_USER)) {
-        lResult = m_pOwner->OnNativeUserMessage(uMsg, wParam, lParam, bHandled);
+    if (!bHandled && !ownerFlag.expired() && (uMsg == WM_CLOSE)) {
+        //窗口即将关闭（关闭前）
+        pOwner->OnNativePreCloseWindow();
     }
 
     //第五优先级：系统默认的窗口函数
-    if (!bHandled && ::IsWindow(hWnd)) {
+    if (!bHandled && !ownerFlag.expired() && ::IsWindow(hWnd)) {
         lResult = CallDefaultWindowProc(uMsg, wParam, lParam);
     }
+
+    if (!bHandled && !ownerFlag.expired() && (uMsg == WM_DESTROY)) {
+        //窗口已经关闭（关闭后）
+        pOwner->OnNativePostCloseWindow();
+    }
+
     return lResult;
 }
 

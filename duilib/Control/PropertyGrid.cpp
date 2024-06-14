@@ -1777,7 +1777,7 @@ void PropertyGridColorProperty::ShowColorPicker()
     WindowCreateParam createWndParam;
     //TODO: 平台相关
     createWndParam.m_dwExStyle = WS_EX_LAYERED;
-    pColorPicker->CreateWnd(pWindow, &createWndParam);
+    pColorPicker->CreateWnd(pWindow, createWndParam);
     pColorPicker->CenterWindow();
     pColorPicker->ShowModalFake();
 

@@ -24,7 +24,7 @@ public:
     virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
 };
 
-class INativeWindow
+class INativeWindow: public virtual SupportWeakCallback
 {
 public:
     /** 获取该窗口对应的DPI管理器
@@ -80,7 +80,11 @@ public:
 
     /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */
-    virtual void OnNativeCloseWindow() = 0;
+    virtual void OnNativePreCloseWindow() = 0;
+
+    /** 当窗口已经关闭时调用此函数，供子类中做一些收尾工作
+    */
+    virtual void OnNativePostCloseWindow() = 0;
 
     /** 切换系统标题栏与自绘标题栏
     */
