@@ -148,6 +148,8 @@ void Window::ClearWindow(bool bSendClose)
 
     m_toolTip.reset();
     m_shadow.reset();
+    m_render.reset();
+    m_controlFinder.Clear();
 }
 
 bool Window::AttachBox(Box* pRoot)
@@ -626,9 +628,11 @@ LRESULT Window::OnMoveMsg(const UiPoint& ptTopLeft, bool& bHandled)
 
 LRESULT Window::OnPaintMsg(bool& bHandled)
 {
-    bHandled = true;
+    bHandled = false;
     PerformanceStat statPerformance(_T("Window::OnPaintMsg"));
-    Paint();
+    if (Paint()) {
+        bHandled = true;
+    }
     return 0;
 }
 
@@ -1275,17 +1279,14 @@ ui::IRender* Window::GetRender() const
     return m_render.get();
 }
 
-void Window::Paint()
+bool Window::Paint()
 {
     GlobalManager::Instance().AssertUIThread();
     if (!IsWindow()) {
-        return;
+        return false;
     }
     if (IsWindowMinimized() || (m_pRoot == nullptr)) {
-        UiRect rcPaint;
-        BeginPaint(rcPaint);
-        EndPaint(rcPaint, nullptr);
-        return;
+        return false;
     }
 
     if (m_render->GetWidth() == 0) {
@@ -1308,30 +1309,24 @@ void Window::Paint()
     UiRect rcClient;
     GetClientRect(rcClient);
     if (rcClient.IsEmpty()) {
-        UiRect rcPaint;
-        BeginPaint(rcPaint);
-        EndPaint(rcPaint, nullptr);
-        return;
+        return false;
     }
     if (!m_render->Resize(rcClient.Width(), rcClient.Height())) {
         ASSERT(!"m_render->Resize resize failed!");
-        UiRect rcPaint;
-        BeginPaint(rcPaint);
-        EndPaint(rcPaint, nullptr);
-        return;
+        return false;
     }
 
-    UiRect rectPaint;
-    if (!GetUpdateRect(rectPaint) && !bFirstLayout) {
-        return;
+    UiRect updateRect;
+    if (!GetUpdateRect(updateRect) && !bFirstLayout) {
+        return false;
     }
 
     //开始绘制
     UiRect rcPaint;
     if (!BeginPaint(rcPaint)) {
-        return;
+        return false;
     }
-
+   
     // 去掉alpha通道
     if (IsLayeredWindow()) {
         m_render->ClearAlpha(rcPaint);
@@ -1387,7 +1382,7 @@ void Window::Paint()
     }
 
     //结束绘制，渲染到窗口
-    EndPaint(rcPaint, m_render.get());
+    return EndPaint(rcPaint, m_render.get());
 }
 
 void Window::AutoResizeWindow(bool bRepaint)

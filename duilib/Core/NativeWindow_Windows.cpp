@@ -191,23 +191,54 @@ bool NativeWindow::IsClosingWnd() const
     return m_bCloseing;
 }
 
-void NativeWindow::SetLayeredWindow(bool bIsLayeredWindow)
+bool NativeWindow::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
 {
     m_bIsLayeredWindow = bIsLayeredWindow;
+    bool bChanged = false;
+    SetLayeredWindowStyle(bIsLayeredWindow, bChanged);
+    if (bRedraw && bChanged && IsWindow()) {
+        // 强制窗口重绘
+        ::SetWindowPos(m_hWnd, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+    }
+    return false;
+}
+
+bool NativeWindow::SetLayeredWindowStyle(bool bIsLayeredWindow, bool& bChanged) const
+{
+    bChanged = false;
     if (::IsWindow(m_hWnd)) {
         LONG dwExStyle = ::GetWindowLong(m_hWnd, GWL_EXSTYLE);
-        if (m_bIsLayeredWindow) {
+        LONG dwOldExStyle = dwExStyle;
+        if (bIsLayeredWindow) {
             dwExStyle |= WS_EX_LAYERED;
         }
         else {
             dwExStyle &= ~WS_EX_LAYERED;
         }
-        ::SetWindowLong(m_hWnd, GWL_EXSTYLE, dwExStyle);
+        if (dwOldExStyle != dwExStyle) {
+            bChanged = true;
+            ::SetWindowLong(m_hWnd, GWL_EXSTYLE, dwExStyle);
+            dwExStyle = ::GetWindowLong(m_hWnd, GWL_EXSTYLE);
+        }
+        if (m_bIsLayeredWindow) {
+            return dwExStyle & WS_EX_LAYERED ? true : false;
+        }
+        else {
+            return dwExStyle & WS_EX_LAYERED ? false : true;
+        }
     }
+    return false;
 }
 
 bool NativeWindow::IsLayeredWindow() const
 {
+#if _DEBUG
+    if (::IsWindow(m_hWnd)) {
+        LONG dwExStyle = ::GetWindowLong(m_hWnd, GWL_EXSTYLE);
+        bool bIsLayeredWindow = dwExStyle & WS_EX_LAYERED ? true : false;
+        ASSERT(bIsLayeredWindow == m_bIsLayeredWindow);
+    }
+#endif // _DEBUG
     return m_bIsLayeredWindow;
 }
 
@@ -218,10 +249,6 @@ void NativeWindow::SetWindowAlpha(int nAlpha)
         return;
     }
     m_nWindowAlpha = static_cast<uint8_t>(nAlpha);
-    if (m_nWindowAlpha < 255) {
-        //设置为层窗口
-        //SetLayeredWindow(true);
-    }
 }
 
 uint8_t NativeWindow::GetWindowAlpha() const
@@ -234,15 +261,28 @@ void NativeWindow::SetUseSystemCaption(bool bUseSystemCaption)
     m_bUseSystemCaption = bUseSystemCaption;
     if (IsUseSystemCaption()) {
         //使用系统默认标题栏, 需要增加标题栏风格
+        bool bChanged = false;
         if (IsWindow()) {
             UINT oldStyleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
             UINT newStyleValue = oldStyleValue | WS_CAPTION;
             if (newStyleValue != oldStyleValue) {
                 ::SetWindowLong(GetHWND(), GWL_STYLE, newStyleValue);
+                bChanged = true; 
             }
         }
         //关闭层窗口
-        SetLayeredWindow(false);
+        if (IsLayeredWindow()) {
+            bChanged = true;
+            SetLayeredWindow(false, false);
+        }
+        if (bChanged) {
+            // 强制窗口重绘
+            ::SetWindowPos(GetHWND(), NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+            //重新激活窗口的非客户区绘制
+            if (IsWindowForeground()) {
+                KeepParentActive();
+            }            
+        }        
     }
     m_pOwner->OnNativeUseSystemCaptionBarChanged();
 }
@@ -648,6 +688,7 @@ bool NativeWindow::UpdateWindow() const
 
 bool NativeWindow::BeginPaint(UiRect& rcPaint)
 {
+    rcPaint.Clear();
     if (!::IsWindow(m_hWnd)) {
         return false;
     }
@@ -655,16 +696,23 @@ bool NativeWindow::BeginPaint(UiRect& rcPaint)
         ::EndPaint(m_hWnd, &m_paintStruct);
         m_paintStruct = {0, };
     }
+
+    if (!GetUpdateRect(rcPaint)) {
+        rcPaint.Clear();
+    }
     HDC hDC = ::BeginPaint(m_hWnd, &m_paintStruct);
     ASSERT(hDC == m_paintStruct.hdc);
     if (hDC != nullptr) {
-        rcPaint.left = m_paintStruct.rcPaint.left;
-        rcPaint.top = m_paintStruct.rcPaint.top;
-        rcPaint.right = m_paintStruct.rcPaint.right;
-        rcPaint.bottom = m_paintStruct.rcPaint.bottom;
+        //rcPaint需要使用GetUpdateRect的结果，否则层窗口的情况下，有绘制异常
+        if (rcPaint.IsEmpty()) {
+            rcPaint.left = m_paintStruct.rcPaint.left;
+            rcPaint.top = m_paintStruct.rcPaint.top;
+            rcPaint.right = m_paintStruct.rcPaint.right;
+            rcPaint.bottom = m_paintStruct.rcPaint.bottom;
+        }
 
-        //使用层窗口时，窗口部分在屏幕外时，获取到的无效区域仅仅是屏幕内的部分，这里做修正处理
         if (IsLayeredWindow()) {
+            //使用层窗口时，窗口部分在屏幕外时，获取到的无效区域仅仅是屏幕内的部分，这里做修正处理
             UiRect rcWindow;
             GetWindowRect(rcWindow);
             UiRect rcClient;
@@ -709,7 +757,8 @@ bool NativeWindow::EndPaint(const UiRect& rcPaint, IRender* pRender)
             POINT ptSrc = { 0, 0 };
             BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(GetWindowAlpha()), AC_SRC_ALPHA };
             HDC hdc = pRender->GetDC();
-            ::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA);
+            BOOL bUpdated = ::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA);
+            ASSERT(bUpdated);
             pRender->ReleaseDC(hdc);
         }
         else {
@@ -1575,7 +1624,22 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case WM_PAINT:
     {
+        ASSERT(m_paintStruct.hdc == nullptr);
+
         lResult = m_pOwner->OnNativePaintMsg(bHandled);
+
+        ASSERT(m_paintStruct.hdc == nullptr);
+        if (m_paintStruct.hdc != nullptr) {
+            ::EndPaint(m_hWnd, &m_paintStruct);
+            m_paintStruct = { 0, };
+        }
+
+        if (!bHandled) {
+            PAINTSTRUCT ps = {0, };
+            ::BeginPaint(m_hWnd, &ps);
+            //::FillRect(ps.hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
+            ::EndPaint(m_hWnd, &ps);
+        }
         break;
     }
     case WM_SETFOCUS:
@@ -1765,6 +1829,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
 
 void NativeWindow::OnFinalMessage()
 {
+    ClearWindow();
     if (m_pOwner) {
         m_pOwner->OnNativeFinalMessage();
     }

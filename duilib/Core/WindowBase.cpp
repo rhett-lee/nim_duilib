@@ -70,10 +70,11 @@ uint8_t WindowBase::GetWindowAlpha() const
     return m_pNativeWindow->GetWindowAlpha();
 }
 
-void WindowBase::SetLayeredWindow(bool bIsLayeredWindow)
+bool WindowBase::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
 {
-    m_pNativeWindow->SetLayeredWindow(bIsLayeredWindow);
+    bool bRet = m_pNativeWindow->SetLayeredWindow(bIsLayeredWindow, bRedraw);
     OnLayeredWindowChanged();
+    return bRet;
 }
 
 bool WindowBase::IsLayeredWindow() const

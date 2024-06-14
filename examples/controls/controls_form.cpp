@@ -448,7 +448,7 @@ LRESULT ControlForm::OnHotKeyMsg(int32_t hotkeyId, ui::VirtualKeyCode vkCode, ui
     LRESULT lResult = __super::OnHotKeyMsg(hotkeyId, vkCode, modifierKey, bHandled);
     bHandled = true;
     if (hotkeyId == SYSTEM_HOTKEY_ID) {
-        SetForeground();
+        SetWindowForeground();
         ::MessageBox(GetHWND(), _T("接收到系统热键命令"), _T("ControlForm::OnHotKeyMsg"), MB_OK);
     }
     return lResult;

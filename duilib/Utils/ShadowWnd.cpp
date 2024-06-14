@@ -120,7 +120,7 @@ void ShadowWnd::OnInitWindow()
 
     //取消层窗口属性
     if (IsLayeredWindow()) {
-        SetLayeredWindow(false);
+        SetLayeredWindow(false, false);
     }
 
     //通过XML配置文件<Window>如下配置时，开启非透明窗口的阴影：

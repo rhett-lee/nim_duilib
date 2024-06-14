@@ -18,7 +18,6 @@ public:
      */
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
-    virtual DString GetWindowClassName() const override;
 
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */

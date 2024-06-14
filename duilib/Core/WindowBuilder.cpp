@@ -239,7 +239,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
 
         if( strClass == _T("Window") ) {
             if( pWindow->IsWindow() ) {
-                //首先处理mininfo和maxinfo，因为其他属性有用到这两个属性的
+                //首先处理mininfo/maxinfo/use_system_caption，因为其他属性有用到这些个属性的
                 for (pugi::xml_attribute attr : root.attributes()) {
                     strName = attr.name();
                     strValue = attr.value();
@@ -253,7 +253,11 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                         AttributeUtil::ParseSizeValue(strValue.c_str(), size);
                         pWindow->SetMaxInfo(size.cx, size.cy, false, true);
                     }
+                    else if (strName == _T("use_system_caption")) {
+                        pWindow->SetUseSystemCaption(strValue == _T("true"));
+                    }
                 }
+                //注：如果use_system_caption为true，则层窗口关闭（因为这两个属性互斥的）
                 for (pugi::xml_attribute attr : root.attributes()) {
                     strName = attr.name();
                     strValue = attr.value();
@@ -287,10 +291,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                         UiRect rcCaption;
                         AttributeUtil::ParseRectValue(strValue.c_str(), rcCaption);
                         pWindow->SetCaptionRect(rcCaption, true);
-                    }
-                    else if (strName == _T("use_system_caption")) {
-                        pWindow->SetUseSystemCaption(strValue == _T("true"));
-                    }
+                    }                    
                     else if( strName == _T("text") ) {
                         pWindow->SetText(strValue);
                     }
@@ -326,7 +327,9 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                     }
                     else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
                         //设置是否设置层窗口属性（层窗口还是普通窗口）
-                        pWindow->SetLayeredWindow(strValue == _T("true"));
+                        if (!pWindow->IsUseSystemCaption()) {
+                            pWindow->SetLayeredWindow(strValue == _T("true"), false);
+                        }                        
                     }
                     else if (strName == _T("alpha")) {
                         //设置窗口的透明度（0 - 255），仅当使用层窗口时有效

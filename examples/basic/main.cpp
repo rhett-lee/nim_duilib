@@ -31,7 +31,7 @@ MainThread::~MainThread()
 void MainThread::OnInit()
 {
     //初始化全局资源
-    constexpr ui::ResourceType resType = ui::ResourceType::kZipFile;
+    constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
     if (resType == ui::ResourceType::kLocalFiles) {
         //使用本地文件夹作为资源
         DString resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
@@ -63,11 +63,13 @@ void MainThread::OnInit()
 
     // 创建一个默认带有阴影的居中窗口
     BasicForm* window = new BasicForm();
-    window->CreateWnd(nullptr, BasicForm::kClassName, UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    ui::WindowCreateParam createWndParam;
+    createWndParam.m_windowTitle = _T("basic");
+    window->CreateWnd(nullptr, &createWndParam);
     window->SetIcon(IDI_BASIC);
     window->CenterWindow();
     window->ShowWindow();
-    //window->Maximize();
+   // window->Maximize();
 }
 
 void MainThread::OnCleanup()

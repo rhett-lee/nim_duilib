@@ -99,6 +99,10 @@ public:
      */
     void RemoveControl(Control* pControl);
 
+    /** 清除状态
+    */
+    void Clear();
+
 public:
     static Control* CALLBACK __FindControlFromPoint(Control* pThis, LPVOID pData);
     static Control* CALLBACK __FindControlFromTab(Control* pThis, LPVOID pData);

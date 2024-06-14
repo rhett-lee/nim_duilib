@@ -100,8 +100,10 @@ public:
 
 public:
     /** 设置是否为层窗口
+    * @param [in] bIsLayeredWindow true表示设置为层窗口，否则设置为非层窗口
+    * @param [in] bRedraw 是否重绘窗口（属性更改后，如果不重绘，则界面可能显示异常）
     */
-    void SetLayeredWindow(bool bIsLayeredWindow);
+    bool SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw);
 
     /** 是否为层窗口
     */
@@ -531,6 +533,10 @@ private:
     * @param [out] modifierKey 返回标志位，参见类型定义：ModifierKey
     */
     bool GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint32_t& modifierKey) const;
+
+    /** 设置是否为层窗口
+    */
+    bool SetLayeredWindowStyle(bool bIsLayeredWindow, bool& bChanged) const;
 
 private:
     /** 接收窗口事件的接口

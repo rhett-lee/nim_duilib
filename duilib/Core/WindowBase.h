@@ -62,8 +62,10 @@ public:
     uint8_t GetWindowAlpha() const;
 
     /** 设置是否为层窗口
+    * @param [in] bIsLayeredWindow true表示设置为层窗口，否则设置为非层窗口
+    * @param [in] bRedraw 是否重绘窗口（属性更改后，如果不重绘，则界面可能显示异常）
     */
-    void SetLayeredWindow(bool bIsLayeredWindow);
+    bool SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw);
 
     /** 是否为层窗口
     */

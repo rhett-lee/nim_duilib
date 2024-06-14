@@ -658,8 +658,9 @@ private:
     void OnInitLayout();
 
     /** 绘制函数体
+    * @return 如果执行了绘制返回true，否则返回false
     */
-    void Paint();
+    bool Paint();
 
 private:
     //事件回调管理器

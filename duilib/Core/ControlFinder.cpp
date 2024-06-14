@@ -19,6 +19,12 @@ void ControlFinder::SetRoot(Box* pRoot)
     m_pRoot = pRoot;
 }
 
+void ControlFinder::Clear()
+{
+    m_pRoot = nullptr;
+    m_mNameHash.clear();
+}
+
 Control* ControlFinder::FindControl(const UiPoint& pt) const
 {
     ASSERT(m_pRoot != nullptr);
