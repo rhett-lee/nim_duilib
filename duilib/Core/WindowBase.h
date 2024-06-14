@@ -533,6 +533,10 @@ protected:
     */
     virtual void InitWindow() = 0;
 
+    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
+    */
+    virtual void OnInitWindow() = 0;
+
     /** 窗口正在关闭，处理内部状态
     */
     virtual void PreCloseWindow() = 0;
@@ -813,14 +817,14 @@ protected:
     */
     void ProcessDpiChangedMsg(uint32_t nNewDPI, const UiRect& rcNewWindow);
 
+    /** 清理窗口资源
+    */
+    void ClearWindowBase();
+
 private:
     /** 初始化窗口数据（内部函数，子类重写后，必须调用基类函数，否则影响功能）
     */
     void InitWindowBase();
-
-    /** 清理窗口资源
-    */
-    void ClearWindowBase();
 
     /** 窗口大小变化，处理内部业务
     */

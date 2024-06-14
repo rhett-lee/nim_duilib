@@ -30,7 +30,7 @@ NativeWindow::NativeWindow(INativeWindow* pOwner):
 NativeWindow::~NativeWindow()
 {
     ASSERT(m_hWnd == nullptr);
-    ClearWindow();
+    ClearNativeWindow();
 }
 
 bool NativeWindow::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam* pCreateParam, const UiRect& rc)
@@ -127,7 +127,7 @@ void NativeWindow::InitWindow()
     RegisterTouchWindowWrapper(hWnd, 0);
 }
 
-void NativeWindow::ClearWindow()
+void NativeWindow::ClearNativeWindow()
 {
     //注销平板消息
     HWND hWnd = GetHWND();
@@ -1829,7 +1829,6 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
 
 void NativeWindow::OnFinalMessage()
 {
-    ClearWindow();
     if (m_pOwner) {
         m_pOwner->OnNativeFinalMessage();
     }

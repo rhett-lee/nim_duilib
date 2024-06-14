@@ -11,8 +11,6 @@
 namespace ui
 {
 
-const DString ColorPicker::kClassName = _T("ColorPicker");
-
 ColorPicker::ColorPicker():
     m_pNewColor(nullptr),
     m_pOldColor(nullptr),
@@ -644,10 +642,6 @@ public:
         __super::OnWindowExitFullScreen();
         CloseWnd();
     }
-
-    /** 窗口类名
-    */
-    static DString ClassName() { return _T("ScreenColorPicker"); }
 
     /** 抓取屏幕位图
     */

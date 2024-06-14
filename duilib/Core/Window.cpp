@@ -94,7 +94,6 @@ void Window::InitWindow()
             m_render->Resize(rcClient.Width(), rcClient.Height());
         }
     }
-    OnInitWindow();
 }
 
 void Window::PreCloseWindow()
@@ -105,7 +104,11 @@ void Window::PreCloseWindow()
 
 void Window::FinalMessage()
 {
+    //按倒序清理资源
     ClearWindow(true);
+    ClearWindowBase();
+
+    //回调Final接口
     OnFinalMessage();
 }
 
@@ -116,11 +119,8 @@ void Window::OnFinalMessage()
 
 void Window::ClearWindow(bool bSendClose)
 {
-    if (!IsWindow()) {
-        return;
-    }
-    //发送关闭事件
-    if (bSendClose) {
+    if (bSendClose && IsWindow()) {
+        //发送关闭事件
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         SendNotify(kEventWindowClose);
         if (windowFlag.expired()) {

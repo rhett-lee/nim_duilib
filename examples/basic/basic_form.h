@@ -23,13 +23,9 @@ public:
     */
     virtual void OnInitWindow() override;
 
-    /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
+    /** 在窗口销毁时会被调用，这是该窗口的最后一个消息
     */
-    virtual void OnCloseWindow() override;
-
-    /** 窗口类名
-    */
-    static const DString kClassName;
+    virtual void OnFinalMessage() override;
 };
 
 #endif //EXAMPLES_BASIC_FORM_H_

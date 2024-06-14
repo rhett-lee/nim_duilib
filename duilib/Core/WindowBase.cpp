@@ -14,11 +14,11 @@ WindowBase::WindowBase():
 
 WindowBase::~WindowBase()
 {
+    ClearWindowBase();
     if (m_pNativeWindow != nullptr) {
         delete m_pNativeWindow;
         m_pNativeWindow = nullptr;
     }
-    ClearWindowBase();
 }
 
 bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam* pCreateParam, const UiRect& rc)
@@ -32,6 +32,7 @@ bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam* p
     if (bRet) {
         InitWindowBase();
         InitWindow();
+        OnInitWindow();
     }    
     return bRet;
 }
@@ -47,6 +48,9 @@ void WindowBase::ClearWindowBase()
     m_pParentWindow = nullptr;
     m_parentFlag.reset();
     m_dpi.reset();
+
+    //清除Native窗口的资源
+    m_pNativeWindow->ClearNativeWindow();
 }
 
 void WindowBase::SetUseSystemCaption(bool bUseSystemCaption)
@@ -867,7 +871,6 @@ void WindowBase::OnNativeProcessDpiChangedMsg(uint32_t nNewDPI, const UiRect& rc
 
 void WindowBase::OnNativeFinalMessage()
 {
-    ClearWindowBase();
     FinalMessage();
 }
 

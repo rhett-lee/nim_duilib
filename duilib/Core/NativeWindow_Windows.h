@@ -438,6 +438,10 @@ public:
     */
     bool UnregisterHotKey(int32_t id);
 
+    /** 清理窗口资源
+    */
+    void ClearNativeWindow();
+
 public:
     /** 调用系统默认的窗口处理函数，对 CallWindowProc API 的一层封装
     * @param [in] uMsg 消息体
@@ -509,10 +513,6 @@ private:
     /** 初始化窗口数据
     */
     void InitWindow();
-
-    /** 清理窗口资源
-    */
-    void ClearWindow();
 
     /** 获取当前窗口Owner窗口句柄
     */

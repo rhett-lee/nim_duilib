@@ -30,10 +30,6 @@ public:
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
 
-    /** 窗口类名
-    */
-    static const DString kClassName;
-
 public:
     /** 设置所选颜色
     */
