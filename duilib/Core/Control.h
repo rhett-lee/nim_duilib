@@ -875,11 +875,6 @@ public:
     */
     void AttachStateChange(const EventCallback& callback) { AttachEvent(kEventStateChange, callback); }
 
-    /** 监听控件关闭前最后一条消息
-    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
-    */
-    void AttachLastEvent(const EventCallback& callback) { AttachEvent(kEventLast, callback); }
-
 public:
     /** 判断颜色定义是否有效
     * @param [in] colorName 颜色的名称，有效的颜色名称可以是以下定义（按获取优先级顺序）：

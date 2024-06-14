@@ -1,5 +1,4 @@
 #include "RichEditFindReplace.h"
-#include <commdlg.h>
 
 RichEditFindReplace::RichEditFindReplace():
     m_pRichEdit(nullptr),
@@ -17,7 +16,7 @@ void RichEditFindReplace::SetRichEdit(ui::RichEdit* pRichEdit)
     m_pRichEdit = pRichEdit;
 }
 
-bool RichEditFindReplace::FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog)
+bool RichEditFindReplace::FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog)
 {
     bool bChanged = false;
     if (m_sFindNext != findText) {
@@ -45,7 +44,7 @@ bool RichEditFindReplace::FindRichText(const DString& findText, bool bFindDown, 
     }    
     if (FindTextSimple(findText, bFindDown, bMatchCase, bMatchWholeWord)) {
         //找到
-        AdjustDialogPosition(hWndDialog);
+        AdjustDialogPosition(pWndDialog);
         return true;
     }
     else {
@@ -71,7 +70,7 @@ bool RichEditFindReplace::FindNext()
     }
 }
 
-bool RichEditFindReplace::ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog)
+bool RichEditFindReplace::ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog)
 {
     m_sFindNext = findText;
     m_sReplaceWith = replaceText;
@@ -112,12 +111,12 @@ bool RichEditFindReplace::ReplaceRichText(const DString& findText, const DString
         TextNotFound(m_sFindNext);
     }
     else {
-        AdjustDialogPosition(hWndDialog);
+        AdjustDialogPosition(pWndDialog);
     }
     return bReplaced;
 }
 
-bool RichEditFindReplace::ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog)
+bool RichEditFindReplace::ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog)
 {
     m_sFindNext = findText;
     m_sReplaceWith = replaceText;
@@ -271,9 +270,9 @@ void RichEditFindReplace::TextNotFound(const DString& findText)
     OnTextNotFound(findText);
 }
 
-void RichEditFindReplace::AdjustDialogPosition(HWND hWndDialog)
+void RichEditFindReplace::AdjustDialogPosition(ui::Window* pWndDialog)
 {
-    if (!::IsWindow(hWndDialog)) {
+    if ((pWndDialog == nullptr) || pWndDialog->IsWindow()) {
         return;
     }
     if (m_pRichEdit == nullptr) {
@@ -285,19 +284,20 @@ void RichEditFindReplace::AdjustDialogPosition(HWND hWndDialog)
     m_pRichEdit->GetSel(nStartChar, nEndChar);
     ui::UiPoint pt = m_pRichEdit->PosFromChar(nStartChar);
     m_pRichEdit->ClientToScreen(pt);
-    RECT rect = {};
-    ::GetWindowRect(hWndDialog, &rect);
-    POINT point = { pt.x, pt.y };
-    if (::PtInRect(&rect, point) != FALSE) {
-        if (point.y > (rect.bottom - rect.top))    {
-            ::OffsetRect(&rect, 0, point.y - rect.bottom - 20);
+    ui::UiRect rect;
+    pWndDialog->GetWindowRect(rect);
+    if (rect.ContainsPt(pt)) {
+        if (pt.y > (rect.bottom - rect.top))    {
+            rect.Offset(0, pt.y - rect.bottom - 20);
         }
         else {
+            //TODO: 平台
             int nVertExt = GetSystemMetrics(SM_CYSCREEN);
-            if ((point.y + (rect.bottom - rect.top)) < nVertExt)
-                ::OffsetRect(&rect, 0, 40 + point.y - rect.top);
+            if ((pt.y + (rect.bottom - rect.top)) < nVertExt) {
+                rect.Offset(0, 40 + pt.y - rect.top);
+            }
         }
-        ::MoveWindow(hWndDialog, rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top, TRUE);
+        pWndDialog->MoveWindow(rect.left, rect.top, rect.Width(), rect.Height(), true);
     }
 }
 

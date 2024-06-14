@@ -1,9 +1,8 @@
 #include "layouts_form.h"
 
-LayoutsForm::LayoutsForm(const DString& class_name, const DString& theme_directory, const DString& layout_xml)
-    : class_name_(class_name)
-    , theme_directory_(theme_directory)
-    , layout_xml_(layout_xml)
+LayoutsForm::LayoutsForm(const DString& class_name, const DString& theme_directory, const DString& layout_xml):
+    theme_directory_(theme_directory),
+    layout_xml_(layout_xml)
 {
 }
 
@@ -22,26 +21,20 @@ DString LayoutsForm::GetSkinFile()
     return layout_xml_;
 }
 
-DString LayoutsForm::GetWindowClassName() const
-{
-    return class_name_;
-}
-
 void LayoutsForm::OnInitWindow()
 {
 
 }
 
-void LayoutsForm::OnCloseWindow()
-{
-    //关闭窗口后，退出主线程的消息循环，关闭程序
-    PostQuitMessage(0L);
-}
-
 void LayoutsForm::ShowCustomWindow(const DString& class_name, const DString& theme_directory, const DString& layout_xml)
 {
     LayoutsForm* window = new LayoutsForm(class_name, theme_directory, layout_xml);
-    window->CreateWnd(nullptr, class_name, UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    ui::WindowCreateParam createParam;
+    createParam.m_dwExStyle = WS_EX_LAYERED;
+    createParam.m_className = _T("layouts");
+    createParam.m_windowTitle = createParam.m_className;
+    window->CreateWnd(nullptr, createParam);
+    window->PostQuitMsgWhenClosed(true);
     window->CenterWindow();
     window->ShowWindow();
 }

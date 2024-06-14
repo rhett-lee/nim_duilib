@@ -4,8 +4,6 @@
 
 #include <fstream>
 
-const DString ControlForm::kClassName = _T("Controls");
-
 //系统全局热键的ID
 #define SYSTEM_HOTKEY_ID 111
 
@@ -26,11 +24,6 @@ DString ControlForm::GetSkinFolder()
 DString ControlForm::GetSkinFile()
 {
     return _T("controls.xml");
-}
-
-DString ControlForm::GetWindowClassName() const
-{
-    return kClassName;
 }
 
 void ControlForm::OnInitWindow()
@@ -173,7 +166,7 @@ void ControlForm::OnInitWindow()
         pRichText->AttachLinkClick([this](const ui::EventArgs& args) {
             const wchar_t* url = (const wchar_t*)args.wParam;
             if (url != nullptr) {
-                ::MessageBox(GetHWND(), url, _T("RichText点击超链接"), MB_OK);
+                ::MessageBox(NativeWnd()->GetHWND(), url, _T("RichText点击超链接"), MB_OK);
             }
             return true;
             });
@@ -185,7 +178,7 @@ void ControlForm::OnInitWindow()
         pHyperLink->AttachLinkClick([this](const ui::EventArgs& args) {
             const wchar_t* url = (const wchar_t*)args.wParam;
             if (url != nullptr) {
-                ::MessageBox(GetHWND(), url, _T("HyperLink点击超链接"), MB_OK);
+                ::MessageBox(NativeWnd()->GetHWND(), url, _T("HyperLink点击超链接"), MB_OK);
             }
             return true;
             });
@@ -194,7 +187,7 @@ void ControlForm::OnInitWindow()
     pHyperLink = dynamic_cast<ui::HyperLink*>(FindControl(_T("hyper_link2")));
     if (pHyperLink != nullptr) {
         pHyperLink->AttachLinkClick([this](const ui::EventArgs& /*args*/) {
-            ::MessageBox(GetHWND(), _T("文字按钮事件响应"), _T("HyperLink点击"), MB_OK);
+            ::MessageBox(NativeWnd()->GetHWND(), _T("文字按钮事件响应"), _T("HyperLink点击"), MB_OK);
             return true;
             });
     }
@@ -259,7 +252,11 @@ void ControlForm::OnInitWindow()
 void ControlForm::ShowColorPicker()
 {
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;
-    pColorPicker->CreateWnd(this, ui::ColorPicker::kClassName, UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    ui::WindowCreateParam createParam;
+    createParam.m_dwExStyle = WS_EX_LAYERED;
+    createParam.m_className = _T("ControlForm");
+    createParam.m_windowTitle = createParam.m_className;
+    pColorPicker->CreateWnd(this, createParam);
     pColorPicker->CenterWindow();
     pColorPicker->ShowModalFake();
 
@@ -358,18 +355,17 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
     if (menu_about != nullptr) {
         menu_about->AttachClick([this](const ui::EventArgs& args) {
             AboutForm* about_form = new AboutForm();
-            about_form->CreateWnd(this, AboutForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
+            ui::WindowCreateParam createParam;
+            createParam.m_dwExStyle = WS_EX_LAYERED;
+            createParam.m_dwStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
+            createParam.m_className = _T("AboutForm");            
+            createParam.m_windowTitle = createParam.m_className;
+            about_form->CreateWnd(this, createParam);
             about_form->CenterWindow();
             about_form->ShowModalFake();
             return true;
             });
     }
-}
-
-void ControlForm::OnCloseWindow()
-{
-    //关闭窗口后，退出主线程的消息循环，关闭程序
-    PostQuitMessage(0L);
 }
 
 void ControlForm::LoadRichEditData()
@@ -412,9 +408,6 @@ void ControlForm::OnResourceFileLoaded(const DString& xml)
     //启动加载动画
     //control_edit->StartLoading();
     //control_edit->StartGifPlay();
-
-    // Show about form
-    //nim_comp::WindowsManager::SingletonShow<AboutForm>(AboutForm::kClassName);
 }
 
 void ControlForm::OnProgressValueChagned(float value)
@@ -449,7 +442,7 @@ LRESULT ControlForm::OnHotKeyMsg(int32_t hotkeyId, ui::VirtualKeyCode vkCode, ui
     bHandled = true;
     if (hotkeyId == SYSTEM_HOTKEY_ID) {
         SetWindowForeground();
-        ::MessageBox(GetHWND(), _T("接收到系统热键命令"), _T("ControlForm::OnHotKeyMsg"), MB_OK);
+        ::MessageBox(NativeWnd()->GetHWND(), _T("接收到系统热键命令"), _T("ControlForm::OnHotKeyMsg"), MB_OK);
     }
     return lResult;
 }

@@ -20,11 +20,9 @@ public:
      * 一下三个接口是必须要覆写的接口，父类会调用这三个接口来构建窗口
      * GetSkinFolder        接口设置你要绘制的窗口皮肤资源路径
      * GetSkinFile            接口设置你要绘制的窗口的 xml 描述文件
-     * GetWindowClassName    接口设置窗口唯一的类名称
      */
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
-    virtual DString GetWindowClassName() const override;
 
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
@@ -50,12 +48,10 @@ public:
     */
     virtual LRESULT OnKeyUpMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled) override;
 
-    static const DString kClassName;
-
     //查找/替换接口
-    void FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
-    void ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
-    void ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
+    void FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
+    void ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
+    void ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
 
     //获取RichEdit接口
     ui::RichEdit* GetRichEdit() const;

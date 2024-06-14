@@ -41,8 +41,6 @@ public:
     // 覆盖虚函数
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
-    virtual DString GetWindowClassName() const override;
-    virtual UINT GetClassStyle() const override;
 
     /**
     * 根据控件类名创建自定义控件
@@ -73,8 +71,6 @@ private:
     * @return void    无返回值
     */
     void SetDragImage(HBITMAP bitmap);
-public:
-    static const DString kClassName;
 
 private:
     static HHOOK    s_mouse_hook;

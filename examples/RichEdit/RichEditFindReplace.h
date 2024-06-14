@@ -15,16 +15,16 @@ public:
 
 public:
     //查找
-    bool FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
+    bool FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
 
     //查找下一个
     bool FindNext();
 
     //替换
-    bool ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
+    bool ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
     
     //全部替换
-    bool ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog);
+    bool ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog);
 
 protected:
     //没找到，回调函数
@@ -50,7 +50,7 @@ private:
     void TextNotFound(const DString& findText);
 
     //调整查找替换窗口的位置
-    void AdjustDialogPosition(HWND hWndDialog);
+    void AdjustDialogPosition(ui::Window* pWndDialog);
 
 private:
     //RichEdit控件接口

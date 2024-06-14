@@ -1,8 +1,6 @@
 #include "richlist_form.h"
 #include "item.h"
 
-const DString RichlistForm::kClassName = _T("Basic");
-
 RichlistForm::RichlistForm():
     m_pListBox(nullptr)
 {
@@ -21,11 +19,6 @@ DString RichlistForm::GetSkinFolder()
 DString RichlistForm::GetSkinFile()
 {
     return _T("list_box.xml");
-}
-
-DString RichlistForm::GetWindowClassName() const
-{
-    return kClassName;
 }
 
 void RichlistForm::OnInitWindow()
@@ -81,11 +74,5 @@ bool RichlistForm::OnSelected(const ui::EventArgs& args)
     //nim_comp::ShowMsgBox(GetHWND(), nim_comp::MsgboxCallback(), message, false, _T("提示"), false);
 
     return true;
-}
-
-void RichlistForm::OnCloseWindow()
-{
-    //关闭窗口后，退出主线程的消息循环，关闭程序
-    PostQuitMessage(0L);
 }
 

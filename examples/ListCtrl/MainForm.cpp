@@ -1,8 +1,6 @@
 #include "MainForm.h"
 #include "MainThread.h"
 
-const DString MainForm::kClassName = _T("MainForm");
-
 MainForm::MainForm()
 {
 }
@@ -19,17 +17,6 @@ DString MainForm::GetSkinFolder()
 DString MainForm::GetSkinFile()
 {
     return _T("list_ctrl.xml");
-}
-
-DString MainForm::GetWindowClassName() const
-{
-    return kClassName;
-}
-
-void MainForm::OnCloseWindow()
-{
-    //关闭窗口后，退出主线程的消息循环，关闭程序
-    PostQuitMessage(0L);
 }
 
 void MainForm::OnInitWindow()

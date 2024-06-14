@@ -6,7 +6,6 @@ using namespace ui;
 DragForm *DragForm::s_drag_form = NULL;
 HHOOK DragForm::s_mouse_hook = NULL;
 POINT DragForm::s_point_offset = { 0, 0 };
-const DString DragForm::kClassName = _T("NimDragForm");
 
 LRESULT CALLBACK DragForm::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
@@ -58,9 +57,12 @@ void DragForm::CloseCustomDragImage()
 DragForm* DragForm::CreateDragForm(HBITMAP bitmap, POINT pt_offset)
 {
     DragForm *drag_form = new DragForm;
-
-    drag_form->CreateWnd(nullptr, kClassName, UI_WNDSTYLE_FRAME, WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW);
-    ASSERT(drag_form->GetHWND() != NULL);
+    ui::WindowCreateParam createParam;
+    createParam.m_dwExStyle = WS_EX_TOPMOST | WS_EX_TRANSPARENT | WS_EX_LAYERED | WS_EX_TOOLWINDOW;
+    createParam.m_className = _T("DragForm");
+    createParam.m_windowTitle = createParam.m_className;
+    drag_form->CreateWnd(nullptr, createParam);
+    ASSERT(drag_form->IsWindow());
     drag_form->SetDragImage(bitmap);
 
     POINT pt;
@@ -102,16 +104,6 @@ ui::Control* DragForm::CreateControl(const DString& pstrClass)
     }
 
     return NULL;
-}
-
-DString DragForm::GetWindowClassName() const
-{
-    return kClassName;
-}
-
-UINT DragForm::GetClassStyle() const
-{
-    return (UI_CLASSSTYLE_FRAME);
 }
 
 void DragForm::OnInitWindow()

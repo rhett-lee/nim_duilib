@@ -328,7 +328,7 @@ namespace ui
         kEventEnterEdit,            //ListCtrl类：进入编辑状态, wParam 是接口：ListCtrlEditParam*
         kEventLeaveEdit,            //ListCtrl类：退出编辑状态, wParam 是接口：ListCtrlEditParam*
 
-        kEventLast                  //Control类：该控件的最后一个消息，当这个控件对象销毁时触发
+        kEventLast                  //无使用者
     };
 
     /** 热键组合键标志位

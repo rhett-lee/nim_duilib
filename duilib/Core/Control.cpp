@@ -53,9 +53,6 @@ Control::Control(Window* pWindow) :
 
 Control::~Control()
 {
-    //派发最后一个事件
-    SendEvent(kEventLast);
-
     //清理动画相关资源，避免定时器再产生回调，引发错误
     if (m_animationManager != nullptr) {
         m_animationManager->Clear(this);
@@ -1690,10 +1687,6 @@ bool Control::IsDisabledEvents(const EventArgs& msg) const
         if (!IsEnabled() || !IsKeyboardEnabled()) {
             return true;
         }
-    }
-    else if (msg.eventType == kEventLast) {
-        //转发给上层控件
-        return true;
     }
     return false;
 }

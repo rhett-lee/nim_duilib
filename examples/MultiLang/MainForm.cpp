@@ -1,11 +1,8 @@
 #include "MainForm.h"
 
-const DString MainForm::kClassName = _T("MultiLang");
-
 MainForm::MainForm()
 {
 }
-
 
 MainForm::~MainForm()
 {
@@ -19,11 +16,6 @@ DString MainForm::GetSkinFolder()
 DString MainForm::GetSkinFile()
 {
     return _T("MultiLang.xml");
-}
-
-DString MainForm::GetWindowClassName() const
-{
-    return kClassName;
 }
 
 void MainForm::OnInitWindow()
@@ -46,12 +38,6 @@ void MainForm::OnInitWindow()
         ShowPopupMenu(point);
         return true;
         });
-}
-
-void MainForm::OnCloseWindow()
-{
-    //关闭窗口后，退出主线程的消息循环，关闭程序
-    PostQuitMessage(0L);
 }
 
 void MainForm::ShowPopupMenu(const ui::UiPoint& point)

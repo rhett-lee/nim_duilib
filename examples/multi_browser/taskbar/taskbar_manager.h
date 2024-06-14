@@ -76,12 +76,6 @@ public:
 
 private:
     /**
-    * 返回本窗口的窗口类名
-    * @return DString 窗口类名
-    */
-    virtual DString GetWindowClassName() const override;
-
-    /**
     * 拦截并处理底层窗体消息
     * @param[in] uMsg 消息类型
     * @param[in] wParam 附加参数

@@ -262,8 +262,6 @@ DString EventTypeToString(EventType eventType)
         return _T("kEventEnterEdit");
     case kEventLeaveEdit:
         return _T("kEventLeaveEdit");
-    case kEventLast:
-        return _T("kEventLast");
     default:
         break;
     }

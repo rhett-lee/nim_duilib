@@ -1,8 +1,6 @@
 #include "ReplaceForm.h"
 #include "MainForm.h"
 
-const DString ReplaceForm::kClassName = _T("FindForm");
-
 ReplaceForm::ReplaceForm(MainForm* pMainForm):
     m_pMainForm(pMainForm),
     m_pDirectionOption(nullptr),
@@ -26,11 +24,6 @@ DString ReplaceForm::GetSkinFolder()
 DString ReplaceForm::GetSkinFile()
 {
     return _T("replace.xml");
-}
-
-DString ReplaceForm::GetWindowClassName() const
-{
-    return kClassName;
 }
 
 void ReplaceForm::OnInitWindow()
@@ -126,7 +119,7 @@ void ReplaceForm::OnFindNext()
         bMatchWholeWord = m_pMatchWholeWord->IsSelected();
     }
     if (m_pMainForm != nullptr) {
-        m_pMainForm->FindRichText(findText, bFindDown, bMatchCase, bMatchWholeWord, GetHWND());
+        m_pMainForm->FindRichText(findText, bFindDown, bMatchCase, bMatchWholeWord, this);
     }
 }
 
@@ -162,7 +155,7 @@ void ReplaceForm::OnReplace()
         bMatchWholeWord = m_pMatchWholeWord->IsSelected();
     }
     if (m_pMainForm != nullptr) {
-        m_pMainForm->ReplaceRichText(findText, replaceText, bFindDown, bMatchCase, bMatchWholeWord, GetHWND());
+        m_pMainForm->ReplaceRichText(findText, replaceText, bFindDown, bMatchCase, bMatchWholeWord, this);
     }
 }
 
@@ -198,6 +191,6 @@ void ReplaceForm::OnReplaceAll()
         bMatchWholeWord = m_pMatchWholeWord->IsSelected();
     }
     if (m_pMainForm != nullptr) {
-        m_pMainForm->ReplaceAllRichText(findText, replaceText, bFindDown, bMatchCase, bMatchWholeWord, GetHWND());
+        m_pMainForm->ReplaceAllRichText(findText, replaceText, bFindDown, bMatchCase, bMatchWholeWord, this);
     }
 }

@@ -29,7 +29,7 @@ bool MultiBrowserForm::InitDragDrop()
         return false;
     }
 
-    if (FAILED(::RegisterDragDrop(this->GetHWND(), this)))
+    if (FAILED(::RegisterDragDrop(this->NativeWnd()->GetHWND(), this)))
     {
         return false;
     }
@@ -42,7 +42,7 @@ void MultiBrowserForm::UnInitDragDrop()
     if (NULL != drop_helper_)
         drop_helper_->Release();
 
-    RevokeDragDrop(this->GetHWND());
+    RevokeDragDrop(this->NativeWnd()->GetHWND());
 }
 
 HRESULT MultiBrowserForm::QueryInterface(REFIID iid, void ** ppvObject)
@@ -88,7 +88,7 @@ HRESULT MultiBrowserForm::DragEnter(IDataObject * pDataObject, DWORD grfKeyState
         *pdwEffect = DROPEFFECT_MOVE;
     }
 
-    drop_helper_->DragEnter(this->GetHWND(), pDataObject, (LPPOINT)&pt, *pdwEffect);
+    drop_helper_->DragEnter(this->NativeWnd()->GetHWND(), pDataObject, (LPPOINT)&pt, *pdwEffect);
     return S_OK;
 }
 

@@ -26,22 +26,9 @@ public:
     */
     virtual DString GetSkinFile() override;
 
-    /** 创建窗口时被调用，由子类实现用以获取窗口唯一的类名称
-    * @return 子类需实现并返回窗口唯一的类名称
-    */
-    virtual DString GetWindowClassName() const override;
-
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() override;
-
-    /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
-    */
-    virtual void OnCloseWindow() override;
-
-    /** 窗口的类名
-    */
-    static const DString kClassName;
 
 private:
     /** 显示菜单

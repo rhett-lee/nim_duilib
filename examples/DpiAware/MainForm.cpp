@@ -1,8 +1,6 @@
 //MainForm.cpp
 #include "MainForm.h"
 
-const DString MainForm::kClassName = _T("MainForm");
-
 MainForm::MainForm()
 {
 }
@@ -22,11 +20,6 @@ DString MainForm::GetSkinFile()
     return _T("DpiAware.xml");
 }
 
-DString MainForm::GetWindowClassName() const
-{
-    return kClassName;
-}
-
 void MainForm::OnInitWindow()
 {
     //窗口初始化完成，可以进行本Form的初始化
@@ -36,14 +29,12 @@ void MainForm::OnInitWindow()
     if (pButton != nullptr) {
         pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
             //弹出一个新窗口
-            class MainForm2 : public MainForm
-            {
-            public:
-                virtual void OnCloseWindow() override {};
-            };
-
-            MainForm2* window = new MainForm2();
-            window->CreateWnd(nullptr, MainForm2::kClassName, UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+            MainForm* window = new MainForm();
+            ui::WindowCreateParam createParam;
+            createParam.m_dwExStyle = WS_EX_LAYERED;
+            createParam.m_className = _T("DpiAware");
+            createParam.m_windowTitle = createParam.m_className;
+            window->CreateWnd(nullptr, createParam);
             window->CenterWindow();
             window->ShowWindow();
             return true;
@@ -65,12 +56,6 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
-}
-
-void MainForm::OnCloseWindow()
-{
-    //关闭窗口后，退出主线程的消息循环，关闭程序
-    PostQuitMessage(0L);
 }
 
 void MainForm::OnWindowDpiChanged(uint32_t /*nOldDPI*/, uint32_t /*nNewDPI*/)

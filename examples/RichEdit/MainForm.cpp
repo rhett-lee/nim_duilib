@@ -6,8 +6,6 @@
 #include <commdlg.h>
 #include <fstream>
 
-const DString MainForm::kClassName = _T("MainForm");
-
 #ifndef LY_PER_INCH
     #define LY_PER_INCH 1440
 #endif
@@ -33,11 +31,6 @@ DString MainForm::GetSkinFile()
     return _T("rich_edit.xml");
 }
 
-DString MainForm::GetWindowClassName() const
-{
-    return kClassName;
-}
-
 void MainForm::OnInitWindow()
 {
     ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("test_url")));
@@ -47,7 +40,8 @@ void MainForm::OnInitWindow()
                 if (args.GetSender() == pRichEdit) {
                     const wchar_t* pUrl = (const wchar_t*)args.wParam;
                     if (pUrl != nullptr) {
-                        ::ShellExecute(GetHWND(), _T("open"), pUrl, NULL, NULL, SW_SHOWNORMAL);
+                        //TODO: 平台
+                        ::ShellExecute(NativeWnd()->GetHWND(), _T("open"), pUrl, NULL, NULL, SW_SHOWNORMAL);
                     }
                 }
                 return true;
@@ -519,7 +513,8 @@ void MainForm::OnInitWindow()
         m_pRichEdit->AttachLinkClick([this](const ui::EventArgs& args) {
             const wchar_t* url = (const wchar_t*)args.wParam;
             if (url != nullptr) {
-                ::MessageBox(GetHWND(), url, _T("RichEdit点击超链接"), MB_OK);
+                //TODO: 平台相关
+                ::MessageBox(NativeWnd()->GetHWND(), url, _T("RichEdit点击超链接"), MB_OK);
             }
             return true;
             });
@@ -593,7 +588,11 @@ void MainForm::ShowColorPicker()
     DString oldTextColor = pLeftColorLabel->GetBkColor();
 
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;
-    pColorPicker->CreateWnd(this, ui::ColorPicker::kClassName, UI_WNDSTYLE_FRAME, WS_EX_LAYERED);
+    ui::WindowCreateParam createParam;
+    createParam.m_dwExStyle = WS_EX_LAYERED;
+    createParam.m_className = _T("ColorPicker");
+    createParam.m_windowTitle = createParam.m_className;
+    pColorPicker->CreateWnd(nullptr, createParam);
     pColorPicker->CenterWindow();
     pColorPicker->ShowModalFake();
 
@@ -1025,7 +1024,8 @@ void MainForm::OnOpenFile()
 
     OPENFILENAME ofn = {0, };
     ofn.lStructSize = sizeof(OPENFILENAME);
-    ofn.hwndOwner = GetHWND();
+    //TODO：平台相关
+    ofn.hwndOwner = NativeWnd()->GetHWND();
 
     ofn.lpstrFile = szFileName;
     ofn.nMaxFile = _MAX_PATH;
@@ -1067,7 +1067,8 @@ void MainForm::OnSaveAsFile()
 
     OPENFILENAME ofn = { 0, };
     ofn.lStructSize = sizeof(OPENFILENAME);
-    ofn.hwndOwner = GetHWND();
+    //TODO：平台相关
+    ofn.hwndOwner = NativeWnd()->GetHWND();
 
     ofn.lpstrFile = szFileName;
     ofn.nMaxFile = _MAX_PATH;
@@ -1160,7 +1161,12 @@ void MainForm::OnFindText()
 {
     if (m_pFindForm == nullptr) {
         m_pFindForm = new FindForm(this);
-        m_pFindForm->CreateWnd(this, FindForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
+        ui::WindowCreateParam createParam;
+        createParam.m_dwStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
+        createParam.m_dwExStyle = WS_EX_LAYERED;
+        createParam.m_className = _T("FindForm");
+        createParam.m_windowTitle = createParam.m_className;
+        m_pFindForm->CreateWnd(nullptr, createParam);
         m_pFindForm->CenterWindow();
         m_pFindForm->ShowWindow();
 
@@ -1183,7 +1189,12 @@ void MainForm::OnReplaceText()
 {
     if (m_pReplaceForm == nullptr) {
         m_pReplaceForm = new ReplaceForm(this);
-        m_pReplaceForm->CreateWnd(this, ReplaceForm::kClassName, WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX, WS_EX_LAYERED);
+        ui::WindowCreateParam createParam;
+        createParam.m_dwStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
+        createParam.m_dwExStyle = WS_EX_LAYERED;
+        createParam.m_className = _T("ReplaceForm");
+        createParam.m_windowTitle = createParam.m_className;
+        m_pReplaceForm->CreateWnd(nullptr, createParam);
         m_pReplaceForm->CenterWindow();
         m_pReplaceForm->ShowWindow();
         m_pReplaceForm->AttachWindowClose([this](const ui::EventArgs& args) {
@@ -1196,14 +1207,14 @@ void MainForm::OnReplaceText()
     }
 }
 
-void MainForm::FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog)
+void MainForm::FindRichText(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog)
 {
-    m_findReplace.FindRichText(findText, bFindDown, bMatchCase, bMatchWholeWord, hWndDialog);
+    m_findReplace.FindRichText(findText, bFindDown, bMatchCase, bMatchWholeWord, pWndDialog);
 }
 
-void MainForm::ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog)
+void MainForm::ReplaceRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog)
 {
-    if (m_findReplace.ReplaceRichText(findText, replaceText, bFindDown, bMatchCase, bMatchWholeWord, hWndDialog)) {
+    if (m_findReplace.ReplaceRichText(findText, replaceText, bFindDown, bMatchCase, bMatchWholeWord, pWndDialog)) {
         if (m_pRichEdit != nullptr) {
             m_pRichEdit->SetModify(true);
             UpdateSaveStatus();
@@ -1211,9 +1222,9 @@ void MainForm::ReplaceRichText(const DString& findText, const DString& replaceTe
     }
 }
 
-void MainForm::ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, HWND hWndDialog)
+void MainForm::ReplaceAllRichText(const DString& findText, const DString& replaceText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord, ui::Window* pWndDialog)
 {
-    if (m_findReplace.ReplaceAllRichText(findText, replaceText, bFindDown, bMatchCase, bMatchWholeWord, hWndDialog)) {
+    if (m_findReplace.ReplaceAllRichText(findText, replaceText, bFindDown, bMatchCase, bMatchWholeWord, pWndDialog)) {
         if (m_pRichEdit != nullptr) {
             m_pRichEdit->SetModify(true);
             UpdateSaveStatus();
@@ -1408,7 +1419,7 @@ void MainForm::OnSetFont()
     TCHAR szStyleName[64];  // contains style name after return
     LOGFONT lf;                // default LOGFONT to store the info
 
-    HWND hWndParent = GetHWND();
+    HWND hWndParent = NativeWnd()->GetHWND();
     LPLOGFONT lplfInitial = &logFont;
     DWORD dwFlags = CF_EFFECTS | CF_SCREENFONTS;
     memset(&cf, 0, sizeof(cf));

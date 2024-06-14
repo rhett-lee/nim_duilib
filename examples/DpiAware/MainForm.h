@@ -27,28 +27,15 @@ public:
     */
     virtual DString GetSkinFile() override;
 
-    /** 创建窗口时被调用，由子类实现用以获取窗口唯一的类名称
-    * @return 子类需实现并返回窗口唯一的类名称
-    */
-    virtual DString GetWindowClassName() const override;
-
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() override;
-
-    /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
-    */
-    virtual void OnCloseWindow() override;
 
     /** 窗口的DPI发生了变化
     * @param [in] nOldDPI 旧的DPI值
     * @param [in] nNewDPI 新的DPI值
     */
     virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) override;
-
-    /** 窗口类名
-    */
-    static const DString kClassName;
 
 private:
     /** 刷新界面

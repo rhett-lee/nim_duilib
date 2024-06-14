@@ -3,12 +3,9 @@
 #include "RenderTest2.h"
 #include "RenderTest3.h"
 
-const DString RenderForm::kClassName = _T("render");
-
 RenderForm::RenderForm()
 {
 }
-
 
 RenderForm::~RenderForm()
 {
@@ -24,11 +21,6 @@ DString RenderForm::GetSkinFile()
     return _T("render.xml");
 }
 
-DString RenderForm::GetWindowClassName() const
-{
-    return kClassName;
-}
-
 void RenderForm::OnInitWindow()
 {
     TestPropertyGrid();
@@ -38,7 +30,7 @@ void RenderForm::OnCloseWindow()
 {
     CheckPropertyGridResult();
     //关闭窗口后，退出主线程的消息循环，关闭程序
-    PostQuitMessage(0L);
+    PostQuitMsg(0L);
 }
 
 ui::Control* RenderForm::CreateControl(const DString& strClass)

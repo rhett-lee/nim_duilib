@@ -1,12 +1,9 @@
 #include "about_form.h"
 #include <shellapi.h>
 
-const DString AboutForm::kClassName = _T("About");
-
 AboutForm::AboutForm()
 {
 }
-
 
 AboutForm::~AboutForm()
 {
@@ -20,11 +17,6 @@ DString AboutForm::GetSkinFolder()
 DString AboutForm::GetSkinFile()
 {
     return _T("about.xml");
-}
-
-DString AboutForm::GetWindowClassName() const
-{
-    return kClassName;
 }
 
 void AboutForm::OnInitWindow()

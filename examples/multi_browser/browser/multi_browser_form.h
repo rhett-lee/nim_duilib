@@ -25,9 +25,7 @@ public:
     
     //覆盖虚函数
     virtual DString GetSkinFolder() override;
-    virtual DString GetSkinFile() override;
-    virtual DString GetWindowClassName() const override;
-    virtual UINT GetClassStyle() const override;    
+    virtual DString GetSkinFile() override;   
 
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
@@ -186,7 +184,7 @@ public:
     * 获取窗体句柄
     * @return HWND    窗体句柄
     */
-    virtual HWND GetHandle() const override { return this->GetHWND(); };
+    virtual HWND GetHandle() const override { return this->NativeWnd()->GetHWND(); };
 
     /**
     * 获取渲染接口
@@ -267,9 +265,6 @@ private:
     * @return HBITMAP 生成的位图
     */
     ui::IBitmap* GenerateBoxWindowBitmap();
-
-public:
-    static const DString kClassName;
 
 private:
     ui::Label        *lbl_title_;

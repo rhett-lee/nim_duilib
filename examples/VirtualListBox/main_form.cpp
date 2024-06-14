@@ -1,9 +1,6 @@
 #include "main_form.h"
 #include "provider.h"
 
-const DString MainForm::kClassName = _T("VirtualListBox");
-
-
 MainForm::MainForm()
 = default;
 
@@ -19,11 +16,6 @@ DString MainForm::GetSkinFolder()
 DString MainForm::GetSkinFile()
 {
     return _T("main.xml");
-}
-
-DString MainForm::GetWindowClassName() const
-{
-    return kClassName;
 }
 
 void MainForm::OnInitWindow()
@@ -67,12 +59,6 @@ void MainForm::OnInitWindow()
     else if (layoutType == ui::LayoutType::VirtualVLayout) {
         m_OptionColumnFix->SetText(_T("居中设置"));
     }
-}
-
-void MainForm::OnCloseWindow()
-{
-    //关闭窗口后，退出主线程的消息循环，关闭程序
-    PostQuitMessage(0L);
 }
 
 bool MainForm::OnClicked(const ui::EventArgs& args)

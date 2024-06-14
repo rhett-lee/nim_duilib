@@ -4,13 +4,11 @@ using namespace ui;
 using namespace std;
 
 
-MoveControlForm::MoveControlForm(const DString& class_name, const DString& theme_directory, const DString& layout_xml)
-    : m_class_name(class_name)
-    , m_theme_directory(theme_directory)
-    , m_layout_xml(layout_xml)
+MoveControlForm::MoveControlForm(const DString& theme_directory, const DString& layout_xml):
+    m_theme_directory(theme_directory),
+    m_layout_xml(layout_xml)
 {
 }
-
 
 MoveControlForm::~MoveControlForm()
 {
@@ -24,11 +22,6 @@ DString MoveControlForm::GetSkinFolder()
 DString MoveControlForm::GetSkinFile()
 {
     return m_layout_xml;
-}
-
-DString MoveControlForm::GetWindowClassName() const
-{
-    return m_class_name;
 }
 
 void MoveControlForm::OnInitWindow()
@@ -58,10 +51,3 @@ void MoveControlForm::OnInitWindow()
         }
     }
 }
-
-void MoveControlForm::OnCloseWindow()
-{
-    //关闭窗口后，退出主线程的消息循环，关闭程序
-    PostQuitMessage(0L);
-}
-

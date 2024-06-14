@@ -22,8 +22,6 @@ namespace
     };
 }
 
-const DString MultiBrowserForm::kClassName = _T("MultiBrowserForm");
-
 MultiBrowserForm::MultiBrowserForm()
 {
     lbl_title_ = nullptr;
@@ -59,27 +57,17 @@ DString MultiBrowserForm::GetSkinFile()
     return _T("multi_browser.xml");
 }
 
-DString MultiBrowserForm::GetWindowClassName() const
-{
-    return kClassName;
-}
-
-UINT MultiBrowserForm::GetClassStyle() const
-{
-    return (UI_CLASSSTYLE_FRAME | CS_DBLCLKS);
-}
-
 ui::Control* MultiBrowserForm::CreateControl(const DString& pstrClass)
 {
-    if (pstrClass == _T("CustomTabBox"))
-    {
-        if ((::GetWindowLong(this->GetHWND(), GWL_EXSTYLE) & WS_EX_LAYERED) != 0)
+    if (pstrClass == _T("CustomTabBox")) {
+        if (IsLayeredWindow()) {
             return new TabBox(this, new CustomLayout);
-        else
+        }
+        else {
             return new TabBox(this, new Layout);
+        }
     }
-
-    return NULL;
+    return nullptr;
 }
 
 void MultiBrowserForm::OnInitWindow()
@@ -216,11 +204,12 @@ bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
     DString name = arg.GetSender()->GetName();
     if (name == _T("btn_max_restore"))
     {
-        DWORD style = GetWindowLong(GetHWND(), GWL_STYLE);
-        if (style & WS_MAXIMIZE)
-            ::ShowWindow(GetHWND(), SW_RESTORE);
-        else
-            ::ShowWindow(GetHWND(), SW_MAXIMIZE);
+        if (IsWindowMaximized()) {
+            Restore();
+        }
+        else {
+            Maximize();
+        }
     }
     else if (name == _T("btn_close"))
     {
@@ -234,7 +223,7 @@ bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
     }
     else if (name == _T("btn_min"))
     {
-        PostMsg(WM_SYSCOMMAND, SC_MINIMIZE, 0);
+        Minimize();
     }
     else if (name == _T("btn_add"))
     {
@@ -486,13 +475,13 @@ void MultiBrowserForm::SetActiveBox(const std::string &browser_id)
 bool MultiBrowserForm::IsActiveBox(const BrowserBox *browser_box)
 {
     ASSERT(NULL != browser_box);
-    return (browser_box == active_browser_box_ && ::GetForegroundWindow() == GetHWND() && !::IsIconic(GetHWND()) && IsWindowVisible(GetHWND()));
+    return (browser_box == active_browser_box_ && IsWindowForeground() && !IsWindowMinimized() && IsWindowVisible());
 }
 
 bool MultiBrowserForm::IsActiveBox(const DString &browser_id)
 {
     ASSERT(!browser_id.empty());
-    return (::GetForegroundWindow() == GetHWND() && !::IsIconic(GetHWND()) && IsWindowVisible(GetHWND()) && FindBox(browser_id) == active_browser_box_);
+    return (IsWindowForeground() && !IsWindowMinimized() && IsWindowVisible() && FindBox(browser_id) == active_browser_box_);
 }
 
 int MultiBrowserForm::GetBoxCount() const

@@ -7,6 +7,7 @@
 #include <Richedit.h>
 #include <TextServ.h>
 #include <RichOle.h>
+#include <commdlg.h>
 #include <string>
 
 namespace ui

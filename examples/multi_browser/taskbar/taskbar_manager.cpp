@@ -30,12 +30,16 @@ void TaskbarTabItem::Init(const DString &taskbar_title, const std::string &id)
     if (!is_win7_or_greater_)
         return;
 
-    CreateWnd(nullptr, taskbar_title, WS_OVERLAPPED, 0);
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = WS_OVERLAPPED;
+    createParam.m_className = _T("multi_browser");
+    createParam.m_windowTitle = taskbar_title;
+    CreateWnd(nullptr, createParam);
 
     HRESULT ret = S_OK;
     BOOL truth = TRUE;
-    ret |= DwmSetWindowAttribute(GetHWND(), DWMWA_HAS_ICONIC_BITMAP, &truth, sizeof(truth));
-    ret |= DwmSetWindowAttribute(GetHWND(), DWMWA_FORCE_ICONIC_REPRESENTATION, &truth, sizeof(truth));
+    ret |= DwmSetWindowAttribute(NativeWnd()->GetHWND(), DWMWA_HAS_ICONIC_BITMAP, &truth, sizeof(truth));
+    ret |= DwmSetWindowAttribute(NativeWnd()->GetHWND(), DWMWA_FORCE_ICONIC_REPRESENTATION, &truth, sizeof(truth));
     if (ret != S_OK)
     {
         is_win7_or_greater_ = false;
@@ -44,13 +48,13 @@ void TaskbarTabItem::Init(const DString &taskbar_title, const std::string &id)
 
 void TaskbarTabItem::UnInit()
 {
-    if (NULL != GetHWND())
-        DestroyWindow(GetHWND());
+    if (NULL != NativeWnd()->GetHWND())
+        DestroyWindow(NativeWnd()->GetHWND());
 }
 
 void TaskbarTabItem::SetTaskbarTitle(const DString &title)
 {
-    ::SetWindowTextW(GetHWND(), title.c_str());
+    ::SetWindowTextW(NativeWnd()->GetHWND(), title.c_str());
 }
 
 void TaskbarTabItem::SetTaskbarManager(TaskbarManager *taskbar_manager)
@@ -68,7 +72,7 @@ bool TaskbarTabItem::InvalidateTab()
     if (!is_win7_or_greater_ || NULL == taskbar_manager_)
         return false;
 
-    return (S_OK == DwmInvalidateIconicBitmaps(this->GetHWND()));
+    return (S_OK == DwmInvalidateIconicBitmaps(this->NativeWnd()->GetHWND()));
 }
 
 void TaskbarTabItem::OnSendThumbnail(int width, int height)
@@ -78,7 +82,7 @@ void TaskbarTabItem::OnSendThumbnail(int width, int height)
 
     ui::IBitmap* pBitmap = taskbar_manager_->GenerateBindControlBitmap(bind_control_, width, height);
     HBITMAP hBitmap = ui::BitmapHelper::CreateGDIBitmap(pBitmap);
-    DwmSetIconicThumbnail(GetHWND(), hBitmap, 0);
+    DwmSetIconicThumbnail(NativeWnd()->GetHWND(), hBitmap, 0);
     if (pBitmap != nullptr) {
         delete pBitmap;
         pBitmap = nullptr;
@@ -96,7 +100,7 @@ void TaskbarTabItem::OnSendPreview()
 
     ui::IBitmap* pBitmap = taskbar_manager_->GenerateBindControlBitmapWithForm(bind_control_);
     HBITMAP hBitmap = ui::BitmapHelper::CreateGDIBitmap(pBitmap);
-    DwmSetIconicLivePreviewBitmap(GetHWND(), hBitmap, NULL, 0);
+    DwmSetIconicLivePreviewBitmap(NativeWnd()->GetHWND(), hBitmap, NULL, 0);
     if (pBitmap != nullptr) {
         delete pBitmap;
         pBitmap = nullptr;
@@ -105,11 +109,6 @@ void TaskbarTabItem::OnSendPreview()
         ::DeleteObject(hBitmap);
         hBitmap = nullptr;
     }
-}
-
-DString TaskbarTabItem::GetWindowClassName() const
-{
-    return _T("Nim.TaskbarItem");
 }
 
 LRESULT TaskbarTabItem::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -181,9 +180,9 @@ bool TaskbarManager::RegisterTab(TaskbarTabItem &tab_item)
 {
     if (taskbar_list_ && NULL == tab_item.GetTaskbarManager())
     {
-        if (S_OK == taskbar_list_->RegisterTab(tab_item.GetHWND(), taskbar_delegate_->GetHandle()))
+        if (S_OK == taskbar_list_->RegisterTab(tab_item.NativeWnd()->GetHWND(), taskbar_delegate_->GetHandle()))
         {
-            if (S_OK == taskbar_list_->SetTabOrder(tab_item.GetHWND(), NULL))
+            if (S_OK == taskbar_list_->SetTabOrder(tab_item.NativeWnd()->GetHWND(), NULL))
             {
                 tab_item.SetTaskbarManager(this);
                 return true;
@@ -199,7 +198,7 @@ bool TaskbarManager::UnregisterTab(TaskbarTabItem &tab_item)
     if (taskbar_list_)
     {
         tab_item.SetTaskbarManager(NULL);
-        return (S_OK == taskbar_list_->UnregisterTab(tab_item.GetHWND()));
+        return (S_OK == taskbar_list_->UnregisterTab(tab_item.NativeWnd()->GetHWND()));
     }
     else
         return false;
@@ -209,7 +208,7 @@ bool TaskbarManager::SetTabOrder(const TaskbarTabItem &tab_item, const TaskbarTa
 {
     if (taskbar_list_)
     {
-        return (S_OK == taskbar_list_->SetTabOrder(tab_item.GetHWND(), tab_item_insert_before.GetHWND()));
+        return (S_OK == taskbar_list_->SetTabOrder(tab_item.NativeWnd()->GetHWND(), tab_item_insert_before.NativeWnd()->GetHWND()));
     }
     else
         return false;
@@ -219,7 +218,7 @@ bool TaskbarManager::SetTabActive(const TaskbarTabItem &tab_item)
 {
     if (taskbar_list_)
     {
-        return (S_OK == taskbar_list_->SetTabActive(tab_item.GetHWND(), taskbar_delegate_->GetHandle(), 0));
+        return (S_OK == taskbar_list_->SetTabActive(tab_item.NativeWnd()->GetHWND(), taskbar_delegate_->GetHandle(), 0));
     }
     else
         return false;

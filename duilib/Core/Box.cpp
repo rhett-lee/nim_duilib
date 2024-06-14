@@ -493,7 +493,7 @@ bool Box::DoRemoveItem(Control* pControl)
         if (*it == pControl) {
             Arrange();
             if (m_bAutoDestroyChild) {
-                if (m_bDelayedDestroy && (pWindow != nullptr)) {
+                if (m_bDelayedDestroy && (pWindow != nullptr) && pWindow->IsWindow()) {
                     pWindow->AddDelayedCleanup(pControl);
                 }
                 else {
@@ -512,7 +512,7 @@ void Box::RemoveAllItems()
     if (m_bAutoDestroyChild) {
         Window* pWindow = GetWindow();
         for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-            if (m_bDelayedDestroy && (pWindow != nullptr)) {
+            if (m_bDelayedDestroy && (pWindow != nullptr) && pWindow->IsWindow()) {
                 pWindow->AddDelayedCleanup((*it));
             }
             else {

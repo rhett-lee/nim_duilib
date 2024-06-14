@@ -37,6 +37,7 @@ Window::Window() :
 
 Window::~Window()
 {
+    ASSERT(!IsWindow());
     ClearWindow(false);
 }
 
@@ -140,12 +141,6 @@ void Window::ClearWindow(bool bSendClose)
     GlobalManager::Instance().RemoveWindow(this);
     ReapObjects(GetRoot());
 
-    //删除清理的控件
-    for (Control* pControl : m_aDelayedCleanup) {
-        delete pControl;
-    }
-    m_aDelayedCleanup.clear();
-
     if (m_pRoot != nullptr) {
         delete m_pRoot;
         m_pRoot = nullptr;
@@ -158,6 +153,18 @@ void Window::ClearWindow(bool bSendClose)
     m_shadow.reset();
     m_render.reset();
     m_controlFinder.Clear();
+
+    //删除清理的控件
+    while (!m_aDelayedCleanup.empty()) {
+        std::vector<Control*> aDelayedCleanup;
+        aDelayedCleanup.swap(m_aDelayedCleanup);
+        for (Control* pControl : aDelayedCleanup) {
+            //移除过程中，还是会有删除控件向m_aDelayedCleanup里面添加
+            delete pControl;
+        }
+        aDelayedCleanup.clear();
+    }    
+    ASSERT(m_aDelayedCleanup.empty());
 }
 
 bool Window::AttachBox(Box* pRoot)
@@ -1237,6 +1244,9 @@ void Window::SetArrange(bool bArrange)
 
 void Window::AddDelayedCleanup(Control* pControl)
 {
+    ASSERT(IsWindow());
+    ASSERT(std::find(m_aDelayedCleanup.begin(), m_aDelayedCleanup.end(), pControl) == m_aDelayedCleanup.end());
+
     if (pControl != nullptr) {
         pControl->SetWindow(this);
         m_aDelayedCleanup.push_back(pControl);

@@ -1,8 +1,6 @@
 #include "FindForm.h"
 #include "MainForm.h"
 
-const DString FindForm::kClassName = _T("FindForm");
-
 FindForm::FindForm(MainForm* pMainForm):
     m_pMainForm(pMainForm),
     m_pDirectionOption(nullptr),
@@ -24,11 +22,6 @@ DString FindForm::GetSkinFolder()
 DString FindForm::GetSkinFile()
 {
     return _T("find.xml");
-}
-
-DString FindForm::GetWindowClassName() const
-{
-    return kClassName;
 }
 
 void FindForm::OnInitWindow()
@@ -105,6 +98,6 @@ void FindForm::OnFindNext()
     }
 
     if (m_pMainForm != nullptr) {
-        m_pMainForm->FindRichText(findText, bFindDown, bMatchCase, bMatchWholeWord, GetHWND());
+        m_pMainForm->FindRichText(findText, bFindDown, bMatchCase, bMatchWholeWord, this);
     }
 }
