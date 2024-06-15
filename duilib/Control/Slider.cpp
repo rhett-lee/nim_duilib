@@ -94,7 +94,7 @@ void Slider::HandleEvent(const EventArgs& msg)
     }
     if (msg.eventType == kEventMouseWheel) {
         double oldValue = GetValue();
-        int detaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
+        int32_t detaValue = msg.eventData;
         if (detaValue > 0) {
             SetValue(GetValue() + GetChangeStep());
             SendEvent(kEventValueChange, (WPARAM)GetValue(), (LPARAM)oldValue);

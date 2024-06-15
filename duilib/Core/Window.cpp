@@ -377,6 +377,13 @@ void Window::OnLayeredWindowChanged()
     }
 }
 
+void Window::InvalidateAll()
+{
+    if (m_pRoot != nullptr) {
+        Invalidate(m_pRoot->GetPos());
+    }
+}
+
 void Window::OnWindowAlphaChanged()
 {
     if (m_pRoot != nullptr) {

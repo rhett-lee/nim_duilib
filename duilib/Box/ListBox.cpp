@@ -221,7 +221,7 @@ bool ListBox::OnListBoxMouseWheel(const EventArgs& msg)
     ASSERT(msg.eventType == kEventMouseWheel);
     bool bHandled = false;
     if (m_bScrollSelect && (msg.eventType == kEventMouseWheel)) {
-        int32_t deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
+        int32_t deltaValue = msg.eventData;
         if (deltaValue != 0) {
             bool bForward = deltaValue > 0 ? false : true;
             SelectItemPage(true, true, bForward, std::abs(deltaValue));

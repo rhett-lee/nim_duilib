@@ -174,6 +174,10 @@ public:
     */
     void ClearImageCache();
 
+    /** 标记窗口区域无效
+    */
+    void InvalidateAll();
+
     /** @} */
 
 public:

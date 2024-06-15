@@ -15,8 +15,12 @@ public:
     void UpdateComboWnd();
     void CloseComboWnd();
 
+    virtual void OnInitWindow() override;
+    virtual void OnCloseWindow() override;
     virtual void OnFinalMessage() override;
-    virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+
+    virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled) override;
+    virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, bool& bHandled) override;
 
     void OnSeleteItem();
 
@@ -138,41 +142,45 @@ void CCheckComboWnd::OnSeleteItem()
     PostMsg(WM_KILLFOCUS);
 }
 
-LRESULT CCheckComboWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+void CCheckComboWnd::OnInitWindow()
 {
-    bHandled = false;
-    if (uMsg == WM_CREATE) {
-        Box* pRoot = new Box(this);
-        pRoot->SetAutoDestroyChild(false);
-        pRoot->AddItem(m_pOwner->GetListBox());
-        this->AttachBox(pRoot);
-        this->SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
-        this->SetShadowAttached(false);
-        bHandled = true;
+    __super::OnInitWindow();
+    Box* pRoot = new Box(this);
+    pRoot->SetAutoDestroyChild(false);
+    pRoot->AddItem(m_pOwner->GetListBox());
+    AttachBox(pRoot);
+    SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
+    SetShadowAttached(false);
+}
+
+void CCheckComboWnd::OnCloseWindow()
+{
+    Box* pRootBox = GetRoot();
+    if ((pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
+        m_pOwner->GetListBox()->SetWindow(nullptr);
+        m_pOwner->GetListBox()->SetParent(nullptr);
+        pRootBox->RemoveAllItems();
     }
-    else if (uMsg == WM_CLOSE) {
-        Box* pRootBox = GetRoot();
-        if ((pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
-            m_pOwner->GetListBox()->SetWindow(nullptr);
-            m_pOwner->GetListBox()->SetParent(nullptr);
-            pRootBox->RemoveAllItems();
-        }
-        m_pOwner->SetPos(m_pOwner->GetPos());
-        m_pOwner->SetFocus();
-    }
-    LRESULT lResult = 0;
-    if (!bHandled) {
-        lResult = __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
-    }
-    if (uMsg == WM_KILLFOCUS) {
-        //失去焦点，关闭窗口
-		//TODO：平台
-        //    if (GetHWND() != (HWND)wParam) {
-            CloseComboWnd();
-        //    }
-    }
-    else if (uMsg == WM_KEYDOWN && wParam == kVK_ESCAPE) {
+    m_pOwner->SetPos(m_pOwner->GetPos());
+    m_pOwner->SetFocus();
+    __super::OnCloseWindow();
+}
+
+LRESULT CCheckComboWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
+{
+    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, bHandled);
+    if (vkCode == kVK_ESCAPE) {
         //按住ESC键，取消
+        CloseComboWnd();
+    }
+    return lResult;
+}
+
+LRESULT CCheckComboWnd::OnKillFocusMsg(WindowBase* pSetFocusWindow, bool& bHandled)
+{
+    LRESULT lResult = __super::OnKillFocusMsg(pSetFocusWindow, bHandled);
+    //失去焦点，关闭窗口，正常关闭
+    if (pSetFocusWindow != this) {
         CloseComboWnd();
     }
     return lResult;

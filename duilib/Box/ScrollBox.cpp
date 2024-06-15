@@ -238,7 +238,7 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
             }
         }
         else if(msg.eventType == kEventMouseWheel ) {
-            int deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
+            int32_t deltaValue = msg.eventData;
             if (msg.lParam != 0) {
                 //正常逻辑滚动
                 if (deltaValue > 0) {
@@ -284,7 +284,7 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
             }
         }
         else if(msg.eventType == kEventMouseWheel )    {
-            int deltaValue = GET_WHEEL_DELTA_WPARAM(msg.wParam);
+            int32_t deltaValue = msg.eventData;
             if (deltaValue > 0 ) {
                 LineLeft();
                 return;

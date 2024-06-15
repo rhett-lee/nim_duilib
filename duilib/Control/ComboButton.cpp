@@ -13,8 +13,12 @@ class ComboButtonWnd: public Window
 public:
     void InitComboWnd(ComboButton* pOwner, bool bActivated);
     void UpdateComboWnd();
+    virtual void OnInitWindow() override;
+    virtual void OnCloseWindow() override;
     virtual void OnFinalMessage() override;
-    virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+
+    virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled) override;
+    virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, bool& bHandled) override;
 
     /** 关闭下拉框
     * @param [in] bCanceled true表示取消，否则表示正常关闭
@@ -144,46 +148,51 @@ void ComboButtonWnd::CloseComboWnd(bool bCanceled)
     }
 }
 
-LRESULT ComboButtonWnd::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+void ComboButtonWnd::OnInitWindow()
 {
-    bHandled = false;
-    if( uMsg == WM_CREATE ) {
-        Box* pRoot = new Box(this);
-        pRoot->SetAutoDestroyChild(false);
-        pRoot->AddItem(m_pOwner->GetComboBox());
-        AttachBox(pRoot);
-        SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
-        SetShadowAttached(false);
-        SetRenderTransparent(true);
-        bHandled = true;
+    __super::OnInitWindow();
+
+    Box* pRoot = new Box(this);
+    pRoot->SetAutoDestroyChild(false);
+    pRoot->AddItem(m_pOwner->GetComboBox());
+    AttachBox(pRoot);
+    SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
+    SetShadowAttached(false);
+    SetRenderTransparent(true);
+}
+
+void ComboButtonWnd::OnCloseWindow()
+{
+    Box* pRootBox = GetRoot();
+    if ((pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
+        m_pOwner->GetComboBox()->SetWindow(nullptr);
+        m_pOwner->GetComboBox()->SetParent(nullptr);
+        pRootBox->RemoveAllItems();
     }
-    else if( uMsg == WM_CLOSE ) {
-        Box* pRootBox = GetRoot();
-        if ((pRootBox != nullptr) && (pRootBox->GetItemCount() > 0)) {
-            m_pOwner->GetComboBox()->SetWindow(nullptr);
-            m_pOwner->GetComboBox()->SetParent(nullptr);
-            pRootBox->RemoveAllItems();
-        }
-        m_pOwner->SetPos(m_pOwner->GetPos());
-        m_pOwner->SetFocus();
-    }
-    LRESULT lResult = 0;
-    if (!bHandled) {
-        lResult = __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
-    }
-    if (uMsg == WM_KILLFOCUS) {
-        //TODO: 
-        //失去焦点，关闭窗口，正常关闭
-        //    if (GetHWND() != (HWND)wParam) {
-            CloseComboWnd(false);
-        //    }
-    }
-    else if (uMsg == WM_KEYDOWN && wParam == kVK_ESCAPE) {
+    m_pOwner->SetPos(m_pOwner->GetPos());
+    m_pOwner->SetFocus();
+    __super::OnCloseWindow();
+}
+
+LRESULT ComboButtonWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
+{
+    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, bHandled);
+    if (vkCode == kVK_ESCAPE) {
         //按住ESC键，取消
         CloseComboWnd(true);
     }
-    else if (uMsg == WM_KEYDOWN && wParam == kVK_RETURN) {
+    else if (vkCode == kVK_RETURN) {
         //按回车键，关闭窗口，正常关闭
+        CloseComboWnd(false);
+    }
+    return lResult;
+}
+
+LRESULT ComboButtonWnd::OnKillFocusMsg(WindowBase* pSetFocusWindow, bool& bHandled)
+{
+    LRESULT lResult = __super::OnKillFocusMsg(pSetFocusWindow, bHandled);
+    //失去焦点，关闭窗口，正常关闭
+    if (pSetFocusWindow != this) {
         CloseComboWnd(false);
     }
     return lResult;

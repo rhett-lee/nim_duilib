@@ -677,8 +677,16 @@ void ColorPicker::OnPickColorFromScreen()
         bHideWindow = pCheckBox->IsSelected();
     }
     if (bHideWindow) {
-        //隐藏主窗口
-        ShowWindow(ui::kSW_HIDE);
+        //隐藏本窗口
+        ShowWindow(kSW_HIDE);
+
+        //父窗口不隐藏
+        Window* pParentWnd = GetParentWindow();
+        if (pParentWnd != nullptr) {
+            pParentWnd->ShowWindow(kSW_SHOW_NORMAL);
+            pParentWnd->SetWindowForeground();
+            pParentWnd->UpdateWindow();
+        }
     }
 
     //抓取屏幕位图
@@ -716,6 +724,12 @@ void ColorPicker::OnPickColorFromScreen()
         if (bHideWindow) {
             //显示主窗口
             this->ShowWindow(ui::kSW_SHOW_NORMAL);
+            //父窗口重绘
+            Window* pParentWnd = GetParentWindow();
+            if (pParentWnd != nullptr) {
+                pParentWnd->InvalidateAll();
+                pParentWnd->UpdateWindow();
+            }
         }
         return true;
         });
