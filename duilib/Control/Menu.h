@@ -1,9 +1,6 @@
 #ifndef UI_CONTROL_MENU_H_
 #define UI_CONTROL_MENU_H_
 
-#pragma once
-
-#include "duilib/duilib_defs.h"
 #include "duilib/Utils/WinImplBase.h"
 #include "duilib/Box/ListBox.h"
 
@@ -46,7 +43,7 @@ enum class MenuPopupPosType
 struct ContextMenuParam
 {
     MenuCloseType wParam;
-    Window* pWindow;
+    WindowBase* pWindow;
 };
 
 typedef class ObserverImpl<bool, ContextMenuParam> ContextMenuObserver;
@@ -126,6 +123,10 @@ private:
     // 重新调整子菜单的大小
     void ResizeSubMenu();
 
+    /** 获取布局管理的ListBox接口
+    */
+    ListBox* GetLayoutListBox() const;
+
 private:
 
     virtual bool Receive(ContextMenuParam param) override;
@@ -134,8 +135,28 @@ private:
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
     virtual void OnInitWindow() override;
-    virtual void OnFinalMessage() override;
-    virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
+    virtual void OnCloseWindow() override;
+
+    /** 窗口失去焦点(WM_KILLFOCUS)
+    * @param [in] pSetFocusWindow 接收键盘焦点的窗口（可以为nullptr）
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, bool& bHandled) override;
+
+    /** 键盘按下(WM_KEYDOWN 或者 WM_SYSKEYDOWN)
+    * @param [in] vkCode 虚拟键盘代码
+    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled);
+
+    //屏蔽的消息
+    virtual LRESULT OnContextMenuMsg(const UiPoint& pt, bool& bHandled) override;
+    virtual LRESULT OnMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled) override;
+    virtual LRESULT OnMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled) override;
+    virtual LRESULT OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled) override;
 
 private:
     //菜单父窗口
@@ -166,7 +187,9 @@ private:
     MenuItem* m_pOwner;
 
     //菜单的布局接口
-    ui::ListBox* m_pLayout;
+    ListBox* m_pListBox;
+    std::weak_ptr<WeakFlag> m_listBoxFlag;
+
 };
 
 /** 菜单项

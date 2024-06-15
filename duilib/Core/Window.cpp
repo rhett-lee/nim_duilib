@@ -639,13 +639,13 @@ LRESULT Window::OnPaintMsg(bool& bHandled)
     return 0;
 }
 
-LRESULT Window::OnSetFocusMsg(bool& bHandled)
+LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, bool& bHandled)
 {
     bHandled = false;
     return 0;
 }
 
-LRESULT Window::OnKillFocusMsg(bool& bHandled)
+LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, bool& bHandled)
 {
     bHandled = false;
     Control* pEventClick = m_pEventClick;

@@ -1097,6 +1097,10 @@ bool NativeWindow::UnregisterHotKey(int32_t id)
     return ::UnregisterHotKey(GetHWND(), id);
 }
 
+/** 窗口句柄的属性名称
+*/
+static const wchar_t* sPropName = _T("DuiLibWindow"); // 属性名称
+
 LRESULT CALLBACK NativeWindow::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     NativeWindow* pThis = nullptr;
@@ -1107,12 +1111,18 @@ LRESULT CALLBACK NativeWindow::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LP
             pThis->m_hWnd = hWnd;
         }
         ::SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(pThis));
+        ::SetPropW(hWnd, sPropName, (HANDLE)pThis);
     }
     else {
         pThis = reinterpret_cast<NativeWindow*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
+#ifdef _DEBUG
+        //校验是否一致
+        ASSERT((NativeWindow*)::GetPropW(hWnd, sPropName) == pThis);
+#endif
         if (uMsg == WM_NCDESTROY && pThis != nullptr) {
             LRESULT lRes = ::DefWindowProc(hWnd, uMsg, wParam, lParam);
             ::SetWindowLongPtr(pThis->m_hWnd, GWLP_USERDATA, 0L);
+            ::SetPropW(hWnd, sPropName, NULL);
             ASSERT(hWnd == pThis->GetHWND());
             pThis->OnFinalMessage();
             return lRes;
@@ -1652,7 +1662,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         }
 
         if (!bHandled) {
-            PAINTSTRUCT ps = {0, };
+            PAINTSTRUCT ps = { 0, };
             ::BeginPaint(m_hWnd, &ps);
             //::FillRect(ps.hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
             ::EndPaint(m_hWnd, &ps);
@@ -1661,12 +1671,34 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case WM_SETFOCUS:
     {
-        lResult = m_pOwner->OnNativeSetFocusMsg(bHandled);
+        INativeWindow* pLostFocusWindow = nullptr;
+        HWND hWnd = (HWND)wParam;
+        if ((hWnd != nullptr) && ::IsWindow(hWnd)) {
+            NativeWindow* pThis = reinterpret_cast<NativeWindow*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
+            //校验是否一致
+            if (pThis != nullptr) {
+                if ((NativeWindow*)::GetPropW(hWnd, sPropName) == pThis) {
+                    pLostFocusWindow = pThis->m_pOwner;
+                }
+            }
+        }
+        lResult = m_pOwner->OnNativeSetFocusMsg(pLostFocusWindow, bHandled);
         break;
     }
     case WM_KILLFOCUS:
     {
-        lResult = m_pOwner->OnNativeKillFocusMsg(bHandled);
+        INativeWindow* pSetFocusWindow = nullptr;
+        HWND hWnd = (HWND)wParam;
+        if ((hWnd != nullptr) && ::IsWindow(hWnd)) {
+            NativeWindow* pThis = reinterpret_cast<NativeWindow*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
+            //校验是否一致
+            if (pThis != nullptr) {
+                if ((NativeWindow*)::GetPropW(hWnd, sPropName) == pThis) {
+                    pSetFocusWindow = pThis->m_pOwner;
+                }
+            }
+        }
+        lResult = m_pOwner->OnNativeKillFocusMsg(pSetFocusWindow, bHandled);
         break;
     }
     case WM_IME_STARTCOMPOSITION:

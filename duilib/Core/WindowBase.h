@@ -15,7 +15,7 @@ class IRender;
 
 /** 窗口的基本功能封装（平台相关的窗口功能封装）
 */
-class UILIB_API WindowBase: public virtual SupportWeakCallback, private INativeWindow
+class UILIB_API WindowBase: public virtual SupportWeakCallback, public INativeWindow
 {
 public:
     WindowBase();
@@ -612,16 +612,18 @@ protected:
     virtual LRESULT OnPaintMsg(bool& bHandled) = 0;
 
     /** 窗口获得焦点(WM_SETFOCUS)
+    * @param [in] pLostFocusWindow 已失去键盘焦点的窗口（可以为nullptr）
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
-    virtual LRESULT OnSetFocusMsg(bool& bHandled) = 0;
+    virtual LRESULT OnSetFocusMsg(WindowBase* pLostFocusWindow, bool& bHandled) = 0;
 
     /** 窗口失去焦点(WM_KILLFOCUS)
+    * @param [in] pSetFocusWindow 接收键盘焦点的窗口（可以为nullptr）
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
-    virtual LRESULT OnKillFocusMsg(bool& bHandled) = 0;
+    virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, bool& bHandled) = 0;
 
     /** 输入法开始生成组合字符串(WM_IME_STARTCOMPOSITION)
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
@@ -821,8 +823,8 @@ private:
     virtual LRESULT OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, bool& bHandled) override;
     virtual LRESULT OnNativeMoveMsg(const UiPoint& ptTopLeft, bool& bHandled) override;
     virtual LRESULT OnNativePaintMsg(bool& bHandled) override;
-    virtual LRESULT OnNativeSetFocusMsg(bool& bHandled) override;
-    virtual LRESULT OnNativeKillFocusMsg(bool& bHandled) override;
+    virtual LRESULT OnNativeSetFocusMsg(INativeWindow* pLostFocusWindow, bool& bHandled) override;
+    virtual LRESULT OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, bool& bHandled) override;
     virtual LRESULT OnNativeImeStartCompositionMsg(bool& bHandled) override;
     virtual LRESULT OnNativeImeEndCompositionMsg(bool& bHandled) override;
     virtual LRESULT OnNativeSetCursorMsg(bool& bHandled) override;

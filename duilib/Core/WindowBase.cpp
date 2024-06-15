@@ -875,14 +875,22 @@ LRESULT WindowBase::OnNativePaintMsg(bool& bHandled)
     return OnPaintMsg(bHandled);
 }
 
-LRESULT WindowBase::OnNativeSetFocusMsg(bool& bHandled)
+LRESULT WindowBase::OnNativeSetFocusMsg(INativeWindow* pLostFocusWindow, bool& bHandled)
 {
-    return OnSetFocusMsg(bHandled);
+    WindowBase* pLostFocusWindowBase = nullptr;
+    if (pLostFocusWindow != nullptr) {
+        pLostFocusWindowBase = dynamic_cast<WindowBase*>(pLostFocusWindow);
+    }
+    return OnSetFocusMsg(pLostFocusWindowBase, bHandled);
 }
 
-LRESULT WindowBase::OnNativeKillFocusMsg(bool& bHandled)
+LRESULT WindowBase::OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, bool& bHandled)
 {
-    return OnKillFocusMsg(bHandled);
+    WindowBase* pSetFocusWindowBase = nullptr;
+    if (pSetFocusWindow != nullptr) {
+        pSetFocusWindowBase = dynamic_cast<WindowBase*>(pSetFocusWindow);
+    }
+    return OnKillFocusMsg(pSetFocusWindowBase, bHandled);
 }
 
 LRESULT WindowBase::OnNativeImeStartCompositionMsg(bool& bHandled)
