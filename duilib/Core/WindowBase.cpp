@@ -354,22 +354,6 @@ bool WindowBase::SetWindowPos(HWND hWndInsertAfter, int32_t X, int32_t Y, int32_
     return m_pNativeWindow->SetWindowPos(hWndInsertAfter, X, Y, cx, cy, uFlags);
 }
 
-bool WindowBase::SetWindowPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWndInsertAfter, bool bContainShadow)
-{
-    UiRect rcNewPos = rc;
-    if (bNeedDpiScale) {
-        Dpi().ScaleRect(rcNewPos);
-    }
-
-    ASSERT(IsWindow());
-    if (!bContainShadow) {
-        UiPadding rcShadow;
-        GetShadowCorner(rcShadow);
-        rcNewPos.Inflate(rcShadow);
-    }
-    return SetWindowPos(hWndInsertAfter, rcNewPos.left, rcNewPos.top, rcNewPos.Width(), rcNewPos.Height(), uFlags);
-}
-
 bool WindowBase::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHeight, bool bRepaint)
 {
     return m_pNativeWindow->MoveWindow(X, Y, nWidth, nHeight, bRepaint);

@@ -191,9 +191,9 @@ void MultiBrowserManager::SetEnableMerge(bool enable)
                 }
                 else
                 {
-                    rect_old_form.left += kSplitFormXOffset;
-                    rect_old_form.top += kSplitFormXOffset;
-                    sort_form->SetWindowPos(rect_old_form, true, SWP_NOSIZE, NULL, true);
+                    rect_old_form.left += sort_form->Dpi().GetScaleInt(kSplitFormXOffset);
+                    rect_old_form.top += sort_form->Dpi().GetScaleInt(kSplitFormXOffset);
+                    sort_form->SetWindowPos(nullptr, rect_old_form.left, rect_old_form.top, rect_old_form.Width(), rect_old_form.Height(), SWP_NOSIZE);
                 }
             }
         }
@@ -381,8 +381,10 @@ void MultiBrowserManager::OnAfterDragBorwserBox()
                         // 这里设置新浏览器窗口的位置，设置到偏移鼠标坐标100,20的位置
                         ui::UiPoint pt_mouse;
                         browser_form->GetCursorPos(pt_mouse);
-                        ui::UiRect rect(pt_mouse.x + kDragFormXOffset, pt_mouse.y + kDragFormYOffset, 0, 0);
-                        browser_form->SetWindowPos(rect, false, SWP_NOSIZE);
+                        ui::UiRect rect(pt_mouse.x + browser_form->Dpi().GetScaleInt(kDragFormXOffset),
+                                        pt_mouse.y + browser_form->Dpi().GetScaleInt(kDragFormYOffset),
+                                        0, 0);
+                        browser_form->SetWindowPos(nullptr, rect.left, rect.top, rect.Width(), rect.Height(), SWP_NOSIZE);
                     }
                 }
             }

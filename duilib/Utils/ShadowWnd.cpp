@@ -53,10 +53,9 @@ bool ShadowWndBase::Create(Window* window)
 LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
 {
     bHandled = false;
-    if ((m_pWindow == nullptr) || (m_pWindow->NativeWnd()->GetHWND() == nullptr)) {
+    if ((m_pWindow == nullptr) || !m_pWindow->IsWindow()) {
         return 0;
     }
-    HWND hWnd = m_pWindow->NativeWnd()->GetHWND();
     switch (uMsg)
     {
         case WM_ERASEBKGND:
@@ -68,11 +67,14 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
         case WM_WINDOWPOSCHANGED:
         case WM_ACTIVATE:
         case WM_NCACTIVATE:
-            if (m_isFirstPainted || (uMsg == WM_PAINT)) {
-                if (::IsWindowVisible(hWnd)) {
-                    RECT rc = { 0 };
-                    ::GetWindowRect(hWnd, &rc);
-                    SetWindowPos(ui::UiRect(rc.left, rc.top, rc.right, rc.bottom), false, SWP_SHOWWINDOW | SWP_NOACTIVATE, hWnd);
+            if (!m_isFirstPainted || (uMsg == WM_PAINT)) {
+                if (m_pWindow->IsWindowVisible()) {
+                    UiRect rc;
+                    m_pWindow->GetWindowRect(rc);
+                    UiPadding rcShadow;
+                    GetShadowCorner(rcShadow);
+                    rc.Inflate(rcShadow);
+                    SetWindowPos(m_pWindow->NativeWnd()->GetHWND(), rc.left, rc.top, rc.Width(), rc.Height(), SWP_SHOWWINDOW | SWP_NOACTIVATE);
                     m_isFirstPainted = true;
                 }
             }            

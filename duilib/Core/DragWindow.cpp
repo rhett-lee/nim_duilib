@@ -141,7 +141,7 @@ void DragWindow::AdjustPos()
     rc.top = ptCursor.y;
     rc.right = rc.left;
     rc.bottom = rc.top;
-    SetWindowPos(rc, false, SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOACTIVATE, nullptr, true);
+    SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOACTIVATE);
 }
 
 }

@@ -21,7 +21,10 @@ LRESULT CALLBACK DragForm::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lP
                     //系统拖拽窗口。标题：Drag，类名：SysDragImage，GWL_EXSTYLE:524456
                     //WS_EX_TOPMOST--WS_EX_TRANSPARENT--WS_EX_PALETTEWINDOW--WS_EX_LAYERED--WS_EX_TOOLWINDOW
                     ui::UiRect rc(pMouseStruct->pt.x - s_point_offset.x, pMouseStruct->pt.y - s_point_offset.y, 0, 0);
-                    s_drag_form->SetWindowPos(rc, false, SWP_NOSIZE);
+                    UiPadding rcShadow;
+                    s_drag_form->GetShadowCorner(rcShadow);
+                    rc.Inflate(rcShadow);
+                    s_drag_form->SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOSIZE);
                 }
             }
         }
@@ -76,8 +79,11 @@ DragForm* DragForm::CreateDragForm(HBITMAP bitmap, POINT pt_offset)
     rect.top = pt.y - pt_offset.y;
     rect.right = rect.left + bitmap_info.bmWidth;
     rect.bottom = rect.top + bitmap_info.bmHeight;
-    drag_form->SetWindowPos(rect, false, SWP_SHOWWINDOW);
 
+    UiPadding rcShadow;
+    drag_form->GetShadowCorner(rcShadow);
+    rect.Inflate(rcShadow);
+    drag_form->SetWindowPos(nullptr, rect.left, rect.top, rect.Width(), rect.Height(), SWP_SHOWWINDOW);
     return drag_form;
 }
 

@@ -189,15 +189,6 @@ public:
     */
     bool SetWindowPos(HWND hWndInsertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, UINT uFlags);
 
-    /** 设置窗口位置（对 ::SetWindowPos API 的一层封装）
-    * @param [in] rc 窗口位置
-    * @param [in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
-    * @param [in] uFlags 对应 ::SetWindowPos API 的 uFlags 选项
-    * @param [in] hWndInsertAfter 对应 SetWindowPos 的 hWndInsertAfter 选项
-    * @param [in] bContainShadow rc区域是否包含阴影范围，默认为 false
-    */
-    bool SetWindowPos(const UiRect& rc, bool bNeedDpiScale, UINT uFlags, HWND hWndInsertAfter = NULL, bool bContainShadow = false);
-
     /** 设置窗口位置和大小
     * @param [in] X 窗口的X坐标
     * @param [in] Y 窗口的Y坐标
