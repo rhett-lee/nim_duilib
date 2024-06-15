@@ -609,7 +609,7 @@ HRESULT RichEditHost::TxGetScrollBars(DWORD* pdwScrollBar)
     return NOERROR;
 }
 
-HRESULT RichEditHost::TxGetPasswordChar(TCHAR* pch)
+HRESULT RichEditHost::TxGetPasswordChar(_Out_ TCHAR* pch)
 {
     ASSERT(pch != nullptr);
     if (pch == nullptr) {

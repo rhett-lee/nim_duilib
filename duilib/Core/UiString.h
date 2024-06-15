@@ -18,10 +18,6 @@ public:
     UiString(): m_pData(nullptr) {}
     UiString(const UiString& str) : m_pData(nullptr)
     {
-        if (m_pData != nullptr) {
-            delete m_pData;
-            m_pData = nullptr;
-        }
         if (!str.empty()) {
 #ifdef DUILIB_UNICODE
             size_t strSize = (uint32_t)wcslen(str.c_str());
@@ -38,6 +34,10 @@ public:
     }
     UiString& operator=(const UiString& str)
     {
+        if (m_pData != nullptr) {
+            delete m_pData;
+            m_pData = nullptr;
+        }
         if (!str.empty()) {
 #ifdef DUILIB_UNICODE
             size_t strSize = (uint32_t)wcslen(str.c_str());

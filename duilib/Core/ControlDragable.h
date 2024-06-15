@@ -861,7 +861,7 @@ Control* ControlDragableT<T>::CreateDestControl(Box* pTargetBox)
         }
     }
     if (!bInited) {        
-        if (pLayout->IsVLayout()) {
+        if ((pLayout != nullptr) && pLayout->IsVLayout()) {
             pDestControl->SetAttribute(_T("height"), _T("4"));
             pDestControl->SetAttribute(_T("width"), _T("80%"));
         }

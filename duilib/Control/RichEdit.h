@@ -1043,7 +1043,7 @@ protected:
 protected:
     struct LinkInfo
     {
-        CHARRANGE cr;
+        CHARRANGE cr = {0, 0};
         UiString info;
     };
     std::map<UINT, WeakCallbackFlag> m_timeFlagMap;
