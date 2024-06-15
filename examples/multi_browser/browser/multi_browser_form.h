@@ -50,10 +50,11 @@ public:
 
     /** 窗口关闭消息（WM_CLOSE）
     * @param [in] wParam 消息的wParam参数
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
-    virtual LRESULT OnWindowCloseMsg(uint32_t wParam, bool& bHandled) override;
+    virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** 在窗口销毁时会被调用，这是该窗口的最后一个消息
     */

@@ -2,20 +2,20 @@
 
 | 事件(eventType)           | 参数(wParam)  | 参数(lParam) | 参数(ptMouse) | 参数(vkCode) | 参数(modifierKey) |参数(eventData) | 备注     |
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |
-|kEventKeyDown              |     |     |     |   关联的按键  |  按键标志  |     |     |
-|kEventKeyUp                |     |     |     |   关联的按键  |  按键标志  |     |     |
-|kEventChar                 |     |     |     |   关联的按键  |  按键标志  |     |     |
+|kEventKeyDown              |原始值|原始值|     |   关联的按键  |  按键标志  |     |     |
+|kEventKeyUp                |原始值|原始值 |     |   关联的按键  |  按键标志  |     |     |
+|kEventChar                 |原始值|原始值|     |   关联的按键  |  按键标志  |     |     |
 |kEventMouseEnter           |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
 |kEventMouseLeave           |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
-|kEventMouseMove            |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
-|kEventMouseHover           |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
-|kEventMouseWheel           |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |  wheelDelta数据 |     |
-|kEventMouseButtonDown      |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
-|kEventMouseButtonUp        |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
-|kEventMouseDoubleClick     |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
-|kEventMouseRButtonDown     |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
-|kEventMouseRButtonUp       |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
-|kEventMouseRDoubleClick    |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
+|kEventMouseMove            |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
+|kEventMouseHover           |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
+|kEventMouseWheel           |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |  wheelDelta数据 |     |
+|kEventMouseButtonDown      |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
+|kEventMouseButtonUp        |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
+|kEventMouseDoubleClick     |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
+|kEventMouseRButtonDown     |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
+|kEventMouseRButtonUp       |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
+|kEventMouseRDoubleClick    |原始值|原始值|鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |
 |kEventContextMenu          |     |Control*<br> 鼠标所在位置的控件| 鼠标所在位置<br>的客户区坐标    |     |       |     | 如果用户键入 SHIFT+F10，<br> 则ptMouse为(-1,-1)，lParam为0 |
 |kEventClick                |     |     |鼠标所在位置<br>的客户区坐标   | 参数(vkCode)   | 按键标志   | 旧的事件类型  | 参数可能性较多，需要检测  |
 |kEventRClick               |     |     |鼠标所在位置<br>的客户区坐标   |     | 按键标志   |     |     |

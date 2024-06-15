@@ -923,9 +923,9 @@ void MainForm::OnCloseWindow()
     PostQuitMessage(0L);
 }
 
-LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
+LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, bHandled);
+    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
     bool bControlDown = modifierKey & ui::ModifierKey::kControl;
     bool bShiftDown = modifierKey & ui::ModifierKey::kShift;
     if (bControlDown) {
@@ -961,9 +961,9 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
     return lResult;
 }
 
-LRESULT MainForm::OnKeyUpMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
+LRESULT MainForm::OnKeyUpMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKeyUpMsg(vkCode, modifierKey, bHandled);
+    LRESULT lResult = __super::OnKeyUpMsg(vkCode, modifierKey, nativeMsg, bHandled);
     UpdateSaveStatus();
     return lResult;
 }

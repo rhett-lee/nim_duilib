@@ -92,6 +92,37 @@ public:
     InsertAfterFlag m_hwndFlag;
 };
 
+/** 窗口消息原始数据
+*/
+class NativeMsg
+{
+public:
+    NativeMsg():
+        uMsg(0),
+        wParam(0),
+        lParam(0)
+    {
+    }
+    NativeMsg(uint32_t u, WPARAM w, LPARAM l):
+        uMsg(u),
+        wParam(w),
+        lParam(l)
+    {
+    }
+    /** 消息ID
+    */
+    uint32_t uMsg;
+
+    /** 消息第一个参数
+    */
+    WPARAM wParam;
+
+    /** 消息第一个参数
+    */
+    LPARAM lParam;
+};
+
+
 /** 窗口消息定义，只定义部分使用到的消息(和Windows系统定义一致，WinUser.h)
 */
 enum WindowMessage{

@@ -859,138 +859,138 @@ LRESULT WindowBase::OnNativeUserMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
     return HandleUserMessage(uMsg, wParam, lParam, bHandled);
 }
 
-LRESULT WindowBase::OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, bool& bHandled)
+LRESULT WindowBase::OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled)
 {
     OnWindowSize(sizeType);
-    return OnSizeMsg(sizeType, newWindowSize, bHandled);
+    return OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeMoveMsg(const UiPoint& ptTopLeft, bool& bHandled)
+LRESULT WindowBase::OnNativeMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMoveMsg(ptTopLeft, bHandled);
+    return OnMoveMsg(ptTopLeft, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativePaintMsg(bool& bHandled)
+LRESULT WindowBase::OnNativePaintMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnPaintMsg(bHandled);
+    return OnPaintMsg(nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeSetFocusMsg(INativeWindow* pLostFocusWindow, bool& bHandled)
+LRESULT WindowBase::OnNativeSetFocusMsg(INativeWindow* pLostFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
 {
     WindowBase* pLostFocusWindowBase = nullptr;
     if (pLostFocusWindow != nullptr) {
         pLostFocusWindowBase = dynamic_cast<WindowBase*>(pLostFocusWindow);
     }
-    return OnSetFocusMsg(pLostFocusWindowBase, bHandled);
+    return OnSetFocusMsg(pLostFocusWindowBase, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, bool& bHandled)
+LRESULT WindowBase::OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
 {
     WindowBase* pSetFocusWindowBase = nullptr;
     if (pSetFocusWindow != nullptr) {
         pSetFocusWindowBase = dynamic_cast<WindowBase*>(pSetFocusWindow);
     }
-    return OnKillFocusMsg(pSetFocusWindowBase, bHandled);
+    return OnKillFocusMsg(pSetFocusWindowBase, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeImeStartCompositionMsg(bool& bHandled)
+LRESULT WindowBase::OnNativeImeStartCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnImeStartCompositionMsg(bHandled);
+    return OnImeStartCompositionMsg(nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeImeEndCompositionMsg(bool& bHandled)
+LRESULT WindowBase::OnNativeImeEndCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnImeEndCompositionMsg(bHandled);
+    return OnImeEndCompositionMsg(nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeSetCursorMsg(bool& bHandled)
+LRESULT WindowBase::OnNativeSetCursorMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnSetCursorMsg(bHandled);
+    return OnSetCursorMsg(nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeContextMenuMsg(const UiPoint& pt, bool& bHandled)
+LRESULT WindowBase::OnNativeContextMenuMsg(const UiPoint& pt, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnContextMenuMsg(pt, bHandled);
+    return OnContextMenuMsg(pt, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnKeyDownMsg(vkCode, modifierKey, bHandled);
+    return OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnKeyUpMsg(vkCode, modifierKey, bHandled);
+    return OnKeyUpMsg(vkCode, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnCharMsg(vkCode, modifierKey, bHandled);
+    return OnCharMsg(vkCode, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeHotKeyMsg(int32_t hotkeyId, VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeHotKeyMsg(int32_t hotkeyId, VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnHotKeyMsg(hotkeyId, vkCode, modifierKey, bHandled);
+    return OnHotKeyMsg(hotkeyId, vkCode, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseWheelMsg(wheelDelta, pt, modifierKey, bHandled);
+    return OnMouseWheelMsg(wheelDelta, pt, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseMoveMsg(pt, modifierKey, bHandled);
+    return OnMouseMoveMsg(pt, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseHoverMsg(pt, modifierKey, bHandled);
+    return OnMouseHoverMsg(pt, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeMouseLeaveMsg(bool& bHandled)
+LRESULT WindowBase::OnNativeMouseLeaveMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseLeaveMsg(bHandled);
+    return OnMouseLeaveMsg(nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseLButtonDownMsg(pt, modifierKey, bHandled);
+    return OnMouseLButtonDownMsg(pt, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseLButtonUpMsg(pt, modifierKey, bHandled);
+    return OnMouseLButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseLButtonDbClickMsg(pt, modifierKey, bHandled);
+    return OnMouseLButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseRButtonDownMsg(pt, modifierKey, bHandled);
+    return OnMouseRButtonDownMsg(pt, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseRButtonUpMsg(pt, modifierKey, bHandled);
+    return OnMouseRButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT WindowBase::OnNativeMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseRButtonDbClickMsg(pt, modifierKey, bHandled);
+    return OnMouseRButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeCaptureChangedMsg(bool& bHandled)
+LRESULT WindowBase::OnNativeCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnCaptureChangedMsg(bHandled);
+    return OnCaptureChangedMsg(nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeWindowCloseMsg(uint32_t wParam, bool& bHandled)
+LRESULT WindowBase::OnNativeWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnWindowCloseMsg(wParam, bHandled);
+    return OnWindowCloseMsg(wParam, nativeMsg, bHandled);
 }
 
 } // namespace ui

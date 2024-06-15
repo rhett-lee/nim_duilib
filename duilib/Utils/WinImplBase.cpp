@@ -136,10 +136,10 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
     return true;
 }
 
-LRESULT WindowImplBase::OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, bool& bHandled)
+LRESULT WindowImplBase::OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled)
 {
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-    LRESULT lResult = __super::OnSizeMsg(sizeType, newWindowSize, bHandled);
+    LRESULT lResult = __super::OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
     if (windowFlag.expired()) {
         return lResult;
     }

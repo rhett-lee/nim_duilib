@@ -181,9 +181,9 @@ DString Menu::GetSkinFile()
     return m_xml.c_str();
 }
 
-LRESULT Menu::OnKillFocusMsg(WindowBase* pSetFocusWindow, bool& bHandled)
+LRESULT Menu::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKillFocusMsg(pSetFocusWindow, bHandled);
+    LRESULT lResult = __super::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
     bHandled = true;
     bool bInMenuWindowList = false;
     if (pSetFocusWindow != nullptr) {
@@ -208,7 +208,7 @@ LRESULT Menu::OnKillFocusMsg(WindowBase* pSetFocusWindow, bool& bHandled)
     return lResult;
 }
 
-LRESULT Menu::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t /*modifierKey*/, bool& bHandled)
+LRESULT Menu::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t /*modifierKey*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = true;
     if (vkCode == kVK_ESCAPE || vkCode == kVK_LEFT) {
@@ -243,25 +243,25 @@ LRESULT Menu::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t /*modifierKey*/, bool
     return 0;
 }
 
-LRESULT Menu::OnContextMenuMsg(const UiPoint& /*pt*/, bool& bHandled)
+LRESULT Menu::OnContextMenuMsg(const UiPoint& /*pt*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = true;
     return 0;
 }
 
-LRESULT Menu::OnMouseRButtonDownMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+LRESULT Menu::OnMouseRButtonDownMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = true;
     return 0;
 }
 
-LRESULT Menu::OnMouseRButtonUpMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+LRESULT Menu::OnMouseRButtonUpMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = true;
     return 0;
 }
 
-LRESULT Menu::OnMouseRButtonDbClickMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, bool& bHandled)
+LRESULT Menu::OnMouseRButtonDbClickMsg(const UiPoint& /*pt*/, uint32_t /*modifierKey*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = true;
     return 0;

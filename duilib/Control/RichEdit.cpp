@@ -1708,8 +1708,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
         return;
     }
     if (msg.eventType == kEventMouseWheel) {
-        uint16_t fwKeys = GET_KEYSTATE_WPARAM(msg.wParam);
-        if ((fwKeys & MK_CONTROL) && IsEnableWheelZoom()) {
+        if ((msg.modifierKey & ModifierKey::kControl) && IsEnableWheelZoom()) {
             //Ctrl + 滚轮：缩放功能
             OnMouseMessage(WM_MOUSEWHEEL, msg);
             int32_t nNum = 0;
@@ -1852,8 +1851,8 @@ bool RichEdit::OnChar(const EventArgs& msg)
     }
     //Number
     if (IsNumberOnly()) {
-        if (msg.wParam < '0' || msg.wParam > '9') {
-            if (msg.wParam == _T('-')) {
+        if (msg.vkCode < '0' || msg.vkCode > '9') {
+            if (msg.vkCode == _T('-')) {
                 if (GetTextLength() > 0) {
                     //不是第一个字符，禁止输入负号
                     return true;
@@ -1871,7 +1870,7 @@ bool RichEdit::OnChar(const EventArgs& msg)
 
     //限制允许输入的字符
     if (!m_limitChars.empty()) {
-        if (!IsInLimitChars((wchar_t)msg.wParam)) {
+        if (!IsInLimitChars((wchar_t)msg.vkCode)) {
             //字符不在列表里面，禁止输入
             return true;
         }
@@ -1945,14 +1944,14 @@ bool RichEdit::IsPasteLimited() const
 
 bool RichEdit::OnKeyDown(const EventArgs& msg)
 {
-    if (msg.wParam == VK_RETURN && ::GetAsyncKeyState(VK_SHIFT) >= 0)    {
+    if (msg.vkCode == kVK_RETURN && ::GetAsyncKeyState(VK_SHIFT) >= 0)    {
         if (m_bNeedReturnMsg && ((m_bReturnMsgWantCtrl && ::GetAsyncKeyState(VK_CONTROL) < 0) ||
             (!m_bReturnMsgWantCtrl && ::GetAsyncKeyState(VK_CONTROL) >= 0))) {
             SendEvent(kEventReturn);
             return true;
         }
     }
-    else if ((msg.wParam == 'V') && (::GetKeyState(VK_CONTROL) < 0)) {
+    else if ((msg.vkCode == 'V') && (::GetKeyState(VK_CONTROL) < 0)) {
         if (IsPasteLimited()) {
             return true;
         }

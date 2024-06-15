@@ -18,8 +18,8 @@ public:
     virtual void OnCloseWindow() override;
     virtual void OnFinalMessage() override;
 
-    virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled) override;
-    virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, bool& bHandled) override;
+    virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
+    virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** 关闭下拉框
     * @param [in] bCanceled true表示取消，否则表示正常关闭
@@ -198,9 +198,9 @@ void CComboWnd::OnCloseWindow()
     __super::OnCloseWindow();
 }
 
-LRESULT CComboWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
+LRESULT CComboWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, bHandled);
+    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
     if (vkCode == kVK_ESCAPE) {
         //按住ESC键，取消
         CloseComboWnd(true, false);
@@ -212,9 +212,9 @@ LRESULT CComboWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, boo
     return lResult;
 }
 
-LRESULT CComboWnd::OnKillFocusMsg(WindowBase* pSetFocusWindow, bool& bHandled)
+LRESULT CComboWnd::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKillFocusMsg(pSetFocusWindow, bHandled);
+    LRESULT lResult = __super::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
     //失去焦点，关闭窗口，正常关闭
     if (pSetFocusWindow != this) {
         CloseComboWnd(false, false);

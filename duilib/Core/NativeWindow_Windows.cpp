@@ -1554,20 +1554,20 @@ LRESULT NativeWindow::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
     delete[] pInputs;
     pInputs = nullptr;
 
-    if (dwFlags & TOUCHEVENTF_DOWN) {
-        lResult = m_pOwner->OnNativeMouseLButtonDownMsg(pt, 0, bHandled);
+    if (dwFlags & TOUCHEVENTF_DOWN) {        
+        lResult = m_pOwner->OnNativeMouseLButtonDownMsg(pt, 0, NativeMsg(WM_LBUTTONDOWN, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
     }
     else if (dwFlags & TOUCHEVENTF_MOVE) {
         UiPoint lastMousePos = m_ptLastMousePos;
-        lResult = m_pOwner->OnNativeMouseMoveMsg(pt, 0, bHandled);
-        int detaValue = pt.y - lastMousePos.y;
-        if (detaValue != 0) {
-            //触发滚轮功能（lParam参数故意设置为0，有特殊含义）
-            lResult = m_pOwner->OnNativeMouseWheelMsg(detaValue, pt, 0, bHandled);
+        lResult = m_pOwner->OnNativeMouseMoveMsg(pt, 0, NativeMsg(WM_MOUSEMOVE, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
+        int wheelDelta = pt.y - lastMousePos.y;
+        if (wheelDelta != 0) {
+            //触发滚轮功能
+            lResult = m_pOwner->OnNativeMouseWheelMsg(wheelDelta, pt, 0, NativeMsg(WM_MOUSEWHEEL, MAKEWPARAM(0, wheelDelta), MAKELPARAM(pt.x, pt.y)), bHandled);
         }
     }
     else if (dwFlags & TOUCHEVENTF_UP) {
-        lResult = m_pOwner->OnNativeMouseLButtonUpMsg(pt, 0, bHandled);
+        lResult = m_pOwner->OnNativeMouseLButtonUpMsg(pt, 0, NativeMsg(WM_LBUTTONUP, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
     }
     return lResult;
 }
@@ -1594,29 +1594,29 @@ LRESULT NativeWindow::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, boo
     switch (uMsg)
     {
     case WM_POINTERDOWN:
-        lResult = m_pOwner->OnNativeMouseLButtonDownMsg(pt, 0, bHandled);
+        lResult = m_pOwner->OnNativeMouseLButtonDownMsg(pt, 0, NativeMsg(WM_LBUTTONDOWN, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
         bHandled = true;
         break;
     case WM_POINTERUPDATE:
-        lResult = m_pOwner->OnNativeMouseMoveMsg(pt, 0, bHandled);
+        lResult = m_pOwner->OnNativeMouseMoveMsg(pt, 0, NativeMsg(WM_MOUSEMOVE, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
         bHandled = true;
         break;
     case WM_POINTERUP:
-        lResult = m_pOwner->OnNativeMouseLButtonUpMsg(pt, 0, bHandled);
+        lResult = m_pOwner->OnNativeMouseLButtonUpMsg(pt, 0, NativeMsg(WM_LBUTTONUP, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
         bHandled = true;
         break;
     case WM_POINTERWHEEL:
     {
         int32_t wheelDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-        lResult = m_pOwner->OnNativeMouseWheelMsg(wheelDelta, pt, 0, bHandled);
+        lResult = m_pOwner->OnNativeMouseWheelMsg(wheelDelta, pt, 0, NativeMsg(WM_MOUSEWHEEL, MAKEWPARAM(0, wheelDelta), MAKELPARAM(pt.x, pt.y)), bHandled);
         bHandled = true;
     }
     break;
     case WM_POINTERLEAVE:
-        lResult = m_pOwner->OnNativeMouseLeaveMsg(bHandled);
+        lResult = m_pOwner->OnNativeMouseLeaveMsg(NativeMsg(WM_MOUSELEAVE, 0, 0), bHandled);
         break;
     case WM_POINTERCAPTURECHANGED:
-        lResult = m_pOwner->OnNativeCaptureChangedMsg(bHandled);
+        lResult = m_pOwner->OnNativeCaptureChangedMsg(NativeMsg(WM_CAPTURECHANGED, 0, 0), bHandled);
         //如果不设置bHandled，程序会转换为WM_BUTTON类消息
         bHandled = true;
         break;
@@ -1638,7 +1638,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         UiSize newWindowSize;
         newWindowSize.cx = (int)(short)LOWORD(lParam);
         newWindowSize.cy = (int)(short)HIWORD(lParam);
-        lResult = m_pOwner->OnNativeSizeMsg(sizeType, newWindowSize, bHandled);
+        lResult = m_pOwner->OnNativeSizeMsg(sizeType, newWindowSize, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_MOVE:
@@ -1646,14 +1646,14 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         UiPoint ptTopLeft;
         ptTopLeft.x = (int)(short)LOWORD(lParam);   // horizontal position 
         ptTopLeft.y = (int)(short)HIWORD(lParam);   // vertical position 
-        lResult = m_pOwner->OnNativeMoveMsg(ptTopLeft, bHandled);
+        lResult = m_pOwner->OnNativeMoveMsg(ptTopLeft, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_PAINT:
     {
         ASSERT(m_paintStruct.hdc == nullptr);
 
-        lResult = m_pOwner->OnNativePaintMsg(bHandled);
+        lResult = m_pOwner->OnNativePaintMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
 
         ASSERT(m_paintStruct.hdc == nullptr);
         if (m_paintStruct.hdc != nullptr) {
@@ -1682,7 +1682,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
                 }
             }
         }
-        lResult = m_pOwner->OnNativeSetFocusMsg(pLostFocusWindow, bHandled);
+        lResult = m_pOwner->OnNativeSetFocusMsg(pLostFocusWindow, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_KILLFOCUS:
@@ -1698,24 +1698,24 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
                 }
             }
         }
-        lResult = m_pOwner->OnNativeKillFocusMsg(pSetFocusWindow, bHandled);
+        lResult = m_pOwner->OnNativeKillFocusMsg(pSetFocusWindow, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_IME_STARTCOMPOSITION:
     {
-        lResult = m_pOwner->OnNativeImeStartCompositionMsg(bHandled);
+        lResult = m_pOwner->OnNativeImeStartCompositionMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_IME_ENDCOMPOSITION:
     {
-        lResult = m_pOwner->OnNativeImeEndCompositionMsg(bHandled);
+        lResult = m_pOwner->OnNativeImeEndCompositionMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_SETCURSOR:
     {
         if (LOWORD(lParam) == HTCLIENT) {
             //只处理设置客户区的光标
-            lResult = m_pOwner->OnNativeSetCursorMsg(bHandled);
+            lResult = m_pOwner->OnNativeSetCursorMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
         }
         break;
     }
@@ -1725,7 +1725,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         if ((pt.x != -1) && (pt.y != -1)) {
             ScreenToClient(pt);
         }
-        lResult = m_pOwner->OnNativeContextMenuMsg(pt, bHandled);
+        lResult = m_pOwner->OnNativeContextMenuMsg(pt, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_KEYDOWN:
@@ -1734,7 +1734,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(wParam);
         uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeKeyDownMsg(vkCode, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeKeyDownMsg(vkCode, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_KEYUP:
@@ -1743,7 +1743,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(wParam);
         uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeKeyUpMsg(vkCode, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeKeyUpMsg(vkCode, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_CHAR:
@@ -1751,7 +1751,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(wParam);
         uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeCharMsg(vkCode, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeCharMsg(vkCode, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_HOTKEY:
@@ -1760,7 +1760,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         VirtualKeyCode vkCode = static_cast<VirtualKeyCode>((int32_t)(int16_t)HIWORD(lParam));
         uint32_t modifierKey = (uint32_t)(int16_t)LOWORD(lParam);
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeHotKeyMsg(hotkeyId, vkCode, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeHotKeyMsg(hotkeyId, vkCode, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_MOUSEWHEEL:
@@ -1772,7 +1772,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         ScreenToClient(pt);
         uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeMouseWheelMsg(wheelDelta, pt, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeMouseWheelMsg(wheelDelta, pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_MOUSEMOVE:
@@ -1782,7 +1782,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         pt.y = GET_Y_LPARAM(lParam);
         uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeMouseMoveMsg(pt, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeMouseMoveMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_MOUSEHOVER:
@@ -1792,12 +1792,12 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         pt.y = GET_Y_LPARAM(lParam);
         uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeMouseHoverMsg(pt, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeMouseHoverMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_MOUSELEAVE:
     {
-        lResult = m_pOwner->OnNativeMouseLeaveMsg(bHandled);
+        lResult = m_pOwner->OnNativeMouseLeaveMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_LBUTTONDOWN:
@@ -1807,7 +1807,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         pt.y = GET_Y_LPARAM(lParam);
         uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeMouseLButtonDownMsg(pt, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeMouseLButtonDownMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_LBUTTONUP:
@@ -1817,7 +1817,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         pt.y = GET_Y_LPARAM(lParam);
         uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeMouseLButtonUpMsg(pt, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeMouseLButtonUpMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_LBUTTONDBLCLK:
@@ -1827,7 +1827,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         pt.y = GET_Y_LPARAM(lParam);
         uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeMouseLButtonDbClickMsg(pt, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeMouseLButtonDbClickMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_RBUTTONDOWN:
@@ -1837,7 +1837,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         pt.y = GET_Y_LPARAM(lParam);
         uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeMouseRButtonDownMsg(pt, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeMouseRButtonDownMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_RBUTTONUP:
@@ -1847,7 +1847,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         pt.y = GET_Y_LPARAM(lParam);
         uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeMouseRButtonUpMsg(pt, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeMouseRButtonUpMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_RBUTTONDBLCLK:
@@ -1857,17 +1857,17 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         pt.y = GET_Y_LPARAM(lParam);
         uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeMouseRButtonDbClickMsg(pt, modifierKey, bHandled);
+        lResult = m_pOwner->OnNativeMouseRButtonDbClickMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_CAPTURECHANGED:
     {
-        lResult = m_pOwner->OnNativeCaptureChangedMsg(bHandled);
+        lResult = m_pOwner->OnNativeCaptureChangedMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_CLOSE:
     {
-        lResult = m_pOwner->OnNativeWindowCloseMsg((uint32_t)wParam, bHandled);
+        lResult = m_pOwner->OnNativeWindowCloseMsg((uint32_t)wParam, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     default:

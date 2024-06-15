@@ -593,7 +593,7 @@ LRESULT Window::OnWindowMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
     return 0;
 }
 
-LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize*/, bool& bHandled)
+LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     if (m_pRoot != nullptr) {
@@ -621,7 +621,7 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
     return 0;
 }
 
-LRESULT Window::OnMoveMsg(const UiPoint& ptTopLeft, bool& bHandled)
+LRESULT Window::OnMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     if (m_pFocus != nullptr) {
@@ -636,7 +636,7 @@ LRESULT Window::OnMoveMsg(const UiPoint& ptTopLeft, bool& bHandled)
     return 0;
 }
 
-LRESULT Window::OnPaintMsg(bool& bHandled)
+LRESULT Window::OnPaintMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     PerformanceStat statPerformance(_T("Window::OnPaintMsg"));
@@ -646,13 +646,13 @@ LRESULT Window::OnPaintMsg(bool& bHandled)
     return 0;
 }
 
-LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, bool& bHandled)
+LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     return 0;
 }
 
-LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, bool& bHandled)
+LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     Control* pEventClick = m_pEventClick;
@@ -676,7 +676,7 @@ LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, bool& bHandled)
     return 0;
 }
 
-LRESULT Window::OnImeStartCompositionMsg(bool& bHandled)
+LRESULT Window::OnImeStartCompositionMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     if (m_pFocus != nullptr) {
@@ -685,7 +685,7 @@ LRESULT Window::OnImeStartCompositionMsg(bool& bHandled)
     return 0;
 }
 
-LRESULT Window::OnImeEndCompositionMsg(bool& bHandled)
+LRESULT Window::OnImeEndCompositionMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     if (m_pFocus != nullptr) {
@@ -694,7 +694,7 @@ LRESULT Window::OnImeEndCompositionMsg(bool& bHandled)
     return 0;
 }
 
-LRESULT Window::OnSetCursorMsg(bool& bHandled)
+LRESULT Window::OnSetCursorMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     if (m_pEventClick != nullptr) {
@@ -721,7 +721,7 @@ LRESULT Window::OnSetCursorMsg(bool& bHandled)
     return 0;
 }
 
-LRESULT Window::OnContextMenuMsg(const UiPoint& pt, bool& bHandled)
+LRESULT Window::OnContextMenuMsg(const UiPoint& pt, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     ReleaseCapture();
@@ -759,7 +759,7 @@ LRESULT Window::OnContextMenuMsg(const UiPoint& pt, bool& bHandled)
     return 0;
 }
 
-LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
+LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
     LRESULT lResult = 0;
@@ -771,6 +771,8 @@ LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& 
             EventArgs msgData;
             msgData.vkCode = vkCode;
             msgData.modifierKey = modifierKey;
+            msgData.wParam = nativeMsg.wParam;
+            msgData.lParam = nativeMsg.lParam;
             m_pEventKey->SendEvent(kEventKeyDown, msgData);
             if (windowFlag.expired()) {
                 return lResult;
@@ -802,6 +804,8 @@ LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& 
             EventArgs msgData;
             msgData.vkCode = vkCode;
             msgData.modifierKey = modifierKey;
+            msgData.wParam = nativeMsg.wParam;
+            msgData.lParam = nativeMsg.lParam;
             m_pFocus->SendEvent(kEventKeyDown, msgData);
             if (windowFlag.expired()) {
                 return lResult;
@@ -821,7 +825,7 @@ LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& 
     return lResult;
 }
 
-LRESULT Window::OnKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
+LRESULT Window::OnKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
     LRESULT lResult = 0;
@@ -830,6 +834,8 @@ LRESULT Window::OnKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bH
         EventArgs msgData;
         msgData.vkCode = vkCode;
         msgData.modifierKey = modifierKey;
+        msgData.wParam = nativeMsg.wParam;
+        msgData.lParam = nativeMsg.lParam;
         m_pEventKey->SendEvent(kEventKeyUp, msgData);
         if (windowFlag.expired()) {
             return lResult;
@@ -839,7 +845,7 @@ LRESULT Window::OnKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bH
     return lResult;
 }
 
-LRESULT Window::OnCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHandled)
+LRESULT Window::OnCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
     LRESULT lResult = 0;
@@ -847,19 +853,21 @@ LRESULT Window::OnCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, bool& bHa
         EventArgs msgData;
         msgData.vkCode = vkCode;
         msgData.modifierKey = modifierKey;
+        msgData.wParam = nativeMsg.wParam;
+        msgData.lParam = nativeMsg.lParam;
         m_pEventKey->SendEvent(kEventChar, msgData);
     }
     return lResult;
 }
 
-LRESULT Window::OnHotKeyMsg(int32_t /*hotkeyId*/, VirtualKeyCode /*vkCode*/, uint32_t /*modifierKey*/, bool& bHandled)
+LRESULT Window::OnHotKeyMsg(int32_t /*hotkeyId*/, VirtualKeyCode /*vkCode*/, uint32_t /*modifierKey*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     //待添加（需确认，应该是要加在窗口上的）
     bHandled = false;
     return 0;
 }
 
-LRESULT Window::OnMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT Window::OnMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
     LRESULT lResult = 0;
@@ -870,12 +878,14 @@ LRESULT Window::OnMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t 
         msgData.eventData = wheelDelta;
         msgData.modifierKey = modifierKey;
         msgData.ptMouse = pt;
+        msgData.wParam = nativeMsg.wParam;
+        msgData.lParam = nativeMsg.lParam;
         pControl->SendEvent(kEventMouseWheel, msgData);
     }
     return lResult;
 }
 
-LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
     LRESULT lResult = 0;
@@ -896,6 +906,8 @@ LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool& bH
     EventArgs msgData;
     msgData.modifierKey = modifierKey;
     msgData.ptMouse = pt;
+    msgData.wParam = nativeMsg.wParam;
+    msgData.lParam = nativeMsg.lParam;
     if (m_pEventClick != nullptr) {        
         m_pEventClick->SendEvent(kEventMouseMove, msgData);
     }
@@ -942,7 +954,7 @@ bool Window::HandleMouseEnterLeave(const UiPoint& pt, uint32_t modifierKey)
     return true;
 }
 
-LRESULT Window::OnMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT Window::OnMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
     LRESULT lResult = 0;
@@ -962,6 +974,8 @@ LRESULT Window::OnMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, bool& b
         EventArgs msgData;
         msgData.modifierKey = modifierKey;
         msgData.ptMouse = pt;
+        msgData.wParam = nativeMsg.wParam;
+        msgData.lParam = nativeMsg.lParam;
         pHover->SendEvent(kEventMouseHover, msgData);
         if (windowFlag.expired()) {
             return lResult;
@@ -978,7 +992,7 @@ LRESULT Window::OnMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, bool& b
     return lResult;
 }
 
-LRESULT Window::OnMouseLeaveMsg(bool& bHandled)
+LRESULT Window::OnMouseLeaveMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     m_toolTip->HideToolTip();
@@ -986,49 +1000,49 @@ LRESULT Window::OnMouseLeaveMsg(bool& bHandled)
     return 0;
 }
 
-LRESULT Window::OnMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT Window::OnMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
-    OnButtonDown(kEventMouseButtonDown, pt, modifierKey);
+    OnButtonDown(kEventMouseButtonDown, pt, nativeMsg, modifierKey);
     return 0;
 }
 
-LRESULT Window::OnMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT Window::OnMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
-    OnButtonUp(kEventMouseButtonUp, pt, modifierKey);
+    OnButtonUp(kEventMouseButtonUp, pt, nativeMsg, modifierKey);
     return 0;
 }
 
-LRESULT Window::OnMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT Window::OnMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
-    OnButtonDown(kEventMouseDoubleClick, pt, modifierKey);
+    OnButtonDown(kEventMouseDoubleClick, pt, nativeMsg, modifierKey);
     return 0;
 }
 
-LRESULT Window::OnMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT Window::OnMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
-    OnButtonDown(kEventMouseRButtonDown, pt, modifierKey);
+    OnButtonDown(kEventMouseRButtonDown, pt, nativeMsg, modifierKey);
     return 0;
 }
 
-LRESULT Window::OnMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT Window::OnMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
-    OnButtonUp(kEventMouseRButtonUp, pt, modifierKey);
+    OnButtonUp(kEventMouseRButtonUp, pt, nativeMsg, modifierKey);
     return 0;
 }
 
-LRESULT  Window::OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, bool& bHandled)
+LRESULT  Window::OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
-    OnButtonDown(kEventMouseRDoubleClick, pt, modifierKey);
+    OnButtonDown(kEventMouseRDoubleClick, pt, nativeMsg, modifierKey);
     return 0;
 }
 
-LRESULT Window::OnCaptureChangedMsg(bool& bHandled)
+LRESULT Window::OnCaptureChangedMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
 
@@ -1042,13 +1056,13 @@ LRESULT Window::OnCaptureChangedMsg(bool& bHandled)
     return 0;
 }
 
-LRESULT Window::OnWindowCloseMsg(uint32_t /*wParam*/, bool& bHandled)
+LRESULT Window::OnWindowCloseMsg(uint32_t /*wParam*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     return 0;
 }
 
-void Window::OnButtonDown(EventType eventType, const UiPoint& pt, uint32_t modifierKey)
+void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey)
 {
     ASSERT(eventType == kEventMouseButtonDown || 
            eventType == kEventMouseRButtonDown || 
@@ -1066,6 +1080,8 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, uint32_t modif
         EventArgs msgData;
         msgData.modifierKey = modifierKey;
         msgData.ptMouse = pt;
+        msgData.wParam = nativeMsg.wParam;
+        msgData.lParam = nativeMsg.lParam;
         pControl->SendEvent(eventType, msgData);
         if (windowFlag.expired()) {
             return;
@@ -1079,7 +1095,7 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, uint32_t modif
     }
 }
 
-void Window::OnButtonUp(EventType eventType, const UiPoint& pt, uint32_t modifierKey)
+void Window::OnButtonUp(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey)
 {
     ASSERT(eventType == kEventMouseButtonUp || eventType == kEventMouseRButtonUp);
     SetLastMousePos(pt);
@@ -1089,6 +1105,8 @@ void Window::OnButtonUp(EventType eventType, const UiPoint& pt, uint32_t modifie
         EventArgs msgData;
         msgData.modifierKey = modifierKey;
         msgData.ptMouse = pt;
+        msgData.wParam = nativeMsg.wParam;
+        msgData.lParam = nativeMsg.lParam;
         m_pEventClick->SendEvent(eventType, msgData);
         if (windowFlag.expired()) {
             return;

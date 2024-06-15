@@ -149,7 +149,7 @@ LRESULT MultiBrowserForm::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPara
     return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
-LRESULT MultiBrowserForm::OnWindowCloseMsg(uint32_t wParam, bool& bHandled)
+LRESULT MultiBrowserForm::OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
     int browser_count = GetBoxCount();
     if (browser_count > 0 && nullptr != active_browser_box_)
@@ -170,7 +170,7 @@ LRESULT MultiBrowserForm::OnWindowCloseMsg(uint32_t wParam, bool& bHandled)
             }
         }
     }
-    return __super::OnWindowCloseMsg(wParam, bHandled);
+    return __super::OnWindowCloseMsg(wParam, nativeMsg, bHandled);
 }
 
 void MultiBrowserForm::OnFinalMessage()

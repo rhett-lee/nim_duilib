@@ -35,7 +35,7 @@ DString ColorPicker::GetSkinFile()
     return _T("color/color_picker.xml");
 }
 
-LRESULT ColorPicker::OnWindowCloseMsg(uint32_t wParam, bool& bHandled)
+LRESULT ColorPicker::OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled)
 {
     UiColor selectedColor;
     if (wParam == 0) {
@@ -48,7 +48,7 @@ LRESULT ColorPicker::OnWindowCloseMsg(uint32_t wParam, bool& bHandled)
         }
     }    
     m_selectedColor = selectedColor;
-    return __super::OnWindowCloseMsg(wParam, bHandled);
+    return __super::OnWindowCloseMsg(wParam, nativeMsg, bHandled);
 }
 
 void ColorPicker::AttachSelectColor(const EventCallback& callback)
