@@ -93,11 +93,10 @@ public:
     /** @name 窗口显示、隐藏、大小、位置等状态相关接口
     * @{
     */
-    /** 显示或隐藏窗口
-     * @param [in] bShow 为 true 时显示窗口，为 false 时为隐藏窗口，默认为 true
-     * @param [in] bTakeFocus 是否获得焦点（激活窗口），默认为 true
+    /** 窗口的显示、隐藏、最大化、还原、最小化操作
+     * @param [in] nCmdShow 显示或者隐藏窗口的命令
     */
-    void ShowWindow(bool bShow = true, bool bTakeFocus = true);
+    bool ShowWindow(ShowWindowCommands nCmdShow);
 
     /** 显示模态对话框(父窗口在创建的时候指定)
     */
@@ -118,13 +117,6 @@ public:
     /** 将窗口调整为顶层窗口
     */
     void BringToTop();
-
-    /** 激活窗口
-    *   如果当前窗口为最小化，则进行还原；
-    *   如果当前窗口为隐藏，则显示，并设置为前端窗口
-    *   如果当前窗口为显示，则设置为前端窗口
-    */
-    void ActiveWindow();
 
     /** 设置窗口为前端窗口
     */
@@ -153,18 +145,6 @@ public:
     /** 检查并确保当前窗口为焦点窗口
     */
     void CheckSetWindowFocus();
-
-    /** 窗口最大化
-    */
-    bool Maximize();
-
-    /** 还原窗口，退出最大化
-    */
-    bool Restore();
-
-    /** 窗口最小化
-    */
-    bool Minimize();
 
     /** 使窗口进入全屏状态
     */
@@ -576,19 +556,7 @@ protected:
     */
     virtual void OnWindowExitFullScreen() = 0;
 
-    /** 进入最大化状态
-    */
-    virtual void OnWindowMaximized() = 0;
-
-    /** 从最大化还原
-    */
-    virtual void OnWindowRestored() = 0;
-
-    /** 进入最小化状态
-    */
-    virtual void OnWindowMinimized() = 0;
-
-    /** 窗口的DPI发生了变化(供子类使用)
+     /** 窗口的DPI发生了变化(供子类使用)
     * @param [in] nOldDPI 旧的DPI值
     * @param [in] nNewDPI 新的DPI值
     */
@@ -842,9 +810,6 @@ private:
 
 private:
     //来自实现窗口的事件
-    virtual void OnNativeWindowMaximized() override;
-    virtual void OnNativeWindowRestored() override;
-    virtual void OnNativeWindowMinimized() override;
     virtual void OnNativeWindowEnterFullScreen() override;
     virtual void OnNativeWindowExitFullScreen() override;
     virtual UiRect OnNativeGetSizeBox() const override;

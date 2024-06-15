@@ -157,7 +157,7 @@ void MsgBox::Show(ui::Window* pParentWindow, MsgboxCallback cb)
     }
     m_pParentWindow = pParentWindow;
     CenterWindow();
-    ShowWindow(true);
+    ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 
 void MsgBox::EndMsgBox(MsgBoxRet ret)

@@ -36,5 +36,5 @@ void LayoutsForm::ShowCustomWindow(const DString& class_name, const DString& the
     window->CreateWnd(nullptr, createParam);
     window->PostQuitMsgWhenClosed(true);
     window->CenterWindow();
-    window->ShowWindow();
+    window->ShowWindow(ui::kSW_SHOW_NORMAL);
 }

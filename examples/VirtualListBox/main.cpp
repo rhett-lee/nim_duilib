@@ -46,7 +46,7 @@ void MainThread::OnInit()
     window->CreateWnd(nullptr, createParam);
     window->PostQuitMsgWhenClosed(true);
     window->CenterWindow();
-    window->ShowWindow();
+    window->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 
 void MainThread::OnCleanup()

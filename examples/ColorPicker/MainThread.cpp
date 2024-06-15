@@ -48,7 +48,7 @@ void MainThread::OnInit()
     createWndParam.m_dwExStyle = WS_EX_LAYERED;
     pColorPicker->CreateWnd(nullptr, createWndParam);
     pColorPicker->CenterWindow();
-    pColorPicker->ShowWindow();
+    pColorPicker->ShowWindow(ui::kSW_SHOW_NORMAL);
 
     //设置选择前的颜色
     pColorPicker->SetSelectedColor(ui::UiColor(ui::UiColors::White));

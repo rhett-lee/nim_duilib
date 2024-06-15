@@ -78,10 +78,15 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
             }            
             break;
         case WM_CLOSE:
-            ShowWindow(false, false);
+            ShowWindow(kSW_HIDE);
             break;
         case WM_SHOWWINDOW:
-            ShowWindow(wParam == 0 ? false : true, false);
+            if (wParam == 0) {
+                ShowWindow(kSW_HIDE);
+            }
+            else {
+                ShowWindow(kSW_SHOW_NA);
+            }
             break;
         default:
             break;
@@ -162,7 +167,7 @@ void ShadowWnd::InitShadow()
         //阴影窗口不接受鼠标和键盘消息
         m_pShadowWnd->EnableWindow(false);
         if (IsWindowVisible()) {
-            m_pShadowWnd->ShowWindow();
+            m_pShadowWnd->ShowWindow(kSW_SHOW_NA);
         }
     }
 }

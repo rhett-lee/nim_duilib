@@ -205,10 +205,10 @@ bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
     if (name == _T("btn_max_restore"))
     {
         if (IsWindowMaximized()) {
-            Restore();
+            ShowWindow(ui::kSW_RESTORE);
         }
         else {
-            Maximize();
+            ShowWindow(ui::kSW_SHOW_MAXIMIZED);
         }
     }
     else if (name == _T("btn_close"))
@@ -223,7 +223,7 @@ bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
     }
     else if (name == _T("btn_min"))
     {
-        Minimize();
+        ShowWindow(ui::kSW_MINIMIZE);
     }
     else if (name == _T("btn_add"))
     {
@@ -459,7 +459,12 @@ void MultiBrowserForm::SetActiveBox(const std::string &browser_id)
     if (browser_id.empty())
         return;
 
-    ActiveWindow();
+    if (IsWindowMinimized()) {
+        ShowWindow(kSW_RESTORE);
+    }
+    else {
+        ShowWindow(kSW_SHOW);
+    }
 
     // 从窗口左侧会话列表找到要激活的浏览器盒子项
     DString id = ui::StringUtil::UTF8ToUTF16(browser_id);
@@ -495,7 +500,7 @@ void MultiBrowserForm::OnBeforeDragBoxCallback(const DString &browser_id)
     int box_count = this->GetBoxCount();
     if (1 == box_count)
     {
-        this->ShowWindow(false);
+        this->ShowWindow(kSW_HIDE);
     }
     // 否则隐藏被拖拽的浏览器盒子和标签
     else
@@ -549,7 +554,7 @@ void MultiBrowserForm::OnAfterDragBoxCallback(bool drop_succeed)
         // 就显示浏览器窗口
         if (1 == box_count)
         {
-            this->ShowWindow(true);
+            this->ShowWindow(kSW_SHOW_NORMAL);
         }
         // 如果当前被拖拽的浏览器盒子所属的浏览器窗口有多个浏览器盒子，并且没有拖拽到新的浏览器窗口里
         // 就显示之前被隐藏的浏览器盒子和标签

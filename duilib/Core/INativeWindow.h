@@ -58,18 +58,6 @@ public:
     */
     virtual UiSize OnNativeGetMaxInfo(bool bContainShadow /*= false*/) const = 0;
 
-    /** 进入最大化状态
-    */
-    virtual void OnNativeWindowMaximized() = 0;
-
-    /** 从最大化还原
-    */
-    virtual void OnNativeWindowRestored() = 0;
-
-    /** 进入最小化状态
-    */
-    virtual void OnNativeWindowMinimized() = 0;
-
     /** 进入全屏状态
     */
     virtual void OnNativeWindowEnterFullScreen() = 0;

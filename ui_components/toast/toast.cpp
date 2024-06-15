@@ -19,7 +19,7 @@ void Toast::ShowToast(const DString &content, int duration, Window* pParentWindo
     toast->SetContent(content);
     toast->SetDuration(duration);
     toast->CenterWindow();
-    toast->ShowWindow(true);
+    toast->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 
 DString Toast::GetSkinFolder()

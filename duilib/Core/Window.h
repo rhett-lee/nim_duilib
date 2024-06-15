@@ -358,18 +358,6 @@ protected:
     */
     virtual void OnWindowExitFullScreen() override;
 
-    /** 进入最大化状态
-    */
-    virtual void OnWindowMaximized() override;
-
-    /** 从最大化还原
-    */
-    virtual void OnWindowRestored() override;
-
-    /** 进入最小化状态
-    */
-    virtual void OnWindowMinimized() override;
-
     /** 窗口的DPI发生了变化(供子类使用)
     * @param [in] nOldDPI 旧的DPI值
     * @param [in] nNewDPI 新的DPI值

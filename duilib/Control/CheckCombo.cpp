@@ -41,7 +41,7 @@ void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
     CreateWnd(pOwner->GetWindow(), createWndParam);
     UpdateComboWnd();
 
-    ShowWindow();
+    ShowWindow(ui::kSW_SHOW_NORMAL);
     KeepParentActive();
 }
 

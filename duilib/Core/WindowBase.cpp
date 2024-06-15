@@ -244,9 +244,9 @@ bool WindowBase::IsCaptured() const
     return m_pNativeWindow->IsCaptured();
 }
 
-void WindowBase::ShowWindow(bool bShow /*= true*/, bool bTakeFocus /*= false*/)
+bool WindowBase::ShowWindow(ShowWindowCommands nCmdShow)
 {
-    m_pNativeWindow->ShowWindow(bShow, bTakeFocus);
+    return m_pNativeWindow->ShowWindow(nCmdShow);
 }
 
 void WindowBase::ShowModalFake()
@@ -272,11 +272,6 @@ void WindowBase::ToTopMost()
 void WindowBase::BringToTop()
 {
     m_pNativeWindow->BringToTop();
-}
-
-void WindowBase::ActiveWindow()
-{
-    m_pNativeWindow->ActiveWindow();
 }
 
 bool WindowBase::SetWindowForeground()
@@ -312,21 +307,6 @@ bool WindowBase::SetOwnerWindowFocus()
 void WindowBase::CheckSetWindowFocus()
 {
     return m_pNativeWindow->CheckSetWindowFocus();
-}
-
-bool WindowBase::Maximize()
-{
-    return m_pNativeWindow->Maximize();
-}
-
-bool WindowBase::Restore()
-{
-    return m_pNativeWindow->Restore();
-}
-
-bool WindowBase::Minimize()
-{
-    return m_pNativeWindow->Minimize();
 }
 
 bool WindowBase::EnterFullScreen()
@@ -798,21 +778,6 @@ void WindowBase::OnWindowSize(WindowSizeType sizeType)
         //不需要设置RGN的时候，清除原RGN设置，避免最大化以后显示不正确
         ClearWindowRgn(true);
     }
-}
-
-void WindowBase::OnNativeWindowMaximized()
-{
-    OnWindowMaximized();
-}
-
-void WindowBase::OnNativeWindowRestored()
-{
-    OnWindowRestored();
-}
-
-void WindowBase::OnNativeWindowMinimized()
-{
-    OnWindowMinimized();
 }
 
 void WindowBase::OnNativeWindowEnterFullScreen()

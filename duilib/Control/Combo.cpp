@@ -56,14 +56,14 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
 
     UpdateComboWnd();
     if (bActivated) {
-        ShowWindow();
+        ShowWindow(ui::kSW_SHOW_NORMAL);
         SetWindowForeground();
         KeepParentActive();
         pOwner->GetTreeView()->SetFocus();
         pOwner->SetState(kControlStateHot);
     }
     else {
-        ShowWindow(true, false);
+        ShowWindow(ui::kSW_SHOW_NA);
     }
     if (Box::IsValidItemIndex(m_iOldSel)) {
         //展开的时候，确保选择可见

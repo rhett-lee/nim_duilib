@@ -73,7 +73,7 @@ void MainThread::OnInit()
     createWndParam.m_dwExStyle = dwExStyle;
     window->CreateWnd(nullptr, createWndParam);
     window->CenterWindow();
-    window->ShowWindow();
+    window->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 
 void MainThread::OnCleanup()

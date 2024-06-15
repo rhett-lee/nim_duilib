@@ -80,7 +80,12 @@ HRESULT MultiBrowserForm::DragEnter(IDataObject * pDataObject, DWORD grfKeyState
         if (NULL != active_browser_box_)
         {
             //active_browser_box_->DragEnter(pDataObject, grfKeyState, pt, pdwEffect);
-            ActiveWindow();
+            if (IsWindowMinimized()) {
+                ShowWindow(kSW_RESTORE);
+            }
+            else {
+                ShowWindow(kSW_SHOW);
+            }
         }
     }
     else

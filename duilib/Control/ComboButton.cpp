@@ -44,12 +44,12 @@ void ComboButtonWnd::InitComboWnd(ComboButton* pOwner, bool bActivated)
     CreateWnd(pOwner->GetWindow(), createWndParam);
     UpdateComboWnd();
     if (bActivated) {
-        ShowWindow();
+        ShowWindow(ui::kSW_SHOW_NORMAL);
         KeepParentActive();
         pOwner->SetState(kControlStateHot);
     }
     else {
-        ShowWindow(true, false);
+        ShowWindow(ui::kSW_SHOW_NA);
     }
 }
 

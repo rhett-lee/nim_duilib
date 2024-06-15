@@ -45,7 +45,7 @@ void MainThread::OnInit()
     createParam.m_windowTitle = createParam.m_className;
     window->CreateWnd(nullptr, createParam);
     window->CenterWindow();
-    window->ShowWindow();
+    window->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 
 void MainThread::OnCleanup()

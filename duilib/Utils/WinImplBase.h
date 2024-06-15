@@ -61,6 +61,14 @@ protected:
     virtual void OnFinalMessage() override;
 
 protected:
+    /** 窗口大小发生改变(WM_SIZE)
+    * @param [in] sizeType 触发窗口大小改变的类型
+    * @param [in] newWindowSize 新的窗口大小（宽度和高度）
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, bool& bHandled) override;
+
     /** 进入全屏状态
     */
     virtual void OnWindowEnterFullScreen() override;
@@ -68,18 +76,6 @@ protected:
     /** 退出全屏状态
     */
     virtual void OnWindowExitFullScreen() override;
-
-    /** 进入最大化状态
-    */
-    virtual void OnWindowMaximized() override;
-
-    /** 从最大化还原
-    */
-    virtual void OnWindowRestored() override;
-
-    /** 进入最小化状态
-    */
-    virtual void OnWindowMinimized() override;
 
     /** 切换系统标题栏与自绘标题栏
     */
@@ -90,6 +86,19 @@ protected:
     * @param [in] nNewDPI 新的DPI值
     */
     virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) override;
+
+protected:
+    /** 进入最大化状态
+    */
+    virtual void OnWindowMaximized();
+
+    /** 从最大化还原
+    */
+    virtual void OnWindowRestored();
+
+    /** 进入最小化状态
+    */
+    virtual void OnWindowMinimized();
 
 private:
     /** 初始化窗口数据（内部函数）

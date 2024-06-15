@@ -392,18 +392,6 @@ void Window::OnWindowExitFullScreen()
 {
 }
 
-void Window::OnWindowMaximized()
-{
-}
-
-void Window::OnWindowRestored()
-{
-}
-
-void Window::OnWindowMinimized()
-{
-}
-
 void Window::OnWindowDpiChanged(uint32_t /*nOldDPI*/, uint32_t /*nNewDPI*/)
 {
 }

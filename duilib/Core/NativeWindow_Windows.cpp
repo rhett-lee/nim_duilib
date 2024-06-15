@@ -289,10 +289,52 @@ bool NativeWindow::IsUseSystemCaption() const
     return m_bUseSystemCaption;
 }
 
-void NativeWindow::ShowWindow(bool bShow /*= true*/, bool bTakeFocus /*= false*/)
+bool NativeWindow::ShowWindow(ShowWindowCommands nCmdShow)
 {
     ASSERT(::IsWindow(m_hWnd));
-    ::ShowWindow(m_hWnd, bShow ? (bTakeFocus ? SW_SHOWNORMAL : SW_SHOWNOACTIVATE) : SW_HIDE);
+    if (!::IsWindow(m_hWnd)) {
+        return false;
+    }
+    bool bRet = false;
+    int nWindowCmdShow = SW_SHOWNORMAL;
+    switch(nCmdShow)
+    {
+    case kSW_HIDE:
+        nWindowCmdShow = SW_HIDE;
+        break;
+    case kSW_SHOW_NORMAL:
+        nWindowCmdShow = SW_SHOWNORMAL;
+        break;
+    case kSW_SHOW_MINIMIZED:
+        nWindowCmdShow = SW_SHOWMINIMIZED;
+        break;
+    case kSW_SHOW_MAXIMIZED:
+        nWindowCmdShow = SW_SHOWMAXIMIZED;
+        break;
+    case kSW_SHOW_NOACTIVATE:
+        nWindowCmdShow = SW_SHOWNOACTIVATE;
+        break;
+    case kSW_SHOW:
+        nWindowCmdShow = SW_SHOW;
+        break;
+    case kSW_MINIMIZE:
+        nWindowCmdShow = SW_MINIMIZE;
+        break;
+    case kSW_SHOW_MIN_NOACTIVE:
+        nWindowCmdShow = SW_SHOWMINNOACTIVE;
+        break;
+    case kSW_SHOW_NA:
+        nWindowCmdShow = SW_SHOWNA;
+        break;
+    case kSW_RESTORE:
+        nWindowCmdShow = SW_RESTORE;
+        break;
+    default:
+        ASSERT(false);
+        break;
+    }
+    bRet = ::ShowWindow(m_hWnd, nWindowCmdShow) != FALSE;
+    return bRet;
 }
 
 void NativeWindow::ShowModalFake(WindowBase* pParentWindow)
@@ -307,7 +349,7 @@ void NativeWindow::ShowModalFake(WindowBase* pParentWindow)
             pParentWindow->EnableWindow(false);
         }
     }
-    ShowWindow();
+    ShowWindow(kSW_SHOW_NORMAL);
     m_bFakeModal = true;
 }
 
@@ -393,20 +435,6 @@ void NativeWindow::BringToTop()
     ::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 }
 
-void NativeWindow::ActiveWindow()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    if (IsWindowMinimized()) {
-        ::ShowWindow(m_hWnd, SW_RESTORE);
-    }
-    else {
-        if (!::IsWindowVisible(m_hWnd)) {
-            ::ShowWindow(m_hWnd, SW_SHOW);
-        }
-        ::SetForegroundWindow(m_hWnd);
-    }
-}
-
 bool NativeWindow::SetWindowForeground()
 {
     ASSERT(::IsWindow(m_hWnd));
@@ -478,30 +506,6 @@ void NativeWindow::PostQuitMsg(int32_t nExitCode)
     ::PostQuitMessage(nExitCode);
 }
 
-bool NativeWindow::Maximize()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_MAXIMIZE, 0);
-    m_pOwner->OnNativeWindowMaximized();
-    return true;
-}
-
-bool NativeWindow::Restore()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_RESTORE, 0);
-    m_pOwner->OnNativeWindowRestored();
-    return true;
-}
-
-bool NativeWindow::Minimize()
-{
-    ASSERT(::IsWindow(m_hWnd));
-    ::SendMessage(m_hWnd, WM_SYSCOMMAND, SC_MINIMIZE, 0);
-    m_pOwner->OnNativeWindowMinimized();
-    return true;
-}
-
 bool NativeWindow::EnterFullScreen()
 {
     ASSERT(::IsWindow(m_hWnd));
@@ -515,6 +519,8 @@ bool NativeWindow::EnterFullScreen()
     if (m_bFullScreen) {
         return true;
     }
+    m_bFullScreen = true;
+
     //保存窗口风格
     m_dwLastStyle = ::GetWindowLong(m_hWnd, GWL_STYLE);
 
@@ -531,8 +537,7 @@ bool NativeWindow::EnterFullScreen()
     DWORD dwFullScreenStyle = (m_dwLastStyle | WS_VISIBLE | WS_POPUP | WS_MAXIMIZE) & ~WS_CAPTION & ~WS_BORDER & ~WS_THICKFRAME & ~WS_DLGFRAME;
     ::SetWindowLongPtr(m_hWnd, GWL_STYLE, dwFullScreenStyle);
     ::SetWindowPos(m_hWnd, NULL, xScreen, yScreen, cxScreen, cyScreen, SWP_FRAMECHANGED); // 设置位置和大小
-
-    m_bFullScreen = true;
+    
     m_pOwner->OnNativeWindowEnterFullScreen();
     return true;
 }
@@ -546,19 +551,21 @@ bool NativeWindow::ExitFullScreen()
     if (!m_bFullScreen) {
         return false;
     }
-    m_bFullScreen = false;
-
+    
     //恢复窗口风格
-    ::SetWindowLong(m_hWnd, GWL_STYLE, m_dwLastStyle);
+    if (m_dwLastStyle != 0) {
+        ::SetWindowLong(m_hWnd, GWL_STYLE, m_dwLastStyle);
+        m_dwLastStyle = 0;
+    }
 
     //恢复窗口位置/大小信息
     ::SetWindowPlacement(m_hWnd, &m_rcLastWindowPlacement);
 
-    m_pOwner->OnNativeWindowExitFullScreen();
-
     if (IsWindowMaximized()) {
-        Restore();
+        ::ShowWindow(m_hWnd, SW_RESTORE);
     }
+    m_bFullScreen = false;
+    m_pOwner->OnNativeWindowExitFullScreen();
     return true;
 }
 
@@ -1145,9 +1152,11 @@ LRESULT NativeWindow::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
         lResult = pOwner->OnNativeUserMessage(uMsg, wParam, lParam, bHandled);
     }
 
-    if (!bHandled && !ownerFlag.expired() && (uMsg == WM_CLOSE)) {
-        //窗口即将关闭（关闭前）
-        pOwner->OnNativePreCloseWindow();
+    if (!bHandled && !ownerFlag.expired()) {
+        if ((uMsg == WM_CLOSE) || ((uMsg == WM_SYSCOMMAND) && (GET_SC_WPARAM(wParam) == SC_CLOSE))) {
+            //窗口即将关闭（关闭前）
+            pOwner->OnNativePreCloseWindow();
+        }
     }
 
     //第五优先级：系统默认的窗口函数
@@ -1188,7 +1197,6 @@ LRESULT NativeWindow::ProcessInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_COMMAND:            lResult = OnCommandMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_CTLCOLOREDIT:       lResult = OnCtlColorMsgs(uMsg, wParam, lParam, bHandled); break;
     case WM_CTLCOLORSTATIC:     lResult = OnCtlColorMsgs(uMsg, wParam, lParam, bHandled); break;
-    case WM_SYSCOMMAND:         lResult = OnSysCommandMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_TOUCH:              lResult = OnTouchMsg(uMsg, wParam, lParam, bHandled); break;
 
     case WM_POINTERDOWN:
@@ -1348,11 +1356,11 @@ LRESULT NativeWindow::OnNcLButtonDbClickMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM
     bHandled = true;
     if (!IsWindowMaximized()) {
         //最大化
-        Maximize();
+        ShowWindow(kSW_SHOW_MAXIMIZED);
     }
     else {
         //还原
-        Restore();
+        ShowWindow(kSW_RESTORE);
     }
     return 0;
 }
@@ -1496,27 +1504,6 @@ LRESULT NativeWindow::OnCtlColorMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bo
     HWND hWndChild = (HWND)lParam;
     bHandled = true;
     return ::SendMessage(hWndChild, OCM__BASE + uMsg, wParam, lParam);
-}
-
-LRESULT NativeWindow::OnSysCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_SYSCOMMAND);
-    bHandled = true;
-    if (GET_SC_WPARAM(wParam) == SC_CLOSE) {
-        //立即关闭窗口
-        Close();
-        return 0;
-    }
-    //首先调用默认的窗口函数，使得命令生效
-    bool bMaximized = IsWindowMaximized();
-    LRESULT lRes = CallDefaultWindowProc(uMsg, wParam, lParam);
-    if (IsWindowMaximized() != bMaximized) {
-        if (GET_SC_WPARAM(wParam) == 0xF012) {
-            //修复窗口最大化和还原按钮的状态（当在最大化时，向下拖动标题栏，窗口会改变为非最大化状态）
-            m_pOwner->OnNativeWindowRestored();
-        }
-    }
-    return lRes;
 }
 
 LRESULT NativeWindow::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)

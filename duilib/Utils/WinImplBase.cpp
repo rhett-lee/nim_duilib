@@ -118,15 +118,15 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
     }
     else if (sCtrlName == DUI_CTR_BUTTON_MIN) {
         //最小化按钮
-        Minimize();
+        ShowWindow(kSW_MINIMIZE);
     }
     else if (sCtrlName == DUI_CTR_BUTTON_MAX) {
         //最大化按钮        
-        Maximize();
+        ShowWindow(kSW_SHOW_MAXIMIZED);
     }
     else if (sCtrlName == DUI_CTR_BUTTON_RESTORE) {
         //还原按钮        
-        Restore();
+        ShowWindow(kSW_RESTORE);
     }
     else if (sCtrlName == DUI_CTR_BUTTON_FULLSCREEN) {
         //全屏按钮
@@ -134,6 +134,34 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
     }
 
     return true;
+}
+
+LRESULT WindowImplBase::OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, bool& bHandled)
+{
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    LRESULT lResult = __super::OnSizeMsg(sizeType, newWindowSize, bHandled);
+    if (windowFlag.expired()) {
+        return lResult;
+    }
+    if (sizeType == WindowSizeType::kSIZE_MAXIMIZED) {
+        //窗口最大化
+        if (!IsWindowFullScreen()) {
+            OnWindowMaximized();
+        }
+    }
+    else if (sizeType == WindowSizeType::kSIZE_RESTORED) {
+        //窗口还原
+        if (!IsWindowFullScreen()) {
+            OnWindowRestored();
+        }
+    }
+    else if (sizeType == WindowSizeType::kSIZE_MINIMIZED) {
+        //窗口最小化
+        if (!IsWindowFullScreen()) {
+            OnWindowMinimized();
+        }
+    }
+    return lResult;
 }
 
 void WindowImplBase::OnWindowEnterFullScreen()
@@ -193,7 +221,7 @@ void WindowImplBase::OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI)
 
 void WindowImplBase::ProcessMaxRestoreStatus()
 {
-    if (IsUseSystemCaption()) {
+    if (IsUseSystemCaption() || (GetRoot() == nullptr)) {
         return;
     }
     Control* pMaxButton = (Control*)FindControl(DUI_CTR_BUTTON_MAX);

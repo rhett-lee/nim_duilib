@@ -52,7 +52,7 @@ void MainThread::OnInit()
     pWindow->PostQuitMsgWhenClosed(true);
     pWindow->SetIcon(IDI_LISTCTRL);
     pWindow->CenterWindow();
-    pWindow->ShowWindow();
+    pWindow->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 
 void MainThread::OnCleanup()

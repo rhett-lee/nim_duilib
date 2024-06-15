@@ -1168,15 +1168,19 @@ void MainForm::OnFindText()
         createParam.m_windowTitle = createParam.m_className;
         m_pFindForm->CreateWnd(nullptr, createParam);
         m_pFindForm->CenterWindow();
-        m_pFindForm->ShowWindow();
-
+        m_pFindForm->ShowWindow(ui::kSW_SHOW);
         m_pFindForm->AttachWindowClose([this](const ui::EventArgs& args) {
                 m_pFindForm = nullptr;
                 return true;
             });
     }
     else {
-        m_pFindForm->ActiveWindow();
+        if (m_pFindForm->IsWindowMinimized()) {
+            m_pFindForm->ShowWindow(ui::kSW_RESTORE);
+        }
+        else {
+            m_pFindForm->ShowWindow(ui::kSW_SHOW);
+        }
     }
 }
 
@@ -1196,14 +1200,19 @@ void MainForm::OnReplaceText()
         createParam.m_windowTitle = createParam.m_className;
         m_pReplaceForm->CreateWnd(nullptr, createParam);
         m_pReplaceForm->CenterWindow();
-        m_pReplaceForm->ShowWindow();
+        m_pReplaceForm->ShowWindow(ui::kSW_SHOW);
         m_pReplaceForm->AttachWindowClose([this](const ui::EventArgs& args) {
                 m_pReplaceForm = nullptr;
                 return true;
             });
     }
     else {
-        m_pReplaceForm->ActiveWindow();
+        if (m_pReplaceForm->IsWindowMinimized()) {
+            m_pReplaceForm->ShowWindow(ui::kSW_RESTORE);
+        }
+        else {
+            m_pReplaceForm->ShowWindow(ui::kSW_SHOW);
+        }
     }
 }
 

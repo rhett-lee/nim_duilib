@@ -70,8 +70,8 @@ void MainThread::OnInit()
     window->PostQuitMsgWhenClosed(true);
     window->SetIcon(IDI_BASIC);
     window->CenterWindow();
-    window->ShowWindow();    
-   // window->Maximize();
+    window->ShowWindow(ui::kSW_SHOW_NORMAL);
+   // window->ShowWindow(ui::kSW_SHOW_MAXIMIZED);
 }
 
 void MainThread::OnCleanup()

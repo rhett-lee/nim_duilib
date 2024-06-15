@@ -678,7 +678,7 @@ void ColorPicker::OnPickColorFromScreen()
     }
     if (bHideWindow) {
         //隐藏主窗口
-        ShowWindow(false, false);
+        ShowWindow(ui::kSW_HIDE);
     }
 
     //抓取屏幕位图
@@ -689,7 +689,7 @@ void ColorPicker::OnPickColorFromScreen()
     createWndParam.m_dwExStyle = WS_EX_TRANSPARENT;
     pScreenColorPicker->CreateWnd(this, createWndParam);
     pScreenColorPicker->CenterWindow();
-    pScreenColorPicker->ShowWindow();
+    pScreenColorPicker->ShowWindow(ui::kSW_SHOW_NORMAL);
     pScreenColorPicker->EnterFullScreen();
     pScreenColorPicker->AttachWindowClose([this, pScreenColorPicker, bHideWindow](const ui::EventArgs& /*args*/) {
         //更新选择的颜色值
@@ -715,7 +715,7 @@ void ColorPicker::OnPickColorFromScreen()
         }
         if (bHideWindow) {
             //显示主窗口
-            this->ShowWindow(true, true);
+            this->ShowWindow(ui::kSW_SHOW_NORMAL);
         }
         return true;
         });
