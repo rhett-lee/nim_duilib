@@ -6,7 +6,7 @@
 
 namespace ui {
 
-/** 窗口大小改变的类型
+/** 窗口大小改变的类型（WM_SIZE消息的参数）
 */
 enum class WindowSizeType
 {
@@ -17,6 +17,8 @@ enum class WindowSizeType
     kSIZE_MAXHIDE   = 4     //当其他一些窗口最大化时，消息将发送到所有弹出窗口
 };
 
+/** ShowWindow的命令
+*/
 enum ShowWindowCommands
 {
     kSW_HIDE                = 0, //隐藏窗口并激活另一个窗口
@@ -29,6 +31,65 @@ enum ShowWindowCommands
     kSW_SHOW_MIN_NOACTIVE   = 7, //将窗口显示为最小化窗口。 此值类似于 kSW_SHOW_MINIMIZED，但窗口未激活
     kSW_SHOW_NA             = 8, //以当前大小和位置显示窗口。 此值类似于 SW_SHOW，只是窗口未激活
     kSW_RESTORE             = 9  //激活并显示窗口。 如果窗口最小化、最大化或排列，系统会将其还原到其原始大小和位置。 还原最小化窗口时，应用程序应指定此标志。
+};
+
+/* SetWindowPos Flags
+ */
+enum WindowPosFlags
+{
+    kSWP_NOSIZE         = 0x0001,
+    kSWP_NOMOVE         = 0x0002,
+    kSWP_NOZORDER       = 0x0004,
+    kSWP_NOREDRAW       = 0x0008,
+    kSWP_NOACTIVATE     = 0x0010,
+    kSWP_FRAMECHANGED   = 0x0020,  /* The frame changed: send WM_NCCALCSIZE */
+    kSWP_SHOWWINDOW     = 0x0040,
+    kSWP_HIDEWINDOW     = 0x0080,
+    kSWP_NOCOPYBITS     = 0x0100,
+    kSWP_NOOWNERZORDER  = 0x0200,  /* Don't do owner Z ordering */
+    kSWP_NOSENDCHANGING = 0x0400,  /* Don't send WM_WINDOWPOSCHANGING */
+    kSWP_DEFERERASE     = 0x2000,  // same as SWP_DEFERDRAWING
+    kSWP_ASYNCWINDOWPOS = 0x4000   // same as SWP_CREATESPB
+};
+
+/** SetWindowPos 的 hWndInsertAfter 参数标识
+*/
+enum class InsertAfterFlag
+{
+    kHWND_NOTOPMOST = -2,
+    kHWND_TOPMOST   = -1,
+    kHWND_TOP       =  0,
+    kHWND_BOTTOM    =  1
+};
+
+class WindowBase;
+/** SetWindowPos 的 hWndInsertAfter 参数
+*/
+class InsertAfterWnd
+{
+public:
+    InsertAfterWnd():
+        m_pWindow(nullptr),
+        m_hwndFlag(InsertAfterFlag::kHWND_TOP)
+    {
+    }
+    explicit InsertAfterWnd(WindowBase* pWindow):
+        m_pWindow(pWindow),
+        m_hwndFlag(InsertAfterFlag::kHWND_TOP)
+    {
+    }
+    explicit InsertAfterWnd(InsertAfterFlag flag) :
+        m_pWindow(nullptr),
+        m_hwndFlag(flag)
+    {
+    }
+    /** 窗口指针
+    */
+    WindowBase* m_pWindow;
+
+    /** 窗口标志(仅当m_pWindow为nullptr时生效)
+    */
+    InsertAfterFlag m_hwndFlag;
 };
 
 /** 窗口消息定义，只定义部分使用到的消息(和Windows系统定义一致，WinUser.h)

@@ -24,7 +24,7 @@ LRESULT CALLBACK DragForm::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lP
                     UiPadding rcShadow;
                     s_drag_form->GetShadowCorner(rcShadow);
                     rc.Inflate(rcShadow);
-                    s_drag_form->SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOSIZE);
+                    s_drag_form->SetWindowPos(InsertAfterWnd(), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_NOSIZE);
                 }
             }
         }
@@ -83,7 +83,7 @@ DragForm* DragForm::CreateDragForm(HBITMAP bitmap, POINT pt_offset)
     UiPadding rcShadow;
     drag_form->GetShadowCorner(rcShadow);
     rect.Inflate(rcShadow);
-    drag_form->SetWindowPos(nullptr, rect.left, rect.top, rect.Width(), rect.Height(), SWP_SHOWWINDOW);
+    drag_form->SetWindowPos(InsertAfterWnd(), rect.left, rect.top, rect.Width(), rect.Height(), kSWP_SHOWWINDOW);
     return drag_form;
 }
 

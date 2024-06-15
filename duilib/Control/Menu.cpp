@@ -310,9 +310,10 @@ void Menu::ResizeMenu()
         SetWindowForeground();
         SetFocusControl(m_pLayout);
     }
-    SetWindowPos(HWND_TOPMOST, point.x - rcCorner.left, point.y - rcCorner.top,
+    SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
+                 point.x - rcCorner.left, point.y - rcCorner.top,
                  szAvailable.cx, szAvailable.cy,
-                 SWP_SHOWWINDOW | (m_noFocus ? SWP_NOACTIVATE : 0));
+                 kSWP_SHOWWINDOW | (m_noFocus ? kSWP_NOACTIVATE : 0));
 }
 
 void Menu::ResizeSubMenu()
@@ -413,9 +414,10 @@ void Menu::ResizeSubMenu()
         SetWindowForeground();
         SetFocusControl(m_pLayout);
     }
-    SetWindowPos(HWND_TOPMOST, rc.left - rcCorner.left, rc.top - rcCorner.top,
+    SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
+                 rc.left - rcCorner.left, rc.top - rcCorner.top,
                  rc.right - rc.left, rc.bottom - rc.top,
-                 SWP_SHOWWINDOW | (m_noFocus ? SWP_NOACTIVATE : 0));
+                 kSWP_SHOWWINDOW | (m_noFocus ? kSWP_NOACTIVATE : 0));
 }
 
 void Menu::OnInitWindow()

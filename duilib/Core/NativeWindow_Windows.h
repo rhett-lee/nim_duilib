@@ -244,21 +244,21 @@ public:
 
 public:
     /** 设置窗口位置（对 ::SetWindowPos API 的一层封装，内部无DPI缩放）
-    * @param [in] hWndInsertAfter 对应 SetWindowPos 的 hWndInsertAfter 选项
+    * @param [in] insertAfter 对应 SetWindowPos 的 hWndInsertAfter 选项
     * @param [in] X 窗口的X坐标
     * @param [in] Y 窗口的Y坐标
     * @param [in] cx 窗口的宽度
     * @param [in] cy 窗口的高度
-    * @param [in] uFlags 对应 ::SetWindowPos API 的 uFlags 选项
+    * @param [in] uFlags 参考 enum WindowPosFlags 选项
     */
-    bool SetWindowPos(HWND hWndInsertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, UINT uFlags);
+    bool SetWindowPos(const InsertAfterWnd& insertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, uint32_t uFlags);
 
     /** 设置窗口位置和大小
     * @param [in] X 窗口的X坐标
     * @param [in] Y 窗口的Y坐标
     * @param [in] nWidth 窗口的宽度
     * @param [in] nHeight 窗口的高度
-    * @param [in] uFlags 对应 ::SetWindowPos API 的 uFlags 选项
+    * @param [in] bRepaint 是否重绘窗口
     */
     bool MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHeight, bool bRepaint);
 

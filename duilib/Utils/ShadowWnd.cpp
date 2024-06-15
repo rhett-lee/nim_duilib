@@ -74,7 +74,7 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
                     UiPadding rcShadow;
                     GetShadowCorner(rcShadow);
                     rc.Inflate(rcShadow);
-                    SetWindowPos(m_pWindow->NativeWnd()->GetHWND(), rc.left, rc.top, rc.Width(), rc.Height(), SWP_SHOWWINDOW | SWP_NOACTIVATE);
+                    SetWindowPos(InsertAfterWnd(m_pWindow), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_SHOWWINDOW | kSWP_NOACTIVATE);
                     m_isFirstPainted = true;
                 }
             }            

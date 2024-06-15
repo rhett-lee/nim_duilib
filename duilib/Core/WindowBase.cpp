@@ -349,9 +349,9 @@ bool WindowBase::IsWindowVisible() const
     return m_pNativeWindow->IsWindowVisible();
 }
 
-bool WindowBase::SetWindowPos(HWND hWndInsertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, UINT uFlags)
+bool WindowBase::SetWindowPos(const InsertAfterWnd& insertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, uint32_t uFlags)
 {
-    return m_pNativeWindow->SetWindowPos(hWndInsertAfter, X, Y, cx, cy, uFlags);
+    return m_pNativeWindow->SetWindowPos(insertAfter, X, Y, cx, cy, uFlags);
 }
 
 bool WindowBase::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHeight, bool bRepaint)
@@ -393,7 +393,7 @@ void WindowBase::Resize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
         cy += rcShadow.top + rcShadow.bottom;
     }
     ASSERT(IsWindow());
-    WindowBase::SetWindowPos(nullptr, 0, 0, cx, cy, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+    WindowBase::SetWindowPos(InsertAfterWnd(), 0, 0, cx, cy, kSWP_NOZORDER | kSWP_NOMOVE | kSWP_NOACTIVATE);
 }
 
 void WindowBase::SetIcon(UINT nRes)

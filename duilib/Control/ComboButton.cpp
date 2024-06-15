@@ -100,7 +100,7 @@ void ComboButtonWnd::UpdateComboWnd()
         rc.bottom = rcOwner.top;
         pOwner->GetWindow()->MapWindowDesktopRect(rc);
     }
-    SetWindowPos(nullptr, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER | SWP_NOACTIVATE);
+    SetWindowPos(InsertAfterWnd(), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_NOZORDER | kSWP_NOACTIVATE);
 }
 
 void ComboButtonWnd::OnFinalMessage()

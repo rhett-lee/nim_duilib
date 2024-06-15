@@ -193,7 +193,7 @@ void MultiBrowserManager::SetEnableMerge(bool enable)
                 {
                     rect_old_form.left += sort_form->Dpi().GetScaleInt(kSplitFormXOffset);
                     rect_old_form.top += sort_form->Dpi().GetScaleInt(kSplitFormXOffset);
-                    sort_form->SetWindowPos(nullptr, rect_old_form.left, rect_old_form.top, rect_old_form.Width(), rect_old_form.Height(), SWP_NOSIZE);
+                    sort_form->SetWindowPos(ui::InsertAfterWnd(), rect_old_form.left, rect_old_form.top, rect_old_form.Width(), rect_old_form.Height(), ui::kSWP_NOSIZE);
                 }
             }
         }
@@ -384,7 +384,7 @@ void MultiBrowserManager::OnAfterDragBorwserBox()
                         ui::UiRect rect(pt_mouse.x + browser_form->Dpi().GetScaleInt(kDragFormXOffset),
                                         pt_mouse.y + browser_form->Dpi().GetScaleInt(kDragFormYOffset),
                                         0, 0);
-                        browser_form->SetWindowPos(nullptr, rect.left, rect.top, rect.Width(), rect.Height(), SWP_NOSIZE);
+                        browser_form->SetWindowPos(ui::InsertAfterWnd(), rect.left, rect.top, rect.Width(), rect.Height(), ui::kSWP_NOSIZE);
                     }
                 }
             }

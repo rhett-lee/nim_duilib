@@ -599,9 +599,18 @@ bool NativeWindow::IsWindowVisible() const
     return ::IsWindow(m_hWnd) && ::IsWindowVisible(m_hWnd) != FALSE;
 }
 
-bool NativeWindow::SetWindowPos(HWND hWndInsertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, UINT uFlags)
+bool NativeWindow::SetWindowPos(const InsertAfterWnd& insertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, uint32_t uFlags)
 {
     ASSERT(::IsWindow(m_hWnd));
+    HWND hWndInsertAfter = HWND_TOP;
+    if (!(uFlags & kSWP_NOZORDER)) {
+        if (insertAfter.m_pWindow != nullptr) {
+            hWndInsertAfter = insertAfter.m_pWindow->NativeWnd()->GetHWND();
+        }
+        else {
+            hWndInsertAfter = (HWND)insertAfter.m_hwndFlag;
+        }
+    }
     return ::SetWindowPos(m_hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags) != FALSE;
 }
 
@@ -1424,7 +1433,7 @@ LRESULT NativeWindow::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, b
     }
     //更新窗口的位置和大小
     if (!rcNewWindow.IsEmpty()) {
-        SetWindowPos(NULL,
+        SetWindowPos(InsertAfterWnd(),
                      rcNewWindow.left, rcNewWindow.top, rcNewWindow.Width(), rcNewWindow.Height(),
                      SWP_NOZORDER | SWP_NOACTIVATE);
     }
