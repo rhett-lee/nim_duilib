@@ -840,6 +840,9 @@ LRESULT WindowBase::OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPara
     LRESULT lResult = 0;
     //第一优先级：将消息发给过滤器进行过滤（可以通过设置bHandled为true来截获消息处理）
     for (auto filter : m_aMessageFilters) {
+        if (filter == nullptr) {
+            continue;
+        }
         lResult = filter->FilterMessage(uMsg, wParam, lParam, bHandled);
         if (bHandled) {
             //过滤器处理后截获此消息，不再进行派发

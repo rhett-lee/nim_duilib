@@ -173,7 +173,7 @@ LRESULT CALLBACK DateTimeWnd::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam,
         }
     }
     else {
-        pThis = reinterpret_cast<DateTimeWnd*>(::GetPropW(hWnd, sPropName));
+        pThis = static_cast<DateTimeWnd*>(::GetPropW(hWnd, sPropName));
         if (uMsg == WM_NCDESTROY && pThis != nullptr) {
             LRESULT lRes = ::CallWindowProc(pThis->m_OldWndProc, hWnd, uMsg, wParam, lParam);
             ::SetPropW(hWnd, sPropName, NULL);

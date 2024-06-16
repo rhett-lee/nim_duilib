@@ -578,9 +578,6 @@
     <ClInclude Include="third_party\apng\decoder-apng.h">
       <Filter>third_party\apng</Filter>
     </ClInclude>
-    <ClInclude Include="third_party\stb_image\stb_image_resize.h">
-      <Filter>third_party\stb_image</Filter>
-    </ClInclude>
     <ClInclude Include="Core\BoxShadow.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -992,5 +989,11 @@
     <ClInclude Include="Core\INativeWindow.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="third_party\stb_image\stb_image_resize2.h">
+      <Filter>third_party\stb_image</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="duilib.ruleset" />
   </ItemGroup>
 </Project>

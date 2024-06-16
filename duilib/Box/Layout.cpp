@@ -98,6 +98,10 @@ UiSize64 Layout::SetFloatPos(Control* pControl, const UiRect& rcContainer)
 UiRect Layout::GetFloatPos(Control* pControl, UiRect rcContainer, UiSize childSize)
 {
     rcContainer.Validate();
+    ASSERT(pControl != nullptr);
+    if (pControl == nullptr) {
+        return UiRect();
+    }
     UiMargin rcMargin = pControl->GetMargin();
     int32_t iPosLeft = rcContainer.left + rcMargin.left;
     int32_t iPosRight = rcContainer.right - rcMargin.right;
@@ -173,10 +177,10 @@ UiSize64 Layout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
         rcPadding = m_pOwner->GetPadding();
     }
     if (size.cx > 0) {
-        size.cx += (rcPadding.left + rcPadding.right);
+        size.cx += ((int64_t)rcPadding.left + rcPadding.right);
     }
     if (size.cy > 0) {
-        size.cy += (rcPadding.top + rcPadding.bottom);
+        size.cy += ((int64_t)rcPadding.top + rcPadding.bottom);
     }
     return size;
 }

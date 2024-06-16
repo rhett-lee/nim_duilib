@@ -84,7 +84,7 @@ private:
         //颜色值
         UiColor colorValue;
         //是否选择
-        bool m_bSelected;
+        bool m_bSelected = false;
 
         //比较函数
         bool operator < (const RegularColor& r)

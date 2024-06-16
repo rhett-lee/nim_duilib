@@ -130,15 +130,15 @@ private:
     */
     struct TaskInfo
     {
-        TaskType m_taskType;  //任务类型
-        StdClosure m_task;    //任务回调函数
-        int32_t m_nIntervalMs;//任务执行的事件间隔
-        int32_t m_nTimes;     //任务重复执行的次数，如果为-1表示一直执行
+        TaskType m_taskType = TaskType::kTask;  //任务类型
+        StdClosure m_task;                      //任务回调函数
+        int32_t m_nIntervalMs = 0;              //任务执行的事件间隔
+        int32_t m_nTimes = 0;                   //任务重复执行的次数，如果为-1表示一直执行
 
-        size_t m_nTaskId;                                      //任务ID（递增）
+        size_t m_nTaskId = 0;                   //任务ID（递增）
         std::chrono::steady_clock::time_point m_startTime;     //开始时间（任务放入队列的时间）
         std::chrono::steady_clock::time_point m_lastExecTime;  //任务上次执行的时间
-        int32_t m_nTotalExecTimes;                             //任务总计执行的次数
+        int32_t m_nTotalExecTimes = 0;          //任务总计执行的次数
     };
 
     /** 任务信息映射表

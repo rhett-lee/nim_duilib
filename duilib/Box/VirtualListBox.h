@@ -361,9 +361,9 @@ protected:
 public:
     struct RefreshData
     {
-        size_t nItemIndex;      //界面控件的索引号
-        Control* pControl;      //界面控件的接口
-        size_t nElementIndex;   //数据元素的索引号
+        size_t nItemIndex = Box::InvalidIndex;      //界面控件的索引号
+        Control* pControl = nullptr;                //界面控件的接口
+        size_t nElementIndex = Box::InvalidIndex;   //数据元素的索引号
     };
     typedef std::vector<RefreshData> RefreshDataList;
 

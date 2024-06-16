@@ -63,7 +63,7 @@ void ListCtrlReportView::Refresh()
         //刷新功能已经禁止
         return;
     }
-    if (!m_pListCtrl->IsInited()) {
+    if ((m_pListCtrl != nullptr) && !m_pListCtrl->IsInited()) {
         return;
     }
     if ((GetWindow() == nullptr) || !HasDataProvider()) {
@@ -589,6 +589,9 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
     UiRect rcTopControls; //所有置顶控件的矩形区域
     for (size_t i = 0; i < atTopItems.size(); ++i) {
         const Control* pTopControl = atTopItems[i];
+        if (pTopControl == nullptr) {
+            continue;
+        }
         if (i == 0) {
             rcTopControls = pTopControl->GetRect();
         }
@@ -653,6 +656,10 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
 
 void ListCtrlReportView::PaintGridLines(IRender* pRender)
 {
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
+        return;
+    }
     int32_t nColumnLineWidth = GetColumnGridLineWidth();//纵向边线宽度        
     int32_t nRowLineWidth = GetRowGridLineWidth();   //横向边线宽度
     UiColor columnLineColor;
@@ -2096,7 +2103,7 @@ int64_t ListCtrlReportLayout::GetElementsHeight(size_t nCount, bool bIncludeAtTo
         }
         if (nCount <= 1) {
             //只有1行
-            nTotalHeight = nItemHeight + GetChildMarginY();
+            nTotalHeight = (int64_t)nItemHeight + GetChildMarginY();
         }
         else {
             int64_t iChildMargin = 0;

@@ -307,7 +307,7 @@ void ScrollBar::SetPos(UiRect rc)
             m_rcThumb.top = rc.top;
             m_rcThumb.bottom = rc.top + GetFixedHeight().GetInt32();
             if (m_nRange > 0) {
-                int64_t cxThumb = (int64_t)cx * (rc.right - rc.left) / (m_nRange + rc.right - rc.left);
+                int64_t cxThumb = (int64_t)cx * ((int64_t)rc.right - rc.left) / (m_nRange + rc.right - rc.left);
                 if (cxThumb < m_nThumbMinLength) {
                     cxThumb = m_nThumbMinLength;
                 }
@@ -389,7 +389,7 @@ void ScrollBar::SetPos(UiRect rc)
             m_rcThumb.left = rc.left;
             m_rcThumb.right = rc.left + GetFixedWidth().GetInt32();
             if (m_nRange > 0) {
-                int64_t cyThumb = (int64_t)cy * (rc.bottom - rc.top) / (m_nRange + rc.bottom - rc.top);
+                int64_t cyThumb = (int64_t)cy * ((int64_t)rc.bottom - rc.top) / (m_nRange + rc.bottom - rc.top);
                 if (cyThumb < m_nThumbMinLength) cyThumb = m_nThumbMinLength;
 
                 m_rcThumb.top = static_cast<LONG>(m_nScrollPos * (cy - cyThumb) / m_nRange + m_rcButton1.bottom);
@@ -599,7 +599,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
                 }
 
                 if (vRange != 0) {
-                    m_nLastScrollOffset = (pt.y - m_ptLastMouse.y) * m_nRange / vRange;
+                    m_nLastScrollOffset = ((int64_t)pt.y - m_ptLastMouse.y) * m_nRange / vRange;
                 }
             }
             else {
@@ -613,7 +613,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
                 }
 
                 if (hRange != 0) {
-                    m_nLastScrollOffset = (pt.x - m_ptLastMouse.x) * m_nRange / hRange;
+                    m_nLastScrollOffset = ((int64_t)pt.x - m_ptLastMouse.x) * m_nRange / hRange;
                 }
             }
         }

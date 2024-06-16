@@ -65,7 +65,7 @@ private:
     struct ThreadInfo
     {
         //线程接口
-        FrameworkThread* m_pThread;
+        FrameworkThread* m_pThread = nullptr;
 
         //线程的WeakFlag
         std::weak_ptr<WeakFlag> m_threadFlag;

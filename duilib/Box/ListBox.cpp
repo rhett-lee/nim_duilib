@@ -1192,7 +1192,7 @@ bool ListBox::ScrollItemToTop(size_t iIndex)
         //横向布局
         if (GetScrollRange().cx != 0) {
             UiSize64 scrollPos = GetScrollPos();
-            scrollPos.cx = pControl->GetPos().left - GetPosWithoutPadding().left;
+            scrollPos.cx = (int64_t)pControl->GetPos().left - GetPosWithoutPadding().left;
             if (scrollPos.cx >= 0) {
                 SetScrollPos(scrollPos);
                 return true;
@@ -1203,7 +1203,7 @@ bool ListBox::ScrollItemToTop(size_t iIndex)
         //纵向布局
         if (GetScrollRange().cy != 0) {
             UiSize64 scrollPos = GetScrollPos();
-            scrollPos.cy = pControl->GetPos().top - GetPosWithoutPadding().top;
+            scrollPos.cy = (int64_t)pControl->GetPos().top - GetPosWithoutPadding().top;
             if (scrollPos.cy >= 0) {
                 SetScrollPos(scrollPos);
                 return true;
@@ -1449,6 +1449,9 @@ int __cdecl ListBox::ItemComareFunc(void *pvlocale, const void *item1, const voi
 
 int __cdecl ListBox::ItemComareFunc(const void *item1, const void *item2)
 {
+    if (!item1 || !item2) {
+        return 0;
+    }
     Control *pControl1 = *(Control**)item1;
     Control *pControl2 = *(Control**)item2;
     return m_pCompareFunc(pControl1, pControl2, m_pCompareContext);

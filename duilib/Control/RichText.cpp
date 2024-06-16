@@ -134,6 +134,9 @@ void RichText::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 
 void RichText::CalcDestRect(IRender* pRender, UiRect rc, UiRect& rect)
 {
+    if (pRender == nullptr) {
+        return;
+    }
     rect.Clear();
     if (!m_textData.empty()) {
         std::vector<RichTextData> richTextData;

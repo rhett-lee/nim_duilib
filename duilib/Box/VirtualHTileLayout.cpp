@@ -109,7 +109,7 @@ int64_t VirtualHTileLayout::GetElementsWidth(UiRect rc, size_t nCount) const
     int32_t nRows = CalcTileRows(rc.Height());
     if (nCount <= (size_t)nRows && nCount != Box::InvalidIndex) {
         //不到1列，或者刚好1列
-        return szItem.cx + GetChildMarginX();
+        return (int64_t)szItem.cx + GetChildMarginX();
     }
     if (!Box::IsValidItemIndex(nCount)) {
         VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
@@ -120,7 +120,7 @@ int64_t VirtualHTileLayout::GetElementsWidth(UiRect rc, size_t nCount) const
     }
     if (!Box::IsValidItemIndex(nCount)) {
         ASSERT(FALSE);
-        return szItem.cx + GetChildMarginX();
+        return (int64_t)szItem.cx + GetChildMarginX();
     }
 
     int64_t cols = nCount / nRows;
@@ -248,7 +248,7 @@ size_t VirtualHTileLayout::AjustMaxItem(UiRect rc) const
     }
     //额外增加1列，确保真实控件填充满整个可显示区域
     nColumns += 1;
-    return nRows * nColumns;
+    return (size_t)nRows * nColumns;
 }
 
 size_t VirtualHTileLayout::GetTopElementIndex(UiRect rc) const

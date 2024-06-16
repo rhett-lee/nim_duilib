@@ -39,6 +39,9 @@ public:
     */
     void FillRoundRect(IRender* pRender, const UiRect& rcPos)
     {
+        if (pRender == nullptr) {
+            return;
+        }
         Control* pChildBox = GetItemAt(0);
         if (pChildBox == nullptr) {
             return;

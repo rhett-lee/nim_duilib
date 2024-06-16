@@ -123,6 +123,9 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
         }
         int32_t nMaxWidth = 0;
         for (auto pMenuItem : allMenuItems) {
+            if (pMenuItem == nullptr) {
+                continue;
+            }
             if (pMenuItem->GetFixedWidth().IsInt32()) {
                 nMaxWidth = std::max(nMaxWidth, pMenuItem->GetFixedWidth().GetInt32());
             }
@@ -132,6 +135,9 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
         }
         if (nMaxWidth > 0) {
             for (auto pMenuItem : allMenuItems) {
+                if (pMenuItem == nullptr) {
+                    continue;
+                }
                 if (pMenuItem->GetFixedWidth().IsAuto() || pMenuItem->GetFixedWidth().IsInt32()) {
                     pMenuItem->SetFixedWidth(UiFixedInt(nMaxWidth), true, false);
                 }
@@ -158,8 +164,10 @@ void Menu::DetachOwner()
         std::vector<Control*> submenuControls;
         MenuItem::GetAllSubMenuControls(m_pOwner, submenuControls);
         for (auto pItem : submenuControls) {
-            pItem->SetWindow(nullptr);
-            pItem->SetParent(nullptr);
+            if (pItem != nullptr) {
+                pItem->SetWindow(nullptr);
+                pItem->SetParent(nullptr);
+            }
         }
 
         if (pLayoutListBox != nullptr) {
@@ -270,6 +278,9 @@ LRESULT Menu::OnMouseRButtonDbClickMsg(const UiPoint& /*pt*/, uint32_t /*modifie
 void Menu::ResizeMenu()
 {
     ui::Control* pRoot = GetRoot();
+    if (pRoot == nullptr) {
+        return;
+    }
     //点击在哪里，以哪里的屏幕为主
     ui::UiRect rcWork;
     GetMonitorWorkRect(m_menuPoint, rcWork);
@@ -901,6 +912,9 @@ void MenuItem::PaintChild(ui::IRender* pRender, const ui::UiRect& rcPaint)
 
     for (auto item : m_items) {
         Control* pControl = item;
+        if (pControl == nullptr) {
+            continue;
+        }
 
         //对于多级菜单项的内容，不绘制
         MenuItem* menuElementUI = dynamic_cast<MenuItem*>(pControl);

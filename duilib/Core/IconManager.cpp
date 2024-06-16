@@ -193,7 +193,7 @@ bool IconManager::LoadIconData(const DString& str,
 
     HGDIOBJ oldObj = ::SelectObject(dibDC, dib);
 
-    const size_t num_pixels = nWidth * nHeight;
+    const size_t num_pixels = (size_t)nWidth * nHeight;
     memset(bits, 0, num_pixels * 4);
     ::DrawIconEx(dibDC, 0, 0, hIcon, nWidth, nHeight, 0, nullptr, DI_MASK);
 
@@ -206,7 +206,7 @@ bool IconManager::LoadIconData(const DString& str,
     ::DrawIconEx(dibDC, 0, 0, hIcon, nWidth, nHeight, 0, nullptr, DI_NORMAL);
 
     bitmapData.resize(num_pixels * 4, 0);
-    ::memcpy(bitmapData.data(), static_cast<void*>(bits), num_pixels * 4);
+    ::memcpy(bitmapData.data(), (void*)(bits), num_pixels * 4);
 
     bool bitmap_has_alpha_channel = false;
     const uint32_t* pixels = static_cast<const uint32_t*>((const void*)bitmapData.data());

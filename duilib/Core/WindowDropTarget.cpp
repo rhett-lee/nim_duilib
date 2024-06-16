@@ -30,6 +30,9 @@ public:
     virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid,
                                                      void __RPC_FAR* __RPC_FAR* ppvObject)
     {
+        if (ppvObject == nullptr) {
+            return E_INVALIDARG;
+        }
         HRESULT hr = E_NOINTERFACE;
         if (riid == __uuidof(IUnknown)) {
             *ppvObject = (IUnknown*)this;
@@ -134,6 +137,9 @@ public:
                                            POINTL pt,
                                            DWORD* pdwEffect)
     {
+        if (pdwEffect == nullptr) {
+            return S_FALSE;
+        }
         if (*pdwEffect == DROPEFFECT_NONE) {
             return S_FALSE;
         }
@@ -168,6 +174,9 @@ public:
         int32_t itemCount = (int32_t)m_pWindowDropTarget->m_dropTargets.size();
         for (int32_t index = itemCount - 1; index >= 0; --index) {
             ControlDropTarget* pControlDropTarget = m_pWindowDropTarget->m_dropTargets[index];
+            if (pControlDropTarget == nullptr) {
+                continue;
+            }
             if (pControlDropTarget->ContainsPt(screenPt)) {
                 return pControlDropTarget;
             }

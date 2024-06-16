@@ -128,7 +128,7 @@ namespace STBImageLoader
         if ((buffer == nullptr) || (len <= 0)) {
             return false;
         }
-        const int desired_channels = 4; //返回的图像数据格式固定：RGBA，每个图像元素是4个字节
+        constexpr const int desired_channels = 4; //返回的图像数据格式固定：RGBA，每个图像元素是4个字节
         int channels_in_file = 4;
         uint8_t* rgbaData = stbi_load_from_memory(buffer, len, &nWidth, &nHeight, &channels_in_file, desired_channels);
         if (rgbaData == nullptr) {
@@ -139,8 +139,8 @@ namespace STBImageLoader
         ASSERT((nWidth > 0) && (nHeight > 0));
         if (((channels_in_file == 3) || (channels_in_file == 4)) && 
             (nWidth > 0) && (nHeight > 0)) {
-            argbData.resize(nHeight * nWidth * desired_channels);
-            const size_t colorCount = nHeight * nWidth;
+            argbData.resize((size_t)nHeight * nWidth * desired_channels);
+            const size_t colorCount = (size_t)nHeight * nWidth;
 
             //数据格式转换：ABGR[alpha, blue, green, red] -> ARGB[alpha, red, green, blue]                
             for (size_t i = 0; i < colorCount; ++i) {
@@ -184,6 +184,9 @@ namespace APNGImageLoader
 
         //swap rgba to bgra and do premultiply
         uint8_t* p = pngData->pdata;
+        if (p == nullptr) {
+            return false;
+        }
         int pixel_count = nWid * nHei * pngData->nFrames;
         for (int i = 0; i < pixel_count; ++i) {
             BYTE a = p[3];
@@ -308,10 +311,13 @@ namespace SVGImageLoader
             return false;
         }
 
-        const int dataSize = 4;
+        constexpr const int dataSize = 4;
         std::vector<uint8_t>& bitmapData = imageData.m_bitmapData;
-        bitmapData.resize(height * width * dataSize);
+        bitmapData.resize((size_t)height * width * dataSize);
         uint8_t* pBmpBits = bitmapData.data();
+        if (pBmpBits == nullptr) {
+            return false;
+        }
         nsvgRasterize(rast.get(), svg.get(), 0, 0, scale, pBmpBits, width, height, width * dataSize);
 
         // nanosvg内部已经做过alpha预乘，这里只做R和B的交换
@@ -408,7 +414,7 @@ namespace CxImageLoader
             int32_t lPx = 0;
             int32_t lPy = 0;
             ImageDecoder::ImageData& bitmapData = imageData[index];
-            bitmapData.m_bitmapData.resize(nHeight * nWidth * 4);
+            bitmapData.m_bitmapData.resize((size_t)nHeight * nWidth * 4);
             RGBQUAD* pBit = (RGBQUAD*)bitmapData.m_bitmapData.data();
             for (lPy = 0; lPy < (int32_t)nHeight; ++lPy) {
                 for (lPx = 0; lPx < (int32_t)nWidth; ++lPx) {
@@ -540,8 +546,8 @@ namespace WebPImageLoader
                 WebPDemuxReleaseIterator(&iter);
                 break;
             }
-            ImageDecoder::ImageData& bitmapData = imageData[frame_idx - 1];
-            const size_t dataSize = width * hight * 4;
+            ImageDecoder::ImageData& bitmapData = imageData[(size_t)frame_idx - 1];
+            const size_t dataSize = (size_t)width * hight * 4;
             bitmapData.m_bitmapData.resize(dataSize);
             memcpy(bitmapData.m_bitmapData.data(), decode_data, dataSize);
             bitmapData.m_imageWidth = width;
@@ -650,8 +656,8 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
     uint32_t imageWidth = 0;
     uint32_t imageHeight = 0;
     for (const ImageData& bitmapData : imageData) {
-        ASSERT(bitmapData.m_bitmapData.size() == (bitmapData.m_imageWidth * bitmapData.m_imageHeight * 4));
-        if (bitmapData.m_bitmapData.size() != (bitmapData.m_imageWidth * bitmapData.m_imageHeight * 4)) {
+        ASSERT(bitmapData.m_bitmapData.size() == ((size_t)bitmapData.m_imageWidth * bitmapData.m_imageHeight * 4));
+        if (bitmapData.m_bitmapData.size() != ((size_t)bitmapData.m_imageWidth * bitmapData.m_imageHeight * 4)) {
             return nullptr;
         }
         frameIntervals.push_back(bitmapData.m_frameInterval);
@@ -709,7 +715,7 @@ bool ImageDecoder::ResizeImageData(std::vector<ImageData>& imageData,
             //图片大小未发生变化
             continue;
         }
-        resizedBitmapData.resize(nNewWidth * nNewHeight * 4);
+        resizedBitmapData.resize((size_t)nNewWidth * nNewHeight * 4);
         const unsigned char* input_pixels = image.m_bitmapData.data();
         int input_w = image.m_imageWidth;
         int input_h = image.m_imageHeight;

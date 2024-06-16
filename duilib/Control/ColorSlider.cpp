@@ -199,7 +199,10 @@ void ColorSlider::GetARGB(uint32_t* buffer, int32_t samples,
                           const UiColor& start, 
                           const UiColor& end) const
 {
-    const int32_t int_extend = 20;
+    if (buffer == nullptr) {
+        return;
+    }
+    constexpr const int32_t int_extend = 20;
 
     int32_t alpha = (int32_t)start.GetA() << int_extend;
     int32_t red   = (int32_t)start.GetR() << int_extend;

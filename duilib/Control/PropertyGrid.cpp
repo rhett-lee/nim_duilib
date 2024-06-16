@@ -177,7 +177,7 @@ void PropertyGrid::PaintChild(IRender* pRender, const UiRect& rcPaint)
 
 void PropertyGrid::PaintGridLines(IRender* pRender)
 {
-    if (m_pTreeView == nullptr) {
+    if ((m_pTreeView == nullptr) || (pRender == nullptr)) {
         return;
     }
     int32_t nColumnLineWidth = GetColumnGridLineWidth();//纵向边线宽度        
@@ -1428,8 +1428,8 @@ namespace PropertyGridFontPropertyImpl
 {
     struct FontInfo
     {
-        LOGFONT lf;
-        DWORD fontType;
+        LOGFONT lf = {0, };
+        DWORD fontType = 0;
     };
 
     //枚举字体的回调函数

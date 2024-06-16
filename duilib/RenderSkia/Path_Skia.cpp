@@ -63,7 +63,7 @@ void Path_Skia::SetFillType(FillType mode)
 
 IPath::FillType Path_Skia::GetFillType()
 {
-    IPath::FillType fillType;
+    IPath::FillType fillType = FillType::kWinding;
     SkPathFillType skPathFillType = m_skPath->getFillType();
     switch (skPathFillType) {
     case SkPathFillType::kEvenOdd:

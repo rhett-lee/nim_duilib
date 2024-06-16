@@ -81,7 +81,7 @@ typedef std::shared_ptr<ListCtrlSubItemData2> ListCtrlSubItemData2Ptr;
 
 struct ListCtrlSubItemData2Pair
 {
-    size_t nColumnId; //列的ID
+    size_t nColumnId = 0; //列的ID
     ListCtrlSubItemData2Ptr pSubItemData; //列的数据
 };
 
@@ -89,9 +89,9 @@ struct ListCtrlSubItemData2Pair
 */
 struct ListCtrlCompareParam
 {
-    size_t nColumnIndex; //数据关联第几列，有效范围：[0, GetColumnCount())
-    size_t nColumnId;    //数据关联列的ID
-    void* pUserData;     //用户自定义数据，设置比较函数的时候一同传入
+    size_t nColumnIndex = 0;   //数据关联第几列，有效范围：[0, GetColumnCount())
+    size_t nColumnId = 0;      //数据关联列的ID
+    void* pUserData = nullptr; //用户自定义数据，设置比较函数的时候一同传入
 };
 
 /** 存储数据的比较函数的原型, 实现升序的比较(a < b)
@@ -251,15 +251,15 @@ private:
 */
 struct ListCtrlEditParam
 {
-    ListCtrlType listCtrlType;
-    size_t nItemIndex;          //数据项的索引号, 有效范围：[0, GetDataItemCount())
-    size_t nColumnId;           //列的ID
-    size_t nColumnIndex;        //列的序号, 有效范围：[0, GetColumnCount())
-    IListBoxItem* pItem;        //数据子项接口
-    ListCtrlLabel* pSubItem;    //文本控件接口（含修改前的文本内容）
+    ListCtrlType listCtrlType = ListCtrlType::Report;
+    size_t nItemIndex = 0;          //数据项的索引号, 有效范围：[0, GetDataItemCount())
+    size_t nColumnId = 0;           //列的ID
+    size_t nColumnIndex = 0;        //列的序号, 有效范围：[0, GetColumnCount())
+    IListBoxItem* pItem = nullptr;  //数据子项接口
+    ListCtrlLabel* pSubItem = nullptr;    //文本控件接口（含修改前的文本内容）
 
     UiString sNewText;          //修改后的文本内容
-    bool bCancelled;            //是否取消操作，如果设置为true，则取消编辑操作
+    bool bCancelled = false;    //是否取消操作，如果设置为true，则取消编辑操作
 };
 
 /** 列表中使用的CheckBox

@@ -897,6 +897,9 @@ bool Control::AdjustStateImagesPaddingLeft(int32_t leftOffset, bool bNeedDpiScal
     bool bSetOk = false;
     UiPadding rcPadding;
     for (Image* pImage : allImages) {
+        if (pImage == nullptr) {
+            continue;
+        }
         rcPadding = pImage->GetImagePadding(Dpi());
         rcPadding.left += leftOffset;
         if (rcPadding.left < 0) {
@@ -1435,6 +1438,9 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
                               uint32_t uFlags, const UiPoint& ptMouse,
                               const UiPoint& scrollPos)
 {
+    if (Proc == nullptr) {
+        return nullptr;
+    }
     if ((uFlags & UIFIND_VISIBLE) != 0 && !IsVisible()) {
         return nullptr;
     }
@@ -1525,7 +1531,7 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
         LoadImageData(*image);
         imageCache = image->GetImageCache();        
     }
-    if (imageCache != nullptr) {
+    if ((imageCache != nullptr) && (image != nullptr)) {
         ImageAttribute imageAttribute = image->GetImageAttribute();
         UiRect rcDest;
         bool hasDestAttr = false;
@@ -2614,6 +2620,10 @@ void Control::PaintFocusRect(IRender* pRender)
 
 void Control::DoPaintFocusRect(IRender* pRender)
 {
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
+        return;
+    }
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     if (pRenderFactory == nullptr) {
         return;

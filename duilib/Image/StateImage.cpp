@@ -176,7 +176,10 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType,
             iter->second->StopGifPlay();
         }
     }
-    return m_pControl->PaintImage(pRender, pImage, sImageModify, -1, nullptr, nullptr, pDestRect);
+    if (m_pControl != nullptr) {
+        return m_pControl->PaintImage(pRender, pImage, sImageModify, -1, nullptr, nullptr, pDestRect);
+    }
+    return false;
 }
 
 Image* StateImage::GetEstimateImage() const

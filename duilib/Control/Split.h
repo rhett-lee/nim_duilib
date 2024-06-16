@@ -221,7 +221,7 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
     Control* pThis = nullptr;
     for (size_t i = 0; i < nChildCount; ++i) {
         Control* pControl = pParent->GetItemAt(i);
-        if (!pControl->IsVisible() || pControl->IsFloat()) {
+        if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
             continue;
         }
         if (pThis) {
@@ -317,6 +317,10 @@ int32_t SplitTemplate<InheritType>::CalculateControlPos(bool bHLayout, const int
                                                         Control* pFirst, const UiFixedInt& nFirstFixedInt,
                                                         const Control* pSecond) const
 {
+    ASSERT((pFirst != nullptr) && (pSecond != nullptr));
+    if ((pFirst == nullptr) || (pSecond == nullptr)) {
+        return 0;
+    }
     int32_t nNewValue = nFirstFixedInt.GetInt32() + nOffset; //新值，可以是正数，也可以是负数
     if (nNewValue < 0) {
         nNewValue = 0;
@@ -537,7 +541,7 @@ void SplitTemplate<InheritType>::OnMouseMoveSingle(const EventArgs& msg)
         pControl = m_pRightBottom;
         nFixedInt = m_nRightBottomFixedValue;
     }
-    else {
+    if (pControl == nullptr) {
         return;
     }
 

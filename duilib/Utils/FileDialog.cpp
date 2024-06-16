@@ -9,7 +9,7 @@ bool FileDialog::BrowseForFolder(Window* pWindow, DString& folderPath)
     folderPath.clear();
     IFileDialog* pfd = nullptr;//仅Win7以及上支持
     HRESULT hr = ::CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
-    if (SUCCEEDED(hr)) {
+    if (SUCCEEDED(hr) && (pfd != nullptr)) {
         FILEOPENDIALOGOPTIONS fos = 0;
         pfd->GetOptions(&fos);
         fos |= FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM;
@@ -39,7 +39,7 @@ bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<DString>& folderP
     folderPaths.clear();
     IFileOpenDialog* pfd = nullptr;//仅Win7以及上支持
     HRESULT hr = ::CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
-    if (SUCCEEDED(hr)) {
+    if (SUCCEEDED(hr) && (pfd != nullptr)) {
         FILEOPENDIALOGOPTIONS fos = 0;
         pfd->GetOptions(&fos);
         fos |= FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM | FOS_ALLOWMULTISELECT;
@@ -95,7 +95,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
     else {
         hr = ::CoCreateInstance(CLSID_FileSaveDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
     }
-    if (SUCCEEDED(hr)) {
+    if (SUCCEEDED(hr) && (pfd != nullptr)) {
         FILEOPENDIALOGOPTIONS fos = 0;
         pfd->GetOptions(&fos);
         fos |= FOS_FORCEFILESYSTEM;
@@ -144,7 +144,7 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
     filePaths.clear();
     IFileOpenDialog* pfd = nullptr;//仅Win7以及上支持
     HRESULT hr = ::CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
-    if (SUCCEEDED(hr)) {
+    if (SUCCEEDED(hr) && (pfd != nullptr)) {
         FILEOPENDIALOGOPTIONS fos = 0;
         pfd->GetOptions(&fos);
         fos |= FOS_FORCEFILESYSTEM | FOS_ALLOWMULTISELECT;

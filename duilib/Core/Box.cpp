@@ -149,7 +149,9 @@ void Box::PaintChild(IRender* pRender, const UiRect& rcPaint)
             });
         //绘制延迟绘制的控件
         for (auto pControl : delayItems) {
-            pControl->AlphaPaint(pRender, rcPaint);
+            if (pControl != nullptr) {
+                pControl->AlphaPaint(pRender, rcPaint);
+            }            
         }
     }
 

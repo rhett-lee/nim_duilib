@@ -258,6 +258,9 @@ public:
         UiRect rc = GetRect();
         UiRect rcPaint = GetPaintRect();
         IBitmap* pBitmap = m_spBitmap.get();
+        if (pBitmap == nullptr) {
+            return;
+        }
         UiRect rcDest = rc;
         rcDest.bottom = rcDest.top + rcDest.Width() * pBitmap->GetHeight() / pBitmap->GetWidth(); //保持与原图的宽高比
 

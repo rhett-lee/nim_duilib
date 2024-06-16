@@ -119,7 +119,7 @@ int64_t VirtualVLayout::GetElementsHeight(UiRect /*rc*/, size_t nCount) const
         return 0;
     }
     if (nCount <= 1) {
-        return szItem.cy + GetChildMarginY();
+        return (int64_t)szItem.cy + GetChildMarginY();
     }
     if (!Box::IsValidItemIndex(nCount)) {
         VirtualListBox* pList = GetOwnerBox();
@@ -130,7 +130,7 @@ int64_t VirtualVLayout::GetElementsHeight(UiRect /*rc*/, size_t nCount) const
     }
     if (!Box::IsValidItemIndex(nCount)) {
         ASSERT(FALSE);
-        return szItem.cy + GetChildMarginY();
+        return (int64_t)szItem.cy + GetChildMarginY();
     }
 
     int64_t rows = nCount;

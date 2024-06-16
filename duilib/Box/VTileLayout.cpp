@@ -401,6 +401,9 @@ UiSize64 VTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
     for( auto it = normalItems.begin(); it != normalItems.end(); ++it ) {
         const ItemSizeInfo& itemSizeInfo = *it;
         Control* pControl = itemSizeInfo.pControl;
+        if (pControl == nullptr) {
+            continue;
+        }
         if (nRowTileCount == 0) {
             //一行的开始，计算这一行的高度
             nRowTileCount = nColumns;
@@ -469,14 +472,14 @@ UiSize64 VTileLayout::ArrangeChildNormal(const std::vector<Control*>& items,
     if (columnWidths.size() > 1) {
         cxNeeded += (columnWidths.size() - 1) * GetChildMarginX();
     }
-    cxNeeded += (rcPadding.left + rcPadding.right);
+    cxNeeded += ((int64_t)rcPadding.left + rcPadding.right);
 
     //计算所需高度
     int64_t cyNeeded = std::accumulate(rowHeights.begin(), rowHeights.end(), 0);
     if (rowHeights.size() > 1) {
         cyNeeded += (rowHeights.size() - 1) * GetChildMarginY();
     }
-    cyNeeded += (rcPadding.top + rcPadding.bottom);
+    cyNeeded += ((int64_t)rcPadding.top + rcPadding.bottom);
 
     outColumnWidths.swap(columnWidths);
     UiSize64 size(cxNeeded, cyNeeded);
@@ -505,6 +508,9 @@ UiSize64 VTileLayout::ArrangeChildFreeLayout(const std::vector<Control*>& items,
     for (size_t index = 0; index < itemCount; ++index) {
         const ItemSizeInfo& itemSizeInfo = normalItems[index];
         Control* pControl = itemSizeInfo.pControl;
+        if (pControl == nullptr) {
+            continue;
+        }
 
         //计算当前瓦片控件的位置坐标、宽度和高度
         UiRect rcTilePos;

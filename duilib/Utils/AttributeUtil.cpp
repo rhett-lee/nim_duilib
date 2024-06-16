@@ -180,6 +180,9 @@ void AttributeUtil::ParseAttributeList(const DString& strList,
     DString sName;
     DString sValue;
     const DString::value_type* pstrList = strList.c_str();
+    if (pstrList == nullptr) {
+        return;
+    }
     while (*pstrList != _T('\0')) {
         sName.clear();
         sValue.clear();

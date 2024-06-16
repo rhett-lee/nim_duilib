@@ -169,8 +169,8 @@ void ScrollBox::SetPosInternally(UiRect rc)
     }
     //requiredSize需要剪去内边距，与ProcessVScrollBar/ProcessHScrollBar的逻辑保持一致
     UiPadding rcPadding = GetPadding();
-    requiredSize.cy -= (rcPadding.top + rcPadding.bottom);
-    requiredSize.cx -= (rcPadding.left + rcPadding.right);
+    requiredSize.cy -= ((int64_t)rcPadding.top + rcPadding.bottom);
+    requiredSize.cx -= ((int64_t)rcPadding.left + rcPadding.right);
     ProcessVScrollBar(rc, requiredSize.cy);
     ProcessHScrollBar(rc, requiredSize.cx);
 }
@@ -387,6 +387,9 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
             });
         //绘制延迟绘制的控件
         for (auto pControl : delayItems) {
+            if (pControl == nullptr) {
+                continue;
+            }
             UiSize scrollPos = GetScrollOffset();
             UiRect rcNewPaint = GetPosWithoutPadding();
             AutoClip alphaClip(pRender, rcNewPaint, IsClip());
@@ -1039,6 +1042,9 @@ void ScrollBox::PlayRenderOffsetYAnimation(int64_t nRenderY)
         m_pRenderOffsetYAnimation = new AnimationPlayer;
     }
     AnimationPlayer* pRenderOffsetYAnimation = m_pRenderOffsetYAnimation;
+    if (pRenderOffsetYAnimation == nullptr) {
+        return;//避免Warnning
+    }
     pRenderOffsetYAnimation->SetStartValue(nRenderY);
     pRenderOffsetYAnimation->SetEndValue(0);
     pRenderOffsetYAnimation->SetSpeedUpRatio(0.3);

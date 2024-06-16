@@ -208,8 +208,8 @@ void ColorControl::OnSelectPosChanged(const UiRect& rect, const UiPoint& pt)
         int32_t colorXY = nWidth * nRow + nColumn; //颜色所在点的坐标位置    
         ASSERT(colorXY < nWidth * nHeight);
         void* pPixelBits = m_spBitmap->LockPixelBits();
-        if (pPixelBits != nullptr) {
-            uint32_t* pData = (uint32_t*)pPixelBits;
+        uint32_t* pData = (uint32_t*)pPixelBits;
+        if (pData != nullptr) {
             uint32_t colorValue = pData[colorXY];
             UiColor newColor = UiColor(colorValue);
             newColor = UiColor(newColor.GetR(), newColor.GetG(), newColor.GetB());

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RuleSet Name="Rules for duilib" Description="Code analysis rules for duilib.vcxproj." ToolsVersion="17.0">
+  <IncludeAll Action="Warning" />
+  <Rules AnalyzerId="Microsoft.Analyzers.NativeCodeAnalysis" RuleNamespace="Microsoft.Rules.Native">
+    <Rule Id="C26400" Action="None" />
+    <Rule Id="C26401" Action="None" />
+    <Rule Id="C26409" Action="None" />
+    <Rule Id="C26432" Action="None" />
+    <Rule Id="C26436" Action="None" />
+    <Rule Id="C26440" Action="None" />
+    <Rule Id="C26446" Action="None" />
+    <Rule Id="C26447" Action="None" />
+    <Rule Id="C26455" Action="None" />
+    <Rule Id="C26457" Action="None" />
+    <Rule Id="C26461" Action="None" />
+    <Rule Id="C26462" Action="None" />
+    <Rule Id="C26467" Action="None" />
+    <Rule Id="C26472" Action="None" />
+    <Rule Id="C26481" Action="None" />
+    <Rule Id="C26482" Action="None" />
+    <Rule Id="C26485" Action="None" />
+    <Rule Id="C26490" Action="None" />
+    <Rule Id="C26493" Action="None" />
+    <Rule Id="C26496" Action="None" />
+    <Rule Id="C26497" Action="None" />
+    <Rule Id="C26451" Action="None" />
+    <Rule Id="C26826" Action="None" />
+  </Rules>
+</RuleSet>

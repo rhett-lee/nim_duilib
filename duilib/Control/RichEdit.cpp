@@ -1236,6 +1236,8 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
             }    
         }
         break;
+    default:
+        break;
     }
 }
 
@@ -2009,6 +2011,9 @@ void RichEdit::OnMouseMessage(UINT uMsg, const EventArgs& msg)
 
 void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 {
+    if (pRender == nullptr) {
+        return;
+    }
     //必须不使用缓存，否则绘制异常
     ASSERT(IsUseCache() == false);
     UiRect rcTemp;
@@ -2623,7 +2628,7 @@ void RichEdit::SetClipBoardText(const DString &str)
     wchar_t* lpStr = (wchar_t*)::GlobalLock(hMem); //锁住内存区 
     if (lpStr) {
         ::memcpy(lpStr, str.c_str(), len * sizeof(wchar_t)); //把数据拷贝考全局内存中
-        lpStr[len] = wchar_t(0); //字符串末尾设为'\0'
+        lpStr[len] = L'\0'; //字符串末尾设为'\0'
         ::GlobalUnlock(hMem); //释放锁 
     }
 
@@ -2917,13 +2922,14 @@ bool RichEdit::SetSpinClass(const DString& spinClass)
         }
         else {
             pUpButton = dynamic_cast<Button*>(m_pSpinBox->GetItemAt(0));
-            pDownButton = dynamic_cast<Button*>(m_pSpinBox->GetItemAt(1));
-            ASSERT((pUpButton != nullptr) && (pDownButton != nullptr));
-            if ((pUpButton == nullptr) || (pDownButton == nullptr)) {
-                RemoveItem(m_pSpinBox);
-                m_pSpinBox = nullptr;
-                return false;
-            }
+            pDownButton = dynamic_cast<Button*>(m_pSpinBox->GetItemAt(1));            
+        }
+
+        ASSERT((pUpButton != nullptr) && (pDownButton != nullptr));
+        if ((pUpButton == nullptr) || (pDownButton == nullptr)) {
+            RemoveItem(m_pSpinBox);
+            m_pSpinBox = nullptr;
+            return false;
         }
         m_pSpinBox->SetClass(spinBoxClass);
         pUpButton->SetClass(spinBtnUpClass);

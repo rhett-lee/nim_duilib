@@ -15,7 +15,9 @@ class HotKeyRichEdit : public RichEdit
 {
 public:
     explicit HotKeyRichEdit(Window* pWindow):
-        RichEdit(pWindow)
+        RichEdit(pWindow),
+        m_wVirtualKeyCode(0),
+        m_wModifiers(0)
     {
     }
 
@@ -222,8 +224,11 @@ void HotKey::OnInit()
     }
     __super::OnInit();
     HotKeyRichEdit* pRichEdit = m_pRichEdit;
-    pRichEdit->SetWindow(GetWindow());
     ASSERT(pRichEdit != nullptr);
+    if (pRichEdit == nullptr) {
+        return;
+    }
+    pRichEdit->SetWindow(GetWindow());
     pRichEdit->SetDefaultText(m_defaultText.c_str());    
     pRichEdit->SetAttribute(_T("text_align"), _T("vcenter,hcenter"));
     pRichEdit->SetAttribute(_T("want_tab"), _T("false"));

@@ -75,7 +75,7 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
     float fStretchValue = 0;    //每个拉伸控件，按设置为100%时，应该分配的高度值
     float fTotalStretch = 0;    //按设置为100%时为一个控件单位，总共有多少个控件单位
     if (stretchCount > 0) {        
-        for (auto iter : itemsMap) {
+        for (const auto& iter : itemsMap) {
             const UiEstSize& itemEstSize = iter.second;
             if (itemEstSize.cy.IsStretch()) {
                 fTotalStretch += itemEstSize.cy.GetStretchPercentValue() / 100.0f;
@@ -119,7 +119,7 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
     //如果纵向总空间不足，则按原来评估的平均高度，优先保证前面的控件可以正常显示
     if (bStretchCountChanged && (stretchCount > 0) && (szAvailable.cy > cyFixedTotal)) {
         fTotalStretch = 0;
-        for (auto iter : itemsMap) {
+        for (const auto& iter : itemsMap) {
             const UiEstSize& itemEstSize = iter.second;
             if (itemEstSize.cy.IsStretch()) {
                 fTotalStretch += itemEstSize.cy.GetStretchPercentValue() / 100.0f;
@@ -199,7 +199,7 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
 
         //调整当前Y轴坐标值
         iPosY += (sz.cy + rcMargin.top + rcMargin.bottom + GetChildMarginY());
-        cyNeeded += (sz.cy + rcMargin.top + rcMargin.bottom);
+        cyNeeded += ((int64_t)sz.cy + rcMargin.top + rcMargin.bottom);
     }
     if (!itemsMap.empty()) {
         cyNeeded += ((int64_t)itemsMap.size() - 1) * GetChildMarginY();
@@ -211,10 +211,10 @@ UiSize64 VLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
         rcPadding = GetOwner()->GetPadding();
     }
     if (size.cx > 0) {
-        size.cx += (rcPadding.left + rcPadding.right);
+        size.cx += ((int64_t)rcPadding.left + rcPadding.right);
     }
     if (size.cy > 0) {
-        size.cy += (rcPadding.top + rcPadding.bottom);
+        size.cy += ((int64_t)rcPadding.top + rcPadding.bottom);
     }
     return size;
 }

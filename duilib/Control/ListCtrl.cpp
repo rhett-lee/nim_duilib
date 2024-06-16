@@ -2137,6 +2137,9 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
     }
 
     ListCtrlLabel* pSubItem = editParam.pSubItem;
+    if (pSubItem == nullptr) {
+        return;
+    }
     size_t nDataItemIndex = editParam.nItemIndex;
 
     DString sOldItemText = pSubItem->GetText();

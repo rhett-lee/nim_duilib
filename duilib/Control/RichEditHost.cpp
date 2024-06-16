@@ -378,7 +378,7 @@ BOOL RichEditHost::TxSetScrollRange(INT fnBar, LONG nMinPos, INT nMaxPos, BOOL /
             if (!pVScrollBar->IsValid()) {
                 bArrange = true;
             }
-            pVScrollBar->SetScrollRange(nMaxPos - nMinPos - m_rcClient.Height());
+            pVScrollBar->SetScrollRange((int64_t)nMaxPos - nMinPos - m_rcClient.Height());
         }
     }
     else if (fnBar == SB_HORZ && (pHScrollBar != nullptr)) {
@@ -389,7 +389,7 @@ BOOL RichEditHost::TxSetScrollRange(INT fnBar, LONG nMinPos, INT nMaxPos, BOOL /
             if (!pHScrollBar->IsValid()) {
                 bArrange = true;
             }
-            pHScrollBar->SetScrollRange(nMaxPos - nMinPos - m_rcClient.Width());
+            pHScrollBar->SetScrollRange((int64_t)nMaxPos - nMinPos - m_rcClient.Width());
         }
     }
 

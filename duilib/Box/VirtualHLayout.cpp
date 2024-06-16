@@ -117,7 +117,7 @@ int64_t VirtualHLayout::GetElementsWidth(UiRect /*rc*/, size_t nCount) const
         return 0;
     }
     if (nCount <= 1) {
-        return szItem.cx + GetChildMarginX();
+        return (int64_t)szItem.cx + GetChildMarginX();
     }
     if (!Box::IsValidItemIndex(nCount)) {
         VirtualListBox* pList = GetOwnerBox();
@@ -128,7 +128,7 @@ int64_t VirtualHLayout::GetElementsWidth(UiRect /*rc*/, size_t nCount) const
     }
     if (!Box::IsValidItemIndex(nCount)) {
         ASSERT(FALSE);
-        return szItem.cx + GetChildMarginX();
+        return (int64_t)szItem.cx + GetChildMarginX();
     }
 
     int64_t cols = nCount;

@@ -40,6 +40,9 @@ static inline void DrawFunction(SkCanvas* pSkCanvas,
                                 const UiRect& rcSrc,
                                 const SkPaint& skPaint)
 {
+    if (pSkCanvas == nullptr) {
+        return;
+    }
     SkIRect rcSkDestI = { rcDest.left, rcDest.top, rcDest.right, rcDest.bottom };
     SkRect rcSkDest = SkRect::Make(rcSkDestI);
     rcSkDest.offset(skPointOrg);
@@ -1122,7 +1125,7 @@ void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, 
     ovalRect.offset(*m_pSkPointOrg);
 
     if((gradientColor != nullptr) && (gradientRect != nullptr)) {        
-        SkColor colors[2];
+        SkColor colors[2] = {0, };
         colors[0] = pen->GetColor().GetARGB();
         colors[1] = gradientColor->GetARGB();
         

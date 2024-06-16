@@ -165,6 +165,10 @@ void Line::Paint(IRender* pRender, const UiRect& rcPaint)
         lineWidth = this->Dpi().GetScaleInt(1);
     }
     IPen* pLinePen = pRenderFactory->CreatePen(lineColor, lineWidth);
+    ASSERT(pLinePen != nullptr);
+    if (pLinePen == nullptr) {
+        return;
+    }
     std::unique_ptr<IPen> spLinePen(pLinePen);
     ASSERT(spLinePen != nullptr);
     if (spLinePen == nullptr) {

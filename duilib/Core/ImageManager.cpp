@@ -163,7 +163,7 @@ void ImageManager::LoadIconData(const Window* pWindow,
                                                       pWindow, loadAtrribute, bEnableDpiScale,
                                                       bitmapData, 
                                                       imageWidth, imageHeight, bDpiScaled)) {
-        ASSERT(bitmapData.size() == (imageWidth * imageHeight * 4));
+        ASSERT(bitmapData.size() == ((size_t)imageWidth * imageHeight * 4));
         IBitmap* pBitmap = nullptr;
         IRenderFactory* pRenderFactroy = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactroy != nullptr);

@@ -209,7 +209,7 @@ bool ColorPickerStatardGray::DrawRegularHexagon(IRender* pRender, const UiPointF
         return false;
     }
 
-    const int32_t count = 6; //多边形的边数
+    constexpr const int32_t count = 6; //多边形的边数
     //正多边形上任意一个顶点的坐标为： x = r * cos(θ) y = r * sin(θ) 
     std::vector<UiPointF> polygonPoints;
     for (int32_t i = 0; i < count; ++i) {

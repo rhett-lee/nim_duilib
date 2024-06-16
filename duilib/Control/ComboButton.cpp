@@ -357,7 +357,7 @@ void ComboButton::SetLeftButtonTopLabelClass(const DString& classValue)
 void ComboButton::SetLeftButtonBottomLabelClass(const DString& classValue)
 {
     if (classValue.empty()) {
-        if ((m_pLabelBottom != nullptr) && (m_pLabelBottom != nullptr)) {
+        if ((m_pLeftButton != nullptr) && (m_pLabelBottom != nullptr)) {
             m_pLeftButton->RemoveItem(m_pLabelBottom);
         }
         if (m_pLabelBottom != nullptr) {
@@ -419,6 +419,10 @@ void ComboButton::ParseAttributeList(const DString& strList,
 
 void ComboButton::SetAttributeList(Control* pControl, const DString& classValue)
 {
+    ASSERT(pControl != nullptr);
+    if (pControl == nullptr) {
+        return;
+    }
     std::vector<std::pair<DString, DString>> attributeList;
     ParseAttributeList(classValue, attributeList);
     if (!attributeList.empty()) {
@@ -457,7 +461,7 @@ DString ComboButton::GetBorderColor(ControlStateType stateType) const
         }
     }
     if (borderColor.empty() && (m_pRightButton != nullptr)) {
-        if (m_pRightButton->IsFocused() || m_pRightButton->IsMouseFocused() || m_pLeftButton->IsHotState()) {
+        if (m_pRightButton->IsFocused() || m_pRightButton->IsMouseFocused() || m_pRightButton->IsHotState()) {
             borderColor = __super::GetBorderColor(kControlStateHot);
         }
     }

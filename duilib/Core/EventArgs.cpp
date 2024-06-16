@@ -8,7 +8,9 @@ EventArgs::EventArgs() :
     vkCode(VirtualKeyCode::kVK_None),
     wParam(0),
     lParam(0),
-    pSender(nullptr)
+    pSender(nullptr),
+    modifierKey(0),
+    eventData(0)
 {
     ptMouse.x = 0;
     ptMouse.y = 0;

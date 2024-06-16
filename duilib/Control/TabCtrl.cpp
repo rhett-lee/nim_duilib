@@ -505,7 +505,7 @@ void TabCtrlItem::AdjustItemLineStatus()
         }        
     }
     //当前标签前面一个标签的分割线
-    if (nItem > 0) {
+    if ((nItem > 0) && (pItem != nullptr)) {
         if (!pItem->IsVisible()) {
             bLineVisible = true;
         }

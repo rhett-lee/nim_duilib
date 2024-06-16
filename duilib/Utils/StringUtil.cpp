@@ -38,15 +38,15 @@ int StringTokenizeT(const std::basic_string<CharType> &input,
 
 template<typename CharType>
 size_t StringReplaceAllT(const std::basic_string<CharType> &find,
-                      const std::basic_string<CharType> &replace,
-                      std::basic_string<CharType> &output)
+                         const std::basic_string<CharType> &replace,
+                         std::basic_string<CharType> &output)
 {
     size_t find_length = find.size();
     size_t replace_length = replace.size();
-    size_t offset = 0, endpos;
-    size_t target = 0, found_pos;
+    size_t offset = 0, endpos = 0;
+    size_t target = 0, found_pos = 0;
     size_t replaced = 0;
-    CharType *data_ptr;
+    CharType *data_ptr = nullptr;
 
     if (find.empty())
         return 0;
@@ -87,7 +87,7 @@ size_t StringReplaceAllT(const std::basic_string<CharType> &find,
     {
         endpos = output.size();
         offset = 0;
-        data_ptr = const_cast<CharType *>(&output[0]);
+        data_ptr = (CharType*)(&output[0]);
     }
 
     /* the second pass,  the replacement */
@@ -143,7 +143,7 @@ inline int vsnprintfT(wchar_t *dst, size_t count, const wchar_t *format, va_list
 template<typename CharType>
 void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharType> &output)
 {
-    CharType stack_buffer[1024];
+    CharType stack_buffer[1024] = {0, };
 
     /* first, we try to finish the task using a fixed-size buffer in the stack */
     va_list ap_copy;
@@ -197,11 +197,15 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
 template<typename CharType>
 void StringTrimT(std::basic_string<CharType> &output)
 {
-    if (output.empty())
+    if (output.empty()) {
         return;
+    }
     size_t bound1 = 0;
     size_t bound2 = output.length();
     const CharType *src = output.data();
+    if (src == nullptr) {
+        return;
+    }
 
     for (; bound2 > 0; bound2--)
         if (NOT_SPACE(src[bound2-1]))
@@ -226,6 +230,9 @@ void StringTrimLeftT(std::basic_string<CharType> &output)
     size_t check = 0;
     size_t length = output.length();
     const CharType *src = output.data();
+    if (src == nullptr) {
+        return;
+    }
 
     for (; check < length; check++)
         if (NOT_SPACE(src[check]))
@@ -239,6 +246,9 @@ void StringTrimRightT(std::basic_string<CharType> &output)
 {
     size_t length = output.length();
     const CharType *src = output.data();
+    if (src == nullptr) {
+        return;
+    }
 
     for (; length > 0; length--)
         if (NOT_SPACE(src[length-1]))
@@ -408,7 +418,9 @@ std::string StringUtil::MakeUpperString(const std::string& str)
 
 std::wstring StringUtil::UTF8ToUTF16(const UTF8Char* utf8, size_t length)
 {
-    UTF16Char output[4096];
+    std::vector<UTF16Char> data;
+    data.resize(8192);
+    UTF16Char* output = &data[0];
     const UTF8* src_begin = reinterpret_cast<const UTF8*>(utf8);
     const UTF8* src_end = src_begin + length;
     UTF16* dst_begin = reinterpret_cast<UTF16*>(output);
@@ -419,7 +431,7 @@ std::wstring StringUtil::UTF8ToUTF16(const UTF8Char* utf8, size_t length)
         ConversionResult result = ConvertUTF8toUTF16(&src_begin,
             src_end,
             &dst_begin,
-            dst_begin + COUNT_OF(output),
+            dst_begin + data.size(),
             lenientConversion);
 
         utf16.append(output, dst_begin - reinterpret_cast<UTF16*>(output));
@@ -436,7 +448,9 @@ std::wstring StringUtil::UTF8ToUTF16(const UTF8Char* utf8, size_t length)
 
 std::string StringUtil::UTF16ToUTF8(const UTF16Char* utf16, size_t length)
 {
-    UTF8Char output[8192];
+    std::vector<UTF8Char> data;
+    data.resize(8192);
+    UTF8Char* output = &data[0];
     const UTF16* src_begin = reinterpret_cast<const UTF16*>(utf16);
     const UTF16* src_end = src_begin + length;
     UTF8* dst_begin = reinterpret_cast<UTF8*>(output);
@@ -447,7 +461,7 @@ std::string StringUtil::UTF16ToUTF8(const UTF16Char* utf16, size_t length)
         ConversionResult result = ConvertUTF16toUTF8(&src_begin,
             src_end,
             &dst_begin,
-            dst_begin + COUNT_OF(output),
+            dst_begin + data.size(),
             lenientConversion);
 
         utf8.append(output, dst_begin - reinterpret_cast<UTF8*>(output));
@@ -464,7 +478,9 @@ std::string StringUtil::UTF16ToUTF8(const UTF16Char* utf16, size_t length)
 
 std::basic_string<UTF32Char> StringUtil::UTF8ToUTF32(const UTF8Char* utf8, size_t length)
 {
-    UTF32Char output[4096];
+    std::vector<UTF32Char> data;
+    data.resize(8192);
+    UTF32Char* output = &data[0];
     const UTF8* src_begin = reinterpret_cast<const UTF8*>(utf8);
     const UTF8* src_end = src_begin + length;
     UTF32* dst_begin = reinterpret_cast<UTF32*>(output);
@@ -475,7 +491,7 @@ std::basic_string<UTF32Char> StringUtil::UTF8ToUTF32(const UTF8Char* utf8, size_
         ConversionResult result = ConvertUTF8toUTF32(&src_begin,
             src_end,
             &dst_begin,
-            dst_begin + COUNT_OF(output),
+            dst_begin + data.size(),
             lenientConversion);
 
         utf32.append(output, dst_begin - reinterpret_cast<UTF32*>(output));
@@ -492,7 +508,9 @@ std::basic_string<UTF32Char> StringUtil::UTF8ToUTF32(const UTF8Char* utf8, size_
 
 std::string StringUtil::UTF32ToUTF8(const UTF32Char* utf32, size_t length)
 {
-    UTF8Char output[8192];
+    std::vector<UTF8Char> data;
+    data.resize(8192);
+    UTF8Char* output = &data[0];
     const UTF32* src_begin = reinterpret_cast<const UTF32*>(utf32);
     const UTF32* src_end = src_begin + length;
     UTF8* dst_begin = reinterpret_cast<UTF8*>(output);
@@ -503,7 +521,7 @@ std::string StringUtil::UTF32ToUTF8(const UTF32Char* utf32, size_t length)
         ConversionResult result = ConvertUTF32toUTF8(&src_begin,
             src_end,
             &dst_begin,
-            dst_begin + COUNT_OF(output),
+            dst_begin + data.size(),
             lenientConversion);
 
         utf8.append(output, dst_begin - reinterpret_cast<UTF8*>(output));
@@ -520,7 +538,9 @@ std::string StringUtil::UTF32ToUTF8(const UTF32Char* utf32, size_t length)
 
 std::basic_string<UTF32Char> StringUtil::UTF16ToUTF32(const UTF16Char* utf16, size_t length)
 {
-    UTF32Char output[4096];
+    std::vector<UTF32Char> data;
+    data.resize(8192);
+    UTF32Char* output = &data[0];
     const UTF16* src_begin = reinterpret_cast<const UTF16*>(utf16);
     const UTF16* src_end = src_begin + length;
     UTF32* dst_begin = reinterpret_cast<UTF32*>(output);
@@ -531,7 +551,7 @@ std::basic_string<UTF32Char> StringUtil::UTF16ToUTF32(const UTF16Char* utf16, si
         ConversionResult result = ConvertUTF16toUTF32(&src_begin,
             src_end,
             &dst_begin,
-            dst_begin + COUNT_OF(output),
+            dst_begin + data.size(),
             lenientConversion);
 
         utf32.append(output, dst_begin - reinterpret_cast<UTF32*>(output));
@@ -548,7 +568,9 @@ std::basic_string<UTF32Char> StringUtil::UTF16ToUTF32(const UTF16Char* utf16, si
 
 std::wstring StringUtil::UTF32ToUTF16(const UTF32Char* utf32, size_t length)
 {
-    UTF16Char output[8192];
+    std::vector<UTF16Char> data;
+    data.resize(8192);
+    UTF16Char* output = &data[0];
     const UTF32* src_begin = reinterpret_cast<const UTF32*>(utf32);
     const UTF32* src_end = src_begin + length;
     UTF16* dst_begin = reinterpret_cast<UTF16*>(output);
@@ -559,7 +581,7 @@ std::wstring StringUtil::UTF32ToUTF16(const UTF32Char* utf32, size_t length)
         ConversionResult result = ConvertUTF32toUTF16(&src_begin,
             src_end,
             &dst_begin,
-            dst_begin + COUNT_OF(output),
+            dst_begin + data.size(),
             lenientConversion);
 
         utf16.append(output, dst_begin - reinterpret_cast<UTF16*>(output));
@@ -761,7 +783,6 @@ std::list<std::string> StringUtil::Split(const std::string& input, const std::st
         output.push_back(token);
         token = strtok_s(NULL, delimitor.c_str(), &context);
     }
-
     return output;
 }
 
@@ -780,13 +801,14 @@ std::list<DString> StringUtil::Split(const std::wstring& input, const std::wstri
         output.push_back(token);
         token = wcstok_s(NULL, delimitor.c_str(), &context);
     }
-
-
     return output;
 }
 
 static bool IsEqualNoCasePrivate(const wchar_t* lhs, const wchar_t* rhs)
 {
+    if ((lhs == nullptr) || (rhs == nullptr)) {
+        return true;
+    }
     if (lhs == rhs) {
         return true;
     }
@@ -807,6 +829,9 @@ static bool IsEqualNoCasePrivate(const wchar_t* lhs, const wchar_t* rhs)
 
 static bool IsEqualNoCasePrivate(const char* lhs, const char* rhs)
 {
+    if ((lhs == nullptr) || (rhs == nullptr)) {
+        return true;
+    }
     if (lhs == rhs) {
         return true;
     }
@@ -889,10 +914,10 @@ bool StringUtil::IsEqualNoCase(const char* lhs, const char* rhs)
 
 std::wstring StringUtil::UInt64ToStringW(uint64_t value)
 {
-    wchar_t temp[32] = {0};
+    wchar_t temp[32] = {0, };
     int pos = 0;
     do {
-        temp[pos++] = (wchar_t)(_T('0') + (int)(value % 10));
+        temp[pos++] = (wchar_t)(L'0' + (int)(value % 10));
         value /= 10;
     } while (value != 0);
 

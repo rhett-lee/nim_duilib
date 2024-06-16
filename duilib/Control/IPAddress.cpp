@@ -54,6 +54,9 @@ void IPAddress::OnInit()
 
     for (size_t index = 0; index < m_editList.size(); ++index) {
         RichEdit* pRichEdit = m_editList[index];
+        if (pRichEdit == nullptr) {
+            continue;
+        }
         pRichEdit->AttachReturn([this, index](const EventArgs& /*args*/) {
             //回车后，切换到下一个编辑框，并且循环
             if (index < m_editList.size()) {

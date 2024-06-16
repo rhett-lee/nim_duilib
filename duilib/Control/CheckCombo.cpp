@@ -438,6 +438,10 @@ void CheckCombo::ParseAttributeList(const DString& strList,
 
 void CheckCombo::SetAttributeList(Control* pControl, const DString& classValue)
 {
+    ASSERT(pControl != nullptr);
+    if (pControl == nullptr) {
+        return;
+    }
     std::vector<std::pair<DString, DString>> attributeList;
     ParseAttributeList(classValue, attributeList);
     if (!attributeList.empty()) {

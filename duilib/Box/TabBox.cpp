@@ -54,6 +54,10 @@ bool TabBox::AddItem(Control* pControl)
 
 bool TabBox::AddItemAt(Control* pControl, size_t iIndex)
 {
+    ASSERT(pControl != nullptr);
+    if (pControl == nullptr) {
+        return false;
+    }
     bool ret = Box::AddItemAt(pControl, iIndex);
     if (!ret) {
         return ret;

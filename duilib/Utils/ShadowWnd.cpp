@@ -103,6 +103,9 @@ ShadowWnd::ShadowWnd():
 
 Box* ShadowWnd::AttachShadow(Box* pRoot)
 {
+    if (pRoot == nullptr) {
+        return nullptr;
+    }
     ASSERT(m_pShadowWnd == nullptr);
     if (m_pShadowWnd != nullptr) {
         return __super::AttachShadow(pRoot);

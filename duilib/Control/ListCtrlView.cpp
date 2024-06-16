@@ -324,7 +324,7 @@ void ListCtrlView::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
         m_ptMouseMove.cy = ptMouse.y + scrollPos.cy;
 
         //鼠标移动超过指定像素数的时候，才开始按移动操作，避免将正常的点击操作识别为框选操作
-        const int32_t minPt = 8;
+        constexpr const int32_t minPt = 8;
         if (!m_bInMouseMove) {
             if ((std::abs(m_ptMouseMove.cx - m_ptMouseDown.cx) > minPt) ||
                 (std::abs(m_ptMouseMove.cy - m_ptMouseDown.cy) > minPt)) {
@@ -505,7 +505,7 @@ bool ListCtrlView::OnFrameSelection(int64_t left, int64_t right, int64_t top, in
     if (pHLayout != nullptr) {
         szItem = pHLayout->GetItemSize();
     }
-    else {
+    else if (pVLayout != nullptr) {
         szItem = pVLayout->GetItemSize();
     }
     if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
@@ -537,7 +537,7 @@ bool ListCtrlView::OnFrameSelection(int64_t left, int64_t right, int64_t top, in
         if (childMarginX < 0) {
             childMarginX = 0;
         }
-        int64_t nStartIndex = (left / (szItem.cx + childMarginX)) * nRows;
+        int64_t nStartIndex = ((int64_t)left / ((int64_t)szItem.cx + childMarginX)) * nRows;
         const size_t nCount = GetElementCount();
         for (size_t nElemenetIndex = (size_t)nStartIndex; nElemenetIndex < nCount; ++nElemenetIndex) {
             CalcElementRectH(nElemenetIndex, szItem, nRows, childMarginX, childMarginY,
@@ -555,7 +555,7 @@ bool ListCtrlView::OnFrameSelection(int64_t left, int64_t right, int64_t top, in
         }
         bRet = SetSelectedElements(itemIndexList, true);
     }
-    else {
+    else if(pVLayout != nullptr) {
         //纵向布局
         int32_t childMarginX = pVLayout->GetChildMarginX();
         if (childMarginX < 0) {
@@ -569,7 +569,7 @@ bool ListCtrlView::OnFrameSelection(int64_t left, int64_t right, int64_t top, in
         if (childMarginY < 0) {
             childMarginY = 0;
         }
-        int64_t nStartIndex = (top / (szItem.cy + childMarginY)) * nColumns;
+        int64_t nStartIndex = ((int64_t)top / ((int64_t)szItem.cy + childMarginY)) * nColumns;
         const size_t nCount = GetElementCount();
         for (size_t nElemenetIndex = (size_t)nStartIndex; nElemenetIndex < nCount; ++nElemenetIndex) {
             CalcElementRectV(nElemenetIndex, szItem, nColumns, childMarginX, childMarginY,
@@ -682,7 +682,7 @@ void ListCtrlView::PaintFrameSelection(IRender* pRender)
     int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy) - scrollPos.cy;
     if (m_nNormalItemTop > 0) {
         if (top < m_nNormalItemTop) {
-            top = m_nNormalItemTop - Dpi().GetScaleInt(4);
+            top = (int64_t)m_nNormalItemTop - Dpi().GetScaleInt(4);
         }
         if (bottom < m_nNormalItemTop) {
             bottom = m_nNormalItemTop;
