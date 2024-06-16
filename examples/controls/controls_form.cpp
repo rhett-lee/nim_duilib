@@ -114,16 +114,18 @@ void ControlForm::OnInitWindow()
 
     /* Show settings menu */
     ui::Button* settings = static_cast<ui::Button*>(FindControl(_T("settings")));
-    settings->AttachClick([this](const ui::EventArgs& args) {
-        ui::UiRect rect = args.GetSender()->GetPos();
-        ui::UiPoint point;
-        point.x = rect.left - 175;
-        point.y = rect.top + 10;
-        ClientToScreen(point);
+    if (settings != nullptr) {
+        settings->AttachClick([this](const ui::EventArgs& args) {
+            ui::UiRect rect = args.GetSender()->GetPos();
+            ui::UiPoint point;
+            point.x = rect.left - 175;
+            point.y = rect.top + 10;
+            ClientToScreen(point);
 
-        ShowPopupMenu(point);
-        return true;
-    });
+            ShowPopupMenu(point);
+            return true;
+            });
+    }
 
     //注册一个Context Menu，演示功能（用这两种方法都可以注册上下文菜单功能）
     //m_pRoot->AttachAllEvents([this](ui::EventArgs& args) {
@@ -427,11 +429,13 @@ void ControlForm::OnProgressValueChagned(float value)
         circleprogress->SetText(ui::StringUtil::Printf(_T("%.0f%%"), value));
     }
 
-    if (((int)value == progress->GetMaxValue()) || (value < lastValue)) {
-        //进度达到最大值，停止加载动画
-        auto control_edit = static_cast<ui::RichEdit*>(FindControl(_T("edit")));
-        if (control_edit) {
-            control_edit->StopLoading();
+    if (progress != nullptr) {
+        if (((int)value == progress->GetMaxValue()) || (value < lastValue)) {
+            //进度达到最大值，停止加载动画
+            auto control_edit = static_cast<ui::RichEdit*>(FindControl(_T("edit")));
+            if (control_edit) {
+                control_edit->StopLoading();
+            }
         }
     }
 }

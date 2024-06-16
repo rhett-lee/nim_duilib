@@ -127,11 +127,6 @@ void RichEditHost::Init()
 {
     RichEdit* pRichEdit = m_pRichEdit;
 
-    //初始化默认字体
-    LOGFONT lf = { 0, };
-    ::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-    InitCharFormat(lf);
-
     //设置字体颜色
     if (pRichEdit != nullptr) {
         DString textColor;
@@ -201,6 +196,19 @@ void RichEditHost::Init()
         m_pTextServices->TxSendMessage(EM_SETLANGOPTIONS, 0, 0, &lResult);
         m_pTextServices->TxSendMessage(EM_SETEVENTMASK, 0, ENM_CHANGE | ENM_LINK, &lResult);
         m_pTextServices->OnTxInPlaceActivate(nullptr);
+    }
+
+    //初始化默认字体
+    DString fontId = GlobalManager::Instance().Font().GetDefaultFontId();
+    if (!fontId.empty()) {
+        SetFontId(L"system_12");
+    }
+    else {
+        //初始化默认字体
+        LOGFONT lf = { 0, };
+        ::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
+        InitCharFormat(lf);
+        OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE, TXTBIT_CHARFORMATCHANGE);
     }
 }
 

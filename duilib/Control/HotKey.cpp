@@ -224,13 +224,15 @@ void HotKey::OnInit()
     HotKeyRichEdit* pRichEdit = m_pRichEdit;
     pRichEdit->SetWindow(GetWindow());
     ASSERT(pRichEdit != nullptr);
-    pRichEdit->SetDefaultText(m_defaultText.c_str());
-    pRichEdit->SetText(m_defaultText.c_str());
+    pRichEdit->SetDefaultText(m_defaultText.c_str());    
     pRichEdit->SetAttribute(_T("text_align"), _T("vcenter,hcenter"));
     pRichEdit->SetAttribute(_T("want_tab"), _T("false"));
     pRichEdit->SetAttribute(_T("width"), _T("100%"));
     pRichEdit->SetAttribute(_T("height"), _T("100%"));
     AddItem(pRichEdit);
+
+    //设置文本
+	pRichEdit->SetText(m_defaultText.c_str());
 
     //以RichEdit控件的焦点作为整个控件的焦点
     pRichEdit->AttachSetFocus([this](const EventArgs&) {

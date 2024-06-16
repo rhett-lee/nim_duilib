@@ -46,6 +46,11 @@ bool FontManager::AddFont(const DString& fontId, const UiFont& fontInfo, bool bD
     return true;
 }
 
+const DString& FontManager::GetDefaultFontId() const
+{
+    return m_defaultFontId;
+}
+
 DString FontManager::GetDpiFontId(const DString& fontId, const DpiManager& dpi) const
 {
     DString dpiFontId;

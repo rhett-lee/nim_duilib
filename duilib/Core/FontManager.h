@@ -54,6 +54,10 @@ public:
      */
     void RemoveAllFonts();
 
+    /** 获取默认字体ID
+    */
+    const DString& GetDefaultFontId() const;
+
 public:
     /** @brief 添加一个字体文件, 添加后可以按照正常字体使用
       * @param[in] strFontFile 字体文件名, 相对路径，字体文件的保存路径是目录："<资源路径>\font\"
