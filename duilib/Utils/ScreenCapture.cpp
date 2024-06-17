@@ -6,7 +6,7 @@ namespace ui
 {
 /** 创建位图
 */
-static HBITMAP CreateBitmap(Window* pWindow, int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits)
+static HBITMAP CreateBitmap(const Window* pWindow, int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits)
 {
     ASSERT((nWidth > 0) && (nHeight > 0));
     if (nWidth == 0 || nHeight == 0) {

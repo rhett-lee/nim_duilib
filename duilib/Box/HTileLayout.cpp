@@ -250,7 +250,6 @@ UiSize HTileLayout::CalcTilePosition(const ItemSizeInfo& itemSizeInfo,
         (realSize.cx > 0) && (realSize.cy > 0) ) {
         if ((realSize.cx > rcRealTile.Width()) || (realSize.cy > rcRealTile.Height())) {
             //满足缩放条件，进行等比缩放
-            UiSize oldSize = realSize;
             double cx = realSize.cx;
             double cy = realSize.cy;
             double cxRatio = cx / rcRealTile.Width();

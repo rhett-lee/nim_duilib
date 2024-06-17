@@ -344,12 +344,7 @@ size_t ListBox::SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForwar
                         break;
                     }
                 }
-                if (nCountPerPage > nRows) {
-                    nCountPerPage -= nRows;
-                }
-                else {
-                    break;
-                }
+                nCountPerPage -= nRows;
             }
         }
     }
@@ -372,12 +367,7 @@ size_t ListBox::SelectItemPage(bool bTakeFocus, bool bTriggerEvent, bool bForwar
                         break;
                     }
                 }
-                if (nCountPerPage > nColumns) {
-                    nCountPerPage -= nColumns;
-                }
-                else {
-                    break;
-                }
+                nCountPerPage -= nColumns;
             }
         }
     }

@@ -50,30 +50,30 @@ void WindowImplBase::InitWindow()
     //更新自绘制标题栏状态
     OnUseSystemCaptionBarChanged();
     if (!IsUseSystemCaption()) {
-        Control* pControl = (Control*)FindControl(DUI_CTR_BUTTON_CLOSE);
+        Control* pControl = FindControl(DUI_CTR_BUTTON_CLOSE);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
             pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
 
-        pControl = (Control*)FindControl(DUI_CTR_BUTTON_MIN);
+        pControl = FindControl(DUI_CTR_BUTTON_MIN);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
             pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
 
-        pControl = (Control*)FindControl(DUI_CTR_BUTTON_MAX);
+        pControl = FindControl(DUI_CTR_BUTTON_MAX);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
             pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
 
-        pControl = (Control*)FindControl(DUI_CTR_BUTTON_RESTORE);
+        pControl = FindControl(DUI_CTR_BUTTON_RESTORE);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
             pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
-        pControl = (Control*)FindControl(DUI_CTR_BUTTON_FULLSCREEN);
+        pControl = FindControl(DUI_CTR_BUTTON_FULLSCREEN);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
             pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
@@ -224,8 +224,8 @@ void WindowImplBase::ProcessMaxRestoreStatus()
     if (IsUseSystemCaption() || (GetRoot() == nullptr)) {
         return;
     }
-    Control* pMaxButton = (Control*)FindControl(DUI_CTR_BUTTON_MAX);
-    Control* pRestoreButton = (Control*)FindControl(DUI_CTR_BUTTON_RESTORE);
+    Control* pMaxButton = FindControl(DUI_CTR_BUTTON_MAX);
+    Control* pRestoreButton = FindControl(DUI_CTR_BUTTON_RESTORE);
     bool bWindowMax = IsWindowMaximized();
     if (pMaxButton != nullptr) {
         pMaxButton->SetFadeVisible(bWindowMax ? false : true);

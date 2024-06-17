@@ -108,7 +108,7 @@ bool DiskUtils::GetLogicalDriveInfo(const DString& driveString, DiskInfo& diskIn
     return true;
 }
 
-DString DiskUtils::GetDriveFromDirectoryPath(DString path) 
+DString DiskUtils::GetDriveFromDirectoryPath(const DString& path) 
 {
     if ( (path.size() < 2)) {
         return DString();
@@ -123,7 +123,6 @@ DString DiskUtils::GetMaxFreeSpaceLocalDisk()
 {
     uint64_t freeBytes = 0;
     DString maxFreedrive;
-    DString defaultPath;
     std::vector<DString> driveList;
     GetLogicalDriveList(driveList);
     for (size_t i = 0; i < driveList.size(); ++i) {

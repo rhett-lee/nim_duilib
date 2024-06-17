@@ -15,6 +15,8 @@ class UILIB_API ToolTip
 {
 public:
     ToolTip();
+    ToolTip(const ToolTip& r) = delete;
+    ToolTip& operator = (const ToolTip& r) = delete;
     ~ToolTip();
     
 public:

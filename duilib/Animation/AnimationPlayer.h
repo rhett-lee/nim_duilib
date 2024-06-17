@@ -19,7 +19,7 @@ class UILIB_API AnimationPlayerBase : public virtual SupportWeakCallback
 {
 public:
     AnimationPlayerBase();
-    virtual ~AnimationPlayerBase() = default;
+    virtual ~AnimationPlayerBase();
 
     AnimationPlayerBase(const AnimationPlayerBase& r) = delete;
     AnimationPlayerBase& operator=(const AnimationPlayerBase& r) = delete;
@@ -121,6 +121,10 @@ private:
     /** 完成播放动画，并触发播放完成回调函数
     */
     void Complete();
+
+    /** 初始化自身数据
+    */
+    void InitBaseData();
 
 protected:
     /** 动画类型
@@ -231,6 +235,10 @@ private:
     /** 初始化动画因子数据
     */
     void InitFactor();
+
+    /** 初始化自身数据
+    */
+    void InitData();
 
 private:
     /** 加速比率

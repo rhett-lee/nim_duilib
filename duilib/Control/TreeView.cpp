@@ -388,10 +388,10 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
         return false;
     }
     
-    ASSERT(m_uDepth <= UINT16_MAX);//最大为65535个层级
-    /*if (m_uDepth >= UINT16_MAX) {
+    ASSERT(m_uDepth < UINT16_MAX);//最大为65535个层级
+    if (m_uDepth >= UINT16_MAX) {
         return false;
-    }*/
+    }
 
     pTreeNode->m_uDepth = m_uDepth + 1;
     pTreeNode->SetParentNode(this);

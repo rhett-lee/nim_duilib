@@ -15,7 +15,7 @@ class UILIB_API OptionTemplate : public CheckBoxTemplate<InheritType>
 {
 public:
     explicit OptionTemplate(Window* pWindow);
-    ~OptionTemplate();
+    virtual ~OptionTemplate();
         
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;

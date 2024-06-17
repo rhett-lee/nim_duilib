@@ -13,7 +13,7 @@ class MainForm : public ui::WindowImplBase
 {
 public:
     MainForm();
-    ~MainForm();
+    virtual ~MainForm();
 
     /**
      * 一下三个接口是必须要覆写的接口，父类会调用这三个接口来构建窗口

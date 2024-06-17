@@ -255,7 +255,7 @@ UiSize IconManager::GetIconSize(HICON hIcon) const
         nHeight = bmp.bmHeight;
     }
     if ((nWidth <= 0) || (nHeight <= 0)) {
-        UiSize();
+        return UiSize();
     }
     return UiSize(nWidth, nHeight);
 }

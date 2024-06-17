@@ -326,7 +326,7 @@ Control* Box::FindControlInItems(const std::vector<Control*>& items,
             if (pItemControl == nullptr) {
                 continue;
             }
-            Control* pControl = pControl = pItemControl->FindControl(Proc, pProcData, uFlags, boxPt);
+            Control* pControl = pItemControl->FindControl(Proc, pProcData, uFlags, boxPt);
             if (pControl != nullptr) {
                 if ((uFlags & UIFIND_HITTEST) != 0 && 
                     !pControl->IsFloat() && !rc.ContainsPt(ptMouse)) {

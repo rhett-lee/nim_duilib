@@ -232,7 +232,6 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 
     int window_width = 0, window_height = 0;
     RECT rc_wnd;
-    bool check_wnd_size = false;
     if (::IsIconic(taskbar_delegate_->GetHandle())) //当前是最小化状态
     {
         WINDOWPLACEMENT placement{ sizeof(WINDOWPLACEMENT) };
@@ -246,7 +245,6 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
         else
         {
             rc_wnd = placement.rcNormalPosition;
-            check_wnd_size = true; //少数情况下，WINDOWPLACEMENT::rcNormalPosition不正确
         }
     }
     else
@@ -265,6 +263,9 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
         render.reset(pRenderFactory->CreateRender(control->GetWindow()));
     }
     ASSERT(render != nullptr);
+    if (render == nullptr) {
+        return nullptr;
+    }
     render->Resize(window_width, window_height);
 
     // 2.把窗口双缓冲的位图画到内存dc
@@ -295,7 +296,6 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
 
     int window_width = 0, window_height = 0;
     RECT rc_wnd;
-    bool check_wnd_size = false;
     if (::IsIconic(taskbar_delegate_->GetHandle())) //当前是最小化状态
     {
         WINDOWPLACEMENT placement{ sizeof(WINDOWPLACEMENT) };
@@ -309,7 +309,6 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
         else
         {
             rc_wnd = placement.rcNormalPosition;
-            check_wnd_size = true; //少数情况下，WINDOWPLACEMENT::rcNormalPosition不正确
         }
     }
     else
@@ -328,6 +327,9 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
         render.reset(pRenderFactory->CreateRender(control->GetWindow()));
     }
     ASSERT(render != nullptr);
+    if (render == nullptr) {
+        return nullptr;
+    }
     render->Resize(window_width, window_height);
 
     // 2.把某个会话盒子的位图画到内存dc，覆盖原窗口对应位置的位图
@@ -359,6 +361,9 @@ ui::IBitmap* TaskbarManager::ResizeBitmap(int dest_width, int dest_height, ui::I
         render.reset(pRenderFactory->CreateRender(nullptr));
     }
     ASSERT(render != nullptr);
+    if (render == nullptr) {
+        return nullptr;
+    }
     if (render->Resize(dest_width, dest_height))
     {
         int scale_width = 0;

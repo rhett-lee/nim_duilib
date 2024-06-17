@@ -821,7 +821,7 @@ bool RichText::MouseHover(const EventArgs& msg)
 {
     bool bRet = __super::MouseHover(msg);
     bool hasHover = false;
-    for (RichTextDataEx& textData : m_textData) {
+    for (const RichTextDataEx& textData : m_textData) {
         if (textData.m_linkUrl.empty()) {
             continue;
         }

@@ -29,7 +29,7 @@ public:
     * @param[in] rcPaint 指定绘制坐标
     * @return 无
     */
-    virtual void Paint(IRender* pRender, const UiRect& rcPaint);
+    virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 
     /** 计算控件大小(宽和高)
         如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小

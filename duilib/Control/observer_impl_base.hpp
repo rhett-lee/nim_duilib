@@ -113,7 +113,7 @@ public:
             : _tbl( table ), index(0), ptr(NULL)
         {}
 
-        Iterator( const Iterator & v )
+        explicit Iterator( const Iterator & v )
             : _tbl( v._tbl ), index(v.index), ptr(v.ptr)
         {}
 

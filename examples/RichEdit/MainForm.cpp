@@ -598,7 +598,7 @@ void MainForm::ShowColorPicker()
 
     ui::RichEdit* pEdit = m_pRichEdit;
     if (pEdit != nullptr) {
-        if (!oldTextColor.empty() && (pColorPicker != nullptr)) {
+        if (!oldTextColor.empty()) {
             pColorPicker->SetSelectedColor(pEdit->GetUiColor(oldTextColor));
         }
         //如果在界面选择颜色，则临时更新RichEdit控件文本的颜色
@@ -740,10 +740,7 @@ int32_t MainForm::ConvertToFontHeight(int32_t fontSize) const
         return fontSize;
     }
     bool bGetDC = false;
-    HDC hDC = nullptr;
-    if (m_pRichEdit != nullptr) {
-        hDC = m_pRichEdit->GetWindowDC();
-    }
+    HDC hDC = m_pRichEdit->GetWindowDC();
     if (hDC == nullptr) {
         hDC = ::GetDC(nullptr);
         bGetDC = true;
@@ -1342,7 +1339,7 @@ bool MainForm::GetRichEditLogFont(LOGFONT& lf) const
     }
 
     if (cf.dwMask & CFM_BOLD) {
-        lf.lfWeight = cf.dwEffects & CFE_BOLD ? FW_BOLD : 0;
+        lf.lfWeight = (cf.dwEffects & CFE_BOLD) ? FW_BOLD : 0;
     }
 
     if (cf.dwMask & CFM_WEIGHT) {
@@ -1350,15 +1347,15 @@ bool MainForm::GetRichEditLogFont(LOGFONT& lf) const
     }
 
     if (cf.dwMask & CFM_ITALIC) {
-        lf.lfItalic = cf.dwEffects & CFE_ITALIC ? TRUE : FALSE;
+        lf.lfItalic = (cf.dwEffects & CFE_ITALIC) ? TRUE : FALSE;
     }
 
     if (cf.dwMask & CFM_UNDERLINE) {
-        lf.lfUnderline = cf.dwEffects & CFE_UNDERLINE ? TRUE : FALSE;
+        lf.lfUnderline = (cf.dwEffects & CFE_UNDERLINE) ? TRUE : FALSE;
     }
 
     if (cf.dwMask & CFM_STRIKEOUT) {
-        lf.lfStrikeOut = cf.dwEffects & CFE_STRIKEOUT ? TRUE : FALSE;
+        lf.lfStrikeOut = (cf.dwEffects & CFE_STRIKEOUT) ? TRUE : FALSE;
     }
 
     if (cf.dwMask & CFM_CHARSET) {

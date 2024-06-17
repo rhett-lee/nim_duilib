@@ -64,7 +64,7 @@ private:
 class PerformanceStat
 {
 public:
-    PerformanceStat(const DString& statName):
+    explicit PerformanceStat(const DString& statName):
         m_statName(statName)
     {
         PerformanceUtil::Instance().BeginStat(m_statName);

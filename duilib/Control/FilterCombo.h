@@ -30,19 +30,19 @@ protected:
      * @param[in] args 参数列表
      * @return 始终返回 true
      */
-    virtual bool OnEditButtonDown(const EventArgs& args);
+    virtual bool OnEditButtonDown(const EventArgs& args) override;
 
     /** 鼠标在Edit上面弹起按钮
      * @param[in] args 参数列表
      * @return 始终返回 true
      */
-    virtual bool OnEditButtonUp(const EventArgs& args);
+    virtual bool OnEditButtonUp(const EventArgs& args) override;
 
     /** Edit的文本内容发生变化
      * @param[in] args 参数列表
      * @return 始终返回 true
      */
-    virtual bool OnEditTextChanged(const ui::EventArgs& args);
+    virtual bool OnEditTextChanged(const ui::EventArgs& args) override;
 
 private:
 

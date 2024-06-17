@@ -3,30 +3,33 @@
 using namespace ui;
 
 BrowserTabItem::BrowserTabItem(ui::Window* pWindow):
-    ui::ListBoxItem(pWindow)
+    ui::ListBoxItem(pWindow),
+    icon_(nullptr),
+    name_(nullptr),
+    button_close_(nullptr)
 {
 }
 
-void BrowserTabItem::InitControl(std::string browser_id)
+void BrowserTabItem::InitControl(const std::string& browser_id)
 {
     this->AttachContextMenu(UiBind(&BrowserTabItem::OnItemMenu, this, std::placeholders::_1));
     this->AttachMouseEnter(UiBind(&BrowserTabItem::OnMouseEnter, this, std::placeholders::_1));
     this->AttachMouseLeave(UiBind(&BrowserTabItem::OnMouseLeave, this, std::placeholders::_1));
 
-    icon_ = (Button*) this->FindSubControl(_T("tab_item_icon"));
-    name_ = (Label*) this->FindSubControl(_T("tab_item_name"));
-    button_close_ = (Button*) this->FindSubControl(_T("tab_item_close"));
+    icon_ = dynamic_cast<Button*>(this->FindSubControl(_T("tab_item_icon")));
+    name_ = dynamic_cast<Label*>(this->FindSubControl(_T("tab_item_name")));
+    button_close_ = dynamic_cast<Button*>(this->FindSubControl(_T("tab_item_close")));
 
     this->SetUTF8Name(browser_id);
 }
 
-void BrowserTabItem::SetTitle(DString name)
+void BrowserTabItem::SetTitle(const DString& name)
 {
     this->SetToolTipText(name);
     name_->SetText(name);
 }
 
-void BrowserTabItem::SetIcon(DString icon)
+void BrowserTabItem::SetIcon(const DString& icon)
 {
     icon_->SetBkImage(icon);
 }

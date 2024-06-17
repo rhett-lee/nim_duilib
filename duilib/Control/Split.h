@@ -161,11 +161,11 @@ void SplitTemplate<InheritType>::StopSplitDrag()
 template<typename InheritType>
 bool SplitTemplate<InheritType>::IsVLayout(Control* pControl) const
 {
-    Box* pBox = dynamic_cast<Box*>(pControl);
+    const Box* pBox = dynamic_cast<Box*>(pControl);
     if (pBox == nullptr) {
         return false;
     }
-    Layout* pLayout = pBox->GetLayout();
+    const Layout* pLayout = pBox->GetLayout();
     if (pLayout == nullptr) {
         return false;
     }
@@ -175,11 +175,11 @@ bool SplitTemplate<InheritType>::IsVLayout(Control* pControl) const
 template<typename InheritType>
 bool SplitTemplate<InheritType>::IsHLayout(Control* pControl) const
 {
-    Box* pBox = dynamic_cast<Box*>(pControl);
+    const Box* pBox = dynamic_cast<Box*>(pControl);
     if (pBox == nullptr) {
         return false;
     }
-    Layout* pLayout = pBox->GetLayout();
+    const Layout* pLayout = pBox->GetLayout();
     if (pLayout == nullptr) {
         return false;
     }

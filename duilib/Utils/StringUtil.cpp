@@ -896,7 +896,7 @@ bool StringUtil::IsEqualNoCase(const wchar_t* lhs, const wchar_t* rhs)
         return (rhs == nullptr) ? true : false;
     }
     else if (rhs == nullptr) {
-        return (lhs == nullptr) ? true : false;
+        return true;
     }
     return IsEqualNoCasePrivate(lhs, rhs);
 }
@@ -907,7 +907,7 @@ bool StringUtil::IsEqualNoCase(const char* lhs, const char* rhs)
         return (rhs == nullptr) ? true : false;
     }
     else if (rhs == nullptr) {
-        return (lhs == nullptr) ? true : false;
+        return true;
     }
     return IsEqualNoCasePrivate(lhs, rhs);
 }

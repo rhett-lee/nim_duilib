@@ -1799,7 +1799,7 @@ void ListCtrl::Refresh()
     }
 }
 
-void ListCtrl::RefreshDataItems(std::vector<size_t> dataItemIndexs)
+void ListCtrl::RefreshDataItems(const std::vector<size_t>& dataItemIndexs)
 {
     if (m_bEnableRefresh && !dataItemIndexs.empty()) {
         if (m_listCtrlType == ListCtrlType::Report) {

@@ -34,6 +34,9 @@ public:
     }
     UiString& operator=(const UiString& str)
     {
+        if(&str == this){
+            return *this;
+        }
         if (m_pData != nullptr) {
             delete m_pData;
             m_pData = nullptr;

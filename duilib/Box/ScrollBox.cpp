@@ -1170,12 +1170,12 @@ UiSize ScrollBox::GetScrollOffset() const
     return realcrollPos;
 }
 
-UiSize64 ScrollBox::GetScrollVirtualOffset() const
+const UiSize64& ScrollBox::GetScrollVirtualOffset() const
 {
     return m_scrollVirtualOffset;
 }
 
-void ScrollBox::SetScrollVirtualOffset(UiSize64 szOffset)
+void ScrollBox::SetScrollVirtualOffset(const UiSize64& szOffset)
 {
     ASSERT(szOffset.cx >= 0);
     ASSERT(szOffset.cy >= 0);

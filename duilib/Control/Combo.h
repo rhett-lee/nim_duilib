@@ -173,7 +173,7 @@ public:
 
     /** 让控件获取焦点
      */
-    virtual void SetFocus();
+    virtual void SetFocus() override;
 
 public:
     /** 获取下拉列表的树接口
@@ -281,7 +281,7 @@ protected:
     * @param[in] args 参数列表
     * @return 始终返回 true
     */
-    virtual bool OnWindowKillFocus(const EventArgs& args);
+    virtual bool OnWindowKillFocus(const EventArgs& args) override;
 
     /** 窗口移动
     * @param[in] args 参数列表

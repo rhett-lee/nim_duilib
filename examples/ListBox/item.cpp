@@ -1,7 +1,12 @@
 #include "item.h"
 
 Item::Item(ui::Window* pWindow):
-    ui::ListBoxItem(pWindow)
+    ui::ListBoxItem(pWindow),
+    list_box_(nullptr),
+    control_img_(nullptr),
+    label_title_(nullptr),
+    progress_(nullptr),
+    btn_del_(nullptr)
 {
 }
 

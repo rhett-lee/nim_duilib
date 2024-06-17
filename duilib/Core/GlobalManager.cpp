@@ -214,7 +214,7 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
     else if (resParam.GetResType() == ResourceType::kZipFile) {
         //资源文件打包为zip压缩包，然后以本地文件的形式存在
         const ZipFileResParam& param = static_cast<const ZipFileResParam&>(resParam);
-        bool bZipOpenOk = Zip().OpenZipFile(param.zipFilePath.c_str(), param.zipPassword);
+        bool bZipOpenOk = Zip().OpenZipFile(param.zipFilePath, param.zipPassword);
         if (!bZipOpenOk) {
             ASSERT(!"OpenZipFile failed!");
             return false;

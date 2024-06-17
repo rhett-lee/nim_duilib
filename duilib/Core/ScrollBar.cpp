@@ -104,16 +104,16 @@ void ScrollBar::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("thumb_disabled_image")) || (strName == _T("thumbdisabledimage"))) {
         SetThumbStateImage(kControlStateDisabled, strValue);
     }
-    else if ((strName == _T("rail_normal_image")) && (strName == _T("railnormalimage"))) {
+    else if ((strName == _T("rail_normal_image")) || (strName == _T("railnormalimage"))) {
         SetRailStateImage(kControlStateNormal, strValue);
     }
-    else if ((strName == _T("rail_hot_image")) && (strName == _T("railhotimage"))) {
+    else if ((strName == _T("rail_hot_image")) || (strName == _T("railhotimage"))) {
         SetRailStateImage(kControlStateHot, strValue);
     }
-    else if ((strName == _T("rail_pushed_image")) && (strName == _T("railpushedimage"))) {
+    else if ((strName == _T("rail_pushed_image")) || (strName == _T("railpushedimage"))) {
         SetRailStateImage(kControlStatePushed, strValue);
     }
-    else if ((strName == _T("rail_disabled_image")) && (strName == _T("raildisabledimage"))) {
+    else if ((strName == _T("rail_disabled_image")) || (strName == _T("raildisabledimage"))) {
         SetRailStateImage(kControlStateDisabled, strValue);
     }
     else if ((strName == _T("bk_normal_image")) || (strName == _T("bknormalimage"))) {

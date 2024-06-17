@@ -27,7 +27,7 @@ struct IPngReader_Mem : public IPngReader
     png_size_t   nLen;
 
     IPngReader_Mem(const char* _pbuf, png_size_t _nLen) :pbuf(_pbuf), nLen(_nLen) {}
-    png_size_t read(png_bytep data, png_size_t length)
+    virtual png_size_t read(png_bytep data, png_size_t length) override
     {
         if (nLen < length) length = nLen;
         memcpy(data, pbuf, length);

@@ -65,10 +65,10 @@ void MsgBox::OnInitWindow()
     if (GetRoot() != nullptr) {
         GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MsgBox::OnClicked, this, std::placeholders::_1));
     }
-    m_title = (ui::Label*)FindControl(_T("title"));
-    m_content = (ui::RichEdit*)FindControl(_T("content"));
-    m_btn_yes = (ui::Button*)FindControl(_T("btn_yes"));
-    m_btn_no = (ui::Button*)FindControl(_T("btn_no"));
+    m_title = dynamic_cast<ui::Label*>(FindControl(_T("title")));
+    m_content = dynamic_cast<ui::RichEdit*>(FindControl(_T("content")));
+    m_btn_yes = dynamic_cast<ui::Button*>(FindControl(_T("btn_yes")));
+    m_btn_no = dynamic_cast<ui::Button*>(FindControl(_T("btn_no")));
     __super::OnInitWindow();
 }
 

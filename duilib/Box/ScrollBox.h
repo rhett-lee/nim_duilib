@@ -251,12 +251,12 @@ public:
 public:
     /** 获取滚动条虚拟偏移量(cx代表横向滚动条的虚拟偏移量，cy代表纵向滚动条的虚拟偏移量)
      */
-    UiSize64 GetScrollVirtualOffset() const;
+    const UiSize64& GetScrollVirtualOffset() const;
 
     /** 设置滚动条虚拟偏移量
      * @param[in] szPos 要设置的位置数据(cx代表横向滚动条的位置，cy代表纵向滚动条的位置)
      */
-    void SetScrollVirtualOffset(UiSize64 szOffset);
+    void SetScrollVirtualOffset(const UiSize64& szOffset);
 
     /** 设置滚动条 Y 轴虚拟偏移量
      */

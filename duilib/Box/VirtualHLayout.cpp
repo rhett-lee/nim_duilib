@@ -361,10 +361,7 @@ void VirtualHLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const
     if (elementWidth <= 0) {
         return;
     }
-    int64_t nTopIndex = 0;
-    if (elementWidth > 0) {
-        nTopIndex = (nPos / elementWidth);
-    }
+    int64_t nTopIndex = (nPos / elementWidth);
     int64_t nNewPos = 0;
 
     if (bToTop) {

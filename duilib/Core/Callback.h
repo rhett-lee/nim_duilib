@@ -40,7 +40,7 @@ public:
     }
 
     template<class WeakType>
-    WeakCallback(const WeakType& weak_callback) :
+    explicit WeakCallback(const WeakType& weak_callback) :
         m_weak_flag(weak_callback.GetFlag()),
         m_func(weak_callback.GetFunc())
     {

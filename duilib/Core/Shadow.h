@@ -23,7 +23,7 @@ public:
     /** Attach的Box圆角属性（Attach后，需要修改原来Box的圆角属性）
     * @param [in] pBox 关联的容器，用于处理DPI缩放
     */
-    static UiSize GetChildBoxBorderRound(Box* pBox);
+    static UiSize GetChildBoxBorderRound(const Box* pBox);
 
 public:
     /** 构造函数

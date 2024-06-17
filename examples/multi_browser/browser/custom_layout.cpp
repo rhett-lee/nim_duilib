@@ -14,7 +14,7 @@ ui::UiSize64 CustomLayout::ArrangeChild(const std::vector<ui::Control*>& m_items
     return UiSize64(size.cx, size.cy);
 }
 
-UiSize CustomLayout::SetCustomPos(Control* pControl, UiRect containerRect)
+UiSize CustomLayout::SetCustomPos(Control* pControl, const UiRect& containerRect)
 {
     int childLeft = 0;
     int childRight = 0;

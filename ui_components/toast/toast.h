@@ -24,7 +24,7 @@ public:
     static void ShowToast(const DString& content, int duration = 0, Window* pParentWindow = nullptr);
 public:
     Toast(){};
-    ~Toast(){};
+    virtual ~Toast(){};
 
     //覆盖虚函数
     virtual DString GetSkinFolder() override;

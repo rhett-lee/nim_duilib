@@ -265,7 +265,7 @@ void ControlForm::ShowColorPicker()
     ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit")));
     if (pEdit != nullptr) {
         DString oldTextColor = pEdit->GetTextColor();
-        if (!oldTextColor.empty() && (pColorPicker != nullptr)) {
+        if (!oldTextColor.empty()) {
             pColorPicker->SetSelectedColor(pEdit->GetUiColor(oldTextColor));
         }
         //如果在界面选择颜色，则临时更新RichEdit控件文本的颜色

@@ -154,7 +154,7 @@ public:
                 if (msg.eventType == kEventMouseButtonDown) {
                     m_bMouseDown = false;
                     if (GetWindow() != nullptr) {
-                        Control* pFocus = GetWindow()->GetFocusControl();
+                        const Control* pFocus = GetWindow()->GetFocusControl();
                         if ((pFocus != nullptr) && (pFocus == m_pListBoxItem)) {
                             //避免每次点击都进入编辑模式
                             m_bMouseDown = true;

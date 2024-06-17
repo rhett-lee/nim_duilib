@@ -107,7 +107,7 @@ void ToolTip::ToolTipImpl::ShowToolTip(WindowBase* pParentWnd,
     //如果超过长度，则截断
     DString newText(text);
     if (newText.size() > TOOLTIP_MAX_LEN) {
-        newText = newText.substr(0, TOOLTIP_MAX_LEN);
+        newText.resize(TOOLTIP_MAX_LEN);
     }
 
     HWND hParentWnd = pParentWnd->NativeWnd()->GetHWND();

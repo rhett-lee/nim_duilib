@@ -310,7 +310,7 @@ public:
 
     /** 布局类型
     */
-    virtual LayoutType GetLayoutType() const { return LayoutType::ListCtrlReportLayout; }
+    virtual LayoutType GetLayoutType() const override { return LayoutType::ListCtrlReportLayout; }
 
     /** 调整内部所有控件的位置信息
         * @param [in] items 控件列表

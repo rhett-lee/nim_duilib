@@ -635,7 +635,7 @@ public:
      *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
      *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
      */
-    virtual UiSize EstimateText(UiSize szAvailable);
+    virtual UiSize EstimateText(UiSize szAvailable) override;
 
     /** 创建光标
      * @param[in] xWidth 光标宽度

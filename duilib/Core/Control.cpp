@@ -2490,7 +2490,7 @@ void Control::PaintBorder(IRender* pRender)
         borderColor = GetBorderColor(GetState());
     }
     if (!borderColor.empty()) {
-        dwBorderColor = GetUiColor(borderColor.c_str());
+        dwBorderColor = GetUiColor(borderColor);
     }
     if (dwBorderColor.GetARGB() == 0) {
         return;

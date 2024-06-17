@@ -15,7 +15,7 @@ class WindowBase;
 class DateTimeWnd
 {
 public:
-    DateTimeWnd(DateTime* pOwner);
+    explicit DateTimeWnd(DateTime* pOwner);
     ~DateTimeWnd();
 
 public:

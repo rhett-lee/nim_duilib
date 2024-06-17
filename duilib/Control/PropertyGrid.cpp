@@ -1781,7 +1781,7 @@ void PropertyGridColorProperty::ShowColorPicker()
     pColorPicker->CenterWindow();
     pColorPicker->ShowModalFake();
 
-    if (!oldTextColor.empty() && (pColorPicker != nullptr)) {
+    if (!oldTextColor.empty()) {
         pColorPicker->SetSelectedColor(GetUiColor(oldTextColor));
     }
     //如果在界面选择颜色，则临时更新控件文本的颜色

@@ -311,10 +311,11 @@ void ComboButton::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 
 void ComboButton::SetLeftButtonClass(const DString& classValue)
 {
-    if (classValue.empty()) {
-        RemoveControl(m_pLeftButton);
-        m_pLeftButton->SetAutoDestroyChild(false);
+    if (classValue.empty()) {        
         if (m_pLeftButton != nullptr) {
+            RemoveControl(m_pLeftButton);
+            m_pLeftButton->SetAutoDestroyChild(false);
+        
             delete m_pLeftButton;
             m_pLeftButton = nullptr;
         }

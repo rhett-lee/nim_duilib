@@ -1,12 +1,25 @@
 #include "main_form.h"
 #include "provider.h"
 
-MainForm::MainForm()
-= default;
+MainForm::MainForm():
+    m_pTileList(nullptr),
+    m_DataProvider(nullptr),
+    m_EditColumn(nullptr),
+    m_CheckBoxItemCenter(nullptr),
+    m_EditTotal(nullptr),
+    m_OptionColumnFix(nullptr),
+    m_EditUpdate(nullptr),
+    m_EditTaskName(nullptr),
+    m_EditDelete(nullptr),
+    m_EditChildMarginX(nullptr),
+    m_EditChildMarginY(nullptr)
+{
 
+}
 
 MainForm::~MainForm()
-= default;
+{
+}
 
 DString MainForm::GetSkinFolder()
 {

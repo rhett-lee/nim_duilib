@@ -35,7 +35,7 @@ public:
                不包含Box控件本身的外边距；
                返回值中不包含拉伸类型的子控件大小。
      */
-    virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable);
+    virtual UiSize EstimateSizeByChild(const std::vector<Control*>& items, UiSize szAvailable) override;
     
     /** 设置布局属性
      * @param [in] strName 要设置的属性名

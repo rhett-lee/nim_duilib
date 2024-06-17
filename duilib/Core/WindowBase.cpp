@@ -407,7 +407,7 @@ void WindowBase::SetText(const DString& strText)
     m_text = strText;
 }
 
-DString WindowBase::GetText() const
+const DString& WindowBase::GetText() const
 {
     return m_text;
 }
@@ -415,11 +415,11 @@ DString WindowBase::GetText() const
 void WindowBase::SetTextId(const DString& strTextId)
 {
     ASSERT(IsWindow());
-    m_pNativeWindow->SetText(GlobalManager::Instance().Lang().GetStringViaID(strTextId).c_str());
+    m_pNativeWindow->SetText(GlobalManager::Instance().Lang().GetStringViaID(strTextId));
     m_textId = strTextId;
 }
 
-DString WindowBase::GetTextId() const
+const DString& WindowBase::GetTextId() const
 {
     return m_textId;
 }

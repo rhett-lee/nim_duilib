@@ -20,6 +20,8 @@ class UILIB_API Render_Skia : public IRender
 {
 public:
     explicit Render_Skia(IRenderFactory* pRenderFactory, Window* pWindow);
+    Render_Skia(const Render_Skia& r) = delete;
+    Render_Skia& operator = (const Render_Skia& r) = delete;
     virtual ~Render_Skia();
 
     /** 获取Render实现类型
@@ -33,7 +35,7 @@ public:
     /** 分离位图
     *@return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
     */
-    virtual IBitmap* DetachBitmap();
+    virtual IBitmap* DetachBitmap() override;
 
     virtual int    GetWidth() override;
     virtual int GetHeight() override;
@@ -70,7 +72,7 @@ public:
                            bool fullxtiled = true, bool fullytiled = true, int nTiledMargin = 0) override;
     virtual void DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
                                const UiRect& rcDest, const UiRect& rcSource,
-                               uint8_t uFade = 255, IMatrix* pMatrix = nullptr);
+                               uint8_t uFade = 255, IMatrix* pMatrix = nullptr) override;
 
     virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth) override;
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) override;
@@ -78,7 +80,7 @@ public:
 
     virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect) override;
     virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) override;
-    virtual void FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255);
+    virtual void FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
     virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth) override;
     virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) override;

@@ -218,10 +218,10 @@ bool NativeWindow::SetLayeredWindowStyle(bool bIsLayeredWindow, bool& bChanged) 
             dwExStyle = ::GetWindowLong(m_hWnd, GWL_EXSTYLE);
         }
         if (m_bIsLayeredWindow) {
-            return dwExStyle & WS_EX_LAYERED ? true : false;
+            return (dwExStyle & WS_EX_LAYERED) ? true : false;
         }
         else {
-            return dwExStyle & WS_EX_LAYERED ? false : true;
+            return (dwExStyle & WS_EX_LAYERED) ? false : true;
         }
     }
     return false;
@@ -232,7 +232,7 @@ bool NativeWindow::IsLayeredWindow() const
 #if _DEBUG
     if (::IsWindow(m_hWnd)) {
         LONG dwExStyle = ::GetWindowLong(m_hWnd, GWL_EXSTYLE);
-        bool bIsLayeredWindow = dwExStyle & WS_EX_LAYERED ? true : false;
+        bool bIsLayeredWindow = (dwExStyle & WS_EX_LAYERED) ? true : false;
         ASSERT(bIsLayeredWindow == m_bIsLayeredWindow);
     }
 #endif // _DEBUG

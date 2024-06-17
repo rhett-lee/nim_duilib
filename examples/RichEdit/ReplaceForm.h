@@ -11,7 +11,7 @@ class ReplaceForm : public ui::WindowImplBase
 {
 public:
     explicit ReplaceForm(MainForm* pMainForm);
-    ~ReplaceForm();
+    virtual ~ReplaceForm();
 
     /**
      * 一下三个接口是必须要覆写的接口，父类会调用这三个接口来构建窗口

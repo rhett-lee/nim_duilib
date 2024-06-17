@@ -388,7 +388,7 @@ bool Render_Skia::BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, int 
 
     Render_Skia* pSkiaRender = dynamic_cast<Render_Skia*>(pSrcRender);
     ASSERT(pSkiaRender != nullptr);
-    if (pSrcRender == nullptr) {
+    if (pSkiaRender == nullptr) {
         return false;
     }
     Bitmap_Skia* skiaBitmap = pSkiaRender->m_pBitmapSkia.get();
@@ -405,7 +405,7 @@ bool Render_Skia::StretchBlt(int xDest, int yDest, int widthDest, int heightDest
 
     Render_Skia* pSkiaRender = dynamic_cast<Render_Skia*>(pSrcRender);
     ASSERT(pSkiaRender != nullptr);
-    if (pSrcRender == nullptr) {
+    if (pSkiaRender == nullptr) {
         return false;
     }
     Bitmap_Skia* skiaBitmap = pSkiaRender->m_pBitmapSkia.get();
@@ -444,7 +444,7 @@ bool Render_Skia::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest
 
     Render_Skia* pSkiaRender = dynamic_cast<Render_Skia*>(pSrcRender);
     ASSERT(pSkiaRender != nullptr);
-    if (pSrcRender == nullptr) {
+    if (pSkiaRender == nullptr) {
         return false;
     }
     Bitmap_Skia* skiaBitmap = pSkiaRender->m_pBitmapSkia.get();
@@ -579,7 +579,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
         }
         else if (xtiled) { // supp
             const LONG imageDrawWidth = rcSource.right - rcSource.left - rcSourceCorners.left - rcSourceCorners.right;
-            int iTimes = iTimes = (rcDrawDest.right - rcDrawDest.left) / (imageDrawWidth + nTiledMargin);
+            int iTimes = (rcDrawDest.right - rcDrawDest.left) / (imageDrawWidth + nTiledMargin);
             if (!fullxtiled) {
                 if ((rcDrawDest.right - rcDrawDest.left) % (imageDrawWidth + nTiledMargin) > 0) {
                     iTimes += 1;

@@ -283,7 +283,7 @@ std::tuple<int32_t, float> AttributeUtil::ParseString(const char* strValue, char
     return std::tuple<int32_t, float>(xValue, xPercent);
 }
 
-void AttributeUtil::ParseWindowSize(Window* pWindow, const DString::value_type* strValue, UiSize& size)
+void AttributeUtil::ParseWindowSize(const Window* pWindow, const DString::value_type* strValue, UiSize& size)
 {
     //支持的格式：size="1200,800",或者size="50%,50%",或者size="1200,50%",size="50%,800"
     //百分比是指屏幕宽度或者高度的百分比

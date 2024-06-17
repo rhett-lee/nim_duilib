@@ -776,9 +776,7 @@ bool Combo::OnSelectItem(const EventArgs& /*args*/)
         const Control* pControl = m_treeView.GetItemAt(m_iCurSel);
         if ((pControl != nullptr) && (m_pWindow->GetEventClick() == pControl)) {
             //如果是鼠标点击触发选择，那么关闭下拉列表
-            if (m_pWindow != nullptr) {
-                m_pWindow->CloseComboWnd(false, false);
-            }
+            m_pWindow->CloseComboWnd(false, false);
         }
     }
     return true;

@@ -18,7 +18,7 @@ public:
     * @param[in] 待补充
     * @return 待补充
     */
-    virtual void AlphaPaint(IRender* pRender, const UiRect& rcPaint);
+    virtual void AlphaPaint(IRender* pRender, const UiRect& rcPaint) override;
 
     /**
     * @brief 绘制控件的入口函数
@@ -26,7 +26,7 @@ public:
     * @param[in] rcPaint 指定绘制坐标
     * @return 无
     */
-    virtual void Paint(IRender* pRender, const UiRect& rcPaint);
+    virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
 
     /**
     * @brief 绘制控件子项入口函数
@@ -34,7 +34,7 @@ public:
     * @param[in] rcPaint 指定绘制坐标
     * @return 无
     */
-    virtual void PaintChild(IRender* pRender, const UiRect& rcPaint);
+    virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
 };
 

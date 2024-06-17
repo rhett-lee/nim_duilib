@@ -21,7 +21,7 @@ public:
     virtual ~ListCtrlIconView();
 
     virtual DString GetType() const override { return _T("ListCtrlIconView"); }
-    virtual void SetAttribute(const DString& strName, const DString& strValue);
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void HandleEvent(const EventArgs& msg) override;
 
 public:

@@ -43,9 +43,7 @@ void ColorPickerStatard::DrawColorMap(IRender* pRender, const UiRect& rect)
 {
     int32_t rectSize = std::min(rect.Width(), rect.Height());
     int32_t radius = static_cast<int32_t>(rectSize / 13 / 2 / std::cos(30 / 57.2957795f)); //半径
-    if (m_radius != radius) {
-        m_radius = radius;
-    }
+    m_radius = radius;
     const float distance = radius * std::cos(30 / 57.2957795f); //中心点到边的垂直距离
 
     UiPointF firstCenterPt = UiPointF((float)rect.CenterX(), (float)rect.CenterY()); //矩形中心点坐标

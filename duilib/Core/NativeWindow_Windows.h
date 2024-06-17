@@ -51,7 +51,7 @@ class IRender;
 class NativeWindow
 {
 public:
-    NativeWindow(INativeWindow* pOwner);
+    explicit NativeWindow(INativeWindow* pOwner);
     NativeWindow(const NativeWindow& r) = delete;
     NativeWindow& operator=(const NativeWindow& r) = delete;
     ~NativeWindow();

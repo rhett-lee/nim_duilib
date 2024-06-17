@@ -56,7 +56,7 @@ public:
 
     /** 获取配置中的窗口大小
     */
-    static void ParseWindowSize(Window* pWindow, const DString::value_type* strValue, UiSize& size);
+    static void ParseWindowSize(const Window* pWindow, const DString::value_type* strValue, UiSize& size);
 };
 
 } //namespace ui

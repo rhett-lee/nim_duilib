@@ -143,7 +143,7 @@ DString PathUtil::GetCurrentModuleDirectory()
     dirPath.resize(::GetModuleFileNameW(nullptr, &dirPath[0], (uint32_t)dirPath.size()));
     size_t nPos = dirPath.find_last_of(_T("/\\"));
     if (nPos != DString::npos) {
-        dirPath = dirPath.substr(0, nPos);
+        dirPath.resize(nPos);
 #ifdef DUILIB_PLATFORM_WIN
         dirPath += _T('\\');
 #else

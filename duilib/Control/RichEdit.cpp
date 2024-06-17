@@ -1197,7 +1197,7 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
                         url.erase(url.begin());
                         pos = url.find(_T('\"'));
                         if (pos != DString::npos) {
-                            url = url.substr(0, pos);
+                            url.resize(pos);
                         }
                     }
                 }
@@ -1643,7 +1643,7 @@ void RichEdit::SetPos(UiRect rc)
         UiPadding rcTextPadding = GetTextPadding();
         textRect.Deflate(rcTextPadding);
         m_pRichHost->SetClientRect(textRect);
-        if (bVScrollBarVisible && (pVScrollBar == nullptr) && (!pVScrollBar->IsValid() || m_bVScrollBarFixing)) {
+        if (bVScrollBarVisible && (pVScrollBar != nullptr) && (!pVScrollBar->IsValid() || m_bVScrollBarFixing)) {
             LONG lWidth = rc.Width() + pVScrollBar->GetFixedWidth().GetInt32();
             LONG lHeight = 0;
             SIZEL szExtent = { -1, -1 };
@@ -2031,9 +2031,8 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     }
 
     UiRect rc;
-    if (m_pRichHost != nullptr) {
-        m_pRichHost->GetControlRect(&rc);
-    }    
+    m_pRichHost->GetControlRect(&rc);
+       
     // Remember wparam is actually the hdc and lparam is the update
     // rect because this message has been preprocessed by the window.
     HDC hdc = pRender->GetDC();
@@ -2299,9 +2298,7 @@ void RichEdit::PaintPromptText(IRender* pRender)
     }
 
     UiRect rc;
-    if (m_pRichHost != nullptr) {
-        m_pRichHost->GetControlRect(&rc);
-    }
+    m_pRichHost->GetControlRect(&rc);
     UiColor dwClrColor = GetUiColor(m_sPromptColor.c_str());
     UINT dwStyle = TEXT_NOCLIP;
     pRender->DrawString(rc, strPrompt, dwClrColor, GetIFontById(m_sFontId.c_str()), dwStyle);

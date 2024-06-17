@@ -403,7 +403,7 @@ private:
 
     /** 鼠标左键按下，选择颜色
     */
-    virtual bool ButtonDown(const EventArgs& msg)
+    virtual bool ButtonDown(const EventArgs& msg) override
     {
         bool bRet = __super::ButtonDown(msg);
         if (msg.IsSenderExpired()) {
@@ -615,7 +615,7 @@ public:
     * @param [in] strClass 控件名称
     * @return 返回一个自定义控件指针，一般情况下根据 strClass 参数创建自定义的控件
     */
-    virtual Control* CreateControl(const DString& strClass)
+    virtual Control* CreateControl(const DString& strClass) override
     {
         if (strClass == _T("ScreenColorPicker")) {
             if (m_pScreenColorPicker == nullptr) {

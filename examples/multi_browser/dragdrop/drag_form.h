@@ -55,7 +55,7 @@ public:
 
 private:
     DragForm();
-    ~DragForm(){};
+    virtual ~DragForm(){};
 
     /**
     * 创建一个拖拽效果的窗口

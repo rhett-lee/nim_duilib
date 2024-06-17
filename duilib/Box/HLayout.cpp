@@ -91,7 +91,7 @@ UiSize64 HLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc)
     bool bStretchCountChanged = false;
     if ((fStretchValue > 0) && !itemsMap.empty()) {
         for (auto iter = itemsMap.begin(); iter != itemsMap.end(); ++iter) {
-            Control* pControl = iter->first;
+            const Control* pControl = iter->first;
             UiEstSize estSize = iter->second;
             UiSize sz(estSize.cx.GetInt32(), estSize.cy.GetInt32());
             if (estSize.cx.IsStretch()) {

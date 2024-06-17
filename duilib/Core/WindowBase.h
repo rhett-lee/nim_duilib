@@ -225,7 +225,7 @@ public:
 
     /** 获取窗口标题栏文本
     */
-    DString GetText() const;
+    const DString& GetText() const;
 
     /** 根据语言列表中的文本 ID， 根据ID设置窗口标题栏文本
     * @param [in] strTextId 语言 ID，该 ID 必须在语言文件中存在
@@ -234,7 +234,7 @@ public:
 
     /** 获取窗口标题栏文本的文本ID
     */
-    DString GetTextId() const;
+    const DString& GetTextId() const;
 
     /** 获取该窗口对应的DPI管理器
     */

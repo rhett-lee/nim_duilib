@@ -726,7 +726,7 @@ public:
 public:
     /** 获取属性类型
     */
-    virtual PropertyGridPropertyType GetPropertyType() const
+    virtual PropertyGridPropertyType GetPropertyType() const override
     {
         return PropertyGridPropertyType::kText;
     }
@@ -796,7 +796,7 @@ public:
 public:
     /** 获取属性类型
     */
-    virtual PropertyGridPropertyType GetPropertyType() const
+    virtual PropertyGridPropertyType GetPropertyType() const override
     {
         return PropertyGridPropertyType::kCombo;
     }
@@ -901,7 +901,7 @@ public:
 public:
     /** 获取属性类型
     */
-    virtual PropertyGridPropertyType GetPropertyType() const
+    virtual PropertyGridPropertyType GetPropertyType() const override
     {
         return PropertyGridPropertyType::kFont;
     }
@@ -942,7 +942,7 @@ public:
 public:
     /** 获取属性类型
     */
-    virtual PropertyGridPropertyType GetPropertyType() const
+    virtual PropertyGridPropertyType GetPropertyType() const override
     {
         return PropertyGridPropertyType::kFontSize;
     }
@@ -1016,7 +1016,7 @@ public:
 public:
     /** 获取属性类型
     */
-    virtual PropertyGridPropertyType GetPropertyType() const
+    virtual PropertyGridPropertyType GetPropertyType() const override
     {
         return PropertyGridPropertyType::kColor;
     }
@@ -1082,7 +1082,7 @@ public:
 public:
     /** 获取属性类型
     */
-    virtual PropertyGridPropertyType GetPropertyType() const
+    virtual PropertyGridPropertyType GetPropertyType() const override
     {
         return PropertyGridPropertyType::kDateTime;
     }
@@ -1137,7 +1137,7 @@ public:
 public:
     /** 获取属性类型
     */
-    virtual PropertyGridPropertyType GetPropertyType() const
+    virtual PropertyGridPropertyType GetPropertyType() const override
     {
         return PropertyGridPropertyType::kIPAddress;
     }
@@ -1184,7 +1184,7 @@ public:
 public:
     /** 获取属性类型
     */
-    virtual PropertyGridPropertyType GetPropertyType() const
+    virtual PropertyGridPropertyType GetPropertyType() const override
     {
         return PropertyGridPropertyType::kHotKey;
     }
@@ -1239,7 +1239,7 @@ public:
 protected:
     /** 获取属性类型
     */
-    virtual PropertyGridPropertyType GetPropertyType() const
+    virtual PropertyGridPropertyType GetPropertyType() const override
     {
         return PropertyGridPropertyType::kFile;
     }
@@ -1296,7 +1296,7 @@ public:
 protected:
     /** 获取属性类型
     */
-    virtual PropertyGridPropertyType GetPropertyType() const
+    virtual PropertyGridPropertyType GetPropertyType() const override
     {
         return PropertyGridPropertyType::kDirectory;
     }

@@ -12,7 +12,7 @@ class WorkerThread : public ui::FrameworkThread
 {
 public:
     WorkerThread();
-    virtual ~WorkerThread(void);
+    virtual ~WorkerThread();
 
 private:
     /** 运行前初始化，在进入消息循环前调用

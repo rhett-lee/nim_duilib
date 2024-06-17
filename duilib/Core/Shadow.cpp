@@ -90,7 +90,7 @@ private:
     UiColor m_bkColor = UiColor(UiColors::LightGray);
 };
 
-UiSize Shadow::GetChildBoxBorderRound(Box* pBox)
+UiSize Shadow::GetChildBoxBorderRound(const Box* pBox)
 {
     UiSize rcSize{ 3, 3 };
     if (pBox != nullptr) {

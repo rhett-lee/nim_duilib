@@ -20,21 +20,21 @@ public:
     * @param[in] browser_id 浏览器id
     * @return void 无返回值
     */
-    void InitControl(std::string browser_id);
+    void InitControl(const std::string& browser_id);
 
     /**
     * 设置显示的浏览器标题
     * @param[in] name 标题
     * @return void    无返回值
     */
-    void SetTitle(DString name);
+    void SetTitle(const DString& name);
 
     /**
     * 设置显示的浏览器头像
     * @param[in] icon 头像路径
     * @return void    无返回值
     */
-    void SetIcon(DString icon);
+    void SetIcon(const DString& icon);
 
 private:
 
@@ -74,9 +74,9 @@ private:
     bool MergeItemMenuItemClick(const ui::EventArgs& msg);
 
 private:
-    ui::Control        *icon_;
-    ui::Label        *name_;
-    ui::Button        *button_close_;
+    ui::Control* icon_;
+    ui::Label* name_;
+    ui::Button* button_close_;
 
     DString    session_id_;
 };

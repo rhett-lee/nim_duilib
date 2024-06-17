@@ -232,9 +232,6 @@ ui::TreeNode* MainForm::ShowAllDiskNode()
             continue;
         }
 
-        DString name;
-        int32_t imageIndex = 0;
-
         SHFILEINFO shFileInfo;
         ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
         if (::SHGetFileInfo(driverName.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_SMALLICON | SHGFI_DISPLAYNAME)) {      

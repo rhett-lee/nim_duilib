@@ -470,7 +470,7 @@ public:
     /** 刷新指定数据项
     * @param [in] dataItemIndexs 需要刷新的数据项索引号, 有效范围：[0, GetDataItemCount())
     */
-    void RefreshDataItems(std::vector<size_t> dataItemIndexs);
+    void RefreshDataItems(const std::vector<size_t>& dataItemIndexs);
 
     /** 是否允许刷新界面
     * @param [in] bEnable 如果为true，允许通过Refresh()函数刷新界面; 如果为false，则允许通过Refresh()函数刷新界面

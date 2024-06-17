@@ -29,19 +29,19 @@ public:
         
         /** 簇大小
         */
-        uint32_t m_clusterBytes;
+        uint32_t m_clusterBytes = 0;
         
         /** 总大小
         */
-        uint64_t m_totalBytes;
+        uint64_t m_totalBytes = 0;
         
         /** 可用空间大小
         */
-        uint64_t m_freeBytes;
+        uint64_t m_freeBytes = 0;
         
         /** 是否含有文件系统
         */
-        bool m_hasFileSystem;
+        bool m_hasFileSystem = false;
     };
     
 public:
@@ -63,7 +63,7 @@ public:
     @param [in] path 当前路径
     @return 盘符名称
     */
-    static DString GetDriveFromDirectoryPath(DString path);
+    static DString GetDriveFromDirectoryPath(const DString& path);
 
     /** 获取剩余空间最大的本地磁盘的盘符
     @return 返回磁盘的盘符， 比如: "C:\\"

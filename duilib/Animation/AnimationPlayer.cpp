@@ -16,7 +16,11 @@ AnimationPlayerBase::AnimationPlayerBase():
     m_playCallback(nullptr),
     m_completeCallback(nullptr)
 {
-    Init();
+    InitBaseData();
+}
+
+AnimationPlayerBase::~AnimationPlayerBase()
+{
 }
 
 void AnimationPlayerBase::Reset()
@@ -32,7 +36,7 @@ void AnimationPlayerBase::Clear()
     m_completeCallback = nullptr;
 }
 
-void AnimationPlayerBase::Init()
+void AnimationPlayerBase::InitBaseData()
 {
     m_startValue = 0;
     m_endValue = 0;
@@ -43,6 +47,11 @@ void AnimationPlayerBase::Init()
     m_reverseStart = false;
     m_bPlaying = false;
     m_startTime = std::chrono::steady_clock::now();
+}
+
+void AnimationPlayerBase::Init()
+{
+    InitBaseData();
 }
 
 void AnimationPlayerBase::Start()
@@ -157,12 +166,11 @@ void AnimationPlayerBase::Complete()
 
 AnimationPlayer::AnimationPlayer()
 {
-    Init();
+    InitData();
 }
 
-void AnimationPlayer::Init()
+void AnimationPlayer::InitData()
 {
-    __super::Init();
     m_speedUpRatio = 0;
     m_speedDownRatio = 0;
     m_speedDownMillSeconds = 0;
@@ -172,6 +180,12 @@ void AnimationPlayer::Init()
     m_speedDownfactorA = 0;
     m_speedDownfactorB = 0;
     m_maxTotalMillSeconds = 1000000;
+}
+
+void AnimationPlayer::Init()
+{
+    __super::Init();
+    InitData();
 }
 
 void AnimationPlayer::StartTimer()

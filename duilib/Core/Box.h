@@ -35,7 +35,7 @@ public:
     virtual void SetWindow(Window* pManager) override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
-    virtual void PaintFocusRect(IRender* pRender);
+    virtual void PaintFocusRect(IRender* pRender) override;
     virtual void SetEnabled(bool bEnabled) override;
     virtual void SetVisible(bool bVisible) override;
     virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pProcData, uint32_t uFlags, 
