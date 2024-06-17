@@ -12,7 +12,7 @@ class UILIB_API Render_GdiPlus : public IRender
 {
 public:
     Render_GdiPlus();
-    virtual ~Render_GdiPlus();
+    virtual ~Render_GdiPlus() override;
 
     /** 获取Render实现类型
     */

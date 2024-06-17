@@ -108,7 +108,7 @@ private:
     * @param [in] rc 瓦片控件所在容器的可用区域矩形
     * @return 返回该空间的估算大小（宽和高）
     */
-    static UiSize CalcEstimateSize(Control* pControl, const UiSize& szItem, UiRect rc);
+    static UiSize CalcEstimateSize(Control* pControl, const UiSize& szItem, const UiRect& rc);
 
     /** 获取基本参数：瓦片的列数
     * @param [in] normalItems 子控件列表
@@ -124,7 +124,7 @@ private:
 
     /** 估算浮动控件的大小
     */
-    static UiSize64 EstimateFloatSize(Control* pControl, UiRect rc);
+    static UiSize64 EstimateFloatSize(Control* pControl, const UiRect& rc);
 
     /** 处理浮动子控件，并返回未处理的子控件列表
     * @param [in] items 子控件列表
@@ -135,7 +135,7 @@ private:
     * @return 返回浮动控件所占的区域宽度和高度
     */
     static UiSize64 ArrangeFloatChild(const std::vector<Control*>& items,
-                                      UiRect rc,
+                                      const UiRect& rc,
                                       const UiSize& szItem,
                                       bool isCalcOnly, 
                                       std::vector<ItemSizeInfo>& normalItems);

@@ -18,7 +18,7 @@ public:
     explicit Font_Skia(IRenderFactory* pRenderFactory);
     Font_Skia(const Font_Skia&) = delete;
     Font_Skia& operator=(const Font_Skia&) = delete;
-    virtual ~Font_Skia();
+    virtual ~Font_Skia() override;
 
     /** 初始化字体(内部未对字体大小做DPI自适应)
     */

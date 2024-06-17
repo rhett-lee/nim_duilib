@@ -99,7 +99,7 @@ UiSize VirtualHTileLayout::EstimateSizeByChild(const std::vector<Control*>& item
     return size;
 }
 
-int64_t VirtualHTileLayout::GetElementsWidth(UiRect rc, size_t nCount) const
+int64_t VirtualHTileLayout::GetElementsWidth(const UiRect& rc, size_t nCount) const
 {
     UiSize szItem = GetItemSize();
     ASSERT((szItem.cx > 0) || (szItem.cy > 0));

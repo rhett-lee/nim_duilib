@@ -15,7 +15,7 @@ class HotKey: public HBox
 {
 public:
     explicit HotKey(Window* pWindow);
-    virtual ~HotKey();
+    virtual ~HotKey() override;
 
     /** 获取控件类型
     */

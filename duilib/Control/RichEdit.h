@@ -21,7 +21,7 @@ public:
     explicit RichEdit(Window* pWindow);
     RichEdit(const RichEdit& r) = delete;
     RichEdit& operator=(const RichEdit& r) = delete;
-    virtual ~RichEdit();
+    virtual ~RichEdit() override;
 
 public:
     /** 判断是否接受 TAB 按键消息

@@ -21,7 +21,7 @@ class MultiBrowserForm : public ui::ShadowWnd, public IDropTarget, public Taskba
 {
 public:
     MultiBrowserForm();
-    virtual ~MultiBrowserForm();
+    virtual ~MultiBrowserForm() override;
     
     //覆盖虚函数
     virtual DString GetSkinFolder() override;

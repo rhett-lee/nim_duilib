@@ -169,10 +169,15 @@ AnimationPlayer::AnimationPlayer()
     InitData();
 }
 
+AnimationPlayer::~AnimationPlayer()
+{
+}
+
 void AnimationPlayer::InitData()
 {
     m_speedUpRatio = 0;
     m_speedDownRatio = 0;
+    m_speedUpMillSeconds = 0;
     m_speedDownMillSeconds = 0;
     m_linerMillSeconds = 0;
     m_linearSpeed = 0;

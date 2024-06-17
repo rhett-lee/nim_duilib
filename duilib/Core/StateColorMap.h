@@ -44,7 +44,7 @@ public:
 
     /** 绘制指定状态的颜色
     */
-    void PaintStateColor(IRender* pRender, UiRect rcPaint, ControlStateType stateType) const;
+    void PaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlStateType stateType) const;
 
 private:
     /** 关联的控件接口

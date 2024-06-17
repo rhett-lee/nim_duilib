@@ -9,7 +9,7 @@ class Item : public ui::ListBoxItem
 {
 public:
     explicit Item(ui::Window* pWindow);
-    virtual ~Item();
+    virtual ~Item() override;
 
     // 提供外部调用来初始化 item 数据
     void InitSubControls(const DString& img, const DString& title);

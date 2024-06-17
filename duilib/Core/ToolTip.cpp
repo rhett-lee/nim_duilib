@@ -19,7 +19,7 @@ public:
     * @param [in] pParentWnd 父窗口
     * @param [in] bTracking 是否跟踪鼠标状态
     */
-    void SetMouseTracking(WindowBase* pParentWnd, bool bTracking);
+    void SetMouseTracking(const WindowBase* pParentWnd, bool bTracking);
 
     /**@brief 显示ToolTip信息
     * @param [in] pParentWnd 父窗口
@@ -28,7 +28,7 @@ public:
     * @param [in] trackPos 跟踪的位置
     * @param [in] text Tooltip显示内容
     */
-    void ShowToolTip(WindowBase* pParentWnd,
+    void ShowToolTip(const WindowBase* pParentWnd,
                      const UiRect& rect, 
                      uint32_t maxWidth,
                      const UiPoint& trackPos,
@@ -73,7 +73,7 @@ ToolTip::ToolTipImpl::~ToolTipImpl()
     }
 }
 
-void ToolTip::ToolTipImpl::SetMouseTracking(WindowBase* pParentWnd, bool bTracking)
+void ToolTip::ToolTipImpl::SetMouseTracking(const WindowBase* pParentWnd, bool bTracking)
 {
     ASSERT(pParentWnd != nullptr);
     if (pParentWnd == nullptr) {
@@ -91,7 +91,7 @@ void ToolTip::ToolTipImpl::SetMouseTracking(WindowBase* pParentWnd, bool bTracki
     m_bMouseTracking = bTracking;
 }
 
-void ToolTip::ToolTipImpl::ShowToolTip(WindowBase* pParentWnd,
+void ToolTip::ToolTipImpl::ShowToolTip(const WindowBase* pParentWnd,
                                        const UiRect& rect,
                                        uint32_t maxWidth,
                                        const UiPoint& trackPos,

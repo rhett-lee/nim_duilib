@@ -12,7 +12,7 @@ class MainForm : public ui::WindowImplBase
 {
 public:
     MainForm();
-    virtual ~MainForm();
+    virtual ~MainForm() override;
 
     /**  创建窗口时被调用，由子类实现用以获取窗口皮肤目录
     * @return 子类需实现并返回窗口皮肤目录

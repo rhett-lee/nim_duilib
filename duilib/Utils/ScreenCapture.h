@@ -15,7 +15,7 @@ public:
     /** 抓一张窗口所在屏幕的截图
     * @param [in] pWindow 窗口
     */
-    static std::shared_ptr<IBitmap> CaptureBitmap(Window* pWindow);
+    static std::shared_ptr<IBitmap> CaptureBitmap(const Window* pWindow);
 };
 
 } // namespace ui

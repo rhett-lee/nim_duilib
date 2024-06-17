@@ -15,7 +15,7 @@ class MiscThread : public ui::FrameworkThread
 {
 public:
     MiscThread();
-    virtual ~MiscThread();
+    virtual ~MiscThread() override;
 
 private:
     /** 运行前初始化，在进入消息循环前调用
@@ -36,7 +36,7 @@ class MainThread : public ui::FrameworkThread
 {
 public:
     MainThread();
-    virtual ~MainThread();
+    virtual ~MainThread() override;
 
 private:
     /** 运行前初始化，在进入消息循环前调用

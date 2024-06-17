@@ -19,7 +19,7 @@ class ListCtrlReportView : public ListCtrlView, public IListCtrlView
     friend class ListCtrlReportLayout;
 public:
     explicit ListCtrlReportView(Window* pWindow);
-    virtual ~ListCtrlReportView();
+    virtual ~ListCtrlReportView() override;
 
     virtual DString GetType() const override { return _T("ListCtrlReportView"); }
     virtual void HandleEvent(const EventArgs& msg) override;

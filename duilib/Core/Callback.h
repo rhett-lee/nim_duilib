@@ -88,7 +88,8 @@ class UILIB_API SupportWeakCallback
 public:
     typedef std::weak_ptr<WeakFlag> _TyWeakFlag;
 public:
-    virtual ~SupportWeakCallback(){};
+    SupportWeakCallback() = default;
+    virtual ~SupportWeakCallback() = default;
 
     template<typename CallbackType>
     auto ToWeakCallback(const CallbackType& closure)

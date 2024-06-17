@@ -70,7 +70,7 @@ public:
     explicit RichText(Window* pWindow);
     RichText(const RichText& r) = delete;
     RichText& operator=(const RichText& r) = delete;
-    virtual ~RichText();
+    virtual ~RichText() override;
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
@@ -200,7 +200,7 @@ private:
 
     /** 计算绘制后的目标区域大小
     */
-    void CalcDestRect(IRender* pRender, UiRect rc, UiRect& rect);
+    void CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect);
 
 private:
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）

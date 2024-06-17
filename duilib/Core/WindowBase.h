@@ -21,7 +21,7 @@ public:
     WindowBase();
     WindowBase(const WindowBase& r) = delete;
     WindowBase& operator=(const WindowBase& r) = delete;
-    virtual ~WindowBase();
+    virtual ~WindowBase() override;
 
 public:
     /** 创建窗口, 可使用 OnInitWindow 接口来实现窗口创建完成后的自定义需求

@@ -19,7 +19,7 @@ class UILIB_API ControlDragableT: public T
 {
 public:
     explicit ControlDragableT(Window* pWindow);
-    virtual ~ControlDragableT();
+    virtual ~ControlDragableT() override;
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;    

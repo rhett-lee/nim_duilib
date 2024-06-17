@@ -32,7 +32,7 @@ public:
                            const DString& no, bool btn_no_is_id);
 public:
     MsgBox();
-    virtual ~MsgBox();
+    virtual ~MsgBox() override;
 
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;

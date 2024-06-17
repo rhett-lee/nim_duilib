@@ -21,7 +21,7 @@ class CefControlBase : public ui::Control, public nim_comp::BrowserHandler::Hand
 {
 public:
     explicit CefControlBase(ui::Window* pWindow);
-    virtual ~CefControlBase(void);    
+    virtual ~CefControlBase() override;
 
 public:
     /**

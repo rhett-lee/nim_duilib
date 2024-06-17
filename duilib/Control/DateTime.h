@@ -15,7 +15,7 @@ public:
     explicit DateTime(Window* pWindow);
     DateTime(const DateTime& r) = delete;
     DateTime& operator=(const DateTime& r) = delete;
-    virtual ~DateTime();
+    virtual ~DateTime() override;
 
 public:
     /** 以本地时间初始化

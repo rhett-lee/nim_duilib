@@ -21,7 +21,7 @@ public:
     explicit ComboButton(Window* pWindow);
     ComboButton(const ComboButton& r) = delete;
     ComboButton& operator=(const ComboButton& r) = delete;
-    virtual ~ComboButton();
+    virtual ~ComboButton() override;
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;

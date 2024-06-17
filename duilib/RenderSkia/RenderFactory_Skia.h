@@ -14,7 +14,9 @@ class UILIB_API RenderFactory_Skia : public IRenderFactory
 {
 public:
     RenderFactory_Skia();
-    virtual ~RenderFactory_Skia();
+    RenderFactory_Skia(const RenderFactory_Skia& r) = delete;
+    RenderFactory_Skia& operator = (const RenderFactory_Skia& r) = delete;
+    virtual ~RenderFactory_Skia() override;
 
     virtual IFont* CreateIFont() override;
     virtual IPen* CreatePen(UiColor color, int width = 1) override;

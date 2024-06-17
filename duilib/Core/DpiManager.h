@@ -48,7 +48,7 @@ public:
         (Win10 以后，每个显示器可以有不同的DPI值，所以不同的窗口可能有不同的DPI值)
      @param [in] pWindow 窗口的接口，如果为nullptr，则读取系统配置的DPI值
     */
-    void SetDpiByWindow(WindowBase* pWindow);
+    void SetDpiByWindow(const WindowBase* pWindow);
 
     /** 设置DPI值，并更新界面缩放比
     *   DPI值会影响界面缩放比，常用的值关系如下：

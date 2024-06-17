@@ -108,7 +108,7 @@ bool DpiManager::IsPerMonitorDpiAware() const
     }
 }
 
-void DpiManager::SetDpiByWindow(WindowBase* pWindow)
+void DpiManager::SetDpiByWindow(const WindowBase* pWindow)
 {
     //读取窗口的DPI值
     uint32_t uDPI = 0;

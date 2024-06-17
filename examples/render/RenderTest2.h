@@ -10,7 +10,7 @@ class RenderTest2 : public ui::Control
 {
 public:
     explicit RenderTest2(ui::Window* pWindow);
-    virtual ~RenderTest2();
+    virtual ~RenderTest2() override;
 
 public:
     /**

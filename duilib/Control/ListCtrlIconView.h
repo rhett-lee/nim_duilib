@@ -18,7 +18,7 @@ public:
     * @param [in] bListMode true表示列表视图，否则为图标视图
     */
     ListCtrlIconView(Window* pWindow, bool bListMode);
-    virtual ~ListCtrlIconView();
+    virtual ~ListCtrlIconView() override;
 
     virtual DString GetType() const override { return _T("ListCtrlIconView"); }
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;

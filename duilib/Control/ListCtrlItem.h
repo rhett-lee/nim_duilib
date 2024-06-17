@@ -23,7 +23,7 @@ class ListCtrlItem : public ListCtrlItemBaseH
     friend class ListCtrlReportView;//开放部分protect接口
 public:
     explicit ListCtrlItem(Window* pWindow);
-    virtual ~ListCtrlItem();
+    virtual ~ListCtrlItem() override;
 
     /** 获取控件类型
     */

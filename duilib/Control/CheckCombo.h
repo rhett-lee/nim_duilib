@@ -16,7 +16,7 @@ public:
     explicit CheckCombo(Window* pWindow);
     CheckCombo(const CheckCombo& r) = delete;
     CheckCombo& operator=(const CheckCombo& r) = delete;
-    virtual ~CheckCombo();
+    virtual ~CheckCombo() override;
 
 public:
     /// 重写父类方法，提供个性化功能，请参考父类声明

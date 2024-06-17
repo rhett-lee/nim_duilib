@@ -22,7 +22,7 @@ public:
     explicit Render_Skia(IRenderFactory* pRenderFactory, Window* pWindow);
     Render_Skia(const Render_Skia& r) = delete;
     Render_Skia& operator = (const Render_Skia& r) = delete;
-    virtual ~Render_Skia();
+    virtual ~Render_Skia() override;
 
     /** 获取Render实现类型
     */

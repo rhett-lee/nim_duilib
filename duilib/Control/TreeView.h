@@ -26,7 +26,7 @@ public:
     explicit TreeNode(Window* pWindow);
     TreeNode(const TreeNode& r) = delete;
     TreeNode& operator=(const TreeNode& r) = delete;
-    virtual ~TreeNode();
+    virtual ~TreeNode() override;
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
@@ -338,7 +338,7 @@ class UILIB_API TreeView : public ListBox
     friend class TreeNode;
 public:
     explicit TreeView(Window* pWindow);
-    virtual ~TreeView();
+    virtual ~TreeView() override;
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;

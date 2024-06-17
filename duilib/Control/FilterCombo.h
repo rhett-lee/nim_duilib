@@ -16,7 +16,7 @@ public:
     explicit FilterCombo(Window* pWindow);
     FilterCombo(const FilterCombo& r) = delete;
     Combo& operator=(const FilterCombo& r) = delete;
-    virtual ~FilterCombo();
+    virtual ~FilterCombo() override;
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;

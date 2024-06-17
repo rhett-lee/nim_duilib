@@ -18,7 +18,7 @@ class Provider : public ui::VirtualListBoxElement
 {
 public:
     Provider();
-    virtual ~Provider();
+    virtual ~Provider() override;
 
     /** 创建一个数据项
     * @param [in] pVirtualListBox 关联的虚表的接口

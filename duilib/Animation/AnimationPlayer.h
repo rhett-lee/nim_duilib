@@ -19,7 +19,7 @@ class UILIB_API AnimationPlayerBase : public virtual SupportWeakCallback
 {
 public:
     AnimationPlayerBase();
-    virtual ~AnimationPlayerBase();
+    virtual ~AnimationPlayerBase() override;
 
     AnimationPlayerBase(const AnimationPlayerBase& r) = delete;
     AnimationPlayerBase& operator=(const AnimationPlayerBase& r) = delete;
@@ -190,7 +190,7 @@ class UILIB_API AnimationPlayer :
 {
 public:
     AnimationPlayer();
-    virtual ~AnimationPlayer() = default;
+    virtual ~AnimationPlayer() override;
     AnimationPlayer(const AnimationPlayer& r) = delete;
     AnimationPlayer& operator=(const AnimationPlayer& r) = delete;
 

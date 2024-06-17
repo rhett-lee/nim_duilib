@@ -15,7 +15,7 @@ class UILIB_API Bitmap_GDI: public IBitmap
 public:
     Bitmap_GDI();
     Bitmap_GDI(HBITMAP hBitmap, bool flipHeight);
-    virtual ~Bitmap_GDI();
+    virtual ~Bitmap_GDI() override;
 
 public:
     /** 从数据初始化（ARGB格式）

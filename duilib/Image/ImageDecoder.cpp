@@ -222,7 +222,7 @@ namespace APNGImageLoader
         return true;
     }
 
-    bool LoadImageFromMemory(std::vector<uint8_t>& fileData, std::vector<ImageDecoder::ImageData>& imageData, int32_t& playCount)
+    bool LoadImageFromMemory(const std::vector<uint8_t>& fileData, std::vector<ImageDecoder::ImageData>& imageData, int32_t& playCount)
     {
         ASSERT(!fileData.empty());
         if (fileData.empty()) {

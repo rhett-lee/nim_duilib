@@ -18,7 +18,7 @@ class UILIB_API Bitmap_Skia: public IBitmap
 public:
     Bitmap_Skia();
     Bitmap_Skia(HBITMAP hBitmap, bool flipHeight);
-    virtual ~Bitmap_Skia();
+    virtual ~Bitmap_Skia() override;
 
 public:
     /** 从数据初始化（ARGB格式）

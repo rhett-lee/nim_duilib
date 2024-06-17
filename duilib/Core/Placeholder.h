@@ -22,7 +22,7 @@ public:
     explicit PlaceHolder(Window* pWindow);
     PlaceHolder(const PlaceHolder& r) = delete;
     PlaceHolder& operator=(const PlaceHolder& r) = delete;
-    virtual ~PlaceHolder();
+    virtual ~PlaceHolder() override;
 
     /** 控件类型
     */
@@ -334,7 +334,7 @@ public:
 
     /** 判断两个控件是否存在父子/子孙关系
      */
-    bool IsChild(PlaceHolder* pAncestor, PlaceHolder* pChild) const;
+    bool IsChild(const PlaceHolder* pAncestor, const PlaceHolder* pChild) const;
 
     /** 获取该窗口对应的DPI管理器
     */

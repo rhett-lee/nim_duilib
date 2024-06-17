@@ -15,7 +15,7 @@ class UILIB_API Progress : public LabelTemplate<Control>
 {
 public:
     explicit Progress(Window* pWindow);
-    virtual ~Progress();
+    virtual ~Progress() override;
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;

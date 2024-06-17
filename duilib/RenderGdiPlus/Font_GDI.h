@@ -16,7 +16,7 @@ public:
     Font_GDI();
     Font_GDI(const Font_GDI&) = delete;
     Font_GDI& operator=(const Font_GDI&) = delete;
-    virtual ~Font_GDI();
+    virtual ~Font_GDI() override;
 
     /** 初始化字体(内部未对字体大小做DPI自适应)
     */

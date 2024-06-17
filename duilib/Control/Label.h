@@ -25,7 +25,7 @@ class UILIB_API LabelTemplate : public InheritType
 {
 public:
     explicit LabelTemplate(Window* pWindow);
-    virtual ~LabelTemplate();
+    virtual ~LabelTemplate() override;
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;

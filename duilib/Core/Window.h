@@ -30,7 +30,7 @@ public:
     Window();
     Window(const Window& r) = delete;
     Window& operator=(const Window& r) = delete;
-    virtual ~Window();
+    virtual ~Window() override;
 
 public:
     /** 设置窗口资源路径

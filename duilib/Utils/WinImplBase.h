@@ -25,7 +25,7 @@ public:
 
 protected:
     //析构函数不允许外部调用，因在OnFinalMessage函数中，有delete this操作
-    virtual ~WindowImplBase();
+    virtual ~WindowImplBase() override;
 
 public:
     /**  创建窗口时被调用，由子类实现用以获取窗口皮肤目录

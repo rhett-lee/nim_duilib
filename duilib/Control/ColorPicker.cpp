@@ -327,7 +327,7 @@ public:
     {
     }
 
-    virtual ~ScreenColorPicker()
+    virtual ~ScreenColorPicker() override
     {
         m_pColorPreview = nullptr;
         m_selColor = UiColor();

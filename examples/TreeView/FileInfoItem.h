@@ -9,7 +9,7 @@ class FileInfoItem : public ui::ListBoxItem
 {
 public:
     explicit FileInfoItem(ui::Window* pWindow);
-    virtual ~FileInfoItem();
+    virtual ~FileInfoItem() override;
     void InitSubControls(const FileInfo& fileInfo, size_t nElementIndex);
 
 private:

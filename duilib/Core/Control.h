@@ -31,7 +31,7 @@ public:
     explicit Control(Window* pWindow);
     Control(const Control& r) = delete;
     Control& operator=(const Control& r) = delete;
-    virtual ~Control();
+    virtual ~Control() override;
 
     /** 获取控件类型
     */

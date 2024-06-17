@@ -20,7 +20,7 @@ class ColorPicker : public WindowImplBase
 {
 public:
     ColorPicker();
-    virtual ~ColorPicker();
+    virtual ~ColorPicker() override;
 
     /** 以下三个接口是必须要覆写的接口，父类会调用这三个接口来构建窗口
      * GetSkinFolder        接口设置你要绘制的窗口皮肤资源路径

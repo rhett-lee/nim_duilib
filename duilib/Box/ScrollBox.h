@@ -23,7 +23,7 @@ public:
     explicit ScrollBox(Window* pWindow, Layout* pLayout = new Layout);
     ScrollBox(const ScrollBox& r) = delete;
     ScrollBox& operator=(const ScrollBox& r) = delete;
-    virtual ~ScrollBox();
+    virtual ~ScrollBox() override;
 
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& pstrName, const DString& pstrValue) override;
@@ -277,7 +277,7 @@ protected:
 private:
     /**@brief 设置位置大小
      */
-    void SetPosInternally(UiRect rc);
+    void SetPosInternally(const UiRect& rc);
 
 private:
     //垂直滚动条接口

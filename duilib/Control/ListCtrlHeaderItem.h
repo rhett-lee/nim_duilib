@@ -20,7 +20,7 @@ class ListCtrlHeaderItem:
 {
 public:
     explicit ListCtrlHeaderItem(Window* pWindow);
-    virtual ~ListCtrlHeaderItem();
+    virtual ~ListCtrlHeaderItem() override;
 
     /** 获取控件类型
     */

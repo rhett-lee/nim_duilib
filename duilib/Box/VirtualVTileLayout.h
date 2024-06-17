@@ -85,7 +85,7 @@ private:
     * @param [in] rc 当前容器大小信息, 外部调用时，需要先剪去内边距
     * @return 返回 nCount 个数据项的高度总和
     */
-    int64_t GetElementsHeight(UiRect rc, size_t nCount) const;
+    int64_t GetElementsHeight(const UiRect& rc, size_t nCount) const;
 
     /** 计算列数
     *@param [in] rcWidth 可用区域宽度

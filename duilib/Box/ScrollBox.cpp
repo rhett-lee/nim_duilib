@@ -126,7 +126,7 @@ void ScrollBox::SetPos(UiRect rc)
     }
 }
 
-void ScrollBox::SetPosInternally(UiRect rc)
+void ScrollBox::SetPosInternally(const UiRect& rc)
 {
     Control::SetPos(rc);
     UiSize64 requiredSize = CalcRequiredSize(rc);

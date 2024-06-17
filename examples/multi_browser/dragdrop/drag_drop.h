@@ -98,6 +98,8 @@ class SdkDragSourceHelper
 {
 public:
     SdkDragSourceHelper();
+    SdkDragSourceHelper(const SdkDragSourceHelper& r) = delete;
+    SdkDragSourceHelper& operator = (const SdkDragSourceHelper& r) = delete;
     virtual ~SdkDragSourceHelper();
     
     // IDragSourceHelper

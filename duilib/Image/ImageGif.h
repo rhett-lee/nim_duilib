@@ -20,7 +20,7 @@ class ImageGif: public SupportWeakCallback
 {
 public:
     ImageGif();
-    virtual ~ImageGif();
+    virtual ~ImageGif() override;
     ImageGif(const ImageGif&) = delete;
     ImageGif& operator = (const ImageGif&) = delete;
 

@@ -14,7 +14,7 @@ class ListCtrlView : public VirtualListBox
 {
 public:
     ListCtrlView(Window* pWindow, Layout* pLayout);
-    virtual ~ListCtrlView();
+    virtual ~ListCtrlView() override;
 
     virtual DString GetType() const override { return _T("ListCtrlView"); }
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
@@ -233,7 +233,7 @@ public:
         ListBoxItemTemplate<InheritType>(pWindow)
     {
     }
-    virtual ~ListCtrlItemTemplate() {}
+    virtual ~ListCtrlItemTemplate() override = default;
 
     /** 设置控件是否选择状态
   * @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态

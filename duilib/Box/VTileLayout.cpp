@@ -14,7 +14,7 @@ VTileLayout::VTileLayout():
 {
 }
 
-UiSize VTileLayout::CalcEstimateSize(Control* pControl, const UiSize& szItem, UiRect rc)
+UiSize VTileLayout::CalcEstimateSize(Control* pControl, const UiSize& szItem, const UiRect& rc)
 {
     if ((pControl == nullptr) || !pControl->IsVisible()) {
         return UiSize();
@@ -98,7 +98,7 @@ void VTileLayout::CalcTileColumns(const std::vector<ItemSizeInfo>& normalItems, 
     }
 }
 
-UiSize64 VTileLayout::EstimateFloatSize(Control* pControl, UiRect rc)
+UiSize64 VTileLayout::EstimateFloatSize(Control* pControl, const UiRect& rc)
 {
     ASSERT(pControl != nullptr);
     if ((pControl == nullptr) || !pControl->IsVisible()) {
@@ -116,7 +116,7 @@ UiSize64 VTileLayout::EstimateFloatSize(Control* pControl, UiRect rc)
 }
 
 UiSize64 VTileLayout::ArrangeFloatChild(const std::vector<Control*>& items,
-                                       UiRect rc,
+                                       const UiRect& rc,
                                        const UiSize& szItem,
                                        bool isCalcOnly,
                                        std::vector<ItemSizeInfo>& normalItems)

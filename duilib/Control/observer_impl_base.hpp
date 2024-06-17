@@ -8,6 +8,8 @@ template <typename ReturnT, typename ParamT>
 class ObserverImplBase
 {
 public:
+    ObserverImplBase() = default;
+    virtual ~ObserverImplBase() = default;
     virtual void AddReceiver(ReceiverImplBase<ReturnT, ParamT>* receiver) = 0;
     virtual void RemoveReceiver(ReceiverImplBase<ReturnT, ParamT>* receiver) = 0;
     virtual ReturnT Broadcast(ParamT param) = 0;
@@ -19,6 +21,8 @@ template <typename ReturnT, typename ParamT>
 class ReceiverImplBase
 {
 public:
+    ReceiverImplBase() = default;
+    virtual ~ReceiverImplBase() = default;
     virtual void AddObserver(ObserverImplBase<ReturnT, ParamT>* observer) = 0;
     virtual void RemoveObserver() = 0;
     virtual ReturnT Receive(ParamT param) = 0;
@@ -34,10 +38,8 @@ class ObserverImpl : public ObserverImplBase<ReturnT, ParamT>
     //template <typename ReturnT, typename ParamT>
     friend class Iterator;
 public:
-    ObserverImpl()
-    {}
-
-    virtual ~ObserverImpl()    {}
+    ObserverImpl() = default;
+    virtual ~ObserverImpl() override = default;
 
     virtual void AddReceiver(ReceiverImplBase<ReturnT, ParamT>* receiver)
     {
@@ -142,10 +144,8 @@ template <typename ReturnT, typename ParamT>
 class ReceiverImpl : public ReceiverImplBase<ReturnT, ParamT>
 {
 public:
-    ReceiverImpl()
-    {}
-
-    virtual ~ReceiverImpl()    {}
+    ReceiverImpl() = default;
+    virtual ~ReceiverImpl() override = default;
 
     virtual void AddObserver(ObserverImplBase<ReturnT, ParamT>* observer) override
     {

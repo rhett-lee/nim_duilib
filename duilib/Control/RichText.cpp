@@ -132,7 +132,7 @@ void RichText::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
-void RichText::CalcDestRect(IRender* pRender, UiRect rc, UiRect& rect)
+void RichText::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect)
 {
     if (pRender == nullptr) {
         return;

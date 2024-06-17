@@ -19,7 +19,7 @@ class ControlLoading: public SupportWeakCallback
 {
 public:
     explicit ControlLoading(Control* pControl);
-    virtual ~ControlLoading();
+    virtual ~ControlLoading() override;
     ControlLoading(const ControlLoading&) = delete;
     ControlLoading& operator = (const ControlLoading&) = delete;
 
