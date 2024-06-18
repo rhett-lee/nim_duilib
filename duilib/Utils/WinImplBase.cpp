@@ -81,6 +81,22 @@ void WindowImplBase::InitWindow()
     }
 }
 
+DString WindowImplBase::GetSkinFolder()
+{
+    return m_skinFolder;
+}
+
+DString WindowImplBase::GetSkinFile()
+{
+    return m_skinFile;
+}
+
+void WindowImplBase::InitSkin(const DString& skinFolder, const DString& skinFile)
+{
+    m_skinFolder = skinFolder;
+    m_skinFile = skinFile;
+}
+
 void WindowImplBase::OnInitWindow()
 {
     __super::OnInitWindow();    

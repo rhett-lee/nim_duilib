@@ -29,14 +29,20 @@ public:
     /**  创建窗口时被调用，由子类实现用以获取窗口皮肤目录
     * @return 子类需实现并返回窗口皮肤目录
     */
-    virtual DString GetSkinFolder() = 0;
+    virtual DString GetSkinFolder();
 
     /**  创建窗口时被调用，由子类实现用以获取窗口皮肤 XML 描述文件
     * @return 子类需实现并返回窗口皮肤 XML 描述文件
     *         返回的内容，可以是XML文件内容（以字符'<'为开始的字符串），
     *         或者是文件路径（不是以'<'字符开始的字符串），文件要在GetSkinFolder()路径中能够找到
     */
-    virtual DString GetSkinFile() = 0;
+    virtual DString GetSkinFile();
+
+    /** 初始化皮肤配置文件
+    * @param [in] skinFolder 窗口皮肤目录
+    * @param [in] skinFile 窗口皮肤 XML 描述文件
+    */
+    void InitSkin(const DString& skinFolder, const DString& skinFile);
 
 public:
     /** 当要创建的控件不是标准的控件名称时会调用该函数
@@ -114,6 +120,15 @@ private:
     /** 处理最大化/还原按钮的状态
     */
     void ProcessMaxRestoreStatus();
+
+private:
+    /** 皮肤路径
+    */
+    DString m_skinFolder;
+
+    /** 皮肤配置文件
+    */
+    DString m_skinFile;
 };
 }
 
