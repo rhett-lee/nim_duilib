@@ -301,7 +301,7 @@ void StringUtil::LowerString(std::string& str)
     if (str.empty()) {
         return;
     }
-    char* start = &str[0];
+    char* start = str.data();
     char* end = start + str.size();
     for (; start < end; start++) {
         if (*start >= 'A' && *start <= 'Z') {
@@ -315,7 +315,7 @@ void StringUtil::LowerString(std::wstring& str)
     if (str.empty()) {
         return;
     }
-    wchar_t* start = &str[0];
+    wchar_t* start = str.data();
     wchar_t* end = start + str.size();
     for (; start < end; start++) {
         if (*start >= L'A' && *start <= L'Z') {
@@ -329,7 +329,7 @@ void StringUtil::UpperString(std::string& str)
     if (str.empty()) {
         return;
     }
-    char* start = &str[0];
+    char* start = str.data();
     char* end = start + str.size();
     for (; start < end; start++) {
         if (*start >= 'a' && *start <= 'z') {
@@ -343,7 +343,7 @@ void StringUtil::UpperString(std::wstring& str)
     if (str.empty()) {
         return;
     }
-    wchar_t* start = &str[0];
+    wchar_t* start = str.data();
     wchar_t* end = start + str.size();
     for (; start < end; start++) {
         if (*start >= L'a' && *start <= L'z') {
@@ -358,7 +358,7 @@ std::wstring StringUtil::MakeLowerString(const std::wstring&str)
     if (resStr.empty()) {
         return L"";
     }
-    wchar_t *start = &resStr[0];
+    wchar_t *start = resStr.data();
     wchar_t *end = start + resStr.size();
     for (; start < end; start++) {
         if (*start >= L'A' && *start <= L'Z') {
@@ -374,7 +374,7 @@ std::string StringUtil::MakeLowerString(const std::string& str)
     if (resStr.empty()) {
         return "";
     }
-    char* start = &resStr[0];
+    char* start = resStr.data();
     char* end = start + resStr.size();
     for (; start < end; start++) {
         if (*start >= 'A' && *start <= 'Z') {
@@ -390,7 +390,7 @@ std::wstring StringUtil::MakeUpperString(const std::wstring &str)
     if (resStr.empty()) {
         return L"";
     }
-    wchar_t *start = &resStr[0];
+    wchar_t *start = resStr.data();
     wchar_t *end = start + resStr.size();
     for (; start < end; ++start) {
         if (*start >= L'a' && *start <= L'z') {
@@ -406,7 +406,7 @@ std::string StringUtil::MakeUpperString(const std::string& str)
     if (resStr.empty()) {
         return "";
     }
-    char* start = &resStr[0];
+    char* start = resStr.data();
     char* end = start + resStr.size();
     for (; start < end; ++start) {
         if (*start >= 'a' && *start <= 'z') {

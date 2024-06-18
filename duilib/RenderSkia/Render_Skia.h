@@ -146,6 +146,10 @@ private:
     */
     void InitGradientColor(SkPaint& skPaint, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) const;
 
+    /** 删除DC
+    */
+    void DeleteDC();
+
 private:
 
     /** 位图对象
@@ -175,6 +179,10 @@ private:
     /** 关联的DC句柄
     */
     HDC m_hDC;
+
+    /** 该DC原来的位图
+    */
+    HGDIOBJ m_hOldObj;
 
     /** 关联的窗口
     */

@@ -214,7 +214,9 @@ CheckCombo::CheckCombo(Window* pWindow) :
 
 CheckCombo::~CheckCombo()
 {
+    SetAutoDestroyChild(false);
     Box::RemoveItem(m_pList.get());
+    SetAutoDestroyChild(true);
     m_pList.reset();
     m_pDropList.reset();
 }

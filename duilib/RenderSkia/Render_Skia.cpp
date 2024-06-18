@@ -57,6 +57,7 @@ Render_Skia::Render_Skia(IRenderFactory* pRenderFactory, Window* pWindow):
     m_bTransparent(false),
     m_pSkCanvas(nullptr),
     m_hDC(nullptr),
+    m_hOldObj(nullptr),
     m_pWindow(pWindow),
     m_saveCount(0),
     m_pRenderFactory(pRenderFactory)
@@ -86,10 +87,7 @@ Render_Skia::~Render_Skia()
         delete m_pSkPaint;
         m_pSkPaint = nullptr;
     }
-    if (m_hDC != nullptr) {
-        ::DeleteDC(m_hDC);
-        m_hDC = nullptr;
-    }
+    DeleteDC();
 }
 
 RenderType Render_Skia::GetRenderType() const
@@ -107,10 +105,7 @@ bool Render_Skia::Resize(int width, int height)
         return true;
     }
 
-    if (m_hDC != nullptr) {
-        ::DeleteDC(m_hDC);
-        m_hDC = nullptr;
-    }
+    DeleteDC();
     m_pBitmapSkia = std::make_unique<Bitmap_Skia>();
     if (!m_pBitmapSkia->Init(width, height, true, nullptr)) {
         ASSERT(!"init failed!");
@@ -149,10 +144,7 @@ std::unique_ptr<ui::IRender> Render_Skia::Clone()
 
 IBitmap* Render_Skia::DetachBitmap()
 {
-    if (m_hDC != nullptr) {
-        ::DeleteDC(m_hDC);
-        m_hDC = nullptr;
-    }
+    DeleteDC();
     IBitmap* pBitmap = nullptr;
     HBITMAP hBitmap = m_pBitmapSkia->DetachHBitmap();
     if (hBitmap != nullptr) {
@@ -1170,6 +1162,9 @@ void Render_Skia::DrawPath(const IPath* path, const IPen* pen)
 
 void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
 {
+    if (pen == nullptr) {
+        return;
+    }
     skPaint.setColor(pen->GetColor().GetARGB());
 
     sk_sp<SkPathEffect> skPathEffect;
@@ -1349,6 +1344,10 @@ void Render_Skia::DrawString(const UiRect& rc,
     
     //获取字体接口    
     Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(pFont);
+    ASSERT(pSkiaFont != nullptr);
+    if (pSkiaFont == nullptr) {
+        return;
+    }
     const SkFont* pSkFont = pSkiaFont->GetFontHandle();
     ASSERT(pSkFont != nullptr);
     if (pSkFont == nullptr) {
@@ -1452,6 +1451,10 @@ UiRect Render_Skia::MeasureString(const DString& strText,
 
     //获取字体接口
     Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(pFont);
+    ASSERT(pSkiaFont != nullptr);
+    if (pSkiaFont == nullptr) {
+        return UiRect();
+    }
     const SkFont* pSkFont = pSkiaFont->GetFontHandle();
     ASSERT(pSkFont != nullptr);
     if (pSkFont == nullptr) {
@@ -1926,7 +1929,7 @@ HDC Render_Skia::GetDC()
     ::ReleaseDC(hWnd, hDeskDC);
     hDeskDC = nullptr;
 
-    ::SelectObject(hGetDC, hBitmap);
+    m_hOldObj = ::SelectObject(hGetDC, hBitmap);
 
     if (m_pSkCanvas->isClipEmpty()) {
         ::IntersectClipRect(hGetDC, 0, 0, 0, 0);
@@ -1952,25 +1955,28 @@ HDC Render_Skia::GetDC()
 
         int nSize = sizeof(RGNDATAHEADER) + nCount * sizeof(RECT);
         RGNDATA* rgnData = (RGNDATA*)::malloc(nSize);
-        memset(rgnData, 0, nSize);
-        rgnData->rdh.dwSize = sizeof(RGNDATAHEADER);
-        rgnData->rdh.iType = RDH_RECTANGLES;
-        rgnData->rdh.nCount = nCount;
-        rgnData->rdh.rcBound.right = GetWidth();
-        rgnData->rdh.rcBound.bottom = GetHeight();
+        ASSERT(rgnData != nullptr);
+        if (rgnData != nullptr) {
+            memset(rgnData, 0, nSize);
+            rgnData->rdh.dwSize = sizeof(RGNDATAHEADER);
+            rgnData->rdh.iType = RDH_RECTANGLES;
+            rgnData->rdh.nCount = nCount;
+            rgnData->rdh.rcBound.right = GetWidth();
+            rgnData->rdh.rcBound.bottom = GetHeight();
 
-        nCount = 0;
-        LPRECT pRc = (LPRECT)rgnData->Buffer;
-        for (; !it.done(); it.next()) {
-            SkIRect skrc = it.rect();
-            RECT rc = { skrc.fLeft,skrc.fTop,skrc.fRight,skrc.fBottom };
-            pRc[nCount++] = rc;
+            nCount = 0;
+            LPRECT pRc = (LPRECT)rgnData->Buffer;
+            for (; !it.done(); it.next()) {
+                SkIRect skrc = it.rect();
+                RECT rc = { skrc.fLeft,skrc.fTop,skrc.fRight,skrc.fBottom };
+                pRc[nCount++] = rc;
+            }
+
+            HRGN hRgn = ::ExtCreateRegion(NULL, nSize, rgnData);
+            ::free(rgnData);
+            ::SelectClipRgn(hGetDC, hRgn);
+            ::DeleteObject(hRgn);
         }
-
-        HRGN hRgn = ::ExtCreateRegion(NULL, nSize, rgnData);
-        ::free(rgnData);
-        ::SelectClipRgn(hGetDC, hRgn);
-        ::DeleteObject(hRgn);
     }
 
     ::SetGraphicsMode(hGetDC, GM_ADVANCED);
@@ -2002,10 +2008,20 @@ HDC Render_Skia::GetDC()
 void Render_Skia::ReleaseDC(HDC hdc)
 {
     if (hdc == m_hDC) {
-        ::DeleteDC(hdc);
-        m_hDC = nullptr;
+        DeleteDC();
     }
 }
 
+void Render_Skia::DeleteDC()
+{
+    if (m_hDC != nullptr) {
+        if (m_hOldObj != nullptr) {
+            ::SelectObject(m_hDC, m_hOldObj);
+            m_hOldObj = nullptr;
+        }
+        ::DeleteDC(m_hDC);
+        m_hDC = nullptr;
+    }
+}
 
 } // namespace ui
