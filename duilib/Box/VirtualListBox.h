@@ -1,8 +1,6 @@
 #ifndef UI_BOX_VIRTUAL_LISTBOX_H_
 #define UI_BOX_VIRTUAL_LISTBOX_H_
 
-#pragma once
-
 #include "duilib/Box/ListBox.h"
 #include "duilib/Box/VirtualHLayout.h"
 #include "duilib/Box/VirtualVLayout.h"

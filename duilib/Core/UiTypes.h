@@ -1,8 +1,6 @@
 #ifndef UI_CORE_UITYPES_H_
 #define UI_CORE_UITYPES_H_
 
-#pragma once
-
 #include "duilib/Core/UiSize.h"
 #include "duilib/Core/UiSize64.h"
 #include "duilib/Core/UiPoint.h"

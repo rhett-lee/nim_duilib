@@ -1,8 +1,6 @@
 #ifndef UI_CORE_BOX_H_
 #define UI_CORE_BOX_H_
 
-#pragma once
-
 #include "duilib/Box/Layout.h"
 #include "duilib/Core/Control.h"
 

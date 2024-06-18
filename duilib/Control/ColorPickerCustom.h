@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_COLORPICKER_CUSTOM_H_
 #define UI_CONTROL_COLORPICKER_CUSTOM_H_
 
-#pragma once
-
 #include "duilib/Core/Box.h"
 #include "duilib/Control/ColorControl.h"
 #include "duilib/Control/ColorSlider.h"

@@ -1,8 +1,6 @@
 #ifndef UI_RENDER_SKIA_FONT_GDI_H_
 #define UI_RENDER_SKIA_FONT_GDI_H_
 
-#pragma once
-
 #include "duilib/Render/IRender.h"
 
 class SkFont;

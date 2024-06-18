@@ -1,8 +1,6 @@
 #ifndef UI_CORE_CONTROL_FINDER_H_
 #define UI_CORE_CONTROL_FINDER_H_
 
-#pragma once
-
 #include "duilib/Core/UiPoint.h"
 #include <string>
 #include <vector>

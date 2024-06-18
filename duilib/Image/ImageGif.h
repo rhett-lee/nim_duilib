@@ -1,8 +1,6 @@
 #ifndef UI_IMAGE_IMAGE_GIF_H_
 #define UI_IMAGE_IMAGE_GIF_H_
 
-#pragma once
-
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Utils/Delegate.h"
 #include "duilib/Core/Callback.h"

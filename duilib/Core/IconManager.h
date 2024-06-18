@@ -1,8 +1,6 @@
 #ifndef UI_CORE_ICONMANAGER_H_
 #define UI_CORE_ICONMANAGER_H_
 
-#pragma once
-
 #include "duilib/Core/UiTypes.h"
 #include <map>
 #include <string>

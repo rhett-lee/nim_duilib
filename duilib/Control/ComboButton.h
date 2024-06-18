@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_COMBO_BUTTON_H_
 #define UI_CONTROL_COMBO_BUTTON_H_
 
-#pragma once
-
 #include "duilib/Core/Box.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Control/TreeView.h"

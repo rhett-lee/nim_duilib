@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_LINE_H_
 #define UI_CONTROL_LINE_H_
 
-#pragma once
-
 #include "duilib/Core/Control.h"
 
 namespace ui

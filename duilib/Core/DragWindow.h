@@ -1,8 +1,6 @@
 #ifndef UI_CORE_DRAG_WINDOW_H_
 #define UI_CORE_DRAG_WINDOW_H_
 
-#pragma once
-
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Utils/WinImplBase.h"

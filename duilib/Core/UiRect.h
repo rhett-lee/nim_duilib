@@ -1,8 +1,6 @@
 #ifndef UI_CORE_UIRECT_H_
 #define UI_CORE_UIRECT_H_
 
-#pragma once
-
 #include "duilib/Core/UiPoint.h"
 #include "duilib/Core/UiSize.h"
 #include "duilib/Core/UiPadding.h"

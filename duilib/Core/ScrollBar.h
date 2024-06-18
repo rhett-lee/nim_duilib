@@ -1,8 +1,6 @@
 #ifndef UI_CORE_SCROLLBAR_H_
 #define UI_CORE_SCROLLBAR_H_
 
-#pragma once
-
 #include "duilib/Core/Control.h"
 
 namespace ui

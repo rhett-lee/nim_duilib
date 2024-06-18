@@ -1,8 +1,6 @@
 #ifndef UI_RENDER_IRENDER_H_
 #define UI_RENDER_IRENDER_H_
 
-#pragma once
-
 #include "duilib/Core/Callback.h"
 #include "duilib/Core/UiTypes.h"
 

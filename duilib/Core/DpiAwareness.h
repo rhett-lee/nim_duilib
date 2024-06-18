@@ -1,8 +1,6 @@
 #ifndef UI_CORE_DPI_AWARENESS_H_
 #define UI_CORE_DPI_AWARENESS_H_
 
-#pragma once
-
 #include "duilib/Core/UiTypes.h"
 
 namespace ui

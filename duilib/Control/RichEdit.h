@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_RICHEDIT_H_
 #define UI_CONTROL_RICHEDIT_H_
 
-#pragma once
-
 #include "duilib/Box/ScrollBox.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Control/RichEditCtrl.h"

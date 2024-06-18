@@ -1,8 +1,6 @@
 #ifndef UI_CORE_TIMER_MANAGER_H_
 #define UI_CORE_TIMER_MANAGER_H_
 
-#pragma once
-
 #include "duilib/Core/Callback.h"
 #include <queue>
 #include <set>

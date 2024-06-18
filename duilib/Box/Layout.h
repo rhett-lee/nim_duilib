@@ -1,8 +1,6 @@
 #ifndef UI_BOX_LAYOUT_H_
 #define UI_BOX_LAYOUT_H_
 
-#pragma once
-
 #include "duilib/Core/UiTypes.h"
 #include <string>
 #include <vector>

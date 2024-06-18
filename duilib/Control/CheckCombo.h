@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_CHECKCOMBO_H_
 #define UI_CONTROL_CHECKCOMBO_H_
 
-#pragma once
-
 #include "duilib/Box/ScrollBox.h"
 
 namespace ui

@@ -1,8 +1,6 @@
 #ifndef UI_CORE_CALLBACK_H_
 #define UI_CORE_CALLBACK_H_
 
-#pragma once
-
 #include "duilib/duilib_defs.h"
 #include <memory>
 #include <functional>

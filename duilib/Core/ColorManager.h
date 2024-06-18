@@ -1,8 +1,6 @@
 #ifndef UI_CORE_COLOR_MANAGER_H_
 #define UI_CORE_COLOR_MANAGER_H_
 
-#pragma once
-
 #include "duilib/Core/UiColor.h"
 #include <unordered_map>
 #include <string>

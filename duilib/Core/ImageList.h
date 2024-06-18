@@ -1,8 +1,6 @@
 #ifndef UI_CORE_IMAGE_LIST_H_
 #define UI_CORE_IMAGE_LIST_H_
 
-#pragma once
-
 #include "duilib/Image/Image.h"
 #include "duilib/Core/UiTypes.h"
 #include <map>

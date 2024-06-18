@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_COMBO_H_
 #define UI_CONTROL_COMBO_H_
 
-#pragma once
-
 #include "duilib/Core/Box.h"
 #include "duilib/Control/TreeView.h"
 #include "duilib/Control/RichEdit.h"

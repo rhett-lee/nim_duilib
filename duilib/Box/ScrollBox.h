@@ -1,8 +1,6 @@
 #ifndef UI_BOX_SCROLLBOX_H_
 #define UI_BOX_SCROLLBOX_H_
 
-#pragma once
-
 #include "duilib/Box/HLayout.h"
 #include "duilib/Box/VLayout.h"
 #include "duilib/Box/HTileLayout.h"

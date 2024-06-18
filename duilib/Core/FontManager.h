@@ -1,8 +1,6 @@
 #ifndef UI_CORE_FONTMANAGER_H_
 #define UI_CORE_FONTMANAGER_H_
 
-#pragma once
-
 #include "duilib/Core/UiFont.h"
 #include <string>
 #include <vector>

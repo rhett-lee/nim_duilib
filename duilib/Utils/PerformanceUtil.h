@@ -1,8 +1,6 @@
 #ifndef UI_UTILS_PERFORMANCE_UTIL_H_
 #define UI_UTILS_PERFORMANCE_UTIL_H_
 
-#pragma once
-
 #include "duilib/duilib_defs.h"
 #include <string>
 #include <map>

@@ -1,10 +1,7 @@
-
-#include "duilib/Control/Slider.h"
-
 #ifndef UI_CONTROL_COLOR_SLIDER_H_
 #define UI_CONTROL_COLOR_SLIDER_H_
 
-#pragma once
+#include "duilib/Control/Slider.h"
 
 namespace ui
 {

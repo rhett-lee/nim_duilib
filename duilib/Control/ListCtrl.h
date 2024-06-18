@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_LIST_CTRL_H_
 #define UI_CONTROL_LIST_CTRL_H_
 
-#pragma once
-
 #include "duilib/Control/ListCtrlDefs.h"
 #include "duilib/Control/ListCtrlHeader.h"
 #include "duilib/Control/ListCtrlHeaderItem.h"

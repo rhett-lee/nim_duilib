@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_TABCTRL_H_
 #define UI_CONTROL_TABCTRL_H_
 
-#pragma once
-
 #include "duilib/Box/ListBox.h"
 #include "duilib/Core/ControlDragable.h"
 

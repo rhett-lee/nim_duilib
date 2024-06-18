@@ -8,8 +8,6 @@
 #ifndef UI_CONTROL_CIRCLEPROGRESS_H_
 #define UI_CONTROL_CIRCLEPROGRESS_H_
 
-#pragma once
-
 #include "duilib/Control/Progress.h"
 
 namespace ui

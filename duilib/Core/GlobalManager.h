@@ -1,8 +1,6 @@
 #ifndef UI_CORE_GLOBALMANAGER_H_
 #define UI_CORE_GLOBALMANAGER_H_
 
-#pragma once
-
 #include "duilib/Core/WindowBuilder.h"
 #include "duilib/Core/ColorManager.h"
 #include "duilib/Core/FontManager.h"

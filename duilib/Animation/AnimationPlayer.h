@@ -1,8 +1,6 @@
 #ifndef UI_ANIMATION_ANIMATIONPLAYER_H_
 #define UI_ANIMATION_ANIMATIONPLAYER_H_
 
-#pragma once
-
 #include "duilib/duilib_defs.h"
 #include "duilib/Core/Callback.h"
 #include <chrono>

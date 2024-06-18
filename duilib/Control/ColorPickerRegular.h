@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_COLORPICKER_REGULAR_H_
 #define UI_CONTROL_COLORPICKER_REGULAR_H_
 
-#pragma once
-
 #include "duilib/Box/VirtualListBox.h"
 
 namespace ui

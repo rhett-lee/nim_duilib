@@ -1,8 +1,6 @@
 #ifndef UI_BOX_VLAYOUT_H_
 #define UI_BOX_VLAYOUT_H_
 
-#pragma once
-
 #include "duilib/Box/Layout.h"
 
 namespace ui 

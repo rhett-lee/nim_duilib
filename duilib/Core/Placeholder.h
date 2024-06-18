@@ -1,8 +1,6 @@
 #ifndef UI_CORE_PLACE_HOLDER_H_
 #define UI_CORE_PLACE_HOLDER_H_
 
-#pragma once
-
 #include "duilib/Core/Callback.h"
 #include "duilib/Core/UiTypes.h"
 #include <string>

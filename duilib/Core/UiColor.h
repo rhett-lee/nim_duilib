@@ -1,8 +1,6 @@
 #ifndef UI_CORE_UICOLOR_H_
 #define UI_CORE_UICOLOR_H_
 
-#pragma once
-
 #include "duilib/Core/UiColors.h"
 
 namespace ui 

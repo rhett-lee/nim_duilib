@@ -1,7 +1,6 @@
 #ifndef UI_BOX_TILEBOX_H_
 #define UI_BOX_TILEBOX_H_
 
-#pragma once
 #include "duilib/Core/Box.h"
 #include "duilib/Box/VTileLayout.h"
 #include "duilib/Box/HTileLayout.h"

@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_PROPERTY_GRID_H_
 #define UI_CONTROL_PROPERTY_GRID_H_
 
-#pragma once
-
 #include "duilib/Box/VBox.h"
 #include "duilib/Control/Split.h"
 #include "duilib/Control/Label.h"

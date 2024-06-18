@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_LIST_CTRL_DEFS_H_
 #define UI_CONTROL_LIST_CTRL_DEFS_H_
 
-#pragma once
-
 #include "duilib/Control/ListCtrlView.h"
 #include "duilib/Control/CheckBox.h"
 #include "duilib/Control/Label.h"

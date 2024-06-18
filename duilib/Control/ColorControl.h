@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_COLOR_CONTROL_H_
 #define UI_CONTROL_COLOR_CONTROL_H_
 
-#pragma once
-
 #include "duilib/Core/Control.h"
 #include "duilib/Render/IRender.h"
 

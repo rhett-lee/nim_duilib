@@ -1,8 +1,6 @@
 #ifndef UI_RENDER_BITMAP_ALPHA_H_
 #define UI_RENDER_BITMAP_ALPHA_H_
 
-#pragma once
-
 #include "duilib/Core/UiRect.h"
 
 namespace ui

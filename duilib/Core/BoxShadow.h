@@ -1,8 +1,6 @@
 #ifndef UI_UTILS_BOXSHADOW_H_
 #define UI_UTILS_BOXSHADOW_H_
 
-#pragma once
-
 #include "duilib/Core/UiPoint.h"
 #include <string>
 

@@ -48,10 +48,6 @@
 #if !defined(__CXIMAGE_H)
 #define __CXIMAGE_H
 
-#if _MSC_VER > 1000
-#pragma once
-#endif 
-
 #ifdef _LINUX
   #define _XOPEN_SOURCE
   #include <unistd.h>

@@ -1,8 +1,6 @@
 #ifndef UI_ANIMATION_ANIMATIONMANAGER_H_
 #define UI_ANIMATION_ANIMATIONMANAGER_H_
 
-#pragma once
-
 #include "duilib/Animation/AnimationPlayer.h"
 #include <map>
 #include <memory>

@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_LIST_CTRL_HEADER_ITEM_H_
 #define UI_CONTROL_LIST_CTRL_HEADER_ITEM_H_
 
-#pragma once
-
 #include "duilib/Control/Button.h"
 #include "duilib/Control/CheckBox.h"
 #include "duilib/Control/Split.h"

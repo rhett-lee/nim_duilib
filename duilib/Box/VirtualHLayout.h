@@ -1,8 +1,6 @@
 #ifndef UI_BOX_VIRTUAL_HLAYOUT_H_
 #define UI_BOX_VIRTUAL_HLAYOUT_H_
 
-#pragma once
-
 #include "duilib/Box/HLayout.h"
 #include "duilib/Box/VirtualLayout.h"
 

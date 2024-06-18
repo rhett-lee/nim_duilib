@@ -1,8 +1,6 @@
 #ifndef UI_BOX_LISTBOX_ITEM_H_
 #define UI_BOX_LISTBOX_ITEM_H_
 
-#pragma once
-
 #include "duilib/Box/VBox.h"
 #include "duilib/Box/HBox.h"
 #include "duilib/Control/Option.h"

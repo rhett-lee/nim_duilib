@@ -1,8 +1,6 @@
 #ifndef UI_CORE_UIPOINT_H_
 #define UI_CORE_UIPOINT_H_
 
-#pragma once
-
 #include "duilib/duilib_defs.h"
 #include <cstdint>
 

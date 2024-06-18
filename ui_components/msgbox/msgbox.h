@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UI_COMPONENTS_MSGBOX_H_
+#define UI_COMPONENTS_MSGBOX_H_
 
 #include "duilib/Utils/WinImplBase.h"
 #include "duilib/Control/Button.h"
@@ -64,3 +65,5 @@ private:
 };
 
 }
+
+#endif //UI_COMPONENTS_MSGBOX_H_

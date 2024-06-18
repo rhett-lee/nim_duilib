@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UI_COMPONENTS_TOAST_H_
+#define UI_COMPONENTS_TOAST_H_
 
 #include "duilib/Utils/WinImplBase.h"
 #include "duilib/Control/RichEdit.h"
@@ -73,3 +74,5 @@ private:
         ui::Button* m_close_button = nullptr;
     };
 }
+
+#endif //UI_COMPONENTS_TOAST_H_

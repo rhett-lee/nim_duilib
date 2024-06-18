@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_RICHEDIT_HOST_H_
 #define UI_CONTROL_RICHEDIT_HOST_H_
 
-#pragma once
-
 #include "duilib/Core/UiTypes.h"
 //使用Windows的ITextHost实现
 #include <Richedit.h>

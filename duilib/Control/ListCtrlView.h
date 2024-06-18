@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_LIST_CTRL_VIEW_H_
 #define UI_CONTROL_LIST_CTRL_VIEW_H_
 
-#pragma once
-
 #include "duilib/Box/VirtualListBox.h"
 
 namespace ui

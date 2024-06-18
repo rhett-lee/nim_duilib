@@ -1,8 +1,6 @@
 #ifndef UI_UTILS_BITMAP_HELPER_H_
 #define UI_UTILS_BITMAP_HELPER_H_
 
-#pragma once
-
 #include "duilib/Render/IRender.h"
 
 namespace ui 

@@ -1,8 +1,6 @@
 #ifndef UI_CORE_DPI_MANAGER_H_
 #define UI_CORE_DPI_MANAGER_H_
 
-#pragma once
-
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Core/DpiAwareness.h"
 

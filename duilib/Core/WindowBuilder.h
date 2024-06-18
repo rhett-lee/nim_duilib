@@ -1,8 +1,6 @@
 #ifndef UI_CORE_WINDOWBUILDER_H_
 #define UI_CORE_WINDOWBUILDER_H_
 
-#pragma once
-
 #include "duilib/Core/UiSize.h"
 #include "duilib/Core/UiRect.h"
 #include <functional>

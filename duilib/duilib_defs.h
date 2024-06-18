@@ -30,8 +30,6 @@
 #ifndef DUILIB_DEFS_H_
 #define DUILIB_DEFS_H_ 1
 
-#pragma once
-
 #include "duilib/duilib_config.h"
 
 #define DUI_NOSET_VALUE        -1

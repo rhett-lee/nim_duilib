@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_SPLIT_H_
 #define UI_CONTROL_SPLIT_H_
 
-#pragma once
-
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
 

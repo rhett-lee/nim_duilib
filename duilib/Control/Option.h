@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_OPTION_H_
 #define UI_CONTROL_OPTION_H_
 
-#pragma once
-
 #include "duilib/Control/CheckBox.h"
 
 namespace ui

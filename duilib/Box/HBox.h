@@ -1,8 +1,6 @@
 #ifndef UI_CORE_HBOX_H_
 #define UI_CORE_HBOX_H_
 
-#pragma once
-
 #include "duilib/Core/Box.h"
 #include "duilib/Box/HLayout.h"
 

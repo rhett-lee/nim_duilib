@@ -1,8 +1,6 @@
 #ifndef UI_MACROS_H_
 #define UI_MACROS_H_
 
-#pragma once
-
 #include "duilib/duilib_defs.h"
 
 namespace ui

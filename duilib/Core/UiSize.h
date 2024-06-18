@@ -1,8 +1,6 @@
 #ifndef UI_CORE_UISIZE_H_
 #define UI_CORE_UISIZE_H_
 
-#pragma once
-
 #include "duilib/Core/UiSize64.h"
 
 namespace ui 

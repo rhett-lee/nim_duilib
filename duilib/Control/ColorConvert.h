@@ -6,8 +6,6 @@
 #ifndef UI_CONTROL_COLOR_CONVERT_H_
 #define UI_CONTROL_COLOR_CONVERT_H_
 
-#pragma once
-
 #include <math.h>
 #include <stdint.h>
 

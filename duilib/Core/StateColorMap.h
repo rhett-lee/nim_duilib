@@ -1,8 +1,6 @@
 #ifndef UI_CORE_STATE_COLOR_MAP_H_
 #define UI_CORE_STATE_COLOR_MAP_H_
 
-#pragma once
-
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/UiTypes.h"
 #include <map>

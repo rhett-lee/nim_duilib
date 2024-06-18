@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_LIST_CTRL_ITEM_H_
 #define UI_CONTROL_LIST_CTRL_ITEM_H_
 
-#pragma once
-
 #include "duilib/Box/ListBox.h"
 #include "duilib/Control/Label.h"
 #include "duilib/Core/ImageList.h"

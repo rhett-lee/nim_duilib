@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_IPADDRESS_H_
 #define UI_CONTROL_IPADDRESS_H_
 
-#pragma once
-
 #include "duilib/Box/HBox.h"
 
 namespace ui

@@ -1,8 +1,6 @@
 #ifndef UI_IMAGE_IMAGE_DECODER_H_
 #define UI_IMAGE_IMAGE_DECODER_H_
 
-#pragma once
-
 #include "duilib/duilib_defs.h"
 #include <memory>
 #include <vector>

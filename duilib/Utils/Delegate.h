@@ -1,8 +1,6 @@
 #ifndef UI_UTILS_DELEGATE_H_
 #define UI_UTILS_DELEGATE_H_
 
-#pragma once
-
 #include "duilib/Core/EventArgs.h"
 #include <functional>
 #include <vector>

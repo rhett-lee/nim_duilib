@@ -1,8 +1,6 @@
 #ifndef UI_UTILS_SHADOW_WND_H__
 #define UI_UTILS_SHADOW_WND_H__
 
-#pragma once
-
 #include "duilib/Utils/WinImplBase.h"
 
 namespace ui {

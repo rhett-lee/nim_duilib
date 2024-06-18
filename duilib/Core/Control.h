@@ -1,8 +1,6 @@
 #ifndef UI_CORE_CONTROL_H_
 #define UI_CORE_CONTROL_H_
 
-#pragma once
-
 #include "duilib/Core/PlaceHolder.h"
 #include "duilib/Core/BoxShadow.h"
 #include "duilib/Utils/Delegate.h"

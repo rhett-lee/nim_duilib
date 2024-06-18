@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_LIST_CTRL_DATA_PROVIDER_H_
 #define UI_CONTROL_LIST_CTRL_DATA_PROVIDER_H_
 
-#pragma once
-
 #include "duilib/Box/VirtualListBox.h"
 #include "duilib/Control/ListCtrlDefs.h"
 

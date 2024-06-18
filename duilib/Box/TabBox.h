@@ -1,8 +1,6 @@
 #ifndef UI_CORE_TABBOX_H_
 #define UI_CORE_TABBOX_H_
 
-#pragma once
-
 #include "duilib/Core/Box.h"
 
 namespace ui

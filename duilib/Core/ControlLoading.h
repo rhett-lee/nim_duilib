@@ -1,8 +1,6 @@
 #ifndef UI_CORE_CONTROL_LOADING_H_
 #define UI_CORE_CONTROL_LOADING_H_
 
-#pragma once
-
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Core/Callback.h"
 #include <memory>

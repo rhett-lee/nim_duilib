@@ -1,4 +1,5 @@
-#pragma once
+#ifndef UI_COMPONENTS_H_
+#define UI_COMPONENTS_H_
 
 #include "ui_components/msgbox/msgbox.h"
 #include "ui_components/toast/toast.h"
@@ -11,3 +12,5 @@
 #include "ui_components/cef_control/control/cef_control_base.h"
 #include "ui_components/cef_control/manager/cef_manager.h"
 #endif
+
+#endif //UI_COMPONENTS_H_

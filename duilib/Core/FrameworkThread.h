@@ -1,8 +1,6 @@
 #ifndef UI_CORE_FRAMEWORK_THREAD_H_
 #define UI_CORE_FRAMEWORK_THREAD_H_
 
-#pragma once
-
 #include "duilib/Core/Callback.h"
 #include <thread>
 #include <mutex>

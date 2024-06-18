@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_TREEVIEW_H_
 #define UI_CONTROL_TREEVIEW_H_
 
-#pragma once
-
 #include "duilib/Box/ListBox.h"
 #include <map>
 

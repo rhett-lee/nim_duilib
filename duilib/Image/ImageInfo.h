@@ -1,8 +1,6 @@
 #ifndef UI_IMAGE_IMAGE_INFO_H_
 #define UI_IMAGE_IMAGE_INFO_H_
 
-#pragma once
-
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/UiTypes.h"
 

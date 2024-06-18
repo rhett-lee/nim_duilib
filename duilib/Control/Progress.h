@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_PROGRESS_H_
 #define UI_CONTROL_PROGRESS_H_
 
-#pragma once
-
 #include "duilib/Control/Label.h"
 #include "duilib/Image/Image.h"
 

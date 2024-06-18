@@ -1,8 +1,6 @@
 #ifndef UI_RENDER_SKIA_BITMAP_H_
 #define UI_RENDER_SKIA_BITMAP_H_
 
-#pragma once
-
 #include "duilib/Render/IRender.h"
 
 //Skia相关类的前置声明

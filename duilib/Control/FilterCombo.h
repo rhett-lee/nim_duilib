@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_FILTERCOMBO_H_
 #define UI_CONTROL_FILTERCOMBO_H_
 
-#pragma once
-
 #include "duilib/Control/Combo.h"
 
 namespace ui 

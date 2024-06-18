@@ -1,8 +1,6 @@
 #ifndef UI_IMAGE_STATE_IMAGE_MAP_H_
 #define UI_IMAGE_STATE_IMAGE_MAP_H_
 
-#pragma once
-
 #include "duilib/Image/StateImage.h"
 
 namespace ui 

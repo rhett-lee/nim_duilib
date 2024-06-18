@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_GROUPBOX_H_
 #define UI_CONTROL_GROUPBOX_H_
 
-#pragma once
-
 #include "duilib/Control/Label.h"
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"

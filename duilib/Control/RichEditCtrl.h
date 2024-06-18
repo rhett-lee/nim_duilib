@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_RICHEDIT_CTRL_H_
 #define UI_CONTROL_RICHEDIT_CTRL_H_
 
-#pragma once
-
 #include "duilib/Core/UiTypes.h"
 #include <Richedit.h>
 #include <TextServ.h>

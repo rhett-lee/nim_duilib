@@ -1,8 +1,6 @@
 #ifndef UI_RENDER_SKIA_PATH_H_
 #define UI_RENDER_SKIA_PATH_H_
 
-#pragma once
-
 #include "duilib/Render/IRender.h"
 
 class SkPath;

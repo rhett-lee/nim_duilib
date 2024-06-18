@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_SLIDER_H_
 #define UI_CONTROL_SLIDER_H_
 
-#pragma once
-
 #include "duilib/Control/Progress.h"
 #include <string>
 

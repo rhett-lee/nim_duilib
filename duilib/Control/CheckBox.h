@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_CHECKBOX_H_
 #define UI_CONTROL_CHECKBOX_H_
 
-#pragma once
-
 #include "duilib/Control/Button.h"
 
 namespace ui {

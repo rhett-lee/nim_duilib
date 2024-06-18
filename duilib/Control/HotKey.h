@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_HOTKEY_H_
 #define UI_CONTROL_HOTKEY_H_
 
-#pragma once
-
 #include "duilib/Box/HBox.h"
 
 namespace ui

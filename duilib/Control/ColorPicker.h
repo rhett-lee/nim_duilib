@@ -1,8 +1,6 @@
 #ifndef UI_CONTROL_COLORPICKER_H_
 #define UI_CONTROL_COLORPICKER_H_
 
-#pragma once
-
 #include "duilib/Utils/WinImplBase.h"
 #include "duilib/Control/Label.h"
 

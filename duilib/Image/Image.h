@@ -1,8 +1,6 @@
 #ifndef UI_IMAGE_IMAGE_H_
 #define UI_IMAGE_IMAGE_H_
 
-#pragma once
-
 #include "duilib/Image/ImageInfo.h"
 #include "duilib/Image/ImageAttribute.h"
 #include "duilib/Image/ImageLoadAttribute.h"

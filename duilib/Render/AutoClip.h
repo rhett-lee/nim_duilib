@@ -1,8 +1,6 @@
 #ifndef UI_RENDER_AUTO_CLIP_H_
 #define UI_RENDER_AUTO_CLIP_H_
 
-#pragma once
-
 #include "duilib/Core/UiRect.h"
 
 namespace ui 
