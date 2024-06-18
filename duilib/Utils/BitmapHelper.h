@@ -1,5 +1,5 @@
-#ifndef UI_RENDER_GDIPLUS_BITMAP_HELPER_H_
-#define UI_RENDER_GDIPLUS_BITMAP_HELPER_H_
+#ifndef UI_UTILS_BITMAP_HELPER_H_
+#define UI_UTILS_BITMAP_HELPER_H_
 
 #pragma once
 
@@ -39,5 +39,5 @@ namespace ui
     }
 }
 
-#endif //UI_RENDER_GDIPLUS_BITMAP_HELPER_H_
+#endif //UI_UTILS_BITMAP_HELPER_H_
 

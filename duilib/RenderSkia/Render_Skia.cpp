@@ -232,7 +232,7 @@ UiPoint Render_Skia::OffsetWindowOrg(UiPoint ptOffset)
 {
     UiPoint ptOldWindowOrg = { SkScalarTruncToInt(m_pSkPointOrg->fX), SkScalarTruncToInt(m_pSkPointOrg->fY) };
     SkPoint ptOff = { SkIntToScalar(ptOffset.x), SkIntToScalar(ptOffset.y) };
-    //Gdiplus版本使用的是SetWindowOrgEx，而Skia内部是用的SetViewportOrgEx逻辑，所以这里要符号取反
+    //Skia内部是用的SetViewportOrgEx逻辑(与SetWindowOrgEx相反)，所以这里要符号取反
     m_pSkPointOrg->offset(-ptOff.fX, -ptOff.fY);
     return ptOldWindowOrg;
 }

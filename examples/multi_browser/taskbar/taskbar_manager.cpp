@@ -1,5 +1,5 @@
 #include "taskbar_manager.h"
-#include "duilib/RenderGdiPlus/BitmapHelper.h"
+#include "duilib/Utils/BitmapHelper.h"
 #include "dwm_util.h"
 #include <shobjidl.h>
 #include <VersionHelpers.h>

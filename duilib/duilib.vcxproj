@@ -423,15 +423,6 @@
     <ClCompile Include="Image\ImageLoadAttribute.cpp" />
     <ClCompile Include="Image\StateImage.cpp" />
     <ClCompile Include="Image\StateImageMap.cpp" />
-    <ClCompile Include="RenderGdiPlus\BitmapHepler.cpp" />
-    <ClCompile Include="RenderGdiPlus\Bitmap_GDI.cpp" />
-    <ClCompile Include="RenderGdiPlus\Brush_Gdiplus.cpp" />
-    <ClCompile Include="RenderGdiPlus\Font_GDI.cpp" />
-    <ClCompile Include="RenderGdiPlus\Matrix_Gdiplus.cpp" />
-    <ClCompile Include="RenderGdiPlus\Path_Gdiplus.cpp" />
-    <ClCompile Include="RenderGdiPlus\Pen_GdiPlus.cpp" />
-    <ClCompile Include="RenderGdiPlus\RenderFactory_GdiPlus.cpp" />
-    <ClCompile Include="RenderGdiPlus\Render_GdiPlus.cpp" />
     <ClCompile Include="RenderSkia\Bitmap_Skia.cpp" />
     <ClCompile Include="RenderSkia\Brush_Skia.cpp" />
     <ClCompile Include="RenderSkia\Font_Skia.cpp" />
@@ -456,6 +447,7 @@
     </ClCompile>
     <ClCompile Include="Utils\ApiWrapper.cpp" />
     <ClCompile Include="Utils\AttributeUtil.cpp" />
+    <ClCompile Include="Utils\BitmapHepler.cpp" />
     <ClCompile Include="Utils\FileDialog.cpp" />
     <ClCompile Include="Utils\FileUtil.cpp" />
     <ClCompile Include="Utils\LogUtil.cpp" />
@@ -595,16 +587,6 @@
     <ClInclude Include="Image\ImageLoadAttribute.h" />
     <ClInclude Include="Image\StateImage.h" />
     <ClInclude Include="Image\StateImageMap.h" />
-    <ClInclude Include="RenderGdiPlus\BitmapHelper.h" />
-    <ClInclude Include="RenderGdiPlus\Bitmap_GDI.h" />
-    <ClInclude Include="RenderGdiPlus\Brush_Gdiplus.h" />
-    <ClInclude Include="RenderGdiPlus\Font_GDI.h" />
-    <ClInclude Include="RenderGdiPlus\GdiPlusDefs.h" />
-    <ClInclude Include="RenderGdiPlus\Matrix_Gdiplus.h" />
-    <ClInclude Include="RenderGdiPlus\Path_Gdiplus.h" />
-    <ClInclude Include="RenderGdiPlus\Pen_GdiPlus.h" />
-    <ClInclude Include="RenderGdiPlus\RenderFactory_GdiPlus.h" />
-    <ClInclude Include="RenderGdiPlus\Render_GdiPlus.h" />
     <ClInclude Include="RenderSkia\Bitmap_Skia.h" />
     <ClInclude Include="RenderSkia\Brush_Skia.h" />
     <ClInclude Include="RenderSkia\Font_Skia.h" />
@@ -631,6 +613,7 @@
     <ClInclude Include="third_party\zlib\contrib\minizip\unzip.h" />
     <ClInclude Include="Utils\ApiWrapper.h" />
     <ClInclude Include="Utils\AttributeUtil.h" />
+    <ClInclude Include="Utils\BitmapHelper.h" />
     <ClInclude Include="Utils\FileDialog.h" />
     <ClInclude Include="Utils\FileUtil.h" />
     <ClInclude Include="Utils\LogUtil.h" />

@@ -2,7 +2,7 @@
 #include "browser_box.h"
 #include "multi_browser_manager.h"
 
-#include "duilib/RenderGdiPlus/BitmapHelper.h"
+#include "duilib/Utils/BitmapHelper.h"
 
 #include "OleIdl.h"
 #include "ShObjIdl.h"

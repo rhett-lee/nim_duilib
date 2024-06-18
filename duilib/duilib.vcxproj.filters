@@ -40,9 +40,6 @@
     <Filter Include="third_party\apng">
       <UniqueIdentifier>{418af93b-1aa2-4345-8118-2af96f4691e5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="RenderGdiPlus">
-      <UniqueIdentifier>{36e9cdf8-f81c-44f3-8841-dfc3e02a50ba}</UniqueIdentifier>
-    </Filter>
     <Filter Include="RenderSkia">
       <UniqueIdentifier>{0a39786a-5478-4647-b38c-4e57f94acfb4}</UniqueIdentifier>
     </Filter>
@@ -141,27 +138,6 @@
     <ClCompile Include="Utils\ShadowWnd.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="RenderGdiPlus\Bitmap_GDI.cpp">
-      <Filter>RenderGdiPlus</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderGdiPlus\BitmapHepler.cpp">
-      <Filter>RenderGdiPlus</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderGdiPlus\Brush_Gdiplus.cpp">
-      <Filter>RenderGdiPlus</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderGdiPlus\Path_Gdiplus.cpp">
-      <Filter>RenderGdiPlus</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderGdiPlus\Pen_GdiPlus.cpp">
-      <Filter>RenderGdiPlus</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderGdiPlus\Render_GdiPlus.cpp">
-      <Filter>RenderGdiPlus</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderGdiPlus\RenderFactory_GdiPlus.cpp">
-      <Filter>RenderGdiPlus</Filter>
-    </ClCompile>
     <ClCompile Include="Render\AutoClip.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -192,9 +168,6 @@
     <ClCompile Include="RenderSkia\Path_Skia.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
-    <ClCompile Include="RenderGdiPlus\Matrix_Gdiplus.cpp">
-      <Filter>RenderGdiPlus</Filter>
-    </ClCompile>
     <ClCompile Include="RenderSkia\Matrix_Skia.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
@@ -209,9 +182,6 @@
     </ClCompile>
     <ClCompile Include="Core\FontManager.cpp">
       <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderGdiPlus\Font_GDI.cpp">
-      <Filter>RenderGdiPlus</Filter>
     </ClCompile>
     <ClCompile Include="RenderSkia\Font_Skia.cpp">
       <Filter>RenderSkia</Filter>
@@ -450,6 +420,9 @@
     <ClCompile Include="Core\NativeWindow_Windows.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\BitmapHepler.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -587,30 +560,6 @@
     <ClInclude Include="Utils\ShadowWnd.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="RenderGdiPlus\Bitmap_GDI.h">
-      <Filter>RenderGdiPlus</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderGdiPlus\BitmapHelper.h">
-      <Filter>RenderGdiPlus</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderGdiPlus\Brush_Gdiplus.h">
-      <Filter>RenderGdiPlus</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderGdiPlus\Path_Gdiplus.h">
-      <Filter>RenderGdiPlus</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderGdiPlus\Pen_GdiPlus.h">
-      <Filter>RenderGdiPlus</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderGdiPlus\Render_GdiPlus.h">
-      <Filter>RenderGdiPlus</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderGdiPlus\RenderFactory_GdiPlus.h">
-      <Filter>RenderGdiPlus</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderGdiPlus\GdiPlusDefs.h">
-      <Filter>RenderGdiPlus</Filter>
-    </ClInclude>
     <ClInclude Include="Render\AutoClip.h">
       <Filter>Render</Filter>
     </ClInclude>
@@ -644,9 +593,6 @@
     <ClInclude Include="Render\RenderConfig.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="RenderGdiPlus\Matrix_Gdiplus.h">
-      <Filter>RenderGdiPlus</Filter>
-    </ClInclude>
     <ClInclude Include="RenderSkia\Matrix_Skia.h">
       <Filter>RenderSkia</Filter>
     </ClInclude>
@@ -664,9 +610,6 @@
     </ClInclude>
     <ClInclude Include="Core\FontManager.h">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderGdiPlus\Font_GDI.h">
-      <Filter>RenderGdiPlus</Filter>
     </ClInclude>
     <ClInclude Include="RenderSkia\Font_Skia.h">
       <Filter>RenderSkia</Filter>
@@ -991,6 +934,9 @@
     </ClInclude>
     <ClInclude Include="third_party\stb_image\stb_image_resize2.h">
       <Filter>third_party\stb_image</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\BitmapHelper.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

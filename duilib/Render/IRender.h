@@ -391,8 +391,7 @@ enum UILIB_API DrawStringFormat
 */
 enum class RenderType
 {
-    kRenderType_Skia = 0,
-    kRenderType_GdiPlus = 1
+    kRenderType_Skia = 0
 };
 
 /** 格式文本数据
@@ -437,7 +436,7 @@ public:
 
     /** 获取画布宽度
     */
-    virtual int    GetWidth() = 0;
+    virtual int GetWidth() = 0;
 
     /** 获取画布高度
     */
