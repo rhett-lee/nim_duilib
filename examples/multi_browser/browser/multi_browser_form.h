@@ -27,10 +27,6 @@ public:
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;   
 
-    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
-    */
-    virtual void OnInitWindow() override;
-
     /**
     * 根据控件类名创建自定义控件
     * @param[in] pstrClass 控件类名
@@ -56,9 +52,13 @@ public:
     */
     virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
 
-    /** 在窗口销毁时会被调用，这是该窗口的最后一个消息
+    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
-    virtual void OnFinalMessage() override;
+    virtual void OnInitWindow() override;
+
+    /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
+    */
+    virtual void OnCloseWindow() override;
 
 private:
     void OnWndSizeMax(bool max);

@@ -87,6 +87,25 @@ void MultiBrowserForm::OnInitWindow()
     InitDragDrop();
 }
 
+void MultiBrowserForm::OnCloseWindow()
+{
+    // 使用tab_list_来判断浏览器盒子总数，browser_box_tab_获取的总数不准确
+    int browser_box_count = GetBoxCount();
+    for (int i = 0; i < browser_box_count; i++)
+    {
+        Control* box_item = borwser_box_tab_->GetItemAt(i);
+        ASSERT(NULL != box_item);
+        if (NULL == box_item)
+            continue;;
+
+        BrowserBox* browser_box = dynamic_cast<BrowserBox*>(box_item);
+        if (NULL != browser_box)
+            browser_box->UninitBrowserBox();
+    }
+
+    UnInitDragDrop();
+}
+
 LRESULT MultiBrowserForm::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     bHandled = true;
@@ -171,26 +190,6 @@ LRESULT MultiBrowserForm::OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg&
         }
     }
     return __super::OnWindowCloseMsg(wParam, nativeMsg, bHandled);
-}
-
-void MultiBrowserForm::OnFinalMessage()
-{
-    // 使用tab_list_来判断浏览器盒子总数，browser_box_tab_获取的总数不准确
-    int browser_box_count = GetBoxCount();
-    for (int i = 0; i < browser_box_count; i++)
-    {
-        Control *box_item = borwser_box_tab_->GetItemAt(i);
-        ASSERT(NULL != box_item);
-        if (NULL == box_item)
-            continue;;
-
-        BrowserBox* browser_box = dynamic_cast<BrowserBox*>(box_item);
-        if (NULL != browser_box)
-            browser_box->UninitBrowserBox();
-    }
-
-    UnInitDragDrop();
-    __super::OnFinalMessage();
 }
 
 void MultiBrowserForm::OnWndSizeMax(bool max)
