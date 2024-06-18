@@ -7,7 +7,6 @@ Box::Box(Window* pWindow, Layout* pLayout) :
     Control(pWindow),
     m_pLayout(pLayout),
     m_bAutoDestroyChild(true),
-    m_bDelayedDestroy(true),
     m_bMouseChildEnabled(true),
     m_items(),
     m_nDropInId(0),
@@ -21,7 +20,6 @@ Box::Box(Window* pWindow, Layout* pLayout) :
 
 Box::~Box()
 {
-    m_bDelayedDestroy = false;
     for (Control* pControl : m_items) {
         if (pControl != nullptr) {
             delete pControl;
@@ -489,20 +487,13 @@ bool Box::DoRemoveItem(Control* pControl)
     if (pControl == nullptr) {
         return false;
     }
-
-    Window* pWindow = GetWindow();
     for (auto it = m_items.begin(); it != m_items.end(); ++it) {
         if (*it == pControl) {
-            Arrange();
-            if (m_bAutoDestroyChild) {
-                if (m_bDelayedDestroy && (pWindow != nullptr) && pWindow->IsWindow()) {
-                    pWindow->AddDelayedCleanup(pControl);
-                }
-                else {
-                    delete pControl;
-                }
-            }
             m_items.erase(it);
+            if (m_bAutoDestroyChild) {
+                delete pControl;
+            }
+            Arrange();
             return true;
         }
     }
@@ -511,20 +502,16 @@ bool Box::DoRemoveItem(Control* pControl)
 
 void Box::RemoveAllItems()
 {
+    std::vector<Control*> items;
+    items.swap(m_items);
     if (m_bAutoDestroyChild) {
-        Window* pWindow = GetWindow();
-        for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-            if (m_bDelayedDestroy && (pWindow != nullptr) && pWindow->IsWindow()) {
-                pWindow->AddDelayedCleanup((*it));
-            }
-            else {
-                delete (*it);
-            }
+        for(Control* pControl : items) {
+            delete pControl;
         }
     }
-
-    m_items.clear();
-    Arrange();
+    if (!items.empty()) {
+        Arrange();
+    }    
 }
 
 void Box::ReSetLayout(Layout* pLayout)

@@ -258,11 +258,6 @@ public:
     */
     void ReapObjects(Control* pControl);
 
-    /** 延迟销毁一个控件
-    * @param [in] pControl 控件指针
-    */
-    void AddDelayedCleanup(Control* pControl);
-
     /** 添加一个通用样式
     * @param [in] strClassName 通用样式的名称
     * @param [in] strControlAttrList 通用样式的 XML 转义格式数据
@@ -620,15 +615,6 @@ private:
     */
     virtual void OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override final;
 
-    /** 自定义窗口消息的派发函数，仅供内部实现使用
-    * @param [in] uMsg 消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @param[out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，否则将消息继续传递给窗口过程
-    * @return 返回消息的处理结果
-    */
-    virtual LRESULT HandleUserMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override final;
-
 private:
     //鼠标等按下消息处理函数
     void OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey);
@@ -719,9 +705,6 @@ private:
     /** 窗口关联的容器，根节点
     */
     Box* m_pRoot;
-
-    //延迟释放的控件接口
-    std::vector<Control*> m_aDelayedCleanup;
 
     //窗口阴影
     std::unique_ptr<Shadow> m_shadow;

@@ -158,19 +158,6 @@ public:
     void SetAutoDestroyChild(bool bAuto) { m_bAutoDestroyChild = bAuto; }
 
     /**
-     * @brief 判断窗口关闭后是否自动销毁
-     * @return true 为自动销毁，false 为不自动销毁
-     */
-    bool IsDelayedDestroy() const { return m_bDelayedDestroy; }
-
-    /**
-     * @brief 设置窗口关闭后是否自动销毁
-     * @param[in] bDelayedDestroy true 为自动销毁，false 为不自动销毁
-     * @return 无
-     */
-    void SetDelayedDestroy(bool bDelayedDestroy) { m_bDelayedDestroy = bDelayedDestroy; }
-
-    /**
      * @brief 获取容器是否响应鼠标操作
      * @return true 为响应，false 为不响应
      */

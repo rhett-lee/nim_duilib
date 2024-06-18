@@ -1166,11 +1166,6 @@ LRESULT NativeWindow::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
         lResult = ProcessWindowMessage(uMsg, wParam, lParam, bHandled);
     }
 
-    //自定义窗口消息的派发函数，仅供内部实现使用
-    if (!bHandled && !ownerFlag.expired() && (uMsg >= WM_USER)) {
-        lResult = pOwner->OnNativeUserMessage(uMsg, wParam, lParam, bHandled);
-    }
-
     if (!bHandled && !ownerFlag.expired()) {
         if ((uMsg == WM_CLOSE) || ((uMsg == WM_SYSCOMMAND) && (GET_SC_WPARAM(wParam) == SC_CLOSE))) {
             //窗口即将关闭（关闭前）

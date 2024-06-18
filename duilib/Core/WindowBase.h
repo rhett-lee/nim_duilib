@@ -581,15 +581,6 @@ protected:
     */
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
 
-    /** 自定义窗口消息的派发函数，仅供内部实现使用
-    * @param [in] uMsg 消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @param[out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，否则将消息继续传递给窗口过程
-    * @return 返回消息的处理结果
-    */
-    virtual LRESULT HandleUserMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
-
     /** 窗口大小发生改变(WM_SIZE)
     * @param [in] sizeType 触发窗口大小改变的类型
     * @param [in] newWindowSize 新的窗口大小（宽度和高度）
@@ -843,7 +834,6 @@ private:
 
     virtual void    OnNativeFinalMessage() override;
     virtual LRESULT OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
-    virtual LRESULT OnNativeUserMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
     virtual void    OnNativeProcessDpiChangedMsg(uint32_t nNewDPI, const UiRect& rcNewWindow) override;
     virtual LRESULT OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) override;

@@ -10,9 +10,6 @@
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
-//清理控件资源的自定义消息
-#define WM_CLEANUP_MSG  (WM_USER + 1)
-
 namespace ui
 {
 Window::Window() :
@@ -26,7 +23,6 @@ Window::Window() :
     m_rcAlphaFix(0, 0, 0, 0),
     m_bFirstLayout(true),
     m_bIsArranged(false),
-    m_aDelayedCleanup(),
     m_mOptionGroup(),
     m_defaultAttrHash(),
     m_strResourcePath(),
@@ -153,18 +149,6 @@ void Window::ClearWindow(bool bSendClose)
     m_shadow.reset();
     m_render.reset();
     m_controlFinder.Clear();
-
-    //删除清理的控件
-    while (!m_aDelayedCleanup.empty()) {
-        std::vector<Control*> aDelayedCleanup;
-        aDelayedCleanup.swap(m_aDelayedCleanup);
-        for (Control* pControl : aDelayedCleanup) {
-            //移除过程中，还是会有删除控件向m_aDelayedCleanup里面添加
-            delete pControl;
-        }
-        aDelayedCleanup.clear();
-    }    
-    ASSERT(m_aDelayedCleanup.empty());
 }
 
 bool Window::AttachBox(Box* pRoot)
@@ -178,7 +162,8 @@ bool Window::AttachBox(Box* pRoot)
     // a result of an event fired or similar, so we cannot just delete the objects and
     // pull the internal memory of the calling code. We'll delay the cleanup.
     if ((m_pRoot != nullptr) && (pRoot != m_pRoot)) {
-        AddDelayedCleanup(m_pRoot);
+        delete m_pRoot;
+        m_pRoot = nullptr;
     }
     // Set the dialog root element
     m_pRoot = pRoot;
@@ -564,27 +549,6 @@ void Window::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
         pRoot->Arrange();
         Invalidate(m_pRoot->GetPos());
     }
-}
-
-LRESULT Window::HandleUserMessage(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    LRESULT lResult = 0;
-    bHandled = false;
-    switch (uMsg)
-    {
-    case WM_CLEANUP_MSG:
-        {
-            for (Control* pControl : m_aDelayedCleanup) {
-                delete pControl;
-            }
-            m_aDelayedCleanup.clear();
-            bHandled = true;
-        }
-        break;
-    default:
-        break;
-    }
-    return lResult;
 }
 
 LRESULT Window::OnWindowMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
@@ -1253,18 +1217,6 @@ Box* Window::GetRoot() const
 void Window::SetArrange(bool bArrange)
 {
     m_bIsArranged = bArrange;
-}
-
-void Window::AddDelayedCleanup(Control* pControl)
-{
-    ASSERT(IsWindow());
-    ASSERT(std::find(m_aDelayedCleanup.begin(), m_aDelayedCleanup.end(), pControl) == m_aDelayedCleanup.end());
-
-    if (pControl != nullptr) {
-        pControl->SetWindow(this);
-        m_aDelayedCleanup.push_back(pControl);
-        PostMsg(WM_CLEANUP_MSG);
-    }
 }
 
 bool Window::SendNotify(EventType eventType, WPARAM wParam, LPARAM lParam)

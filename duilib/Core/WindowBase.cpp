@@ -857,11 +857,6 @@ LRESULT WindowBase::OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPara
     return lResult;
 }
 
-LRESULT WindowBase::OnNativeUserMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    return HandleUserMessage(uMsg, wParam, lParam, bHandled);
-}
-
 LRESULT WindowBase::OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled)
 {
     OnWindowSize(sizeType);

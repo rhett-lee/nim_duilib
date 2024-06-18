@@ -90,10 +90,6 @@ public:
     */
     virtual LRESULT OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
 
-    /** 窗口消息的派发函数(用户自定义消息)
-    */
-    virtual LRESULT OnNativeUserMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
-
     /** 处理DPI变化的系统通知消息
     * @param [in] nNewDPI 新的DPI值
     * @param [in] rcNewWindow 新的窗口位置（建议值）
