@@ -1,6 +1,7 @@
 #include "WinImplBase.h"
 #include "duilib/Core/WindowBuilder.h"
 #include "duilib/Core/Box.h"
+#include "duilib/Utils/PathUtil.h"
 
 namespace ui
 {
@@ -17,14 +18,37 @@ void WindowImplBase::InitWindow()
 {
     __super::InitWindow();
 
-    SetResourcePath(GetSkinFolder());
-    DString strSkinFile;
+    //保存资源所在路径
+    DString skinFolder = GetSkinFolder();
+    ASSERT(!PathUtil::IsAbsolutePath(skinFolder));
+    if (PathUtil::IsAbsolutePath(skinFolder)) {
+        return;
+    }
+
+    SetResourcePath(skinFolder);
+    SetXmlPath(DString());
+
+    //XML文件所在路径，应是相对路
     DString xmlFile = GetSkinFile();
+    ASSERT(!PathUtil::IsAbsolutePath(xmlFile));
+    if (PathUtil::IsAbsolutePath(xmlFile)) {
+        return;
+    }
+
+    DString strSkinFile;
     if (!xmlFile.empty() && xmlFile.front() == _T('<')) {
-        //返回的内容是XML文件内容，而不是文件路径
+        //返回的内容是XML文件内容，而不是文件路径        
         strSkinFile = std::move(xmlFile);
     }
     else {
+        //保存XML文件所在路径
+        size_t nPos = xmlFile.find_last_of(_T("/\\"));
+        if (nPos != DString::npos) {
+            DString xmlPath = xmlFile.substr(0, nPos);
+            if (!xmlPath.empty()) {
+                SetXmlPath(xmlPath);
+            }
+        }
         strSkinFile = GetResourcePath() + xmlFile;
     }
     auto callback = UiBind(&WindowImplBase::CreateControl, this, std::placeholders::_1);

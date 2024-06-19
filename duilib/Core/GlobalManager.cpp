@@ -326,19 +326,42 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
     return true;
 }
 
-DString GlobalManager::GetResFullPath(const DString& windowResPath, const DString& resPath)
+DString GlobalManager::GetExistsResFullPath(const DString& windowResPath, const DString& windowXmlPath, const DString& resPath)
 {
     if (resPath.empty() || !PathUtil::IsRelativePath(resPath)) {
         return resPath;
     }
 
-    DString imageFullPath = PathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);
-    imageFullPath = PathUtil::JoinFilePath(imageFullPath, resPath);
+    //首先在窗口的资源目录中查找（命中率高）
+    const DString windowResFullPath = PathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);
+    DString imageFullPath = PathUtil::JoinFilePath(windowResFullPath, resPath);
     imageFullPath = PathUtil::NormalizeFilePath(imageFullPath);
     if (!m_zipManager.IsZipResExist(imageFullPath) && !PathUtil::IsExistsPath(imageFullPath)) {
+        //如果文件不存在，返回空
+        imageFullPath.clear();
+    }
+
+    if (imageFullPath.empty()) {
+        //其次在公共目录中查找（命中率高）
         imageFullPath = PathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
         imageFullPath = PathUtil::NormalizeFilePath(imageFullPath);
+        if (!m_zipManager.IsZipResExist(imageFullPath) && !PathUtil::IsExistsPath(imageFullPath)) {
+            //如果文件不存在，返回空
+            imageFullPath.clear();
+        }
     }
+
+    if (imageFullPath.empty() && !windowXmlPath.empty()) {
+        //最后在XML文件所在目录中查找
+        const DString windowXmlFullPath = PathUtil::JoinFilePath(windowResFullPath, windowXmlPath);
+        imageFullPath = PathUtil::JoinFilePath(windowXmlFullPath, resPath);
+        imageFullPath = PathUtil::NormalizeFilePath(imageFullPath);
+        if (!m_zipManager.IsZipResExist(imageFullPath) && !PathUtil::IsExistsPath(imageFullPath)) {
+            //如果文件不存在，返回空
+            imageFullPath.clear();
+        }
+    }
+    ASSERT(!imageFullPath.empty());
     return imageFullPath;
 }
 

@@ -196,13 +196,15 @@ public:
 public:
     /** 根据资源加载方式，返回对应的资源路径
      * @param[in] path 要获取的资源路径
-     * @param [in] windowResPath 窗口对应的资源相对目录，比如："basic\"
+     * @param [in] windowResPath 窗口对应的资源相对目录，比如："controls\\"
+     * @param [in] windowXmlPath 窗口对应XML所在的相对目录，比如："controls\\menu\\"
      * @param [in] resPath 资源文件路径，比如："../public/button/btn_wnd_gray_min_hovered.png"
-     * @return 可用的完整的资源路径，比如：
+     * @return 返回可用的完整的资源路径，如果资源路径不存在，则返回空
+               返回有效的路径格式如下：
               （1）如果是使用ZIP压缩包，返回："resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
               （2）如果未使用ZIP压缩包，返回："<程序所在目录>\resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
      */
-    DString GetResFullPath(const DString& windowResPath, const DString& resPath);
+    DString GetExistsResFullPath(const DString& windowResPath, const DString& windowXmlPath, const DString& resPath);
 
     /** 根据 XML 创建一个 Box
      * @param[in] strXmlPath XML 文件路径

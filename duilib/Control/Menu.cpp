@@ -65,7 +65,7 @@ Menu::Menu(Window* pParentWindow) :
     m_pOwner(nullptr),
     m_pListBox(nullptr)
 {
-    m_skinFolder = DString(_T("menu"));
+    m_skinFolder = DString(_T("public/menu/"));
     m_submenuXml = DString(_T("submenu.xml"));
     m_submenuNodeName = DString(_T("submenu"));
 }
@@ -975,9 +975,16 @@ void MenuItem::CreateMenuWnd()
     Menu* pParentWindow = dynamic_cast<Menu*>(pWindow);
     ASSERT(pParentWindow != nullptr);
     if (pParentWindow != nullptr) {
-        m_pSubWindow->SetSkinFolder(pParentWindow->m_skinFolder.c_str());
+        const DString skinFolder = pParentWindow->GetSkinFolder();
+        m_pSubWindow->SetSkinFolder(skinFolder);
+        DString xmlPath = pParentWindow->GetXmlPath();
+        DString subXmlFile = pParentWindow->m_submenuXml.c_str();
+        //约定：子菜单的XML与父菜单的XML文件，在相同的目录中
+        if (!xmlPath.empty()) {
+            subXmlFile = xmlPath + subXmlFile;
+        }
         m_pSubWindow->SetSubMenuXml(pParentWindow->m_submenuXml.c_str(), pParentWindow->m_submenuNodeName.c_str());
-        m_pSubWindow->ShowMenu(pParentWindow->m_submenuXml.c_str(), UiPoint(), MenuPopupPosType::RIGHT_BOTTOM, false, this);
+        m_pSubWindow->ShowMenu(subXmlFile, UiPoint(), MenuPopupPosType::RIGHT_BOTTOM, false, this);
     }
 }
 

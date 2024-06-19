@@ -294,7 +294,8 @@ void ControlForm::ShowColorPicker()
 void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 {
     ui::Menu* menu = new ui::Menu(this);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
-    DString xml(_T("settings_menu.xml"));
+    menu->SetSkinFolder(GetResourcePath());
+    DString xml(_T("menu/settings_menu.xml"));
     menu->ShowMenu(xml, point);
 
     //在二级菜单中，添加子菜单项

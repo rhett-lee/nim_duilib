@@ -2973,8 +2973,13 @@ bool Control::LoadImageData(Image& duiImage) const
 #endif
 
     if(imageFullPath.empty()) {
-        imageFullPath = GlobalManager::Instance().GetResFullPath(pWindow->GetResourcePath(), sImagePath);
+        imageFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), sImagePath);
     }
+    if (imageFullPath.empty()) {
+        //资源文件不存在
+        return false;
+    }
+
     ImageLoadAttribute imageLoadAttr = duiImage.GetImageLoadAttribute();
     imageLoadAttr.SetImageFullPath(imageFullPath);
     std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();

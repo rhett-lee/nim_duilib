@@ -22,6 +22,9 @@ public:
     //连接两个路径，生成一个新的路径，用于路径拼接
     static DString JoinFilePath(const DString& path1, const DString& path2);
 
+    //规范目录，确保以分隔符结束
+    static void FormatDirPath(DString& path);
+
     //判断路径指向的文件是否存在
     static bool IsExistsPath(const DString& strFilePath);
 

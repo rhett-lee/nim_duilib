@@ -8,6 +8,9 @@ namespace ui
 DString PathUtil::NormalizeDirPath(const DString& strFilePath)
 {
     try {
+        if (strFilePath.empty()) {
+            return strFilePath;
+        }
         DString dirPath(strFilePath);
         StringUtil::ReplaceAll(_T("/"), _T("\\"), dirPath);
         StringUtil::ReplaceAll(_T("\\\\"), _T("\\"), dirPath);
@@ -35,6 +38,9 @@ DString PathUtil::NormalizeDirPath(const DString& strFilePath)
 DString PathUtil::NormalizeFilePath(const DString& strFilePath)
 {
     try {
+        if (strFilePath.empty()) {
+            return strFilePath;
+        }
         DString tmp(strFilePath);
         StringUtil::ReplaceAll(_T("/"), _T("\\"), tmp);
         StringUtil::ReplaceAll(_T("\\\\"), _T("\\"), tmp);
@@ -51,6 +57,9 @@ DString PathUtil::NormalizeFilePath(const DString& strFilePath)
 DString PathUtil::JoinFilePath(const DString& path1, const DString& path2)
 {
     try {
+        if (path1.empty()) {
+            return path2;
+        }
         std::filesystem::path file_path(path1);
         file_path /= path2;
         file_path = file_path.lexically_normal();
@@ -62,9 +71,28 @@ DString PathUtil::JoinFilePath(const DString& path1, const DString& path2)
     }
 }
 
+void PathUtil::FormatDirPath(DString& path)
+{
+    if (!path.empty()) {
+        //确保路径最后字符是分割字符
+        DString::value_type cEnd = path.back();
+        if (cEnd == _T('\\') || cEnd == _T('/')) {
+            path.resize(path.size() - 1);
+        }
+#ifdef DUILIB_PLATFORM_WIN
+        path += _T('\\');
+#else
+        path += _T('/');
+#endif // DUILIB_PLATFORM_WIN
+    }
+}
+
 bool PathUtil::IsExistsPath(const DString& strFilePath)
 {
     try {
+        if (strFilePath.empty()) {
+            return false;
+        }
         return std::filesystem::exists(strFilePath);
     }
     catch (...) {
@@ -75,6 +103,9 @@ bool PathUtil::IsExistsPath(const DString& strFilePath)
 bool PathUtil::IsRelativePath(const DString& strFilePath)
 {
     try {
+        if (strFilePath.empty()) {
+            return true;
+        }
         return std::filesystem::path(strFilePath).is_relative();
     }
     catch (...) {
@@ -85,6 +116,9 @@ bool PathUtil::IsRelativePath(const DString& strFilePath)
 bool PathUtil::IsAbsolutePath(const DString& strFilePath)
 {
     try {
+        if (strFilePath.empty()) {
+            return false;
+        }
         return std::filesystem::path(strFilePath).is_absolute();
     }
     catch (...) {
@@ -95,6 +129,9 @@ bool PathUtil::IsAbsolutePath(const DString& strFilePath)
 bool PathUtil::FilePathIsExist(const DString& filePath, bool bDirectory)
 {
     try {
+        if (filePath.empty()) {
+            return false;
+        }
         auto fileStatus = std::filesystem::status(std::filesystem::path(filePath));
         if ((fileStatus.type() != std::filesystem::file_type::none) &&
             (fileStatus.type() != std::filesystem::file_type::not_found)) {
@@ -117,6 +154,9 @@ bool PathUtil::CreateOneDirectory(const DString& filePath)
 {
     bool bCreated = false;
     try {
+        if (filePath.empty()) {
+            return false;
+        }
         bCreated = std::filesystem::create_directory(std::filesystem::path(filePath));
     }
     catch (...) {
@@ -128,6 +168,9 @@ bool PathUtil::CreateDirectories(const DString& filePath)
 {
     bool bCreated = false;
     try {
+        if (filePath.empty()) {
+            return false;
+        }
         bCreated = std::filesystem::create_directories(std::filesystem::path(filePath));
     }
     catch (...) {

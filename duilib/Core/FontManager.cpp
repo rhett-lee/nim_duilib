@@ -157,7 +157,7 @@ void FontManager::RemoveAllFonts()
 void FontManager::AddFontFile(const DString& strFontFile, const DString& strFontName)
 {
     FontFileInfo fontFileInfo;
-    DString path = GlobalManager::Instance().GetResFullPath(_T(""), _T("font\\") + strFontFile);
+    DString path = GlobalManager::Instance().GetExistsResFullPath(_T(""), _T(""), _T("font\\") + strFontFile);
     bool res = false;
     if (GlobalManager::Instance().Zip().IsUseZip()) {
         std::vector<unsigned char> file_data;

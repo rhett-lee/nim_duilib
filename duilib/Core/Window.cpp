@@ -9,13 +9,12 @@
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Utils/PerformanceUtil.h"
+#include "duilib/Utils/PathUtil.h"
 
 namespace ui
 {
 Window::Window() :
     m_pRoot(nullptr),
-    m_OnEvent(),
-    m_renderOffset(),
     m_pFocus(nullptr),
     m_pEventHover(nullptr),
     m_pEventClick(nullptr),
@@ -23,9 +22,6 @@ Window::Window() :
     m_rcAlphaFix(0, 0, 0, 0),
     m_bFirstLayout(true),
     m_bIsArranged(false),
-    m_mOptionGroup(),
-    m_defaultAttrHash(),
-    m_strResourcePath(),
     m_bPostQuitMsgWhenClosed(false)
 {
     m_toolTip = std::make_unique<ToolTip>();
@@ -208,25 +204,26 @@ void Window::ReapObjects(Control* pControl)
     m_controlFinder.RemoveControl(pControl);
 }
 
-const DString& Window::GetResourcePath() const
-{
-    return m_strResourcePath;
-}
-
 void Window::SetResourcePath(const DString& strPath)
 {
-    m_strResourcePath = strPath;
-    if (!m_strResourcePath.empty()) {
-        //确保路径最后字符是分割字符
-        DString::value_type cEnd = m_strResourcePath.back();
-        if (cEnd != _T('\\') && cEnd != _T('/')) {
-#ifdef DUILIB_PLATFORM_WIN
-            m_strResourcePath += _T('\\');
-#else
-            m_strResourcePath += _T('/');
-#endif // DUILIB_PLATFORM_WIN
-        }
-    }
+    m_resourcePath = strPath;
+    PathUtil::FormatDirPath(m_resourcePath);
+}
+
+const DString& Window::GetResourcePath() const
+{
+    return m_resourcePath;
+}
+
+void Window::SetXmlPath(const DString& xmlPath)
+{
+    m_xmlPath = xmlPath;
+    PathUtil::FormatDirPath(m_xmlPath);
+}
+
+const DString& Window::GetXmlPath() const
+{
+    return m_xmlPath;
 }
 
 void Window::AddClass(const DString& strClassName, const DString& strControlAttrList)

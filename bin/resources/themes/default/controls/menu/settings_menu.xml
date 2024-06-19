@@ -16,7 +16,7 @@
         <HBox class="menu_split_box" height="36">
             <Label class="menu_text" text="音量" textpadding="0,0,6,0"/>
             <Control width="auto" height="auto" bkimage="menu_speaker.png" valign="center"/>
-            <Slider class="slider_green" value="70" tooltiptext="ui::Slider"/>        
+            <Slider class="slider_green" value="70" tooltip_text="ui::Slider"/>        
         </HBox>
         
         <!-- 菜单项之间的分割线 -->
