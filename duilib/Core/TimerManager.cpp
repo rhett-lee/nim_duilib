@@ -2,7 +2,6 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/LogUtil.h"
 #include "duilib/Utils/StringUtil.h"
-#include <Mmsystem.h>
 
 namespace ui 
 {

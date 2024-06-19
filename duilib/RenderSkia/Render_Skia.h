@@ -35,7 +35,7 @@ public:
     */
     virtual IBitmap* DetachBitmap() override;
 
-    virtual int    GetWidth() override;
+    virtual int GetWidth() override;
     virtual int GetHeight() override;
     virtual void ClearAlpha(const UiRect& rcDirty, uint8_t alpha = 0) override;
     virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) override;

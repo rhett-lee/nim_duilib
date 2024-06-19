@@ -23,4 +23,10 @@ typedef std::size_t     LPARAM;
 //#define GET_WHEEL_DELTA_WPARAM(wParam)  ((short)HIWORD(wParam))
 //#define GET_KEYSTATE_WPARAM(wParam)     (LOWORD(wParam))
 
+//
+// Success codes
+//
+#define S_OK            ((long)0L)
+#define S_FALSE         ((long)1L)
+
 #endif //DUILIB_CONFIG_LINUX_H_
