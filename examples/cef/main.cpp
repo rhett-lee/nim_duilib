@@ -65,7 +65,7 @@ void MainThread::OnInit()
     CefForm* window = new CefForm();
     uint32_t dwExStyle = 0;
     if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender()) {
-        dwExStyle |= WS_EX_LAYERED;
+        dwExStyle |= ui::kWS_EX_LAYERED;
     }
     ui::WindowCreateParam createWndParam;
     createWndParam.m_className = _T("cef");

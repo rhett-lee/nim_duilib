@@ -255,9 +255,8 @@ void ControlForm::ShowColorPicker()
 {
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;
     ui::WindowCreateParam createParam;
-    createParam.m_dwExStyle = WS_EX_LAYERED;
-    createParam.m_className = _T("ControlForm");
-    createParam.m_windowTitle = createParam.m_className;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW | ui::kWS_EX_LAYERED;
     pColorPicker->CreateWnd(this, createParam);
     pColorPicker->CenterWindow();
     pColorPicker->ShowModalFake();
@@ -358,10 +357,9 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
         menu_about->AttachClick([this](const ui::EventArgs& args) {
             AboutForm* about_form = new AboutForm();
             ui::WindowCreateParam createParam;
-            createParam.m_dwExStyle = WS_EX_LAYERED;
-            createParam.m_dwStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
-            createParam.m_className = _T("AboutForm");            
-            createParam.m_windowTitle = createParam.m_className;
+            createParam.m_dwStyle = ui::kWS_POPUP;
+            createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW | ui::kWS_EX_LAYERED;
+            createParam.m_windowTitle = _T("AboutForm");
             about_form->CreateWnd(this, createParam);
             about_form->CenterWindow();
             about_form->ShowModalFake();

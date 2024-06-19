@@ -39,9 +39,8 @@ void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
     m_pOwner = pOwner;
     m_bIsClosed = false;
     WindowCreateParam createWndParam;
-    //TODO: 平台相关
-    createWndParam.m_dwStyle = WS_POPUP;
-    createWndParam.m_dwExStyle = WS_EX_TOOLWINDOW;
+    createWndParam.m_dwStyle = kWS_POPUP;
+    createWndParam.m_dwExStyle = kWS_EX_TOOLWINDOW;
     CreateWnd(pOwner->GetWindow(), createWndParam);
     UpdateComboWnd();
 

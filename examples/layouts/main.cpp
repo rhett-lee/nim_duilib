@@ -39,7 +39,7 @@ void MainThread::OnInit()
     LayoutsForm::ShowCustomWindow(_T("basic_layout"), _T("layouts"), _T("wechat.xml"));
 
     // 一个仿登录窗口的布局示例
-    // LayoutsForm::ShowCustomWindow(_T("login"), _T("layouts"), _T("login.xml"));
+    LayoutsForm::ShowCustomWindow(_T("login"), _T("layouts"), _T("login.xml"));
 }
 
 void MainThread::OnCleanup()

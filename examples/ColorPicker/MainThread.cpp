@@ -42,11 +42,7 @@ void MainThread::OnInit()
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;
-    ui::WindowCreateParam createWndParam;
-    createWndParam.m_className = _T("basic");
-    createWndParam.m_windowTitle = createWndParam.m_className;
-    createWndParam.m_dwExStyle = WS_EX_LAYERED;
-    pColorPicker->CreateWnd(nullptr, createWndParam);
+    pColorPicker->CreateWnd(nullptr, ui::WindowCreateParam(_T("ColorPicker")));
     pColorPicker->CenterWindow();
     pColorPicker->ShowWindow(ui::kSW_SHOW_NORMAL);
 

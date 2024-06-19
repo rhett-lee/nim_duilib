@@ -63,10 +63,7 @@ void MainThread::OnInit()
 
     // 创建一个默认带有阴影的居中窗口
     BasicForm* window = new BasicForm();
-    ui::WindowCreateParam createWndParam;
-    createWndParam.m_className = _T("basic");
-    createWndParam.m_windowTitle = createWndParam.m_className;
-    window->CreateWnd(nullptr, createWndParam);
+    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("basic")));
     window->PostQuitMsgWhenClosed(true);
     window->SetIcon(IDI_BASIC);
     window->CenterWindow();

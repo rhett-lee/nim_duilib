@@ -10,11 +10,7 @@ void ShowMsgBox(ui::Window* pWindow, MsgboxCallback cb,
                 const DString &no, bool btn_no_is_id)
 {
     MsgBox* msgbox = new MsgBox;
-    ui::WindowCreateParam createWndParam;
-    //TODO: 平台相关
-    createWndParam.m_dwStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
-    createWndParam.m_dwExStyle = WS_EX_LAYERED;
-    if (!msgbox->CreateWnd(pWindow, createWndParam)) {
+    if (!msgbox->CreateWnd(pWindow, ui::WindowCreateParam(_T("")))) {
         delete msgbox;
         return;
     }
@@ -23,8 +19,6 @@ void ShowMsgBox(ui::Window* pWindow, MsgboxCallback cb,
     msgbox->SetButton(btn_yes_is_id ? ui::GlobalManager::Instance().Lang().GetStringViaID(yes) : yes, btn_no_is_id ? ui::GlobalManager::Instance().Lang().GetStringViaID(no) : no);
     msgbox->Show(pWindow, cb);
 }
-
-const DString MsgBox::kClassName = _T("MsgBox");
 
 MsgBox::MsgBox()
 {
@@ -51,7 +45,7 @@ DString MsgBox::GetZIPFileName() const
 
 DString MsgBox::GetWindowId() const
 {
-    return kClassName;
+    return _T("MsgBox");
 }
 
 void MsgBox::OnEsc(BOOL &bHandled)

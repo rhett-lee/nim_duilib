@@ -35,11 +35,7 @@ void MainThread::OnInit()
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
     
     MoveControlForm* window = new MoveControlForm(_T("move_control"), _T("main.xml"));
-    ui::WindowCreateParam createParam;
-    createParam.m_dwExStyle = WS_EX_LAYERED;
-    createParam.m_className = _T("move_control");
-    createParam.m_windowTitle = createParam.m_className;
-    window->CreateWnd(nullptr, createParam);
+    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("move_control")));
     window->PostQuitMsgWhenClosed(true);
     window->CenterWindow();
     window->ShowWindow(ui::kSW_SHOW_NORMAL);

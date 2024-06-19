@@ -44,11 +44,7 @@ void MainThread::OnInit()
 
     //创建主窗口
     MainForm* pWindow = new MainForm();
-    ui::WindowCreateParam createParam;
-    createParam.m_dwExStyle = WS_EX_LAYERED;
-    createParam.m_className = _T("ListCtrl");
-    createParam.m_windowTitle = _T("ListCtrl控件测试程序");
-    pWindow->CreateWnd(nullptr, createParam);
+    pWindow->CreateWnd(nullptr, ui::WindowCreateParam(_T("ListCtrl控件测试程序")));
     pWindow->PostQuitMsgWhenClosed(true);
     pWindow->SetIcon(IDI_LISTCTRL);
     pWindow->CenterWindow();

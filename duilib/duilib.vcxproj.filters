@@ -423,6 +423,9 @@
     <ClCompile Include="Utils\BitmapHepler.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Core\WindowCreateParam.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -937,6 +940,9 @@
     </ClInclude>
     <ClInclude Include="Utils\BitmapHelper.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WindowCreateParam.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

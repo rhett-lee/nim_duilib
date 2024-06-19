@@ -8,11 +8,7 @@ const DString Toast::kClassName = _T("Toast");
 void Toast::ShowToast(const DString &content, int duration, Window* pParentWindow)
 {
     Toast *toast = new Toast;
-    ui::WindowCreateParam createWndParam;
-    //TODO: 平台相关
-    createWndParam.m_dwStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
-    createWndParam.m_dwExStyle = WS_EX_LAYERED;
-    if (!toast->CreateWnd(pParentWindow, createWndParam)) {
+    if (!toast->CreateWnd(pParentWindow, ui::WindowCreateParam(_T("")))) {
         delete toast;
         return;
     }

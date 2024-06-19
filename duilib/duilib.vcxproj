@@ -411,6 +411,7 @@
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Core\WindowBase.cpp" />
     <ClCompile Include="Core\WindowBuilder.cpp" />
+    <ClCompile Include="Core\WindowCreateParam.cpp" />
     <ClCompile Include="Core\WindowDropTarget.cpp" />
     <ClCompile Include="Core\ZipManager.cpp" />
     <ClCompile Include="Core\ZipStreamIO.cpp" />
@@ -571,6 +572,7 @@
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\WindowBase.h" />
     <ClInclude Include="Core\WindowBuilder.h" />
+    <ClInclude Include="Core\WindowCreateParam.h" />
     <ClInclude Include="Core\WindowDropTarget.h" />
     <ClInclude Include="Core\WindowMessage.h" />
     <ClInclude Include="Core\ZipManager.h" />

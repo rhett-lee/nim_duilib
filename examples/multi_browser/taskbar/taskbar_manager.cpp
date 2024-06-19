@@ -30,11 +30,7 @@ void TaskbarTabItem::Init(const DString &taskbar_title, const std::string &id)
     if (!is_win7_or_greater_)
         return;
 
-    ui::WindowCreateParam createParam;
-    createParam.m_dwStyle = WS_OVERLAPPED;
-    createParam.m_className = _T("multi_browser");
-    createParam.m_windowTitle = taskbar_title;
-    CreateWnd(nullptr, createParam);
+    CreateWnd(nullptr, ui::WindowCreateParam(_T("multi_browser")));
 
     HRESULT ret = S_OK;
     BOOL truth = TRUE;

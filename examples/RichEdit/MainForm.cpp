@@ -589,9 +589,9 @@ void MainForm::ShowColorPicker()
 
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;
     ui::WindowCreateParam createParam;
-    createParam.m_dwExStyle = WS_EX_LAYERED;
-    createParam.m_className = _T("ColorPicker");
-    createParam.m_windowTitle = createParam.m_className;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW;
+    createParam.m_windowTitle = _T("ColorPicker");
     pColorPicker->CreateWnd(nullptr, createParam);
     pColorPicker->CenterWindow();
     pColorPicker->ShowModalFake();
@@ -1159,10 +1159,9 @@ void MainForm::OnFindText()
     if (m_pFindForm == nullptr) {
         m_pFindForm = new FindForm(this);
         ui::WindowCreateParam createParam;
-        createParam.m_dwStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
-        createParam.m_dwExStyle = WS_EX_LAYERED;
-        createParam.m_className = _T("FindForm");
-        createParam.m_windowTitle = createParam.m_className;
+        createParam.m_dwStyle = ui::kWS_POPUP;
+        createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW;
+        createParam.m_windowTitle = _T("FindForm");
         m_pFindForm->CreateWnd(nullptr, createParam);
         m_pFindForm->CenterWindow();
         m_pFindForm->ShowWindow(ui::kSW_SHOW);
@@ -1191,10 +1190,9 @@ void MainForm::OnReplaceText()
     if (m_pReplaceForm == nullptr) {
         m_pReplaceForm = new ReplaceForm(this);
         ui::WindowCreateParam createParam;
-        createParam.m_dwStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
-        createParam.m_dwExStyle = WS_EX_LAYERED;
-        createParam.m_className = _T("ReplaceForm");
-        createParam.m_windowTitle = createParam.m_className;
+        createParam.m_dwStyle = ui::kWS_POPUP;
+        createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW;
+        createParam.m_windowTitle = _T("ReplaceForm");
         m_pReplaceForm->CreateWnd(nullptr, createParam);
         m_pReplaceForm->CenterWindow();
         m_pReplaceForm->ShowWindow(ui::kSW_SHOW);

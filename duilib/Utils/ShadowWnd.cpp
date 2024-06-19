@@ -44,8 +44,7 @@ bool ShadowWndBase::Create(Window* window)
 {
     m_pWindow = window;
     WindowCreateParam createParam;
-    createParam.m_dwStyle = WS_OVERLAPPEDWINDOW & ~WS_MAXIMIZEBOX;
-    createParam.m_dwExStyle = WS_EX_TRANSPARENT | WS_EX_TOOLWINDOW | WS_EX_LAYERED;
+    createParam.m_dwExStyle = kWS_EX_TRANSPARENT | kWS_EX_TOOLWINDOW | kWS_EX_LAYERED;
     createParam.m_className = _T("ShadowWnd");
     return Window::CreateWnd(nullptr, createParam);
 }

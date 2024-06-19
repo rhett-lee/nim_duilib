@@ -36,12 +36,16 @@ NativeWindow::~NativeWindow()
 bool NativeWindow::CreateWnd(WindowBase* pParentWindow,
                              const WindowCreateParam& createParam, const UiRect& rc)
 {
+    ASSERT(m_hWnd == nullptr);
+    if (m_hWnd != nullptr) {
+        return false;
+    }
     ASSERT(!createParam.m_className.empty());
     if (createParam.m_className.empty()) {
         return false;
     }
 
-    m_hResModule = createParam.m_hResModule;
+    m_hResModule = (HMODULE)createParam.m_platformData;
     if (m_hResModule == nullptr) {
         m_hResModule = ::GetModuleHandle(nullptr);
     }
@@ -58,14 +62,9 @@ bool NativeWindow::CreateWnd(WindowBase* pParentWindow,
     wc.hbrBackground = nullptr;
     wc.lpszMenuName = nullptr;
     wc.lpszClassName = createParam.m_className.c_str();
-    if (createParam.m_nClassLogoResId > 0) {
-        wc.hIcon = LoadIcon(GetResModuleHandle(), (LPCTSTR)MAKEINTRESOURCE(createParam.m_nClassLogoResId));
-        wc.hIconSm = LoadIcon(GetResModuleHandle(), (LPCTSTR)MAKEINTRESOURCE(createParam.m_nClassLogoResId));
-    }
-    else {
-        wc.hIcon = nullptr;
-        wc.hIconSm = nullptr;
-    }
+    wc.hIcon = nullptr;
+    wc.hIconSm = nullptr;
+
     ATOM ret = ::RegisterClassEx(&wc);
     bool bRet = (ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
     ASSERT(bRet);
@@ -91,37 +90,28 @@ bool NativeWindow::CreateWnd(WindowBase* pParentWindow,
     if (hWnd != m_hWnd) {
         m_hWnd = hWnd;
     }
-    InitWindow();
-    return (m_hWnd != nullptr);
-}
-
-void NativeWindow::InitWindow()
-{
-    ASSERT(IsWindow());
-    if (!IsWindow()) {
-        return;
+    ASSERT(m_hWnd != nullptr);
+    if (m_hWnd == nullptr) {
+        return false;
     }
+
+    //设置窗口风格（如果原来没有标题栏，则去除标题栏）
+    if (!(createParam.m_dwStyle & WS_CAPTION)) {
+        uint32_t dwStyle = (uint32_t)::GetWindowLong(hWnd, GWL_STYLE);
+        if (dwStyle & WS_CAPTION) {
+            uint32_t dwNewStyle = dwStyle & ~WS_CAPTION;
+            ::SetWindowLong(hWnd, GWL_STYLE, dwNewStyle);
+        }        
+    }
+    
+    //初始化窗口相关DC
     ASSERT(m_hDcPaint == nullptr);
-    if (m_hDcPaint != nullptr) {
-        //避免重复初始化
-        return;
-    }
-
-    //设置窗口风格（去除标题栏）
-    HWND hWnd = GetHWND();
-    uint32_t dwStyle = (uint32_t)::GetWindowLong(hWnd, GWL_STYLE);
-    //使用自绘的标题栏：从原来窗口样式中，移除 WS_CAPTION 属性
-    uint32_t dwNewStyle = dwStyle & ~WS_CAPTION;
-    if (dwNewStyle != dwStyle) {
-        ::SetWindowLong(hWnd, GWL_STYLE, dwNewStyle);
-    }
-
-    //创建绘制设备上下文
     m_hDcPaint = ::GetDC(hWnd);
-    ASSERT(m_hDcPaint != nullptr);
 
     //注册接受Touch消息
     RegisterTouchWindowWrapper(hWnd, 0);
+
+    return (m_hWnd != nullptr);
 }
 
 void NativeWindow::ClearNativeWindow()
@@ -261,7 +251,7 @@ void NativeWindow::SetUseSystemCaption(bool bUseSystemCaption)
         bool bChanged = false;
         if (IsWindow()) {
             UINT oldStyleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
-            UINT newStyleValue = oldStyleValue | WS_CAPTION;
+            UINT newStyleValue = oldStyleValue | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
             if (newStyleValue != oldStyleValue) {
                 ::SetWindowLong(GetHWND(), GWL_STYLE, newStyleValue);
                 bChanged = true; 

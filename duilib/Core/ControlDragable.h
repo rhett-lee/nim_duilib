@@ -1111,9 +1111,8 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
             m_pDragWindow->AddRef();
 
             WindowCreateParam createWndParam;
-            //TODO: 平台相关
-            createWndParam.m_dwStyle = WS_POPUP;
-            createWndParam.m_dwExStyle = WS_EX_TOOLWINDOW | WS_EX_LAYERED;
+            createWndParam.m_dwStyle = kWS_POPUP;
+            createWndParam.m_dwExStyle = kWS_EX_TOOLWINDOW | kWS_EX_LAYERED;
             m_pDragWindow->CreateWnd(this->GetWindow(), createWndParam);
             if (m_pDragWindow->IsWindow()) {
                 m_pDragWindow->AddRef();
