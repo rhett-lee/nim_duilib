@@ -388,7 +388,6 @@ void Window::OnWindowDpiChanged(uint32_t /*nOldDPI*/, uint32_t /*nNewDPI*/)
 void Window::GetShadowCorner(UiPadding& rcShadow) const
 {
     rcShadow.Clear();
-    ASSERT(m_shadow != nullptr);
     if (m_shadow != nullptr) {
         rcShadow = m_shadow->GetShadowCorner();
     }
