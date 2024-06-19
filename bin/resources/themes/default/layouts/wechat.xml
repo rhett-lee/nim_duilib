@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="1024,768" caption="0,0,0,35">
+<Window size="1024,768" caption="0,0,0,35" shadow_attached="true" layered_window="true">
   <HBox>
     <!-- 左侧菜单栏 -->
     <VBox width="60" bkcolor="darkcolor">

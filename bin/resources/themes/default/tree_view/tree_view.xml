@@ -1,4 +1,4 @@
-<Window size="80%,80%" sizebox="4,4,4,4" caption="0,0,0,36" text="TreeView控件测试程序">
+<Window size="80%,80%" shadow_attached="true" layered_window="true" caption="0,0,0,36" sizebox="4,4,4,4" text="TreeView控件测试程序">
     <!-- 该窗口下的Class定义 --> 
     
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  

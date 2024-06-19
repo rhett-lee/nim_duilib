@@ -1,4 +1,4 @@
-<Window size="90%,80%" sizebox="4,4,4,4" caption="0,0,0,36" text="TreeView控件测试程序">
+<Window size="90%,80%" sizebox="4,4,4,4" caption="0,0,0,36" shadow_attached="true" layered_window="true" text="TreeView控件测试程序">
     <!-- 该窗口下的Class定义 --> 
     <Font id="btn_font_bold_14" name="Elephant" size="14" bold="true"/>
     <Font id="btn_font_italic_14" name="Elephant" size="14" bold="true" italic="true"/>

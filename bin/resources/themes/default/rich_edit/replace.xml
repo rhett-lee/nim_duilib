@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="500,232" caption="0,0,0,35">
+<Window size="500,232" caption="0,0,0,35" shadow_attached="true" layered_window="true">
     <VBox bkcolor="bk_wnd_darkcolor">
         <HBox width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
             <Control width="auto" height="auto" bkimage="logo_18x18.png" valign="center" margin="8"/>
