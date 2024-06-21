@@ -1418,74 +1418,10 @@ void PropertyGridFontProperty::OnInit()
     }
     __super::OnInit();
     std::vector<DString> fontList; 
-    GetSystemFontList(fontList);
+    GlobalManager::Instance().Font().GetFontNameList(fontList);
     for (const DString& fontName : fontList) {
         AddOption(fontName);
     }
-}
-
-namespace PropertyGridFontPropertyImpl
-{
-    struct FontInfo
-    {
-        LOGFONT lf = {0, };
-        DWORD fontType = 0;
-    };
-
-    //枚举字体的回调函数
-    static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* /*lpntme*/, DWORD fontType, LPARAM lParam)
-    {
-        std::vector<FontInfo>* pFontList = (std::vector<FontInfo>*)lParam;
-        if (pFontList != nullptr) {
-            FontInfo fontInfo;
-            if (lpelfe != nullptr) {
-                fontInfo.lf = *lpelfe;
-            }
-            else {
-                fontInfo.lf = {};
-            }
-            fontInfo.fontType = fontType;
-            pFontList->emplace_back(std::move(fontInfo));
-            return 1;
-        }
-        else {
-            return 0;
-        }
-    }
-
-    static void GetSystemFontList(Window* pWindow, std::vector<DString>& fontNameList)
-    {
-        //TODO: 平台
-        fontNameList.clear();
-        std::vector<FontInfo> fontList;
-        HDC hDC = pWindow != nullptr ? pWindow->NativeWnd()->GetPaintDC() : nullptr;
-        LOGFONT logfont = {};
-        logfont.lfCharSet = DEFAULT_CHARSET;
-        logfont.lfFaceName[0] = _T('\0');
-        logfont.lfPitchAndFamily = 0;
-        ::EnumFontFamiliesEx(hDC, &logfont, EnumFontFamExProc, (LPARAM)&fontList, 0);
-
-        //字体名称列表
-        std::map<DString, FontInfo> fontMap;
-        for (auto font : fontList) {
-            if (font.lf.lfWeight != FW_NORMAL) {
-                continue;
-            }
-            if (font.lf.lfFaceName[0] == _T('@')) {
-                continue;
-            }
-            fontMap[font.lf.lfFaceName] = font;
-        }
-        for (auto iter : fontMap) {
-            fontNameList.push_back(iter.second.lf.lfFaceName);
-        }
-    }
-
-} //end of namepsace PropertyGridFontPropertyImpl
-
-void PropertyGridFontProperty::GetSystemFontList(std::vector<DString>& fontList) const
-{
-    PropertyGridFontPropertyImpl::GetSystemFontList(GetWindow(), fontList);
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1511,61 +1447,13 @@ void PropertyGridFontSizeProperty::OnInit()
     }
     __super::OnInit();
     if (m_fontSizeList.empty()) {
-        GetSystemFontSizeList(m_fontSizeList);
+        ui::GlobalManager::Instance().Font().GetFontSizeList(Dpi(), m_fontSizeList);
         const size_t nCount = m_fontSizeList.size();
         for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
             size_t nItem = AddOption(m_fontSizeList[nIndex].fontSizeName);
             SetOptionData(nItem, nIndex);
         }
     }    
-}
-
-void PropertyGridFontSizeProperty::GetSystemFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const
-{
-    fontSizeList.clear();
-    fontSizeList.push_back({ _T("8"),  8.0f, 0 });
-    fontSizeList.push_back({ _T("9"),  9.0f, 0 });
-    fontSizeList.push_back({ _T("10"), 10.0f, 0 });
-    fontSizeList.push_back({ _T("11"), 11.0f, 0 });
-    fontSizeList.push_back({ _T("12"), 12.0f, 0 });
-    fontSizeList.push_back({ _T("14"), 14.0f, 0 });
-    fontSizeList.push_back({ _T("16"), 16.0f, 0 });
-    fontSizeList.push_back({ _T("18"), 18.0f, 0 });
-    fontSizeList.push_back({ _T("20"), 20.0f, 0 });
-    fontSizeList.push_back({ _T("22"), 22.0f, 0 });
-    fontSizeList.push_back({ _T("24"), 24.0f, 0 });
-    fontSizeList.push_back({ _T("26"), 26.0f, 0 });
-    fontSizeList.push_back({ _T("28"), 28.0f, 0 });
-    fontSizeList.push_back({ _T("32"), 32.0f, 0 });
-    fontSizeList.push_back({ _T("36"), 36.0f, 0 });
-    fontSizeList.push_back({ _T("48"), 48.0f, 0 });
-    fontSizeList.push_back({ _T("72"), 72.0f, 0 });
-    fontSizeList.push_back({ _T("1英寸"), 95.6f, 0 });
-    fontSizeList.push_back({ _T("大特号"), 83.7f, 0 });
-    fontSizeList.push_back({ _T("特号"), 71.7f, 0 });
-    fontSizeList.push_back({ _T("初号"), 56.0f, 0 });
-    fontSizeList.push_back({ _T("小初"), 48.0f, 0 });
-    fontSizeList.push_back({ _T("一号"), 34.7f, 0 });
-    fontSizeList.push_back({ _T("小一"), 32.0f, 0 });
-    fontSizeList.push_back({ _T("二号"), 29.3f, 0 });
-    fontSizeList.push_back({ _T("小二"), 24.0f, 0 });
-    fontSizeList.push_back({ _T("三号"), 21.3f, 0 });
-    fontSizeList.push_back({ _T("小三"), 20.0f, 0 });
-    fontSizeList.push_back({ _T("四号"), 18.7f, 0 });
-    fontSizeList.push_back({ _T("小四"), 16.0f, 0 });
-    fontSizeList.push_back({ _T("五号"), 14.0f, 0 });
-    fontSizeList.push_back({ _T("小五"), 12.0f, 0 });
-    fontSizeList.push_back({ _T("六号"), 10.0f, 0 });
-    fontSizeList.push_back({ _T("小六"), 8.7f, 0 });
-    fontSizeList.push_back({ _T("七号"), 7.3f, 0 });
-    fontSizeList.push_back({ _T("八号"), 6.7f, 0 });
-
-    //更新DPI自适应值
-    for (FontSizeInfo& fontSize : fontSizeList) {
-        int32_t nSize = static_cast<int32_t>(fontSize.fFontSize * 1000);
-        Dpi().ScaleInt(nSize);
-        fontSize.fDpiFontSize = nSize / 1000.0f;
-    }
 }
 
 DString PropertyGridFontSizeProperty::GetFontSize() const

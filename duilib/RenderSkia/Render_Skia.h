@@ -17,7 +17,7 @@ class Bitmap_Skia;
 class UILIB_API Render_Skia : public IRender
 {
 public:
-    explicit Render_Skia(IRenderFactory* pRenderFactory, Window* pWindow);
+    explicit Render_Skia(Window* pWindow);
     Render_Skia(const Render_Skia& r) = delete;
     Render_Skia& operator = (const Render_Skia& r) = delete;
     virtual ~Render_Skia() override;
@@ -104,6 +104,7 @@ public:
                             uint32_t uFormat, uint8_t uFade = 255) override;
 
     virtual void DrawRichText(const UiRect& rc,
+                              IRenderFactory* pRenderFactory, 
                               std::vector<RichTextData>& richTextData,
                               uint32_t uFormat = 0,
                               bool bMeasureOnly = false,
@@ -189,10 +190,6 @@ private:
     /** 关联窗口的生命周期标志
     */
     std::weak_ptr<WeakFlag> m_windowFlag;
-
-    /** Render工厂接口，用于创建字体
-    */
-    IRenderFactory* m_pRenderFactory;
 };
 
 } // namespace ui

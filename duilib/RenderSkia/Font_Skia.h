@@ -1,9 +1,10 @@
-#ifndef UI_RENDER_SKIA_FONT_GDI_H_
-#define UI_RENDER_SKIA_FONT_GDI_H_
+#ifndef UI_RENDER_SKIA_FONT_H_
+#define UI_RENDER_SKIA_FONT_H_
 
 #include "duilib/Render/IRender.h"
 
 class SkFont;
+class SkFontMgr;
 
 namespace ui 
 {
@@ -13,7 +14,7 @@ namespace ui
 class UILIB_API Font_Skia: public IFont
 {
 public:
-    explicit Font_Skia(IRenderFactory* pRenderFactory);
+    explicit Font_Skia(std::shared_ptr<IFontMgr>& spFontMgr);
     Font_Skia(const Font_Skia&) = delete;
     Font_Skia& operator=(const Font_Skia&) = delete;
     virtual ~Font_Skia() override;
@@ -24,7 +25,7 @@ public:
 
     /**@brief 获取字体名
      */
-    virtual const wchar_t* FontName() const override { return m_uiFont.m_fontName.c_str(); }
+    virtual const DString& FontName() const override { return m_uiFont.m_fontName; }
 
     /**@brief 获取字体大小
      */
@@ -52,16 +53,21 @@ public:
     const SkFont* GetFontHandle();
 
 private:
+    /** 删除Skia字体
+    */
+    void ClearSkFont();
+
+private:
     //字体信息
     UiFont m_uiFont;
 
     //字体句柄
     SkFont* m_skFont;
 
-    //渲染接口
-    IRenderFactory* m_pRenderFactory;
+    //字体管理器
+    std::shared_ptr<IFontMgr> m_spFontMgr;
 };
 
 } // namespace ui
 
-#endif // UI_RENDER_SKIA_FONT_GDI_H_
+#endif // UI_RENDER_SKIA_FONT_H_

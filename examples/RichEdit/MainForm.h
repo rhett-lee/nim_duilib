@@ -92,13 +92,6 @@ private://设置字体相关
         DWORD fontType;
     };
 
-    struct FontSizeInfo
-    {
-        DString fontSizeName;
-        float fFontSize;    //单位：像素，未做DPI自适应
-        int32_t fontSize;   //单位：像素，已做DPI自适应
-    };
-
     //获取字体结构
     bool GetRichEditLogFont(LOGFONT& lf) const;
 
@@ -110,9 +103,6 @@ private://设置字体相关
 
     //获取系统字体列表
     void GetSystemFontList(std::vector<FontInfo>& fontList) const;
-
-    //获取字体大小映射表
-    void GetFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const;
 
     //更新字体按钮的状态
     void UpdateFontStatus();
@@ -194,6 +184,6 @@ private:
     std::vector<FontInfo> m_fontList;
 
     //字体大小列表
-    std::vector<FontSizeInfo> m_fontSizeList;
+    std::vector<ui::FontSizeInfo> m_fontSizeList;
 };
 #endif //EXAMPLES_MAIN_FORM_H_

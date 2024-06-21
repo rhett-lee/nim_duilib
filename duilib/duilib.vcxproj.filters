@@ -426,6 +426,9 @@
     <ClCompile Include="Core\WindowCreateParam.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="RenderSkia\FontMgr_Skia.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -943,6 +946,9 @@
     </ClInclude>
     <ClInclude Include="Core\WindowCreateParam.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\FontMgr_Skia.h">
+      <Filter>RenderSkia</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -2,6 +2,7 @@
 #define UI_CONTROL_PROPERTY_GRID_H_
 
 #include "duilib/Box/VBox.h"
+#include "duilib/Core/FontManager.h"
 #include "duilib/Control/Split.h"
 #include "duilib/Control/Label.h"
 #include "duilib/Control/RichText.h"
@@ -913,11 +914,6 @@ protected:
     /** 初始化函数
      */
     virtual void OnInit() override;
-
-private:
-    /** 获取系统字体列表
-    */
-    void GetSystemFontList(std::vector<DString>& fontList) const;
 };
 
 /** 设置字体大小的属性
@@ -974,18 +970,6 @@ protected:
     /** 初始化函数
      */
     virtual void OnInit() override;
-
-private:
-    struct FontSizeInfo
-    {
-        DString fontSizeName; //字体大小的显示名称，比如"五号"
-        float fFontSize;           //单位：像素，未做DPI自适应
-        float fDpiFontSize;           //单位：像素，已做DPI自适应
-    };
-
-    /** 获取系统字体大小列表
-    */
-    void GetSystemFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const;
 
 private:
     /** 字体大小

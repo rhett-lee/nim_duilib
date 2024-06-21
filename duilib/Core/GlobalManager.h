@@ -83,6 +83,14 @@ public:
     */
     bool ReloadResource(const ResourceParam& resParam, bool bInvalidate = false);
 
+    /** 设置字体文件所在路径
+    */
+    void SetFontFilePath(const DString& strPath);
+
+    /** 获取字体文件所在路径
+    */
+    const DString& GetFontFilePath() const;
+
 public:
     /** 设置语言文件所在路径，可以是相对路径或者是绝对路径（多语言版时，所有的语言文件都放在这个目录中）
     *   如果是绝对路径，则在这个绝对路径中查找语言文件
@@ -257,7 +265,11 @@ private:
 
     /** 全局的资源路径，换肤的时候修改这个变量（绝对路径）
     */
-    DString m_resourcePath; 
+    DString m_resourcePath;
+
+    /** 全局字体文件路径（绝对路径）
+    */
+    DString m_fontFilePath;
 
     /** 全局语言文件路径（绝对路径）
     */

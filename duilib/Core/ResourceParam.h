@@ -52,6 +52,10 @@ public:
     */
     DString themePath = _T("themes\\default");
 
+    /** 外部字体文件所在路径
+    */
+    DString fontFilePath = _T("fonts");
+
     /** 语言文件所在路径，可以是相对路径或者是绝对路径（多语言版时，所有的语言文件都放在这个目录中）
     *   如果是绝对路径，则在这个绝对路径中查找语言文件
     *   如果是相对路径，则根据resType和resourcePath决定的资源路径下，按相对路径查找资源文件

@@ -8,14 +8,20 @@
 
 namespace ui 
 {
-/** @class FontManager
-  * @brief 自定义字体管理类
-  * @copyright (c) 2021, NetEase Inc. All rights reserved
-  * @author Redrain
-  * @date 2021/2/26
-  */
 class IFont;
 class DpiManager;
+
+/** 字体大小信息
+*/
+struct FontSizeInfo
+{
+    DString fontSizeName;   //字体大小的显示名称，比如"五号"
+    float fFontSize = 0;    //单位：像素，未做DPI自适应
+    float fDpiFontSize = 0; //单位：像素，已做DPI自适应
+};
+
+/** 字体管理器
+*/
 class UILIB_API FontManager
 {
 public:
@@ -23,15 +29,6 @@ public:
     ~FontManager();
     FontManager(const FontManager&) = delete;
     FontManager& operator = (const FontManager&) = delete;
-
-public:
-    /** 字体中英文名称转换(Skia只支持字体英文名称，不支持中文名称)
-    */
-    static DString GetFontEnglishName(const DString& fontName);
-
-    /** 字体的中英文名称转换(选择字体时，只能使用中文名称)
-    */
-    static DString GetFontSystemName(const DString& fontName);
 
 public:
     /** 添加一个字体信息，字体大小未经DPI处理
@@ -56,18 +53,35 @@ public:
     */
     const DString& GetDefaultFontId() const;
 
+    /** 设置默认字体列表
+    * @param [in] defaultFontFamilyNames 字体列表，不同字体用逗号分割，比如："Microsoft YaHei,SimSun"
+    */
+    void SetDefaultFontFamilyNames(const DString& defaultFontFamilyNames);
+
 public:
     /** @brief 添加一个字体文件, 添加后可以按照正常字体使用
       * @param[in] strFontFile 字体文件名, 相对路径，字体文件的保存路径是目录："<资源路径>\font\"
-      * @param[in] strFontName 字体名
+      * @param[in] strFontDesc 字体描述信息
       * @return 无返回值
       */
-    void AddFontFile(const DString& strFontFile, const DString& strFontName);
+    bool AddFontFile(const DString& strFontFile, const DString& strFontDesc);
 
     /** @brief 清理所有添加的字体文件
       * @return 无返回值
       */
     void RemoveAllFontFiles();
+
+public:
+    /** 获取可用的字体名称列表
+    * @param [out] fontNameList 返回可用的字体名称列表
+    */
+    void GetFontNameList(std::vector<DString>& fontNameList) const;
+
+    /** 获取字体大小列表
+    * @param [in] dpi DPI缩放管理器，用于对字体大小进行缩放
+    * @param [out] fontSizeList 字体大小信息
+    */
+    void GetFontSizeList(const DpiManager& dpi, std::vector<FontSizeInfo>& fontSizeList) const;
 
 private:
     /** 获取DPI缩放后实际的字体ID
@@ -87,20 +101,13 @@ private:
     */
     DString m_defaultFontId;
 
-    /** 字体文件的加载信息
+    /** 默认字体列表
     */
-    struct FontFileInfo
-    {
-        //字体路径
-        DString m_fontFilePath;
+    std::vector<DString> m_defaultFontFamilyNames;
 
-        //字体名称
-        DString m_fontName;
-
-        //加载字体文件后的句柄
-        HANDLE m_hFontFile = nullptr;
-    };
-    std::vector<FontFileInfo> m_fontFileInfo;
+    /** 默认字体列表是否已经完成初始化
+    */
+    bool m_bDefaultFontInited;
 };
 
 }

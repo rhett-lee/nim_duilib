@@ -93,6 +93,7 @@ void GlobalManager::Shutdown()
     m_dwUiThreadId = 0;
     m_resourcePath.clear();
     m_languagePath.clear();
+    m_fontFilePath.clear();
     m_builderMap.clear();
 }
 
@@ -104,6 +105,16 @@ const DString& GlobalManager::GetResourcePath() const
 void GlobalManager::SetResourcePath(const DString& strPath)
 {
     m_resourcePath = PathUtil::NormalizeDirPath(strPath);
+}
+
+void GlobalManager::SetFontFilePath(const DString& strPath)
+{
+     m_fontFilePath = PathUtil::NormalizeDirPath(strPath);
+}
+
+const DString& GlobalManager::GetFontFilePath() const
+{
+    return m_fontFilePath;
 }
 
 void GlobalManager::SetLanguagePath(const DString& strPath)
@@ -166,6 +177,9 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
 
     //保存资源路径
     SetResourcePath(PathUtil::JoinFilePath(strResourcePath, resParam.themePath));
+
+    //保存字体文件所在路径
+    SetFontFilePath(PathUtil::JoinFilePath(strResourcePath, resParam.fontFilePath));
 
     //解析全局资源信息(默认是"global.xml"文件)
     ASSERT(!resParam.globalXmlFileName.empty());

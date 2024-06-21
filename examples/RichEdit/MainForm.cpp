@@ -244,9 +244,9 @@ void MainForm::OnInitWindow()
     }
     ui::Combo* pFontSizeCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_size")));
     if (pFontSizeCombo != nullptr) {
-        GetFontSizeList(m_fontSizeList);
+        ui::GlobalManager::Instance().Font().GetFontSizeList(Dpi(), m_fontSizeList);
         for (size_t nIndex = 0; nIndex < m_fontSizeList.size(); ++nIndex) {
-            const FontSizeInfo& fontSize = m_fontSizeList[nIndex];
+            const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
             size_t nItemIndex = pFontSizeCombo->AddTextItem(fontSize.fontSizeName);
             if (ui::Box::IsValidItemIndex(nItemIndex)) {
                 pFontSizeCombo->SetItemData(nItemIndex, nIndex);
@@ -683,7 +683,7 @@ void MainForm::UpdateFontSizeStatus()
             if (nIndex == (m_fontSizeList.size() - 1)) {
                 break;
             }
-            if (m_fontSizeList[nIndex].fontSize > m_fontSizeList[nIndex + 1].fontSize) {
+            if (m_fontSizeList[nIndex].fFontSize > m_fontSizeList[nIndex + 1].fFontSize) {
                 maxItemIndex = nIndex;
                 break;
             }
@@ -692,8 +692,8 @@ void MainForm::UpdateFontSizeStatus()
         bool bSelected = false;
         for (size_t nIndex = maxItemIndex; nIndex < m_fontSizeList.size(); ++nIndex) {
             //优先选择汉字的字号
-            const FontSizeInfo& fontSize = m_fontSizeList[nIndex];
-            if (fHeight == fontSize.fontSize) {
+            const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
+            if (fHeight == fontSize.fDpiFontSize) {
                 if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
                     bSelected = true;
                 }
@@ -703,8 +703,8 @@ void MainForm::UpdateFontSizeStatus()
         if (!bSelected) {
             for (size_t nIndex = 0; nIndex < maxItemIndex; ++nIndex) {
                 //选择数字的字号
-                const FontSizeInfo& fontSize = m_fontSizeList[nIndex];
-                if (fontSize.fontSize >= fHeight) {
+                const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
+                if (fontSize.fDpiFontSize >= fHeight) {
                     if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
                         bSelected = true;
                         break;
@@ -762,11 +762,11 @@ void MainForm::SetFontSize(const DString& fontSize)
     if (m_pRichEdit == nullptr) {
         return;
     }
-    for (const FontSizeInfo& fontSizeInfo : m_fontSizeList) {
+    for (const ui::FontSizeInfo& fontSizeInfo : m_fontSizeList) {
         if (fontSize == fontSizeInfo.fontSizeName) {
             CHARFORMAT2 charFormat = {};
             GetCharFormat(charFormat);
-            LONG lfHeight = ConvertToFontHeight(fontSizeInfo.fontSize);
+            LONG lfHeight = ConvertToFontHeight((int32_t)fontSizeInfo.fDpiFontSize);
             charFormat.cbSize = sizeof(CHARFORMAT2);
             charFormat.dwMask = CFM_SIZE;
             if (charFormat.yHeight != lfHeight) {
@@ -784,8 +784,8 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
         return;
     }
     std::map<int32_t, int32_t> fontSizeMap;
-    for (const FontSizeInfo& fontSizeInfo : m_fontSizeList) {
-        fontSizeMap[fontSizeInfo.fontSize] = fontSizeInfo.fontSize;
+    for (const ui::FontSizeInfo& fontSizeInfo : m_fontSizeList) {
+        fontSizeMap[(int32_t)fontSizeInfo.fDpiFontSize] = (int32_t)fontSizeInfo.fDpiFontSize;
     }
     std::vector<int32_t> fontSizeList;
     for (auto fontSize : fontSizeMap) {
@@ -1273,54 +1273,6 @@ void MainForm::GetSystemFontList(std::vector<FontInfo>& fontList) const
     }
 }
 
-void MainForm::GetFontSizeList(std::vector<FontSizeInfo>& fontSizeList) const
-{
-    fontSizeList.clear();
-    fontSizeList.push_back({ _T("8"),  8.0f, 0});
-    fontSizeList.push_back({ _T("9"),  9.0f, 0 });
-    fontSizeList.push_back({ _T("10"), 10.0f, 0 });
-    fontSizeList.push_back({ _T("11"), 11.0f, 0 });
-    fontSizeList.push_back({ _T("12"), 12.0f, 0 });
-    fontSizeList.push_back({ _T("14"), 14.0f, 0 });
-    fontSizeList.push_back({ _T("16"), 16.0f, 0 });
-    fontSizeList.push_back({ _T("18"), 18.0f, 0 });
-    fontSizeList.push_back({ _T("20"), 20.0f, 0 });
-    fontSizeList.push_back({ _T("22"), 22.0f, 0 });
-    fontSizeList.push_back({ _T("24"), 24.0f, 0 });
-    fontSizeList.push_back({ _T("26"), 26.0f, 0 });
-    fontSizeList.push_back({ _T("28"), 28.0f, 0 });
-    fontSizeList.push_back({ _T("32"), 32.0f, 0 });
-    fontSizeList.push_back({ _T("36"), 36.0f, 0 });
-    fontSizeList.push_back({ _T("48"), 48.0f, 0 });
-    fontSizeList.push_back({ _T("72"), 72.0f, 0 });
-    fontSizeList.push_back({ _T("1英寸"), 95.6f, 0 });
-    fontSizeList.push_back({ _T("大特号"), 83.7f, 0 });
-    fontSizeList.push_back({ _T("特号"), 71.7f, 0 });
-    fontSizeList.push_back({ _T("初号"), 56.0f, 0 });
-    fontSizeList.push_back({ _T("小初"), 48.0f, 0 });
-    fontSizeList.push_back({ _T("一号"), 34.7f, 0 });
-    fontSizeList.push_back({ _T("小一"), 32.0f, 0 });
-    fontSizeList.push_back({ _T("二号"), 29.3f, 0 });
-    fontSizeList.push_back({ _T("小二"), 24.0f, 0 });
-    fontSizeList.push_back({ _T("三号"), 21.3f, 0 });
-    fontSizeList.push_back({ _T("小三"), 20.0f, 0 });
-    fontSizeList.push_back({ _T("四号"), 18.7f, 0 });
-    fontSizeList.push_back({ _T("小四"), 16.0f, 0 });
-    fontSizeList.push_back({ _T("五号"), 14.0f, 0 });
-    fontSizeList.push_back({ _T("小五"), 12.0f, 0 });
-    fontSizeList.push_back({ _T("六号"), 10.0f, 0 });
-    fontSizeList.push_back({ _T("小六"), 8.7f, 0 });
-    fontSizeList.push_back({ _T("七号"), 7.3f, 0 });
-    fontSizeList.push_back({ _T("八号"), 6.7f, 0 });
-
-    //更新DPI自适应值
-    for (FontSizeInfo& fontSize : fontSizeList) {
-        int32_t nSize = static_cast<int32_t>(fontSize.fFontSize * 1000);
-        Dpi().ScaleInt(nSize);
-        fontSize.fontSize = nSize / 1000;
-    }
-}
-
 bool MainForm::GetRichEditLogFont(LOGFONT& lf) const
 {
     ui::RichEdit* pRichEdit = GetRichEdit();
@@ -1364,7 +1316,7 @@ bool MainForm::GetRichEditLogFont(LOGFONT& lf) const
         lf.lfPitchAndFamily = cf.bPitchAndFamily;
 
         //替换为系统字体名称
-        DString fontName = ui::FontManager::GetFontSystemName(cf.szFaceName);
+        DString fontName = cf.szFaceName;
         wcscpy_s(lf.lfFaceName, LF_FACESIZE, fontName.c_str());
     }
     return true;

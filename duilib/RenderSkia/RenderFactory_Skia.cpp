@@ -1,5 +1,6 @@
 #include "RenderFactory_Skia.h"
 #include "duilib/RenderSkia/Font_Skia.h"
+#include "duilib/RenderSkia/FontMgr_Skia.h"
 #include "duilib/RenderSkia/Render_Skia.h"
 #include "duilib/RenderSkia/Bitmap_Skia.h"
 #include "duilib/RenderSkia/Brush_Skia.h"
@@ -7,31 +8,36 @@
 #include "duilib/RenderSkia/Path_Skia.h"
 #include "duilib/RenderSkia/Matrix_Skia.h"
 
-#pragma warning (push)
-#pragma warning (disable: 4244)
-
-#include "include/core/SkFontMgr.h"
-#include "include/ports/SkTypeface_win.h"
-
-#pragma warning (pop)
-
 namespace ui {
 
-RenderFactory_Skia::RenderFactory_Skia():
-    m_pSkFontMgr(nullptr)
+class RenderFactory_Skia::TImpl
 {
+public:
+    /** Skia的字体管理器
+    */
+    std::shared_ptr<IFontMgr> m_pFontMgr;
+};
+
+RenderFactory_Skia::RenderFactory_Skia()
+{
+    m_impl = new TImpl;
+
+    //创建Skia的字体管理器对象，进程内唯一
+    m_impl->m_pFontMgr = std::make_shared<FontMgr_Skia>();
+    ASSERT(m_impl->m_pFontMgr != nullptr);
 }
 
 RenderFactory_Skia::~RenderFactory_Skia()
 {
-    if (m_pSkFontMgr != nullptr) {
-        m_pSkFontMgr->unref();
+    if (m_impl != nullptr) {
+        delete m_impl;
+        m_impl = nullptr;
     }
 }
 
 IFont* RenderFactory_Skia::CreateIFont()
 {
-    return new Font_Skia(this);
+    return new Font_Skia(m_impl->m_pFontMgr);
 }
 
 IPen* RenderFactory_Skia::CreatePen(UiColor color, int width /*= 1*/)
@@ -61,19 +67,13 @@ IBitmap* RenderFactory_Skia::CreateBitmap()
 
 IRender* RenderFactory_Skia::CreateRender(Window* pWindow)
 {
-    return new Render_Skia(this, pWindow);
+    return new Render_Skia(pWindow);
 }
 
-SkFontMgr* RenderFactory_Skia::GetSkFontMgr()
+IFontMgr* RenderFactory_Skia::GetFontMgr() const
 {
-    if (m_pSkFontMgr == nullptr) {
-        sk_sp<SkFontMgr> spSkFontMgr = SkFontMgr_New_DirectWrite();
-        ASSERT(spSkFontMgr != nullptr);
-        m_pSkFontMgr = spSkFontMgr.get();
-        m_pSkFontMgr->ref();
-        spSkFontMgr.reset(nullptr);
-    }
-    return m_pSkFontMgr;
+    ASSERT(m_impl->m_pFontMgr != nullptr);
+    return m_impl->m_pFontMgr.get();
 }
 
 } // namespace ui

@@ -346,24 +346,36 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
         if( strClass == _T("Global") ) {
             for(pugi::xml_node node : root.children()) {
                 strClass = node.name();
-                if( strClass == _T("Image") ) {
-                    ASSERT(FALSE);    //废弃
+                if (strClass == _T("DefaultFontFamilyNames")) {
+                    DString defaultFontFamilyNames;
+                    for (pugi::xml_attribute attr : node.attributes()) {
+                        strName = attr.name();
+                        strValue = attr.value();
+                        if (strName == _T("value")) {
+                            defaultFontFamilyNames = strValue;
+                            break;
+                        }
+                    }
+                    if (!defaultFontFamilyNames.empty()) {
+                        GlobalManager::Instance().Font().SetDefaultFontFamilyNames(defaultFontFamilyNames);
+                    }
                 }
-                else if (strClass == _T("FontResource")) {
+                else if (strClass == _T("FontFile")) {
+                    //字体文件
                     DString strFontFile;
-                    DString strFontName;
+                    DString strFontDesc;
                     for (pugi::xml_attribute attr : node.attributes()) {
                         strName = attr.name();
                         strValue = attr.value();
                         if (strName == _T("file")) {
                             strFontFile = strValue;
                         }
-                        else if (strName == _T("name")) {
-                            strFontName = strValue;
+                        else if (strName == _T("desc")) {
+                            strFontDesc = strValue;
                         }
                     }
-                    if (!strFontFile.empty() && !strFontName.empty()) {
-                        GlobalManager::Instance().Font().AddFontFile(strFontFile, strFontName);
+                    if (!strFontFile.empty()) {
+                        GlobalManager::Instance().Font().AddFontFile(strFontFile, strFontDesc);
                     }
                 }
                 else if( strClass == _T("Font")) {
@@ -544,8 +556,9 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
     Control* pReturn = nullptr;
     for (pugi::xml_node node : xmlNode.children()) {
         DString strClass = node.name();
-        if( (strClass == _T("Image")) || 
-            (strClass == _T("Font"))  ||
+        if( (strClass == _T("DefaultFontFamilyNames")) ||
+            (strClass == _T("Font")) ||
+            (strClass == _T("FontFile"))  ||
             (strClass == _T("Class")) || 
             (strClass == _T("TextColor")) ) {
                 continue;

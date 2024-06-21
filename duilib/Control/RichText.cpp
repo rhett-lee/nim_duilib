@@ -144,7 +144,8 @@ void RichText::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect)
         for (const RichTextData& textData : m_textData) {
             richTextData.push_back(textData);
         }
-        pRender->DrawRichText(rc, richTextData, m_uTextStyle, true, (uint8_t)GetAlpha());
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+        pRender->DrawRichText(rc, pRenderFactory, richTextData, m_uTextStyle, true, (uint8_t)GetAlpha());
         for (size_t index = 0; index < richTextData.size(); ++index) {
             m_textData[index].m_textRects = richTextData[index].m_textRects;
         }
@@ -299,7 +300,8 @@ void RichText::PaintText(IRender* pRender)
                 richTextData.push_back(textDataEx);
             }
         }
-        pRender->DrawRichText(rc, richTextData, m_uTextStyle, false, (uint8_t)GetAlpha());
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+        pRender->DrawRichText(rc, pRenderFactory, richTextData, m_uTextStyle, false, (uint8_t)GetAlpha());
         for (size_t index = 0; index < richTextData.size(); ++index) {
             m_textData[index].m_textRects = richTextData[index].m_textRects;
         }

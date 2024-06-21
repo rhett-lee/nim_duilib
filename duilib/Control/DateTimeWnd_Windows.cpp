@@ -315,7 +315,7 @@ HFONT DateTimeWnd::CreateHFont() const
     }
     LOGFONT lf = { 0 };
     ::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-    wcscpy_s(lf.lfFaceName, pFont->FontName());
+    wcscpy_s(lf.lfFaceName, pFont->FontName().c_str());
     lf.lfCharSet = DEFAULT_CHARSET;
     lf.lfHeight = -pFont->FontSize();
     if (pFont->IsUnderline()) {

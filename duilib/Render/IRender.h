@@ -17,7 +17,7 @@ public:
 
     /** 获取字体名
     */
-    virtual const wchar_t* FontName() const = 0;
+    virtual const DString& FontName() const = 0;
 
     /** 获取字体大小(字体高度)
     */
@@ -38,6 +38,52 @@ public:
     /** 字体的删除线状态
     */
     virtual bool IsStrikeOut() const = 0;
+};
+
+/** 字体管理器接口
+*/
+class UILIB_API IFontMgr : public virtual SupportWeakCallback
+{
+public:
+    /** 获取字体个数
+    * @return 返回字体的个数
+    */
+    virtual uint32_t GetFontCount() const = 0;
+
+    /** 获取字体名称
+    * @param [in] nIndex 字体的下标值：[0, GetFontCount())
+    * @param [out] fontName 返回字体名称
+    * @return 成功返回true，失败返回false
+    */
+    virtual bool GetFontName(uint32_t nIndex, DString& fontName) const = 0;
+
+    /** 判断是否含有该字体
+    * @param [int] fontName 字体名称
+    * @return 如果含有该字体名称对应的字体返回true，否则返回false
+    */
+    virtual bool HasFontName(const DString& fontName) const = 0;
+
+    /** 设置默认字体名称（当需要加载的字体不存在时，使用默认的字体）
+    * @param [in] fontName 默认的字体名称
+    */
+    virtual void SetDefaultFontName(const DString& fontName) = 0;
+
+    /** 加载指定字体文件
+    * @param [in] fontFilePath 字体文件的路径（本地绝对路径）
+    * @return 成功返回true，失败返回false
+    */
+    virtual bool LoadFontFile(const DString& fontFilePath) = 0;
+
+    /** 加载指定字体数据
+    * @param [in] data 字体文件的内存数据
+    * @param [in] length 字体文件的内存数据长度
+    * @return 成功返回true，失败返回false
+    */
+    virtual bool LoadFontFileData(const void* data, size_t length) = 0;
+  
+    /** 清除已加载的字体文件
+    */
+    virtual void ClearFontFiles() = 0;
 };
 
 /** Skia引擎需要传入Alpha类型
@@ -425,6 +471,7 @@ public:
 /** 渲染接口
 */
 class Window;
+class IRenderFactory;
 class UILIB_API IRender : public virtual SupportWeakCallback
 {
 public:
@@ -739,12 +786,14 @@ public:
 
     /** 绘制格式文本
     * @param [in] 矩形区域
+    * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
     * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
     * @param [in] bMeasureOnly 如果为true，仅评估绘制文字所需区域，不执行文字绘制
     * @param [in] uFade 透明度（0 - 255）
     */
     virtual void DrawRichText(const UiRect& rc,
+                              IRenderFactory* pRenderFactory, 
                               std::vector<RichTextData>& richTextData,
                               uint32_t uFormat = 0,
                               bool bMeasureOnly = false,
@@ -850,6 +899,10 @@ public:
     * @param [in] pWindow 关联的窗口
     */
     virtual IRender* CreateRender(Window* pWindow) = 0;
+
+    /** 获取字体管理器接口（每个factory共享一个对象）
+    */
+    virtual IFontMgr* GetFontMgr() const = 0;
 };
 
 } // namespace ui

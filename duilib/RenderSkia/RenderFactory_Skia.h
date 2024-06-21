@@ -24,15 +24,15 @@ public:
     virtual IBitmap* CreateBitmap() override;
     virtual IRender* CreateRender(Window* pWindow) override;
 
-public:
-    /** 获取Skia字体管理器
+    /** 获取字体管理器接口（每个factory共享一个对象）
     */
-    SkFontMgr* GetSkFontMgr();
+    virtual IFontMgr* GetFontMgr() const override;
 
 private:
-    /** Skia字体管理器
+    /** 内部实现类
     */
-    SkFontMgr* m_pSkFontMgr;
+    class TImpl;
+    TImpl* m_impl;
 };
 
 } // namespace ui

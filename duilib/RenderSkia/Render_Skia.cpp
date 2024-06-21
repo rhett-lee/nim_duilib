@@ -53,14 +53,13 @@ static inline void DrawFunction(SkCanvas* pSkCanvas,
     pSkCanvas->drawImageRect(skImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kStrict_SrcRectConstraint);
 }
 
-Render_Skia::Render_Skia(IRenderFactory* pRenderFactory, Window* pWindow): 
+Render_Skia::Render_Skia(Window* pWindow): 
     m_bTransparent(false),
     m_pSkCanvas(nullptr),
     m_hDC(nullptr),
     m_hOldObj(nullptr),
     m_pWindow(pWindow),
-    m_saveCount(0),
-    m_pRenderFactory(pRenderFactory)
+    m_saveCount(0)
 {
     m_pSkPointOrg = new SkPoint;
     m_pSkPointOrg->iset(0, 0);
@@ -136,7 +135,7 @@ std::unique_ptr<ui::IRender> Render_Skia::Clone()
     if (m_windowFlag.expired()) {
         pWindow = nullptr;
     }
-    std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_Skia>(m_pRenderFactory, pWindow);
+    std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_Skia>(pWindow);
     pClone->Resize(GetWidth(), GetHeight());
     pClone->BitBlt(0, 0, GetWidth(), GetHeight(), this, 0, 0, RopMode::kSrcCopy);
     return pClone;
@@ -1536,6 +1535,7 @@ UiRect Render_Skia::MeasureString(const DString& strText,
 }
 
 void Render_Skia::DrawRichText(const UiRect& rc,
+                               IRenderFactory* pRenderFactory, 
                                std::vector<RichTextData>& richTextData,
                                uint32_t uFormat,
                                bool bMeasureOnly,
@@ -1543,6 +1543,10 @@ void Render_Skia::DrawRichText(const UiRect& rc,
 {
     PerformanceStat statPerformance(_T("Render_Skia::DrawRichText"));
     if (rc.IsEmpty()) {
+        return;
+    }
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
         return;
     }
 
@@ -1565,7 +1569,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
         SkPaint m_skPaint;
 
         //Font对象
-        std::shared_ptr<Font_Skia> m_spSkiaFont;
+        std::shared_ptr<IFont> m_spFont;
 
         //背景颜色
         UiColor m_bgColor;
@@ -1592,16 +1596,22 @@ void Render_Skia::DrawRichText(const UiRect& rc,
         const UiColor& color = textData.m_textColor;
         skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
         
-        std::shared_ptr<Font_Skia> spSkiaFont = std::make_shared<Font_Skia>(m_pRenderFactory);
-        if (!spSkiaFont->InitFont(textData.m_fontInfo)) {
-            spSkiaFont.reset();
-        }
-
+        std::shared_ptr<IFont> spSkiaFont(pRenderFactory->CreateIFont());
+        ASSERT(spSkiaFont != nullptr);
         if (spSkiaFont == nullptr) {
             continue;
         }
+        if (!spSkiaFont->InitFont(textData.m_fontInfo)) {
+            spSkiaFont.reset();
+            continue;
+        }
+        Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(spSkiaFont.get());
+        ASSERT(pSkiaFont != nullptr);
+        if (pSkiaFont == nullptr) {
+            continue;
+        }
 
-        const SkFont* pSkFont = spSkiaFont->GetFontHandle();
+        const SkFont* pSkFont = pSkiaFont->GetFontHandle();
         ASSERT(pSkFont != nullptr);
         if (pSkFont == nullptr) {
             continue;
@@ -1671,7 +1681,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
                     spTextData->m_text = text.substr(textStartIndex, nDrawLength / sizeof(wchar_t));
                 }
                 spTextData->m_skPaint = skPaint;
-                spTextData->m_spSkiaFont = spSkiaFont;
+                spTextData->m_spFont = spSkiaFont;
                 spTextData->m_bgColor = textData.m_bgColor;
 
                 //绘制文字所需的矩形区域
@@ -1738,7 +1748,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
             FillRect(textData.m_destRect, textData.m_bgColor, uFade);
 
             //绘制文字
-            DrawTextString(textData.m_destRect, textData.m_text, uFormat | DrawStringFormat::TEXT_SINGLELINE, textData.m_skPaint, textData.m_spSkiaFont.get());
+            DrawTextString(textData.m_destRect, textData.m_text, uFormat | DrawStringFormat::TEXT_SINGLELINE, textData.m_skPaint, textData.m_spFont.get());
         }
     }
 }

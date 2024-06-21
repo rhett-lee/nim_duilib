@@ -426,6 +426,7 @@
     <ClCompile Include="Image\StateImageMap.cpp" />
     <ClCompile Include="RenderSkia\Bitmap_Skia.cpp" />
     <ClCompile Include="RenderSkia\Brush_Skia.cpp" />
+    <ClCompile Include="RenderSkia\FontMgr_Skia.cpp" />
     <ClCompile Include="RenderSkia\Font_Skia.cpp" />
     <ClCompile Include="RenderSkia\Matrix_Skia.cpp" />
     <ClCompile Include="RenderSkia\Path_Skia.cpp" />
@@ -591,6 +592,7 @@
     <ClInclude Include="Image\StateImageMap.h" />
     <ClInclude Include="RenderSkia\Bitmap_Skia.h" />
     <ClInclude Include="RenderSkia\Brush_Skia.h" />
+    <ClInclude Include="RenderSkia\FontMgr_Skia.h" />
     <ClInclude Include="RenderSkia\Font_Skia.h" />
     <ClInclude Include="RenderSkia\Matrix_Skia.h" />
     <ClInclude Include="RenderSkia\Path_Skia.h" />

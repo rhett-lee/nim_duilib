@@ -3,12 +3,13 @@
 #include "duilib/Core/DpiManager.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/StringUtil.h"
-#include <VersionHelpers.h>
+#include "duilib/Utils/PathUtil.h"
 
 namespace ui 
 {
 
-FontManager::FontManager()
+FontManager::FontManager():
+    m_bDefaultFontInited(false)
 {
 }
 
@@ -49,6 +50,21 @@ bool FontManager::AddFont(const DString& fontId, const UiFont& fontInfo, bool bD
 const DString& FontManager::GetDefaultFontId() const
 {
     return m_defaultFontId;
+}
+
+void FontManager::SetDefaultFontFamilyNames(const DString& defaultFontFamilyNames)
+{
+    m_defaultFontFamilyNames.clear();
+    m_bDefaultFontInited = false;
+    if (!defaultFontFamilyNames.empty()) {
+        std::list<DString> fontFamilyNames = StringUtil::Split(defaultFontFamilyNames, _T(","));
+        for (DString fontFamilyName : fontFamilyNames) {
+            StringUtil::Trim(fontFamilyName);
+            if (!fontFamilyName.empty()) {
+                m_defaultFontFamilyNames.push_back(fontFamilyName);
+            }
+        }
+    }
 }
 
 DString FontManager::GetDpiFontId(const DString& fontId, const DpiManager& dpi) const
@@ -109,12 +125,41 @@ IFont* FontManager::GetIFont(const DString& fontId, const DpiManager& dpi)
         //无此字体ID
         return nullptr;
     }
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
+        return nullptr;
+    }
+
+    //初始化默认字体名称
+    IFontMgr* pFontMgr = pRenderFactory->GetFontMgr();
+    if (!m_bDefaultFontInited && !m_defaultFontFamilyNames.empty() && (pFontMgr != nullptr)) {
+        auto pos = m_defaultFontFamilyNames.begin();
+        while (pos != m_defaultFontFamilyNames.end()) {
+            const DString& fontFamilyName = *pos;
+            if (!pFontMgr->HasFontName(fontFamilyName)) {
+                //移除不存在的字体
+                pos = m_defaultFontFamilyNames.erase(pos);
+            }
+            else {
+                break;
+            }
+        }
+        m_bDefaultFontInited = true;
+        if (!m_defaultFontFamilyNames.empty()) {
+            pFontMgr->SetDefaultFontName(m_defaultFontFamilyNames.front());
+        }
+    }
+
     DString dpiFontId = GetDpiFontId(realFontId, dpi);    
     if (fontInfo.m_fontName.empty() || 
-        StringUtil::IsEqualNoCase(fontInfo.m_fontName, _T("system"))) {
-        //字体使用英文名称，保持兼容性
-        static bool bOsOverXp = IsWindowsVistaOrGreater();
-        fontInfo.m_fontName = bOsOverXp ? _T("Microsoft YaHei") : _T("SimSun");
+        StringUtil::IsEqualNoCase(fontInfo.m_fontName, _T("system"))) {        
+        if (!m_defaultFontFamilyNames.empty()) {
+            fontInfo.m_fontName = m_defaultFontFamilyNames.front();
+        }
+        else {
+            fontInfo.m_fontName = _T("Microsoft YaHei"); //微软雅黑，如果设置了默认字体，走不到这里
+        }
     }
 
     //对字体大小进行DPI缩放
@@ -122,10 +167,7 @@ IFont* FontManager::GetIFont(const DString& fontId, const DpiManager& dpi)
     dpi.ScaleInt(fontInfo.m_fontSize);
     ASSERT(fontInfo.m_fontSize > 0);
 
-    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-    if (pRenderFactory != nullptr) {
-        pFont = pRenderFactory->CreateIFont();
-    }
+    pFont = pRenderFactory->CreateIFont();
     ASSERT(pFont != nullptr);
     if (pFont == nullptr) {
         return nullptr;
@@ -154,94 +196,123 @@ void FontManager::RemoveAllFonts()
     m_fontIdMap.clear();
 }
 
-void FontManager::AddFontFile(const DString& strFontFile, const DString& strFontName)
+bool FontManager::AddFontFile(const DString& strFontFile, const DString& /*strFontDesc*/)
 {
-    FontFileInfo fontFileInfo;
-    DString path = GlobalManager::Instance().GetExistsResFullPath(_T(""), _T(""), _T("font\\") + strFontFile);
-    bool res = false;
+    DString fontFilePath = PathUtil::JoinFilePath(GlobalManager::Instance().GetFontFilePath(), strFontFile);
+    IFontMgr* pFontMgr = nullptr;
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    if (pRenderFactory != nullptr) {
+        pFontMgr = pRenderFactory->GetFontMgr();
+    }
+    ASSERT(pFontMgr != nullptr);
+    if (pFontMgr == nullptr) {
+        return false;
+    }
+
+    bool bRet = false;
     if (GlobalManager::Instance().Zip().IsUseZip()) {
         std::vector<unsigned char> file_data;
-        if (GlobalManager::Instance().Zip().GetZipData(path, file_data)) {
-            DWORD dwFonts = 0;
-            fontFileInfo.m_hFontFile = ::AddFontMemResourceEx(file_data.data(), static_cast<DWORD>(file_data.size()), NULL, &dwFonts);
-            res = fontFileInfo.m_hFontFile != nullptr;
+        if (GlobalManager::Instance().Zip().GetZipData(fontFilePath, file_data)) {
+            //从内存流加载
+            bRet = pFontMgr->LoadFontFileData(file_data.data(), file_data.size());
         }
     }
     else {
-        res = ::AddFontResourceEx(path.c_str(), FR_PRIVATE, 0) != 0;
+        //从文件加载
+        bRet = pFontMgr->LoadFontFile(fontFilePath);
     }
-    ASSERT(res);
-    if (res) {
-        fontFileInfo.m_fontFilePath = path;
-        fontFileInfo.m_fontName = strFontName;
-        m_fontFileInfo.push_back(fontFileInfo);
-    }
+    ASSERT(bRet);
+    return bRet;
 }
 
 void FontManager::RemoveAllFontFiles()
 {
-    for (const auto& it : m_fontFileInfo) {
-        if (it.m_hFontFile != nullptr) {
-            ::RemoveFontMemResourceEx(it.m_hFontFile);
-        }
-        else if(!it.m_fontFilePath.empty()){
-            ::RemoveFontResourceEx(it.m_fontFilePath.c_str(), FR_PRIVATE, 0);
-        }
+    IFontMgr* pFontMgr = nullptr;
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    if (pRenderFactory != nullptr) {
+        pFontMgr = pRenderFactory->GetFontMgr();
     }
-    m_fontFileInfo.clear();
+    if (pFontMgr != nullptr) {
+        pFontMgr->ClearFontFiles();
+    }
 }
 
-//字体的中英文名称映射表
-static void GetFontNameList(std::vector<std::pair<DString, DString>>& fontNameList)
+void FontManager::GetFontNameList(std::vector<DString>& fontNameList) const
 {
-    //系统字体
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("宋体"), _T("SimSun")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("黑体"), _T("SimHei")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("微软雅黑"), _T("Microsoft YaHei")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("微软正黑体"), _T("Microsoft JhengHei")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("楷体"), _T("KaiTi")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("新宋体"), _T("NSimSun")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("仿宋"), _T("FangSong")));
-    
-    //Office字体
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("幼圆"), _T("YouYuan")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("隶书"), _T("LiSu")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文细黑"), _T("STXiHei")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文楷体"), _T("STKaiTi")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文宋体"), _T("STSong")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文仿宋"), _T("STFangSong")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文中宋"), _T("STZhongSong")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文彩云"), _T("STCaiYun")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文琥珀"), _T("STHuPo")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文新魏"), _T("STXinWei")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文隶书"), _T("STLiTi")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("华文行楷"), _T("STXingKai")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("方正舒体"), _T("FZShuTi")));
-    fontNameList.push_back(std::make_pair<DString, DString>(_T("方正姚体"), _T("FZYaoTi")));
-}
-
-DString FontManager::GetFontEnglishName(const DString& fontName)
-{
-    std::vector<std::pair<DString, DString>> fontNameList;
-    GetFontNameList(fontNameList);
-    for (const auto& pair : fontNameList) {
-        if (fontName == pair.first) {
-            return pair.second;
+    fontNameList.clear();
+    IFontMgr* pFontMgr = nullptr;
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    if (pRenderFactory != nullptr) {
+        pFontMgr = pRenderFactory->GetFontMgr();
+    }
+    ASSERT(pFontMgr != nullptr);
+    if (pFontMgr == nullptr) {
+        return;
+    }
+    DString fontName;
+    uint32_t nFontCount = pFontMgr->GetFontCount();
+    for (uint32_t nIndex = 0; nIndex < nFontCount; ++nIndex) {
+        if (pFontMgr->GetFontName(nIndex, fontName)) {
+            fontNameList.push_back(fontName);
         }
     }
-    return fontName;
+    if (!fontNameList.empty()) {
+        std::sort(fontNameList.begin(), fontNameList.end());
+    }
 }
 
-DString FontManager::GetFontSystemName(const DString& fontName)
+void FontManager::GetFontSizeList(const DpiManager& dpi, std::vector<FontSizeInfo>& fontSizeList) const
 {
-    std::vector<std::pair<DString, DString>> fontNameList;
-    GetFontNameList(fontNameList);
-    for (const auto& pair : fontNameList) {
-        if (ui::StringUtil::IsEqualNoCase(fontName, pair.second)) {
-            return pair.first;
-        }
+    fontSizeList.clear();
+    fontSizeList.push_back({ _T("8"),  8.0f, 0 });
+    fontSizeList.push_back({ _T("9"),  9.0f, 0 });
+    fontSizeList.push_back({ _T("10"), 10.0f, 0 });
+    fontSizeList.push_back({ _T("11"), 11.0f, 0 });
+    fontSizeList.push_back({ _T("12"), 12.0f, 0 });
+    fontSizeList.push_back({ _T("14"), 14.0f, 0 });
+    fontSizeList.push_back({ _T("16"), 16.0f, 0 });
+    fontSizeList.push_back({ _T("18"), 18.0f, 0 });
+    fontSizeList.push_back({ _T("20"), 20.0f, 0 });
+    fontSizeList.push_back({ _T("22"), 22.0f, 0 });
+    fontSizeList.push_back({ _T("24"), 24.0f, 0 });
+    fontSizeList.push_back({ _T("26"), 26.0f, 0 });
+    fontSizeList.push_back({ _T("28"), 28.0f, 0 });
+    fontSizeList.push_back({ _T("32"), 32.0f, 0 });
+    fontSizeList.push_back({ _T("36"), 36.0f, 0 });
+    fontSizeList.push_back({ _T("48"), 48.0f, 0 });
+    fontSizeList.push_back({ _T("72"), 72.0f, 0 });
+
+#ifdef DUILIB_PLATFORM_WIN
+    if (::GetACP() == 936) {
+        //仅中文环境使用
+        fontSizeList.push_back({ _T("1英寸"), 95.6f, 0 });
+        fontSizeList.push_back({ _T("大特号"), 83.7f, 0 });
+        fontSizeList.push_back({ _T("特号"), 71.7f, 0 });
+        fontSizeList.push_back({ _T("初号"), 56.0f, 0 });
+        fontSizeList.push_back({ _T("小初"), 48.0f, 0 });
+        fontSizeList.push_back({ _T("一号"), 34.7f, 0 });
+        fontSizeList.push_back({ _T("小一"), 32.0f, 0 });
+        fontSizeList.push_back({ _T("二号"), 29.3f, 0 });
+        fontSizeList.push_back({ _T("小二"), 24.0f, 0 });
+        fontSizeList.push_back({ _T("三号"), 21.3f, 0 });
+        fontSizeList.push_back({ _T("小三"), 20.0f, 0 });
+        fontSizeList.push_back({ _T("四号"), 18.7f, 0 });
+        fontSizeList.push_back({ _T("小四"), 16.0f, 0 });
+        fontSizeList.push_back({ _T("五号"), 14.0f, 0 });
+        fontSizeList.push_back({ _T("小五"), 12.0f, 0 });
+        fontSizeList.push_back({ _T("六号"), 10.0f, 0 });
+        fontSizeList.push_back({ _T("小六"), 8.7f, 0 });
+        fontSizeList.push_back({ _T("七号"), 7.3f, 0 });
+        fontSizeList.push_back({ _T("八号"), 6.7f, 0 });
     }
-    return fontName;
+#endif
+
+    //更新DPI自适应值
+    for (FontSizeInfo& fontSize : fontSizeList) {
+        int32_t nSize = static_cast<int32_t>(fontSize.fFontSize * 1000);
+        dpi.ScaleInt(nSize);
+        fontSize.fDpiFontSize = nSize / 1000.0f;
+    }
 }
 
 }

@@ -5,7 +5,15 @@ Global 全局样式提供了通用的样式列表，避免在多个不同的 XML
 在调用 GlobalManager::Startup 方法后，会根据设定的皮肤资源路径下查找 [global.xml](../bin/resources/themes/default/global.xml)  作为全局的样式资源。在现有的 samples 示例代码中，
 包含了一些预设的全局样式，如字体、颜色和一些通用样式。
 
-## 1. 字体（Font）
+## 1. 默认字体名称（DefaultFontFamilyNames）
+```xml
+<!--默认字体名称，列表形式，依次匹配，直到发现第一个有效字体作为默认字体名称，多个字体名称用逗号分隔-->
+<DefaultFontFamilyNames value="Microsoft YaHei,SimSun"/>
+```
+DefaultFontFamilyNames只有一个value属性，用于设置默认字体列表。    
+上述设置代表，按照微软雅黑（Microsoft YaHei）、宋体（SimSun）的顺序确定默认字体名称，如果存在微软雅黑字体则用微软雅黑字体作为默认字体，否则用宋体作为默认字体。
+
+## 2. 字体（Font）
 
 如果你想添加一个字体，则在 [global.xml](../bin/resources/themes/default/global.xml) 中添加如下代码，程序启动后会加载所有字体列表到缓存中，以 ID 作为区分。
 
@@ -34,7 +42,24 @@ Global 全局样式提供了通用的样式列表，避免在多个不同的 XML
 | default | false | bool | 是否是默认字体，如果未给控件指定字体，则使用该字体 |
 
 字体属性解析相关代码，参见`WindowBuilder::ParseFontXmlNode`函数
-## 2. 颜色（TextColor）
+
+## 3. 字体文件（FontFile）
+程序可用自带字体文件，在程序启动时加载，不需要安装为系统字体即可使用。
+如果你想添加一个字体，则在 global.xml 中添加如下代码：
+```xml
+<!-- 字体文件（放在资源根目录的fonts目录中），程序启动时加载，加载后可以按照使用系统字体相同的方式使用 -->
+<FontFile file="RobotoMono-Regular.ttf" desc="Roboto Mono 正常字体"/>
+```
+### FontFile 所有可用属性
+
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| file |      | string | 字体文件的文件名，字体文件需放在资源根目录的fonts目录中|
+| desc |      | string | 字体文件的描述信息，无其他用途|
+
+字体文件设置以后，使用方法与系统字体完全相同（即可以通过Font标签指定使用该字体）。
+
+## 4. 颜色（TextColor）
 
 你可以添加常用的颜色到 `global.xml` 中，如下所示：
 
@@ -73,7 +98,7 @@ Global 全局样式提供了通用的样式列表，避免在多个不同的 XML
 <Label text="Hello Label" normal_text_color="0x00FFFF"/>
 ```
 
-## 3. 图片（包括动画）
+## 5. 图片（包括动画）
 
 ### 图片的所有可用属性
 
@@ -137,7 +162,7 @@ Global 全局样式提供了通用的样式列表，避免在多个不同的 XML
 </Control>
 ```
 
-## 4. 通用样式（Class）
+## 6. 通用样式（Class）
 
 通用样式可以让我们预设一些经常使用到的样式集合，比如一个高度为 34，宽度自动拉伸、使用 caption.png 作为背景的标题栏。
 又或者一个宽度为 80，高度为 30 的通用样式按钮等等。我们都可以通过通用样式来解决。以下示例演示了一个通用样式按钮：
@@ -183,7 +208,7 @@ Global 全局样式提供了通用的样式列表，避免在多个不同的 XML
 | name | | string | 通用样式名称 |
 | 任何自定义名称 | | string | 通用样式的值，必须经过XML转义或者使用单引号('')、花括号({})代替双引号 |
 
-## 5. 全局资源管理相关的接口
+## 7. 全局资源管理相关的接口
 
 | 类名称 | 关联头文件| 用途 |
 | :--- | :--- | :--- |

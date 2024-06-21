@@ -246,7 +246,7 @@ void RichEditHost::GetLogFont(RichEdit* pRichEdit, const DString& fontId, LOGFON
     if (pFont == nullptr) {
         return;
     }
-    wcscpy_s(lf.lfFaceName, pFont->FontName());
+    wcscpy_s(lf.lfFaceName, pFont->FontName().c_str());
     lf.lfCharSet = DEFAULT_CHARSET;
     lf.lfHeight = -pFont->FontSize();
     if (pFont->IsUnderline()) {
