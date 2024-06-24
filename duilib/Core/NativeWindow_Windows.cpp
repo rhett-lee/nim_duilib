@@ -518,15 +518,13 @@ bool NativeWindow::EnterFullScreen()
     m_rcLastWindowPlacement.length = sizeof(WINDOWPLACEMENT);
     ::GetWindowPlacement(m_hWnd, &m_rcLastWindowPlacement);
 
-    int32_t xScreen = GetSystemMetricsForDpiWrapper(SM_XVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
-    int32_t yScreen = GetSystemMetricsForDpiWrapper(SM_YVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
-    int32_t cxScreen = GetSystemMetricsForDpiWrapper(SM_CXVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
-    int32_t cyScreen = GetSystemMetricsForDpiWrapper(SM_CYVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
+    UiRect rcMonitor;
+    GetMonitorRect(rcMonitor);
 
     // 去掉标题栏、边框
     DWORD dwFullScreenStyle = (m_dwLastStyle | WS_VISIBLE | WS_POPUP | WS_MAXIMIZE) & ~WS_CAPTION & ~WS_BORDER & ~WS_THICKFRAME & ~WS_DLGFRAME;
     ::SetWindowLongPtr(m_hWnd, GWL_STYLE, dwFullScreenStyle);
-    ::SetWindowPos(m_hWnd, NULL, xScreen, yScreen, cxScreen, cyScreen, SWP_FRAMECHANGED); // 设置位置和大小
+    ::SetWindowPos(m_hWnd, NULL, rcMonitor.left, rcMonitor.top, rcMonitor.Width(), rcMonitor.Height(), SWP_FRAMECHANGED); // 设置位置和大小
     
     m_pOwner->OnNativeWindowEnterFullScreen();
     return true;
@@ -869,8 +867,9 @@ void NativeWindow::MapWindowDesktopRect(UiRect& rc) const
     rc.bottom = pts[1].y;
 }
 
-bool NativeWindow::GetMonitorRect(UiRect& rcMonitor, UiRect& rcWork) const
+bool NativeWindow::GetMonitorRect(UiRect& rcMonitor) const
 {
+    UiRect rcWork;
     return GetMonitorRect(m_hWnd, rcMonitor, rcWork);
 }
 
@@ -902,7 +901,7 @@ bool NativeWindow::GetMonitorRect(HWND hWnd, UiRect& rcMonitor, UiRect& rcWork) 
 bool NativeWindow::GetMonitorWorkRect(UiRect& rcWork) const
 {
     UiRect rcMonitor;
-    return GetMonitorRect(rcMonitor, rcWork);
+    return GetMonitorRect(m_hWnd, rcMonitor, rcWork);
 }
 
 bool NativeWindow::GetMonitorWorkRect(const UiPoint& pt, UiRect& rcWork) const
@@ -1376,7 +1375,7 @@ LRESULT NativeWindow::OnGetMinMaxInfoMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lP
     LPMINMAXINFO lpMMI = (LPMINMAXINFO)lParam;
     UiRect rcWork;
     UiRect rcMonitor;
-    GetMonitorRect(rcMonitor, rcWork);
+    GetMonitorRect(m_hWnd, rcMonitor, rcWork);
     rcWork.Offset(-rcMonitor.left, -rcMonitor.top);
 
     //最大化时，默认设置为当前屏幕的最大区域

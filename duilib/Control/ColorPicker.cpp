@@ -647,9 +647,9 @@ public:
 
     /** 抓取屏幕位图
     */
-    void ScreenCapture()
+    void ScreenCapture(const Window* pWindow)
     {
-        m_spBitmap = ScreenCapture::CaptureBitmap(this);
+        m_spBitmap = ScreenCapture::CaptureBitmap(pWindow);
     }
 
     /** 获取选择的颜色值
@@ -694,7 +694,7 @@ void ColorPicker::OnPickColorFromScreen()
 
     //抓取屏幕位图
     ScreenColorPickerWnd* pScreenColorPicker = new ScreenColorPickerWnd;    
-    pScreenColorPicker->ScreenCapture();
+    pScreenColorPicker->ScreenCapture(this);
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_TRANSPARENT | kWS_EX_TOOLWINDOW;

@@ -214,9 +214,9 @@ void WindowBase::MapWindowDesktopRect(UiRect& rc) const
     m_pNativeWindow->MapWindowDesktopRect(rc);
 }
 
-bool WindowBase::GetMonitorRect(UiRect& rcMonitor, UiRect& rcWork) const
+bool WindowBase::GetMonitorRect(UiRect& rcMonitor) const
 {
-    return m_pNativeWindow->GetMonitorRect(rcMonitor, rcWork);
+    return m_pNativeWindow->GetMonitorRect(rcMonitor);
 }
 
 bool WindowBase::GetMonitorWorkRect(UiRect& rcWork) const

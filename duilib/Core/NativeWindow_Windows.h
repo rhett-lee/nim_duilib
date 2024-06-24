@@ -323,11 +323,10 @@ public:
     */
     void MapWindowDesktopRect(UiRect& rc) const;
 
-    /** 获取指定窗口所在显示器的显示器矩形和工作区矩形
+    /** 获取指定窗口所在显示器的显示器矩形
     * @param [out] rcMonitor 显示器的矩形区域
-    * @param [out] rcWork 显示器的工作区矩形
     */
-    bool GetMonitorRect(UiRect& rcMonitor, UiRect& rcWork) const;
+    bool GetMonitorRect(UiRect& rcMonitor) const;
 
     /** 获取当前窗口所在显示器的工作区矩形，以虚拟屏幕坐标表示。
         请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。

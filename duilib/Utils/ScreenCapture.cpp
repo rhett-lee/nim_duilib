@@ -1,5 +1,4 @@
 #include "ScreenCapture.h"
-#include "duilib/Utils/ApiWrapper.h"
 #include "duilib/Core/GlobalManager.h"
 
 namespace ui
@@ -52,15 +51,16 @@ std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(const Window* pWindow)
     }
 
     //抓取屏幕位图
-    const DpiManager& dpi = (pWindow != nullptr) ? pWindow->Dpi() : GlobalManager::Instance().Dpi();
-    int32_t xScreen = GetSystemMetricsForDpiWrapper(SM_XVIRTUALSCREEN, dpi.GetDPI());
-    int32_t yScreen = GetSystemMetricsForDpiWrapper(SM_YVIRTUALSCREEN, dpi.GetDPI());
-    int32_t cxScreen = GetSystemMetricsForDpiWrapper(SM_CXVIRTUALSCREEN, dpi.GetDPI());
-    int32_t cyScreen = GetSystemMetricsForDpiWrapper(SM_CYVIRTUALSCREEN, dpi.GetDPI());
+    UiRect rcMonitor;
+    pWindow->GetMonitorRect(rcMonitor);
+    int32_t xScreen = rcMonitor.left;
+    int32_t yScreen = rcMonitor.top;
+    int32_t cxScreen = rcMonitor.Width();
+    int32_t cyScreen = rcMonitor.Height();
     if ((cxScreen <= 0) || (cyScreen <= 0)) {
         return nullptr;
     }
-    HWND hWnd = (pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr;
+    HWND hWnd = nullptr; //取桌面
     HDC hdcSrc = ::GetDC(hWnd); // 获取屏幕句柄
     if (hdcSrc == nullptr) {
         return nullptr;
