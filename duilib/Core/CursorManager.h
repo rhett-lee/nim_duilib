@@ -2,7 +2,6 @@
 #define UI_CORE_CURSOR_MANAGER_H_
 
 #include "duilib/duilib_defs.h"
-#include <map>
 
 namespace ui {
 
@@ -43,12 +42,9 @@ public:
     bool SetCursorByID(CursorID cursorId);
 
 private:
-
-#ifdef DUILIB_PLATFORM_WIN
-    /** 已经加载的光标资源句柄
-    */
-    std::map<DString, HCURSOR> m_cursorMap;
-#endif
+    //内部实现
+    class TImpl;
+    TImpl* m_impl;
 };
 
 } // namespace ui

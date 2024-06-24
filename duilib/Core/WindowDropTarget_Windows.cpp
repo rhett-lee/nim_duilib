@@ -1,6 +1,9 @@
 #include "WindowDropTarget.h"
 #include "duilib/Core/ControlDropTarget.h"
 #include "duilib/Core/WindowBase.h"
+
+#ifdef DUILIB_PLATFORM_WIN
+
 #include <ole2.h>
 
 namespace ui 
@@ -303,3 +306,4 @@ void WindowDropTarget::Clear()
 
 } // namespace ui
 
+#endif //DUILIB_PLATFORM_WIN

@@ -111,9 +111,6 @@
     <ClCompile Include="Core\Placeholder.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\ToolTip.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\Window.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -264,9 +261,6 @@
     <ClCompile Include="Control\CheckCombo.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Core\WindowDropTarget.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\ControlDropTarget.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -393,12 +387,6 @@
     <ClCompile Include="Core\ZipStreamIO.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\CursorManager.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Keyboard.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\ScreenCapture.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -433,6 +421,18 @@
       <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="Core\IconManager_Windows.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Keyboard_Windows.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ToolTip_Windows.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\WindowDropTarget_Windows.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\CursorManager_Windows.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>

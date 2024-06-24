@@ -1,12 +1,26 @@
 #include "CursorManager.h"
+#include <map>
+
+#ifdef DUILIB_PLATFORM_WIN
 
 namespace ui
 {
-CursorManager::CursorManager()
+class CursorManager::TImpl
+{
+public:
+    TImpl();
+    ~TImpl();
+
+    /** 已经加载的光标资源句柄
+    */
+    std::map<DString, HCURSOR> m_cursorMap;
+};
+
+CursorManager::TImpl::TImpl()
 {
 }
 
-CursorManager::~CursorManager()
+CursorManager::TImpl::~TImpl()
 {
     for (auto iter : m_cursorMap) {
         if (iter.second != nullptr) {
@@ -15,9 +29,21 @@ CursorManager::~CursorManager()
     }
 }
 
+CursorManager::CursorManager()
+{
+    m_impl = new TImpl;
+}
+
+CursorManager::~CursorManager()
+{
+    if (m_impl != nullptr) {
+        delete m_impl;
+        m_impl = nullptr;
+    }
+}
+
 bool CursorManager::SetCursor(CursorType cursorType)
 {
-#ifdef DUILIB_PLATFORM_WIN
     bool bRet = true;
     switch (cursorType) {
     case kCursorArrow:
@@ -43,20 +69,15 @@ bool CursorManager::SetCursor(CursorType cursorType)
         break;
     }
     return bRet;
-#else
-    ASSERT(false);
-    return false;
-#endif
 }
 
 bool CursorManager::SetImageCursor(const DString& imagePath)
 {
-#ifdef DUILIB_PLATFORM_WIN
     ASSERT(!imagePath.empty());
 
     HCURSOR hCursor = nullptr;
-    auto iter = m_cursorMap.find(imagePath);
-    if (iter != m_cursorMap.end()) {
+    auto iter = m_impl->m_cursorMap.find(imagePath);
+    if (iter != m_impl->m_cursorMap.end()) {
         hCursor = iter->second;
         ASSERT(hCursor != nullptr);
     }
@@ -64,7 +85,7 @@ bool CursorManager::SetImageCursor(const DString& imagePath)
         hCursor = (HCURSOR)::LoadImage(NULL, imagePath.c_str(), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
         ASSERT(hCursor != nullptr);
         if (hCursor != nullptr) {
-            m_cursorMap[imagePath] = hCursor;
+            m_impl->m_cursorMap[imagePath] = hCursor;
         }
     }
     if (hCursor != nullptr) {
@@ -72,42 +93,25 @@ bool CursorManager::SetImageCursor(const DString& imagePath)
         return true;
     }
     return false;
-#else
-    ASSERT(false);
-    return false;
-#endif
 }
 
 bool CursorManager::ShowCursor(bool bShow)
 {
-#ifdef DUILIB_PLATFORM_WIN
     ::ShowCursor(bShow ? TRUE : FALSE);
     return true;
-#else
-    ASSERT(false);
-    return false;
-#endif
 }
 
 CursorID CursorManager::GetCursorID() const
 {
-#ifdef DUILIB_PLATFORM_WIN
     return (CursorID)::GetCursor();
-#else
-    ASSERT(false);
-    return 0;
-#endif
 }
 
 bool CursorManager::SetCursorByID(CursorID cursorId)
 {
-#ifdef DUILIB_PLATFORM_WIN
     ::SetCursor((HCURSOR)cursorId);
     return true;
-#else
-    ASSERT(false);
-    return 0;
-#endif
 }
 
 } // namespace ui
+
+#endif // DUILIB_PLATFORM_WIN

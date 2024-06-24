@@ -1,5 +1,8 @@
 #include "ToolTip.h"
 #include "duilib/Core/WindowBase.h"
+
+#ifdef DUILIB_PLATFORM_WIN
+
 #include <CommCtrl.h>
 
 namespace ui
@@ -211,3 +214,5 @@ void ToolTip::ClearMouseTracking()
 }
 
 } // namespace ui
+
+#endif //DUILIB_PLATFORM_WIN
