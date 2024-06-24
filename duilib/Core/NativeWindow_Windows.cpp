@@ -1,7 +1,8 @@
 #include "NativeWindow_Windows.h"
 #include "duilib/Core/WindowBase.h"
-#include "duilib/Utils/ApiWrapper.h"
 #include "duilib/Render/IRender.h"
+
+#include "duilib/Utils/ApiWrapper_Windows.h"
 #include <CommCtrl.h>
 #include <Olectl.h>
 

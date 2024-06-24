@@ -5,7 +5,6 @@
 #include "duilib/Core/ColorManager.h"
 #include "duilib/Core/FontManager.h"
 #include "duilib/Core/ImageManager.h"
-#include "duilib/Core/IconManager.h"
 #include "duilib/Core/ZipManager.h"
 #include "duilib/Core/LangManager.h"
 #include "duilib/Core/DpiManager.h"
@@ -13,6 +12,10 @@
 #include "duilib/Core/ThreadManager.h"
 #include "duilib/Core/ResourceParam.h"
 #include "duilib/Core/CursorManager.h"
+
+#ifdef DUILIB_PLATFORM_WIN
+    #include "duilib/Core/IconManager_Windows.h"
+#endif
 
 #include <string>
 #include <vector>

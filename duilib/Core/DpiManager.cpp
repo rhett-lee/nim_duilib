@@ -1,7 +1,6 @@
 #include "DpiManager.h"
-#include "duilib/Core/Window.h"
-#include "duilib/Utils/ApiWrapper.h"
-#include <VersionHelpers.h>
+#include "duilib/Utils/MonitorUtil.h"
+
 
 namespace ui
 {
@@ -21,38 +20,6 @@ DpiManager::DpiManager():
 
 DpiManager::~DpiManager()
 {
-}
-
-uint32_t DpiManager::GetMainMonitorDPI()
-{
-    bool bOk = false;
-    uint32_t uDPI = 96;
-    if (::IsWindows10OrGreater()) {
-        if (GetDpiForSystemWrapper(uDPI)) {
-            bOk = true;
-        }
-    }
-    if (!bOk && ::IsWindows8OrGreater()) {
-        POINT pt = { 1, 1 };
-        HMONITOR hMonitor = ::MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
-        if (hMonitor != nullptr) {
-            uint32_t dpix = 96;
-            uint32_t dpiy = 96;
-            if (GetDpiForMonitorWrapper(hMonitor, MDT_EFFECTIVE_DPI, &dpix, &dpiy)) {
-                uDPI = dpix;
-                bOk = true;
-            }
-        }
-    }
-    if (!bOk) {
-        HDC desktopDc = ::GetDC(nullptr);
-        uDPI = (uint32_t)::GetDeviceCaps(desktopDc, LOGPIXELSX);
-        ::ReleaseDC(nullptr, desktopDc);
-    }
-    if (uDPI == 0) {
-        uDPI = 96;
-    }
-    return uDPI;
 }
 
 void DpiManager::InitDpiAwareness(const DpiInitParam& dpiInitParam)
@@ -111,39 +78,8 @@ bool DpiManager::IsPerMonitorDpiAware() const
 void DpiManager::SetDpiByWindow(const WindowBase* pWindow)
 {
     //读取窗口的DPI值
-    uint32_t uDPI = 0;
-    HWND hWnd = nullptr;
-    if (pWindow != nullptr) {
-        hWnd = pWindow->NativeWnd()->GetHWND();
-    }
-    if (hWnd != nullptr) {
-        if (::IsWindows10OrGreater()) {
-            if (!GetDpiForWindowWrapper(hWnd, uDPI)) {
-                uDPI = 0;
-            }
-        }
-    }
-    if ((uDPI == 0) && (hWnd != nullptr) && ::IsWindows8OrGreater()) {
-        HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
-        if (hMonitor == nullptr) {
-            hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTOPRIMARY);
-        }
-        if (hMonitor != nullptr) {
-            uint32_t dpix = 96;
-            uint32_t dpiy = 96;
-            if (GetDpiForMonitorWrapper(hMonitor, MDT_EFFECTIVE_DPI, &dpix, &dpiy)) {
-                uDPI = dpix;
-            }
-        }
-    }
-    if ((uDPI == 0) && (hWnd != nullptr)) {
-        HDC hDC = ::GetDC(hWnd);
-        if (hDC != nullptr) {
-            uDPI = (uint32_t)::GetDeviceCaps(hDC, LOGPIXELSX);
-            ::ReleaseDC(hWnd, hDC);
-        }        
-    }
-
+    uint32_t uDPI = MonitorUtil::GetWindowDpi(pWindow);
+    
     //从系统配置中读取默认的DPI值
     if (uDPI == 0) {
         DpiAwarenessMode dpiAwarenessMode = GetDpiAwareness();
@@ -151,7 +87,7 @@ void DpiManager::SetDpiByWindow(const WindowBase* pWindow)
             uDPI = DPI_96;
         }
         else {
-            uDPI = DpiManager::GetMainMonitorDPI();
+            uDPI = MonitorUtil::GetMainMonitorDPI();
         }
     }
     if (uDPI == 0) {

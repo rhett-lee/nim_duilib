@@ -4,6 +4,8 @@
 #include "duilib/duilib_defs.h"
 #include "duilib/Utils/Macros.h"
 
+#ifdef DUILIB_PLATFORM_WIN
+
 namespace ui
 {
     // DPI适配
@@ -42,5 +44,7 @@ namespace ui
     bool GetPointerPenInfoWrapper(UINT32 pointerId, POINTER_PEN_INFO *penInfo);
     bool EnableMouseInPointerWrapper(BOOL fEnable);
 }
+
+#endif //DUILIB_PLATFORM_WIN
 
 #endif //UI_UTILS_APIWRAPPER_H_

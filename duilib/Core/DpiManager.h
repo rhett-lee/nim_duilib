@@ -128,11 +128,6 @@ public:
     UiMargin GetScaleMargin(UiMargin margin, uint32_t nOldDpiScale) const;
 
 private:
-    /** 获取主显示器DPI，开启DPI感知后有效
-    * @return 返回 DPI值
-    */
-    uint32_t GetMainMonitorDPI();
-
     /** MulDiv 函数封装
     */
     int32_t MulDiv(int32_t nNumber, int32_t nNumerator, int32_t nDenominator) const;

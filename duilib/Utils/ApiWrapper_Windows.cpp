@@ -1,7 +1,9 @@
-#include "ApiWrapper.h"
+#include "ApiWrapper_Windows.h"
 
 namespace ui
 {
+
+#ifdef DUILIB_PLATFORM_WIN
 
 bool GetDpiForSystemWrapper(UINT& dpi)
 {
@@ -245,5 +247,7 @@ bool EnableMouseInPointerWrapper(BOOL fEnable)
 
     return false;
 }
+
+#endif //DUILIB_PLATFORM_WIN
 
 }

@@ -388,13 +388,14 @@
     <ClCompile Include="Core\ControlLoading.cpp" />
     <ClCompile Include="Core\CursorManager.cpp" />
     <ClCompile Include="Core\DpiAwareness.cpp" />
+    <ClCompile Include="Core\DpiAwareness_Windows.cpp" />
     <ClCompile Include="Core\DpiManager.cpp" />
     <ClCompile Include="Core\DragWindow.cpp" />
     <ClCompile Include="Core\EventArgs.cpp" />
     <ClCompile Include="Core\FontManager.cpp" />
     <ClCompile Include="Core\FrameworkThread.cpp" />
     <ClCompile Include="Core\GlobalManager.cpp" />
-    <ClCompile Include="Core\IconManager.cpp" />
+    <ClCompile Include="Core\IconManager_Windows.cpp" />
     <ClCompile Include="Core\ImageList.cpp" />
     <ClCompile Include="Core\ImageManager.cpp" />
     <ClCompile Include="Core\Keyboard.cpp" />
@@ -447,12 +448,13 @@
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">4244</DisableSpecificWarnings>
       <DisableSpecificWarnings Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4244</DisableSpecificWarnings>
     </ClCompile>
-    <ClCompile Include="Utils\ApiWrapper.cpp" />
+    <ClCompile Include="Utils\ApiWrapper_Windows.cpp" />
     <ClCompile Include="Utils\AttributeUtil.cpp" />
     <ClCompile Include="Utils\BitmapHepler.cpp" />
     <ClCompile Include="Utils\FileDialog.cpp" />
     <ClCompile Include="Utils\FileUtil.cpp" />
     <ClCompile Include="Utils\LogUtil.cpp" />
+    <ClCompile Include="Utils\MonitorUtil_Windows.cpp" />
     <ClCompile Include="Utils\PathUtil.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
     <ClCompile Include="Utils\ScreenCapture.cpp" />
@@ -540,7 +542,7 @@
     <ClInclude Include="Core\FontManager.h" />
     <ClInclude Include="Core\FrameworkThread.h" />
     <ClInclude Include="Core\GlobalManager.h" />
-    <ClInclude Include="Core\IconManager.h" />
+    <ClInclude Include="Core\IconManager_Windows.h" />
     <ClInclude Include="Core\ImageList.h" />
     <ClInclude Include="Core\ImageManager.h" />
     <ClInclude Include="Core\INativeWindow.h" />
@@ -615,13 +617,14 @@
     <ClInclude Include="third_party\xml\pugixml.hpp" />
     <ClInclude Include="third_party\zlib\contrib\minizip\ioapi.h" />
     <ClInclude Include="third_party\zlib\contrib\minizip\unzip.h" />
-    <ClInclude Include="Utils\ApiWrapper.h" />
+    <ClInclude Include="Utils\ApiWrapper_Windows.h" />
     <ClInclude Include="Utils\AttributeUtil.h" />
     <ClInclude Include="Utils\BitmapHelper.h" />
     <ClInclude Include="Utils\FileDialog.h" />
     <ClInclude Include="Utils\FileUtil.h" />
     <ClInclude Include="Utils\LogUtil.h" />
     <ClInclude Include="Utils\Macros.h" />
+    <ClInclude Include="Utils\MonitorUtil.h" />
     <ClInclude Include="Utils\PathUtil.h" />
     <ClInclude Include="Utils\PerformanceUtil.h" />
     <ClInclude Include="Utils\ScreenCapture.h" />

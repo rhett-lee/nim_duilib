@@ -81,9 +81,6 @@
     <ClCompile Include="Control\TreeView.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\ApiWrapper.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\StringUtil.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -258,9 +255,6 @@
     <ClCompile Include="Core\ControlLoading.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\IconManager.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Control\RichEditHost.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -375,9 +369,6 @@
     <ClCompile Include="Image\ImageGif.cpp">
       <Filter>Image</Filter>
     </ClCompile>
-    <ClCompile Include="Core\DpiAwareness.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\PathUtil.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -428,6 +419,21 @@
     </ClCompile>
     <ClCompile Include="RenderSkia\FontMgr_Skia.cpp">
       <Filter>RenderSkia</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\ApiWrapper_Windows.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DpiAwareness_Windows.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DpiAwareness.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\MonitorUtil_Windows.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\IconManager_Windows.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -487,9 +493,6 @@
     </ClInclude>
     <ClInclude Include="Render\IRender.h">
       <Filter>Render</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\ApiWrapper.h">
-      <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Utils\Delegate.h">
       <Filter>Utils</Filter>
@@ -731,9 +734,6 @@
     <ClInclude Include="Core\ControlLoading.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\IconManager.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Control\Split.h">
       <Filter>Control</Filter>
     </ClInclude>
@@ -949,6 +949,15 @@
     </ClInclude>
     <ClInclude Include="RenderSkia\FontMgr_Skia.h">
       <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ApiWrapper_Windows.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\MonitorUtil.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\IconManager_Windows.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
