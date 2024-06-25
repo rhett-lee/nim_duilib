@@ -86,6 +86,11 @@ public:
     */
     bool ReloadResource(const ResourceParam& resParam, bool bInvalidate = false);
 
+    /** 获取平台相关数据（可选参数，如不填写则使用默认值：nullptr）
+    *   Windows平台：是资源所在模块句柄（HMODULE），如果为nullptr，则使用所在exe的句柄（可选参数）
+    */
+    void* GetPlatformData() const;
+
     /** 设置字体文件所在路径
     */
     void SetFontFilePath(const DString& strPath);
@@ -269,6 +274,11 @@ private:
     /** 全局的资源路径，换肤的时候修改这个变量（绝对路径）
     */
     DString m_resourcePath;
+
+    /** 平台相关数据（可选参数，如不填写则使用默认值：nullptr）
+    *   Windows平台：是资源所在模块句柄（HMODULE），如果为nullptr，则使用所在exe的句柄（可选参数）
+    */
+    void* m_platformData;
 
     /** 全局字体文件路径（绝对路径）
     */

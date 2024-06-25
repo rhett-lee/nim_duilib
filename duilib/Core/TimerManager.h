@@ -2,6 +2,7 @@
 #define UI_CORE_TIMER_MANAGER_H_
 
 #include "duilib/Core/Callback.h"
+#include "duilib/Core/ThreadMessage.h"
 #include <queue>
 #include <set>
 #include <chrono>
@@ -19,7 +20,7 @@ class TimerInfo;
 
 /** 定时器管理器
 */
-class TimerManager
+class TimerManager: public SupportWeakCallback
 {
 public:
     TimerManager();
@@ -28,6 +29,12 @@ public:
     TimerManager& operator = (const TimerManager&) = delete;
 
 public:
+    /** 初始化
+    * @param [in] platformData 平台相关数据（可选参数，如不填写则使用默认值：nullptr）
+    * Windows平台：是资源所在模块句柄（HMODULE），如果为nullptr，则使用所在exe的句柄（可选参数）
+    */
+    void Initialize(void* platformData);
+
     /** 添加一个可取消的定时器
     * @param [in] weakFlag 定时器取消机制，如果weakFlag.expired()为true表示定时器已经取消，不会在继续派发定时器回调
     * @param [in] callback 定时器回调函数
@@ -50,10 +57,6 @@ public:
     void Clear();
 
 private:
-    /** 消息窗口函数
-    */
-    static LRESULT CALLBACK WndProcThunk(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
-
     /** 后台线程的线程函数
     */
     void WorkerThreadProc();
@@ -71,10 +74,11 @@ private:
     void ClearRemovedTimerId(size_t nTimerId);
 
 private:
-    /** 消息窗口句柄，用于在UI线程中派发定时器事件
+    /** 消息窗口函数
     */
-    HWND m_hMessageWnd;
+    void OnTimerMessage(uint32_t msgId, WPARAM wParam, LPARAM lParam);
 
+private:
     /** 所有注册的定时器
     */
     std::priority_queue<TimerInfo> m_aTimers;
@@ -103,6 +107,10 @@ private:
     /** 任务数据容器锁
     */
     std::mutex m_taskMutex;
+
+    /** 线程间通信机制（与主线程）
+    */
+    ThreadMessage m_threadMsg;
 };
 
 } // namespace ui

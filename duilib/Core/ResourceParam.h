@@ -47,6 +47,11 @@ public:
     */
     DString resourcePath;
 
+    /** 平台相关数据（可选参数，如不填写则使用默认值：nullptr）
+    *   Windows平台：是资源所在模块句柄（HMODULE），如果为nullptr，则使用所在exe的句柄（可选参数）
+    */
+    void* platformData = nullptr;
+
 public:
     /** 主题路径名称（相对路径）
     */

@@ -72,6 +72,6 @@ DString Keyboard::GetKeyName(LPARAM lParam)
     return keyName;
 }
 
-#endif // DUILIB_PLATFORM_WIN
-
 } // namespace ui
+
+#endif // DUILIB_PLATFORM_WIN

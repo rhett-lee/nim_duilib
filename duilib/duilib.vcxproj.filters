@@ -333,9 +333,6 @@
     <ClCompile Include="Control\PropertyGrid.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\FileDialog.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Control\TabCtrl.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -387,9 +384,6 @@
     <ClCompile Include="Core\ZipStreamIO.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\ScreenCapture.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Core\WindowBase.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -433,6 +427,18 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\CursorManager_Windows.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\ScreenCapture_Windows.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\FileDialog_Windows.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ThreadMessage_Windows.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\MessageLoop_Windows.cpp">
       <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
@@ -957,6 +963,12 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Core\IconManager_Windows.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ThreadMessage.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\MessageLoop.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,11 +2,14 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/LogUtil.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Core/WindowMessage.h"
+
+/** 自定义消息
+*/
+#define WM_USER_DEFINED_TIMER  (kWM_USER + 567)
 
 namespace ui 
 {
-
-#define WM_USER_DEFINED_TIMER    (WM_USER + 9999)
 
 /** 定时器的数据
 */
@@ -45,19 +48,10 @@ public:
     std::chrono::steady_clock::time_point trigerTime;
 };
 
-TimerManager::TimerManager() : 
-    m_hMessageWnd(nullptr),
+TimerManager::TimerManager():
     m_nNextTimerId(1),
     m_bRunning(false)
 {
-    auto hinst = ::GetModuleHandle(NULL);
-    WNDCLASSEXW wc = {0};
-    wc.cbSize = sizeof(wc);
-    wc.lpfnWndProc = WndProcThunk;
-    wc.hInstance = hinst;
-    wc.lpszClassName = _T("UI_ANIMATION_TIMERMANAGER_H_");
-    ::RegisterClassExW(&wc);
-    m_hMessageWnd = ::CreateWindowW(_T("UI_ANIMATION_TIMERMANAGER_H_"), 0, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hinst, 0);
 }
 
 TimerManager::~TimerManager()
@@ -65,13 +59,16 @@ TimerManager::~TimerManager()
     Clear();
 }
 
+void TimerManager::Initialize(void* platformData)
+{
+    m_threadMsg.Initialize(platformData);
+    m_threadMsg.SetMessageCallback(WM_USER_DEFINED_TIMER, UiBind(&TimerManager::OnTimerMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+}
+
 void TimerManager::Clear()
 {
     std::unique_lock<std::mutex> guard(m_taskMutex);
-    if (m_hMessageWnd != nullptr) {
-        ::DestroyWindow(m_hMessageWnd);
-        m_hMessageWnd = nullptr;
-    }
+    m_threadMsg.Clear();
     while (!m_aTimers.empty()) {
         m_aTimers.pop();
     }
@@ -138,6 +135,16 @@ bool TimerManager::IsTimerRemoved(size_t nTimerId) const
 void TimerManager::ClearRemovedTimerId(size_t nTimerId)
 {
     m_removedTimerIds.erase(nTimerId);
+}
+
+void TimerManager::OnTimerMessage(uint32_t msgId, WPARAM /*wParam*/, LPARAM /*lParam*/)
+{
+    ASSERT(msgId == WM_USER_DEFINED_TIMER);
+    if (msgId == WM_USER_DEFINED_TIMER) {
+        //LogUtil::OutputLine(StringUtil::Printf(_T("TimerManager::OnTimerMessage: received timer event")));
+        m_threadMsg.RemoveDuplicateMsg(WM_USER_DEFINED_TIMER);
+        Poll();
+    }    
 }
 
 void TimerManager::Poll()
@@ -223,8 +230,8 @@ void TimerManager::WorkerThreadProc()
                 //注意事项：发现gcc版本和glibc版本对wait_for都有问题（使用的时系统时间），gcc >=10 且 glibc >= 2.30 才会对程序行为没有影响。
                 m_cv.wait_for(taskGuard, std::chrono::milliseconds(nDetaTimeMs));
             }
-            //通知处理
-            ::PostMessage(m_hMessageWnd, WM_USER_DEFINED_TIMER, 0, 0);
+            //通知处理(发送到主线程执行)
+            m_threadMsg.PostMsg(WM_USER_DEFINED_TIMER, 0, 0);
             //LogUtil::OutputLine(StringUtil::Printf(_T("PostMessage: send timer event")));
             if (m_bRunning) {
                 m_cv.wait(taskGuard);
@@ -232,26 +239,6 @@ void TimerManager::WorkerThreadProc()
         }        
     }
     m_bRunning = false;
-}
-
-LRESULT TimerManager::WndProcThunk(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
-{
-    if (message == WM_USER_DEFINED_TIMER) {
-        //移除队列中多余的消息，避免队列中有大量无用的重复消息，导致无法处理鼠标键盘消息
-        MSG msg;
-        while (::PeekMessage(&msg, hwnd, WM_USER_DEFINED_TIMER, WM_USER_DEFINED_TIMER, PM_REMOVE)) {
-            if (msg.message == WM_QUIT) {
-                //检测到退出消息，重新放到消息队列中，避免进程退不出
-                ::PostQuitMessage(static_cast<int>(msg.wParam));
-                return ::DefWindowProcW(hwnd, message, wparam, lparam);
-            }
-            ASSERT(msg.message == WM_USER_DEFINED_TIMER);
-        }
-        //LogUtil::OutputLine(StringUtil::Printf(_T("WndProcThunk: received timer event")));
-        GlobalManager::Instance().Timer().Poll();
-        return 1;
-    }
-    return ::DefWindowProcW(hwnd, message, wparam, lparam);
 }
 
 }

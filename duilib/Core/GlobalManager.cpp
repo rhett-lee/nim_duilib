@@ -19,7 +19,8 @@ namespace ui
 
 GlobalManager::GlobalManager():
     m_dwUiThreadId(0),
-    m_pfnCreateControlCallback(nullptr)
+    m_pfnCreateControlCallback(nullptr),
+    m_platformData(nullptr)
 {
 }
 
@@ -45,12 +46,18 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     //记录当前线程ID
     m_dwUiThreadId = GetCurrentThreadId();
 
+    //记录平台相关数据
+    m_platformData = resParam.platformData;
+
     //保存回调函数
     m_pfnCreateControlCallback = callback;
 
     //初始化DPI感知模式，//初始化DPI值
     DpiManager& dpiManager = Dpi();
     dpiManager.InitDpiAwareness(dpiInitParam);
+
+    //初始化定时器
+    m_timerManager.Initialize(m_platformData);
 
     //Skia渲染引擎实现
     m_renderFactory = std::make_unique<RenderFactory_Skia>();    
@@ -95,6 +102,7 @@ void GlobalManager::Shutdown()
     m_languagePath.clear();
     m_fontFilePath.clear();
     m_builderMap.clear();
+    m_platformData = nullptr;
 }
 
 const DString& GlobalManager::GetResourcePath() const
@@ -105,6 +113,11 @@ const DString& GlobalManager::GetResourcePath() const
 void GlobalManager::SetResourcePath(const DString& strPath)
 {
     m_resourcePath = PathUtil::NormalizeDirPath(strPath);
+}
+
+void* GlobalManager::GetPlatformData() const
+{
+    return m_platformData;
 }
 
 void GlobalManager::SetFontFilePath(const DString& strPath)

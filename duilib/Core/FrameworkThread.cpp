@@ -1,12 +1,14 @@
 #include "FrameworkThread.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/WindowMessage.h"
+#include "duilib/Core/MessageLoop.h"
+
+/** 用户自定义消息
+*/
+#define WM_USER_DEFINED_MSG (kWM_USER + 568)
 
 namespace ui 
 {
-#ifdef DUILIB_PLATFORM_WIN
-    #define WM_USER_DEFINED_MSG    (WM_USER + 9998)
-#endif
-
 FrameworkThread::FrameworkThread(const DString& threadName, int32_t nThreadIdentifier):
     m_bThreadUI(false),
     m_bRunning(false),
@@ -14,9 +16,6 @@ FrameworkThread::FrameworkThread(const DString& threadName, int32_t nThreadIdent
     m_nThreadIdentifier(nThreadIdentifier),
     m_nNextTaskId(1)
 {
-#ifdef DUILIB_PLATFORM_WIN
-    m_hMessageWnd = nullptr;
-#endif
 }
 
 FrameworkThread::~FrameworkThread()
@@ -24,12 +23,7 @@ FrameworkThread::~FrameworkThread()
     if (m_nThreadIdentifier != kThreadNone) {
         GlobalManager::Instance().Thread().UnregisterThread(m_nThreadIdentifier);
     }
-#ifdef DUILIB_PLATFORM_WIN
-    if (m_hMessageWnd != nullptr) {
-        ::DestroyWindow(m_hMessageWnd);
-        m_hMessageWnd = nullptr;
-    }
-#endif
+    m_threadMsg.Clear();
     ASSERT(!m_bRunning);
     if (m_bRunning) {
         Stop();
@@ -49,39 +43,21 @@ bool FrameworkThread::RunOnCurrentThreadWithLoop()
     m_nThisThreadId = std::this_thread::get_id();    
     m_bThreadUI = true;
 
-    //创建消息窗口
-#ifdef DUILIB_PLATFORM_WIN
-    auto hinst = ::GetModuleHandle(NULL);
-    WNDCLASSEXW wc = { 0 };
-    wc.cbSize = sizeof(wc);
-    wc.lpfnWndProc = WndMsgProc;
-    wc.hInstance = hinst;
-    wc.lpszClassName = _T("duilib_FrameworkThread");
-    ::RegisterClassExW(&wc);
-    m_hMessageWnd = ::CreateWindowW(_T("duilib_FrameworkThread"), 0, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hinst, 0);
-    ASSERT(m_hMessageWnd != nullptr);
-    ::SetWindowLongPtr(m_hMessageWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(this));
-#endif
+    //初始化与主线程通信的机制
+    m_threadMsg.Initialize(GlobalManager::Instance().GetPlatformData());
+    m_threadMsg.SetMessageCallback(WM_USER_DEFINED_MSG, UiBind(&FrameworkThread::OnTaskMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     OnInit();
 
-    MSG msg = {0, };
-    while (::GetMessage(&msg, 0, 0, 0) > 0) {
-        ::TranslateMessage(&msg);
-        ::DispatchMessage(&msg);
-    }
+    MessageLoop msgLoop;
+    msgLoop.Run();
 
     OnCleanup();
     if (m_nThreadIdentifier != kThreadNone) {
         GlobalManager::Instance().Thread().UnregisterThread(m_nThreadIdentifier);
     }
     m_bThreadUI = false;    
-#ifdef DUILIB_PLATFORM_WIN
-    if (m_hMessageWnd != nullptr) {
-        ::DestroyWindow(m_hMessageWnd);
-        m_hMessageWnd = nullptr;
-    }
-#endif
+    m_threadMsg.Clear();
     m_bRunning = false;
     return true;
 }
@@ -230,16 +206,8 @@ bool FrameworkThread::CancelTask(size_t nTaskId)
 bool FrameworkThread::NotifyExecTask(size_t nTaskId)
 {
     if (IsUIThread()) {
-        //UI线程
-#ifdef DUILIB_PLATFORM_WIN
-        ASSERT(m_hMessageWnd != nullptr);
-        if (m_hMessageWnd == nullptr) {
-            return false;
-        }
-        return ::PostMessage(m_hMessageWnd, WM_USER_DEFINED_MSG, nTaskId, 0) != FALSE;
-#else
-        ASSERT(false);
-#endif
+        //UI线程: 异步执行
+        return m_threadMsg.PostMsg(WM_USER_DEFINED_MSG, nTaskId, 0);
     }
     else {
         //后台工作线程
@@ -247,7 +215,7 @@ bool FrameworkThread::NotifyExecTask(size_t nTaskId)
         m_penddingTaskIds.push_back(nTaskId);
         m_cv.notify_one();
         return true;
-    }
+    }    
 }
 
 void FrameworkThread::ExecTask(size_t nTaskId)
@@ -288,21 +256,13 @@ void FrameworkThread::ExecTask(size_t nTaskId)
     }
 }
 
-#ifdef DUILIB_PLATFORM_WIN
-
-LRESULT FrameworkThread::WndMsgProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam)
+void FrameworkThread::OnTaskMessage(uint32_t msgId, WPARAM wParam, LPARAM /*lParam*/)
 {
-    if (message == WM_USER_DEFINED_MSG) {
-        FrameworkThread* pThis = reinterpret_cast<FrameworkThread*>(::GetWindowLongPtr(hwnd, GWLP_USERDATA));
-        if (pThis != nullptr) {
-            pThis->ExecTask((size_t)wparam);
-        }        
-        return 1;
+    ASSERT(msgId == WM_USER_DEFINED_MSG);
+    if (msgId == WM_USER_DEFINED_MSG) {
+        ExecTask((size_t)wParam);
     }
-    return ::DefWindowProcW(hwnd, message, wparam, lparam);
 }
-
-#endif
 
 void FrameworkThread::WorkerThreadProc()
 {

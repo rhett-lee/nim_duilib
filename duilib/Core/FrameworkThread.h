@@ -1,6 +1,7 @@
 #ifndef UI_CORE_FRAMEWORK_THREAD_H_
 #define UI_CORE_FRAMEWORK_THREAD_H_
 
+#include "duilib/Core/ThreadMessage.h"
 #include "duilib/Core/Callback.h"
 #include <thread>
 #include <mutex>
@@ -96,12 +97,6 @@ protected:
     virtual void OnCleanup();
 
 private:
-#ifdef DUILIB_PLATFORM_WIN
-    /** 消息窗口函数
-    */
-    static LRESULT CALLBACK WndMsgProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam);
-#endif
-
     /** 后台线程的线程函数
     */
     void WorkerThreadProc();
@@ -113,6 +108,10 @@ private:
     /** 执行任务
     */
     void ExecTask(size_t nTaskId);
+
+    /** 消息函数
+    */
+    void OnTaskMessage(uint32_t msgId, WPARAM wParam, LPARAM lParam);
 
 private:
     /** 任务类型
@@ -174,12 +173,6 @@ private:
     volatile bool m_bRunning;
 
 private:
-#ifdef DUILIB_PLATFORM_WIN
-    /** 消息窗口句柄，用于在UI线程中派发定时器事件
-    */
-    HWND m_hMessageWnd;
-#endif
-
     /** 后台线程
     */
     std::unique_ptr<std::thread> m_pWorkerThread;
@@ -195,6 +188,10 @@ private:
     /** 等待任务ID容器锁
     */
     std::mutex m_penddingTaskMutex;
+
+    /** 与主线程通信的机制
+    */
+    ThreadMessage m_threadMsg;
 };
 
 }

@@ -1,6 +1,8 @@
 #include "ScreenCapture.h"
 #include "duilib/Core/GlobalManager.h"
 
+#ifdef DUILIB_PLATFORM_WIN
+
 namespace ui
 {
 /** 创建位图
@@ -91,3 +93,5 @@ std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(const Window* pWindow)
 }
 
 } // namespace ui
+
+#endif //DUILIB_PLATFORM_WIN

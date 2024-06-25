@@ -49,8 +49,8 @@ public:
 
 private:
     //内部实现
-    class ToolTipImpl;
-    ToolTipImpl* m_impl;
+    class TImpl;
+    TImpl* m_impl;
 };
 
 } // namespace ui
