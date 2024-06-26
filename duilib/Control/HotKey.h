@@ -72,10 +72,6 @@ protected:
     virtual void OnInit() override;
 
 private:
-    /** 默认显示的文字
-    */
-    UiString m_defaultText;
-
     /** 编辑框控件的接口
     */
     HotKeyRichEdit* m_pRichEdit;

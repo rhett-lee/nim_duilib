@@ -192,7 +192,12 @@ private:
 HotKey::HotKey(Window* pWindow):
     HBox(pWindow)
 {
+    ASSERT(pWindow != nullptr);
     m_pRichEdit = new HotKeyRichEdit(pWindow);
+    m_pRichEdit->SetAttribute(_T("text_align"), _T("vcenter,hcenter"));
+    m_pRichEdit->SetAttribute(_T("want_tab"), _T("false"));
+    m_pRichEdit->SetAttribute(_T("width"), _T("100%"));
+    m_pRichEdit->SetAttribute(_T("height"), _T("100%"));
 }
 
 HotKey::~HotKey()
@@ -210,7 +215,10 @@ DString HotKey::GetType() const { return DUI_CTR_HOTKEY; }
 void HotKey::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("default_text")) {
-        m_defaultText = strValue;
+        if (m_pRichEdit != nullptr) {
+            m_pRichEdit->SetDefaultText(strValue);
+            m_pRichEdit->SetText(strValue);
+        }
     }
     else {
         __super::SetAttribute(strName, strValue);
@@ -228,16 +236,7 @@ void HotKey::OnInit()
     if (pRichEdit == nullptr) {
         return;
     }
-    pRichEdit->SetWindow(GetWindow());
-    pRichEdit->SetDefaultText(m_defaultText.c_str());    
-    pRichEdit->SetAttribute(_T("text_align"), _T("vcenter,hcenter"));
-    pRichEdit->SetAttribute(_T("want_tab"), _T("false"));
-    pRichEdit->SetAttribute(_T("width"), _T("100%"));
-    pRichEdit->SetAttribute(_T("height"), _T("100%"));
     AddItem(pRichEdit);
-
-    //设置文本
-	pRichEdit->SetText(m_defaultText.c_str());
 
     //以RichEdit控件的焦点作为整个控件的焦点
     pRichEdit->AttachSetFocus([this](const EventArgs&) {

@@ -88,7 +88,7 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight,
     }
 
     LPVOID pBits = nullptr;
-    HBITMAP hBitmap = CreateBitmap(nWidth, nHeight, flipHeight, &pBits);
+    HBITMAP hBitmap = CreateHBitmap(nWidth, nHeight, flipHeight, &pBits);
     if (hBitmap == nullptr) {
         return false;
     }
@@ -194,7 +194,7 @@ HBITMAP Bitmap_Skia::GetHBitmap() const
     return m_hBitmap; 
 }
 
-HBITMAP Bitmap_Skia::CreateBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits)
+HBITMAP Bitmap_Skia::CreateHBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits)
 {
     ASSERT((nWidth > 0) && (nHeight > 0));
     if (nWidth == 0 || nHeight == 0) {

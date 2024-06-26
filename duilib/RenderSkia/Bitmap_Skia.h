@@ -76,7 +76,7 @@ public:
     /** 创建一个设备无关的位图
     *@return 返回位图句柄，由调用方释放位图资源
     */
-    static HBITMAP CreateBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits);
+    static HBITMAP CreateHBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits);
 
 private:
     /** 更新图片的透明通道标志

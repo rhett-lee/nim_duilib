@@ -91,10 +91,11 @@ void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
     for (int i = nTop; i < nBottom; i++) {
         for (int j = nLeft; j < nRight; j++) {
             uint8_t* a = (uint8_t*)(pBmpBits + i * m_nWidth + j) + 3;
-
-            if (((j >= rcShadowPadding.left && j < m_nWidth - rcShadowPadding.right)
-                || (i >= rcShadowPadding.top && i < m_nHeight - rcShadowPadding.bottom))) {
+            if (((j >= rcShadowPadding.left && j < m_nWidth - rcShadowPadding.right) ||
+                 (i >= rcShadowPadding.top && i < m_nHeight - rcShadowPadding.bottom))) {
+                if (*a != 255) {
                     *a = 255;
+                }
             }
         }
     }

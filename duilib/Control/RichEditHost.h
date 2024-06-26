@@ -294,7 +294,7 @@ private:
     SIZEL m_sizelExtent;        // Extent array
     
     CHARFORMAT2 m_charFormat;  //文字的字体
-    PARAFORMAT2    m_paraFormat;    //段落格式
+    PARAFORMAT2 m_paraFormat;    //段落格式
     WCHAR m_chPasswordChar;        // Password character
     bool m_bShowPassword;       //是否显示密码
     bool m_bFlashPasswordChar;  //短暂的显示密码字符，然后再隐藏

@@ -110,8 +110,9 @@ RichEditHost::RichEditHost(RichEdit* pRichEdit) :
     m_chPasswordChar(0),
     m_bShowPassword(false),
     m_bFlashPasswordChar(false)
-
 {
+    m_charFormat.cbSize = sizeof(CHARFORMAT2);
+    m_paraFormat.cbSize = sizeof(PARAFORMAT2);
     Init();
 }
 
@@ -1266,9 +1267,9 @@ void RichEditHost::InitCharFormat(const LOGFONT& lf)
     }
     LONG lfHeight = lf.lfHeight * LY_PER_INCH / yPixPerInch;
 
-    m_charFormat = {0, };
+    memset(&m_charFormat, 0, sizeof(CHARFORMAT2W));
     m_charFormat.cbSize = sizeof(CHARFORMAT2W);
-    m_charFormat.dwMask = CFM_SIZE | CFM_OFFSET | CFM_FACE | CFM_CHARSET | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT;
+    m_charFormat.dwMask = CFM_SIZE | CFM_FACE | CFM_CHARSET | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT;
     m_charFormat.yHeight = -lfHeight;
     if (lf.lfWeight >= FW_BOLD) {
         m_charFormat.dwEffects |= CFE_BOLD;
