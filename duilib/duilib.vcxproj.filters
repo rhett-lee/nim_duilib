@@ -129,9 +129,6 @@
     <ClCompile Include="Utils\PerformanceUtil.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\ShadowWnd.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Render\AutoClip.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -440,6 +437,9 @@
     </ClCompile>
     <ClCompile Include="Core\MessageLoop_Windows.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\ShadowWnd_Windows.cpp">
+      <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -2,6 +2,8 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Shadow.h"
 
+#ifdef DUILIB_PLATFORM_WIN
+
 namespace ui {
 
 /**@brief 一个附加到基础窗口周围的窗口，带有 WS_EX_LAYERED 属性来实现阴影
@@ -177,3 +179,5 @@ void ShadowWnd::InitShadow()
 }
 
 } // namespace ui
+
+#endif //DUILIB_PLATFORM_WIN
