@@ -231,15 +231,20 @@ namespace ui
         kGifFrameLast    = 2    // 最后一帧
     };
 
-    //光标
-    enum CursorType
+    //光标: Windows平台可参考：https://learn.microsoft.com/zh-cn/windows/win32/menurc/about-cursors
+    enum class CursorType : uint8_t
     {
-        kCursorArrow,       // 箭头
-        kCursorHand,        // 手型
-        kCursorHandIbeam,   // “I”形状
-        kCursorSizeWE,      // 左右拖动
-        kCursorSizeNS,      // 上下拖动
-        kCursorWait         // 等待
+        kCursorArrow,       // 箭头, 正常选择, XML文件中的名字："arrow"
+        kCursorIBeam,       // “I”形状, 文本选择, XML文件中的名字："ibeam"
+        kCursorHand,        // 手型, 链接选择, XML文件中的名字："hand"
+        kCursorWait,        // 忙碌, XML文件中的名字："wait"
+        kCursorCross,       // 精度选择, XML文件中的名字："cross"
+        kCursorSizeWE,      // 水平调整大小, XML文件中的名字："size_we"
+        kCursorSizeNS,      // 垂直调整大小, XML文件中的名字："size_ns"
+        kCursorSizeNWSE,    // 对角线调整大小 1, XML文件中的名字："size_nwse"
+        kCursorSizeNESW,    // 对角线调整大小 2, XML文件中的名字： "size_nesw"
+        kCursorSizeAll,     // 移动, XML文件中的名字："size_all"
+        kCursorNo           // 不可用, XML文件中的名字："no"
     };
 
     //定义所有消息类型

@@ -621,12 +621,12 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
         return;
     }
     else if (msg.eventType == kEventSetCursor) {
-        if (GetCursorType() == kCursorHand) {
-            SetCursor(kCursorHand);
+        if (GetCursorType() == CursorType::kCursorHand) {
+            SetCursor(CursorType::kCursorHand);
             return;
         }
-        else if (GetCursorType() == kCursorArrow){
-            SetCursor(kCursorArrow);
+        else if (GetCursorType() == CursorType::kCursorArrow){
+            SetCursor(CursorType::kCursorArrow);
             return;
         }
         else {

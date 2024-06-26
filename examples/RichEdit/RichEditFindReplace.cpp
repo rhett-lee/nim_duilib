@@ -308,7 +308,7 @@ void RichEditFindReplace::OnTextNotFound(const DString& findText)
 void RichEditFindReplace::OnReplaceAllCoreBegin()
 {
     m_nOldCursor = ui::GlobalManager::Instance().Cursor().GetCursorID();
-    ui::GlobalManager::Instance().Cursor().SetCursor(ui::kCursorWait);    
+    ui::GlobalManager::Instance().Cursor().SetCursor(ui::CursorType::kCursorWait);
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->HideSelection(true, false);
     }

@@ -293,7 +293,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
         return;
     }
     if ((msg.eventType == kEventSetCursor)) {
-        SetCursor(kCursorHandIbeam);
+        SetCursor(CursorType::kCursorIBeam);
         return;
     }
     if (msg.eventType == kEventWindowSize) {

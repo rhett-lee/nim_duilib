@@ -9,6 +9,8 @@ namespace ui {
 */
 typedef std::size_t CursorID;
 
+class Window;
+
 /** 设置光标
 */
 class UILIB_API CursorManager
@@ -23,9 +25,10 @@ public:
     bool SetCursor(CursorType cursorType);
 
     /** 设置图片为光标
+    * @param [in] pWindow 关联的窗口
     * @param [in] imagePath 光标图片的路径（后缀名为.cur）
     */
-    bool SetImageCursor(const DString& imagePath);
+    bool SetImageCursor(const Window* pWindow, const DString& curImagePath);
 
     /** 显示或者光标光标
     * @param [in] bShow true表示显示光标，false表示隐藏光标

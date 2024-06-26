@@ -29,7 +29,7 @@ Control::Control(Window* pWindow) :
     m_cxyBorderRound(),
     m_rcPaint(),
     m_rcBorderSize(),
-    m_cursorType(kCursorArrow),
+    m_cursorType(CursorType::kCursorArrow),
     m_controlState(kControlStateNormal),
     m_nTooltipWidth(300),
     m_nAlpha(255),
@@ -252,19 +252,37 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if ((strName == _T("cursor_type")) || (strName == _T("cursortype"))) {
         if (strValue == _T("arrow")) {
-            SetCursorType(kCursorArrow);
-        }
-        else if (strValue == _T("hand")) {
-            SetCursorType(kCursorHand);
+            SetCursorType(CursorType::kCursorArrow);
         }
         else if (strValue == _T("ibeam")) {
-            SetCursorType(kCursorHandIbeam);
+            SetCursorType(CursorType::kCursorIBeam);
         }
-        else if (strValue == _T("sizewe")) {
-            SetCursorType(kCursorSizeWE);
+        else if (strValue == _T("hand")) {
+            SetCursorType(CursorType::kCursorHand);
         }
-        else if (strValue == _T("sizens")) {
-            SetCursorType(kCursorSizeNS);
+        else if (strValue == _T("wait")) {
+            SetCursorType(CursorType::kCursorWait);
+        }
+        else if (strValue == _T("cross")) {
+            SetCursorType(CursorType::kCursorCross);
+        }
+        else if (strValue == _T("size_we")) {
+            SetCursorType(CursorType::kCursorSizeWE);
+        }
+        else if (strValue == _T("size_ns")) {
+            SetCursorType(CursorType::kCursorSizeNS);
+        }
+        else if (strValue == _T("size_nwse")) {
+            SetCursorType(CursorType::kCursorSizeNWSE);
+        }
+        else if (strValue == _T("size_nesw")) {
+            SetCursorType(CursorType::kCursorSizeNESW);
+        }
+        else if (strValue == _T("size_all")) {
+            SetCursorType(CursorType::kCursorSizeAll);
+        }
+        else if (strValue == _T("no")) {
+            SetCursorType(CursorType::kCursorNo);
         }
         else {
             ASSERT(FALSE);
@@ -1188,12 +1206,12 @@ void Control::SetBoxShadow(const DString& strShadow)
 
 CursorType Control::GetCursorType() const
 {
-    return static_cast<CursorType>(m_cursorType);
+    return m_cursorType;
 }
 
 void Control::SetCursorType(CursorType cursorType)
 {
-    m_cursorType = TruncateToInt8(cursorType);
+    m_cursorType = cursorType;
 }
 
 DString Control::GetToolTipText() const
@@ -2005,28 +2023,20 @@ bool Control::OnKeyUp(const EventArgs& /*msg*/)
 
 bool Control::OnSetCursor(const EventArgs& /*msg*/)
 {
-    if (m_cursorType == kCursorHand) {
-        if (IsEnabled()) {
-            SetCursor(kCursorHand);
+    switch (m_cursorType) {
+    case CursorType::kCursorHand:
+        {
+            if (IsEnabled()) {
+                SetCursor(CursorType::kCursorHand);
+            }
+            else {
+                SetCursor(CursorType::kCursorArrow);
+            }
         }
-        else {
-            SetCursor(kCursorArrow);
-        }
-    }
-    else if (m_cursorType == kCursorArrow) {
-        SetCursor(kCursorArrow);
-    }
-    else if (m_cursorType == kCursorHandIbeam) {
-        SetCursor(kCursorHandIbeam);
-    }
-    else if (m_cursorType == kCursorSizeWE) {
-        SetCursor(kCursorSizeWE);
-    }
-    else if (m_cursorType == kCursorSizeNS) {
-        SetCursor(kCursorSizeNS);
-    }
-    else {
-        return false;
+        break;
+    default:
+        SetCursor(m_cursorType);
+        break;
     }
     return true;
 }

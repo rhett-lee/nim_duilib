@@ -333,6 +333,18 @@ public:
         m_selColor = UiColor();
     }
 
+    /** 设置控件指定属性
+     */
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override
+    {
+        if (strName == _T("cursor_file")) {
+            m_cursorFile = strValue;
+        }
+        else {
+            __super::SetAttribute(strName, strValue);
+        }
+    }
+
     /** 设置屏幕位图
     */
     void SetBitmap(const std::shared_ptr<IBitmap>& spBitmap)
@@ -391,9 +403,8 @@ private:
         if (m_cursorId != 0) {
             GlobalManager::Instance().Cursor().SetCursorByID(m_cursorId);
         }
-        else {
-            DString cursorPath = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), _T("public\\color\\dropcur.cur"));
-            if (GlobalManager::Instance().Cursor().SetImageCursor(cursorPath)) {
+        else if (!m_cursorFile.empty()) {
+            if (GlobalManager::Instance().Cursor().SetImageCursor(GetWindow(), m_cursorFile.c_str())) {
                 m_cursorId = GlobalManager::Instance().Cursor().GetCursorID();
             }
         }
@@ -581,6 +592,10 @@ private:
     /** 光标ID
     */
     CursorID m_cursorId;
+
+    /** 光标的文件名
+    */
+    UiString m_cursorFile;
 
     /** 屏幕位图
     */

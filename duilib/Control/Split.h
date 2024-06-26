@@ -189,14 +189,14 @@ bool SplitTemplate<InheritType>::MouseEnter(const EventArgs& msg)
 {
     if (IsHLayout(this->GetParent())) {
         //横向布局
-        if (this->GetCursorType() != kCursorSizeWE) {
-            this->SetCursorType(kCursorSizeWE);
+        if (this->GetCursorType() != CursorType::kCursorSizeWE) {
+            this->SetCursorType(CursorType::kCursorSizeWE);
         }
     }
     else if (IsVLayout(this->GetParent())) {
         //纵向布局
-        if (this->GetCursorType() != kCursorSizeNS) {
-            this->SetCursorType(kCursorSizeNS);
+        if (this->GetCursorType() != CursorType::kCursorSizeNS) {
+            this->SetCursorType(CursorType::kCursorSizeNS);
         }
     }
     return __super::MouseEnter(msg);

@@ -539,7 +539,7 @@ void Combo::SetComboType(ComboType comboType)
             //设置为只读，不显示光标
             m_pEditControl->SetReadOnly(true);
             m_pEditControl->SetNoCaretReadonly();
-            m_pEditControl->SetCursorType(kCursorArrow);
+            m_pEditControl->SetCursorType(CursorType::kCursorArrow);
             m_pEditControl->SetUseControlCursor(true);
         }
     }

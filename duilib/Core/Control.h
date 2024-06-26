@@ -1330,7 +1330,7 @@ private:
     bool m_bAllowTabstop;
 
     //控件的光标类型(CursorType)
-    int8_t m_cursorType;
+    CursorType m_cursorType;
 
     //是否显示焦点状态(一个虚线构成的矩形)
     bool m_bShowFocusRect;

@@ -2,7 +2,7 @@
 <Window size="400,300" shadowattached="false" layered_window="false">
     <Box>
         <!-- 从屏幕获取颜色的控件 -->
-        <ScreenColorPicker name="screen_color_picker"/>
+        <ScreenColorPicker name="screen_color_picker" cursor_file="../public/color/dropcur.cur"/>
         <ScreenColorPreview name="screen_color_preview" width="160" height="160" border_size="2" border_color="gray" bkcolor="white"/>
     </Box>
 </Window>

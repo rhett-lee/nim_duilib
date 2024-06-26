@@ -1,4 +1,8 @@
 #include "CursorManager.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Utils/PathUtil.h"
+#include "duilib/Utils/ApiWrapper_Windows.h"
 #include <map>
 
 #ifdef DUILIB_PLATFORM_WIN
@@ -46,24 +50,39 @@ bool CursorManager::SetCursor(CursorType cursorType)
 {
     bool bRet = true;
     switch (cursorType) {
-    case kCursorArrow:
+    case CursorType::kCursorArrow:
         ::SetCursor(::LoadCursor(NULL, IDC_ARROW));
         break;
-    case kCursorHand:
-        ::SetCursor(::LoadCursor(NULL, IDC_HAND));
-        break;
-    case kCursorHandIbeam:
+    case CursorType::kCursorIBeam:
         ::SetCursor(::LoadCursor(NULL, IDC_IBEAM));
         break;
-    case kCursorSizeWE:
-        ::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
+    case CursorType::kCursorHand:
+        ::SetCursor(::LoadCursor(NULL, IDC_HAND));
         break;
-    case kCursorSizeNS:
-        ::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
-        break;
-    case kCursorWait:
+    case CursorType::kCursorWait:
         ::SetCursor(::LoadCursor(NULL, IDC_WAIT));
         break;
+    case CursorType::kCursorCross:
+        ::SetCursor(::LoadCursor(NULL, IDC_CROSS));
+        break;
+    case CursorType::kCursorSizeWE:
+        ::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
+        break;
+    case CursorType::kCursorSizeNS:
+        ::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
+        break;
+    case CursorType::kCursorSizeNWSE:
+        ::SetCursor(::LoadCursor(NULL, IDC_SIZENWSE));
+        break;
+    case CursorType::kCursorSizeNESW:
+        ::SetCursor(::LoadCursor(NULL, IDC_SIZENESW));
+        break;
+    case CursorType::kCursorSizeAll:
+        ::SetCursor(::LoadCursor(NULL, IDC_SIZEALL));
+        break;    
+    case CursorType::kCursorNo:
+        ::SetCursor(::LoadCursor(NULL, IDC_NO));
+        break;    
     default:
         bRet = false;
         break;
@@ -71,23 +90,139 @@ bool CursorManager::SetCursor(CursorType cursorType)
     return bRet;
 }
 
-bool CursorManager::SetImageCursor(const DString& imagePath)
+/** 从内存数据中加载光标
+*/
+HCURSOR LoadCursorFromData(const Window* pWindow, std::vector<uint8_t>& fileData)
 {
-    ASSERT(!imagePath.empty());
-
-    HCURSOR hCursor = nullptr;
-    auto iter = m_impl->m_cursorMap.find(imagePath);
-    if (iter != m_impl->m_cursorMap.end()) {
-        hCursor = iter->second;
-        ASSERT(hCursor != nullptr);
+    if (fileData.empty() || (pWindow == nullptr)) {
+        return nullptr;
     }
-    else {
-        hCursor = (HCURSOR)::LoadImage(NULL, imagePath.c_str(), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
-        ASSERT(hCursor != nullptr);
-        if (hCursor != nullptr) {
-            m_impl->m_cursorMap[imagePath] = hCursor;
+    const size_t fileDataSize = fileData.size();
+    
+    //Little Endian Only
+    int16_t test = 1;
+    bool bLittleEndianHost = (*((char*)&test) == 1);
+    ASSERT(bLittleEndianHost);
+
+    bool bValidIcoFile = false;
+    fileData.resize(fileData.size() + 1024); //填充空白
+    typedef struct tagIconDir {
+        uint16_t idReserved;
+        uint16_t idType;
+        uint16_t idCount;
+    } ICONHEADER;
+    typedef struct tagIconDirectoryEntry {
+        uint8_t  bWidth;
+        uint8_t  bHeight;
+        uint8_t  bColorCount;
+        uint8_t  bReserved;
+        uint16_t  wPlanes;
+        uint16_t  wBitCount;
+        uint32_t dwBytesInRes;
+        uint32_t dwImageOffset;
+    } ICONDIRENTRY;
+
+    ICONHEADER* icon_header = (ICONHEADER*)fileData.data();
+    if ((icon_header->idReserved == 0) && (icon_header->idType == 2)) {
+        bValidIcoFile = true;
+        for (int32_t c = 0; c < icon_header->idCount; ++c) {
+            size_t nDataOffset = sizeof(ICONHEADER) + sizeof(ICONDIRENTRY) * c;
+            if (nDataOffset >= fileData.size()) {
+                bValidIcoFile = false;
+                break;
+            }
+            ICONDIRENTRY* pIconDir = (ICONDIRENTRY*)((uint8_t*)fileData.data() + nDataOffset);
+            if (pIconDir->dwImageOffset >= fileDataSize) {
+                bValidIcoFile = false;
+                break;
+            }
+            else if ((pIconDir->dwImageOffset + pIconDir->dwBytesInRes) > fileDataSize) {
+                bValidIcoFile = false;
+                break;
+            }
         }
     }
+    ASSERT(bValidIcoFile);
+    if (!bValidIcoFile) {
+        return nullptr;
+    }
+
+    BOOL fIcon = TRUE; //按逻辑应该设置为FALSE, 但不知为何设置为FALSE时是失败的
+    HICON hIcon = nullptr;
+    uint32_t uDpi = pWindow->Dpi().GetDPI();
+    int32_t cxCursor = GetSystemMetricsForDpiWrapper(SM_CXCURSOR, uDpi);
+    int32_t cyCursor = GetSystemMetricsForDpiWrapper(SM_CYCURSOR, uDpi);
+    int32_t offset = ::LookupIconIdFromDirectoryEx((PBYTE)fileData.data(), fIcon, cxCursor, cyCursor, LR_DEFAULTCOLOR);
+    if (offset > 0) {
+        hIcon = ::CreateIconFromResourceEx((PBYTE)fileData.data() + offset, (DWORD)fileDataSize - (DWORD)offset, fIcon, 0x00030000, cxCursor, cyCursor, LR_DEFAULTCOLOR);
+    }
+    ASSERT(hIcon != nullptr);
+    return (HCURSOR)hIcon;
+}
+
+bool CursorManager::SetImageCursor(const Window* pWindow, const DString& curImagePath)
+{
+    ASSERT(!curImagePath.empty());
+    ASSERT(pWindow != nullptr);
+    if ((pWindow == nullptr) || curImagePath.empty()) {
+        return false;
+    }
+
+    //设置窗口图标
+    const DString windowResFullPath = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), pWindow->GetResourcePath());
+    DString cursorFullPath = PathUtil::JoinFilePath(windowResFullPath, curImagePath);
+    cursorFullPath = PathUtil::NormalizeFilePath(cursorFullPath);
+    if (GlobalManager::Instance().Zip().IsUseZip()) {
+        //使用压缩包
+        if (!GlobalManager::Instance().Zip().IsZipResExist(cursorFullPath)) {
+            ASSERT(false);
+            return false;
+        }
+    }
+    else {
+        //使用本地文件
+        if (!PathUtil::IsExistsPath(cursorFullPath)) {
+            ASSERT(false);
+            return false;
+        }
+    }
+
+    HCURSOR hCursor = nullptr;
+    auto iter = m_impl->m_cursorMap.find(cursorFullPath);
+    if (iter != m_impl->m_cursorMap.end()) {
+        hCursor = iter->second;
+    }
+    else {
+        //加载光标
+        if (GlobalManager::Instance().Zip().IsUseZip()) {
+            //使用压缩包
+            if (GlobalManager::Instance().Zip().IsZipResExist(cursorFullPath)) {
+                std::vector<uint8_t> fileData;
+                GlobalManager::Instance().Zip().GetZipData(cursorFullPath, fileData);
+                ASSERT(!fileData.empty());
+                if (!fileData.empty()) {
+                    //从内存中加载光标
+                    hCursor = LoadCursorFromData(pWindow, fileData);
+                    ASSERT(hCursor != nullptr);
+                    if (hCursor != nullptr) {
+                        m_impl->m_cursorMap[cursorFullPath] = hCursor;
+                    }
+                }
+            }
+            else {
+                ASSERT(false);
+            }
+        }
+        else {
+            //使用本地文件
+            hCursor = (HCURSOR)::LoadImage(NULL, cursorFullPath.c_str(), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+            ASSERT(hCursor != nullptr);
+            if (hCursor != nullptr) {
+                m_impl->m_cursorMap[cursorFullPath] = hCursor;
+            }
+        }
+    }
+    ASSERT(hCursor != nullptr);
     if (hCursor != nullptr) {
         ::SetCursor(hCursor);
         return true;
