@@ -46,7 +46,6 @@ void MainThread::OnInit()
     MainForm* pWindow = new MainForm();
     pWindow->CreateWnd(nullptr, ui::WindowCreateParam(_T("ListCtrl控件测试程序")));
     pWindow->PostQuitMsgWhenClosed(true);
-    pWindow->SetIcon(IDI_LISTCTRL);
     pWindow->CenterWindow();
     pWindow->ShowWindow(ui::kSW_SHOW_NORMAL);
 }

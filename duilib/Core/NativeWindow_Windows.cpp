@@ -609,21 +609,123 @@ bool NativeWindow::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHei
     return ::MoveWindow(m_hWnd, X, Y, nWidth, nHeight, bRepaint ? TRUE : FALSE) != FALSE;
 }
 
-void NativeWindow::SetIcon(UINT nRes)
+bool NativeWindow::SetWindowIcon(const DString& iconFilePath)
 {
     ASSERT(::IsWindow(m_hWnd));
-    HICON hIcon = (HICON)::LoadImage(GetResModuleHandle(), MAKEINTRESOURCE(nRes), IMAGE_ICON,
-                                     GetSystemMetricsForDpiWrapper(SM_CXICON, m_pOwner->OnNativeGetDpi().GetDPI()),
-                                     GetSystemMetricsForDpiWrapper(SM_CYICON, m_pOwner->OnNativeGetDpi().GetDPI()),
-                                     LR_DEFAULTCOLOR | LR_SHARED);
-    ASSERT(hIcon);
-    ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)TRUE, (LPARAM)hIcon);
-    hIcon = (HICON)::LoadImage(GetResModuleHandle(), MAKEINTRESOURCE(nRes), IMAGE_ICON,
-                               GetSystemMetricsForDpiWrapper(SM_CXSMICON, m_pOwner->OnNativeGetDpi().GetDPI()),
-                               GetSystemMetricsForDpiWrapper(SM_CYSMICON, m_pOwner->OnNativeGetDpi().GetDPI()),
-                               LR_DEFAULTCOLOR | LR_SHARED);
-    ASSERT(hIcon);
-    ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)FALSE, (LPARAM)hIcon);
+    if (!::IsWindow(m_hWnd)) {
+        return false;
+    }
+
+    uint32_t uDpi = m_pOwner->OnNativeGetDpi().GetDPI();
+    //大图标
+    int32_t cxIcon = GetSystemMetricsForDpiWrapper(SM_CXICON, uDpi);
+    int32_t cyIcon = GetSystemMetricsForDpiWrapper(SM_CYICON, uDpi);
+    HICON hIcon = (HICON)::LoadImage(nullptr, iconFilePath.c_str(), IMAGE_ICON, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_SHARED);
+    ASSERT(hIcon != nullptr);
+    if (hIcon != nullptr) {
+        ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)TRUE, (LPARAM)hIcon);
+    }
+    else {
+        return false;
+    }
+
+    //小图标
+    cxIcon = GetSystemMetricsForDpiWrapper(SM_CXSMICON, uDpi);
+    cyIcon = GetSystemMetricsForDpiWrapper(SM_CYSMICON, uDpi);
+    hIcon = (HICON)::LoadImage(nullptr, iconFilePath.c_str(), IMAGE_ICON, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_SHARED);
+    ASSERT(hIcon != nullptr);
+    if (hIcon != nullptr) {
+        ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)FALSE, (LPARAM)hIcon);
+    }
+    else {
+        return false;
+    }
+    return true;
+}
+
+bool NativeWindow::SetWindowIcon(const std::vector<uint8_t>& iconFileData)
+{
+    //Little Endian Only
+    int16_t test = 1;
+    bool bLittleEndianHost = (*((char*)&test) == 1);
+    ASSERT(bLittleEndianHost);
+
+    bool bValidIcoFile = false;
+    std::vector<uint8_t> fileData = iconFileData;
+    fileData.resize(fileData.size() + 1024); //填充空白
+    typedef struct tagIconDir {
+        uint16_t idReserved;
+        uint16_t idType;
+        uint16_t idCount;
+    } ICONHEADER;
+    typedef struct tagIconDirectoryEntry {
+        uint8_t  bWidth;
+        uint8_t  bHeight;
+        uint8_t  bColorCount;
+        uint8_t  bReserved;
+        uint16_t  wPlanes;
+        uint16_t  wBitCount;
+        uint32_t dwBytesInRes;
+        uint32_t dwImageOffset;
+    } ICONDIRENTRY;
+
+    ICONHEADER* icon_header = (ICONHEADER*)fileData.data();
+    if ((icon_header->idReserved == 0) && (icon_header->idType == 1)) {
+        bValidIcoFile = true;
+        for (int32_t c = 0; c < icon_header->idCount; ++c) {
+            size_t nDataOffset = sizeof(ICONHEADER) + sizeof(ICONDIRENTRY) * c;
+            if (nDataOffset >= fileData.size()) {
+                bValidIcoFile = false;
+                break;
+            }
+            ICONDIRENTRY* pIconDir = (ICONDIRENTRY*)((uint8_t*)fileData.data() + nDataOffset);
+            if (pIconDir->dwImageOffset >= iconFileData.size()) {
+                bValidIcoFile = false;
+                break;
+            }
+            else if ((pIconDir->dwImageOffset + pIconDir->dwBytesInRes) > iconFileData.size()) {
+                bValidIcoFile = false;
+                break;
+            }
+        }        
+    }
+    ASSERT(bValidIcoFile);
+    if (!bValidIcoFile) {
+        return false;
+    }
+
+    uint32_t uDpi = m_pOwner->OnNativeGetDpi().GetDPI();
+    HICON hIcon = nullptr;
+    //大图标
+    int32_t cxIcon = GetSystemMetricsForDpiWrapper(SM_CXICON, uDpi);
+    int32_t cyIcon = GetSystemMetricsForDpiWrapper(SM_CYICON, uDpi);
+    int32_t offset = ::LookupIconIdFromDirectoryEx((PBYTE)fileData.data(), TRUE, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
+    if (offset > 0) {
+        hIcon = ::CreateIconFromResourceEx((PBYTE)fileData.data() + offset, (DWORD)fileData.size() - (DWORD)offset, TRUE, 0x00030000, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
+        ASSERT(hIcon != nullptr);
+        if (hIcon != nullptr) {
+            ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)TRUE, (LPARAM)hIcon);
+        }
+        else {
+            return false;
+        }
+    }
+
+    //小图标
+    cxIcon = GetSystemMetricsForDpiWrapper(SM_CXSMICON, uDpi);
+    cyIcon = GetSystemMetricsForDpiWrapper(SM_CYSMICON, uDpi);
+    offset = ::LookupIconIdFromDirectoryEx((PBYTE)fileData.data(), TRUE, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
+    if (offset > 0) {
+        hIcon = ::CreateIconFromResourceEx((PBYTE)fileData.data() + offset, (DWORD)fileData.size() - (DWORD)offset, TRUE, 0x00030000, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_SHARED);
+        ASSERT(hIcon != nullptr);
+        if (hIcon != nullptr) {
+            ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)FALSE, (LPARAM)hIcon);
+        }
+        else {
+            return false;
+        }
+    }
+    return true;
 }
 
 void NativeWindow::SetText(const DString& strText)

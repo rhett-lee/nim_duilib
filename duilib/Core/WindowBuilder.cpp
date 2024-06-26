@@ -291,7 +291,38 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                         UiRect rcCaption;
                         AttributeUtil::ParseRectValue(strValue.c_str(), rcCaption);
                         pWindow->SetCaptionRect(rcCaption, true);
-                    }                    
+                    }
+                    else if (strName == _T("icon")) {
+                        if (!strValue.empty()) {
+                            //设置窗口图标
+                            const DString windowResFullPath = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), pWindow->GetResourcePath());
+                            DString iconFullPath = PathUtil::JoinFilePath(windowResFullPath, strValue);
+                            iconFullPath = PathUtil::NormalizeFilePath(iconFullPath);
+                            if (GlobalManager::Instance().Zip().IsUseZip()) {
+                                //使用压缩包
+                                if (GlobalManager::Instance().Zip().IsZipResExist(iconFullPath)) {
+                                    std::vector<uint8_t> fileData;
+                                    GlobalManager::Instance().Zip().GetZipData(iconFullPath, fileData);
+                                    ASSERT(!fileData.empty());
+                                    if (!fileData.empty()) {
+                                        pWindow->SetWindowIcon(fileData);
+                                    }
+                                }
+                                else {
+                                    ASSERT(false);
+                                }
+                            }
+                            else {
+                                //使用本地文件
+                                if (PathUtil::IsExistsPath(iconFullPath)) {
+                                    pWindow->SetWindowIcon(iconFullPath);
+                                }
+                                else {
+                                    ASSERT(false);
+                                }
+                            }
+                        }                        
+                    }
                     else if( strName == _T("text") ) {
                         pWindow->SetText(strValue);
                     }

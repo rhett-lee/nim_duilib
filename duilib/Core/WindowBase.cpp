@@ -396,9 +396,14 @@ void WindowBase::Resize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
     WindowBase::SetWindowPos(InsertAfterWnd(), 0, 0, cx, cy, kSWP_NOZORDER | kSWP_NOMOVE | kSWP_NOACTIVATE);
 }
 
-void WindowBase::SetIcon(UINT nRes)
+bool WindowBase::SetWindowIcon(const DString& iconFilePath)
 {
-    m_pNativeWindow->SetIcon(nRes);
+    return m_pNativeWindow->SetWindowIcon(iconFilePath);
+}
+
+bool WindowBase::SetWindowIcon(const std::vector<uint8_t>& iconFileData)
+{
+    return m_pNativeWindow->SetWindowIcon(iconFileData);
 }
 
 void WindowBase::SetText(const DString& strText)

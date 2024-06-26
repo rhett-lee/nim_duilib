@@ -213,10 +213,15 @@ public:
 
     /** @} */
 
-    /** 设置窗口图标
-    *  @param [in] nRes 窗口图标资源 ID
+    /** 设置窗口图标（支持*.ico格式）
+    *  @param [in] iconFilePath ico文件的路径（绝对路径）
     */
-    void SetIcon(UINT nRes);
+    bool SetWindowIcon(const DString& iconFilePath);
+
+    /** 设置窗口图标（支持*.ico格式）
+    *  @param [in] iconFileData ico文件的数据
+    */
+    bool SetWindowIcon(const std::vector<uint8_t>& iconFileData);
 
     /** 设置窗口标题栏文本
     * @param [in] strText 窗口标题栏文本
