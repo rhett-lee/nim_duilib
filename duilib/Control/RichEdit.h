@@ -893,8 +893,8 @@ public:
 
     void OnTxNotify(DWORD iNotify, void* pv);
 
-    HWND GetWindowHandle();
-    HDC GetWindowDC();
+    HWND GetWindowHandle() const;
+    HDC GetWindowDC() const;
     UiSize GetNaturalSize(LONG width, LONG height);
     void SetImmStatus(BOOL bOpen);
     void SetTimer(UINT idTimer, UINT uTimeout);
@@ -998,6 +998,26 @@ private:
     /** 设置显示密码按钮功能的Class名称
     */
     void SetShowPasswordBtnClass(const DString& btnClass);
+
+    /** 设置字体ID
+    */
+    void SetFontIdInternal(const DString& fontId);
+
+    /** 设置字体颜色
+    */
+    void SetTextColorInternal(const UiColor& textColor);
+
+    /** 将字体大小转换成Rich Edit控件的字体高度
+    */
+    int32_t ConvertToFontHeight(int32_t fontSize) const;
+
+    /** 获取字体对应的格式
+    */
+    void GetCharFormat(const DString& fontId, CHARFORMAT2& cf) const;
+
+    //文本横向和纵向对齐方式
+    void SetHAlignType(HorAlignType alignType);
+    void SetVAlignType(VerAlignType alignType);
 
 private:
     //判断是否是字节： 可打印字符（0x20-0x7e）

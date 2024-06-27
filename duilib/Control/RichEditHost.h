@@ -79,41 +79,17 @@ public:
     //当用户按 Enter 时，控件会将所有文本滚动回零位置。
     void SetAutoHScroll(bool bEnable);
 
-    // 设置字体
-    void SetFontId(const DString& fontId);
-
-    /** 按DPI变化来修改字体大小
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] dpiManager DPI缩放管理器
-    */
-    void ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale);
-
-    //设置文本颜色
-    void SetTextColor(COLORREF dwColor);
-    //获取文本颜色
-    COLORREF GetTextColor() const;
-
     void SetExtent(SIZEL sizelExtent);
     void SetAllowBeep(bool bAllowBeep);
     bool IsAllowBeep() const;
-    bool IsRichText() const;
-    void SetRichText(bool fNew);
     bool SetSaveSelection(bool fSaveSelection);
     void SetHideSelection(bool fHideSelection);
     bool SetCursor(const UiRect* prc, const UiPoint* pt);
     void SetTransparent(bool fTransparent);    
-    void SetDisabled(bool fOn);
     void SetSelBarWidth(LONG lSelBarWidth);
-
-    void SetCharFormat(const CHARFORMAT2& c);
-    void SetParaFormat(const PARAFORMAT2& p);
 
     HRESULT OnTxInPlaceDeactivate();
     HRESULT OnTxInPlaceActivate(LPCRECT prcClient);
-
-public:
-
-    static void GetLogFont(RichEdit* pRichEdit, const DString& fontId, LOGFONT& lf);
 
 public:
     // -----------------------------
@@ -258,9 +234,6 @@ private:
     //构造后的初始化
     void Init();
 
-    //初始化字体信息
-    void InitCharFormat(const LOGFONT& lf);
-
     //转换矩形格式
     UiRect MakeUiRect(const RECT& rc);
 
@@ -280,22 +253,20 @@ private:
     // pointer to Text Services object
     ITextServices* m_pTextServices;
 
-    uint16_t m_dwStyle;            // style bits
-    bool m_fEnableAutoWordSel;    // enable Word style auto word selection?
-    bool m_fWordWrap;            // Whether control should word wrap
-    bool m_fAllowBeep;            // Whether beep is allowed
-    bool m_fRichText;            // Whether control is rich text
-    bool m_fSaveSelection;        // Whether to save the selection when inactive
-    bool m_fInplaceActive;        // Whether control is inplace active
+    uint16_t m_dwStyle;         // style bits
+    bool m_fEnableAutoWordSel;  // enable Word style auto word selection?
+    bool m_fWordWrap;           // Whether control should word wrap
+    bool m_fAllowBeep;          // Whether beep is allowed
+    bool m_fRichText;           // Whether control is rich text
+    bool m_fSaveSelection;      // Whether to save the selection when inactive
+    bool m_fInplaceActive;      // Whether control is inplace active
     bool m_fTransparent;        // Whether control is transparent
 
     LONG m_lSelBarWidth;        // Width of the selection bar
-    UiRect m_rcClient;            // Client Rect for this control
+    UiRect m_rcClient;          // Client Rect for this control
     SIZEL m_sizelExtent;        // Extent array
     
-    CHARFORMAT2 m_charFormat;  //文字的字体
-    PARAFORMAT2 m_paraFormat;    //段落格式
-    WCHAR m_chPasswordChar;        // Password character
+    WCHAR m_chPasswordChar;     // Password character
     bool m_bShowPassword;       //是否显示密码
     bool m_bFlashPasswordChar;  //短暂的显示密码字符，然后再隐藏
 };

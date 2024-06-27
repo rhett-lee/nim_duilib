@@ -103,6 +103,14 @@ void GlobalManager::Shutdown()
     m_fontFilePath.clear();
     m_builderMap.clear();
     m_platformData = nullptr;
+
+    //执行退出时清理资源的函数
+    for (std::function<void()> atExitFunction : m_atExitFunctions) {
+        if (atExitFunction != nullptr) {
+            atExitFunction();
+        }
+    }
+    m_atExitFunctions.clear();
 }
 
 const DString& GlobalManager::GetResourcePath() const
@@ -594,6 +602,14 @@ Control* GlobalManager::CreateControl(const DString& strControlName)
 void GlobalManager::AssertUIThread() const
 {
     ASSERT(m_dwUiThreadId == ::GetCurrentThreadId());
+}
+
+void GlobalManager::AddAtExitFunction(std::function<void()> atExitFunction)
+{
+    ASSERT(atExitFunction != nullptr);
+    if (atExitFunction != nullptr) {
+        m_atExitFunctions.push_back(atExitFunction);
+    }
 }
 
 } // namespace ui

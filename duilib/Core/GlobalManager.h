@@ -260,6 +260,10 @@ public:
     */
     void AssertUIThread() const;
 
+    /** 添加一个退出时执行的函数
+    */
+    void AddAtExitFunction(std::function<void()> atExitFunction);
+
 private:
     /** 从缓存中删除所有图片
      */
@@ -363,6 +367,10 @@ private:
     /** 光标管理器
     */
     CursorManager m_cursorManager;
+
+    /** 退出时要执行的函数
+    */
+    std::vector<std::function<void()>> m_atExitFunctions;
 };
 
 } // namespace ui

@@ -50,16 +50,14 @@ class RichEditModule
 {
 private:
     RichEditModule():
-        m_hRichEditModule(nullptr)
+        m_hRichEditModule(nullptr),
+        m_bInitCOM(false)
     {
     }
 
     ~RichEditModule()
     {
-        if (m_hRichEditModule != nullptr) {
-            ::FreeLibrary(m_hRichEditModule);
-            m_hRichEditModule = nullptr;
-        }
+        ASSERT(m_hRichEditModule == nullptr);
     }
 
     RichEditModule(const RichEditModule&) = delete;
@@ -79,15 +77,46 @@ public:
     HMODULE GetRichEditModule()
     {
         if (m_hRichEditModule == nullptr) {
+            //初始化COM环境（必须，否则退出时会崩溃）
+            if (!m_bInitCOM) {
+                m_bInitCOM = true;
+                ::OleInitialize(NULL);
+            }            
             m_hRichEditModule = ::LoadLibraryW(RichEditCtrl::GetLibraryName());
+            ASSERT(m_hRichEditModule != nullptr);
+
+            //退出时，清理资源
+            auto atExitCallback = []() {
+                RichEditModule::Instance().Clear();
+                return true;
+                };
+            GlobalManager::Instance().AddAtExitFunction(atExitCallback);
         }
         return m_hRichEditModule;
+    }
+
+    /** 清理资源
+    */
+    void Clear()
+    {
+        if (m_hRichEditModule != nullptr) {
+            ::FreeLibrary(m_hRichEditModule);
+            m_hRichEditModule = nullptr;
+        }
+        if (m_bInitCOM) {
+            m_bInitCOM = false;
+            ::OleUninitialize();
+        }
     }
 
 private:
     /** RichEdit依赖的DLL, 加载并返回句柄
     */
     HMODULE m_hRichEditModule;
+
+    /** COM是否已经初始化
+    */
+    bool m_bInitCOM;
 };
 
 RichEditHost::RichEditHost(RichEdit* pRichEdit) :
@@ -98,24 +127,16 @@ RichEditHost::RichEditHost(RichEdit* pRichEdit) :
     m_fEnableAutoWordSel(false),
     m_fWordWrap(false),
     m_fAllowBeep(false),
-    m_fRichText(false),
     m_fSaveSelection(false),
     m_fInplaceActive(false),
     m_fTransparent(false),
     m_lSelBarWidth(0),
     m_rcClient(),
     m_sizelExtent({ 0 }),
-    m_charFormat({ 0, }),
-    m_paraFormat({ 0, }),
     m_chPasswordChar(0),
     m_bShowPassword(false),
     m_bFlashPasswordChar(false)
 {
-    m_charFormat.cbSize = sizeof(CHARFORMAT2);
-    memset(&m_charFormat, 0, sizeof(CHARFORMAT2));
-
-    m_paraFormat.cbSize = sizeof(PARAFORMAT2);
-    memset(&m_paraFormat, 0, sizeof(PARAFORMAT2));
     Init();
 }
 
@@ -126,45 +147,6 @@ RichEditHost::~RichEditHost()
 
 void RichEditHost::Init()
 {
-    RichEdit* pRichEdit = m_pRichEdit;
-
-    //初始化默认字体
-    if (pRichEdit != nullptr) {
-        DString fontId = GlobalManager::Instance().Font().GetDefaultFontId();
-        LOGFONT lf = { 0, };
-        GetLogFont(m_pRichEdit, fontId, lf);
-        InitCharFormat(lf);
-    }
-    else {
-        LOGFONT lf = { 0, };
-        ::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-        InitCharFormat(lf);
-    }
-
-    //设置字体颜色
-    if (pRichEdit != nullptr) {
-        DString textColor;
-        if (pRichEdit->IsEnabled()) {
-            textColor = pRichEdit->GetTextColor();
-        }
-        else {
-            textColor = pRichEdit->GetDisabledTextColor();
-        }
-        if (!textColor.empty()) {
-            UiColor dwColor = pRichEdit->GetUiColor(textColor);
-            m_charFormat.dwMask |= CFM_COLOR;
-            m_charFormat.crTextColor = dwColor.ToCOLORREF();
-        }
-    }
-
-    //初始化默认段落格式
-    memset(&m_paraFormat, 0, sizeof(PARAFORMAT2));
-    m_paraFormat.cbSize = sizeof(PARAFORMAT2);
-    m_paraFormat.dwMask = PFM_ALL;
-    m_paraFormat.wAlignment = PFA_LEFT;
-    m_paraFormat.cTabCount = 1;
-    m_paraFormat.rgxTabs[0] = lDefaultTab;
-
     IUnknown* pUnk = nullptr;
     HRESULT hr = E_FAIL;
 
@@ -181,8 +163,6 @@ void RichEditHost::Init()
     m_fEnableAutoWordSel = true;
     //自动换行
     m_fWordWrap = false;
-    //默认为纯文本模式
-    m_fRichText = false;
 
     m_fInplaceActive = true;
 
@@ -247,36 +227,6 @@ void RichEditHost::OnTxPropertyBitsChange(DWORD dwMask, DWORD dwBits)
     }
 }
 
-void RichEditHost::GetLogFont(RichEdit* pRichEdit, const DString& fontId, LOGFONT& lf)
-{
-    //优先获取默认字体
-    lf = { 0 };
-    ::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-    IFont* pFont = nullptr;
-    if (pRichEdit != nullptr) {
-        pFont = GlobalManager::Instance().Font().GetIFont(fontId, pRichEdit->Dpi());
-    }
-    ASSERT(pFont != nullptr);
-    if (pFont == nullptr) {
-        return;
-    }
-    wcscpy_s(lf.lfFaceName, pFont->FontName().c_str());
-    lf.lfCharSet = DEFAULT_CHARSET;
-    lf.lfHeight = -pFont->FontSize();
-    if (pFont->IsUnderline()) {
-        lf.lfUnderline = TRUE;
-    }
-    if (pFont->IsStrikeOut()) {
-        lf.lfStrikeOut = TRUE;
-    }
-    if (pFont->IsItalic()) {
-        lf.lfItalic = TRUE;
-    }
-    if (pFont->IsBold()) {
-        lf.lfWeight = FW_BOLD;
-    }
-}
-
 /////////////////////////////////  IUnknown ////////////////////////////////
 HRESULT RichEditHost::QueryInterface(REFIID riid, void** ppvObject)
 {
@@ -330,19 +280,7 @@ int RichEditHost::TxReleaseDC(HDC /*hdc*/)
 
 BOOL RichEditHost::TxShowScrollBar(INT /*fnBar*/, BOOL /*fShow*/)
 {
-    ASSERT(FALSE); //暂时注释掉，不知道这代码有啥用   by panqinke 2014.5.6
-    //ScrollBar* pVerticalScrollBar = m_pRichEdit->GetVScrollBar();
-    //ScrollBar* pHorizontalScrollBar = m_pRichEdit->GetHScrollBar();
-    //if( fnBar == SB_VERT && pVerticalScrollBar ) {
-    //    pVerticalScrollBar->SetFadeVisible(fShow == TRUE);
-    //}
-    //else if( fnBar == SB_HORZ && pHorizontalScrollBar ) {
-    //    pHorizontalScrollBar->SetFadeVisible(fShow == TRUE);
-    //}
-    //else if( fnBar == SB_BOTH ) {
-    //    if( pVerticalScrollBar ) pVerticalScrollBar->SetFadeVisible(fShow == TRUE);
-    //    if( pHorizontalScrollBar ) pHorizontalScrollBar->SetFadeVisible(fShow == TRUE);
-    //}
+    ASSERT(FALSE);
     return TRUE;
 }
 
@@ -572,22 +510,14 @@ HRESULT RichEditHost::TxGetViewInset(LPRECT prc)
     return NOERROR;
 }
 
-HRESULT RichEditHost::TxGetCharFormat(const CHARFORMATW** ppCF)
+HRESULT RichEditHost::TxGetCharFormat(const CHARFORMATW** /*ppCF*/)
 {
-    ASSERT(ppCF != nullptr);
-    if (ppCF != nullptr) {
-        *ppCF = &m_charFormat;
-    }
-    return NOERROR;
+    return E_NOTIMPL;
 }
 
-HRESULT RichEditHost::TxGetParaFormat(const PARAFORMAT** ppPF)
+HRESULT RichEditHost::TxGetParaFormat(const PARAFORMAT** /*ppPF*/)
 {
-    ASSERT(ppPF != nullptr);
-    if (ppPF != nullptr) {
-        *ppPF = &m_paraFormat;
-    }
-    return NOERROR;
+    return E_NOTIMPL;
 }
 
 COLORREF RichEditHost::TxGetSysColor(int nIndex)
@@ -690,11 +620,6 @@ HRESULT RichEditHost::TxGetPropertyBits(DWORD dwMask, DWORD* pdwBits)
     }
     DWORD dwProperties = 0;
 
-    if (m_fRichText) {
-        //RichText
-        dwProperties |= TXTBIT_RICHTEXT;
-    }
-
     if (m_dwStyle & UI_ES_MULTILINE) {
         //多行文本
         dwProperties |= TXTBIT_MULTILINE;
@@ -776,7 +701,7 @@ void RichEditHost::TxImmReleaseContext(HIMC /*himc*/)
     //::ImmReleaseContext( hwnd, himc );
 }
 
-HRESULT    RichEditHost::TxGetSelectionBarWidth(LONG* plSelBarWidth)
+HRESULT RichEditHost::TxGetSelectionBarWidth(LONG* plSelBarWidth)
 {
     ASSERT(plSelBarWidth != nullptr);
     if (plSelBarWidth) {
@@ -927,18 +852,6 @@ void RichEditHost::SetHAlignType(HorAlignType alignType)
         m_dwStyle &= ~(UI_ES_LEFT | UI_ES_CENTER);
         m_dwStyle |= UI_ES_RIGHT;
     }
-    ;
-    if (m_dwStyle & UI_ES_CENTER) {
-        m_paraFormat.wAlignment = PFA_CENTER;
-    }        
-    else if (m_dwStyle & UI_ES_RIGHT) {
-        m_paraFormat.wAlignment = PFA_RIGHT;
-    }
-    else {
-        m_paraFormat.wAlignment = PFA_LEFT;
-    }
-    m_paraFormat.dwMask |= PFM_ALIGNMENT;
-    OnTxPropertyBitsChange(TXTBIT_PARAFORMATCHANGE, TXTBIT_PARAFORMATCHANGE);
 }
 
 void RichEditHost::SetVAlignType(VerAlignType alignType)
@@ -1006,42 +919,6 @@ void RichEditHost::SetAutoHScroll(bool bEnable)
     }
 }
 
-void RichEditHost::SetFontId(const DString& fontId)
-{
-    //fontId不需要判空，如果fontId为空，则使用默认字体
-    LOGFONT lf = { 0, };
-    GetLogFont(m_pRichEdit, fontId, lf);
-    InitCharFormat(lf);
-    OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE, TXTBIT_CHARFORMATCHANGE);
-}
-
-void RichEditHost::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiScale)
-{
-    //非富文本模式下，所有文本的字体大小都一样，直接修改字体大小
-    m_charFormat.dwMask |= CFM_SIZE;
-    m_charFormat.yHeight = dpiManager.GetScaleInt((int32_t)m_charFormat.yHeight, nOldDpiScale);
-    OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE, TXTBIT_CHARFORMATCHANGE);
-
-    if (IsRichText()) {
-        //富文本模式下：暂不支持已经显示的文本字体大小调整
-
-    }
-}
-
-void RichEditHost::SetTextColor(COLORREF dwColor)
-{
-    if (dwColor != m_charFormat.crTextColor) {
-        m_charFormat.dwMask |= CFM_COLOR;
-        m_charFormat.crTextColor = dwColor;
-        OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE, TXTBIT_CHARFORMATCHANGE);
-    }
-}
-
-COLORREF RichEditHost::GetTextColor() const
-{
-    return m_charFormat.crTextColor;
-}
-
 void RichEditHost::SetExtent(SIZEL sizelExtent)
 {
     if ((m_sizelExtent.cx != sizelExtent.cx) || (m_sizelExtent.cy != sizelExtent.cy)) {
@@ -1061,19 +938,6 @@ void RichEditHost::SetAllowBeep(bool bAllowBeep)
 bool RichEditHost::IsAllowBeep() const
 {
     return m_fAllowBeep;
-}
-
-bool RichEditHost::IsRichText() const
-{
-    return m_fRichText;
-}
-
-void RichEditHost::SetRichText(bool fNew)
-{
-    if (m_fRichText != fNew) {
-        m_fRichText = fNew;
-        OnTxPropertyBitsChange(TXTBIT_RICHTEXT, fNew ? TXTBIT_RICHTEXT : 0);
-    }
 }
 
 void RichEditHost::SetClientRect(const UiRect& rc)
@@ -1230,16 +1094,6 @@ void RichEditHost::SetTransparent(bool fTransparent)
     }    
 }
 
-void RichEditHost::SetDisabled(bool fOn)
-{
-    m_charFormat.dwMask |= CFM_COLOR | CFM_DISABLED;
-    m_charFormat.dwEffects |= CFE_AUTOCOLOR | CFE_DISABLED;
-    if (!fOn) {
-        m_charFormat.dwEffects &= ~CFE_DISABLED;
-    }
-    OnTxPropertyBitsChange(TXTBIT_CHARFORMATCHANGE, TXTBIT_CHARFORMATCHANGE);
-}
-
 void RichEditHost::SetSelBarWidth(LONG lSelBarWidth)
 {
     if (lSelBarWidth < 0) {
@@ -1249,75 +1103,6 @@ void RichEditHost::SetSelBarWidth(LONG lSelBarWidth)
         m_lSelBarWidth = lSelBarWidth;
         OnTxPropertyBitsChange(TXTBIT_SELBARCHANGE, TXTBIT_SELBARCHANGE);
     }
-}
-
-void RichEditHost::SetCharFormat(const CHARFORMAT2& c)
-{
-    //只保存，不通知
-    m_charFormat = c;
-    m_charFormat.cbSize = sizeof(CHARFORMAT2);
-}
-
-void RichEditHost::SetParaFormat(const PARAFORMAT2& p)
-{
-    //只保存，不通知
-    m_paraFormat = p;
-    m_paraFormat.cbSize = sizeof(PARAFORMAT2);
-}
-
-void RichEditHost::InitCharFormat(const LOGFONT& lf)
-{
-    //字体字号需要转换, 否则字体大小显示异常
-    bool bGetDC = false;
-    HDC hDC = nullptr;
-    if (m_pRichEdit != nullptr) {
-        hDC = m_pRichEdit->GetWindowDC();
-    }
-    if (hDC == nullptr) {
-        hDC = ::GetDC(nullptr);
-        bGetDC = true;
-    }
-    LONG yPixPerInch = ::GetDeviceCaps(hDC, LOGPIXELSY);
-    if (bGetDC && (hDC != nullptr)) {
-        ::ReleaseDC(nullptr, hDC);
-        hDC = nullptr;
-    }
-    if (yPixPerInch == 0) {
-        yPixPerInch = 96;
-    }
-    LONG lfHeight = lf.lfHeight * LY_PER_INCH / yPixPerInch;
-
-    memset(&m_charFormat, 0, sizeof(CHARFORMAT2));
-    m_charFormat.cbSize = sizeof(CHARFORMAT2);
-    m_charFormat.dwMask = CFM_SIZE | CFM_FACE | CFM_CHARSET | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT;
-    m_charFormat.yHeight = -lfHeight;
-    if (lf.lfWeight >= FW_BOLD) {
-        m_charFormat.dwEffects |= CFE_BOLD;
-    }
-    else {
-        m_charFormat.dwEffects &= ~CFE_BOLD;
-    }
-    if (lf.lfItalic) {
-        m_charFormat.dwEffects |= CFE_ITALIC;
-    }
-    else {
-        m_charFormat.dwEffects &= ~CFE_ITALIC;
-    }
-    if (lf.lfUnderline) {
-        m_charFormat.dwEffects |= CFE_UNDERLINE;
-    }
-    else {
-        m_charFormat.dwEffects &= ~CFE_UNDERLINE;
-    }
-    if (lf.lfStrikeOut) {
-        m_charFormat.dwEffects |= CFE_STRIKEOUT;
-    }
-    else {
-        m_charFormat.dwEffects &= ~CFE_STRIKEOUT;
-    }
-    m_charFormat.bCharSet = lf.lfCharSet;
-    m_charFormat.bPitchAndFamily = lf.lfPitchAndFamily;
-    wcscpy_s(m_charFormat.szFaceName, lf.lfFaceName);
 }
 
 UiRect RichEditHost::MakeUiRect(const RECT& rc)

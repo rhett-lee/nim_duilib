@@ -285,35 +285,23 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("text_align")) {
         if (strValue.find(_T("left")) != DString::npos) {
-            if (m_pRichHost != nullptr) {
-                m_pRichHost->SetHAlignType(kHorAlignLeft);
-            }
+            SetHAlignType(kHorAlignLeft);
         }
         if (strValue.find(_T("right")) != DString::npos) {
-            if (m_pRichHost != nullptr) {
-                m_pRichHost->SetHAlignType(kHorAlignRight);
-            }
+            SetHAlignType(kHorAlignRight);
         }
         if (strValue.find(_T("hcenter")) != DString::npos) {
-            if (m_pRichHost != nullptr) {
-                m_pRichHost->SetHAlignType(kHorAlignCenter);
-            }
+            SetHAlignType(kHorAlignCenter);
         }
 
         if (strValue.find(_T("top")) != DString::npos) {
-            if (m_pRichHost != nullptr) {
-                m_pRichHost->SetVAlignType(kVerAlignTop);
-            }
+            SetVAlignType(kVerAlignTop);
         }
         if (strValue.find(_T("bottom")) != DString::npos) {
-            if (m_pRichHost != nullptr) {
-                m_pRichHost->SetVAlignType(kVerAlignBottom);
-            }
+            SetVAlignType(kVerAlignBottom);
         }
         if (strValue.find(_T("vcenter")) != DString::npos) {
-            if (m_pRichHost != nullptr) {
-                m_pRichHost->SetVAlignType(kVerAlignCenter);
-            }
+            SetVAlignType(kVerAlignCenter);
         }
     }
     else if ((strName == _T("text_padding")) || (strName == _T("textpadding"))) {
@@ -321,7 +309,7 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         AttributeUtil::ParsePaddingValue(strValue.c_str(), rcTextPadding);
         SetTextPadding(rcTextPadding, true);
     }
-    else if ((strName == _T("normal_text_color")) || (strName == _T("normaltextcolor"))) {
+    else if ((strName == _T("text_color")) || (strName == _T("normal_text_color")) || (strName == _T("normaltextcolor"))) {
         SetTextColor(strValue);
     }
     else if ((strName == _T("disabled_text_color")) || (strName == _T("disabledtextcolor"))) {
@@ -453,9 +441,15 @@ void RichEdit::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     rcTextPadding = Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
     SetTextPadding(rcTextPadding, false);
 
-    if (m_pRichHost != nullptr) {
-        m_pRichHost->ChangeDpiScale(Dpi(), nOldDpiScale);
-    }
+    //更新字体大小
+    CHARFORMAT2 cf;
+    memset(&cf, 0, sizeof(CHARFORMAT2));
+    cf.cbSize = sizeof(CHARFORMAT2);
+    m_richCtrl.GetDefaultCharFormat(cf);
+    cf.yHeight = Dpi().GetScaleInt((int32_t)cf.yHeight, nOldDpiScale);
+    cf.dwMask |= CFM_SIZE;
+    m_richCtrl.SetDefaultCharFormat(cf);
+
     __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
@@ -507,37 +501,40 @@ void RichEdit::SetReturnMsgWantCtrl(bool bReturnMsgWantCtrl)
 
 bool RichEdit::IsRichText()
 {
-    bool bRich = false;
-    if (m_pRichHost != nullptr) {
-        bRich = m_pRichHost->IsRichText();
-    }
-    return bRich;
+    TEXTMODE newTextMode = m_richCtrl.GetTextMode();
+    return (newTextMode & TM_RICHTEXT) ? true : false;
 }
 
 void RichEdit::SetRichText(bool bRichText)
 {
-    ASSERT(m_pRichHost != nullptr);
-    if (m_pRichHost == nullptr) {
+    if (IsRichText() == bRichText) {
         return;
     }
-    if (m_pRichHost->IsRichText() == bRichText) {
-        return;
+    uint32_t textMode = m_richCtrl.GetTextMode();
+    if (bRichText) {
+        textMode &= ~TM_PLAINTEXT;
+        textMode |= TM_RICHTEXT;
     }
+    else {
+        textMode &= ~TM_RICHTEXT;
+        textMode |= TM_PLAINTEXT;
+    }
+
     //切换文本模式的时候，RichEdit的文本内容必须为空
     DString text = GetText();
     if (!text.empty()) {        
-        SetText(_T(""));
+        SetTextNoEvent(_T(""));
         m_richCtrl.EmptyUndoBuffer();
     }
-    m_pRichHost->SetRichText(bRichText);
+    m_richCtrl.SetTextMode((TEXTMODE)textMode);
+
     if (!text.empty()) {
-        SetText(text);
+        SetTextNoEvent(text);
         SetSel(0, 0);        
     }
 #ifdef _DEBUG
-    TEXTMODE textMode = bRichText ? TM_RICHTEXT : TM_PLAINTEXT;
-    TEXTMODE newTextMode = m_richCtrl.GetTextMode();
-    ASSERT((uint32_t)textMode & (uint32_t)newTextMode);
+    TEXTMODE newTextMode2 = m_richCtrl.GetTextMode();
+    ASSERT((uint32_t)textMode & (uint32_t)newTextMode2);
 #endif
 }
 
@@ -690,9 +687,7 @@ void RichEdit::SetFontId(const DString& strFontId)
 {
     if (m_sFontId != strFontId) {
         m_sFontId = strFontId;
-        if (m_pRichHost != nullptr) {
-            m_pRichHost->SetFontId(strFontId);
-        }
+        SetFontIdInternal(strFontId);
     }
 }
 
@@ -701,9 +696,7 @@ void RichEdit::SetTextColor(const DString& dwTextColor)
     m_sTextColor = dwTextColor;
     if (IsEnabled()) {
         UiColor dwTextColor2 = GetUiColor(dwTextColor);
-        if (m_pRichHost != nullptr) {
-            m_pRichHost->SetTextColor(dwTextColor2.ToCOLORREF());
-        }
+        SetTextColorInternal(dwTextColor2);
     }
 }
 
@@ -722,9 +715,7 @@ void RichEdit::SetDisabledTextColor(const DString& dwTextColor)
     m_sDisabledTextColor = dwTextColor;
     if (!IsEnabled()) {
         UiColor dwTextColor2 = GetUiColor(dwTextColor);
-        if (m_pRichHost != nullptr) {
-            m_pRichHost->SetTextColor(dwTextColor2.ToCOLORREF());
-        }
+        SetTextColorInternal(dwTextColor2);
     }
 }
 
@@ -986,21 +977,12 @@ DWORD RichEdit::GetDefaultCharFormat(CHARFORMAT2 &cf) const
 
 bool RichEdit::SetDefaultCharFormat(CHARFORMAT2& cf)
 {
-    ASSERT(IsEnabled());
-    if (!IsEnabled()) {
-        return false;
-    }
     if (m_richCtrl.SetDefaultCharFormat(cf)) {
         if (cf.dwMask & CFM_COLOR) {
             //同步文本颜色
             UiColor textColor;
             textColor.SetFromCOLORREF(cf.crTextColor);
             m_sTextColor = ui::StringUtil::Printf(_T("#%02X%02X%02X%02X"), textColor.GetA(), textColor.GetR(), textColor.GetG(), textColor.GetB());
-        }
-        if (m_pRichHost != nullptr) {
-            CHARFORMAT2 newCf;
-            GetDefaultCharFormat(newCf);
-            m_pRichHost->SetCharFormat(newCf);
         }
         return true;
     }
@@ -1030,11 +1012,6 @@ DWORD RichEdit::GetParaFormat(PARAFORMAT2& pf) const
 bool RichEdit::SetParaFormat(PARAFORMAT2 &pf)
 {
     if (m_richCtrl.SetParaFormat(pf)) {
-        if (m_pRichHost != nullptr) {
-            PARAFORMAT2 newPf;
-            GetParaFormat(newPf);
-            m_pRichHost->SetParaFormat(newPf);
-        }
         return true;
     }
     return false;
@@ -1242,13 +1219,13 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
     }
 }
 
-HWND RichEdit::GetWindowHandle()
+HWND RichEdit::GetWindowHandle() const
 {
     auto window = GetWindow();
     return window ? window->NativeWnd()->GetHWND() : nullptr;
 }
 
-HDC RichEdit::GetWindowDC()
+HDC RichEdit::GetWindowDC() const
 {
     auto window = GetWindow();
     return window ? window->NativeWnd()->GetPaintDC() : nullptr;
@@ -1481,22 +1458,21 @@ void RichEdit::OnInit()
         return;
     }
     __super::OnInit();
-    //设置字体
+
+    //设置字体和字体颜色
     DString fontId = GetFontId();
-    if (m_pRichHost != nullptr) {
-        m_pRichHost->SetFontId(fontId);
+    if (fontId.empty()) {
+        fontId = GlobalManager::Instance().Font().GetDefaultFontId();
+        SetFontIdInternal(fontId);
     }
+
     if (IsEnabled()) {
         UiColor dwTextColor = GetUiColor(GetTextColor());
-        if (m_pRichHost != nullptr) {
-            m_pRichHost->SetTextColor(dwTextColor.ToCOLORREF());
-        }
+        SetTextColorInternal(dwTextColor);
     }
     else {
         UiColor dwTextColor = GetUiColor(GetDisabledTextColor());
-        if (m_pRichHost != nullptr) {
-            m_pRichHost->SetTextColor(dwTextColor.ToCOLORREF());
-        }
+        SetTextColorInternal(dwTextColor);
     }
 
     ASSERT(m_pRichHost != nullptr);
@@ -1516,16 +1492,13 @@ void RichEdit::SetEnabled(bool bEnable /*= true*/)
     if (IsEnabled()) {
         SetState(kControlStateNormal);
         UiColor dwTextColor = GetUiColor(GetTextColor());
-        if (m_pRichHost != nullptr) {
-            m_pRichHost->SetTextColor(dwTextColor.ToCOLORREF());
-        }
+        SetTextColorInternal(dwTextColor);
     }
     else {
         SetState(kControlStateDisabled);
         UiColor dwTextColor = GetUiColor(GetDisabledTextColor());
-        if (m_pRichHost != nullptr) {
-            m_pRichHost->SetTextColor(dwTextColor.ToCOLORREF());
-        }
+        SetTextColorInternal(dwTextColor);
+
         //不可用的状态关闭拖放功能
         SetEnableDragDrop(false);
     }
@@ -2402,7 +2375,7 @@ void RichEdit::AddLinkColorText(const DString &str, const DString &color, const 
     }
     UiColor dwColor = GetUiColor(color);
 
-    CHARFORMAT2W cf;
+    CHARFORMAT2 cf;
     ZeroMemory(&cf, sizeof(cf));
     cf.cbSize = sizeof(CHARFORMAT2W);
     cf.dwMask = CFM_COLOR;
@@ -2421,7 +2394,7 @@ void RichEdit::AddLinkColorText(const DString &str, const DString &color, const 
     GetDefaultCharFormat(cf);
     SetSelectionCharFormat(cf);
 }
-void RichEdit::AddLinkColorTextEx(const DString& str, const DString &color, const DString &linkInfo, const DString& strFontId)
+void RichEdit::AddLinkColorTextEx(const DString& str, const DString& color, const DString& linkInfo, const DString& strFontId)
 {
     if (!IsRichText() || str.empty() || color.empty()) {
         ASSERT(FALSE);
@@ -2433,24 +2406,20 @@ void RichEdit::AddLinkColorTextEx(const DString& str, const DString &color, cons
     std::string font_face;
     StringUtil::UnicodeToMBCS(linkInfo, link);
     StringUtil::UnicodeToMBCS(str, text);
-    LOGFONT lf = {0,};
-    if (strFontId.empty()) {
-        RichEditHost::GetLogFont(this, m_sFontId.c_str(), lf);
-    }
-    else {
-        RichEditHost::GetLogFont(this, strFontId, lf);
-    }
-    StringUtil::UnicodeToMBCS(lf.lfFaceName, font_face);
+
+    CHARFORMAT2 cf;
+    GetCharFormat(strFontId, cf);
+    StringUtil::UnicodeToMBCS(cf.szFaceName, font_face);
     UiColor dwTextColor = GlobalManager::Instance().Color().GetColor(color);
     static std::string font_format = "{\\fonttbl{\\f0\\fnil\\fcharset%d %s;}}";
     static std::string color_format = "{\\colortbl ;\\red%d\\green%d\\blue%d;}";
     static std::string link_format = "{\\rtf1%s%s\\f0\\fs%d{\\field{\\*\\fldinst{HYPERLINK \"%s\"}}{\\fldrslt{\\cf1 %s}}}}";
     char sfont[255] = { 0 };
-    sprintf_s(sfont, font_format.c_str(), lf.lfCharSet, font_face.c_str());
+    sprintf_s(sfont, font_format.c_str(), cf.bCharSet, font_face.c_str());
     char scolor[255] = { 0 };
     sprintf_s(scolor, color_format.c_str(), dwTextColor.GetR(), dwTextColor.GetG(), dwTextColor.GetB());
     char slinke[1024] = { 0 };
-    sprintf_s(slinke, link_format.c_str(), sfont, scolor, ((int)(-lf.lfHeight *1.5))/2*2, link.c_str(), text.c_str());
+    sprintf_s(slinke, link_format.c_str(), sfont, scolor, ((int)(cf.yHeight *1.5))/2*2, link.c_str(), text.c_str());
     DString temp;
     StringUtil::MBCSToUnicode(slinke, temp);
     SETTEXTEX st;
@@ -3144,6 +3113,135 @@ void RichEdit::SetShowPasswordBtnClass(const DString& btnClass)
             RemoveItem(m_pShowPasswordButton);
             m_pShowPasswordButton = nullptr;
         }
+    }
+}
+
+void RichEdit::SetFontIdInternal(const DString& fontId)
+{
+    CHARFORMAT2 cf;
+    GetCharFormat(fontId, cf);
+    BOOL bRet = m_richCtrl.SetDefaultCharFormat(cf);
+    ASSERT_UNUSED_VARIABLE(bRet);
+}
+
+void RichEdit::SetTextColorInternal(const UiColor& textColor)
+{
+    if (!textColor.IsEmpty()) {
+        CHARFORMAT2 cf;
+        ZeroMemory(&cf, sizeof(CHARFORMAT2));
+        cf.cbSize = sizeof(CHARFORMAT2);
+        m_richCtrl.GetDefaultCharFormat(cf);
+        cf.dwMask = CFM_COLOR;
+        cf.crTextColor = textColor.ToCOLORREF();
+        cf.dwEffects &= ~CFE_AUTOCOLOR;
+        BOOL bRet = m_richCtrl.SetDefaultCharFormat(cf);
+        ASSERT_UNUSED_VARIABLE(bRet);
+    }
+}
+
+int32_t RichEdit::ConvertToFontHeight(int32_t fontSize) const
+{
+    bool bGetDC = false;
+    HDC hDC = GetWindowDC();
+    if (hDC == nullptr) {
+        hDC = ::GetDC(nullptr);
+        bGetDC = true;
+    }
+    LONG yPixPerInch = ::GetDeviceCaps(hDC, LOGPIXELSY);
+    if (bGetDC && (hDC != nullptr)) {
+        ::ReleaseDC(nullptr, hDC);
+        hDC = nullptr;
+    }
+    if (yPixPerInch == 0) {
+        yPixPerInch = 96;
+    }
+    constexpr const int32_t LY_PER_INCH = 1440;
+    int32_t lfHeight = fontSize * LY_PER_INCH / yPixPerInch;
+    return lfHeight;
+}
+
+void RichEdit::GetCharFormat(const DString& fontId, CHARFORMAT2& cf) const
+{
+    ZeroMemory(&cf, sizeof(CHARFORMAT2));
+    cf.cbSize = sizeof(CHARFORMAT2);
+    m_richCtrl.GetDefaultCharFormat(cf);
+    IFont* pFont = GlobalManager::Instance().Font().GetIFont(fontId, Dpi());
+    if (pFont != nullptr) {
+        _tcscpy_s(cf.szFaceName, pFont->FontName().c_str());
+        cf.dwMask |= CFM_FACE;
+
+        cf.yHeight = ConvertToFontHeight(pFont->FontSize());
+        cf.dwMask |= CFM_SIZE;
+
+        LOGFONT lf = {0, };
+        ::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
+
+        cf.bCharSet = lf.lfCharSet;
+        cf.dwMask |= CFM_CHARSET;
+
+        cf.bPitchAndFamily = lf.lfPitchAndFamily;
+
+        if (pFont->IsUnderline()) {
+            cf.dwEffects |= CFE_UNDERLINE;
+        }
+        else {
+            cf.dwEffects &= ~CFE_UNDERLINE;
+        }
+        cf.dwMask |= CFM_UNDERLINE;
+
+        if (pFont->IsStrikeOut()) {
+            cf.dwEffects |= CFE_STRIKEOUT;
+        }
+        else {
+            cf.dwEffects &= ~CFE_STRIKEOUT;
+        }
+        cf.dwMask |= CFM_STRIKEOUT;
+
+        if (pFont->IsItalic()) {
+            cf.dwEffects |= CFE_ITALIC;
+        }
+        else {
+            cf.dwEffects &= ~CFE_ITALIC;
+        }
+        cf.dwMask |= CFM_ITALIC;
+
+        if (pFont->IsBold()) {
+            cf.dwEffects |= CFE_BOLD;
+        }
+        else {
+            cf.dwEffects &= ~CFE_BOLD;
+        }
+        cf.dwMask |= CFM_BOLD;
+    }
+}
+
+void RichEdit::SetHAlignType(HorAlignType alignType)
+{
+    if (m_pRichHost != nullptr) {
+        m_pRichHost->SetHAlignType(alignType);
+    }
+    PARAFORMAT pf;
+    ZeroMemory(&pf, sizeof(PARAFORMAT));
+    pf.cbSize = sizeof(PARAFORMAT);
+    m_richCtrl.GetParaFormat(pf);
+    pf.dwMask |= PFM_ALIGNMENT;
+    if (alignType == HorAlignType::kHorAlignCenter) {
+        pf.wAlignment = PFA_CENTER;
+    }        
+    else if (alignType == HorAlignType::kHorAlignRight) {
+        pf.wAlignment = PFA_RIGHT;
+    }
+    else {
+        pf.wAlignment = PFA_LEFT;
+    }
+    BOOL bRet = m_richCtrl.SetParaFormat(pf);
+    ASSERT_UNUSED_VARIABLE(bRet);
+}
+
+void RichEdit::SetVAlignType(VerAlignType alignType)
+{
+    if (m_pRichHost != nullptr) {
+        m_pRichHost->SetVAlignType(alignType);
     }
 }
 

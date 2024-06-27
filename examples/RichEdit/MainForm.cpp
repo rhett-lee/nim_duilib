@@ -911,6 +911,7 @@ void MainForm::SetTextColor(const DString& newColor)
     GetCharFormat(charFormat);
     charFormat.dwMask = CFM_COLOR;
     charFormat.crTextColor = dwColor.ToCOLORREF();
+    charFormat.dwEffects &= ~CFE_AUTOCOLOR;
     SetCharFormat(charFormat);
 }
 
@@ -1409,6 +1410,7 @@ void MainForm::OnSetFont()
         //设置字体颜色
         charFormat.dwMask |= CFM_COLOR;
         charFormat.crTextColor = cf.rgbColors;
+        charFormat.dwEffects &= ~CFE_AUTOCOLOR;
 
         SetCharFormat(charFormat);
 
