@@ -42,6 +42,9 @@ static HBITMAP CreateBitmap(const Window* pWindow, int32_t nWidth, int32_t nHeig
 
 std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(const Window* pWindow)
 {
+    if (pWindow == nullptr) {
+        return nullptr;
+    }
     std::shared_ptr<IBitmap> spBitmap;
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);

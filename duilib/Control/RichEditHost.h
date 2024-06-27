@@ -31,7 +31,7 @@ public:
 
     /** 释放资源
     */
-    void Clear();
+    void ShutdownTextServices();
 
     void SetClientRect(const UiRect& rc);
     void GetControlRect(UiRect* prc);
@@ -105,7 +105,7 @@ public:
     void SetDisabled(bool fOn);
     void SetSelBarWidth(LONG lSelBarWidth);
 
-    void SetCharFormat(const CHARFORMAT2W& c);
+    void SetCharFormat(const CHARFORMAT2& c);
     void SetParaFormat(const PARAFORMAT2& p);
 
     HRESULT OnTxInPlaceDeactivate();

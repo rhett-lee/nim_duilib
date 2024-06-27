@@ -196,6 +196,7 @@ RichEdit::~RichEdit()
     }
     if( m_pRichHost != nullptr) {
         m_richCtrl.SetTextServices(nullptr);
+        m_pRichHost->ShutdownTextServices();
         m_pRichHost->Release();
         m_pRichHost = nullptr;
     }

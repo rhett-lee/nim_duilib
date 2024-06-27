@@ -112,16 +112,16 @@ RichEditHost::RichEditHost(RichEdit* pRichEdit) :
     m_bFlashPasswordChar(false)
 {
     m_charFormat.cbSize = sizeof(CHARFORMAT2);
+    memset(&m_charFormat, 0, sizeof(CHARFORMAT2));
+
     m_paraFormat.cbSize = sizeof(PARAFORMAT2);
+    memset(&m_paraFormat, 0, sizeof(PARAFORMAT2));
     Init();
 }
 
 RichEditHost::~RichEditHost()
 {
-    if (m_pTextServices) {
-        m_pTextServices->OnTxInPlaceDeactivate();
-        m_pTextServices->Release();
-    }
+    ASSERT(m_pTextServices == nullptr);
 }
 
 void RichEditHost::Init()
@@ -218,9 +218,22 @@ ITextServices* RichEditHost::GetTextServices() const
     return m_pTextServices; 
 }
 
-void RichEditHost::Clear()
+void RichEditHost::ShutdownTextServices()
 {
     if (m_pTextServices != nullptr) {
+        PShutdownTextServices pfnShutdownTextServicesProc = nullptr;
+        HMODULE hRichEditModule = RichEditModule::Instance().GetRichEditModule();
+        if (hRichEditModule != nullptr) {
+            pfnShutdownTextServicesProc = (PShutdownTextServices)::GetProcAddress(hRichEditModule, "ShutdownTextServices");
+        }
+        if (pfnShutdownTextServicesProc != nullptr) {
+            IUnknown* pUnk = nullptr;
+            m_pTextServices->QueryInterface(IID_IUnknown, (void**)&pUnk);
+            if (pUnk != nullptr) {
+                HRESULT hr = pfnShutdownTextServicesProc(pUnk);
+                ASSERT_UNUSED_VARIABLE(hr == S_OK);
+            }
+        }
         m_pTextServices->Release();
         m_pTextServices = nullptr;
     }
@@ -273,7 +286,12 @@ HRESULT RichEditHost::QueryInterface(REFIID riid, void** ppvObject)
     HRESULT hr = E_NOINTERFACE;
     *ppvObject = nullptr;
 
-    if (IsEqualIID(riid, IID_IUnknown) || IsEqualIID(riid, IID_ITextHost)) {
+    if (IsEqualIID(riid, IID_IUnknown)) {
+        AddRef();
+        *ppvObject = (IUnknown*)this;
+        hr = S_OK;
+    }
+    else if (IsEqualIID(riid, IID_ITextHost)) {
         AddRef();
         *ppvObject = (ITextHost*)this;
         hr = S_OK;
@@ -1150,7 +1168,7 @@ void RichEditHost::SetHideSelection(bool fHideSelection)
     OnTxPropertyBitsChange(TXTBIT_HIDESELECTION, fHideSelection ? TXTBIT_HIDESELECTION : 0);
 }
 
-HRESULT    RichEditHost::OnTxInPlaceDeactivate()
+HRESULT RichEditHost::OnTxInPlaceDeactivate()
 {
     HRESULT hr = S_OK;
     if (m_pTextServices != nullptr) {
@@ -1162,7 +1180,7 @@ HRESULT    RichEditHost::OnTxInPlaceDeactivate()
     return hr;
 }
 
-HRESULT    RichEditHost::OnTxInPlaceActivate(LPCRECT prcClient)
+HRESULT RichEditHost::OnTxInPlaceActivate(LPCRECT prcClient)
 {
     m_fInplaceActive = true;
     HRESULT hr = E_FAIL;
@@ -1233,16 +1251,18 @@ void RichEditHost::SetSelBarWidth(LONG lSelBarWidth)
     }
 }
 
-void RichEditHost::SetCharFormat(const CHARFORMAT2W& c)
+void RichEditHost::SetCharFormat(const CHARFORMAT2& c)
 {
     //只保存，不通知
     m_charFormat = c;
+    m_charFormat.cbSize = sizeof(CHARFORMAT2);
 }
 
 void RichEditHost::SetParaFormat(const PARAFORMAT2& p)
 {
     //只保存，不通知
     m_paraFormat = p;
+    m_paraFormat.cbSize = sizeof(PARAFORMAT2);
 }
 
 void RichEditHost::InitCharFormat(const LOGFONT& lf)
@@ -1267,8 +1287,8 @@ void RichEditHost::InitCharFormat(const LOGFONT& lf)
     }
     LONG lfHeight = lf.lfHeight * LY_PER_INCH / yPixPerInch;
 
-    memset(&m_charFormat, 0, sizeof(CHARFORMAT2W));
-    m_charFormat.cbSize = sizeof(CHARFORMAT2W);
+    memset(&m_charFormat, 0, sizeof(CHARFORMAT2));
+    m_charFormat.cbSize = sizeof(CHARFORMAT2);
     m_charFormat.dwMask = CFM_SIZE | CFM_FACE | CFM_CHARSET | CFM_BOLD | CFM_ITALIC | CFM_UNDERLINE | CFM_STRIKEOUT;
     m_charFormat.yHeight = -lfHeight;
     if (lf.lfWeight >= FW_BOLD) {

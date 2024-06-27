@@ -24,7 +24,7 @@ class TimerManager: public SupportWeakCallback
 {
 public:
     TimerManager();
-    ~TimerManager();
+    virtual ~TimerManager() override;
     TimerManager(const TimerManager&) = delete;
     TimerManager& operator = (const TimerManager&) = delete;
 

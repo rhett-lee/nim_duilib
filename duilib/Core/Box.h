@@ -228,9 +228,6 @@ private:
 
     //是否自动删除item的对象（如果为true：在从m_items移除元素时，会delete掉这个对象；如果为false，不delete）
     bool m_bAutoDestroyChild;
-
-    //是否延迟删除item对象，如果为true，则元素移除后，会放到Window对象中，延迟delete这个对象，仅当m_bAutoDestroyChild时有效
-    bool m_bDelayedDestroy;
     
     //布局管理接口
     Layout* m_pLayout;
