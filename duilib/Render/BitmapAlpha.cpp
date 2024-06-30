@@ -19,6 +19,7 @@ BitmapAlpha::~BitmapAlpha()
 {
 }
 
+//这个函数是必须执行的，否则半透明的界面会出现异常，目前调用的情况，alpha值传入的都是0
 void BitmapAlpha::ClearAlpha(const UiRect& rcDirty, uint8_t alpha) const
 {
     ASSERT((m_pPiexl != nullptr) && (m_nChannels == 4) && (m_nWidth > 0) && (m_nHeight > 0));
@@ -38,6 +39,7 @@ void BitmapAlpha::ClearAlpha(const UiRect& rcDirty, uint8_t alpha) const
     }
 }
 
+//这个函数目前影响：RichEdit控件，若不调用，其他的控件均不受影响。
 void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) const
 {
     // 此函数适用于GDI等API渲染位图，导致丢失alpha通道的情况，可以把alpha通道补回来
@@ -74,6 +76,7 @@ void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
     }
 }
 
+//这个函数目前影响：RichEdit控件，若不调用，其他的控件均不受影响。
 void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding) const
 {
     // 无论什么情况，都把此区域的alpha通道设置为255

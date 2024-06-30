@@ -35,6 +35,7 @@ public:
 
     void SetClientRect(const UiRect& rc);
     void GetControlRect(UiRect* prc);
+    UiRect GetControlRect();
 
     //是否自动换行（仅在单行文本模式下有效，多行文本模式时无效）
     void SetWordWrap(bool bWordWrap);

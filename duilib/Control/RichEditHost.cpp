@@ -1011,6 +1011,13 @@ void RichEditHost::GetControlRect(UiRect* prc)
     prc->bottom = rc.bottom;
 }
 
+UiRect RichEditHost::GetControlRect()
+{
+    UiRect rc;
+    GetControlRect(&rc);
+    return rc;
+}
+
 bool RichEditHost::SetSaveSelection(bool fSaveSelection)
 {
     bool fResult = fSaveSelection;

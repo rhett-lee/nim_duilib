@@ -15,6 +15,7 @@
 
 #include "include/core/SkMatrix.h"
 #include "include/core/SkBitmap.h"
+#include "include/core/SkImageInfo.h"
 #include "include/core/SkImage.h"
 #include "include/core/SkCanvas.h"
 #include "include/core/SkPaint.h"
@@ -2032,6 +2033,159 @@ void Render_Skia::DeleteDC()
         ::DeleteDC(m_hDC);
         m_hDC = nullptr;
     }
+}
+
+bool Render_Skia::ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen)
+{
+    ASSERT(dstPixels != nullptr);
+    if (dstPixels == nullptr) {
+        return false;
+    }
+    ASSERT(!rc.IsEmpty());
+    if (rc.IsEmpty()) {
+        return false;
+    }
+    ASSERT(dstPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t)));
+    if (dstPixelsLen < (rc.Width() * rc.Height() * sizeof(uint32_t))) {
+        return false;
+    }
+
+    ASSERT(m_pSkCanvas != nullptr);
+    if (m_pSkCanvas == nullptr) {
+        return false;
+    }
+
+    SkBitmap skBitmap;
+    skBitmap.setInfo(SkImageInfo::Make(rc.Width(), rc.Height(), SkColorType::kN32_SkColorType, SkAlphaType::kPremul_SkAlphaType));
+    skBitmap.setPixels(dstPixels);
+    return m_pSkCanvas->readPixels(skBitmap, rc.left + (int32_t)m_pSkPointOrg->fX, rc.top + (int32_t)m_pSkPointOrg->fY);
+}
+
+bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc)
+{
+    ASSERT(srcPixels != nullptr);
+    if (srcPixels == nullptr) {
+        return false;
+    }
+    ASSERT(!rc.IsEmpty());
+    if (rc.IsEmpty()) {
+        return false;
+    }
+    ASSERT(srcPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t)));
+    if (srcPixelsLen < (rc.Width() * rc.Height() * sizeof(uint32_t))) {
+        return false;
+    }
+
+    ASSERT(m_pSkCanvas != nullptr);
+    if (m_pSkCanvas == nullptr) {
+        return false;
+    }
+
+    SkBitmap skBitmap;
+    skBitmap.setInfo(SkImageInfo::Make(rc.Width(), rc.Height(), SkColorType::kN32_SkColorType, SkAlphaType::kPremul_SkAlphaType));
+    skBitmap.setPixels(srcPixels);
+
+    return m_pSkCanvas->writePixels(skBitmap, rc.left + (int32_t)m_pSkPointOrg->fX, rc.top + (int32_t)m_pSkPointOrg->fY);
+}
+
+bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint)
+{
+    if (rc == rcPaint) {
+        return WritePixels(srcPixels, srcPixelsLen, rc);
+    }
+    ASSERT(srcPixels != nullptr);
+    if (srcPixels == nullptr) {
+        return false;
+    }
+    ASSERT(!rc.IsEmpty());
+    if (rc.IsEmpty()) {
+        return false;
+    }
+    ASSERT(srcPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t)));
+    if (srcPixelsLen < (rc.Width() * rc.Height() * sizeof(uint32_t))) {
+        return false;
+    }
+
+    ASSERT(m_pSkCanvas != nullptr);
+    if (m_pSkCanvas == nullptr) {
+        return false;
+    }
+
+    UiRect updateRect = rc;
+    updateRect.Intersect(rcPaint);
+    ASSERT(!updateRect.IsEmpty());
+    if (updateRect.IsEmpty()) {
+        return false;
+    }
+
+    int32_t destX = updateRect.left;
+    int32_t destY = updateRect.top;
+    updateRect.Offset(-rc.left, -rc.top);
+
+    
+    SkImageInfo skImageInfo = SkImageInfo::Make(rc.Width(), rc.Height(), SkColorType::kN32_SkColorType, SkAlphaType::kPremul_SkAlphaType);
+    SkBitmap skBitmap;
+    skBitmap.setInfo(skImageInfo);
+    skBitmap.setPixels(srcPixels);
+
+    SkBitmap dstDirtyBitmap;
+    SkIRect dstRect = SkIRect::MakeXYWH(updateRect.left, updateRect.top, updateRect.Width(), updateRect.Height());
+    bool bRet = skBitmap.extractSubset(&dstDirtyBitmap, dstRect);
+    ASSERT(bRet);
+    if(bRet) {
+        bRet = m_pSkCanvas->writePixels(dstDirtyBitmap, destX + (int32_t)m_pSkPointOrg->fX, destY + (int32_t)m_pSkPointOrg->fY);
+    }
+    return bRet;    
+}
+
+RenderClipType Render_Skia::GetClipInfo(std::vector<UiRect>& clipRects)
+{
+    RenderClipType clipType = RenderClipType::kEmpty;
+    clipRects.clear();
+    if (m_pSkCanvas != nullptr) {
+        if (m_pSkCanvas->isClipEmpty()) {
+            clipType = RenderClipType::kEmpty;
+        }
+        else if (m_pSkCanvas->isClipRect()) {
+            clipType = RenderClipType::kRect;
+            SkRect rcClip;
+            if (m_pSkCanvas->getLocalClipBounds(&rcClip)) {
+                UiRect rect = { (int32_t)rcClip.left(), (int32_t)rcClip.top(), (int32_t)rcClip.right(), (int32_t)rcClip.bottom() };
+                rect.Deflate(1, 1); //注意需要向内缩小一个象素（Skia在设置Clip的时候，会放大一个像素）
+                clipRects.push_back(rect);
+            }
+        }
+        else {
+            clipType = RenderClipType::kRegion;
+            SkRegion rgn;
+            m_pSkCanvas->temporary_internal_getRgnClip(&rgn);
+            SkRegion::Iterator it(rgn);
+            for (; !it.done(); it.next()) {
+                SkIRect skrc = it.rect();
+                UiRect rect = { skrc.fLeft, skrc.fTop, skrc.fRight, skrc.fBottom };
+                rect.Deflate(1, 1); //注意需要向内缩小一个象素（Skia在设置Clip的时候，会放大一个像素）
+                clipRects.push_back(rect);
+            }
+        }
+    }
+    if (clipRects.empty()) {
+        clipType = RenderClipType::kEmpty;
+    }
+    else {
+        //将坐标转换为客户区坐标
+        for (UiRect& rc : clipRects) {
+            rc.Offset(-(int32_t)m_pSkPointOrg->x(), -(int32_t)m_pSkPointOrg->y());
+        }
+    }
+    return clipType;
+}
+
+bool Render_Skia::IsClipEmpty() const
+{
+    if ((m_pSkCanvas != nullptr) && (m_pSkCanvas->isClipEmpty())) {
+        return true;
+    }
+    return false;
 }
 
 } // namespace ui

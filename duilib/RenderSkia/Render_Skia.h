@@ -123,6 +123,12 @@ public:
     virtual void ReleaseDC(HDC hdc) override;
 #endif
 
+    virtual bool ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen) override;
+    virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc) override;
+    virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) override;
+    virtual RenderClipType GetClipInfo(std::vector<UiRect>& clipRects) override;
+    virtual bool IsClipEmpty() const override;
+
 private:
     /** 位图绘制封装
     */

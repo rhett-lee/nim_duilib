@@ -1019,6 +1019,10 @@ private:
     void SetHAlignType(HorAlignType alignType);
     void SetVAlignType(VerAlignType alignType);
 
+    /** 使用私有的DC绘制
+    */
+    void PaintRichEdit(IRender* pRender, const UiRect& rcPaint);
+
 private:
     //判断是否是字节： 可打印字符（0x20-0x7e）
     static bool IsAsciiChar(const wchar_t ch);
@@ -1095,7 +1099,7 @@ private:
 
     /** 文本内边距
     */
-    UiPadding16    m_rcTextPadding;
+    UiPadding16 m_rcTextPadding;
 
     /** 是否使用Control设置的光标
     */
@@ -1144,6 +1148,49 @@ private:
     /** 显示/隐藏密码按钮(仅当密码模式有效)
     */
     Control* m_pShowPasswordButton;
+
+private:
+    /** 绘制所需的数据结构
+    */
+    struct TxDrawData
+    {
+    public:
+        /** 绘制所需DC
+        */
+        HDC m_hDrawDC;
+
+        /** DC资源的原位图数据
+        */
+        HGDIOBJ m_hOldBitmap;
+
+        /** 位图资源
+        */
+        HBITMAP m_hBitmap;
+
+        /** 位图的大小
+        */
+        UiSize m_szBitmap;
+
+        /** 位图的数据指针
+        */
+        LPVOID m_pBitmapBits ;
+
+    public:
+        TxDrawData();
+        ~TxDrawData();
+
+        /** 清理资源
+        */
+        void Clear();
+
+        /** 检查并重建位图
+        */
+        bool CheckCreateBitmap(HDC hWindowDC, int32_t nWidth, int32_t nHeight);
+    };
+
+    /** 绘制所需的数据
+    */
+    TxDrawData m_txDrawData;
 };
 
 } // namespace ui

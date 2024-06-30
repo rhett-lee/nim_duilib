@@ -9,6 +9,7 @@
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Utils/BitmapHelper.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationManager.h"
@@ -1990,12 +1991,20 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     }
     //必须不使用缓存，否则绘制异常
     ASSERT(IsUseCache() == false);
+
+    bool bNeedPaint = true;
+    if (pRender->IsClipEmpty()) {
+        bNeedPaint = false;
+    }    
     UiRect rcTemp;
     if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
-        return;
+        bNeedPaint = false;
     }
 
-    Control::Paint(pRender, rcPaint);
+    if (bNeedPaint) {
+        Control::Paint(pRender, rcPaint);
+    }
+
     ITextServices* pTextServices = nullptr;
     if (m_pRichHost != nullptr) {
         pTextServices = m_pRichHost->GetTextServices();
@@ -2006,29 +2015,35 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 
     UiRect rc;
     m_pRichHost->GetControlRect(&rc);
-       
-    // Remember wparam is actually the hdc and lparam is the update
-    // rect because this message has been preprocessed by the window.
-    HDC hdc = pRender->GetDC();
-    RECT paintRect = { rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom };
-    pTextServices->TxDraw(DVASPECT_CONTENT,      // Draw Aspect
-                          /*-1*/0,                // Lindex
-                          NULL,                    // Info for drawing optimazation
-                          NULL,                    // target device information
-                          hdc,                    // Draw device HDC
-                          NULL,                 // Target device HDC
-                          (RECTL*)&rc,            // Bounding client rectangle
-                          NULL,                 // Clipping rectangle for metafiles
-                          &paintRect,            // Update rectangle
-                          NULL,                    // Call back function
-                          NULL,                    // Call back parameter
-                          0);                    // What view of the object
 
-    pRender->ReleaseDC(hdc);
+    bool bNormalPrint = true;
+    if (bNeedPaint && bNormalPrint) {
+        // Remember wparam is actually the hdc and lparam is the update
+        // rect because this message has been preprocessed by the window.
+        HDC hdc = pRender->GetDC();
+        RECT paintRect = { rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom };
+        pTextServices->TxDraw(DVASPECT_CONTENT,         // Draw Aspect
+                              /*-1*/0,                  // Lindex
+                              NULL,                     // Info for drawing optimazation
+                              NULL,                     // target device information
+                              hdc,                      // Draw device HDC
+                              NULL,                     // Target device HDC
+                              (RECTL*)&rc,              // Bounding client rectangle
+                              NULL,                     // Clipping rectangle for metafiles
+                              &paintRect,               // Update rectangle
+                              NULL,                     // Call back function
+                              NULL,                     // Call back parameter
+                              0);                       // What view of the object
+
+        pRender->ReleaseDC(hdc);
+    }
+    else if (bNeedPaint) {
+        PaintRichEdit(pRender, rcPaint);
+    }
+
     ScrollBar* pVScrollBar = GetVScrollBar();
     if (m_bVScrollBarFixing && (pVScrollBar != nullptr)) {
         LONG lWidth = rc.right - rc.left + pVScrollBar->GetFixedWidth().GetInt32();
-        //LONG lWidth = rc.right - rc.left;
         LONG lHeight = 0;
         SIZEL szExtent = { -1, -1 };
         pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
@@ -2044,6 +2059,255 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
             Arrange();
         }
     }
+}
+
+RichEdit::TxDrawData::TxDrawData():
+    m_hDrawDC(nullptr),
+    m_hOldBitmap(nullptr),
+    m_hBitmap(nullptr),
+    m_pBitmapBits(nullptr)
+{
+
+}
+
+RichEdit::TxDrawData::~TxDrawData()
+{
+    Clear();
+}
+
+void RichEdit::TxDrawData::Clear()
+{
+    if ((m_hDrawDC != nullptr) && (m_hOldBitmap != nullptr)) {
+        ::SelectObject(m_hDrawDC, m_hOldBitmap);
+    }
+    m_hOldBitmap = nullptr;
+    if (m_hDrawDC != nullptr) {
+        ::DeleteDC(m_hDrawDC);
+        m_hDrawDC = nullptr;
+    }
+    if (m_hBitmap != nullptr) {
+        ::DeleteObject(m_hBitmap);
+        m_hBitmap = nullptr;
+    }
+    m_pBitmapBits = nullptr;
+    m_szBitmap.Clear();
+}
+
+bool RichEdit::TxDrawData::CheckCreateBitmap(HDC hWindowDC, int32_t nWidth, int32_t nHeight)
+{
+    ASSERT((nWidth > 0) && (nHeight > 0));
+    if ((nWidth <= 0) || (nHeight <= 0)) {
+        return false;
+    }
+    if ((m_szBitmap.cx != nWidth) || (m_szBitmap.cy != nHeight)) {
+        if (m_hBitmap != nullptr) {
+            ::DeleteObject(m_hBitmap);
+            m_hBitmap = nullptr;
+        }
+        m_pBitmapBits = nullptr;
+    }
+    if (m_hBitmap == nullptr) {
+        m_pBitmapBits = nullptr;
+        m_hBitmap = BitmapHelper::CreateGDIBitmap(nWidth, nHeight, true, &m_pBitmapBits);
+        if ((m_hBitmap != nullptr) && (m_pBitmapBits != nullptr)) {
+            m_szBitmap.cx = nWidth;
+            m_szBitmap.cy = nHeight;
+
+            if (m_hDrawDC == nullptr) {
+                m_hDrawDC = ::CreateCompatibleDC(hWindowDC);
+                ASSERT(m_hDrawDC != nullptr);
+                if (m_hDrawDC != nullptr) {
+                    m_hOldBitmap = ::SelectObject(m_hDrawDC, m_hBitmap);
+                }
+            }
+            else {
+                ::SelectObject(m_hDrawDC, m_hBitmap);
+            }
+        }
+        else {
+            if (m_hBitmap != nullptr) {
+                ::DeleteObject(m_hBitmap);
+                m_hBitmap = nullptr;
+            }
+            m_pBitmapBits = nullptr;
+        }        
+    }
+    return (m_hBitmap != nullptr) && (m_pBitmapBits != nullptr) && (m_hDrawDC != nullptr);
+}
+
+void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
+{
+    if (pRender == nullptr) {
+        return;
+    }
+
+    //必须不使用缓存，否则绘制异常
+    ASSERT(IsUseCache() == false);
+    UiRect rcTemp;
+    if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
+        return;
+    }
+
+    ITextServices* pTextServices = nullptr;
+    if (m_pRichHost != nullptr) {
+        pTextServices = m_pRichHost->GetTextServices();
+    }
+    if ((pTextServices == nullptr) || (m_pRichHost == nullptr)) {
+        return;
+    }
+
+    const UiRect rc = m_pRichHost->GetControlRect();
+    if (rc.IsEmpty()) {
+        return;
+    }
+
+    std::vector<UiRect> clipRects;
+    RenderClipType clipType = pRender->GetClipInfo(clipRects);
+    if (clipType == RenderClipType::kEmpty) {
+        //如果裁剪区域为空，不需要绘制
+        return;
+    }
+
+    //获取与本控件的绘制区域交集
+    const UiRect& rcDirty = GetPaintRect();
+    ASSERT(!rcDirty.IsEmpty());
+    if (rcDirty.IsEmpty()) {
+        return;
+    }
+
+    UiRect rcUpdate = rc;
+    rcUpdate.Intersect(rcDirty);
+    if (rcUpdate.IsEmpty()) {
+        return;
+    }
+
+    if (!clipRects.empty()) {
+        bool bHasIntersect = false;
+        UiRect rcCheck = rcUpdate;
+        for (const UiRect& clipRect : clipRects) {
+            if (rcCheck.Intersect(clipRect)) {
+                bHasIntersect = true;
+                break;
+            }
+        }
+        if (!bHasIntersect) {
+            //脏区域矩形与裁剪区域矩形无交集，无需绘制
+            return;
+        }
+    }
+
+    //创建绘制所需DC和位图
+    bool bRet = m_txDrawData.CheckCreateBitmap(GetWindowDC(), rc.Width(), rc.Height());
+    ASSERT(bRet);
+    if (!bRet) {
+        return;
+    }
+
+    HDC hDrawDC = m_txDrawData.m_hDrawDC;
+    LPVOID pBitmapBits = m_txDrawData.m_pBitmapBits;
+    ASSERT((pBitmapBits != nullptr) && (hDrawDC != nullptr));
+    if ((pBitmapBits == nullptr) || (hDrawDC == nullptr)) {
+        return;
+    }
+
+    //复制渲染引擎源位图数据
+    bRet = pRender->ReadPixels(rc, pBitmapBits, rc.Width() * rc.Height() * sizeof(uint32_t));
+    ASSERT(bRet);
+    if (!bRet) {
+        return;
+    }
+
+    //更新区域（相对于位图左上角坐标）
+    rcUpdate.Offset(-rc.left, -rc.top);
+
+    //清除Alpha通道（标记为全部透明）
+    const int32_t nTop = std::max(rcUpdate.top, 0);
+    const int32_t nBottom = std::min(rcUpdate.bottom, rc.Height());
+    const int32_t nLeft = std::max(rcUpdate.left, 0);
+    const int32_t nRight = std::min(rcUpdate.right, rc.Width());
+    for (int32_t i = nTop; i < nBottom; i++) {
+        for (int32_t j = nLeft; j < nRight; j++) {
+            uint8_t* a = (uint8_t*)pBitmapBits + (i * rc.Width() + j) * sizeof(uint32_t) + 3;
+            *a = 0;
+        }
+    }
+
+    //位图的矩形区域
+    RECTL rcBitmap = { 0, };
+    rcBitmap.left = 0;
+    rcBitmap.top = 0;
+    rcBitmap.right = rcBitmap.left + rc.Width();
+    rcBitmap.bottom = rcBitmap.top + rc.Height();
+
+    //设置裁剪信息，避免绘制非更新区域
+    bool bSetClipRect = false;
+    if (!clipRects.empty()) {
+        size_t nCount = clipRects.size() + 1;
+        size_t nSize = sizeof(RGNDATAHEADER) + nCount * sizeof(RECT);
+        RGNDATA* rgnData = (RGNDATA*)::malloc(nSize);
+        ASSERT(rgnData != nullptr);
+        if (rgnData != nullptr) {
+            memset(rgnData, 0, nSize);
+            rgnData->rdh.dwSize = sizeof(RGNDATAHEADER);
+            rgnData->rdh.iType = RDH_RECTANGLES;
+            rgnData->rdh.nCount = (DWORD)nCount;
+            rgnData->rdh.rcBound.left = 0;
+            rgnData->rdh.rcBound.top = 0;
+            rgnData->rdh.rcBound.right = rc.Width();
+            rgnData->rdh.rcBound.bottom = rc.Height();
+
+            nCount = 0;
+            LPRECT pRc = (LPRECT)rgnData->Buffer;
+            for (UiRect clipRect : clipRects) {
+                clipRect.Offset(-rc.left, -rc.top);
+                RECT rcClip = { clipRect.left, clipRect.top, clipRect.right, clipRect.bottom };
+                pRc[nCount++] = rcClip;
+            }
+
+            RECT rcClip = { rcUpdate.left, rcUpdate.top, rcUpdate.right, rcUpdate.bottom };
+            pRc[nCount++] = rcClip;
+
+            HRGN hRgn = ::ExtCreateRegion(NULL, (DWORD)nSize, rgnData);
+            ::free(rgnData);
+            if (hRgn != nullptr) {
+                bSetClipRect = true;
+                ::SelectClipRgn(hDrawDC, hRgn);
+                ::DeleteObject(hRgn);
+            }
+        }
+    }
+    if (!bSetClipRect) {
+        ::IntersectClipRect(hDrawDC, rcUpdate.left, rcUpdate.top, rcUpdate.right, rcUpdate.bottom);
+    }
+    
+    RECT rectUpdate = { rcUpdate.left, rcUpdate.top, rcUpdate.right, rcUpdate.bottom };
+    pTextServices->TxDraw(DVASPECT_CONTENT,      // Draw Aspect
+                            /*-1*/0,               // Lindex
+                            NULL,                  // Info for drawing optimazation
+                            NULL,                  // target device information
+                            hDrawDC,               // Draw device HDC
+                            NULL,                  // Target device HDC
+                            &rcBitmap,             // Bounding client rectangle
+                            NULL,                  // Clipping rectangle for metafiles
+                            &rectUpdate,           // Update rectangle
+                            NULL,                  // Call back function
+                            NULL,                  // Call back parameter
+                            0);                    // What view of the object
+
+    //恢复Alpha(绘制过程中，会导致绘制区域部分的Alpha通道出现异常)
+    for (int32_t i = nTop; i < nBottom; i++) {
+        for (int32_t j = nLeft; j < nRight; j++) {
+            uint8_t* a = (uint8_t*)pBitmapBits + (i * rc.Width() + j) * sizeof(uint32_t)+ 3;
+            if (*a == 0) {
+                *a = 255;
+            }
+        }
+    }
+
+    //将绘制完成的数据，回写到渲染引擎位图
+    rcUpdate.Offset(rc.left, rc.top);
+    bRet = pRender->WritePixels(pBitmapBits, rc.Width() * rc.Height() * sizeof(uint32_t), rc, rcUpdate);
+    ASSERT(bRet);
 }
 
 void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)

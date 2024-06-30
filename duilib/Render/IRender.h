@@ -468,6 +468,15 @@ public:
     std::vector<UiRect> m_textRects;
 };
 
+/** 裁剪区域类型
+*/
+enum class RenderClipType
+{
+    kEmpty, //空，无裁剪信息
+    kRect,  //裁剪区域是个矩形
+    kRegion //裁剪区域是个Region
+};
+
 /** 渲染接口
 */
 class Window;
@@ -862,6 +871,40 @@ public:
     /** 克隆一个新的对象
     */
     virtual std::unique_ptr<IRender> Clone() = 0;
+
+    /** 读取指定矩形范围内的位图数据（数据是从目标数据复制一份）
+    * @param [in] rc 在Render中的矩形范围
+    * @param [in] dstPixels 读取的目标缓冲区起始地址
+    * @param [in] dstPixelsLen 目标dstPixels的缓冲区长度, 长度需要满足要求：dstPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t))
+    */
+    virtual bool ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen) = 0;
+
+    /** 将数据写入到位图中去（数据是复制一份到目标数据）
+    * @param [in] srcPixels 源数据的缓冲区起始地址
+    * @param [in] srcPixelsLen 源数据srcPixels缓冲区长度, 长度需要满足要求：srcPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t))
+    * @param [in] rc 在Render中的矩形范围，将位图数据写入到此矩形内
+    */
+    virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc) = 0;
+
+    /** 将数据写入到位图中去(数据是复制一份到目标数据，仅复制绘制部分)
+    * @param [in] srcPixels 源数据的缓冲区起始地址
+    * @param [in] srcPixelsLen 源数据srcPixels缓冲区长度，长度需要满足要求：srcPixelsLen >= (rc.Width() * rc.Height() * sizeof(uint32_t))
+    * @param [in] rc 在Render中的矩形范围
+    * @param [in] rcPaint 绘制的部分矩形范围，将绘制的位图数据写入到此矩形内
+    */
+    virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) = 0;
+
+    /** 获取当前的裁剪区域
+    * @param [out] clipRects 返回裁剪区域的矩形数据，矩形区域坐标为客户区坐标
+                             如果是 RenderClipType::kRect类型，容器中只有一个元素，
+                             如果是RenderClipType::kRegion类型，容器中有多个元素，用于构建Region
+    * @return 返回裁剪区域类型
+    */
+    virtual RenderClipType GetClipInfo(std::vector<UiRect>& clipRects) = 0;
+
+    /** 判断裁剪区域是否为空(如果为空不需要绘制)
+    */
+    virtual bool IsClipEmpty() const = 0;
 };
 
 /** 渲染接口管理，用于创建Font、Pen、Brush、Path、Matrix、Bitmap、Render等渲染实现对象
