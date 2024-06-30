@@ -95,7 +95,7 @@ RenderType Render_Skia::GetRenderType() const
     return RenderType::kRenderType_Skia;
 }
 
-bool Render_Skia::Resize(int width, int height)
+bool Render_Skia::Resize(int32_t width, int32_t height)
 {
     ASSERT((width > 0) && (height > 0));
     if ((width <= 0) || (height <= 0)) {
@@ -158,7 +158,7 @@ IBitmap* Render_Skia::DetachBitmap()
     return pBitmap;
 }
 
-int Render_Skia::GetWidth()
+int32_t Render_Skia::GetWidth() const
 {
     if (m_pBitmapSkia != nullptr) {
         return m_pBitmapSkia->GetWidth();
@@ -166,7 +166,7 @@ int Render_Skia::GetWidth()
     return 0;
 }
 
-int Render_Skia::GetHeight()
+int32_t Render_Skia::GetHeight() const
 {
     if (m_pBitmapSkia != nullptr) {
         return m_pBitmapSkia->GetHeight();
@@ -250,7 +250,7 @@ UiPoint Render_Skia::GetWindowOrg() const
     return UiPoint { SkScalarTruncToInt(m_pSkPointOrg->fX), SkScalarTruncToInt(m_pSkPointOrg->fY) };
 }
 
-void Render_Skia::SaveClip(int& nState)
+void Render_Skia::SaveClip(int32_t& nState)
 {
     ASSERT(m_pSkCanvas != nullptr);
     if (m_pSkCanvas != nullptr) {
@@ -259,7 +259,7 @@ void Render_Skia::SaveClip(int& nState)
     }
 }
 
-void Render_Skia::RestoreClip(int nState)
+void Render_Skia::RestoreClip(int32_t nState)
 {
     ASSERT(m_pSkCanvas != nullptr);
     ASSERT(m_saveCount == nState);
@@ -288,7 +288,7 @@ void Render_Skia::SetClip(const UiRect& rc, bool bIntersect)
     }
 }
 
-void Render_Skia::SetRoundClip(const UiRect& rc, int width, int height, bool bIntersect)
+void Render_Skia::SetRoundClip(const UiRect& rc, int32_t width, int32_t height, bool bIntersect)
 {
     SkIRect rcSkI = { rc.left, rc.top, rc.right, rc.bottom };
     SkRect rcSk = SkRect::Make(rcSkI);
@@ -332,7 +332,7 @@ void Render_Skia::SetRopMode(SkPaint& skPaint, RopMode rop) const
     }
 }
 
-bool Render_Skia::BitBlt(int x, int y, int cx, int cy, Bitmap_Skia* pSrcBitmap, int xSrc, int ySrc, RopMode rop)
+bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, Bitmap_Skia* pSrcBitmap, int32_t xSrc, int32_t ySrc, RopMode rop)
 {
     Bitmap_Skia* skiaBitmap = pSrcBitmap;
     ASSERT(skiaBitmap != nullptr);
@@ -359,7 +359,7 @@ bool Render_Skia::BitBlt(int x, int y, int cx, int cy, Bitmap_Skia* pSrcBitmap, 
     return false;
 }
 
-bool Render_Skia::BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, int xSrc, int ySrc, RopMode rop)
+bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IBitmap* pSrcBitmap, int32_t xSrc, int32_t ySrc, RopMode rop)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     ASSERT(pSrcBitmap != nullptr);
@@ -370,7 +370,7 @@ bool Render_Skia::BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, int 
     return BitBlt(x, y, cx, cy, skiaBitmap, xSrc, ySrc, rop);
 }
 
-bool Render_Skia::BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, int xSrc, int ySrc, RopMode rop)
+bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     ASSERT(pSrcRender != nullptr);
@@ -387,7 +387,7 @@ bool Render_Skia::BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, int 
     return BitBlt(x, y, cx, cy, skiaBitmap, xSrc, ySrc, rop);
 }
 
-bool Render_Skia::StretchBlt(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc, RopMode rop)
+bool Render_Skia::StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     ASSERT(pSrcRender != nullptr);
@@ -426,7 +426,7 @@ bool Render_Skia::StretchBlt(int xDest, int yDest, int widthDest, int heightDest
 
 }
 
-bool Render_Skia::AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc, uint8_t alpha)
+bool Render_Skia::AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, uint8_t alpha)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     ASSERT(pSrcRender != nullptr);
@@ -470,7 +470,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
                             const UiRect& rcDest, const UiRect& rcDestCorners,
                             const UiRect& rcSource, const UiRect& rcSourceCorners,
                             uint8_t uFade, bool xtiled, bool ytiled,
-                            bool fullxtiled, bool fullytiled, int nTiledMargin)
+                            bool fullxtiled, bool fullytiled, int32_t nTiledMargin)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     UiRect rcTestTemp;
@@ -762,7 +762,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
                             const UiRect& rcDest, const UiRect& rcSource,
                             uint8_t uFade, bool xtiled, bool ytiled,
-                            bool fullxtiled, bool fullytiled, int nTiledMargin)
+                            bool fullxtiled, bool fullytiled, int32_t nTiledMargin)
 {
     UiRect rcDestCorners;
     UiRect rcSourceCorners;
@@ -1001,7 +1001,7 @@ void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, b
     }
 }
 
-void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth)
+void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int32_t nWidth)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     SkPaint skPaint = *m_pSkPaint;
@@ -1849,8 +1849,8 @@ void Render_Skia::DrawTextString(const UiRect& rc, const DString& strText, uint3
 void Render_Skia::DrawBoxShadow(const UiRect& rc,
                                 const UiSize& roundSize, 
                                 const UiPoint& cpOffset, 
-                                 int nBlurRadius, 
-                                int nSpreadRadius,
+                                int32_t nBlurRadius, 
+                                int32_t nSpreadRadius,
                                 UiColor dwColor)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -2186,6 +2186,11 @@ bool Render_Skia::IsClipEmpty() const
         return true;
     }
     return false;
+}
+
+bool Render_Skia::IsEmpty() const
+{
+    return (m_pSkCanvas != nullptr) && (GetWidth() > 0) && (GetHeight() > 0);
 }
 
 } // namespace ui

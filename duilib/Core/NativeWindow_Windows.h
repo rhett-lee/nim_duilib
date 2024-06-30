@@ -501,9 +501,6 @@ private:
     //绘制DC
     HDC m_hDcPaint;
 
-    //绘制结构
-    PAINTSTRUCT m_paintStruct;
-
     //是否为层窗口
     bool m_bIsLayeredWindow;
 
@@ -524,6 +521,9 @@ private:
 
     //鼠标所在位置
     UiPoint m_ptLastMousePos;
+
+    //是否首次绘制
+    bool m_bFirstPainted;
 
 private:
     /**@name 全屏相关状态

@@ -411,6 +411,14 @@ protected:
     */
     virtual LRESULT OnMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) override;
 
+    /** 窗口绘制(WM_SHOWWINDOW)
+    * @param [in] bShow true表示窗口正在显示，false表示窗口正在隐藏
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) override;
+
     /** 窗口绘制(WM_PAINT)
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
@@ -681,6 +689,14 @@ private:
     */
     void OnInitLayout();
 
+    /** 窗口显示或者隐藏
+    */
+    void OnShowWindow(bool bShow);
+
+    /** 更新窗口状态，并创建Render等
+    */
+    bool PreparePaint(bool bArrange);
+
     /** 绘制函数体
     * @return 如果执行了绘制返回true，否则返回false
     */
@@ -728,6 +744,9 @@ private:
 
     //布局是否需要初始化
     bool m_bFirstLayout;
+
+    //是否首次绘制
+    bool m_bFirstPainted;
 
     //绘制时的偏移量（动画用）
     UiPoint m_renderOffset;

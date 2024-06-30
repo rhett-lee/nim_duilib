@@ -873,6 +873,11 @@ LRESULT WindowBase::OnNativeMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& n
     return OnMoveMsg(ptTopLeft, nativeMsg, bHandled);
 }
 
+LRESULT WindowBase::OnNativeShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    return OnShowWindowMsg(bShow, nativeMsg, bHandled);
+}
+
 LRESULT WindowBase::OnNativePaintMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
     return OnPaintMsg(nativeMsg, bHandled);

@@ -31,7 +31,7 @@
 | WM_CLOSE    |     |     |
 |     |     |     |
 | WM_TASKBARBUTTONCREATED |  示例使用，无参数   |     |
-|     |     |     |
+| WM_SHOWWINDOW| wParam 指示是否显示窗口。 如果 wParam 为 TRUE，则显示窗口。 如果 wParam 为 FALSE，则表示窗口处于隐藏状态。| https://learn.microsoft.com/zh-cn/windows/win32/winmsg/wm-showwindow?redirectedfrom=MSDN
 |     |     |     |
 |     |     |     |
 |     |     |     |

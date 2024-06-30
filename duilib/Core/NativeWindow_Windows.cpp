@@ -22,7 +22,7 @@ NativeWindow::NativeWindow(INativeWindow* pOwner):
     m_bFullScreen(false),
     m_dwLastStyle(0),
     m_ptLastMousePos(-1, -1),
-    m_paintStruct({0, })
+    m_bFirstPainted(true)
 {
     ASSERT(m_pOwner != nullptr);
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
@@ -801,85 +801,71 @@ bool NativeWindow::BeginPaint(UiRect& rcPaint)
     if (!::IsWindow(m_hWnd)) {
         return false;
     }
-    if (m_paintStruct.hdc != nullptr) {
-        ::EndPaint(m_hWnd, &m_paintStruct);
-        m_paintStruct = {0, };
-    }
 
     if (!GetUpdateRect(rcPaint)) {
         rcPaint.Clear();
     }
-    HDC hDC = ::BeginPaint(m_hWnd, &m_paintStruct);
-    ASSERT(hDC == m_paintStruct.hdc);
-    if (hDC != nullptr) {
-        //rcPaint需要使用GetUpdateRect的结果，否则层窗口的情况下，有绘制异常
-        if (rcPaint.IsEmpty()) {
-            rcPaint.left = m_paintStruct.rcPaint.left;
-            rcPaint.top = m_paintStruct.rcPaint.top;
-            rcPaint.right = m_paintStruct.rcPaint.right;
-            rcPaint.bottom = m_paintStruct.rcPaint.bottom;
+    if (IsLayeredWindow()) {
+        //使用层窗口时，窗口部分在屏幕外时，获取到的无效区域仅仅是屏幕内的部分，这里做修正处理
+        UiRect rcWindow;
+        GetWindowRect(rcWindow);
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        int32_t xScreen = GetSystemMetricsForDpiWrapper(SM_XVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
+        int32_t yScreen = GetSystemMetricsForDpiWrapper(SM_YVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
+        int32_t cxScreen = GetSystemMetricsForDpiWrapper(SM_CXVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
+        int32_t cyScreen = GetSystemMetricsForDpiWrapper(SM_CYVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
+        if (rcWindow.left < xScreen && rcWindow.left + rcPaint.left == xScreen) {
+            rcPaint.left = rcClient.left;
         }
-
-        if (IsLayeredWindow()) {
-            //使用层窗口时，窗口部分在屏幕外时，获取到的无效区域仅仅是屏幕内的部分，这里做修正处理
-            UiRect rcWindow;
-            GetWindowRect(rcWindow);
-            UiRect rcClient;
-            GetClientRect(rcClient);
-            int32_t xScreen = GetSystemMetricsForDpiWrapper(SM_XVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
-            int32_t yScreen = GetSystemMetricsForDpiWrapper(SM_YVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
-            int32_t cxScreen = GetSystemMetricsForDpiWrapper(SM_CXVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
-            int32_t cyScreen = GetSystemMetricsForDpiWrapper(SM_CYVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
-            if (rcWindow.left < xScreen && rcWindow.left + rcPaint.left == xScreen) {
-                rcPaint.left = rcClient.left;
-            }
-            if (rcWindow.top < yScreen && rcWindow.top + rcPaint.top == yScreen) {
-                rcPaint.top = rcClient.top;
-            }
-            if (rcWindow.right > cxScreen && rcWindow.left + rcPaint.right == xScreen + cxScreen) {
-                rcPaint.right = rcClient.right;
-            }
-            if (rcWindow.bottom > cyScreen && rcWindow.top + rcPaint.bottom == yScreen + cyScreen) {
-                rcPaint.bottom = rcClient.bottom;
-            }
+        if (rcWindow.top < yScreen && rcWindow.top + rcPaint.top == yScreen) {
+            rcPaint.top = rcClient.top;
+        }
+        if (rcWindow.right > cxScreen && rcWindow.left + rcPaint.right == xScreen + cxScreen) {
+            rcPaint.right = rcClient.right;
+        }
+        if (rcWindow.bottom > cyScreen && rcWindow.top + rcPaint.bottom == yScreen + cyScreen) {
+            rcPaint.bottom = rcClient.bottom;
         }
     }
-    return (hDC != nullptr);
+    return true;
 }
 
 bool NativeWindow::EndPaint(const UiRect& rcPaint, IRender* pRender)
 {
-    ASSERT(m_paintStruct.hdc != nullptr);
-    if (m_paintStruct.hdc == nullptr) {
+    if (pRender == nullptr) {
         return false;
     }
-    
-    if (pRender != nullptr) {
-        // 渲染到窗口
-        if (IsLayeredWindow()) {
-            UiRect rcWindow;
-            GetWindowRect(rcWindow);
-            UiRect rcClient;
-            GetClientRect(rcClient);
-            POINT pt = { rcWindow.left, rcWindow.top };
-            SIZE szWindow = { rcClient.right - rcClient.left, rcClient.bottom - rcClient.top };
-            POINT ptSrc = { 0, 0 };
-            BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(GetWindowAlpha()), AC_SRC_ALPHA };
-            HDC hdc = pRender->GetDC();
-            BOOL bUpdated = ::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA);
-            ASSERT(bUpdated);
+
+    // 渲染到窗口
+    bool bRet = false;
+    if (IsLayeredWindow()) {
+        UiRect rcWindow;
+        GetWindowRect(rcWindow);
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        POINT pt = { rcWindow.left, rcWindow.top };
+        SIZE szWindow = { rcClient.right - rcClient.left, rcClient.bottom - rcClient.top };
+        POINT ptSrc = { 0, 0 };
+        BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(GetWindowAlpha()), AC_SRC_ALPHA };
+        HDC hdc = pRender->GetDC();
+        ASSERT(hdc != nullptr);
+        if (hdc != nullptr) {
+            bRet = ::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA) != FALSE;
+            ASSERT(bRet);
             pRender->ReleaseDC(hdc);
-        }
-        else {
-            HDC hdc = pRender->GetDC();
-            ::BitBlt(m_paintStruct.hdc, rcPaint.left, rcPaint.top, rcPaint.Width(), rcPaint.Height(),
-                     hdc, rcPaint.left, rcPaint.top, SRCCOPY);
+        }        
+    }
+    else {
+        ASSERT(m_hDcPaint != nullptr);
+        HDC hdc = pRender->GetDC();
+        ASSERT(hdc != nullptr);
+        if (hdc != nullptr) {
+            bRet = ::BitBlt(m_hDcPaint, rcPaint.left, rcPaint.top, rcPaint.Width(), rcPaint.Height(),
+                            hdc, rcPaint.left, rcPaint.top, SRCCOPY) != FALSE;
             pRender->ReleaseDC(hdc);
         }
     }
-
-    bool bRet = ::EndPaint(m_hWnd, &m_paintStruct) != FALSE;
-    m_paintStruct = { 0, };
     return bRet;
 }
 
@@ -1736,24 +1722,30 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         lResult = m_pOwner->OnNativeMoveMsg(ptTopLeft, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
+    case WM_SHOWWINDOW:
+    {
+        bool bShow = wParam != FALSE;
+        lResult = m_pOwner->OnNativeShowWindowMsg(bShow, NativeMsg(uMsg, wParam, lParam), bHandled);
+        break;
+    }
     case WM_PAINT:
     {
-        ASSERT(m_paintStruct.hdc == nullptr);
+        RECT rect = {0, };
+        if (m_bFirstPainted || ::GetUpdateRect(m_hWnd, &rect, FALSE)) {
+            m_bFirstPainted = false;
+            const LONG style = GetWindowLong(m_hWnd, GWL_EXSTYLE);
 
-        lResult = m_pOwner->OnNativePaintMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
+            // Composited windows will continue to receive WM_PAINT messages for update
+            // regions until the window is actually painted through Begin/EndPaint
+            if (style & WS_EX_COMPOSITED) {
+                PAINTSTRUCT ps = {0, };
+                ::BeginPaint(m_hWnd, &ps);
+                ::EndPaint(m_hWnd, &ps);
+            }
 
-        ASSERT(m_paintStruct.hdc == nullptr);
-        if (m_paintStruct.hdc != nullptr) {
-            ::EndPaint(m_hWnd, &m_paintStruct);
-            m_paintStruct = { 0, };
-        }
-
-        if (!bHandled) {
-            PAINTSTRUCT ps = { 0, };
-            ::BeginPaint(m_hWnd, &ps);
-            //::FillRect(ps.hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1));
-            ::EndPaint(m_hWnd, &ps);
-        }
+            lResult = m_pOwner->OnNativePaintMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
+            ::ValidateRect(m_hWnd, NULL);
+        }        
         break;
     }
     case WM_SETFOCUS:

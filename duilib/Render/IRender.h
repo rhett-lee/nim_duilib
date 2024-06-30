@@ -490,15 +490,15 @@ public:
 
     /** 获取画布宽度
     */
-    virtual int GetWidth() = 0;
+    virtual int32_t GetWidth() const = 0;
 
     /** 获取画布高度
     */
-    virtual int GetHeight() = 0;
+    virtual int32_t GetHeight() const = 0;
 
     /** 调整画布大小
     */
-    virtual bool Resize(int width, int height) = 0;
+    virtual bool Resize(int32_t width, int32_t height) = 0;
 
     /** 判断画布是否支持透明
     */
@@ -529,12 +529,12 @@ public:
     /** 保存指定设备上下文的当前状态
     * @param [out] 返回保存的设备上下文标志，在RestoreClip的时候，作为参数传入
     */
-    virtual void SaveClip(int& nState) = 0;
+    virtual void SaveClip(int32_t& nState) = 0;
 
     /** 将设备上下文还原到最近一次保存的状态
     * @param [in] 保存的设备上下文标志（由SaveClip返回）
     */
-    virtual void RestoreClip(int nState) = 0;
+    virtual void RestoreClip(int32_t nState) = 0;
 
     /** 设置矩形剪辑区域，并保存当前设备上下文的状态
     * @param [in] rc剪辑区域，与当前剪辑区取交集作为新的剪辑区域
@@ -548,7 +548,7 @@ public:
     * @param [in] height 圆角的的度
     * @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
     */
-    virtual void SetRoundClip(const UiRect& rcItem, int width, int height, bool bIntersect = true) = 0;
+    virtual void SetRoundClip(const UiRect& rcItem, int32_t width, int32_t height, bool bIntersect = true) = 0;
 
     /** 清除矩形剪辑区域，并恢复设备上下文到最近一次保存的状态
     */
@@ -565,11 +565,11 @@ public:
     * @param [in] ySrc 源矩形左上角的 y 坐标
     * @param [in] rop 光栅操作代码
     */
-    virtual bool BitBlt(int x, int y, int cx, int cy, 
-                        IBitmap* pSrcBitmap, int xSrc, int ySrc,
+    virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy,
+                        IBitmap* pSrcBitmap, int32_t xSrc, int32_t ySrc,
                         RopMode rop) = 0;
-    virtual bool BitBlt(int x, int y, int cx, int cy, 
-                        IRender* pSrcRender, int xSrc, int ySrc,
+    virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy,
+                        IRender* pSrcRender, int32_t xSrc, int32_t ySrc,
                         RopMode rop) = 0;
 
     /** 函数将一个位图从源矩形复制到目标矩形中，并拉伸或压缩位图以适应目标矩形的尺寸（如有必要）。 
@@ -585,8 +585,8 @@ public:
     * @param [in] heightSrc 源矩形的高度
     * @param [in] rop 光栅操作代码
     */
-    virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest,
-                            IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc,
+    virtual bool StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest,
+                            IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc,
                             RopMode rop) = 0;
 
 
@@ -602,8 +602,8 @@ public:
     * @param [in] heightSrc 源矩形的高度
     * @param [in] alpha 透明度 alpha 值（0 - 255）
     */
-    virtual bool AlphaBlend(int xDest, int yDest, int widthDest, int heightDest,
-                            IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc,
+    virtual bool AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest,
+                            IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc,
                             uint8_t alpha = 255) = 0;
 
     /** 绘制图片（采用九宫格方式绘制图片）
@@ -624,13 +624,13 @@ public:
                            const UiRect& rcDest, const UiRect& rcDestCorners,
                            const UiRect& rcSource, const UiRect& rcSourceCorners,
                            uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
-                           bool fullxtiled = true, bool fullytiled = true, int nTiledMargin = 0) = 0;
+                           bool fullxtiled = true, bool fullytiled = true, int32_t nTiledMargin = 0) = 0;
     /** 绘制图片（采用九宫格方式绘制图片）, 无圆角参数
     */
     virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
                            const UiRect& rcDest,  const UiRect& rcSource, 
                            uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
-                           bool fullxtiled = true, bool fullytiled = true, int nTiledMargin = 0) = 0;
+                           bool fullxtiled = true, bool fullytiled = true, int32_t nTiledMargin = 0) = 0;
 
     /** 绘制图片
     * @param [in] rcPaint 当前全部可绘制区域（用于避免非可绘制区域的绘制，以提高绘制性能）
@@ -697,7 +697,7 @@ public:
     * @param [in] penColor 画笔的颜色值
     * @param [in] nWidth 画笔的宽度
     */
-    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth) = 0;
+    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int32_t nWidth) = 0;
 
     /** 用颜色填充圆角矩形
     * @param [in] rc 矩形区域
@@ -736,7 +736,7 @@ public:
     * @param [in] penColor 画笔的颜色值
     * @param [in] nWidth 画笔的宽度
     */
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int nWidth) = 0;
+    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int32_t nWidth) = 0;
 
     /** 填充圆形
     * @param [in] centerPt 圆心坐标点
@@ -777,7 +777,7 @@ public:
     virtual UiRect MeasureString(const DString& strText, 
                                  IFont* pFont, 
                                  uint32_t uFormat,
-                                 int width = DUI_NOSET_VALUE) = 0;
+                                 int32_t width = DUI_NOSET_VALUE) = 0;
     /** 绘制文字
     * @param [in] 矩形区域
     * @param [in] strText 文字内容
@@ -822,8 +822,8 @@ public:
     virtual void DrawBoxShadow(const UiRect& rc, 
                                const UiSize& roundSize, 
                                const UiPoint& cpOffset, 
-                               int nBlurRadius, 
-                               int nSpreadRadius,
+                               int32_t nBlurRadius, 
+                               int32_t nSpreadRadius,
                                UiColor dwColor) = 0;
 
 
@@ -905,6 +905,10 @@ public:
     /** 判断裁剪区域是否为空(如果为空不需要绘制)
     */
     virtual bool IsClipEmpty() const = 0;
+
+    /** 是否为空（宽度或者高度为0）
+    */
+    virtual bool IsEmpty() const = 0;
 };
 
 /** 渲染接口管理，用于创建Font、Pen、Brush、Path、Matrix、Bitmap、Render等渲染实现对象

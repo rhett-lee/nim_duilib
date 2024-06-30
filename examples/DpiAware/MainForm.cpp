@@ -31,7 +31,7 @@ void MainForm::OnInitWindow()
             //弹出一个新窗口
             MainForm* window = new MainForm();
             ui::WindowCreateParam createParam;
-            createParam.m_dwStyle = ui::kWS_POPUP;
+            createParam.m_dwStyle = ui::kWS_POPUP | ui::kWS_VISIBLE;
             createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW | ui::kWS_EX_LAYERED;
             createParam.m_windowTitle = _T("DpiAware");
             window->CreateWnd(this, createParam);

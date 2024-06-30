@@ -26,7 +26,7 @@ public:
     */
     virtual RenderType GetRenderType() const override;
 
-    virtual bool Resize(int width, int height) override;
+    virtual bool Resize(int32_t width, int32_t height) override;
     virtual void Clear() override;
     virtual std::unique_ptr<IRender> Clone() override;
 
@@ -35,8 +35,8 @@ public:
     */
     virtual IBitmap* DetachBitmap() override;
 
-    virtual int GetWidth() override;
-    virtual int GetHeight() override;
+    virtual int32_t GetWidth() const override;
+    virtual int32_t GetHeight() const override;
     virtual void ClearAlpha(const UiRect& rcDirty, uint8_t alpha = 0) override;
     virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) override;
     virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding = UiPadding()) override;
@@ -48,26 +48,26 @@ public:
     virtual UiPoint SetWindowOrg(UiPoint ptOffset) override;
     virtual UiPoint GetWindowOrg() const override;
 
-    virtual void SaveClip(int& nState) override;
-    virtual void RestoreClip(int nState) override;
+    virtual void SaveClip(int32_t& nState) override;
+    virtual void RestoreClip(int32_t nState) override;
     virtual void SetClip(const UiRect& rc, bool bIntersect = true) override;
-    virtual void SetRoundClip(const UiRect& rc, int width, int height, bool bIntersect = true) override;
+    virtual void SetRoundClip(const UiRect& rc, int32_t width, int32_t height, bool bIntersect = true) override;
     virtual void ClearClip() override;
 
-    virtual bool BitBlt(int x, int y, int cx, int cy, IBitmap* pSrcBitmap, int xSrc, int ySrc, RopMode rop) override;
-    virtual bool BitBlt(int x, int y, int cx, int cy, IRender* pSrcRender, int xSrc, int ySrc, RopMode rop) override;
-    virtual bool StretchBlt(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc, RopMode rop) override;
-    virtual bool AlphaBlend(int xDest, int yDest, int widthDest, int heightDest, IRender* pSrcRender, int xSrc, int ySrc, int widthSrc, int heightSrc, uint8_t alpha = 255) override;
+    virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IBitmap* pSrcBitmap, int32_t xSrc, int32_t ySrc, RopMode rop) override;
+    virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop) override;
+    virtual bool StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop) override;
+    virtual bool AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, uint8_t alpha = 255) override;
 
     virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
                            const UiRect& rcDest, const UiRect& rcDestCorners,
                            const UiRect& rcSource, const UiRect& rcSourceCorners,
                            uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
-                           bool fullxtiled = true,  bool fullytiled = true, int nTiledMargin = 0) override;
+                           bool fullxtiled = true,  bool fullytiled = true, int32_t nTiledMargin = 0) override;
     virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
                            const UiRect& rcDest,  const UiRect& rcSource, 
                            uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
-                           bool fullxtiled = true, bool fullytiled = true, int nTiledMargin = 0) override;
+                           bool fullxtiled = true, bool fullytiled = true, int32_t nTiledMargin = 0) override;
     virtual void DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
                                const UiRect& rcDest, const UiRect& rcSource,
                                uint8_t uFade = 255, IMatrix* pMatrix = nullptr) override;
@@ -80,11 +80,11 @@ public:
     virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) override;
     virtual void FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
-    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int nWidth) override;
+    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int32_t nWidth) override;
     virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) override;
     virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
-    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int nWidth) override;
+    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int32_t nWidth) override;
     virtual void FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dwColor, uint8_t uFade = 255) override;
 
     virtual void DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 
@@ -96,7 +96,7 @@ public:
     virtual void FillPath(const IPath* path, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) override;
 
     virtual UiRect MeasureString(const DString& strText, IFont* pFont,
-                                 uint32_t uFormat, int width = DUI_NOSET_VALUE) override;
+                                 uint32_t uFormat, int32_t width = DUI_NOSET_VALUE) override;
 
 
     virtual void DrawString(const UiRect& rc, const DString& strText,
@@ -110,7 +110,7 @@ public:
                               bool bMeasureOnly = false,
                               uint8_t uFade = 255) override;
 
-    void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int nBlurRadius, int nSpreadRadius, UiColor dwColor) override;
+    void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor) override;
 
 #ifdef DUILIB_PLATFORM_WIN
     /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源
@@ -128,11 +128,12 @@ public:
     virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) override;
     virtual RenderClipType GetClipInfo(std::vector<UiRect>& clipRects) override;
     virtual bool IsClipEmpty() const override;
+    virtual bool IsEmpty() const override;
 
 private:
     /** 位图绘制封装
     */
-    bool BitBlt(int x, int y, int cx, int cy, Bitmap_Skia* pSrcBitmap, int xSrc, int ySrc, RopMode rop);
+    bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, Bitmap_Skia* pSrcBitmap, int32_t xSrc, int32_t ySrc, RopMode rop);
 
     /** 获取GDI的光栅操作代码
     */
@@ -167,7 +168,7 @@ private:
 
     /** Canval保存的状态
     */
-    int m_saveCount;
+    int32_t m_saveCount;
 
     /** 绘制属性
     */

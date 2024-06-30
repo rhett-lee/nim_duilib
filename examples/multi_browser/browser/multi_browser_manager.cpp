@@ -24,7 +24,8 @@ BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form
                 browser_form = nullptr;
                 return nullptr;
             }
-            browser_form->CenterWindow();
+            browser_form->ShowWindow(ui::ShowWindowCommands::kSW_SHOW_NORMAL);
+            browser_form->CenterWindow();            
         }
         browser_box = browser_form->CreateBox(id, url);
         if (nullptr == browser_box) {
@@ -40,6 +41,7 @@ BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form
         if (nullptr == browser_box) {
             return nullptr;
         }
+        browser_form->ShowWindow(ui::ShowWindowCommands::kSW_SHOW_NORMAL);
         browser_form->CenterWindow();
     }
 

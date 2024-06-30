@@ -187,9 +187,9 @@ client::DropTargetHandle CefManager::GetDropTarget(HWND hwnd)
         client::DropTargetHandle handle(new client::DropTargetWin(hwnd), deleter);
         map_drag_target_reference_[hwnd] = handle;
 
-        HRESULT register_res = RegisterDragDrop(hwnd, handle.get());
+        HRESULT register_res = ::RegisterDragDrop(hwnd, handle.get());
         (void)register_res;
-        ASSERT(register_res == S_OK);
+        ASSERT((register_res == S_OK) || (register_res == DRAGDROP_E_ALREADYREGISTERED));
 
         return handle;
     }

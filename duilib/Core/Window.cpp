@@ -22,7 +22,8 @@ Window::Window() :
     m_rcAlphaFix(0, 0, 0, 0),
     m_bFirstLayout(true),
     m_bIsArranged(false),
-    m_bPostQuitMsgWhenClosed(false)
+    m_bPostQuitMsgWhenClosed(false),
+    m_bFirstPainted(true)
 {
     m_toolTip = std::make_unique<ToolTip>();
 }
@@ -593,6 +594,13 @@ LRESULT Window::OnMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& /*nativeMsg
             return 0;
         }
     }
+    return 0;
+}
+
+LRESULT Window::OnShowWindowMsg(bool bShow, const NativeMsg& /*nativeMsg*/, bool& bHandled)
+{
+    bHandled = false;
+    OnShowWindow(bShow);
     return 0;
 }
 
@@ -1263,17 +1271,17 @@ ui::IRender* Window::GetRender() const
     return m_render.get();
 }
 
-bool Window::Paint()
+void Window::OnShowWindow(bool bShow)
 {
-    GlobalManager::Instance().AssertUIThread();
-    if (!IsWindow()) {
-        return false;
+    if (bShow && m_bFirstLayout && (m_pRoot != nullptr)) {
+        //首次显示
+        PreparePaint(false);
     }
-    if (IsWindowMinimized() || (m_pRoot == nullptr)) {
-        return false;
-    }
+}
 
-    if (m_render->GetWidth() == 0) {
+bool Window::PreparePaint(bool bArrange)
+{
+    if (m_render->IsEmpty()) {
         //在估算控件大小的时候，需要Render有宽高等数据，所以需要进行Resize初始化
         UiRect rcClient;
         GetClientRect(rcClient);
@@ -1281,14 +1289,15 @@ bool Window::Paint()
             m_render->Resize(rcClient.Width(), rcClient.Height());
         }
     }
-    bool bFirstLayout = m_bFirstLayout;
     if (m_bIsArranged && m_pRoot->IsArranged()) {
         //如果root配置的宽度和高度是auto类型的，自动调整窗口大小
         AutoResizeWindow(true);
     }
 
     //对控件进行布局
-    ArrangeRoot();
+    if (bArrange) {
+        ArrangeRoot();
+    }
 
     UiRect rcClient;
     GetClientRect(rcClient);
@@ -1299,12 +1308,29 @@ bool Window::Paint()
         ASSERT(!"m_render->Resize resize failed!");
         return false;
     }
+    return true;
+}
 
-    UiRect updateRect;
-    if (!GetUpdateRect(updateRect) && !bFirstLayout) {
+bool Window::Paint()
+{
+    GlobalManager::Instance().AssertUIThread();
+    if (!IsWindow()) {
+        return false;
+    }
+    if (IsWindowMinimized() || (m_pRoot == nullptr)) {
         return false;
     }
 
+    //更新状态，并创建Render等
+    if (!PreparePaint(true)) {
+        return false;
+    }
+
+    UiRect updateRect;
+    bool bUpdateRect = GetUpdateRect(updateRect);
+    if (!bUpdateRect && !m_bFirstPainted) {
+        return false;
+    }
     //开始绘制
     UiRect rcPaint;
     if (!BeginPaint(rcPaint)) {
@@ -1366,6 +1392,7 @@ bool Window::Paint()
     }
 
     //结束绘制，渲染到窗口
+    m_bFirstPainted = false;
     return EndPaint(rcPaint, m_render.get());
 }
 
@@ -1399,7 +1426,7 @@ void Window::AutoResizeWindow(bool bRepaint)
 
 void Window::ArrangeRoot()
 {
-    if (m_bIsArranged) {
+    if (m_bIsArranged && (m_pRoot != nullptr)) {
         m_bIsArranged = false;
         UiRect rcClient;
         GetClientRect(rcClient);
