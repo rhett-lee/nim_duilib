@@ -136,10 +136,10 @@
                     <VBox margin="2,6,2,2">                        
                         <Label text="所选颜色" width="120" height="28" text_align="hcenter"/>
                         <Box height="50%" bkcolor="white">
-                            <Label name="color_picker_new_color" width="stretch" height="stretch" text_align="hcenter,bottom"/>
+                            <ColorPreviewLabel name="color_picker_new_color" width="stretch" height="stretch" text_align="hcenter,bottom"/>
                         </Box>
                         <Box height="50%" bkcolor="white">
-                            <Label name="color_picker_old_color" width="stretch" height="stretch" text_align="hcenter,top"/>
+                            <ColorPreviewLabel name="color_picker_old_color" width="stretch" height="stretch" text_align="hcenter,top"/>
                         </Box>
                         <Label text="当前颜色" width="120" height="28" text_align="hcenter"/>
                     </VBox>

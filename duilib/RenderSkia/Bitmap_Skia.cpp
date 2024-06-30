@@ -37,7 +37,7 @@ Bitmap_Skia::Bitmap_Skia(HBITMAP hBitmap, bool flipHeight):
         ASSERT(bm.bmBitsPixel == 32);
         m_nHeight = bm.bmHeight;
         m_nWidth = bm.bmWidth;
-        UpdateAlphaFlag((const uint8_t*)bm.bmBits);
+        UpdateAlphaFlag((uint8_t*)bm.bmBits);
 
         m_pSkBitmap->reset();
         m_pSkBitmap->setInfo(SkImageInfo::Make(m_nWidth, m_nHeight, kN32_SkColorType, static_cast<SkAlphaType>(kPremul_SkAlphaType)));
@@ -107,7 +107,7 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight,
     m_nHeight = nHeight;
     m_bFlipHeight = flipHeight;
     m_alphaType = alphaType;
-    UpdateAlphaFlag((const uint8_t*)pBits);
+    UpdateAlphaFlag((uint8_t*)pBits);
     
     m_pSkBitmap->reset();
     m_pSkBitmap->setInfo(SkImageInfo::Make(m_nWidth, m_nHeight, kN32_SkColorType, static_cast<SkAlphaType>(alphaType)));
@@ -160,7 +160,7 @@ void Bitmap_Skia::UnLockPixelBits()
         BITMAP bm = { 0 };
         ::GetObject(m_hBitmap, sizeof(bm), &bm);
         ASSERT((bm.bmBitsPixel == 32) && (bm.bmWidth == (LONG)m_nWidth) && (bm.bmHeight == (LONG)m_nHeight));
-        UpdateAlphaFlag((const uint8_t*)bm.bmBits);
+        UpdateAlphaFlag((uint8_t*)bm.bmBits);
     }    
 }
 
@@ -226,7 +226,7 @@ HBITMAP Bitmap_Skia::CreateHBitmap(int32_t nWidth, int32_t nHeight, bool flipHei
     return hBitmap;
 }
 
-void Bitmap_Skia::UpdateAlphaFlag(const uint8_t* pPixelBits)
+void Bitmap_Skia::UpdateAlphaFlag(uint8_t* pPixelBits)
 {
     m_bAlphaBitmap = false;
     if (pPixelBits == nullptr) {
@@ -234,18 +234,26 @@ void Bitmap_Skia::UpdateAlphaFlag(const uint8_t* pPixelBits)
     }
     if (m_alphaType == kOpaque_SkAlphaType) {
         //指定为不透明图片，不需要更新AlphaBitmap标志
-        return;
-    }
-    for (uint32_t i = 0; i < m_nHeight; ++i) {
-        for (uint32_t j = 0; j < m_nWidth; j += 4) {
-            uint32_t x = i * m_nWidth + j;
-            if (pPixelBits[x + 3] != 255) {
-                m_bAlphaBitmap = true;
-                break;
+        for (uint32_t i = 0; i < m_nHeight; ++i) {
+            for (uint32_t j = 0; j < m_nWidth; ++j) {
+                uint8_t* a = (uint8_t*)pPixelBits + (i * m_nWidth + j) * sizeof(uint32_t) + 3;
+                *a = 255;
             }
         }
-        if (m_bAlphaBitmap) {
-            break;
+    }
+    else {
+        //支持透明的图片
+        for (uint32_t i = 0; i < m_nHeight; ++i) {
+            for (uint32_t j = 0; j < m_nWidth; ++j) {
+                uint8_t* a = (uint8_t*)pPixelBits + (i * m_nWidth + j) * sizeof(uint32_t) + 3;
+                if (*a != 255) {
+                    m_bAlphaBitmap = true;
+                    break;
+                }
+            }
+            if (m_bAlphaBitmap) {
+                break;
+            }
         }
     }
 }

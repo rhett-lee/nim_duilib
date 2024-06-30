@@ -81,7 +81,7 @@ public:
 private:
     /** 更新图片的透明通道标志
     */
-    void UpdateAlphaFlag(const uint8_t* pPixelBits);
+    void UpdateAlphaFlag(uint8_t* pPixelBits);
 
     /** 对图片数据进行垂直翻转
     */

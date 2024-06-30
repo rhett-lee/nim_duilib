@@ -10,6 +10,48 @@
 
 namespace ui
 {
+/** 颜色预览的控件
+*/
+class ColorPreviewLabel: public Label
+{
+public:
+    ColorPreviewLabel(Window* pWindow): Label(pWindow)
+    {
+    }
+    virtual ~ColorPreviewLabel() override = default;
+
+    /** 绘制背景色，增加黑灰格子背景，用于透明颜色的预览
+    */
+    virtual void PaintBkColor(IRender* pRender) override
+    {
+        if (pRender == nullptr) {
+            return;
+        }
+        //绘制透明棋盘的格子
+        UiRect rc = GetRect();
+        const int32_t nGridSize = Dpi().GetScaleInt(8);
+        int32_t nRows = rc.Width() / nGridSize + 1;
+        int32_t nCols = rc.Height() / nGridSize + 1;
+        for (int32_t i = 0; i < nRows; ++i) {
+            for (int32_t j = 0; j < nCols; ++j) {
+                UiRect rect;
+                rect.left = rc.left + i * nGridSize;
+                rect.top = rc.top + j * nGridSize;
+                rect.right = rect.left + nGridSize;
+                rect.bottom = rect.top + nGridSize;
+                if (j % 2) {
+                    pRender->FillRect(rect, (i % 2) == 1 ? UiColor(UiColors::DarkGray) : UiColor(UiColors::White));
+                }
+                else {
+                    pRender->FillRect(rect, (i % 2) == 0 ? UiColor(UiColors::DarkGray) : UiColor(UiColors::White));
+                }
+            }
+        }
+
+        //绘制实际显示的颜色
+        __super::PaintBkColor(pRender);
+    }
+};
 
 ColorPicker::ColorPicker():
     m_pNewColor(nullptr),
@@ -59,6 +101,14 @@ void ColorPicker::AttachSelectColor(const EventCallback& callback)
 void ColorPicker::AttachWindowClose(const EventCallback& callback)
 {
     __super::AttachWindowClose(callback);
+}
+
+Control* ColorPicker::CreateControl(const DString& strClass)
+{
+    if (strClass == _T("ColorPreviewLabel")) {
+        return new ColorPreviewLabel(this);
+    }
+    return nullptr;
 }
 
 void ColorPicker::OnInitWindow()

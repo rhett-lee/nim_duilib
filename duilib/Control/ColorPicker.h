@@ -53,6 +53,13 @@ public:
      */
     void AttachWindowClose(const EventCallback& callback);
 
+protected:
+    /** 当要创建的控件不是标准的控件名称时会调用该函数
+    * @param [in] strClass 控件名称
+    * @return 返回一个自定义控件指针，一般情况下根据 strClass 参数创建自定义的控件
+    */
+    virtual Control* CreateControl(const DString& strClass) override;
+
 private:
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */

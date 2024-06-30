@@ -58,6 +58,26 @@ void ColorSlider::PaintBkImage(IRender* pRender)
     uint8_t uFade = 255;
     IMatrix* pMatrix = nullptr;
 
+    //绘制透明棋盘的格子
+    const int32_t nGridSize = Dpi().GetScaleInt(6);
+    int32_t nRows = rc.Width() / nGridSize + 1;
+    int32_t nCols = rc.Height() / nGridSize + 1;
+    for (int32_t i = 0; i < nRows; ++i) {
+        for (int32_t j = 0; j < nCols; ++j) {
+            UiRect rect;
+            rect.left = rc.left + i * nGridSize;
+            rect.top = rc.top + j * nGridSize;
+            rect.right = rect.left + nGridSize;
+            rect.bottom = rect.top + nGridSize;
+            if (j % 2) {
+                pRender->FillRect(rect, (i % 2) == 1 ? UiColor(UiColors::DarkGray) : UiColor(UiColors::White));
+            }
+            else {
+                pRender->FillRect(rect, (i % 2) == 0 ? UiColor(UiColors::DarkGray) : UiColor(UiColors::White));
+            }            
+        }
+    }
+
     if (pBitmap != nullptr) {
         pRender->DrawImageRect(rcPaint, pBitmap, rcDest, rcSource, uFade, pMatrix);
     }        
@@ -89,8 +109,7 @@ IBitmap* ColorSlider::GetColorBitmap(const UiRect& rect)
 
     if (m_spBitmap != nullptr) {
         BitmapAlphaType alphaType = kOpaque_SkAlphaType;
-        if ((m_colorMode == ColorMode::kMode_ARGB) &&
-            (m_adjustMode == ColorAdjustMode::kMode_ARGB_A)) {
+        if (m_colorMode == ColorMode::kMode_ARGB) {
             alphaType = kUnpremul_SkAlphaType;
         }
         m_spBitmap->Init(nWidth, nHeight, true, nullptr, alphaType);
