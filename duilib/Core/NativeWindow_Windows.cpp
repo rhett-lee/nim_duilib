@@ -794,44 +794,7 @@ bool NativeWindow::UpdateWindow() const
     }
     return bRet;
 }
-
-bool NativeWindow::BeginPaint(UiRect& rcPaint)
-{
-    rcPaint.Clear();
-    if (!::IsWindow(m_hWnd)) {
-        return false;
-    }
-
-    if (!GetUpdateRect(rcPaint)) {
-        rcPaint.Clear();
-    }
-    if (IsLayeredWindow()) {
-        //使用层窗口时，窗口部分在屏幕外时，获取到的无效区域仅仅是屏幕内的部分，这里做修正处理
-        UiRect rcWindow;
-        GetWindowRect(rcWindow);
-        UiRect rcClient;
-        GetClientRect(rcClient);
-        int32_t xScreen = GetSystemMetricsForDpiWrapper(SM_XVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
-        int32_t yScreen = GetSystemMetricsForDpiWrapper(SM_YVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
-        int32_t cxScreen = GetSystemMetricsForDpiWrapper(SM_CXVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
-        int32_t cyScreen = GetSystemMetricsForDpiWrapper(SM_CYVIRTUALSCREEN, m_pOwner->OnNativeGetDpi().GetDPI());
-        if (rcWindow.left < xScreen && rcWindow.left + rcPaint.left == xScreen) {
-            rcPaint.left = rcClient.left;
-        }
-        if (rcWindow.top < yScreen && rcWindow.top + rcPaint.top == yScreen) {
-            rcPaint.top = rcClient.top;
-        }
-        if (rcWindow.right > cxScreen && rcWindow.left + rcPaint.right == xScreen + cxScreen) {
-            rcPaint.right = rcClient.right;
-        }
-        if (rcWindow.bottom > cyScreen && rcWindow.top + rcPaint.bottom == yScreen + cyScreen) {
-            rcPaint.bottom = rcClient.bottom;
-        }
-    }
-    return true;
-}
-
-bool NativeWindow::EndPaint(const UiRect& rcPaint, IRender* pRender)
+bool NativeWindow::SwapPaintBuffers(const UiRect& rcPaint, IRender* pRender)
 {
     if (pRender == nullptr) {
         return false;

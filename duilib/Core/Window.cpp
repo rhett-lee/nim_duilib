@@ -22,8 +22,7 @@ Window::Window() :
     m_rcAlphaFix(0, 0, 0, 0),
     m_bFirstLayout(true),
     m_bIsArranged(false),
-    m_bPostQuitMsgWhenClosed(false),
-    m_bFirstPainted(true)
+    m_bPostQuitMsgWhenClosed(false)
 {
     m_toolTip = std::make_unique<ToolTip>();
 }
@@ -1326,17 +1325,12 @@ bool Window::Paint()
         return false;
     }
 
-    UiRect updateRect;
-    bool bUpdateRect = GetUpdateRect(updateRect);
-    if (!bUpdateRect && !m_bFirstPainted) {
-        return false;
-    }
     //开始绘制
     UiRect rcPaint;
-    if (!BeginPaint(rcPaint)) {
+    if (!GetUpdateRect(rcPaint)) {
         return false;
     }
-   
+  
     // 去掉alpha通道
     if (IsLayeredWindow()) {
         m_render->ClearAlpha(rcPaint);
@@ -1392,8 +1386,7 @@ bool Window::Paint()
     }
 
     //结束绘制，渲染到窗口
-    m_bFirstPainted = false;
-    return EndPaint(rcPaint, m_render.get());
+    return SwapPaintBuffers(rcPaint, m_render.get());
 }
 
 void Window::AutoResizeWindow(bool bRepaint)

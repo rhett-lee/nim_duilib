@@ -745,9 +745,6 @@ private:
     //布局是否需要初始化
     bool m_bFirstLayout;
 
-    //是否首次绘制
-    bool m_bFirstPainted;
-
     //绘制时的偏移量（动画用）
     UiPoint m_renderOffset;
 

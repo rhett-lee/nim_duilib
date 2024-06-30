@@ -274,18 +274,12 @@ public:
     */
     bool UpdateWindow() const;
 
-    /** 开始绘制
-    * @param [out] rcPaint 需要绘制的区域
-    * @return 成功返回true，失败则返回false
-    */
-    bool BeginPaint(UiRect& rcPaint);
-
-    /** 结束绘制
+    /** 绘制结束后，绘制数据从渲染引擎更新到窗口
     * @param [in] rcPaint 绘制的区域
     * @param [in] pRender 绘制引擎接口，用于将绘制结果应用到窗口
     * @return 成功返回true，失败则返回false
     */
-    bool EndPaint(const UiRect& rcPaint, IRender* pRender);
+    bool SwapPaintBuffers(const UiRect& rcPaint, IRender* pRender);
 
     /** 获取需要绘制的区域
     * @param [out] rcPaint 需要绘制的区域

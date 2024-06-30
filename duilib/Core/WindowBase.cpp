@@ -526,14 +526,9 @@ bool WindowBase::UpdateWindow() const
     return m_pNativeWindow->UpdateWindow();
 }
 
-bool WindowBase::BeginPaint(UiRect& rcPaint)
+bool WindowBase::SwapPaintBuffers(const UiRect& rcPaint, IRender* pRender)
 {
-    return m_pNativeWindow->BeginPaint(rcPaint);
-}
-
-bool WindowBase::EndPaint(const UiRect& rcPaint, IRender* pRender)
-{
-    return m_pNativeWindow->EndPaint(rcPaint, pRender);
+    return m_pNativeWindow->SwapPaintBuffers(rcPaint, pRender);
 }
 
 bool WindowBase::GetUpdateRect(UiRect& rcPaint)
