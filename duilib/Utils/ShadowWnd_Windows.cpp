@@ -68,7 +68,7 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
         case WM_WINDOWPOSCHANGED:
         case WM_ACTIVATE:
         case WM_NCACTIVATE:
-            if (!m_isFirstPainted || (uMsg == WM_PAINT)) {
+            if ((uMsg != WM_PAINT) || ((uMsg == WM_PAINT) && !m_isFirstPainted)) {
                 if (m_pWindow->IsWindowVisible()) {
                     UiRect rc;
                     m_pWindow->GetWindowRect(rc);
@@ -76,7 +76,9 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
                     GetShadowCorner(rcShadow);
                     rc.Inflate(rcShadow);
                     SetWindowPos(InsertAfterWnd(m_pWindow), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_SHOWWINDOW | kSWP_NOACTIVATE);
-                    m_isFirstPainted = true;
+                    if (uMsg == WM_PAINT) {
+                        m_isFirstPainted = true;
+                    }
                 }
             }            
             break;
