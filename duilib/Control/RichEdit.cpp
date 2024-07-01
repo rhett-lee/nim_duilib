@@ -2225,9 +2225,10 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
     const int32_t nBottom = std::min(rcUpdate.bottom, rc.Height());
     const int32_t nLeft = std::max(rcUpdate.left, 0);
     const int32_t nRight = std::min(rcUpdate.right, rc.Width());
+    const int32_t nWidth = rc.Width();
     for (int32_t i = nTop; i < nBottom; i++) {
         for (int32_t j = nLeft; j < nRight; j++) {
-            uint8_t* a = (uint8_t*)pBitmapBits + (i * rc.Width() + j) * sizeof(uint32_t) + 3;
+            uint8_t* a = (uint8_t*)pBitmapBits + (i * nWidth + j) * sizeof(uint32_t) + 3;
             *a = 0;
         }
     }
@@ -2297,7 +2298,7 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
     //恢复Alpha(绘制过程中，会导致绘制区域部分的Alpha通道出现异常)
     for (int32_t i = nTop; i < nBottom; i++) {
         for (int32_t j = nLeft; j < nRight; j++) {
-            uint8_t* a = (uint8_t*)pBitmapBits + (i * rc.Width() + j) * sizeof(uint32_t)+ 3;
+            uint8_t* a = (uint8_t*)pBitmapBits + (i * nWidth + j) * sizeof(uint32_t)+ 3;
             if (*a == 0) {
                 *a = 255;
             }

@@ -27,7 +27,8 @@ public:
     virtual RenderType GetRenderType() const override;
 
     virtual bool Resize(int32_t width, int32_t height) override;
-    virtual void Clear() override;
+    virtual void Clear(const UiColor& uiColor) override;
+    virtual void ClearRect(const UiRect& rcDirty, const UiColor& uiColor) override;
     virtual std::unique_ptr<IRender> Clone() override;
 
     /** 分离位图

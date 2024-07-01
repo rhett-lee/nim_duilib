@@ -119,12 +119,50 @@ bool Render_Skia::Resize(int32_t width, int32_t height)
     return true;
 }
 
-void Render_Skia::Clear()
+void Render_Skia::Clear(const UiColor& uiColor)
 {
     if (m_pBitmapSkia != nullptr) {
         void* pPixelBits = m_pBitmapSkia->LockPixelBits();
         if (pPixelBits != nullptr) {
-            ::memset(pPixelBits, 0, GetWidth() * GetHeight() * 4);
+            uint32_t nARGB = uiColor.GetARGB();
+            if (nARGB == 0) {
+                ::memset(pPixelBits, uiColor.GetARGB(), GetWidth() * GetHeight() * sizeof(uint32_t));
+            }
+            else {
+                const int32_t nLeft = 0;
+                const int32_t nTop = 0;
+                const int32_t nRight = std::max(GetWidth(), 0);
+                const int32_t nBottom = std::max(GetHeight(), 0);
+                const int32_t nWidth = nRight - nLeft;
+                for (int32_t i = nTop; i < nBottom; i++) {
+                    for (int32_t j = nLeft; j < nRight; j++) {
+                        uint32_t* color = (uint32_t*)pPixelBits + (i * nWidth + j);
+                        *color = nARGB;
+                    }
+                }
+            }
+            m_pBitmapSkia->UnLockPixelBits();
+        }
+    }
+}
+
+void Render_Skia::ClearRect(const UiRect& rcDirty, const UiColor& uiColor)
+{
+    if (m_pBitmapSkia != nullptr) {
+        void* pPixelBits = m_pBitmapSkia->LockPixelBits();
+        if (pPixelBits != nullptr) {
+            uint32_t nARGB = uiColor.GetARGB();
+            const int32_t nLeft = std::max((int32_t)rcDirty.left, 0);
+            const int32_t nTop = std::max((int32_t)rcDirty.top, 0);
+            const int32_t nRight = std::min((int32_t)rcDirty.right, (int32_t)GetWidth());
+            const int32_t nBottom = std::min((int32_t)rcDirty.bottom, (int32_t)GetHeight());
+            const int32_t nWidth = nRight - nLeft;
+            for (int32_t i = nTop; i < nBottom; i++) {
+                for (int32_t j = nLeft; j < nRight; j++) {
+                    uint32_t* color = (uint32_t*)pPixelBits + (i * nWidth + j);
+                    *color = nARGB;
+                }
+            }
             m_pBitmapSkia->UnLockPixelBits();
         }
     }
@@ -505,7 +543,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     if (uFade != 0xFF) {
         skPaint.setAlpha(uFade);
     }
-    if (m_bTransparent || bAlphaChannel || (uFade != 0xFF)) {
+    if (1 || m_bTransparent || bAlphaChannel || (uFade != 0xFF)) {
         skPaint.setBlendMode(SkBlendMode::kSrcOver);
     }
 
@@ -802,7 +840,7 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
     if (uFade != 0xFF) {
         skPaint.setAlpha(uFade);
     }
-    if (m_bTransparent || bAlphaChannel || (uFade != 0xFF)) {
+    if (1 || m_bTransparent || bAlphaChannel || (uFade != 0xFF)) {
         skPaint.setBlendMode(SkBlendMode::kSrcOver);
     }
 

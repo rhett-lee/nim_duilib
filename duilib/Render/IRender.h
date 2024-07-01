@@ -863,10 +863,16 @@ public:
 #endif
 
 public:
-
-    /** 清除位图数据，使其变成全透明位图（位图数据全部清零）
+    /** 清除位图数据，填充指定颜色（若要使位图数据全部清零，可传入UiColor()参数）
+    * @param [in] uiColor 需要填充的颜色值
     */
-    virtual void Clear() = 0;
+    virtual void Clear(const UiColor& uiColor) = 0;
+
+    /** 清除位图指定区域的数据，填充指定颜色（若要使位图数据全部清零，可传入UiColor()参数）
+    * @param [in] rcDirty 需要清除的区域
+    * @param [in] uiColor 需要填充的颜色值
+    */
+    virtual void ClearRect(const UiRect& rcDirty, const UiColor& uiColor) = 0;
 
     /** 克隆一个新的对象
     */
