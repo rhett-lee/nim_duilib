@@ -537,15 +537,13 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     UiRect rcDrawSource;
     UiRect rcDrawDest;
 
-    bool bAlphaChannel = pBitmap->IsAlphaBitmap();
-
     SkPaint skPaint = *m_pSkPaint;
     if (uFade != 0xFF) {
         skPaint.setAlpha(uFade);
     }
-    if (1 || m_bTransparent || bAlphaChannel || (uFade != 0xFF)) {
-        skPaint.setBlendMode(SkBlendMode::kSrcOver);
-    }
+
+    //默认值就是kSrcOver
+    skPaint.setBlendMode(SkBlendMode::kSrcOver);
 
     // middle
     rcDrawDest.left = rcDest.left + rcDestCorners.left;
@@ -835,14 +833,13 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
         return;
     }
 
-    bool bAlphaChannel = pBitmap->IsAlphaBitmap();
     SkPaint skPaint = *m_pSkPaint;
     if (uFade != 0xFF) {
         skPaint.setAlpha(uFade);
     }
-    if (1 || m_bTransparent || bAlphaChannel || (uFade != 0xFF)) {
-        skPaint.setBlendMode(SkBlendMode::kSrcOver);
-    }
+
+    //默认值就是kSrcOver
+    skPaint.setBlendMode(SkBlendMode::kSrcOver);
 
     Bitmap_Skia* skiaBitmap = dynamic_cast<Bitmap_Skia*>(pBitmap);
     ASSERT(skiaBitmap != nullptr);

@@ -51,9 +51,9 @@ public:
     */
     virtual void UnLockPixelBits() override;
 
-    /** 该位图是否有透明属性(即透明通道中，含有不是255的数据)
+    /** 获取位图数据的类型
     */
-    virtual bool IsAlphaBitmap() const override;
+    virtual BitmapAlphaType GetBitmapAlphaType() const override;
 
     /** 克隆生成新的的位图
     *@return 返回新生成的位图接口，由调用方释放资源
@@ -101,10 +101,6 @@ private:
                      false表示：位图方向：从下到上，左下角为圆点
     */
     bool m_bFlipHeight;
-
-    /** 该位图是否有透明属性(即透明通道中，含有不是255的数据)
-    */
-    bool m_bAlphaBitmap;
 
     /** 位图的Alpha类型
     */

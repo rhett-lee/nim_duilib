@@ -90,10 +90,10 @@ public:
 */
 enum UILIB_API BitmapAlphaType: int
 {
-    kUnknown_SkAlphaType,    //!< uninitialized
+    kUnknown_SkAlphaType,   //!< uninitialized
     kOpaque_SkAlphaType,    //!< pixel is opaque
     kPremul_SkAlphaType,    //!< pixel components are premultiplied by alpha
-    kUnpremul_SkAlphaType    //!< pixel components are independent of alpha
+    kUnpremul_SkAlphaType   //!< pixel components are independent of alpha
 };
 
 /** 位图接口
@@ -133,9 +133,9 @@ public:
     */
     virtual void UnLockPixelBits() = 0;
 
-    /** 该位图是否有透明属性(即透明通道中，含有不是255的数据)
+    /** 获取位图数据的类型
     */
-    virtual bool IsAlphaBitmap() const = 0;
+    virtual BitmapAlphaType GetBitmapAlphaType() const = 0;
 
     /** 克隆生成新的的位图
     *@return 返回新生成的位图接口，由调用方释放资源

@@ -15,7 +15,6 @@ Bitmap_Skia::Bitmap_Skia():
     m_nWidth(0),
     m_nHeight(0),
     m_bFlipHeight(true),
-    m_bAlphaBitmap(false),
     m_alphaType(kUnknown_SkAlphaType)
 {
     m_pSkBitmap = std::make_unique<SkBitmap>();
@@ -26,7 +25,6 @@ Bitmap_Skia::Bitmap_Skia(HBITMAP hBitmap, bool flipHeight):
     m_nWidth(0),
     m_nHeight(0),
     m_bFlipHeight(flipHeight),
-    m_bAlphaBitmap(false),
     m_alphaType(kPremul_SkAlphaType)
 {
     ASSERT(flipHeight && "flipHeight value should be true!");
@@ -52,7 +50,6 @@ HBITMAP Bitmap_Skia::DetachHBitmap()
     m_nHeight = 0;
     m_nWidth = 0;
     m_bFlipHeight = true;
-    m_bAlphaBitmap = false;
     m_pSkBitmap->reset();
     return hBitmap;
 }
@@ -164,9 +161,9 @@ void Bitmap_Skia::UnLockPixelBits()
     }    
 }
 
-bool Bitmap_Skia::IsAlphaBitmap() const
+BitmapAlphaType Bitmap_Skia::GetBitmapAlphaType() const
 {
-    return m_bAlphaBitmap;
+    return m_alphaType;
 }
 
 IBitmap* Bitmap_Skia::Clone()
@@ -228,7 +225,6 @@ HBITMAP Bitmap_Skia::CreateHBitmap(int32_t nWidth, int32_t nHeight, bool flipHei
 
 void Bitmap_Skia::UpdateAlphaFlag(uint8_t* pPixelBits)
 {
-    m_bAlphaBitmap = false;
     if (pPixelBits == nullptr) {
         return;
     }
@@ -238,21 +234,6 @@ void Bitmap_Skia::UpdateAlphaFlag(uint8_t* pPixelBits)
             for (uint32_t j = 0; j < m_nWidth; ++j) {
                 uint8_t* a = (uint8_t*)pPixelBits + (i * m_nWidth + j) * sizeof(uint32_t) + 3;
                 *a = 255;
-            }
-        }
-    }
-    else {
-        //支持透明的图片
-        for (uint32_t i = 0; i < m_nHeight; ++i) {
-            for (uint32_t j = 0; j < m_nWidth; ++j) {
-                uint8_t* a = (uint8_t*)pPixelBits + (i * m_nWidth + j) * sizeof(uint32_t) + 3;
-                if (*a != 255) {
-                    m_bAlphaBitmap = true;
-                    break;
-                }
-            }
-            if (m_bAlphaBitmap) {
-                break;
             }
         }
     }
