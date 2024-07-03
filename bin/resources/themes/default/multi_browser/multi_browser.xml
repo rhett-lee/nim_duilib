@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Window size="75%,90%" mininfo="800,500" caption="0,0,0,34" sizebox="4,4,4,4" textid="STRID_CEF_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="true">
+<Window size="75%,90%" mininfo="800,500" caption="0,0,0,34" sizebox="4,4,4,4" textid="STRID_CEF_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="false">
 <VBox bkcolor="bk_wnd_lightcolor">
     <HBox class="caption" height="34">
         <Label class="font_title" name="title" width="stretch" valign="center" normaltextcolor="darkcolor" textid="STRID_CEF_BROWSER_MULTI_TAB" />

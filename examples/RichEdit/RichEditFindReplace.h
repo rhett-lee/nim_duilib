@@ -41,7 +41,7 @@ private:
     bool FindTextSimple(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord);
 
     //查找并选择
-    long FindAndSelect(DWORD dwFlags, FINDTEXTEX& ft);
+    long FindAndSelect(DWORD dwFlags, FINDTEXTEXW& ft);
 
     //比较当前选择与文本是否匹配
     bool SameAsSelected(const DString& replaceText, BOOL bMatchCase);

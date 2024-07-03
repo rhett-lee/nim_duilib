@@ -174,7 +174,7 @@ bool RichEditFindReplace::FindTextSimple(const DString& findText, bool bFindDown
         return false;
     }
 
-    FINDTEXTEX ft = {0, };
+    FINDTEXTEXW ft = {0, };
     m_pRichEdit->GetSel(ft.chrg);
     if (m_bFirstSearch) {
         if (bFindDown) {
@@ -186,7 +186,8 @@ bool RichEditFindReplace::FindTextSimple(const DString& findText, bool bFindDown
         m_bFirstSearch = false;
     }
 
-    ft.lpstrText = (LPTSTR)findText.c_str();
+    DStringW findTextW = ui::StringUtil::TToUTF16(findText);
+    ft.lpstrText = findTextW.c_str();
 
     if (ft.chrg.cpMin != ft.chrg.cpMax)    {
         if (bFindDown) {
@@ -236,7 +237,7 @@ bool RichEditFindReplace::FindTextSimple(const DString& findText, bool bFindDown
     return bRet;
 }
 
-long RichEditFindReplace::FindAndSelect(DWORD dwFlags, FINDTEXTEX& ft)
+long RichEditFindReplace::FindAndSelect(DWORD dwFlags, FINDTEXTEXW& ft)
 {
     if (m_pRichEdit == nullptr) {
         return -1;

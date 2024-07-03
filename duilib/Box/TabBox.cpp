@@ -2,6 +2,7 @@
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui
 {
@@ -20,7 +21,7 @@ DString TabBox::GetType() const { return DUI_CTR_TABBOX; }
 void TabBox::SetAttribute(const DString& strName, const DString& strValue)
 {
     if ((strName == _T("selected_id")) || (strName == _T("selectedid"))) {
-        size_t iSel = (size_t)_wtoi(strValue.c_str());
+        size_t iSel = (size_t)StringUtil::StringToInt32(strValue);
         if (IsInited()) {
             SelectItem(iSel);
         }

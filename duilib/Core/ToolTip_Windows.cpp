@@ -50,7 +50,7 @@ public:
     bool m_bMouseTracking;
 
     //Tooltip信息
-    TOOLINFO m_ToolTip;
+    TOOLINFOW m_ToolTip;
 
     //Tooltip窗口
     HWND m_hwndTooltip;
@@ -64,8 +64,8 @@ ToolTip::TImpl::TImpl():
     m_hwndTooltip(nullptr),
     m_hParentWnd(nullptr)
 {
-    ::ZeroMemory(&m_ToolTip, sizeof(TOOLINFO));
-    m_ToolTip.cbSize = sizeof(TOOLINFO);
+    ::ZeroMemory(&m_ToolTip, sizeof(TOOLINFOW));
+    m_ToolTip.cbSize = sizeof(TOOLINFOW);
 }
 
 ToolTip::TImpl::~TImpl()
@@ -108,22 +108,28 @@ void ToolTip::TImpl::ShowToolTip(const WindowBase* pParentWnd,
         return;
     }
     //如果超过长度，则截断
-    DString newText(text);
+    DStringW newText;
+#ifdef DUILIB_UNICODE
+    newText = text;    
+#else
+    //text是Utf8编码
+    newText = StringUtil::UTF8ToUTF16(text);
+#endif
     if (newText.size() > TOOLTIP_MAX_LEN) {
         newText.resize(TOOLTIP_MAX_LEN);
     }
 
     HWND hParentWnd = pParentWnd->NativeWnd()->GetHWND();
     if ((m_hwndTooltip != nullptr) && IsWindowVisible(m_hwndTooltip)) {
-        TOOLINFO toolTip = { 0 };
-        toolTip.cbSize = sizeof(TOOLINFO);
+        TOOLINFOW toolTip = { 0 };
+        toolTip.cbSize = sizeof(TOOLINFOW);
         toolTip.hwnd = hParentWnd;
         toolTip.uId = (UINT_PTR)hParentWnd;
-        DString oldText;
+        DStringW oldText;
         oldText.resize(TOOLTIP_MAX_LEN + 1);
-        toolTip.lpszText = const_cast<LPTSTR>((LPCTSTR)oldText.c_str());
-        ::SendMessage(m_hwndTooltip, TTM_GETTOOLINFO, 0, (LPARAM)&toolTip);
-        oldText = DString(oldText.c_str());
+        toolTip.lpszText = const_cast<LPWSTR>((LPCWSTR)oldText.c_str());
+        ::SendMessage(m_hwndTooltip, TTM_GETTOOLINFOW, 0, (LPARAM)&toolTip);
+        oldText = DStringW(oldText.c_str());
         if (newText == oldText) {
             //文本内容均没有变化，不再设置
             return;
@@ -133,28 +139,28 @@ void ToolTip::TImpl::ShowToolTip(const WindowBase* pParentWnd,
     //资源所在模块句柄
     HMODULE hModule = pParentWnd->NativeWnd()->GetResModuleHandle();
 
-    ::ZeroMemory(&m_ToolTip, sizeof(TOOLINFO));
-    m_ToolTip.cbSize = sizeof(TOOLINFO);
+    ::ZeroMemory(&m_ToolTip, sizeof(TOOLINFOW));
+    m_ToolTip.cbSize = sizeof(TOOLINFOW);
     m_ToolTip.uFlags = TTF_IDISHWND;
     m_ToolTip.hwnd = hParentWnd;
     m_ToolTip.uId = (UINT_PTR)hParentWnd;
     m_ToolTip.hinst = hModule;
-    m_ToolTip.lpszText = const_cast<LPTSTR>((LPCTSTR)newText.c_str());
+    m_ToolTip.lpszText = const_cast<LPWSTR>((LPCWSTR)newText.c_str());
     m_ToolTip.rect.left = rect.left;
     m_ToolTip.rect.top = rect.top;
     m_ToolTip.rect.right = rect.right;
     m_ToolTip.rect.bottom = rect.bottom;
     if (m_hwndTooltip == nullptr) {
-        m_hwndTooltip = ::CreateWindowEx(0, TOOLTIPS_CLASS, NULL, 
-                                         WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP, CW_USEDEFAULT,
-                                         CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
-                                         hParentWnd, NULL, hModule, NULL);
+        m_hwndTooltip = ::CreateWindowExW(0, TOOLTIPS_CLASSW, NULL, 
+                                          WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP, CW_USEDEFAULT,
+                                          CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
+                                          hParentWnd, NULL, hModule, NULL);
         ::SendMessage(m_hwndTooltip, TTM_ADDTOOL, 0, (LPARAM)&m_ToolTip);
         ::SetWindowPos(m_hwndTooltip, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }
     if (!::IsWindowVisible(m_hwndTooltip)) {
         ::SendMessage(m_hwndTooltip, TTM_SETMAXTIPWIDTH, 0, maxWidth);
-        ::SendMessage(m_hwndTooltip, TTM_SETTOOLINFO, 0, (LPARAM)&m_ToolTip);
+        ::SendMessage(m_hwndTooltip, TTM_SETTOOLINFOW, 0, (LPARAM)&m_ToolTip);
         ::SendMessage(m_hwndTooltip, TTM_TRACKACTIVATE, TRUE, (LPARAM)&m_ToolTip);
     }
     ::SendMessage(m_hwndTooltip, TTM_TRACKPOSITION, 0, (LPARAM)(DWORD)MAKELONG(trackPos.x, trackPos.y));

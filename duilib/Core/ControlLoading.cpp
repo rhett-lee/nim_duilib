@@ -103,8 +103,7 @@ void ControlLoading::PaintLoading(IRender* pRender)
         spMatrix->RotateAt((float)m_fCurrrentAngele, imageDestRect.Center());
     }
 
-    wchar_t modify[64] = { 0 };
-    swprintf_s(modify, _T("destscale='false' dest='%d,%d,%d,%d'"), rcFill.left, rcFill.top, rcFill.right, rcFill.bottom);
+    DString modify = StringUtil::Printf(_T("destscale='false' dest='%d,%d,%d,%d'"), rcFill.left, rcFill.top, rcFill.right, rcFill.bottom);
 
     //绘制时需要设置裁剪区域，避免绘制超出范围（因为旋转图片后，图片区域会超出显示区域）
     AutoClip autoClip(pRender, imageDestRect, true);

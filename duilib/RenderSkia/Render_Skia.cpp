@@ -1375,7 +1375,7 @@ void Render_Skia::DrawString(const UiRect& rc,
         return;
     }
     //文本编码
-    SkTextEncoding textEncoding = SkTextEncoding::kUTF16;
+    const SkTextEncoding textEncoding = GetTextEncoding();
     
     //获取字体接口    
     Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(pFont);
@@ -1512,7 +1512,7 @@ UiRect Render_Skia::MeasureString(const DString& strText,
         //单行模式, 或者没有限制宽度
         SkScalar textWidth = pSkFont->measureText(strText.c_str(),
                                                   strText.size() * sizeof(DString::value_type),
-                                                  SkTextEncoding::kUTF16,
+                                                  GetTextEncoding(),
                                                   nullptr,
                                                   &skPaint);
         int textIWidth = SkScalarTruncToInt(textWidth + 0.5f);
@@ -1546,7 +1546,7 @@ UiRect Render_Skia::MeasureString(const DString& strText,
         ASSERT(width > 0);
         int lineCount = SkTextLineBreaker::CountLines((const char*)strText.c_str(),
                                                       strText.size() * sizeof(DString::value_type),
-                                                      SkTextEncoding::kUTF16,
+                                                      GetTextEncoding(),
                                                       *pSkFont,
                                                       skPaint,
                                                       SkScalar(width),
@@ -1700,7 +1700,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
                 size_t byteLength = (textCount - textStartIndex) * sizeof(wchar_t);
                 size_t nDrawLength = SkTextBox::breakText(text.c_str() + textStartIndex,
                                                           byteLength,
-                                                          SkTextEncoding::kUTF16,
+                                                          GetTextEncoding(),
                                                           skFont, skPaint,
                                                           maxWidth, &measuredWidth);
 
@@ -1806,7 +1806,7 @@ void Render_Skia::DrawTextString(const UiRect& rc, const DString& strText, uint3
         return;
     }
     //文本编码
-    SkTextEncoding textEncoding = SkTextEncoding::kUTF16;
+    SkTextEncoding textEncoding = GetTextEncoding();
     const SkFont* pSkFont = pSkiaFont->GetFontHandle();
     ASSERT(pSkFont != nullptr);
     if (pSkFont == nullptr) {
@@ -2226,6 +2226,15 @@ bool Render_Skia::IsClipEmpty() const
 bool Render_Skia::IsEmpty() const
 {
     return (m_pSkCanvas != nullptr) && (GetWidth() > 0) && (GetHeight() > 0);
+}
+
+SkTextEncoding Render_Skia::GetTextEncoding() const
+{
+#ifdef DUILIB_UNICODE
+    return SkTextEncoding::kUTF16;
+#else
+    return SkTextEncoding::kUTF8;
+#endif
 }
 
 } // namespace ui

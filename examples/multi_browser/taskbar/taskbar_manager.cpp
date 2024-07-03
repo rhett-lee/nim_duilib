@@ -1,5 +1,7 @@
 #include "taskbar_manager.h"
 #include "duilib/Utils/BitmapHelper.h"
+#include "duilib/Utils/StringUtil.h"
+
 #include "dwm_util.h"
 #include <shobjidl.h>
 #include <VersionHelpers.h>
@@ -48,9 +50,10 @@ void TaskbarTabItem::UnInit()
         DestroyWindow(NativeWnd()->GetHWND());
 }
 
-void TaskbarTabItem::SetTaskbarTitle(const DString &title)
+void TaskbarTabItem::SetTaskbarTitle(const DString& title)
 {
-    ::SetWindowTextW(NativeWnd()->GetHWND(), title.c_str());
+    DString localText = StringUtil::TToLocal(title);
+    ::SetWindowText(NativeWnd()->GetHWND(), localText.c_str());
 }
 
 void TaskbarTabItem::SetTaskbarManager(TaskbarManager *taskbar_manager)

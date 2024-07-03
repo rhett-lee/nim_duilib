@@ -109,12 +109,12 @@ uint32_t ImageLoadAttribute::GetScacledSize(const DString& srcSize, uint32_t nIm
     uint32_t nScaledSize = 0;
     if (srcSize.back() == _T('%')) {
         //按照百分比缩放
-        double ratio = wcstod(srcSize.c_str(), nullptr);
+        double ratio = StringUtil::StringToDouble(srcSize);
         nScaledSize = static_cast<uint32_t>(nImageSize * ratio / 100);
     }
     else {
         //设置固定值
-        nScaledSize = wcstol(srcSize.c_str(), nullptr, 10);
+        nScaledSize = StringUtil::StringToInt32(srcSize.c_str());
     }
 
     if (nScaledSize != nImageSize) {

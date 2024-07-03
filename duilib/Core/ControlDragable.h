@@ -7,6 +7,7 @@
 #include "duilib/Core/DragWindow.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Box/HBox.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui
 {
@@ -283,7 +284,7 @@ void ControlDragableT<T>::SetAttribute(const DString& strName, const DString& st
         SetEnableDragOrder(strValue == _T("true"));
     }
     else if (strName == _T("drag_alpha")) {
-        SetDragAlpha((uint8_t)_wtoi(strValue.c_str()));
+        SetDragAlpha((uint8_t)StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("drag_out")) {
         //是否支持拖出操纵（在相同窗口的不同容器内）

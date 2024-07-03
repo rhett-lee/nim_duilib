@@ -34,10 +34,10 @@ void ListCtrlView::SetAttribute(const DString& strName, const DString& strValue)
         m_frameSelectionColor = strValue;
     }
     else if (strName == _T("frame_selection_alpha")) {
-        m_frameSelectionAlpha = (uint8_t)_wtoi(strValue.c_str());
+        m_frameSelectionAlpha = (uint8_t)StringUtil::StringToInt32(strValue);
     }
     else if (strName == _T("frame_selection_border")) {
-        int32_t iValue = _wtoi(strValue.c_str());
+        int32_t iValue = StringUtil::StringToInt32(strValue);
         SetFrameSelectionBorderSize(iValue, true);    
     }
     else if (strName == _T("frame_selection_border_color")) {

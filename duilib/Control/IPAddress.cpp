@@ -72,7 +72,7 @@ void IPAddress::OnInit()
         pRichEdit->AttachTextChange([this, pRichEdit](const ui::EventArgs& /*args*/) {
             if (pRichEdit != nullptr) {
                 DString text = pRichEdit->GetText();
-                int32_t nValue = _wtoi(text.c_str());
+                int32_t nValue = StringUtil::StringToInt32(text);
                 if (nValue < 0) {
                     nValue = 0;
                     pRichEdit->SetTextNoEvent(_T("0"));
@@ -120,10 +120,10 @@ void IPAddress::SetIPAddress(const DString& ipAddress)
         std::list<DString> ipList = StringUtil::Split(ipAddress, _T("."));
         if (ipList.size() == 4) {
             auto iter = ipList.begin();
-            int32_t ip1 = std::min(_wtoi((*iter++).c_str()), 255);
-            int32_t ip2 = std::min(_wtoi((*iter++).c_str()), 255);
-            int32_t ip3 = std::min(_wtoi((*iter++).c_str()), 255);
-            int32_t ip4 = std::min(_wtoi((*iter++).c_str()), 255);
+            int32_t ip1 = std::min(StringUtil::StringToInt32((*iter++)), 255);
+            int32_t ip2 = std::min(StringUtil::StringToInt32((*iter++)), 255);
+            int32_t ip3 = std::min(StringUtil::StringToInt32((*iter++)), 255);
+            int32_t ip4 = std::min(StringUtil::StringToInt32((*iter++)), 255);
             ip1 = std::max(ip1, 0);
             ip2 = std::max(ip2, 0);
             ip3 = std::max(ip3, 0);
@@ -140,10 +140,10 @@ DString IPAddress::GetIPAddress() const
 {
     DString ipAddress;
     if (m_editList.size() == 4) {
-        int32_t ip1 = std::min(_wtoi(m_editList[0]->GetText().c_str()), 255);
-        int32_t ip2 = std::min(_wtoi(m_editList[1]->GetText().c_str()), 255);
-        int32_t ip3 = std::min(_wtoi(m_editList[2]->GetText().c_str()), 255);
-        int32_t ip4 = std::min(_wtoi(m_editList[3]->GetText().c_str()), 255);
+        int32_t ip1 = std::min(StringUtil::StringToInt32(m_editList[0]->GetText()), 255);
+        int32_t ip2 = std::min(StringUtil::StringToInt32(m_editList[1]->GetText()), 255);
+        int32_t ip3 = std::min(StringUtil::StringToInt32(m_editList[2]->GetText()), 255);
+        int32_t ip4 = std::min(StringUtil::StringToInt32(m_editList[3]->GetText()), 255);
         ip1 = std::max(ip1, 0);
         ip2 = std::max(ip2, 0);
         ip3 = std::max(ip3, 0);

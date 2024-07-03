@@ -25,7 +25,7 @@ bool FileDialog::BrowseForFolder(Window* pWindow, DString& folderPath)
                 LPWSTR pName = nullptr;
                 hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pName);
                 if (SUCCEEDED(hr) && (pName != nullptr)) {
-                    folderPath = pName;
+                    folderPath = StringUtil::UTF16ToT(pName);
                     ::CoTaskMemFree(pName);
                     pName = nullptr;
                 }
@@ -64,7 +64,7 @@ bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<DString>& folderP
                         LPWSTR pName = nullptr;
                         hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pName);
                         if (SUCCEEDED(hr) && (pName != nullptr)) {
-                            DString folderPath = pName;
+                            DString folderPath = StringUtil::UTF16ToT(pName);
                             ::CoTaskMemFree(pName);
                             pName = nullptr;
                             if (!folderPath.empty()) {
@@ -115,7 +115,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
             ASSERT(SUCCEEDED(hr));
         }
         if (!defaultExt.empty()) {
-            hr = pfd->SetDefaultExtension(defaultExt.c_str());
+            hr = pfd->SetDefaultExtension(StringUtil::TToUTF16(defaultExt).c_str());
             ASSERT(SUCCEEDED(hr));
         }
 
@@ -126,7 +126,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
                 LPWSTR resultptr = nullptr;
                 hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &resultptr);
                 if (SUCCEEDED(hr) && (resultptr != nullptr)) {
-                    filePath = resultptr;
+                    filePath = StringUtil::UTF16ToT(resultptr);
                     ::CoTaskMemFree(resultptr);
                     resultptr = nullptr;
                 }
@@ -164,7 +164,7 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
             ASSERT(SUCCEEDED(hr));
         }
         if (!defaultExt.empty()) {
-            hr = pfd->SetDefaultExtension(defaultExt.c_str());
+            hr = pfd->SetDefaultExtension(StringUtil::TToUTF16(defaultExt).c_str());
             ASSERT(SUCCEEDED(hr));
         }
         hr = pfd->Show((pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr);
@@ -184,7 +184,7 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
                         LPWSTR pName = nullptr;
                         hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pName);
                         if (SUCCEEDED(hr) && (pName != nullptr)) {
-                            DString folderPath = pName;
+                            DString folderPath = StringUtil::UTF16ToT(pName);
                             ::CoTaskMemFree(pName);
                             pName = nullptr;
                             if (!folderPath.empty()) {

@@ -82,7 +82,7 @@ public:
                 m_bInitCOM = true;
                 ::OleInitialize(NULL);
             }            
-            m_hRichEditModule = ::LoadLibraryW(RichEditCtrl::GetLibraryName());
+            m_hRichEditModule = ::LoadLibrary(RichEditCtrl::GetLibraryName());
             ASSERT(m_hRichEditModule != nullptr);
 
             //退出时，清理资源

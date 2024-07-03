@@ -23,7 +23,7 @@ DString ListCtrlItem::GetType() const { return _T("ListCtrlItem"); }
 void ListCtrlItem::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("icon_spacing")) {
-        SetIconSpacing(_wtoi(strValue.c_str()), true);
+        SetIconSpacing(StringUtil::StringToInt32(strValue), true);
     }
     else {
         __super::SetAttribute(strName, strValue);

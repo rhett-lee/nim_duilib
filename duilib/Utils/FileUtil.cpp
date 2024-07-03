@@ -11,7 +11,7 @@ bool FileUtil::ReadFileData(const DString& filePath, std::vector<uint8_t>& fileD
 #ifdef DUILIB_UNICODE
     errno_t ret = ::_wfopen_s(&f, filePath.c_str(), _T("rb"));
 #else
-    f = ::fopen(filePath.c_str(), _T("rb"));
+    errno_t ret = ::fopen_s(&f, filePath.c_str(), _T("rb"));
 #endif
     if ((ret == 0) && (f != nullptr)) {
         isReadOk = true;

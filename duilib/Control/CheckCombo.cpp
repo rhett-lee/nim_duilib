@@ -363,8 +363,8 @@ void CheckCombo::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("height")) {
         __super::SetAttribute(strName, strValue);
         if (strValue != _T("stretch") && strValue != _T("auto")) {
-            ASSERT(_wtoi(strValue.c_str()) >= 0);
-            m_iOrgHeight = _wtoi(strValue.c_str());
+            m_iOrgHeight = StringUtil::StringToInt32(strValue);
+            ASSERT(m_iOrgHeight >= 0);
             SetMaxHeight(m_iOrgHeight * 3, true);
             SetMinHeight(m_iOrgHeight, true);
         }

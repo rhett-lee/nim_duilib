@@ -40,7 +40,7 @@ void BoxShadow::SetBoxShadowString(const DString& strBoxShadow)
             }
         }
         else if ((name == _T("blur_radius")) || name == _T("blurradius")) {
-            m_nBlurRadius = wcstol(value.c_str(), nullptr, 10);
+            m_nBlurRadius = StringUtil::StringToInt32(value);
             ASSERT(m_nBlurRadius >= 0);
             if (m_nBlurRadius < 0) {
                 m_nBlurRadius = 2;
@@ -51,7 +51,7 @@ void BoxShadow::SetBoxShadowString(const DString& strBoxShadow)
             }
         }
         else if ((name == _T("spread_radius")) || (name == _T("spreadradius"))) {
-            m_nSpreadRadius = wcstol(value.c_str(), nullptr, 10);
+            m_nSpreadRadius = StringUtil::StringToInt32(value);
             ASSERT(m_nSpreadRadius >= 0);
             if (m_nSpreadRadius < 0) {
                 m_nSpreadRadius = 2;

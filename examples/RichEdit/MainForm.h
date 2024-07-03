@@ -88,15 +88,15 @@ private:
 private://设置字体相关
     struct FontInfo
     {
-        LOGFONT lf;
+        LOGFONTW lf;
         DWORD fontType;
     };
 
     //获取字体结构
-    bool GetRichEditLogFont(LOGFONT& lf) const;
+    bool GetRichEditLogFont(LOGFONTW& lf) const;
 
     //初始化字体信息
-    void InitCharFormat(const LOGFONT& lf, CHARFORMAT2& charFormat) const;
+    void InitCharFormat(const LOGFONTW& lf, CHARFORMAT2W& charFormat) const;
 
     //调用系统默认对话框，设置字体
     void OnSetFont();
@@ -136,18 +136,18 @@ private://设置字体相关
     void SetTextColor(const DString& newColor);
 
     //枚举字体回调函数
-    static int CALLBACK EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* lpntme, DWORD fontType, LPARAM lParam);
+    static int CALLBACK EnumFontFamExProc(const LOGFONTW* lpelfe, const TEXTMETRICW* lpntme, DWORD fontType, LPARAM lParam);
 
     //将字体大小转换成Rich Edit控件的字体高度
     int32_t ConvertToFontHeight(int32_t fontSize) const;
 
     /** 获取RichEdit控件的字符格式
     */
-    void GetCharFormat(CHARFORMAT2& charFormat) const;
+    void GetCharFormat(CHARFORMAT2W& charFormat) const;
 
     /** 设置RichEdit控件的字符格式
     */
-    void SetCharFormat(CHARFORMAT2& charFormat);
+    void SetCharFormat(CHARFORMAT2W& charFormat);
 
 private:
     //更新缩放比例

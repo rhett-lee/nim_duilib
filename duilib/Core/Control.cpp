@@ -155,7 +155,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("border_size")) || (strName == _T("bordersize"))) {
         DString nValue = strValue;
         if (nValue.find(_T(',')) == DString::npos) {
-            int32_t nBorderSize = _wtoi(strValue.c_str());
+            int32_t nBorderSize = StringUtil::StringToInt32(strValue);
             if (nBorderSize < 0) {
                 nBorderSize = 0;
             }
@@ -189,7 +189,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         else if (!strValue.empty()) {
             if (strValue.back() == _T('%')) {
                 //宽度为拉伸：由父容器负责按百分比分配宽度，比如 width="30%"，代表该控件的宽度期望值为父控件宽度的30%
-                int32_t iValue = _wtoi(strValue.c_str());
+                int32_t iValue = StringUtil::StringToInt32(strValue);
                 if ((iValue <= 0) || (iValue > 100)) {
                     iValue = 100;
                 }
@@ -197,8 +197,8 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
             }
             else {
                 //宽度为固定值
-                ASSERT(_wtoi(strValue.c_str()) >= 0);
-                SetFixedWidth(UiFixedInt(_wtoi(strValue.c_str())), true, true);
+                ASSERT(StringUtil::StringToInt32(strValue) >= 0);
+                SetFixedWidth(UiFixedInt(StringUtil::StringToInt32(strValue)), true, true);
             }
         }
         else {
@@ -217,7 +217,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         else if (!strValue.empty()) {
             if (strValue.back() == _T('%')) {
                 //高度为拉伸：由父容器负责按百分比分配高度，比如 height="30%"，代表该控件的高度期望值为父控件高度的30%
-                int32_t iValue = _wtoi(strValue.c_str());
+                int32_t iValue = StringUtil::StringToInt32(strValue);
                 if ((iValue <= 0) || (iValue > 100)) {
                     iValue = 100;
                 }
@@ -225,8 +225,8 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
             }
             else {
                 //高度为固定值
-                ASSERT(_wtoi(strValue.c_str()) >= 0);
-                SetFixedHeight(UiFixedInt(_wtoi(strValue.c_str())), true, true);
+                ASSERT(StringUtil::StringToInt32(strValue) >= 0);
+                SetFixedHeight(UiFixedInt(StringUtil::StringToInt32(strValue)), true, true);
             }
         }
         else {
@@ -324,31 +324,31 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetFocusBorderColor(strValue);
     }
     else if ((strName == _T("left_border_size")) || (strName == _T("leftbordersize"))) {
-        SetLeftBorderSize(_wtoi(strValue.c_str()), true);
+        SetLeftBorderSize(StringUtil::StringToInt32(strValue), true);
     }
     else if ((strName == _T("top_border_size")) || (strName == _T("topbordersize"))) {
-        SetTopBorderSize(_wtoi(strValue.c_str()), true);
+        SetTopBorderSize(StringUtil::StringToInt32(strValue), true);
     }
     else if ((strName == _T("right_border_size")) || (strName == _T("rightbordersize"))) {
-        SetRightBorderSize(_wtoi(strValue.c_str()), true);
+        SetRightBorderSize(StringUtil::StringToInt32(strValue), true);
     }
     else if ((strName == _T("bottom_border_size")) || (strName == _T("bottombordersize"))) {
-        SetBottomBorderSize(_wtoi(strValue.c_str()), true);
+        SetBottomBorderSize(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("bkimage")) {
         SetBkImage(strValue);
     }
     else if ((strName == _T("min_width")) || (strName == _T("minwidth"))) {
-        SetMinWidth(_wtoi(strValue.c_str()), true);
+        SetMinWidth(StringUtil::StringToInt32(strValue), true);
     }
     else if ((strName == _T("max_width")) || (strName == _T("maxwidth"))) {
-        SetMaxWidth(_wtoi(strValue.c_str()), true);
+        SetMaxWidth(StringUtil::StringToInt32(strValue), true);
     }
     else if ((strName == _T("min_height")) || (strName == _T("minheight"))) {
-        SetMinHeight(_wtoi(strValue.c_str()), true);
+        SetMinHeight(StringUtil::StringToInt32(strValue), true);
     }
     else if ((strName == _T("max_height")) || (strName == _T("maxheight"))) {
-        SetMaxHeight(_wtoi(strValue.c_str()), true);
+        SetMaxHeight(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("name")) {
         SetName(strValue);
@@ -361,13 +361,13 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("tooltip_width")) {
 
-        SetToolTipWidth(_wtoi(strValue.c_str()), true);
+        SetToolTipWidth(StringUtil::StringToInt32(strValue), true);
     }
     else if ((strName == _T("data_id")) || (strName == _T("dataid"))) {
         SetDataID(strValue);
     }
     else if ((strName == _T("user_data_id")) || (strName == _T("user_dataid"))) {
-        SetUserDataID(_wtoi(strValue.c_str()));
+        SetUserDataID(StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("enabled")) {
         SetEnabled(strValue == _T("true"));
@@ -394,7 +394,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetNoFocus();
     }
     else if (strName == _T("alpha")) {
-        SetAlpha(_wtoi(strValue.c_str()));
+        SetAlpha(StringUtil::StringToInt32(strValue));
     }
     else if ((strName == _T("normal_image")) || (strName == _T("normalimage"))) {
         SetStateImage(kControlStateNormal, strValue);
@@ -460,15 +460,15 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetFocusRectColor(strValue);
     }
     else if (strName == _T("paint_order")) {
-        uint8_t nPaintOrder = TruncateToUInt8(_wtoi(strValue.c_str()));
+        uint8_t nPaintOrder = TruncateToUInt8(StringUtil::StringToInt32(strValue));
         SetPaintOrder(nPaintOrder);
     }
     else if (strName == _T("start_gif_play")) {
-        int32_t nPlayCount = _wtoi(strValue.c_str());
+        int32_t nPlayCount = StringUtil::StringToInt32(strValue);
         StartGifPlay(kGifFrameCurrent, nPlayCount);
     }
     else if (strName == _T("stop_gif_play")) {
-        GifFrameType nStopFrame = (GifFrameType)_wtoi(strValue.c_str());
+        GifFrameType nStopFrame = (GifFrameType)StringUtil::StringToInt32(strValue);
         StopGifPlay(false, nStopFrame);
     }
     else {

@@ -62,7 +62,11 @@ bool ZipManager::OpenZipFile(const DString& path, const DString& password)
     m_password = password;
     std::string filePath;
 #ifdef DUILIB_PLATFORM_WIN
-    StringUtil::UnicodeToMBCS(path, filePath);
+    #ifdef DUILIB_UNICODE
+        filePath = StringUtil::UnicodeToMBCS(path);
+    #else
+        filePath = StringUtil::TToMBCS(path);
+    #endif
 #else
     filePath = TToUTF8(path);
 #endif
@@ -126,7 +130,11 @@ bool ZipManager::GetZipData(const DString& path, std::vector<unsigned char>& fil
         //密码是本地编码的（ANSI）
         std::string password;
 #ifdef DUILIB_PLATFORM_WIN
-        StringUtil::UnicodeToMBCS(m_password, password);
+    #ifdef DUILIB_UNICODE
+        password = StringUtil::UnicodeToMBCS(m_password);
+    #else
+        password = m_password;
+    #endif
 #else
         password = TToUTF8(m_password);
 #endif
@@ -274,7 +282,16 @@ std::string ZipManager::GetZipFilePathA(const DString& path, bool bUtf8) const
     }
     std::string filePathA;
 #ifdef DUILIB_PLATFORM_WIN
-    StringUtil::UnicodeToMBCS(filePath, filePathA, bUtf8 ? CP_UTF8 : CP_ACP);
+    #ifdef DUILIB_UNICODE
+        filePathA = StringUtil::UnicodeToMBCS(filePath, bUtf8 ? CP_UTF8 : CP_ACP);
+    #else
+        if (bUtf8) {
+            filePathA = filePath;
+        }
+        else {
+            filePathA = StringUtil::TToMBCS(path);
+        }
+    #endif
 #else
     filePathA = TToUTF8(filePath);
 #endif
@@ -288,7 +305,16 @@ DString ZipManager::GetZipFilePath(const char* szInZipFilePath, bool bUtf8) cons
         return filePath;
     }
 #ifdef DUILIB_PLATFORM_WIN
-    StringUtil::MBCSToUnicode(szInZipFilePath, filePath, bUtf8 ? CP_UTF8 : CP_ACP);
+    #ifdef DUILIB_UNICODE
+        filePath = StringUtil::MBCSToUnicode(szInZipFilePath, bUtf8 ? CP_UTF8 : CP_ACP);
+    #else
+        if (bUtf8) {
+            filePath = szInZipFilePath;            
+        }
+        else {
+            filePath = StringUtil::MBCSToT(szInZipFilePath);
+        }
+    #endif
 #else
     filePath = UTF8ToT(szInZipFilePath);
 #endif

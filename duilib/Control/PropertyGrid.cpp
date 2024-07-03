@@ -37,13 +37,13 @@ void PropertyGrid::SetAttribute(const DString& strName, const DString& strValue)
         }
     }
     else if (strName == _T("row_grid_line_width")) {
-        SetRowGridLineWidth(_wtoi(strValue.c_str()), true);
+        SetRowGridLineWidth(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("row_grid_line_color")) {
         SetRowGridLineColor(strValue);
     }
     else if (strName == _T("column_grid_line_width")) {
-        SetColumnGridLineWidth(_wtoi(strValue.c_str()), true);
+        SetColumnGridLineWidth(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("column_grid_line_color")) {
         SetColumnGridLineColor(strValue);
@@ -58,7 +58,7 @@ void PropertyGrid::SetAttribute(const DString& strName, const DString& strValue)
         SetPropertyClass(strValue);
     }
     else if (strName == _T("left_column_width")) {
-        SetLeftColumnWidth(_wtoi(strValue.c_str()), true);
+        SetLeftColumnWidth(StringUtil::StringToInt32(strValue), true);
     }
     else {
         __super::SetAttribute(strName, strValue);

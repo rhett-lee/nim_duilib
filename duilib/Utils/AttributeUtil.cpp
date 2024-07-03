@@ -29,9 +29,9 @@ void AttributeUtil::ParseSizeValue(const wchar_t* strValue, UiSize& size)
         return;
     }
     wchar_t* pstr = nullptr;
-    int32_t cx = wcstol(strValue, &pstr, 10); ASSERT(pstr);
+    int32_t cx = StringUtil::StringToInt32(strValue, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    int32_t cy = wcstol(pstr, &pstr, 10);
+    int32_t cy = StringUtil::StringToInt32(pstr, &pstr, 10);
     size.cx = cx;
     size.cy = cy;
 }
@@ -43,9 +43,9 @@ void AttributeUtil::ParseSizeValue(const char* strValue, UiSize& size)
         return;
     }
     char* pstr = nullptr;
-    int32_t cx = strtol(strValue, &pstr, 10); ASSERT(pstr);
+    int32_t cx = StringUtil::StringToInt32(strValue, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    int32_t cy = strtol(pstr, &pstr, 10);
+    int32_t cy = StringUtil::StringToInt32(pstr, &pstr, 10);
     size.cx = cx;
     size.cy = cy;
 }
@@ -73,13 +73,13 @@ void AttributeUtil::ParsePaddingValue(const wchar_t* strValue, UiPadding& paddin
         return;
     }
     wchar_t* pstr = nullptr;
-    padding.left = wcstol(strValue, &pstr, 10); ASSERT(pstr);
+    padding.left = StringUtil::StringToInt32(strValue, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    padding.top = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+    padding.top = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    padding.right = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+    padding.right = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    padding.bottom = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+    padding.bottom = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     ASSERT((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0));
     padding.Validate();
 }
@@ -91,13 +91,13 @@ void AttributeUtil::ParsePaddingValue(const char* strValue, UiPadding& padding)
         return;
     }
     char* pstr = nullptr;
-    padding.left = strtol(strValue, &pstr, 10); ASSERT(pstr);
+    padding.left = StringUtil::StringToInt32(strValue, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    padding.top = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    padding.top = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    padding.right = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    padding.right = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    padding.bottom = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    padding.bottom = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     ASSERT((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0));
     padding.Validate();
 }
@@ -109,13 +109,13 @@ void AttributeUtil::ParseMarginValue(const wchar_t* strValue, UiMargin& margin)
         return;
     }
     wchar_t* pstr = nullptr;
-    margin.left = wcstol(strValue, &pstr, 10); ASSERT(pstr);
+    margin.left = StringUtil::StringToInt32(strValue, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    margin.top = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+    margin.top = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    margin.right = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+    margin.right = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    margin.bottom = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+    margin.bottom = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     ASSERT((margin.left >= 0) && (margin.top >= 0) && (margin.right >= 0) && (margin.bottom >= 0));
     margin.Validate();
 }
@@ -127,13 +127,13 @@ void AttributeUtil::ParseMarginValue(const char* strValue, UiMargin& margin)
         return;
     }
     char* pstr = nullptr;
-    margin.left = strtol(strValue, &pstr, 10); ASSERT(pstr);
+    margin.left = StringUtil::StringToInt32(strValue, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    margin.top = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    margin.top = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    margin.right = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    margin.right = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    margin.bottom = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    margin.bottom = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     ASSERT((margin.left >= 0) && (margin.top >= 0) && (margin.right >= 0) && (margin.bottom >= 0));
     margin.Validate();
 }
@@ -145,13 +145,13 @@ void AttributeUtil::ParseRectValue(const wchar_t* strValue, UiRect& rect)
         return;
     }
     wchar_t* pstr = nullptr;
-    rect.left = wcstol(strValue, &pstr, 10); ASSERT(pstr);
+    rect.left = StringUtil::StringToInt32(strValue, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    rect.top = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+    rect.top = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    rect.right = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+    rect.right = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    rect.bottom = wcstol(pstr, &pstr, 10); ASSERT(pstr);
+    rect.bottom = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     ASSERT((rect.Width() >= 0) && (rect.Height() >= 0));
 }
 
@@ -162,13 +162,13 @@ void AttributeUtil::ParseRectValue(const char* strValue, UiRect& rect)
         return;
     }
     char* pstr = nullptr;
-    rect.left = strtol(strValue, &pstr, 10); ASSERT(pstr);
+    rect.left = StringUtil::StringToInt32(strValue, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    rect.top = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    rect.top = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    rect.right = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    rect.right = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     SkipSepChar(pstr);
-    rect.bottom = strtol(pstr, &pstr, 10); ASSERT(pstr);
+    rect.bottom = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
     ASSERT((rect.Width() >= 0) && (rect.Height() >= 0));
 }
 
@@ -237,7 +237,7 @@ std::tuple<int32_t, float> AttributeUtil::ParseString(const wchar_t* strValue, w
         return std::tuple<int32_t, float>(0, 0.0f);
     }
     int32_t xValue = 0;
-    float xPercent = wcstof(strValue, &pstr);
+    float xPercent = StringUtil::StringToFloat(strValue, &pstr);
     ASSERT(pstr != nullptr);
     if ((pstr != nullptr) && (*pstr == L'%')) {
         //该值是百分比，跳过'%'字符
@@ -246,7 +246,7 @@ std::tuple<int32_t, float> AttributeUtil::ParseString(const wchar_t* strValue, w
     else {
         //不是百分比, 而是整型值
         xPercent = 0.0f;
-        xValue = wcstol(strValue, &pstr, 10);
+        xValue = StringUtil::StringToInt32(strValue, &pstr, 10);
         ASSERT(pstr != nullptr);
     }
     if (pEndPtr != nullptr) {
@@ -265,7 +265,7 @@ std::tuple<int32_t, float> AttributeUtil::ParseString(const char* strValue, char
         return std::tuple<int32_t, float>(0, 0.0f);
     }
     int32_t xValue = 0;
-    float xPercent = strtof(strValue, &pstr);
+    float xPercent = StringUtil::StringToFloat(strValue, &pstr);
     ASSERT(pstr != nullptr);
     if ((pstr != nullptr) && (*pstr == '%')) {
         //该值是百分比，跳过'%'字符
@@ -274,7 +274,7 @@ std::tuple<int32_t, float> AttributeUtil::ParseString(const char* strValue, char
     else {
         //不是百分比, 而是整型值
         xPercent = 0.0f;
-        xValue = strtol(strValue, &pstr, 10);
+        xValue = StringUtil::StringToInt32(strValue, &pstr, 10);
         ASSERT(pstr != nullptr);
     }
     if (pEndPtr != nullptr) {

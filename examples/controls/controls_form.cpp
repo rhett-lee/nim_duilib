@@ -166,9 +166,9 @@ void ControlForm::OnInitWindow()
     ui::RichText* pRichText = dynamic_cast<ui::RichText*>(FindControl(_T("rich_text_demo")));
     if (pRichText != nullptr) {
         pRichText->AttachLinkClick([this](const ui::EventArgs& args) {
-            const wchar_t* url = (const wchar_t*)args.wParam;
+            const DString::value_type* url = (const DString::value_type*)args.wParam;
             if (url != nullptr) {
-                ::MessageBox(NativeWnd()->GetHWND(), url, _T("RichText点击超链接"), MB_OK);
+                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringUtil::TToUTF16(url).c_str(), L"RichText点击超链接", MB_OK);
             }
             return true;
             });
@@ -178,9 +178,9 @@ void ControlForm::OnInitWindow()
     ui::HyperLink* pHyperLink = dynamic_cast<ui::HyperLink*>(FindControl(_T("hyper_link1")));
     if (pHyperLink != nullptr) {
         pHyperLink->AttachLinkClick([this](const ui::EventArgs& args) {
-            const wchar_t* url = (const wchar_t*)args.wParam;
+            const DString::value_type* url = (const DString::value_type*)args.wParam;
             if (url != nullptr) {
-                ::MessageBox(NativeWnd()->GetHWND(), url, _T("HyperLink点击超链接"), MB_OK);
+                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringUtil::TToUTF16(url).c_str(), L"HyperLink点击超链接", MB_OK);
             }
             return true;
             });
@@ -189,7 +189,7 @@ void ControlForm::OnInitWindow()
     pHyperLink = dynamic_cast<ui::HyperLink*>(FindControl(_T("hyper_link2")));
     if (pHyperLink != nullptr) {
         pHyperLink->AttachLinkClick([this](const ui::EventArgs& /*args*/) {
-            ::MessageBox(NativeWnd()->GetHWND(), _T("文字按钮事件响应"), _T("HyperLink点击"), MB_OK);
+            ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringUtil::TToUTF16(_T("文字按钮事件响应")).c_str(), L"HyperLink点击", MB_OK);
             return true;
             });
     }
@@ -445,7 +445,7 @@ LRESULT ControlForm::OnHotKeyMsg(int32_t hotkeyId, ui::VirtualKeyCode vkCode, ui
     bHandled = true;
     if (hotkeyId == SYSTEM_HOTKEY_ID) {
         SetWindowForeground();
-        ::MessageBox(NativeWnd()->GetHWND(), _T("接收到系统热键命令"), _T("ControlForm::OnHotKeyMsg"), MB_OK);
+        ::MessageBoxW(NativeWnd()->GetHWND(), L"接收到系统热键命令", L"ControlForm::OnHotKeyMsg", MB_OK);
     }
     return lResult;
 }

@@ -132,7 +132,7 @@ bool BrowserBox::OnMenuCommand(CefRefPtr<CefContextMenuParams> params, int comma
 void BrowserBox::OnTitleChange(const DString& title)
 {
     title_ = title;
-    browser_form_->SetTabItemName(ui::StringUtil::UTF8ToUTF16(browser_id_), title);
+    browser_form_->SetTabItemName(ui::StringUtil::UTF8ToT(browser_id_), title);
 }
 
 void BrowserBox::OnUrlChange(const DString& url)
@@ -166,7 +166,7 @@ void BrowserBox::OnLoadEnd(int httpStatusCode)
 {
     // 注册一个方法提供前端调用
     cef_control_->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([](const std::string& params, nim_comp::ReportResultFunction callback) {
-        MessageBox(NULL, ui::StringUtil::UTF8ToUTF16(params).c_str(), _T("接收到 JavaScript 发来的消息"), MB_OK);
+        ::MessageBoxW(NULL, ui::StringUtil::UTF8ToUTF16(params).c_str(), L"接收到 JavaScript 发来的消息", MB_OK);
         callback(false, R"({ "message": "Success." })");
     }));
 }

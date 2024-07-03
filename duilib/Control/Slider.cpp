@@ -148,7 +148,7 @@ void Slider::HandleEvent(const EventArgs& msg)
 void Slider::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("step")) {
-        SetChangeStep(_wtoi(strValue.c_str()));
+        SetChangeStep(StringUtil::StringToInt32(strValue));
     }
     else if ((strName == _T("thumb_normal_image")) || (strName == _T("thumbnormalimage"))) {
         SetThumbStateImage(kControlStateNormal, strValue);

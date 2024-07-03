@@ -191,11 +191,7 @@ Control* CALLBACK ControlFinder::__FindControlFromName(Control* pThis, LPVOID pD
     if (sName.empty()) {
         return nullptr;
     }
-#ifdef DUILIB_UNICODE
-    return (_wcsicmp(sName.c_str(), pstrName) == 0) ? pThis : nullptr;
-#else
-    return (stricmp(sName.c_str(), pstrName) == 0) ? pThis : nullptr;
-#endif
+    return (StringUtil::StringICompare(sName.c_str(), pstrName) == 0) ? pThis : nullptr;
 }
 
 Control* CALLBACK ControlFinder::__FindContextMenuControl(Control* pThis, LPVOID /*pData*/)

@@ -2,6 +2,7 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/StringUtil.h"
 #include <numeric>
 
 namespace ui 
@@ -603,7 +604,7 @@ bool VTileLayout::SetAttribute(const DString& strName, const DString& strValue, 
         }
         else {
             SetAutoCalcColumns(false);
-            SetColumns(_wtoi(strValue.c_str()));
+            SetColumns(StringUtil::StringToInt32(strValue));
         }
     }
     else if ((strName == _T("scale_down")) || (strName == _T("scaledown"))) {

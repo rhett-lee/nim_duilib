@@ -205,6 +205,7 @@ RichEdit::~RichEdit()
         delete m_pFocusedImage;
         m_pFocusedImage = nullptr;
     }
+    m_pLimitChars.reset();
 }
 
 void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
@@ -279,10 +280,10 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         SetNumberOnly(strValue == _T("true"));
     }
     else if (strName == _T("max_number")) {
-        SetMaxNumber(_wtoi(strValue.c_str()));
+        SetMaxNumber(StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("min_number")) {
-        SetMinNumber(_wtoi(strValue.c_str()));
+        SetMinNumber(StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("text_align")) {
         if (strValue.find(_T("left")) != DString::npos) {
@@ -367,7 +368,7 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if ((strName == _T("limit_text")) || (strName == _T("max_char")) || (strName == _T("maxchar"))) {
         //限制最多字符数
-        SetLimitText(_wtoi(strValue.c_str()));
+        SetLimitText(StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("limit_chars")) {
         //限制允许输入哪些字符
@@ -443,9 +444,9 @@ void RichEdit::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     SetTextPadding(rcTextPadding, false);
 
     //更新字体大小
-    CHARFORMAT2 cf;
-    memset(&cf, 0, sizeof(CHARFORMAT2));
-    cf.cbSize = sizeof(CHARFORMAT2);
+    CHARFORMAT2W cf;
+    memset(&cf, 0, sizeof(CHARFORMAT2W));
+    cf.cbSize = sizeof(CHARFORMAT2W);
     m_richCtrl.GetDefaultCharFormat(cf);
     cf.yHeight = Dpi().GetScaleInt((int32_t)cf.yHeight, nOldDpiScale);
     cf.dwMask |= CFM_SIZE;
@@ -745,12 +746,24 @@ void RichEdit::SetLimitText(int32_t iChars)
 
 DString RichEdit::GetLimitChars() const
 {
-    return m_limitChars.c_str();
+    if (m_pLimitChars != nullptr) {
+        return StringUtil::UTF16ToT(m_pLimitChars.get());
+    }
+    else {
+        return DString();
+    }
 }
 
 void RichEdit::SetLimitChars(const DString& limitChars)
 {
-    m_limitChars = limitChars;
+    m_pLimitChars.reset();
+    DStringW limitCharsW = StringUtil::TToUTF16(limitChars);
+    if (!limitCharsW.empty()) {
+        size_t nLen = limitCharsW.size() + 1;
+        m_pLimitChars.reset(new wchar_t[nLen]);
+        memset(m_pLimitChars.get(), 0, nLen * sizeof(wchar_t));
+        StringUtil::StringCopy(m_pLimitChars.get(), nLen, limitCharsW.c_str());
+    }
 }
 
 bool RichEdit::GetAllowBeep() const
@@ -783,10 +796,14 @@ DString RichEdit::GetText() const
     wchar_t* pText = new wchar_t[nTextLen];
     memset(pText, 0, sizeof(wchar_t) * nTextLen);
     m_richCtrl.GetTextEx(pText, nTextLen, GTL_DEFAULT, 1200);
-    DString sText(pText);
+    std::wstring sText(pText);
     delete[] pText;
     pText = nullptr;
+#ifdef DUILIB_UNICODE
     return sText;
+#else
+    return StringUtil::UTF16ToT(sText);
+#endif
 }
 
 std::string RichEdit::GetUTF8Text() const
@@ -856,13 +873,24 @@ int RichEdit::SetSel(long nStartChar, long nEndChar)
 
 void RichEdit::ReplaceSel(const DString& lpszNewText, bool bCanUndo)
 {
+#ifdef DUILIB_UNICODE
     m_richCtrl.ReplaceSel(lpszNewText.c_str(), bCanUndo);
+#else
+    std::wstring newText = StringUtil::TToUTF16(lpszNewText);
+    m_richCtrl.ReplaceSel(newText.c_str(), bCanUndo);
+#endif
 }
 
 DString RichEdit::GetSelText() const
 {
     DString text;
+#ifdef DUILIB_UNICODE    
     m_richCtrl.GetSelText(text);
+#else
+    DStringW textW;
+    m_richCtrl.GetSelText(textW);
+    text = StringUtil::UTF16ToUTF8(textW);
+#endif
     return text;
 }
 
@@ -896,14 +924,14 @@ WORD RichEdit::GetSelectionType() const
     return m_richCtrl.GetSelectionType();
 }
 
-LONG RichEdit::FindRichText(DWORD dwFlags, FINDTEXT& ft) const
+LONG RichEdit::FindRichText(DWORD dwFlags, FINDTEXTW& ft) const
 {
-    return m_richCtrl.FindText(dwFlags, ft);
+    return m_richCtrl.FindTextW(dwFlags, ft);
 }
 
-LONG RichEdit::FindRichText(DWORD dwFlags, FINDTEXTEX& ft) const
+LONG RichEdit::FindRichText(DWORD dwFlags, FINDTEXTEXW& ft) const
 {
-    return m_richCtrl.FindText(dwFlags, ft);
+    return m_richCtrl.FindTextW(dwFlags, ft);
 }
 
 bool RichEdit::GetAutoURLDetect() const
@@ -946,9 +974,13 @@ DString RichEdit::GetTextRange(long nStartChar, long nEndChar) const
     ::ZeroMemory(lpText, nLen * sizeof(WCHAR));
     tr.lpstrText = lpText;
     m_richCtrl.GetTextRange(&tr);
-    DString sText = (LPCWSTR)lpText;
+    DStringW sText = (LPCWSTR)lpText;
     delete[] lpText;
+#ifdef DUILIB_UNICODE
     return sText;
+#else
+    return StringUtil::UTF16ToT(sText);
+#endif
 }
 
 void RichEdit::HideSelection(bool bHide, bool bChangeStyle)
@@ -961,22 +993,30 @@ void RichEdit::ScrollCaret()
     m_richCtrl.ScrollCaret();
 }
 
-int RichEdit::InsertText(long nInsertAfterChar, LPCTSTR lpstrText, bool bCanUndo)
+int RichEdit::InsertText(long nInsertAfterChar, const DString& text, bool bCanUndo)
 {
-    return m_richCtrl.InsertText(nInsertAfterChar, lpstrText, bCanUndo);
+#ifdef DUILIB_UNICODE
+    return m_richCtrl.InsertText(nInsertAfterChar, text.c_str(), bCanUndo);
+#else
+    return m_richCtrl.InsertText(nInsertAfterChar, StringUtil::TToUTF16(text).c_str(), bCanUndo);
+#endif
 }
 
 int RichEdit::AppendText(const DString& strText, bool bCanUndo)
 {
+#ifdef DUILIB_UNICODE
     return m_richCtrl.AppendText(strText.c_str(), bCanUndo);
+#else
+    return m_richCtrl.AppendText(StringUtil::TToUTF16(strText).c_str(), bCanUndo);
+#endif
 }
 
-DWORD RichEdit::GetDefaultCharFormat(CHARFORMAT2 &cf) const
+DWORD RichEdit::GetDefaultCharFormat(CHARFORMAT2W& cf) const
 {
     return m_richCtrl.GetDefaultCharFormat(cf);
 }
 
-bool RichEdit::SetDefaultCharFormat(CHARFORMAT2& cf)
+bool RichEdit::SetDefaultCharFormat(CHARFORMAT2W& cf)
 {
     if (m_richCtrl.SetDefaultCharFormat(cf)) {
         if (cf.dwMask & CFM_COLOR) {
@@ -990,17 +1030,17 @@ bool RichEdit::SetDefaultCharFormat(CHARFORMAT2& cf)
     return false;
 }
 
-DWORD RichEdit::GetSelectionCharFormat(CHARFORMAT2& cf) const
+DWORD RichEdit::GetSelectionCharFormat(CHARFORMAT2W& cf) const
 {
     return m_richCtrl.GetSelectionCharFormat(cf);
 }
 
-bool RichEdit::SetSelectionCharFormat(CHARFORMAT2& cf)
+bool RichEdit::SetSelectionCharFormat(CHARFORMAT2W& cf)
 {
     return m_richCtrl.SetSelectionCharFormat(cf);
 }
 
-bool RichEdit::SetWordCharFormat(CHARFORMAT2 &cf)
+bool RichEdit::SetWordCharFormat(CHARFORMAT2W&cf)
 {
     return m_richCtrl.SetWordCharFormat(cf);
 }
@@ -1094,12 +1134,16 @@ DString RichEdit::GetLine(int nIndex, int nMaxLength) const
     if (lpText == nullptr) {
         return DString();
     }
-    ::ZeroMemory(lpText, (nMaxLength + 1) * sizeof(WCHAR));
+    ::ZeroMemory(lpText, (nMaxLength + 1) * sizeof(TCHAR));
     *(LPWORD)lpText = (WORD)nMaxLength;
     m_richCtrl.GetLine(nIndex, lpText);
-    DString sText = lpText;
+    DStringW sText = lpText;
     delete[] lpText;
+#ifdef DUILIB_UNICODE
     return sText;
+#else
+    return StringUtil::UTF16ToUTF8(sText);
+#endif
 }
 
 int RichEdit::LineIndex(int nLine) const
@@ -1846,7 +1890,7 @@ bool RichEdit::OnChar(const EventArgs& msg)
     }
 
     //限制允许输入的字符
-    if (!m_limitChars.empty()) {
+    if (m_pLimitChars != nullptr) {
         if (!IsInLimitChars((wchar_t)msg.vkCode)) {
             //字符不在列表里面，禁止输入
             return true;
@@ -1859,7 +1903,11 @@ bool RichEdit::OnChar(const EventArgs& msg)
 
 bool RichEdit::IsInLimitChars(wchar_t charValue) const
 {
-    const wchar_t* ch = m_limitChars.c_str();
+    //返回false时：禁止输入
+    if (m_pLimitChars == nullptr) {
+        return true;
+    }
+    const wchar_t* ch = m_pLimitChars.get();
     if ((ch == nullptr) || (*ch == _T('\0'))) {
         return true;
     }
@@ -1876,9 +1924,9 @@ bool RichEdit::IsInLimitChars(wchar_t charValue) const
 
 bool RichEdit::IsPasteLimited() const
 {
-    if (!m_limitChars.empty()) {
+    if (m_pLimitChars != nullptr) {
         //有设置限制字符
-        DString strClipText;
+        DStringW strClipText;
         GetClipboardText(strClipText);
         if (!strClipText.empty()) {
             size_t count = strClipText.size();
@@ -1895,7 +1943,7 @@ bool RichEdit::IsPasteLimited() const
     }
     else if (IsNumberOnly()) {
         //数字模式
-        DString strClipText;
+        DStringW strClipText;
         GetClipboardText(strClipText);
         if (!strClipText.empty()) {
             size_t count = strClipText.size();
@@ -2640,7 +2688,7 @@ void RichEdit::AddLinkColorText(const DString &str, const DString &color, const 
     }
     UiColor dwColor = GetUiColor(color);
 
-    CHARFORMAT2 cf;
+    CHARFORMAT2W cf;
     ZeroMemory(&cf, sizeof(cf));
     cf.cbSize = sizeof(CHARFORMAT2W);
     cf.dwMask = CFM_COLOR;
@@ -2666,15 +2714,13 @@ void RichEdit::AddLinkColorTextEx(const DString& str, const DString& color, cons
         return;
     }
     
-    std::string link;
-    std::string text;
+    std::string link = StringUtil::TToMBCS(linkInfo);
+    std::string text = StringUtil::TToMBCS(str);
     std::string font_face;
-    StringUtil::UnicodeToMBCS(linkInfo, link);
-    StringUtil::UnicodeToMBCS(str, text);
 
-    CHARFORMAT2 cf;
+    CHARFORMAT2W cf;
     GetCharFormat(strFontId, cf);
-    StringUtil::UnicodeToMBCS(cf.szFaceName, font_face);
+    font_face = StringUtil::UnicodeToMBCS(cf.szFaceName);
     UiColor dwTextColor = GlobalManager::Instance().Color().GetColor(color);
     static std::string font_format = "{\\fonttbl{\\f0\\fnil\\fcharset%d %s;}}";
     static std::string color_format = "{\\colortbl ;\\red%d\\green%d\\blue%d;}";
@@ -2685,8 +2731,7 @@ void RichEdit::AddLinkColorTextEx(const DString& str, const DString& color, cons
     sprintf_s(scolor, color_format.c_str(), dwTextColor.GetR(), dwTextColor.GetG(), dwTextColor.GetB());
     char slinke[1024] = { 0 };
     sprintf_s(slinke, link_format.c_str(), sfont, scolor, ((int)(cf.yHeight *1.5))/2*2, link.c_str(), text.c_str());
-    DString temp;
-    StringUtil::MBCSToUnicode(slinke, temp);
+
     SETTEXTEX st;
     st.codepage = ((UINT32)~((UINT32)0));
     st.flags = ST_SELECTION | ST_KEEPUNDO;
@@ -2703,9 +2748,9 @@ void RichEdit::AddLinkInfo(const CHARRANGE cr, const DString &linkInfo)
 
 void RichEdit::AddLinkInfoEx(const CHARRANGE cr, const DString& linkInfo)
 {
-    CHARFORMAT2 cf2;
-    ZeroMemory(&cf2, sizeof(CHARFORMAT2));
-    cf2.cbSize = sizeof(CHARFORMAT2);
+    CHARFORMAT2W cf2;
+    ZeroMemory(&cf2, sizeof(CHARFORMAT2W));
+    cf2.cbSize = sizeof(CHARFORMAT2W);
     cf2.dwMask = CFM_LINK;
     cf2.dwEffects |= CFE_LINK;
 
@@ -2771,44 +2816,7 @@ void RichEdit::SetUseControlCursor(bool bUseControlCursor)
     m_bUseControlCursor = bUseControlCursor;
 }
 
-//----------------下面函数用作辅助 字节数限制
-bool RichEdit::IsAsciiChar(const wchar_t ch)
-{
-    return (ch <= 0x7e && ch >= 0x20);
-}
-
-int RichEdit::GetAsciiCharNumber(const DString &str)
-{
-    int len = (int)str.size(), sum = 0;
-    for( int i = 0; i < len; i++ ) {
-        if (IsAsciiChar(str[i])) {
-            sum += 1;
-        }
-        else {
-            sum += 2;
-        }
-    }
-    return sum;
-}
-
-void RichEdit::LimitAsciiNumber(DString &src, int limit)
-{
-    int len = (int)src.size(), sum = 0;
-    for( int i = 0; i < len; i++ ) {
-        if (IsAsciiChar(src[i])) {
-            sum += 1;
-        }
-        else {
-            sum += 2;
-        }
-        if( sum > limit ) {
-            src.erase(i);
-            break;
-        }
-    }
-}
-
-void RichEdit::GetClipboardText( DString &out )
+void RichEdit::GetClipboardText(DStringW& out )
 {
     out.clear();
     BOOL ret = ::OpenClipboard(NULL);
@@ -2818,7 +2826,7 @@ void RichEdit::GetClipboardText( DString &out )
             if(h != INVALID_HANDLE_VALUE) {
                 wchar_t* buf = (wchar_t*)::GlobalLock(h);
                 if(buf != NULL)    {
-                    DString str(buf, GlobalSize(h)/sizeof(wchar_t));
+                    DStringW str(buf, GlobalSize(h)/sizeof(wchar_t));
                     out = str;
                     ::GlobalUnlock(h);
                 }
@@ -2830,42 +2838,13 @@ void RichEdit::GetClipboardText( DString &out )
                 char* buf = (char*)::GlobalLock(h);
                 if(buf != NULL)    {
                     std::string str(buf, GlobalSize(h));
-                    StringUtil::MBCSToUnicode(str, out);
+                    out = StringUtil::MBCSToUnicode(str);
                     ::GlobalUnlock(h);
                 }
             }
         }
         ::CloseClipboard();
     }
-}
-
-void RichEdit::SetClipBoardText(const DString &str)
-{
-    if (!::OpenClipboard(NULL)) {
-        return;
-    }
-
-    if (!::EmptyClipboard()) {
-        ::CloseClipboard();
-        return;
-    }
-
-    size_t len = str.length();
-    HGLOBAL hMem = ::GlobalAlloc(GMEM_MOVEABLE, (len + 1) * sizeof(wchar_t)); //分配全局内存  
-    if (!hMem) {
-        ::CloseClipboard();
-        return;
-    }
-
-    wchar_t* lpStr = (wchar_t*)::GlobalLock(hMem); //锁住内存区 
-    if (lpStr) {
-        ::memcpy(lpStr, str.c_str(), len * sizeof(wchar_t)); //把数据拷贝考全局内存中
-        lpStr[len] = L'\0'; //字符串末尾设为'\0'
-        ::GlobalUnlock(hMem); //释放锁 
-    }
-
-    ::SetClipboardData(CF_UNICODETEXT, hMem); //把内存中的数据放到剪切板上
-    ::CloseClipboard(); //关闭剪切板    
 }
 
 void RichEdit::AttachSelChange(const EventCallback& callback)
@@ -3098,7 +3077,7 @@ void RichEdit::OnTextChanged()
         //数字模式，检查文本对应的数字是否在范围内
         DString text = GetText();
         if (!text.empty()) {
-            int64_t n = wcstoull(text.c_str(), nullptr, 10);
+            int64_t n = StringUtil::StringToInt64(text);
             if (n < GetMinNumber()) {
                 //超过最小数字，进行修正
                 int32_t newValue = GetMinNumber();
@@ -3263,7 +3242,7 @@ int64_t RichEdit::GetTextNumber() const
     if (text.empty()) {
         return 0;
     }
-    int64_t n = wcstoull(text.c_str(), nullptr, 10);
+    int64_t n = StringUtil::StringToInt64(text);
     return n;
 }
 
@@ -3383,7 +3362,7 @@ void RichEdit::SetShowPasswordBtnClass(const DString& btnClass)
 
 void RichEdit::SetFontIdInternal(const DString& fontId)
 {
-    CHARFORMAT2 cf;
+    CHARFORMAT2W cf;
     GetCharFormat(fontId, cf);
     BOOL bRet = m_richCtrl.SetDefaultCharFormat(cf);
     ASSERT_UNUSED_VARIABLE(bRet);
@@ -3392,9 +3371,9 @@ void RichEdit::SetFontIdInternal(const DString& fontId)
 void RichEdit::SetTextColorInternal(const UiColor& textColor)
 {
     if (!textColor.IsEmpty()) {
-        CHARFORMAT2 cf;
-        ZeroMemory(&cf, sizeof(CHARFORMAT2));
-        cf.cbSize = sizeof(CHARFORMAT2);
+        CHARFORMAT2W cf;
+        ZeroMemory(&cf, sizeof(CHARFORMAT2W));
+        cf.cbSize = sizeof(CHARFORMAT2W);
         m_richCtrl.GetDefaultCharFormat(cf);
         cf.dwMask = CFM_COLOR;
         cf.crTextColor = textColor.ToCOLORREF();
@@ -3425,21 +3404,21 @@ int32_t RichEdit::ConvertToFontHeight(int32_t fontSize) const
     return lfHeight;
 }
 
-void RichEdit::GetCharFormat(const DString& fontId, CHARFORMAT2& cf) const
+void RichEdit::GetCharFormat(const DString& fontId, CHARFORMAT2W& cf) const
 {
-    ZeroMemory(&cf, sizeof(CHARFORMAT2));
-    cf.cbSize = sizeof(CHARFORMAT2);
+    ZeroMemory(&cf, sizeof(CHARFORMAT2W));
+    cf.cbSize = sizeof(CHARFORMAT2W);
     m_richCtrl.GetDefaultCharFormat(cf);
     IFont* pFont = GlobalManager::Instance().Font().GetIFont(fontId, Dpi());
     if (pFont != nullptr) {
-        _tcscpy_s(cf.szFaceName, pFont->FontName().c_str());
+        wcscpy_s(cf.szFaceName, StringUtil::TToUTF16(pFont->FontName()).c_str());
         cf.dwMask |= CFM_FACE;
 
         cf.yHeight = ConvertToFontHeight(pFont->FontSize());
         cf.dwMask |= CFM_SIZE;
 
-        LOGFONT lf = {0, };
-        ::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
+        LOGFONTW lf = {0, };
+        ::GetObjectW(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONTW), &lf);
 
         cf.bCharSet = lf.lfCharSet;
         cf.dwMask |= CFM_CHARSET;

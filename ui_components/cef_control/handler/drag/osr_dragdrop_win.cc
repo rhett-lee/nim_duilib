@@ -18,6 +18,8 @@
 #include "include/wrapper/cef_helpers.h"
 #pragma warning (pop)
 
+#include "duilib/Utils/StringUtil.h"
+
 namespace client {
 
 namespace {
@@ -81,7 +83,7 @@ void GetStorageForFileDescriptor(STGMEDIUM* storage,
       reinterpret_cast<FILEGROUPDESCRIPTOR*>(hdata);
   descriptor->cItems = 1;
   descriptor->fgd[0].dwFlags = FD_LINKUI;
-  wcsncpy_s(descriptor->fgd[0].cFileName, MAX_PATH, file_name.c_str(),
+  _tcsncpy_s(descriptor->fgd[0].cFileName, MAX_PATH, file_name.c_str(),
       std::min(file_name.size(), static_cast<size_t>(MAX_PATH - 1u)));
 
   storage->tymed = TYMED_HGLOBAL;
@@ -257,7 +259,12 @@ bool DragDataToDataObject(CefRefPtr<CefDragData> drag_data,
     drag_data->GetFileContents(writer);
     DCHECK_EQ(handler->GetDataSize(), static_cast<int64>(bufferSize));
     CefString fileName = drag_data->GetFileName();
+#if defined(UNICODE) || defined(_UNICODE)
     GetStorageForFileDescriptor(&stgmeds[curr_index], fileName.ToWString());
+#else
+    DString temp = ui::StringUtil::TToMBCS(fileName.ToString());
+    GetStorageForFileDescriptor(&stgmeds[curr_index], temp);
+#endif
     fmtetc.cfFormat = static_cast<decltype(fmtetc.cfFormat)>(file_desc_format);
     fmtetcs[curr_index] = fmtetc;
     curr_index++;

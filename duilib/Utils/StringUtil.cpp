@@ -1,6 +1,7 @@
 #include "StringUtil.h"
 #include "duilib/third_party/convert_utf/ConvertUTF.h"
 #include <filesystem>
+#include <cstdlib>
 
 using namespace llvm; //for ConvertUTF.h
 
@@ -384,9 +385,9 @@ std::string StringUtil::MakeLowerString(const std::string& str)
     return resStr;
 }
 
-std::wstring StringUtil::MakeUpperString(const std::wstring &str)
+std::wstring StringUtil::MakeUpperString(const std::wstring& str)
 {
-    DString resStr = str;
+    std::wstring resStr = str;
     if (resStr.empty()) {
         return L"";
     }
@@ -606,13 +607,14 @@ std::string StringUtil::UTF16ToUTF8(const std::wstring& utf16)
     return UTF16ToUTF8(utf16.c_str(), utf16.length());
 }
 
-std::string StringUtil::TToUTF8(const DString& str)
+std::string StringUtil::TToUTF8(const std::wstring& str)
 {
-#ifdef DUILIB_UNICODE
     return StringUtil::UTF16ToUTF8(str);
-#else
+}
+
+const std::string& StringUtil::TToUTF8(const std::string& str)
+{
     return str;
-#endif
 }
 
 DString StringUtil::UTF8ToT(const UTF8Char* utf8, size_t length)
@@ -633,6 +635,25 @@ DString StringUtil::UTF8ToT(const std::string& utf8)
 #endif
 }
 
+const std::wstring& StringUtil::TToUTF16(const std::wstring& str)
+{
+    return str;
+}
+
+std::wstring StringUtil::TToUTF16(const std::string& str)
+{
+    return StringUtil::UTF8ToUTF16(str);
+}
+
+DString StringUtil::UTF16ToT(const std::wstring& utf16)
+{
+#ifdef DUILIB_UNICODE
+    return utf16;
+#else    
+    return StringUtil::UTF16ToUTF8(utf16);
+#endif
+}
+
 std::basic_string<UTF32Char> StringUtil::UTF8ToUTF32(const std::string& utf8)
 {
     return UTF8ToUTF32(utf8.c_str(), utf8.length());
@@ -643,7 +664,7 @@ std::string StringUtil::UTF32ToUTF8(const std::basic_string<UTF32Char>& utf32)
     return UTF32ToUTF8(utf32.c_str(), utf32.length());
 }
 
-std::basic_string<UTF32Char> StringUtil::UTF16ToUTF32(const DString& utf16)
+std::basic_string<UTF32Char> StringUtil::UTF16ToUTF32(const std::wstring& utf16)
 {
     return UTF16ToUTF32(utf16.c_str(), utf16.length());
 }
@@ -654,29 +675,49 @@ std::wstring StringUtil::UTF32ToUTF16(const std::basic_string<UTF32Char>& utf32)
 }
 
 #ifdef DUILIB_PLATFORM_WIN
-bool StringUtil::MBCSToUnicode(const std::string &input, DString& output, int code_page)
+std::wstring StringUtil::MBCSToUnicode(const std::string& input, int32_t code_page)
 {
-    output.clear();
+    std::wstring output;
     int length = ::MultiByteToWideChar(code_page, 0, input.c_str(), static_cast<int>(input.size()), NULL, 0);
+    if (length < 0) {
+        length = 0;
+    }
     output.resize(length);
-    if (output.empty())
-        return true;
+    if (output.empty()) {
+        return output;
+    }
     ::MultiByteToWideChar(code_page,
         0,
         input.c_str(),
         static_cast<int>(input.size()),
         &output[0],
         static_cast<int>(output.size()));
-    return true;
+    return output;
 }
 
-bool StringUtil::UnicodeToMBCS(const DString& input, std::string &output, int code_page)
+DString StringUtil::MBCSToT(const std::string& input)
 {
-    output.clear();
+    DString output;
+#ifdef DUILIB_UNICODE
+    output = MBCSToUnicode(input);
+#else
+    std::wstring temp = MBCSToUnicode(input);
+    output = UTF16ToUTF8(temp);
+#endif
+    return output;
+}
+
+std::string StringUtil::UnicodeToMBCS(const std::wstring& input, int32_t code_page)
+{
+    std::string output;
     int length = ::WideCharToMultiByte(code_page, 0, input.c_str(), static_cast<int>(input.size()), NULL, 0, NULL, NULL);
+    if (length < 0) {
+        length = 0;
+    }
     output.resize(length);
-    if (output.empty())
-        return true;
+    if (output.empty()) {
+        return output;
+    }
     ::WideCharToMultiByte(code_page,
         0,
         input.c_str(),
@@ -685,8 +726,43 @@ bool StringUtil::UnicodeToMBCS(const DString& input, std::string &output, int co
         static_cast<int>(output.size()),
         NULL,
         NULL);
-    return true;
+    return output;
 }
+
+std::string StringUtil::TToMBCS(const DString& input)
+{
+    std::string output;
+#ifdef DUILIB_UNICODE
+    output = UnicodeToMBCS(input);
+#else
+    std::wstring temp = UTF8ToUTF16(input);
+    output = UnicodeToMBCS(temp);
+#endif
+    return output;
+}
+
+DString StringUtil::TToLocal(const DString& input)
+{
+#ifdef DUILIB_UNICODE
+    return input;
+#else
+    DString output;
+    std::wstring temp = UTF8ToUTF16(input);
+    output = UnicodeToMBCS(temp);
+    return output;
+#endif
+}
+
+DString StringUtil::LocalToT(const DString& input)
+{
+#ifdef DUILIB_UNICODE
+    return input;
+#else
+    DStringW output = MBCSToUnicode(input);
+    return UTF16ToUTF8(output);
+#endif
+}
+
 #endif
 
 std::string StringUtil::TrimLeft(const char *input)
@@ -786,13 +862,14 @@ std::list<std::string> StringUtil::Split(const std::string& input, const std::st
     return output;
 }
 
-std::list<DString> StringUtil::Split(const std::wstring& input, const std::wstring& delimitor)
+std::list<std::wstring> StringUtil::Split(const std::wstring& input, const std::wstring& delimitor)
 {
     std::list<std::wstring> output;
     std::wstring input2(input);
 
-    if (input2.empty())
+    if (input2.empty()) {
         return output;
+    }
 
     wchar_t* context = nullptr;
     wchar_t* token = wcstok_s(input2.data(), delimitor.c_str(), &context);
@@ -882,6 +959,14 @@ bool StringUtil::IsEqualNoCase(const std::wstring& lhs, const wchar_t* rhs)
     return IsEqualNoCasePrivate(lhs.c_str(), rhs);
 }
 
+bool StringUtil::IsEqualNoCase(const std::string& lhs, const std::string& rhs)
+{
+    if (lhs.size() != rhs.size()) {
+        return false;
+    }
+    return IsEqualNoCasePrivate(lhs.c_str(), rhs.c_str());
+}
+
 bool StringUtil::IsEqualNoCase(const std::string& lhs, const char* rhs)
 {
     if (rhs == nullptr) {
@@ -911,6 +996,91 @@ bool StringUtil::IsEqualNoCase(const char* lhs, const char* rhs)
     }
     return IsEqualNoCasePrivate(lhs, rhs);
 }
+
+int32_t StringUtil::StringCompare(const std::wstring& lhs, const std::wstring& rhs)
+{
+    return ::wcscmp(lhs.c_str(), rhs.c_str());
+}
+
+int32_t StringUtil::StringCompare(const wchar_t* lhs, const wchar_t* rhs)
+{
+    if ((lhs == nullptr) && (rhs == nullptr)) {
+        return 0;
+    }
+    else if (lhs == nullptr) {
+        return -1;
+    }
+    else if (rhs == nullptr) {
+        return 1;
+    }
+    else {
+        return ::wcscmp(lhs, rhs);
+    }
+}
+
+int32_t StringUtil::StringCompare(const std::string& lhs, const std::string& rhs)
+{
+    return ::strcmp(lhs.c_str(), rhs.c_str());
+}
+
+int32_t StringUtil::StringCompare(const char* lhs, const char* rhs)
+{
+    if ((lhs == nullptr) && (rhs == nullptr)) {
+        return 0;
+    }
+    else if (lhs == nullptr) {
+        return -1;
+    }
+    else if (rhs == nullptr) {
+        return 1;
+    }
+    else {
+        return ::strcmp(lhs, rhs);
+    }
+}
+
+int32_t StringUtil::StringICompare(const std::wstring& lhs, const std::wstring& rhs)
+{
+    return ::_wcsicmp(lhs.c_str(), rhs.c_str());
+}
+
+int32_t StringUtil::StringICompare(const wchar_t* lhs, const wchar_t* rhs)
+{
+    if ((lhs == nullptr) && (rhs == nullptr)) {
+        return 0;
+    }
+    else if (lhs == nullptr) {
+        return -1;
+    }
+    else if (rhs == nullptr) {
+        return 1;
+    }
+    else {
+        return ::_wcsicmp(lhs, rhs);
+    }
+}
+
+int32_t StringUtil::StringICompare(const std::string& lhs, const std::string& rhs)
+{
+    return ::_stricmp(lhs.c_str(), rhs.c_str());
+}
+
+int32_t StringUtil::StringICompare(const char* lhs, const char* rhs)
+{
+    if ((lhs == nullptr) && (rhs == nullptr)) {
+        return 0;
+    }
+    else if (lhs == nullptr) {
+        return -1;
+    }
+    else if (rhs == nullptr) {
+        return 1;
+    }
+    else {
+        return ::_stricmp(lhs, rhs);
+    }
+}
+
 
 std::wstring StringUtil::UInt64ToStringW(uint64_t value)
 {
@@ -975,6 +1145,187 @@ std::string StringUtil::UInt32ToString(uint32_t value)
 {
     return UInt32ToStringA(value);
 }
-
 #endif
+
+int32_t StringUtil::StringToInt32(const std::wstring& str)
+{
+    return ::_wtoi(str.c_str());
+}
+
+int32_t StringUtil::StringToInt32(const std::wstring::value_type* str)
+{
+    ASSERT(str != nullptr);
+    if (str != nullptr) {
+        return ::_wtoi(str);
+    }
+    else {
+        return 0;
+    }
+}
+
+int32_t StringUtil::StringToInt32(const std::string& str)
+{
+    return ::atoi(str.c_str());
+}
+
+int32_t StringUtil::StringToInt32(const std::string::value_type* str)
+{
+    ASSERT(str != nullptr);
+    if (str != nullptr) {
+        return ::atoi(str);
+    }
+    else {
+        return 0;
+    }
+}
+
+int32_t StringUtil::StringToInt32(const wchar_t* str, wchar_t** pEndPtr, int32_t nRadix)
+{
+    if (str == nullptr) {
+        return 0;
+    }
+    return ::wcstol(str, pEndPtr, nRadix);
+}
+
+int32_t StringUtil::StringToInt32(const char* str, char** pEndPtr, int32_t nRadix)
+{
+    if (str == nullptr) {
+        return 0;
+    }
+    return ::strtol(str, pEndPtr, nRadix);
+}
+
+uint32_t StringUtil::StringToUInt32(const wchar_t* str, wchar_t** pEndPtr, int32_t nRadix)
+{
+    if (str == nullptr) {
+        return 0;
+    }
+    return ::wcstoul(str, pEndPtr, nRadix);
+}
+
+uint32_t StringUtil::StringToUInt32(const char* str, char** pEndPtr, int32_t nRadix)
+{
+    if (str == nullptr) {
+        return 0;
+    }
+    return ::strtoul(str, pEndPtr, nRadix);
+}
+
+int64_t StringUtil::StringToInt64(const std::wstring& str)
+{
+    return ::wcstoull(str.c_str(), nullptr, 10);
+}
+
+int64_t StringUtil::StringToInt64(const std::wstring::value_type* str)
+{
+    ASSERT(str != nullptr);
+    if (str != nullptr) {
+        return ::wcstoull(str, nullptr, 10);
+    }
+    else {
+        return 0;
+    }
+}
+
+int64_t StringUtil::StringToInt64(const std::string& str)
+{
+    return ::strtoull(str.c_str(), nullptr, 10);
+}
+
+int64_t StringUtil::StringToInt64(const std::string::value_type* str)
+{
+    ASSERT(str != nullptr);
+    if (str != nullptr) {
+        return ::strtoull(str, nullptr, 10);
+    }
+    else {
+        return 0;
+    }
+}
+
+
+double StringUtil::StringToDouble(const std::wstring& str)
+{
+    return ::wcstod(str.c_str(), nullptr);
+}
+
+double StringUtil::StringToDouble(const std::wstring::value_type* str)
+{
+    ASSERT(str != nullptr);
+    if (str != nullptr) {
+        return ::wcstod(str, nullptr);
+    }
+    else {
+        return 0;
+    }
+}
+
+double StringUtil::StringToDouble(const std::string& str)
+{
+    return ::strtod(str.c_str(), nullptr);
+}
+
+double StringUtil::StringToDouble(const std::string::value_type* str)
+{
+    ASSERT(str != nullptr);
+    if (str != nullptr) {
+        return ::strtod(str, nullptr);
+    }
+    else {
+        return 0;
+    }
+}
+
+float StringUtil::StringToFloat(const wchar_t* str, wchar_t** pEndPtr)
+{
+    if (str == nullptr) {
+        return 0;
+    }
+    return ::wcstof(str, pEndPtr);
+}
+
+float StringUtil::StringToFloat(const char* str, char** pEndPtr)
+{
+    if (str == nullptr) {
+        return 0;
+    }
+    return ::strtof(str, pEndPtr);
+}
+
+int32_t StringUtil::StringCopy(wchar_t* dest, size_t destSize, const wchar_t* src)
+{
+    if ((dest == nullptr) || (destSize == 0) || (src == nullptr)) {
+        return 0;
+    }
+    return ::wcscpy_s(dest, destSize, src);
+}
+
+int32_t StringUtil::StringCopy(char* dest, size_t destSize, const char* src)
+{
+    if ((dest == nullptr) || (destSize == 0) || (src == nullptr)) {
+        return 0;
+    }
+    return ::strcpy_s(dest, destSize, src);
+}
+
+size_t StringUtil::StringLen(const wchar_t* str)
+{
+    if (str == nullptr) {
+        return 0;
+    }
+    else {
+        return ::wcslen(str);
+    }
+}
+
+size_t StringUtil::StringLen(const char* str)
+{
+    if (str == nullptr) {
+        return 0;
+    }
+    else {
+        return ::strlen(str);
+    }
+}
+
 } // namespace ui

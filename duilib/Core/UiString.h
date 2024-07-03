@@ -1,8 +1,7 @@
 #ifndef UI_CORE_UISTRING_H_
 #define UI_CORE_UISTRING_H_
 
-#include "duilib/duilib_defs.h"
-#include <string>
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui
 {
@@ -17,17 +16,9 @@ public:
     UiString(const UiString& str) : m_pData(nullptr)
     {
         if (!str.empty()) {
-#ifdef DUILIB_UNICODE
-            size_t strSize = (uint32_t)wcslen(str.c_str());
-#else
-            size_t strSize = (uint32_t)strlen(str.c_str());
-#endif
+            size_t strSize = StringUtil::StringLen(str.c_str());
             m_pData = new DString::value_type[strSize + 1];
-#ifdef DUILIB_UNICODE
-            wcscpy_s(m_pData, strSize + 1, str.c_str());            
-#else
-            strcpy_s(m_pData, strSize + 1, str.c_str());
-#endif
+            StringUtil::StringCopy(m_pData, strSize + 1, str.c_str());
         }
     }
     UiString& operator=(const UiString& str)
@@ -40,17 +31,9 @@ public:
             m_pData = nullptr;
         }
         if (!str.empty()) {
-#ifdef DUILIB_UNICODE
-            size_t strSize = (uint32_t)wcslen(str.c_str());
-#else
-            size_t strSize = (uint32_t)strlen(str.c_str());
-#endif
+            size_t strSize = StringUtil::StringLen(str.c_str());
             m_pData = new DString::value_type[strSize + 1];
-#ifdef DUILIB_UNICODE
-            wcscpy_s(m_pData, strSize + 1, str.c_str());
-#else
-            strcpy_s(m_pData, strSize + 1, str.c_str());
-#endif
+            StringUtil::StringCopy(m_pData, strSize + 1, str.c_str());
         }
         return *this;
     }
@@ -81,13 +64,9 @@ public:
             m_pData = nullptr;
         }
         if (!str.empty()) {
-            size_t strSize = (uint32_t)str.size();
+            size_t strSize = str.size();
             m_pData = new DString::value_type[strSize + 1];
-#ifdef DUILIB_UNICODE
-            wcscpy_s(m_pData, strSize + 1, str.c_str());
-#else
-            strcpy_s(m_pData, strSize + 1, str.c_str());
-#endif
+            StringUtil::StringCopy(m_pData, strSize + 1, str.c_str());
         }
         return *this;
     }
@@ -102,11 +81,7 @@ public:
                 return false;
             }
             else {
-#ifdef DUILIB_UNICODE
-                return wcscmp(m_pData, str.c_str()) == 0;
-#else
-                return strcmp(m_pData, str.c_str()) == 0;
-#endif
+                return StringUtil::StringCompare(m_pData, str.c_str()) == 0;
             }
         }
     }
@@ -121,11 +96,7 @@ public:
                 return false;
             }
             else {
-#ifdef DUILIB_UNICODE
-                return wcscmp(m_pData, str.c_str()) == 0;
-#else
-                return strcmp(m_pData, str.c_str()) == 0;
-#endif
+                return StringUtil::StringCompare(m_pData, str.c_str()) == 0;
             }
         }
     }

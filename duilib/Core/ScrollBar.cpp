@@ -132,16 +132,16 @@ void ScrollBar::SetAttribute(const DString& strName, const DString& strValue)
         SetHorizontal(strValue == _T("true"));
     }
     else if ((strName == _T("line_size")) || (strName == _T("linesize"))) {
-        SetLineSize(_wtoi(strValue.c_str()), true);
+        SetLineSize(StringUtil::StringToInt32(strValue), true);
     }
     else if ((strName == _T("thumb_min_length")) || (strName == _T("thumbminlength"))) {
-        SetThumbMinLength(_wtoi(strValue.c_str()), true);
+        SetThumbMinLength(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("range")) {
-        SetScrollRange(_wtoi(strValue.c_str()));
+        SetScrollRange(StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("value")) {
-        SetScrollPos(_wtoi(strValue.c_str()));
+        SetScrollPos(StringUtil::StringToInt32(strValue));
     }
     else if ((strName == _T("show_button1")) || (strName == _T("showbutton1"))) {
         SetShowButton1(strValue == _T("true"));

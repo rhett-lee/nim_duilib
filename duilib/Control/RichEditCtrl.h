@@ -11,6 +11,7 @@
 namespace ui
 {
 
+//只支持Unicode版本
 #if !defined(_UNICODE) && (_RICHEDIT_VER >= 0x0500)
   #undef MSFTEDIT_CLASS
   #define MSFTEDIT_CLASS    "RICHEDIT50W"
@@ -39,9 +40,9 @@ public:
     static LPCTSTR GetLibraryName()
     {
 #if (_RICHEDIT_VER >= 0x0500)
-        return L"MSFTEDIT.DLL";
+        return _T("MSFTEDIT.DLL");
 #else
-        return L"RICHED20.DLL";
+        return _T("RICHED20.DLL");
 #endif
     }
 
@@ -97,13 +98,13 @@ public:
     }
 
     // NOTE: first word in lpszBuffer must contain the size of the buffer!
-    int GetLine(int nIndex, LPTSTR lpszBuffer) const
+    int GetLine(int nIndex, LPWSTR lpszBuffer) const
     {
         ASSERT(m_pTextServices != nullptr);
         return (int)TxSendMessage(EM_GETLINE, nIndex, (LPARAM)lpszBuffer);
     }
 
-    int GetLine(int nIndex, LPTSTR lpszBuffer, int nMaxLength) const
+    int GetLine(int nIndex, LPWSTR lpszBuffer, int nMaxLength) const
     {
         ASSERT(m_pTextServices != nullptr);
         ASSERT(lpszBuffer != nullptr);
@@ -164,17 +165,17 @@ public:
         return SetSel(-1, 0);
     }
 
-    DWORD GetDefaultCharFormat(CHARFORMAT& cf) const
+    DWORD GetDefaultCharFormat(CHARFORMATW& cf) const
     {
         ASSERT(m_pTextServices != nullptr);
-        cf.cbSize = sizeof(CHARFORMAT);
+        cf.cbSize = sizeof(CHARFORMATW);
         return (DWORD)TxSendMessage(EM_GETCHARFORMAT, 0, (LPARAM)&cf);
     }
 
-    DWORD GetSelectionCharFormat(CHARFORMAT& cf) const
+    DWORD GetSelectionCharFormat(CHARFORMATW& cf) const
     {
         ASSERT(m_pTextServices != nullptr);
-        cf.cbSize = sizeof(CHARFORMAT);
+        cf.cbSize = sizeof(CHARFORMATW);
         return (DWORD)TxSendMessage(EM_GETCHARFORMAT, 1, (LPARAM)&cf);
     }
 
@@ -203,13 +204,13 @@ public:
         return (DWORD)TxSendMessage(EM_GETPARAFORMAT, 0, (LPARAM)&pf);
     }
 
-    LONG GetSelText(LPTSTR lpstrBuff) const
+    LONG GetSelText(LPWSTR lpstrBuff) const
     {
         ASSERT(m_pTextServices != nullptr);
         return (LONG)TxSendMessage(EM_GETSELTEXT, 0, (LPARAM)lpstrBuff);
     }
 
-    BOOL GetSelText(DString& text) const
+    BOOL GetSelText(std::wstring& text) const
     {
         ASSERT(m_pTextServices != nullptr);
 
@@ -253,31 +254,31 @@ public:
         return (COLORREF)TxSendMessage(EM_SETBKGNDCOLOR, 1, 0);
     }
 
-    BOOL SetCharFormat(CHARFORMAT& cf, WORD wFlags)
+    BOOL SetCharFormat(CHARFORMATW& cf, WORD wFlags)
     {
         ASSERT(m_pTextServices != nullptr);
-        cf.cbSize = sizeof(CHARFORMAT);
+        cf.cbSize = sizeof(CHARFORMATW);
         return (BOOL)TxSendMessage(EM_SETCHARFORMAT, (WPARAM)wFlags, (LPARAM)&cf);
     }
 
-    BOOL SetDefaultCharFormat(CHARFORMAT& cf)
+    BOOL SetDefaultCharFormat(CHARFORMATW& cf)
     {
         ASSERT(m_pTextServices != nullptr);
-        cf.cbSize = sizeof(CHARFORMAT);
+        cf.cbSize = sizeof(CHARFORMATW);
         return (BOOL)TxSendMessage(EM_SETCHARFORMAT, 0, (LPARAM)&cf);
     }
 
-    BOOL SetSelectionCharFormat(CHARFORMAT& cf)
+    BOOL SetSelectionCharFormat(CHARFORMATW& cf)
     {
         ASSERT(m_pTextServices != nullptr);
-        cf.cbSize = sizeof(CHARFORMAT);
+        cf.cbSize = sizeof(CHARFORMATW);
         return (BOOL)TxSendMessage(EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&cf);
     }
 
-    BOOL SetWordCharFormat(CHARFORMAT& cf)
+    BOOL SetWordCharFormat(CHARFORMATW& cf)
     {
         ASSERT(m_pTextServices != nullptr);
-        cf.cbSize = sizeof(CHARFORMAT);
+        cf.cbSize = sizeof(CHARFORMATW);
         return (BOOL)TxSendMessage(EM_SETCHARFORMAT, SCF_SELECTION | SCF_WORD, (LPARAM)&cf);
     }
 
@@ -318,61 +319,61 @@ public:
         return (int)TxSendMessage(EM_GETFIRSTVISIBLELINE, 0, 0L);
     }
 
-    int GetTextRange(TEXTRANGE* pTextRange) const
+    int GetTextRange(TEXTRANGEW* pTextRange) const
     {
         ASSERT(m_pTextServices != nullptr);
         return (int)TxSendMessage(EM_GETTEXTRANGE, 0, (LPARAM)pTextRange);
     }
 
-    int GetTextRange(LONG nStartChar, LONG nEndChar, LPTSTR lpstrText) const
+    int GetTextRange(LONG nStartChar, LONG nEndChar, LPWSTR lpstrText) const
     {
         ASSERT(m_pTextServices != nullptr);
-        TEXTRANGE tr = {};
+        TEXTRANGEW tr = {};
         tr.chrg.cpMin = nStartChar;
         tr.chrg.cpMax = nEndChar;
         tr.lpstrText = lpstrText;
         return (int)TxSendMessage(EM_GETTEXTRANGE, 0, (LPARAM)&tr);
     }
 
-    DWORD GetDefaultCharFormat(CHARFORMAT2& cf) const
+    DWORD GetDefaultCharFormat(CHARFORMAT2W& cf) const
     {
         ASSERT(m_pTextServices != nullptr);
-        cf.cbSize = sizeof(CHARFORMAT2);
+        cf.cbSize = sizeof(CHARFORMAT2W);
         return (DWORD)TxSendMessage(EM_GETCHARFORMAT, 0, (LPARAM)&cf);
     }
 
-    BOOL SetCharFormat(CHARFORMAT2& cf, WORD wFlags)
+    BOOL SetCharFormat(CHARFORMAT2W& cf, WORD wFlags)
     {
         ASSERT(m_pTextServices != nullptr);
-        cf.cbSize = sizeof(CHARFORMAT2);
+        cf.cbSize = sizeof(CHARFORMAT2W);
         return (BOOL)TxSendMessage(EM_SETCHARFORMAT, (WPARAM)wFlags, (LPARAM)&cf);
     }
 
-    BOOL SetDefaultCharFormat(CHARFORMAT2& cf)
+    BOOL SetDefaultCharFormat(CHARFORMAT2W& cf)
     {
         ASSERT(m_pTextServices != nullptr);
-        cf.cbSize = sizeof(CHARFORMAT2);
+        cf.cbSize = sizeof(CHARFORMAT2W);
         return (BOOL)TxSendMessage(EM_SETCHARFORMAT, 0, (LPARAM)&cf);
     }
 
-    DWORD GetSelectionCharFormat(CHARFORMAT2& cf) const
+    DWORD GetSelectionCharFormat(CHARFORMAT2W& cf) const
     {
         ASSERT(m_pTextServices != nullptr);
-        cf.cbSize = sizeof(CHARFORMAT2);
+        cf.cbSize = sizeof(CHARFORMAT2W);
         return (DWORD)TxSendMessage(EM_GETCHARFORMAT, 1, (LPARAM)&cf);
     }
 
-    BOOL SetSelectionCharFormat(CHARFORMAT2& cf)
+    BOOL SetSelectionCharFormat(CHARFORMAT2W& cf)
     {
         ASSERT(m_pTextServices != nullptr);
-        cf.cbSize = sizeof(CHARFORMAT2);
+        cf.cbSize = sizeof(CHARFORMAT2W);
         return (BOOL)TxSendMessage(EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&cf);
     }
 
-    BOOL SetWordCharFormat(CHARFORMAT2& cf)
+    BOOL SetWordCharFormat(CHARFORMAT2W& cf)
     {
         ASSERT(m_pTextServices != nullptr);
-        cf.cbSize = sizeof(CHARFORMAT2);
+        cf.cbSize = sizeof(CHARFORMAT2W);
         return (BOOL)TxSendMessage(EM_SETCHARFORMAT, SCF_SELECTION | SCF_WORD, (LPARAM)&cf);
     }
 
@@ -444,13 +445,13 @@ public:
         TxSendMessage(EM_SETPALETTE, (WPARAM)hPalette, 0L);
     }
 
-    int GetTextEx(GETTEXTEX* pGetTextEx, LPTSTR lpstrText) const
+    int GetTextEx(GETTEXTEX* pGetTextEx, LPWSTR lpstrText) const
     {
         ASSERT(m_pTextServices != nullptr);
         return (int)TxSendMessage(EM_GETTEXTEX, (WPARAM)pGetTextEx, (LPARAM)lpstrText);
     }
 
-    int GetTextEx(LPTSTR lpstrText, int nTextLen, DWORD dwFlags = GT_DEFAULT, UINT uCodePage = CP_ACP, LPCSTR lpDefaultChar = NULL, LPBOOL lpUsedDefChar = NULL) const
+    int GetTextEx(LPWSTR lpstrText, int nTextLen, DWORD dwFlags = GT_DEFAULT, UINT uCodePage = CP_ACP, LPCSTR lpDefaultChar = NULL, LPBOOL lpUsedDefChar = NULL) const
     {
         ASSERT(m_pTextServices != nullptr);
         GETTEXTEX gte = {};
@@ -489,13 +490,13 @@ public:
         TxSendMessage(EM_SETWORDBREAKPROC, 0, (LPARAM)ewbprc);
     }
 
-    int SetTextEx(SETTEXTEX* pSetTextEx, LPCTSTR lpstrText)
+    int SetTextEx(SETTEXTEX* pSetTextEx, LPCWSTR lpstrText)
     {
         ASSERT(m_pTextServices != nullptr);
         return (int)TxSendMessage(EM_SETTEXTEX, (WPARAM)pSetTextEx, (LPARAM)lpstrText);
     }
 
-    int SetTextEx(LPCTSTR lpstrText, DWORD dwFlags = ST_DEFAULT, UINT uCodePage = CP_ACP)
+    int SetTextEx(LPCWSTR lpstrText, DWORD dwFlags = ST_DEFAULT, UINT uCodePage = CP_ACP)
     {
         ASSERT(m_pTextServices != nullptr);
         SETTEXTEX ste = {};
@@ -629,7 +630,7 @@ public:
         return (BOOL)TxSendMessage(EM_LINESCROLL, 0, nLines);
     }
 
-    void ReplaceSel(LPCTSTR lpszNewText, BOOL bCanUndo = FALSE)
+    void ReplaceSel(LPCWSTR lpszNewText, BOOL bCanUndo = FALSE)
     {
         ASSERT(m_pTextServices != nullptr);
         TxSendMessage(EM_REPLACESEL, (WPARAM)bCanUndo, (LPARAM)lpszNewText);
@@ -647,7 +648,7 @@ public:
         return (BOOL)TxSendMessage(EM_DISPLAYBAND, 0, (LPARAM)pDisplayRect);
     }
 
-    LONG FindText(DWORD dwFlags, FINDTEXT& ft) const
+    LONG FindTextW(DWORD dwFlags, FINDTEXTW& ft) const
     {
         ASSERT(m_pTextServices != nullptr);
 #ifdef _UNICODE
@@ -657,7 +658,7 @@ public:
 #endif
     }
 
-    LONG FindText(DWORD dwFlags, FINDTEXTEX& ft) const
+    LONG FindTextW(DWORD dwFlags, FINDTEXTEXW& ft) const
     {
         ASSERT(m_pTextServices != nullptr);
 #ifdef _UNICODE
@@ -723,14 +724,14 @@ public:
         TxSendMessage(EM_SCROLLCARET, 0, 0L);
     }
 
-    int InsertText(long nInsertAfterChar, LPCTSTR lpstrText, BOOL bCanUndo = FALSE)
+    int InsertText(long nInsertAfterChar, LPCWSTR lpstrText, BOOL bCanUndo = FALSE)
     {
         int nRet = SetSel(nInsertAfterChar, nInsertAfterChar);
         ReplaceSel(lpstrText, bCanUndo);
         return nRet;
     }
 
-    int AppendText(LPCTSTR lpstrText, BOOL bCanUndo = FALSE)
+    int AppendText(LPCWSTR lpstrText, BOOL bCanUndo = FALSE)
     {
         int nRet = SetSel(-1, -1);
         ReplaceSel(lpstrText, bCanUndo);
@@ -923,7 +924,7 @@ public:
         return (HRESULT)TxSendMessage(EM_INSERTIMAGE, 0, (LPARAM)pParams);
     }
 
-    BOOL SetUiaName(LPCTSTR lpstrName)
+    BOOL SetUiaName(LPCWSTR lpstrName)
     {
         ASSERT(m_pTextServices != nullptr);
         return (BOOL)TxSendMessage(EM_SETUIANAME, 0, (LPARAM)lpstrName);

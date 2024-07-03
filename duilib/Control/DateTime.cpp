@@ -92,7 +92,11 @@ DString DateTime::GetDateTimeString() const
     DString dateTime;
     if (IsValidDateTime()) {
         std::tm tmSystemDate = m_dateTime;
+#ifdef DUILIB_UNICODE
         std::wstringstream ss;
+#else
+        std::stringstream ss;
+#endif
         ss << std::put_time(&tmSystemDate, GetStringFormat().c_str());
         dateTime = ss.str();
     }
@@ -105,13 +109,21 @@ bool DateTime::SetDateTimeString(const DString& dateTime)
     DString sFormat = GetStringFormat();
     ASSERT(!sFormat.empty());
     std::tm t = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
+#ifdef DUILIB_UNICODE
     std::wistringstream ss(dateTime);
+#else
+    std::istringstream ss(dateTime);
+#endif
     ss >> std::get_time(&t, sFormat.c_str());
     if (ss.fail()) {
         //失败后，智能识别年月日的分隔符
         if (dateTime.find(_T('-')) != DString::npos) {
             StringUtil::ReplaceAll(_T("/"), _T("-"), sFormat);
+#ifdef DUILIB_UNICODE
             std::wistringstream ss2(dateTime);
+#else
+            std::istringstream ss2(dateTime);
+#endif
             ss2 >> std::get_time(&t, sFormat.c_str());
             if (!ss2.fail()) {
                 m_dateTime = t;
@@ -121,7 +133,11 @@ bool DateTime::SetDateTimeString(const DString& dateTime)
         }
         else if (dateTime.find(_T('/')) != DString::npos) {
             StringUtil::ReplaceAll(_T("-"), _T("/"), sFormat);
+#ifdef DUILIB_UNICODE
             std::wistringstream ss2(dateTime);
+#else
+            std::istringstream ss2(dateTime);
+#endif
             ss2 >> std::get_time(&t, sFormat.c_str());
             if (!ss2.fail()) {
                 m_dateTime = t;

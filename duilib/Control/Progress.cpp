@@ -144,13 +144,13 @@ void Progress::SetAttribute(const DString& srName, const DString& strValue)
         SetHorizontal(strValue == _T("true"));
     }
     else if (srName == _T("min")) {
-        SetMinValue(_wtoi(strValue.c_str()));
+        SetMinValue(StringUtil::StringToInt32(strValue));
     }
     else if (srName == _T("max")) {
-        SetMaxValue(_wtoi(strValue.c_str()));
+        SetMaxValue(StringUtil::StringToInt32(strValue));
     }
     else if (srName == _T("value")) {
-        SetValue(_wtoi(strValue.c_str()));
+        SetValue(StringUtil::StringToInt32(strValue));
     }
     else if ((srName == _T("progress_image")) || (srName == _T("progressimage"))){
         SetProgressImage(strValue);
@@ -165,10 +165,10 @@ void Progress::SetAttribute(const DString& srName, const DString& strValue)
         SetMarquee(strValue == _T("true"));
     }
     else if ((srName == _T("marquee_width")) || (srName == _T("marqueewidth"))){
-        SetMarqueeWidth(_wtoi(strValue.c_str()), true);
+        SetMarqueeWidth(StringUtil::StringToInt32(strValue), true);
     }
     else if ((srName == _T("marquee_step")) || (srName == _T("marqueestep"))){
-        SetMarqueeStep(_wtoi(strValue.c_str()), true);
+        SetMarqueeStep(StringUtil::StringToInt32(strValue), true);
     }
     else if (srName == _T("reverse")) {
         SetReverse(strValue == _T("true"));

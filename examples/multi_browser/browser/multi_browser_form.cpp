@@ -275,7 +275,7 @@ bool MultiBrowserForm::OnReturn(const ui::EventArgs& arg)
 
 BrowserBox* MultiBrowserForm::CreateBox(const std::string &browser_id, DString url)
 {
-    DString id = ui::StringUtil::UTF8ToUTF16(browser_id);
+    DString id = ui::StringUtil::UTF8ToT(browser_id);
     if (NULL != FindTabItem(id))
     {
         ASSERT(0);
@@ -322,7 +322,7 @@ void MultiBrowserForm::CloseBox(const std::string &browser_id)
         return;
     }
 
-    DString id = ui::StringUtil::UTF8ToUTF16(browser_id);
+    DString id = ui::StringUtil::UTF8ToT(browser_id);
 
     // 从左侧会话列表项移除对应item
     BrowserTabItem *tab_item = FindTabItem(id);
@@ -368,7 +368,7 @@ bool MultiBrowserForm::AttachBox(BrowserBox *browser_box)
     if (NULL == browser_box)
         return false;
 
-    DString id = ui::StringUtil::UTF8ToUTF16(browser_box->GetId());
+    DString id = ui::StringUtil::UTF8ToT(browser_box->GetId());
     if (NULL != FindTabItem(id))
     {
         ASSERT(0);
@@ -413,7 +413,7 @@ bool MultiBrowserForm::DetachBox(BrowserBox *browser_box)
     if (NULL == browser_box)
         return false;
 
-    DString id = ui::StringUtil::UTF8ToUTF16(browser_box->GetId());
+    DString id = ui::StringUtil::UTF8ToT(browser_box->GetId());
 
     // 从顶部标签页移除对应item
     BrowserTabItem *tab_item = FindTabItem(id);
@@ -466,7 +466,7 @@ void MultiBrowserForm::SetActiveBox(const std::string &browser_id)
     }
 
     // 从窗口左侧会话列表找到要激活的浏览器盒子项
-    DString id = ui::StringUtil::UTF8ToUTF16(browser_id);
+    DString id = ui::StringUtil::UTF8ToT(browser_id);
     BrowserTabItem *tab_item = FindTabItem(id);
     if (NULL == tab_item)
         return;

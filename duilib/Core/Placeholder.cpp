@@ -55,7 +55,7 @@ DString PlaceHolder::GetName() const
 
 bool PlaceHolder::IsNameEquals(const DString& name) const
 {
-    return wcscmp(m_sName.c_str(), name.c_str()) == 0;
+    return StringUtil::StringCompare(m_sName.c_str(), name.c_str()) == 0;
 }
 
 void PlaceHolder::SetName(const DString& strName)

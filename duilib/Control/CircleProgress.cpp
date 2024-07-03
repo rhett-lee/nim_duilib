@@ -31,7 +31,7 @@ void CircleProgress::SetAttribute(const DString& srName, const DString& strValue
         SetCircular(strValue == _T("true"));
     }
     else if ((srName == _T("circle_width")) || (srName == _T("circlewidth"))) {
-        int32_t iValue = _wtoi(strValue.c_str());
+        int32_t iValue = StringUtil::StringToInt32(strValue);
         SetCircleWidth(iValue, true);
     }
     else if (srName == _T("indicator")) {

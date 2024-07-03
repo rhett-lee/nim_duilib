@@ -364,7 +364,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                     }
                     else if (strName == _T("alpha")) {
                         //设置窗口的透明度（0 - 255），仅当使用层窗口时有效
-                        int nAlpha = wcstol(strValue.c_str(), nullptr, 10);
+                        int32_t nAlpha = StringUtil::StringToInt32(strValue);
                         ASSERT(nAlpha >= 0 && nAlpha <= 255);
                         if ((nAlpha >= 0) && (nAlpha <= 255)) {
                             pWindow->SetWindowAlpha(nAlpha);
@@ -510,7 +510,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                 ParseXmlNode(node, pUserDefinedBox, pWindow);
                 int i = 0;
                 for (pugi::xml_attribute attr : node.attributes()) {
-                    if (wcscmp(attr.name(), _T("class")) == 0) {
+                    if (StringUtil::StringCompare(attr.name(), _T("class")) == 0) {
                         //class必须是第一个属性
                         ASSERT(i == 0);
                     }
@@ -549,7 +549,7 @@ void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode) const
             strFontName = strValue;
         }
         else if (strName == _T("size")) {
-            size = wcstol(strValue.c_str(), nullptr, 10);
+            size = StringUtil::StringToInt32(strValue);
         }
         else if (strName == _T("bold")) {
             bold = (strValue == _T("true"));
@@ -700,7 +700,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
             //读取节点的属性，设置控件的属性
             int i = 0;
             for (pugi::xml_attribute attr : node.attributes()) {
-                ASSERT(i == 0 || wcscmp(attr.name(), _T("class")) != 0);    //class必须是第一个属性
+                ASSERT(i == 0 || StringUtil::StringCompare(attr.name(), _T("class")) != 0);    //class必须是第一个属性
                 ++i;
                 pControl->SetAttribute(attr.name(), attr.value());
             }
@@ -797,7 +797,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
             //无节点名称，只读取文本内容, 不需要递归遍历子节点
             bParseChildren = false;
         }        
-        else if (nodeName == _T("a")) {            
+        else if (nodeName == _T("a")) {
             textSlice.m_text = pRichText->TrimText(node.first_child().value());
             textSlice.m_linkUrl = StringUtil::Trim(node.attribute(_T("href")).as_string());
             //超级链接节点, 不需要递归遍历子节点

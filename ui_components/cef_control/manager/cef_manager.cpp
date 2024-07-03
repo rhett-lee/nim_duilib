@@ -19,7 +19,7 @@ namespace nim_comp
 // 这样操作之后就不会出现菜单无法关闭的bug了，虽然不知道为什么但是bug解决了
 void FixContextMenuBug(HWND hwnd)
 {
-    ::CreateWindow(_T("Static"), _T(""), WS_CHILD, 0, 0, 0, 0, hwnd, NULL, NULL, NULL);
+    ::CreateWindowW(L"Static", L"", WS_CHILD, 0, 0, 0, 0, hwnd, NULL, NULL, NULL);
     ::PostMessage(hwnd, WM_CLOSE, 0, 0);
 }
 
@@ -60,7 +60,7 @@ void CefManager::AddCefDllToPath()
 
     if (!ui::PathUtil::FilePathIsExist(cef_path, true))
     {
-        MessageBox(NULL, _T("请解压Cef.rar压缩包"), _T("提示"), MB_OK);
+        ::MessageBoxW(NULL, L"请解压Cef.rar压缩包", L"提示", MB_OK);
         exit(0);
     }
     DString new_envirom(cef_path);
@@ -100,7 +100,7 @@ bool CefManager::Initialize(const DString& app_data_dir, CefSettings &settings, 
     
     if (is_enable_offset_render_)
     {
-        HWND hwnd = CreateWindow(_T("Static"), _T(""), WS_POPUP, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
+        HWND hwnd = ::CreateWindowW(L"Static", L"", WS_POPUP, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
         CefPostTask(TID_UI, base::Bind(&FixContextMenuBug, hwnd));
     }
 

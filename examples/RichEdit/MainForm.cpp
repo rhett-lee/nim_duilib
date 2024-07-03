@@ -38,10 +38,10 @@ void MainForm::OnInitWindow()
         pRichEdit->AttachLinkClick([this, pRichEdit](const ui::EventArgs& args) {
                 //点击了超级链接
                 if (args.GetSender() == pRichEdit) {
-                    const wchar_t* pUrl = (const wchar_t*)args.wParam;
+                    const DString::value_type* pUrl = (const DString::value_type*)args.wParam;
                     if (pUrl != nullptr) {
                         //TODO: 平台
-                        ::ShellExecute(NativeWnd()->GetHWND(), _T("open"), pUrl, NULL, NULL, SW_SHOWNORMAL);
+                        ::ShellExecuteW(NativeWnd()->GetHWND(), L"open", ui::StringUtil::TToUTF16(pUrl).c_str(), NULL, NULL, SW_SHOWNORMAL);
                     }
                 }
                 return true;
@@ -226,7 +226,7 @@ void MainForm::OnInitWindow()
         GetSystemFontList(m_fontList);
         for (size_t nIndex = 0; nIndex < m_fontList.size(); ++nIndex) {
             const FontInfo& font = m_fontList[nIndex];
-            size_t nItemIndex = pFontNameCombo->AddTextItem(font.lf.lfFaceName);
+            size_t nItemIndex = pFontNameCombo->AddTextItem(ui::StringUtil::UTF16ToT(font.lf.lfFaceName));
             if (ui::Box::IsValidItemIndex(nItemIndex)) {
                 pFontNameCombo->SetItemData(nItemIndex, nIndex);
             }
@@ -511,10 +511,10 @@ void MainForm::OnInitWindow()
     //超链接
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->AttachLinkClick([this](const ui::EventArgs& args) {
-            const wchar_t* url = (const wchar_t*)args.wParam;
+            const DString::value_type* url = (const DString::value_type*)args.wParam;
             if (url != nullptr) {
                 //TODO: 平台相关
-                ::MessageBox(NativeWnd()->GetHWND(), url, _T("RichEdit点击超链接"), MB_OK);
+                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringUtil::TToUTF16(url).c_str(), L"RichEdit点击超链接", MB_OK);
             }
             return true;
             });
@@ -633,13 +633,13 @@ void MainForm::UpdateFontStatus()
     if (pRichEdit == nullptr) {
         return;
     }
-    LOGFONT logFont = {};
+    LOGFONTW logFont = {};
     GetRichEditLogFont(logFont);
 
     //更新字体名称
     ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_name")));
     if (pFontNameCombo != nullptr) {
-        pFontNameCombo->SelectTextItem(logFont.lfFaceName);
+        pFontNameCombo->SelectTextItem(ui::StringUtil::UTF16ToT(logFont.lfFaceName));
     }
 
     //更新字体大小
@@ -672,7 +672,7 @@ void MainForm::UpdateFontStatus()
 
 void MainForm::UpdateFontSizeStatus()
 {
-    LOGFONT logFont = {};
+    LOGFONTW logFont = {};
     GetRichEditLogFont(logFont);
 
     ui::Combo* pFontSizeCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_size")));
@@ -720,12 +720,13 @@ void MainForm::SetFontName(const DString& fontName)
     if (m_pRichEdit == nullptr) {
         return;
     }
+    DStringW fontNameW = ui::StringUtil::TToUTF16(fontName);
     for (const FontInfo& fontInfo : m_fontList) {
-        if (fontName == fontInfo.lf.lfFaceName) {
-            CHARFORMAT2 charFormat = {};
+        if (fontNameW == fontInfo.lf.lfFaceName) {
+            CHARFORMAT2W charFormat = {};
             GetCharFormat(charFormat);
-            if (fontName != charFormat.szFaceName) {
-                wcscpy_s(charFormat.szFaceName, fontName.c_str());
+            if (fontNameW != charFormat.szFaceName) {
+                ui::StringUtil::StringCopy(charFormat.szFaceName, fontNameW.c_str());
                 charFormat.dwMask = CFM_FACE;
                 SetCharFormat(charFormat);
             }        
@@ -764,10 +765,10 @@ void MainForm::SetFontSize(const DString& fontSize)
     }
     for (const ui::FontSizeInfo& fontSizeInfo : m_fontSizeList) {
         if (fontSize == fontSizeInfo.fontSizeName) {
-            CHARFORMAT2 charFormat = {};
+            CHARFORMAT2W charFormat = {};
             GetCharFormat(charFormat);
             LONG lfHeight = ConvertToFontHeight((int32_t)fontSizeInfo.fDpiFontSize);
-            charFormat.cbSize = sizeof(CHARFORMAT2);
+            charFormat.cbSize = sizeof(CHARFORMAT2W);
             charFormat.dwMask = CFM_SIZE;
             if (charFormat.yHeight != lfHeight) {
                 charFormat.yHeight = lfHeight;
@@ -792,8 +793,8 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
         fontSizeList.push_back(fontSize.first);
     }
     
-    CHARFORMAT2 charFormat = {};
-    charFormat.cbSize = sizeof(CHARFORMAT2);
+    CHARFORMAT2W charFormat = {};
+    charFormat.cbSize = sizeof(CHARFORMAT2W);
     GetCharFormat(charFormat);
     const size_t fontCount = fontSizeList.size();
     for (size_t index = 0; index < fontCount; ++index) {
@@ -805,7 +806,7 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
                 if (index < (fontCount - 1)) {
                     int32_t newFontSize = fontSizeList[index + 1];
                     lfHeight = ConvertToFontHeight(newFontSize);
-                    charFormat.cbSize = sizeof(CHARFORMAT2);
+                    charFormat.cbSize = sizeof(CHARFORMAT2W);
                     charFormat.dwMask = CFM_SIZE;
                     if (charFormat.yHeight != lfHeight) {
                         charFormat.yHeight = lfHeight;
@@ -819,7 +820,7 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
                 if (index > 0) {
                     int32_t newFontSize = fontSizeList[index - 1];
                     lfHeight = ConvertToFontHeight(newFontSize);
-                    charFormat.cbSize = sizeof(CHARFORMAT2);
+                    charFormat.cbSize = sizeof(CHARFORMAT2W);
                     charFormat.dwMask = CFM_SIZE;
                     if (charFormat.yHeight != lfHeight) {
                         charFormat.yHeight = lfHeight;
@@ -838,7 +839,7 @@ void MainForm::SetFontBold(bool bBold)
     if (m_pRichEdit == nullptr) {
         return;
     }
-    CHARFORMAT2 charFormat = {};
+    CHARFORMAT2W charFormat = {};
     GetCharFormat(charFormat);
     charFormat.dwMask = CFM_BOLD;
     if (bBold) {
@@ -855,7 +856,7 @@ void MainForm::SetFontItalic(bool bItalic)
     if (m_pRichEdit == nullptr) {
         return;
     }
-    CHARFORMAT2 charFormat = {};
+    CHARFORMAT2W charFormat = {};
     GetCharFormat(charFormat);
     charFormat.dwMask = CFM_ITALIC;
     if (bItalic) {
@@ -872,7 +873,7 @@ void MainForm::SetFontUnderline(bool bUnderline)
     if (m_pRichEdit == nullptr) {
         return;
     }
-    CHARFORMAT2 charFormat = {};
+    CHARFORMAT2W charFormat = {};
     GetCharFormat(charFormat);
     charFormat.dwMask = CFM_UNDERLINE;
     if (bUnderline) {
@@ -889,7 +890,7 @@ void MainForm::SetFontStrikeOut(bool bStrikeOut)
     if (m_pRichEdit == nullptr) {
         return;
     }
-    CHARFORMAT2 charFormat = {};
+    CHARFORMAT2W charFormat = {};
     GetCharFormat(charFormat);
     charFormat.dwMask = CFM_STRIKEOUT;
     if (bStrikeOut) {
@@ -907,7 +908,7 @@ void MainForm::SetTextColor(const DString& newColor)
         return;
     }
     ui::UiColor dwColor = m_pRichEdit->GetUiColor(newColor);
-    CHARFORMAT2 charFormat = {};
+    CHARFORMAT2W charFormat = {};
     GetCharFormat(charFormat);
     charFormat.dwMask = CFM_COLOR;
     charFormat.crTextColor = dwColor.ToCOLORREF();
@@ -1036,7 +1037,7 @@ void MainForm::OnOpenFile()
     BOOL bRet = ::GetOpenFileName(&ofn);
     if (bRet) {
         if (LoadFile(szFileName)) {
-            m_filePath = szFileName;
+            m_filePath = ui::StringUtil::TToLocal(szFileName);
             if (m_pRichEdit != nullptr) {
                 m_pRichEdit->SetModify(false);
                 UpdateSaveStatus();
@@ -1061,7 +1062,7 @@ void MainForm::OnSaveAsFile()
 {
     TCHAR szFileTitle[_MAX_FNAME] = { 0, };   // contains file title after return
     TCHAR szFileName[_MAX_PATH] = { 0, };     // contains full path name after return
-    wcscpy_s(szFileName, m_filePath.c_str());
+    _tcscpy_s(szFileName, ui::StringUtil::TToLocal(m_filePath).c_str());
 
     OPENFILENAME ofn = { 0, };
     ofn.lStructSize = sizeof(OPENFILENAME);
@@ -1079,7 +1080,7 @@ void MainForm::OnSaveAsFile()
     BOOL bRet = ::GetSaveFileName(&ofn);
     if (bRet) {
         if (SaveFile(szFileName)) {
-            m_filePath = szFileName;
+            m_filePath = ui::StringUtil::LocalToT(szFileName);
             if (m_pRichEdit != nullptr) {
                 m_pRichEdit->SetModify(false);
                 UpdateSaveStatus();
@@ -1093,7 +1094,8 @@ bool MainForm::LoadFile(const DString& filePath)
     if (m_pRichEdit == nullptr) {
         return false;
     }
-    HANDLE hFile = ::CreateFile(filePath.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+    DString filePathLocal = ui::StringUtil::TToLocal(filePath);
+    HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
         return false;
     }
@@ -1113,7 +1115,8 @@ bool MainForm::SaveFile(const DString& filePath)
     if (m_pRichEdit == nullptr) {
         return false;
     }
-    HANDLE hFile = ::CreateFile(filePath.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+    DString filePathLocal = ui::StringUtil::TToLocal(filePath);
+    HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
         return false;
     }
@@ -1250,19 +1253,19 @@ void MainForm::GetSystemFontList(std::vector<FontInfo>& fontList) const
     }
 
     fontList.clear();
-    LOGFONT logfont = {};
+    LOGFONTW logfont = {};
     logfont.lfCharSet = DEFAULT_CHARSET;
-    logfont.lfFaceName[0] = _T('\0');
+    logfont.lfFaceName[0] = L'\0';
     logfont.lfPitchAndFamily = 0;
-    ::EnumFontFamiliesEx(pRichEdit->GetWindowDC(), &logfont, EnumFontFamExProc, (LPARAM)&fontList, 0);
+    ::EnumFontFamiliesExW(pRichEdit->GetWindowDC(), &logfont, EnumFontFamExProc, (LPARAM)&fontList, 0);
 
     //字体名称列表
-    std::map<DString, FontInfo> fontMap;
+    std::map<DStringW, FontInfo> fontMap;
     for (auto font : fontList) {
         if (font.lf.lfWeight != FW_NORMAL) {
             continue;
         }
-        if (font.lf.lfFaceName[0] == _T('@')) {
+        if (font.lf.lfFaceName[0] == L'@') {
             continue;
         }
         fontMap[font.lf.lfFaceName] = font;
@@ -1274,14 +1277,14 @@ void MainForm::GetSystemFontList(std::vector<FontInfo>& fontList) const
     }
 }
 
-bool MainForm::GetRichEditLogFont(LOGFONT& lf) const
+bool MainForm::GetRichEditLogFont(LOGFONTW& lf) const
 {
     ui::RichEdit* pRichEdit = GetRichEdit();
     if (pRichEdit == nullptr) {
         return false;
     }
 
-    CHARFORMAT2 cf = {};
+    CHARFORMAT2W cf = {};
     GetCharFormat(cf);
 
     if (cf.dwMask & CFM_SIZE) {
@@ -1317,13 +1320,13 @@ bool MainForm::GetRichEditLogFont(LOGFONT& lf) const
         lf.lfPitchAndFamily = cf.bPitchAndFamily;
 
         //替换为系统字体名称
-        DString fontName = cf.szFaceName;
-        wcscpy_s(lf.lfFaceName, LF_FACESIZE, fontName.c_str());
+        DStringW fontName = cf.szFaceName;
+        ui::StringUtil::StringCopy(lf.lfFaceName, fontName.c_str());
     }
     return true;
 }
 
-void MainForm::InitCharFormat(const LOGFONT& lf, CHARFORMAT2& charFormat) const
+void MainForm::InitCharFormat(const LOGFONTW& lf, CHARFORMAT2W& charFormat) const
 {
     //字体字号需要转换, 否则字体大小显示异常
     LONG lfHeight = ConvertToFontHeight(lf.lfHeight);
@@ -1357,7 +1360,7 @@ void MainForm::InitCharFormat(const LOGFONT& lf, CHARFORMAT2& charFormat) const
     }
     charFormat.bCharSet = lf.lfCharSet;
     charFormat.bPitchAndFamily = lf.lfPitchAndFamily;
-    wcscpy_s(charFormat.szFaceName, lf.lfFaceName);
+    ui::StringUtil::StringCopy(charFormat.szFaceName, lf.lfFaceName);
 }
 
 void MainForm::OnSetFont()
@@ -1369,15 +1372,15 @@ void MainForm::OnSetFont()
     //文本颜色
     ui::UiColor textColor = pRichEdit->GetUiColor(pRichEdit->GetTextColor());
 
-    LOGFONT logFont = {};
+    LOGFONTW logFont = {};
     GetRichEditLogFont(logFont);
 
-    CHOOSEFONT cf;
-    TCHAR szStyleName[64];  // contains style name after return
-    LOGFONT lf;                // default LOGFONT to store the info
+    CHOOSEFONTW cf;
+    WCHAR szStyleName[64];  // contains style name after return
+    LOGFONTW lf;                // default LOGFONTW to store the info
 
     HWND hWndParent = NativeWnd()->GetHWND();
-    LPLOGFONT lplfInitial = &logFont;
+    LPLOGFONTW lplfInitial = &logFont;
     DWORD dwFlags = CF_EFFECTS | CF_SCREENFONTS;
     memset(&cf, 0, sizeof(cf));
     memset(&lf, 0, sizeof(lf));
@@ -1386,7 +1389,7 @@ void MainForm::OnSetFont()
     cf.lStructSize = sizeof(cf);
     cf.hwndOwner = hWndParent;
     cf.rgbColors = textColor.ToCOLORREF();
-    cf.lpszStyle = (LPTSTR)&szStyleName;
+    cf.lpszStyle = (LPWSTR)&szStyleName;
     cf.Flags = dwFlags;
 
     if (lplfInitial != NULL) {
@@ -1398,12 +1401,12 @@ void MainForm::OnSetFont()
         cf.lpLogFont = &lf;
     }
 
-    BOOL bRet = ::ChooseFont(&cf);
+    BOOL bRet = ::ChooseFontW(&cf);
     if (bRet) {
         memcpy_s(&lf, sizeof(lf), cf.lpLogFont, sizeof(lf));
 
         //设置RichEdit字体
-        CHARFORMAT2 charFormat = {};
+        CHARFORMAT2W charFormat = {};
         GetCharFormat(charFormat);
         InitCharFormat(lf, charFormat);
 
@@ -1429,7 +1432,7 @@ void MainForm::OnSetFont()
     UpdateFontStatus();
 }
 
-int MainForm::EnumFontFamExProc(const LOGFONT* lpelfe, const TEXTMETRIC* /*lpntme*/, DWORD fontType, LPARAM lParam)
+int MainForm::EnumFontFamExProc(const LOGFONTW* lpelfe, const TEXTMETRICW* /*lpntme*/, DWORD fontType, LPARAM lParam)
 {
     std::vector<FontInfo>* pFontList = (std::vector<FontInfo>*)lParam;
     if (pFontList != nullptr) {
@@ -1473,10 +1476,10 @@ void MainForm::UpdateZoomValue()
     }
 }
 
-void MainForm::GetCharFormat(CHARFORMAT2& charFormat) const
+void MainForm::GetCharFormat(CHARFORMAT2W& charFormat) const
 {
     charFormat = {};
-    charFormat.cbSize = sizeof(CHARFORMAT2);
+    charFormat.cbSize = sizeof(CHARFORMAT2W);
     ui::RichEdit* pRichEdit = GetRichEdit();
     ASSERT(pRichEdit != nullptr);
     if (pRichEdit != nullptr) {
@@ -1489,7 +1492,7 @@ void MainForm::GetCharFormat(CHARFORMAT2& charFormat) const
     }
 }
 
-void MainForm::SetCharFormat(CHARFORMAT2& charFormat)
+void MainForm::SetCharFormat(CHARFORMAT2W& charFormat)
 {
     ui::RichEdit* pRichEdit = GetRichEdit();
     ASSERT(pRichEdit != nullptr);

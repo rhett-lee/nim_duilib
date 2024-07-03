@@ -1,6 +1,7 @@
 #include "Line.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui
 {
@@ -26,7 +27,7 @@ void Line::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("line_width")) {
         if (!strValue.empty()) {
-            SetLineWidth(_wtoi(strValue.c_str()), true);
+            SetLineWidth(StringUtil::StringToInt32(strValue), true);
         }
     }
     else if (strName == _T("dash_style")) {

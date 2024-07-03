@@ -301,11 +301,11 @@ public:
 
     /** 查找文本
     */
-    LONG FindRichText(DWORD dwFlags, FINDTEXT& ft) const;
+    LONG FindRichText(DWORD dwFlags, FINDTEXTW& ft) const;
 
     /** 查找文本
     */
-    LONG FindRichText(DWORD dwFlags, FINDTEXTEX& ft) const;
+    LONG FindRichText(DWORD dwFlags, FINDTEXTEXW& ft) const;
 
     /** 获取当前缩放比， 按缩放比例分子/分母显示的缩放：1/64 < (wParam / lParam) < 64
      * @param[out] nNum 缩放比率分子
@@ -367,11 +367,11 @@ public:
 
     /** 插入文字
      * @param[in] nInsertAfterChar 要插入的位置
-     * @param[in] lpstrText 要插入的文本
+     * @param[in] text 要插入的文本
      * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false，默认为 false
      * @return 返回插入后的文本位置
      */
-    int InsertText(long nInsertAfterChar, LPCTSTR lpstrText, bool bCanUndo = false);
+    int InsertText(long nInsertAfterChar, const DString& text, bool bCanUndo = false);
 
     /** 追加文字
      * @param[in] strText 要追加的文字
@@ -384,43 +384,43 @@ public:
      * @param[out] cf 返回获取的字符格式
      * @return 返回参数 cf 中 dwMask 的值
      */
-    DWORD GetDefaultCharFormat(CHARFORMAT2 &cf) const;
+    DWORD GetDefaultCharFormat(CHARFORMAT2W& cf) const;
 
     /** 设置默认的字符格式
      * @param[in] cf 要设置字符格式
      * @return 返回 true 表示成功，false 为失败
      */
-    bool SetDefaultCharFormat(CHARFORMAT2 &cf);
+    bool SetDefaultCharFormat(CHARFORMAT2W& cf);
 
     /** 获取被选择的字符格式
      * @param[out] cf 返回获取的字符格式
      * @return 返回参数 cf 中 dwMask 的值
      */
-    DWORD GetSelectionCharFormat(CHARFORMAT2 &cf) const;
+    DWORD GetSelectionCharFormat(CHARFORMAT2W& cf) const;
 
     /** 设置被选择的字符格式
      * @param[in] cf 要设置的字符格式
      * @return 返回 true 表示成功，false 为失败
      */
-    bool SetSelectionCharFormat(CHARFORMAT2 &cf);
+    bool SetSelectionCharFormat(CHARFORMAT2W& cf);
 
     /** 设置当前插入点的单词格式
      * @param[in] cf 要设置的单词格式
      * @return 成功返回 true，失败返回 false
      */
-    bool SetWordCharFormat(CHARFORMAT2 &cf);
+    bool SetWordCharFormat(CHARFORMAT2W& cf);
 
     /** 获取当前段落格式
      * @param[out] pf 返回当前段落格式
      * @return 返回 pf 参数的 dwMask 成员
      */
-    DWORD GetParaFormat(PARAFORMAT2 &pf) const;
+    DWORD GetParaFormat(PARAFORMAT2& pf) const;
 
     /** 设置当前段落格式
      * @param[in] pf 要设置的段落格式样式
      * @return 成功返回 true，否则返回 false
      */
-    bool SetParaFormat(PARAFORMAT2 &pf);
+    bool SetParaFormat(PARAFORMAT2& pf);
 
     /** 是否可以Redo
     */
@@ -1013,7 +1013,7 @@ private:
 
     /** 获取字体对应的格式
     */
-    void GetCharFormat(const DString& fontId, CHARFORMAT2& cf) const;
+    void GetCharFormat(const DString& fontId, CHARFORMAT2W& cf) const;
 
     //文本横向和纵向对齐方式
     void SetHAlignType(HorAlignType alignType);
@@ -1024,20 +1024,8 @@ private:
     void PaintRichEdit(IRender* pRender, const UiRect& rcPaint);
 
 private:
-    //判断是否是字节： 可打印字符（0x20-0x7e）
-    static bool IsAsciiChar(const wchar_t ch);
-
-    //获取字符串的字节数
-    static int GetAsciiCharNumber(const DString& str);
-
-    //删除字符串中超过limit字节个数之后的字符
-    static void LimitAsciiNumber(DString& src, int limit);
-
     //获取粘贴板字符串
-    static void GetClipboardText(DString& out);
-
-    //设置粘贴板字符串
-    static void SetClipBoardText(const DString& str);
+    static void GetClipboardText(DStringW& out);
 
 protected:
     //RichEdit控制辅助工具类
@@ -1119,7 +1107,7 @@ private:
 
     /** 允许输入的字符列表
     */
-    UiString m_limitChars;
+    std::unique_ptr<wchar_t[]> m_pLimitChars;
 
     /** 是否禁止触发文本变化事件
     */

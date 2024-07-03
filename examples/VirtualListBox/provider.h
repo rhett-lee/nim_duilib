@@ -11,7 +11,7 @@ struct DownloadTask
 {
     int nId; //唯一ID
     bool bSelected = false;//选择状态
-    wchar_t* sName = nullptr;//名称
+    DString::value_type* sName = nullptr;//名称
 };
 
 class Provider : public ui::VirtualListBoxElement

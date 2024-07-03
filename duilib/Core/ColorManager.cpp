@@ -87,7 +87,7 @@ UiColor ColorManager::ConvertToUiColor(const DString& strColor)
         //如果是#FFFFFF格式，自动补上Alpha值
         colorValue = _T("FF") + colorValue;
     }
-    UiColor::ARGB argb = wcstoul(colorValue.c_str(), nullptr, 16);
+    UiColor::ARGB argb = StringUtil::StringToUInt32(colorValue.c_str(), nullptr, 16);
     return UiColor(argb);
 }
 

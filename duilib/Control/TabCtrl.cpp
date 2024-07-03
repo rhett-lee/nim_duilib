@@ -16,7 +16,7 @@ DString TabCtrl::GetType() const { return DUI_CTR_TAB_CTRL; }
 void TabCtrl::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("selected_id")) {
-        int32_t nValue = _wtoi(strValue.c_str());
+        int32_t nValue = StringUtil::StringToInt32(strValue);
         if (nValue >= 0) {
             m_nSelectedId = nValue;
         }
@@ -217,7 +217,7 @@ DString TabCtrlItem::GetType() const { return DUI_CTR_TAB_CTRL_ITEM; }
 void TabCtrlItem::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("tab_box_item_index")) {
-        SetTabBoxItemIndex((size_t)_wtoi(strValue.c_str()));
+        SetTabBoxItemIndex((size_t)StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("title")) {
         SetTitle(strValue);

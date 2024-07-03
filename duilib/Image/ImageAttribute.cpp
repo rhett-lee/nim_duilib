@@ -266,7 +266,7 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         }
         else if (name == _T("fade")) {
             //图片的透明度
-            imageAttribute.bFade = (uint8_t)wcstoul(value.c_str(), nullptr, 10);
+            imageAttribute.bFade = (uint8_t)StringUtil::StringToInt32(value);
         }
         else if (name == _T("xtiled")) {
             //横向平铺
@@ -286,15 +286,15 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         }
         else if ((name == _T("tiled_margin")) || (name == _T("tiledmargin"))) {
             //平铺绘制时，各平铺图片之间的间隔，包括横向平铺和纵向平铺
-            imageAttribute.nTiledMargin = wcstol(value.c_str(), nullptr, 10);
+            imageAttribute.nTiledMargin = StringUtil::StringToInt32(value);
         }
         else if ((name == _T("icon_size")) || (name == _T("iconsize"))) {
             //指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)
-            imageAttribute.iconSize = (uint32_t)wcstol(value.c_str(), nullptr, 10);
+            imageAttribute.iconSize = (uint32_t)StringUtil::StringToInt32(value);
         }
         else if ((name == _T("play_count")) || (name == _T("playcount"))) {
             //如果是GIF、APNG、WEBP等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
-            imageAttribute.nPlayCount = wcstol(value.c_str(), nullptr, 10);
+            imageAttribute.nPlayCount = StringUtil::StringToInt32(value);
             if (imageAttribute.nPlayCount < 0) {
                 imageAttribute.nPlayCount = -1;
             }

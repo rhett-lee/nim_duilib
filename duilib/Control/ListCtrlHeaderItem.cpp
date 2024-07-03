@@ -45,7 +45,7 @@ void ListCtrlHeaderItem::SetAttribute(const DString& strName, const DString& str
         SetSortedDownImage(strValue);
     }
     else if (strName == _T("icon_spacing")) {
-        SetIconSpacing(_wtoi(strValue.c_str()), true);
+        SetIconSpacing(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("show_icon_at_top")) {
         SetShowIconAtTop(strValue == _T("true"));

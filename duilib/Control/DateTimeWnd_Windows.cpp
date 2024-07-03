@@ -64,9 +64,9 @@ bool DateTimeWnd::Init(DateTime* pOwner)
         HMODULE hModule = m_pOwner->GetWindow()->NativeWnd()->GetResModuleHandle();
         DString className = GetWindowClassName();
         UiRect rc = { pt1.x, pt1.y, pt2.x, pt2.y };
-        m_hDateTimeWnd = ::CreateWindowEx(0,
-                                         className.c_str(),
-                                         _T(""),
+        m_hDateTimeWnd = ::CreateWindowExW(0,
+                                         StringUtil::TToUTF16(className).c_str(),
+                                         L"",
                                          dwStyle,
                                          rc.left, rc.top, rc.Width(), rc.Height(),
                                          hParentWnd, NULL, hModule, this);
@@ -135,11 +135,11 @@ bool DateTimeWnd::RegisterSuperClass()
     HMODULE hModule = m_pOwner->GetWindow()->NativeWnd()->GetResModuleHandle();
     // Get the class information from an existing
     // window so we can subclass it later on...
-    WNDCLASSEX wc = { 0 };
-    wc.cbSize = sizeof(WNDCLASSEX);
-    DString superClassName = DATETIMEPICK_CLASS;
-    if (!::GetClassInfoEx(NULL, superClassName.c_str(), &wc)) {
-        if (!::GetClassInfoEx(hModule, superClassName.c_str(), &wc)) {
+    WNDCLASSEXW wc = { 0 };
+    wc.cbSize = sizeof(WNDCLASSEXW);
+    DStringW superClassName = DATETIMEPICK_CLASSW;
+    if (!::GetClassInfoExW(NULL, superClassName.c_str(), &wc)) {
+        if (!::GetClassInfoExW(hModule, superClassName.c_str(), &wc)) {
             ASSERT(!"Unable to locate window class");
             return false;
         }
@@ -147,9 +147,9 @@ bool DateTimeWnd::RegisterSuperClass()
     m_OldWndProc = wc.lpfnWndProc;
     wc.lpfnWndProc = DateTimeWnd::__ControlProc;
     wc.hInstance = hModule;
-    DString className = GetWindowClassName();
+    DStringW className = StringUtil::TToUTF16(GetWindowClassName());
     wc.lpszClassName = className.c_str();
-    ATOM ret = ::RegisterClassEx(&wc);
+    ATOM ret = ::RegisterClassExW(&wc);
     ASSERT(ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
     return ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
 }
@@ -159,7 +159,7 @@ DString DateTimeWnd::GetWindowClassName() const
     return _T("DateTimeWnd");
 }
 
-static const wchar_t* sPropName = _T("DuiLibDateTimeWndX"); // 属性名称
+static const wchar_t* sPropName = L"DuiLibDateTimeWndX"; // 属性名称
 
 LRESULT CALLBACK DateTimeWnd::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -313,9 +313,9 @@ HFONT DateTimeWnd::CreateHFont() const
     if (pFont == nullptr) {
         return nullptr;
     }
-    LOGFONT lf = { 0 };
-    ::GetObject(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONT), &lf);
-    wcscpy_s(lf.lfFaceName, pFont->FontName().c_str());
+    LOGFONTW lf = { 0 };
+    ::GetObjectW(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONTW), &lf);
+    StringUtil::StringCopy(lf.lfFaceName, StringUtil::TToUTF16(pFont->FontName()).c_str());
     lf.lfCharSet = DEFAULT_CHARSET;
     lf.lfHeight = -pFont->FontSize();
     if (pFont->IsUnderline()) {
@@ -330,7 +330,7 @@ HFONT DateTimeWnd::CreateHFont() const
     if (pFont->IsBold()) {
         lf.lfWeight = FW_BOLD;
     }
-    HFONT hFont = ::CreateFontIndirect(&lf);
+    HFONT hFont = ::CreateFontIndirectW(&lf);
     ASSERT(hFont != nullptr);
     return hFont;
 }

@@ -5,6 +5,7 @@
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui
 {
@@ -66,11 +67,11 @@ void ScrollBox::SetAttribute(const DString& pstrName, const DString& pstrValue)
         SetScrollBarPadding(rcScrollbarPadding, true);
     }
     else if ((pstrName == _T("vscroll_unit")) || (pstrName == _T("vscrollunit"))) {
-        int32_t iValue = _wtoi(pstrValue.c_str());
+        int32_t iValue = StringUtil::StringToInt32(pstrValue);
         SetVerScrollUnitPixels(iValue, true);
     }
     else if ((pstrName == _T("hscroll_unit")) || (pstrName == _T("hscrollunit"))) {
-        int32_t iValue = _wtoi(pstrValue.c_str());
+        int32_t iValue = StringUtil::StringToInt32(pstrValue);
         SetHorScrollUnitPixels(iValue, true);
     }
     else if ((pstrName == _T("scrollbar_float")) || (pstrName == _T("scrollbarfloat"))) {

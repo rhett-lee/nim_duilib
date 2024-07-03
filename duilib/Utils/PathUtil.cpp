@@ -16,7 +16,7 @@ DString PathUtil::NormalizeDirPath(const DString& strFilePath)
         StringUtil::ReplaceAll(_T("\\\\"), _T("\\"), dirPath);
         std::filesystem::path dir_path(dirPath);
         dir_path = dir_path.lexically_normal();
-        dirPath = dir_path.native();
+        dirPath = StringUtil::UTF16ToT(dir_path.native());
         if (!dirPath.empty()) {
             //确保路径最后字符是分割字符
             auto cEnd = dirPath.back();
@@ -46,7 +46,7 @@ DString PathUtil::NormalizeFilePath(const DString& strFilePath)
         StringUtil::ReplaceAll(_T("\\\\"), _T("\\"), tmp);
         std::filesystem::path file_path(tmp);
         file_path = file_path.lexically_normal();
-        tmp = file_path.native();
+        tmp = StringUtil::UTF16ToT(file_path.native());
         return tmp;
     }
     catch (...) {
@@ -63,7 +63,7 @@ DString PathUtil::JoinFilePath(const DString& path1, const DString& path2)
         std::filesystem::path file_path(path1);
         file_path /= path2;
         file_path = file_path.lexically_normal();
-        DString tmp = file_path.native();
+        DString tmp = StringUtil::UTF16ToT(file_path.native());
         return tmp;
     }
     catch (...) {
@@ -183,7 +183,7 @@ DString PathUtil::GetCurrentModuleDirectory()
 #ifdef DUILIB_PLATFORM_WIN
     DString dirPath;
     dirPath.resize(1024, 0);
-    dirPath.resize(::GetModuleFileNameW(nullptr, &dirPath[0], (uint32_t)dirPath.size()));
+    dirPath.resize(::GetModuleFileName(nullptr, &dirPath[0], (uint32_t)dirPath.size()));
     size_t nPos = dirPath.find_last_of(_T("/\\"));
     if (nPos != DString::npos) {
         dirPath.resize(nPos);

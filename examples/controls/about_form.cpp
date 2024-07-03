@@ -25,7 +25,7 @@ void AboutForm::OnInitWindow()
     if (link)
     {
         link->AttachButtonUp([link](const ui::EventArgs& args) {
-            ShellExecute(NULL, _T("open"), link->GetText().c_str(), NULL, NULL, SW_SHOWDEFAULT);
+            ::ShellExecuteW(NULL, L"open", ui::StringUtil::TToUTF16(link->GetText()).c_str(), NULL, NULL, SW_SHOWDEFAULT);
             return true;
         });
     }

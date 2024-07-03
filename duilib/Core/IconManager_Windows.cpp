@@ -59,7 +59,7 @@ HICON IconManager::GetIcon(const DString& str) const
         return nullptr;
     }
     DString idStr = str.substr(pos + m_prefix.size());
-    uint32_t id = wcstoul(idStr.c_str(), nullptr, 10);
+    uint32_t id = StringUtil::StringToUInt32(idStr.c_str(), nullptr, 10);
     return GetIcon(id);
 }
 

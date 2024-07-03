@@ -1,5 +1,6 @@
 #include "Box.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui
 {
@@ -43,11 +44,11 @@ void Box::SetAttribute(const DString& strName, const DString& strValue)
         return;
     }
     else if (strName == _T("drag_out_id")) {
-        uint8_t nValue = ui::TruncateToUInt8(_wtoi(strValue.c_str()));
+        uint8_t nValue = ui::TruncateToUInt8(StringUtil::StringToInt32(strValue));
         SetDragOutId(nValue);
     }
     else if (strName == _T("drop_in_id")) {
-        uint8_t nValue = ui::TruncateToUInt8(_wtoi(strValue.c_str()));
+        uint8_t nValue = ui::TruncateToUInt8(StringUtil::StringToInt32(strValue));
         SetDropInId(nValue);
     }
     else {

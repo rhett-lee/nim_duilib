@@ -1,4 +1,5 @@
 #include "DiskUtils.h"
+#include "duilib/Utils/StringUtil.h"
 #include <shellapi.h>
 #include <memory>
 
@@ -43,16 +44,20 @@ bool DiskUtils::GetLogicalDriveList(std::vector<DString>& driveList)
 
 bool DiskUtils::GetLogicalDriveInfo(const DString& driveString, DiskInfo& diskInfo)
 { 
-    HMODULE hShell32Dll = ::LoadLibraryW(_T("Shell32.dll"));
+    HMODULE hShell32Dll = ::LoadLibrary(_T("Shell32.dll"));
     ASSERT(hShell32Dll != NULL);
     if (hShell32Dll == NULL) {
         return false;
     }
 
-    typedef DWORD_PTR (*PFNSHGetFileInfo)( LPCWSTR pszPath, DWORD dwFileAttributes, SHFILEINFOW * psfi,
+    typedef DWORD_PTR (*PFNSHGetFileInfo)( LPCTSTR pszPath, DWORD dwFileAttributes, SHFILEINFO * psfi,
                                            UINT cbFileInfo, UINT uFlags);
 
+#ifdef DUILIB_UNICODE
     PFNSHGetFileInfo pfnSHGetFileInfo = (PFNSHGetFileInfo)::GetProcAddress(hShell32Dll, "SHGetFileInfoW");
+#else
+    PFNSHGetFileInfo pfnSHGetFileInfo = (PFNSHGetFileInfo)::GetProcAddress(hShell32Dll, "SHGetFileInfoA");
+#endif
     ASSERT(pfnSHGetFileInfo != NULL);
 
     if (pfnSHGetFileInfo == NULL) {

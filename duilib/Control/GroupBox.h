@@ -175,8 +175,8 @@ void GroupBoxTemplate<InheritType>::SetAttribute(const DString& strName, const D
     }
     else if (strName == _T("line_width")) {
         //线条宽度
-        ASSERT(_wtoi(strValue.c_str()) >= 0);
-        this->SetLineWidth(_wtoi(strValue.c_str()), true);
+        ASSERT(StringUtil::StringToInt32(strValue) >= 0);
+        this->SetLineWidth(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("line_color")) {
         //线条颜色

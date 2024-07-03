@@ -5,6 +5,7 @@
 #include "duilib/Control/CheckBox.h"
 #include "duilib/Control/Label.h"
 #include "duilib/Control/RichEdit.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui
 {
@@ -278,7 +279,7 @@ public:
     virtual void SetAttribute(const DString& strName, const DString& strValue) override
     {
         if (strName == _T("check_box_width")) {
-            SetCheckBoxWidth(_wtoi(strValue.c_str()), true);
+            SetCheckBoxWidth(StringUtil::StringToInt32(strValue), true);
         }
         else {
             __super::SetAttribute(strName, strValue);

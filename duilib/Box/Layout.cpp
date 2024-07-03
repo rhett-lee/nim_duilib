@@ -1,5 +1,6 @@
 #include "Layout.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Utils/StringUtil.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
@@ -22,17 +23,17 @@ bool Layout::SetAttribute(const DString& strName, const DString& strValue, const
 {
     bool hasAttribute = true;
     if ((strName == _T("child_margin")) || (strName == _T("childmargin"))) {
-        int32_t iMargin = _wtoi(strValue.c_str());
+        int32_t iMargin = StringUtil::StringToInt32(strValue);
         dpiManager.ScaleInt(iMargin);
         SetChildMargin(iMargin);
     }
     else if ((strName == _T("child_margin_x")) || (strName == _T("childmarginx"))) {
-        int32_t iMargin = _wtoi(strValue.c_str());
+        int32_t iMargin = StringUtil::StringToInt32(strValue);
         dpiManager.ScaleInt(iMargin);
         SetChildMarginX(iMargin);
     }
     else if ((strName == _T("child_margin_y")) || (strName == _T("childmarginy"))) {
-        int32_t iMargin = _wtoi(strValue.c_str());
+        int32_t iMargin = StringUtil::StringToInt32(strValue);
         dpiManager.ScaleInt(iMargin);
         SetChildMarginY(iMargin);
     }

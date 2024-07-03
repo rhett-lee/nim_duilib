@@ -52,6 +52,7 @@ bool NativeWindow::CreateWnd(WindowBase* pParentWindow,
     }
 
     //注册窗口类
+    DString className = StringUtil::TToLocal(createParam.m_className);
     WNDCLASSEX wc = { 0 };
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = createParam.m_dwClassStyle;
@@ -62,7 +63,7 @@ bool NativeWindow::CreateWnd(WindowBase* pParentWindow,
     wc.hCursor = ::LoadCursor(nullptr, IDC_ARROW);
     wc.hbrBackground = nullptr;
     wc.lpszMenuName = nullptr;
-    wc.lpszClassName = createParam.m_className.c_str();
+    wc.lpszClassName = className.c_str();
     wc.hIcon = nullptr;
     wc.hIconSm = nullptr;
 
@@ -78,11 +79,11 @@ bool NativeWindow::CreateWnd(WindowBase* pParentWindow,
     if (createParam.m_dwExStyle & WS_EX_LAYERED) {
         m_bIsLayeredWindow = true;
     }
-
+    DString windowTitle = StringUtil::TToLocal(createParam.m_windowTitle);
     HWND hParentWnd = pParentWindow != nullptr ? pParentWindow->NativeWnd()->GetHWND() : nullptr;
     HWND hWnd = ::CreateWindowEx(createParam.m_dwExStyle,
-                                 createParam.m_className.c_str(),
-                                 createParam.m_windowTitle.c_str(),
+                                 className.c_str(),
+                                 windowTitle.c_str(),
                                  createParam.m_dwStyle,
                                  rc.left, rc.top, rc.Width(), rc.Height(),
                                  hParentWnd, NULL, GetResModuleHandle(), this);
@@ -731,7 +732,13 @@ bool NativeWindow::SetWindowIcon(const std::vector<uint8_t>& iconFileData)
 void NativeWindow::SetText(const DString& strText)
 {
     ASSERT(::IsWindow(m_hWnd));
+#ifdef DUILIB_UNICODE
     ::SetWindowText(m_hWnd, strText.c_str());
+#else
+    //strText是UTF-8编码
+    DString localText = StringUtil::TToLocal(strText);
+    ::SetWindowText(m_hWnd, localText.c_str());
+#endif
 }
 
 void NativeWindow::SetCapture()
@@ -1140,7 +1147,7 @@ bool NativeWindow::UnregisterHotKey(int32_t id)
 
 /** 窗口句柄的属性名称
 */
-static const wchar_t* sPropName = _T("DuiLibWindow"); // 属性名称
+static const wchar_t* sPropName = L"DuiLibWindow"; // 属性名称
 
 LRESULT CALLBACK NativeWindow::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {

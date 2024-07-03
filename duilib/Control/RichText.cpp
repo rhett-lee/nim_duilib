@@ -66,7 +66,7 @@ void RichText::SetAttribute(const DString& strName, const DString& strValue)
         SetTextPadding(rcTextPadding);
     }
     else if (strName == _T("row_spacing_mul")) {
-        SetRowSpacingMul(wcstof(strValue.c_str(), nullptr));
+        SetRowSpacingMul(StringUtil::StringToFloat(strValue.c_str(), nullptr));
     }
     else if (strName == _T("default_link_font_color")) {
         //超级链接：常规文本颜色值
@@ -474,7 +474,7 @@ const DString& RichText::TrimText(DString& text)
     return text;
 }
 
-DString RichText::TrimText(const wchar_t* text)
+DString RichText::TrimText(const DString::value_type* text)
 {
     if (m_trimPolicy == TrimPolicy::kNone) {
         //不处理

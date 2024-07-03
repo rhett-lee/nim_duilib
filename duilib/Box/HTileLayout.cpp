@@ -2,6 +2,7 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Utils/StringUtil.h"
 #include <numeric>
 
 namespace ui 
@@ -603,7 +604,7 @@ bool HTileLayout::SetAttribute(const DString& strName, const DString& strValue, 
         }
         else {
             SetAutoCalcRows(false);
-            SetRows(_wtoi(strValue.c_str()));
+            SetRows(StringUtil::StringToInt32(strValue));
         }
     }
     else if ((strName == _T("scale_down")) || (strName == _T("scaledown"))) {

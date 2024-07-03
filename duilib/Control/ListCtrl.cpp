@@ -168,13 +168,13 @@ void ListCtrl::SetAttribute(const DString& strName, const DString& strValue)
         SetDataSubItemClass(strValue);
     }
     else if (strName == _T("row_grid_line_width")) {
-        SetRowGridLineWidth(_wtoi(strValue.c_str()), true);
+        SetRowGridLineWidth(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("row_grid_line_color")) {
         SetRowGridLineColor(strValue);
     }
     else if (strName == _T("column_grid_line_width")) {
-        SetColumnGridLineWidth(_wtoi(strValue.c_str()), true);
+        SetColumnGridLineWidth(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("column_grid_line_color")) {
         SetColumnGridLineColor(strValue);
@@ -183,10 +183,10 @@ void ListCtrl::SetAttribute(const DString& strName, const DString& strValue)
         SetReportViewClass(strValue);
     }
     else if (strName == _T("header_height")) {
-        SetHeaderHeight(_wtoi(strValue.c_str()), true);
+        SetHeaderHeight(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("data_item_height")) {
-        SetDataItemHeight(_wtoi(strValue.c_str()), true);
+        SetDataItemHeight(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("show_header")) {
         SetHeaderVisible(strValue == _T("true"));

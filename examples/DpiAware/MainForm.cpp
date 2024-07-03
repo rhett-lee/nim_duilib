@@ -47,7 +47,7 @@ void MainForm::OnInitWindow()
             //修改DPI值
             ui::RichEdit* pRichEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("DPI")));
             if (pRichEdit != nullptr) {
-                int32_t nNewDpi = _wtoi(pRichEdit->GetText().c_str());
+                int32_t nNewDpi = ui::StringUtil::StringToInt32(pRichEdit->GetText());
                 if (nNewDpi > 0) {
                     ChangeDpi((uint32_t)nNewDpi);
                     UpdateUI();

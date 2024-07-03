@@ -157,7 +157,7 @@ public:
     * @param [in] text 传入需要处理的文本
     * @return 返回处理好的字符串
     */
-    DString TrimText(const wchar_t* text);
+    DString TrimText(const DString::value_type* text);
 
 public:
     /** 输出带格式化文本

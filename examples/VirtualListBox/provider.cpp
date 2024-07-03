@@ -116,8 +116,8 @@ void Provider::SetTotal(int nTotal)
         DownloadTask task;
         task.nId = i;
         //不适用DString，因为它占用的内存很多，当数据量达到千万级别以上时，占的内存太多
-        task.sName = new wchar_t[name.size() + 1];
-        wcscpy_s(task.sName, name.size() + 1, name.c_str());
+        task.sName = new DString::value_type[name.size() + 1];
+        ui::StringUtil::StringCopy(task.sName, name.size() + 1, name.c_str());
         m_vTasks.emplace_back(std::move(task));
     }
     m_lock.unlock();
@@ -149,8 +149,8 @@ void Provider::ChangeTaskName(size_t nIndex, const DString& sName)
     bool bUpdated = false;
     if (nIndex < m_vTasks.size()) {
         delete m_vTasks[nIndex].sName;
-        m_vTasks[nIndex].sName = new wchar_t[sName.size() + 1];
-        wcscpy_s(m_vTasks[nIndex].sName, sName.size() + 1, sName.c_str());
+        m_vTasks[nIndex].sName = new DString::value_type[sName.size() + 1];
+        ui::StringUtil::StringCopy(m_vTasks[nIndex].sName, sName.size() + 1, sName.c_str());
         bUpdated = true;
     }
     m_lock.unlock();

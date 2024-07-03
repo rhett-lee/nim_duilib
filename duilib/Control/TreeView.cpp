@@ -68,15 +68,15 @@ void TreeNode::SetAttribute(const DString& strName, const DString& strValue)
         SetCollapseStateImage(kControlStateDisabled, strValue);
     }
     else if (strName == _T("expand_image_right_space")) {
-        int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
+        int32_t iValue = StringUtil::StringToInt32(strValue);
         SetExpandIndent(iValue, true);
     }
     else if (strName == _T("check_box_image_right_space")) {
-        int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
+        int32_t iValue = StringUtil::StringToInt32(strValue);
         SetCheckBoxIndent(iValue, true);
     }
     else if (strName == _T("icon_image_right_space")) {
-        int32_t iValue = wcstol(strValue.c_str(), nullptr, 10);
+        int32_t iValue = StringUtil::StringToInt32(strValue);
         SetIconIndent(iValue, true);
     }
     else {
@@ -1045,7 +1045,7 @@ void TreeView::SetAttribute(const DString& strName, const DString& strValue)
     //支持的属性列表: 基类实现的直接转发
     if (strName == _T("indent")) {
         //树节点的缩进（每层节点缩进一个indent单位）
-        SetIndent(_wtoi(strValue.c_str()), true);
+        SetIndent(StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("multi_select")) {
         //多选，默认是单选，在基类实现

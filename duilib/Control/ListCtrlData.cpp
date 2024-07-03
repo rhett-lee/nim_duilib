@@ -1525,7 +1525,7 @@ bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList,
 bool ListCtrlData::SortDataCompareFunc(const ListCtrlSubItemData2& a, const ListCtrlSubItemData2& b) const
 {
     //默认按字符串比较, 区分大小写
-    return ::wcscmp(a.text.c_str(), b.text.c_str()) < 0;
+    return StringUtil::StringCompare(a.text.c_str(), b.text.c_str()) < 0;
 }
 
 void ListCtrlData::SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)

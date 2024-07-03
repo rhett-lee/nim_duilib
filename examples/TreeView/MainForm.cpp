@@ -142,7 +142,7 @@ ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
 void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const DString& name)
 {
     if (m_hShell32Dll == nullptr) {
-        m_hShell32Dll = ::LoadLibraryW(_T("Shell32.dll"));
+        m_hShell32Dll = ::LoadLibrary(_T("Shell32.dll"));
     }
 
     typedef HRESULT (CALLBACK *PFN_SHGetKnownFolderPath)( REFKNOWNFOLDERID rfid,
@@ -157,7 +157,7 @@ void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const 
     PFN_SHGetKnownFolderPath pfnSHGetKnownFolderPath = (PFN_SHGetKnownFolderPath)::GetProcAddress(m_hShell32Dll, "SHGetKnownFolderPath");
     PFN_SHGetKnownFolderIDList pfnSHGetKnownFolderIDList = (PFN_SHGetKnownFolderIDList)::GetProcAddress(m_hShell32Dll, "SHGetKnownFolderIDList");
 
-    TCHAR folder[MAX_PATH] = { 0 };
+    WCHAR folder[MAX_PATH] = { 0 };
     LPITEMIDLIST lpPidl = nullptr;
 
     if (pfnSHGetKnownFolderPath != nullptr) {
@@ -177,7 +177,7 @@ void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const 
         if (csidl < 0) {
             return;
         }
-        if (!::SHGetSpecialFolderPath(nullptr, folder, csidl, FALSE)) {
+        if (!::SHGetSpecialFolderPathW(nullptr, folder, csidl, FALSE)) {
             return;
         }
     }
@@ -198,11 +198,17 @@ void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const 
         &shFileInfo,
         sizeof(SHFILEINFO),
         SHGFI_PIDL | SHGFI_DISPLAYNAME | SHGFI_ICON | SHGFI_SMALLICON)) {
-        DString displayName = shFileInfo.szDisplayName;
+        DString displayName = ui::StringUtil::LocalToT(shFileInfo.szDisplayName);
         if (displayName.empty()) {
             displayName = name;
         }
-        InsertTreeNode(nullptr, displayName, folder, true, shFileInfo.hIcon);
+#ifdef DUILIB_UNICODE
+        DString folderName = folder;
+#else
+        DString folderName = ui::StringUtil::UTF16ToUTF8(folder);
+
+#endif
+        InsertTreeNode(nullptr, displayName, folderName, true, shFileInfo.hIcon);
     }
 
     if (lpPidl != nullptr) {

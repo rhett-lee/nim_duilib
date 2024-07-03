@@ -8,6 +8,7 @@
 class SkCanvas;
 struct SkPoint;
 class SkPaint;
+enum class SkTextEncoding;
 
 namespace ui 
 {
@@ -156,6 +157,10 @@ private:
     /** 删除DC
     */
     void DeleteDC();
+
+    /** 获取文本编码
+    */
+    SkTextEncoding GetTextEncoding() const;
 
 private:
 
