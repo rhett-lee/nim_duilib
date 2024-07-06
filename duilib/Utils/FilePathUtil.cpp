@@ -21,7 +21,7 @@ FilePath FilePathUtil::NormalizeFilePath(const FilePath& filePath)
     }
     catch (...) {
     }
-    return FilePath(nativePath);
+    return FilePath(nativePath, true);
 }
 
 DString FilePathUtil::NormalizeFilePath(const DString& filePath)

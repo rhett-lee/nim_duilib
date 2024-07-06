@@ -29,6 +29,18 @@ public:
     */
     explicit FilePath(const std::wstring& filePath);
 
+    /** 从字符串构造
+    * @param [in] filePath 路径字符串，UTF8编码
+    * @param [in] bLexicallyNormal 路径是否已经规范化
+    */
+    FilePath(const std::string& filePath, bool bLexicallyNormal);
+
+    /** 从字符串构造
+    * @param [in] filePath 路径字符串，UTF16编码
+    * @param [in] bLexicallyNormal 路径是否已经规范化
+    */
+    FilePath(const std::wstring& filePath, bool bLexicallyNormal);
+
 public:
     /** 是否为空
     */
@@ -132,6 +144,10 @@ public:
     bool operator == (const FilePath& otherPath) const noexcept;
     bool operator < (const FilePath& otherPath) const noexcept;
 
+    /** 计算路径的Hash值
+    */
+    size_t HashValue() const noexcept;
+
     /** 清空
     */
     void Clear() noexcept;
@@ -146,6 +162,15 @@ private:
     bool m_bLexicallyNormal;
 };
 
+}
+
+//为FilePath定义hash算法, 使其可用作为基于哈希表的容器的KEY值
+namespace std {
+    template <> struct hash<ui::FilePath> {
+        size_t operator()(const ui::FilePath& p) const {
+            return p.HashValue();
+        }
+    };
 }
 
 #endif // UI_UTILS_FILE_PATH_H_

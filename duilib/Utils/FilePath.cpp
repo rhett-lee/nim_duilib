@@ -16,6 +16,18 @@ FilePath::FilePath(const std::wstring& filePath) :
 {
 }
 
+FilePath::FilePath(const std::string& filePath, bool bLexicallyNormal):
+    m_filePath(StringUtil::UTF8ToUTF16(filePath)),
+    m_bLexicallyNormal(bLexicallyNormal)
+{
+}
+
+FilePath::FilePath(const std::wstring& filePath, bool bLexicallyNormal) :
+    m_filePath(filePath),
+    m_bLexicallyNormal(bLexicallyNormal)
+{
+}
+
 bool FilePath::IsEmpty() const noexcept
 {
     return m_filePath.empty();
@@ -249,6 +261,16 @@ bool FilePath::operator < (const FilePath& otherPath) const noexcept
     }
 #endif
     return m_filePath < otherPath.m_filePath;
+}
+
+size_t FilePath::HashValue() const noexcept
+{
+    if (m_filePath.empty()) {
+        return 0;
+    }
+    else {
+        return std::filesystem::hash_value(m_filePath);
+    }
 }
 
 void FilePath::Clear() noexcept

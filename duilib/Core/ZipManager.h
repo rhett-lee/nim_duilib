@@ -74,15 +74,18 @@ private:
     void NormalizeZipFilePath(std::string& innerFilePath) const;
     void NormalizeZipFilePath(std::wstring& innerFilePath) const;
 
+    /** 在压缩包中定位文件
+    * @param [in] normalizePath 文件路径
+    * @param [out] filePathA 返回压缩包内的文件路径（MBCS或者UTF8编码）
+    * @return 定位成功返回true，否则返回false
+    */
+    bool LocateFile(const FilePath& normalizePath, std::string& filePathA) const;
+
     /** 获取压缩包内的路径(转换字符串编码)
     * @param [in] szInZipFilePath 要获取的文件路径(压缩包内路径)
     * @param [in] bUtf8 true表示UTF8编码，否则为Ansi编码
     */
     DString GetZipFilePath(const char* szInZipFilePath, bool bUtf8) const;
-
-    /** 打开压缩包后初始化文件名的编码格式
-    */
-    void InitUtf8();
 
 private:
     
@@ -94,17 +97,13 @@ private:
     */
     DString m_password;
 
-    /** 压缩包的文件名编码是否为UTF8格式的
-    */
-    bool m_bUtf8;
-
     /** 内存流的读取接口
     */
     std::unique_ptr<ZipStreamIO> m_pZipStreamIO;
 
     /** 路径缓存
     */
-    mutable std::unordered_set<std::string> m_zipPathCache;
+    mutable std::unordered_set<FilePath> m_zipPathCache;
 };
 
 }

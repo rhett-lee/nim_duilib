@@ -14,8 +14,7 @@ namespace ui
 #define MAX_PATH_LEN (size_t)(1024)
 
 ZipManager::ZipManager():
-    m_hzip(nullptr),
-    m_bUtf8(false)
+    m_hzip(nullptr)
 {
 }
 
@@ -51,7 +50,6 @@ bool ZipManager::OpenResZip(HMODULE hModule, LPCTSTR resourceName, LPCTSTR resou
     zlib_filefunc_def pzlib_filefunc_def;
     m_pZipStreamIO->FillFopenFileFunc(&pzlib_filefunc_def);
     m_hzip = ::unzOpen2(nullptr, &pzlib_filefunc_def);
-    InitUtf8();
     return m_hzip != nullptr;
 }
 #endif
@@ -65,21 +63,7 @@ bool ZipManager::OpenZipFile(const FilePath& path, const DString& password)
     }
     m_password = password;
     m_hzip = ::unzOpen(nativePath.c_str());
-    InitUtf8();
     return m_hzip != nullptr;
-}
-
-void ZipManager::InitUtf8()
-{
-    //读取压缩包内文件名编码是否为UTF8格式（只读取第一个文件）
-    m_bUtf8 = false;
-    if (m_hzip != nullptr) {
-        unz_file_info file_info = { 0, };
-        int nRet = ::unzGetCurrentFileInfo(m_hzip, &file_info, nullptr, 0, nullptr, 0, nullptr, 0);
-        if (nRet == UNZ_OK) {
-            m_bUtf8 = file_info.flag & (1 << 11);
-        }
-    }
 }
 
 bool ZipManager::GetZipData(const FilePath& path, std::vector<unsigned char>& fileData) const
@@ -90,25 +74,23 @@ bool ZipManager::GetZipData(const FilePath& path, std::vector<unsigned char>& fi
     if (m_hzip == nullptr) {
         return false;
     }
-    FilePath normalizePath = FilePathUtil::NormalizeFilePath(path);
-    std::string filePathA = m_bUtf8 ? normalizePath.ToStringA() : normalizePath.NativePathA();
-    ASSERT(!filePathA.empty());
-    if (filePathA.empty()) {
+    const FilePath normalizePath = FilePathUtil::NormalizeFilePath(path);
+    std::string filePathA;
+    if (!LocateFile(normalizePath, filePathA)) {
         return false;
     }
-    NormalizeZipFilePath(filePathA);
-    int nRet = ::unzLocateFile(m_hzip, filePathA.c_str(), 0);
-    if (nRet != UNZ_OK) {
-        return false;
-    }
+    //加入缓存
+    m_zipPathCache.insert(normalizePath);
+
     size_t fileNameLen = std::max(filePathA.size() + 1, MAX_PATH_LEN);
     std::vector<char> szFileName;
     szFileName.resize(fileNameLen, 0);
     unz_file_info file_info = {0, };
-    nRet = ::unzGetCurrentFileInfo(m_hzip, &file_info, &szFileName[0], (uLong)szFileName.size() - 1, nullptr, 0, nullptr, 0);
+    int nRet = ::unzGetCurrentFileInfo(m_hzip, &file_info, &szFileName[0], (uLong)szFileName.size() - 1, nullptr, 0, nullptr, 0);
     if (nRet != UNZ_OK) {
         return false;
     }
+    
     if (file_info.uncompressed_size == 0) {
         return false;
     }
@@ -157,23 +139,51 @@ bool ZipManager::IsZipResExist(const FilePath& path) const
 {
     GlobalManager::Instance().AssertUIThread();
     if ((m_hzip != nullptr) && !path.IsEmpty()) {
-        FilePath normalizePath = FilePathUtil::NormalizeFilePath(path);
-        std::string filePathA = m_bUtf8 ? normalizePath.ToStringA() : normalizePath.NativePathA();
-        ASSERT(!filePathA.empty());
-        if (filePathA.empty()) {
-            return false;
-        }
-        NormalizeZipFilePath(filePathA);
-        auto it = m_zipPathCache.find(filePathA);
+        const FilePath normalizePath = FilePathUtil::NormalizeFilePath(path);
+        auto it = m_zipPathCache.find(normalizePath);
         if (it != m_zipPathCache.end()) {
             return true;
         }
-        int nRet = ::unzLocateFile(m_hzip, filePathA.c_str(), 0);
-        if (nRet == UNZ_OK) {
-            m_zipPathCache.insert(filePathA);
+        std::string filePathA;
+        if (LocateFile(normalizePath, filePathA)) {
+            //加入缓存
+            m_zipPathCache.insert(normalizePath);
             return true;
         }
     }
+    return false;
+}
+
+bool ZipManager::LocateFile(const FilePath& normalizePath, std::string& filePathA) const
+{
+    //压缩包内文件路径的编码是每个文件都不同的，定位的时候无法确定文件名编码，只能依次尝试
+    filePathA = normalizePath.NativePathA();//优先尝试MBCS编码
+    ASSERT(!filePathA.empty());
+    if (filePathA.empty()) {
+        return false;
+    }
+    NormalizeZipFilePath(filePathA);
+    int nRet = ::unzLocateFile(m_hzip, filePathA.c_str(), 0);
+    if (nRet == UNZ_OK) {
+        return true;
+    }
+
+    std::string oldFilePathA = filePathA;
+    filePathA = normalizePath.ToStringA();//再尝试UTF8编码
+    ASSERT(!filePathA.empty());
+    if (filePathA.empty()) {
+        return false;
+    }
+    NormalizeZipFilePath(filePathA);
+    if (oldFilePathA == filePathA) {
+        //路径无变化，不再重复查询
+        return false;
+    }
+    nRet = ::unzLocateFile(m_hzip, filePathA.c_str(), 0);
+    if (nRet == UNZ_OK) {
+        return true;
+    }
+    filePathA.clear();
     return false;
 }
 
@@ -184,7 +194,6 @@ void ZipManager::CloseResZip()
         m_hzip = nullptr;
     }
     m_zipPathCache.clear();
-    m_bUtf8 = false;
     m_pZipStreamIO.reset();
 }
 
