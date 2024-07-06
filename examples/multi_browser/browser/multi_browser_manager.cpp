@@ -375,6 +375,7 @@ void MultiBrowserManager::OnAfterDragBorwserBox()
                                         pt_mouse.y + browser_form->Dpi().GetScaleInt(kDragFormYOffset),
                                         0, 0);
                         browser_form->SetWindowPos(ui::InsertAfterWnd(), rect.left, rect.top, rect.Width(), rect.Height(), ui::kSWP_NOSIZE);
+                        browser_form->ShowWindow(ui::kSW_SHOW_NORMAL);
                     }
                 }
             }

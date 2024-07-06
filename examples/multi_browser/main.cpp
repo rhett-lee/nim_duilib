@@ -39,7 +39,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     CefSettings settings;
     ui::FilePath appDataDir = ui::FilePathUtil::GetCurrentModuleDirectory();
     appDataDir += _T("cef_temp\\"); //TODO: 可写目录
-    if (!nim_comp::CefManager::GetInstance()->Initialize(appDataDir.ToString(), settings, false)) {
+    if (!nim_comp::CefManager::GetInstance()->Initialize(appDataDir.ToString(), settings, true)) {
         return 0;
     }
 

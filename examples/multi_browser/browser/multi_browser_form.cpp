@@ -490,7 +490,11 @@ bool MultiBrowserForm::IsActiveBox(const DString &browser_id)
 
 int MultiBrowserForm::GetBoxCount() const
 {
-    return (int)tab_list_->GetItemCount() - 1; // 减去右边那个加号的数量
+    int nBoxCount = (int)tab_list_->GetItemCount();
+    if (nBoxCount > 0) {
+        nBoxCount -= 1; // 减去右边那个加号的数量
+    }
+    return nBoxCount;
 }
 
 void MultiBrowserForm::OnBeforeDragBoxCallback(const DString &browser_id)

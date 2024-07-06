@@ -154,6 +154,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile />
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Link>
       <DelayLoadDLLs>nim_libcef.dll</DelayLoadDLLs>

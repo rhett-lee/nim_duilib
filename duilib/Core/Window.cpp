@@ -1138,8 +1138,8 @@ void Window::SetFocusControl(Control* pControl)
     }
     if ((pControl != nullptr) && pControl->IsVisible() && pControl->IsEnabled()) {
         ASSERT(pControl->GetWindow() == this);
-        ASSERT(IsWindowFocused());
 
+        //设置控件为焦点控件
         m_pFocus = pControl;
 
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
