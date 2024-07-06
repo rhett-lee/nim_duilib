@@ -3,6 +3,7 @@
 
 #include "duilib/Core/INativeWindow.h"
 #include "duilib/Core/WindowCreateParam.h"
+#include "duilib/Utils/FilePath.h"
 
 namespace ui {
 
@@ -228,7 +229,7 @@ public:
     /** 设置窗口图标（支持*.ico格式）
     *  @param [in] iconFilePath ico文件的路径（绝对路径）
     */
-    bool SetWindowIcon(const DString& iconFilePath);
+    bool SetWindowIcon(const FilePath& iconFilePath);
 
     /** 设置窗口图标（支持*.ico格式）
     *  @param [in] iconFileData ico文件的数据

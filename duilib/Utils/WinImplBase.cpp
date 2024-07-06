@@ -1,7 +1,7 @@
 #include "WinImplBase.h"
 #include "duilib/Core/WindowBuilder.h"
 #include "duilib/Core/Box.h"
-#include "duilib/Utils/PathUtil.h"
+#include "duilib/Utils/FilePath.h"
 
 namespace ui
 {
@@ -18,42 +18,52 @@ void WindowImplBase::InitWindow()
 {
     __super::InitWindow();
 
-    //保存资源所在路径
-    DString skinFolder = GetSkinFolder();
-    ASSERT(!PathUtil::IsAbsolutePath(skinFolder));
-    if (PathUtil::IsAbsolutePath(skinFolder)) {
+    //保存资源所在路径(不支持绝对路径)
+    FilePath skinFolder(GetSkinFolder());
+    ASSERT(!skinFolder.IsAbsolutePath());
+    if (skinFolder.IsAbsolutePath()) {
         return;
     }
 
     SetResourcePath(skinFolder);
-    SetXmlPath(DString());
+    SetXmlPath(FilePath());
 
     //XML文件所在路径，应是相对路
     DString xmlFile = GetSkinFile();
-    ASSERT(!PathUtil::IsAbsolutePath(xmlFile));
-    if (PathUtil::IsAbsolutePath(xmlFile)) {
-        return;
-    }
-
-    DString strSkinFile;
+    DString skinXmlFileData;
+    FilePath skinXmlFilePath;
     if (!xmlFile.empty() && xmlFile.front() == _T('<')) {
         //返回的内容是XML文件内容，而不是文件路径        
-        strSkinFile = std::move(xmlFile);
+        skinXmlFileData = std::move(xmlFile);
     }
     else {
+        FilePath xmlFilePath(xmlFile);
+        ASSERT(!xmlFilePath.IsAbsolutePath());
+        if (xmlFilePath.IsAbsolutePath()) {
+            return;
+        }
+
         //保存XML文件所在路径
         size_t nPos = xmlFile.find_last_of(_T("/\\"));
         if (nPos != DString::npos) {
             DString xmlPath = xmlFile.substr(0, nPos);
             if (!xmlPath.empty()) {
-                SetXmlPath(xmlPath);
+                SetXmlPath(FilePath(xmlPath));
             }
         }
-        strSkinFile = GetResourcePath() + xmlFile;
+        skinXmlFilePath = GetResourcePath();
+        skinXmlFilePath.JoinFilePath(xmlFilePath);
     }
     auto callback = UiBind(&WindowImplBase::CreateControl, this, std::placeholders::_1);
     WindowBuilder builder;
-    Box* pRoot = builder.Create(strSkinFile, callback, this);
+    Box* pRoot = nullptr;
+    if (!skinXmlFileData.empty()) {
+        pRoot = builder.CreateFromXmlData(skinXmlFileData, callback, this);
+    }
+    else {
+        ASSERT(!skinXmlFilePath.IsEmpty());
+        pRoot = builder.CreateFromXmlFile(skinXmlFilePath, callback, this);
+    }
 
     ASSERT(pRoot && _T("Faield to load xml file."));
     if (pRoot == nullptr) {

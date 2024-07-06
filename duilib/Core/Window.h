@@ -3,6 +3,7 @@
 
 #include "duilib/Core/WindowBase.h"
 #include "duilib/Utils/Delegate.h"
+#include "duilib/Utils/FilePath.h"
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/ColorManager.h"
 
@@ -36,21 +37,21 @@ public:
     /** 设置窗口资源路径(相对于资源根目录的路径)
     * @param [in] strPath 要设置的路径
     */
-    void SetResourcePath(const DString& strPath);
+    void SetResourcePath(const FilePath& strPath);
 
     /** 获取窗口资源路径
     */
-    const DString& GetResourcePath() const;
+    const FilePath& GetResourcePath() const;
 
     /** 设置窗口关联的XML文件所在路径(相对于GetResourcePath()的路径)
     * @param [in] xmlPath 要设置的路径
     */
-    void SetXmlPath(const DString& xmlPath);
+    void SetXmlPath(const FilePath& xmlPath);
 
     /** 获取窗口关联的XML文件所在路径
     * @return 返回XML文件所在子目录，实际XML文件的所在路径是：GetResourcePath() + GetXmlPath()
     */
-    const DString& GetXmlPath() const;
+    const FilePath& GetXmlPath() const;
 
     /** 绑定窗口的顶层容器
     * @param [in] pRoot 容器指针
@@ -753,10 +754,10 @@ private:
 
 private:
     //每个窗口的资源路径(相对于资源根目录的路径)
-    DString m_resourcePath;
+    FilePath m_resourcePath;
 
     //窗口关联的XML文件所在路径(相对于m_resourcePath目录的路径), 实际XML文件所在目录是：m_resourcePath + m_xmlPath
-    DString m_xmlPath;
+    FilePath m_xmlPath;
 
     //窗口配置中class名称与属性映射关系
     std::map<DString, DString> m_defaultAttrHash;

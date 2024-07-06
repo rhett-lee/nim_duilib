@@ -50,7 +50,7 @@ void CefManager::AddCefDllToPath()
     TCHAR path_envirom[4096] = { 0 };
     GetEnvironmentVariable(_T("path"), path_envirom, 4096);
     
-    DString cef_path = ui::PathUtil::GetCurrentModuleDirectory();
+    ui::FilePath cef_path = ui::FilePathUtil::GetCurrentModuleDirectory();
 
 #ifdef _WIN64
     cef_path += _T("cef_x64");
@@ -58,18 +58,17 @@ void CefManager::AddCefDllToPath()
     cef_path += _T("cef");
 #endif
 
-    if (!ui::PathUtil::FilePathIsExist(cef_path, true))
-    {
+    if (!cef_path.IsExistsDirectory()) {
         ::MessageBoxW(NULL, L"请解压Cef.rar压缩包", L"提示", MB_OK);
         exit(0);
     }
-    DString new_envirom(cef_path);
+    DString new_envirom(cef_path.NativePath());
     new_envirom.append(_T(";")).append(path_envirom);
     SetEnvironmentVariable(_T("path"), new_envirom.c_str());
 
     // 解决播放flash弹出黑框的问题
     // https://blog.csdn.net/zhuhongshu/article/details/77482985
-    DString cmd_path = cef_path + _T("\\dummy_cmd.exe");
+    DString cmd_path = cef_path.NativePath() + _T("\\dummy_cmd.exe");
     SetEnvironmentVariable(_T("ComSpec"), cmd_path.c_str());
 }
 
@@ -201,8 +200,8 @@ client::DropTargetHandle CefManager::GetDropTarget(HWND hwnd)
 
 void CefManager::GetCefSetting(const DString& app_data_dir, CefSettings &settings)
 {
-    if (!ui::PathUtil::FilePathIsExist(app_data_dir, true)) {
-        ui::PathUtil::CreateDirectories(app_data_dir);
+    if (!ui::FilePath(app_data_dir).IsExistsDirectory()) {
+        ui::FilePathUtil::CreateDirectories(app_data_dir);
     }
     settings.no_sandbox = true;
 

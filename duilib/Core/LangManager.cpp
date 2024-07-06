@@ -13,7 +13,7 @@ LangManager::~LangManager()
     m_stringTable.clear();
 };
 
-bool LangManager::LoadStringTable(const DString& strFilePath)
+bool LangManager::LoadStringTable(const FilePath& strFilePath)
 {
     m_stringTable.clear();
     std::vector<uint8_t> fileData;

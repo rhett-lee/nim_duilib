@@ -1,7 +1,7 @@
 #include "CursorManager.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
-#include "duilib/Utils/PathUtil.h"
+#include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include <map>
 
@@ -17,7 +17,7 @@ public:
 
     /** 已经加载的光标资源句柄
     */
-    std::map<DString, HCURSOR> m_cursorMap;
+    std::map<FilePath, HCURSOR> m_cursorMap;
 };
 
 CursorManager::TImpl::TImpl()
@@ -160,18 +160,18 @@ HCURSOR LoadCursorFromData(const Window* pWindow, std::vector<uint8_t>& fileData
     return (HCURSOR)hIcon;
 }
 
-bool CursorManager::SetImageCursor(const Window* pWindow, const DString& curImagePath)
+bool CursorManager::SetImageCursor(const Window* pWindow, const FilePath& curImagePath)
 {
-    ASSERT(!curImagePath.empty());
+    ASSERT(!curImagePath.IsEmpty());
     ASSERT(pWindow != nullptr);
-    if ((pWindow == nullptr) || curImagePath.empty()) {
+    if ((pWindow == nullptr) || curImagePath.IsEmpty()) {
         return false;
     }
 
     //设置窗口图标
-    const DString windowResFullPath = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), pWindow->GetResourcePath());
-    DString cursorFullPath = PathUtil::JoinFilePath(windowResFullPath, curImagePath);
-    cursorFullPath = PathUtil::NormalizeFilePath(cursorFullPath);
+    const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), pWindow->GetResourcePath());
+    FilePath cursorFullPath = FilePathUtil::JoinFilePath(windowResFullPath, curImagePath);
+    cursorFullPath.NormalizeFilePath();
     if (GlobalManager::Instance().Zip().IsUseZip()) {
         //使用压缩包
         if (!GlobalManager::Instance().Zip().IsZipResExist(cursorFullPath)) {
@@ -181,7 +181,7 @@ bool CursorManager::SetImageCursor(const Window* pWindow, const DString& curImag
     }
     else {
         //使用本地文件
-        if (!PathUtil::IsExistsPath(cursorFullPath)) {
+        if (!cursorFullPath.IsExistsPath()) {
             ASSERT(false);
             return false;
         }
@@ -215,7 +215,7 @@ bool CursorManager::SetImageCursor(const Window* pWindow, const DString& curImag
         }
         else {
             //使用本地文件
-            hCursor = (HCURSOR)::LoadImage(NULL, cursorFullPath.c_str(), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+            hCursor = (HCURSOR)::LoadImage(NULL, cursorFullPath.NativePath().c_str(), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
             ASSERT(hCursor != nullptr);
             if (hCursor != nullptr) {
                 m_impl->m_cursorMap[cursorFullPath] = hCursor;

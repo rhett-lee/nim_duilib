@@ -2973,7 +2973,7 @@ bool Control::LoadImageData(Image& duiImage) const
     if (sImagePath.empty()) {
         return false;
     }
-    DString imageFullPath;
+    FilePath imageFullPath;
 
 #ifdef DUILIB_PLATFORM_WIN
     if (GlobalManager::Instance().Icon().IsIconString(sImagePath)) {
@@ -2982,16 +2982,16 @@ bool Control::LoadImageData(Image& duiImage) const
     }
 #endif
 
-    if(imageFullPath.empty()) {
-        imageFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), sImagePath);
+    if(imageFullPath.IsEmpty()) {
+        imageFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), FilePath(sImagePath));
     }
-    if (imageFullPath.empty()) {
+    if (imageFullPath.IsEmpty()) {
         //资源文件不存在
         return false;
     }
 
     ImageLoadAttribute imageLoadAttr = duiImage.GetImageLoadAttribute();
-    imageLoadAttr.SetImageFullPath(imageFullPath);
+    imageLoadAttr.SetImageFullPath(imageFullPath.ToString());
     std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
     if ((imageCache == nullptr) || 
         (imageCache->GetLoadKey() != imageLoadAttr.GetCacheKey(Dpi().GetScale()))) {

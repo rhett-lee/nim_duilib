@@ -44,7 +44,7 @@
 
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
-#include "duilib/Utils/PathUtil.h"
+#include "duilib/Utils/FilePathUtil.h"
 
 #include "duilib/third_party/xml/pugixml.hpp"
 
@@ -146,53 +146,73 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
     return pControl;
 }
 
-bool WindowBuilder::IsXmlFileExists(const DString& xml) const
+bool WindowBuilder::IsXmlFileExists(const FilePath& xmlFilePath) const
 {
-    if (xml.empty()) {
+    if (xmlFilePath.IsEmpty()) {
         return false;
     }
+    bool bExists = false;
     if (GlobalManager::Instance().Zip().IsUseZip()) {
-        DString sFile = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xml);
-        if (GlobalManager::Instance().Zip().IsZipResExist(sFile)) {
-            return true;
-        }
-    }
-    DString xmlFilePath = GlobalManager::Instance().GetResourcePath();
-    if (PathUtil::IsRelativePath(xml)) {
-        xmlFilePath = PathUtil::JoinFilePath(xmlFilePath, xml);
+        FilePath sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
+        bExists = GlobalManager::Instance().Zip().IsZipResExist(sFile);
     }
     else {
-        xmlFilePath = xml;
+        if (xmlFilePath.IsAbsolutePath()) {
+            bExists = xmlFilePath.IsExistsFile();
+        }
+        else {
+            FilePath xmlFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
+            bExists = xmlFullPath.IsExistsFile();
+        }
     }
-    return PathUtil::IsExistsPath(xmlFilePath);
+    return bExists;
 }
 
-Box* WindowBuilder::Create(const DString& xml, 
-                           CreateControlCallback pCallback,
-                           Window* pWindow, 
-                           Box* pParent, 
-                           Box* pUserDefinedBox)
+Box* WindowBuilder::CreateFromXmlData(const DString& xmlFileData,
+                                      CreateControlCallback pCallback,
+                                      Window* pWindow,
+                                      Box* pParent,
+                                      Box* pUserDefinedBox)
 {
-    ASSERT(!xml.empty() && _T("xml 参数为空！"));
-    if (xml.empty()) {
+    ASSERT(!xmlFileData.empty() && _T("xml 参数为空！"));
+    if (xmlFileData.empty()) {
         return nullptr;
     }
     bool isLoaded = false;
     //字符串以<开头认为是XML字符串，否则认为是XML文件
     //如果使用了 zip 压缩包，则从内存中读取
-    if (xml.front() == _T('<')) {
-        pugi::xml_parse_result result = m_xml->load_buffer(xml.c_str(), 
-                                                           xml.size() * sizeof(DString::value_type), 
-                                                           pugi::parse_default, 
-                                                           pugi::xml_encoding::encoding_utf16);
-        if (result.status != pugi::status_ok) {
-            ASSERT(!_T("WindowBuilder::Create load xml from string data failed!"));
-            return nullptr;
-        }
-        isLoaded = true;
+    if (xmlFileData.front() == _T('<')) {
+#ifdef DUILIB_UNICODE
+        pugi::xml_encoding encoding = pugi::xml_encoding::encoding_utf16;
+#else
+        pugi::xml_encoding encoding = pugi::xml_encoding::encoding_utf8;
+#endif
+        pugi::xml_parse_result result = m_xml->load_buffer(xmlFileData.c_str(),
+                                                           xmlFileData.size() * sizeof(DString::value_type),
+                                                           pugi::parse_default, encoding);
+        isLoaded = result.status == pugi::status_ok;
     }
-    if (!isLoaded && GlobalManager::Instance().Zip().IsUseZip()) {
-        DString sFile = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xml);
+    if (!isLoaded) {
+        ASSERT(!_T("WindowBuilder::Create load xmlFileData failed!"));
+        return nullptr;
+    }
+    m_xmlFilePath.Clear();
+    return Create(pCallback, pWindow, pParent, pUserDefinedBox);
+}
+
+Box* WindowBuilder::CreateFromXmlFile(const FilePath& xmlFilePath,
+                                      CreateControlCallback pCallback,
+                                      Window* pWindow, 
+                                      Box* pParent, 
+                                      Box* pUserDefinedBox)
+{
+    ASSERT(!xmlFilePath.IsEmpty() && _T("xmlFilePath 参数为空！"));
+    if (xmlFilePath.IsEmpty()) {
+        return nullptr;
+    }
+    bool isLoaded = false;
+    if (GlobalManager::Instance().Zip().IsUseZip()) {
+        FilePath sFile = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
         std::vector<unsigned char> file_data;
         if (GlobalManager::Instance().Zip().GetZipData(sFile, file_data)) {
             pugi::xml_parse_result result = m_xml->load_buffer(file_data.data(), file_data.size());
@@ -203,22 +223,26 @@ Box* WindowBuilder::Create(const DString& xml,
             isLoaded = true;
         }
     }
-    if(!isLoaded) {
-        DString xmlFilePath = GlobalManager::Instance().GetResourcePath();
-        if (PathUtil::IsRelativePath(xml)) {
-            xmlFilePath = PathUtil::JoinFilePath(xmlFilePath, xml);
+    else {
+        FilePath xmlFileFullPath;
+        if (xmlFilePath.IsRelativePath()) {
+            xmlFileFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), xmlFilePath);
         }
         else {
-            xmlFilePath = xml;
+            xmlFileFullPath = xmlFilePath;
         }
-        pugi::xml_parse_result result = m_xml->load_file(xmlFilePath.c_str());
+        pugi::xml_parse_result result = m_xml->load_file(xmlFileFullPath.NativePathA().c_str());
         if (result.status != pugi::status_ok) {
             ASSERT(!_T("WindowBuilder::Create load xml file failed!"));
             return nullptr;
         }
         isLoaded = true;
     }
-    m_xmlFilePath = xml;
+    if (!isLoaded) {
+        ASSERT(!_T("WindowBuilder::Create load xmlFilePath failed!"));
+        return nullptr;
+    }
+    m_xmlFilePath = xmlFilePath;
     return Create(pCallback, pWindow, pParent, pUserDefinedBox);
 }
 
@@ -295,9 +319,9 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                     else if (strName == _T("icon")) {
                         if (!strValue.empty()) {
                             //设置窗口图标
-                            const DString windowResFullPath = PathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), pWindow->GetResourcePath());
-                            DString iconFullPath = PathUtil::JoinFilePath(windowResFullPath, strValue);
-                            iconFullPath = PathUtil::NormalizeFilePath(iconFullPath);
+                            const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), pWindow->GetResourcePath());
+                            FilePath iconFullPath = FilePathUtil::JoinFilePath(windowResFullPath, FilePath(strValue));
+                            iconFullPath.NormalizeFilePath();
                             if (GlobalManager::Instance().Zip().IsUseZip()) {
                                 //使用压缩包
                                 if (GlobalManager::Instance().Zip().IsZipResExist(iconFullPath)) {
@@ -314,7 +338,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                             }
                             else {
                                 //使用本地文件
-                                if (PathUtil::IsExistsPath(iconFullPath)) {
+                                if (iconFullPath.IsExistsFile()) {
                                     pWindow->SetWindowIcon(iconFullPath);
                                 }
                                 else {
@@ -612,27 +636,30 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
                 sourceAttr = node.attribute(_T("source"));
                 sourceValue = sourceAttr.as_string();                
             }
+            FilePath sourceXmlFilePath(sourceValue);
             if (!sourceValue.empty()) {
-                StringUtil::ReplaceAll(_T("/"), _T("\\"), sourceValue);
-                if (!m_xmlFilePath.empty()) {
+                StringUtil::ReplaceAll(_T("/"), m_xmlFilePath.GetPathSeparatorStr(), sourceValue);
+                StringUtil::ReplaceAll(_T("\\"), m_xmlFilePath.GetPathSeparatorStr(), sourceValue);
+                if (!m_xmlFilePath.IsEmpty()) {
                     //优先尝试在原XML文件相同目录加载
-                    size_t pos = m_xmlFilePath.find_last_of(_T("\\/"));
+                    DString xmlFilePath = m_xmlFilePath.NativePath();
+                    size_t pos = xmlFilePath.find_last_of(_T("\\/"));
                     if (pos != DString::npos) {
-                        DString filePath = m_xmlFilePath.substr(0, pos);
-                        filePath = PathUtil::JoinFilePath(filePath, sourceValue);
-                        if (IsXmlFileExists(filePath)) {
-                            sourceValue = filePath;
+                        FilePath srcFilePath(xmlFilePath.substr(0, pos));
+                        srcFilePath.JoinFilePath(FilePath(sourceValue));
+                        if (IsXmlFileExists(srcFilePath)) {
+                            sourceXmlFilePath = srcFilePath;
                         }
                     }
                 }
             }
-            ASSERT(!sourceValue.empty());
-            if (sourceValue.empty()) {
+            ASSERT(!sourceXmlFilePath.IsEmpty());
+            if (sourceXmlFilePath.IsEmpty()) {
                 continue;
             }
             for ( int i = 0; i < nCount; i++ ) {
                 WindowBuilder builder;
-                pControl = builder.Create(sourceValue, m_createControlCallback, pWindow, (Box*)pParent);
+                pControl = builder.CreateFromXmlFile(sourceXmlFilePath, m_createControlCallback, pWindow, (Box*)pParent);
             }
             continue;
         }
@@ -751,11 +778,16 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
 
 bool WindowBuilder::ParseRichTextXmlText(const DString& xmlText, Control* pControl)
 {
+#ifdef DUILIB_UNICODE
+    pugi::xml_encoding encoding = pugi::xml_encoding::encoding_utf16;
+#else
+    pugi::xml_encoding encoding = pugi::xml_encoding::encoding_utf8;
+#endif
     pugi::xml_document doc;
     pugi::xml_parse_result result = doc.load_buffer(xmlText.c_str(),
                                                     xmlText.size() * sizeof(DString::value_type),
                                                     pugi::parse_default,
-                                                    pugi::xml_encoding::encoding_utf16);
+                                                    encoding);
     if (result.status != pugi::status_ok) {
         ASSERT(!_T("WindowBuilder::ParseRichTextXmlText load xml text failed!"));
         return false;

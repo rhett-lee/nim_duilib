@@ -22,9 +22,13 @@ public:
     */
     void SetImageFullPath(const DString& imageFullPath);
 
-    /** 获取图片路径（本地绝对路径或者压缩包内的相对路径）
+    /** 获取图片路径（UTF8或者UTF16编码，本地绝对路径或者压缩包内的相对路径）
     */
     DString GetImageFullPath() const;
+
+    /** 是否含有图片路径
+    */
+    bool HasImageFullPath() const;
 
     /** 获取加载图片的缓存KEY
     *   完整的格式是：<图片完整路径>@<界面缩放百分比>@<宽度>:<高度>

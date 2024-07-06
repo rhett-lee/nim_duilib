@@ -2,6 +2,7 @@
 #define UI_CORE_WINDOW_BASE_H_
 
 #include "duilib/Core/INativeWindow.h"
+#include "duilib/Utils/FilePath.h"
 
 #ifdef DUILIB_PLATFORM_WIN
     #include "duilib/Core/NativeWindow_Windows.h"
@@ -216,7 +217,7 @@ public:
     /** 设置窗口图标（支持*.ico格式）
     *  @param [in] iconFilePath ico文件的路径（绝对路径）
     */
-    bool SetWindowIcon(const DString& iconFilePath);
+    bool SetWindowIcon(const FilePath& iconFilePath);
 
     /** 设置窗口图标（支持*.ico格式）
     *  @param [in] iconFileData ico文件的数据

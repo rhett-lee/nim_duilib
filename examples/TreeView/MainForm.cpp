@@ -73,7 +73,7 @@ void MainForm::OnInitWindow()
 }
 
 void MainForm::InsertTreeNodes(ui::TreeNode* pTreeNode,
-                               const DString& path,
+                               const ui::FilePath& path,
                                const std::vector<FolderStatus>& fileList,
                                bool isFolder)
 {
@@ -87,16 +87,16 @@ void MainForm::InsertTreeNodes(ui::TreeNode* pTreeNode,
         return;
     }
     
-    DString folderPath;
+    ui::FilePath folderPath;
     for (const FolderStatus& folder : fileList) {
-        folderPath = ui::PathUtil::JoinFilePath(path, folder.path);
-        InsertTreeNode(pTreeNode, folder.path, folderPath, isFolder, folder.hIcon);
+        folderPath = ui::FilePathUtil::JoinFilePath(path, folder.path);
+        InsertTreeNode(pTreeNode, folder.path.ToString(), folderPath, isFolder, folder.hIcon);
     }
 }
 
 ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
                                        const DString& displayName,
-                                       const DString& path,
+                                       const ui::FilePath& path,
                                        bool isFolder,
                                        HICON hIcon)
 {
@@ -202,12 +202,7 @@ void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const 
         if (displayName.empty()) {
             displayName = name;
         }
-#ifdef DUILIB_UNICODE
-        DString folderName = folder;
-#else
-        DString folderName = ui::StringUtil::UTF16ToUTF8(folder);
-
-#endif
+        ui::FilePath folderName(folder);
         InsertTreeNode(nullptr, displayName, folderName, true, shFileInfo.hIcon);
     }
 
@@ -234,14 +229,15 @@ ui::TreeNode* MainForm::ShowAllDiskNode()
             continue;
         }
 
-        if (!ui::PathUtil::IsExistsPath(driverName)) {
+        ui::FilePath driverPath(driverName);
+        if (!driverPath.IsExistsPath()) {
             continue;
         }
 
         SHFILEINFO shFileInfo;
         ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
         if (::SHGetFileInfo(driverName.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_SMALLICON | SHGFI_DISPLAYNAME)) {      
-            ui::TreeNode* pNewNode = InsertTreeNode(nullptr, shFileInfo.szDisplayName, driverName, true, shFileInfo.hIcon);
+            ui::TreeNode* pNewNode = InsertTreeNode(nullptr, shFileInfo.szDisplayName, driverPath, true, shFileInfo.hIcon);
             if (pFirstNode == nullptr) {
                 pFirstNode = pNewNode;
             }
@@ -268,7 +264,7 @@ bool MainForm::OnTreeNodeExpand(const ui::EventArgs& args)
     return true;
 }
 
-void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const DString& filePath)
+void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const ui::FilePath& filePath)
 {
     if (pTreeNode == nullptr) {
         return;
@@ -290,7 +286,7 @@ void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const DString& fileP
             pTreeNode->SetExpand(true, true);
         }
     }
-    if (filePath.empty()) {
+    if (filePath.IsEmpty()) {
         return;
     }
     //由于ShowSubFolders是在子线程中执行的，所以这里也要先发给子线程，再转给UI线程，保证时序正确
@@ -310,13 +306,13 @@ void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const DString& fileP
     }));
 }
 
-void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const DString& path)
+void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const ui::FilePath& path)
 {
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadWorker, ToWeakCallback([this, path, pTreeNode]() {
         //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
-        DString findPath = ui::PathUtil::JoinFilePath(path, _T("*.*"));
+        ui::FilePath findPath = ui::FilePathUtil::JoinFilePath(path, ui::FilePath(_T("*.*")));
         WIN32_FIND_DATA findData;
-        HANDLE hFile = ::FindFirstFile(findPath.c_str(), &findData);
+        HANDLE hFile = ::FindFirstFile(findPath.NativePath().c_str(), &findData);
         if (hFile == INVALID_HANDLE_VALUE) {
             return;
         }
@@ -335,11 +331,11 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const DString& path)
                 continue;
             }
 
-            DString folderPath = ui::PathUtil::JoinFilePath(path, findData.cFileName);
+            ui::FilePath folderPath = ui::FilePathUtil::JoinFilePath(path, ui::FilePath(findData.cFileName));
 
             SHFILEINFO shFileInfo;
             ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
-            if (::SHGetFileInfo(folderPath.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_SMALLICON)) {
+            if (::SHGetFileInfo(folderPath.NativePath().c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_SMALLICON)) {
 #ifdef _DEBUG
                 //发现有hIcon句柄无效的情况，原因未知，暂时过滤掉                
                 if (shFileInfo.hIcon != nullptr) {
@@ -358,13 +354,13 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const DString& path)
                     }
                 }
 #endif
-                if (IsDirectory(folderPath)) {
+                if (folderPath.IsExistsDirectory()) {
                     //目录
-                    folderList.push_back({ findData.cFileName, false, shFileInfo.hIcon });
+                    folderList.push_back({ ui::FilePath(findData.cFileName), false, shFileInfo.hIcon });
                 }
                 else {
                     //文件
-                    fileList.push_back({ findData.cFileName, false, shFileInfo.hIcon });
+                    fileList.push_back({ ui::FilePath(findData.cFileName), false, shFileInfo.hIcon });
                 }
             }
         } while (::FindNextFile(hFile, &findData));
@@ -405,22 +401,13 @@ bool MainForm::OnTreeNodeSelect(const ui::EventArgs& args)
     return OnTreeNodeClick(args);
 }
 
-bool MainForm::IsDirectory(const DString& filePath) const
-{
-    DWORD dwAttr = ::GetFileAttributes(filePath.c_str());
-    if (dwAttr != INVALID_FILE_ATTRIBUTES) {
-        return dwAttr & FILE_ATTRIBUTE_DIRECTORY;
-    }
-    return false;
-}
-
-void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const DString& path)
+void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& path)
 {
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadWorker, ToWeakCallback([this, pTreeNode, path]() {
         //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
-        DString findPath = ui::PathUtil::JoinFilePath(path, _T("*.*"));
+        ui::FilePath findPath = ui::FilePathUtil::JoinFilePath(path, ui::FilePath(_T("*.*")));
         WIN32_FIND_DATA findData;
-        HANDLE hFile = ::FindFirstFile(findPath.c_str(), &findData);
+        HANDLE hFile = ::FindFirstFile(findPath.NativePath().c_str(), &findData);
         if (hFile == INVALID_HANDLE_VALUE) {
             return;
         }
@@ -439,18 +426,18 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const DString& path)
                 continue;
             }
 
-            DString folderPath = ui::PathUtil::JoinFilePath(path, findData.cFileName);
+            ui::FilePath folderPath = ui::FilePathUtil::JoinFilePath(path, ui::FilePath(findData.cFileName));
 
             SHFILEINFO shFileInfo;
             ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
-            if (::SHGetFileInfo(folderPath.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_LARGEICON)) {
-                if (IsDirectory(folderPath)) {
+            if (::SHGetFileInfo(folderPath.NativePath().c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_LARGEICON)) {
+                if (folderPath.IsExistsDirectory()) {
                     //目录
-                    folderList.push_back({ findData.cFileName, false, shFileInfo.hIcon });
+                    folderList.push_back({ ui::FilePath(findData.cFileName), false, shFileInfo.hIcon });
                 }
                 else {
                     //文件
-                    fileList.push_back({ findData.cFileName, false, shFileInfo.hIcon });
+                    fileList.push_back({ ui::FilePath(findData.cFileName), false, shFileInfo.hIcon });
                 }
             }
         } while (::FindNextFile(hFile, &findData));
@@ -458,13 +445,13 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const DString& path)
         hFile = INVALID_HANDLE_VALUE;
 
         std::vector<FileInfo> pathList;
-        DString folderPath;
+        ui::FilePath folderPath;
         for (const FolderStatus& folder : folderList) {
-            folderPath = ui::PathUtil::JoinFilePath(path, folder.path);
+            folderPath = ui::FilePathUtil::JoinFilePath(path, folder.path);
             pathList.push_back({ folder.path, folderPath, true, folder.hIcon });
         }
         for (const FolderStatus& folder : fileList) {
-            folderPath = ui::PathUtil::JoinFilePath(path, folder.path);
+            folderPath = ui::FilePathUtil::JoinFilePath(path, folder.path);
             pathList.push_back({ folder.path, folderPath, false, folder.hIcon });
         }
 

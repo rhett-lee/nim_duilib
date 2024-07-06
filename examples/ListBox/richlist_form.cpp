@@ -35,7 +35,7 @@ void RichlistForm::OnInitWindow()
 
     for (auto i = 0; i < 300; i++) {
         Item* item = new Item(this);
-        ui::GlobalManager::Instance().FillBoxWithCache(item, _T("list_box/item.xml"));
+        ui::GlobalManager::Instance().FillBoxWithCache(item, ui::FilePath(_T("list_box/item.xml")));
 
         if (bHListBox || bHTileListBox || bVTileListBox) {
             item->SetFixedWidth(ui::UiFixedInt(200), true, true);

@@ -31,16 +31,6 @@ ImageInfo::~ImageInfo()
     }
 }
 
-void ImageInfo::SetImageFullPath(const DString& path)
-{
-    m_imageFullPath = path;
-}
-
-DString ImageInfo::GetImageFullPath() const
-{
-    return m_imageFullPath.c_str();
-}
-
 void ImageInfo::SetFrameInterval(const std::vector<int32_t>& frameIntervals)
 {
     if (m_pFrameIntervals == nullptr) {

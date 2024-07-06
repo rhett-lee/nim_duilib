@@ -3,7 +3,7 @@
 #include "duilib/Core/DpiManager.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/PathUtil.h"
+#include "duilib/Utils/FilePathUtil.h"
 
 namespace ui 
 {
@@ -198,7 +198,7 @@ void FontManager::RemoveAllFonts()
 
 bool FontManager::AddFontFile(const DString& strFontFile, const DString& /*strFontDesc*/)
 {
-    DString fontFilePath = PathUtil::JoinFilePath(GlobalManager::Instance().GetFontFilePath(), strFontFile);
+    FilePath fontFilePath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetFontFilePath(), FilePath(strFontFile));
     IFontMgr* pFontMgr = nullptr;
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     if (pRenderFactory != nullptr) {
@@ -219,7 +219,7 @@ bool FontManager::AddFontFile(const DString& strFontFile, const DString& /*strFo
     }
     else {
         //从文件加载
-        bRet = pFontMgr->LoadFontFile(fontFilePath);
+        bRet = pFontMgr->LoadFontFile(fontFilePath.ToString());
     }
     ASSERT(bRet);
     return bRet;

@@ -455,7 +455,7 @@ public:
     {
         ASSERT(m_pTextServices != nullptr);
         GETTEXTEX gte = {};
-        gte.cb = nTextLen * sizeof(TCHAR);
+        gte.cb = nTextLen * sizeof(WCHAR);
         gte.codepage = uCodePage;
         gte.flags = dwFlags;
         gte.lpDefaultChar = lpDefaultChar;

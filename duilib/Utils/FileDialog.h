@@ -1,7 +1,7 @@
 #ifndef UI_UTILS_FILE_DIALOG_H_
 #define UI_UTILS_FILE_DIALOG_H_
 
-#include "duilib/duilib_defs.h"
+#include "duilib/Utils/FilePath.h"
 #include <string>
 #include <vector>
 
@@ -18,21 +18,28 @@ public:
     * @param [in] pWindow 父窗口
     * @param [out] folderPath 返回选择的文件夹路径
     */
-    bool BrowseForFolder(Window* pWindow, DString& folderPath);
+    bool BrowseForFolder(Window* pWindow, FilePath& folderPath);
 
     /** 选择文件夹（多选）
     * @param [in] pWindow 父窗口
     * @param [out] folderPaths 返回选择的文件夹路径
     */
-    bool BrowseForFolders(Window* pWindow, std::vector<DString>& folderPaths);
+    bool BrowseForFolders(Window* pWindow, std::vector<FilePath>& folderPaths);
 
 public:
     /** 文件类型筛选器
     */
     struct FileType
     {
-        DString szName; //文件类型筛选器的显示名称, 举例: "Text files"
-        DString szExt;  //文件类型筛选器, 举例："*.txt"
+        /** 文件类型筛选器的显示名称, 举例: "Text files"
+        *   编码规则：Unicode版本为UTF16编码，非Unicode版本为UTF8编码
+        */
+        DString szName;
+
+        /** 文件类型筛选器, 举例："*.txt"
+        *   编码规则：Unicode版本为UTF16编码，非Unicode版本为UTF8编码
+        */
+        DString szExt;
     };
 
     /** 选择文件（单选）
@@ -40,11 +47,11 @@ public:
     * @param [in] bOpenFileDialog true表示打开文件，false表示保存文件
     * @param [in] fileTypes 对话框可以打开或保存的文件类型
     * @param [in] nFileTypeIndex 选择的文件类型，有效范围：[0, fileTypes.size())
-    * @param [in] defaultExt 默认的文件类型, 举例："doc;docx"
+    * @param [in] defaultExt 默认的文件类型, 举例："doc;docx", 编码规则：Unicode版本为UTF16编码，非Unicode版本为UTF8编码
     * @param [out] filePath 返回选择的文件路径
     */
     bool BrowseForFile(Window* pWindow, 
-                       DString& filePath,                       
+                       FilePath& filePath,
                        bool bOpenFileDialog, 
                        const std::vector<FileType>& fileTypes = std::vector<FileType>(),
                        int32_t nFileTypeIndex = -1,
@@ -54,7 +61,7 @@ public:
     * @param [in] pWindow 父窗口
     * @param [in] fileTypes 对话框可以打开或保存的文件类型
     * @param [in] nFileTypeIndex 选择的文件类型，有效范围：[0, fileTypes.size())
-    * @param [in] defaultExt 默认的文件类型, 举例："doc;docx"
+    * @param [in] defaultExt 默认的文件类型, 举例："doc;docx", 编码规则：Unicode版本为UTF16编码，非Unicode版本为UTF8编码
     * @param [out] filePaths 返回选择的文件路径
     */
     bool BrowseForFiles(Window* pWindow, 

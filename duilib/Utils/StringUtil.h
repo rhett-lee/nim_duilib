@@ -66,11 +66,19 @@ public:
     static DString MBCSToT(const std::string& input);
     //返回字符串编码：本地Ansi编码
     static std::string TToMBCS(const DString& input);
-    //非Unicode时：input是UTF-8编码，返回本地Ansi编码
-    static DString TToLocal(const DString& input);
-    //非Unicode时：input是本地Ansi编码, 返回UTF-8编码
-    static DString LocalToT(const DString& input);
 #endif
+
+    //非Unicode时：
+    //          input是UTF-8编码，Windows平台：返回本地Ansi编码，非Windows平台返回input
+    //Unicode时：返回input
+    static DString TToLocal(const DString& input);
+
+    //非Unicode时：
+    //          Windows平台：input是本地Ansi编码, 返回UTF-8编码
+    //        非Windows平台：input是本地UTF-8编码, 返回UTF-8编码
+    //Unicode时：返回input
+    static DString LocalToT(const DString& input);
+
     // trimming, removing extra spaces
     static std::string TrimLeft(const char *input);
     static std::string TrimRight(const char* input);

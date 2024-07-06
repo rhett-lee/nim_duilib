@@ -34,7 +34,7 @@ void MainThread::OnInit()
     constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
     if (resType == ui::ResourceType::kLocalFiles) {
         //使用本地文件夹作为资源
-        DString resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
+        ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
         resourcePath += _T("resources\\");
         ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
     }
@@ -42,7 +42,7 @@ void MainThread::OnInit()
         //使用本地zip压缩包作为资源（压缩包位于exe相同目录）    
         ui::ZipFileResParam resParam;
         resParam.resourcePath = _T("resources\\");
-        resParam.zipFilePath = ui::PathUtil::GetCurrentModuleDirectory();
+        resParam.zipFilePath = ui::FilePathUtil::GetCurrentModuleDirectory();
         resParam.zipFilePath += _T("resources.zip");
         resParam.zipPassword = _T("");
         ui::GlobalManager::Instance().Startup(resParam);

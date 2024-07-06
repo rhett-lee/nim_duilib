@@ -52,7 +52,7 @@ void MainThread::OnInit()
     m_misc_thread->Start();
 
     //初始化全局资源, 使用本地文件夹作为资源
-    DString resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
+    ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
     resourcePath += _T("resources\\");
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 

@@ -21,16 +21,16 @@ namespace ui
 */
 class PropertyGridGroup;
 class PropertyGridProperty;
-class PropertyGridTextProperty;        //文本和数字
-class PropertyGridComboProperty;    //下拉框
-class PropertyGridFontProperty;        //字体名称
-class PropertyGridFontSizeProperty;    //字体大小
-class PropertyGridColorProperty;    //颜色
-class PropertyGridDateTimeProperty; //日期时间
-class PropertyGridIPAddressProperty;//IP地址
-class PropertyGridHotKeyProperty;    //热键
-class PropertyGridFileProperty;        //文件路径
-class PropertyGridDirectoryProperty;//文件夹
+class PropertyGridTextProperty;         //文本和数字
+class PropertyGridComboProperty;        //下拉框
+class PropertyGridFontProperty;         //字体名称
+class PropertyGridFontSizeProperty;     //字体大小
+class PropertyGridColorProperty;        //颜色
+class PropertyGridDateTimeProperty;     //日期时间
+class PropertyGridIPAddressProperty;    //IP地址
+class PropertyGridHotKeyProperty;       //热键
+class PropertyGridFileProperty;         //文件路径
+class PropertyGridDirectoryProperty;    //文件夹
 
 /** 属性表控件
 */

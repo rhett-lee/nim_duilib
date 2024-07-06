@@ -29,13 +29,13 @@ public:
 
     /** 触发树节点点击事件
      */
-    void CheckExpandTreeNode(ui::TreeNode* pTreeNode, const DString& filePath);
+    void CheckExpandTreeNode(ui::TreeNode* pTreeNode, const ui::FilePath& filePath);
 
 private:
     //目录列表数据结构
     struct FolderStatus
     {
-        DString path;
+        ui::FilePath path;
         bool bShow = false;
         HICON hIcon = nullptr;
         ui::TreeNode* pTreeNode = nullptr;
@@ -48,23 +48,23 @@ private:
     ui::TreeNode* ShowAllDiskNode();
 
     //显示指定目录的子目录
-    void ShowSubFolders(ui::TreeNode* pTreeNode, const DString& path);
+    void ShowSubFolders(ui::TreeNode* pTreeNode, const ui::FilePath& path);
 
     //在树中添加一个节点, 返回新添加的节点接口
     ui::TreeNode* InsertTreeNode(ui::TreeNode* pTreeNode,
                                  const DString& displayName,
-                                 const DString& path,
+                                 const ui::FilePath& path,
                                  bool isFolder,
                                  HICON hIcon);
 
     //批量在树中插入一个节点
     void InsertTreeNodes(ui::TreeNode* pTreeNode, 
-                        const DString& path,
+                        const ui::FilePath& path,
                         const std::vector<FolderStatus>& fileList,
                         bool isFolder);
 
     //显示指定目录的内容
-    void ShowFolderContents(ui::TreeNode* pTreeNode, const DString& path);
+    void ShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& path);
 
     /** 树节点展开事件
      * @param[in] args 消息体
@@ -83,10 +83,6 @@ private:
      * @return 始终返回 true
      */
     bool OnTreeNodeSelect(const ui::EventArgs& args);
-
-    /** 判断一个路径是否为目录
-    */
-    bool IsDirectory(const DString& filePath) const;
 
 private:
     //树节点的接口

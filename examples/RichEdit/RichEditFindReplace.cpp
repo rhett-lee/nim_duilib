@@ -273,7 +273,7 @@ void RichEditFindReplace::TextNotFound(const DString& findText)
 
 void RichEditFindReplace::AdjustDialogPosition(ui::Window* pWndDialog)
 {
-    if ((pWndDialog == nullptr) || pWndDialog->IsWindow()) {
+    if ((pWndDialog == nullptr) || !pWndDialog->IsWindow()) {
         return;
     }
     if (m_pRichEdit == nullptr) {

@@ -1,5 +1,6 @@
 #include "Menu.h"
 #include "duilib/Core/Keyboard.h"
+#include "duilib/Utils/FilePathUtil.h"
 
 namespace ui {
 
@@ -977,14 +978,14 @@ void MenuItem::CreateMenuWnd()
     if (pParentWindow != nullptr) {
         const DString skinFolder = pParentWindow->GetSkinFolder();
         m_pSubWindow->SetSkinFolder(skinFolder);
-        DString xmlPath = pParentWindow->GetXmlPath();
-        DString subXmlFile = pParentWindow->m_submenuXml.c_str();
+        FilePath xmlPath = pParentWindow->GetXmlPath();
+        FilePath subXmlFile = FilePath(pParentWindow->m_submenuXml.c_str());
         //约定：子菜单的XML与父菜单的XML文件，在相同的目录中
-        if (!xmlPath.empty()) {
-            subXmlFile = xmlPath + subXmlFile;
+        if (!xmlPath.IsEmpty()) {
+            subXmlFile = FilePathUtil::JoinFilePath(xmlPath, subXmlFile);
         }
         m_pSubWindow->SetSubMenuXml(pParentWindow->m_submenuXml.c_str(), pParentWindow->m_submenuNodeName.c_str());
-        m_pSubWindow->ShowMenu(subXmlFile, UiPoint(), MenuPopupPosType::RIGHT_BOTTOM, false, this);
+        m_pSubWindow->ShowMenu(subXmlFile.ToString(), UiPoint(), MenuPopupPosType::RIGHT_BOTTOM, false, this);
     }
 }
 

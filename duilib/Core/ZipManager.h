@@ -1,7 +1,7 @@
 #ifndef UI_CORE_ZIPMANAGER_H_
 #define UI_CORE_ZIPMANAGER_H_
 
-#include "duilib/duilib_defs.h"
+#include "duilib/Utils/FilePath.h"
 #include <string>
 #include <vector>
 #include <unordered_set>
@@ -45,41 +45,38 @@ public:
      * @param[in] path 压缩包文件路径
      * @param[in] password 压缩包密码
      */
-    bool OpenZipFile(const DString& path, const DString& password);
+    bool OpenZipFile(const FilePath& path, const DString& password);
 
     /** 获取压缩包中的内容到内存
-     * @param [in] path 要获取的文件的路径
+     * @param [in] path 要获取的文件的路径(压缩包内路径)
      * @param [out] fileData 要获取的文件的路径
      */
-    bool GetZipData(const DString& path, std::vector<unsigned char>& fileData) const;
+    bool GetZipData(const FilePath& path, std::vector<unsigned char>& fileData) const;
 
     /** 判断资源是否存在zip当中
-     * @param[in] path 要判断的资源路径
+     * @param[in] path 要判断的资源路径(压缩包内路径)
      */
-    bool IsZipResExist(const DString& path) const;
+    bool IsZipResExist(const FilePath& path) const;
 
     /** 获取指定目录下的文件名称列表
-    * @param [in] path 目录名称
+    * @param [in] dirPath 目录名称(压缩包内路径)
     * @param [out] fileList 返回该目录下的文件列表
     */
-    bool GetZipFileList(const DString& path, std::vector<DString>& fileList) const;
+    bool GetZipFileList(const FilePath& dirPath, std::vector<DString>& fileList) const;
 
     /** 关闭压缩包
     */
     void CloseResZip();
 
 private:
-    /** 获取文件在压缩包中的位置
-     * @param [in] path 要获取的文件路径
-     * @return 返回在压缩包中的文件位置
-     */
-    DString GetZipFilePath(const DString& path) const;
-
-    /** 获取压缩包内的路径(包内编码格式的)
+    /** 对Zip格式的路径进行规范化处理（'\\'替换成'/'）
     */
-    std::string GetZipFilePathA(const DString& path, bool bUtf8) const;
+    void NormalizeZipFilePath(std::string& innerFilePath) const;
+    void NormalizeZipFilePath(std::wstring& innerFilePath) const;
 
     /** 获取压缩包内的路径(转换字符串编码)
+    * @param [in] szInZipFilePath 要获取的文件路径(压缩包内路径)
+    * @param [in] bUtf8 true表示UTF8编码，否则为Ansi编码
     */
     DString GetZipFilePath(const char* szInZipFilePath, bool bUtf8) const;
 

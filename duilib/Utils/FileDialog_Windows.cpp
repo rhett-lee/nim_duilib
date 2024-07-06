@@ -7,9 +7,9 @@
 
 namespace ui
 {
-bool FileDialog::BrowseForFolder(Window* pWindow, DString& folderPath)
+bool FileDialog::BrowseForFolder(Window* pWindow, FilePath& folderPath)
 {
-    folderPath.clear();
+    folderPath.Clear();
     IFileDialog* pfd = nullptr;//仅Win7以及上支持
     HRESULT hr = ::CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
     if (SUCCEEDED(hr) && (pfd != nullptr)) {
@@ -25,7 +25,7 @@ bool FileDialog::BrowseForFolder(Window* pWindow, DString& folderPath)
                 LPWSTR pName = nullptr;
                 hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pName);
                 if (SUCCEEDED(hr) && (pName != nullptr)) {
-                    folderPath = StringUtil::UTF16ToT(pName);
+                    folderPath = FilePath(pName);
                     ::CoTaskMemFree(pName);
                     pName = nullptr;
                 }
@@ -34,10 +34,10 @@ bool FileDialog::BrowseForFolder(Window* pWindow, DString& folderPath)
         }
         pfd->Release();
     }
-    return !folderPath.empty();
+    return !folderPath.IsEmpty();
 }
 
-bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<DString>& folderPaths)
+bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<FilePath>& folderPaths)
 {
     folderPaths.clear();
     IFileOpenDialog* pfd = nullptr;//仅Win7以及上支持
@@ -64,10 +64,10 @@ bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<DString>& folderP
                         LPWSTR pName = nullptr;
                         hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pName);
                         if (SUCCEEDED(hr) && (pName != nullptr)) {
-                            DString folderPath = StringUtil::UTF16ToT(pName);
+                            FilePath folderPath(pName);
                             ::CoTaskMemFree(pName);
                             pName = nullptr;
-                            if (!folderPath.empty()) {
+                            if (!folderPath.IsEmpty()) {
                                 folderPaths.push_back(folderPath);
                             }
                         }
@@ -83,13 +83,13 @@ bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<DString>& folderP
 }
 
 bool FileDialog::BrowseForFile(Window* pWindow, 
-                               DString& filePath,                               
+                               FilePath& filePath,                               
                                bool bOpenFileDialog,
                                const std::vector<FileType>& fileTypes,
                                int32_t nFileTypeIndex,
                                const DString& defaultExt)
 {
-    filePath.clear();
+    filePath.Clear();
     IFileDialog* pfd = nullptr;//仅Win7以及上支持
     HRESULT hr = S_OK;
     if (bOpenFileDialog) {
@@ -98,19 +98,30 @@ bool FileDialog::BrowseForFile(Window* pWindow,
     else {
         hr = ::CoCreateInstance(CLSID_FileSaveDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
     }
+    //过滤类型固定为Unicode字符串
+    struct FileTypeW
+    {
+        DStringW szName;
+        DStringW szExt;
+    };
+    std::vector<FileTypeW> fileTypesW;
+    for (const FileType& fileType : fileTypes) {
+        fileTypesW.push_back({ StringUtil::TToUTF16(fileType.szName), StringUtil::TToUTF16(fileType.szExt) });
+    }
+
     if (SUCCEEDED(hr) && (pfd != nullptr)) {
         FILEOPENDIALOGOPTIONS fos = 0;
         pfd->GetOptions(&fos);
         fos |= FOS_FORCEFILESYSTEM;
         pfd->SetOptions(fos);
-        if (!fileTypes.empty()) {
+        if (!fileTypesW.empty()) {
             std::vector<COMDLG_FILTERSPEC> filterSpecs;
-            for (const FileType& fileType : fileTypes) {
+            for (const FileTypeW& fileType : fileTypesW) {
                 filterSpecs.push_back({ (LPCWSTR)fileType.szName.c_str(), (LPCWSTR)fileType.szExt.c_str() });
             }
             hr = pfd->SetFileTypes((UINT)filterSpecs.size(), filterSpecs.data());
         }
-        if ((nFileTypeIndex >= 0) && (nFileTypeIndex < (int32_t)fileTypes.size())) {
+        if ((nFileTypeIndex >= 0) && (nFileTypeIndex < (int32_t)fileTypesW.size())) {
             hr = pfd->SetFileTypeIndex((UINT)nFileTypeIndex + 1); //SetFileTypeIndex的下标是从1开始的
             ASSERT(SUCCEEDED(hr));
         }
@@ -126,7 +137,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
                 LPWSTR resultptr = nullptr;
                 hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &resultptr);
                 if (SUCCEEDED(hr) && (resultptr != nullptr)) {
-                    filePath = StringUtil::UTF16ToT(resultptr);
+                    filePath = FilePath(resultptr);
                     ::CoTaskMemFree(resultptr);
                     resultptr = nullptr;
                 }
@@ -135,7 +146,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
         }
         pfd->Release();
     }
-    return !filePath.empty();
+    return !filePath.IsEmpty();
 }
 
 bool FileDialog::BrowseForFiles(Window* pWindow, 

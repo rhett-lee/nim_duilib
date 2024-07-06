@@ -604,9 +604,8 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
                                                        uint32_t nImageDpiScale,
                                                        const DpiManager& dpi)
 {
-    DString imageFullPath = imageLoadAttribute.GetImageFullPath();
-    ASSERT(!fileData.empty() && !imageFullPath.empty());
-    if (fileData.empty() || imageFullPath.empty()) {
+    ASSERT(!fileData.empty() && imageLoadAttribute.HasImageFullPath());
+    if (fileData.empty() || !imageLoadAttribute.HasImageFullPath()) {
         return nullptr;
     }
     IRenderFactory* pRenderFactroy = GlobalManager::Instance().GetRenderFactory();
@@ -682,7 +681,6 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
     }
     //多帧图片时，以第一帧图片作为图片的大小信息
     imageInfo->SetImageSize(imageWidth, imageHeight);
-    imageInfo->SetImageFullPath(imageFullPath);
     imageInfo->SetPlayCount(playCount);
     imageInfo->SetBitmapSizeDpiScaled(bDpiScaled);
     return imageInfo;
@@ -760,8 +758,7 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
     bDpiScaled = false;
 
     bool isLoaded = false;
-    DString imageFullPath = imageLoadAttribute.GetImageFullPath();
-    ImageFormat imageFormat = GetImageFormat(imageFullPath);
+    ImageFormat imageFormat = GetImageFormat(imageLoadAttribute.GetImageFullPath());
     switch (imageFormat) {
     case ImageFormat::kPNG:
         isLoaded = APNGImageLoader::LoadImageFromMemory(fileData, imageData, playCount);

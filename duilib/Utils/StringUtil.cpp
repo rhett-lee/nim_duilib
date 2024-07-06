@@ -745,11 +745,13 @@ DString StringUtil::TToLocal(const DString& input)
 {
 #ifdef DUILIB_UNICODE
     return input;
-#else
+#elif defined (DUILIB_PLATFORM_WIN)
     DString output;
     std::wstring temp = UTF8ToUTF16(input);
     output = UnicodeToMBCS(temp);
     return output;
+#else
+    return input;
 #endif
 }
 
@@ -757,9 +759,11 @@ DString StringUtil::LocalToT(const DString& input)
 {
 #ifdef DUILIB_UNICODE
     return input;
-#else
+#elif defined (DUILIB_PLATFORM_WIN)
     DStringW output = MBCSToUnicode(input);
     return UTF16ToUTF8(output);
+#else
+    return input;
 #endif
 }
 

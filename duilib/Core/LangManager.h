@@ -1,7 +1,7 @@
 #ifndef UI_CORE_MULTILANG_H_
 #define UI_CORE_MULTILANG_H_
 
-#include "duilib/duilib_defs.h"
+#include "duilib/Utils/FilePath.h"
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -23,7 +23,7 @@ public:
     /** 从本地文件加载所有语言映射表
      * @param[in] strFilePath 语言文件的完整路径
      */
-    bool LoadStringTable(const DString& strFilePath);
+    bool LoadStringTable(const FilePath& strFilePath);
 
     /** 从内存中加载所有语言映射表
      * @param[in] fileData 要加载的语言映射表的数据

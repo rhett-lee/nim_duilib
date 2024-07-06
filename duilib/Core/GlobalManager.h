@@ -68,11 +68,11 @@ public:
      *   如果 resType == kLocalFiles，需要设置资源所在的本地路径（绝对路径）
      *   如果 resType == kZipFile 或者 resType == kResZip，设置资源所在的起始目录（相对路径），比如：_T("resources\\")
      */
-    void SetResourcePath(const DString& strPath);
+    void SetResourcePath(const FilePath& strPath);
 
     /** 获取当前资源所在路径
      */
-    const DString& GetResourcePath() const;
+    const FilePath& GetResourcePath() const;
 
     /** 重新加载皮肤资源（可通过此接口实现动态换肤功能）
     * @param [in] resParam 资源相关的参数，根据资源类型不同，有以下可选项
@@ -93,22 +93,22 @@ public:
 
     /** 设置字体文件所在路径
     */
-    void SetFontFilePath(const DString& strPath);
+    void SetFontFilePath(const FilePath& strPath);
 
     /** 获取字体文件所在路径
     */
-    const DString& GetFontFilePath() const;
+    const FilePath& GetFontFilePath() const;
 
 public:
     /** 设置语言文件所在路径，可以是相对路径或者是绝对路径（多语言版时，所有的语言文件都放在这个目录中）
     *   如果是绝对路径，则在这个绝对路径中查找语言文件
     *   如果是相对路径，则根据resType和resourcePath决定的资源路径下，按相对路径查找资源文件
     */
-    void SetLanguagePath(const DString& strPath);
+    void SetLanguagePath(const FilePath& strPath);
 
     /** 获取语言文件所在路径
     */
-    const DString& GetLanguagePath() const;
+    const FilePath& GetLanguagePath() const;
 
     /** 获取语言文件名，不含路径
     */
@@ -122,7 +122,7 @@ public:
      * @param [in] languageFileName 当前使用语言文件的文件名（不含路径）
      * @param [in] bInvalidate 是否刷新界面显示：true表示更新完语言文件后刷新界面显示，false表示不刷新界面显示
      */
-    bool ReloadLanguage(const DString& languagePath = _T(""),
+    bool ReloadLanguage(const FilePath& languagePath = FilePath(),
                         const DString& languageFileName = _T("zh_CN.txt"),
                         bool bInvalidate = false);
 
@@ -220,35 +220,35 @@ public:
               （1）如果是使用ZIP压缩包，返回："resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
               （2）如果未使用ZIP压缩包，返回："<程序所在目录>\resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
      */
-    DString GetExistsResFullPath(const DString& windowResPath, const DString& windowXmlPath, const DString& resPath);
+    FilePath GetExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath, const FilePath& resPath);
 
     /** 根据 XML 创建一个 Box
      * @param[in] strXmlPath XML 文件路径
      * @param[in] callback 自定义控件的回调处理函数
      * @return 指定布局模块的对象指针
      */
-    Box* CreateBox(const DString& strXmlPath, CreateControlCallback callback = CreateControlCallback());
+    Box* CreateBox(const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
     /** 根据 XML 在缓存中查找指定 Box，如果没有则创建
      * @param[in] strXmlPath XML 文件路径
      * @param[in] callback 自定义控件的回调处理函数
      * @return 指定布局模块的对象指针
      */
-    Box* CreateBoxWithCache(const DString& strXmlPath, CreateControlCallback callback = CreateControlCallback());
+    Box* CreateBoxWithCache(const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
     /** 使用 XML 填充指定 Box
      * @param[in] pUserDefinedBox 要填充的 box 指针
      * @param[in] strXmlPath XML 文件路径
      * @param[in] callback 自定义控件的回调处理函数
      */
-    void FillBox(Box* pUserDefinedBox, const DString& strXmlPath, CreateControlCallback callback = CreateControlCallback());
+    void FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
     /** 使用构建过的缓存填充指定 Box，如果没有则重新构建
      * @param[in] pUserDefinedBox 要填充的 box 指针
      * @param[in] strXmlPath XML 文件路径
      * @param[in] callback 自定义控件的回调处理函数
      */
-    void FillBoxWithCache(Box* pUserDefinedBox, const DString& strXmlPath, CreateControlCallback callback = CreateControlCallback());
+    void FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback = CreateControlCallback());
 
     /** 自定义控件创建后的全局回调函数
      * @param[in] strControlName 自定义控件名称
@@ -277,7 +277,7 @@ private:
 
     /** 全局的资源路径，换肤的时候修改这个变量（绝对路径）
     */
-    DString m_resourcePath;
+    FilePath m_resourcePath;
 
     /** 平台相关数据（可选参数，如不填写则使用默认值：nullptr）
     *   Windows平台：是资源所在模块句柄（HMODULE），如果为nullptr，则使用所在exe的句柄（可选参数）
@@ -286,11 +286,11 @@ private:
 
     /** 全局字体文件路径（绝对路径）
     */
-    DString m_fontFilePath;
+    FilePath m_fontFilePath;
 
     /** 全局语言文件路径（绝对路径）
     */
-    DString m_languagePath; 
+    FilePath m_languagePath;
 
     /** 全局语言文件名（不含路径）
     */
@@ -298,7 +298,7 @@ private:
     
     /** 窗口构建管理接口，KEY是XML文件路径，VALUE是窗口构建管理接口（已经解析后的XML，可避免重复解析）
     */
-    std::map<DString, std::unique_ptr<WindowBuilder>> m_builderMap;
+    std::map<FilePath, std::unique_ptr<WindowBuilder>> m_builderMap;
 
     /** 控件创建函数，用于用户自定义控件的创建
     */

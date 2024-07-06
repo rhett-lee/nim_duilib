@@ -6,7 +6,6 @@
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FileUtil.h"
-#include "duilib/Utils/PathUtil.h"
 
 namespace ui 
 {
@@ -42,10 +41,9 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
 
     //重新加载资源    
     std::unique_ptr<ImageInfo> imageInfo;
-    DString loadImageFullPath = loadAtrribute.GetImageFullPath();
     bool isIcon = false;
 #ifdef DUILIB_PLATFORM_WIN
-    if (GlobalManager::Instance().Icon().IsIconString(loadImageFullPath)) {
+    if (GlobalManager::Instance().Icon().IsIconString(loadAtrribute.GetImageFullPath())) {
         //加载ICON
         isIcon = true;
         LoadIconData(pWindow, loadAtrribute, imageInfo);
@@ -100,10 +98,10 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
         //从内存数据加载文件
         std::vector<uint8_t> fileData;
         if (isUseZip) {
-            GlobalManager::Instance().Zip().GetZipData(imageFullPath, fileData);
+            GlobalManager::Instance().Zip().GetZipData(FilePath(imageFullPath), fileData);
         }
         else {
-            FileUtil::ReadFileData(imageFullPath, fileData);
+            FileUtil::ReadFileData(FilePath(imageFullPath), fileData);
         }
         ASSERT(!fileData.empty());
 
@@ -178,7 +176,6 @@ void ImageManager::LoadIconData(const Window* pWindow,
             imageInfo.reset(new ImageInfo);
             imageInfo->SetFrameBitmap(frameBitmaps);
             imageInfo->SetImageSize(imageWidth, imageHeight);
-            imageInfo->SetImageFullPath(iconString);
             imageInfo->SetPlayCount(-1);
             imageInfo->SetBitmapSizeDpiScaled(bDpiScaled);
         }
@@ -321,10 +318,10 @@ bool ImageManager::FindDpiScaleImageFullPath(uint32_t dpiScale,
 
     bool bExists = false;
     if (bIsUseZip) {
-        bExists = GlobalManager::Instance().Zip().IsZipResExist(dpiImageFullPath);
+        bExists = GlobalManager::Instance().Zip().IsZipResExist(FilePath(dpiImageFullPath));
     }
     else {
-        bExists = PathUtil::IsExistsPath(dpiImageFullPath);
+        bExists = FilePath(dpiImageFullPath).IsExistsPath();
     }
     if (!bExists) {
         dpiImageFullPath.clear();

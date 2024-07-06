@@ -572,7 +572,10 @@ HRESULT RichEditHost::TxGetPasswordChar(_Out_ TCHAR* pch)
     if (pch == nullptr) {
         return NOERROR;
     }
-    *pch = m_chPasswordChar;
+#ifndef DUILIB_UNICODE
+    ASSERT(m_chPasswordChar <= CHAR_MAX);
+#endif // !DUILIB_UNICODE
+    *pch = (TCHAR)m_chPasswordChar;
     if (!IsPassword()) {
         //未启用密码
         return S_FALSE;

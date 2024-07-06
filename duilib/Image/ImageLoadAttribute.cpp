@@ -1,7 +1,7 @@
 #include "ImageLoadAttribute.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/PathUtil.h"
+#include "duilib/Utils/FilePath.h"
 
 namespace ui 
 {
@@ -22,15 +22,20 @@ ImageLoadAttribute::ImageLoadAttribute(DString srcWidth,
 
 void ImageLoadAttribute::SetImageFullPath(const DString& imageFullPath)
 {
-    DString fullPath = PathUtil::NormalizeFilePath(imageFullPath);
-    StringUtil::Trim(fullPath);
-    m_srcImageFullPath = fullPath;    
+    FilePath fullPath(imageFullPath);
+    fullPath.NormalizeFilePath();
+    m_srcImageFullPath = fullPath.ToString();
 }
 
 DString ImageLoadAttribute::GetImageFullPath() const
 {
     ASSERT(!m_srcImageFullPath.empty());
     return m_srcImageFullPath.c_str();
+}
+
+bool ImageLoadAttribute::HasImageFullPath() const
+{
+    return !m_srcImageFullPath.empty();
 }
 
 DString ImageLoadAttribute::GetCacheKey(uint32_t nDpiScale) const

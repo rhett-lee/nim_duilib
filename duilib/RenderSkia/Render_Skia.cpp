@@ -1697,7 +1697,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
                 SkScalar maxWidth = SkIntToScalar(rc.right - xPos);//可用宽度
                 ASSERT(maxWidth > 0);
                 SkScalar measuredWidth = 0;
-                size_t byteLength = (textCount - textStartIndex) * sizeof(wchar_t);
+                size_t byteLength = (textCount - textStartIndex) * sizeof(DString::value_type);
                 size_t nDrawLength = SkTextBox::breakText(text.c_str() + textStartIndex,
                                                           byteLength,
                                                           GetTextEncoding(),
@@ -1714,7 +1714,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
                 spTextData->m_dataIndex = index;
                 spTextData->m_nRows = nRowIndex;
                 if (nDrawLength > 0) {
-                    spTextData->m_text = text.substr(textStartIndex, nDrawLength / sizeof(wchar_t));
+                    spTextData->m_text = text.substr(textStartIndex, nDrawLength / sizeof(DString::value_type));
                 }
                 spTextData->m_skPaint = skPaint;
                 spTextData->m_spFont = spSkiaFont;
@@ -1730,7 +1730,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
                 if (nDrawLength < byteLength) {
                     //宽度不足，需要换行
                     bNextRow = true;
-                    textStartIndex += nDrawLength / sizeof(wchar_t);
+                    textStartIndex += nDrawLength / sizeof(DString::value_type);
                 }
                 else {
                     //当前行可容纳文本绘制

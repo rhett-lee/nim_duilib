@@ -37,8 +37,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // 初始化 CEF
     CefSettings settings;
-    if (!nim_comp::CefManager::GetInstance()->Initialize(ui::PathUtil::GetCurrentModuleDirectory() + _T("cef_temp\\"), settings, false))
-    {
+    ui::FilePath appDataDir = ui::FilePathUtil::GetCurrentModuleDirectory();
+    appDataDir += _T("cef_temp\\"); //TODO: 可写目录
+    if (!nim_comp::CefManager::GetInstance()->Initialize(appDataDir.ToString(), settings, false)) {
         return 0;
     }
 
@@ -68,7 +69,7 @@ MainThread::~MainThread()
 void MainThread::OnInit()
 {   
     //初始化全局资源, 使用本地文件夹作为资源
-    DString resourcePath = ui::PathUtil::GetCurrentModuleDirectory();
+    ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
     resourcePath += _T("resources\\");
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), dpiInitParam);
 

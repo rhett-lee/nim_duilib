@@ -44,7 +44,7 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
 {
     ui::Menu* menu = new ui::Menu(this);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
     //设置菜单xml所在的目录
-    menu->SetSkinFolder(GetResourcePath());
+    menu->SetSkinFolder(GetResourcePath().ToString());
     DString xml(_T("lang_menu.xml"));
     menu->ShowMenu(xml, point);
 
@@ -81,7 +81,7 @@ void MainForm::ShowPopupMenu(const ui::UiPoint& point)
             //切换语言
             ui::GlobalManager& globalManager = ui::GlobalManager::Instance();
             if (globalManager.GetLanguageFileName() != fileName) {
-                globalManager.ReloadLanguage(_T(""), fileName, true);
+                globalManager.ReloadLanguage(ui::FilePath(), fileName, true);
             }            
             return true;
             });

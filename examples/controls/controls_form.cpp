@@ -294,7 +294,7 @@ void ControlForm::ShowColorPicker()
 void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 {
     ui::Menu* menu = new ui::Menu(this);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
-    menu->SetSkinFolder(GetResourcePath());
+    menu->SetSkinFolder(GetResourcePath().ToString());
     DString xml(_T("menu/settings_menu.xml"));
     menu->ShowMenu(xml, point);
 
@@ -373,9 +373,11 @@ void ControlForm::LoadRichEditData()
 {
     std::streamoff length = 0;
     std::string xml;
-    DString controls_xml = ui::GlobalManager::Instance().GetResourcePath() + GetResourcePath() + GetSkinFile();
+    ui::FilePath controls_xml = ui::GlobalManager::Instance().GetResourcePath();
+    controls_xml += GetResourcePath();
+    controls_xml += GetSkinFile();
 
-    std::ifstream ifs(controls_xml.c_str());
+    std::ifstream ifs(controls_xml.NativePath().c_str());
     if (ifs.is_open())
     {
         ifs.seekg(0, std::ios_base::end);

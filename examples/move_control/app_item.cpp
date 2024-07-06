@@ -10,7 +10,7 @@ AppItemUi* AppItemUi::Create(const AppItem& item, Box* p)
     ASSERT(p->GetWindow() != nullptr);
     AppItemUi* uiItem = new AppItemUi(p->GetWindow());
     uiItem->SetAppdata(item, false);
-    ui::GlobalManager::Instance().FillBoxWithCache(uiItem, _T("move_control/app_item.xml"));
+    ui::GlobalManager::Instance().FillBoxWithCache(uiItem, ui::FilePath(_T("move_control/app_item.xml")));
     return uiItem;
 }
 

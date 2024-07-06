@@ -165,7 +165,7 @@ private:
     ui::RichEdit* m_pRichEdit;
 
     //当前打开的文件
-    DString m_filePath;
+    ui::FilePath m_filePath;
 
     //保存按钮的文字
     DString m_saveBtnText;

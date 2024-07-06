@@ -21,14 +21,6 @@ public:
     ImageInfo& operator = (const ImageInfo&) = delete;
 
 public:
-    /** 设置图片路径
-    */
-    void SetImageFullPath(const DString& path);
-
-    /** 获取图片路径
-    */
-    DString GetImageFullPath() const;
-
     /** 设置该图片的大小是否已经做过适应DPI处理
     *  （这个属性值影响：图片的"source"和"corner"属性的DPI缩放操作）
     */
@@ -112,9 +104,6 @@ public:
     DString GetImageKey() const;
 
 private:
-    //图片的完整路径
-    UiString m_imageFullPath;
-
     //该图片的大小是否已经做过适应DPI处理（这个属性值影响：图片的"source"和"corner"属性的DPI缩放操作）
     bool m_bDpiScaled;
 

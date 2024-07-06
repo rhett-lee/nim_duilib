@@ -610,7 +610,7 @@ bool NativeWindow::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHei
     return ::MoveWindow(m_hWnd, X, Y, nWidth, nHeight, bRepaint ? TRUE : FALSE) != FALSE;
 }
 
-bool NativeWindow::SetWindowIcon(const DString& iconFilePath)
+bool NativeWindow::SetWindowIcon(const FilePath& iconFilePath)
 {
     ASSERT(::IsWindow(m_hWnd));
     if (!::IsWindow(m_hWnd)) {
@@ -621,7 +621,7 @@ bool NativeWindow::SetWindowIcon(const DString& iconFilePath)
     //大图标
     int32_t cxIcon = GetSystemMetricsForDpiWrapper(SM_CXICON, uDpi);
     int32_t cyIcon = GetSystemMetricsForDpiWrapper(SM_CYICON, uDpi);
-    HICON hIcon = (HICON)::LoadImage(nullptr, iconFilePath.c_str(), IMAGE_ICON, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_SHARED);
+    HICON hIcon = (HICON)::LoadImage(nullptr, iconFilePath.NativePath().c_str(), IMAGE_ICON, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_SHARED);
     ASSERT(hIcon != nullptr);
     if (hIcon != nullptr) {
         ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)TRUE, (LPARAM)hIcon);
@@ -633,7 +633,7 @@ bool NativeWindow::SetWindowIcon(const DString& iconFilePath)
     //小图标
     cxIcon = GetSystemMetricsForDpiWrapper(SM_CXSMICON, uDpi);
     cyIcon = GetSystemMetricsForDpiWrapper(SM_CYSMICON, uDpi);
-    hIcon = (HICON)::LoadImage(nullptr, iconFilePath.c_str(), IMAGE_ICON, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_SHARED);
+    hIcon = (HICON)::LoadImage(nullptr, iconFilePath.NativePath().c_str(), IMAGE_ICON, cxIcon, cyIcon, LR_DEFAULTCOLOR | LR_LOADFROMFILE | LR_SHARED);
     ASSERT(hIcon != nullptr);
     if (hIcon != nullptr) {
         ::SendMessage(m_hWnd, WM_SETICON, (WPARAM)FALSE, (LPARAM)hIcon);

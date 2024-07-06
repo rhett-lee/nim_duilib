@@ -5,7 +5,6 @@
 #include "duilib/Control/ColorPickerStatardGray.h"
 #include "duilib/Control/ColorPickerCustom.h"
 #include "duilib/Core/GlobalManager.h"
-#include "duilib/Utils/PathUtil.h"
 #include "duilib/Utils/ScreenCapture.h"
 
 namespace ui
@@ -454,7 +453,7 @@ private:
             GlobalManager::Instance().Cursor().SetCursorByID(m_cursorId);
         }
         else if (!m_cursorFile.empty()) {
-            if (GlobalManager::Instance().Cursor().SetImageCursor(GetWindow(), m_cursorFile.c_str())) {
+            if (GlobalManager::Instance().Cursor().SetImageCursor(GetWindow(), FilePath(m_cursorFile.c_str()))) {
                 m_cursorId = GlobalManager::Instance().Cursor().GetCursorID();
             }
         }

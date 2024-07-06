@@ -23,7 +23,7 @@ ui::Control* FileInfoList::CreateElement(ui::VirtualListBox* pVirtualListBox)
     ASSERT(pVirtualListBox->GetWindow() != nullptr);
     FileInfoItem* item = new FileInfoItem(pVirtualListBox->GetWindow());
     item->AttachEvent(ui::kEventMouseDoubleClick, UiBind(&FileInfoList::OnDoubleClickItem, this, std::placeholders::_1));
-    ui::GlobalManager::Instance().FillBoxWithCache(item, _T("tree_view/tree_node.xml"));
+    ui::GlobalManager::Instance().FillBoxWithCache(item, ui::FilePath(_T("tree_view/tree_node.xml")));
     return item;
 }
 

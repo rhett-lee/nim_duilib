@@ -73,7 +73,7 @@ public:
 private:
     /**
     * 设置cef配置信息
-    * @param[in] app_data_dir 应用路径名称，见nim::Client::Init的说明
+    * @param[in] app_data_dir 应用路径名称(UTF16或者UTF8编码)，见nim::Client::Init的说明
     * @param[out] settings cef配置类
     * @return void    无返回值
     */

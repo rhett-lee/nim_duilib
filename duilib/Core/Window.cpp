@@ -9,7 +9,6 @@
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Utils/PerformanceUtil.h"
-#include "duilib/Utils/PathUtil.h"
 
 namespace ui
 {
@@ -204,24 +203,24 @@ void Window::ReapObjects(Control* pControl)
     m_controlFinder.RemoveControl(pControl);
 }
 
-void Window::SetResourcePath(const DString& strPath)
+void Window::SetResourcePath(const FilePath& strPath)
 {
     m_resourcePath = strPath;
-    PathUtil::FormatDirPath(m_resourcePath);
+    m_resourcePath.NormalizeDirectoryPath();
 }
 
-const DString& Window::GetResourcePath() const
+const FilePath& Window::GetResourcePath() const
 {
     return m_resourcePath;
 }
 
-void Window::SetXmlPath(const DString& xmlPath)
+void Window::SetXmlPath(const FilePath& xmlPath)
 {
     m_xmlPath = xmlPath;
-    PathUtil::FormatDirPath(m_xmlPath);
+    m_xmlPath.NormalizeDirectoryPath();
 }
 
-const DString& Window::GetXmlPath() const
+const FilePath& Window::GetXmlPath() const
 {
     return m_xmlPath;
 }

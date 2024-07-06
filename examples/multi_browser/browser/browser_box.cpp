@@ -48,9 +48,12 @@ void BrowserBox::InitBrowserBox(const DString &url)
 
     // 加载默认网页
     DString html_path = url;
-    if (html_path.empty())
-        html_path = ui::PathUtil::GetCurrentModuleDirectory() + _T("resources\\themes\\default\\cef\\cef.html");
-
+    if (html_path.empty()) {
+        ui::FilePath localPath = ui::FilePathUtil::GetCurrentModuleDirectory();
+        localPath.NormalizeDirectoryPath();
+        localPath += _T("resources\\themes\\default\\cef\\cef.html");
+        html_path = localPath.ToString();
+    }
     cef_control_->LoadURL(html_path);
 
     // 初始化任务栏缩略图

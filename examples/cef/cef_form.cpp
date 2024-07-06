@@ -54,7 +54,10 @@ void CefForm::OnInitWindow()
     cef_control_->AttachDevTools(cef_control_dev_);
 
     // 加载皮肤目录下的 html 文件
-    cef_control_->LoadURL(ui::PathUtil::GetCurrentModuleDirectory() + _T("resources\\themes\\default\\cef\\cef.html"));
+    ui::FilePath cefHtml = ui::FilePathUtil::GetCurrentModuleDirectory();
+    cefHtml.NormalizeDirectoryPath();
+    cefHtml += _T("resources\\themes\\default\\cef\\cef.html");
+    cef_control_->LoadURL(cefHtml.ToString());
 
     if (!nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
         cef_control_dev_->SetFadeVisible(false);

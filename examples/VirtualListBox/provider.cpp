@@ -22,7 +22,7 @@ ui::Control* Provider::CreateElement(ui::VirtualListBox* pVirtualListBox)
     }
     ASSERT(pVirtualListBox->GetWindow() != nullptr);
     Item* item = new Item(pVirtualListBox->GetWindow());
-    ui::GlobalManager::Instance().FillBoxWithCache(item, _T("virtual_list_box/item.xml"));
+    ui::GlobalManager::Instance().FillBoxWithCache(item, ui::FilePath(_T("virtual_list_box/item.xml")));
     return item;
 }
 

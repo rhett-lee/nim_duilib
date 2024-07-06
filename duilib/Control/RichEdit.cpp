@@ -788,14 +788,15 @@ int32_t RichEdit::GetTextLength() const
 
 DString RichEdit::GetText() const
 {
-    int32_t nTextLen = GetTextLength();
+    UINT uCodePage = 1200;
+    int32_t nTextLen = m_richCtrl.GetTextLengthEx(GTL_DEFAULT, uCodePage);
     if (nTextLen < 1) {
         return DString();
     }
     nTextLen += 1;
     wchar_t* pText = new wchar_t[nTextLen];
     memset(pText, 0, sizeof(wchar_t) * nTextLen);
-    m_richCtrl.GetTextEx(pText, nTextLen, GTL_DEFAULT, 1200);
+    m_richCtrl.GetTextEx(pText, nTextLen, GTL_DEFAULT, uCodePage);
     std::wstring sText(pText);
     delete[] pText;
     pText = nullptr;

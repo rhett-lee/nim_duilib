@@ -357,9 +357,6 @@
     <ClCompile Include="Image\ImageGif.cpp">
       <Filter>Image</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\PathUtil.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Core\FrameworkThread.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -439,6 +436,12 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Utils\ShadowWnd_Windows.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\FilePath.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\FilePathUtil.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
   </ItemGroup>
@@ -887,9 +890,6 @@
     <ClInclude Include="Core\Callback.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\PathUtil.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Core\FrameworkThread.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -970,6 +970,12 @@
     </ClInclude>
     <ClInclude Include="Core\MessageLoop.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\FilePath.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\FilePathUtil.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -3,6 +3,7 @@
 
 #include "duilib/Core/UiSize.h"
 #include "duilib/Core/UiRect.h"
+#include "duilib/Utils/FilePath.h"
 #include <functional>
 #include <string>
 #include <memory>
@@ -38,19 +39,30 @@ public:
     WindowBuilder& operator = (const WindowBuilder&) = delete;
 
 public:
-    /** 使用XML文件创建窗口布局等
-    @param [in] xml 可以是文件文本内容，如果是XML文件内容，字符串需要以字符 '<'开头;
-                也可以是XML文件的路径
+    /** 使用XML文件内容创建窗口布局等
+    @param [in] xmlFileData 是文件文本内容，字符串需要以字符 '<'开头;
     @param [in] pWindow 关联的窗口
     @param [in] pParent 父容器
     */
-    Box* Create(const DString& xml, 
-                CreateControlCallback pCallback = CreateControlCallback(),
-                Window* pWindow = nullptr, 
-                Box* pParent = nullptr, 
-                Box* pUserDefinedBox = nullptr);
+    Box* CreateFromXmlData(const DString& xmlFileData, 
+                           CreateControlCallback pCallback = CreateControlCallback(),
+                           Window* pWindow = nullptr, 
+                           Box* pParent = nullptr, 
+                           Box* pUserDefinedBox = nullptr);
 
-    //使用缓存中的XML文件(即上面的Create函数传入的XML文件)创建窗口布局等
+    /** 使用XML文件创建窗口布局等
+    @param [in] xmlFilePath XML文件的路径
+    @param [in] pWindow 关联的窗口
+    @param [in] pParent 父容器
+    */
+    Box* CreateFromXmlFile(const FilePath& xmlFilePath, 
+                           CreateControlCallback pCallback = CreateControlCallback(),
+                           Window* pWindow = nullptr, 
+                           Box* pParent = nullptr, 
+                           Box* pUserDefinedBox = nullptr);
+
+    /** 使用缓存中的XML文件(即上面的Create函数传入的XML文件)创建窗口布局等
+    */
     Box* Create(CreateControlCallback pCallback = CreateControlCallback(), 
                 Window* pWindow = nullptr,
                 Box* pParent = nullptr, 
@@ -72,7 +84,7 @@ private:
 
     /** 判断XML文件是否存在
     */
-    bool IsXmlFileExists(const DString& xml) const;
+    bool IsXmlFileExists(const FilePath& xmlFilePath) const;
 
     /** 解析字体节点
     */
@@ -90,7 +102,7 @@ private:
 
     /** 当前解析的XML文件路径
     */
-    DString m_xmlFilePath;
+    FilePath m_xmlFilePath;
 };
 
 } // namespace ui

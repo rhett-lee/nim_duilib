@@ -454,10 +454,11 @@
     <ClCompile Include="Utils\AttributeUtil.cpp" />
     <ClCompile Include="Utils\BitmapHepler.cpp" />
     <ClCompile Include="Utils\FileDialog_Windows.cpp" />
+    <ClCompile Include="Utils\FilePath.cpp" />
+    <ClCompile Include="Utils\FilePathUtil.cpp" />
     <ClCompile Include="Utils\FileUtil.cpp" />
     <ClCompile Include="Utils\LogUtil.cpp" />
     <ClCompile Include="Utils\MonitorUtil_Windows.cpp" />
-    <ClCompile Include="Utils\PathUtil.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
     <ClCompile Include="Utils\ScreenCapture_Windows.cpp" />
     <ClCompile Include="Utils\ShadowWnd_Windows.cpp" />
@@ -625,11 +626,12 @@
     <ClInclude Include="Utils\AttributeUtil.h" />
     <ClInclude Include="Utils\BitmapHelper.h" />
     <ClInclude Include="Utils\FileDialog.h" />
+    <ClInclude Include="Utils\FilePath.h" />
+    <ClInclude Include="Utils\FilePathUtil.h" />
     <ClInclude Include="Utils\FileUtil.h" />
     <ClInclude Include="Utils\LogUtil.h" />
     <ClInclude Include="Utils\Macros.h" />
     <ClInclude Include="Utils\MonitorUtil.h" />
-    <ClInclude Include="Utils\PathUtil.h" />
     <ClInclude Include="Utils\PerformanceUtil.h" />
     <ClInclude Include="Utils\ScreenCapture.h" />
     <ClInclude Include="Utils\ShadowWnd.h" />

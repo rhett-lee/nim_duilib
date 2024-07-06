@@ -99,7 +99,7 @@ void PropertyGrid::OnInit()
         //默认的配置文件
         m_configXml = _T("public/property_grid/property_grid.xml");
     }
-    ui::GlobalManager::Instance().FillBoxWithCache(this, m_configXml.c_str());
+    ui::GlobalManager::Instance().FillBoxWithCache(this, FilePath(m_configXml.c_str()));
     m_pHeaderCtrl = FindSubControl(_T("duilib_property_grid_header"));
     m_pHeaderLeft = dynamic_cast<Label*>(FindSubControl(_T("duilib_property_grid_header_left")));
     m_pHeaderRight = dynamic_cast<Label*>(FindSubControl(_T("duilib_property_grid_header_right")));
@@ -1612,7 +1612,7 @@ void PropertyGridColorProperty::InitColorCombo()
         return;
     }
     pComboBox->SetWindow(GetWindow());
-    GlobalManager::Instance().FillBoxWithCache(pComboBox, _T("public/property_grid/color_combox.xml"));
+    GlobalManager::Instance().FillBoxWithCache(pComboBox, FilePath(_T("public/property_grid/color_combox.xml")));
     pComboBox->SetFixedHeight(UiFixedInt(boxSize.cy), false, false);
     pComboBox->SetFixedWidth(UiFixedInt(boxSize.cx), false, false);
 
@@ -1971,12 +1971,12 @@ void PropertyGridFileProperty::EnableEditControl(bool bEnable)
 
 void PropertyGridFileProperty::OnBrowseButtonClicked()
 {
-    DString filePath;
+    FilePath filePath;
     FileDialog fileDlg;
     if (fileDlg.BrowseForFile(GetWindow(), filePath, m_bOpenFileDialog, m_fileTypes, m_nFileTypeIndex, m_defaultExt)) {
         RichEdit* pRichEdit = GetRichEdit();
         if (pRichEdit != nullptr) {
-            pRichEdit->SetText(filePath);
+            pRichEdit->SetText(filePath.ToString());
         }
     }
 }
@@ -2025,12 +2025,12 @@ void PropertyGridDirectoryProperty::EnableEditControl(bool bEnable)
 
 void PropertyGridDirectoryProperty::OnBrowseButtonClicked()
 {
-    DString folderPath;
+    FilePath folderPath;
     FileDialog fileDlg;
     if (fileDlg.BrowseForFolder(GetWindow(), folderPath)) {
         RichEdit* pRichEdit = GetRichEdit();
         if (pRichEdit != nullptr) {
-            pRichEdit->SetText(folderPath);
+            pRichEdit->SetText(folderPath.ToString());
         }
     }
 }

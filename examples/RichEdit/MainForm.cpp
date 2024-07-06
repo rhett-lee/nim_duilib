@@ -542,7 +542,7 @@ void MainForm::InitColorCombo()
         return;
     }
     pComboBox->SetWindow(this);
-    ui::GlobalManager::Instance().FillBoxWithCache(pComboBox, _T("rich_edit/color_combox.xml"));
+    ui::GlobalManager::Instance().FillBoxWithCache(pComboBox, ui::FilePath(_T("rich_edit/color_combox.xml")));
     pComboBox->SetFixedHeight(ui::UiFixedInt(boxSize.cy), false, false);
     pComboBox->SetFixedWidth(ui::UiFixedInt(boxSize.cx), false, false);
 
@@ -988,9 +988,11 @@ void MainForm::LoadRichEditData()
 {
     std::streamoff length = 0;
     std::string xml;
-    DString controls_xml = ui::GlobalManager::Instance().GetResourcePath() + GetResourcePath() + GetSkinFile();
+    ui::FilePath controls_xml = ui::GlobalManager::Instance().GetResourcePath();
+    controls_xml += GetResourcePath();
+    controls_xml += GetSkinFile();
 
-    std::ifstream ifs(controls_xml.c_str());
+    std::ifstream ifs(controls_xml.NativePath().c_str());
     if (ifs.is_open()) {
         ifs.seekg(0, std::ios_base::end);
         length = ifs.tellg();
@@ -1050,7 +1052,7 @@ void MainForm::OnSaveFile()
 {
     if (m_pRichEdit != nullptr) {
         if (m_pRichEdit->GetModify()) {
-            if (SaveFile(m_filePath)) {
+            if (SaveFile(m_filePath.NativePath())) {
                 m_pRichEdit->SetModify(false);
                 UpdateSaveStatus();
             }
@@ -1062,7 +1064,7 @@ void MainForm::OnSaveAsFile()
 {
     TCHAR szFileTitle[_MAX_FNAME] = { 0, };   // contains file title after return
     TCHAR szFileName[_MAX_PATH] = { 0, };     // contains full path name after return
-    _tcscpy_s(szFileName, ui::StringUtil::TToLocal(m_filePath).c_str());
+    _tcscpy_s(szFileName, m_filePath.NativePath().c_str());
 
     OPENFILENAME ofn = { 0, };
     ofn.lStructSize = sizeof(OPENFILENAME);
@@ -1166,7 +1168,7 @@ void MainForm::OnFindText()
         createParam.m_dwStyle = ui::kWS_POPUP;
         createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW;
         createParam.m_windowTitle = _T("FindForm");
-        m_pFindForm->CreateWnd(nullptr, createParam);
+        m_pFindForm->CreateWnd(this, createParam);
         m_pFindForm->CenterWindow();
         m_pFindForm->ShowWindow(ui::kSW_SHOW);
         m_pFindForm->AttachWindowClose([this](const ui::EventArgs& args) {

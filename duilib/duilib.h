@@ -48,7 +48,8 @@
 #include "duilib_defs.h"
 #include "Utils/Delegate.h"
 #include "Utils/StringUtil.h"
-#include "Utils/PathUtil.h"
+#include "Utils/FilePath.h"
+#include "Utils/FilePathUtil.h"
 #include "Utils/WinImplBase.h"
 #include "Utils/ShadowWnd.h"
 

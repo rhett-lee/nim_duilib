@@ -1,6 +1,6 @@
 #include "GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/PathUtil.h"
+#include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Box.h"
@@ -98,9 +98,9 @@ void GlobalManager::Shutdown()
     m_globalClass.clear();
     m_windowList.clear();
     m_dwUiThreadId = 0;
-    m_resourcePath.clear();
-    m_languagePath.clear();
-    m_fontFilePath.clear();
+    m_resourcePath.Clear();
+    m_languagePath.Clear();
+    m_fontFilePath.Clear();
     m_builderMap.clear();
     m_platformData = nullptr;
 
@@ -113,14 +113,15 @@ void GlobalManager::Shutdown()
     m_atExitFunctions.clear();
 }
 
-const DString& GlobalManager::GetResourcePath() const
+const FilePath& GlobalManager::GetResourcePath() const
 {
     return m_resourcePath;
 }
 
-void GlobalManager::SetResourcePath(const DString& strPath)
+void GlobalManager::SetResourcePath(const FilePath& strPath)
 {
-    m_resourcePath = PathUtil::NormalizeDirPath(strPath);
+    m_resourcePath = strPath;
+    m_resourcePath.NormalizeDirectoryPath();
 }
 
 void* GlobalManager::GetPlatformData() const
@@ -128,22 +129,24 @@ void* GlobalManager::GetPlatformData() const
     return m_platformData;
 }
 
-void GlobalManager::SetFontFilePath(const DString& strPath)
+void GlobalManager::SetFontFilePath(const FilePath& strPath)
 {
-     m_fontFilePath = PathUtil::NormalizeDirPath(strPath);
+     m_fontFilePath = strPath;
+     m_fontFilePath.NormalizeDirectoryPath();
 }
 
-const DString& GlobalManager::GetFontFilePath() const
+const FilePath& GlobalManager::GetFontFilePath() const
 {
     return m_fontFilePath;
 }
 
-void GlobalManager::SetLanguagePath(const DString& strPath)
+void GlobalManager::SetLanguagePath(const FilePath& strPath)
 {
-    m_languagePath = PathUtil::NormalizeDirPath(strPath);
+    m_languagePath = strPath;
+    m_languagePath.NormalizeDirectoryPath();
 }
 
-const DString& GlobalManager::GetLanguagePath() const
+const FilePath& GlobalManager::GetLanguagePath() const
 {
     return m_languagePath;
 }
@@ -157,12 +160,12 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
 {
     AssertUIThread();
     //校验输入参数
-    DString strResourcePath = resParam.resourcePath;
+    FilePath strResourcePath = resParam.resourcePath;
     if (resParam.GetResType() == ResourceType::kLocalFiles) {
         //本地文件的形式，所有资源都已本地文件的形式存在
         //const LocalFilesResParam& param = static_cast<const LocalFilesResParam&>(resParam);
-        ASSERT(!strResourcePath.empty());
-        if (strResourcePath.empty()) {
+        ASSERT(!strResourcePath.IsEmpty());
+        if (strResourcePath.IsEmpty()) {
             return false;
         }
     }
@@ -197,26 +200,26 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
     RemoveAllClasss();
 
     //保存资源路径
-    SetResourcePath(PathUtil::JoinFilePath(strResourcePath, resParam.themePath));
+    SetResourcePath(FilePathUtil::JoinFilePath(strResourcePath, resParam.themePath));
 
     //保存字体文件所在路径
-    SetFontFilePath(PathUtil::JoinFilePath(strResourcePath, resParam.fontFilePath));
+    SetFontFilePath(FilePathUtil::JoinFilePath(strResourcePath, resParam.fontFilePath));
 
     //解析全局资源信息(默认是"global.xml"文件)
     ASSERT(!resParam.globalXmlFileName.empty());
     if (!resParam.globalXmlFileName.empty()) {
         WindowBuilder dialog_builder;
         Window paint_manager;
-        dialog_builder.Create(resParam.globalXmlFileName, CreateControlCallback(), &paint_manager);
+        dialog_builder.CreateFromXmlFile(FilePath(resParam.globalXmlFileName), CreateControlCallback(), &paint_manager);
     }
 
     //加载多语言文件(可选)
-    if (!resParam.languagePath.empty() && !resParam.languageFileName.empty()) {
-        DString languagePath = PathUtil::JoinFilePath(strResourcePath, resParam.languagePath);
+    if (!resParam.languagePath.IsEmpty() && !resParam.languageFileName.empty()) {
+        FilePath languagePath = FilePathUtil::JoinFilePath(strResourcePath, resParam.languagePath);
         ReloadLanguage(languagePath, resParam.languageFileName, false);
     }
-    else if (!resParam.languagePath.empty()) {
-        SetLanguagePath(PathUtil::JoinFilePath(strResourcePath, resParam.languagePath));
+    else if (!resParam.languagePath.IsEmpty()) {
+        SetLanguagePath(FilePathUtil::JoinFilePath(strResourcePath, resParam.languagePath));
     }
 
     //更新窗口中的所有子控件状态
@@ -235,7 +238,7 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
     return true;
 }
 
-bool GlobalManager::ReloadLanguage(const DString& languagePath,
+bool GlobalManager::ReloadLanguage(const FilePath& languagePath,
                                    const DString& languageFileName,
                                    bool bInvalidate)
 {
@@ -245,17 +248,18 @@ bool GlobalManager::ReloadLanguage(const DString& languagePath,
         return false;
     }
 
-    DString newLanguagePath = GetLanguagePath();
-    if (!languagePath.empty()) {
-        newLanguagePath = PathUtil::NormalizeDirPath(languagePath);
+    FilePath newLanguagePath = GetLanguagePath();
+    if (!languagePath.IsEmpty()) {
+        newLanguagePath = languagePath;
+        newLanguagePath.NormalizeDirectoryPath();
     }
 
     //加载多语言文件，如果使用了资源压缩包则从内存中加载语言文件
     bool bReadOk = false;
-    if ( (newLanguagePath.empty() || !PathUtil::IsAbsolutePath(newLanguagePath)) &&
+    if ( (newLanguagePath.IsEmpty() || !newLanguagePath.IsAbsolutePath()) &&
          m_zipManager.IsUseZip() ) {
         std::vector<unsigned char> fileData;
-        DString filePath = PathUtil::JoinFilePath(newLanguagePath, languageFileName);
+        FilePath filePath = FilePathUtil::JoinFilePath(newLanguagePath, FilePath(languageFileName));
         if (m_zipManager.GetZipData(filePath, fileData)) {
             bReadOk = m_langManager.LoadStringTable(fileData);
         }
@@ -264,13 +268,13 @@ bool GlobalManager::ReloadLanguage(const DString& languagePath,
         }
     }
     else {
-        DString filePath = PathUtil::JoinFilePath(newLanguagePath, languageFileName);
+        FilePath filePath = FilePathUtil::JoinFilePath(newLanguagePath, FilePath(languageFileName));
         bReadOk = m_langManager.LoadStringTable(filePath);
     }
 
     if (bReadOk) {
         //保存语言文件路径
-        if (!newLanguagePath.empty() && (newLanguagePath != GetLanguagePath())) {
+        if (!newLanguagePath.IsEmpty() && (newLanguagePath != GetLanguagePath())) {
             SetLanguagePath(newLanguagePath);
         }
         //保存语言文件名
@@ -302,14 +306,14 @@ bool GlobalManager::ReloadLanguage(const DString& languagePath,
 bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& languageList,
                                     const DString& languageNameID) const
 {
-    DString languagePath = GetLanguagePath();
-    ASSERT(!languagePath.empty());
-    if (languagePath.empty()) {
+    FilePath languagePath = GetLanguagePath();
+    ASSERT(!languagePath.IsEmpty());
+    if (languagePath.IsEmpty()) {
         return false;
     }
 
     languageList.clear();
-    const std::filesystem::path path{ languagePath };
+    const std::filesystem::path path{ languagePath.ToStringW()};
     if (path.is_absolute()) {
         //绝对路径，语言文件在本地磁盘中
         for (auto const& dir_entry : std::filesystem::directory_iterator{ path }) {
@@ -322,7 +326,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
                 const DString& fileName = lang.first;
                 DString& displayName = lang.second;
 
-                DString filePath = PathUtil::JoinFilePath(languagePath, fileName);
+                FilePath filePath = FilePathUtil::JoinFilePath(languagePath, FilePath(fileName));
                 ui::LangManager langManager;
                 if (langManager.LoadStringTable(filePath)) {
                     displayName = langManager.GetStringViaID(languageNameID);
@@ -343,7 +347,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
                 const DString& fileName = lang.first;
                 DString& displayName = lang.second;
 
-                DString filePath = PathUtil::JoinFilePath(languagePath, fileName);
+                FilePath filePath = FilePathUtil::JoinFilePath(languagePath, FilePath(fileName));
                 std::vector<unsigned char> fileData;
                 if (m_zipManager.GetZipData(filePath, fileData)) {
                     ui::LangManager langManager;
@@ -361,42 +365,42 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
     return true;
 }
 
-DString GlobalManager::GetExistsResFullPath(const DString& windowResPath, const DString& windowXmlPath, const DString& resPath)
+FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath, const FilePath& resPath)
 {
-    if (resPath.empty() || !PathUtil::IsRelativePath(resPath)) {
+    if (resPath.IsEmpty() || !resPath.IsRelativePath()) {
         return resPath;
     }
 
     //首先在窗口的资源目录中查找（命中率高）
-    const DString windowResFullPath = PathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);
-    DString imageFullPath = PathUtil::JoinFilePath(windowResFullPath, resPath);
-    imageFullPath = PathUtil::NormalizeFilePath(imageFullPath);
-    if (!m_zipManager.IsZipResExist(imageFullPath) && !PathUtil::IsExistsPath(imageFullPath)) {
+    const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);
+    FilePath imageFullPath = FilePathUtil::JoinFilePath(windowResFullPath, resPath);
+    imageFullPath.NormalizeFilePath();
+    if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
         //如果文件不存在，返回空
-        imageFullPath.clear();
+        imageFullPath.Clear();
     }
 
-    if (imageFullPath.empty()) {
+    if (imageFullPath.IsEmpty()) {
         //其次在公共目录中查找（命中率高）
-        imageFullPath = PathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
-        imageFullPath = PathUtil::NormalizeFilePath(imageFullPath);
-        if (!m_zipManager.IsZipResExist(imageFullPath) && !PathUtil::IsExistsPath(imageFullPath)) {
+        imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
+        imageFullPath.NormalizeFilePath();
+        if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
             //如果文件不存在，返回空
-            imageFullPath.clear();
+            imageFullPath.Clear();
         }
     }
 
-    if (imageFullPath.empty() && !windowXmlPath.empty()) {
+    if (imageFullPath.IsEmpty() && !windowXmlPath.IsEmpty()) {
         //最后在XML文件所在目录中查找
-        const DString windowXmlFullPath = PathUtil::JoinFilePath(windowResFullPath, windowXmlPath);
-        imageFullPath = PathUtil::JoinFilePath(windowXmlFullPath, resPath);
-        imageFullPath = PathUtil::NormalizeFilePath(imageFullPath);
-        if (!m_zipManager.IsZipResExist(imageFullPath) && !PathUtil::IsExistsPath(imageFullPath)) {
+        const FilePath windowXmlFullPath = FilePathUtil::JoinFilePath(windowResFullPath, windowXmlPath);
+        imageFullPath = FilePathUtil::JoinFilePath(windowXmlFullPath, resPath);
+        imageFullPath.NormalizeFilePath();
+        if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
             //如果文件不存在，返回空
-            imageFullPath.clear();
+            imageFullPath.Clear();
         }
     }
-    ASSERT(!imageFullPath.empty());
+    ASSERT(!imageFullPath.IsEmpty());
     return imageFullPath;
 }
 
@@ -524,21 +528,21 @@ CursorManager& GlobalManager::Cursor()
     return m_cursorManager;
 }
 
-Box* GlobalManager::CreateBox(const DString& strXmlPath, CreateControlCallback callback)
+Box* GlobalManager::CreateBox(const FilePath& strXmlPath, CreateControlCallback callback)
 {
     WindowBuilder builder;
-    Box* box = builder.Create(strXmlPath, callback);
+    Box* box = builder.CreateFromXmlFile(strXmlPath, callback);
     ASSERT(box != nullptr);
     return box;
 }
 
-Box* GlobalManager::CreateBoxWithCache(const DString& strXmlPath, CreateControlCallback callback)
+Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControlCallback callback)
 {
     Box* box = nullptr;
     auto it = m_builderMap.find(strXmlPath);
     if (it == m_builderMap.end()) {
         WindowBuilder* builder = new WindowBuilder();
-        box = builder->Create(strXmlPath, callback);
+        box = builder->CreateFromXmlFile(strXmlPath, callback);
         if (box != nullptr) {
             m_builderMap[strXmlPath].reset(builder);
         }
@@ -554,17 +558,17 @@ Box* GlobalManager::CreateBoxWithCache(const DString& strXmlPath, CreateControlC
     return box;
 }
 
-void GlobalManager::FillBox(Box* pUserDefinedBox, const DString& strXmlPath, CreateControlCallback callback)
+void GlobalManager::FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback)
 {
     ASSERT(pUserDefinedBox != nullptr);
     if (pUserDefinedBox != nullptr) {
         WindowBuilder winBuilder;
-        Box* box = winBuilder.Create(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+        Box* box = winBuilder.CreateFromXmlFile(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
         ASSERT_UNUSED_VARIABLE(box != nullptr);
     }    
 }
 
-void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const DString& strXmlPath, CreateControlCallback callback)
+void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXmlPath, CreateControlCallback callback)
 {
     ASSERT(pUserDefinedBox != nullptr);
     if (pUserDefinedBox == nullptr) {
@@ -575,7 +579,7 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const DString& strXml
     auto it = m_builderMap.find(strXmlPath);
     if (it == m_builderMap.end()) {
         WindowBuilder* winBuilder = new WindowBuilder();
-        box = winBuilder->Create(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+        box = winBuilder->CreateFromXmlFile(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
         if (box != nullptr) {
             m_builderMap[strXmlPath].reset(winBuilder);
         }

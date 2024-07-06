@@ -2,7 +2,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/ZipStreamIO.h"
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Utils/PathUtil.h"
+#include "duilib/Utils/FilePathUtil.h"
 
 #include "duilib/third_party/zlib/zlib.h"
 #include "duilib/third_party/zlib/contrib/minizip/unzip.h"
@@ -56,21 +56,15 @@ bool ZipManager::OpenResZip(HMODULE hModule, LPCTSTR resourceName, LPCTSTR resou
 }
 #endif
 
-bool ZipManager::OpenZipFile(const DString& path, const DString& password)
+bool ZipManager::OpenZipFile(const FilePath& path, const DString& password)
 {
     CloseResZip();
+    DStringA nativePath = path.NativePathA();
+    if (nativePath.empty()) {
+        return false;
+    }
     m_password = password;
-    std::string filePath;
-#ifdef DUILIB_PLATFORM_WIN
-    #ifdef DUILIB_UNICODE
-        filePath = StringUtil::UnicodeToMBCS(path);
-    #else
-        filePath = StringUtil::TToMBCS(path);
-    #endif
-#else
-    filePath = TToUTF8(path);
-#endif
-    m_hzip = ::unzOpen(filePath.c_str());
+    m_hzip = ::unzOpen(nativePath.c_str());
     InitUtf8();
     return m_hzip != nullptr;
 }
@@ -88,7 +82,7 @@ void ZipManager::InitUtf8()
     }
 }
 
-bool ZipManager::GetZipData(const DString& path, std::vector<unsigned char>& fileData) const
+bool ZipManager::GetZipData(const FilePath& path, std::vector<unsigned char>& fileData) const
 {
     fileData.clear();
     GlobalManager::Instance().AssertUIThread();
@@ -96,12 +90,13 @@ bool ZipManager::GetZipData(const DString& path, std::vector<unsigned char>& fil
     if (m_hzip == nullptr) {
         return false;
     }
-    std::string filePathA = GetZipFilePathA(path, m_bUtf8);
+    FilePath normalizePath = FilePathUtil::NormalizeFilePath(path);
+    std::string filePathA = m_bUtf8 ? normalizePath.ToStringA() : normalizePath.NativePathA();
     ASSERT(!filePathA.empty());
     if (filePathA.empty()) {
         return false;
     }
-
+    NormalizeZipFilePath(filePathA);
     int nRet = ::unzLocateFile(m_hzip, filePathA.c_str(), 0);
     if (nRet != UNZ_OK) {
         return false;
@@ -158,15 +153,17 @@ bool ZipManager::GetZipData(const DString& path, std::vector<unsigned char>& fil
     return true;
 }
 
-bool ZipManager::IsZipResExist(const DString& path) const
+bool ZipManager::IsZipResExist(const FilePath& path) const
 {
     GlobalManager::Instance().AssertUIThread();
-    if ((m_hzip != nullptr) && !path.empty()) {
-        std::string filePathA = GetZipFilePathA(path, m_bUtf8);
+    if ((m_hzip != nullptr) && !path.IsEmpty()) {
+        FilePath normalizePath = FilePathUtil::NormalizeFilePath(path);
+        std::string filePathA = m_bUtf8 ? normalizePath.ToStringA() : normalizePath.NativePathA();
         ASSERT(!filePathA.empty());
         if (filePathA.empty()) {
             return false;
         }
+        NormalizeZipFilePath(filePathA);
         auto it = m_zipPathCache.find(filePathA);
         if (it != m_zipPathCache.end()) {
             return true;
@@ -191,20 +188,22 @@ void ZipManager::CloseResZip()
     m_pZipStreamIO.reset();
 }
 
-bool ZipManager::GetZipFileList(const DString& path, std::vector<DString>& fileList) const
+bool ZipManager::GetZipFileList(const FilePath& dirPath, std::vector<DString>& fileList) const
 {
     fileList.clear();
     GlobalManager::Instance().AssertUIThread();
-    DString filePath = path;
+    DString filePath = dirPath.NativePath();
     if (!filePath.empty() &&
         (filePath[filePath.size() - 1] != _T('\\')) &&
         (filePath[filePath.size() - 1] != _T('/'))) {
         filePath += _T("/");
     }
-    DString innerPath = GetZipFilePath(filePath);
+    DString innerPath = FilePathUtil::NormalizeFilePath(filePath);
     if (innerPath.empty() || (m_hzip == nullptr)) {
         return false;
     }
+    //路径分隔符统一替换成 '/'
+    NormalizeZipFilePath(innerPath);
     int nRet = ::unzGoToFirstFile(m_hzip);
     if (nRet != UNZ_OK) {
         return false;
@@ -255,47 +254,24 @@ bool ZipManager::GetZipFileList(const DString& path, std::vector<DString>& fileL
     return true;
 }
 
-
-DString ZipManager::GetZipFilePath(const DString& path) const
+void ZipManager::NormalizeZipFilePath(std::string& innerFilePath) const
 {
-    if (path.empty() || !PathUtil::IsRelativePath(path)) {
-        return _T("");
+    const size_t nCount = innerFilePath.size();
+    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        if (innerFilePath[nIndex] == '\\') {
+            innerFilePath[nIndex] = '/';
+        }
     }
-    DString filePath;
-    if ((path[path.size() - 1] == _T('\\')) || (path[path.size() - 1] == _T('/'))) {
-        filePath = PathUtil::NormalizeDirPath(path);
-    }
-    else {
-        filePath = PathUtil::NormalizeFilePath(path);
-    }
-    StringUtil::ReplaceAll(_T("\\"), _T("/"), filePath);
-    StringUtil::ReplaceAll(_T("//"), _T("/"), filePath);
-    return filePath;
 }
 
-std::string ZipManager::GetZipFilePathA(const DString& path, bool bUtf8) const
+void ZipManager::NormalizeZipFilePath(std::wstring& innerFilePath) const
 {
-    DString filePath = GetZipFilePath(path);
-    ASSERT(!filePath.empty());
-    if (filePath.empty()) {
-        return std::string();
+    const size_t nCount = innerFilePath.size();
+    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        if (innerFilePath[nIndex] == L'\\') {
+            innerFilePath[nIndex] = L'/';
+        }
     }
-    std::string filePathA;
-#ifdef DUILIB_PLATFORM_WIN
-    #ifdef DUILIB_UNICODE
-        filePathA = StringUtil::UnicodeToMBCS(filePath, bUtf8 ? CP_UTF8 : CP_ACP);
-    #else
-        if (bUtf8) {
-            filePathA = filePath;
-        }
-        else {
-            filePathA = StringUtil::TToMBCS(path);
-        }
-    #endif
-#else
-    filePathA = TToUTF8(filePath);
-#endif
-    return filePathA;
 }
 
 DString ZipManager::GetZipFilePath(const char* szInZipFilePath, bool bUtf8) const
