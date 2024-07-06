@@ -79,8 +79,6 @@ bool ZipManager::GetZipData(const FilePath& path, std::vector<unsigned char>& fi
     if (!LocateFile(normalizePath, filePathA)) {
         return false;
     }
-    //加入缓存
-    m_zipPathCache.insert(normalizePath);
 
     size_t fileNameLen = std::max(filePathA.size() + 1, MAX_PATH_LEN);
     std::vector<char> szFileName;
@@ -138,18 +136,46 @@ bool ZipManager::GetZipData(const FilePath& path, std::vector<unsigned char>& fi
 bool ZipManager::IsZipResExist(const FilePath& path) const
 {
     GlobalManager::Instance().AssertUIThread();
-    if ((m_hzip != nullptr) && !path.IsEmpty()) {
-        const FilePath normalizePath = FilePathUtil::NormalizeFilePath(path);
-        auto it = m_zipPathCache.find(normalizePath);
-        if (it != m_zipPathCache.end()) {
-            return true;
+    if ((m_hzip == nullptr) || path.IsEmpty()) {
+        return false;
+    }
+    if (m_zipPathCache.empty()) {
+        //首次查询时，建立缓存，避免每次都需要遍历整个压缩包的文件（::unzLocateFile函数是采用遍历所有文件的方式实现的，性能比较差）
+        int nRet = ::unzGoToFirstFile(m_hzip);
+        while (nRet == UNZ_OK) {
+            size_t fileNameLen = MAX_PATH_LEN;
+            std::vector<char> szFileName;
+            szFileName.resize(fileNameLen, 0);
+            unz_file_info file_info = { 0, };
+            nRet = ::unzGetCurrentFileInfo(m_hzip, &file_info, &szFileName[0], (uLong)szFileName.size() - 1, nullptr, 0, nullptr, 0);
+            if (nRet == UNZ_OK) {
+                //文件名的编码是否为UTF8格式
+                bool bUtf8 = file_info.flag & (1 << 11);
+                DString fileName = GetZipFilePath(szFileName.data(), bUtf8);
+
+#ifdef DUILIB_PLATFORM_WIN
+                DStringW innerFilePath = StringUtil::MBCSToUnicode(szFileName.data(), bUtf8 ? CP_UTF8 : CP_ACP);
+#else
+                DStringW innerFilePath = StringUtil::UTF8ToUTF16(szFileName.data());
+#endif
+                //压缩包内的文件名，都不区分大小写，转换为小写再比较
+                innerFilePath = StringUtil::MakeLowerString(innerFilePath);
+                //加入缓存
+                m_zipPathCache.insert(innerFilePath);
+
+                //下一个文件
+                nRet = ::unzGoToNextFile(m_hzip);
+            }
         }
-        std::string filePathA;
-        if (LocateFile(normalizePath, filePathA)) {
-            //加入缓存
-            m_zipPathCache.insert(normalizePath);
-            return true;
-        }
+    }
+
+    const FilePath normalizePath = FilePathUtil::NormalizeFilePath(path);
+    DStringW innerFilePath = normalizePath.ToStringW();
+    innerFilePath = StringUtil::MakeLowerString(innerFilePath);
+    NormalizeZipFilePath(innerFilePath);
+    auto it = m_zipPathCache.find(innerFilePath);
+    if (it != m_zipPathCache.end()) {
+        return true;
     }
     return false;
 }
@@ -163,7 +189,8 @@ bool ZipManager::LocateFile(const FilePath& normalizePath, std::string& filePath
         return false;
     }
     NormalizeZipFilePath(filePathA);
-    int nRet = ::unzLocateFile(m_hzip, filePathA.c_str(), 0);
+    const int iCaseSensitivity = 2; //不区分大小写
+    int nRet = ::unzLocateFile(m_hzip, filePathA.c_str(), iCaseSensitivity);
     if (nRet == UNZ_OK) {
         return true;
     }
@@ -179,7 +206,7 @@ bool ZipManager::LocateFile(const FilePath& normalizePath, std::string& filePath
         //路径无变化，不再重复查询
         return false;
     }
-    nRet = ::unzLocateFile(m_hzip, filePathA.c_str(), 0);
+    nRet = ::unzLocateFile(m_hzip, filePathA.c_str(), iCaseSensitivity);
     if (nRet == UNZ_OK) {
         return true;
     }

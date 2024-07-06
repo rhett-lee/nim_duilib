@@ -103,7 +103,7 @@ private:
 
     /** 路径缓存
     */
-    mutable std::unordered_set<FilePath> m_zipPathCache;
+    mutable std::unordered_set<DStringW> m_zipPathCache;
 };
 
 }
