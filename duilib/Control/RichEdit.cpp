@@ -1730,7 +1730,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
         return;
     }
     if (msg.eventType == kEventMouseWheel) {
-        if ((msg.modifierKey & ModifierKey::kControl) && IsEnableWheelZoom()) {
+        if (IsKeyDown(msg, ModifierKey::kControl) && IsEnableWheelZoom()) {
             //Ctrl + 滚轮：缩放功能
             OnMouseMessage(WM_MOUSEWHEEL, msg);
             int32_t nNum = 0;

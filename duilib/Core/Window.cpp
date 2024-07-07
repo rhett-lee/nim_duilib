@@ -323,6 +323,78 @@ void Window::RemoveAllOptionGroups()
     m_mOptionGroup.clear();
 }
 
+bool Window::IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const
+{
+    switch (msg.eventType) {
+    case kEventChar:
+        if (modifierKey == ModifierKey::kFirstPress) {
+            return msg.modifierKey & ModifierKey::kFirstPress;
+        }
+        else if (modifierKey == ModifierKey::kAlt) {
+            return msg.modifierKey & ModifierKey::kAlt;
+        }
+        break;
+
+    case kEventKeyDown:
+        if (modifierKey == ModifierKey::kFirstPress) {
+            return msg.modifierKey & ModifierKey::kFirstPress;
+        }
+        else if (modifierKey == ModifierKey::kAlt) {
+            return msg.modifierKey & ModifierKey::kAlt;
+        }
+        break;
+
+    case kEventKeyUp:
+        if (modifierKey == ModifierKey::kAlt) {
+            return msg.modifierKey & ModifierKey::kAlt;
+        }
+        break;
+
+    case kEventMouseWheel:
+    {
+        if (modifierKey == ModifierKey::kControl) {
+            return msg.modifierKey & ModifierKey::kControl;
+        }
+        else if (modifierKey == ModifierKey::kShift) {
+            return msg.modifierKey & ModifierKey::kShift;
+        }
+        break;
+    }
+    break;
+    case kEventMouseHover:
+    case kEventMouseMove:
+    case kEventMouseButtonDown:
+    case kEventMouseButtonUp:
+    case kEventMouseDoubleClick:
+    case kEventMouseRButtonDown:
+    case kEventMouseRButtonUp:
+    case kEventMouseRDoubleClick:
+        if (modifierKey == ModifierKey::kControl) {
+            return msg.modifierKey & ModifierKey::kControl;
+        }
+        else if (modifierKey == ModifierKey::kShift) {
+            return msg.modifierKey & ModifierKey::kShift;
+        }
+        break;
+    default:
+        break;
+    }
+    //默认从键盘状态获取
+    if (modifierKey == ModifierKey::kControl) {
+        return Keyboard::IsKeyDown(kVK_CONTROL);
+    }
+    else if (modifierKey == ModifierKey::kShift) {
+        return Keyboard::IsKeyDown(kVK_SHIFT);
+    }
+    else if (modifierKey == ModifierKey::kAlt) {
+        return Keyboard::IsKeyDown(kVK_MENU);
+    }
+    else if (modifierKey == ModifierKey::kWin) {
+        return Keyboard::IsKeyDown(kVK_LWIN) || Keyboard::IsKeyDown(kVK_RWIN);
+    }
+    return false;
+}
+
 void Window::ClearImageCache()
 {
     Control* pRoot = nullptr;

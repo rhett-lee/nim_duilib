@@ -4,6 +4,7 @@
 #include "duilib/Core/PlaceHolder.h"
 #include "duilib/Core/BoxShadow.h"
 #include "duilib/Utils/Delegate.h"
+#include "duilib/Core/Keyboard.h"
 #include <map>
 #include <memory>
 
@@ -919,6 +920,12 @@ public:
     *         false 表示当前控件或者所有父控件中，有非可见状态的控件
      */
     bool CheckVisibleAncestor(void) const;
+
+    /** 这个消息中，指定的按键是否按下
+    * @param [in] msg 当前处理的消息
+    * @param [in] modifierKey 需要判断的键盘状态
+    */
+    bool IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const;
 
 public:
     /**@name 事件监听相关接口

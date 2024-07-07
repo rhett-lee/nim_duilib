@@ -330,6 +330,13 @@ public:
     */
     void RemoveAllOptionGroups();
 
+public:
+    /** 这个消息中，指定的按键是否按下
+    * @param [in] msg 当前处理的消息
+    * @param [in] modifierKey 需要判断的键盘状态
+    */
+    bool IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const;
+
 protected:
     /** 初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
     */
@@ -474,7 +481,7 @@ protected:
 
     /** 键盘按下(WM_KEYDOWN 或者 WM_SYSKEYDOWN)
     * @param [in] vkCode 虚拟键盘代码
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kFirstPress, ModifierKey::kAlt
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
@@ -483,7 +490,7 @@ protected:
 
     /** 键盘按下(WM_KEYUP 或者 WM_SYSKEYUP)
     * @param [in] vkCode 虚拟键盘代码
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kAlt
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
@@ -492,7 +499,7 @@ protected:
 
     /** 键盘按下(WM_CHAR)
     * @param [in] vkCode 虚拟键盘代码
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kFirstPress, ModifierKey::kAlt
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
@@ -502,7 +509,7 @@ protected:
     /** 快捷键消息（WM_HOTKEY）
     * @param [in] hotkeyId 热键的ID
     * @param [in] vkCode 虚拟键盘代码
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kAlt, ModifierKey::kControl, ModifierKey::kShift, ModifierKey::kWin
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
@@ -512,7 +519,7 @@ protected:
     /** 旋转鼠标滚轮(WM_MOUSEWHEEL)
     * @param [in] wheelDelta 滚轮旋转的距离，以 WHEEL_DELTA (120) 的倍数或除法表示。 正值表示滚轮向前旋转（远离用户）；负值表示滚轮向后旋转（朝向用户）
     * @param [in] pt 鼠标所在位置，客户区坐标
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
@@ -521,7 +528,7 @@ protected:
 
     /** 鼠标移动消息（WM_MOUSEMOVE）
     * @param [in] pt 鼠标所在位置，客户区坐标
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
@@ -530,7 +537,7 @@ protected:
 
     /** 鼠标悬停消息（WM_MOUSEHOVER）
     * @param [in] pt 鼠标所在位置，客户区坐标
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
@@ -546,7 +553,7 @@ protected:
 
     /** 鼠标左键按下消息（WM_LBUTTONDOWN）
     * @param [in] pt 鼠标所在位置，客户区坐标
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
@@ -555,7 +562,7 @@ protected:
 
     /** 鼠标左键弹起消息（WM_LBUTTONUP）
     * @param [in] pt 鼠标所在位置，客户区坐标
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
@@ -564,7 +571,7 @@ protected:
 
     /** 鼠标左键双击消息（WM_LBUTTONDBLCLK）
     * @param [in] pt 鼠标所在位置，客户区坐标
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
@@ -573,7 +580,7 @@ protected:
 
     /** 鼠标右键按下消息（WM_RBUTTONDOWN）
     * @param [in] pt 鼠标所在位置，客户区坐标
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
@@ -582,7 +589,7 @@ protected:
 
     /** 鼠标右键弹起消息（WM_RBUTTONUP）
     * @param [in] pt 鼠标所在位置，客户区坐标
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
@@ -591,7 +598,7 @@ protected:
 
     /** 鼠标右键双击消息（WM_RBUTTONDBLCLK）
     * @param [in] pt 鼠标所在位置，客户区坐标
-    * @param [in] modifierKey 按键标志位，参见 Keyboard.h中的enum ModifierKey定义
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零

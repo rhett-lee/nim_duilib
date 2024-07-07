@@ -925,8 +925,8 @@ void MainForm::OnCloseWindow()
 LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
     LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
-    bool bControlDown = modifierKey & ui::ModifierKey::kControl;
-    bool bShiftDown = modifierKey & ui::ModifierKey::kShift;
+    bool bControlDown = ui::Keyboard::IsKeyDown(ui::kVK_CONTROL);
+    bool bShiftDown = ui::Keyboard::IsKeyDown(ui::kVK_SHIFT);
     if (bControlDown) {
         if ((vkCode == 'O') && !bShiftDown){
             //打开

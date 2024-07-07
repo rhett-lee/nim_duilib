@@ -3279,6 +3279,16 @@ bool Control::CheckVisibleAncestor(void) const
     return isVisible;
 }
 
+bool Control::IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const
+{
+    Window* pWindow = GetWindow();
+    ASSERT(pWindow != nullptr);
+    if (pWindow != nullptr) {
+        return pWindow->IsKeyDown(msg, modifierKey);
+    }
+    return false;
+}
+
 void Control::EnsureNoFocus()
 {
     Window* pWindow = GetWindow();

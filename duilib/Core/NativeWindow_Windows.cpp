@@ -996,6 +996,7 @@ void NativeWindow::SetLastMousePos(const UiPoint& pt)
 
 bool NativeWindow::GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint32_t& modifierKey) const
 {
+    //逻辑修改，需要同步给函数：Window::IsKeyDown
     bool bRet = true;
     modifierKey = ModifierKey::kNone;
     switch (message) {
@@ -1007,7 +1008,6 @@ bool NativeWindow::GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint
             modifierKey |= ModifierKey::kAlt;
         }
         break;
-
     case WM_KEYDOWN:
     case WM_SYSKEYDOWN:
         if (0 == (lParam & (1 << 30))) {
@@ -1017,25 +1017,23 @@ bool NativeWindow::GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint
             modifierKey |= ModifierKey::kAlt;
         }
         break;
-
     case WM_KEYUP:
     case WM_SYSKEYUP:
         if (lParam & (1 << 29)) {
             modifierKey |= ModifierKey::kAlt;
         }
         break;
-
     case WM_MOUSEWHEEL:
-    {
-        WORD fwKeys = GET_KEYSTATE_WPARAM(wParam);
-        if (fwKeys & MK_CONTROL) {
-            modifierKey |= ModifierKey::kControl;
+        {
+            WORD fwKeys = GET_KEYSTATE_WPARAM(wParam);
+            if (fwKeys & MK_CONTROL) {
+                modifierKey |= ModifierKey::kControl;
+            }
+            if (fwKeys & MK_SHIFT) {
+                modifierKey |= ModifierKey::kShift;
+            }
         }
-        if (fwKeys & MK_SHIFT) {
-            modifierKey |= ModifierKey::kShift;
-        }
-    }
-    break;
+        break;
     case WM_MOUSEHOVER:
     case WM_MOUSEMOVE:
     case WM_LBUTTONDOWN:
@@ -1055,6 +1053,23 @@ bool NativeWindow::GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint
         }
         if (wParam & MK_SHIFT) {
             modifierKey |= ModifierKey::kShift;
+        }
+        break;
+    case WM_HOTKEY:
+        {
+            uint16_t nMod = (uint16_t)LOWORD(lParam);
+            if (nMod & MOD_ALT) {
+                modifierKey |= ModifierKey::kAlt;
+            }
+            else if (nMod & MOD_CONTROL) {
+                modifierKey |= ModifierKey::kControl;
+            }
+            else if (nMod & MOD_SHIFT) {
+                modifierKey |= ModifierKey::kShift;
+            }
+            else if (nMod & MOD_WIN) {
+                modifierKey |= ModifierKey::kWin;
+            }
         }
         break;
     default:
@@ -1807,7 +1822,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
     {
         int32_t hotkeyId = (int32_t)wParam;
         VirtualKeyCode vkCode = static_cast<VirtualKeyCode>((int32_t)(int16_t)HIWORD(lParam));
-        uint32_t modifierKey = (uint32_t)(int16_t)LOWORD(lParam);
+        uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
         lResult = m_pOwner->OnNativeHotKeyMsg(hotkeyId, vkCode, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
