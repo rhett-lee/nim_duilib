@@ -311,8 +311,8 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const ui::FilePath& path)
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadWorker, ToWeakCallback([this, path, pTreeNode]() {
         //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
         ui::FilePath findPath = ui::FilePathUtil::JoinFilePath(path, ui::FilePath(_T("*.*")));
-        WIN32_FIND_DATA findData;
-        HANDLE hFile = ::FindFirstFile(findPath.NativePath().c_str(), &findData);
+        WIN32_FIND_DATAW findData;
+        HANDLE hFile = ::FindFirstFileW(findPath.ToStringW().c_str(), &findData);
         if (hFile == INVALID_HANDLE_VALUE) {
             return;
         }
@@ -326,16 +326,16 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const ui::FilePath& path)
                 continue;
             }
 
-            if (ui::StringUtil::IsEqualNoCase(findData.cFileName, _T(".")) ||
-                ui::StringUtil::IsEqualNoCase(findData.cFileName, _T(".."))) {
+            if (ui::StringUtil::IsEqualNoCase(findData.cFileName, L".") ||
+                ui::StringUtil::IsEqualNoCase(findData.cFileName, L"..")) {
                 continue;
             }
 
             ui::FilePath folderPath = ui::FilePathUtil::JoinFilePath(path, ui::FilePath(findData.cFileName));
 
-            SHFILEINFO shFileInfo;
-            ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
-            if (::SHGetFileInfo(folderPath.NativePath().c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_SMALLICON)) {
+            SHFILEINFOW shFileInfo;
+            ZeroMemory(&shFileInfo, sizeof(SHFILEINFOW));
+            if (::SHGetFileInfoW(folderPath.ToStringW().c_str(), 0, &shFileInfo, sizeof(SHFILEINFOW), SHGFI_ICON | SHGFI_SMALLICON)) {
 #ifdef _DEBUG
                 //发现有hIcon句柄无效的情况，原因未知，暂时过滤掉                
                 if (shFileInfo.hIcon != nullptr) {
@@ -363,7 +363,7 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const ui::FilePath& path)
                     fileList.push_back({ ui::FilePath(findData.cFileName), false, shFileInfo.hIcon });
                 }
             }
-        } while (::FindNextFile(hFile, &findData));
+        } while (::FindNextFileW(hFile, &findData));
         ::FindClose(hFile);
         hFile = INVALID_HANDLE_VALUE;
 
@@ -405,9 +405,9 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& p
 {
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadWorker, ToWeakCallback([this, pTreeNode, path]() {
         //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
-        ui::FilePath findPath = ui::FilePathUtil::JoinFilePath(path, ui::FilePath(_T("*.*")));
-        WIN32_FIND_DATA findData;
-        HANDLE hFile = ::FindFirstFile(findPath.NativePath().c_str(), &findData);
+        ui::FilePath findPath = ui::FilePathUtil::JoinFilePath(path, ui::FilePath(L"*.*"));
+        WIN32_FIND_DATAW findData;
+        HANDLE hFile = ::FindFirstFileW(findPath.ToStringW().c_str(), &findData);
         if (hFile == INVALID_HANDLE_VALUE) {
             return;
         }
@@ -421,16 +421,16 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& p
                 continue;
             }
 
-            if (ui::StringUtil::IsEqualNoCase(findData.cFileName, _T(".")) ||
-                ui::StringUtil::IsEqualNoCase(findData.cFileName, _T(".."))) {
+            if (ui::StringUtil::IsEqualNoCase(findData.cFileName, L".") ||
+                ui::StringUtil::IsEqualNoCase(findData.cFileName, L"..")) {
                 continue;
             }
 
             ui::FilePath folderPath = ui::FilePathUtil::JoinFilePath(path, ui::FilePath(findData.cFileName));
 
-            SHFILEINFO shFileInfo;
-            ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
-            if (::SHGetFileInfo(folderPath.NativePath().c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_LARGEICON)) {
+            SHFILEINFOW shFileInfo;
+            ZeroMemory(&shFileInfo, sizeof(SHFILEINFOW));
+            if (::SHGetFileInfoW(folderPath.ToStringW().c_str(), 0, &shFileInfo, sizeof(SHFILEINFOW), SHGFI_ICON | SHGFI_LARGEICON)) {
                 if (folderPath.IsExistsDirectory()) {
                     //目录
                     folderList.push_back({ ui::FilePath(findData.cFileName), false, shFileInfo.hIcon });
@@ -440,7 +440,7 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& p
                     fileList.push_back({ ui::FilePath(findData.cFileName), false, shFileInfo.hIcon });
                 }
             }
-        } while (::FindNextFile(hFile, &findData));
+        } while (::FindNextFileW(hFile, &findData));
         ::FindClose(hFile);
         hFile = INVALID_HANDLE_VALUE;
 

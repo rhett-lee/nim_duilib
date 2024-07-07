@@ -75,7 +75,7 @@ public:
 
     /** 清空文件列表
     */
-    void ClearFileList();
+    void ClearFileList(std::vector<FileInfo>& pathList) const;
 
 private:
     /** 子项被双击时触发

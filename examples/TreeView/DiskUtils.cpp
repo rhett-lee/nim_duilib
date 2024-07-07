@@ -6,17 +6,17 @@
 bool DiskUtils::GetLogicalDriveList(std::vector<DString>& driveList)
 {
     const int32_t maxBufLen = 1022;
-    DString::value_type tempBuf[maxBufLen + 2];
-    DWORD dwSize = ::GetLogicalDriveStrings(maxBufLen, tempBuf);
+    DStringW::value_type tempBuf[maxBufLen + 2];
+    DWORD dwSize = ::GetLogicalDriveStringsW(maxBufLen, tempBuf);
     if (dwSize == 0) {
         return false;
     }
-    const DString::value_type* driveStr = tempBuf;
-    std::unique_ptr<DString::value_type> spBuf;
+    const DStringW::value_type* driveStr = tempBuf;
+    std::unique_ptr<DStringW::value_type> spBuf;
     if (dwSize > maxBufLen) {
-        DString::value_type* szBuf = new DString::value_type[dwSize + 2];
+        DStringW::value_type* szBuf = new DStringW::value_type[dwSize + 2];
         spBuf.reset(szBuf);
-        DWORD dwRetSize = ::GetLogicalDriveStrings(dwSize, szBuf);
+        DWORD dwRetSize = ::GetLogicalDriveStringsW(dwSize, szBuf);
         if ( (dwRetSize == 0) || (dwRetSize > dwSize) )
         {
             return false;
@@ -32,10 +32,12 @@ bool DiskUtils::GetLogicalDriveList(std::vector<DString>& driveList)
         tempBuf[dwSize + 1] = 0;
     }
 
+    DStringW driveName;
     DWORD begin = 0;
     for (DWORD i = 0; i < dwSize; ++i) {
-        if (driveStr[i] == _T('\0') && begin != i) {
-            driveList.push_back(driveStr + begin);
+        if (driveStr[i] == L'\0' && begin != i) {
+            driveName = driveStr + begin;
+            driveList.push_back(ui::StringUtil::UTF16ToT(driveName));
             begin = i + 1;
         }
     }
@@ -50,38 +52,34 @@ bool DiskUtils::GetLogicalDriveInfo(const DString& driveString, DiskInfo& diskIn
         return false;
     }
 
-    typedef DWORD_PTR (*PFNSHGetFileInfo)( LPCTSTR pszPath, DWORD dwFileAttributes, SHFILEINFO * psfi,
+    typedef DWORD_PTR (*PFNSHGetFileInfo)( LPCWSTR pszPath, DWORD dwFileAttributes, SHFILEINFOW * psfi,
                                            UINT cbFileInfo, UINT uFlags);
 
-#ifdef DUILIB_UNICODE
     PFNSHGetFileInfo pfnSHGetFileInfo = (PFNSHGetFileInfo)::GetProcAddress(hShell32Dll, "SHGetFileInfoW");
-#else
-    PFNSHGetFileInfo pfnSHGetFileInfo = (PFNSHGetFileInfo)::GetProcAddress(hShell32Dll, "SHGetFileInfoA");
-#endif
     ASSERT(pfnSHGetFileInfo != NULL);
-
     if (pfnSHGetFileInfo == NULL) {
         return false;
     }
+    DStringW driveStringW = ui::StringUtil::TToUTF16(driveString);
 
     DiskInfo currentDiskInfo;
-    SHFILEINFO shellInfo = {0};
-    DWORD_PTR result = pfnSHGetFileInfo(driveString.c_str(),  0, &shellInfo, sizeof(shellInfo), SHGFI_USEFILEATTRIBUTES | SHGFI_DISPLAYNAME| SHGFI_TYPENAME);
+    SHFILEINFOW shellInfo = {0, };
+    DWORD_PTR result = pfnSHGetFileInfo(driveStringW.c_str(),  0, &shellInfo, sizeof(shellInfo), SHGFI_USEFILEATTRIBUTES | SHGFI_DISPLAYNAME| SHGFI_TYPENAME);
     if (result == 0) {
         return false;
     }
-    currentDiskInfo.m_volumeName = shellInfo.szDisplayName;
-    currentDiskInfo.m_volumeType = shellInfo.szTypeName;
+    currentDiskInfo.m_volumeName = ui::StringUtil::UTF16ToT(shellInfo.szDisplayName);
+    currentDiskInfo.m_volumeType = ui::StringUtil::UTF16ToT(shellInfo.szTypeName);
     
-    DString::value_type volumeNameBuffer[MAX_PATH + 1] = {0};
+    DStringW::value_type volumeNameBuffer[MAX_PATH + 1] = {0};
     DWORD volumeNameSize = MAX_PATH;
     DWORD volumeSerialNumber = 0;
     DWORD maximumComponentLength = 0;
     DWORD fileSystemFlags = 0;
-    DString::value_type fileSystemNameBuffer[MAX_PATH + 1] = {0};
+    DStringW::value_type fileSystemNameBuffer[MAX_PATH + 1] = {0};
     DWORD fileSystemNameSize = MAX_PATH;
 
-    if (::GetVolumeInformation( driveString.c_str(), 
+    if (::GetVolumeInformationW(driveStringW.c_str(), 
                                 volumeNameBuffer, 
                                 volumeNameSize, 
                                 &volumeSerialNumber, 
@@ -90,14 +88,14 @@ bool DiskUtils::GetLogicalDriveInfo(const DString& driveString, DiskInfo& diskIn
                                 fileSystemNameBuffer, 
                                 fileSystemNameSize) != FALSE) {
         fileSystemNameBuffer[MAX_PATH] = 0;
-        currentDiskInfo.m_fileSystem = fileSystemNameBuffer;
+        currentDiskInfo.m_fileSystem = ui::StringUtil::UTF16ToT(fileSystemNameBuffer);
         currentDiskInfo.m_hasFileSystem = true;
         
         DWORD dSectorsPerCluster = 0;
         DWORD dBytesPerSector = 0;
         DWORD dNumberOfFreeClusters = 0;
         DWORD dTotalNumberOfClusters = 0;
-        if (::GetDiskFreeSpace(driveString.c_str(), &dSectorsPerCluster, &dBytesPerSector, &dNumberOfFreeClusters, &dTotalNumberOfClusters)) {
+        if (::GetDiskFreeSpaceW(driveStringW.c_str(), &dSectorsPerCluster, &dBytesPerSector, &dNumberOfFreeClusters, &dTotalNumberOfClusters)) {
             currentDiskInfo.m_clusterBytes = dSectorsPerCluster * dBytesPerSector;
             currentDiskInfo.m_totalBytes   = ((uint64_t)dTotalNumberOfClusters) * dSectorsPerCluster * dBytesPerSector;
             currentDiskInfo.m_freeBytes    = ((uint64_t)dNumberOfFreeClusters)  * dSectorsPerCluster * dBytesPerSector;
@@ -131,22 +129,22 @@ DString DiskUtils::GetMaxFreeSpaceLocalDisk()
     std::vector<DString> driveList;
     GetLogicalDriveList(driveList);
     for (size_t i = 0; i < driveList.size(); ++i) {
-        DString drive = driveList[i];
-        UINT uType = ::GetDriveType(drive.c_str());
+        DStringW driveW = ui::StringUtil::TToUTF16(driveList[i]);
+        UINT uType = ::GetDriveTypeW(driveW.c_str());
         if (uType != DRIVE_FIXED) {
             //只需要本地磁盘
             continue;
         }
 
         DiskInfo diskInfo;
-        bool bRet = GetLogicalDriveInfo(drive, diskInfo);
+        bool bRet = GetLogicalDriveInfo(ui::StringUtil::UTF16ToT(driveW), diskInfo);
         if (!bRet) {
             continue;
         }
 
         if (diskInfo.m_freeBytes > freeBytes) {
             freeBytes = diskInfo.m_freeBytes;
-            maxFreedrive = drive;
+            maxFreedrive = driveList[i];
         }
     }
     return maxFreedrive;

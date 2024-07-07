@@ -11,7 +11,7 @@ FileInfoList::FileInfoList(MainForm* pMainForm):
 
 FileInfoList::~FileInfoList()
 {
-    ClearFileList();
+    ClearFileList(m_pathList);
 }
 
 ui::Control* FileInfoList::CreateElement(ui::VirtualListBox* pVirtualListBox)
@@ -71,7 +71,9 @@ void FileInfoList::SetMultiSelect(bool /*bMultiSelect*/)
 
 void FileInfoList::SetFileList(ui::TreeNode* pTreeNode, const std::vector<FileInfo>& pathList)
 {
-    ClearFileList();
+    std::vector<FileInfo> oldPathList;
+    oldPathList.swap(m_pathList);
+    
     m_pTreeNode = pTreeNode;
     m_pathList.reserve(m_pathList.size() + pathList.size());
     for (const FileInfo& fileInfo : pathList) {
@@ -80,17 +82,20 @@ void FileInfoList::SetFileList(ui::TreeNode* pTreeNode, const std::vector<FileIn
     }
     // 通知ListBox数据总数变动
     EmitCountChanged();
+
+    //清理原来的图标资源
+    ClearFileList(oldPathList);
 }
 
-void FileInfoList::ClearFileList()
+void FileInfoList::ClearFileList(std::vector<FileInfo>& pathList) const
 {
-    for (const FileInfo& fileInfo : m_pathList) {
+    for (const FileInfo& fileInfo : pathList) {
         if (fileInfo.m_hIcon != nullptr) {
             ui::GlobalManager::Instance().Icon().RemoveIcon(fileInfo.m_hIcon);
             ::DestroyIcon(fileInfo.m_hIcon);
         }
     }
-    m_pathList.clear();
+    pathList.clear();
 }
 
 bool FileInfoList::OnDoubleClickItem(const ui::EventArgs& args)

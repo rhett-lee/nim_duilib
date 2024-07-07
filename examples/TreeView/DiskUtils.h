@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-/** 磁盘分区信息辅助类
+/** 磁盘分区信息辅助类（字符串编码类型：UTF-16或者UTF-8）
 */
 class DiskUtils
 {
