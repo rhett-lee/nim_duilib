@@ -1179,6 +1179,17 @@ private:
     /** 绘制所需的数据
     */
     TxDrawData m_txDrawData;
+
+private:
+#ifndef DUILIB_UNICODE
+    /** MBCS时，输入的字符
+    */
+    std::vector<BYTE> m_pendingChars;
+
+    /** 上次输入的时间
+    */
+    DWORD m_dwLastCharTime = 0;
+#endif
 };
 
 } // namespace ui

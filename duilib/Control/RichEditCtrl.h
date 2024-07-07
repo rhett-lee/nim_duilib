@@ -210,6 +210,16 @@ public:
         return (LONG)TxSendMessage(EM_GETSELTEXT, 0, (LPARAM)lpstrBuff);
     }
 
+    /** 是否有选择文本
+    */
+    BOOL HasSelText() const
+    {
+        CHARRANGE cr = {};
+        TxSendMessage(EM_EXGETSEL, 0, (LPARAM)&cr);
+        int32_t textLen = cr.cpMax - cr.cpMin;
+        return (textLen > 0);
+    }
+
     BOOL GetSelText(std::wstring& text) const
     {
         ASSERT(m_pTextServices != nullptr);
@@ -218,10 +228,11 @@ public:
         TxSendMessage(EM_EXGETSEL, 0, (LPARAM)&cr);
 
         text.clear();
-        int32_t textLen = cr.cpMax - cr.cpMin + 1;
+        int32_t textLen = cr.cpMax - cr.cpMin;
         if (textLen <= 0) {
             return TRUE;
         }
+        textLen += 1;
         wchar_t* pText = new wchar_t[textLen];
         if (pText == nullptr) {
             return FALSE;

@@ -1135,7 +1135,7 @@ DString RichEdit::GetLine(int nIndex, int nMaxLength) const
     if (lpText == nullptr) {
         return DString();
     }
-    ::ZeroMemory(lpText, (nMaxLength + 1) * sizeof(TCHAR));
+    ::ZeroMemory(lpText, (nMaxLength + 1) * sizeof(WCHAR));
     *(LPWORD)lpText = (WORD)nMaxLength;
     m_richCtrl.GetLine(nIndex, lpText);
     DStringW sText = lpText;
@@ -1897,8 +1897,42 @@ bool RichEdit::OnChar(const EventArgs& msg)
             return true;
         }
     }
-
+#ifdef DUILIB_UNICODE
     m_richCtrl.TxSendMessage(WM_CHAR, msg.wParam, msg.lParam);
+#else
+    //只支持1字节和2字节的文字输入，不支持4字节的文字输入
+    if ((::GetTickCount() - m_dwLastCharTime) > 5000) {
+        m_pendingChars.clear();
+    }
+    bool bHandled = false;
+    if (m_pendingChars.empty()) {
+        if (IsDBCSLeadByte((BYTE)msg.wParam)) {
+            m_pendingChars.push_back((BYTE)msg.wParam);
+            bHandled = true;
+        }
+    }
+    else {
+        if (m_pendingChars.size() == 1) {
+            BYTE chMBCS[8] = {m_pendingChars.front(), (BYTE)msg.wParam, 0, };
+            wchar_t chWideChar[4] = {0, };
+            ::MultiByteToWideChar(CP_ACP, 0, (const char*)chMBCS, 2, chWideChar, 4);
+            if (chWideChar[0] != 0) {
+                WPARAM wParam = chWideChar[0];
+                m_richCtrl.TxSendMessage(WM_CHAR, wParam, msg.lParam);                
+                bHandled = true;
+            }
+            m_pendingChars.clear();
+        }
+        else {
+            ASSERT(false);
+            m_pendingChars.clear();
+        }
+    }
+    m_dwLastCharTime = ::GetTickCount();
+    if (!bHandled) {
+        m_richCtrl.TxSendMessage(WM_CHAR, msg.wParam, msg.lParam);
+    }    
+#endif    
     return true;
 }
 
@@ -1909,11 +1943,11 @@ bool RichEdit::IsInLimitChars(wchar_t charValue) const
         return true;
     }
     const wchar_t* ch = m_pLimitChars.get();
-    if ((ch == nullptr) || (*ch == _T('\0'))) {
+    if ((ch == nullptr) || (*ch == L'\0')) {
         return true;
     }
     bool bInLimitChars = false;
-    while (*ch != _T('\0')) {
+    while (*ch != L'\0') {
         if (*ch == charValue) {
             bInLimitChars = true;
             break;
@@ -1932,7 +1966,7 @@ bool RichEdit::IsPasteLimited() const
         if (!strClipText.empty()) {
             size_t count = strClipText.size();
             for (size_t index = 0; index < count; ++index) {
-                if (strClipText[index] == _T('\0')) {
+                if (strClipText[index] == L'\0') {
                     break;
                 }
                 if (!IsInLimitChars(strClipText[index])) {
@@ -1949,16 +1983,16 @@ bool RichEdit::IsPasteLimited() const
         if (!strClipText.empty()) {
             size_t count = strClipText.size();
             for (size_t index = 0; index < count; ++index) {
-                if (strClipText[index] == _T('\0')) {
+                if (strClipText[index] == L'\0') {
                     break;
                 }
-                if (strClipText[index] == _T('-')) {
+                if (strClipText[index] == L'-') {
                     if ((index == 0) && (strClipText.size() > 1)) {
                         //允许第一个字符是负号
                         continue;
                     }
                 }
-                if ((strClipText[index] > _T('9')) || (strClipText[index] < _T('0'))) {
+                if ((strClipText[index] > L'9') || (strClipText[index] < L'0')) {
                     //有不是数字的字符，禁止粘贴
                     return true;
                 }
@@ -2484,7 +2518,7 @@ BOOL RichEdit::SetCaretPos(INT x, INT y)
 {
     m_iCaretPosX = x;
     m_iCaretPosY = y;
-    ShowCaret(GetSelText().empty());
+    ShowCaret(!m_richCtrl.HasSelText());
     return true;
 }
 
