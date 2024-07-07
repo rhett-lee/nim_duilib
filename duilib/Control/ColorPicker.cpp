@@ -791,6 +791,9 @@ void ColorPicker::OnPickColorFromScreen()
         if (bHideWindow) {
             //显示主窗口
             this->ShowWindow(ui::kSW_SHOW_NORMAL);
+            InvalidateAll();
+            UpdateWindow();
+            
             //父窗口重绘
             Window* pParentWnd = GetParentWindow();
             if (pParentWnd != nullptr) {
