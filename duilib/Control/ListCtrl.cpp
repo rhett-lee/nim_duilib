@@ -2152,7 +2152,6 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
     m_pRichEdit->SetFloat(true);
     m_pRichEdit->SetVisible(true);
     m_pRichEdit->SetText(sOldItemText);
-    m_pRichEdit->SetFocus();
     m_pRichEdit->SetSelAll();
     UpdateRichEditSize(pSubItem);
 
@@ -2225,6 +2224,9 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
         if ((msg.eventType == kEventKeyDown) && (msg.vkCode == kVK_ESCAPE)) {
             ClearEditEvents();
             RestoreItemFocus();
+            if ((m_pRichEdit != nullptr) && m_pRichEdit->IsVisible()) {
+                m_pRichEdit->SetVisible(false);
+            }
             return false;
         }
         else {
