@@ -285,28 +285,7 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                 for (pugi::xml_attribute attr : root.attributes()) {
                     strName = attr.name();
                     strValue = attr.value();
-                    if (strName == _T("size")) {
-                        UiSize windowSize;
-                        AttributeUtil::ParseWindowSize(pWindow, strValue.c_str(), windowSize);
-                        int32_t cx = windowSize.cx;
-                        int32_t cy = windowSize.cy;
-                        UiSize minSize = pWindow->GetMinInfo(false);
-                        UiSize maxSize = pWindow->GetMaxInfo(false);
-                        if ((minSize.cx > 0) && (cx < minSize.cx)) {
-                            cx = minSize.cx;
-                        }
-                        if ((maxSize.cx > 0) && (cx > maxSize.cx)) {
-                            cx = maxSize.cx;
-                        }
-                        if ((minSize.cy > 0) && (cy < minSize.cy)) {
-                            cy = minSize.cy;
-                        }
-                        if ((maxSize.cy > 0) && (cy > maxSize.cy)) {
-                            cy = maxSize.cy;
-                        }
-                        pWindow->SetInitSize(cx, cy, false, false);
-                    }
-                    else if( strName == _T("sizebox") ) {
+                    if ( strName == _T("sizebox") ) {
                         UiRect rcSizeBox;
                         AttributeUtil::ParseRectValue(strValue.c_str(), rcSizeBox);
                         pWindow->SetSizeBox(rcSizeBox, true);
@@ -393,6 +372,33 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                         if ((nAlpha >= 0) && (nAlpha <= 255)) {
                             pWindow->SetWindowAlpha(nAlpha);
                         }
+                    }
+                }
+
+                //最后设置窗口的初始化大小，因为初始化大小与是否阴影等相关
+                for (pugi::xml_attribute attr : root.attributes()) {
+                    strName = attr.name();
+                    strValue = attr.value();
+                    if (strName == _T("size")) {
+                        UiSize windowSize;
+                        AttributeUtil::ParseWindowSize(pWindow, strValue.c_str(), windowSize);
+                        int32_t cx = windowSize.cx;
+                        int32_t cy = windowSize.cy;
+                        UiSize minSize = pWindow->GetMinInfo(false);
+                        UiSize maxSize = pWindow->GetMaxInfo(false);
+                        if ((minSize.cx > 0) && (cx < minSize.cx)) {
+                            cx = minSize.cx;
+                        }
+                        if ((maxSize.cx > 0) && (cx > maxSize.cx)) {
+                            cx = maxSize.cx;
+                        }
+                        if ((minSize.cy > 0) && (cy < minSize.cy)) {
+                            cy = minSize.cy;
+                        }
+                        if ((maxSize.cy > 0) && (cy > maxSize.cy)) {
+                            cy = maxSize.cy;
+                        }
+                        pWindow->SetInitSize(cx, cy, false, false);
                     }
                 }
             }
