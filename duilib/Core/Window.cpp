@@ -887,13 +887,14 @@ LRESULT Window::OnCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const Nat
 {
     bHandled = false;
     LRESULT lResult = 0;
-    if (m_pEventKey != nullptr) {
+    Control* pFocusControl = (m_pEventKey != nullptr) ? m_pEventKey : m_pFocus;
+    if (pFocusControl != nullptr) {
         EventArgs msgData;
         msgData.vkCode = vkCode;
         msgData.modifierKey = modifierKey;
         msgData.wParam = nativeMsg.wParam;
         msgData.lParam = nativeMsg.lParam;
-        m_pEventKey->SendEvent(kEventChar, msgData);
+        pFocusControl->SendEvent(kEventChar, msgData);
     }
     return lResult;
 }
