@@ -154,6 +154,18 @@ DStringA FilePath::ToStringA() const
     return StringUtil::UTF16ToUTF8(m_filePath.native());
 }
 
+DString FilePath::GetFileName() const
+{
+    if (m_filePath.empty()) {
+        return DString();
+    }
+#ifdef DUILIB_UNICODE
+    return m_filePath.filename().native();
+#else
+    return StringUtil::UTF16ToUTF8(m_filePath.filename().native());
+#endif
+}
+
 void FilePath::FormatPathAsDirectory()
 {
     //确保路径最后字符是分割字符

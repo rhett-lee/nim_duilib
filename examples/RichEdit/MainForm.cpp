@@ -1013,38 +1013,30 @@ void MainForm::LoadRichEditData()
     }
 }
 
-const DString::value_type* g_defualtFilter = _T("所有文件 (*.*)\0*.*\0")
-                                             _T("文本文件 (*.txt)\0*.txt\0")
-                                             _T("RTF文件 (*.rtf)\0*.rtf\0")
-                                             _T("");
-
 void MainForm::OnOpenFile()
 {
-    TCHAR szFileTitle[_MAX_FNAME] = {0,};   // contains file title after return
-    TCHAR szFileName[_MAX_PATH] = {0,};     // contains full path name after return
+    std::vector<ui::FileDialog::FileType> fileTypes;
+    fileTypes.push_back({ _T("所有文件 (*.*)"), _T("*.*")});
+    fileTypes.push_back({ _T("文本文件 (*.txt)"), _T("*.txt") });
+    fileTypes.push_back({ _T("RTF文件 (*.rtf)"), _T("*.rtf") });
 
-    OPENFILENAME ofn = {0, };
-    ofn.lStructSize = sizeof(OPENFILENAME);
-    //TODO：平台相关
-    ofn.hwndOwner = NativeWnd()->GetHWND();
+    DString defaultExt;
+    int32_t nFileTypeIndex = 1;
+    if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
+        nFileTypeIndex = 2;
+    }
+    DString fileName = m_filePath.GetFileName();
 
-    ofn.lpstrFile = szFileName;
-    ofn.nMaxFile = _MAX_PATH;
-    ofn.lpstrFileTitle = szFileTitle;
-    ofn.nMaxFileTitle = _MAX_FNAME;
-    ofn.Flags = OFN_HIDEREADONLY | OFN_FILEMUSTEXIST | OFN_EXPLORER | OFN_ENABLESIZING;
-    ofn.lpstrFilter = g_defualtFilter;
-    ofn.hInstance = ::GetModuleHandle(NULL);
-
-    BOOL bRet = ::GetOpenFileName(&ofn);
-    if (bRet) {
-        if (LoadFile(szFileName)) {
-            m_filePath = ui::StringUtil::TToLocal(szFileName);
+    ui::FilePath filePath;
+    ui::FileDialog openFileDlg;
+    if (openFileDlg.BrowseForFile(this, filePath, true, fileTypes, nFileTypeIndex, defaultExt, fileName)) {
+        if (LoadFile(filePath)) {
+            m_filePath = filePath;
             if (m_pRichEdit != nullptr) {
                 m_pRichEdit->SetModify(false);
                 UpdateSaveStatus();
             }
-        }
+        }        
     }
 }
 
@@ -1052,7 +1044,7 @@ void MainForm::OnSaveFile()
 {
     if (m_pRichEdit != nullptr) {
         if (m_pRichEdit->GetModify()) {
-            if (SaveFile(m_filePath.NativePath())) {
+            if (SaveFile(m_filePath)) {
                 m_pRichEdit->SetModify(false);
                 UpdateSaveStatus();
             }
@@ -1062,41 +1054,37 @@ void MainForm::OnSaveFile()
 
 void MainForm::OnSaveAsFile()
 {
-    TCHAR szFileTitle[_MAX_FNAME] = { 0, };   // contains file title after return
-    TCHAR szFileName[_MAX_PATH] = { 0, };     // contains full path name after return
-    _tcscpy_s(szFileName, m_filePath.NativePath().c_str());
+    std::vector<ui::FileDialog::FileType> fileTypes;
+    fileTypes.push_back({ _T("所有文件 (*.*)"), _T("*.*") });
+    fileTypes.push_back({ _T("文本文件 (*.txt)"), _T("*.txt") });
+    fileTypes.push_back({ _T("RTF文件 (*.rtf)"), _T("*.rtf") });
 
-    OPENFILENAME ofn = { 0, };
-    ofn.lStructSize = sizeof(OPENFILENAME);
-    //TODO：平台相关
-    ofn.hwndOwner = NativeWnd()->GetHWND();
+    DString defaultExt;
+    int32_t nFileTypeIndex = 1;
+    if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
+        nFileTypeIndex = 2;
+    }
+    DString fileName = m_filePath.GetFileName();
 
-    ofn.lpstrFile = szFileName;
-    ofn.nMaxFile = _MAX_PATH;
-    ofn.lpstrFileTitle = szFileTitle;
-    ofn.nMaxFileTitle = _MAX_FNAME;
-    ofn.Flags = OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_EXPLORER | OFN_ENABLESIZING;
-    ofn.lpstrFilter = g_defualtFilter;
-    ofn.hInstance = ::GetModuleHandle(NULL);
-
-    BOOL bRet = ::GetSaveFileName(&ofn);
-    if (bRet) {
-        if (SaveFile(szFileName)) {
-            m_filePath = ui::StringUtil::LocalToT(szFileName);
+    ui::FilePath filePath;
+    ui::FileDialog openFileDlg;
+    if (openFileDlg.BrowseForFile(this, filePath, false, fileTypes, nFileTypeIndex, defaultExt, fileName)) {
+        if (SaveFile(filePath)) {
+            m_filePath = filePath;
             if (m_pRichEdit != nullptr) {
                 m_pRichEdit->SetModify(false);
                 UpdateSaveStatus();
             }
-        }
+        }        
     }
 }
 
-bool MainForm::LoadFile(const DString& filePath)
+bool MainForm::LoadFile(const ui::FilePath& filePath)
 {
     if (m_pRichEdit == nullptr) {
         return false;
     }
-    DString filePathLocal = ui::StringUtil::TToLocal(filePath);
+    DString filePathLocal = filePath.NativePath();
     HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
         return false;
@@ -1106,18 +1094,21 @@ bool MainForm::LoadFile(const DString& filePath)
     es.dwCookie = (DWORD_PTR)hFile;
     es.dwError = 0;
     es.pfnCallback = StreamReadCallback;
-    UINT nFormat = IsRtfFile(filePath) ? SF_RTF : SF_TEXT;
+    UINT nFormat = SF_TEXT;
+    if (m_pRichEdit->IsRichText()) {
+        nFormat = IsRtfFile(filePathLocal) ? SF_RTF : SF_TEXT;
+    }
     m_pRichEdit->StreamIn(nFormat, es);
     ::CloseHandle(hFile);
     return !(BOOL)es.dwError;
 }
 
-bool MainForm::SaveFile(const DString& filePath)
+bool MainForm::SaveFile(const ui::FilePath& filePath)
 {
     if (m_pRichEdit == nullptr) {
         return false;
     }
-    DString filePathLocal = ui::StringUtil::TToLocal(filePath);
+    DString filePathLocal = filePath.NativePath();
     HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
     if (hFile == INVALID_HANDLE_VALUE) {
         return false;
@@ -1127,7 +1118,10 @@ bool MainForm::SaveFile(const DString& filePath)
     es.dwCookie = (DWORD_PTR)hFile;
     es.dwError = 0;
     es.pfnCallback = StreamWriteCallback;
-    UINT nFormat = IsRtfFile(filePath) ? SF_RTF : SF_TEXT;
+    UINT nFormat = SF_TEXT;
+    if (m_pRichEdit->IsRichText()) {
+        nFormat = IsRtfFile(filePathLocal) ? SF_RTF : SF_TEXT;
+    }
     m_pRichEdit->StreamOut(nFormat, es);
     ::CloseHandle(hFile);
     return !(BOOL)es.dwError;

@@ -67,8 +67,8 @@ private:
     void OnSaveFile();
     void OnSaveAsFile();
 
-    bool LoadFile(const DString& filePath);
-    bool SaveFile(const DString& filePath);
+    bool LoadFile(const ui::FilePath& filePath);
+    bool SaveFile(const ui::FilePath& filePath);
 
     //判断一个文件扩展名是否为RTF文件
     bool IsRtfFile(const DString& filePath) const;

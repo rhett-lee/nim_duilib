@@ -102,6 +102,10 @@ public:
     */
     DStringA ToStringA() const;
 
+    /** 获取当前路径中的文件名部分(UTF16编码/UTF8编码)
+    */
+    DString GetFileName() const;
+
 public:
     /** 规范目录，确保以分隔符结束
     */

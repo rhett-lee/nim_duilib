@@ -48,6 +48,7 @@ public:
     * @param [in] fileTypes 对话框可以打开或保存的文件类型
     * @param [in] nFileTypeIndex 选择的文件类型，有效范围：[0, fileTypes.size())
     * @param [in] defaultExt 默认的文件类型, 举例："doc;docx", 编码规则：Unicode版本为UTF16编码，非Unicode版本为UTF8编码
+    * @param [in] fileName 当前的文件名
     * @param [out] filePath 返回选择的文件路径
     */
     bool BrowseForFile(Window* pWindow, 
@@ -55,7 +56,8 @@ public:
                        bool bOpenFileDialog, 
                        const std::vector<FileType>& fileTypes = std::vector<FileType>(),
                        int32_t nFileTypeIndex = -1,
-                       const DString& defaultExt = _T(""));
+                       const DString& defaultExt = _T(""),
+                       const DString& fileName = _T(""));
 
     /** 选择文件（多选）
     * @param [in] pWindow 父窗口

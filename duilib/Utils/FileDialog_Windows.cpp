@@ -87,7 +87,8 @@ bool FileDialog::BrowseForFile(Window* pWindow,
                                bool bOpenFileDialog,
                                const std::vector<FileType>& fileTypes,
                                int32_t nFileTypeIndex,
-                               const DString& defaultExt)
+                               const DString& defaultExt,
+                               const DString& fileName)
 {
     filePath.Clear();
     IFileDialog* pfd = nullptr;//仅Win7以及上支持
@@ -129,6 +130,9 @@ bool FileDialog::BrowseForFile(Window* pWindow,
             hr = pfd->SetDefaultExtension(StringUtil::TToUTF16(defaultExt).c_str());
             ASSERT(SUCCEEDED(hr));
         }
+
+        DStringW fileNameW = StringUtil::TToUTF16(fileName);
+        pfd->SetFileName(fileNameW.c_str());
 
         if (pfd->Show((pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr) == S_OK) {
             IShellItem* pItem = nullptr;
