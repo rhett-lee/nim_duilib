@@ -799,10 +799,17 @@ LRESULT Window::OnContextMenuMsg(const UiPoint& pt, const NativeMsg& /*nativeMsg
 
 LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kAlt) {
+        if (vkCode != kVK_MENU) {
+            ASSERT(Keyboard::IsKeyDown(kVK_MENU));
+        }        
+    }
+#endif
     bHandled = false;
     LRESULT lResult = 0;
-    if (modifierKey & (ModifierKey::kShift | ModifierKey::kControl | ModifierKey::kAlt | ModifierKey::kWin)) {
-        //含有组合按键
+    if (modifierKey & ModifierKey::kAlt) {
+        //含有组合按键: Alt
         m_pEventKey = m_pFocus;
         if (m_pEventKey != nullptr) {
             std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
@@ -844,7 +851,7 @@ LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const 
             msgData.modifierKey = modifierKey;
             msgData.wParam = nativeMsg.wParam;
             msgData.lParam = nativeMsg.lParam;
-            m_pFocus->SendEvent(kEventKeyDown, msgData);
+            m_pEventKey->SendEvent(kEventKeyDown, msgData);
             if (windowFlag.expired()) {
                 return lResult;
             }
@@ -865,6 +872,14 @@ LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const 
 
 LRESULT Window::OnKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kAlt) {
+        if (vkCode != kVK_MENU) {
+            ASSERT(Keyboard::IsKeyDown(kVK_MENU));
+        }
+    }
+#endif
+
     bHandled = false;
     LRESULT lResult = 0;
     if (m_pEventKey != nullptr) {
@@ -885,6 +900,12 @@ LRESULT Window::OnKeyUpMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const Na
 
 LRESULT Window::OnCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kAlt) {
+        ASSERT(Keyboard::IsKeyDown(kVK_MENU));
+    }
+#endif
+
     bHandled = false;
     LRESULT lResult = 0;
     Control* pFocusControl = (m_pEventKey != nullptr) ? m_pEventKey : m_pFocus;
@@ -899,8 +920,23 @@ LRESULT Window::OnCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const Nat
     return lResult;
 }
 
-LRESULT Window::OnHotKeyMsg(int32_t /*hotkeyId*/, VirtualKeyCode /*vkCode*/, uint32_t /*modifierKey*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
+LRESULT Window::OnHotKeyMsg(int32_t /*hotkeyId*/, VirtualKeyCode /*vkCode*/, uint32_t modifierKey, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kAlt) {
+        ASSERT(Keyboard::IsKeyDown(kVK_MENU));
+    }
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+    if (modifierKey & ModifierKey::kWin) {
+        ASSERT(Keyboard::IsKeyDown(kVK_LWIN) || Keyboard::IsKeyDown(kVK_RWIN));
+    }
+#endif
+
     //待添加（需确认，应该是要加在窗口上的）
     bHandled = false;
     return 0;
@@ -908,6 +944,15 @@ LRESULT Window::OnHotKeyMsg(int32_t /*hotkeyId*/, VirtualKeyCode /*vkCode*/, uin
 
 LRESULT Window::OnMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
     bHandled = false;
     LRESULT lResult = 0;
     SetLastMousePos(pt);
@@ -926,6 +971,15 @@ LRESULT Window::OnMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t 
 
 LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
     bHandled = false;
     LRESULT lResult = 0;
     m_toolTip->SetMouseTracking(this, true);
@@ -995,6 +1049,15 @@ bool Window::HandleMouseEnterLeave(const UiPoint& pt, uint32_t modifierKey)
 
 LRESULT Window::OnMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
     bHandled = false;
     LRESULT lResult = 0;
     m_toolTip->SetMouseTracking(this, false);
@@ -1041,6 +1104,15 @@ LRESULT Window::OnMouseLeaveMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
 
 LRESULT Window::OnMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
     bHandled = false;
     OnButtonDown(kEventMouseButtonDown, pt, nativeMsg, modifierKey);
     return 0;
@@ -1048,6 +1120,15 @@ LRESULT Window::OnMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, c
 
 LRESULT Window::OnMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
     bHandled = false;
     OnButtonUp(kEventMouseButtonUp, pt, nativeMsg, modifierKey);
     return 0;
@@ -1055,6 +1136,15 @@ LRESULT Window::OnMouseLButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, con
 
 LRESULT Window::OnMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
     bHandled = false;
     OnButtonDown(kEventMouseDoubleClick, pt, nativeMsg, modifierKey);
     return 0;
@@ -1062,6 +1152,15 @@ LRESULT Window::OnMouseLButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey
 
 LRESULT Window::OnMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
     bHandled = false;
     OnButtonDown(kEventMouseRButtonDown, pt, nativeMsg, modifierKey);
     return 0;
@@ -1069,6 +1168,15 @@ LRESULT Window::OnMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, c
 
 LRESULT Window::OnMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
     bHandled = false;
     OnButtonUp(kEventMouseRButtonUp, pt, nativeMsg, modifierKey);
     return 0;
@@ -1076,6 +1184,15 @@ LRESULT Window::OnMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, con
 
 LRESULT  Window::OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
     bHandled = false;
     OnButtonDown(kEventMouseRDoubleClick, pt, nativeMsg, modifierKey);
     return 0;
