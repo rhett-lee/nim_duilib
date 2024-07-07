@@ -1193,7 +1193,7 @@ void MainForm::OnReplaceText()
         createParam.m_dwStyle = ui::kWS_POPUP;
         createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW;
         createParam.m_windowTitle = _T("ReplaceForm");
-        m_pReplaceForm->CreateWnd(nullptr, createParam);
+        m_pReplaceForm->CreateWnd(this, createParam);
         m_pReplaceForm->CenterWindow();
         m_pReplaceForm->ShowWindow(ui::kSW_SHOW);
         m_pReplaceForm->AttachWindowClose([this](const ui::EventArgs& args) {
