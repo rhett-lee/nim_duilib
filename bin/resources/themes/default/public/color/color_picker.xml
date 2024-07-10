@@ -4,8 +4,8 @@
   <TextColor name="color_picker_bkcolor" value="#FFF0F0F0"/>
   <TextColor name="color_picker_box_bkcolor" value="#FFF9F9F9"/>
   <Class name="color_picker_tab_option" width="48" height="32" font="system_14" normal_text_color="black" text_align="hcenter,vcenter" normal_color="#FFE6E6E6" hot_color="#FFE3E3E3" selected_normal_color="color_picker_box_bkcolor"/>
-  <Class name="color_picker_color_edit" text_padding="4,0,4,0" width="32" margin="2,0,0,0" default_context_menu="true" number_only="true" limit_text="3" valign="center" text_align="vcenter" bkcolor="white" border_size="1" border_color="light_gray"/>
-  <Class name="color_picker_slider_horizontal" horizontal="true" width="stretch" height="22" margin="4,0,4,0" bkcolor="white" value="0" valign="center" thumbsize="20,20" min="0" max="255" progress_bar_padding="0,2,0,2" thumb_normal_image="file='../public/color/slider_thumb.svg' valign='center'"/>
+  <Class name="color_picker_color_edit" text_padding="4,0,4,0" width="36" margin="2,0,0,0" default_context_menu="true" number_only="true" limit_text="3" valign="center" text_align="vcenter" bkcolor="white" border_size="1" border_color="light_gray"/>
+  <Class name="color_picker_slider_horizontal" horizontal="true" width="stretch" height="21" margin="4,0,4,0" bkcolor="white" value="0" valign="center" thumbsize="20,20" min="0" max="255" progress_bar_padding="0,2,0,2" thumb_normal_image="file='../public/color/slider_thumb.svg' valign='center'"/>
     
   <VBox bkcolor="bk_wnd_darkcolor" bordersize="1" bordercolor="lightcolor" visible="true">
     

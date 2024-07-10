@@ -45,8 +45,13 @@ private:
     void OnProgressValueChagned(float value);
 
     /** 显示拾色器窗口
+    * @param [in] bDoModal 是否使用模态对话框
     */
-    void ShowColorPicker();
+    void ShowColorPicker(bool bDoModal);
+
+    /** 显示模态对话框
+    */
+    void ShowDoModalDlg();
 
 private:
     /** 快捷键消息（WM_HOTKEY）

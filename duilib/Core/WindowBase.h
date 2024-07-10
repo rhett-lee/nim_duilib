@@ -26,13 +26,26 @@ public:
 
 public:
     /** 创建窗口, 可使用 OnInitWindow 接口来实现窗口创建完成后的自定义需求
+    *   注意事项：子类Window对象在创建窗口成功以后，在窗口销毁时，会调用Window::OnFinalMessage函数删除自身。
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
-    * @param [in] rc 窗口位置和大小
     */
-    bool CreateWnd(WindowBase* pParentWindow,
-                   const WindowCreateParam& createParam,
-                   const UiRect& rc = UiRect(0, 0, 0, 0));
+    bool CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& createParam);
+
+    /** 显示模态窗口, 可使用 OnInitWindow 接口来实现窗口创建完成后的自定义需求
+    *   注意事项：
+    *       (1) DoModal 是阻塞式的，窗口窗口后，直到窗口销毁后，该函数才返回
+    *       (2) DoModal的窗口在窗口销毁时，不会销毁自身（包括Window子类）对象，需要自己管理对象的生命周期
+    *       (3) 已知问题：对话框中的RichEdit输入框，不支持输入文字（问题原因是IsDialogMessage函数未派发WM_CHAR消息给对话框窗口，暂未找到解决方案）
+    * @param [in] pParentWindow 父窗口
+    * @param [in] createParam 创建窗口所需的参数
+    * @param [in] bCenterWindow 窗口是否居中
+    * @param [in] bCloseByEsc 按ESC键的时候，是否关闭窗口
+    * @param [in] bCloseByEnter 按Enter键的时候，是否关闭窗口
+    * @return 窗口退出时的返回值, 如果失败则返回-1
+    */
+    int32_t DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
+                    bool bCenterWindow = true, bool bCloseByEsc = true, bool bCloseByEnter = false);
 
     /** 是否含有有效的窗口句柄
     */
@@ -75,12 +88,9 @@ public:
     bool IsLayeredWindow() const;
 
     /** 关闭窗口, 异步关闭，当函数返回后，IsClosing() 状态为true
-    * @param [in] nRet 关闭消息, 含义如下：
-                0 - 表示 "确认" 关闭本窗口
-                1 - 表示点击窗口的 "关闭" 按钮关闭本窗口(默认值)
-                2 - 表示 "取消" 关闭本窗口
+    * @param [in] nRet 关闭的参数，参见：enum WindowCloseParam
     */
-    void CloseWnd(UINT nRet = 1);
+    void CloseWnd(int32_t nRet = kWindowCloseNormal);
 
     /** 关闭窗口, 同步关闭
     */
@@ -89,6 +99,11 @@ public:
     /** 是否将要关闭
     */
     bool IsClosingWnd() const;
+
+    /** 获取窗口关闭的参数
+    * @return 参见enum WindowCloseParam, 也可能是自定义值
+    */
+    int32_t GetCloseParam() const;
 
 public:
     /** @name 窗口显示、隐藏、大小、位置等状态相关接口
@@ -99,13 +114,17 @@ public:
     */
     bool ShowWindow(ShowWindowCommands nCmdShow);
 
-    /** 显示模态对话框(父窗口在创建的时候指定)
+    /** 显示模态对话框(父窗口在创建的时候指定, 将父窗口设置为Disable状态)
     */
     void ShowModalFake();
 
-    /** 是否是模态显示
+    /** 是否是模拟的模态显示窗口（通过ShowModalFake函数显示的窗口）
     */
     bool IsFakeModal() const;
+
+    /** 是否是模态对话框模式（通过DoModal函数显示的对话框窗口）
+    */
+    bool IsDoModal() const;
 
     /** 居中窗口，支持扩展屏幕
     */
@@ -798,6 +817,14 @@ protected:
     */
     virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
+    /** 窗口创建成功的事件(WM_CREATE/WM_INITDIALOG)
+    * @param [in] bDoModal 当前是否为通过DoModal函数显示的模态对话框
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual void OnCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
     /** @}*/
 
 protected:
@@ -842,6 +869,7 @@ private:
     virtual void    OnNativeFinalMessage() override;
     virtual LRESULT OnNativeWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
     virtual void    OnNativeProcessDpiChangedMsg(uint32_t nNewDPI, const UiRect& rcNewWindow) override;
+    virtual void    OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) override final;
     virtual LRESULT OnNativeSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeMoveMsg(const UiPoint& ptTopLeft, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) override;

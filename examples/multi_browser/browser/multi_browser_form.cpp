@@ -17,8 +17,8 @@ namespace
     // 窗口收到WM_CLOSE消息的原因
     enum CloseReason
     {
-        kDefaultClose = 0,        // 在任务栏右击关闭窗口，按Alt+F4等常规原因
-        kBrowserBoxClose = 1    // 关闭了最后一个浏览器盒子导致窗口关闭
+        kDefaultClose    = 10,  // 在任务栏右击关闭窗口，按Alt+F4等常规原因
+        kBrowserBoxClose = 11   // 关闭了最后一个浏览器盒子导致窗口关闭
     };
 }
 

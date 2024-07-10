@@ -24,11 +24,19 @@ public:
     /** 创建窗口
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
-    * @param [in] rc 窗口位置和大小
     */
-    bool CreateWnd(WindowBase* pParentWindow,
-                   const WindowCreateParam& createParam,
-                   const UiRect& rc = UiRect(0, 0, 0, 0));
+    bool CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& createParam);
+
+    /** 显示模态窗口
+    * @param [in] pParentWindow 父窗口
+    * @param [in] createParam 创建窗口所需的参数
+    * @param [in] bCenterWindow 窗口是否居中
+    * @param [in] bCloseByEsc 按ESC键的时候，是否关闭窗口
+    * @param [in] bCloseByEnter 按Enter键的时候，是否关闭窗口
+    * @return 窗口退出时的返回值, 如果失败则返回-1
+    */
+    int32_t DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
+                    bool bCenterWindow = true, bool bCloseByEsc = true, bool bCloseByEnter = false);
 
     /** 获取窗口所属的 Windows 句柄
     */
@@ -49,12 +57,9 @@ public:
 
 public:
     /** 关闭窗口, 异步关闭，当函数返回后，IsClosing() 状态为true
-    * @param [in] nRet 关闭消息, 含义如下：
-                0 - 表示 "确认" 关闭本窗口
-                1 - 表示点击窗口的 "关闭" 按钮关闭本窗口(默认值)
-                2 - 表示 "取消" 关闭本窗口
+    * @param [in] nRet 关闭的参数，参见：enum WindowCloseParam
     */
-    void CloseWnd(UINT nRet = 1);
+    void CloseWnd(int32_t nRet = kWindowCloseNormal);
 
     /** 关闭窗口, 同步关闭
     */
@@ -63,6 +68,11 @@ public:
     /** 是否将要关闭
     */
     bool IsClosingWnd() const;
+
+    /** 获取窗口关闭的参数
+    * @return 参见enum WindowCloseParam, 也可能是自定义值
+    */
+    int32_t GetCloseParam() const;
 
 public:
     /** 设置是否为层窗口
@@ -107,9 +117,13 @@ public:
     */
     void OnCloseModalFake(WindowBase* pParentWindow);
 
-    /** 是否是模态显示
+    /** 是否是模拟的模态显示窗口（通过ShowModalFake函数显示的窗口）
     */
     bool IsFakeModal() const;
+
+    /** 是否是模态对话框模式（通过DoModal函数显示的对话框窗口）
+    */
+    bool IsDoModal() const;
 
     /** 居中窗口，支持扩展屏幕
     */
@@ -409,6 +423,24 @@ private:
     */
     static LRESULT CALLBACK __WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+    /** 窗口过程函数(模态对话框入口函数)
+    * @param [in] hWnd 窗口句柄
+    * @param [in] uMsg 消息体
+    * @param [in] wParam 消息附加参数
+    * @param [in] lParam 消息附加参数
+    * @return 返回消息处理结果
+    */
+    static INT_PTR CALLBACK __DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+    /** 窗口过程函数(模态对话框)
+    * @param [in] hWnd 窗口句柄
+    * @param [in] uMsg 消息体
+    * @param [in] wParam 消息附加参数
+    * @param [in] lParam 消息附加参数
+    * @return 返回消息处理结果
+    */
+    static LRESULT CALLBACK __DialogWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
     /** 窗口消息的处理函数, 从系统接收到消息后，进入的第一个处理函数
     * @param [in] uMsg 消息体
     * @param [in] wParam 消息附加参数
@@ -443,6 +475,9 @@ private:
     LRESULT OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
+    LRESULT OnCreateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+    LRESULT OnInitDialogMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+
     /** 窗口消息的派发函数，将Window消息转换为内部格式，然后派发出去
     * @param [in] uMsg 消息体
     * @param [in] wParam 消息附加参数
@@ -453,6 +488,10 @@ private:
     LRESULT ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
 private:
+    /** 初始化窗口资源
+    */
+    void InitNativeWindow();
+
     /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并调用OnDeleteSelf函数销毁该窗口对象）
     */
     void OnFinalMessage();
@@ -486,12 +525,37 @@ private:
     */
     INativeWindow* m_pOwner;
 
-    //窗口句柄
+    /** 窗口句柄
+    */
     HWND m_hWnd;
 
     /** 资源模块句柄
     */
     HMODULE m_hResModule;
+
+    /** 创建窗口时的初始化参数
+    */
+    WindowCreateParam m_createParam;
+
+    /** 原来的窗口函数(仅限模式对话框使用)
+    */
+    WNDPROC m_pfnOldWndProc;
+
+    /** 当前窗口是否显示为模态对话框
+    */
+    bool m_bDoModal;
+
+    /** 窗口是否居中(仅模态对话框有效)
+    */
+    bool m_bCenterWindow;
+
+    /** 按ESC键的时候，是否关闭窗口(仅模态对话框有效)
+    */
+    bool m_bCloseByEsc;
+
+    /** 按Enter键的时候，是否关闭窗口(仅模态对话框有效)
+    */
+    bool m_bCloseByEnter;
 
     //绘制DC
     HDC m_hDcPaint;
@@ -510,6 +574,9 @@ private:
 
     //窗口已经延迟关闭
     bool m_bCloseing;
+
+    //窗口关闭的参数
+    int32_t m_closeParam;
 
     //当前窗口是否显示为模态对话框
     bool m_bFakeModal;

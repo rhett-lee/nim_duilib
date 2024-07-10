@@ -21,22 +21,34 @@ WindowBase::~WindowBase()
     }
 }
 
-bool WindowBase::CreateWnd(WindowBase* pParentWindow,
-                           const WindowCreateParam& createParam,
-                           const UiRect& rc)
+bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& createParam )
 {
     m_pParentWindow = pParentWindow;
     m_parentFlag.reset();
     if (pParentWindow != nullptr) {
         m_parentFlag = pParentWindow->GetWeakFlag();
     }
-    bool bRet = m_pNativeWindow->CreateWnd(pParentWindow, createParam, rc);
-    if (bRet) {
-        InitWindowBase();
-        InitWindow();
-        OnInitWindow();
-    }    
-    return bRet;
+    return m_pNativeWindow->CreateWnd(pParentWindow, createParam);
+}
+
+int32_t WindowBase::DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
+                            bool bCenterWindow, bool bCloseByEsc, bool bCloseByEnter)
+{
+    m_pParentWindow = pParentWindow;
+    m_parentFlag.reset();
+    if (pParentWindow != nullptr) {
+        m_parentFlag = pParentWindow->GetWeakFlag();
+    }
+    return m_pNativeWindow->DoModal(pParentWindow, createParam, bCenterWindow, bCloseByEsc, bCloseByEnter);
+}
+
+void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    //窗口完成创建，初始化
+    InitWindowBase();
+    InitWindow();
+    OnInitWindow();
+    OnCreateWndMsg(bDoModal, nativeMsg, bHandled);
 }
 
 void WindowBase::ClearWindowBase()
@@ -88,7 +100,7 @@ bool WindowBase::IsLayeredWindow() const
     return m_pNativeWindow->IsLayeredWindow();
 }
 
-void WindowBase::CloseWnd(UINT nRet)
+void WindowBase::CloseWnd(int32_t nRet)
 {
     m_pNativeWindow->CloseWnd(nRet);
 }
@@ -101,6 +113,11 @@ void WindowBase::Close()
 bool WindowBase::IsClosingWnd() const
 {
     return m_pNativeWindow->IsClosingWnd();
+}
+
+int32_t WindowBase::GetCloseParam() const
+{
+    return m_pNativeWindow->GetCloseParam();
 }
 
 bool WindowBase::AddMessageFilter(IUIMessageFilter* pFilter)
@@ -257,6 +274,11 @@ void WindowBase::ShowModalFake()
 bool WindowBase::IsFakeModal() const
 {
     return m_pNativeWindow->IsFakeModal();
+}
+
+bool WindowBase::IsDoModal() const
+{
+    return m_pNativeWindow->IsDoModal();
 }
 
 void WindowBase::CenterWindow()

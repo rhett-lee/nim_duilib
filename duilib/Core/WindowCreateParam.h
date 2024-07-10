@@ -48,6 +48,13 @@ enum WindowExStyle : uint32_t
 
 };
 
+/** 窗口的位置和大小默认值标志
+*/
+enum WindowDefaultSize
+{
+    kCW_USEDEFAULT  = ((int32_t)0x80000000)
+};
+
 /** 创建窗口所需的参数
 */
 class WindowCreateParam
@@ -87,6 +94,23 @@ public:
     /** 窗口的标题（可选参数，默认为空）
     */
     DString m_windowTitle;
+
+public:
+    /** 窗口的左上角X坐标(如果不设置，则使用默认值)
+    */
+    int32_t m_nX;
+
+    /** 窗口的左上角Y坐标(如果不设置，则使用默认值)
+    */
+    int32_t m_nY;
+
+    /** 窗口的宽度(如果不设置，则使用默认值)
+    */
+    int32_t m_nWidth;
+
+    /** 窗口的宽度(如果不设置，则使用默认值)
+    */
+    int32_t m_nHeight;
 };
 
 } // namespace ui

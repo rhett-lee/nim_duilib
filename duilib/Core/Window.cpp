@@ -43,6 +43,11 @@ Window* Window::GetParentWindow() const
     }
 }
 
+void Window::AttachWindowCreate(const EventCallback& callback)
+{
+    m_OnEvent[kEventWindowCreate] += callback;
+}
+
 void Window::AttachWindowClose(const EventCallback& callback)
 {
     m_OnEvent[kEventWindowClose] += callback;
@@ -114,15 +119,18 @@ void Window::FinalMessage()
 
 void Window::OnFinalMessage()
 {
-    delete this;
+    if (!IsDoModal()) {
+        delete this;
+    }    
 }
 
 void Window::ClearWindow(bool bSendClose)
 {
     if (bSendClose && IsWindow()) {
         //发送关闭事件
+        WPARAM wParam = (WPARAM)GetCloseParam();
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-        SendNotify(kEventWindowClose);
+        SendNotify(kEventWindowClose, wParam);
         if (windowFlag.expired()) {
             return;
         }
@@ -1216,6 +1224,13 @@ LRESULT Window::OnWindowCloseMsg(uint32_t /*wParam*/, const NativeMsg& /*nativeM
 {
     bHandled = false;
     return 0;
+}
+
+void Window::OnCreateWndMsg(bool bDoModal, const NativeMsg& /*nativeMsg*/, bool& bHandled)
+{
+    bHandled = false;
+    //给应用层发一个事件
+    SendNotify(kEventWindowCreate, bDoModal ? 1 : 0);
 }
 
 void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey)

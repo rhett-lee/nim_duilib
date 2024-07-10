@@ -20,9 +20,6 @@ class UILIB_API WindowImplBase : public Window
 {
 public:
     WindowImplBase();
-
-protected:
-    //析构函数不允许外部调用，因在OnFinalMessage函数中，有delete this操作
     virtual ~WindowImplBase() override;
 
 public:

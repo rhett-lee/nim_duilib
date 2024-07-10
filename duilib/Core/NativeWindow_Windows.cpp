@@ -18,11 +18,17 @@ NativeWindow::NativeWindow(INativeWindow* pOwner):
     m_bUseSystemCaption(false),
     m_bMouseCapture(false),
     m_bCloseing(false),
+    m_closeParam(kWindowCloseNormal),
     m_bFakeModal(false),
     m_bFullScreen(false),
     m_dwLastStyle(0),
     m_ptLastMousePos(-1, -1),
-    m_bFirstPainted(true)
+    m_bFirstPainted(true),
+    m_pfnOldWndProc(nullptr),
+    m_bDoModal(false),
+    m_bCenterWindow(false),
+    m_bCloseByEsc(false),
+    m_bCloseByEnter(false)
 {
     ASSERT(m_pOwner != nullptr);
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
@@ -30,12 +36,12 @@ NativeWindow::NativeWindow(INativeWindow* pOwner):
 
 NativeWindow::~NativeWindow()
 {
+    ASSERT(m_pfnOldWndProc == nullptr);
     ASSERT(m_hWnd == nullptr);
     ClearNativeWindow();
 }
 
-bool NativeWindow::CreateWnd(WindowBase* pParentWindow,
-                             const WindowCreateParam& createParam, const UiRect& rc)
+bool NativeWindow::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& createParam)
 {
     ASSERT(m_hWnd == nullptr);
     if (m_hWnd != nullptr) {
@@ -74,18 +80,23 @@ bool NativeWindow::CreateWnd(WindowBase* pParentWindow,
         return false;
     }
 
+    //保存参数
+    m_createParam = createParam;
+
     //初始化层窗口属性
     m_bIsLayeredWindow = false;
     if (createParam.m_dwExStyle & WS_EX_LAYERED) {
         m_bIsLayeredWindow = true;
     }
-    DString windowTitle = StringUtil::TToLocal(createParam.m_windowTitle);
+    //父窗口句柄
     HWND hParentWnd = pParentWindow != nullptr ? pParentWindow->NativeWnd()->GetHWND() : nullptr;
+    //窗口标题
+    DString windowTitle = StringUtil::TToLocal(createParam.m_windowTitle);    
     HWND hWnd = ::CreateWindowEx(createParam.m_dwExStyle,
                                  className.c_str(),
                                  windowTitle.c_str(),
                                  createParam.m_dwStyle,
-                                 rc.left, rc.top, rc.Width(), rc.Height(),
+                                 createParam.m_nX, createParam.m_nY, createParam.m_nWidth, createParam.m_nHeight,
                                  hParentWnd, NULL, GetResModuleHandle(), this);
     ASSERT(::IsWindow(hWnd));
     ASSERT(hWnd == m_hWnd);
@@ -96,16 +107,143 @@ bool NativeWindow::CreateWnd(WindowBase* pParentWindow,
     if (m_hWnd == nullptr) {
         return false;
     }
+    return (m_hWnd != nullptr);
+}
 
+int32_t NativeWindow::DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
+                              bool bCenterWindow, bool bCloseByEsc, bool bCloseByEnter)
+{
+    ASSERT(m_hWnd == nullptr);
+    if (m_hWnd != nullptr) {
+        return false;
+    }
+    m_hResModule = (HMODULE)createParam.m_platformData;
+    if (m_hResModule == nullptr) {
+        m_hResModule = ::GetModuleHandle(nullptr);
+    }
+
+    //保存参数
+    m_createParam = createParam;
+    m_bCenterWindow = bCenterWindow;
+    m_bCloseByEsc = bCloseByEsc;
+    m_bCloseByEnter = bCloseByEnter;
+
+    //初始化层窗口属性
+    m_bIsLayeredWindow = false;
+    if (createParam.m_dwExStyle & WS_EX_LAYERED) {
+        m_bIsLayeredWindow = true;
+    }
+
+    //窗口的位置和大小
+    short x = 0;
+    short y = 0;
+    short cx = 0;
+    short cy = 0;
+
+    if (createParam.m_nX != kCW_USEDEFAULT) {
+        x = (short)createParam.m_nX;
+    }
+    if (createParam.m_nY != kCW_USEDEFAULT) {
+        y = (short)createParam.m_nY;
+    }
+    if (createParam.m_nWidth != kCW_USEDEFAULT) {
+        cx = (short)createParam.m_nWidth;
+    }
+    if (createParam.m_nHeight != kCW_USEDEFAULT) {
+        cy = (short)createParam.m_nHeight;
+    }
+
+    // 创建对话框资源结构体（对话框初始状态为可见状态）
+    DLGTEMPLATE dlgTemplate = {
+        WS_VISIBLE | createParam.m_dwStyle,
+        createParam.m_dwExStyle,
+        0,
+        x, y, cx, cy
+    };
+
+    // 将对话框按钮添加到资源中
+    constexpr const size_t nDataSize = sizeof(DLGTEMPLATE) + 32;
+    HGLOBAL hResource = ::GlobalAlloc(GMEM_MOVEABLE, nDataSize);
+    if (hResource == nullptr) {
+        return -1;
+    }
+    LPDLGTEMPLATE lpDialogTemplate = (LPDLGTEMPLATE)::GlobalLock(hResource);
+    if (lpDialogTemplate == nullptr) {
+        ::GlobalFree(hResource);
+        return -1;
+    }
+    ::memset(lpDialogTemplate, 0, nDataSize);
+    *lpDialogTemplate = dlgTemplate;
+
+    // 显示对话框
+    HWND hParentWnd = nullptr;
+    if (pParentWindow != nullptr) {
+        hParentWnd = pParentWindow->NativeWnd()->GetHWND();
+    }
+    else {
+        hParentWnd = ::GetActiveWindow();
+    }
+    //标记为模式对话框状态
+    m_bDoModal = true;
+
+    //显示模态对话框
+    INT_PTR nRet = ::DialogBoxIndirectParam(GetResModuleHandle(), (LPDLGTEMPLATE)lpDialogTemplate, hParentWnd, NativeWindow::__DialogProc, (LPARAM)this);
+    // 清理资源
+    ::GlobalUnlock(hResource);
+    ::GlobalFree(hResource);
+    if (nRet != -1) {
+        nRet = m_closeParam;
+    }
+    return (int32_t)nRet;
+}
+
+LRESULT NativeWindow::OnCreateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    bHandled = false;
+    //初始化
+    InitNativeWindow();
+
+    if (m_pOwner != nullptr) {
+        m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(uMsg, wParam, lParam), bHandled);
+    }
+
+    return 0;
+}
+
+LRESULT NativeWindow::OnInitDialogMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    //初始化
+    InitNativeWindow();
+
+    if (m_pOwner != nullptr) {
+        m_pOwner->OnNativeCreateWndMsg(true, NativeMsg(uMsg, wParam, lParam), bHandled);
+    }
+
+    if (m_bCenterWindow) {
+        //窗口居中
+        CenterWindow();
+    }
+
+    //标记为已经处理，不再调用窗口默认处理函数
+    bHandled = true;
+    return TRUE;
+}
+
+void NativeWindow::InitNativeWindow()
+{
+    HWND hWnd = m_hWnd;
+    if (!::IsWindow(hWnd)) {
+        return;
+    }
     //设置窗口风格（如果原来没有标题栏，则去除标题栏）
-    if (!(createParam.m_dwStyle & WS_CAPTION)) {
+    if (!(m_createParam.m_dwStyle & WS_CAPTION)) {
         uint32_t dwStyle = (uint32_t)::GetWindowLong(hWnd, GWL_STYLE);
         if (dwStyle & WS_CAPTION) {
             uint32_t dwNewStyle = dwStyle & ~WS_CAPTION;
             ::SetWindowLong(hWnd, GWL_STYLE, dwNewStyle);
-        }        
+        }
     }
-    
+
     //初始化窗口相关DC
     ASSERT(m_hDcPaint == nullptr);
     m_hDcPaint = ::GetDC(hWnd);
@@ -113,7 +251,10 @@ bool NativeWindow::CreateWnd(WindowBase* pParentWindow,
     //注册接受Touch消息
     RegisterTouchWindowWrapper(hWnd, 0);
 
-    return (m_hWnd != nullptr);
+    if (!m_createParam.m_windowTitle.empty()) {
+        DString windowTitle = StringUtil::TToLocal(m_createParam.m_windowTitle);
+        ::SetWindowText(hWnd, windowTitle.c_str());
+    }    
 }
 
 void NativeWindow::ClearNativeWindow()
@@ -155,7 +296,7 @@ HDC NativeWindow::GetPaintDC() const
     return m_hDcPaint;
 }
 
-void NativeWindow::CloseWnd(UINT nRet)
+void NativeWindow::CloseWnd(int32_t nRet)
 {
     m_bCloseing = true;
     ASSERT(::IsWindow(m_hWnd));
@@ -178,6 +319,11 @@ void NativeWindow::Close()
 bool NativeWindow::IsClosingWnd() const
 {
     return m_bCloseing;
+}
+
+int32_t NativeWindow::GetCloseParam() const
+{
+    return m_closeParam;
 }
 
 bool NativeWindow::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
@@ -253,7 +399,14 @@ void NativeWindow::SetUseSystemCaption(bool bUseSystemCaption)
         bool bChanged = false;
         if (IsWindow()) {
             UINT oldStyleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
-            UINT newStyleValue = oldStyleValue | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
+            UINT newStyleValue = oldStyleValue;
+            if (oldStyleValue & WS_POPUP) {
+                //弹出式窗口
+                newStyleValue |= (WS_CAPTION | WS_SYSMENU);
+            }
+            else {
+                newStyleValue |= (WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);                
+            }
             if (newStyleValue != oldStyleValue) {
                 ::SetWindowLong(GetHWND(), GWL_STYLE, newStyleValue);
                 bChanged = true; 
@@ -362,6 +515,11 @@ void NativeWindow::OnCloseModalFake(WindowBase* pParentWindow)
 bool NativeWindow::IsFakeModal() const
 {
     return m_bFakeModal;
+}
+
+bool NativeWindow::IsDoModal() const
+{
+    return m_bDoModal;
 }
 
 void NativeWindow::CenterWindow()
@@ -1182,7 +1340,7 @@ LRESULT CALLBACK NativeWindow::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LP
         //校验是否一致
         ASSERT((NativeWindow*)::GetPropW(hWnd, sPropName) == pThis);
 #endif
-        if (uMsg == WM_NCDESTROY && pThis != nullptr) {
+        if (uMsg == WM_NCDESTROY && pThis != nullptr) {            
             LRESULT lRes = ::DefWindowProc(hWnd, uMsg, wParam, lParam);
             ::SetWindowLongPtr(pThis->m_hWnd, GWLP_USERDATA, 0L);
             ::SetPropW(hWnd, sPropName, NULL);
@@ -1199,6 +1357,80 @@ LRESULT CALLBACK NativeWindow::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LP
     else {
         return ::DefWindowProc(hWnd, uMsg, wParam, lParam);
     }
+}
+
+
+INT_PTR CALLBACK NativeWindow::__DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    if (uMsg == WM_INITDIALOG) {
+        //这是对话框的第一个消息
+        NativeWindow* pThis = reinterpret_cast<NativeWindow*>(lParam);
+        ASSERT(pThis != nullptr);
+        if (pThis != nullptr) {
+            ASSERT(pThis->m_hWnd == nullptr);
+            pThis->m_hWnd = hWnd;            
+            ::SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(pThis));
+            ::SetPropW(hWnd, sPropName, (HANDLE)pThis);
+
+            ASSERT(pThis->m_pfnOldWndProc == nullptr);
+
+            //替换对话框的窗口处理函数
+            pThis->m_pfnOldWndProc = (WNDPROC)::GetWindowLongPtr(hWnd, GWLP_WNDPROC);
+            ::SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LPARAM)(WNDPROC)NativeWindow::__DialogWndProc);
+
+            //派发此消息
+            pThis->WindowMessageProc(uMsg, wParam, lParam);
+            ::SetFocus(hWnd);
+            return TRUE;
+        }
+    }
+    else if (uMsg == WM_COMMAND) {
+        if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL) {
+            NativeWindow* pThis = reinterpret_cast<NativeWindow*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
+#ifdef _DEBUG
+            //校验是否一致
+            ASSERT((NativeWindow*)::GetPropW(hWnd, sPropName) == pThis);
+#endif
+            ASSERT(pThis != nullptr);
+            if (pThis != nullptr) {
+                if (pThis->m_bCloseByEsc && (LOWORD(wParam) == IDCANCEL)) {
+                    pThis->CloseWnd(kWindowCloseCancel);
+                }
+                else if (pThis->m_bCloseByEnter && (LOWORD(wParam) == IDOK)) {
+                    pThis->CloseWnd(kWindowCloseOK);
+                }
+            }
+            return TRUE;
+        }
+    }    
+    return FALSE;
+}
+
+LRESULT CALLBACK NativeWindow::__DialogWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    NativeWindow* pThis = reinterpret_cast<NativeWindow*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
+#ifdef _DEBUG
+    //校验是否一致
+    ASSERT((NativeWindow*)::GetPropW(hWnd, sPropName) == pThis);
+#endif
+    ASSERT(pThis != nullptr);
+    if (uMsg == WM_NCDESTROY && pThis != nullptr) {
+        if (pThis->m_pfnOldWndProc != nullptr) {
+            ::SetWindowLongPtr((hWnd), GWLP_WNDPROC, (LPARAM)(WNDPROC)(pThis->m_pfnOldWndProc));
+            pThis->m_pfnOldWndProc = nullptr;
+        }
+        LRESULT lRes = ::DefWindowProc(hWnd, uMsg, wParam, lParam);
+        ::SetWindowLongPtr(pThis->m_hWnd, GWLP_USERDATA, 0L);
+        ::SetPropW(hWnd, sPropName, NULL);
+        ASSERT(hWnd == pThis->GetHWND());
+        pThis->OnFinalMessage();
+        return lRes;
+    }
+    else if (pThis != nullptr) {
+        ASSERT(hWnd == pThis->GetHWND());
+        return pThis->WindowMessageProc(uMsg, wParam, lParam);
+    }
+    return ::DefDlgProc(hWnd, uMsg, wParam, lParam);
 }
 
 LRESULT NativeWindow::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -1219,6 +1451,12 @@ LRESULT NativeWindow::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
         lResult = pOwner->OnNativeWindowMessage(uMsg, wParam, lParam, bHandled);
     }
 
+    if (m_bDoModal && (uMsg == WM_KEYDOWN) && (wParam == VK_ESCAPE)) {
+        //模态对话框，按ESC键时，关闭
+        CloseWnd(kWindowCloseCancel);
+        return 0;
+    }
+
     //第三优先级：内部处理的消息，处理后，不再派发
     if (!bHandled && !ownerFlag.expired()) {
         lResult = ProcessInternalMessage(uMsg, wParam, lParam, bHandled);
@@ -1229,16 +1467,29 @@ LRESULT NativeWindow::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
         lResult = ProcessWindowMessage(uMsg, wParam, lParam, bHandled);
     }
 
+    bool bCloseMsg = false;
     if (!bHandled && !ownerFlag.expired()) {
         if ((uMsg == WM_CLOSE) || ((uMsg == WM_SYSCOMMAND) && (GET_SC_WPARAM(wParam) == SC_CLOSE))) {
             //窗口即将关闭（关闭前）
+            bCloseMsg = true;
             pOwner->OnNativePreCloseWindow();
         }
+    }
+    if (uMsg == WM_CLOSE) {
+        m_closeParam = (int32_t)wParam;
     }
 
     //第五优先级：系统默认的窗口函数
     if (!bHandled && !ownerFlag.expired() && ::IsWindow(hWnd)) {
-        lResult = CallDefaultWindowProc(uMsg, wParam, lParam);
+        if (bCloseMsg && m_bDoModal) {
+            //模态对话框
+            ::EndDialog(hWnd, wParam);
+            lResult = 0;
+            bHandled = true;
+        }
+        else {
+            lResult = CallDefaultWindowProc(uMsg, wParam, lParam);
+        }        
     }
 
     if (!bHandled && !ownerFlag.expired() && (uMsg == WM_DESTROY)) {
@@ -1251,6 +1502,9 @@ LRESULT NativeWindow::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 LRESULT NativeWindow::CallDefaultWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    if (m_pfnOldWndProc != nullptr) {
+        return ::CallWindowProc(m_pfnOldWndProc, m_hWnd, uMsg, wParam, lParam);
+    }
     return ::DefWindowProc(m_hWnd, uMsg, wParam, lParam);
 }
 
@@ -1284,6 +1538,9 @@ LRESULT NativeWindow::ProcessInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_POINTERCAPTURECHANGED:
         lResult = OnPointerMsgs(uMsg, wParam, lParam, bHandled);
         break;
+
+    case WM_CREATE:     lResult = OnCreateMsg(uMsg, wParam, lParam, bHandled); break;
+    case WM_INITDIALOG: lResult = OnInitDialogMsg(uMsg, wParam, lParam, bHandled); break;
 
     default:
         bInternalMsg = false;

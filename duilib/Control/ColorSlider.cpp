@@ -59,7 +59,7 @@ void ColorSlider::PaintBkImage(IRender* pRender)
     IMatrix* pMatrix = nullptr;
 
     //绘制透明棋盘的格子
-    const int32_t nGridSize = Dpi().GetScaleInt(6);
+    const int32_t nGridSize = Dpi().GetScaleInt(7);
     int32_t nRows = rc.Width() / nGridSize + 1;
     int32_t nCols = rc.Height() / nGridSize + 1;
     for (int32_t i = 0; i < nRows; ++i) {

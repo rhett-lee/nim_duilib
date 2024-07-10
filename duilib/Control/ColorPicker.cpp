@@ -79,7 +79,7 @@ DString ColorPicker::GetSkinFile()
 LRESULT ColorPicker::OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled)
 {
     UiColor selectedColor;
-    if (wParam == 0) {
+    if (wParam == kWindowCloseOK) {
         //只有点击"确认"按钮的时候，才保存所选择的颜色
         if (m_pNewColor != nullptr) {
             DString bkColor = m_pNewColor->GetBkColor();
@@ -197,7 +197,7 @@ void ColorPicker::OnInitWindow()
     Button* pButton = dynamic_cast<Button*>(FindControl(_T("color_picker_ok")));
     if (pButton != nullptr) {
         pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
-            this->CloseWnd(0);
+            this->CloseWnd(kWindowCloseOK);
             return true;
             });
     }
@@ -205,7 +205,7 @@ void ColorPicker::OnInitWindow()
     pButton = dynamic_cast<Button*>(FindControl(_T("color_picker_cancel")));
     if (pButton != nullptr) {
         pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
-            this->CloseWnd(2);
+            this->CloseWnd(kWindowCloseCancel);
             return true;
             });
     }

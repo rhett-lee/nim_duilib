@@ -65,7 +65,7 @@ void MainThread::OnInit()
     BasicForm* window = new BasicForm();
     window->CreateWnd(nullptr, ui::WindowCreateParam(_T("basic")));
     window->PostQuitMsgWhenClosed(true);
-    window->CenterWindow();
+   // window->CenterWindow();
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
    // window->ShowWindow(ui::kSW_SHOW_MAXIMIZED);
 }

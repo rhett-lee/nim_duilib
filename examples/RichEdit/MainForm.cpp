@@ -612,7 +612,7 @@ void MainForm::ShowColorPicker()
         //窗口关闭事件
         pColorPicker->AttachWindowClose([this, pColorPicker, pEdit, oldTextColor, pLeftColorLabel](const ui::EventArgs& args) {
             ui::UiColor newColor = pColorPicker->GetSelectedColor();
-            if ((args.wParam == 0) && !newColor.IsEmpty()) {
+            if ((args.wParam == ui::kWindowCloseOK) && !newColor.IsEmpty()) {
                 //如果是"确认"，则设置RichEdit控件的文本颜色
                 pLeftColorLabel->SetBkColor(newColor);
                 SetTextColor(pEdit->GetColorString(newColor));

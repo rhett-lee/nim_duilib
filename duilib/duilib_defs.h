@@ -247,6 +247,14 @@ namespace ui
         kCursorNo           // 不可用, XML文件中的名字："no"
     };
 
+    //窗口退出参数
+    enum WindowCloseParam
+    {
+        kWindowCloseNormal  = 0,    //表示点击 "关闭" 按钮关闭本窗口(默认值)
+        kWindowCloseOK      = 1,    //表示点击 "确认" 按钮关闭本窗口
+        kWindowCloseCancel  = 2     //表示点击 "取消" 按钮关闭本窗口
+    };
+
     //定义所有消息类型
     enum EventType
     {
@@ -287,7 +295,8 @@ namespace ui
         kEventWindowKillFocus,      //Window类：发送给鼠标左键、右键按下时记录的控件、焦点控件，当窗口失去焦点时触发事件（主要用于恢复一些内部状态）
         kEventWindowSize,           //Window类：发送给Focus控件，当窗口大小发生变化时触发事件
         kEventWindowMove,           //Window类：发送给Focus控件，当窗口大小发生变化时触发事件
-        kEventWindowClose,          //Window类，Combo控件：当窗口关闭（或者Combo的下拉框窗口关闭）时触发
+        kEventWindowCreate,         //Window类，当窗口创建完成时触发，wParam为1表示DoModal对话框，为0表示普通窗口
+        kEventWindowClose,          //Window类，Combo控件：当窗口关闭（或者Combo的下拉框窗口关闭）时触发，wParam参数表示窗口关闭参数，参见enum WindowCloseParam
 
         //左键点击/右键点击事件
         kEventClick,                //Button类、ListBoxItem、Option、CheckBox等：当点击按钮（或者键盘回车）时触发

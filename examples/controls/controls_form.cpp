@@ -157,9 +157,27 @@ void ControlForm::OnInitWindow()
     ui::Button* pShowColorPicker = dynamic_cast<ui::Button*>(FindControl(_T("show_color_picker")));
     if (pShowColorPicker != nullptr) {
         pShowColorPicker->AttachClick([this](const ui::EventArgs& args) {
-            ShowColorPicker();            
+            ShowColorPicker(false);            
             return true;
         });
+    }
+
+    //显示模态对话框的拾色器
+    ui::Button* pShowColorPicker2 = dynamic_cast<ui::Button*>(FindControl(_T("show_color_picker2")));
+    if (pShowColorPicker2 != nullptr) {
+        pShowColorPicker2->AttachClick([this](const ui::EventArgs& args) {
+            ShowColorPicker(true);
+            return true;
+            });
+    }
+
+    //显示模态对话框
+    ui::Button* pShowModal = dynamic_cast<ui::Button*>(FindControl(_T("domodal2")));
+    if (pShowModal != nullptr) {
+        pShowModal->AttachClick([this](const ui::EventArgs& args) {
+            ShowDoModalDlg();
+            return true;
+            });
     }
 
     //RichText显示超级链接
@@ -251,44 +269,76 @@ void ControlForm::OnInitWindow()
     }
 }
 
-void ControlForm::ShowColorPicker()
+void ControlForm::ShowColorPicker(bool bDoModal)
 {
-    ui::ColorPicker* pColorPicker = new ui::ColorPicker;
+    bool bModalDlg = bDoModal; //是否使用模态对话框
+    ui::ColorPicker colorDlg;
+    ui::ColorPicker* pColorPicker = nullptr;
+    if (!bModalDlg) {
+        pColorPicker = new ui::ColorPicker;
+    }
+    else {
+        pColorPicker = &colorDlg;
+    }
+
+    //窗口创建完成执行的函数
+    auto OnInitColorPicker = [=](const ui::EventArgs&) {
+        //窗口位置居中
+        pColorPicker->CenterWindow();
+
+        ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit")));
+        if (pEdit != nullptr) {
+            DString oldTextColor = pEdit->GetTextColor();
+            if (!oldTextColor.empty()) {
+                pColorPicker->SetSelectedColor(pEdit->GetUiColor(oldTextColor));
+            }
+            //如果在界面选择颜色，则临时更新RichEdit控件文本的颜色
+            pColorPicker->AttachSelectColor([this, pEdit](const ui::EventArgs& args) {
+                ui::UiColor newColor = ui::UiColor((uint32_t)args.wParam);
+                pEdit->SetTextColor(pEdit->GetColorString(newColor));
+                return true;
+                });
+
+            //窗口关闭事件
+            pColorPicker->AttachWindowClose([this, pColorPicker, pEdit, oldTextColor](const ui::EventArgs& args) {
+                ui::UiColor newColor = pColorPicker->GetSelectedColor();
+                if ((args.wParam == ui::kWindowCloseOK) && !newColor.IsEmpty()) {
+                    //如果是"确认"，则设置RichEdit控件的文本颜色
+                    pEdit->SetTextColor(pEdit->GetColorString(newColor));
+                }
+                else {
+                    //如果是"取消"或者关闭窗口，则恢复原来的颜色
+                    pEdit->SetTextColor(oldTextColor);
+                }
+                return true;
+                });
+
+        }
+        return true;
+        };
+    pColorPicker->AttachWindowCreate(OnInitColorPicker);
+
     ui::WindowCreateParam createParam;
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW | ui::kWS_EX_LAYERED;
-    pColorPicker->CreateWnd(this, createParam);
-    pColorPicker->CenterWindow();
-    pColorPicker->ShowModalFake();
-
-    ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit")));
-    if (pEdit != nullptr) {
-        DString oldTextColor = pEdit->GetTextColor();
-        if (!oldTextColor.empty()) {
-            pColorPicker->SetSelectedColor(pEdit->GetUiColor(oldTextColor));
-        }
-        //如果在界面选择颜色，则临时更新RichEdit控件文本的颜色
-        pColorPicker->AttachSelectColor([this, pEdit](const ui::EventArgs& args) {
-            ui::UiColor newColor = ui::UiColor((uint32_t)args.wParam);
-            pEdit->SetTextColor(pEdit->GetColorString(newColor));
-            return true;
-            });
-
-        //窗口关闭事件
-        pColorPicker->AttachWindowClose([this, pColorPicker, pEdit, oldTextColor](const ui::EventArgs& args) {
-            ui::UiColor newColor = pColorPicker->GetSelectedColor();
-            if ((args.wParam == 0) && !newColor.IsEmpty()) {
-                //如果是"确认"，则设置RichEdit控件的文本颜色
-                pEdit->SetTextColor(pEdit->GetColorString(newColor));
-            }
-            else {
-                //如果是"取消"或者关闭窗口，则恢复原来的颜色
-                pEdit->SetTextColor(oldTextColor);
-            }
-            return true;
-            });
-
+    if (!bModalDlg) {
+        pColorPicker->CreateWnd(this, createParam);
+        pColorPicker->ShowModalFake();
     }
+    else {
+        pColorPicker->DoModal(this, createParam);
+    }
+}
+
+void ControlForm::ShowDoModalDlg()
+{
+    ui::WindowImplBase simpleWnd;
+    simpleWnd.InitSkin(_T("controls"), _T("about.xml"));
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW | ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("AboutForm");
+    simpleWnd.DoModal(this, createParam);
 }
 
 void ControlForm::ShowPopupMenu(const ui::UiPoint& point)

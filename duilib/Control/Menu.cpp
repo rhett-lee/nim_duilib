@@ -149,7 +149,7 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
 void Menu::CloseMenu()
 {
     //立即关闭，避免连续操作时相互干扰
-    CloseWnd(0);
+    CloseWnd();
 }
 
 void Menu::DetachOwner()

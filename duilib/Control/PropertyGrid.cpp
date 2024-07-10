@@ -1683,7 +1683,7 @@ void PropertyGridColorProperty::ShowColorPicker()
     //窗口关闭事件
     pColorPicker->AttachWindowClose([this, pColorPicker, oldTextColor, pColorLabel](const ui::EventArgs& args) {
         ui::UiColor newColor = pColorPicker->GetSelectedColor();
-        if ((args.wParam == 0) && !newColor.IsEmpty()) {
+        if ((args.wParam == kWindowCloseOK) && !newColor.IsEmpty()) {
             //如果是"确认"，则设置控件的文本颜色
             pColorLabel->SetBkColor(newColor);
             OnSelectColor(GetColorString(newColor));

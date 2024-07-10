@@ -66,11 +66,13 @@ public:
     */
     Window* GetParentWindow() const;
 
+    /** 监听窗口创建并初始化完成事件
+    * @param [in] callback 指定创建并初始化完成后的回调函数，参数的wParam代表：wParam为1表示DoModal对话框，为0表示普通窗口
+    */
+    void AttachWindowCreate(const EventCallback& callback);
+
     /** 监听窗口关闭事件
-    * @param [in] callback 指定关闭后的回调函数，参数的wParam代表窗口关闭的触发情况：
-                          0 - 表示 "确认" 关闭本窗口
-                          1 - 表示点击窗口的 "关闭" 按钮关闭本窗口(默认值)
-                          2 - 表示 "取消" 关闭本窗口
+    * @param [in] callback 指定关闭后的回调函数，参数的wParam代表窗口关闭的触发情况, 参见enum WindowCloseParam
     */
     void AttachWindowClose(const EventCallback& callback);
 
@@ -619,6 +621,14 @@ protected:
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
     virtual LRESULT OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 窗口创建成功的事件(WM_CREATE/WM_INITDIALOG)
+    * @param [in] bDoModal 当前是否为通过DoModal函数显示的模态对话框
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual void OnCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** @}*/
 

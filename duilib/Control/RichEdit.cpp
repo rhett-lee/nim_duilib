@@ -2004,9 +2004,9 @@ bool RichEdit::IsPasteLimited() const
 
 bool RichEdit::OnKeyDown(const EventArgs& msg)
 {
-    if (msg.vkCode == kVK_RETURN && ::GetAsyncKeyState(VK_SHIFT) >= 0)    {
-        if (m_bNeedReturnMsg && ((m_bReturnMsgWantCtrl && ::GetAsyncKeyState(VK_CONTROL) < 0) ||
-            (!m_bReturnMsgWantCtrl && ::GetAsyncKeyState(VK_CONTROL) >= 0))) {
+    if (msg.vkCode == kVK_RETURN && ::GetKeyState(VK_SHIFT) >= 0)    {
+        if (m_bNeedReturnMsg && ((m_bReturnMsgWantCtrl && ::GetKeyState(VK_CONTROL) < 0) ||
+            (!m_bReturnMsgWantCtrl && ::GetKeyState(VK_CONTROL) >= 0))) {
             SendEvent(kEventReturn);
             return true;
         }
