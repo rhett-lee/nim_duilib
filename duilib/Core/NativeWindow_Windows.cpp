@@ -244,6 +244,14 @@ void NativeWindow::InitNativeWindow()
         }
     }
 
+    //检查并更新曾窗口属性
+    m_bIsLayeredWindow = false;
+    if (m_createParam.m_dwExStyle & WS_EX_LAYERED) {
+        m_bIsLayeredWindow = true;
+    }
+    bool bChanged = false;
+    SetLayeredWindowStyle(m_bIsLayeredWindow, bChanged);
+
     //初始化窗口相关DC
     ASSERT(m_hDcPaint == nullptr);
     m_hDcPaint = ::GetDC(hWnd);
@@ -355,7 +363,7 @@ bool NativeWindow::SetLayeredWindowStyle(bool bIsLayeredWindow, bool& bChanged) 
             ::SetWindowLong(m_hWnd, GWL_EXSTYLE, dwExStyle);
             dwExStyle = ::GetWindowLong(m_hWnd, GWL_EXSTYLE);
         }
-        if (m_bIsLayeredWindow) {
+        if (bIsLayeredWindow) {
             return (dwExStyle & WS_EX_LAYERED) ? true : false;
         }
         else {

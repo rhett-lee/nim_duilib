@@ -54,7 +54,6 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
 
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
-    createWndParam.m_dwExStyle = kWS_EX_TOOLWINDOW;
     CreateWnd(pOwner->GetWindow(), createWndParam);
 
     UpdateComboWnd();

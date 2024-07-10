@@ -94,7 +94,7 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
     Menu::GetMenuObserver().AddReceiver(this);
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
-    createWndParam.m_dwExStyle = kWS_EX_TOOLWINDOW | kWS_EX_TOPMOST | kWS_EX_LAYERED;
+    createWndParam.m_dwExStyle = kWS_EX_TOPMOST | kWS_EX_LAYERED;
     CreateWnd(m_pParentWindow, createWndParam);
     if (noFocus) {
         ShowWindow(kSW_SHOW_NA);

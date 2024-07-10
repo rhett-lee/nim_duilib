@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="1000,760" caption="0,0,0,36" shadow_attached="true" layered_window="true" sizebox="2,2,2,2" mininfo="400,320" >
+<Window size="1000,760" caption="0,0,0,36" use_system_caption="false" shadow_attached="true" layered_window="true" sizebox="2,2,2,2" mininfo="400,320" >
     <!-- 整个布局放在一个VBox容器中 -->
     <!-- 布局属性：margin="left,top,right,bottom"; padding="left,top,right,bottom" -->
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->
-        <HBox width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
             <Control width="auto" height="auto" bkimage="logo_18x18.png" valign="center" margin="8"/>
             <Label text="Controls" valign="center" margin="8"/>
             <Control />

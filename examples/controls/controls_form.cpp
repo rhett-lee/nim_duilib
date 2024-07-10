@@ -320,7 +320,7 @@ void ControlForm::ShowColorPicker(bool bDoModal)
 
     ui::WindowCreateParam createParam;
     createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW | ui::kWS_EX_LAYERED;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     if (!bModalDlg) {
         pColorPicker->CreateWnd(this, createParam);
         pColorPicker->ShowModalFake();
@@ -336,7 +336,7 @@ void ControlForm::ShowDoModalDlg()
     simpleWnd.InitSkin(_T("controls"), _T("about.xml"));
     ui::WindowCreateParam createParam;
     createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW | ui::kWS_EX_LAYERED;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("AboutForm");
     simpleWnd.DoModal(this, createParam);
 }
@@ -409,7 +409,7 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
             AboutForm* about_form = new AboutForm();
             ui::WindowCreateParam createParam;
             createParam.m_dwStyle = ui::kWS_POPUP;
-            createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW | ui::kWS_EX_LAYERED;
+            createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
             createParam.m_windowTitle = _T("AboutForm");
             about_form->CreateWnd(this, createParam);
             about_form->CenterWindow();

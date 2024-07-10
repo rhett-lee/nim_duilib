@@ -761,7 +761,7 @@ void ColorPicker::OnPickColorFromScreen()
     pScreenColorPicker->ScreenCapture(this);
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
-    createWndParam.m_dwExStyle = kWS_EX_TRANSPARENT | kWS_EX_TOOLWINDOW;
+    createWndParam.m_dwExStyle = kWS_EX_TRANSPARENT;
     pScreenColorPicker->CreateWnd(this, createWndParam);
     pScreenColorPicker->CenterWindow();
     pScreenColorPicker->ShowWindow(ui::kSW_SHOW_NORMAL);

@@ -590,7 +590,7 @@ void MainForm::ShowColorPicker()
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;
     ui::WindowCreateParam createParam;
     createParam.m_dwStyle = ui::kWS_POPUP;
-    createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("ColorPicker");
     pColorPicker->CreateWnd(nullptr, createParam);
     pColorPicker->CenterWindow();
@@ -1160,7 +1160,7 @@ void MainForm::OnFindText()
         m_pFindForm = new FindForm(this);
         ui::WindowCreateParam createParam;
         createParam.m_dwStyle = ui::kWS_POPUP;
-        createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW;
+        createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
         createParam.m_windowTitle = _T("FindForm");
         m_pFindForm->CreateWnd(this, createParam);
         m_pFindForm->CenterWindow();
@@ -1191,7 +1191,7 @@ void MainForm::OnReplaceText()
         m_pReplaceForm = new ReplaceForm(this);
         ui::WindowCreateParam createParam;
         createParam.m_dwStyle = ui::kWS_POPUP;
-        createParam.m_dwExStyle = ui::kWS_EX_TOOLWINDOW;
+        createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
         createParam.m_windowTitle = _T("ReplaceForm");
         m_pReplaceForm->CreateWnd(this, createParam);
         m_pReplaceForm->CenterWindow();

@@ -57,4 +57,7 @@
       <Filter>资源文件</Filter>
     </Xml>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\bin\resources.zip" />
+  </ItemGroup>
 </Project>

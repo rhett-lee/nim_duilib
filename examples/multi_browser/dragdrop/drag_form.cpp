@@ -61,7 +61,7 @@ DragForm* DragForm::CreateDragForm(HBITMAP bitmap, POINT pt_offset)
 {
     DragForm *drag_form = new DragForm;
     ui::WindowCreateParam createParam;
-    createParam.m_dwExStyle = ui::kWS_EX_TOPMOST | ui::kWS_EX_TRANSPARENT | ui::kWS_EX_LAYERED | ui::kWS_EX_TOOLWINDOW;
+    createParam.m_dwExStyle = ui::kWS_EX_TOPMOST | ui::kWS_EX_TRANSPARENT | ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("DragForm");
     drag_form->CreateWnd(nullptr, createParam);
     ASSERT(drag_form->IsWindow());
