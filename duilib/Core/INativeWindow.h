@@ -48,6 +48,12 @@ public:
     */
     virtual bool OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const = 0;
 
+    /** 判断是否含有最大化和最小化按钮
+    * @param [out] bMinimizeBox 返回true表示含有最小化按钮
+    * @param [out] bMaximizeBox 返回true表示含有最大化按钮
+    */
+    virtual bool OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const = 0;
+
     /** 获取窗口最小范围，对应 XML 中 mininfo 属性
     * @param [in] bContainShadow 是否包含阴影范围，默认为 false
     */

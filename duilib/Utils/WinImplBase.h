@@ -102,6 +102,12 @@ protected:
     */
     virtual void OnWindowMinimized();
 
+    /** 判断是否含有最大化和最小化按钮
+    * @param [out] bMinimizeBox 返回true表示含有最小化按钮
+    * @param [out] bMaximizeBox 返回true表示含有最大化按钮
+    */
+    virtual bool HasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override;
+
 private:
     /** 初始化窗口数据（内部函数）
     */
@@ -126,6 +132,16 @@ private:
     /** 皮肤配置文件
     */
     DString m_skinFile;
+
+    /** 最大化按钮的接口
+    */
+    Control* m_pMaxButton;
+    std::weak_ptr<WeakFlag> m_maxButtonFlag;
+
+    /** 最小化按钮的接口
+    */
+    Control* m_pMinButton;
+    std::weak_ptr<WeakFlag> m_minButtonFlag;
 };
 }
 

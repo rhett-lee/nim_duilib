@@ -521,6 +521,10 @@ private:
     */
     bool SetLayeredWindowStyle(bool bIsLayeredWindow, bool& bChanged) const;
 
+    /** 更新最大化/最小化按钮的窗口风格，与程序的逻辑保持一致
+    */
+    void UpdateMinMaxBoxStyle() const;
+
 private:
     /** 接收窗口事件的接口
     */

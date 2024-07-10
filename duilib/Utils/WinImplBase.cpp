@@ -6,7 +6,9 @@
 namespace ui
 {
 
-WindowImplBase::WindowImplBase()
+WindowImplBase::WindowImplBase():
+    m_pMaxButton(nullptr),
+    m_pMinButton(nullptr)
 {
 }
 
@@ -84,29 +86,41 @@ void WindowImplBase::InitWindow()
     //更新自绘制标题栏状态
     OnUseSystemCaptionBarChanged();
     if (!IsUseSystemCaption()) {
+        //关闭按钮
         Control* pControl = FindControl(DUI_CTR_BUTTON_CLOSE);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
             pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
 
+        //最小化按钮
         pControl = FindControl(DUI_CTR_BUTTON_MIN);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
             pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+
+            m_pMinButton = pControl;
+            m_minButtonFlag = pControl->GetWeakFlag();
         }
 
+        //最大化按钮
         pControl = FindControl(DUI_CTR_BUTTON_MAX);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
             pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+
+            m_pMaxButton = pControl;
+            m_maxButtonFlag = pControl->GetWeakFlag();
         }
 
+        //还原按钮
         pControl = FindControl(DUI_CTR_BUTTON_RESTORE);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
             pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
+        
+        //全屏按钮
         pControl = FindControl(DUI_CTR_BUTTON_FULLSCREEN);
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
@@ -283,6 +297,19 @@ void WindowImplBase::ProcessMaxRestoreStatus()
     if (pRestoreButton != nullptr) {
         pRestoreButton->SetFadeVisible(bWindowMax ? true : false);
     }
+}
+
+bool WindowImplBase::HasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const
+{
+    bMinimizeBox = false;
+    bMaximizeBox = false;
+    if ((m_pMinButton != nullptr) && !m_minButtonFlag.expired()) {
+        bMinimizeBox = true;
+    }
+    if ((m_pMaxButton != nullptr) && !m_maxButtonFlag.expired()) {
+        bMaximizeBox = true;
+    }
+    return true;
 }
 
 }

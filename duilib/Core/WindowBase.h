@@ -580,6 +580,12 @@ protected:
     */
     virtual bool IsPtInCaptionBarControl(const UiPoint& pt) const = 0;
 
+    /** 判断是否含有最大化和最小化按钮
+    * @param [out] bMinimizeBox 返回true表示含有最小化按钮
+    * @param [out] bMaximizeBox 返回true表示含有最大化按钮
+    */
+    virtual bool HasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const = 0;
+
     /** 窗口的DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
     * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
@@ -860,6 +866,7 @@ private:
     virtual const DpiManager& OnNativeGetDpi() const override;
     virtual const UiRect& OnNativeGetCaptionRect() const override;
     virtual bool OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const override;
+    virtual bool OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override;
     virtual UiSize OnNativeGetMinInfo(bool bContainShadow /*= false*/) const override;
     virtual UiSize OnNativeGetMaxInfo(bool bContainShadow /*= false*/) const override;
     virtual void OnNativePreCloseWindow() override;

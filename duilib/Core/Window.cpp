@@ -479,6 +479,11 @@ bool Window::IsPtInCaptionBarControl(const UiPoint& pt) const
     return false;
 }
 
+bool Window::HasMinMaxBox(bool& /*bMinimizeBox*/, bool& /*bMaximizeBox*/) const
+{
+    return false;
+}
+
 const UiRect& Window::GetAlphaFixCorner() const
 {
     return m_rcAlphaFix;

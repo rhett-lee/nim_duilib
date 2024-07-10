@@ -221,6 +221,9 @@ LRESULT NativeWindow::OnCreateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
         m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(uMsg, wParam, lParam), bHandled);
     }
 
+    //更新最大化/最小化按钮的风格
+    UpdateMinMaxBoxStyle();
+
     return 0;
 }
 
@@ -232,6 +235,9 @@ LRESULT NativeWindow::OnInitDialogMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, b
     if (m_pOwner != nullptr) {
         m_pOwner->OnNativeCreateWndMsg(true, NativeMsg(uMsg, wParam, lParam), bHandled);
     }
+
+    //更新最大化/最小化按钮的风格
+    UpdateMinMaxBoxStyle();
 
     if (m_bCenterWindow) {
         //窗口居中
@@ -389,6 +395,32 @@ bool NativeWindow::IsLayeredWindow() const
     }
 #endif // _DEBUG
     return m_bIsLayeredWindow;
+}
+
+void NativeWindow::UpdateMinMaxBoxStyle() const
+{
+    //更新最大化/最小化按钮的风格
+    bool bMinimizeBox = false;
+    bool bMaximizeBox = false;
+    if ((m_pOwner != nullptr) && m_pOwner->OnNativeHasMinMaxBox(bMinimizeBox, bMaximizeBox)) {
+        UINT oldStyleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
+        UINT newStyleValue = oldStyleValue;
+        if (bMinimizeBox) {
+            newStyleValue |= WS_MINIMIZEBOX;
+        }
+        else {
+            newStyleValue &= ~WS_MINIMIZEBOX;
+        }
+        if (bMaximizeBox) {
+            newStyleValue |= WS_MAXIMIZEBOX;
+        }
+        else {
+            newStyleValue &= ~WS_MAXIMIZEBOX;
+        }
+        if (newStyleValue != oldStyleValue) {
+            ::SetWindowLong(GetHWND(), GWL_STYLE, newStyleValue);
+        }
+    }
 }
 
 void NativeWindow::SetWindowAlpha(int nAlpha)

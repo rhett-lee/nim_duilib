@@ -392,6 +392,12 @@ protected:
     */
     virtual bool IsPtInCaptionBarControl(const UiPoint& pt) const override;
 
+    /** 判断是否含有最大化和最小化按钮
+    * @param [out] bMinimizeBox 返回true表示含有最小化按钮
+    * @param [out] bMaximizeBox 返回true表示含有最大化按钮
+    */
+    virtual bool HasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override;
+
     /** @name 窗口消息处理相关
         * @{
     */
