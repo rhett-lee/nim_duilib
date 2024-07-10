@@ -433,23 +433,19 @@ void Window::OnLayeredWindowChanged()
         m_shadow->SetShadowAttached(IsLayeredWindow());
         m_shadow->SetUseDefaultShadowAttached(true);
     }
-    if (m_pRoot != nullptr) {
-        Invalidate(m_pRoot->GetPos());
-    }
+    InvalidateAll();
 }
 
 void Window::InvalidateAll()
 {
-    if (m_pRoot != nullptr) {
-        Invalidate(m_pRoot->GetPos());
-    }
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    Invalidate(rcClient);
 }
 
 void Window::OnWindowAlphaChanged()
 {
-    if (m_pRoot != nullptr) {
-        Invalidate(m_pRoot->GetPos());
-    }
+    InvalidateAll();
 }
 
 void Window::OnWindowEnterFullScreen()
@@ -622,7 +618,7 @@ void Window::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (pRoot != nullptr) {
         pRoot->ChangeDpiScale(nOldDpiScale, nNewDpiScale);
         pRoot->Arrange();
-        Invalidate(m_pRoot->GetPos());
+        Invalidate(pRoot->GetPos());
     }
 }
 
@@ -639,13 +635,71 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
         m_pRoot->Arrange();
     }
     if (sizeType == WindowSizeType::kSIZE_MAXIMIZED) {
+        //最大化
+        if (!IsUseSystemCaption() && !IsWindowFullScreen()) {
+            UiRect rcWindow;
+            GetWindowRect(rcWindow);
+            UiRect rcClientRect;
+            GetClientRect(rcClientRect);
+            ASSERT(rcClientRect.Width() == rcWindow.Width());
+            ASSERT(rcClientRect.Height() == rcWindow.Height());
+            if ((rcClientRect.Width() == rcWindow.Width()) && (rcClientRect.Height() == rcWindow.Height())) {
+                //全屏时，设置外边距，避免客户区的内容溢出屏幕
+                UiRect rcWork;
+                GetMonitorWorkRect(rcWork);
+
+                UiMargin rcFullscreenMargin;
+                if (rcWindow.left < rcWork.left) {
+                    rcFullscreenMargin.left = rcWork.left - rcWindow.left;
+                }
+                if (rcWindow.top < rcWork.top) {
+                    rcFullscreenMargin.top = rcWork.top - rcWindow.top;
+                }
+                if (rcWindow.right > rcWork.right) {
+                    rcFullscreenMargin.right = rcWindow.right - rcWork.right;
+                }
+                if (rcWindow.bottom > rcWork.bottom) {
+                    rcFullscreenMargin.bottom = rcWindow.bottom - rcWork.bottom;
+                }
+                Box* pRoot = GetRoot();
+                if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() && (pRoot->GetItemCount() > 0)) {
+                    pRoot = dynamic_cast<Box*>(pRoot->GetItemAt(0));
+                }
+                if (pRoot != nullptr) {
+                    UiMargin rcMargin = pRoot->GetMargin();
+                    rcMargin.left += (rcFullscreenMargin.left - m_rcFullscreenMargin.left);
+                    rcMargin.top += (rcFullscreenMargin.top - m_rcFullscreenMargin.top);
+                    rcMargin.right += (rcFullscreenMargin.right - m_rcFullscreenMargin.right);
+                    rcMargin.bottom += (rcFullscreenMargin.bottom - m_rcFullscreenMargin.bottom);
+                    m_rcFullscreenMargin = rcFullscreenMargin;
+                    pRoot->SetMargin(rcMargin, false);
+                }
+            }
+        }
         if (m_shadow != nullptr) {
             m_shadow->MaximizedOrRestored(true);
         }
     }
     else if (sizeType == WindowSizeType::kSIZE_RESTORED) {
+        //还原
         if (m_shadow != nullptr) {
             m_shadow->MaximizedOrRestored(false);
+        }
+        //还原时，恢复外边距
+        if (!m_rcFullscreenMargin.IsEmpty()) {
+            Box* pRoot = GetRoot();
+            if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() && (pRoot->GetItemCount() > 0)) {
+                pRoot = dynamic_cast<Box*>(pRoot->GetItemAt(0));
+            }
+            if (pRoot != nullptr) {
+                UiMargin rcMargin = pRoot->GetMargin();
+                rcMargin.left -= m_rcFullscreenMargin.left;
+                rcMargin.top -= m_rcFullscreenMargin.top;
+                rcMargin.right -= m_rcFullscreenMargin.right;
+                rcMargin.bottom -= m_rcFullscreenMargin.right;
+                m_rcFullscreenMargin.Clear();
+                pRoot->SetMargin(rcMargin, false);                
+            }
         }
     }
     if (m_pFocus != nullptr) {
@@ -1660,26 +1714,20 @@ bool Window::SetRenderTransparent(bool bCanvasTransparent)
 
 void Window::SetRenderOffset(UiPoint renderOffset)
 {
-    if (m_pRoot != nullptr) {
-        m_renderOffset = renderOffset;
-        Invalidate(m_pRoot->GetPos());
-    }
+    m_renderOffset = renderOffset;
+    InvalidateAll();
 }
 
 void Window::SetRenderOffsetX(int renderOffsetX)
 {
-    if (m_pRoot != nullptr) {
-        m_renderOffset.x = renderOffsetX;
-        Invalidate(m_pRoot->GetPos());
-    }
+    m_renderOffset.x = renderOffsetX;
+    InvalidateAll();
 }
 
 void Window::SetRenderOffsetY(int renderOffsetY)
 {
-    if (m_pRoot != nullptr) {
-        m_renderOffset.y = renderOffsetY;
-        Invalidate(m_pRoot->GetPos());
-    }
+    m_renderOffset.y = renderOffsetY;
+    InvalidateAll();
 }
 
 void Window::OnInitLayout()
