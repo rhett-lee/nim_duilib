@@ -83,6 +83,13 @@ bool NativeWindow::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam&
     //保存参数
     m_createParam = createParam;
 
+    //设置默认风格
+    uint32_t dwStyle = createParam.m_dwStyle;
+    if (dwStyle == 0) {
+        dwStyle = WS_OVERLAPPEDWINDOW;
+        m_createParam.m_dwStyle = dwStyle;
+    }
+
     //初始化层窗口属性
     m_bIsLayeredWindow = false;
     if (createParam.m_dwExStyle & WS_EX_LAYERED) {
@@ -95,7 +102,7 @@ bool NativeWindow::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam&
     HWND hWnd = ::CreateWindowEx(createParam.m_dwExStyle,
                                  className.c_str(),
                                  windowTitle.c_str(),
-                                 createParam.m_dwStyle,
+                                 dwStyle,
                                  createParam.m_nX, createParam.m_nY, createParam.m_nWidth, createParam.m_nHeight,
                                  hParentWnd, NULL, GetResModuleHandle(), this);
     ASSERT(::IsWindow(hWnd));
@@ -128,6 +135,13 @@ int32_t NativeWindow::DoModal(WindowBase* pParentWindow, const WindowCreateParam
     m_bCloseByEsc = bCloseByEsc;
     m_bCloseByEnter = bCloseByEnter;
 
+    //设置默认风格
+    uint32_t dwStyle = createParam.m_dwStyle;
+    if (dwStyle == 0) {
+        dwStyle = WS_POPUPWINDOW;
+        m_createParam.m_dwStyle = dwStyle;
+    }
+
     //初始化层窗口属性
     m_bIsLayeredWindow = false;
     if (createParam.m_dwExStyle & WS_EX_LAYERED) {
@@ -155,7 +169,7 @@ int32_t NativeWindow::DoModal(WindowBase* pParentWindow, const WindowCreateParam
 
     // 创建对话框资源结构体（对话框初始状态为可见状态）
     DLGTEMPLATE dlgTemplate = {
-        WS_VISIBLE | createParam.m_dwStyle,
+        WS_VISIBLE | dwStyle,
         createParam.m_dwExStyle,
         0,
         x, y, cx, cy
@@ -234,14 +248,6 @@ void NativeWindow::InitNativeWindow()
     HWND hWnd = m_hWnd;
     if (!::IsWindow(hWnd)) {
         return;
-    }
-    //设置窗口风格（如果原来没有标题栏，则去除标题栏）
-    if (!(m_createParam.m_dwStyle & WS_CAPTION)) {
-        uint32_t dwStyle = (uint32_t)::GetWindowLong(hWnd, GWL_STYLE);
-        if (dwStyle & WS_CAPTION) {
-            uint32_t dwNewStyle = dwStyle & ~WS_CAPTION;
-            ::SetWindowLong(hWnd, GWL_STYLE, dwNewStyle);
-        }
     }
 
     //检查并更新曾窗口属性

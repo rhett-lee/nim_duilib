@@ -6,7 +6,7 @@ WindowCreateParam::WindowCreateParam():
     m_platformData(nullptr),
     m_className(_T("duilib_window")),
     m_dwClassStyle(kCS_VREDRAW | kCS_HREDRAW | kCS_DBLCLKS),
-    m_dwStyle(kWS_OVERLAPPED | kWS_THICKFRAME),
+    m_dwStyle(0),
     m_dwExStyle(0),
     m_nX(kCW_USEDEFAULT),
     m_nY(0),

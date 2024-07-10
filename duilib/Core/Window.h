@@ -766,6 +766,9 @@ private:
     //绘制时的偏移量（动画用）
     UiPoint m_renderOffset;
 
+    //全屏状态下的外边距
+    UiMargin m_rcFullscreenMargin;
+
     //绘制引擎
     std::unique_ptr<IRender> m_render;
 
