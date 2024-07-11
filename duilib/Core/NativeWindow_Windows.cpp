@@ -428,7 +428,7 @@ void NativeWindow::UpdateMinMaxBoxStyle() const
     //更新最大化/最小化按钮的风格
     bool bMinimizeBox = false;
     bool bMaximizeBox = false;
-    if ((m_pOwner != nullptr) && m_pOwner->OnNativeHasMinMaxBox(bMinimizeBox, bMaximizeBox)) {
+    if (!IsUseSystemCaption() && (m_pOwner != nullptr) && m_pOwner->OnNativeHasMinMaxBox(bMinimizeBox, bMaximizeBox)) {
         UINT oldStyleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
         UINT newStyleValue = oldStyleValue;
         if (bMinimizeBox) {

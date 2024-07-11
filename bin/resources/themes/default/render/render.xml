@@ -3,7 +3,7 @@
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->  
-        <HBox width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
             <!-- 标题栏：窗口左上角显示区域 -->  
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto">
                 <Control width="auto" height="auto" bkimage="logo_18x18.png" valign="center" margin="8,0,0,0"/>

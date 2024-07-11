@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window size="800,600" caption="0,0,0,35" shadow_attached="true" layered_window="false">
   <VBox bkcolor="bk_wnd_darkcolor">
-    <HBox width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
+    <HBox name="window_caption_bar" width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
       <Control />
       <Button name="btn_dev_tool" width="auto" height="auto" valign="center" tooltiptext="开发者工具" bkimage="btn_dev_tool.png" margin="4"/>
       <Button class="btn_wnd_min" name="minbtn" margin="4,6,0,0"/>
