@@ -377,6 +377,15 @@ public:
     */
     bool IsEnableSnapLayoutMenu() const;
 
+    /** 设置在右键点击标题栏时，是否显示系统的窗口菜单（可进行调整窗口状态，关闭窗口等操作）
+    * @param [in] bEnable true表示支持，false表示不支持
+    */
+    void SetEnableSysMenu(bool bEnable);
+
+    /** 获取在右键点击标题栏时，是否显示系统的窗口菜单
+    */
+    bool IsEnableSysMenu() const;
+
 public:
     /** 设置系统激活窗口热键，注册后按此热键，系统可以自动激活本窗口
     * @param [in] wVirtualKeyCode 虚拟键盘码，比如：kVK_DOWN等，可参考：https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
@@ -535,6 +544,10 @@ private:
     */
     void UpdateMinMaxBoxStyle() const;
 
+    /** 显示系统的窗口菜单
+    */
+    bool ShowWindowSysMenu(HWND hWnd, const POINT& pt) const;
+
 private:
     /** 接收窗口事件的接口
     */
@@ -605,6 +618,9 @@ private:
     //是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。）
     //参考：https://learn.microsoft.com/zh-cn/windows/apps/desktop/modernize/apply-snap-layout-menu
     bool m_bSnapLayoutMenu;
+
+    //在右键点击标题栏时，是否显示系统的窗口菜单（可进行调整窗口状态，关闭窗口等操作）
+    bool m_bEnableSysMenu;
 
 private:
     /**@name 全屏相关状态

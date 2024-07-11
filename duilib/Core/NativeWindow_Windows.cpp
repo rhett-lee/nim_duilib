@@ -49,7 +49,8 @@ NativeWindow::NativeWindow(INativeWindow* pOwner):
     m_bCenterWindow(false),
     m_bCloseByEsc(false),
     m_bCloseByEnter(false),
-    m_bSnapLayoutMenu(false)
+    m_bSnapLayoutMenu(false),
+    m_bEnableSysMenu(true)
 {
     ASSERT(m_pOwner != nullptr);
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
@@ -2269,6 +2270,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
             if (wParam == HTMAXBUTTON) {
                 bHandled = true; //如果鼠标点击在最大化按钮上，截获此消息，避免Windows也触发最大化/还原命令
             }
+
             UiPoint pt;
             pt.x = GET_X_LPARAM(lParam);
             pt.y = GET_Y_LPARAM(lParam);
@@ -2293,10 +2295,75 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         }
         break;
     }
+    case WM_NCRBUTTONUP:
+    {
+        bool bEnable = (wParam == HTCAPTION) || (wParam == HTMAXBUTTON);
+        if (bEnable && IsEnableSysMenu() && !IsUseSystemCaption()) {
+            // 显示系统菜单
+            POINT pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            if (ShowWindowSysMenu(m_hWnd, pt)) {
+                bHandled = true;
+            }
+        }
+        break;
+    }
     default:
         break;
     }//end of switch
     return lResult;
+}
+
+bool NativeWindow::ShowWindowSysMenu(HWND hWnd, const POINT& pt) const
+{
+    HMENU hSysMenu = ::GetSystemMenu(hWnd, FALSE);
+    if (hSysMenu == nullptr) {
+        return false;
+    }
+    //更新菜单状态
+    MENUITEMINFO mii;
+    mii.cbSize = sizeof(MENUITEMINFO);
+    mii.fMask = MIIM_STATE;
+    mii.fType = 0;
+
+    // update the options
+    mii.fState = MF_ENABLED;
+    SetMenuItemInfo(hSysMenu, SC_RESTORE, FALSE, &mii);
+    SetMenuItemInfo(hSysMenu, SC_SIZE, FALSE, &mii);
+    SetMenuItemInfo(hSysMenu, SC_MOVE, FALSE, &mii);
+    SetMenuItemInfo(hSysMenu, SC_MAXIMIZE, FALSE, &mii);
+    SetMenuItemInfo(hSysMenu, SC_MINIMIZE, FALSE, &mii);
+
+    mii.fState = MF_GRAYED;
+
+    WINDOWPLACEMENT wp = { 0, };
+    ::GetWindowPlacement(hWnd, &wp);
+
+    switch (wp.showCmd)
+    {
+    case SW_SHOWMAXIMIZED:
+        SetMenuItemInfo(hSysMenu, SC_SIZE, FALSE, &mii);
+        SetMenuItemInfo(hSysMenu, SC_MOVE, FALSE, &mii);
+        SetMenuItemInfo(hSysMenu, SC_MAXIMIZE, FALSE, &mii);
+        SetMenuDefaultItem(hSysMenu, SC_CLOSE, FALSE);
+        break;
+    case SW_SHOWMINIMIZED:
+        SetMenuItemInfo(hSysMenu, SC_MINIMIZE, FALSE, &mii);
+        SetMenuDefaultItem(hSysMenu, SC_RESTORE, FALSE);
+        break;
+    case SW_SHOWNORMAL:
+        SetMenuItemInfo(hSysMenu, SC_RESTORE, FALSE, &mii);
+        SetMenuDefaultItem(hSysMenu, SC_CLOSE, FALSE);
+        break;
+    }
+
+    // 在点击位置显示系统菜单
+    int32_t nRet = ::TrackPopupMenu(hSysMenu, TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, NULL);
+    if (nRet != 0) {
+        ::PostMessage(hWnd, WM_SYSCOMMAND, nRet, 0);
+    }
+    return true;
 }
 
 void NativeWindow::OnFinalMessage()
@@ -2322,6 +2389,16 @@ void NativeWindow::SetEnableSnapLayoutMenu(bool bEnable)
 bool NativeWindow::IsEnableSnapLayoutMenu() const
 {
     return m_bSnapLayoutMenu;
+}
+
+void NativeWindow::SetEnableSysMenu(bool bEnable)
+{
+    m_bEnableSysMenu = bEnable;
+}
+
+bool NativeWindow::IsEnableSysMenu() const
+{
+    return m_bEnableSysMenu;
 }
 
 } // namespace ui

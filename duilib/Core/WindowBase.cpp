@@ -611,6 +611,16 @@ bool WindowBase::IsEnableSnapLayoutMenu() const
     return m_pNativeWindow->IsEnableSnapLayoutMenu();
 }
 
+void WindowBase::SetEnableSysMenu(bool bEnable)
+{
+    m_pNativeWindow->SetEnableSysMenu(bEnable);
+}
+
+bool WindowBase::IsEnableSysMenu() const
+{
+    return m_pNativeWindow->IsEnableSysMenu();
+}
+
 const UiSize& WindowBase::GetRoundCorner() const
 {
     return m_szRoundCorner;

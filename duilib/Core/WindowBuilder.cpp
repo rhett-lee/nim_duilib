@@ -298,6 +298,9 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                     else if (strName == _T("snap_layout_menu")) {                        
                         pWindow->SetEnableSnapLayoutMenu(strValue == _T("true"));
                     }
+                    else if (strName == _T("sys_menu")) {
+                        pWindow->SetEnableSysMenu(strValue == _T("true"));
+                    }
                     else if (strName == _T("icon")) {
                         if (!strValue.empty()) {
                             //设置窗口图标
