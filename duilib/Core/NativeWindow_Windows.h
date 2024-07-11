@@ -367,6 +367,16 @@ public:
     */
     INativeWindow* WindowBaseFromPoint(const UiPoint& pt);
 
+    /** 设置是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。）
+    *   该功能默认是开启的。
+    * @param [in] bEnable true表示支持，false表示不支持
+    */
+    void SetEnableSnapLayoutMenu(bool bEnable);
+
+    /** 判断是否支持显示贴靠布局菜单(仅Windows 11及以后版本支持)
+    */
+    bool IsEnableSnapLayoutMenu() const;
+
 public:
     /** 设置系统激活窗口热键，注册后按此热键，系统可以自动激活本窗口
     * @param [in] wVirtualKeyCode 虚拟键盘码，比如：kVK_DOWN等，可参考：https://learn.microsoft.com/zh-cn/windows/win32/inputdev/virtual-key-codes
@@ -458,12 +468,12 @@ private:
     */
     LRESULT ProcessInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
-    //部分消息处理函数，以实现基本功能
+    //部分NC消息处理函数，以实现基本功能
     LRESULT OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnNcCalcSizeMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnNcHitTestMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnNcLButtonDbClickMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
+    //部分消息处理函数，以实现基本功能
     LRESULT OnGetMinMaxInfoMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnEraseBkGndMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
     LRESULT OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
@@ -591,6 +601,10 @@ private:
 
     //是否首次绘制
     bool m_bFirstPainted;
+
+    //是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。）
+    //参考：https://learn.microsoft.com/zh-cn/windows/apps/desktop/modernize/apply-snap-layout-menu
+    bool m_bSnapLayoutMenu;
 
 private:
     /**@name 全屏相关状态

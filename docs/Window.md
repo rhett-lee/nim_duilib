@@ -17,6 +17,7 @@
 | render_transparent | false | bool | SetRenderTransparent|如果为true，表示设置渲染为透明图层 |
 | layered_window | false | bool | SetLayeredWindow|设置是否为层窗口 |
 | alpha | 255 | int | SetWindowAlpha|设置窗口的透明度（0 - 255），仅当使用层窗口时有效 |
+| snap_layout_menu | true | bool | SetEnableSnapLayoutMenu|是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。） |
 
 备注：窗口属性的解析函数参见：[WindowBuilder::Create函数](../duilib/Core/WindowBuilder.cpp)    
 备注：窗口在XML中的标签名称是："Window"     

@@ -108,6 +108,10 @@ protected:
     */
     virtual bool HasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override;
 
+    /** 判断一个点是否在最大化或者还原按钮上
+    */
+    virtual bool IsPtInMaximizeRestoreButton(const UiPoint& pt) const override;
+
 private:
     /** 初始化窗口数据（内部函数）
     */
@@ -142,6 +146,11 @@ private:
     */
     Control* m_pMinButton;
     std::weak_ptr<WeakFlag> m_minButtonFlag;
+
+    /** 还原按钮的接口
+    */
+    Control* m_pRestoreButton;
+    std::weak_ptr<WeakFlag> m_restoreButtonFlag;
 };
 }
 

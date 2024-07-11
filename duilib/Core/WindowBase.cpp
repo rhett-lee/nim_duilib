@@ -601,6 +601,16 @@ void WindowBase::SetCaptionRect(const UiRect& rcCaption, bool bNeedDpiScale)
     }
 }
 
+void WindowBase::SetEnableSnapLayoutMenu(bool bEnable)
+{
+    m_pNativeWindow->SetEnableSnapLayoutMenu(bEnable);
+}
+
+bool WindowBase::IsEnableSnapLayoutMenu() const
+{
+    return m_pNativeWindow->IsEnableSnapLayoutMenu();
+}
+
 const UiSize& WindowBase::GetRoundCorner() const
 {
     return m_szRoundCorner;
@@ -826,6 +836,11 @@ bool WindowBase::OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) co
     return HasMinMaxBox(bMinimizeBox, bMaximizeBox);
 }
 
+bool WindowBase::OnNativeIsPtInMaximizeRestoreButton(const UiPoint& pt) const
+{
+    return IsPtInMaximizeRestoreButton(pt);
+}
+
 UiSize WindowBase::OnNativeGetMinInfo(bool bContainShadow) const
 {
     return GetMinInfo(bContainShadow);
@@ -968,9 +983,9 @@ LRESULT WindowBase::OnNativeMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt,
     return OnMouseWheelMsg(wheelDelta, pt, modifierKey, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativeMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+LRESULT WindowBase::OnNativeMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFromNC, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnMouseMoveMsg(pt, modifierKey, nativeMsg, bHandled);
+    return OnMouseMoveMsg(pt, modifierKey, bFromNC, nativeMsg, bHandled);
 }
 
 LRESULT WindowBase::OnNativeMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)

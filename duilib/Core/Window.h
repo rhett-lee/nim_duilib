@@ -398,6 +398,10 @@ protected:
     */
     virtual bool HasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override;
 
+    /** 判断一个点是否在最大化或者还原按钮上
+    */
+    virtual bool IsPtInMaximizeRestoreButton(const UiPoint& pt) const override;
+
     /** @name 窗口消息处理相关
         * @{
     */
@@ -537,11 +541,12 @@ protected:
     /** 鼠标移动消息（WM_MOUSEMOVE）
     * @param [in] pt 鼠标所在位置，客户区坐标
     * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] bFromNC true表示这是NC消息（WM_NCMOUSEMOVE）, false 表示是WM_MOUSEMOVE消息
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
-    virtual LRESULT OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
+    virtual LRESULT OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFromNC, const NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** 鼠标悬停消息（WM_MOUSEHOVER）
     * @param [in] pt 鼠标所在位置，客户区坐标
@@ -670,9 +675,10 @@ private:
     /** 判断是否需要发送鼠标进入或离开消息
     * @param [in] pt 鼠标当前位置
     * @param [in] modifierKey 按键标志
+    * @param [in] bHideToolTip 是否需要隐藏ToolTip
     * @return 返回 true 需要发送鼠标进入或离开消息，返回 false 为不需要
     */
-    bool HandleMouseEnterLeave(const UiPoint& pt, uint32_t modifierKey);
+    bool HandleMouseEnterLeave(const UiPoint& pt, uint32_t modifierKey, bool bHideToolTip);
 
 private:
     /**@name 动画效果相关接口

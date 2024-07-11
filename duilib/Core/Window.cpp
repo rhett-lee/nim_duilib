@@ -484,6 +484,11 @@ bool Window::HasMinMaxBox(bool& /*bMinimizeBox*/, bool& /*bMaximizeBox*/) const
     return false;
 }
 
+bool Window::IsPtInMaximizeRestoreButton(const UiPoint& /*pt*/) const
+{
+    return false;
+}
+
 const UiRect& Window::GetAlphaFixCorner() const
 {
     return m_rcAlphaFix;
@@ -1036,7 +1041,7 @@ LRESULT Window::OnMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t 
     return lResult;
 }
 
-LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFromNC, const NativeMsg& nativeMsg, bool& bHandled)
 {
 #ifdef _DEBUG
     if (modifierKey & ModifierKey::kControl) {
@@ -1047,15 +1052,20 @@ LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, const Na
     }
 #endif
 
+    //是否需要处理ToolTip(如果是NC消息，不处理，因为处理后会导致触发WM_MOUSEMOVE消息，影响流程)
+    bool bProcessToolTip = !bFromNC;
+
     bHandled = false;
     LRESULT lResult = 0;
-    m_toolTip->SetMouseTracking(this, true);
+    if (bProcessToolTip) {
+        m_toolTip->SetMouseTracking(this, true);
+    }
     SetLastMousePos(pt);
 
     // Do not move the focus to the new control when the mouse is pressed
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     if (!IsCaptured()) {
-        if (!HandleMouseEnterLeave(pt, modifierKey)) {
+        if (!HandleMouseEnterLeave(pt, modifierKey, bProcessToolTip)) {
             return lResult;
         }
     }
@@ -1078,7 +1088,7 @@ LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, const Na
 }
 
 
-bool Window::HandleMouseEnterLeave(const UiPoint& pt, uint32_t modifierKey)
+bool Window::HandleMouseEnterLeave(const UiPoint& pt, uint32_t modifierKey, bool bHideToolTip)
 {
     Control* pNewHover = FindControl(pt);
     //设置为新的Hover控件
@@ -1095,7 +1105,9 @@ bool Window::HandleMouseEnterLeave(const UiPoint& pt, uint32_t modifierKey)
         if (windowFlag.expired()) {
             return false;
         }
-        m_toolTip->HideToolTip();
+        if (bHideToolTip) {
+            m_toolTip->HideToolTip();
+        }
     }
     ASSERT(pNewHover == m_pEventHover);
     if (pNewHover != m_pEventHover) {

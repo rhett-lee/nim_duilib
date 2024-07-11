@@ -295,6 +295,9 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                         AttributeUtil::ParseRectValue(strValue.c_str(), rcCaption);
                         pWindow->SetCaptionRect(rcCaption, true);
                     }
+                    else if (strName == _T("snap_layout_menu")) {                        
+                        pWindow->SetEnableSnapLayoutMenu(strValue == _T("true"));
+                    }
                     else if (strName == _T("icon")) {
                         if (!strValue.empty()) {
                             //设置窗口图标

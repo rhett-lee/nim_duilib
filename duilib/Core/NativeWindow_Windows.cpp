@@ -5,8 +5,28 @@
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include <CommCtrl.h>
 #include <Olectl.h>
+#include <VersionHelpers.h>
 
 namespace ui {
+
+//判断是否为Windows 11的函数
+static bool UiIsWindows11OrGreater()
+{
+    OSVERSIONINFOEXW osvi = { sizeof(osvi), 0, 0, 0, 0, {0}, 0, 0 };
+    DWORDLONG const dwlConditionMask = VerSetConditionMask(
+        VerSetConditionMask(
+            VerSetConditionMask(
+                0, VER_MAJORVERSION, VER_GREATER_EQUAL),
+            VER_MINORVERSION, VER_GREATER_EQUAL),
+        VER_BUILDNUMBER, VER_GREATER_EQUAL);
+
+    osvi.dwMajorVersion = 10;
+    osvi.dwMinorVersion = 0;
+    osvi.dwBuildNumber = 22000; //需要根据Build版本号区分
+
+    return ::VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, dwlConditionMask) != FALSE;
+}
+
 
 NativeWindow::NativeWindow(INativeWindow* pOwner):
     m_pOwner(pOwner),
@@ -28,10 +48,16 @@ NativeWindow::NativeWindow(INativeWindow* pOwner):
     m_bDoModal(false),
     m_bCenterWindow(false),
     m_bCloseByEsc(false),
-    m_bCloseByEnter(false)
+    m_bCloseByEnter(false),
+    m_bSnapLayoutMenu(false)
 {
     ASSERT(m_pOwner != nullptr);
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
+
+    //Windows 11及新版本，支持显示贴靠布局菜单
+    if (UiIsWindows11OrGreater()) {
+        m_bSnapLayoutMenu = true;
+    }
 }
 
 NativeWindow::~NativeWindow()
@@ -1564,7 +1590,7 @@ LRESULT NativeWindow::ProcessInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_NCACTIVATE:         lResult = OnNcActivateMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_NCCALCSIZE:         lResult = OnNcCalcSizeMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_NCHITTEST:          lResult = OnNcHitTestMsg(uMsg, wParam, lParam, bHandled); break;
-    case WM_NCLBUTTONDBLCLK:    lResult = OnNcLButtonDbClickMsg(uMsg, wParam, lParam, bHandled); break;
+
     case WM_GETMINMAXINFO:      lResult = OnGetMinMaxInfoMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_ERASEBKGND:         lResult = OnEraseBkGndMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_DPICHANGED:         lResult = OnDpiChangedMsg(uMsg, wParam, lParam, bHandled); break;
@@ -1713,7 +1739,16 @@ LRESULT NativeWindow::OnNcHitTestMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam
     UiRect rcCaption = m_pOwner->OnNativeGetCaptionRect();
     if ((pt.x >= rcClient.left + rcCaption.left) && (pt.x < rcClient.right - rcCaption.right) &&
         (pt.y >= rcClient.top + rcCaption.top && pt.y < rcClient.top + rcCaption.bottom)) {
-        if (m_pOwner->OnNativeIsPtInCaptionBarControl(pt)) {
+
+        //是否支持显示贴靠布局菜单
+        bool bPtInMaximizeRestoreButton = false;        
+        if (IsEnableSnapLayoutMenu()) {
+            bPtInMaximizeRestoreButton = m_pOwner->OnNativeIsPtInMaximizeRestoreButton(pt);
+        }
+        if (bPtInMaximizeRestoreButton) {
+            return HTMAXBUTTON; //在最大化按钮或者还原按钮上，显示贴靠布局菜单
+        }
+        else if (m_pOwner->OnNativeIsPtInCaptionBarControl(pt)) {
             return HTCLIENT;//在工作区中（放在标题栏上的控件，视为工作区）
         }
         else {
@@ -1722,27 +1757,6 @@ LRESULT NativeWindow::OnNcHitTestMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam
     }
     //其他，在工作区中
     return HTCLIENT;
-}
-
-LRESULT NativeWindow::OnNcLButtonDbClickMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    ASSERT_UNUSED_VARIABLE(uMsg == WM_NCLBUTTONDBLCLK);
-    if (IsUseSystemCaption()) {
-        bHandled = false;
-        return 0;
-    }
-
-    //TODO：需要判断是否可以最大化
-    bHandled = true;
-    if (!IsWindowMaximized()) {
-        //最大化
-        ShowWindow(kSW_SHOW_MAXIMIZED);
-    }
-    else {
-        //还原
-        ShowWindow(kSW_RESTORE);
-    }
-    return 0;
 }
 
 LRESULT NativeWindow::OnGetMinMaxInfoMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam, bool& bHandled)
@@ -1920,7 +1934,7 @@ LRESULT NativeWindow::OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
     }
     else if (dwFlags & TOUCHEVENTF_MOVE) {
         UiPoint lastMousePos = m_ptLastMousePos;
-        lResult = m_pOwner->OnNativeMouseMoveMsg(pt, 0, NativeMsg(WM_MOUSEMOVE, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
+        lResult = m_pOwner->OnNativeMouseMoveMsg(pt, 0, false, NativeMsg(WM_MOUSEMOVE, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
         int wheelDelta = pt.y - lastMousePos.y;
         if (wheelDelta != 0) {
             //触发滚轮功能
@@ -1959,7 +1973,7 @@ LRESULT NativeWindow::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, boo
         bHandled = true;
         break;
     case WM_POINTERUPDATE:
-        lResult = m_pOwner->OnNativeMouseMoveMsg(pt, 0, NativeMsg(WM_MOUSEMOVE, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
+        lResult = m_pOwner->OnNativeMouseMoveMsg(pt, 0, false, NativeMsg(WM_MOUSEMOVE, 0, MAKELPARAM(pt.x, pt.y)), bHandled);
         bHandled = true;
         break;
     case WM_POINTERUP:
@@ -2149,7 +2163,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         pt.y = GET_Y_LPARAM(lParam);
         uint32_t modifierKey = 0;
         GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeMouseMoveMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
+        lResult = m_pOwner->OnNativeMouseMoveMsg(pt, modifierKey, false, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_MOUSEHOVER:
@@ -2237,6 +2251,48 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         lResult = m_pOwner->OnNativeWindowCloseMsg((uint32_t)wParam, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
+    case WM_NCMOUSEMOVE:
+    {
+        if (!IsUseSystemCaption()) {
+            UiPoint pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            ScreenToClient(pt);
+            uint32_t modifierKey = 0;
+            lResult = m_pOwner->OnNativeMouseMoveMsg(pt, modifierKey, true, NativeMsg(uMsg, wParam, lParam), bHandled);
+        }
+        break;
+    }
+    case WM_NCLBUTTONDOWN:
+    {
+        if (!IsUseSystemCaption()) {
+            if (wParam == HTMAXBUTTON) {
+                bHandled = true; //如果鼠标点击在最大化按钮上，截获此消息，避免Windows也触发最大化/还原命令
+            }
+            UiPoint pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            ScreenToClient(pt);
+            uint32_t modifierKey = 0;
+            lResult = m_pOwner->OnNativeMouseLButtonDownMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
+        }
+        break;
+    }
+    case WM_NCLBUTTONUP:
+    {
+        if (!IsUseSystemCaption()) {
+            if (wParam == HTMAXBUTTON) {
+                bHandled = true; //如果鼠标点击在最大化按钮上，截获此消息，避免Windows也触发最大化/还原命令
+            }
+            UiPoint pt;
+            pt.x = GET_X_LPARAM(lParam);
+            pt.y = GET_Y_LPARAM(lParam);
+            ScreenToClient(pt);
+            uint32_t modifierKey = 0;
+            lResult = m_pOwner->OnNativeMouseLButtonUpMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
+        }
+        break;
+    }
     default:
         break;
     }//end of switch
@@ -2253,6 +2309,19 @@ void NativeWindow::OnFinalMessage()
 HWND NativeWindow::GetWindowOwner() const
 {
     return ::GetWindow(m_hWnd, GW_OWNER);
+}
+
+void NativeWindow::SetEnableSnapLayoutMenu(bool bEnable)
+{
+    //仅Windows11才支持
+    if (UiIsWindows11OrGreater()) {
+        m_bSnapLayoutMenu = bEnable;
+    }
+}
+
+bool NativeWindow::IsEnableSnapLayoutMenu() const
+{
+    return m_bSnapLayoutMenu;
 }
 
 } // namespace ui

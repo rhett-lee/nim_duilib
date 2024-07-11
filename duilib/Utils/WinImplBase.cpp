@@ -8,7 +8,8 @@ namespace ui
 
 WindowImplBase::WindowImplBase():
     m_pMaxButton(nullptr),
-    m_pMinButton(nullptr)
+    m_pMinButton(nullptr),
+    m_pRestoreButton(nullptr)
 {
 }
 
@@ -118,6 +119,9 @@ void WindowImplBase::InitWindow()
         if (pControl) {
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
             pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
+
+            m_pRestoreButton = pControl;
+            m_restoreButtonFlag = pControl->GetWeakFlag();
         }
         
         //全屏按钮
@@ -311,5 +315,18 @@ bool WindowImplBase::HasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const
     }
     return true;
 }
+
+bool WindowImplBase::IsPtInMaximizeRestoreButton(const UiPoint& pt) const
+{
+    bool bInButton = false;
+    if ((m_pMaxButton != nullptr) && !m_maxButtonFlag.expired() && m_pMaxButton->IsVisible()) {
+        bInButton = m_pMaxButton->GetRect().ContainsPt(pt);
+    }
+    else if ((m_pRestoreButton != nullptr) && !m_restoreButtonFlag.expired() && m_pRestoreButton->IsVisible()) {
+        bInButton = m_pRestoreButton->GetRect().ContainsPt(pt);
+    }
+    return bInButton;
+}
+
 
 }

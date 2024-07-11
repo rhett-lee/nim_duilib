@@ -336,6 +336,16 @@ public:
     */
     void SetCaptionRect(const UiRect& rcCaption, bool bNeedDpiScale);
 
+    /** 设置是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。）
+    *   该功能默认是开启的。
+    * @param [in] bEnable true表示支持，false表示不支持
+    */
+    void SetEnableSnapLayoutMenu(bool bEnable);
+
+    /** 判断是否支持显示贴靠布局菜单(仅Windows 11及以后版本支持)
+    */
+    bool IsEnableSnapLayoutMenu() const;
+
     /** 获取窗口圆角大小，对应 XML 中 roundcorner 属性
     */
     const UiSize& GetRoundCorner() const;
@@ -586,6 +596,10 @@ protected:
     */
     virtual bool HasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const = 0;
 
+    /** 判断一个点是否在最大化或者还原按钮上
+    */
+    virtual bool IsPtInMaximizeRestoreButton(const UiPoint& pt) const = 0;
+
     /** 窗口的DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
     * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
@@ -732,11 +746,12 @@ protected:
     /** 鼠标移动消息（WM_MOUSEMOVE）
     * @param [in] pt 鼠标所在位置，客户区坐标
     * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] bFromNC true表示这是NC消息（WM_NCMOUSEMOVE）, false 表示是WM_MOUSEMOVE消息
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
-    virtual LRESULT OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+    virtual LRESULT OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFromNC, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
     /** 鼠标悬停消息（WM_MOUSEHOVER）
     * @param [in] pt 鼠标所在位置，客户区坐标
@@ -867,6 +882,7 @@ private:
     virtual const UiRect& OnNativeGetCaptionRect() const override;
     virtual bool OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const override;
     virtual bool OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override;
+    virtual bool OnNativeIsPtInMaximizeRestoreButton(const UiPoint& pt) const override;
     virtual UiSize OnNativeGetMinInfo(bool bContainShadow /*= false*/) const override;
     virtual UiSize OnNativeGetMaxInfo(bool bContainShadow /*= false*/) const override;
     virtual void OnNativePreCloseWindow() override;
@@ -892,7 +908,7 @@ private:
     virtual LRESULT OnNativeCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeHotKeyMsg(int32_t hotkeyId, VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeMouseWheelMsg(int32_t wheelDelta, const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
-    virtual LRESULT OnNativeMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
+    virtual LRESULT OnNativeMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFromNC, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeMouseHoverMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeMouseLeaveMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeMouseLButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
