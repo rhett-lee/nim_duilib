@@ -41,8 +41,18 @@ public:
     virtual UiRect OnNativeGetSizeBox() const = 0;
 
     /** 获取窗口标题栏区域（可拖动区域），对应 XML 中 caption 属性
+    * @param [out] captionRect 返回标题栏区域的矩形范围(rcClient代表窗口的客户区矩形范围)：
+    *              标题栏的left  : rcClient.left + rcCaption.left
+    *              标题栏的top   : rcClient.top + rcCaption.top
+    *              标题栏的right : rcClient.right - rcCaption.right
+    *              标题栏的bottom: rcClient.top + rcCaption.bottom
     */
-    virtual const UiRect& OnNativeGetCaptionRect() const = 0;
+    virtual void OnNativeGetCaptionRect(UiRect& captionRect) const = 0;
+
+    /** 获取窗口标题栏区域中系统菜单所占的矩形区域，双击该区域会关闭窗口，对应 XML 中 sys_menu_rect 属性,
+    *@param [out] sysMenuRect 返回矩形区域，该矩形必须是caption对应的客户区域的子区域
+    */
+    virtual void OnNativeGetSysMenuRect(UiRect& sysMenuRect) const = 0;
 
     /** 判断一个点是否在放置在标题栏上的控件上
     */

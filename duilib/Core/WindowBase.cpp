@@ -601,6 +601,19 @@ void WindowBase::SetCaptionRect(const UiRect& rcCaption, bool bNeedDpiScale)
     }
 }
 
+const UiRect& WindowBase::GetSysMenuRect() const
+{
+    return m_rcSysMenuRect;
+}
+
+void WindowBase::SetSysMenuRect(const UiRect& rcSysMenuRect, bool bNeedDpiScale)
+{
+    m_rcSysMenuRect = rcSysMenuRect;
+    if (bNeedDpiScale) {
+        Dpi().ScaleRect(m_rcSysMenuRect);
+    }
+}
+
 void WindowBase::SetEnableSnapLayoutMenu(bool bEnable)
 {
     m_pNativeWindow->SetEnableSnapLayoutMenu(bEnable);
@@ -831,9 +844,14 @@ const DpiManager& WindowBase::OnNativeGetDpi() const
     return Dpi();
 }
 
-const UiRect& WindowBase::OnNativeGetCaptionRect() const
+void WindowBase::OnNativeGetCaptionRect(UiRect& captionRect) const
 {
-    return GetCaptionRect();
+    captionRect = GetCaptionRect();
+}
+
+void WindowBase::OnNativeGetSysMenuRect(UiRect& sysMenuRect) const
+{
+    sysMenuRect = GetSysMenuRect();
 }
 
 bool WindowBase::OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const

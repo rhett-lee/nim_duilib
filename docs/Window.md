@@ -19,6 +19,7 @@
 | alpha | 255 | int | SetWindowAlpha|设置窗口的透明度（0 - 255），仅当使用层窗口时有效 |
 | snap_layout_menu | true | bool | SetEnableSnapLayoutMenu|是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。） |
 | sys_menu | true | bool | SetEnableSysMenu|在右键点击标题栏时，是否显示系统的窗口菜单（可进行调整窗口状态，关闭窗口等操作）|
+| sys_menu_rect |0,0,0,0 | rect | SetSysMenuRect| 窗口菜单区域，在窗口标题栏的左上角（双击该区域可退出窗口，点击显示系统的窗口菜单），该功能若XML中无设置，默认是关闭的 |
 
 备注：窗口属性的解析函数参见：[WindowBuilder::Create函数](../duilib/Core/WindowBuilder.cpp)    
 备注：窗口在XML中的标签名称是："Window"     

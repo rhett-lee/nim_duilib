@@ -548,6 +548,10 @@ private:
     */
     bool ShowWindowSysMenu(HWND hWnd, const POINT& pt) const;
 
+    /** 停止系统的窗口菜单定时器
+    */
+    void StopSysMenuTimer();
+
 private:
     /** 接收窗口事件的接口
     */
@@ -621,6 +625,9 @@ private:
 
     //在右键点击标题栏时，是否显示系统的窗口菜单（可进行调整窗口状态，关闭窗口等操作）
     bool m_bEnableSysMenu;
+
+    //系统菜单延迟显示的定时器ID
+    UINT_PTR m_nSysMenuTimerId;
 
 private:
     /**@name 全屏相关状态

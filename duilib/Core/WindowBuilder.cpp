@@ -301,6 +301,11 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                     else if (strName == _T("sys_menu")) {
                         pWindow->SetEnableSysMenu(strValue == _T("true"));
                     }
+                    else if (strName == _T("sys_menu_rect")) {
+                        UiRect rcSysMenuRect;
+                        AttributeUtil::ParseRectValue(strValue.c_str(), rcSysMenuRect);
+                        pWindow->SetSysMenuRect(rcSysMenuRect, true);
+                    }
                     else if (strName == _T("icon")) {
                         if (!strValue.empty()) {
                             //设置窗口图标

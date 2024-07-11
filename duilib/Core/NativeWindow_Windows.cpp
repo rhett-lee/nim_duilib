@@ -27,6 +27,8 @@ static bool UiIsWindows11OrGreater()
     return ::VerifyVersionInfoW(&osvi, VER_MAJORVERSION | VER_MINORVERSION | VER_BUILDNUMBER, dwlConditionMask) != FALSE;
 }
 
+//系统菜单延迟显示的定时器ID
+#define UI_SYS_MEMU_TIMER_ID 711
 
 NativeWindow::NativeWindow(INativeWindow* pOwner):
     m_pOwner(pOwner),
@@ -50,7 +52,8 @@ NativeWindow::NativeWindow(INativeWindow* pOwner):
     m_bCloseByEsc(false),
     m_bCloseByEnter(false),
     m_bSnapLayoutMenu(false),
-    m_bEnableSysMenu(true)
+    m_bEnableSysMenu(true),
+    m_nSysMenuTimerId(0)
 {
     ASSERT(m_pOwner != nullptr);
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
@@ -345,6 +348,7 @@ HDC NativeWindow::GetPaintDC() const
 
 void NativeWindow::CloseWnd(int32_t nRet)
 {
+    StopSysMenuTimer();
     m_bCloseing = true;
     ASSERT(::IsWindow(m_hWnd));
     if (!::IsWindow(m_hWnd)) {
@@ -355,6 +359,7 @@ void NativeWindow::CloseWnd(int32_t nRet)
 
 void NativeWindow::Close()
 {
+    StopSysMenuTimer();
     m_bCloseing = true;
     ASSERT(::IsWindow(m_hWnd));
     if (!::IsWindow(m_hWnd)) {
@@ -1544,11 +1549,15 @@ LRESULT NativeWindow::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
     if (!bHandled && !ownerFlag.expired()) {
         if ((uMsg == WM_CLOSE) || ((uMsg == WM_SYSCOMMAND) && (GET_SC_WPARAM(wParam) == SC_CLOSE))) {
             //窗口即将关闭（关闭前）
+            StopSysMenuTimer();
+
             bCloseMsg = true;
             pOwner->OnNativePreCloseWindow();
         }
     }
     if (uMsg == WM_CLOSE) {
+        StopSysMenuTimer();
+
         m_closeParam = (int32_t)wParam;
     }
 
@@ -1615,6 +1624,20 @@ LRESULT NativeWindow::ProcessInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lP
     case WM_CREATE:     lResult = OnCreateMsg(uMsg, wParam, lParam, bHandled); break;
     case WM_INITDIALOG: lResult = OnInitDialogMsg(uMsg, wParam, lParam, bHandled); break;
 
+    case WM_TIMER:
+        {
+            if (wParam == m_nSysMenuTimerId) {
+                //系统菜单延迟显示的定时器触发
+                ::KillTimer(m_hWnd, m_nSysMenuTimerId);
+                m_nSysMenuTimerId = 0;
+
+                POINT pt;
+                ::GetCursorPos(&pt);
+                ShowWindowSysMenu(m_hWnd, pt);
+                bHandled = true;
+            }
+        }
+        break;
     default:
         bInternalMsg = false;
         break;
@@ -1737,9 +1760,25 @@ LRESULT NativeWindow::OnNcHitTestMsg(UINT uMsg, WPARAM /*wParam*/, LPARAM lParam
         }
     }
 
-    UiRect rcCaption = m_pOwner->OnNativeGetCaptionRect();
-    if ((pt.x >= rcClient.left + rcCaption.left) && (pt.x < rcClient.right - rcCaption.right) &&
-        (pt.y >= rcClient.top + rcCaption.top && pt.y < rcClient.top + rcCaption.bottom)) {
+    UiRect rcCaption;
+    m_pOwner->OnNativeGetCaptionRect(rcCaption);
+    //标题栏区域的矩形范围
+    UiRect rcCaptionRect;
+    rcCaptionRect.left = rcClient.left + rcCaption.left;
+    rcCaptionRect.right = rcClient.right - rcCaption.right;
+    rcCaptionRect.top = rcClient.top + rcCaption.top;
+    rcCaptionRect.bottom = rcClient.top + rcCaption.bottom;
+    if (rcCaptionRect.ContainsPt(pt)) {
+        //在标题栏范围内
+        UiRect sysMenuRect;
+        m_pOwner->OnNativeGetSysMenuRect(sysMenuRect);
+        sysMenuRect.Offset(rcClient.left, rcClient.top);
+        sysMenuRect.Intersect(rcCaptionRect);
+        if (!sysMenuRect.IsEmpty()) {
+            if (sysMenuRect.ContainsPt(pt)) {                
+                return HTSYSMENU;//在系统菜单矩形区域内
+            }
+        }
 
         //是否支持显示贴靠布局菜单
         bool bPtInMaximizeRestoreButton = false;        
@@ -2276,6 +2315,11 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
             uint32_t modifierKey = 0;
             lResult = m_pOwner->OnNativeMouseLButtonDownMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         }
+        else if (!IsUseSystemCaption() && (wParam == HTSYSMENU) && IsEnableSysMenu()) {
+            //鼠标点击在窗口菜单位置，启动定时器，延迟显示系统的窗口菜单
+            StopSysMenuTimer();            
+            m_nSysMenuTimerId = ::SetTimer(m_hWnd, UI_SYS_MEMU_TIMER_ID, 300, NULL);
+        }
         break;
     }
     case WM_NCLBUTTONUP:
@@ -2295,7 +2339,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case WM_NCRBUTTONUP:
     {
-        bool bEnable = (wParam == HTCAPTION) || (wParam == HTMAXBUTTON);
+        bool bEnable = (wParam == HTCAPTION) || (wParam == HTMAXBUTTON) || (wParam == HTSYSMENU);
         if (bEnable && IsEnableSysMenu() && !IsUseSystemCaption()) {
             // 显示系统菜单
             POINT pt;
@@ -2311,6 +2355,14 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         break;
     }//end of switch
     return lResult;
+}
+
+void NativeWindow::StopSysMenuTimer()
+{
+    if (m_nSysMenuTimerId != 0) {
+        ::KillTimer(m_hWnd, m_nSysMenuTimerId);
+        m_nSysMenuTimerId = 0;
+    }
 }
 
 bool NativeWindow::ShowWindowSysMenu(HWND hWnd, const POINT& pt) const

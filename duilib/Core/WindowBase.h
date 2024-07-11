@@ -330,11 +330,25 @@ public:
     */
     const UiRect& GetCaptionRect() const;
 
-    /** 设置窗口标题栏区域
-    * @param [in] rcCaption 要设置的区域范围
+    /** 设置窗口标题栏区域，对应 XML 中 caption 属性
+    * @param [in] rcCaption 要设置的标题栏区域的矩形范围(rcClient代表窗口的客户区矩形范围)：
+    *              标题栏的left  : rcClient.left + rcCaption.left
+    *              标题栏的top   : rcClient.top + rcCaption.top
+    *              标题栏的right : rcClient.right - rcCaption.right
+    *              标题栏的bottom: rcClient.top + rcCaption.bottom
     * @param [in] bNeedDpiScale 为 false 表示不根据 DPI 调整
     */
     void SetCaptionRect(const UiRect& rcCaption, bool bNeedDpiScale);
+
+    /** 获取窗口菜单区域（双击该区域可退出窗口，点击显示系统的窗口菜单）
+    */
+    const UiRect& GetSysMenuRect() const;
+
+    /** 设置获取窗口菜单区域（双击该区域可退出窗口，点击显示系统的窗口菜单）
+    * @param [in] rcSysMenuRect 要设置的区域范围
+    * @param [in] bNeedDpiScale 为 false 表示不根据 DPI 调整
+    */
+    void SetSysMenuRect(const UiRect& rcSysMenuRect, bool bNeedDpiScale);
 
     /** 设置是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。）
     *   该功能默认是开启的。
@@ -888,7 +902,8 @@ private:
     virtual UiRect OnNativeGetSizeBox() const override;
     virtual void OnNativeGetShadowCorner(UiPadding& rcShadow) const override;
     virtual const DpiManager& OnNativeGetDpi() const override;
-    virtual const UiRect& OnNativeGetCaptionRect() const override;
+    virtual void OnNativeGetCaptionRect(UiRect& captionRect) const override;
+    virtual void OnNativeGetSysMenuRect(UiRect& sysMenuRect) const override;
     virtual bool OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const override;
     virtual bool OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override;
     virtual bool OnNativeIsPtInMaximizeRestoreButton(const UiPoint& pt) const override;
@@ -963,6 +978,9 @@ private:
 
     //标题栏区域信息
     UiRect m_rcCaption;
+
+    //窗口菜单区域（双击该区域可退出窗口，点击显示系统的窗口菜单）
+    UiRect m_rcSysMenuRect;
 
 private:
     /** 窗口的拖放操作管理接口
