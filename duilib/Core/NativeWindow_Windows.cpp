@@ -2266,11 +2266,9 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case WM_NCLBUTTONDOWN:
     {
-        if (!IsUseSystemCaption()) {
-            if (wParam == HTMAXBUTTON) {
-                bHandled = true; //如果鼠标点击在最大化按钮上，截获此消息，避免Windows也触发最大化/还原命令
-            }
-
+        if (!IsUseSystemCaption() && (wParam == HTMAXBUTTON)) {
+            //如果鼠标点击在最大化按钮上，截获此消息，避免Windows也触发最大化/还原命令
+            bHandled = true; 
             UiPoint pt;
             pt.x = GET_X_LPARAM(lParam);
             pt.y = GET_Y_LPARAM(lParam);
@@ -2282,10 +2280,10 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case WM_NCLBUTTONUP:
     {
-        if (!IsUseSystemCaption()) {
-            if (wParam == HTMAXBUTTON) {
-                bHandled = true; //如果鼠标点击在最大化按钮上，截获此消息，避免Windows也触发最大化/还原命令
-            }
+        if (!IsUseSystemCaption() && (wParam == HTMAXBUTTON)) {
+            //如果鼠标点击在最大化按钮上，截获此消息，避免Windows也触发最大化/还原命令
+            bHandled = true;
+
             UiPoint pt;
             pt.x = GET_X_LPARAM(lParam);
             pt.y = GET_Y_LPARAM(lParam);
