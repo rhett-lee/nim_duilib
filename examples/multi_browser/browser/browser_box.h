@@ -83,9 +83,9 @@ public:
 
     /**
     * 覆盖父类虚函数，用于指定本控件所属窗体
-    * @param[in] pManager 所属窗口指针
+    * @param[in] pWindow 所属窗口指针
     */
-    virtual void SetWindow(ui::Window* pManager) override;
+    virtual void SetWindow(ui::Window* pWindow) override;
 
     /**
     * 覆盖基类虚函数，为了在重绘任务栏显示的缩略图

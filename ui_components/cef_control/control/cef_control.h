@@ -23,7 +23,7 @@ public:
     virtual void HandleEvent(const ui::EventArgs& msg) override;
     virtual void SetVisible(bool bVisible) override;
     virtual void Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
-    virtual void SetWindow(ui::Window* pManager) override;
+    virtual void SetWindow(ui::Window* pWindow) override;
 
     virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override; // 处理窗体消息，转发到Cef浏览器对象
 

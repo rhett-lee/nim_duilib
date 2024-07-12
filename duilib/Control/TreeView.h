@@ -342,7 +342,7 @@ public:
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void SetParent(Box* pParent) override;
-    virtual void SetWindow(Window* pManager) override;
+    virtual void SetWindow(Window* pWindow) override;
 
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比

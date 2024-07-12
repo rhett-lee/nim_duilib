@@ -455,12 +455,12 @@ void RichEdit::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
-void RichEdit::SetWindow(Window* pManager)
+void RichEdit::SetWindow(Window* pWindow)
 {
-    if (IsEnableDragDrop() && (pManager != GetWindow())) {
+    if (IsEnableDragDrop() && (pWindow != GetWindow())) {
         UnregisterDragDrop();
     }
-    __super::SetWindow(pManager);
+    __super::SetWindow(pWindow);
     if (IsEnableDragDrop()) {
         RegisterDragDrop();
     }

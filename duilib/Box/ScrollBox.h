@@ -32,7 +32,7 @@ public:
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
     virtual void SetMouseEnabled(bool bEnable = true) override;
     virtual void SetParent(Box* pParent) override;
-    virtual void SetWindow(Window* pManager) override;
+    virtual void SetWindow(Window* pWindow) override;
     virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
                                  uint32_t uFlags, const UiPoint& ptMouse,
                                  const UiPoint& scrollPos = UiPoint()) override;

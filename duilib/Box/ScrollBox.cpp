@@ -435,15 +435,15 @@ void ScrollBox::SetParent(Box* pParent)
     Box::SetParent(pParent);
 }
 
-void ScrollBox::SetWindow(Window* pManager)
+void ScrollBox::SetWindow(Window* pWindow)
 {
     if (m_pVScrollBar != nullptr) {
-        m_pVScrollBar->SetWindow(pManager);
+        m_pVScrollBar->SetWindow(pWindow);
     }
     if (m_pHScrollBar != nullptr) {
-        m_pHScrollBar->SetWindow(pManager);
+        m_pHScrollBar->SetWindow(pWindow);
     }
-    Box::SetWindow(pManager);
+    Box::SetWindow(pWindow);
 }
 
 Control* ScrollBox::FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,

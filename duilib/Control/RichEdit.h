@@ -615,7 +615,7 @@ public:
 
     /** 设置关联窗口
     */
-    virtual void SetWindow(Window* pManager) override;
+    virtual void SetWindow(Window* pWindow) override;
 
     /** 设置控件位置（子类可改变行为）
      * @param [in] rc 要设置的矩形区域信息，包含内边距，不包含外边距

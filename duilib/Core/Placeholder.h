@@ -60,9 +60,9 @@ public:
     virtual void SetParent(Box* pParent);
 
     /** 设置容器所属窗口
-     * @param [in] pManager 窗口指针
+     * @param [in] pWindow 窗口指针
      */
-    virtual void SetWindow(Window* pManager);
+    virtual void SetWindow(Window* pWindow);
 
     /** 获取父容器指针
     */

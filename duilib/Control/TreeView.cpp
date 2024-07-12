@@ -1476,10 +1476,10 @@ void TreeView::SetParent(Box* pParent)
     m_rootNode->SetParent(pParent);
 }
 
-void TreeView::SetWindow(Window* pManager)
+void TreeView::SetWindow(Window* pWindow)
 {
-    __super::SetWindow(pManager);
-    m_rootNode->SetWindow(pManager);
+    __super::SetWindow(pWindow);
+    m_rootNode->SetWindow(pWindow);
 }
 
 void TreeView::OnNodeCheckStatusChanged(TreeNode* pTreeNode)

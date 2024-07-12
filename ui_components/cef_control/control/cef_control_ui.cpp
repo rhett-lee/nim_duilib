@@ -178,20 +178,21 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
     }
 }
 
-void CefControl::SetWindow(ui::Window* pManager)
+void CefControl::SetWindow(ui::Window* pWindow)
 {
     if (!browser_handler_) {
-        __super::SetWindow(pManager);
+        __super::SetWindow(pWindow);
         return;
     }
 
     if (GetWindow()) {
-        GetWindow()->RemoveMessageFilter(this);
-        __super::SetWindow(pManager);
-        pManager->AddMessageFilter(this);
+        GetWindow()->RemoveMessageFilter(this);        
     }
-
-    browser_handler_->SetHostWindow(pManager);
+    __super::SetWindow(pWindow);
+    if (pWindow != nullptr) {
+        pWindow->AddMessageFilter(this);
+    }
+    browser_handler_->SetHostWindow(pWindow);
 }
 
 LRESULT CefControl::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)

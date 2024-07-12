@@ -17,7 +17,7 @@ public:
         
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
-    virtual void SetWindow(Window* pManager) override;
+    virtual void SetWindow(Window* pWindow) override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void Selected(bool bSelected, bool bTriggerEvent = false) override;
     virtual void Activate(const EventArgs* pMsg) override;
@@ -63,9 +63,9 @@ template<>
 inline DString OptionTemplate<Box>::GetType() const { return DUI_CTR_OPTIONBOX; }
 
 template<typename InheritType>
-void OptionTemplate<InheritType>::SetWindow(Window* pManager)
+void OptionTemplate<InheritType>::SetWindow(Window* pWindow)
 {
-    __super::SetWindow(pManager);
+    __super::SetWindow(pWindow);
     if (!m_sGroupName.empty()) {
         if (this->GetWindow()) {
             this->GetWindow()->AddOptionGroup(m_sGroupName.c_str(), this);

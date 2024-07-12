@@ -30,7 +30,7 @@ public:
     /// 重写父类接口，提供个性化功能。方法具体说明请查看 Control 控件
     virtual DString GetType() const override;
     virtual void SetParent(Box* pParent) override;
-    virtual void SetWindow(Window* pManager) override;
+    virtual void SetWindow(Window* pWindow) override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
     virtual void PaintFocusRect(IRender* pRender) override;

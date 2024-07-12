@@ -84,13 +84,13 @@ void Box::SetParent(Box* pParent)
     }    
 }
 
-void Box::SetWindow(Window* pManager)
+void Box::SetWindow(Window* pWindow)
 {
-    Control::SetWindow(pManager);
+    Control::SetWindow(pWindow);
     for (auto pControl : m_items) {
         ASSERT(pControl != nullptr);
         if (pControl != nullptr) {
-            pControl->SetWindow(pManager);
+            pControl->SetWindow(pWindow);
         }
     }    
 }

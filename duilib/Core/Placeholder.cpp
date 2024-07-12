@@ -74,9 +74,9 @@ void PlaceHolder::SetParent(Box* pParent)
     m_pParent = pParent;
 }
 
-void PlaceHolder::SetWindow(Window* pManager)
+void PlaceHolder::SetWindow(Window* pWindow)
 {
-    m_pWindow = pManager;
+    m_pWindow = pWindow;
 }
 
 void PlaceHolder::Init()
