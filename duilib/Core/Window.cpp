@@ -84,14 +84,9 @@ void Window::InitWindow()
         }
     }
     ASSERT(m_render != nullptr);
-    if ((m_render != nullptr) && (m_render->GetWidth() == 0)) {
-        //在估算控件大小的时候，需要Render有宽高等数据，所以需要进行Resize初始化
-        UiRect rcClient;
-        GetClientRect(rcClient);
-        if ((rcClient.Width() > 0) && (rcClient.Height() > 0)) {
-            m_render->Resize(rcClient.Width(), rcClient.Height());
-        }
-    }
+
+    //创建后，Render大小与客户区大小同步
+    ResizeRenderToClientSize();
 }
 
 void Window::PreCloseWindow()
@@ -641,6 +636,9 @@ LRESULT Window::OnWindowMessage(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lPara
 LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
+    //调整Render的大小, 与客户区大小保持一致
+    ResizeRenderToClientSize();
+    
     if (m_pRoot != nullptr) {
         m_pRoot->Arrange();
     }
@@ -746,14 +744,118 @@ LRESULT Window::OnShowWindowMsg(bool bShow, const NativeMsg& /*nativeMsg*/, bool
     return 0;
 }
 
-LRESULT Window::OnPaintMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
+bool Window::ResizeRenderToClientSize() const
+{
+    bool bRet = false;
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    if (!rcClient.IsEmpty()) {
+        if ((m_render->GetWidth() != rcClient.Width()) || (m_render->GetHeight() != rcClient.Height())) {
+            bRet = m_render->Resize(rcClient.Width(), rcClient.Height());
+        }
+        else {
+            bRet = true;
+        }
+    }
+    else {
+        bRet = m_render->Resize(1, 1);
+    }
+    ASSERT(bRet && "Window::ResizeRenderToClientSize failed!");
+    return bRet;
+}
+
+bool Window::OnPreparePaint()
+{
+    GlobalManager::Instance().AssertUIThread();
+    if (!IsWindow()) {
+        return false;
+    }
+    if (m_render == nullptr) {
+        return false;
+    }
+    if (IsWindowMinimized() || (m_pRoot == nullptr)) {
+        return false;
+    }
+    //更新状态，并创建Render等
+    if (!PreparePaint(true)) {
+        return false;
+    }
+    return true;
+}
+
+LRESULT Window::OnPaintMsg(const UiRect& rcPaint, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     PerformanceStat statPerformance(_T("Window::OnPaintMsg"));
-    if (Paint()) {
+    if (Paint(rcPaint)) {
         bHandled = true;
     }
     return 0;
+}
+
+bool Window::Paint(const UiRect& rcPaint)
+{
+    GlobalManager::Instance().AssertUIThread();
+    IRender* pRender = GetRender();
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
+        return false;
+    }
+
+    //开始绘制前，去掉alpha通道
+    if (IsLayeredWindow()) {
+        pRender->ClearAlpha(rcPaint);
+    }
+
+    // 绘制    
+    if (m_pRoot->IsVisible()) {
+        AutoClip rectClip(pRender, rcPaint, true);
+        UiPoint ptOldWindOrg = pRender->OffsetWindowOrg(m_renderOffset);
+        m_pRoot->Paint(pRender, rcPaint);
+        m_pRoot->PaintChild(pRender, rcPaint);
+        pRender->SetWindowOrg(ptOldWindOrg);
+    }
+    else {
+        UiColor bkColor = UiColor(UiColors::LightGray);
+        if (!m_pRoot->GetBkColor().empty()) {
+            bkColor = m_pRoot->GetUiColor(m_pRoot->GetBkColor());
+        }
+        pRender->FillRect(rcPaint, bkColor);
+    }
+
+    //开始绘制前，进行alpha通道修复
+    if (IsLayeredWindow()) {
+        if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() &&
+            (m_renderOffset.x == 0) && (m_renderOffset.y == 0)) {
+            //补救由于Gdi绘制造成的alpha通道为0
+            UiRect rcNewPaint = rcPaint;
+            rcNewPaint.Intersect(m_pRoot->GetPosWithoutPadding());
+            UiPadding rcRootPadding = m_pRoot->GetPadding();
+
+            //考虑圆角
+            rcRootPadding.left += 1;
+            rcRootPadding.top += 1;
+            rcRootPadding.right += 1;
+            rcRootPadding.bottom += 1;
+
+            pRender->RestoreAlpha(rcNewPaint, rcRootPadding);
+        }
+        else {
+            UiRect rcAlphaFixCorner = GetAlphaFixCorner();
+            if ((rcAlphaFixCorner.left > 0) || (rcAlphaFixCorner.top > 0) ||
+                (rcAlphaFixCorner.right > 0) || (rcAlphaFixCorner.bottom > 0)) {
+                UiRect rcNewPaint = rcPaint;
+                UiRect rcRootPaddingPos = m_pRoot->GetPosWithoutPadding();
+                rcRootPaddingPos.Deflate(rcAlphaFixCorner.left, rcAlphaFixCorner.top,
+                    rcAlphaFixCorner.right, rcAlphaFixCorner.bottom);
+                rcNewPaint.Intersect(rcRootPaddingPos);
+
+                UiPadding rcRootPadding;
+                pRender->RestoreAlpha(rcNewPaint, rcRootPadding);
+            }
+        }
+    }
+    return true;
 }
 
 LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
@@ -1530,18 +1632,7 @@ void Window::PostQuitMsgWhenClosed(bool bPostQuitMsg)
 
 ui::IRender* Window::GetRender() const
 {
-    if ((m_render.get() != nullptr) && 
-        ((m_render->GetWidth() <= 0) || (m_render->GetHeight() <= 0))) {
-        //在估算控件大小的时候，需要Render有宽高等数据，所以需要进行Resize初始化
-        UiRect rcClient;
-        GetClientRect(rcClient);
-        if ((rcClient.Width() > 0) && (rcClient.Height() > 0)) {
-            m_render->Resize(rcClient.Width(), rcClient.Height());
-        }
-        else {
-            m_render->Resize(1, 1);
-        }
-    }
+    ResizeRenderToClientSize();
     return m_render.get();
 }
 
@@ -1555,113 +1646,27 @@ void Window::OnShowWindow(bool bShow)
 
 bool Window::PreparePaint(bool bArrange)
 {
-    if (m_render->IsEmpty()) {
-        //在估算控件大小的时候，需要Render有宽高等数据，所以需要进行Resize初始化
-        UiRect rcClient;
-        GetClientRect(rcClient);
-        if ((rcClient.Width() > 0) && (rcClient.Height() > 0)) {
-            m_render->Resize(rcClient.Width(), rcClient.Height());
-        }
-    }
+    //在估算控件大小的时候，需要Render有宽高等数据，所以需要进行Resize初始化
+    bool bRet = ResizeRenderToClientSize();
+
+    bool bUpdated = false;
     if (m_bIsArranged && m_pRoot->IsArranged()) {
         //如果root配置的宽度和高度是auto类型的，自动调整窗口大小
         AutoResizeWindow(true);
+        bUpdated = true;
     }
 
     //对控件进行布局
     if (bArrange) {
         ArrangeRoot();
+        bUpdated = true;
     }
 
-    UiRect rcClient;
-    GetClientRect(rcClient);
-    if (rcClient.IsEmpty()) {
-        return false;
+    if (bUpdated) {
+        //期间可能会有修改窗口大小等操作，需要同步
+        bRet = ResizeRenderToClientSize();
     }
-    if (!m_render->Resize(rcClient.Width(), rcClient.Height())) {
-        ASSERT(!"m_render->Resize resize failed!");
-        return false;
-    }
-    return true;
-}
-
-bool Window::Paint()
-{
-    GlobalManager::Instance().AssertUIThread();
-    if (!IsWindow()) {
-        return false;
-    }
-    if (IsWindowMinimized() || (m_pRoot == nullptr)) {
-        return false;
-    }
-
-    //更新状态，并创建Render等
-    if (!PreparePaint(true)) {
-        return false;
-    }
-
-    //开始绘制
-    UiRect rcPaint;
-    if (!GetUpdateRect(rcPaint)) {
-        return false;
-    }
-  
-    // 去掉alpha通道
-    if (IsLayeredWindow()) {
-        m_render->ClearAlpha(rcPaint);
-    }
-
-    // 绘制    
-    if (m_pRoot->IsVisible()) {
-        AutoClip rectClip(m_render.get(), rcPaint, true);
-        UiPoint ptOldWindOrg = m_render->OffsetWindowOrg(m_renderOffset);
-        m_pRoot->Paint(m_render.get(), rcPaint);
-        m_pRoot->PaintChild(m_render.get(), rcPaint);
-        m_render->SetWindowOrg(ptOldWindOrg);
-    }
-    else {
-        UiColor bkColor = UiColor(UiColors::LightGray);
-        if (!m_pRoot->GetBkColor().empty()) {
-            bkColor = m_pRoot->GetUiColor(m_pRoot->GetBkColor());
-        }
-        m_render->FillRect(rcPaint, bkColor);
-    }
-
-    // alpha修复
-    if (IsLayeredWindow()) {
-        if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() &&
-            (m_renderOffset.x == 0) && (m_renderOffset.y == 0)) {
-            //补救由于Gdi绘制造成的alpha通道为0
-            UiRect rcNewPaint = rcPaint;
-            rcNewPaint.Intersect(m_pRoot->GetPosWithoutPadding());
-            UiPadding rcRootPadding = m_pRoot->GetPadding();
-
-            //考虑圆角
-            rcRootPadding.left += 1;
-            rcRootPadding.top += 1;
-            rcRootPadding.right += 1;
-            rcRootPadding.bottom += 1;
-
-            m_render->RestoreAlpha(rcNewPaint, rcRootPadding);
-        }
-        else {
-            UiRect rcAlphaFixCorner = GetAlphaFixCorner();
-            if ((rcAlphaFixCorner.left > 0) || (rcAlphaFixCorner.top > 0) ||
-                (rcAlphaFixCorner.right > 0) || (rcAlphaFixCorner.bottom > 0)) {
-                UiRect rcNewPaint = rcPaint;
-                UiRect rcRootPaddingPos = m_pRoot->GetPosWithoutPadding();
-                rcRootPaddingPos.Deflate(rcAlphaFixCorner.left, rcAlphaFixCorner.top,
-                                         rcAlphaFixCorner.right, rcAlphaFixCorner.bottom);
-                rcNewPaint.Intersect(rcRootPaddingPos);
-
-                UiPadding rcRootPadding;
-                m_render->RestoreAlpha(rcNewPaint, rcRootPadding);
-            }
-        }
-    }
-
-    //结束绘制，渲染到窗口
-    return SwapPaintBuffers(rcPaint, m_render.get());
+    return bRet;
 }
 
 void Window::AutoResizeWindow(bool bRepaint)

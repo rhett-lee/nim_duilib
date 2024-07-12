@@ -6,6 +6,7 @@
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Core/WindowMessage.h"
 #include "duilib/Core/DpiManager.h"
+#include "duilib/Render/IRender.h"
 
 namespace ui
 {
@@ -98,6 +99,15 @@ public:
     */
     virtual void OnNativeUseSystemCaptionBarChanged() = 0;
 
+    /** 准备绘制
+    * @return 返回true表示继续绘制，返回false表示不再继续绘制
+    */
+    virtual bool OnNativePreparePaint() = 0;
+
+    /** 获取绘制引擎对象
+    */
+    virtual IRender* OnNativeGetRender() const = 0;
+
 public:
     /** @name 窗口消息处理相关
      * @{
@@ -149,11 +159,12 @@ public:
     virtual LRESULT OnNativeShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
     /** 窗口绘制(WM_PAINT)
+    * @param [in] rcPaint 本次绘制，需要更新的矩形区域
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */    
-    virtual LRESULT OnNativePaintMsg(const NativeMsg& nativeMsg, bool& bHandled) = 0;
+    virtual LRESULT OnNativePaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
     /** 窗口获得焦点(WM_SETFOCUS)
     * @param [in] pLostFocusWindow 已失去键盘焦点的窗口（可以为nullptr）

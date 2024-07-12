@@ -290,19 +290,6 @@ public:
     */
     bool UpdateWindow() const;
 
-    /** 绘制结束后，绘制数据从渲染引擎更新到窗口
-    * @param [in] rcPaint 绘制的区域
-    * @param [in] pRender 绘制引擎接口，用于将绘制结果应用到窗口
-    * @return 成功返回true，失败则返回false
-    */
-    bool SwapPaintBuffers(const UiRect& rcPaint, IRender* pRender);
-
-    /** 获取需要绘制的区域
-    * @param [out] rcPaint 需要绘制的区域
-    * @return 如果无更新区域返回false，否则返回true
-    */
-    bool GetUpdateRect(UiRect& rcPaint);
-
     /** 使父窗口保持激活状态
     */
     void KeepParentActive();
@@ -552,6 +539,18 @@ private:
     */
     void StopSysMenuTimer();
 
+    /** 执行绘制操作
+    */
+    LRESULT OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+
+    /** 绘制结束后，绘制数据从渲染引擎更新到窗口
+    * @param [in] hPaintDC 当前绘制的DC
+    * @param [in] rcPaint 绘制的区域
+    * @param [in] pRender 绘制引擎接口，用于将绘制结果应用到窗口
+    * @return 成功返回true，失败则返回false
+    */
+    bool SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender) const;
+
 private:
     /** 接收窗口事件的接口
     */
@@ -615,9 +614,6 @@ private:
 
     //鼠标所在位置
     UiPoint m_ptLastMousePos;
-
-    //是否首次绘制
-    bool m_bFirstPainted;
 
     //是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。）
     //参考：https://learn.microsoft.com/zh-cn/windows/apps/desktop/modernize/apply-snap-layout-menu

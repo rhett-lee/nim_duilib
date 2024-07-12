@@ -1,6 +1,5 @@
 #include "NativeWindow_Windows.h"
 #include "duilib/Core/WindowBase.h"
-#include "duilib/Render/IRender.h"
 
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include <CommCtrl.h>
@@ -45,7 +44,6 @@ NativeWindow::NativeWindow(INativeWindow* pOwner):
     m_bFullScreen(false),
     m_dwLastStyle(0),
     m_ptLastMousePos(-1, -1),
-    m_bFirstPainted(true),
     m_pfnOldWndProc(nullptr),
     m_bDoModal(false),
     m_bCenterWindow(false),
@@ -1037,9 +1035,79 @@ bool NativeWindow::UpdateWindow() const
     }
     return bRet;
 }
-bool NativeWindow::SwapPaintBuffers(const UiRect& rcPaint, IRender* pRender)
+
+LRESULT NativeWindow::OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-    if (pRender == nullptr) {
+    //回调准备绘制函数
+    LRESULT lResult = 0;
+    bHandled = false;
+    bool bPaint = m_pOwner->OnNativePreparePaint();
+    RECT rectUpdate = { 0, };
+    if (!::GetUpdateRect(m_hWnd, &rectUpdate, FALSE)) {
+        bPaint = false;
+    }
+    if (bPaint) {
+        //开始绘制
+        PAINTSTRUCT ps = { 0, };
+        HDC hPaintDC = ::BeginPaint(m_hWnd, &ps);
+        UiRect rcPaint;
+        rcPaint.left = ps.rcPaint.left;
+        rcPaint.top = ps.rcPaint.top;
+        rcPaint.right = ps.rcPaint.right;
+        rcPaint.bottom = ps.rcPaint.bottom;
+        if (!rcPaint.IsEmpty() && (hPaintDC != nullptr)) {
+            //执行绘制
+            lResult = m_pOwner->OnNativePaintMsg(rcPaint, NativeMsg(uMsg, wParam, lParam), bHandled);
+
+            //绘制完成后，更新到窗口
+            IRender* pRender = m_pOwner->OnNativeGetRender();
+            SwapPaintBuffers(hPaintDC, rcPaint, pRender);
+
+            //结束本次绘制
+            ::EndPaint(m_hWnd, &ps);
+        }
+        else {            
+            //开始绘制返回值无效，结束绘制，使用另外一种绘制方法
+            ::EndPaint(m_hWnd, &ps);
+
+            //设置更新区域
+            UiRect rcUpdate;
+            rcUpdate.left = rectUpdate.left;
+            rcUpdate.top = rectUpdate.top;
+            rcUpdate.right = rectUpdate.right;
+            rcUpdate.bottom = rectUpdate.bottom;
+
+            //执行绘制
+            lResult = m_pOwner->OnNativePaintMsg(rcUpdate, NativeMsg(uMsg, wParam, lParam), bHandled);
+
+            //绘制完成后，更新到窗口
+            IRender* pRender = m_pOwner->OnNativeGetRender();            
+            SwapPaintBuffers(GetPaintDC(), rcUpdate, pRender);
+
+            //标记绘制区域为有效区域
+            ::ValidateRect(m_hWnd, &rectUpdate);
+        }
+    }
+    else {
+        PAINTSTRUCT ps = { 0, };
+        ::BeginPaint(m_hWnd, &ps);
+        ::EndPaint(m_hWnd, &ps);
+    }
+    return lResult;
+}
+
+bool NativeWindow::SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender) const
+{
+    ASSERT(hPaintDC != nullptr);
+    if (hPaintDC == nullptr) {
+        return false;
+    }
+    ASSERT(!rcPaint.IsEmpty());
+    if (rcPaint.IsEmpty()) {
+        return false;
+    }
+    ASSERT(hPaintDC != nullptr);
+    if (hPaintDC == nullptr) {
         return false;
     }
 
@@ -1063,31 +1131,16 @@ bool NativeWindow::SwapPaintBuffers(const UiRect& rcPaint, IRender* pRender)
         }        
     }
     else {
-        ASSERT(m_hDcPaint != nullptr);
+        ASSERT(hPaintDC != nullptr);
         HDC hdc = pRender->GetDC();
         ASSERT(hdc != nullptr);
         if (hdc != nullptr) {
-            bRet = ::BitBlt(m_hDcPaint, rcPaint.left, rcPaint.top, rcPaint.Width(), rcPaint.Height(),
+            bRet = ::BitBlt(hPaintDC, rcPaint.left, rcPaint.top, rcPaint.Width(), rcPaint.Height(),
                             hdc, rcPaint.left, rcPaint.top, SRCCOPY) != FALSE;
             pRender->ReleaseDC(hdc);
         }
     }
     return bRet;
-}
-
-bool NativeWindow::GetUpdateRect(UiRect& rcPaint)
-{
-    RECT rectPaint = { 0, };
-    if (!::GetUpdateRect(m_hWnd, &rectPaint, FALSE)) {
-        return false;
-    }
-    else {
-        rcPaint.left = rectPaint.left;
-        rcPaint.top = rectPaint.top;
-        rcPaint.right = rectPaint.right;
-        rcPaint.bottom = rectPaint.bottom;
-        return true;
-    }
 }
 
 void NativeWindow::KeepParentActive()
@@ -2072,22 +2125,7 @@ LRESULT NativeWindow::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     case WM_PAINT:
     {
-        RECT rect = {0, };
-        if (m_bFirstPainted || ::GetUpdateRect(m_hWnd, &rect, FALSE)) {
-            m_bFirstPainted = false;
-            const LONG style = GetWindowLong(m_hWnd, GWL_EXSTYLE);
-
-            // Composited windows will continue to receive WM_PAINT messages for update
-            // regions until the window is actually painted through Begin/EndPaint
-            if (style & WS_EX_COMPOSITED) {
-                PAINTSTRUCT ps = {0, };
-                ::BeginPaint(m_hWnd, &ps);
-                ::EndPaint(m_hWnd, &ps);
-            }
-
-            lResult = m_pOwner->OnNativePaintMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
-            ::ValidateRect(m_hWnd, NULL);
-        }        
+        lResult = OnPaintMsg(uMsg, wParam, lParam, bHandled);
         break;
     }
     case WM_SETFOCUS:

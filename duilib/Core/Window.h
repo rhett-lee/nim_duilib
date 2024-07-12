@@ -170,11 +170,7 @@ public:
     */
     void SetArrange(bool bArrange);
 
-    /** 获取绘制对象
-    */
-    IRender* GetRender() const;
-
-     /** 判断当前是否渲染透明图层
+    /** 判断当前是否渲染透明图层
     */
     bool IsRenderTransparent() const;
 
@@ -339,6 +335,10 @@ public:
     */
     bool IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const;
 
+    /** 获取绘制引擎对象
+    */
+    virtual IRender* GetRender() const override;
+
 protected:
     /** 初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
     */
@@ -360,6 +360,11 @@ protected:
     /** 切换系统标题栏与自绘标题栏
     */
     virtual void OnUseSystemCaptionBarChanged() override;
+
+    /** 准备绘制
+    * @return 返回true表示继续绘制，返回false表示不再继续绘制
+    */
+    virtual bool OnPreparePaint() override;
 
     /** 窗口的层窗口属性发生变化
     */
@@ -440,11 +445,12 @@ protected:
     virtual LRESULT OnShowWindowMsg(bool bShow, const NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** 窗口绘制(WM_PAINT)
+    * @param [in] rcPaint 本次绘制，需要更新的矩形区域
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
-    virtual LRESULT OnPaintMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
+    virtual LRESULT OnPaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** 窗口获得焦点(WM_SETFOCUS)
     * @param [in] pLostFocusWindow 已失去键盘焦点的窗口（可以为nullptr）
@@ -728,9 +734,14 @@ private:
     bool PreparePaint(bool bArrange);
 
     /** 绘制函数体
+    * @param [in] rcPaint 本次绘制更新的矩形区域
     * @return 如果执行了绘制返回true，否则返回false
     */
-    bool Paint();
+    bool Paint(const UiRect& rcPaint);
+
+    /** 调整Render的尺寸，与当前客户区的大小一致
+    */
+    bool ResizeRenderToClientSize() const;
 
 private:
     //事件回调管理器

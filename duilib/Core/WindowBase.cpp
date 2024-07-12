@@ -548,16 +548,6 @@ bool WindowBase::UpdateWindow() const
     return m_pNativeWindow->UpdateWindow();
 }
 
-bool WindowBase::SwapPaintBuffers(const UiRect& rcPaint, IRender* pRender)
-{
-    return m_pNativeWindow->SwapPaintBuffers(rcPaint, pRender);
-}
-
-bool WindowBase::GetUpdateRect(UiRect& rcPaint)
-{
-    return m_pNativeWindow->GetUpdateRect(rcPaint);
-}
-
 void WindowBase::KeepParentActive()
 {
     m_pNativeWindow->KeepParentActive();
@@ -895,6 +885,16 @@ void WindowBase::OnNativeUseSystemCaptionBarChanged()
     OnUseSystemCaptionBarChanged();
 }
 
+bool WindowBase::OnNativePreparePaint()
+{
+    return OnPreparePaint();
+}
+
+IRender* WindowBase::OnNativeGetRender() const
+{
+    return GetRender();
+}
+
 void WindowBase::OnNativeProcessDpiChangedMsg(uint32_t nNewDPI, const UiRect& rcNewWindow)
 {
     ProcessDpiChangedMsg(nNewDPI, rcNewWindow);
@@ -943,9 +943,9 @@ LRESULT WindowBase::OnNativeShowWindowMsg(bool bShow, const NativeMsg& nativeMsg
     return OnShowWindowMsg(bShow, nativeMsg, bHandled);
 }
 
-LRESULT WindowBase::OnNativePaintMsg(const NativeMsg& nativeMsg, bool& bHandled)
+LRESULT WindowBase::OnNativePaintMsg(const UiRect& rcPaint, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    return OnPaintMsg(nativeMsg, bHandled);
+    return OnPaintMsg(rcPaint, nativeMsg, bHandled);
 }
 
 LRESULT WindowBase::OnNativeSetFocusMsg(INativeWindow* pLostFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
