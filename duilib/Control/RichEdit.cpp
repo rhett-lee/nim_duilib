@@ -1549,37 +1549,19 @@ void RichEdit::SetEnabled(bool bEnable /*= true*/)
 
 UiEstSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 {
-    ITextServices* pTextServices = nullptr;
-    if (m_pRichHost != nullptr) {
-        pTextServices = m_pRichHost->GetTextServices();
-    }
-    if (pTextServices == nullptr) {
-        return UiEstSize();
-    }
     UiFixedSize fixexSize = GetFixedSize();
     UiSize size(fixexSize.cx.GetInt32(), fixexSize.cy.GetInt32());
     if (fixexSize.cx.IsAuto() || fixexSize.cy.IsAuto()) {
-        LONG iWidth = size.cx;
-        LONG iHeight = size.cy;
-        SIZEL szExtent = {-1, -1};
-        pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
-                                        GetDrawDC(),
-                                        NULL,
-                                        NULL,
-                                        TXTNS_FITTOCONTENT,
-                                        &szExtent,
-                                        &iWidth,
-                                        &iHeight) ;
-        
+        UiSize szNaturalSize = GetNaturalSize(size.cx, size.cy);
         //返回大小需要包含内边距
         UiPadding rcPadding = GetControlPadding();
         UiPadding rcTextPadding = GetTextPadding();
         if (fixexSize.cy.IsAuto()) {
-            size.cy = iHeight + (rcPadding.top + rcPadding.bottom) + (rcTextPadding.top + rcTextPadding.bottom);
+            size.cy = szNaturalSize.cy + (rcPadding.top + rcPadding.bottom) + (rcTextPadding.top + rcTextPadding.bottom);
             fixexSize.cy.SetInt32(size.cy);
         }
         if (fixexSize.cx.IsAuto()) {
-            size.cx = iWidth + (rcPadding.left + rcPadding.right) + (rcTextPadding.left + rcTextPadding.right);
+            size.cx = szNaturalSize.cx + (rcPadding.left + rcPadding.right) + (rcTextPadding.left + rcTextPadding.right);
             fixexSize.cx.SetInt32(size.cx);
         }
     }
@@ -1588,14 +1570,6 @@ UiEstSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
 
 UiSize RichEdit::EstimateText(UiSize szAvailable)
 {
-    ITextServices* pTextServices = nullptr;
-    if (m_pRichHost != nullptr) {
-        pTextServices = m_pRichHost->GetTextServices();
-    }
-    ASSERT(pTextServices != nullptr);
-    if (pTextServices == nullptr) {
-        return UiSize();
-    }
     UiPadding rcPadding = GetControlPadding();
     UiPadding rcTextPadding = GetTextPadding();
     szAvailable.cx -= (rcPadding.left + rcPadding.right);
@@ -1609,15 +1583,9 @@ UiSize RichEdit::EstimateText(UiSize szAvailable)
         iWidth = 0;
     }
     LONG iHeight = 0;
-    SIZEL szExtent = { -1, -1 };
-    pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
-                                    GetDrawDC(),
-                                    NULL,
-                                    NULL,
-                                    TXTNS_FITTOCONTENT,
-                                    &szExtent,
-                                    &iWidth,
-                                    &iHeight);
+    UiSize szNaturalSize = GetNaturalSize(iWidth, iHeight);
+    iWidth = szNaturalSize.cx;
+    iHeight = szNaturalSize.cy;
 
     iWidth = std::max((int32_t)iWidth, 0);
     iHeight = std::max((int32_t)iHeight, 0);
@@ -1635,14 +1603,6 @@ UiSize RichEdit::EstimateText(UiSize szAvailable)
 void RichEdit::SetPos(UiRect rc)
 {
     Control::SetPos(rc);
-    ITextServices* pTextServices = nullptr;
-    if (m_pRichHost != nullptr) {
-        pTextServices = m_pRichHost->GetTextServices();
-    }
-    if (pTextServices == nullptr) {
-        return;
-    }
-
     rc = GetRectWithoutPadding();
     bool bVScrollBarVisible = false;
     ScrollBar* pVScrollBar = GetVScrollBar();
@@ -1664,15 +1624,9 @@ void RichEdit::SetPos(UiRect rc)
         if (bVScrollBarVisible && (pVScrollBar != nullptr) && (!pVScrollBar->IsValid() || m_bVScrollBarFixing)) {
             LONG lWidth = rc.Width() + pVScrollBar->GetFixedWidth().GetInt32();
             LONG lHeight = 0;
-            SIZEL szExtent = { -1, -1 };
-            pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
-                                            GetDrawDC(),
-                                            NULL,
-                                            NULL,
-                                            TXTNS_FITTOCONTENT,
-                                            &szExtent,
-                                            &lWidth,
-                                            &lHeight);
+            UiSize szNaturalSize = GetNaturalSize(lWidth, lHeight);
+            lWidth = szNaturalSize.cx;
+            lHeight = szNaturalSize.cy;
             if (lHeight > rc.Height()) {
                 pVScrollBar->SetScrollPos(0);
                 m_bVScrollBarFixing = true;
@@ -2124,19 +2078,9 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 
     ScrollBar* pVScrollBar = GetVScrollBar();
     if (m_bVScrollBarFixing && (pVScrollBar != nullptr)) {
-        LONG lWidth = rc.right - rc.left + pVScrollBar->GetFixedWidth().GetInt32();
-        LONG lHeight = 0;
-        SIZEL szExtent = { -1, -1 };
-        pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
-                                        GetDrawDC(), 
-                                        NULL,
-                                        NULL,
-                                        TXTNS_FITTOCONTENT,
-                                        &szExtent,
-                                        &lWidth,
-                                        &lHeight);
-
-        if( lHeight <= rc.Height() ) {
+        LONG lWidth = rc.Width() + pVScrollBar->GetFixedWidth().GetInt32();
+        UiSize szNaturalSize = GetNaturalSize(lWidth, 0);
+        if(szNaturalSize.cy <= rc.Height() ) {
             Arrange();
         }
     }
