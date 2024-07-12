@@ -13,8 +13,12 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
 
     if (type == PET_VIEW)
     {
-        if (dc_cef_.GetWidth() != width || dc_cef_.GetHeight() != height)
-            dc_cef_.Init(GetWindow()->NativeWnd()->GetPaintDC(), width, height);
+        if (dc_cef_.GetWidth() != width || dc_cef_.GetHeight() != height) {
+            HWND hWnd = GetWindow()->NativeWnd()->GetHWND();
+            HDC hDC = ::GetDC(hWnd);
+            dc_cef_.Init(hDC, width, height);
+            ::ReleaseDC(hWnd, hDC);
+        }
 
         LPBYTE pDst = (LPBYTE)dc_cef_.GetBits();
         if (pDst)
@@ -23,8 +27,12 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
     else if (type == PET_POPUP && dc_cef_.IsValid() && rect_popup_.width > 0 && rect_popup_.height > 0)
     {
         // 单独保存popup窗口的位图
-        if (dc_cef_popup_.GetWidth() != width || dc_cef_popup_.GetHeight() != height)
-            dc_cef_popup_.Init(GetWindow()->NativeWnd()->GetPaintDC(), width, height);
+        if (dc_cef_popup_.GetWidth() != width || dc_cef_popup_.GetHeight() != height) {
+            HWND hWnd = GetWindow()->NativeWnd()->GetHWND();
+            HDC hDC = ::GetDC(hWnd);
+            dc_cef_popup_.Init(hDC, width, height);
+            ::ReleaseDC(hWnd, hDC);
+        }
 
         LPBYTE pDst = (LPBYTE)dc_cef_popup_.GetBits();
         if (pDst)

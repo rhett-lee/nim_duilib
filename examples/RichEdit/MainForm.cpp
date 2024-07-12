@@ -737,25 +737,10 @@ void MainForm::SetFontName(const DString& fontName)
 
 int32_t MainForm::ConvertToFontHeight(int32_t fontSize) const
 {
-    if (m_pRichEdit == nullptr) {
-        return fontSize;
+    if (m_pRichEdit != nullptr) {
+        return m_pRichEdit->ConvertToFontHeight(fontSize);        
     }
-    bool bGetDC = false;
-    HDC hDC = m_pRichEdit->GetWindowDC();
-    if (hDC == nullptr) {
-        hDC = ::GetDC(nullptr);
-        bGetDC = true;
-    }
-    LONG yPixPerInch = ::GetDeviceCaps(hDC, LOGPIXELSY);
-    if (bGetDC && (hDC != nullptr)) {
-        ::ReleaseDC(nullptr, hDC);
-        hDC = nullptr;
-    }
-    if (yPixPerInch == 0) {
-        yPixPerInch = 96;
-    }
-    int32_t lfHeight = fontSize * LY_PER_INCH / yPixPerInch;
-    return lfHeight;
+    return fontSize;
 }
 
 void MainForm::SetFontSize(const DString& fontSize)
@@ -1253,7 +1238,11 @@ void MainForm::GetSystemFontList(std::vector<FontInfo>& fontList) const
     logfont.lfCharSet = DEFAULT_CHARSET;
     logfont.lfFaceName[0] = L'\0';
     logfont.lfPitchAndFamily = 0;
-    ::EnumFontFamiliesExW(pRichEdit->GetWindowDC(), &logfont, EnumFontFamExProc, (LPARAM)&fontList, 0);
+
+    HWND hWnd = NativeWnd()->GetHWND();
+    HDC hDC = ::GetDC(hWnd);
+    ::EnumFontFamiliesExW(hDC, &logfont, EnumFontFamExProc, (LPARAM)&fontList, 0);
+    ::ReleaseDC(hWnd, hDC);
 
     //字体名称列表
     std::map<DStringW, FontInfo> fontMap;
@@ -1284,8 +1273,11 @@ bool MainForm::GetRichEditLogFont(LOGFONTW& lf) const
     GetCharFormat(cf);
 
     if (cf.dwMask & CFM_SIZE) {
-        lf.lfHeight = -MulDiv(cf.yHeight, ::GetDeviceCaps(pRichEdit->GetWindowDC(), LOGPIXELSY), LY_PER_INCH);
+        HWND hWnd = NativeWnd()->GetHWND();
+        HDC hDC = ::GetDC(hWnd);
+        lf.lfHeight = -MulDiv(cf.yHeight, ::GetDeviceCaps(hDC, LOGPIXELSY), LY_PER_INCH);
         lf.lfWidth = 0;
+        ::ReleaseDC(hWnd, hDC);
     }
 
     if (cf.dwMask & CFM_BOLD) {

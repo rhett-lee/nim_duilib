@@ -894,11 +894,15 @@ public:
     void OnTxNotify(DWORD iNotify, void* pv);
 
     HWND GetWindowHandle() const;
-    HDC GetWindowDC() const;
+    HDC GetDrawDC() const;
     UiSize GetNaturalSize(LONG width, LONG height);
     void SetImmStatus(BOOL bOpen);
     void SetTimer(UINT idTimer, UINT uTimeout);
     void KillTimer(UINT idTimer);
+
+    /** 将字体大小转换成Rich Edit控件的字体高度
+    */
+    int32_t ConvertToFontHeight(int32_t fontSize) const;
 
     /** 屏幕坐标转换为客户区坐标
     */
@@ -1006,10 +1010,6 @@ private:
     /** 设置字体颜色
     */
     void SetTextColorInternal(const UiColor& textColor);
-
-    /** 将字体大小转换成Rich Edit控件的字体高度
-    */
-    int32_t ConvertToFontHeight(int32_t fontSize) const;
 
     /** 获取字体对应的格式
     */

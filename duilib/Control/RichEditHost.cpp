@@ -268,7 +268,7 @@ ULONG RichEditHost::Release(void)
 HDC RichEditHost::TxGetDC()
 {
     if (m_pRichEdit != nullptr) {
-        return m_pRichEdit->GetWindowDC();
+        return m_pRichEdit->GetDrawDC();
     }
     return nullptr;
 }
@@ -953,7 +953,7 @@ void RichEditHost::SetClientRect(const UiRect& rc)
     bool bGetDC = false;
     HDC hDC = nullptr;
     if (m_pRichEdit != nullptr) {
-        hDC = m_pRichEdit->GetWindowDC();
+        hDC = m_pRichEdit->GetDrawDC();
     }
     if (hDC == nullptr) {
         hDC = ::GetDC(nullptr);
@@ -990,7 +990,7 @@ void RichEditHost::GetControlRect(UiRect* prc)
         LONG iHeight = 0;
         SIZEL szExtent = { -1, -1 };
         m_pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
-                                          m_pRichEdit->GetWindowDC(),
+                                          m_pRichEdit->GetDrawDC(),
                                           NULL,
                                           NULL,
                                           TXTNS_FITTOCONTENT,
@@ -1088,7 +1088,7 @@ bool RichEditHost::SetCursor(const UiRect* prc, const UiPoint* pt)
             pRect = &rect;
         }
         if (m_pTextServices != nullptr) {
-            m_pTextServices->OnTxSetCursor(DVASPECT_CONTENT, -1, NULL, NULL, m_pRichEdit->GetWindowDC(),
+            m_pTextServices->OnTxSetCursor(DVASPECT_CONTENT, -1, NULL, NULL, m_pRichEdit->GetDrawDC(),
                                            NULL, pRect, newPt.x, newPt.y);
             return true;
         }

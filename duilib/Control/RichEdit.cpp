@@ -1271,7 +1271,7 @@ HWND RichEdit::GetWindowHandle() const
     return window ? window->NativeWnd()->GetHWND() : nullptr;
 }
 
-HDC RichEdit::GetWindowDC() const
+HDC RichEdit::GetDrawDC() const
 {
     auto window = GetWindow();
     return window ? window->NativeWnd()->GetPaintDC() : nullptr;
@@ -1299,7 +1299,7 @@ UiSize RichEdit::GetNaturalSize(LONG width, LONG height)
     }
     if (pTextServices != nullptr) {
         pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
-                                        GetWindowDC(),
+                                        GetDrawDC(),
                                         NULL,
                                         NULL,
                                         TXTNS_FITTOCONTENT,
@@ -1566,7 +1566,7 @@ UiEstSize RichEdit::EstimateSize(UiSize /*szAvailable*/)
         LONG iHeight = size.cy;
         SIZEL szExtent = {-1, -1};
         pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
-                                        GetWindowDC(),
+                                        GetDrawDC(),
                                         NULL,
                                         NULL,
                                         TXTNS_FITTOCONTENT,
@@ -1595,6 +1595,7 @@ UiSize RichEdit::EstimateText(UiSize szAvailable)
     if (m_pRichHost != nullptr) {
         pTextServices = m_pRichHost->GetTextServices();
     }
+    ASSERT(pTextServices != nullptr);
     if (pTextServices == nullptr) {
         return UiSize();
     }
@@ -1613,7 +1614,7 @@ UiSize RichEdit::EstimateText(UiSize szAvailable)
     LONG iHeight = 0;
     SIZEL szExtent = { -1, -1 };
     pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
-                                    GetWindow()->NativeWnd()->GetPaintDC(),
+                                    GetDrawDC(),
                                     NULL,
                                     NULL,
                                     TXTNS_FITTOCONTENT,
@@ -1668,7 +1669,7 @@ void RichEdit::SetPos(UiRect rc)
             LONG lHeight = 0;
             SIZEL szExtent = { -1, -1 };
             pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
-                                            GetWindowDC(),
+                                            GetDrawDC(),
                                             NULL,
                                             NULL,
                                             TXTNS_FITTOCONTENT,
@@ -2130,7 +2131,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         LONG lHeight = 0;
         SIZEL szExtent = { -1, -1 };
         pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
-                                        GetWindowDC(), 
+                                        GetDrawDC(), 
                                         NULL,
                                         NULL,
                                         TXTNS_FITTOCONTENT,
@@ -2280,7 +2281,7 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
     }
 
     //创建绘制所需DC和位图
-    bool bRet = m_txDrawData.CheckCreateBitmap(GetWindowDC(), rc.Width(), rc.Height());
+    bool bRet = m_txDrawData.CheckCreateBitmap(GetDrawDC(), rc.Width(), rc.Height());
     ASSERT(bRet);
     if (!bRet) {
         return;
@@ -3421,7 +3422,7 @@ void RichEdit::SetTextColorInternal(const UiColor& textColor)
 int32_t RichEdit::ConvertToFontHeight(int32_t fontSize) const
 {
     bool bGetDC = false;
-    HDC hDC = GetWindowDC();
+    HDC hDC = GetDrawDC();
     if (hDC == nullptr) {
         hDC = ::GetDC(nullptr);
         bGetDC = true;
