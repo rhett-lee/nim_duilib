@@ -949,23 +949,13 @@ void RichEditHost::SetClientRect(const UiRect& rc)
         return;
     }
     m_rcClient = rc;
-
-    bool bGetDC = false;
-    HDC hDC = nullptr;
-    if (m_pRichEdit != nullptr) {
-        hDC = m_pRichEdit->GetDrawDC();
+    ASSERT(m_pRichEdit != nullptr);
+    if (m_pRichEdit == nullptr) {
+        return;
     }
-    if (hDC == nullptr) {
-        hDC = ::GetDC(nullptr);
-        bGetDC = true;
-    }
+    HDC hDC = m_pRichEdit->GetDrawDC();
     LONG xPerInch = ::GetDeviceCaps(hDC, LOGPIXELSX);
     LONG yPerInch = ::GetDeviceCaps(hDC, LOGPIXELSY);
-    if (bGetDC && (hDC != nullptr)) {
-        ::ReleaseDC(nullptr, hDC);
-        hDC = nullptr;
-    }
-
     if (xPerInch == 0) {
         xPerInch = 96;
     }
@@ -981,30 +971,20 @@ void RichEditHost::SetClientRect(const UiRect& rc)
 
 void RichEditHost::GetControlRect(UiRect* prc)
 {
-    if ((prc == nullptr) || (m_pTextServices == nullptr) || (m_pRichEdit == nullptr)) {
+    if ((prc == nullptr) || (m_pRichEdit == nullptr)) {
         return;
     }
     UiRect rc = m_rcClient;
-    if ((m_dwStyle & UI_ES_VCENTER) || (m_dwStyle & UI_ES_BOTTOM)) {
-        LONG iWidth = rc.Width();
-        LONG iHeight = 0;
-        SIZEL szExtent = { -1, -1 };
-        m_pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
-                                          m_pRichEdit->GetDrawDC(),
-                                          NULL,
-                                          NULL,
-                                          TXTNS_FITTOCONTENT,
-                                          &szExtent,
-                                          &iWidth,
-                                          &iHeight);
+    if ((m_dwStyle & UI_ES_VCENTER) || (m_dwStyle & UI_ES_BOTTOM)) {        
+        UiSize szNaturalSize = m_pRichEdit->GetNaturalSize(rc.Width(), 0);
         if (m_dwStyle & UI_ES_VCENTER) {
             //纵向居中对齐
-            int32_t yOffset = (rc.Height() - iHeight) / 2;
+            int32_t yOffset = (rc.Height() - szNaturalSize.cy) / 2;
             rc.Offset(0, yOffset);
         }
         else if (m_dwStyle & UI_ES_BOTTOM) {
             //纵向底端对齐
-            int32_t yOffset = rc.Height() - iHeight;
+            int32_t yOffset = rc.Height() - szNaturalSize.cy;
             rc.Offset(0, yOffset);
         }
     }
