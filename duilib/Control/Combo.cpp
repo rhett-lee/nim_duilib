@@ -180,7 +180,6 @@ void CComboWnd::OnInitWindow()
     AttachBox(pRoot);
     SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
     SetShadowAttached(false);
-    SetRenderTransparent(true);
 }
 
 void CComboWnd::OnCloseWindow()

@@ -170,15 +170,6 @@ public:
     */
     void SetArrange(bool bArrange);
 
-    /** 判断当前是否渲染透明图层
-    */
-    bool IsRenderTransparent() const;
-
-    /** 设置渲染透明图层
-    * @param [in] bCanvasTransparent 设置 true 为渲染透明图层，否则为 false
-    */
-    bool SetRenderTransparent(bool bCanvasTransparent);
-
     /** 清理图片缓存
     */
     void ClearImageCache();

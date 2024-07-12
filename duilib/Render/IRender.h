@@ -500,14 +500,6 @@ public:
     */
     virtual bool Resize(int32_t width, int32_t height) = 0;
 
-    /** 判断画布是否支持透明
-    */
-    virtual bool IsRenderTransparent() const = 0;
-
-    /** 设置画布是否支持透明
-    */
-    virtual bool SetRenderTransparent(bool bTransparent) = 0;
-
     /** 设置窗口视区原点坐标偏移，
      *  将原视区原点x值增加ptOffset.x后，作为新的视区原点x;
      *  将原视区原点y值增加ptOffset.y后，作为新的视区原点y;

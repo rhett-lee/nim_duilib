@@ -1724,16 +1724,6 @@ void Window::ArrangeRoot()
     }
 }
 
-bool Window::IsRenderTransparent() const
-{
-    return m_render->IsRenderTransparent();
-}
-
-bool Window::SetRenderTransparent(bool bCanvasTransparent)
-{
-    return m_render->SetRenderTransparent(bCanvasTransparent);
-}
-
 void Window::SetRenderOffset(UiPoint renderOffset)
 {
     m_renderOffset = renderOffset;

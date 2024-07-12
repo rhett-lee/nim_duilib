@@ -43,9 +43,6 @@ public:
     virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) override;
     virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding = UiPadding()) override;
 
-    virtual bool IsRenderTransparent() const override;
-    virtual bool SetRenderTransparent(bool bTransparent) override;
-
     virtual UiPoint OffsetWindowOrg(UiPoint ptOffset) override;
     virtual UiPoint SetWindowOrg(UiPoint ptOffset) override;
     virtual UiPoint GetWindowOrg() const override;
@@ -183,10 +180,6 @@ private:
     /** 视图的原点坐标
     */
     SkPoint* m_pSkPointOrg;
-
-    /** 是否透明
-    */
-    bool m_bTransparent;
 
     /** 关联的DC句柄
     */

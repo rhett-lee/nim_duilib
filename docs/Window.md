@@ -14,7 +14,6 @@
 | shadow_image |  | string | SetShadowImage|使用自定义的阴影素材去代替默认的阴影效果，设置的路径要注意相对路径以及九宫格属性，如(file='../public/bk/bk_shadow.png' corner='30,30,30,30') |
 | shadow_corner | 0,0,0,0 | rect | SetShadowCorner|设置了shadowimage属性后，设置此属性来指定阴影素材的九宫格描述，这个属性一定要写在size属性前面 |
 | alpha_fix_corner | 14,14,14,14 | rect | SetAlphaFixCorner|窗口圆角的透明通道修补范围 |
-| render_transparent | false | bool | SetRenderTransparent|如果为true，表示设置渲染为透明图层 |
 | layered_window | false | bool | SetLayeredWindow|设置是否为层窗口 |
 | alpha | 255 | int | SetWindowAlpha|设置窗口的透明度（0 - 255），仅当使用层窗口时有效 |
 | snap_layout_menu | true | bool | SetEnableSnapLayoutMenu|是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。） |

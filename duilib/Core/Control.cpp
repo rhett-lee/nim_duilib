@@ -2310,7 +2310,6 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
         if (IsCacheDirty()) {
             //重新绘制，首先清楚原内容
             pCacheRender->Clear(UiColor());
-            pCacheRender->SetRenderTransparent(true);
 
             UiPoint ptOffset(GetRect().left + m_renderOffset.x, GetRect().top + m_renderOffset.y);
             UiPoint ptOldOrg = pCacheRender->OffsetWindowOrg(ptOffset);

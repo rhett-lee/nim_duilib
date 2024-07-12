@@ -156,7 +156,6 @@ void ComboButtonWnd::OnInitWindow()
     AttachBox(pRoot);
     SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
     SetShadowAttached(false);
-    SetRenderTransparent(true);
 }
 
 void ComboButtonWnd::OnCloseWindow()

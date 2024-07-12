@@ -55,7 +55,6 @@ static inline void DrawFunction(SkCanvas* pSkCanvas,
 }
 
 Render_Skia::Render_Skia(Window* pWindow): 
-    m_bTransparent(false),
     m_pSkCanvas(nullptr),
     m_hDC(nullptr),
     m_hOldObj(nullptr),
@@ -252,18 +251,6 @@ void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
         BitmapAlpha bitmapAlpha((uint8_t*)bm.bmBits, bm.bmWidth, bm.bmHeight, bm.bmBitsPixel / 8);
         bitmapAlpha.RestoreAlpha(rcDirty, rcShadowPadding);
     }
-}
-
-bool Render_Skia::IsRenderTransparent() const
-{
-    return m_bTransparent;
-}
-
-bool Render_Skia::SetRenderTransparent(bool bTransparent)
-{
-    bool oldValue = m_bTransparent;
-    m_bTransparent = bTransparent;
-    return oldValue;
 }
 
 UiPoint Render_Skia::OffsetWindowOrg(UiPoint ptOffset)

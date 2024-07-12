@@ -353,9 +353,6 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
                         AttributeUtil::ParseRectValue(strValue.c_str(), rc);
                         pWindow->SetAlphaFixCorner(rc, true);
                     }
-                    else if (strName == _T("render_transparent")) {
-                        pWindow->SetRenderTransparent(strValue == _T("true"));
-                    }
                     else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
                         //设置是否支持窗口阴影（阴影实现有两种：层窗口和普通窗口）
                         pWindow->SetShadowAttached(strValue == _T("true"));
