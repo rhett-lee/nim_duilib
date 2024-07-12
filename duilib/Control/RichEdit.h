@@ -14,8 +14,6 @@ class VBox;
 class UILIB_API RichEdit : public ScrollBox
 {
 public:
-    typedef std::function<bool(LONG, LONG, UiSize&)> FunGetNaturalSize;
-public:
     explicit RichEdit(Window* pWindow);
     RichEdit(const RichEdit& r) = delete;
     RichEdit& operator=(const RichEdit& r) = delete;
@@ -880,11 +878,6 @@ public:
      */
     void AttachLinkClick(const EventCallback& callback)    { AttachEvent(kEventLinkClick, callback); }
 
-    /** 监听大小变化事件
-     * @param[in] callback 大小被改变后的自定义回调函数
-     */
-    void AttachGetNaturalSize(const FunGetNaturalSize& callback) { m_cbGetNaturalSize = callback; };
-
 public:
 
     virtual void HandleEvent(const EventArgs& msg) override;
@@ -1046,10 +1039,6 @@ protected:
 
     bool m_bIsComposition;   //输入法合成窗口是否可见
     
-    /** 大小被改变后的自定义回调函数
-    */
-    FunGetNaturalSize m_cbGetNaturalSize;
-
 protected:
     struct LinkInfo
     {

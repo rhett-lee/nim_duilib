@@ -1286,9 +1286,6 @@ UiSize RichEdit::GetNaturalSize(LONG width, LONG height)
         height = 0;
     }    
     UiSize sz(0,0);
-    if ((m_cbGetNaturalSize != nullptr) && m_cbGetNaturalSize(width, height, sz)) {
-        return sz;
-    }
     LONG lWidth = width;
     LONG lHeight = height;
     SIZEL szExtent = { -1, -1 };
