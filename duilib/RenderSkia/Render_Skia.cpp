@@ -11,7 +11,7 @@
 #include "duilib/Utils/PerformanceUtil.h"
 
 #pragma warning (push)
-#pragma warning (disable: 4244 4201)
+#pragma warning (disable: 4244 4201 4100)
 
 #include "include/core/SkMatrix.h"
 #include "include/core/SkBitmap.h"
@@ -116,6 +116,11 @@ bool Render_Skia::Resize(int32_t width, int32_t height)
     }
     m_pSkCanvas = new SkCanvas(m_pBitmapSkia->GetSkBitmap());
     return true;
+}
+
+SkCanvas* Render_Skia::GetSkCanvas() const
+{
+    return m_pSkCanvas;
 }
 
 void Render_Skia::Clear(const UiColor& uiColor)
@@ -277,22 +282,24 @@ UiPoint Render_Skia::GetWindowOrg() const
 
 void Render_Skia::SaveClip(int32_t& nState)
 {
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_saveCount = m_pSkCanvas->save();
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        m_saveCount = skCanvas->save();
         nState = m_saveCount;
     }
 }
 
 void Render_Skia::RestoreClip(int32_t nState)
 {
-    ASSERT(m_pSkCanvas != nullptr);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
     ASSERT(m_saveCount == nState);
     if (m_saveCount != nState) {
         return;
     }
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->restoreToCount(nState);
+    if (skCanvas != nullptr) {
+        skCanvas->restoreToCount(nState);
     }
 }
 
@@ -301,14 +308,16 @@ void Render_Skia::SetClip(const UiRect& rc, bool bIntersect)
     SkIRect rcSkI = { rc.left, rc.top, rc.right, rc.bottom };
     SkRect rcSk = SkRect::Make(rcSkI);
     rcSk.offset(*m_pSkPointOrg);
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->save();
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->save();
         if (bIntersect) {
-            m_pSkCanvas->clipRect(rcSk, SkClipOp::kIntersect, true);
+            skCanvas->clipRect(rcSk, SkClipOp::kIntersect, true);
         }
         else {
-            m_pSkCanvas->clipRect(rcSk, SkClipOp::kDifference, true);
+            skCanvas->clipRect(rcSk, SkClipOp::kDifference, true);
         }
     }
 }
@@ -325,23 +334,26 @@ void Render_Skia::SetRoundClip(const UiRect& rc, int32_t width, int32_t height, 
     SkRegion rgn;
     rgn.setPath(skPath, clip);
     rgn.translate((int)m_pSkPointOrg->fX, (int)m_pSkPointOrg->fY);
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->save();
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->save();
         if (bIntersect) {
-            m_pSkCanvas->clipRegion(rgn, SkClipOp::kIntersect);
+            skCanvas->clipRegion(rgn, SkClipOp::kIntersect);
         }
         else {
-            m_pSkCanvas->clipRegion(rgn, SkClipOp::kDifference);
+            skCanvas->clipRegion(rgn, SkClipOp::kDifference);
         }
     }
 }
 
 void Render_Skia::ClearClip()
 {
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->restore();
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->restore();
     }
 }
 
@@ -376,9 +388,10 @@ bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, Bitmap_Sk
     SkIRect rcSkSrcI = SkIRect::MakeXYWH(xSrc, ySrc, cx, cy);
     SkRect rcSkSrc = SkRect::Make(rcSkSrcI);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawImageRect(skiaBitmap->GetSkBitmap().asImage(), rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawImageRect(skiaBitmap->GetSkBitmap().asImage(), rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
         return true;
     }
     return false;
@@ -442,9 +455,10 @@ bool Render_Skia::StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, in
     SkIRect rcSkSrcI = SkIRect::MakeXYWH(xSrc, ySrc, widthSrc, heightSrc);
     SkRect rcSkSrc = SkRect::Make(rcSkSrcI);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawImageRect(skiaBitmap->GetSkBitmap().asImage(), rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawImageRect(skiaBitmap->GetSkBitmap().asImage(), rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
         return true;
     }
     return false;
@@ -483,9 +497,10 @@ bool Render_Skia::AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, in
     SkIRect rcSkSrcI = SkIRect::MakeXYWH(xSrc, ySrc, widthSrc, heightSrc);
     SkRect rcSkSrc = SkRect::Make(rcSkSrcI);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawImageRect(skiaBitmap->GetSkBitmap().asImage(), rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawImageRect(skiaBitmap->GetSkBitmap().asImage(), rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
         return true;
     }
     return false;
@@ -508,8 +523,9 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     if (pBitmap == nullptr) {
         return;
     }
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas == nullptr) {
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas == nullptr) {
         return;
     }
     Bitmap_Skia* skiaBitmap = dynamic_cast<Bitmap_Skia*>(pBitmap);
@@ -544,7 +560,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
     if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
         if (!xtiled && !ytiled) {
-            DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+            DrawFunction(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
         }
         else if (xtiled && ytiled) {
             const LONG imageDrawWidth = rcSource.right - rcSource.left - rcSourceCorners.left - rcSourceCorners.right;
@@ -588,7 +604,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
                     rcDestTemp.right = lDestRight;
                     rcDestTemp.top = lDestTop;
                     rcDestTemp.bottom = lDestBottom;
-                    DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+                    DrawFunction(skCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
                 }
             }
         }
@@ -622,7 +638,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
                 rcDestTemp.left = lDestLeft;
                 rcDestTemp.right = lDestRight;
 
-                DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+                DrawFunction(skCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
             }
         }
         else { // ytiled
@@ -655,7 +671,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
                 rcDestTemp.top = lDestTop;
                 rcDestTemp.bottom = lDestBottom;
 
-                DrawFunction(m_pSkCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+                DrawFunction(skCanvas, rcDestTemp, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
             }
         }
     }
@@ -672,7 +688,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
         rcDrawSource.right = rcSource.left + rcSourceCorners.left;
         rcDrawSource.bottom = rcSource.top + rcSourceCorners.top;
         if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
-            DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+            DrawFunction(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
         }
     }
     // top
@@ -687,7 +703,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
         rcDrawSource.right = rcSource.right - rcSourceCorners.right;
         rcDrawSource.bottom = rcSource.top + rcSourceCorners.top;
         if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
-            DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+            DrawFunction(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
         }
     }
     // right-top
@@ -702,7 +718,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
         rcDrawSource.right = rcSource.right;
         rcDrawSource.bottom = rcSource.top + rcSourceCorners.top;
         if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
-            DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+            DrawFunction(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
         }
     }
     // left
@@ -717,7 +733,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
         rcDrawSource.right = rcSource.left + rcSourceCorners.left;
         rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
         if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
-            DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+            DrawFunction(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
         }
     }
     // right
@@ -732,7 +748,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
         rcDrawSource.right = rcSource.right;
         rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
         if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
-            DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+            DrawFunction(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
         }
     }
     // left-bottom
@@ -747,7 +763,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
         rcDrawSource.right = rcSource.left + rcSourceCorners.left;
         rcDrawSource.bottom = rcSource.bottom;
         if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
-            DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+            DrawFunction(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
         }
     }
     // bottom
@@ -762,7 +778,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
         rcDrawSource.right = rcSource.right - rcSourceCorners.right;
         rcDrawSource.bottom = rcSource.bottom;
         if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
-            DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+            DrawFunction(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
         }
     }
     // right-bottom
@@ -777,7 +793,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
         rcDrawSource.right = rcSource.right;
         rcDrawSource.bottom = rcSource.bottom;
         if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
-            DrawFunction(m_pSkCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
+            DrawFunction(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
         }
     }
 }
@@ -815,8 +831,9 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
         return;
     }
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas == nullptr) {
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas == nullptr) {
         return;
     }
 
@@ -841,13 +858,13 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
         Matrix_Skia* pSkMatrix = dynamic_cast<Matrix_Skia*>(pMatrix);
         if (pSkMatrix != nullptr) {
             SkM44 skM44(*pSkMatrix->GetMatrix());
-            m_pSkCanvas->setMatrix(skM44);
+            skCanvas->setMatrix(skM44);
             isMatrixSet = true;
         }
     }
-    DrawFunction(m_pSkCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
+    DrawFunction(skCanvas, rcDest, *m_pSkPointOrg, skImage, rcSource, skPaint);
     if (isMatrixSet) {
-        m_pSkCanvas->resetMatrix();
+        skCanvas->resetMatrix();
     }
 }
 
@@ -864,9 +881,10 @@ void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
     SkRect rcSkDest = SkRect::Make(rcSkDestI);
     rcSkDest.offset(*m_pSkPointOrg);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawRect(rcSkDest, skPaint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawRect(rcSkDest, skPaint);
     }
 }
 
@@ -925,9 +943,10 @@ void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, 
 
     InitGradientColor(skPaint, rc, dwColor, dwColor2, nColor2Direction);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawRect(rcSkDest, skPaint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawRect(rcSkDest, skPaint);
     }
 }
 
@@ -947,9 +966,10 @@ void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penCo
     skPt2.iset(pt2.x, pt2.y);
     skPt2.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawLine(skPt1, skPt2, skPaint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawLine(skPt1, skPt2, skPaint);
     }
 }
 
@@ -967,9 +987,10 @@ void Render_Skia::DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor pen
     SkPoint skPt2 = SkPoint::Make(pt2.x, pt2.y);
     skPt2.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawLine(skPt1, skPt2, skPaint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawLine(skPt1, skPt2, skPaint);
     }
 }
 
@@ -991,9 +1012,10 @@ void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen)
     skPt2.iset(pt2.x, pt2.y);
     skPt2.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawLine(skPt1, skPt2, skPaint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawLine(skPt1, skPt2, skPaint);
     }
 }
 
@@ -1017,9 +1039,10 @@ void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, b
     }
     rcSkDest.offset(*m_pSkPointOrg);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawRect(rcSkDest, skPaint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawRect(rcSkDest, skPaint);
     }
 }
 
@@ -1035,9 +1058,10 @@ void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiCol
     SkRect rcSkDest = SkRect::Make(rcSkDestI);
     rcSkDest.offset(*m_pSkPointOrg);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawRoundRect(rcSkDest, SkIntToScalar(roundSize.cx), SkIntToScalar(roundSize.cy), skPaint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawRoundRect(rcSkDest, SkIntToScalar(roundSize.cx), SkIntToScalar(roundSize.cy), skPaint);
     }
 }
 
@@ -1055,9 +1079,10 @@ void Render_Skia::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiCol
     SkRect rcSkDest = SkRect::Make(rcSkDestI);
     rcSkDest.offset(*m_pSkPointOrg);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawRoundRect(rcSkDest, SkIntToScalar(roundSize.cx), SkIntToScalar(roundSize.cy), skPaint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawRoundRect(rcSkDest, SkIntToScalar(roundSize.cx), SkIntToScalar(roundSize.cy), skPaint);
     }
 }
 
@@ -1080,9 +1105,10 @@ void Render_Skia::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiCol
 
     InitGradientColor(skPaint, rc, dwColor, dwColor2, nColor2Direction);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawRoundRect(rcSkDest, SkIntToScalar(roundSize.cx), SkIntToScalar(roundSize.cy), skPaint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawRoundRect(rcSkDest, SkIntToScalar(roundSize.cx), SkIntToScalar(roundSize.cy), skPaint);
     }
 }
 
@@ -1097,9 +1123,10 @@ void Render_Skia::DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor pe
     SkPoint rcSkPoint = SkPoint::Make(SkIntToScalar(centerPt.x), SkIntToScalar(centerPt.y));
     rcSkPoint.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawCircle(rcSkPoint.fX, rcSkPoint.fY, SkIntToScalar(radius), skPaint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawCircle(rcSkPoint.fX, rcSkPoint.fY, SkIntToScalar(radius), skPaint);
     }
 }
 
@@ -1116,9 +1143,10 @@ void Render_Skia::FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dw
     SkPoint rcSkPoint = SkPoint::Make(SkIntToScalar(centerPt.x), SkIntToScalar(centerPt.y));
     rcSkPoint.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawCircle(rcSkPoint.fX, rcSkPoint.fY, SkIntToScalar(radius), skPaint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawCircle(rcSkPoint.fX, rcSkPoint.fY, SkIntToScalar(radius), skPaint);
     }
 }
 
@@ -1155,7 +1183,11 @@ void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, 
         paint.setShader(shaderA);
     }
 
-    m_pSkCanvas->drawArc(ovalRect, startAngle, sweepAngle, useCenter, paint);
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawArc(ovalRect, startAngle, sweepAngle, useCenter, paint);
+    }
 }
 
 void Render_Skia::DrawPath(const IPath* path, const IPen* pen)
@@ -1176,9 +1208,11 @@ void Render_Skia::DrawPath(const IPath* path, const IPen* pen)
 
     SkPath skPath;
     pSkiaPath->GetSkPath()->offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawPath(skPath, paint);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawPath(skPath, paint);
     }
 }
 
@@ -1309,9 +1343,11 @@ void Render_Skia::FillPath(const IPath* path, const IBrush* brush)
 
     SkPath skPath;
     pSkiaPath->GetSkPath()->offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawPath(skPath, paint);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawPath(skPath, paint);
     }
 }
 
@@ -1334,9 +1370,11 @@ void Render_Skia::FillPath(const IPath* path, const UiRect& rc, UiColor dwColor,
     
     SkPath skPath;
     pSkiaPath->GetSkPath()->offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawPath(skPath, skPaint);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawPath(skPath, skPaint);
     }
 }
 
@@ -1357,8 +1395,10 @@ void Render_Skia::DrawString(const UiRect& rc,
     if (pFont == nullptr) {
         return;
     }
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas == nullptr) {
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas == nullptr) {
         return;
     }
     //文本编码
@@ -1443,7 +1483,7 @@ void Render_Skia::DrawString(const UiRect& rc,
         //纵向对齐：上对齐
         skTextBox.setSpacingAlign(SkTextBox::kStart_SpacingAlign);
     }
-    skTextBox.draw(m_pSkCanvas, 
+    skTextBox.draw(skCanvas, 
                    (const char*)strText.c_str(), 
                    strText.size() * sizeof(DString::value_type),
                    textEncoding, 
@@ -1466,8 +1506,10 @@ UiRect Render_Skia::MeasureString(const DString& strText,
     if (pFont == nullptr) {
         return UiRect();
     }
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas == nullptr) {
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas == nullptr) {
         return UiRect();
     }
 
@@ -1783,8 +1825,10 @@ void Render_Skia::DrawTextString(const UiRect& rc, const DString& strText, uint3
     if (strText.empty()) {
         return;
     }
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas == nullptr) {
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas == nullptr) {
         return;
     }
     Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(pFont);
@@ -1860,7 +1904,7 @@ void Render_Skia::DrawTextString(const UiRect& rc, const DString& strText, uint3
         //纵向对齐：上对齐
         skTextBox.setSpacingAlign(SkTextBox::kStart_SpacingAlign);
     }
-    skTextBox.draw(m_pSkCanvas,
+    skTextBox.draw(skCanvas,
                    (const char*)strText.c_str(),
                    strText.size() * sizeof(DString::value_type),
                    textEncoding,
@@ -1879,6 +1923,12 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
     ASSERT(dwColor.GetARGB() != 0);
     if (nBlurRadius < 0) {
         nBlurRadius = 0;
+    }
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas == nullptr) {
+        return;
     }
 
     //阴影的扩撒区域
@@ -1905,15 +1955,12 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
     paint.setColor(dwColor.GetARGB());
     paint.setStyle(SkPaint::kFill_Style);
 
-    SkAutoCanvasRestore autoCanvasRestore(m_pSkCanvas, true);
+    SkAutoCanvasRestore autoCanvasRestore(skCanvas, true);
 
     //裁剪中间区域
     SkPath skPathExclude;
     excludePath.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPathExclude);
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->clipPath(skPathExclude, SkClipOp::kDifference);
-    }
+    skCanvas->clipPath(skPathExclude, SkClipOp::kDifference);
 
     SkPath skPath;
     shadowPath.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY, &skPath);
@@ -1934,10 +1981,7 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
     mat.postTranslate(offsetX, offsetY);
     skPath.transform(mat);
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas != nullptr) {
-        m_pSkCanvas->drawPath(skPath, paint);
-    }
+    skCanvas->drawPath(skPath, paint);
 }
 
 HDC Render_Skia::GetDC()
@@ -1945,7 +1989,8 @@ HDC Render_Skia::GetDC()
     if (m_hDC != nullptr) {
         return m_hDC;
     }
-    if ((m_pBitmapSkia == nullptr) || (m_pSkCanvas == nullptr)) {
+    SkCanvas* skCanvas = GetSkCanvas();
+    if ((m_pBitmapSkia == nullptr) || (skCanvas == nullptr)) {
         return nullptr;
     }
     HBITMAP hBitmap = m_pBitmapSkia->GetHBitmap();
@@ -1964,12 +2009,12 @@ HDC Render_Skia::GetDC()
 
     m_hOldObj = ::SelectObject(hGetDC, hBitmap);
 
-    if (m_pSkCanvas->isClipEmpty()) {
+    if (skCanvas->isClipEmpty()) {
         ::IntersectClipRect(hGetDC, 0, 0, 0, 0);
     }
-    else if (m_pSkCanvas->isClipRect()) {
+    else if (skCanvas->isClipRect()) {
         SkRect rcClip;
-        if (m_pSkCanvas->getLocalClipBounds(&rcClip)) {
+        if (skCanvas->getLocalClipBounds(&rcClip)) {
             RECT rc = { (int)rcClip.left(),(int)rcClip.top(),(int)rcClip.right(),(int)rcClip.bottom() };
             ::InflateRect(&rc, -1, -1); //注意需要向内缩小一个象素
             ::IntersectClipRect(hGetDC, rc.left, rc.top, rc.right, rc.bottom);
@@ -1978,7 +2023,7 @@ HDC Render_Skia::GetDC()
     else
     {
         SkRegion rgn;
-        m_pSkCanvas->temporary_internal_getRgnClip(&rgn);
+        skCanvas->temporary_internal_getRgnClip(&rgn);
         SkRegion::Iterator it(rgn);
         int nCount = 0;
         for (; !it.done(); it.next()) {
@@ -2029,7 +2074,7 @@ HDC Render_Skia::GetDC()
             kMPersp2
         };
     };
-    SkMatrix mtx = m_pSkCanvas->getTotalMatrix();
+    SkMatrix mtx = skCanvas->getTotalMatrix();
     XFORM xForm = { mtx.get(IxForm::kMScaleX),mtx.get(IxForm::kMSkewY),
                     mtx.get(IxForm::kMSkewX),mtx.get(IxForm::kMScaleY),
                     mtx.get(IxForm::kMTransX),mtx.get(IxForm::kMTransY) };
@@ -2072,15 +2117,16 @@ bool Render_Skia::ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixels
         return false;
     }
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas == nullptr) {
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas == nullptr) {
         return false;
     }
 
     SkBitmap skBitmap;
     skBitmap.setInfo(SkImageInfo::Make(rc.Width(), rc.Height(), SkColorType::kN32_SkColorType, SkAlphaType::kPremul_SkAlphaType));
     skBitmap.setPixels(dstPixels);
-    return m_pSkCanvas->readPixels(skBitmap, rc.left + (int32_t)m_pSkPointOrg->fX, rc.top + (int32_t)m_pSkPointOrg->fY);
+    return skCanvas->readPixels(skBitmap, rc.left + (int32_t)m_pSkPointOrg->fX, rc.top + (int32_t)m_pSkPointOrg->fY);
 }
 
 bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc)
@@ -2098,8 +2144,9 @@ bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect
         return false;
     }
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas == nullptr) {
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas == nullptr) {
         return false;
     }
 
@@ -2107,7 +2154,7 @@ bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect
     skBitmap.setInfo(SkImageInfo::Make(rc.Width(), rc.Height(), SkColorType::kN32_SkColorType, SkAlphaType::kPremul_SkAlphaType));
     skBitmap.setPixels(srcPixels);
 
-    return m_pSkCanvas->writePixels(skBitmap, rc.left + (int32_t)m_pSkPointOrg->fX, rc.top + (int32_t)m_pSkPointOrg->fY);
+    return skCanvas->writePixels(skBitmap, rc.left + (int32_t)m_pSkPointOrg->fX, rc.top + (int32_t)m_pSkPointOrg->fY);
 }
 
 bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint)
@@ -2128,8 +2175,9 @@ bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect
         return false;
     }
 
-    ASSERT(m_pSkCanvas != nullptr);
-    if (m_pSkCanvas == nullptr) {
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas == nullptr) {
         return false;
     }
 
@@ -2155,7 +2203,7 @@ bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect
     bool bRet = skBitmap.extractSubset(&dstDirtyBitmap, dstRect);
     ASSERT(bRet);
     if(bRet) {
-        bRet = m_pSkCanvas->writePixels(dstDirtyBitmap, destX + (int32_t)m_pSkPointOrg->fX, destY + (int32_t)m_pSkPointOrg->fY);
+        bRet = skCanvas->writePixels(dstDirtyBitmap, destX + (int32_t)m_pSkPointOrg->fX, destY + (int32_t)m_pSkPointOrg->fY);
     }
     return bRet;    
 }
@@ -2164,14 +2212,16 @@ RenderClipType Render_Skia::GetClipInfo(std::vector<UiRect>& clipRects)
 {
     RenderClipType clipType = RenderClipType::kEmpty;
     clipRects.clear();
-    if (m_pSkCanvas != nullptr) {
-        if (m_pSkCanvas->isClipEmpty()) {
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    if (skCanvas != nullptr) {
+        if (skCanvas->isClipEmpty()) {
             clipType = RenderClipType::kEmpty;
         }
-        else if (m_pSkCanvas->isClipRect()) {
+        else if (skCanvas->isClipRect()) {
             clipType = RenderClipType::kRect;
             SkRect rcClip;
-            if (m_pSkCanvas->getLocalClipBounds(&rcClip)) {
+            if (skCanvas->getLocalClipBounds(&rcClip)) {
                 UiRect rect = { (int32_t)rcClip.left(), (int32_t)rcClip.top(), (int32_t)rcClip.right(), (int32_t)rcClip.bottom() };
                 rect.Deflate(1, 1); //注意需要向内缩小一个象素（Skia在设置Clip的时候，会放大一个像素）
                 clipRects.push_back(rect);
@@ -2180,7 +2230,7 @@ RenderClipType Render_Skia::GetClipInfo(std::vector<UiRect>& clipRects)
         else {
             clipType = RenderClipType::kRegion;
             SkRegion rgn;
-            m_pSkCanvas->temporary_internal_getRgnClip(&rgn);
+            skCanvas->temporary_internal_getRgnClip(&rgn);
             SkRegion::Iterator it(rgn);
             for (; !it.done(); it.next()) {
                 SkIRect skrc = it.rect();
@@ -2204,7 +2254,8 @@ RenderClipType Render_Skia::GetClipInfo(std::vector<UiRect>& clipRects)
 
 bool Render_Skia::IsClipEmpty() const
 {
-    if ((m_pSkCanvas != nullptr) && (m_pSkCanvas->isClipEmpty())) {
+    SkCanvas* skCanvas = GetSkCanvas();
+    if ((skCanvas != nullptr) && (skCanvas->isClipEmpty())) {
         return true;
     }
     return false;
@@ -2212,7 +2263,8 @@ bool Render_Skia::IsClipEmpty() const
 
 bool Render_Skia::IsEmpty() const
 {
-    return (m_pSkCanvas != nullptr) && (GetWidth() > 0) && (GetHeight() > 0);
+    SkCanvas* skCanvas = GetSkCanvas();
+    return (skCanvas != nullptr) && (GetWidth() > 0) && (GetHeight() > 0);
 }
 
 SkTextEncoding Render_Skia::GetTextEncoding() const

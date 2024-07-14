@@ -159,6 +159,10 @@ private:
     */
     SkTextEncoding GetTextEncoding() const;
 
+    /** 获取SkCanvas接口
+    */
+    SkCanvas* GetSkCanvas() const;
+
 private:
 
     /** 位图对象

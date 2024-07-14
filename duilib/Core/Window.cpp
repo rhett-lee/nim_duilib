@@ -752,6 +752,7 @@ bool Window::ResizeRenderToClientSize() const
     if (!rcClient.IsEmpty()) {
         if ((m_render->GetWidth() != rcClient.Width()) || (m_render->GetHeight() != rcClient.Height())) {
             bRet = m_render->Resize(rcClient.Width(), rcClient.Height());
+            ASSERT(bRet && "Window::ResizeRenderToClientSize failed!");
         }
         else {
             bRet = true;
@@ -759,8 +760,8 @@ bool Window::ResizeRenderToClientSize() const
     }
     else {
         bRet = m_render->Resize(1, 1);
-    }
-    ASSERT(bRet && "Window::ResizeRenderToClientSize failed!");
+        ASSERT(bRet && "Window::ResizeRenderToClientSize failed!");
+    }    
     return bRet;
 }
 
