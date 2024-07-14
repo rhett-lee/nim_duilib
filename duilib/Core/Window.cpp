@@ -80,7 +80,7 @@ void Window::InitWindow()
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
-            m_render.reset(pRenderFactory->CreateRender(this));
+            m_render.reset(pRenderFactory->CreateRender(GetRenderDpi()));
         }
     }
     ASSERT(m_render != nullptr);
@@ -1635,6 +1635,36 @@ ui::IRender* Window::GetRender() const
 {
     ResizeRenderToClientSize();
     return m_render.get();
+}
+
+class RenderWindowDpi: public IRenderDpi
+{
+public:
+    explicit RenderWindowDpi(Window* pWindow): m_pWindow(pWindow)
+    {
+        m_windowFlag = pWindow->GetWeakFlag();
+    }
+    virtual ~RenderWindowDpi() override {}
+
+    /** 根据界面缩放比来缩放整数
+    * @param[in] iValue 整数
+    * @return int 缩放后的值
+    */
+    virtual int32_t GetScaleInt(int32_t iValue) const override
+    {
+        const DpiManager& dpi = ((m_pWindow != nullptr) && !m_windowFlag.expired()) ? m_pWindow->Dpi() : GlobalManager::Instance().Dpi();
+        return dpi.GetScaleInt(iValue);
+    }
+
+private:
+    Window* m_pWindow;
+    std::weak_ptr<WeakFlag> m_windowFlag;
+};
+
+std::shared_ptr<IRenderDpi> Window::GetRenderDpi()
+{
+    IRenderDpiPtr spRenderDpi = std::make_shared<RenderWindowDpi>(this);
+    return spRenderDpi;
 }
 
 void Window::OnShowWindow(bool bShow)

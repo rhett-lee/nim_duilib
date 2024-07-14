@@ -18,7 +18,7 @@ class Bitmap_Skia;
 class UILIB_API Render_Skia : public IRender
 {
 public:
-    explicit Render_Skia(Window* pWindow);
+    explicit Render_Skia();
     Render_Skia(const Render_Skia& r) = delete;
     Render_Skia& operator = (const Render_Skia& r) = delete;
     virtual ~Render_Skia() override;
@@ -114,12 +114,12 @@ public:
 #ifdef DUILIB_PLATFORM_WIN
     /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源
     */
-    virtual HDC GetDC() override;
+    virtual HDC GetRenderDC(HWND hWnd) override;
 
     /** 释放DC资源
     * @param [in] hdc 需要释放的DC句柄
     */
-    virtual void ReleaseDC(HDC hdc) override;
+    virtual void ReleaseRenderDC(HDC hdc) override;
 #endif
 
     virtual bool ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen) override;
@@ -128,6 +128,7 @@ public:
     virtual RenderClipType GetClipInfo(std::vector<UiRect>& clipRects) override;
     virtual bool IsClipEmpty() const override;
     virtual bool IsEmpty() const override;
+    virtual void SetRenderDpi(const IRenderDpiPtr& spRenderDpi) override;
 
 private:
     /** 位图绘制封装
@@ -163,6 +164,15 @@ private:
     */
     SkCanvas* GetSkCanvas() const;
 
+    /** 获取位图数据
+    * @return 返回位图数据的地址, 数据长度为: 高度*宽度*sizeof(uint32_t)
+    */
+    void* GetPixelBits() const;
+
+    /** 整数的DPI转换
+    */
+    int32_t GetScaleInt(int32_t iValue) const;
+
 private:
 
     /** 位图对象
@@ -193,13 +203,9 @@ private:
     */
     HGDIOBJ m_hOldObj;
 
-    /** 关联的窗口
+    /** DPI转换辅助接口
     */
-    Window* m_pWindow;
-
-    /** 关联窗口的生命周期标志
-    */
-    std::weak_ptr<WeakFlag> m_windowFlag;
+    IRenderDpiPtr m_spRenderDpi;
 };
 
 } // namespace ui

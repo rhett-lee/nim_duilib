@@ -65,9 +65,11 @@ IBitmap* RenderFactory_Skia::CreateBitmap()
     return new Bitmap_Skia();
 }
 
-IRender* RenderFactory_Skia::CreateRender(Window* pWindow)
+IRender* RenderFactory_Skia::CreateRender(const IRenderDpiPtr& spRenderDpi)
 {
-    return new Render_Skia(pWindow);
+    IRender* pRender = new Render_Skia();
+    pRender->SetRenderDpi(spRenderDpi);
+    return pRender;
 }
 
 IFontMgr* RenderFactory_Skia::GetFontMgr() const

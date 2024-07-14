@@ -4,10 +4,9 @@
 #include "duilib/RenderSkia/Matrix_Skia.h"
 #include "duilib/RenderSkia/Font_Skia.h"
 #include "duilib/RenderSkia/SkTextBox.h"
+#include "duilib/Render/BitmapAlpha.h"
 
 #include "duilib/Utils/StringUtil.h"
-#include "duilib/Core/Window.h"
-#include "duilib/Render/BitmapAlpha.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
 #pragma warning (push)
@@ -54,11 +53,10 @@ static inline void DrawFunction(SkCanvas* pSkCanvas,
     pSkCanvas->drawImageRect(skImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kStrict_SrcRectConstraint);
 }
 
-Render_Skia::Render_Skia(Window* pWindow): 
+Render_Skia::Render_Skia():
     m_pSkCanvas(nullptr),
     m_hDC(nullptr),
     m_hOldObj(nullptr),
-    m_pWindow(pWindow),
     m_saveCount(0)
 {
     m_pSkPointOrg = new SkPoint;
@@ -66,9 +64,6 @@ Render_Skia::Render_Skia(Window* pWindow):
     m_pSkPaint = new SkPaint;
     m_pSkPaint->setAntiAlias(true);
     m_pSkPaint->setDither(true);
-    if (pWindow != nullptr) {
-        m_windowFlag = pWindow->GetWeakFlag();
-    }
 }
 
 Render_Skia::~Render_Skia()
@@ -123,43 +118,28 @@ SkCanvas* Render_Skia::GetSkCanvas() const
     return m_pSkCanvas;
 }
 
-void Render_Skia::Clear(const UiColor& uiColor)
+void* Render_Skia::GetPixelBits() const
 {
-    if (m_pBitmapSkia != nullptr) {
-        void* pPixelBits = m_pBitmapSkia->LockPixelBits();
-        if (pPixelBits != nullptr) {
-            uint32_t nARGB = uiColor.GetARGB();
-            if (nARGB == 0) {
-                ::memset(pPixelBits, uiColor.GetARGB(), GetWidth() * GetHeight() * sizeof(uint32_t));
-            }
-            else {
-                const int32_t nLeft = 0;
-                const int32_t nTop = 0;
-                const int32_t nRight = std::max(GetWidth(), 0);
-                const int32_t nBottom = std::max(GetHeight(), 0);
-                const int32_t nWidth = nRight - nLeft;
-                for (int32_t i = nTop; i < nBottom; i++) {
-                    for (int32_t j = nLeft; j < nRight; j++) {
-                        uint32_t* color = (uint32_t*)pPixelBits + (i * nWidth + j);
-                        *color = nARGB;
-                    }
-                }
-            }
-            m_pBitmapSkia->UnLockPixelBits();
-        }
+    void* pPixelBits = nullptr;
+    if ((m_pBitmapSkia != nullptr) && (GetHeight() > 0) && (GetWidth() > 0)) {
+        pPixelBits = m_pBitmapSkia->LockPixelBits();
     }
+    return pPixelBits;
 }
 
-void Render_Skia::ClearRect(const UiRect& rcDirty, const UiColor& uiColor)
+void Render_Skia::Clear(const UiColor& uiColor)
 {
-    if (m_pBitmapSkia != nullptr) {
-        void* pPixelBits = m_pBitmapSkia->LockPixelBits();
-        if (pPixelBits != nullptr) {
-            uint32_t nARGB = uiColor.GetARGB();
-            const int32_t nLeft = std::max((int32_t)rcDirty.left, 0);
-            const int32_t nTop = std::max((int32_t)rcDirty.top, 0);
-            const int32_t nRight = std::min((int32_t)rcDirty.right, (int32_t)GetWidth());
-            const int32_t nBottom = std::min((int32_t)rcDirty.bottom, (int32_t)GetHeight());
+    void* pPixelBits = GetPixelBits();
+    if (pPixelBits != nullptr) {
+        uint32_t nARGB = uiColor.GetARGB();
+        if (nARGB == 0) {
+            ::memset(pPixelBits, uiColor.GetARGB(), GetWidth() * GetHeight() * sizeof(uint32_t));
+        }
+        else {
+            const int32_t nLeft = 0;
+            const int32_t nTop = 0;
+            const int32_t nRight = std::max(GetWidth(), 0);
+            const int32_t nBottom = std::max(GetHeight(), 0);
             const int32_t nWidth = nRight - nLeft;
             for (int32_t i = nTop; i < nBottom; i++) {
                 for (int32_t j = nLeft; j < nRight; j++) {
@@ -167,19 +147,34 @@ void Render_Skia::ClearRect(const UiRect& rcDirty, const UiColor& uiColor)
                     *color = nARGB;
                 }
             }
-            m_pBitmapSkia->UnLockPixelBits();
+        }
+    }
+}
+
+void Render_Skia::ClearRect(const UiRect& rcDirty, const UiColor& uiColor)
+{
+    void* pPixelBits = GetPixelBits();
+    if (pPixelBits != nullptr) {
+        uint32_t nARGB = uiColor.GetARGB();
+        const int32_t nLeft = std::max((int32_t)rcDirty.left, 0);
+        const int32_t nTop = std::max((int32_t)rcDirty.top, 0);
+        const int32_t nRight = std::min((int32_t)rcDirty.right, (int32_t)GetWidth());
+        const int32_t nBottom = std::min((int32_t)rcDirty.bottom, (int32_t)GetHeight());
+        const int32_t nWidth = nRight - nLeft;
+        for (int32_t i = nTop; i < nBottom; i++) {
+            for (int32_t j = nLeft; j < nRight; j++) {
+                uint32_t* color = (uint32_t*)pPixelBits + (i * nWidth + j);
+                *color = nARGB;
+            }
         }
     }
 }
 
 std::unique_ptr<ui::IRender> Render_Skia::Clone()
 {
-    Window* pWindow = m_pWindow;
-    if (m_windowFlag.expired()) {
-        pWindow = nullptr;
-    }
-    std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_Skia>(pWindow);
+    std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_Skia>();
     pClone->Resize(GetWidth(), GetHeight());
+    pClone->SetRenderDpi(m_spRenderDpi);
     pClone->BitBlt(0, 0, GetWidth(), GetHeight(), this, 0, 0, RopMode::kSrcCopy);
     return pClone;
 }
@@ -218,42 +213,27 @@ int32_t Render_Skia::GetHeight() const
 
 void Render_Skia::ClearAlpha(const UiRect& rcDirty, uint8_t alpha)
 {
-    HBITMAP hBitmap = nullptr;
-    if (m_pBitmapSkia != nullptr) {
-        hBitmap = m_pBitmapSkia->GetHBitmap();
-    }
-    if (hBitmap != nullptr) {
-        BITMAP bm = { 0 };
-        ::GetObject(hBitmap, sizeof(bm), &bm);
-        BitmapAlpha bitmapAlpha((uint8_t*)bm.bmBits, bm.bmWidth, bm.bmHeight, bm.bmBitsPixel / 8);
+    void* pPixelBits = GetPixelBits();
+    if (pPixelBits != nullptr) {
+        BitmapAlpha bitmapAlpha((uint8_t*)pPixelBits, GetWidth(), GetHeight(), sizeof(uint32_t));
         bitmapAlpha.ClearAlpha(rcDirty, alpha);
     }
 }
 
 void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha)
 {
-    HBITMAP hBitmap = nullptr;
-    if (m_pBitmapSkia != nullptr) {
-        hBitmap = m_pBitmapSkia->GetHBitmap();
-    }
-    if (hBitmap != nullptr) {
-        BITMAP bm = { 0 };
-        ::GetObject(hBitmap, sizeof(bm), &bm);
-        BitmapAlpha bitmapAlpha((uint8_t*)bm.bmBits, bm.bmWidth, bm.bmHeight, bm.bmBitsPixel / 8);
+    void* pPixelBits = GetPixelBits();
+    if (pPixelBits != nullptr) {
+        BitmapAlpha bitmapAlpha((uint8_t*)pPixelBits, GetWidth(), GetHeight(), sizeof(uint32_t));
         bitmapAlpha.RestoreAlpha(rcDirty, rcShadowPadding, alpha);
     }
 }
 
 void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding)
 {
-    HBITMAP hBitmap = nullptr;
-    if (m_pBitmapSkia != nullptr) {
-        hBitmap = m_pBitmapSkia->GetHBitmap();
-    }
-    if (hBitmap != nullptr) {
-        BITMAP bm = { 0 };
-        ::GetObject(hBitmap, sizeof(bm), &bm);
-        BitmapAlpha bitmapAlpha((uint8_t*)bm.bmBits, bm.bmWidth, bm.bmHeight, bm.bmBitsPixel / 8);
+    void* pPixelBits = GetPixelBits();
+    if (pPixelBits != nullptr) {
+        BitmapAlpha bitmapAlpha((uint8_t*)pPixelBits, GetWidth(), GetHeight(), sizeof(uint32_t));
         bitmapAlpha.RestoreAlpha(rcDirty, rcShadowPadding);
     }
 }
@@ -1216,6 +1196,14 @@ void Render_Skia::DrawPath(const IPath* path, const IPen* pen)
     }
 }
 
+int32_t Render_Skia::GetScaleInt(int32_t iValue) const
+{
+    if (m_spRenderDpi != nullptr) {
+        return m_spRenderDpi->GetScaleInt(iValue);
+    }
+    return iValue;
+}
+
 void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
 {
     if (pen == nullptr) {
@@ -1225,14 +1213,8 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
 
     sk_sp<SkPathEffect> skPathEffect;
     IPen::DashStyle dashStyle = pen->GetDashStyle();
-    //线宽的倍数    
-    const Window* pWindow = !m_windowFlag.expired() ? m_pWindow : nullptr;
-    ASSERT(pWindow != nullptr);
-    if (pWindow == nullptr) {
-        return;
-    }
-    const DpiManager& dpi = pWindow->Dpi();
-    int32_t nRatio = pen->GetWidth() / dpi.GetScaleInt(1);
+    //线宽的倍数
+    int32_t nRatio = pen->GetWidth() / GetScaleInt(1);
     switch (dashStyle) {
     case IPen::kDashStyleSolid:
     {
@@ -1242,31 +1224,31 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
     }
     case IPen::kDashStyleDash:
     {
-        int32_t nValue = dpi.GetScaleInt(5) * nRatio;
+        int32_t nValue = GetScaleInt(5) * nRatio;
         SkScalar intervals[] = { nValue * 1.0f, nValue * 1.0f };
         skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
         break;
     }
     case IPen::kDashStyleDot:
     {
-        int32_t nValue1 = dpi.GetScaleInt(1) * nRatio;
-        int32_t nValue4 = dpi.GetScaleInt(4) * nRatio;
+        int32_t nValue1 = GetScaleInt(1) * nRatio;
+        int32_t nValue4 = GetScaleInt(4) * nRatio;
         SkScalar intervals[] = { nValue1 * 1.0f, nValue4 * 1.0f };
         skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
         break;
     }
     case IPen::kDashStyleDashDot:
     {
-        int32_t nValue1 = dpi.GetScaleInt(1) * nRatio;
-        int32_t nValue4 = dpi.GetScaleInt(4) * nRatio;
+        int32_t nValue1 = GetScaleInt(1) * nRatio;
+        int32_t nValue4 = GetScaleInt(4) * nRatio;
         SkScalar intervals[] = { nValue4 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f };
         skPathEffect = SkDashPathEffect::Make(intervals, 4, 0.0f);
         break;
     }
     case IPen::kDashStyleDashDotDot:
     {
-        int32_t nValue1 = dpi.GetScaleInt(1) * nRatio;
-        int32_t nValue4 = dpi.GetScaleInt(4) * nRatio;
+        int32_t nValue1 = GetScaleInt(1) * nRatio;
+        int32_t nValue4 = GetScaleInt(4) * nRatio;
         SkScalar intervals[] = { nValue4 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f };
         skPathEffect = SkDashPathEffect::Make(intervals, 6, 0.0f);
         break;
@@ -1984,7 +1966,7 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
     skCanvas->drawPath(skPath, paint);
 }
 
-HDC Render_Skia::GetDC()
+HDC Render_Skia::GetRenderDC(HWND hWnd)
 {
     if (m_hDC != nullptr) {
         return m_hDC;
@@ -1997,11 +1979,6 @@ HDC Render_Skia::GetDC()
     if (hBitmap == nullptr) {
         return nullptr;
     }
-    Window* pWindow = m_pWindow;
-    if (m_windowFlag.expired()) {
-        pWindow = nullptr;
-    }
-    HWND hWnd = (pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr;
     HDC hDeskDC = ::GetDC(hWnd);
     HDC hGetDC = ::CreateCompatibleDC(hDeskDC);
     ::ReleaseDC(hWnd, hDeskDC);
@@ -2083,7 +2060,7 @@ HDC Render_Skia::GetDC()
     return hGetDC;
 }
 
-void Render_Skia::ReleaseDC(HDC hdc)
+void Render_Skia::ReleaseRenderDC(HDC hdc)
 {
     if (hdc == m_hDC) {
         DeleteDC();
@@ -2265,6 +2242,11 @@ bool Render_Skia::IsEmpty() const
 {
     SkCanvas* skCanvas = GetSkCanvas();
     return (skCanvas != nullptr) && (GetWidth() > 0) && (GetHeight() > 0);
+}
+
+void Render_Skia::SetRenderDpi(const IRenderDpiPtr& spRenderDpi)
+{
+    m_spRenderDpi = spRenderDpi;
 }
 
 SkTextEncoding Render_Skia::GetTextEncoding() const

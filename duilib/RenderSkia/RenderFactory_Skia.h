@@ -22,7 +22,7 @@ public:
     virtual IPath* CreatePath() override;
     virtual IMatrix* CreateMatrix() override;
     virtual IBitmap* CreateBitmap() override;
-    virtual IRender* CreateRender(Window* pWindow) override;
+    virtual IRender* CreateRender(const IRenderDpiPtr& spRenderDpi) override;
 
     /** 获取字体管理器接口（每个factory共享一个对象）
     */

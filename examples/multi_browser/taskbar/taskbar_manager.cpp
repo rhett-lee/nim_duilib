@@ -259,7 +259,11 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory != nullptr) {
         ASSERT(control->GetWindow() != nullptr);
-        render.reset(pRenderFactory->CreateRender(control->GetWindow()));
+        IRenderDpiPtr spRenderDpi;
+        if (control->GetWindow() != nullptr) {
+            spRenderDpi = control->GetWindow()->GetRenderDpi();
+        }
+        render.reset(pRenderFactory->CreateRender(spRenderDpi));
     }
     ASSERT(render != nullptr);
     if (render == nullptr) {
@@ -323,7 +327,11 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, con
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory != nullptr) {
         ASSERT(control->GetWindow() != nullptr);
-        render.reset(pRenderFactory->CreateRender(control->GetWindow()));
+        IRenderDpiPtr spRenderDpi;
+        if (control->GetWindow() != nullptr) {
+            spRenderDpi = control->GetWindow()->GetRenderDpi();
+        }
+        render.reset(pRenderFactory->CreateRender(spRenderDpi));
     }
     ASSERT(render != nullptr);
     if (render == nullptr) {

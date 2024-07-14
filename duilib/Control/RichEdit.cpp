@@ -2055,7 +2055,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     if (bNeedPaint && bNormalPrint) {
         // Remember wparam is actually the hdc and lparam is the update
         // rect because this message has been preprocessed by the window.
-        HDC hdc = pRender->GetDC();
+        HDC hdc = pRender->GetRenderDC(GetWindow()->NativeWnd()->GetHWND());
         RECT paintRect = { rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom };
         pTextServices->TxDraw(DVASPECT_CONTENT,         // Draw Aspect
                               /*-1*/0,                  // Lindex
@@ -2070,7 +2070,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
                               NULL,                     // Call back parameter
                               0);                       // What view of the object
 
-        pRender->ReleaseDC(hdc);
+        pRender->ReleaseRenderDC(hdc);
     }
     else if (bNeedPaint) {
         PaintRichEdit(pRender, rcPaint);

@@ -27,7 +27,11 @@ void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory != nullptr) {
         ASSERT(GetWindow() != nullptr);
-        render.reset(pRenderFactory->CreateRender(GetWindow()));
+        IRenderDpiPtr spRenderDpi;
+        if (GetWindow() != nullptr) {
+            spRenderDpi = GetWindow()->GetRenderDpi();
+        }
+        render.reset(pRenderFactory->CreateRender(spRenderDpi));
         bitmap.reset(pRenderFactory->CreateBitmap());
     }
     ASSERT(render != nullptr);

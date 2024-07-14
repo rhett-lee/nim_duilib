@@ -15,6 +15,7 @@ class Control;
 class IRender;
 class Shadow;
 class ToolTip;
+class IRenderDpi;
 
 /** 窗口类
 *  //外部调用需要初始化的基本流程:
@@ -329,6 +330,10 @@ public:
     /** 获取绘制引擎对象
     */
     virtual IRender* GetRender() const override;
+
+    /** 获取为Render使用的本窗口关联的DPI转换对象
+    */
+    std::shared_ptr<IRenderDpi> GetRenderDpi();
 
 protected:
     /** 初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)

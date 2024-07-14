@@ -1122,22 +1122,22 @@ bool NativeWindow::SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender
         SIZE szWindow = { rcClient.right - rcClient.left, rcClient.bottom - rcClient.top };
         POINT ptSrc = { 0, 0 };
         BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(GetWindowAlpha()), AC_SRC_ALPHA };
-        HDC hdc = pRender->GetDC();
+        HDC hdc = pRender->GetRenderDC(m_hWnd);
         ASSERT(hdc != nullptr);
         if (hdc != nullptr) {
             bRet = ::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA) != FALSE;
             ASSERT(bRet);
-            pRender->ReleaseDC(hdc);
+            pRender->ReleaseRenderDC(hdc);
         }        
     }
     else {
         ASSERT(hPaintDC != nullptr);
-        HDC hdc = pRender->GetDC();
+        HDC hdc = pRender->GetRenderDC(m_hWnd);
         ASSERT(hdc != nullptr);
         if (hdc != nullptr) {
             bRet = ::BitBlt(hPaintDC, rcPaint.left, rcPaint.top, rcPaint.Width(), rcPaint.Height(),
                             hdc, rcPaint.left, rcPaint.top, SRCCOPY) != FALSE;
-            pRender->ReleaseDC(hdc);
+            pRender->ReleaseRenderDC(hdc);
         }
     }
     return bRet;

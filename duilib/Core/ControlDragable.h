@@ -884,7 +884,11 @@ std::shared_ptr<IBitmap> ControlDragableT<T>::CreateDragoutImage()
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory != nullptr) {
         ASSERT(this->GetWindow() != nullptr);
-        render.reset(pRenderFactory->CreateRender(this->GetWindow()));
+        IRenderDpiPtr spRenderDpi;
+        if (this->GetWindow() != nullptr) {
+            spRenderDpi = this->GetWindow()->GetRenderDpi();
+        }
+        render.reset(pRenderFactory->CreateRender(spRenderDpi));
     }
     ASSERT(render != nullptr);
     if(render == nullptr) {

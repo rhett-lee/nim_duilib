@@ -225,7 +225,7 @@ ui::IBitmap* MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_r
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory != nullptr) {
-        render.reset(pRenderFactory->CreateRender(this));
+        render.reset(pRenderFactory->CreateRender(GetRenderDpi()));
     }
     ASSERT(render != nullptr);
     if (render->Resize(kDragImageWidth, kDragImageHeight)) {

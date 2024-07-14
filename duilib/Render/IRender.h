@@ -405,6 +405,20 @@ public:
     virtual void RotateAt(float angle, const UiPoint& center) = 0;
 };
 
+/** 渲染接口中使用的DPI转换辅助接口
+*/
+class UILIB_API IRenderDpi : public SupportWeakCallback
+{
+public:
+    /** 根据界面缩放比来缩放整数
+    * @param[in] iValue 整数
+    * @return int 缩放后的值
+    */
+    virtual int32_t GetScaleInt(int32_t iValue) const = 0;
+};
+
+typedef std::shared_ptr<IRenderDpi> IRenderDpiPtr;
+
 /** 光栅操作代码
 */
 enum class UILIB_API RopMode
@@ -479,7 +493,6 @@ enum class RenderClipType
 
 /** 渲染接口
 */
-class Window;
 class IRenderFactory;
 class UILIB_API IRender : public virtual SupportWeakCallback
 {
@@ -846,12 +859,12 @@ public:
 #ifdef DUILIB_PLATFORM_WIN
     /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源
     */
-    virtual HDC GetDC() = 0;
+    virtual HDC GetRenderDC(HWND hWnd) = 0;
 
     /** 释放DC资源
     * @param [in] hdc 需要释放的DC句柄
     */
-    virtual void ReleaseDC(HDC hdc) = 0;
+    virtual void ReleaseRenderDC(HDC hdc) = 0;
 #endif
 
 public:
@@ -907,6 +920,10 @@ public:
     /** 是否为空（宽度或者高度为0）
     */
     virtual bool IsEmpty() const = 0;
+
+    /** 设置Render使用的DPI转换接口
+    */
+    virtual void SetRenderDpi(const IRenderDpiPtr& spRenderDpi) = 0;
 };
 
 /** 渲染接口管理，用于创建Font、Pen、Brush、Path、Matrix、Bitmap、Render等渲染实现对象
@@ -941,9 +958,9 @@ public:
     virtual IBitmap* CreateBitmap() = 0;
 
     /** 创建一个Render对象
-    * @param [in] pWindow 关联的窗口
+    * @param [in] spRenderDpi 关联的DPI转换接口
     */
-    virtual IRender* CreateRender(Window* pWindow) = 0;
+    virtual IRender* CreateRender(const IRenderDpiPtr& spRenderDpi) = 0;
 
     /** 获取字体管理器接口（每个factory共享一个对象）
     */

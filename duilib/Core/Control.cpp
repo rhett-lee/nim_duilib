@@ -2245,7 +2245,11 @@ IRender* Control::GetRender()
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
             ASSERT(GetWindow() != nullptr);
-            m_render.reset(pRenderFactory->CreateRender(GetWindow()));
+            IRenderDpiPtr spRenderDpi;
+            if (GetWindow() != nullptr) {
+                spRenderDpi = GetWindow()->GetRenderDpi();
+            }
+            m_render.reset(pRenderFactory->CreateRender(spRenderDpi));
         }
     }
     return m_render.get();
