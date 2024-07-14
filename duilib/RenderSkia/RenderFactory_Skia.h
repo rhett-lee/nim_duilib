@@ -22,7 +22,15 @@ public:
     virtual IPath* CreatePath() override;
     virtual IMatrix* CreateMatrix() override;
     virtual IBitmap* CreateBitmap() override;
-    virtual IRender* CreateRender(const IRenderDpiPtr& spRenderDpi) override;
+
+    /** 创建一个Render对象
+    * @param [in] spRenderDpi 关联的DPI转换接口
+    * @param [in] platformData 平台相关的数据，Windows平台该值是窗口句柄
+    * @parma [in] backendType 后台绘制方式
+    */
+    virtual IRender* CreateRender(const IRenderDpiPtr& spRenderDpi,
+                                  void* platformData = nullptr,
+                                  RenderBackendType backendType = RenderBackendType::kRaster_BackendType) override;
 
     /** 获取字体管理器接口（每个factory共享一个对象）
     */

@@ -912,7 +912,7 @@ std::shared_ptr<IBitmap> ControlDragableT<T>::CreateDragoutImage()
             this->GetWindow()->GetRender(),
             rc.left, rc.top, rc.Width(), rc.Height());
     }
-    std::shared_ptr<IBitmap> pDragImage(render->DetachBitmap());
+    std::shared_ptr<IBitmap> pDragImage(render->MakeImageSnapshot());
     return pDragImage;
 }
 

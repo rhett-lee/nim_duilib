@@ -5,6 +5,7 @@
 #include "duilib/Core/Callback.h"
 
 //Skia相关类的前置声明
+class SkSurface;
 class SkCanvas;
 struct SkPoint;
 class SkPaint;
@@ -18,7 +19,7 @@ class Bitmap_Skia;
 class UILIB_API Render_Skia : public IRender
 {
 public:
-    explicit Render_Skia();
+    Render_Skia();
     Render_Skia(const Render_Skia& r) = delete;
     Render_Skia& operator = (const Render_Skia& r) = delete;
     virtual ~Render_Skia() override;
@@ -27,18 +28,14 @@ public:
     */
     virtual RenderType GetRenderType() const override;
 
-    virtual bool Resize(int32_t width, int32_t height) override;
     virtual void Clear(const UiColor& uiColor) override;
     virtual void ClearRect(const UiRect& rcDirty, const UiColor& uiColor) override;
-    virtual std::unique_ptr<IRender> Clone() override;
 
     /** 分离位图
     *@return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
     */
-    virtual IBitmap* DetachBitmap() override;
+    virtual IBitmap* MakeImageSnapshot() override;
 
-    virtual int32_t GetWidth() const override;
-    virtual int32_t GetHeight() const override;
     virtual void ClearAlpha(const UiRect& rcDirty, uint8_t alpha = 0) override;
     virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha) override;
     virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding = UiPadding()) override;
@@ -53,7 +50,6 @@ public:
     virtual void SetRoundClip(const UiRect& rc, int32_t width, int32_t height, bool bIntersect = true) override;
     virtual void ClearClip() override;
 
-    virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IBitmap* pSrcBitmap, int32_t xSrc, int32_t ySrc, RopMode rop) override;
     virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop) override;
     virtual bool StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop) override;
     virtual bool AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, uint8_t alpha = 255) override;
@@ -111,17 +107,6 @@ public:
 
     void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor) override;
 
-#ifdef DUILIB_PLATFORM_WIN
-    /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源
-    */
-    virtual HDC GetRenderDC(HWND hWnd) override;
-
-    /** 释放DC资源
-    * @param [in] hdc 需要释放的DC句柄
-    */
-    virtual void ReleaseRenderDC(HDC hdc) override;
-#endif
-
     virtual bool ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen) override;
     virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc) override;
     virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint) override;
@@ -130,11 +115,25 @@ public:
     virtual bool IsEmpty() const override;
     virtual void SetRenderDpi(const IRenderDpiPtr& spRenderDpi) override;
 
-private:
-    /** 位图绘制封装
+public:
+    /** 获取SkSurface接口
     */
-    bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, Bitmap_Skia* pSrcBitmap, int32_t xSrc, int32_t ySrc, RopMode rop);
+    virtual SkSurface* GetSkSurface() const = 0;
 
+    /** 获取SkCanvas接口
+    */
+    virtual SkCanvas* GetSkCanvas() const = 0;
+
+protected:
+    /** 视图的原点坐标
+    */
+     SkPoint& GetPointOrg() const;
+
+    /** 获取Render使用的DPI转换接口
+    */
+    IRenderDpiPtr GetRenderDpi() const;
+
+private:
     /** 获取GDI的光栅操作代码
     */
     void SetRopMode(SkPaint& skPaint, RopMode rop) const;
@@ -152,17 +151,9 @@ private:
     */
     void InitGradientColor(SkPaint& skPaint, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) const;
 
-    /** 删除DC
-    */
-    void DeleteDC();
-
     /** 获取文本编码
     */
     SkTextEncoding GetTextEncoding() const;
-
-    /** 获取SkCanvas接口
-    */
-    SkCanvas* GetSkCanvas() const;
 
     /** 获取位图数据
     * @return 返回位图数据的地址, 数据长度为: 高度*宽度*sizeof(uint32_t)
@@ -174,15 +165,6 @@ private:
     int32_t GetScaleInt(int32_t iValue) const;
 
 private:
-
-    /** 位图对象
-    */
-    std::unique_ptr<Bitmap_Skia> m_pBitmapSkia;
-
-    /** Canvas 接口
-    */
-    SkCanvas* m_pSkCanvas;
-
     /** Canval保存的状态
     */
     int32_t m_saveCount;
@@ -194,14 +176,6 @@ private:
     /** 视图的原点坐标
     */
     SkPoint* m_pSkPointOrg;
-
-    /** 关联的DC句柄
-    */
-    HDC m_hDC;
-
-    /** 该DC原来的位图
-    */
-    HGDIOBJ m_hOldObj;
 
     /** DPI转换辅助接口
     */

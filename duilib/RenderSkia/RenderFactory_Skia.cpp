@@ -1,12 +1,15 @@
 #include "RenderFactory_Skia.h"
 #include "duilib/RenderSkia/Font_Skia.h"
 #include "duilib/RenderSkia/FontMgr_Skia.h"
-#include "duilib/RenderSkia/Render_Skia.h"
 #include "duilib/RenderSkia/Bitmap_Skia.h"
 #include "duilib/RenderSkia/Brush_Skia.h"
 #include "duilib/RenderSkia/Pen_Skia.h"
 #include "duilib/RenderSkia/Path_Skia.h"
 #include "duilib/RenderSkia/Matrix_Skia.h"
+
+#ifdef DUILIB_PLATFORM_WIN
+    #include "duilib/RenderSkia/Render_Skia_Windows.h"
+#endif
 
 namespace ui {
 
@@ -65,10 +68,18 @@ IBitmap* RenderFactory_Skia::CreateBitmap()
     return new Bitmap_Skia();
 }
 
-IRender* RenderFactory_Skia::CreateRender(const IRenderDpiPtr& spRenderDpi)
+IRender* RenderFactory_Skia::CreateRender(const IRenderDpiPtr& spRenderDpi, void* platformData, RenderBackendType backendType)
 {
-    IRender* pRender = new Render_Skia();
-    pRender->SetRenderDpi(spRenderDpi);
+#ifdef DUILIB_PLATFORM_WIN
+    HWND hWnd = (HWND)platformData;
+    IRender* pRender = new Render_Skia_Windows(hWnd, backendType);
+#else
+    IRender* pRender = nullptr;
+#endif
+    ASSERT(pRender != nullptr);
+    if (pRender != nullptr) {
+        pRender->SetRenderDpi(spRenderDpi);
+    }    
     return pRender;
 }
 

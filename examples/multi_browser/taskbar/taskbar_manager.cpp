@@ -288,7 +288,7 @@ ui::IBitmap* TaskbarManager::GenerateBindControlBitmapWithForm(ui::Control *cont
 
     // 4.修复绘制区域的alpha通道
     render->RestoreAlpha(rcPaint);
-    return render->DetachBitmap();
+    return render->MakeImageSnapshot();
 }
 
 ui::IBitmap* TaskbarManager::GenerateBindControlBitmap(ui::Control *control, const int dest_width, const int dest_height)
@@ -392,7 +392,7 @@ ui::IBitmap* TaskbarManager::ResizeBitmap(int dest_width, int dest_height, ui::I
         render->AlphaBlend((dest_width - scale_width) / 2, (dest_height - scale_height) / 2, scale_width, scale_height, pSrcRender, src_x, src_y, src_width, src_height);
     }
 
-    return render->DetachBitmap();
+    return render->MakeImageSnapshot();
 }
 
 void TaskbarManager::OnTabItemClose(TaskbarTabItem &tab_item)

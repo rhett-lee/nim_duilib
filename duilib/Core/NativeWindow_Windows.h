@@ -543,14 +543,6 @@ private:
     */
     LRESULT OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
-    /** 绘制结束后，绘制数据从渲染引擎更新到窗口
-    * @param [in] hPaintDC 当前绘制的DC
-    * @param [in] rcPaint 绘制的区域
-    * @param [in] pRender 绘制引擎接口，用于将绘制结果应用到窗口
-    * @return 成功返回true，失败则返回false
-    */
-    bool SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender) const;
-
 private:
     /** 接收窗口事件的接口
     */

@@ -97,7 +97,7 @@ namespace BitmapHelper {
         IBitmap* pBitmap = nullptr;
         IRender* pRender = CreateRenderObject(srcRenderWidth, srcRenderHeight, hSrcDc, srcDcWidth, srcDcHeight);
         if (pRender != nullptr) {
-            pBitmap = pRender->DetachBitmap();
+            pBitmap = pRender->MakeImageSnapshot();
             delete pRender;
             pRender = nullptr;
         }

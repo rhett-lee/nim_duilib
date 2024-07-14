@@ -419,6 +419,21 @@ public:
 
 typedef std::shared_ptr<IRenderDpi> IRenderDpiPtr;
 
+/** 绘制回调接口
+*/
+class UILIB_API IRenderPaint
+{
+public:
+    /** 通过回调接口，完成绘制
+    * @param [in] rcPaint 需要绘制的区域（客户区坐标）
+    */
+    virtual bool DoPaint(const UiRect& rcPaint) = 0;
+
+    /** 回调接口，获取当前窗口的透明度
+    */
+    virtual uint8_t GetWindowAlpha() = 0;
+};
+
 /** 光栅操作代码
 */
 enum class UILIB_API RopMode
@@ -570,9 +585,6 @@ public:
     * @param [in] ySrc 源矩形左上角的 y 坐标
     * @param [in] rop 光栅操作代码
     */
-    virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy,
-                        IBitmap* pSrcBitmap, int32_t xSrc, int32_t ySrc,
-                        RopMode rop) = 0;
     virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy,
                         IRender* pSrcRender, int32_t xSrc, int32_t ySrc,
                         RopMode rop) = 0;
@@ -835,7 +847,7 @@ public:
     /** 分离位图
     *@return 返回位图接口，返回后由调用方管理资源（包括释放资源等）
     */
-    virtual IBitmap* DetachBitmap() = 0;
+    virtual IBitmap* MakeImageSnapshot() = 0;
 
     /** 将矩形区域内的图像Alpha设定为指定值alpha(0 - 255)
     * @param [in] rcDirty 矩形区域
@@ -924,6 +936,25 @@ public:
     /** 设置Render使用的DPI转换接口
     */
     virtual void SetRenderDpi(const IRenderDpiPtr& spRenderDpi) = 0;
+
+    /** 绘制并刷新到屏幕（Render的实现已经与窗口关联）, 同步完成
+    * @param [in] pRenderPaint 界面绘制所需的回调接口
+    */
+    virtual bool PaintAndSwapBuffers(IRenderPaint* pRenderPaint) = 0;
+
+};
+
+/** 后台绘制方式
+*/
+enum class RenderBackendType
+{
+    /** 使用CPU绘制
+    */
+    kRaster_BackendType = 0,
+
+    /** 使用OpenGL的绘制(暂未实现)
+    */
+    kNativeGL_BackendType = 1
 };
 
 /** 渲染接口管理，用于创建Font、Pen、Brush、Path、Matrix、Bitmap、Render等渲染实现对象
@@ -959,8 +990,12 @@ public:
 
     /** 创建一个Render对象
     * @param [in] spRenderDpi 关联的DPI转换接口
+    * @param [in] platformData 平台相关的数据，Windows平台该值是窗口句柄
+    * @parma [in] backendType 后台绘制方式
     */
-    virtual IRender* CreateRender(const IRenderDpiPtr& spRenderDpi) = 0;
+    virtual IRender* CreateRender(const IRenderDpiPtr& spRenderDpi,
+                                  void* platformData = nullptr,
+                                  RenderBackendType backendType = RenderBackendType::kRaster_BackendType) = 0;
 
     /** 获取字体管理器接口（每个factory共享一个对象）
     */

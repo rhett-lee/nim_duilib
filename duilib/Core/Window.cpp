@@ -80,7 +80,8 @@ void Window::InitWindow()
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
-            m_render.reset(pRenderFactory->CreateRender(GetRenderDpi()));
+            RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
+            m_render.reset(pRenderFactory->CreateRender(GetRenderDpi(), NativeWnd()->GetHWND(), backendType));
         }
     }
     ASSERT(m_render != nullptr);

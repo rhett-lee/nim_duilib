@@ -129,51 +129,40 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 {
     __super::Paint(pRender, rcPaint);
 
-    if (dc_cef_.IsValid() && browser_handler_.get() && browser_handler_->GetBrowser().get())
-    {
+    if (dc_cef_.IsValid() && browser_handler_.get() && browser_handler_->GetBrowser().get()) {
         // 绘制cef PET_VIEW类型的位图
         ui::UiRect rect = GetRect();
 
-        std::unique_ptr<ui::IBitmap> bitmap;
-        ui::IRenderFactory* pRenderFactory = ui::GlobalManager::Instance().GetRenderFactory();
-        ASSERT(pRenderFactory != nullptr);
-        if (pRenderFactory != nullptr) {
-            bitmap.reset(pRenderFactory->CreateBitmap());
+        //通过直接写入数据的接口，性能最佳
+        ui::UiRect dcPaint = rect;
+        dcPaint.right = dcPaint.left + dc_cef_.GetWidth();
+        dcPaint.bottom = dcPaint.top + dc_cef_.GetHeight();
+        if (!rcPaint.IsEmpty()) {
+            bool bRet = pRender->WritePixels(dc_cef_.GetBits(), dc_cef_.GetWidth() * dc_cef_.GetHeight() * sizeof(uint32_t), dcPaint);
+            ASSERT_UNUSED_VARIABLE(bRet);
         }
-        ASSERT(bitmap != nullptr);
-        if (bitmap == nullptr) {
-            return;
-        }
-
-        if (!bitmap->Init(dc_cef_.GetWidth(), dc_cef_.GetHeight(), true, dc_cef_.GetBits())) {
-            return;
-        }
-
-        pRender->BitBlt(rect.left, rect.top, rect.Width(), rect.Height(), bitmap.get(), 0, 0, ui::RopMode::kSrcCopy);
 
         // 绘制cef PET_POPUP类型的位图
-        if (!rect_popup_.IsEmpty() && dc_cef_popup_.IsValid())
-        {
+        if (!rect_popup_.IsEmpty() && dc_cef_popup_.IsValid()) {
             // 假如popup窗口位置在控件的范围外，则修正到控件范围内，指绘制控件范围内的popup窗口
             int paint_x = rect_popup_.x;
             int paint_y = rect_popup_.y;
             int paint_buffer_x = 0;
             int paint_buffer_y = 0;
-            if (rect_popup_.x < 0)
-            {
+            if (rect_popup_.x < 0) {
                 paint_x = 0;
                 paint_buffer_x = -rect_popup_.x;
             }
-            if (rect_popup_.y < 0)
-            {
+            if (rect_popup_.y < 0) {
                 paint_y = 0;
                 paint_buffer_y = -rect_popup_.y;
             }            
-            if (!bitmap->Init(dc_cef_popup_.GetWidth(), dc_cef_popup_.GetHeight(), true, dc_cef_popup_.GetBits())) {
-                return;
-            }
             rect = GetRect();
-            pRender->BitBlt(rect.left + paint_x, rect.top + paint_y, rect_popup_.width, rect_popup_.height, bitmap.get(), paint_buffer_x, paint_buffer_y, ui::RopMode::kSrcCopy);
+
+            ASSERT(false);
+            //TODO: 待测试，修正
+            //原始代码
+            //pRender->BitBlt(rect.left + paint_x, rect.top + paint_y, rect_popup_.width, rect_popup_.height, bitmap.get(), paint_buffer_x, paint_buffer_y, ui::RopMode::kSrcCopy);
         }
     }
 }

@@ -248,7 +248,7 @@ ui::IBitmap* MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_r
                            src_rect.left, src_rect.top, src_rect.right - src_rect.left, src_rect.bottom - src_rect.top);
     }
 
-    return render->DetachBitmap();
+    return render->MakeImageSnapshot();
 
 }
 

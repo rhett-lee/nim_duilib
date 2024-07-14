@@ -17,6 +17,7 @@
 #include "include/core/SkImageInfo.h"
 #include "include/core/SkImage.h"
 #include "include/core/SkCanvas.h"
+#include "include/core/SkSurface.h"
 #include "include/core/SkPaint.h"
 #include "include/core/SkPath.h"
 #include "include/core/SkRegion.h"
@@ -54,9 +55,6 @@ static inline void DrawFunction(SkCanvas* pSkCanvas,
 }
 
 Render_Skia::Render_Skia():
-    m_pSkCanvas(nullptr),
-    m_hDC(nullptr),
-    m_hOldObj(nullptr),
     m_saveCount(0)
 {
     m_pSkPointOrg = new SkPoint;
@@ -68,20 +66,10 @@ Render_Skia::Render_Skia():
 
 Render_Skia::~Render_Skia()
 {
-    m_pBitmapSkia.reset();
-    if (m_pSkPointOrg) {
-        delete m_pSkPointOrg;
-        m_pSkPointOrg = nullptr;
-    }
-    if (m_pSkCanvas) {
-        delete m_pSkCanvas;
-        m_pSkCanvas = nullptr;
-    }
     if (m_pSkPaint) {
         delete m_pSkPaint;
         m_pSkPaint = nullptr;
     }
-    DeleteDC();
 }
 
 RenderType Render_Skia::GetRenderType() const
@@ -89,41 +77,27 @@ RenderType Render_Skia::GetRenderType() const
     return RenderType::kRenderType_Skia;
 }
 
-bool Render_Skia::Resize(int32_t width, int32_t height)
+SkPoint& Render_Skia::GetPointOrg() const
 {
-    ASSERT((width > 0) && (height > 0));
-    if ((width <= 0) || (height <= 0)) {
-        return false;
-    }
-    if ((GetWidth() == width) && (GetHeight() == height)) {
-        return true;
-    }
-
-    DeleteDC();
-    m_pBitmapSkia = std::make_unique<Bitmap_Skia>();
-    if (!m_pBitmapSkia->Init(width, height, true, nullptr)) {
-        ASSERT(!"init failed!");
-        return false;
-    }
-    if (m_pSkCanvas != nullptr) {
-        delete m_pSkCanvas;
-        m_pSkCanvas = nullptr;
-    }
-    m_pSkCanvas = new SkCanvas(m_pBitmapSkia->GetSkBitmap());
-    return true;
+    return *m_pSkPointOrg;
 }
 
-SkCanvas* Render_Skia::GetSkCanvas() const
+IRenderDpiPtr Render_Skia::GetRenderDpi() const
 {
-    return m_pSkCanvas;
+    return m_spRenderDpi;
 }
 
 void* Render_Skia::GetPixelBits() const
 {
     void* pPixelBits = nullptr;
-    if ((m_pBitmapSkia != nullptr) && (GetHeight() > 0) && (GetWidth() > 0)) {
-        pPixelBits = m_pBitmapSkia->LockPixelBits();
-    }
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        SkPixmap pixmap;
+        if (skCanvas->peekPixels(&pixmap)) {
+            pPixelBits = pixmap.writable_addr();
+        }
+    }    
     return pPixelBits;
 }
 
@@ -170,50 +144,29 @@ void Render_Skia::ClearRect(const UiRect& rcDirty, const UiColor& uiColor)
     }
 }
 
-std::unique_ptr<ui::IRender> Render_Skia::Clone()
+IBitmap* Render_Skia::MakeImageSnapshot()
 {
-    std::unique_ptr<ui::IRender> pClone = std::make_unique<ui::Render_Skia>();
-    pClone->Resize(GetWidth(), GetHeight());
-    pClone->SetRenderDpi(m_spRenderDpi);
-    pClone->BitBlt(0, 0, GetWidth(), GetHeight(), this, 0, 0, RopMode::kSrcCopy);
-    return pClone;
-}
-
-IBitmap* Render_Skia::DetachBitmap()
-{
-    DeleteDC();
-    IBitmap* pBitmap = nullptr;
-    HBITMAP hBitmap = m_pBitmapSkia->DetachHBitmap();
-    if (hBitmap != nullptr) {
-        pBitmap = new Bitmap_Skia(hBitmap, true);
+    int32_t nWidth = GetWidth();
+    int32_t nHeight = GetHeight();
+    if ((nWidth <= 0) || (nHeight <= 0)) {
+        return nullptr;
     }
-    if (m_pSkCanvas != nullptr) {
-        delete m_pSkCanvas;
-        m_pSkCanvas = nullptr;
+    void* pPixelBits = GetPixelBits();
+    if (pPixelBits == nullptr) {
+        return nullptr;
     }
-    m_pBitmapSkia.reset();
+    Bitmap_Skia* pBitmap = new Bitmap_Skia;
+    if (!pBitmap->Init(nWidth, nHeight, true, pPixelBits)) {
+        delete pBitmap;
+        pBitmap = nullptr;
+    }
     return pBitmap;
-}
-
-int32_t Render_Skia::GetWidth() const
-{
-    if (m_pBitmapSkia != nullptr) {
-        return m_pBitmapSkia->GetWidth();
-    }
-    return 0;
-}
-
-int32_t Render_Skia::GetHeight() const
-{
-    if (m_pBitmapSkia != nullptr) {
-        return m_pBitmapSkia->GetHeight();
-    }
-    return 0;
 }
 
 void Render_Skia::ClearAlpha(const UiRect& rcDirty, uint8_t alpha)
 {
     void* pPixelBits = GetPixelBits();
+    ASSERT(pPixelBits != nullptr);
     if (pPixelBits != nullptr) {
         BitmapAlpha bitmapAlpha((uint8_t*)pPixelBits, GetWidth(), GetHeight(), sizeof(uint32_t));
         bitmapAlpha.ClearAlpha(rcDirty, alpha);
@@ -223,6 +176,7 @@ void Render_Skia::ClearAlpha(const UiRect& rcDirty, uint8_t alpha)
 void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha)
 {
     void* pPixelBits = GetPixelBits();
+    ASSERT(pPixelBits != nullptr);
     if (pPixelBits != nullptr) {
         BitmapAlpha bitmapAlpha((uint8_t*)pPixelBits, GetWidth(), GetHeight(), sizeof(uint32_t));
         bitmapAlpha.RestoreAlpha(rcDirty, rcShadowPadding, alpha);
@@ -232,6 +186,7 @@ void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
 void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding)
 {
     void* pPixelBits = GetPixelBits();
+    ASSERT(pPixelBits != nullptr);
     if (pPixelBits != nullptr) {
         BitmapAlpha bitmapAlpha((uint8_t*)pPixelBits, GetWidth(), GetHeight(), sizeof(uint32_t));
         bitmapAlpha.RestoreAlpha(rcDirty, rcShadowPadding);
@@ -349,11 +304,27 @@ void Render_Skia::SetRopMode(SkPaint& skPaint, RopMode rop) const
     }
 }
 
-bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, Bitmap_Skia* pSrcBitmap, int32_t xSrc, int32_t ySrc, RopMode rop)
+bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop)
 {
-    Bitmap_Skia* skiaBitmap = pSrcBitmap;
-    ASSERT(skiaBitmap != nullptr);
-    if (skiaBitmap == nullptr) {
+    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    ASSERT(pSrcRender != nullptr);
+    if (pSrcRender == nullptr) {
+        return false;
+    }
+
+    Render_Skia* pSkiaRender = dynamic_cast<Render_Skia*>(pSrcRender);
+    ASSERT(pSkiaRender != nullptr);
+    if (pSkiaRender == nullptr) {
+        return false;
+    }
+    SkSurface* skSurface = pSkiaRender->GetSkSurface();
+    ASSERT(skSurface != nullptr);
+    if (skSurface == nullptr) {
+        return false;
+    }
+    sk_sp<SkImage> skSrcImage = skSurface->makeImageSnapshot();
+    ASSERT(skSrcImage != nullptr);
+    if (skSrcImage == nullptr) {
         return false;
     }
 
@@ -371,38 +342,10 @@ bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, Bitmap_Sk
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
-        skCanvas->drawImageRect(skiaBitmap->GetSkBitmap().asImage(), rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
+        skCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
         return true;
     }
     return false;
-}
-
-bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IBitmap* pSrcBitmap, int32_t xSrc, int32_t ySrc, RopMode rop)
-{
-    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
-    ASSERT(pSrcBitmap != nullptr);
-    if (pSrcBitmap == nullptr) {
-        return false;
-    }
-    Bitmap_Skia* skiaBitmap = dynamic_cast<Bitmap_Skia*>(pSrcBitmap);
-    return BitBlt(x, y, cx, cy, skiaBitmap, xSrc, ySrc, rop);
-}
-
-bool Render_Skia::BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop)
-{
-    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
-    ASSERT(pSrcRender != nullptr);
-    if (pSrcRender == nullptr) {
-        return false;
-    }
-
-    Render_Skia* pSkiaRender = dynamic_cast<Render_Skia*>(pSrcRender);
-    ASSERT(pSkiaRender != nullptr);
-    if (pSkiaRender == nullptr) {
-        return false;
-    }
-    Bitmap_Skia* skiaBitmap = pSkiaRender->m_pBitmapSkia.get();
-    return BitBlt(x, y, cx, cy, skiaBitmap, xSrc, ySrc, rop);
 }
 
 bool Render_Skia::StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, RopMode rop)
@@ -418,9 +361,14 @@ bool Render_Skia::StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, in
     if (pSkiaRender == nullptr) {
         return false;
     }
-    Bitmap_Skia* skiaBitmap = pSkiaRender->m_pBitmapSkia.get();
-    ASSERT(skiaBitmap != nullptr);
-    if (skiaBitmap == nullptr) {
+    SkSurface* skSurface = pSkiaRender->GetSkSurface();
+    ASSERT(skSurface != nullptr);
+    if (skSurface == nullptr) {
+        return false;
+    }
+    sk_sp<SkImage> skSrcImage = skSurface->makeImageSnapshot();
+    ASSERT(skSrcImage != nullptr);
+    if (skSrcImage == nullptr) {
         return false;
     }
 
@@ -438,11 +386,10 @@ bool Render_Skia::StretchBlt(int32_t xDest, int32_t yDest, int32_t widthDest, in
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
-        skCanvas->drawImageRect(skiaBitmap->GetSkBitmap().asImage(), rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
+        skCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
         return true;
     }
     return false;
-
 }
 
 bool Render_Skia::AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, int32_t heightDest, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, int32_t widthSrc, int32_t heightSrc, uint8_t alpha)
@@ -458,9 +405,14 @@ bool Render_Skia::AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, in
     if (pSkiaRender == nullptr) {
         return false;
     }
-    Bitmap_Skia* skiaBitmap = pSkiaRender->m_pBitmapSkia.get();
-    ASSERT(skiaBitmap != nullptr);
-    if (skiaBitmap == nullptr) {
+    SkSurface* skSurface = pSkiaRender->GetSkSurface();
+    ASSERT(skSurface != nullptr);
+    if (skSurface == nullptr) {
+        return false;
+    }
+    sk_sp<SkImage> skSrcImage = skSurface->makeImageSnapshot();
+    ASSERT(skSrcImage != nullptr);
+    if (skSrcImage == nullptr) {
         return false;
     }
 
@@ -480,7 +432,7 @@ bool Render_Skia::AlphaBlend(int32_t xDest, int32_t yDest, int32_t widthDest, in
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
-        skCanvas->drawImageRect(skiaBitmap->GetSkBitmap().asImage(), rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
+        skCanvas->drawImageRect(skSrcImage, rcSkSrc, rcSkDest, SkSamplingOptions(), &skPaint, SkCanvas::kFast_SrcRectConstraint);
         return true;
     }
     return false;
@@ -1964,119 +1916,6 @@ void Render_Skia::DrawBoxShadow(const UiRect& rc,
     skPath.transform(mat);
 
     skCanvas->drawPath(skPath, paint);
-}
-
-HDC Render_Skia::GetRenderDC(HWND hWnd)
-{
-    if (m_hDC != nullptr) {
-        return m_hDC;
-    }
-    SkCanvas* skCanvas = GetSkCanvas();
-    if ((m_pBitmapSkia == nullptr) || (skCanvas == nullptr)) {
-        return nullptr;
-    }
-    HBITMAP hBitmap = m_pBitmapSkia->GetHBitmap();
-    if (hBitmap == nullptr) {
-        return nullptr;
-    }
-    HDC hDeskDC = ::GetDC(hWnd);
-    HDC hGetDC = ::CreateCompatibleDC(hDeskDC);
-    ::ReleaseDC(hWnd, hDeskDC);
-    hDeskDC = nullptr;
-
-    m_hOldObj = ::SelectObject(hGetDC, hBitmap);
-
-    if (skCanvas->isClipEmpty()) {
-        ::IntersectClipRect(hGetDC, 0, 0, 0, 0);
-    }
-    else if (skCanvas->isClipRect()) {
-        SkRect rcClip;
-        if (skCanvas->getLocalClipBounds(&rcClip)) {
-            RECT rc = { (int)rcClip.left(),(int)rcClip.top(),(int)rcClip.right(),(int)rcClip.bottom() };
-            ::InflateRect(&rc, -1, -1); //注意需要向内缩小一个象素
-            ::IntersectClipRect(hGetDC, rc.left, rc.top, rc.right, rc.bottom);
-        }
-    }
-    else
-    {
-        SkRegion rgn;
-        skCanvas->temporary_internal_getRgnClip(&rgn);
-        SkRegion::Iterator it(rgn);
-        int nCount = 0;
-        for (; !it.done(); it.next()) {
-            ++nCount;
-        }
-        it.rewind();
-
-        int nSize = sizeof(RGNDATAHEADER) + nCount * sizeof(RECT);
-        RGNDATA* rgnData = (RGNDATA*)::malloc(nSize);
-        ASSERT(rgnData != nullptr);
-        if (rgnData != nullptr) {
-            memset(rgnData, 0, nSize);
-            rgnData->rdh.dwSize = sizeof(RGNDATAHEADER);
-            rgnData->rdh.iType = RDH_RECTANGLES;
-            rgnData->rdh.nCount = nCount;
-            rgnData->rdh.rcBound.right = GetWidth();
-            rgnData->rdh.rcBound.bottom = GetHeight();
-
-            nCount = 0;
-            LPRECT pRc = (LPRECT)rgnData->Buffer;
-            for (; !it.done(); it.next()) {
-                SkIRect skrc = it.rect();
-                RECT rc = { skrc.fLeft,skrc.fTop,skrc.fRight,skrc.fBottom };
-                pRc[nCount++] = rc;
-            }
-
-            HRGN hRgn = ::ExtCreateRegion(NULL, nSize, rgnData);
-            ::free(rgnData);
-            ::SelectClipRgn(hGetDC, hRgn);
-            ::DeleteObject(hRgn);
-        }
-    }
-
-    ::SetGraphicsMode(hGetDC, GM_ADVANCED);
-    ::SetViewportOrgEx(hGetDC, (int)m_pSkPointOrg->x(), (int)m_pSkPointOrg->y(), NULL);
-
-    struct IxForm
-    {
-        enum Index {
-            kMScaleX = 0,
-            kMSkewX,
-            kMTransX,
-            kMSkewY,
-            kMScaleY,
-            kMTransY,
-            kMPersp0,
-            kMPersp1,
-            kMPersp2
-        };
-    };
-    SkMatrix mtx = skCanvas->getTotalMatrix();
-    XFORM xForm = { mtx.get(IxForm::kMScaleX),mtx.get(IxForm::kMSkewY),
-                    mtx.get(IxForm::kMSkewX),mtx.get(IxForm::kMScaleY),
-                    mtx.get(IxForm::kMTransX),mtx.get(IxForm::kMTransY) };
-    ::SetWorldTransform(hGetDC, &xForm);
-    m_hDC = hGetDC;
-    return hGetDC;
-}
-
-void Render_Skia::ReleaseRenderDC(HDC hdc)
-{
-    if (hdc == m_hDC) {
-        DeleteDC();
-    }
-}
-
-void Render_Skia::DeleteDC()
-{
-    if (m_hDC != nullptr) {
-        if (m_hOldObj != nullptr) {
-            ::SelectObject(m_hDC, m_hOldObj);
-            m_hOldObj = nullptr;
-        }
-        ::DeleteDC(m_hDC);
-        m_hDC = nullptr;
-    }
 }
 
 bool Render_Skia::ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen)

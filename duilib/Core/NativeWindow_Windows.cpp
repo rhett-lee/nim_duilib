@@ -1036,6 +1036,38 @@ bool NativeWindow::UpdateWindow() const
     return bRet;
 }
 
+/** 绘制的辅助类
+*/
+class NativeWindowRenderPaint:
+    public IRenderPaint
+{
+public:
+    NativeWindow* m_pNativeWindow = nullptr;
+    INativeWindow* m_pOwner = nullptr;
+    NativeMsg m_nativeMsg;
+    bool m_bHandled = false;
+
+public:
+    /** 通过回调接口，完成绘制
+    * @param [in] rcPaint 需要绘制的区域（客户区坐标）
+    */
+    virtual bool DoPaint(const UiRect& rcPaint) override
+    {
+        if (m_pOwner != nullptr) {
+            m_pOwner->OnNativePaintMsg(rcPaint, m_nativeMsg, m_bHandled);
+            return true;
+        }
+        return false;
+    }
+
+    /** 回调接口，获取当前窗口的透明度
+    */
+    virtual uint8_t GetWindowAlpha() override
+    {
+        return m_pNativeWindow->GetWindowAlpha();
+    }
+};
+
 LRESULT NativeWindow::OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     //回调准备绘制函数
@@ -1047,100 +1079,24 @@ LRESULT NativeWindow::OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
         bPaint = false;
     }
     if (bPaint) {
-        //开始绘制
-        PAINTSTRUCT ps = { 0, };
-        HDC hPaintDC = ::BeginPaint(m_hWnd, &ps);
-        UiRect rcPaint;
-        rcPaint.left = ps.rcPaint.left;
-        rcPaint.top = ps.rcPaint.top;
-        rcPaint.right = ps.rcPaint.right;
-        rcPaint.bottom = ps.rcPaint.bottom;
-        if (!rcPaint.IsEmpty() && (hPaintDC != nullptr)) {
-            //执行绘制
-            lResult = m_pOwner->OnNativePaintMsg(rcPaint, NativeMsg(uMsg, wParam, lParam), bHandled);
-
-            //绘制完成后，更新到窗口
-            IRender* pRender = m_pOwner->OnNativeGetRender();
-            SwapPaintBuffers(hPaintDC, rcPaint, pRender);
-
-            //结束本次绘制
-            ::EndPaint(m_hWnd, &ps);
-        }
-        else {            
-            //开始绘制返回值无效，结束绘制，使用另外一种绘制方法
-            ::EndPaint(m_hWnd, &ps);
-
-            //设置更新区域
-            UiRect rcUpdate;
-            rcUpdate.left = rectUpdate.left;
-            rcUpdate.top = rectUpdate.top;
-            rcUpdate.right = rectUpdate.right;
-            rcUpdate.bottom = rectUpdate.bottom;
-
-            //执行绘制
-            lResult = m_pOwner->OnNativePaintMsg(rcUpdate, NativeMsg(uMsg, wParam, lParam), bHandled);
-
-            //绘制完成后，更新到窗口
-            IRender* pRender = m_pOwner->OnNativeGetRender();            
-            SwapPaintBuffers(GetPaintDC(), rcUpdate, pRender);
-
-            //标记绘制区域为有效区域
-            ::ValidateRect(m_hWnd, &rectUpdate);
+        IRender* pRender = m_pOwner->OnNativeGetRender();
+        ASSERT(pRender != nullptr);
+        if (pRender != nullptr) {
+            NativeWindowRenderPaint renderPaint;
+            renderPaint.m_pNativeWindow = this;
+            renderPaint.m_pOwner = m_pOwner;
+            renderPaint.m_nativeMsg = NativeMsg(uMsg, wParam, lParam);
+            renderPaint.m_bHandled = bHandled;
+            bPaint = pRender->PaintAndSwapBuffers(&renderPaint);
+            bHandled = renderPaint.m_bHandled;
         }
     }
-    else {
+    if (!bPaint) {
         PAINTSTRUCT ps = { 0, };
         ::BeginPaint(m_hWnd, &ps);
         ::EndPaint(m_hWnd, &ps);
     }
     return lResult;
-}
-
-bool NativeWindow::SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender) const
-{
-    ASSERT(hPaintDC != nullptr);
-    if (hPaintDC == nullptr) {
-        return false;
-    }
-    ASSERT(!rcPaint.IsEmpty());
-    if (rcPaint.IsEmpty()) {
-        return false;
-    }
-    ASSERT(hPaintDC != nullptr);
-    if (hPaintDC == nullptr) {
-        return false;
-    }
-
-    // 渲染到窗口
-    bool bRet = false;
-    if (IsLayeredWindow()) {
-        UiRect rcWindow;
-        GetWindowRect(rcWindow);
-        UiRect rcClient;
-        GetClientRect(rcClient);
-        POINT pt = { rcWindow.left, rcWindow.top };
-        SIZE szWindow = { rcClient.right - rcClient.left, rcClient.bottom - rcClient.top };
-        POINT ptSrc = { 0, 0 };
-        BLENDFUNCTION bf = { AC_SRC_OVER, 0, static_cast<BYTE>(GetWindowAlpha()), AC_SRC_ALPHA };
-        HDC hdc = pRender->GetRenderDC(m_hWnd);
-        ASSERT(hdc != nullptr);
-        if (hdc != nullptr) {
-            bRet = ::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA) != FALSE;
-            ASSERT(bRet);
-            pRender->ReleaseRenderDC(hdc);
-        }        
-    }
-    else {
-        ASSERT(hPaintDC != nullptr);
-        HDC hdc = pRender->GetRenderDC(m_hWnd);
-        ASSERT(hdc != nullptr);
-        if (hdc != nullptr) {
-            bRet = ::BitBlt(hPaintDC, rcPaint.left, rcPaint.top, rcPaint.Width(), rcPaint.Height(),
-                            hdc, rcPaint.left, rcPaint.top, SRCCOPY) != FALSE;
-            pRender->ReleaseRenderDC(hdc);
-        }
-    }
-    return bRet;
 }
 
 void NativeWindow::KeepParentActive()
