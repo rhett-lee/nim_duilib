@@ -48,10 +48,7 @@ bool FrameworkThread::RunOnCurrentThreadWithLoop()
     m_threadMsg.SetMessageCallback(WM_USER_DEFINED_MSG, UiBind(&FrameworkThread::OnTaskMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     OnInit();
-
-    MessageLoop msgLoop;
-    msgLoop.Run();
-
+    OnRunMessageLoop();
     OnCleanup();
     if (m_nThreadIdentifier != kThreadNone) {
         GlobalManager::Instance().Thread().UnregisterThread(m_nThreadIdentifier);
@@ -288,6 +285,12 @@ void FrameworkThread::WorkerThreadProc()
 
 void FrameworkThread::OnInit()
 {
+}
+
+void FrameworkThread::OnRunMessageLoop()
+{
+    MessageLoop msgLoop;
+    msgLoop.Run();
 }
 
 void FrameworkThread::OnCleanup()

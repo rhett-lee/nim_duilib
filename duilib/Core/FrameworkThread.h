@@ -92,6 +92,10 @@ protected:
     */
     virtual void OnInit();
 
+    /** 运行消息循环，子类可以重写该函数，自己实现消息循环
+    */
+    virtual void OnRunMessageLoop();
+
     /** 退出时清理，在退出消息循环后调用
     */
     virtual void OnCleanup();
