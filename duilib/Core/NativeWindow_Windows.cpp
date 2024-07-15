@@ -2400,6 +2400,8 @@ bool NativeWindow::ShowWindowSysMenu(HWND hWnd, const POINT& pt) const
         SetMenuItemInfo(hSysMenu, SC_RESTORE, FALSE, &mii);
         SetMenuDefaultItem(hSysMenu, SC_CLOSE, FALSE);
         break;
+    default:
+        break;
     }
 
     // 在点击位置显示系统菜单

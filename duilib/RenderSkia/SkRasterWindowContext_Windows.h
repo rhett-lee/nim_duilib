@@ -7,8 +7,6 @@
 #pragma warning (disable: 4244 4201 4100)
 
 #include "include/core/SkSurface.h"
-#include "src/base/SkAutoMalloc.h"
-#include "tools/window/WindowContext.h"
 
 #pragma warning (pop)
 

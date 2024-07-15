@@ -14,7 +14,7 @@ namespace ui
 class ColorPreviewLabel: public Label
 {
 public:
-    ColorPreviewLabel(Window* pWindow): Label(pWindow)
+    explicit ColorPreviewLabel(Window* pWindow): Label(pWindow)
     {
     }
     virtual ~ColorPreviewLabel() override = default;

@@ -163,7 +163,7 @@ private:
 
     /** 文件路径是否做过规范化处理
     */
-    bool m_bLexicallyNormal;
+    bool m_bLexicallyNormal = false;
 };
 
 }

@@ -172,8 +172,8 @@ bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect&
     if (rcPaint.IsEmpty()) {
         return false;
     }
-    ASSERT(hPaintDC != nullptr);
-    if (hPaintDC == nullptr) {
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
         return false;
     }
 

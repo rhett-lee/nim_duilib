@@ -110,8 +110,8 @@ void Render_Skia::Clear(const UiColor& uiColor)
             ::memset(pPixelBits, uiColor.GetARGB(), GetWidth() * GetHeight() * sizeof(uint32_t));
         }
         else {
-            const int32_t nLeft = 0;
-            const int32_t nTop = 0;
+            constexpr const int32_t nLeft = 0;
+            constexpr const int32_t nTop = 0;
             const int32_t nRight = std::max(GetWidth(), 0);
             const int32_t nBottom = std::max(GetHeight(), 0);
             const int32_t nWidth = nRight - nLeft;
@@ -829,7 +829,7 @@ void Render_Skia::InitGradientColor(SkPaint& skPaint, const UiRect& rc, UiColor 
     SkRect rcSkDest = SkRect::Make(rcSkDestI);
     rcSkDest.offset(*m_pSkPointOrg);
 
-    SkPoint pts[2];
+    SkPoint pts[2] = {0, };
     pts[0].set(rcSkDest.fLeft, rcSkDest.fTop);
     if (nColor2Direction == 2) {
         //上->下
@@ -1107,7 +1107,7 @@ void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, 
         SkRect rcGradientDest = SkRect::Make(rcGradientDestI);
         rcGradientDest.offset(*m_pSkPointOrg);
 
-        SkPoint pts[2];
+        SkPoint pts[2] = {0, };
         pts[0].set(rcGradientDest.fLeft, rcGradientDest.fTop);
         pts[1].set(rcGradientDest.fRight, rcGradientDest.fBottom);
         
@@ -1214,7 +1214,7 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
     }
     skPaint.setPathEffect(skPathEffect);
 
-    SkPaint::Cap cap;
+    SkPaint::Cap cap = SkPaint::Cap::kDefault_Cap;
     switch (pen->GetDashCap()) {
     case IPen::kButt_Cap:
         cap = SkPaint::Cap::kButt_Cap;
@@ -1226,13 +1226,12 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
         cap = SkPaint::Cap::kSquare_Cap;
         break;
     default:
-        cap = SkPaint::Cap::kDefault_Cap;
         break;
     }
 
     skPaint.setStrokeCap(cap);
 
-    SkPaint::Join join;
+    SkPaint::Join join = SkPaint::Join::kDefault_Join;
     switch (pen->GetLineJoin()) {
     case IPen::LineJoin::kMiter_Join:
         join = SkPaint::Join::kMiter_Join;
@@ -1244,7 +1243,6 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
         join = SkPaint::Join::kRound_Join;
         break;
     default:
-        join = SkPaint::Join::kDefault_Join;
         break;
     }
 
