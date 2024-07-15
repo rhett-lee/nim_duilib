@@ -540,20 +540,27 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
         return;
     }
     if (m_listCtrlType == ListCtrlType::Report) {
-        m_pReportView->SetDataProvider(m_pData);
-        m_pData->SetListView(m_pReportView);
-        m_pReportView->SetVisible(true);
-        if (m_pReportView->IsMultiSelect() != IsMultiSelect()) {
-            m_pReportView->SetMultiSelect(IsMultiSelect());
+        //切换为Report视图
+        ASSERT(m_pReportView != nullptr);
+        if (m_pReportView != nullptr) {
+            m_pReportView->SetDataProvider(m_pData);
+            m_pData->SetListView(m_pReportView);
+            m_pReportView->SetVisible(true);
+            if (m_pReportView->IsMultiSelect() != IsMultiSelect()) {
+                m_pReportView->SetMultiSelect(IsMultiSelect());
+            }
         }
         if (m_pIconView != nullptr) {
             m_pIconView->SetVisible(false);
+            m_pIconView->SetDataProvider(nullptr);            
         }
         if (m_pListView != nullptr) {
             m_pListView->SetVisible(false);
+            m_pListView->SetDataProvider(nullptr);            
         }
     }
     else if (m_listCtrlType == ListCtrlType::Icon) {
+        //切换为Icon视图
         if (m_pIconView == nullptr) {
             m_pIconView = new ListCtrlIconView(GetWindow(), false);
             m_pIconView->SetListCtrl(this);
@@ -569,12 +576,15 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
         }
         if (m_pReportView != nullptr) {
             m_pReportView->SetVisible(false);
+            m_pReportView->SetDataProvider(nullptr);
         }
         if (m_pListView != nullptr) {
             m_pListView->SetVisible(false);
+            m_pListView->SetDataProvider(nullptr);
         }
     }
     else if (m_listCtrlType == ListCtrlType::List) {
+        //切换为List视图
         if (m_pListView == nullptr) {
             m_pListView = new ListCtrlIconView(GetWindow(), true);
             m_pListView->SetListCtrl(this);
@@ -590,9 +600,11 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
         }
         if (m_pReportView != nullptr) {
             m_pReportView->SetVisible(false);
+            m_pReportView->SetDataProvider(nullptr);
         }
         if (m_pIconView != nullptr) {
             m_pIconView->SetVisible(false);
+            m_pIconView->SetDataProvider(nullptr);
         }
     }
 }
