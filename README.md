@@ -86,7 +86,7 @@ git clone https://github.com/rhett-lee/skia_compile
  - 新增加了ShadowWnd类：是WinImplBase的子类，使用附加阴影窗口实现的基类，实现了创建窗口并附加的功能，提供没有 WS_EX_LAYERED 属性的窗口阴影
 10. 完善了原有控件的一些功能：
  - 对窗口类（Window）增加了新的属性：的功能进行了完善，提高对DPI自适应、窗口消息的代码容错，代码结构做了调整
- - 对窗口类（Window）增加了新的属性：use_system_caption，提供使用操作系统默认标题栏的选项
+ - 对窗口类（Window）增加了新的属性：use_system_caption，snap_layout_menu，sys_menu，sys_menu_rect, icon属性，提供使用操作系统默认标题栏的选项，自绘标题栏的功能与系统标题栏的功能相似；
  - 对窗口（Window）引入WindowDropTarget辅助类，提供对基于窗口的拖放功能的支持
  - 对资源管理相关的部分做了梳理，使得字体、颜色、图片等资源管理更容易理解
  - 对ListBox控件进行了优化：细分为ListBox、VListBox、HListBox、VTileListBox、HTileListBox、VirtualListBox、VirtualVListBox、VirtualHListBox、VirtualVTileListBox、VirtualHTileListBox几种，功能更加完善，基于虚表的ListBox功能可用性提升；

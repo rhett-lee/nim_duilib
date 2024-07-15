@@ -104,7 +104,7 @@
 | ImageGif | [duilib/Image/ImageGif.h](../duilib/Image/ImageGif.h) | 控件背景动态播放动画的逻辑封装（支持GIF/WebP/APNG动画）|
 | ImageList | [duilib/Core/ImageList.h](../duilib/Core/ImageList.h) | 图片列表|
 | ImageManager | [duilib/Core/ImageManager.h](../duilib/Core/ImageManager.h) | 图片资源管理器|
-| IconManager | [duilib/Core/IconManager.h](../duilib/Core/IconManager.h) | HICON句柄管理器|
+| IconManager | [duilib/Core/IconManager.h](../duilib/Core/IconManager_Windows.h) | HICON句柄管理器|
 
 * 动画
 | 类名称/说明 | 关联头文件| 用途 |
@@ -220,7 +220,7 @@
 | IRenderFactory | [duilib/Render/IRender.h](../duilib/Render/IRender.h) | 渲染接口的管理类，渲染接口管理，用于创建Font、Pen、Brush、Path、Matrix、Bitmap、Render等渲染实现对象 |
 | FontManager | [duilib/Core/FontManager.h](../duilib/Core/FontManager.h) | 字体的管理类 |
 | ImageManager | [duilib/Core/ImageManager.h](../duilib/Core/ImageManager.h) | 图片的管理类 |
-| IconManager | [duilib/Core/IconManager.h](../duilib/Core/IconManager.h) | HICON句柄管理器 |
+| IconManager | [duilib/Core/IconManager_Windows.h](../duilib/Core/IconManager_Windows.h) | HICON句柄管理器 |
 | ZipManager | [duilib/Core/ZipManager.h](../duilib/Core/ZipManager.h) | ZIP压缩包管理器 |
 | DpiManager | [duilib/Core/DpiManager.h](../duilib/Core/DpiManager.h) | DPI管理器，用于支持DPI自适应等功能 |
 | TimerManager | [duilib/Core/TimerManager.h](../duilib/Core/TimerManager.h) | 定时器管理器 |
