@@ -108,8 +108,13 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     //画圆角矩形
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
+
+    //圆角大小，必须是偶数，否则使用路径的时候，不能闭合
     UiSize roundSize(12, 12);
     Dpi().ScaleSize(roundSize);
+    roundSize.cx = (roundSize.cx / 2) * 2;
+    roundSize.cy = (roundSize.cy / 2) * 2;
+
     pRender->DrawRoundRect(rect, roundSize, UiColor(0xffC63535), DpiScaledInt(2));
     textRect = rect;
     textRect.top = rect.bottom;
