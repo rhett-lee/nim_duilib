@@ -112,10 +112,10 @@ protected:
     */
     virtual bool IsPtInMaximizeRestoreButton(const UiPoint& pt) const override;
 
-private:
-    /** 初始化窗口数据（内部函数）
+protected:
+    /** 正在初始化窗口数据（内部函数）
     */
-    virtual void InitWindow() override final;
+    virtual void PreInitWindow() override;
 
 private:
     /** 窗口功能按钮被点击时调用

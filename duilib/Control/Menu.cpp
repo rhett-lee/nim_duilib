@@ -293,7 +293,7 @@ void Menu::ResizeMenu()
     if (estSize.cy.IsInt32()) {
         szAvailable.cy = estSize.cy.GetInt32();
     }    
-    SetInitSize(szAvailable.cx, szAvailable.cy, false, false);
+    SetInitSize(szAvailable.cx, szAvailable.cy);
     ui::UiPadding rcCorner = GetShadowCorner();
     ui::UiSize szInit = szAvailable;
     szInit.cx -= rcCorner.left + rcCorner.right;

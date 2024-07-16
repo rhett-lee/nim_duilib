@@ -1,5 +1,5 @@
-#ifndef UI_RENDER_SKIA_RASTER_WINDOW_CONTEXT_WINDOWS_H_
-#define UI_RENDER_SKIA_RASTER_WINDOW_CONTEXT_WINDOWS_H_
+#ifndef UI_RENDER_SKIA_GL_WINDOW_CONTEXT_WINDOWS_H_
+#define UI_RENDER_SKIA_GL_WINDOW_CONTEXT_WINDOWS_H_
 
 #include "duilib/duilib_config_windows.h"
 
@@ -7,7 +7,7 @@
 #pragma warning (disable: 4244 4201 4100)
 
 #include "include/core/SkSurface.h"
-#include "tools/window/RasterWindowContext.h"
+#include "tools/window/GLWindowContext.h"
 
 // DisplayParams.fGrContextOptions 类型为GrContextOptions:
 // 在GR_TEST_UTILS宏定义和不定义的情况下，结构体大小会不同，如果不一致会导致程序崩溃
@@ -34,22 +34,16 @@ class UiRect;
 class IRender;
 class IRenderPaint;
 
-/** 该类的来源：skia\tools\window\win\RasterWindowContext_win.cpp，做了修改
+/** 该类的来源：skia\tools\window\win\GLWindowContext_win.cpp，做了修改
 *   函数和变量命名规则与Skia一致，以便于后续同步代码时方便比对代码修改。
 */
-class SkRasterWindowContext_Windows: public skwindow::internal::RasterWindowContext
+class SkGLWindowContext_Windows: public skwindow::internal::GLWindowContext
 {
 public:
-    SkRasterWindowContext_Windows(HWND hWnd, const skwindow::DisplayParams& params);
-    SkRasterWindowContext_Windows(const SkRasterWindowContext_Windows& r) = delete;
-    SkRasterWindowContext_Windows& operator = (const SkRasterWindowContext_Windows& r) = delete;
-    virtual ~SkRasterWindowContext_Windows() override;
-
-public:
-    virtual sk_sp<SkSurface> getBackbufferSurface() override;
-    virtual bool isValid() override { return SkToBool(m_hWnd); }
-    virtual void resize(int w, int h) override;
-    virtual void setDisplayParams(const skwindow::DisplayParams& params) override;
+    SkGLWindowContext_Windows(HWND hWnd, const skwindow::DisplayParams& params);
+    SkGLWindowContext_Windows(const SkGLWindowContext_Windows& r) = delete;
+    SkGLWindowContext_Windows& operator = (const SkGLWindowContext_Windows& r) = delete;
+    virtual ~SkGLWindowContext_Windows() override;
 
 public:
     /** 绘制并刷新到屏幕（Render的实现已经与窗口关联）, 同步完成
@@ -58,12 +52,12 @@ public:
     */
     bool PaintAndSwapBuffers(IRender* pRender, IRenderPaint* pRenderPaint);
 
-    /** 获取位图GDI句柄
-    */
-    HBITMAP GetHBitmap() const;
-
 protected:
+    virtual void resize(int w, int h) override;
     virtual void onSwapBuffers() override;
+    virtual sk_sp<SkSurface> getBackbufferSurface() override;
+    virtual sk_sp<const GrGLInterface> onInitializeContext() override;
+    virtual void onDestroyContext() override;
 
     /** 绘制结束后，绘制数据从渲染引擎更新到窗口
     * @param [in] hPaintDC 当前绘制的DC
@@ -74,35 +68,16 @@ protected:
     */
     bool SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender, uint8_t nWindowAlpha) const;
 
-    /** 获取当前窗口的客户区矩形
-    * @param [out] rcClient 返回窗口的客户区坐标
-    */
-    void GetClientRect(UiRect& rcClient) const;
-
-    /** 获取当前窗口的窗口区矩形
-    * @param [out] rcWindow 返回窗口左上角和右下角的屏幕坐标
-    */
-    void GetWindowRect(UiRect& rcWindow) const;
-
-    /** 创建一个设备无关的位图
-    *@return 返回位图句柄，由调用方释放位图资源
-    */
-    HBITMAP CreateHBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits) const;
-
 private:
-    /** Surface接口
-    */
-    sk_sp<SkSurface> m_fBackbufferSurface;
-
     /** 窗口句柄
     */
     HWND m_hWnd;
 
-    /** 位图GDI句柄
+    /** OpenGL的渲染上下文
     */
-    HBITMAP m_hBitmap;
+    HGLRC m_fHGLRC;
 };
 
 } // namespace ui
 
-#endif // UI_RENDER_SKIA_RASTER_WINDOW_CONTEXT_WINDOWS_H_
+#endif // UI_RENDER_SKIA_GL_WINDOW_CONTEXT_WINDOWS_H_

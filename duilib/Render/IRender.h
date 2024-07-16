@@ -506,6 +506,23 @@ enum class RenderClipType
     kRegion //裁剪区域是个Region
 };
 
+/** 后台绘制方式
+*/
+enum class RenderBackendType
+{
+    /** 使用CPU绘制
+    */
+    kRaster_BackendType = 0,
+
+    /** 使用OpenGL的绘制
+    *   注意事项：
+    *   （1）一个线程内，只允许有一个窗口使用OpenGL绘制，否则会出现导致程序崩溃的问题
+    *   （2）OpenGL绘制的窗口，不能是分层窗口（即带有WS_EX_LAYERED属性的窗口）
+    *   （3）使用OpenGL的窗口，每次绘制都是绘制整个窗口，不支持局部绘制，所以不一定比使用CPU绘制的情况下性能更好，最好根据实际情况评估使用最佳的绘制方式
+    */
+    kNativeGL_BackendType = 1
+};
+
 /** 渲染接口
 */
 class IRenderFactory;
@@ -515,6 +532,10 @@ public:
     /** 获取Render实现类型
     */
     virtual RenderType GetRenderType() const = 0;
+
+    /** 获取后台渲染的类型
+    */
+    virtual RenderBackendType GetRenderBackendType() const = 0;
 
     /** 获取画布宽度
     */
@@ -942,19 +963,6 @@ public:
     */
     virtual bool PaintAndSwapBuffers(IRenderPaint* pRenderPaint) = 0;
 
-};
-
-/** 后台绘制方式
-*/
-enum class RenderBackendType
-{
-    /** 使用CPU绘制
-    */
-    kRaster_BackendType = 0,
-
-    /** 使用OpenGL的绘制(暂未实现)
-    */
-    kNativeGL_BackendType = 1
 };
 
 /** 渲染接口管理，用于创建Font、Pen、Brush、Path、Matrix、Bitmap、Render等渲染实现对象

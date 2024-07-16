@@ -21,7 +21,8 @@ Window::Window() :
     m_rcAlphaFix(0, 0, 0, 0),
     m_bFirstLayout(true),
     m_bIsArranged(false),
-    m_bPostQuitMsgWhenClosed(false)
+    m_bPostQuitMsgWhenClosed(false),
+    m_renderBackendType(RenderBackendType::kRaster_BackendType)
 {
     m_toolTip = std::make_unique<ToolTip>();
 }
@@ -53,7 +54,41 @@ void Window::AttachWindowClose(const EventCallback& callback)
     m_OnEvent[kEventWindowClose] += callback;
 }
 
-void Window::InitWindow()
+bool Window::SetRenderBackendType(RenderBackendType backendType)
+{
+    m_renderBackendType = backendType;
+    ASSERT(IsWindow());
+    if (!IsWindow()) {
+        return false;
+    }
+    bool bRet = false;
+    if (m_render == nullptr) {
+        //首次调用时，初始化
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+        ASSERT(pRenderFactory != nullptr);
+        if (pRenderFactory != nullptr) {
+            m_render.reset(pRenderFactory->CreateRender(GetRenderDpi(), NativeWnd()->GetHWND(), m_renderBackendType));
+            bRet = (m_render != nullptr) ? true : false;
+        }
+    }
+    else {
+        ASSERT(m_render->GetRenderBackendType() == backendType);
+        bRet = (m_render->GetRenderBackendType() == backendType) ? true : false;
+    }
+    ASSERT(bRet);
+    return bRet;
+}
+
+RenderBackendType Window::GetRenderBackendType() const
+{
+    RenderBackendType backendType = m_renderBackendType;
+    if (m_render != nullptr) {
+        backendType = m_render->GetRenderBackendType();
+    }
+    return backendType;
+}
+
+void Window::PreInitWindow()
 {
     if (!IsWindow()) {
         return;
@@ -73,18 +108,28 @@ void Window::InitWindow()
 
     //添加到全局管理器
     GlobalManager::Instance().AddWindow(this);
+}
 
+void Window::PostInitWindow()
+{
     //创建渲染接口
-    ASSERT(m_render == nullptr);
+    ASSERT(m_render != nullptr);
     if (m_render == nullptr) {
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
-            RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
-            m_render.reset(pRenderFactory->CreateRender(GetRenderDpi(), NativeWnd()->GetHWND(), backendType));
+            m_render.reset(pRenderFactory->CreateRender(GetRenderDpi(), NativeWnd()->GetHWND(), m_renderBackendType));
         }
     }
     ASSERT(m_render != nullptr);
+
+    //根据XML的size属性，初始化窗口大小
+    if ((m_szInitSize.cx > 0) && (m_szInitSize.cy > 0)) {
+        Resize(m_szInitSize.cx, m_szInitSize.cy, false, false);
+    }
+
+    //检测是否需要根据root节点的auto类型设置窗口大小（比如菜单等有此种用法）
+    AutoResizeWindow(false);
 
     //创建后，Render大小与客户区大小同步
     ResizeRenderToClientSize();
@@ -171,9 +216,7 @@ bool Window::AttachBox(Box* pRoot)
     m_bIsArranged = true;
     m_bFirstLayout = true;
     // Initiate all control
-    bool isInit = InitControls(m_pRoot);
-    AutoResizeWindow(false);
-    return isInit;
+    return InitControls(m_pRoot);
 }
 
 bool Window::InitControls(Control* pControl)
@@ -589,11 +632,15 @@ void Window::SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale)
     }
 }
 
-void Window::SetInitSize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
+void Window::SetInitSize(int cx, int cy)
 {
     ASSERT(IsWindow());
     if (m_pRoot == nullptr) {
-        Resize(cx, cy, bContainShadow, bNeedDpiScale);
+        m_szInitSize.cx = cx;
+        m_szInitSize.cy = cy;
+    }
+    else {
+        Resize(cx, cy, false, false);
     }
 }
 
@@ -750,7 +797,8 @@ bool Window::ResizeRenderToClientSize() const
     bool bRet = false;
     UiRect rcClient;
     GetClientRect(rcClient);
-    if (!rcClient.IsEmpty()) {
+    ASSERT(m_render != nullptr);
+    if ((m_render != nullptr) && !rcClient.IsEmpty()) {
         if ((m_render->GetWidth() != rcClient.Width()) || (m_render->GetHeight() != rcClient.Height())) {
             bRet = m_render->Resize(rcClient.Width(), rcClient.Height());
             ASSERT(bRet && "Window::ResizeRenderToClientSize failed!");
@@ -758,11 +806,7 @@ bool Window::ResizeRenderToClientSize() const
         else {
             bRet = true;
         }
-    }
-    else {
-        bRet = m_render->Resize(1, 1);
-        ASSERT(bRet && "Window::ResizeRenderToClientSize failed!");
-    }    
+    } 
     return bRet;
 }
 
@@ -1634,6 +1678,8 @@ void Window::PostQuitMsgWhenClosed(bool bPostQuitMsg)
 
 ui::IRender* Window::GetRender() const
 {
+    //这里加断言：业务流程调用到此处，render必须是已经创建完成的，否则逻辑有问题（比如估算控件大小，自动设置ToolTip宽度等功能均会有异常）
+    ASSERT(m_render != nullptr);
     ResizeRenderToClientSize();
     return m_render.get();
 }

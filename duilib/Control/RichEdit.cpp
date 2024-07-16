@@ -2056,23 +2056,27 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         // Remember wparam is actually the hdc and lparam is the update
         // rect because this message has been preprocessed by the window.
         HDC hdc = pRender->GetRenderDC(GetWindow()->NativeWnd()->GetHWND());
-        RECT paintRect = { rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom };
-        pTextServices->TxDraw(DVASPECT_CONTENT,         // Draw Aspect
-                              /*-1*/0,                  // Lindex
-                              NULL,                     // Info for drawing optimazation
-                              NULL,                     // target device information
-                              hdc,                      // Draw device HDC
-                              NULL,                     // Target device HDC
-                              (RECTL*)&rc,              // Bounding client rectangle
-                              NULL,                     // Clipping rectangle for metafiles
-                              &paintRect,               // Update rectangle
-                              NULL,                     // Call back function
-                              NULL,                     // Call back parameter
-                              0);                       // What view of the object
+        if(hdc != nullptr){
+            RECT paintRect = { rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom };
+            pTextServices->TxDraw(DVASPECT_CONTENT,         // Draw Aspect
+                                  /*-1*/0,                  // Lindex
+                                  NULL,                     // Info for drawing optimazation
+                                  NULL,                     // target device information
+                                  hdc,                      // Draw device HDC
+                                  NULL,                     // Target device HDC
+                                  (RECTL*)&rc,              // Bounding client rectangle
+                                  NULL,                     // Clipping rectangle for metafiles
+                                  &paintRect,               // Update rectangle
+                                  NULL,                     // Call back function
+                                  NULL,                     // Call back parameter
+                                  0);                       // What view of the object
 
-        pRender->ReleaseRenderDC(hdc);
+            pRender->ReleaseRenderDC(hdc);
+            //绘制完成后，做标记，避免重复绘制
+            bNeedPaint = false;
+        }
     }
-    else if (bNeedPaint) {
+    if (bNeedPaint) {
         PaintRichEdit(pRender, rcPaint);
     }
 

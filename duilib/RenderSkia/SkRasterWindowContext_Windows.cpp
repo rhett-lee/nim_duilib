@@ -4,7 +4,7 @@
 namespace ui {
 
 SkRasterWindowContext_Windows::SkRasterWindowContext_Windows(HWND hWnd, const skwindow::DisplayParams& params):
-    RenderWindowContext(params),
+    skwindow::internal::RasterWindowContext(params),
     m_hWnd(hWnd),
     m_hBitmap(nullptr)
 {
