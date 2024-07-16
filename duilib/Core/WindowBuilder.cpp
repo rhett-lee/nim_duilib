@@ -311,6 +311,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
     DString strName;
     DString strValue;
 
+    bool bInitRenderBackendType = false;
     //首先处理mininfo/maxinfo/use_system_caption，因为其他属性有用到这些个属性的
     for (pugi::xml_attribute attr : root.attributes()) {
         strName = attr.name();
@@ -328,6 +329,25 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         else if (strName == _T("use_system_caption")) {
             pWindow->SetUseSystemCaption(strValue == _T("true"));
         }
+        else if (strName == _T("render_backend_type")) {
+            RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
+            if (StringUtil::IsEqualNoCase(strValue, L"GL")) {
+                backendType = RenderBackendType::kNativeGL_BackendType;
+            }
+            else if (StringUtil::IsEqualNoCase(strValue, L"CPU")) {
+                backendType = RenderBackendType::kRaster_BackendType;
+            }
+            else {
+                ASSERT(0);
+            }
+            pWindow->SetRenderBackendType(backendType);
+            bInitRenderBackendType = true;
+        }
+    }
+
+    if (!bInitRenderBackendType) {
+        //首先初始化Render后台绘制方式, 此调用会创建Render
+        pWindow->SetRenderBackendType(RenderBackendType::kRaster_BackendType);
     }
 
     //注：如果use_system_caption为true，则层窗口关闭（因为这两个属性互斥的）
@@ -455,7 +475,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             if ((maxSize.cy > 0) && (cy > maxSize.cy)) {
                 cy = maxSize.cy;
             }
-            pWindow->SetInitSize(cx, cy, false, false);
+            pWindow->SetInitSize(cx, cy);
         }
     }
 }

@@ -17,9 +17,9 @@ WindowImplBase::~WindowImplBase()
 {
 }
 
-void WindowImplBase::InitWindow()
+void WindowImplBase::PreInitWindow()
 {
-    __super::InitWindow();
+    __super::PreInitWindow();
 
     //保存资源所在路径(不支持绝对路径)
     FilePath skinFolder(GetSkinFolder());

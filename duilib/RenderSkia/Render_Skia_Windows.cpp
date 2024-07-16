@@ -1,6 +1,6 @@
 #include "Render_Skia_Windows.h"
 #include "SkRasterWindowContext_Windows.h"
-#include "RenderWindowContext.h"
+#include "SkGLWindowContext_Windows.h"
 
 #pragma warning (push)
 #pragma warning (disable: 4267 4244 4201 4100)
@@ -8,14 +8,6 @@
 #include "include/core/SkCanvas.h"
 #include "include/core/SkSurface.h"
 #include "include/core/SkRegion.h"
-
-#include "tools/window/WindowContext.h"
-
-//暂未支持OpenGL渲染
-//#define SK_GL
-//#define GR_TEST_UTILS
-//#include "include/gpu/GrDirectContext.h"
-//#include "include/gpu/GrRecordingContext.h"
 
 #pragma warning (pop)
 
@@ -25,9 +17,22 @@ namespace ui {
 * @param [in] hWnd 关联的窗口句柄，可以为nullptr
 * @param [in] params 显示相关的参数
 */
-std::unique_ptr<RenderWindowContext> MakeRasterForWin(HWND hWnd, const skwindow::DisplayParams& params)
+std::unique_ptr<skwindow::WindowContext> MakeRasterForWin(HWND hWnd, const skwindow::DisplayParams& params)
 {
-    std::unique_ptr<RenderWindowContext> ctx(new SkRasterWindowContext_Windows(hWnd, params));
+    std::unique_ptr<skwindow::WindowContext> ctx(new SkRasterWindowContext_Windows(hWnd, params));
+    return ctx;
+}
+
+/** 创建GPU实现的WindowContext
+* @param [in] hWnd 关联的窗口句柄，可以为nullptr
+* @param [in] params 显示相关的参数
+*/
+std::unique_ptr<skwindow::WindowContext> MakeGLForWin(HWND hWnd, const skwindow::DisplayParams& params)
+{
+    std::unique_ptr<skwindow::WindowContext> ctx(new SkGLWindowContext_Windows(hWnd, params));
+    if (!ctx->isValid()) {
+        return nullptr;
+    }
     return ctx;
 }
 
@@ -37,14 +42,41 @@ Render_Skia_Windows::Render_Skia_Windows(HWND hWnd, RenderBackendType backendTyp
     m_hDC(nullptr),
     m_hOldObj(nullptr)
 {
+    if (backendType == RenderBackendType::kNativeGL_BackendType) {
+        //GPU的绘制，必须绑定窗口
+        ASSERT(::IsWindow(hWnd));
+        if (!::IsWindow(hWnd)) {
+            backendType = RenderBackendType::kRaster_BackendType;
+        }
+    }
     //创建WindowContext
-    m_pWindowContext = MakeRasterForWin(hWnd, skwindow::DisplayParams());
-    ASSERT(m_pWindowContext != nullptr);
+    if (backendType == RenderBackendType::kNativeGL_BackendType) {
+        //GPU绘制
+        m_pWindowContext = MakeGLForWin(hWnd, skwindow::DisplayParams());
+        ASSERT(m_pWindowContext != nullptr);
+        if (m_pWindowContext != nullptr) {
+            m_backendType = RenderBackendType::kNativeGL_BackendType;
+        }        
+    }
+    //如果GL不成功，则创建CPU绘制的上下文
+    if (m_pWindowContext == nullptr) {
+        //CPU绘制
+        m_pWindowContext = MakeRasterForWin(hWnd, skwindow::DisplayParams());
+        ASSERT(m_pWindowContext != nullptr);
+        if (m_pWindowContext != nullptr) {
+            m_backendType = RenderBackendType::kRaster_BackendType;
+        }        
+    }
 }
 
 Render_Skia_Windows::~Render_Skia_Windows()
 {
     DeleteDC();
+}
+
+RenderBackendType Render_Skia_Windows::GetRenderBackendType() const
+{
+    return m_backendType;
 }
 
 bool Render_Skia_Windows::Resize(int32_t width, int32_t height)
@@ -98,7 +130,23 @@ bool Render_Skia_Windows::PaintAndSwapBuffers(IRenderPaint* pRenderPaint)
     ASSERT(pRenderPaint != nullptr);
     ASSERT(m_pWindowContext != nullptr);
     if ((m_pWindowContext != nullptr) && (pRenderPaint != nullptr)) {
-        return m_pWindowContext->PaintAndSwapBuffers(this, pRenderPaint);
+        if (m_backendType == RenderBackendType::kNativeGL_BackendType) {
+            SkGLWindowContext_Windows* pWindowContext = dynamic_cast<SkGLWindowContext_Windows*>(m_pWindowContext.get());
+            ASSERT(pWindowContext != nullptr);
+            if (pWindowContext != nullptr) {
+                return pWindowContext->PaintAndSwapBuffers(this, pRenderPaint);
+            }
+        }
+        else if (m_backendType == RenderBackendType::kRaster_BackendType) {
+            SkRasterWindowContext_Windows* pWindowContext = dynamic_cast<SkRasterWindowContext_Windows*>(m_pWindowContext.get());
+            ASSERT(pWindowContext != nullptr);
+            if (pWindowContext != nullptr) {
+                return pWindowContext->PaintAndSwapBuffers(this, pRenderPaint);
+            }
+        }
+        else {
+            ASSERT(false);
+        }
     }
     return false;
 }
@@ -145,8 +193,9 @@ HDC Render_Skia_Windows::GetRenderDC(HWND hWnd)
         return nullptr;
     }
     SkRasterWindowContext_Windows* pWindowContext = dynamic_cast<SkRasterWindowContext_Windows*>(m_pWindowContext.get());
-    ASSERT(pWindowContext != nullptr);
     if (pWindowContext == nullptr) {
+        //如果不是CPU渲染的，不提供DC，该GetRenderDC函数，目前只有RichEdit在用，这里返回nullptr让RichEdit采取另外一种绘制方法
+        ASSERT(GetRenderBackendType() != RenderBackendType::kRaster_BackendType);
         return nullptr;
     }
 

@@ -44,10 +44,17 @@ int32_t WindowBase::DoModal(WindowBase* pParentWindow, const WindowCreateParam& 
 
 void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    //窗口完成创建，初始化
+    //窗口完成创建，初始化（内部使用）
     InitWindowBase();
-    InitWindow();
-    OnInitWindow();
+
+    //回调，让子类解析XML文件并与窗口绑定（内部使用，子类可重写）
+    PreInitWindow();
+
+    //内部初始化（内部使用）
+    PostInitWindow();
+
+    //调用子类的初始化函数
+    OnInitWindow();    
     OnCreateWndMsg(bDoModal, nativeMsg, bHandled);
 }
 

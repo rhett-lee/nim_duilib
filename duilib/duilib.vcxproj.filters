@@ -456,6 +456,15 @@
     <ClCompile Include="RenderSkia\SkRasterWindowContext_Windows.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
+    <ClCompile Include="RenderSkia\SkGLWindowContext_Windows.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\skia\tools\window\GLWindowContext.cpp">
+      <Filter>RenderSkia\Skia</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\skia\tools\gpu\gl\win\SkWGL_win.cpp">
+      <Filter>RenderSkia\Skia</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1001,8 +1010,17 @@
     <ClInclude Include="RenderSkia\SkRasterWindowContext_Windows.h">
       <Filter>RenderSkia</Filter>
     </ClInclude>
-    <ClInclude Include="RenderSkia\RenderWindowContext.h">
+    <ClInclude Include="RenderSkia\SkGLWindowContext_Windows.h">
       <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\skia\tools\window\GLWindowContext.h">
+      <Filter>RenderSkia\Skia</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\skia\tools\window\RasterWindowContext.h">
+      <Filter>RenderSkia\Skia</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\skia\tools\gpu\gl\win\SkWGL.h">
+      <Filter>RenderSkia\Skia</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

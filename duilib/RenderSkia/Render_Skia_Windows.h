@@ -3,10 +3,12 @@
 
 #include "duilib/RenderSkia/Render_Skia.h"
 
+namespace skwindow {
+    class WindowContext;
+}
+
 namespace ui 
 {
-class RenderWindowContext;
-
 /** 渲染引擎接口的Windows实现
 */
 class UILIB_API Render_Skia_Windows : public Render_Skia
@@ -22,6 +24,10 @@ public:
     virtual ~Render_Skia_Windows() override;
 
 public:
+    /** 获取后台渲染的类型
+    */
+    virtual RenderBackendType GetRenderBackendType() const override;
+
     /** 大小发生变化
     */
     virtual bool Resize(int32_t width, int32_t height) override;
@@ -69,7 +75,7 @@ private:
 private:
     /** WindowContext对象
     */
-    std::unique_ptr<RenderWindowContext> m_pWindowContext;
+    std::unique_ptr<skwindow::WindowContext> m_pWindowContext;
 
     /** 后台绘制方式
     */

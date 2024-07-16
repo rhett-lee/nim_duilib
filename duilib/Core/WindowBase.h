@@ -544,13 +544,17 @@ public:
     void SetLastMousePos(const UiPoint& pt);
 
 protected:
-    /** 初始化窗口数据
+    /** 正在初始化窗口数据
     */
-    virtual void InitWindow() = 0;
+    virtual void PreInitWindow() = 0;
 
-    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
+    /** 初始化窗口数据（当窗口创建完成以后调用此函数），供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() = 0;
+
+    /** 完成初始化窗口数据
+    */
+    virtual void PostInitWindow() = 0;
 
     /** 窗口正在关闭，处理内部状态
     */

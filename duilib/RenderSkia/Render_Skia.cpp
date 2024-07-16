@@ -97,7 +97,11 @@ void* Render_Skia::GetPixelBits() const
         if (skCanvas->peekPixels(&pixmap)) {
             pPixelBits = pixmap.writable_addr();
         }
-    }    
+    }
+    ASSERT(pPixelBits != nullptr);
+    if (pPixelBits == nullptr) {
+        ASSERT(GetRenderBackendType() != RenderBackendType::kRaster_BackendType);
+    }
     return pPixelBits;
 }
 
@@ -166,7 +170,6 @@ IBitmap* Render_Skia::MakeImageSnapshot()
 void Render_Skia::ClearAlpha(const UiRect& rcDirty, uint8_t alpha)
 {
     void* pPixelBits = GetPixelBits();
-    ASSERT(pPixelBits != nullptr);
     if (pPixelBits != nullptr) {
         BitmapAlpha bitmapAlpha((uint8_t*)pPixelBits, GetWidth(), GetHeight(), sizeof(uint32_t));
         bitmapAlpha.ClearAlpha(rcDirty, alpha);
@@ -176,7 +179,6 @@ void Render_Skia::ClearAlpha(const UiRect& rcDirty, uint8_t alpha)
 void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding, uint8_t alpha)
 {
     void* pPixelBits = GetPixelBits();
-    ASSERT(pPixelBits != nullptr);
     if (pPixelBits != nullptr) {
         BitmapAlpha bitmapAlpha((uint8_t*)pPixelBits, GetWidth(), GetHeight(), sizeof(uint32_t));
         bitmapAlpha.RestoreAlpha(rcDirty, rcShadowPadding, alpha);
@@ -186,7 +188,6 @@ void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
 void Render_Skia::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding)
 {
     void* pPixelBits = GetPixelBits();
-    ASSERT(pPixelBits != nullptr);
     if (pPixelBits != nullptr) {
         BitmapAlpha bitmapAlpha((uint8_t*)pPixelBits, GetWidth(), GetHeight(), sizeof(uint32_t));
         bitmapAlpha.RestoreAlpha(rcDirty, rcShadowPadding);
@@ -1429,7 +1430,10 @@ UiRect Render_Skia::MeasureString(const DString& strText,
                                   int width /*= DUI_NOSET_VALUE*/)
 {
     PerformanceStat statPerformance(_T("Render_Skia::MeasureString"));
-    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    if ((GetWidth() <= 0) || (GetHeight() <= 0)) {
+        //这种情况是窗口大小为0的情况，返回空，不加断言
+        return UiRect();
+    }
     ASSERT(!strText.empty());
     if (strText.empty()) {
         return UiRect();
@@ -1940,7 +1944,9 @@ bool Render_Skia::ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixels
     SkBitmap skBitmap;
     skBitmap.setInfo(SkImageInfo::Make(rc.Width(), rc.Height(), SkColorType::kN32_SkColorType, SkAlphaType::kPremul_SkAlphaType));
     skBitmap.setPixels(dstPixels);
-    return skCanvas->readPixels(skBitmap, rc.left + (int32_t)m_pSkPointOrg->fX, rc.top + (int32_t)m_pSkPointOrg->fY);
+    bool bRet = skCanvas->readPixels(skBitmap, rc.left + (int32_t)m_pSkPointOrg->fX, rc.top + (int32_t)m_pSkPointOrg->fY);
+    ASSERT_UNUSED_VARIABLE(bRet);
+    return bRet;
 }
 
 bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc)
@@ -1968,7 +1974,9 @@ bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect
     skBitmap.setInfo(SkImageInfo::Make(rc.Width(), rc.Height(), SkColorType::kN32_SkColorType, SkAlphaType::kPremul_SkAlphaType));
     skBitmap.setPixels(srcPixels);
 
-    return skCanvas->writePixels(skBitmap, rc.left + (int32_t)m_pSkPointOrg->fX, rc.top + (int32_t)m_pSkPointOrg->fY);
+    bool bRet = skCanvas->writePixels(skBitmap, rc.left + (int32_t)m_pSkPointOrg->fX, rc.top + (int32_t)m_pSkPointOrg->fY);
+    ASSERT_UNUSED_VARIABLE(bRet);
+    return bRet;
 }
 
 bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc, const UiRect& rcPaint)
@@ -2018,6 +2026,7 @@ bool Render_Skia::WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect
     ASSERT(bRet);
     if(bRet) {
         bRet = skCanvas->writePixels(dstDirtyBitmap, destX + (int32_t)m_pSkPointOrg->fX, destY + (int32_t)m_pSkPointOrg->fY);
+        ASSERT_UNUSED_VARIABLE(bRet);
     }
     return bRet;    
 }

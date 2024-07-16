@@ -2,25 +2,24 @@
 #define UI_CORE_WINDOW_H_
 
 #include "duilib/Core/WindowBase.h"
-#include "duilib/Utils/Delegate.h"
-#include "duilib/Utils/FilePath.h"
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/ColorManager.h"
+#include "duilib/Render/IRender.h"
+#include "duilib/Utils/Delegate.h"
+#include "duilib/Utils/FilePath.h"
 
 namespace ui
 {
 
 class Box;
 class Control;
-class IRender;
 class Shadow;
 class ToolTip;
-class IRenderDpi;
 
 /** 窗口类
 *  //外部调用需要初始化的基本流程:
 *  1. 调用Window::CreateWnd创建窗口;
-*  //以下内容，可用实现在OnInitWindow函数中:
+*  //以下内容，可用实现在PreInitWindow函数中:
 *  2. Window::SetResourcePath;
 *  3. WindowBuilder::Create, 得到Box* pRoot;
 *  4. Window::AttachShadow(pRoot), 得到附加阴影的Box* pRoot, 以支持窗口阴影效果;
@@ -88,6 +87,17 @@ public:
     * @param [in] bPostQuitMsg 如果为true，表示窗口关闭的时候，发送退出消息循环请求
     */
     void PostQuitMsgWhenClosed(bool bPostQuitMsg);
+
+    /** 设置该窗口的渲染引擎绘制后台类型
+    *   该属性值只能在创建窗口前设置，或者在XML配置中指定，应用后不支持修改
+    * @param [in] backendType 渲染引擎绘制后台类型
+    * @return 如果设置成功返回true, 否则返回false
+    */
+    bool SetRenderBackendType(RenderBackendType backendType);
+
+    /** 获取渲染引擎绘制后台类型
+    */
+    RenderBackendType GetRenderBackendType() const;
 
 public:
     /** @name 窗口阴影相关接口
@@ -244,10 +254,8 @@ public:
     /** 设置窗口初始大小, 对应XML文件中的 size 属性
     * @param [in] cx 宽度
     * @param [in] cy 高度
-    * @param [in] bContainShadow 为 false 表示 cx cy 不包含阴影
-    * @param [in] bNeedDpiScale 为 false 表示不根据 DPI 调整
     */
-    void SetInitSize(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
+    void SetInitSize(int cx, int cy);
 
     /** 初始化控件，在容器中添加控件时会被调用（用于对控件名称做缓存）
     * @param [in] pControl 控件指针
@@ -336,13 +344,17 @@ public:
     std::shared_ptr<IRenderDpi> GetRenderDpi();
 
 protected:
-    /** 初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
+    /** 正在初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
     */
-    virtual void InitWindow() override;
+    virtual void PreInitWindow() override;
 
-    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
+    /** 初始化窗口数据（当窗口创建完成以后调用此函数），供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() override {};
+
+    /** 完成初始化窗口数据
+    */
+    virtual void PostInitWindow() override;
 
     /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */
@@ -813,6 +825,14 @@ private:
     /** 窗口关闭的时候，发送退出消息循环的请求
     */
     bool m_bPostQuitMsgWhenClosed;
+
+    /** 渲染引擎的后台绘制方式（CPU、OpenGL等）
+    */
+    RenderBackendType m_renderBackendType;
+
+    /** 窗口的初始大小
+    */
+    UiSize m_szInitSize;
 };
 
 } // namespace ui
