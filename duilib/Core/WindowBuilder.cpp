@@ -260,284 +260,23 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
         DString strName;
         DString strValue;
         strClass = root.name();
-
         if( strClass == _T("Window") ) {
-            if( pWindow->IsWindow() ) {
-                //首先处理mininfo/maxinfo/use_system_caption，因为其他属性有用到这些个属性的
-                for (pugi::xml_attribute attr : root.attributes()) {
-                    strName = attr.name();
-                    strValue = attr.value();
-                    if (strName == _T("mininfo")) {
-                        UiSize size;
-                        AttributeUtil::ParseSizeValue(strValue.c_str(), size);
-                        pWindow->SetMinInfo(size.cx, size.cy, false, true);
-                    }
-                    else if (strName == _T("maxinfo")) {
-                        UiSize size;
-                        AttributeUtil::ParseSizeValue(strValue.c_str(), size);
-                        pWindow->SetMaxInfo(size.cx, size.cy, false, true);
-                    }
-                    else if (strName == _T("use_system_caption")) {
-                        pWindow->SetUseSystemCaption(strValue == _T("true"));
-                    }
-                }
-                //注：如果use_system_caption为true，则层窗口关闭（因为这两个属性互斥的）
-                for (pugi::xml_attribute attr : root.attributes()) {
-                    strName = attr.name();
-                    strValue = attr.value();
-                    if ( strName == _T("sizebox") ) {
-                        UiRect rcSizeBox;
-                        AttributeUtil::ParseRectValue(strValue.c_str(), rcSizeBox);
-                        pWindow->SetSizeBox(rcSizeBox, true);
-                    }
-                    else if( strName == _T("caption") ) {
-                        UiRect rcCaption;
-                        AttributeUtil::ParseRectValue(strValue.c_str(), rcCaption);
-                        pWindow->SetCaptionRect(rcCaption, true);
-                    }
-                    else if (strName == _T("snap_layout_menu")) {                        
-                        pWindow->SetEnableSnapLayoutMenu(strValue == _T("true"));
-                    }
-                    else if (strName == _T("sys_menu")) {
-                        pWindow->SetEnableSysMenu(strValue == _T("true"));
-                    }
-                    else if (strName == _T("sys_menu_rect")) {
-                        UiRect rcSysMenuRect;
-                        AttributeUtil::ParseRectValue(strValue.c_str(), rcSysMenuRect);
-                        pWindow->SetSysMenuRect(rcSysMenuRect, true);
-                    }
-                    else if (strName == _T("icon")) {
-                        if (!strValue.empty()) {
-                            //设置窗口图标
-                            const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), pWindow->GetResourcePath());
-                            FilePath iconFullPath = FilePathUtil::JoinFilePath(windowResFullPath, FilePath(strValue));
-                            iconFullPath.NormalizeFilePath();
-                            if (GlobalManager::Instance().Zip().IsUseZip()) {
-                                //使用压缩包
-                                if (GlobalManager::Instance().Zip().IsZipResExist(iconFullPath)) {
-                                    std::vector<uint8_t> fileData;
-                                    GlobalManager::Instance().Zip().GetZipData(iconFullPath, fileData);
-                                    ASSERT(!fileData.empty());
-                                    if (!fileData.empty()) {
-                                        pWindow->SetWindowIcon(fileData);
-                                    }
-                                }
-                                else {
-                                    ASSERT(false);
-                                }
-                            }
-                            else {
-                                //使用本地文件
-                                if (iconFullPath.IsExistsFile()) {
-                                    pWindow->SetWindowIcon(iconFullPath);
-                                }
-                                else {
-                                    ASSERT(false);
-                                }
-                            }
-                        }                        
-                    }
-                    else if( strName == _T("text") ) {
-                        pWindow->SetText(strValue);
-                    }
-                    else if ((strName == _T("text_id")) || (strName == _T("textid"))) {
-                        pWindow->SetTextId(strValue);
-                    }
-                    else if (strName == _T("round_corner") || strName == _T("roundcorner") ) {
-                        UiSize size;
-                        AttributeUtil::ParseSizeValue(strValue.c_str(), size);
-                        pWindow->SetRoundCorner(size.cx, size.cy, true);
-                    }                                
-                    else if (strName == _T("alpha_fix_corner") || strName == _T("alphafixcorner")) {
-                        UiRect rc;
-                        AttributeUtil::ParseRectValue(strValue.c_str(), rc);
-                        pWindow->SetAlphaFixCorner(rc, true);
-                    }
-                    else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
-                        //设置是否支持窗口阴影（阴影实现有两种：层窗口和普通窗口）
-                        pWindow->SetShadowAttached(strValue == _T("true"));
-                    }
-                    else if ((strName == _T("shadow_image")) || (strName == _T("shadowimage"))) {
-                        //设置阴影图片
-                        pWindow->SetShadowImage(strValue);
-                    }
-                    else if ((strName == _T("shadow_corner")) || (strName == _T("shadowcorner"))) {
-                        //设置窗口阴影的九宫格属性
-                        UiPadding padding;
-                        AttributeUtil::ParsePaddingValue(strValue.c_str(), padding);
-                        pWindow->SetShadowCorner(padding, true);
-                    }
-                    else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
-                        //设置是否设置层窗口属性（层窗口还是普通窗口）
-                        if (!pWindow->IsUseSystemCaption()) {
-                            pWindow->SetLayeredWindow(strValue == _T("true"), false);
-                        }                        
-                    }
-                    else if (strName == _T("alpha")) {
-                        //设置窗口的透明度（0 - 255），仅当使用层窗口时有效
-                        int32_t nAlpha = StringUtil::StringToInt32(strValue);
-                        ASSERT(nAlpha >= 0 && nAlpha <= 255);
-                        if ((nAlpha >= 0) && (nAlpha <= 255)) {
-                            pWindow->SetWindowAlpha(nAlpha);
-                        }
-                    }
-                }
-
-                //最后设置窗口的初始化大小，因为初始化大小与是否阴影等相关
-                for (pugi::xml_attribute attr : root.attributes()) {
-                    strName = attr.name();
-                    strValue = attr.value();
-                    if (strName == _T("size")) {
-                        UiSize windowSize;
-                        AttributeUtil::ParseWindowSize(pWindow, strValue.c_str(), windowSize);
-                        int32_t cx = windowSize.cx;
-                        int32_t cy = windowSize.cy;
-                        UiSize minSize = pWindow->GetMinInfo(false);
-                        UiSize maxSize = pWindow->GetMaxInfo(false);
-                        if ((minSize.cx > 0) && (cx < minSize.cx)) {
-                            cx = minSize.cx;
-                        }
-                        if ((maxSize.cx > 0) && (cx > maxSize.cx)) {
-                            cx = maxSize.cx;
-                        }
-                        if ((minSize.cy > 0) && (cy < minSize.cy)) {
-                            cy = minSize.cy;
-                        }
-                        if ((maxSize.cy > 0) && (cy > maxSize.cy)) {
-                            cy = maxSize.cy;
-                        }
-                        pWindow->SetInitSize(cx, cy, false, false);
-                    }
-                }
-            }
+            ParseWindowAttributes(pWindow, root);
+            ParseWindowShareAttributes(pWindow, root);
         }
-
-        if( strClass == _T("Global") ) {
-            for(pugi::xml_node node : root.children()) {
-                strClass = node.name();
-                if (strClass == _T("DefaultFontFamilyNames")) {
-                    DString defaultFontFamilyNames;
-                    for (pugi::xml_attribute attr : node.attributes()) {
-                        strName = attr.name();
-                        strValue = attr.value();
-                        if (strName == _T("value")) {
-                            defaultFontFamilyNames = strValue;
-                            break;
-                        }
-                    }
-                    if (!defaultFontFamilyNames.empty()) {
-                        GlobalManager::Instance().Font().SetDefaultFontFamilyNames(defaultFontFamilyNames);
-                    }
-                }
-                else if (strClass == _T("FontFile")) {
-                    //字体文件
-                    DString strFontFile;
-                    DString strFontDesc;
-                    for (pugi::xml_attribute attr : node.attributes()) {
-                        strName = attr.name();
-                        strValue = attr.value();
-                        if (strName == _T("file")) {
-                            strFontFile = strValue;
-                        }
-                        else if (strName == _T("desc")) {
-                            strFontDesc = strValue;
-                        }
-                    }
-                    if (!strFontFile.empty()) {
-                        GlobalManager::Instance().Font().AddFontFile(strFontFile, strFontDesc);
-                    }
-                }
-                else if( strClass == _T("Font")) {
-                    ParseFontXmlNode(node);
-                }
-                else if( strClass == _T("Class") ) {
-                    DString strClassName;
-                    DString strAttribute;
-                    for (pugi::xml_attribute attr : node.attributes()) {
-                        strName = attr.name();
-                        strValue = attr.value();
-                        if( strName == _T("name") ) {
-                            strClassName = strValue;
-                        }
-                        else {
-                            strAttribute.append(StringUtil::Printf(_T(" %s=\"%s\""),
-                                                strName.c_str(), strValue.c_str()));
-                        }
-                    }
-                    if( !strClassName.empty() ) {
-                        StringUtil::TrimLeft(strAttribute);
-                        GlobalManager::Instance().AddClass(strClassName, strAttribute);
-                    }
-                }
-                else if( strClass == _T("TextColor") ) {
-                    DString colorName = node.attribute(_T("name")).as_string();
-                    DString colorValue = node.attribute(_T("value")).as_string();
-                    if(!colorName.empty() && !colorValue.empty()) {
-                        ColorManager& colorManager = GlobalManager::Instance().Color();
-                        colorManager.AddColor(colorName, colorValue);
-                        if (colorName == _T("default_font_color")) {
-                            colorManager.SetDefaultTextColor(colorName);
-                        }
-                        else if (colorName == _T("disabled_font_color")) {
-                            colorManager.SetDefaultDisabledTextColor(colorName);
-                        }
-                    }
-                }
-            }
-        }
-        else if (strClass == _T("Window"))
-        {
-            for (pugi::xml_node node : root.children()) {
-                strClass = node.name();
-                if (strClass == _T("Class")) {
-                    DString strClassName;
-                    DString strAttribute;
-                    for (pugi::xml_attribute attr : node.attributes()) {
-                        strName = attr.name();
-                        strValue = attr.value();
-                        if (strName == _T("name")) {
-                            strClassName = strValue;
-                        }
-                        else {
-                            strAttribute.append(StringUtil::Printf(_T(" %s=\"%s\""),
-                                                strName.c_str(), strValue.c_str()));
-                        }
-                    }
-                    if (!strClassName.empty()) {
-                        ASSERT(GlobalManager::Instance().GetClassAttributes(strClassName).empty());    //窗口中的Class不能与全局的重名
-                        StringUtil::TrimLeft(strAttribute);
-                        pWindow->AddClass(strClassName, strAttribute);
-                    }
-                }
-                else if (strClass == _T("TextColor")) {
-                    DString strColorName;
-                    DString strColor;
-                    for (pugi::xml_attribute attr : node.attributes()) {
-                        strName = attr.name();
-                        strValue = attr.value();
-                        if (strName == _T("name")) {
-                            strColorName = strValue;
-                        }
-                        else if (strName == _T("value")) {
-                            strColor = strValue;
-                        }
-                    }
-                    if (!strColorName.empty()) {
-                        pWindow->AddTextColor(strColorName, strColor);
-                    }
-                }
-                else if (strClass == _T("Font")) {
-                    //Window节点下，允许定义字体
-                    ParseFontXmlNode(node);
-                }
-            }
+        else if( strClass == _T("Global") ) {
+            ParseGlobalAttributes(root);
         }
     }
 
     for (pugi::xml_node node : root.children()) {
         DString strClass = node.name();
-        if (strClass == _T("Image") || strClass == _T("FontResource") || strClass == _T("Font")
-            || strClass == _T("Class") || strClass == _T("TextColor")) {
+        if ( (strClass == _T("Image"))          ||
+             (strClass == _T("FontResource"))   ||
+             (strClass == _T("Font"))           ||
+             (strClass == _T("Class"))          ||
+             strClass == _T("TextColor")) {
+            //忽略这几个属性
 
         }
         else {
@@ -559,8 +298,302 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
             }
         }
     }
-
     return nullptr;
+}
+
+void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node& root) const
+{
+    ASSERT((pWindow != nullptr) && pWindow->IsWindow());
+    if ((pWindow == nullptr) || !pWindow->IsWindow()) {
+        return;
+    }
+
+    DString strName;
+    DString strValue;
+
+    //首先处理mininfo/maxinfo/use_system_caption，因为其他属性有用到这些个属性的
+    for (pugi::xml_attribute attr : root.attributes()) {
+        strName = attr.name();
+        strValue = attr.value();
+        if (strName == _T("mininfo")) {
+            UiSize size;
+            AttributeUtil::ParseSizeValue(strValue.c_str(), size);
+            pWindow->SetMinInfo(size.cx, size.cy, false, true);
+        }
+        else if (strName == _T("maxinfo")) {
+            UiSize size;
+            AttributeUtil::ParseSizeValue(strValue.c_str(), size);
+            pWindow->SetMaxInfo(size.cx, size.cy, false, true);
+        }
+        else if (strName == _T("use_system_caption")) {
+            pWindow->SetUseSystemCaption(strValue == _T("true"));
+        }
+    }
+
+    //注：如果use_system_caption为true，则层窗口关闭（因为这两个属性互斥的）
+    for (pugi::xml_attribute attr : root.attributes()) {
+        strName = attr.name();
+        strValue = attr.value();
+        if (strName == _T("sizebox")) {
+            UiRect rcSizeBox;
+            AttributeUtil::ParseRectValue(strValue.c_str(), rcSizeBox);
+            pWindow->SetSizeBox(rcSizeBox, true);
+        }
+        else if (strName == _T("caption")) {
+            UiRect rcCaption;
+            AttributeUtil::ParseRectValue(strValue.c_str(), rcCaption);
+            pWindow->SetCaptionRect(rcCaption, true);
+        }
+        else if (strName == _T("snap_layout_menu")) {
+            pWindow->SetEnableSnapLayoutMenu(strValue == _T("true"));
+        }
+        else if (strName == _T("sys_menu")) {
+            pWindow->SetEnableSysMenu(strValue == _T("true"));
+        }
+        else if (strName == _T("sys_menu_rect")) {
+            UiRect rcSysMenuRect;
+            AttributeUtil::ParseRectValue(strValue.c_str(), rcSysMenuRect);
+            pWindow->SetSysMenuRect(rcSysMenuRect, true);
+        }
+        else if (strName == _T("icon")) {
+            if (!strValue.empty()) {
+                //设置窗口图标
+                const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), pWindow->GetResourcePath());
+                FilePath iconFullPath = FilePathUtil::JoinFilePath(windowResFullPath, FilePath(strValue));
+                iconFullPath.NormalizeFilePath();
+                if (GlobalManager::Instance().Zip().IsUseZip()) {
+                    //使用压缩包
+                    if (GlobalManager::Instance().Zip().IsZipResExist(iconFullPath)) {
+                        std::vector<uint8_t> fileData;
+                        GlobalManager::Instance().Zip().GetZipData(iconFullPath, fileData);
+                        ASSERT(!fileData.empty());
+                        if (!fileData.empty()) {
+                            pWindow->SetWindowIcon(fileData);
+                        }
+                    }
+                    else {
+                        ASSERT(false);
+                    }
+                }
+                else {
+                    //使用本地文件
+                    if (iconFullPath.IsExistsFile()) {
+                        pWindow->SetWindowIcon(iconFullPath);
+                    }
+                    else {
+                        ASSERT(false);
+                    }
+                }
+            }
+        }
+        else if (strName == _T("text")) {
+            pWindow->SetText(strValue);
+        }
+        else if ((strName == _T("text_id")) || (strName == _T("textid"))) {
+            pWindow->SetTextId(strValue);
+        }
+        else if (strName == _T("round_corner") || strName == _T("roundcorner")) {
+            UiSize size;
+            AttributeUtil::ParseSizeValue(strValue.c_str(), size);
+            pWindow->SetRoundCorner(size.cx, size.cy, true);
+        }
+        else if (strName == _T("alpha_fix_corner") || strName == _T("alphafixcorner")) {
+            UiRect rc;
+            AttributeUtil::ParseRectValue(strValue.c_str(), rc);
+            pWindow->SetAlphaFixCorner(rc, true);
+        }
+        else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
+            //设置是否支持窗口阴影（阴影实现有两种：层窗口和普通窗口）
+            pWindow->SetShadowAttached(strValue == _T("true"));
+        }
+        else if ((strName == _T("shadow_image")) || (strName == _T("shadowimage"))) {
+            //设置阴影图片
+            pWindow->SetShadowImage(strValue);
+        }
+        else if ((strName == _T("shadow_corner")) || (strName == _T("shadowcorner"))) {
+            //设置窗口阴影的九宫格属性
+            UiPadding padding;
+            AttributeUtil::ParsePaddingValue(strValue.c_str(), padding);
+            pWindow->SetShadowCorner(padding, true);
+        }
+        else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
+            //设置是否设置层窗口属性（层窗口还是普通窗口）
+            if (!pWindow->IsUseSystemCaption()) {
+                pWindow->SetLayeredWindow(strValue == _T("true"), false);
+            }
+        }
+        else if (strName == _T("alpha")) {
+            //设置窗口的透明度（0 - 255），仅当使用层窗口时有效
+            int32_t nAlpha = StringUtil::StringToInt32(strValue);
+            ASSERT(nAlpha >= 0 && nAlpha <= 255);
+            if ((nAlpha >= 0) && (nAlpha <= 255)) {
+                pWindow->SetWindowAlpha(nAlpha);
+            }
+        }
+    }
+
+    //最后设置窗口的初始化大小，因为初始化大小与是否阴影等相关
+    for (pugi::xml_attribute attr : root.attributes()) {
+        strName = attr.name();
+        strValue = attr.value();
+        if (strName == _T("size")) {
+            UiSize windowSize;
+            AttributeUtil::ParseWindowSize(pWindow, strValue.c_str(), windowSize);
+            int32_t cx = windowSize.cx;
+            int32_t cy = windowSize.cy;
+            UiSize minSize = pWindow->GetMinInfo(false);
+            UiSize maxSize = pWindow->GetMaxInfo(false);
+            if ((minSize.cx > 0) && (cx < minSize.cx)) {
+                cx = minSize.cx;
+            }
+            if ((maxSize.cx > 0) && (cx > maxSize.cx)) {
+                cx = maxSize.cx;
+            }
+            if ((minSize.cy > 0) && (cy < minSize.cy)) {
+                cy = minSize.cy;
+            }
+            if ((maxSize.cy > 0) && (cy > maxSize.cy)) {
+                cy = maxSize.cy;
+            }
+            pWindow->SetInitSize(cx, cy, false, false);
+        }
+    }
+}
+
+void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_node& root) const
+{
+    ASSERT((pWindow != nullptr) && pWindow->IsWindow());
+    if ((pWindow == nullptr) || !pWindow->IsWindow()) {
+        return;
+    }
+
+    DString strName;
+    DString strValue;
+    DString strClass;
+
+    //解析该窗口下的共享资源
+    for (pugi::xml_node node : root.children()) {
+        strClass = node.name();
+        if (strClass == _T("Class")) {
+            DString strClassName;
+            DString strAttribute;
+            for (pugi::xml_attribute attr : node.attributes()) {
+                strName = attr.name();
+                strValue = attr.value();
+                if (strName == _T("name")) {
+                    strClassName = strValue;
+                }
+                else {
+                    strAttribute.append(StringUtil::Printf(_T(" %s=\"%s\""),
+                        strName.c_str(), strValue.c_str()));
+                }
+            }
+            if (!strClassName.empty()) {
+                ASSERT(GlobalManager::Instance().GetClassAttributes(strClassName).empty());    //窗口中的Class不能与全局的重名
+                StringUtil::TrimLeft(strAttribute);
+                pWindow->AddClass(strClassName, strAttribute);
+            }
+        }
+        else if (strClass == _T("TextColor")) {
+            DString strColorName;
+            DString strColor;
+            for (pugi::xml_attribute attr : node.attributes()) {
+                strName = attr.name();
+                strValue = attr.value();
+                if (strName == _T("name")) {
+                    strColorName = strValue;
+                }
+                else if (strName == _T("value")) {
+                    strColor = strValue;
+                }
+            }
+            if (!strColorName.empty()) {
+                pWindow->AddTextColor(strColorName, strColor);
+            }
+        }
+        else if (strClass == _T("Font")) {
+            //Window节点下，允许定义字体
+            ParseFontXmlNode(node);
+        }
+    }
+}
+
+void WindowBuilder::ParseGlobalAttributes(const pugi::xml_node& root) const
+{
+    DString strClass;
+    DString strName;
+    DString strValue;
+    for (pugi::xml_node node : root.children()) {
+        strClass = node.name();
+        if (strClass == _T("DefaultFontFamilyNames")) {
+            DString defaultFontFamilyNames;
+            for (pugi::xml_attribute attr : node.attributes()) {
+                strName = attr.name();
+                strValue = attr.value();
+                if (strName == _T("value")) {
+                    defaultFontFamilyNames = strValue;
+                    break;
+                }
+            }
+            if (!defaultFontFamilyNames.empty()) {
+                GlobalManager::Instance().Font().SetDefaultFontFamilyNames(defaultFontFamilyNames);
+            }
+        }
+        else if (strClass == _T("FontFile")) {
+            //字体文件
+            DString strFontFile;
+            DString strFontDesc;
+            for (pugi::xml_attribute attr : node.attributes()) {
+                strName = attr.name();
+                strValue = attr.value();
+                if (strName == _T("file")) {
+                    strFontFile = strValue;
+                }
+                else if (strName == _T("desc")) {
+                    strFontDesc = strValue;
+                }
+            }
+            if (!strFontFile.empty()) {
+                GlobalManager::Instance().Font().AddFontFile(strFontFile, strFontDesc);
+            }
+        }
+        else if (strClass == _T("Font")) {
+            ParseFontXmlNode(node);
+        }
+        else if (strClass == _T("Class")) {
+            DString strClassName;
+            DString strAttribute;
+            for (pugi::xml_attribute attr : node.attributes()) {
+                strName = attr.name();
+                strValue = attr.value();
+                if (strName == _T("name")) {
+                    strClassName = strValue;
+                }
+                else {
+                    strAttribute.append(StringUtil::Printf(_T(" %s=\"%s\""),
+                        strName.c_str(), strValue.c_str()));
+                }
+            }
+            if (!strClassName.empty()) {
+                StringUtil::TrimLeft(strAttribute);
+                GlobalManager::Instance().AddClass(strClassName, strAttribute);
+            }
+        }
+        else if (strClass == _T("TextColor")) {
+            DString colorName = node.attribute(_T("name")).as_string();
+            DString colorValue = node.attribute(_T("value")).as_string();
+            if (!colorName.empty() && !colorValue.empty()) {
+                ColorManager& colorManager = GlobalManager::Instance().Color();
+                colorManager.AddColor(colorName, colorValue);
+                if (colorName == _T("default_font_color")) {
+                    colorManager.SetDefaultTextColor(colorName);
+                }
+                else if (colorName == _T("disabled_font_color")) {
+                    colorManager.SetDefaultDisabledTextColor(colorName);
+                }
+            }
+        }
+    }
 }
 
 void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode) const
