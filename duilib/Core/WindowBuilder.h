@@ -78,6 +78,18 @@ public:
     static bool ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control* pControl, RichTextSlice* pTextSlice = nullptr);
 
 private:
+    /** 解析窗口的属性(根XML节点名称："Window")
+    */
+    void ParseWindowAttributes(Window* pWindow, const pugi::xml_node& root) const;
+
+    /** 解析窗口下的共享资源属性(根XML节点名称："Window")，这些属性只有本窗口能使用
+    */
+    void ParseWindowShareAttributes(Window* pWindow, const pugi::xml_node& root) const;
+
+    /** 解析全局资源的属性(根XML节点名称："Global")，这些属性，所有窗口都可以使用
+    */
+    void ParseGlobalAttributes(const pugi::xml_node& root) const;
+    
     Control* ParseXmlNode(const pugi::xml_node& xmlNode, Control* pParent = nullptr, Window* pWindow = nullptr);
     Control* CreateControlByClass(const DString& strControlClass, Window* pWindow);
     void AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent);
