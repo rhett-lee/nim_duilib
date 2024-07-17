@@ -127,6 +127,7 @@ IBitmap* ColorSlider::GetColorBitmap(const UiRect& rect)
                     colorStart = UiColor(0, R, G, B);
                     colorEnd = UiColor(255, R, G, B);
                     for (int32_t nRow = 0; nRow < nHeight; ++nRow) {
+                        ASSERT((pData - (uint32_t*)pPixelBits) < nWidth * nHeight );
                         GetARGB(pData, nWidth, colorStart, colorEnd);
                         pData += nWidth;
                     }
@@ -135,6 +136,7 @@ IBitmap* ColorSlider::GetColorBitmap(const UiRect& rect)
                     colorStart = UiColor(A, 0, G, B);
                     colorEnd = UiColor(A, 255, G, B);                        
                     for (int32_t nRow = 0; nRow < nHeight; ++nRow) {
+                        ASSERT((pData - (uint32_t*)pPixelBits) < nWidth * nHeight);
                         GetARGB(pData, nWidth, colorStart, colorEnd);
                         pData += nWidth;
                     }
@@ -143,6 +145,7 @@ IBitmap* ColorSlider::GetColorBitmap(const UiRect& rect)
                     colorStart = UiColor(A, R, 0, B);
                     colorEnd = UiColor(A, R, 255, B);
                     for (int32_t nRow = 0; nRow < nHeight; ++nRow) {
+                        ASSERT((pData - (uint32_t*)pPixelBits) < nWidth * nHeight);
                         GetARGB(pData, nWidth, colorStart, colorEnd);
                         pData += nWidth;
                     }
@@ -151,6 +154,7 @@ IBitmap* ColorSlider::GetColorBitmap(const UiRect& rect)
                     colorStart = UiColor(A, R, G, 0);
                     colorEnd = UiColor(A, R, G, 255);
                     for (int32_t nRow = 0; nRow < nHeight; ++nRow) {
+                        ASSERT((pData - (uint32_t*)pPixelBits) < nWidth * nHeight);
                         GetARGB(pData, nWidth, colorStart, colorEnd);
                         pData += nWidth;
                     }
@@ -163,6 +167,7 @@ IBitmap* ColorSlider::GetColorBitmap(const UiRect& rect)
                 if (m_adjustMode == ColorAdjustMode::kMode_HSV_H) {
                     //H
                     for (int32_t nRow = 0; nRow < nHeight; ++nRow) {
+                        ASSERT((pData - (uint32_t*)pPixelBits) < nWidth * nHeight);
                         ColorConvert::HSV_HUE(pData, nWidth, S, V);
                         pData += nWidth;
                     }
@@ -170,6 +175,7 @@ IBitmap* ColorSlider::GetColorBitmap(const UiRect& rect)
                 else if (m_adjustMode == ColorAdjustMode::kMode_HSV_S) {
                     //S
                     for (int32_t nRow = 0; nRow < nHeight; ++nRow) {
+                        ASSERT((pData - (uint32_t*)pPixelBits) < nWidth * nHeight);
                         ColorConvert::HSV_SAT(pData, nWidth, H, V);
                         pData += nWidth;
                     }
@@ -177,6 +183,7 @@ IBitmap* ColorSlider::GetColorBitmap(const UiRect& rect)
                 else {
                     //V
                     for (int32_t nRow = 0; nRow < nHeight; ++nRow) {
+                        ASSERT((pData - (uint32_t*)pPixelBits) < nWidth * nHeight);
                         ColorConvert::HSV_VAL(pData, nWidth, H, S);
                         pData += nWidth;
                     }
@@ -189,6 +196,7 @@ IBitmap* ColorSlider::GetColorBitmap(const UiRect& rect)
                 if (m_adjustMode == ColorAdjustMode::kMode_HSL_H) {
                     //H
                     for (int32_t nRow = 0; nRow < nHeight; ++nRow) {
+                        ASSERT((pData - (uint32_t*)pPixelBits) < nWidth * nHeight);
                         ColorConvert::HSL_HUE(pData, nWidth, S, L);
                         pData += nWidth;
                     }
@@ -196,6 +204,7 @@ IBitmap* ColorSlider::GetColorBitmap(const UiRect& rect)
                 else if (m_adjustMode == ColorAdjustMode::kMode_HSL_S) {
                     //S
                     for (int32_t nRow = 0; nRow < nHeight; ++nRow) {
+                        ASSERT((pData - (uint32_t*)pPixelBits) < nWidth * nHeight);
                         ColorConvert::HSL_SAT(pData, nWidth, H, L);
                         pData += nWidth;
                     }
@@ -203,6 +212,7 @@ IBitmap* ColorSlider::GetColorBitmap(const UiRect& rect)
                 else {
                     //L
                     for (int32_t nRow = 0; nRow < nHeight; ++nRow) {
+                        ASSERT((pData - (uint32_t*)pPixelBits) < nWidth * nHeight);
                         ColorConvert::HSL_LIG(pData, nWidth, H, S);
                         pData += nWidth;
                     }
@@ -218,7 +228,12 @@ void ColorSlider::GetARGB(uint32_t* buffer, int32_t samples,
                           const UiColor& start, 
                           const UiColor& end) const
 {
+    ASSERT(buffer != nullptr);
     if (buffer == nullptr) {
+        return;
+    }
+    ASSERT(samples > 1);
+    if (samples <= 1) {
         return;
     }
     constexpr const int32_t int_extend = 20;
@@ -231,13 +246,13 @@ void ColorSlider::GetARGB(uint32_t* buffer, int32_t samples,
     int32_t red_adv   = (((int32_t)end.GetR() << int_extend) - red) / (samples - 1);
     int32_t green_adv = (((int32_t)end.GetG() << int_extend) - green) / (samples - 1);
     int32_t blue_adv  = (((int32_t)end.GetB() << int_extend) - blue) / (samples - 1);
-        
-    while (samples--) {
+
+    for(int32_t i = 0; i < samples; ++i) {
         // set current pixel (in DIB bitmap format is BGR, not RGB!)
-        *buffer++ = UiColor( (uint8_t)(alpha >> int_extend),
-                             (uint8_t)(red   >> int_extend),
-                             (uint8_t)(green >> int_extend),
-                             (uint8_t)(blue  >> int_extend) ).GetARGB();
+        *(buffer + i) = UiColor( (uint8_t)(alpha >> int_extend),
+                                 (uint8_t)(red   >> int_extend),
+                                 (uint8_t)(green >> int_extend),
+                                 (uint8_t)(blue  >> int_extend) ).GetARGB();
         // advance color values to the next pixel
         alpha += alpha_adv;
         red += red_adv;
