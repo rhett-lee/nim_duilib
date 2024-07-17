@@ -69,10 +69,10 @@ protected:
     * @param [in] hPaintDC 当前绘制的DC
     * @param [in] rcPaint 绘制的区域
     * @param [in] pRender 绘制引擎接口，用于将绘制结果应用到窗口
-    * @param [in] nWindowAlpha 窗口透明度
+    * @param [in] nLayeredWindowAlpha 窗口透明度，在UpdateLayeredWindow函数中作为参数使用
     * @return 成功返回true，失败则返回false
     */
-    bool SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender, uint8_t nWindowAlpha) const;
+    bool SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender, uint8_t nLayeredWindowAlpha) const;
 
     /** 获取当前窗口的客户区矩形
     * @param [out] rcClient 返回窗口的客户区坐标

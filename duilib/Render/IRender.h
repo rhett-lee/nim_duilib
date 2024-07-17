@@ -431,7 +431,7 @@ public:
 
     /** 回调接口，获取当前窗口的透明度
     */
-    virtual uint8_t GetWindowAlpha() = 0;
+    virtual uint8_t GetLayeredWindowAlpha() = 0;
 };
 
 /** 光栅操作代码

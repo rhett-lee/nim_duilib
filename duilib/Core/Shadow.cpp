@@ -59,7 +59,7 @@ public:
         uint8_t uFade = 0xFF;
         Window* pWindow = GetWindow();
         if ((pWindow != nullptr) && (pWindow->IsLayeredWindow())) {
-            uFade = pWindow->GetWindowAlpha();
+            uFade = pWindow->GetLayeredWindowAlpha();
         }
 
         if (pChildBox->GetAlpha() != 0xFF) {

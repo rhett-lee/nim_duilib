@@ -68,14 +68,14 @@ public:
     bool IsUseSystemCaption() const;
 
     /** 设置窗口透明度
-    * @param [in] nAlpha 透明度数值[0, 255]
+    * @param [in] nAlpha 透明度数值[0, 255]，该参数在UpdateLayeredWindow函数中作为参数使用
     */
-    void SetWindowAlpha(int nAlpha);
+    void SetLayeredWindowAlpha(int nAlpha);
 
     /** 获取窗口透明度
     * @param [in] nAlpha 透明度数值[0, 255]
     */
-    uint8_t GetWindowAlpha() const;
+    uint8_t GetLayeredWindowAlpha() const;
 
     /** 设置是否为层窗口
     * @param [in] bIsLayeredWindow true表示设置为层窗口，否则设置为非层窗口

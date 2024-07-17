@@ -35,7 +35,7 @@ NativeWindow::NativeWindow(INativeWindow* pOwner):
     m_hResModule(nullptr),
     m_hDcPaint(nullptr),
     m_bIsLayeredWindow(false),
-    m_nWindowAlpha(255),
+    m_nLayeredWindowAlpha(255),
     m_bUseSystemCaption(false),
     m_bMouseCapture(false),
     m_bCloseing(false),
@@ -453,18 +453,18 @@ void NativeWindow::UpdateMinMaxBoxStyle() const
     }
 }
 
-void NativeWindow::SetWindowAlpha(int nAlpha)
+void NativeWindow::SetLayeredWindowAlpha(int nAlpha)
 {
     ASSERT(nAlpha >= 0 && nAlpha <= 255);
     if ((nAlpha < 0) || (nAlpha > 255)) {
         return;
     }
-    m_nWindowAlpha = static_cast<uint8_t>(nAlpha);
+    m_nLayeredWindowAlpha = static_cast<uint8_t>(nAlpha);
 }
 
-uint8_t NativeWindow::GetWindowAlpha() const
+uint8_t NativeWindow::GetLayeredWindowAlpha() const
 {
-    return m_nWindowAlpha;
+    return m_nLayeredWindowAlpha;
 }
 
 void NativeWindow::SetUseSystemCaption(bool bUseSystemCaption)
@@ -883,7 +883,7 @@ bool NativeWindow::SetWindowIcon(const std::vector<uint8_t>& iconFileData)
     //Little Endian Only
     int16_t test = 1;
     bool bLittleEndianHost = (*((char*)&test) == 1);
-    ASSERT(bLittleEndianHost);
+    ASSERT_UNUSED_VARIABLE(bLittleEndianHost);
 
     bool bValidIcoFile = false;
     std::vector<uint8_t> fileData = iconFileData;
@@ -1062,9 +1062,9 @@ public:
 
     /** 回调接口，获取当前窗口的透明度
     */
-    virtual uint8_t GetWindowAlpha() override
+    virtual uint8_t GetLayeredWindowAlpha() override
     {
-        return m_pNativeWindow->GetWindowAlpha();
+        return m_pNativeWindow->GetLayeredWindowAlpha();
     }
 };
 

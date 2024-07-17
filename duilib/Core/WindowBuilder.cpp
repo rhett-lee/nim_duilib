@@ -447,11 +447,11 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             }
         }
         else if (strName == _T("alpha")) {
-            //设置窗口的透明度（0 - 255），仅当使用层窗口时有效
+            //设置窗口的透明度（0 - 255），仅当使用层窗口时有效，在在UpdateLayeredWindow函数中作为参数使用
             int32_t nAlpha = StringUtil::StringToInt32(strValue);
             ASSERT(nAlpha >= 0 && nAlpha <= 255);
             if ((nAlpha >= 0) && (nAlpha <= 255)) {
-                pWindow->SetWindowAlpha(nAlpha);
+                pWindow->SetLayeredWindowAlpha(nAlpha);
             }
         }
     }

@@ -84,15 +84,15 @@ bool WindowBase::IsUseSystemCaption() const
     return m_pNativeWindow->IsUseSystemCaption();
 }
 
-void WindowBase::SetWindowAlpha(int nAlpha)
+void WindowBase::SetLayeredWindowAlpha(int nAlpha)
 {
-    m_pNativeWindow->SetWindowAlpha(nAlpha);
+    m_pNativeWindow->SetLayeredWindowAlpha(nAlpha);
     OnWindowAlphaChanged();
 }
 
-uint8_t WindowBase::GetWindowAlpha() const
+uint8_t WindowBase::GetLayeredWindowAlpha() const
 {
-    return m_pNativeWindow->GetWindowAlpha();
+    return m_pNativeWindow->GetLayeredWindowAlpha();
 }
 
 bool WindowBase::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)

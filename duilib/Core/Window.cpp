@@ -1163,6 +1163,7 @@ LRESULT Window::OnHotKeyMsg(int32_t /*hotkeyId*/, VirtualKeyCode /*vkCode*/, uin
         ASSERT(Keyboard::IsKeyDown(kVK_LWIN) || Keyboard::IsKeyDown(kVK_RWIN));
     }
 #endif
+    ASSERT_UNUSED_VARIABLE(modifierKey);
 
     //待添加（需确认，应该是要加在窗口上的）
     bHandled = false;

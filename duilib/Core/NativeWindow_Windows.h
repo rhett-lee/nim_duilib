@@ -86,14 +86,14 @@ public:
     bool IsLayeredWindow() const;
 
     /** 设置窗口透明度
-    * @param [in] nAlpha 透明度数值[0, 255]
+    * @param [in] nAlpha 透明度数值[0, 255]，该参数在UpdateLayeredWindow函数中作为参数使用
     */
-    void SetWindowAlpha(int nAlpha);
+    void SetLayeredWindowAlpha(int nAlpha);
 
     /** 获取窗口透明度
     * @param [in] nAlpha 透明度数值[0, 255]
     */
-    uint8_t GetWindowAlpha() const;
+    uint8_t GetLayeredWindowAlpha() const;
 
     /** 设置是否使用系统标题栏
     */
@@ -586,8 +586,8 @@ private:
     //是否为层窗口
     bool m_bIsLayeredWindow;
 
-    //窗口透明度(仅当使用层窗口时有效)
-    uint8_t m_nWindowAlpha;
+    //窗口透明度(仅当使用层窗口时有效，在UpdateLayeredWindow函数中作为参数使用)
+    uint8_t m_nLayeredWindowAlpha;
 
     //是否使用系统的标题栏
     bool m_bUseSystemCaption;

@@ -68,7 +68,7 @@ void ThreadMessage::Initialize(void* platformData)
     wc.hInstance = hinst;
     wc.lpszClassName = L"duilib_messaging_window";
     ATOM ret = ::RegisterClassExW(&wc);
-    ASSERT(ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
+    ASSERT_UNUSED_VARIABLE(ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
     m_impl->m_hMessageWnd = ::CreateWindowW(wc.lpszClassName, 0, 0, 0, 0, 0, 0, HWND_MESSAGE, 0, hinst, 0);
     if (::IsWindow(m_impl->m_hMessageWnd)) {
         ::SetWindowLongPtr(m_impl->m_hMessageWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(this));

@@ -114,7 +114,7 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRende
     }
 
     //窗口透明度
-    uint8_t nWindowAlpha = pRenderPaint->GetWindowAlpha();
+    uint8_t nLayeredWindowAlpha = pRenderPaint->GetLayeredWindowAlpha();
 
     //开始绘制
     bool bRet = false;
@@ -130,7 +130,7 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRende
         bRet = pRenderPaint->DoPaint(rcPaint);
 
         //绘制完成后，更新到窗口
-        SwapPaintBuffers(hPaintDC, rcPaint, pRender, nWindowAlpha);
+        SwapPaintBuffers(hPaintDC, rcPaint, pRender, nLayeredWindowAlpha);
 
         //结束本次绘制
         ::EndPaint(hWnd, &ps);
@@ -153,7 +153,7 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRende
 
         //绘制完成后，更新到窗口
         hPaintDC = ::GetDC(hWnd);
-        SwapPaintBuffers(hPaintDC, rcUpdate, pRender, nWindowAlpha);
+        SwapPaintBuffers(hPaintDC, rcUpdate, pRender, nLayeredWindowAlpha);
         ::ReleaseDC(hWnd, hPaintDC);
 
         //标记绘制区域为有效区域
@@ -162,7 +162,7 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRende
     return false;
 }
 
-bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender, uint8_t nWindowAlpha) const
+bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender, uint8_t nLayeredWindowAlpha) const
 {
     ASSERT(hPaintDC != nullptr);
     if (hPaintDC == nullptr) {
@@ -188,7 +188,7 @@ bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect&
         POINT pt = { rcWindow.left, rcWindow.top };
         SIZE szWindow = { rcClient.Width(), rcClient.Height()};
         POINT ptSrc = { 0, 0 };
-        BLENDFUNCTION bf = { AC_SRC_OVER, 0, nWindowAlpha, AC_SRC_ALPHA };
+        BLENDFUNCTION bf = { AC_SRC_OVER, 0, nLayeredWindowAlpha, AC_SRC_ALPHA };
         HDC hdc = pRender->GetRenderDC(m_hWnd);
         ASSERT(hdc != nullptr);
         if (hdc != nullptr) {

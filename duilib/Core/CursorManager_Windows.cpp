@@ -102,7 +102,7 @@ HCURSOR LoadCursorFromData(const Window* pWindow, std::vector<uint8_t>& fileData
     //Little Endian Only
     int16_t test = 1;
     bool bLittleEndianHost = (*((char*)&test) == 1);
-    ASSERT(bLittleEndianHost);
+    ASSERT_UNUSED_VARIABLE(bLittleEndianHost);
 
     bool bValidIcoFile = false;
     fileData.resize(fileData.size() + 1024); //填充空白
