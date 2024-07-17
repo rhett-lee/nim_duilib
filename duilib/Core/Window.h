@@ -343,6 +343,14 @@ public:
     */
     std::shared_ptr<IRenderDpi> GetRenderDpi();
 
+    /** 设置窗口的属性是否已经设置完成(避免重复设置窗口属性)
+    */
+    void SetWindowAttributesApplied(bool bApplied);
+
+    /** 获取窗口的属性是否已经设置完成
+    */
+    bool IsWindowAttributesApplied() const;
+
 protected:
     /** 正在初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
     */
@@ -833,6 +841,10 @@ private:
     /** 窗口的初始大小
     */
     UiSize m_szInitSize;
+
+    /** 窗口的属性是否已经设置完成
+    */
+    bool m_bWindowAttributesApplied;
 };
 
 } // namespace ui

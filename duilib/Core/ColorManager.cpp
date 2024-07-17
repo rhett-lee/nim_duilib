@@ -21,6 +21,13 @@ void ColorMap::AddColor(const DString& strName, UiColor argb)
     if (strName.empty() || (argb.GetARGB() == 0)) {
         return;
     }
+#ifdef _DEBUG
+    //检查：避免误修改
+    auto iter = m_colorMap.find(strName);
+    if (iter != m_colorMap.end()) {
+        ASSERT(iter->second == argb);
+    }
+#endif
     m_colorMap[strName] = argb;
 }
 

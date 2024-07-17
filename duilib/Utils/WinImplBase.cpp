@@ -61,11 +61,13 @@ void WindowImplBase::PreInitWindow()
     WindowBuilder builder;
     Box* pRoot = nullptr;
     if (!skinXmlFileData.empty()) {
-        pRoot = builder.CreateFromXmlData(skinXmlFileData, callback, this);
+        Control* pControl = builder.CreateFromXmlData(skinXmlFileData, callback, this);
+        pRoot = builder.ToBox(pControl);
     }
     else {
         ASSERT(!skinXmlFilePath.IsEmpty());
-        pRoot = builder.CreateFromXmlFile(skinXmlFilePath, callback, this);
+        Control* pControl = builder.CreateFromXmlFile(skinXmlFilePath, callback, this);
+        pRoot = builder.ToBox(pControl);
     }
 
     ASSERT(pRoot && _T("Faield to load xml file."));
