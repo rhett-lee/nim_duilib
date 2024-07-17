@@ -114,7 +114,6 @@ void Window::PreInitWindow()
 void Window::PostInitWindow()
 {
     //创建渲染接口
-    ASSERT(m_render != nullptr);
     if (m_render == nullptr) {
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
