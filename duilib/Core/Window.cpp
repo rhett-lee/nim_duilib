@@ -22,7 +22,8 @@ Window::Window() :
     m_bFirstLayout(true),
     m_bIsArranged(false),
     m_bPostQuitMsgWhenClosed(false),
-    m_renderBackendType(RenderBackendType::kRaster_BackendType)
+    m_renderBackendType(RenderBackendType::kRaster_BackendType),
+    m_bWindowAttributesApplied(false)
 {
     m_toolTip = std::make_unique<ToolTip>();
 }
@@ -276,6 +277,13 @@ void Window::AddClass(const DString& strClassName, const DString& strControlAttr
 {
     ASSERT(!strClassName.empty());
     ASSERT(!strControlAttrList.empty());
+#ifdef _DEBUG
+    //检查：避免误修改
+    auto iter = m_defaultAttrHash.find(strClassName);
+    if (iter != m_defaultAttrHash.end()) {
+        ASSERT(iter->second == strControlAttrList);
+    }
+#endif
     m_defaultAttrHash[strClassName] = strControlAttrList;
 }
 
@@ -1712,6 +1720,16 @@ std::shared_ptr<IRenderDpi> Window::GetRenderDpi()
 {
     IRenderDpiPtr spRenderDpi = std::make_shared<RenderWindowDpi>(this);
     return spRenderDpi;
+}
+
+void Window::SetWindowAttributesApplied(bool bApplied)
+{
+    m_bWindowAttributesApplied = bApplied;
+}
+
+bool Window::IsWindowAttributesApplied() const
+{
+    return m_bWindowAttributesApplied;
 }
 
 void Window::OnShowWindow(bool bShow)

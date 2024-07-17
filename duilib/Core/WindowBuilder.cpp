@@ -168,11 +168,11 @@ bool WindowBuilder::IsXmlFileExists(const FilePath& xmlFilePath) const
     return bExists;
 }
 
-Box* WindowBuilder::CreateFromXmlData(const DString& xmlFileData,
-                                      CreateControlCallback pCallback,
-                                      Window* pWindow,
-                                      Box* pParent,
-                                      Box* pUserDefinedBox)
+Control* WindowBuilder::CreateFromXmlData(const DString& xmlFileData,
+                                          CreateControlCallback pCallback,
+                                          Window* pWindow,
+                                          Box* pParent,
+                                          Box* pUserDefinedBox)
 {
     ASSERT(!xmlFileData.empty() && _T("xml 参数为空！"));
     if (xmlFileData.empty()) {
@@ -197,14 +197,14 @@ Box* WindowBuilder::CreateFromXmlData(const DString& xmlFileData,
         return nullptr;
     }
     m_xmlFilePath.Clear();
-    return Create(pCallback, pWindow, pParent, pUserDefinedBox);
+    return CreateFromCachedXml(pCallback, pWindow, pParent, pUserDefinedBox);
 }
 
-Box* WindowBuilder::CreateFromXmlFile(const FilePath& xmlFilePath,
-                                      CreateControlCallback pCallback,
-                                      Window* pWindow, 
-                                      Box* pParent, 
-                                      Box* pUserDefinedBox)
+Control* WindowBuilder::CreateFromXmlFile(const FilePath& xmlFilePath,
+                                          CreateControlCallback pCallback,
+                                          Window* pWindow, 
+                                          Box* pParent, 
+                                          Box* pUserDefinedBox)
 {
     ASSERT(!xmlFilePath.IsEmpty() && _T("xmlFilePath 参数为空！"));
     if (xmlFilePath.IsEmpty()) {
@@ -243,10 +243,10 @@ Box* WindowBuilder::CreateFromXmlFile(const FilePath& xmlFilePath,
         return nullptr;
     }
     m_xmlFilePath = xmlFilePath;
-    return Create(pCallback, pWindow, pParent, pUserDefinedBox);
+    return CreateFromCachedXml(pCallback, pWindow, pParent, pUserDefinedBox);
 }
 
-Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box* pParent, Box* pUserDefinedBox)
+Control* WindowBuilder::CreateFromCachedXml(CreateControlCallback pCallback, Window* pWindow, Box* pParent, Box* pUserDefinedBox)
 {
     m_createControlCallback = pCallback;
     pugi::xml_node root = m_xml->root().first_child();
@@ -261,7 +261,11 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
         DString strValue;
         strClass = root.name();
         if( strClass == _T("Window") ) {
-            ParseWindowAttributes(pWindow, root);
+            if (!pWindow->IsWindowAttributesApplied()) {
+                //窗口的属性，只设置一次，避免XML中的包含的XML文件（Include标签）再次设置窗口属性，导致混乱
+                ParseWindowAttributes(pWindow, root);
+                pWindow->SetWindowAttributesApplied(true);
+            }            
             ParseWindowShareAttributes(pWindow, root);
         }
         else if( strClass == _T("Global") ) {
@@ -275,16 +279,16 @@ Box* WindowBuilder::Create(CreateControlCallback pCallback, Window* pWindow, Box
              (strClass == _T("FontResource"))   ||
              (strClass == _T("Font"))           ||
              (strClass == _T("Class"))          ||
-             strClass == _T("TextColor")) {
+             (strClass == _T("TextColor")) ) {
             //忽略这几个属性
 
         }
         else {
-            if (!pUserDefinedBox) {
-                return (Box*)ParseXmlNode(root, pParent, pWindow);
+            if (pUserDefinedBox == nullptr) {
+                return ParseXmlNodeChildren(root, pParent, pWindow);
             }
             else {
-                ParseXmlNode(node, pUserDefinedBox, pWindow);
+                ParseXmlNodeChildren(node, pUserDefinedBox, pWindow);
                 int i = 0;
                 for (pugi::xml_attribute attr : node.attributes()) {
                     if (StringUtil::StringCompare(attr.name(), _T("class")) == 0) {
@@ -504,12 +508,12 @@ void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_
                     strClassName = strValue;
                 }
                 else {
-                    strAttribute.append(StringUtil::Printf(_T(" %s=\"%s\""),
-                        strName.c_str(), strValue.c_str()));
+                    strAttribute.append(StringUtil::Printf(_T(" %s=\"%s\""), strName.c_str(), strValue.c_str()));
                 }
             }
             if (!strClassName.empty()) {
-                ASSERT(GlobalManager::Instance().GetClassAttributes(strClassName).empty());    //窗口中的Class不能与全局的重名
+                //窗口中的Class不能与全局的重名, 否则该Class是无效的
+                ASSERT(GlobalManager::Instance().GetClassAttributes(strClassName).empty()); 
                 StringUtil::TrimLeft(strAttribute);
                 pWindow->AddClass(strClassName, strAttribute);
             }
@@ -670,7 +674,7 @@ void WindowBuilder::ParseFontXmlNode(const pugi::xml_node& xmlNode) const
     }
 }
 
-Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pParent, Window* pWindow)
+Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Control* pParent, Window* pWindow)
 {
     if (xmlNode.empty()) {
         return nullptr;
@@ -726,7 +730,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
             }
             for ( int i = 0; i < nCount; i++ ) {
                 WindowBuilder builder;
-                pControl = builder.CreateFromXmlFile(sourceXmlFilePath, m_createControlCallback, pWindow, (Box*)pParent);
+                pControl = builder.CreateFromXmlFile(sourceXmlFilePath, m_createControlCallback, pWindow, ToBox(pParent));
             }
             continue;
         }
@@ -816,7 +820,7 @@ Control* WindowBuilder::ParseXmlNode(const pugi::xml_node& xmlNode, Control* pPa
             // Add children
             if (!node.children().empty()) {
                 //递归该节点的所有子节点，继续添加
-                ParseXmlNode(node, (Box*)pControl, pWindow);
+                ParseXmlNodeChildren(node, pControl, pWindow);
             }
         }
 
@@ -1004,6 +1008,16 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
             }
         }
     }
+}
+
+Box* WindowBuilder::ToBox(Control* pControl) const
+{
+    if (pControl == nullptr) {
+        return nullptr;
+    }
+    Box* pBox = dynamic_cast<Box*>(pControl);
+    ASSERT(pBox != nullptr);
+    return pBox;
 }
 
 } // namespace ui

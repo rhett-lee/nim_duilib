@@ -531,9 +531,9 @@ CursorManager& GlobalManager::Cursor()
 Box* GlobalManager::CreateBox(const FilePath& strXmlPath, CreateControlCallback callback)
 {
     WindowBuilder builder;
-    Box* box = builder.CreateFromXmlFile(strXmlPath, callback);
-    ASSERT(box != nullptr);
-    return box;
+    Control* pControl = builder.CreateFromXmlFile(strXmlPath, callback);
+    ASSERT(pControl != nullptr);
+    return builder.ToBox(pControl);
 }
 
 Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControlCallback callback)
@@ -542,7 +542,8 @@ Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControl
     auto it = m_builderMap.find(strXmlPath);
     if (it == m_builderMap.end()) {
         WindowBuilder* builder = new WindowBuilder();
-        box = builder->CreateFromXmlFile(strXmlPath, callback);
+        Control* pControl = builder->CreateFromXmlFile(strXmlPath, callback);
+        box = builder->ToBox(pControl);
         if (box != nullptr) {
             m_builderMap[strXmlPath].reset(builder);
         }
@@ -552,7 +553,8 @@ Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControl
         }
     }
     else {
-        box = it->second->Create(callback);
+        Control* pControl = it->second->CreateFromCachedXml(callback);
+        box = it->second->ToBox(pControl);
     }
     ASSERT(box != nullptr);
     return box;
@@ -563,7 +565,8 @@ void GlobalManager::FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, Cr
     ASSERT(pUserDefinedBox != nullptr);
     if (pUserDefinedBox != nullptr) {
         WindowBuilder winBuilder;
-        Box* box = winBuilder.CreateFromXmlFile(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+        Control* pControl = winBuilder.CreateFromXmlFile(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+        Box* box = winBuilder.ToBox(pControl);
         ASSERT_UNUSED_VARIABLE(box != nullptr);
     }    
 }
@@ -579,7 +582,8 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXm
     auto it = m_builderMap.find(strXmlPath);
     if (it == m_builderMap.end()) {
         WindowBuilder* winBuilder = new WindowBuilder();
-        box = winBuilder->CreateFromXmlFile(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+        Control* pControl = winBuilder->CreateFromXmlFile(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+        box = winBuilder->ToBox(pControl);
         if (box != nullptr) {
             m_builderMap[strXmlPath].reset(winBuilder);
         }
@@ -589,7 +593,8 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXm
         }
     }
     else {
-        box = it->second->Create(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+        Control* pControl = it->second->CreateFromCachedXml(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+        box = it->second->ToBox(pControl);
     }
     ASSERT(pUserDefinedBox == box);
     ASSERT_UNUSED_VARIABLE(box != nullptr);
