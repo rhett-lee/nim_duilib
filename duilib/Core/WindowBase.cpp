@@ -84,7 +84,7 @@ bool WindowBase::IsUseSystemCaption() const
     return m_pNativeWindow->IsUseSystemCaption();
 }
 
-void WindowBase::SetLayeredWindowAlpha(int nAlpha)
+void WindowBase::SetLayeredWindowAlpha(int32_t nAlpha)
 {
     m_pNativeWindow->SetLayeredWindowAlpha(nAlpha);
     OnWindowAlphaChanged();

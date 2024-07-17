@@ -453,7 +453,7 @@ void NativeWindow::UpdateMinMaxBoxStyle() const
     }
 }
 
-void NativeWindow::SetLayeredWindowAlpha(int nAlpha)
+void NativeWindow::SetLayeredWindowAlpha(int32_t nAlpha)
 {
     ASSERT(nAlpha >= 0 && nAlpha <= 255);
     if ((nAlpha < 0) || (nAlpha > 255)) {

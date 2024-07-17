@@ -67,16 +67,6 @@ public:
     */
     bool IsUseSystemCaption() const;
 
-    /** 设置窗口透明度
-    * @param [in] nAlpha 透明度数值[0, 255]，该参数在UpdateLayeredWindow函数中作为参数使用
-    */
-    void SetLayeredWindowAlpha(int nAlpha);
-
-    /** 获取窗口透明度
-    * @param [in] nAlpha 透明度数值[0, 255]
-    */
-    uint8_t GetLayeredWindowAlpha() const;
-
     /** 设置是否为层窗口
     * @param [in] bIsLayeredWindow true表示设置为层窗口，否则设置为非层窗口
     * @param [in] bRedraw 是否重绘窗口（属性更改后，如果不重绘，则界面可能显示异常）
@@ -86,6 +76,17 @@ public:
     /** 是否为层窗口
     */
     bool IsLayeredWindow() const;
+
+    /** 设置窗口透明度(仅当IsLayeredWindow()为true的时候有效)
+    * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
+    *             该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)。
+    */
+    void SetLayeredWindowAlpha(int32_t nAlpha);
+
+    /** 获取窗口透明度(仅当IsLayeredWindow()为true的时候有效)
+    * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
+    */
+    uint8_t GetLayeredWindowAlpha() const;
 
     /** 关闭窗口, 异步关闭，当函数返回后，IsClosing() 状态为true
     * @param [in] nRet 关闭的参数，参见：enum WindowCloseParam
