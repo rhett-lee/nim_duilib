@@ -133,10 +133,6 @@ public:
     */
     virtual void UnLockPixelBits() = 0;
 
-    /** 获取位图数据的类型
-    */
-    virtual BitmapAlphaType GetBitmapAlphaType() const = 0;
-
     /** 克隆生成新的的位图
     *@return 返回新生成的位图接口，由调用方释放资源
     */

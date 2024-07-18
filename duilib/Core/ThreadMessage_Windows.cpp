@@ -102,7 +102,9 @@ void ThreadMessage::RemoveDuplicateMsg(uint32_t msgId)
                 //检测到退出消息，重新放到消息队列中，避免进程退不出
                 ::PostQuitMessage(static_cast<int>(msg.wParam));
             }
-            ASSERT(msg.message == m_impl->m_msgId);
+            else {
+                ASSERT(msg.message == m_impl->m_msgId);
+            }
         }
     }
 }
