@@ -28,7 +28,8 @@ bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& c
     if (pParentWindow != nullptr) {
         m_parentFlag = pParentWindow->GetWeakFlag();
     }
-    return m_pNativeWindow->CreateWnd(pParentWindow, createParam);
+    NativeWindow* pNativeWindow = pParentWindow != nullptr ? pParentWindow->NativeWnd() : nullptr;
+    return m_pNativeWindow->CreateWnd(pNativeWindow, createParam);
 }
 
 int32_t WindowBase::DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
@@ -39,7 +40,8 @@ int32_t WindowBase::DoModal(WindowBase* pParentWindow, const WindowCreateParam& 
     if (pParentWindow != nullptr) {
         m_parentFlag = pParentWindow->GetWeakFlag();
     }
-    return m_pNativeWindow->DoModal(pParentWindow, createParam, bCenterWindow, bCloseByEsc, bCloseByEnter);
+    NativeWindow* pNativeWindow = pParentWindow != nullptr ? pParentWindow->NativeWnd() : nullptr;
+    return m_pNativeWindow->DoModal(pNativeWindow, createParam, bCenterWindow, bCloseByEsc, bCloseByEnter);
 }
 
 void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled)
@@ -287,7 +289,8 @@ bool WindowBase::ShowWindow(ShowWindowCommands nCmdShow)
 
 void WindowBase::ShowModalFake()
 {
-    m_pNativeWindow->ShowModalFake(GetParentWindow());
+    NativeWindow* pNativeWindow = GetParentWindow() != nullptr ? GetParentWindow()->NativeWnd() : nullptr;
+    m_pNativeWindow->ShowModalFake(pNativeWindow);
 }
 
 bool WindowBase::IsFakeModal() const
@@ -392,7 +395,8 @@ bool WindowBase::IsWindowVisible() const
 
 bool WindowBase::SetWindowPos(const InsertAfterWnd& insertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, uint32_t uFlags)
 {
-    return m_pNativeWindow->SetWindowPos(insertAfter, X, Y, cx, cy, uFlags);
+    NativeWindow* pNativeWindow = insertAfter.m_pWindow != nullptr ? insertAfter.m_pWindow->NativeWnd() : nullptr;
+    return m_pNativeWindow->SetWindowPos(pNativeWindow, insertAfter.m_hwndFlag, X, Y, cx, cy, uFlags);
 }
 
 bool WindowBase::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHeight, bool bRepaint)
@@ -890,7 +894,8 @@ UiSize WindowBase::OnNativeGetMaxInfo(bool bContainShadow) const
 
 void WindowBase::OnNativePreCloseWindow()
 {
-    m_pNativeWindow->OnCloseModalFake(GetParentWindow());
+    NativeWindow* pNativeWindow = GetParentWindow() != nullptr ? GetParentWindow()->NativeWnd() : nullptr;
+    m_pNativeWindow->OnCloseModalFake(pNativeWindow);
     PreCloseWindow();
 }
 

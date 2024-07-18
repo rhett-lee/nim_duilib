@@ -56,6 +56,7 @@ enum WindowPosFlags
 */
 enum class InsertAfterFlag
 {
+    kHWND_DEFAULT   =  0,
     kHWND_NOTOPMOST = -2,
     kHWND_TOPMOST   = -1,
     kHWND_TOP       =  0,
