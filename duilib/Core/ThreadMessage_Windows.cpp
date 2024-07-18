@@ -1,6 +1,6 @@
 #include "ThreadMessage.h"
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 namespace ui
 {
@@ -136,4 +136,4 @@ void ThreadMessage::OnUserMessage(uint32_t msgId, WPARAM wParam, LPARAM lParam)
 
 } // namespace ui
 
-#endif // DUILIB_PLATFORM_WIN
+#endif // DUILIB_BUILD_FOR_WIN

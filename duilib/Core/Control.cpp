@@ -2978,7 +2978,7 @@ bool Control::LoadImageData(Image& duiImage) const
     }
     FilePath imageFullPath;
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     if (GlobalManager::Instance().Icon().IsIconString(sImagePath)) {
         //ICON句柄
         imageFullPath = sImagePath;

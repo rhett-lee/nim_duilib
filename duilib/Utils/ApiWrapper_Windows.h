@@ -4,7 +4,7 @@
 #include "duilib/duilib_defs.h"
 #include "duilib/Utils/Macros.h"
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 namespace ui
 {
@@ -45,6 +45,6 @@ namespace ui
     bool EnableMouseInPointerWrapper(BOOL fEnable);
 }
 
-#endif //DUILIB_PLATFORM_WIN
+#endif //DUILIB_BUILD_FOR_WIN
 
 #endif //UI_UTILS_APIWRAPPER_H_

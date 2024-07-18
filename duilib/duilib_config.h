@@ -4,9 +4,9 @@
 /** Windows or Linux 平台
 */
 #if defined (_WIN32) || defined (_WIN64)
-    #define DUILIB_PLATFORM_WIN     1
+    #define DUILIB_BUILD_FOR_WIN     1
 #elif defined(linux) || defined(__linux) || defined(__linux__)
-    #define DUILIB_PLATFORM_LINUX   1
+    #define DUILIB_BUILD_FOR_LINUX   1
 #else
     //不支持的系统
     #pragma message("Unknown Platform!")
@@ -37,14 +37,14 @@
     #endif
 #endif
 
-#if defined DUILIB_PLATFORM_WIN
+#if defined DUILIB_BUILD_FOR_WIN
     #include "duilib_config_windows.h"
 
     #ifndef ASSERT
         #define ASSERT(expr)  _ASSERTE(expr)
     #endif
 
-#elif defined  DUILIB_PLATFORM_LINUX
+#elif defined  DUILIB_BUILD_FOR_LINUX
     #include "duilib_config_linux.h"
     #include <cassert>
 

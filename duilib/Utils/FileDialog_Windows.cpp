@@ -1,7 +1,7 @@
 #include "FileDialog.h"
 #include "duilib/Core/Window.h"
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 #include <shlobj.h>
 
@@ -219,4 +219,4 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
 
 }//namespace ui
 
-#endif //DUILIB_PLATFORM_WIN
+#endif //DUILIB_BUILD_FOR_WIN

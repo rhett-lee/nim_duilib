@@ -74,7 +74,7 @@ bool FilePathUtil::CreateDirectories(const DString& filePath)
 
 FilePath FilePathUtil::GetCurrentModuleDirectory()
 {
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     DStringW dirPath;
     dirPath.resize(1024, 0);
     dirPath.resize(::GetModuleFileNameW(nullptr, &dirPath[0], (uint32_t)dirPath.size()));

@@ -282,7 +282,7 @@ void FontManager::GetFontSizeList(const DpiManager& dpi, std::vector<FontSizeInf
     fontSizeList.push_back({ _T("48"), 48.0f, 0 });
     fontSizeList.push_back({ _T("72"), 72.0f, 0 });
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     if (::GetACP() == 936) {
         //仅中文环境使用
         fontSizeList.push_back({ _T("1英寸"), 95.6f, 0 });

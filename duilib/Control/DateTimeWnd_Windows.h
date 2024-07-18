@@ -3,7 +3,7 @@
 
 #include "duilib/Core/UiTypes.h"
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 namespace ui
 {
@@ -61,6 +61,6 @@ private:
 
 } //namespace ui
 
-#endif // DUILIB_PLATFORM_WIN
+#endif // DUILIB_BUILD_FOR_WIN
 
 #endif // _UI_CONTROL_DATETIME_WND_WINDOWS_H_

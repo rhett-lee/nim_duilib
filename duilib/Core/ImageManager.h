@@ -96,7 +96,7 @@ private:
     */
     DString GetDpiScaledPath(uint32_t dpiScale, const DString& imageFullPath) const;
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     /** 从HICON句柄加载一个图片
     */
     void LoadIconData(const Window* pWindow,

@@ -674,7 +674,7 @@ std::wstring StringUtil::UTF32ToUTF16(const std::basic_string<UTF32Char>& utf32)
     return UTF32ToUTF16(utf32.c_str(), utf32.length());
 }
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 std::wstring StringUtil::MBCSToUnicode(const std::string& input, int32_t code_page)
 {
     std::wstring output;
@@ -745,7 +745,7 @@ DString StringUtil::TToLocal(const DString& input)
 {
 #ifdef DUILIB_UNICODE
     return input;
-#elif defined (DUILIB_PLATFORM_WIN)
+#elif defined (DUILIB_BUILD_FOR_WIN)
     DString output;
     std::wstring temp = UTF8ToUTF16(input);
     output = UnicodeToMBCS(temp);
@@ -759,7 +759,7 @@ DString StringUtil::LocalToT(const DString& input)
 {
 #ifdef DUILIB_UNICODE
     return input;
-#elif defined (DUILIB_PLATFORM_WIN)
+#elif defined (DUILIB_BUILD_FOR_WIN)
     DStringW output = MBCSToUnicode(input);
     return UTF16ToUTF8(output);
 #else

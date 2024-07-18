@@ -62,7 +62,7 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     //Skia渲染引擎实现
     m_renderFactory = std::make_unique<RenderFactory_Skia>();    
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     //Init Windows Common Controls (for the ToolTip control)
     ::InitCommonControls();
 #endif
@@ -491,7 +491,7 @@ ImageManager& GlobalManager::Image()
     return m_imageManager;
 }
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 IconManager& GlobalManager::Icon()
 {
     return m_iconManager;

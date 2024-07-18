@@ -3,7 +3,7 @@
 #include "duilib/Core/Window.h"
 #include "duilib/Image/ImageLoadAttribute.h"
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 namespace ui 
 {
@@ -321,4 +321,4 @@ HICON IconManager::GetIcon(uint32_t id) const
 
 }
 
-#endif //DUILIB_PLATFORM_WIN
+#endif //DUILIB_BUILD_FOR_WIN

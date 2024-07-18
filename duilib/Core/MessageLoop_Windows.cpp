@@ -1,6 +1,6 @@
 #include "MessageLoop.h"
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 namespace ui
 {
@@ -31,4 +31,4 @@ int32_t MessageLoop::Run()
 
 } // namespace ui
 
-#endif // DUILIB_PLATFORM_WIN
+#endif // DUILIB_BUILD_FOR_WIN

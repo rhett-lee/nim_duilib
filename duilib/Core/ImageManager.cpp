@@ -42,7 +42,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
     //重新加载资源    
     std::unique_ptr<ImageInfo> imageInfo;
     bool isIcon = false;
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     if (GlobalManager::Instance().Icon().IsIconString(loadAtrribute.GetImageFullPath())) {
         //加载ICON
         isIcon = true;
@@ -144,7 +144,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
     return sharedImage;
 }
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 void ImageManager::LoadIconData(const Window* pWindow, 
                                 const ImageLoadAttribute& loadAtrribute,
                                 std::unique_ptr<ImageInfo>& imageInfo) const

@@ -134,7 +134,7 @@ public:
      */
     uint16_t GetDepth() const;
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
     /** 设置背景图片(HICON句柄)
      * @param [in] hIcon 要设置的图标句柄，设置后，由ui::GlobalManager::Instance().Icon()管理资源的生命周期

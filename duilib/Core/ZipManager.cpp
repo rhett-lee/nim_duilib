@@ -29,7 +29,7 @@ bool ZipManager::IsUseZip() const
     return m_hzip != nullptr;
 }
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 bool ZipManager::OpenResZip(HMODULE hModule, LPCTSTR resourceName, LPCTSTR resourceType, const DString& password)
 {
@@ -104,7 +104,7 @@ bool ZipManager::GetZipData(const FilePath& path, std::vector<unsigned char>& fi
     if (!m_password.empty() && bFileEncrypted) {
         //密码是本地编码的（ANSI）
         std::string password;
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     #ifdef DUILIB_UNICODE
         password = StringUtil::UnicodeToMBCS(m_password);
     #else
@@ -153,7 +153,7 @@ bool ZipManager::IsZipResExist(const FilePath& path) const
                 bool bUtf8 = file_info.flag & (1 << 11);
                 DString fileName = GetZipFilePath(szFileName.data(), bUtf8);
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
                 DStringW innerFilePath = StringUtil::MBCSToUnicode(szFileName.data(), bUtf8 ? CP_UTF8 : CP_ACP);
 #else
                 DStringW innerFilePath = StringUtil::UTF8ToUTF16(szFileName.data());
@@ -316,7 +316,7 @@ DString ZipManager::GetZipFilePath(const char* szInZipFilePath, bool bUtf8) cons
     if (szInZipFilePath == nullptr) {
         return filePath;
     }
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     #ifdef DUILIB_UNICODE
         filePath = StringUtil::MBCSToUnicode(szInZipFilePath, bUtf8 ? CP_UTF8 : CP_ACP);
     #else

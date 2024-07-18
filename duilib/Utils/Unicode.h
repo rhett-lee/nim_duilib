@@ -6,13 +6,13 @@
 #include "duilib/duilib_defs.h"
 
 // Type detection for wchar_t.
-#if defined(DUILIB_PLATFORM_WIN)
+#if defined(DUILIB_BUILD_FOR_WIN)
 #define WCHAR_T_IS_UTF16
-#elif defined(DUILIB_PLATFORM_LINUX) && defined(COMPILER_GCC) && \
+#elif defined(DUILIB_BUILD_FOR_LINUX) && defined(COMPILER_GCC) && \
       defined(__WCHAR_MAX__) && \
       (__WCHAR_MAX__ == 0x7fffffff || __WCHAR_MAX__ == 0xffffffff)
 #define WCHAR_T_IS_UTF32
-#elif defined(DUILIB_PLATFORM_LINUX) && defined(COMPILER_GCC) && \
+#elif defined(DUILIB_BUILD_FOR_LINUX) && defined(COMPILER_GCC) && \
       defined(__WCHAR_MAX__) && \
       (__WCHAR_MAX__ == 0x7fff || __WCHAR_MAX__ == 0xffff)
 // On Posix, we'll detect short wchar_t, but projects aren't guaranteed to

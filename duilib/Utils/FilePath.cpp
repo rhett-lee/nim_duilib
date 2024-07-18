@@ -75,7 +75,7 @@ bool FilePath::IsExistsDirectory() const noexcept
 
 DString::value_type FilePath::GetPathSeparator() const
 {
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     return _T('\\');
 #else
     return _T('/');
@@ -84,7 +84,7 @@ DString::value_type FilePath::GetPathSeparator() const
 
 DString FilePath::GetPathSeparatorStr() const
 {
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     return _T("\\");
 #else
     return _T("/");
@@ -104,7 +104,7 @@ DString FilePath::GetPathSeparatorStr() const
         if (m_filePath.empty()) {
             return DStringA();
         }
-        #ifdef DUILIB_PLATFORM_WIN
+        #ifdef DUILIB_BUILD_FOR_WIN
             //转换为本机编码类型的字符串
             return StringUtil::UnicodeToMBCS(m_filePath.native());
         #else
@@ -118,7 +118,7 @@ DStringA FilePath::NativePathA() const
     if (m_filePath.empty()) {
         return DStringA();
     }
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     //转换为本机编码类型的字符串
     return StringUtil::UnicodeToMBCS(m_filePath.native());
 #else

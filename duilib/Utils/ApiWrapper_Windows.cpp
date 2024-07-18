@@ -3,7 +3,7 @@
 namespace ui
 {
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 bool GetDpiForSystemWrapper(UINT& dpi)
 {
@@ -248,6 +248,6 @@ bool EnableMouseInPointerWrapper(BOOL fEnable)
     return false;
 }
 
-#endif //DUILIB_PLATFORM_WIN
+#endif //DUILIB_BUILD_FOR_WIN
 
 }

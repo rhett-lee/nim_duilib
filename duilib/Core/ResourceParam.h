@@ -113,7 +113,7 @@ public:
     DString zipPassword;
 };
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 /** 加载全局资源所需的参数（资源文件打包为zip压缩包，然后放在exe/dll的资源文件中，对应资源类型：kResZipFile）
 */
