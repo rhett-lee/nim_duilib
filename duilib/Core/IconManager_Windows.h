@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 namespace ui 
 {
@@ -117,6 +117,6 @@ private:
 
 } //namespace ui 
 
-#endif //DUILIB_PLATFORM_WIN
+#endif //DUILIB_BUILD_FOR_WIN
 
 #endif //UI_CORE_ICONMANAGER_H_

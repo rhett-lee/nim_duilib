@@ -21,7 +21,7 @@ public:
     bool Open(const TCHAR * filename, const TCHAR * mode)
     {
         if (m_fp) return false;    // Can't re-open without closing first
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
         m_fp = _tfopen(filename, mode);
 #else
         m_fp = fopen(filename, mode);

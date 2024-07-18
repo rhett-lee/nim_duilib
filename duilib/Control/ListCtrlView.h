@@ -269,7 +269,7 @@ protected:
     {
         if (this->IsEnabled() && this->IsActivatable() && this->IsPointInWithScrollOffset(msg.ptMouse)) {
             uint64_t vkFlag = kVkLButton;
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
             if (msg.wParam & MK_CONTROL) {
                 vkFlag |= kVkControl;
             }
@@ -289,7 +289,7 @@ protected:
     {
         if (this->IsEnabled() && this->IsActivatable() && this->IsPointInWithScrollOffset(msg.ptMouse)) {
             uint64_t vkFlag = kVkRButton;
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
             if (msg.wParam & MK_CONTROL) {
                 vkFlag |= kVkControl;
             }

@@ -7,7 +7,7 @@ namespace ui
 {
     namespace BitmapHelper 
     {
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
         /** 创建一个Render对象，并复制HDC上的内容到Render
         * @return 返回的Render对象，由调用者负责释放资源

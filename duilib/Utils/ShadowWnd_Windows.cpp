@@ -2,7 +2,7 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Shadow.h"
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 namespace ui {
 
@@ -182,4 +182,4 @@ void ShadowWnd::InitShadow()
 
 } // namespace ui
 
-#endif //DUILIB_PLATFORM_WIN
+#endif //DUILIB_BUILD_FOR_WIN

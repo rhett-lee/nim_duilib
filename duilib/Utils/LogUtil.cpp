@@ -24,7 +24,7 @@ DString LogUtil::GetTimeStamp()
 void LogUtil::Output(const DString& log)
 {
     DString logMsg = GetTimeStamp() + log;
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     ::OutputDebugString(logMsg.c_str());
 #else
 
@@ -33,7 +33,7 @@ void LogUtil::Output(const DString& log)
 
 void LogUtil::OutputLine(const DString& log)
 {
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     Output(log + _T("\r\n"));
 #else
     Output(log + _T("\n"));

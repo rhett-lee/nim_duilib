@@ -355,7 +355,7 @@ namespace ui
 
     /** 鼠标操作的标志
     */
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     enum VKFlag
     {
         kVkControl = MK_CONTROL,    //按下了 CTRL 键

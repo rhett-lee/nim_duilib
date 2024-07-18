@@ -1,7 +1,7 @@
 #include "DpiAwareness.h"
 
 //仅限Windows平台
-#ifndef DUILIB_PLATFORM_WIN
+#ifndef DUILIB_BUILD_FOR_WIN
 
 namespace ui
 {
@@ -49,4 +49,4 @@ DpiAwarenessMode DpiAwareness::GetDpiAwareness() const
 
 }
 
-#endif //DUILIB_PLATFORM_WIN
+#endif //DUILIB_BUILD_FOR_WIN

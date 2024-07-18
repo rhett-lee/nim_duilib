@@ -57,7 +57,7 @@ public:
     static std::wstring UTF32ToUTF16(const UTF32Char* utf32, size_t length);
     static std::wstring UTF32ToUTF16(const std::basic_string<UTF32Char>& utf32);
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     //本地Ansi编码或者UTF8编码等转换成Unicode编码
     static std::wstring MBCSToUnicode(const std::string& input, int32_t code_page = CP_ACP);
     //Unicode编码转换成本地Ansi编码或者UTF8编码等

@@ -5,7 +5,7 @@
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include <map>
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 namespace ui
 {
@@ -249,4 +249,4 @@ bool CursorManager::SetCursorByID(CursorID cursorId)
 
 } // namespace ui
 
-#endif // DUILIB_PLATFORM_WIN
+#endif // DUILIB_BUILD_FOR_WIN

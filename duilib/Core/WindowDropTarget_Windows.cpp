@@ -2,7 +2,7 @@
 #include "duilib/Core/ControlDropTarget.h"
 #include "duilib/Core/WindowBase.h"
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 #include <ole2.h>
 
@@ -306,4 +306,4 @@ void WindowDropTarget::Clear()
 
 } // namespace ui
 
-#endif //DUILIB_PLATFORM_WIN
+#endif //DUILIB_BUILD_FOR_WIN

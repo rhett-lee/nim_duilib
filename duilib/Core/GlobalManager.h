@@ -13,7 +13,7 @@
 #include "duilib/Core/ResourceParam.h"
 #include "duilib/Core/CursorManager.h"
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     #include "duilib/Core/IconManager_Windows.h"
 #endif
 
@@ -178,7 +178,7 @@ public:
     */
     ImageManager& Image();
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     /** 获取ICON资源管理器
     */
     IconManager& Icon();
@@ -358,7 +358,7 @@ private:
     */
     LangManager m_langManager;
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     /** ICON资源管理器
     */
     IconManager m_iconManager;

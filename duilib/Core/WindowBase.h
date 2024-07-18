@@ -4,7 +4,7 @@
 #include "duilib/Core/INativeWindow.h"
 #include "duilib/Utils/FilePath.h"
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     #include "duilib/Core/NativeWindow_Windows.h"
 #endif
 

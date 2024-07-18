@@ -1,6 +1,6 @@
 #include "Keyboard.h"
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 namespace ui
 {
@@ -74,4 +74,4 @@ DString Keyboard::GetKeyName(LPARAM lParam)
 
 } // namespace ui
 
-#endif // DUILIB_PLATFORM_WIN
+#endif // DUILIB_BUILD_FOR_WIN

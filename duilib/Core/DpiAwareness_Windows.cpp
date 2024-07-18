@@ -1,7 +1,7 @@
 #include "DpiAwareness.h"
 
 //仅限非Windows平台
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
 
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include <VersionHelpers.h>
@@ -179,4 +179,4 @@ DpiAwarenessMode DpiAwareness::GetDpiAwareness() const
 
 }
 
-#endif //DUILIB_PLATFORM_WIN
+#endif //DUILIB_BUILD_FOR_WIN

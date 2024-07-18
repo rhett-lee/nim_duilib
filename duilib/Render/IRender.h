@@ -885,7 +885,7 @@ public:
     */
     virtual void RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowPadding = UiPadding()) = 0;
 
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     /** 获取DC句柄，当不使用后，需要调用ReleaseDC接口释放资源
     */
     virtual HDC GetRenderDC(HWND hWnd) = 0;
