@@ -7,9 +7,6 @@
 
 namespace ui {
 
-class WindowBase;
-class IRender;
-
 /** 窗口功能的Windows平台实现
 */
 class NativeWindow
@@ -25,7 +22,7 @@ public:
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
     */
-    bool CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& createParam);
+    bool CreateWnd(NativeWindow* pParentWindow, const WindowCreateParam& createParam);
 
     /** 显示模态窗口
     * @param [in] pParentWindow 父窗口
@@ -35,7 +32,7 @@ public:
     * @param [in] bCloseByEnter 按Enter键的时候，是否关闭窗口
     * @return 窗口退出时的返回值, 如果失败则返回-1
     */
-    int32_t DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
+    int32_t DoModal(NativeWindow* pParentWindow, const WindowCreateParam& createParam,
                     bool bCenterWindow = true, bool bCloseByEsc = true, bool bCloseByEnter = false);
 
     /** 获取窗口所属的 Windows 句柄
@@ -123,11 +120,11 @@ public:
 
     /** 显示模态对话框(父窗口在创建的时候指定)
     */
-    void ShowModalFake(WindowBase* pParentWindow);
+    void ShowModalFake(NativeWindow* pParentWindow);
 
     /** 模态对话框关闭，同步状态
     */
-    void OnCloseModalFake(WindowBase* pParentWindow);
+    void OnCloseModalFake(NativeWindow* pParentWindow);
 
     /** 是否是模拟的模态显示窗口（通过ShowModalFake函数显示的窗口）
     */
@@ -234,14 +231,17 @@ public:
 
 public:
     /** 设置窗口位置（对 ::SetWindowPos API 的一层封装，内部无DPI缩放）
-    * @param [in] insertAfter 对应 SetWindowPos 的 hWndInsertAfter 选项
+    * @param [in] pInsertAfterWindow 对应 SetWindowPos 的 hWndInsertAfter 选项
+    * @param [in] insertAfterFlag 对应 SetWindowPos 的 hWndInsertAfter 选项, 仅当pWindow为nullptr时有效
     * @param [in] X 窗口的X坐标
     * @param [in] Y 窗口的Y坐标
     * @param [in] cx 窗口的宽度
     * @param [in] cy 窗口的高度
     * @param [in] uFlags 参考 enum WindowPosFlags 选项
     */
-    bool SetWindowPos(const InsertAfterWnd& insertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, uint32_t uFlags);
+    bool SetWindowPos(const NativeWindow* pInsertAfterWindow,
+                      InsertAfterFlag insertAfterFlag,
+                      int32_t X, int32_t Y, int32_t cx, int32_t cy, uint32_t uFlags);
 
     /** 设置窗口位置和大小
     * @param [in] X 窗口的X坐标

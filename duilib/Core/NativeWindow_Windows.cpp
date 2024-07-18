@@ -1,5 +1,4 @@
 #include "NativeWindow_Windows.h"
-#include "duilib/Core/WindowBase.h"
 
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include <CommCtrl.h>
@@ -70,7 +69,7 @@ NativeWindow::~NativeWindow()
     ClearNativeWindow();
 }
 
-bool NativeWindow::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& createParam)
+bool NativeWindow::CreateWnd(NativeWindow* pParentWindow, const WindowCreateParam& createParam)
 {
     ASSERT(m_hWnd == nullptr);
     if (m_hWnd != nullptr) {
@@ -125,7 +124,7 @@ bool NativeWindow::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam&
         m_bIsLayeredWindow = true;
     }
     //父窗口句柄
-    HWND hParentWnd = pParentWindow != nullptr ? pParentWindow->NativeWnd()->GetHWND() : nullptr;
+    HWND hParentWnd = pParentWindow != nullptr ? pParentWindow->GetHWND() : nullptr;
     //窗口标题
     DString windowTitle = StringUtil::TToLocal(createParam.m_windowTitle);    
     HWND hWnd = ::CreateWindowEx(createParam.m_dwExStyle,
@@ -146,7 +145,7 @@ bool NativeWindow::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam&
     return (m_hWnd != nullptr);
 }
 
-int32_t NativeWindow::DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
+int32_t NativeWindow::DoModal(NativeWindow* pParentWindow, const WindowCreateParam& createParam,
                               bool bCenterWindow, bool bCloseByEsc, bool bCloseByEnter)
 {
     ASSERT(m_hWnd == nullptr);
@@ -221,7 +220,7 @@ int32_t NativeWindow::DoModal(WindowBase* pParentWindow, const WindowCreateParam
     // 显示对话框
     HWND hParentWnd = nullptr;
     if (pParentWindow != nullptr) {
-        hParentWnd = pParentWindow->NativeWnd()->GetHWND();
+        hParentWnd = pParentWindow->GetHWND();
     }
     else {
         hParentWnd = ::GetActiveWindow();
@@ -589,14 +588,14 @@ bool NativeWindow::ShowWindow(ShowWindowCommands nCmdShow)
     return bRet;
 }
 
-void NativeWindow::ShowModalFake(WindowBase* pParentWindow)
+void NativeWindow::ShowModalFake(NativeWindow* pParentWindow)
 {
     ASSERT(::IsWindow(m_hWnd));
-    ASSERT((pParentWindow != nullptr) && (pParentWindow->NativeWnd()->GetHWND() != nullptr));
+    ASSERT((pParentWindow != nullptr) && (pParentWindow->GetHWND() != nullptr));
     if (pParentWindow != nullptr) {
         auto hOwnerWnd = GetWindowOwner();
         ASSERT(::IsWindow(hOwnerWnd));
-        ASSERT_UNUSED_VARIABLE(hOwnerWnd == pParentWindow->NativeWnd()->GetHWND());
+        ASSERT_UNUSED_VARIABLE(hOwnerWnd == pParentWindow->GetHWND());
         if (pParentWindow != nullptr) {
             pParentWindow->EnableWindow(false);
         }
@@ -605,7 +604,7 @@ void NativeWindow::ShowModalFake(WindowBase* pParentWindow)
     m_bFakeModal = true;
 }
 
-void NativeWindow::OnCloseModalFake(WindowBase* pParentWindow)
+void NativeWindow::OnCloseModalFake(NativeWindow* pParentWindow)
 {
     if (IsFakeModal()) {
         if (pParentWindow != nullptr) {
@@ -854,16 +853,19 @@ bool NativeWindow::IsWindowVisible() const
     return ::IsWindow(m_hWnd) && ::IsWindowVisible(m_hWnd) != FALSE;
 }
 
-bool NativeWindow::SetWindowPos(const InsertAfterWnd& insertAfter, int32_t X, int32_t Y, int32_t cx, int32_t cy, uint32_t uFlags)
+bool NativeWindow::SetWindowPos(const NativeWindow* pInsertAfterWindow,
+                                InsertAfterFlag insertAfterFlag,
+                                int32_t X, int32_t Y, int32_t cx, int32_t cy,
+                                uint32_t uFlags)
 {
     ASSERT(::IsWindow(m_hWnd));
     HWND hWndInsertAfter = HWND_TOP;
     if (!(uFlags & kSWP_NOZORDER)) {
-        if (insertAfter.m_pWindow != nullptr) {
-            hWndInsertAfter = insertAfter.m_pWindow->NativeWnd()->GetHWND();
+        if (pInsertAfterWindow != nullptr) {
+            hWndInsertAfter = pInsertAfterWindow->GetHWND();
         }
         else {
-            hWndInsertAfter = (HWND)insertAfter.m_hwndFlag;
+            hWndInsertAfter = (HWND)insertAfterFlag;
         }
     }
     return ::SetWindowPos(m_hWnd, hWndInsertAfter, X, Y, cx, cy, uFlags) != FALSE;
@@ -1898,7 +1900,7 @@ LRESULT NativeWindow::OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, b
     }
     //更新窗口的位置和大小
     if (!rcNewWindow.IsEmpty()) {
-        SetWindowPos(InsertAfterWnd(),
+        SetWindowPos(nullptr, InsertAfterFlag::kHWND_DEFAULT,
                      rcNewWindow.left, rcNewWindow.top, rcNewWindow.Width(), rcNewWindow.Height(),
                      SWP_NOZORDER | SWP_NOACTIVATE);
     }
