@@ -8,14 +8,12 @@ class SkBitmap;
 
 namespace ui
 {
-
 /** 位图的实现：Skia绘制引擎
 */
 class UILIB_API Bitmap_Skia: public IBitmap
 {
 public:
     Bitmap_Skia();
-    Bitmap_Skia(HBITMAP hBitmap, bool flipHeight);
     virtual ~Bitmap_Skia() override;
 
 public:
@@ -51,10 +49,6 @@ public:
     */
     virtual void UnLockPixelBits() override;
 
-    /** 获取位图数据的类型
-    */
-    virtual BitmapAlphaType GetBitmapAlphaType() const override;
-
     /** 克隆生成新的的位图
     *@return 返回新生成的位图接口，由调用方释放资源
     */
@@ -64,19 +58,6 @@ public:
     /** 获取Skia 位图
     */
     const SkBitmap& GetSkBitmap() const;
-
-    /** 获取位图GDI句柄
-    */
-    HBITMAP GetHBitmap() const;
-
-    /* 解除与位图句柄的关联
-    */
-    HBITMAP DetachHBitmap();
-
-    /** 创建一个设备无关的位图
-    *@return 返回位图句柄，由调用方释放位图资源
-    */
-    static HBITMAP CreateHBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits);
 
 private:
     /** 更新图片的透明通道标志
@@ -88,24 +69,6 @@ private:
     void FlipPixelBits(const uint8_t* pPixelBits, uint32_t nWidth, uint32_t nHeight, std::vector<uint8_t>& flipBits);
 
 private:
-    //位图GDI句柄
-    HBITMAP m_hBitmap;
-
-    //位图的宽度
-    uint32_t m_nWidth;
-    
-    //位图的宽度
-    uint32_t m_nHeight;
-
-    /**位图方向标志为：true表示位图方向：从上到下，左上角为圆点
-                     false表示：位图方向：从下到上，左下角为圆点
-    */
-    bool m_bFlipHeight;
-
-    /** 位图的Alpha类型
-    */
-    BitmapAlphaType m_alphaType;
-
     /** Skia 位图
     */
     std::unique_ptr<SkBitmap> m_pSkBitmap;
