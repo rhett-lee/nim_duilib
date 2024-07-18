@@ -33,7 +33,7 @@ public:
     virtual void SetMouseEnabled(bool bEnable = true) override;
     virtual void SetParent(Box* pParent) override;
     virtual void SetWindow(Window* pWindow) override;
-    virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
+    virtual Control* FindControl(FINDCONTROLPROC Proc, void* pProcData,
                                  uint32_t uFlags, const UiPoint& ptMouse,
                                  const UiPoint& scrollPos = UiPoint()) override;
     virtual void ClearImageCache() override;

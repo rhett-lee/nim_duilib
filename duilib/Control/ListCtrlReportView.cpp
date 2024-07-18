@@ -739,7 +739,7 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
     }
 }
 
-Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
+Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, void* pProcData,
                                          uint32_t uFlags, const UiPoint& ptMouse,
                                          const UiPoint& scrollPos)
 {

@@ -21,7 +21,11 @@
 // short wchar works for them.
 #define WCHAR_T_IS_UTF16
 #else
-#error Please add support for your compiler
+    #if defined (_WIN32) || defined (_WIN64)
+        #define WCHAR_T_IS_UTF16
+    #else
+        #error Please add support for your compiler
+    #endif
 #endif
 
 typedef char UTF8Char;

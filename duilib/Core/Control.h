@@ -21,7 +21,7 @@ namespace ui
     class IPath;
     class IFont;
 
-    typedef Control* (CALLBACK* FINDCONTROLPROC)(Control*, LPVOID);
+    typedef Control* (CALLBACK* FINDCONTROLPROC)(Control*, void*);
 
 class UILIB_API Control : 
     public PlaceHolder
@@ -507,7 +507,7 @@ public:
      * @param [in] scrollPos 滚动条的滚动位置
      * @return 返回控件的指针
      */
-    virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pProcData, uint32_t uFlags,                                 
+    virtual Control* FindControl(FINDCONTROLPROC Proc, void* pProcData, uint32_t uFlags,
                                  const UiPoint& ptMouse = UiPoint(),
                                  const UiPoint& scrollPos = UiPoint());
 

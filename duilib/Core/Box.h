@@ -36,7 +36,7 @@ public:
     virtual void PaintFocusRect(IRender* pRender) override;
     virtual void SetEnabled(bool bEnabled) override;
     virtual void SetVisible(bool bVisible) override;
-    virtual Control* FindControl(FINDCONTROLPROC Proc, LPVOID pProcData, uint32_t uFlags, 
+    virtual Control* FindControl(FINDCONTROLPROC Proc, void* pProcData, uint32_t uFlags,
                                  const UiPoint& ptMouse = UiPoint(),
                                  const UiPoint& scrollPos = UiPoint()) override;
     virtual void ClearImageCache() override;
@@ -202,7 +202,7 @@ protected:
     /** 查找控件, 子控件列表由外部传入
     */
     Control* FindControlInItems(const std::vector<Control*>& items, 
-                                FINDCONTROLPROC Proc, LPVOID pProcData,
+                                FINDCONTROLPROC Proc, void* pProcData,
                                 uint32_t uFlags, 
                                 const UiPoint& ptMouse, 
                                 const UiPoint& scrollPos);

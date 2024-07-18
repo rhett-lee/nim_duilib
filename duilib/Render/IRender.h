@@ -444,16 +444,19 @@ enum class UILIB_API RopMode
 */
 enum UILIB_API DrawStringFormat
 {
-    TEXT_SINGLELINE        = DT_SINGLELINE,
-    TEXT_LEFT            = DT_LEFT,
-    TEXT_CENTER            = DT_CENTER,
-    TEXT_RIGHT            = DT_RIGHT,
-    TEXT_TOP            = DT_TOP,
-    TEXT_VCENTER        = DT_VCENTER,
-    TEXT_BOTTOM            = DT_BOTTOM,
-    TEXT_END_ELLIPSIS    = DT_END_ELLIPSIS,
-    TEXT_PATH_ELLIPSIS  = DT_PATH_ELLIPSIS,
-    TEXT_NOCLIP            = DT_NOCLIP,
+    TEXT_LEFT           = 0x0001,
+    TEXT_CENTER         = 0x0002,
+    TEXT_RIGHT          = 0x0004,
+
+    TEXT_TOP            = 0x0010,
+    TEXT_VCENTER        = 0x0020,
+    TEXT_BOTTOM         = 0x0040,
+
+    TEXT_SINGLELINE     = 0x0100,
+    TEXT_NOCLIP         = 0x0200,
+
+    TEXT_PATH_ELLIPSIS  = 0x4000,
+    TEXT_END_ELLIPSIS   = 0x8000
 };
 
 /** Render类型

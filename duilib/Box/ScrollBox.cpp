@@ -446,7 +446,7 @@ void ScrollBox::SetWindow(Window* pWindow)
     Box::SetWindow(pWindow);
 }
 
-Control* ScrollBox::FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
+Control* ScrollBox::FindControl(FINDCONTROLPROC Proc, void* pProcData,
                                 uint32_t uFlags, const UiPoint& ptMouse,
                                 const UiPoint& scrollPos)
 {
