@@ -429,7 +429,7 @@ public:
     */
     virtual bool DoPaint(const UiRect& rcPaint) = 0;
 
-    /** 回调接口，获取当前窗口的透明度
+    /** 回调接口，获取当前窗口的透明度值
     */
     virtual uint8_t GetLayeredWindowAlpha() = 0;
 };

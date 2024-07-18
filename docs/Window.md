@@ -19,7 +19,8 @@
 | round_corner      | 窗口形状| 0,0     | size   | SetRoundCorner          |窗口圆角大小, 如(4,4) |
 | alpha_fix_corner  | 窗口形状|14,14,14,14| rect | SetAlphaFixCorner       |窗口圆角的透明通道修补范围 |
 | layered_window    | 窗口绘制| false   | bool   | SetLayeredWindow        |设置是否为层窗口 |
-| alpha             | 窗口绘制| 255     | int    | SetLayeredWindowAlpha   |设置窗口的透明度（0 - 255），仅当layered_window="true"时有效，该参数在UpdateLayeredWindow函数中使用 |
+| alpha             | 窗口绘制| 255     | int    | SetLayeredWindowAlpha   |设置透明度数值[0, 255]，当 alpha 为 0 时，窗口是完全透明的。 当 alpha 为 255 时，窗口是不透明的。<br>仅当layered_window="true"时有效，<br>该参数在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)|
+| opacity           | 窗口绘制| 255     | int    | SetLayeredWindowOpacity |设置透不明度数值[0, 255]，当 opacity 为 0 时，窗口是完全透明的。 当 opacity 为 255 时，窗口是不透明的。<br> 仅当IsLayeredWindow()为true的时候有效，所以如果当前不是分层窗口，内部会自动设置为分层窗口 <br>该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)|
 | render_backend_type|窗口绘制| "CPU"   | string |SetRenderBackendType     | "CPU": CPU绘制 <br> "GL": 使用OpenGL绘制 <br> 注意事项: <br> （1）一个线程内，只允许有一个窗口使用OpenGL绘制，否则会出现导致程序崩溃的问题 <br> （2）OpenGL绘制的窗口，不能是分层窗口（即带有WS_EX_LAYERED属性的窗口）<br> （3）使用OpenGL的窗口，每次绘制都是绘制整个窗口，不支持局部绘制，所以不一定比使用CPU绘制的情况下性能更好|
 
 备注：窗口属性的解析函数参见：[WindowBuilder::ParseWindowAttributes函数](../duilib/Core/WindowBuilder.cpp)    

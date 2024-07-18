@@ -9,6 +9,7 @@
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Utils/PerformanceUtil.h"
+#include "duilib/Utils/FilePathUtil.h"
 
 namespace ui
 {
@@ -87,6 +88,41 @@ RenderBackendType Window::GetRenderBackendType() const
         backendType = m_render->GetRenderBackendType();
     }
     return backendType;
+}
+
+bool Window::SetWindowIcon(const DString& iconFilePath)
+{
+    if (iconFilePath.empty()) {
+        return false;
+    }
+    bool bRet = false;
+    const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), GetResourcePath());
+    FilePath iconFullPath = FilePathUtil::JoinFilePath(windowResFullPath, FilePath(iconFilePath));
+    iconFullPath.NormalizeFilePath();
+    if (GlobalManager::Instance().Zip().IsUseZip()) {
+        //使用压缩包
+        if (GlobalManager::Instance().Zip().IsZipResExist(iconFullPath)) {
+            std::vector<uint8_t> fileData;
+            GlobalManager::Instance().Zip().GetZipData(iconFullPath, fileData);
+            ASSERT(!fileData.empty());
+            if (!fileData.empty()) {
+                bRet = WindowBase::SetWindowIcon(fileData);
+            }
+        }
+        else {
+            ASSERT(false);
+        }
+    }
+    else {
+        //使用本地文件
+        if (iconFullPath.IsExistsFile()) {
+            bRet = WindowBase::SetWindowIcon(iconFullPath);
+        }
+        else {
+            ASSERT(false);
+        }
+    }
+    return bRet;
 }
 
 void Window::PreInitWindow()

@@ -95,6 +95,18 @@ uint8_t WindowBase::GetLayeredWindowAlpha() const
     return m_pNativeWindow->GetLayeredWindowAlpha();
 }
 
+void WindowBase::SetLayeredWindowOpacity(int32_t nAlpha)
+{
+    m_pNativeWindow->SetLayeredWindowOpacity(nAlpha);
+    OnWindowAlphaChanged();
+}
+
+uint8_t WindowBase::GetLayeredWindowOpacity() const
+{
+    return m_pNativeWindow->GetLayeredWindowOpacity();
+}
+
+
 bool WindowBase::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
 {
     bool bRet = m_pNativeWindow->SetLayeredWindow(bIsLayeredWindow, bRedraw);

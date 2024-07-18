@@ -96,6 +96,17 @@ public:
     */
     uint8_t GetLayeredWindowAlpha() const;
 
+    /** 设置窗口不透明度(仅当IsLayeredWindow()为true的时候有效，所以如果当前不是分层窗口，内部会自动设置为分层窗口)
+    * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
+    *             该参数在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)。
+    */
+    void SetLayeredWindowOpacity(int32_t nAlpha);
+
+    /** 获取窗口不透明度(仅当IsLayeredWindow()为true的时候有效)
+    * @param [in] nAlpha 透明度数值[0, 255]，当 nAlpha 为 0 时，窗口是完全透明的。 当 nAlpha 为 255 时，窗口是不透明的。
+    */
+    uint8_t GetLayeredWindowOpacity() const;
+
     /** 设置是否使用系统标题栏
     */
     void SetUseSystemCaption(bool bUseSystemCaption);
@@ -587,8 +598,11 @@ private:
     //是否为层窗口
     bool m_bIsLayeredWindow;
 
-    //窗口透明度(仅当使用层窗口时有效，在UpdateLayeredWindow函数中作为参数使用)
+    //窗口透明度，该值在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)
     uint8_t m_nLayeredWindowAlpha;
+
+    //窗口不透明度，该值在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)
+    uint8_t m_nLayeredWindowOpacity;
 
     //是否使用系统的标题栏
     bool m_bUseSystemCaption;

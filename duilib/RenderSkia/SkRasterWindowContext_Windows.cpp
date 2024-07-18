@@ -179,26 +179,36 @@ bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect&
 
     // 渲染到窗口
     bool bRet = false;
+    bool bPainted = false;
     if (::GetWindowLong(m_hWnd, GWL_EXSTYLE) & WS_EX_LAYERED) {
         //分层窗口
-        UiRect rcWindow;
-        GetWindowRect(rcWindow);
-        UiRect rcClient;
-        GetClientRect(rcClient);
-        POINT pt = { rcWindow.left, rcWindow.top };
-        SIZE szWindow = { rcClient.Width(), rcClient.Height()};
-        POINT ptSrc = { 0, 0 };
-        BLENDFUNCTION bf = { AC_SRC_OVER, 0, nLayeredWindowAlpha, AC_SRC_ALPHA };
-        HDC hdc = pRender->GetRenderDC(m_hWnd);
-        ASSERT(hdc != nullptr);
-        if (hdc != nullptr) {
-            bRet = ::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA) != FALSE;
-            ASSERT(bRet);
-            pRender->ReleaseRenderDC(hdc);
-        }
+        COLORREF crKey = 0;
+        BYTE bAlpha = 0;
+        DWORD dwFlags = LWA_ALPHA | LWA_COLORKEY;
+        //当返回true的时候，不能按分层窗口绘制，必须按普通的窗口模式绘制
+        bool bAttributes = ::GetLayeredWindowAttributes(m_hWnd, &crKey, &bAlpha, &dwFlags) != FALSE;
+        if (!bAttributes) {
+            UiRect rcWindow;
+            GetWindowRect(rcWindow);
+            UiRect rcClient;
+            GetClientRect(rcClient);
+            POINT pt = { rcWindow.left, rcWindow.top };
+            SIZE szWindow = { rcClient.Width(), rcClient.Height() };
+            POINT ptSrc = { 0, 0 };
+            BLENDFUNCTION bf = { AC_SRC_OVER, 0, nLayeredWindowAlpha, AC_SRC_ALPHA };
+            HDC hdc = pRender->GetRenderDC(m_hWnd);
+            ASSERT(hdc != nullptr);
+            if (hdc != nullptr) {
+                //按分层窗口模式绘制
+                bRet = ::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA) != FALSE;
+                bPainted = true;
+                ASSERT(bRet);
+                pRender->ReleaseRenderDC(hdc);
+            }
+        }        
     }
-    else {
-        //普通窗口
+    if (!bPainted) {
+        //按普通窗口模式绘制
         ASSERT(hPaintDC != nullptr);
         HDC hdc = pRender->GetRenderDC(m_hWnd);
         ASSERT(hdc != nullptr);

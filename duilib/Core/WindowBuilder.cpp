@@ -332,7 +332,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         }
         else if (strName == _T("use_system_caption")) {
             pWindow->SetUseSystemCaption(strValue == _T("true"));
-        }
+        }        
         else if (strName == _T("render_backend_type")) {
             RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
             if (StringUtil::IsEqualNoCase(strValue, L"GL")) {
@@ -382,32 +382,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         else if (strName == _T("icon")) {
             if (!strValue.empty()) {
                 //设置窗口图标
-                const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), pWindow->GetResourcePath());
-                FilePath iconFullPath = FilePathUtil::JoinFilePath(windowResFullPath, FilePath(strValue));
-                iconFullPath.NormalizeFilePath();
-                if (GlobalManager::Instance().Zip().IsUseZip()) {
-                    //使用压缩包
-                    if (GlobalManager::Instance().Zip().IsZipResExist(iconFullPath)) {
-                        std::vector<uint8_t> fileData;
-                        GlobalManager::Instance().Zip().GetZipData(iconFullPath, fileData);
-                        ASSERT(!fileData.empty());
-                        if (!fileData.empty()) {
-                            pWindow->SetWindowIcon(fileData);
-                        }
-                    }
-                    else {
-                        ASSERT(false);
-                    }
-                }
-                else {
-                    //使用本地文件
-                    if (iconFullPath.IsExistsFile()) {
-                        pWindow->SetWindowIcon(iconFullPath);
-                    }
-                    else {
-                        ASSERT(false);
-                    }
-                }
+                pWindow->SetWindowIcon(strValue);
             }
         }
         else if (strName == _T("text")) {
@@ -427,7 +402,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             pWindow->SetAlphaFixCorner(rc, true);
         }
         else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
-            //设置是否支持窗口阴影（阴影实现有两种：层窗口和普通窗口）
+            //设置是否支持窗口阴影（阴影实现有两种：分层窗口和普通窗口）
             pWindow->SetShadowAttached(strValue == _T("true"));
         }
         else if ((strName == _T("shadow_image")) || (strName == _T("shadowimage"))) {
@@ -441,7 +416,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             pWindow->SetShadowCorner(padding, true);
         }
         else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
-            //设置是否设置层窗口属性（层窗口还是普通窗口）
+            //设置是否设置分层窗口属性（分层窗口还是普通窗口）
             if (!pWindow->IsUseSystemCaption()) {
                 pWindow->SetLayeredWindow(strValue == _T("true"), false);
             }
@@ -480,6 +455,14 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
                 cy = maxSize.cy;
             }
             pWindow->SetInitSize(cx, cy);
+        }
+        else if (strName == _T("opacity")) {
+            //设置窗口的不透明度（0 - 255），该值在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)
+            const int32_t nAlpha = StringUtil::StringToInt32(strValue);
+            ASSERT(nAlpha >= 0 && nAlpha <= 255);
+            if ((nAlpha >= 0) && (nAlpha <= 255)) {
+                pWindow->SetLayeredWindowOpacity(nAlpha);
+            }
         }
     }
 }

@@ -36,6 +36,7 @@ NativeWindow::NativeWindow(INativeWindow* pOwner):
     m_hDcPaint(nullptr),
     m_bIsLayeredWindow(false),
     m_nLayeredWindowAlpha(255),
+    m_nLayeredWindowOpacity(255),
     m_bUseSystemCaption(false),
     m_bMouseCapture(false),
     m_bCloseing(false),
@@ -465,6 +466,36 @@ void NativeWindow::SetLayeredWindowAlpha(int32_t nAlpha)
 uint8_t NativeWindow::GetLayeredWindowAlpha() const
 {
     return m_nLayeredWindowAlpha;
+}
+
+void NativeWindow::SetLayeredWindowOpacity(int32_t nAlpha)
+{
+    ASSERT(nAlpha >= 0 && nAlpha <= 255);
+    if ((nAlpha < 0) || (nAlpha > 255)) {
+        return;
+    }
+    m_nLayeredWindowOpacity = static_cast<uint8_t>(nAlpha);
+    if (m_nLayeredWindowOpacity == 255) {
+        COLORREF crKey = 0;
+        BYTE bAlpha = 0;
+        DWORD dwFlags = LWA_ALPHA | LWA_COLORKEY;
+        bool bAttributes = ::GetLayeredWindowAttributes(m_hWnd, &crKey, &bAlpha, &dwFlags) != FALSE;
+        if (bAttributes) {
+            bool bRet = ::SetLayeredWindowAttributes(m_hWnd, 0, m_nLayeredWindowOpacity, LWA_ALPHA) != FALSE;
+            ASSERT_UNUSED_VARIABLE(bRet);
+        }
+    }
+    else {
+        //必须先设置为分层窗口，然后才能设置成功
+        SetLayeredWindow(true, false);
+        bool bRet = ::SetLayeredWindowAttributes(m_hWnd, 0, m_nLayeredWindowOpacity, LWA_ALPHA) != FALSE;
+        ASSERT_UNUSED_VARIABLE(bRet);
+    }
+}
+
+uint8_t NativeWindow::GetLayeredWindowOpacity() const
+{
+    return m_nLayeredWindowOpacity;
 }
 
 void NativeWindow::SetUseSystemCaption(bool bUseSystemCaption)
@@ -1060,7 +1091,7 @@ public:
         return false;
     }
 
-    /** 回调接口，获取当前窗口的透明度
+    /** 回调接口，获取当前窗口的透明度值
     */
     virtual uint8_t GetLayeredWindowAlpha() override
     {
