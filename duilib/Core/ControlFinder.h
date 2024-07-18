@@ -102,12 +102,12 @@ public:
     void Clear();
 
 public:
-    static Control* CALLBACK __FindControlFromPoint(Control* pThis, LPVOID pData);
-    static Control* CALLBACK __FindControlFromTab(Control* pThis, LPVOID pData);
-    static Control* CALLBACK __FindControlFromUpdate(Control* pThis, LPVOID pData);
-    static Control* CALLBACK __FindControlFromName(Control* pThis, LPVOID pData);
-    static Control* CALLBACK __FindContextMenuControl(Control* pThis, LPVOID pData);
-    static Control* CALLBACK __FindControlFromDroppableBox(Control* pThis, LPVOID pData);
+    static Control* CALLBACK __FindControlFromPoint(Control* pThis, void* pData);
+    static Control* CALLBACK __FindControlFromTab(Control* pThis, void* pData);
+    static Control* CALLBACK __FindControlFromUpdate(Control* pThis, void* pData);
+    static Control* CALLBACK __FindControlFromName(Control* pThis, void* pData);
+    static Control* CALLBACK __FindContextMenuControl(Control* pThis, void* pData);
+    static Control* CALLBACK __FindControlFromDroppableBox(Control* pThis, void* pData);
 
 private:
     /** 根节点

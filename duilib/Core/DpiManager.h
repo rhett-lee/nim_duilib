@@ -100,7 +100,6 @@ public:
     /** 根据界面缩放比来缩放SIZE
     * @param[in] size 需要缩放的Size引用
     */
-    void ScaleSize(SIZE& size) const;
     void ScaleSize(UiSize& size) const;
     UiSize GetScaleSize(UiSize size) const;
 
@@ -109,7 +108,6 @@ public:
     /** 根据界面缩放比来缩放POINT
     * @param[in] point 需要缩放的point引用
     */
-    void ScalePoint(POINT& point) const;
     void ScalePoint(UiPoint& point) const;
 
     UiPoint GetScalePoint(UiPoint point, uint32_t nOldDpiScale) const;
@@ -118,7 +116,6 @@ public:
     * @param[in] rect 需要缩放的rect引用
     * @return void    无返回值
     */
-    void ScaleRect(RECT& rect) const;
     void ScaleRect(UiRect& rect) const;
     void ScalePadding(UiPadding& padding) const;
     void ScaleMargin(UiMargin& margin) const;

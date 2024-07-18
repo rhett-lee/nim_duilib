@@ -255,14 +255,14 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
     return estSize;
 }
 
-Control* Box::FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
+Control* Box::FindControl(FINDCONTROLPROC Proc, void* pProcData,
                           uint32_t uFlags, const UiPoint& ptMouse, const UiPoint& scrollPos)
 {
     return FindControlInItems(m_items, Proc, pProcData, uFlags, ptMouse, scrollPos);
 }
 
 Control* Box::FindControlInItems(const std::vector<Control*>& items,
-                                 FINDCONTROLPROC Proc, LPVOID pProcData,
+                                 FINDCONTROLPROC Proc, void* pProcData,
                                  uint32_t uFlags, 
                                  const UiPoint& ptMouse, 
                                  const UiPoint& scrollPos)

@@ -1452,7 +1452,7 @@ bool Control::IsActivatable() const
     return true;
 }
 
-Control* Control::FindControl(FINDCONTROLPROC Proc, LPVOID pProcData,
+Control* Control::FindControl(FINDCONTROLPROC Proc, void* pProcData,
                               uint32_t uFlags, const UiPoint& ptMouse,
                               const UiPoint& scrollPos)
 {

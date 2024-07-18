@@ -169,15 +169,6 @@ uint32_t DpiManager::GetScaleInt(uint32_t iValue, uint32_t nOldDpiScale) const
     return iValue;
 }
 
-void DpiManager::ScaleSize(SIZE &size) const
-{
-    if (m_nScaleFactor == 100) {
-        return;
-    }
-    size.cx = MulDiv(size.cx, m_nScaleFactor, 100);
-    size.cy = MulDiv(size.cy, m_nScaleFactor, 100);
-}
-
 void DpiManager::ScaleSize(UiSize &size) const
 {
     if (m_nScaleFactor == 100) {
@@ -203,15 +194,6 @@ UiSize DpiManager::GetScaleSize(UiSize size, uint32_t nOldDpiScale) const
     return size;
 }
 
-void DpiManager::ScalePoint(POINT &point) const
-{
-    if (m_nScaleFactor == 100) {
-        return;
-    }
-    point.x = MulDiv(point.x, m_nScaleFactor, 100);
-    point.y = MulDiv(point.y, m_nScaleFactor, 100);
-}
-
 void DpiManager::ScalePoint(UiPoint &point) const
 {
     if (m_nScaleFactor == 100) {
@@ -229,19 +211,6 @@ UiPoint DpiManager::GetScalePoint(UiPoint point, uint32_t nOldDpiScale) const
     point.x = MulDiv(point.x, m_nScaleFactor, nOldDpiScale);
     point.y = MulDiv(point.y, m_nScaleFactor, nOldDpiScale);
     return point;
-}
-
-void DpiManager::ScaleRect(RECT &rect) const
-{
-    if (m_nScaleFactor == 100) {
-        return;
-    }
-    int width = MulDiv(rect.right - rect.left, m_nScaleFactor, 100);
-    int height = MulDiv(rect.bottom - rect.top, m_nScaleFactor, 100);
-    rect.left = MulDiv(rect.left, m_nScaleFactor, 100);
-    rect.top = MulDiv(rect.top, m_nScaleFactor, 100);
-    rect.right = rect.left + width;
-    rect.bottom = rect.top + height;
 }
 
 void DpiManager::ScaleRect(UiRect &rect) const

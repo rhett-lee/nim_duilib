@@ -5,6 +5,13 @@
 
 namespace ui 
 {
+#ifndef DUILIB_BUILD_FOR_WIN
+    typedef unsigned long COLORREF;
+    #define GetRValue(rgb)      ((uint8_t)(rgb))
+    #define GetGValue(rgb)      ((uint8_t)(((uint16_t)(rgb)) >> 8))
+    #define GetBValue(rgb)      ((uint8_t)((rgb)>>16))
+    #define RGB(r,g,b)          ((COLORREF)(((uint8_t)(r)|((uint16_t)((uint8_t)(g))<<8))|(((uint32_t)(uint8_t)(b))<<16)))
+#endif
 
 /** 颜色值的封装(ARGB格式)
 */

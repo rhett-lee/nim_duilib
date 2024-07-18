@@ -4,7 +4,7 @@
 /** Windows or Linux 平台
 */
 #if defined (_WIN32) || defined (_WIN64)
-    #define DUILIB_BUILD_FOR_WIN     1
+    #define DUILIB_BUILD_FOR_WIN   1
 #elif defined(linux) || defined(__linux) || defined(__linux__)
     #define DUILIB_BUILD_FOR_LINUX   1
 #else
@@ -53,6 +53,9 @@
     #else
         #define ASSERT(expr)  ((void)(0))
     #endif
+
+    //C函数的调用方式
+    #define CALLBACK __stdcall
 
 #endif
 

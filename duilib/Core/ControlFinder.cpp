@@ -93,7 +93,7 @@ Control* ControlFinder::FindSubControlByName(Control* pParent, const DString& st
     }
     ASSERT(pParent);
     if (pParent) {
-        return pParent->FindControl(__FindControlFromName, (LPVOID)strName.c_str(), UIFIND_ALL);
+        return pParent->FindControl(__FindControlFromName, (void*)strName.c_str(), UIFIND_ALL);
     }
     return nullptr;
 }
@@ -133,7 +133,7 @@ void ControlFinder::AddControl(Control* pControl)
     }
 }
 
-Control* CALLBACK ControlFinder::__FindControlFromPoint(Control* pThis, LPVOID pData)
+Control* CALLBACK ControlFinder::__FindControlFromPoint(Control* pThis, void* pData)
 {
     UiPoint* pPoint = static_cast<UiPoint*>(pData);
     if ((pPoint == nullptr) || (pThis == nullptr)) {
@@ -145,7 +145,7 @@ Control* CALLBACK ControlFinder::__FindControlFromPoint(Control* pThis, LPVOID p
     return rect.ContainsPt(pt) ? pThis : nullptr;
 }
 
-Control* CALLBACK ControlFinder::__FindControlFromTab(Control* pThis, LPVOID pData)
+Control* CALLBACK ControlFinder::__FindControlFromTab(Control* pThis, void* pData)
 {
     if (pThis == nullptr) {
         return nullptr;
@@ -173,7 +173,7 @@ Control* CALLBACK ControlFinder::__FindControlFromTab(Control* pThis, LPVOID pDa
     return nullptr;  // Examine all controls
 }
 
-Control* CALLBACK ControlFinder::__FindControlFromUpdate(Control* pThis, LPVOID /*pData*/)
+Control* CALLBACK ControlFinder::__FindControlFromUpdate(Control* pThis, void* /*pData*/)
 {
     if (pThis == nullptr) {
         return nullptr;
@@ -181,7 +181,7 @@ Control* CALLBACK ControlFinder::__FindControlFromUpdate(Control* pThis, LPVOID 
     return pThis->IsArranged() ? pThis : nullptr;
 }
 
-Control* CALLBACK ControlFinder::__FindControlFromName(Control* pThis, LPVOID pData)
+Control* CALLBACK ControlFinder::__FindControlFromName(Control* pThis, void* pData)
 {
     const DString::value_type* pstrName = static_cast<const DString::value_type*>(pData);
     if ((pstrName == nullptr) || (pThis == nullptr)) {
@@ -194,7 +194,7 @@ Control* CALLBACK ControlFinder::__FindControlFromName(Control* pThis, LPVOID pD
     return (StringUtil::StringICompare(sName.c_str(), pstrName) == 0) ? pThis : nullptr;
 }
 
-Control* CALLBACK ControlFinder::__FindContextMenuControl(Control* pThis, LPVOID /*pData*/)
+Control* CALLBACK ControlFinder::__FindContextMenuControl(Control* pThis, void* /*pData*/)
 {
     if (pThis != nullptr) {
         if (!pThis->IsContextMenuUsed()) {
@@ -204,7 +204,7 @@ Control* CALLBACK ControlFinder::__FindContextMenuControl(Control* pThis, LPVOID
     return pThis;
 }
 
-Control* CALLBACK ControlFinder::__FindControlFromDroppableBox(Control* pThis, LPVOID pData)
+Control* CALLBACK ControlFinder::__FindControlFromDroppableBox(Control* pThis, void* pData)
 {
     if (pThis != nullptr) {
         Box* pBox = dynamic_cast<Box*>(pThis);
