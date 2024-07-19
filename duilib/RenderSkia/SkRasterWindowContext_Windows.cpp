@@ -1,6 +1,8 @@
 #include "SkRasterWindowContext_Windows.h"
 #include "duilib/Render/IRender.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
 namespace ui {
 
 SkRasterWindowContext_Windows::SkRasterWindowContext_Windows(HWND hWnd, const skwindow::DisplayParams& params):
@@ -274,3 +276,5 @@ HBITMAP SkRasterWindowContext_Windows::CreateHBitmap(int32_t nWidth, int32_t nHe
 }
 
 } // namespace ui
+
+#endif //DUILIB_BUILD_FOR_WIN

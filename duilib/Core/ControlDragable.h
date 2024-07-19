@@ -8,6 +8,7 @@
 #include "duilib/Box/VBox.h"
 #include "duilib/Box/HBox.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Core/WindowCreateParam.h"
 
 namespace ui
 {

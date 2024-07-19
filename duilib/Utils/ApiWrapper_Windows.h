@@ -1,8 +1,7 @@
-#ifndef UI_UTILS_APIWRAPPER_H_
-#define UI_UTILS_APIWRAPPER_H_
+#ifndef UI_UTILS_APIWRAPPER_WINDOWS_H_
+#define UI_UTILS_APIWRAPPER_WINDOWS_H_
 
-#include "duilib/duilib_defs.h"
-#include "duilib/Utils/Macros.h"
+#include "duilib/Utils/Macros_Windows.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
 
@@ -47,4 +46,4 @@ namespace ui
 
 #endif //DUILIB_BUILD_FOR_WIN
 
-#endif //UI_UTILS_APIWRAPPER_H_
+#endif //UI_UTILS_APIWRAPPER_WINDOWS_H_

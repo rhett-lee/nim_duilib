@@ -108,7 +108,7 @@ public:
     class Iterator
     {
         ObserverImpl<ReturnT, ParamT> & _tbl;
-        DWORD index;
+        uint32_t index;
         ReceiverImplBase<ReturnT, ParamT>* ptr;
     public:
         explicit Iterator( ObserverImpl & table )

@@ -336,14 +336,20 @@
     <ClCompile Include="..\..\skia\tools\gpu\gl\win\SkWGL_win.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\..\skia\tools\window\GLWindowContext.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
     </ClCompile>
     <ClCompile Include="..\..\skia\tools\window\WindowContext.cpp">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
     </ClCompile>
     <ClCompile Include="Animation\AnimationManager.cpp" />
     <ClCompile Include="Animation\AnimationPlayer.cpp" />
@@ -653,7 +659,7 @@
     <ClInclude Include="Utils\FilePathUtil.h" />
     <ClInclude Include="Utils\FileUtil.h" />
     <ClInclude Include="Utils\LogUtil.h" />
-    <ClInclude Include="Utils\Macros.h" />
+    <ClInclude Include="Utils\Macros_Windows.h" />
     <ClInclude Include="Utils\MonitorUtil.h" />
     <ClInclude Include="Utils\PerformanceUtil.h" />
     <ClInclude Include="Utils\ScreenCapture.h" />

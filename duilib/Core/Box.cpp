@@ -450,7 +450,7 @@ bool Box::DoAddItemAt(Control* pControl, size_t iIndex)
         return false;
     }
     if(iIndex > m_items.size() ) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return false;
     }
     m_items.insert(m_items.begin() + iIndex, pControl);

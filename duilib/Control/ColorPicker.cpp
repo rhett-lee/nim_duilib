@@ -5,6 +5,7 @@
 #include "duilib/Control/ColorPickerStatardGray.h"
 #include "duilib/Control/ColorPickerCustom.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/WindowCreateParam.h"
 #include "duilib/Utils/ScreenCapture.h"
 
 namespace ui

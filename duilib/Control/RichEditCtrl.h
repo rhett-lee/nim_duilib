@@ -2,6 +2,9 @@
 #define UI_CONTROL_RICHEDIT_CTRL_H_
 
 #include "duilib/Core/UiTypes.h"
+
+#ifdef DUILIB_BUILD_FOR_WIN
+
 #include <Richedit.h>
 #include <TextServ.h>
 #include <RichOle.h>
@@ -951,3 +954,5 @@ private:
 }//namespace ui
 
 #endif //UI_CONTROL_RICHEDIT_CTRL_H_
+
+#endif //DUILIB_BUILD_FOR_WIN

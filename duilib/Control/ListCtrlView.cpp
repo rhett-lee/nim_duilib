@@ -192,10 +192,10 @@ bool ListCtrlView::ButtonUp(const EventArgs& msg)
     }
     //按住Ctrl或者Shift的时候，不触发清空选择操作，避免误操作
     Control* pSender = msg.GetSender();
-    if (msg.wParam & MK_CONTROL) {
+    if (IsKeyDown(msg, ModifierKey::kControl)) {
         pSender = nullptr;
     }
-    else if (msg.wParam & MK_SHIFT) {
+    else if (this->IsKeyDown(msg, ModifierKey::kShift)) {
         pSender = nullptr;
     }
     OnButtonUp(msg.ptMouse, pSender);

@@ -3,6 +3,7 @@
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Box/ListBox.h"
 #include "duilib/Box/HBox.h"
+#include "duilib/Core/WindowCreateParam.h"
 
 namespace ui
 {

@@ -770,7 +770,7 @@ bool VirtualListBox::OnFindSelectable(size_t nCurSel, SelectableMode mode,
     }
     else {
         //不存在
-        ASSERT(FALSE);
+        ASSERT(0);
         return false;
     }
     if (nElementIndex >= GetElementCount()) {

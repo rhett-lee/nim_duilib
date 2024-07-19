@@ -127,7 +127,7 @@ int64_t VirtualHLayout::GetElementsWidth(UiRect /*rc*/, size_t nCount) const
         }
     }
     if (!Box::IsValidItemIndex(nCount)) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return (int64_t)szItem.cx + GetChildMarginX();
     }
 

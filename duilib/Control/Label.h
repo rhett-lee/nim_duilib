@@ -531,7 +531,7 @@ void LabelTemplate<InheritType>::DoPaintText(const UiRect & rc, IRender * pRende
                 DString textColor = GetStateTextColor(kControlStateHot);
                 if (!textColor.empty()) {
                     UiColor dwTextColor = this->GetUiColor(textColor);
-                    pRender->DrawString(rc, textValue, dwTextColor, this->GetIFontById(fontId), m_uTextStyle, (BYTE)this->GetHotAlpha());
+                    pRender->DrawString(rc, textValue, dwTextColor, this->GetIFontById(fontId), m_uTextStyle, (uint8_t)this->GetHotAlpha());
                 }
             }
 

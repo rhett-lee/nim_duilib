@@ -5,6 +5,8 @@
 #include "duilib/Image/Image.h"
 #include "duilib/Control/RichEditCtrl.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
 namespace ui 
 {
 
@@ -1184,3 +1186,5 @@ private:
 } // namespace ui
 
 #endif // UI_CONTROL_RICHEDIT_H_
+
+#endif //DUILIB_BUILD_FOR_WIN

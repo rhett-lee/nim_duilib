@@ -11,6 +11,8 @@
 
 namespace ui
 {
+class RichEdit;
+
 /** ListCtrl控件
 */
 class ListCtrl: public VBox

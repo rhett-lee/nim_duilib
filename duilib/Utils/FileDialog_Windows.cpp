@@ -2,7 +2,7 @@
 #include "duilib/Core/Window.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
-
+#include "duilib/duilib_config_windows.h"
 #include <shlobj.h>
 
 namespace ui

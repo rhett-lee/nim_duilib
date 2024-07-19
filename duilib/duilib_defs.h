@@ -355,15 +355,13 @@ namespace ui
 
     /** 鼠标操作的标志
     */
-#ifdef DUILIB_BUILD_FOR_WIN
     enum VKFlag
     {
-        kVkControl = MK_CONTROL,    //按下了 CTRL 键
-        kVkShift   = MK_SHIFT,      //按下了 SHIFT 键
-        kVkLButton = MK_LBUTTON,    //按下了鼠标左键
-        kVkRButton = MK_RBUTTON     //按下了鼠标右键
+        kVkLButton  = 0x0001, //MK_LBUTTON,     //按下了鼠标左键
+        kVkRButton  = 0x0002, //MK_RBUTTON,     //按下了鼠标右键
+        kVkShift    = 0x0004, //MK_SHIFT,       //按下了 SHIFT 键
+        kVkControl  = 0x0008  //MK_CONTROL,     //按下了 CTRL 键
     };
-#endif
 
 }// namespace ui
 

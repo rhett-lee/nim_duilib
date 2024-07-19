@@ -74,6 +74,8 @@ IRender* RenderFactory_Skia::CreateRender(const IRenderDpiPtr& spRenderDpi, void
     HWND hWnd = (HWND)platformData;
     IRender* pRender = new Render_Skia_Windows(hWnd, backendType);
 #else
+    UNUSED_VARIABLE(platformData);
+    UNUSED_VARIABLE(backendType);
     IRender* pRender = nullptr;
 #endif
     ASSERT(pRender != nullptr);

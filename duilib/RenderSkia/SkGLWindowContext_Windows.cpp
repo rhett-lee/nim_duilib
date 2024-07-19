@@ -1,6 +1,8 @@
 #include "SkGLWindowContext_Windows.h"
 #include "duilib/Render/IRender.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
 #pragma warning (push)
 #pragma warning (disable: 4244 4201 4100)
 
@@ -205,3 +207,5 @@ bool SkGLWindowContext_Windows::PaintAndSwapBuffers(IRender* /*pRender*/, IRende
 }
 
 } // namespace ui
+
+#endif //DUILIB_BUILD_FOR_WIN

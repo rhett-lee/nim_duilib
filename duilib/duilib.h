@@ -27,24 +27,6 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "duilib_config.h"
-
-#include <commctrl.h>
-#include <stddef.h>
-#include <richedit.h>
-#include <assert.h>
-#include <crtdbg.h>
-#include <malloc.h>
-#include <algorithm>
-#include <string>
-#include <memory>
-#include <vector>
-#include <list>
-#include <map>
-#include <unordered_set>
-#include <queue>
-#include <functional>
-
 #include "duilib_defs.h"
 #include "Utils/Delegate.h"
 #include "Utils/StringUtil.h"

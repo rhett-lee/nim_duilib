@@ -1,6 +1,7 @@
 #include "Menu.h"
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include "duilib/Core/WindowCreateParam.h"
 
 namespace ui {
 
@@ -401,7 +402,7 @@ void Menu::ResizeSubMenu()
 
             bReachRight = (rcPreWindow.left + rcCorner.left) >= rcWindow.right;
             bReachBottom = (rcPreWindow.top + rcCorner.top) >= rcWindow.bottom;
-            if (pContextMenu->NativeWnd()->GetHWND() == m_pOwner->GetWindow()->NativeWnd()->GetHWND()
+            if (pContextMenu->GetWindowHandle() == m_pOwner->GetWindow()->GetWindowHandle()
                 || bReachBottom || bReachRight) {
                 break;
             }

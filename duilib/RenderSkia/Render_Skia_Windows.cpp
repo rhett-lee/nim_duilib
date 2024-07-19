@@ -2,6 +2,8 @@
 #include "SkRasterWindowContext_Windows.h"
 #include "SkGLWindowContext_Windows.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
 #pragma warning (push)
 #pragma warning (disable: 4267 4244 4201 4100)
 
@@ -306,3 +308,5 @@ void Render_Skia_Windows::DeleteDC()
 }
 
 } // namespace ui
+
+#endif //DUILIB_BUILD_FOR_WIN

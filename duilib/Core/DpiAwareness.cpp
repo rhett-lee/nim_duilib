@@ -1,6 +1,6 @@
 #include "DpiAwareness.h"
 
-//仅限Windows平台
+//该文件的实现仅限非Windows平台，不支持Awareness相关的逻辑
 #ifndef DUILIB_BUILD_FOR_WIN
 
 namespace ui

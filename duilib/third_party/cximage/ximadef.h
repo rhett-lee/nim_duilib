@@ -62,7 +62,12 @@
  #define PI 3.141592653589793f
 #endif
 
+#if defined (_WIN32) || defined (_WIN64)
+    #include "../../duilib_config_windows.h"
+#endif
+
 #include "../../duilib_config.h"
+
 #if defined(WIN32) || defined(_WIN32_WCE)
     #include <tchar.h>
 #endif

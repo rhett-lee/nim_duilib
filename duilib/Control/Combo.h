@@ -7,6 +7,8 @@
 
 namespace ui 
 {
+class RichEdit;
+
 /** 组合框控件
 */
 class UILIB_API Combo : public Box
