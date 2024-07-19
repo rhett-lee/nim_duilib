@@ -13,6 +13,8 @@ namespace ui
 class WindowDropTarget;
 class ControlDropTarget;
 class IRender;
+class WindowCreateParam;
+class NativeWindow;
 
 /** 窗口的基本功能封装（平台相关的窗口功能封装）
 */
@@ -554,6 +556,10 @@ public:
     /** 设置鼠标最后的坐标
     */
     void SetLastMousePos(const UiPoint& pt);
+
+    /** 获取窗口的句柄（Windows平台返回的是窗口句柄HWND）
+    */
+    void* GetWindowHandle() const;
 
 protected:
     /** 正在初始化窗口数据

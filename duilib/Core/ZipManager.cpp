@@ -111,7 +111,7 @@ bool ZipManager::GetZipData(const FilePath& path, std::vector<unsigned char>& fi
         password = m_password;
     #endif
 #else
-        password = TToUTF8(m_password);
+        password = StringUtil::TToUTF8(m_password);
 #endif
         nRet = ::unzOpenCurrentFilePassword(m_hzip, password.c_str());
     }
@@ -328,7 +328,7 @@ DString ZipManager::GetZipFilePath(const char* szInZipFilePath, bool bUtf8) cons
         }
     #endif
 #else
-    filePath = UTF8ToT(szInZipFilePath);
+    filePath = StringUtil::UTF8ToT(szInZipFilePath);
 #endif
     return filePath;
 }

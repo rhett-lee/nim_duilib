@@ -496,8 +496,8 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
             DrawFunction(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
         }
         else if (xtiled && ytiled) {
-            const LONG imageDrawWidth = rcSource.right - rcSource.left - rcSourceCorners.left - rcSourceCorners.right;
-            const LONG imageDrawHeight = rcSource.bottom - rcSource.top - rcSourceCorners.top - rcSourceCorners.bottom;
+            const int32_t imageDrawWidth = rcSource.right - rcSource.left - rcSourceCorners.left - rcSourceCorners.right;
+            const int32_t imageDrawHeight = rcSource.bottom - rcSource.top - rcSourceCorners.top - rcSourceCorners.bottom;
             int iTimesX = (rcDrawDest.right - rcDrawDest.left) / (imageDrawWidth + nTiledMargin);
             if (!fullxtiled) {
                 if ((rcDrawDest.right - rcDrawDest.left) % (imageDrawWidth + nTiledMargin) > 0) {
@@ -511,17 +511,17 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
                 }
             }
             for (int j = 0; j < iTimesY; ++j) {
-                LONG lDestTop = rcDrawDest.top + j * imageDrawHeight + j * nTiledMargin;
-                LONG lDestBottom = lDestTop + imageDrawHeight;
-                LONG lDrawHeight = imageDrawHeight;
+                int32_t lDestTop = rcDrawDest.top + j * imageDrawHeight + j * nTiledMargin;
+                int32_t lDestBottom = lDestTop + imageDrawHeight;
+                int32_t lDrawHeight = imageDrawHeight;
                 if (lDestBottom > rcDrawDest.bottom) {
                     lDrawHeight -= lDestBottom - rcDrawDest.bottom;
                     lDestBottom = rcDrawDest.bottom;
                 }
                 for (int i = 0; i < iTimesX; ++i) {
-                    LONG lDestLeft = rcDrawDest.left + i * imageDrawWidth + i * nTiledMargin;
-                    LONG lDestRight = lDestLeft + imageDrawWidth;
-                    LONG lDrawWidth = imageDrawWidth;
+                    int32_t lDestLeft = rcDrawDest.left + i * imageDrawWidth + i * nTiledMargin;
+                    int32_t lDestRight = lDestLeft + imageDrawWidth;
+                    int32_t lDrawWidth = imageDrawWidth;
                     if (lDestRight > rcDrawDest.right) {
                         lDrawWidth -= (lDestRight - rcDrawDest.right);
                         lDestRight = rcDrawDest.right;
@@ -542,7 +542,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
             }
         }
         else if (xtiled) { // supp
-            const LONG imageDrawWidth = rcSource.right - rcSource.left - rcSourceCorners.left - rcSourceCorners.right;
+            const int32_t imageDrawWidth = rcSource.right - rcSource.left - rcSourceCorners.left - rcSourceCorners.right;
             int iTimes = (rcDrawDest.right - rcDrawDest.left) / (imageDrawWidth + nTiledMargin);
             if (!fullxtiled) {
                 if ((rcDrawDest.right - rcDrawDest.left) % (imageDrawWidth + nTiledMargin) > 0) {
@@ -551,9 +551,9 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
             }
 
             for (int i = 0; i < iTimes; ++i) {
-                LONG lDestLeft = rcDrawDest.left + i * imageDrawWidth + i * nTiledMargin;
-                LONG lDestRight = lDestLeft + imageDrawWidth;
-                LONG lDrawWidth = imageDrawWidth;
+                int32_t lDestLeft = rcDrawDest.left + i * imageDrawWidth + i * nTiledMargin;
+                int32_t lDestRight = lDestLeft + imageDrawWidth;
+                int32_t lDrawWidth = imageDrawWidth;
                 if (lDestRight > rcDrawDest.right) {
                     lDrawWidth -= (lDestRight - rcDrawDest.right);
                     lDestRight = rcDrawDest.right;
@@ -575,7 +575,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
             }
         }
         else { // ytiled
-            const LONG imageDrawHeight = rcSource.bottom - rcSource.top - rcSourceCorners.top - rcSourceCorners.bottom;
+            const int32_t imageDrawHeight = rcSource.bottom - rcSource.top - rcSourceCorners.top - rcSourceCorners.bottom;
             int iTimes = (rcDrawDest.bottom - rcDrawDest.top) / (imageDrawHeight + nTiledMargin);
             if (!fullytiled) {
                 if ((rcDrawDest.bottom - rcDrawDest.top) % (imageDrawHeight + nTiledMargin) > 0) {
@@ -587,9 +587,9 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
             rcDestTemp.left = rcDrawDest.left;
 
             for (int i = 0; i < iTimes; ++i) {
-                LONG lDestTop = rcDrawDest.top + i * imageDrawHeight + i * nTiledMargin;
-                LONG lDestBottom = lDestTop + imageDrawHeight;
-                LONG lDrawHeight = imageDrawHeight;
+                int32_t lDestTop = rcDrawDest.top + i * imageDrawHeight + i * nTiledMargin;
+                int32_t lDestBottom = lDestTop + imageDrawHeight;
+                int32_t lDrawHeight = imageDrawHeight;
                 if (lDestBottom > rcDrawDest.bottom) {
                     lDrawHeight -= lDestBottom - rcDrawDest.bottom;
                     lDestBottom = rcDrawDest.bottom;

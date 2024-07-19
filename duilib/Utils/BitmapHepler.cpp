@@ -2,6 +2,8 @@
 #include "duilib/Core/GlobalManager.h"
 #include <algorithm>
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
 namespace ui {
 
 namespace BitmapHelper {
@@ -153,3 +155,5 @@ namespace BitmapHelper {
 } //namespace BitmapHelper
 
 } //namespace ui 
+
+#endif //DUILIB_BUILD_FOR_WIN

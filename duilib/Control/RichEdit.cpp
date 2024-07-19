@@ -18,6 +18,8 @@
 #include "duilib/Box/VBox.h"
 #include "duilib/Control/Button.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
 namespace ui {
 
 /** 拖放操作接口的实现（仅是拖入操作）
@@ -3471,3 +3473,5 @@ void RichEdit::SetVAlignType(VerAlignType alignType)
 }
 
 } // namespace ui
+
+#endif //DUILIB_BUILD_FOR_WIN

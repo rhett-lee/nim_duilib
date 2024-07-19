@@ -137,8 +137,8 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
         m_imageMap[imageKey] = sharedImage;
 
 #ifdef _DEBUG
-        DString log = _T("Loaded Image: ") + imageKey + _T("\n");
-        ::OutputDebugString(log.c_str());
+        //DString log = _T("Loaded Image: ") + imageKey + _T("\n");
+        //::OutputDebugString(log.c_str());
 #endif
     }
     return sharedImage;
@@ -206,8 +206,8 @@ void ImageManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
         }
         delete pImageInfo;
 #ifdef _DEBUG
-        DString log = _T("Removed Image: ") + imageKey + _T("\n");
-        ::OutputDebugString(log.c_str());
+        //DString log = _T("Removed Image: ") + imageKey + _T("\n");
+        //::OutputDebugString(log.c_str());
 #endif
     }    
 }

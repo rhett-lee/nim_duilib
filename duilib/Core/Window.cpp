@@ -69,7 +69,7 @@ bool Window::SetRenderBackendType(RenderBackendType backendType)
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
-            m_render.reset(pRenderFactory->CreateRender(GetRenderDpi(), NativeWnd()->GetHWND(), m_renderBackendType));
+            m_render.reset(pRenderFactory->CreateRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType));
             bRet = (m_render != nullptr) ? true : false;
         }
     }
@@ -154,7 +154,7 @@ void Window::PostInitWindow()
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
         if (pRenderFactory != nullptr) {
-            m_render.reset(pRenderFactory->CreateRender(GetRenderDpi(), NativeWnd()->GetHWND(), m_renderBackendType));
+            m_render.reset(pRenderFactory->CreateRender(GetRenderDpi(), GetWindowHandle(), m_renderBackendType));
         }
     }
     ASSERT(m_render != nullptr);
@@ -1885,7 +1885,7 @@ Control* Window::FindControl(const UiPoint& pt) const
 {
     Control* pControl = m_controlFinder.FindControl(pt);
     if ((pControl != nullptr) && (pControl->GetWindow() != this)) {
-        ASSERT(FALSE);
+        ASSERT(0);
         pControl = nullptr;
     }
     return pControl;
@@ -1895,7 +1895,7 @@ Control* Window::FindContextMenuControl(const UiPoint* pt) const
 {
     Control* pControl = m_controlFinder.FindContextMenuControl(pt);
     if ((pControl != nullptr) && (pControl->GetWindow() != this)) {
-        ASSERT(FALSE);
+        ASSERT(0);
         pControl = nullptr;
     }
     return pControl;
@@ -1905,7 +1905,7 @@ Box* Window::FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const
 {
     Box* pControl = m_controlFinder.FindDroppableBox(pt, nDropInId);
     if ((pControl != nullptr) && (pControl->GetWindow() != this)) {
-        ASSERT(FALSE);
+        ASSERT(0);
         pControl = nullptr;
     }
     return pControl;

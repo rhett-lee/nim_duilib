@@ -3,6 +3,9 @@
 
 #include "duilib/RenderSkia/Render_Skia.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+#include "duilib/duilib_config_windows.h"
+
 namespace skwindow {
     class WindowContext;
 }
@@ -97,3 +100,5 @@ private:
 } // namespace ui
 
 #endif // UI_RENDER_SKIA_RENDER_WINDOWS_H_
+
+#endif //DUILIB_BUILD_FOR_WIN

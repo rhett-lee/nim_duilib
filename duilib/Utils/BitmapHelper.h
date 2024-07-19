@@ -3,12 +3,13 @@
 
 #include "duilib/Render/IRender.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+#include "duilib/duilib_config_windows.h"
+
 namespace ui 
 {
     namespace BitmapHelper 
     {
-#ifdef DUILIB_BUILD_FOR_WIN
-
         /** 创建一个Render对象，并复制HDC上的内容到Render
         * @return 返回的Render对象，由调用者负责释放资源
         */
@@ -33,9 +34,10 @@ namespace ui
         *@return 返回位图句柄，由调用方释放位图资源
         */
         HBITMAP CreateGDIBitmap(int32_t nWidth, int32_t nHeight, bool flipHeight, LPVOID* pBits);
-#endif
     }
 }
+
+#endif //DUILIB_BUILD_FOR_WIN
 
 #endif //UI_UTILS_BITMAP_HELPER_H_
 

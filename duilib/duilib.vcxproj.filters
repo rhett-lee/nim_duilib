@@ -527,9 +527,6 @@
     <ClInclude Include="Utils\Delegate.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\Macros.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\StringUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -1021,6 +1018,9 @@
     </ClInclude>
     <ClInclude Include="..\..\skia\tools\gpu\gl\win\SkWGL.h">
       <Filter>RenderSkia\Skia</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Macros_Windows.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

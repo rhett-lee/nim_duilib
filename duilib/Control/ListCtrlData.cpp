@@ -860,7 +860,7 @@ void ListCtrlData::GetDataItemsCheckStatus(bool& bChecked, bool& bPartChecked) c
         bChecked = false;
     }
     else {
-        ASSERT(FALSE);
+        ASSERT(0);
     }
 }
 
@@ -899,7 +899,7 @@ void ListCtrlData::GetDataItemsSelectStatus(bool& bSelected, bool& bPartSelected
         bSelected = false;
     }
     else {
-        ASSERT(FALSE);
+        ASSERT(0);
     }
 }
 

@@ -1,6 +1,9 @@
 #include "MonitorUtil.h"
 #include "duilib/Core/WindowBase.h"
 #include "duilib/Utils/ApiWrapper_Windows.h"
+
+#ifdef DUILIB_BUILD_FOR_WIN
+#include "duilib/duilib_config_windows.h"
 #include <VersionHelpers.h>
 
 namespace ui
@@ -74,3 +77,5 @@ uint32_t MonitorUtil::GetMainMonitorDPI()
 }
 
 } // namespace ui
+
+#endif //DUILIB_BUILD_FOR_WIN

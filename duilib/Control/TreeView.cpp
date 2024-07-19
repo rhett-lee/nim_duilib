@@ -1443,31 +1443,31 @@ bool TreeView::RemoveControl(Control* pControl)
 
 bool TreeView::AddItem(Control* /*pControl*/)
 {
-    ASSERT(FALSE);
+    ASSERT(0);
     return false;
 }
 
 bool TreeView::AddItemAt(Control* /*pControl*/, size_t /*iIndex*/)
 {
-    ASSERT(FALSE);
+    ASSERT(0);
     return false;
 }
 
 bool TreeView::RemoveItem(Control* /*pControl*/)
 {
-    ASSERT(FALSE);
+    ASSERT(0);
     return false;
 }
 
 bool TreeView::RemoveItemAt(size_t /*iIndex*/)
 {
-    ASSERT(FALSE);
+    ASSERT(0);
     return false;
 }
 
 void TreeView::RemoveAllItems()
 {
-    ASSERT(FALSE);
+    ASSERT(0);
 }
 
 void TreeView::SetParent(Box* pParent)

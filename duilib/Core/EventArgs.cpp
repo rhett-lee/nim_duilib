@@ -142,7 +142,7 @@ EventType StringToEventType(const DString& messageType)
         return kEventWindowClose;
     }
     else {
-        ASSERT(FALSE);
+        ASSERT(0);
         return kEventNone;
     }
 }

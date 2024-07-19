@@ -3,6 +3,8 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
 #define UI_ES_LEFT                0x0001L
 #define UI_ES_CENTER            0x0002L
 #define UI_ES_RIGHT                0x0004L
@@ -1111,3 +1113,5 @@ LONG RichEditHost::DYtoHimetricY(LONG dy, LONG yPerInch)
 }
 
 }//name space ui
+
+#endif //DUILIB_BUILD_FOR_WIN

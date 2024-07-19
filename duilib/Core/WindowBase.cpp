@@ -813,6 +813,11 @@ void WindowBase::SetLastMousePos(const UiPoint& pt)
     m_pNativeWindow->SetLastMousePos(pt);
 }
 
+void* WindowBase::GetWindowHandle() const
+{
+    return m_pNativeWindow->GetHWND();
+}
+
 void WindowBase::OnWindowSize(WindowSizeType sizeType)
 {
     UiSize szRoundCorner = GetRoundCorner();

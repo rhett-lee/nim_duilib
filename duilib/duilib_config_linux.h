@@ -5,10 +5,10 @@
 
 #define UILIB_API
 
-typedef unsigned int    UINT;
-typedef std::size_t     LRESULT;
-typedef std::size_t     WPARAM;
-typedef std::size_t     LPARAM;
+typedef unsigned int        UINT;
+typedef unsigned long long  WPARAM;
+typedef long long           LPARAM;
+typedef long long           LRESULT;
 
 //#define MAKEWORD(a, b)      ((uint16_t)(((uint8_t)(((size_t)(a)) & 0xff)) | ((uint16_t)((uint8_t)(((size_t)(b)) & 0xff))) << 8))
 //#define MAKELONG(a, b)      ((uint32_t)(((uint16_t)(((size_t)(a)) & 0xffff)) | ((uint32_t)((uint16_t)(((size_t)(b)) & 0xffff))) << 16))
@@ -28,5 +28,10 @@ typedef std::size_t     LPARAM;
 //
 #define S_OK            ((long)0L)
 #define S_FALSE         ((long)1L)
+
+//
+// C函数的调用方式
+//
+#define CALLBACK __stdcall
 
 #endif //DUILIB_CONFIG_LINUX_H_

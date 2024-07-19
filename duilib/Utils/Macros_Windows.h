@@ -1,7 +1,11 @@
-#ifndef UI_MACROS_H_
-#define UI_MACROS_H_
+#ifndef UI_MACROS_WINDOWS_H_
+#define UI_MACROS_WINDOWS_H_
 
 #include "duilib/duilib_defs.h"
+
+#ifdef DUILIB_BUILD_FOR_WIN
+
+#include "duilib/duilib_config_windows.h"
 
 namespace ui
 {
@@ -223,4 +227,6 @@ typedef struct tagPOINTER_PEN_INFO {
 
 }// namespace ui
 
-#endif // UI_MACROS_H_
+#endif //DUILIB_BUILD_FOR_WIN
+
+#endif // UI_MACROS_WINDOWS_H_

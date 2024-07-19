@@ -110,7 +110,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
             SetHorAlignType(kHorAlignRight);
         }
         else {
-            ASSERT(FALSE);
+            ASSERT(0);
         }
     }
     else if (strName == _T("valign")) {
@@ -124,7 +124,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
             SetVerAlignType(kVerAlignBottom);
         }
         else {
-            ASSERT(FALSE);
+            ASSERT(0);
         }
     }
     else if (strName == _T("margin")) {
@@ -247,7 +247,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
             SetState(kControlStateDisabled);
         }
         else {
-            ASSERT(FALSE);
+            ASSERT(0);
         }
     }
     else if ((strName == _T("cursor_type")) || (strName == _T("cursortype"))) {
@@ -285,7 +285,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
             SetCursorType(CursorType::kCursorNo);
         }
         else {
-            ASSERT(FALSE);
+            ASSERT(0);
         }
     }
     else if ((strName == _T("render_offset")) || (strName == _T("renderoffset"))) {
@@ -2731,14 +2731,14 @@ void Control::AddRoundRectPath(IPath* path, const UiRect& rc, UiSize roundSize) 
         roundSize.cy += 1;
     }
     //这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
-    path->AddArc(UiRect((INT)rc.left, rc.top, rc.left + roundSize.cx, rc.top + roundSize.cy), 180, 90);
-    path->AddLine(rc.left + roundSize.cx / 2, (INT)rc.top, rc.right - roundSize.cx / 2, rc.top);
-    path->AddArc(UiRect(rc.right - roundSize.cx, (INT)rc.top, rc.right, rc.top + roundSize.cy), 270, 90);
-    path->AddLine((INT)rc.right, rc.top + roundSize.cy / 2, rc.right, rc.bottom - roundSize.cy / 2);
+    path->AddArc(UiRect(rc.left, rc.top, rc.left + roundSize.cx, rc.top + roundSize.cy), 180, 90);
+    path->AddLine(rc.left + roundSize.cx / 2, rc.top, rc.right - roundSize.cx / 2, rc.top);
+    path->AddArc(UiRect(rc.right - roundSize.cx, rc.top, rc.right, rc.top + roundSize.cy), 270, 90);
+    path->AddLine(rc.right, rc.top + roundSize.cy / 2, rc.right, rc.bottom - roundSize.cy / 2);
     path->AddArc(UiRect(rc.right - roundSize.cx, rc.bottom - roundSize.cy, rc.right, rc.bottom), 0, 90);
-    path->AddLine(rc.right - roundSize.cx / 2, (INT)rc.bottom, rc.left + roundSize.cx / 2, rc.bottom);
+    path->AddLine(rc.right - roundSize.cx / 2, rc.bottom, rc.left + roundSize.cx / 2, rc.bottom);
     path->AddArc(UiRect(rc.left, rc.bottom - roundSize.cy, rc.left + roundSize.cx, rc.bottom), 90, 90);
-    path->AddLine((INT)rc.left, rc.bottom - roundSize.cy / 2, rc.left, rc.top + roundSize.cy / 2);
+    path->AddLine(rc.left, rc.bottom - roundSize.cy / 2, rc.left, rc.top + roundSize.cy / 2);
     path->Close();
 }
 

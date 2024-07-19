@@ -2,6 +2,7 @@
 #include "duilib/third_party/convert_utf/ConvertUTF.h"
 #include <filesystem>
 #include <cstdlib>
+#include <cstdarg>
 
 using namespace llvm; //for ConvertUTF.h
 

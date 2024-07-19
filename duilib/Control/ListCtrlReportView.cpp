@@ -1420,7 +1420,7 @@ UiSize64 ListCtrlReportLayout::ArrangeChild(const std::vector<ui::Control*>& /*i
 {
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return UiSize64();
     }
     DeflatePadding(rc);
@@ -1446,7 +1446,7 @@ UiSize ListCtrlReportLayout::EstimateSizeByChild(const std::vector<Control*>& /*
 {
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return UiSize();
     }
     szAvailable.Validate();
@@ -1475,7 +1475,7 @@ void ListCtrlReportLayout::LazyArrangeChild(UiRect rc) const
 {
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return;
     }
     UiRect orgRect = rc;
@@ -1714,7 +1714,7 @@ void ListCtrlReportLayout::LazyArrangeChildNormal(UiRect rc) const
 {    
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return;
     }
 
@@ -1818,7 +1818,7 @@ size_t ListCtrlReportLayout::AjustMaxItem(UiRect rc) const
 {
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return 1;
     }
     int32_t nItemHeight = GetItemHeight();
@@ -1868,7 +1868,7 @@ size_t ListCtrlReportLayout::GetTopElementIndex(UiRect /*rc*/) const
     size_t nTopElementIndex = 0;
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return nTopElementIndex;
     }
     int64_t nScrollPosY = pDataView->GetScrollPos().cy;
@@ -1907,7 +1907,7 @@ void ListCtrlReportLayout::GetDisplayElements(UiRect rc, std::vector<size_t>& co
     collection.clear();
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return;
     }
     if (pDataView->GetItemCount() <= 1) {
@@ -1949,7 +1949,7 @@ bool ListCtrlReportLayout::NeedReArrange() const
 {
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return false;
     }
     size_t nItemCount = pDataView->GetItemCount();//界面的显示控件个数（行）
@@ -1976,7 +1976,7 @@ void ListCtrlReportLayout::EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) 
 {
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return;
     }
     if (!Box::IsValidItemIndex(iIndex) || (iIndex >= pDataView->GetElementCount())) {
@@ -2081,7 +2081,7 @@ int64_t ListCtrlReportLayout::GetElementsHeight(size_t nCount, bool bIncludeAtTo
 {
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return 0;
     }
     if (!Box::IsValidItemIndex(nCount)) {
@@ -2121,7 +2121,7 @@ UiSize ListCtrlReportLayout::GetElementSize(int32_t rcWidth, size_t nElementInde
 {
     ListCtrlReportView* pDataView = GetDataView();
     if ((pDataView == nullptr) || !pDataView->HasDataProvider()) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return UiSize();
     }
     UiSize szElementSize;

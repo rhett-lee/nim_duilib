@@ -269,14 +269,12 @@ protected:
     {
         if (this->IsEnabled() && this->IsActivatable() && this->IsPointInWithScrollOffset(msg.ptMouse)) {
             uint64_t vkFlag = kVkLButton;
-#ifdef DUILIB_BUILD_FOR_WIN
-            if (msg.wParam & MK_CONTROL) {
+            if (this->IsKeyDown(msg, ModifierKey::kControl)) {
                 vkFlag |= kVkControl;
             }
-            if (msg.wParam & MK_SHIFT) {
+            if (this->IsKeyDown(msg, ModifierKey::kShift)) {
                 vkFlag |= kVkShift;
             }
-#endif
             //左键按下的时候，选择
             SelectItem(vkFlag);
         }
@@ -288,15 +286,13 @@ protected:
     virtual bool RButtonDown(const EventArgs& msg) override
     {
         if (this->IsEnabled() && this->IsActivatable() && this->IsPointInWithScrollOffset(msg.ptMouse)) {
-            uint64_t vkFlag = kVkRButton;
-#ifdef DUILIB_BUILD_FOR_WIN
-            if (msg.wParam & MK_CONTROL) {
+            uint64_t vkFlag = kVkRButton;            
+            if (this->IsKeyDown(msg, ModifierKey::kControl)) {
                 vkFlag |= kVkControl;
             }
-            if (msg.wParam & MK_SHIFT) {
+            if (this->IsKeyDown(msg, ModifierKey::kShift)) {
                 vkFlag |= kVkShift;
             }
-#endif
             //右键按下的时候，选择
             SelectItem(vkFlag);
         }

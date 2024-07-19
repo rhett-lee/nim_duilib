@@ -119,7 +119,7 @@ int64_t VirtualVTileLayout::GetElementsHeight(const UiRect& rc, size_t nCount) c
         }
     }
     if (!Box::IsValidItemIndex(nCount)) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return (int64_t)szItem.cy + GetChildMarginY();
     }
 

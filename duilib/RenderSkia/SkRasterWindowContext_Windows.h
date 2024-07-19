@@ -1,6 +1,9 @@
 #ifndef UI_RENDER_SKIA_RASTER_WINDOW_CONTEXT_WINDOWS_H_
 #define UI_RENDER_SKIA_RASTER_WINDOW_CONTEXT_WINDOWS_H_
 
+#include "duilib/duilib_config.h"
+
+#ifdef DUILIB_BUILD_FOR_WIN
 #include "duilib/duilib_config_windows.h"
 
 #pragma warning (push)
@@ -106,3 +109,5 @@ private:
 } // namespace ui
 
 #endif // UI_RENDER_SKIA_RASTER_WINDOW_CONTEXT_WINDOWS_H_
+
+#endif //DUILIB_BUILD_FOR_WIN

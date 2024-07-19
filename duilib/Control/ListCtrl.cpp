@@ -97,7 +97,7 @@ void ListCtrl::SetImageList(ListCtrlType type, ImageList* pImageList)
         m_imageList[2] = pImageList;
     }
     else {
-        ASSERT(FALSE);
+        ASSERT(0);
     }
     std::set<ImageList*> pImageSet;
     for (ImageList* pImage : m_imageList) {
@@ -1945,7 +1945,7 @@ void ListCtrl::OnItemEnterEditMode(size_t itemIndex, size_t nColumnId,
     editParam.pSubItem = pSubItem;
 
     if (!IsValidItemEditState(editParam) && !IsValidItemEditParam(editParam)) {
-        ASSERT(FALSE);
+        ASSERT(0);
         return;
     }
 

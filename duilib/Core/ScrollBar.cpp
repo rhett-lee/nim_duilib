@@ -312,10 +312,10 @@ void ScrollBar::SetPos(UiRect rc)
                     cxThumb = m_nThumbMinLength;
                 }
 
-                m_rcThumb.left = static_cast<LONG>(m_nScrollPos * (cx - cxThumb) / m_nRange + m_rcButton1.right);
-                m_rcThumb.right = static_cast<LONG>(m_rcThumb.left + cxThumb);
+                m_rcThumb.left = static_cast<int32_t>(m_nScrollPos * (cx - cxThumb) / m_nRange + m_rcButton1.right);
+                m_rcThumb.right = static_cast<int32_t>(m_rcThumb.left + cxThumb);
                 if (m_rcThumb.right > m_rcButton2.left) {
-                    m_rcThumb.left = static_cast<LONG>(m_rcButton2.left - cxThumb);
+                    m_rcThumb.left = static_cast<int32_t>(m_rcButton2.left - cxThumb);
                     m_rcThumb.right = m_rcButton2.left;
                 }
             }
@@ -351,7 +351,7 @@ void ScrollBar::SetPos(UiRect rc)
                 m_rcButton2.bottom = m_rcButton2.top;
             }
 
-            ::ZeroMemory(&m_rcThumb, sizeof(m_rcThumb));
+            ::memset(&m_rcThumb, 0, sizeof(m_rcThumb));
         }
     }
     else {
@@ -392,10 +392,10 @@ void ScrollBar::SetPos(UiRect rc)
                 int64_t cyThumb = (int64_t)cy * ((int64_t)rc.bottom - rc.top) / (m_nRange + rc.bottom - rc.top);
                 if (cyThumb < m_nThumbMinLength) cyThumb = m_nThumbMinLength;
 
-                m_rcThumb.top = static_cast<LONG>(m_nScrollPos * (cy - cyThumb) / m_nRange + m_rcButton1.bottom);
-                m_rcThumb.bottom = static_cast<LONG>(m_rcThumb.top + cyThumb);
+                m_rcThumb.top = static_cast<int32_t>(m_nScrollPos * (cy - cyThumb) / m_nRange + m_rcButton1.bottom);
+                m_rcThumb.bottom = static_cast<int32_t>(m_rcThumb.top + cyThumb);
                 if (m_rcThumb.bottom > m_rcButton2.top) {
-                    m_rcThumb.top = static_cast<LONG>(m_rcButton2.top - cyThumb);
+                    m_rcThumb.top = static_cast<int32_t>(m_rcButton2.top - cyThumb);
                     m_rcThumb.bottom = m_rcButton2.top;
                 }
             }
@@ -431,7 +431,7 @@ void ScrollBar::SetPos(UiRect rc)
                 m_rcButton2.right = m_rcButton2.left;
             }
 
-            ::ZeroMemory(&m_rcThumb, sizeof(m_rcThumb));
+            ::memset(&m_rcThumb, 0, sizeof(m_rcThumb));
         }
     }
 }
@@ -630,7 +630,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
             return;
         }
         else {
-            ASSERT(FALSE);
+            ASSERT(0);
         }
     }
 

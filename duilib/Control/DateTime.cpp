@@ -48,7 +48,7 @@ void DateTime::SetAttribute(const DString& strName, const DString& strValue)
             SetEditFormat(EditFormat::kMinuteUpDown);
         }
         else {
-            ASSERT(FALSE);
+            ASSERT(0);
         }
     }
     else {

@@ -288,7 +288,14 @@ UiMargin DpiManager::GetScaleMargin(UiMargin margin, uint32_t nOldDpiScale) cons
 
 int32_t DpiManager::MulDiv(int32_t nNumber, int32_t nNumerator, int32_t nDenominator) const
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     return ::MulDiv(nNumber, nNumerator, nDenominator);
+#else
+    if (nDenominator == 0) {
+        return -1;
+    }
+    return static_cast<int32_t>((int64_t)nNumber * (int64_t)nNumerator / (int64_t)nDenominator);
+#endif
 }
 
 }

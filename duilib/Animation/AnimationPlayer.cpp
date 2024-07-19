@@ -138,7 +138,7 @@ void AnimationPlayerBase::Play()
         }
     }
     else {
-        ASSERT(FALSE);
+        ASSERT(0);
     }
 
     m_currentValue = newCurrentValue;
@@ -219,7 +219,7 @@ int64_t AnimationPlayer::GetCurrentValue() const
             + m_speedDownfactorA * speedDownTime * speedDownTime + m_speedDownfactorB * speedDownTime);
     }
     else {
-        ASSERT(FALSE); 
+        ASSERT(0); 
     }
 
     int64_t currentValue = 0;
@@ -258,7 +258,7 @@ void AnimationPlayer::InitFactor()
                     *m_totalMillSeconds*m_totalMillSeconds);
             }
             else {
-                ASSERT(FALSE);
+                ASSERT(0);
             }
 
         }
@@ -276,7 +276,7 @@ void AnimationPlayer::InitFactor()
             }
         }
         else {
-            ASSERT(FALSE);
+            ASSERT(0);
         }
         if (m_totalMillSeconds == AP_NO_VALUE) {
             m_totalMillSeconds = int(std::sqrt(s / (m_speedUpfactorA*m_speedUpRatio*m_speedUpRatio + (1 - m_speedUpRatio - m_speedDownRatio) * 2 * tmpValue

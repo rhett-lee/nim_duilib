@@ -2,6 +2,9 @@
 #define UI_CONTROL_RICHEDIT_HOST_H_
 
 #include "duilib/Core/UiTypes.h"
+
+#ifdef DUILIB_BUILD_FOR_WIN
+
 //使用Windows的ITextHost实现
 #include <Richedit.h>
 #include <TextServ.h>
@@ -276,3 +279,5 @@ private:
 }//name space ui
 
 #endif // UI_CONTROL_RICHEDIT_HOST_H_
+
+#endif //DUILIB_BUILD_FOR_WIN

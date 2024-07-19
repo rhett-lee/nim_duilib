@@ -189,8 +189,8 @@ namespace APNGImageLoader
         }
         int pixel_count = nWid * nHei * pngData->nFrames;
         for (int i = 0; i < pixel_count; ++i) {
-            BYTE a = p[3];
-            BYTE t = p[0];
+            uint8_t a = p[3];
+            uint8_t t = p[0];
             if (a)
             {
                 p[0] = (p[2] * a) / 255;
@@ -434,7 +434,7 @@ namespace CxImageLoader
                         int32_t bitCount = cxFrame->GetBpp();//1, 4, 8, 24.
                         int32_t numColors = cxFrame->GetNumColors();//2, 16, 256; 0 for RGB images.
                         if ((transIndex >= 0) && (bitCount < 24) && (numColors != 0) && (cxFrame->GetDIB() != nullptr)) {
-                            RGBQUAD    transColor = cxFrame->GetTransColor();
+                            RGBQUAD transColor = cxFrame->GetTransColor();
                             if ((transColor.rgbRed == pBit->rgbRed) &&
                                 (transColor.rgbGreen == pBit->rgbGreen) &&
                                 (transColor.rgbBlue == pBit->rgbBlue)) {

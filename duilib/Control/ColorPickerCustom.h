@@ -10,6 +10,7 @@ namespace ui
 {
 /** 颜色选择器：自定义颜色
 */
+class RichEdit;
 class ColorPickerRegular;
 class ColorPickerCustom : public Box
 {
