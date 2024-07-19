@@ -14,7 +14,6 @@ class WindowDropTarget;
 class ControlDropTarget;
 class IRender;
 class WindowCreateParam;
-class NativeWindow;
 
 /** 窗口的基本功能封装（平台相关的窗口功能封装）
 */
