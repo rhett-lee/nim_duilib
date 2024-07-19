@@ -5,6 +5,10 @@
 #include "duilib/Core/WindowCreateParam.h"
 #include "duilib/Utils/FilePath.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
+#include "duilib/duilib_config_windows.h"
+
 namespace ui {
 
 /** 窗口功能的Windows平台实现
@@ -656,6 +660,8 @@ private:
 };
 
 } // namespace ui
+
+#endif //DUILIB_BUILD_FOR_WIN
 
 #endif // UI_CORE_NATIVE_WINDOW_WINDOWS_H_
 

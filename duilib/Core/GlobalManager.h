@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <thread>
 
 namespace ui 
 {
@@ -310,7 +311,7 @@ private:
 
     /** 主线程ID
     */
-    uint32_t m_dwUiThreadId;
+    std::thread::id m_dwUiThreadId;
 
     /** 所有的窗口列表
     */

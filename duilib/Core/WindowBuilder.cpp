@@ -816,7 +816,7 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
                 return nullptr;
             }
             if( !pContainer->AddItem(pControl) ) {
-                ASSERT(FALSE);
+                ASSERT(0);
                 delete pControl;
                 continue;
             }

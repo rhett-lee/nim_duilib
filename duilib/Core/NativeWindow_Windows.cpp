@@ -1,5 +1,7 @@
 #include "NativeWindow_Windows.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include <CommCtrl.h>
 #include <Olectl.h>
@@ -2481,3 +2483,5 @@ bool NativeWindow::IsEnableSysMenu() const
 }
 
 } // namespace ui
+
+#endif //DUILIB_BUILD_FOR_WIN

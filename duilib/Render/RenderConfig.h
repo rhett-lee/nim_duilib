@@ -17,7 +17,7 @@
 //     这种类型的接口比较多，如果想要使用，就需要修改源码，然后重新编译Skia。
 
 //Skia引擎需要依赖
-#ifdef DUILIB_PLATFORM_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     #pragma comment (lib, "opengl32.lib")
 #endif
 
