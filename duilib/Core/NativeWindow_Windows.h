@@ -13,20 +13,20 @@ namespace ui {
 
 /** 窗口功能的Windows平台实现
 */
-class NativeWindow
+class NativeWindow_Windows
 {
 public:
-    explicit NativeWindow(INativeWindow* pOwner);
-    NativeWindow(const NativeWindow& r) = delete;
-    NativeWindow& operator=(const NativeWindow& r) = delete;
-    ~NativeWindow();
+    explicit NativeWindow_Windows(INativeWindow* pOwner);
+    NativeWindow_Windows(const NativeWindow_Windows& r) = delete;
+    NativeWindow_Windows& operator=(const NativeWindow_Windows& r) = delete;
+    ~NativeWindow_Windows();
 
 public:
     /** 创建窗口
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
     */
-    bool CreateWnd(NativeWindow* pParentWindow, const WindowCreateParam& createParam);
+    bool CreateWnd(NativeWindow_Windows* pParentWindow, const WindowCreateParam& createParam);
 
     /** 显示模态窗口
     * @param [in] pParentWindow 父窗口
@@ -36,7 +36,7 @@ public:
     * @param [in] bCloseByEnter 按Enter键的时候，是否关闭窗口
     * @return 窗口退出时的返回值, 如果失败则返回-1
     */
-    int32_t DoModal(NativeWindow* pParentWindow, const WindowCreateParam& createParam,
+    int32_t DoModal(NativeWindow_Windows* pParentWindow, const WindowCreateParam& createParam,
                     bool bCenterWindow = true, bool bCloseByEsc = true, bool bCloseByEnter = false);
 
     /** 获取窗口所属的 Windows 句柄
@@ -124,11 +124,11 @@ public:
 
     /** 显示模态对话框(父窗口在创建的时候指定)
     */
-    void ShowModalFake(NativeWindow* pParentWindow);
+    void ShowModalFake(NativeWindow_Windows* pParentWindow);
 
     /** 模态对话框关闭，同步状态
     */
-    void OnCloseModalFake(NativeWindow* pParentWindow);
+    void OnCloseModalFake(NativeWindow_Windows* pParentWindow);
 
     /** 是否是模拟的模态显示窗口（通过ShowModalFake函数显示的窗口）
     */
@@ -243,7 +243,7 @@ public:
     * @param [in] cy 窗口的高度
     * @param [in] uFlags 参考 enum WindowPosFlags 选项
     */
-    bool SetWindowPos(const NativeWindow* pInsertAfterWindow,
+    bool SetWindowPos(const NativeWindow_Windows* pInsertAfterWindow,
                       InsertAfterFlag insertAfterFlag,
                       int32_t X, int32_t Y, int32_t cx, int32_t cy, uint32_t uFlags);
 
@@ -658,6 +658,10 @@ private:
     */
     std::vector<int32_t> m_hotKeyIds;
 };
+
+/** 定义别名
+*/
+typedef NativeWindow_Windows NativeWindow;
 
 } // namespace ui
 

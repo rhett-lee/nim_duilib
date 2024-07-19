@@ -328,6 +328,7 @@ DString ZipManager::GetZipFilePath(const char* szInZipFilePath, bool bUtf8) cons
         }
     #endif
 #else
+    UNUSED_VARIABLE(bUtf8);
     filePath = StringUtil::UTF8ToT(szInZipFilePath);
 #endif
     return filePath;
