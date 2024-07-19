@@ -3,6 +3,7 @@
 #include "duilib/Render/IRender.h"
 #include "duilib/Control/ColorPicker.h"
 #include "duilib/Control/ColorPickerRegular.h"
+#include "duilib/Core/WindowCreateParam.h"
 
 namespace ui
 {
@@ -646,6 +647,8 @@ PropertyGridColorProperty* PropertyGrid::AddColorProperty(PropertyGridGroup* pGr
     return pProperty;
 }
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
 PropertyGridDateTimeProperty* PropertyGrid::AddDateTimeProperty(PropertyGridGroup* pGroup,
                                                                 const DString& propertyName,
                                                                 const DString& dateTimeValue,                                                                
@@ -660,6 +663,8 @@ PropertyGridDateTimeProperty* PropertyGrid::AddDateTimeProperty(PropertyGridGrou
     }
     return pProperty;
 }
+
+#endif //DUILIB_BUILD_FOR_WIN
 
 PropertyGridIPAddressProperty* PropertyGrid::AddIPAddressProperty(PropertyGridGroup* pGroup,
                                                                   const DString& propertyName,
@@ -1712,6 +1717,8 @@ void PropertyGridColorProperty::OnSelectColor(const DString& color)
     }
 }
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
 ////////////////////////////////////////////////////////////////////////////
 ///
 /** 日期时间控件
@@ -1796,6 +1803,8 @@ void PropertyGridDateTimeProperty::OnScrollPosChanged()
         m_pDateTime->UpdateEditWndPos();
     }
 }
+
+#endif // DUILIB_BUILD_FOR_WIN
 
 ////////////////////////////////////////////////////////////////////////////
 ///

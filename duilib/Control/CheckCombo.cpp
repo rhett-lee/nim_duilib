@@ -23,8 +23,6 @@ public:
     virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
 
-    void OnSeleteItem();
-
 private:
     CheckCombo *m_pOwner = nullptr;
     //是否已经关闭
@@ -133,12 +131,6 @@ void CCheckComboWnd::OnFinalMessage()
         }
     }    
     __super::OnFinalMessage();
-}
-
-void CCheckComboWnd::OnSeleteItem()
-{
-    //TODO: 平台相关
-    PostMsg(WM_KILLFOCUS);
 }
 
 void CCheckComboWnd::OnInitWindow()

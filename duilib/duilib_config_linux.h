@@ -10,12 +10,12 @@ typedef unsigned long long  WPARAM;
 typedef long long           LPARAM;
 typedef long long           LRESULT;
 
-//#define MAKEWORD(a, b)      ((uint16_t)(((uint8_t)(((size_t)(a)) & 0xff)) | ((uint16_t)((uint8_t)(((size_t)(b)) & 0xff))) << 8))
-//#define MAKELONG(a, b)      ((uint32_t)(((uint16_t)(((size_t)(a)) & 0xffff)) | ((uint32_t)((uint16_t)(((size_t)(b)) & 0xffff))) << 16))
-//#define LOWORD(l)           ((uint16_t)(((size_t)(l)) & 0xffff))
-//#define HIWORD(l)           ((uint16_t)((((size_t)(l)) >> 16) & 0xffff))
-//#define LOBYTE(w)           ((uint8_t)(((size_t)(w)) & 0xff))
-//#define HIBYTE(w)           ((uint8_t)((((size_t)(w)) >> 8) & 0xff))
+#define MAKEWORD(a, b)      ((uint16_t)(((uint8_t)(((size_t)(a)) & 0xff)) | ((uint16_t)((uint8_t)(((size_t)(b)) & 0xff))) << 8))
+#define MAKELONG(a, b)      ((uint32_t)(((uint16_t)(((size_t)(a)) & 0xffff)) | ((uint32_t)((uint16_t)(((size_t)(b)) & 0xffff))) << 16))
+#define LOWORD(l)           ((uint16_t)(((size_t)(l)) & 0xffff))
+#define HIWORD(l)           ((uint16_t)((((size_t)(l)) >> 16) & 0xffff))
+#define LOBYTE(w)           ((uint8_t)(((size_t)(w)) & 0xff))
+#define HIBYTE(w)           ((uint8_t)((((size_t)(w)) >> 8) & 0xff))
 //
 //#define GET_X_LPARAM(lp)    ((int)(short)LOWORD(lp))
 //#define GET_Y_LPARAM(lp)    ((int)(short)HIWORD(lp))

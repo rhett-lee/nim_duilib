@@ -290,9 +290,11 @@ DateTime::EditFormat DateTime::GetEditFormat() const
 
 void DateTime::UpdateEditWndPos()
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     if (m_pDateWindow != nullptr) {
         m_pDateWindow->UpdateWndPos();
     }
+#endif
 }
 
 void DateTime::HandleEvent(const EventArgs& msg)
@@ -331,6 +333,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
             GetWindow()->UpdateWindow();
         }
         if (IsFocused()) {
+#ifdef DUILIB_BUILD_FOR_WIN
             m_pDateWindow = new DateTimeWnd(this);
             if (m_pDateWindow->Init(this)) {
                 m_pDateWindow->ShowWindow();
@@ -339,6 +342,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
                 delete m_pDateWindow;
                 m_pDateWindow = nullptr;
             }
+#endif
         }        
     }
     if (msg.eventType == kEventKillFocus) {
@@ -349,7 +353,8 @@ void DateTime::HandleEvent(const EventArgs& msg)
         (msg.eventType == kEventMouseRButtonDown)) {
         if (GetWindow() != nullptr) {
             GetWindow()->ReleaseCapture();
-        }            
+        }
+#ifdef DUILIB_BUILD_FOR_WIN
         if (IsFocused() && (m_pDateWindow == nullptr)) {
             m_pDateWindow = new DateTimeWnd(this);
         }
@@ -362,6 +367,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
                 m_pDateWindow = nullptr;
             }
         }
+#endif
     }
     if (msg.eventType == kEventMouseMove) {
         return;

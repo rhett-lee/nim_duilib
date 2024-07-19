@@ -9,8 +9,10 @@
 #include "duilib/RenderSkia/RenderFactory_Skia.h"
 #include "duilib/Render/RenderConfig.h"
 
-//ToolTip/日期时间等标准控件，需要初始化commctrl
-#include <commctrl.h>
+#ifdef DUILIB_BUILD_FOR_WIN
+    //ToolTip/日期时间等标准控件，需要初始化commctrl
+    #include <commctrl.h>
+#endif
 
 #include <filesystem>
 
@@ -18,7 +20,6 @@ namespace ui
 {
 
 GlobalManager::GlobalManager():
-    m_dwUiThreadId(0),
     m_pfnCreateControlCallback(nullptr),
     m_platformData(nullptr)
 {
@@ -44,7 +45,7 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
         return false;
     }
     //记录当前线程ID
-    m_dwUiThreadId = GetCurrentThreadId();
+    m_dwUiThreadId = std::this_thread::get_id();
 
     //记录平台相关数据
     m_platformData = resParam.platformData;
@@ -97,7 +98,7 @@ void GlobalManager::Shutdown()
     m_pfnCreateControlCallback = nullptr;
     m_globalClass.clear();
     m_windowList.clear();
-    m_dwUiThreadId = 0;
+    m_dwUiThreadId = std::thread::id();
     m_resourcePath.Clear();
     m_languagePath.Clear();
     m_fontFilePath.Clear();
@@ -178,6 +179,7 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
             return false;
         }
     }
+#ifdef DUILIB_BUILD_FOR_WIN
     else if (resParam.GetResType() == ResourceType::kResZipFile) {
         //资源文件打包为zip压缩包，然后放在exe/dll的资源文件中
         const ResZipFileResParam& param = static_cast<const ResZipFileResParam&>(resParam);
@@ -187,6 +189,7 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
             return false;
         }
     }
+#endif
     else {
         ASSERT(false);
         return false;
@@ -610,7 +613,7 @@ Control* GlobalManager::CreateControl(const DString& strControlName)
 
 void GlobalManager::AssertUIThread() const
 {
-    ASSERT(m_dwUiThreadId == ::GetCurrentThreadId());
+    ASSERT(m_dwUiThreadId == std::this_thread::get_id());
 }
 
 void GlobalManager::AddAtExitFunction(std::function<void()> atExitFunction)
