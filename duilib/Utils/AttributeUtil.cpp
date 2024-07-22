@@ -338,11 +338,13 @@ void AttributeUtil::ParseWindowSize(const Window* pWindow, const DString::value_
     if (needScaleCY) {
         pWindow->Dpi().ScaleInt(cy);
     }
-    if (cx > rcWork.Width()) {
-        cx = rcWork.Width();
-    }
-    if (cy > rcWork.Width()) {
-        cy = rcWork.Height();
+    if (!rcWork.IsEmpty()) {
+        if (cx > rcWork.Width()) {
+            cx = rcWork.Width();
+        }
+        if (cy > rcWork.Width()) {
+            cy = rcWork.Height();
+        }
     }
     size.cx = cx;
     size.cy = cy;

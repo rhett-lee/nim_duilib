@@ -43,6 +43,10 @@ public:
     */
     HWND GetHWND() const;
 
+    /** 获取本地实现的窗口句柄
+    */
+    void* GetWindowHandle() const;
+
     /** 是否含有有效的窗口句柄
     */
     bool IsWindow() const;
