@@ -162,7 +162,8 @@
       <OutputFile>.\Debug/duilib.bsc</OutputFile>
     </Bscmake>
     <Lib>
-      <AdditionalDependencies>comctl32.lib;gdiplus.lib;msimg32.lib;winmm.lib;imm32.lib;shlwapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalOptions>/IGNORE:4006,4221 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
@@ -216,7 +217,8 @@
       <OutputFile>.\Debug/duilib.bsc</OutputFile>
     </Bscmake>
     <Lib>
-      <AdditionalDependencies>comctl32.lib;gdiplus.lib;msimg32.lib;winmm.lib;imm32.lib;shlwapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalOptions>/IGNORE:4006,4221 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
@@ -273,7 +275,8 @@
       <OutputFile>.\Release/duilib.bsc</OutputFile>
     </Bscmake>
     <Lib>
-      <AdditionalDependencies>comctl32.lib;gdiplus.lib;msimg32.lib;winmm.lib;imm32.lib;shlwapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalOptions>/IGNORE:4006,4221 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>
@@ -328,7 +331,8 @@
       <OutputFile>.\Release/duilib.bsc</OutputFile>
     </Bscmake>
     <Lib>
-      <AdditionalDependencies>comctl32.lib;gdiplus.lib;msimg32.lib;winmm.lib;imm32.lib;shlwapi.lib</AdditionalDependencies>
+      <AdditionalDependencies>
+      </AdditionalDependencies>
       <AdditionalOptions>/IGNORE:4006,4221 %(AdditionalOptions)</AdditionalOptions>
     </Lib>
   </ItemDefinitionGroup>

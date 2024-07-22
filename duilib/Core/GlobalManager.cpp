@@ -14,6 +14,14 @@
     #include <commctrl.h>
 #endif
 
+//依赖的Lib
+#ifdef DUILIB_BUILD_FOR_WIN
+    #pragma comment (lib, "Imm32.lib")
+    #pragma comment (lib, "comctl32.lib")
+    #pragma comment (lib, "User32.lib")
+    #pragma comment (lib, "shlwapi.lib")
+#endif
+
 #include <filesystem>
 
 namespace ui 
