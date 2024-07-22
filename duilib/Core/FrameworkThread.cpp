@@ -1,7 +1,12 @@
 #include "FrameworkThread.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/WindowMessage.h"
-#include "duilib/Core/MessageLoop.h"
+
+#if defined (DUILIB_BUILD_FOR_SDL)
+    #include "duilib/Core/MessageLoop_SDL.h"
+#elif defined (DUILIB_BUILD_FOR_WIN)
+    #include "duilib/Core/MessageLoop_Windows.h"
+#endif
 
 /** 用户自定义消息
 */
@@ -289,8 +294,15 @@ void FrameworkThread::OnInit()
 
 void FrameworkThread::OnRunMessageLoop()
 {
-    MessageLoop msgLoop;
+#if defined (DUILIB_BUILD_FOR_SDL)
+    MessageLoop_SDL msgLoop;
     msgLoop.Run();
+#elif defined (DUILIB_BUILD_FOR_WIN)
+    MessageLoop_Windows msgLoop;
+    msgLoop.Run();
+#else
+    ASSERT(0);
+#endif
 }
 
 void FrameworkThread::OnCleanup()

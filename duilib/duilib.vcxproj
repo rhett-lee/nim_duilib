@@ -121,7 +121,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\;..\..\skia\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;SK_GANESH;SK_GL;GR_TEST_UTILS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -178,7 +178,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\;..\..\skia\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;SK_GANESH;SK_GL;GR_TEST_UTILS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -235,7 +235,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\;..\..\skia\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;SK_GANESH;SK_GL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -292,7 +292,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\;..\..\skia\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;SK_GANESH;SK_GL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -422,7 +422,9 @@
     <ClCompile Include="Core\ImageManager.cpp" />
     <ClCompile Include="Core\Keyboard_Windows.cpp" />
     <ClCompile Include="Core\LangManager.cpp" />
+    <ClCompile Include="Core\MessageLoop_SDL.cpp" />
     <ClCompile Include="Core\MessageLoop_Windows.cpp" />
+    <ClCompile Include="Core\NativeWindow_SDL.cpp" />
     <ClCompile Include="Core\NativeWindow_Windows.cpp" />
     <ClCompile Include="Core\Placeholder.cpp" />
     <ClCompile Include="Core\ScrollBar.cpp" />
@@ -458,8 +460,10 @@
     <ClCompile Include="RenderSkia\Pen_Skia.cpp" />
     <ClCompile Include="RenderSkia\RenderFactory_Skia.cpp" />
     <ClCompile Include="RenderSkia\Render_Skia.cpp" />
+    <ClCompile Include="RenderSkia\Render_Skia_SDL.cpp" />
     <ClCompile Include="RenderSkia\Render_Skia_Windows.cpp" />
     <ClCompile Include="RenderSkia\SkGLWindowContext_Windows.cpp" />
+    <ClCompile Include="RenderSkia\SkRasterWindowContext_SDL.cpp" />
     <ClCompile Include="RenderSkia\SkRasterWindowContext_Windows.cpp" />
     <ClCompile Include="RenderSkia\SkTextBox.cpp" />
     <ClCompile Include="RenderSkia\SkUtils.cpp" />
@@ -582,7 +586,9 @@
     <ClInclude Include="Core\Keyboard.h" />
     <ClInclude Include="Core\KeyCode.h" />
     <ClInclude Include="Core\LangManager.h" />
-    <ClInclude Include="Core\MessageLoop.h" />
+    <ClInclude Include="Core\MessageLoop_SDL.h" />
+    <ClInclude Include="Core\MessageLoop_Windows.h" />
+    <ClInclude Include="Core\NativeWindow_SDL.h" />
     <ClInclude Include="Core\NativeWindow_Windows.h" />
     <ClInclude Include="Core\Placeholder.h" />
     <ClInclude Include="Core\ResourceParam.h" />
@@ -636,8 +642,10 @@
     <ClInclude Include="RenderSkia\Pen_Skia.h" />
     <ClInclude Include="RenderSkia\RenderFactory_Skia.h" />
     <ClInclude Include="RenderSkia\Render_Skia.h" />
+    <ClInclude Include="RenderSkia\Render_Skia_SDL.h" />
     <ClInclude Include="RenderSkia\Render_Skia_Windows.h" />
     <ClInclude Include="RenderSkia\SkGLWindowContext_Windows.h" />
+    <ClInclude Include="RenderSkia\SkRasterWindowContext_SDL.h" />
     <ClInclude Include="RenderSkia\SkRasterWindowContext_Windows.h" />
     <ClInclude Include="RenderSkia\SkTextBox.h" />
     <ClInclude Include="RenderSkia\SkUtils.h" />

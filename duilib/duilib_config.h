@@ -12,6 +12,10 @@
     #pragma message("Unknown Platform!")
 #endif
 
+/** SDL 是否使用SDL的窗口和鼠标键盘事件（目前只支持SDL3）
+*/
+#define DUILIB_BUILD_FOR_SDL   1
+
 /** 64位操作系统标识
 */
 #if defined(_M_X64) || defined(_M_AMD64) || defined(_WIN64) || defined(__x86_64__) 

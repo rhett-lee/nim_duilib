@@ -22,6 +22,13 @@
     #pragma comment (lib, "shlwapi.lib")
 #endif
 
+#ifdef DUILIB_BUILD_FOR_SDL
+    #pragma comment (lib, "../../../SDL3/lib/SDL3-static.lib")
+    #pragma comment (lib, "Version.lib")
+    #pragma comment (lib, "Winmm.lib")
+    #pragma comment (lib, "Setupapi.lib")
+#endif
+
 #include <filesystem>
 
 namespace ui 

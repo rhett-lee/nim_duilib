@@ -52,6 +52,12 @@
     <Filter Include="RenderSkia\Skia">
       <UniqueIdentifier>{9c093c10-7a9b-4154-b865-18b9cde23965}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RenderSkia\SDL">
+      <UniqueIdentifier>{a02c0cab-6bee-4351-bfbd-c822c46a8e10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\SDL">
+      <UniqueIdentifier>{126a61ed-8dc3-476e-8c8b-bbcf4ba97677}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -464,6 +470,18 @@
     </ClCompile>
     <ClCompile Include="..\..\skia\tools\gpu\gl\win\SkWGL_win.cpp">
       <Filter>RenderSkia\Skia</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\Render_Skia_SDL.cpp">
+      <Filter>RenderSkia\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\SkRasterWindowContext_SDL.cpp">
+      <Filter>RenderSkia\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\MessageLoop_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NativeWindow_SDL.cpp">
+      <Filter>Core\SDL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -986,9 +1004,6 @@
     <ClInclude Include="Core\ThreadMessage.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\MessageLoop.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\FilePath.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -1021,6 +1036,21 @@
     </ClInclude>
     <ClInclude Include="Utils\Macros_Windows.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\Render_Skia_SDL.h">
+      <Filter>RenderSkia\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\SkRasterWindowContext_SDL.h">
+      <Filter>RenderSkia\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NativeWindow_SDL.h">
+      <Filter>Core\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\MessageLoop_Windows.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\MessageLoop_SDL.h">
+      <Filter>Core\SDL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

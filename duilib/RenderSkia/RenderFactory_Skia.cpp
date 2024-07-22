@@ -7,7 +7,9 @@
 #include "duilib/RenderSkia/Path_Skia.h"
 #include "duilib/RenderSkia/Matrix_Skia.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_SDL)
+    #include "duilib/RenderSkia/Render_Skia_SDL.h"
+#elif defined (DUILIB_BUILD_FOR_WIN)
     #include "duilib/RenderSkia/Render_Skia_Windows.h"
 #endif
 
@@ -70,7 +72,10 @@ IBitmap* RenderFactory_Skia::CreateBitmap()
 
 IRender* RenderFactory_Skia::CreateRender(const IRenderDpiPtr& spRenderDpi, void* platformData, RenderBackendType backendType)
 {
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_SDL)
+    SDL_Window* sdlWindow = (SDL_Window*)platformData;
+    IRender* pRender = new Render_Skia_SDL(sdlWindow, backendType);
+#elif defined(DUILIB_BUILD_FOR_WIN)
     HWND hWnd = (HWND)platformData;
     IRender* pRender = new Render_Skia_Windows(hWnd, backendType);
 #else

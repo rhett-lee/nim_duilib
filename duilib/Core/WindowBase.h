@@ -4,8 +4,12 @@
 #include "duilib/Core/INativeWindow.h"
 #include "duilib/Utils/FilePath.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_SDL)
+    #include "duilib/Core/NativeWindow_SDL.h"
+#elif defined (DUILIB_BUILD_FOR_WIN)
     #include "duilib/Core/NativeWindow_Windows.h"
+#else
+    class NativeWindow;
 #endif
 
 namespace ui
