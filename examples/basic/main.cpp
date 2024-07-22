@@ -47,6 +47,7 @@ void MainThread::OnInit()
         resParam.zipPassword = _T("");
         ui::GlobalManager::Instance().Startup(resParam);
     }
+#ifdef DUILIB_BUILD_FOR_WIN
     else if (resType == ui::ResourceType::kResZipFile) {
         //使用exe资源文件中的zip压缩包
         ui::ResZipFileResParam resParam;
@@ -57,6 +58,7 @@ void MainThread::OnInit()
         resParam.zipPassword = _T("");
         ui::GlobalManager::Instance().Startup(resParam);
     }
+#endif
     else {
         return;
     }

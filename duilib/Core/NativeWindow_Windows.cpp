@@ -331,6 +331,11 @@ HWND NativeWindow_Windows::GetHWND() const
     return m_hWnd;
 }
 
+void* NativeWindow_Windows::GetWindowHandle() const
+{
+    return m_hWnd;
+}
+
 bool NativeWindow_Windows::IsWindow() const
 {
     return (m_hWnd != nullptr) && ::IsWindow(m_hWnd);
@@ -387,7 +392,7 @@ bool NativeWindow_Windows::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
         // 强制窗口重绘
         ::SetWindowPos(m_hWnd, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
     }
-    return false;
+    return true;
 }
 
 bool NativeWindow_Windows::SetLayeredWindowStyle(bool bIsLayeredWindow, bool& bChanged) const

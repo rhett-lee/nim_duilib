@@ -815,7 +815,7 @@ void WindowBase::SetLastMousePos(const UiPoint& pt)
 
 void* WindowBase::GetWindowHandle() const
 {
-    return m_pNativeWindow->GetHWND();
+    return m_pNativeWindow->GetWindowHandle();
 }
 
 void WindowBase::OnWindowSize(WindowSizeType sizeType)
