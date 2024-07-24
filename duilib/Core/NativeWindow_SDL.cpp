@@ -748,21 +748,40 @@ public:
 
 bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
 {
-    ASSERT(m_pOwner != nullptr);
-    if (m_pOwner == nullptr) {
+    INativeWindow* pOwner = m_pOwner;
+    ASSERT(pOwner != nullptr);
+    if (pOwner == nullptr) {
         return false;
     }
+    //接口的生命周期标志
+    std::weak_ptr<WeakFlag> ownerFlag = pOwner->GetWeakFlag();
+
+    //消息首先转给过滤器(全部消息)
+    bool bHandled = false;
+    LRESULT lResult = pOwner->OnNativeWindowMessage(sdlEvent.type, (WPARAM)&sdlEvent, 0, bHandled);
+    if (bHandled || ownerFlag.expired()) {
+        return true;
+    }
+
     if (sdlEvent.type != SDL_EVENT_WINDOW_DESTROYED) {
-       // ASSERT(m_sdlWindow != nullptr);
         if (m_sdlWindow == nullptr) {
             return false;
         }
     }
-    bool bHandled = false;
-    LRESULT lResult = 0;
+
+    //派发消息到处理函数
     switch (sdlEvent.type) {
+    case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+        {
+            UiSize newWindowSize;
+            SDL_GetWindowSize(m_sdlWindow, &newWindowSize.cx, &newWindowSize.cy);
+            ASSERT(sdlEvent.window.data1 == newWindowSize.cx);
+            ASSERT(sdlEvent.window.data2 == newWindowSize.cy);
+        }
+        break;
     case SDL_EVENT_WINDOW_RESIZED:
         {
+            //窗口大小改变
             WindowSizeType sizeType = WindowSizeType::kSIZE_RESTORED;
             SDL_WindowFlags nFlags = SDL_GetWindowFlags(m_sdlWindow);
             if (nFlags & SDL_WINDOW_FULLSCREEN) {
@@ -777,25 +796,71 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             UiSize newWindowSize;
             newWindowSize.cx = sdlEvent.window.data1;
             newWindowSize.cy = sdlEvent.window.data2;
-            lResult = m_pOwner->OnNativeSizeMsg(sizeType, newWindowSize, NativeMsg(SDL_EVENT_WINDOW_RESIZED, 0, 0), bHandled);
+            lResult = pOwner->OnNativeSizeMsg(sizeType, newWindowSize, NativeMsg(SDL_EVENT_WINDOW_RESIZED, 0, 0), bHandled);
+        }
+        break;
+    case SDL_EVENT_WINDOW_MINIMIZED:
+        {
+            //窗口最小化
+            WindowSizeType sizeType = WindowSizeType::kSIZE_MINIMIZED;
+            UiSize newWindowSize;
+            SDL_GetWindowSize(m_sdlWindow, &newWindowSize.cx, &newWindowSize.cy);            
+            lResult = pOwner->OnNativeSizeMsg(sizeType, newWindowSize, NativeMsg(SDL_EVENT_WINDOW_MINIMIZED, 0, 0), bHandled);
+        }
+        break;
+    case SDL_EVENT_WINDOW_MAXIMIZED:
+        {
+            //窗口最大化
+            WindowSizeType sizeType = WindowSizeType::kSIZE_MAXIMIZED;
+            UiSize newWindowSize;
+            SDL_GetWindowSize(m_sdlWindow, &newWindowSize.cx, &newWindowSize.cy);
+            lResult = pOwner->OnNativeSizeMsg(sizeType, newWindowSize, NativeMsg(SDL_EVENT_WINDOW_MAXIMIZED, 0, 0), bHandled);
+        }
+        break;
+    case SDL_EVENT_WINDOW_RESTORED:
+        {
+            //窗口还原
+            WindowSizeType sizeType = WindowSizeType::kSIZE_RESTORED;
+            UiSize newWindowSize;
+            SDL_GetWindowSize(m_sdlWindow, &newWindowSize.cx, &newWindowSize.cy);
+            lResult = pOwner->OnNativeSizeMsg(sizeType, newWindowSize, NativeMsg(SDL_EVENT_WINDOW_RESTORED, 0, 0), bHandled);
+        }
+        break;
+    case SDL_EVENT_WINDOW_MOVED:
+        {
+            //窗口移动
+            UiPoint ptTopLeft;
+            ptTopLeft.x = sdlEvent.window.data1;
+            ptTopLeft.y = sdlEvent.window.data2;
+            lResult = pOwner->OnNativeMoveMsg(ptTopLeft, NativeMsg(SDL_EVENT_WINDOW_MOVED, 0, 0), bHandled);
         }
         break;
     case SDL_EVENT_WINDOW_EXPOSED:
         {
-            bool bPaint = m_pOwner->OnNativePreparePaint();
-            if (bPaint) {
-                IRender* pRender = m_pOwner->OnNativeGetRender();
+            //窗口绘制
+            bool bPaint = pOwner->OnNativePreparePaint();
+            if (bPaint && !ownerFlag.expired()) {
+                IRender* pRender = pOwner->OnNativeGetRender();
                 ASSERT(pRender != nullptr);
                 if (pRender != nullptr) {
                     NativeWindowRenderPaint renderPaint;
                     renderPaint.m_pNativeWindow = this;
-                    renderPaint.m_pOwner = m_pOwner;
+                    renderPaint.m_pOwner = pOwner;
                     renderPaint.m_nativeMsg = NativeMsg(SDL_EVENT_WINDOW_EXPOSED, 0, 0);
                     renderPaint.m_bHandled = bHandled;
                     bPaint = pRender->PaintAndSwapBuffers(&renderPaint);
                     bHandled = renderPaint.m_bHandled;
                 }
             }
+        }
+        break;
+    case SDL_EVENT_WINDOW_MOUSE_ENTER:
+        //不需要处理，Windows没有这个消息
+        break;
+    case SDL_EVENT_WINDOW_MOUSE_LEAVE:
+        {
+            //鼠标离开窗口
+            lResult = pOwner->OnNativeMouseLeaveMsg(NativeMsg(SDL_EVENT_WINDOW_MOUSE_LEAVE, 0, 0), bHandled);
         }
         break;
     case SDL_EVENT_MOUSE_MOTION:
@@ -805,7 +870,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             pt.y = (int32_t)sdlEvent.motion.y;
             uint32_t modifierKey = 0;
             //GetModifiers(); SDL 没有开放获取按键的数据
-            lResult = m_pOwner->OnNativeMouseMoveMsg(pt, modifierKey, false, NativeMsg(SDL_EVENT_MOUSE_MOTION, 0, 0), bHandled);
+            lResult = pOwner->OnNativeMouseMoveMsg(pt, modifierKey, false, NativeMsg(SDL_EVENT_MOUSE_MOTION, 0, 0), bHandled);
         }
         break;
     case SDL_EVENT_MOUSE_WHEEL:
@@ -820,7 +885,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             pt.y = (int32_t)sdlEvent.wheel.mouse_y;
             uint32_t modifierKey = 0;
             //GetModifiers(uMsg, wParam, lParam, modifierKey);
-            lResult = m_pOwner->OnNativeMouseWheelMsg(wheelDelta, pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_WHEEL, 0, 0), bHandled);
+            lResult = pOwner->OnNativeMouseWheelMsg(wheelDelta, pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_WHEEL, 0, 0), bHandled);
         }
         break;
     case SDL_EVENT_MOUSE_BUTTON_DOWN:
@@ -833,11 +898,11 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
 
             if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
                 //鼠标左键
-                lResult = m_pOwner->OnNativeMouseLButtonDownMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_DOWN, 0, 0), bHandled);
+                lResult = pOwner->OnNativeMouseLButtonDownMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_DOWN, 0, 0), bHandled);
             }
             else if (sdlEvent.button.button == SDL_BUTTON_RIGHT) {
                 //鼠标右键
-                lResult = m_pOwner->OnNativeMouseRButtonDownMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_DOWN, 0, 0), bHandled);
+                lResult = pOwner->OnNativeMouseRButtonDownMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_DOWN, 0, 0), bHandled);
             }
         }
         break;
@@ -853,55 +918,68 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
                 //鼠标左键
                 if (bDoubleClick) {
-                    lResult = m_pOwner->OnNativeMouseLButtonDbClickMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
+                    lResult = pOwner->OnNativeMouseLButtonDbClickMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
                 }
                 else {
-                    lResult = m_pOwner->OnNativeMouseLButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
+                    lResult = pOwner->OnNativeMouseLButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
                 }
             }
             else if (sdlEvent.button.button == SDL_BUTTON_RIGHT) {
                 //鼠标右键
                 if (bDoubleClick) {
-                    lResult = m_pOwner->OnNativeMouseRButtonDbClickMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
+                    lResult = pOwner->OnNativeMouseRButtonDbClickMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
                 }
                 else {
-                    lResult = m_pOwner->OnNativeMouseRButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
+                    lResult = pOwner->OnNativeMouseRButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
                 }
             }
+        }
+        break;
+    case SDL_EVENT_WINDOW_FOCUS_GAINED:
+        {
+            //获取键盘输入焦点
+            INativeWindow* pLostFocusWindow = nullptr;//此参数得不到
+            lResult = pOwner->OnNativeSetFocusMsg(pLostFocusWindow, NativeMsg(SDL_EVENT_WINDOW_FOCUS_GAINED, 0, 0), bHandled);
+        }
+        break;
+    case SDL_EVENT_WINDOW_FOCUS_LOST:
+        {
+            INativeWindow* pSetFocusWindow = nullptr;//此参数得不到
+            lResult = pOwner->OnNativeKillFocusMsg(pSetFocusWindow, NativeMsg(SDL_EVENT_WINDOW_FOCUS_LOST, 0, 0), bHandled);
         }
         break;
     case SDL_EVENT_KEY_DOWN:
         {            
             VirtualKeyCode vkCode = GetVirtualKeyCode(sdlEvent.key.key);
             uint32_t modifierKey = GetModifiers(sdlEvent.key.mod);
-            lResult = m_pOwner->OnNativeKeyDownMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_KEY_DOWN, sdlEvent.key.key, sdlEvent.key.mod), bHandled);
+            lResult = pOwner->OnNativeKeyDownMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_KEY_DOWN, sdlEvent.key.key, sdlEvent.key.mod), bHandled);
         }
         break;
     case SDL_EVENT_KEY_UP:
         {
             VirtualKeyCode vkCode = GetVirtualKeyCode(sdlEvent.key.key);
             uint32_t modifierKey = GetModifiers(sdlEvent.key.mod);
-            lResult = m_pOwner->OnNativeKeyUpMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_KEY_UP, sdlEvent.key.key, sdlEvent.key.mod), bHandled);
+            lResult = pOwner->OnNativeKeyUpMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_KEY_UP, sdlEvent.key.key, sdlEvent.key.mod), bHandled);
         }
         break;
     case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
         {
             //回调关闭事件
             bHandled = false;
-            m_pOwner->OnNativeWindowCloseMsg(0, NativeMsg(SDL_EVENT_WINDOW_CLOSE_REQUESTED, 0, 0), bHandled);
-            if (bHandled) {
+            pOwner->OnNativeWindowCloseMsg(0, NativeMsg(SDL_EVENT_WINDOW_CLOSE_REQUESTED, 0, 0), bHandled);
+            if (bHandled && !ownerFlag.expired()) {
                 //拦截了关闭事件, 恢复关闭前的状态
                 m_bCloseing = false;
                 m_closeParam = kWindowCloseNormal;
             }
-            else {
+            else if(!ownerFlag.expired()) {
                 //PreClose事件
-                if (m_pOwner) {
-                    m_pOwner->OnNativePreCloseWindow();
-                }
+                pOwner->OnNativePreCloseWindow();
 
                 //关闭窗口
-                ClearNativeWindow();
+                if (!ownerFlag.expired()) {
+                    ClearNativeWindow();
+                }
             }
         }
         break;
@@ -912,8 +990,10 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             ClearWindowFromID(windowID, this);
 
             //窗口已经关闭（关闭后）
-            m_pOwner->OnNativePostCloseWindow();
-            OnFinalMessage();
+            pOwner->OnNativePostCloseWindow();
+            if (!ownerFlag.expired()) {
+                OnFinalMessage();
+            }
         }
         break;
     case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
@@ -922,12 +1002,12 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             float fNewDpiScale = SDL_GetWindowDisplayScale(m_sdlWindow);
             if (fNewDpiScale > 0.01f) {
                 uint32_t nNewDPI = (uint32_t)(fNewDpiScale * 96);//新的DPI值
-                if (nNewDPI != m_pOwner->OnNativeGetDpi().GetDPI()) {
+                if (nNewDPI != pOwner->OnNativeGetDpi().GetDPI()) {
                     //DPI发生变化
-                    uint32_t nOldDpiScale = m_pOwner->OnNativeGetDpi().GetScale();
-                    m_pOwner->OnNativeProcessDpiChangedMsg(nNewDPI, UiRect());
-                    if (nOldDpiScale != m_pOwner->OnNativeGetDpi().GetScale()) {
-                        m_ptLastMousePos = m_pOwner->OnNativeGetDpi().GetScalePoint(m_ptLastMousePos, nOldDpiScale);
+                    uint32_t nOldDpiScale = pOwner->OnNativeGetDpi().GetScale();
+                    pOwner->OnNativeProcessDpiChangedMsg(nNewDPI, UiRect());
+                    if (!ownerFlag.expired() && (nOldDpiScale != pOwner->OnNativeGetDpi().GetScale())) {
+                        m_ptLastMousePos = pOwner->OnNativeGetDpi().GetScalePoint(m_ptLastMousePos, nOldDpiScale);
                     }
                 }
             }            
@@ -935,28 +1015,17 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         break;
     case SDL_EVENT_WINDOW_SHOWN:
         {
-            lResult = m_pOwner->OnNativeShowWindowMsg(true, NativeMsg(SDL_EVENT_WINDOW_SHOWN, 0, 0), bHandled);
+            lResult = pOwner->OnNativeShowWindowMsg(true, NativeMsg(SDL_EVENT_WINDOW_SHOWN, 0, 0), bHandled);
         }
         break;
     case SDL_EVENT_WINDOW_HIDDEN:
         {
-            lResult = m_pOwner->OnNativeShowWindowMsg(false, NativeMsg(SDL_EVENT_WINDOW_HIDDEN, 0, 0), bHandled);
+            lResult = pOwner->OnNativeShowWindowMsg(false, NativeMsg(SDL_EVENT_WINDOW_HIDDEN, 0, 0), bHandled);
         }
         break;
     default:
         break;
     }
-
-    //WM_SHOWWINDOW         SDL_EVENT_WINDOW_SHOWN,SDL_EVENT_WINDOW_HIDDEN
-    //WM_SET_FOCUS:         SDL_EVENT_WINDOW_FOCUS_GAINED
-    //WM_KILL_FOCUS:        SDL_EVENT_WINDOW_FOCUS_LOST
-
-    //
-    //WM_KEYDOWN:           SDL_EVENT_KEY_DOWN
-    //WM_KEYUP:             SDL_EVENT_KEY_UP
-    //WM_CHAR:              SDL_EVENT_TEXT_INPUT
-    //
-
     return true;
 }
 
@@ -1672,7 +1741,7 @@ bool NativeWindow_SDL::IsWindowFocused() const
     if (!IsWindow()) {
         return false;
     }
-    return (SDL_GetKeyboardFocus() == m_sdlWindow) || (SDL_GetMouseFocus() == m_sdlWindow) ? true : false;
+    return (SDL_GetKeyboardFocus() == m_sdlWindow) && (SDL_GetMouseFocus() == m_sdlWindow) ? true : false;
 }
 
 void NativeWindow_SDL::CheckSetWindowFocus()
@@ -1949,20 +2018,13 @@ bool NativeWindow_SDL::IsCaptured() const
     return m_bMouseCapture;
 }
 
-bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& /*rcWnd*/, const UiSize& /*szRoundCorner*/, bool /*bRedraw*/)
-{
-    //没有此功能
-    return false;
-}
-
-void NativeWindow_SDL::ClearWindowRgn(bool /*bRedraw*/)
-{
-    //没有此功能
-}
-
 void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
 {
-    return;
+#ifdef DUILIB_BUILD_FOR_WIN
+    HWND hWnd = GetHWND();
+    RECT rc = { rcItem.left, rcItem.top, rcItem.right, rcItem.bottom };
+    ::InvalidateRect(hWnd, &rc, FALSE);
+#else
     //暂时没有此功能, 只能发送一个绘制消息，触发界面绘制
     if (m_sdlWindow != nullptr) {
         SDL_Event sdlEvent;
@@ -1974,17 +2036,7 @@ void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
         int nRet = SDL_PushEvent(&sdlEvent);
         ASSERT_UNUSED_VARIABLE(nRet > 0);
     }
-}
-
-bool NativeWindow_SDL::UpdateWindow() const
-{
-    //没有此功能
-    return false;
-}
-
-void NativeWindow_SDL::KeepParentActive()
-{
-    //不支持此功能
+#endif
 }
 
 void NativeWindow_SDL::GetClientRect(UiRect& rcClient) const
@@ -2001,6 +2053,17 @@ void NativeWindow_SDL::GetClientRect(UiRect& rcClient) const
         rcClient.right = rcClient.left + nWidth;
         rcClient.bottom = rcClient.top + nHeight;
     }
+#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+    {
+        HWND hWnd = GetHWND();
+        RECT rect = {0, };
+        ::GetClientRect(hWnd, &rect);
+        ASSERT(rcClient.left == rect.left);
+        ASSERT(rcClient.top == rect.top);
+        ASSERT(rcClient.right == rect.right);
+        ASSERT(rcClient.bottom == rect.bottom);
+    }
+#endif
 }
 
 void NativeWindow_SDL::GetWindowRect(UiRect& rcWindow) const
@@ -2010,35 +2073,52 @@ void NativeWindow_SDL::GetWindowRect(UiRect& rcWindow) const
 
 void NativeWindow_SDL::GetWindowRect(SDL_Window* sdlWindow, UiRect& rcWindow) const
 {
-    //TODO：需要考虑Border的问题
     rcWindow.Clear();
     ASSERT(sdlWindow != nullptr);
     if (sdlWindow == nullptr) {
         return;
     }
 
+    //窗口的左上角坐标值（屏幕坐标）
     int nXPos = 0;
     int nYPos = 0;
-    int nRet = SDL_GetWindowPosition(m_sdlWindow, &nXPos, &nYPos);
-    ASSERT(nRet == 0);
-    if (nRet == 0) {
-        rcWindow.left = nXPos;
-        rcWindow.top = nYPos;
-    }
+    SDL_GetWindowPosition(m_sdlWindow, &nXPos, &nYPos);
 
+    //边框大小
+    int nTopBorder = 0;
+    int nLeftBorder = 0;
+    int nBottomBorder = 0;
+    int nRightBorder = 0;
+    SDL_GetWindowBordersSize(m_sdlWindow, &nTopBorder, &nLeftBorder, &nBottomBorder, &nRightBorder);
+
+    //客户区大小
     int nWidth = 0;
     int nHeight = 0;
-    nRet = SDL_GetWindowSize(m_sdlWindow, &nWidth, &nHeight);
-    ASSERT(nRet == 0);
-    if (nRet == 0) {
-        rcWindow.right = rcWindow.left + nWidth;
-        rcWindow.bottom = rcWindow.top + nHeight;
+    SDL_GetWindowSize(m_sdlWindow, &nWidth, &nHeight);
+
+    rcWindow.left = nXPos - nLeftBorder;
+    rcWindow.top = nYPos - nTopBorder;
+    rcWindow.right = rcWindow.left + nWidth + nLeftBorder + nRightBorder;
+    rcWindow.bottom = rcWindow.top + nHeight + nTopBorder + nBottomBorder;
+
+#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+    {
+        HWND hWnd = GetHWND();
+        RECT rect = { 0, };
+        ::GetWindowRect(hWnd, &rect);
+        ASSERT(rcWindow.left == rect.left);
+        ASSERT(rcWindow.top == rect.top);
+        ASSERT(rcWindow.right == rect.right);
+        ASSERT(rcWindow.bottom == rect.bottom);
     }
+#endif
 }
 
 void NativeWindow_SDL::ScreenToClient(UiPoint& pt) const
 {
-    //TODO：需要考虑Border的问题
+#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+    POINT ptWnd = { pt.x, pt.y };
+#endif
     int nXPos = 0;
     int nYPos = 0;
     int nRet = SDL_GetWindowPosition(m_sdlWindow, &nXPos, &nYPos);
@@ -2047,11 +2127,21 @@ void NativeWindow_SDL::ScreenToClient(UiPoint& pt) const
         pt.x -= nXPos;
         pt.y -= nYPos;
     }
+#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+    {
+        HWND hWnd = GetHWND();
+        ::ScreenToClient(hWnd, &ptWnd);
+        ASSERT(ptWnd.x == pt.x);
+        ASSERT(ptWnd.y == pt.y);
+    }
+#endif
 }
 
 void NativeWindow_SDL::ClientToScreen(UiPoint& pt) const
 {
-    //TODO：需要考虑Border的问题
+#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+    POINT ptWnd = { pt.x, pt.y };
+#endif
     int nXPos = 0;
     int nYPos = 0;
     int nRet = SDL_GetWindowPosition(m_sdlWindow, &nXPos, &nYPos);
@@ -2060,6 +2150,14 @@ void NativeWindow_SDL::ClientToScreen(UiPoint& pt) const
         pt.x += nXPos;
         pt.y += nYPos;
     }
+#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+    {
+        HWND hWnd = GetHWND();
+        ::ClientToScreen(hWnd, &ptWnd);
+        ASSERT(ptWnd.x == pt.x);
+        ASSERT(ptWnd.y == pt.y);
+    }
+#endif
 }
 
 void NativeWindow_SDL::GetCursorPos(UiPoint& pt) const
@@ -2073,6 +2171,9 @@ void NativeWindow_SDL::GetCursorPos(UiPoint& pt) const
 
 void NativeWindow_SDL::MapWindowDesktopRect(UiRect& rc) const
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+    RECT rectWnd = { rc.left, rc.top, rc.right, rc.bottom };
+#endif
     UiPoint pt;
     pt.x = rc.left;
     pt.y = rc.top;
@@ -2081,6 +2182,22 @@ void NativeWindow_SDL::MapWindowDesktopRect(UiRect& rc) const
     rc.left = pt.x;
     rc.bottom = pt.y + rc.Height();
     rc.top = pt.y;
+#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+    {
+        HWND hwndFrom = GetHWND();
+        HWND hwndTo = HWND_DESKTOP;
+        POINT pts[2];
+        pts[0].x = rectWnd.left;
+        pts[0].y = rectWnd.top;
+        pts[1].x = rectWnd.right;
+        pts[1].y = rectWnd.bottom;
+        ::MapWindowPoints((hwndFrom), (hwndTo), &pts[0], 2);
+        ASSERT(rc.left == pts[0].x);
+        ASSERT(rc.top = pts[0].y);
+        ASSERT(rc.right = pts[1].x);
+        ASSERT(rc.bottom = pts[1].y);        
+    }
+#endif
 }
 
 bool NativeWindow_SDL::GetMonitorRect(UiRect& rcMonitor) const
@@ -2168,112 +2285,82 @@ void NativeWindow_SDL::SetLastMousePos(const UiPoint& pt)
     m_ptLastMousePos = pt;
 }
 
-bool NativeWindow_SDL::GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint32_t& modifierKey) const
-{
-    //逻辑修改，需要同步给函数：Window::IsKeyDown
-    bool bRet = true;
-    modifierKey = ModifierKey::kNone;
-    switch (message) {
-    case WM_CHAR:
-        if (0 == (lParam & (1 << 30))) {
-            modifierKey |= ModifierKey::kFirstPress;
-        }
-        if (lParam & (1 << 29)) {
-            modifierKey |= ModifierKey::kAlt;
-        }
-        break;
-    case WM_KEYDOWN:
-    case WM_SYSKEYDOWN:
-        if (0 == (lParam & (1 << 30))) {
-            modifierKey |= ModifierKey::kFirstPress;
-        }
-        if (lParam & (1 << 29)) {
-            modifierKey |= ModifierKey::kAlt;
-        }
-        break;
-    case WM_KEYUP:
-    case WM_SYSKEYUP:
-        if (lParam & (1 << 29)) {
-            modifierKey |= ModifierKey::kAlt;
-        }
-        break;
-    case WM_MOUSEWHEEL:
-        {
-            WORD fwKeys = GET_KEYSTATE_WPARAM(wParam);
-            if (fwKeys & MK_CONTROL) {
-                modifierKey |= ModifierKey::kControl;
-            }
-            if (fwKeys & MK_SHIFT) {
-                modifierKey |= ModifierKey::kShift;
-            }
-        }
-        break;
-    case WM_MOUSEHOVER:
-    case WM_MOUSEMOVE:
-    case WM_LBUTTONDOWN:
-    case WM_LBUTTONUP:
-    case WM_LBUTTONDBLCLK:
-    case WM_RBUTTONDOWN:
-    case WM_RBUTTONUP:
-    case WM_RBUTTONDBLCLK:
-    case WM_MBUTTONDOWN:
-    case WM_MBUTTONUP:
-    case WM_MBUTTONDBLCLK:
-    case WM_XBUTTONDOWN:
-    case WM_XBUTTONUP:
-    case WM_XBUTTONDBLCLK:
-        if (wParam & MK_CONTROL) {
-            modifierKey |= ModifierKey::kControl;
-        }
-        if (wParam & MK_SHIFT) {
-            modifierKey |= ModifierKey::kShift;
-        }
-        break;
-    case WM_HOTKEY:
-        {
-            uint16_t nMod = (uint16_t)LOWORD(lParam);
-            if (nMod & MOD_ALT) {
-                modifierKey |= ModifierKey::kAlt;
-            }
-            else if (nMod & MOD_CONTROL) {
-                modifierKey |= ModifierKey::kControl;
-            }
-            else if (nMod & MOD_SHIFT) {
-                modifierKey |= ModifierKey::kShift;
-            }
-            else if (nMod & MOD_WIN) {
-                modifierKey |= ModifierKey::kWin;
-            }
-        }
-        break;
-    default:
-        bRet = false;
-        break;
-    }
-    ASSERT(bRet);
-    return bRet;
-}
-
 INativeWindow* NativeWindow_SDL::WindowBaseFromPoint(const UiPoint& pt)
 {
-    NativeWindow_SDL* pWindow = nullptr;
-    HWND hWnd = ::WindowFromPoint({ pt.x, pt.y });
-    if (::IsWindow(hWnd)) {
-        if (hWnd == GetHWND()) {
-            pWindow = this;
-        }
-        else {
-            pWindow = reinterpret_cast<NativeWindow_SDL*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
-            if ((pWindow != nullptr) && (pWindow->GetHWND() != hWnd)) {
-                pWindow = nullptr;
+    SDL_Window* pKeyboardFocus = SDL_GetKeyboardFocus();
+    if (pKeyboardFocus != nullptr) {
+        SDL_Window* sdlWindow = pKeyboardFocus;
+        UiRect rcWindow;
+        GetWindowRect(sdlWindow, rcWindow);
+        if (rcWindow.ContainsPt(pt)) {
+            NativeWindow_SDL* pWindow = GetWindowFromID(SDL_GetWindowID(sdlWindow));
+            if (pWindow != nullptr) {
+                return pWindow->m_pOwner;
             }
         }
     }
-    INativeWindow* pNativeWindow = nullptr;
-    if (pWindow != nullptr) {
-        pNativeWindow = pWindow->m_pOwner;
+    SDL_Window* pMouseFocus = SDL_GetMouseFocus();
+    if (pMouseFocus != nullptr) {
+        SDL_Window* sdlWindow = pMouseFocus;
+        UiRect rcWindow;
+        GetWindowRect(sdlWindow, rcWindow);
+        if (rcWindow.ContainsPt(pt)) {
+            NativeWindow_SDL* pWindow = GetWindowFromID(SDL_GetWindowID(sdlWindow));
+            if (pWindow != nullptr) {
+                return pWindow->m_pOwner;
+            }
+        }
     }
-    return pNativeWindow;
+
+    int nCount = 0;
+    SDL_Window* const* pWindowList = SDL_GetWindows(&nCount);
+    if ((nCount <= 0) || (pWindowList == nullptr)){
+        return nullptr;
+    }
+    //TODO: 没考虑Z-Order的问题
+    for (int nIndex = 0; nIndex < nCount; ++nIndex) {
+        SDL_Window* sdlWindow = pWindowList[nIndex];
+        if (sdlWindow != nullptr) {
+            UiRect rcWindow;
+            GetWindowRect(sdlWindow, rcWindow);
+            if (rcWindow.ContainsPt(pt)) {
+                NativeWindow_SDL* pWindow = GetWindowFromID(SDL_GetWindowID(sdlWindow));
+                if (pWindow != nullptr) {
+                    return pWindow->m_pOwner;
+                }
+            }
+        }
+    }
+    return nullptr;
+}
+
+void NativeWindow_SDL::OnFinalMessage()
+{
+    if (m_pOwner) {
+        m_pOwner->OnNativeFinalMessage();
+    }
+}
+
+bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& /*rcWnd*/, const UiSize& /*szRoundCorner*/, bool /*bRedraw*/)
+{
+    //没有此功能
+    return false;
+}
+
+void NativeWindow_SDL::ClearWindowRgn(bool /*bRedraw*/)
+{
+    //没有此功能
+}
+
+bool NativeWindow_SDL::UpdateWindow() const
+{
+    //没有此功能
+    return false;
+}
+
+void NativeWindow_SDL::KeepParentActive()
+{
+    //不支持此功能
 }
 
 int32_t NativeWindow_SDL::SetWindowHotKey(uint8_t /*wVirtualKeyCode*/, uint8_t /*wModifiers*/)
@@ -2304,182 +2391,11 @@ bool NativeWindow_SDL::UnregisterHotKey(int32_t /*id*/)
     return false;
 }
 
-LRESULT NativeWindow_SDL::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    LRESULT lResult = 0;
-    HWND hWnd = GetHWND();
-    INativeWindow* pOwner = m_pOwner;
-    if (pOwner == nullptr) {
-        lResult = CallDefaultWindowProc(uMsg, wParam, lParam);
-        return lResult;
-    }
-    //接口的生命周期标志
-    std::weak_ptr<WeakFlag> ownerFlag = pOwner->GetWeakFlag();
-
-    //消息首先转给过滤器(全部消息)
-    bool bHandled = false;
-    if (!bHandled && !ownerFlag.expired()) {
-        lResult = pOwner->OnNativeWindowMessage(uMsg, wParam, lParam, bHandled);
-    }
-
-    //第四优先级：内部处理函数，优先保证自身功能正常
-    if (!bHandled && !ownerFlag.expired()) {
-        lResult = ProcessWindowMessage(uMsg, wParam, lParam, bHandled);
-    }
-
-    bool bCloseMsg = false;
-    if (!bHandled && !ownerFlag.expired()) {
-        if ((uMsg == WM_CLOSE) || ((uMsg == WM_SYSCOMMAND) && (GET_SC_WPARAM(wParam) == SC_CLOSE))) {
-            //窗口即将关闭（关闭前）
-            bCloseMsg = true;
-            pOwner->OnNativePreCloseWindow();
-        }
-    }
-    if (uMsg == WM_CLOSE) {
-        m_closeParam = (int32_t)wParam;
-    }
-
-    //第五优先级：系统默认的窗口函数
-    if (!bHandled && !ownerFlag.expired() && ::IsWindow(hWnd)) {
-        lResult = CallDefaultWindowProc(uMsg, wParam, lParam);      
-    }
-
-    if (!bHandled && !ownerFlag.expired() && (uMsg == WM_DESTROY)) {
-        //窗口已经关闭（关闭后）
-        pOwner->OnNativePostCloseWindow();
-    }
-
-    return lResult;
-}
-
 LRESULT NativeWindow_SDL::CallDefaultWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     //不支持此功能
     ASSERT(0);
     return -1;
-}
-
-LRESULT NativeWindow_SDL::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    LRESULT lResult = 0;
-    bHandled = false;
-    switch (uMsg)
-    {
-    case WM_MOVE:
-    {
-        UiPoint ptTopLeft;
-        ptTopLeft.x = (int)(short)LOWORD(lParam);   // horizontal position 
-        ptTopLeft.y = (int)(short)HIWORD(lParam);   // vertical position 
-        lResult = m_pOwner->OnNativeMoveMsg(ptTopLeft, NativeMsg(uMsg, wParam, lParam), bHandled);
-        break;
-    }
-    case WM_SETFOCUS:
-    {
-        INativeWindow* pLostFocusWindow = nullptr;
-        HWND hWnd = (HWND)wParam;
-        if ((hWnd != nullptr) && ::IsWindow(hWnd)) {
-            NativeWindow_SDL* pThis = reinterpret_cast<NativeWindow_SDL*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
-            //校验是否一致
-            if (pThis != nullptr) {
-                /*if ((NativeWindow_SDL*)::GetPropW(hWnd, sPropName) == pThis) {
-                    pLostFocusWindow = pThis->m_pOwner;
-                }*/
-            }
-        }
-        lResult = m_pOwner->OnNativeSetFocusMsg(pLostFocusWindow, NativeMsg(uMsg, wParam, lParam), bHandled);
-        break;
-    }
-    case WM_KILLFOCUS:
-    {
-        INativeWindow* pSetFocusWindow = nullptr;
-        HWND hWnd = (HWND)wParam;
-        if ((hWnd != nullptr) && ::IsWindow(hWnd)) {
-            NativeWindow_SDL* pThis = reinterpret_cast<NativeWindow_SDL*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
-            //校验是否一致
-            if (pThis != nullptr) {
-                /*if ((NativeWindow_SDL*)::GetPropW(hWnd, sPropName) == pThis) {
-                    pSetFocusWindow = pThis->m_pOwner;
-                }*/
-            }
-        }
-        lResult = m_pOwner->OnNativeKillFocusMsg(pSetFocusWindow, NativeMsg(uMsg, wParam, lParam), bHandled);
-        break;
-    }
-    case WM_IME_STARTCOMPOSITION:
-    {
-        lResult = m_pOwner->OnNativeImeStartCompositionMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
-        break;
-    }
-    case WM_IME_ENDCOMPOSITION:
-    {
-        lResult = m_pOwner->OnNativeImeEndCompositionMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
-        break;
-    }
-    case WM_SETCURSOR:
-    {
-        if (LOWORD(lParam) == HTCLIENT) {
-            //只处理设置客户区的光标
-            lResult = m_pOwner->OnNativeSetCursorMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
-        }
-        break;
-    }
-    case WM_CONTEXTMENU:
-    {
-        UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-        if ((pt.x != -1) && (pt.y != -1)) {
-            ScreenToClient(pt);
-        }
-        lResult = m_pOwner->OnNativeContextMenuMsg(pt, NativeMsg(uMsg, wParam, lParam), bHandled);
-        break;
-    }
-    case WM_CHAR:
-    {
-        VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(wParam);
-        uint32_t modifierKey = 0;
-        GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeCharMsg(vkCode, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
-        break;
-    }
-    case WM_HOTKEY:
-    {
-        int32_t hotkeyId = (int32_t)wParam;
-        VirtualKeyCode vkCode = static_cast<VirtualKeyCode>((int32_t)(int16_t)HIWORD(lParam));
-        uint32_t modifierKey = 0;
-        GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeHotKeyMsg(hotkeyId, vkCode, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
-        break;
-    }
-    case WM_MOUSEHOVER:
-    {
-        UiPoint pt;
-        pt.x = GET_X_LPARAM(lParam);
-        pt.y = GET_Y_LPARAM(lParam);
-        uint32_t modifierKey = 0;
-        GetModifiers(uMsg, wParam, lParam, modifierKey);
-        lResult = m_pOwner->OnNativeMouseHoverMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
-        break;
-    }
-    case WM_MOUSELEAVE:
-    {
-        lResult = m_pOwner->OnNativeMouseLeaveMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
-        break;
-    }
-    case WM_CAPTURECHANGED:
-    {
-        lResult = m_pOwner->OnNativeCaptureChangedMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
-        break;
-    }
-    default:
-        break;
-    }//end of switch
-    return lResult;
-}
-
-void NativeWindow_SDL::OnFinalMessage()
-{
-    if (m_pOwner) {
-        m_pOwner->OnNativeFinalMessage();
-    }
 }
 
 void NativeWindow_SDL::SetEnableSnapLayoutMenu(bool /*bEnable*/)
@@ -2507,3 +2423,164 @@ bool NativeWindow_SDL::IsEnableSysMenu() const
 } // namespace ui
 
 #endif //DUILIB_BUILD_FOR_SDL
+
+//
+//LRESULT NativeWindow_SDL::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+//{
+//    LRESULT lResult = 0;
+//    bHandled = false;
+//    switch (uMsg)
+//    {
+//
+//    case WM_IME_STARTCOMPOSITION://不支持
+//    {
+//        lResult = m_pOwner->OnNativeImeStartCompositionMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
+//        break;
+//    }
+//    case WM_IME_ENDCOMPOSITION://不支持
+//    {
+//        lResult = m_pOwner->OnNativeImeEndCompositionMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
+//        break;
+//    }
+//    case WM_SETCURSOR://不支持（需要处理）
+//    {
+//        if (LOWORD(lParam) == HTCLIENT) {
+//            //只处理设置客户区的光标
+//            lResult = m_pOwner->OnNativeSetCursorMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
+//        }
+//        break;
+//    }
+//    case WM_CONTEXTMENU://不支持
+//    {
+//        UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+//        if ((pt.x != -1) && (pt.y != -1)) {
+//            ScreenToClient(pt);
+//        }
+//        lResult = m_pOwner->OnNativeContextMenuMsg(pt, NativeMsg(uMsg, wParam, lParam), bHandled);
+//        break;
+//    }
+//    case WM_CHAR:
+//    {
+//        VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(wParam);
+//        uint32_t modifierKey = 0;
+//        GetModifiers(uMsg, wParam, lParam, modifierKey);
+//        lResult = m_pOwner->OnNativeCharMsg(vkCode, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
+//        break;
+//    }
+//    case WM_HOTKEY://不支持
+//    {
+//        int32_t hotkeyId = (int32_t)wParam;
+//        VirtualKeyCode vkCode = static_cast<VirtualKeyCode>((int32_t)(int16_t)HIWORD(lParam));
+//        uint32_t modifierKey = 0;
+//        GetModifiers(uMsg, wParam, lParam, modifierKey);
+//        lResult = m_pOwner->OnNativeHotKeyMsg(hotkeyId, vkCode, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
+//        break;
+//    }
+//    case WM_MOUSEHOVER://不支持
+//    {
+//        UiPoint pt;
+//        pt.x = GET_X_LPARAM(lParam);
+//        pt.y = GET_Y_LPARAM(lParam);
+//        uint32_t modifierKey = 0;
+//        GetModifiers(uMsg, wParam, lParam, modifierKey);
+//        lResult = m_pOwner->OnNativeMouseHoverMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
+//        break;
+//    }
+//
+//    case WM_CAPTURECHANGED://不支持
+//    {
+//        lResult = m_pOwner->OnNativeCaptureChangedMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
+//        break;
+//    }
+//    default:
+//        break;
+//    }//end of switch
+//    return lResult;
+//}
+
+
+//bool NativeWindow_SDL::GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint32_t& modifierKey) const
+//{
+//    //逻辑修改，需要同步给函数：Window::IsKeyDown
+//    bool bRet = true;
+//    modifierKey = ModifierKey::kNone;
+//    switch (message) {
+//    case WM_CHAR:
+//        if (0 == (lParam & (1 << 30))) {
+//            modifierKey |= ModifierKey::kFirstPress;
+//        }
+//        if (lParam & (1 << 29)) {
+//            modifierKey |= ModifierKey::kAlt;
+//        }
+//        break;
+//    case WM_KEYDOWN:
+//    case WM_SYSKEYDOWN:
+//        if (0 == (lParam & (1 << 30))) {
+//            modifierKey |= ModifierKey::kFirstPress;
+//        }
+//        if (lParam & (1 << 29)) {
+//            modifierKey |= ModifierKey::kAlt;
+//        }
+//        break;
+//    case WM_KEYUP:
+//    case WM_SYSKEYUP:
+//        if (lParam & (1 << 29)) {
+//            modifierKey |= ModifierKey::kAlt;
+//        }
+//        break;
+//    case WM_MOUSEWHEEL:
+//    {
+//        WORD fwKeys = GET_KEYSTATE_WPARAM(wParam);
+//        if (fwKeys & MK_CONTROL) {
+//            modifierKey |= ModifierKey::kControl;
+//        }
+//        if (fwKeys & MK_SHIFT) {
+//            modifierKey |= ModifierKey::kShift;
+//        }
+//    }
+//    break;
+//    case WM_MOUSEHOVER:
+//    case WM_MOUSEMOVE:
+//    case WM_LBUTTONDOWN:
+//    case WM_LBUTTONUP:
+//    case WM_LBUTTONDBLCLK:
+//    case WM_RBUTTONDOWN:
+//    case WM_RBUTTONUP:
+//    case WM_RBUTTONDBLCLK:
+//    case WM_MBUTTONDOWN:
+//    case WM_MBUTTONUP:
+//    case WM_MBUTTONDBLCLK:
+//    case WM_XBUTTONDOWN:
+//    case WM_XBUTTONUP:
+//    case WM_XBUTTONDBLCLK:
+//        if (wParam & MK_CONTROL) {
+//            modifierKey |= ModifierKey::kControl;
+//        }
+//        if (wParam & MK_SHIFT) {
+//            modifierKey |= ModifierKey::kShift;
+//        }
+//        break;
+//    case WM_HOTKEY:
+//    {
+//        uint16_t nMod = (uint16_t)LOWORD(lParam);
+//        if (nMod & MOD_ALT) {
+//            modifierKey |= ModifierKey::kAlt;
+//        }
+//        else if (nMod & MOD_CONTROL) {
+//            modifierKey |= ModifierKey::kControl;
+//        }
+//        else if (nMod & MOD_SHIFT) {
+//            modifierKey |= ModifierKey::kShift;
+//        }
+//        else if (nMod & MOD_WIN) {
+//            modifierKey |= ModifierKey::kWin;
+//        }
+//    }
+//    break;
+//    default:
+//        bRet = false;
+//        break;
+//    }
+//    ASSERT(bRet);
+//    return bRet;
+//}

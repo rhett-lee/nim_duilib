@@ -480,24 +480,6 @@ public:
     int32_t SDL_HitTest(SDL_Window* win, const SDL_Point* area, void* data);
 
 private:
-    /** 窗口消息的处理函数, 从系统接收到消息后，进入的第一个处理函数
-    * @param [in] uMsg 消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @return 返回消息的处理结果
-    */
-    LRESULT WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-    /** 窗口消息的派发函数，将Window消息转换为内部格式，然后派发出去
-    * @param [in] uMsg 消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @param[out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-    * @return 返回消息的处理结果
-    */
-    LRESULT ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-
-private:
     /** 初始化窗口资源
     */
     void InitNativeWindow();
@@ -516,11 +498,6 @@ private:
     * @param [out] rcWindow 返回窗口左上角和右下角的屏幕坐标
     */
     void GetWindowRect(SDL_Window* sdlWindow, UiRect& rcWindow) const;
-
-    /** 获取一个消息的按键标志位
-    * @param [out] modifierKey 返回标志位，参见类型定义：ModifierKey
-    */
-    bool GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint32_t& modifierKey) const;
 
     /** 设置是否为层窗口
     */

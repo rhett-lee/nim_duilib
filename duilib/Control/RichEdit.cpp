@@ -2057,7 +2057,13 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     if (bNeedPaint && bNormalPrint) {
         // Remember wparam is actually the hdc and lparam is the update
         // rect because this message has been preprocessed by the window.
+#if defined (DUILIB_BUILD_FOR_SDL)
+        HDC hdc = nullptr;
+#elif defined (DUILIB_BUILD_FOR_WIN) 
         HDC hdc = pRender->GetRenderDC(GetWindow()->NativeWnd()->GetHWND());
+#else
+        HDC hdc = nullptr;
+#endif
         if(hdc != nullptr){
             RECT paintRect = { rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom };
             pTextServices->TxDraw(DVASPECT_CONTENT,         // Draw Aspect
