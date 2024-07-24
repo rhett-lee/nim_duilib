@@ -345,11 +345,6 @@ public:
     */
     void GetCursorPos(UiPoint& pt) const;
 
-    /* 将rc的左上角坐标和右下角坐标点从相对于当前窗口的坐标空间转换为相对于桌面窗口的坐标空间
-    * @param [out] rc 返回屏幕坐标
-    */
-    void MapWindowDesktopRect(UiRect& rc) const;
-
     /** 获取指定窗口所在显示器的显示器矩形
     * @param [out] rcMonitor 显示器的矩形区域
     */

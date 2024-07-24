@@ -383,7 +383,7 @@ void Menu::ResizeSubMenu()
     //去阴影
     rcWindow.Deflate(rcCorner);
 
-    m_pOwner->GetWindow()->MapWindowDesktopRect(rc);
+    m_pOwner->GetWindow()->ClientToScreen(rc);
     
     rc.left = rcWindow.right;
     rc.right = rc.left + cxFixed;

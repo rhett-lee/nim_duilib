@@ -1220,23 +1220,6 @@ void NativeWindow_Windows::GetCursorPos(UiPoint& pt) const
     pt = { ptPos.x, ptPos.y };
 }
 
-void NativeWindow_Windows::MapWindowDesktopRect(UiRect& rc) const
-{
-    ASSERT(IsWindow());
-    HWND hwndFrom = GetHWND();
-    HWND hwndTo = HWND_DESKTOP;
-    POINT pts[2];
-    pts[0].x = rc.left;
-    pts[0].y = rc.top;
-    pts[1].x = rc.right;
-    pts[1].y = rc.bottom;
-    ::MapWindowPoints((hwndFrom), (hwndTo), &pts[0], 2);
-    rc.left = pts[0].x;
-    rc.top = pts[0].y;
-    rc.right = pts[1].x;
-    rc.bottom = pts[1].y;
-}
-
 bool NativeWindow_Windows::GetMonitorRect(UiRect& rcMonitor) const
 {
     UiRect rcWork;

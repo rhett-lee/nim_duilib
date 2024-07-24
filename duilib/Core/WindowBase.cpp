@@ -237,14 +237,21 @@ void WindowBase::ClientToScreen(UiPoint& pt) const
     m_pNativeWindow->ClientToScreen(pt);
 }
 
+void WindowBase::ClientToScreen(UiRect& rc) const
+{
+    UiPoint pt;
+    pt.x = rc.left;
+    pt.y = rc.top;
+    ClientToScreen(pt);
+    rc.right = pt.x + rc.Width();
+    rc.left = pt.x;
+    rc.bottom = pt.y + rc.Height();
+    rc.top = pt.y;
+}
+
 void WindowBase::GetCursorPos(UiPoint& pt) const
 {
     m_pNativeWindow->GetCursorPos(pt);
-}
-
-void WindowBase::MapWindowDesktopRect(UiRect& rc) const
-{
-    m_pNativeWindow->MapWindowDesktopRect(rc);
 }
 
 bool WindowBase::GetMonitorRect(UiRect& rcMonitor) const

@@ -709,6 +709,12 @@ SDL_WindowID NativeWindow_SDL::GetWindowIdFromEvent(const SDL_Event& sdlEvent)
         //鼠标事件
         windowID = sdlEvent.wheel.windowID;
         break;
+    default:
+        if ((sdlEvent.type > SDL_EVENT_USER) && (sdlEvent.type < SDL_EVENT_LAST)) {
+            //用户自定义消息
+            windowID = sdlEvent.user.windowID;
+        }
+        break;
     }
 
     return windowID;
@@ -1029,9 +1035,6 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
     return true;
 }
 
-//系统菜单延迟显示的定时器ID
-#define UI_SYS_MEMU_TIMER_ID 711
-
 NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_pOwner(pOwner),
     m_sdlWindow(nullptr),
@@ -1347,7 +1350,7 @@ HDC NativeWindow_SDL::GetPaintDC() const
     return hDC;
 }
 
-#endif
+#endif //DUILIB_BUILD_FOR_WIN
 
 void NativeWindow_SDL::CloseWnd(int32_t nRet)
 {
@@ -1412,6 +1415,7 @@ bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
 
 bool NativeWindow_SDL::SetLayeredWindowStyle(bool bIsLayeredWindow) const
 {
+    //TODO:
     //SDL_WINDOW_TRANSPARENT 这个属性，不支持修改？？？
     if (bIsLayeredWindow) {
 
@@ -1429,6 +1433,8 @@ bool NativeWindow_SDL::IsLayeredWindow() const
 
 void NativeWindow_SDL::UpdateMinMaxBoxStyle() const
 {
+    //TODO:
+    
     //更新最大化/最小化按钮的风格
     bool bMinimizeBox = false;
     bool bMaximizeBox = false;
@@ -1455,6 +1461,8 @@ void NativeWindow_SDL::UpdateMinMaxBoxStyle() const
 
 void NativeWindow_SDL::SetLayeredWindowAlpha(int32_t nAlpha)
 {
+    //TODO:
+
     ASSERT(nAlpha >= 0 && nAlpha <= 255);
     if ((nAlpha < 0) || (nAlpha > 255)) {
         return;
@@ -1469,6 +1477,8 @@ uint8_t NativeWindow_SDL::GetLayeredWindowAlpha() const
 
 void NativeWindow_SDL::SetLayeredWindowOpacity(int32_t nAlpha)
 {
+    //TODO:
+
     ASSERT(nAlpha >= 0 && nAlpha <= 255);
     if ((nAlpha < 0) || (nAlpha > 255)) {
         return;
@@ -1597,6 +1607,8 @@ bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
 
 void NativeWindow_SDL::ShowModalFake(NativeWindow_SDL* pParentWindow)
 {
+    //TODO:
+
     ASSERT(IsWindow());
     //ASSERT((pParentWindow != nullptr) && (pParentWindow->GetHWND() != nullptr));
     if (pParentWindow != nullptr) {
@@ -1631,6 +1643,8 @@ bool NativeWindow_SDL::IsDoModal() const
 
 void NativeWindow_SDL::CenterWindow()
 {
+    //TODO:
+   
     //ASSERT(IsWindow());
     //ASSERT((::GetWindowLong(GetHWND(), GWL_STYLE) & WS_CHILD) == 0);
     //UiRect rcDlg;
@@ -1729,12 +1743,6 @@ bool NativeWindow_SDL::SetWindowFocus()
     return (pKeyboardFocus == m_sdlWindow) && (pMouseFocus == m_sdlWindow) ? true : false;
 }
 
-bool NativeWindow_SDL::KillWindowFocus()
-{
-    //不支持此功能
-    return false;
-}
-
 bool NativeWindow_SDL::IsWindowFocused() const
 {
     ASSERT(IsWindow());
@@ -1753,8 +1761,26 @@ void NativeWindow_SDL::CheckSetWindowFocus()
 
 LRESULT NativeWindow_SDL::PostMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+    ASSERT((uMsg > SDL_EVENT_USER) && (uMsg < SDL_EVENT_LAST));
+    if ((uMsg <= SDL_EVENT_USER) || (uMsg >= SDL_EVENT_LAST)) {
+        return -1;
+    }
     ASSERT(IsWindow());
-    return ::PostMessage(GetHWND(), uMsg, wParam, lParam);
+    if (!IsWindow()) {
+        return -1;
+    }
+    SDL_Event sdlEvent;
+    sdlEvent.type = uMsg;
+    sdlEvent.common.timestamp = 0;
+    sdlEvent.user.reserved = 0;
+    sdlEvent.user.timestamp = 0;
+    sdlEvent.user.code = uMsg;
+    sdlEvent.user.data1 = (void*)wParam;
+    sdlEvent.user.data2 = (void*)lParam;
+    sdlEvent.user.windowID = SDL_GetWindowID(m_sdlWindow);
+    int nRet = SDL_PushEvent(&sdlEvent);
+    ASSERT_UNUSED_VARIABLE(nRet > 0);
+    return nRet > 0 ? 0 : -1;
 }
 
 void NativeWindow_SDL::PostQuitMsg(int32_t nExitCode)
@@ -1850,18 +1876,6 @@ bool NativeWindow_SDL::IsWindowFullScreen() const
     return bFullScreen;
 }
 
-bool NativeWindow_SDL::EnableWindow(bool bEnable)
-{
-    //未能提供此功能
-    return true;
-}
-
-bool NativeWindow_SDL::IsWindowEnabled() const
-{
-    //未能提供此功能
-    return true;
-}
-
 bool NativeWindow_SDL::IsWindowVisible() const
 {
     if (!IsWindow()) {
@@ -1926,6 +1940,7 @@ bool NativeWindow_SDL::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t 
 
 bool NativeWindow_SDL::SetWindowIcon(const FilePath& iconFilePath)
 {
+    //TODO:
     ASSERT(IsWindow());
     if (!::IsWindow(GetHWND())) {
         return false;
@@ -1936,6 +1951,7 @@ bool NativeWindow_SDL::SetWindowIcon(const FilePath& iconFilePath)
 
 bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData)
 {
+    //TODO:
 
     return true;
 }
@@ -2169,37 +2185,6 @@ void NativeWindow_SDL::GetCursorPos(UiPoint& pt) const
     pt.y = (int32_t)y;
 }
 
-void NativeWindow_SDL::MapWindowDesktopRect(UiRect& rc) const
-{
-#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
-    RECT rectWnd = { rc.left, rc.top, rc.right, rc.bottom };
-#endif
-    UiPoint pt;
-    pt.x = rc.left;
-    pt.y = rc.top;
-    ClientToScreen(pt);
-    rc.right = pt.x + rc.Width();
-    rc.left = pt.x;
-    rc.bottom = pt.y + rc.Height();
-    rc.top = pt.y;
-#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
-    {
-        HWND hwndFrom = GetHWND();
-        HWND hwndTo = HWND_DESKTOP;
-        POINT pts[2];
-        pts[0].x = rectWnd.left;
-        pts[0].y = rectWnd.top;
-        pts[1].x = rectWnd.right;
-        pts[1].y = rectWnd.bottom;
-        ::MapWindowPoints((hwndFrom), (hwndTo), &pts[0], 2);
-        ASSERT(rc.left == pts[0].x);
-        ASSERT(rc.top = pts[0].y);
-        ASSERT(rc.right = pts[1].x);
-        ASSERT(rc.bottom = pts[1].y);        
-    }
-#endif
-}
-
 bool NativeWindow_SDL::GetMonitorRect(UiRect& rcMonitor) const
 {
     UiRect rcWork;
@@ -2339,6 +2324,24 @@ void NativeWindow_SDL::OnFinalMessage()
     if (m_pOwner) {
         m_pOwner->OnNativeFinalMessage();
     }
+}
+
+bool NativeWindow_SDL::KillWindowFocus()
+{
+    //不支持此功能
+    return false;
+}
+
+bool NativeWindow_SDL::EnableWindow(bool bEnable)
+{
+    //未能提供此功能
+    return true;
+}
+
+bool NativeWindow_SDL::IsWindowEnabled() const
+{
+    //未能提供此功能
+    return true;
 }
 
 bool NativeWindow_SDL::SetWindowRoundRectRgn(const UiRect& /*rcWnd*/, const UiSize& /*szRoundCorner*/, bool /*bRedraw*/)
