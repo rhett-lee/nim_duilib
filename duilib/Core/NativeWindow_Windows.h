@@ -174,21 +174,9 @@ public:
     */
     bool IsWindowFocused() const;
 
-    /** 设置Owner窗口为焦点窗口
-    */
-    bool SetOwnerWindowFocus();
-
     /** 检查并确保当前窗口为焦点窗口
     */
     void CheckSetWindowFocus();
-
-    /** 发送消息，对 Windows SendMessage 的一层封装
-    * @param [in] uMsg 消息类型
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @return 返回窗口对消息的处理结果
-    */
-    LRESULT SendMsg(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0L);
 
     /** 投递一个消息到消息队列
     * @param [in] uMsg 消息类型
@@ -274,6 +262,24 @@ public:
     * @param [in] strText 窗口标题栏文本
     */
     void SetText(const DString& strText);
+
+    /** 设置窗口大小的最小值（宽度和高度，内部不按DPI调整大小，DPI自适应需要调用方来做）
+    * @param [in] szMaxWindow 窗口的最大宽度和最小高度，如果值为0，表示不做限制
+    */
+    void SetWindowMaximumSize(const UiSize& szMaxWindow);
+
+    /** 获取窗口大小的最小值（宽度和高度）
+    */
+    const UiSize& GetWindowMaximumSize() const;
+
+    /** 设置窗口大小的最大值（宽度和高度，内部不按DPI调整大小，DPI自适应需要调用方来做）
+    * @param [in] szMinWindow 窗口的最小宽度和最小高度，如果值为0，表示不做限制
+    */
+    void SetWindowMinimumSize(const UiSize& szMinWindow);
+
+    /** 获取窗口大小的最大值（宽度和高度）
+    */
+    const UiSize& GetWindowMinimumSize() const;
 
 public:
     /** 设置当要捕获的鼠标窗口句柄为当前绘制窗口
@@ -523,6 +529,10 @@ private:
     */
     void OnFinalMessage();
 
+    /** 设置Owner窗口为焦点窗口
+    */
+    bool SetOwnerWindowFocus();
+
     /** 获取当前窗口Owner窗口句柄
     */
     HWND GetWindowOwner() const;
@@ -661,6 +671,14 @@ private:
     /** 系统全局热键的ID
     */
     std::vector<int32_t> m_hotKeyIds;
+
+    /** 窗口大小的最小值（宽度和高度）
+    */
+    UiSize m_szMinWindow;
+
+    /** 窗口大小的最大值（宽度和高度）
+    */
+    UiSize m_szMaxWindow;
 };
 
 /** 定义别名

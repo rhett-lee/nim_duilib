@@ -161,7 +161,7 @@ void Window::PostInitWindow()
 
     //根据XML的size属性，初始化窗口大小
     if ((m_szInitSize.cx > 0) && (m_szInitSize.cy > 0)) {
-        Resize(m_szInitSize.cx, m_szInitSize.cy, false, false);
+        Resize(m_szInitSize.cx, m_szInitSize.cy, true, false);
     }
 
     //检测是否需要根据root节点的auto类型设置窗口大小（比如菜单等有此种用法）
@@ -683,7 +683,7 @@ void Window::SetInitSize(int cx, int cy)
         m_szInitSize.cy = cy;
     }
     else {
-        Resize(cx, cy, false, false);
+        Resize(cx, cy, true, false);
     }
 }
 

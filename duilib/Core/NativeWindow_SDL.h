@@ -66,10 +66,6 @@ public:
     int32_t DoModal(NativeWindow_SDL* pParentWindow, const WindowCreateParam& createParam,
                     bool bCenterWindow = true, bool bCloseByEsc = true, bool bCloseByEnter = false);
 
-    /** 获取窗口所属的 Windows 句柄
-    */
-    HWND GetHWND() const;
-
     /** 获取本地实现的窗口句柄
     */
     void* GetWindowHandle() const;
@@ -78,14 +74,21 @@ public:
     */
     bool IsWindow() const;
 
-    /** 获取资源的句柄
-    * @return 默认返回当前进程exe的句柄
+#ifdef DUILIB_BUILD_FOR_WIN
+
+    /** 获取窗口句柄
+    */
+    HWND GetHWND() const;
+
+    /** 获取资源句柄
     */
     HMODULE GetResModuleHandle() const;
 
-    /** 获取绘制区域 DC
+    /** 获取窗口的绘制DC句柄
     */
     HDC GetPaintDC() const;
+
+#endif
 
 public:
     /** 关闭窗口, 异步关闭，当函数返回后，IsClosing() 状态为true
@@ -201,21 +204,9 @@ public:
     */
     bool IsWindowFocused() const;
 
-    /** 设置Owner窗口为焦点窗口
-    */
-    bool SetOwnerWindowFocus();
-
     /** 检查并确保当前窗口为焦点窗口
     */
     void CheckSetWindowFocus();
-
-    /** 发送消息，对 Windows SendMessage 的一层封装
-    * @param [in] uMsg 消息类型
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @return 返回窗口对消息的处理结果
-    */
-    LRESULT SendMsg(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0L);
 
     /** 投递一个消息到消息队列
     * @param [in] uMsg 消息类型
@@ -301,6 +292,24 @@ public:
     * @param [in] strText 窗口标题栏文本
     */
     void SetText(const DString& strText);
+
+    /** 设置窗口大小的最小值（宽度和高度，内部不按DPI调整大小，DPI自适应需要调用方来做）
+    * @param [in] szMaxWindow 窗口的最大宽度和最小高度，如果值为0，表示不做限制
+    */
+    void SetWindowMaximumSize(const UiSize& szMaxWindow);
+
+    /** 获取窗口大小的最小值（宽度和高度）
+    */
+    const UiSize& GetWindowMaximumSize() const;
+
+    /** 设置窗口大小的最大值（宽度和高度，内部不按DPI调整大小，DPI自适应需要调用方来做）
+    * @param [in] szMinWindow 窗口的最小宽度和最小高度，如果值为0，表示不做限制
+    */
+    void SetWindowMinimumSize(const UiSize& szMinWindow);
+
+    /** 获取窗口大小的最大值（宽度和高度）
+    */
+    const UiSize& GetWindowMinimumSize() const;
 
 public:
     /** 设置当要捕获的鼠标窗口句柄为当前绘制窗口
@@ -471,33 +480,6 @@ public:
     int32_t SDL_HitTest(SDL_Window* win, const SDL_Point* area, void* data);
 
 private:
-    /** 窗口过程函数
-    * @param [in] hWnd 窗口句柄
-    * @param [in] uMsg 消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @return 返回消息处理结果
-    */
-    static LRESULT CALLBACK __WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-    /** 窗口过程函数(模态对话框入口函数)
-    * @param [in] hWnd 窗口句柄
-    * @param [in] uMsg 消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @return 返回消息处理结果
-    */
-    static INT_PTR CALLBACK __DialogProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-    /** 窗口过程函数(模态对话框)
-    * @param [in] hWnd 窗口句柄
-    * @param [in] uMsg 消息体
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @return 返回消息处理结果
-    */
-    static LRESULT CALLBACK __DialogWndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-
     /** 窗口消息的处理函数, 从系统接收到消息后，进入的第一个处理函数
     * @param [in] uMsg 消息体
     * @param [in] wParam 消息附加参数
@@ -505,36 +487,6 @@ private:
     * @return 返回消息的处理结果
     */
     LRESULT WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
-
-    /** 窗口消息的内部处理函数
-     * @param [in] uMsg 消息体
-     * @param [in] wParam 消息附加参数
-     * @param [in] lParam 消息附加参数
-     * @param[out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
-     * @return 返回消息的处理结果
-    */
-    LRESULT ProcessInternalMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-
-    //部分NC消息处理函数，以实现基本功能
-    LRESULT OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnNcCalcSizeMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnNcHitTestMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-
-    //部分消息处理函数，以实现基本功能
-    LRESULT OnGetMinMaxInfoMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnEraseBkGndMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnDpiChangedMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnWindowPosChangingMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-
-    LRESULT OnNotifyMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnCommandMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnCtlColorMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-
-    LRESULT OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnTouchMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-
-    LRESULT OnCreateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
-    LRESULT OnInitDialogMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
     /** 窗口消息的派发函数，将Window消息转换为内部格式，然后派发出去
     * @param [in] uMsg 消息体
@@ -553,10 +505,6 @@ private:
     /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并调用OnDeleteSelf函数销毁该窗口对象）
     */
     void OnFinalMessage();
-
-    /** 获取当前窗口Owner窗口句柄
-    */
-    HWND GetWindowOwner() const;
 
     /** 获取指定窗口所在显示器的显示器矩形和工作区矩形
     * @param [out] rcMonitor 显示器的矩形区域
@@ -581,18 +529,6 @@ private:
     /** 更新最大化/最小化按钮的窗口风格，与程序的逻辑保持一致
     */
     void UpdateMinMaxBoxStyle() const;
-
-    /** 显示系统的窗口菜单
-    */
-    bool ShowWindowSysMenu(HWND hWnd, const POINT& pt) const;
-
-    /** 停止系统的窗口菜单定时器
-    */
-    void StopSysMenuTimer();
-
-    /** 执行绘制操作
-    */
-    LRESULT OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
 private:
     /** 设置窗口ID与窗口指针的关系
@@ -640,42 +576,34 @@ private:
     */
     SDL_WindowFlags m_lastWindowFlags;
 
+    /** 窗口是否为全屏状态
+    */
+    bool m_bFullScreen;
+
+    /** 窗口大小的最小值（宽度和高度）
+    */
+    UiSize m_szMinWindow;
+
+    /** 窗口大小的最大值（宽度和高度）
+    */
+    UiSize m_szMaxWindow;
+
+    /** 鼠标所在位置
+    */
+    UiPoint m_ptLastMousePos;
+
+    /** 是否使用系统的标题栏
+    */
+    bool m_bUseSystemCaption;
+
+    /** 鼠标事件的捕获状态
+    */
+    bool m_bMouseCapture;
+
 private:
-
-    /** 窗口句柄
-    */
-    HWND m_hWnd;
-
-    /** 资源模块句柄
-    */
-    HMODULE m_hResModule;
-
     /** 创建窗口时的初始化参数
     */
     WindowCreateParam m_createParam;
-
-    /** 原来的窗口函数(仅限模式对话框使用)
-    */
-    WNDPROC m_pfnOldWndProc;
-
-    /** 当前窗口是否显示为模态对话框
-    */
-    bool m_bDoModal;
-
-    /** 窗口是否居中(仅模态对话框有效)
-    */
-    bool m_bCenterWindow;
-
-    /** 按ESC键的时候，是否关闭窗口(仅模态对话框有效)
-    */
-    bool m_bCloseByEsc;
-
-    /** 按Enter键的时候，是否关闭窗口(仅模态对话框有效)
-    */
-    bool m_bCloseByEnter;
-
-    //绘制DC
-    HDC m_hDcPaint;
 
     //是否为层窗口
     bool m_bIsLayeredWindow;
@@ -686,51 +614,8 @@ private:
     //窗口不透明度，该值在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)
     uint8_t m_nLayeredWindowOpacity;
 
-    //是否使用系统的标题栏
-    bool m_bUseSystemCaption;
-
-    //鼠标事件的捕获状态
-    bool m_bMouseCapture;
-
-    
-
     //当前窗口是否显示为模态对话框
     bool m_bFakeModal;
-
-    //鼠标所在位置
-    UiPoint m_ptLastMousePos;
-
-    //是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。）
-    //参考：https://learn.microsoft.com/zh-cn/windows/apps/desktop/modernize/apply-snap-layout-menu
-    bool m_bSnapLayoutMenu;
-
-    //在右键点击标题栏时，是否显示系统的窗口菜单（可进行调整窗口状态，关闭窗口等操作）
-    bool m_bEnableSysMenu;
-
-    //系统菜单延迟显示的定时器ID
-    UINT_PTR m_nSysMenuTimerId;
-
-private:
-    /**@name 全屏相关状态
-    * @{
-
-    /** 窗口是否为全屏状态
-    */
-    bool m_bFullScreen;
-
-    /** 全屏前的窗口风格
-    */
-    DWORD m_dwLastStyle;
-
-    /** 全屏前的窗口位置/窗口大小等信息
-    */
-    WINDOWPLACEMENT m_rcLastWindowPlacement;
-
-    /** @} */
-
-    /** 系统全局热键的ID
-    */
-    std::vector<int32_t> m_hotKeyIds;
 };
 
 /** 定义别名

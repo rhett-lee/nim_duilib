@@ -175,10 +175,6 @@ public:
     */
     bool IsWindowFocused() const;
 
-    /** 设置Owner窗口为焦点窗口
-    */
-    bool SetOwnerWindowFocus();
-
     /** 检查并确保当前窗口为焦点窗口
     */
     void CheckSetWindowFocus();
@@ -384,31 +380,25 @@ public:
     */
     void SetRoundCorner(int cx, int cy, bool bNeedDpiScale);
 
-    /** 获取窗口最小范围，对应 XML 中 mininfo 属性
-    * @param [in] bContainShadow 是否包含阴影范围，默认为 false
+    /** 设置窗口大小的最小值（宽度和高度）
+    * @param [in] szMinWindow 窗口的最小宽度和最小高度，如果值为0，表示不做限制
+    * @param [in] bNeedDpiScale 为 false 表示不需要根据 DPI 自动调整
     */
-    UiSize GetMinInfo(bool bContainShadow /*= false*/) const;
+    void SetWindowMaximumSize(const UiSize& szMinWindow, bool bNeedDpiScale);
 
-    /** 设置窗口最小范围
-    * @param [in] cx 宽度
-    * @param [in] cy 高度
-    * @param [in] bContainShadow 为 false 表示 cx cy 不包含阴影
-    * @param [in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
+    /** 获取窗口大小的最小值（宽度和高度）
     */
-    void SetMinInfo(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
+    const UiSize& GetWindowMaximumSize() const;
 
-    /** 获取窗口最大范围，对应 XML 中 maxinfo 属性
-    * @param [in] bContainShadow 是否包含阴影范围，默认为 false
+    /** 设置窗口大小的最大值（宽度和高度）
+    * @param [in] szMaxWindow 窗口的最大宽度和最小高度，如果值为0，表示不做限制
+    * @param [in] bNeedDpiScale 为 false 表示不需要根据 DPI 自动调整
     */
-    UiSize GetMaxInfo(bool bContainShadow /*= false*/) const;
+    void SetWindowMinimumSize(const UiSize& szMaxWindow, bool bNeedDpiScale);
 
-    /** 设置窗口最大范围
-    * @param [in] cx 宽度
-    * @param [in] cy 高度
-    * @param [in] bContainShadow 为 false 表示 cx cy 不包含阴影
-    * @param [in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
+    /** 获取窗口大小的最大值（宽度和高度）
     */
-    void SetMaxInfo(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
+    const UiSize& GetWindowMinimumSize() const;
 
     /** @}*/
 
@@ -425,14 +415,6 @@ public:
     * @param [in] pFilter 一个继承了 IUIMessageFilter 的对象实例
     */
     bool RemoveMessageFilter(IUIMessageFilter* pFilter);
-
-    /** 发送消息，对 Windows SendMessage 的一层封装
-    * @param [in] uMsg 消息类型
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @return 返回窗口对消息的处理结果
-    */
-    LRESULT SendMsg(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0L);
 
     /** 投递一个消息到消息队列
     * @param [in] uMsg 消息类型
@@ -929,8 +911,6 @@ private:
     virtual bool OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const override;
     virtual bool OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override;
     virtual bool OnNativeIsPtInMaximizeRestoreButton(const UiPoint& pt) const override;
-    virtual UiSize OnNativeGetMinInfo(bool bContainShadow /*= false*/) const override;
-    virtual UiSize OnNativeGetMaxInfo(bool bContainShadow /*= false*/) const override;
     virtual void OnNativePreCloseWindow() override;
     virtual void OnNativePostCloseWindow() override;
     virtual void OnNativeUseSystemCaptionBarChanged() override;
@@ -987,12 +967,6 @@ private:
 
     //窗口标题栏文本的文本ID
     DString m_textId;
-
-    //窗口最小信息
-    UiSize m_szMinWindow;
-
-    //窗口最大信息
-    UiSize m_szMaxWindow;
 
     //窗口四边可拉伸范围信息
     UiRect m_rcSizeBox;

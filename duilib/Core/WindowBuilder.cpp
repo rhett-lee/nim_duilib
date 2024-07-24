@@ -323,12 +323,12 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         if (strName == _T("mininfo")) {
             UiSize size;
             AttributeUtil::ParseSizeValue(strValue.c_str(), size);
-            pWindow->SetMinInfo(size.cx, size.cy, false, true);
+            pWindow->SetWindowMinimumSize(size, true);
         }
         else if (strName == _T("maxinfo")) {
             UiSize size;
             AttributeUtil::ParseSizeValue(strValue.c_str(), size);
-            pWindow->SetMaxInfo(size.cx, size.cy, false, true);
+            pWindow->SetWindowMaximumSize(size, true);
         }
         else if (strName == _T("use_system_caption")) {
             pWindow->SetUseSystemCaption(strValue == _T("true"));
@@ -440,8 +440,8 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             AttributeUtil::ParseWindowSize(pWindow, strValue.c_str(), windowSize);
             int32_t cx = windowSize.cx;
             int32_t cy = windowSize.cy;
-            UiSize minSize = pWindow->GetMinInfo(false);
-            UiSize maxSize = pWindow->GetMaxInfo(false);
+            UiSize minSize = pWindow->GetWindowMinimumSize();
+            UiSize maxSize = pWindow->GetWindowMaximumSize();
             if ((minSize.cx > 0) && (cx < minSize.cx)) {
                 cx = minSize.cx;
             }

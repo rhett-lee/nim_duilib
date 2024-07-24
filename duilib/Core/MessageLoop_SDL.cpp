@@ -40,9 +40,9 @@ int32_t MessageLoop_SDL::Run()
                 {
                     //将事件派发到窗口
                     NativeWindow_SDL* pWindow = nullptr;
-                    SDL_WindowID id = NativeWindow_SDL::GetWindowIdFromEvent(sdlEvent);
-                    if (id != 0) {
-                        pWindow = NativeWindow_SDL::GetWindowFromID(id);
+                    SDL_WindowID windowID = NativeWindow_SDL::GetWindowIdFromEvent(sdlEvent);
+                    if (windowID != 0) {
+                        pWindow = NativeWindow_SDL::GetWindowFromID(windowID);
                     }
                     if (pWindow != nullptr) {
                         pWindow->OnSDLWindowEvent(sdlEvent);

@@ -752,12 +752,6 @@ void NativeWindow_Windows::CheckSetWindowFocus()
     }
 }
 
-LRESULT NativeWindow_Windows::SendMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    ASSERT(::IsWindow(m_hWnd));
-    return ::SendMessage(m_hWnd, uMsg, wParam, lParam);
-}
-
 LRESULT NativeWindow_Windows::PostMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     ASSERT(::IsWindow(m_hWnd));
@@ -1013,6 +1007,38 @@ void NativeWindow_Windows::SetText(const DString& strText)
     DString localText = StringUtil::TToLocal(strText);
     ::SetWindowText(m_hWnd, localText.c_str());
 #endif
+}
+
+void NativeWindow_Windows::SetWindowMaximumSize(const UiSize& szMaxWindow)
+{
+    m_szMaxWindow = szMaxWindow;
+    if (m_szMaxWindow.cx < 0) {
+        m_szMaxWindow.cx = 0;
+    }
+    if (m_szMaxWindow.cy < 0) {
+        m_szMaxWindow.cy = 0;
+    }
+}
+
+const UiSize& NativeWindow_Windows::GetWindowMaximumSize() const
+{
+    return m_szMaxWindow;
+}
+
+void NativeWindow_Windows::SetWindowMinimumSize(const UiSize& szMinWindow)
+{
+    m_szMinWindow = szMinWindow;
+    if (m_szMinWindow.cx < 0) {
+        m_szMinWindow.cx = 0;
+    }
+    if (m_szMinWindow.cy < 0) {
+        m_szMinWindow.cy = 0;
+    }
+}
+
+const UiSize& NativeWindow_Windows::GetWindowMinimumSize() const
+{
+    return m_szMinWindow;
 }
 
 void NativeWindow_Windows::SetCapture()
@@ -1594,25 +1620,29 @@ LRESULT NativeWindow_Windows::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM
         lResult = ProcessWindowMessage(uMsg, wParam, lParam, bHandled);
     }
 
-    bool bCloseMsg = false;
-    if (!bHandled && !ownerFlag.expired()) {
-        if ((uMsg == WM_CLOSE) || ((uMsg == WM_SYSCOMMAND) && (GET_SC_WPARAM(wParam) == SC_CLOSE))) {
-            //窗口即将关闭（关闭前）
-            StopSysMenuTimer();
-
-            bCloseMsg = true;
-            pOwner->OnNativePreCloseWindow();
-        }
-    }
-    if (uMsg == WM_CLOSE) {
+    const bool bWindowCloseMsg = (uMsg == WM_CLOSE) || ((uMsg == WM_SYSCOMMAND) && (GET_SC_WPARAM(wParam) == SC_CLOSE));
+    bool bWindowClosed = false;
+    if (!bHandled && bWindowCloseMsg && !ownerFlag.expired()) {
+        //窗口即将关闭（关闭前）
         StopSysMenuTimer();
 
-        m_closeParam = (int32_t)wParam;
+        //保持关闭窗口的退出参数
+        if (uMsg == WM_CLOSE) {
+            m_closeParam = (int32_t)wParam;
+        }
+
+        bWindowClosed = true;
+        pOwner->OnNativePreCloseWindow();
+    }
+    else if (bHandled && bWindowCloseMsg && !ownerFlag.expired()) {
+        //恢复关闭前的状态
+        m_bCloseing = false;
+        m_closeParam = kWindowCloseNormal;
     }
 
     //第五优先级：系统默认的窗口函数
     if (!bHandled && !ownerFlag.expired() && ::IsWindow(hWnd)) {
-        if (bCloseMsg && m_bDoModal) {
+        if (bWindowClosed && m_bDoModal) {
             //模态对话框
             ::EndDialog(hWnd, wParam);
             lResult = 0;
@@ -1627,7 +1657,6 @@ LRESULT NativeWindow_Windows::WindowMessageProc(UINT uMsg, WPARAM wParam, LPARAM
         //窗口已经关闭（关闭后）
         pOwner->OnNativePostCloseWindow();
     }
-
     return lResult;
 }
 
@@ -1864,17 +1893,17 @@ LRESULT NativeWindow_Windows::OnGetMinMaxInfoMsg(UINT uMsg, WPARAM /*wParam*/, L
     lpMMI->ptMaxSize.x = rcWork.Width();
     lpMMI->ptMaxSize.y = rcWork.Height();
 
-    if (m_pOwner->OnNativeGetMaxInfo(true).cx != 0) {
-        lpMMI->ptMaxTrackSize.x = m_pOwner->OnNativeGetMaxInfo(true).cx;
+    if (GetWindowMaximumSize().cx != 0) {
+        lpMMI->ptMaxTrackSize.x = GetWindowMaximumSize().cx;
     }
-    if (m_pOwner->OnNativeGetMaxInfo(true).cy != 0) {
-        lpMMI->ptMaxTrackSize.y = m_pOwner->OnNativeGetMaxInfo(true).cy;
+    if (GetWindowMaximumSize().cy != 0) {
+        lpMMI->ptMaxTrackSize.y = GetWindowMaximumSize().cy;
     }
-    if (m_pOwner->OnNativeGetMinInfo(true).cx != 0) {
-        lpMMI->ptMinTrackSize.x = m_pOwner->OnNativeGetMinInfo(true).cx;
+    if (GetWindowMinimumSize().cx != 0) {
+        lpMMI->ptMinTrackSize.x = GetWindowMinimumSize().cx;
     }
-    if (m_pOwner->OnNativeGetMinInfo(true).cy != 0) {
-        lpMMI->ptMinTrackSize.y = m_pOwner->OnNativeGetMinInfo(true).cy;
+    if (GetWindowMinimumSize().cy != 0) {
+        lpMMI->ptMinTrackSize.y = GetWindowMinimumSize().cy;
     }
     return 0;
 }

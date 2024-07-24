@@ -162,11 +162,6 @@ bool WindowBase::RemoveMessageFilter(IUIMessageFilter* pFilter)
     return false;
 }
 
-LRESULT WindowBase::SendMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    return m_pNativeWindow->SendMsg(uMsg, wParam, lParam);
-}
-
 LRESULT WindowBase::PostMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     return m_pNativeWindow->PostMsg(uMsg, wParam, lParam);
@@ -341,11 +336,6 @@ bool WindowBase::KillWindowFocus()
 bool WindowBase::IsWindowFocused() const
 {
     return m_pNativeWindow->IsWindowFocused();
-}
-
-bool WindowBase::SetOwnerWindowFocus()
-{
-    return m_pNativeWindow->SetOwnerWindowFocus();
 }
 
 void WindowBase::CheckSetWindowFocus()
@@ -543,8 +533,14 @@ void WindowBase::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (nNewDpiScale != Dpi().GetScale()) {
         return;
     }
-    m_szMinWindow = Dpi().GetScaleSize(m_szMinWindow, nOldDpiScale);
-    m_szMaxWindow = Dpi().GetScaleSize(m_szMaxWindow, nOldDpiScale);
+    UiSize szMinWindow = NativeWnd()->GetWindowMinimumSize();
+    szMinWindow = Dpi().GetScaleSize(szMinWindow, nOldDpiScale);
+    NativeWnd()->SetWindowMinimumSize(szMinWindow);
+
+    UiSize szMaxWindow = NativeWnd()->GetWindowMaximumSize();    
+    szMaxWindow = Dpi().GetScaleSize(szMaxWindow, nOldDpiScale);    
+    NativeWnd()->SetWindowMaximumSize(szMaxWindow);
+
     m_rcSizeBox = Dpi().GetScaleRect(m_rcSizeBox, nOldDpiScale);
     m_szRoundCorner = Dpi().GetScaleSize(m_szRoundCorner, nOldDpiScale);
     m_rcCaption = Dpi().GetScaleRect(m_rcCaption, nOldDpiScale);
@@ -679,91 +675,34 @@ void WindowBase::SetRoundCorner(int cx, int cy, bool bNeedDpiScale)
     m_szRoundCorner.cy = cy;
 }
 
-UiSize WindowBase::GetMinInfo(bool bContainShadow) const
+void WindowBase::SetWindowMaximumSize(const UiSize& szMinWindow, bool bNeedDpiScale)
 {
-    UiSize xy = m_szMinWindow;
-    if (!bContainShadow) {
-        UiPadding rcShadow;
-        GetShadowCorner(rcShadow);
-        if (xy.cx != 0) {
-            xy.cx -= rcShadow.left + rcShadow.right;
-        }
-        if (xy.cy != 0) {
-            xy.cy -= rcShadow.top + rcShadow.bottom;
-        }
-    }
-    return xy;
-}
-
-void WindowBase::SetMinInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
-{
-    ASSERT(cx >= 0 && cy >= 0);
-    if (cx < 0) {
-        cx = 0;
-    }
-    if (cy < 0) {
-        cy = 0;
-    }
     if (bNeedDpiScale) {
-        Dpi().ScaleInt(cx);
-        Dpi().ScaleInt(cy);
+        NativeWnd()->SetWindowMaximumSize(Dpi().GetScaleSize(szMinWindow));
     }
-    if (!bContainShadow) {
-        UiPadding rcShadow;
-        GetShadowCorner(rcShadow);
-        if (cx != 0) {
-            cx += rcShadow.left + rcShadow.right;
-        }
-        if (cy != 0) {
-            cy += rcShadow.top + rcShadow.bottom;
-        }
+    else {
+        NativeWnd()->SetWindowMaximumSize(szMinWindow);
     }
-    m_szMinWindow.cx = cx;
-    m_szMinWindow.cy = cy;
 }
 
-UiSize WindowBase::GetMaxInfo(bool bContainShadow) const
+const UiSize& WindowBase::GetWindowMaximumSize() const
 {
-    UiSize xy = m_szMaxWindow;
-    if (!bContainShadow) {
-        UiPadding rcShadow;
-        GetShadowCorner(rcShadow);
-        if (xy.cx != 0) {
-            xy.cx -= rcShadow.left + rcShadow.right;
-        }
-        if (xy.cy != 0) {
-            xy.cy -= rcShadow.top + rcShadow.bottom;
-        }
-    }
-
-    return xy;
+    return NativeWnd()->GetWindowMaximumSize();
 }
 
-void WindowBase::SetMaxInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
+void WindowBase::SetWindowMinimumSize(const UiSize& szMaxWindow, bool bNeedDpiScale)
 {
-    ASSERT(cx >= 0 && cy >= 0);
-    if (cx < 0) {
-        cx = 0;
-    }
-    if (cy < 0) {
-        cy = 0;
-    }
     if (bNeedDpiScale) {
-        Dpi().ScaleInt(cx);
-        Dpi().ScaleInt(cy);
+        NativeWnd()->SetWindowMinimumSize(Dpi().GetScaleSize(szMaxWindow));
     }
-    if (!bContainShadow) {
-        UiPadding rcShadow;
-        GetShadowCorner(rcShadow);
-        if (cx != 0) {
-            cx += rcShadow.left + rcShadow.right;
-        }
-        if (cy != 0) {
-            cy += rcShadow.top + rcShadow.bottom;
-        }
+    else {
+        NativeWnd()->SetWindowMinimumSize(szMaxWindow);
     }
-    m_szMaxWindow.cx = cx;
-    m_szMaxWindow.cy = cy;
+}
+
+const UiSize& WindowBase::GetWindowMinimumSize() const
+{
+    return NativeWnd()->GetWindowMaximumSize();
 }
 
 int32_t WindowBase::SetWindowHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
@@ -885,16 +824,6 @@ bool WindowBase::OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) co
 bool WindowBase::OnNativeIsPtInMaximizeRestoreButton(const UiPoint& pt) const
 {
     return IsPtInMaximizeRestoreButton(pt);
-}
-
-UiSize WindowBase::OnNativeGetMinInfo(bool bContainShadow) const
-{
-    return GetMinInfo(bContainShadow);
-}
-
-UiSize WindowBase::OnNativeGetMaxInfo(bool bContainShadow) const
-{
-    return GetMaxInfo(bContainShadow);
 }
 
 void WindowBase::OnNativePreCloseWindow()

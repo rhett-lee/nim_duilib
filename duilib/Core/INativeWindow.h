@@ -69,16 +69,6 @@ public:
     */
     virtual bool OnNativeIsPtInMaximizeRestoreButton(const UiPoint& pt) const = 0;
 
-    /** 获取窗口最小范围，对应 XML 中 mininfo 属性
-    * @param [in] bContainShadow 是否包含阴影范围，默认为 false
-    */
-    virtual UiSize OnNativeGetMinInfo(bool bContainShadow /*= false*/) const = 0;
-
-    /** 获取窗口最大范围，对应 XML 中 maxinfo 属性
-    * @param [in] bContainShadow 是否包含阴影范围，默认为 false
-    */
-    virtual UiSize OnNativeGetMaxInfo(bool bContainShadow /*= false*/) const = 0;
-
     /** 进入全屏状态
     */
     virtual void OnNativeWindowEnterFullScreen() = 0;
