@@ -1040,7 +1040,6 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_sdlWindow(nullptr),
     m_sdlRenderer(nullptr),
     m_bIsLayeredWindow(false),
-    m_nLayeredWindowAlpha(255),
     m_nLayeredWindowOpacity(255),
     m_bUseSystemCaption(false),
     m_bMouseCapture(false),
@@ -1461,45 +1460,32 @@ void NativeWindow_SDL::UpdateMinMaxBoxStyle() const
 
 void NativeWindow_SDL::SetLayeredWindowAlpha(int32_t nAlpha)
 {
-    //TODO:
-
-    ASSERT(nAlpha >= 0 && nAlpha <= 255);
-    if ((nAlpha < 0) || (nAlpha > 255)) {
-        return;
-    }
-    m_nLayeredWindowAlpha = static_cast<uint8_t>(nAlpha);
+    SetLayeredWindowOpacity(nAlpha);
 }
 
 uint8_t NativeWindow_SDL::GetLayeredWindowAlpha() const
 {
-    return m_nLayeredWindowAlpha;
+    return GetLayeredWindowOpacity();
 }
 
 void NativeWindow_SDL::SetLayeredWindowOpacity(int32_t nAlpha)
 {
-    //TODO:
-
     ASSERT(nAlpha >= 0 && nAlpha <= 255);
     if ((nAlpha < 0) || (nAlpha > 255)) {
         return;
     }
+    ASSERT(IsWindow());
+    if (!IsWindow()) {
+        return;
+    }
     m_nLayeredWindowOpacity = static_cast<uint8_t>(nAlpha);
-    //if (m_nLayeredWindowOpacity == 255) {
-    //    COLORREF crKey = 0;
-    //    BYTE bAlpha = 0;
-    //    DWORD dwFlags = LWA_ALPHA | LWA_COLORKEY;
-    //    bool bAttributes = ::GetLayeredWindowAttributes(GetHWND(), &crKey, &bAlpha, &dwFlags) != FALSE;
-    //    if (bAttributes) {
-    //        bool bRet = ::SetLayeredWindowAttributes(GetHWND(), 0, m_nLayeredWindowOpacity, LWA_ALPHA) != FALSE;
-    //        ASSERT_UNUSED_VARIABLE(bRet);
-    //    }
-    //}
-    //else {
-    //    //必须先设置为分层窗口，然后才能设置成功
-    //    SetLayeredWindow(true, false);
-    //    bool bRet = ::SetLayeredWindowAttributes(GetHWND(), 0, m_nLayeredWindowOpacity, LWA_ALPHA) != FALSE;
-    //    ASSERT_UNUSED_VARIABLE(bRet);
-    //}
+    float opacity = 1.0f;//完全不透明
+    if (m_nLayeredWindowOpacity != 255) {
+        //支持不透明度设置
+        opacity = 1.0f * nAlpha / 255.0f;
+    }
+    int nRet = SDL_SetWindowOpacity(m_sdlWindow, opacity);
+    ASSERT_UNUSED_VARIABLE(nRet == 0);
 }
 
 uint8_t NativeWindow_SDL::GetLayeredWindowOpacity() const
@@ -1607,17 +1593,24 @@ bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
 
 void NativeWindow_SDL::ShowModalFake(NativeWindow_SDL* pParentWindow)
 {
-    //TODO:
-
     ASSERT(IsWindow());
-    //ASSERT((pParentWindow != nullptr) && (pParentWindow->GetHWND() != nullptr));
+    if (!IsWindow()) {
+        return;
+    }
+    if (!pParentWindow->IsWindow()) {
+        pParentWindow = nullptr;
+    }
     if (pParentWindow != nullptr) {
         if (pParentWindow != nullptr) {
             pParentWindow->EnableWindow(false);
         }
     }
     ShowWindow(kSW_SHOW_NORMAL);
-    m_bFakeModal = true;
+    if (pParentWindow != nullptr) {
+        int nRet = SDL_SetWindowModalFor(m_sdlWindow, pParentWindow->m_sdlWindow);
+        ASSERT_UNUSED_VARIABLE(nRet == 0);
+        m_bFakeModal = true;
+    }    
 }
 
 void NativeWindow_SDL::OnCloseModalFake(NativeWindow_SDL* pParentWindow)
@@ -1642,55 +1635,49 @@ bool NativeWindow_SDL::IsDoModal() const
 }
 
 void NativeWindow_SDL::CenterWindow()
-{
-    //TODO:
-   
-    //ASSERT(IsWindow());
-    //ASSERT((::GetWindowLong(GetHWND(), GWL_STYLE) & WS_CHILD) == 0);
-    //UiRect rcDlg;
-    //GetWindowRect(rcDlg);
-    //UiRect rcArea;
-    //UiRect rcCenter;
-    //HWND hWnd = GetHWND();
-    //HWND hWndCenter = GetWindowOwner();
-    //if (hWndCenter != nullptr) {
-    //    hWnd = hWndCenter;
-    //}
+{  
+    ASSERT(IsWindow());
+    UiRect rcDlg;
+    GetWindowRect(rcDlg);
+    UiRect rcArea;
+    UiRect rcCenter;
 
-    //// 处理多显示器模式下屏幕居中
-    //UiRect rcMonitor;
-    //GetMonitorRect(hWnd, rcMonitor, rcArea);
-    //if (hWndCenter == nullptr) {
-    //    rcCenter = rcArea;
-    //}
-    //else if (::IsIconic(hWndCenter)) {
-    //    rcCenter = rcArea;
-    //}
-    //else {
-    //    GetWindowRect(hWndCenter, rcCenter);
-    //}
+    SDL_Window* pCenterWindow = SDL_GetWindowParent(m_sdlWindow);
 
-    //int DlgWidth = rcDlg.right - rcDlg.left;
-    //int DlgHeight = rcDlg.bottom - rcDlg.top;
+    // 处理多显示器模式下屏幕居中
+    UiRect rcMonitor;
+    GetMonitorRect(m_sdlWindow, rcMonitor, rcArea);
+    if (pCenterWindow == nullptr) {
+        rcCenter = rcArea;
+    }
+    else if (SDL_GetWindowFlags(m_sdlWindow) & SDL_WINDOW_MINIMIZED) {
+        rcCenter = rcArea;
+    }
+    else {
+        GetWindowRect(pCenterWindow, rcCenter);
+    }
 
-    //// Find dialog's upper left based on rcCenter
-    //int xLeft = (rcCenter.left + rcCenter.right) / 2 - DlgWidth / 2;
-    //int yTop = (rcCenter.top + rcCenter.bottom) / 2 - DlgHeight / 2;
+    int DlgWidth = rcDlg.right - rcDlg.left;
+    int DlgHeight = rcDlg.bottom - rcDlg.top;
 
-    //// The dialog is outside the screen, move it inside
-    //if (xLeft < rcArea.left) {
-    //    xLeft = rcArea.left;
-    //}
-    //else if (xLeft + DlgWidth > rcArea.right) {
-    //    xLeft = rcArea.right - DlgWidth;
-    //}
-    //if (yTop < rcArea.top) {
-    //    yTop = rcArea.top;
-    //}
-    //else if (yTop + DlgHeight > rcArea.bottom) {
-    //    yTop = rcArea.bottom - DlgHeight;
-    //}
-    //::SetWindowPos(GetHWND(), NULL, xLeft, yTop, -1, -1, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+    // Find dialog's upper left based on rcCenter
+    int xLeft = (rcCenter.left + rcCenter.right) / 2 - DlgWidth / 2;
+    int yTop = (rcCenter.top + rcCenter.bottom) / 2 - DlgHeight / 2;
+
+    // The dialog is outside the screen, move it inside
+    if (xLeft < rcArea.left) {
+        xLeft = rcArea.left;
+    }
+    else if (xLeft + DlgWidth > rcArea.right) {
+        xLeft = rcArea.right - DlgWidth;
+    }
+    if (yTop < rcArea.top) {
+        yTop = rcArea.top;
+    }
+    else if (yTop + DlgHeight > rcArea.bottom) {
+        yTop = rcArea.bottom - DlgHeight;
+    }
+    SetWindowPos(nullptr, InsertAfterFlag(), xLeft, yTop, -1, -1, kSWP_NOSIZE | kSWP_NOZORDER | kSWP_NOACTIVATE);
 }
 
 void NativeWindow_SDL::ToTopMost()

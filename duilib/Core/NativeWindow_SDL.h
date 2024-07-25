@@ -572,22 +572,22 @@ private:
     */
     bool m_bMouseCapture;
 
+    /** 窗口不透明度，该值在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)
+    */
+    uint8_t m_nLayeredWindowOpacity;
+
+    /** 当前窗口是否显示为模态对话框
+    */
+    bool m_bFakeModal;
+
 private:
     /** 创建窗口时的初始化参数
     */
     WindowCreateParam m_createParam;
 
-    //是否为层窗口
+    /** 是否为层窗口
+    */
     bool m_bIsLayeredWindow;
-
-    //窗口透明度，该值在UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)
-    uint8_t m_nLayeredWindowAlpha;
-
-    //窗口不透明度，该值在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)
-    uint8_t m_nLayeredWindowOpacity;
-
-    //当前窗口是否显示为模态对话框
-    bool m_bFakeModal;
 };
 
 /** 定义别名
