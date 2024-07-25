@@ -1287,8 +1287,7 @@ void NativeWindow_SDL::InitNativeWindow()
 
 void NativeWindow_SDL::ClearNativeWindow()
 {
-    if (m_sdlWindow != nullptr) {
-        SDL_WindowID id = SDL_GetWindowID(m_sdlWindow);        
+    if (m_sdlWindow != nullptr) {    
         SDL_SetWindowHitTest(m_sdlWindow, nullptr, nullptr);
         SDL_DestroyWindow(m_sdlWindow);
         m_sdlWindow = nullptr;
@@ -1364,8 +1363,8 @@ void NativeWindow_SDL::CloseWnd(int32_t nRet)
         sdlEvent.window.data1 = 0;
         sdlEvent.window.data2 = 0;
         sdlEvent.window.windowID = SDL_GetWindowID(m_sdlWindow);
-        int nRet = SDL_PushEvent(&sdlEvent);
-        ASSERT_UNUSED_VARIABLE(nRet > 0);
+        int nRetE = SDL_PushEvent(&sdlEvent);
+        ASSERT_UNUSED_VARIABLE(nRetE > 0);
     }
 }
 
@@ -1405,7 +1404,7 @@ int32_t NativeWindow_SDL::GetCloseParam() const
     return m_closeParam;
 }
 
-bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
+bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
 {
     m_bIsLayeredWindow = bIsLayeredWindow;
     SetLayeredWindowStyle(bIsLayeredWindow);
@@ -1629,11 +1628,6 @@ bool NativeWindow_SDL::IsFakeModal() const
     return m_bFakeModal;
 }
 
-bool NativeWindow_SDL::IsDoModal() const
-{
-    return false;
-}
-
 void NativeWindow_SDL::CenterWindow()
 {  
     ASSERT(IsWindow());
@@ -1770,7 +1764,7 @@ LRESULT NativeWindow_SDL::PostMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
     return nRet > 0 ? 0 : -1;
 }
 
-void NativeWindow_SDL::PostQuitMsg(int32_t nExitCode)
+void NativeWindow_SDL::PostQuitMsg(int32_t /*nExitCode*/)
 {
     SDL_Event sdlEvent;
     sdlEvent.type = SDL_EVENT_QUIT;
@@ -2313,13 +2307,19 @@ void NativeWindow_SDL::OnFinalMessage()
     }
 }
 
+bool NativeWindow_SDL::IsDoModal() const
+{
+    //不支持该功能
+    return false;
+}
+
 bool NativeWindow_SDL::KillWindowFocus()
 {
     //不支持此功能
     return false;
 }
 
-bool NativeWindow_SDL::EnableWindow(bool bEnable)
+bool NativeWindow_SDL::EnableWindow(bool /*bEnable*/)
 {
     //未能提供此功能
     return true;
@@ -2381,7 +2381,7 @@ bool NativeWindow_SDL::UnregisterHotKey(int32_t /*id*/)
     return false;
 }
 
-LRESULT NativeWindow_SDL::CallDefaultWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam)
+LRESULT NativeWindow_SDL::CallDefaultWindowProc(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/)
 {
     //不支持此功能
     ASSERT(0);
