@@ -3,6 +3,7 @@
 
 #include "duilib/Core/INativeWindow.h"
 #include "duilib/Core/WindowCreateParam.h"
+#include "duilib/Core/WindowCreateAttributes.h"
 #include "duilib/Utils/FilePath.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
@@ -18,6 +19,7 @@ typedef uint32_t SDL_WindowID;
 typedef uint64_t SDL_WindowFlags;
 typedef uint32_t SDL_Keycode;
 typedef uint16_t SDL_Keymod;
+typedef uint32_t SDL_PropertiesID;
 union SDL_Event;
 
 namespace ui {
@@ -52,8 +54,11 @@ public:
     /** 创建窗口
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
+    * @param [in] createAttributes XML文件中Window的相关属性
     */
-    bool CreateWnd(NativeWindow_SDL* pParentWindow, const WindowCreateParam& createParam);
+    bool CreateWnd(NativeWindow_SDL* pParentWindow,
+                  const WindowCreateParam& createParam,
+                  const WindowCreateAttributes& createAttributes);
 
     /** 显示模态窗口
     * @param [in] pParentWindow 父窗口
@@ -63,8 +68,12 @@ public:
     * @param [in] bCloseByEnter 按Enter键的时候，是否关闭窗口
     * @return 窗口退出时的返回值, 如果失败则返回-1
     */
-    int32_t DoModal(NativeWindow_SDL* pParentWindow, const WindowCreateParam& createParam,
-                    bool bCenterWindow = true, bool bCloseByEsc = true, bool bCloseByEnter = false);
+    int32_t DoModal(NativeWindow_SDL* pParentWindow,
+                    const WindowCreateParam& createParam,
+                    const WindowCreateAttributes& createAttributes,
+                    bool bCenterWindow = true,
+                    bool bCloseByEsc = true,
+                    bool bCloseByEnter = false);
 
     /** 获取本地实现的窗口句柄
     */
@@ -383,7 +392,7 @@ public:
     /** 获取当前主显示器的工作区矩形
     * @param [out] rcWork 返回主屏幕坐标
     */
-    static bool GetMainMonitorWorkRect(UiRect& rcWork);
+    static bool GetPrimaryMonitorWorkRect(UiRect& rcWork);
 
     /** 获取当前窗口所在显示器的工作区矩形，以虚拟屏幕坐标表示。
         请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
@@ -507,6 +516,14 @@ private:
     */
     void UpdateMinMaxBoxStyle() const;
 
+    /** 同步创建窗口的属性
+    */
+    void SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes);
+
+    /** 根据创建窗口的输入参数，设置创建窗口的属性
+    */
+    void SetCreateWindowProperties(SDL_PropertiesID props, NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes);
+
 private:
     /** 设置窗口ID与窗口指针的关系
     */
@@ -585,7 +602,6 @@ private:
     */
     bool m_bFakeModal;
 
-private:
     /** 创建窗口时的初始化参数
     */
     WindowCreateParam m_createParam;

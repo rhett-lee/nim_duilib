@@ -117,7 +117,7 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
 
     //设置默认风格
     if (m_createParam.m_dwStyle == 0) {
-        m_createParam.m_dwStyle = WS_OVERLAPPEDWINDOW;
+        m_createParam.m_dwStyle = kWS_OVERLAPPEDWINDOW;
     }
 
     //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
@@ -167,7 +167,7 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
 
     //设置默认风格
     if (m_createParam.m_dwStyle == 0) {
-        m_createParam.m_dwStyle = WS_POPUPWINDOW;
+        m_createParam.m_dwStyle = kWS_POPUPWINDOW;
     }
 
     //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
@@ -238,6 +238,7 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
 
 void NativeWindow_Windows::SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes)
 {
+    m_bUseSystemCaption = false;
     if (createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption) {
         //使用系统标题栏
         if (m_createParam.m_dwStyle & WS_POPUP) {
@@ -247,6 +248,7 @@ void NativeWindow_Windows::SyncCreateWindowAttributes(const WindowCreateAttribut
         else {
             m_createParam.m_dwStyle |= (WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
         }
+        m_bUseSystemCaption = true;
     }
 
     //初始化层窗口属性
@@ -1302,7 +1304,7 @@ bool NativeWindow_Windows::GetMonitorWorkRect(UiRect& rcWork) const
     return GetMonitorRect(m_hWnd, rcMonitor, rcWork);
 }
 
-bool NativeWindow_Windows::GetMainMonitorWorkRect(UiRect& rcWork)
+bool NativeWindow_Windows::GetPrimaryMonitorWorkRect(UiRect& rcWork)
 {
     rcWork.Clear();
     HMONITOR hMonitor = ::MonitorFromPoint({ INT32_MIN, INT32_MIN }, MONITOR_DEFAULTTOPRIMARY);
@@ -1318,7 +1320,7 @@ bool NativeWindow_Windows::GetMainMonitorWorkRect(UiRect& rcWork)
         return true;
     }
     else {
-        ASSERT(!"NativeWindow_Windows::GetMainMonitorWorkRect failed!");
+        ASSERT(!"NativeWindow_Windows::GetPrimaryMonitorWorkRect failed!");
         return false;
     }
 }

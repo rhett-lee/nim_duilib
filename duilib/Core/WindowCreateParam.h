@@ -31,7 +31,12 @@ enum WindowStyle : uint32_t
     kWS_THICKFRAME      = 0x00040000L, //窗口具有调整大小边框
     kWS_MINIMIZEBOX     = 0x00020000L, //窗口有一个“最大化”按钮。必须指定 WS_SYSMENU 样式。
     kWS_MAXIMIZEBOX     = 0x00010000L, //窗口有一个最小化按钮。必须指定 WS_SYSMENU 样式。
-    kWS_SYSMENU	        = 0x00080000L  //窗口的标题栏上有一个窗口菜单。 还必须指定 WS_CAPTION 样式。
+    kWS_SYSMENU	        = 0x00080000L, //窗口的标题栏上有一个窗口菜单。 还必须指定 WS_CAPTION 样式。
+
+    //重叠窗口，窗口具有标题栏、调整边框大小、窗口菜单以及最小化和最大化按钮。
+    kWS_OVERLAPPEDWINDOW    = (kWS_OVERLAPPED |  kWS_CAPTION |  kWS_SYSMENU |  kWS_THICKFRAME |  kWS_MINIMIZEBOX | kWS_MAXIMIZEBOX),
+    //弹出窗口
+    kWS_POPUPWINDOW         = (kWS_POPUP | kWS_BORDER | kWS_SYSMENU)
 };
 
 /** 窗口扩展风格
@@ -45,7 +50,6 @@ enum WindowExStyle : uint32_t
     kWS_EX_TOOLWINDOW   = 0x00000080L, //该窗口旨在用作浮动工具栏。 工具窗口具有短于普通标题栏的标题栏和使用较小的字体绘制的窗口标题。 工具窗口不会显示在任务栏中，也不会显示在用户按 Alt+TAB 时显示的对话框中。 如果工具窗口具有系统菜单，则其图标不会显示在标题栏上。 
     kWS_EX_LAYERED      = 0x00080000L, //该窗口是一个分层窗口
     kWS_EX_NOACTIVATE   = 0x08000000L  //用户单击时，使用此样式创建的顶级窗口不会成为前台窗口。 当用户最小化或关闭前台窗口时，系统不会将此窗口带到前台。
-
 };
 
 /** 窗口的位置和大小默认值标志

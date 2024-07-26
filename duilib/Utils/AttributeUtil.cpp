@@ -293,7 +293,7 @@ void AttributeUtil::ParseWindowSize(const Window* pWindow, const DString::value_
         pWindow->GetMonitorWorkRect(rcWork);
     }
     else {
-        WindowBase::GetMainMonitorWorkRect(rcWork);
+        WindowBase::GetPrimaryMonitorWorkRect(rcWork);
     }
     
     DString::value_type* pstr = nullptr;

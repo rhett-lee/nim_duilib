@@ -1058,7 +1058,9 @@ NativeWindow_SDL::~NativeWindow_SDL()
     ClearNativeWindow();
 }
 
-bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow, const WindowCreateParam& createParam)
+bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
+                                 const WindowCreateParam& createParam,
+                                 const WindowCreateAttributes& createAttributes)
 {
     ASSERT(m_sdlWindow == nullptr);
     if (m_sdlWindow != nullptr) {
@@ -1075,56 +1077,222 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow, const WindowCr
         }
     }
 
-    //设置关闭窗口的时候，不自动退出消息循环
-    SDL_SetHint(SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "false"); 
-    
-    //保存参数
-    m_createParam = createParam;
-    SDL_WindowFlags windowFlags = SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_TRANSPARENT | SDL_WINDOW_RESIZABLE;
-    int nRet = SDL_CreateWindowAndRenderer("Hello SDL", 640, 480, windowFlags, &m_sdlWindow, &m_sdlRenderer);
-    ASSERT(nRet == 0);
-    ASSERT(m_sdlWindow != nullptr);
-    ASSERT(m_sdlRenderer != nullptr);
-    if (m_sdlWindow != nullptr) {
-        //初始化
-        InitNativeWindow();
-
-        if (m_pOwner != nullptr) {
-            bool bHandled = false;
-            m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(0, 0, 0), bHandled);
-        }
-
-        //更新最大化/最小化按钮的风格
-        UpdateMinMaxBoxStyle();
-    }
-    return (m_sdlWindow != nullptr);
-}
-
-int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow, const WindowCreateParam& createParam,
-                              bool /*bCenterWindow*/, bool /*bCloseByEsc*/, bool /*bCloseByEnter*/)
-{
-    //TODO：待实现
-    //
-    //
-    // 
     //保存参数
     m_createParam = createParam;
 
     //设置默认风格
-    uint32_t dwStyle = createParam.m_dwStyle;
-    if (dwStyle == 0) {
-        dwStyle = WS_POPUPWINDOW;
-        m_createParam.m_dwStyle = dwStyle;
+    if (m_createParam.m_dwStyle == 0) {
+        m_createParam.m_dwStyle = kWS_OVERLAPPEDWINDOW;
+    }
+
+    //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
+    SyncCreateWindowAttributes(createAttributes);
+
+    //创建属性
+    SDL_PropertiesID props = SDL_CreateProperties();
+    SetCreateWindowProperties(props, pParentWindow, createAttributes);
+    m_sdlWindow = SDL_CreateWindowWithProperties(props);
+    SDL_DestroyProperties(props);
+
+    ASSERT(m_sdlWindow != nullptr);
+    if (m_sdlWindow == nullptr) {
+        return false;
+    }
+
+    m_sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
+    ASSERT(m_sdlRenderer != nullptr);
+    if (m_sdlRenderer == nullptr) {
+        SDL_DestroyWindow(m_sdlWindow);
+        m_sdlWindow = nullptr;
+        return false;
+    }
+
+    //初始化
+    InitNativeWindow();
+
+    if (m_pOwner != nullptr) {
+        bool bHandled = false;
+        m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(0, 0, 0), bHandled);
+    }
+
+    //更新最大化/最小化按钮的风格
+    UpdateMinMaxBoxStyle();
+    return true;
+}
+
+int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
+                                  const WindowCreateParam& createParam,
+                                  const WindowCreateAttributes& createAttributes,
+                                  bool /*bCenterWindow*/, bool /*bCloseByEsc*/, bool /*bCloseByEnter*/)
+{
+    ASSERT(m_sdlWindow == nullptr);
+    if (m_sdlWindow != nullptr) {
+        return false;
+    }
+    ASSERT(m_sdlRenderer == nullptr);
+    if (m_sdlRenderer != nullptr) {
+        return false;
+    }
+    if (!SDL_WasInit(SDL_INIT_VIDEO)) {
+        if (SDL_Init(SDL_INIT_VIDEO) == -1) {
+            SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
+            return false;
+        }
+    }
+
+    //保存参数
+    m_createParam = createParam;
+
+    //设置默认风格
+    if (m_createParam.m_dwStyle == 0) {
+        m_createParam.m_dwStyle = kWS_POPUPWINDOW;
+    }
+
+    //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
+    SyncCreateWindowAttributes(createAttributes);
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+    
+    return 0;
+}
+
+void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes)
+{
+    m_bUseSystemCaption = false;
+    if (createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption) {
+        //使用系统标题栏
+        if (m_createParam.m_dwStyle & WS_POPUP) {
+            //弹出式窗口
+            m_createParam.m_dwStyle |= (WS_CAPTION | WS_SYSMENU);
+        }
+        else {
+            m_createParam.m_dwStyle |= (WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+        }
+        m_bUseSystemCaption = true;
     }
 
     //初始化层窗口属性
     m_bIsLayeredWindow = false;
-    if (createParam.m_dwExStyle & WS_EX_LAYERED) {
+    if (createAttributes.m_bIsLayeredWindowDefined) {
+        if (createAttributes.m_bIsLayeredWindow) {
+            m_bIsLayeredWindow = true;
+            m_createParam.m_dwExStyle |= WS_EX_LAYERED;
+        }
+        else {
+            m_createParam.m_dwExStyle &= ~WS_EX_LAYERED;
+        }
+    }
+    else if (m_createParam.m_dwExStyle & WS_EX_LAYERED) {
         m_bIsLayeredWindow = true;
     }
 
-    
-    return 0;
+    //如果使用系统标题栏，关闭层窗口
+    if (createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption) {
+        m_bIsLayeredWindow = false;
+        m_createParam.m_dwExStyle &= ~WS_EX_LAYERED;
+    }
+
+    //如果设置了不透明度，则设置为层窗口
+    if (createAttributes.m_bLayeredWindowOpacityDefined && (createAttributes.m_nLayeredWindowOpacity != 255)) {
+        m_createParam.m_dwExStyle |= WS_EX_LAYERED;
+        m_bIsLayeredWindow = true;
+    }
+    if (createAttributes.m_bLayeredWindowAlphaDefined && (createAttributes.m_nLayeredWindowAlpha != 255)) {
+        m_createParam.m_dwExStyle |= WS_EX_LAYERED;
+        m_bIsLayeredWindow = true;
+    }
+
+    if (createAttributes.m_bInitSizeDefined) {
+        if (createAttributes.m_szInitSize.cx > 0) {
+            m_createParam.m_nWidth = createAttributes.m_szInitSize.cx;
+        }
+        if (createAttributes.m_szInitSize.cy > 0) {
+            m_createParam.m_nHeight = createAttributes.m_szInitSize.cy;
+        }
+    }
+}
+
+void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeWindow_SDL* pParentWindow,
+                                                 const WindowCreateAttributes& createAttributes)
+{
+    //设置关闭窗口的时候，不自动退出消息循环
+    SDL_SetHint(SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "false");
+
+    if (!m_createParam.m_windowTitle.empty()) {
+        std::string windowTitle = StringUtil::TToUTF8(m_createParam.m_windowTitle);
+        SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, windowTitle.c_str());
+    }
+
+    //窗口的位置和大小
+    int32_t x = kCW_USEDEFAULT;
+    int32_t y = kCW_USEDEFAULT;
+    int32_t cx = kCW_USEDEFAULT;
+    int32_t cy = kCW_USEDEFAULT;
+
+    if ((m_createParam.m_nX != kCW_USEDEFAULT) && (m_createParam.m_nY != kCW_USEDEFAULT)) {
+        x = m_createParam.m_nX;
+        y = m_createParam.m_nY;
+    }
+    if ((m_createParam.m_nWidth != kCW_USEDEFAULT) && (m_createParam.m_nHeight != kCW_USEDEFAULT)) {
+        cx = m_createParam.m_nWidth;
+        cy = m_createParam.m_nHeight;
+    }
+    if (x != kCW_USEDEFAULT) {
+        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, x);
+    }
+    if (y != kCW_USEDEFAULT) {
+        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, y);
+    }
+    if (cx != kCW_USEDEFAULT) {
+        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, cx);
+    }
+    if (cy != kCW_USEDEFAULT) {
+        SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, cy);
+    }
+
+    //父窗口
+    if ((pParentWindow != nullptr) && (pParentWindow->m_sdlWindow != nullptr)) {
+        SDL_SetPointerProperty(props, SDL_PROP_WINDOW_CREATE_PARENT_POINTER, pParentWindow->m_sdlWindow);
+    }
+
+    //窗口属性
+    SDL_WindowFlags windowFlags = SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
+
+    //创建的时候，窗口保持隐藏状态，需要调用API显示窗口，避免创建窗口的时候闪烁
+    windowFlags |= SDL_WINDOW_HIDDEN;
+
+    if (!m_bUseSystemCaption && m_bIsLayeredWindow) {
+        //设置透明属性，这个属性必须在创建窗口时传入，窗口创建完成后，不支持修改
+        windowFlags |= SDL_WINDOW_TRANSPARENT;
+    }
+
+    //如果是弹出窗口，并且无阴影和标题栏，则默认为无边框
+    const bool bPopupWindow = m_createParam.m_dwStyle & kWS_POPUP;
+    bool bUseSystemCaption = createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption;
+    bool bShadowAttached = createAttributes.m_bShadowAttachedDefined && createAttributes.m_bShadowAttached;
+    if (bPopupWindow && !bUseSystemCaption && !bShadowAttached) {
+        windowFlags |= SDL_WINDOW_BORDERLESS;
+    }
+
+    if (bPopupWindow && (m_createParam.m_dwExStyle & kWS_EX_TOOLWINDOW)) {
+        windowFlags |= SDL_WINDOW_UTILITY;
+    }
+    if (bPopupWindow && (m_createParam.m_dwExStyle & kWS_EX_NOACTIVATE)) {
+        windowFlags |= SDL_WINDOW_NOT_FOCUSABLE;
+    }
+    SDL_SetNumberProperty(props, "flags", windowFlags);
 }
 
 SDL_HitTestResult SDLCALL NativeWindow_SDL_HitTest(SDL_Window* win,
@@ -1257,26 +1425,6 @@ void NativeWindow_SDL::InitNativeWindow()
         int nRet = SDL_SetWindowHitTest(m_sdlWindow, nullptr, nullptr);
         ASSERT_UNUSED_VARIABLE(nRet == 0);
     }
-
-    //HWND hWnd = GetHWND();
-    //if (!::IsWindow(hWnd)) {
-    //    return;
-    //}
-
-    ////检查并更新曾窗口属性
-    //m_bIsLayeredWindow = false;
-    //if (m_createParam.m_dwExStyle & WS_EX_LAYERED) {
-    //    m_bIsLayeredWindow = true;
-    //}
-    //bool bChanged = false;
-    //SetLayeredWindowStyle(m_bIsLayeredWindow, bChanged);
-
-    ////初始化窗口相关DC
-    //ASSERT(m_hDcPaint == nullptr);
-    //m_hDcPaint = ::GetDC(hWnd);
-
-    ////注册接受Touch消息
-    ////RegisterTouchWindowWrapper(hWnd, 0);
 
     if (!m_createParam.m_windowTitle.empty()) {
         std::string windowTitle = StringUtil::TToUTF8(m_createParam.m_windowTitle);
@@ -2052,13 +2200,16 @@ void NativeWindow_SDL::GetClientRect(UiRect& rcClient) const
     }
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
     {
-        HWND hWnd = GetHWND();
-        RECT rect = {0, };
-        ::GetClientRect(hWnd, &rect);
-        ASSERT(rcClient.left == rect.left);
-        ASSERT(rcClient.top == rect.top);
-        ASSERT(rcClient.right == rect.right);
-        ASSERT(rcClient.bottom == rect.bottom);
+        HWND hWnd = GetHWND();        
+        if (!::IsIconic(hWnd) && ::IsWindowVisible(hWnd)) {
+            //最小化的时候，或者隐藏的时候，不比对，两者不同
+            RECT rect = { 0, };
+            ::GetClientRect(hWnd, &rect);
+            ASSERT(rcClient.left == rect.left);
+            ASSERT(rcClient.top == rect.top);
+            ASSERT(rcClient.right == rect.right);
+            ASSERT(rcClient.bottom == rect.bottom);
+        }
     }
 #endif
 }
@@ -2216,9 +2367,31 @@ bool NativeWindow_SDL::GetMonitorWorkRect(UiRect& rcWork) const
     return GetMonitorRect(m_sdlWindow, rcMonitor, rcWork);
 }
 
-bool NativeWindow_SDL::GetMainMonitorWorkRect(UiRect& rcWork)
+bool NativeWindow_SDL::GetPrimaryMonitorWorkRect(UiRect& rcWork)
 {
+    rcWork.Clear();
+    if (!SDL_WasInit(SDL_INIT_VIDEO)) {
+        if (SDL_Init(SDL_INIT_VIDEO) == -1) {
+            SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
+            return false;
+        }
+    }
 
+    SDL_DisplayID displayID = SDL_GetPrimaryDisplay();
+    ASSERT(displayID != 0);
+    if (displayID == 0) {
+        return false;
+    }
+    SDL_Rect rect = { 0, };
+    int32_t nRet = SDL_GetDisplayUsableBounds(displayID, &rect);
+    ASSERT(nRet == 0);
+    if (nRet == 0) {
+        rcWork.left = rect.x;
+        rcWork.top = rect.y;
+        rcWork.right = rcWork.left + rect.w;
+        rcWork.bottom = rcWork.top + rect.h;
+    }
+    return !rcWork.IsEmpty();
 }
 
 bool NativeWindow_SDL::GetMonitorWorkRect(const UiPoint& pt, UiRect& rcWork) const

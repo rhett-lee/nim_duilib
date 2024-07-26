@@ -268,9 +268,9 @@ bool WindowBase::GetMonitorRect(UiRect& rcMonitor) const
     return m_pNativeWindow->GetMonitorRect(rcMonitor);
 }
 
-bool WindowBase::GetMainMonitorWorkRect(UiRect& rcWork)
+bool WindowBase::GetPrimaryMonitorWorkRect(UiRect& rcWork)
 {
-    return NativeWindow::GetMainMonitorWorkRect(rcWork);
+    return NativeWindow::GetPrimaryMonitorWorkRect(rcWork);
 }
 
 bool WindowBase::GetMonitorWorkRect(UiRect& rcWork) const
