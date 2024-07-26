@@ -2216,6 +2216,11 @@ bool NativeWindow_SDL::GetMonitorWorkRect(UiRect& rcWork) const
     return GetMonitorRect(m_sdlWindow, rcMonitor, rcWork);
 }
 
+bool NativeWindow_SDL::GetMainMonitorWorkRect(UiRect& rcWork)
+{
+
+}
+
 bool NativeWindow_SDL::GetMonitorWorkRect(const UiPoint& pt, UiRect& rcWork) const
 {
     rcWork.Clear();

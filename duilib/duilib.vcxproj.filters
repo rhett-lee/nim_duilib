@@ -1052,6 +1052,9 @@
     <ClInclude Include="Core\MessageLoop_SDL.h">
       <Filter>Core\SDL</Filter>
     </ClInclude>
+    <ClInclude Include="Core\WindowCreateAttributes.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />

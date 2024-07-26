@@ -3,6 +3,7 @@
 
 #include "duilib/Core/INativeWindow.h"
 #include "duilib/Core/WindowCreateParam.h"
+#include "duilib/Core/WindowCreateAttributes.h"
 #include "duilib/Utils/FilePath.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
@@ -25,8 +26,11 @@ public:
     /** 创建窗口
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
+    * @param [in] createAttributes XML文件中Window的相关属性
     */
-    bool CreateWnd(NativeWindow_Windows* pParentWindow, const WindowCreateParam& createParam);
+    bool CreateWnd(NativeWindow_Windows* pParentWindow,
+                  const WindowCreateParam& createParam,
+                  const WindowCreateAttributes& createAttributes);
 
     /** 显示模态窗口
     * @param [in] pParentWindow 父窗口
@@ -36,8 +40,12 @@ public:
     * @param [in] bCloseByEnter 按Enter键的时候，是否关闭窗口
     * @return 窗口退出时的返回值, 如果失败则返回-1
     */
-    int32_t DoModal(NativeWindow_Windows* pParentWindow, const WindowCreateParam& createParam,
-                    bool bCenterWindow = true, bool bCloseByEsc = true, bool bCloseByEnter = false);
+    int32_t DoModal(NativeWindow_Windows* pParentWindow,
+                    const WindowCreateParam& createParam,
+                    const WindowCreateAttributes& createAttributes,
+                    bool bCenterWindow = true,
+                    bool bCloseByEsc = true,
+                    bool bCloseByEnter = false);
 
     /** 获取窗口所属的 Windows 句柄
     */
@@ -350,6 +358,11 @@ public:
     */
     bool GetMonitorRect(UiRect& rcMonitor) const;
 
+    /** 获取当前主显示器的工作区矩形
+    * @param [out] rcWork 返回主屏幕坐标
+    */
+    static bool GetMainMonitorWorkRect(UiRect& rcWork);
+
     /** 获取当前窗口所在显示器的工作区矩形，以虚拟屏幕坐标表示。
         请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
     * @param [out] rcWork 返回屏幕坐标
@@ -567,6 +580,10 @@ private:
     /** 执行绘制操作
     */
     LRESULT OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+
+    /** 同步创建窗口的属性
+    */
+    void SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes);
 
 private:
     /** 接收窗口事件的接口

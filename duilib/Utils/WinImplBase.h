@@ -24,29 +24,23 @@ public:
 
 public:
     /**  创建窗口时被调用，由子类实现用以获取窗口皮肤目录
-    * @return 子类需实现并返回窗口皮肤目录
+    * @return 子类需实现并返回窗口皮肤目录, 为相对路径
     */
-    virtual DString GetSkinFolder();
+    virtual DString GetSkinFolder() override;
 
     /**  创建窗口时被调用，由子类实现用以获取窗口皮肤 XML 描述文件
     * @return 子类需实现并返回窗口皮肤 XML 描述文件
     *         返回的内容，可以是XML文件内容（以字符'<'为开始的字符串），
     *         或者是文件路径（不是以'<'字符开始的字符串），文件要在GetSkinFolder()路径中能够找到
     */
-    virtual DString GetSkinFile();
-
-    /** 初始化皮肤配置文件
-    * @param [in] skinFolder 窗口皮肤目录
-    * @param [in] skinFile 窗口皮肤 XML 描述文件
-    */
-    void InitSkin(const DString& skinFolder, const DString& skinFile);
+    virtual DString GetSkinFile() override;
 
 public:
     /** 当要创建的控件不是标准的控件名称时会调用该函数
     * @param [in] strClass 控件名称
     * @return 返回一个自定义控件指针，一般情况下根据 strClass 参数创建自定义的控件
     */
-    virtual Control* CreateControl(const DString& strClass);
+    virtual Control* CreateControl(const DString& strClass) override;
 
 protected:
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
@@ -129,14 +123,6 @@ private:
     void ProcessMaxRestoreStatus();
 
 private:
-    /** 皮肤路径
-    */
-    DString m_skinFolder;
-
-    /** 皮肤配置文件
-    */
-    DString m_skinFile;
-
     /** 最大化按钮的接口
     */
     Control* m_pMaxButton;

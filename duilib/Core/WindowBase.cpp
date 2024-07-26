@@ -1,6 +1,7 @@
 #include "WindowBase.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/WindowDropTarget.h"
+#include "duilib/Core/WindowCreateAttributes.h"
 
 namespace ui
 {
@@ -21,27 +22,35 @@ WindowBase::~WindowBase()
     }
 }
 
-bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& createParam )
+bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& createParam)
 {
+    //解析XML，读取窗口的属性参数
+    WindowCreateAttributes createAttributes;
+    GetCreateWindowAttributes(createAttributes);
+
     m_pParentWindow = pParentWindow;
     m_parentFlag.reset();
     if (pParentWindow != nullptr) {
         m_parentFlag = pParentWindow->GetWeakFlag();
     }
     NativeWindow* pNativeWindow = pParentWindow != nullptr ? pParentWindow->NativeWnd() : nullptr;
-    return m_pNativeWindow->CreateWnd(pNativeWindow, createParam);
+    return m_pNativeWindow->CreateWnd(pNativeWindow, createParam, createAttributes);
 }
 
 int32_t WindowBase::DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
                             bool bCenterWindow, bool bCloseByEsc, bool bCloseByEnter)
 {
+    //解析XML，读取窗口的属性参数
+    WindowCreateAttributes createAttributes;
+    GetCreateWindowAttributes(createAttributes);
+
     m_pParentWindow = pParentWindow;
     m_parentFlag.reset();
     if (pParentWindow != nullptr) {
         m_parentFlag = pParentWindow->GetWeakFlag();
     }
     NativeWindow* pNativeWindow = pParentWindow != nullptr ? pParentWindow->NativeWnd() : nullptr;
-    return m_pNativeWindow->DoModal(pNativeWindow, createParam, bCenterWindow, bCloseByEsc, bCloseByEnter);
+    return m_pNativeWindow->DoModal(pNativeWindow, createParam, createAttributes, bCenterWindow, bCloseByEsc, bCloseByEnter);
 }
 
 void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled)
@@ -257,6 +266,11 @@ void WindowBase::GetCursorPos(UiPoint& pt) const
 bool WindowBase::GetMonitorRect(UiRect& rcMonitor) const
 {
     return m_pNativeWindow->GetMonitorRect(rcMonitor);
+}
+
+bool WindowBase::GetMainMonitorWorkRect(UiRect& rcWork)
+{
+    return NativeWindow::GetMainMonitorWorkRect(rcWork);
 }
 
 bool WindowBase::GetMonitorWorkRect(UiRect& rcWork) const

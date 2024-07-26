@@ -18,6 +18,7 @@ class WindowDropTarget;
 class ControlDropTarget;
 class IRender;
 class WindowCreateParam;
+class WindowCreateAttributes;
 
 /** 窗口的基本功能封装（平台相关的窗口功能封装）
 */
@@ -467,6 +468,11 @@ public:
     */
     bool GetMonitorRect(UiRect& rcMonitor) const;
 
+    /** 获取当前主显示器的工作区矩形
+    * @param [out] rcWork 返回主屏幕坐标
+    */
+    static bool GetMainMonitorWorkRect(UiRect& rcWork);
+
     /** 获取当前窗口所在显示器的工作区矩形，以虚拟屏幕坐标表示。
         请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
     * @param [out] rcWork 返回屏幕坐标
@@ -621,6 +627,11 @@ protected:
     /** 判断一个点是否在最大化或者还原按钮上
     */
     virtual bool IsPtInMaximizeRestoreButton(const UiPoint& pt) const = 0;
+
+    /** 获取创建窗口的属性（从XML文件的Window标签中读取的属性值）
+    * @param [out] createAttributes 返回从XML文件的Window标签中读取的创建窗口的属性
+    */
+    virtual void GetCreateWindowAttributes(WindowCreateAttributes& createAttributes) = 0;
 
     /** 窗口的DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比

@@ -616,6 +616,7 @@
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\WindowBase.h" />
     <ClInclude Include="Core\WindowBuilder.h" />
+    <ClInclude Include="Core\WindowCreateAttributes.h" />
     <ClInclude Include="Core\WindowCreateParam.h" />
     <ClInclude Include="Core\WindowDropTarget.h" />
     <ClInclude Include="Core\WindowMessage.h" />

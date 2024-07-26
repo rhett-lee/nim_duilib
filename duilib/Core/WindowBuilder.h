@@ -22,6 +22,7 @@ class Box;
 class Window;
 class Control;
 class RichTextSlice;
+class WindowCreateAttributes;
 
 /** 创建控件的回调函数
 */
@@ -39,33 +40,17 @@ public:
     WindowBuilder& operator = (const WindowBuilder&) = delete;
 
 public:
-    /** 使用XML文件内容创建窗口布局等
+    /** 解析XML文件内容
     * @param [in] xmlFileData 是文件文本内容，字符串需要以字符 '<'开头;
-    * @param [in] pCallback 根据Class名称创建控件（或容器）的函数，适用于自定义控件
-    * @param [in] pWindow 关联的窗口
-    * @param [in] pParent 父容器，将该XML文件解析的节点，作为pParent容器的子节点
-    * @param [in] pUserDefinedBox 用户自定义的父容器：如果不为nullptr, 将该XML文件解析的节点，作为pUserDefinedBox容器的子节点
-    * @return 如果pUserDefinedBox不为nullptr, 返回pUserDefinedBox，否则返回解析XML后，生成的第一个节点接口（可能是Control，也可能是Box）
+    * @return 解析成功返回true，否则返回false
     */
-    Control* CreateFromXmlData(const DString& xmlFileData,
-                               CreateControlCallback pCallback = CreateControlCallback(),
-                               Window* pWindow = nullptr, 
-                               Box* pParent = nullptr, 
-                               Box* pUserDefinedBox = nullptr);
+    bool ParseXmlData(const DString& xmlFileData);
 
-    /** 使用XML文件创建窗口布局等
+    /** 解析XML文件内容
     * @param [in] xmlFilePath XML文件的路径
-    * @param [in] pCallback 根据Class名称创建控件（或容器）的函数，适用于自定义控件
-    * @param [in] pWindow 关联的窗口
-    * @param [in] pParent 父容器，将该XML文件解析的节点，作为pParent容器的子节点
-    * @param [in] pUserDefinedBox 用户自定义的父容器，将该XML文件解析的节点，作为pUserDefinedBox容器的子节点
-    * @return 如果pUserDefinedBox不为nullptr, 返回pUserDefinedBox，否则返回解析XML后，生成的第一个节点接口（可能是Control，也可能是Box）
+    * @return 解析成功返回true，否则返回false
     */
-    Control* CreateFromXmlFile(const FilePath& xmlFilePath,
-                               CreateControlCallback pCallback = CreateControlCallback(),
-                               Window* pWindow = nullptr, 
-                               Box* pParent = nullptr, 
-                               Box* pUserDefinedBox = nullptr);
+    bool ParseXmlFile(const FilePath& xmlFilePath);
 
     /** 使用缓存中已经解析过的XML文件或者数据创建窗口布局等（即CreateFromXmlData和CreateFromXmlFile解析后的结果）
     * @param [in] pCallback 根据Class名称创建控件（或容器）的函数，适用于自定义控件
@@ -74,14 +59,19 @@ public:
     * @param [in] pUserDefinedBox 用户自定义的父容器，将该XML文件解析的节点，作为pUserDefinedBox容器的子节点
     * @return 如果pUserDefinedBox不为nullptr, 返回pUserDefinedBox，否则返回解析XML后，生成的第一个节点接口（可能是Control，也可能是Box）
     */
-    Control* CreateFromCachedXml(CreateControlCallback pCallback = CreateControlCallback(),
-                                 Window* pWindow = nullptr,
-                                 Box* pParent = nullptr, 
-                                 Box* pUserDefinedBox = nullptr);
+    Control* CreateControls(CreateControlCallback pCallback = CreateControlCallback(),
+                            Window* pWindow = nullptr,
+                            Box* pParent = nullptr, 
+                            Box* pUserDefinedBox = nullptr);
 
     /** 将控件转换成容器, 内部做一些断言处理，确保转换失败的时候，能够报错
     */
     Box* ToBox(Control* pControl) const;
+
+    /** 解析出窗口的属性
+    *   (只解析出部分创建窗口依赖的属性，有些窗口属性只能在创建的时候指定，创建窗口后不支持修改，所以必须先读取出来，创建窗口时作为传入参数)
+    */
+    bool ParseWindowCreateAttributes(WindowCreateAttributes& createAttributes);
 
 public:
     /** 解析带格式的文本内容，并设置到RichText Control对象

@@ -5,6 +5,7 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/ControlDragable.h"
 #include "duilib/Core/ScrollBar.h"
+#include "duilib/Core/WindowCreateAttributes.h"
 
 #include "duilib/Control/TreeView.h"
 #include "duilib/Control/Combo.h"
@@ -168,15 +169,11 @@ bool WindowBuilder::IsXmlFileExists(const FilePath& xmlFilePath) const
     return bExists;
 }
 
-Control* WindowBuilder::CreateFromXmlData(const DString& xmlFileData,
-                                          CreateControlCallback pCallback,
-                                          Window* pWindow,
-                                          Box* pParent,
-                                          Box* pUserDefinedBox)
+bool WindowBuilder::ParseXmlData(const DString& xmlFileData)
 {
     ASSERT(!xmlFileData.empty() && _T("xml 参数为空！"));
     if (xmlFileData.empty()) {
-        return nullptr;
+        return false;
     }
     bool isLoaded = false;
     //字符串以<开头认为是XML字符串，否则认为是XML文件
@@ -194,21 +191,17 @@ Control* WindowBuilder::CreateFromXmlData(const DString& xmlFileData,
     }
     if (!isLoaded) {
         ASSERT(!_T("WindowBuilder::Create load xmlFileData failed!"));
-        return nullptr;
+        return false;
     }
     m_xmlFilePath.Clear();
-    return CreateFromCachedXml(pCallback, pWindow, pParent, pUserDefinedBox);
+    return true;
 }
 
-Control* WindowBuilder::CreateFromXmlFile(const FilePath& xmlFilePath,
-                                          CreateControlCallback pCallback,
-                                          Window* pWindow, 
-                                          Box* pParent, 
-                                          Box* pUserDefinedBox)
+bool WindowBuilder::ParseXmlFile(const FilePath& xmlFilePath)
 {
     ASSERT(!xmlFilePath.IsEmpty() && _T("xmlFilePath 参数为空！"));
     if (xmlFilePath.IsEmpty()) {
-        return nullptr;
+        return false;
     }
     bool isLoaded = false;
     if (GlobalManager::Instance().Zip().IsUseZip()) {
@@ -218,7 +211,7 @@ Control* WindowBuilder::CreateFromXmlFile(const FilePath& xmlFilePath,
             pugi::xml_parse_result result = m_xml->load_buffer(file_data.data(), file_data.size());
             if (result.status != pugi::status_ok) {
                 ASSERT(!_T("WindowBuilder::Create load xml from zip data failed!"));
-                return nullptr;
+                return false;
             }
             isLoaded = true;
         }
@@ -234,19 +227,19 @@ Control* WindowBuilder::CreateFromXmlFile(const FilePath& xmlFilePath,
         pugi::xml_parse_result result = m_xml->load_file(xmlFileFullPath.NativePathA().c_str());
         if (result.status != pugi::status_ok) {
             ASSERT(!_T("WindowBuilder::Create load xml file failed!"));
-            return nullptr;
+            return false;
         }
         isLoaded = true;
     }
     if (!isLoaded) {
         ASSERT(!_T("WindowBuilder::Create load xmlFilePath failed!"));
-        return nullptr;
+        return false;
     }
     m_xmlFilePath = xmlFilePath;
-    return CreateFromCachedXml(pCallback, pWindow, pParent, pUserDefinedBox);
+    return true;
 }
 
-Control* WindowBuilder::CreateFromCachedXml(CreateControlCallback pCallback, Window* pWindow, Box* pParent, Box* pUserDefinedBox)
+Control* WindowBuilder::CreateControls(CreateControlCallback pCallback, Window* pWindow, Box* pParent, Box* pUserDefinedBox)
 {
     m_createControlCallback = pCallback;
     pugi::xml_node root = m_xml->root().first_child();
@@ -305,6 +298,115 @@ Control* WindowBuilder::CreateFromCachedXml(CreateControlCallback pCallback, Win
     return nullptr;
 }
 
+bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAttributes)
+{
+    pugi::xml_node root = m_xml->root().first_child();
+    ASSERT(!root.empty());
+    if (root.empty()) {
+        return false;
+    }
+    DString strClass = root.name();
+    ASSERT(strClass == _T("Window"));
+    if (strClass != _T("Window")) {
+        return false;
+    }
+
+    UiSize szMinSize;
+    UiSize szMaxSize;
+    bool bScaledCX = false;
+    bool bScaledCY = false;
+
+    DString strName;
+    DString strValue;
+    for (pugi::xml_attribute attr : root.attributes()) {
+        strName = attr.name();
+        strValue = attr.value();
+        if (strName == _T("use_system_caption")) {
+            createAttributes.m_bUseSystemCaption = (strValue == _T("true"));
+            createAttributes.m_bUseSystemCaptionDefined = true;
+        }
+        else if (strName == _T("sizebox")) {
+            AttributeUtil::ParseRectValue(strValue.c_str(), createAttributes.m_rcSizeBox);
+            createAttributes.m_bSizeBoxDefined = true;
+        }
+        if (strName == _T("caption")) {
+            AttributeUtil::ParseRectValue(strValue.c_str(), createAttributes.m_rcCaption);
+            createAttributes.m_bCaptionDefined = true;
+        }
+        else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
+            createAttributes.m_bShadowAttached = (strValue == _T("true"));
+            createAttributes.m_bShadowAttachedDefined = true;
+        }
+        else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
+            createAttributes.m_bIsLayeredWindow = (strValue == _T("true"));
+            createAttributes.m_bIsLayeredWindowDefined = true;
+        }
+        else if (strName == _T("alpha")) {
+            //设置窗口的透明度（0 - 255），仅当使用层窗口时有效，在在UpdateLayeredWindow函数中作为参数使用
+            int32_t nAlpha = StringUtil::StringToInt32(strValue);
+            ASSERT(nAlpha >= 0 && nAlpha <= 255);
+            if ((nAlpha >= 0) && (nAlpha <= 255)) {
+                createAttributes.m_nLayeredWindowAlpha = (uint8_t)nAlpha;
+                createAttributes.m_bLayeredWindowAlphaDefined = true;
+            }
+        }
+        else if (strName == _T("opacity")) {
+            //设置窗口的不透明度（0 - 255），该值在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)
+            const int32_t nAlpha = StringUtil::StringToInt32(strValue);
+            ASSERT(nAlpha >= 0 && nAlpha <= 255);
+            if ((nAlpha >= 0) && (nAlpha <= 255)) {
+                createAttributes.m_nLayeredWindowOpacity = (uint8_t)nAlpha;
+                createAttributes.m_bLayeredWindowOpacityDefined = true;
+            }
+        }
+        else if (strName == _T("size")) {
+            AttributeUtil::ParseWindowSize(nullptr, strValue.c_str(), createAttributes.m_szInitSize, &bScaledCX, &bScaledCY);
+            createAttributes.m_bInitSizeDefined = true;
+        }
+        else if (strName == _T("mininfo")) {
+            AttributeUtil::ParseSizeValue(strValue.c_str(), szMinSize);
+        }
+        else if (strName == _T("maxinfo")) {
+            AttributeUtil::ParseSizeValue(strValue.c_str(), szMaxSize);
+        }
+    }
+    if (createAttributes.m_bInitSizeDefined) {
+        int32_t cx = createAttributes.m_szInitSize.cx;
+        int32_t cy = createAttributes.m_szInitSize.cy;
+        UiSize minSize = szMinSize;
+        UiSize maxSize = szMaxSize;
+        if (bScaledCX) {
+            GlobalManager::Instance().Dpi().ScaleInt(minSize.cx);
+            GlobalManager::Instance().Dpi().ScaleInt(maxSize.cx);
+        }
+        if (bScaledCY) {
+            GlobalManager::Instance().Dpi().ScaleInt(minSize.cy);
+            GlobalManager::Instance().Dpi().ScaleInt(maxSize.cy);
+        }
+        if ((minSize.cx > 0) && (cx < minSize.cx)) {
+            cx = minSize.cx;
+        }
+        if ((maxSize.cx > 0) && (cx > maxSize.cx)) {
+            cx = maxSize.cx;
+        }
+        if ((minSize.cy > 0) && (cy < minSize.cy)) {
+            cy = minSize.cy;
+        }
+        if ((maxSize.cy > 0) && (cy > maxSize.cy)) {
+            cy = maxSize.cy;
+        }
+        if (!bScaledCX) {
+            GlobalManager::Instance().Dpi().ScaleInt(cx);
+        }
+        if (!bScaledCY) {
+            GlobalManager::Instance().Dpi().ScaleInt(cy);
+        }
+        createAttributes.m_szInitSize.cx = cx;
+        createAttributes.m_szInitSize.cy = cy;        
+    }
+    return true;
+}
+
 void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node& root) const
 {
     ASSERT((pWindow != nullptr) && pWindow->IsWindow());
@@ -316,6 +418,31 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
     DString strValue;
 
     bool bInitRenderBackendType = false;
+    //首先设置"render_backend_type"属性
+    for (pugi::xml_attribute attr : root.attributes()) {
+        strName = attr.name();
+        strValue = attr.value();
+        if (strName == _T("render_backend_type")) {
+            RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
+            if (StringUtil::IsEqualNoCase(strValue, L"GL")) {
+                backendType = RenderBackendType::kNativeGL_BackendType;
+            }
+            else if (StringUtil::IsEqualNoCase(strValue, L"CPU")) {
+                backendType = RenderBackendType::kRaster_BackendType;
+            }
+            else {
+                ASSERT(0);
+            }
+            pWindow->SetRenderBackendType(backendType);
+            bInitRenderBackendType = true;
+            break;
+        }
+    }
+    if (!bInitRenderBackendType) {
+        //首先初始化Render后台绘制方式, 此调用会创建Render
+        pWindow->SetRenderBackendType(RenderBackendType::kRaster_BackendType);
+    }
+     
     //首先处理mininfo/maxinfo/use_system_caption，因为其他属性有用到这些个属性的
     for (pugi::xml_attribute attr : root.attributes()) {
         strName = attr.name();
@@ -332,26 +459,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         }
         else if (strName == _T("use_system_caption")) {
             pWindow->SetUseSystemCaption(strValue == _T("true"));
-        }        
-        else if (strName == _T("render_backend_type")) {
-            RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
-            if (StringUtil::IsEqualNoCase(strValue, L"GL")) {
-                backendType = RenderBackendType::kNativeGL_BackendType;
-            }
-            else if (StringUtil::IsEqualNoCase(strValue, L"CPU")) {
-                backendType = RenderBackendType::kRaster_BackendType;
-            }
-            else {
-                ASSERT(0);
-            }
-            pWindow->SetRenderBackendType(backendType);
-            bInitRenderBackendType = true;
         }
-    }
-
-    if (!bInitRenderBackendType) {
-        //首先初始化Render后台绘制方式, 此调用会创建Render
-        pWindow->SetRenderBackendType(RenderBackendType::kRaster_BackendType);
     }
 
     //注：如果use_system_caption为true，则层窗口关闭（因为这两个属性互斥的）
@@ -713,7 +821,12 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
             }
             for ( int i = 0; i < nCount; i++ ) {
                 WindowBuilder builder;
-                pControl = builder.CreateFromXmlFile(sourceXmlFilePath, m_createControlCallback, pWindow, ToBox(pParent));
+                if (builder.ParseXmlFile(sourceXmlFilePath)) {
+                    pControl = builder.CreateControls(m_createControlCallback, pWindow, ToBox(pParent));
+                }
+                else {
+                    pControl = nullptr;
+                }                
             }
             continue;
         }

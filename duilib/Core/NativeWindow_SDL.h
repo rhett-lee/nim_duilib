@@ -380,6 +380,11 @@ public:
     */
     bool GetMonitorRect(UiRect& rcMonitor) const;
 
+    /** 获取当前主显示器的工作区矩形
+    * @param [out] rcWork 返回主屏幕坐标
+    */
+    static bool GetMainMonitorWorkRect(UiRect& rcWork);
+
     /** 获取当前窗口所在显示器的工作区矩形，以虚拟屏幕坐标表示。
         请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
     * @param [out] rcWork 返回屏幕坐标

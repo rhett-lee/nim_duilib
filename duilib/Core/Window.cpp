@@ -125,6 +125,101 @@ bool Window::SetWindowIcon(const DString& iconFilePath)
     return bRet;
 }
 
+void Window::InitSkin(const DString& skinFolder, const DString& skinFile)
+{
+    m_skinFolder = skinFolder;
+    m_skinFile = skinFile;
+    m_windowBuilder.reset();
+}
+
+DString Window::GetSkinFolder()
+{
+    return m_skinFolder;
+}
+
+DString Window::GetSkinFile()
+{
+    return m_skinFile;
+}
+
+Control* Window::CreateControl(const DString& /*strClass*/)
+{
+    return nullptr;
+}
+
+void Window::GetCreateWindowAttributes(WindowCreateAttributes& createAttributes)
+{
+    //解析窗口关联的XML文件
+    if (m_windowBuilder == nullptr) {
+        ParseWindowXml();
+    }
+
+    //解析出窗口的属性
+    if (m_windowBuilder != nullptr) {
+        m_windowBuilder->ParseWindowCreateAttributes(createAttributes);
+    }
+}
+
+void Window::ParseWindowXml()
+{
+    FilePath skinFolder(GetSkinFolder());
+    DString xmlFile = GetSkinFile();
+    if (skinFolder.IsEmpty() && xmlFile.empty()) {
+        return;
+    }
+
+    //资源路径不支持绝对路径
+    ASSERT(!skinFolder.IsAbsolutePath());
+    if (skinFolder.IsAbsolutePath()) {
+        return;
+    }
+
+    //保存资源所在路径
+    SetResourcePath(skinFolder);
+    SetXmlPath(FilePath());
+
+    //XML文件所在路径，应是相对路径    
+    DString skinXmlFileData;
+    FilePath skinXmlFilePath;
+    if (!xmlFile.empty() && xmlFile.front() == _T('<')) {
+        //返回的内容是XML文件内容，而不是文件路径        
+        skinXmlFileData = std::move(xmlFile);
+    }
+    else {
+        FilePath xmlFilePath(xmlFile);
+        ASSERT(!xmlFilePath.IsAbsolutePath());
+        if (xmlFilePath.IsAbsolutePath()) {
+            return;
+        }
+
+        //保存XML文件所在路径
+        size_t nPos = xmlFile.find_last_of(_T("/\\"));
+        if (nPos != DString::npos) {
+            DString xmlPath = xmlFile.substr(0, nPos);
+            if (!xmlPath.empty()) {
+                SetXmlPath(FilePath(xmlPath));
+            }
+        }
+        skinXmlFilePath = GetResourcePath();
+        skinXmlFilePath.JoinFilePath(xmlFilePath);
+    }
+    //解析XML文件
+    bool bRet = false;
+    m_windowBuilder = std::make_unique<WindowBuilder>();
+    if (!skinXmlFileData.empty()) {
+        bRet = m_windowBuilder->ParseXmlData(skinXmlFileData);
+    }
+    else {
+        ASSERT(!skinXmlFilePath.IsEmpty());
+        bRet = m_windowBuilder->ParseXmlFile(skinXmlFilePath);
+    }
+    if (!bRet) {
+        m_windowBuilder.reset();
+        SetResourcePath(FilePath());
+        SetXmlPath(FilePath());
+    }
+}
+
 void Window::PreInitWindow()
 {
     if (!IsWindow()) {
@@ -145,6 +240,35 @@ void Window::PreInitWindow()
 
     //添加到全局管理器
     GlobalManager::Instance().AddWindow(this);
+
+    //解析窗口关联的XML文件
+    if (m_windowBuilder == nullptr) {
+        ParseWindowXml();
+    }
+
+    Box* pRoot = nullptr;
+    if (m_windowBuilder != nullptr) {
+        auto callback = UiBind(&Window::CreateControl, this, std::placeholders::_1);
+        Control* pControl = m_windowBuilder->CreateControls(callback, this);
+        pRoot = m_windowBuilder->ToBox(pControl);
+        ASSERT(pRoot != nullptr);
+    }
+
+    if (pRoot != nullptr) {
+        if (IsUseSystemCaption()) {
+            //关闭阴影
+            SetShadowAttached(false);
+        }
+
+        //关联窗口附加阴影
+        pRoot = AttachShadow(pRoot);
+
+        //关联Root对象
+        AttachBox(pRoot);
+
+        //更新自绘制标题栏状态
+        OnUseSystemCaptionBarChanged();
+    }
 }
 
 void Window::PostInitWindow()

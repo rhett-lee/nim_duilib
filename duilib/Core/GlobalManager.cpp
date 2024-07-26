@@ -228,7 +228,9 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
     if (!resParam.globalXmlFileName.empty()) {
         WindowBuilder dialog_builder;
         Window paint_manager;
-        dialog_builder.CreateFromXmlFile(FilePath(resParam.globalXmlFileName), CreateControlCallback(), &paint_manager);
+        if (dialog_builder.ParseXmlFile(FilePath(resParam.globalXmlFileName))) {
+            dialog_builder.CreateControls(CreateControlCallback(), &paint_manager);
+        }        
     }
 
     //加载多语言文件(可选)
@@ -549,9 +551,12 @@ CursorManager& GlobalManager::Cursor()
 Box* GlobalManager::CreateBox(const FilePath& strXmlPath, CreateControlCallback callback)
 {
     WindowBuilder builder;
-    Control* pControl = builder.CreateFromXmlFile(strXmlPath, callback);
-    ASSERT(pControl != nullptr);
-    return builder.ToBox(pControl);
+    if (builder.ParseXmlFile(strXmlPath)) {
+        Control* pControl = builder.CreateControls(callback);
+        ASSERT(pControl != nullptr);
+        return builder.ToBox(pControl);
+    }
+    return nullptr;
 }
 
 Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControlCallback callback)
@@ -560,8 +565,10 @@ Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControl
     auto it = m_builderMap.find(strXmlPath);
     if (it == m_builderMap.end()) {
         WindowBuilder* builder = new WindowBuilder();
-        Control* pControl = builder->CreateFromXmlFile(strXmlPath, callback);
-        box = builder->ToBox(pControl);
+        if (builder->ParseXmlFile(strXmlPath)) {
+            Control* pControl = builder->CreateControls(callback);
+            box = builder->ToBox(pControl);
+        }        
         if (box != nullptr) {
             m_builderMap[strXmlPath].reset(builder);
         }
@@ -571,7 +578,7 @@ Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControl
         }
     }
     else {
-        Control* pControl = it->second->CreateFromCachedXml(callback);
+        Control* pControl = it->second->CreateControls(callback);
         box = it->second->ToBox(pControl);
     }
     ASSERT(box != nullptr);
@@ -583,9 +590,11 @@ void GlobalManager::FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, Cr
     ASSERT(pUserDefinedBox != nullptr);
     if (pUserDefinedBox != nullptr) {
         WindowBuilder winBuilder;
-        Control* pControl = winBuilder.CreateFromXmlFile(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
-        Box* box = winBuilder.ToBox(pControl);
-        ASSERT_UNUSED_VARIABLE(box != nullptr);
+        if (winBuilder.ParseXmlFile(strXmlPath)) {
+            Control* pControl = winBuilder.CreateControls(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+            Box* box = winBuilder.ToBox(pControl);
+            ASSERT_UNUSED_VARIABLE(box != nullptr);
+        }
     }    
 }
 
@@ -600,8 +609,10 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXm
     auto it = m_builderMap.find(strXmlPath);
     if (it == m_builderMap.end()) {
         WindowBuilder* winBuilder = new WindowBuilder();
-        Control* pControl = winBuilder->CreateFromXmlFile(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
-        box = winBuilder->ToBox(pControl);
+        if (winBuilder->ParseXmlFile(strXmlPath)) {
+            Control* pControl = winBuilder->CreateControls(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+            box = winBuilder->ToBox(pControl);
+        }        
         if (box != nullptr) {
             m_builderMap[strXmlPath].reset(winBuilder);
         }
@@ -611,7 +622,7 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXm
         }
     }
     else {
-        Control* pControl = it->second->CreateFromCachedXml(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+        Control* pControl = it->second->CreateControls(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
         box = it->second->ToBox(pControl);
     }
     ASSERT(pUserDefinedBox == box);

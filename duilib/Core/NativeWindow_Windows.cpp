@@ -71,7 +71,9 @@ NativeWindow_Windows::~NativeWindow_Windows()
     ClearNativeWindow();
 }
 
-bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow, const WindowCreateParam& createParam)
+bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
+                                     const WindowCreateParam& createParam,
+                                     const WindowCreateAttributes& createAttributes)
 {
     ASSERT(m_hWnd == nullptr);
     if (m_hWnd != nullptr) {
@@ -114,26 +116,22 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow, const 
     m_createParam = createParam;
 
     //设置默认风格
-    uint32_t dwStyle = createParam.m_dwStyle;
-    if (dwStyle == 0) {
-        dwStyle = WS_OVERLAPPEDWINDOW;
-        m_createParam.m_dwStyle = dwStyle;
+    if (m_createParam.m_dwStyle == 0) {
+        m_createParam.m_dwStyle = WS_OVERLAPPEDWINDOW;
     }
 
-    //初始化层窗口属性
-    m_bIsLayeredWindow = false;
-    if (createParam.m_dwExStyle & WS_EX_LAYERED) {
-        m_bIsLayeredWindow = true;
-    }
+    //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
+    SyncCreateWindowAttributes(createAttributes);
+
     //父窗口句柄
     HWND hParentWnd = pParentWindow != nullptr ? pParentWindow->GetHWND() : nullptr;
     //窗口标题
-    DString windowTitle = StringUtil::TToLocal(createParam.m_windowTitle);    
-    HWND hWnd = ::CreateWindowEx(createParam.m_dwExStyle,
+    DString windowTitle = StringUtil::TToLocal(m_createParam.m_windowTitle);
+    HWND hWnd = ::CreateWindowEx(m_createParam.m_dwExStyle,
                                  className.c_str(),
                                  windowTitle.c_str(),
-                                 dwStyle,
-                                 createParam.m_nX, createParam.m_nY, createParam.m_nWidth, createParam.m_nHeight,
+                                 m_createParam.m_dwStyle,
+                                 m_createParam.m_nX, m_createParam.m_nY, m_createParam.m_nWidth, m_createParam.m_nHeight,
                                  hParentWnd, NULL, GetResModuleHandle(), this);
     ASSERT(::IsWindow(hWnd));
     ASSERT(hWnd == m_hWnd);
@@ -147,8 +145,10 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow, const 
     return (m_hWnd != nullptr);
 }
 
-int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow, const WindowCreateParam& createParam,
-                              bool bCenterWindow, bool bCloseByEsc, bool bCloseByEnter)
+int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
+                                      const WindowCreateParam& createParam,
+                                      const WindowCreateAttributes& createAttributes,
+                                      bool bCenterWindow, bool bCloseByEsc, bool bCloseByEnter)
 {
     ASSERT(m_hWnd == nullptr);
     if (m_hWnd != nullptr) {
@@ -166,17 +166,12 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow, const
     m_bCloseByEnter = bCloseByEnter;
 
     //设置默认风格
-    uint32_t dwStyle = createParam.m_dwStyle;
-    if (dwStyle == 0) {
-        dwStyle = WS_POPUPWINDOW;
-        m_createParam.m_dwStyle = dwStyle;
+    if (m_createParam.m_dwStyle == 0) {
+        m_createParam.m_dwStyle = WS_POPUPWINDOW;
     }
 
-    //初始化层窗口属性
-    m_bIsLayeredWindow = false;
-    if (createParam.m_dwExStyle & WS_EX_LAYERED) {
-        m_bIsLayeredWindow = true;
-    }
+    //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
+    SyncCreateWindowAttributes(createAttributes);
 
     //窗口的位置和大小
     short x = 0;
@@ -184,23 +179,23 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow, const
     short cx = 0;
     short cy = 0;
 
-    if (createParam.m_nX != kCW_USEDEFAULT) {
-        x = (short)createParam.m_nX;
+    if (m_createParam.m_nX != kCW_USEDEFAULT) {
+        x = (short)m_createParam.m_nX;
     }
-    if (createParam.m_nY != kCW_USEDEFAULT) {
-        y = (short)createParam.m_nY;
+    if (m_createParam.m_nY != kCW_USEDEFAULT) {
+        y = (short)m_createParam.m_nY;
     }
-    if (createParam.m_nWidth != kCW_USEDEFAULT) {
-        cx = (short)createParam.m_nWidth;
+    if (m_createParam.m_nWidth != kCW_USEDEFAULT) {
+        cx = (short)m_createParam.m_nWidth;
     }
-    if (createParam.m_nHeight != kCW_USEDEFAULT) {
-        cy = (short)createParam.m_nHeight;
+    if (m_createParam.m_nHeight != kCW_USEDEFAULT) {
+        cy = (short)m_createParam.m_nHeight;
     }
 
     // 创建对话框资源结构体（对话框初始状态为可见状态）
     DLGTEMPLATE dlgTemplate = {
-        WS_VISIBLE | dwStyle,
-        createParam.m_dwExStyle,
+        WS_VISIBLE | m_createParam.m_dwStyle,
+        m_createParam.m_dwExStyle,
         0,
         x, y, cx, cy
     };
@@ -239,6 +234,56 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow, const
         nRet = m_closeParam;
     }
     return (int32_t)nRet;
+}
+
+void NativeWindow_Windows::SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes)
+{
+    if (createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption) {
+        //使用系统标题栏
+        if (m_createParam.m_dwStyle & WS_POPUP) {
+            //弹出式窗口
+            m_createParam.m_dwStyle |= (WS_CAPTION | WS_SYSMENU);
+        }
+        else {
+            m_createParam.m_dwStyle |= (WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+        }
+    }
+
+    //初始化层窗口属性
+    m_bIsLayeredWindow = false;
+    if (createAttributes.m_bIsLayeredWindowDefined) {
+        if (createAttributes.m_bIsLayeredWindow) {
+            m_bIsLayeredWindow = true;
+            m_createParam.m_dwExStyle |= WS_EX_LAYERED;
+        }
+        else {
+            m_createParam.m_dwExStyle &= ~WS_EX_LAYERED;
+        }
+    }
+    else if (m_createParam.m_dwExStyle & WS_EX_LAYERED) {
+        m_bIsLayeredWindow = true;
+    }
+
+    //如果使用系统标题栏，关闭层窗口
+    if (createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption) {
+        m_bIsLayeredWindow = false;
+        m_createParam.m_dwExStyle &= ~WS_EX_LAYERED;
+    }
+
+    //如果设置了不透明度，则设置为层窗口
+    if (createAttributes.m_bLayeredWindowOpacityDefined && (createAttributes.m_nLayeredWindowOpacity != 255)) {
+        m_createParam.m_dwExStyle |= WS_EX_LAYERED;
+        m_bIsLayeredWindow = true;
+    }
+
+    if (createAttributes.m_bInitSizeDefined) {
+        if (createAttributes.m_szInitSize.cx > 0) {
+            m_createParam.m_nWidth = createAttributes.m_szInitSize.cx;
+        }
+        if (createAttributes.m_szInitSize.cy > 0) {
+            m_createParam.m_nHeight = createAttributes.m_szInitSize.cy;
+        }
+    }
 }
 
 LRESULT NativeWindow_Windows::OnCreateMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -1255,6 +1300,27 @@ bool NativeWindow_Windows::GetMonitorWorkRect(UiRect& rcWork) const
 {
     UiRect rcMonitor;
     return GetMonitorRect(m_hWnd, rcMonitor, rcWork);
+}
+
+bool NativeWindow_Windows::GetMainMonitorWorkRect(UiRect& rcWork)
+{
+    rcWork.Clear();
+    HMONITOR hMonitor = ::MonitorFromPoint({ INT32_MIN, INT32_MIN }, MONITOR_DEFAULTTOPRIMARY);
+    ASSERT(hMonitor != nullptr);
+    if (hMonitor == nullptr) {
+        return false;
+    }
+    MONITORINFO oMonitor = { 0, };
+    oMonitor.cbSize = sizeof(oMonitor);
+    if (::GetMonitorInfo(hMonitor, &oMonitor)) {
+        rcWork = UiRect(oMonitor.rcWork.left, oMonitor.rcWork.top,
+                        oMonitor.rcWork.right, oMonitor.rcWork.bottom);
+        return true;
+    }
+    else {
+        ASSERT(!"NativeWindow_Windows::GetMainMonitorWorkRect failed!");
+        return false;
+    }
 }
 
 bool NativeWindow_Windows::GetMonitorWorkRect(const UiPoint& pt, UiRect& rcWork) const
