@@ -324,14 +324,14 @@ void WindowBase::CenterWindow()
     m_pNativeWindow->CenterWindow();
 }
 
-void WindowBase::ToTopMost()
+void WindowBase::SetWindowAlwaysOnTop(bool bOnTop)
 {
-    m_pNativeWindow->ToTopMost();
+    m_pNativeWindow->SetWindowAlwaysOnTop(bOnTop);
 }
 
-void WindowBase::BringToTop()
+bool WindowBase::IsWindowAlwaysOnTop() const
 {
-    m_pNativeWindow->BringToTop();
+    return m_pNativeWindow->IsWindowAlwaysOnTop();
 }
 
 bool WindowBase::SetWindowForeground()

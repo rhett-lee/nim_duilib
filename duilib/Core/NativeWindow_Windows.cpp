@@ -732,17 +732,28 @@ void NativeWindow_Windows::CenterWindow()
     ::SetWindowPos(m_hWnd, NULL, xLeft, yTop, -1, -1, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
 }
 
-void NativeWindow_Windows::ToTopMost()
+void NativeWindow_Windows::SetWindowAlwaysOnTop(bool bOnTop)
 {
-    ASSERT(::IsWindow(m_hWnd));
-    ::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    ASSERT(IsWindow());
+    if (!IsWindow()) {
+        return;
+    }
+    if (bOnTop) {
+        ::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    }
+    else {
+        ::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    }
 }
 
-void NativeWindow_Windows::BringToTop()
+bool NativeWindow_Windows::IsWindowAlwaysOnTop() const
 {
-    ASSERT(::IsWindow(m_hWnd));
-    ::SetWindowPos(m_hWnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-    ::SetWindowPos(m_hWnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    ASSERT(IsWindow());
+    if (!IsWindow()) {
+        return false;
+    }
+    LONG dwExStyle = ::GetWindowLong(m_hWnd, GWL_EXSTYLE);
+    return (dwExStyle & WS_EX_TOPMOST) ? true : false;
 }
 
 bool NativeWindow_Windows::SetWindowForeground()

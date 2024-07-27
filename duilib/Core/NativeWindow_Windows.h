@@ -154,13 +154,15 @@ public:
     */
     void CenterWindow();
 
-    /** 将窗口设置为置顶窗口
+    /** 是否将窗口设置为置顶窗口
+    * @param [in] bOnTop true表示设置为置顶窗口，false表示取消置顶窗口
     */
-    void ToTopMost();
+    void SetWindowAlwaysOnTop(bool bOnTop);
 
-    /** 将窗口调整为顶层窗口
+    /** 判断当前窗口是否为置顶窗口
+    * @return true表示当前为置顶窗口，false表示当前不是置顶窗口
     */
-    void BringToTop();
+    bool IsWindowAlwaysOnTop() const;
 
     /** 设置窗口为前端窗口
     */

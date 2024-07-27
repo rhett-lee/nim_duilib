@@ -1885,19 +1885,24 @@ void NativeWindow_SDL::CenterWindow()
     SetWindowPos(nullptr, InsertAfterFlag(), xLeft, yTop, -1, -1, kSWP_NOSIZE | kSWP_NOZORDER | kSWP_NOACTIVATE);
 }
 
-void NativeWindow_SDL::ToTopMost()
+void NativeWindow_SDL::SetWindowAlwaysOnTop(bool bOnTop)
 {
     ASSERT(IsWindow());
     if (!IsWindow()) {
         return;
     }
-    int nRet = SDL_SetWindowAlwaysOnTop(m_sdlWindow, SDL_TRUE);
+    int nRet = SDL_SetWindowAlwaysOnTop(m_sdlWindow, bOnTop ? SDL_TRUE : SDL_FALSE);
     ASSERT_UNUSED_VARIABLE(nRet == 0);
 }
 
-void NativeWindow_SDL::BringToTop()
+bool NativeWindow_SDL::IsWindowAlwaysOnTop() const
 {
-    SetWindowForeground();
+    ASSERT(IsWindow());
+    if (!IsWindow()) {
+        return false;
+    }
+    SDL_WindowFlags nFlags = SDL_GetWindowFlags(m_sdlWindow);
+    return (nFlags & SDL_WINDOW_ALWAYS_ON_TOP) ? true : false;
 }
 
 bool NativeWindow_SDL::SetWindowForeground()
