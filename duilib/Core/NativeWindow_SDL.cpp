@@ -956,8 +956,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
                 SDL_WindowID id = SDL_GetWindowID(pKeyboardFocus);
                 if (id != 0) {
                     NativeWindow_SDL* pNativeWindow = GetWindowFromID(id);
-                    if (pNativeWindow != nullptr) {
-                        ASSERT(pNativeWindow != this);
+                    if ((pNativeWindow != nullptr) && (pNativeWindow != this)) {
                         pSetFocusWindow = pNativeWindow->m_pOwner;
                     }
                 }
@@ -1298,6 +1297,11 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     }
 
     if (bPopupWindow && (m_createParam.m_dwExStyle & kWS_EX_TOOLWINDOW)) {
+        windowFlags |= SDL_WINDOW_UTILITY;
+    }
+    else if (bPopupWindow && (pParentWindow != nullptr)) {
+        //SDL窗口的父子窗口关系：在系统层面，并未设置父子关系，所以弹出窗口需要设置这个属性，避免任务栏出现多个窗口的现象
+        //但由于SDL未使用系统的父子窗口关系，弹出窗口后，主窗口便失去焦点，任务栏上显示的是非激活状态，体验不佳
         windowFlags |= SDL_WINDOW_UTILITY;
     }
     if (bPopupWindow && (m_createParam.m_dwExStyle & kWS_EX_NOACTIVATE)) {
