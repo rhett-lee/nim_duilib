@@ -1056,6 +1056,7 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_bCloseing(false),
     m_closeParam(kWindowCloseNormal),
     m_bFakeModal(false),
+    m_bDoModal(false),
     m_bFullScreen(false),
     m_ptLastMousePos(-1, -1)
 {
@@ -1124,29 +1125,26 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
         bool bHandled = false;
         m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(0, 0, 0), bHandled);
     }
-
-    //更新最大化/最小化按钮的风格
-    UpdateMinMaxBoxStyle();
     return true;
 }
 
 int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
                                   const WindowCreateParam& createParam,
                                   const WindowCreateAttributes& createAttributes,
-                                  bool /*bCenterWindow*/, bool /*bCloseByEsc*/, bool /*bCloseByEnter*/)
+                                  bool bCenterWindow, bool bCloseByEsc, bool bCloseByEnter)
 {
     ASSERT(m_sdlWindow == nullptr);
     if (m_sdlWindow != nullptr) {
-        return false;
+        return -1;
     }
     ASSERT(m_sdlRenderer == nullptr);
     if (m_sdlRenderer != nullptr) {
-        return false;
+        return -1;
     }
     if (!SDL_WasInit(SDL_INIT_VIDEO)) {
         if (SDL_Init(SDL_INIT_VIDEO) == -1) {
             SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
-            return false;
+            return -1;
         }
     }
 
@@ -1155,27 +1153,116 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
 
     //设置默认风格
     if (m_createParam.m_dwStyle == 0) {
-        m_createParam.m_dwStyle = kWS_POPUPWINDOW;
+        m_createParam.m_dwStyle = kWS_OVERLAPPEDWINDOW;
     }
 
     //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
     SyncCreateWindowAttributes(createAttributes);
 
+    //创建属性
+    SDL_PropertiesID props = SDL_CreateProperties();
+    SetCreateWindowProperties(props, pParentWindow, createAttributes);
+    m_sdlWindow = SDL_CreateWindowWithProperties(props);
+    SDL_DestroyProperties(props);
 
+    ASSERT(m_sdlWindow != nullptr);
+    if (m_sdlWindow == nullptr) {
+        return -1;
+    }
 
+    m_sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
+    ASSERT(m_sdlRenderer != nullptr);
+    if (m_sdlRenderer == nullptr) {
+        SDL_DestroyWindow(m_sdlWindow);
+        m_sdlWindow = nullptr;
+        return -1;
+    }
 
+    //初始化
+    InitNativeWindow();
 
+    //标记为模式对话框状态
+    m_bDoModal = true;
 
+    if (m_pOwner != nullptr) {
+        bool bHandled = false;
+        m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(0, 0, 0), bHandled);
+    }
 
+    SDL_WindowID currentWindowId = SDL_GetWindowID(m_sdlWindow);
+    if (currentWindowId == 0) {
+        m_bDoModal = false;
+        return 0;
+    }
 
+    //设置未模态对话框
+    if (pParentWindow != nullptr) {
+        SDL_SetWindowModalFor(m_sdlWindow, pParentWindow->m_sdlWindow);
+    }
 
+    //设置窗口居中
+    if (bCenterWindow) {
+        CenterWindow();
+    }
 
+    //显示窗口
+    m_bCloseing = false;
+    m_closeParam = kWindowCloseNormal;
+    SDL_ShowWindow(m_sdlWindow);
 
-    
+    //进入内部消息循环
+    SDL_bool bKeepGoing = SDL_TRUE;
+    SDL_Event sdlEvent;
+    memset(&sdlEvent, 0, sizeof(sdlEvent));
+    /* run the program until told to stop. */
+    while (bKeepGoing) {
 
+        /* run through all pending events until we run out. */
+        while (bKeepGoing && SDL_PollEvent(&sdlEvent)) {
+            switch (sdlEvent.type) {
+            case SDL_EVENT_QUIT:  /* triggers on last window close and other things. End the program. */
+                bKeepGoing = SDL_FALSE;
+                break;
+            default:
+            {
+                //将事件派发到窗口
+                NativeWindow_SDL* pWindow = nullptr;
+                const SDL_WindowID windowID = NativeWindow_SDL::GetWindowIdFromEvent(sdlEvent);
+                if (windowID != 0) {
+                    pWindow = NativeWindow_SDL::GetWindowFromID(windowID);
+                }
+                if (pWindow != nullptr) {
+                    pWindow->OnSDLWindowEvent(sdlEvent);
+                }
+                else {
+                    //其他消息，暂不处理
+                }
 
-    
-    return 0;
+                if ((sdlEvent.type == SDL_EVENT_WINDOW_DESTROYED) && (windowID == currentWindowId)) {
+                    //窗口已经退出，退出消息循环
+                    bKeepGoing = SDL_FALSE;
+                }
+                else if ((bCloseByEsc || bCloseByEnter) && (sdlEvent.type == SDL_EVENT_KEY_DOWN) && (windowID == currentWindowId)) {
+                    VirtualKeyCode vkCode = GetVirtualKeyCode(sdlEvent.key.key);
+                    if (bCloseByEsc && (vkCode == VirtualKeyCode::kVK_ESCAPE)) {
+                        //模态对话框，按ESC键时，关闭
+                        if (!m_bCloseing) {
+                            CloseWnd(kWindowCloseCancel);
+                        }
+                    }
+                    else if (bCloseByEnter && (vkCode == VirtualKeyCode::kVK_RETURN)) {
+                        //模态对话框，按Enter键时，关闭
+                        CloseWnd(kWindowCloseOK);
+                    }
+                }
+            }
+            break;
+            }
+        }
+    }
+
+    m_bDoModal = false;
+    return m_closeParam;
 }
 
 void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes)
@@ -1294,7 +1381,7 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     //如果是弹出窗口，并且无阴影和标题栏，则默认为无边框
     const bool bPopupWindow = m_createParam.m_dwStyle & kWS_POPUP;
     bool bUseSystemCaption = createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption;
-    bool bShadowAttached = createAttributes.m_bShadowAttachedDefined && createAttributes.m_bShadowAttached;
+    //bool bShadowAttached = createAttributes.m_bShadowAttachedDefined && createAttributes.m_bShadowAttached;
     if (!bUseSystemCaption) {
         //只要没有使用系统标题栏，就需要设置此属性，否则窗口就会带系统标题栏
         windowFlags |= SDL_WINDOW_BORDERLESS;
@@ -1576,34 +1663,6 @@ bool NativeWindow_SDL::IsLayeredWindow() const
     return m_bIsLayeredWindow;
 }
 
-void NativeWindow_SDL::UpdateMinMaxBoxStyle() const
-{
-    //TODO:
-    
-    //更新最大化/最小化按钮的风格
-    bool bMinimizeBox = false;
-    bool bMaximizeBox = false;
-    /*if (!IsUseSystemCaption() && (m_pOwner != nullptr) && m_pOwner->OnNativeHasMinMaxBox(bMinimizeBox, bMaximizeBox)) {
-        UINT oldStyleValue = (UINT)::GetWindowLong(GetHWND(), GWL_STYLE);
-        UINT newStyleValue = oldStyleValue;
-        if (bMinimizeBox) {
-            newStyleValue |= WS_MINIMIZEBOX;
-        }
-        else {
-            newStyleValue &= ~WS_MINIMIZEBOX;
-        }
-        if (bMaximizeBox) {
-            newStyleValue |= WS_MAXIMIZEBOX;
-        }
-        else {
-            newStyleValue &= ~WS_MAXIMIZEBOX;
-        }
-        if (newStyleValue != oldStyleValue) {
-            ::SetWindowLong(GetHWND(), GWL_STYLE, newStyleValue);
-        }
-    }*/
-}
-
 void NativeWindow_SDL::SetLayeredWindowAlpha(int32_t nAlpha)
 {
     SetLayeredWindowOpacity(nAlpha);
@@ -1773,6 +1832,11 @@ void NativeWindow_SDL::OnCloseModalFake(NativeWindow_SDL* pParentWindow)
 bool NativeWindow_SDL::IsFakeModal() const
 {
     return m_bFakeModal;
+}
+
+bool NativeWindow_SDL::IsDoModal() const
+{
+    return m_bDoModal;
 }
 
 void NativeWindow_SDL::CenterWindow()
@@ -2066,24 +2130,6 @@ bool NativeWindow_SDL::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t 
     }
     SDL_SyncWindow(m_sdlWindow);
     return bRet;
-}
-
-bool NativeWindow_SDL::SetWindowIcon(const FilePath& iconFilePath)
-{
-    //TODO:
-    ASSERT(IsWindow());
-    if (!::IsWindow(GetHWND())) {
-        return false;
-    }
-
-    return true;
-}
-
-bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData)
-{
-    //TODO:
-
-    return true;
 }
 
 void NativeWindow_SDL::SetText(const DString& strText)
@@ -2486,6 +2532,24 @@ void NativeWindow_SDL::OnFinalMessage()
     }
 }
 
+bool NativeWindow_SDL::SetWindowIcon(const FilePath& iconFilePath)
+{
+    //TODO:
+    ASSERT(IsWindow());
+    if (!::IsWindow(GetHWND())) {
+        return false;
+    }
+
+    return true;
+}
+
+bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData)
+{
+    //TODO:
+
+    return true;
+}
+
 bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
 {
     //不支持该功能
@@ -2493,12 +2557,6 @@ bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
     //m_bIsLayeredWindow = bIsLayeredWindow;
     //SDL_WINDOW_TRANSPARENT 这个属性，不支持修改，所以此属性不支持修改，在创建窗口的时候已经设置正确的属性
     return true;
-}
-
-bool NativeWindow_SDL::IsDoModal() const
-{
-    //不支持该功能
-    return false;
 }
 
 bool NativeWindow_SDL::KillWindowFocus()

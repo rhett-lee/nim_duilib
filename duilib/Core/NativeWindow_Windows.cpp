@@ -152,7 +152,7 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
 {
     ASSERT(m_hWnd == nullptr);
     if (m_hWnd != nullptr) {
-        return false;
+        return -1;
     }
     m_hResModule = (HMODULE)createParam.m_platformData;
     if (m_hResModule == nullptr) {

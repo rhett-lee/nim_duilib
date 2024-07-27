@@ -508,10 +508,6 @@ private:
     */
     void GetWindowRect(SDL_Window* sdlWindow, UiRect& rcWindow) const;
 
-    /** 更新最大化/最小化按钮的窗口风格，与程序的逻辑保持一致
-    */
-    void UpdateMinMaxBoxStyle() const;
-
     /** 同步创建窗口的属性
     */
     void SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes);
@@ -597,6 +593,10 @@ private:
     /** 当前窗口是否显示为模态对话框
     */
     bool m_bFakeModal;
+
+    /** 当前窗口是否显示为模态对话框
+    */
+    bool m_bDoModal;
 
     /** 创建窗口时的初始化参数
     */
