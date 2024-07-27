@@ -874,8 +874,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             UiPoint pt;
             pt.x = (int32_t)sdlEvent.motion.x;
             pt.y = (int32_t)sdlEvent.motion.y;
-            uint32_t modifierKey = 0;
-            //GetModifiers(); SDL 没有开放获取按键的数据
+            uint32_t modifierKey = GetModifiers(SDL_GetModState());
             lResult = pOwner->OnNativeMouseMoveMsg(pt, modifierKey, false, NativeMsg(SDL_EVENT_MOUSE_MOTION, 0, 0), bHandled);
         }
         break;
@@ -889,8 +888,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             UiPoint pt;
             pt.x = (int32_t)sdlEvent.wheel.mouse_x;
             pt.y = (int32_t)sdlEvent.wheel.mouse_y;
-            uint32_t modifierKey = 0;
-            //GetModifiers(uMsg, wParam, lParam, modifierKey);
+            uint32_t modifierKey = GetModifiers(SDL_GetModState());
             lResult = pOwner->OnNativeMouseWheelMsg(wheelDelta, pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_WHEEL, 0, 0), bHandled);
         }
         break;
@@ -899,9 +897,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             UiPoint pt;
             pt.x = (int32_t)sdlEvent.button.x;
             pt.y = (int32_t)sdlEvent.button.y;
-            uint32_t modifierKey = 0;
-            //GetModifiers(uMsg, wParam, lParam, modifierKey);
-
+            uint32_t modifierKey = GetModifiers(SDL_GetModState());
             if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
                 //鼠标左键
                 lResult = pOwner->OnNativeMouseLButtonDownMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_DOWN, 0, 0), bHandled);
@@ -917,9 +913,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             UiPoint pt;
             pt.x = (int32_t)sdlEvent.button.x;
             pt.y = (int32_t)sdlEvent.button.y;
-            uint32_t modifierKey = 0;
-            //GetModifiers(uMsg, wParam, lParam, modifierKey);
-
+            uint32_t modifierKey = GetModifiers(SDL_GetModState());
             bool bDoubleClick = (sdlEvent.button.clicks == 2) ? true : false;//是否为双击
             if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
                 //鼠标左键
@@ -968,14 +962,32 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         {            
             VirtualKeyCode vkCode = GetVirtualKeyCode(sdlEvent.key.key);
             uint32_t modifierKey = GetModifiers(sdlEvent.key.mod);
-            lResult = pOwner->OnNativeKeyDownMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_KEY_DOWN, sdlEvent.key.key, sdlEvent.key.mod), bHandled);
+            lResult = pOwner->OnNativeKeyDownMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_KEY_DOWN, 0, 0), bHandled);
         }
         break;
     case SDL_EVENT_KEY_UP:
         {
             VirtualKeyCode vkCode = GetVirtualKeyCode(sdlEvent.key.key);
             uint32_t modifierKey = GetModifiers(sdlEvent.key.mod);
-            lResult = pOwner->OnNativeKeyUpMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_KEY_UP, sdlEvent.key.key, sdlEvent.key.mod), bHandled);
+            lResult = pOwner->OnNativeKeyUpMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_KEY_UP, 0, 0), bHandled);
+        }
+        break;
+    case SDL_EVENT_TEXT_INPUT:
+        {
+            //相当于Windows下的WM_CHAR消息
+            if (sdlEvent.text.text != nullptr) {
+                //该文本为UTF-8编码的
+                DStringW textW = StringUtil::UTF8ToUTF16(sdlEvent.text.text);
+                if (!textW.empty()) {
+                    ASSERT(textW.size() == 1);
+                    if (textW.size() == 1) {
+                        //转换成WM_CHAR事件
+                        VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(textW.front());
+                        uint32_t modifierKey = GetModifiers(SDL_GetModState());
+                        lResult = m_pOwner->OnNativeCharMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_TEXT_INPUT, 0, 0), bHandled);
+                    }
+                }
+            }
         }
         break;
     case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
@@ -2739,92 +2751,6 @@ bool NativeWindow_SDL::IsEnableSysMenu() const
 //    return lResult;
 //}
 
-
-//bool NativeWindow_SDL::GetModifiers(UINT message, WPARAM wParam, LPARAM lParam, uint32_t& modifierKey) const
-//{
-//    //逻辑修改，需要同步给函数：Window::IsKeyDown
-//    bool bRet = true;
-//    modifierKey = ModifierKey::kNone;
-//    switch (message) {
-//    case WM_CHAR:
-//        if (0 == (lParam & (1 << 30))) {
-//            modifierKey |= ModifierKey::kFirstPress;
-//        }
-//        if (lParam & (1 << 29)) {
-//            modifierKey |= ModifierKey::kAlt;
-//        }
-//        break;
-//    case WM_KEYDOWN:
-//    case WM_SYSKEYDOWN:
-//        if (0 == (lParam & (1 << 30))) {
-//            modifierKey |= ModifierKey::kFirstPress;
-//        }
-//        if (lParam & (1 << 29)) {
-//            modifierKey |= ModifierKey::kAlt;
-//        }
-//        break;
-//    case WM_KEYUP:
-//    case WM_SYSKEYUP:
-//        if (lParam & (1 << 29)) {
-//            modifierKey |= ModifierKey::kAlt;
-//        }
-//        break;
-//    case WM_MOUSEWHEEL:
-//    {
-//        WORD fwKeys = GET_KEYSTATE_WPARAM(wParam);
-//        if (fwKeys & MK_CONTROL) {
-//            modifierKey |= ModifierKey::kControl;
-//        }
-//        if (fwKeys & MK_SHIFT) {
-//            modifierKey |= ModifierKey::kShift;
-//        }
-//    }
-//    break;
-//    case WM_MOUSEHOVER:
-//    case WM_MOUSEMOVE:
-//    case WM_LBUTTONDOWN:
-//    case WM_LBUTTONUP:
-//    case WM_LBUTTONDBLCLK:
-//    case WM_RBUTTONDOWN:
-//    case WM_RBUTTONUP:
-//    case WM_RBUTTONDBLCLK:
-//    case WM_MBUTTONDOWN:
-//    case WM_MBUTTONUP:
-//    case WM_MBUTTONDBLCLK:
-//    case WM_XBUTTONDOWN:
-//    case WM_XBUTTONUP:
-//    case WM_XBUTTONDBLCLK:
-//        if (wParam & MK_CONTROL) {
-//            modifierKey |= ModifierKey::kControl;
-//        }
-//        if (wParam & MK_SHIFT) {
-//            modifierKey |= ModifierKey::kShift;
-//        }
-//        break;
-//    case WM_HOTKEY:
-//    {
-//        uint16_t nMod = (uint16_t)LOWORD(lParam);
-//        if (nMod & MOD_ALT) {
-//            modifierKey |= ModifierKey::kAlt;
-//        }
-//        else if (nMod & MOD_CONTROL) {
-//            modifierKey |= ModifierKey::kControl;
-//        }
-//        else if (nMod & MOD_SHIFT) {
-//            modifierKey |= ModifierKey::kShift;
-//        }
-//        else if (nMod & MOD_WIN) {
-//            modifierKey |= ModifierKey::kWin;
-//        }
-//    }
-//    break;
-//    default:
-//        bRet = false;
-//        break;
-//    }
-//    ASSERT(bRet);
-//    return bRet;
-//}
 
 //SDL源码：
 //if (style & WS_POPUP) {
