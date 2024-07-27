@@ -13,8 +13,15 @@ namespace ui
 class CComboWnd: public Window
 {
 public:
+    /** 创建并显示下拉窗口
+    */
     void InitComboWnd(Combo* pOwner, bool bActivated);
+
+    /** 更新下拉窗口的位置和大小
+    */
     void UpdateComboWnd();
+
+    //基类虚函数的重写
     virtual void OnInitWindow() override;
     virtual void OnCloseWindow() override;
     virtual void OnFinalMessage() override;
@@ -27,6 +34,11 @@ public:
     * @param [in] needUpdateSelItem true表示需要更新选择项，否则不需要更新选择项
     */
     void CloseComboWnd(bool bCanceled, bool needUpdateSelItem);
+
+private:
+    /** 计算下拉框的显示矩形
+    */
+    UiRect GetComboWndRect() const;
 
 private:
     //关联的Combo接口
@@ -53,8 +65,14 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     m_editText = m_pOwner->GetText();
     m_bIsClosed = false;
 
+    //设置下拉框的显示位置和大小，避免弹出界面的时候出现黑屏现象
+    UiRect rcWnd = GetComboWndRect();
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
+    createWndParam.m_nX = rcWnd.left;
+    createWndParam.m_nY = rcWnd.top;
+    createWndParam.m_nWidth = rcWnd.Width();
+    createWndParam.m_nHeight = rcWnd.Height();
     CreateWnd(pOwner->GetWindow(), createWndParam);
 
     UpdateComboWnd();
@@ -76,11 +94,11 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     }
 }
 
-void CComboWnd::UpdateComboWnd()
+UiRect CComboWnd::GetComboWndRect() const
 {
     Combo* pOwner = m_pOwner;
     if (pOwner == nullptr) {
-        return;
+        return UiRect();
     }
     // Position the popup window in absolute space
     UiSize szDrop = pOwner->GetDropBoxSize();
@@ -122,6 +140,15 @@ void CComboWnd::UpdateComboWnd()
         rc.top = rcOwner.top - std::min(cyFixed, szDrop.cy);
         rc.bottom = rcOwner.top;
         pOwner->GetWindow()->ClientToScreen(rc);
+    }
+    return rc;
+}
+
+void CComboWnd::UpdateComboWnd()
+{
+    UiRect rc = GetComboWndRect();
+    if (rc.IsEmpty()) {
+        return;
     }
     SetWindowPos(InsertAfterWnd(), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_NOZORDER | kSWP_NOACTIVATE);
 }

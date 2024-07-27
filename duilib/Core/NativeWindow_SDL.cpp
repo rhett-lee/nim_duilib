@@ -1845,6 +1845,10 @@ bool NativeWindow_SDL::SetWindowForeground()
     }
     int nRet = SDL_RaiseWindow(m_sdlWindow);
     ASSERT(nRet == 0);
+#ifdef _DEBUG
+    auto pKeyboardFocus = SDL_GetKeyboardFocus();
+    ASSERT(pKeyboardFocus == m_sdlWindow);
+#endif
     return (nRet == 0) ? true : false;
 }
 
@@ -1853,7 +1857,7 @@ bool NativeWindow_SDL::IsWindowForeground() const
     if (!IsWindow()) {
         return false;
     }
-    return (SDL_GetKeyboardFocus() == m_sdlWindow) || (SDL_GetMouseFocus() == m_sdlWindow) ? true : false;
+    return (SDL_GetKeyboardFocus() == m_sdlWindow) ? true : false;
 }
 
 bool NativeWindow_SDL::SetWindowFocus()
@@ -1863,22 +1867,19 @@ bool NativeWindow_SDL::SetWindowFocus()
         return false;
     }
     SDL_Window* pKeyboardFocus = SDL_GetKeyboardFocus();
-    SDL_Window* pMouseFocus = SDL_GetMouseFocus();
-    if ((pKeyboardFocus != m_sdlWindow) || (pKeyboardFocus != pMouseFocus)) {
+    if (pKeyboardFocus != m_sdlWindow) {
         SetWindowForeground();
         pKeyboardFocus = SDL_GetKeyboardFocus();
-        pMouseFocus = SDL_GetMouseFocus();
     }
-    return (pKeyboardFocus == m_sdlWindow) && (pMouseFocus == m_sdlWindow) ? true : false;
+    return (pKeyboardFocus == m_sdlWindow) ? true : false;
 }
 
 bool NativeWindow_SDL::IsWindowFocused() const
 {
-    ASSERT(IsWindow());
     if (!IsWindow()) {
         return false;
     }
-    return (SDL_GetKeyboardFocus() == m_sdlWindow) && (SDL_GetMouseFocus() == m_sdlWindow) ? true : false;
+    return (SDL_GetKeyboardFocus() == m_sdlWindow) ? true : false;
 }
 
 void NativeWindow_SDL::CheckSetWindowFocus()
