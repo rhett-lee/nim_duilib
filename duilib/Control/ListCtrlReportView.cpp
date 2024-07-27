@@ -53,8 +53,13 @@ void ListCtrlReportView::SetListCtrl(ListCtrl* pListCtrl)
 void ListCtrlReportView::SetDataProvider(VirtualListBoxElement* pProvider)
 {
     __super::SetDataProvider(pProvider);
-    m_pData = dynamic_cast<ListCtrlData*>(GetDataProvider());
-    ASSERT(m_pData != nullptr);
+    if (GetDataProvider() != nullptr) {
+        m_pData = dynamic_cast<ListCtrlData*>(GetDataProvider());
+        ASSERT(m_pData != nullptr);
+    }
+    else {
+        m_pData = nullptr;
+    }
 }
 
 void ListCtrlReportView::Refresh()
