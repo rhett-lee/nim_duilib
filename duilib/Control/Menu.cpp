@@ -97,17 +97,21 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_TOPMOST | kWS_EX_LAYERED;
     CreateWnd(m_pParentWindow, createWndParam);
-    if (noFocus) {
-        ShowWindow(kSW_SHOW_NA);
-    }
-    else {
-        ShowWindow(kSW_SHOW_NORMAL);
-    }
+    
+    bool bShown = false;
     if (m_pOwner) {
-        ResizeSubMenu();
+        bShown = ResizeSubMenu();
     }
     else {
-        ResizeMenu();
+        bShown = ResizeMenu();
+    }
+    if (!bShown) {
+        if (noFocus) {
+            ShowWindow(kSW_SHOW_NA);
+        }
+        else {
+            ShowWindow(kSW_SHOW_NORMAL);
+        }
     }
     KeepParentActive();
     //修正菜单项的宽度，保持一致
@@ -276,11 +280,12 @@ LRESULT Menu::OnMouseRButtonDbClickMsg(const UiPoint& /*pt*/, uint32_t /*modifie
     return 0;
 }
 
-void Menu::ResizeMenu()
+bool Menu::ResizeMenu()
 {
     ui::Control* pRoot = GetRoot();
+    ASSERT(pRoot != nullptr);
     if (pRoot == nullptr) {
-        return;
+        return false;
     }
     //点击在哪里，以哪里的屏幕为主
     ui::UiRect rcWork;
@@ -329,22 +334,25 @@ void Menu::ResizeMenu()
             point.y = rcWork.bottom - szInit.cy;
         }
     }
+    
+    SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
+                 point.x - rcCorner.left, point.y - rcCorner.top,
+                 szAvailable.cx, szAvailable.cy,
+                 kSWP_SHOWWINDOW | (m_noFocus ? kSWP_NOACTIVATE : 0));
+
     if (!m_noFocus) {
         SetWindowForeground();
         ListBox* pLayoutListBox = Menu::GetLayoutListBox();
         SetFocusControl(pLayoutListBox);
     }
-    SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
-                 point.x - rcCorner.left, point.y - rcCorner.top,
-                 szAvailable.cx, szAvailable.cy,
-                 kSWP_SHOWWINDOW | (m_noFocus ? kSWP_NOACTIVATE : 0));
+    return true;
 }
 
-void Menu::ResizeSubMenu()
+bool Menu::ResizeSubMenu()
 {
     ASSERT(m_pOwner != nullptr);
     if (m_pOwner == nullptr) {
-        return;
+        return false;
     }
     ASSERT(m_pOwner->GetWindow() != nullptr);
 
@@ -361,7 +369,7 @@ void Menu::ResizeSubMenu()
     ListBox* pLayoutListBox = Menu::GetLayoutListBox();
     ASSERT(pLayoutListBox != nullptr);
     if (pLayoutListBox == nullptr) {
-        return;
+        return false;
     }
 
     const size_t itemCount = pLayoutListBox->GetItemCount();
@@ -439,14 +447,16 @@ void Menu::ResizeSubMenu()
         rc.right = rc.left + cxFixed;
     }
 
-    if (!m_noFocus) {
-        SetWindowForeground();        
-        SetFocusControl(Menu::GetLayoutListBox());
-    }
     SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
                  rc.left - rcCorner.left, rc.top - rcCorner.top,
                  rc.right - rc.left, rc.bottom - rc.top,
                  kSWP_SHOWWINDOW | (m_noFocus ? kSWP_NOACTIVATE : 0));
+
+    if (!m_noFocus) {
+        SetWindowForeground();
+        SetFocusControl(Menu::GetLayoutListBox());
+    }
+    return true;
 }
 
 void Menu::OnInitWindow()

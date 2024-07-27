@@ -944,13 +944,24 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
     case SDL_EVENT_WINDOW_FOCUS_GAINED:
         {
             //获取键盘输入焦点
-            INativeWindow* pLostFocusWindow = nullptr;//此参数得不到
+            INativeWindow* pLostFocusWindow = nullptr;//此参数得不到（目前无影响，代码中目前没有使用这个参数的）
             lResult = pOwner->OnNativeSetFocusMsg(pLostFocusWindow, NativeMsg(SDL_EVENT_WINDOW_FOCUS_GAINED, 0, 0), bHandled);
         }
         break;
     case SDL_EVENT_WINDOW_FOCUS_LOST:
         {
-            INativeWindow* pSetFocusWindow = nullptr;//此参数得不到
+            INativeWindow* pSetFocusWindow = nullptr;//此参数得不到，只能间接获取（这个参数代码中使用的较多，需要获取到）
+            SDL_Window* pKeyboardFocus = SDL_GetKeyboardFocus();
+            if (pKeyboardFocus != nullptr) {
+                SDL_WindowID id = SDL_GetWindowID(pKeyboardFocus);
+                if (id != 0) {
+                    NativeWindow_SDL* pNativeWindow = GetWindowFromID(id);
+                    if (pNativeWindow != nullptr) {
+                        ASSERT(pNativeWindow != this);
+                        pSetFocusWindow = pNativeWindow->m_pOwner;
+                    }
+                }
+            }
             lResult = pOwner->OnNativeKillFocusMsg(pSetFocusWindow, NativeMsg(SDL_EVENT_WINDOW_FOCUS_LOST, 0, 0), bHandled);
         }
         break;

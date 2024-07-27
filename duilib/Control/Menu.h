@@ -118,10 +118,10 @@ private:
 
 private:
     // 重新调整菜单的大小
-    void ResizeMenu();
+    bool ResizeMenu();
 
     // 重新调整子菜单的大小
-    void ResizeSubMenu();
+    bool ResizeSubMenu();
 
     /** 获取布局管理的ListBox接口
     */
