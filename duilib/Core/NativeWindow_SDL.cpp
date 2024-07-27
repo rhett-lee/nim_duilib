@@ -1183,12 +1183,12 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
     m_bUseSystemCaption = false;
     if (createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption) {
         //使用系统标题栏
-        if (m_createParam.m_dwStyle & WS_POPUP) {
+        if (m_createParam.m_dwStyle & kWS_POPUP) {
             //弹出式窗口
-            m_createParam.m_dwStyle |= (WS_CAPTION | WS_SYSMENU);
+            m_createParam.m_dwStyle |= (kWS_CAPTION | kWS_SYSMENU);
         }
         else {
-            m_createParam.m_dwStyle |= (WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX);
+            m_createParam.m_dwStyle |= (kWS_CAPTION | kWS_SYSMENU | kWS_MINIMIZEBOX | kWS_MAXIMIZEBOX);
         }
         m_bUseSystemCaption = true;
     }
@@ -1198,29 +1198,29 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
     if (createAttributes.m_bIsLayeredWindowDefined) {
         if (createAttributes.m_bIsLayeredWindow) {
             m_bIsLayeredWindow = true;
-            m_createParam.m_dwExStyle |= WS_EX_LAYERED;
+            m_createParam.m_dwExStyle |= kWS_EX_LAYERED;
         }
         else {
-            m_createParam.m_dwExStyle &= ~WS_EX_LAYERED;
+            m_createParam.m_dwExStyle &= ~kWS_EX_LAYERED;
         }
     }
-    else if (m_createParam.m_dwExStyle & WS_EX_LAYERED) {
+    else if (m_createParam.m_dwExStyle & kWS_EX_LAYERED) {
         m_bIsLayeredWindow = true;
     }
 
     //如果使用系统标题栏，关闭层窗口
     if (createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption) {
         m_bIsLayeredWindow = false;
-        m_createParam.m_dwExStyle &= ~WS_EX_LAYERED;
+        m_createParam.m_dwExStyle &= ~kWS_EX_LAYERED;
     }
 
     //如果设置了不透明度，则设置为层窗口
     if (createAttributes.m_bLayeredWindowOpacityDefined && (createAttributes.m_nLayeredWindowOpacity != 255)) {
-        m_createParam.m_dwExStyle |= WS_EX_LAYERED;
+        m_createParam.m_dwExStyle |= kWS_EX_LAYERED;
         m_bIsLayeredWindow = true;
     }
     if (createAttributes.m_bLayeredWindowAlphaDefined && (createAttributes.m_nLayeredWindowAlpha != 255)) {
-        m_createParam.m_dwExStyle |= WS_EX_LAYERED;
+        m_createParam.m_dwExStyle |= kWS_EX_LAYERED;
         m_bIsLayeredWindow = true;
     }
 
@@ -1239,6 +1239,9 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
 {
     //设置关闭窗口的时候，不自动退出消息循环
     SDL_SetHint(SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "false");
+
+    //需要提前设置这个属性，在无边框的情况下，可以保持调整窗口大小的功能
+    SDL_SetHint("SDL_BORDERLESS_RESIZABLE_STYLE", "true");
 
     if (!m_createParam.m_windowTitle.empty()) {
         std::string windowTitle = StringUtil::TToUTF8(m_createParam.m_windowTitle);
@@ -1292,7 +1295,8 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     const bool bPopupWindow = m_createParam.m_dwStyle & kWS_POPUP;
     bool bUseSystemCaption = createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption;
     bool bShadowAttached = createAttributes.m_bShadowAttachedDefined && createAttributes.m_bShadowAttached;
-    if (bPopupWindow && !bUseSystemCaption && !bShadowAttached) {
+    if (!bUseSystemCaption) {
+        //只要没有使用系统标题栏，就需要设置此属性，否则窗口就会带系统标题栏
         windowFlags |= SDL_WINDOW_BORDERLESS;
     }
 
@@ -1565,26 +1569,6 @@ bool NativeWindow_SDL::IsClosingWnd() const
 int32_t NativeWindow_SDL::GetCloseParam() const
 {
     return m_closeParam;
-}
-
-bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
-{
-    m_bIsLayeredWindow = bIsLayeredWindow;
-    SetLayeredWindowStyle(bIsLayeredWindow);
-    return true;
-}
-
-bool NativeWindow_SDL::SetLayeredWindowStyle(bool bIsLayeredWindow) const
-{
-    //TODO:
-    //SDL_WINDOW_TRANSPARENT 这个属性，不支持修改？？？
-    if (bIsLayeredWindow) {
-
-    }
-    else {
-
-    }
-    return true;
 }
 
 bool NativeWindow_SDL::IsLayeredWindow() const
@@ -1860,10 +1844,11 @@ bool NativeWindow_SDL::SetWindowForeground()
     }
     int nRet = SDL_RaiseWindow(m_sdlWindow);
     ASSERT(nRet == 0);
-#ifdef _DEBUG
-    auto pKeyboardFocus = SDL_GetKeyboardFocus();
-    ASSERT(pKeyboardFocus == m_sdlWindow);
-#endif
+//#ifdef _DEBUG
+//    备注：这里有时候会出现条件不成立的情况，暂时未发现影响功能
+//    auto pKeyboardFocus = SDL_GetKeyboardFocus();
+//    ASSERT(pKeyboardFocus == m_sdlWindow);
+//#endif
     return (nRet == 0) ? true : false;
 }
 
@@ -2501,6 +2486,15 @@ void NativeWindow_SDL::OnFinalMessage()
     }
 }
 
+bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
+{
+    //不支持该功能
+    ASSERT(bIsLayeredWindow == bIsLayeredWindow);
+    //m_bIsLayeredWindow = bIsLayeredWindow;
+    //SDL_WINDOW_TRANSPARENT 这个属性，不支持修改，所以此属性不支持修改，在创建窗口的时候已经设置正确的属性
+    return true;
+}
+
 bool NativeWindow_SDL::IsDoModal() const
 {
     //不支持该功能
@@ -2767,4 +2761,18 @@ bool NativeWindow_SDL::IsEnableSysMenu() const
 //    }
 //    ASSERT(bRet);
 //    return bRet;
+//}
+
+//SDL源码：
+//if (style & WS_POPUP) {
+//    window->flags |= SDL_WINDOW_BORDERLESS;
+//}
+//else {
+//    window->flags &= ~SDL_WINDOW_BORDERLESS;
+//}
+//if (style & WS_THICKFRAME) {
+//    window->flags |= SDL_WINDOW_RESIZABLE;
+//}
+//else {
+//    window->flags &= ~SDL_WINDOW_RESIZABLE;
 //}

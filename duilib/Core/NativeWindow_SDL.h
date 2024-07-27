@@ -508,10 +508,6 @@ private:
     */
     void GetWindowRect(SDL_Window* sdlWindow, UiRect& rcWindow) const;
 
-    /** 设置是否为层窗口
-    */
-    bool SetLayeredWindowStyle(bool bIsLayeredWindow) const;
-
     /** 更新最大化/最小化按钮的窗口风格，与程序的逻辑保持一致
     */
     void UpdateMinMaxBoxStyle() const;
