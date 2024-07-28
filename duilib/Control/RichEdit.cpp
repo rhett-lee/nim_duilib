@@ -20,6 +20,10 @@
 
 #ifdef DUILIB_BUILD_FOR_WIN
 
+#ifdef DUILIB_BUILD_FOR_SDL
+#include <SDL3/SDL.h>
+#endif
+
 namespace ui {
 
 /** 拖放操作接口的实现（仅是拖入操作）
@@ -1780,6 +1784,12 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
     }
     SetImmStatus(TRUE);
 
+#ifdef DUILIB_BUILD_FOR_SDL
+    if (IsVisible() && !IsReadOnly() && IsEnabled()) {
+        SDL_StartTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
+    }
+#endif
+
     if ((m_pClearButton != nullptr) && !IsReadOnly()){
         m_pClearButton->SetFadeVisible(true);
     }
@@ -1807,6 +1817,12 @@ bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
     }
 
     SetImmStatus(FALSE);
+
+#ifdef DUILIB_BUILD_FOR_SDL
+    if (IsVisible() && !IsReadOnly() && IsEnabled()) {
+        SDL_StopTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
+    }
+#endif
 
     if (m_pClearButton != nullptr) {
         m_pClearButton->SetFadeVisible(false);
@@ -1852,7 +1868,13 @@ bool RichEdit::OnChar(const EventArgs& msg)
         }
     }
 #ifdef DUILIB_UNICODE
-    m_richCtrl.TxSendMessage(WM_CHAR, msg.wParam, msg.lParam);
+    WPARAM wParam = msg.wParam;
+    WPARAM lParam = msg.lParam;
+#ifdef DUILIB_BUILD_FOR_SDL
+    wParam = msg.vkCode;
+    lParam = 0;
+#endif
+    m_richCtrl.TxSendMessage(WM_CHAR, wParam, lParam);
 #else
     //只支持1字节和2字节的文字输入，不支持4字节的文字输入
     if ((::GetTickCount() - m_dwLastCharTime) > 5000) {
@@ -1971,7 +1993,14 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
         }
     }
 
-    m_richCtrl.TxSendMessage(WM_KEYDOWN, msg.wParam, msg.lParam);
+    WPARAM wParam = msg.wParam;
+    LPARAM lParam = msg.lParam;
+#ifdef DUILIB_BUILD_FOR_SDL
+    wParam = msg.vkCode;
+    lParam = 0;
+#endif
+
+    m_richCtrl.TxSendMessage(WM_KEYDOWN, wParam, lParam);
     return true;
 }
 
@@ -2016,9 +2045,19 @@ bool RichEdit::OnImeEndComposition(const EventArgs& /*msg*/)
 
 void RichEdit::OnMouseMessage(UINT uMsg, const EventArgs& msg)
 {
-    UiPoint pt(GET_X_LPARAM(msg.lParam), GET_Y_LPARAM(msg.lParam));
+    UiPoint pt = msg.ptMouse;
     pt.Offset(GetScrollOffsetInScrollBox());
-    m_richCtrl.TxSendMessage(uMsg, msg.wParam, MAKELPARAM(pt.x, pt.y));
+    WPARAM wParam = msg.wParam;
+#ifdef DUILIB_BUILD_FOR_SDL
+    wParam = 0;
+    if (IsKeyDown(msg, ModifierKey::kControl)) {
+        wParam |= MK_CONTROL;
+    }
+    if (IsKeyDown(msg, ModifierKey::kShift)) {
+        wParam |= MK_SHIFT;
+    }
+#endif
+    m_richCtrl.TxSendMessage(uMsg, wParam, MAKELPARAM(pt.x, pt.y));
 }
 
 void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)

@@ -329,6 +329,11 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
                 }
                 else {
                     lResult = pOwner->OnNativeMouseRButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
+                    if (!bHandled && !ownerFlag.expired() && (sdlEvent.button.clicks == 1)) {
+                        //模拟Windows，触发一次Context Menu事件
+                        bool bMenuHandled = false;
+                        pOwner->OnNativeContextMenuMsg(pt, NativeMsg(0, 0, 0), bMenuHandled);
+                    }
                 }
             }
         }
