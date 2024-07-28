@@ -274,6 +274,12 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             pt.y = (int32_t)sdlEvent.motion.y;
             uint32_t modifierKey = GetModifiers(SDL_GetModState());
             lResult = pOwner->OnNativeMouseMoveMsg(pt, modifierKey, false, NativeMsg(SDL_EVENT_MOUSE_MOTION, 0, 0), bHandled);
+
+            //由于SDL没有WM_SETCURSOR消息，在鼠标移动的时候，触发设置光标消息
+            if (!ownerFlag.expired()) {
+                bool bNativeHandled = false;
+                pOwner->OnNativeSetCursorMsg(NativeMsg(SDL_EVENT_MOUSE_MOTION, 0, 0), bNativeHandled);
+            }
         }
         break;
     case SDL_EVENT_MOUSE_WHEEL:
@@ -1779,7 +1785,7 @@ void NativeWindow_SDL::GetCursorPos(UiPoint& pt) const
 {
     float x = 0;
     float y = 0;
-    SDL_GetMouseState(&x, &y);
+    SDL_GetGlobalMouseState(&x, &y);
     pt.x = (int32_t)x;
     pt.y = (int32_t)y;
 }

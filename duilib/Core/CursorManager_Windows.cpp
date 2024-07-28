@@ -2,10 +2,11 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/FilePathUtil.h"
-#include "duilib/Utils/ApiWrapper_Windows.h"
 #include <map>
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
+#include "duilib/Utils/ApiWrapper_Windows.h"
 
 namespace ui
 {

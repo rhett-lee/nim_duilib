@@ -408,6 +408,7 @@
     <ClCompile Include="Core\ControlDropTarget.cpp" />
     <ClCompile Include="Core\ControlFinder.cpp" />
     <ClCompile Include="Core\ControlLoading.cpp" />
+    <ClCompile Include="Core\CursorManager_SDL.cpp" />
     <ClCompile Include="Core\CursorManager_Windows.cpp" />
     <ClCompile Include="Core\DpiAwareness.cpp" />
     <ClCompile Include="Core\DpiAwareness_Windows.cpp" />

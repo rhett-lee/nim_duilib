@@ -501,6 +501,9 @@
     <ClCompile Include="Core\Keycode_SDL.cpp">
       <Filter>Core\SDL</Filter>
     </ClCompile>
+    <ClCompile Include="Core\CursorManager_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
