@@ -58,7 +58,7 @@
 #include "Core/ControlDragable.h"
 #include "Core/Callback.h"
 
-#include "Core/KeyCode.h"
+#include "Core/Keycode.h"
 #include "Core/Keyboard.h"
 #include "Core/CursorManager.h"
 

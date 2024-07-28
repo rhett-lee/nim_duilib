@@ -527,10 +527,6 @@ private:
     */
     static void ClearWindowFromID(SDL_WindowID id, NativeWindow_SDL* pNativeWindow);
 
-    /** 将SDL的KeyCode转换为VirtualKeyCode
-    */
-    static VirtualKeyCode GetVirtualKeyCode(SDL_Keycode sdlKeycode);
-
     /** 将SDL的Key 转换成内部的 ModifierKey
     */
     static uint32_t GetModifiers(SDL_Keymod keymod);

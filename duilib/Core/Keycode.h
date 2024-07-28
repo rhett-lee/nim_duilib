@@ -6,13 +6,14 @@
 namespace ui {
 
 /*
-* WM_KEYUP/DOWN/CHAR HIWORD(lParam) flags
+* WM_KEYUP/DOWN/CHAR HIWORD(lParam) flags, 当按下Win键的时候，有此标志
 */
 #define kKF_EXTENDED    0x0100
 
 /** 虚拟键编码(和Windows系统定义一致，WinUser.h)
 */
-enum VirtualKeyCode{
+enum VirtualKeyCode
+{
     kVK_None        = 0x00, //无虚拟键
     kVK_LBUTTON     = 0x01, //鼠标左键
     kVK_RBUTTON     = 0x02, //鼠标右键
@@ -206,6 +207,24 @@ enum VirtualKeyCode{
     kVK_OEM_CLEAR           = 0xFE, //Clear 键
 };
 
+#ifdef DUILIB_BUILD_FOR_SDL
+
+    //VirtualKeyCode 与 SDL的 SDL_Keycode相互转换
+    typedef uint32_t SDL_Keycode;
+
+    class Keycode
+    {
+    public:
+        /** SDL_Keycode 转换为 ui::VirtualKeyCode(有丢失，SDL的内容比VirtualKeyCode多)
+        */
+        static VirtualKeyCode GetVirtualKeyCode(SDL_Keycode sdlKeycode);
+
+        /** ui::VirtualKeyCode 转换为 SDL_Keycode
+        */
+        static SDL_Keycode GetSDLKeyCode(VirtualKeyCode vkCode);
+    };
+
+#endif
 
 } // namespace ui
 

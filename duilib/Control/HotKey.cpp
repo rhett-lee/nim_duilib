@@ -65,7 +65,7 @@ public:
             SetHotKey(0, wModifiers);
         }
         else {
-            DString keyName = Keyboard::GetKeyName(msg.lParam);
+            DString keyName = Keyboard::GetKeyName(msg.vkCode, false);
             if (!keyName.empty()) {
                 SetHotKey(static_cast<uint8_t>(msg.wParam), wModifiers);
             }

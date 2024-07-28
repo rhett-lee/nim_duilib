@@ -1,19 +1,9 @@
 #include "Keyboard.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 namespace ui
 {
-int16_t Keyboard::GetKeyState(VirtualKeyCode nVirtKey)
-{
-    return ::GetKeyState(nVirtKey);
-}
-
-int16_t Keyboard::GetAsyncKeyState(VirtualKeyCode nVirtKey)
-{
-    return ::GetAsyncKeyState(nVirtKey);
-}
-
 bool Keyboard::IsKeyDown(VirtualKeyCode nVirtKey)
 {
     return (::GetKeyState(nVirtKey) & 0x8000) != 0;
@@ -62,14 +52,6 @@ DString Keyboard::GetKeyName(VirtualKeyCode nVirtKey, bool fExtended)
     TCHAR szStr[MAX_PATH] = { 0 };
     ::GetKeyNameText(nScanCode << 16, szStr, MAX_PATH);
     return DString(szStr);
-}
-
-DString Keyboard::GetKeyName(LPARAM lParam)
-{
-    TCHAR szStr[MAX_PATH] = { 0 };
-    ::GetKeyNameText((LONG)lParam, szStr, MAX_PATH);
-    DString keyName = szStr;
-    return keyName;
 }
 
 } // namespace ui

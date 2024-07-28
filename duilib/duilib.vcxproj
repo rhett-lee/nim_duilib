@@ -420,7 +420,9 @@
     <ClCompile Include="Core\IconManager_Windows.cpp" />
     <ClCompile Include="Core\ImageList.cpp" />
     <ClCompile Include="Core\ImageManager.cpp" />
+    <ClCompile Include="Core\Keyboard_SDL.cpp" />
     <ClCompile Include="Core\Keyboard_Windows.cpp" />
+    <ClCompile Include="Core\Keycode_SDL.cpp" />
     <ClCompile Include="Core\LangManager.cpp" />
     <ClCompile Include="Core\MessageLoop_SDL.cpp" />
     <ClCompile Include="Core\MessageLoop_Windows.cpp" />
@@ -584,7 +586,7 @@
     <ClInclude Include="Core\ImageManager.h" />
     <ClInclude Include="Core\INativeWindow.h" />
     <ClInclude Include="Core\Keyboard.h" />
-    <ClInclude Include="Core\KeyCode.h" />
+    <ClInclude Include="Core\Keycode.h" />
     <ClInclude Include="Core\LangManager.h" />
     <ClInclude Include="Core\MessageLoop_SDL.h" />
     <ClInclude Include="Core\MessageLoop_Windows.h" />
