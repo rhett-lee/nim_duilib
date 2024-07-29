@@ -10,7 +10,7 @@ namespace ui
 #define GetBValue(rgb)      ((uint8_t)((rgb)>>16))
 #define RGB(r,g,b)          ((COLORREF)(((uint8_t)(r)|((uint16_t)((uint8_t)(g))<<8))|(((uint32_t)(uint8_t)(b))<<16)))
 
-#define    HSV_LOOP_STEPS(w)    ((w) - 1)
+#define    HSV_LOOP_STEPS(w)    (((w) > 1) ? (w) - 1 : 1)
 
 #define    HSV_0()    RGB ((uint8_t) (coef1 >> int_extend),(uint8_t) (coef3 >> int_extend),(uint8_t) (val >> int_extend))
 
