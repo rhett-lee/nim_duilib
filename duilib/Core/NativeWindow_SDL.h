@@ -585,7 +585,11 @@ private:
     */
     bool m_bMouseCapture;
 
-    /** 窗口不透明度，该值在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)
+    /** 窗口透明度，该值在Windows平台是UpdateLayeredWindow函数中作为参数使用(BLENDFUNCTION.SourceConstantAlpha)，其他平台功能类似
+    */
+    uint8_t m_nLayeredWindowAlpha;
+
+    /** 窗口不透明度，该值在Windows平台是SetLayeredWindowAttributes函数中作为参数使用(bAlpha)，其他平台功能类似
     */
     uint8_t m_nLayeredWindowOpacity;
 

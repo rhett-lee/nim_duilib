@@ -148,6 +148,11 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
         SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 0);
         SDL_RenderClear(sdlRenderer);
 
+        //设置纹理的透明度
+        if (nLayeredWindowAlpha != 255) {
+            SDL_SetTextureAlphaMod(sdlTextrue, nLayeredWindowAlpha);
+        }
+        
         //将绘制的数据更新到SDL窗口
         SDL_RenderTexture(sdlRenderer, sdlTextrue, nullptr, nullptr);        
         SDL_RenderPresent(sdlRenderer);

@@ -475,6 +475,7 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_sdlWindow(nullptr),
     m_sdlRenderer(nullptr),
     m_bIsLayeredWindow(false),
+    m_nLayeredWindowAlpha(255),
     m_nLayeredWindowOpacity(255),
     m_bUseSystemCaption(false),
     m_bMouseCapture(false),
@@ -1090,12 +1091,16 @@ bool NativeWindow_SDL::IsLayeredWindow() const
 
 void NativeWindow_SDL::SetLayeredWindowAlpha(int32_t nAlpha)
 {
-    SetLayeredWindowOpacity(nAlpha);
+    ASSERT(nAlpha >= 0 && nAlpha <= 255);
+    if ((nAlpha < 0) || (nAlpha > 255)) {
+        return;
+    }
+    m_nLayeredWindowAlpha = static_cast<uint8_t>(nAlpha);
 }
 
 uint8_t NativeWindow_SDL::GetLayeredWindowAlpha() const
 {
-    return GetLayeredWindowOpacity();
+    return m_nLayeredWindowAlpha;
 }
 
 void NativeWindow_SDL::SetLayeredWindowOpacity(int32_t nAlpha)
