@@ -627,7 +627,8 @@ private:
                         }
                         int32_t colorXY = nRow * nWidth + nColumn;
                         ASSERT(colorXY < nWidth * nHeight);
-                        pDestPixelBits[++destColorIndex] = pPixelBits[colorXY];
+                        ASSERT(destColorIndex < (int32_t)spBitmap->GetWidth() * (int32_t)spBitmap->GetHeight());
+                        pDestPixelBits[destColorIndex++] = pPixelBits[colorXY];
                     }
                 }
             }
