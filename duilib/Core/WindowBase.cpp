@@ -457,9 +457,9 @@ bool WindowBase::SetWindowIcon(const FilePath& iconFilePath)
     return m_pNativeWindow->SetWindowIcon(iconFilePath);
 }
 
-bool WindowBase::SetWindowIcon(const std::vector<uint8_t>& iconFileData)
+bool WindowBase::SetWindowIcon(const std::vector<uint8_t>& iconFileData, const DString& iconFileName)
 {
-    return m_pNativeWindow->SetWindowIcon(iconFileData);
+    return m_pNativeWindow->SetWindowIcon(iconFileData, iconFileName);
 }
 
 void WindowBase::SetText(const DString& strText)

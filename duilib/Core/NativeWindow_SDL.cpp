@@ -1,4 +1,8 @@
 #include "NativeWindow_SDL.h"
+#include "duilib/Utils/FileUtil.h"
+#include "duilib/Image/ImageDecoder.h"
+#include "duilib/Image/ImageLoadAttribute.h"
+#include "duilib/Image/ImageInfo.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
 
@@ -1960,20 +1964,61 @@ void NativeWindow_SDL::OnFinalMessage()
 
 bool NativeWindow_SDL::SetWindowIcon(const FilePath& iconFilePath)
 {
-    //TODO:
+    std::vector<uint8_t> fileData;
+    bool bRet = FileUtil::ReadFileData(iconFilePath, fileData);
+    ASSERT(bRet);
+    if (bRet) {
+        bRet = SetWindowIcon(fileData, iconFilePath.ToString());
+    }
+    return bRet;
+}
+
+bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData, const DString& iconFileName)
+{
+    ASSERT(!iconFileData.empty());
+    if (iconFileData.empty()) {
+        return false;
+    }
+    ASSERT(m_pOwner != nullptr);
+    if (m_pOwner == nullptr) {
+        return false;
+    }
     ASSERT(IsWindow());
-    if (!::IsWindow(GetHWND())) {
+    if (!IsWindow()) {
+        return false;
+    }
+    ImageLoadAttribute loadAttr = ImageLoadAttribute(DString(), DString(), false, false, 0);
+    loadAttr.SetImageFullPath(iconFileName);
+    ImageDecoder imageDecoder;
+    std::vector<uint8_t> fileData(iconFileData);
+    std::unique_ptr<ImageInfo> imageInfo = imageDecoder.LoadImageData(fileData, loadAttr, true, 100, m_pOwner->OnNativeGetDpi());
+    ASSERT(imageInfo != nullptr);
+    if (imageInfo == nullptr) {
         return false;
     }
 
-    return true;
-}
+    IBitmap* pBitmap = imageInfo->GetBitmap(0);
+    ASSERT(pBitmap != nullptr);
+    if (pBitmap == nullptr) {
+        return false;
+    }
 
-bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData)
-{
-    //TODO:
+    void* pPixelBits = pBitmap->LockPixelBits();
+    ASSERT(pPixelBits != nullptr);
+    if (pPixelBits == nullptr) {
+        return false;
+    }
 
-    return true;
+    SDL_Surface* cursorSurface = SDL_CreateSurfaceFrom(pBitmap->GetWidth(), pBitmap->GetHeight(), SDL_PIXELFORMAT_BGRA32, pPixelBits, pBitmap->GetWidth() * sizeof(uint32_t));
+    ASSERT(cursorSurface != nullptr);
+    if (cursorSurface == nullptr) {
+        return false;
+    }
+
+    int nRet = SDL_SetWindowIcon(m_sdlWindow, cursorSurface);
+    SDL_DestroySurface(cursorSurface);
+    ASSERT(nRet == 0);
+    return nRet == 0;
 }
 
 bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)

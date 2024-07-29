@@ -106,7 +106,7 @@ bool Window::SetWindowIcon(const DString& iconFilePath)
             GlobalManager::Instance().Zip().GetZipData(iconFullPath, fileData);
             ASSERT(!fileData.empty());
             if (!fileData.empty()) {
-                bRet = WindowBase::SetWindowIcon(fileData);
+                bRet = WindowBase::SetWindowIcon(fileData, iconFilePath);
             }
         }
         else {

@@ -970,7 +970,7 @@ bool NativeWindow_Windows::SetWindowIcon(const FilePath& iconFilePath)
     return true;
 }
 
-bool NativeWindow_Windows::SetWindowIcon(const std::vector<uint8_t>& iconFileData)
+bool NativeWindow_Windows::SetWindowIcon(const std::vector<uint8_t>& iconFileData, const DString& /*iconFileName*/)
 {
     //Little Endian Only
     int16_t test = 1;

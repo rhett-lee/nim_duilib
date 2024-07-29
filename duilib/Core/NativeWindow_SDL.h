@@ -296,8 +296,9 @@ public:
 
     /** 设置窗口图标（支持*.ico格式）
     *  @param [in] iconFileData ico文件的数据
+    *  @param [in] iconFileName 包含扩展名的文件名，用于识别图片类型
     */
-    bool SetWindowIcon(const std::vector<uint8_t>& iconFileData);
+    bool SetWindowIcon(const std::vector<uint8_t>& iconFileData, const DString& iconFileName);
 
     /** 设置窗口标题栏文本
     * @param [in] strText 窗口标题栏文本
