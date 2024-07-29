@@ -145,6 +145,11 @@ public:
     */
     void RemoveWindow(Window* pWindow);
 
+    /** 判断当前是否含有窗口
+    * @param [in] pWindow 窗口的接口
+    */
+    bool HasWindow(Window* pWindow) const;
+
     /** 添加一个全局 Class 属性
      * @param[in] strClassName 全局 Class 名称
      * @param[in] strControlAttrList 属性列表，需要做 XML 转义

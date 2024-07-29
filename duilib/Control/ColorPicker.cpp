@@ -745,6 +745,10 @@ void ColorPicker::OnPickColorFromScreen()
     if (pCheckBox != nullptr) {
         bHideWindow = pCheckBox->IsSelected();
     }
+#ifdef DUILIB_BUILD_FOR_SDL
+    bHideWindow = false;
+#else
+    //SDL的实现，如果窗口隐藏，则所有子窗口都会被隐藏，所以不能隐藏本窗口
     if (bHideWindow) {
         //隐藏本窗口
         ShowWindow(kSW_HIDE);
@@ -756,7 +760,9 @@ void ColorPicker::OnPickColorFromScreen()
             pParentWnd->SetWindowForeground();
             pParentWnd->UpdateWindow();
         }
+        UpdateWindow();
     }
+#endif
 
     //抓取屏幕位图
     ScreenColorPickerWnd* pScreenColorPicker = new ScreenColorPickerWnd;    
@@ -764,7 +770,7 @@ void ColorPicker::OnPickColorFromScreen()
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_TRANSPARENT;
-    pScreenColorPicker->CreateWnd(this, createWndParam);
+    pScreenColorPicker->CreateWnd(nullptr, createWndParam);
     pScreenColorPicker->CenterWindow();
     pScreenColorPicker->ShowWindow(ui::kSW_SHOW_NORMAL);
     pScreenColorPicker->EnterFullScreen();

@@ -93,7 +93,7 @@ bool CursorManager::SetCursor(CursorType cursorType)
 
 /** 从内存数据中加载光标
 */
-HCURSOR LoadCursorFromData(const Window* pWindow, std::vector<uint8_t>& fileData)
+static HCURSOR LoadCursorFromData(const Window* pWindow, std::vector<uint8_t>& fileData)
 {
     if (fileData.empty() || (pWindow == nullptr)) {
         return nullptr;

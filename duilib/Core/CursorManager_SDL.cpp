@@ -2,6 +2,10 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include "duilib/Utils/FileUtil.h"
+#include "duilib/Image/ImageDecoder.h"
+#include "duilib/Image/ImageLoadAttribute.h"
+#include "duilib/Image/ImageInfo.h"
 #include <map>
 
 #ifdef DUILIB_BUILD_FOR_SDL
@@ -122,6 +126,48 @@ bool CursorManager::SetCursor(CursorType cursorType)
     return nRet == 0;
 }
 
+/** 从内存数据中加载光标
+*/
+static SDL_Cursor* LoadCursorFromData(const Window* pWindow, std::vector<uint8_t>& fileData, const DString& imagePath)
+{
+    if (fileData.empty() || (pWindow == nullptr)) {
+        return nullptr;
+    }
+    
+    ImageLoadAttribute loadAttr = ImageLoadAttribute(DString(), DString(), false, false, 0);
+    loadAttr.SetImageFullPath(imagePath);
+    ImageDecoder imageDecoder;
+    std::unique_ptr<ImageInfo> imageInfo = imageDecoder.LoadImageData(fileData, loadAttr, true, 100, pWindow->Dpi());
+    ASSERT(imageInfo != nullptr);
+    if (imageInfo == nullptr) {
+        return nullptr;
+    }
+
+    IBitmap* pBitmap = imageInfo->GetBitmap(0);
+    ASSERT(pBitmap != nullptr);
+    if (pBitmap == nullptr) {
+        return nullptr;
+    }
+
+    void* pPixelBits = pBitmap->LockPixelBits();
+    ASSERT(pPixelBits != nullptr);
+    if (pPixelBits == nullptr) {
+        return nullptr;
+    }
+
+    SDL_Surface* cursorSurface = SDL_CreateSurfaceFrom(pBitmap->GetWidth(), pBitmap->GetHeight(), SDL_PIXELFORMAT_BGRA32, pPixelBits, pBitmap->GetWidth() * sizeof(uint32_t));
+    ASSERT(cursorSurface != nullptr);
+    if (cursorSurface == nullptr) {
+        return nullptr;
+    }
+    SDL_Cursor* sdlCursor = SDL_CreateColorCursor(cursorSurface, 0, 0);
+    SDL_DestroySurface(cursorSurface);
+    cursorSurface = nullptr;
+
+    ASSERT(sdlCursor != nullptr);
+    return sdlCursor;
+}
+
 bool CursorManager::SetImageCursor(const Window* pWindow, const FilePath& curImagePath)
 {
     ASSERT(!curImagePath.IsEmpty());
@@ -149,9 +195,46 @@ bool CursorManager::SetImageCursor(const Window* pWindow, const FilePath& curIma
         }
     }
 
-    //TODO:
-
-    return true;
+    SDL_Cursor* sdlCursor = nullptr;
+    auto iter = m_impl->m_cursorMap.find(cursorFullPath);
+    if (iter != m_impl->m_cursorMap.end()) {
+        sdlCursor = iter->second;
+    }
+    else {
+        //加载光标
+        std::vector<uint8_t> fileData;
+        if (GlobalManager::Instance().Zip().IsUseZip()) {
+            //使用压缩包
+            if (GlobalManager::Instance().Zip().IsZipResExist(cursorFullPath)) {                
+                bool bRet = GlobalManager::Instance().Zip().GetZipData(cursorFullPath, fileData);
+                ASSERT_UNUSED_VARIABLE(bRet);                
+            }
+            else {
+                ASSERT(false);
+            }
+        }
+        else {
+            //使用本地文件
+            bool bRet = FileUtil::ReadFileData(cursorFullPath, fileData);
+            ASSERT_UNUSED_VARIABLE(bRet);
+        }
+        ASSERT(!fileData.empty());
+        if (!fileData.empty()) {
+            //从内存中加载光标
+            sdlCursor = LoadCursorFromData(pWindow, fileData, curImagePath.ToString());
+            ASSERT(sdlCursor != nullptr);
+            if (sdlCursor != nullptr) {
+                m_impl->m_cursorMap[cursorFullPath] = sdlCursor;
+            }
+        }
+    }
+    ASSERT(sdlCursor != nullptr);
+    if (sdlCursor != nullptr) {
+        int nRet = SDL_SetCursor(sdlCursor);
+        ASSERT_UNUSED_VARIABLE(nRet == 0);
+        return nRet == 0;
+    }
+    return false;
 }
 
 bool CursorManager::ShowCursor(bool bShow)

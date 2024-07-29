@@ -327,7 +327,8 @@ void Window::OnFinalMessage()
 
 void Window::ClearWindow(bool bSendClose)
 {
-    if (bSendClose && IsWindow()) {
+    bool bHasWindow = GlobalManager::Instance().HasWindow(this);
+    if (bSendClose && bHasWindow) {
         //发送关闭事件
         WPARAM wParam = (WPARAM)GetCloseParam();
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();

@@ -595,6 +595,9 @@ ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const DString& path)
     else if (fileExt == _T("ICO")) {
         imageFormat = ImageFormat::kICO;
     }
+    else if (fileExt == _T("CUR")) {
+        imageFormat = ImageFormat::kICO;
+    }
     return imageFormat;
 }
 

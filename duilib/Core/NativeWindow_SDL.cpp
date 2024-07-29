@@ -2017,7 +2017,10 @@ void NativeWindow_SDL::ClearWindowRgn(bool /*bRedraw*/)
 bool NativeWindow_SDL::UpdateWindow() const
 {
     //没有此功能
-    return false;
+    if (m_sdlWindow != nullptr) {
+        SDL_SyncWindow(m_sdlWindow);
+    }    
+    return true;
 }
 
 void NativeWindow_SDL::KeepParentActive()
