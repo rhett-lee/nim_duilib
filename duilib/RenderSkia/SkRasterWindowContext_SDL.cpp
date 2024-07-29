@@ -1,5 +1,6 @@
 #include "SkRasterWindowContext_SDL.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Utils/PerformanceUtil.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
 
@@ -93,9 +94,18 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
         return false;
     }
 
-    //获取需要绘制的区域(不支持局部绘制，每次都是需要重绘整个窗口的客户区域)
+    //获取需要绘制的区域
     UiRect rcPaint;
-    GetClientRect(rcPaint);
+    if (GetUpdateRect(rcPaint)) {
+        //支持局部绘制，只绘制更新的部分区域，以提高效率
+        if (rcPaint.IsEmpty()) {
+            GetClientRect(rcPaint);
+        }
+    }
+    else {
+        //不支持局部绘制，每次都是需要重绘整个窗口的客户区域
+        GetClientRect(rcPaint);
+    }
     if (rcPaint.IsEmpty()) {
         //无需绘制
         return false;
@@ -115,6 +125,7 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
 
 bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t nLayeredWindowAlpha) const
 {
+    PerformanceStat statPerformance(_T("SkRasterWindowContext_SDL::SwapPaintBuffers"));
     ASSERT(!rcPaint.IsEmpty());
     if (rcPaint.IsEmpty()) {
         return false;
@@ -131,7 +142,7 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
     }
 
     // 渲染到窗口（IRender -> 绘制到 SDL Render -> 更新到 SDL 窗口）
-    SDL_Surface* sdlSurface = SDL_CreateSurface(rcPaint.Width(), rcPaint.Height(), SDL_PIXELFORMAT_BGRA32);
+    SDL_Surface* sdlSurface = SDL_CreateSurface(width(), height(), SDL_PIXELFORMAT_BGRA32);
     ASSERT(sdlSurface != nullptr);
     if (sdlSurface == nullptr) {
         return false;
@@ -144,17 +155,28 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
     SDL_Texture* sdlTextrue = SDL_CreateTextureFromSurface(sdlRenderer, sdlSurface);
     ASSERT(sdlTextrue != nullptr);
     if (sdlTextrue != nullptr) {
+        SDL_FRect dstrect;
+        dstrect.x = (float)rcPaint.left;
+        dstrect.y = (float)rcPaint.top;
+        dstrect.w = (float)rcPaint.Width();
+        dstrect.h = (float)rcPaint.Height();
+
         //对源SDL窗口清零，避免透明窗口的情况下，绘制到残留图像上，导致窗口阴影越来越浓
         SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 0);
-        SDL_RenderClear(sdlRenderer);
+        if ((rcPaint.Width() == width()) && (rcPaint.Height() == height())) {
+            SDL_RenderClear(sdlRenderer);
+        }
+        else {
+            SDL_RenderFillRect(sdlRenderer, &dstrect);
+        }
 
         //设置纹理的透明度
         if (nLayeredWindowAlpha != 255) {
             SDL_SetTextureAlphaMod(sdlTextrue, nLayeredWindowAlpha);
         }
         
-        //将绘制的数据更新到SDL窗口
-        SDL_RenderTexture(sdlRenderer, sdlTextrue, nullptr, nullptr);        
+        //将绘制的数据更新到SDL窗口        
+        SDL_RenderTexture(sdlRenderer, sdlTextrue, &dstrect, &dstrect);
         SDL_RenderPresent(sdlRenderer);
     }
 
@@ -180,6 +202,30 @@ void SkRasterWindowContext_SDL::GetClientRect(UiRect& rcClient) const
         rcClient.right = rcClient.left + nWidth;
         rcClient.bottom = rcClient.top + nHeight;
     }
+}
+
+bool SkRasterWindowContext_SDL::GetUpdateRect(UiRect& rcUpdate) const
+{
+    //当前测试不充分，暂时关闭
+    return false;
+
+    if (m_sdlWindow == nullptr) {
+        return false;
+    }
+    rcUpdate.Clear();
+#ifdef DUILIB_BUILD_FOR_WIN
+    SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+    HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+    RECT rectUpdate = { 0, };
+    if ((hWnd != nullptr) && ::IsWindow(hWnd) && ::GetUpdateRect(hWnd, &rectUpdate, FALSE)) {
+        rcUpdate.left = rectUpdate.left;
+        rcUpdate.top = rectUpdate.top;
+        rcUpdate.right = rectUpdate.right;
+        rcUpdate.bottom = rectUpdate.bottom;
+        return true;
+    }
+#endif
+    return false;
 }
 
 } // namespace ui

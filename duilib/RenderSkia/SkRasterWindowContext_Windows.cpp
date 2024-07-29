@@ -1,5 +1,6 @@
 #include "SkRasterWindowContext_Windows.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Utils/PerformanceUtil.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
 
@@ -166,6 +167,7 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRende
 
 bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender, uint8_t nLayeredWindowAlpha) const
 {
+    PerformanceStat statPerformance(_T("SkRasterWindowContext_Windows::SwapPaintBuffers"));
     ASSERT(hPaintDC != nullptr);
     if (hPaintDC == nullptr) {
         return false;
