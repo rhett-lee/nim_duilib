@@ -140,7 +140,7 @@ git clone https://github.com/rhett-lee/skia_compile
 2. 本项目是直接在NIM_Duilib_Framework项目的基础上继续开发的，项目地址：[NIM_Duilib_Framework](https://github.com/netease-im/NIM_Duilib_Framework/)
 
 ## 开发计划
- - 窗口的封装优化：支持跨平台的窗口引擎（目前正在开放基于[SDL3.0](https://www.libsdl.org/)的作为窗口管理器的方案，可实现界面库的跨平台的支持）
+ - 窗口的封装优化：支持跨平台的窗口引擎（目前正在开发基于[SDL3.0](https://www.libsdl.org/)的作为窗口管理器的方案，可实现界面库的跨平台的支持）
  - 动画功能的加强
  - 不断测试发现缺陷并修复，不断完善代码
  - 其他待补充
