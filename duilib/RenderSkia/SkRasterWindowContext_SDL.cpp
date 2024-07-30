@@ -96,13 +96,11 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
 
     //获取需要绘制的区域
     UiRect rcPaint;
-    if (GetUpdateRect(rcPaint)) {
-        //支持局部绘制，只绘制更新的部分区域，以提高效率
-        if (rcPaint.IsEmpty()) {
-            GetClientRect(rcPaint);
-        }
+    bool bUpdateRect = GetUpdateRect(rcPaint); //返回true表示支持局部绘制，只绘制更新的部分区域，以提高效率
+    if (rcPaint.IsEmpty()) {
+        bUpdateRect = false;
     }
-    else {
+    if (!bUpdateRect) {
         //不支持局部绘制，每次都是需要重绘整个窗口的客户区域
         GetClientRect(rcPaint);
     }
@@ -119,6 +117,11 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
     if (bRet) {
         //绘制完成后，更新到窗口
         SwapPaintBuffers(rcPaint, nLayeredWindowAlpha);
+    }
+
+    //绘制完成后，将已经绘制的区域标记为有效区域
+    if (bUpdateRect) {
+        ValidateRect(rcPaint);
     }
     return bRet;
 }
@@ -204,28 +207,48 @@ void SkRasterWindowContext_SDL::GetClientRect(UiRect& rcClient) const
     }
 }
 
-bool SkRasterWindowContext_SDL::GetUpdateRect(UiRect& rcUpdate) const
+bool SkRasterWindowContext_SDL::GetUpdateRect(UiRect& /*rcUpdate*/) const
 {
-    //当前测试不充分，暂时关闭
+    //局部绘制功能暂不开启；
+    //此功能开启时，需要修改SDL源码中对于WM_PAINT消息的处理，需要将"ValidateRect(hwnd, NULL);"这行代码注释掉，否则可能导致部分绘制消息丢失，出现不绘制的情况
     return false;
 
-    if (m_sdlWindow == nullptr) {
-        return false;
+//    if (m_sdlWindow == nullptr) {
+//        return false;
+//    }
+//    rcUpdate.Clear();
+//#ifdef DUILIB_BUILD_FOR_WIN
+//    SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+//    HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
+//    RECT rectUpdate = { 0, };
+//    if ((hWnd != nullptr) && ::IsWindow(hWnd) && ::GetUpdateRect(hWnd, &rectUpdate, FALSE)) {
+//        rcUpdate.left = rectUpdate.left;
+//        rcUpdate.top = rectUpdate.top;
+//        rcUpdate.right = rectUpdate.right;
+//        rcUpdate.bottom = rectUpdate.bottom;
+//        return true;
+//    }
+//#endif
+//    return false;
+}
+
+void SkRasterWindowContext_SDL::ValidateRect(UiRect& rcPaint) const
+{
+    if ((m_sdlWindow == nullptr) || rcPaint.IsEmpty()) {
+        return;
     }
-    rcUpdate.Clear();
 #ifdef DUILIB_BUILD_FOR_WIN
     SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
     HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
-    RECT rectUpdate = { 0, };
-    if ((hWnd != nullptr) && ::IsWindow(hWnd) && ::GetUpdateRect(hWnd, &rectUpdate, FALSE)) {
-        rcUpdate.left = rectUpdate.left;
-        rcUpdate.top = rectUpdate.top;
-        rcUpdate.right = rectUpdate.right;
-        rcUpdate.bottom = rectUpdate.bottom;
-        return true;
+    if ((hWnd != nullptr) && ::IsWindow(hWnd)) {
+        RECT rectPaint = { 0, };
+        rectPaint.left = rcPaint.left;
+        rectPaint.top = rcPaint.top;
+        rectPaint.right = rcPaint.right;
+        rectPaint.bottom = rcPaint.bottom;
+        ::ValidateRect(hWnd, &rectPaint);
     }
 #endif
-    return false;
 }
 
 } // namespace ui

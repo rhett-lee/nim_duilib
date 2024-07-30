@@ -31,7 +31,7 @@ int32_t MessageLoop_SDL::Run()
     while (bKeepGoing) {
 
         /* run through all pending events until we run out. */
-        while (SDL_PollEvent(&sdlEvent)) {
+        while (bKeepGoing && SDL_PollEvent(&sdlEvent)) {
             switch (sdlEvent.type) {
             case SDL_EVENT_QUIT:  /* triggers on last window close and other things. End the program. */
                 bKeepGoing = SDL_FALSE;

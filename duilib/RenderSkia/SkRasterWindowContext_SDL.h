@@ -76,6 +76,10 @@ protected:
     */
     bool GetUpdateRect(UiRect& rcUpdate) const;
 
+    /** 将已经绘制的区域标记为有效区域
+    */
+    void ValidateRect(UiRect& rcPaint) const;
+
 private:
     /** Surface数据
     */

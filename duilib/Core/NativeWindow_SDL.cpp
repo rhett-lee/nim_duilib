@@ -324,26 +324,22 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             uint32_t modifierKey = GetModifiers(SDL_GetModState());
             bool bDoubleClick = (sdlEvent.button.clicks == 2) ? true : false;//是否为双击
             if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
-                //鼠标左键
-                if (bDoubleClick) {
+                //鼠标左键: 先触发左键弹起消息，然后再触发左键双击消息，避免左键弹起消息丢失的现象
+                lResult = pOwner->OnNativeMouseLButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
+                if (!bHandled && bDoubleClick) {
                     lResult = pOwner->OnNativeMouseLButtonDbClickMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
-                }
-                else {
-                    lResult = pOwner->OnNativeMouseLButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
                 }
             }
             else if (sdlEvent.button.button == SDL_BUTTON_RIGHT) {
-                //鼠标右键
-                if (bDoubleClick) {
-                    lResult = pOwner->OnNativeMouseRButtonDbClickMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
+                //鼠标右键: 先触发右键弹起消息，然后再触发右键双击消息，避免右键弹起消息丢失的现象
+                lResult = pOwner->OnNativeMouseRButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
+                if (!bHandled && !ownerFlag.expired() && (sdlEvent.button.clicks == 1)) {
+                    //模拟Windows，触发一次Context Menu事件
+                    bool bMenuHandled = false;
+                    pOwner->OnNativeContextMenuMsg(pt, NativeMsg(0, 0, 0), bMenuHandled);
                 }
-                else {
-                    lResult = pOwner->OnNativeMouseRButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
-                    if (!bHandled && !ownerFlag.expired() && (sdlEvent.button.clicks == 1)) {
-                        //模拟Windows，触发一次Context Menu事件
-                        bool bMenuHandled = false;
-                        pOwner->OnNativeContextMenuMsg(pt, NativeMsg(0, 0, 0), bMenuHandled);
-                    }
+                if (!bHandled && bDoubleClick && !ownerFlag.expired()) {
+                    lResult = pOwner->OnNativeMouseRButtonDbClickMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
                 }
             }
         }
@@ -644,45 +640,47 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
     while (bKeepGoing) {
 
         /* run through all pending events until we run out. */
-        while (bKeepGoing && SDL_PollEvent(&sdlEvent)) {
+        while (bKeepGoing && SDL_WaitEvent(&sdlEvent)) {
             switch (sdlEvent.type) {
             case SDL_EVENT_QUIT:  /* triggers on last window close and other things. End the program. */
                 bKeepGoing = SDL_FALSE;
+                //重新放入一个Quit消息，让主消息循环也退出，避免该事件丢失
+                PostQuitMsg(0);
                 break;
             default:
-            {
-                //将事件派发到窗口
-                NativeWindow_SDL* pWindow = nullptr;
-                const SDL_WindowID windowID = NativeWindow_SDL::GetWindowIdFromEvent(sdlEvent);
-                if (windowID != 0) {
-                    pWindow = NativeWindow_SDL::GetWindowFromID(windowID);
-                }
-                if (pWindow != nullptr) {
-                    pWindow->OnSDLWindowEvent(sdlEvent);
-                }
-                else {
-                    //其他消息，暂不处理
-                }
+                {
+                    //将事件派发到窗口
+                    NativeWindow_SDL* pWindow = nullptr;
+                    const SDL_WindowID windowID = NativeWindow_SDL::GetWindowIdFromEvent(sdlEvent);
+                    if (windowID != 0) {
+                        pWindow = NativeWindow_SDL::GetWindowFromID(windowID);
+                    }
+                    if (pWindow != nullptr) {
+                        pWindow->OnSDLWindowEvent(sdlEvent);
+                    }
+                    else {
+                        //其他消息，暂不处理
+                    }
 
-                if ((sdlEvent.type == SDL_EVENT_WINDOW_DESTROYED) && (windowID == currentWindowId)) {
-                    //窗口已经退出，退出消息循环
-                    bKeepGoing = SDL_FALSE;
-                }
-                else if ((bCloseByEsc || bCloseByEnter) && (sdlEvent.type == SDL_EVENT_KEY_DOWN) && (windowID == currentWindowId)) {
-                    VirtualKeyCode vkCode = Keycode::GetVirtualKeyCode(sdlEvent.key.key);
-                    if (bCloseByEsc && (vkCode == VirtualKeyCode::kVK_ESCAPE)) {
-                        //模态对话框，按ESC键时，关闭
-                        if (!m_bCloseing) {
-                            CloseWnd(kWindowCloseCancel);
+                    if ((sdlEvent.type == SDL_EVENT_WINDOW_DESTROYED) && (windowID == currentWindowId)) {
+                        //窗口已经退出，退出消息循环
+                        bKeepGoing = SDL_FALSE;
+                    }
+                    else if ((bCloseByEsc || bCloseByEnter) && (sdlEvent.type == SDL_EVENT_KEY_DOWN) && (windowID == currentWindowId)) {
+                        VirtualKeyCode vkCode = Keycode::GetVirtualKeyCode(sdlEvent.key.key);
+                        if (bCloseByEsc && (vkCode == VirtualKeyCode::kVK_ESCAPE)) {
+                            //模态对话框，按ESC键时，关闭
+                            if (!m_bCloseing) {
+                                CloseWnd(kWindowCloseCancel);
+                            }
+                        }
+                        else if (bCloseByEnter && (vkCode == VirtualKeyCode::kVK_RETURN)) {
+                            //模态对话框，按Enter键时，关闭
+                            CloseWnd(kWindowCloseOK);
                         }
                     }
-                    else if (bCloseByEnter && (vkCode == VirtualKeyCode::kVK_RETURN)) {
-                        //模态对话框，按Enter键时，关闭
-                        CloseWnd(kWindowCloseOK);
-                    }
                 }
-            }
-            break;
+                break;
             }
         }
     }
