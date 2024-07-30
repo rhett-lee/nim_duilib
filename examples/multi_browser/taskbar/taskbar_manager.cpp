@@ -33,6 +33,7 @@ void TaskbarTabItem::Init(const DString &taskbar_title, const std::string &id)
         return;
 
     CreateWnd(nullptr, ui::WindowCreateParam(_T("multi_browser")));
+    ShowWindow(ui::kSW_SHOW);
 
     HRESULT ret = S_OK;
     BOOL truth = TRUE;

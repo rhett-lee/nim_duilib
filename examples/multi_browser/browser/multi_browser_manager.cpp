@@ -171,6 +171,7 @@ void MultiBrowserManager::SetEnableMerge(bool enable)
                     ASSERT(0);
                     continue;
                 }
+                browser_form->ShowWindow(ui::kSW_SHOW);
                 sort_form = browser_form;
             }
 
