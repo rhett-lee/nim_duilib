@@ -14,9 +14,8 @@
     - 性能优异：界面资源的内存占有率低，使用Skia引擎绘制，后台绘制配置使用CPU绘制或者GPU绘制
  - 多种图片格式，支持的图片文件格式有：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
  - 动画图片，支持GIF动画文件、APNG动画文件、WebP动画文件
- - 抽象渲染接口，支持Skia渲染引擎（也可以通过接口扩展为其他渲染引擎提供支持）
+ - 使用Skia作为界面渲染引擎，性能较好，功能丰富，控件的功能扩展较容易
  - 支持DPI感知（Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式），支持独立设置DPI，支持高清DPI的适配
- - 触控设备支持（Surface、Wacom）
  - 多国语言支持，支持动态多种语言切换，易于实现国际化
  - CEF 控件支持
 
@@ -49,7 +48,7 @@ git clone https://github.com/rhett-lee/skia_compile
 
 3. 编译skia源码：按照skia_compile目录中的[Windows下编译skia.md文档](https://github.com/rhett-lee/skia_compile/blob/main/Windows%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)中的方法，编译出skia相关的lib文件    
    注意事项：skia源码应该与nim_duilib源码位于相同的目录下。    
-   注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅；如果使用VS编译，运行速度很满，界面比较卡。    
+   注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅；如果使用VS编译，运行速度很慢，界面比较卡。    
    检查方法：编译成功以后，在skia/out的子目录下，有生成skia.lib等lib文件
 
 4. 编译nim_duilib：进入 `nim_duilib/examples` 目录，使用 Visual Studio 2022版本的 IDE 打开 `examples.sln`，选择编译选项为Debug|x64或者Release|x64，按下 F7 即可编译所有示例程序（编译完成的示例程序位于bin目录中）。
@@ -58,7 +57,7 @@ git clone https://github.com/rhett-lee/skia_compile
 （1）项目中工程的编译环境为Visual Studio 2022版本，如果使用其他版本的Visual Studio编译器，需要手动更新编译工程的属性。    
 （2）项目中的工程默认配置是x64的，如果需要编译Win32的程序，在编译skia的时候，也需要启动32位的命令行（x86 Native Tools Command Prompt for VS 2022）   
 （3）nim_duilib的代码兼容性默认是支持Win7以上系统，未支持Windows XP；Windows SDK的兼容性配置可在[duilib\duilib_config.h](duilib/duilib_config.h)文件中修改    
-（4）渲染引擎的支持：nim_duilib内部支持Skia绘制引擎和Gdiplus绘制引擎，默认是Skia引擎，不建议选择Gdiplus引擎，因为Gdiplus引擎下有些控件的功能不完善；  
+（4）渲染引擎的支持：nim_duilib内部使用Skia作为界面绘制引擎；    
 （5）如何配置切换渲染引擎：可修改[duilib\Core\GlobalManager.cpp](duilib/Core/GlobalManager.cpp)文件顶部的源码来切换渲染引擎。
 
 ## 基于NIM_Duilib_Framework源码做的主要修改
@@ -141,7 +140,7 @@ git clone https://github.com/rhett-lee/skia_compile
 2. 本项目是直接在NIM_Duilib_Framework项目的基础上继续开发的，项目地址：[NIM_Duilib_Framework](https://github.com/netease-im/NIM_Duilib_Framework/)
 
 ## 开发计划
- - 窗口的封装优化：支持跨平台的窗口引擎（尝试）
+ - 窗口的封装优化：支持跨平台的窗口引擎（目前正在开发基于[SDL3.0](https://www.libsdl.org/)的作为窗口管理器的方案，可实现界面库的跨平台的支持）
  - 动画功能的加强
  - 不断测试发现缺陷并修复，不断完善代码
  - 其他待补充

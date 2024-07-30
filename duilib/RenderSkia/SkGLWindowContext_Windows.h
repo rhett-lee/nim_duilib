@@ -13,20 +13,9 @@
 #include "tools/window/GLWindowContext.h"
 
 // DisplayParams.fGrContextOptions 类型为GrContextOptions:
-// 在GR_TEST_UTILS宏定义和不定义的情况下，结构体大小会不同，如果不一致会导致程序崩溃
-// 所以在此检测宏定义的一致性
+// 在GR_TEST_UTILS宏定义和不定义的情况下，结构体大小会不同，如果不一致会导致程序崩溃，注意检查该宏定义的一致性
 #ifndef SK_GL
     #error 请检查宏定义：SK_GL与Skia库的编译选项保持一致
-#endif
-
-#ifdef _DEBUG
-    #ifndef GR_TEST_UTILS
-        #error 请检查宏定义：GR_TEST_UTILS与Skia库的编译选项保持一致（DisplayParams/GrContextOptions）
-    #endif
-#else
-    #ifdef GR_TEST_UTILS
-        #error 请检查宏定义：GR_TEST_UTILS与Skia库的编译选项保持一致（DisplayParams/GrContextOptions）
-    #endif
 #endif
 
 #pragma warning (pop)
