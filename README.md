@@ -131,6 +131,7 @@ git clone https://github.com/rhett-lee/skia_compile
 |pugixml   |third_party/xml| 支持资源描述XML的解析|[pugixml.LICENSE.txt](licenses/pugixml.LICENSE.txt)|
 |ConvertUTF|third_party/convert_utf| 用于UTF-8/UTF-16编码的相互转换|[llvm.LICENSE.txt](licenses/llvm.LICENSE.txt)|
 |skia      |项目未包含skia源码     | 界面库渲染引擎|[skia.LICENSE.txt](licenses/skia.LICENSE.txt)|
+|SDL       |项目未包含SDL源码      | 跨平台窗口管理|[SDL.LICENSE.txt](licenses/SDL.LICENSE.txt)|
 |directui  |                       | 借鉴界面库框架|[directui.LICENSE.txt](licenses/directui.LICENSE.txt)|
 |duilib    |                       | 最早基于duilib开发|[duilib.LICENSE.txt](licenses/duilib.LICENSE.txt)|
 |NIM_Duilib Framework|             | 基于NIM_Duilib_Framework开发|[NIM_Duilib_Framework.LICENSE.txt](licenses/NIM_Duilib_Framework.LICENSE.txt)|
