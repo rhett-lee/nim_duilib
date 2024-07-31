@@ -39,6 +39,11 @@ public:
     */
     void RunDoModal(NativeWindow_SDL& nativeWindow, bool bCloseByEsc = true, bool bCloseByEnter = false);
 
+    /** 运行一个用户消息循环，直到达到退出条件
+    * @param [in] bTerminate 为true表示退出消息循环，为false表示一直运行消息循环，初始值应为false
+    */
+    void RunUserLoop(bool& bTerminate);
+
 public:
     /** 从消息队列里面移除多余的消息
     * @param [in] msgId 消息ID
@@ -62,6 +67,10 @@ public:
     * @param [in] msgId 消息ID
     */
     static void RemoveUserMessageCallback(uint32_t msgId);
+
+    /** 向队列中放入一个空消息, 返回到等待队列的处理函数
+    */
+    static void PostNoneEvent();
 
 private:
     /** 处理用户自定义消息

@@ -489,6 +489,7 @@
     <ClCompile Include="Utils\ApiWrapper_Windows.cpp" />
     <ClCompile Include="Utils\AttributeUtil.cpp" />
     <ClCompile Include="Utils\BitmapHepler_Windows.cpp" />
+    <ClCompile Include="Utils\FileDialog_SDL.cpp" />
     <ClCompile Include="Utils\FileDialog_Windows.cpp" />
     <ClCompile Include="Utils\FilePath.cpp" />
     <ClCompile Include="Utils\FilePathUtil.cpp" />

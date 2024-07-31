@@ -136,6 +136,59 @@ void MessageLoop_SDL::RunDoModal(NativeWindow_SDL& nativeWindow, bool bCloseByEs
     }
 }
 
+void MessageLoop_SDL::RunUserLoop(bool& bTerminate)
+{
+    ASSERT(!bTerminate);
+    if (bTerminate) {
+        return;
+    }
+    SDL_bool bKeepGoing = SDL_TRUE;
+    SDL_Event sdlEvent;
+    memset(&sdlEvent, 0, sizeof(sdlEvent));
+    /* run the program until told to stop. */
+    while (bKeepGoing) {
+
+        /* run through all pending events until we run out. */
+        while (bKeepGoing && SDL_WaitEvent(&sdlEvent)) {
+            switch (sdlEvent.type) {
+            case SDL_EVENT_QUIT:  /* triggers on last window close and other things. End the program. */
+                bKeepGoing = SDL_FALSE;
+                //重新放入一个Quit消息，让主消息循环也退出，避免该事件丢失
+                SDL_Event quitEvent;
+                quitEvent.type = SDL_EVENT_QUIT;
+                quitEvent.common.timestamp = 0;
+                SDL_PushEvent(&quitEvent);
+                break;
+            default:
+                {
+                    //将事件派发到窗口
+                    NativeWindow_SDL* pWindow = nullptr;
+                    const SDL_WindowID windowID = NativeWindow_SDL::GetWindowIdFromEvent(sdlEvent);
+                    if (windowID != 0) {
+                        pWindow = NativeWindow_SDL::GetWindowFromID(windowID);
+                    }
+                    if (pWindow != nullptr) {
+                        pWindow->OnSDLWindowEvent(sdlEvent);
+                    }
+                    else {
+                        //其他消息，除了注册的自定义消息，不处理
+                        if ((sdlEvent.type > SDL_EVENT_USER) && (sdlEvent.type < SDL_EVENT_LAST)) {
+                            //用户自定义消息
+                            OnUserEvent(sdlEvent);
+                        }
+                    }
+
+                    if (bTerminate) {
+                        //已经标记退出，退出该消息循环
+                        bKeepGoing = SDL_FALSE;
+                    }
+                }
+                break;
+            }
+        }
+    }
+}
+
 void MessageLoop_SDL::RemoveDuplicateMsg(uint32_t msgId)
 {
     SDL_FlushEvent(msgId);
@@ -158,8 +211,24 @@ bool MessageLoop_SDL::PostUserEvent(uint32_t msgId, WPARAM wParam, LPARAM lParam
     sdlEvent.user.data2 = (void*)lParam;
     sdlEvent.user.windowID = 0;
     int nRet = SDL_PushEvent(&sdlEvent);
-    ASSERT_UNUSED_VARIABLE(nRet > 0);
+    ASSERT(nRet > 0);
     return nRet > 0;
+}
+
+void MessageLoop_SDL::PostNoneEvent()
+{
+    SDL_Event sdlEvent;
+    sdlEvent.type = SDL_EVENT_USER;
+    sdlEvent.common.timestamp = 0;
+    sdlEvent.user.reserved = 0;
+    sdlEvent.user.timestamp = 0;
+    sdlEvent.user.type = SDL_EVENT_USER;
+    sdlEvent.user.code = SDL_EVENT_USER;
+    sdlEvent.user.data1 = 0;
+    sdlEvent.user.data2 = 0;
+    sdlEvent.user.windowID = 0;
+    int nRet = SDL_PushEvent(&sdlEvent);
+    ASSERT_UNUSED_VARIABLE(nRet > 0);
 }
 
 void MessageLoop_SDL::AddUserMessageCallback(uint32_t msgId, const SDLUserMessageCallback& callback)

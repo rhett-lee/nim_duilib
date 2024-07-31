@@ -522,6 +522,9 @@
     <ClCompile Include="Utils\BitmapHepler_Windows.cpp">
       <Filter>Utils\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\FileDialog_SDL.cpp">
+      <Filter>Utils\SDL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
