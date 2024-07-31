@@ -1,4 +1,5 @@
 #include "NativeWindow_SDL.h"
+#include "MessageLoop_SDL.h"
 #include "duilib/Utils/FileUtil.h"
 #include "duilib/Image/ImageDecoder.h"
 #include "duilib/Image/ImageLoadAttribute.h"
@@ -633,57 +634,8 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
     SDL_ShowWindow(m_sdlWindow);
 
     //进入内部消息循环
-    SDL_bool bKeepGoing = SDL_TRUE;
-    SDL_Event sdlEvent;
-    memset(&sdlEvent, 0, sizeof(sdlEvent));
-    /* run the program until told to stop. */
-    while (bKeepGoing) {
-
-        /* run through all pending events until we run out. */
-        while (bKeepGoing && SDL_WaitEvent(&sdlEvent)) {
-            switch (sdlEvent.type) {
-            case SDL_EVENT_QUIT:  /* triggers on last window close and other things. End the program. */
-                bKeepGoing = SDL_FALSE;
-                //重新放入一个Quit消息，让主消息循环也退出，避免该事件丢失
-                PostQuitMsg(0);
-                break;
-            default:
-                {
-                    //将事件派发到窗口
-                    NativeWindow_SDL* pWindow = nullptr;
-                    const SDL_WindowID windowID = NativeWindow_SDL::GetWindowIdFromEvent(sdlEvent);
-                    if (windowID != 0) {
-                        pWindow = NativeWindow_SDL::GetWindowFromID(windowID);
-                    }
-                    if (pWindow != nullptr) {
-                        pWindow->OnSDLWindowEvent(sdlEvent);
-                    }
-                    else {
-                        //其他消息，暂不处理
-                    }
-
-                    if ((sdlEvent.type == SDL_EVENT_WINDOW_DESTROYED) && (windowID == currentWindowId)) {
-                        //窗口已经退出，退出消息循环
-                        bKeepGoing = SDL_FALSE;
-                    }
-                    else if ((bCloseByEsc || bCloseByEnter) && (sdlEvent.type == SDL_EVENT_KEY_DOWN) && (windowID == currentWindowId)) {
-                        VirtualKeyCode vkCode = Keycode::GetVirtualKeyCode(sdlEvent.key.key);
-                        if (bCloseByEsc && (vkCode == VirtualKeyCode::kVK_ESCAPE)) {
-                            //模态对话框，按ESC键时，关闭
-                            if (!m_bCloseing) {
-                                CloseWnd(kWindowCloseCancel);
-                            }
-                        }
-                        else if (bCloseByEnter && (vkCode == VirtualKeyCode::kVK_RETURN)) {
-                            //模态对话框，按Enter键时，关闭
-                            CloseWnd(kWindowCloseOK);
-                        }
-                    }
-                }
-                break;
-            }
-        }
-    }
+    MessageLoop_SDL messageLoop;
+    messageLoop.RunDoModal(*this, bCloseByEsc, bCloseByEnter);
 
     m_bDoModal = false;
     return m_closeParam;
@@ -1283,32 +1235,29 @@ void NativeWindow_SDL::CenterWindow()
     if (pCenterWindow == nullptr) {
         rcCenter = rcArea;
     }
-    else if (SDL_GetWindowFlags(m_sdlWindow) & SDL_WINDOW_MINIMIZED) {
+    else if (SDL_GetWindowFlags(pCenterWindow) & SDL_WINDOW_MINIMIZED) {
         rcCenter = rcArea;
     }
     else {
         GetWindowRect(pCenterWindow, rcCenter);
     }
 
-    int DlgWidth = rcDlg.right - rcDlg.left;
-    int DlgHeight = rcDlg.bottom - rcDlg.top;
-
     // Find dialog's upper left based on rcCenter
-    int xLeft = (rcCenter.left + rcCenter.right) / 2 - DlgWidth / 2;
-    int yTop = (rcCenter.top + rcCenter.bottom) / 2 - DlgHeight / 2;
+    int xLeft = rcCenter.CenterX() - rcDlg.Width() / 2;
+    int yTop = rcCenter.CenterY() - rcDlg.Height() / 2;
 
     // The dialog is outside the screen, move it inside
     if (xLeft < rcArea.left) {
         xLeft = rcArea.left;
     }
-    else if (xLeft + DlgWidth > rcArea.right) {
-        xLeft = rcArea.right - DlgWidth;
+    else if (xLeft + rcDlg.Width() > rcArea.right) {
+        xLeft = rcArea.right - rcDlg.Width();
     }
     if (yTop < rcArea.top) {
         yTop = rcArea.top;
     }
-    else if (yTop + DlgHeight > rcArea.bottom) {
-        yTop = rcArea.bottom - DlgHeight;
+    else if (yTop + rcDlg.Height() > rcArea.bottom) {
+        yTop = rcArea.bottom - rcDlg.Height();
     }
     SetWindowPos(nullptr, InsertAfterFlag(), xLeft, yTop, -1, -1, kSWP_NOSIZE | kSWP_NOZORDER | kSWP_NOACTIVATE);
 }
@@ -1388,17 +1337,20 @@ void NativeWindow_SDL::CheckSetWindowFocus()
 
 LRESULT NativeWindow_SDL::PostMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    ASSERT((uMsg > SDL_EVENT_USER) && (uMsg < SDL_EVENT_LAST));
-    if ((uMsg <= SDL_EVENT_USER) || (uMsg >= SDL_EVENT_LAST)) {
-        return -1;
-    }
     ASSERT(IsWindow());
     if (!IsWindow()) {
         return -1;
     }
+
+    ASSERT((uMsg > SDL_EVENT_USER) && (uMsg < SDL_EVENT_LAST));
+    if ((uMsg <= SDL_EVENT_USER) || (uMsg >= SDL_EVENT_LAST)) {
+        return -1;
+    }
+    
     SDL_Event sdlEvent;
     sdlEvent.type = uMsg;
     sdlEvent.common.timestamp = 0;
+    sdlEvent.user.type = uMsg;
     sdlEvent.user.reserved = 0;
     sdlEvent.user.timestamp = 0;
     sdlEvent.user.code = uMsg;

@@ -1,7 +1,7 @@
 #include "ToolTip.h"
 #include "duilib/Core/WindowBase.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include <CommCtrl.h>
 

@@ -1,8 +1,8 @@
 #include "MonitorUtil.h"
 #include "duilib/Core/WindowBase.h"
-#include "duilib/Utils/ApiWrapper_Windows.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#include "duilib/Utils/ApiWrapper_Windows.h"
 #include "duilib/duilib_config_windows.h"
 #include <VersionHelpers.h>
 
@@ -44,7 +44,7 @@ uint32_t MonitorUtil::GetWindowDpi(const WindowBase* pWindowBase)
     return uDPI;
 }
 
-uint32_t MonitorUtil::GetMainMonitorDPI()
+uint32_t MonitorUtil::GetPrimaryMonitorDPI()
 {
     bool bOk = false;
     uint32_t uDPI = 96;

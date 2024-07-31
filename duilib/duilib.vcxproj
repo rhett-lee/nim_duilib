@@ -411,6 +411,7 @@
     <ClCompile Include="Core\CursorManager_SDL.cpp" />
     <ClCompile Include="Core\CursorManager_Windows.cpp" />
     <ClCompile Include="Core\DpiAwareness.cpp" />
+    <ClCompile Include="Core\DpiAwareness_SDL.cpp" />
     <ClCompile Include="Core\DpiAwareness_Windows.cpp" />
     <ClCompile Include="Core\DpiManager.cpp" />
     <ClCompile Include="Core\DragWindow.cpp" />
@@ -434,14 +435,17 @@
     <ClCompile Include="Core\Shadow.cpp" />
     <ClCompile Include="Core\StateColorMap.cpp" />
     <ClCompile Include="Core\ThreadManager.cpp" />
+    <ClCompile Include="Core\ThreadMessage_SDL.cpp" />
     <ClCompile Include="Core\ThreadMessage_Windows.cpp" />
     <ClCompile Include="Core\TimerManager.cpp" />
+    <ClCompile Include="Core\ToolTip_SDL.cpp" />
     <ClCompile Include="Core\ToolTip_Windows.cpp" />
     <ClCompile Include="Core\UiColors.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Core\WindowBase.cpp" />
     <ClCompile Include="Core\WindowBuilder.cpp" />
     <ClCompile Include="Core\WindowCreateParam.cpp" />
+    <ClCompile Include="Core\WindowDropTarget_SDL.cpp" />
     <ClCompile Include="Core\WindowDropTarget_Windows.cpp" />
     <ClCompile Include="Core\ZipManager.cpp" />
     <ClCompile Include="Core\ZipStreamIO.cpp" />
@@ -490,6 +494,7 @@
     <ClCompile Include="Utils\FilePathUtil.cpp" />
     <ClCompile Include="Utils\FileUtil.cpp" />
     <ClCompile Include="Utils\LogUtil.cpp" />
+    <ClCompile Include="Utils\MonitorUtil_SDL.cpp" />
     <ClCompile Include="Utils\MonitorUtil_Windows.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
     <ClCompile Include="Utils\ScreenCapture_Windows.cpp" />

@@ -87,7 +87,7 @@ void DpiManager::SetDpiByWindow(const WindowBase* pWindow)
             uDPI = DPI_96;
         }
         else {
-            uDPI = MonitorUtil::GetMainMonitorDPI();
+            uDPI = MonitorUtil::GetPrimaryMonitorDPI();
         }
     }
     if (uDPI == 0) {

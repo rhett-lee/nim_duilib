@@ -70,6 +70,9 @@
     <Filter Include="Control\Windows">
       <UniqueIdentifier>{1f1d0b6e-57aa-4bdb-a0ad-e0a880214efa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Utils\SDL">
+      <UniqueIdentifier>{d7bb0053-b383-407e-a8d2-59a1614592d8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -503,6 +506,21 @@
     </ClCompile>
     <ClCompile Include="Core\CursorManager_SDL.cpp">
       <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DpiAwareness_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ToolTip_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\WindowDropTarget_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ThreadMessage_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\MonitorUtil_SDL.cpp">
+      <Filter>Utils\SDL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
