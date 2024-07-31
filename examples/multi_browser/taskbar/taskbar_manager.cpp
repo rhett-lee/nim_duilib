@@ -1,5 +1,5 @@
 #include "taskbar_manager.h"
-#include "duilib/Utils/BitmapHelper.h"
+#include "duilib/Utils/BitmapHelper_Windows.h"
 #include "duilib/Utils/StringUtil.h"
 
 #include "dwm_util.h"

@@ -9,7 +9,7 @@
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
-#include "duilib/Utils/BitmapHelper.h"
+#include "duilib/Utils/BitmapHelper_Windows.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationManager.h"

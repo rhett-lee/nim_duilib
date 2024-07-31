@@ -480,9 +480,6 @@
     <ClCompile Include="Utils\FileDialog_Windows.cpp">
       <Filter>Utils\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\BitmapHepler.cpp">
-      <Filter>Utils\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\MonitorUtil_Windows.cpp">
       <Filter>Utils\Windows</Filter>
     </ClCompile>
@@ -521,6 +518,9 @@
     </ClCompile>
     <ClCompile Include="Utils\MonitorUtil_SDL.cpp">
       <Filter>Utils\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\BitmapHepler_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1073,9 +1073,6 @@
     <ClInclude Include="Utils\ApiWrapper_Windows.h">
       <Filter>Utils\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\BitmapHelper.h">
-      <Filter>Utils\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\Macros_Windows.h">
       <Filter>Utils\Windows</Filter>
     </ClInclude>
@@ -1093,6 +1090,9 @@
     </ClInclude>
     <ClInclude Include="Core\Keycode.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\BitmapHelper_Windows.h">
+      <Filter>Utils\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

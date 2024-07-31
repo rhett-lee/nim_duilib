@@ -1,4 +1,4 @@
-#include "BitmapHelper.h"
+#include "BitmapHelper_Windows.h"
 #include "duilib/Core/GlobalManager.h"
 #include <algorithm>
 

@@ -1,5 +1,5 @@
 #include "RenderTest3.h"
-#include "duilib/Utils/BitmapHelper.h"
+#include "duilib/Utils/BitmapHelper_Windows.h"
 
 namespace ui {
 
