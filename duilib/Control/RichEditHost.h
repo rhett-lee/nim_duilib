@@ -278,6 +278,6 @@ private:
 
 }//name space ui
 
-#endif // UI_CONTROL_RICHEDIT_HOST_H_
+#endif // DUILIB_BUILD_FOR_WIN
 
-#endif //DUILIB_BUILD_FOR_WIN
+#endif // UI_CONTROL_RICHEDIT_HOST_H_

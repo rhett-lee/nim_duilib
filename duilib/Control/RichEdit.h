@@ -52,6 +52,7 @@ public:
      */
     void SetReturnMsgWantCtrl(bool bReturnMsgWantCtrl = true);
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 是否是富文本模式
      * @return 返回 true 为富文本模式：支持丰富的文本格式，支持RTF格式
                返回 false 为纯文本模式：纯文本控件中的文本只能有一种格式
@@ -62,6 +63,7 @@ public:
      * @param[in] bRichText 设置 true 为富文本模式，false 为纯文本模式
      */
     void SetRichText(bool bRichText = true);
+#endif
 
     /** 是否是只读状态
      * @return 返回 true 为只读状态，否则为 false
@@ -192,6 +194,7 @@ public:
     */
     void SetLimitChars(const DString& limitChars);
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 是否允许发出Beep声音
     */
     bool GetAllowBeep() const;
@@ -199,6 +202,7 @@ public:
     /** 设置是否允许发出Beep声音
     */
     void SetAllowBeep(bool bAllowBeep);
+#endif
 
     /** 获取内容的长度(Unicode编码，字符个数)
      * @return 返回内容长度
@@ -245,10 +249,12 @@ public:
      */
     void SetModify(bool bModified = true);
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 获取所选文本的起始位置和结束位置
      * @param[out] cr 返回起始位置和结束位置
      */
     void GetSel(CHARRANGE &cr) const;
+#endif
 
     /** 获取所选文本的起始位置和结束位置
      * @param[in] nStartChar 返回起始位置
@@ -256,11 +262,13 @@ public:
      */
     void GetSel(long& nStartChar, long& nEndChar) const;
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 选择一部分内容
      * @param[in] cr 要选择的文字起始位置和结束位置
      * @return 返回选择的文字数量
      */
     int SetSel(CHARRANGE &cr);
+#endif
 
     /** 选择一部分内容
      * @param[in] nStartChar 要选择的起始位置
@@ -290,6 +298,7 @@ public:
      */
     int SetSelNone();
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 获取控件的选择类型
      * @return 返回控件的选择类型，参考：https://docs.microsoft.com/en-us/windows/desktop/controls/em-selectiontype
         SEL_TEXT: Text.
@@ -306,7 +315,9 @@ public:
     /** 查找文本
     */
     LONG FindRichText(DWORD dwFlags, FINDTEXTEXW& ft) const;
+#endif
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 获取当前缩放比， 按缩放比例分子/分母显示的缩放：1/64 < (wParam / lParam) < 64
      * @param[out] nNum 缩放比率分子
      * @param[out] nDen 缩放比率分母
@@ -325,7 +336,9 @@ public:
      * @return 成功返回 true，否则返回 false
      */
     bool SetZoomOff();
+#endif
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 获取是否开启了自动 URL 检测(从RichEditHost读取)
      * @return 返回 true 表示开启了自动检测，否则为 false
      */
@@ -336,7 +349,9 @@ public:
      * @return 返回 true 为设置成功，false 为失败
      */
     bool SetAutoURLDetect(bool bAutoDetect = true);
+#endif
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 获取控件的事件掩码
      * @return 返回事件掩码
      */
@@ -347,6 +362,7 @@ public:
      * @return 返回设置之前的事件掩码值
      */
     DWORD SetEventMask(DWORD dwEventMask);
+#endif
 
     /** 获取指定范围的内容
      * @param[in] nStartChar 起始位置
@@ -361,6 +377,7 @@ public:
      */
     void HideSelection(bool bHide = true, bool bChangeStyle = false);
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 设置光标到可见位置
      */
     void ScrollCaret();
@@ -379,7 +396,9 @@ public:
      * @return 返回追加后的文字位置
      */
     int AppendText(const DString& strText, bool bCanUndo = false);
+#endif
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 获取字符格式
      * @param[out] cf 返回获取的字符格式
      * @return 返回参数 cf 中 dwMask 的值
@@ -421,6 +440,7 @@ public:
      * @return 成功返回 true，否则返回 false
      */
     bool SetParaFormat(PARAFORMAT2& pf);
+#endif
 
     /** 是否可以Redo
     */
@@ -456,11 +476,16 @@ public:
      */
     void Paste();
 
+    /** 检测是否可以粘贴
+    */
+    bool CanPaste() const;
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 检测是否可以粘贴指定剪切板格式
      * @param[in] nFormat 要检测的格式
      * @return 可以返回 true，否则返回 false
      */
-    BOOL CanPaste(UINT nFormat = 0);
+    BOOL CanPaste(UINT nFormat);
 
     /** 在控件中粘贴特定的剪贴板格式
      * @param[in] uClipFormat 指定剪切板格式
@@ -468,6 +493,7 @@ public:
      * @param[in] hMF 如果 dwAspect 为 DVASPECT_ICON，该函数应该包含图标句柄
      */
     void PasteSpecial(UINT uClipFormat, DWORD dwAspect = 0, HMETAFILE hMF = 0);
+#endif
 
     /** 获取总行数
      * @return 返回总行数
@@ -527,6 +553,7 @@ public:
      */
     UINT SetUndoLimit(UINT nLimit);
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 增加一个回调用于控制输入内容
      * @param[in] nFormat 指定数据格式的替换选项，见：https://docs.microsoft.com/en-us/windows/desktop/controls/em-streamin
      * @param[in] es 包含自定义回调的结构体
@@ -540,6 +567,7 @@ public:
      * @return 返回写入数据流的数据大小
      */
     long StreamOut(UINT nFormat, EDITSTREAM &es);
+#endif
 
     /** 设置滚动条位置
      * @param[in] szPos 要设置的滚动条位置信息
@@ -749,6 +777,7 @@ public:
      */
     void SetNoCaretReadonly();
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 设置是否保存所选内容的边界
      */
     void SetSaveSelection(bool fSaveSelection);
@@ -756,7 +785,9 @@ public:
     /** 设置是否隐藏选择项
      */
     void SetHideSelection(bool fHideSelection);
+#endif
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 添加带颜色的文本
      * @param[in] str 文本内容
      * @param[in] color 颜色值，该值必须在 global.xml 中存在
@@ -797,6 +828,7 @@ public:
      * @return 返回 true 表示在 link 上
      */
     bool HittestCustomLink(UiPoint pt, DString& info);
+#endif
 
     /** 清理图片缓存
      */
@@ -832,6 +864,7 @@ public:
     */
     bool IsEnableDefaultContextMenu() const;
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 设置是否允许拖放功能
     */
     void SetEnableDragDrop(bool bEnable);
@@ -839,6 +872,7 @@ public:
     /** 判断是否已经允许拖放功能
     */
     bool IsEnableDragDrop() const;
+#endif
 
     /** 设置是否支持Spin控件
     * @param [in] bEnable true表示支持Spin控件，false表示不支持Spin控件
@@ -939,6 +973,7 @@ private:
     */
     void ShowPopupMenu(const ui::UiPoint& point);
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 注册拖放接口与窗口的关联关系
     */
     void RegisterDragDrop();
@@ -946,6 +981,7 @@ private:
     /** 注销拖放接口与窗口的关联关系
     */
     void UnregisterDragDrop();
+#endif
 
     /** 判断一个字符，是否在限制字符列表中
     */
@@ -1029,47 +1065,51 @@ protected:
     //RichEdit Host类
     RichEditHost* m_pRichHost;
 
-    bool m_bVScrollBarFixing; //滚动条修正标志
-    bool m_bWantTab;          //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
-    bool m_bNeedReturnMsg;    //是否接收回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
-    bool m_bReturnMsgWantCtrl;//是否接收Ctrl + 回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
+    bool m_bVScrollBarFixing;   //滚动条修正标志
+    bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
+    bool m_bNeedReturnMsg;      //是否接收回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
+    bool m_bReturnMsgWantCtrl;  //是否接收Ctrl + 回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
      
-    bool m_bSelAllEver;            //只在获取焦点后的第一次鼠标弹起全选
+    bool m_bSelAllEver;         //只在获取焦点后的第一次鼠标弹起全选
 
-    bool m_bNoSelOnKillFocus;    //失去焦点的时候，取消文本选择（针对 m_bEnabled && IsReadOnly()）
-    bool m_bSelAllOnFocus;        //获取焦点的时候，全选文本（针对 m_bEnabled && !IsReadOnly()）
+    bool m_bNoSelOnKillFocus;   //失去焦点的时候，取消文本选择（针对 m_bEnabled && IsReadOnly()）
+    bool m_bSelAllOnFocus;      //获取焦点的时候，全选文本（针对 m_bEnabled && !IsReadOnly()）
 
-    bool m_bIsComposition;   //输入法合成窗口是否可见
+    bool m_bIsComposition;      //输入法合成窗口是否可见
     
 protected:
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     struct LinkInfo
     {
         CHARRANGE cr = {0, 0};
         UiString info;
     };
-    std::map<UINT, WeakCallbackFlag> m_timeFlagMap;
     std::vector<LinkInfo> m_linkInfo;
+#endif
+
+    std::map<UINT, WeakCallbackFlag> m_timeFlagMap;    
 
 private:
-    bool m_bNoCaretReadonly;     //只读模式下，不显示光标
-    bool m_bIsCaretVisiable;     //光标是否可见
-    int32_t     m_iCaretPosX;         //光标X坐标
-    int32_t  m_iCaretPosY;         //光标Y坐标
-    int32_t  m_iCaretWidth;         //光标宽度
-    int32_t  m_iCaretHeight;     //光标高度
-    UiString m_sCaretColor;         //光标颜色
+    bool m_bNoCaretReadonly;    //只读模式下，不显示光标
+    bool m_bIsCaretVisiable;    //光标是否可见
+    int32_t m_iCaretPosX;       //光标X坐标
+    int32_t m_iCaretPosY;       //光标Y坐标
+    int32_t m_iCaretWidth;      //光标宽度
+    int32_t m_iCaretHeight;     //光标高度
+    UiString m_sCaretColor;     //光标颜色
 
-    WeakCallbackFlag m_drawCaretFlag; //绘制光标的定时器生命周期
+    WeakCallbackFlag m_drawCaretFlag;   //绘制光标的定时器生命周期
 
 private:
     UiString m_sFontId;                 //字体ID
-    UiString m_sTextColor;             //正常文本颜色
-    UiString m_sDisabledTextColor;     //Disabled状态的文本颜色
+    UiString m_sTextColor;              //正常文本颜色
+    UiString m_sDisabledTextColor;      //Disabled状态的文本颜色
 
-    bool m_bAllowPrompt;             //是否支持提示文字
-    UiString m_sPromptColor;         //提示文字颜色
+    bool m_bAllowPrompt;                //是否支持提示文字
+    UiString m_sPromptColor;            //提示文字颜色
     UiString m_sPromptText;             //提示文本内容（只有编辑框为空的时候显示）
-    UiString m_sPromptTextId;         //提示文字ID
+    UiString m_sPromptTextId;           //提示文字ID
 
 private:
     /** 获取焦点时，显示的图片
@@ -1092,9 +1132,11 @@ private:
     */
     bool m_bEnableDefaultContextMenu;
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 拖放功能的实现接口, 如果不为空表示功能已经开启
     */
     ControlDropTarget* m_pControlDropTarget;
+#endif
 
     /** 允许输入的字符列表
     */
@@ -1185,6 +1227,6 @@ private:
 
 } // namespace ui
 
-#endif // UI_CONTROL_RICHEDIT_H_
+#endif // DUILIB_BUILD_FOR_WIN
 
-#endif //DUILIB_BUILD_FOR_WIN
+#endif // UI_CONTROL_RICHEDIT_H_

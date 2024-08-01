@@ -5,22 +5,22 @@
 
 #ifdef DUILIB_BUILD_FOR_WIN
 
-#define UI_ES_LEFT                0x0001L
+#define UI_ES_LEFT              0x0001L
 #define UI_ES_CENTER            0x0002L
-#define UI_ES_RIGHT                0x0004L
-#define UI_ES_TOP                0x0008L
-#define UI_ES_VCENTER            0x0010L
+#define UI_ES_RIGHT             0x0004L
+#define UI_ES_TOP               0x0008L
+#define UI_ES_VCENTER           0x0010L
 #define UI_ES_BOTTOM            0x0020L
-#define UI_ES_MULTILINE            0x0040L
+#define UI_ES_MULTILINE         0x0040L
 #define UI_ES_NUMBER            0x0080L
-#define UI_ES_PASSWORD            0x0100L
-#define UI_ES_READONLY            0x0200L
-#define UI_ES_NOHIDESEL            0x0400L
-#define UI_ES_AUTOHSCROLL        0x0800L
-#define UI_ES_AUTOVSCROLL        0x1000L
-#define UI_ES_DISABLENOSCROLL    0x2000L
-#define UI_WS_HSCROLL            0x4000L
-#define UI_WS_VSCROLL            0x8000L
+#define UI_ES_PASSWORD          0x0100L
+#define UI_ES_READONLY          0x0200L
+#define UI_ES_NOHIDESEL         0x0400L
+#define UI_ES_AUTOHSCROLL       0x0800L
+#define UI_ES_AUTOVSCROLL       0x1000L
+#define UI_ES_DISABLENOSCROLL   0x2000L
+#define UI_WS_HSCROLL           0x4000L
+#define UI_WS_VSCROLL           0x8000L
 
 namespace ui
 {
