@@ -2,7 +2,8 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Shadow.h"
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#ifdef DUILIB_BUILD_FOR_SDL
+#include <SDL3/SDL.h>
 
 namespace ui {
 
@@ -20,6 +21,16 @@ public:
 
     virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
     bool Create(Window* window);
+
+    /** 获取关联的窗口ID
+    */
+    SDL_WindowID GetWindowID() const
+    {
+        if (m_pWindow != nullptr) {
+            return SDL_GetWindowID((SDL_Window*)m_pWindow->GetWindowHandle());
+        }
+        return 0;
+    }
 private:
     Window* m_pWindow;
     //标记被跟随的窗口是否完成首次绘制
@@ -41,60 +52,81 @@ DString ShadowWndBase::GetSkinFile()
 {
     return _T("public/shadow/shadow.xml");
 }
+//
+//int SDLCALL ShadowWndBaseEventFilter(void* userdata, SDL_Event* event)
+//{
+//    ShadowWndBase* pShadowWndBase = (ShadowWndBase*)userdata;
+//    if ((event != nullptr) && (pShadowWndBase != nullptr)) {
+//        if (event->type == SDL_EVENT_WINDOW_MOVING) {
+//            if (event->window.windowID == pShadowWndBase->GetWindowID()) {
+//                bool bHandled = false;
+//                pShadowWndBase->FilterMessage(SDL_EVENT_WINDOW_MOVING, 0, 0, bHandled);
+//            }
+//        }
+//    }
+//    return 0;
+//}
 
 bool ShadowWndBase::Create(Window* window)
 {
     m_pWindow = window;
     WindowCreateParam createParam;
-    createParam.m_dwExStyle = kWS_EX_TRANSPARENT | kWS_EX_LAYERED;
+    createParam.m_dwStyle = kWS_POPUP;
+    createParam.m_dwExStyle = kWS_EX_TRANSPARENT | kWS_EX_LAYERED | kWS_EX_NOACTIVATE | kWS_EX_TOOLWINDOW;
     createParam.m_className = _T("ShadowWnd");
+    createParam.m_windowTitle = _T("ShadowWnd");
+
+    //支持鼠标按住标题栏移动窗口时的阴影跟随效果
+    //由于目前SDL的消息循环机制，在鼠标按住标题栏移动窗口时，窗口产生的消息对应的SDL事件是不会被应用层处理的。
+    //SDL_AddEventWatch(ShadowWndBaseEventFilter, this);
+
     return Window::CreateWnd(nullptr, createParam);
 }
 
-LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
+LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
 {
     bHandled = false;
     if ((m_pWindow == nullptr) || !m_pWindow->IsWindow()) {
         return 0;
     }
-    switch (uMsg)
-    {
-        case WM_ERASEBKGND:
-        case WM_PAINT:
-        case WM_MOVE:
-        case WM_SIZE:
-        case WM_SIZING:
-        case WM_WINDOWPOSCHANGING:
-        case WM_WINDOWPOSCHANGED:
-        case WM_ACTIVATE:
-        case WM_NCACTIVATE:
-            if ((uMsg != WM_PAINT) || ((uMsg == WM_PAINT) && !m_isFirstPainted)) {
-                if (m_pWindow->IsWindowVisible()) {
-                    UiRect rc;
-                    m_pWindow->GetWindowRect(rc);
-                    UiPadding rcShadow;
-                    GetShadowCorner(rcShadow);
-                    rc.Inflate(rcShadow);
-                    SetWindowPos(InsertAfterWnd(m_pWindow), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_SHOWWINDOW | kSWP_NOACTIVATE);
-                    if (uMsg == WM_PAINT) {
-                        m_isFirstPainted = true;
-                    }
-                }
-            }            
-            break;
-        case WM_CLOSE:
+    bool bAdjustWindowPos = false;
+    if (uMsg == SDL_EVENT_WINDOW_CLOSE_REQUESTED) {
+        //窗口关闭
+        ShowWindow(kSW_HIDE);
+    }
+    else if (uMsg == SDL_EVENT_WINDOW_SHOWN) {
+        ShowWindow(kSW_SHOW_NA);
+    }
+    else if (uMsg == SDL_EVENT_WINDOW_HIDDEN) {
+        ShowWindow(kSW_HIDE);
+    }
+    else if (uMsg == SDL_EVENT_WINDOW_MINIMIZED) {
+        ShowWindow(kSW_HIDE);
+    }
+    else if ((uMsg == SDL_EVENT_WINDOW_EXPOSED) && !m_isFirstPainted) {
+        bAdjustWindowPos = true;
+    }
+    else if ((uMsg >= SDL_EVENT_WINDOW_FIRST) && (uMsg <= SDL_EVENT_WINDOW_LAST)) {
+        if (uMsg != SDL_EVENT_WINDOW_EXPOSED) {
+            bAdjustWindowPos = true;
+        }
+    }
+    if (bAdjustWindowPos) {
+        if (m_pWindow->IsWindowVisible() && !m_pWindow->IsWindowMinimized()) {
+            UiRect rc;
+            m_pWindow->GetWindowRect(rc);
+            UiPadding rcShadow;
+            GetShadowCorner(rcShadow);
+            rc.Inflate(rcShadow);
+            //TODO: 由于SDL没有调整窗口Z-Order的功能，所以阴影窗口的位置不对，经常在其他窗口的后面，导致看不到阴影。
+            SetWindowPos(InsertAfterWnd(m_pWindow), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_SHOWWINDOW | kSWP_NOACTIVATE);
+            if (uMsg == SDL_EVENT_WINDOW_EXPOSED) {
+                m_isFirstPainted = true;
+            }
+        }
+        else {
             ShowWindow(kSW_HIDE);
-            break;
-        case WM_SHOWWINDOW:
-            if (wParam == 0) {
-                ShowWindow(kSW_HIDE);
-            }
-            else {
-                ShowWindow(kSW_SHOW_NA);
-            }
-            break;
-        default:
-            break;
+        }
     }
     return 0;
 }

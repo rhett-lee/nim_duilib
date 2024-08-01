@@ -21,12 +21,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     _wsetlocale(LC_ALL, L"chs");
 
-#ifdef _DEBUG
-    AllocConsole();
-    FILE* fp = NULL;
-    freopen_s(&fp, "CONOUT$", "w+t", stdout);
-    wprintf_s(L"Command:\n%s\n\n", lpCmdLine);
-#endif
+//#ifdef _DEBUG
+//    AllocConsole();
+//    FILE* fp = NULL;
+//    freopen_s(&fp, "CONOUT$", "w+t", stdout);
+//    wprintf_s(L"Command:\n%s\n\n", lpCmdLine);
+//#endif
 
     HRESULT hr = ::OleInitialize(NULL);
     if (FAILED(hr))

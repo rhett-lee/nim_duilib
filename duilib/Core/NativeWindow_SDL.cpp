@@ -1684,12 +1684,17 @@ void NativeWindow_SDL::GetWindowRect(SDL_Window* sdlWindow, UiRect& rcWindow) co
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
     {
         HWND hWnd = GetHWND();
-        RECT rect = { 0, };
-        ::GetWindowRect(hWnd, &rect);
-        ASSERT(rcWindow.left == rect.left);
-        ASSERT(rcWindow.top == rect.top);
-        ASSERT(rcWindow.right == rect.right);
-        ASSERT(rcWindow.bottom == rect.bottom);
+        if (!::IsIconic(hWnd) && ::IsWindowVisible(hWnd)) {
+            //最小化的时候，或者隐藏的时候，不比对，两者不同
+            RECT rect = { 0, };
+            ::GetWindowRect(hWnd, &rect);
+            if (rect.left != -32000) {
+                ASSERT(rcWindow.left == rect.left);
+                ASSERT(rcWindow.top == rect.top);
+                ASSERT(rcWindow.right == rect.right);
+                ASSERT(rcWindow.bottom == rect.bottom);
+            }            
+        }
     }
 #endif
 }

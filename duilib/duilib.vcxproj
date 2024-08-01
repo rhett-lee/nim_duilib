@@ -499,6 +499,7 @@
     <ClCompile Include="Utils\MonitorUtil_Windows.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
     <ClCompile Include="Utils\ScreenCapture_Windows.cpp" />
+    <ClCompile Include="Utils\ShadowWnd_SDL.cpp" />
     <ClCompile Include="Utils\ShadowWnd_Windows.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
     <ClCompile Include="Control\Combo.cpp" />

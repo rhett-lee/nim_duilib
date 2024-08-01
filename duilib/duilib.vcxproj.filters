@@ -525,6 +525,9 @@
     <ClCompile Include="Utils\FileDialog_SDL.cpp">
       <Filter>Utils\SDL</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\ShadowWnd_SDL.cpp">
+      <Filter>Utils\SDL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
