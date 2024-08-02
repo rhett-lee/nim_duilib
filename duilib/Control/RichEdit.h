@@ -52,19 +52,6 @@ public:
      */
     void SetReturnMsgWantCtrl(bool bReturnMsgWantCtrl = true);
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 是否是富文本模式
-     * @return 返回 true 为富文本模式：支持丰富的文本格式，支持RTF格式
-               返回 false 为纯文本模式：纯文本控件中的文本只能有一种格式
-     */
-    bool IsRichText();
-
-    /** 设置控件为富文本模式
-     * @param[in] bRichText 设置 true 为富文本模式，false 为纯文本模式
-     */
-    void SetRichText(bool bRichText = true);
-#endif
-
     /** 是否是只读状态
      * @return 返回 true 为只读状态，否则为 false
      */
@@ -194,16 +181,6 @@ public:
     */
     void SetLimitChars(const DString& limitChars);
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 是否允许发出Beep声音
-    */
-    bool GetAllowBeep() const;
-
-    /** 设置是否允许发出Beep声音
-    */
-    void SetAllowBeep(bool bAllowBeep);
-#endif
-
     /** 获取内容的长度(Unicode编码，字符个数)
      * @return 返回内容长度
      */
@@ -249,26 +226,11 @@ public:
      */
     void SetModify(bool bModified = true);
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 获取所选文本的起始位置和结束位置
-     * @param[out] cr 返回起始位置和结束位置
-     */
-    void GetSel(CHARRANGE &cr) const;
-#endif
-
     /** 获取所选文本的起始位置和结束位置
      * @param[in] nStartChar 返回起始位置
      * @param[in] nEndChar 返回结束位置
      */
     void GetSel(long& nStartChar, long& nEndChar) const;
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 选择一部分内容
-     * @param[in] cr 要选择的文字起始位置和结束位置
-     * @return 返回选择的文字数量
-     */
-    int SetSel(CHARRANGE &cr);
-#endif
 
     /** 选择一部分内容
      * @param[in] nStartChar 要选择的起始位置
@@ -298,72 +260,6 @@ public:
      */
     int SetSelNone();
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 获取控件的选择类型
-     * @return 返回控件的选择类型，参考：https://docs.microsoft.com/en-us/windows/desktop/controls/em-selectiontype
-        SEL_TEXT: Text.
-        SEL_OBJECT: At least one COM object.
-        SEL_MULTICHAR: More than one character of text.
-        SEL_MULTIOBJECT: More than one COM object.
-     */
-    WORD GetSelectionType() const;
-
-    /** 查找文本
-    */
-    LONG FindRichText(DWORD dwFlags, FINDTEXTW& ft) const;
-
-    /** 查找文本
-    */
-    LONG FindRichText(DWORD dwFlags, FINDTEXTEXW& ft) const;
-#endif
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 获取当前缩放比， 按缩放比例分子/分母显示的缩放：1/64 < (wParam / lParam) < 64
-     * @param[out] nNum 缩放比率分子
-     * @param[out] nDen 缩放比率分母
-     * @return 如果处理了消息则返回 TRUE
-     */
-    bool GetZoom(int& nNum, int& nDen) const;
-
-    /** 设置缩放比
-     * @param[in] nNum 缩放比率分子，取值范围：[0, 64]
-     * @param[in] nDen 缩放比率分母，取值范围：[0, 64]
-     * @return 成功返回 true，失败返回 false
-     */
-    bool SetZoom(int nNum, int nDen);
-
-    /** 恢复缩放到初始状态
-     * @return 成功返回 true，否则返回 false
-     */
-    bool SetZoomOff();
-#endif
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 获取是否开启了自动 URL 检测(从RichEditHost读取)
-     * @return 返回 true 表示开启了自动检测，否则为 false
-     */
-    bool GetAutoURLDetect() const;
-
-    /** 设置是否开启 URL 自动检测
-     * @param[in] bAutoDetect 设置为 true 表示检测 URL，false 为不检测，默认为 true
-     * @return 返回 true 为设置成功，false 为失败
-     */
-    bool SetAutoURLDetect(bool bAutoDetect = true);
-#endif
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 获取控件的事件掩码
-     * @return 返回事件掩码
-     */
-    DWORD GetEventMask() const;
-
-    /** 设置控件的事件掩码
-     * @param[in] dwEventMask 要设置的事件掩码值
-     * @return 返回设置之前的事件掩码值
-     */
-    DWORD SetEventMask(DWORD dwEventMask);
-#endif
-
     /** 获取指定范围的内容
      * @param[in] nStartChar 起始位置
      * @param[in] nEndChar 结束为止
@@ -376,71 +272,6 @@ public:
      * @param[in] bChangeStyle 是否修改样式，true 为修改，false 为不修改
      */
     void HideSelection(bool bHide = true, bool bChangeStyle = false);
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 设置光标到可见位置
-     */
-    void ScrollCaret();
-
-    /** 插入文字
-     * @param[in] nInsertAfterChar 要插入的位置
-     * @param[in] text 要插入的文本
-     * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false，默认为 false
-     * @return 返回插入后的文本位置
-     */
-    int InsertText(long nInsertAfterChar, const DString& text, bool bCanUndo = false);
-
-    /** 追加文字
-     * @param[in] strText 要追加的文字
-     * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false，默认为 false
-     * @return 返回追加后的文字位置
-     */
-    int AppendText(const DString& strText, bool bCanUndo = false);
-#endif
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 获取字符格式
-     * @param[out] cf 返回获取的字符格式
-     * @return 返回参数 cf 中 dwMask 的值
-     */
-    DWORD GetDefaultCharFormat(CHARFORMAT2W& cf) const;
-
-    /** 设置默认的字符格式
-     * @param[in] cf 要设置字符格式
-     * @return 返回 true 表示成功，false 为失败
-     */
-    bool SetDefaultCharFormat(CHARFORMAT2W& cf);
-
-    /** 获取被选择的字符格式
-     * @param[out] cf 返回获取的字符格式
-     * @return 返回参数 cf 中 dwMask 的值
-     */
-    DWORD GetSelectionCharFormat(CHARFORMAT2W& cf) const;
-
-    /** 设置被选择的字符格式
-     * @param[in] cf 要设置的字符格式
-     * @return 返回 true 表示成功，false 为失败
-     */
-    bool SetSelectionCharFormat(CHARFORMAT2W& cf);
-
-    /** 设置当前插入点的单词格式
-     * @param[in] cf 要设置的单词格式
-     * @return 成功返回 true，失败返回 false
-     */
-    bool SetWordCharFormat(CHARFORMAT2W& cf);
-
-    /** 获取当前段落格式
-     * @param[out] pf 返回当前段落格式
-     * @return 返回 pf 参数的 dwMask 成员
-     */
-    DWORD GetParaFormat(PARAFORMAT2& pf) const;
-
-    /** 设置当前段落格式
-     * @param[in] pf 要设置的段落格式样式
-     * @return 成功返回 true，否则返回 false
-     */
-    bool SetParaFormat(PARAFORMAT2& pf);
-#endif
 
     /** 是否可以Redo
     */
@@ -479,21 +310,6 @@ public:
     /** 检测是否可以粘贴
     */
     bool CanPaste() const;
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 检测是否可以粘贴指定剪切板格式
-     * @param[in] nFormat 要检测的格式
-     * @return 可以返回 true，否则返回 false
-     */
-    BOOL CanPaste(UINT nFormat);
-
-    /** 在控件中粘贴特定的剪贴板格式
-     * @param[in] uClipFormat 指定剪切板格式
-     * @param[in] dwAspect 指定展示形式
-     * @param[in] hMF 如果 dwAspect 为 DVASPECT_ICON，该函数应该包含图标句柄
-     */
-    void PasteSpecial(UINT uClipFormat, DWORD dwAspect = 0, HMETAFILE hMF = 0);
-#endif
 
     /** 获取总行数
      * @return 返回总行数
@@ -552,22 +368,6 @@ public:
      * @return 返回设置后的撤销列表可容纳内容数量
      */
     UINT SetUndoLimit(UINT nLimit);
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 增加一个回调用于控制输入内容
-     * @param[in] nFormat 指定数据格式的替换选项，见：https://docs.microsoft.com/en-us/windows/desktop/controls/em-streamin
-     * @param[in] es 包含自定义回调的结构体
-     * @return 返回读入数据流的数据大小
-     */
-    long StreamIn(UINT nFormat, EDITSTREAM &es);
-
-    /** 指定一个回调用于控制输出内容
-     * @param[in] nFormat 指定数据格式的替换选项，见：https://docs.microsoft.com/en-us/windows/desktop/controls/em-streamin
-     * @param[in] es 包含自定义回调的结构体
-     * @return 返回写入数据流的数据大小
-     */
-    long StreamOut(UINT nFormat, EDITSTREAM &es);
-#endif
 
     /** 设置滚动条位置
      * @param[in] szPos 要设置的滚动条位置信息
@@ -777,33 +577,6 @@ public:
      */
     void SetNoCaretReadonly();
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 设置是否保存所选内容的边界
-     */
-    void SetSaveSelection(bool fSaveSelection);
-
-    /** 设置是否隐藏选择项
-     */
-    void SetHideSelection(bool fHideSelection);
-#endif
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 添加带颜色的文本
-     * @param[in] str 文本内容
-     * @param[in] color 颜色值，该值必须在 global.xml 中存在
-     */
-    void AddColorText(const DString &str, const DString &color);
-
-    /** 添加一个指定字体带有文字颜色的超链接
-     * @param[in] str 文字内容
-     * @param[in] color 文字颜色
-     * @param[in] linkInfo 链接地址
-     * @param[in] font 字体索引
-     */
-    void AddLinkColorTextEx(const DString& str, const DString &color, const DString &linkInfo = _T(""), const DString& strFontId = _T(""));
-
-#endif
-
     /** 清理图片缓存
      */
     virtual void ClearImageCache() override;
@@ -837,16 +610,6 @@ public:
     /** 是否允许使用默认的右键菜单
     */
     bool IsEnableDefaultContextMenu() const;
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 设置是否允许拖放功能
-    */
-    void SetEnableDragDrop(bool bEnable);
-
-    /** 判断是否已经允许拖放功能
-    */
-    bool IsEnableDragDrop() const;
-#endif
 
     /** 设置是否支持Spin控件
     * @param [in] bEnable true表示支持Spin控件，false表示不支持Spin控件
@@ -893,16 +656,6 @@ public:
     virtual void HandleEvent(const EventArgs& msg) override;
 
 public:
-
-    void OnTxNotify(DWORD iNotify, void* pv);
-
-    HWND GetWindowHandle() const;
-    HDC GetDrawDC() const;
-    UiSize GetNaturalSize(LONG width, LONG height);
-    void SetImmStatus(BOOL bOpen);
-    void SetTimer(UINT idTimer, UINT uTimeout);
-    void KillTimer(UINT idTimer);
-
     /** 将字体大小转换成Rich Edit控件的字体高度
     */
     int32_t ConvertToFontHeight(int32_t fontSize) const;
@@ -914,6 +667,216 @@ public:
     /** 客户区坐标转换为屏幕坐标
     */
     virtual bool ClientToScreen(UiPoint& pt) override;
+
+public:
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    /** 是否是富文本模式
+     * @return 返回 true 为富文本模式：支持丰富的文本格式，支持RTF格式
+               返回 false 为纯文本模式：纯文本控件中的文本只能有一种格式
+     */
+    bool IsRichText();
+
+    /** 设置控件为富文本模式
+     * @param[in] bRichText 设置 true 为富文本模式，false 为纯文本模式
+     */
+    void SetRichText(bool bRichText = true);
+
+    /** 设置是否允许拖放功能
+    */
+    void SetEnableDragDrop(bool bEnable);
+
+    /** 判断是否已经允许拖放功能
+    */
+    bool IsEnableDragDrop() const;
+
+    /** 获取控件的选择类型
+     * @return 返回控件的选择类型，参考：https://docs.microsoft.com/en-us/windows/desktop/controls/em-selectiontype
+        SEL_TEXT: Text.
+        SEL_OBJECT: At least one COM object.
+        SEL_MULTICHAR: More than one character of text.
+        SEL_MULTIOBJECT: More than one COM object.
+     */
+    WORD GetSelectionType() const;
+
+    /** 查找文本
+    */
+    LONG FindRichText(DWORD dwFlags, FINDTEXTW& ft) const;
+
+    /** 查找文本
+    */
+    LONG FindRichText(DWORD dwFlags, FINDTEXTEXW& ft) const;
+
+    /** 获取当前缩放比， 按缩放比例分子/分母显示的缩放：1/64 < (wParam / lParam) < 64
+     * @param[out] nNum 缩放比率分子
+     * @param[out] nDen 缩放比率分母
+     * @return 如果处理了消息则返回 TRUE
+     */
+    bool GetZoom(int& nNum, int& nDen) const;
+
+    /** 设置缩放比
+     * @param[in] nNum 缩放比率分子，取值范围：[0, 64]
+     * @param[in] nDen 缩放比率分母，取值范围：[0, 64]
+     * @return 成功返回 true，失败返回 false
+     */
+    bool SetZoom(int nNum, int nDen);
+
+    /** 恢复缩放到初始状态
+     * @return 成功返回 true，否则返回 false
+     */
+    bool SetZoomOff();
+
+    /** 获取是否开启了自动 URL 检测(从RichEditHost读取)
+     * @return 返回 true 表示开启了自动检测，否则为 false
+     */
+    bool GetAutoURLDetect() const;
+
+    /** 设置是否开启 URL 自动检测
+     * @param[in] bAutoDetect 设置为 true 表示检测 URL，false 为不检测，默认为 true
+     * @return 返回 true 为设置成功，false 为失败
+     */
+    bool SetAutoURLDetect(bool bAutoDetect = true);
+
+    /** 获取控件的事件掩码
+     * @return 返回事件掩码
+     */
+    DWORD GetEventMask() const;
+
+    /** 设置控件的事件掩码
+     * @param[in] dwEventMask 要设置的事件掩码值
+     * @return 返回设置之前的事件掩码值
+     */
+    DWORD SetEventMask(DWORD dwEventMask);
+
+    /** 选择一部分内容
+     * @param[in] cr 要选择的文字起始位置和结束位置
+     * @return 返回选择的文字数量
+     */
+    int SetSel(CHARRANGE& cr);
+
+    /** 是否允许发出Beep声音
+    */
+    bool GetAllowBeep() const;
+
+    /** 设置是否允许发出Beep声音
+    */
+    void SetAllowBeep(bool bAllowBeep);
+
+    /** 设置光标到可见位置
+     */
+    void ScrollCaret();
+
+    /** 插入文字
+     * @param[in] nInsertAfterChar 要插入的位置
+     * @param[in] text 要插入的文本
+     * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false，默认为 false
+     * @return 返回插入后的文本位置
+     */
+    int InsertText(long nInsertAfterChar, const DString& text, bool bCanUndo = false);
+
+    /** 追加文字
+     * @param[in] strText 要追加的文字
+     * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false，默认为 false
+     * @return 返回追加后的文字位置
+     */
+    int AppendText(const DString& strText, bool bCanUndo = false);
+
+    /** 获取字符格式
+     * @param[out] cf 返回获取的字符格式
+     * @return 返回参数 cf 中 dwMask 的值
+     */
+    DWORD GetDefaultCharFormat(CHARFORMAT2W& cf) const;
+
+    /** 设置默认的字符格式
+     * @param[in] cf 要设置字符格式
+     * @return 返回 true 表示成功，false 为失败
+     */
+    bool SetDefaultCharFormat(CHARFORMAT2W& cf);
+
+    /** 获取被选择的字符格式
+     * @param[out] cf 返回获取的字符格式
+     * @return 返回参数 cf 中 dwMask 的值
+     */
+    DWORD GetSelectionCharFormat(CHARFORMAT2W& cf) const;
+
+    /** 设置被选择的字符格式
+     * @param[in] cf 要设置的字符格式
+     * @return 返回 true 表示成功，false 为失败
+     */
+    bool SetSelectionCharFormat(CHARFORMAT2W& cf);
+
+    /** 设置当前插入点的单词格式
+     * @param[in] cf 要设置的单词格式
+     * @return 成功返回 true，失败返回 false
+     */
+    bool SetWordCharFormat(CHARFORMAT2W& cf);
+
+    /** 获取当前段落格式
+     * @param[out] pf 返回当前段落格式
+     * @return 返回 pf 参数的 dwMask 成员
+     */
+    DWORD GetParaFormat(PARAFORMAT2& pf) const;
+
+    /** 设置当前段落格式
+     * @param[in] pf 要设置的段落格式样式
+     * @return 成功返回 true，否则返回 false
+     */
+    bool SetParaFormat(PARAFORMAT2& pf);
+
+    /** 获取所选文本的起始位置和结束位置
+     * @param[out] cr 返回起始位置和结束位置
+     */
+    void GetSel(CHARRANGE& cr) const;
+
+    /** 检测是否可以粘贴指定剪切板格式
+     * @param[in] nFormat 要检测的格式
+     * @return 可以返回 true，否则返回 false
+     */
+    BOOL CanPaste(UINT nFormat);
+
+    /** 在控件中粘贴特定的剪贴板格式
+     * @param[in] uClipFormat 指定剪切板格式
+     * @param[in] dwAspect 指定展示形式
+     * @param[in] hMF 如果 dwAspect 为 DVASPECT_ICON，该函数应该包含图标句柄
+     */
+    void PasteSpecial(UINT uClipFormat, DWORD dwAspect = 0, HMETAFILE hMF = 0);
+
+    /** 增加一个回调用于控制输入内容
+     * @param[in] nFormat 指定数据格式的替换选项，见：https://docs.microsoft.com/en-us/windows/desktop/controls/em-streamin
+     * @param[in] es 包含自定义回调的结构体
+     * @return 返回读入数据流的数据大小
+     */
+    long StreamIn(UINT nFormat, EDITSTREAM& es);
+
+    /** 指定一个回调用于控制输出内容
+     * @param[in] nFormat 指定数据格式的替换选项，见：https://docs.microsoft.com/en-us/windows/desktop/controls/em-streamin
+     * @param[in] es 包含自定义回调的结构体
+     * @return 返回写入数据流的数据大小
+     */
+    long StreamOut(UINT nFormat, EDITSTREAM& es);
+
+    /** 设置是否保存所选内容的边界
+     */
+    void SetSaveSelection(bool fSaveSelection);
+
+    /** 设置是否隐藏选择项
+     */
+    void SetHideSelection(bool fHideSelection);
+
+    /** 添加带颜色的文本
+     * @param[in] str 文本内容
+     * @param[in] color 颜色值，该值必须在 global.xml 中存在
+     */
+    void AddColorText(const DString& str, const DString& color);
+
+    /** 添加一个指定字体带有文字颜色的超链接
+     * @param[in] str 文字内容
+     * @param[in] color 文字颜色
+     * @param[in] linkInfo 链接地址
+     * @param[in] font 字体索引
+     */
+    void AddLinkColorTextEx(const DString& str, const DString& color, const DString& linkInfo = _T(""), const DString& strFontId = _T(""));
+
+#endif
 
 protected:
 
@@ -946,16 +909,6 @@ private:
     * @param [in] point 客户区的坐标
     */
     void ShowPopupMenu(const ui::UiPoint& point);
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 注册拖放接口与窗口的关联关系
-    */
-    void RegisterDragDrop();
-
-    /** 注销拖放接口与窗口的关联关系
-    */
-    void UnregisterDragDrop();
-#endif
 
     /** 判断一个字符，是否在限制字符列表中
     */
@@ -1029,10 +982,31 @@ private:
     void PaintRichEdit(IRender* pRender, const UiRect& rcPaint);
 
 private:
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    /** 注册拖放接口与窗口的关联关系
+    */
+    void RegisterDragDrop();
+
+    /** 注销拖放接口与窗口的关联关系
+    */
+    void UnregisterDragDrop();
+#endif
+
+private:
     //获取粘贴板字符串
     static void GetClipboardText(DStringW& out);
 
-protected:
+    //一组供RichEditHost使用的函数
+    friend class RichEditHost;
+    void OnTxNotify(DWORD iNotify, void* pv);
+    HWND GetWindowHWND() const;
+    HDC GetDrawDC() const;
+    UiSize GetNaturalSize(LONG width, LONG height);
+    void SetImmStatus(BOOL bOpen);
+    void SetTimer(UINT idTimer, UINT uTimeout);
+    void KillTimer(UINT idTimer);
+
+private:
     //RichEdit控制辅助工具类
     RichEditCtrl m_richCtrl;
 
@@ -1093,12 +1067,6 @@ private:
     /** 是否允许使用默认的右键菜单
     */
     bool m_bEnableDefaultContextMenu;
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 拖放功能的实现接口, 如果不为空表示功能已经开启
-    */
-    ControlDropTarget* m_pControlDropTarget;
-#endif
 
     /** 允许输入的字符列表
     */
@@ -1184,6 +1152,13 @@ private:
     /** 上次输入的时间
     */
     DWORD m_dwLastCharTime = 0;
+#endif
+
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    /** 拖放功能的实现接口, 如果不为空表示功能已经开启
+    */
+    ControlDropTarget* m_pControlDropTarget;
 #endif
 };
 

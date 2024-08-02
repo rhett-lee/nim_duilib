@@ -517,47 +517,6 @@ void RichEdit::SetReturnMsgWantCtrl(bool bReturnMsgWantCtrl)
     m_bReturnMsgWantCtrl = bReturnMsgWantCtrl;
 }
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-bool RichEdit::IsRichText()
-{
-    TEXTMODE newTextMode = m_richCtrl.GetTextMode();
-    return (newTextMode & TM_RICHTEXT) ? true : false;
-}
-
-void RichEdit::SetRichText(bool bRichText)
-{
-    if (IsRichText() == bRichText) {
-        return;
-    }
-    uint32_t textMode = m_richCtrl.GetTextMode();
-    if (bRichText) {
-        textMode &= ~TM_PLAINTEXT;
-        textMode |= TM_RICHTEXT;
-    }
-    else {
-        textMode &= ~TM_RICHTEXT;
-        textMode |= TM_PLAINTEXT;
-    }
-
-    //切换文本模式的时候，RichEdit的文本内容必须为空
-    DString text = GetText();
-    if (!text.empty()) {        
-        SetTextNoEvent(_T(""));
-        m_richCtrl.EmptyUndoBuffer();
-    }
-    m_richCtrl.SetTextMode((TEXTMODE)textMode);
-
-    if (!text.empty()) {
-        SetTextNoEvent(text);
-        SetSel(0, 0);        
-    }
-#ifdef _DEBUG
-    TEXTMODE newTextMode2 = m_richCtrl.GetTextMode();
-    ASSERT((uint32_t)textMode & (uint32_t)newTextMode2);
-#endif
-}
-#endif
-
 bool RichEdit::IsReadOnly()
 {
     if (m_pRichHost != nullptr) {
@@ -788,23 +747,6 @@ void RichEdit::SetLimitChars(const DString& limitChars)
     }
 }
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-bool RichEdit::GetAllowBeep() const
-{
-    if (m_pRichHost != nullptr) {
-        return m_pRichHost->IsAllowBeep();
-    }
-    return false;
-}
-
-void RichEdit::SetAllowBeep(bool bAllowBeep)
-{
-    if (m_pRichHost != nullptr) {
-        m_pRichHost->SetAllowBeep(bAllowBeep);
-    }
-}
-#endif
-
 int32_t RichEdit::GetTextLength() const
 {
     return m_richCtrl.GetTextLengthEx(GTL_DEFAULT, 1200);
@@ -874,24 +816,10 @@ void RichEdit::SetModify(bool bModified)
     m_richCtrl.SetModify(bModified);
 }
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-void RichEdit::GetSel(CHARRANGE& cr) const
-{ 
-    m_richCtrl.GetSel(cr);
-}
-#endif
-
 void RichEdit::GetSel(long& nStartChar, long& nEndChar) const
 {
     m_richCtrl.GetSel(nStartChar, nEndChar);
 }
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-int RichEdit::SetSel(CHARRANGE& cr)
-{ 
-    return m_richCtrl.SetSel(cr);
-}
-#endif
 
 int RichEdit::SetSel(long nStartChar, long nEndChar)
 {
@@ -931,67 +859,6 @@ int RichEdit::SetSelNone()
     return m_richCtrl.SetSelNone();
 }
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-bool RichEdit::GetZoom(int& nNum, int& nDen) const
-{
-    return m_richCtrl.GetZoom(nNum, nDen);
-}
-
-bool RichEdit::SetZoom(int nNum, int nDen)
-{
-    return m_richCtrl.SetZoom(nNum, nDen);
-}
-
-bool RichEdit::SetZoomOff()
-{
-    return m_richCtrl.SetZoomOff();
-}
-#endif
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-WORD RichEdit::GetSelectionType() const
-{
-    return m_richCtrl.GetSelectionType();
-}
-
-LONG RichEdit::FindRichText(DWORD dwFlags, FINDTEXTW& ft) const
-{
-    return m_richCtrl.FindTextW(dwFlags, ft);
-}
-
-LONG RichEdit::FindRichText(DWORD dwFlags, FINDTEXTEXW& ft) const
-{
-    return m_richCtrl.FindTextW(dwFlags, ft);
-}
-#endif
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-bool RichEdit::GetAutoURLDetect() const
-{
-    return m_richCtrl.GetAutoURLDetect();
-}
-
-bool RichEdit::SetAutoURLDetect(bool bAutoDetect)
-{
-    if (bAutoDetect) {
-        ASSERT(m_richCtrl.GetEventMask() & ENM_LINK);
-    }
-    return m_richCtrl.SetAutoURLDetect(bAutoDetect ? TRUE : FALSE);
-}
-#endif
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-DWORD RichEdit::GetEventMask() const
-{
-    return m_richCtrl.GetEventMask();
-}
-
-DWORD RichEdit::SetEventMask(DWORD dwEventMask)
-{
-    return m_richCtrl.SetEventMask(dwEventMask);
-}
-#endif
-
 DString RichEdit::GetTextRange(long nStartChar, long nEndChar) const
 {
     TEXTRANGEW tr = { 0 };
@@ -1022,82 +889,6 @@ void RichEdit::HideSelection(bool bHide, bool bChangeStyle)
 {
     m_richCtrl.HideSelection(bHide, bChangeStyle);
 }
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-
-void RichEdit::ScrollCaret()
-{
-    m_richCtrl.ScrollCaret();
-}
-
-int RichEdit::InsertText(long nInsertAfterChar, const DString& text, bool bCanUndo)
-{
-#ifdef DUILIB_UNICODE
-    return m_richCtrl.InsertText(nInsertAfterChar, text.c_str(), bCanUndo);
-#else
-    return m_richCtrl.InsertText(nInsertAfterChar, StringUtil::TToUTF16(text).c_str(), bCanUndo);
-#endif
-}
-
-int RichEdit::AppendText(const DString& strText, bool bCanUndo)
-{
-#ifdef DUILIB_UNICODE
-    return m_richCtrl.AppendText(strText.c_str(), bCanUndo);
-#else
-    return m_richCtrl.AppendText(StringUtil::TToUTF16(strText).c_str(), bCanUndo);
-#endif
-}
-
-#endif
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-DWORD RichEdit::GetDefaultCharFormat(CHARFORMAT2W& cf) const
-{
-    return m_richCtrl.GetDefaultCharFormat(cf);
-}
-
-bool RichEdit::SetDefaultCharFormat(CHARFORMAT2W& cf)
-{
-    if (m_richCtrl.SetDefaultCharFormat(cf)) {
-        if (cf.dwMask & CFM_COLOR) {
-            //同步文本颜色
-            UiColor textColor;
-            textColor.SetFromCOLORREF(cf.crTextColor);
-            m_sTextColor = ui::StringUtil::Printf(_T("#%02X%02X%02X%02X"), textColor.GetA(), textColor.GetR(), textColor.GetG(), textColor.GetB());
-        }
-        return true;
-    }
-    return false;
-}
-
-DWORD RichEdit::GetSelectionCharFormat(CHARFORMAT2W& cf) const
-{
-    return m_richCtrl.GetSelectionCharFormat(cf);
-}
-
-bool RichEdit::SetSelectionCharFormat(CHARFORMAT2W& cf)
-{
-    return m_richCtrl.SetSelectionCharFormat(cf);
-}
-
-bool RichEdit::SetWordCharFormat(CHARFORMAT2W&cf)
-{
-    return m_richCtrl.SetWordCharFormat(cf);
-}
-
-DWORD RichEdit::GetParaFormat(PARAFORMAT2& pf) const
-{
-    return m_richCtrl.GetParaFormat(pf);
-}
-
-bool RichEdit::SetParaFormat(PARAFORMAT2 &pf)
-{
-    if (m_richCtrl.SetParaFormat(pf)) {
-        return true;
-    }
-    return false;
-}
-#endif
 
 bool RichEdit::CanRedo() const
 {
@@ -1149,26 +940,6 @@ bool RichEdit::CanPaste() const
     }
     return m_richCtrl.CanPaste(0);
 }
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-BOOL RichEdit::CanPaste(UINT nFormat/* = 0*/)
-{
-    if (nFormat == 0) {
-        if (IsPasteLimited()) {
-            return false;
-        }
-    }
-    return m_richCtrl.CanPaste(nFormat);
-}
-
-void RichEdit::PasteSpecial(UINT uClipFormat, DWORD dwAspect/* = 0*/, HMETAFILE hMF/* = 0*/)
-{
-    if (IsPasteLimited()) {
-        return;
-    }
-    return m_richCtrl.PasteSpecial(uClipFormat, dwAspect, hMF);
-}
-#endif
 
 int RichEdit::GetLineCount() const
 {
@@ -1239,18 +1010,6 @@ UINT RichEdit::SetUndoLimit(UINT nLimit)
     return m_richCtrl.SetUndoLimit(nLimit);
 }
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-long RichEdit::StreamIn(UINT nFormat, EDITSTREAM &es)
-{
-    return m_richCtrl.StreamIn(nFormat, es);
-}
-
-long RichEdit::StreamOut(UINT nFormat, EDITSTREAM &es)
-{
-    return m_richCtrl.StreamOut(nFormat, es);
-}
-#endif
-
 void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
 {
     switch(iNotify)
@@ -1304,13 +1063,13 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
     case EN_DRAGDROPDONE:   
         {
             if (pv) {   // Fill out NMHDR portion of pv   
-                LONG nId =  ::GetWindowLong(GetWindowHandle(), GWL_ID);   
+                LONG nId =  ::GetWindowLong(GetWindowHWND(), GWL_ID);
                 NMHDR  *phdr = (NMHDR *)pv;   
-                phdr->hwndFrom = GetWindowHandle();   
+                phdr->hwndFrom = GetWindowHWND();
                 phdr->idFrom = nId;   
                 phdr->code = iNotify;  
 
-                ::SendMessage(GetWindowHandle(), WM_NOTIFY, (WPARAM)nId, (LPARAM)pv);
+                ::SendMessage(GetWindowHWND(), WM_NOTIFY, (WPARAM)nId, (LPARAM)pv);
             }    
         }
         break;
@@ -1319,7 +1078,7 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
     }
 }
 
-HWND RichEdit::GetWindowHandle() const
+HWND RichEdit::GetWindowHWND() const
 {
     auto window = GetWindow();
     return window ? window->NativeWnd()->GetHWND() : nullptr;
@@ -1365,7 +1124,7 @@ UiSize RichEdit::GetNaturalSize(LONG width, LONG height)
 
 void RichEdit::SetImmStatus(BOOL bOpen)
 {
-    HWND hwnd = GetWindowHandle();
+    HWND hwnd = GetWindowHWND();
     if (hwnd == nullptr) {
         return;
     }
@@ -2055,7 +1814,7 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
 
 bool RichEdit::OnImeStartComposition(const EventArgs& /*msg*/)
 {
-    HWND hWnd = GetWindowHandle();
+    HWND hWnd = GetWindowHWND();
     if (hWnd == nullptr) {
         return true;
     }
@@ -2718,83 +2477,6 @@ void RichEdit::SetNoCaretReadonly()
     m_bNoCaretReadonly = true;
 }
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-void RichEdit::SetSaveSelection(bool fSaveSelection)
-{
-    if (m_pRichHost != nullptr) {
-        m_pRichHost->SetSaveSelection(fSaveSelection);
-    }
-}
-
-void RichEdit::SetHideSelection(bool fHideSelection)
-{
-    if (m_pRichHost != nullptr) {
-        m_pRichHost->SetHideSelection(fHideSelection);
-    }
-}
-#endif
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-
-void RichEdit::AddColorText(const DString &str, const DString &color)
-{
-    if( !IsRichText() || str.empty() || color.empty() ) {
-        ASSERT(FALSE);
-        return;
-    }
-    UiColor dwColor = GetUiColor(color);
-
-    CHARFORMAT2W cf;
-    ZeroMemory(&cf, sizeof(cf));
-    cf.cbSize = sizeof(CHARFORMAT2W);
-    cf.dwMask = CFM_COLOR;
-    cf.dwEffects = 0;
-    cf.crTextColor = dwColor.ToCOLORREF();
-
-    ReplaceSel(str, FALSE);
-    int len = GetTextLength();
-    SetSel(len - (int)str.size(), len);
-    SetSelectionCharFormat(cf);
-
-    SetSelNone();
-    GetDefaultCharFormat(cf);
-    SetSelectionCharFormat(cf);
-}
-
-void RichEdit::AddLinkColorTextEx(const DString& str, const DString& color, const DString& linkInfo, const DString& strFontId)
-{
-    if (!IsRichText() || str.empty() || color.empty()) {
-        ASSERT(FALSE);
-        return;
-    }
-    
-    std::string link = StringUtil::TToMBCS(linkInfo);
-    std::string text = StringUtil::TToMBCS(str);
-    std::string font_face;
-
-    CHARFORMAT2W cf;
-    GetCharFormat(strFontId, cf);
-    font_face = StringUtil::UnicodeToMBCS(cf.szFaceName);
-    UiColor dwTextColor = GlobalManager::Instance().Color().GetColor(color);
-    static std::string font_format = "{\\fonttbl{\\f0\\fnil\\fcharset%d %s;}}";
-    static std::string color_format = "{\\colortbl ;\\red%d\\green%d\\blue%d;}";
-    static std::string link_format = "{\\rtf1%s%s\\f0\\fs%d{\\field{\\*\\fldinst{HYPERLINK \"%s\"}}{\\fldrslt{\\cf1 %s}}}}";
-    char sfont[255] = { 0 };
-    sprintf_s(sfont, font_format.c_str(), cf.bCharSet, font_face.c_str());
-    char scolor[255] = { 0 };
-    sprintf_s(scolor, color_format.c_str(), dwTextColor.GetR(), dwTextColor.GetG(), dwTextColor.GetB());
-    char slinke[1024] = { 0 };
-    sprintf_s(slinke, link_format.c_str(), sfont, scolor, ((int)(cf.yHeight *1.5))/2*2, link.c_str(), text.c_str());
-
-    SETTEXTEX st;
-    st.codepage = ((UINT32)~((UINT32)0));
-    st.flags = ST_SELECTION | ST_KEEPUNDO;
-    m_richCtrl.TxSendMessage(EM_SETTEXTEX, (WPARAM)&st, (LPARAM)(LPCTSTR)slinke);
-    return;
-}
-
-#endif
-
 void RichEdit::ClearImageCache()
 {
     __super::ClearImageCache();
@@ -3035,63 +2717,6 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
             });
     }
 }
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-
-void RichEdit::SetEnableDragDrop(bool bEnable)
-{
-    if (m_pRichHost == nullptr) {
-        return;
-    }
-    if (bEnable) {
-        //只读模式、密码模式、不可用模式，关闭拖放功能
-        if (IsReadOnly() || IsPassword() || !IsEnabled()) {
-            bEnable = false;
-        }
-    }
-    if (bEnable) {
-        m_pControlDropTarget = new RichEditDropTarget(this, m_pRichHost->GetTextServices());
-        m_pControlDropTarget->SetControl(this);
-        RegisterDragDrop();
-    }
-    else {
-        UnregisterDragDrop();
-        if (m_pControlDropTarget != nullptr) {
-            delete m_pControlDropTarget;
-            m_pControlDropTarget = nullptr;
-        }
-    }
-}
-
-bool RichEdit::IsEnableDragDrop() const
-{
-    return m_pControlDropTarget != nullptr;
-}
-
-#endif
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-void RichEdit::RegisterDragDrop()
-{
-    ASSERT(m_pControlDropTarget != nullptr);
-    if (m_pControlDropTarget != nullptr) {
-        Window* pWindow = GetWindow();
-        if (pWindow != nullptr) {
-            pWindow->RegisterDragDrop(m_pControlDropTarget);
-        }
-    }
-}
-
-void RichEdit::UnregisterDragDrop()
-{
-    if (m_pControlDropTarget != nullptr) {
-        Window* pWindow = GetWindow();
-        if (pWindow != nullptr) {
-            pWindow->UnregisterDragDrop(m_pControlDropTarget);
-        }
-    }
-}
-#endif
 
 void RichEdit::OnTextChanged()
 {
@@ -3510,6 +3135,348 @@ void RichEdit::SetVAlignType(VerAlignType alignType)
         m_pRichHost->SetVAlignType(alignType);
     }
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+void RichEdit::SetSaveSelection(bool fSaveSelection)
+{
+    if (m_pRichHost != nullptr) {
+        m_pRichHost->SetSaveSelection(fSaveSelection);
+    }
+}
+
+void RichEdit::SetHideSelection(bool fHideSelection)
+{
+    if (m_pRichHost != nullptr) {
+        m_pRichHost->SetHideSelection(fHideSelection);
+    }
+}
+
+void RichEdit::AddColorText(const DString& str, const DString& color)
+{
+    if (!IsRichText() || str.empty() || color.empty()) {
+        ASSERT(FALSE);
+        return;
+    }
+    UiColor dwColor = GetUiColor(color);
+
+    CHARFORMAT2W cf;
+    ZeroMemory(&cf, sizeof(cf));
+    cf.cbSize = sizeof(CHARFORMAT2W);
+    cf.dwMask = CFM_COLOR;
+    cf.dwEffects = 0;
+    cf.crTextColor = dwColor.ToCOLORREF();
+
+    ReplaceSel(str, FALSE);
+    int len = GetTextLength();
+    SetSel(len - (int)str.size(), len);
+    SetSelectionCharFormat(cf);
+
+    SetSelNone();
+    GetDefaultCharFormat(cf);
+    SetSelectionCharFormat(cf);
+}
+
+void RichEdit::AddLinkColorTextEx(const DString& str, const DString& color, const DString& linkInfo, const DString& strFontId)
+{
+    if (!IsRichText() || str.empty() || color.empty()) {
+        ASSERT(FALSE);
+        return;
+    }
+
+    std::string link = StringUtil::TToMBCS(linkInfo);
+    std::string text = StringUtil::TToMBCS(str);
+    std::string font_face;
+
+    CHARFORMAT2W cf;
+    GetCharFormat(strFontId, cf);
+    font_face = StringUtil::UnicodeToMBCS(cf.szFaceName);
+    UiColor dwTextColor = GlobalManager::Instance().Color().GetColor(color);
+    static std::string font_format = "{\\fonttbl{\\f0\\fnil\\fcharset%d %s;}}";
+    static std::string color_format = "{\\colortbl ;\\red%d\\green%d\\blue%d;}";
+    static std::string link_format = "{\\rtf1%s%s\\f0\\fs%d{\\field{\\*\\fldinst{HYPERLINK \"%s\"}}{\\fldrslt{\\cf1 %s}}}}";
+    char sfont[255] = { 0 };
+    sprintf_s(sfont, font_format.c_str(), cf.bCharSet, font_face.c_str());
+    char scolor[255] = { 0 };
+    sprintf_s(scolor, color_format.c_str(), dwTextColor.GetR(), dwTextColor.GetG(), dwTextColor.GetB());
+    char slinke[1024] = { 0 };
+    sprintf_s(slinke, link_format.c_str(), sfont, scolor, ((int)(cf.yHeight * 1.5)) / 2 * 2, link.c_str(), text.c_str());
+
+    SETTEXTEX st;
+    st.codepage = ((UINT32)~((UINT32)0));
+    st.flags = ST_SELECTION | ST_KEEPUNDO;
+    m_richCtrl.TxSendMessage(EM_SETTEXTEX, (WPARAM)&st, (LPARAM)(LPCTSTR)slinke);
+    return;
+}
+
+bool RichEdit::IsRichText()
+{
+    TEXTMODE newTextMode = m_richCtrl.GetTextMode();
+    return (newTextMode & TM_RICHTEXT) ? true : false;
+}
+
+void RichEdit::SetRichText(bool bRichText)
+{
+    if (IsRichText() == bRichText) {
+        return;
+    }
+    uint32_t textMode = m_richCtrl.GetTextMode();
+    if (bRichText) {
+        textMode &= ~TM_PLAINTEXT;
+        textMode |= TM_RICHTEXT;
+    }
+    else {
+        textMode &= ~TM_RICHTEXT;
+        textMode |= TM_PLAINTEXT;
+    }
+
+    //切换文本模式的时候，RichEdit的文本内容必须为空
+    DString text = GetText();
+    if (!text.empty()) {
+        SetTextNoEvent(_T(""));
+        m_richCtrl.EmptyUndoBuffer();
+    }
+    m_richCtrl.SetTextMode((TEXTMODE)textMode);
+
+    if (!text.empty()) {
+        SetTextNoEvent(text);
+        SetSel(0, 0);
+    }
+#ifdef _DEBUG
+    TEXTMODE newTextMode2 = m_richCtrl.GetTextMode();
+    ASSERT((uint32_t)textMode & (uint32_t)newTextMode2);
+#endif
+}
+
+bool RichEdit::GetAllowBeep() const
+{
+    if (m_pRichHost != nullptr) {
+        return m_pRichHost->IsAllowBeep();
+    }
+    return false;
+}
+
+void RichEdit::SetAllowBeep(bool bAllowBeep)
+{
+    if (m_pRichHost != nullptr) {
+        m_pRichHost->SetAllowBeep(bAllowBeep);
+    }
+}
+
+int RichEdit::SetSel(CHARRANGE& cr)
+{
+    return m_richCtrl.SetSel(cr);
+}
+void RichEdit::GetSel(CHARRANGE& cr) const
+{
+    m_richCtrl.GetSel(cr);
+}
+
+bool RichEdit::GetZoom(int& nNum, int& nDen) const
+{
+    return m_richCtrl.GetZoom(nNum, nDen);
+}
+
+bool RichEdit::SetZoom(int nNum, int nDen)
+{
+    return m_richCtrl.SetZoom(nNum, nDen);
+}
+
+bool RichEdit::SetZoomOff()
+{
+    return m_richCtrl.SetZoomOff();
+}
+
+WORD RichEdit::GetSelectionType() const
+{
+    return m_richCtrl.GetSelectionType();
+}
+
+LONG RichEdit::FindRichText(DWORD dwFlags, FINDTEXTW& ft) const
+{
+    return m_richCtrl.FindTextW(dwFlags, ft);
+}
+
+LONG RichEdit::FindRichText(DWORD dwFlags, FINDTEXTEXW& ft) const
+{
+    return m_richCtrl.FindTextW(dwFlags, ft);
+}
+
+bool RichEdit::GetAutoURLDetect() const
+{
+    return m_richCtrl.GetAutoURLDetect();
+}
+
+bool RichEdit::SetAutoURLDetect(bool bAutoDetect)
+{
+    if (bAutoDetect) {
+        ASSERT(m_richCtrl.GetEventMask() & ENM_LINK);
+    }
+    return m_richCtrl.SetAutoURLDetect(bAutoDetect ? TRUE : FALSE);
+}
+
+DWORD RichEdit::GetEventMask() const
+{
+    return m_richCtrl.GetEventMask();
+}
+
+DWORD RichEdit::SetEventMask(DWORD dwEventMask)
+{
+    return m_richCtrl.SetEventMask(dwEventMask);
+}
+
+void RichEdit::ScrollCaret()
+{
+    m_richCtrl.ScrollCaret();
+}
+
+int RichEdit::InsertText(long nInsertAfterChar, const DString& text, bool bCanUndo)
+{
+#ifdef DUILIB_UNICODE
+    return m_richCtrl.InsertText(nInsertAfterChar, text.c_str(), bCanUndo);
+#else
+    return m_richCtrl.InsertText(nInsertAfterChar, StringUtil::TToUTF16(text).c_str(), bCanUndo);
+#endif
+}
+
+int RichEdit::AppendText(const DString& strText, bool bCanUndo)
+{
+#ifdef DUILIB_UNICODE
+    return m_richCtrl.AppendText(strText.c_str(), bCanUndo);
+#else
+    return m_richCtrl.AppendText(StringUtil::TToUTF16(strText).c_str(), bCanUndo);
+#endif
+}
+
+DWORD RichEdit::GetDefaultCharFormat(CHARFORMAT2W& cf) const
+{
+    return m_richCtrl.GetDefaultCharFormat(cf);
+}
+
+bool RichEdit::SetDefaultCharFormat(CHARFORMAT2W& cf)
+{
+    if (m_richCtrl.SetDefaultCharFormat(cf)) {
+        if (cf.dwMask & CFM_COLOR) {
+            //同步文本颜色
+            UiColor textColor;
+            textColor.SetFromCOLORREF(cf.crTextColor);
+            m_sTextColor = ui::StringUtil::Printf(_T("#%02X%02X%02X%02X"), textColor.GetA(), textColor.GetR(), textColor.GetG(), textColor.GetB());
+        }
+        return true;
+    }
+    return false;
+}
+
+DWORD RichEdit::GetSelectionCharFormat(CHARFORMAT2W& cf) const
+{
+    return m_richCtrl.GetSelectionCharFormat(cf);
+}
+
+bool RichEdit::SetSelectionCharFormat(CHARFORMAT2W& cf)
+{
+    return m_richCtrl.SetSelectionCharFormat(cf);
+}
+
+bool RichEdit::SetWordCharFormat(CHARFORMAT2W& cf)
+{
+    return m_richCtrl.SetWordCharFormat(cf);
+}
+
+DWORD RichEdit::GetParaFormat(PARAFORMAT2& pf) const
+{
+    return m_richCtrl.GetParaFormat(pf);
+}
+
+bool RichEdit::SetParaFormat(PARAFORMAT2& pf)
+{
+    if (m_richCtrl.SetParaFormat(pf)) {
+        return true;
+    }
+    return false;
+}
+
+long RichEdit::StreamIn(UINT nFormat, EDITSTREAM& es)
+{
+    return m_richCtrl.StreamIn(nFormat, es);
+}
+
+long RichEdit::StreamOut(UINT nFormat, EDITSTREAM& es)
+{
+    return m_richCtrl.StreamOut(nFormat, es);
+}
+
+BOOL RichEdit::CanPaste(UINT nFormat/* = 0*/)
+{
+    if (nFormat == 0) {
+        if (IsPasteLimited()) {
+            return false;
+        }
+    }
+    return m_richCtrl.CanPaste(nFormat);
+}
+
+void RichEdit::PasteSpecial(UINT uClipFormat, DWORD dwAspect/* = 0*/, HMETAFILE hMF/* = 0*/)
+{
+    if (IsPasteLimited()) {
+        return;
+    }
+    return m_richCtrl.PasteSpecial(uClipFormat, dwAspect, hMF);
+}
+
+void RichEdit::SetEnableDragDrop(bool bEnable)
+{
+    if (m_pRichHost == nullptr) {
+        return;
+    }
+    if (bEnable) {
+        //只读模式、密码模式、不可用模式，关闭拖放功能
+        if (IsReadOnly() || IsPassword() || !IsEnabled()) {
+            bEnable = false;
+        }
+    }
+    if (bEnable) {
+        m_pControlDropTarget = new RichEditDropTarget(this, m_pRichHost->GetTextServices());
+        m_pControlDropTarget->SetControl(this);
+        RegisterDragDrop();
+    }
+    else {
+        UnregisterDragDrop();
+        if (m_pControlDropTarget != nullptr) {
+            delete m_pControlDropTarget;
+            m_pControlDropTarget = nullptr;
+        }
+    }
+}
+
+bool RichEdit::IsEnableDragDrop() const
+{
+    return m_pControlDropTarget != nullptr;
+}
+
+void RichEdit::RegisterDragDrop()
+{
+    ASSERT(m_pControlDropTarget != nullptr);
+    if (m_pControlDropTarget != nullptr) {
+        Window* pWindow = GetWindow();
+        if (pWindow != nullptr) {
+            pWindow->RegisterDragDrop(m_pControlDropTarget);
+        }
+    }
+}
+
+void RichEdit::UnregisterDragDrop()
+{
+    if (m_pControlDropTarget != nullptr) {
+        Window* pWindow = GetWindow();
+        if (pWindow != nullptr) {
+            pWindow->UnregisterDragDrop(m_pControlDropTarget);
+        }
+    }
+}
+
+
+#endif //DUILIB_BUILD_FOR_WIN/DUILIB_BUILD_FOR_SDL
 
 } // namespace ui
 

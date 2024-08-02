@@ -104,9 +104,7 @@ void Toast::SetContent(const DString &str)
     ASSERT(m_content != nullptr);
     if (m_content != nullptr) {
         m_content->SetText(str);
-        int width = m_content->GetFixedWidth().GetInt32();
-        ui::UiSize sz = m_content->GetNaturalSize(width, 0);
-        m_content->SetFixedHeight(ui::UiFixedInt(sz.cy), true, true);
+        m_content->SetFixedHeight(ui::UiFixedInt::MakeAuto(), true, true);
     }
 }
 }

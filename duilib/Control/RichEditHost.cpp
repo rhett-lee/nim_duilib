@@ -471,7 +471,7 @@ BOOL RichEditHost::TxScreenToClient(LPPOINT lppt)
     if (m_pRichEdit == nullptr) {
         return FALSE;
     }
-    return ::ScreenToClient(m_pRichEdit->GetWindowHandle(), lppt);
+    return ::ScreenToClient(m_pRichEdit->GetWindowHWND(), lppt);
 }
 
 BOOL RichEditHost::TxClientToScreen(LPPOINT lppt)
@@ -479,7 +479,7 @@ BOOL RichEditHost::TxClientToScreen(LPPOINT lppt)
     if (m_pRichEdit == nullptr) {
         return FALSE;
     }
-    return ::ClientToScreen(m_pRichEdit->GetWindowHandle(), lppt);
+    return ::ClientToScreen(m_pRichEdit->GetWindowHWND(), lppt);
 }
 
 HRESULT RichEditHost::TxActivate(LONG*/*plOldState*/)
