@@ -171,7 +171,6 @@ RichEdit::RichEdit(Window* pWindow) :
     m_sPromptColor(),
     m_sPromptText(),
     m_drawCaretFlag(),
-    m_timeFlagMap(),
     m_pFocusedImage(nullptr),
     m_bUseControlCursor(false),
     m_bEnableWheelZoom(false),
@@ -843,10 +842,6 @@ void RichEdit::SetText(const DString& strText)
     m_bDisableTextChangeEvent = false;
     SetSel(0, -1);
     ReplaceSel(strText, FALSE);
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    m_linkInfo.clear();
-#endif
 }
 
 void RichEdit::SetTextNoEvent(const DString& strText)
@@ -855,10 +850,6 @@ void RichEdit::SetTextNoEvent(const DString& strText)
     SetSel(0, -1);
     ReplaceSel(strText, FALSE);
     m_bDisableTextChangeEvent = false;
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    m_linkInfo.clear();
-#endif
 }
 
 void RichEdit::SetTextId(const DString& strTextId)
@@ -1773,17 +1764,6 @@ void RichEdit::HandleEvent(const EventArgs& msg)
     }
 
     if (msg.eventType == kEventMouseButtonDown) {
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-        if (m_linkInfo.size() > 0)    {
-            DString url;
-            if (HittestCustomLink(UiPoint(msg.ptMouse), url)) {
-                SendEvent(kEventLinkClick, (WPARAM)url.c_str());
-                return;
-            }
-        }
-#endif
-
         OnMouseMessage(WM_LBUTTONDOWN, msg);
         return;
     }
@@ -1834,14 +1814,6 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
         //使用Control设置的光标
         return __super::OnSetCursor(msg);
     }
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    DString strLink;
-    if (HittestCustomLink(UiPoint(msg.ptMouse), strLink)) {
-        SetCursor(CursorType::kCursorHand);
-        return true;
-    }
-#endif
 
     if (m_pRichHost && m_pRichHost->SetCursor(nullptr, &msg.ptMouse)) {
         return true;
@@ -2789,33 +2761,6 @@ void RichEdit::AddColorText(const DString &str, const DString &color)
     SetSelectionCharFormat(cf);
 }
 
-void RichEdit::AddLinkColorText(const DString &str, const DString &color, const DString &linkInfo)
-{
-    if( !IsRichText() || str.empty() || color.empty() ) {
-        ASSERT(FALSE);
-        return;
-    }
-    UiColor dwColor = GetUiColor(color);
-
-    CHARFORMAT2W cf;
-    ZeroMemory(&cf, sizeof(cf));
-    cf.cbSize = sizeof(CHARFORMAT2W);
-    cf.dwMask = CFM_COLOR;
-    cf.crTextColor = dwColor.ToCOLORREF();
-
-    ReplaceSel(str, FALSE);
-    int len = GetTextLength();
-    SetSel(len - (int)str.size(), len);
-    SetSelectionCharFormat(cf);
-    LinkInfo info;
-    info.info = linkInfo;
-    m_richCtrl.TxSendMessage(EM_EXGETSEL, 0, (LPARAM)&(info.cr));
-    m_linkInfo.push_back(info);
-
-    SetSelNone();
-    GetDefaultCharFormat(cf);
-    SetSelectionCharFormat(cf);
-}
 void RichEdit::AddLinkColorTextEx(const DString& str, const DString& color, const DString& linkInfo, const DString& strFontId)
 {
     if (!IsRichText() || str.empty() || color.empty()) {
@@ -2847,46 +2792,7 @@ void RichEdit::AddLinkColorTextEx(const DString& str, const DString& color, cons
     m_richCtrl.TxSendMessage(EM_SETTEXTEX, (WPARAM)&st, (LPARAM)(LPCTSTR)slinke);
     return;
 }
-void RichEdit::AddLinkInfo(const CHARRANGE cr, const DString &linkInfo)
-{
-    LinkInfo info;
-    info.info = linkInfo;
-    info.cr = cr;
-    m_linkInfo.push_back(info);
-}
 
-void RichEdit::AddLinkInfoEx(const CHARRANGE cr, const DString& linkInfo)
-{
-    CHARFORMAT2W cf2;
-    ZeroMemory(&cf2, sizeof(CHARFORMAT2W));
-    cf2.cbSize = sizeof(CHARFORMAT2W);
-    cf2.dwMask = CFM_LINK;
-    cf2.dwEffects |= CFE_LINK;
-
-    SetSel(cr.cpMin, cr.cpMax);
-    SetSelectionCharFormat(cf2);
-
-    AddLinkInfo(cr, linkInfo);
-}
-
-//根据point来hittest自定义link的数据，返回true表示在link上，info是link的自定义属性
-bool RichEdit::HittestCustomLink(UiPoint pt, DString& info)
-{
-    bool bLink = false;
-    info.clear();
-    if (!m_linkInfo.empty()) {
-        pt.Offset(GetScrollOffsetInScrollBox());
-        int nCharIndex = CharFromPos(pt);
-        for (auto it = m_linkInfo.begin(); it != m_linkInfo.end(); it++) {
-            if ((*it).cr.cpMin <= nCharIndex && (*it).cr.cpMax > nCharIndex) {
-                info = (*it).info.c_str();
-                bLink = true;
-                break;
-            }
-        }
-    }
-    return bLink;
-}
 #endif
 
 void RichEdit::ClearImageCache()

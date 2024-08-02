@@ -794,13 +794,6 @@ public:
      */
     void AddColorText(const DString &str, const DString &color);
 
-    /** 添加一个带有文字颜色的超链接
-     * @param[in] str 文字内容
-     * @param[in] color 文字颜色
-     * @param[in] linkInfo 链接地址
-     */
-    void AddLinkColorText(const DString &str, const DString &color, const DString &linkInfo = _T(""));
-
     /** 添加一个指定字体带有文字颜色的超链接
      * @param[in] str 文字内容
      * @param[in] color 文字颜色
@@ -809,25 +802,6 @@ public:
      */
     void AddLinkColorTextEx(const DString& str, const DString &color, const DString &linkInfo = _T(""), const DString& strFontId = _T(""));
 
-    /** 添加一个范围用于 hittest 判断是否是链接信息
-     * @param[in] cr 范围的起始位置和结束位置
-     * @param[in] linkInfo 自定义 link 属性
-     */
-    void AddLinkInfo(const CHARRANGE cr, const DString &linkInfo);
-
-    /** 添加一个范围用于 hittest 判断是否是链接信息,并将该范围内文字样式改为系统链接样式
-     * @param[in] str 文字内容
-     * @param[in] cr 范围的起始位置和结束位置
-     * @param[in] linkInfo 自定义 link 属性
-     */
-    void AddLinkInfoEx(const CHARRANGE cr, const DString& linkInfo);
-
-    /** 根据point来hittest自定义link的数据
-     * @param[in] pt 位置信息
-     * @param[in] info 表示 link 的自定义属性
-     * @return 返回 true 表示在 link 上
-     */
-    bool HittestCustomLink(UiPoint pt, DString& info);
 #endif
 
     /** 清理图片缓存
@@ -1076,19 +1050,6 @@ protected:
     bool m_bSelAllOnFocus;      //获取焦点的时候，全选文本（针对 m_bEnabled && !IsReadOnly()）
 
     bool m_bIsComposition;      //输入法合成窗口是否可见
-    
-protected:
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    struct LinkInfo
-    {
-        CHARRANGE cr = {0, 0};
-        UiString info;
-    };
-    std::vector<LinkInfo> m_linkInfo;
-#endif
-
-    std::map<UINT, WeakCallbackFlag> m_timeFlagMap;    
 
 private:
     bool m_bNoCaretReadonly;    //只读模式下，不显示光标
@@ -1100,6 +1061,7 @@ private:
     UiString m_sCaretColor;     //光标颜色
 
     WeakCallbackFlag m_drawCaretFlag;   //绘制光标的定时器生命周期
+    std::map<UINT, WeakCallbackFlag> m_timeFlagMap; //内部定时器
 
 private:
     UiString m_sFontId;                 //字体ID
