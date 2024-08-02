@@ -2276,7 +2276,7 @@ void ListCtrl::UpdateRichEditSize(ListCtrlLabel* pSubItem)
     UiRect rect = GetRect();
     bool bSingleLine = pSubItem->IsSingleLine();
     if (bSingleLine) {
-        if (m_pRichEdit->GetMultiLine()) {
+        if (m_pRichEdit->IsMultiLine()) {
             m_pRichEdit->SetMultiLine(false);
         }
         m_pRichEdit->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
@@ -2310,7 +2310,7 @@ void ListCtrl::UpdateRichEditSize(ListCtrlLabel* pSubItem)
         m_pRichEdit->SetMaxWidth(nMaxWidth, false);
     }
     else {
-        if (!m_pRichEdit->GetMultiLine()) {
+        if (!m_pRichEdit->IsMultiLine()) {
             m_pRichEdit->SetMultiLine(true);
         }
 

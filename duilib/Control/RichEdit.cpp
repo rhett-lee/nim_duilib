@@ -588,7 +588,7 @@ void RichEdit::SetFlashPasswordChar(bool bFlash)
     }
 }
 
-bool RichEdit::GetFlashPasswordChar() const
+bool RichEdit::IsFlashPasswordChar() const
 {
     if (m_pRichHost != nullptr) {
         return m_pRichHost->IsFlashPasswordChar();
@@ -631,7 +631,7 @@ int32_t RichEdit::GetMinNumber() const
     return m_minNumber;
 }
 
-bool RichEdit::GetWordWrap()
+bool RichEdit::IsWordWrap()
 {
     if (m_pRichHost != nullptr) {
         return m_pRichHost->IsWordWrap();
@@ -646,7 +646,7 @@ void RichEdit::SetWordWrap(bool bWordWrap)
     }
 }
 
-bool RichEdit::GetMultiLine() const
+bool RichEdit::IsMultiLine() const
 {
     if (m_pRichHost != nullptr) {
         return m_pRichHost->IsMultiLine();
@@ -816,12 +816,16 @@ void RichEdit::SetModify(bool bModified)
     m_richCtrl.SetModify(bModified);
 }
 
-void RichEdit::GetSel(long& nStartChar, long& nEndChar) const
+void RichEdit::GetSel(int32_t& nStartChar, int32_t& nEndChar) const
 {
-    m_richCtrl.GetSel(nStartChar, nEndChar);
+    LONG nStart = 0;
+    LONG nEnd = 0;
+    m_richCtrl.GetSel(nStart, nEnd);
+    nStartChar = nStart;
+    nEndChar = nEnd;
 }
 
-int RichEdit::SetSel(long nStartChar, long nEndChar)
+int32_t RichEdit::SetSel(int32_t nStartChar, int32_t nEndChar)
 {
     return m_richCtrl.SetSel(nStartChar, nEndChar);
 }
@@ -849,17 +853,17 @@ DString RichEdit::GetSelText() const
     return text;
 }
 
-int RichEdit::SetSelAll()
+int32_t RichEdit::SetSelAll()
 {
     return m_richCtrl.SetSelAll();
 }
 
-int RichEdit::SetSelNone()
+void RichEdit::SetSelNone()
 {
-    return m_richCtrl.SetSelNone();
+    m_richCtrl.SetSelNone();
 }
 
-DString RichEdit::GetTextRange(long nStartChar, long nEndChar) const
+DString RichEdit::GetTextRange(int32_t nStartChar, int32_t nEndChar) const
 {
     TEXTRANGEW tr = { 0 };
     tr.chrg.cpMin = nStartChar;
@@ -946,7 +950,7 @@ int RichEdit::GetLineCount() const
     return m_richCtrl.GetLineCount();
 }
 
-DString RichEdit::GetLine(int nIndex, int nMaxLength) const
+DString RichEdit::GetLine(int32_t nIndex, int32_t nMaxLength) const
 {
     LPWSTR lpText = nullptr;
     if (nMaxLength < 1) {
@@ -968,33 +972,33 @@ DString RichEdit::GetLine(int nIndex, int nMaxLength) const
 #endif
 }
 
-int RichEdit::LineIndex(int nLine) const
+int32_t RichEdit::LineIndex(int32_t nLine) const
 {
     return m_richCtrl.LineIndex(nLine);
 }
 
-int RichEdit::LineLength(int nLine) const
+int32_t RichEdit::LineLength(int32_t nLine) const
 {
     return m_richCtrl.LineLength(nLine);
 }
 
-bool RichEdit::LineScroll(int nLines)
+bool RichEdit::LineScroll(int32_t nLines)
 {
     return m_richCtrl.LineScroll(nLines);
 }
 
-long RichEdit::LineFromChar(long nIndex) const
+int32_t RichEdit::LineFromChar(int32_t nIndex) const
 {
-    return m_richCtrl.LineFromChar(nIndex);
+    return m_richCtrl.LineFromChar((LONG)nIndex);
 }
 
-UiPoint RichEdit::PosFromChar(long lChar) const
+UiPoint RichEdit::PosFromChar(int32_t lChar) const
 { 
     POINT pt = m_richCtrl.PosFromChar(lChar);
     return UiPoint(pt.x, pt.y);
 }
 
-int RichEdit::CharFromPos(UiPoint pt) const
+int32_t RichEdit::CharFromPos(UiPoint pt) const
 {
     POINT ptValue = { pt.x, pt.y };
     return m_richCtrl.CharFromPos(ptValue);
@@ -1005,7 +1009,7 @@ void RichEdit::EmptyUndoBuffer()
     m_richCtrl.EmptyUndoBuffer();
 }
 
-UINT RichEdit::SetUndoLimit(UINT nLimit)
+uint32_t RichEdit::SetUndoLimit(uint32_t nLimit)
 {
     return m_richCtrl.SetUndoLimit(nLimit);
 }
@@ -1531,7 +1535,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
             m_bSelAllEver = true;
             if (m_bSelAllOnFocus) {
                 SetSelAll();
-                if (GetMultiLine()) {
+                if (IsMultiLine()) {
                     HomeUp();
                 }
                 else {
@@ -2275,14 +2279,14 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
     }
 }
 
-BOOL RichEdit::CreateCaret(INT xWidth, INT yHeight)
+bool RichEdit::CreateCaret(int32_t xWidth, int32_t yHeight)
 {
     m_iCaretWidth = xWidth;
     m_iCaretHeight = yHeight;
     return true;
 }
 
-BOOL RichEdit::ShowCaret(BOOL fShow)
+bool RichEdit::ShowCaret(bool fShow)
 {
     if (fShow) {
         m_bIsCaretVisiable = true;
@@ -2309,13 +2313,13 @@ DString RichEdit::GetCaretColor()
     return m_sCaretColor.c_str();
 }
 
-RECT RichEdit::GetCaretRect()
+UiRect RichEdit::GetCaretRect()
 {
-    RECT rc = { m_iCaretPosX, m_iCaretPosY, m_iCaretPosX + m_iCaretWidth, m_iCaretPosY + m_iCaretHeight };
+    UiRect rc = { m_iCaretPosX, m_iCaretPosY, m_iCaretPosX + m_iCaretWidth, m_iCaretPosY + m_iCaretHeight };
     return rc;
 }
 
-BOOL RichEdit::SetCaretPos(INT x, INT y)
+bool RichEdit::SetCaretPos(int32_t x, int32_t y)
 {
     m_iCaretPosX = x;
     m_iCaretPosY = y;
@@ -2607,8 +2611,8 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
     }
 
     //如果没有选中文本，则将光标切换到当前点击的位置
-    long nStartChar = 0; 
-    long nEndChar = 0;
+    int32_t nStartChar = 0; 
+    int32_t nEndChar = 0;
     pRichEdit->GetSel(nStartChar, nEndChar);
     if (nStartChar == nEndChar) {
         int32_t pos = pRichEdit->m_richCtrl.CharFromPos(POINT(point.x, point.y));
@@ -3085,27 +3089,6 @@ void RichEdit::SetTextColorInternal(const UiColor& textColor)
     }
 }
 
-int32_t RichEdit::ConvertToFontHeight(int32_t fontSize) const
-{
-    bool bGetDC = false;
-    HDC hDC = GetDrawDC();
-    if (hDC == nullptr) {
-        hDC = ::GetDC(nullptr);
-        bGetDC = true;
-    }
-    LONG yPixPerInch = ::GetDeviceCaps(hDC, LOGPIXELSY);
-    if (bGetDC && (hDC != nullptr)) {
-        ::ReleaseDC(nullptr, hDC);
-        hDC = nullptr;
-    }
-    if (yPixPerInch == 0) {
-        yPixPerInch = 96;
-    }
-    constexpr const int32_t LY_PER_INCH = 1440;
-    int32_t lfHeight = fontSize * LY_PER_INCH / yPixPerInch;
-    return lfHeight;
-}
-
 void RichEdit::SetHAlignType(HorAlignType alignType)
 {
     if (m_pRichHost != nullptr) {
@@ -3475,6 +3458,26 @@ void RichEdit::UnregisterDragDrop()
     }
 }
 
+int32_t RichEdit::ConvertToFontHeight(int32_t fontSize) const
+{
+    bool bGetDC = false;
+    HDC hDC = GetDrawDC();
+    if (hDC == nullptr) {
+        hDC = ::GetDC(nullptr);
+        bGetDC = true;
+    }
+    LONG yPixPerInch = ::GetDeviceCaps(hDC, LOGPIXELSY);
+    if (bGetDC && (hDC != nullptr)) {
+        ::ReleaseDC(nullptr, hDC);
+        hDC = nullptr;
+    }
+    if (yPixPerInch == 0) {
+        yPixPerInch = 96;
+    }
+    constexpr const int32_t LY_PER_INCH = 1440;
+    int32_t lfHeight = fontSize * LY_PER_INCH / yPixPerInch;
+    return lfHeight;
+}
 
 #endif //DUILIB_BUILD_FOR_WIN/DUILIB_BUILD_FOR_SDL
 

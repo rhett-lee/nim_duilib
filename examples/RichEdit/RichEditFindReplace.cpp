@@ -280,8 +280,8 @@ void RichEditFindReplace::AdjustDialogPosition(ui::Window* pWndDialog)
         return;
     }
 
-    long nStartChar = 0;
-    long nEndChar = 0;
+    int32_t nStartChar = 0;
+    int32_t nEndChar = 0;
     m_pRichEdit->GetSel(nStartChar, nEndChar);
     ui::UiPoint pt = m_pRichEdit->PosFromChar(nStartChar);
     m_pRichEdit->ClientToScreen(pt);

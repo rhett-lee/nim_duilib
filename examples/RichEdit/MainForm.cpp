@@ -470,7 +470,7 @@ void MainForm::OnInitWindow()
     //是否自动换行
     pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_word_wrap")));
     if ((pCheckBox != nullptr) && (m_pRichEdit != nullptr)) {
-        pCheckBox->SetSelected(m_pRichEdit->GetWordWrap());
+        pCheckBox->SetSelected(m_pRichEdit->IsWordWrap());
         pCheckBox->AttachSelect([this](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
                 m_pRichEdit->SetWordWrap(true);

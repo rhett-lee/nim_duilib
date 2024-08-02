@@ -90,7 +90,7 @@ public:
 
     /** 获取是否对输入的字符短暂显示再隐藏
     */
-    bool GetFlashPasswordChar() const;
+    bool IsFlashPasswordChar() const;
 
     /** 是否只允许输入数字
     */
@@ -119,7 +119,7 @@ public:
     /** 获取超出矩形区域的文本显示方式
      * @return 返回 true 时并且在多行模式下内容被换行显示，false 则表示截断显示
      */
-    bool GetWordWrap();
+    bool IsWordWrap();
 
     /** 设置超出矩形区域的文本显示方式
      * @param[in] bWordWrap 为 true 时并且在多行模式下内容被换行显示，false 则表示截断显示
@@ -128,7 +128,7 @@ public:
 
     /** 是否为多行文本
     */
-    bool GetMultiLine() const ;
+    bool IsMultiLine() const ;
 
     /** 设置是否为多行文本
     */
@@ -230,14 +230,14 @@ public:
      * @param[in] nStartChar 返回起始位置
      * @param[in] nEndChar 返回结束位置
      */
-    void GetSel(long& nStartChar, long& nEndChar) const;
+    void GetSel(int32_t& nStartChar, int32_t& nEndChar) const;
 
     /** 选择一部分内容
      * @param[in] nStartChar 要选择的起始位置
      * @param[in] nEndChar 要选择的结束位置
      * @return 返回选择的文字数量
      */
-    int SetSel(long nStartChar, long nEndChar);
+    int32_t SetSel(int32_t nStartChar, int32_t nEndChar);
 
     /** 替换所选内容
      * @param[in] lpszNewText 要替换的文字
@@ -253,19 +253,18 @@ public:
     /** 全选
      * @return 返回选择的内容数量
      */
-    int SetSelAll();
+    int32_t SetSelAll();
 
     /** 不选择任何内容
-     * @return 始终返回 0 
      */
-    int SetSelNone();
+    void SetSelNone();
 
     /** 获取指定范围的内容
      * @param[in] nStartChar 起始位置
      * @param[in] nEndChar 结束为止
      * @return 返回设置的指定位置的内容
      */
-    DString GetTextRange(long nStartChar, long nEndChar) const;
+    DString GetTextRange(int32_t nStartChar, int32_t nEndChar) const;
 
     /** 设置是否隐藏或显示选择的值
      * @param[in] bHide 是否显示，true 为显示，false 为不显示
@@ -321,53 +320,53 @@ public:
      * @param[in] nMaxLength 要获取当前行最大的数据长度
      * @return 返回获取的一行数据
      */
-    DString GetLine(int nIndex, int nMaxLength) const;
+    DString GetLine(int32_t nIndex, int32_t nMaxLength) const;
 
     /** 获取指定行的第一个字符索引
      * @param[in] nLine 要获取第几行数据，默认为 -1
      * @return 返回指定行的第一个字符索引
      */
-    int LineIndex(int nLine = -1) const;
+    int32_t LineIndex(int32_t nLine = -1) const;
 
     /** 获取指定行的数据长度
      * @param[in] nLine 要获取第几行数据，默认为 -1
      * @return 返回指定行的数据长度
      */
-    int LineLength(int nLine = -1) const;
+    int32_t LineLength(int32_t nLine = -1) const;
 
     /** 滚动文本
      * @param[in] nLines 指定垂直滚动方向
      * @return 成功返回 true，失败返回 false
      */
-    bool LineScroll(int nLines);
+    bool LineScroll(int32_t nLines);
 
     /** 获取指定字符所在行数
      * @param[in] nIndex 字符的索引位置
      * @return 返回当前字符所在的行数
      */
-    long LineFromChar(long nIndex) const;
+    int32_t LineFromChar(int32_t nIndex) const;
 
     /** 获取指定位置字符的客户区坐标
      * @param[in] nChar 字符索引位置
      * @return 返回客户区坐标
      */
-    UiPoint PosFromChar(long nChar) const;
+    UiPoint PosFromChar(int32_t nChar) const;
 
     /** 根据坐标返回指定字符索引
      * @param[in] pt 坐标信息
      * @return 返回最接近参数 pt 所指定的坐标位置
      */
-    int CharFromPos(UiPoint pt) const;
+    int32_t CharFromPos(UiPoint pt) const;
 
     /** 清空撤销列表
      */
     void EmptyUndoBuffer();
 
     /** 设置撤销列表容纳的内容数量
-     * @param[in] nLimit
+     * @param [in] nLimit
      * @return 返回设置后的撤销列表可容纳内容数量
      */
-    UINT SetUndoLimit(UINT nLimit);
+    uint32_t SetUndoLimit(uint32_t nLimit);
 
     /** 设置滚动条位置
      * @param[in] szPos 要设置的滚动条位置信息
@@ -464,17 +463,17 @@ public:
     virtual UiSize EstimateText(UiSize szAvailable) override;
 
     /** 创建光标
-     * @param[in] xWidth 光标宽度
-     * @param[in] yHeight 光标高度
+     * @param [in] xWidth 光标宽度
+     * @param [in] yHeight 光标高度
      * @return 成功返回 true，失败返回 false
      */
-    BOOL CreateCaret(INT xWidth, INT yHeight);
+    bool CreateCaret(int32_t xWidth, int32_t yHeight);
 
     /** 设置是否显示光标
-     * @param[in] fShow 设置 true 为显示，false 为不显示
+     * @param [in] fShow 设置 true 为显示，false 为不显示
      * @return 成功返回 true，失败返回 false
      */
-    BOOL ShowCaret(BOOL fShow);
+    bool ShowCaret(bool fShow);
 
     /** 设置光标颜色
      * @param[in] dwColor 要设置的颜色值，该值必须在 global.xml 中存在
@@ -490,14 +489,14 @@ public:
     /** 获取光标矩形位置
      * @return 返回光标矩形位置
      */
-    RECT GetCaretRect();
+    UiRect GetCaretRect();
 
     /** 设置光标位置
-     * @param[in] x X 轴坐标
-     * @param[in] y Y 轴坐标
+     * @param [in] x X 轴坐标
+     * @param [in] y Y 轴坐标
      * @return 成功返回 true，失败返回 false
      */
-    BOOL SetCaretPos(INT x, INT y);
+    bool SetCaretPos(int32_t x, int32_t y);
 
     /** 切换光标是否显示
      */
@@ -652,14 +651,11 @@ public:
     void AttachLinkClick(const EventCallback& callback)    { AttachEvent(kEventLinkClick, callback); }
 
 public:
-
+    /** 消息处理函数
+    */
     virtual void HandleEvent(const EventArgs& msg) override;
 
 public:
-    /** 将字体大小转换成Rich Edit控件的字体高度
-    */
-    int32_t ConvertToFontHeight(int32_t fontSize) const;
-
     /** 屏幕坐标转换为客户区坐标
     */
     virtual bool ScreenToClient(UiPoint& pt) override;
@@ -875,6 +871,10 @@ public:
      * @param[in] font 字体索引
      */
     void AddLinkColorTextEx(const DString& str, const DString& color, const DString& linkInfo = _T(""), const DString& strFontId = _T(""));
+
+    /** 将字体大小转换成Rich Edit控件的字体高度
+    */
+    int32_t ConvertToFontHeight(int32_t fontSize) const;
 
 #endif
 
