@@ -354,11 +354,11 @@ CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`的属性
 | auto_vscroll | false | bool | 是否随输入竖向滚动,如(true) |
 | auto_hscroll | false | bool | 是否随输入横向滚动,如(true) |
 | want_tab | true | bool | 是否接受tab按键消息,如(true) |
-| want_return_msg | true | bool | 是否接受return按键消息,如(true) |
-| return_msg_want_ctrl | true | bool | 是否接受ctrl+return按键消息,如(true) |
-| rich_text | true | bool | 是否使用富格式,如(true) |
+| want_return | false | bool | 是否接受回车按键消息,如(true) |
+| want_ctrl_return | false | bool | 是否接受ctrl+return按键消息,如(true) |
+| rich_text | false | bool | 是否使用富格式,如(true) |
 | single_line | true | bool | 是否使用单行,如(true) |
-| multi_line | true | bool | 是否使用多行,该属性与single_line互斥,如(true) |
+| multi_line | false | bool | 是否使用多行,该属性与single_line互斥,如(true) |
 | readonly | false | bool | 是否只读,如(false) |
 | password | false | bool | 是否为密码模式,如(true) |
 | show_password | false | bool | 是否显示密码符,如(true) |

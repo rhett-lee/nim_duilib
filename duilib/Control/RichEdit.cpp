@@ -152,8 +152,8 @@ RichEdit::RichEdit(Window* pWindow) :
     m_pRichHost(nullptr), 
     m_bVScrollBarFixing(false), 
     m_bWantTab(true),
-    m_bNeedReturnMsg(false),
-    m_bReturnMsgWantCtrl(false),
+    m_bWantReturn(false),
+    m_bWantCtrlReturn(false),
     m_bAllowPrompt(false),
     m_bSelAllEver(false),         
     m_bNoSelOnKillFocus(true), 
@@ -347,11 +347,11 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("want_tab")) || (strName == _T("wanttab"))) {
         SetWantTab(strValue == _T("true"));
     }
-    else if ((strName == _T("want_return_msg")) || (strName == _T("wantreturnmsg"))) {
-        SetNeedReturnMsg(strValue == _T("true"));
+    else if ((strName == _T("want_return")) || (strName == _T("want_return_msg")) || (strName == _T("wantreturnmsg"))) {
+        SetWantReturn(strValue == _T("true"));
     }
-    else if ((strName == _T("return_msg_want_ctrl")) || (strName == _T("returnmsgwantctrl"))) {
-        SetReturnMsgWantCtrl(strValue == _T("true"));
+    else if ((strName == _T("want_ctrl_return")) || (strName == _T("return_msg_want_ctrl")) || (strName == _T("returnmsgwantctrl"))) {
+        SetWantCtrlReturn(strValue == _T("true"));
     }
     else if ((strName == _T("limit_text")) || (strName == _T("max_char")) || (strName == _T("maxchar"))) {
         //限制最多字符数
@@ -497,27 +497,27 @@ bool RichEdit::CanPlaceCaptionBar() const
     return true;
 }
 
-bool RichEdit::IsNeedReturnMsg()
+bool RichEdit::IsWantReturn() const
 {
-    return m_bNeedReturnMsg;
+    return m_bWantReturn;
 }
 
-void RichEdit::SetNeedReturnMsg(bool bNeedReturnMsg)
+void RichEdit::SetWantReturn(bool bWantReturn)
 {
-    m_bNeedReturnMsg = bNeedReturnMsg;
+    m_bWantReturn = bWantReturn;
 }
 
-bool RichEdit::IsReturnMsgWantCtrl()
+bool RichEdit::IsWantCtrlReturn() const
 {
-    return m_bReturnMsgWantCtrl;
+    return m_bWantCtrlReturn;
 }
 
-void RichEdit::SetReturnMsgWantCtrl(bool bReturnMsgWantCtrl)
+void RichEdit::SetWantCtrlReturn(bool bWantCtrlReturn)
 {
-    m_bReturnMsgWantCtrl = bReturnMsgWantCtrl;
+    m_bWantCtrlReturn = bWantCtrlReturn;
 }
 
-bool RichEdit::IsReadOnly()
+bool RichEdit::IsReadOnly() const
 {
     if (m_pRichHost != nullptr) {
         return m_pRichHost->IsReadOnly();
@@ -538,7 +538,7 @@ void RichEdit::SetReadOnly(bool bReadOnly)
 #endif
 }
 
-bool RichEdit::IsPassword()
+bool RichEdit::IsPassword() const
 {
     if (m_pRichHost != nullptr) {
         return m_pRichHost->IsPassword();
@@ -631,7 +631,7 @@ int32_t RichEdit::GetMinNumber() const
     return m_minNumber;
 }
 
-bool RichEdit::IsWordWrap()
+bool RichEdit::IsWordWrap() const
 {
     if (m_pRichHost != nullptr) {
         return m_pRichHost->IsWordWrap();
@@ -945,7 +945,7 @@ bool RichEdit::CanPaste() const
     return m_richCtrl.CanPaste(0);
 }
 
-int RichEdit::GetLineCount() const
+int32_t RichEdit::GetLineCount() const
 {
     return m_richCtrl.GetLineCount();
 }
@@ -1793,8 +1793,8 @@ bool RichEdit::IsPasteLimited() const
 bool RichEdit::OnKeyDown(const EventArgs& msg)
 {
     if (msg.vkCode == kVK_RETURN && ::GetKeyState(VK_SHIFT) >= 0)    {
-        if (m_bNeedReturnMsg && ((m_bReturnMsgWantCtrl && ::GetKeyState(VK_CONTROL) < 0) ||
-            (!m_bReturnMsgWantCtrl && ::GetKeyState(VK_CONTROL) >= 0))) {
+        if (m_bWantReturn && ((m_bWantCtrlReturn && ::GetKeyState(VK_CONTROL) < 0) ||
+            (!m_bWantCtrlReturn && ::GetKeyState(VK_CONTROL) >= 0))) {
             SendEvent(kEventReturn);
             return true;
         }
@@ -3193,7 +3193,7 @@ void RichEdit::AddLinkColorTextEx(const DString& str, const DString& color, cons
     return;
 }
 
-bool RichEdit::IsRichText()
+bool RichEdit::IsRichText() const
 {
     TEXTMODE newTextMode = m_richCtrl.GetTextMode();
     return (newTextMode & TM_RICHTEXT) ? true : false;
@@ -3247,7 +3247,7 @@ void RichEdit::SetAllowBeep(bool bAllowBeep)
     }
 }
 
-int RichEdit::SetSel(CHARRANGE& cr)
+int32_t RichEdit::SetSel(CHARRANGE& cr)
 {
     return m_richCtrl.SetSel(cr);
 }
@@ -3314,7 +3314,7 @@ void RichEdit::ScrollCaret()
     m_richCtrl.ScrollCaret();
 }
 
-int RichEdit::InsertText(long nInsertAfterChar, const DString& text, bool bCanUndo)
+int32_t RichEdit::InsertText(long nInsertAfterChar, const DString& text, bool bCanUndo)
 {
 #ifdef DUILIB_UNICODE
     return m_richCtrl.InsertText(nInsertAfterChar, text.c_str(), bCanUndo);
@@ -3323,7 +3323,7 @@ int RichEdit::InsertText(long nInsertAfterChar, const DString& text, bool bCanUn
 #endif
 }
 
-int RichEdit::AppendText(const DString& strText, bool bCanUndo)
+int32_t RichEdit::AppendText(const DString& strText, bool bCanUndo)
 {
 #ifdef DUILIB_UNICODE
     return m_richCtrl.AppendText(strText.c_str(), bCanUndo);

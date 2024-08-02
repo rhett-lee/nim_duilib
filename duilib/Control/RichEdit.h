@@ -23,49 +23,49 @@ public:
 
 public:
     /** 判断是否接受 TAB 按键消息
-     * @return 返回 true 表示接受，false 表示不接受
+     * @return 返回 true 表示接受，TAB键会作为输入字符转换为文本；false 表示不接受，TAB键会作为控件的快捷键，而不作为输入文本字符
      */
     virtual bool IsWantTab() const override;
 
     /** 判断是否接受 TAB 按键消息
-     * @param[in] bWantTab 为 true 则接受该消息，false 为不接受
+     * @param[in] bWantTab 为 true 表示接受，TAB键会作为输入字符转换为文本；false 表示不接受，TAB键会作为控件的快捷键，而不作为输入文本字符
      */
-    void SetWantTab(bool bWantTab = true);
+    void SetWantTab(bool bWantTab);
 
-    /** 判断是否接受 RETURN 按键消息
-     * @return 返回 true 表示接受，false 表示不接受
+    /** 判断是否接受 回车键 按键消息
+     * @return 返回 true 表示接受，回车键会作为输入字符转换为文本；false 表示不接受，回车键会作为控件的快捷键，而不作为输入文本字符
      */
-    bool IsNeedReturnMsg();
+    bool IsWantReturn() const;
 
-    /** 设置是否接受 RETURN 按键消息
-     * @param[in] bNeedReturnMsg 为 true 则接受该消息，false 为不接受
+    /** 设置是否接受 回车键 按键消息
+     * @param[in] bWantReturn 为 true 表示接受，回车键会作为输入字符转换为文本；false 表示不接受，回车键会作为控件的快捷键，而不作为输入文本字符
      */
-    void SetNeedReturnMsg(bool bNeedReturnMsg = true);
+    void SetWantReturn(bool bWantReturn);
 
     /** 判断是否接受CTRL+RETURN 组合键消息
      * @return 返回 true 表示接受，false 表示不接受
      */
-    bool IsReturnMsgWantCtrl();
+    bool IsWantCtrlReturn() const;
 
     /** 设置是否接受CTRL+RETUREN 组合键消息
-     * @param[in] bReturnMsgWantCtrl 为 true 则接受该消息，false 为不接受
+     * @param[in] bWantCtrlReturn 为 true 则接受该消息，false 为不接受
      */
-    void SetReturnMsgWantCtrl(bool bReturnMsgWantCtrl = true);
+    void SetWantCtrlReturn(bool bWantCtrlReturn);
 
     /** 是否是只读状态
      * @return 返回 true 为只读状态，否则为 false
      */
-    bool IsReadOnly();
+    bool IsReadOnly() const;
 
     /** 设置控件为只读状态
      * @param[in] bReadOnly 设置 true 让控件变为只读状态，false 为可写入状态
      */
-    void SetReadOnly(bool bReadOnly = true);
+    void SetReadOnly(bool bReadOnly);
 
     /** 是否是密码状态控件
      * @return 返回 true 表示是密码控件，否则为 false
      */
-    bool IsPassword();
+    bool IsPassword() const;
 
     /** 设置控件为密码控件（显示 ***）
      * @param[in] bPassword 设置为 true 让控件显示内容为 ***，false 为显示正常内容
@@ -119,12 +119,12 @@ public:
     /** 获取超出矩形区域的文本显示方式
      * @return 返回 true 时并且在多行模式下内容被换行显示，false 则表示截断显示
      */
-    bool IsWordWrap();
+    bool IsWordWrap() const;
 
     /** 设置超出矩形区域的文本显示方式
      * @param[in] bWordWrap 为 true 时并且在多行模式下内容被换行显示，false 则表示截断显示
      */
-    void SetWordWrap(bool bWordWrap = true);
+    void SetWordWrap(bool bWordWrap);
 
     /** 是否为多行文本
     */
@@ -266,9 +266,9 @@ public:
      */
     DString GetTextRange(int32_t nStartChar, int32_t nEndChar) const;
 
-    /** 设置是否隐藏或显示选择的值
-     * @param[in] bHide 是否显示，true 为显示，false 为不显示
-     * @param[in] bChangeStyle 是否修改样式，true 为修改，false 为不修改
+    /** 设置隐藏或显示选择的文本
+     * @param [in] bHide 是否显示，true 为隐藏，false 为显示
+     * @param [in] bChangeStyle 是否修改样式，true 为修改，false 为不修改
      */
     void HideSelection(bool bHide = true, bool bChangeStyle = false);
 
@@ -313,7 +313,7 @@ public:
     /** 获取总行数
      * @return 返回总行数
      */
-    int GetLineCount() const;
+    int32_t GetLineCount() const;
 
     /** 获取一行数据
      * @param[in] nIndex 要获取的行数
@@ -670,12 +670,12 @@ public:
      * @return 返回 true 为富文本模式：支持丰富的文本格式，支持RTF格式
                返回 false 为纯文本模式：纯文本控件中的文本只能有一种格式
      */
-    bool IsRichText();
+    bool IsRichText() const;
 
     /** 设置控件为富文本模式
      * @param[in] bRichText 设置 true 为富文本模式，false 为纯文本模式
      */
-    void SetRichText(bool bRichText = true);
+    void SetRichText(bool bRichText);
 
     /** 设置是否允许拖放功能
     */
@@ -747,7 +747,7 @@ public:
      * @param[in] cr 要选择的文字起始位置和结束位置
      * @return 返回选择的文字数量
      */
-    int SetSel(CHARRANGE& cr);
+    int32_t SetSel(CHARRANGE& cr);
 
     /** 是否允许发出Beep声音
     */
@@ -767,14 +767,14 @@ public:
      * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false，默认为 false
      * @return 返回插入后的文本位置
      */
-    int InsertText(long nInsertAfterChar, const DString& text, bool bCanUndo = false);
+    int32_t InsertText(long nInsertAfterChar, const DString& text, bool bCanUndo = false);
 
     /** 追加文字
      * @param[in] strText 要追加的文字
      * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false，默认为 false
      * @return 返回追加后的文字位置
      */
-    int AppendText(const DString& strText, bool bCanUndo = false);
+    int32_t AppendText(const DString& strText, bool bCanUndo = false);
 
     /** 获取字符格式
      * @param[out] cf 返回获取的字符格式
@@ -1015,8 +1015,8 @@ private:
 
     bool m_bVScrollBarFixing;   //滚动条修正标志
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
-    bool m_bNeedReturnMsg;      //是否接收回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
-    bool m_bReturnMsgWantCtrl;  //是否接收Ctrl + 回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
+    bool m_bWantReturn;         //是否接收回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
+    bool m_bWantCtrlReturn;     //是否接收Ctrl + 回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
      
     bool m_bSelAllEver;         //只在获取焦点后的第一次鼠标弹起全选
 

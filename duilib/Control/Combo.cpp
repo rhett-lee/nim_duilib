@@ -523,7 +523,7 @@ void Combo::OnInit()
         m_pButtonControl->AttachClick(UiBind(&Combo::OnButtonClicked, this, std::placeholders::_1));
     }
     if (m_pEditControl != nullptr) {
-        m_pEditControl->SetNeedReturnMsg(true);
+        m_pEditControl->SetWantReturn(true);
         m_pEditControl->AttachButtonDown(UiBind(&Combo::OnEditButtonDown, this, std::placeholders::_1));
         m_pEditControl->AttachButtonUp(UiBind(&Combo::OnEditButtonUp, this, std::placeholders::_1));
         m_pEditControl->AttachEvent(kEventKeyDown, UiBind(&Combo::OnEditKeyDown, this, std::placeholders::_1));
