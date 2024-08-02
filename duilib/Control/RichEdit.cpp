@@ -175,7 +175,7 @@ RichEdit::RichEdit(Window* pWindow) :
     m_bUseControlCursor(false),
     m_bEnableWheelZoom(false),
     m_bEnableDefaultContextMenu(false),
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     m_pControlDropTarget(nullptr),
 #endif
     m_bDisableTextChangeEvent(false),
@@ -196,7 +196,7 @@ RichEdit::RichEdit(Window* pWindow) :
 
 RichEdit::~RichEdit()
 {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     if (m_pControlDropTarget != nullptr) {
         UnregisterDragDrop();
         delete m_pControlDropTarget;
@@ -387,7 +387,7 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         SetEnableWheelZoom(strValue == _T("true"));
     }
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     else if (strName == _T("zoom")) {
         //缩放比例：
         //设置缩放比例：设 wParam：缩放比例的分子，lParam：缩放比例的分母，
@@ -438,6 +438,57 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //是否允许拖放操作
         SetEnableDragDrop(strValue == _T("true"));
     }
+#else
+    else if (strName == _T("zoom")) {
+        //缩放比例：
+        //设置缩放比例：设 wParam：缩放比例的分子，lParam：缩放比例的分母，
+        // "wParam,lParam" 表示按缩放比例分子/分母显示的缩放，取值范围：1/64 < (wParam / lParam) < 64。
+        // 举例：则："0,0"表示关闭缩放功能，"2,1"表示放大到200%，"1,2"表示缩小到50% 
+        //UiSize zoomValue;
+        //AttributeUtil::ParseSizeValue(strValue.c_str(), zoomValue);
+        //if ((zoomValue.cx >= 0) && (zoomValue.cx <= 64) &&
+        //    (zoomValue.cy >= 0) && (zoomValue.cy <= 64)) {
+        //    m_richCtrl.SetZoom(zoomValue.cx, zoomValue.cy);
+        //}
+    }    
+    else if ((strName == _T("auto_vscroll")) || (strName == _T("autovscroll"))) {
+        //当用户在最后一行按 ENTER 时，自动将文本向上滚动一页。
+        //if (m_pRichHost != nullptr) {
+        //    m_pRichHost->SetAutoVScroll(strValue == _T("true"));
+        //}
+    }
+    else if ((strName == _T("auto_hscroll")) || (strName == _T("autohscroll"))) {
+        //当用户在行尾键入一个字符时，自动将文本向右滚动 10 个字符。
+        //当用户按 Enter 时，控件会将所有文本滚动回零位置。
+        //if (m_pRichHost != nullptr) {
+        //    m_pRichHost->SetAutoHScroll(strValue == _T("true"));
+        //}
+    }
+    else if ((strName == _T("rich_text")) || (strName == _T("rich"))) {
+        //是否为富文本属性
+        //SetRichText(strValue == _T("true"));
+    }
+    else if (strName == _T("auto_detect_url")) {
+        //是否自动检测URL，如果是URL则显示为超链接
+        //SetAutoURLDetect(strValue == _T("true"));
+    }
+    else if (strName == _T("allow_beep")) {
+        //是否允许发出Beep声音
+        //SetAllowBeep(strValue == _T("true"));
+    }
+    else if (strName == _T("save_selection")) {
+        //如果 为 TRUE，则当控件处于非活动状态时，应保存所选内容的边界。
+        //如果 为 FALSE，则当控件再次处于活动状态时，可以选择边界重置为 start = 0，length = 0。
+        //SetSaveSelection(strValue == _T("true"));
+    }
+    else if (strName == _T("hide_selection")) {
+        //是否隐藏选择内容
+        //SetHideSelection(strValue == _T("true"));
+    }
+    else if (strName == _T("enable_drag_drop")) {
+        //是否允许拖放操作
+        //SetEnableDragDrop(strValue == _T("true"));
+    }
 #endif
     else {
         Box::SetAttribute(strName, strValue);
@@ -468,14 +519,14 @@ void RichEdit::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 
 void RichEdit::SetWindow(Window* pWindow)
 {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     if (IsEnableDragDrop() && (pWindow != GetWindow())) {
         UnregisterDragDrop();
     }
 #endif
     __super::SetWindow(pWindow);
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     if (IsEnableDragDrop()) {
         RegisterDragDrop();
     }
@@ -530,7 +581,7 @@ void RichEdit::SetReadOnly(bool bReadOnly)
     if (m_pRichHost != nullptr) {
         m_pRichHost->SetReadOnly(bReadOnly);
     }
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     if (bReadOnly) {
         //只读模式关闭拖放功能
         SetEnableDragDrop(false);
@@ -551,7 +602,7 @@ void RichEdit::SetPassword(bool bPassword)
     if (m_pRichHost != nullptr) {
         m_pRichHost->SetPassword(bPassword);
     }
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     if (bPassword) {
         //密码模式关闭拖放功能
         SetEnableDragDrop(false);
@@ -1020,7 +1071,7 @@ void RichEdit::OnTxNotify(DWORD iNotify, void *pv)
     { 
     case EN_LINK:   
         {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
             NMHDR* hdr = (NMHDR*) pv;
             ENLINK* link = (ENLINK*)hdr;
 
@@ -1207,7 +1258,7 @@ bool RichEdit::ClientToScreen(UiPoint& pt)
 // 引入iPos就是为了修正这个bug
 void RichEdit::SetScrollPos(UiSize64 szPos)
 {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     bool bRichText = IsRichText();
 #else
     bool bRichText = false;
@@ -1252,7 +1303,7 @@ void RichEdit::LineUp()
 
 void RichEdit::LineDown()
 {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     bool bRichText = IsRichText();
 #else
     bool bRichText = false;
@@ -1370,7 +1421,7 @@ void RichEdit::SetEnabled(bool bEnable /*= true*/)
         UiColor dwTextColor = GetUiColor(GetDisabledTextColor());
         SetTextColorInternal(dwTextColor);
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
         //不可用的状态关闭拖放功能
         SetEnableDragDrop(false);
 #endif
@@ -1855,7 +1906,7 @@ bool RichEdit::OnImeEndComposition(const EventArgs& /*msg*/)
     return true;
 }
 
-void RichEdit::OnMouseMessage(UINT uMsg, const EventArgs& msg)
+void RichEdit::OnMouseMessage(uint32_t uMsg, const EventArgs& msg)
 {
     UiPoint pt = msg.ptMouse;
     pt.Offset(GetScrollOffsetInScrollBox());
@@ -3119,9 +3170,30 @@ void RichEdit::SetVAlignType(VerAlignType alignType)
     }
 }
 
+int32_t RichEdit::ConvertToFontHeight(int32_t fontSize) const
+{
+    bool bGetDC = false;
+    HDC hDC = GetDrawDC();
+    if (hDC == nullptr) {
+        hDC = ::GetDC(nullptr);
+        bGetDC = true;
+    }
+    LONG yPixPerInch = ::GetDeviceCaps(hDC, LOGPIXELSY);
+    if (bGetDC && (hDC != nullptr)) {
+        ::ReleaseDC(nullptr, hDC);
+        hDC = nullptr;
+    }
+    if (yPixPerInch == 0) {
+        yPixPerInch = 96;
+    }
+    constexpr const int32_t LY_PER_INCH = 1440;
+    int32_t lfHeight = fontSize * LY_PER_INCH / yPixPerInch;
+    return lfHeight;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
 void RichEdit::SetSaveSelection(bool fSaveSelection)
 {
     if (m_pRichHost != nullptr) {
@@ -3458,28 +3530,7 @@ void RichEdit::UnregisterDragDrop()
     }
 }
 
-int32_t RichEdit::ConvertToFontHeight(int32_t fontSize) const
-{
-    bool bGetDC = false;
-    HDC hDC = GetDrawDC();
-    if (hDC == nullptr) {
-        hDC = ::GetDC(nullptr);
-        bGetDC = true;
-    }
-    LONG yPixPerInch = ::GetDeviceCaps(hDC, LOGPIXELSY);
-    if (bGetDC && (hDC != nullptr)) {
-        ::ReleaseDC(nullptr, hDC);
-        hDC = nullptr;
-    }
-    if (yPixPerInch == 0) {
-        yPixPerInch = 96;
-    }
-    constexpr const int32_t LY_PER_INCH = 1440;
-    int32_t lfHeight = fontSize * LY_PER_INCH / yPixPerInch;
-    return lfHeight;
-}
-
-#endif //DUILIB_BUILD_FOR_WIN/DUILIB_BUILD_FOR_SDL
+#endif //DUILIB_RICHEDIT_SUPPORT_RICHTEXT
 
 } // namespace ui
 
