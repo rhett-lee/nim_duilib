@@ -1,9 +1,9 @@
-#include "RichEditHost.h"
-#include "RichEdit.h"
+#include "RichEditHost_Windows.h"
+#include "RichEdit_Windows.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #define UI_ES_LEFT              0x0001L
 #define UI_ES_CENTER            0x0002L

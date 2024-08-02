@@ -1,6 +1,6 @@
 #include "NativeWindow_Windows.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include <CommCtrl.h>

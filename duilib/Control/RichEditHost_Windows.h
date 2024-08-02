@@ -1,9 +1,9 @@
-#ifndef UI_CONTROL_RICHEDIT_HOST_H_
-#define UI_CONTROL_RICHEDIT_HOST_H_
+#ifndef UI_CONTROL_RICHEDIT_HOST_WINDOWS_H_
+#define UI_CONTROL_RICHEDIT_HOST_WINDOWS_H_
 
 #include "duilib/Core/UiTypes.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 //使用Windows的ITextHost实现
 #include <Richedit.h>
@@ -280,4 +280,4 @@ private:
 
 #endif // DUILIB_BUILD_FOR_WIN
 
-#endif // UI_CONTROL_RICHEDIT_HOST_H_
+#endif // UI_CONTROL_RICHEDIT_HOST_WINDOWS_H_

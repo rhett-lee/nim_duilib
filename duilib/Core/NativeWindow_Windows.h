@@ -6,7 +6,7 @@
 #include "duilib/Core/WindowCreateAttributes.h"
 #include "duilib/Utils/FilePath.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include "duilib/duilib_config_windows.h"
 

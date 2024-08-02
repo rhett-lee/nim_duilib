@@ -73,6 +73,9 @@
     <Filter Include="Utils\SDL">
       <UniqueIdentifier>{d7bb0053-b383-407e-a8d2-59a1614592d8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Control\SDL">
+      <UniqueIdentifier>{be0e4864-bcc3-4091-97af-c44373bb7890}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -492,12 +495,6 @@
     <ClCompile Include="Control\DateTimeWnd_Windows.cpp">
       <Filter>Control\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Control\RichEditHost.cpp">
-      <Filter>Control\Windows</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\RichEdit.cpp">
-      <Filter>Control\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="Core\Keycode_SDL.cpp">
       <Filter>Core\SDL</Filter>
     </ClCompile>
@@ -527,6 +524,15 @@
     </ClCompile>
     <ClCompile Include="Utils\ShadowWnd_SDL.cpp">
       <Filter>Utils\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichEdit_Windows.cpp">
+      <Filter>Control\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichEditHost_Windows.cpp">
+      <Filter>Control\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichEdit_SDL.cpp">
+      <Filter>Control\SDL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1085,20 +1091,26 @@
     <ClInclude Include="Control\DateTimeWnd_Windows.h">
       <Filter>Control\Windows</Filter>
     </ClInclude>
-    <ClInclude Include="Control\RichEditHost.h">
-      <Filter>Control\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\RichEditCtrl.h">
-      <Filter>Control\Windows</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\RichEdit.h">
-      <Filter>Control\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="Core\Keycode.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Utils\BitmapHelper_Windows.h">
       <Filter>Utils\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEdit_Windows.h">
+      <Filter>Control\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEditCtrl_Windows.h">
+      <Filter>Control\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEditHost_Windows.h">
+      <Filter>Control\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEdit.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEdit_SDL.h">
+      <Filter>Control\SDL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

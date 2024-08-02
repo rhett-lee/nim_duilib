@@ -398,7 +398,9 @@
     <ClCompile Include="Control\ListCtrlView.cpp" />
     <ClCompile Include="Control\Menu.cpp" />
     <ClCompile Include="Control\PropertyGrid.cpp" />
-    <ClCompile Include="Control\RichEditHost.cpp" />
+    <ClCompile Include="Control\RichEditHost_Windows.cpp" />
+    <ClCompile Include="Control\RichEdit_SDL.cpp" />
+    <ClCompile Include="Control\RichEdit_Windows.cpp" />
     <ClCompile Include="Control\RichText.cpp" />
     <ClCompile Include="Control\TabCtrl.cpp" />
     <ClCompile Include="Core\Box.cpp" />
@@ -504,7 +506,6 @@
     <ClCompile Include="Utils\StringUtil.cpp" />
     <ClCompile Include="Control\Combo.cpp" />
     <ClCompile Include="Control\Progress.cpp" />
-    <ClCompile Include="Control\RichEdit.cpp" />
     <ClCompile Include="Control\Slider.cpp" />
     <ClCompile Include="Control\TreeView.cpp" />
     <ClCompile Include="Utils\WinImplBase.cpp" />
@@ -566,8 +567,11 @@
     <ClInclude Include="Control\Menu.h" />
     <ClInclude Include="Control\observer_impl_base.hpp" />
     <ClInclude Include="Control\PropertyGrid.h" />
-    <ClInclude Include="Control\RichEditCtrl.h" />
-    <ClInclude Include="Control\RichEditHost.h" />
+    <ClInclude Include="Control\RichEdit.h" />
+    <ClInclude Include="Control\RichEditCtrl_Windows.h" />
+    <ClInclude Include="Control\RichEditHost_Windows.h" />
+    <ClInclude Include="Control\RichEdit_SDL.h" />
+    <ClInclude Include="Control\RichEdit_Windows.h" />
     <ClInclude Include="Control\RichText.h" />
     <ClInclude Include="Control\CircleProgress.h" />
     <ClInclude Include="Control\Split.h" />
@@ -697,7 +701,6 @@
     <ClInclude Include="Control\Label.h" />
     <ClInclude Include="Control\Option.h" />
     <ClInclude Include="Control\Progress.h" />
-    <ClInclude Include="Control\RichEdit.h" />
     <ClInclude Include="Control\Slider.h" />
     <ClInclude Include="Control\TreeView.h" />
   </ItemGroup>
