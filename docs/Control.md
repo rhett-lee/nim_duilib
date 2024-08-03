@@ -383,15 +383,15 @@ CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`的属性
 | auto_detect_url | false | bool | 是否自动检测URL，如果是URL则显示为超链接 |
 | limit_text | | int | 限制最多字符数 |
 | limit_chars | | string | 限制允许输入哪些字符，比如"abc"表示只允许输入a、b、c字符，不允许输入其他字符 |
-| allow_beep | | bool | 是否允许发出Beep声音 |
-| word_wrap | | bool | 是否自动换行 |
-| no_caret_readonly | | bool | 只读模式，不显示光标 |
-| save_selection | | bool | 如果 为 true，则当控件处于非活动状态时，应保存所选内容的边界 |
-| hide_selection | | bool | 是否隐藏选择内容 |
+| allow_beep | false | bool | 是否允许发出Beep声音 |
+| word_wrap | false| bool | 是否自动换行 |
+| no_caret_readonly |false| bool | 只读模式，不显示光标 |
+| save_selection |false| bool | 如果 为 true，则当控件处于非活动状态时，应保存所选内容的边界 |
+| hide_selection | false | bool | 是否隐藏选择内容 |
 | zoom | | size | 设置缩放比例：设 wParam：缩放比例的分子，lParam：缩放比例的分母。"wParam,lParam" 表示按缩放比例分子/分母显示的缩放，取值范围：1/64 < (wParam / lParam) < 64。举例：则："0,0"表示关闭缩放功能，"2,1"表示放大到200%，"1,2"表示缩小到50% |
 | wheel_zoom | | bool | 是否允许Ctrl + 滚轮来调整缩放比例 |
-| default_context_menu | | bool | 是否使用默认的右键菜单 |
-| enable_drag_drop | | bool | 是否允许拖放操作 |
+| default_context_menu | false | bool | 是否使用默认的右键菜单 |
+| enable_drag_drop |false| bool | 是否允许拖放操作 |
 | spin_class | | string | 设置Spin功能的Class名称，如果不为空则显示Spin按钮，详细用法参见示例程序|
 | clear_btn_class | | string | 设置清除按钮功能的Class名称，如果不为空则显示清楚按钮，详细用法参见示例程序 |
 | show_passowrd_btn_class | | string |设置显示密码按钮功能的Class名称，如果不为空则显示显示密码按钮 ，详细用法参见示例程序 |
@@ -427,8 +427,9 @@ RichText是带有格式的文本，其格式类似于HTML标签，格式文本以`<RichText>`开头，以`<
 | default_link_font_color | | string | 超级链接：常规文本颜色值 |
 | hover_link_font_color | | string | 超级链接：Hover状态文本颜色值 |
 | mouse_down_link_font_color | | string | 超级链接：鼠标按下状态文本颜色值 |
-| link_font_underline | | string | 超级链接：是否使用带下划线的字体 |
+| link_font_underline | true | bool | 超级链接：是否使用带下划线的字体 |
 | row_spacing_mul | | float | 行间距倍数, 比如1.5代表1.5倍行间距 |
+| word_wrap | true| bool | 是否自动换行，如果为false，则只有在`<br/>`标签的时候才换行 |
 
 RichText 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 

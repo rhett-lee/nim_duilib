@@ -103,6 +103,20 @@
                 <bgcolor color="#802378">背景颜色演示</bgcolor>                
                 RichText文本内容2RichText文本内容3RichText文本内容4RichText文本内容5RichText文本内容6RichText文本内容7RichText文本内容8RichText文本内容9RichText文本内容10
             </RichText>
+            <ScrollBox vscrollbar="true" hscrollbar="true" width="300" height="200" bkcolor="white" border_size="2" border_color="red" padding="4,4,4,4">
+                <RichText class="rich_text" bkcolor="green" row_spacing_mul="1.5" width="auto" height="auto" word_wrap="false">
+                    第1行: RichText文本<br/>
+                    第2行: RichText文本<br/>
+                    第3行: RichText文本<br/>
+                    第4行: RichText文本<br/>
+                    第5行: RichText文本<br/>
+                    第6行: RichText文本<br/>
+                    第7行: RichText文本<br/>
+                    第8行: RichText文本<br/>
+                    第9行: RichText文本<br/>
+                    第10行: RichText文本内容2RichText文本内容3RichText文本内容4RichText文本内容5RichText文本内容6RichText文本内容7RichText文本内容8RichText文本内容9RichText文本内容10<br/>
+                </RichText>
+            </ScrollBox>
         </VBox>
     </HBox>
 </Window>

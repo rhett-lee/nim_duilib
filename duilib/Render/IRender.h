@@ -444,19 +444,20 @@ enum class UILIB_API RopMode
 */
 enum UILIB_API DrawStringFormat
 {
-    TEXT_LEFT           = 0x0001,
-    TEXT_CENTER         = 0x0002,
-    TEXT_RIGHT          = 0x0004,
+    TEXT_LEFT           = 0x0001,   //水平对齐方式：靠左
+    TEXT_CENTER         = 0x0002,   //水平对齐方式：居中
+    TEXT_RIGHT          = 0x0004,   //水平对齐方式：靠右
 
-    TEXT_TOP            = 0x0010,
-    TEXT_VCENTER        = 0x0020,
-    TEXT_BOTTOM         = 0x0040,
+    TEXT_TOP            = 0x0010,   //垂直对齐方式：靠上
+    TEXT_VCENTER        = 0x0020,   //垂直对齐方式：居中
+    TEXT_BOTTOM         = 0x0040,   //垂直对齐方式：靠下
 
-    TEXT_SINGLELINE     = 0x0100,
-    TEXT_NOCLIP         = 0x0200,
+    TEXT_SINGLELINE     = 0x0100,   //单行文本
+    TEXT_NOCLIP         = 0x0200,   //绘制的时候，不设置剪辑区域
+    TEXT_WORD_WRAP      = 0x0400,   //自动换行（仅在IRender::DrawRichText接口支持此属性，其他文字绘制函数不支持该属性）
 
-    TEXT_PATH_ELLIPSIS  = 0x4000,
-    TEXT_END_ELLIPSIS   = 0x8000
+    TEXT_PATH_ELLIPSIS  = 0x4000,   //如果绘制区域不足，按显示文件路径的方式，在中间加"..."省略部分文字
+    TEXT_END_ELLIPSIS   = 0x8000    //如果绘制区域不足，在结尾加"..."，省略部分文字
 };
 
 /** Render类型

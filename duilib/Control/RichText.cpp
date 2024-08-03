@@ -15,7 +15,8 @@ RichText::RichText(Window* pWindow) :
     m_uTextStyle(TEXT_LEFT | TEXT_TOP),
     m_fRowSpacingMul(1.0f),
     m_bLinkUnderlineFont(true),
-    m_nTextDataDPI(0)
+    m_nTextDataDPI(0),
+    m_bWordWrap(true)
 {
 }
 
@@ -114,6 +115,9 @@ void RichText::SetAttribute(const DString& strName, const DString& strValue)
             m_trimPolicy = TrimPolicy::kAll;
         }
     }
+    else if (strName == _T("word_wrap")) {
+        SetWordWrap(strValue == _T("true"));
+    }
     else {
         __super::SetAttribute(strName, strValue);
     }
@@ -145,7 +149,14 @@ void RichText::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect)
             richTextData.push_back(textData);
         }
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        pRender->DrawRichText(rc, pRenderFactory, richTextData, m_uTextStyle, true, (uint8_t)GetAlpha());
+        uint32_t uTextStyle = m_uTextStyle;
+        if (IsWordWrap()) {
+            uTextStyle |= TEXT_WORD_WRAP;
+        }
+        else {
+            uTextStyle &= ~TEXT_WORD_WRAP;
+        }
+        pRender->DrawRichText(rc, pRenderFactory, richTextData, uTextStyle, true, (uint8_t)GetAlpha());
         for (size_t index = 0; index < richTextData.size(); ++index) {
             m_textData[index].m_textRects = richTextData[index].m_textRects;
         }
@@ -180,6 +191,10 @@ UiSize RichText::EstimateText(UiSize szAvailable)
     }
     else if (GetFixedWidth().IsInt32()) {
         nWidth = GetFixedWidth().GetInt32();
+    }
+    else if (GetFixedWidth().IsAuto()) {
+        //宽度为自动时，不限制宽度
+        nWidth = INT_MAX;
     }
 
     //最大高度，不限制
@@ -301,7 +316,14 @@ void RichText::PaintText(IRender* pRender)
             }
         }
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        pRender->DrawRichText(rc, pRenderFactory, richTextData, m_uTextStyle, false, (uint8_t)GetAlpha());
+        uint32_t uTextStyle = m_uTextStyle;
+        if (IsWordWrap()) {
+            uTextStyle |= TEXT_WORD_WRAP;
+        }
+        else {
+            uTextStyle &= ~TEXT_WORD_WRAP;
+        }
+        pRender->DrawRichText(rc, pRenderFactory, richTextData, uTextStyle, false, (uint8_t)GetAlpha());
         for (size_t index = 0; index < richTextData.size(); ++index) {
             m_textData[index].m_textRects = richTextData[index].m_textRects;
         }
@@ -556,6 +578,7 @@ void RichText::SetFontId(const DString& strFontId)
 {
     if (m_sFontId != strFontId) {
         m_sFontId = strFontId;
+        //重新绘制
         m_textData.clear();
         Invalidate();
     }
@@ -570,6 +593,7 @@ void RichText::SetTextColor(const DString& sTextColor)
 {
     if (m_sTextColor != sTextColor) {
         m_sTextColor = sTextColor;
+        //重新绘制
         m_textData.clear();
         Invalidate();
     }
@@ -587,6 +611,22 @@ void RichText::SetRowSpacingMul(float fRowSpacingMul)
         if (m_fRowSpacingMul <= 0.01f) {
             m_fRowSpacingMul = 1.0f;
         }
+        //重新绘制
+        m_textData.clear();
+        Invalidate();
+    }
+}
+
+bool RichText::IsWordWrap() const
+{
+    return m_bWordWrap;
+}
+
+void RichText::SetWordWrap(bool bWordWrap)
+{
+    if (m_bWordWrap != bWordWrap) {
+        m_bWordWrap = bWordWrap;
+        //重新绘制
         m_textData.clear();
         Invalidate();
     }
@@ -881,4 +921,3 @@ bool RichText::OnSetCursor(const EventArgs& msg)
 }
 
 } // namespace ui
-

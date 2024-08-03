@@ -1576,6 +1576,9 @@ void Render_Skia::DrawRichText(const UiRect& rc,
         UiColor m_bgColor;
     };
 
+    //当绘制超过目标矩形边界时，是否继续绘制
+    bool bBreakWhenOutOfRect = !bMeasureOnly;
+
     std::vector<std::shared_ptr<TPendingTextData>> pendingTextData;
 
     int32_t xPos = rc.left;
@@ -1642,7 +1645,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
             nRowHeight = 0;
             ++nRowIndex;
 
-            if (yPos >= rc.bottom) {
+            if (bBreakWhenOutOfRect && (yPos >= rc.bottom)) {
                 //绘制区域已满，终止绘制
                 break;
             }
@@ -1658,11 +1661,15 @@ void Render_Skia::DrawRichText(const UiRect& rc,
             const size_t textCount = text.size();
             size_t textStartIndex = 0;
             while (textStartIndex < textCount) {
-                //估算文本绘制区域
-                SkScalar maxWidth = SkIntToScalar(rc.right - xPos);//可用宽度
-                ASSERT(maxWidth > 0);
+                //估算文本绘制区域                          
                 SkScalar measuredWidth = 0;
                 size_t byteLength = (textCount - textStartIndex) * sizeof(DString::value_type);
+                SkScalar maxWidth = SkIntToScalar(rc.right - xPos);//可用宽度      
+                if (!(uFormat & DrawStringFormat::TEXT_WORD_WRAP)) {
+                    //不自动换行
+                    maxWidth = SK_FloatInfinity;
+                }
+                ASSERT(maxWidth > 0);
                 size_t nDrawLength = SkTextBox::breakText(text.c_str() + textStartIndex,
                                                           byteLength,
                                                           GetTextEncoding(),
@@ -1702,8 +1709,8 @@ void Render_Skia::DrawRichText(const UiRect& rc,
                     textStartIndex = textCount;//标记，结束循环
 
                     xPos += nTextWidth;
-                    if (xPos >= rc.right) {
-                        //换行
+                    if ((uFormat & DrawStringFormat::TEXT_WORD_WRAP) && (xPos >= rc.right)) {
+                        //在自动换行的情况下，换行
                         bNextRow = true;
                     }
                 }
@@ -1719,7 +1726,7 @@ void Render_Skia::DrawRichText(const UiRect& rc,
                     nRowHeight = nFontHeight;
                     ++nRowIndex;
 
-                    if (yPos >= rc.bottom) {
+                    if (bBreakWhenOutOfRect && (yPos >= rc.bottom)) {
                         //绘制区域已满，终止绘制
                         bBreakAll = true;
                         break;

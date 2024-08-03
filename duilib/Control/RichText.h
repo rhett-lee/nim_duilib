@@ -124,6 +124,16 @@ public:
     */
     void SetRowSpacingMul(float fRowSpacingMul);
 
+    /** 获取超出矩形区域的文本显示方式
+     * @return 返回 true 时并且在多行模式下内容被换行显示，false 则表示截断显示
+     */
+    bool IsWordWrap() const;
+
+    /** 设置超出矩形区域的文本显示方式
+     * @param[in] bWordWrap 为 true 时并且在多行模式下内容被换行显示，false 则表示截断显示
+     */
+    void SetWordWrap(bool bWordWrap);
+
 public:
     /** 设置格式的文本
     * @param [in] richText 带有格式的文本内容
@@ -277,6 +287,10 @@ private:
     /** 文本的Trim策略
     */
     TrimPolicy m_trimPolicy = TrimPolicy::kAll;
+
+    /** 是否自动换行（默认为true）
+    */
+    bool m_bWordWrap;
 };
 
 } // namespace ui
