@@ -23,14 +23,12 @@ public:
     virtual void SetAttribute(const DString& pstrName, const DString& pstrValue) override;
     virtual void SetEnabled(bool bEnable = true) override;
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
-    virtual void SetWindow(Window* pWindow) override;
-    virtual void SetPos(UiRect rc) override;
     virtual void SetScrollPos(UiSize64 szPos) override;
     virtual void PaintStateImages(IRender* pRender) override;
     virtual void ClearImageCache() override;
     virtual void HandleEvent(const EventArgs& msg) override;
-    virtual UiEstSize EstimateSize(UiSize szAvailable) override;
     virtual UiSize EstimateText(UiSize szAvailable) override;
+    virtual UiSize64 CalcRequiredSize(const UiRect& rc) override;
 
 public:
     /** 设置控件的文本, 会触发文本变化事件
@@ -53,7 +51,7 @@ public:
      */
     DString GetText() const;
 
-    /** 获取内容的长度(Unicode编码，字符个数)
+    /** 获取内容的长度(按UTF16编码的字符个数，TODO：有歧义)
      * @return 返回内容长度
      */
     int32_t GetTextLength() const;
@@ -446,10 +444,10 @@ public:
     DString GetTextRange(int32_t nStartChar, int32_t nEndChar) const;
 
     /** 设置隐藏或显示选择的文本
-     * @param [in] bHide 是否显示，true 为隐藏，false 为显示
-     * @param [in] bChangeStyle 是否修改样式，true 为修改，false 为不修改
+     * @param [in] bHideSelection 是否显示，true 为隐藏，false 为显示
+     * @param [in] bChangeStyle 该参数未使用
      */
-    void HideSelection(bool bHide = true, bool bChangeStyle = false);
+    void HideSelection(bool bHideSelection = true, bool bChangeStyle = false);
 
     /** 是否可以Redo
     */
@@ -614,11 +612,6 @@ protected:
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
-    /** 调整内部所有子控件的位置信息
-     * @param[in] items 控件列表
-     */
-    virtual void ArrangeChild(const std::vector<Control*>& items) const;
-
 private:
     /** 显示RichEdit上的菜单
     * @param [in] point 客户区的坐标
@@ -680,17 +673,9 @@ private:
     */
     void SetFontIdInternal(const DString& fontId);
 
-    /** 设置字体颜色
-    */
-    void SetTextColorInternal(const UiColor& textColor);
-
     //文本横向和纵向对齐方式
     void SetHAlignType(HorAlignType alignType);
     void SetVAlignType(VerAlignType alignType);
-
-    /** 使用私有的DC绘制
-    */
-    void PaintRichEdit(IRender* pRender, const UiRect& rcPaint);
 
     /** 绘制光标
      * @param[in] pRender 绘制引擎
@@ -736,7 +721,16 @@ private:
     void SetImmStatus(BOOL bOpen);
 
 private:
-    bool m_bVScrollBarFixing;   //滚动条修正标志
+    /** 调整光标的位置
+    * @param [in] pt 需要设置调整的位置（客户区坐标），如果为(-1,-1)表示需要定位光标的位置
+    */
+    void AdjustCaretPos(const UiPoint& pt);
+
+    /** 重绘
+    */
+    void Redraw();
+
+private:
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
     bool m_bWantReturn;         //是否接收回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
     bool m_bWantCtrlReturn;     //是否接收Ctrl + 回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
@@ -769,6 +763,8 @@ private:
     int32_t m_iCaretWidth;      //光标宽度
     int32_t m_iCaretHeight;     //光标高度
     UiString m_sCaretColor;     //光标颜色
+
+    int32_t m_nLineHeight;      //行高，与字体有关
 
     WeakCallbackFlag m_drawCaretFlag;   //绘制光标的定时器生命周期
 
@@ -836,47 +832,29 @@ private:
     Control* m_pShowPasswordButton;
 
 private:
-    /** 绘制所需的数据结构
+    /** 文本内容
     */
-    struct TxDrawData
-    {
-    public:
-        /** 绘制所需DC
-        */
-        HDC m_hDrawDC;
+    DStringW m_text;
 
-        /** DC资源的原位图数据
-        */
-        HGDIOBJ m_hOldBitmap;
-
-        /** 位图资源
-        */
-        HBITMAP m_hBitmap;
-
-        /** 位图的大小
-        */
-        UiSize m_szBitmap;
-
-        /** 位图的数据指针
-        */
-        LPVOID m_pBitmapBits ;
-
-    public:
-        TxDrawData();
-        ~TxDrawData();
-
-        /** 清理资源
-        */
-        void Clear();
-
-        /** 检查并重建位图
-        */
-        bool CheckCreateBitmap(HDC hWindowDC, int32_t nWidth, int32_t nHeight);
-    };
-
-    /** 绘制所需的数据
+    /** 文本水平对齐方式
     */
-    TxDrawData m_txDrawData;
+    HorAlignType m_hAlignType;
+
+    /** 文本垂直对齐方式
+    */
+    VerAlignType m_vAlignType;
+
+    /** 选择的起始字符
+    */
+    int32_t m_nSelStartIndex;
+
+    /** 选择的结束字符
+    */
+    int32_t m_nSelEndCharIndex;
+
+    /** 是否显示选择的文本(显示时：选择的文本背景色与正常文本不同)
+    */
+    bool m_bHideSelection;
 };
 
 } // namespace ui

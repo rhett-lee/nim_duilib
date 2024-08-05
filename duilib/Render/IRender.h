@@ -474,7 +474,7 @@ class RichTextData
 public:
     /** 文字内容
     */
-    UiString m_text;
+    DStringW m_text;
 
     /** 文字颜色
     */
@@ -495,6 +495,36 @@ public:
     /** 对象绘制区域(输出参数)
     */
     std::vector<UiRect> m_textRects;
+};
+
+/** 计算每个字形的绘制区域
+*/
+class MeasureCharRects
+{
+public:
+    /** 当前字形所占的字符数（UTF16编码的字形，每个字占1个或者2个字符）
+    */
+    uint8_t m_charCount = 1;
+
+    /** 当前是否为低代理字符（为true时表示当前字符是低代理字符，行号和绘制区域不含有效数据）
+    */
+    bool m_bLowSurrogate = false;
+
+    /** 当前字符是否为回车'\r'（为true时表示当前字符是回车符，行号和绘制区域不含有效数据）
+    */
+    bool m_bReturn = false;
+
+    /** 当前字符是否为换行符'\n'（为true时表示当前字符是换符，绘制区域不含有效数据）
+    */
+    bool m_bNewLine = false;
+
+    /** 每个字符所在的行号
+    */
+    uint32_t m_charLineNumber = 0;
+
+    /** 每个字符的绘制区域(输出参数)
+    */
+    UiRectF m_charRect;
 };
 
 /** 裁剪区域类型
@@ -817,33 +847,44 @@ public:
                                  uint32_t uFormat,
                                  int32_t width = DUI_NOSET_VALUE) = 0;
     /** 绘制文字
-    * @param [in] 矩形区域
+    * @param [in] textRect 文字绘制的矩形区域
     * @param [in] strText 文字内容
     * @param [in] dwTextColor 文字颜色值
     * @param [in] pFont 文字的字体数据接口
     * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
     * @param [in] uFade 透明度（0 - 255）
     */
-    virtual void DrawString(const UiRect& rc,
+    virtual void DrawString(const UiRect& textRect,
                             const DString& strText,
                             UiColor dwTextColor,
                             IFont* pFont, 
                             uint32_t uFormat,
                             uint8_t uFade = 255) = 0;
 
-    /** 绘制格式文本
-    * @param [in] 矩形区域
+    /** 计算格式文本的宽度和高度
+    * @param [in] textRect 矩形区域
     * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
     * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
-    * @param [in] bMeasureOnly 如果为true，仅评估绘制文字所需区域，不执行文字绘制
+    * @param [out] pMeasureCharRects 如果不为nullptr，则计算每个字符的区域
+    */
+    virtual void MeasureRichText(const UiRect& textRect,
+                                 IRenderFactory* pRenderFactory, 
+                                 std::vector<RichTextData>& richTextData,
+                                 uint32_t uFormat,
+                                 std::vector<MeasureCharRects>* pMeasureCharRects = nullptr) = 0;
+
+    /** 绘制格式文本
+    * @param [in] textRect 矩形区域
+    * @param [in] pRenderFactory 渲染接口，用于创建字体
+    * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
+    * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
     * @param [in] uFade 透明度（0 - 255）
     */
-    virtual void DrawRichText(const UiRect& rc,
+    virtual void DrawRichText(const UiRect& textRect,
                               IRenderFactory* pRenderFactory, 
                               std::vector<RichTextData>& richTextData,
-                              uint32_t uFormat = 0,
-                              bool bMeasureOnly = false,
+                              uint32_t uFormat,
                               uint8_t uFade = 255) = 0;
 
     /** 在指定矩形周围绘制阴影（高斯模糊, 只支持外部阴影，不支持内部阴影）

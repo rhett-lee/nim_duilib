@@ -1112,6 +1112,9 @@
     <ClInclude Include="Control\RichEdit_SDL.h">
       <Filter>Control\SDL</Filter>
     </ClInclude>
+    <ClInclude Include="Core\UiRectF.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />

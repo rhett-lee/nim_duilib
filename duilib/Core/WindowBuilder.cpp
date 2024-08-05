@@ -424,10 +424,10 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         strValue = attr.value();
         if (strName == _T("render_backend_type")) {
             RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
-            if (StringUtil::IsEqualNoCase(strValue, L"GL")) {
+            if (StringUtil::IsEqualNoCase(strValue, _T("GL"))) {
                 backendType = RenderBackendType::kNativeGL_BackendType;
             }
-            else if (StringUtil::IsEqualNoCase(strValue, L"CPU")) {
+            else if (StringUtil::IsEqualNoCase(strValue, _T("CPU"))) {
                 backendType = RenderBackendType::kRaster_BackendType;
             }
             else {

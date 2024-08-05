@@ -94,15 +94,20 @@ public:
                                  uint32_t uFormat, int32_t width = DUI_NOSET_VALUE) override;
 
 
-    virtual void DrawString(const UiRect& rc, const DString& strText,
+    virtual void DrawString(const UiRect& textRect, const DString& strText,
                             UiColor dwTextColor, IFont* pFont,
                             uint32_t uFormat, uint8_t uFade = 255) override;
 
-    virtual void DrawRichText(const UiRect& rc,
+    virtual void MeasureRichText(const UiRect& textRect,
+                                 IRenderFactory* pRenderFactory, 
+                                 std::vector<RichTextData>& richTextData,
+                                 uint32_t uFormat,
+                                 std::vector<MeasureCharRects>* pMeasureCharRects = nullptr) override;
+
+    virtual void DrawRichText(const UiRect& textRect,
                               IRenderFactory* pRenderFactory, 
                               std::vector<RichTextData>& richTextData,
-                              uint32_t uFormat = 0,
-                              bool bMeasureOnly = false,
+                              uint32_t uFormat,
                               uint8_t uFade = 255) override;
 
     void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor) override;
@@ -142,10 +147,34 @@ private:
     */
     void SetPaintByPen(SkPaint& skPaint, const IPen* pen);
 
+    /** 按设置的属性，绘制文字，由外部指定字符编码
+    */
+    void DrawTextString(const UiRect& textRect,
+                        const char* text, size_t len, SkTextEncoding textEncoding,
+                        uint32_t uFormat, const SkPaint& skPaint, IFont* pFont) const;
+
     /** 按设置的属性，绘制文字
     */
-    void DrawTextString(const UiRect& rc, const DString& strText, uint32_t uFormat,
+    void DrawTextString(const UiRect& textRect, const DString& strText, uint32_t uFormat,
                         const SkPaint& skPaint, IFont* pFont) const;
+
+    /** 绘制格式文本
+    */
+    void InternalDrawRichText(const UiRect& textRect,
+                              IRenderFactory* pRenderFactory, 
+                              std::vector<RichTextData>& richTextData,
+                              uint32_t uFormat,                      
+                              uint8_t uFade,
+                              bool bMeasureOnly,
+                              std::vector<MeasureCharRects>* pMeasureCharRects);
+
+    /** 将文本按照换行符（'\r'或者'\n'）切分为多行
+    */
+    void SplitLines(const DStringW& lineText, std::vector<std::wstring_view>& lineTextViewList);
+
+    /** 获取当前字所占的UTF16字符个数(1个或者2个)
+    */
+    size_t GetUTF16CharCount(const DStringW::value_type* srcPtr, size_t textStartIndex) const;
 
     /** 设置颜色渐变的绘制属性
     */

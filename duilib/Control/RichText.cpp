@@ -156,7 +156,7 @@ void RichText::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect)
         else {
             uTextStyle &= ~TEXT_WORD_WRAP;
         }
-        pRender->DrawRichText(rc, pRenderFactory, richTextData, uTextStyle, true, (uint8_t)GetAlpha());
+        pRender->MeasureRichText(rc, pRenderFactory, richTextData, uTextStyle);
         for (size_t index = 0; index < richTextData.size(); ++index) {
             m_textData[index].m_textRects = richTextData[index].m_textRects;
         }
@@ -323,7 +323,7 @@ void RichText::PaintText(IRender* pRender)
         else {
             uTextStyle &= ~TEXT_WORD_WRAP;
         }
-        pRender->DrawRichText(rc, pRenderFactory, richTextData, uTextStyle, false, (uint8_t)GetAlpha());
+        pRender->DrawRichText(rc, pRenderFactory, richTextData, uTextStyle, (uint8_t)GetAlpha());
         for (size_t index = 0; index < richTextData.size(); ++index) {
             m_textData[index].m_textRects = richTextData[index].m_textRects;
         }
@@ -391,7 +391,16 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
     //当前节点
     RichTextDataEx currentTextData;
     currentTextData.m_fRowSpacingMul = m_fRowSpacingMul;
-    currentTextData.m_text = textSlice.m_text;
+#ifdef DUILIB_UNICODE
+    currentTextData.m_text = textSlice.m_text.c_str();
+#else
+    currentTextData.m_text = StringUtil::UTF8ToUTF16(textSlice.m_text.c_str());
+#endif
+
+    //将换行统一转换为'\n'
+    StringUtil::ReplaceAll(L"\r\n", L"\n", currentTextData.m_text);
+    StringUtil::ReplaceAll(L"\r", L"\n", currentTextData.m_text);
+
     currentTextData.m_linkUrl = textSlice.m_linkUrl;
     if (!textSlice.m_textColor.empty()) {
         currentTextData.m_textColor = GetUiColor(textSlice.m_textColor.c_str());

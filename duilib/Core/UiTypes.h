@@ -6,6 +6,7 @@
 #include "duilib/Core/UiPoint.h"
 #include "duilib/Core/UiPointF.h"
 #include "duilib/Core/UiRect.h"
+#include "duilib/Core/UiRectF.h"
 #include "duilib/Core/UiColor.h"
 #include "duilib/Core/UiFont.h"
 #include "duilib/Core/UiPadding.h"

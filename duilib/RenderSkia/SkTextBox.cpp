@@ -814,7 +814,7 @@ sk_sp<SkTextBlob> SkTextBox::snapshotTextBlob(SkScalar* computedBottom) const {
 bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding textEncoding,
                              const SkFont& font,
                              std::vector<SkGlyphID>& glyphs,
-                             std::vector<size_t>& glyphChars,
+                             std::vector<uint8_t>& glyphChars,
                              size_t& charBytes)
 {
     glyphs.resize(byteLength, { 0, });
@@ -832,7 +832,7 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
         int count = 0;
         const char* stop = utf8 + byteLength;
         while (utf8 < stop) {
-            size_t numChars = 1;
+            uint8_t numChars = 1;
             int type = SkUTF8_ByteType(*(const uint8_t*)utf8);
             SkASSERT(type >= -1 && type <= 4);
             if (!SkUTF8_TypeIsValidLeadingByte(type) || utf8 + type > stop) {
@@ -868,7 +868,7 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
         const uint16_t* stop = src + (byteLength >> 1);
         int count = 0;
         while (src < stop) {
-            size_t numChars = 1;
+            uint8_t numChars = 1;
             unsigned c = *src++;
             SkASSERT(!SkUTF16_IsLowSurrogate(c));
             if (SkUTF16_IsHighSurrogate(c)) {
@@ -913,7 +913,9 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
 
 size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding textEncoding,
                             const SkFont& font, const SkPaint& paint,
-                            SkScalar maxWidth, SkScalar* measuredWidth)
+                            SkScalar maxWidth, SkScalar* measuredWidth,
+                            std::vector<uint8_t>* glyphCharList,
+                            std::vector<SkScalar>* glyphWidthList)
 {
     if ((maxWidth <= 0) || (byteLength == 0)){
         if (measuredWidth != nullptr) {
@@ -921,17 +923,20 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
         }
         return 0;
     }
+    bool bWantGlyphData = (glyphCharList != nullptr) || (glyphWidthList != nullptr);
     SkScalar width = font.measureText(text, byteLength, textEncoding);
     if (width <= maxWidth) {
         if (measuredWidth != nullptr) {
             *measuredWidth = width;
         }
-        return byteLength;
+        if (!bWantGlyphData) {
+            return byteLength;
+        }
     }
 
     std::vector<SkGlyphID> glyphs;
     //计算每个glyphs对应的字符个数
-    std::vector<size_t> glyphChars;
+    std::vector<uint8_t> glyphChars;
     //每个字符的字节数
     size_t charBytes = 1;
 
@@ -946,10 +951,22 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
     glyphWidths.resize(glyphs.size(), 0);
     font.getWidthsBounds(glyphs.data(), (int)glyphs.size(), glyphWidths.data(), nullptr, &paint);
 
+    if (bWantGlyphData && (width <= maxWidth)) {
+        if (glyphCharList != nullptr) {
+            glyphCharList->swap(glyphChars);
+        }
+        if (glyphWidthList != nullptr) {
+            glyphWidthList->swap(glyphWidths);
+        }
+        return byteLength;
+    }
+
+    size_t nGlyphCount = 0;
     size_t breakByteLength = 0;//单位是字节
     SkScalar totalWidth = 0;
     for (size_t i = 0; i < glyphWidths.size(); ++i) {        
         if ((totalWidth + glyphWidths[i]) > maxWidth) {
+            nGlyphCount = i + 1;
             for (size_t index = 0; index < i; ++index) {
                 //计算字符个数
                 breakByteLength += (glyphChars[index] * charBytes);
@@ -964,6 +981,19 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
     SkASSERT(breakByteLength <= byteLength);
     if (breakByteLength > byteLength) {
         breakByteLength = byteLength;
+    }
+    if (bWantGlyphData) {
+        SkASSERT(nGlyphCount > 0);
+        if (glyphCharList != nullptr) {
+            glyphCharList->swap(glyphChars);
+            SkASSERT(nGlyphCount <= glyphCharList->size());
+            glyphCharList->resize(nGlyphCount);
+        }
+        if (glyphWidthList != nullptr) {
+            glyphWidthList->swap(glyphWidths);
+            SkASSERT(nGlyphCount <= glyphWidthList->size());
+            glyphWidthList->resize(nGlyphCount);
+        }
     }
     return breakByteLength;
 }
