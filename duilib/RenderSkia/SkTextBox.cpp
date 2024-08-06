@@ -912,8 +912,8 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
 }
 
 size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding textEncoding,
-                            const SkFont& font, const SkPaint& paint,
-                            SkScalar maxWidth, SkScalar* measuredWidth,
+                            const SkFont& font, const SkPaint& paint, SkScalar maxWidth,
+                            SkScalar* measuredWidth, SkScalar* measuredHeight,
                             std::vector<uint8_t>* glyphCharList,
                             std::vector<SkScalar>* glyphWidthList)
 {
@@ -924,11 +924,16 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
         return 0;
     }
     bool bWantGlyphData = (glyphCharList != nullptr) || (glyphWidthList != nullptr);
-    SkScalar width = font.measureText(text, byteLength, textEncoding);
-    if (width <= maxWidth) {
+    SkRect bounds = SkRect::MakeEmpty();
+    SkScalar width = font.measureText(text, byteLength, textEncoding, &bounds);
+    if (measuredHeight != nullptr) {
+        *measuredHeight = bounds.height();
+        SkASSERT(*measuredHeight > 0);
+    }
+    if (width <= maxWidth) {        
         if (measuredWidth != nullptr) {
             *measuredWidth = width;
-        }
+        }        
         if (!bWantGlyphData) {
             return byteLength;
         }
@@ -973,7 +978,7 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
             }
             break;
         }
-        totalWidth += glyphWidths[i];        
+        totalWidth += glyphWidths[i];
     }
     if (measuredWidth != nullptr) {
         *measuredWidth = totalWidth;

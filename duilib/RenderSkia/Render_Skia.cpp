@@ -1561,7 +1561,7 @@ struct TPendingDrawRichText
     size_t m_dataIndex = 0;
 
     //行号(是绘制后的逻辑行号，当自动换行的时候，一个物理行显示为多个逻辑行，物理行号是指按文本中的换行符划分的行号）
-    size_t m_nLineNumber = 0;
+    uint32_t m_nRowIndex = 0;
 
     //待绘制文本
     std::wstring_view m_textView;
@@ -1623,8 +1623,12 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
 
     SkScalar xPos = (SkScalar)textRect.left;    //水平坐标：字符绘制的时候，是按浮点型坐标，每个字符所占的宽度是浮点型的，不能对齐到像素
     int32_t yPos = textRect.top;                //垂直坐标，对齐到像素，所以用整型
-    int32_t nRowHeight = 0;
-    size_t nRowIndex = 0;
+    int32_t nRowHeight = 0;   //行高（本行中，所有字符绘制高度的最大值，对齐到像素）
+    uint32_t nLineNumber = 0; //物理行号
+    uint32_t nRowIndex = 0;   //逻辑行号
+
+    std::map<uint32_t, uint32_t> rowHeightMap;  //每行的实际行高表
+
     for (size_t index = 0; index < richTextData.size(); ++index) {
         const RichTextData& textData = richTextData[index];
         if (textData.m_text.empty()) {
@@ -1674,41 +1678,6 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
             continue;
         }
 
-        if ((textData.m_text.size() < 3) && ((textData.m_text == L"\n") || (textData.m_text == L"\r") || (textData.m_text == L"\r\n"))) {
-            if (bMeasureCharRects && (pMeasureCharRects != nullptr)) {
-                MeasureCharRects charRect;
-                charRect.m_charLineNumber = (uint32_t)nRowIndex;
-                if (textData.m_text == L"\n") {
-                    charRect.m_bNewLine = true;
-                    pMeasureCharRects->emplace_back(std::move(charRect));
-                }
-                else if (textData.m_text == L"\r") {
-                    charRect.m_bReturn = true;
-                    pMeasureCharRects->emplace_back(std::move(charRect));
-                }
-                else if (textData.m_text == L"\r\n") {
-                    charRect.m_bReturn = true;
-                    pMeasureCharRects->push_back(charRect);
-
-                    charRect.m_bReturn = false;
-                    charRect.m_bNewLine = true;
-                    pMeasureCharRects->emplace_back(std::move(charRect));
-                }
-            }
-
-            //换行：文本内容是分隔符，执行换行操作
-            xPos = (SkScalar)textRect.left;
-            yPos += nRowHeight;
-            nRowHeight = 0;
-            ++nRowIndex;
-
-            if (bBreakWhenOutOfRect && (yPos >= textRect.bottom)) {
-                //绘制区域已满，终止绘制
-                break;
-            }
-            continue;
-        }
-
         bool bBreakAll = false;//标记是否终止
 
         //按换行符进行文本切分
@@ -1721,24 +1690,29 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                 if (lineTextView[0] == L'\r') {
                     if (bMeasureCharRects && (pMeasureCharRects != nullptr)) {
                         MeasureCharRects charRect;
-                        charRect.m_charLineNumber = (uint32_t)nRowIndex;
+                        charRect.m_nLineNumber = nLineNumber;
+                        charRect.m_nRowIndex = nRowIndex;
                         charRect.m_bReturn = true;
                         pMeasureCharRects->emplace_back(std::move(charRect));
                     }
                     continue; //忽略回车
                 }
                 else if (lineTextView[0] == L'\n') {
-                    //换行
                     if (bMeasureCharRects && (pMeasureCharRects != nullptr)) {
                         MeasureCharRects charRect;
-                        charRect.m_charLineNumber = (uint32_t)nRowIndex;
+                        charRect.m_nLineNumber = nLineNumber;
+                        charRect.m_nRowIndex = nRowIndex;
                         charRect.m_bNewLine = true;
                         pMeasureCharRects->emplace_back(std::move(charRect));
                     }
+
+                    //换行：执行换行操作(物理换行)
                     xPos = (SkScalar)textRect.left;
                     yPos += nRowHeight;
+                    rowHeightMap[nRowIndex] = nRowHeight;
                     nRowHeight = nFontHeight;
                     ++nRowIndex;
+                    ++nLineNumber;
 
                     continue; //处理下一行
                 }
@@ -1756,7 +1730,8 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                     maxWidth = SK_FloatInfinity;
                 }
                 ASSERT(maxWidth > 0);
-                SkScalar textMeasuredWidth = 0; //当前要绘制的文本，估算的所需宽度
+                SkScalar textMeasuredWidth = 0;  //当前要绘制的文本，估算的所需宽度
+                SkScalar textMeasuredHeight = 0; //当前要绘制的文本，估算的所需高度
 
                 std::vector<uint8_t> glyphCharList;
                 std::vector<SkScalar> glyphWidthList;
@@ -1770,13 +1745,13 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                 size_t nDrawLength = SkTextBox::breakText(lineTextView.data() + textStartIndex,
                                                           byteLength, textEncoding,
                                                           skFont, skPaint,
-                                                          maxWidth, &textMeasuredWidth,
+                                                          maxWidth, &textMeasuredWidth, &textMeasuredHeight,
                                                           pGlyphCharList, pGlyphWidthList);
 
                 if (nDrawLength > 0) {
                     std::shared_ptr<TPendingDrawRichText> spTextData = std::make_shared<TPendingDrawRichText>();
                     spTextData->m_dataIndex = index;
-                    spTextData->m_nLineNumber = nRowIndex;
+                    spTextData->m_nRowIndex = nRowIndex;
                     spTextData->m_textView = std::wstring_view(lineTextView.data() + textStartIndex, nDrawLength / textCharSize);
                     spTextData->m_skPaint = skPaint;
                     spTextData->m_spFont = spSkiaFont;
@@ -1786,12 +1761,9 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                     spTextData->m_destRect.left = SkScalarTruncToInt(xPos); //左值：直接截断，如果有小数部分，直接去掉小数即可
 
                     SkScalar fRight = xPos + textMeasuredWidth;             //右值：如果有小数，则需要增加1个像素
-                    spTextData->m_destRect.right = SkScalarTruncToInt(fRight);
-                    if ((fRight - spTextData->m_destRect.right) > 0.01f) {
-                        spTextData->m_destRect.right += 1;
-                    }
+                    spTextData->m_destRect.right = SkScalarCeilToInt(fRight);
                     spTextData->m_destRect.top = yPos;
-                    spTextData->m_destRect.bottom = yPos + nRowHeight;
+                    spTextData->m_destRect.bottom = yPos + SkScalarCeilToInt(textMeasuredHeight); //记录字符的真实高度
                     pendingTextData.push_back(spTextData);
 
                     if (bMeasureCharRects) {
@@ -1810,7 +1782,8 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                                 if (glyphChars == 2) {
                                     MeasureCharRects charRectH;
                                     charRectH.m_charCount = 2;
-                                    charRectH.m_charLineNumber = (uint32_t)nRowIndex;
+                                    charRectH.m_nLineNumber = nLineNumber;
+                                    charRectH.m_nRowIndex = nRowIndex;
                                     charRectH.m_charRect.left = glyphLeft;
                                     charRectH.m_charRect.right = charRectH.m_charRect.left + glyphWidth;
                                     charRectH.m_charRect.top = (SkScalar)yPos;
@@ -1819,13 +1792,15 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
 
                                     MeasureCharRects charRectL;
                                     charRectL.m_charCount = 2;
-                                    charRectL.m_charLineNumber = (uint32_t)nRowIndex;
+                                    charRectL.m_nLineNumber = nLineNumber;
+                                    charRectL.m_nRowIndex = nRowIndex;
                                     charRectL.m_bLowSurrogate = true;
                                     pMeasureCharRects->emplace_back(std::move(charRectL));
                                 }
                                 else if (glyphChars == 1) {
                                     MeasureCharRects charRect;
-                                    charRect.m_charLineNumber = (uint32_t)nRowIndex;
+                                    charRect.m_nLineNumber = nLineNumber;
+                                    charRect.m_nRowIndex = nRowIndex;
                                     charRect.m_charRect.left = glyphLeft;
                                     charRect.m_charRect.right = charRect.m_charRect.left + glyphWidth;
                                     charRect.m_charRect.top = (SkScalar)yPos;
@@ -1856,9 +1831,10 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                 }
 
                 if (bNextRow) {
-                    //执行换行操作
+                    //换行：执行换行操作（逻辑换行，对nLineNumber不增加）
                     xPos = (SkScalar)textRect.left;
                     yPos += nRowHeight;
+                    rowHeightMap[nRowIndex] = nRowHeight;
                     nRowHeight = nFontHeight;
                     ++nRowIndex;
 
@@ -1878,9 +1854,22 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
         }
     }
 
+    //记录最后一行的行高
+    rowHeightMap[nRowIndex] = nRowHeight;
+
     for (RichTextData& textData : richTextData) {
         textData.m_textRects.clear();
     }
+    //更新每行的行高(只有提前确定行高，才能正确绘制纵向对齐的文本)
+    for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
+        TPendingDrawRichText& textData = *spTextData;
+        auto iter = rowHeightMap.find(textData.m_nRowIndex);
+        ASSERT(iter != rowHeightMap.end());
+        if (iter != rowHeightMap.end()) {
+            textData.m_destRect.bottom = textData.m_destRect.top + iter->second;
+        }
+    }
+
     for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
         const TPendingDrawRichText& textData = *spTextData;
         ASSERT(textData.m_dataIndex < richTextData.size());

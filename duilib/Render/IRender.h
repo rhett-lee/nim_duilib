@@ -518,9 +518,13 @@ public:
     */
     bool m_bNewLine = false;
 
-    /** 每个字符所在的行号
+    /** 每个字符所在的逻辑行号（即文本中，以换行符'\n'切分的物理行）
     */
-    uint32_t m_charLineNumber = 0;
+    uint32_t m_nLineNumber = 0;
+
+    /** 每个字符所在的逻辑行号（在视图边界换行显示的行号，一个物理行可能会切分为多个逻辑行）
+    */
+    uint32_t m_nRowIndex = 0;
 
     /** 每个字符的绘制区域(输出参数)
     */

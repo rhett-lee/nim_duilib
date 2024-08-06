@@ -134,6 +134,22 @@ public:
      */
     void SetWordWrap(bool bWordWrap);
 
+    /** 设置文本水平对齐方式
+    */
+    void SetHAlignType(HorAlignType alignType);
+
+    /** 获取文本水平对齐方式
+    */
+    HorAlignType GetHAlignType() const;
+
+    /** 设置文本垂直对齐方式
+    */
+    void SetVAlignType(VerAlignType alignType);
+
+    /** 获取文本垂直对齐方式
+    */
+    VerAlignType GetVAlignType() const;
+
 public:
     /** 设置格式的文本
     * @param [in] richText 带有格式的文本内容
@@ -206,6 +222,14 @@ private:
     */
     DString ToString(const RichTextSlice& textSlice, const DString& indent) const;
 
+    /** 重绘
+    */
+    void Redraw();
+
+    /** 获取当前绘制文字的属性
+    */
+    uint32_t GetTextStyle() const;
+
     /** 计算绘制后的目标区域大小
     */
     void CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect);
@@ -232,9 +256,13 @@ private:
     */
     UiString m_sTextColor;
 
-    /** 文本对齐方式
+    /** 文本水平对齐方式
     */
-    uint32_t m_uTextStyle;
+    HorAlignType m_hAlignType;
+
+    /** 文本垂直对齐方式
+    */
+    VerAlignType m_vAlignType;
 
     /** 行间距倍数
     */

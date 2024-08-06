@@ -45,13 +45,14 @@ public:
         @param textEncoding   text encoding, SkTextEncoding::kUTF8 or kUTF16 or kUTF32
         @param maxWidth       advance limit; text is measured while advance is less than maxWidth
         @param measuredWidth  returns the width of the text less than or equal to maxWidth
+        @param measuredHeight  returns the height of the text
         @param glyphCharList  returns bytes of every chars
         @param glyphWidthList returns the width of every chars
         @return               bytes of text that fit, always less than or equal to length
     */
     static size_t breakText(const void* text, size_t byteLength, SkTextEncoding textEncoding,
-                            const SkFont& font, const SkPaint& paint,
-                            SkScalar maxWidth, SkScalar* measuredWidth = nullptr,                            
+                            const SkFont& font, const SkPaint& paint, SkScalar maxWidth,
+                            SkScalar* measuredWidth = nullptr, SkScalar* measuredHeight = nullptr,
                             std::vector<uint8_t>* glyphCharList = nullptr,
                             std::vector<SkScalar>* glyphWidthList = nullptr);
 
