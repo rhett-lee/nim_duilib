@@ -1666,15 +1666,14 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
         SkFontMetrics metrics;
         SkScalar fFontHeight = skFont.getMetrics(&metrics);     //字体高度，换行时使用
         fFontHeight *= textData.m_fRowSpacingMul;               //运用行间距
-        int32_t nFontHeight = SkScalarTruncToInt(fFontHeight);  //行高对齐到像素
-        if ((fFontHeight - nFontHeight) > 0.01f) {
-            nFontHeight += 1;
-        }
+        const int32_t nFontHeight = SkScalarCeilToInt(fFontHeight);   //行高对齐到像素
         nRowHeight = std::max(nRowHeight, nFontHeight);
         if (nRowHeight <= 0) {
             continue;
         }
-
+        const uint32_t uTextStyle = textData.m_uTextStyle;
+        const bool bSingleLineMode = (uTextStyle & DrawStringFormat::TEXT_SINGLELINE) ? true : false; //是否为单行模式，单行模式下，不换行
+        const bool bWordWrap = bSingleLineMode ? false : ((uTextStyle & DrawStringFormat::TEXT_WORD_WRAP) ? true : false);
         bool bBreakAll = false;//标记是否终止
 
         //按换行符进行文本切分
@@ -1690,27 +1689,32 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                         charRect.m_nLineNumber = nLineNumber;
                         charRect.m_nRowIndex = nRowIndex;
                         charRect.m_bReturn = true;
+                        charRect.m_bIgnoredChar = true;
                         pMeasureCharRects->emplace_back(std::move(charRect));
                     }
                     continue; //忽略回车
                 }
-                else if (lineTextView[0] == L'\n') {
+                else if (lineTextView[0] == L'\n') {                    
                     if (bMeasureCharRects && (pMeasureCharRects != nullptr)) {
                         MeasureCharRects charRect;
                         charRect.m_nLineNumber = nLineNumber;
                         charRect.m_nRowIndex = nRowIndex;
                         charRect.m_bNewLine = true;
+                        if (bSingleLineMode) {
+                            charRect.m_bIgnoredChar = true;
+                        }
                         pMeasureCharRects->emplace_back(std::move(charRect));
                     }
 
                     //换行：执行换行操作(物理换行)
-                    xPos = (SkScalar)textRect.left;
-                    yPos += nRowHeight;
-                    rowHeightMap[nRowIndex] = nRowHeight;
-                    nRowHeight = nFontHeight;
-                    ++nRowIndex;
-                    ++nLineNumber;
-
+                    if (!bSingleLineMode) {
+                        xPos = (SkScalar)textRect.left;
+                        yPos += nRowHeight;
+                        rowHeightMap[nRowIndex] = nRowHeight;
+                        nRowHeight = nFontHeight;
+                        ++nRowIndex;
+                        ++nLineNumber;
+                    }
                     continue; //处理下一行
                 }
             }
@@ -1722,8 +1726,8 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                 //估算文本绘制区域                
                 size_t byteLength = (textCount - textStartIndex) * textCharSize;                
                 SkScalar maxWidth = SkIntToScalar(textRect.right) - xPos;//可用宽度
-                if (!(textData.m_uTextStyle & DrawStringFormat::TEXT_WORD_WRAP)) {
-                    //不自动换行
+                if (!bWordWrap || bSingleLineMode) {
+                    //不自动换行 或者 单行模式
                     maxWidth = SK_FloatInfinity;
                 }
                 ASSERT(maxWidth > 0);
@@ -1743,9 +1747,15 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                                                           byteLength, textEncoding,
                                                           skFont, skPaint,
                                                           maxWidth, &textMeasuredWidth, &textMeasuredHeight,
-                                                          pGlyphCharList, pGlyphWidthList);
-
-                if (nDrawLength > 0) {
+                                                          pGlyphCharList, pGlyphWidthList);                
+                if (nDrawLength == 0) {
+                    if (!bWordWrap || bSingleLineMode || (SkScalarTruncToInt(maxWidth) == textRect.Width())) {
+                        //出错了(不能换行，或者换行后依然不够)
+                        bBreakAll = true;
+                        break;
+                    }
+                }
+                else {
                     std::shared_ptr<TPendingDrawRichText> spTextData = std::make_shared<TPendingDrawRichText>();
                     spTextData->m_dataIndex = index;
                     spTextData->m_nRowIndex = nRowIndex;
@@ -1792,6 +1802,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                                     charRectL.m_nLineNumber = nLineNumber;
                                     charRectL.m_nRowIndex = nRowIndex;
                                     charRectL.m_bLowSurrogate = true;
+                                    charRectL.m_bIgnoredChar = true;
                                     pMeasureCharRects->emplace_back(std::move(charRectL));
                                 }
                                 else if (glyphChars == 1) {
@@ -1813,17 +1824,27 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                 bool bNextRow = false; //是否需要换行的标志
                 if (nDrawLength < byteLength) {
                     //宽度不足，需要换行
-                    bNextRow = true;
+                    if (!bSingleLineMode) {
+                        bNextRow = true;
+                    }                    
                     textStartIndex += nDrawLength / textCharSize;
+                    xPos += textMeasuredWidth;
                 }
                 else {
                     //当前行可容纳文本绘制
                     textStartIndex = textCount;//标记，结束循环
-
                     xPos += textMeasuredWidth;
-                    if ((textData.m_uTextStyle & DrawStringFormat::TEXT_WORD_WRAP) && (xPos >= textRect.right)) {
-                        //在自动换行的情况下，换行
-                        bNextRow = true;
+                    if (xPos >= textRect.right) {
+                        //X坐标右侧已经超出目标矩形的范围
+                        if (bBreakWhenOutOfRect && bSingleLineMode) {
+                            //单行模式，终止绘制
+                            bBreakAll = true;
+                            break;
+                        }
+                        else if (bWordWrap && !bSingleLineMode) {
+                            //在自动换行的情况下，换行
+                            bNextRow = true;
+                        }
                     }
                 }
 
@@ -1836,7 +1857,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                     ++nRowIndex;
 
                     if (bBreakWhenOutOfRect && (yPos >= textRect.bottom)) {
-                        //绘制区域已满，终止绘制
+                        //Y坐标底部已经超出目标矩形的范围，终止绘制
                         bBreakAll = true;
                         break;
                     }

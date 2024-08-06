@@ -184,8 +184,11 @@ void RichText::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect)
     if (!m_textData.empty()) {
         std::vector<RichTextData> richTextData;
         richTextData.reserve(m_textData.size());
+        const uint32_t nTextStyle = GetTextStyle();
         for (const RichTextData& textData : m_textData) {
             richTextData.push_back(textData);
+            //计算时需要带上绘制文字的属性信息
+            richTextData[richTextData.size() - 1].m_uTextStyle = nTextStyle;
         }
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         pRender->MeasureRichText(rc, pRenderFactory, richTextData);
@@ -195,12 +198,7 @@ void RichText::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect)
     }
     for (const RichTextData& textData : m_textData) {
         for (const UiRect& textRect : textData.m_textRects) {
-            if (rect.IsZero()) {
-                rect = textRect;
-            }
-            else {
-                rect.Union(textRect);
-            }
+            rect.Union(textRect);
         }
     }
 }
@@ -237,9 +235,17 @@ UiSize RichText::EstimateText(UiSize szAvailable)
     rc.right = rc.left + nWidth;
     rc.top = 0;
     rc.bottom = rc.top + nHeight;
-    rc.Deflate(GetControlPadding());
-    rc.Deflate(GetTextPadding());
 
+    const UiPadding rcTextPadding = GetTextPadding();
+    const UiPadding rcPadding = GetControlPadding();
+    if (nWidth != INT_MAX) {
+        rc.left += (rcPadding.left + rcTextPadding.left);
+        rc.right -= (rcPadding.right + rcTextPadding.right);
+    }
+    if (nHeight != INT_MAX) {
+        rc.top += (rcPadding.top + rcTextPadding.top);
+        rc.bottom -= (rcPadding.bottom + rcTextPadding.bottom);
+    }
     if (rc.IsEmpty()) {
         return fixedSize;
     }
@@ -251,14 +257,14 @@ UiSize RichText::EstimateText(UiSize szAvailable)
     UiRect rect;
     CalcDestRect(pRender, rc, rect);
 
-    UiPadding rcTextPadding = GetTextPadding();
-    UiPadding rcPadding = GetControlPadding();
     if (GetFixedWidth().IsAuto()) {
-        fixedSize.cx = rect.Width() + rcTextPadding.left + rcTextPadding.right;
+        fixedSize.cx = rect.Width();
+        fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
         fixedSize.cx += (rcPadding.left + rcPadding.right);
     }
     if (GetFixedHeight().IsAuto()) {
-        fixedSize.cy = rect.Height() + rcTextPadding.top + rcTextPadding.bottom;
+        fixedSize.cy = rect.Height();
+        fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
         fixedSize.cy += (rcPadding.top + rcPadding.bottom);
     }
     return fixedSize;

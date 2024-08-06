@@ -522,6 +522,10 @@ public:
     */
     bool m_bNewLine = false;
 
+    /** 该字符未绘制
+    */
+    bool m_bIgnoredChar = false;
+
     /** 每个字符所在的逻辑行号（即文本中，以换行符'\n'切分的物理行）
     */
     uint32_t m_nLineNumber = 0;
