@@ -492,6 +492,10 @@ public:
     */
     float m_fRowSpacingMul = 1.0f;
 
+    /** 绘制文字的属性(包含文本对齐方式等属性，参见 enum DrawStringFormat)
+    */
+    uint32_t m_uTextStyle = 0;
+
     /** 对象绘制区域(输出参数)
     */
     std::vector<UiRect> m_textRects;
@@ -869,26 +873,22 @@ public:
     * @param [in] textRect 矩形区域
     * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
-    * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
     * @param [out] pMeasureCharRects 如果不为nullptr，则计算每个字符的区域
     */
     virtual void MeasureRichText(const UiRect& textRect,
                                  IRenderFactory* pRenderFactory, 
                                  std::vector<RichTextData>& richTextData,
-                                 uint32_t uFormat,
                                  std::vector<MeasureCharRects>* pMeasureCharRects = nullptr) = 0;
 
     /** 绘制格式文本
     * @param [in] textRect 矩形区域
     * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
-    * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
     * @param [in] uFade 透明度（0 - 255）
     */
     virtual void DrawRichText(const UiRect& textRect,
                               IRenderFactory* pRenderFactory, 
                               std::vector<RichTextData>& richTextData,
-                              uint32_t uFormat,
                               uint8_t uFade = 255) = 0;
 
     /** 在指定矩形周围绘制阴影（高斯模糊, 只支持外部阴影，不支持内部阴影）

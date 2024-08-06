@@ -188,7 +188,7 @@ void RichText::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect)
             richTextData.push_back(textData);
         }
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        pRender->MeasureRichText(rc, pRenderFactory, richTextData, GetTextStyle());
+        pRender->MeasureRichText(rc, pRenderFactory, richTextData);
         for (size_t index = 0; index < richTextData.size(); ++index) {
             m_textData[index].m_textRects = richTextData[index].m_textRects;
         }
@@ -349,7 +349,7 @@ void RichText::PaintText(IRender* pRender)
             }
         }
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        pRender->DrawRichText(rc, pRenderFactory, richTextData, uTextStyle, (uint8_t)GetAlpha());
+        pRender->DrawRichText(rc, pRenderFactory, richTextData, (uint8_t)GetAlpha());
         for (size_t index = 0; index < richTextData.size(); ++index) {
             m_textData[index].m_textRects = richTextData[index].m_textRects;
         }
@@ -398,6 +398,7 @@ bool RichText::ParseText(std::vector<RichTextDataEx>& outTextData) const
     parentTextData.m_fontInfo.m_bItalic = pFont->IsItalic();
     parentTextData.m_fontInfo.m_bStrikeOut = pFont->IsStrikeOut();
     parentTextData.m_fRowSpacingMul = m_fRowSpacingMul;
+    parentTextData.m_uTextStyle = GetTextStyle();
 
     std::vector<RichTextDataEx> textData;
 
@@ -416,7 +417,9 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
 {
     //当前节点
     RichTextDataEx currentTextData;
-    currentTextData.m_fRowSpacingMul = m_fRowSpacingMul;
+    currentTextData.m_fRowSpacingMul = parentTextData.m_fRowSpacingMul;
+    currentTextData.m_uTextStyle = parentTextData.m_uTextStyle;
+
 #ifdef DUILIB_UNICODE
     currentTextData.m_text = textSlice.m_text.c_str();
 #else

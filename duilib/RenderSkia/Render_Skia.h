@@ -101,13 +101,11 @@ public:
     virtual void MeasureRichText(const UiRect& textRect,
                                  IRenderFactory* pRenderFactory, 
                                  std::vector<RichTextData>& richTextData,
-                                 uint32_t uFormat,
                                  std::vector<MeasureCharRects>* pMeasureCharRects = nullptr) override;
 
     virtual void DrawRichText(const UiRect& textRect,
                               IRenderFactory* pRenderFactory, 
                               std::vector<RichTextData>& richTextData,
-                              uint32_t uFormat,
                               uint8_t uFade = 255) override;
 
     void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor) override;
@@ -162,8 +160,7 @@ private:
     */
     void InternalDrawRichText(const UiRect& textRect,
                               IRenderFactory* pRenderFactory, 
-                              std::vector<RichTextData>& richTextData,
-                              uint32_t uFormat,                      
+                              std::vector<RichTextData>& richTextData,                   
                               uint8_t uFade,
                               bool bMeasureOnly,
                               std::vector<MeasureCharRects>* pMeasureCharRects);

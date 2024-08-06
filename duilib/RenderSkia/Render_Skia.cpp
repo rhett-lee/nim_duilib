@@ -1539,19 +1539,17 @@ UiRect Render_Skia::MeasureString(const DString& strText,
 void Render_Skia::MeasureRichText(const UiRect& textRect,
                                   IRenderFactory* pRenderFactory,
                                   std::vector<RichTextData>& richTextData,
-                                  uint32_t uFormat,
                                   std::vector<MeasureCharRects>* pMeasureCharRects)
 {
-    InternalDrawRichText(textRect, pRenderFactory, richTextData, uFormat, 255, true, pMeasureCharRects);
+    InternalDrawRichText(textRect, pRenderFactory, richTextData, 255, true, pMeasureCharRects);
 }
 
 void Render_Skia::DrawRichText(const UiRect& textRect,
                                IRenderFactory* pRenderFactory,
                                std::vector<RichTextData>& richTextData,
-                               uint32_t uFormat,
                                uint8_t uFade)
 {
-    InternalDrawRichText(textRect, pRenderFactory, richTextData, uFormat, uFade, false, nullptr);
+    InternalDrawRichText(textRect, pRenderFactory, richTextData, uFade, false, nullptr);
 }
 
 //待绘制的文本
@@ -1581,8 +1579,7 @@ struct TPendingDrawRichText
 
 void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                                        IRenderFactory* pRenderFactory, 
-                                       std::vector<RichTextData>& richTextData,
-                                       uint32_t uFormat,                               
+                                       std::vector<RichTextData>& richTextData,                            
                                        uint8_t uFade,
                                        bool bMeasureOnly,
                                        std::vector<MeasureCharRects>* pMeasureCharRects)
@@ -1725,7 +1722,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                 //估算文本绘制区域                
                 size_t byteLength = (textCount - textStartIndex) * textCharSize;                
                 SkScalar maxWidth = SkIntToScalar(textRect.right) - xPos;//可用宽度
-                if (!(uFormat & DrawStringFormat::TEXT_WORD_WRAP)) {
+                if (!(textData.m_uTextStyle & DrawStringFormat::TEXT_WORD_WRAP)) {
                     //不自动换行
                     maxWidth = SK_FloatInfinity;
                 }
@@ -1824,7 +1821,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                     textStartIndex = textCount;//标记，结束循环
 
                     xPos += textMeasuredWidth;
-                    if ((uFormat & DrawStringFormat::TEXT_WORD_WRAP) && (xPos >= textRect.right)) {
+                    if ((textData.m_uTextStyle & DrawStringFormat::TEXT_WORD_WRAP) && (xPos >= textRect.right)) {
                         //在自动换行的情况下，换行
                         bNextRow = true;
                     }
@@ -1884,7 +1881,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
             const char* text = (const char*)textData.m_textView.data();
             size_t len = textData.m_textView.size() * textCharSize; //字节数
             DrawTextString(textData.m_destRect, text, len, textEncoding,
-                           uFormat | DrawStringFormat::TEXT_SINGLELINE,
+                           richText.m_uTextStyle | DrawStringFormat::TEXT_SINGLELINE,
                            textData.m_skPaint, textData.m_spFont.get());
         }
     }
