@@ -457,36 +457,41 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
         m_uTextStyle &= ~TEXT_SINGLELINE;
     }
 
-    int32_t width = szAvailable.cx;
+    int32_t nWidth = szAvailable.cx;
     if (this->GetFixedWidth().IsStretch()) {
         //如果是拉伸类型，使用外部宽度
-        width = CalcStretchValue(this->GetFixedWidth(), szAvailable.cx);
+        nWidth = CalcStretchValue(this->GetFixedWidth(), szAvailable.cx);
     }
     else if (this->GetFixedWidth().IsInt32()) {
-        width = this->GetFixedWidth().GetInt32();
+        nWidth = this->GetFixedWidth().GetInt32();
     }
-    UiPadding rcTextPadding = this->GetTextPadding();
-    UiPadding rcPadding = this->GetControlPadding();
-    width -= (rcPadding.left + rcPadding.right);
-    width -= (rcTextPadding.left + rcTextPadding.right);
-    if (width < 0) {
-        width = 0;
+    else if (this->GetFixedWidth().IsAuto()) {
+        //宽度为自动时，不限制宽度
+        nWidth = INT_MAX;
+    }
+    const UiPadding rcTextPadding = this->GetTextPadding();
+    const UiPadding rcPadding = this->GetControlPadding();
+    if (nWidth != INT_MAX) {        
+        nWidth -= (rcPadding.left + rcPadding.right);
+        nWidth -= (rcTextPadding.left + rcTextPadding.right);
+    }
+    if (nWidth < 0) {
+        nWidth = 0;
     }
     UiSize fixedSize;
     DString textValue = GetText();
     if (!textValue.empty() && (this->GetWindow() != nullptr)) {
         auto pRender = this->GetWindow()->GetRender();
         if (pRender != nullptr) {
-            UiRect rect = pRender->MeasureString(textValue, this->GetIFontById(GetFontId()), m_uTextStyle, width);            
-            if (this->GetFixedWidth().IsAuto()) {
-                fixedSize.cx = rect.Width() + rcTextPadding.left + rcTextPadding.right;
-                fixedSize.cx += (rcPadding.left + rcPadding.right);
-            }
-            if (this->GetFixedHeight().IsAuto()) {
-                fixedSize.cy = rect.Height() + rcTextPadding.top + rcTextPadding.bottom;
-                fixedSize.cy += (rcPadding.top + rcPadding.bottom);
-            }
-        }        
+            UiRect rect = pRender->MeasureString(textValue, this->GetIFontById(GetFontId()), m_uTextStyle, nWidth);
+            fixedSize.cx = rect.Width();
+            fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
+            fixedSize.cx += (rcPadding.left + rcPadding.right);
+
+            fixedSize.cy = rect.Height();
+            fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
+            fixedSize.cy += (rcPadding.top + rcPadding.bottom);
+        }
     }
     return fixedSize;
 }

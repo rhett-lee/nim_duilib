@@ -1816,7 +1816,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                                     pMeasureCharRects->emplace_back(std::move(charRect));
                                 }
                                 glyphLeft += glyphWidth;
-                            }                            
+                            }
                         }
                     }
                 }

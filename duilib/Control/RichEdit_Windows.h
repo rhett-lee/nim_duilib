@@ -510,13 +510,13 @@ public:
     DString GetLine(int32_t nIndex, int32_t nMaxLength) const;
 
     /** 获取指定行的第一个字符索引
-     * @param[in] nLine 要获取第几行数据，默认为 -1
+     * @param[in] nLine 要获取第几行数据，默认为 -1，表示当前插入点的行
      * @return 返回指定行的第一个字符索引
      */
     int32_t LineIndex(int32_t nLine = -1) const;
 
     /** 获取指定行的数据长度
-     * @param[in] nLine 要获取第几行数据，默认为 -1
+     * @param[in] nLine 要获取第几行数据，默认为 -1，表示当前插入点的行
      * @return 返回指定行的数据长度
      */
     int32_t LineLength(int32_t nLine = -1) const;
@@ -527,21 +527,21 @@ public:
      */
     bool LineScroll(int32_t nLines);
 
-    /** 获取指定字符所在行数
+    /** 获取指定字符所在行号
      * @param[in] nIndex 字符的索引位置
-     * @return 返回当前字符所在的行数
+     * @return 返回当前字符所在的行号
      */
     int32_t LineFromChar(int32_t nIndex) const;
 
-    /** 获取指定位置字符的客户区坐标
+    /** 检索编辑控件中指定字符的工作区坐标。
      * @param[in] nChar 字符索引位置
-     * @return 返回客户区坐标
+     * @return 返回值包含字符的客户端区域坐标。
      */
     UiPoint PosFromChar(int32_t nChar) const;
 
-    /** 根据坐标返回指定字符索引
+    /** 获取有关距离编辑控件客户区中指定点最近的字符的信息
      * @param[in] pt 坐标信息
-     * @return 返回最接近参数 pt 所指定的坐标位置
+     * @return 返回值指定了距指定点最近字符的从零开始的字符索引。 如果指定点超出控件中的最后一个字符，则返回值会指示编辑控件中的最后一个字符。
      */
     int32_t CharFromPos(UiPoint pt) const;
 

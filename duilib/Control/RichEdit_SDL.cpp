@@ -16,6 +16,10 @@
 #include "duilib/Box/VBox.h"
 #include "duilib/Control/Button.h"
 
+#ifdef _DEBUG
+#include "duilib/Utils/FileUtil.h"
+#endif
+
 #ifdef DUILIB_BUILD_FOR_SDL
 #include <SDL3/SDL.h>
 
@@ -589,7 +593,7 @@ int32_t RichEdit::GetTextLength() const
 
 DString RichEdit::GetText() const
 {
-    return m_text;
+    return m_text + L"\n行1\r\n行2\r\n行3\n\n行4\nUTF16: TAB键:|\t|sdfkljAKLDFJKEWkldfjlk#$%&sdfs.dsj 中文字符串|\xD852\xDF62|\xD83D\xDC69|字符|\xD842\xDF20|\xD83D\xDE02|中文";
 }
 
 std::string RichEdit::GetUTF8Text() const
@@ -603,6 +607,13 @@ void RichEdit::SetText(const DString& strText)
 #ifdef DUILIB_UNICODE
     if (m_text != strText) {
         m_text = strText;
+#ifdef _DEBUG
+        std::vector<uint8_t> fileData;
+        FileUtil::ReadFileData(FilePath(L"D:\\1.h"), fileData);
+        fileData.push_back(0);
+        fileData.push_back(0);
+        m_text = StringUtil::UTF8ToUTF16((const char*)fileData.data());
+#endif
         OnTextChanged();
     }    
 #else
@@ -850,44 +861,6 @@ HDC RichEdit::GetDrawDC() const
     return window ? window->NativeWnd()->GetPaintDC() : nullptr;
 }
 
-UiSize RichEdit::GetNaturalSize(LONG width, LONG height)
-{
-    if (width < 0) {
-        width = 0;
-    }
-    if (height < 0) {
-        height = 0;
-    }    
-    UiSize sz(0,0);
-    LONG lWidth = width;
-    LONG lHeight = height;
-    SIZEL szExtent = { -1, -1 };
-
-    /*ITextServices* pTextServices = nullptr;
-    if (m_pRichHost) {
-        pTextServices = m_pRichHost->GetTextServices();
-    }
-    if (pTextServices != nullptr) {
-        pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
-                                        GetDrawDC(),
-                                        NULL,
-                                        NULL,
-                                        TXTNS_FITTOCONTENT,
-                                        &szExtent,
-                                        &lWidth,
-                                        &lHeight);
-    }*/
-
-    //TEST
-    lWidth = 4000;
-    lHeight = 4000;
-    //TEST
-
-    sz.cx = (int)lWidth;
-    sz.cy = (int)lHeight;
-    return sz;
-}
-
 void RichEdit::SetImmStatus(BOOL bOpen)
 {
     HWND hwnd = GetWindowHWND();
@@ -1024,38 +997,6 @@ void RichEdit::SetEnabled(bool bEnable)
     if (bChanged) {
         Redraw();
     }
-}
-
-UiSize RichEdit::EstimateText(UiSize szAvailable)
-{
-    UiPadding rcPadding = GetControlPadding();
-    UiPadding rcTextPadding = GetTextPadding();
-    szAvailable.cx -= (rcPadding.left + rcPadding.right);
-    szAvailable.cy -= (rcPadding.top + rcPadding.bottom);
-    szAvailable.cx -= (rcTextPadding.left + rcTextPadding.right);
-    szAvailable.cy -= (rcTextPadding.top + rcTextPadding.bottom);
-
-    szAvailable.Validate();
-    LONG iWidth = szAvailable.cx;
-    if (iWidth < 0) {
-        iWidth = 0;
-    }
-    LONG iHeight = 0;
-    UiSize szNaturalSize = GetNaturalSize(iWidth, iHeight);
-    iWidth = szNaturalSize.cx;
-    iHeight = szNaturalSize.cy;
-
-    iWidth = std::max((int32_t)iWidth, 0);
-    iHeight = std::max((int32_t)iHeight, 0);
-    iWidth += (rcPadding.left + rcPadding.right);
-    iHeight += (rcPadding.top + rcPadding.bottom);
-
-    iWidth += (rcTextPadding.left + rcTextPadding.right);
-    iHeight += (rcTextPadding.top + rcTextPadding.bottom);
-
-    szAvailable.cx = std::max((int32_t)iWidth, 0);
-    szAvailable.cy = std::max((int32_t)iHeight, 0);
-    return szAvailable;
 }
 
 uint32_t RichEdit::GetControlFlags() const
@@ -1431,45 +1372,24 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     }
 
     if (bNeedPaint) {
-        //PaintRichEdit(pRender, rcPaint);
+        //计算区域
+        CalcTextRects();
+
+        //绘制
+        std::vector<RichTextData> richTextDataList;
+        if (GetRichTextForDraw(richTextDataList)) {
+            UiRect rc = GetRect();
+            rc.Deflate(GetControlPadding());
+            rc.Deflate(GetTextPadding());
+
+            UiSize scrollPos = GetScrollOffset();
+            rc.Offset(-scrollPos.cx, -scrollPos.cy);
+
+            IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+            ASSERT(pRenderFactory != nullptr);
+            pRender->DrawRichText(rc, pRenderFactory, richTextDataList, (uint8_t)GetAlpha());
+        }
     }
-
-
-    ///////////////
-    DString sFontId = GetFontId();
-    IFont* pFont = GlobalManager::Instance().Font().GetIFont(sFontId, Dpi());
-    ASSERT(pFont != nullptr);
-    if (pFont == nullptr) {
-        return;
-    }
-
-    RichTextData richTextData;
-    richTextData.m_text = L"\n行1\r\n行2\r\n行3\n\n行4\nUTF16: sdfkljAKLDFJKEWkldfjlk#$%&sdfs.dsj 中文字符串|\xD852\xDF62|\xD83D\xDC69|字符|\xD842\xDF20|\xD83D\xDE02|中文";// GetText();
-    //默认文本颜色
-    richTextData.m_textColor = GetUiColor(GetTextColor());
-    if (richTextData.m_textColor.IsEmpty()) {
-        richTextData.m_textColor = UiColor(UiColors::Black);
-    }
-    richTextData.m_fontInfo.m_fontName = pFont->FontName();
-    richTextData.m_fontInfo.m_fontSize = pFont->FontSize();
-    richTextData.m_fontInfo.m_bBold = pFont->IsBold();
-    richTextData.m_fontInfo.m_bUnderline = pFont->IsUnderline();
-    richTextData.m_fontInfo.m_bItalic = pFont->IsItalic();
-    richTextData.m_fontInfo.m_bStrikeOut = pFont->IsStrikeOut();
-
-    UiRect rc = GetRect();
-    rc.Deflate(GetControlPadding());
-    rc.Deflate(GetTextPadding());
-
-    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-
-    std::vector<RichTextData> richTextDataList;
-    richTextDataList.push_back(richTextData);
-
-    std::vector<MeasureCharRects> measureCharRects;
-    pRender->MeasureRichText(rc, pRenderFactory, richTextDataList, 0, &measureCharRects);
-    ASSERT(measureCharRects.size() == richTextData.m_text.size());
-    pRender->DrawRichText(rc, pRenderFactory, richTextDataList, 0, (uint8_t)GetAlpha());
 }
 
 void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
@@ -2338,6 +2258,11 @@ void RichEdit::SetHAlignType(HorAlignType alignType)
     }
 }
 
+HorAlignType RichEdit::GetHAlignType() const
+{
+    return m_hAlignType;
+}
+
 void RichEdit::SetVAlignType(VerAlignType alignType)
 {
     if (m_vAlignType != alignType) {
@@ -2346,17 +2271,31 @@ void RichEdit::SetVAlignType(VerAlignType alignType)
     }
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////
-
-UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
+VerAlignType RichEdit::GetVAlignType() const
 {
-    UiSize64 requiredSize = __super::CalcRequiredSize(rc);
-    requiredSize.cx = 500;
-    requiredSize.cy = 500;
-    return requiredSize;
+    return m_vAlignType;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////
+
+// 单行模式：忽略回车和换行【绘制函数：完成】
+// 自动换行模式【绘制函数：完成】
+// 支持TAB键的绘制: 按4个字符的倍数对齐，输入的时候替换，绘制的时候不含TAB键
+// 坐标相关：
+// （1）根据一个点返回光标的位置
+// （2）int32_t GetSel/SetSel(int32_t nStartChar, int32_t nEndChar);【半个字符的处理】
+// （3）GetTextRange(int32_t nStartChar, int32_t nEndChar)
+// （4）HideSelection(bool bHideSelection
+// （5）行相关：GetLineCount，
+//            DString GetLine(int32_t nIndex, int32_t nMaxLength) const;
+//            int32_t LineIndex(int32_t nLine = -1) const;
+//            int32_t LineLength(int32_t nLine = -1) const;
+//            bool LineScroll(int32_t nLines);
+//            int32_t LineFromChar(int32_t nIndex) const;
+//            UiPoint PosFromChar(int32_t nChar) const;
+//            int32_t CharFromPos(UiPoint pt) const;
+//
 void RichEdit::AdjustCaretPos(const UiPoint& pt)
 {
     UiPoint cursorPos;
@@ -2373,17 +2312,333 @@ void RichEdit::AdjustCaretPos(const UiPoint& pt)
     UiRect rc = GetRect();
     rc.Deflate(GetControlPadding());
     rc.Deflate(GetTextPadding());
-
     cursorPos.Offset(GetScrollOffsetInScrollBox());
+
+    //光标：横向按字符边界对齐，纵向按行高对齐
+    bool bSet = false;
     if (!rc.ContainsPt(cursorPos)) {
         cursorPos.x = rc.left;
         cursorPos.y = rc.top;
+        bSet = true;
     }
-    //纵向按行高对齐
-    if (m_nLineHeight > 0) {
-        cursorPos.y = rc.top + ((cursorPos.y - rc.top) / m_nLineHeight) * m_nLineHeight;
-    }    
+    else if (!m_textRects.empty()) {
+        for (const MeasureCharRects& charInfo : m_textRects) {
+            if (charInfo.m_charRect.ContainsPt((float)cursorPos.x, (float)cursorPos.y)) {
+                if (cursorPos.x < charInfo.m_charRect.CenterX()) {
+                    cursorPos.x = charInfo.m_charRect.left;
+                }
+                else {
+                    cursorPos.x = charInfo.m_charRect.right;
+                }                
+                cursorPos.y = charInfo.m_charRect.top;
+                bSet = true;
+                break;
+            }
+        }
+        if (!bSet) {
+            //检测行数据信息
+            uint32_t nLineNumber = (uint32_t)-1;
+            auto iterFirst = m_lineTextRects.begin();            
+            if (iterFirst != m_lineTextRects.end()) {
+                if (cursorPos.y < iterFirst->second.top) {
+                    cursorPos.y = iterFirst->second.top;
+                    nLineNumber = iterFirst->first;
+                }
+                else {
+                    auto iterLast = m_lineTextRects.rbegin();
+                    while (iterLast != m_lineTextRects.rend()) {
+                        if (cursorPos.y >= iterLast->second.top) {
+                            cursorPos.y = iterLast->second.top;
+                            nLineNumber = iterLast->first;
+                            break;
+                        }
+                        ++iterLast;
+                    }
+                }
+            }
+            auto iter = m_lineTextRects.find(nLineNumber);
+            if (iter != m_lineTextRects.end()) {
+                if (cursorPos.x <= iter->second.left) {
+                    cursorPos.x = iter->second.left;
+                }
+                else if (cursorPos.x > iter->second.right) {
+                    cursorPos.x = iter->second.right;
+                }
+                else {
+                    cursorPos.x = iter->second.right;
+                }
+                bSet = true;
+            }
+        }
+    }
+    if (!bSet) {
+        cursorPos.x = rc.left;
+        cursorPos.y = rc.top;
+    }
     SetCaretPos(cursorPos.x, cursorPos.y);
+}
+
+uint32_t RichEdit::GetTextStyle() const
+{
+    uint32_t uTextStyle = 0;
+    if (m_hAlignType == HorAlignType::kHorAlignCenter) {
+        uTextStyle |= TEXT_CENTER;
+    }
+    else if (m_hAlignType == HorAlignType::kHorAlignRight) {
+        uTextStyle |= TEXT_RIGHT;
+    }
+    else {
+        uTextStyle |= TEXT_LEFT;
+    }
+
+    if (m_vAlignType == VerAlignType::kVerAlignCenter) {
+        uTextStyle |= TEXT_VCENTER;
+    }
+    else if (m_vAlignType == VerAlignType::kVerAlignBottom) {
+        uTextStyle |= TEXT_BOTTOM;
+    }
+    else {
+        uTextStyle |= TEXT_TOP;
+    }
+
+    if (IsWordWrap()) {
+        uTextStyle |= TEXT_WORD_WRAP;
+    }
+    else {
+        uTextStyle &= ~TEXT_WORD_WRAP;
+    }
+
+    //单行/多行属性
+    if (IsMultiLine()) {
+        uTextStyle &= ~TEXT_SINGLELINE;
+    }
+    else {
+        uTextStyle |= TEXT_SINGLELINE;
+    }
+    return uTextStyle;
+}
+
+bool RichEdit::GetRichTextForDraw(std::vector<RichTextData>& richTextDataList) const
+{
+    if (m_text.empty()) {
+        return false;
+    }
+    DString sFontId = GetFontId();
+    IFont* pFont = GlobalManager::Instance().Font().GetIFont(sFontId, Dpi());
+    ASSERT(pFont != nullptr);
+    if (pFont == nullptr) {
+        return false;
+    }
+    RichTextData richTextData;
+    richTextData.m_textView = m_text;
+    //默认文本属性
+    richTextData.m_uTextStyle = GetTextStyle();
+    //默认文本颜色
+    richTextData.m_textColor = GetUiColor(GetTextColor());
+    if (richTextData.m_textColor.IsEmpty()) {
+        richTextData.m_textColor = UiColor(UiColors::Black);
+    }
+    //文本的字体信息
+    richTextData.m_fontInfo.m_fontName = pFont->FontName();
+    richTextData.m_fontInfo.m_fontSize = pFont->FontSize();
+    richTextData.m_fontInfo.m_bBold = pFont->IsBold();
+    richTextData.m_fontInfo.m_bUnderline = pFont->IsUnderline();
+    richTextData.m_fontInfo.m_bItalic = pFont->IsItalic();
+    richTextData.m_fontInfo.m_bStrikeOut = pFont->IsStrikeOut();
+
+    richTextDataList.emplace_back(std::move(richTextData));
+    return true;
+}
+
+void RichEdit::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect) const
+{
+    rect.Clear();
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
+        return;
+    }
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
+        return;
+    }
+
+    std::vector<RichTextData> richTextDataList;
+    if (GetRichTextForDraw(richTextDataList)) {
+        pRender->MeasureRichText(rc, pRenderFactory, richTextDataList);
+        for (const RichTextData& data : richTextDataList) {
+            for (const UiRect& textRect : data.m_textRects) {
+                rect.Union(textRect);
+            }
+        }
+    }
+}
+
+void RichEdit::CalcTextRects()
+{
+    m_textRect.Clear();
+    m_textRects.clear();
+    m_lineTextRects.clear();
+
+    IRender* pRender = nullptr;
+    Window* pWindow = GetWindow();
+    if (pWindow != nullptr) {
+        pRender = pWindow->GetRender();
+    }
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
+        return;
+    }
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
+        return;
+    }
+
+    std::vector<RichTextData> richTextDataList;
+    if (!GetRichTextForDraw(richTextDataList)) {
+        return;
+    }
+
+    UiRect rc = GetRect();
+    rc.Deflate(GetControlPadding());
+    rc.Deflate(GetTextPadding());
+
+    pRender->MeasureRichText(rc, pRenderFactory, richTextDataList, &m_textRects);
+    ASSERT(m_textRects.size() == m_text.size());
+    if (!m_textRects.empty()) {
+        //计算每行的矩形区域
+        for (const MeasureCharRects& charInfo : m_textRects) {
+            if (charInfo.m_bReturn || charInfo.m_bNewLine || charInfo.m_bLowSurrogate) {
+                continue;
+            }
+            else {
+                m_lineTextRects[charInfo.m_nRowIndex].Union(charInfo.m_charRect);
+            }
+        }
+        for (const MeasureCharRects& charInfo : m_textRects) {
+            if (charInfo.m_bNewLine) {
+                if (m_lineTextRects.find(charInfo.m_nRowIndex) == m_lineTextRects.end()) {
+                    //本行只有一个回车
+                    UiRectF& rect = m_lineTextRects[charInfo.m_nRowIndex];
+                    rect.left = rc.left;
+                    rect.right = rc.left;
+
+                    auto iterPrev = m_lineTextRects.find(charInfo.m_nRowIndex - 1);
+                    if (iterPrev != m_lineTextRects.end()) {
+                        //中间行
+                        rect.top = iterPrev->second.bottom;
+                    }
+                    else {
+                        //首行 
+                        rect.top = rc.top;
+                    }
+                    auto iterNext = m_lineTextRects.find(charInfo.m_nRowIndex + 1);
+                    if (iterNext != m_lineTextRects.end()) {
+                        //中间行
+                        rect.bottom = iterNext->second.top;
+                    }
+                    else {
+                        //尾行
+                        rect.bottom = rect.top + m_nLineHeight;
+                    }
+                }
+            }
+        }
+        UiRectF textRect;
+        for (const auto& iter : m_lineTextRects) {
+            textRect.Union(iter.second);
+        }
+        m_textRect.left = (int32_t)textRect.left;
+        m_textRect.top = (int32_t)textRect.top;
+        m_textRect.right = (int32_t)textRect.right;
+        m_textRect.bottom = (int32_t)textRect.bottom;
+        if ((textRect.right - m_textRect.right) > 0.01f) {
+            m_textRect.right += 1;
+        }
+        if ((textRect.bottom - m_textRect.bottom) > 0.01f) {
+            m_textRect.bottom += 1;
+        }
+    }
+}
+
+UiSize RichEdit::EstimateText(UiSize szAvailable)
+{
+    UiSize fixedSize;
+    IRender* pRender = nullptr;
+    if (GetWindow() != nullptr) {
+        pRender = GetWindow()->GetRender();
+    }
+    if (pRender == nullptr) {
+        return fixedSize;
+    }
+
+    int32_t nWidth = szAvailable.cx;
+    if (GetFixedWidth().IsStretch()) {
+        //如果是拉伸类型，使用外部宽度
+        nWidth = CalcStretchValue(GetFixedWidth(), szAvailable.cx);
+    }
+    else if (GetFixedWidth().IsInt32()) {
+        nWidth = GetFixedWidth().GetInt32();
+    }
+    else if (GetFixedWidth().IsAuto()) {
+        //宽度为自动时，不限制宽度
+        nWidth = INT_MAX;
+    }
+
+    //最大高度，不限制
+    int32_t nHeight = INT_MAX;
+
+    UiRect rc;
+    rc.left = 0;
+    rc.right = rc.left + nWidth;
+    rc.top = 0;
+    rc.bottom = rc.top + nHeight;
+
+    const UiPadding rcTextPadding = GetTextPadding();
+    const UiPadding rcPadding = GetControlPadding();
+    if (nWidth != INT_MAX) {
+        rc.left += (rcPadding.left + rcTextPadding.left);
+        rc.right -= (rcPadding.right + rcTextPadding.right);
+    }
+    if (nHeight != INT_MAX) {
+        rc.top += (rcPadding.top + rcTextPadding.top);
+        rc.bottom -= (rcPadding.bottom + rcTextPadding.bottom);
+    }
+    if (rc.IsEmpty()) {
+        return fixedSize;
+    }
+
+    //计算绘制所占的区域大小
+    UiRect rect;
+    CalcDestRect(pRender, rc, rect);
+
+    fixedSize.cx = rect.Width();
+    fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
+    fixedSize.cx += (rcPadding.left + rcPadding.right);
+
+    fixedSize.cy = rect.Height();
+    fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
+    fixedSize.cy += (rcPadding.top + rcPadding.bottom);
+
+    return fixedSize;
+}
+
+UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
+{
+    UiSize64 requiredSize = __super::CalcRequiredSize(rc);
+    UiRect rcAvailable = rc;
+    rcAvailable.Deflate(GetTextPadding());
+    rcAvailable.Deflate(GetControlPadding());
+    UiSize szAvailable(rcAvailable.Width(), rcAvailable.Height());
+    UiSize szControlSize = EstimateControlSize(szAvailable);
+    if (requiredSize.cx < szControlSize.cx) {
+        requiredSize.cx = szControlSize.cx;
+    }
+    if (requiredSize.cy < szControlSize.cy) {
+        requiredSize.cy = szControlSize.cy;
+    }
+    return requiredSize;
 }
 
 void RichEdit::Redraw()

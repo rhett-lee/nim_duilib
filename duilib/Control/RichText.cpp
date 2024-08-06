@@ -257,16 +257,14 @@ UiSize RichText::EstimateText(UiSize szAvailable)
     UiRect rect;
     CalcDestRect(pRender, rc, rect);
 
-    if (GetFixedWidth().IsAuto()) {
-        fixedSize.cx = rect.Width();
-        fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
-        fixedSize.cx += (rcPadding.left + rcPadding.right);
-    }
-    if (GetFixedHeight().IsAuto()) {
-        fixedSize.cy = rect.Height();
-        fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
-        fixedSize.cy += (rcPadding.top + rcPadding.bottom);
-    }
+    fixedSize.cx = rect.Width();
+    fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
+    fixedSize.cx += (rcPadding.left + rcPadding.right);
+
+    fixedSize.cy = rect.Height();
+    fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
+    fixedSize.cy += (rcPadding.top + rcPadding.bottom);
+
     return fixedSize;
 }
 

@@ -1540,6 +1540,24 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
         return GetEstimateSize();
     }
 
+    UiSize szControlSize = EstimateControlSize(szAvailable);
+
+    //选取图片和文本区域高度和宽度的最大值
+    if (fixedSize.cx.IsAuto()) {
+        fixedSize.cx.SetInt32(szControlSize.cx);
+    }
+    if (fixedSize.cy.IsAuto()) {
+        fixedSize.cy.SetInt32(szControlSize.cy);
+    }
+    //保持结果到缓存，避免每次都重新估算
+    UiEstSize estSize = MakeEstSize(fixedSize);
+    SetEstimateSize(estSize, szAvailable);
+    SetReEstimateSize(false);
+    return estSize;
+}
+
+UiSize Control::EstimateControlSize(UiSize szAvailable)
+{
     //估算图片区域大小
     UiSize imageSize;
     std::shared_ptr<ImageInfo> imageCache;
@@ -1607,18 +1625,10 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
     //估算文本区域大小, 函数计算时，已经包含了内边距
     UiSize textSize = EstimateText(szAvailable);
 
-    //选取图片和文本区域高度和宽度的最大值
-    if (fixedSize.cx.IsAuto()) {
-        fixedSize.cx.SetInt32(std::max(imageSize.cx, textSize.cx));
-    }
-    if (fixedSize.cy.IsAuto()) {
-        fixedSize.cy.SetInt32(std::max(imageSize.cy, textSize.cy));
-    }
-    //保持结果到缓存，避免每次都重新估算
-    UiEstSize estSize = MakeEstSize(fixedSize);
-    SetEstimateSize(estSize, szAvailable);
-    SetReEstimateSize(false);
-    return estSize;
+    UiSize szControlSize;
+    szControlSize.cx = std::max(imageSize.cx, textSize.cx);
+    szControlSize.cy = std::max(imageSize.cy, textSize.cy);
+    return szControlSize;
 }
 
 Image* Control::GetEstimateImage()

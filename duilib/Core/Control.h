@@ -515,7 +515,7 @@ public:
     /** 获取控件位置（子类可改变行为）
     * @return 返回控件的矩形区域，包含内边距，不包含外边距
      */
-    virtual    UiRect GetPos() const override;
+    virtual UiRect GetPos() const override;
 
     /** 设置控件位置（子类可改变行为）
      * @param [in] rc 要设置的矩形区域信息，包含内边距，不包含外边距
@@ -524,7 +524,7 @@ public:
 
     /** 计算控件大小(宽和高)
         如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
-     *  @param [in] szAvailable 可用大小，不包含外边距
+     *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
      *  @return 控件的估算大小，包含内边距(Box)，不包含外边距
      */
     virtual UiEstSize EstimateSize(UiSize szAvailable);
@@ -1128,6 +1128,13 @@ protected:
     /** 停止播放GIF动画(背景图片的动画等)
     */
     void CheckStopGifPlay();
+
+    /** 计算控件大小(宽和高)
+        如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
+     *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
+     *  @return 控件的估算大小，包含内边距(Box)，不包含外边距
+     */
+    UiSize EstimateControlSize(UiSize szAvailable);
 
 private:
     /** 绘制边框：根据条件判断绘制圆角矩形边框还是普通矩形边框

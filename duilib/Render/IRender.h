@@ -506,6 +506,22 @@ public:
 class MeasureCharRects
 {
 public:
+    /** 该字符未绘制
+    */
+    bool m_bIgnoredChar = false;
+
+    /** 每个字符所在的逻辑行号（在视图边界换行显示的行号，一个物理行可能会切分为多个逻辑行）
+    */
+    uint32_t m_nRowIndex = 0;
+
+    /** 每个字符的绘制区域(输出参数)
+    */
+    UiRectF m_charRect;
+
+    /** 每个字符所在的逻辑行号（即文本中，以换行符'\n'切分的物理行）
+    */
+    uint32_t m_nLineNumber = 0;
+
     /** 当前字形所占的字符数（UTF16编码的字形，每个字占1个或者2个字符）
     */
     uint8_t m_charCount = 1;
@@ -521,22 +537,6 @@ public:
     /** 当前字符是否为换行符'\n'（为true时表示当前字符是换符，绘制区域不含有效数据）
     */
     bool m_bNewLine = false;
-
-    /** 该字符未绘制
-    */
-    bool m_bIgnoredChar = false;
-
-    /** 每个字符所在的逻辑行号（即文本中，以换行符'\n'切分的物理行）
-    */
-    uint32_t m_nLineNumber = 0;
-
-    /** 每个字符所在的逻辑行号（在视图边界换行显示的行号，一个物理行可能会切分为多个逻辑行）
-    */
-    uint32_t m_nRowIndex = 0;
-
-    /** 每个字符的绘制区域(输出参数)
-    */
-    UiRectF m_charRect;
 };
 
 /** 裁剪区域类型

@@ -265,10 +265,9 @@ public:
     void SetScrollVirtualOffsetX(int64_t xOffset);
 
 protected:
-
     /** 计算所需的尺寸
      * @param[in] rc 当前位置信息, 外部调用时，不需要剪去内边距
-     * @return 返回所需尺寸大小
+     * @return 返回所需尺寸大小, 包含ScrollBox自身的内边距，不包含外边距
      */
     virtual UiSize64 CalcRequiredSize(const UiRect& rc);
 

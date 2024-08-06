@@ -966,12 +966,12 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
         return byteLength;
     }
 
-    size_t nGlyphCount = 0;
+    size_t nGlyphCount = 0;    //符合要求的字形的数量
     size_t breakByteLength = 0;//单位是字节
     SkScalar totalWidth = 0;
     for (size_t i = 0; i < glyphWidths.size(); ++i) {        
         if ((totalWidth + glyphWidths[i]) > maxWidth) {
-            nGlyphCount = i + 1;
+            nGlyphCount = i;
             for (size_t index = 0; index < i; ++index) {
                 //计算字符个数
                 breakByteLength += (glyphChars[index] * charBytes);

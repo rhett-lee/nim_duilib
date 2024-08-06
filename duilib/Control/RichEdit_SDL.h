@@ -272,8 +272,8 @@ public:
     void SetLimitChars(const DString& limitChars);
 
     /** 获取焦点状态下的图片
- * @return 返回焦点状态下的图片
- */
+    * @return 返回焦点状态下的图片
+    */
     DString GetFocusedImage();
 
     /** 设置焦点状态下的图片
@@ -305,6 +305,22 @@ public:
     * @param [in] nMax 表示设置数字的最大值，如果 nMin和nMax同时为0, 表示不设置数字的最小值和最大值
     */
     bool SetEnableSpin(bool bEnable, const DString& spinClass, int32_t nMin = 0, int32_t nMax = 0);
+
+    /** 设置文本水平对齐方式
+    */
+    void SetHAlignType(HorAlignType alignType);
+
+    /** 获取文本水平对齐方式
+    */
+    HorAlignType GetHAlignType() const;
+
+    /** 设置文本垂直对齐方式
+    */
+    void SetVAlignType(VerAlignType alignType);
+
+    /** 获取文本垂直对齐方式
+    */
+    VerAlignType GetVAlignType() const;
 
 public:
     /** 创建光标
@@ -500,13 +516,13 @@ public:
     DString GetLine(int32_t nIndex, int32_t nMaxLength) const;
 
     /** 获取指定行的第一个字符索引
-     * @param[in] nLine 要获取第几行数据，默认为 -1
+     * @param[in] nLine 要获取第几行数据，默认为 -1，表示当前插入点的行
      * @return 返回指定行的第一个字符索引
      */
     int32_t LineIndex(int32_t nLine = -1) const;
 
     /** 获取指定行的数据长度
-     * @param[in] nLine 要获取第几行数据，默认为 -1
+     * @param[in] nLine 要获取第几行数据，默认为 -1，表示当前插入点的行
      * @return 返回指定行的数据长度
      */
     int32_t LineLength(int32_t nLine = -1) const;
@@ -517,21 +533,21 @@ public:
      */
     bool LineScroll(int32_t nLines);
 
-    /** 获取指定字符所在行数
+    /** 获取指定字符所在行号
      * @param[in] nIndex 字符的索引位置
-     * @return 返回当前字符所在的行数
+     * @return 返回当前字符所在的行号
      */
     int32_t LineFromChar(int32_t nIndex) const;
 
-    /** 获取指定位置字符的客户区坐标
+    /** 检索编辑控件中指定字符的工作区坐标。
      * @param[in] nChar 字符索引位置
-     * @return 返回客户区坐标
+     * @return 返回值包含字符的客户端区域坐标。
      */
     UiPoint PosFromChar(int32_t nChar) const;
 
-    /** 根据坐标返回指定字符索引
+    /** 获取有关距离编辑控件客户区中指定点最近的字符的信息
      * @param[in] pt 坐标信息
-     * @return 返回最接近参数 pt 所指定的坐标位置
+     * @return 返回值指定了距指定点最近字符的从零开始的字符索引。 如果指定点超出控件中的最后一个字符，则返回值会指示编辑控件中的最后一个字符。
      */
     int32_t CharFromPos(UiPoint pt) const;
 
@@ -673,10 +689,6 @@ private:
     */
     void SetFontIdInternal(const DString& fontId);
 
-    //文本横向和纵向对齐方式
-    void SetHAlignType(HorAlignType alignType);
-    void SetVAlignType(VerAlignType alignType);
-
     /** 绘制光标
      * @param[in] pRender 绘制引擎
      * @param[in] rcPaint 绘制位置
@@ -712,10 +724,6 @@ private:
     */
     HDC GetDrawDC() const;
 
-    /** 获取文本区域的矩形范围
-    */
-    UiSize GetNaturalSize(LONG width, LONG height);
-
     /** 设置输入法状态
     */
     void SetImmStatus(BOOL bOpen);
@@ -725,6 +733,22 @@ private:
     * @param [in] pt 需要设置调整的位置（客户区坐标），如果为(-1,-1)表示需要定位光标的位置
     */
     void AdjustCaretPos(const UiPoint& pt);
+
+    /** 获取当前绘制文字的属性
+    */
+    uint32_t GetTextStyle() const;
+
+    /** 将文本生成可绘制的格式
+    */
+    bool GetRichTextForDraw(std::vector<RichTextData>& richTextDataList) const;
+
+    /** 计算绘制后的目标区域大小
+    */
+    void CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect) const;
+
+    /** 计算文本的区域信息
+    */
+    void CalcTextRects();
 
     /** 重绘
     */
@@ -831,11 +855,6 @@ private:
     */
     Control* m_pShowPasswordButton;
 
-private:
-    /** 文本内容
-    */
-    DStringW m_text;
-
     /** 文本水平对齐方式
     */
     HorAlignType m_hAlignType;
@@ -844,6 +863,27 @@ private:
     */
     VerAlignType m_vAlignType;
 
+    /** 是否显示选择的文本(显示时：选择的文本背景色与正常文本不同)
+    */
+    bool m_bHideSelection;
+
+private:
+    /** 文本内容
+    */
+    DStringW m_text;
+
+    /** 文本内容所占的区域信息
+    */
+    std::vector<MeasureCharRects> m_textRects;
+
+    /** 文本内容所占的行区域信息(Key为行号，Value为该行的所占的矩形区域)
+    */
+    std::map<int32_t, UiRectF> m_lineTextRects;
+
+    /** 文本内容所占用的矩形区域
+    */
+    UiRect m_textRect;
+
     /** 选择的起始字符
     */
     int32_t m_nSelStartIndex;
@@ -851,10 +891,6 @@ private:
     /** 选择的结束字符
     */
     int32_t m_nSelEndCharIndex;
-
-    /** 是否显示选择的文本(显示时：选择的文本背景色与正常文本不同)
-    */
-    bool m_bHideSelection;
 };
 
 } // namespace ui
