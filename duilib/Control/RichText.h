@@ -15,9 +15,9 @@ public:
     */
     UiString m_nodeName;
 
-    /** 文字内容
+    /** 文字内容(UTF16编码)
     */
-    UiString m_text;
+    DStringW m_text;
 
     /** 超链接的URL: "href"
     */

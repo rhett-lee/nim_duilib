@@ -419,16 +419,14 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
     RichTextDataEx currentTextData;
     currentTextData.m_fRowSpacingMul = parentTextData.m_fRowSpacingMul;
     currentTextData.m_uTextStyle = parentTextData.m_uTextStyle;
+    currentTextData.m_textView = std::wstring_view(textSlice.m_text.c_str(), textSlice.m_text.size());
 
-#ifdef DUILIB_UNICODE
-    currentTextData.m_text = textSlice.m_text.c_str();
-#else
-    currentTextData.m_text = StringUtil::UTF8ToUTF16(textSlice.m_text.c_str());
-#endif
-
-    //将换行统一转换为'\n'
-    StringUtil::ReplaceAll(L"\r\n", L"\n", currentTextData.m_text);
-    StringUtil::ReplaceAll(L"\r", L"\n", currentTextData.m_text);
+    //不应包含回车和换行（由外部调用方负责处理）
+    ASSERT(currentTextData.m_textView.find(L"\r") == DStringW::npos);    
+    ASSERT(currentTextData.m_textView.find(L"\t") == DStringW::npos);
+    if (currentTextData.m_textView.size() != 1) {
+        ASSERT(currentTextData.m_textView.find(L"\n") == DStringW::npos);
+    }
 
     currentTextData.m_linkUrl = textSlice.m_linkUrl;
     if (!textSlice.m_textColor.empty()) {
@@ -464,7 +462,7 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
     if (textSlice.m_fontInfo.m_bStrikeOut) {
         currentTextData.m_fontInfo.m_bStrikeOut = textSlice.m_fontInfo.m_bStrikeOut;
     }
-    if (!currentTextData.m_text.empty() || !currentTextData.m_linkUrl.empty()) {
+    if (!currentTextData.m_textView.empty() || !currentTextData.m_linkUrl.empty()) {
         textData.push_back(currentTextData);
     }
         
@@ -505,6 +503,14 @@ void RichText::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 
 const DString& RichText::TrimText(DString& text)
 {
+    //回车/换行TAB键：替换为1个空格
+    size_t nCount = text.size();
+    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        if ((text[nIndex] == _T('\r')) || (text[nIndex] == _T('\n')) || (text[nIndex] == _T('\t'))) {
+            text[nIndex] = _T(' ');
+        }
+    }
+
     if (m_trimPolicy == TrimPolicy::kNone) {
         //不处理
     }
@@ -528,7 +534,7 @@ const DString& RichText::TrimText(DString& text)
         }
     }
     else {
-        //去掉所有空格
+        //去掉左右两侧的空格
         StringUtil::Trim(text);
     }    
     return text;
@@ -536,27 +542,11 @@ const DString& RichText::TrimText(DString& text)
 
 DString RichText::TrimText(const DString::value_type* text)
 {
-    if (m_trimPolicy == TrimPolicy::kNone) {
-        //不处理
-        DString retText;
-        if (text != nullptr) {
-            retText = text;
-        }
-        return retText;
+    DString retText;
+    if (text != nullptr) {
+        retText = text;
     }
-    else if (m_trimPolicy == TrimPolicy::kKeepOne) {
-        //只保留一个空格
-        DString retText;
-        if (text != nullptr) {
-            retText = text;
-        }
-        TrimText(retText);
-        return retText;
-    }
-    else {
-        //去掉所有空格
-        return StringUtil::Trim(text);
-    }    
+    return TrimText(retText);
 }
 
 bool RichText::DoSetText(const DString& richText)

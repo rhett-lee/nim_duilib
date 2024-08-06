@@ -1602,7 +1602,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
         //预分配内存
         size_t nCharCount = 0;
         for (const RichTextData& textData : richTextData) {
-            nCharCount += textData.m_text.size();
+            nCharCount += textData.m_textView.size();
         }
         if (nCharCount > 0) {
             pMeasureCharRects->reserve(nCharCount);
@@ -1628,7 +1628,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
 
     for (size_t index = 0; index < richTextData.size(); ++index) {
         const RichTextData& textData = richTextData[index];
-        if (textData.m_text.empty()) {
+        if (textData.m_textView.empty()) {
             continue;
         }
 
@@ -1679,7 +1679,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
 
         //按换行符进行文本切分
         std::vector<std::wstring_view> lineTextViewList;
-        SplitLines(textData.m_text, lineTextViewList);
+        SplitLines(textData.m_textView, lineTextViewList);
 
         for (const std::wstring_view& lineTextView : lineTextViewList) {
             if (lineTextView.size() == 1) {
@@ -1887,7 +1887,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
     }
 }
 
-void Render_Skia::SplitLines(const DStringW& lineText, std::vector<std::wstring_view>& lineTextViewList)
+void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<std::wstring_view>& lineTextViewList)
 {
     if (lineText.empty()) {
         return;
@@ -1901,7 +1901,7 @@ void Render_Skia::SplitLines(const DStringW& lineText, std::vector<std::wstring_
     }
     if (lineSeprators.empty()) {
         //没有换行分隔符，单行
-        lineTextViewList.push_back(std::wstring_view(lineText.c_str(), lineText.size()));
+        lineTextViewList.push_back(std::wstring_view(lineText.data(), lineText.size()));
     }
     else {
         //有换行分隔符，切分为多行, 并保留换行符
@@ -1917,9 +1917,9 @@ void Render_Skia::SplitLines(const DStringW& lineText, std::vector<std::wstring_
                 ASSERT(nCurrentIndex < lineText.size());
                 nCharCount = nCurrentIndex - nLastIndex;
                 if (nCharCount > 0) {
-                    lineTextViewList.push_back(std::wstring_view(lineText.c_str(), nCharCount));
+                    lineTextViewList.push_back(std::wstring_view(lineText.data(), nCharCount));
                 }
-                lineTextViewList.push_back(std::wstring_view(lineText.c_str() + nCurrentIndex, 1));
+                lineTextViewList.push_back(std::wstring_view(lineText.data() + nCurrentIndex, 1));
             }
             else {
                 //中间行
@@ -1929,9 +1929,9 @@ void Render_Skia::SplitLines(const DStringW& lineText, std::vector<std::wstring_
                 ASSERT(nCurrentIndex < lineText.size());
                 nCharCount = nCurrentIndex - nLastIndex - 1;
                 if (nCharCount > 0) {
-                    lineTextViewList.push_back(std::wstring_view(lineText.c_str() + nLastIndex + 1, nCharCount));
+                    lineTextViewList.push_back(std::wstring_view(lineText.data() + nLastIndex + 1, nCharCount));
                 }
-                lineTextViewList.push_back(std::wstring_view(lineText.c_str() + nCurrentIndex, 1));
+                lineTextViewList.push_back(std::wstring_view(lineText.data() + nCurrentIndex, 1));
             }
 
             if (nLine == (nLineSepCount - 1)) {
@@ -1941,7 +1941,7 @@ void Render_Skia::SplitLines(const DStringW& lineText, std::vector<std::wstring_
                 ASSERT(nCurrentIndex > nLastIndex);
                 nCharCount = nCurrentIndex - nLastIndex - 1;
                 if (nCharCount > 0) {
-                    lineTextViewList.push_back(std::wstring_view(lineText.c_str() + nLastIndex + 1, nCharCount));
+                    lineTextViewList.push_back(std::wstring_view(lineText.data() + nLastIndex + 1, nCharCount));
                 }
             }
         }

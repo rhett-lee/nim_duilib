@@ -472,9 +472,9 @@ enum class RenderType
 class RichTextData
 {
 public:
-    /** 文字内容
+    /** 文字内容(由外部负责保证字符串指向内存的生命周期)
     */
-    DStringW m_text;
+    std::wstring_view m_textView;
 
     /** 文字颜色
     */

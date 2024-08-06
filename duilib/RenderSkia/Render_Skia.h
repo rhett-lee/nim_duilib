@@ -167,7 +167,7 @@ private:
 
     /** 将文本按照换行符（'\r'或者'\n'）切分为多行
     */
-    void SplitLines(const DStringW& lineText, std::vector<std::wstring_view>& lineTextViewList);
+    void SplitLines(const std::wstring_view& lineText, std::vector<std::wstring_view>& lineTextViewList);
 
     /** 获取当前字所占的UTF16字符个数(1个或者2个)
     */
