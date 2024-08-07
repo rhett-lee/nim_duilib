@@ -96,6 +96,14 @@ public:
      */
     DString GetDisabledTextColor() const;
 
+    /** 设置选择文本的背景色
+    */
+    void SetSelectionBkColor(const DString& selectionBkColor);
+
+    /** 获取选择文本的背景颜色
+    */
+    DString GetSelectionBkColor() const;
+
 public:
     /** 设置是否显示提示文字
  * @param[in] bPrompt 设置为 true 为显示，false 为不显示
@@ -437,8 +445,8 @@ public:
     void SetSelAllOnFocus(bool bSelAll);
 
     /** 获取所选文本的起始位置和结束位置
-     * @param[in] nStartChar 返回起始位置
-     * @param[in] nEndChar 返回结束位置
+     * @param[in] nStartChar 返回选择文本的起始字符位置，字符串中从0开始的下标值，如果没有选择文本，返回-1
+     * @param[in] nEndChar 返回选择文本的最后一个字符的下一个字符下标值，如果没有选择文本，返回0
      */
     void GetSel(int32_t& nStartChar, int32_t& nEndChar) const;
 
@@ -471,11 +479,14 @@ public:
      */
     DString GetTextRange(int32_t nStartChar, int32_t nEndChar) const;
 
-    /** 设置隐藏或显示选择的文本
+    /** 设置隐藏或显示选择的文本（当控件处于非激活状态时，是否隐藏选择内容）
      * @param [in] bHideSelection 是否显示，true 为隐藏，false 为显示
-     * @param [in] bChangeStyle 该参数未使用
      */
-    void HideSelection(bool bHideSelection = true, bool bChangeStyle = false);
+    void SetHideSelection(bool bHideSelection);
+
+    /** 是否隐藏选择的文本（当控件处于非激活状态时，是否隐藏选择内容）
+    */
+    bool IsHideSelection() const;
 
     /** 是否可以Redo
     */
@@ -707,6 +718,10 @@ private:
      */
     void PaintCaret(IRender* pRender, const UiRect& rcPaint);
 
+    /** 绘制选择背景
+    */
+    void PaintSelectionColor(IRender* pRender, const UiRect& rcPaint);
+
     /** 切换光标是否显示
     */
     void ChangeCaretVisiable();
@@ -813,6 +828,8 @@ private:
     UiString m_sTextColor;              //正常文本颜色
     UiString m_sDisabledTextColor;      //Disabled状态的文本颜色
 
+    UiString m_sSelectionBkColor;       //选择文本的背景颜色
+
     bool m_bAllowPrompt;                //是否支持提示文字
     UiString m_sPromptColor;            //提示文字颜色
     UiString m_sPromptText;             //提示文本内容（只有编辑框为空的时候显示）
@@ -879,9 +896,13 @@ private:
     */
     VerAlignType m_vAlignType;
 
-    /** 是否显示选择的文本(显示时：选择的文本背景色与正常文本不同)
+    /** 当控件处于非激活状态时，是否隐藏选择内容(显示时：选择的文本背景色与正常文本不同)
     */
     bool m_bHideSelection;
+
+    /** 当前控件是否处于激活状态
+    */
+    bool m_bActive;
 
 private:
     /** 文本内容

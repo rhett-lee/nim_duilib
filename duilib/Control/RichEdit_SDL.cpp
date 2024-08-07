@@ -74,7 +74,8 @@ RichEdit::RichEdit(Window* pWindow) :
     m_vAlignType(VerAlignType::kVerAlignTop),
     m_nSelStartIndex(-1),
     m_nSelEndCharIndex(0),
-    m_bHideSelection(false)
+    m_bHideSelection(false),
+    m_bActive(false)
 {
 }
 
@@ -229,7 +230,10 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //设置是否允许Ctrl + 滚轮来调整缩放比例
         SetEnableWheelZoom(strValue == _T("true"));
     }
-
+    else if (strName == _T("hide_selection")) {
+        //当控件处于非激活状态时，是否隐藏选择内容
+        SetHideSelection(strValue == _T("true"));
+    }
 
 
 
@@ -275,16 +279,17 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //如果 为 FALSE，则当控件再次处于活动状态时，可以选择边界重置为 start = 0，length = 0。
         //SetSaveSelection(strValue == _T("true"));
     }
-    else if (strName == _T("hide_selection")) {
-        //是否隐藏选择内容
-        //SetHideSelection(strValue == _T("true"));
-    }
     else if (strName == _T("enable_drag_drop")) {
         //是否允许拖放操作
         //SetEnableDragDrop(strValue == _T("true"));
     }
 
 
+    ////////////////////////////新添加属性, 需要添加到文档中
+    else if (strName == _T("selection_bk_color")) {
+        //选择文本的背景色
+        SetSelectionBkColor(strValue);
+    }
     else {
         ScrollBox::SetAttribute(strName, strValue);
     }
@@ -535,6 +540,21 @@ DString RichEdit::GetDisabledTextColor() const
     }
 }
 
+void RichEdit::SetSelectionBkColor(const DString& selectionBkColor)
+{
+    if (m_sSelectionBkColor != selectionBkColor) {
+        m_sSelectionBkColor = selectionBkColor;
+        if (HasSelText()) {
+            Redraw();
+        }
+    }
+}
+
+DString RichEdit::GetSelectionBkColor() const
+{
+    return m_sSelectionBkColor.c_str();
+}
+
 int32_t RichEdit::GetLimitText() const
 {
     return m_nLimitText;
@@ -644,33 +664,73 @@ void RichEdit::SetModify(bool bModified)
 
 void RichEdit::GetSel(int32_t& nStartChar, int32_t& nEndChar) const
 {
-    //TODO:
-    LONG nStart = 0;
-    LONG nEnd = 0;
-    //m_richCtrl.GetSel(nStart, nEnd);
-    nStartChar = nStart;
-    nEndChar = nEnd;
+    const int32_t nTextLen = GetTextLength();
+    nStartChar = m_nSelStartIndex;
+    nEndChar = m_nSelEndCharIndex;
+    if ((nStartChar == 0) && (nEndChar == -1)) {
+        //全选
+    }
+    else if ((nStartChar == -1) && (nEndChar == 0)) {
+        //无选择文本
+    }
+    else {
+        //校验合理性        
+        if ((nStartChar < 0) || (nStartChar >= nTextLen)) {
+            //无选择
+            nStartChar = -1;
+            nEndChar = 0;
+        }
+        if ((nEndChar < 0) || (nEndChar >= nTextLen)) {
+            //选择至文本结束
+            nEndChar = -1;
+        }
+        if (nStartChar > nEndChar) {
+            //无选择
+            nStartChar = -1;
+            nEndChar = 0;
+        }
+    }
+    if ((nStartChar >= 0) && (nStartChar < nTextLen) && (nTextLen == -1)) {
+        //全选的时候，此值为最后一个字符的后一个位置
+        nEndChar = nTextLen;
+    }
 }
 
 int32_t RichEdit::SetSel(int32_t nStartChar, int32_t nEndChar)
 {
-    if ((nStartChar < 0) || (nStartChar >= (int32_t)m_text.size())){
-        //无选择
-        nStartChar = -1;
+    const int32_t nTextLen = GetTextLength();
+    if ((nStartChar == 0) && (nEndChar == -1)) {
+        //全选
     }
-    if (nEndChar >= (int32_t)m_text.size()) {
-        //选择至文本结束
-        nEndChar = -1;
+    else if ((nStartChar == -1) && (nEndChar == 0)) {
+        //无选择文本
     }
+    else {        
+        if ((nStartChar < 0) || (nStartChar >= nTextLen)) {
+            //无选择
+            nStartChar = -1;
+            nEndChar = 0;
+        }
+        if ((nEndChar < 0) || (nEndChar >= nTextLen)) {
+            //选择至文本结束
+            nEndChar = -1;
+        }
+        if (nStartChar > nEndChar) {
+            //无选择
+            nStartChar = -1;
+            nEndChar = 0;
+        }
+    }
+    
     bool bChanged = (m_nSelStartIndex != nStartChar) || (m_nSelEndCharIndex != nEndChar);
     m_nSelStartIndex = nStartChar;
     m_nSelEndCharIndex = nEndChar;
     int32_t nSelCount = 0;
-    if ((nStartChar >= 0) && (nStartChar < (int32_t)m_text.size())){
+    if ((nStartChar >= 0) && (nStartChar < nTextLen)){
         if (nEndChar < 0) {
-            nSelCount = (int32_t)m_text.size() - nStartChar;
+            nSelCount = nTextLen - nStartChar;
         }
-        else if ((nEndChar > nStartChar) && (nEndChar < (int32_t)m_text.size())) {
+        else if ((nEndChar > nStartChar) && (nEndChar < nTextLen)) {
             nSelCount = nEndChar - nStartChar;
         }
     }
@@ -697,7 +757,18 @@ DString RichEdit::GetSelText() const
 
 bool RichEdit::HasSelText() const
 {
-    //TODO: 实现功能
+    const int32_t nTextLen = GetTextLength();
+    ASSERT(m_text.size() == nTextLen);
+    if (m_text.size() != nTextLen) {
+        return false;
+    }
+
+    int32_t nSelStartChar = -1;
+    int32_t nSelEndChar = -1;
+    GetSel(nSelStartChar, nSelEndChar);
+    if ((nSelStartChar >= 0) && (nSelStartChar < nTextLen) && (nSelEndChar > nSelStartChar) && (nSelEndChar <= nTextLen)) {
+        return true;
+    }
     return false;
 }
 
@@ -717,12 +788,19 @@ DString RichEdit::GetTextRange(int32_t nStartChar, int32_t nEndChar) const
     return L"";
 }
 
-void RichEdit::HideSelection(bool bHideSelection, bool /*bChangeStyle*/)
+void RichEdit::SetHideSelection(bool bHideSelection)
 {
     if (m_bHideSelection != bHideSelection) {
         m_bHideSelection = bHideSelection;
-        Redraw();
+        if (HasSelText()) {
+            Redraw();
+        }        
     }
+}
+
+bool RichEdit::IsHideSelection() const
+{
+    return m_bHideSelection;
 }
 
 bool RichEdit::CanRedo() const
@@ -1055,11 +1133,7 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
 
 bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 {
-    //if (m_pRichHost != nullptr) {
-    //    m_pRichHost->OnTxInPlaceActivate(NULL);
-    //    m_richCtrl.TxSendMessage(WM_SETFOCUS, 0, 0);
-    //    ShowCaret(true);
-    //}
+    m_bActive = true;
     AdjustCaretPos(UiPoint(-1,-1));
     ShowCaret(true);
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
@@ -1084,11 +1158,7 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 
 bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
 {
-    //if (m_pRichHost) {
-    //    m_pRichHost->OnTxInPlaceActivate(NULL);
-    //    m_richCtrl.TxSendMessage(WM_KILLFOCUS, 0, 0);
-    //    ShowCaret(false);
-    //}
+    m_bActive = false;
     ShowCaret(false);
     m_bSelAllEver = false;
     if (m_bNoSelOnKillFocus && IsReadOnly() && IsEnabled()) {
@@ -1333,47 +1403,55 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         bNeedPaint = false;
     }
 
-    if (bNeedPaint) {
-        Control::Paint(pRender, rcPaint);
+    if (!bNeedPaint) {
+        return;
     }
 
-    if (bNeedPaint) {
-        //计算区域
-        if (m_textRects.empty()) {
-            m_spDrawRichTextCache.reset();
-            CalcTextRects();
-        }
-        //绘制
-        std::vector<RichTextData> richTextDataList;
-        GetRichTextForDraw(richTextDataList);
-        UiRect rcDrawText = GetTextDrawRect(GetRect());
-        UiSize szScrollOffset = GetScrollOffset();
+    Control::Paint(pRender, rcPaint);
 
-        if (m_spDrawRichTextCache != nullptr) {
-            //校验缓存是否失效
-            if (!pRender->IsValidDrawRichTextCache(rcDrawText, szScrollOffset, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache)) {
-                m_spDrawRichTextCache.reset();
-            }
+    //计算区域
+    if (m_textRects.empty()) {
+        m_spDrawRichTextCache.reset();
+        CalcTextRects();
+    }
+    //绘制
+    std::vector<RichTextData> richTextDataList;
+    GetRichTextForDraw(richTextDataList);
+    UiRect rcDrawText = GetTextDrawRect(GetRect());
+    UiSize szScrollOffset = GetScrollOffset();
+
+    if (m_spDrawRichTextCache != nullptr) {
+        //校验缓存是否失效
+        if (!pRender->IsValidDrawRichTextCache(rcDrawText, szScrollOffset, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache)) {
+            m_spDrawRichTextCache.reset();
         }
+    }
+
+    //绘制选择背景
+   // PaintSelectionColor(pRender, rcPaint);
+
+    //绘制文字
+    if (m_spDrawRichTextCache != nullptr) {
+        pRender->DrawRichTextCacheData(m_spDrawRichTextCache);
+    }
+    else if(!richTextDataList.empty()){
+        m_spDrawRichTextCache.reset();
+
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+        ASSERT(pRenderFactory != nullptr);
+        pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache);
+        ASSERT(m_spDrawRichTextCache != nullptr);
         if (m_spDrawRichTextCache != nullptr) {
+            ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, szScrollOffset, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache));
             pRender->DrawRichTextCacheData(m_spDrawRichTextCache);
         }
-        else if(!richTextDataList.empty()){
-            m_spDrawRichTextCache.reset();
-
-            IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-            ASSERT(pRenderFactory != nullptr);
-            pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache);
-            ASSERT(m_spDrawRichTextCache != nullptr);
-            if (m_spDrawRichTextCache != nullptr) {
-                ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, szScrollOffset, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache));
-                pRender->DrawRichTextCacheData(m_spDrawRichTextCache);
-            }
-            else {
-                pRender->DrawRichText(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha());
-            }
+        else {
+            pRender->DrawRichText(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha());
         }
     }
+
+    //绘制光标
+    PaintCaret(pRender, rcPaint);
 }
 
 void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
@@ -1382,8 +1460,6 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
     if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
         return;
     }
-
-    PaintCaret(pRender, rcPaint);
 
     ScrollBar* pVScrollBar = GetVScrollBar();
     ScrollBar* pHScrollBar = GetHScrollBar();
@@ -1592,6 +1668,95 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
                 dwClrColor = this->GetUiColor(m_sCaretColor.c_str());
             }
             pRender->DrawLine(UiPoint(xPos, yPos), UiPoint(xPos, yPos + yHeight), dwClrColor, xWidth);
+        }
+    }
+}
+
+void RichEdit::PaintSelectionColor(IRender* pRender, const UiRect& /*rcPaint*/)
+{
+    if (pRender == nullptr) {
+        //无需绘制选择背景
+        return;
+    }
+    if (IsReadOnly() || !IsEnabled()) {
+        //无需绘制选择背景
+        return;
+    }
+    if (IsHideSelection() && !m_bActive) {
+        //当控件处于非激活状态时，隐藏选择内容
+        return;
+    }
+
+    //获取选择的矩形范围
+    const int32_t nTextLen = GetTextLength();
+    ASSERT(m_text.size() == nTextLen);
+    ASSERT(m_textRects.size() == nTextLen);
+    if ((m_textRects.size() != nTextLen) || (m_text.size() != nTextLen)) {
+        return;
+    }
+
+    //每行中选择的矩形范围
+    std::map<int32_t, UiRectF> rowTextRectFs;
+
+    int32_t nSelStartChar = -1;
+    int32_t nSelEndChar = -1;
+    GetSel(nSelStartChar, nSelEndChar);
+    if ((nSelStartChar >= 0) && (nSelStartChar < nTextLen) && (nSelEndChar > nSelStartChar) && (nSelEndChar <= nTextLen)) {
+        for (size_t nIndex = nSelStartChar; nIndex < nSelEndChar; ++nIndex) {
+            const MeasureCharRects& charRect = m_textRects[nIndex];
+            if (charRect.m_bIgnoredChar) {
+                continue;
+            }
+            UiRectF& rowRect = rowTextRectFs[charRect.m_nRowIndex];
+            if (charRect.m_bNewLine) {                
+                if (rowRect.IsZero()) {
+                    rowRect = charRect.m_charRect;
+                }                
+            }
+            else {
+                rowRect.Union(charRect.m_charRect);
+            }
+        }
+    }
+    if(rowTextRectFs.empty()) {
+        //无需绘制（无选择文本）
+        return;
+    }
+
+    UiColor selectionColor;
+    DString selectionBkColor = GetSelectionBkColor();
+    if (!selectionBkColor.empty()) {
+        selectionColor = GetUiColor(selectionBkColor);
+    }
+    if (selectionColor.IsEmpty()) {
+        selectionColor = UiColor(UiColors::SkyBlue);
+    }
+
+    UiRect rcTemp;
+    const UiRect rcDrawText = GetTextDrawRect(GetRect());
+
+    //按行绘制每行的背景
+    UiRect rowRect;
+    for (auto iter = rowTextRectFs.begin(); iter != rowTextRectFs.end(); ++iter) {
+        const UiRectF& rectF = iter->second;
+        if (rectF.IsEmpty()) {
+            //空行，画一条线
+            rowRect.left = (int32_t)rectF.left;
+            rowRect.right = (int32_t)std::ceilf(rectF.right);
+            rowRect.top = (int32_t)rectF.top;
+            rowRect.bottom = (int32_t)std::ceilf(rectF.bottom);
+            if (rowRect.left == rowRect.right) {
+                rowRect.right = rowRect.left + Dpi().GetScaleInt(2);
+            }
+        }
+        else {
+            rowRect.left = (int32_t)rectF.left;
+            rowRect.right = (int32_t)std::ceilf(rectF.right);
+            rowRect.top = (int32_t)rectF.top;
+            rowRect.bottom = (int32_t)std::ceilf(rectF.bottom);
+        }
+        if (UiRect::Intersect(rcTemp, rcDrawText, rowRect)) {
+            pRender->FillRect(rowRect, selectionColor);
         }
     }
 }

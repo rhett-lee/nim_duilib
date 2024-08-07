@@ -1845,6 +1845,10 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                         if (bSingleLineMode) {
                             charRect.m_bIgnoredChar = true;
                         }
+                        charRect.m_charRect.left = xPos;
+                        charRect.m_charRect.right = xPos;
+                        charRect.m_charRect.top = (SkScalar)yPos;
+                        charRect.m_charRect.bottom = charRect.m_charRect.top + nRowHeight;
                         pMeasureCharRects->emplace_back(std::move(charRect));
                     }
 
