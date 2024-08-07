@@ -874,23 +874,27 @@ public:
                             uint8_t uFade = 255) = 0;
 
     /** 计算格式文本的宽度和高度
-    * @param [in] textRect 矩形区域
+    * @param [in] textRect 绘制文本的矩形区域
+    * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
     * @param [out] pMeasureCharRects 如果不为nullptr，则计算每个字符的区域
     */
     virtual void MeasureRichText(const UiRect& textRect,
+                                 const UiSize& szScrollOffset,
                                  IRenderFactory* pRenderFactory, 
                                  std::vector<RichTextData>& richTextData,
                                  std::vector<MeasureCharRects>* pMeasureCharRects = nullptr) = 0;
 
     /** 绘制格式文本
-    * @param [in] textRect 矩形区域
+    * @param [in] textRect 绘制文本的矩形区域
+    * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
     * @param [in] uFade 透明度（0 - 255）
     */
     virtual void DrawRichText(const UiRect& textRect,
+                              const UiSize& szScrollOffset,
                               IRenderFactory* pRenderFactory, 
                               std::vector<RichTextData>& richTextData,
                               uint8_t uFade = 255) = 0;

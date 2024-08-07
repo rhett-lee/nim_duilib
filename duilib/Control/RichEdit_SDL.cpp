@@ -89,25 +89,7 @@ DString RichEdit::GetType() const { return DUI_CTR_RICHEDIT; }
 
 void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
 {
-    if (strName == _T("vscrollbar")) {
-        //纵向滚动条
-        if (strValue == _T("true")) {
-            EnableScrollBar(true, GetHScrollBar() != NULL);
-        }
-        else {
-            EnableScrollBar(false, GetHScrollBar() != NULL);
-        }
-    }
-    else if (strName == _T("hscrollbar")) {
-        //横向滚动条
-        if (strValue == _T("true")) {
-            EnableScrollBar(GetVScrollBar() != NULL, true);
-        }
-        else {
-            EnableScrollBar(GetVScrollBar() != NULL, false);
-        }
-    }
-    else if ((strName == _T("single_line")) || (strName == _T("singleline"))) {
+    if ((strName == _T("single_line")) || (strName == _T("singleline"))) {
         SetMultiLine(strValue != _T("true"));
     }
     else if ((strName == _T("multi_line")) || (strName == _T("multiline"))) {
@@ -302,7 +284,7 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
 
 
     else {
-        Box::SetAttribute(strName, strValue);
+        ScrollBox::SetAttribute(strName, strValue);
     }
 }
 
@@ -1378,16 +1360,10 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         //绘制
         std::vector<RichTextData> richTextDataList;
         if (GetRichTextForDraw(richTextDataList)) {
-            UiRect rc = GetRect();
-            rc.Deflate(GetControlPadding());
-            rc.Deflate(GetTextPadding());
-
-            UiSize scrollPos = GetScrollOffset();
-            rc.Offset(-scrollPos.cx, -scrollPos.cy);
-
+            UiRect rcDrawText = GetTextDrawRect(GetRect());
             IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
             ASSERT(pRenderFactory != nullptr);
-            pRender->DrawRichText(rc, pRenderFactory, richTextDataList, (uint8_t)GetAlpha());
+            pRender->DrawRichText(rcDrawText, GetScrollOffset(), pRenderFactory, richTextDataList, (uint8_t)GetAlpha());
         }
     }
 }
@@ -2465,7 +2441,7 @@ void RichEdit::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect) co
 
     std::vector<RichTextData> richTextDataList;
     if (GetRichTextForDraw(richTextDataList)) {
-        pRender->MeasureRichText(rc, pRenderFactory, richTextDataList);
+        pRender->MeasureRichText(rc, GetScrollOffset(), pRenderFactory, richTextDataList);
         for (const RichTextData& data : richTextDataList) {
             for (const UiRect& textRect : data.m_textRects) {
                 rect.Union(textRect);
@@ -2500,11 +2476,8 @@ void RichEdit::CalcTextRects()
         return;
     }
 
-    UiRect rc = GetRect();
-    rc.Deflate(GetControlPadding());
-    rc.Deflate(GetTextPadding());
-
-    pRender->MeasureRichText(rc, pRenderFactory, richTextDataList, &m_textRects);
+    UiRect rcDrawText = GetTextDrawRect(GetRect());
+    pRender->MeasureRichText(rcDrawText, GetScrollOffset(), pRenderFactory, richTextDataList, &m_textRects);
     ASSERT(m_textRects.size() == m_text.size());
     if (!m_textRects.empty()) {
         //计算每行的矩形区域
@@ -2521,8 +2494,8 @@ void RichEdit::CalcTextRects()
                 if (m_lineTextRects.find(charInfo.m_nRowIndex) == m_lineTextRects.end()) {
                     //本行只有一个回车
                     UiRectF& rect = m_lineTextRects[charInfo.m_nRowIndex];
-                    rect.left = rc.left;
-                    rect.right = rc.left;
+                    rect.left = rcDrawText.left;
+                    rect.right = rcDrawText.left;
 
                     auto iterPrev = m_lineTextRects.find(charInfo.m_nRowIndex - 1);
                     if (iterPrev != m_lineTextRects.end()) {
@@ -2531,7 +2504,7 @@ void RichEdit::CalcTextRects()
                     }
                     else {
                         //首行 
-                        rect.top = rc.top;
+                        rect.top = rcDrawText.top;
                     }
                     auto iterNext = m_lineTextRects.find(charInfo.m_nRowIndex + 1);
                     if (iterNext != m_lineTextRects.end()) {
@@ -2627,6 +2600,26 @@ UiSize RichEdit::EstimateText(UiSize szAvailable)
     return fixedSize;
 }
 
+UiRect RichEdit::GetTextDrawRect(const UiRect& rc) const
+{
+    UiRect rcAvailable = rc;
+    rcAvailable.Deflate(GetTextPadding());
+    rcAvailable.Deflate(GetControlPadding());
+    if (!GetScrollBarFloat() && (GetVScrollBar() != nullptr) && GetVScrollBar()->IsValid()) {
+        if (IsVScrollBarAtLeft()) {
+            rcAvailable.left += GetVScrollBar()->GetFixedWidth().GetInt32();
+        }
+        else {
+            rcAvailable.right -= GetVScrollBar()->GetFixedWidth().GetInt32();
+        }
+    }
+    if (!GetScrollBarFloat() && (GetHScrollBar() != nullptr) && GetHScrollBar()->IsValid()) {
+        rcAvailable.bottom -= GetHScrollBar()->GetFixedHeight().GetInt32();
+    }
+    rcAvailable.Validate();
+    return rcAvailable;
+}
+
 UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
 {
     //计算子控件的大小
@@ -2638,9 +2631,8 @@ UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
         requiredSize.cy = 0;
     }
 
-    UiRect rcAvailable = rc;
-    rcAvailable.Deflate(GetTextPadding());
-    rcAvailable.Deflate(GetControlPadding());
+    //评估文本区域：当前控件区域减去内边距，减去滚动条所占的宽度或者高度
+    UiRect rcAvailable = GetTextDrawRect(rc);
     UiSize szAvailable(rcAvailable.Width(), rcAvailable.Height());
 
     //估算图片区域大小
@@ -2654,6 +2646,18 @@ UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
 
     //估算文本区域大小, 函数计算时，已经包含了内边距
     UiSize textSize = EstimateText(szAvailable);
+    //文本区域，需要包含滚动条的宽度和高度(仅当滚动条设置为非浮动时)
+    if (!GetScrollBarFloat() && (GetVScrollBar() != nullptr) && GetVScrollBar()->IsValid()) {
+        if (IsVScrollBarAtLeft()) {
+            textSize.cx += GetVScrollBar()->GetFixedWidth().GetInt32();
+        }
+        else {
+            textSize.cx += GetVScrollBar()->GetFixedWidth().GetInt32();
+        }
+    }
+    if (!GetScrollBarFloat() && (GetHScrollBar() != nullptr) && GetHScrollBar()->IsValid()) {
+        textSize.cy += GetHScrollBar()->GetFixedHeight().GetInt32();
+    }
 
     UiSize szControlSize;
     szControlSize.cx = std::max(imageSize.cx, textSize.cx);

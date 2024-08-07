@@ -1537,19 +1537,21 @@ UiRect Render_Skia::MeasureString(const DString& strText,
 }
 
 void Render_Skia::MeasureRichText(const UiRect& textRect,
+                                  const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory,
                                   std::vector<RichTextData>& richTextData,
                                   std::vector<MeasureCharRects>* pMeasureCharRects)
 {
-    InternalDrawRichText(textRect, pRenderFactory, richTextData, 255, true, pMeasureCharRects);
+    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pMeasureCharRects);
 }
 
 void Render_Skia::DrawRichText(const UiRect& textRect,
+                               const UiSize& szScrollOffset,
                                IRenderFactory* pRenderFactory,
                                std::vector<RichTextData>& richTextData,
                                uint8_t uFade)
 {
-    InternalDrawRichText(textRect, pRenderFactory, richTextData, uFade, false, nullptr);
+    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, uFade, false, nullptr);
 }
 
 //待绘制的文本
@@ -1578,6 +1580,7 @@ struct TPendingDrawRichText
 };
 
 void Render_Skia::InternalDrawRichText(const UiRect& textRect,
+                                       const UiSize& szScrollOffset,
                                        IRenderFactory* pRenderFactory, 
                                        std::vector<RichTextData>& richTextData,                            
                                        uint8_t uFade,
@@ -1593,6 +1596,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
     if (pRenderFactory == nullptr) {
         return;
     }
+
     bool bMeasureCharRects = (pMeasureCharRects != nullptr) ? true : false;
     if (!bMeasureOnly) {
         bMeasureCharRects = false;
@@ -1617,6 +1621,9 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
     const bool bBreakWhenOutOfRect = !bMeasureOnly;
 
     std::vector<std::shared_ptr<TPendingDrawRichText>> pendingTextData;
+
+    const int64_t nTextRectBottomMax = (int64_t)textRect.bottom + (int64_t)szScrollOffset.cy;
+    const int64_t nTextRectRightMax = (int64_t)textRect.right + (int64_t)szScrollOffset.cx;
 
     SkScalar xPos = (SkScalar)textRect.left;    //水平坐标：字符绘制的时候，是按浮点型坐标，每个字符所占的宽度是浮点型的，不能对齐到像素
     int32_t yPos = textRect.top;                //垂直坐标，对齐到像素，所以用整型
@@ -1709,6 +1716,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                     //换行：执行换行操作(物理换行)
                     if (!bSingleLineMode) {
                         xPos = (SkScalar)textRect.left;
+                        ASSERT(((int64_t)yPos + (int64_t)nRowHeight) < INT32_MAX);
                         yPos += nRowHeight;
                         rowHeightMap[nRowIndex] = nRowHeight;
                         nRowHeight = nFontHeight;
@@ -1828,13 +1836,15 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                         bNextRow = true;
                     }                    
                     textStartIndex += nDrawLength / textCharSize;
+                    ASSERT(((int64_t)xPos + (int64_t)textMeasuredWidth) < INT32_MAX);
                     xPos += textMeasuredWidth;
                 }
                 else {
                     //当前行可容纳文本绘制
                     textStartIndex = textCount;//标记，结束循环
+                    ASSERT(((int64_t)xPos + (int64_t)textMeasuredWidth) < INT32_MAX);
                     xPos += textMeasuredWidth;
-                    if (xPos >= textRect.right) {
+                    if (xPos >= nTextRectRightMax) {
                         //X坐标右侧已经超出目标矩形的范围
                         if (bBreakWhenOutOfRect && bSingleLineMode) {
                             //单行模式，终止绘制
@@ -1851,12 +1861,13 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                 if (bNextRow) {
                     //换行：执行换行操作（逻辑换行，对nLineNumber不增加）
                     xPos = (SkScalar)textRect.left;
+                    ASSERT(((int64_t)yPos + (int64_t)nRowHeight) < INT32_MAX);
                     yPos += nRowHeight;
                     rowHeightMap[nRowIndex] = nRowHeight;
                     nRowHeight = nFontHeight;
                     ++nRowIndex;
 
-                    if (bBreakWhenOutOfRect && (yPos >= textRect.bottom)) {
+                    if (bBreakWhenOutOfRect && (yPos >= nTextRectBottomMax)) {
                         //Y坐标底部已经超出目标矩形的范围，终止绘制
                         bBreakAll = true;
                         break;
@@ -1895,13 +1906,16 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
         richText.m_textRects.push_back(textData.m_destRect); //保存绘制的目标区域，同一个文本，可能会有多个区域（换行时）
 
         if (!bMeasureOnly) {
+            UiRect rcDestRect = textData.m_destRect;
+            rcDestRect.Offset(-szScrollOffset.cx, -szScrollOffset.cy);
+
             //绘制文字的背景色
-            FillRect(textData.m_destRect, textData.m_bgColor, uFade);
+            FillRect(rcDestRect, textData.m_bgColor, uFade);
 
             //绘制文字
             const char* text = (const char*)textData.m_textView.data();
             size_t len = textData.m_textView.size() * textCharSize; //字节数
-            DrawTextString(textData.m_destRect, text, len, textEncoding,
+            DrawTextString(rcDestRect, text, len, textEncoding,
                            richText.m_uTextStyle | DrawStringFormat::TEXT_SINGLELINE,
                            textData.m_skPaint, textData.m_spFont.get());
         }

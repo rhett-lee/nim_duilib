@@ -750,6 +750,12 @@ private:
     */
     void CalcTextRects();
 
+    /** 获取文本绘制区域
+    * @param [in] rc 当前控件的矩形区域
+    * @return 返回文本绘制区域（减去内边距，减去滚动条所占的宽度和高度）
+    */
+    UiRect GetTextDrawRect(const UiRect& rc) const;
+
     /** 重绘
     */
     void Redraw();

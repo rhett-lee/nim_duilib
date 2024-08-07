@@ -99,11 +99,13 @@ public:
                             uint32_t uFormat, uint8_t uFade = 255) override;
 
     virtual void MeasureRichText(const UiRect& textRect,
+                                 const UiSize& szScrollOffset,
                                  IRenderFactory* pRenderFactory, 
                                  std::vector<RichTextData>& richTextData,
                                  std::vector<MeasureCharRects>* pMeasureCharRects = nullptr) override;
 
     virtual void DrawRichText(const UiRect& textRect,
+                              const UiSize& szScrollOffset,
                               IRenderFactory* pRenderFactory, 
                               std::vector<RichTextData>& richTextData,
                               uint8_t uFade = 255) override;
@@ -159,6 +161,7 @@ private:
     /** 绘制格式文本
     */
     void InternalDrawRichText(const UiRect& textRect,
+                              const UiSize& szScrollOffset,
                               IRenderFactory* pRenderFactory, 
                               std::vector<RichTextData>& richTextData,                   
                               uint8_t uFade,
