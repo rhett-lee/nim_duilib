@@ -1543,7 +1543,7 @@ void Render_Skia::MeasureRichText(const UiRect& textRect,
                                   std::vector<MeasureCharRects>* pMeasureCharRects)
 {
     PerformanceStat statPerformance(_T("Render_Skia::MeasureRichText"));
-    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pMeasureCharRects);
+    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pMeasureCharRects, nullptr);
 }
 
 void Render_Skia::DrawRichText(const UiRect& textRect,
@@ -1553,7 +1553,7 @@ void Render_Skia::DrawRichText(const UiRect& textRect,
                                uint8_t uFade)
 {
     PerformanceStat statPerformance(_T("Render_Skia::DrawRichText"));
-    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, uFade, false, nullptr);
+    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, uFade, false, nullptr, nullptr);
 }
 
 //待绘制的文本
@@ -1581,13 +1581,143 @@ struct TPendingDrawRichText
     UiColor m_bgColor;
 };
 
+/** 绘制缓存
+*/
+class DrawRichTextCache
+{
+public:
+    /** 原始参数
+    */
+    UiRect m_textRect;
+    UiSize m_szScrollOffset;
+    std::vector<RichTextData> m_richTextData;
+    uint8_t m_uFade = 255;
+
+    SkTextEncoding m_textEncoding = SkTextEncoding::kUTF16;
+    size_t m_textCharSize = sizeof(DStringW::value_type);
+
+    /** 生成好的待绘制的数据
+    */
+    std::vector<std::shared_ptr<TPendingDrawRichText>> m_pendingTextData;
+};
+
+bool Render_Skia::CreateDrawRichTextCache(const UiRect& textRect,
+                                          const UiSize& szScrollOffset,
+                                          IRenderFactory* pRenderFactory,
+                                          std::vector<RichTextData>& richTextData,
+                                          uint8_t uFade,
+                                          std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
+{
+    PerformanceStat statPerformance(_T("Render_Skia::CreateDrawRichTextCache"));
+    spDrawRichTextCache.reset();
+    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, uFade, false, nullptr, &spDrawRichTextCache);
+    return spDrawRichTextCache != nullptr;
+}
+
+bool Render_Skia::IsValidDrawRichTextCache(const UiRect& textRect,
+                                           const UiSize& szScrollOffset,
+                                           const std::vector<RichTextData>& richTextData,
+                                           uint8_t uFade,
+                                           const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
+{
+    if (spDrawRichTextCache == nullptr) {
+        return false;
+    }
+    if (spDrawRichTextCache->m_textRect != textRect) {
+        return false;
+    }
+    if (spDrawRichTextCache->m_szScrollOffset != szScrollOffset) {
+        return false;
+    }
+    if (spDrawRichTextCache->m_uFade != uFade) {
+        return false;
+    }
+    if (spDrawRichTextCache->m_richTextData.size() != richTextData.size()) {
+        return false;
+    }
+    bool bValid = true;
+    const size_t nCount = richTextData.size();
+    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        const RichTextData& textData = richTextData[nIndex];
+        const RichTextData& textDataCache = spDrawRichTextCache->m_richTextData[nIndex];
+        if (textData.m_textView.data() != textDataCache.m_textView.data()) {
+            bValid = false;
+        }
+        else if (textData.m_textView.size() != textDataCache.m_textView.size()) {
+            bValid = false;
+        }
+        else if (textData.m_textColor != textDataCache.m_textColor) {
+            bValid = false;
+        }
+        else if (textData.m_bgColor != textDataCache.m_bgColor) {
+            bValid = false;
+        }
+        else if (textData.m_fontInfo != textDataCache.m_fontInfo) {
+            bValid = false;
+        }
+        else if (textData.m_fRowSpacingMul != textDataCache.m_fRowSpacingMul) {
+            bValid = false;
+        }
+        else if (textData.m_uTextStyle != textDataCache.m_uTextStyle) {
+            bValid = false;
+        }
+
+        if (!bValid) {
+            break;
+        }
+    }
+    return bValid;
+}
+
+void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
+{
+    PerformanceStat statPerformance(_T("Render_Skia::DrawRichTextCacheData"));
+    ASSERT(spDrawRichTextCache != nullptr);
+    if (spDrawRichTextCache == nullptr) {
+        return;
+    }
+
+    const UiRect& rcTextRect = spDrawRichTextCache->m_textRect;
+    const std::vector<RichTextData>& richTextData = spDrawRichTextCache->m_richTextData;
+    uint8_t uFade = spDrawRichTextCache->m_uFade;
+
+    const SkTextEncoding textEncoding = spDrawRichTextCache->m_textEncoding;
+    const size_t textCharSize = spDrawRichTextCache->m_textCharSize;
+
+    const auto& pendingTextData = spDrawRichTextCache->m_pendingTextData;
+
+    for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
+        const TPendingDrawRichText& textData = *spTextData;
+        ASSERT(textData.m_dataIndex < richTextData.size());
+        const RichTextData& richText = richTextData[textData.m_dataIndex];
+
+        //执行绘制
+        UiRect rcTemp;
+        const UiRect& rcDestRect = textData.m_destRect;
+        if (!UiRect::Intersect(rcTemp, rcDestRect, rcTextRect)) {
+            continue;
+        }
+
+        //绘制文字的背景色
+        FillRect(rcDestRect, textData.m_bgColor, uFade);
+
+        //绘制文字
+        const char* text = (const char*)textData.m_textView.data();
+        size_t len = textData.m_textView.size() * textCharSize; //字节数
+        DrawTextString(rcDestRect, text, len, textEncoding,
+                       richText.m_uTextStyle | DrawStringFormat::TEXT_SINGLELINE,
+                       textData.m_skPaint, textData.m_spFont.get());
+    }
+}
+
 void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                                        const UiSize& szScrollOffset,
                                        IRenderFactory* pRenderFactory, 
-                                       std::vector<RichTextData>& richTextData,                            
+                                       std::vector<RichTextData>& richTextData,
                                        uint8_t uFade,
                                        bool bMeasureOnly,
-                                       std::vector<MeasureCharRects>* pMeasureCharRects)
+                                       std::vector<MeasureCharRects>* pMeasureCharRects,
+                                       std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache)
 {
     //内部使用string_view实现，避免字符串复制影响性能
     if (rcTextRect.IsEmpty()) {
@@ -1904,28 +2034,53 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         }
     }
 
-    for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
-        const TPendingDrawRichText& textData = *spTextData;
-        ASSERT(textData.m_dataIndex < richTextData.size());
-        RichTextData& richText = richTextData[textData.m_dataIndex];
-        richText.m_textRects.push_back(textData.m_destRect); //保存绘制的目标区域，同一个文本，可能会有多个区域（换行时）
+    if (pDrawRichTextCache != nullptr) {
+        for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
+            const TPendingDrawRichText& textData = *spTextData;
+            ASSERT(textData.m_dataIndex < richTextData.size());
+            RichTextData& richText = richTextData[textData.m_dataIndex];
+            richText.m_textRects.push_back(textData.m_destRect); //保存绘制的目标区域，同一个文本，可能会有多个区域（换行时）
+        }
 
-        if (!bMeasureOnly) {
-            UiRect rcTemp;
-            const UiRect& rcDestRect = textData.m_destRect;
-            if (!UiRect::Intersect(rcTemp, rcDestRect, rcTextRect)) {
-                continue;
+        //生成绘制缓存，但不执行绘制
+        std::shared_ptr<DrawRichTextCache> spDrawRichTextCache = std::make_shared<DrawRichTextCache>();
+        *pDrawRichTextCache = spDrawRichTextCache;
+        spDrawRichTextCache->m_richTextData = richTextData;
+        spDrawRichTextCache->m_textRect = rcTextRect;
+        spDrawRichTextCache->m_szScrollOffset = szScrollOffset;
+        spDrawRichTextCache->m_uFade = uFade;
+
+        spDrawRichTextCache->m_textEncoding = textEncoding;
+        spDrawRichTextCache->m_textCharSize = textCharSize;
+
+        spDrawRichTextCache->m_pendingTextData.swap(pendingTextData);
+    }
+    else {
+
+        for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
+            const TPendingDrawRichText& textData = *spTextData;
+            ASSERT(textData.m_dataIndex < richTextData.size());
+            RichTextData& richText = richTextData[textData.m_dataIndex];
+            richText.m_textRects.push_back(textData.m_destRect); //保存绘制的目标区域，同一个文本，可能会有多个区域（换行时）
+
+            if (!bMeasureOnly) {
+                //执行绘制
+                UiRect rcTemp;
+                const UiRect& rcDestRect = textData.m_destRect;
+                if (!UiRect::Intersect(rcTemp, rcDestRect, rcTextRect)) {
+                    continue;
+                }
+
+                //绘制文字的背景色
+                FillRect(rcDestRect, textData.m_bgColor, uFade);
+
+                //绘制文字
+                const char* text = (const char*)textData.m_textView.data();
+                size_t len = textData.m_textView.size() * textCharSize; //字节数
+                DrawTextString(rcDestRect, text, len, textEncoding,
+                               richText.m_uTextStyle | DrawStringFormat::TEXT_SINGLELINE,
+                               textData.m_skPaint, textData.m_spFont.get());
             }
-            
-            //绘制文字的背景色
-            FillRect(rcDestRect, textData.m_bgColor, uFade);
-
-            //绘制文字
-            const char* text = (const char*)textData.m_textView.data();
-            size_t len = textData.m_textView.size() * textCharSize; //字节数
-            DrawTextString(rcDestRect, text, len, textEncoding,
-                           richText.m_uTextStyle | DrawStringFormat::TEXT_SINGLELINE,
-                           textData.m_skPaint, textData.m_spFont.get());
         }
     }
 }

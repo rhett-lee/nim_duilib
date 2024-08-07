@@ -46,6 +46,22 @@ public:
     bool m_bStrikeOut;
 };
 
+/** 比较操作符
+*/
+static inline bool operator == (const UiFont& a, const UiFont& b)
+{
+    return (a.m_fontName == b.m_fontName) && (a.m_fontSize == b.m_fontSize)      &&
+           (a.m_bBold == b.m_bBold)       && (a.m_bUnderline == b.m_bUnderline)  &&
+           (a.m_bItalic == b.m_bItalic)   && (a.m_bStrikeOut == b.m_bStrikeOut);
+}
+
+static inline bool operator != (const UiFont& a, const UiFont& b)
+{
+    return (a.m_fontName != b.m_fontName) || (a.m_fontSize != b.m_fontSize)       ||
+           (a.m_bBold != b.m_bBold)       || (a.m_bUnderline != b.m_bUnderline)   ||
+           (a.m_bItalic != b.m_bItalic)   || (a.m_bStrikeOut != b.m_bStrikeOut);
+}
+
 } // namespace ui
 
 #endif // UI_CORE_UIFONT_H_

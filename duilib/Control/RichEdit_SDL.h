@@ -10,6 +10,8 @@ namespace ui
 {
 
 class VBox;
+class DrawRichTextCache;
+
 class UILIB_API RichEdit : public ScrollBox
 {
 public:
@@ -723,20 +725,16 @@ private:
     static void GetClipboardText(DStringW& out);
 
 private:
-    //一组供RichEditHost使用的函数
-    friend class RichEditHost;
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /** 获取关联的窗口局部
     */
     HWND GetWindowHWND() const;
 
-    /** 获取绘制的设备上下文
-    */
-    HDC GetDrawDC() const;
-
     /** 设置输入法状态
     */
     void SetImmStatus(BOOL bOpen);
+#endif
 
 private:
     /** 调整光标的位置
@@ -780,7 +778,9 @@ private:
     bool m_bNoSelOnKillFocus;   //失去焦点的时候，取消文本选择（针对 m_bEnabled && IsReadOnly()）
     bool m_bSelAllOnFocus;      //获取焦点的时候，全选文本（针对 m_bEnabled && !IsReadOnly()）
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     bool m_bIsComposition;      //输入法合成窗口是否可见
+#endif
 
     bool m_bReadOnly;           //是否为只读模式
     bool m_bPasswordMode;       //是否为密码模式
@@ -900,6 +900,11 @@ private:
     */
     UiRect m_textRect;
 
+    /** 文本绘制缓存
+    */
+    std::shared_ptr<DrawRichTextCache> m_spDrawRichTextCache;
+
+private:
     /** 选择的起始字符
     */
     int32_t m_nSelStartIndex;

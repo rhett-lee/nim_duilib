@@ -14,8 +14,6 @@ enum class SkTextEncoding;
 namespace ui 
 {
 
-class Bitmap_Skia;
-
 class UILIB_API Render_Skia : public IRender
 {
 public:
@@ -110,6 +108,21 @@ public:
                               std::vector<RichTextData>& richTextData,
                               uint8_t uFade = 255) override;
 
+    virtual bool CreateDrawRichTextCache(const UiRect& textRect,
+                                         const UiSize& szScrollOffset,
+                                         IRenderFactory* pRenderFactory,
+                                         std::vector<RichTextData>& richTextData,
+                                         uint8_t uFade,
+                                         std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
+
+    virtual bool IsValidDrawRichTextCache(const UiRect& textRect,
+                                          const UiSize& szScrollOffset,
+                                          const std::vector<RichTextData>& richTextData,
+                                          uint8_t uFade,
+                                          const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
+
+    virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
+
     void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor) override;
 
     virtual bool ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen) override;
@@ -166,7 +179,8 @@ private:
                               std::vector<RichTextData>& richTextData,                   
                               uint8_t uFade,
                               bool bMeasureOnly,
-                              std::vector<MeasureCharRects>* pMeasureCharRects);
+                              std::vector<MeasureCharRects>* pMeasureCharRects,
+                              std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache);
 
     /** 将文本按照换行符（'\r'或者'\n'）切分为多行
     */

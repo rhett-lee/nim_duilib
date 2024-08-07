@@ -36,7 +36,9 @@ RichEdit::RichEdit(Window* pWindow) :
     m_bSelAllOnFocus(false),    
     m_bNoCaretReadonly(false),
     m_bIsCaretVisiable(false),
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     m_bIsComposition(false),
+#endif
     m_iCaretPosX(0),
     m_iCaretPosY(0),
     m_iCaretWidth(0),
@@ -544,6 +546,8 @@ void RichEdit::SetLimitText(int32_t iChars)
         iChars = 0;
     }
     m_nLimitText = iChars;
+    //TODO: 限制总字符数的功能实现
+
 }
 
 DString RichEdit::GetLimitChars() const
@@ -575,6 +579,7 @@ int32_t RichEdit::GetTextLength() const
 
 DString RichEdit::GetText() const
 {
+    //TODO：功能实现
     return m_text + L"\n行1\r\n行2\r\n行3\n\n行4\nUTF16: TAB键:|\t|sdfkljAKLDFJKEWkldfjlk#$%&sdfs.dsj 中文字符串|\xD852\xDF62|\xD83D\xDC69|字符|\xD842\xDF20|\xD83D\xDE02|中文";
 }
 
@@ -692,6 +697,7 @@ DString RichEdit::GetSelText() const
 
 bool RichEdit::HasSelText() const
 {
+    //TODO: 实现功能
     return false;
 }
 
@@ -836,16 +842,11 @@ uint32_t RichEdit::SetUndoLimit(uint32_t nLimit)
     return 0;
 }
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 HWND RichEdit::GetWindowHWND() const
 {
     auto window = GetWindow();
     return window ? window->NativeWnd()->GetHWND() : nullptr;
-}
-
-HDC RichEdit::GetDrawDC() const
-{
-    auto window = GetWindow();
-    return window ? window->NativeWnd()->GetPaintDC() : nullptr;
 }
 
 void RichEdit::SetImmStatus(BOOL bOpen)
@@ -872,43 +873,14 @@ void RichEdit::SetImmStatus(BOOL bOpen)
         ::ImmReleaseContext(hwnd, hImc);
     }
 }
+#endif
 
-// 多行非rich格式的richedit有一个滚动条bug，在最后一行是空行时，LineDown和SetScrollPos无法滚动到最后
-// 引入iPos就是为了修正这个bug
 void RichEdit::SetScrollPos(UiSize64 szPos)
 {
-    bool bRichText = false;
-    int64_t cx = 0;
-    int64_t cy = 0;
-    ScrollBar* pVScrollBar = GetVScrollBar();
-    ScrollBar* pHScrollBar = GetHScrollBar();
-    if ((pVScrollBar != nullptr) && pVScrollBar->IsValid() ) {
-        int64_t iLastScrollPos = pVScrollBar->GetScrollPos();
-        pVScrollBar->SetScrollPos(szPos.cy);
-        cy = pVScrollBar->GetScrollPos() - iLastScrollPos;
-    }
-    if ((pHScrollBar != nullptr) && pHScrollBar->IsValid() ) {
-        int64_t iLastScrollPos = pHScrollBar->GetScrollPos();
-        pHScrollBar->SetScrollPos(szPos.cx);
-        cx = pHScrollBar->GetScrollPos() - iLastScrollPos;
-    }
-    if( cy != 0 ) {
-        int64_t iPos = 0;
-        if (!bRichText && (pVScrollBar != nullptr) && pVScrollBar->IsValid()) {
-            iPos = pVScrollBar->GetScrollPos();
-        }
-        WPARAM wParam = MAKEWPARAM(SB_THUMBPOSITION, (pVScrollBar != nullptr) ? pVScrollBar->GetScrollPos() : 0);
-       // m_richCtrl.TxSendMessage(WM_VSCROLL, wParam, 0L);
-        if(!bRichText && (pVScrollBar != nullptr) && pVScrollBar->IsValid() ) {
-            if (cy > 0 && pVScrollBar->GetScrollPos() <= iPos) {
-                pVScrollBar->SetScrollPos(iPos);
-            }
-        }
-    }
-    if( cx != 0 ) {
-        WPARAM wParam = MAKEWPARAM(SB_THUMBPOSITION, (pHScrollBar != nullptr) ? pHScrollBar->GetScrollPos() : 0);
-       // m_richCtrl.TxSendMessage(WM_HSCROLL, wParam, 0L);
-    }
+    //滚动条位置变化后，需要重新计算文本显示区域信息
+    Redraw();
+
+    __super::SetScrollPos(szPos);
 }
 
 void RichEdit::LineUp()
@@ -1077,14 +1049,8 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
         //使用Control设置的光标
         return __super::OnSetCursor(msg);
     }
-
-    /*if (m_pRichHost && m_pRichHost->SetCursor(nullptr, &msg.ptMouse)) {
-        return true;
-    }
-    else*/ {
-        SetCursor(IsReadOnly() ? CursorType::kCursorArrow : CursorType::kCursorIBeam);
-        return true;
-    }
+    SetCursor(IsReadOnly() ? CursorType::kCursorArrow : CursorType::kCursorIBeam);
+    return true;
 }
 
 bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
@@ -1096,7 +1062,9 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
     //}
     AdjustCaretPos(UiPoint(-1,-1));
     ShowCaret(true);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     SetImmStatus(TRUE);
+#endif
 
 #ifdef DUILIB_BUILD_FOR_SDL
     if (IsVisible() && !IsReadOnly() && IsEnabled()) {
@@ -1130,7 +1098,9 @@ bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
         SetSelNone();
     }
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     SetImmStatus(FALSE);
+#endif
 
 #ifdef DUILIB_BUILD_FOR_SDL
     if (IsVisible() && !IsReadOnly() && IsEnabled()) {
@@ -1283,6 +1253,7 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
 
 bool RichEdit::OnImeStartComposition(const EventArgs& /*msg*/)
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     HWND hWnd = GetWindowHWND();
     if (hWnd == nullptr) {
         return true;
@@ -1316,12 +1287,15 @@ bool RichEdit::OnImeStartComposition(const EventArgs& /*msg*/)
     ::ImmSetCompositionWindow(hImc, &cfs);
     ::ImmReleaseContext(hWnd, hImc);
     m_bIsComposition = true;
+#endif
     return true;
 }
 
 bool RichEdit::OnImeEndComposition(const EventArgs& /*msg*/)
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     m_bIsComposition = false;
+#endif
     return true;
 }
 
@@ -1365,15 +1339,39 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 
     if (bNeedPaint) {
         //计算区域
-        CalcTextRects();
-
+        if (m_textRects.empty()) {
+            m_spDrawRichTextCache.reset();
+            CalcTextRects();
+        }
         //绘制
         std::vector<RichTextData> richTextDataList;
-        if (GetRichTextForDraw(richTextDataList)) {
-            UiRect rcDrawText = GetTextDrawRect(GetRect());
+        GetRichTextForDraw(richTextDataList);
+        UiRect rcDrawText = GetTextDrawRect(GetRect());
+        UiSize szScrollOffset = GetScrollOffset();
+
+        if (m_spDrawRichTextCache != nullptr) {
+            //校验缓存是否失效
+            if (!pRender->IsValidDrawRichTextCache(rcDrawText, szScrollOffset, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache)) {
+                m_spDrawRichTextCache.reset();
+            }
+        }
+        if (m_spDrawRichTextCache != nullptr) {
+            pRender->DrawRichTextCacheData(m_spDrawRichTextCache);
+        }
+        else if(!richTextDataList.empty()){
+            m_spDrawRichTextCache.reset();
+
             IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
             ASSERT(pRenderFactory != nullptr);
-            pRender->DrawRichText(rcDrawText, GetScrollOffset(), pRenderFactory, richTextDataList, (uint8_t)GetAlpha());
+            pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache);
+            ASSERT(m_spDrawRichTextCache != nullptr);
+            if (m_spDrawRichTextCache != nullptr) {
+                ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, szScrollOffset, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache));
+                pRender->DrawRichTextCacheData(m_spDrawRichTextCache);
+            }
+            else {
+                pRender->DrawRichText(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha());
+            }
         }
     }
 }
@@ -1572,8 +1570,11 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
     if (IsReadOnly() && m_bNoCaretReadonly) {
         return;
     }
-
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (m_bIsCaretVisiable && !m_bIsComposition) {
+#else
+    if (m_bIsCaretVisiable) {
+#endif
         int32_t xPos = 0;
         int32_t yPos = 0;
         GetCaretPos(xPos, yPos);
@@ -1582,12 +1583,16 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
         int32_t yHeight = 0;
         GetCaretSize(xWidth, yHeight);
 
-        UiRect rect(xPos, yPos, xPos, yPos + yHeight);
-        UiColor dwClrColor(0xff000000);
-        if (!m_sCaretColor.empty()) {
-            dwClrColor = this->GetUiColor(m_sCaretColor.c_str());
+        UiRect rcDrawText = GetTextDrawRect(GetRect());
+        UiRect rcCaret(xPos, yPos, xPos + xWidth, yPos + yHeight);
+        if(rcCaret.Intersect(rcDrawText)) {
+            //光标在文字显示区域范围内时，绘制光标
+            UiColor dwClrColor(0xFFFF0000);
+            if (!m_sCaretColor.empty()) {
+                dwClrColor = this->GetUiColor(m_sCaretColor.c_str());
+            }
+            pRender->DrawLine(UiPoint(xPos, yPos), UiPoint(xPos, yPos + yHeight), dwClrColor, xWidth);
         }
-        pRender->DrawLine(UiPoint(rect.left, rect.top), UiPoint(rect.right, rect.bottom), dwClrColor, xWidth);
     }
 }
 
@@ -2734,7 +2739,10 @@ UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
 
 void RichEdit::Redraw()
 {
-
+    m_textRects.clear();
+    m_lineTextRects.clear();
+    m_textRect.Clear();
+    m_spDrawRichTextCache.reset();
     Invalidate();
 }
 
