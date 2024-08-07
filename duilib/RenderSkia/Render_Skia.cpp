@@ -1542,6 +1542,7 @@ void Render_Skia::MeasureRichText(const UiRect& textRect,
                                   std::vector<RichTextData>& richTextData,
                                   std::vector<MeasureCharRects>* pMeasureCharRects)
 {
+    PerformanceStat statPerformance(_T("Render_Skia::MeasureRichText"));
     InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pMeasureCharRects);
 }
 
@@ -1551,6 +1552,7 @@ void Render_Skia::DrawRichText(const UiRect& textRect,
                                std::vector<RichTextData>& richTextData,
                                uint8_t uFade)
 {
+    PerformanceStat statPerformance(_T("Render_Skia::DrawRichText"));
     InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, uFade, false, nullptr);
 }
 
@@ -1579,7 +1581,7 @@ struct TPendingDrawRichText
     UiColor m_bgColor;
 };
 
-void Render_Skia::InternalDrawRichText(const UiRect& textRect,
+void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                                        const UiSize& szScrollOffset,
                                        IRenderFactory* pRenderFactory, 
                                        std::vector<RichTextData>& richTextData,                            
@@ -1588,8 +1590,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                                        std::vector<MeasureCharRects>* pMeasureCharRects)
 {
     //内部使用string_view实现，避免字符串复制影响性能
-    PerformanceStat statPerformance(_T("Render_Skia::DrawRichText"));
-    if (textRect.IsEmpty()) {
+    if (rcTextRect.IsEmpty()) {
         return;
     }
     ASSERT(pRenderFactory != nullptr);
@@ -1613,6 +1614,10 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
         }
     }
 
+    //绘制区域：绘制区域的坐标以 (rcTextRect.left,rcTextRect.top)作为(0,0)点
+    UiRect rcDrawRect = rcTextRect;
+    rcDrawRect.Offset(-szScrollOffset.cx, -szScrollOffset.cy);
+
     //文本编码：固定为UTF16
     constexpr const SkTextEncoding textEncoding = SkTextEncoding::kUTF16;
     constexpr const size_t textCharSize = sizeof(DStringW::value_type);
@@ -1622,11 +1627,11 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
 
     std::vector<std::shared_ptr<TPendingDrawRichText>> pendingTextData;
 
-    const int64_t nTextRectBottomMax = (int64_t)textRect.bottom + (int64_t)szScrollOffset.cy;
-    const int64_t nTextRectRightMax = (int64_t)textRect.right + (int64_t)szScrollOffset.cx;
+    const int32_t nTextRectRightMax = (int32_t)rcTextRect.right;   //绘制区域的最右侧
+    const int32_t nTextRectBottomMax = (int32_t)rcTextRect.bottom; //绘制区域的最底端
 
-    SkScalar xPos = (SkScalar)textRect.left;    //水平坐标：字符绘制的时候，是按浮点型坐标，每个字符所占的宽度是浮点型的，不能对齐到像素
-    int32_t yPos = textRect.top;                //垂直坐标，对齐到像素，所以用整型
+    SkScalar xPos = (SkScalar)rcDrawRect.left;  //水平坐标：字符绘制的时候，是按浮点型坐标，每个字符所占的宽度是浮点型的，不能对齐到像素
+    int32_t yPos = rcDrawRect.top;              //垂直坐标，对齐到像素，所以用整型
     int32_t nRowHeight = 0;   //行高（本行中，所有字符绘制高度的最大值，对齐到像素）
     uint32_t nLineNumber = 0; //物理行号
     uint32_t nRowIndex = 0;   //逻辑行号
@@ -1715,7 +1720,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
 
                     //换行：执行换行操作(物理换行)
                     if (!bSingleLineMode) {
-                        xPos = (SkScalar)textRect.left;
+                        xPos = (SkScalar)rcDrawRect.left;
                         ASSERT(((int64_t)yPos + (int64_t)nRowHeight) < INT32_MAX);
                         yPos += nRowHeight;
                         rowHeightMap[nRowIndex] = nRowHeight;
@@ -1733,7 +1738,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
             while (textStartIndex < textCount) {
                 //估算文本绘制区域                
                 size_t byteLength = (textCount - textStartIndex) * textCharSize;                
-                SkScalar maxWidth = SkIntToScalar(textRect.right) - xPos;//可用宽度
+                SkScalar maxWidth = SkIntToScalar(rcDrawRect.right) - xPos;//可用宽度
                 if (!bWordWrap || bSingleLineMode) {
                     //不自动换行 或者 单行模式
                     maxWidth = SK_FloatInfinity;
@@ -1757,7 +1762,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
                                                           maxWidth, &textMeasuredWidth, &textMeasuredHeight,
                                                           pGlyphCharList, pGlyphWidthList);                
                 if (nDrawLength == 0) {
-                    if (!bWordWrap || bSingleLineMode || (SkScalarTruncToInt(maxWidth) == textRect.Width())) {
+                    if (!bWordWrap || bSingleLineMode || (SkScalarTruncToInt(maxWidth) == rcDrawRect.Width())) {
                         //出错了(不能换行，或者换行后依然不够)
                         bBreakAll = true;
                         break;
@@ -1860,7 +1865,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
 
                 if (bNextRow) {
                     //换行：执行换行操作（逻辑换行，对nLineNumber不增加）
-                    xPos = (SkScalar)textRect.left;
+                    xPos = (SkScalar)rcDrawRect.left;
                     ASSERT(((int64_t)yPos + (int64_t)nRowHeight) < INT32_MAX);
                     yPos += nRowHeight;
                     rowHeightMap[nRowIndex] = nRowHeight;
@@ -1906,9 +1911,12 @@ void Render_Skia::InternalDrawRichText(const UiRect& textRect,
         richText.m_textRects.push_back(textData.m_destRect); //保存绘制的目标区域，同一个文本，可能会有多个区域（换行时）
 
         if (!bMeasureOnly) {
-            UiRect rcDestRect = textData.m_destRect;
-            rcDestRect.Offset(-szScrollOffset.cx, -szScrollOffset.cy);
-
+            UiRect rcTemp;
+            const UiRect& rcDestRect = textData.m_destRect;
+            if (!UiRect::Intersect(rcTemp, rcDestRect, rcTextRect)) {
+                continue;
+            }
+            
             //绘制文字的背景色
             FillRect(rcDestRect, textData.m_bgColor, uFade);
 

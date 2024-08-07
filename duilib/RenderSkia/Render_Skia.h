@@ -160,7 +160,7 @@ private:
 
     /** 绘制格式文本
     */
-    void InternalDrawRichText(const UiRect& textRect,
+    void InternalDrawRichText(const UiRect& rcTextRect,
                               const UiSize& szScrollOffset,
                               IRenderFactory* pRenderFactory, 
                               std::vector<RichTextData>& richTextData,                   
