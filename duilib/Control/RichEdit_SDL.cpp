@@ -2614,31 +2614,60 @@ UiSize RichEdit::EstimateText(UiSize szAvailable)
     CalcDestRect(pRender, rc, rect);
 
     fixedSize.cx = rect.Width();
-    fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
-    fixedSize.cx += (rcPadding.left + rcPadding.right);
+    if (fixedSize.cx > 0) {
+        fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
+        fixedSize.cx += (rcPadding.left + rcPadding.right);
+    }
 
     fixedSize.cy = rect.Height();
-    fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
-    fixedSize.cy += (rcPadding.top + rcPadding.bottom);
-
+    if (fixedSize.cy > 0) {
+        fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
+        fixedSize.cy += (rcPadding.top + rcPadding.bottom);
+    }
     return fixedSize;
 }
 
 UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
 {
+    //计算子控件的大小
     UiSize64 requiredSize = __super::CalcRequiredSize(rc);
+    if (requiredSize.cx > rc.Width()) {
+        requiredSize.cx = 0;
+    }
+    else if (requiredSize.cy > rc.Height()) {
+        requiredSize.cy = 0;
+    }
+
     UiRect rcAvailable = rc;
     rcAvailable.Deflate(GetTextPadding());
     rcAvailable.Deflate(GetControlPadding());
     UiSize szAvailable(rcAvailable.Width(), rcAvailable.Height());
-    UiSize szControlSize = EstimateControlSize(szAvailable);
-    if (requiredSize.cx < szControlSize.cx) {
-        requiredSize.cx = szControlSize.cx;
+
+    //估算图片区域大小
+    UiSize imageSize = EstimateImage(szAvailable);
+    if (imageSize.cx > rc.Width()) {
+        imageSize.cx = 0;
     }
-    if (requiredSize.cy < szControlSize.cy) {
-        requiredSize.cy = szControlSize.cy;
+    else if (imageSize.cy > rc.Height()) {
+        imageSize.cy = 0;
     }
-    return requiredSize;
+
+    //估算文本区域大小, 函数计算时，已经包含了内边距
+    UiSize textSize = EstimateText(szAvailable);
+
+    UiSize szControlSize;
+    szControlSize.cx = std::max(imageSize.cx, textSize.cx);
+    szControlSize.cy = std::max(imageSize.cy, textSize.cy);
+
+    //以文本的大小为准，子控件或者背景图的大小，不影响控件是否出现滚动条
+    UiSize64 szSize = requiredSize;
+    if (szSize.cx < szControlSize.cx) {
+        szSize.cx = szControlSize.cx;
+    }
+    if (szSize.cy < szControlSize.cy) {
+        szSize.cy = szControlSize.cy;
+    }
+    return szSize;
 }
 
 void RichEdit::Redraw()

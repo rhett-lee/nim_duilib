@@ -485,12 +485,16 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
         if (pRender != nullptr) {
             UiRect rect = pRender->MeasureString(textValue, this->GetIFontById(GetFontId()), m_uTextStyle, nWidth);
             fixedSize.cx = rect.Width();
-            fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
-            fixedSize.cx += (rcPadding.left + rcPadding.right);
+            if (fixedSize.cx > 0) {
+                fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
+                fixedSize.cx += (rcPadding.left + rcPadding.right);
+            }
 
             fixedSize.cy = rect.Height();
-            fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
-            fixedSize.cy += (rcPadding.top + rcPadding.bottom);
+            if (fixedSize.cy) {
+                fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
+                fixedSize.cy += (rcPadding.top + rcPadding.bottom);
+            }
         }
     }
     return fixedSize;

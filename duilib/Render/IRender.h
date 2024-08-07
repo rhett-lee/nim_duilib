@@ -166,7 +166,7 @@ public:
     {
         kButt_Cap   = 0,    //平笔帽（默认）
         kRound_Cap  = 1,    //圆笔帽
-        kSquare_Cap = 2        //方笔帽
+        kSquare_Cap = 2     //方笔帽
     };
 
     /** 设置线段起始的笔帽样式
@@ -199,7 +199,7 @@ public:
     {
         kMiter_Join = 0,    //尖角（默认）
         kBevel_Join = 1,    //平角
-        kRound_Join = 2        //圆角        
+        kRound_Join = 2     //圆角        
     };
 
     /** 设置线段末尾使用的联接样式

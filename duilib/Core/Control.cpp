@@ -1559,13 +1559,31 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
 UiSize Control::EstimateControlSize(UiSize szAvailable)
 {
     //估算图片区域大小
+    UiSize imageSize = EstimateImage(szAvailable);
+
+    //估算文本区域大小, 函数计算时，已经包含了内边距
+    UiSize textSize = EstimateText(szAvailable);
+
+    UiSize szControlSize;
+    szControlSize.cx = std::max(imageSize.cx, textSize.cx);
+    szControlSize.cy = std::max(imageSize.cy, textSize.cy);
+    return szControlSize;
+}
+
+UiSize Control::EstimateText(UiSize /*szAvailable*/)
+{
+    return UiSize(0, 0);
+}
+
+UiSize Control::EstimateImage(UiSize /*szAvailable*/)
+{
     UiSize imageSize;
     std::shared_ptr<ImageInfo> imageCache;
     Image* image = GetEstimateImage();
     if (image != nullptr) {
         //加载图片：需要获取图片的宽和高
         LoadImageData(*image);
-        imageCache = image->GetImageCache();        
+        imageCache = image->GetImageCache();
     }
     if ((imageCache != nullptr) && (image != nullptr)) {
         ImageAttribute imageAttribute = image->GetImageAttribute();
@@ -1614,21 +1632,14 @@ UiSize Control::EstimateControlSize(UiSize szAvailable)
     imageCache.reset();
 
     //图片大小，需要附加控件的内边距
-    UiPadding rcPadding = this->GetControlPadding();
+    UiPadding rcPadding = GetControlPadding();
     if (imageSize.cx > 0) {
         imageSize.cx += (rcPadding.left + rcPadding.right);
     }
     if (imageSize.cy > 0) {
         imageSize.cy += (rcPadding.top + rcPadding.bottom);
     }
-
-    //估算文本区域大小, 函数计算时，已经包含了内边距
-    UiSize textSize = EstimateText(szAvailable);
-
-    UiSize szControlSize;
-    szControlSize.cx = std::max(imageSize.cx, textSize.cx);
-    szControlSize.cy = std::max(imageSize.cy, textSize.cy);
-    return szControlSize;
+    return imageSize;
 }
 
 Image* Control::GetEstimateImage()
@@ -1644,11 +1655,6 @@ Image* Control::GetEstimateImage()
         }
     }
     return estimateImage;
-}
-
-UiSize Control::EstimateText(UiSize /*szAvailable*/)
-{
-    return UiSize(0, 0);
 }
 
 bool Control::IsPointInWithScrollOffset(const UiPoint& point) const

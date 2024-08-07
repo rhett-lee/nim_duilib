@@ -1469,11 +1469,16 @@ UiSize RichEdit::EstimateText(UiSize szAvailable)
 
     iWidth = std::max((int32_t)iWidth, 0);
     iHeight = std::max((int32_t)iHeight, 0);
-    iWidth += (rcPadding.left + rcPadding.right);
-    iHeight += (rcPadding.top + rcPadding.bottom);
 
-    iWidth += (rcTextPadding.left + rcTextPadding.right);
-    iHeight += (rcTextPadding.top + rcTextPadding.bottom);
+    if (iWidth > 0) {
+        iWidth += (rcPadding.left + rcPadding.right);
+        iWidth += (rcTextPadding.left + rcTextPadding.right);
+    }
+
+    if (iHeight > 0) {
+        iHeight += (rcPadding.top + rcPadding.bottom);
+        iHeight += (rcTextPadding.top + rcTextPadding.bottom);
+    }
 
     szAvailable.cx = std::max((int32_t)iWidth, 0);
     szAvailable.cy = std::max((int32_t)iHeight, 0);

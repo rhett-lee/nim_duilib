@@ -535,6 +535,12 @@ public:
      */
     virtual UiSize EstimateText(UiSize szAvailable);
 
+    /** 计算图片区域大小（宽和高）
+     *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
+     *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
+     */
+    virtual UiSize EstimateImage(UiSize szAvailable);
+
     /**
      * @brief 检查指定坐标是否在滚动条当前滚动位置的范围内
      * @param[in] point 具体坐标
