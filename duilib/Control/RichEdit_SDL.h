@@ -326,38 +326,44 @@ public:
     /** 创建光标
      * @param [in] xWidth 光标宽度
      * @param [in] yHeight 光标高度
-     * @return 成功返回 true，失败返回 false
      */
-    bool CreateCaret(int32_t xWidth, int32_t yHeight);
+    void CreateCaret(int32_t xWidth, int32_t yHeight);
+
+    /** 获取光标的宽度和高度
+    */
+    void GetCaretSize(int32_t& xWidth, int32_t& yHeight) const;
 
     /** 设置是否显示光标
      * @param [in] fShow 设置 true 为显示，false 为不显示
-     * @return 成功返回 true，失败返回 false
      */
-    bool ShowCaret(bool fShow);
+    void ShowCaret(bool fShow);
 
     /** 设置光标颜色
      * @param[in] dwColor 要设置的颜色值，该值必须在 global.xml 中存在
-     * @return 无
      */
     void SetCaretColor(const DString& dwColor);
 
     /** 获取光标颜色
      * @return 返回光标颜色
      */
-    DString GetCaretColor();
+    DString GetCaretColor() const;
 
     /** 获取光标矩形位置
      * @return 返回光标矩形位置
      */
-    UiRect GetCaretRect();
+    UiRect GetCaretRect() const;
 
     /** 设置光标位置
-     * @param [in] x X 轴坐标
-     * @param [in] y Y 轴坐标
-     * @return 成功返回 true，失败返回 false
+     * @param [in] xPos X 轴坐标
+     * @param [in] yPos Y 轴坐标
      */
-    bool SetCaretPos(int32_t x, int32_t y);
+    void SetCaretPos(int32_t xPos, int32_t yPos);
+
+    /** 获取光标位置
+     * @param [out] xPos X 轴坐标
+     * @param [out] yPos Y 轴坐标
+    */
+    void GetCaretPos(int32_t& xPos, int32_t& yPos) const;
 
     /** 设置只读模式不显示光标
     */
@@ -451,6 +457,10 @@ public:
      * @return 返回所选文字内容
      */
     DString GetSelText() const;
+
+    /** 当前是否有选择的文本
+    */
+    bool HasSelText() const;
 
     /** 获取指定范围的内容
      * @param[in] nStartChar 起始位置

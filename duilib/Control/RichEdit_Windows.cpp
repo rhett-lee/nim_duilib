@@ -2334,14 +2334,25 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
     }
 }
 
-bool RichEdit::CreateCaret(int32_t xWidth, int32_t yHeight)
+void RichEdit::CreateCaret(int32_t xWidth, int32_t yHeight)
 {
     m_iCaretWidth = xWidth;
     m_iCaretHeight = yHeight;
-    return true;
+    if (m_iCaretWidth < 0) {
+        m_iCaretWidth = 0;
+    }
+    if (m_iCaretHeight < 0) {
+        m_iCaretHeight = 0;
+    }
 }
 
-bool RichEdit::ShowCaret(bool fShow)
+void RichEdit::GetCaretSize(int32_t& xWidth, int32_t& yHeight) const
+{
+    xWidth = m_iCaretWidth;
+    yHeight = m_iCaretHeight;
+}
+
+void RichEdit::ShowCaret(bool fShow)
 {
     if (fShow) {
         m_bIsCaretVisiable = true;
@@ -2355,7 +2366,6 @@ bool RichEdit::ShowCaret(bool fShow)
     }
 
     Invalidate();
-    return true;
 }
 
 void RichEdit::SetCaretColor(const DString& dwColor)
@@ -2363,23 +2373,28 @@ void RichEdit::SetCaretColor(const DString& dwColor)
     m_sCaretColor = dwColor;
 }
 
-DString RichEdit::GetCaretColor()
+DString RichEdit::GetCaretColor() const
 {
     return m_sCaretColor.c_str();
 }
 
-UiRect RichEdit::GetCaretRect()
+UiRect RichEdit::GetCaretRect() const
 {
     UiRect rc = { m_iCaretPosX, m_iCaretPosY, m_iCaretPosX + m_iCaretWidth, m_iCaretPosY + m_iCaretHeight };
     return rc;
 }
 
-bool RichEdit::SetCaretPos(int32_t x, int32_t y)
+void RichEdit::SetCaretPos(int32_t xPos, int32_t yPos)
 {
-    m_iCaretPosX = x;
-    m_iCaretPosY = y;
+    m_iCaretPosX = xPos;
+    m_iCaretPosY = yPos;
     ShowCaret(!m_richCtrl.HasSelText());
-    return true;
+}
+
+void RichEdit::GetCaretPos(int32_t& xPos, int32_t& yPos) const
+{
+    xPos = m_iCaretPosX;
+    yPos = m_iCaretPosY;
 }
 
 void RichEdit::ChangeCaretVisiable()

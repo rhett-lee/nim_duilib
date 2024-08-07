@@ -690,6 +690,11 @@ DString RichEdit::GetSelText() const
     return text;
 }
 
+bool RichEdit::HasSelText() const
+{
+    return false;
+}
+
 int32_t RichEdit::SetSelAll()
 {
     return SetSel(0, -1);
@@ -1291,8 +1296,13 @@ bool RichEdit::OnImeStartComposition(const EventArgs& /*msg*/)
     COMPOSITIONFORM    cfs = { 0, };
     UiPoint ptScrollOffset = GetScrollOffsetInScrollBox();
     POINT pt;
-    pt.x = m_iCaretPosX - ptScrollOffset.x;
-    pt.y = m_iCaretPosY - ptScrollOffset.y;
+
+    int32_t xPos = 0;
+    int32_t yPos = 0;
+    GetCaretPos(xPos, yPos);
+
+    pt.x = xPos - ptScrollOffset.x;
+    pt.y = yPos - ptScrollOffset.y;
 
     //pt.y += (m_iCaretHeight + lf.lfHeight) / 4;
     cfs.dwStyle = CFS_POINT;
@@ -1448,14 +1458,25 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
     }
 }
 
-bool RichEdit::CreateCaret(int32_t xWidth, int32_t yHeight)
+void RichEdit::CreateCaret(int32_t xWidth, int32_t yHeight)
 {
     m_iCaretWidth = xWidth;
     m_iCaretHeight = yHeight;
-    return true;
+    if (m_iCaretWidth < 0) {
+        m_iCaretWidth = 0;
+    }
+    if (m_iCaretHeight < 0) {
+        m_iCaretHeight = 0;
+    }
 }
 
-bool RichEdit::ShowCaret(bool fShow)
+void RichEdit::GetCaretSize(int32_t& xWidth, int32_t& yHeight) const
+{
+    xWidth = m_iCaretWidth;
+    yHeight = m_iCaretHeight;
+}
+
+void RichEdit::ShowCaret(bool fShow)
 {
     if (fShow) {
         m_bIsCaretVisiable = true;
@@ -1463,14 +1484,22 @@ bool RichEdit::ShowCaret(bool fShow)
         std::function<void()> closure = UiBind(&RichEdit::ChangeCaretVisiable, this);
         GlobalManager::Instance().Timer().AddTimer(m_drawCaretFlag.GetWeakFlag(), closure, 500);
 
+        int32_t xPos = 0;
+        int32_t yPos = 0;
+        GetCaretPos(xPos, yPos);
+
+        int32_t xWidth = 0;
+        int32_t yHeight = 0;
+        GetCaretSize(xWidth, yHeight);
+
         UiRect rc = GetRect();
         SDL_Rect sdlRect;
-        sdlRect.x = m_iCaretPosX;
-        sdlRect.y = m_iCaretPosY;
+        sdlRect.x = xPos;
+        sdlRect.y = yPos;
         sdlRect.w = rc.right - sdlRect.x;
         sdlRect.h = m_nLineHeight; //高度设置与行高相同
         ASSERT(m_nLineHeight > 0);
-        int32_t nCursorOffset = m_iCaretWidth + Dpi().GetScaleInt(1); //输入法的候选框与光标当前位置的距离（水平方向）, 避免遮盖光标
+        int32_t nCursorOffset = xWidth + Dpi().GetScaleInt(1); //输入法的候选框与光标当前位置的距离（水平方向）, 避免遮盖光标
         SDL_SetTextInputArea((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle(), &sdlRect, nCursorOffset);
     }
     else {
@@ -1479,7 +1508,6 @@ bool RichEdit::ShowCaret(bool fShow)
     }
 
     Invalidate();
-    return true;
 }
 
 void RichEdit::SetCaretColor(const DString& dwColor)
@@ -1487,24 +1515,46 @@ void RichEdit::SetCaretColor(const DString& dwColor)
     m_sCaretColor = dwColor;
 }
 
-DString RichEdit::GetCaretColor()
+DString RichEdit::GetCaretColor() const
 {
     return m_sCaretColor.c_str();
 }
 
-UiRect RichEdit::GetCaretRect()
+UiRect RichEdit::GetCaretRect() const
 {
-    UiRect rc = { m_iCaretPosX, m_iCaretPosY, m_iCaretPosX + m_iCaretWidth, m_iCaretPosY + m_iCaretHeight };
+    int32_t xPos = 0;
+    int32_t yPos = 0;
+    GetCaretPos(xPos, yPos);
+
+    int32_t xWidth = 0;
+    int32_t yHeight = 0;
+    GetCaretSize(xWidth, yHeight);
+
+    UiRect rc = { xPos, yPos, xPos + xWidth, yPos + yHeight };
     return rc;
 }
 
-bool RichEdit::SetCaretPos(int32_t x, int32_t y)
+void RichEdit::SetCaretPos(int32_t xPos, int32_t yPos)
 {
-    bool bShow = true;//!m_richCtrl.HasSelText()
-    m_iCaretPosX = x;
-    m_iCaretPosY = y;
+    //光标的坐标是以当前控件的左上角为原点的坐标
+    UiSize szScrollOffset = GetScrollOffset();
+    xPos += szScrollOffset.cx;
+    yPos += szScrollOffset.cy;
+
+    bool bShow = !HasSelText();
+    m_iCaretPosX = xPos;
+    m_iCaretPosY = yPos;
     ShowCaret(bShow);
-    return true;
+}
+
+void RichEdit::GetCaretPos(int32_t& xPos, int32_t& yPos) const
+{
+    xPos = m_iCaretPosX;
+    yPos = m_iCaretPosY;
+
+    UiSize szScrollOffset = GetScrollOffset();
+    xPos -= szScrollOffset.cx;
+    yPos -= szScrollOffset.cy;
 }
 
 void RichEdit::ChangeCaretVisiable()
@@ -1524,12 +1574,20 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
     }
 
     if (m_bIsCaretVisiable && !m_bIsComposition) {
-        UiRect rect(m_iCaretPosX, m_iCaretPosY, m_iCaretPosX, m_iCaretPosY + m_iCaretHeight);
+        int32_t xPos = 0;
+        int32_t yPos = 0;
+        GetCaretPos(xPos, yPos);
+
+        int32_t xWidth = 0;
+        int32_t yHeight = 0;
+        GetCaretSize(xWidth, yHeight);
+
+        UiRect rect(xPos, yPos, xPos, yPos + yHeight);
         UiColor dwClrColor(0xff000000);
         if (!m_sCaretColor.empty()) {
             dwClrColor = this->GetUiColor(m_sCaretColor.c_str());
         }
-        pRender->DrawLine(UiPoint(rect.left, rect.top), UiPoint(rect.right, rect.bottom), dwClrColor, m_iCaretWidth);
+        pRender->DrawLine(UiPoint(rect.left, rect.top), UiPoint(rect.right, rect.bottom), dwClrColor, xWidth);
     }
 }
 
