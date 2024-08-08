@@ -673,6 +673,9 @@ void RichEdit::GetSel(int32_t& nStartChar, int32_t& nEndChar) const
     else if ((nStartChar == -1) && (nEndChar == 0)) {
         //无选择文本
     }
+    else if (nStartChar == nEndChar) {
+        //无选择文本
+    }
     else {
         //校验合理性        
         if ((nStartChar < 0) || (nStartChar >= nTextLen)) {
@@ -690,7 +693,7 @@ void RichEdit::GetSel(int32_t& nStartChar, int32_t& nEndChar) const
             nEndChar = 0;
         }
     }
-    if ((nStartChar >= 0) && (nStartChar < nTextLen) && (nTextLen == -1)) {
+    if ((nStartChar >= 0) && (nStartChar < nTextLen) && (nEndChar == -1)) {
         //全选的时候，此值为最后一个字符的后一个位置
         nEndChar = nTextLen;
     }
@@ -730,12 +733,16 @@ int32_t RichEdit::SetSel(int32_t nStartChar, int32_t nEndChar)
         if (nEndChar < 0) {
             nSelCount = nTextLen - nStartChar;
         }
-        else if ((nEndChar > nStartChar) && (nEndChar < nTextLen)) {
+        else if ((nEndChar > nStartChar) && (nEndChar <= nTextLen)) {
             nSelCount = nEndChar - nStartChar;
         }
     }
     if (bChanged) {
-        Redraw();
+        //重绘(但不能调用Redraw()函数，避免清除绘制缓存)
+        Invalidate();
+
+        //触发文本选择变化事件
+        SendEvent(kEventSelChange);
     }
     return nSelCount;
 }
@@ -1041,194 +1048,6 @@ uint32_t RichEdit::GetControlFlags() const
     return IsEnabled() && IsAllowTabStop() ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
 }
 
-void RichEdit::HandleEvent(const EventArgs& msg)
-{
-    if (IsDisabledEvents(msg)) {
-        //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
-        Box* pParent = GetParent();
-        if (pParent != nullptr) {
-            pParent->SendEventMsg(msg);
-        }
-        else {
-            __super::HandleEvent(msg);
-        }
-        return;
-    }
-    if (msg.eventType == kEventMouseMove) {
-        OnMouseMessage(WM_MOUSEMOVE, msg);
-        return;
-    }
-    if (msg.eventType == kEventMouseWheel) {
-        if (IsKeyDown(msg, ModifierKey::kControl) && IsEnableWheelZoom()) {
-            //Ctrl + 滚轮：缩放功能
-            OnMouseMessage(WM_MOUSEWHEEL, msg);
-            int32_t nNum = 0;
-            int32_t nDen = 0;
-           // m_richCtrl.GetZoom(nNum, nDen);
-            SendEvent(kEventZoom, (WPARAM)nNum, (LPARAM)nDen);
-        }
-        else {
-            ScrollBox::HandleEvent(msg);
-        }
-        return;
-    }
-
-    if (msg.eventType == kEventMouseButtonDown) {
-        AdjustCaretPos(msg.ptMouse);        
-        OnMouseMessage(WM_LBUTTONDOWN, msg);
-        return;
-    }
-    if (msg.eventType == kEventMouseButtonUp) {
-        if (IsEnabled() && !m_bSelAllEver) {
-            m_bSelAllEver = true;
-            if (m_bSelAllOnFocus) {
-                SetSelAll();
-                if (IsMultiLine()) {
-                    HomeUp();
-                }
-                else {
-                    HomeLeft();
-                }
-            }
-        }
-
-        OnMouseMessage(WM_LBUTTONUP, msg);
-        return;
-    }
-    if (msg.eventType == kEventMouseDoubleClick) {
-        if (IsReadOnly()) {
-            SetSelAll();
-            return;
-        }
-
-        OnMouseMessage(WM_LBUTTONDBLCLK, msg);
-        return;
-    }
-    if (msg.eventType == kEventMouseRButtonDown) {
-        AdjustCaretPos(msg.ptMouse);
-
-        OnMouseMessage(WM_RBUTTONDOWN, msg);
-        return;
-    }
-    if (msg.eventType == kEventMouseRButtonUp) {
-        OnMouseMessage(WM_RBUTTONUP, msg);
-        return;
-    }
-    else if (msg.eventType == kEventKeyDown) {
-        OnKeyDown(msg);
-        return;
-    }
-    ScrollBox::HandleEvent(msg);
-}
-
-bool RichEdit::OnSetCursor(const EventArgs& msg)
-{
-    if (m_bUseControlCursor) {
-        //使用Control设置的光标
-        return __super::OnSetCursor(msg);
-    }
-    SetCursor(IsReadOnly() ? CursorType::kCursorArrow : CursorType::kCursorIBeam);
-    return true;
-}
-
-bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
-{
-    m_bActive = true;
-    AdjustCaretPos(UiPoint(-1,-1));
-    ShowCaret(true);
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    SetImmStatus(TRUE);
-#endif
-
-#ifdef DUILIB_BUILD_FOR_SDL
-    if (IsVisible() && !IsReadOnly() && IsEnabled()) {
-        SDL_StartTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
-    }
-#endif
-
-    if ((m_pClearButton != nullptr) && !IsReadOnly()){
-        m_pClearButton->SetFadeVisible(true);
-    }
-    if ((m_pShowPasswordButton != nullptr) && IsPassword() && !IsShowPassword()) {
-        m_pShowPasswordButton->SetFadeVisible(true);
-    }
-    Invalidate();
-    return true;
-}
-
-bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
-{
-    m_bActive = false;
-    ShowCaret(false);
-    m_bSelAllEver = false;
-    if (m_bNoSelOnKillFocus && IsReadOnly() && IsEnabled()) {
-        SetSelNone();
-    }
-    if (m_bSelAllOnFocus && IsEnabled()) {
-        SetSelNone();
-    }
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    SetImmStatus(FALSE);
-#endif
-
-#ifdef DUILIB_BUILD_FOR_SDL
-    if (IsVisible() && !IsReadOnly() && IsEnabled()) {
-        SDL_StopTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
-    }
-#endif
-
-    if (m_pClearButton != nullptr) {
-        m_pClearButton->SetFadeVisible(false);
-    }
-    if (m_pShowPasswordButton != nullptr) {
-        m_pShowPasswordButton->SetFadeVisible(false);
-    }
-    Invalidate();
-    return true;
-}
-
-bool RichEdit::OnChar(const EventArgs& msg)
-{
-    //TAB
-    if (::GetKeyState(VK_TAB) < 0 && !m_bWantTab) {
-        SendEvent(kEventTab);
-        return true;
-    }
-    //Number
-    if (IsNumberOnly()) {
-        if (msg.vkCode < '0' || msg.vkCode > '9') {
-            if (msg.vkCode == _T('-')) {
-                if (GetTextLength() > 0) {
-                    //不是第一个字符，禁止输入负号
-                    return true;
-                }
-                else if (GetMinNumber() >= 0) {
-                    //最小数字是0或者正数，禁止输入符号
-                    return true;
-                }
-            }
-            else {
-                return true;
-            }
-        }
-    }
-
-    //限制允许输入的字符
-    if (m_pLimitChars != nullptr) {
-        if (!IsInLimitChars((wchar_t)msg.vkCode)) {
-            //字符不在列表里面，禁止输入
-            return true;
-        }
-    }
-#ifdef DUILIB_BUILD_FOR_SDL
-    WPARAM wParam = msg.vkCode;
-    LPARAM lParam = 0;
-#endif
-    //m_richCtrl.TxSendMessage(WM_CHAR, wParam, lParam); 
-    return true;
-}
-
 bool RichEdit::IsInLimitChars(wchar_t charValue) const
 {
     //返回false时：禁止输入
@@ -1295,97 +1114,6 @@ bool RichEdit::IsPasteLimited() const
     return false;
 }
 
-bool RichEdit::OnKeyDown(const EventArgs& msg)
-{
-    if (msg.vkCode == kVK_RETURN && ::GetKeyState(VK_SHIFT) >= 0)    {
-        if (m_bWantReturn && ((m_bWantCtrlReturn && ::GetKeyState(VK_CONTROL) < 0) ||
-            (!m_bWantCtrlReturn && ::GetKeyState(VK_CONTROL) >= 0))) {
-            SendEvent(kEventReturn);
-            return true;
-        }
-    }
-    else if ((msg.vkCode == 'V') && (::GetKeyState(VK_CONTROL) < 0)) {
-        if (IsPasteLimited()) {
-            return true;
-        }
-    }
-
-    WPARAM wParam = msg.wParam;
-    LPARAM lParam = msg.lParam;
-#ifdef DUILIB_BUILD_FOR_SDL
-    wParam = msg.vkCode;
-    lParam = 0;
-#endif
-
-    //m_richCtrl.TxSendMessage(WM_KEYDOWN, wParam, lParam);
-    return true;
-}
-
-bool RichEdit::OnImeStartComposition(const EventArgs& /*msg*/)
-{
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    HWND hWnd = GetWindowHWND();
-    if (hWnd == nullptr) {
-        return true;
-    }
-
-    HIMC hImc = ::ImmGetContext(hWnd);
-    if (hImc == nullptr) {
-        return true;
-    }
-
-    COMPOSITIONFORM    cfs = { 0, };
-    UiPoint ptScrollOffset = GetScrollOffsetInScrollBox();
-    POINT pt;
-
-    int32_t xPos = 0;
-    int32_t yPos = 0;
-    GetCaretPos(xPos, yPos);
-
-    pt.x = xPos - ptScrollOffset.x;
-    pt.y = yPos - ptScrollOffset.y;
-
-    //pt.y += (m_iCaretHeight + lf.lfHeight) / 4;
-    cfs.dwStyle = CFS_POINT;
-    if (pt.x < 1) {
-        pt.x = 1;
-    }
-    if (pt.y < 1) {
-        pt.y = 1;
-    }
-    cfs.ptCurrentPos = pt;
-    ::ImmSetCompositionWindow(hImc, &cfs);
-    ::ImmReleaseContext(hWnd, hImc);
-    m_bIsComposition = true;
-#endif
-    return true;
-}
-
-bool RichEdit::OnImeEndComposition(const EventArgs& /*msg*/)
-{
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    m_bIsComposition = false;
-#endif
-    return true;
-}
-
-void RichEdit::OnMouseMessage(uint32_t uMsg, const EventArgs& msg)
-{
-    UiPoint pt = msg.ptMouse;
-    pt.Offset(GetScrollOffsetInScrollBox());
-    WPARAM wParam = msg.wParam;
-#ifdef DUILIB_BUILD_FOR_SDL
-    wParam = 0;
-    if (IsKeyDown(msg, ModifierKey::kControl)) {
-        wParam |= MK_CONTROL;
-    }
-    if (IsKeyDown(msg, ModifierKey::kShift)) {
-        wParam |= MK_SHIFT;
-    }
-#endif
-    //m_richCtrl.TxSendMessage(uMsg, wParam, MAKELPARAM(pt.x, pt.y));
-}
-
 void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 {
     if (pRender == nullptr) {
@@ -1428,7 +1156,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     }
 
     //绘制选择背景
-   // PaintSelectionColor(pRender, rcPaint);
+    PaintSelectionColor(pRender, rcPaint);
 
     //绘制文字
     if (m_spDrawRichTextCache != nullptr) {
@@ -2910,6 +2638,274 @@ void RichEdit::Redraw()
     m_spDrawRichTextCache.reset();
     Invalidate();
 }
+
+//////////////////////
+
+void RichEdit::HandleEvent(const EventArgs& msg)
+{
+    if (IsDisabledEvents(msg)) {
+        //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
+        Box* pParent = GetParent();
+        if (pParent != nullptr) {
+            pParent->SendEventMsg(msg);
+        }
+        else {
+            __super::HandleEvent(msg);
+        }
+        return;
+    }
+    if (msg.eventType == kEventMouseMove) {
+        //OnMouseMessage(WM_MOUSEMOVE, msg);
+        return;
+    }
+    if (msg.eventType == kEventMouseWheel) {
+        if (IsKeyDown(msg, ModifierKey::kControl) && IsEnableWheelZoom()) {
+            //Ctrl + 滚轮：缩放功能
+            //OnMouseMessage(WM_MOUSEWHEEL, msg);
+            int32_t nNum = 0;
+            int32_t nDen = 0;
+            // m_richCtrl.GetZoom(nNum, nDen);
+            SendEvent(kEventZoom, (WPARAM)nNum, (LPARAM)nDen);
+        }
+        else {
+            ScrollBox::HandleEvent(msg);
+        }
+        return;
+    }
+
+    if (msg.eventType == kEventMouseButtonDown) {
+        //取消选择
+        SetSelNone();
+
+        //调整光标位置
+        AdjustCaretPos(msg.ptMouse);
+        return;
+    }
+    if (msg.eventType == kEventMouseButtonUp) {
+        if (IsEnabled() && !m_bSelAllEver) {
+            m_bSelAllEver = true;
+            if (m_bSelAllOnFocus) {
+                SetSelAll();
+                if (IsMultiLine()) {
+                    HomeUp();
+                }
+                else {
+                    HomeLeft();
+                }
+            }
+        }
+
+        //OnMouseMessage(WM_LBUTTONUP, msg);
+        return;
+    }
+    if (msg.eventType == kEventMouseDoubleClick) {
+        if (IsReadOnly()) {
+            SetSelAll();
+            return;
+        }
+
+        //OnMouseMessage(WM_LBUTTONDBLCLK, msg);
+        return;
+    }
+    if (msg.eventType == kEventMouseRButtonDown) {
+        AdjustCaretPos(msg.ptMouse);
+
+        //OnMouseMessage(WM_RBUTTONDOWN, msg);
+        return;
+    }
+    if (msg.eventType == kEventMouseRButtonUp) {
+        //OnMouseMessage(WM_RBUTTONUP, msg);
+        return;
+    }
+    else if (msg.eventType == kEventKeyDown) {
+        OnKeyDown(msg);
+        return;
+    }
+    ScrollBox::HandleEvent(msg);
+}
+
+
+bool RichEdit::OnSetCursor(const EventArgs& msg)
+{
+    if (m_bUseControlCursor) {
+        //使用Control设置的光标
+        return __super::OnSetCursor(msg);
+    }
+    SetCursor(IsReadOnly() ? CursorType::kCursorArrow : CursorType::kCursorIBeam);
+    return true;
+}
+
+bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
+{
+    m_bActive = true;
+    AdjustCaretPos(UiPoint(-1, -1));
+    ShowCaret(true);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    SetImmStatus(TRUE);
+#endif
+
+#ifdef DUILIB_BUILD_FOR_SDL
+    if (IsVisible() && !IsReadOnly() && IsEnabled()) {
+        SDL_StartTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
+    }
+#endif
+
+    if ((m_pClearButton != nullptr) && !IsReadOnly()) {
+        m_pClearButton->SetFadeVisible(true);
+    }
+    if ((m_pShowPasswordButton != nullptr) && IsPassword() && !IsShowPassword()) {
+        m_pShowPasswordButton->SetFadeVisible(true);
+    }
+    Invalidate();
+    return true;
+}
+
+bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
+{
+    m_bActive = false;
+    ShowCaret(false);
+    m_bSelAllEver = false;
+    if (m_bNoSelOnKillFocus && IsReadOnly() && IsEnabled()) {
+        SetSelNone();
+    }
+    if (m_bSelAllOnFocus && IsEnabled()) {
+        SetSelNone();
+    }
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    SetImmStatus(FALSE);
+#endif
+
+#ifdef DUILIB_BUILD_FOR_SDL
+    if (IsVisible() && !IsReadOnly() && IsEnabled()) {
+        SDL_StopTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
+    }
+#endif
+
+    if (m_pClearButton != nullptr) {
+        m_pClearButton->SetFadeVisible(false);
+    }
+    if (m_pShowPasswordButton != nullptr) {
+        m_pShowPasswordButton->SetFadeVisible(false);
+    }
+    Invalidate();
+    return true;
+}
+
+bool RichEdit::OnImeStartComposition(const EventArgs& /*msg*/)
+{
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    HWND hWnd = GetWindowHWND();
+    if (hWnd == nullptr) {
+        return true;
+    }
+
+    HIMC hImc = ::ImmGetContext(hWnd);
+    if (hImc == nullptr) {
+        return true;
+    }
+
+    COMPOSITIONFORM    cfs = { 0, };
+    UiPoint ptScrollOffset = GetScrollOffsetInScrollBox();
+    POINT pt;
+
+    int32_t xPos = 0;
+    int32_t yPos = 0;
+    GetCaretPos(xPos, yPos);
+
+    pt.x = xPos - ptScrollOffset.x;
+    pt.y = yPos - ptScrollOffset.y;
+
+    //pt.y += (m_iCaretHeight + lf.lfHeight) / 4;
+    cfs.dwStyle = CFS_POINT;
+    if (pt.x < 1) {
+        pt.x = 1;
+    }
+    if (pt.y < 1) {
+        pt.y = 1;
+    }
+    cfs.ptCurrentPos = pt;
+    ::ImmSetCompositionWindow(hImc, &cfs);
+    ::ImmReleaseContext(hWnd, hImc);
+    m_bIsComposition = true;
+#endif
+    return true;
+}
+
+bool RichEdit::OnImeEndComposition(const EventArgs& /*msg*/)
+{
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    m_bIsComposition = false;
+#endif
+    return true;
+}
+
+bool RichEdit::OnKeyDown(const EventArgs& msg)
+{
+    //该函数实现支持的各种快捷键
+    if (msg.vkCode == kVK_RETURN && !IsKeyDown(msg, ModifierKey::kShift)) {
+        //按回车键，但未按Shift键
+        //TODO：待实现
+        if (m_bWantReturn && ((m_bWantCtrlReturn && IsKeyDown(msg, ModifierKey::kControl)) ||
+            (!m_bWantCtrlReturn && !IsKeyDown(msg, ModifierKey::kControl)))) {
+            SendEvent(kEventReturn);
+            return true;
+        }
+    }
+    else if ((msg.vkCode == 'V') && IsKeyDown(msg, ModifierKey::kControl)) {
+        //Ctrl + V, 粘贴（在允许粘贴的情况下）
+        if (!IsPasteLimited()) {
+            Paste();
+        }
+    }
+    else if ((msg.vkCode == 'A') && IsKeyDown(msg, ModifierKey::kControl)) {
+        //Ctrl + A: 全选
+        SetSelAll();
+    }
+    return true;
+}
+
+bool RichEdit::OnChar(const EventArgs& msg)
+{
+    //TAB
+    if (::GetKeyState(VK_TAB) < 0 && !m_bWantTab) {
+        SendEvent(kEventTab);
+        return true;
+    }
+    //Number
+    if (IsNumberOnly()) {
+        if (msg.vkCode < '0' || msg.vkCode > '9') {
+            if (msg.vkCode == _T('-')) {
+                if (GetTextLength() > 0) {
+                    //不是第一个字符，禁止输入负号
+                    return true;
+                }
+                else if (GetMinNumber() >= 0) {
+                    //最小数字是0或者正数，禁止输入符号
+                    return true;
+                }
+            }
+            else {
+                return true;
+            }
+        }
+    }
+
+    //限制允许输入的字符
+    if (m_pLimitChars != nullptr) {
+        if (!IsInLimitChars((wchar_t)msg.vkCode)) {
+            //字符不在列表里面，禁止输入
+            return true;
+        }
+    }
+#ifdef DUILIB_BUILD_FOR_SDL
+    WPARAM wParam = msg.vkCode;
+    LPARAM lParam = 0;
+#endif
+    //m_richCtrl.TxSendMessage(WM_CHAR, wParam, lParam); 
+    return true;
+}
+
 
 } // namespace ui
 

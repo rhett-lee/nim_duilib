@@ -644,10 +644,15 @@ protected:
     virtual bool OnSetCursor(const EventArgs& msg) override;
     virtual bool OnSetFocus(const EventArgs& msg) override;
     virtual bool OnKillFocus(const EventArgs& msg) override;
-    virtual bool OnChar(const EventArgs& msg) override;
-    virtual bool OnKeyDown(const EventArgs& msg) override;
     virtual bool OnImeStartComposition(const EventArgs& msg) override;
     virtual bool OnImeEndComposition(const EventArgs& msg) override;
+    
+    virtual bool OnKeyDown(const EventArgs& msg) override;
+    virtual bool OnChar(const EventArgs& msg) override;
+
+
+
+    //绘制相关函数
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
@@ -730,10 +735,6 @@ private:
      * @param[in] pRender 绘制引擎
      */
     void PaintPromptText(IRender* pRender);
-
-    /** 转发消息控件的实现
-    */
-    void OnMouseMessage(uint32_t uMsg, const EventArgs& msg);
 
     /** 获取粘贴板字符串
     */
