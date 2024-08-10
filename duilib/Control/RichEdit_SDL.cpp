@@ -43,7 +43,7 @@ RichEdit::RichEdit(Window* pWindow) :
     m_iCaretPosY(0),
     m_iCaretWidth(0),
     m_iCaretHeight(0),
-    m_nLineHeight(0),
+    m_nRowHeight(0),
     m_sFontId(),
     m_sTextColor(),
     m_sDisabledTextColor(),
@@ -72,10 +72,15 @@ RichEdit::RichEdit(Window* pWindow) :
     m_bModified(false),
     m_hAlignType(HorAlignType::kHorAlignLeft),
     m_vAlignType(VerAlignType::kVerAlignTop),
-    m_nSelStartIndex(-1),
+    m_nSelStartIndex(0),
     m_nSelEndCharIndex(0),
     m_bHideSelection(false),
-    m_bActive(false)
+    m_bActive(false),
+    m_bMouseDownInView(false),
+    m_bMouseDown(false),
+    m_bRMouseDown(false),
+    m_bInMouseMove(false),
+    m_pMouseSender(nullptr)
 {
 }
 
@@ -611,9 +616,11 @@ std::string RichEdit::GetUTF8Text() const
 
 void RichEdit::SetText(const DString& strText)
 {
+    bool bChanged = false;
 #ifdef DUILIB_UNICODE
     if (m_text != strText) {
         m_text = strText;
+        bChanged = true;
 #ifdef _DEBUG
         std::vector<uint8_t> fileData;
         FileUtil::ReadFileData(FilePath(L"D:\\1.h"), fileData);
@@ -621,15 +628,31 @@ void RichEdit::SetText(const DString& strText)
         fileData.push_back(0);
         m_text = StringUtil::UTF8ToUTF16((const char*)fileData.data());
 #endif
-        OnTextChanged();
     }    
 #else
     DStringW text = StringUtil::UTF8ToUTF16(strText);
     if (m_text != text) {
         m_text.swap(text);
-        OnTextChanged();
+        bChanged = true;
     }
-#endif    
+#endif
+    if (bChanged && IsInited()) {
+        //重新计算字符区域
+        Redraw();
+        CalcTextRects();
+        ASSERT(m_text.size() == m_textRects.size());
+
+        std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
+
+        //触发文本变化事件
+        OnTextChanged();
+
+        //文本变化时，选择点放到文本末端
+        if (!weakFlag.expired()) {
+            int32_t nTextLen = (int32_t)m_text.size();
+            SetSel(nTextLen, nTextLen);
+        }
+    }
 }
 
 void RichEdit::SetTextNoEvent(const DString& strText)
@@ -667,76 +690,81 @@ void RichEdit::GetSel(int32_t& nStartChar, int32_t& nEndChar) const
     const int32_t nTextLen = GetTextLength();
     nStartChar = m_nSelStartIndex;
     nEndChar = m_nSelEndCharIndex;
-    if ((nStartChar == 0) && (nEndChar == -1)) {
-        //全选
-    }
-    else if ((nStartChar == -1) && (nEndChar == 0)) {
-        //无选择文本
-    }
-    else if (nStartChar == nEndChar) {
-        //无选择文本
-    }
-    else {
-        //校验合理性        
-        if ((nStartChar < 0) || (nStartChar >= nTextLen)) {
-            //无选择
-            nStartChar = -1;
-            nEndChar = 0;
-        }
-        if ((nEndChar < 0) || (nEndChar >= nTextLen)) {
-            //选择至文本结束
-            nEndChar = -1;
-        }
-        if (nStartChar > nEndChar) {
-            //无选择
-            nStartChar = -1;
-            nEndChar = 0;
-        }
-    }
-    if ((nStartChar >= 0) && (nStartChar < nTextLen) && (nEndChar == -1)) {
-        //全选的时候，此值为最后一个字符的后一个位置
+
+    ASSERT((nStartChar <= nTextLen) && (nStartChar >= 0));
+    ASSERT((nEndChar <= nTextLen) && (nEndChar >= 0));
+    if ((nStartChar < 0) || (nStartChar > nTextLen) || (nEndChar < 0) || (nEndChar > nTextLen)) {
+        nStartChar = nTextLen;
         nEndChar = nTextLen;
     }
 }
 
 int32_t RichEdit::SetSel(int32_t nStartChar, int32_t nEndChar)
 {
+    if (nStartChar < 0) {
+        nStartChar = -1;
+    }
+    if (nEndChar < 0) {
+        nEndChar = -1;
+    }
+
     const int32_t nTextLen = GetTextLength();
-    if ((nStartChar == 0) && (nEndChar == -1)) {
-        //全选
+    if (nTextLen <= 0) {
+        //无选择文本
+        nStartChar = 0;
+        nEndChar = 0;
     }
     else if ((nStartChar == -1) && (nEndChar == 0)) {
-        //无选择文本
-    }
-    else {        
-        if ((nStartChar < 0) || (nStartChar >= nTextLen)) {
-            //无选择
-            nStartChar = -1;
-            nEndChar = 0;
+        //无选择文本，获取原光标位置
+        nStartChar = m_nSelEndCharIndex;
+        nEndChar = m_nSelEndCharIndex;
+        if (nStartChar >= nTextLen) {
+            nStartChar = nTextLen;
+            nEndChar = nTextLen;
         }
-        if ((nEndChar < 0) || (nEndChar >= nTextLen)) {
-            //选择至文本结束
-            nEndChar = -1;
+    }
+    else {
+        if (nStartChar < 0) {
+            nStartChar = nTextLen;
+        }
+        if (nEndChar < 0) {
+            nEndChar = nTextLen;
         }
         if (nStartChar > nEndChar) {
-            //无选择
-            nStartChar = -1;
-            nEndChar = 0;
+            std::swap(nStartChar, nEndChar);
+        }
+        ASSERT(nEndChar >= nStartChar);
+        if (nStartChar >= nTextLen) {
+            nStartChar = nTextLen;
+        }
+        if (nEndChar >= nTextLen) {
+            nEndChar = nTextLen;
+        }
+        if (nStartChar == nEndChar) {
+            //无选择文本
+        }
+        else if (nStartChar >= nTextLen) {
+            //无选择文本
+            nStartChar = nTextLen;
+            nEndChar = nTextLen;
+        }
+        else {
+            //有选择文本，选择文本范围，隐藏光标
+            ASSERT(nEndChar > nStartChar);
         }
     }
-    
+
+    ASSERT((nStartChar <= nTextLen) && (nStartChar >= 0));
+    ASSERT((nEndChar <= nTextLen) && (nEndChar >= 0));
+
     bool bChanged = (m_nSelStartIndex != nStartChar) || (m_nSelEndCharIndex != nEndChar);
     m_nSelStartIndex = nStartChar;
     m_nSelEndCharIndex = nEndChar;
-    int32_t nSelCount = 0;
-    if ((nStartChar >= 0) && (nStartChar < nTextLen)){
-        if (nEndChar < 0) {
-            nSelCount = nTextLen - nStartChar;
-        }
-        else if ((nEndChar > nStartChar) && (nEndChar <= nTextLen)) {
-            nSelCount = nEndChar - nStartChar;
-        }
-    }
+    int32_t nSelCount = nEndChar - nStartChar;
+
+    //根据选择的文本，调整光标的位置，并控制光标的显示或者隐藏
+    SetCaretPos(nEndChar);
+
     if (bChanged) {
         //重绘(但不能调用Redraw()函数，避免清除绘制缓存)
         Invalidate();
@@ -764,19 +792,12 @@ DString RichEdit::GetSelText() const
 
 bool RichEdit::HasSelText() const
 {
-    const int32_t nTextLen = GetTextLength();
-    ASSERT(m_text.size() == nTextLen);
-    if (m_text.size() != nTextLen) {
-        return false;
-    }
+    ASSERT(m_text.size() == GetTextLength());
 
     int32_t nSelStartChar = -1;
     int32_t nSelEndChar = -1;
     GetSel(nSelStartChar, nSelEndChar);
-    if ((nSelStartChar >= 0) && (nSelStartChar < nTextLen) && (nSelEndChar > nSelStartChar) && (nSelEndChar <= nTextLen)) {
-        return true;
-    }
-    return false;
+    return (nSelEndChar - nSelStartChar) > 0 ? true : false;
 }
 
 int32_t RichEdit::SetSelAll()
@@ -902,20 +923,6 @@ int32_t RichEdit::LineFromChar(int32_t nIndex) const
     return 0;
 }
 
-UiPoint RichEdit::PosFromChar(int32_t lChar) const
-{
-    // POINT pt = m_richCtrl.PosFromChar(lChar);
-    // return UiPoint(pt.x, pt.y);
-    return UiPoint();
-}
-
-int32_t RichEdit::CharFromPos(UiPoint pt) const
-{
-    //POINT ptValue = { pt.x, pt.y };
-    //return m_richCtrl.CharFromPos(ptValue);
-    return 0;
-}
-
 void RichEdit::EmptyUndoBuffer()
 {
     //m_richCtrl.EmptyUndoBuffer();
@@ -968,14 +975,14 @@ void RichEdit::SetScrollPos(UiSize64 szPos)
     __super::SetScrollPos(szPos);
 }
 
-void RichEdit::LineUp()
+void RichEdit::LineUp(int deltaValue, bool withAnimation)
 {
-    __super::LineUp();
+    __super::LineUp(deltaValue, withAnimation);
 }
 
-void RichEdit::LineDown()
+void RichEdit::LineDown(int deltaValue, bool withAnimation)
 {
-    __super::LineUp();
+    __super::LineDown(deltaValue, withAnimation);
 }
 
 void RichEdit::PageUp()
@@ -993,19 +1000,19 @@ void RichEdit::HomeUp()
     __super::HomeUp();
 }
 
-void RichEdit::EndDown()
+void RichEdit::EndDown(bool arrange, bool withAnimation)
 {
-    __super::EndDown();
+    __super::EndDown(arrange, withAnimation);
 }
 
-void RichEdit::LineLeft()
+void RichEdit::LineLeft(int deltaValue)
 {
-    __super::LineLeft();
+    __super::LineLeft(deltaValue);
 }
 
-void RichEdit::LineRight()
+void RichEdit::LineRight(int deltaValue)
 {
-    __super::LineRight();
+    __super::LineRight(deltaValue);
 }
 
 void RichEdit::PageLeft()
@@ -1280,7 +1287,8 @@ void RichEdit::GetCaretSize(int32_t& xWidth, int32_t& yHeight) const
 
 void RichEdit::ShowCaret(bool fShow)
 {
-    if (fShow) {
+    Window* pWindow = GetWindow();
+    if (fShow && (pWindow != nullptr)) {
         m_bIsCaretVisiable = true;
         m_drawCaretFlag.Cancel();
         std::function<void()> closure = UiBind(&RichEdit::ChangeCaretVisiable, this);
@@ -1299,14 +1307,20 @@ void RichEdit::ShowCaret(bool fShow)
         sdlRect.x = xPos;
         sdlRect.y = yPos;
         sdlRect.w = rc.right - sdlRect.x;
-        sdlRect.h = m_nLineHeight; //高度设置与行高相同
-        ASSERT(m_nLineHeight > 0);
-        int32_t nCursorOffset = xWidth + Dpi().GetScaleInt(1); //输入法的候选框与光标当前位置的距离（水平方向）, 避免遮盖光标
-        SDL_SetTextInputArea((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle(), &sdlRect, nCursorOffset);
+        sdlRect.h = m_nRowHeight; //高度设置与行高相同
+        ASSERT(m_nRowHeight > 0);
+
+        //设置输入区域
+        int32_t nCursorOffset = xWidth + Dpi().GetScaleInt(1); //输入法的候选框与光标当前位置的距离（水平方向）, 避免遮盖光标        
+        SDL_SetTextInputArea((SDL_Window*)pWindow->NativeWnd()->GetWindowHandle(), &sdlRect, nCursorOffset);
     }
     else {
         m_bIsCaretVisiable = false;
         m_drawCaretFlag.Cancel();
+        if (pWindow != nullptr) {
+            //清除输入区域
+            SDL_SetTextInputArea((SDL_Window*)pWindow->NativeWnd()->GetWindowHandle(), nullptr, 0);
+        }
     }
 
     Invalidate();
@@ -1338,15 +1352,57 @@ UiRect RichEdit::GetCaretRect() const
 
 void RichEdit::SetCaretPos(int32_t xPos, int32_t yPos)
 {
+    SetCaretPos(UiPoint(xPos, yPos));
+}
+
+void RichEdit::SetCaretPos(const UiPoint& pt)
+{
+    UiPoint cursorPos = pt;
+    if ((pt.x < 0) && (pt.y < 0)) {
+        Window* pWindow = GetWindow();
+        if (pWindow != nullptr) {
+            pWindow->GetCursorPos(cursorPos);
+            pWindow->ScreenToClient(cursorPos);
+        }
+    }
+    int32_t nCharPosIndex = CharFromPos(pt);
+    SetCaretPos(nCharPosIndex);
+}
+
+void RichEdit::SetCaretPos(int32_t nCharPosIndex)
+{
+    ASSERT(m_textRects.size() == m_text.size());
+    UiPoint cursorPos;
+    const int32_t nTextRectCount = (int32_t)m_textRects.size();
+    ASSERT((nCharPosIndex >= 0) && (nCharPosIndex <= nTextRectCount));
+    if ((nCharPosIndex >= 0) && (nCharPosIndex < nTextRectCount)) {
+        const MeasureCharRects& charInfo = m_textRects[nCharPosIndex];
+        cursorPos.x = charInfo.m_charRect.left;//左上角坐标
+        cursorPos.y = charInfo.m_charRect.top;
+    }
+    else if (nTextRectCount > 0) {
+        const MeasureCharRects& charInfo = m_textRects[nTextRectCount - 1];
+        cursorPos.x = charInfo.m_charRect.right;//右上角坐标
+        cursorPos.y = charInfo.m_charRect.top;
+    }
+    else {
+        UiRect rc = GetTextDrawRect(GetRect());
+        cursorPos.x = rc.left;
+        cursorPos.y = rc.top;
+    }
+    SetCaretPosInternal(cursorPos.x, cursorPos.y);
+}
+
+void RichEdit::SetCaretPosInternal(int32_t xPos, int32_t yPos)
+{
     //光标的坐标是以当前控件的左上角为原点的坐标
     UiSize szScrollOffset = GetScrollOffset();
     xPos += szScrollOffset.cx;
     yPos += szScrollOffset.cy;
 
-    bool bShow = !HasSelText();
     m_iCaretPosX = xPos;
     m_iCaretPosY = yPos;
-    ShowCaret(bShow);
+    ShowCaret(!HasSelText());
 }
 
 void RichEdit::GetCaretPos(int32_t& xPos, int32_t& yPos) const
@@ -1395,7 +1451,7 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
             if (!m_sCaretColor.empty()) {
                 dwClrColor = this->GetUiColor(m_sCaretColor.c_str());
             }
-            pRender->DrawLine(UiPoint(xPos, yPos), UiPoint(xPos, yPos + yHeight), dwClrColor, xWidth);
+            pRender->DrawLine(UiPoint(xPos + 1, yPos), UiPoint(xPos + 1, yPos + yHeight), dwClrColor, xWidth);
         }
     }
 }
@@ -1403,10 +1459,6 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
 void RichEdit::PaintSelectionColor(IRender* pRender, const UiRect& /*rcPaint*/)
 {
     if (pRender == nullptr) {
-        //无需绘制选择背景
-        return;
-    }
-    if (IsReadOnly() || !IsEnabled()) {
         //无需绘制选择背景
         return;
     }
@@ -1861,6 +1913,9 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 
 void RichEdit::OnTextChanged()
 {
+    //设置已修改标志
+    SetModify(true);
+
     if (IsNumberOnly() && ((GetMinNumber() != INT_MIN) || (GetMaxNumber() != INT_MAX))) {
         //数字模式，检查文本对应的数字是否在范围内
         DString text = GetText();
@@ -1888,8 +1943,7 @@ void RichEdit::OnTextChanged()
     }
     if (!m_bDisableTextChangeEvent) {
         SendEvent(kEventTextChange);
-    }
-    SetModify(true);
+    }    
 }
 
 bool RichEdit::SetSpinClass(const DString& spinClass)
@@ -2169,16 +2223,11 @@ void RichEdit::SetFontIdInternal(const DString& fontId)
 
     //按字体高度设置光标的高度
     UiRect fontRect = pRender->MeasureString(L"T", pFont, 0);
-    m_nLineHeight = fontRect.Height();
-    ASSERT(m_nLineHeight > 0);
+    m_nRowHeight = fontRect.Height();
+    ASSERT(m_nRowHeight > 0);
     int32_t nCaretHeight = fontRect.Height();
-    if (nCaretHeight > 1) {
-        nCaretHeight -= Dpi().GetScaleInt(1);
-    }
-    else {
-        nCaretHeight = Dpi().GetScaleInt(1);
-    }
     int32_t nCaretWidth = Dpi().GetScaleInt(1);
+    nCaretHeight += Dpi().GetScaleInt(1);//光标的高度增加1个像素
     CreateCaret(nCaretWidth, nCaretHeight);
 }
 
@@ -2228,86 +2277,138 @@ VerAlignType RichEdit::GetVAlignType() const
 //            UiPoint PosFromChar(int32_t nChar) const;
 //            int32_t CharFromPos(UiPoint pt) const;
 //
-void RichEdit::AdjustCaretPos(const UiPoint& pt)
+UiPoint RichEdit::PosFromChar(int32_t lChar) const
 {
-    UiPoint cursorPos;
-    if ((pt.x < 0) && (pt.y < 0)) {
-        Window* pWindow = GetWindow();
-        if (pWindow != nullptr) {
-            pWindow->GetCursorPos(cursorPos);
-            pWindow->ScreenToClient(cursorPos);
-        }        
+    // POINT pt = m_richCtrl.PosFromChar(lChar);
+    // return UiPoint(pt.x, pt.y);
+    return UiPoint();
+}
+
+int32_t RichEdit::CharFromPos(UiPoint pt)
+{
+    const int32_t nTextLength = GetTextLength();
+    if (nTextLength == 0) {
+        return 0;
+    }
+
+    pt.Offset(GetScrollOffsetInScrollBox());
+    
+    //检查并按需重新计算坐标
+    CheckCalcTextRects();
+
+    //横向按字符边界对齐，纵向按行高对齐
+    int32_t nCharPosIndex = -1;
+    UiRect rc = m_textRect;
+    if (!rc.ContainsPt(pt)) {
+        if (pt.x < rc.top) {
+            nCharPosIndex = 0;
+        }
+        else {
+            nCharPosIndex = nTextLength;
+        }
+    }
+    else if (m_textRects.empty()) {
+        nCharPosIndex = 0;
     }
     else {
-        cursorPos = pt;
-    }
-    UiRect rc = GetRect();
-    rc.Deflate(GetControlPadding());
-    rc.Deflate(GetTextPadding());
-    cursorPos.Offset(GetScrollOffsetInScrollBox());
+        //计算选择区域的行号
+        size_t nRowStartIndex = (size_t)-1;
+        size_t nRowEndIndex = (size_t)-1;
+        UiRectF rowRectF;
+        const std::map<int32_t, RowTextInfo>& rowTextInfo = m_rowTextInfo;
+        for (auto iter = rowTextInfo.begin(); iter != rowTextInfo.end(); ++iter) {
+            const UiRectF& rowRect = iter->second.m_rowRect;
+            if ((pt.y >= rowRect.top) && (pt.y < rowRect.bottom)) {
+                nRowStartIndex = iter->second.m_nTextStart;
+                nRowEndIndex = iter->second.m_nTextEnd;
+                rowRectF = rowRect;
+            }
+        }
 
-    //光标：横向按字符边界对齐，纵向按行高对齐
-    bool bSet = false;
-    if (!rc.ContainsPt(cursorPos)) {
-        cursorPos.x = rc.left;
-        cursorPos.y = rc.top;
-        bSet = true;
-    }
-    else if (!m_textRects.empty()) {
-        for (const MeasureCharRects& charInfo : m_textRects) {
-            if (charInfo.m_charRect.ContainsPt((float)cursorPos.x, (float)cursorPos.y)) {
-                if (cursorPos.x < charInfo.m_charRect.CenterX()) {
-                    cursorPos.x = charInfo.m_charRect.left;
-                }
-                else {
-                    cursorPos.x = charInfo.m_charRect.right;
-                }                
-                cursorPos.y = charInfo.m_charRect.top;
-                bSet = true;
-                break;
-            }
-        }
-        if (!bSet) {
-            //检测行数据信息
-            uint32_t nLineNumber = (uint32_t)-1;
-            auto iterFirst = m_lineTextRects.begin();            
-            if (iterFirst != m_lineTextRects.end()) {
-                if (cursorPos.y < iterFirst->second.top) {
-                    cursorPos.y = iterFirst->second.top;
-                    nLineNumber = iterFirst->first;
-                }
-                else {
-                    auto iterLast = m_lineTextRects.rbegin();
-                    while (iterLast != m_lineTextRects.rend()) {
-                        if (cursorPos.y >= iterLast->second.top) {
-                            cursorPos.y = iterLast->second.top;
-                            nLineNumber = iterLast->first;
-                            break;
-                        }
-                        ++iterLast;
+        const size_t nTextRectCount = m_textRects.size();
+        if ((nRowStartIndex < nTextRectCount) && (nRowEndIndex < nTextRectCount)) {
+            //在该行中查找点的位置
+            for (size_t nTextIndex = nRowStartIndex; nTextIndex <= nRowEndIndex; ++nTextIndex) {
+                const MeasureCharRects& charInfo = m_textRects[nTextIndex];
+                if (charInfo.m_charRect.ContainsPt((float)pt.x, (float)pt.y)) {
+                    if (pt.x > charInfo.m_charRect.CenterX()) {
+                        //如果X坐标大于中心点，则取下一个字符
+                        nCharPosIndex = (int32_t)GetNextValidCharIndex(m_textRects, nTextIndex);
                     }
+                    else {
+                        //如果X坐标小于等于中心点，取当前字符
+                        nCharPosIndex = (int32_t)nTextIndex;
+                    }
+                    break;
                 }
             }
-            auto iter = m_lineTextRects.find(nLineNumber);
-            if (iter != m_lineTextRects.end()) {
-                if (cursorPos.x <= iter->second.left) {
-                    cursorPos.x = iter->second.left;
+
+            if (nCharPosIndex == -1) {
+                if ((nRowStartIndex == nRowEndIndex) && (m_textRects[nRowStartIndex].m_bNewLine)) {
+                    //该行只有一个回车
+                    nCharPosIndex = (int32_t)nRowStartIndex;
                 }
-                else if (cursorPos.x > iter->second.right) {
-                    cursorPos.x = iter->second.right;
+                else if (pt.x <= rowRectF.left) {
+                    //在行文本的左侧，取该行的首字符
+                    nCharPosIndex = (int32_t)nRowStartIndex;
                 }
-                else {
-                    cursorPos.x = iter->second.right;
+                else if (pt.x >= rowRectF.right) {
+                    //在行文本的右侧, 取下一行的首个字符
+                    nCharPosIndex = (int32_t)GetNextValidCharIndex(m_textRects, nRowEndIndex);
                 }
-                bSet = true;
             }
         }
+        else {
+            ASSERT(0);
+        }
     }
-    if (!bSet) {
-        cursorPos.x = rc.left;
-        cursorPos.y = rc.top;
+    if (nCharPosIndex < 0) {
+        nCharPosIndex = 0;
     }
-    SetCaretPos(cursorPos.x, cursorPos.y);
+    else if (nCharPosIndex > nTextLength) {
+        nCharPosIndex = nTextLength;
+    }
+    return nCharPosIndex;
+}
+
+size_t RichEdit::GetNextValidCharIndex(const std::vector<MeasureCharRects>& textRects, size_t nCurrentIndex) const
+{
+    ASSERT(nCurrentIndex < textRects.size());
+    if (nCurrentIndex >= textRects.size()) {
+        return nCurrentIndex;
+    }
+    size_t nNextIndex = nCurrentIndex;
+    ++nNextIndex;
+    while (nNextIndex < textRects.size()) {
+        if (!textRects[nNextIndex].m_bIgnoredChar) {
+            break;
+        }
+        ++nNextIndex;
+    }
+    if (nNextIndex < textRects.size()) {
+        return nNextIndex;
+    }
+    return nCurrentIndex;
+}
+
+size_t RichEdit::GetPrevValidCharIndex(const std::vector<MeasureCharRects>& textRects, size_t nCurrentIndex) const
+{
+    ASSERT(nCurrentIndex < textRects.size());
+    if (nCurrentIndex >= textRects.size()) {
+        return nCurrentIndex;
+    }
+    int32_t nPrevIndex = (int32_t)nCurrentIndex;
+    --nPrevIndex;
+    while (nPrevIndex >= 0) {
+        if (!textRects[nPrevIndex].m_bIgnoredChar) {
+            break;
+        }
+        --nPrevIndex;
+    }
+    if (nPrevIndex >= 0) {
+        return nPrevIndex;
+    }
+    return nCurrentIndex;
 }
 
 uint32_t RichEdit::GetTextStyle() const
@@ -2406,11 +2507,21 @@ void RichEdit::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect) co
     }
 }
 
+void RichEdit::CheckCalcTextRects()
+{
+    if (m_text.size() != m_textRects.size()) {
+        //重新计算坐标
+        Redraw();
+        CalcTextRects();
+        ASSERT(m_text.size() == m_textRects.size());
+    }
+}
+
 void RichEdit::CalcTextRects()
 {
     m_textRect.Clear();
     m_textRects.clear();
-    m_lineTextRects.clear();
+    m_rowTextInfo.clear();
 
     IRender* pRender = nullptr;
     Window* pWindow = GetWindow();
@@ -2437,46 +2548,60 @@ void RichEdit::CalcTextRects()
     ASSERT(m_textRects.size() == m_text.size());
     if (!m_textRects.empty()) {
         //计算每行的矩形区域
-        for (const MeasureCharRects& charInfo : m_textRects) {
-            if (charInfo.m_bReturn || charInfo.m_bNewLine || charInfo.m_bLowSurrogate) {
+        const size_t nTextCount = m_textRects.size();
+        for (size_t nTextIndex = 0; nTextIndex < nTextCount; ++nTextIndex) {
+            const MeasureCharRects& charInfo = m_textRects[nTextIndex];            
+            if (charInfo.m_bIgnoredChar || charInfo.m_bNewLine) {
                 continue;
             }
-            else {
-                m_lineTextRects[charInfo.m_nRowIndex].Union(charInfo.m_charRect);
+            RowTextInfo& rowTextInfo = m_rowTextInfo[charInfo.m_nRowIndex];
+            ASSERT(!charInfo.m_charRect.IsEmpty());
+            rowTextInfo.m_rowRect.Union(charInfo.m_charRect);
+            ASSERT(!rowTextInfo.m_rowRect.IsEmpty());
+            if (rowTextInfo.m_nTextStart == DStringW::npos) {
+                //该行的首个字符
+                rowTextInfo.m_nTextStart = nTextIndex;
             }
+            rowTextInfo.m_nTextEnd = nTextIndex;
         }
-        for (const MeasureCharRects& charInfo : m_textRects) {
+        for (size_t nTextIndex = 0; nTextIndex < nTextCount; ++nTextIndex) {
+            const MeasureCharRects& charInfo = m_textRects[nTextIndex];
+            //处理当一行只有一个换行符的情况，设置该行的top和bottom值
             if (charInfo.m_bNewLine) {
-                if (m_lineTextRects.find(charInfo.m_nRowIndex) == m_lineTextRects.end()) {
+                if (m_rowTextInfo.find(charInfo.m_nRowIndex) == m_rowTextInfo.end()) {
                     //本行只有一个回车
-                    UiRectF& rect = m_lineTextRects[charInfo.m_nRowIndex];
+                    RowTextInfo& rowTextInfo = m_rowTextInfo[charInfo.m_nRowIndex];
+                    rowTextInfo.m_nTextStart = nTextIndex;
+                    rowTextInfo.m_nTextEnd = nTextIndex;
+
+                    UiRectF& rect = rowTextInfo.m_rowRect;
                     rect.left = rcDrawText.left;
                     rect.right = rcDrawText.left;
 
-                    auto iterPrev = m_lineTextRects.find(charInfo.m_nRowIndex - 1);
-                    if (iterPrev != m_lineTextRects.end()) {
+                    auto iterPrev = m_rowTextInfo.find(charInfo.m_nRowIndex - 1);
+                    if (iterPrev != m_rowTextInfo.end()) {
                         //中间行
-                        rect.top = iterPrev->second.bottom;
+                        rect.top = iterPrev->second.m_rowRect.bottom;
                     }
                     else {
                         //首行 
                         rect.top = rcDrawText.top;
                     }
-                    auto iterNext = m_lineTextRects.find(charInfo.m_nRowIndex + 1);
-                    if (iterNext != m_lineTextRects.end()) {
+                    auto iterNext = m_rowTextInfo.find(charInfo.m_nRowIndex + 1);
+                    if (iterNext != m_rowTextInfo.end()) {
                         //中间行
-                        rect.bottom = iterNext->second.top;
+                        rect.bottom = iterNext->second.m_rowRect.top;
                     }
                     else {
                         //尾行
-                        rect.bottom = rect.top + m_nLineHeight;
+                        rect.bottom = rect.top + m_nRowHeight;
                     }
                 }
             }
         }
         UiRectF textRect;
-        for (const auto& iter : m_lineTextRects) {
-            textRect.Union(iter.second);
+        for (const auto& iter : m_rowTextInfo) {
+            textRect.Union(iter.second.m_rowRect);
         }
         m_textRect.left = (int32_t)textRect.left;
         m_textRect.top = (int32_t)textRect.top;
@@ -2633,98 +2758,13 @@ UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
 void RichEdit::Redraw()
 {
     m_textRects.clear();
-    m_lineTextRects.clear();
+    m_rowTextInfo.clear();
     m_textRect.Clear();
     m_spDrawRichTextCache.reset();
     Invalidate();
 }
 
-//////////////////////
-
-void RichEdit::HandleEvent(const EventArgs& msg)
-{
-    if (IsDisabledEvents(msg)) {
-        //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
-        Box* pParent = GetParent();
-        if (pParent != nullptr) {
-            pParent->SendEventMsg(msg);
-        }
-        else {
-            __super::HandleEvent(msg);
-        }
-        return;
-    }
-    if (msg.eventType == kEventMouseMove) {
-        //OnMouseMessage(WM_MOUSEMOVE, msg);
-        return;
-    }
-    if (msg.eventType == kEventMouseWheel) {
-        if (IsKeyDown(msg, ModifierKey::kControl) && IsEnableWheelZoom()) {
-            //Ctrl + 滚轮：缩放功能
-            //OnMouseMessage(WM_MOUSEWHEEL, msg);
-            int32_t nNum = 0;
-            int32_t nDen = 0;
-            // m_richCtrl.GetZoom(nNum, nDen);
-            SendEvent(kEventZoom, (WPARAM)nNum, (LPARAM)nDen);
-        }
-        else {
-            ScrollBox::HandleEvent(msg);
-        }
-        return;
-    }
-
-    if (msg.eventType == kEventMouseButtonDown) {
-        //取消选择
-        SetSelNone();
-
-        //调整光标位置
-        AdjustCaretPos(msg.ptMouse);
-        return;
-    }
-    if (msg.eventType == kEventMouseButtonUp) {
-        if (IsEnabled() && !m_bSelAllEver) {
-            m_bSelAllEver = true;
-            if (m_bSelAllOnFocus) {
-                SetSelAll();
-                if (IsMultiLine()) {
-                    HomeUp();
-                }
-                else {
-                    HomeLeft();
-                }
-            }
-        }
-
-        //OnMouseMessage(WM_LBUTTONUP, msg);
-        return;
-    }
-    if (msg.eventType == kEventMouseDoubleClick) {
-        if (IsReadOnly()) {
-            SetSelAll();
-            return;
-        }
-
-        //OnMouseMessage(WM_LBUTTONDBLCLK, msg);
-        return;
-    }
-    if (msg.eventType == kEventMouseRButtonDown) {
-        AdjustCaretPos(msg.ptMouse);
-
-        //OnMouseMessage(WM_RBUTTONDOWN, msg);
-        return;
-    }
-    if (msg.eventType == kEventMouseRButtonUp) {
-        //OnMouseMessage(WM_RBUTTONUP, msg);
-        return;
-    }
-    else if (msg.eventType == kEventKeyDown) {
-        OnKeyDown(msg);
-        return;
-    }
-    ScrollBox::HandleEvent(msg);
-}
-
-
+////////////////////////////////////////////////////////////
 bool RichEdit::OnSetCursor(const EventArgs& msg)
 {
     if (m_bUseControlCursor) {
@@ -2738,7 +2778,7 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
 bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 {
     m_bActive = true;
-    AdjustCaretPos(UiPoint(-1, -1));
+    SetCaretPos(UiPoint(-1, -1));
     ShowCaret(true);
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     SetImmStatus(TRUE);
@@ -2906,6 +2946,407 @@ bool RichEdit::OnChar(const EventArgs& msg)
     return true;
 }
 
+bool RichEdit::ButtonDown(const EventArgs& msg)
+{
+    bool bRet = __super::ButtonDown(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    OnLButtonDown(msg.ptMouse, msg.GetSender());
+    return bRet;
+}
+
+bool RichEdit::ButtonUp(const EventArgs& msg)
+{
+    bool bRet = __super::ButtonUp(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    OnLButtonUp(msg.ptMouse, msg.GetSender());
+    return bRet;
+}
+
+bool RichEdit::ButtonDoubleClick(const EventArgs& msg)
+{
+    bool bRet = __super::ButtonDoubleClick(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    OnLButtonDoubleClick(msg.ptMouse, msg.GetSender());
+    return bRet;
+}
+
+bool RichEdit::RButtonDown(const EventArgs& msg)
+{
+    bool bRet = __super::RButtonDown(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    OnRButtonDown(msg.ptMouse, msg.GetSender());
+    return bRet;
+}
+
+bool RichEdit::RButtonUp(const EventArgs& msg)
+{
+    bool bRet = __super::RButtonUp(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    OnRButtonUp(msg.ptMouse, msg.GetSender());
+    return bRet;
+}
+
+bool RichEdit::MouseMove(const EventArgs& msg)
+{
+    bool bRet = __super::MouseMove(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    OnMouseMove(msg.ptMouse, msg.GetSender());
+    return bRet;
+}
+
+bool RichEdit::MouseWheel(const EventArgs& msg)
+{
+    bool bRet = __super::MouseWheel(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    OnMouseWheel(IsKeyDown(msg, ModifierKey::kControl));
+    return bRet;
+}
+
+bool RichEdit::OnWindowKillFocus(const EventArgs& msg)
+{
+    bool bRet = __super::OnWindowKillFocus(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    OnWindowKillFocus();
+    return bRet;
+}
+
+void RichEdit::OnLButtonDown(const UiPoint& ptMouse, Control* pSender)
+{
+    if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+    m_bMouseDownInView = (pSender == this) ? true : false;
+    m_bMouseDown = true;
+    m_pMouseSender = pSender;
+    UiSize64 scrollPos = GetScrollPos();
+    m_ptMouseDown.cx = ptMouse.x + scrollPos.cx;
+    m_ptMouseDown.cy = ptMouse.y + scrollPos.cy;
+
+    //调整光标位置到鼠标点击位置
+    int32_t nCharPosIndex = CharFromPos(ptMouse);
+    SetSel(nCharPosIndex, nCharPosIndex);
+}
+
+void RichEdit::OnLButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
+{
+    if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+    m_bMouseDownInView = false;
+    m_bMouseDown = false;
+    m_pMouseSender = nullptr;
+
+    if (IsEnabled() && !m_bSelAllEver) {
+        m_bSelAllEver = true;
+        if (m_bSelAllOnFocus) {
+            SetSelAll();
+            if (IsMultiLine()) {
+                HomeUp();
+            }
+            else {
+                HomeLeft();
+            }
+        }
+    }
+}
+
+void RichEdit::OnLButtonDoubleClick(const UiPoint& /*ptMouse*/, Control* /*pSender*/)
+{
+    if (IsReadOnly()) {
+        //只读模式下，双击则全选文本
+        SetSelAll();
+    }
+}
+
+void RichEdit::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
+{
+    if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+    m_bMouseDownInView = (pSender == this) ? true : false;
+    m_bRMouseDown = true;
+    m_pMouseSender = pSender;
+    UiSize64 scrollPos = GetScrollPos();
+    m_ptMouseDown.cx = ptMouse.x + scrollPos.cx;
+    m_ptMouseDown.cy = ptMouse.y + scrollPos.cy;
+
+    if (!HasSelText()) {
+        //调整光标位置到鼠标点击位置
+        int32_t nCharPosIndex = CharFromPos(ptMouse);
+        SetSel(nCharPosIndex, nCharPosIndex);
+    }    
+}
+
+void RichEdit::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
+{
+    if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+    m_bMouseDownInView = false;
+    m_bRMouseDown = false;
+    m_pMouseSender = nullptr;
+}
+
+void RichEdit::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
+{
+    if ((m_bMouseDown || m_bRMouseDown) &&
+        (pSender != nullptr) &&
+        (m_pMouseSender == pSender) && pSender->IsMouseFocused()) {
+        UiSize64 scrollPos = GetScrollPos();
+        m_ptMouseMove.cx = ptMouse.x + scrollPos.cx;
+        m_ptMouseMove.cy = ptMouse.y + scrollPos.cy;
+
+        //鼠标移动超过指定像素数的时候，才开始按移动操作，避免将正常的点击操作识别为框选操作
+        constexpr const int32_t minPt = 8;
+        if (!m_bInMouseMove) {
+            if ((std::abs(m_ptMouseMove.cx - m_ptMouseDown.cx) > minPt) ||
+                (std::abs(m_ptMouseMove.cy - m_ptMouseDown.cy) > minPt)) {
+                //开始框选操作
+                m_bInMouseMove = true;
+                OnCheckScrollView();
+            }
+        }
+        else {
+            //按需滚动视图，并更新鼠标在滚动后的位置            
+            OnCheckScrollView();
+        }
+    }
+    else if (m_bInMouseMove) {
+        m_bInMouseMove = false;
+        Invalidate();
+    }
+}
+
+void RichEdit::OnMouseWheel(bool bCtrlDown)
+{
+    if (IsEnableWheelZoom()) {
+        //Ctrl + 滚轮：缩放功能
+        //OnMouseMessage(WM_MOUSEWHEEL, msg);
+        int32_t nNum = 0;
+        int32_t nDen = 0;
+        // m_richCtrl.GetZoom(nNum, nDen);
+        SendEvent(kEventZoom, (WPARAM)nNum, (LPARAM)nDen);
+    }
+}
+
+void RichEdit::OnWindowKillFocus()
+{
+    if (m_bInMouseMove) {
+        Invalidate();
+    }
+    m_bMouseDownInView = false;
+    m_bMouseDown = false;
+    m_bRMouseDown = false;
+    m_bInMouseMove = false;
+    m_pMouseSender = nullptr;
+}
+
+void RichEdit::OnCheckScrollView()
+{
+    if (!m_bInMouseMove) {
+        //取消定时器
+        m_scrollViewFlag.Cancel();
+        return;
+    }
+    bool bScrollView = false;
+    const UiSize64 scrollPos = GetScrollPos();
+    UiSize64 pt = m_ptMouseMove;
+    pt.cx -= scrollPos.cx;
+    pt.cy -= scrollPos.cy;
+    const UiSize64 ptMouseMove = pt; //记录原值
+
+    if (m_bInMouseMove) {
+        int32_t nHScrollValue = DUI_NOSET_VALUE;
+        int32_t nVScrollValue = DUI_NOSET_VALUE;
+        GetScrollDeltaValue(nHScrollValue, nVScrollValue);
+        UiRect viewRect = GetRect();
+        if (pt.cx <= viewRect.left) {
+            //向左滚动视图
+            LineLeft(nHScrollValue);
+            bScrollView = true;
+        }
+        else if (pt.cx >= viewRect.right) {
+            //向右滚动视图
+            LineRight(nHScrollValue);
+            bScrollView = true;
+        }
+        if (pt.cy <= viewRect.top) {
+            //向上滚动视图
+            LineUp(nVScrollValue, false);
+            bScrollView = true;
+        }
+        else if (pt.cy >= viewRect.bottom) {
+            //向下滚动视图
+            LineDown(nVScrollValue, false);
+            bScrollView = true;
+        }
+    }
+
+    if (bScrollView) {
+        UiSize64 scrollPosNew = GetScrollPos();
+        if (scrollPos != scrollPosNew) {
+            //更新鼠标位置
+            m_ptMouseMove.cx = ptMouseMove.cx + scrollPosNew.cx;
+            m_ptMouseMove.cy = ptMouseMove.cy + scrollPosNew.cy;
+        }
+
+        //启动定时器
+        m_scrollViewFlag.Cancel();
+        GlobalManager::Instance().Timer().AddTimer(m_scrollViewFlag.GetWeakFlag(),
+                                                   UiBind(&RichEdit::OnCheckScrollView, this),
+                                                   50, 1); //只执行一次
+    }
+    else {
+        //取消定时器
+        m_scrollViewFlag.Cancel();
+    }
+
+    int64_t top = std::min(m_ptMouseDown.cy, m_ptMouseMove.cy);
+    int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy);
+    int64_t left = std::min(m_ptMouseDown.cx, m_ptMouseMove.cx);
+    int64_t right = std::max(m_ptMouseDown.cx, m_ptMouseMove.cx);
+
+    OnFrameSelection(left, right, top, bottom);
+}
+
+void RichEdit::GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const
+{
+}
+
+void RichEdit::OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom)
+{
+    const UiSize64 scrollPos = GetScrollPos();//用于恢复字符绘制区域的坐标系
+    UiRectF rcSelection;
+    rcSelection.left = (float)ui::TruncateToInt32(left - scrollPos.cx);
+    rcSelection.right = (float)ui::TruncateToInt32(right - scrollPos.cx);
+    rcSelection.top = (float)ui::TruncateToInt32(top - scrollPos.cy);
+    rcSelection.bottom = (float)ui::TruncateToInt32(bottom - scrollPos.cy);
+    if (rcSelection.IsEmpty()) {
+        return;
+    }
+
+    //重新计算坐标
+    Redraw();
+    CalcTextRects();
+
+    //TODO:TEST
+    int32_t nStart = CharFromPos(UiPoint(rcSelection.left, rcSelection.top));
+    int32_t nEnd = CharFromPos(UiPoint(rcSelection.right, rcSelection.bottom));
+    SetSel(nStart, nEnd);
+    return;
+    //TEST
+
+    //计算选择区域关联的起始行号和结束行号
+    int32_t nSelStartRow = -1;
+    int32_t nSelEndRow = -1;
+    const std::map<int32_t, RowTextInfo>& rowTextInfo = m_rowTextInfo;
+    for (auto iter = rowTextInfo.begin(); iter != rowTextInfo.end(); ++iter) {
+        const UiRectF& rowRect = iter->second.m_rowRect;
+        if ((rowRect.bottom > rcSelection.top) && (rowRect.top < rcSelection.bottom)) {
+            if (nSelStartRow == -1) {
+                nSelStartRow = iter->first;
+            }
+            nSelEndRow = iter->first;
+        }
+    }
+
+    if ((nSelStartRow < 0) || (nSelEndRow < nSelStartRow)) {
+        return;
+    }
+
+    //选择此范围内的所有文字
+    int32_t nSelStart = -1;
+    int32_t nSelEnd = -1;
+    UiRectF rcTemp;
+    const std::vector<MeasureCharRects>& textRects = m_textRects;
+    const size_t nCount = textRects.size();
+
+    auto iterStartRow = m_rowTextInfo.find(nSelStartRow);
+    auto iterEndRow = m_rowTextInfo.find(nSelEndRow);
+    if (iterStartRow != m_rowTextInfo.end()) {
+        if ((iterStartRow->second.m_nTextStart < nCount) && (iterStartRow->second.m_nTextEnd < nCount)) {
+            for (size_t nIndex = iterStartRow->second.m_nTextStart; nIndex <= iterStartRow->second.m_nTextEnd; ++nIndex) {
+                //寻找开始字符
+                const MeasureCharRects& charRect = textRects[nIndex];
+                if (UiRectF::Intersect(rcTemp, charRect.m_charRect, rcSelection)) {
+                    nSelStart = (int32_t)nIndex;
+                    break;
+                }
+            }
+            if (nSelStart == -1) {
+                const UiRectF& rowRect = iterStartRow->second.m_rowRect;
+                if (rcSelection.right <= rowRect.left) {
+                    //在行文本的左侧，取该行的首字符
+                    nSelStart = (int32_t)iterStartRow->second.m_nTextStart;
+                }
+                else if (rcSelection.left >= rowRect.right) {
+                    //在行文本的右侧, 去下一行的首个字符
+                    nSelStart = (int32_t)iterStartRow->second.m_nTextEnd + 1;
+                    if (nSelStart >= (int32_t)nCount) {
+                        nSelStart = (int32_t)nCount - 1;
+                    }
+                }
+            }
+        }
+    }
+    if (iterEndRow != m_rowTextInfo.end()) {
+        if ((iterEndRow->second.m_nTextStart < nCount) && (iterEndRow->second.m_nTextEnd < nCount)) {
+            for (size_t nIndex = iterEndRow->second.m_nTextStart; nIndex <= iterEndRow->second.m_nTextEnd; ++nIndex) {
+                //寻找结束字符
+                const MeasureCharRects& charRect = textRects[nIndex];
+                if (UiRectF::Intersect(rcTemp, charRect.m_charRect, rcSelection)) {
+                    nSelEnd = (int32_t)nIndex + 1;
+                }
+            }
+            if (nSelEnd == -1) {
+                const UiRectF& rowRect = iterEndRow->second.m_rowRect;
+                if (rcSelection.right <= rowRect.left) {
+                    //在行文本的左侧，取该行的首字符
+                    nSelEnd = (int32_t)iterEndRow->second.m_nTextStart + 1;
+                }
+                else if (rcSelection.left >= rowRect.right) {
+                    //在行文本的右侧, 去下一行的首个字符
+                    nSelEnd = (int32_t)iterEndRow->second.m_nTextEnd + 1;                    
+                }
+            }
+            if (nSelEnd != -1) {
+                if (nSelEnd > (int32_t)nCount) {
+                    nSelEnd = (int32_t)nCount;
+                }
+            }
+        }
+    }
+
+    //ASSERT(nSelStart == m_nSelStartIndex);
+    //TODO: 这里只使用m_nSelStartIndex就可以，不需要计算nSelStart值
+    nSelStart = m_nSelStartIndex;
+    if ((nSelStart != -1) && (nSelEnd > nSelStart)) {
+        SetSel(nSelStart, nSelEnd);
+    }
+    else {
+        SetSelNone();
+    }
+}
 
 } // namespace ui
 

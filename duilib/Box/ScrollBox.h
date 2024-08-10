@@ -76,13 +76,13 @@ public:
     
     /** 向上滚动滚动条
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
-      * @param[in] withAnimation 是否附带动画效果，默认为 true
+     * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
     virtual void LineUp(int deltaValue = DUI_NOSET_VALUE, bool withAnimation = true);
     
     /** 向下滚动滚动条
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
-      * @param[in] withAnimation 是否附带动画效果，默认为 true
+     * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
     virtual void LineDown(int deltaValue = DUI_NOSET_VALUE, bool withAnimation = true);
     

@@ -28,7 +28,6 @@ public:
     virtual void SetScrollPos(UiSize64 szPos) override;
     virtual void PaintStateImages(IRender* pRender) override;
     virtual void ClearImageCache() override;
-    virtual void HandleEvent(const EventArgs& msg) override;
     virtual UiSize EstimateText(UiSize szAvailable) override;
     virtual UiSize64 CalcRequiredSize(const UiRect& rc) override;
 
@@ -572,7 +571,7 @@ public:
      * @param[in] pt 坐标信息
      * @return 返回值指定了距指定点最近字符的从零开始的字符索引。 如果指定点超出控件中的最后一个字符，则返回值会指示编辑控件中的最后一个字符。
      */
-    int32_t CharFromPos(UiPoint pt) const;
+    int32_t CharFromPos(UiPoint pt);
 
     /** 清空撤销列表
      */
@@ -586,12 +585,16 @@ public:
 
 public:
     /** 向上一行
+     * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
+     * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
-    virtual void LineUp();
+    virtual void LineUp(int deltaValue = DUI_NOSET_VALUE, bool withAnimation = true) override;
 
     /** 向下一行
+     * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
+     * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
-    virtual void LineDown();
+    virtual void LineDown(int deltaValue = DUI_NOSET_VALUE, bool withAnimation = true) override;
 
     /** 向上翻页
      */
@@ -605,17 +608,21 @@ public:
      */
     virtual void HomeUp() override;
 
-    /** 返回到底部
+    /** 滚动到最底部
+     * @param[in] arrange 是否重置滚动条位置，默认为 true
+     * @param[in] withAnimation 是否包含动画特效，默认为 true
      */
-    virtual void EndDown();
+    virtual void EndDown(bool arrange = true, bool withAnimation = true) override;
 
     /** 水平向左滚动
+     * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
      */
-    virtual void LineLeft();
+    virtual void LineLeft(int deltaValue = DUI_NOSET_VALUE) override;
 
     /** 水平向右滚动
+     * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
      */
-    virtual void LineRight();
+    virtual void LineRight(int deltaValue = DUI_NOSET_VALUE) override;
 
     /** 水平向左翻页
      */
@@ -650,11 +657,29 @@ protected:
     virtual bool OnKeyDown(const EventArgs& msg) override;
     virtual bool OnChar(const EventArgs& msg) override;
 
-
+    //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
+    virtual bool ButtonDown(const EventArgs& msg) override;
+    virtual bool ButtonUp(const EventArgs& msg) override;
+    virtual bool ButtonDoubleClick(const EventArgs& msg) override;
+    virtual bool RButtonDown(const EventArgs& msg) override;
+    virtual bool RButtonUp(const EventArgs& msg) override;
+    virtual bool MouseMove(const EventArgs& msg) override;
+    virtual bool MouseWheel(const EventArgs& msg) override;
+    virtual bool OnWindowKillFocus(const EventArgs& msg) override;//控件所属的窗口失去焦点
 
     //绘制相关函数
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
+
+private:
+    void OnLButtonDown(const UiPoint& ptMouse, Control* pSender);
+    void OnLButtonUp(const UiPoint& ptMouse, Control* pSender);
+    void OnLButtonDoubleClick(const UiPoint& ptMouse, Control* pSender);
+    void OnRButtonDown(const UiPoint& ptMouse, Control* pSender);
+    void OnRButtonUp(const UiPoint& ptMouse, Control* pSender);
+    void OnMouseMove(const UiPoint& ptMouse, Control* pSender);
+    void OnMouseWheel(bool bCtrlDown);
+    void OnWindowKillFocus();
 
 private:
     /** 显示RichEdit上的菜单
@@ -753,10 +778,20 @@ private:
 #endif
 
 private:
-    /** 调整光标的位置
+    /** 调整光标的位置（按点的坐标）
     * @param [in] pt 需要设置调整的位置（客户区坐标），如果为(-1,-1)表示需要定位光标的位置
     */
-    void AdjustCaretPos(const UiPoint& pt);
+    void SetCaretPos(const UiPoint& pt);
+
+    /** 调整光标的位置（按字符位置）
+    */
+    void SetCaretPos(int32_t nCharPosIndex);
+
+    /** 设置光标位置
+     * @param [in] xPos X 轴坐标
+     * @param [in] yPos Y 轴坐标
+     */
+    void SetCaretPosInternal(int32_t xPos, int32_t yPos);
 
     /** 获取当前绘制文字的属性
     */
@@ -769,6 +804,10 @@ private:
     /** 计算绘制后的目标区域大小
     */
     void CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect) const;
+
+    /** 检查并按需重新计算文本区域
+    */
+    void CheckCalcTextRects();
 
     /** 计算文本的区域信息
     */
@@ -783,6 +822,30 @@ private:
     /** 重绘
     */
     void Redraw();
+
+    /** 检查是否需要滚动视图
+    */
+    void OnCheckScrollView();
+
+    /** 获取滚动视图的滚动幅度
+    */
+    void GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const;
+
+    /** 执行了鼠标框选操作(坐标包含了scrollPos值)
+    * @param [in] left 框选的X坐标left值
+    * @param [in] right 框选的X坐标right值
+    * @param [in] top 框选的Y坐标top值
+    * @param [in] bottom 框选的Y坐标bottom值
+    */
+    void OnFrameSelection(int64_t nLeft, int64_t right, int64_t top, int64_t bottom);
+
+    /** 获取下一个有效字符的索引号
+    */
+    size_t GetNextValidCharIndex(const std::vector<MeasureCharRects>& textRects, size_t nCurrentIndex) const;
+
+    /** 获取前一个有效字符的索引号
+    */
+    size_t GetPrevValidCharIndex(const std::vector<MeasureCharRects>& textRects, size_t nCurrentIndex) const;
 
 private:
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
@@ -820,7 +883,7 @@ private:
     int32_t m_iCaretHeight;     //光标高度
     UiString m_sCaretColor;     //光标颜色
 
-    int32_t m_nLineHeight;      //行高，与字体有关
+    int32_t m_nRowHeight;       //行高(逻辑行)，与字体有关
 
     WeakCallbackFlag m_drawCaretFlag;   //绘制光标的定时器生命周期
 
@@ -914,9 +977,25 @@ private:
     */
     std::vector<MeasureCharRects> m_textRects;
 
+    /** 逻辑行的基本信息
+    */
+    struct RowTextInfo
+    {
+        /** 该行的文字所占矩形区域
+        */
+        UiRectF m_rowRect;
+
+        /** 文本字符的起始下标值
+        */
+        size_t m_nTextStart = DStringW::npos;
+
+        /** 文本字符的结束下标值
+        */
+        size_t m_nTextEnd = DStringW::npos;
+    };
     /** 文本内容所占的行区域信息(Key为行号，Value为该行的所占的矩形区域)
     */
-    std::map<int32_t, UiRectF> m_lineTextRects;
+    std::map<int32_t, RowTextInfo> m_rowTextInfo;
 
     /** 文本内容所占用的矩形区域
     */
@@ -934,6 +1013,39 @@ private:
     /** 选择的结束字符
     */
     int32_t m_nSelEndCharIndex;
+
+private:
+    /** 是否鼠标在视图中按下左键或者右键
+    */
+    bool m_bMouseDownInView;
+
+    /** 是否鼠标左键按下
+    */
+    bool m_bMouseDown;
+
+    /** 是否鼠标右键按下
+    */
+    bool m_bRMouseDown;
+
+    /** 是否处于鼠标滑动操作中
+    */
+    bool m_bInMouseMove;
+
+    /** 鼠标按下时的鼠标位置
+    */
+    UiSize64 m_ptMouseDown;
+
+    /** 鼠标滑动时的鼠标位置
+    */
+    UiSize64 m_ptMouseMove;
+
+    /** 鼠标按下时的控件接口
+    */
+    Control* m_pMouseSender;
+
+    /** 定时器滚动视图时的取消机制
+    */
+    WeakCallbackFlag m_scrollViewFlag;
 };
 
 } // namespace ui
