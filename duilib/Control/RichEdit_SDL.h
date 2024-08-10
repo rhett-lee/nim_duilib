@@ -103,6 +103,14 @@ public:
     */
     DString GetSelectionBkColor() const;
 
+    /** 设置当前行的背景颜色（光标所在行）
+    */
+    void SetCurrentRowBkColor(const DString& currentRowBkColor);
+
+    /** 获取当前行的背景颜色
+    */
+    DString GetCurrentRowBkColor() const;
+
 public:
     /** 设置是否显示提示文字
  * @param[in] bPrompt 设置为 true 为显示，false 为不显示
@@ -748,7 +756,11 @@ private:
      */
     void PaintCaret(IRender* pRender, const UiRect& rcPaint);
 
-    /** 绘制选择背景
+    /** 绘制当前编辑行的背景色
+    */
+    void PaintCurrentRowBkColor(IRender* pRender, const UiRect& rcPaint);
+
+    /** 绘制选择背景色
     */
     void PaintSelectionColor(IRender* pRender, const UiRect& rcPaint);
 
@@ -892,6 +904,7 @@ private:
     UiString m_sTextColor;              //正常文本颜色
     UiString m_sDisabledTextColor;      //Disabled状态的文本颜色
 
+    UiString m_sCurrentRowBkColor;      //当前行的背景颜色（光标所在行）
     UiString m_sSelectionBkColor;       //选择文本的背景颜色
 
     bool m_bAllowPrompt;                //是否支持提示文字

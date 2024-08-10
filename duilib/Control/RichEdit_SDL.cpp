@@ -291,9 +291,13 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
 
 
     ////////////////////////////新添加属性, 需要添加到文档中
-    else if (strName == _T("selection_bk_color")) {
+    else if (strName == _T("selection_bkcolor")) {
         //选择文本的背景色
         SetSelectionBkColor(strValue);
+    }
+    else if (strName == _T("current_row_bkcolor")) {
+        //当前行的背景色
+        SetCurrentRowBkColor(strValue);
     }
     else {
         ScrollBox::SetAttribute(strName, strValue);
@@ -558,6 +562,16 @@ void RichEdit::SetSelectionBkColor(const DString& selectionBkColor)
 DString RichEdit::GetSelectionBkColor() const
 {
     return m_sSelectionBkColor.c_str();
+}
+
+void RichEdit::SetCurrentRowBkColor(const DString& currentRowBkColor)
+{
+    m_sCurrentRowBkColor = currentRowBkColor;
+}
+
+DString RichEdit::GetCurrentRowBkColor() const
+{
+    return m_sCurrentRowBkColor.c_str();
 }
 
 int32_t RichEdit::GetLimitText() const
@@ -1149,7 +1163,11 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         m_spDrawRichTextCache.reset();
         CalcTextRects();
     }
-    //绘制
+
+    //绘制当前编辑行的背景色
+    PaintCurrentRowBkColor(pRender, rcPaint);
+
+    //绘制文字
     std::vector<RichTextData> richTextDataList;
     GetRichTextForDraw(richTextDataList);
     UiRect rcDrawText = GetTextDrawRect(GetRect());
@@ -1162,7 +1180,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         }
     }
 
-    //绘制选择背景
+    //绘制选择背景色
     PaintSelectionColor(pRender, rcPaint);
 
     //绘制文字
@@ -1452,6 +1470,43 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
                 dwClrColor = this->GetUiColor(m_sCaretColor.c_str());
             }
             pRender->DrawLine(UiPoint(xPos + 1, yPos), UiPoint(xPos + 1, yPos + yHeight), dwClrColor, xWidth);
+        }
+    }
+}
+
+void RichEdit::PaintCurrentRowBkColor(IRender* pRender, const UiRect& rcPaint)
+{
+    if (IsReadOnly() || !IsEnabled()) {
+        return;
+    }
+    UiColor currentRowBkColor;
+    DString strCurrentRowBkColor = GetCurrentRowBkColor();
+    if (!strCurrentRowBkColor.empty()) {
+        currentRowBkColor = GetUiColor(strCurrentRowBkColor);
+    }
+    if (currentRowBkColor.IsEmpty()) {
+        return;
+    }
+
+    int32_t nStartChar = 0;
+    int32_t nEndChar = 0;
+    GetSel(nStartChar, nEndChar);
+    const int32_t nTextCount = (int32_t)m_textRects.size();
+    if ((nEndChar >= 0) && (nTextCount > 0) && (nEndChar <= nTextCount)) {
+        if (nEndChar == nTextCount) {
+            nEndChar = nTextCount - 1;
+        }
+        const MeasureCharRects& charRect = m_textRects[nEndChar];
+        auto iter = m_rowTextInfo.find(charRect.m_nRowIndex);
+        if (iter != m_rowTextInfo.end()) {
+            const UiRectF& rowRectF = iter->second.m_rowRect;
+            UiRect rc = GetTextDrawRect(GetRect());
+            UiRect rowRect;
+            rowRect.left = rc.left;
+            rowRect.right = rc.right;
+            rowRect.top = (int32_t)rowRectF.top;
+            rowRect.bottom = (int32_t)std::ceilf(rowRectF.bottom);
+            pRender->FillRect(rowRect, currentRowBkColor);
         }
     }
 }
@@ -2300,17 +2355,17 @@ int32_t RichEdit::CharFromPos(UiPoint pt)
     int32_t nCharPosIndex = -1;
     UiRect rc = m_textRect;
     if (!rc.ContainsPt(pt)) {
-        if (pt.x < rc.top) {
+        if (pt.y < rc.top) {
             nCharPosIndex = 0;
         }
-        else {
+        else if(pt.y > rc.bottom) {
             nCharPosIndex = nTextLength;
         }
     }
-    else if (m_textRects.empty()) {
+    if (m_textRects.empty()) {
         nCharPosIndex = 0;
     }
-    else {
+    else if (nCharPosIndex == -1) {
         //计算选择区域的行号
         size_t nRowStartIndex = (size_t)-1;
         size_t nRowEndIndex = (size_t)-1;
@@ -3249,103 +3304,9 @@ void RichEdit::OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_
     Redraw();
     CalcTextRects();
 
-    //TODO:TEST
     int32_t nStart = CharFromPos(UiPoint(rcSelection.left, rcSelection.top));
     int32_t nEnd = CharFromPos(UiPoint(rcSelection.right, rcSelection.bottom));
     SetSel(nStart, nEnd);
-    return;
-    //TEST
-
-    //计算选择区域关联的起始行号和结束行号
-    int32_t nSelStartRow = -1;
-    int32_t nSelEndRow = -1;
-    const std::map<int32_t, RowTextInfo>& rowTextInfo = m_rowTextInfo;
-    for (auto iter = rowTextInfo.begin(); iter != rowTextInfo.end(); ++iter) {
-        const UiRectF& rowRect = iter->second.m_rowRect;
-        if ((rowRect.bottom > rcSelection.top) && (rowRect.top < rcSelection.bottom)) {
-            if (nSelStartRow == -1) {
-                nSelStartRow = iter->first;
-            }
-            nSelEndRow = iter->first;
-        }
-    }
-
-    if ((nSelStartRow < 0) || (nSelEndRow < nSelStartRow)) {
-        return;
-    }
-
-    //选择此范围内的所有文字
-    int32_t nSelStart = -1;
-    int32_t nSelEnd = -1;
-    UiRectF rcTemp;
-    const std::vector<MeasureCharRects>& textRects = m_textRects;
-    const size_t nCount = textRects.size();
-
-    auto iterStartRow = m_rowTextInfo.find(nSelStartRow);
-    auto iterEndRow = m_rowTextInfo.find(nSelEndRow);
-    if (iterStartRow != m_rowTextInfo.end()) {
-        if ((iterStartRow->second.m_nTextStart < nCount) && (iterStartRow->second.m_nTextEnd < nCount)) {
-            for (size_t nIndex = iterStartRow->second.m_nTextStart; nIndex <= iterStartRow->second.m_nTextEnd; ++nIndex) {
-                //寻找开始字符
-                const MeasureCharRects& charRect = textRects[nIndex];
-                if (UiRectF::Intersect(rcTemp, charRect.m_charRect, rcSelection)) {
-                    nSelStart = (int32_t)nIndex;
-                    break;
-                }
-            }
-            if (nSelStart == -1) {
-                const UiRectF& rowRect = iterStartRow->second.m_rowRect;
-                if (rcSelection.right <= rowRect.left) {
-                    //在行文本的左侧，取该行的首字符
-                    nSelStart = (int32_t)iterStartRow->second.m_nTextStart;
-                }
-                else if (rcSelection.left >= rowRect.right) {
-                    //在行文本的右侧, 去下一行的首个字符
-                    nSelStart = (int32_t)iterStartRow->second.m_nTextEnd + 1;
-                    if (nSelStart >= (int32_t)nCount) {
-                        nSelStart = (int32_t)nCount - 1;
-                    }
-                }
-            }
-        }
-    }
-    if (iterEndRow != m_rowTextInfo.end()) {
-        if ((iterEndRow->second.m_nTextStart < nCount) && (iterEndRow->second.m_nTextEnd < nCount)) {
-            for (size_t nIndex = iterEndRow->second.m_nTextStart; nIndex <= iterEndRow->second.m_nTextEnd; ++nIndex) {
-                //寻找结束字符
-                const MeasureCharRects& charRect = textRects[nIndex];
-                if (UiRectF::Intersect(rcTemp, charRect.m_charRect, rcSelection)) {
-                    nSelEnd = (int32_t)nIndex + 1;
-                }
-            }
-            if (nSelEnd == -1) {
-                const UiRectF& rowRect = iterEndRow->second.m_rowRect;
-                if (rcSelection.right <= rowRect.left) {
-                    //在行文本的左侧，取该行的首字符
-                    nSelEnd = (int32_t)iterEndRow->second.m_nTextStart + 1;
-                }
-                else if (rcSelection.left >= rowRect.right) {
-                    //在行文本的右侧, 去下一行的首个字符
-                    nSelEnd = (int32_t)iterEndRow->second.m_nTextEnd + 1;                    
-                }
-            }
-            if (nSelEnd != -1) {
-                if (nSelEnd > (int32_t)nCount) {
-                    nSelEnd = (int32_t)nCount;
-                }
-            }
-        }
-    }
-
-    //ASSERT(nSelStart == m_nSelStartIndex);
-    //TODO: 这里只使用m_nSelStartIndex就可以，不需要计算nSelStart值
-    nSelStart = m_nSelStartIndex;
-    if ((nSelStart != -1) && (nSelEnd > nSelStart)) {
-        SetSel(nSelStart, nSelEnd);
-    }
-    else {
-        SetSelNone();
-    }
 }
 
 } // namespace ui
