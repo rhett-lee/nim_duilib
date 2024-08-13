@@ -398,6 +398,7 @@
     <ClCompile Include="Control\ListCtrlView.cpp" />
     <ClCompile Include="Control\Menu.cpp" />
     <ClCompile Include="Control\PropertyGrid.cpp" />
+    <ClCompile Include="Control\RichEditData.cpp" />
     <ClCompile Include="Control\RichEditHost_Windows.cpp" />
     <ClCompile Include="Control\RichEdit_SDL.cpp" />
     <ClCompile Include="Control\RichEdit_Windows.cpp" />
@@ -569,6 +570,7 @@
     <ClInclude Include="Control\PropertyGrid.h" />
     <ClInclude Include="Control\RichEdit.h" />
     <ClInclude Include="Control\RichEditCtrl_Windows.h" />
+    <ClInclude Include="Control\RichEditData.h" />
     <ClInclude Include="Control\RichEditHost_Windows.h" />
     <ClInclude Include="Control\RichEdit_SDL.h" />
     <ClInclude Include="Control\RichEdit_Windows.h" />

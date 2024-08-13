@@ -390,7 +390,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
                 DStringW textW = StringUtil::UTF8ToUTF16(sdlEvent.text.text);
                 if (!textW.empty()) {
                     ASSERT(textW.size() == 1);
-                    if (textW.size() == 1) {
+                    if (textW.size() == 1) { //这里可能是2，一个字（比如汉字），可能占1-2个Unicode字符
                         //转换成WM_CHAR事件
                         VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(textW.front());
                         uint32_t modifierKey = GetModifiers(SDL_GetModState());

@@ -51,6 +51,12 @@ public:
     */
     UiSize GetScrollOffset() const;
 
+    /** ScrollOffset 值变化通知接口
+    * @param [in] oldScrollOffset 旧值
+    * @param [in] newScrollOffset 新值
+    */
+    virtual void OnScrollOffsetChanged(const UiSize& /*oldScrollOffset*/, const UiSize& /*newScrollOffset*/) {}
+
     /** 获取滚动条位置(cx代表横向滚动条的位置，cy代表纵向滚动条的位置)
      */
     virtual UiSize64 GetScrollPos() const;

@@ -117,6 +117,7 @@ void ScrollBox::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 
 void ScrollBox::SetPos(UiRect rc)
 {
+    UiSize oldScrollOffset = GetScrollOffset();
     bool bEndDown = false;
     if (IsHoldEnd() && IsVScrollBarValid() && GetScrollRange().cy - GetScrollPos().cy == 0) {
         bEndDown = true;
@@ -124,6 +125,11 @@ void ScrollBox::SetPos(UiRect rc)
     SetPosInternally(rc);
     if (bEndDown && IsVScrollBarValid()) {
         EndDown(false, false);
+    }
+
+    UiSize newScrollOffset = GetScrollOffset();
+    if (newScrollOffset != oldScrollOffset) {
+        OnScrollOffsetChanged(oldScrollOffset, newScrollOffset);
     }
 }
 
@@ -528,6 +534,7 @@ UiSize64 ScrollBox::GetScrollRange() const
 
 void ScrollBox::SetScrollPos(UiSize64 szPos)
 {
+    UiSize oldScrollOffset = GetScrollOffset();
     if (szPos.cy < 0) {
         szPos.cy = 0;
         if (m_pScrollAnimation != nullptr) {
@@ -558,6 +565,11 @@ void ScrollBox::SetScrollPos(UiSize64 szPos)
     if (cx == 0 && cy == 0) {
         return;
     }
+    UiSize newScrollOffset = GetScrollOffset();
+    if (newScrollOffset != oldScrollOffset) {
+        OnScrollOffsetChanged(oldScrollOffset, newScrollOffset);
+    }
+
     Invalidate();
     SendEvent(kEventScrollChange, (cy == 0) ? 0 : 1, (cx == 0) ? 0 : 1);
 }
@@ -1178,26 +1190,41 @@ const UiSize64& ScrollBox::GetScrollVirtualOffset() const
 
 void ScrollBox::SetScrollVirtualOffset(const UiSize64& szOffset)
 {
+    UiSize oldScrollOffset = GetScrollOffset();
     ASSERT(szOffset.cx >= 0);
     ASSERT(szOffset.cy >= 0);
     if ((szOffset.cx >= 0) && (szOffset.cy)) {
         m_scrollVirtualOffset = szOffset;
     }
+    UiSize newScrollOffset = GetScrollOffset();
+    if (newScrollOffset != oldScrollOffset) {
+        OnScrollOffsetChanged(oldScrollOffset, newScrollOffset);
+    }
 }
 
 void ScrollBox::SetScrollVirtualOffsetY(int64_t yOffset)
 {
+    UiSize oldScrollOffset = GetScrollOffset();
     ASSERT(yOffset >= 0);
     if (yOffset >= 0) {
         m_scrollVirtualOffset.cy = yOffset;
+    }
+    UiSize newScrollOffset = GetScrollOffset();
+    if (newScrollOffset != oldScrollOffset) {
+        OnScrollOffsetChanged(oldScrollOffset, newScrollOffset);
     }
 }
 
 void ScrollBox::SetScrollVirtualOffsetX(int64_t xOffset)
 {
+    UiSize oldScrollOffset = GetScrollOffset();
     ASSERT(xOffset >= 0);
     if (xOffset >= 0) {
         m_scrollVirtualOffset.cx = xOffset;
+    }
+    UiSize newScrollOffset = GetScrollOffset();
+    if (newScrollOffset != oldScrollOffset) {
+        OnScrollOffsetChanged(oldScrollOffset, newScrollOffset);
     }
 }
 

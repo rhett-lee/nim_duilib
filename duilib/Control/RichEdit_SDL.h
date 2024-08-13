@@ -3,6 +3,7 @@
 
 #include "duilib/Box/ScrollBox.h"
 #include "duilib/Image/Image.h"
+#include "duilib/Control/RichEditData.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
 
@@ -12,7 +13,7 @@ namespace ui
 class VBox;
 class DrawRichTextCache;
 
-class UILIB_API RichEdit : public ScrollBox
+class UILIB_API RichEdit : public ScrollBox, protected IRichTextData
 {
 public:
     explicit RichEdit(Window* pWindow);
@@ -23,13 +24,14 @@ public:
     //基类的虚函数重写
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& pstrName, const DString& pstrValue) override;
-    virtual void SetEnabled(bool bEnable = true) override;
+    virtual void SetEnabled(bool bEnable = true) override;    
+    virtual void SetWindow(Window* pWindow) override;
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
-    virtual void SetScrollPos(UiSize64 szPos) override;
     virtual void PaintStateImages(IRender* pRender) override;
     virtual void ClearImageCache() override;
     virtual UiSize EstimateText(UiSize szAvailable) override;
     virtual UiSize64 CalcRequiredSize(const UiRect& rc) override;
+    virtual void OnScrollOffsetChanged(const UiSize& oldScrollOffset, const UiSize& newScrollOffset) override;
 
 public:
     /** 设置控件的文本, 会触发文本变化事件
@@ -157,7 +159,7 @@ public:
      */
     UiPadding GetTextPadding() const;
 
-    /** 是否为多行文本
+    /** 是否为多行文本（默认为支持多行，非单行文本模式）
     */
     bool IsMultiLine() const;
 
@@ -465,8 +467,8 @@ public:
     int32_t SetSel(int32_t nStartChar, int32_t nEndChar);
 
     /** 替换所选内容
-     * @param[in] lpszNewText 要替换的文字
-     * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false
+     * @param [in] lpszNewText 要替换的文字
+     * @param [in] bCanUndo 是否可以撤销，true 为可以，否则为 false
      */
     void ReplaceSel(const DString& lpszNewText, bool bCanUndo);
 
@@ -679,6 +681,18 @@ protected:
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
 
+    /** 将文本生成可绘制的格式
+    * @param [in] textView 按行组织切分后的文本视图，每行一条数据（以'\n'切分的行）
+    * @param [out] richTextDataList 返回格式化的文本，返回的容器个数应与传入的textView相同，如果此行不更新，可用填充空数据: RichTextData()
+    */
+    virtual bool GetRichTextForDraw(const std::vector<std::wstring_view>& textView,
+                                    std::vector<RichTextData>& richTextDataList) const override;
+
+    /** 获取文本绘制区域
+    * @param [in] rcTextDrawRect 返回当前文本绘制的区域
+    */
+    virtual void GetRichTextDrawRect(UiRect& rcTextDrawRect) const override;
+
 private:
     void OnLButtonDown(const UiPoint& ptMouse, Control* pSender);
     void OnLButtonUp(const UiPoint& ptMouse, Control* pSender);
@@ -791,7 +805,7 @@ private:
 
 private:
     /** 调整光标的位置（按点的坐标）
-    * @param [in] pt 需要设置调整的位置（客户区坐标），如果为(-1,-1)表示需要定位光标的位置
+    * @param [in] pt 需要设置调整的位置（客户区坐标）
     */
     void SetCaretPos(const UiPoint& pt);
 
@@ -812,18 +826,6 @@ private:
     /** 将文本生成可绘制的格式
     */
     bool GetRichTextForDraw(std::vector<RichTextData>& richTextDataList) const;
-
-    /** 计算绘制后的目标区域大小
-    */
-    void CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect) const;
-
-    /** 检查并按需重新计算文本区域
-    */
-    void CheckCalcTextRects();
-
-    /** 计算文本的区域信息
-    */
-    void CalcTextRects();
 
     /** 获取文本绘制区域
     * @param [in] rc 当前控件的矩形区域
@@ -851,13 +853,9 @@ private:
     */
     void OnFrameSelection(int64_t nLeft, int64_t right, int64_t top, int64_t bottom);
 
-    /** 获取下一个有效字符的索引号
+    /** 在当前光标位置，插入一个字符（文本输入模式）
     */
-    size_t GetNextValidCharIndex(const std::vector<MeasureCharRects>& textRects, size_t nCurrentIndex) const;
-
-    /** 获取前一个有效字符的索引号
-    */
-    size_t GetPrevValidCharIndex(const std::vector<MeasureCharRects>& textRects, size_t nCurrentIndex) const;
+    void OnInputChar(const EventArgs& msg);
 
 private:
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
@@ -881,7 +879,7 @@ private:
 
     bool m_bNumberOnly;         //是否只允许输入数字
     bool m_bWordWrap;           //当显示超出边界时，是否自动换行
-    bool m_bMultiLine;          //是否支持多行文本
+    bool m_bSingleLineMode;     //是否为单行文本模式
 
     int32_t m_nLimitText;       //最大文本字符数（仅当为正数的时候代表有限制）
     bool m_bModified;           //文本内容是否有修改
@@ -982,37 +980,9 @@ private:
     bool m_bActive;
 
 private:
-    /** 文本内容
+    /** 文本内容管理接口
     */
-    DStringW m_text;
-
-    /** 文本内容所占的区域信息
-    */
-    std::vector<MeasureCharRects> m_textRects;
-
-    /** 逻辑行的基本信息
-    */
-    struct RowTextInfo
-    {
-        /** 该行的文字所占矩形区域
-        */
-        UiRectF m_rowRect;
-
-        /** 文本字符的起始下标值
-        */
-        size_t m_nTextStart = DStringW::npos;
-
-        /** 文本字符的结束下标值
-        */
-        size_t m_nTextEnd = DStringW::npos;
-    };
-    /** 文本内容所占的行区域信息(Key为行号，Value为该行的所占的矩形区域)
-    */
-    std::map<int32_t, RowTextInfo> m_rowTextInfo;
-
-    /** 文本内容所占用的矩形区域
-    */
-    UiRect m_textRect;
+    RichEditData* m_pTextData;
 
     /** 文本绘制缓存
     */

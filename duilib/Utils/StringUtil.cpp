@@ -1305,12 +1305,28 @@ int32_t StringUtil::StringCopy(wchar_t* dest, size_t destSize, const wchar_t* sr
     return ::wcscpy_s(dest, destSize, src);
 }
 
+int32_t StringUtil::StringNCopy(wchar_t* dest, size_t destSize, const wchar_t* src, size_t srcSize)
+{
+    if ((dest == nullptr) || (destSize == 0) || (src == nullptr) || (srcSize == 0)) {
+        return 0;
+    }
+    return ::wcsncpy_s(dest, destSize, src, srcSize);
+}
+
 int32_t StringUtil::StringCopy(char* dest, size_t destSize, const char* src)
 {
     if ((dest == nullptr) || (destSize == 0) || (src == nullptr)) {
         return 0;
     }
     return ::strcpy_s(dest, destSize, src);
+}
+
+int32_t StringUtil::StringNCopy(char* dest, size_t destSize, const char* src, size_t srcSize)
+{
+    if ((dest == nullptr) || (destSize == 0) || (src == nullptr) || (srcSize == 0)) {
+        return 0;
+    }
+    return ::strncpy_s(dest, destSize, src, srcSize);
 }
 
 size_t StringUtil::StringLen(const wchar_t* str)

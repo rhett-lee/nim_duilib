@@ -534,6 +534,9 @@
     <ClCompile Include="Control\RichEdit_SDL.cpp">
       <Filter>Control\SDL</Filter>
     </ClCompile>
+    <ClCompile Include="Control\RichEditData.cpp">
+      <Filter>Control\SDL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1114,6 +1117,9 @@
     </ClInclude>
     <ClInclude Include="Core\UiRectF.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEditData.h">
+      <Filter>Control\SDL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

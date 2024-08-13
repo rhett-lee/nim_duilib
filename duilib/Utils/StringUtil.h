@@ -187,6 +187,7 @@ public:
     }
 
     static int32_t StringCopy(wchar_t* dest, size_t destSize, const wchar_t* src);
+    static int32_t StringNCopy(wchar_t* dest, size_t destSize, const wchar_t* src, size_t srcSize);
 
     template <size_t _Size>
     static inline int32_t StringCopy(char(&dest)[_Size], const char* src)
@@ -195,6 +196,7 @@ public:
     }
 
     static int32_t StringCopy(char* dest, size_t destSize, const char* src);
+    static int32_t StringNCopy(char* dest, size_t destSize, const char* src, size_t srcSize);
 
     /** 计算字符串的长度
     */

@@ -71,6 +71,69 @@ public:
         return *this;
     }
 
+#ifdef DUILIB_UNICODE
+    UiString& operator=(const std::wstring_view& str)
+    {
+        if (m_pData != nullptr) {
+            delete m_pData;
+            m_pData = nullptr;
+        }
+        if (!str.empty()) {
+            size_t strSize = str.size();
+            m_pData = new DString::value_type[strSize + 1];
+            StringUtil::StringNCopy(m_pData, strSize + 1, str.data(), str.size());
+        }
+        return *this;
+    }
+
+    UiString& operator=(const DStringW::value_type* pstr)
+    {
+        if (m_pData != nullptr) {
+            delete m_pData;
+            m_pData = nullptr;
+        }
+        if (pstr != nullptr) {
+            std::wstring_view str(pstr);
+            if (!str.empty()) {
+                size_t strSize = str.size();
+                m_pData = new DString::value_type[strSize + 1];
+                StringUtil::StringNCopy(m_pData, strSize + 1, str.data(), str.size());
+            }
+        }
+        return *this;
+    }
+#else
+    UiString& operator=(const std::string_view& str)
+    {
+        if (m_pData != nullptr) {
+            delete m_pData;
+            m_pData = nullptr;
+        }
+        if (!str.empty()) {
+            size_t strSize = str.size();
+            m_pData = new DString::value_type[strSize + 1];
+            StringUtil::StringNCopy(m_pData, strSize + 1, str.data(), str.size());
+        }
+        return *this;
+    }
+    UiString& operator=(const DString::value_type* pstr)
+    {
+        if (m_pData != nullptr) {
+            delete m_pData;
+            m_pData = nullptr;
+        }
+        if (pstr != nullptr) {
+            std::string_view str(pstr);
+            if (!str.empty()) {
+                size_t strSize = str.size();
+                m_pData = new DString::value_type[strSize + 1];
+                StringUtil::StringNCopy(m_pData, strSize + 1, str.data(), str.size());
+            }
+        }
+        return *this;
+    }
+#endif
+
     bool equals(const DString& str) const
     {
         if (str.empty()) {

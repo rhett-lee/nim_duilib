@@ -1832,6 +1832,11 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                         charRect.m_nRowIndex = nRowIndex;
                         charRect.m_bReturn = true;
                         charRect.m_bIgnoredChar = true;
+                        charRect.m_charRect.left = xPos;
+                        charRect.m_charRect.right = xPos;
+                        charRect.m_charRect.top = (SkScalar)yPos;
+                        charRect.m_charRect.bottom = charRect.m_charRect.top + nRowHeight;
+                        ASSERT(nRowHeight > 0);
                         pMeasureCharRects->emplace_back(std::move(charRect));
                     }
                     continue; //忽略回车
@@ -1849,6 +1854,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                         charRect.m_charRect.right = xPos;
                         charRect.m_charRect.top = (SkScalar)yPos;
                         charRect.m_charRect.bottom = charRect.m_charRect.top + nRowHeight;
+                        ASSERT(nRowHeight > 0);
                         pMeasureCharRects->emplace_back(std::move(charRect));
                     }
 
@@ -1942,6 +1948,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                                     charRectH.m_charRect.right = charRectH.m_charRect.left + glyphWidth;
                                     charRectH.m_charRect.top = (SkScalar)yPos;
                                     charRectH.m_charRect.bottom = charRectH.m_charRect.top + nRowHeight;
+                                    ASSERT(nRowHeight > 0);
                                     pMeasureCharRects->emplace_back(std::move(charRectH));
 
                                     MeasureCharRects charRectL;
@@ -1960,6 +1967,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                                     charRect.m_charRect.right = charRect.m_charRect.left + glyphWidth;
                                     charRect.m_charRect.top = (SkScalar)yPos;
                                     charRect.m_charRect.bottom = charRect.m_charRect.top + nRowHeight;
+                                    ASSERT(nRowHeight > 0);
                                     pMeasureCharRects->emplace_back(std::move(charRect));
                                 }
                                 glyphLeft += glyphWidth;
