@@ -21,9 +21,9 @@ public:
                                     std::vector<RichTextData>& richTextDataList) const = 0;
 
     /** 获取文本绘制矩形范围（需要时，随时调用该接口获取绘制文本的矩形范围）
-    * @param [in] rcTextDrawRect 返回当前文本绘制的矩形范围，该范围需要去除内边距，滚动条所占空间
+    * @return 返回当前文本绘制的矩形范围，该范围需要去除内边距，滚动条所占空间
     */
-    virtual void GetRichTextDrawRect(UiRect& rcTextDrawRect) const = 0;
+    virtual UiRect GetRichTextDrawRect() const = 0;
 
     /** 获取绘制的透明度
     */
@@ -358,9 +358,9 @@ private:
     */
     std::vector<LineTextInfo> m_lineTextInfo;
 
-    /** 文本内容所占的行区域信息(Key为行号，Value为该行的所占的矩形区域)
+    /** 文本内容所占的行区域信息(Key为行号，Value为该行的所占的矩形区域), Key是升序的
     */
-    std::unordered_map<int32_t, RowTextInfo> m_rowTextInfo;
+    std::map<int32_t, RowTextInfo> m_rowTextInfo;
 
     /** 文本内容所占的区域信息(临时使用，后续删除)
     */

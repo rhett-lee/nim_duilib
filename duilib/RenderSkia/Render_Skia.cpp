@@ -1631,22 +1631,20 @@ bool Render_Skia::CreateDrawRichTextCache(const UiRect& textRect,
 {
     PerformanceStat statPerformance(_T("Render_Skia::CreateDrawRichTextCache"));
     spDrawRichTextCache.reset();
-    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, uFade, false, nullptr, &spDrawRichTextCache);
+    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, uFade, true, nullptr, &spDrawRichTextCache);
     return spDrawRichTextCache != nullptr;
 }
 
 bool Render_Skia::IsValidDrawRichTextCache(const UiRect& textRect,
                                            const std::vector<RichTextData>& richTextData,
-                                           uint8_t uFade,
                                            const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
 {
     if (spDrawRichTextCache == nullptr) {
         return false;
     }
-    if (spDrawRichTextCache->m_textRect != textRect) {
-        return false;
-    }
-    if (spDrawRichTextCache->m_uFade != uFade) {
+    if ((spDrawRichTextCache->m_textRect.Width() != textRect.Width()) ||
+        (spDrawRichTextCache->m_textRect.Height() != textRect.Height())) {
+        //矩形大小发生变化，不能使用缓存(位置变化时，可以使用缓存)
         return false;
     }
     if (spDrawRichTextCache->m_richTextData.size() != richTextData.size()) {
@@ -1686,8 +1684,10 @@ bool Render_Skia::IsValidDrawRichTextCache(const UiRect& textRect,
     return bValid;
 }
 
-void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
-                                        const UiSize& szNewScrollOffset)
+void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,                                       
+                                        const UiRect& rcNewTextRect,
+                                        const UiSize& szNewScrollOffset,
+                                        uint8_t uNewFade)
 {
     PerformanceStat statPerformance(_T("Render_Skia::DrawRichTextCacheData"));
     ASSERT(spDrawRichTextCache != nullptr);
@@ -1697,7 +1697,7 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
 
     const UiRect& rcTextRect = spDrawRichTextCache->m_textRect;
     const std::vector<RichTextData>& richTextData = spDrawRichTextCache->m_richTextData;
-    uint8_t uFade = spDrawRichTextCache->m_uFade;
+    uint8_t uOldFade = spDrawRichTextCache->m_uFade;
     const UiSize& szOldScrollOffset = spDrawRichTextCache->m_szScrollOffset;
 
     const SkTextEncoding textEncoding = spDrawRichTextCache->m_textEncoding;
@@ -1707,6 +1707,7 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
 
     UiRect rcTemp;
     UiRect rcDestRect;
+    SkPaint skPaint;
     for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
         const TPendingDrawRichText& textData = *spTextData;
         ASSERT(textData.m_dataIndex < richTextData.size());
@@ -1714,6 +1715,7 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
         
         //执行绘制        
         rcDestRect = textData.m_destRect;
+        rcDestRect.Offset(rcNewTextRect.left, rcNewTextRect.top);
         if (szOldScrollOffset != szNewScrollOffset) {
             //重新计算矩形范围
             rcDestRect.Offset(szOldScrollOffset.cx, szOldScrollOffset.cy);
@@ -1725,15 +1727,24 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
 
         //绘制文字的背景色
         if (!textData.m_bgColor.IsEmpty()) {
-            FillRect(rcDestRect, textData.m_bgColor, uFade);
+            FillRect(rcDestRect, textData.m_bgColor, uNewFade);
         }        
 
         //绘制文字
         const char* text = (const char*)textData.m_textView.data();
         size_t len = textData.m_textView.size() * textCharSize; //字节数
-        DrawTextString(rcDestRect, text, len, textEncoding,
-                       richText.m_uTextStyle | DrawStringFormat::TEXT_SINGLELINE,
-                       textData.m_skPaint, textData.m_spFont.get());
+        if (uOldFade != uNewFade) {
+            skPaint = textData.m_skPaint;
+            skPaint.setAlpha(uNewFade);
+            DrawTextString(rcDestRect, text, len, textEncoding,
+                           richText.m_uTextStyle | DrawStringFormat::TEXT_SINGLELINE,
+                           skPaint, textData.m_spFont.get());
+        }
+        else {
+            DrawTextString(rcDestRect, text, len, textEncoding,
+                           richText.m_uTextStyle | DrawStringFormat::TEXT_SINGLELINE,
+                           textData.m_skPaint, textData.m_spFont.get());
+        }        
     }
 }
 
@@ -1757,10 +1768,6 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
     }
 
     bool bMeasureCharRects = (pMeasureCharRects != nullptr) ? true : false;
-    if (!bMeasureOnly) {
-        bMeasureCharRects = false;
-    }
-
     if (bMeasureCharRects && (pMeasureCharRects != nullptr)) {
         //预分配内存
         size_t nCharCount = 0;
@@ -1775,6 +1782,17 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
     //绘制区域：绘制区域的坐标以 (rcTextRect.left,rcTextRect.top)作为(0,0)点
     UiRect rcDrawRect = rcTextRect;
     rcDrawRect.Offset(-szScrollOffset.cx, -szScrollOffset.cy);
+
+    if ((pMeasureCharRects != nullptr) || (pDrawRichTextCache != nullptr)) {
+        ASSERT(bMeasureOnly);
+        if (!bMeasureOnly) {
+            return;
+        }
+        //使用(0,0)坐标点，作为估算的(0,0)点
+        rcDrawRect.Offset(-rcDrawRect.left, -rcDrawRect.top);
+        ASSERT(rcDrawRect.left == 0);
+        ASSERT(rcDrawRect.top == 0);
+    }
 
     //文本编码：固定为UTF16
     constexpr const SkTextEncoding textEncoding = SkTextEncoding::kUTF16;

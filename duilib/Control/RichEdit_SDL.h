@@ -688,10 +688,10 @@ protected:
     virtual bool GetRichTextForDraw(const std::vector<std::wstring_view>& textView,
                                     std::vector<RichTextData>& richTextDataList) const override;
 
-    /** 获取文本绘制区域
-    * @param [in] rcTextDrawRect 返回当前文本绘制的区域
+    /** 获取文本绘制矩形范围（需要时，随时调用该接口获取绘制文本的矩形范围）
+    * @return 返回当前文本绘制的矩形范围，该范围需要去除内边距，滚动条所占空间
     */
-    virtual void GetRichTextDrawRect(UiRect& rcTextDrawRect) const override;
+    virtual UiRect GetRichTextDrawRect() const override;
 
     /** 获取绘制的透明度
     */

@@ -1190,7 +1190,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     std::shared_ptr<DrawRichTextCache> spDrawRichTextCache = m_pTextData->GetDrawRichTextCache();
     if (spDrawRichTextCache != nullptr) {
         //校验缓存是否失效
-        if (!pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, (uint8_t)GetAlpha(), spDrawRichTextCache)) {
+        if (!pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache)) {
             spDrawRichTextCache.reset();
             m_pTextData->ClearDrawRichTextCache();
         }
@@ -1201,7 +1201,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 
     //绘制文字
     if (spDrawRichTextCache != nullptr) {
-        pRender->DrawRichTextCacheData(spDrawRichTextCache, szScrollOffset);
+        pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, (uint8_t)GetAlpha());
     }
     else if(!richTextDataList.empty()){
         spDrawRichTextCache.reset();
@@ -1211,8 +1211,8 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha(), spDrawRichTextCache);
         ASSERT(spDrawRichTextCache != nullptr);
         if (spDrawRichTextCache != nullptr) {
-            ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, (uint8_t)GetAlpha(), spDrawRichTextCache));
-            pRender->DrawRichTextCacheData(spDrawRichTextCache, szScrollOffset);
+            ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache));
+            pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, (uint8_t)GetAlpha());
             m_pTextData->SetDrawRichTextCache(spDrawRichTextCache);
         }
         else {
@@ -1502,6 +1502,11 @@ void RichEdit::PaintSelectionColor(IRender* pRender, const UiRect& /*rcPaint*/)
     int32_t nSelStartChar = -1;
     int32_t nSelEndChar = -1;
     GetSel(nSelStartChar, nSelEndChar);
+    if (nSelStartChar >= nSelEndChar) {
+        //无选择文本
+        return;
+    }
+
     //每行中选择的矩形范围
     std::map<int32_t, UiRectF> rowTextRectFs;
     m_pTextData->GetCharRangeRects(nSelStartChar, nSelEndChar, rowTextRectFs);
@@ -2359,9 +2364,9 @@ bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView
     return !richTextDataList.empty();
 }
 
-void RichEdit::GetRichTextDrawRect(UiRect& rcTextDrawRect) const
+UiRect RichEdit::GetRichTextDrawRect() const
 {
-    rcTextDrawRect = GetTextDrawRect(GetRect());
+    return GetTextDrawRect(GetRect());
 }
 
 uint8_t RichEdit::GetDrawAlpha() const

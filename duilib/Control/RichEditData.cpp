@@ -186,8 +186,7 @@ void RichEditData::CalcTextRects()
         return;
     }
 
-    UiRect rcDrawText;
-    m_pRichTextData->GetRichTextDrawRect(rcDrawText);
+    UiRect rcDrawText = m_pRichTextData->GetRichTextDrawRect();
     if (rcDrawText.IsEmpty()) {
         return;
     }
@@ -850,11 +849,9 @@ UiPoint RichEditData::CaretPosFromChar(int32_t nCharIndex)
         cursorPos.x = (int32_t)std::ceilf(charInfo.m_charRect.right);//右上角坐标
         cursorPos.y = (int32_t)charInfo.m_charRect.top;
     }
-    else {
-        UiRect rc;
-        m_pRichTextData->GetRichTextDrawRect(rc);
-        cursorPos.x = rc.left;
-        cursorPos.y = rc.top;
+    else {        
+        cursorPos.x = 0;
+        cursorPos.y = 0;
     }
     //转换为外部坐标
     ConvertToExternal(cursorPos);
@@ -882,10 +879,8 @@ UiPoint RichEditData::PosFromChar(int32_t nCharIndex)
     }
     else {
         //其他情况，返回绘制区域左上角坐标
-        UiRect rc;
-        m_pRichTextData->GetRichTextDrawRect(rc);
-        pt.x = rc.left;
-        pt.y = rc.top;
+        pt.x = 0;
+        pt.y = 0;
     }
 
     //转换为外部坐标
@@ -912,7 +907,7 @@ int32_t RichEditData::CharFromPos(UiPoint pt)
     size_t nRowStartIndex = (size_t)-1;
     size_t nRowEndIndex = (size_t)-1;
     UiRectF rowRectF;
-    const std::unordered_map<int32_t, RowTextInfo>& rowTextInfo = m_rowTextInfo;
+    const std::map<int32_t, RowTextInfo>& rowTextInfo = m_rowTextInfo;
     for (auto iter = rowTextInfo.begin(); iter != rowTextInfo.end(); ++iter) {
         const UiRectF& rowRect = iter->second.m_rowRect;
         if ((pt.y >= rowRect.top) && (pt.y < rowRect.bottom)) {
@@ -1020,10 +1015,9 @@ UiRect RichEditData::GetCharRowRect(int32_t nCharIndex)
         auto iter = m_rowTextInfo.find(charRect.m_nRowIndex);
         if (iter != m_rowTextInfo.end()) {
             const UiRectF& rowRectF = iter->second.m_rowRect;
-            UiRect rc;
-            m_pRichTextData->GetRichTextDrawRect(rc);            
-            rowRect.left = rc.left;
-            rowRect.right = rc.right;
+            UiRect rc = m_pRichTextData->GetRichTextDrawRect();            
+            rowRect.left = 0;
+            rowRect.right = rc.Width();
             rowRect.top = (int32_t)rowRectF.top;
             rowRect.bottom = (int32_t)std::ceilf(rowRectF.bottom);
         }
@@ -1063,40 +1057,48 @@ void RichEditData::GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::
     }
 
     //转换为外部坐标
-    if (!m_szScrollOffset.IsEmpty()) {
-        for (auto iter = rowTextRectFs.begin(); iter != rowTextRectFs.end(); ++iter) {
-            UiRectF& rowRect = iter->second;
-            ConvertToExternal(rowRect);
-        }
-    }    
+    for (auto iter = rowTextRectFs.begin(); iter != rowTextRectFs.end(); ++iter) {
+        UiRectF& rowRect = iter->second;
+        ConvertToExternal(rowRect);
+    }
 }
 
 const UiPoint& RichEditData::ConvertToExternal(UiPoint& pt) const
 {
+    UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+    pt.Offset(rc.left, rc.top);
     pt.Offset(-m_szScrollOffset.cx, -m_szScrollOffset.cy);
     return pt;
 }
 
 const UiRect& RichEditData::ConvertToExternal(UiRect& rect) const
 {
+    UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+    rect.Offset(rc.left, rc.top);
     rect.Offset(-m_szScrollOffset.cx, -m_szScrollOffset.cy);
     return rect;
 }
 
 const UiRectF& RichEditData::ConvertToExternal(UiRectF& rect) const
 {
+    UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+    rect.Offset(rc.left, rc.top);
     rect.Offset(-(float)m_szScrollOffset.cx, -(float)m_szScrollOffset.cy);
     return rect;
 }
 
 const UiPoint& RichEditData::ConvertToInternal(UiPoint& pt) const
 {
+    UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+    pt.Offset(-rc.left, -rc.top);
     pt.Offset(m_szScrollOffset.cx, m_szScrollOffset.cy);
     return pt;
 }
 
 const UiRect& RichEditData::ConvertToInternal(UiRect& rect) const
 {
+    UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+    rect.Offset(-rc.left, -rc.top);
     rect.Offset(m_szScrollOffset.cx, m_szScrollOffset.cy);
     return rect;
 }
