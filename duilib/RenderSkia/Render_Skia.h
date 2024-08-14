@@ -116,12 +116,12 @@ public:
                                          std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
 
     virtual bool IsValidDrawRichTextCache(const UiRect& textRect,
-                                          const UiSize& szScrollOffset,
                                           const std::vector<RichTextData>& richTextData,
                                           uint8_t uFade,
                                           const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
 
-    virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
+    virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
+                                       const UiSize& szNewScrollOffset) override;
 
     void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor) override;
 

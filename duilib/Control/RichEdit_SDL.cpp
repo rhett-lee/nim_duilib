@@ -17,9 +17,9 @@
 #include "duilib/Box/VBox.h"
 #include "duilib/Control/Button.h"
 
-#ifdef _DEBUG
+//#ifdef _DEBUG
 #include "duilib/Utils/FileUtil.h"
-#endif
+//#endif
 
 #ifdef DUILIB_BUILD_FOR_SDL
 #include <SDL3/SDL.h>
@@ -644,13 +644,13 @@ void RichEdit::SetText(const DString& strText)
     DStringW text;
 #ifdef DUILIB_UNICODE
     text = strText;
-            #ifdef _DEBUG
+            //#ifdef _DEBUG
                     std::vector<uint8_t> fileData;
                     FileUtil::ReadFileData(FilePath(L"D:\\2.h"), fileData);
                     fileData.push_back(0);
                     fileData.push_back(0);
                     text = StringUtil::UTF8ToUTF16((const char*)fileData.data());
-            #endif
+            //#endif
 #else
     text = StringUtil::UTF8ToUTF16(strText);
 #endif
@@ -986,8 +986,8 @@ void RichEdit::SetImmStatus(BOOL bOpen)
 
 void RichEdit::OnScrollOffsetChanged(const UiSize& /*oldScrollOffset*/, const UiSize& newScrollOffset)
 {
-    //滚动条位置变化后，需要重新计算文本显示区域信息
-    Redraw();
+    //滚动条位置变化后，需要重新绘制，但不需要重新计算，以免影响绘制速度
+    Invalidate();
 
     m_pTextData->SetScrollOffset(newScrollOffset);
 }
@@ -1189,7 +1189,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 
     if (m_spDrawRichTextCache != nullptr) {
         //校验缓存是否失效
-        if (!pRender->IsValidDrawRichTextCache(rcDrawText, szScrollOffset, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache)) {
+        if (!pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache)) {
             m_spDrawRichTextCache.reset();
         }
     }
@@ -1199,7 +1199,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 
     //绘制文字
     if (m_spDrawRichTextCache != nullptr) {
-        pRender->DrawRichTextCacheData(m_spDrawRichTextCache);
+        pRender->DrawRichTextCacheData(m_spDrawRichTextCache, szScrollOffset);
     }
     else if(!richTextDataList.empty()){
         m_spDrawRichTextCache.reset();
@@ -1209,8 +1209,8 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache);
         ASSERT(m_spDrawRichTextCache != nullptr);
         if (m_spDrawRichTextCache != nullptr) {
-            ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, szScrollOffset, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache));
-            pRender->DrawRichTextCacheData(m_spDrawRichTextCache);
+            ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache));
+            pRender->DrawRichTextCacheData(m_spDrawRichTextCache, szScrollOffset);
         }
         else {
             pRender->DrawRichText(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha());
@@ -2990,8 +2990,8 @@ void RichEdit::OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_
     //触发重绘
     Redraw();
 
-    int32_t nStart = CharFromPos(UiPoint(rcSelection.left, rcSelection.top));
-    int32_t nEnd = CharFromPos(UiPoint(rcSelection.right, rcSelection.bottom));
+    int32_t nStart = CharFromPos(UiPoint((int32_t)rcSelection.left, (int32_t)std::ceilf(rcSelection.top)));
+    int32_t nEnd = CharFromPos(UiPoint((int32_t)rcSelection.right, (int32_t)std::ceilf(rcSelection.bottom)));
     SetSel(nStart, nEnd);
 }
 

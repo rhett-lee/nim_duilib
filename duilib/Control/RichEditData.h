@@ -3,6 +3,7 @@
 
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Render/IRender.h"
+#include <unordered_map>
 #include <map>
 
 namespace ui
@@ -61,7 +62,7 @@ public:
     /** 计算显示文本所需要的矩形范围(用于估算控件大小)
     * @param [int] rcAvailable 可用的矩形范围
     */
-    UiRect EstimateTextDisplayBounds(const UiRect& rcAvailable) const;
+    UiRect EstimateTextDisplayBounds(const UiRect& rcAvailable);
 
 public:
     /** 设置文本
@@ -195,10 +196,21 @@ public:
      */
     void GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::map<int32_t, UiRectF>& rowTextRectFs);
 
-public:
-    /** 标记为需要重绘
+private:
+    /** 将内部坐标转换为外部坐标
     */
-    void Redraw();
+    const UiPoint& ConvertToExternal(UiPoint& pt) const;
+    const UiRect& ConvertToExternal(UiRect& rect) const;
+    const UiRectF& ConvertToExternal(UiRectF& rect) const;
+
+    /** 将外部坐标转换为内部坐标
+    */
+    const UiPoint& ConvertToInternal(UiPoint& pt) const;
+    const UiRect& ConvertToInternal(UiRect& rect) const;
+
+    /** 对重新计算做标记
+    */
+    void SetCacheDirty(bool bDirty);
 
 private:
     /** 设置文本绘制区域
@@ -254,7 +266,7 @@ private:
 
         /** 文本内容所占的区域信息
         */
-        std::vector<MeasureCharRects> m_lineTextRects;
+        //std::vector<MeasureCharRects> m_lineTextRects;
     };
 
     /** 逻辑行(矩形区域内显示的行，物理行数据在自动换行的情况下会对应多个逻辑行)的基本信息
@@ -267,11 +279,28 @@ private:
 
         /** 文本字符的起始下标值
         */
-        size_t m_nTextStart = DStringW::npos;
+        uint32_t m_nTextStart = (uint32_t)-1;
 
         /** 文本字符的结束下标值
         */
-        size_t m_nTextEnd = DStringW::npos;
+        uint32_t m_nTextEnd = (uint32_t)-1;
+    };
+
+    /** 估算大小的缓存，避免重复估算（估算比较耗时）
+    */
+    struct EstimateResult
+    {
+        /** 估算的传入矩形大小
+        */
+        UiRect m_rcAvailable;
+
+        /** 估算的数据
+        */
+        std::vector<RichTextData> m_richTextDataList;
+
+        /** 估算的结果
+        */
+        UiRect m_rcEstimate;
     };
 
 private:
@@ -314,7 +343,7 @@ private:
 
     /** 文本内容所占的行区域信息(Key为行号，Value为该行的所占的矩形区域)
     */
-    std::map<int32_t, RowTextInfo> m_rowTextInfo;
+    std::unordered_map<int32_t, RowTextInfo> m_rowTextInfo;
 
     /** 文本内容所占的区域信息(临时使用，后续删除)
     */
@@ -327,6 +356,10 @@ private:
     /** 重做的最大次数限制
     */
     int32_t m_nUndoLimit;
+
+    /** 估算的结果
+    */
+    EstimateResult m_estimateResult;
 };
 
 } //namespace ui

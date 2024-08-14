@@ -1615,7 +1615,6 @@ bool Render_Skia::CreateDrawRichTextCache(const UiRect& textRect,
 }
 
 bool Render_Skia::IsValidDrawRichTextCache(const UiRect& textRect,
-                                           const UiSize& szScrollOffset,
                                            const std::vector<RichTextData>& richTextData,
                                            uint8_t uFade,
                                            const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
@@ -1624,9 +1623,6 @@ bool Render_Skia::IsValidDrawRichTextCache(const UiRect& textRect,
         return false;
     }
     if (spDrawRichTextCache->m_textRect != textRect) {
-        return false;
-    }
-    if (spDrawRichTextCache->m_szScrollOffset != szScrollOffset) {
         return false;
     }
     if (spDrawRichTextCache->m_uFade != uFade) {
@@ -1669,7 +1665,8 @@ bool Render_Skia::IsValidDrawRichTextCache(const UiRect& textRect,
     return bValid;
 }
 
-void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
+void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
+                                        const UiSize& szNewScrollOffset)
 {
     PerformanceStat statPerformance(_T("Render_Skia::DrawRichTextCacheData"));
     ASSERT(spDrawRichTextCache != nullptr);
@@ -1680,26 +1677,35 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
     const UiRect& rcTextRect = spDrawRichTextCache->m_textRect;
     const std::vector<RichTextData>& richTextData = spDrawRichTextCache->m_richTextData;
     uint8_t uFade = spDrawRichTextCache->m_uFade;
+    const UiSize& szOldScrollOffset = spDrawRichTextCache->m_szScrollOffset;
 
     const SkTextEncoding textEncoding = spDrawRichTextCache->m_textEncoding;
     const size_t textCharSize = spDrawRichTextCache->m_textCharSize;
 
     const auto& pendingTextData = spDrawRichTextCache->m_pendingTextData;
 
+    UiRect rcTemp;
+    UiRect rcDestRect;
     for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
         const TPendingDrawRichText& textData = *spTextData;
         ASSERT(textData.m_dataIndex < richTextData.size());
         const RichTextData& richText = richTextData[textData.m_dataIndex];
-
-        //执行绘制
-        UiRect rcTemp;
-        const UiRect& rcDestRect = textData.m_destRect;
+        
+        //执行绘制        
+        rcDestRect = textData.m_destRect;
+        if (szOldScrollOffset != szNewScrollOffset) {
+            //重新计算矩形范围
+            rcDestRect.Offset(szOldScrollOffset.cx, szOldScrollOffset.cy);
+            rcDestRect.Offset(-szNewScrollOffset.cx, -szNewScrollOffset.cy);
+        }
         if (!UiRect::Intersect(rcTemp, rcDestRect, rcTextRect)) {
             continue;
         }
 
         //绘制文字的背景色
-        FillRect(rcDestRect, textData.m_bgColor, uFade);
+        if (!textData.m_bgColor.IsEmpty()) {
+            FillRect(rcDestRect, textData.m_bgColor, uFade);
+        }        
 
         //绘制文字
         const char* text = (const char*)textData.m_textView.data();
@@ -1719,6 +1725,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                                        std::vector<MeasureCharRects>* pMeasureCharRects,
                                        std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache)
 {
+    PerformanceStat statPerformance(_T("Render_Skia::InternalDrawRichText"));
     //内部使用string_view实现，避免字符串复制影响性能
     if (rcTextRect.IsEmpty()) {
         return;
@@ -1739,7 +1746,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         for (const RichTextData& textData : richTextData) {
             nCharCount += textData.m_textView.size();
         }
-        if (nCharCount > 0) {
+        if (nCharCount > 0) {            
             pMeasureCharRects->reserve(nCharCount);
         }
     }
@@ -1753,7 +1760,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
     constexpr const size_t textCharSize = sizeof(DStringW::value_type);
 
     //当绘制超过目标矩形边界时，是否继续绘制
-    const bool bBreakWhenOutOfRect = !bMeasureOnly;
+    const bool bBreakWhenOutOfRect = !bMeasureOnly && (pDrawRichTextCache == nullptr);
 
     std::vector<std::shared_ptr<TPendingDrawRichText>> pendingTextData;
 
@@ -1766,7 +1773,11 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
     uint32_t nLineNumber = 0; //物理行号
     uint32_t nRowIndex = 0;   //逻辑行号
 
-    std::map<uint32_t, uint32_t> rowHeightMap;  //每行的实际行高表
+    std::unordered_map<uint32_t, uint32_t> rowHeightMap;  //每行的实际行高表
+
+    //字体缓存(由于创建字体比较耗时，所以尽量复用相同的对象)
+    UiFont lastFont;
+    std::shared_ptr<IFont> spLastSkiaFont;
 
     for (size_t index = 0; index < richTextData.size(); ++index) {
         const RichTextData& textData = richTextData[index];
@@ -1783,28 +1794,40 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         const UiColor& color = textData.m_textColor;
         skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
         
-        std::shared_ptr<IFont> spSkiaFont(pRenderFactory->CreateIFont());
-        ASSERT(spSkiaFont != nullptr);
-        if (spSkiaFont == nullptr) {
-            continue;
+        std::shared_ptr<IFont> spSkiaFont;
+        if ((spLastSkiaFont != nullptr) && (textData.m_fontInfo == lastFont)) {
+            //复用缓存中的字体对象
+            spSkiaFont = spLastSkiaFont;
         }
-        if (!spSkiaFont->InitFont(textData.m_fontInfo)) {
-            spSkiaFont.reset();
-            continue;
+        else {
+            spSkiaFont.reset(pRenderFactory->CreateIFont());
+            ASSERT(spSkiaFont != nullptr);
+            if (spSkiaFont == nullptr) {
+                continue;
+            }
+            if (!spSkiaFont->InitFont(textData.m_fontInfo)) {
+                spSkiaFont.reset();
+                continue;
+            }
         }
+
         Font_Skia* pSkiaFont = dynamic_cast<Font_Skia*>(spSkiaFont.get());
         ASSERT(pSkiaFont != nullptr);
         if (pSkiaFont == nullptr) {
             continue;
         }
-
         const SkFont* pSkFont = pSkiaFont->GetFontHandle();
         ASSERT(pSkFont != nullptr);
         if (pSkFont == nullptr) {
             continue;
         }
 
-        SkFont skFont = *pSkFont;
+        if (spLastSkiaFont != spSkiaFont) {
+            spLastSkiaFont = spSkiaFont;
+            lastFont = textData.m_fontInfo;
+        }
+
+        const SkFont& skFont = *pSkFont;
         SkFontMetrics metrics;
         SkScalar fFontHeight = skFont.getMetrics(&metrics);     //字体高度，换行时使用
         fFontHeight *= textData.m_fRowSpacingMul;               //运用行间距
@@ -1896,11 +1919,13 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                     pGlyphCharList = &glyphCharList;
                     pGlyphWidthList = &glyphWidthList;
                 }
+                PerformanceUtil::Instance().BeginStat(L"Render_Skia::InternalDrawRichText breakText");
                 size_t nDrawLength = SkTextBox::breakText(lineTextView.data() + textStartIndex,
                                                           byteLength, textEncoding,
                                                           skFont, skPaint,
                                                           maxWidth, &textMeasuredWidth, &textMeasuredHeight,
-                                                          pGlyphCharList, pGlyphWidthList);                
+                                                          pGlyphCharList, pGlyphWidthList);
+                PerformanceUtil::Instance().EndStat(L"Render_Skia::InternalDrawRichText breakText");
                 if (nDrawLength == 0) {
                     if (!bWordWrap || bSingleLineMode || (SkScalarTruncToInt(maxWidth) == rcDrawRect.Width())) {
                         //出错了(不能换行，或者换行后依然不够)
@@ -2102,10 +2127,12 @@ void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<std:
     if (lineText.empty()) {
         return;
     }
-    std::vector<size_t> lineSeprators;
-    const size_t nTextLen = lineText.size();
-    for (size_t nTextIndex = 0; nTextIndex < nTextLen; ++nTextIndex) {
-        if ((lineText[nTextIndex] == L'\r') || (lineText[nTextIndex] == L'\n')) {
+    std::vector<uint32_t> lineSeprators;
+    const uint32_t nTextLen = (uint32_t)lineText.size();
+    lineSeprators.reserve(nTextLen/100);
+    for (uint32_t nTextIndex = 0; nTextIndex < nTextLen; ++nTextIndex) {
+        const std::wstring_view::value_type& ch = lineText[nTextIndex];
+        if ((ch == L'\r') || (ch == L'\n')) {
             lineSeprators.push_back(nTextIndex);
         }
     }
@@ -2119,6 +2146,7 @@ void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<std:
         size_t nCurrentIndex = 0;
         size_t nCharCount = 0;
         const size_t nLineSepCount = lineSeprators.size();
+        lineTextViewList.reserve(nLineSepCount * 2 + 1);
         for (size_t nLine = 0; nLine < nLineSepCount; ++nLine) {
             if (nLine == 0) {
                 //首行

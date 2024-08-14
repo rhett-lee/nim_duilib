@@ -920,20 +920,21 @@ public:
 
     /** 判断RichText的绘制缓存是否有效
     * @param [in] textRect 绘制文本的矩形区域
-    * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] richTextData 格式化文字内容，返回文字绘制的区域
     * @param [in] uFade 透明度（0 - 255）
     * @param [out] spDrawRichTextCache 返回绘制缓存
     */
     virtual bool IsValidDrawRichTextCache(const UiRect& textRect,
-                                          const UiSize& szScrollOffset,
                                           const std::vector<RichTextData>& richTextData,
                                           uint8_t uFade,
                                           const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
 
     /** 绘制RichText的缓存中的内容（绘制前，需要使用IsValidDrawRichTextCache判断缓存是否失效）
+    * @param [in] spDrawRichTextCache 缓存的数据
+    * @param [in] szNewScrollOffset 新的滚动条位置
     */
-    virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
+    virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
+                                       const UiSize& szNewScrollOffset) = 0;
 
     /** 在指定矩形周围绘制阴影（高斯模糊, 只支持外部阴影，不支持内部阴影）
     * @param [in] rc 矩形区域
