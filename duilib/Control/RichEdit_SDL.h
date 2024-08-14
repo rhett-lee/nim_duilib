@@ -693,6 +693,10 @@ protected:
     */
     virtual void GetRichTextDrawRect(UiRect& rcTextDrawRect) const override;
 
+    /** 获取绘制的透明度
+    */
+    virtual uint8_t GetDrawAlpha() const override;
+
 private:
     void OnLButtonDown(const UiPoint& ptMouse, Control* pSender);
     void OnLButtonUp(const UiPoint& ptMouse, Control* pSender);
@@ -983,10 +987,6 @@ private:
     /** 文本内容管理接口
     */
     RichEditData* m_pTextData;
-
-    /** 文本绘制缓存
-    */
-    std::shared_ptr<DrawRichTextCache> m_spDrawRichTextCache;
 
 private:
     /** 选择的起始字符

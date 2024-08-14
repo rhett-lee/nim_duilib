@@ -563,7 +563,7 @@ void RichEdit::SetSelectionBkColor(const DString& selectionBkColor)
     if (m_sSelectionBkColor != selectionBkColor) {
         m_sSelectionBkColor = selectionBkColor;
         if (HasSelText()) {
-            Redraw();
+            Invalidate();
         }
     }
 }
@@ -838,7 +838,7 @@ void RichEdit::SetHideSelection(bool bHideSelection)
     if (m_bHideSelection != bHideSelection) {
         m_bHideSelection = bHideSelection;
         if (HasSelText()) {
-            Redraw();
+            Invalidate();
         }        
     }
 }
@@ -1187,10 +1187,12 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     UiRect rcDrawText = GetTextDrawRect(GetRect());
     UiSize szScrollOffset = GetScrollOffset();
 
-    if (m_spDrawRichTextCache != nullptr) {
+    std::shared_ptr<DrawRichTextCache> spDrawRichTextCache = m_pTextData->GetDrawRichTextCache();
+    if (spDrawRichTextCache != nullptr) {
         //校验缓存是否失效
-        if (!pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache)) {
-            m_spDrawRichTextCache.reset();
+        if (!pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, (uint8_t)GetAlpha(), spDrawRichTextCache)) {
+            spDrawRichTextCache.reset();
+            m_pTextData->ClearDrawRichTextCache();
         }
     }
 
@@ -1198,19 +1200,20 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     PaintSelectionColor(pRender, rcPaint);
 
     //绘制文字
-    if (m_spDrawRichTextCache != nullptr) {
-        pRender->DrawRichTextCacheData(m_spDrawRichTextCache, szScrollOffset);
+    if (spDrawRichTextCache != nullptr) {
+        pRender->DrawRichTextCacheData(spDrawRichTextCache, szScrollOffset);
     }
     else if(!richTextDataList.empty()){
-        m_spDrawRichTextCache.reset();
+        spDrawRichTextCache.reset();
 
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
-        pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache);
-        ASSERT(m_spDrawRichTextCache != nullptr);
-        if (m_spDrawRichTextCache != nullptr) {
-            ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, (uint8_t)GetAlpha(), m_spDrawRichTextCache));
-            pRender->DrawRichTextCacheData(m_spDrawRichTextCache, szScrollOffset);
+        pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha(), spDrawRichTextCache);
+        ASSERT(spDrawRichTextCache != nullptr);
+        if (spDrawRichTextCache != nullptr) {
+            ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, (uint8_t)GetAlpha(), spDrawRichTextCache));
+            pRender->DrawRichTextCacheData(spDrawRichTextCache, szScrollOffset);
+            m_pTextData->SetDrawRichTextCache(spDrawRichTextCache);
         }
         else {
             pRender->DrawRichText(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha());
@@ -2361,6 +2364,11 @@ void RichEdit::GetRichTextDrawRect(UiRect& rcTextDrawRect) const
     rcTextDrawRect = GetTextDrawRect(GetRect());
 }
 
+uint8_t RichEdit::GetDrawAlpha() const
+{
+    return GetAlpha();
+}
+
 UiSize RichEdit::EstimateText(UiSize szAvailable)
 {
     UiSize fixedSize;
@@ -2501,7 +2509,7 @@ UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
 
 void RichEdit::Redraw()
 {
-    m_spDrawRichTextCache.reset();
+    m_pTextData->ClearDrawRichTextCache();
     Invalidate();
 }
 
@@ -2987,8 +2995,8 @@ void RichEdit::OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_
         return;
     }
 
-    //触发重绘
-    Redraw();
+    //触发重绘, 但不需要重新计算
+    Invalidate();
 
     int32_t nStart = CharFromPos(UiPoint((int32_t)rcSelection.left, (int32_t)std::ceilf(rcSelection.top)));
     int32_t nEnd = CharFromPos(UiPoint((int32_t)rcSelection.right, (int32_t)std::ceilf(rcSelection.bottom)));

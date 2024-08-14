@@ -99,8 +99,21 @@ public:
     virtual void MeasureRichText(const UiRect& textRect,
                                  const UiSize& szScrollOffset,
                                  IRenderFactory* pRenderFactory, 
-                                 std::vector<RichTextData>& richTextData,
-                                 std::vector<MeasureCharRects>* pMeasureCharRects = nullptr) override;
+                                 std::vector<RichTextData>& richTextData) override;
+
+    virtual void MeasureRichText2(const UiRect& textRect,
+                                  const UiSize& szScrollOffset,
+                                  IRenderFactory* pRenderFactory, 
+                                  std::vector<RichTextData>& richTextData,
+                                  std::vector<MeasureCharRects>* pMeasureCharRects) override;
+
+    virtual void MeasureRichText3(const UiRect& textRect,
+                                  const UiSize& szScrollOffset,
+                                  IRenderFactory* pRenderFactory, 
+                                  std::vector<RichTextData>& richTextData,
+                                  uint8_t uFade,
+                                  std::vector<MeasureCharRects>* pMeasureCharRects,
+                                  std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
 
     virtual void DrawRichText(const UiRect& textRect,
                               const UiSize& szScrollOffset,
@@ -123,7 +136,7 @@ public:
     virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
                                        const UiSize& szNewScrollOffset) override;
 
-    void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor) override;
+    virtual void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor) override;
 
     virtual bool ReadPixels(const UiRect& rc, void* dstPixels, size_t dstPixelsLen) override;
     virtual bool WritePixels(void* srcPixels, size_t srcPixelsLen, const UiRect& rc) override;

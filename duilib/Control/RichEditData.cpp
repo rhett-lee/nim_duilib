@@ -194,7 +194,9 @@ void RichEditData::CalcTextRects()
     //估算的时候，滚动条位置始终为(0,0)
     UiSize szScrollOffset;
     std::vector<MeasureCharRects> textRects;
-    m_pRender->MeasureRichText(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &textRects);
+    m_spDrawRichTextCache.reset();
+    uint8_t nAlpha = m_pRichTextData->GetDrawAlpha();
+    m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, nAlpha, &textRects, m_spDrawRichTextCache);
     ASSERT(textRects.size() == nTextLen);
 
     //更新每行的索引信息（逻辑行）
@@ -1083,7 +1085,7 @@ const UiRect& RichEditData::ConvertToExternal(UiRect& rect) const
 
 const UiRectF& RichEditData::ConvertToExternal(UiRectF& rect) const
 {
-    rect.Offset(-m_szScrollOffset.cx, -m_szScrollOffset.cy);
+    rect.Offset(-(float)m_szScrollOffset.cx, -(float)m_szScrollOffset.cy);
     return rect;
 }
 
@@ -1113,6 +1115,21 @@ void RichEditData::AddToUndoList(int32_t nStartChar, const DStringW& newText, co
 {
     //还原操作为:
     //ReplaceText(nStartChar, nStartChar + newText.size(), oldText);
+}
+
+void RichEditData::SetDrawRichTextCache(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
+{
+    m_spDrawRichTextCache = spDrawRichTextCache;
+}
+
+const std::shared_ptr<DrawRichTextCache>& RichEditData::GetDrawRichTextCache() const
+{
+    return m_spDrawRichTextCache;
+}
+
+void RichEditData::ClearDrawRichTextCache()
+{
+    m_spDrawRichTextCache.reset();
 }
 
 } //namespace ui

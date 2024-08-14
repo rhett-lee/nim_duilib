@@ -887,8 +887,37 @@ public:
     virtual void MeasureRichText(const UiRect& textRect,
                                  const UiSize& szScrollOffset,
                                  IRenderFactory* pRenderFactory, 
-                                 std::vector<RichTextData>& richTextData,
-                                 std::vector<MeasureCharRects>* pMeasureCharRects = nullptr) = 0;
+                                 std::vector<RichTextData>& richTextData) = 0;
+
+    /** 计算格式文本的宽度和高度, 并计算每个字符的位置
+    * @param [in] textRect 绘制文本的矩形区域
+    * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
+    * @param [in] pRenderFactory 渲染接口，用于创建字体
+    * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
+    * @param [out] pMeasureCharRects 如果不为nullptr，则计算每个字符的区域
+    */
+    virtual void MeasureRichText2(const UiRect& textRect,
+                                  const UiSize& szScrollOffset,
+                                  IRenderFactory* pRenderFactory, 
+                                  std::vector<RichTextData>& richTextData,
+                                  std::vector<MeasureCharRects>* pMeasureCharRects) = 0;
+
+    /** 计算格式文本的宽度和高度, 并计算每个字符的位置，并创建绘制缓存
+    * @param [in] textRect 绘制文本的矩形区域
+    * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
+    * @param [in] pRenderFactory 渲染接口，用于创建字体
+    * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
+    * @param [in] uFade 透明度（0 - 255）
+    * @param [out] pMeasureCharRects 如果不为nullptr，则计算每个字符的区域
+    * @param [out] spDrawRichTextCache 返回绘制缓存
+    */
+    virtual void MeasureRichText3(const UiRect& textRect,
+                                  const UiSize& szScrollOffset,
+                                  IRenderFactory* pRenderFactory, 
+                                  std::vector<RichTextData>& richTextData,
+                                  uint8_t uFade,
+                                  std::vector<MeasureCharRects>* pMeasureCharRects,
+                                  std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
 
     /** 绘制格式文本
     * @param [in] textRect 绘制文本的矩形区域

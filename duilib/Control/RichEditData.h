@@ -24,6 +24,10 @@ public:
     * @param [in] rcTextDrawRect 返回当前文本绘制的矩形范围，该范围需要去除内边距，滚动条所占空间
     */
     virtual void GetRichTextDrawRect(UiRect& rcTextDrawRect) const = 0;
+
+    /** 获取绘制的透明度
+    */
+    virtual uint8_t GetDrawAlpha() const = 0;
 };
 
 class RichEditData
@@ -196,6 +200,19 @@ public:
      */
     void GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::map<int32_t, UiRectF>& rowTextRectFs);
 
+public:
+    /** 设置文本绘制缓存
+    */
+    void SetDrawRichTextCache(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache);
+
+    /** 获取文本绘制缓存
+    */
+    const std::shared_ptr<DrawRichTextCache>& GetDrawRichTextCache() const;
+
+    /** 清除绘制缓存
+    */
+    void ClearDrawRichTextCache();
+
 private:
     /** 将内部坐标转换为外部坐标
     */
@@ -360,6 +377,10 @@ private:
     /** 估算的结果
     */
     EstimateResult m_estimateResult;
+
+    /** 文本绘制缓存
+    */
+    std::shared_ptr<DrawRichTextCache> m_spDrawRichTextCache;
 };
 
 } //namespace ui
