@@ -254,55 +254,24 @@ void RichEditData::UpdateRowTextInfo(const UiRect& rcDrawText,
     const size_t nTextCount = textRects.size();
     for (size_t nTextIndex = 0; nTextIndex < nTextCount; ++nTextIndex) {
         const MeasureCharRects& charInfo = textRects[nTextIndex];
-        if (charInfo.m_bIgnoredChar || charInfo.m_bNewLine) {
-            continue;
-        }
         RowTextInfo& rowTextInfo = m_rowTextInfo[charInfo.m_nRowIndex];
-        ASSERT(!charInfo.m_charRect.IsEmpty());
-        rowTextInfo.m_rowRect.Union(charInfo.m_charRect);
-        ASSERT(!rowTextInfo.m_rowRect.IsEmpty());
+        if (!charInfo.m_bIgnoredChar && !charInfo.m_bNewLine) {
+            ASSERT(!charInfo.m_charRect.IsEmpty());
+            rowTextInfo.m_rowRect.Union(charInfo.m_charRect);
+            ASSERT(!rowTextInfo.m_rowRect.IsEmpty());
+        }
+        else if (charInfo.m_bNewLine || charInfo.m_bReturn) {
+            //回车或者换行符：只包含了top和bottom值
+            if (rowTextInfo.m_rowRect.IsEmpty()) {
+                rowTextInfo.m_rowRect = charInfo.m_charRect;
+            }
+        }
         if (rowTextInfo.m_nTextStart == (uint32_t)-1) {
             //该行的首个字符
             rowTextInfo.m_nTextStart = (uint32_t)nTextIndex;
         }
         rowTextInfo.m_nTextEnd = (uint32_t)nTextIndex;
-    }
-    for (size_t nTextIndex = 0; nTextIndex < nTextCount; ++nTextIndex) {
-        const MeasureCharRects& charInfo = textRects[nTextIndex];
-        //处理当一行只有一个换行符的情况，设置该行的top和bottom值
-        if (charInfo.m_bNewLine) {
-            if (m_rowTextInfo.find(charInfo.m_nRowIndex) == m_rowTextInfo.end()) {
-                //本行只有一个回车
-                RowTextInfo& rowTextInfo = m_rowTextInfo[charInfo.m_nRowIndex];
-                rowTextInfo.m_nTextStart = (uint32_t)nTextIndex;
-                rowTextInfo.m_nTextEnd = (uint32_t)nTextIndex;
-
-                UiRectF& rect = rowTextInfo.m_rowRect;
-                rect.left = (float)rcDrawText.left;
-                rect.right = (float)rcDrawText.left;
-
-                auto iterPrev = m_rowTextInfo.find(charInfo.m_nRowIndex - 1);
-                if (iterPrev != m_rowTextInfo.end()) {
-                    //中间行
-                    rect.top = iterPrev->second.m_rowRect.bottom;
-                }
-                else {
-                    //首行 
-                    rect.top = (float)rcDrawText.top;
-                }
-                auto iterNext = m_rowTextInfo.find(charInfo.m_nRowIndex + 1);
-                if (iterNext != m_rowTextInfo.end()) {
-                    //中间行
-                    rect.bottom = iterNext->second.m_rowRect.top;
-                }
-                else {
-                    //尾行
-                    rect.bottom = rect.top + (int32_t)std::ceilf(charInfo.m_charRect.Height());
-                    ASSERT(rect.Height() > 0);
-                }
-            }
-        }
-    }
+    }    
 }
 
 bool RichEditData::SetText(const DStringW& text)
@@ -356,6 +325,7 @@ bool RichEditData::SetText(const DStringW& text)
         }
         m_lineTextInfo.swap(lineTextInfo);
         SetCacheDirty(true);
+        ClearUndoList();
     }
     return bTextChanged;
 }
@@ -504,50 +474,62 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     if (m_nUndoLimit <= 0) {
         bCanUndo = false;
     }
+    if (bCanUndo && (nEndChar > nStartChar)) {
+        oldText = GetTextRange(nStartChar, nEndChar);
+    }
+    //操作结果
+    std::vector<size_t> deletedLines;   //待删除的行
+    std::vector<size_t> modifiedLines;  //文本有变化的行
     bool bRet = false;
     if ((nStartLine != nNotFound) && (nEndLine != nNotFound) &&
         (nStartCharLineOffset != nNotFound) && (nEndCharLineOffset != nNotFound)) {
         ASSERT(nEndLine >= nStartLine);
         if (nStartLine == nEndLine) {
             //在相同行
+            bool bChanged = true;
             LineTextInfo& lineText = m_lineTextInfo[nStartLine];            
             DStringW newText = lineText.m_lineText.c_str();
             if (nStartCharLineOffset == nEndCharLineOffset) {
                 //当前位置，插入新文本
-                newText.insert(nStartCharLineOffset, text);
+                if (!text.empty()) {
+                    newText.insert(nStartCharLineOffset, text);
+                }
+                else {
+                    bChanged = false;
+                }
             }
             else {
                 //替换选择的文本
                 size_t nCharCount = nEndCharLineOffset - nStartCharLineOffset;
                 ASSERT(nCharCount > 0);
-                if (bCanUndo) {
-                    oldText = newText.substr(nStartCharLineOffset, nCharCount);
-                }
                 newText.replace(nStartCharLineOffset, nCharCount, text);
             }
-            lineText.m_lineText = newText;
-            lineText.m_nLineTextLen = (uint32_t)newText.size();
+            if (bChanged) {
+                if (!newText.empty()) {
+                    lineText.m_lineText = newText;
+                    lineText.m_nLineTextLen = (uint32_t)newText.size();
+                    //需要重新计算这一行
+                    modifiedLines.push_back(nStartLine);
+                }
+                else {
+                    //整行删除
+                    deletedLines.push_back(nStartLine);
+                }
+            }
         }
         else if (nEndLine > nStartLine){
-            //在不同行
-            std::vector<size_t> deletedLines; //待删除的行
+            //在不同行            
             for (size_t nIndex = nStartLine; nIndex <= nEndLine; ++nIndex) {
                 LineTextInfo& lineText = m_lineTextInfo[nIndex];
                 if (nIndex == nStartLine) {
                     //首行, 删除到行尾
                     DStringW newText = lineText.m_lineText.c_str();
-                    if (bCanUndo) {
-                        if ((nStartCharLineOffset > 0) && (nStartCharLineOffset < newText.size())) {
-                            oldText = newText.substr(nStartCharLineOffset);
-                        }
-                        else {
-                            oldText = newText;
-                        }
-                    }
                     if ((nStartCharLineOffset > 0) && (nStartCharLineOffset < newText.size())) {
                         newText.resize(nStartCharLineOffset);
                         lineText.m_lineText = newText;
                         lineText.m_nLineTextLen = (uint32_t)newText.size();
+                        //需要重新计算这一行
+                        modifiedLines.push_back(nIndex);
                     }
                     else {
                         //整行删除
@@ -557,55 +539,52 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
                 else if (nIndex == nEndLine) {
                     //末行，删除到行首
                     DStringW newText = lineText.m_lineText.c_str();
-                    if (bCanUndo) {
-                        if ((nEndCharLineOffset > 0) && (nEndCharLineOffset < newText.size())) {
-                            oldText += newText.substr(0, nEndCharLineOffset);
-                        }
-                        else {
-                            oldText += newText;
-                        }
-                    }
                     if ((nEndCharLineOffset > 0) && (nEndCharLineOffset < newText.size())) {
                         newText = newText.substr(nEndCharLineOffset);
                         lineText.m_lineText = newText;
                         lineText.m_nLineTextLen = (uint32_t)newText.size();
+                        //需要重新计算这一行
+                        modifiedLines.push_back(nIndex);
                     }
-                    else {
+                    else if(nEndCharLineOffset == newText.size()) {
                         //整行删除
                         deletedLines.push_back(nIndex);
-                    }                    
+                    }
+                    else if (nEndCharLineOffset == 0) {
+                        //无需删除本行数据
+                    }
                 }
                 else {
                     //中间行
                     deletedLines.push_back(nIndex);
-                    if (bCanUndo) {
-                        oldText += lineText.m_lineText.c_str();
-                    }
-                }
-            }
-            //删除中间行(倒序删除)
-            if (!deletedLines.empty()) {
-                int32_t nDelIndex = (int32_t)deletedLines.size() - 1;
-                for (; nDelIndex >= 0; --nDelIndex) {
-                    if (deletedLines[nDelIndex] < m_lineTextInfo.size()) {
-                        m_lineTextInfo.erase(m_lineTextInfo.begin() + deletedLines[nDelIndex]);
-                    }
                 }
             }
         }
         bRet = true;
     }
-    if (bRet) {
-        SetCacheDirty(true);
-        if (bCanUndo) {
-            //生成撤销列表
-            AddToUndoList(nStartChar, text, oldText);
+    if (!bRet) {
+        return false;
+    }
+
+    //删除中间行(倒序删除)
+    if (!deletedLines.empty()) {
+        int32_t nDelIndex = (int32_t)deletedLines.size() - 1;
+        for (; nDelIndex >= 0; --nDelIndex) {
+            if (deletedLines[nDelIndex] < m_lineTextInfo.size()) {
+                m_lineTextInfo.erase(m_lineTextInfo.begin() + deletedLines[nDelIndex]);
+            }
         }
-        else {
-            ClearUndoList();
-        }
-    }    
-    return bRet;
+    }
+
+    SetCacheDirty(true);
+    if (bCanUndo) {
+        //生成撤销列表
+        AddToUndoList(nStartChar, text, oldText);
+    }
+    else {
+        ClearUndoList();
+    }   
+    return true;
 }
 
 DStringW RichEditData::GetTextRange(int32_t nStartChar, int32_t nEndChar)
@@ -922,7 +901,7 @@ int32_t RichEditData::CharFromPos(UiPoint pt)
         //在该行中查找点的位置
         for (size_t nTextIndex = nRowStartIndex; nTextIndex <= nRowEndIndex; ++nTextIndex) {
             const MeasureCharRects& charInfo = m_textRects[nTextIndex];
-            if (charInfo.m_charRect.ContainsPt((float)pt.x, (float)pt.y)) {
+            if (!charInfo.m_charRect.IsEmpty() && charInfo.m_charRect.ContainsPt((float)pt.x, (float)pt.y)) {
                 if (pt.x > charInfo.m_charRect.CenterX()) {
                     //如果X坐标大于中心点，则取下一个字符
                     nCharPosIndex = (int32_t)GetNextValidCharIndex(m_textRects, nTextIndex);
@@ -936,8 +915,12 @@ int32_t RichEditData::CharFromPos(UiPoint pt)
         }
 
         if (nCharPosIndex == -1) {
-            if ((nRowStartIndex == nRowEndIndex) && (m_textRects[nRowStartIndex].m_bNewLine)) {
-                //该行只有一个回车
+            if (((nRowEndIndex - nRowStartIndex) == 1) && m_textRects[nRowStartIndex].m_bReturn && m_textRects[nRowStartIndex].m_bNewLine) {
+                //该行只有一个回车+换行: 指向回车字符
+                nCharPosIndex = (int32_t)nRowStartIndex;
+            }
+            else if ((nRowStartIndex == nRowEndIndex) && (m_textRects[nRowStartIndex].m_bReturn || m_textRects[nRowStartIndex].m_bNewLine)) {
+                //该行只有一个回车 或者 换行
                 nCharPosIndex = (int32_t)nRowStartIndex;
             }
             else if (pt.x <= rowRectF.left) {
@@ -945,8 +928,14 @@ int32_t RichEditData::CharFromPos(UiPoint pt)
                 nCharPosIndex = (int32_t)nRowStartIndex;
             }
             else if (pt.x >= rowRectF.right) {
-                //在行文本的右侧, 取下一行的首个字符
-                nCharPosIndex = (int32_t)GetNextValidCharIndex(m_textRects, nRowEndIndex);
+                //在行文本的右侧, 取该行的最后个字符（换行符）                
+                if (((nRowEndIndex - 1) >= 0) && m_textRects[nRowEndIndex - 1].m_bReturn && m_textRects[nRowEndIndex].m_bNewLine) {
+                    //如果结尾是'\r\n'，则指向'\r'
+                    nCharPosIndex = (int32_t)nRowEndIndex - 1;
+                }
+                else {
+                    nCharPosIndex = (int32_t)nRowEndIndex;
+                }
             }
         }
     }
@@ -971,8 +960,19 @@ size_t RichEditData::GetNextValidCharIndex(const std::vector<MeasureCharRects>& 
     }
     size_t nNextIndex = nCurrentIndex;
     ++nNextIndex;
+    if (nNextIndex < textRects.size()) {
+        if (textRects[nNextIndex - 1].m_bReturn && textRects[nNextIndex].m_bNewLine) {
+            ++nNextIndex;
+        }
+    }
     while (nNextIndex < textRects.size()) {
         if (!textRects[nNextIndex].m_bIgnoredChar) {
+            if (textRects[nNextIndex].m_bNewLine) {
+                //当前字符是换行符, 如果字符是'\r\n'，应指向'\r'字符
+                if ((nCurrentIndex != (nNextIndex - 1)) && textRects[nNextIndex - 1].m_bReturn) {
+                    --nNextIndex;
+                }
+            }
             break;
         }
         ++nNextIndex;
@@ -993,6 +993,12 @@ size_t RichEditData::GetPrevValidCharIndex(const std::vector<MeasureCharRects>& 
     --nPrevIndex;
     while (nPrevIndex >= 0) {
         if (!textRects[nPrevIndex].m_bIgnoredChar) {
+            if (textRects[nPrevIndex].m_bNewLine) {
+                //当前字符是换行符, 如果字符是'\r\n'，应指向'\r'字符
+                if ((nCurrentIndex != (nPrevIndex - 1)) && textRects[nPrevIndex - 1].m_bReturn) {
+                    --nPrevIndex;
+                }
+            }
             break;
         }
         --nPrevIndex;
@@ -1003,8 +1009,172 @@ size_t RichEditData::GetPrevValidCharIndex(const std::vector<MeasureCharRects>& 
     return nCurrentIndex;
 }
 
+int32_t RichEditData::GetNextUnicodeCharIndex(int32_t nCharIndex)
+{
+    ASSERT(nCharIndex >= 0);
+    if (nCharIndex < 0) {
+        return nCharIndex;
+    }
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
+    const std::vector<MeasureCharRects>& textRects = m_textRects;
+    ASSERT(nCharIndex < textRects.size());
+    if (nCharIndex >= textRects.size()) {
+        return nCharIndex;
+    }
+    size_t nNextIndex = nCharIndex;
+    ++nNextIndex;
+    while (nNextIndex < textRects.size()) {
+        if (!textRects[nNextIndex].m_bLowSurrogate) {
+            break;
+        }
+        ++nNextIndex;
+    }
+    if (nNextIndex < textRects.size()) {
+        return nNextIndex;
+    }
+    return nCharIndex;
+}
+
+int32_t RichEditData::GetPrevUnicodeCharIndex(int32_t nCharIndex)
+{
+    ASSERT(nCharIndex >= 0);
+    if (nCharIndex < 0) {
+        return nCharIndex;
+    }
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
+    const std::vector<MeasureCharRects>& textRects = m_textRects;
+    ASSERT(nCharIndex < textRects.size());
+    if (nCharIndex >= textRects.size()) {
+        return nCharIndex;
+    }
+    int32_t nPrevIndex = (int32_t)nCharIndex;
+    --nPrevIndex;
+    while (nPrevIndex >= 0) {
+        if (!textRects[nPrevIndex].m_bLowSurrogate) {
+            break;
+        }
+        --nPrevIndex;
+    }
+    if (nPrevIndex >= 0) {
+        return nPrevIndex;
+    }
+    return nCharIndex;
+}
+
+int32_t RichEditData::GetNextValidCharIndex(int32_t nCharIndex)
+{
+    ASSERT(nCharIndex >= 0);
+    if (nCharIndex < 0) {
+        return nCharIndex;
+    }
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
+    return (int32_t)GetNextValidCharIndex(m_textRects, (size_t)nCharIndex);
+}
+
+int32_t RichEditData::GetPrevValidCharIndex(int32_t nCharIndex)
+{
+    ASSERT(nCharIndex >= 0);
+    if (nCharIndex < 0) {
+        return nCharIndex;
+    }
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
+    return (int32_t)GetPrevValidCharIndex(m_textRects, (size_t)nCharIndex);
+}
+
+int32_t RichEditData::GetNextValidCharIndexForDelete(int32_t nCharIndex, bool bMatchWord)
+{
+    ASSERT(nCharIndex >= 0);
+    if (nCharIndex < 0) {
+        return nCharIndex;
+    }
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
+    if (bMatchWord) {
+        //按单词选择：TODO
+
+    }
+    else {
+        const std::vector<MeasureCharRects>& textRects = m_textRects;
+        ASSERT(nCharIndex < textRects.size());
+        if (nCharIndex >= textRects.size()) {
+            return nCharIndex;
+        }
+        size_t nNextIndex = nCharIndex;
+        ++nNextIndex;
+        while (nNextIndex < textRects.size()) {
+            if (!textRects[nNextIndex].m_bLowSurrogate) {
+                if (textRects[nNextIndex].m_bNewLine && textRects[nCharIndex].m_bReturn && (nNextIndex == (nCharIndex + 1))) {
+                    if (((nNextIndex + 1) < textRects.size())) {
+                        //跳过回车/换行两个字符，指向换行符后面的一个字符，一次性的把'\r\n'删除
+                        ++nNextIndex;
+                        break;
+                    }
+                }
+                break;
+            }
+            ++nNextIndex;
+        }
+        if (nNextIndex < textRects.size()) {
+            return nNextIndex;
+        }
+    }
+    return nCharIndex;
+}
+
+int32_t RichEditData::GetPrevValidCharIndexForDelete(int32_t nCharIndex, bool bMatchWord)
+{
+    ASSERT(nCharIndex >= 0);
+    if (nCharIndex < 0) {
+        return nCharIndex;
+    }
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
+    if (bMatchWord) {
+        //按单词选择：TODO
+
+    }
+    else {
+        const std::vector<MeasureCharRects>& textRects = m_textRects;
+        ASSERT(nCharIndex < textRects.size());
+        if (nCharIndex >= textRects.size()) {
+            return nCharIndex;
+        }
+
+        int32_t nPrevIndex = (int32_t)nCharIndex;
+        --nPrevIndex;
+        while (nPrevIndex >= 0) {
+            if (!textRects[nPrevIndex].m_bIgnoredChar) {
+                //如果当前字符指向'\n'，前面字符是'\r'，则将字符位置指向'\r'
+                if (((nPrevIndex - 1) >= 0) && textRects[nPrevIndex].m_bNewLine && textRects[nPrevIndex - 1].m_bReturn) {
+                    --nPrevIndex;
+                }
+                break;
+            }
+            --nPrevIndex;
+        }
+        if (nPrevIndex >= 0) {
+            return nPrevIndex;
+        }
+
+    }
+    return nCharIndex;
+}
+
 UiRect RichEditData::GetCharRowRect(int32_t nCharIndex)
 {
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
     UiRect rowRect;
     const int32_t nTextCount = (int32_t)m_textRects.size();
     if ((nCharIndex >= 0) && (nTextCount > 0) && (nCharIndex <= nTextCount)) {
@@ -1082,7 +1252,7 @@ const UiRect& RichEditData::ConvertToExternal(UiRect& rect) const
 const UiRectF& RichEditData::ConvertToExternal(UiRectF& rect) const
 {
     UiRect rc = m_pRichTextData->GetRichTextDrawRect();
-    rect.Offset(rc.left, rc.top);
+    rect.Offset((float)rc.left, (float)rc.top);
     rect.Offset(-(float)m_szScrollOffset.cx, -(float)m_szScrollOffset.cy);
     return rect;
 }

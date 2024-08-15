@@ -646,7 +646,7 @@ void RichEdit::SetText(const DString& strText)
     text = strText;
             //#ifdef _DEBUG
                     std::vector<uint8_t> fileData;
-                    FileUtil::ReadFileData(FilePath(L"D:\\2.h"), fileData);
+                    FileUtil::ReadFileData(FilePath(L"D:\\1.h"), fileData);
                     fileData.push_back(0);
                     fileData.push_back(0);
                     text = StringUtil::UTF8ToUTF16((const char*)fileData.data());
@@ -2649,6 +2649,32 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
         OnInputChar(msg);
         return true;
     }
+    else if (msg.vkCode == kVK_DELETE) {
+        //删除键：删除后一个字符
+        OnInputChar(msg);
+    }
+    else if (msg.vkCode == kVK_BACK) {
+        //Backspace键：删除前一个字符
+        OnInputChar(msg);
+    }
+    else if (msg.vkCode == kVK_LEFT) {
+        //向左
+        int32_t nSelStartChar = -1;
+        int32_t nSelEndChar = -1;
+        GetSel(nSelStartChar, nSelEndChar);
+        ASSERT(nSelEndChar >= nSelStartChar);
+        nSelEndChar = m_pTextData->GetPrevValidCharIndex(nSelEndChar);
+        SetSel(nSelEndChar, nSelEndChar);
+    }
+    else if (msg.vkCode == kVK_RIGHT) {
+        //向右
+        int32_t nSelStartChar = -1;
+        int32_t nSelEndChar = -1;
+        GetSel(nSelStartChar, nSelEndChar);
+        ASSERT(nSelEndChar >= nSelStartChar);
+        nSelEndChar = m_pTextData->GetNextValidCharIndex(nSelEndChar);
+        SetSel(nSelEndChar, nSelEndChar);
+    }
     else if ((msg.vkCode == 'V') && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + V, 粘贴（在允许粘贴的情况下）
         if (!IsPasteLimited()) {
@@ -3049,32 +3075,93 @@ void RichEdit::OnInputChar(const EventArgs& msg)
             }
         }
     }
-    if (bInputChar) {
-        //输入字符
-        int32_t nSelStartChar = -1;
-        int32_t nSelEndChar = -1;
-        GetSel(nSelStartChar, nSelEndChar);
-        //TEST
-        DStringW ss = GetSelText();
-        DStringW s1 = GetTextRange(nSelStartChar, nSelEndChar);
-        //TEST
-        DStringW textBefore = GetText();
-        DStringW text;
-        text = (DStringW::value_type)msg.vkCode;
-        if (msg.vkCode == kVK_RETURN) {
-            //回车转换成换行："\r\n"
-            text += L'\n';
-        }
-        else if (msg.vkCode == kVK_TAB) {
-            //TAB键，按4个空格对齐
-        }
-        m_pTextData->ReplaceText(nSelStartChar, nSelEndChar, text, true);
-        DStringW textAfter = GetText();
 
+    if (!bInputChar || IsReadOnly() || !IsEnabled()) {
+        //无需编辑文本 或者 禁止编辑文本
+        return;
+    }
+
+    //输入字符
+    int32_t nSelStartChar = -1;
+    int32_t nSelEndChar = -1;
+    GetSel(nSelStartChar, nSelEndChar);
+    ASSERT(nSelEndChar >= nSelStartChar);
+    if (nSelEndChar < nSelStartChar) {
+        //出错
+        return;
+    }
+
+    //TODO: TEST
+    //DString s06 = GetTextRange(nSelStartChar, nSelStartChar + 1);
+
+    DStringW text;
+    text = (DStringW::value_type)msg.vkCode;
+    if (msg.vkCode == kVK_RETURN) {
+        //回车: 转换成换行："\r\n"
+        text += L'\n';
+    }
+    else if (msg.vkCode == kVK_TAB) {
+        //TAB键，按4个空格对齐
+        //TODO: 暂时先用四个空格输入
+        text = L"    ";
+    }
+    else if (msg.vkCode == kVK_DELETE) {
+        //删除键
+        if (nSelEndChar > nSelStartChar) {
+            //有选择文本：删除选择内容
+            text.clear();
+        }
+        else {
+            //无选择文本：删除后一个字符
+            text.clear();
+            bool bMatchWord = IsKeyDown(msg, ModifierKey::kControl); //Ctrl + Delete键，删除光标后面的单词
+            nSelEndChar = m_pTextData->GetNextValidCharIndexForDelete(nSelStartChar, bMatchWord);
+        }
+    }
+    else if (msg.vkCode == kVK_BACK) {
+        //Backspace键
+        if (nSelEndChar > nSelStartChar) {
+            //有选择文本：删除选择内容
+            text.clear();
+        }
+        else {
+            //无选择文本：删除前一个字符
+            text.clear();
+            bool bMatchWord = IsKeyDown(msg, ModifierKey::kControl); //Ctrl + Backspace键，删除光标前面的单词
+            nSelStartChar = m_pTextData->GetPrevValidCharIndexForDelete(nSelStartChar, bMatchWord);
+        }
+    }
+
+    if ((nSelEndChar == nSelStartChar) && text.empty()) {
+        return;
+    }
+
+    if (bInputChar) {
+        DString s00 = GetTextRange(0, 1);
+        DString s01 = GetTextRange(0, 5);
+        DString s02 = GetTextRange(0, 10);
+        DString s03 = GetTextRange(0, 11);
+        DString s04 = GetTextRange(0, 12);
+        DString s05 = GetTextRange(0, 13);
+
+        DString sStart = GetTextRange(nSelStartChar, nSelStartChar + 1);
+        DString sEnd = GetTextRange(nSelEndChar, nSelEndChar + 1);
+        DString sStartEnd = GetTextRange(nSelStartChar, nSelEndChar);
+
+        DString s0 = GetTextRange(nSelStartChar, nSelStartChar + 6);
+        DString s1 = GetTextRange(nSelStartChar - 6, nSelStartChar);
+
+        DString textBefore = GetText();
+
+        m_pTextData->ReplaceText(nSelStartChar, nSelEndChar, text, true);
         int32_t nNewSelChar = nSelStartChar + (int32_t)text.size();
         SetSel(nNewSelChar, nNewSelChar);
-        //TODO:
 
+        DString textAfter = GetText();
+
+        DString s3 = GetTextRange(nNewSelChar, nNewSelChar + 6);
+        DString s4 = GetTextRange(nNewSelChar - 6, nNewSelChar);
+        DString s2 = s1 + s0;
     }
 }
 

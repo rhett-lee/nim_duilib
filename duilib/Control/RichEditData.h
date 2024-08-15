@@ -69,11 +69,23 @@ public:
     UiRect EstimateTextDisplayBounds(const UiRect& rcAvailable);
 
 public:
-    /** 设置文本
+    /** 设置文本，并清空Undo/Redo历史
      * @param [in] text 文本内容
      * @return 返回true表示文本有变化，返回false表示文本无变化
      */
     bool SetText(const DStringW& text);
+
+    /** 替换指定范围的文本(文本的添加，修改，删除功能，均通过这个函数完成)
+     *  (1) 如果 nStartChar == nEndChar，表示在此位置插入文本
+     *  (2) 如果 nEndChar > nStartChar，表示替换文本
+     *  (3) 如果 nStartChar < nEndChar，参数错误
+     * @param [in] text 文本内容
+     * @param [in] nStartChar 起始下标值
+     * @param [in] nEndChar 结束下标值
+     * @param [in] bCanUndo 是否可以撤销，true 为可以，否则为 false
+     * @return 返回true表示文本有变化，返回false表示文本无变化
+     */
+    bool ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStringW& text, bool bCanUndo);
 
     /** 获取文本
     */
@@ -88,7 +100,7 @@ public:
      */
     size_t GetTextLength() const;
 
-    /** 获取指定范围的文本
+    /** 获取指定范围[nStartChar, nEndChar)的文本
      * @param[in] nStartChar 起始下标值
      * @param[in] nEndChar 结束下标值
      */
@@ -99,15 +111,6 @@ public:
      * @param[in] nEndChar 结束下标值
      */
     bool HasTextRange(int32_t nStartChar, int32_t nEndChar);
-
-    /** 替换指定范围的文本
-     * @param [in] text 文本内容
-     * @param [in] nStartChar 起始下标值
-     * @param [in] nEndChar 结束下标值
-     * @param [in] bCanUndo 是否可以撤销，true 为可以，否则为 false
-     * @return 返回true表示文本有变化，返回false表示文本无变化
-     */
-    bool ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStringW& text, bool bCanUndo);
 
     /** 是否可撤销
     */
@@ -199,6 +202,45 @@ public:
      * @param [out] rowTextRectFs 每行的矩形范围（逻辑行）
      */
     void GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::map<int32_t, UiRectF>& rowTextRectFs);
+
+public:
+    /** 获取下一个有效的Unicode字符的索引号
+    * @param [in] nCharIndex  字符的索引下标
+    * @return 返回后一个有效字符的索引号
+    */
+    int32_t GetNextUnicodeCharIndex(int32_t nCharIndex);
+
+    /** 获取前一个有效Unicode字符的索引号
+    * @param [in] nCharIndex  字符的索引下标
+    * @return 返回前一个有效字符的索引号
+    */
+    int32_t GetPrevUnicodeCharIndex(int32_t nCharIndex);
+
+    /** 获取下一个有效字符的索引号
+    * @param [in] nCharIndex  字符的索引下标
+    * @return 返回后一个有效字符的索引号
+    */
+    int32_t GetNextValidCharIndex(int32_t nCharIndex);
+
+    /** 获取前一个有效字符的索引号
+    * @param [in] nCharIndex  字符的索引下标
+    * @return 返回前一个有效字符的索引号
+    */
+    int32_t GetPrevValidCharIndex(int32_t nCharIndex);
+
+    /** 获取下一个有效字符的索引号(删除操作的下一个字符)
+    * @param [in] nCharIndex  字符的索引下标
+    * @param [in] bMatchWord 是否按单词删除
+    * @return 返回后一个有效字符的索引号
+    */
+    int32_t GetNextValidCharIndexForDelete(int32_t nCharIndex, bool bMatchWord);
+
+    /** 获取前一个有效字符的索引号(删除操作的前一个字符)
+    * @param [in] nCharIndex  字符的索引下标
+    * @param [in] bMatchWord 是否按单词删除
+    * @return 返回后一个有效字符的索引号
+    */
+    int32_t GetPrevValidCharIndexForDelete(int32_t nCharIndex, bool bMatchWord);
 
 public:
     /** 设置文本绘制缓存
