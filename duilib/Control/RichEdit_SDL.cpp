@@ -3002,35 +3002,30 @@ void RichEdit::OnCheckScrollView()
         m_scrollViewFlag.Cancel();
     }
 
-    int64_t top = std::min(m_ptMouseDown.cy, m_ptMouseMove.cy);
-    int64_t bottom = std::max(m_ptMouseDown.cy, m_ptMouseMove.cy);
-    int64_t left = std::min(m_ptMouseDown.cx, m_ptMouseMove.cx);
-    int64_t right = std::max(m_ptMouseDown.cx, m_ptMouseMove.cx);
-
-    OnFrameSelection(left, right, top, bottom);
+    OnFrameSelection(m_ptMouseDown, m_ptMouseMove);
 }
 
 void RichEdit::GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const
 {
 }
 
-void RichEdit::OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom)
+void RichEdit::OnFrameSelection(UiSize64 ptMouseDown64, UiSize64 ptMouseMove64)
 {
     const UiSize64 scrollPos = GetScrollPos();//用于恢复字符绘制区域的坐标系
-    UiRectF rcSelection;
-    rcSelection.left = (float)ui::TruncateToInt32(left - scrollPos.cx);
-    rcSelection.right = (float)ui::TruncateToInt32(right - scrollPos.cx);
-    rcSelection.top = (float)ui::TruncateToInt32(top - scrollPos.cy);
-    rcSelection.bottom = (float)ui::TruncateToInt32(bottom - scrollPos.cy);
-    if (rcSelection.IsEmpty()) {
-        return;
-    }
+    UiPoint ptMouseDown;    
+    ptMouseDown.x = ui::TruncateToInt32(ptMouseDown64.cx - scrollPos.cx);
+    ptMouseDown.y = ui::TruncateToInt32(ptMouseDown64.cy - scrollPos.cy);
+
+    UiPoint ptMouseMove;
+    ptMouseMove.x = ui::TruncateToInt32(ptMouseMove64.cx - scrollPos.cx);
+    ptMouseMove.y = ui::TruncateToInt32(ptMouseMove64.cy - scrollPos.cy);
 
     //触发重绘, 但不需要重新计算
     Invalidate();
 
-    int32_t nStart = CharFromPos(UiPoint((int32_t)rcSelection.left, (int32_t)std::ceilf(rcSelection.top)));
-    int32_t nEnd = CharFromPos(UiPoint((int32_t)rcSelection.right, (int32_t)std::ceilf(rcSelection.bottom)));
+    int32_t nStart = CharFromPos(ptMouseDown);
+    int32_t nEnd = CharFromPos(ptMouseMove);
+
     SetSel(nStart, nEnd);
 }
 

@@ -518,40 +518,61 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
             }
         }
         else if (nEndLine > nStartLine){
-            //在不同行            
+            //在不同行
+            DStringW startLineText;
             for (size_t nIndex = nStartLine; nIndex <= nEndLine; ++nIndex) {
                 LineTextInfo& lineText = m_lineTextInfo[nIndex];
                 if (nIndex == nStartLine) {
                     //首行, 删除到行尾
                     DStringW newText = lineText.m_lineText.c_str();
+                    ASSERT(nStartCharLineOffset < newText.size());
                     if ((nStartCharLineOffset > 0) && (nStartCharLineOffset < newText.size())) {
-                        newText.resize(nStartCharLineOffset);
-                        lineText.m_lineText = newText;
-                        lineText.m_nLineTextLen = (uint32_t)newText.size();
-                        //需要重新计算这一行
-                        modifiedLines.push_back(nIndex);
+                        newText.resize(nStartCharLineOffset); //截断旧文本
                     }
-                    else {
-                        //整行删除
-                        deletedLines.push_back(nIndex);
+                    else if (nStartCharLineOffset == 0){
+                        newText.clear(); //首行整行删除文本
                     }
+                    startLineText.swap(newText);
+
+                    //将首行整行删除，然后与尾行合并
+                    deletedLines.push_back(nIndex);
                 }
                 else if (nIndex == nEndLine) {
                     //末行，删除到行首
                     DStringW newText = lineText.m_lineText.c_str();
                     if ((nEndCharLineOffset > 0) && (nEndCharLineOffset < newText.size())) {
-                        newText = newText.substr(nEndCharLineOffset);
+                        newText = newText.substr(nEndCharLineOffset); //删除到行首
+                        newText.reserve(newText.size() + startLineText.size() + text.size() + 1);
+                        newText = startLineText + text + newText; //合并首行、替换目标文本
                         lineText.m_lineText = newText;
                         lineText.m_nLineTextLen = (uint32_t)newText.size();
                         //需要重新计算这一行
                         modifiedLines.push_back(nIndex);
                     }
                     else if(nEndCharLineOffset == newText.size()) {
-                        //整行删除
-                        deletedLines.push_back(nIndex);
+                        //整行删除尾行文本
+                        if (!startLineText.empty() || !text.empty()) {
+                            newText.reserve(startLineText.size() + text.size() + 1);
+                            newText = startLineText + text; //合并首行、替换目标文本
+                            lineText.m_lineText = newText;
+                            lineText.m_nLineTextLen = (uint32_t)newText.size();
+                            //需要重新计算这一行
+                            modifiedLines.push_back(nIndex);
+                        }
+                        else {
+                            deletedLines.push_back(nIndex);
+                        }
                     }
-                    else if (nEndCharLineOffset == 0) {
+                    else {
                         //无需删除本行数据
+                        if (!startLineText.empty() || !text.empty()) {
+                            newText.reserve(newText.size() + startLineText.size() + text.size() + 1);
+                            newText = startLineText + text + newText; //合并首行、替换目标文本
+                            lineText.m_lineText = newText;
+                            lineText.m_nLineTextLen = (uint32_t)newText.size();
+                            //需要重新计算这一行
+                            modifiedLines.push_back(nIndex);
+                        }
                     }
                 }
                 else {
@@ -574,6 +595,21 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
                 m_lineTextInfo.erase(m_lineTextInfo.begin() + deletedLines[nDelIndex]);
             }
         }
+    }
+
+    //修改的行，需要重新计算
+    if (!modifiedLines.empty()) {
+        std::vector<std::wstring_view> textView;
+        size_t nLineCount = modifiedLines.size();
+        for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
+            const LineTextInfo& lineText = m_lineTextInfo[modifiedLines[nIndex]];
+            ASSERT(lineText.m_nLineTextLen > 0);
+            if (lineText.m_nLineTextLen > 0) {
+                textView.push_back(std::wstring_view(lineText.m_lineText.data(), lineText.m_nLineTextLen));
+            }
+        }
+
+
     }
 
     SetCacheDirty(true);

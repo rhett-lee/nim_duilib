@@ -850,12 +850,10 @@ private:
     void GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const;
 
     /** 执行了鼠标框选操作(坐标包含了scrollPos值)
-    * @param [in] left 框选的X坐标left值
-    * @param [in] right 框选的X坐标right值
-    * @param [in] top 框选的Y坐标top值
-    * @param [in] bottom 框选的Y坐标bottom值
+    * @param [in] ptMouseDown64 鼠标按下的起点
+    * @param [in] ptMouseMove64 鼠标移动的终点
     */
-    void OnFrameSelection(int64_t nLeft, int64_t right, int64_t top, int64_t bottom);
+    void OnFrameSelection(UiSize64 ptMouseDown64, UiSize64 ptMouseMove64);
 
     /** 在当前光标位置，插入一个字符（文本输入模式）
     */
