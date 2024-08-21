@@ -425,31 +425,29 @@ DStringW RichEditData::GetText() const
     return text;
 }
 
-bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStringW& text, bool bCanUndo)
+bool RichEditData::FindLineTextPos(int32_t nStartChar, int32_t nEndChar,
+                                   size_t& nStartLine, size_t& nEndLine,
+                                   size_t& nStartCharLineOffset, size_t& nEndCharLineOffset) const
 {
-    PerformanceStat statPerformance(_T("RichEditData::ReplaceText"));
     ASSERT((nStartChar >= 0) && (nEndChar >= 0) && (nEndChar >= nStartChar));
     if ((nStartChar < 0) || (nEndChar < 0) || (nStartChar > nEndChar)) {
         return false;
     }
 
-    //检查并计算字符位置
-    CheckCalcTextRects();
-
-    constexpr const size_t nNotFound = (size_t)-1;    
-    size_t nStartLine = nNotFound;              //起始行
-    size_t nEndLine = nNotFound;                //结束行
-    size_t nStartCharBaseLen = nNotFound;       //在起始行之前的总长度
-    size_t nEndCharBaseLen = nNotFound;         //在结束行之前的总长度
-    size_t nStartCharLineOffset = nNotFound;    //在起始行中，开始字符的偏移量
-    size_t nEndCharLineOffset = nNotFound;      //在结束行中，结束字符的偏移量
-    size_t nTextLen = 0;                        //文本总长度
+    constexpr const size_t nNotFound = (size_t)-1;
+    nStartLine = nNotFound;                 //起始行
+    nEndLine = nNotFound;                   //结束行
+    size_t nStartCharBaseLen = nNotFound;   //在起始行之前的总长度
+    size_t nEndCharBaseLen = nNotFound;     //在结束行之前的总长度
+    nStartCharLineOffset = nNotFound;       //在起始行中，开始字符的偏移量
+    nEndCharLineOffset = nNotFound;         //在结束行中，结束字符的偏移量
+    size_t nTextLen = 0;                    //文本总长度
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
         const LineTextInfo& lineText = m_lineTextInfo[nIndex];
         ASSERT(lineText.m_nLineTextLen > 0);
         nTextLen += lineText.m_nLineTextLen;
-        if ((nStartChar < (int32_t)nTextLen) && (nStartLine == nNotFound)){
+        if ((nStartChar < (int32_t)nTextLen) && (nStartLine == nNotFound)) {
             nStartLine = nIndex;
             nStartCharBaseLen = nTextLen - lineText.m_nLineTextLen;
             nStartCharLineOffset = (size_t)nStartChar - nStartCharBaseLen;
@@ -464,6 +462,33 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
         if ((nStartLine != nNotFound) && (nEndLine != nNotFound)) {
             break;
         }
+    }
+    if ((nStartLine != nNotFound) && (nEndLine != nNotFound) &&
+        (nStartCharLineOffset != nNotFound) && (nEndCharLineOffset != nNotFound)) {
+        ASSERT(nEndLine >= nStartLine);
+        return true;
+    }
+    return false;
+}
+
+bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStringW& text, bool bCanUndo)
+{
+    PerformanceStat statPerformance(_T("RichEditData::ReplaceText"));
+    ASSERT((nStartChar >= 0) && (nEndChar >= 0) && (nEndChar >= nStartChar));
+    if ((nStartChar < 0) || (nEndChar < 0) || (nStartChar > nEndChar)) {
+        return false;
+    }
+
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
+    constexpr const size_t nNotFound = (size_t)-1;
+    size_t nStartLine = nNotFound;              //起始行
+    size_t nEndLine = nNotFound;                //结束行
+    size_t nStartCharLineOffset = nNotFound;    //在起始行中，开始字符的偏移量
+    size_t nEndCharLineOffset = nNotFound;      //在结束行中，结束字符的偏移量
+    if (!FindLineTextPos(nStartChar, nEndChar, nStartLine, nEndLine, nStartCharLineOffset, nEndCharLineOffset)) {
+        return false;
     }
 
     DStringW oldText; //旧文本内容
@@ -480,68 +505,89 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     //操作结果
     std::vector<size_t> deletedLines;   //待删除的行
     std::vector<size_t> modifiedLines;  //文本有变化的行
-    bool bRet = false;
-    if ((nStartLine != nNotFound) && (nEndLine != nNotFound) &&
-        (nStartCharLineOffset != nNotFound) && (nEndCharLineOffset != nNotFound)) {
-        ASSERT(nEndLine >= nStartLine);
-        if (nStartLine == nEndLine) {
-            //在相同行
-            bool bChanged = true;
-            LineTextInfo& lineText = m_lineTextInfo[nStartLine];            
-            DStringW newText = lineText.m_lineText.c_str();
-            if (nStartCharLineOffset == nEndCharLineOffset) {
-                //当前位置，插入新文本
-                if (!text.empty()) {
-                    newText.insert(nStartCharLineOffset, text);
-                }
-                else {
-                    bChanged = false;
-                }
+
+    if (nStartLine == nEndLine) {
+        //在相同行
+        bool bChanged = true;
+        LineTextInfo& lineText = m_lineTextInfo[nStartLine];            
+        DStringW newText = lineText.m_lineText.c_str();
+        if (nStartCharLineOffset == nEndCharLineOffset) {
+            //当前位置，插入新文本
+            if (!text.empty()) {
+                newText.insert(nStartCharLineOffset, text);
             }
             else {
-                //替换选择的文本
-                size_t nCharCount = nEndCharLineOffset - nStartCharLineOffset;
-                ASSERT(nCharCount > 0);
-                newText.replace(nStartCharLineOffset, nCharCount, text);
+                bChanged = false;
             }
-            if (bChanged) {
-                if (!newText.empty()) {
+        }
+        else {
+            //替换选择的文本
+            size_t nCharCount = nEndCharLineOffset - nStartCharLineOffset;
+            ASSERT(nCharCount > 0);
+            newText.replace(nStartCharLineOffset, nCharCount, text);
+        }
+        if (bChanged) {
+            if (!newText.empty()) {
+                lineText.m_lineText = newText;
+                lineText.m_nLineTextLen = (uint32_t)newText.size();
+                //需要重新计算这一行
+                modifiedLines.push_back(nStartLine);
+            }
+            else {
+                //整行删除
+                deletedLines.push_back(nStartLine);
+            }
+        }
+    }
+    else if (nEndLine > nStartLine){
+        //在不同行
+        DStringW startLineText;
+        for (size_t nIndex = nStartLine; nIndex <= nEndLine; ++nIndex) {
+            LineTextInfo& lineText = m_lineTextInfo[nIndex];
+            if (nIndex == nStartLine) {
+                //首行, 删除到行尾
+                DStringW newText = lineText.m_lineText.c_str();
+                ASSERT(nStartCharLineOffset < newText.size());
+                if ((nStartCharLineOffset > 0) && (nStartCharLineOffset < newText.size())) {
+                    newText.resize(nStartCharLineOffset); //截断旧文本
+                }
+                else if (nStartCharLineOffset == 0){
+                    newText.clear(); //首行整行删除文本
+                }
+                startLineText.swap(newText);
+
+                //将首行整行删除，然后与尾行合并
+                deletedLines.push_back(nIndex);
+            }
+            else if (nIndex == nEndLine) {
+                //末行，删除到行首
+                DStringW newText = lineText.m_lineText.c_str();
+                if ((nEndCharLineOffset > 0) && (nEndCharLineOffset < newText.size())) {
+                    newText = newText.substr(nEndCharLineOffset); //删除到行首
+                    newText.reserve(newText.size() + startLineText.size() + text.size() + 1);
+                    newText = startLineText + text + newText; //合并首行、替换目标文本
                     lineText.m_lineText = newText;
                     lineText.m_nLineTextLen = (uint32_t)newText.size();
                     //需要重新计算这一行
-                    modifiedLines.push_back(nStartLine);
+                    modifiedLines.push_back(nIndex);
+                }
+                else if(nEndCharLineOffset == newText.size()) {
+                    //整行删除尾行文本
+                    if (!startLineText.empty() || !text.empty()) {
+                        newText.reserve(startLineText.size() + text.size() + 1);
+                        newText = startLineText + text; //合并首行、替换目标文本
+                        lineText.m_lineText = newText;
+                        lineText.m_nLineTextLen = (uint32_t)newText.size();
+                        //需要重新计算这一行
+                        modifiedLines.push_back(nIndex);
+                    }
+                    else {
+                        deletedLines.push_back(nIndex);
+                    }
                 }
                 else {
-                    //整行删除
-                    deletedLines.push_back(nStartLine);
-                }
-            }
-        }
-        else if (nEndLine > nStartLine){
-            //在不同行
-            DStringW startLineText;
-            for (size_t nIndex = nStartLine; nIndex <= nEndLine; ++nIndex) {
-                LineTextInfo& lineText = m_lineTextInfo[nIndex];
-                if (nIndex == nStartLine) {
-                    //首行, 删除到行尾
-                    DStringW newText = lineText.m_lineText.c_str();
-                    ASSERT(nStartCharLineOffset < newText.size());
-                    if ((nStartCharLineOffset > 0) && (nStartCharLineOffset < newText.size())) {
-                        newText.resize(nStartCharLineOffset); //截断旧文本
-                    }
-                    else if (nStartCharLineOffset == 0){
-                        newText.clear(); //首行整行删除文本
-                    }
-                    startLineText.swap(newText);
-
-                    //将首行整行删除，然后与尾行合并
-                    deletedLines.push_back(nIndex);
-                }
-                else if (nIndex == nEndLine) {
-                    //末行，删除到行首
-                    DStringW newText = lineText.m_lineText.c_str();
-                    if ((nEndCharLineOffset > 0) && (nEndCharLineOffset < newText.size())) {
-                        newText = newText.substr(nEndCharLineOffset); //删除到行首
+                    //无需删除本行数据
+                    if (!startLineText.empty() || !text.empty()) {
                         newText.reserve(newText.size() + startLineText.size() + text.size() + 1);
                         newText = startLineText + text + newText; //合并首行、替换目标文本
                         lineText.m_lineText = newText;
@@ -549,42 +595,13 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
                         //需要重新计算这一行
                         modifiedLines.push_back(nIndex);
                     }
-                    else if(nEndCharLineOffset == newText.size()) {
-                        //整行删除尾行文本
-                        if (!startLineText.empty() || !text.empty()) {
-                            newText.reserve(startLineText.size() + text.size() + 1);
-                            newText = startLineText + text; //合并首行、替换目标文本
-                            lineText.m_lineText = newText;
-                            lineText.m_nLineTextLen = (uint32_t)newText.size();
-                            //需要重新计算这一行
-                            modifiedLines.push_back(nIndex);
-                        }
-                        else {
-                            deletedLines.push_back(nIndex);
-                        }
-                    }
-                    else {
-                        //无需删除本行数据
-                        if (!startLineText.empty() || !text.empty()) {
-                            newText.reserve(newText.size() + startLineText.size() + text.size() + 1);
-                            newText = startLineText + text + newText; //合并首行、替换目标文本
-                            lineText.m_lineText = newText;
-                            lineText.m_nLineTextLen = (uint32_t)newText.size();
-                            //需要重新计算这一行
-                            modifiedLines.push_back(nIndex);
-                        }
-                    }
-                }
-                else {
-                    //中间行
-                    deletedLines.push_back(nIndex);
                 }
             }
+            else {
+                //中间行
+                deletedLines.push_back(nIndex);
+            }
         }
-        bRet = true;
-    }
-    if (!bRet) {
-        return false;
     }
 
     //删除中间行(倒序删除)
@@ -634,68 +651,43 @@ DStringW RichEditData::GetTextRange(int32_t nStartChar, int32_t nEndChar)
     constexpr const size_t nNotFound = (size_t)-1;
     size_t nStartLine = nNotFound;              //起始行
     size_t nEndLine = nNotFound;                //结束行
-    size_t nStartCharBaseLen = nNotFound;       //在起始行之前的总长度
-    size_t nEndCharBaseLen = nNotFound;         //在结束行之前的总长度
     size_t nStartCharLineOffset = nNotFound;    //在起始行中，开始字符的偏移量
     size_t nEndCharLineOffset = nNotFound;      //在结束行中，结束字符的偏移量
-    size_t nTextLen = 0;                        //文本总长度
-    const size_t nLineCount = m_lineTextInfo.size();
-    for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-        const LineTextInfo& lineText = m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
-        nTextLen += lineText.m_nLineTextLen;
-        if ((nStartChar < (int32_t)nTextLen) && (nStartLine == nNotFound)) {
-            nStartLine = nIndex;
-            nStartCharBaseLen = nTextLen - lineText.m_nLineTextLen;
-            nStartCharLineOffset = (size_t)nStartChar - nStartCharBaseLen;
-            ASSERT(nStartCharLineOffset < lineText.m_nLineTextLen);
-        }
-        if ((nEndChar < (int32_t)nTextLen) && (nEndLine == nNotFound)) {
-            nEndLine = nIndex;
-            nEndCharBaseLen = nTextLen - lineText.m_nLineTextLen;
-            nEndCharLineOffset = (size_t)nEndChar - nEndCharBaseLen;
-            ASSERT(nEndCharLineOffset < lineText.m_nLineTextLen);
-        }
-        if ((nStartLine != nNotFound) && (nEndLine != nNotFound)) {
-            break;
-        }
+    if (!FindLineTextPos(nStartChar, nEndChar, nStartLine, nEndLine, nStartCharLineOffset, nEndCharLineOffset)) {
+        return DStringW();
     }
 
     DStringW selText; //文本内容
-    if ((nStartLine != nNotFound) && (nEndLine != nNotFound) &&
-        (nStartCharLineOffset != nNotFound) && (nEndCharLineOffset != nNotFound)) {
-        ASSERT(nEndLine >= nStartLine);
-        if (nStartLine == nEndLine) {
-            //在相同行
-            const LineTextInfo& lineText = m_lineTextInfo[nStartLine];
-            DStringW newText = lineText.m_lineText.c_str();
-            if (nEndCharLineOffset > nStartCharLineOffset) {
-                //有选择的文本
-                size_t nCharCount = nEndCharLineOffset - nStartCharLineOffset;
-                selText = newText.substr(nStartCharLineOffset, nCharCount);
-            }
+    if (nStartLine == nEndLine) {
+        //在相同行
+        const LineTextInfo& lineText = m_lineTextInfo[nStartLine];
+        DStringW newText = lineText.m_lineText.c_str();
+        if (nEndCharLineOffset > nStartCharLineOffset) {
+            //有选择的文本
+            size_t nCharCount = nEndCharLineOffset - nStartCharLineOffset;
+            selText = newText.substr(nStartCharLineOffset, nCharCount);
         }
-        else if (nEndLine > nStartLine) {
-            //在不同行
-            DStringW newText;
-            for (size_t nIndex = nStartLine; nIndex <= nEndLine; ++nIndex) {
-                const LineTextInfo& lineText = m_lineTextInfo[nIndex];
+    }
+    else if (nEndLine > nStartLine) {
+        //在不同行
+        DStringW newText;
+        for (size_t nIndex = nStartLine; nIndex <= nEndLine; ++nIndex) {
+            const LineTextInfo& lineText = m_lineTextInfo[nIndex];
+            newText = lineText.m_lineText.c_str();
+            if (nIndex == nStartLine) {
+                //首行, 选择到行尾
+                selText = newText.substr(nStartCharLineOffset);
+            }
+            else if (nIndex == nEndLine) {
+                //末行，选择到行首
                 newText = lineText.m_lineText.c_str();
-                if (nIndex == nStartLine) {
-                    //首行, 选择到行尾
-                    selText = newText.substr(nStartCharLineOffset);
-                }
-                else if (nIndex == nEndLine) {
-                    //末行，选择到行首
-                    newText = lineText.m_lineText.c_str();
-                    if (nEndCharLineOffset > 0) {
-                        selText += newText.substr(0, nEndCharLineOffset);
-                    }                    
-                }
-                else {
-                    //中间行
-                    selText += lineText.m_lineText.c_str();
-                }
+                if (nEndCharLineOffset > 0) {
+                    selText += newText.substr(0, nEndCharLineOffset);
+                }                    
+            }
+            else {
+                //中间行
+                selText += lineText.m_lineText.c_str();
             }
         }
     }
@@ -713,45 +705,20 @@ bool RichEditData::HasTextRange(int32_t nStartChar, int32_t nEndChar)
     constexpr const size_t nNotFound = (size_t)-1;
     size_t nStartLine = nNotFound;              //起始行
     size_t nEndLine = nNotFound;                //结束行
-    size_t nStartCharBaseLen = nNotFound;       //在起始行之前的总长度
-    size_t nEndCharBaseLen = nNotFound;         //在结束行之前的总长度
     size_t nStartCharLineOffset = nNotFound;    //在起始行中，开始字符的偏移量
     size_t nEndCharLineOffset = nNotFound;      //在结束行中，结束字符的偏移量
-    size_t nTextLen = 0;                        //文本总长度
-    const size_t nLineCount = m_lineTextInfo.size();
-    for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-        const LineTextInfo& lineText = m_lineTextInfo[nIndex];
-        ASSERT(lineText.m_nLineTextLen > 0);
-        nTextLen += lineText.m_nLineTextLen;
-        if ((nStartChar < (int32_t)nTextLen) && (nStartLine == nNotFound)) {
-            nStartLine = nIndex;
-            nStartCharBaseLen = nTextLen - lineText.m_nLineTextLen;
-            nStartCharLineOffset = (size_t)nStartChar - nStartCharBaseLen;
-            ASSERT(nStartCharLineOffset < lineText.m_nLineTextLen);
-        }
-        if ((nEndChar < (int32_t)nTextLen) && (nEndLine == nNotFound)) {
-            nEndLine = nIndex;
-            nEndCharBaseLen = nTextLen - lineText.m_nLineTextLen;
-            nEndCharLineOffset = (size_t)nEndChar - nEndCharBaseLen;
-            ASSERT(nEndCharLineOffset < lineText.m_nLineTextLen);
-        }
-        if ((nStartLine != nNotFound) && (nEndLine != nNotFound)) {
-            break;
-        }
+    if (!FindLineTextPos(nStartChar, nEndChar, nStartLine, nEndLine, nStartCharLineOffset, nEndCharLineOffset)) {
+        return false;
     }
 
     bool bHasText = false;
-    if ((nStartLine != nNotFound) && (nEndLine != nNotFound) &&
-        (nStartCharLineOffset != nNotFound) && (nEndCharLineOffset != nNotFound)) {
-        ASSERT(nEndLine >= nStartLine);
-        if (nStartLine == nEndLine) {
-            //在相同行
-            bHasText = (nEndCharLineOffset > nStartCharLineOffset) ? true : false;
-        }
-        else if (nEndLine > nStartLine) {
-            //在不同行
-            bHasText = true;
-        }        
+    if (nStartLine == nEndLine) {
+        //在相同行
+        bHasText = (nEndCharLineOffset > nStartCharLineOffset) ? true : false;
+    }
+    else if (nEndLine > nStartLine) {
+        //在不同行
+        bHasText = true;
     }
     return bHasText;
 }

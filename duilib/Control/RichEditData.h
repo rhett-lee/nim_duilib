@@ -310,6 +310,18 @@ private:
     */
     size_t GetPrevValidCharIndex(const std::vector<MeasureCharRects>& textRects, size_t nCurrentIndex) const;
 
+    /** 定位字符范围所属的行和行文本偏移量
+    * @param [in] nStartChar 起始下标值
+    * @param [in] nEndChar 结束下标值， nEndChar >= nStartChar
+    * @param [out] nStartLine 起始行号，物理行
+    * @param [out] nEndLine  结束行号，物理行，nEndLine >= nStartLine
+    * @param [out] nStartCharLineOffset 在起始行中，开始字符的偏移量，有效范围[0, 行文本长度)
+    * @param [out] nEndCharLineOffset 在结束行中，结束字符的偏移量，有效范围[0, 行文本长度)
+    */
+    bool FindLineTextPos(int32_t nStartChar, int32_t nEndChar,
+                         size_t& nStartLine, size_t& nEndLine,
+                         size_t& nStartCharLineOffset, size_t& nEndCharLineOffset) const;
+
 private:
     /** 物理行文本的数据
     */
