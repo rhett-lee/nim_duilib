@@ -1667,13 +1667,18 @@ bool Render_Skia::IsValidDrawRichTextCache(const UiRect& textRect,
         else if (textData.m_bgColor != textDataCache.m_bgColor) {
             bValid = false;
         }
-        else if (textData.m_fontInfo != textDataCache.m_fontInfo) {
-            bValid = false;
+        else if (textData.m_pFontInfo != textDataCache.m_pFontInfo) {
+            if ((textData.m_pFontInfo == nullptr) || (textDataCache.m_pFontInfo == nullptr)) {
+                bValid = false;
+            }
+            else if (*textData.m_pFontInfo != *textDataCache.m_pFontInfo) {
+                bValid = false;
+            }
         }
         else if (textData.m_fRowSpacingMul != textDataCache.m_fRowSpacingMul) {
             bValid = false;
         }
-        else if (textData.m_uTextStyle != textDataCache.m_uTextStyle) {
+        else if (textData.m_textStyle != textDataCache.m_textStyle) {
             bValid = false;
         }
 
@@ -1737,12 +1742,12 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
             skPaint = textData.m_skPaint;
             skPaint.setAlpha(uNewFade);
             DrawTextString(rcDestRect, text, len, textEncoding,
-                           richText.m_uTextStyle | DrawStringFormat::TEXT_SINGLELINE,
+                           richText.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
                            skPaint, textData.m_spFont.get());
         }
         else {
             DrawTextString(rcDestRect, text, len, textEncoding,
-                           richText.m_uTextStyle | DrawStringFormat::TEXT_SINGLELINE,
+                           richText.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
                            textData.m_skPaint, textData.m_spFont.get());
         }        
     }
@@ -1803,7 +1808,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
     std::unordered_map<uint32_t, uint32_t> rowHeightMap;  //每行的实际行高表
 
     //字体缓存(由于创建字体比较耗时，所以尽量复用相同的对象)
-    UiFont lastFont;
+    std::shared_ptr<UiFont> lastFont;
     std::shared_ptr<IFont> spLastSkiaFont;
 
     uint32_t nCharIndex = 0;//字符索引号
@@ -1823,7 +1828,9 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
         
         std::shared_ptr<IFont> spSkiaFont;
-        if ((spLastSkiaFont != nullptr) && (textData.m_fontInfo == lastFont)) {
+        if ((spLastSkiaFont != nullptr) &&
+            (textData.m_pFontInfo != nullptr) && (lastFont != nullptr) &&
+            ((textData.m_pFontInfo == lastFont) || (*textData.m_pFontInfo == *lastFont))) {
             //复用缓存中的字体对象
             spSkiaFont = spLastSkiaFont;
         }
@@ -1833,7 +1840,11 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
             if (spSkiaFont == nullptr) {
                 continue;
             }
-            if (!spSkiaFont->InitFont(textData.m_fontInfo)) {
+            ASSERT(textData.m_pFontInfo != nullptr);
+            if (textData.m_pFontInfo == nullptr) {
+                continue;
+            }
+            if (!spSkiaFont->InitFont(*textData.m_pFontInfo)) {
                 spSkiaFont.reset();
                 continue;
             }
@@ -1852,7 +1863,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
 
         if (spLastSkiaFont != spSkiaFont) {
             spLastSkiaFont = spSkiaFont;
-            lastFont = textData.m_fontInfo;
+            lastFont = textData.m_pFontInfo;
         }
 
         const SkFont& skFont = *pSkFont;
@@ -1864,7 +1875,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         if (nRowHeight <= 0) {
             continue;
         }
-        const uint32_t uTextStyle = textData.m_uTextStyle;
+        const uint32_t uTextStyle = textData.m_textStyle;
         const bool bSingleLineMode = (uTextStyle & DrawStringFormat::TEXT_SINGLELINE) ? true : false; //是否为单行模式，单行模式下，不换行
         const bool bWordWrap = bSingleLineMode ? false : ((uTextStyle & DrawStringFormat::TEXT_WORD_WRAP) ? true : false);
         bool bBreakAll = false;//标记是否终止
@@ -2091,7 +2102,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                 const char* text = (const char*)textData.m_textView.data();
                 size_t len = textData.m_textView.size() * textCharSize; //字节数
                 DrawTextString(rcDestRect, text, len, textEncoding,
-                               richText.m_uTextStyle | DrawStringFormat::TEXT_SINGLELINE,
+                               richText.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
                                textData.m_skPaint, textData.m_spFont.get());
             }
         }
@@ -2125,28 +2136,28 @@ void Render_Skia::OnDrawUnicodeChar(RichTextRowInfoMap* pRowInfoMap, wchar_t ch,
     }
 
     RichTextCharInfo charInfo;
-    charInfo.m_charWidth = glyphWidth;
-    charInfo.m_charFlag = 0;
+    charInfo.SetCharWidth(glyphWidth);
+    charInfo.SetCharFlag(0);
     if (ch == '\r') {
         //回车        
-        charInfo.m_charFlag |= RichTextCharFlag::kIsIgnoredChar;
-        charInfo.m_charFlag |= RichTextCharFlag::kIsReturn;
-        charInfo.m_charWidth = 0;
+        charInfo.AddCharFlag(RichTextCharFlag::kIsIgnoredChar);
+        charInfo.AddCharFlag(RichTextCharFlag::kIsReturn);
+        charInfo.SetCharWidth(0);
     }
     else if (ch == '\n') {
         //换行
-        charInfo.m_charFlag |= RichTextCharFlag::kIsNewLine;
-        charInfo.m_charWidth = 0;
+        charInfo.AddCharFlag(RichTextCharFlag::kIsNewLine);
+        charInfo.SetCharWidth(0);
     }
 
     rowInfo.m_charInfo.emplace_back(std::move(charInfo));
 
     if (glyphChars == 2) {
         RichTextCharInfo charInfo2;
-        charInfo2.m_charWidth = 0;
-        charInfo2.m_charFlag = 0;
-        charInfo2.m_charFlag |= RichTextCharFlag::kIsIgnoredChar;
-        charInfo2.m_charFlag |= RichTextCharFlag::kIsLowSurrogate;
+        charInfo2.SetCharWidth(0);
+        charInfo2.SetCharFlag(0);
+        charInfo2.AddCharFlag(RichTextCharFlag::kIsIgnoredChar);
+        charInfo2.AddCharFlag(RichTextCharFlag::kIsLowSurrogate);
         rowInfo.m_charInfo.emplace_back(std::move(charInfo2));
     }
     ASSERT((glyphChars == 1) || (glyphChars == 2));

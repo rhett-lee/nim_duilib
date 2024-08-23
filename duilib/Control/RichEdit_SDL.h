@@ -825,7 +825,7 @@ private:
 
     /** 获取当前绘制文字的属性
     */
-    uint32_t GetTextStyle() const;
+    uint16_t GetTextStyle() const;
 
     /** 将文本生成可绘制的格式
     */

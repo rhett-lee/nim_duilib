@@ -102,13 +102,18 @@ UiRect RichEditData::EstimateTextDisplayBounds(const UiRect& rcAvailable)
                 else if (textData.m_textView.size() != textDataCache.m_textView.size()) {
                     bValid = false;
                 }
-                else if (textData.m_fontInfo != textDataCache.m_fontInfo) {
-                    bValid = false;
+                else if (textData.m_pFontInfo != textDataCache.m_pFontInfo) {
+                    if ((textData.m_pFontInfo == nullptr) || (textDataCache.m_pFontInfo == nullptr)) {
+                        bValid = false;
+                    }
+                    else if (*textData.m_pFontInfo != *textDataCache.m_pFontInfo) {
+                        bValid = false;
+                    }
                 }
                 else if (textData.m_fRowSpacingMul != textDataCache.m_fRowSpacingMul) {
                     bValid = false;
                 }
-                else if (textData.m_uTextStyle != textDataCache.m_uTextStyle) {
+                else if (textData.m_textStyle != textDataCache.m_textStyle) {
                     bValid = false;
                 }
 
@@ -193,8 +198,6 @@ void RichEditData::CalcTextRects()
     UiSize szScrollOffset;
     m_spDrawRichTextCache.reset();
     uint8_t nAlpha = m_pRichTextData->GetDrawAlpha();
-
-    size_t ss = sizeof(RichTextCharInfo);
 
     m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, nAlpha, &m_rowInfoMap, m_spDrawRichTextCache);
     //ASSERT(textRects.size() == nTextLen);
@@ -716,7 +719,7 @@ UiPoint RichEditData::CaretPosFromChar(int32_t nCharIndex)
                 cursorPos.y = (int32_t)rowInfo.m_rowRect.top;
                 for (size_t i = 0; i < nIndexOffset; ++i) {
                     const RichTextCharInfo& charInfo = rowInfo.m_charInfo[i];
-                    xPos += charInfo.m_charWidth;
+                    xPos += charInfo.CharWidth();
                 }
                 cursorPos.x = (int32_t)xPos;
                 bFound = true;
@@ -733,7 +736,7 @@ UiPoint RichEditData::CaretPosFromChar(int32_t nCharIndex)
                 const size_t nCharCount = rowInfo.m_charInfo.size();
                 for (size_t i = 0; i < nCharCount; ++i) {
                     const RichTextCharInfo& charInfo = rowInfo.m_charInfo[i];
-                    xPos += charInfo.m_charWidth;//右上角坐标
+                    xPos += charInfo.CharWidth();//右上角坐标
                 }
                 cursorPos.x = (int32_t)std::ceilf(xPos);
             }
@@ -766,7 +769,7 @@ UiPoint RichEditData::PosFromChar(int32_t nCharIndex)
                 pt.y = (int32_t)rowInfo.m_rowRect.top;
                 for (size_t i = 0; i <= nIndexOffset; ++i) {
                     const RichTextCharInfo& charInfo = rowInfo.m_charInfo[i];
-                    xPos += charInfo.m_charWidth;
+                    xPos += charInfo.CharWidth();
                 }
                 bFound = true;
                 pt.x = (int32_t)xPos;
@@ -784,7 +787,7 @@ UiPoint RichEditData::PosFromChar(int32_t nCharIndex)
                     const size_t nIndexOffset = rowInfo.m_charInfo.size() - 1;
                     for (size_t i = 0; i < nIndexOffset; ++i) {
                         const RichTextCharInfo& charInfo = rowInfo.m_charInfo[i];
-                        xPos += charInfo.m_charWidth;//左上角坐标
+                        xPos += charInfo.CharWidth();//左上角坐标
                     }
                 }
                 pt.x = (int32_t)xPos;
@@ -875,8 +878,8 @@ int32_t RichEditData::CharFromPos(UiPoint pt)
                 if (charInfo.IsIgnoredChar()) {
                     continue;
                 }
-                if ((pt.x >= xRowPos) && (pt.x < (xRowPos + charInfo.m_charWidth))) {
-                    if (pt.x <= (xRowPos + charInfo.m_charWidth / 2)) {
+                if ((pt.x >= xRowPos) && (pt.x < (xRowPos + charInfo.CharWidth()))) {
+                    if (pt.x <= (xRowPos + charInfo.CharWidth() / 2)) {
                         //如果X坐标小于等于中心点，取当前字符
                         nCharPosIndex = (int32_t)(rowInfo.m_nStartIndex + nIndex);
                     }
@@ -896,7 +899,7 @@ int32_t RichEditData::CharFromPos(UiPoint pt)
                     }
                     break;
                 }
-                xRowPos += charInfo.m_charWidth;
+                xRowPos += charInfo.CharWidth();
             }
         }
     }
@@ -1295,7 +1298,7 @@ bool RichEditData::GetCurrentWordIndex(int32_t nCharIndex, int32_t& nWordStartIn
                 }
                 if ((nWordEndIndex != -1)) {
                     if (j < 0) {
-                        nWordStartIndex = nStartCharBaseLen;
+                        nWordStartIndex = (int32_t)nStartCharBaseLen;
                     }
                 }
                 if ((nWordStartIndex != -1) && (nWordEndIndex != -1)) {
@@ -1335,7 +1338,7 @@ bool RichEditData::GetCurrentWordIndex(int32_t nCharIndex, int32_t& nWordStartIn
                 j -= 1;//跳过该字符
             }
             if (nWordStartIndex == -1) {
-                nWordStartIndex = nStartCharBaseLen;
+                nWordStartIndex = (int32_t)nStartCharBaseLen;
             }
             break;
         }
@@ -1399,11 +1402,11 @@ void RichEditData::GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::
                         continue;
                     }
                     if (i < nStartCharIndex) {
-                        rowRectF.left += rowInfo.m_charInfo[i].m_charWidth;
+                        rowRectF.left += rowInfo.m_charInfo[i].CharWidth();
                         rowRectF.right = rowRectF.left;
                     }
                     else {
-                        rowRectF.right += rowInfo.m_charInfo[i].m_charWidth;
+                        rowRectF.right += rowInfo.m_charInfo[i].CharWidth();
                     }                    
                 }
                 UiRectF& destRowRect = rowTextRectFs[iter->first];
@@ -1427,11 +1430,11 @@ void RichEditData::GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::
                         continue;
                     }
                     if (i < nStartCharIndex) {
-                        rowRectF.left += rowInfo.m_charInfo[i].m_charWidth;
+                        rowRectF.left += rowInfo.m_charInfo[i].CharWidth();
                         rowRectF.right = rowRectF.left;
                     }
                     else {
-                        rowRectF.right += rowInfo.m_charInfo[i].m_charWidth;
+                        rowRectF.right += rowInfo.m_charInfo[i].CharWidth();
                     }
                 }
                 UiRectF& destRowRect = rowTextRectFs[iter->first];
@@ -1451,7 +1454,7 @@ void RichEditData::GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::
                     if (rowInfo.m_charInfo[i].IsIgnoredChar() || rowInfo.m_charInfo[i].IsNewLine()) {
                         continue;
                     }
-                    rowRectF.right += rowInfo.m_charInfo[i].m_charWidth;
+                    rowRectF.right += rowInfo.m_charInfo[i].CharWidth();
                 }
                 UiRectF& destRowRect = rowTextRectFs[iter->first];
                 if (destRowRect.IsZero()) {

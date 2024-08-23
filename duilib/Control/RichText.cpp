@@ -139,7 +139,7 @@ void RichText::Redraw()
     Invalidate();
 }
 
-uint32_t RichText::GetTextStyle() const
+uint16_t RichText::GetTextStyle() const
 {
     uint32_t uTextStyle = 0;
     if (m_hAlignType == HorAlignType::kHorAlignCenter) {
@@ -172,7 +172,7 @@ uint32_t RichText::GetTextStyle() const
     //不应包含单行属性
     uTextStyle &= ~TEXT_SINGLELINE;
 
-    return uTextStyle;
+    return ui::TruncateToUInt16(uTextStyle);
 }
 
 void RichText::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect)
@@ -184,11 +184,11 @@ void RichText::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect)
     if (!m_textData.empty()) {
         std::vector<RichTextData> richTextData;
         richTextData.reserve(m_textData.size());
-        const uint32_t nTextStyle = GetTextStyle();
+        const uint16_t nTextStyle = GetTextStyle();
         for (const RichTextData& textData : m_textData) {
             richTextData.push_back(textData);
             //计算时需要带上绘制文字的属性信息
-            richTextData[richTextData.size() - 1].m_uTextStyle = nTextStyle;
+            richTextData[richTextData.size() - 1].m_textStyle = nTextStyle;
         }
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         pRender->MeasureRichText(rc, UiSize(), pRenderFactory, richTextData);
@@ -328,8 +328,9 @@ void RichText::PaintText(IRender* pRender)
             if (!textDataEx.m_linkUrl.empty()) {
                 //对于超级链接，设置默认文本格式
                 RichTextData textData = textDataEx;
+                textData.m_pFontInfo = std::make_shared<UiFont>();
                 if (textDataEx.m_bMouseDown || textDataEx.m_bMouseHover) {
-                    textData.m_fontInfo.m_bUnderline = m_bLinkUnderlineFont;//是否显示下划线字体
+                    textData.m_pFontInfo->m_bUnderline = m_bLinkUnderlineFont;//是否显示下划线字体
                 }
                 if (!m_linkNormalTextColor.empty()) {                    
                     if (!normalLinkTextColor.IsEmpty()) {
@@ -395,14 +396,15 @@ bool RichText::ParseText(std::vector<RichTextDataEx>& outTextData) const
     if (parentTextData.m_textColor.IsEmpty()) {
         parentTextData.m_textColor = UiColor(UiColors::Black);
     }
-    parentTextData.m_fontInfo.m_fontName = pFont->FontName();
-    parentTextData.m_fontInfo.m_fontSize = pFont->FontSize();
-    parentTextData.m_fontInfo.m_bBold = pFont->IsBold();
-    parentTextData.m_fontInfo.m_bUnderline = pFont->IsUnderline();
-    parentTextData.m_fontInfo.m_bItalic = pFont->IsItalic();
-    parentTextData.m_fontInfo.m_bStrikeOut = pFont->IsStrikeOut();
+    parentTextData.m_pFontInfo = std::make_shared<UiFont>();
+    parentTextData.m_pFontInfo->m_fontName = pFont->FontName();
+    parentTextData.m_pFontInfo->m_fontSize = pFont->FontSize();
+    parentTextData.m_pFontInfo->m_bBold = pFont->IsBold();
+    parentTextData.m_pFontInfo->m_bUnderline = pFont->IsUnderline();
+    parentTextData.m_pFontInfo->m_bItalic = pFont->IsItalic();
+    parentTextData.m_pFontInfo->m_bStrikeOut = pFont->IsStrikeOut();
     parentTextData.m_fRowSpacingMul = m_fRowSpacingMul;
-    parentTextData.m_uTextStyle = GetTextStyle();
+    parentTextData.m_textStyle = GetTextStyle();
 
     std::vector<RichTextDataEx> textData;
 
@@ -422,7 +424,7 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
     //当前节点
     RichTextDataEx currentTextData;
     currentTextData.m_fRowSpacingMul = parentTextData.m_fRowSpacingMul;
-    currentTextData.m_uTextStyle = parentTextData.m_uTextStyle;
+    currentTextData.m_textStyle = parentTextData.m_textStyle;
     currentTextData.m_textView = std::wstring_view(textSlice.m_text.c_str(), textSlice.m_text.size());
 
     //不应包含回车和换行（由外部调用方负责处理）
@@ -447,24 +449,28 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
         currentTextData.m_bgColor = parentTextData.m_bgColor;
     }
 
-    currentTextData.m_fontInfo = parentTextData.m_fontInfo;
+    currentTextData.m_pFontInfo = std::make_shared<UiFont>();
+    if (parentTextData.m_pFontInfo != nullptr) {
+        *currentTextData.m_pFontInfo = *parentTextData.m_pFontInfo;
+    }
+
     if (!textSlice.m_fontInfo.m_fontName.empty()) {
-        currentTextData.m_fontInfo.m_fontName = textSlice.m_fontInfo.m_fontName;
+        currentTextData.m_pFontInfo->m_fontName = textSlice.m_fontInfo.m_fontName;
     }
     if (textSlice.m_fontInfo.m_fontSize > 0) {
-        currentTextData.m_fontInfo.m_fontSize = Dpi().GetScaleInt(textSlice.m_fontInfo.m_fontSize); //字体大小，需要DPI缩放
+        currentTextData.m_pFontInfo->m_fontSize = Dpi().GetScaleInt(textSlice.m_fontInfo.m_fontSize); //字体大小，需要DPI缩放
     }
     if (textSlice.m_fontInfo.m_bBold) {
-        currentTextData.m_fontInfo.m_bBold = textSlice.m_fontInfo.m_bBold;
+        currentTextData.m_pFontInfo->m_bBold = textSlice.m_fontInfo.m_bBold;
     }
     if (textSlice.m_fontInfo.m_bUnderline) {
-        currentTextData.m_fontInfo.m_bUnderline = textSlice.m_fontInfo.m_bUnderline;
+        currentTextData.m_pFontInfo->m_bUnderline = textSlice.m_fontInfo.m_bUnderline;
     }
     if (textSlice.m_fontInfo.m_bItalic) {
-        currentTextData.m_fontInfo.m_bItalic = textSlice.m_fontInfo.m_bItalic;
+        currentTextData.m_pFontInfo->m_bItalic = textSlice.m_fontInfo.m_bItalic;
     }
     if (textSlice.m_fontInfo.m_bStrikeOut) {
-        currentTextData.m_fontInfo.m_bStrikeOut = textSlice.m_fontInfo.m_bStrikeOut;
+        currentTextData.m_pFontInfo->m_bStrikeOut = textSlice.m_fontInfo.m_bStrikeOut;
     }
     if (!currentTextData.m_textView.empty() || !currentTextData.m_linkUrl.empty()) {
         textData.push_back(currentTextData);

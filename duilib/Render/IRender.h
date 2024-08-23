@@ -487,7 +487,7 @@ public:
 
     /** 字体信息
     */
-    UiFont m_fontInfo;
+    std::shared_ptr<UiFont> m_pFontInfo;
 
     /** 行间距
     */
@@ -495,7 +495,7 @@ public:
 
     /** 绘制文字的属性(包含文本对齐方式等属性，参见 enum DrawStringFormat)
     */
-    uint32_t m_uTextStyle = 0;
+    uint16_t m_textStyle = 0;
 
     /** 对象绘制区域(输出参数)
     */
@@ -512,33 +512,79 @@ enum RichTextCharFlag: uint8_t
     kIsNewLine      = 0x08,     //当前字符是否为换行'\n'
 };
 
-/** 绘制的字符属性
+/** 绘制的字符属性（共4个字节）
 */
 struct RichTextCharInfo
 {
-    /** 属性标志
+    /** 属性标志(读取)
     */
-    uint8_t m_charFlag = 0;
+    inline uint8_t CharFlag() const
+    {
+        uint32_t v = m_value;
+        v >>= 24;
+        return (uint8_t)v;
+    }
 
-    /** 字符宽度
+    /** 属性标志(设置)
     */
-    float m_charWidth = 0;
+    inline void SetCharFlag(uint8_t flag)
+    {
+        uint32_t v = flag;
+        v <<= 24;
+        m_value &= 0x00FFFFFF;
+        m_value |= v;
+    }
+
+    /** 属性标志(添加)
+    */
+    inline void AddCharFlag(uint8_t flag)
+    {
+        uint32_t v = flag;
+        v <<= 24;
+        m_value |= v;
+    }
+
+    /** 字符宽度(读取)
+    */
+    inline float CharWidth() const
+    {
+        uint32_t v = m_value & 0x00FFFFFF;
+        float fValue = (float)v;
+        fValue /= 1000.0f;
+        return fValue;
+    }
+
+    /** 字符宽度(设置)
+    */
+    inline void SetCharWidth(float charWidth)
+    {
+        uint32_t v = (uint32_t)(std::ceilf(charWidth * 1000.0f));
+        ASSERT(v < 0x00FFFFFF);
+        v &= 0x00FFFFFF;
+        m_value &= 0xFF000000;
+        m_value |= v;
+    }
 
     /** 该字符是否为回车
     */
-    bool IsReturn() const { return m_charFlag & RichTextCharFlag::kIsReturn; }
+    inline bool IsReturn() const { return CharFlag() & RichTextCharFlag::kIsReturn; }
 
     /** 该字符是否为换行符
     */
-    bool IsNewLine() const { return m_charFlag & RichTextCharFlag::kIsNewLine; }
+    inline bool IsNewLine() const { return CharFlag() & RichTextCharFlag::kIsNewLine; }
 
     /** 该字符是否为非绘制字符
     */
-    bool IsIgnoredChar() const { return m_charFlag & RichTextCharFlag::kIsIgnoredChar; }
+    inline bool IsIgnoredChar() const { return CharFlag() & RichTextCharFlag::kIsIgnoredChar; }
 
     /** 该字符是否为低代理字符
     */
-    bool IsLowSurrogate() const { return m_charFlag & RichTextCharFlag::kIsLowSurrogate; }
+    inline bool IsLowSurrogate() const { return CharFlag() & RichTextCharFlag::kIsLowSurrogate; }
+
+private:
+    /** 使用整型存储，减少内存占有量
+    */
+    uint32_t m_value = 0;
 };
 
 /** 逻辑行(矩形区域内显示的行，物理行数据在自动换行的情况下会对应多个逻辑行)的基本信息

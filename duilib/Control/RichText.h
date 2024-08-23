@@ -228,7 +228,7 @@ private:
 
     /** 获取当前绘制文字的属性
     */
-    uint32_t GetTextStyle() const;
+    uint16_t GetTextStyle() const;
 
     /** 计算绘制后的目标区域大小
     */

@@ -2275,7 +2275,7 @@ int32_t RichEdit::CharFromPos(UiPoint pt)
     return m_pTextData->CharFromPos(pt);
 }
 
-uint32_t RichEdit::GetTextStyle() const
+uint16_t RichEdit::GetTextStyle() const
 {
     uint32_t uTextStyle = 0;
     if (m_hAlignType == HorAlignType::kHorAlignCenter) {
@@ -2312,7 +2312,7 @@ uint32_t RichEdit::GetTextStyle() const
     else {
         uTextStyle &= ~TEXT_SINGLELINE;
     }
-    return uTextStyle;
+    return ui::TruncateToUInt16(uTextStyle);
 }
 
 bool RichEdit::GetRichTextForDraw(std::vector<RichTextData>& richTextDataList) const
@@ -2338,19 +2338,20 @@ bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView
     }
     RichTextData richTextData;    
     //默认文本属性
-    richTextData.m_uTextStyle = GetTextStyle();
+    richTextData.m_textStyle = GetTextStyle();
     //默认文本颜色
     richTextData.m_textColor = GetUiColor(GetTextColor());
     if (richTextData.m_textColor.IsEmpty()) {
         richTextData.m_textColor = UiColor(UiColors::Black);
     }
     //文本的字体信息
-    richTextData.m_fontInfo.m_fontName = pFont->FontName();
-    richTextData.m_fontInfo.m_fontSize = pFont->FontSize();
-    richTextData.m_fontInfo.m_bBold = pFont->IsBold();
-    richTextData.m_fontInfo.m_bUnderline = pFont->IsUnderline();
-    richTextData.m_fontInfo.m_bItalic = pFont->IsItalic();
-    richTextData.m_fontInfo.m_bStrikeOut = pFont->IsStrikeOut();
+    richTextData.m_pFontInfo = std::make_shared<UiFont>();
+    richTextData.m_pFontInfo->m_fontName = pFont->FontName();
+    richTextData.m_pFontInfo->m_fontSize = pFont->FontSize();
+    richTextData.m_pFontInfo->m_bBold = pFont->IsBold();
+    richTextData.m_pFontInfo->m_bUnderline = pFont->IsUnderline();
+    richTextData.m_pFontInfo->m_bItalic = pFont->IsItalic();
+    richTextData.m_pFontInfo->m_bStrikeOut = pFont->IsStrikeOut();
 
     const size_t nCount = textView.size();
     richTextDataList.reserve(nCount);
@@ -2360,7 +2361,7 @@ bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView
             richTextData.m_textView = textView[nIndex];
             richTextDataList.emplace_back(richTextData);
         }
-    }    
+    }   
     return !richTextDataList.empty();
 }
 
@@ -2371,7 +2372,7 @@ UiRect RichEdit::GetRichTextDrawRect() const
 
 uint8_t RichEdit::GetDrawAlpha() const
 {
-    return GetAlpha();
+    return (uint8_t)GetAlpha();
 }
 
 UiSize RichEdit::EstimateText(UiSize szAvailable)
