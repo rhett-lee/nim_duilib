@@ -646,7 +646,7 @@ void RichEdit::SetText(const DString& strText)
     text = strText;
             //#ifdef _DEBUG
                     std::vector<uint8_t> fileData;
-                    FileUtil::ReadFileData(FilePath(L"D:\\1.h"), fileData);
+                    FileUtil::ReadFileData(FilePath(L"D:\\2.h"), fileData);
                     fileData.push_back(0);
                     fileData.push_back(0);
                     text = StringUtil::UTF8ToUTF16((const char*)fileData.data());
@@ -2849,11 +2849,20 @@ void RichEdit::OnLButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
     }
 }
 
-void RichEdit::OnLButtonDoubleClick(const UiPoint& /*ptMouse*/, Control* /*pSender*/)
+void RichEdit::OnLButtonDoubleClick(const UiPoint& ptMouse, Control* /*pSender*/)
 {
     if (IsReadOnly()) {
         //只读模式下，双击则全选文本
         SetSelAll();
+    }
+    else {
+        //非只读模式下，选择单词
+        int32_t nCharPosIndex = CharFromPos(ptMouse);
+        int32_t nWordStartIndex = 0;
+        int32_t nWordEndIndex = 0;
+        if (m_pTextData->GetCurrentWordIndex(nCharPosIndex, nWordStartIndex, nWordEndIndex)) {
+            SetSel(nWordStartIndex, nWordEndIndex);
+        }        
     }
 }
 
@@ -3110,7 +3119,12 @@ void RichEdit::OnInputChar(const EventArgs& msg)
             //无选择文本：删除后一个字符
             text.clear();
             bool bMatchWord = IsKeyDown(msg, ModifierKey::kControl); //Ctrl + Delete键，删除光标后面的单词
-            nSelEndChar = m_pTextData->GetNextValidCharIndexForDelete(nSelStartChar, bMatchWord);
+            if (bMatchWord) {
+                nSelEndChar = m_pTextData->GetNextValidWordIndex(nSelStartChar);
+            }
+            else {
+                nSelEndChar = m_pTextData->GetNextValidCharIndex(nSelStartChar);
+            }            
         }
     }
     else if (msg.vkCode == kVK_BACK) {
@@ -3123,7 +3137,12 @@ void RichEdit::OnInputChar(const EventArgs& msg)
             //无选择文本：删除前一个字符
             text.clear();
             bool bMatchWord = IsKeyDown(msg, ModifierKey::kControl); //Ctrl + Backspace键，删除光标前面的单词
-            nSelStartChar = m_pTextData->GetPrevValidCharIndexForDelete(nSelStartChar, bMatchWord);
+            if (bMatchWord) {
+                nSelStartChar = m_pTextData->GetPrevValidWordIndex(nSelStartChar);
+            }
+            else {
+                nSelStartChar = m_pTextData->GetPrevValidCharIndex(nSelStartChar);
+            }            
         }
     }
 

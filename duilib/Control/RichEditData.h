@@ -204,43 +204,36 @@ public:
     void GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::map<int32_t, UiRectF>& rowTextRectFs);
 
 public:
-    /** 获取下一个有效的Unicode字符的索引号
-    * @param [in] nCharIndex  字符的索引下标
-    * @return 返回后一个有效字符的索引号
-    */
-    int32_t GetNextUnicodeCharIndex(int32_t nCharIndex);
-
-    /** 获取前一个有效Unicode字符的索引号
-    * @param [in] nCharIndex  字符的索引下标
-    * @return 返回前一个有效字符的索引号
-    */
-    int32_t GetPrevUnicodeCharIndex(int32_t nCharIndex);
-
-    /** 获取下一个有效字符的索引号
-    * @param [in] nCharIndex  字符的索引下标
+    /** 获取下一个有效字符的索引号(换行符会被跳过)
+    * @param [in] nCharIndex 字符的索引下标
     * @return 返回后一个有效字符的索引号
     */
     int32_t GetNextValidCharIndex(int32_t nCharIndex);
 
-    /** 获取前一个有效字符的索引号
-    * @param [in] nCharIndex  字符的索引下标
+    /** 获取前一个有效字符的索引号(换行符会被跳过)
+    * @param [in] nCharIndex 字符的索引下标
     * @return 返回前一个有效字符的索引号
     */
     int32_t GetPrevValidCharIndex(int32_t nCharIndex);
 
-    /** 获取下一个有效字符的索引号(删除操作的下一个字符)
-    * @param [in] nCharIndex  字符的索引下标
-    * @param [in] bMatchWord 是否按单词删除
+    /** 获取下一个有效单词的索引号(按空格或者标点符号分割)
+    * @param [in] nCharIndex 字符的索引下标
     * @return 返回后一个有效字符的索引号
     */
-    int32_t GetNextValidCharIndexForDelete(int32_t nCharIndex, bool bMatchWord);
+    int32_t GetNextValidWordIndex(int32_t nCharIndex);
 
-    /** 获取前一个有效字符的索引号(删除操作的前一个字符)
-    * @param [in] nCharIndex  字符的索引下标
-    * @param [in] bMatchWord 是否按单词删除
-    * @return 返回后一个有效字符的索引号
+    /** 获取前一个有效单词的索引号(按空格或者标点符号分割)
+    * @param [in] nCharIndex 字符的索引下标
+    * @return 返回前一个有效字符的索引号
     */
-    int32_t GetPrevValidCharIndexForDelete(int32_t nCharIndex, bool bMatchWord);
+    int32_t GetPrevValidWordIndex(int32_t nCharIndex);
+
+    /** 获取当前位置附近单词的起始索引号和结束索引号
+    * @param [in] nCharIndex 字符的索引下标
+    * @param [out] nWordStartIndex 单词的索引开始索引号
+    * @param [out] nWordEndIndex 单词的索引结束索引号
+    */
+    bool GetCurrentWordIndex(int32_t nCharIndex, int32_t& nWordStartIndex, int32_t& nWordEndIndex);
 
 public:
     /** 设置文本绘制缓存
@@ -296,20 +289,6 @@ private:
     */
     void CalcTextRects();
 
-    /** 更新文本的行数据
-    */
-    void UpdateRowTextInfo(const UiRect& rcDrawText,
-                           const UiSize& szScrollOffset,
-                           const std::vector<MeasureCharRects>& textRects);
-
-    /** 获取下一个有效字符的索引号
-    */
-    size_t GetNextValidCharIndex(const std::vector<MeasureCharRects>& textRects, size_t nCurrentIndex) const;
-
-    /** 获取前一个有效字符的索引号
-    */
-    size_t GetPrevValidCharIndex(const std::vector<MeasureCharRects>& textRects, size_t nCurrentIndex) const;
-
     /** 定位字符范围所属的行和行文本偏移量
     * @param [in] nStartChar 起始下标值
     * @param [in] nEndChar 结束下标值， nEndChar >= nStartChar
@@ -322,57 +301,9 @@ private:
                          size_t& nStartLine, size_t& nEndLine,
                          size_t& nStartCharLineOffset, size_t& nEndCharLineOffset) const;
 
-private:
-    /** 物理行文本的数据
+    /** 判断一个字符是否为分隔符（空格，标点符号等）
     */
-    struct LineTextInfo
-    {
-        /** 文本数据长度
-        */
-        uint32_t m_nLineTextLen = 0;
-
-        /** 文本数据
-        */
-        UiString m_lineText;
-
-        /** 文本内容所占的区域信息
-        */
-        //std::vector<MeasureCharRects> m_lineTextRects;
-    };
-
-    /** 逻辑行(矩形区域内显示的行，物理行数据在自动换行的情况下会对应多个逻辑行)的基本信息
-    */
-    struct RowTextInfo
-    {
-        /** 该行的文字所占矩形区域
-        */
-        UiRectF m_rowRect;
-
-        /** 文本字符的起始下标值
-        */
-        uint32_t m_nTextStart = (uint32_t)-1;
-
-        /** 文本字符的结束下标值
-        */
-        uint32_t m_nTextEnd = (uint32_t)-1;
-    };
-
-    /** 估算大小的缓存，避免重复估算（估算比较耗时）
-    */
-    struct EstimateResult
-    {
-        /** 估算的传入矩形大小
-        */
-        UiRect m_rcAvailable;
-
-        /** 估算的数据
-        */
-        std::vector<RichTextData> m_richTextDataList;
-
-        /** 估算的结果
-        */
-        UiRect m_rcEstimate;
-    };
+    bool IsSeperatorChar(wchar_t ch) const;
 
 private:
     /** 将文本生成可绘制的格式的接口
@@ -408,25 +339,44 @@ private:
     UiSize m_szScrollOffset;
 
 private:
+    /** 物理行文本的数据
+    */
+    struct LineTextInfo
+    {
+        /** 文本数据长度
+        */
+        uint32_t m_nLineTextLen = 0;
+
+        /** 文本数据
+        */
+        UiString m_lineText;
+    };
+
+    /** 估算大小的缓存，避免重复估算（估算比较耗时）
+    */
+    struct EstimateResult
+    {
+        /** 估算的传入矩形大小
+        */
+        UiRect m_rcAvailable;
+
+        /** 估算的数据
+        */
+        std::vector<RichTextData> m_richTextDataList;
+
+        /** 估算的结果
+        */
+        UiRect m_rcEstimate;
+    };
+
+private:
     /** 文本数据，按物理分行切分
     */
     std::vector<LineTextInfo> m_lineTextInfo;
 
-    /** 文本内容所占的行区域信息(Key为行号，Value为该行的所占的矩形区域), Key是升序的
+    /** 文本内容所占的行区域信息(Key为行号，Value为该行的所占的矩形区域等属性信息), Key是升序的
     */
-    std::map<int32_t, RowTextInfo> m_rowTextInfo;
-
-    /** 文本内容所占的区域信息(临时使用，后续删除)
-    */
-    std::vector<MeasureCharRects> m_textRects;
-
-    /** 缓存数据有效性标志
-    */
-    bool m_bCacheDirty;
-
-    /** 重做的最大次数限制
-    */
-    int32_t m_nUndoLimit;
+    RichTextRowInfoMap m_rowInfoMap;
 
     /** 估算的结果
     */
@@ -435,6 +385,14 @@ private:
     /** 文本绘制缓存
     */
     std::shared_ptr<DrawRichTextCache> m_spDrawRichTextCache;
+
+    /** 缓存数据有效性标志
+    */
+    bool m_bCacheDirty;
+
+    /** 重做的最大次数限制
+    */
+    int32_t m_nUndoLimit;
 };
 
 } //namespace ui

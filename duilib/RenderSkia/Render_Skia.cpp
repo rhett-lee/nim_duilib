@@ -1549,10 +1549,10 @@ void Render_Skia::MeasureRichText2(const UiRect& textRect,
                                    const UiSize& szScrollOffset,
                                    IRenderFactory* pRenderFactory,
                                    std::vector<RichTextData>& richTextData,
-                                   std::vector<MeasureCharRects>* pMeasureCharRects)
+                                   RichTextRowInfoMap* pRowInfoMap)
 {
     PerformanceStat statPerformance(_T("Render_Skia::MeasureRichText2"));
-    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pMeasureCharRects, nullptr);
+    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pRowInfoMap, nullptr);
 }
 
 void Render_Skia::MeasureRichText3(const UiRect& textRect,
@@ -1560,11 +1560,11 @@ void Render_Skia::MeasureRichText3(const UiRect& textRect,
                                    IRenderFactory* pRenderFactory, 
                                    std::vector<RichTextData>& richTextData,
                                    uint8_t uFade,
-                                   std::vector<MeasureCharRects>* pMeasureCharRects,
+                                   RichTextRowInfoMap* pRowInfoMap,
                                    std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
 {
     PerformanceStat statPerformance(_T("Render_Skia::MeasureRichText2"));
-    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, uFade, true, pMeasureCharRects, &spDrawRichTextCache);
+    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, uFade, true, pRowInfoMap, &spDrawRichTextCache);
 }
 
 void Render_Skia::DrawRichText(const UiRect& textRect,
@@ -1754,7 +1754,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                                        std::vector<RichTextData>& richTextData,
                                        uint8_t uFade,
                                        bool bMeasureOnly,
-                                       std::vector<MeasureCharRects>* pMeasureCharRects,
+                                       RichTextRowInfoMap* pRowInfoMap,
                                        std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache)
 {
     PerformanceStat statPerformance(_T("Render_Skia::InternalDrawRichText"));
@@ -1767,23 +1767,11 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         return;
     }
 
-    bool bMeasureCharRects = (pMeasureCharRects != nullptr) ? true : false;
-    if (bMeasureCharRects && (pMeasureCharRects != nullptr)) {
-        //预分配内存
-        size_t nCharCount = 0;
-        for (const RichTextData& textData : richTextData) {
-            nCharCount += textData.m_textView.size();
-        }
-        if (nCharCount > 0) {            
-            pMeasureCharRects->reserve(nCharCount);
-        }
-    }
-
     //绘制区域：绘制区域的坐标以 (rcTextRect.left,rcTextRect.top)作为(0,0)点
     UiRect rcDrawRect = rcTextRect;
     rcDrawRect.Offset(-szScrollOffset.cx, -szScrollOffset.cy);
 
-    if ((pMeasureCharRects != nullptr) || (pDrawRichTextCache != nullptr)) {
+    if ((pRowInfoMap != nullptr) || (pDrawRichTextCache != nullptr)) {
         ASSERT(bMeasureOnly);
         if (!bMeasureOnly) {
             return;
@@ -1818,6 +1806,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
     UiFont lastFont;
     std::shared_ptr<IFont> spLastSkiaFont;
 
+    uint32_t nCharIndex = 0;//字符索引号
     for (size_t index = 0; index < richTextData.size(); ++index) {
         const RichTextData& textData = richTextData[index];
         if (textData.m_textView.empty()) {
@@ -1888,36 +1877,14 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
             if (lineTextView.size() == 1) {
                 //处理换行符
                 if (lineTextView[0] == L'\r') {
-                    if (bMeasureCharRects && (pMeasureCharRects != nullptr)) {
-                        MeasureCharRects charRect;
-                        charRect.m_nLineNumber = nLineNumber;
-                        charRect.m_nRowIndex = nRowIndex;
-                        charRect.m_bReturn = true;
-                        charRect.m_bIgnoredChar = true;
-                        charRect.m_charRect.left = xPos;
-                        charRect.m_charRect.right = xPos;
-                        charRect.m_charRect.top = (SkScalar)yPos;
-                        charRect.m_charRect.bottom = charRect.m_charRect.top + nRowHeight;
-                        ASSERT(nRowHeight > 0);
-                        pMeasureCharRects->emplace_back(std::move(charRect));
+                    if (pRowInfoMap != nullptr) {
+                        OnDrawUnicodeChar(pRowInfoMap, lineTextView[0], 1, 2, nCharIndex, nRowIndex, xPos, yPos, 0, nRowHeight);
                     }
                     continue; //忽略回车
                 }
-                else if (lineTextView[0] == L'\n') {                    
-                    if (bMeasureCharRects && (pMeasureCharRects != nullptr)) {
-                        MeasureCharRects charRect;
-                        charRect.m_nLineNumber = nLineNumber;
-                        charRect.m_nRowIndex = nRowIndex;
-                        charRect.m_bNewLine = true;
-                        if (bSingleLineMode) {
-                            charRect.m_bIgnoredChar = true;
-                        }
-                        charRect.m_charRect.left = xPos;
-                        charRect.m_charRect.right = xPos;
-                        charRect.m_charRect.top = (SkScalar)yPos;
-                        charRect.m_charRect.bottom = charRect.m_charRect.top + nRowHeight;
-                        ASSERT(nRowHeight > 0);
-                        pMeasureCharRects->emplace_back(std::move(charRect));
+                else if (lineTextView[0] == L'\n') {
+                    if (pRowInfoMap != nullptr) {
+                        OnDrawUnicodeChar(pRowInfoMap, lineTextView[0], 1, 2, nCharIndex, nRowIndex, xPos, yPos, 0, nRowHeight);
                     }
 
                     //换行：执行换行操作(物理换行)
@@ -1953,7 +1920,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                 std::vector<SkScalar> glyphWidthList;
                 std::vector<uint8_t>* pGlyphCharList = nullptr;
                 std::vector<SkScalar>* pGlyphWidthList = nullptr;
-                if (bMeasureCharRects) {
+                if (pRowInfoMap != nullptr) {
                     //评估每个字符的矩形范围
                     pGlyphCharList = &glyphCharList;
                     pGlyphWidthList = &glyphWidthList;
@@ -1990,11 +1957,11 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                     spTextData->m_destRect.bottom = yPos + SkScalarCeilToInt(textMeasuredHeight); //记录字符的真实高度
                     pendingTextData.push_back(spTextData);
 
-                    if (bMeasureCharRects) {
+                    if (pRowInfoMap != nullptr) {
                         //评估每个字符的矩形范围
                         ASSERT(!glyphCharList.empty());
                         ASSERT(glyphCharList.size() == glyphWidthList.size());
-                        if ((pMeasureCharRects != nullptr) && (glyphCharList.size() == glyphWidthList.size())) {
+                        if (glyphCharList.size() == glyphWidthList.size()) {
                             const size_t glyphCount = glyphCharList.size();
                             SkScalar glyphWidth = 0;
                             uint8_t glyphChars = 0;
@@ -2003,37 +1970,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                                 glyphWidth = glyphWidthList[glyphIndex];//字符宽度
                                 glyphChars = glyphCharList[glyphIndex];  //该字占几个字符（UTF16编码，可能是1或者2）
                                 ASSERT((glyphChars == 1) || (glyphChars == 2));
-                                if (glyphChars == 2) {
-                                    MeasureCharRects charRectH;
-                                    charRectH.m_charCount = 2;
-                                    charRectH.m_nLineNumber = nLineNumber;
-                                    charRectH.m_nRowIndex = nRowIndex;
-                                    charRectH.m_charRect.left = glyphLeft;
-                                    charRectH.m_charRect.right = charRectH.m_charRect.left + glyphWidth;
-                                    charRectH.m_charRect.top = (SkScalar)yPos;
-                                    charRectH.m_charRect.bottom = charRectH.m_charRect.top + nRowHeight;
-                                    ASSERT(nRowHeight > 0);
-                                    pMeasureCharRects->emplace_back(std::move(charRectH));
-
-                                    MeasureCharRects charRectL;
-                                    charRectL.m_charCount = 2;
-                                    charRectL.m_nLineNumber = nLineNumber;
-                                    charRectL.m_nRowIndex = nRowIndex;
-                                    charRectL.m_bLowSurrogate = true;
-                                    charRectL.m_bIgnoredChar = true;
-                                    pMeasureCharRects->emplace_back(std::move(charRectL));
-                                }
-                                else if (glyphChars == 1) {
-                                    MeasureCharRects charRect;
-                                    charRect.m_nLineNumber = nLineNumber;
-                                    charRect.m_nRowIndex = nRowIndex;
-                                    charRect.m_charRect.left = glyphLeft;
-                                    charRect.m_charRect.right = charRect.m_charRect.left + glyphWidth;
-                                    charRect.m_charRect.top = (SkScalar)yPos;
-                                    charRect.m_charRect.bottom = charRect.m_charRect.top + nRowHeight;
-                                    ASSERT(nRowHeight > 0);
-                                    pMeasureCharRects->emplace_back(std::move(charRect));
-                                }
+                                OnDrawUnicodeChar(pRowInfoMap, 0, glyphChars, glyphCount, nCharIndex, nRowIndex, glyphLeft, yPos, glyphWidth, nRowHeight);
                                 glyphLeft += glyphWidth;
                             }
                         }
@@ -2159,6 +2096,61 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
             }
         }
     }
+}
+
+void Render_Skia::OnDrawUnicodeChar(RichTextRowInfoMap* pRowInfoMap, wchar_t ch, uint8_t glyphChars, size_t glyphCount, uint32_t& nCharIndex,
+                                    uint32_t nRowIndex, float xPos, int32_t yPos, float glyphWidth, int32_t nRowHeight)
+{
+    ASSERT(pRowInfoMap != nullptr);
+    if (pRowInfoMap == nullptr) {
+        return;
+    }
+    auto iter = pRowInfoMap->find(nRowIndex);
+    bool bFound = (iter != pRowInfoMap->end()) ? true : false;
+    RichTextRowInfo& rowInfo = bFound ? iter->second : (*pRowInfoMap)[nRowIndex];
+    if (!bFound) {
+        //该行的第一个字符
+        rowInfo.m_nStartIndex = nCharIndex;
+        rowInfo.m_rowRect.left = xPos;
+        rowInfo.m_rowRect.right = xPos + glyphWidth;
+        rowInfo.m_rowRect.top = (SkScalar)yPos;
+        rowInfo.m_rowRect.bottom = rowInfo.m_rowRect.top + nRowHeight;
+        ASSERT(nRowHeight > 0);
+
+        rowInfo.m_charInfo.reserve(glyphCount + 2);
+    }
+    else {
+        rowInfo.m_rowRect.right += glyphWidth;
+        ASSERT(nRowHeight == (int32_t)rowInfo.m_rowRect.Height());
+    }
+
+    RichTextCharInfo charInfo;
+    charInfo.m_charWidth = glyphWidth;
+    charInfo.m_charFlag = 0;
+    if (ch == '\r') {
+        //回车        
+        charInfo.m_charFlag |= RichTextCharFlag::kIsIgnoredChar;
+        charInfo.m_charFlag |= RichTextCharFlag::kIsReturn;
+        charInfo.m_charWidth = 0;
+    }
+    else if (ch == '\n') {
+        //换行
+        charInfo.m_charFlag |= RichTextCharFlag::kIsNewLine;
+        charInfo.m_charWidth = 0;
+    }
+
+    rowInfo.m_charInfo.emplace_back(std::move(charInfo));
+
+    if (glyphChars == 2) {
+        RichTextCharInfo charInfo2;
+        charInfo2.m_charWidth = 0;
+        charInfo2.m_charFlag = 0;
+        charInfo2.m_charFlag |= RichTextCharFlag::kIsIgnoredChar;
+        charInfo2.m_charFlag |= RichTextCharFlag::kIsLowSurrogate;
+        rowInfo.m_charInfo.emplace_back(std::move(charInfo2));
+    }
+    ASSERT((glyphChars == 1) || (glyphChars == 2));
+    nCharIndex += glyphChars;
 }
 
 void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<std::wstring_view>& lineTextViewList)

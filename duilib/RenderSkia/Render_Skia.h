@@ -105,14 +105,14 @@ public:
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory, 
                                   std::vector<RichTextData>& richTextData,
-                                  std::vector<MeasureCharRects>* pMeasureCharRects) override;
+                                  RichTextRowInfoMap* pRowInfoMap) override;
 
     virtual void MeasureRichText3(const UiRect& textRect,
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory, 
                                   std::vector<RichTextData>& richTextData,
                                   uint8_t uFade,
-                                  std::vector<MeasureCharRects>* pMeasureCharRects,
+                                  RichTextRowInfoMap* pRowInfoMap,
                                   std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
 
     virtual void DrawRichText(const UiRect& textRect,
@@ -193,7 +193,7 @@ private:
                               std::vector<RichTextData>& richTextData,                   
                               uint8_t uFade,
                               bool bMeasureOnly,
-                              std::vector<MeasureCharRects>* pMeasureCharRects,
+                              RichTextRowInfoMap* pRowInfoMap,
                               std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache);
 
     /** 将文本按照换行符（'\r'或者'\n'）切分为多行
@@ -220,6 +220,21 @@ private:
     /** 整数的DPI转换
     */
     int32_t GetScaleInt(int32_t iValue) const;
+
+    /** 绘制一个字符，记录字符属性
+    * @param [in] pRowInfoMap 字符属性记录表
+    * @param [in] ch 当前绘制的字符, 仅当回车和换行符等特殊字符时有效
+    * @param [in] glyphChars 当前字对应的Unicode字符数（1或者2）
+    * @param [in] glyphCount 字符总个数
+    * @param [in,out] nCharIndex 字符索引号
+    * @param [in] nRowIndex 当前的逻辑行号
+    * @param [in] xPos 字符绘制的X坐标
+    * @param [in] yPos 字符绘制的Y坐标
+    * @param [in] glyphWidth 当前字符的绘制宽度
+    * @param [in] nRowHeight 当前行高
+    */
+    void OnDrawUnicodeChar(RichTextRowInfoMap* pRowInfoMap, wchar_t ch, uint8_t glyphChars, size_t glyphCount, uint32_t& nCharIndex,
+                           uint32_t nRowIndex, float xPos, int32_t yPos, float glyphWidth, int32_t nRowHeight);
 
 private:
     /** Canval保存的状态

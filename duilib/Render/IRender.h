@@ -3,6 +3,7 @@
 
 #include "duilib/Core/Callback.h"
 #include "duilib/Core/UiTypes.h"
+#include <map>
 
 namespace ui 
 {
@@ -501,43 +502,65 @@ public:
     std::vector<UiRect> m_textRects;
 };
 
-/** 计算每个字形的绘制区域
+/** 绘制的字符标记位
 */
-class MeasureCharRects
+enum RichTextCharFlag: uint8_t
 {
-public:
-    /** 该字符未绘制
-    */
-    bool m_bIgnoredChar = false;
-
-    /** 每个字符所在的逻辑行号（在视图边界换行显示的行号，一个物理行可能会切分为多个逻辑行）
-    */
-    uint32_t m_nRowIndex = 0;
-
-    /** 每个字符的绘制区域(输出参数)
-    */
-    UiRectF m_charRect;
-
-    /** 每个字符所在的逻辑行号（即文本中，以换行符'\n'切分的物理行）
-    */
-    uint32_t m_nLineNumber = 0;
-
-    /** 当前字形所占的字符数（UTF16编码的字形，每个字占1个或者2个字符）
-    */
-    uint8_t m_charCount = 1;
-
-    /** 当前是否为低代理字符（为true时表示当前字符是低代理字符，行号和绘制区域不含有效数据）
-    */
-    bool m_bLowSurrogate = false;
-
-    /** 当前字符是否为回车'\r'（为true时表示当前字符是回车符，行号和绘制区域不含有效数据）
-    */
-    bool m_bReturn = false;
-
-    /** 当前字符是否为换行符'\n'（为true时表示当前字符是换符，绘制区域不含有效数据）
-    */
-    bool m_bNewLine = false;
+    kIsIgnoredChar  = 0x01,     //当前字符为未绘制字符
+    kIsLowSurrogate = 0x02,     //该字符为低代理字符（由两个Unicode字符构成的字，UTF16编码的字形，每个字占1个或者2个Unicode字符）
+    kIsReturn       = 0x04,     //当前字符是否为回车'\r'
+    kIsNewLine      = 0x08,     //当前字符是否为换行'\n'
 };
+
+/** 绘制的字符属性
+*/
+struct RichTextCharInfo
+{
+    /** 属性标志
+    */
+    uint8_t m_charFlag = 0;
+
+    /** 字符宽度
+    */
+    float m_charWidth = 0;
+
+    /** 该字符是否为回车
+    */
+    bool IsReturn() const { return m_charFlag & RichTextCharFlag::kIsReturn; }
+
+    /** 该字符是否为换行符
+    */
+    bool IsNewLine() const { return m_charFlag & RichTextCharFlag::kIsNewLine; }
+
+    /** 该字符是否为非绘制字符
+    */
+    bool IsIgnoredChar() const { return m_charFlag & RichTextCharFlag::kIsIgnoredChar; }
+
+    /** 该字符是否为低代理字符
+    */
+    bool IsLowSurrogate() const { return m_charFlag & RichTextCharFlag::kIsLowSurrogate; }
+};
+
+/** 逻辑行(矩形区域内显示的行，物理行数据在自动换行的情况下会对应多个逻辑行)的基本信息
+*/
+struct RichTextRowInfo
+{
+    /** 文本字符的起始下标值
+    */
+    uint32_t m_nStartIndex = (uint32_t)-1;
+
+    /** 本行中的字符个数，字符属性
+    */
+    std::vector<RichTextCharInfo> m_charInfo;
+
+    /** 该行的文字所占矩形区域
+    */
+    UiRectF m_rowRect;
+};
+
+/** 逻辑行的属性
+*/
+typedef std::map<uint32_t, RichTextRowInfo> RichTextRowInfoMap;
 
 /** DrawRichText的绘制缓存
 */
@@ -894,13 +917,13 @@ public:
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
-    * @param [out] pMeasureCharRects 如果不为nullptr，则计算每个字符的区域
+    * @param [out] pRowInfoMap 如果不为nullptr，则计算每个字符的区域
     */
     virtual void MeasureRichText2(const UiRect& textRect,
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory, 
                                   std::vector<RichTextData>& richTextData,
-                                  std::vector<MeasureCharRects>* pMeasureCharRects) = 0;
+                                  RichTextRowInfoMap* pRowInfoMap) = 0;
 
     /** 计算格式文本的宽度和高度, 并计算每个字符的位置，并创建绘制缓存
     * @param [in] textRect 绘制文本的矩形区域
@@ -908,7 +931,7 @@ public:
     * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
     * @param [in] uFade 透明度（0 - 255）
-    * @param [out] pMeasureCharRects 如果不为nullptr，则计算每个字符的区域
+    * @param [out] pRowInfoMap 如果不为nullptr，则计算每个字符的区域
     * @param [out] spDrawRichTextCache 返回绘制缓存
     */
     virtual void MeasureRichText3(const UiRect& textRect,
@@ -916,7 +939,7 @@ public:
                                   IRenderFactory* pRenderFactory, 
                                   std::vector<RichTextData>& richTextData,
                                   uint8_t uFade,
-                                  std::vector<MeasureCharRects>* pMeasureCharRects,
+                                  RichTextRowInfoMap* pRowInfoMap,
                                   std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
 
     /** 绘制格式文本
