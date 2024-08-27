@@ -222,7 +222,7 @@ bool RichEditData::SetText(const DStringW& text)
     if (m_lineTextInfo.size() == lineTextViewList.size()) { //比较文本内容是否有变化
         //先比较字符串长度
         for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-            if (m_lineTextInfo[nIndex].m_nLineTextLen != lineTextViewList[nIndex].size()) {
+            if (m_lineTextInfo[nIndex]->m_nLineTextLen != lineTextViewList[nIndex].size()) {
                 bTextChanged = true;
                 break;
             }
@@ -230,7 +230,7 @@ bool RichEditData::SetText(const DStringW& text)
         if (!bTextChanged) {
             //如果长度都一致，则比较字符串的内容
             for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-                if (std::wstring_view(m_lineTextInfo[nIndex].m_lineText.c_str(), m_lineTextInfo[nIndex].m_nLineTextLen) != lineTextViewList[nIndex]) {
+                if (std::wstring_view(m_lineTextInfo[nIndex]->m_lineText.c_str(), m_lineTextInfo[nIndex]->m_nLineTextLen) != lineTextViewList[nIndex]) {
                     bTextChanged = true;
                     break;
                 }
@@ -241,15 +241,16 @@ bool RichEditData::SetText(const DStringW& text)
         bTextChanged = true;
     }
     if (bTextChanged) {
-        std::vector<LineTextInfo> lineTextInfo;
+        std::vector<LineTextInfoPtr> lineTextInfo;
         if (nLineCount > 0) {
             lineTextInfo.resize(nLineCount);
             for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
                 const std::wstring_view& lineTextView = lineTextViewList[nIndex];
-                LineTextInfo& lineText = lineTextInfo[nIndex];
-                lineText.m_lineText = lineTextView; //文本数据复制一份，保存起来
-                lineText.m_nLineTextLen = (uint32_t)lineTextView.size();
-                ASSERT(lineText.m_nLineTextLen > 0);
+                LineTextInfoPtr& lineText = lineTextInfo[nIndex];
+                lineText.reset(new LineTextInfo);
+                lineText->m_lineText = lineTextView; //文本数据复制一份，保存起来
+                lineText->m_nLineTextLen = (uint32_t)lineTextView.size();
+                ASSERT(lineText->m_nLineTextLen > 0);
             }
         }
         m_lineTextInfo.swap(lineTextInfo);
@@ -322,7 +323,7 @@ void RichEditData::GetTextView(std::vector<std::wstring_view>& textView) const
 {
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-        const LineTextInfo& lineText = m_lineTextInfo[nIndex];
+        const LineTextInfo& lineText = *m_lineTextInfo[nIndex];
         ASSERT(lineText.m_nLineTextLen > 0);
         if (lineText.m_nLineTextLen > 0) {
             textView.push_back(std::wstring_view(lineText.m_lineText.data(), lineText.m_nLineTextLen));
@@ -335,7 +336,7 @@ size_t RichEditData::GetTextLength() const
     size_t nTextLen = 0;
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-        const LineTextInfo& lineText = m_lineTextInfo[nIndex];
+        const LineTextInfo& lineText = *m_lineTextInfo[nIndex];
         ASSERT(lineText.m_nLineTextLen > 0);
         nTextLen += lineText.m_nLineTextLen;
     }
@@ -373,7 +374,7 @@ bool RichEditData::FindLineTextPos(int32_t nStartChar, int32_t nEndChar,
     size_t nTextLen = 0;                    //文本总长度
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-        const LineTextInfo& lineText = m_lineTextInfo[nIndex];
+        const LineTextInfo& lineText = *m_lineTextInfo[nIndex];
         ASSERT(lineText.m_nLineTextLen > 0);
         nTextLen += lineText.m_nLineTextLen;
         if ((nStartChar < (int32_t)nTextLen) && (nStartLine == nNotFound)) {
@@ -436,7 +437,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     std::wstring_view endLineTextView;   //结束行的剩余文本
     if (nStartLine == nEndLine) {
         //在相同行
-        const LineTextInfo& lineText = m_lineTextInfo[nStartLine];
+        const LineTextInfo& lineText = *m_lineTextInfo[nStartLine];
         std::wstring_view textView(lineText.m_lineText.c_str(), lineText.m_nLineTextLen);
         startLineTextView = textView.substr(0, nStartCharLineOffset); //保留到行首的文本
         endLineTextView = textView.substr(nEndCharLineOffset);        //保留到行尾的文本
@@ -444,7 +445,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     else if (nEndLine > nStartLine) {
         //在不同行
         for (size_t nIndex = nStartLine; nIndex <= nEndLine; ++nIndex) {
-            const LineTextInfo& lineText = m_lineTextInfo[nIndex];
+            const LineTextInfo& lineText = *m_lineTextInfo[nIndex];
             std::wstring_view textView(lineText.m_lineText.c_str(), lineText.m_nLineTextLen);
             if (nIndex == nStartLine) {
                 //首行，保留到行首的文本
@@ -488,9 +489,9 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
         if (!textView.empty()) {
             ASSERT(textView.back() == L'\n');
             //插入新行
-            LineTextInfo lineTextInfo;
-            lineTextInfo.m_lineText = textView.data();
-            lineTextInfo.m_nLineTextLen = (uint32_t)textView.size();
+            LineTextInfoPtr lineTextInfo(new LineTextInfo);
+            lineTextInfo->m_lineText = textView.data();
+            lineTextInfo->m_nLineTextLen = (uint32_t)textView.size();
             m_lineTextInfo.insert(m_lineTextInfo.begin() + nStartLine + nNewLineCount, lineTextInfo);
             ++nNewLineCount;
         }
@@ -507,7 +508,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
         std::vector<std::wstring_view> textView;
         size_t nLineCount = modifiedLines.size();
         for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-            const LineTextInfo& lineText = m_lineTextInfo[modifiedLines[nIndex]];
+            const LineTextInfo& lineText = *m_lineTextInfo[modifiedLines[nIndex]];
             ASSERT(lineText.m_nLineTextLen > 0);
             if (lineText.m_nLineTextLen > 0) {
                 textView.push_back(std::wstring_view(lineText.m_lineText.data(), lineText.m_nLineTextLen));
@@ -546,7 +547,7 @@ DStringW RichEditData::GetTextRange(int32_t nStartChar, int32_t nEndChar)
     DStringW selText; //文本内容
     if (nStartLine == nEndLine) {
         //在相同行
-        const LineTextInfo& lineText = m_lineTextInfo[nStartLine];
+        const LineTextInfo& lineText = *m_lineTextInfo[nStartLine];
         DStringW newText = lineText.m_lineText.c_str();
         if (nEndCharLineOffset > nStartCharLineOffset) {
             //有选择的文本
@@ -558,7 +559,7 @@ DStringW RichEditData::GetTextRange(int32_t nStartChar, int32_t nEndChar)
         //在不同行
         DStringW newText;
         for (size_t nIndex = nStartLine; nIndex <= nEndLine; ++nIndex) {
-            const LineTextInfo& lineText = m_lineTextInfo[nIndex];
+            const LineTextInfo& lineText = *m_lineTextInfo[nIndex];
             newText = lineText.m_lineText.c_str();
             if (nIndex == nStartLine) {
                 //首行, 选择到行尾
@@ -934,7 +935,7 @@ int32_t RichEditData::GetNextValidCharIndex(const int32_t nCharIndex)
     size_t nTextLen = 0; //文本总长度
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-        const LineTextInfo& lineText = m_lineTextInfo[nIndex];
+        const LineTextInfo& lineText = *m_lineTextInfo[nIndex];
         ASSERT(lineText.m_nLineTextLen > 0);
         nTextLen += lineText.m_nLineTextLen;
         if (nCharIndex < (int32_t)nTextLen) {
@@ -998,7 +999,7 @@ int32_t RichEditData::GetPrevValidCharIndex(int32_t nCharIndex)
     size_t nTextLen = 0; //文本总长度
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-        const LineTextInfo& lineText = m_lineTextInfo[nIndex];
+        const LineTextInfo& lineText = *m_lineTextInfo[nIndex];
         ASSERT(lineText.m_nLineTextLen > 0);
         nTextLen += lineText.m_nLineTextLen;
         if (nCharIndex < (int32_t)nTextLen) {
@@ -1024,7 +1025,7 @@ int32_t RichEditData::GetPrevValidCharIndex(int32_t nCharIndex)
             }
             if ((nNewCharIndex == nCharIndex) && (i <= 0) && (nIndex >= 1)) {
                 //已经在行首，跳到前一行的最后一个字符
-                const LineTextInfo& prevLineText = m_lineTextInfo[nIndex - 1];
+                const LineTextInfo& prevLineText = *m_lineTextInfo[nIndex - 1];
                 ASSERT(prevLineText.m_nLineTextLen > 0);
                 if (prevLineText.m_nLineTextLen > 1) {
                     ASSERT(prevLineText.m_lineText.data()[prevLineText.m_nLineTextLen - 1] == L'\n');
@@ -1082,7 +1083,7 @@ int32_t RichEditData::GetNextValidWordIndex(int32_t nCharIndex)
     size_t nTextLen = 0; //文本总长度
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-        const LineTextInfo& lineText = m_lineTextInfo[nIndex];
+        const LineTextInfo& lineText = *m_lineTextInfo[nIndex];
         ASSERT(lineText.m_nLineTextLen > 0);
         nTextLen += lineText.m_nLineTextLen;
         if (nCharIndex < (int32_t)nTextLen) {
@@ -1163,7 +1164,7 @@ int32_t RichEditData::GetPrevValidWordIndex(int32_t nCharIndex)
     size_t nTextLen = 0; //文本总长度
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-        const LineTextInfo& lineText = m_lineTextInfo[nIndex];
+        const LineTextInfo& lineText = *m_lineTextInfo[nIndex];
         ASSERT(lineText.m_nLineTextLen > 0);
         nTextLen += lineText.m_nLineTextLen;
         if (nCharIndex < (int32_t)nTextLen) {
@@ -1209,7 +1210,7 @@ int32_t RichEditData::GetPrevValidWordIndex(int32_t nCharIndex)
             }
             if ((nNewCharIndex == nCharIndex) && (i <= 0) && (nIndex >= 1)) {
                 //已经在行首，跳到前一行的最后一个字符
-                const LineTextInfo& prevLineText = m_lineTextInfo[nIndex - 1];
+                const LineTextInfo& prevLineText = *m_lineTextInfo[nIndex - 1];
                 ASSERT(prevLineText.m_nLineTextLen > 0);
                 if (prevLineText.m_nLineTextLen > 1) {
                     ASSERT(prevLineText.m_lineText.data()[prevLineText.m_nLineTextLen - 1] == L'\n');
@@ -1262,7 +1263,7 @@ bool RichEditData::GetCurrentWordIndex(int32_t nCharIndex, int32_t& nWordStartIn
     size_t nTextLen = 0; //文本总长度
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-        const LineTextInfo& lineText = m_lineTextInfo[nIndex];
+        const LineTextInfo& lineText = *m_lineTextInfo[nIndex];
         ASSERT(lineText.m_nLineTextLen > 0);
         nTextLen += lineText.m_nLineTextLen;
         if (nCharIndex < (int32_t)nTextLen) {

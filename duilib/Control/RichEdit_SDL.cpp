@@ -646,7 +646,7 @@ void RichEdit::SetText(const DString& strText)
     text = strText;
             //#ifdef _DEBUG
                     std::vector<uint8_t> fileData;
-                    FileUtil::ReadFileData(FilePath(L"D:\\2.h"), fileData);
+                    FileUtil::ReadFileData(FilePath(L"D:\\1.h"), fileData);
                     fileData.push_back(0);
                     fileData.push_back(0);
                     text = StringUtil::UTF8ToUTF16((const char*)fileData.data());

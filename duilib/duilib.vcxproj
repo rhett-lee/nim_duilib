@@ -610,6 +610,7 @@
     <ClInclude Include="Core\ResourceParam.h" />
     <ClInclude Include="Core\ScrollBar.h" />
     <ClInclude Include="Core\Shadow.h" />
+    <ClInclude Include="Core\SharePtr.h" />
     <ClInclude Include="Core\StateColorMap.h" />
     <ClInclude Include="Core\ThreadManager.h" />
     <ClInclude Include="Core\ThreadMessage.h" />

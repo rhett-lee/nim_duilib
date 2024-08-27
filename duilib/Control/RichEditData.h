@@ -2,6 +2,7 @@
 #define UI_CONTROL_RICHEDIT_DATA_H_
 
 #include "duilib/Core/UiTypes.h"
+#include "duilib/Core/SharePtr.h"
 #include "duilib/Render/IRender.h"
 #include <unordered_map>
 #include <map>
@@ -341,7 +342,7 @@ private:
 private:
     /** 物理行文本的数据
     */
-    struct LineTextInfo
+    struct LineTextInfo: public NVRefCount<LineTextInfo>
     {
         /** 文本数据长度
         */
@@ -351,6 +352,7 @@ private:
         */
         UiString m_lineText;
     };
+    typedef SharePtr<LineTextInfo> LineTextInfoPtr;
 
     /** 估算大小的缓存，避免重复估算（估算比较耗时）
     */
@@ -372,7 +374,7 @@ private:
 private:
     /** 文本数据，按物理分行切分
     */
-    std::vector<LineTextInfo> m_lineTextInfo;
+    std::vector<LineTextInfoPtr> m_lineTextInfo;
 
     /** 文本内容所占的行区域信息(Key为行号，Value为该行的所占的矩形区域等属性信息), Key是升序的
     */

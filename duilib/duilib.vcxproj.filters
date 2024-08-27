@@ -1121,6 +1121,9 @@
     <ClInclude Include="Control\RichEditData.h">
       <Filter>Control\SDL</Filter>
     </ClInclude>
+    <ClInclude Include="Core\SharePtr.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />
