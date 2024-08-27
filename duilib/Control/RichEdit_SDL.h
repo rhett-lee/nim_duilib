@@ -684,9 +684,13 @@ protected:
     /** 将文本生成可绘制的格式
     * @param [in] textView 按行组织切分后的文本视图，每行一条数据（以'\n'切分的行）
     * @param [out] richTextDataList 返回格式化的文本，返回的容器个数应与传入的textView相同，如果此行不更新，可用填充空数据: RichTextData()
+    * @param [in] nStartLine 重新计算的起始行号（增量计算时使用）
+    * @param [in] modifiedLines 有修改的行号（增量计算时使用）
     */
     virtual bool GetRichTextForDraw(const std::vector<std::wstring_view>& textView,
-                                    std::vector<RichTextData>& richTextDataList) const override;
+                                    std::vector<RichTextData>& richTextDataList,
+                                    size_t nStartLine = (size_t)-1,
+                                    const std::vector<size_t>& modifiedLines = std::vector<size_t>()) const override;
 
     /** 获取文本绘制矩形范围（需要时，随时调用该接口获取绘制文本的矩形范围）
     * @return 返回当前文本绘制的矩形范围，该范围需要去除内边距，滚动条所占空间

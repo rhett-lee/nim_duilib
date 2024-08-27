@@ -582,6 +582,11 @@ struct RichTextCharInfo
     */
     inline bool IsLowSurrogate() const { return CharFlag() & RichTextCharFlag::kIsLowSurrogate; }
 
+    /** 比较操作符
+    */
+    inline bool operator == (const RichTextCharInfo& r) const { return m_value == r.m_value; }
+    inline bool operator != (const RichTextCharInfo& r) const { return m_value != r.m_value; }
+
 private:
     /** 使用整型存储，减少内存占有量
     */

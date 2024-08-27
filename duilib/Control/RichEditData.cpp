@@ -154,8 +154,16 @@ void RichEditData::CheckCalcTextRects()
     }
 }
 
-void RichEditData::CalcTextRects()
+void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& modifiedLines)
 {
+    if (nStartLine != (size_t)-1) {
+        if (!modifiedLines.empty()) {
+            ASSERT(modifiedLines[0] == nStartLine);
+            if (modifiedLines[0] != nStartLine) {
+                nStartLine = (size_t)-1;
+            }
+        }
+    }
     ASSERT(m_pRender != nullptr);
     if (m_pRender == nullptr) {
         return;
@@ -183,12 +191,6 @@ void RichEditData::CalcTextRects()
         return;
     }
 
-    std::vector<RichTextData> richTextDataList;
-    m_pRichTextData->GetRichTextForDraw(textView, richTextDataList);
-    if (richTextDataList.empty()) {
-        return;
-    }
-
     UiRect rcDrawText = m_pRichTextData->GetRichTextDrawRect();
     if (rcDrawText.IsEmpty()) {
         return;
@@ -198,14 +200,103 @@ void RichEditData::CalcTextRects()
     m_spDrawRichTextCache.reset();
     uint8_t nAlpha = m_pRichTextData->GetDrawAlpha();
 
-    RichTextLineInfoParam lineInfoParam;
-    lineInfoParam.m_nStartIndex = 0;
+    size_t nDrawStartLineIndex = (size_t)-1; //绘制起始的行号
+    RichTextLineInfoParam lineInfoParam;    
     lineInfoParam.m_pLineInfoList = &m_lineTextInfo;
-    for (RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
-        ASSERT(pLineInfo != nullptr);
-        pLineInfo->m_rowInfo.clear();
+    if (nStartLine != (size_t)-1) {
+        //绘制变化的数据，清空相关的行数据信息
+        if (!modifiedLines.empty()) {
+            size_t nLineIndex = 0;
+            const size_t nCount = modifiedLines.size();            
+            for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+                nLineIndex = modifiedLines[nIndex];
+                ASSERT(nLineIndex < m_lineTextInfo.size());
+                if (nLineIndex < m_lineTextInfo.size()) {
+                    RichTextLineInfoPtr& pLineInfo = m_lineTextInfo[nLineIndex];
+                    ASSERT(pLineInfo != nullptr);
+                    pLineInfo->m_rowInfo.clear();
+                }
+                else {
+                    return;
+                }
+            }
+            std::vector<RichTextData> richTextDataList;
+            m_pRichTextData->GetRichTextForDraw(textView, richTextDataList, nStartLine, modifiedLines);
+            if (richTextDataList.empty()) {
+                return;
+            }
+            m_spDrawRichTextCache.reset();
+            lineInfoParam.m_nStartIndex = modifiedLines[0];
+            m_pRender->MeasureRichText2(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam);
+            nDrawStartLineIndex = modifiedLines[0];
+        }
+        else {
+            //无需绘制
+            nDrawStartLineIndex = nStartLine;
+        }
     }
-    m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, nAlpha, &lineInfoParam, m_spDrawRichTextCache);
+    else {
+        //绘制所有数据，清空行数据信息
+        std::vector<RichTextData> richTextDataList;
+        m_pRichTextData->GetRichTextForDraw(textView, richTextDataList);
+        if (richTextDataList.empty()) {
+            return;
+        }
+        for (RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
+            ASSERT(pLineInfo != nullptr);
+            pLineInfo->m_rowInfo.clear();
+        }
+        lineInfoParam.m_nStartIndex = 0;
+        m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, nAlpha, &lineInfoParam, m_spDrawRichTextCache);
+    }
+
+    //绘制后，增量绘制后的行高数据
+    if (nDrawStartLineIndex != (size_t)-1) {
+        UpdateRowInfo(nDrawStartLineIndex);
+    }
+
+#ifdef _DEBUG
+    //比较与完整绘制时是否一致
+    if (nStartLine != (size_t)-1) {
+        std::vector<std::wstring_view> textView2;
+        RichTextLineInfoList lineTextInfoList;
+        for (RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
+            ASSERT(pLineInfo != nullptr);
+            RichTextLineInfoPtr spLineInfo(new RichTextLineInfo);
+            spLineInfo->m_nLineTextLen = pLineInfo->m_nLineTextLen;
+            spLineInfo->m_lineText = pLineInfo->m_lineText;
+            textView2.push_back(std::wstring_view(spLineInfo->m_lineText.c_str(), spLineInfo->m_nLineTextLen));
+            lineTextInfoList.push_back(spLineInfo);
+        }
+        std::vector<RichTextData> richTextDataList2;
+        m_pRichTextData->GetRichTextForDraw(textView2, richTextDataList2);
+
+        RichTextLineInfoParam lineInfoParam2;
+        lineInfoParam2.m_pLineInfoList = &lineTextInfoList;
+        lineInfoParam2.m_nStartIndex = 0;
+        m_pRender->MeasureRichText2(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList2, &lineInfoParam2);
+
+        //比较数据的一致性，增量绘制的结果，应该与完整绘制的结果相同
+        ASSERT(lineTextInfoList.size() == m_lineTextInfo.size());
+        const size_t nDataCount = lineTextInfoList.size();
+        for (size_t nDataIndex = 0; nDataIndex < nDataCount; ++nDataIndex) {
+            const RichTextLineInfo& infoOld = *m_lineTextInfo[nDataIndex];
+            const RichTextLineInfo& infoNew = *lineTextInfoList[nDataIndex];
+            ASSERT(infoOld.m_lineText == infoNew.m_lineText);
+            ASSERT(infoOld.m_nLineTextLen == infoNew.m_nLineTextLen);
+            ASSERT(infoOld.m_rowInfo.size() == infoNew.m_rowInfo.size());
+
+            const size_t nRowCount = infoOld.m_rowInfo.size();
+            for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
+                const RichTextRowInfo& rowOld = *infoOld.m_rowInfo[nRow];
+                const RichTextRowInfo& rowNew = *infoNew.m_rowInfo[nRow];
+                ASSERT(rowOld.m_rowRect == rowNew.m_rowRect);
+                ASSERT(rowOld.m_charInfo.size() == rowNew.m_charInfo.size());
+                ASSERT(rowOld.m_charInfo == rowNew.m_charInfo);
+            }
+        }
+    }
+#endif
 }
 
 bool RichEditData::SetText(const DStringW& text)
@@ -504,24 +595,14 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
 
     //文本有变化的行
     std::vector<size_t> modifiedLines;
-    for (size_t nIndex = nNewLineCount; nIndex < nNewLineCount; ++nIndex) {
+    for (size_t nIndex = 0; nIndex < nNewLineCount; ++nIndex) {
         modifiedLines.push_back(nStartLine + nIndex);
     }
 
-    //修改的行，需要重新计算
-    if (!modifiedLines.empty()) {
-        std::vector<std::wstring_view> textView;
-        size_t nLineCount = modifiedLines.size();
-        for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
-            const RichTextLineInfo& lineText = *m_lineTextInfo[modifiedLines[nIndex]];
-            ASSERT(lineText.m_nLineTextLen > 0);
-            if (lineText.m_nLineTextLen > 0) {
-                textView.push_back(std::wstring_view(lineText.m_lineText.data(), lineText.m_nLineTextLen));
-            }
-        }
+    if (!m_bCacheDirty && (!modifiedLines.empty() || !deletedLines.empty())) {
+        //修改的行，需要重新计算(增量计算)
+        CalcTextRects(nStartLine, modifiedLines);
     }
-
-    SetCacheDirty(true);
     if (bCanUndo) {
         //生成撤销列表
         AddToUndoList(nStartChar, text, oldText);
@@ -842,6 +923,44 @@ size_t RichEditData::GetRowInfoStartIndex(const RichTextRowInfoPtr& spRowInfo) c
         }
     }
     return nStartIndex;
+}
+
+void RichEditData::UpdateRowInfo(size_t nDrawStartLineIndex)
+{
+    RichTextLineInfoList& lineTextInfoList = m_lineTextInfo;
+    const size_t nLineCount = lineTextInfoList.size();
+    ASSERT(nDrawStartLineIndex < nLineCount);
+    if (nDrawStartLineIndex >= nLineCount) {
+        return;
+    }
+    size_t nLineIndex = nDrawStartLineIndex;
+    if (nDrawStartLineIndex > 0) {
+        nLineIndex -= 1;//从上一行开始，以获取上一行的bottom坐标值
+    }
+    float fLastRowHeight = 0.0f;   //本行的行高值
+    float fLastBottomValue = 0.0f; //上一行的bottom值
+    for (; nLineIndex < nLineCount; ++nLineIndex) {
+        ASSERT(lineTextInfoList[nLineIndex] != nullptr);
+        if (lineTextInfoList[nLineIndex] == nullptr) {
+            continue;
+        }
+        const size_t nLineRowCount = lineTextInfoList[nLineIndex]->m_rowInfo.size();
+        ASSERT(nLineRowCount > 0);
+        for (size_t nLineRowIndex = 0; nLineRowIndex < nLineRowCount; ++nLineRowIndex) {
+            ASSERT(lineTextInfoList[nLineIndex]->m_rowInfo[nLineRowIndex] != nullptr);
+            if (lineTextInfoList[nLineIndex]->m_rowInfo[nLineRowIndex] == nullptr) {
+                continue;
+            }
+            UiRectF& rowRect = lineTextInfoList[nLineIndex]->m_rowInfo[nLineRowIndex]->m_rowRect;
+            if (nLineIndex >= nDrawStartLineIndex) {
+                //更新本行的纵向坐标值
+                fLastRowHeight = rowRect.bottom - rowRect.top;
+                rowRect.top = fLastBottomValue;
+                rowRect.bottom = rowRect.top + fLastRowHeight;
+            }
+            fLastBottomValue = rowRect.bottom;
+        }        
+    }
 }
 
 UiPoint RichEditData::CaretPosFromChar(int32_t nCharIndex)

@@ -226,15 +226,15 @@ private:
     * @param [in] ch 当前绘制的字符, 仅当回车和换行符等特殊字符时有效
     * @param [in] glyphChars 当前字对应的Unicode字符数（1或者2）
     * @param [in] glyphCount 字符总个数
-    * @param [in] nRichTextDataIndex RichTextData的索引下标，代表外部分行的行号
-    * @param [in] nRichTextDataRowIndex RichTextData的行内的逻辑行号(从0开始编号)
+    * @param [in] nLineTextIndex 文本物理行号（即换行符'\n'切分的行）
+    * @param [in] nLineTextRowIndex 物理行内的逻辑行号(每个物理行中，从0开始编号)
     * @param [in] xPos 字符绘制的X坐标
     * @param [in] yPos 字符绘制的Y坐标
     * @param [in] glyphWidth 当前字符的绘制宽度
     * @param [in] nRowHeight 当前行高
     */
     void OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam, wchar_t ch, uint8_t glyphChars, size_t glyphCount, 
-                           size_t nRichTextDataIndex, uint32_t nRichTextDataRowIndex, float xPos, int32_t yPos, float glyphWidth, int32_t nRowHeight);
+                           size_t nLineTextIndex, uint32_t nLineTextRowIndex, float xPos, int32_t yPos, float glyphWidth, int32_t nRowHeight);
 
 private:
     /** Canval保存的状态

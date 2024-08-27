@@ -646,7 +646,7 @@ void RichEdit::SetText(const DString& strText)
     text = strText;
             //#ifdef _DEBUG
                     std::vector<uint8_t> fileData;
-                    FileUtil::ReadFileData(FilePath(L"D:\\2.h"), fileData);
+                    FileUtil::ReadFileData(FilePath(L"D:\\1.h"), fileData);//目前是2MB文本，30MB的内存增量
                     fileData.push_back(0);
                     fileData.push_back(0);
                     text = StringUtil::UTF8ToUTF16((const char*)fileData.data());
@@ -2324,8 +2324,18 @@ bool RichEdit::GetRichTextForDraw(std::vector<RichTextData>& richTextDataList) c
 }
 
 bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView,
-                                  std::vector<RichTextData>& richTextDataList) const
+                                  std::vector<RichTextData>& richTextDataList,
+                                  size_t nStartLine,
+                                  const std::vector<size_t>& modifiedLines) const
 {
+    if (nStartLine != (size_t)-1) {
+        if (!modifiedLines.empty()) {
+            ASSERT(modifiedLines[0] == nStartLine);
+            if (modifiedLines[0] != nStartLine) {
+                return false;
+            }
+        }
+    }
     richTextDataList.clear();
     if (textView.empty()) {
         return false;
@@ -2353,15 +2363,38 @@ bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView
     richTextData.m_pFontInfo->m_bItalic = pFont->IsItalic();
     richTextData.m_pFontInfo->m_bStrikeOut = pFont->IsStrikeOut();
 
-    const size_t nCount = textView.size();
-    richTextDataList.reserve(nCount);
-    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
-        ASSERT(!textView[nIndex].empty());
-        if (!textView[nIndex].empty()) {
-            richTextData.m_textView = textView[nIndex];
-            richTextDataList.emplace_back(richTextData);
+    if (nStartLine != (size_t)-1) {
+        //增量绘制，只绘制变化的部分
+        size_t nLineIndex = 0;
+        const size_t nCount = modifiedLines.size();
+        richTextDataList.reserve(nCount);
+        for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+            nLineIndex = modifiedLines[nIndex];
+            ASSERT(nLineIndex < textView.size());
+            if (nLineIndex < textView.size()) {
+                ASSERT(!textView[nLineIndex].empty());
+                if (!textView[nLineIndex].empty()) {
+                    richTextData.m_textView = textView[nLineIndex];
+                    richTextDataList.emplace_back(richTextData);
+                }
+            }
+            else {
+                return false;
+            }
         }
-    }   
+    }
+    else {
+        //全部绘制
+        const size_t nCount = textView.size();
+        richTextDataList.reserve(nCount);
+        for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+            ASSERT(!textView[nIndex].empty());
+            if (!textView[nIndex].empty()) {
+                richTextData.m_textView = textView[nIndex];
+                richTextDataList.emplace_back(richTextData);
+            }
+        }
+    }    
     return !richTextDataList.empty();
 }
 
