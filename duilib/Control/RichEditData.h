@@ -306,6 +306,36 @@ private:
     */
     bool IsSeperatorChar(wchar_t ch) const;
 
+    /** 获取指定字符的所在的物理行号和行内逻辑行号
+    * @param [in] nCharIndex 字符索引位置
+    * @param [out] nLineNumber 物理行号
+    * @param [out] nLineRowIndex 在物理行中的逻辑行号（每行中从0开始编号）
+    * @param [out] nStartCharRowOffset 在逻辑行中的字符偏移量
+    */
+    bool GetCharLineRowIndex(int32_t nCharIndex, size_t& nLineNumber, size_t& nLineRowIndex, size_t& nStartCharRowOffset) const;
+
+    /** 获取指定字符的所在行的数据
+    * @param [in] nCharIndex 字符索引位置
+    * @param [out] nStartCharRowOffset 在逻辑行中的字符偏移量
+    */
+    RichTextRowInfoPtr GetCharRowInfo(int32_t nCharIndex, size_t& nStartCharRowOffset) const;
+
+    /** 获取一个点所在的行
+    */
+    RichTextRowInfoPtr GetRowInfoFromPoint(const UiPoint& pt) const;
+
+    /** 获取首行的数据
+    */
+    RichTextRowInfoPtr GetFirstRowInfo() const;
+
+    /** 获取尾行的数据
+    */
+    RichTextRowInfoPtr GetLastRowInfo() const;
+
+    /** 获取一行数据的起始字符下标值，如果找不到返回(size_t)-1
+    */
+    size_t GetRowInfoStartIndex(const RichTextRowInfoPtr& spRowInfo) const;
+
 private:
     /** 将文本生成可绘制的格式的接口
     */
@@ -340,20 +370,6 @@ private:
     UiSize m_szScrollOffset;
 
 private:
-    /** 物理行文本的数据
-    */
-    struct LineTextInfo: public NVRefCount<LineTextInfo>
-    {
-        /** 文本数据长度
-        */
-        uint32_t m_nLineTextLen = 0;
-
-        /** 文本数据
-        */
-        UiString m_lineText;
-    };
-    typedef SharePtr<LineTextInfo> LineTextInfoPtr;
-
     /** 估算大小的缓存，避免重复估算（估算比较耗时）
     */
     struct EstimateResult
@@ -374,11 +390,7 @@ private:
 private:
     /** 文本数据，按物理分行切分
     */
-    std::vector<LineTextInfoPtr> m_lineTextInfo;
-
-    /** 文本内容所占的行区域信息(Key为行号，Value为该行的所占的矩形区域等属性信息), Key是升序的
-    */
-    RichTextRowInfoMap m_rowInfoMap;
+    RichTextLineInfoList m_lineTextInfo;
 
     /** 估算的结果
     */

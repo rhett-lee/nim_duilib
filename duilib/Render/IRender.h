@@ -3,6 +3,7 @@
 
 #include "duilib/Core/Callback.h"
 #include "duilib/Core/UiTypes.h"
+#include "duilib/Core/SharePtr.h"
 #include <map>
 
 namespace ui 
@@ -589,12 +590,8 @@ private:
 
 /** 逻辑行(矩形区域内显示的行，物理行数据在自动换行的情况下会对应多个逻辑行)的基本信息
 */
-struct RichTextRowInfo
+struct RichTextRowInfo: public NVRefCount<RichTextRowInfo>
 {
-    /** 文本字符的起始下标值
-    */
-    uint32_t m_nStartIndex = (uint32_t)-1;
-
     /** 本行中的字符个数，字符属性
     */
     std::vector<RichTextCharInfo> m_charInfo;
@@ -603,10 +600,42 @@ struct RichTextRowInfo
     */
     UiRectF m_rowRect;
 };
+typedef SharePtr<RichTextRowInfo> RichTextRowInfoPtr;
 
-/** 逻辑行的属性
+/** 物理行文本的数据
 */
-typedef std::map<uint32_t, RichTextRowInfo> RichTextRowInfoMap;
+struct RichTextLineInfo: public NVRefCount<RichTextLineInfo>
+{
+    /** 文本数据长度
+    */
+    uint32_t m_nLineTextLen = 0;
+
+    /** 文本数据
+    */
+    UiString m_lineText;
+
+    /** 逻辑行的基本信息
+    */
+    std::vector<RichTextRowInfoPtr> m_rowInfo;
+};
+typedef SharePtr<RichTextLineInfo> RichTextLineInfoPtr;
+
+/** 物理行的数据结构
+*/
+typedef std::vector<RichTextLineInfoPtr> RichTextLineInfoList;
+
+/** 物理行的数据传入参数
+*/
+struct RichTextLineInfoParam
+{
+    /** 本次绘制中，关联的物理行的数据起始下标值
+    */
+    size_t m_nStartIndex = 0;
+
+    /** 物理行的数据
+    */
+    RichTextLineInfoList* m_pLineInfoList = nullptr;
+};
 
 /** DrawRichText的绘制缓存
 */
@@ -963,13 +992,13 @@ public:
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
-    * @param [out] pRowInfoMap 如果不为nullptr，则计算每个字符的区域
+    * @param [in,out] pLineInfoParam 如果不为nullptr，则计算每个字符的区域
     */
     virtual void MeasureRichText2(const UiRect& textRect,
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory, 
                                   std::vector<RichTextData>& richTextData,
-                                  RichTextRowInfoMap* pRowInfoMap) = 0;
+                                  RichTextLineInfoParam* pLineInfoParam) = 0;
 
     /** 计算格式文本的宽度和高度, 并计算每个字符的位置，并创建绘制缓存
     * @param [in] textRect 绘制文本的矩形区域
@@ -977,7 +1006,7 @@ public:
     * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
     * @param [in] uFade 透明度（0 - 255）
-    * @param [out] pRowInfoMap 如果不为nullptr，则计算每个字符的区域
+    * @param [in,out] pLineInfoParam 如果不为nullptr，则计算每个字符的区域
     * @param [out] spDrawRichTextCache 返回绘制缓存
     */
     virtual void MeasureRichText3(const UiRect& textRect,
@@ -985,7 +1014,7 @@ public:
                                   IRenderFactory* pRenderFactory, 
                                   std::vector<RichTextData>& richTextData,
                                   uint8_t uFade,
-                                  RichTextRowInfoMap* pRowInfoMap,
+                                  RichTextLineInfoParam* pLineInfoParam,
                                   std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
 
     /** 绘制格式文本
