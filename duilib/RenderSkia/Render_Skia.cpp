@@ -1581,7 +1581,10 @@ void Render_Skia::DrawRichText(const UiRect& textRect,
 struct TPendingDrawRichText
 {
     //在richTextData中的索引号
-    size_t m_dataIndex = 0;
+    uint32_t m_nDataIndex = 0;
+
+    //物理行号
+    uint32_t m_nLineNumber = 0;
 
     //行号(是绘制后的逻辑行号，当自动换行的时候，一个物理行显示为多个逻辑行，物理行号是指按文本中的换行符划分的行号）
     uint32_t m_nRowIndex = 0;
@@ -1592,14 +1595,8 @@ struct TPendingDrawRichText
     //绘制目标区域
     UiRect m_destRect;
 
-    //Paint对象
-    SkPaint m_skPaint;
-
     //Font对象
     std::shared_ptr<IFont> m_spFont;
-
-    //背景颜色
-    UiColor m_bgColor;
 };
 
 /** 绘制缓存
@@ -1611,7 +1608,6 @@ public:
     */
     UiRect m_textRect;
     std::vector<RichTextData> m_richTextData;
-    uint8_t m_uFade = 255;
 
     SkTextEncoding m_textEncoding = SkTextEncoding::kUTF16;
     size_t m_textCharSize = sizeof(DStringW::value_type);
@@ -1701,7 +1697,6 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
 
     const UiRect& rcTextRect = spDrawRichTextCache->m_textRect;
     const std::vector<RichTextData>& richTextData = spDrawRichTextCache->m_richTextData;
-    uint8_t uOldFade = spDrawRichTextCache->m_uFade;
 
     const SkTextEncoding textEncoding = spDrawRichTextCache->m_textEncoding;
     const size_t textCharSize = spDrawRichTextCache->m_textCharSize;
@@ -1710,11 +1705,17 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
 
     UiRect rcTemp;
     UiRect rcDestRect;
-    SkPaint skPaint;
+    //绘制属性
+    SkPaint skPaint = *m_pSkPaint;
+    if (uNewFade != 0xFF) {
+        //透明度
+        skPaint.setAlpha(uNewFade);
+    }
+    UiColor textColor;
     for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
         const TPendingDrawRichText& textData = *spTextData;
-        ASSERT(textData.m_dataIndex < richTextData.size());
-        const RichTextData& richText = richTextData[textData.m_dataIndex];
+        ASSERT(textData.m_nDataIndex < richTextData.size());
+        const RichTextData& richText = richTextData[textData.m_nDataIndex];
         
         //执行绘制        
         rcDestRect = textData.m_destRect;
@@ -1725,25 +1726,23 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
         }
 
         //绘制文字的背景色
-        if (!textData.m_bgColor.IsEmpty()) {
-            FillRect(rcDestRect, textData.m_bgColor, uNewFade);
-        }        
+        if (!richText.m_bgColor.IsEmpty()) {
+            FillRect(rcDestRect, richText.m_bgColor, uNewFade);
+        }
+
+        //设置文本颜色
+        if (textColor != richText.m_textColor) {
+            const UiColor& color = richText.m_textColor;
+            skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
+            textColor = richText.m_textColor;
+        }
 
         //绘制文字
         const char* text = (const char*)textData.m_textView.data();
         size_t len = textData.m_textView.size() * textCharSize; //字节数
-        if (uOldFade != uNewFade) {
-            skPaint = textData.m_skPaint;
-            skPaint.setAlpha(uNewFade);
-            DrawTextString(rcDestRect, text, len, textEncoding,
+        DrawTextString(rcDestRect, text, len, textEncoding,
                            richText.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
                            skPaint, textData.m_spFont.get());
-        }
-        else {
-            DrawTextString(rcDestRect, text, len, textEncoding,
-                           richText.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
-                           textData.m_skPaint, textData.m_spFont.get());
-        }        
     }
 }
 
@@ -1805,20 +1804,25 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
     std::shared_ptr<UiFont> lastFont;
     std::shared_ptr<IFont> spLastSkiaFont;
 
+    //绘制属性
+    SkPaint skPaint = *m_pSkPaint;
+    if (uFade != 0xFF) {
+        //透明度
+        skPaint.setAlpha(uFade);
+    }
+    UiColor textColor;
     for (size_t index = 0; index < richTextData.size(); ++index) {
         const RichTextData& textData = richTextData[index];
         if (textData.m_textView.empty()) {
             continue;
         }
 
-        //文本颜色
-        SkPaint skPaint = *m_pSkPaint;
-        if (uFade != 0xFF) {
-            //透明度
-            skPaint.setAlpha(uFade);
+        //设置文本颜色
+        if (textColor != textData.m_textColor) {
+            const UiColor& color = textData.m_textColor;
+            skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
+            textColor = textData.m_textColor;
         }
-        const UiColor& color = textData.m_textColor;
-        skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
         
         std::shared_ptr<IFont> spSkiaFont;
         if ((spLastSkiaFont != nullptr) &&
@@ -1949,12 +1953,11 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                 }
                 else {
                     std::shared_ptr<TPendingDrawRichText> spTextData = std::make_shared<TPendingDrawRichText>();
-                    spTextData->m_dataIndex = index;
+                    spTextData->m_nDataIndex = (uint32_t)index;
+                    spTextData->m_nLineNumber = nLineNumber;
                     spTextData->m_nRowIndex = nRowIndex;
                     spTextData->m_textView = std::wstring_view(lineTextView.data() + textStartIndex, nDrawLength / textCharSize);
-                    spTextData->m_skPaint = skPaint;
                     spTextData->m_spFont = spSkiaFont;
-                    spTextData->m_bgColor = textData.m_bgColor;
 
                     //绘制文字所需的矩形区域
                     spTextData->m_destRect.left = SkScalarTruncToInt(xPos); //左值：直接截断，如果有小数部分，直接去掉小数即可
@@ -2059,8 +2062,8 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
     if (pDrawRichTextCache != nullptr) {
         for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
             const TPendingDrawRichText& textData = *spTextData;
-            ASSERT(textData.m_dataIndex < richTextData.size());
-            RichTextData& richText = richTextData[textData.m_dataIndex];
+            ASSERT(textData.m_nDataIndex < richTextData.size());
+            RichTextData& richText = richTextData[textData.m_nDataIndex];
             richText.m_textRects.push_back(textData.m_destRect); //保存绘制的目标区域，同一个文本，可能会有多个区域（换行时）
         }
 
@@ -2069,7 +2072,6 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         *pDrawRichTextCache = spDrawRichTextCache;
         spDrawRichTextCache->m_richTextData = richTextData;
         spDrawRichTextCache->m_textRect = rcTextRect;
-        spDrawRichTextCache->m_uFade = uFade;
 
         spDrawRichTextCache->m_textEncoding = textEncoding;
         spDrawRichTextCache->m_textCharSize = textCharSize;
@@ -2080,8 +2082,8 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
 
         for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
             const TPendingDrawRichText& textData = *spTextData;
-            ASSERT(textData.m_dataIndex < richTextData.size());
-            RichTextData& richText = richTextData[textData.m_dataIndex];
+            ASSERT(textData.m_nDataIndex < richTextData.size());
+            RichTextData& richText = richTextData[textData.m_nDataIndex];
             richText.m_textRects.push_back(textData.m_destRect); //保存绘制的目标区域，同一个文本，可能会有多个区域（换行时）
 
             if (!bMeasureOnly) {
@@ -2093,14 +2095,20 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                 }
 
                 //绘制文字的背景色
-                FillRect(rcDestRect, textData.m_bgColor, uFade);
+                FillRect(rcDestRect, richText.m_bgColor, uFade);
+
+                if (textColor != richText.m_textColor) {
+                    const UiColor& color = richText.m_textColor;
+                    skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
+                    textColor = richText.m_textColor;
+                }
 
                 //绘制文字
                 const char* text = (const char*)textData.m_textView.data();
                 size_t len = textData.m_textView.size() * textCharSize; //字节数
                 DrawTextString(rcDestRect, text, len, textEncoding,
                                richText.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
-                               textData.m_skPaint, textData.m_spFont.get());
+                               skPaint, textData.m_spFont.get());
             }
         }
     }
