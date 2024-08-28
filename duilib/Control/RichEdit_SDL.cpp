@@ -646,7 +646,7 @@ void RichEdit::SetText(const DString& strText)
     text = strText;
             //#ifdef _DEBUG
                     std::vector<uint8_t> fileData;
-                    FileUtil::ReadFileData(FilePath(L"D:\\1.h"), fileData);//目前是2MB文本，30MB的内存增量
+                    FileUtil::ReadFileData(FilePath(L"D:\\3.h"), fileData);//目前是2MB文本，30MB的内存增量
                     fileData.push_back(0);
                     fileData.push_back(0);
                     text = StringUtil::UTF8ToUTF16((const char*)fileData.data());

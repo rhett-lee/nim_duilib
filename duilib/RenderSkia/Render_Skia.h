@@ -111,7 +111,6 @@ public:
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory, 
                                   std::vector<RichTextData>& richTextData,
-                                  uint8_t uFade,
                                   RichTextLineInfoParam* pLineInfoParam,
                                   std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
 
@@ -131,6 +130,16 @@ public:
     virtual bool IsValidDrawRichTextCache(const UiRect& textRect,
                                           const std::vector<RichTextData>& richTextData,
                                           const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
+
+    virtual bool UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& spOldDrawRichTextCache,
+                                         const std::shared_ptr<DrawRichTextCache>& spUpdateDrawRichTextCache,
+                                         std::vector<RichTextData>& richTextDataNew,
+                                         size_t nStartLine,
+                                         const std::vector<size_t>& modifiedLines,
+                                         const std::vector<size_t>& deletedLines,
+                                         const std::unordered_map<uint32_t, int32_t>& rowTopMap) override;
+
+    virtual bool IsDrawRichTextCacheEqual(const DrawRichTextCache& first, const DrawRichTextCache& second) const override;
 
     virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,                                       
                                        const UiRect& rcNewTextRect,

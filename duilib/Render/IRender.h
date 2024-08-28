@@ -635,7 +635,11 @@ struct RichTextLineInfoParam
 {
     /** 本次绘制中，关联的物理行的数据起始下标值
     */
-    size_t m_nStartIndex = 0;
+    uint32_t m_nStartLineIndex = 0;
+
+    /** 起始的行号（逻辑行号）
+    */
+    uint32_t m_nStartRowIndex = 0;
 
     /** 物理行的数据
     */
@@ -1010,7 +1014,6 @@ public:
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
     * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
-    * @param [in] uFade 透明度（0 - 255）
     * @param [in,out] pLineInfoParam 如果不为nullptr，则计算每个字符的区域
     * @param [out] spDrawRichTextCache 返回绘制缓存
     */
@@ -1018,7 +1021,6 @@ public:
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory, 
                                   std::vector<RichTextData>& richTextData,
-                                  uint8_t uFade,
                                   RichTextLineInfoParam* pLineInfoParam,
                                   std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
 
@@ -1058,6 +1060,27 @@ public:
     virtual bool IsValidDrawRichTextCache(const UiRect& textRect,
                                           const std::vector<RichTextData>& richTextData,
                                           const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
+
+    /** 更新RichText的绘制缓存(增量计算)
+    * @param [in] spOldDrawRichTextCache 需要更新的缓存
+    * @param [in] spUpdateDrawRichTextCache 增量绘制的缓存
+    * @param [in] richTextDataNew 最新的完整数据
+    * @param [in] nStartLine 重新计算的起始行号
+    * @param [in] modifiedLines 有修改的行号
+    * @param [in] deletedLines 删除的行
+    * @param [in] rowTopMap 每个逻辑行的top坐标，用于更新行的坐标
+    */
+    virtual bool UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& spOldDrawRichTextCache,
+                                         const std::shared_ptr<DrawRichTextCache>& spUpdateDrawRichTextCache,
+                                         std::vector<RichTextData>& richTextDataNew,
+                                         size_t nStartLine,
+                                         const std::vector<size_t>& modifiedLines,
+                                         const std::vector<size_t>& deletedLines,
+                                         const std::unordered_map<uint32_t, int32_t>& rowTopMap) = 0;
+
+    /** 比较两个绘制缓存的数据是否一致
+    */
+    virtual bool IsDrawRichTextCacheEqual(const DrawRichTextCache& first, const DrawRichTextCache& second) const = 0;
 
     /** 绘制RichText的缓存中的内容（绘制前，需要使用IsValidDrawRichTextCache判断缓存是否失效）
     * @param [in] spDrawRichTextCache 缓存的数据

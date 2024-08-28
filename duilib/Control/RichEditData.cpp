@@ -154,16 +154,14 @@ void RichEditData::CheckCalcTextRects()
     }
 }
 
-void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& modifiedLines)
+void RichEditData::CalcTextRects()
 {
-    if (nStartLine != (size_t)-1) {
-        if (!modifiedLines.empty()) {
-            ASSERT(modifiedLines[0] == nStartLine);
-            if (modifiedLines[0] != nStartLine) {
-                nStartLine = (size_t)-1;
-            }
-        }
+    //清空所有行的缓存数据
+    for (RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
+        ASSERT(pLineInfo != nullptr);
+        pLineInfo->m_rowInfo.clear();
     }
+
     ASSERT(m_pRender != nullptr);
     if (m_pRender == nullptr) {
         return;
@@ -197,64 +195,153 @@ void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& m
     }
     //估算的时候，滚动条位置始终为(0,0)
     UiSize szScrollOffset;
-    m_spDrawRichTextCache.reset();
-    uint8_t nAlpha = m_pRichTextData->GetDrawAlpha();
-
-    size_t nDrawStartLineIndex = (size_t)-1; //绘制起始的行号
-    RichTextLineInfoParam lineInfoParam;    
+    RichTextLineInfoParam lineInfoParam;
+    lineInfoParam.m_nStartLineIndex = 0;
+    lineInfoParam.m_nStartRowIndex = 0;
     lineInfoParam.m_pLineInfoList = &m_lineTextInfo;
+
+    //绘制所有数据，清空行数据信息
+    std::vector<RichTextData> richTextDataList;
+    m_pRichTextData->GetRichTextForDraw(textView, richTextDataList);
+    if (richTextDataList.empty()) {
+        return;
+    }
+    m_spDrawRichTextCache.reset();
+    m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam, m_spDrawRichTextCache);
+}
+
+void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& modifiedLines, const std::vector<size_t>& deletedLines)
+{
     if (nStartLine != (size_t)-1) {
-        //绘制变化的数据，清空相关的行数据信息
+        ASSERT(!modifiedLines.empty() || !deletedLines.empty());
         if (!modifiedLines.empty()) {
-            size_t nLineIndex = 0;
-            const size_t nCount = modifiedLines.size();            
-            for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
-                nLineIndex = modifiedLines[nIndex];
-                ASSERT(nLineIndex < m_lineTextInfo.size());
-                if (nLineIndex < m_lineTextInfo.size()) {
-                    RichTextLineInfoPtr& pLineInfo = m_lineTextInfo[nLineIndex];
-                    ASSERT(pLineInfo != nullptr);
-                    pLineInfo->m_rowInfo.clear();
-                }
-                else {
-                    return;
-                }
+            ASSERT(modifiedLines[0] == nStartLine);
+            if (modifiedLines[0] != nStartLine) {
+                nStartLine = (size_t)-1;
             }
-            std::vector<RichTextData> richTextDataList;
-            m_pRichTextData->GetRichTextForDraw(textView, richTextDataList, nStartLine, modifiedLines);
-            if (richTextDataList.empty()) {
+        }
+        else if (!deletedLines.empty()) {
+            ASSERT(deletedLines[0] == nStartLine);
+            if (deletedLines[0] != nStartLine) {
+                nStartLine = (size_t)-1;
+            }
+        }
+    }
+    ASSERT(nStartLine != (size_t)-1);
+    ASSERT(nStartLine < m_lineTextInfo.size());
+    if (nStartLine >= m_lineTextInfo.size()) {
+        return;
+    }
+
+    //绘制变化的数据，清空相关的行数据信息
+    if (!modifiedLines.empty()) {
+        //有修改的行
+        size_t nLineIndex = 0;
+        const size_t nCount = modifiedLines.size();
+        for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+            nLineIndex = modifiedLines[nIndex];
+            ASSERT(nLineIndex < m_lineTextInfo.size());
+            if (nLineIndex < m_lineTextInfo.size()) {
+                RichTextLineInfoPtr& pLineInfo = m_lineTextInfo[nLineIndex];
+                ASSERT(pLineInfo != nullptr);
+                pLineInfo->m_rowInfo.clear();
+            }
+            else {
+                //遇到数据错误
                 return;
             }
-            m_spDrawRichTextCache.reset();
-            lineInfoParam.m_nStartIndex = modifiedLines[0];
-            m_pRender->MeasureRichText2(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam);
-            nDrawStartLineIndex = modifiedLines[0];
-        }
-        else {
-            //无需绘制
-            nDrawStartLineIndex = nStartLine;
         }
     }
-    else {
-        //绘制所有数据，清空行数据信息
-        std::vector<RichTextData> richTextDataList;
-        m_pRichTextData->GetRichTextForDraw(textView, richTextDataList);
-        if (richTextDataList.empty()) {
+
+    ASSERT(m_pRender != nullptr);
+    if (m_pRender == nullptr) {
+        return;
+    }
+    ASSERT(m_pRenderFactory != nullptr);
+    if (m_pRenderFactory == nullptr) {
+        return;
+    }
+    ASSERT(m_pRichTextData != nullptr);
+    if (m_pRichTextData == nullptr) {
+        return;
+    }
+
+    std::vector<std::wstring_view> textView;
+    GetTextView(textView);
+    if (textView.empty()) {
+        return;
+    }
+
+    size_t nTextLen = 0;
+    for (const std::wstring_view& text : textView) {
+        nTextLen += text.size();
+    }
+    if (nTextLen == 0) {
+        return;
+    }
+
+    UiRect rcDrawText = m_pRichTextData->GetRichTextDrawRect();
+    if (rcDrawText.IsEmpty()) {
+        return;
+    }
+
+    //估算的时候，滚动条位置始终为(0,0)
+    UiSize szScrollOffset;
+    RichTextLineInfoParam lineInfoParam;
+    lineInfoParam.m_nStartLineIndex = (uint32_t)nStartLine;
+    lineInfoParam.m_nStartRowIndex = 0;
+    lineInfoParam.m_pLineInfoList = &m_lineTextInfo;
+    if (nStartLine > 0) {
+        //计算起始的逻辑行号
+        for (size_t nLine = 0; nLine < nStartLine; ++nLine) {
+            const RichTextLineInfo& lineInfo = *m_lineTextInfo[nLine];
+            lineInfoParam.m_nStartRowIndex += (uint32_t)lineInfo.m_rowInfo.size();
+        }
+    }
+
+    //当前最新的待绘制数据
+    std::vector<RichTextData> richTextDataListAll;
+    if (m_spDrawRichTextCache != nullptr) {
+        //比较绘制缓存是否失效，如果失效则清空
+        m_pRichTextData->GetRichTextForDraw(textView, richTextDataListAll);
+    }
+    //修改后的文本，重新生成的绘制缓存
+    std::shared_ptr<DrawRichTextCache> spDrawRichTextCacheUpdated;
+
+    if (!modifiedLines.empty()) {
+        //有修改的行，重新计算行数据
+        std::vector<RichTextData> richTextDataListModified;
+        m_pRichTextData->GetRichTextForDraw(textView, richTextDataListModified, nStartLine, modifiedLines);
+        if (richTextDataListModified.empty()) {
             return;
-        }
-        for (RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
-            ASSERT(pLineInfo != nullptr);
-            pLineInfo->m_rowInfo.clear();
-        }
-        lineInfoParam.m_nStartIndex = 0;
-        m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, nAlpha, &lineInfoParam, m_spDrawRichTextCache);
+        }        
+        m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataListModified, &lineInfoParam, spDrawRichTextCacheUpdated);
     }
 
-    //绘制后，增量绘制后的行高数据
-    if (nDrawStartLineIndex != (size_t)-1) {
-        UpdateRowInfo(nDrawStartLineIndex);
-    }
+    //绘制后，增量绘制后的行高数据           
+    UpdateRowInfo(nStartLine);
 
+    //更新绘制缓存
+    if (m_spDrawRichTextCache != nullptr) {
+        std::unordered_map<uint32_t, int32_t> rowTopMap;
+        uint32_t nRowIndex = 0;
+        const size_t nLineCount = m_lineTextInfo.size();
+        for (size_t nLineIndex = 0; nLineIndex < nLineCount; ++nLineIndex) {
+            const RichTextLineInfo& lineInfo = *m_lineTextInfo[nLineIndex];
+            const size_t nRowCount = lineInfo.m_rowInfo.size();
+            for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
+                rowTopMap[nRowIndex] = (int32_t)lineInfo.m_rowInfo[nRow]->m_rowRect.top;
+                ++nRowIndex;
+            }
+        }
+
+        if (!m_pRender->UpdateDrawRichTextCache(m_spDrawRichTextCache, spDrawRichTextCacheUpdated, richTextDataListAll, nStartLine, modifiedLines, deletedLines, rowTopMap)) {
+            m_spDrawRichTextCache.reset();
+        }
+        //该数据已经交还给缓存，不能再使用
+        richTextDataListAll.clear();
+    }
+    
 #ifdef _DEBUG
     //比较与完整绘制时是否一致
     if (nStartLine != (size_t)-1) {
@@ -271,10 +358,13 @@ void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& m
         std::vector<RichTextData> richTextDataList2;
         m_pRichTextData->GetRichTextForDraw(textView2, richTextDataList2);
 
+        std::shared_ptr<DrawRichTextCache> spDrawRichTextCacheNew;
+
         RichTextLineInfoParam lineInfoParam2;
         lineInfoParam2.m_pLineInfoList = &lineTextInfoList;
-        lineInfoParam2.m_nStartIndex = 0;
-        m_pRender->MeasureRichText2(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList2, &lineInfoParam2);
+        lineInfoParam2.m_nStartLineIndex = 0;
+        lineInfoParam2.m_nStartRowIndex = 0;
+        m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList2, &lineInfoParam2, spDrawRichTextCacheNew);
 
         //比较数据的一致性，增量绘制的结果，应该与完整绘制的结果相同
         ASSERT(lineTextInfoList.size() == m_lineTextInfo.size());
@@ -294,6 +384,12 @@ void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& m
                 ASSERT(rowOld.m_charInfo.size() == rowNew.m_charInfo.size());
                 ASSERT(rowOld.m_charInfo == rowNew.m_charInfo);
             }
+        }
+
+        //比较绘制缓存的数据
+        if ((m_spDrawRichTextCache != nullptr) && (spDrawRichTextCacheNew != nullptr)) {
+            bool bRet = m_pRender->IsDrawRichTextCacheEqual(*m_spDrawRichTextCache, *spDrawRichTextCacheNew);
+            ASSERT(bRet);
         }
     }
 #endif
@@ -601,7 +697,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
 
     if (!m_bCacheDirty && (!modifiedLines.empty() || !deletedLines.empty())) {
         //修改的行，需要重新计算(增量计算)
-        CalcTextRects(nStartLine, modifiedLines);
+        CalcTextRects(nStartLine, modifiedLines, deletedLines);
     }
     if (bCanUndo) {
         //生成撤销列表

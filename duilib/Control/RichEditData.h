@@ -290,11 +290,18 @@ private:
     */
     void CheckCalcTextRects();
 
-    /** 计算文本的区域信息
-    * @param [in] nStartLine 重新计算的起始行号（增量计算时使用）
-    * @param [in] modifiedLines 有修改的行号（增量计算时使用）
+    /** 计算文本的区域信息（全部重新计算）
     */
-    void CalcTextRects(size_t nStartLine = (size_t)-1, const std::vector<size_t>& modifiedLines = std::vector<size_t>());
+    void CalcTextRects();
+
+    /** 计算文本的区域信息（只重新计算修改的部分文本）
+    * @param [in] nStartLine 重新计算的起始行号
+    * @param [in] modifiedLines 有修改的行号
+    * @param [in] deletedLines 删除的行
+    */
+    void CalcTextRects(size_t nStartLine,
+                       const std::vector<size_t>& modifiedLines,
+                       const std::vector<size_t>& deletedLines);
 
     /** 定位字符范围所属的行和行文本偏移量
     * @param [in] nStartChar 起始下标值
