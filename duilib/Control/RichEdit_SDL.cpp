@@ -647,7 +647,7 @@ void RichEdit::SetText(const DString& strText)
 #ifdef DUILIB_UNICODE
     text = strText;
             //#ifdef _DEBUG
-                    //目前内存占用清空：2MB的UTF16格式文本，占用约23MB的内存
+                    //目前内存占用情况：2MB的UTF16格式文本，Debug版本：占用约23MB的内存，Release版本：占用约12MB的内存。
                     std::vector<uint8_t> fileData;
                     FileUtil::ReadFileData(FilePath(L"D:\\2.h"), fileData);
                     fileData.push_back(0);

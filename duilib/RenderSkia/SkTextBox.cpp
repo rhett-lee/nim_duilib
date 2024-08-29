@@ -817,6 +817,7 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
                              std::vector<uint8_t>& glyphChars,
                              size_t& charBytes)
 {
+    glyphs.clear();
     glyphs.resize(byteLength, { 0, });
     int glyphsCount = font.textToGlyphs(text, byteLength, textEncoding, glyphs.data(), (int)glyphs.size());
     if (glyphsCount <= 0) {
@@ -825,9 +826,11 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
     SkASSERT(glyphsCount <= (int)glyphs.size());
     glyphs.resize(glyphsCount);
 
+    glyphChars.clear();
     glyphChars.resize(glyphs.size(), 1);
     if (textEncoding == SkTextEncoding::kUTF8) {
         charBytes = 1;
+
         const char* utf8 = static_cast<const char*>(text);
         int count = 0;
         const char* stop = utf8 + byteLength;
@@ -864,36 +867,41 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
     }
     else if (textEncoding == SkTextEncoding::kUTF16) {
         charBytes = 2;
-        const uint16_t* src = static_cast<const uint16_t*>(text);
-        const uint16_t* stop = src + (byteLength >> 1);
-        int count = 0;
-        while (src < stop) {
-            uint8_t numChars = 1;
-            unsigned c = *src++;
-            SkASSERT(!SkUTF16_IsLowSurrogate(c));
-            if (SkUTF16_IsHighSurrogate(c)) {
-                if (src >= stop) {
+        
+        SkASSERT((byteLength % sizeof(wchar_t) == 0));//字符数必须是偶数
+        if (glyphChars.size() != (byteLength / sizeof(wchar_t))) {
+            //如果存在2个Unicode的字，检测具体哪个字符是双Unicode字节的，并做标记
+            const uint16_t* src = static_cast<const uint16_t*>(text);
+            const uint16_t* stop = src + (byteLength >> 1);
+            int count = 0;
+            while (src < stop) {
+                uint8_t numChars = 1;
+                unsigned c = *src++;
+                SkASSERT(!SkUTF16_IsLowSurrogate(c));
+                if (SkUTF16_IsHighSurrogate(c)) {
+                    if (src >= stop) {
+                        glyphChars.clear();
+                        SkASSERT(glyphChars.size() == glyphs.size());
+                        break;
+                    }
+                    c = *src++;
+                    if (!SkUTF16_IsLowSurrogate(c)) {
+                        glyphChars.clear();
+                        SkASSERT(glyphChars.size() == glyphs.size());
+                        break;
+                    }
+                    numChars = 2;
+                }
+                if (count < (int)glyphChars.size()) {
+                    glyphChars[count] = numChars;
+                }
+                else {
                     glyphChars.clear();
                     SkASSERT(glyphChars.size() == glyphs.size());
                     break;
                 }
-                c = *src++;
-                if (!SkUTF16_IsLowSurrogate(c)) {
-                    glyphChars.clear();
-                    SkASSERT(glyphChars.size() == glyphs.size());
-                    break;
-                }
-                numChars = 2;
+                count += 1;
             }
-            if (count < (int)glyphChars.size()) {
-                glyphChars[count] = numChars;
-            }
-            else {
-                glyphChars.clear();
-                SkASSERT(glyphChars.size() == glyphs.size());
-                break;
-            }
-            count += 1;
         }
     }
     else if (textEncoding == SkTextEncoding::kUTF32) {
@@ -913,7 +921,74 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
 
 size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding textEncoding,
                             const SkFont& font, const SkPaint& paint, SkScalar maxWidth,
+                            SkScalar* measuredWidth, SkScalar* measuredHeight)
+{
+    if ((maxWidth <= 0) || (byteLength == 0)){
+        if (measuredWidth != nullptr) {
+            *measuredWidth = 0;
+        }
+        return 0;
+    }
+    SkRect bounds = SkRect::MakeEmpty();
+    SkScalar width = font.measureText(text, byteLength, textEncoding, &bounds);
+    if (measuredHeight != nullptr) {
+        *measuredHeight = bounds.height();
+        SkASSERT(*measuredHeight > 0);
+    }
+    if (width <= maxWidth) {        
+        if (measuredWidth != nullptr) {
+            *measuredWidth = width;
+        }        
+        return byteLength;
+    }
+
+    std::vector<SkGlyphID> glyphs;
+    //计算每个glyphs对应的字符个数
+    std::vector<uint8_t> glyphChars;
+    //每个字符的字节数
+    size_t charBytes = 1;
+
+    if (!TextToGlyphs(text, byteLength, textEncoding, font, glyphs, glyphChars, charBytes)) {
+        if (measuredWidth != nullptr) {
+            *measuredWidth = width;
+        }
+        return byteLength;
+    }
+
+    std::vector<SkScalar> glyphWidths;
+    glyphWidths.resize(glyphs.size(), 0);
+    font.getWidthsBounds(glyphs.data(), (int)glyphs.size(), glyphWidths.data(), nullptr, &paint);
+
+    size_t nGlyphCount = 0;    //符合要求的字形的数量
+    size_t breakByteLength = 0;//单位是字节
+    SkScalar totalWidth = 0;
+    for (size_t i = 0; i < glyphWidths.size(); ++i) {        
+        if ((totalWidth + glyphWidths[i]) > maxWidth) {
+            nGlyphCount = i;
+            for (size_t index = 0; index < i; ++index) {
+                //计算字符个数
+                breakByteLength += (glyphChars[index] * charBytes);
+            }
+            break;
+        }
+        totalWidth += glyphWidths[i];
+    }
+    if (measuredWidth != nullptr) {
+        *measuredWidth = totalWidth;
+    }
+    SkASSERT(breakByteLength <= byteLength);
+    if (breakByteLength > byteLength) {
+        breakByteLength = byteLength;
+    }
+    return breakByteLength;
+}
+
+size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding textEncoding,
+                            const SkFont& font, const SkPaint& paint, SkScalar maxWidth,
                             SkScalar* measuredWidth, SkScalar* measuredHeight,
+                            std::vector<SkGlyphID>& glyphs,
+                            std::vector<uint8_t>& glyphChars,
+                            std::vector<SkScalar>& glyphWidths,
                             std::vector<uint8_t>* glyphCharList,
                             std::vector<SkScalar>* glyphWidthList)
 {
@@ -939,9 +1014,8 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
         }
     }
 
-    std::vector<SkGlyphID> glyphs;
-    //计算每个glyphs对应的字符个数
-    std::vector<uint8_t> glyphChars;
+    glyphs.clear();     //保存每个glyphs字符
+    glyphChars.clear(); //保存每个glyphs对应的字符个数
     //每个字符的字节数
     size_t charBytes = 1;
 
@@ -952,7 +1026,7 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
         return byteLength;
     }
 
-    std::vector<SkScalar> glyphWidths;
+    glyphWidths.clear(); //保存每个glyphs字符的宽度
     glyphWidths.resize(glyphs.size(), 0);
     font.getWidthsBounds(glyphs.data(), (int)glyphs.size(), glyphWidths.data(), nullptr, &paint);
 
@@ -969,7 +1043,8 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
     size_t nGlyphCount = 0;    //符合要求的字形的数量
     size_t breakByteLength = 0;//单位是字节
     SkScalar totalWidth = 0;
-    for (size_t i = 0; i < glyphWidths.size(); ++i) {        
+    const size_t nGlyphWidthsCount = glyphWidths.size();
+    for (size_t i = 0; i < nGlyphWidthsCount; ++i) {
         if ((totalWidth + glyphWidths[i]) > maxWidth) {
             nGlyphCount = i;
             for (size_t index = 0; index < i; ++index) {

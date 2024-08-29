@@ -46,16 +46,27 @@ public:
         @param maxWidth       advance limit; text is measured while advance is less than maxWidth
         @param measuredWidth  returns the width of the text less than or equal to maxWidth
         @param measuredHeight  returns the height of the text
-        @param glyphCharList  returns bytes of every chars
-        @param glyphWidthList returns the width of every chars
         @return               bytes of text that fit, always less than or equal to length
     */
     static size_t breakText(const void* text, size_t byteLength, SkTextEncoding textEncoding,
                             const SkFont& font, const SkPaint& paint, SkScalar maxWidth,
-                            SkScalar* measuredWidth = nullptr, SkScalar* measuredHeight = nullptr,
-                            std::vector<uint8_t>* glyphCharList = nullptr,
-                            std::vector<SkScalar>* glyphWidthList = nullptr);
+                            SkScalar* measuredWidth = nullptr, SkScalar* measuredHeight = nullptr);
 
+    /** 特殊版本，进行了性能优化
+    * @param glyphs 临时变量，避免函数内部频繁构造和析构该容器而影响性能
+    * @param glyphChars 临时变量，避免函数内部频繁构造和析构该容器而影响性能
+    * @param glyphWidths 临时变量，避免函数内部频繁构造和析构该容器而影响性能
+    * @param [out] glyphCharList 返回每个glyph字符由几个输入字符构成的
+    * @param [out] glyphWidthList 返回每个glyph字符的输出宽度值
+    */
+    static size_t breakText(const void* text, size_t byteLength, SkTextEncoding textEncoding,
+                            const SkFont& font, const SkPaint& paint, SkScalar maxWidth,
+                            SkScalar* measuredWidth, SkScalar* measuredHeight,
+                            std::vector<SkGlyphID>& glyphs,
+                            std::vector<uint8_t>& glyphChars,
+                            std::vector<SkScalar>& glyphWidths,
+                            std::vector<uint8_t>* glyphCharList,
+                            std::vector<SkScalar>* glyphWidthList);
 public:
     //换行模式
     enum LineMode {

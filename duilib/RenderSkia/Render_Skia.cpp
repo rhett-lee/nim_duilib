@@ -2070,6 +2070,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
     const bool bBreakWhenOutOfRect = !bMeasureOnly && (pDrawRichTextCache == nullptr);
 
     std::vector<SharePtr<TPendingDrawRichText>> pendingTextData;
+    pendingTextData.reserve(richTextData.size());
 
     const int32_t nTextRectRightMax = (int32_t)rcTextRect.right;   //绘制区域的最右侧
     const int32_t nTextRectBottomMax = (int32_t)rcTextRect.bottom; //绘制区域的最底端
@@ -2108,6 +2109,20 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         skPaint.setAlpha(uFade);
     }
     UiColor textColor;
+
+    std::vector<SkGlyphID> glyphs;      //内部临时变量，为提升执行速度，在外部声明变量
+    std::vector<uint8_t> glyphChars;    //内部临时变量，为提升执行速度，在外部声明变量
+    std::vector<SkScalar> glyphWidths;  //内部临时变量，为提升执行速度，在外部声明变量
+
+    std::vector<uint8_t> glyphCharList;   //每个字由几个字符构成
+    std::vector<SkScalar> glyphWidthList; //每个字符的宽度
+
+    //按换行符进行文本切分
+    std::vector<std::wstring_view> lineTextViewList;
+
+    //分行时文本切分的内部临时变量，为提升执行速度，在外部声明变量
+    std::vector<uint32_t> lineSeprators;
+
     for (size_t index = 0; index < richTextData.size(); ++index) {
         const RichTextData& textData = richTextData[index];
         if (textData.m_textView.empty()) {
@@ -2175,8 +2190,8 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         bool bBreakAll = false;//标记是否终止
 
         //按换行符进行文本切分
-        std::vector<std::wstring_view> lineTextViewList;
-        SplitLines(textData.m_textView, lineTextViewList);
+        lineTextViewList.clear();
+        SplitLines(textData.m_textView, lineSeprators, lineTextViewList);
 
         //物理行内的逻辑行号(每个物理行中，从0开始编号)
         uint32_t nLineTextRowIndex = 0;
@@ -2225,8 +2240,8 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                 SkScalar textMeasuredWidth = 0;  //当前要绘制的文本，估算的所需宽度
                 SkScalar textMeasuredHeight = 0; //当前要绘制的文本，估算的所需高度
 
-                std::vector<uint8_t> glyphCharList;
-                std::vector<SkScalar> glyphWidthList;
+                glyphCharList.clear();
+                glyphWidthList.clear();
                 std::vector<uint8_t>* pGlyphCharList = nullptr;
                 std::vector<SkScalar>* pGlyphWidthList = nullptr;
                 if (pLineInfoParam != nullptr) {
@@ -2234,13 +2249,13 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                     pGlyphCharList = &glyphCharList;
                     pGlyphWidthList = &glyphWidthList;
                 }
-                PerformanceUtil::Instance().BeginStat(L"Render_Skia::InternalDrawRichText breakText");
+                //breakText函数执行时间占比约30%
                 size_t nDrawLength = SkTextBox::breakText(lineTextView.data() + textStartIndex,
                                                           byteLength, textEncoding,
                                                           skFont, skPaint,
                                                           maxWidth, &textMeasuredWidth, &textMeasuredHeight,
+                                                          glyphs, glyphChars, glyphWidths,
                                                           pGlyphCharList, pGlyphWidthList);
-                PerformanceUtil::Instance().EndStat(L"Render_Skia::InternalDrawRichText breakText");
                 if (nDrawLength == 0) {
                     if (!bWordWrap || bSingleLineMode || (SkScalarTruncToInt(maxWidth) == rcDrawRect.Width())) {
                         //出错了(不能换行，或者换行后依然不够)
@@ -2267,7 +2282,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                     spTextData->m_destRect.right = SkScalarCeilToInt(fRight);
                     spTextData->m_destRect.top = yPos;
                     spTextData->m_destRect.bottom = yPos + SkScalarCeilToInt(textMeasuredHeight); //记录字符的真实高度
-                    pendingTextData.push_back(spTextData);
+                    pendingTextData.emplace_back(std::move(spTextData));
 
                     if (pLineInfoParam != nullptr) {
                         //评估每个字符的矩形范围
@@ -2276,13 +2291,13 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                         if (glyphCharList.size() == glyphWidthList.size()) {
                             const size_t glyphCount = glyphCharList.size();
                             SkScalar glyphWidth = 0;
-                            uint8_t glyphChars = 0;
+                            uint8_t glyphCharCount = 0;
                             SkScalar glyphLeft = (SkScalar)SkScalarTruncToInt(xPos);
                             for (size_t glyphIndex = 0; glyphIndex < glyphCount; ++glyphIndex) {
                                 glyphWidth = glyphWidthList[glyphIndex];//字符宽度
-                                glyphChars = glyphCharList[glyphIndex];  //该字占几个字符（UTF16编码，可能是1或者2）
-                                ASSERT((glyphChars == 1) || (glyphChars == 2));
-                                OnDrawUnicodeChar(pLineInfoParam, 0, glyphChars, glyphCount, nLineNumber, nLineTextRowIndex, glyphLeft, yPos, glyphWidth, nRowHeight);
+                                glyphCharCount = glyphCharList[glyphIndex];  //该字占几个字符（UTF16编码，可能是1或者2）
+                                ASSERT((glyphCharCount == 1) || (glyphCharCount == 2));
+                                OnDrawUnicodeChar(pLineInfoParam, 0, glyphCharCount, glyphCount, nLineNumber, nLineTextRowIndex, glyphLeft, yPos, glyphWidth, nRowHeight);
                                 glyphLeft += glyphWidth;
                             }
                         }
@@ -2415,36 +2430,36 @@ void Render_Skia::OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam,
                                     size_t nLineTextIndex, uint32_t nLineTextRowIndex,
                                     float xPos, int32_t yPos, float glyphWidth, int32_t nRowHeight)
 {
-    ASSERT(pLineInfoParam != nullptr);
+    //该函数执行频率非常高，每个字符都会调用一次，性能敏感    
     if (pLineInfoParam == nullptr) {
+        ASSERT(pLineInfoParam != nullptr);
         return;
-    }
-    ASSERT(pLineInfoParam->m_pLineInfoList != nullptr);
+    }    
     if (pLineInfoParam->m_pLineInfoList == nullptr) {
+        ASSERT(pLineInfoParam->m_pLineInfoList != nullptr);
         return;
     }
-    size_t nIndex = nLineTextIndex; //外部已经加上了pLineInfoParam->m_nStartLineIndex的值
-    ASSERT(nIndex < pLineInfoParam->m_pLineInfoList->size());
+    size_t nIndex = nLineTextIndex; //外部已经加上了pLineInfoParam->m_nStartLineIndex的值    
     if (nIndex >= pLineInfoParam->m_pLineInfoList->size()) {
+        ASSERT(nIndex < pLineInfoParam->m_pLineInfoList->size());
         return;
     }
-
-    ASSERT((*pLineInfoParam->m_pLineInfoList)[nIndex] != nullptr);
     if ((*pLineInfoParam->m_pLineInfoList)[nIndex] == nullptr) {
+        ASSERT((*pLineInfoParam->m_pLineInfoList)[nIndex] != nullptr);
         return;
     }
 
     RichTextLineInfo& lineInfo = *(*pLineInfoParam->m_pLineInfoList)[nIndex];
     bool bFound = (nLineTextRowIndex < lineInfo.m_rowInfo.size()) ? true : false;
-    if (!bFound) {
-        ASSERT(nLineTextRowIndex == lineInfo.m_rowInfo.size());
+    if (!bFound) {        
         if (nLineTextRowIndex != lineInfo.m_rowInfo.size()) {
+            ASSERT(nLineTextRowIndex == lineInfo.m_rowInfo.size());
             return;
         }
         lineInfo.m_rowInfo.push_back(RichTextRowInfoPtr(new RichTextRowInfo));        
-    }
-    ASSERT(lineInfo.m_rowInfo[nLineTextRowIndex] != nullptr);
+    }    
     if (lineInfo.m_rowInfo[nLineTextRowIndex] == nullptr) {
+        ASSERT(lineInfo.m_rowInfo[nLineTextRowIndex] != nullptr);
         return;
     }
     RichTextRowInfo& rowInfo = *lineInfo.m_rowInfo[nLineTextRowIndex];
@@ -2464,16 +2479,17 @@ void Render_Skia::OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam,
     }
 
     RichTextCharInfo charInfo;
-    charInfo.SetCharWidth(glyphWidth);
-    charInfo.SetCharFlag(0);
+    charInfo.SetCharWidth(glyphWidth);    
     if (ch == '\r') {
-        //回车        
+        //回车
+        charInfo.SetCharFlag(0);
         charInfo.AddCharFlag(RichTextCharFlag::kIsIgnoredChar);
         charInfo.AddCharFlag(RichTextCharFlag::kIsReturn);
         charInfo.SetCharWidth(0);
     }
     else if (ch == '\n') {
         //换行
+        charInfo.SetCharFlag(0);
         charInfo.AddCharFlag(RichTextCharFlag::kIsNewLine);
         charInfo.SetCharWidth(0);
     }
@@ -2491,12 +2507,12 @@ void Render_Skia::OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam,
     ASSERT((glyphChars == 1) || (glyphChars == 2));
 }
 
-void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<std::wstring_view>& lineTextViewList)
+void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<uint32_t>& lineSeprators, std::vector<std::wstring_view>& lineTextViewList)
 {
     if (lineText.empty()) {
         return;
     }
-    std::vector<uint32_t> lineSeprators;
+    lineSeprators.clear();
     const uint32_t nTextLen = (uint32_t)lineText.size();
     lineSeprators.reserve(nTextLen/100);
     for (uint32_t nTextIndex = 0; nTextIndex < nTextLen; ++nTextIndex) {
