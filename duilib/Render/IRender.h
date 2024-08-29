@@ -19,7 +19,7 @@ public:
 
     /** 获取字体名
     */
-    virtual const DString& FontName() const = 0;
+    virtual DString FontName() const = 0;
 
     /** 获取字体大小(字体高度)
     */
@@ -488,7 +488,7 @@ public:
 
     /** 字体信息
     */
-    std::shared_ptr<UiFont> m_pFontInfo;
+    SharePtr<UiFontEx> m_pFontInfo;
 
     /** 行间距
     */

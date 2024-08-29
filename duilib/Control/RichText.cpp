@@ -328,7 +328,7 @@ void RichText::PaintText(IRender* pRender)
             if (!textDataEx.m_linkUrl.empty()) {
                 //对于超级链接，设置默认文本格式
                 RichTextData textData = textDataEx;
-                textData.m_pFontInfo = std::make_shared<UiFont>();
+                textData.m_pFontInfo.reset(new UiFontEx);
                 if (textDataEx.m_bMouseDown || textDataEx.m_bMouseHover) {
                     textData.m_pFontInfo->m_bUnderline = m_bLinkUnderlineFont;//是否显示下划线字体
                 }
@@ -396,7 +396,7 @@ bool RichText::ParseText(std::vector<RichTextDataEx>& outTextData) const
     if (parentTextData.m_textColor.IsEmpty()) {
         parentTextData.m_textColor = UiColor(UiColors::Black);
     }
-    parentTextData.m_pFontInfo = std::make_shared<UiFont>();
+    parentTextData.m_pFontInfo.reset(new UiFontEx);
     parentTextData.m_pFontInfo->m_fontName = pFont->FontName();
     parentTextData.m_pFontInfo->m_fontSize = pFont->FontSize();
     parentTextData.m_pFontInfo->m_bBold = pFont->IsBold();
@@ -449,9 +449,9 @@ bool RichText::ParseTextSlice(const RichTextSlice& textSlice,
         currentTextData.m_bgColor = parentTextData.m_bgColor;
     }
 
-    currentTextData.m_pFontInfo = std::make_shared<UiFont>();
+    currentTextData.m_pFontInfo.reset(new UiFontEx);
     if (parentTextData.m_pFontInfo != nullptr) {
-        *currentTextData.m_pFontInfo = *parentTextData.m_pFontInfo;
+        currentTextData.m_pFontInfo->CopyFrom(*parentTextData.m_pFontInfo);
     }
 
     if (!textSlice.m_fontInfo.m_fontName.empty()) {
@@ -759,7 +759,7 @@ DString RichText::ToString(const RichTextSlice& textSlice, const DString& indent
     }
     if (!textSlice.m_fontInfo.m_fontName.empty()) {
         attrList += _T("face=\"");
-        attrList += textSlice.m_fontInfo.m_fontName;
+        attrList += textSlice.m_fontInfo.m_fontName.c_str();
         attrList += _T("\"");
     }
     if (textSlice.m_fontInfo.m_fontSize != 0) {

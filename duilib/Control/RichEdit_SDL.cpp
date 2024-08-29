@@ -646,7 +646,7 @@ void RichEdit::SetText(const DString& strText)
     text = strText;
             //#ifdef _DEBUG
                     std::vector<uint8_t> fileData;
-                    FileUtil::ReadFileData(FilePath(L"D:\\3.h"), fileData);//目前是2MB文本，30MB的内存增量
+                    FileUtil::ReadFileData(FilePath(L"D:\\2.h"), fileData);//目前是2MB文本，30MB的内存增量
                     fileData.push_back(0);
                     fileData.push_back(0);
                     text = StringUtil::UTF8ToUTF16((const char*)fileData.data());
@@ -2355,7 +2355,7 @@ bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView
         richTextData.m_textColor = UiColor(UiColors::Black);
     }
     //文本的字体信息
-    richTextData.m_pFontInfo = std::make_shared<UiFont>();
+    richTextData.m_pFontInfo.reset(new UiFontEx);
     richTextData.m_pFontInfo->m_fontName = pFont->FontName();
     richTextData.m_pFontInfo->m_fontSize = pFont->FontSize();
     richTextData.m_pFontInfo->m_bBold = pFont->IsBold();

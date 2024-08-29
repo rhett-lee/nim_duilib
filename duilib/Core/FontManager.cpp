@@ -153,7 +153,7 @@ IFont* FontManager::GetIFont(const DString& fontId, const DpiManager& dpi)
 
     DString dpiFontId = GetDpiFontId(realFontId, dpi);    
     if (fontInfo.m_fontName.empty() || 
-        StringUtil::IsEqualNoCase(fontInfo.m_fontName, _T("system"))) {        
+        StringUtil::IsEqualNoCase(fontInfo.m_fontName.c_str(), _T("system"))) {
         if (!m_defaultFontFamilyNames.empty()) {
             fontInfo.m_fontName = m_defaultFontFamilyNames.front();
         }

@@ -9,6 +9,7 @@
 
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/PerformanceUtil.h"
+#include "duilib/Core/SharePtr.h"
 
 #pragma warning (push)
 #pragma warning (disable: 4244 4201 4100)
@@ -1579,7 +1580,7 @@ void Render_Skia::DrawRichText(const UiRect& textRect,
 }
 
 //待绘制的文本
-struct TPendingDrawRichText
+struct TPendingDrawRichText: public NVRefCount<TPendingDrawRichText>
 {
     //在richTextData中的索引号
     uint32_t m_nDataIndex = 0;
@@ -1627,7 +1628,7 @@ public:
 
     /** 生成好的待绘制的数据
     */
-    std::vector<std::shared_ptr<TPendingDrawRichText>> m_pendingTextData;
+    std::vector<SharePtr<TPendingDrawRichText>> m_pendingTextData;
 };
 
 bool Render_Skia::CreateDrawRichTextCache(const UiRect& textRect,
@@ -1994,7 +1995,7 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
         skPaint.setAlpha(uNewFade);
     }
     UiColor textColor;
-    for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
+    for (const SharePtr<TPendingDrawRichText>& spTextData : pendingTextData) {
         const TPendingDrawRichText& textData = *spTextData;
         //通过缓存绘制的时候，不能使用textData.m_nDataIndex值，此值再增量绘制的情况下是不正确的
         
@@ -2068,7 +2069,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
     //当绘制超过目标矩形边界时，是否继续绘制
     const bool bBreakWhenOutOfRect = !bMeasureOnly && (pDrawRichTextCache == nullptr);
 
-    std::vector<std::shared_ptr<TPendingDrawRichText>> pendingTextData;
+    std::vector<SharePtr<TPendingDrawRichText>> pendingTextData;
 
     const int32_t nTextRectRightMax = (int32_t)rcTextRect.right;   //绘制区域的最右侧
     const int32_t nTextRectBottomMax = (int32_t)rcTextRect.bottom; //绘制区域的最底端
@@ -2082,7 +2083,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
     std::unordered_map<uint32_t, uint32_t> rowHeightMap;  //每行的实际行高表
 
     //字体缓存(由于创建字体比较耗时，所以尽量复用相同的对象)
-    std::shared_ptr<UiFont> lastFont;
+    SharePtr<UiFontEx> lastFont;
     std::shared_ptr<IFont> spLastSkiaFont;
 
     if (pLineInfoParam != nullptr) {
@@ -2248,7 +2249,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                     }
                 }
                 else {
-                    std::shared_ptr<TPendingDrawRichText> spTextData = std::make_shared<TPendingDrawRichText>();
+                    SharePtr<TPendingDrawRichText> spTextData(new TPendingDrawRichText);
                     spTextData->m_nDataIndex = (uint32_t)index;
                     spTextData->m_nLineNumber = nLineNumber;
                     spTextData->m_nRowIndex = nRowIndex;
@@ -2350,7 +2351,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         textData.m_textRects.clear();
     }
     //更新每行的行高(只有提前确定行高，才能正确绘制纵向对齐的文本)
-    for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
+    for (const SharePtr<TPendingDrawRichText>& spTextData : pendingTextData) {
         TPendingDrawRichText& textData = *spTextData;
         auto iter = rowHeightMap.find(textData.m_nRowIndex);
         ASSERT(iter != rowHeightMap.end());
@@ -2372,7 +2373,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         spDrawRichTextCache->m_pendingTextData.swap(pendingTextData);
     }
     else {
-        for (const std::shared_ptr<TPendingDrawRichText>& spTextData : pendingTextData) {
+        for (const SharePtr<TPendingDrawRichText>& spTextData : pendingTextData) {
             const TPendingDrawRichText& textData = *spTextData;
             if (pLineInfoParam == nullptr) {
                 ASSERT(textData.m_nDataIndex < richTextData.size());

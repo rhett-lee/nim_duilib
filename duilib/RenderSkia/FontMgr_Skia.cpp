@@ -318,14 +318,14 @@ SkFont* FontMgr_Skia::CreateSkFont(const UiFont& fontInfo)
     }
 
     //优先检查外部加载的字体是否满足要求, 如果未能匹配，再通过系统字体创建
-    sk_sp<SkTypeface> spTypeface = m_impl->m_fontFileMgr.MakeTypeface(fontInfo.m_fontName, fontStyle);
+    sk_sp<SkTypeface> spTypeface = m_impl->m_fontFileMgr.MakeTypeface(fontInfo.m_fontName.c_str(), fontStyle);
     if ((spTypeface == nullptr) && !m_impl->m_defaultFontName.empty()){
         //未能匹配则查询默认字体是否能匹配
         spTypeface = m_impl->m_fontFileMgr.MakeTypeface(m_impl->m_defaultFontName, fontStyle);
     }
     if (spTypeface == nullptr) {
         //UTF8编码的字体名称
-        std::string fontName = StringUtil::TToUTF8(fontInfo.m_fontName);
+        std::string fontName = StringUtil::TToUTF8(fontInfo.m_fontName.c_str());
         ASSERT(!fontName.empty());
         if (fontName.empty()) {
             return nullptr;
