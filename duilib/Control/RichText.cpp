@@ -191,12 +191,16 @@ void RichText::CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect)
             richTextData[richTextData.size() - 1].m_textStyle = nTextStyle;
         }
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        pRender->MeasureRichText(rc, UiSize(), pRenderFactory, richTextData);
-        for (size_t index = 0; index < richTextData.size(); ++index) {
-            m_textData[index].m_textRects = richTextData[index].m_textRects;
+        std::vector<std::vector<UiRect>> richTextRects;
+        pRender->MeasureRichText(rc, UiSize(), pRenderFactory, richTextData, &richTextRects);
+        ASSERT(richTextRects.size() == m_textData.size());
+        if (richTextRects.size() == m_textData.size()) {
+            for (size_t index = 0; index < m_textData.size(); ++index) {
+                m_textData[index].m_textRects.swap(richTextRects[index]);
+            }
         }
     }
-    for (const RichTextData& textData : m_textData) {
+    for (const RichTextDataEx& textData : m_textData) {
         for (const UiRect& textRect : textData.m_textRects) {
             rect.Union(textRect);
         }
@@ -329,6 +333,11 @@ void RichText::PaintText(IRender* pRender)
                 //对于超级链接，设置默认文本格式
                 RichTextData textData = textDataEx;
                 textData.m_pFontInfo.reset(new UiFontEx);
+                ASSERT(textDataEx.m_pFontInfo != nullptr);
+                if (textDataEx.m_pFontInfo != nullptr) {
+                    ASSERT(!textDataEx.m_pFontInfo->m_fontName.empty());
+                    textData.m_pFontInfo->CopyFrom(*textDataEx.m_pFontInfo);
+                }                
                 if (textDataEx.m_bMouseDown || textDataEx.m_bMouseHover) {
                     textData.m_pFontInfo->m_bUnderline = m_bLinkUnderlineFont;//是否显示下划线字体
                 }
@@ -354,9 +363,13 @@ void RichText::PaintText(IRender* pRender)
             }
         }
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        pRender->DrawRichText(rc, UiSize(), pRenderFactory, richTextData, (uint8_t)GetAlpha());
-        for (size_t index = 0; index < richTextData.size(); ++index) {
-            m_textData[index].m_textRects = richTextData[index].m_textRects;
+        std::vector<std::vector<UiRect>> richTextRects;
+        pRender->DrawRichText(rc, UiSize(), pRenderFactory, richTextData, (uint8_t)GetAlpha(), &richTextRects);
+        ASSERT(richTextRects.size() == m_textData.size());
+        if (richTextRects.size() == m_textData.size()) {
+            for (size_t index = 0; index < m_textData.size(); ++index) {
+                m_textData[index].m_textRects.swap(richTextRects[index]);
+            }
         }
     }
 }

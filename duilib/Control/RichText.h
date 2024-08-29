@@ -47,6 +47,10 @@ class RichTextDataEx:
     public RichTextData
 {
 public:
+    /** 对象绘制区域(输出参数)
+    */
+    std::vector<UiRect> m_textRects;
+
     /** 超链接的URL
     */
     UiString m_linkUrl;

@@ -645,8 +645,9 @@ void RichEdit::SetText(const DString& strText)
 #ifdef DUILIB_UNICODE
     text = strText;
             //#ifdef _DEBUG
+                    //目前内存占用清空：2MB的UTF16格式文本，占用约23MB的内存
                     std::vector<uint8_t> fileData;
-                    FileUtil::ReadFileData(FilePath(L"D:\\2.h"), fileData);//目前是2MB文本，30MB的内存增量
+                    FileUtil::ReadFileData(FilePath(L"D:\\2.h"), fileData);
                     fileData.push_back(0);
                     fileData.push_back(0);
                     text = StringUtil::UTF8ToUTF16((const char*)fileData.data());
@@ -1208,7 +1209,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactory != nullptr);
-        pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha(), spDrawRichTextCache);
+        pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, spDrawRichTextCache);
         ASSERT(spDrawRichTextCache != nullptr);
         if (spDrawRichTextCache != nullptr) {
             ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache));

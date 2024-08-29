@@ -497,10 +497,6 @@ public:
     /** 绘制文字的属性(包含文本对齐方式等属性，参见 enum DrawStringFormat)
     */
     uint16_t m_textStyle = 0;
-
-    /** 对象绘制区域(输出参数)
-    */
-    std::vector<UiRect> m_textRects;
 };
 
 /** 绘制的字符标记位
@@ -988,68 +984,73 @@ public:
     * @param [in] textRect 绘制文本的矩形区域
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
-    * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
-    * @param [out] pMeasureCharRects 如果不为nullptr，则计算每个字符的区域
+    * @param [in] richTextData 格式化文字内容，返回文字绘制的区域
+    * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
     */
     virtual void MeasureRichText(const UiRect& textRect,
                                  const UiSize& szScrollOffset,
                                  IRenderFactory* pRenderFactory, 
-                                 std::vector<RichTextData>& richTextData) = 0;
+                                 const std::vector<RichTextData>& richTextData,
+                                 std::vector<std::vector<UiRect>>* pRichTextRects) = 0;
 
     /** 计算格式文本的宽度和高度, 并计算每个字符的位置
     * @param [in] textRect 绘制文本的矩形区域
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
-    * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
+    * @param [in] richTextData 格式化文字内容
     * @param [in,out] pLineInfoParam 如果不为nullptr，则计算每个字符的区域
+    * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
     */
     virtual void MeasureRichText2(const UiRect& textRect,
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory, 
-                                  std::vector<RichTextData>& richTextData,
-                                  RichTextLineInfoParam* pLineInfoParam) = 0;
+                                  const std::vector<RichTextData>& richTextData,
+                                  RichTextLineInfoParam* pLineInfoParam,
+                                  std::vector<std::vector<UiRect>>* pRichTextRects) = 0;
 
     /** 计算格式文本的宽度和高度, 并计算每个字符的位置，并创建绘制缓存
     * @param [in] textRect 绘制文本的矩形区域
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
-    * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
+    * @param [in] richTextData 格式化文字内容
     * @param [in,out] pLineInfoParam 如果不为nullptr，则计算每个字符的区域
     * @param [out] spDrawRichTextCache 返回绘制缓存
+    * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
     */
     virtual void MeasureRichText3(const UiRect& textRect,
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory, 
-                                  std::vector<RichTextData>& richTextData,
+                                  const std::vector<RichTextData>& richTextData,
                                   RichTextLineInfoParam* pLineInfoParam,
-                                  std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
+                                  std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
+                                  std::vector<std::vector<UiRect>>* pRichTextRects) = 0;
 
     /** 绘制格式文本
     * @param [in] textRect 绘制文本的矩形区域
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
-    * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
+    * @param [in] richTextData 格式化文字内容
     * @param [in] uFade 透明度（0 - 255）
+    * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
     */
     virtual void DrawRichText(const UiRect& textRect,
                               const UiSize& szScrollOffset,
                               IRenderFactory* pRenderFactory, 
-                              std::vector<RichTextData>& richTextData,
-                              uint8_t uFade = 255) = 0;
+                              const std::vector<RichTextData>& richTextData,
+                              uint8_t uFade = 255,
+                              std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) = 0;
 
     /** 创建RichText的绘制缓存
     * @param [in] textRect 绘制文本的矩形区域
     * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
-    * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
-    * @param [in] uFade 透明度（0 - 255）
+    * @param [in] richTextData 格式化文字内容
     * @param [out] spDrawRichTextCache 返回绘制缓存
     */
     virtual bool CreateDrawRichTextCache(const UiRect& textRect,
                                          const UiSize& szScrollOffset,
                                          IRenderFactory* pRenderFactory,
-                                         std::vector<RichTextData>& richTextData,
-                                         uint8_t uFade,
+                                         const std::vector<RichTextData>& richTextData,
                                          std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
 
     /** 判断RichText的绘制缓存是否有效
@@ -1064,7 +1065,7 @@ public:
     /** 更新RichText的绘制缓存(增量计算)
     * @param [in] spOldDrawRichTextCache 需要更新的缓存
     * @param [in] spUpdateDrawRichTextCache 增量绘制的缓存
-    * @param [in] richTextDataNew 最新的完整数据
+    * @param [in,out] richTextDataNew 最新的完整数据, 数据会交换给内部容器
     * @param [in] nStartLine 重新计算的起始行号
     * @param [in] modifiedLines 有修改的行号
     * @param [in] deletedLines 删除的行
@@ -1086,12 +1087,12 @@ public:
     * @param [in] spDrawRichTextCache 缓存的数据
     * @param [in] rcNewTextRect 绘制文本的矩形区域
     * @param [in] szNewScrollOffset 新的滚动条位置
-    * @param [in] uNewFade 透明度（0 - 255）
+    * @param [in] uFade 透明度（0 - 255）
     */
     virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,                                       
                                        const UiRect& textRect,
                                        const UiSize& szNewScrollOffset,
-                                       uint8_t uNewFade) = 0;
+                                       uint8_t uFade) = 0;
 
     /** 在指定矩形周围绘制阴影（高斯模糊, 只支持外部阴影，不支持内部阴影）
     * @param [in] rc 矩形区域

@@ -131,9 +131,10 @@ UiRect RichEditData::EstimateTextDisplayBounds(const UiRect& rcAvailable)
 
         if (!bCacheAvailable) {
             //重新估算
-            m_pRender->MeasureRichText(rcAvailable, UiSize(), m_pRenderFactory, richTextDataList);
-            for (const RichTextData& data : richTextDataList) {
-                for (const UiRect& textRect : data.m_textRects) {
+            std::vector<std::vector<UiRect>> richTextRects;
+            m_pRender->MeasureRichText(rcAvailable, UiSize(), m_pRenderFactory, richTextDataList, &richTextRects);
+            for (const std::vector<UiRect>& data : richTextRects) {
+                for (const UiRect& textRect : data) {
                     rect.Union(textRect);
                 }
             }
@@ -207,7 +208,7 @@ void RichEditData::CalcTextRects()
         return;
     }
     m_spDrawRichTextCache.reset();
-    m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam, m_spDrawRichTextCache);
+    m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam, m_spDrawRichTextCache, nullptr);
 }
 
 void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& modifiedLines, const std::vector<size_t>& deletedLines)
@@ -315,7 +316,7 @@ void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& m
         if (richTextDataListModified.empty()) {
             return;
         }        
-        m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataListModified, &lineInfoParam, spDrawRichTextCacheUpdated);
+        m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataListModified, &lineInfoParam, spDrawRichTextCacheUpdated, nullptr);
     }
 
     //绘制后，增量绘制后的行高数据           
@@ -364,7 +365,7 @@ void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& m
         lineInfoParam2.m_pLineInfoList = &lineTextInfoList;
         lineInfoParam2.m_nStartLineIndex = 0;
         lineInfoParam2.m_nStartRowIndex = 0;
-        m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList2, &lineInfoParam2, spDrawRichTextCacheNew);
+        m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList2, &lineInfoParam2, spDrawRichTextCacheNew, nullptr);
 
         //比较数据的一致性，增量绘制的结果，应该与完整绘制的结果相同
         ASSERT(lineTextInfoList.size() == m_lineTextInfo.size());
@@ -398,6 +399,10 @@ void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& m
 bool RichEditData::SetText(const DStringW& text)
 {
     PerformanceStat statPerformance(_T("RichEditData::SetText"));
+    if (text.empty()) {
+        Clear();
+        return true;
+    }
     std::vector<std::wstring_view> lineTextViewList;
     std::wstring_view textView = text;
     if (m_bSingleLineMode) {
@@ -846,7 +851,10 @@ bool RichEditData::Redo()
 
 void RichEditData::Clear()
 {
-    m_lineTextInfo.clear();
+    RichTextLineInfoList lineTextInfo;
+    m_lineTextInfo.swap(lineTextInfo);
+    m_estimateResult.Clear();
+    m_spDrawRichTextCache.reset();
     SetCacheDirty(true);
 }
 

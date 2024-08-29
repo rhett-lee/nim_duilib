@@ -403,6 +403,16 @@ private:
         /** 估算的结果
         */
         UiRect m_rcEstimate;
+
+        /** 清空
+        */
+        void Clear()
+        {
+            m_rcAvailable.Clear();
+            std::vector<RichTextData> temp;
+            m_richTextDataList.swap(temp);
+            m_rcEstimate.Clear();
+        }
     };
 
 private:

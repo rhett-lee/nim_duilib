@@ -99,32 +99,35 @@ public:
     virtual void MeasureRichText(const UiRect& textRect,
                                  const UiSize& szScrollOffset,
                                  IRenderFactory* pRenderFactory, 
-                                 std::vector<RichTextData>& richTextData) override;
+                                 const std::vector<RichTextData>& richTextData,
+                                 std::vector<std::vector<UiRect>>* pRichTextRects) override;
 
     virtual void MeasureRichText2(const UiRect& textRect,
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory, 
-                                  std::vector<RichTextData>& richTextData,
-                                  RichTextLineInfoParam* pLineInfoParam) override;
+                                  const std::vector<RichTextData>& richTextData,
+                                  RichTextLineInfoParam* pLineInfoParam,
+                                  std::vector<std::vector<UiRect>>* pRichTextRects) override;
 
     virtual void MeasureRichText3(const UiRect& textRect,
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory, 
-                                  std::vector<RichTextData>& richTextData,
+                                  const std::vector<RichTextData>& richTextData,
                                   RichTextLineInfoParam* pLineInfoParam,
-                                  std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
+                                  std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
+                                  std::vector<std::vector<UiRect>>* pRichTextRects) override;
 
     virtual void DrawRichText(const UiRect& textRect,
                               const UiSize& szScrollOffset,
                               IRenderFactory* pRenderFactory, 
-                              std::vector<RichTextData>& richTextData,
-                              uint8_t uFade = 255) override;
+                              const std::vector<RichTextData>& richTextData,
+                              uint8_t uFade = 255,
+                              std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) override;
 
     virtual bool CreateDrawRichTextCache(const UiRect& textRect,
                                          const UiSize& szScrollOffset,
                                          IRenderFactory* pRenderFactory,
-                                         std::vector<RichTextData>& richTextData,
-                                         uint8_t uFade,
+                                         const std::vector<RichTextData>& richTextData,
                                          std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) override;
 
     virtual bool IsValidDrawRichTextCache(const UiRect& textRect,
@@ -144,7 +147,7 @@ public:
     virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,                                       
                                        const UiRect& rcNewTextRect,
                                        const UiSize& szNewScrollOffset,
-                                       uint8_t uNewFade) override;
+                                       uint8_t uFade) override;
 
     virtual void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor) override;
 
@@ -199,11 +202,12 @@ private:
     void InternalDrawRichText(const UiRect& rcTextRect,
                               const UiSize& szScrollOffset,
                               IRenderFactory* pRenderFactory, 
-                              std::vector<RichTextData>& richTextData,                   
+                              const std::vector<RichTextData>& richTextData,                   
                               uint8_t uFade,
                               bool bMeasureOnly,
                               RichTextLineInfoParam* pLineInfoParam,
-                              std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache);
+                              std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache,
+                              std::vector<std::vector<UiRect>>* pRichTextRects);
 
     /** 将文本按照换行符（'\r'或者'\n'）切分为多行
     */

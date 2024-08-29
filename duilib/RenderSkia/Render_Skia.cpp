@@ -1542,41 +1542,45 @@ UiRect Render_Skia::MeasureString(const DString& strText,
 void Render_Skia::MeasureRichText(const UiRect& textRect,
                                   const UiSize& szScrollOffset,
                                   IRenderFactory* pRenderFactory,
-                                  std::vector<RichTextData>& richTextData)
+                                  const std::vector<RichTextData>& richTextData,
+                                  std::vector<std::vector<UiRect>>* pRichTextRects)
 {
     PerformanceStat statPerformance(_T("Render_Skia::MeasureRichText"));
-    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, nullptr, nullptr);
+    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, nullptr, nullptr, pRichTextRects);
 }
 
 void Render_Skia::MeasureRichText2(const UiRect& textRect,
                                    const UiSize& szScrollOffset,
                                    IRenderFactory* pRenderFactory,
-                                   std::vector<RichTextData>& richTextData,
-                                   RichTextLineInfoParam* pLineInfoParam)
+                                   const std::vector<RichTextData>& richTextData,
+                                   RichTextLineInfoParam* pLineInfoParam,
+                                   std::vector<std::vector<UiRect>>* pRichTextRects)
 {
     PerformanceStat statPerformance(_T("Render_Skia::MeasureRichText2"));
-    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pLineInfoParam, nullptr);
+    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pLineInfoParam, nullptr, pRichTextRects);
 }
 
 void Render_Skia::MeasureRichText3(const UiRect& textRect,
                                    const UiSize& szScrollOffset,
                                    IRenderFactory* pRenderFactory, 
-                                   std::vector<RichTextData>& richTextData,
+                                   const std::vector<RichTextData>& richTextData,
                                    RichTextLineInfoParam* pLineInfoParam,
-                                   std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
+                                   std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
+                                   std::vector<std::vector<UiRect>>* pRichTextRects)
 {
     PerformanceStat statPerformance(_T("Render_Skia::MeasureRichText2"));
-    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pLineInfoParam, &spDrawRichTextCache);
+    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pLineInfoParam, &spDrawRichTextCache, pRichTextRects);
 }
 
 void Render_Skia::DrawRichText(const UiRect& textRect,
                                const UiSize& szScrollOffset,
                                IRenderFactory* pRenderFactory,
-                               std::vector<RichTextData>& richTextData,
-                               uint8_t uFade)
+                               const std::vector<RichTextData>& richTextData,
+                               uint8_t uFade,
+                               std::vector<std::vector<UiRect>>* pRichTextRects)
 {
     PerformanceStat statPerformance(_T("Render_Skia::DrawRichText"));
-    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, uFade, false, nullptr, nullptr);
+    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, uFade, false, nullptr, nullptr, pRichTextRects);
 }
 
 //待绘制的文本
@@ -1634,13 +1638,12 @@ public:
 bool Render_Skia::CreateDrawRichTextCache(const UiRect& textRect,
                                           const UiSize& szScrollOffset,
                                           IRenderFactory* pRenderFactory,
-                                          std::vector<RichTextData>& richTextData,
-                                          uint8_t uFade,
+                                          const std::vector<RichTextData>& richTextData,
                                           std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
 {
     PerformanceStat statPerformance(_T("Render_Skia::CreateDrawRichTextCache"));
     spDrawRichTextCache.reset();
-    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, uFade, true, nullptr, &spDrawRichTextCache);
+    InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, nullptr, &spDrawRichTextCache, nullptr);
     return spDrawRichTextCache != nullptr;
 }
 
@@ -1889,10 +1892,6 @@ bool Render_Skia::IsDrawRichTextCacheEqual(const DrawRichTextCache& first, const
         if (v1.m_textStyle != v2.m_textStyle) {
             return false;
         }
-        ASSERT(v1.m_textRects == v2.m_textRects);
-        if (v1.m_textRects != v2.m_textRects) {
-            return false;
-        }
     }
 
     ASSERT(first.m_pendingTextData.size() == second.m_pendingTextData.size());
@@ -1971,7 +1970,7 @@ bool Render_Skia::IsDrawRichTextCacheEqual(const DrawRichTextCache& first, const
 void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,                                       
                                         const UiRect& rcNewTextRect,
                                         const UiSize& szNewScrollOffset,
-                                        uint8_t uNewFade)
+                                        uint8_t uFade)
 {
     PerformanceStat statPerformance(_T("Render_Skia::DrawRichTextCacheData"));
     ASSERT(spDrawRichTextCache != nullptr);
@@ -1990,9 +1989,9 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
     UiRect rcDestRect;
     //绘制属性
     SkPaint skPaint = *m_pSkPaint;
-    if (uNewFade != 0xFF) {
+    if (uFade != 0xFF) {
         //透明度
-        skPaint.setAlpha(uNewFade);
+        skPaint.setAlpha(uFade);
     }
     UiColor textColor;
     for (const SharePtr<TPendingDrawRichText>& spTextData : pendingTextData) {
@@ -2009,7 +2008,7 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
 
         //绘制文字的背景色
         if (!textData.m_bgColor.IsEmpty()) {
-            FillRect(rcDestRect, textData.m_bgColor, uNewFade);
+            FillRect(rcDestRect, textData.m_bgColor, uFade);
         }
 
         //设置文本颜色
@@ -2023,19 +2022,20 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
         const char* text = (const char*)textData.m_textView.data();
         size_t len = textData.m_textView.size() * textCharSize; //字节数
         DrawTextString(rcDestRect, text, len, textEncoding,
-                           textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
-                           skPaint, textData.m_spFont.get());
+                       textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
+                       skPaint, textData.m_spFont.get());
     }
 }
 
 void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                                        const UiSize& szScrollOffset,
                                        IRenderFactory* pRenderFactory, 
-                                       std::vector<RichTextData>& richTextData,
+                                       const std::vector<RichTextData>& richTextData,
                                        uint8_t uFade,
                                        bool bMeasureOnly,
                                        RichTextLineInfoParam* pLineInfoParam,
-                                       std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache)
+                                       std::shared_ptr<DrawRichTextCache>* pDrawRichTextCache,
+                                       std::vector<std::vector<UiRect>>* pRichTextRects)
 {
     PerformanceStat statPerformance(_T("Render_Skia::InternalDrawRichText"));
     //内部使用string_view实现，避免字符串复制影响性能
@@ -2347,9 +2347,6 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
     //记录最后一行的行高
     rowHeightMap[nRowIndex] = nRowHeight;
 
-    for (RichTextData& textData : richTextData) {
-        textData.m_textRects.clear();
-    }
     //更新每行的行高(只有提前确定行高，才能正确绘制纵向对齐的文本)
     for (const SharePtr<TPendingDrawRichText>& spTextData : pendingTextData) {
         TPendingDrawRichText& textData = *spTextData;
@@ -2357,6 +2354,18 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         ASSERT(iter != rowHeightMap.end());
         if (iter != rowHeightMap.end()) {
             textData.m_destRect.bottom = textData.m_destRect.top + iter->second;
+        }
+    }
+
+    if (pRichTextRects != nullptr) {
+        pRichTextRects->clear();
+        pRichTextRects->resize(richTextData.size());
+        for (const SharePtr<TPendingDrawRichText>& spTextData : pendingTextData) {
+            const TPendingDrawRichText& textData = *spTextData;
+            //保存绘制的目标区域，同一个文本，可能会有多个区域（换行时）
+            ASSERT(textData.m_nDataIndex < pRichTextRects->size());
+            std::vector<UiRect>& textRects = (*pRichTextRects)[textData.m_nDataIndex];
+            textRects.push_back(textData.m_destRect); 
         }
     }
 
@@ -2372,39 +2381,31 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
 
         spDrawRichTextCache->m_pendingTextData.swap(pendingTextData);
     }
-    else {
+    else if (!bMeasureOnly) {
+        UiRect rcTemp;
         for (const SharePtr<TPendingDrawRichText>& spTextData : pendingTextData) {
             const TPendingDrawRichText& textData = *spTextData;
-            if (pLineInfoParam == nullptr) {
-                ASSERT(textData.m_nDataIndex < richTextData.size());
-                RichTextData& richText = richTextData[textData.m_nDataIndex];
-                richText.m_textRects.push_back(textData.m_destRect); //保存绘制的目标区域，同一个文本，可能会有多个区域（换行时）
+            //执行绘制            
+            const UiRect& rcDestRect = textData.m_destRect;
+            if (!UiRect::Intersect(rcTemp, rcDestRect, rcTextRect)) {
+                continue;
             }
 
-            if (!bMeasureOnly) {
-                //执行绘制
-                UiRect rcTemp;
-                const UiRect& rcDestRect = textData.m_destRect;
-                if (!UiRect::Intersect(rcTemp, rcDestRect, rcTextRect)) {
-                    continue;
-                }
+            //绘制文字的背景色
+            FillRect(rcDestRect, textData.m_bgColor, uFade);
 
-                //绘制文字的背景色
-                FillRect(rcDestRect, textData.m_bgColor, uFade);
-
-                if (textColor != textData.m_textColor) {
-                    const UiColor& color = textData.m_textColor;
-                    skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
-                    textColor = textData.m_textColor;
-                }
-
-                //绘制文字
-                const char* text = (const char*)textData.m_textView.data();
-                size_t len = textData.m_textView.size() * textCharSize; //字节数
-                DrawTextString(rcDestRect, text, len, textEncoding,
-                               textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
-                               skPaint, textData.m_spFont.get());
+            if (textColor != textData.m_textColor) {
+                const UiColor& color = textData.m_textColor;
+                skPaint.setARGB(color.GetA(), color.GetR(), color.GetG(), color.GetB());
+                textColor = textData.m_textColor;
             }
+
+            //绘制文字
+            const char* text = (const char*)textData.m_textView.data();
+            const size_t len = textData.m_textView.size() * textCharSize; //字节数
+            DrawTextString(rcDestRect, text, len, textEncoding,
+                           textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
+                           skPaint, textData.m_spFont.get());
         }
     }
 }
