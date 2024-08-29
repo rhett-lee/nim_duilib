@@ -31,11 +31,14 @@ void RichEditData::SetRenderFactory(IRenderFactory* pRenderFactory)
     m_pRenderFactory = pRenderFactory;
 }
 
-void RichEditData::SetTextDrawRect(const UiRect& rcTextDrawRect)
+void RichEditData::SetTextDrawRect(const UiRect& rcTextDrawRect, bool bCheckDirty)
 {
     if (m_rcTextDrawRect != rcTextDrawRect) {
+        //当宽度发生变化时，需要重新计算文字的坐标
+        if (bCheckDirty && (m_rcTextDrawRect.Width() != rcTextDrawRect.Width())) {
+            SetCacheDirty(true);
+        }
         m_rcTextDrawRect = rcTextDrawRect;
-        SetCacheDirty(true);
     }
 }
 
@@ -77,78 +80,49 @@ UiRect RichEditData::EstimateTextDisplayBounds(const UiRect& rcAvailable)
         return rect;
     }
 
-    std::vector<std::wstring_view> textView;
-    GetTextView(textView);
-    if (textView.empty()) {
-        return rect;
-    }
+    UiRect rcDrawRect = m_pRichTextData->GetRichTextDrawRect();
+    ASSERT(rcAvailable.Width() == rcAvailable.Width());
+    if (rcAvailable.Width() == rcAvailable.Width()) {
+        //检查并计算字符位置
+        CheckCalcTextRects();
 
-    std::vector<RichTextData> richTextDataList;
-    if (m_pRichTextData->GetRichTextForDraw(textView, richTextDataList)) {
-        bool bCacheAvailable = false;
-        if (!m_estimateResult.m_rcEstimate.IsEmpty() &&
-            (m_estimateResult.m_rcAvailable == rcAvailable) &&
-            (m_estimateResult.m_richTextDataList.size() == richTextDataList.size())) {
-
-            bool bValid = true;
-            const size_t nCount = richTextDataList.size();
-            for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
-                const RichTextData& textData = richTextDataList[nIndex];
-                const RichTextData& textDataCache = m_estimateResult.m_richTextDataList[nIndex];
-                //只比较几个影响绘制结果矩形大小的成员变量
-                if (textData.m_textView.data() != textDataCache.m_textView.data()) {
-                    bValid = false;
-                }
-                else if (textData.m_textView.size() != textDataCache.m_textView.size()) {
-                    bValid = false;
-                }
-                else if (textData.m_pFontInfo != textDataCache.m_pFontInfo) {
-                    if ((textData.m_pFontInfo == nullptr) || (textDataCache.m_pFontInfo == nullptr)) {
-                        bValid = false;
-                    }
-                    else if (*textData.m_pFontInfo != *textDataCache.m_pFontInfo) {
-                        bValid = false;
-                    }
-                }
-                else if (textData.m_fRowSpacingMul != textDataCache.m_fRowSpacingMul) {
-                    bValid = false;
-                }
-                else if (textData.m_textStyle != textDataCache.m_textStyle) {
-                    bValid = false;
-                }
-
-                if (!bValid) {
-                    break;
-                }
+        UiRectF rowRects;
+        for (RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
+            ASSERT(pLineInfo != nullptr);
+            const size_t nRowCount = pLineInfo->m_rowInfo.size();
+            for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
+                const UiRectF& rowRect = pLineInfo->m_rowInfo[nRow]->m_rowRect;
+                rowRects.Union(rowRect);
             }
-            
-            //参数未变，使用缓存的结果，以提高效率
-            if (bValid) {
-                rect = m_estimateResult.m_rcEstimate;
-                bCacheAvailable = true;
-            }            
         }
-
-        if (!bCacheAvailable) {
-            //重新估算
-            std::vector<std::vector<UiRect>> richTextRects;
-            m_pRender->MeasureRichText(rcAvailable, UiSize(), m_pRenderFactory, richTextDataList, &richTextRects);
-            for (const std::vector<UiRect>& data : richTextRects) {
-                for (const UiRect& textRect : data) {
-                    rect.Union(textRect);
+        rect.left = (int32_t)rowRects.left;
+        rect.right = (int32_t)(std::ceilf(rowRects.right));
+        rect.top = (int32_t)rowRects.top;
+        rect.bottom = (int32_t)(std::ceilf(rowRects.bottom));       
+    }
+    else {
+        //重新估算
+        std::vector<std::wstring_view> textView;
+        GetTextView(textView);
+        if (!textView.empty()) {
+            std::vector<RichTextData> richTextDataList;
+            if (m_pRichTextData->GetRichTextForDraw(textView, richTextDataList)) {                
+                std::vector<std::vector<UiRect>> richTextRects;
+                m_pRender->MeasureRichText(rcAvailable, UiSize(), m_pRenderFactory, richTextDataList, &richTextRects);
+                for (const std::vector<UiRect>& data : richTextRects) {
+                    for (const UiRect& textRect : data) {
+                        rect.Union(textRect);
+                    }
                 }
             }
-            //保存估算结果
-            m_estimateResult.m_rcEstimate = rect;
-            m_estimateResult.m_rcAvailable = rcAvailable;
-            m_estimateResult.m_richTextDataList.swap(richTextDataList);
-        }        
+        }
     }
     return rect;
 }
 
 void RichEditData::CheckCalcTextRects()
 {
+    SetTextDrawRect(m_pRichTextData->GetRichTextDrawRect(), true);
     if (m_bCacheDirty) {
         CalcTextRects();
         SetCacheDirty(false);
@@ -190,7 +164,7 @@ void RichEditData::CalcTextRects()
         return;
     }
 
-    UiRect rcDrawText = m_pRichTextData->GetRichTextDrawRect();
+    UiRect rcDrawText = m_pRichTextData->GetRichTextDrawRect();    
     if (rcDrawText.IsEmpty()) {
         return;
     }
@@ -209,6 +183,7 @@ void RichEditData::CalcTextRects()
     }
     m_spDrawRichTextCache.reset();
     m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam, m_spDrawRichTextCache, nullptr);
+    SetTextDrawRect(rcDrawText, false);
 }
 
 void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& modifiedLines, const std::vector<size_t>& deletedLines)
@@ -853,7 +828,6 @@ void RichEditData::Clear()
 {
     RichTextLineInfoList lineTextInfo;
     m_lineTextInfo.swap(lineTextInfo);
-    m_estimateResult.Clear();
     m_spDrawRichTextCache.reset();
     SetCacheDirty(true);
 }

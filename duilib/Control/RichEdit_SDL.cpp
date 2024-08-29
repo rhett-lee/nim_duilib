@@ -322,7 +322,7 @@ void RichEdit::OnInit()
     DString fontId = GetFontId();
     if (fontId.empty()) {
         fontId = GlobalManager::Instance().Font().GetDefaultFontId();
-        SetFontIdInternal(fontId);
+        SetFontId(fontId);
     }
 
     ScrollBar* pHScrollBar = GetHScrollBar();
@@ -485,6 +485,7 @@ void RichEdit::SetWordWrap(bool bWordWrap)
 {
     if (m_bWordWrap != bWordWrap) {
         m_bWordWrap = bWordWrap;
+        m_pTextData->SetCacheDirty(true);
         Redraw();
     }
 }
@@ -513,6 +514,7 @@ void RichEdit::SetFontId(const DString& strFontId)
 {
     if (m_sFontId != strFontId) {
         m_sFontId = strFontId;
+        m_pTextData->SetCacheDirty(true);
         SetFontIdInternal(strFontId);
         Redraw();
     }
@@ -840,7 +842,7 @@ void RichEdit::SetHideSelection(bool bHideSelection)
         m_bHideSelection = bHideSelection;
         if (HasSelText()) {
             Invalidate();
-        }        
+        }
     }
 }
 
@@ -2342,6 +2344,7 @@ bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView
         return false;
     }
     DString sFontId = GetFontId();
+    ASSERT(!sFontId.empty());
     IFont* pFont = GlobalManager::Instance().Font().GetIFont(sFontId, Dpi());
     ASSERT(pFont != nullptr);
     if (pFont == nullptr) {
@@ -2478,7 +2481,9 @@ UiRect RichEdit::GetTextDrawRect(const UiRect& rc) const
     UiRect rcAvailable = rc;
     rcAvailable.Deflate(GetTextPadding());
     rcAvailable.Deflate(GetControlPadding());
-    if (!GetScrollBarFloat() && (GetVScrollBar() != nullptr) && GetVScrollBar()->IsValid()) {
+
+    //按照有滚动条的状态进行估算，避免需要二次估算才能估算出最终结果
+    if (!GetScrollBarFloat() && (GetVScrollBar() != nullptr)) {
         if (IsVScrollBarAtLeft()) {
             rcAvailable.left += GetVScrollBar()->GetFixedWidth().GetInt32();
         }
@@ -2486,7 +2491,7 @@ UiRect RichEdit::GetTextDrawRect(const UiRect& rc) const
             rcAvailable.right -= GetVScrollBar()->GetFixedWidth().GetInt32();
         }
     }
-    if (!GetScrollBarFloat() && (GetHScrollBar() != nullptr) && GetHScrollBar()->IsValid()) {
+    if (!GetScrollBarFloat() && (GetHScrollBar() != nullptr)) {
         rcAvailable.bottom -= GetHScrollBar()->GetFixedHeight().GetInt32();
     }
     rcAvailable.Validate();

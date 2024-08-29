@@ -253,6 +253,10 @@ public:
     */
     void ClearDrawRichTextCache();
 
+    /** 对重新计算做标记
+    */
+    void SetCacheDirty(bool bDirty);
+
 private:
     /** 将内部坐标转换为外部坐标
     */
@@ -265,14 +269,10 @@ private:
     const UiPoint& ConvertToInternal(UiPoint& pt) const;
     const UiRect& ConvertToInternal(UiRect& rect) const;
 
-    /** 对重新计算做标记
-    */
-    void SetCacheDirty(bool bDirty);
-
 private:
     /** 设置文本绘制区域
     */
-    void SetTextDrawRect(const UiRect& rcTextDrawRect);
+    void SetTextDrawRect(const UiRect& rcTextDrawRect, bool bCheckDirty);
 
     /** 将文本按照换行符（'\n'）切分为多行
     */
@@ -388,41 +388,9 @@ private:
     UiSize m_szScrollOffset;
 
 private:
-    /** 估算大小的缓存，避免重复估算（估算比较耗时）
-    */
-    struct EstimateResult
-    {
-        /** 估算的传入矩形大小
-        */
-        UiRect m_rcAvailable;
-
-        /** 估算的数据
-        */
-        std::vector<RichTextData> m_richTextDataList;
-
-        /** 估算的结果
-        */
-        UiRect m_rcEstimate;
-
-        /** 清空
-        */
-        void Clear()
-        {
-            m_rcAvailable.Clear();
-            std::vector<RichTextData> temp;
-            m_richTextDataList.swap(temp);
-            m_rcEstimate.Clear();
-        }
-    };
-
-private:
     /** 文本数据，按物理分行切分
     */
     RichTextLineInfoList m_lineTextInfo;
-
-    /** 估算的结果
-    */
-    EstimateResult m_estimateResult;
 
     /** 文本绘制缓存
     */
