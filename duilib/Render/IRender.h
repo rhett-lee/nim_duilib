@@ -1071,7 +1071,7 @@ public:
     * @param [in] nModifiedRows 修改后的文本，计算后切分为几行（逻辑行）
     * @param [in] deletedLines 删除的行
     * @param [in] nDeletedRows 删除了几个逻辑行
-    * @param [in] rowTopMap 每个逻辑行的top坐标，用于更新行的坐标
+    * @param [in] rowRectTopList 每个逻辑行的top坐标，用于更新行的坐标(下标值为逻辑行，从0开始编号)
     */
     virtual bool UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& spOldDrawRichTextCache,
                                          const std::shared_ptr<DrawRichTextCache>& spUpdateDrawRichTextCache,
@@ -1081,7 +1081,7 @@ public:
                                          size_t nModifiedRows,
                                          const std::vector<size_t>& deletedLines,
                                          size_t nDeletedRows,
-                                         const std::unordered_map<uint32_t, int32_t>& rowTopMap) = 0;
+                                         const std::vector<int32_t>& rowRectTopList) = 0;
 
     /** 比较两个绘制缓存的数据是否一致
     */

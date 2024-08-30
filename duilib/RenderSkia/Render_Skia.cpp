@@ -1568,7 +1568,7 @@ void Render_Skia::MeasureRichText3(const UiRect& textRect,
                                    std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
                                    std::vector<std::vector<UiRect>>* pRichTextRects)
 {
-    PerformanceStat statPerformance(_T("Render_Skia::MeasureRichText2"));
+    PerformanceStat statPerformance(_T("Render_Skia::MeasureRichText3"));
     InternalDrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, 255, true, pLineInfoParam, &spDrawRichTextCache, pRichTextRects);
 }
 
@@ -1709,8 +1709,9 @@ bool Render_Skia::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& sp
                                           size_t nModifiedRows,
                                           const std::vector<size_t>& deletedLines,
                                           size_t nDeletedRows,
-                                          const std::unordered_map<uint32_t, int32_t>& rowTopMap)
+                                          const std::vector<int32_t>& rowRectTopList)
 {
+    PerformanceStat statPerformance(_T("Render_Skia::UpdateDrawRichTextCache"));
     ASSERT(spOldDrawRichTextCache != nullptr);
     if (spOldDrawRichTextCache == nullptr) {
         return false;
@@ -1788,6 +1789,7 @@ bool Render_Skia::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& sp
     bool bUpdateIndex = (nLineNumberDiff != 0) || (nRowIndexDiff != 0);
 
     //修正物理行号，逻辑行号，本行的绘制目标区域值
+    const size_t nRowRectCount = rowRectTopList.size();
     bool bUpdateLineRows = false;
     const int32_t nCount = (int32_t)oldData.m_pendingTextData.size();
     for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
@@ -1827,11 +1829,10 @@ bool Render_Skia::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& sp
             pendingData.m_nDataIndex = (uint32_t)-1;
 
             //更新本行的绘制目标区域
-            auto iter = rowTopMap.find(pendingData.m_nRowIndex);
-            ASSERT(iter != rowTopMap.end());
-            if (iter != rowTopMap.end()) {
-                pendingData.m_destRect.bottom = iter->second + pendingData.m_destRect.Height();
-                pendingData.m_destRect.top = iter->second;
+            ASSERT(pendingData.m_nRowIndex < nRowRectCount);
+            if (pendingData.m_nRowIndex < nRowRectCount) {
+                pendingData.m_destRect.bottom = rowRectTopList[pendingData.m_nRowIndex] + pendingData.m_destRect.Height();
+                pendingData.m_destRect.top = rowRectTopList[pendingData.m_nRowIndex];
             }
         }
     }

@@ -142,7 +142,7 @@ public:
                                          size_t nModifiedRows,
                                          const std::vector<size_t>& deletedLines,
                                          size_t nDeletedRows,
-                                         const std::unordered_map<uint32_t, int32_t>& rowTopMap) override;
+                                         const std::vector<int32_t>& rowRectTopList) override;
 
     virtual bool IsDrawRichTextCacheEqual(const DrawRichTextCache& first, const DrawRichTextCache& second) const override;
 

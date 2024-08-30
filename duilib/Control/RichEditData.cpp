@@ -290,7 +290,6 @@ void RichEditData::CalcTextRects(size_t nStartLine,
     //修改后的文本，重新生成的绘制缓存
     std::shared_ptr<DrawRichTextCache> spDrawRichTextCacheUpdated;
 
-
     size_t nModifiedRows = 0;//修改后的文本，计算后切分为几行（逻辑行）
     if (!modifiedLines.empty()) {
         //有修改的行，重新计算行数据
@@ -298,7 +297,7 @@ void RichEditData::CalcTextRects(size_t nStartLine,
         m_pRichTextData->GetRichTextForDraw(textView, richTextDataListModified, nStartLine, modifiedLines);
         if (richTextDataListModified.empty()) {
             return;
-        }        
+        }
         m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataListModified, &lineInfoParam, spDrawRichTextCacheUpdated, nullptr);
         std::unordered_set<uint32_t> modifiedLineSet;
         for (size_t nLine : modifiedLines) {
@@ -318,20 +317,18 @@ void RichEditData::CalcTextRects(size_t nStartLine,
 
     //更新绘制缓存
     if (m_spDrawRichTextCache != nullptr) {
-        std::unordered_map<uint32_t, int32_t> rowTopMap;
-        uint32_t nRowIndex = 0;
+        std::vector<int32_t> rowRectTopList;
         const size_t nLineCount = m_lineTextInfo.size();
+        rowRectTopList.reserve(nLineCount);
         for (size_t nLineIndex = 0; nLineIndex < nLineCount; ++nLineIndex) {
             const RichTextLineInfo& lineInfo = *m_lineTextInfo[nLineIndex];
             const size_t nRowCount = lineInfo.m_rowInfo.size();
             for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
-                rowTopMap[nRowIndex] = (int32_t)lineInfo.m_rowInfo[nRow]->m_rowRect.top;
-                ++nRowIndex;
+                rowRectTopList.push_back((int32_t)lineInfo.m_rowInfo[nRow]->m_rowRect.top);
             }
         }
-
         if (!m_pRender->UpdateDrawRichTextCache(m_spDrawRichTextCache, spDrawRichTextCacheUpdated, richTextDataListAll,
-                                                nStartLine, modifiedLines, nModifiedRows, deletedLines, nDeletedRows, rowTopMap)) {
+                                                nStartLine, modifiedLines, nModifiedRows, deletedLines, nDeletedRows, rowRectTopList)) {
             m_spDrawRichTextCache.reset();
         }
         //该数据已经交还给缓存，不能再使用
