@@ -139,7 +139,9 @@ public:
                                          std::vector<RichTextData>& richTextDataNew,
                                          size_t nStartLine,
                                          const std::vector<size_t>& modifiedLines,
+                                         size_t nModifiedRows,
                                          const std::vector<size_t>& deletedLines,
+                                         size_t nDeletedRows,
                                          const std::unordered_map<uint32_t, int32_t>& rowTopMap) override;
 
     virtual bool IsDrawRichTextCacheEqual(const DrawRichTextCache& first, const DrawRichTextCache& second) const override;

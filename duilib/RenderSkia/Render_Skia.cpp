@@ -1706,7 +1706,9 @@ bool Render_Skia::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& sp
                                           std::vector<RichTextData>& richTextDataNew,
                                           size_t nStartLine,
                                           const std::vector<size_t>& modifiedLines,
+                                          size_t nModifiedRows,
                                           const std::vector<size_t>& deletedLines,
+                                          size_t nDeletedRows,
                                           const std::unordered_map<uint32_t, int32_t>& rowTopMap)
 {
     ASSERT(spOldDrawRichTextCache != nullptr);
@@ -1747,6 +1749,8 @@ bool Render_Skia::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& sp
         }
     }
 
+    //更新缓存开始的元素下标值
+    size_t nUpdateCacheStartIndex = (size_t)-1;
     if (spUpdateDrawRichTextCache != nullptr) {
         DrawRichTextCache& updateData = *spUpdateDrawRichTextCache;
         if (!updateData.m_pendingTextData.empty()) {//容器可能为空（当本行为空行时为空）
@@ -1763,70 +1767,65 @@ bool Render_Skia::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& sp
                 return false;
             }
             //将新的绘制缓存，合并到原绘制缓存中
-            size_t nStartIndex = (size_t)-1;
             const int32_t nCount = (int32_t)oldData.m_pendingTextData.size();
             for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
                 const TPendingDrawRichText& pendingData = *oldData.m_pendingTextData[nIndex];
                 if (pendingData.m_nLineNumber > nStartLine) {
                     oldData.m_pendingTextData.insert(oldData.m_pendingTextData.begin() + nIndex, updateData.m_pendingTextData.begin(), updateData.m_pendingTextData.end());
-                    nStartIndex = nIndex;
+                    nUpdateCacheStartIndex = nIndex + updateData.m_pendingTextData.size();
                     break;
                 }
             }
-            if (nStartIndex == (size_t)-1) {
+            if (nUpdateCacheStartIndex == (size_t)-1) {
                 //追加在最后
-                nStartIndex = oldData.m_pendingTextData.size();
                 oldData.m_pendingTextData.insert(oldData.m_pendingTextData.end(), updateData.m_pendingTextData.begin(), updateData.m_pendingTextData.end());
-            }
-            const size_t nNewCount = oldData.m_pendingTextData.size();
-            const size_t nUpdateCount = updateData.m_pendingTextData.size() + nStartIndex;
-            for (size_t i = nStartIndex; i < nUpdateCount; ++i) {
-                ASSERT(i < nNewCount);
-                if (i < nNewCount) {
-                    oldData.m_pendingTextData[i]->m_nDataIndex = (uint32_t)-1;//更新为无效值，后续不再使用该值
-                }
             }
         }
     }
 
-    bool bUpdateBegin = false;
-    uint32_t nLastLineNumber = 0;
-    uint32_t nLastRowIndex = 0;
-    int32_t nLineNumberDiff = 0;
-    int32_t nRowIndexDiff = 0;
+    int32_t nLineNumberDiff = (int32_t)modifiedLines.size() - (int32_t)deletedLines.size();
+    int32_t nRowIndexDiff = (int32_t)nModifiedRows - (int32_t)nDeletedRows;
+    bool bUpdateIndex = (nLineNumberDiff != 0) || (nRowIndexDiff != 0);
 
     //修正物理行号，逻辑行号，本行的绘制目标区域值
+    bool bUpdateLineRows = false;
     const int32_t nCount = (int32_t)oldData.m_pendingTextData.size();
     for (int32_t nIndex = 0; nIndex < nCount; ++nIndex) {
         TPendingDrawRichText& pendingData = *oldData.m_pendingTextData[nIndex];
-        if (pendingData.m_nLineNumber > nStartLine) {
-            if (!bUpdateBegin) {
-                //定位到需要更新的位置
-                nLineNumberDiff = (int32_t)pendingData.m_nLineNumber - nLastLineNumber - 1;
-                nRowIndexDiff = (int32_t)pendingData.m_nRowIndex - nLastRowIndex - 1;
-                bUpdateBegin = true;
-            }
-            //更新行号
-            if (nLineNumberDiff > 0) {
-                pendingData.m_nLineNumber -= (uint32_t)nLineNumberDiff;
+        if (!bUpdateLineRows && bUpdateIndex) {
+            if ((nUpdateCacheStartIndex != (size_t)-1)) {
+                //更新行号(有修改，并且修改点不再最后)
+                if (nIndex >= nUpdateCacheStartIndex) {
+                    bUpdateLineRows = true;
+                }
             }
             else {
-                pendingData.m_nLineNumber += (uint32_t)-nLineNumberDiff;
+                //无修改，只有删除的情况
+                ASSERT(modifiedLines.empty());
+                if (pendingData.m_nLineNumber >= nStartLine) {
+                    bUpdateLineRows = true;
+                }
+            }
+        }
+        if (bUpdateLineRows) {
+            if (nLineNumberDiff > 0) {
+                pendingData.m_nLineNumber += (uint32_t)nLineNumberDiff;
+            }
+            else if (nLineNumberDiff < 0) {
+                pendingData.m_nLineNumber -= (uint32_t)-nLineNumberDiff;
             }
             if (nRowIndexDiff > 0) {
-                pendingData.m_nRowIndex -= (uint32_t)nRowIndexDiff;
+                pendingData.m_nRowIndex += (uint32_t)nRowIndexDiff;
             }
-            else {
-                pendingData.m_nRowIndex += (uint32_t)-nRowIndexDiff;
+            else if (nRowIndexDiff < 0) {
+                pendingData.m_nRowIndex -= (uint32_t)-nRowIndexDiff;
             }
-            pendingData.m_nDataIndex = (uint32_t)-1;//更新为无效值
-        }
-        else {
-            nLastLineNumber = pendingData.m_nLineNumber;
-            nLastRowIndex = pendingData.m_nRowIndex;
         }
 
         if (pendingData.m_nLineNumber >= nStartLine) {
+            //对应数据的索引下标更新为无效值，后续不再使用
+            pendingData.m_nDataIndex = (uint32_t)-1;
+
             //更新本行的绘制目标区域
             auto iter = rowTopMap.find(pendingData.m_nRowIndex);
             ASSERT(iter != rowTopMap.end());
@@ -2523,7 +2522,7 @@ void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<uint
     }
     if (lineSeprators.empty()) {
         //没有换行分隔符，单行
-        lineTextViewList.push_back(std::wstring_view(lineText.data(), lineText.size()));
+        lineTextViewList.emplace_back(std::move(std::wstring_view(lineText.data(), lineText.size())));
     }
     else {
         //有换行分隔符，切分为多行, 并保留换行符
@@ -2540,9 +2539,9 @@ void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<uint
                 ASSERT(nCurrentIndex < lineText.size());
                 nCharCount = nCurrentIndex - nLastIndex;
                 if (nCharCount > 0) {
-                    lineTextViewList.push_back(std::wstring_view(lineText.data(), nCharCount));
+                    lineTextViewList.emplace_back(std::move(std::wstring_view(lineText.data(), nCharCount)));
                 }
-                lineTextViewList.push_back(std::wstring_view(lineText.data() + nCurrentIndex, 1));
+                lineTextViewList.emplace_back(std::move(std::wstring_view(lineText.data() + nCurrentIndex, 1)));
             }
             else {
                 //中间行
@@ -2552,9 +2551,9 @@ void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<uint
                 ASSERT(nCurrentIndex < lineText.size());
                 nCharCount = nCurrentIndex - nLastIndex - 1;
                 if (nCharCount > 0) {
-                    lineTextViewList.push_back(std::wstring_view(lineText.data() + nLastIndex + 1, nCharCount));
+                    lineTextViewList.emplace_back(std::move(std::wstring_view(lineText.data() + nLastIndex + 1, nCharCount)));
                 }
-                lineTextViewList.push_back(std::wstring_view(lineText.data() + nCurrentIndex, 1));
+                lineTextViewList.emplace_back(std::move(std::wstring_view(lineText.data() + nCurrentIndex, 1)));
             }
 
             if (nLine == (nLineSepCount - 1)) {
@@ -2564,7 +2563,7 @@ void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<uint
                 ASSERT(nCurrentIndex > nLastIndex);
                 nCharCount = nCurrentIndex - nLastIndex - 1;
                 if (nCharCount > 0) {
-                    lineTextViewList.push_back(std::wstring_view(lineText.data() + nLastIndex + 1, nCharCount));
+                    lineTextViewList.emplace_back(std::move(std::wstring_view(lineText.data() + nLastIndex + 1, nCharCount)));
                 }
             }
         }

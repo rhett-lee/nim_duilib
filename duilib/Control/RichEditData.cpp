@@ -1,5 +1,6 @@
 #include "RichEditData.h"
 #include "duilib/Utils/PerformanceUtil.h"
+#include <unordered_set>
 
 namespace ui
 {
@@ -131,6 +132,7 @@ void RichEditData::CheckCalcTextRects()
 
 void RichEditData::CalcTextRects()
 {
+    PerformanceStat statPerformance(_T("RichEditData::CalcTextRects"));
     //清空所有行的缓存数据
     for (RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
         ASSERT(pLineInfo != nullptr);
@@ -186,8 +188,12 @@ void RichEditData::CalcTextRects()
     SetTextDrawRect(rcDrawText, false);
 }
 
-void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& modifiedLines, const std::vector<size_t>& deletedLines)
+void RichEditData::CalcTextRects(size_t nStartLine,
+                                 const std::vector<size_t>& modifiedLines,
+                                 const std::vector<size_t>& deletedLines,
+                                 size_t nDeletedRows)
 {
+    PerformanceStat statPerformance(_T("RichEditData::CalcTextRects2"));
     if (nStartLine != (size_t)-1) {
         ASSERT(!modifiedLines.empty() || !deletedLines.empty());
         if (!modifiedLines.empty()) {
@@ -284,6 +290,8 @@ void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& m
     //修改后的文本，重新生成的绘制缓存
     std::shared_ptr<DrawRichTextCache> spDrawRichTextCacheUpdated;
 
+
+    size_t nModifiedRows = 0;//修改后的文本，计算后切分为几行（逻辑行）
     if (!modifiedLines.empty()) {
         //有修改的行，重新计算行数据
         std::vector<RichTextData> richTextDataListModified;
@@ -292,6 +300,17 @@ void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& m
             return;
         }        
         m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataListModified, &lineInfoParam, spDrawRichTextCacheUpdated, nullptr);
+        std::unordered_set<uint32_t> modifiedLineSet;
+        for (size_t nLine : modifiedLines) {
+            modifiedLineSet.insert((uint32_t)nLine);
+        }
+        const size_t nLineCount = m_lineTextInfo.size();
+        for (size_t nLine = 0; nLine < nLineCount; ++nLine) {
+            if (modifiedLineSet.find(nLine) != modifiedLineSet.end()) {
+                const RichTextLineInfo& lineInfo = *m_lineTextInfo[nLine];
+                nModifiedRows += (uint32_t)lineInfo.m_rowInfo.size();
+            }
+        }
     }
 
     //绘制后，增量绘制后的行高数据           
@@ -311,7 +330,8 @@ void RichEditData::CalcTextRects(size_t nStartLine, const std::vector<size_t>& m
             }
         }
 
-        if (!m_pRender->UpdateDrawRichTextCache(m_spDrawRichTextCache, spDrawRichTextCacheUpdated, richTextDataListAll, nStartLine, modifiedLines, deletedLines, rowTopMap)) {
+        if (!m_pRender->UpdateDrawRichTextCache(m_spDrawRichTextCache, spDrawRichTextCacheUpdated, richTextDataListAll,
+                                                nStartLine, modifiedLines, nModifiedRows, deletedLines, nDeletedRows, rowTopMap)) {
             m_spDrawRichTextCache.reset();
         }
         //该数据已经交还给缓存，不能再使用
@@ -642,11 +662,14 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     for (size_t nIndex = nStartLine; nIndex <= nEndLine; ++nIndex) {
         deletedLines.push_back(nIndex);
     }
+    //删除了几行
+    size_t nDeletedRows = 0;
     //倒序删除
     if (!deletedLines.empty()) {
         int32_t nDelIndex = (int32_t)deletedLines.size() - 1;
         for (; nDelIndex >= 0; --nDelIndex) {
             if (deletedLines[nDelIndex] < m_lineTextInfo.size()) {
+                nDeletedRows += m_lineTextInfo[deletedLines[nDelIndex]]->m_rowInfo.size();
                 m_lineTextInfo.erase(m_lineTextInfo.begin() + deletedLines[nDelIndex]);
             }
         }
@@ -677,7 +700,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
 
     if (!m_bCacheDirty && (!modifiedLines.empty() || !deletedLines.empty())) {
         //修改的行，需要重新计算(增量计算)
-        CalcTextRects(nStartLine, modifiedLines, deletedLines);
+        CalcTextRects(nStartLine, modifiedLines, deletedLines, nDeletedRows);
     }
     if (bCanUndo) {
         //生成撤销列表

@@ -1068,7 +1068,9 @@ public:
     * @param [in,out] richTextDataNew 最新的完整数据, 数据会交换给内部容器
     * @param [in] nStartLine 重新计算的起始行号
     * @param [in] modifiedLines 有修改的行号
+    * @param [in] nModifiedRows 修改后的文本，计算后切分为几行（逻辑行）
     * @param [in] deletedLines 删除的行
+    * @param [in] nDeletedRows 删除了几个逻辑行
     * @param [in] rowTopMap 每个逻辑行的top坐标，用于更新行的坐标
     */
     virtual bool UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& spOldDrawRichTextCache,
@@ -1076,7 +1078,9 @@ public:
                                          std::vector<RichTextData>& richTextDataNew,
                                          size_t nStartLine,
                                          const std::vector<size_t>& modifiedLines,
+                                         size_t nModifiedRows,
                                          const std::vector<size_t>& deletedLines,
+                                         size_t nDeletedRows,
                                          const std::unordered_map<uint32_t, int32_t>& rowTopMap) = 0;
 
     /** 比较两个绘制缓存的数据是否一致

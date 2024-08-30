@@ -298,10 +298,12 @@ private:
     * @param [in] nStartLine 重新计算的起始行号
     * @param [in] modifiedLines 有修改的行号
     * @param [in] deletedLines 删除的行
+    * @param [in] nDeletedRows 删除了几行
     */
     void CalcTextRects(size_t nStartLine,
                        const std::vector<size_t>& modifiedLines,
-                       const std::vector<size_t>& deletedLines);
+                       const std::vector<size_t>& deletedLines,
+                       size_t nDeletedRows);
 
     /** 定位字符范围所属的行和行文本偏移量
     * @param [in] nStartChar 起始下标值
