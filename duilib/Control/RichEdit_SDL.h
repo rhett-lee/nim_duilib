@@ -865,6 +865,10 @@ private:
     */
     void OnInputChar(const EventArgs& msg);
 
+    /** 检查Shift和Ctrl按键的标志
+    */
+    void CheckKeyDownStartIndex(const EventArgs& msg);
+
 private:
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
     bool m_bWantReturn;         //是否接收回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
@@ -1004,6 +1008,10 @@ private:
     /** 按住Shift键时的选择起始字符
     */
     int32_t m_nShiftStartIndex;
+
+    /** 按住Ctrl键时的选择起始字符
+    */
+    int32_t m_nCtrlStartIndex;
 
 private:
     /** 是否鼠标在视图中按下左键或者右键

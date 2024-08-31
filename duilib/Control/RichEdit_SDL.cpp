@@ -76,6 +76,7 @@ RichEdit::RichEdit(Window* pWindow) :
     m_nSelStartIndex(0),
     m_nSelEndCharIndex(0),
     m_nShiftStartIndex(-1),
+    m_nCtrlStartIndex(-1),
     m_bHideSelection(false),
     m_bActive(false),
     m_bMouseDownInView(false),
@@ -2731,6 +2732,13 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
             GetSel(m_nShiftStartIndex, nSelEnd);
         }
     }
+    if (msg.vkCode == kVK_CONTROL) {
+        //记录选择的起始位置(当Ctrl键一致按住的时候，就会一致触发此OnKeyDown事件)
+        if (m_nCtrlStartIndex == -1) {
+            int32_t nSelEnd = 0;
+            GetSel(m_nCtrlStartIndex, nSelEnd);
+        }
+    }
 
     if ((msg.vkCode == kVK_RETURN) || (msg.vkCode == kVK_TAB)) {
         OnInputChar(msg);
@@ -2747,6 +2755,7 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
     else if (msg.vkCode == kVK_LEFT) {
         //向左
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
+        bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
         int32_t nSelStartChar = -1;
         int32_t nSelEndChar = -1;
         GetSel(nSelStartChar, nSelEndChar);
@@ -2758,7 +2767,20 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
                 nSelEndChar = m_nShiftStartIndex;
             }
             else {
+                nSelStartChar = m_nShiftStartIndex;
                 nSelEndChar = m_pTextData->GetPrevValidCharIndex(nSelEndChar);
+            }
+            SetSel(nSelStartChar, nSelEndChar);
+        }
+        else if (bCtrlDown && (m_nCtrlStartIndex != -1)) {
+            //Ctrl + Left键
+            if (nSelEndChar <= m_nCtrlStartIndex) {
+                nSelStartChar = m_pTextData->GetPrevValidWordIndex(nSelStartChar);
+                nSelEndChar = m_nCtrlStartIndex;
+            }
+            else {
+                nSelStartChar = m_nCtrlStartIndex;
+                nSelEndChar = m_pTextData->GetPrevValidWordIndex(nSelEndChar);
             }
             SetSel(nSelStartChar, nSelEndChar);
         }
@@ -2771,6 +2793,7 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
     else if (msg.vkCode == kVK_RIGHT) {
         //向右
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
+        bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
         int32_t nSelStartChar = -1;
         int32_t nSelEndChar = -1;
         GetSel(nSelStartChar, nSelEndChar);
@@ -2782,7 +2805,20 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
                 nSelEndChar = m_nShiftStartIndex;
             }
             else {
+                nSelStartChar = m_nShiftStartIndex;
                 nSelEndChar = m_pTextData->GetNextValidCharIndex(nSelEndChar);
+            }
+            SetSel(nSelStartChar, nSelEndChar);
+        }
+        else if (bCtrlDown && (m_nCtrlStartIndex != -1)) {
+            //Ctrl + Right键
+            if (nSelEndChar <= m_nCtrlStartIndex) {
+                nSelStartChar = m_pTextData->GetNextValidWordIndex(nSelStartChar);
+                nSelEndChar = m_nCtrlStartIndex;
+            }
+            else {
+                nSelStartChar = m_nCtrlStartIndex;
+                nSelEndChar = m_pTextData->GetNextValidWordIndex(nSelEndChar);
             }
             SetSel(nSelStartChar, nSelEndChar);
         }
@@ -2805,12 +2841,21 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
     return true;
 }
 
-bool RichEdit::OnKeyUp(const EventArgs& msg)
+void RichEdit::CheckKeyDownStartIndex(const EventArgs& msg)
 {
-    if (msg.vkCode == kVK_SHIFT) {
+    if ((m_nShiftStartIndex != -1) && !IsKeyDown(msg, ModifierKey::kShift)) {
         //恢复选择的起始位置
         m_nShiftStartIndex = -1;
     }
+    else if ((m_nCtrlStartIndex != -1) && !IsKeyDown(msg, ModifierKey::kControl)) {
+        //恢复选择的起始位置
+        m_nCtrlStartIndex = -1;
+    }
+}
+
+bool RichEdit::OnKeyUp(const EventArgs& msg)
+{
+    CheckKeyDownStartIndex(msg);
     return __super::OnKeyUp(msg);
 }
 
@@ -2858,6 +2903,9 @@ bool RichEdit::ButtonDown(const EventArgs& msg)
     if (msg.IsSenderExpired()) {
         return false;
     }
+    //鼠标点击时，检查按键状态（因按住Shift/Ctrl的时候，如果按组合键，则Shift/Ctrl的Up消息会丢失，导致状态异常）
+    CheckKeyDownStartIndex(msg);
+
     OnLButtonDown(msg.ptMouse, msg.GetSender(), IsKeyDown(msg, ModifierKey::kShift));
     return bRet;
 }
@@ -2949,8 +2997,6 @@ void RichEdit::OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bShi
     int32_t nCharPosIndex = CharFromPos(ptMouse);
     if (bShiftDown && (m_nShiftStartIndex != -1)) {
         //按住Shift键时，选择与原来起点的范围
-        DString ss = StringUtil::Printf(L"SetSel:%d, %d\n", m_nShiftStartIndex, nCharPosIndex);
-        ::OutputDebugString(ss.c_str());
         SetSel(m_nShiftStartIndex, nCharPosIndex);
     }
     else {
