@@ -2683,8 +2683,46 @@ bool RichEdit::OnImeEndComposition(const EventArgs& /*msg*/)
     return true;
 }
 
+void RichEdit::HandleEvent(const EventArgs& msg)
+{
+    if (!IsDisabledEvents(msg)) {
+        if (msg.eventType == kEventKeyDown) {
+            //截获基类的KeyDown事件，优先处理
+            if (OnKeyDown(msg)) {
+                return;
+            }
+        }
+        else if (msg.eventType == kEventMouseWheel) {
+            bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
+            if (bCtrlDown && IsEnableWheelZoom()) {
+                //Ctrl + 滚轮，调整缩放比
+                OnMouseWheel(bCtrlDown);
+                return;
+            }
+        }
+    }
+    __super::HandleEvent(msg);
+}
+
 bool RichEdit::OnKeyDown(const EventArgs& msg)
 {
+    if (IsKeyDown(msg, ModifierKey::kControl)) {
+        if ((msg.vkCode == kVK_DOWN) || (msg.vkCode == kVK_UP) ||
+            (msg.vkCode == kVK_NEXT) || (msg.vkCode == kVK_PRIOR) ||
+            (msg.vkCode == kVK_HOME) || (msg.vkCode == kVK_END) ) {
+            if (msg.vkCode == kVK_HOME) {
+                //Ctrl + Home
+                SetSel(0, 0);
+            }
+            else if (msg.vkCode == kVK_END) {
+                //Ctrl + End
+                int32_t nTextLen = GetTextLength();
+                SetSel(nTextLen, nTextLen);
+            }
+            //原ScrollBox的功能
+            return false;
+        }
+    }    
     //该函数实现支持的各种快捷键
     if (msg.vkCode == kVK_SHIFT) {
         //记录选择的起始位置(当Shift键一致按住的时候，就会一致触发此OnKeyDown事件)
@@ -2708,21 +2746,51 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
     }
     else if (msg.vkCode == kVK_LEFT) {
         //向左
+        bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         int32_t nSelStartChar = -1;
         int32_t nSelEndChar = -1;
         GetSel(nSelStartChar, nSelEndChar);
         ASSERT(nSelEndChar >= nSelStartChar);
-        nSelEndChar = m_pTextData->GetPrevValidCharIndex(nSelEndChar);
-        SetSel(nSelEndChar, nSelEndChar);
+        if (bShiftDown && (m_nShiftStartIndex != -1)) {
+            //Shift + Left键
+            if (nSelEndChar <= m_nShiftStartIndex) {
+                nSelStartChar = m_pTextData->GetPrevValidCharIndex(nSelStartChar);
+                nSelEndChar = m_nShiftStartIndex;
+            }
+            else {
+                nSelEndChar = m_pTextData->GetPrevValidCharIndex(nSelEndChar);
+            }
+            SetSel(nSelStartChar, nSelEndChar);
+        }
+        else {
+            //Left键
+            nSelEndChar = m_pTextData->GetPrevValidCharIndex(nSelEndChar);
+            SetSel(nSelEndChar, nSelEndChar);
+        }
     }
     else if (msg.vkCode == kVK_RIGHT) {
         //向右
+        bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         int32_t nSelStartChar = -1;
         int32_t nSelEndChar = -1;
         GetSel(nSelStartChar, nSelEndChar);
         ASSERT(nSelEndChar >= nSelStartChar);
-        nSelEndChar = m_pTextData->GetNextValidCharIndex(nSelEndChar);
-        SetSel(nSelEndChar, nSelEndChar);
+        if (bShiftDown && (m_nShiftStartIndex != -1)) {
+            //Shift + Right键
+            if (nSelEndChar <= m_nShiftStartIndex) {
+                nSelStartChar = m_pTextData->GetNextValidCharIndex(nSelStartChar);
+                nSelEndChar = m_nShiftStartIndex;
+            }
+            else {
+                nSelEndChar = m_pTextData->GetNextValidCharIndex(nSelEndChar);
+            }
+            SetSel(nSelStartChar, nSelEndChar);
+        }
+        else {
+            //Right键
+            nSelEndChar = m_pTextData->GetNextValidCharIndex(nSelEndChar);
+            SetSel(nSelEndChar, nSelEndChar);
+        }
     }
     else if ((msg.vkCode == 'V') && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + V, 粘贴（在允许粘贴的情况下）
@@ -2995,7 +3063,7 @@ void RichEdit::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
 
 void RichEdit::OnMouseWheel(bool bCtrlDown)
 {
-    if (IsEnableWheelZoom()) {
+    if (bCtrlDown && IsEnableWheelZoom()) {
         //Ctrl + 滚轮：缩放功能
         //OnMouseMessage(WM_MOUSEWHEEL, msg);
         int32_t nNum = 0;

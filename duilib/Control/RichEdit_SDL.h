@@ -24,6 +24,7 @@ public:
     //基类的虚函数重写
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& pstrName, const DString& pstrValue) override;
+    virtual void HandleEvent(const EventArgs& msg) override;
     virtual void SetEnabled(bool bEnable = true) override;    
     virtual void SetWindow(Window* pWindow) override;
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
