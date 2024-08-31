@@ -665,6 +665,7 @@ protected:
     virtual bool OnImeEndComposition(const EventArgs& msg) override;
     
     virtual bool OnKeyDown(const EventArgs& msg) override;
+    virtual bool OnKeyUp(const EventArgs& msg) override;
     virtual bool OnChar(const EventArgs& msg) override;
 
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
@@ -702,7 +703,7 @@ protected:
     virtual uint8_t GetDrawAlpha() const override;
 
 private:
-    void OnLButtonDown(const UiPoint& ptMouse, Control* pSender);
+    void OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bShiftDown);
     void OnLButtonUp(const UiPoint& ptMouse, Control* pSender);
     void OnLButtonDoubleClick(const UiPoint& ptMouse, Control* pSender);
     void OnRButtonDown(const UiPoint& ptMouse, Control* pSender);
@@ -998,6 +999,10 @@ private:
     /** 选择的结束字符
     */
     int32_t m_nSelEndCharIndex;
+
+    /** 按住Shift键时的选择起始字符
+    */
+    int32_t m_nShiftStartIndex;
 
 private:
     /** 是否鼠标在视图中按下左键或者右键

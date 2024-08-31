@@ -75,6 +75,7 @@ RichEdit::RichEdit(Window* pWindow) :
     m_vAlignType(VerAlignType::kVerAlignTop),
     m_nSelStartIndex(0),
     m_nSelEndCharIndex(0),
+    m_nShiftStartIndex(-1),
     m_bHideSelection(false),
     m_bActive(false),
     m_bMouseDownInView(false),
@@ -2685,6 +2686,14 @@ bool RichEdit::OnImeEndComposition(const EventArgs& /*msg*/)
 bool RichEdit::OnKeyDown(const EventArgs& msg)
 {
     //该函数实现支持的各种快捷键
+    if (msg.vkCode == kVK_SHIFT) {
+        //记录选择的起始位置(当Shift键一致按住的时候，就会一致触发此OnKeyDown事件)
+        if (m_nShiftStartIndex == -1) {
+            int32_t nSelEnd = 0;
+            GetSel(m_nShiftStartIndex, nSelEnd);
+        }
+    }
+
     if ((msg.vkCode == kVK_RETURN) || (msg.vkCode == kVK_TAB)) {
         OnInputChar(msg);
         return true;
@@ -2726,6 +2735,15 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
         SetSelAll();
     }
     return true;
+}
+
+bool RichEdit::OnKeyUp(const EventArgs& msg)
+{
+    if (msg.vkCode == kVK_SHIFT) {
+        //恢复选择的起始位置
+        m_nShiftStartIndex = -1;
+    }
+    return __super::OnKeyUp(msg);
 }
 
 bool RichEdit::OnChar(const EventArgs& msg)
@@ -2772,7 +2790,7 @@ bool RichEdit::ButtonDown(const EventArgs& msg)
     if (msg.IsSenderExpired()) {
         return false;
     }
-    OnLButtonDown(msg.ptMouse, msg.GetSender());
+    OnLButtonDown(msg.ptMouse, msg.GetSender(), IsKeyDown(msg, ModifierKey::kShift));
     return bRet;
 }
 
@@ -2846,7 +2864,7 @@ bool RichEdit::OnWindowKillFocus(const EventArgs& msg)
     return bRet;
 }
 
-void RichEdit::OnLButtonDown(const UiPoint& ptMouse, Control* pSender)
+void RichEdit::OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bShiftDown)
 {
     if (m_bInMouseMove) {
         m_bInMouseMove = false;
@@ -2861,7 +2879,15 @@ void RichEdit::OnLButtonDown(const UiPoint& ptMouse, Control* pSender)
 
     //调整光标位置到鼠标点击位置
     int32_t nCharPosIndex = CharFromPos(ptMouse);
-    SetSel(nCharPosIndex, nCharPosIndex);
+    if (bShiftDown && (m_nShiftStartIndex != -1)) {
+        //按住Shift键时，选择与原来起点的范围
+        DString ss = StringUtil::Printf(L"SetSel:%d, %d\n", m_nShiftStartIndex, nCharPosIndex);
+        ::OutputDebugString(ss.c_str());
+        SetSel(m_nShiftStartIndex, nCharPosIndex);
+    }
+    else {
+        SetSel(nCharPosIndex, nCharPosIndex);
+    }    
 }
 
 void RichEdit::OnLButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
