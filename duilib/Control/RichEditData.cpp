@@ -304,7 +304,7 @@ void RichEditData::CalcTextRects(size_t nStartLine,
             modifiedLineSet.insert((uint32_t)nLine);
         }
         const size_t nLineCount = m_lineTextInfo.size();
-        for (size_t nLine = 0; nLine < nLineCount; ++nLine) {
+        for (uint32_t nLine = 0; nLine < nLineCount; ++nLine) {
             if (modifiedLineSet.find(nLine) != modifiedLineSet.end()) {
                 const RichTextLineInfo& lineInfo = *m_lineTextInfo[nLine];
                 nModifiedRows += (uint32_t)lineInfo.m_rowInfo.size();
@@ -1694,6 +1694,86 @@ bool RichEditData::GetCurrentWordIndex(int32_t nCharIndex, int32_t& nWordStartIn
         }
     }
     return (nWordEndIndex > nWordStartIndex) && (nWordStartIndex >= 0) && (nWordEndIndex >= 0);
+}
+
+int32_t RichEditData::GetRowStartCharIndex(int32_t nCharIndex)
+{
+    ASSERT(nCharIndex >= 0);
+    if (nCharIndex < 0) {
+        return 0;
+    }
+    const int32_t nTextLength = (int32_t)GetTextLength();
+    if (nTextLength < 1) {
+        return 0;
+    }
+    if (nCharIndex > nTextLength) {
+        return nTextLength;
+    }
+
+    int32_t nNewCharIndex = nCharIndex;
+    size_t nTextLen = 0; //文本总长度
+    const size_t nLineCount = m_lineTextInfo.size();
+    for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
+        const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
+        ASSERT(lineText.m_nLineTextLen > 0);
+        nTextLen += lineText.m_nLineTextLen;
+        if (nCharIndex < (int32_t)nTextLen) {
+            //在本行中寻找
+            nNewCharIndex = (int32_t)nTextLen - lineText.m_nLineTextLen;
+            break;
+        }
+    }
+    if (nNewCharIndex < 0) {
+        nNewCharIndex = 0;
+    }
+    if (nNewCharIndex > nTextLength) {
+        nNewCharIndex = nTextLength;
+    }
+    return nNewCharIndex;
+}
+
+int32_t RichEditData::GetRowEndCharIndex(int32_t nCharIndex)
+{
+    ASSERT(nCharIndex >= 0);
+    if (nCharIndex < 0) {
+        return 0;
+    }
+    const int32_t nTextLength = (int32_t)GetTextLength();
+    if (nTextLength < 1) {
+        return 0;
+    }
+    if (nCharIndex > nTextLength) {
+        return nTextLength;
+    }
+
+    int32_t nNewCharIndex = nCharIndex;
+    size_t nTextLen = 0; //文本总长度
+    const size_t nLineCount = m_lineTextInfo.size();
+    for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
+        const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
+        ASSERT(lineText.m_nLineTextLen > 0);
+        nTextLen += lineText.m_nLineTextLen;
+        if (nCharIndex < (int32_t)nTextLen) {
+            //在本行中寻找
+            const size_t nStartCharBaseLen = nTextLen - lineText.m_nLineTextLen;
+            nNewCharIndex = (int32_t)(nTextLen - 1);
+            size_t nNewOffset = (size_t)nNewCharIndex - nStartCharBaseLen;
+            if ((nNewOffset == (lineText.m_nLineTextLen - 1)) && (lineText.m_lineText.data()[nNewOffset] == L'\n')) {
+                //如果已经指向换行符，那么跳到前面的回车符'\r'
+                if ((nNewOffset >= 1) && (lineText.m_lineText.data()[nNewOffset - 1] == L'\r')) {
+                    nNewCharIndex -= 1;
+                }
+            }
+            break;
+        }
+    }
+    if (nNewCharIndex < 0) {
+        nNewCharIndex = 0;
+    }
+    if (nNewCharIndex > nTextLength) {
+        nNewCharIndex = nTextLength;
+    }
+    return nNewCharIndex;
 }
 
 UiRect RichEditData::GetCharRowRect(int32_t nCharIndex)

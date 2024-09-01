@@ -240,6 +240,18 @@ public:
     */
     bool GetCurrentWordIndex(int32_t nCharIndex, int32_t& nWordStartIndex, int32_t& nWordEndIndex);
 
+    /** 获取本行的行首的字符索引下标值
+    * @param [in] nCharIndex 字符的索引下标
+    * @return 返回本行的行首的字符索引下标值
+    */
+    int32_t GetRowStartCharIndex(int32_t nCharIndex);
+
+    /** 获取本行的行尾的字符索引下标值
+    * @param [in] nCharIndex 字符的索引下标
+    * @return 返回本行的行尾的字符索引下标值
+    */
+    int32_t GetRowEndCharIndex(int32_t nCharIndex);
+
 public:
     /** 设置文本绘制缓存
     */

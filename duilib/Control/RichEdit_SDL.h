@@ -1013,6 +1013,10 @@ private:
     */
     int32_t m_nCtrlStartIndex;
 
+    /** 当前选择的操作方向（向前、向后）
+    */
+    bool m_bSelForward;
+
 private:
     /** 是否鼠标在视图中按下左键或者右键
     */
