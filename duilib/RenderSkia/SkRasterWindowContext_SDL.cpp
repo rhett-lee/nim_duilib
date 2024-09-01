@@ -197,9 +197,9 @@ void SkRasterWindowContext_SDL::GetClientRect(UiRect& rcClient) const
     ASSERT(m_sdlWindow != nullptr);
     int nWidth = 0;
     int nHeight = 0;
-    int nRet = SDL_GetWindowSize(m_sdlWindow, &nWidth, &nHeight);
-    ASSERT(nRet == 0);
-    if (nRet == 0) {
+    SDL_bool nRet = SDL_GetWindowSize(m_sdlWindow, &nWidth, &nHeight);
+    ASSERT(nRet == SDL_TRUE);
+    if (nRet == SDL_TRUE) {
         rcClient.left = 0;
         rcClient.top = 0;
         rcClient.right = rcClient.left + nWidth;

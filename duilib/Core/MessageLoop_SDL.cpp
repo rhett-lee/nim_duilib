@@ -20,7 +20,7 @@ MessageLoop_SDL::~MessageLoop_SDL()
 int32_t MessageLoop_SDL::Run()
 {
     //初始化SDL
-    if (SDL_Init(SDL_INIT_VIDEO) == -1) {
+    if (SDL_Init(SDL_INIT_VIDEO) != SDL_TRUE) {
         SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
         return -1;
     }
@@ -210,9 +210,9 @@ bool MessageLoop_SDL::PostUserEvent(uint32_t msgId, WPARAM wParam, LPARAM lParam
     sdlEvent.user.data1 = (void*)wParam;
     sdlEvent.user.data2 = (void*)lParam;
     sdlEvent.user.windowID = 0;
-    int nRet = SDL_PushEvent(&sdlEvent);
-    ASSERT(nRet > 0);
-    return nRet > 0;
+    SDL_bool nRet = SDL_PushEvent(&sdlEvent);
+    ASSERT(nRet == SDL_TRUE);
+    return nRet == SDL_TRUE;
 }
 
 void MessageLoop_SDL::PostNoneEvent()
@@ -227,8 +227,8 @@ void MessageLoop_SDL::PostNoneEvent()
     sdlEvent.user.data1 = 0;
     sdlEvent.user.data2 = 0;
     sdlEvent.user.windowID = 0;
-    int nRet = SDL_PushEvent(&sdlEvent);
-    ASSERT_UNUSED_VARIABLE(nRet > 0);
+    SDL_bool nRet = SDL_PushEvent(&sdlEvent);
+    ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
 }
 
 void MessageLoop_SDL::AddUserMessageCallback(uint32_t msgId, const SDLUserMessageCallback& callback)
