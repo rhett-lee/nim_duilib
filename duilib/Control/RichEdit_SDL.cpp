@@ -3740,9 +3740,8 @@ void RichEdit::OnInputChar(const EventArgs& msg)
         text += L'\n';
     }
     else if (msg.vkCode == kVK_TAB) {
-        //TAB键，按4个空格对齐
-        //TODO: 暂时先用四个空格输入
-        text = L"    ";
+        //TAB键
+        text = L"\t";
     }
     else if (msg.vkCode == kVK_DELETE) {
         //删除键

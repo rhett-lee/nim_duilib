@@ -53,9 +53,9 @@ public:
                             SkScalar* measuredWidth = nullptr, SkScalar* measuredHeight = nullptr);
 
     /** 特殊版本，进行了性能优化
-    * @param glyphs 临时变量，避免函数内部频繁构造和析构该容器而影响性能
-    * @param glyphChars 临时变量，避免函数内部频繁构造和析构该容器而影响性能
-    * @param glyphWidths 临时变量，避免函数内部频繁构造和析构该容器而影响性能
+    * @param [out] glyphs 绘制了多少个Glyph字符
+    * @param [out] glyphChars 返回每个Glyph字符占几个输入字符
+    * @param [out] glyphWidths 返回每个Glyph字符绘制的宽度
     * @param [out] glyphCharList 返回每个glyph字符由几个输入字符构成的
     * @param [out] glyphWidthList 返回每个glyph字符的输出宽度值
     */

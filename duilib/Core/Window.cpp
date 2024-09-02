@@ -1220,18 +1220,20 @@ LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const 
         return lResult;
     }
     if (m_pFocus != nullptr) {
+        bool bMsgHandled = false;
         if (vkCode == kVK_TAB) {
             if (m_pFocus->IsVisible() &&
                 m_pFocus->IsEnabled() &&
                 m_pFocus->IsWantTab()) {
-                return lResult;
+                bMsgHandled = false;
             }
             else {
                 //通过TAB键切换焦点控件
                 SetNextTabControl(!Keyboard::IsKeyDown(kVK_SHIFT));
+                bMsgHandled = true;
             }
         }
-        else {
+        if(!bMsgHandled) {
             m_pEventKey = m_pFocus;
             std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
             EventArgs msgData;

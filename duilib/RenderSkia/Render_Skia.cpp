@@ -2019,11 +2019,21 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
         }
 
         //绘制文字
-        const char* text = (const char*)textData.m_textView.data();
-        size_t len = textData.m_textView.size() * textCharSize; //字节数
-        DrawTextString(rcDestRect, text, len, textEncoding,
-                       textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
-                       skPaint, textData.m_spFont.get());
+        if ((textData.m_textView.size() == 1) && (textData.m_textView[0] == L'\t')) {
+            //绘制TAB键
+            const char* text = (const char*)L" ";
+            const size_t len = 1 * sizeof(wchar_t); //字节数
+            DrawTextString(rcDestRect, text, len, textEncoding,
+                            textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
+                            skPaint, textData.m_spFont.get());
+        }
+        else {
+            const char* text = (const char*)textData.m_textView.data();
+            size_t len = textData.m_textView.size() * textCharSize; //字节数
+            DrawTextString(rcDestRect, text, len, textEncoding,
+                           textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
+                           skPaint, textData.m_spFont.get());
+        }
     }
 }
 
@@ -2123,6 +2133,12 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
     //分行时文本切分的内部临时变量，为提升执行速度，在外部声明变量
     std::vector<uint32_t> lineSeprators;
 
+    //是否正在绘制TAB键（按4个字符对齐）
+    bool bDrawTabChar = false;
+
+    //本行（逻辑行）已经绘制了多少个字符（不含回车和换行）
+    size_t nRowCharCount = 0;
+
     for (size_t index = 0; index < richTextData.size(); ++index) {
         const RichTextData& textData = richTextData[index];
         if (textData.m_textView.empty()) {
@@ -2197,15 +2213,21 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         uint32_t nLineTextRowIndex = 0;
 
         for (const std::wstring_view& lineTextView : lineTextViewList) {
-            if (lineTextView.size() == 1) {
-                //处理换行符
+            bDrawTabChar = false;
+            if (lineTextView.size() == 1) {              
                 if (lineTextView[0] == L'\r') {
+                    //处理回车
                     if (pLineInfoParam != nullptr) {
                         OnDrawUnicodeChar(pLineInfoParam, lineTextView[0], 1, 2, nLineNumber, nLineTextRowIndex, xPos, yPos, 0, nRowHeight);
                     }
                     continue; //忽略回车
                 }
+                if (lineTextView[0] == L'\t') {
+                    //处理TAB键
+                    bDrawTabChar = true;
+                }
                 else if (lineTextView[0] == L'\n') {
+                    //处理换行符
                     if (pLineInfoParam != nullptr) {
                         OnDrawUnicodeChar(pLineInfoParam, lineTextView[0], 1, 2, nLineNumber, nLineTextRowIndex, xPos, yPos, 0, nRowHeight);
                     }
@@ -2218,8 +2240,9 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                         rowHeightMap[nRowIndex] = nRowHeight;
                         nRowHeight = nFontHeight;
                         ++nRowIndex;
+                        nRowCharCount = 0;
                         ++nLineTextRowIndex;
-                        ++nLineNumber;                        
+                        ++nLineNumber;
                     }
                     continue; //处理下一行
                 }
@@ -2242,20 +2265,46 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
 
                 glyphCharList.clear();
                 glyphWidthList.clear();
-                std::vector<uint8_t>* pGlyphCharList = nullptr;
-                std::vector<SkScalar>* pGlyphWidthList = nullptr;
-                if (pLineInfoParam != nullptr) {
-                    //评估每个字符的矩形范围
-                    pGlyphCharList = &glyphCharList;
-                    pGlyphWidthList = &glyphWidthList;
+
+                //评估每个字符的矩形范围
+                std::vector<uint8_t>* pGlyphCharList = &glyphCharList;
+                std::vector<SkScalar>* pGlyphWidthList = &glyphWidthList;
+
+                size_t nDrawLength = 0;
+                if (bDrawTabChar) {
+                    ASSERT(textCount == 1);
+                    //绘制TAB键, 按4个字符对齐
+                    const DStringW blank = L"    ";
+                    size_t nBlankCount = nRowCharCount % blank.size();
+                    nBlankCount = blank.size() - nBlankCount;
+                    nDrawLength = SkTextBox::breakText(blank.c_str(),
+                                                       nBlankCount * sizeof(DStringW::value_type), textEncoding,
+                                                       skFont, skPaint,
+                                                       maxWidth, &textMeasuredWidth, &textMeasuredHeight,
+                                                       glyphs, glyphChars, glyphWidths,
+                                                       pGlyphCharList, pGlyphWidthList);
+                    if (nDrawLength > 0) {
+                        nDrawLength = textCount * sizeof(DStringW::value_type);
+                        if (glyphs.empty()) {
+                            glyphs.resize(1);
+                            glyphChars.resize(1, 1);
+                            glyphWidths.resize(1, textMeasuredWidth);
+                        }
+                        pGlyphCharList->resize(1, 1);
+                        pGlyphWidthList->resize(1);
+                        (*pGlyphWidthList)[0] = textMeasuredWidth;
+                    }
                 }
-                //breakText函数执行时间占比约30%
-                size_t nDrawLength = SkTextBox::breakText(lineTextView.data() + textStartIndex,
-                                                          byteLength, textEncoding,
-                                                          skFont, skPaint,
-                                                          maxWidth, &textMeasuredWidth, &textMeasuredHeight,
-                                                          glyphs, glyphChars, glyphWidths,
-                                                          pGlyphCharList, pGlyphWidthList);
+                else {
+                    //breakText函数执行时间占比约30%
+                    nDrawLength = SkTextBox::breakText(lineTextView.data() + textStartIndex,
+                                                       byteLength, textEncoding,
+                                                       skFont, skPaint,
+                                                       maxWidth, &textMeasuredWidth, &textMeasuredHeight,
+                                                       glyphs, glyphChars, glyphWidths,
+                                                       pGlyphCharList, pGlyphWidthList);
+                }
+                
                 if (nDrawLength == 0) {
                     if (!bWordWrap || bSingleLineMode || (SkScalarTruncToInt(maxWidth) == rcDrawRect.Width())) {
                         //出错了(不能换行，或者换行后依然不够)
@@ -2302,6 +2351,9 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                             }
                         }
                     }
+
+                    //统计本逻辑行已经绘制了多少个字符
+                    nRowCharCount += glyphs.size();
                 }
 
                 bool bNextRow = false; //是否需要换行的标志
@@ -2341,6 +2393,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                     rowHeightMap[nRowIndex] = nRowHeight;
                     nRowHeight = nFontHeight;
                     ++nRowIndex;
+                    nRowCharCount = 0;
                     ++nLineTextRowIndex;
 
                     if (bBreakWhenOutOfRect && (yPos >= nTextRectBottomMax)) {
@@ -2416,11 +2469,21 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
             }
 
             //绘制文字
-            const char* text = (const char*)textData.m_textView.data();
-            const size_t len = textData.m_textView.size() * textCharSize; //字节数
-            DrawTextString(rcDestRect, text, len, textEncoding,
-                           textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
-                           skPaint, textData.m_spFont.get());
+            if ((textData.m_textView.size() == 1) && (textData.m_textView[0] == L'\t')) {
+                //绘制TAB键
+                const char* text = (const char*)L" ";
+                const size_t len = 1 * sizeof(wchar_t); //字节数
+                DrawTextString(rcDestRect, text, len, textEncoding,
+                               textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
+                               skPaint, textData.m_spFont.get());
+            }
+            else {
+                const char* text = (const char*)textData.m_textView.data();
+                const size_t len = textData.m_textView.size() * textCharSize; //字节数
+                DrawTextString(rcDestRect, text, len, textEncoding,
+                               textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
+                               skPaint, textData.m_spFont.get());
+            }
         }
     }
 }
@@ -2517,7 +2580,7 @@ void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<uint
     lineSeprators.reserve(nTextLen/100);
     for (uint32_t nTextIndex = 0; nTextIndex < nTextLen; ++nTextIndex) {
         const std::wstring_view::value_type& ch = lineText[nTextIndex];
-        if ((ch == L'\r') || (ch == L'\n')) {
+        if ((ch == L'\t') || (ch == L'\r') || (ch == L'\n')) {
             lineSeprators.push_back(nTextIndex);
         }
     }
