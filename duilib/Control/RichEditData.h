@@ -252,6 +252,11 @@ public:
     */
     int32_t GetRowEndCharIndex(int32_t nCharIndex);
 
+    /** 获取索引下标对应的字符宽度
+    * @param [in] nCharIndex 字符的索引下标
+    */
+    int32_t GetCharWidthValue(int32_t nCharIndex);
+
 public:
     /** 设置文本绘制缓存
     */

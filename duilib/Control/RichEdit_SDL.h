@@ -468,10 +468,10 @@ public:
     int32_t SetSel(int32_t nStartChar, int32_t nEndChar);
 
     /** 替换所选内容
-     * @param [in] lpszNewText 要替换的文字
+     * @param [in] newText 要替换的目标文字
      * @param [in] bCanUndo 是否可以撤销，true 为可以，否则为 false
      */
-    void ReplaceSel(const DString& lpszNewText, bool bCanUndo);
+    bool ReplaceSel(const DString& newText, bool bCanUndo);
 
     /** 获取所选文字内容
      * @return 返回所选文字内容
@@ -881,6 +881,18 @@ private:
     */
     bool OnArrowKeyDown(const EventArgs& msg);
 
+    /** 选择一部分内容(内部函数)
+     * @param[in] nStartChar 要选择的起始位置
+     * @param[in] nEndChar 要选择的结束位置
+     * @return 返回选择的文字数量
+     */
+    int32_t InternalSetSel(int32_t nStartChar, int32_t nEndChar);
+
+    /** 确保字符在可见范围内
+    * @param [in] nCharIndex 字符的位置
+    */
+    void EnsureCharVisible(int32_t nCharIndex);
+
 private:
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
     bool m_bWantReturn;         //是否接收回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
@@ -1028,6 +1040,10 @@ private:
     /** 当前选择的操作方向（向前、向后）
     */
     bool m_bSelForward;
+
+    /** 方向键切换位置时的X坐标值
+    */
+    int32_t m_nSelXPos;
 
 private:
     /** 是否鼠标在视图中按下左键或者右键

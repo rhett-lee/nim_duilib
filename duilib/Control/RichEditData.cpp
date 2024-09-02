@@ -1126,7 +1126,7 @@ UiPoint RichEditData::PosFromChar(int32_t nCharIndex)
             const size_t nIndexOffset = nStartCharRowOffset;
             float xPos = rowInfo.m_rowRect.left;//左上角坐标
             pt.y = (int32_t)rowInfo.m_rowRect.top;
-            for (size_t i = 0; i <= nIndexOffset; ++i) {
+            for (size_t i = 0; i < nIndexOffset; ++i) {
                 const RichTextCharInfo& charInfo = rowInfo.m_charInfo[i];
                 xPos += charInfo.CharWidth();
             }
@@ -1774,6 +1774,21 @@ int32_t RichEditData::GetRowEndCharIndex(int32_t nCharIndex)
         nNewCharIndex = nTextLength;
     }
     return nNewCharIndex;
+}
+
+int32_t RichEditData::GetCharWidthValue(int32_t nCharIndex)
+{
+    int32_t nCharWidth = 0;
+    size_t nStartCharRowOffset = 0;
+    RichTextRowInfoPtr spRowInfo = GetCharRowInfo(nCharIndex, nStartCharRowOffset);
+    if (spRowInfo != nullptr) {
+        const RichTextRowInfo& rowInfo = *spRowInfo;
+        ASSERT(nStartCharRowOffset < rowInfo.m_charInfo.size());
+        if (nStartCharRowOffset < rowInfo.m_charInfo.size()) {
+            nCharWidth = (int32_t)std::ceilf(rowInfo.m_charInfo[nStartCharRowOffset].CharWidth());
+        }
+    }
+    return nCharWidth;
 }
 
 UiRect RichEditData::GetCharRowRect(int32_t nCharIndex)
