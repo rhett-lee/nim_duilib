@@ -1805,7 +1805,7 @@ UiRect RichEditData::GetCharRowRect(int32_t nCharIndex)
         const UiRectF& rowRectF = rowInfo.m_rowRect;
         UiRect rc = m_pRichTextData->GetRichTextDrawRect();
         rowRect.left = 0;
-        rowRect.right = rc.Width();
+        rowRect.right = std::max(rc.Width(), (int32_t)rowRectF.Width());
         rowRect.top = (int32_t)rowRectF.top;
         rowRect.bottom = (int32_t)std::ceilf(rowRectF.bottom);
     }

@@ -492,6 +492,7 @@ void RichEdit::SetWordWrap(bool bWordWrap)
         m_bWordWrap = bWordWrap;
         m_pTextData->SetCacheDirty(true);
         Redraw();
+        SetPos(GetPos());
     }
 }
 
@@ -2842,6 +2843,12 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
     else if ((msg.vkCode == kVK_INSERT) && IsKeyDown(msg, ModifierKey::kShift)) {
         //Shift + Insert, 粘贴
         Paste();
+    }
+    else if ((msg.vkCode == 'W') && IsKeyDown(msg, ModifierKey::kControl)) {
+        //Ctrl + W, 切换自动换行
+        if (IsMultiLine() && !IsPassword() && IsEnabled()) {
+            SetWordWrap(!IsWordWrap());
+        }
     }
     return true;
 }
