@@ -797,10 +797,6 @@ private:
      */
     void PaintPromptText(IRender* pRender);
 
-    /** 获取粘贴板字符串
-    */
-    static void GetClipboardText(DStringW& out);
-
 private:
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)

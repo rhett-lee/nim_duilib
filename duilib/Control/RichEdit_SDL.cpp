@@ -9,6 +9,7 @@
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/BitmapHelper_Windows.h"
 #include "duilib/Utils/PerformanceUtil.h"
+#include "duilib/Utils/Clipboard.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationManager.h"
@@ -863,7 +864,12 @@ DString RichEdit::GetSelText() const
     int32_t nStartChar = -1;
     int32_t nEndChar = -1;
     GetSel(nStartChar, nEndChar);
-    return m_pTextData->GetTextRange(nStartChar, nEndChar);
+    DStringW text = m_pTextData->GetTextRange(nStartChar, nEndChar);
+#ifdef DUILIB_UNICODE
+    return text;
+#else
+    return StringUtil::UTF16ToUTF8(text);
+#endif
 }
 
 bool RichEdit::HasSelText() const
@@ -932,36 +938,66 @@ void RichEdit::Clear()
 {
     m_nSelXPos = -1;
     m_pTextData->Clear();
+    SetSel(0, 0);
+    Invalidate();
 }
 
 void RichEdit::Copy()
 {
-    //m_richCtrl.Copy();
+    int32_t nStartChar = -1;
+    int32_t nEndChar = -1;
+    GetSel(nStartChar, nEndChar);
+    DStringW text = m_pTextData->GetTextRange(nStartChar, nEndChar);
+    Clipboard::SetClipboardText(text);
 }
 
 void RichEdit::Cut()
 {
-    m_nSelXPos = -1;
+    if (IsReadOnly() || !IsEnabled()) {
+        return;
+    }
 
-    //m_richCtrl.Cut();
+    int32_t nStartChar = -1;
+    int32_t nEndChar = -1;
+    GetSel(nStartChar, nEndChar);
+    DStringW text = m_pTextData->GetTextRange(nStartChar, nEndChar);
+    if (!text.empty()) {
+        Clipboard::SetClipboardText(text);
+        m_pTextData->ReplaceText(nStartChar, nEndChar, L"", true);
+        SetSel(nStartChar, nStartChar);
+        m_nSelXPos = -1;
+        Invalidate();
+    }
 }
 
 void RichEdit::Paste()
 {
-    if (IsPasteLimited()) {
+    if (!CanPaste()) {
         return;
     }
-    m_nSelXPos = -1;
-    //m_richCtrl.Paste();
+    DStringW text;
+    Clipboard::GetClipboardText(text);
+    if (!text.empty()) {
+        int32_t nStartChar = -1;
+        int32_t nEndChar = -1;
+        GetSel(nStartChar, nEndChar);
+        m_pTextData->ReplaceText(nStartChar, nEndChar, text, true);
+        int32_t nNewSel = nStartChar + (int32_t)text.size();
+        SetSel(nNewSel, nNewSel);
+        m_nSelXPos = -1;
+        Invalidate();
+    }
 }
 
 bool RichEdit::CanPaste() const
 {
+    if (IsReadOnly() || !IsEnabled()) {
+        return false;
+    }
     if (IsPasteLimited()) {
         return false;
     }
-    //return m_richCtrl.CanPaste(0);
-    return false;
+    return true;
 }
 
 int32_t RichEdit::GetLineCount() const
@@ -1181,7 +1217,7 @@ bool RichEdit::IsPasteLimited() const
     if (m_pLimitChars != nullptr) {
         //有设置限制字符
         DStringW strClipText;
-        GetClipboardText(strClipText);
+        Clipboard::GetClipboardText(strClipText);
         if (!strClipText.empty()) {
             size_t count = strClipText.size();
             for (size_t index = 0; index < count; ++index) {
@@ -1198,7 +1234,7 @@ bool RichEdit::IsPasteLimited() const
     else if (IsNumberOnly()) {
         //数字模式
         DStringW strClipText;
-        GetClipboardText(strClipText);
+        Clipboard::GetClipboardText(strClipText);
         if (!strClipText.empty()) {
             size_t count = strClipText.size();
             for (size_t index = 0; index < count; ++index) {
@@ -1782,37 +1818,6 @@ UiPadding RichEdit::GetTextPadding() const
 void RichEdit::SetUseControlCursor(bool bUseControlCursor)
 {
     m_bUseControlCursor = bUseControlCursor;
-}
-
-void RichEdit::GetClipboardText(DStringW& out )
-{
-    out.clear();
-    BOOL ret = ::OpenClipboard(NULL);
-    if(ret) {
-        if(::IsClipboardFormatAvailable(CF_UNICODETEXT)) {
-            HANDLE h = ::GetClipboardData(CF_UNICODETEXT);
-            if(h != INVALID_HANDLE_VALUE) {
-                wchar_t* buf = (wchar_t*)::GlobalLock(h);
-                if(buf != NULL)    {
-                    DStringW str(buf, GlobalSize(h)/sizeof(wchar_t));
-                    out = str;
-                    ::GlobalUnlock(h);
-                }
-            }
-        }
-        else if(::IsClipboardFormatAvailable(CF_TEXT)) {
-            HANDLE h = ::GetClipboardData(CF_TEXT);
-            if(h != INVALID_HANDLE_VALUE) {
-                char* buf = (char*)::GlobalLock(h);
-                if(buf != NULL)    {
-                    std::string str(buf, GlobalSize(h));
-                    out = StringUtil::MBCSToUnicode(str);
-                    ::GlobalUnlock(h);
-                }
-            }
-        }
-        ::CloseClipboard();
-    }
 }
 
 void RichEdit::AttachSelChange(const EventCallback& callback)
@@ -2814,15 +2819,29 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
         //Backspace键：删除前一个字符
         OnInputChar(msg);
     }
-    else if ((msg.vkCode == 'V') && IsKeyDown(msg, ModifierKey::kControl)) {
-        //Ctrl + V, 粘贴（在允许粘贴的情况下）
-        if (!IsPasteLimited()) {
-            Paste();
-        }
-    }
     else if ((msg.vkCode == 'A') && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + A: 全选
         SetSelAll();
+    }
+    else if ((msg.vkCode == 'C') && IsKeyDown(msg, ModifierKey::kControl)) {
+        //Ctrl + C, 复制
+        Copy();
+    }
+    else if ((msg.vkCode == kVK_INSERT) && IsKeyDown(msg, ModifierKey::kControl)) {
+        //Ctrl + Insert, 复制
+        Copy();
+    }
+    else if ((msg.vkCode == 'X') && IsKeyDown(msg, ModifierKey::kControl)) {
+        //Ctrl + X, 剪切
+        Cut();
+    }
+    else if ((msg.vkCode == 'V') && IsKeyDown(msg, ModifierKey::kControl)) {
+        //Ctrl + V, 粘贴
+        Paste();
+    }
+    else if ((msg.vkCode == kVK_INSERT) && IsKeyDown(msg, ModifierKey::kShift)) {
+        //Shift + Insert, 粘贴
+        Paste();
     }
     return true;
 }

@@ -492,6 +492,8 @@
     <ClCompile Include="Utils\ApiWrapper_Windows.cpp" />
     <ClCompile Include="Utils\AttributeUtil.cpp" />
     <ClCompile Include="Utils\BitmapHepler_Windows.cpp" />
+    <ClCompile Include="Utils\Clipboard_SDL.cpp" />
+    <ClCompile Include="Utils\Clipboard_Windows.cpp" />
     <ClCompile Include="Utils\FileDialog_SDL.cpp" />
     <ClCompile Include="Utils\FileDialog_Windows.cpp" />
     <ClCompile Include="Utils\FilePath.cpp" />
@@ -685,6 +687,7 @@
     <ClInclude Include="Utils\ApiWrapper_Windows.h" />
     <ClInclude Include="Utils\AttributeUtil.h" />
     <ClInclude Include="Utils\BitmapHelper_Windows.h" />
+    <ClInclude Include="Utils\Clipboard.h" />
     <ClInclude Include="Utils\FileDialog.h" />
     <ClInclude Include="Utils\FilePath.h" />
     <ClInclude Include="Utils\FilePathUtil.h" />

@@ -1,0 +1,82 @@
+#include "Clipboard.h"
+#include "duilib/Utils/StringUtil.h"
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
+namespace ui
+{
+bool Clipboard::GetClipboardText(DStringW& text)
+{
+    text.clear();
+    BOOL ret = ::OpenClipboard(NULL);
+    if (ret) {
+        if (::IsClipboardFormatAvailable(CF_UNICODETEXT)) {
+            HANDLE h = ::GetClipboardData(CF_UNICODETEXT);
+            if (h != INVALID_HANDLE_VALUE) {
+                wchar_t* buf = (wchar_t*)::GlobalLock(h);
+                if (buf != NULL) {
+                    DStringW str(buf, GlobalSize(h) / sizeof(wchar_t));
+                    text = str;
+                    ::GlobalUnlock(h);
+                }
+            }
+        }
+        else if (::IsClipboardFormatAvailable(CF_TEXT)) {
+            HANDLE h = ::GetClipboardData(CF_TEXT);
+            if (h != INVALID_HANDLE_VALUE) {
+                char* buf = (char*)::GlobalLock(h);
+                if (buf != NULL) {
+                    std::string str(buf, GlobalSize(h));
+                    text = StringUtil::MBCSToUnicode(str);
+                    ::GlobalUnlock(h);
+                }
+            }
+        }
+        ::CloseClipboard();
+    }
+    return ret != FALSE;
+}
+
+bool Clipboard::GetClipboardText(DStringA& text)
+{
+    DStringW textW;
+    bool bRet = GetClipboardText(textW);
+    text = StringUtil::UTF16ToUTF8(textW);
+    return bRet;
+}
+
+bool Clipboard::SetClipboardText(const DStringW& text)
+{
+    if (!::OpenClipboard(NULL)) {
+        return false;
+    }
+
+    if (!::EmptyClipboard()) {
+        ::CloseClipboard();
+        return false;
+    }
+
+    size_t len = text.size();
+    HGLOBAL hMem = ::GlobalAlloc(GMEM_MOVEABLE, (len + 1) * sizeof(wchar_t));
+    if (hMem == nullptr) {
+        ::CloseClipboard();
+        return false;
+    }
+
+    wchar_t* lpStr = (wchar_t*)::GlobalLock(hMem);
+    ::memcpy(lpStr, text.c_str(), len * sizeof(wchar_t));
+    lpStr[len] = wchar_t(0);
+    ::GlobalUnlock(hMem);
+    ::SetClipboardData(CF_UNICODETEXT, hMem);
+    ::CloseClipboard();
+    return true;
+}
+
+bool Clipboard::SetClipboardText(const DStringA& text)
+{
+    return SetClipboardText(StringUtil::UTF8ToUTF16(text));
+}
+
+} //namespace ui
+
+#endif //DUILIB_BUILD_FOR_WIN

@@ -537,6 +537,12 @@
     <ClCompile Include="Control\RichEditData.cpp">
       <Filter>Control\SDL</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\Clipboard_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\Clipboard_SDL.cpp">
+      <Filter>Utils\SDL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1123,6 +1129,9 @@
     </ClInclude>
     <ClInclude Include="Core\SharePtr.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Clipboard.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
