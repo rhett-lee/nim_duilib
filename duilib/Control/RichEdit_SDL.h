@@ -869,6 +869,18 @@ private:
     */
     void CheckKeyDownStartIndex(const EventArgs& msg);
 
+    /** 处理视图滚动的方向键的快捷键（Ctrl + 方向键）
+    */
+    bool OnCtrlArrowKeyDownScrollView(const EventArgs& msg);
+
+    /** 获取纵向滚动一行的距离，按行对齐
+    */
+    int32_t GetLineScrollDeltaValue(bool bLineDown) const;
+
+    /** 获取纵向滚动一页的距离，按页对齐
+    */
+    int32_t GetPageScrollDeltaValue(bool bPageDown) const;
+
 private:
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
     bool m_bWantReturn;         //是否接收回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键

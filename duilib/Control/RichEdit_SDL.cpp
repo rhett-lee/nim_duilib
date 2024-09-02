@@ -1027,12 +1027,18 @@ void RichEdit::LineDown(int deltaValue, bool withAnimation)
 
 void RichEdit::PageUp()
 {
-    __super::PageUp();
+    UiSize64 sz = GetScrollPos();
+    int32_t iOffset = GetPageScrollDeltaValue(false);
+    sz.cy -= iOffset;
+    SetScrollPos(sz);
 }
 
 void RichEdit::PageDown()
 {
-    __super::PageDown();
+    UiSize64 sz = GetScrollPos();
+    int32_t iOffset = GetPageScrollDeltaValue(true);
+    sz.cy += iOffset;
+    SetScrollPos(sz);
 }
 
 void RichEdit::HomeUp()
@@ -2240,6 +2246,9 @@ void RichEdit::SetFontIdInternal(const DString& fontId)
     int32_t nCaretWidth = Dpi().GetScaleInt(1);
     nCaretHeight += Dpi().GetScaleInt(1);//光标的高度增加1个像素
     CreateCaret(nCaretWidth, nCaretHeight);
+
+    //设置滚动条滚动一行的基本单位
+    SetVerScrollUnitPixels(m_nRowHeight, false);
 }
 
 void RichEdit::SetHAlignType(HorAlignType alignType)
@@ -2687,20 +2696,29 @@ bool RichEdit::OnImeEndComposition(const EventArgs& /*msg*/)
 
 void RichEdit::HandleEvent(const EventArgs& msg)
 {
-    if (!IsDisabledEvents(msg)) {
-        if (msg.eventType == kEventKeyDown) {
-            //截获基类的KeyDown事件，优先处理
-            if (OnKeyDown(msg)) {
-                return;
-            }
+    if (IsDisabledEvents(msg)) {
+        //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
+        Box* pParent = GetParent();
+        if (pParent != nullptr) {
+            pParent->SendEventMsg(msg);
         }
-        else if (msg.eventType == kEventMouseWheel) {
-            bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
-            if (bCtrlDown && IsEnableWheelZoom()) {
-                //Ctrl + 滚轮，调整缩放比
-                OnMouseWheel(bCtrlDown);
-                return;
-            }
+        else {
+            __super::HandleEvent(msg);
+        }
+        return;
+    }
+    if (msg.eventType == kEventKeyDown) {
+        //截获基类的KeyDown事件，优先处理
+        if (OnKeyDown(msg)) {
+            return;
+        }
+    }
+    else if (msg.eventType == kEventMouseWheel) {
+        bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
+        if (bCtrlDown && IsEnableWheelZoom()) {
+            //Ctrl + 滚轮，调整缩放比
+            OnMouseWheel(bCtrlDown);
+            return;
         }
     }
     __super::HandleEvent(msg);
@@ -2708,23 +2726,6 @@ void RichEdit::HandleEvent(const EventArgs& msg)
 
 bool RichEdit::OnKeyDown(const EventArgs& msg)
 {
-    if (IsKeyDown(msg, ModifierKey::kControl)) {
-        if ((msg.vkCode == kVK_DOWN) || (msg.vkCode == kVK_UP) ||
-            (msg.vkCode == kVK_NEXT) || (msg.vkCode == kVK_PRIOR) ||
-            (msg.vkCode == kVK_HOME) || (msg.vkCode == kVK_END) ) {
-            if (msg.vkCode == kVK_HOME) {
-                //Ctrl + Home
-                SetSel(0, 0);
-            }
-            else if (msg.vkCode == kVK_END) {
-                //Ctrl + End
-                int32_t nTextLen = GetTextLength();
-                SetSel(nTextLen, nTextLen);
-            }
-            //原ScrollBox的功能
-            return false;
-        }
-    }    
     //该函数实现支持的各种快捷键
     if (msg.vkCode == kVK_SHIFT) {
         //记录选择的起始位置(当Shift键一致按住的时候，就会一致触发此OnKeyDown事件)
@@ -2741,9 +2742,12 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
         }
     }
 
+    if (OnCtrlArrowKeyDownScrollView(msg)) {
+        return true;
+    }
+
     if ((msg.vkCode == kVK_RETURN) || (msg.vkCode == kVK_TAB)) {
         OnInputChar(msg);
-        return true;
     }
     else if (msg.vkCode == kVK_DELETE) {
         //删除键：删除后一个字符
@@ -2936,6 +2940,126 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
         SetSelAll();
     }
     return true;
+}
+
+bool RichEdit::OnCtrlArrowKeyDownScrollView(const EventArgs& msg)
+{
+    bool bCtrlArrowKeyDown = false;
+    if (IsKeyDown(msg, ModifierKey::kControl)) {
+        if ((msg.vkCode == kVK_DOWN) || (msg.vkCode == kVK_UP) ||
+            (msg.vkCode == kVK_NEXT) || (msg.vkCode == kVK_PRIOR) ||
+            (msg.vkCode == kVK_HOME) || (msg.vkCode == kVK_END)) {
+            bCtrlArrowKeyDown = true;
+        }
+    }
+    if (!bCtrlArrowKeyDown) {
+        return false;
+    }
+
+    if (msg.vkCode == kVK_HOME) {
+        //Ctrl + Home
+        SetSel(0, 0);
+    }
+    else if (msg.vkCode == kVK_END) {
+        //Ctrl + End
+        int32_t nTextLen = GetTextLength();
+        SetSel(nTextLen, nTextLen);
+    }
+    //按住Ctrl+方向键，触发ScrollBox的功能
+    ScrollBar* pVScrollBar = GetVScrollBar();
+    ScrollBar* pHScrollBar = GetHScrollBar();
+    if ((pVScrollBar != nullptr) && pVScrollBar->IsValid() && pVScrollBar->IsEnabled()) {
+        switch (msg.vkCode) {
+        case kVK_DOWN:
+            LineDown(GetLineScrollDeltaValue(true), false);
+            break;
+        case kVK_UP:
+            LineUp(GetLineScrollDeltaValue(false), false);
+            break;
+        case kVK_NEXT:
+            PageDown();
+            break;
+        case kVK_PRIOR:
+            PageUp();
+            break;
+        case kVK_HOME:
+            HomeUp();
+            break;
+        case kVK_END:
+            EndDown(false, false);
+            break;
+        default:
+            break;
+        }
+    }
+    else if ((pHScrollBar != nullptr) && pHScrollBar->IsValid() && pHScrollBar->IsEnabled()) {
+        switch (msg.vkCode) {
+        case kVK_DOWN:
+            LineRight();
+            break;
+        case kVK_UP:
+            LineLeft();
+            break;
+        case kVK_NEXT:
+            PageRight();
+            break;
+        case kVK_PRIOR:
+            PageLeft();
+            break;
+        case kVK_HOME:
+            HomeLeft();
+            break;
+        case kVK_END:
+            EndRight();
+            break;
+        default:
+            break;
+        }
+    }
+    return true;
+}
+
+int32_t RichEdit::GetLineScrollDeltaValue(bool bLineDown) const
+{
+    int32_t nLineDeltaValue = DUI_NOSET_VALUE;
+    if (m_nRowHeight > 0) {
+        nLineDeltaValue = m_nRowHeight;
+        UiSize64 scrollPos = GetScrollPos();
+        if ((scrollPos.cy % nLineDeltaValue) != 0) {
+            //确保按行对齐
+            if (bLineDown) {
+                nLineDeltaValue = nLineDeltaValue - (scrollPos.cy % nLineDeltaValue);
+            }
+            else {
+                nLineDeltaValue = scrollPos.cy % nLineDeltaValue;
+            }
+        }
+    }
+    return nLineDeltaValue;
+}
+
+int32_t RichEdit::GetPageScrollDeltaValue(bool bPageDown) const
+{
+    UiRect rcDrawRect = GetTextDrawRect(GetRect());
+    int32_t nPageDeltaValue = rcDrawRect.Height();
+    //按行对齐
+    if (m_nRowHeight > 0) {
+        UiSize64 scrollPos = GetScrollPos();
+        if ((scrollPos.cy % m_nRowHeight) != 0) {
+            //确保按行对齐
+            if (bPageDown) {
+                nPageDeltaValue = nPageDeltaValue - (scrollPos.cy % m_nRowHeight);
+            }
+            else {
+                nPageDeltaValue += scrollPos.cy % m_nRowHeight;
+                nPageDeltaValue -= m_nRowHeight;
+            }
+            if (nPageDeltaValue <= 0) {
+                nPageDeltaValue = rcDrawRect.Height();
+            }
+        }        
+    }    
+    return nPageDeltaValue;
 }
 
 void RichEdit::CheckKeyDownStartIndex(const EventArgs& msg)
