@@ -1477,7 +1477,7 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
     }
 }
 
-void RichEdit::PaintCurrentRowBkColor(IRender* pRender, const UiRect& rcPaint)
+void RichEdit::PaintCurrentRowBkColor(IRender* pRender, const UiRect& /*rcPaint*/)
 {
     if (IsReadOnly() || !IsEnabled() || (pRender == nullptr)) {
         return;
@@ -2741,12 +2741,13 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
             GetSel(m_nCtrlStartIndex, nSelEnd);
         }
     }
-
     if (OnCtrlArrowKeyDownScrollView(msg)) {
         return true;
     }
-
-    if ((msg.vkCode == kVK_RETURN) || (msg.vkCode == kVK_TAB)) {
+    else if (OnArrowKeyDown(msg)) {
+        return true;
+    }
+    else if ((msg.vkCode == kVK_RETURN) || (msg.vkCode == kVK_TAB)) {
         OnInputChar(msg);
     }
     else if (msg.vkCode == kVK_DELETE) {
@@ -2756,178 +2757,6 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
     else if (msg.vkCode == kVK_BACK) {
         //Backspace键：删除前一个字符
         OnInputChar(msg);
-    }
-    else if (msg.vkCode == kVK_LEFT) {
-        //向左
-        int32_t nSelStartChar = -1;
-        int32_t nSelEndChar = -1;
-        GetSel(nSelStartChar, nSelEndChar);
-        ASSERT(nSelEndChar >= nSelStartChar);
-
-        bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
-        bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
-        if (bShiftDown && (m_nShiftStartIndex != -1)) {
-            //Shift + Left键
-            if (nSelEndChar <= m_nShiftStartIndex) {
-                nSelStartChar = m_pTextData->GetPrevValidCharIndex(nSelStartChar);
-                nSelEndChar = m_nShiftStartIndex;
-                m_bSelForward = false;
-            }
-            else {
-                nSelStartChar = m_nShiftStartIndex;
-                nSelEndChar = m_pTextData->GetPrevValidCharIndex(nSelEndChar);
-                m_bSelForward = true;
-            }
-            SetSel(nSelStartChar, nSelEndChar);
-        }
-        else if (bCtrlDown && (m_nCtrlStartIndex != -1)) {
-            //Ctrl + Left键
-            if (nSelEndChar <= m_nCtrlStartIndex) {
-                nSelStartChar = m_pTextData->GetPrevValidWordIndex(nSelStartChar);
-                nSelEndChar = m_nCtrlStartIndex;
-                m_bSelForward = false;
-            }
-            else {
-                nSelStartChar = m_nCtrlStartIndex;
-                nSelEndChar = m_pTextData->GetPrevValidWordIndex(nSelEndChar);
-                m_bSelForward = true;
-            }
-            SetSel(nSelStartChar, nSelEndChar);
-        }
-        else {
-            //Left键
-            nSelEndChar = m_pTextData->GetPrevValidCharIndex(nSelEndChar);
-            SetSel(nSelEndChar, nSelEndChar);
-            m_bSelForward = true;
-        }
-    }
-    else if (msg.vkCode == kVK_RIGHT) {
-        //向右
-        int32_t nSelStartChar = -1;
-        int32_t nSelEndChar = -1;
-        GetSel(nSelStartChar, nSelEndChar);
-        ASSERT(nSelEndChar >= nSelStartChar);
-
-        bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
-        bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
-        if (bShiftDown && (m_nShiftStartIndex != -1)) {
-            //Shift + Right键
-            if (nSelEndChar <= m_nShiftStartIndex) {
-                nSelStartChar = m_pTextData->GetNextValidCharIndex(nSelStartChar);
-                nSelEndChar = m_nShiftStartIndex;
-                m_bSelForward = false;
-            }
-            else {
-                nSelStartChar = m_nShiftStartIndex;
-                nSelEndChar = m_pTextData->GetNextValidCharIndex(nSelEndChar);
-                m_bSelForward = true;
-            }
-            SetSel(nSelStartChar, nSelEndChar);
-        }
-        else if (bCtrlDown && (m_nCtrlStartIndex != -1)) {
-            //Ctrl + Right键
-            if (nSelEndChar <= m_nCtrlStartIndex) {
-                nSelStartChar = m_pTextData->GetNextValidWordIndex(nSelStartChar);
-                nSelEndChar = m_nCtrlStartIndex;
-                m_bSelForward = false;
-            }
-            else {
-                nSelStartChar = m_nCtrlStartIndex;
-                nSelEndChar = m_pTextData->GetNextValidWordIndex(nSelEndChar);
-                m_bSelForward = true;
-            }
-            SetSel(nSelStartChar, nSelEndChar);
-        }
-        else {
-            //Right键
-            nSelEndChar = m_pTextData->GetNextValidCharIndex(nSelEndChar);
-            SetSel(nSelEndChar, nSelEndChar);
-            m_bSelForward = true;
-        }
-    }
-    else if (msg.vkCode == kVK_HOME) {
-        int32_t nSelStartChar = -1;
-        int32_t nSelEndChar = -1;
-        GetSel(nSelStartChar, nSelEndChar);
-        ASSERT(nSelEndChar >= nSelStartChar);
-
-        bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
-        if (bShiftDown && (m_nShiftStartIndex != -1)) {
-            //Shift + Home 键
-            int32_t nShiftRowStartIndex = m_pTextData->GetRowStartCharIndex(m_nShiftStartIndex);
-            int32_t nRowStartIndex = m_pTextData->GetRowStartCharIndex(nSelStartChar);
-            int32_t nRowStartIndex2 = m_pTextData->GetRowStartCharIndex(nSelEndChar);
-            if (nRowStartIndex == nRowStartIndex2) {
-                //在同一行, 不需要区分操作方向
-                if (nShiftRowStartIndex == nRowStartIndex) {
-                    SetSel(nRowStartIndex, m_nShiftStartIndex);
-                }
-                else {
-                    SetSel(nRowStartIndex, nSelEndChar);
-                }
-            }
-            else {
-                //在不同行
-                if (m_bSelForward) {
-                    //操作方向：向前
-                    nSelEndChar = m_pTextData->GetRowStartCharIndex(nSelEndChar);
-                    SetSel(nSelStartChar, nSelEndChar);
-                }
-                else {
-                    //操作方向：向后
-                    nSelStartChar = m_pTextData->GetRowStartCharIndex(nSelStartChar);
-                    SetSel(nSelStartChar, nSelEndChar);
-                }
-            }
-        }
-        else {
-            //Home 键
-            nSelStartChar = m_pTextData->GetRowStartCharIndex(nSelStartChar);
-            SetSel(nSelStartChar, nSelStartChar);
-            m_bSelForward = true;
-        }
-    }
-    else if (msg.vkCode == kVK_END) {
-        int32_t nSelStartChar = -1;
-        int32_t nSelEndChar = -1;
-        GetSel(nSelStartChar, nSelEndChar);
-        ASSERT(nSelEndChar >= nSelStartChar);
-
-        bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
-        if (bShiftDown && (m_nShiftStartIndex != -1)) {
-            //Shift + End 键
-            int32_t nShiftRowEndIndex = m_pTextData->GetRowEndCharIndex(m_nShiftStartIndex);
-            int32_t nRowEndIndex = m_pTextData->GetRowEndCharIndex(nSelStartChar);
-            int32_t nRowEndIndex2 = m_pTextData->GetRowEndCharIndex(nSelEndChar);
-            if (nRowEndIndex == nRowEndIndex2) {
-                //在同一行, 不需要区分操作方向
-                if (nShiftRowEndIndex == nRowEndIndex) {
-                    SetSel(m_nShiftStartIndex, nRowEndIndex);
-                }
-                else {
-                    SetSel(nSelStartChar, nRowEndIndex);
-                }
-            }
-            else {
-                //在不同行
-                if (m_bSelForward) {
-                    //操作方向：向前
-                    nSelEndChar = m_pTextData->GetRowEndCharIndex(nSelEndChar);
-                    SetSel(nSelStartChar, nSelEndChar);
-                }
-                else {
-                    //操作方向：向后
-                    nSelStartChar = m_pTextData->GetRowEndCharIndex(nSelStartChar);
-                    SetSel(nSelStartChar, nSelEndChar);
-                }
-            }
-        }
-        else {
-            //End 键
-            nSelEndChar = m_pTextData->GetRowEndCharIndex(nSelEndChar);
-            SetSel(nSelEndChar, nSelEndChar);
-            m_bSelForward = true;
-        }
     }
     else if ((msg.vkCode == 'V') && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + V, 粘贴（在允许粘贴的情况下）
@@ -3014,6 +2843,212 @@ bool RichEdit::OnCtrlArrowKeyDownScrollView(const EventArgs& msg)
             break;
         default:
             break;
+        }
+    }
+    return true;
+}
+
+bool RichEdit::OnArrowKeyDown(const EventArgs& msg)
+{
+    bool bArrowKeyDown = false;
+    if ((msg.vkCode == kVK_LEFT) || (msg.vkCode == kVK_RIGHT) ||
+        (msg.vkCode == kVK_DOWN) || (msg.vkCode == kVK_UP)    ||
+        (msg.vkCode == kVK_NEXT) || (msg.vkCode == kVK_PRIOR) ||
+        (msg.vkCode == kVK_HOME) || (msg.vkCode == kVK_END)) {
+        bArrowKeyDown = true;
+    }
+    if (!bArrowKeyDown) {
+        return false;
+    }
+
+    if (msg.vkCode == kVK_LEFT) {
+        //Left键
+        int32_t nSelStartChar = -1;
+        int32_t nSelEndChar = -1;
+        GetSel(nSelStartChar, nSelEndChar);
+        ASSERT(nSelEndChar >= nSelStartChar);
+
+        bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
+        bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
+        if (bShiftDown && (m_nShiftStartIndex != -1)) {
+            //Shift + Left键
+            if (nSelEndChar <= m_nShiftStartIndex) {
+                nSelStartChar = m_pTextData->GetPrevValidCharIndex(nSelStartChar);
+                nSelEndChar = m_nShiftStartIndex;
+                m_bSelForward = false;
+            }
+            else {
+                nSelStartChar = m_nShiftStartIndex;
+                nSelEndChar = m_pTextData->GetPrevValidCharIndex(nSelEndChar);
+                m_bSelForward = true;
+            }
+            SetSel(nSelStartChar, nSelEndChar);
+        }
+        else if (bCtrlDown && (m_nCtrlStartIndex != -1)) {
+            //Ctrl + Left键
+            if (nSelEndChar <= m_nCtrlStartIndex) {
+                nSelStartChar = m_pTextData->GetPrevValidWordIndex(nSelStartChar);
+                nSelEndChar = m_nCtrlStartIndex;
+                m_bSelForward = false;
+            }
+            else {
+                nSelStartChar = m_nCtrlStartIndex;
+                nSelEndChar = m_pTextData->GetPrevValidWordIndex(nSelEndChar);
+                m_bSelForward = true;
+            }
+            SetSel(nSelStartChar, nSelEndChar);
+        }
+        else {
+            //Left键
+            nSelEndChar = m_pTextData->GetPrevValidCharIndex(nSelEndChar);
+            SetSel(nSelEndChar, nSelEndChar);
+            m_bSelForward = true;
+        }
+    }
+    else if (msg.vkCode == kVK_RIGHT) {
+        //Right键
+        int32_t nSelStartChar = -1;
+        int32_t nSelEndChar = -1;
+        GetSel(nSelStartChar, nSelEndChar);
+        ASSERT(nSelEndChar >= nSelStartChar);
+
+        bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
+        bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
+        if (bShiftDown && (m_nShiftStartIndex != -1)) {
+            //Shift + Right键
+            if (nSelEndChar <= m_nShiftStartIndex) {
+                nSelStartChar = m_pTextData->GetNextValidCharIndex(nSelStartChar);
+                nSelEndChar = m_nShiftStartIndex;
+                m_bSelForward = false;
+            }
+            else {
+                nSelStartChar = m_nShiftStartIndex;
+                nSelEndChar = m_pTextData->GetNextValidCharIndex(nSelEndChar);
+                m_bSelForward = true;
+            }
+            SetSel(nSelStartChar, nSelEndChar);
+        }
+        else if (bCtrlDown && (m_nCtrlStartIndex != -1)) {
+            //Ctrl + Right键
+            if (nSelEndChar <= m_nCtrlStartIndex) {
+                nSelStartChar = m_pTextData->GetNextValidWordIndex(nSelStartChar);
+                nSelEndChar = m_nCtrlStartIndex;
+                m_bSelForward = false;
+            }
+            else {
+                nSelStartChar = m_nCtrlStartIndex;
+                nSelEndChar = m_pTextData->GetNextValidWordIndex(nSelEndChar);
+                m_bSelForward = true;
+            }
+            SetSel(nSelStartChar, nSelEndChar);
+        }
+        else {
+            //Right键
+            nSelEndChar = m_pTextData->GetNextValidCharIndex(nSelEndChar);
+            SetSel(nSelEndChar, nSelEndChar);
+            m_bSelForward = true;
+        }
+    }
+    else if (msg.vkCode == kVK_DOWN) {
+        //Down键
+
+    }
+    else if (msg.vkCode == kVK_UP) {
+        //Up键
+
+    }
+    else if (msg.vkCode == kVK_NEXT) {
+        //PageDown键
+
+    }
+    else if (msg.vkCode == kVK_PRIOR) {
+        //PageUp键
+
+    }
+    else if (msg.vkCode == kVK_HOME) {
+        //HOME键
+        int32_t nSelStartChar = -1;
+        int32_t nSelEndChar = -1;
+        GetSel(nSelStartChar, nSelEndChar);
+        ASSERT(nSelEndChar >= nSelStartChar);
+
+        bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
+        if (bShiftDown && (m_nShiftStartIndex != -1)) {
+            //Shift + Home 键
+            int32_t nShiftRowStartIndex = m_pTextData->GetRowStartCharIndex(m_nShiftStartIndex);
+            int32_t nRowStartIndex = m_pTextData->GetRowStartCharIndex(nSelStartChar);
+            int32_t nRowStartIndex2 = m_pTextData->GetRowStartCharIndex(nSelEndChar);
+            if (nRowStartIndex == nRowStartIndex2) {
+                //在同一行, 不需要区分操作方向
+                if (nShiftRowStartIndex == nRowStartIndex) {
+                    SetSel(nRowStartIndex, m_nShiftStartIndex);
+                }
+                else {
+                    SetSel(nRowStartIndex, nSelEndChar);
+                }
+            }
+            else {
+                //在不同行
+                if (m_bSelForward) {
+                    //操作方向：向前
+                    nSelEndChar = m_pTextData->GetRowStartCharIndex(nSelEndChar);
+                    SetSel(nSelStartChar, nSelEndChar);
+                }
+                else {
+                    //操作方向：向后
+                    nSelStartChar = m_pTextData->GetRowStartCharIndex(nSelStartChar);
+                    SetSel(nSelStartChar, nSelEndChar);
+                }
+            }
+        }
+        else {
+            //Home 键
+            nSelStartChar = m_pTextData->GetRowStartCharIndex(nSelStartChar);
+            SetSel(nSelStartChar, nSelStartChar);
+            m_bSelForward = true;
+        }
+    }
+    else if (msg.vkCode == kVK_END) {
+        //END键
+        int32_t nSelStartChar = -1;
+        int32_t nSelEndChar = -1;
+        GetSel(nSelStartChar, nSelEndChar);
+        ASSERT(nSelEndChar >= nSelStartChar);
+
+        bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
+        if (bShiftDown && (m_nShiftStartIndex != -1)) {
+            //Shift + End 键
+            int32_t nShiftRowEndIndex = m_pTextData->GetRowEndCharIndex(m_nShiftStartIndex);
+            int32_t nRowEndIndex = m_pTextData->GetRowEndCharIndex(nSelStartChar);
+            int32_t nRowEndIndex2 = m_pTextData->GetRowEndCharIndex(nSelEndChar);
+            if (nRowEndIndex == nRowEndIndex2) {
+                //在同一行, 不需要区分操作方向
+                if (nShiftRowEndIndex == nRowEndIndex) {
+                    SetSel(m_nShiftStartIndex, nRowEndIndex);
+                }
+                else {
+                    SetSel(nSelStartChar, nRowEndIndex);
+                }
+            }
+            else {
+                //在不同行
+                if (m_bSelForward) {
+                    //操作方向：向前
+                    nSelEndChar = m_pTextData->GetRowEndCharIndex(nSelEndChar);
+                    SetSel(nSelStartChar, nSelEndChar);
+                }
+                else {
+                    //操作方向：向后
+                    nSelStartChar = m_pTextData->GetRowEndCharIndex(nSelStartChar);
+                    SetSel(nSelStartChar, nSelEndChar);
+                }
+            }
+        }
+        else {
+            //End 键
+            nSelEndChar = m_pTextData->GetRowEndCharIndex(nSelEndChar);
+            SetSel(nSelEndChar, nSelEndChar);
+            m_bSelForward = true;
         }
     }
     return true;
@@ -3227,7 +3262,7 @@ void RichEdit::OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bShi
     }    
 }
 
-void RichEdit::OnLButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
+void RichEdit::OnLButtonUp(const UiPoint& /*ptMouse*/, Control* /*pSender*/)
 {
     if (m_bInMouseMove) {
         m_bInMouseMove = false;
@@ -3289,7 +3324,7 @@ void RichEdit::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
     }    
 }
 
-void RichEdit::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
+void RichEdit::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* /*pSender*/)
 {
     if (m_bInMouseMove) {
         m_bInMouseMove = false;
@@ -3371,7 +3406,6 @@ void RichEdit::OnCheckScrollView()
     if (m_bInMouseMove) {
         int32_t nHScrollValue = DUI_NOSET_VALUE;
         int32_t nVScrollValue = DUI_NOSET_VALUE;
-        GetScrollDeltaValue(nHScrollValue, nVScrollValue);
         UiRect viewRect = GetRect();
         if (pt.cx <= viewRect.left) {
             //向左滚动视图
@@ -3415,10 +3449,6 @@ void RichEdit::OnCheckScrollView()
     }
 
     OnFrameSelection(m_ptMouseDown, m_ptMouseMove);
-}
-
-void RichEdit::GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const
-{
 }
 
 void RichEdit::OnFrameSelection(UiSize64 ptMouseDown64, UiSize64 ptMouseMove64)

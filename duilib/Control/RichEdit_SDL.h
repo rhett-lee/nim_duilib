@@ -851,10 +851,6 @@ private:
     */
     void OnCheckScrollView();
 
-    /** 获取滚动视图的滚动幅度
-    */
-    void GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const;
-
     /** 执行了鼠标框选操作(坐标包含了scrollPos值)
     * @param [in] ptMouseDown64 鼠标按下的起点
     * @param [in] ptMouseMove64 鼠标移动的终点
@@ -880,6 +876,10 @@ private:
     /** 获取纵向滚动一页的距离，按页对齐
     */
     int32_t GetPageScrollDeltaValue(bool bPageDown) const;
+
+    /** 方向键的快捷键处理
+    */
+    bool OnArrowKeyDown(const EventArgs& msg);
 
 private:
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
