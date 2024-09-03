@@ -25,6 +25,9 @@
 #ifdef DUILIB_BUILD_FOR_SDL
 #include <SDL3/SDL.h>
 
+//缩放百分比的最大值
+#define MAX_ZOOM_PERCENT 800
+
 namespace ui {
 
 RichEdit::RichEdit(Window* pWindow) :
@@ -1881,9 +1884,9 @@ void RichEdit::SetZoomPercent(uint32_t nZoomPercent)
     if (nZoomPercent == 0) {
         return;
     }
-    if (nZoomPercent > 800) {
+    if (nZoomPercent > MAX_ZOOM_PERCENT) {
         //限制：最大放大到8倍数
-        nZoomPercent = 800;
+        nZoomPercent = MAX_ZOOM_PERCENT;
     }
     if (m_nZoomPercent != nZoomPercent) {
         m_nZoomPercent = TruncateToInt16(nZoomPercent);
@@ -3677,19 +3680,78 @@ void RichEdit::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
 void RichEdit::OnMouseWheel(int32_t wheelDelta, bool bCtrlDown)
 {
     if (bCtrlDown && IsEnableWheelZoom()) {
-        //Ctrl + 滚轮：缩放功能
-        uint32_t nZoomPercent = GetZoomPercent();
-        if (wheelDelta > 0) {
-            //放大
+        //通过查表的方式设置缩放比例(放大和缩小的时候，能够按照原来的比例复原)
+        std::vector<uint32_t> zoomPercentList;
+        uint32_t nZoomPercent = 100;
+        while (nZoomPercent > 1) {
+            nZoomPercent = (uint32_t)(nZoomPercent * 0.90f);
+            zoomPercentList.insert(zoomPercentList.begin(), nZoomPercent);
+        }
+        nZoomPercent = 100;       
+        while (nZoomPercent < MAX_ZOOM_PERCENT) {            
+            zoomPercentList.insert(zoomPercentList.end(), nZoomPercent);
             nZoomPercent = (uint32_t)(nZoomPercent * 1.10f);
-            if (nZoomPercent == GetZoomPercent()) {
-                //避免数值过小时无法放大
-                ++nZoomPercent;
+        }
+        zoomPercentList.insert(zoomPercentList.end(), MAX_ZOOM_PERCENT);
+
+        //Ctrl + 滚轮：缩放功能的实现
+        bool bFound = false;
+        nZoomPercent = GetZoomPercent();
+        const size_t nPercentCount = zoomPercentList.size();
+        for (size_t nPercentIndex = 0; nPercentIndex < nPercentCount; ++nPercentIndex) {
+            if ((zoomPercentList[nPercentIndex] > nZoomPercent) || (nPercentIndex == (nPercentCount - 1))) {
+                if (nPercentIndex <= 1) {
+                    size_t nCurrentIndex = 0;//当前是第一个元素
+                    if (wheelDelta > 0) {
+                        //放大
+                        nZoomPercent = zoomPercentList[nCurrentIndex + 1];
+                    }
+                    else {
+                        //缩小（已经到达最小值，无法再缩小）
+                        nZoomPercent = zoomPercentList[nCurrentIndex];
+                    }
+                }
+                else if (zoomPercentList[nPercentIndex] > nZoomPercent) {
+                    size_t nCurrentIndex = nPercentIndex - 1;//中间元素
+                    if (wheelDelta > 0) {
+                        //放大
+                        nZoomPercent = zoomPercentList[nCurrentIndex + 1];
+                    }
+                    else {
+                        //缩小
+                        nZoomPercent = zoomPercentList[nCurrentIndex - 1];
+                    }
+                }
+                else if (nPercentIndex == (nPercentCount - 1)) {
+                    size_t nCurrentIndex = nPercentCount - 1;//当前是最后一个元素
+                    if (wheelDelta > 0) {
+                        //放大（已经到达最大值，无法再放大）
+                        nZoomPercent = zoomPercentList[nCurrentIndex];
+                    }
+                    else {
+                        //缩小
+                        nZoomPercent = zoomPercentList[nCurrentIndex - 1];
+                    }
+                }                
+                bFound = true;
+                break;
             }
         }
-        else {
-            //缩小
-            nZoomPercent = (uint32_t)(nZoomPercent * 0.91f);
+
+        if (!bFound) {
+            //如果查表得不到结果，则按比例放大或者缩小
+            if (wheelDelta > 0) {
+                //放大
+                nZoomPercent = (uint32_t)(nZoomPercent * 1.10f);
+                if (nZoomPercent == GetZoomPercent()) {
+                    //避免数值过小时无法放大
+                    ++nZoomPercent;
+                }
+            }
+            else {
+                //缩小
+                nZoomPercent = (uint32_t)(nZoomPercent * 0.91f);
+            }
         }
         if (nZoomPercent < 1) {
             nZoomPercent = 1;
