@@ -939,7 +939,12 @@ bool RichEdit::CanRedo() const
 bool RichEdit::Redo()
 {
     m_nSelXPos = -1;
-    return m_pTextData->Redo();
+    int32_t nEndCharIndex = 0;
+    bool bRet = m_pTextData->Redo(nEndCharIndex);
+    if (bRet) {
+        SetSel(nEndCharIndex, nEndCharIndex);
+    }
+    return bRet;
 }
 
 bool RichEdit::CanUndo() const
@@ -950,7 +955,12 @@ bool RichEdit::CanUndo() const
 bool RichEdit::Undo()
 {
     m_nSelXPos = -1;
-    return m_pTextData->Undo();
+    int32_t nEndCharIndex = 0;
+    bool bRet = m_pTextData->Undo(nEndCharIndex);
+    if (bRet) {
+        SetSel(nEndCharIndex, nEndCharIndex);
+    }
+    return bRet;
 }
 
 void RichEdit::Clear()
@@ -982,7 +992,7 @@ void RichEdit::Cut()
     DStringW text = m_pTextData->GetTextRange(nStartChar, nEndChar);
     if (!text.empty()) {
         Clipboard::SetClipboardText(text);
-        m_pTextData->ReplaceText(nStartChar, nEndChar, L"", true);
+        m_pTextData->ReplaceText(nStartChar, nEndChar, L"");
         SetSel(nStartChar, nStartChar);
         m_nSelXPos = -1;
         Invalidate();
@@ -2928,6 +2938,14 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
     else if ((msg.vkCode == kVK_INSERT) && IsKeyDown(msg, ModifierKey::kShift)) {
         //Shift + Insert, 粘贴
         Paste();
+    }
+    else if ((msg.vkCode == 'Z') && IsKeyDown(msg, ModifierKey::kControl)) {
+        //Ctrl + Z, 撤销
+        Undo();
+    }
+    else if ((msg.vkCode == 'Y') && IsKeyDown(msg, ModifierKey::kControl)) {
+        //Ctrl + Y, 重做
+        Redo();
     }
     else if ((msg.vkCode == 'W') && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + W, 切换自动换行

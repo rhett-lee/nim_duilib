@@ -591,7 +591,7 @@ bool RichEditData::FindLineTextPos(int32_t nStartChar, int32_t nEndChar,
     return false;
 }
 
-bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStringW& text, bool bCanUndo)
+bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStringW& text, bool bCanUndo, bool bClearRedo)
 {
     PerformanceStat statPerformance(_T("RichEditData::ReplaceText"));
     ASSERT((nStartChar >= 0) && (nEndChar >= 0) && (nEndChar >= nStartChar));
@@ -614,7 +614,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     DStringW oldText; //旧文本内容
 
     //是否需要记录撤销操作
-    if (m_nUndoLimit <= 0) {
+    if (m_nUndoLimit == 0) {
         bCanUndo = false;
     }
     if (bCanUndo && (nEndChar > nStartChar)) {
@@ -702,7 +702,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
         //生成撤销列表
         AddToUndoList(nStartChar, text, oldText);
     }
-    else {
+    else if (bClearRedo){
         ClearUndoList();
     }   
     return true;
@@ -1941,57 +1941,112 @@ void RichEditData::ClearDrawRichTextCache()
     m_spDrawRichTextCache.reset();
 }
 
-void RichEditData::ClearUndoList()
-{
-
-}
-
-void RichEditData::AddToUndoList(int32_t nStartChar, const DStringW& newText, const DStringW& oldText)
-{
-    //还原操作为:
-    //ReplaceText(nStartChar, nStartChar + newText.size(), oldText);
-}
-
-bool RichEditData::CanUndo() const
-{
-    //TODO
-    return 0;
-}
-
-bool RichEditData::Undo()
-{
-    //TODO
-    return 0;
-}
-
 void RichEditData::SetUndoLimit(uint32_t nUndoLimit)
 {
     if (m_nUndoLimit != nUndoLimit) {
         m_nUndoLimit = nUndoLimit;
-        //TODO
+        m_redoList.clear();
+        while (!m_undoList.empty() && (m_undoList.size() > m_nUndoLimit)) {
+            m_undoList.pop_front();
+        }
     }
 }
 
-int32_t RichEditData::GetUndoLimit() const
+uint32_t RichEditData::GetUndoLimit() const
 {
     return m_nUndoLimit;
 }
 
-bool RichEditData::CanRedo() const
+void RichEditData::ClearUndoList()
 {
-    //TODO
-    return 0;
+    m_undoList.clear();
+    m_redoList.clear();
 }
 
 void RichEditData::EmptyUndoBuffer()
 {
-
+    ClearUndoList();
 }
 
-bool RichEditData::Redo()
+void RichEditData::AddToUndoList(int32_t nStartChar, const DStringW& newText, const DStringW& oldText)
 {
-    //TODO
-    return 0;
+    ASSERT(nStartChar >= 0);
+    if (nStartChar < 0) {
+        return;
+    }
+    if (m_nUndoLimit == 0) {
+        //禁止功能
+        return;
+    }
+
+    TUndoData undoData;
+    undoData.m_nStartChar = nStartChar;
+    undoData.m_newText = newText;
+    undoData.m_oldText = oldText;
+
+    while (!m_undoList.empty() && (m_undoList.size() >= m_nUndoLimit)) {
+        m_undoList.pop_front();
+    }
+
+    //添加到Undo列表尾部
+    m_undoList.emplace_back(std::move(undoData));
+
+    //每次添加Undo后，清空Redo列表
+    m_redoList.clear();
+}
+
+bool RichEditData::CanUndo() const
+{
+    return !m_undoList.empty();
+}
+
+bool RichEditData::Undo(int32_t& nEndCharIndex)
+{
+    bool bRet = false;
+    if (!m_undoList.empty()) {
+        //取出Undo列表尾部的数据
+        TUndoData undoData = m_undoList.back();
+        m_undoList.pop_back();
+
+        //添加到redo列表
+        m_redoList.push_back(undoData);
+
+        //执行Undo操作
+        nEndCharIndex = undoData.m_nStartChar + (int32_t)undoData.m_newText.size();
+        bRet = ReplaceText(undoData.m_nStartChar, nEndCharIndex, undoData.m_oldText, false, false);
+        nEndCharIndex = undoData.m_nStartChar + (int32_t)undoData.m_oldText.size();
+    }
+    if (!bRet) {
+        nEndCharIndex = -1;
+    }
+    return bRet;
+}
+
+bool RichEditData::CanRedo() const
+{
+    return !m_redoList.empty();
+}
+
+bool RichEditData::Redo(int32_t& nEndCharIndex)
+{
+    bool bRet = false;
+    if (!m_redoList.empty()) {
+        //取出Redo列表尾部的数据
+        TUndoData undoData = m_redoList.back();
+        m_redoList.pop_back();
+
+        //添加到undo列表
+        m_undoList.push_back(undoData);
+
+        //执行Redo操作
+        nEndCharIndex = undoData.m_nStartChar + (int32_t)undoData.m_oldText.size();
+        bRet = ReplaceText(undoData.m_nStartChar, nEndCharIndex, undoData.m_newText, false, false);
+        nEndCharIndex = undoData.m_nStartChar + (int32_t)undoData.m_newText.size();
+    }
+    if (!bRet) {
+        nEndCharIndex = -1;
+    }
+    return bRet;
 }
 
 void RichEditData::Clear()
@@ -1999,6 +2054,7 @@ void RichEditData::Clear()
     RichTextLineInfoList lineTextInfo;
     m_lineTextInfo.swap(lineTextInfo);
     m_spDrawRichTextCache.reset();
+    ClearUndoList();
     SetCacheDirty(true);
 }
 

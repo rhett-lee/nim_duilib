@@ -6,6 +6,7 @@
 #include "duilib/Render/IRender.h"
 #include <unordered_map>
 #include <map>
+#include <list>
 
 namespace ui
 {
@@ -92,9 +93,10 @@ public:
      * @param [in] nStartChar 起始下标值
      * @param [in] nEndChar 结束下标值
      * @param [in] bCanUndo 是否可以撤销，true 为可以，否则为 false
+     * @param [in] bClearRedo 是否清空Redo列表, 仅当bCanUndo为false时生效
      * @return 返回true表示文本有变化，返回false表示文本无变化
      */
-    bool ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStringW& text, bool bCanUndo);
+    bool ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStringW& text, bool bCanUndo = true, bool bClearRedo = true);
 
     /** 获取文本
     */
@@ -121,35 +123,37 @@ public:
      */
     bool HasTextRange(int32_t nStartChar, int32_t nEndChar);
 
-    /** 是否可撤销
-    */
-    bool CanUndo() const;
-
-    /** 撤销操作
-     * @return 成功返回 true，失败返回 false
-     */
-    bool Undo();
-
     /** 设置可撤销的限制次数
     */
     void SetUndoLimit(uint32_t nUndoLimit);
 
     /** 获取可撤销的限制次数
     */
-    int32_t GetUndoLimit() const;
+    uint32_t GetUndoLimit() const;
+
+    /** 是否可撤销
+    */
+    bool CanUndo() const;
+
+    /** 撤销操作
+     * @param [out] nEndCharIndex 返回结束的字符下标
+     * @return 成功返回 true，失败返回 false
+     */
+    bool Undo(int32_t& nEndCharIndex);
 
     /** 是否可以重做
     */
     bool CanRedo() const;
 
-    /** 清空撤销列表
-     */
-    void EmptyUndoBuffer();
-
     /** 重做操作
+     * @param [out] nEndCharIndex 返回结束的字符下标
      * @return 成功返回 true，失败返回 false
      */
-    bool Redo();
+    bool Redo(int32_t& nEndCharIndex);
+
+    /** 清空撤销列表
+    */
+    void EmptyUndoBuffer();
 
     /** 清空
      */
@@ -429,9 +433,27 @@ private:
     */
     bool m_bCacheDirty;
 
+private:
+    /** Undo的数据
+    */
+    struct TUndoData
+    {
+        int32_t m_nStartChar = -1;
+        DStringW m_newText;
+        DStringW m_oldText;
+    };
+
+    /** Undo的数据列表
+    */
+    std::list<TUndoData> m_undoList;
+
+    /** Redo的数据列表
+    */
+    std::list<TUndoData> m_redoList;
+
     /** 重做的最大次数限制
     */
-    int32_t m_nUndoLimit;
+    uint32_t m_nUndoLimit;
 };
 
 } //namespace ui
