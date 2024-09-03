@@ -599,9 +599,13 @@ public:
 
     /** 设置撤销列表容纳的内容数量
      * @param [in] nLimit
-     * @return 返回设置后的撤销列表可容纳内容数量
      */
-    uint32_t SetUndoLimit(uint32_t nLimit);
+    void SetUndoLimit(uint32_t nLimit);
+
+    /** 确保字符在可见范围内
+    * @param [in] nCharIndex 字符的位置
+    */
+    void EnsureCharVisible(int32_t nCharIndex);
 
 public:
     /** 向上一行
@@ -900,11 +904,6 @@ private:
      * @return 返回选择的文字数量
      */
     int32_t InternalSetSel(int32_t nStartChar, int32_t nEndChar);
-
-    /** 确保字符在可见范围内
-    * @param [in] nCharIndex 字符的位置
-    */
-    void EnsureCharVisible(int32_t nCharIndex);
 
 private:
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键

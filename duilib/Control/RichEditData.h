@@ -132,7 +132,7 @@ public:
 
     /** 设置可撤销的限制次数
     */
-    void SetUndoLimit(int32_t nUndoLimit);
+    void SetUndoLimit(uint32_t nUndoLimit);
 
     /** 获取可撤销的限制次数
     */
@@ -141,6 +141,10 @@ public:
     /** 是否可以重做
     */
     bool CanRedo() const;
+
+    /** 清空撤销列表
+     */
+    void EmptyUndoBuffer();
 
     /** 重做操作
      * @return 成功返回 true，失败返回 false
@@ -159,14 +163,13 @@ public:
 
     /** 获取一行数据
      * @param[in] nRowIndex 行号
-     * @param[in] nMaxLength 要获取当前行最大的数据长度
      * @return 返回获取的一行数据
      */
-    DString GetRowText(int32_t nRowIndex, int32_t nMaxLength) const;
+    DStringW GetRowText(int32_t nRowIndex) const;
 
     /** 获取指定行的第一个字符索引
      * @param[in] nRowIndex 行号
-     * @return 返回指定行的第一个字符索引
+     * @return 返回指定行的第一个字符索引, 失败时返回-1
      */
     int32_t RowIndex(int32_t nRowIndex) const;
 
@@ -348,7 +351,10 @@ private:
     * @param [out] nLineRowIndex 在物理行中的逻辑行号（每行中从0开始编号）
     * @param [out] nStartCharRowOffset 在逻辑行中的字符偏移量
     */
-    bool GetCharLineRowIndex(int32_t nCharIndex, size_t& nLineNumber, size_t& nLineRowIndex, size_t& nStartCharRowOffset) const;
+    bool GetCharLineRowIndex(int32_t nCharIndex,
+                             size_t& nLineNumber,
+                             size_t& nLineRowIndex,
+                             size_t& nStartCharRowOffset) const;
 
     /** 获取指定字符的所在行的数据
     * @param [in] nCharIndex 字符索引位置

@@ -612,8 +612,6 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     }
 
     DStringW oldText; //旧文本内容
-    const int32_t nNewStartChar = nStartChar; //新文本的起始下标值
-    const int32_t nNewEndChar = nStartChar + (int32_t)text.size(); //新文本的结束下标值
 
     //是否需要记录撤销操作
     if (m_nUndoLimit <= 0) {
@@ -803,84 +801,6 @@ void RichEditData::SetSingleLineMode(bool bSingleLineMode)
         DStringW text = GetText();
         SetText(text);
     }
-}
-
-bool RichEditData::CanUndo() const
-{
-    //TODO
-    return 0;
-}
-
-bool RichEditData::Undo()
-{
-    //TODO
-    return 0;
-}
-
-void RichEditData::SetUndoLimit(int32_t nUndoLimit)
-{
-    if (nUndoLimit < 0) {
-        nUndoLimit = 0;
-    }
-    if (m_nUndoLimit != nUndoLimit) {
-        m_nUndoLimit = nUndoLimit;
-        //TODO
-    }
-}
-
-int32_t RichEditData::GetUndoLimit() const
-{
-    return m_nUndoLimit;
-}
-
-bool RichEditData::CanRedo() const
-{
-    //TODO
-    return 0;
-}
-
-bool RichEditData::Redo()
-{
-    //TODO
-    return 0;
-}
-
-void RichEditData::Clear()
-{
-    RichTextLineInfoList lineTextInfo;
-    m_lineTextInfo.swap(lineTextInfo);
-    m_spDrawRichTextCache.reset();
-    SetCacheDirty(true);
-}
-
-int32_t RichEditData::GetRowCount() const
-{
-    //TODO
-    return 0;
-}
-
-DString RichEditData::GetRowText(int32_t nRowIndex, int32_t nMaxLength) const
-{
-    //TODO
-    return DString();
-}
-
-int32_t RichEditData::RowIndex(int32_t nRowIndex) const
-{
-    //TODO
-    return 0;
-}
-
-int32_t RichEditData::RowLength(int32_t nRowIndex) const
-{
-    //TODO
-    return 0;
-}
-
-int32_t RichEditData::RowFromChar(int32_t nCharIndex) const
-{
-    //TODO
-    return 0;
 }
 
 bool RichEditData::GetCharLineRowIndex(int32_t nCharIndex, size_t& nLineNumber, size_t& nLineRowIndex, size_t& nStartCharRowOffset) const
@@ -2006,17 +1926,6 @@ void RichEditData::SetCacheDirty(bool bDirty)
     m_bCacheDirty = bDirty;
 }
 
-void RichEditData::ClearUndoList()
-{
-
-}
-
-void RichEditData::AddToUndoList(int32_t nStartChar, const DStringW& newText, const DStringW& oldText)
-{
-    //还原操作为:
-    //ReplaceText(nStartChar, nStartChar + newText.size(), oldText);
-}
-
 void RichEditData::SetDrawRichTextCache(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache)
 {
     m_spDrawRichTextCache = spDrawRichTextCache;
@@ -2030,6 +1939,217 @@ const std::shared_ptr<DrawRichTextCache>& RichEditData::GetDrawRichTextCache() c
 void RichEditData::ClearDrawRichTextCache()
 {
     m_spDrawRichTextCache.reset();
+}
+
+void RichEditData::ClearUndoList()
+{
+
+}
+
+void RichEditData::AddToUndoList(int32_t nStartChar, const DStringW& newText, const DStringW& oldText)
+{
+    //还原操作为:
+    //ReplaceText(nStartChar, nStartChar + newText.size(), oldText);
+}
+
+bool RichEditData::CanUndo() const
+{
+    //TODO
+    return 0;
+}
+
+bool RichEditData::Undo()
+{
+    //TODO
+    return 0;
+}
+
+void RichEditData::SetUndoLimit(uint32_t nUndoLimit)
+{
+    if (m_nUndoLimit != nUndoLimit) {
+        m_nUndoLimit = nUndoLimit;
+        //TODO
+    }
+}
+
+int32_t RichEditData::GetUndoLimit() const
+{
+    return m_nUndoLimit;
+}
+
+bool RichEditData::CanRedo() const
+{
+    //TODO
+    return 0;
+}
+
+void RichEditData::EmptyUndoBuffer()
+{
+
+}
+
+bool RichEditData::Redo()
+{
+    //TODO
+    return 0;
+}
+
+void RichEditData::Clear()
+{
+    RichTextLineInfoList lineTextInfo;
+    m_lineTextInfo.swap(lineTextInfo);
+    m_spDrawRichTextCache.reset();
+    SetCacheDirty(true);
+}
+
+int32_t RichEditData::GetRowCount() const
+{
+    int32_t nRowIndex = 0; //行号
+    const size_t nLineCount = m_lineTextInfo.size();
+    for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
+        const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
+        ASSERT(lineText.m_nLineTextLen > 0);
+        nRowIndex += (int32_t)lineText.m_rowInfo.size();
+    }
+    return nRowIndex;
+}
+
+DStringW RichEditData::GetRowText(int32_t nRowIndex) const
+{
+    DStringW rowText;
+    bool bFound = false;
+    int32_t nRows = 0; //逻辑行号
+    const size_t nLineCount = m_lineTextInfo.size();
+    for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
+        const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
+        ASSERT(lineText.m_nLineTextLen > 0);
+        const size_t nRowCount = lineText.m_rowInfo.size();
+        for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
+            if (nRows == nRowIndex) {
+                //定位到本行
+                ASSERT(!lineText.m_rowInfo[nRow]->m_charInfo.empty());
+                size_t nStartIndex = 0;
+                for (size_t i = 0; i < nRow; ++i) {
+                    nStartIndex += lineText.m_rowInfo[i]->m_charInfo.size();
+                }
+                if (!lineText.m_rowInfo[nRow]->m_charInfo.empty()) {
+                    ASSERT(nStartIndex < lineText.m_nLineTextLen);
+                    std::wstring_view lineView(lineText.m_lineText.c_str(), lineText.m_nLineTextLen);
+                    rowText = lineView.substr(nStartIndex, lineText.m_rowInfo[nRow]->m_charInfo.size());
+                }
+                bFound = true;
+                break;
+            }
+            ++nRows;
+        }
+        if (bFound) {
+            break;
+        }
+    }
+    return rowText;
+}
+
+int32_t RichEditData::RowIndex(int32_t nRowIndex) const
+{
+    int32_t nRowStartIndex = -1;
+    bool bFound = false;
+    int32_t nRows = 0; //逻辑行号
+    int32_t nCharCount = 0; //字符总数
+    const size_t nLineCount = m_lineTextInfo.size();
+    for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
+        const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
+        ASSERT(lineText.m_nLineTextLen > 0);
+        const size_t nRowCount = lineText.m_rowInfo.size();
+        for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
+            if (nRows == nRowIndex) {
+                //定位到本行
+                nRowStartIndex = nCharCount;
+                bFound = true;
+                break;
+            }
+            else {
+                nCharCount += (int32_t)lineText.m_rowInfo[nRow]->m_charInfo.size();
+            }
+            ++nRows;
+        }
+        if (bFound) {
+            break;
+        }
+    }
+    return nRowStartIndex;
+}
+
+int32_t RichEditData::RowLength(int32_t nRowIndex) const
+{
+    int32_t nRowLength = 0;
+    bool bFound = false;
+    int32_t nRows = 0; //逻辑行号
+    const size_t nLineCount = m_lineTextInfo.size();
+    for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
+        const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
+        ASSERT(lineText.m_nLineTextLen > 0);
+        const size_t nRowCount = lineText.m_rowInfo.size();
+        for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
+            if (nRows == nRowIndex) {
+                //获取到本行的字符长度
+                nRowLength = (int32_t)lineText.m_rowInfo[nRow]->m_charInfo.size();
+                bFound = true;
+                break;
+            }
+            ++nRows;
+        }
+        if (bFound) {
+            break;
+        }
+    }
+    return nRowLength;
+}
+
+int32_t RichEditData::RowFromChar(int32_t nCharIndex) const
+{
+    ASSERT(nCharIndex >= 0);
+    if (nCharIndex < 0) {
+        return 0;
+    }
+    const int32_t nTextLength = (int32_t)GetTextLength();
+    if (nTextLength < 1) {
+        return 0;
+    }
+
+    int32_t nRowIndex = 0; //逻辑行号
+    size_t nTextLen = 0;   //文本总长度
+    const size_t nLineCount = m_lineTextInfo.size();
+    for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
+        const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
+        ASSERT(lineText.m_nLineTextLen > 0);
+        nTextLen += lineText.m_nLineTextLen;
+        if (nCharIndex < (int32_t)nTextLen) {
+            //定位到行
+            const size_t nStartBaseLen = nTextLen - lineText.m_nLineTextLen;
+            const size_t nStartLineOffset = (size_t)nCharIndex - nStartBaseLen;
+            ASSERT(nStartLineOffset < lineText.m_nLineTextLen);
+            //定位在本物理分行中，再定位在哪个逻辑分行中
+            size_t nRowTextLen = 0;
+            const size_t nRowCount = lineText.m_rowInfo.size();
+            for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
+                ASSERT(lineText.m_rowInfo[nRow] != nullptr);
+                const RichTextRowInfo& rowInfo = *lineText.m_rowInfo[nRow];
+                nRowTextLen += rowInfo.m_charInfo.size();
+                if (nStartLineOffset < nRowTextLen) {
+                    //定位在本逻辑分行中
+                    break;
+                }
+                else {
+                    ++nRowIndex;
+                }
+            }
+            break;
+        }
+        else {
+            nRowIndex += (int32_t)lineText.m_rowInfo.size();
+        }
+    }
+    return nRowIndex;
 }
 
 } //namespace ui

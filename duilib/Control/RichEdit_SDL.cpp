@@ -1021,49 +1021,70 @@ bool RichEdit::CanPaste() const
 
 int32_t RichEdit::GetLineCount() const
 {
-    //return m_richCtrl.GetLineCount();
-    return 0;
+    return m_pTextData->GetRowCount();
 }
 
 DString RichEdit::GetLine(int32_t nIndex, int32_t nMaxLength) const
 {
-    //TODO
-    return L"";
+    if (nMaxLength < 1) {
+        return DString();
+    }
+    DStringW rowText = m_pTextData->GetRowText(nIndex);
+    if ((int32_t)rowText.size() > nMaxLength) {
+        rowText.resize((size_t)nMaxLength);
+    }
+    return StringUtil::UTF16ToT(rowText);
 }
 
 int32_t RichEdit::LineIndex(int32_t nLine) const
 {
-    //return m_richCtrl.LineIndex(nLine);
-    return 0;
+    return m_pTextData->RowIndex(nLine);
 }
 
 int32_t RichEdit::LineLength(int32_t nLine) const
 {
-    //return m_richCtrl.LineLength(nLine);
-    return 0;
+    return m_pTextData->RowLength(nLine);
 }
 
 bool RichEdit::LineScroll(int32_t nLines)
 {
-    //return m_richCtrl.LineScroll(nLines);
-    return false;
+    int32_t nCharIndex = m_pTextData->RowIndex(nLines);
+    if (nCharIndex < 0) {
+        return false;
+    }
+    UiPoint pt = PosFromChar(nCharIndex);
+    UiRect rcDrawRect = GetTextDrawRect(GetRect());
+    if (!rcDrawRect.ContainsPt(pt)) {
+        if (pt.y < rcDrawRect.top) {
+            //向上滚动
+            UiSize64 scrollPos = GetScrollPos();
+            scrollPos.cy -= (rcDrawRect.top - pt.y);
+            SetScrollPos(scrollPos);
+        }
+        else if (pt.y >= rcDrawRect.bottom) {
+            //向下滚动
+            UiSize64 scrollPos = GetScrollPos();
+            scrollPos.cy += (pt.y - rcDrawRect.bottom);
+            scrollPos.cy += m_nRowHeight;
+            SetScrollPos(scrollPos);
+        }
+    }
+    return true;
 }
 
 int32_t RichEdit::LineFromChar(int32_t nIndex) const
 {
-    //return m_richCtrl.LineFromChar((LONG)nIndex);
-    return 0;
+    return m_pTextData->RowFromChar(nIndex);
 }
 
 void RichEdit::EmptyUndoBuffer()
 {
-    //m_richCtrl.EmptyUndoBuffer();
+    m_pTextData->EmptyUndoBuffer();
 }
 
-uint32_t RichEdit::SetUndoLimit(uint32_t nLimit)
+void RichEdit::SetUndoLimit(uint32_t nLimit)
 {
-    //return m_richCtrl.SetUndoLimit(nLimit);
-    return 0;
+    m_pTextData->SetUndoLimit(nLimit);
 }
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
