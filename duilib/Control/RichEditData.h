@@ -33,6 +33,10 @@ public:
     /** 获取绘制的透明度
     */
     virtual uint8_t GetDrawAlpha() const = 0;
+
+    /** 文字区域已经重新计算过的事件
+    */
+    virtual void OnTextRectsChanged() = 0;
 };
 
 class RichEditData

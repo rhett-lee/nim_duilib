@@ -301,6 +301,15 @@ public:
      */
     void SetFocusedImage(const DString& strImage);
 
+    /** 设置缩放百分比
+    * @param [in] fZoomRatio 缩放比例，比如"100"表示100%, 无缩放; "200"表示缩放比例为200%
+    */
+    void SetZoomPercent(uint32_t nZoomPercent);
+
+    /** 获取缩放百分比
+    */
+    uint32_t GetZoomPercent() const;
+
     /** 设置是否允许通过Ctrl + 滚轮来调整缩放比例
     */
     void SetEnableWheelZoom(bool bEnable);
@@ -703,6 +712,10 @@ protected:
     */
     virtual uint8_t GetDrawAlpha() const override;
 
+    /** 文字区域已经重新计算过的事件
+    */
+    virtual void OnTextRectsChanged() override;
+
 private:
     void OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bShiftDown);
     void OnLButtonUp(const UiPoint& ptMouse, Control* pSender);
@@ -710,7 +723,7 @@ private:
     void OnRButtonDown(const UiPoint& ptMouse, Control* pSender);
     void OnRButtonUp(const UiPoint& ptMouse, Control* pSender);
     void OnMouseMove(const UiPoint& ptMouse, Control* pSender);
-    void OnMouseWheel(bool bCtrlDown);
+    void OnMouseWheel(int32_t wheelDelta, bool bCtrlDown);
     void OnWindowKillFocus();
 
 private:
@@ -773,6 +786,10 @@ private:
     /** 设置字体ID
     */
     void SetFontIdInternal(const DString& fontId);
+
+    /** 获取字体接口
+    */
+    IFont* GetIFontInternal(const DString& fontId) const;
 
     /** 绘制光标
      * @param[in] pRender 绘制引擎
@@ -954,6 +971,10 @@ private:
     /** 是否使用Control设置的光标
     */
     bool m_bUseControlCursor;
+
+    /** 缩放百分比，100表示100%
+    */
+    uint16_t m_nZoomPercent;
 
     /** 是否允许通过Ctrl + 滚轮来调整缩放比例
     */

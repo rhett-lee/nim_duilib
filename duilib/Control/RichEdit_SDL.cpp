@@ -54,6 +54,7 @@ RichEdit::RichEdit(Window* pWindow) :
     m_drawCaretFlag(),
     m_pFocusedImage(nullptr),
     m_bUseControlCursor(false),
+    m_nZoomPercent(100),
     m_bEnableWheelZoom(false),
     m_bEnableDefaultContextMenu(false),
     m_bDisableTextChangeEvent(false),
@@ -251,21 +252,38 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //当控件处于非激活状态时，是否隐藏选择内容
         SetHideSelection(strValue == _T("true"));
     }
-
-
-
     else if (strName == _T("zoom")) {
-        //缩放比例：
-        //设置缩放比例：设 wParam：缩放比例的分子，lParam：缩放比例的分母，
-        // "wParam,lParam" 表示按缩放比例分子/分母显示的缩放，取值范围：1/64 < (wParam / lParam) < 64。
-        // 举例：则："0,0"表示关闭缩放功能，"2,1"表示放大到200%，"1,2"表示缩小到50% 
-        //UiSize zoomValue;
-        //AttributeUtil::ParseSizeValue(strValue.c_str(), zoomValue);
-        //if ((zoomValue.cx >= 0) && (zoomValue.cx <= 64) &&
-        //    (zoomValue.cy >= 0) && (zoomValue.cy <= 64)) {
-        //    m_richCtrl.SetZoom(zoomValue.cx, zoomValue.cy);
-        //}
-    }    
+        //缩放比例：格式有两种，一种如"2,1" 放大到200%； 表示另外一种如："200%"，代表放大到200%。
+        // "2,1"这种格式设置缩放比例（兼容微软的RichEdit控件格式）：设 wParam：缩放比例的分子，lParam：缩放比例的分母，
+        //                         "wParam,lParam" 表示按缩放比例分子/分母显示的缩放，取值范围：1/64 < (wParam / lParam) < 64。
+        //                         举例：则："0,0"表示关闭缩放功能，"2,1"表示放大到200%，"1,2"表示缩小到50%
+        float fZoomRatio = 1.0f;
+        if (strValue.find(L'.') != DString::npos) {
+            UiSize zoomValue;
+            AttributeUtil::ParseSizeValue(strValue.c_str(), zoomValue);
+            ASSERT((zoomValue.cx > 0) && (zoomValue.cx <= 64));
+            ASSERT((zoomValue.cy > 0) && (zoomValue.cy <= 64));
+            if ((zoomValue.cx > 0) && (zoomValue.cx <= 64) &&
+                (zoomValue.cy > 0) && (zoomValue.cy <= 64)) {
+                fZoomRatio = (float)zoomValue.cx / (float)zoomValue.cy;
+            }
+        }
+        else if (strValue.find(L'%') != DString::npos) {
+            DString zoomValue = strValue.substr(0, strValue.find(L'%'));
+            int32_t nZoomValue = StringUtil::StringToInt32(zoomValue.c_str());
+            ASSERT(nZoomValue > 0);
+            if (nZoomValue > 0) {
+                fZoomRatio = (float)nZoomValue / 100.0f;
+            }
+        }
+        else {
+            ASSERT(0);
+        }
+        uint32_t nZoomPercent = (uint32_t)(fZoomRatio * 100.0f);
+        SetZoomPercent(nZoomPercent);
+    }
+
+
     else if ((strName == _T("auto_vscroll")) || (strName == _T("autovscroll"))) {
         //当用户在最后一行按 ENTER 时，自动将文本向上滚动一页。
         //if (m_pRichHost != nullptr) {
@@ -1826,6 +1844,29 @@ void RichEdit::AttachSelChange(const EventCallback& callback)
     AttachEvent(kEventSelChange, callback); 
 }
 
+void RichEdit::SetZoomPercent(uint32_t nZoomPercent)
+{
+    ASSERT(nZoomPercent != 0);
+    if (nZoomPercent == 0) {
+        return;
+    }
+    if (nZoomPercent > 800) {
+        //限制：最大放大到8倍数
+        nZoomPercent = 800;
+    }
+    if (m_nZoomPercent != nZoomPercent) {
+        m_nZoomPercent = TruncateToInt16(nZoomPercent);
+        m_pTextData->SetCacheDirty(true);
+        SetFontIdInternal(GetFontId());
+        Redraw();
+    }
+}
+
+uint32_t RichEdit::GetZoomPercent() const
+{
+    return m_nZoomPercent;
+}
+
 void RichEdit::SetEnableWheelZoom(bool bEnable)
 {
     m_bEnableWheelZoom = bEnable;
@@ -2279,10 +2320,21 @@ void RichEdit::SetShowPasswordBtnClass(const DString& btnClass)
     }
 }
 
+IFont* RichEdit::GetIFontInternal(const DString& fontId) const
+{
+    const DpiManager& dpi = Dpi();
+    uint32_t nZoomPercent = GetZoomPercent();
+    ASSERT(nZoomPercent != 0);
+    nZoomPercent = nZoomPercent * dpi.GetScale() / 100;
+    IFont* pFont = GlobalManager::Instance().Font().GetIFont(fontId, nZoomPercent);
+    ASSERT(pFont != nullptr);
+    return pFont;
+}
+
 void RichEdit::SetFontIdInternal(const DString& fontId)
 {
     //创建光标
-    IFont* pFont = GlobalManager::Instance().Font().GetIFont(fontId, Dpi());
+    IFont* pFont = GetIFontInternal(fontId);
     ASSERT(pFont != nullptr);
     if (pFont == nullptr) {
         return;
@@ -2418,7 +2470,7 @@ bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView
     }
     DString sFontId = GetFontId();
     ASSERT(!sFontId.empty());
-    IFont* pFont = GlobalManager::Instance().Font().GetIFont(sFontId, Dpi());
+    IFont* pFont = GetIFontInternal(sFontId);
     ASSERT(pFont != nullptr);
     if (pFont == nullptr) {
         return false;
@@ -2483,6 +2535,18 @@ UiRect RichEdit::GetRichTextDrawRect() const
 uint8_t RichEdit::GetDrawAlpha() const
 {
     return (uint8_t)GetAlpha();
+}
+
+void RichEdit::OnTextRectsChanged()
+{
+    //更新光标的位置
+    int32_t nSelStartChar = -1;
+    int32_t nSelEndChar = -1;
+    GetSel(nSelStartChar, nSelEndChar);
+    if (nSelStartChar == nSelEndChar) {
+        SetCaretPos(nSelStartChar);
+        EnsureCharVisible(nSelStartChar);
+    }
 }
 
 UiSize RichEdit::EstimateText(UiSize szAvailable)
@@ -2779,7 +2843,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
         bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
         if (bCtrlDown && IsEnableWheelZoom()) {
             //Ctrl + 滚轮，调整缩放比
-            OnMouseWheel(bCtrlDown);
+            OnMouseWheel(msg.eventData, bCtrlDown);
             return;
         }
     }
@@ -3425,7 +3489,7 @@ bool RichEdit::MouseWheel(const EventArgs& msg)
     if (msg.IsSenderExpired()) {
         return false;
     }
-    OnMouseWheel(IsKeyDown(msg, ModifierKey::kControl));
+    OnMouseWheel(msg.eventData, IsKeyDown(msg, ModifierKey::kControl));
     return bRet;
 }
 
@@ -3571,15 +3635,28 @@ void RichEdit::OnMouseMove(const UiPoint& ptMouse, Control* pSender)
     }
 }
 
-void RichEdit::OnMouseWheel(bool bCtrlDown)
+void RichEdit::OnMouseWheel(int32_t wheelDelta, bool bCtrlDown)
 {
     if (bCtrlDown && IsEnableWheelZoom()) {
         //Ctrl + 滚轮：缩放功能
-        //OnMouseMessage(WM_MOUSEWHEEL, msg);
-        int32_t nNum = 0;
-        int32_t nDen = 0;
-        // m_richCtrl.GetZoom(nNum, nDen);
-        SendEvent(kEventZoom, (WPARAM)nNum, (LPARAM)nDen);
+        uint32_t nZoomPercent = GetZoomPercent();
+        if (wheelDelta > 0) {
+            //放大
+            nZoomPercent = (uint32_t)(nZoomPercent * 1.10f);
+            if (nZoomPercent == GetZoomPercent()) {
+                //避免数值过小时无法放大
+                ++nZoomPercent;
+            }
+        }
+        else {
+            //缩小
+            nZoomPercent = (uint32_t)(nZoomPercent * 0.91f);
+        }
+        if (nZoomPercent < 1) {
+            nZoomPercent = 1;
+        }
+        SetZoomPercent(nZoomPercent); 
+        SendEvent(kEventZoom, (WPARAM)nZoomPercent, 0);
     }
 }
 

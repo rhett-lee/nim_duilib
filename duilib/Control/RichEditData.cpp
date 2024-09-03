@@ -127,6 +127,7 @@ void RichEditData::CheckCalcTextRects()
     if (m_bCacheDirty) {
         CalcTextRects();
         SetCacheDirty(false);
+        m_pRichTextData->OnTextRectsChanged();
     }
 }
 

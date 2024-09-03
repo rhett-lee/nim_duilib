@@ -1573,7 +1573,11 @@ void RichEdit::HandleEvent(const EventArgs& msg)
             int32_t nNum = 0;
             int32_t nDen = 0;
             m_richCtrl.GetZoom(nNum, nDen);
-            SendEvent(kEventZoom, (WPARAM)nNum, (LPARAM)nDen);
+            uint32_t nZoomPercent = 100;
+            if ((nNum > 0) && (nDen > 0)) {
+                nZoomPercent = nNum * 100 / nDen;
+            }
+            SendEvent(kEventZoom, (WPARAM)nZoomPercent, 0);
         }
         else {
             ScrollBox::HandleEvent(msg);

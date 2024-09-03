@@ -321,7 +321,7 @@ namespace ui
         kEventExpand,               //TreeNode类：当树节点展开时触发
         kEventCollapse,             //TreeNode类：当树节点收起时触发
 
-        kEventZoom,                 //RichEdit类：当缩放比例发生变化时，按缩放比例分子/分母显示的缩放：1/64 < (wParam / lParam) < 64
+        kEventZoom,                 //RichEdit类：当缩放比例发生变化时，wParam表示缩放百分比，比如200表示200%
         kEventTextChange,           //RichEdit类：当文本内容发生变化时触发
         kEventSelChange,            //ListCtrl类：选择项发生变化，RichEdit类：当文本选择内容发生变化时触发
         kEventReturn,               //ListCtrl、VirtualListBox、ListBoxItem、RichEdit类：当收到回车键时触发

@@ -45,6 +45,13 @@ public:
     */
     IFont* GetIFont(const DString& fontId, const DpiManager& dpi);
 
+    /** 获取字体接口, 如果通过fontId找不到字体接口，那么会继续查找m_defaultFontId字体接口
+    * @param [in] fontId 字体ID
+    * @param [in] nZoomPercent 字体大小缩放百分比，用于对字体大小进行缩放，举例：100代表100%，200代表200%
+    * @return 成功返回字体接口，外部调用不需要释放资源；如果失败则返回nullptr
+    */
+    IFont* GetIFont(const DString& fontId, uint32_t nZoomPercent);
+
     /** 删除所有字体, 不包含已经加载的字体文件
      */
     void RemoveAllFonts();
@@ -86,7 +93,7 @@ public:
 private:
     /** 获取DPI缩放后实际的字体ID
     */
-    DString GetDpiFontId(const DString& fontId, const DpiManager& dpi) const;
+    DString GetDpiFontId(const DString& fontId, uint32_t nZoomPercent) const;
 
 private:
     /** 自定义字体数据：Key时FontID，Value是字体描述信息
