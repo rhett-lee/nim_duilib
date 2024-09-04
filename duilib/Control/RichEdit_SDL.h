@@ -720,6 +720,14 @@ protected:
     */
     virtual void OnTextRectsChanged() override;
 
+    /** 获取文本水平对齐方式
+    */
+    virtual HorAlignType GetTextHAlignType() const override;
+
+    /** 获取文本垂直对齐方式
+    */
+    virtual VerAlignType GetTextVAlignType() const override;
+
 private:
     void OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bShiftDown);
     void OnLButtonUp(const UiPoint& ptMouse, Control* pSender);

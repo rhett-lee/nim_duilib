@@ -38,6 +38,14 @@ public:
     /** 文字区域已经重新计算过的事件
     */
     virtual void OnTextRectsChanged() = 0;
+
+    /** 获取文本水平对齐方式
+    */
+    virtual HorAlignType GetTextHAlignType() const = 0;
+
+    /** 获取文本垂直对齐方式
+    */
+    virtual VerAlignType GetTextVAlignType() const = 0;
 };
 
 class RichEditData
@@ -285,6 +293,18 @@ public:
     */
     void SetCacheDirty(bool bDirty);
 
+    /** 获取文本所占的矩形范围
+    */
+    const UiRect& GetTextRect() const;
+
+    /** 获取纵向对齐的偏移量
+    */
+    int32_t GetTextRectOfssetY() const;
+
+    /** 检查并按需重新计算文本区域
+    */
+    void CheckCalcTextRects();
+
 private:
     /** 将内部坐标转换为外部坐标
     */
@@ -314,9 +334,13 @@ private:
     */
     void AddToUndoList(int32_t nStartChar, const DStringW& newText, const DStringW& oldText);
 
-    /** 检查并按需重新计算文本区域
+    /** 从缓存中计算文本所占的矩形区域
     */
-    void CheckCalcTextRects();
+    void CalcCacheTextRects(UiRect& rcTextRect);
+
+    /** 按对齐方式，更新每行文本的纵坐标
+    */
+    void UpdateRowTextOffsetY(RichTextLineInfoList& lineTextInfo, int32_t nOffsetY) const;
 
     /** 计算文本的区域信息（全部重新计算）
     */
@@ -415,6 +439,10 @@ private:
     /** 文本绘制区域
     */
     UiRect m_rcTextDrawRect;
+
+    /** 文本所占的区域
+    */
+    UiRect m_rcTextRect;
 
     /** 文本的滚动条位置
     */

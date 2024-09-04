@@ -1325,13 +1325,21 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 
     Control::Paint(pRender, rcPaint);
 
+    UiRect rcDrawText = GetTextDrawRect(GetRect());
+    if (rcDrawText.IsEmpty()) {
+        //绘制区域为空，不绘制
+        return;
+    }
+
+    //检查并按需重新计算文本区域
+    m_pTextData->CheckCalcTextRects();
+
     //绘制当前编辑行的背景色
     PaintCurrentRowBkColor(pRender, rcPaint);
 
     //绘制文字
     std::vector<RichTextData> richTextDataList;
     GetRichTextForDraw(richTextDataList);
-    UiRect rcDrawText = GetTextDrawRect(GetRect());
     UiSize szScrollOffset = GetScrollOffset();
 
     std::shared_ptr<DrawRichTextCache> spDrawRichTextCache = m_pTextData->GetDrawRichTextCache();
@@ -1348,6 +1356,8 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 
     //绘制文字
     if (spDrawRichTextCache != nullptr) {
+        //通过缓存绘制
+        rcDrawText.Offset(0, m_pTextData->GetTextRectOfssetY());
         pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, (uint8_t)GetAlpha());
     }
     else if(!richTextDataList.empty()){
@@ -1359,11 +1369,10 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         ASSERT(spDrawRichTextCache != nullptr);
         if (spDrawRichTextCache != nullptr) {
             ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache));
+            //通过缓存绘制
+            rcDrawText.Offset(0, m_pTextData->GetTextRectOfssetY());
             pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, (uint8_t)GetAlpha());
             m_pTextData->SetDrawRichTextCache(spDrawRichTextCache);
-        }
-        else {
-            pRender->DrawRichText(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, (uint8_t)GetAlpha());
         }
     }
 
@@ -2573,6 +2582,16 @@ void RichEdit::OnTextRectsChanged()
         SetCaretPos(nSelStartChar);
         EnsureCharVisible(nSelStartChar);
     }
+}
+
+HorAlignType RichEdit::GetTextHAlignType() const
+{
+    return GetHAlignType();
+}
+
+VerAlignType RichEdit::GetTextVAlignType() const
+{
+    return GetVAlignType();
 }
 
 UiSize RichEdit::EstimateText(UiSize szAvailable)
@@ -3962,6 +3981,12 @@ void RichEdit::OnInputChar(const EventArgs& msg)
         m_pTextData->ReplaceText(nSelStartChar, nSelEndChar, text, true);
         int32_t nNewSelChar = nSelStartChar + (int32_t)text.size();
         InternalSetSel(nNewSelChar, nNewSelChar);
+
+        //更新滚动条
+        SetPos(GetPos());
+
+        //确保光标可见
+        EnsureCharVisible(nNewSelChar);
     }
 }
 

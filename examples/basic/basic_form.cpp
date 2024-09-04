@@ -41,7 +41,7 @@ void BasicForm::OnInitWindow()
     text = (const char*)fileData.data();
 #endif
     ui::RichEdit* pEdit = (ui::RichEdit*)FindControl(L"RichEdit");
-    pEdit->SetText(text);
+    //pEdit->SetText(text);
 
     __super::OnInitWindow();
 

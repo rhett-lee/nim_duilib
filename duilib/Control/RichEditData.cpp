@@ -86,20 +86,7 @@ UiRect RichEditData::EstimateTextDisplayBounds(const UiRect& rcAvailable)
     if (rcAvailable.Width() == rcAvailable.Width()) {
         //检查并计算字符位置
         CheckCalcTextRects();
-
-        UiRectF rowRects;
-        for (RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
-            ASSERT(pLineInfo != nullptr);
-            const size_t nRowCount = pLineInfo->m_rowInfo.size();
-            for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
-                const UiRectF& rowRect = pLineInfo->m_rowInfo[nRow]->m_rowRect;
-                rowRects.Union(rowRect);
-            }
-        }
-        rect.left = (int32_t)rowRects.left;
-        rect.right = (int32_t)(std::ceilf(rowRects.right));
-        rect.top = (int32_t)rowRects.top;
-        rect.bottom = (int32_t)(std::ceilf(rowRects.bottom));       
+        rect = GetTextRect();
     }
     else {
         //重新估算
@@ -121,6 +108,76 @@ UiRect RichEditData::EstimateTextDisplayBounds(const UiRect& rcAvailable)
     return rect;
 }
 
+void RichEditData::CalcCacheTextRects(UiRect& rcTextRect)
+{
+    rcTextRect.Clear();
+    UiRectF rowRects;
+    for (RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
+        ASSERT(pLineInfo != nullptr);
+        const size_t nRowCount = pLineInfo->m_rowInfo.size();
+        for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
+            const UiRectF& rowRect = pLineInfo->m_rowInfo[nRow]->m_rowRect;
+            rowRects.Union(rowRect);
+        }
+    }
+    rcTextRect.left = (int32_t)rowRects.left;
+    rcTextRect.right = (int32_t)(std::ceilf(rowRects.right));
+    rcTextRect.top = (int32_t)rowRects.top;
+    rcTextRect.bottom = (int32_t)(std::ceilf(rowRects.bottom));
+}
+
+void RichEditData::UpdateRowTextOffsetY(RichTextLineInfoList& lineTextInfo, int32_t nOffsetY) const
+{
+    float fRowHeight = 0;
+    float fLastRowBottom = 0;    
+    bool bFirstRow = true;
+    for (RichTextLineInfoPtr& pLineInfo : lineTextInfo) {
+        ASSERT(pLineInfo != nullptr);
+        const size_t nRowCount = pLineInfo->m_rowInfo.size();
+        for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
+            UiRectF& rowRect = pLineInfo->m_rowInfo[nRow]->m_rowRect;
+            if (bFirstRow) {
+                //第一行
+                fRowHeight = rowRect.Height();
+                rowRect.top = (float)nOffsetY;
+                rowRect.bottom = rowRect.top + fRowHeight;
+                fLastRowBottom = rowRect.bottom;
+                bFirstRow = false;
+            }
+            else {
+                fRowHeight = rowRect.Height();
+                rowRect.top = fLastRowBottom;
+                rowRect.bottom = rowRect.top + fRowHeight;
+                fLastRowBottom = rowRect.bottom;
+            }
+        }
+    }
+}
+
+int32_t RichEditData::GetTextRectOfssetY() const
+{
+    int32_t yOffset = 0;
+    if (m_rcTextRect.Height() < m_rcTextDrawRect.Height()) {
+        VerAlignType vAlignType = m_pRichTextData->GetTextVAlignType();
+        if (vAlignType == VerAlignType::kVerAlignCenter) {
+            //居中对齐
+            int32_t nDiff = m_rcTextDrawRect.Height() - m_rcTextRect.Height();
+            yOffset = nDiff / 2;
+        }
+        else if (vAlignType == VerAlignType::kVerAlignBottom) {
+            //底部对齐
+            int32_t nDiff = m_rcTextDrawRect.Height() - m_rcTextRect.Height();
+            yOffset = nDiff;
+        }
+    }    
+    return yOffset;
+}
+
+const UiRect& RichEditData::GetTextRect() const
+{
+    return m_rcTextRect;
+}
+
 void RichEditData::CheckCalcTextRects()
 {
     SetTextDrawRect(m_pRichTextData->GetRichTextDrawRect(), true);
@@ -139,6 +196,7 @@ void RichEditData::CalcTextRects()
         ASSERT(pLineInfo != nullptr);
         pLineInfo->m_rowInfo.clear();
     }
+    m_rcTextRect.Clear();
 
     ASSERT(m_pRender != nullptr);
     if (m_pRender == nullptr) {
@@ -187,6 +245,12 @@ void RichEditData::CalcTextRects()
     m_spDrawRichTextCache.reset();
     m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam, m_spDrawRichTextCache, nullptr);
     SetTextDrawRect(rcDrawText, false);
+    CalcCacheTextRects(m_rcTextRect);
+
+    int32_t nOffsetY = GetTextRectOfssetY();
+    if (nOffsetY > 0) {
+        UpdateRowTextOffsetY(m_lineTextInfo, nOffsetY);
+    }    
 }
 
 void RichEditData::CalcTextRects(size_t nStartLine,
@@ -315,6 +379,7 @@ void RichEditData::CalcTextRects(size_t nStartLine,
 
     //绘制后，增量绘制后的行高数据           
     UpdateRowInfo(nStartLine);
+    UpdateRowTextOffsetY(m_lineTextInfo, 0);
 
     //更新绘制缓存
     if (m_spDrawRichTextCache != nullptr) {
@@ -334,6 +399,12 @@ void RichEditData::CalcTextRects(size_t nStartLine,
         }
         //该数据已经交还给缓存，不能再使用
         richTextDataListAll.clear();
+    }
+    CalcCacheTextRects(m_rcTextRect);
+
+    const int32_t nOffsetY = GetTextRectOfssetY();
+    if (nOffsetY) {
+        UpdateRowTextOffsetY(m_lineTextInfo, nOffsetY);
     }
     
 #ifdef _DEBUG
@@ -359,6 +430,10 @@ void RichEditData::CalcTextRects(size_t nStartLine,
         lineInfoParam2.m_nStartLineIndex = 0;
         lineInfoParam2.m_nStartRowIndex = 0;
         m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList2, &lineInfoParam2, spDrawRichTextCacheNew, nullptr);
+
+        if (nOffsetY > 0) {
+            UpdateRowTextOffsetY(lineTextInfoList, nOffsetY);
+        }
 
         //比较数据的一致性，增量绘制的结果，应该与完整绘制的结果相同
         ASSERT(lineTextInfoList.size() == m_lineTextInfo.size());
@@ -678,7 +753,6 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     size_t nNewLineCount = 0;
     for (const std::wstring_view& textView : lineTextViewList) {
         if (!textView.empty()) {
-            ASSERT(textView.back() == L'\n');
             //插入新行
             RichTextLineInfoPtr lineTextInfo(new RichTextLineInfo);
             lineTextInfo->m_lineText = textView.data();
@@ -2059,6 +2133,7 @@ void RichEditData::Clear()
     RichTextLineInfoList lineTextInfo;
     m_lineTextInfo.swap(lineTextInfo);
     m_spDrawRichTextCache.reset();
+    m_rcTextRect.Clear();
     ClearUndoList();
     SetCacheDirty(true);
 }
