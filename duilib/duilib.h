@@ -31,6 +31,7 @@
 #include "Utils/Delegate.h"
 #include "Utils/StringUtil.h"
 #include "Utils/FilePath.h"
+#include "Utils/FileUtil.h"
 #include "Utils/FilePathUtil.h"
 #include "Utils/WinImplBase.h"
 #include "Utils/ShadowWnd.h"

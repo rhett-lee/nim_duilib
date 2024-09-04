@@ -28,6 +28,21 @@ void BasicForm::OnInitWindow()
         //pEdit->EnsureCharVisible(n);
         return true;
         });
+
+    std::vector<uint8_t> fileData;
+    ui::FileUtil::ReadFileData(ui::FilePath(L"D:\\1.h"), fileData);
+    fileData.push_back(0);
+    fileData.push_back(0);
+
+    DString text;
+#ifdef DUILIB_UNICODE    
+    text = ui::StringUtil::UTF8ToUTF16((const char*)fileData.data());
+#else
+    text = (const char*)fileData.data();
+#endif
+    ui::RichEdit* pEdit = (ui::RichEdit*)FindControl(L"RichEdit");
+    pEdit->SetText(text);
+
     __super::OnInitWindow();
 
 }

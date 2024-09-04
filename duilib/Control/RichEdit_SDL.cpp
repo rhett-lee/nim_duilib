@@ -669,24 +669,13 @@ std::string RichEdit::GetUTF8Text() const
 
 void RichEdit::SetText(const DString& strText)
 {
-    //TODO: 整理代码
-    DStringW text;
-#ifdef DUILIB_UNICODE
-    text = strText;
-            //#ifdef _DEBUG
-                    //目前内存占用情况：2MB的UTF16格式文本，Debug版本：占用约23MB的内存，Release版本：占用约12MB的内存。
-                    std::vector<uint8_t> fileData;
-                    FileUtil::ReadFileData(FilePath(L"D:\\1.h"), fileData);
-                    fileData.push_back(0);
-                    fileData.push_back(0);
-                    text = StringUtil::UTF8ToUTF16((const char*)fileData.data());
-            //#endif
+    //目前内存占用情况：2MB的UTF16格式文本，Debug版本：占用约23MB的内存，Release版本：占用约12MB的内存。
+#ifdef DUILIB_UNICODE   
+    bool bChanged = m_pTextData->SetText(strText);
 #else
-    text = StringUtil::UTF8ToUTF16(strText);
-#endif
-
+    DStringW text = StringUtil::UTF8ToUTF16(strText);
     bool bChanged = m_pTextData->SetText(text);
-
+#endif
     if (bChanged && IsInited()) {
         //重新计算字符区域
         Redraw();
@@ -834,8 +823,11 @@ int32_t RichEdit::InternalSetSel(int32_t nStartChar, int32_t nEndChar)
 
 void RichEdit::EnsureCharVisible(int32_t nCharIndex)
 {
-    UiPoint pt = PosFromChar(nCharIndex);
     UiRect rcDrawRect = GetTextDrawRect(GetRect());
+    if (rcDrawRect.IsEmpty()) {
+        return;
+    }
+    UiPoint pt = PosFromChar(nCharIndex);    
     if (!rcDrawRect.ContainsPt(pt)) {
         if (pt.y < rcDrawRect.top) {
             //向上滚动
@@ -3426,8 +3418,8 @@ bool RichEdit::OnKeyUp(const EventArgs& msg)
 
 bool RichEdit::OnChar(const EventArgs& msg)
 {
-    if ((msg.vkCode == kVK_RETURN) || (msg.vkCode == kVK_TAB)) {
-        //回车键和TAB键的处理逻辑，统一在KEYDOWN处理
+    if ((msg.vkCode == kVK_RETURN) || (msg.vkCode == kVK_TAB) || (msg.vkCode == kVK_DELETE) || (msg.vkCode == kVK_BACK)) {
+        //回车键, TAB键, 删除键，退格键的处理逻辑，统一在KEYDOWN处理
         return true;
     }
     //Number
@@ -3915,9 +3907,6 @@ void RichEdit::OnInputChar(const EventArgs& msg)
         return;
     }
 
-    //TODO: TEST
-    //DString s06 = GetTextRange(nSelStartChar, nSelStartChar + 1);
-
     DStringW text;
     text = (DStringW::value_type)msg.vkCode;
     if (msg.vkCode == kVK_RETURN) {
@@ -3970,31 +3959,9 @@ void RichEdit::OnInputChar(const EventArgs& msg)
     }
 
     if (bInputChar) {
-        DString s00 = GetTextRange(0, 1);
-        DString s01 = GetTextRange(0, 5);
-        DString s02 = GetTextRange(0, 10);
-        DString s03 = GetTextRange(0, 11);
-        DString s04 = GetTextRange(0, 12);
-        DString s05 = GetTextRange(0, 13);
-
-        DString sStart = GetTextRange(nSelStartChar, nSelStartChar + 1);
-        DString sEnd = GetTextRange(nSelEndChar, nSelEndChar + 1);
-        DString sStartEnd = GetTextRange(nSelStartChar, nSelEndChar);
-
-        DString s0 = GetTextRange(nSelStartChar, nSelStartChar + 6);
-        DString s1 = GetTextRange(nSelStartChar - 6, nSelStartChar);
-
-        DString textBefore = GetText();
-
         m_pTextData->ReplaceText(nSelStartChar, nSelEndChar, text, true);
         int32_t nNewSelChar = nSelStartChar + (int32_t)text.size();
         InternalSetSel(nNewSelChar, nNewSelChar);
-
-        DString textAfter = GetText();
-
-        DString s3 = GetTextRange(nNewSelChar, nNewSelChar + 6);
-        DString s4 = GetTextRange(nNewSelChar - 6, nNewSelChar);
-        DString s2 = s1 + s0;
     }
 }
 

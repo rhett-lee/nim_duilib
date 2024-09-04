@@ -987,6 +987,11 @@ UiPoint RichEditData::CaretPosFromChar(int32_t nCharIndex)
     //检查并计算字符位置
     CheckCalcTextRects();
 
+    if (m_rcTextDrawRect.IsEmpty()) {
+        //绘制区域为空
+        return UiPoint(m_rcTextDrawRect.left, m_rcTextDrawRect.top);
+    }
+
     UiPoint cursorPos;
     if (nCharIndex < 0) {
         cursorPos.x = 0;
