@@ -284,6 +284,10 @@ void RichEditData::CalcTextRects()
 
     UiRect rcDrawText = m_pRichTextData->GetRichTextDrawRect();    
     if (rcDrawText.IsEmpty()) {
+        std::vector<int32_t> temp;
+        m_rowXOffset.swap(temp);
+        m_bTextRectXOffsetUpdated = false;
+        m_bTextRectYOffsetUpdated = false;
         return;
     }
     //估算的时候，滚动条位置始终为(0,0)
@@ -390,6 +394,10 @@ void RichEditData::CalcTextRects(size_t nStartLine,
 
     UiRect rcDrawText = m_pRichTextData->GetRichTextDrawRect();
     if (rcDrawText.IsEmpty()) {
+        std::vector<int32_t> temp;
+        m_rowXOffset.swap(temp);
+        m_bTextRectXOffsetUpdated = false;
+        m_bTextRectYOffsetUpdated = false;
         return;
     }
 
@@ -699,6 +707,17 @@ bool RichEditData::FindLineTextPos(int32_t nStartChar, int32_t nEndChar,
     if ((nStartChar < 0) || (nEndChar < 0) || (nStartChar > nEndChar)) {
         return false;
     }
+    if (m_lineTextInfo.empty()) {
+        //当前为空
+        nStartLine = 0;
+        nEndLine = 0;
+        nStartCharLineOffset = 0;
+        nEndCharLineOffset = 0;
+        if ((nStartChar == 0) && (nEndChar == 0)) {
+            return true;
+        }
+        return false;
+    }
 
     constexpr const size_t nNotFound = (size_t)-1;
     nStartLine = nNotFound;                 //起始行
@@ -786,15 +805,22 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     std::wstring_view endLineTextView;   //结束行的剩余文本
     if (nStartLine == nEndLine) {
         //在相同行
-        const RichTextLineInfo& lineText = *m_lineTextInfo[nStartLine];
-        std::wstring_view textView(lineText.m_lineText.c_str(), lineText.m_nLineTextLen);
-        startLineTextView = textView.substr(0, nStartCharLineOffset); //保留到行首的文本
-        if (nEndCharLineOffset < textView.size()) {
-            endLineTextView = textView.substr(nEndCharLineOffset);        //保留到行尾的文本
-        }        
+        if (nStartLine < m_lineTextInfo.size()) {
+            const RichTextLineInfo& lineText = *m_lineTextInfo[nStartLine];
+            std::wstring_view textView(lineText.m_lineText.c_str(), lineText.m_nLineTextLen);
+            startLineTextView = textView.substr(0, nStartCharLineOffset); //保留到行首的文本
+            if (nEndCharLineOffset < textView.size()) {
+                endLineTextView = textView.substr(nEndCharLineOffset);        //保留到行尾的文本
+            }
+        }
     }
     else if (nEndLine > nStartLine) {
         //在不同行
+        ASSERT(nEndLine < m_lineTextInfo.size());
+        if (nEndLine >= m_lineTextInfo.size()) {
+            //错误
+            return false;
+        }
         for (size_t nIndex = nStartLine; nIndex <= nEndLine; ++nIndex) {
             const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
             std::wstring_view textView(lineText.m_lineText.c_str(), lineText.m_nLineTextLen);
@@ -860,7 +886,14 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
 
     if (!m_bCacheDirty && (!modifiedLines.empty() || !deletedLines.empty())) {
         //修改的行，需要重新计算(增量计算)
-        CalcTextRects(nStartLine, modifiedLines, deletedLines, nDeletedRows);
+        if (m_lineTextInfo.size() <= 1) {
+            //单行或者为空时，完整绘制
+            CalcTextRects();
+        }
+        else {
+            //多行模式时，使用增量绘制
+            CalcTextRects(nStartLine, modifiedLines, deletedLines, nDeletedRows);
+        }        
     }
     if (bCanUndo) {
         //生成撤销列表
@@ -1053,8 +1086,10 @@ RichTextRowInfoPtr RichEditData::GetCharRowInfo(int32_t nCharIndex, size_t& nSta
     size_t nLineRowIndex = 0;
     RichTextRowInfoPtr spRowInfo;
     if (GetCharLineRowIndex(nCharIndex, nLineNumber, nLineRowIndex, nStartCharRowOffset)) {
-        const RichTextLineInfo& lineTextInfo = *m_lineTextInfo[nLineNumber];
-        spRowInfo = lineTextInfo.m_rowInfo[nLineRowIndex];
+        if (nLineNumber < m_lineTextInfo.size()) {
+            const RichTextLineInfo& lineTextInfo = *m_lineTextInfo[nLineNumber];
+            spRowInfo = lineTextInfo.m_rowInfo[nLineRowIndex];
+        }
     }
     return spRowInfo;
 }
@@ -1159,6 +1194,58 @@ void RichEditData::UpdateRowInfo(size_t nDrawStartLineIndex)
     }
 }
 
+UiPoint RichEditData::PosForEmptyText() const
+{
+    UiRect rcDrawRect = m_pRichTextData->GetRichTextDrawRect();
+    HorAlignType hAlignType = m_pRichTextData->GetTextHAlignType();
+    VerAlignType vAlignType = m_pRichTextData->GetTextVAlignType();
+    UiPoint pt;
+    if (hAlignType == HorAlignType::kHorAlignCenter) {
+        pt.x = rcDrawRect.Width() / 2;
+    }
+    else if (hAlignType == HorAlignType::kHorAlignRight) {
+        pt.x = rcDrawRect.Width();
+    }
+    else {
+        pt.x = 0;
+    }
+
+    if (vAlignType == VerAlignType::kVerAlignCenter) {
+        const int32_t nRowHeight = m_pRichTextData->GetTextRowHeight();
+        if (rcDrawRect.Height() <= nRowHeight) {
+            pt.y = 0;
+        }
+        else {
+            pt.y = rcDrawRect.Height() / 2;
+            if (nRowHeight > 0) {
+                pt.y -= nRowHeight / 2;
+                if (pt.y < 0) {
+                    pt.y = 0;
+                }
+            }
+        }
+    }
+    else if (vAlignType == VerAlignType::kVerAlignBottom) {
+        const int32_t nRowHeight = m_pRichTextData->GetTextRowHeight();
+        if (rcDrawRect.Height() <= nRowHeight) {
+            pt.y = 0;
+        }
+        else {
+            pt.y = rcDrawRect.Height();
+            if (nRowHeight > 0) {
+                pt.y -= nRowHeight;
+                if (pt.y < 0) {
+                    pt.y = 0;
+                }
+            }
+        }
+    }
+    else {
+        pt.y = 0;
+    }
+    return pt;
+}
+
 UiPoint RichEditData::CaretPosFromChar(int32_t nCharIndex)
 {
     //检查并计算字符位置
@@ -1170,7 +1257,15 @@ UiPoint RichEditData::CaretPosFromChar(int32_t nCharIndex)
     }
 
     UiPoint cursorPos;
-    if (nCharIndex < 0) {
+    if (m_lineTextInfo.empty()) {
+        //空文本
+        cursorPos = PosForEmptyText();
+        if (m_pRichTextData->GetTextHAlignType() == HorAlignType::kHorAlignRight) {
+            cursorPos.x -= m_pRichTextData->GetTextCaretWidth();
+        }
+    }
+    else if (nCharIndex < 0) {
+        //无效参数
         cursorPos.x = 0;
         cursorPos.y = 0;
     }
@@ -1187,8 +1282,7 @@ UiPoint RichEditData::CaretPosFromChar(int32_t nCharIndex)
                 xPos += charInfo.CharWidth();
             }
             cursorPos.x = (int32_t)xPos;
-        }
-        
+        }        
         else {
             //取最后一个字符的右上角坐标
             spRowInfo = GetLastRowInfo();
@@ -1211,13 +1305,55 @@ UiPoint RichEditData::CaretPosFromChar(int32_t nCharIndex)
     return cursorPos;
 }
 
+UiRect RichEditData::GetCharRowRect(int32_t nCharIndex)
+{
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
+    UiRect rowRect;
+    if (m_lineTextInfo.empty()) {
+        //空文本
+        if (nCharIndex == 0) {
+            const int32_t nRowHeight = m_pRichTextData->GetTextRowHeight();
+            const UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+            UiPoint pt = PosForEmptyText();
+            rowRect.left = 0;
+            rowRect.right = rc.Width();
+            rowRect.top = pt.y;
+            rowRect.bottom = rowRect.top + nRowHeight;
+        }
+    }
+    else {
+        size_t nStartCharRowOffset = 0;
+        RichTextRowInfoPtr spRowInfo = GetCharRowInfo(nCharIndex, nStartCharRowOffset);
+        if (spRowInfo != nullptr) {
+            const RichTextRowInfo& rowInfo = *spRowInfo;
+            const UiRectF& rowRectF = rowInfo.m_rowRect;
+            UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+            rowRect.left = 0;
+            rowRect.right = std::max(rc.Width(), (int32_t)rowRectF.Width());
+            rowRect.top = (int32_t)rowRectF.top;
+            rowRect.bottom = (int32_t)std::ceilf(rowRectF.bottom);
+        }
+    }
+
+    //转换为外部坐标
+    ConvertToExternal(rowRect);
+    return rowRect;
+}
+
 UiPoint RichEditData::PosFromChar(int32_t nCharIndex)
 {
     //检查并计算字符位置
     CheckCalcTextRects();
 
     UiPoint pt;
-    if (nCharIndex < 0) {
+    if (m_lineTextInfo.empty()) {
+        //空文本
+        pt = PosForEmptyText();
+    }
+    else if (nCharIndex < 0) {
+        //无效参数
         pt.x = 0;
         pt.y = 0;
     }
@@ -1891,36 +2027,12 @@ int32_t RichEditData::GetCharWidthValue(int32_t nCharIndex)
     RichTextRowInfoPtr spRowInfo = GetCharRowInfo(nCharIndex, nStartCharRowOffset);
     if (spRowInfo != nullptr) {
         const RichTextRowInfo& rowInfo = *spRowInfo;
-        ASSERT(nStartCharRowOffset < rowInfo.m_charInfo.size());
+        ASSERT(nStartCharRowOffset <= rowInfo.m_charInfo.size());
         if (nStartCharRowOffset < rowInfo.m_charInfo.size()) {
             nCharWidth = (int32_t)std::ceilf(rowInfo.m_charInfo[nStartCharRowOffset].CharWidth());
         }
     }
     return nCharWidth;
-}
-
-UiRect RichEditData::GetCharRowRect(int32_t nCharIndex)
-{
-    //检查并计算字符位置
-    CheckCalcTextRects();
-
-    size_t nStartCharRowOffset = 0;
-    RichTextRowInfoPtr spRowInfo = GetCharRowInfo(nCharIndex, nStartCharRowOffset);
-
-    UiRect rowRect;    
-    if (spRowInfo != nullptr) {
-        const RichTextRowInfo& rowInfo = *spRowInfo;
-        const UiRectF& rowRectF = rowInfo.m_rowRect;
-        UiRect rc = m_pRichTextData->GetRichTextDrawRect();
-        rowRect.left = 0;
-        rowRect.right = std::max(rc.Width(), (int32_t)rowRectF.Width());
-        rowRect.top = (int32_t)rowRectF.top;
-        rowRect.bottom = (int32_t)std::ceilf(rowRectF.bottom);
-    }
-    
-    //转换为外部坐标
-    ConvertToExternal(rowRect);
-    return rowRect;
 }
 
 void RichEditData::GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::map<int32_t, UiRectF>& rowTextRectFs)

@@ -728,6 +728,14 @@ protected:
     */
     virtual VerAlignType GetTextVAlignType() const override;
 
+    /** 获取行高值
+    */
+    virtual int32_t GetTextRowHeight() const override;
+
+    /** 获取光标的宽度
+    */
+    virtual int32_t GetTextCaretWidth() const override;
+
 private:
     void OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bShiftDown);
     void OnLButtonUp(const UiPoint& ptMouse, Control* pSender);

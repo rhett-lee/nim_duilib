@@ -2390,7 +2390,6 @@ void RichEdit::SetFontIdInternal(const DString& fontId)
     ASSERT(m_nRowHeight > 0);
     int32_t nCaretHeight = fontRect.Height();
     int32_t nCaretWidth = Dpi().GetScaleInt(1);
-    nCaretHeight += Dpi().GetScaleInt(1);//光标的高度增加1个像素
     CreateCaret(nCaretWidth, nCaretHeight);
 
     //设置滚动条滚动一行的基本单位
@@ -2592,6 +2591,16 @@ HorAlignType RichEdit::GetTextHAlignType() const
 VerAlignType RichEdit::GetTextVAlignType() const
 {
     return GetVAlignType();
+}
+
+int32_t RichEdit::GetTextRowHeight() const
+{
+    return m_nRowHeight;
+}
+
+int32_t RichEdit::GetTextCaretWidth() const
+{
+    return m_iCaretWidth;
 }
 
 UiSize RichEdit::EstimateText(UiSize szAvailable)
@@ -3441,33 +3450,6 @@ bool RichEdit::OnChar(const EventArgs& msg)
         //回车键, TAB键, 删除键，退格键的处理逻辑，统一在KEYDOWN处理
         return true;
     }
-    //Number
-    if (IsNumberOnly()) {
-        if (msg.vkCode < '0' || msg.vkCode > '9') {
-            if (msg.vkCode == _T('-')) {
-                if (GetTextLength() > 0) {
-                    //不是第一个字符，禁止输入负号
-                    return true;
-                }
-                else if (GetMinNumber() >= 0) {
-                    //最小数字是0或者正数，禁止输入符号
-                    return true;
-                }
-            }
-            else {
-                return true;
-            }
-        }
-    }
-
-    //限制允许输入的字符
-    if (m_pLimitChars != nullptr) {
-        if (!IsInLimitChars((wchar_t)msg.vkCode)) {
-            //字符不在列表里面，禁止输入
-            return true;
-        }
-    }
-
     //输入一个字符
     OnInputChar(msg);
     return true;
@@ -3914,6 +3896,35 @@ void RichEdit::OnInputChar(const EventArgs& msg)
     if (!bInputChar || IsReadOnly() || !IsEnabled()) {
         //无需编辑文本 或者 禁止编辑文本
         return;
+    }
+
+    if ((msg.vkCode != kVK_DELETE) && (msg.vkCode != kVK_BACK)) {
+        if (IsNumberOnly()) {
+            //数字模式：只允许输入数字
+            if (msg.vkCode < '0' || msg.vkCode > '9') {
+                if (msg.vkCode == _T('-')) {
+                    if (GetTextLength() > 0) {
+                        //不是第一个字符，禁止输入负号
+                        return;
+                    }
+                    else if (GetMinNumber() >= 0) {
+                        //最小数字是0或者正数，禁止输入负号
+                        return;
+                    }
+                }
+                else {
+                    return;
+                }
+            }
+        }
+
+        //限制允许输入的字符
+        if (m_pLimitChars != nullptr) {
+            if (!IsInLimitChars((wchar_t)msg.vkCode)) {
+                //字符不在列表里面，禁止输入
+                return;
+            }
+        }
     }
 
     //输入字符

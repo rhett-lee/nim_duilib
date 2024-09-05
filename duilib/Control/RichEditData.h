@@ -46,6 +46,14 @@ public:
     /** 获取文本垂直对齐方式
     */
     virtual VerAlignType GetTextVAlignType() const = 0;
+
+    /** 获取行高值
+    */
+    virtual int32_t GetTextRowHeight() const = 0;
+
+    /** 获取光标的宽度
+    */
+    virtual int32_t GetTextCaretWidth() const = 0;
 };
 
 class RichEditData
@@ -418,6 +426,10 @@ private:
     * @param [in] nDrawStartLineIndex 从哪一行数据开始处理
     */
     void UpdateRowInfo(size_t nDrawStartLineIndex);
+
+    /** 获取空文本的光标位置
+    */
+    UiPoint PosForEmptyText() const;
 
 private:
     /** 将文本生成可绘制的格式的接口
