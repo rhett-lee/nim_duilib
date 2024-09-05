@@ -301,6 +301,10 @@ public:
     */
     int32_t GetTextRectOfssetY() const;
 
+    /** 获取横向对齐的偏移量（按逻辑行）
+    */
+    const std::vector<int32_t>& GetTextRowXOffset() const;
+
     /** 检查并按需重新计算文本区域
     */
     void CheckCalcTextRects();
@@ -341,6 +345,10 @@ private:
     /** 按对齐方式，更新每行文本的纵坐标
     */
     void UpdateRowTextOffsetY(RichTextLineInfoList& lineTextInfo, int32_t nOffsetY) const;
+
+    /** 按对齐方式，更新每行文本的横坐标
+    */
+    void UpdateRowTextOffsetX(RichTextLineInfoList& lineTextInfo, HorAlignType hAlignType, std::vector<int32_t>& rowXOffset, bool& bTextRectXOffsetUpdated) const;
 
     /** 计算文本的区域信息（全部重新计算）
     */
@@ -443,6 +451,18 @@ private:
     /** 文本所占的区域
     */
     UiRect m_rcTextRect;
+
+    /** 文本的纵向偏移是否有更新过（Y坐标）
+    */
+    bool m_bTextRectYOffsetUpdated;
+
+    /** 文本的横向偏移是否有更新过（X坐标）
+    */
+    bool m_bTextRectXOffsetUpdated;
+
+    /** 每行的横向偏移列表（逻辑行）
+    */
+    std::vector<int32_t> m_rowXOffset;
 
     /** 文本的滚动条位置
     */

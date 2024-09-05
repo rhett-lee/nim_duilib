@@ -1358,7 +1358,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     if (spDrawRichTextCache != nullptr) {
         //通过缓存绘制
         rcDrawText.Offset(0, m_pTextData->GetTextRectOfssetY());
-        pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, (uint8_t)GetAlpha());
+        pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, m_pTextData->GetTextRowXOffset(), (uint8_t)GetAlpha());
     }
     else if(!richTextDataList.empty()){
         spDrawRichTextCache.reset();
@@ -1371,7 +1371,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
             ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache));
             //通过缓存绘制
             rcDrawText.Offset(0, m_pTextData->GetTextRectOfssetY());
-            pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, (uint8_t)GetAlpha());
+            pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, m_pTextData->GetTextRowXOffset(), (uint8_t)GetAlpha());
             m_pTextData->SetDrawRichTextCache(spDrawRichTextCache);
         }
     }

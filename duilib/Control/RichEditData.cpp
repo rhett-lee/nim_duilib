@@ -12,7 +12,9 @@ RichEditData::RichEditData(IRichTextData* pRichTextData):
     m_pRender(nullptr),
     m_pRenderFactory(nullptr),
     m_bCacheDirty(true),
-    m_nUndoLimit(64)
+    m_nUndoLimit(64),
+    m_bTextRectYOffsetUpdated(false),
+    m_bTextRectXOffsetUpdated(false)
 {
     ASSERT(pRichTextData != nullptr);
 
@@ -154,6 +156,56 @@ void RichEditData::UpdateRowTextOffsetY(RichTextLineInfoList& lineTextInfo, int3
     }
 }
 
+void RichEditData::UpdateRowTextOffsetX(RichTextLineInfoList& lineTextInfo, HorAlignType hAlignType, std::vector<int32_t>& rowXOffset, bool& bTextRectXOffsetUpdated) const
+{
+    rowXOffset.clear();
+    if (!bTextRectXOffsetUpdated && (hAlignType == HorAlignType::kHorAlignLeft)) {
+        //无需更新
+        return;
+    }
+    bTextRectXOffsetUpdated = false;
+    const int32_t nDrawRectWidth = m_rcTextDrawRect.Width();//矩形总宽度
+    for (RichTextLineInfoPtr& pLineInfo : lineTextInfo) {
+        ASSERT(pLineInfo != nullptr);
+        const size_t nRowCount = pLineInfo->m_rowInfo.size();
+        for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
+            RichTextRowInfo& rowInfo = *pLineInfo->m_rowInfo[nRow];
+            UiRectF& rowRect = rowInfo.m_rowRect;
+            if (rowInfo.m_xOffset > 0) {
+                //恢复
+                rowRect.Offset(-(float)rowInfo.m_xOffset, 0.0f);
+                rowInfo.m_xOffset = 0;
+            }
+            if (rowRect.Width() < nDrawRectWidth) {
+                if (hAlignType == HorAlignType::kHorAlignCenter) {
+                    //居中对齐
+                    float diff = nDrawRectWidth - rowRect.Width();
+                    rowInfo.m_xOffset = (int32_t)(diff / 2);
+                    if (rowInfo.m_xOffset > 0) {
+                        rowRect.Offset((float)rowInfo.m_xOffset, 0.0f);
+                        bTextRectXOffsetUpdated = true;
+                    }
+                }
+                else if (hAlignType == HorAlignType::kHorAlignRight) {
+                    //靠右对齐
+                    float diff = nDrawRectWidth - rowRect.Width();
+                    rowInfo.m_xOffset = (int32_t)diff;
+                    if (rowInfo.m_xOffset > 0) {
+                        rowRect.Offset((float)rowInfo.m_xOffset, 0.0f);
+                        bTextRectXOffsetUpdated = true;
+                    }
+                }
+            }
+            ASSERT(rowInfo.m_xOffset >= 0);
+            rowXOffset.push_back(rowInfo.m_xOffset);
+        }
+    }
+    if (!bTextRectXOffsetUpdated) {
+        std::vector<int32_t> temp;
+        rowXOffset.swap(temp);
+    }
+}
+
 int32_t RichEditData::GetTextRectOfssetY() const
 {
     int32_t yOffset = 0;
@@ -171,6 +223,11 @@ int32_t RichEditData::GetTextRectOfssetY() const
         }
     }    
     return yOffset;
+}
+
+const std::vector<int32_t>& RichEditData::GetTextRowXOffset() const
+{
+    return m_rowXOffset;
 }
 
 const UiRect& RichEditData::GetTextRect() const
@@ -247,10 +304,14 @@ void RichEditData::CalcTextRects()
     SetTextDrawRect(rcDrawText, false);
     CalcCacheTextRects(m_rcTextRect);
 
+    m_bTextRectYOffsetUpdated = false;    
     int32_t nOffsetY = GetTextRectOfssetY();
     if (nOffsetY > 0) {
         UpdateRowTextOffsetY(m_lineTextInfo, nOffsetY);
-    }    
+        m_bTextRectYOffsetUpdated = true;
+    }
+
+    UpdateRowTextOffsetX(m_lineTextInfo, m_pRichTextData->GetTextHAlignType(), m_rowXOffset, m_bTextRectXOffsetUpdated);
 }
 
 void RichEditData::CalcTextRects(size_t nStartLine,
@@ -379,8 +440,11 @@ void RichEditData::CalcTextRects(size_t nStartLine,
 
     //绘制后，增量绘制后的行高数据           
     UpdateRowInfo(nStartLine);
-    UpdateRowTextOffsetY(m_lineTextInfo, 0);
-
+    if (m_bTextRectYOffsetUpdated) {
+        UpdateRowTextOffsetY(m_lineTextInfo, 0);
+    }
+    UpdateRowTextOffsetX(m_lineTextInfo, HorAlignType::kHorAlignLeft, m_rowXOffset, m_bTextRectXOffsetUpdated);
+    
     //更新绘制缓存
     if (m_spDrawRichTextCache != nullptr) {
         std::vector<int32_t> rowRectTopList;
@@ -402,10 +466,13 @@ void RichEditData::CalcTextRects(size_t nStartLine,
     }
     CalcCacheTextRects(m_rcTextRect);
 
+    m_bTextRectYOffsetUpdated = false;
     const int32_t nOffsetY = GetTextRectOfssetY();
-    if (nOffsetY) {
+    if (nOffsetY > 0) {
         UpdateRowTextOffsetY(m_lineTextInfo, nOffsetY);
+        m_bTextRectYOffsetUpdated = true;
     }
+    UpdateRowTextOffsetX(m_lineTextInfo, m_pRichTextData->GetTextHAlignType(), m_rowXOffset, m_bTextRectXOffsetUpdated);
     
 #ifdef _DEBUG
     //比较与完整绘制时是否一致
@@ -434,6 +501,10 @@ void RichEditData::CalcTextRects(size_t nStartLine,
         if (nOffsetY > 0) {
             UpdateRowTextOffsetY(lineTextInfoList, nOffsetY);
         }
+
+        std::vector<int32_t> rowXOffset;
+        bool bTextRectXOffsetUpdated = false;
+        UpdateRowTextOffsetX(lineTextInfoList, m_pRichTextData->GetTextHAlignType(), rowXOffset, bTextRectXOffsetUpdated);
 
         //比较数据的一致性，增量绘制的结果，应该与完整绘制的结果相同
         ASSERT(lineTextInfoList.size() == m_lineTextInfo.size());
@@ -2134,6 +2205,12 @@ void RichEditData::Clear()
     m_lineTextInfo.swap(lineTextInfo);
     m_spDrawRichTextCache.reset();
     m_rcTextRect.Clear();
+
+    std::vector<int32_t> temp;
+    m_rowXOffset.swap(temp);
+    m_bTextRectXOffsetUpdated = false;
+    m_bTextRectYOffsetUpdated = false;
+
     ClearUndoList();
     SetCacheDirty(true);
 }

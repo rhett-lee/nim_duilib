@@ -1970,6 +1970,7 @@ bool Render_Skia::IsDrawRichTextCacheEqual(const DrawRichTextCache& first, const
 void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,                                       
                                         const UiRect& rcNewTextRect,
                                         const UiSize& szNewScrollOffset,
+                                        const std::vector<int32_t>& rowXOffset,
                                         uint8_t uFade)
 {
     PerformanceStat statPerformance(_T("Render_Skia::DrawRichTextCacheData"));
@@ -2002,6 +2003,13 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
         rcDestRect = textData.m_destRect;
         rcDestRect.Offset(rcNewTextRect.left, rcNewTextRect.top);
         rcDestRect.Offset(-szNewScrollOffset.cx, -szNewScrollOffset.cy);
+        if (!rowXOffset.empty()) {
+            ASSERT(textData.m_nRowIndex < rowXOffset.size());
+            if ((textData.m_nRowIndex < rowXOffset.size()) && (rowXOffset[textData.m_nRowIndex] > 0)) {
+                rcDestRect.Offset(rowXOffset[textData.m_nRowIndex], 0);
+            }
+        }        
+
         if (!UiRect::Intersect(rcTemp, rcDestRect, rcTextRect)) {
             continue;
         }
