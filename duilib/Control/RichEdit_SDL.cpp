@@ -3978,15 +3978,18 @@ void RichEdit::OnInputChar(const EventArgs& msg)
     }
 
     if (bInputChar) {
-        m_pTextData->ReplaceText(nSelStartChar, nSelEndChar, text, true);
-        int32_t nNewSelChar = nSelStartChar + (int32_t)text.size();
-        InternalSetSel(nNewSelChar, nNewSelChar);
+        bool bRet = m_pTextData->ReplaceText(nSelStartChar, nSelEndChar, text, true);
+        ASSERT(bRet);
+        if (bRet) {
+            int32_t nNewSelChar = nSelStartChar + (int32_t)text.size();
+            InternalSetSel(nNewSelChar, nNewSelChar);
 
-        //更新滚动条
-        SetPos(GetPos());
+            //更新滚动条
+            SetPos(GetPos());
 
-        //确保光标可见
-        EnsureCharVisible(nNewSelChar);
+            //确保光标可见
+            EnsureCharVisible(nNewSelChar);
+        }        
     }
 }
 

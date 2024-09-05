@@ -728,6 +728,21 @@ bool RichEditData::FindLineTextPos(int32_t nStartChar, int32_t nEndChar,
         if ((nStartLine != nNotFound) && (nEndLine != nNotFound)) {
             break;
         }
+        if (nIndex == (nLineCount - 1)) {
+            //最后一行
+            if ((nStartChar == (int32_t)nTextLen) && (nStartLine == nNotFound)) {
+                nStartLine = nIndex;
+                nStartCharBaseLen = nTextLen - lineText.m_nLineTextLen;
+                nStartCharLineOffset = (size_t)nStartChar - nStartCharBaseLen;
+                ASSERT(nStartCharLineOffset == lineText.m_nLineTextLen);
+            }
+            if ((nEndChar == (int32_t)nTextLen) && (nEndLine == nNotFound)) {
+                nEndLine = nIndex;
+                nEndCharBaseLen = nTextLen - lineText.m_nLineTextLen;
+                nEndCharLineOffset = (size_t)nEndChar - nEndCharBaseLen;
+                ASSERT(nEndCharLineOffset == lineText.m_nLineTextLen);
+            }
+        }
     }
     if ((nStartLine != nNotFound) && (nEndLine != nNotFound) &&
         (nStartCharLineOffset != nNotFound) && (nEndCharLineOffset != nNotFound)) {
@@ -774,7 +789,9 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
         const RichTextLineInfo& lineText = *m_lineTextInfo[nStartLine];
         std::wstring_view textView(lineText.m_lineText.c_str(), lineText.m_nLineTextLen);
         startLineTextView = textView.substr(0, nStartCharLineOffset); //保留到行首的文本
-        endLineTextView = textView.substr(nEndCharLineOffset);        //保留到行尾的文本
+        if (nEndCharLineOffset < textView.size()) {
+            endLineTextView = textView.substr(nEndCharLineOffset);        //保留到行尾的文本
+        }        
     }
     else if (nEndLine > nStartLine) {
         //在不同行
@@ -787,7 +804,9 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
             }
             else if (nIndex == nEndLine) {
                 //末行，保留到行尾的文本
-                endLineTextView = textView.substr(nEndCharLineOffset);
+                if (nEndCharLineOffset < textView.size()) {
+                    endLineTextView = textView.substr(nEndCharLineOffset);
+                }
             }
         }
     }
@@ -978,13 +997,26 @@ bool RichEditData::GetCharLineRowIndex(int32_t nCharIndex, size_t& nLineNumber, 
                     //定位在本逻辑分行中
                     const size_t nStartCharBaseLen = nRowTextLen - rowInfo.m_charInfo.size();
                     bFound = true;
-                    nStartCharRowOffset = (size_t)nStartLineOffset - nStartCharBaseLen;                    
+                    nStartCharRowOffset = (size_t)nStartLineOffset - nStartCharBaseLen;
                     nLineNumber = nLineIndex;
                     nLineRowIndex = nRow;
                     break;
                 }
             }
             break;
+        }
+        else if ((nCharIndex == nTextLen) && (nLineIndex == (nLineCount - 1))) {
+            //最后一行的最后一个字符之后的位置
+            const size_t nRowCount = lineTextInfo.m_rowInfo.size();
+            ASSERT(nRowCount != 0);
+            if (nRowCount > 0) {
+                const RichTextRowInfo& rowInfo = *lineTextInfo.m_rowInfo[nRowCount - 1];                
+                nStartCharRowOffset = rowInfo.m_charInfo.size();
+                nLineNumber = nLineIndex;
+                nLineRowIndex = nRowCount - 1;
+                bFound = true;
+                break;
+            }
         }
     }
     return bFound;
@@ -1279,8 +1311,13 @@ int32_t RichEditData::CharFromPos(UiPoint pt)
                 //该行以回车+换行结尾: 指向回车字符
                 nCharPosIndex = (int32_t)(GetRowInfoStartIndex(spDestRow) + rowInfo.m_charInfo.size() - 2);
             }
-            else {
+            if ((nCharCount >= 1) && rowInfo.m_charInfo[nCharCount - 1].IsNewLine()) {
+                //该行以换行结尾: 指向换行字符
                 nCharPosIndex = (int32_t)(GetRowInfoStartIndex(spDestRow) + rowInfo.m_charInfo.size() - 1);
+            }
+            else {
+                //本行结尾无回车和换行符，指向该字符后面
+                nCharPosIndex = (int32_t)(GetRowInfoStartIndex(spDestRow) + rowInfo.m_charInfo.size());
             }
         }
         else if ((nCharCount == 2) && rowInfo.m_charInfo[nCharCount - 1].IsNewLine() && rowInfo.m_charInfo[nCharCount - 2].IsReturn()) {
