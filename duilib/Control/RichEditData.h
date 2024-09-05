@@ -431,6 +431,11 @@ private:
     */
     UiPoint PosForEmptyText() const;
 
+    /** 适合业务逻辑的Union函数
+    */
+    void UnionRect(UiRect& rect, const UiRect& r) const;
+    void UnionRectF(UiRectF& rect, const UiRectF& r) const;
+
 private:
     /** 将文本生成可绘制的格式的接口
     */

@@ -67,6 +67,84 @@ void RichEditData::SetVAlignType(VerAlignType vAlignType)
     }
 }
 
+void RichEditData::UnionRect(UiRect& rect, const UiRect& r) const
+{
+    if ((r.left >= r.right) && (r.top >= r.bottom)) {
+        //r是空矩形
+        return;
+    }
+    if ((rect.left >= rect.right) && (rect.top >= rect.bottom)) {
+        //自己是空矩形
+        rect = r;
+    }
+    else {
+        //按横向和纵向分别合并矩形
+        if (r.right > r.left) {
+            if (rect.right > rect.left) {
+                //两个都不是空
+                rect.left = (std::min)(rect.left, r.left);
+                rect.top = (std::min)(rect.top, r.top);
+            }
+            else {
+                //自己是空
+                rect.left = r.left;
+                rect.top  = r.top;
+            }
+        }
+        if (r.bottom > r.top) {
+            if (rect.bottom > rect.top) {
+                //两个都不是空
+                rect.right = (std::max)(rect.right, r.right);
+                rect.bottom = (std::max)(rect.bottom, r.bottom);
+            }
+            else {
+                //自己是空
+                rect.right = r.right;
+                rect.bottom = r.bottom;
+            }
+        }
+    }
+}
+
+void RichEditData::UnionRectF(UiRectF& rect, const UiRectF& r) const
+{
+    if ((r.left >= r.right) && (r.top >= r.bottom)) {
+        //r是空矩形
+        return;
+    }
+    if ((rect.left >= rect.right) && (rect.top >= rect.bottom)) {
+        //自己是空矩形
+        rect = r;
+    }
+    else {
+        //按横向和纵向分别合并矩形
+        if (r.right > r.left) {
+            if (rect.right > rect.left) {
+                //两个都不是空
+                rect.left = (std::min)(rect.left, r.left);
+                rect.top = (std::min)(rect.top, r.top);
+            }
+            else {
+                //自己是空
+                rect.left = r.left;
+                rect.top = r.top;
+            }
+        }
+        if (r.bottom > r.top) {
+            if (rect.bottom > rect.top) {
+                //两个都不是空
+                rect.right = (std::max)(rect.right, r.right);
+                rect.bottom = (std::max)(rect.bottom, r.bottom);
+            }
+            else {
+                //自己是空
+                rect.right = r.right;
+                rect.bottom = r.bottom;
+            }
+        }
+    }
+}
+
 UiRect RichEditData::EstimateTextDisplayBounds(const UiRect& rcAvailable)
 {
     UiRect rect;
@@ -95,13 +173,21 @@ UiRect RichEditData::EstimateTextDisplayBounds(const UiRect& rcAvailable)
         std::vector<std::wstring_view> textView;
         GetTextView(textView);
         if (!textView.empty()) {
+            bool bFirst = true;
             std::vector<RichTextData> richTextDataList;
             if (m_pRichTextData->GetRichTextForDraw(textView, richTextDataList)) {                
                 std::vector<std::vector<UiRect>> richTextRects;
                 m_pRender->MeasureRichText(rcAvailable, UiSize(), m_pRenderFactory, richTextDataList, &richTextRects);
                 for (const std::vector<UiRect>& data : richTextRects) {
                     for (const UiRect& textRect : data) {
-                        rect.Union(textRect);
+                        if (bFirst) {
+                            //第一个
+                            rect = textRect;
+                            bFirst = false;
+                        }
+                        else {
+                            UnionRect(rect, textRect);
+                        }                        
                     }
                 }
             }
@@ -114,12 +200,19 @@ void RichEditData::CalcCacheTextRects(UiRect& rcTextRect)
 {
     rcTextRect.Clear();
     UiRectF rowRects;
+    bool bFirst = true;
     for (RichTextLineInfoPtr& pLineInfo : m_lineTextInfo) {
         ASSERT(pLineInfo != nullptr);
         const size_t nRowCount = pLineInfo->m_rowInfo.size();
         for (size_t nRow = 0; nRow < nRowCount; ++nRow) {
             const UiRectF& rowRect = pLineInfo->m_rowInfo[nRow]->m_rowRect;
-            rowRects.Union(rowRect);
+            if (bFirst) {
+                rowRects = rowRect;
+                bFirst = false;
+            }
+            else {
+                UnionRectF(rowRects, rowRect);
+            }
         }
     }
     rcTextRect.left = (int32_t)rowRects.left;
@@ -340,9 +433,13 @@ void RichEditData::CalcTextRects(size_t nStartLine,
         }
     }
     ASSERT(nStartLine != (size_t)-1);
-    ASSERT(nStartLine < m_lineTextInfo.size());
-    if (nStartLine >= m_lineTextInfo.size()) {
+    ASSERT(nStartLine <= m_lineTextInfo.size());
+    if (nStartLine > m_lineTextInfo.size()) {
         return;
+    }
+    if (nStartLine == m_lineTextInfo.size()) {
+        //删除最后一行的情况
+        ASSERT(modifiedLines.empty());
     }
 
     //绘制变化的数据，清空相关的行数据信息
@@ -446,8 +543,10 @@ void RichEditData::CalcTextRects(size_t nStartLine,
         }
     }
 
-    //绘制后，增量绘制后的行高数据           
-    UpdateRowInfo(nStartLine);
+    //绘制后，增量绘制后的行高数据
+    if (nStartLine < m_lineTextInfo.size()) {
+        UpdateRowInfo(nStartLine);
+    }    
     if (m_bTextRectYOffsetUpdated) {
         UpdateRowTextOffsetY(m_lineTextInfo, 0);
     }
@@ -2099,7 +2198,7 @@ void RichEditData::GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::
                     destRowRect = rowRectF;
                 }
                 else {
-                    destRowRect.Union(rowRectF);
+                    UnionRectF(destRowRect, rowRectF);
                 }
                 bEnd = true;
                 break;
@@ -2128,7 +2227,7 @@ void RichEditData::GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::
                     destRowRect = rowRectF;
                 }
                 else {
-                    destRowRect.Union(rowRectF);
+                    UnionRectF(destRowRect, rowRectF);
                 }
             }
             else if (bLastLine) {
@@ -2147,7 +2246,7 @@ void RichEditData::GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::
                     destRowRect = rowRectF;
                 }
                 else {
-                    destRowRect.Union(rowRectF);
+                    UnionRectF(destRowRect, rowRectF);
                 }
                 bEnd = true;
                 break;
@@ -2160,7 +2259,7 @@ void RichEditData::GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::
                     destRowRect = rowRectF;
                 }
                 else {
-                    destRowRect.Union(rowRectF);
+                    UnionRectF(destRowRect, rowRectF);
                 }
             }            
 
