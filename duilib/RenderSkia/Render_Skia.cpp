@@ -1750,8 +1750,10 @@ bool Render_Skia::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& sp
         }
     }
 
-    //更新缓存开始的元素下标值
+    //更新缓存开始的元素下标值    
     size_t nUpdateCacheStartIndex = (size_t)-1;
+    //是否将修改的内容追加到最后了
+    bool bAppendUpdateAtEnd = false;
     if (spUpdateDrawRichTextCache != nullptr) {
         DrawRichTextCache& updateData = *spUpdateDrawRichTextCache;
         if (!updateData.m_pendingTextData.empty()) {//容器可能为空（当本行为空行时为空）
@@ -1778,8 +1780,9 @@ bool Render_Skia::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& sp
                 }
             }
             if (nUpdateCacheStartIndex == (size_t)-1) {
-                //追加在最后
-                oldData.m_pendingTextData.insert(oldData.m_pendingTextData.end(), updateData.m_pendingTextData.begin(), updateData.m_pendingTextData.end());
+                //追加在最后, 行号（物理行号，逻辑行号）无需更新，因为增量绘制的时候已经设置了正确的值
+                bAppendUpdateAtEnd = true;
+                oldData.m_pendingTextData.insert(oldData.m_pendingTextData.end(), updateData.m_pendingTextData.begin(), updateData.m_pendingTextData.end());                
             }
         }
     }
@@ -1801,9 +1804,8 @@ bool Render_Skia::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& sp
                     bUpdateLineRows = true;
                 }
             }
-            else {
-                //无修改，只有删除的情况
-                ASSERT(modifiedLines.empty());
+            else if (!bAppendUpdateAtEnd) {
+                //无修改，只有删除；或者新修改的行只是空行的情况
                 if (pendingData.m_nLineNumber >= nStartLine) {
                     bUpdateLineRows = true;
                 }
