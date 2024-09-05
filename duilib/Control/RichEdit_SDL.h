@@ -921,6 +921,10 @@ private:
      */
     int32_t InternalSetSel(int32_t nStartChar, int32_t nEndChar);
 
+    /** 按字符数限制，截断文本
+    */
+    void TruncateLimitText(DStringW& text, int32_t nLimitLen) const;
+
 private:
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
     bool m_bWantReturn;         //是否接收回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键

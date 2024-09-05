@@ -1546,7 +1546,7 @@ int32_t RichEditData::CharFromPos(UiPoint pt)
                 //该行以回车+换行结尾: 指向回车字符
                 nCharPosIndex = (int32_t)(GetRowInfoStartIndex(spDestRow) + rowInfo.m_charInfo.size() - 2);
             }
-            if ((nCharCount >= 1) && rowInfo.m_charInfo[nCharCount - 1].IsNewLine()) {
+            else if ((nCharCount >= 1) && rowInfo.m_charInfo[nCharCount - 1].IsNewLine()) {
                 //该行以换行结尾: 指向换行字符
                 nCharPosIndex = (int32_t)(GetRowInfoStartIndex(spDestRow) + rowInfo.m_charInfo.size() - 1);
             }

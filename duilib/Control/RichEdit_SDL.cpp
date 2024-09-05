@@ -623,8 +623,30 @@ void RichEdit::SetLimitText(int32_t iChars)
         iChars = 0;
     }
     m_nLimitText = iChars;
-    //TODO: 限制总字符数的功能实现
+    if (m_nLimitText > 0) {
+        //有限制
+        int32_t nTextLen = GetTextLength();
+        if (nTextLen > m_nLimitText) {
+            //截断当前的文本
+            DStringW text = m_pTextData->GetText();
+            TruncateLimitText(text, m_nLimitText);
+            SetText(text);
+        }
+    }    
+}
 
+void RichEdit::TruncateLimitText(DStringW& text, int32_t nLimitLen) const
+{
+    if (nLimitLen <= 0) {
+        return;
+    }
+    if ((int32_t)text.size() > nLimitLen) {
+        DStringW::value_type ch = text.at(nLimitLen);
+        text.resize((size_t)nLimitLen);
+        if ((ch == L'\n') && (text.back() == L'\r')) {
+            text.pop_back();
+        }        
+    }
 }
 
 DString RichEdit::GetLimitChars() const
@@ -2067,35 +2089,9 @@ void RichEdit::OnTextChanged()
 {
     //设置已修改标志
     SetModify(true);
-
-    if (IsNumberOnly() && ((GetMinNumber() != INT_MIN) || (GetMaxNumber() != INT_MAX))) {
-        //数字模式，检查文本对应的数字是否在范围内
-        DString text = GetText();
-        if (!text.empty()) {
-            int64_t n = StringUtil::StringToInt64(text);
-            if (n < GetMinNumber()) {
-                //超过最小数字，进行修正
-                int32_t newValue = GetMinNumber();
-                SetTextNoEvent(StringUtil::Printf(_T("%d"), newValue));
-                if (!m_bDisableTextChangeEvent) {
-                    SendEvent(kEventTextChange);
-                }
-                return;
-            }
-            else if (n > GetMaxNumber()) {
-                //超过最大数字，进行修正
-                int32_t newValue = GetMaxNumber();
-                SetTextNoEvent(StringUtil::Printf(_T("%d"), newValue));
-                if (!m_bDisableTextChangeEvent) {
-                    SendEvent(kEventTextChange);
-                }
-                return;
-            }
-        }
-    }
     if (!m_bDisableTextChangeEvent) {
         SendEvent(kEventTextChange);
-    }    
+    }
 }
 
 bool RichEdit::SetSpinClass(const DString& spinClass)
@@ -3988,19 +3984,55 @@ void RichEdit::OnInputChar(const EventArgs& msg)
         return;
     }
 
-    if (bInputChar) {
-        bool bRet = m_pTextData->ReplaceText(nSelStartChar, nSelEndChar, text, true);
-        ASSERT(bRet);
-        if (bRet) {
-            int32_t nNewSelChar = nSelStartChar + (int32_t)text.size();
-            InternalSetSel(nNewSelChar, nNewSelChar);
+    if (!bInputChar) {
+        return;
+    }
 
-            //更新滚动条
-            SetPos(GetPos());
+    //是否检测数字模式
+    bool bCheckNumberOnly = IsNumberOnly() && ((GetMinNumber() != INT_MIN) || (GetMaxNumber() != INT_MAX));
+    DString oldText;
+    if (bCheckNumberOnly) {
+        oldText = GetText();
+    }
 
-            //确保光标可见
-            EnsureCharVisible(nNewSelChar);
-        }        
+    bool bRet = m_pTextData->ReplaceText(nSelStartChar, nSelEndChar, text, true);
+    ASSERT(bRet);
+    if (!bRet) {
+        return;
+    }
+    int32_t nNewSelChar = nSelStartChar + (int32_t)text.size();
+    InternalSetSel(nNewSelChar, nNewSelChar);
+
+    //更新滚动条
+    SetPos(GetPos());
+
+    //确保光标可见
+    EnsureCharVisible(nNewSelChar);
+
+    bool bTextChanged = true;
+    if (bCheckNumberOnly) {
+        //数字模式，检查文本对应的数字是否在范围内
+        DString newText = GetText();
+        if (!newText.empty()) {
+            int64_t n = StringUtil::StringToInt64(newText);
+            if (n < GetMinNumber()) {
+                //超过最小数字，进行修正
+                int32_t newValue = GetMinNumber();
+                SetTextNoEvent(StringUtil::Printf(_T("%d"), newValue));
+                bTextChanged = (oldText != GetText()) ? true : false;
+            }
+            else if (n > GetMaxNumber()) {
+                //超过最大数字，进行修正
+                int32_t newValue = GetMaxNumber();
+                SetTextNoEvent(StringUtil::Printf(_T("%d"), newValue));
+                bTextChanged = (oldText != GetText()) ? true : false;
+            }
+        }
+    }
+
+    //触发文本变化事件
+    if (bTextChanged) {
+        OnTextChanged();
     }
 }
 
