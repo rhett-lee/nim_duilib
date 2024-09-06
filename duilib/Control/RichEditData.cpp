@@ -5,7 +5,7 @@
 namespace ui
 {
 RichEditData::RichEditData(IRichTextData* pRichTextData):
-    m_pRichTextData(pRichTextData),
+    m_pRichText(pRichTextData),
     m_hAlignType(HorAlignType::kHorAlignLeft),
     m_vAlignType(VerAlignType::kVerAlignTop),
     m_bSingleLineMode(false),
@@ -59,12 +59,22 @@ void RichEditData::SetHAlignType(HorAlignType hAlignType)
     }
 }
 
+HorAlignType RichEditData::GetHAlignType() const
+{
+    return m_hAlignType;
+}
+
 void RichEditData::SetVAlignType(VerAlignType vAlignType)
 {
     if (m_vAlignType != vAlignType) {
         m_vAlignType = vAlignType;
         SetCacheDirty(true);
     }
+}
+
+VerAlignType RichEditData::GetVAlignType() const
+{
+    return m_vAlignType;
 }
 
 void RichEditData::UnionRect(UiRect& rect, const UiRect& r) const
@@ -156,12 +166,12 @@ UiRect RichEditData::EstimateTextDisplayBounds(const UiRect& rcAvailable)
     if (m_pRenderFactory == nullptr) {
         return rect;
     }
-    ASSERT(m_pRichTextData != nullptr);
-    if (m_pRichTextData == nullptr) {
+    ASSERT(m_pRichText != nullptr);
+    if (m_pRichText == nullptr) {
         return rect;
     }
 
-    UiRect rcDrawRect = m_pRichTextData->GetRichTextDrawRect();
+    UiRect rcDrawRect = m_pRichText->GetRichTextDrawRect();
     ASSERT(rcAvailable.Width() == rcAvailable.Width());
     if (rcAvailable.Width() == rcAvailable.Width()) {
         //检查并计算字符位置
@@ -175,7 +185,7 @@ UiRect RichEditData::EstimateTextDisplayBounds(const UiRect& rcAvailable)
         if (!textView.empty()) {
             bool bFirst = true;
             std::vector<RichTextData> richTextDataList;
-            if (m_pRichTextData->GetRichTextForDraw(textView, richTextDataList)) {                
+            if (m_pRichText->GetRichTextForDraw(textView, richTextDataList)) {
                 std::vector<std::vector<UiRect>> richTextRects;
                 m_pRender->MeasureRichText(rcAvailable, UiSize(), m_pRenderFactory, richTextDataList, &richTextRects);
                 for (const std::vector<UiRect>& data : richTextRects) {
@@ -303,7 +313,7 @@ int32_t RichEditData::GetTextRectOfssetY() const
 {
     int32_t yOffset = 0;
     if (m_rcTextRect.Height() < m_rcTextDrawRect.Height()) {
-        VerAlignType vAlignType = m_pRichTextData->GetTextVAlignType();
+        VerAlignType vAlignType = GetVAlignType();
         if (vAlignType == VerAlignType::kVerAlignCenter) {
             //居中对齐
             int32_t nDiff = m_rcTextDrawRect.Height() - m_rcTextRect.Height();
@@ -330,11 +340,11 @@ const UiRect& RichEditData::GetTextRect() const
 
 void RichEditData::CheckCalcTextRects()
 {
-    SetTextDrawRect(m_pRichTextData->GetRichTextDrawRect(), true);
+    SetTextDrawRect(m_pRichText->GetRichTextDrawRect(), true);
     if (m_bCacheDirty) {
         CalcTextRects();
         SetCacheDirty(false);
-        m_pRichTextData->OnTextRectsChanged();
+        m_pRichText->OnTextRectsChanged();
     }
 }
 
@@ -356,8 +366,8 @@ void RichEditData::CalcTextRects()
     if (m_pRenderFactory == nullptr) {
         return;
     }
-    ASSERT(m_pRichTextData != nullptr);
-    if (m_pRichTextData == nullptr) {
+    ASSERT(m_pRichText != nullptr);
+    if (m_pRichText == nullptr) {
         return;
     }
 
@@ -375,7 +385,7 @@ void RichEditData::CalcTextRects()
         return;
     }
 
-    UiRect rcDrawText = m_pRichTextData->GetRichTextDrawRect();    
+    UiRect rcDrawText = m_pRichText->GetRichTextDrawRect();
     if (rcDrawText.IsEmpty()) {
         std::vector<int32_t> temp;
         m_rowXOffset.swap(temp);
@@ -392,7 +402,7 @@ void RichEditData::CalcTextRects()
 
     //绘制所有数据，清空行数据信息
     std::vector<RichTextData> richTextDataList;
-    m_pRichTextData->GetRichTextForDraw(textView, richTextDataList);
+    m_pRichText->GetRichTextForDraw(textView, richTextDataList);
     if (richTextDataList.empty()) {
         return;
     }
@@ -408,7 +418,7 @@ void RichEditData::CalcTextRects()
         m_bTextRectYOffsetUpdated = true;
     }
 
-    UpdateRowTextOffsetX(m_lineTextInfo, m_pRichTextData->GetTextHAlignType(), m_rowXOffset, m_bTextRectXOffsetUpdated);
+    UpdateRowTextOffsetX(m_lineTextInfo, GetHAlignType(), m_rowXOffset, m_bTextRectXOffsetUpdated);
 }
 
 void RichEditData::CalcTextRects(size_t nStartLine,
@@ -470,8 +480,8 @@ void RichEditData::CalcTextRects(size_t nStartLine,
     if (m_pRenderFactory == nullptr) {
         return;
     }
-    ASSERT(m_pRichTextData != nullptr);
-    if (m_pRichTextData == nullptr) {
+    ASSERT(m_pRichText != nullptr);
+    if (m_pRichText == nullptr) {
         return;
     }
 
@@ -489,7 +499,7 @@ void RichEditData::CalcTextRects(size_t nStartLine,
         return;
     }
 
-    UiRect rcDrawText = m_pRichTextData->GetRichTextDrawRect();
+    UiRect rcDrawText = m_pRichText->GetRichTextDrawRect();
     if (rcDrawText.IsEmpty()) {
         std::vector<int32_t> temp;
         m_rowXOffset.swap(temp);
@@ -516,7 +526,7 @@ void RichEditData::CalcTextRects(size_t nStartLine,
     std::vector<RichTextData> richTextDataListAll;
     if (m_spDrawRichTextCache != nullptr) {
         //比较绘制缓存是否失效，如果失效则清空
-        m_pRichTextData->GetRichTextForDraw(textView, richTextDataListAll);
+        m_pRichText->GetRichTextForDraw(textView, richTextDataListAll);
     }
     //修改后的文本，重新生成的绘制缓存
     std::shared_ptr<DrawRichTextCache> spDrawRichTextCacheUpdated;
@@ -525,7 +535,7 @@ void RichEditData::CalcTextRects(size_t nStartLine,
     if (!modifiedLines.empty()) {
         //有修改的行，重新计算行数据
         std::vector<RichTextData> richTextDataListModified;
-        m_pRichTextData->GetRichTextForDraw(textView, richTextDataListModified, nStartLine, modifiedLines);
+        m_pRichText->GetRichTextForDraw(textView, richTextDataListModified, nStartLine, modifiedLines);
         if (richTextDataListModified.empty()) {
             return;
         }
@@ -579,7 +589,7 @@ void RichEditData::CalcTextRects(size_t nStartLine,
         UpdateRowTextOffsetY(m_lineTextInfo, nOffsetY);
         m_bTextRectYOffsetUpdated = true;
     }
-    UpdateRowTextOffsetX(m_lineTextInfo, m_pRichTextData->GetTextHAlignType(), m_rowXOffset, m_bTextRectXOffsetUpdated);
+    UpdateRowTextOffsetX(m_lineTextInfo, GetHAlignType(), m_rowXOffset, m_bTextRectXOffsetUpdated);
     
 #ifdef _DEBUG
     //比较与完整绘制时是否一致
@@ -595,7 +605,7 @@ void RichEditData::CalcTextRects(size_t nStartLine,
             lineTextInfoList.push_back(spLineInfo);
         }
         std::vector<RichTextData> richTextDataList2;
-        m_pRichTextData->GetRichTextForDraw(textView2, richTextDataList2);
+        m_pRichText->GetRichTextForDraw(textView2, richTextDataList2);
 
         std::shared_ptr<DrawRichTextCache> spDrawRichTextCacheNew;
 
@@ -611,7 +621,7 @@ void RichEditData::CalcTextRects(size_t nStartLine,
 
         std::vector<int32_t> rowXOffset;
         bool bTextRectXOffsetUpdated = false;
-        UpdateRowTextOffsetX(lineTextInfoList, m_pRichTextData->GetTextHAlignType(), rowXOffset, bTextRectXOffsetUpdated);
+        UpdateRowTextOffsetX(lineTextInfoList, GetHAlignType(), rowXOffset, bTextRectXOffsetUpdated);
 
         //比较数据的一致性，增量绘制的结果，应该与完整绘制的结果相同
         ASSERT(lineTextInfoList.size() == m_lineTextInfo.size());
@@ -1113,6 +1123,11 @@ void RichEditData::SetSingleLineMode(bool bSingleLineMode)
     }
 }
 
+bool RichEditData::IsSingleLineMode() const
+{
+    return m_bSingleLineMode;
+}
+
 bool RichEditData::GetCharLineRowIndex(int32_t nCharIndex, size_t& nLineNumber, size_t& nLineRowIndex, size_t& nStartCharRowOffset) const
 {
     ASSERT(nCharIndex >= 0);
@@ -1309,9 +1324,9 @@ void RichEditData::UpdateRowInfo(size_t nDrawStartLineIndex)
 
 UiPoint RichEditData::PosForEmptyText() const
 {
-    UiRect rcDrawRect = m_pRichTextData->GetRichTextDrawRect();
-    HorAlignType hAlignType = m_pRichTextData->GetTextHAlignType();
-    VerAlignType vAlignType = m_pRichTextData->GetTextVAlignType();
+    UiRect rcDrawRect = m_pRichText->GetRichTextDrawRect();
+    HorAlignType hAlignType = GetHAlignType();
+    VerAlignType vAlignType = GetVAlignType();
     UiPoint pt;
     if (hAlignType == HorAlignType::kHorAlignCenter) {
         pt.x = rcDrawRect.Width() / 2;
@@ -1324,7 +1339,7 @@ UiPoint RichEditData::PosForEmptyText() const
     }
 
     if (vAlignType == VerAlignType::kVerAlignCenter) {
-        const int32_t nRowHeight = m_pRichTextData->GetTextRowHeight();
+        const int32_t nRowHeight = m_pRichText->GetTextRowHeight();
         if (rcDrawRect.Height() <= nRowHeight) {
             pt.y = 0;
         }
@@ -1339,7 +1354,7 @@ UiPoint RichEditData::PosForEmptyText() const
         }
     }
     else if (vAlignType == VerAlignType::kVerAlignBottom) {
-        const int32_t nRowHeight = m_pRichTextData->GetTextRowHeight();
+        const int32_t nRowHeight = m_pRichText->GetTextRowHeight();
         if (rcDrawRect.Height() <= nRowHeight) {
             pt.y = 0;
         }
@@ -1373,8 +1388,8 @@ UiPoint RichEditData::CaretPosFromChar(int32_t nCharIndex)
     if (m_lineTextInfo.empty()) {
         //空文本
         cursorPos = PosForEmptyText();
-        if (m_pRichTextData->GetTextHAlignType() == HorAlignType::kHorAlignRight) {
-            cursorPos.x -= m_pRichTextData->GetTextCaretWidth();
+        if (GetHAlignType() == HorAlignType::kHorAlignRight) {
+            cursorPos.x -= m_pRichText->GetTextCaretWidth();
         }
     }
     else if (nCharIndex < 0) {
@@ -1427,8 +1442,8 @@ UiRect RichEditData::GetCharRowRect(int32_t nCharIndex)
     if (m_lineTextInfo.empty()) {
         //空文本
         if (nCharIndex == 0) {
-            const int32_t nRowHeight = m_pRichTextData->GetTextRowHeight();
-            const UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+            const int32_t nRowHeight = m_pRichText->GetTextRowHeight();
+            const UiRect rc = m_pRichText->GetRichTextDrawRect();
             UiPoint pt = PosForEmptyText();
             rowRect.left = 0;
             rowRect.right = rc.Width();
@@ -1442,7 +1457,7 @@ UiRect RichEditData::GetCharRowRect(int32_t nCharIndex)
         if (spRowInfo != nullptr) {
             const RichTextRowInfo& rowInfo = *spRowInfo;
             const UiRectF& rowRectF = rowInfo.m_rowRect;
-            UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+            UiRect rc = m_pRichText->GetRichTextDrawRect();
             rowRect.left = 0;
             rowRect.right = std::max(rc.Width(), (int32_t)rowRectF.Width());
             rowRect.top = (int32_t)rowRectF.top;
@@ -2295,7 +2310,7 @@ void RichEditData::GetCharRangeRects(int32_t nStartChar, int32_t nEndChar, std::
 
 const UiPoint& RichEditData::ConvertToExternal(UiPoint& pt) const
 {
-    UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+    UiRect rc = m_pRichText->GetRichTextDrawRect();
     pt.Offset(rc.left, rc.top);
     pt.Offset(-m_szScrollOffset.cx, -m_szScrollOffset.cy);
     return pt;
@@ -2303,7 +2318,7 @@ const UiPoint& RichEditData::ConvertToExternal(UiPoint& pt) const
 
 const UiRect& RichEditData::ConvertToExternal(UiRect& rect) const
 {
-    UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+    UiRect rc = m_pRichText->GetRichTextDrawRect();
     rect.Offset(rc.left, rc.top);
     rect.Offset(-m_szScrollOffset.cx, -m_szScrollOffset.cy);
     return rect;
@@ -2311,7 +2326,7 @@ const UiRect& RichEditData::ConvertToExternal(UiRect& rect) const
 
 const UiRectF& RichEditData::ConvertToExternal(UiRectF& rect) const
 {
-    UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+    UiRect rc = m_pRichText->GetRichTextDrawRect();
     rect.Offset((float)rc.left, (float)rc.top);
     rect.Offset(-(float)m_szScrollOffset.cx, -(float)m_szScrollOffset.cy);
     return rect;
@@ -2319,7 +2334,7 @@ const UiRectF& RichEditData::ConvertToExternal(UiRectF& rect) const
 
 const UiPoint& RichEditData::ConvertToInternal(UiPoint& pt) const
 {
-    UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+    UiRect rc = m_pRichText->GetRichTextDrawRect();
     pt.Offset(-rc.left, -rc.top);
     pt.Offset(m_szScrollOffset.cx, m_szScrollOffset.cy);
     return pt;
@@ -2327,7 +2342,7 @@ const UiPoint& RichEditData::ConvertToInternal(UiPoint& pt) const
 
 const UiRect& RichEditData::ConvertToInternal(UiRect& rect) const
 {
-    UiRect rc = m_pRichTextData->GetRichTextDrawRect();
+    UiRect rc = m_pRichText->GetRichTextDrawRect();
     rect.Offset(-rc.left, -rc.top);
     rect.Offset(m_szScrollOffset.cx, m_szScrollOffset.cy);
     return rect;

@@ -69,11 +69,8 @@ RichEdit::RichEdit(Window* pWindow) :
     m_bFlashPasswordChar(false),
     m_bNumberOnly(false),
     m_bWordWrap(false),
-    m_bSingleLineMode(false),
     m_nLimitText(0),
     m_bModified(false),
-    m_hAlignType(HorAlignType::kHorAlignLeft),
-    m_vAlignType(VerAlignType::kVerAlignTop),
     m_nSelStartIndex(0),
     m_nSelEndCharIndex(0),
     m_nShiftStartIndex(-1),
@@ -506,23 +503,22 @@ void RichEdit::SetWordWrap(bool bWordWrap)
         m_bWordWrap = bWordWrap;
         m_pTextData->SetCacheDirty(true);
         Redraw();
-        SetPos(GetPos());
+        UpdateScrollRange();
     }
 }
 
 bool RichEdit::IsMultiLine() const
 {
-    return !m_bSingleLineMode;
+    return !m_pTextData->IsSingleLineMode();
 }
 
 void RichEdit::SetMultiLine(bool bMultiLine)
 {
     bool bSingleLineMode = !bMultiLine;
-    m_pTextData->SetSingleLineMode(bSingleLineMode);
-    if (m_bSingleLineMode != bSingleLineMode) {
-        m_bSingleLineMode = bSingleLineMode;
+    if (m_pTextData->IsSingleLineMode() != bSingleLineMode) {
+        m_pTextData->SetSingleLineMode(bSingleLineMode);
         Redraw();
-        SetPos(GetPos());
+        UpdateScrollRange();
     }
 }
 
@@ -538,7 +534,7 @@ void RichEdit::SetFontId(const DString& strFontId)
         m_pTextData->SetCacheDirty(true);
         SetFontIdInternal(strFontId);
         Redraw();
-        SetPos(GetPos());
+        UpdateScrollRange();
     }
 }
 
@@ -725,7 +721,7 @@ void RichEdit::SetText(const DString& strText)
         int32_t nTextLen = (int32_t)m_pTextData->GetText().size();
         InternalSetSel(nTextLen, nTextLen);
 
-        SetPos(GetPos());
+        UpdateScrollRange();
         OnTextChanged();
     }
 }
@@ -2464,30 +2460,28 @@ void RichEdit::SetFontIdInternal(const DString& fontId)
 
 void RichEdit::SetHAlignType(HorAlignType alignType)
 {
-    m_pTextData->SetHAlignType(alignType);
-    if (m_hAlignType != alignType) {
-        m_hAlignType = alignType;
+    if (m_pTextData->GetHAlignType() != alignType) {
+        m_pTextData->SetHAlignType(alignType);
         Redraw();
     }
 }
 
 HorAlignType RichEdit::GetHAlignType() const
 {
-    return m_hAlignType;
+    return m_pTextData->GetHAlignType();
 }
 
 void RichEdit::SetVAlignType(VerAlignType alignType)
 {
-    m_pTextData->SetVAlignType(alignType);
-    if (m_vAlignType != alignType) {
-        m_vAlignType = alignType;
+    if (m_pTextData->GetVAlignType() != alignType) {
+        m_pTextData->SetVAlignType(alignType);
         Redraw();
     }
 }
 
 VerAlignType RichEdit::GetVAlignType() const
 {
-    return m_vAlignType;
+    return m_pTextData->GetVAlignType();
 }
 
 UiPoint RichEdit::PosFromChar(int32_t lChar) const
@@ -2504,20 +2498,22 @@ int32_t RichEdit::CharFromPos(UiPoint pt)
 uint16_t RichEdit::GetTextStyle() const
 {
     uint32_t uTextStyle = 0;
-    if (m_hAlignType == HorAlignType::kHorAlignCenter) {
+    HorAlignType hAlignType = GetHAlignType();
+    if (hAlignType == HorAlignType::kHorAlignCenter) {
         uTextStyle |= TEXT_CENTER;
     }
-    else if (m_hAlignType == HorAlignType::kHorAlignRight) {
+    else if (hAlignType == HorAlignType::kHorAlignRight) {
         uTextStyle |= TEXT_RIGHT;
     }
     else {
         uTextStyle |= TEXT_LEFT;
     }
 
-    if (m_vAlignType == VerAlignType::kVerAlignCenter) {
+    VerAlignType vAlignType = GetVAlignType();
+    if (vAlignType == VerAlignType::kVerAlignCenter) {
         uTextStyle |= TEXT_VCENTER;
     }
-    else if (m_vAlignType == VerAlignType::kVerAlignBottom) {
+    else if (vAlignType == VerAlignType::kVerAlignBottom) {
         uTextStyle |= TEXT_BOTTOM;
     }
     else {
@@ -2645,16 +2641,6 @@ void RichEdit::OnTextRectsChanged()
         SetCaretPos(nSelStartChar);
         EnsureCharVisible(nSelStartChar);
     }
-}
-
-HorAlignType RichEdit::GetTextHAlignType() const
-{
-    return GetHAlignType();
-}
-
-VerAlignType RichEdit::GetTextVAlignType() const
-{
-    return GetVAlignType();
 }
 
 int32_t RichEdit::GetTextRowHeight() const
@@ -4004,6 +3990,10 @@ void RichEdit::OnInputChar(const EventArgs& msg)
     DStringW text;
     text = (DStringW::value_type)msg.vkCode;
     if (msg.vkCode == kVK_RETURN) {
+        if (!IsMultiLine() || IsPassword()) {
+            //单行模式下，或者密码模式下，不支持输入换行符
+            return;
+        }
         //回车: 转换成换行："\r\n"
         text += L'\n';
     }
@@ -4072,7 +4062,7 @@ void RichEdit::OnInputChar(const EventArgs& msg)
     InternalSetSel(nNewSelChar, nNewSelChar);
 
     //更新滚动条
-    SetPos(GetPos());
+    UpdateScrollRange();
 
     //确保光标可见
     EnsureCharVisible(nNewSelChar);
@@ -4102,6 +4092,12 @@ void RichEdit::OnInputChar(const EventArgs& msg)
     if (bTextChanged) {
         OnTextChanged();
     }
+}
+
+void RichEdit::UpdateScrollRange()
+{
+    //通过基类的SetPos完成
+    SetPos(GetPos());
 }
 
 } // namespace ui

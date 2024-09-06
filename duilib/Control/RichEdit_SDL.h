@@ -737,14 +737,6 @@ protected:
     */
     virtual void OnTextRectsChanged() override;
 
-    /** 获取文本水平对齐方式
-    */
-    virtual HorAlignType GetTextHAlignType() const override;
-
-    /** 获取文本垂直对齐方式
-    */
-    virtual VerAlignType GetTextVAlignType() const override;
-
     /** 获取行高值
     */
     virtual int32_t GetTextRowHeight() const override;
@@ -942,6 +934,10 @@ private:
     */
     void TruncateLimitText(DStringW& text, int32_t nLimitLen) const;
 
+    /** 更新滚动条的范围
+    */
+    void UpdateScrollRange();
+
 private:
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键
     bool m_bWantReturn;         //是否接收回车键，如果为true的时候，回车键会当作文本输入，否则过滤掉回车键
@@ -964,7 +960,6 @@ private:
 
     bool m_bNumberOnly;         //是否只允许输入数字
     bool m_bWordWrap;           //当显示超出边界时，是否自动换行
-    bool m_bSingleLineMode;     //是否为单行文本模式
 
     int32_t m_nLimitText;       //最大文本字符数（仅当为正数的时候代表有限制）
     bool m_bModified;           //文本内容是否有修改
@@ -1053,14 +1048,6 @@ private:
     /** 显示/隐藏密码按钮(仅当密码模式有效)
     */
     Control* m_pShowPasswordButton;
-
-    /** 文本水平对齐方式
-    */
-    HorAlignType m_hAlignType;
-
-    /** 文本垂直对齐方式
-    */
-    VerAlignType m_vAlignType;
 
     /** 当控件处于非激活状态时，是否隐藏选择内容(显示时：选择的文本背景色与正常文本不同)
     */

@@ -39,14 +39,6 @@ public:
     */
     virtual void OnTextRectsChanged() = 0;
 
-    /** 获取文本水平对齐方式
-    */
-    virtual HorAlignType GetTextHAlignType() const = 0;
-
-    /** 获取文本垂直对齐方式
-    */
-    virtual VerAlignType GetTextVAlignType() const = 0;
-
     /** 获取行高值
     */
     virtual int32_t GetTextRowHeight() const = 0;
@@ -77,13 +69,25 @@ public:
     */
     void SetSingleLineMode(bool bSingleLineMode);
 
+    /** 是否为单行文本模式
+    */
+    bool IsSingleLineMode() const;
+
     /** 设置文本水平对齐方式(应用于整体文本)
     */
     void SetHAlignType(HorAlignType hAlignType);
 
+    /** 获取文本水平对齐方式
+    */
+    HorAlignType GetHAlignType() const;
+
     /** 设置文本垂直对齐方式(应用于整体文本)
     */
     void SetVAlignType(VerAlignType vAlignType);
+
+    /** 获取文本垂直对齐方式
+    */
+    VerAlignType GetVAlignType() const;
 
     /** 文本的滚动条位置
     */
@@ -443,7 +447,7 @@ private:
 private:
     /** 将文本生成可绘制的格式的接口
     */
-    IRichTextData* m_pRichTextData;
+    IRichTextData* m_pRichText;
 
     /** 是否为单行文本模式
     */
