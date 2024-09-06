@@ -786,6 +786,20 @@ size_t RichEditData::GetTextLength() const
     return nTextLen;
 }
 
+bool RichEditData::IsEmpty() const
+{
+    bool bEmpty = true;
+    const size_t nLineCount = m_lineTextInfo.size();
+    for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
+        const RichTextLineInfo& lineText = *m_lineTextInfo[nIndex];
+        if (lineText.m_nLineTextLen > 0) {
+            bEmpty = false;
+            break;
+        }
+    }
+    return bEmpty;
+}
+
 DStringW RichEditData::GetText() const
 {
     DStringW text;

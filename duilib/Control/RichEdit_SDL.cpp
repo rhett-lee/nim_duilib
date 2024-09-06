@@ -18,10 +18,6 @@
 #include "duilib/Box/VBox.h"
 #include "duilib/Control/Button.h"
 
-//#ifdef _DEBUG
-#include "duilib/Utils/FileUtil.h"
-//#endif
-
 #ifdef DUILIB_BUILD_FOR_SDL
 #include <SDL3/SDL.h>
 
@@ -183,11 +179,11 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if ((strName == _T("prompt_mode")) || (strName == _T("promptmode"))) {
         //提示模式
-        m_bAllowPrompt = (strValue == _T("true")) ? true : false;
+        SetPromptMode(strValue == _T("true"));
     }
     else if ((strName == _T("prompt_color")) || (strName == _T("promptcolor"))) {
         //提示文字的颜色
-        m_sPromptColor = strValue;
+        SetPromptTextColor(strValue);
     }
     else if ((strName == _T("prompt_text")) || (strName == _T("prompttext"))) {
         //提示文字
@@ -286,51 +282,48 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         SetZoomPercent(nZoomPercent);
     }
 
-
+    //这几个属性，不支持
     else if ((strName == _T("auto_vscroll")) || (strName == _T("autovscroll"))) {
         //当用户在最后一行按 ENTER 时，自动将文本向上滚动一页。
-        //if (m_pRichHost != nullptr) {
-        //    m_pRichHost->SetAutoVScroll(strValue == _T("true"));
-        //}
     }
     else if ((strName == _T("auto_hscroll")) || (strName == _T("autohscroll"))) {
         //当用户在行尾键入一个字符时，自动将文本向右滚动 10 个字符。
         //当用户按 Enter 时，控件会将所有文本滚动回零位置。
-        //if (m_pRichHost != nullptr) {
-        //    m_pRichHost->SetAutoHScroll(strValue == _T("true"));
-        //}
     }
     else if ((strName == _T("rich_text")) || (strName == _T("rich"))) {
         //是否为富文本属性
-        //SetRichText(strValue == _T("true"));
     }
     else if (strName == _T("auto_detect_url")) {
         //是否自动检测URL，如果是URL则显示为超链接
-        //SetAutoURLDetect(strValue == _T("true"));
     }
     else if (strName == _T("allow_beep")) {
         //是否允许发出Beep声音
-        //SetAllowBeep(strValue == _T("true"));
     }
     else if (strName == _T("save_selection")) {
         //如果 为 TRUE，则当控件处于非活动状态时，应保存所选内容的边界。
         //如果 为 FALSE，则当控件再次处于活动状态时，可以选择边界重置为 start = 0，length = 0。
-        //SetSaveSelection(strValue == _T("true"));
     }
     else if (strName == _T("enable_drag_drop")) {
         //是否允许拖放操作
-        //SetEnableDragDrop(strValue == _T("true"));
     }
 
 
     ////////////////////////////新添加属性, 需要添加到文档中
     else if (strName == _T("selection_bkcolor")) {
-        //选择文本的背景色
+        //选择文本的背景色（焦点状态）
         SetSelectionBkColor(strValue);
     }
+    else if (strName == _T("inactive_selection_bkcolor")) {
+        //选择文本的背景色（非焦点状态）
+        SetInactiveSelectionBkColor(strValue);
+    }
     else if (strName == _T("current_row_bkcolor")) {
-        //当前行的背景色
+        //当前行的背景色（焦点状态），如果不设置，则在焦点状态不显示当前行的背景色
         SetCurrentRowBkColor(strValue);
+    }
+    else if (strName == _T("inactive_current_row_bkcolor")) {
+        //当前行的背景色（非焦点状态），如果不设置，则在非焦点状态不显示当前行的背景色
+        SetInactiveCurrentRowBkColor(strValue);
     }
     else {
         ScrollBox::SetAttribute(strName, strValue);
@@ -529,6 +522,7 @@ void RichEdit::SetMultiLine(bool bMultiLine)
     if (m_bSingleLineMode != bSingleLineMode) {
         m_bSingleLineMode = bSingleLineMode;
         Redraw();
+        SetPos(GetPos());
     }
 }
 
@@ -544,6 +538,7 @@ void RichEdit::SetFontId(const DString& strFontId)
         m_pTextData->SetCacheDirty(true);
         SetFontIdInternal(strFontId);
         Redraw();
+        SetPos(GetPos());
     }
 }
 
@@ -591,15 +586,26 @@ void RichEdit::SetSelectionBkColor(const DString& selectionBkColor)
 {
     if (m_sSelectionBkColor != selectionBkColor) {
         m_sSelectionBkColor = selectionBkColor;
-        if (HasSelText()) {
-            Invalidate();
-        }
+        Invalidate();
     }
 }
 
 DString RichEdit::GetSelectionBkColor() const
 {
     return m_sSelectionBkColor.c_str();
+}
+
+void RichEdit::SetInactiveSelectionBkColor(const DString& selectionBkColor)
+{
+    if (m_sInactiveSelectionBkColor != selectionBkColor) {
+        m_sInactiveSelectionBkColor = selectionBkColor;
+        Invalidate();
+    }
+}
+
+DString RichEdit::GetInactiveSelectionBkColor() const
+{
+    return m_sInactiveSelectionBkColor.c_str();
 }
 
 void RichEdit::SetCurrentRowBkColor(const DString& currentRowBkColor)
@@ -610,6 +616,16 @@ void RichEdit::SetCurrentRowBkColor(const DString& currentRowBkColor)
 DString RichEdit::GetCurrentRowBkColor() const
 {
     return m_sCurrentRowBkColor.c_str();
+}
+
+void RichEdit::SetInactiveCurrentRowBkColor(const DString& currentRowBkColor)
+{
+    m_sInactiveCurrentRowBkColor = currentRowBkColor;
+}
+
+DString RichEdit::GetInactiveCurrentRowBkColor() const
+{
+    return m_sInactiveCurrentRowBkColor.c_str();
 }
 
 int32_t RichEdit::GetLimitText() const
@@ -676,11 +692,14 @@ int32_t RichEdit::GetTextLength() const
     return (int32_t)m_pTextData->GetTextLength();
 }
 
+bool RichEdit::IsEmpty() const
+{
+    return m_pTextData->IsEmpty();
+}
+
 DString RichEdit::GetText() const
 {
     return m_pTextData->GetText();
-    //TODO：功能实现
-    //return m_text + L"\n行1\r\n行2\r\n行3\n\n行4\nUTF16: TAB键:|\t|sdfkljAKLDFJKEWkldfjlk#$%&sdfs.dsj 中文字符串|\xD852\xDF62|\xD83D\xDC69|字符|\xD842\xDF20|\xD83D\xDE02|中文";
 }
 
 std::string RichEdit::GetUTF8Text() const
@@ -702,15 +721,12 @@ void RichEdit::SetText(const DString& strText)
         //重新计算字符区域
         Redraw();
 
-        //触发文本变化事件
-        std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
-        OnTextChanged();
-
         //文本变化时，选择点放到文本末端
-        if (!weakFlag.expired()) {
-            int32_t nTextLen = (int32_t)m_pTextData->GetText().size();
-            InternalSetSel(nTextLen, nTextLen);
-        }
+        int32_t nTextLen = (int32_t)m_pTextData->GetText().size();
+        InternalSetSel(nTextLen, nTextLen);
+
+        SetPos(GetPos());
+        OnTextChanged();
     }
 }
 
@@ -891,6 +907,7 @@ bool RichEdit::ReplaceSel(const DString& newText, bool bCanUndo)
     if (bRet) {
         nEndChar = nStartChar + (int32_t)newText.size();
         SetSel(nStartChar, nEndChar);
+        OnTextChanged();
     }    
     return bRet;
 }
@@ -937,9 +954,7 @@ void RichEdit::SetHideSelection(bool bHideSelection)
 {
     if (m_bHideSelection != bHideSelection) {
         m_bHideSelection = bHideSelection;
-        if (HasSelText()) {
-            Invalidate();
-        }
+        Invalidate();
     }
 }
 
@@ -960,6 +975,7 @@ bool RichEdit::Redo()
     bool bRet = m_pTextData->Redo(nEndCharIndex);
     if (bRet) {
         SetSel(nEndCharIndex, nEndCharIndex);
+        OnTextChanged();
     }
     return bRet;
 }
@@ -976,16 +992,21 @@ bool RichEdit::Undo()
     bool bRet = m_pTextData->Undo(nEndCharIndex);
     if (bRet) {
         SetSel(nEndCharIndex, nEndCharIndex);
+        OnTextChanged();
     }
     return bRet;
 }
 
 void RichEdit::Clear()
 {
+    int32_t nTextLen = GetTextLength();
     m_nSelXPos = -1;
     m_pTextData->Clear();
     SetSel(0, 0);
     Invalidate();
+    if (nTextLen > 0) {
+        OnTextChanged();
+    }
 }
 
 void RichEdit::Copy()
@@ -1013,6 +1034,7 @@ void RichEdit::Cut()
         SetSel(nStartChar, nStartChar);
         m_nSelXPos = -1;
         Invalidate();
+        OnTextChanged();
     }
 }
 
@@ -1032,6 +1054,7 @@ void RichEdit::Paste()
         SetSel(nNewSel, nNewSel);
         m_nSelXPos = -1;
         Invalidate();
+        OnTextChanged();
     }
 }
 
@@ -1357,7 +1380,18 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     m_pTextData->CheckCalcTextRects();
 
     //绘制当前编辑行的背景色
-    PaintCurrentRowBkColor(pRender, rcPaint);
+    if (!IsReadOnly() && IsEnabled()) {
+        if (IsEmpty()) {
+            //文本为空，仅在有焦点时绘制
+            if (m_bActive) {
+                PaintCurrentRowBkColor(pRender, rcPaint);
+            }
+        }
+        else {
+            //文本不为空，始终绘制
+            PaintCurrentRowBkColor(pRender, rcPaint);
+        }
+    }
 
     //绘制文字
     std::vector<RichTextData> richTextDataList;
@@ -1589,7 +1623,7 @@ void RichEdit::SetCaretPosInternal(int32_t xPos, int32_t yPos)
 
     m_iCaretPosX = xPos;
     m_iCaretPosY = yPos;
-    ShowCaret(!HasSelText());
+    ShowCaret(m_bActive && !HasSelText());   
 }
 
 void RichEdit::GetCaretPos(int32_t& xPos, int32_t& yPos) const
@@ -1645,11 +1679,24 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
 
 void RichEdit::PaintCurrentRowBkColor(IRender* pRender, const UiRect& /*rcPaint*/)
 {
-    if (IsReadOnly() || !IsEnabled() || (pRender == nullptr)) {
+    if (pRender == nullptr) {
         return;
     }
+    if (IsHideSelection() && !m_bActive) {
+        //当控件处于非激活状态时，隐藏选择内容
+        return;
+    }
+
     UiColor currentRowBkColor;
-    DString strCurrentRowBkColor = GetCurrentRowBkColor();
+    DString strCurrentRowBkColor;
+    if (!m_bActive) {
+        //非焦点状态
+        strCurrentRowBkColor = GetInactiveCurrentRowBkColor();
+    }
+    else {
+        //焦点状态
+        strCurrentRowBkColor = GetCurrentRowBkColor();
+    }    
     if (!strCurrentRowBkColor.empty()) {
         currentRowBkColor = GetUiColor(strCurrentRowBkColor);
     }
@@ -1694,7 +1741,15 @@ void RichEdit::PaintSelectionColor(IRender* pRender, const UiRect& /*rcPaint*/)
     }
 
     UiColor selectionColor;
-    DString selectionBkColor = GetSelectionBkColor();
+    DString selectionBkColor;
+    if (m_bActive) {
+        //焦点状态
+        selectionBkColor = GetSelectionBkColor();
+    }
+    else {
+        //非焦点状态
+        selectionBkColor = GetInactiveSelectionBkColor();
+    }    
     if (!selectionBkColor.empty()) {
         selectionColor = GetUiColor(selectionBkColor);
     }
@@ -1733,10 +1788,15 @@ void RichEdit::PaintSelectionColor(IRender* pRender, const UiRect& /*rcPaint*/)
 
 void RichEdit::SetPromptMode(bool bPrompt)
 {
-    if(bPrompt == m_bAllowPrompt)
-        return;
-    m_bAllowPrompt = bPrompt;
-    Invalidate();
+    if (bPrompt != m_bAllowPrompt) {
+        m_bAllowPrompt = bPrompt;
+        Invalidate();
+    }    
+}
+
+bool RichEdit::AllowPromptMode() const
+{
+    return m_bAllowPrompt;
 }
 
 DString RichEdit::GetPromptText() const
@@ -1745,14 +1805,7 @@ DString RichEdit::GetPromptText() const
     if (strText.empty() && !m_sPromptTextId.empty()) {
         strText = GlobalManager::Instance().Lang().GetStringViaID(m_sPromptTextId.c_str());
     }
-
     return strText;
-}
-
-std::string RichEdit::GetUTF8PromptText() const
-{
-    std::string strOut = StringUtil::TToUTF8(GetPromptText());
-    return strOut;
 }
 
 void RichEdit::SetPromptText(const DString& strText)
@@ -1763,24 +1816,34 @@ void RichEdit::SetPromptText(const DString& strText)
     }
 }
 
-void RichEdit::SetUTF8PromptText(const std::string& strText)
-{
-    DString strOut = StringUtil::UTF8ToT(strText);
-    SetPromptText(strOut);
-}
-
 void RichEdit::SetPromptTextId(const DString& strTextId)
 {
-    if (m_sPromptTextId == strTextId) {
+    if (m_sPromptTextId != strTextId) {
         m_sPromptTextId = strTextId;
         Invalidate();
     }
 }
 
-void RichEdit::SetUTF8PromptTextId(const std::string& strTextId)
+void RichEdit::SetPromptTextColor(const DString& promptColor)
 {
-    DString strOut = StringUtil::UTF8ToT(strTextId);
-    SetPromptTextId(strOut);
+    if (m_sPromptColor != promptColor) {
+        m_sPromptColor = promptColor;
+        Invalidate();
+    }
+}
+
+DString RichEdit::GetPromptTextColor() const
+{
+    if (!m_sPromptColor.empty()) {
+        return m_sPromptColor.c_str();
+    }
+    else if (!m_sDisabledTextColor.empty()) {
+        return m_sDisabledTextColor.c_str();
+    }
+    else if (!m_sTextColor.empty()) {
+        return m_sTextColor.c_str();
+    }
+    return DString();
 }
 
 void RichEdit::PaintPromptText(IRender* pRender)
@@ -1789,24 +1852,29 @@ void RichEdit::PaintPromptText(IRender* pRender)
     if (pRender == nullptr) {
         return;
     }
+    if (!AllowPromptMode()) {
+        return;
+    }
+    DString promptText = GetPromptText();
+    if (promptText.empty()) {
+        return;
+    }
+    DString promptTextColor = GetPromptTextColor();
+    if (promptTextColor.empty()) {
+        return;
+    }
+    DString fontId = GetFontId();
+    if (fontId.empty()) {
+        return;
+    }
     if (GetTextLength() != 0) {
         return;
     }
 
-    /*if (m_pRichHost == nullptr) {
-        return;
-    }
-
-    DString strPrompt = GetPromptText();
-    if (strPrompt.empty() || m_sPromptColor.empty()) {
-        return;
-    }
-
-    UiRect rc;
-    m_pRichHost->GetControlRect(&rc);
-    UiColor dwClrColor = GetUiColor(m_sPromptColor.c_str());
-    UINT dwStyle = TEXT_NOCLIP;
-    pRender->DrawString(rc, strPrompt, dwClrColor, GetIFontById(m_sFontId.c_str()), dwStyle);*/
+    UiRect rcDrawRect = GetRichTextDrawRect();
+    UiColor dwClrColor = GetUiColor(promptTextColor);
+    uint32_t dwStyle = GetTextStyle();
+    pRender->DrawString(rcDrawRect, promptText, dwClrColor, GetIFontById(fontId), dwStyle);
 }
 
 DString RichEdit::GetFocusedImage()
@@ -2769,7 +2837,7 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
     }
     SetCaretPos(cursorPos);
 
-    ShowCaret(true);
+    ShowCaret(!HasSelText());
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     SetImmStatus(TRUE);
 #endif

@@ -127,6 +127,10 @@ public:
      */
     size_t GetTextLength() const;
 
+    /** 是否为空
+    */
+    bool IsEmpty() const;
+
     /** 获取指定范围[nStartChar, nEndChar)的文本
      * @param[in] nStartChar 起始下标值
      * @param[in] nEndChar 结束下标值

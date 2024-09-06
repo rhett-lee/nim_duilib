@@ -60,6 +60,10 @@ public:
      */
     int32_t GetTextLength() const;
 
+    /** 是否为空
+    */
+    bool IsEmpty() const;
+
     /** 获取控件中的文本
      * @return 返回控件中的文本内容 UTF8 格式
      */
@@ -98,56 +102,69 @@ public:
      */
     DString GetDisabledTextColor() const;
 
-    /** 设置选择文本的背景色
+    /** 设置选择文本的背景色（焦点状态）
     */
     void SetSelectionBkColor(const DString& selectionBkColor);
 
-    /** 获取选择文本的背景颜色
+    /** 获取选择文本的背景颜色（焦点状态）
     */
     DString GetSelectionBkColor() const;
 
-    /** 设置当前行的背景颜色（光标所在行）
+    /** 设置选择文本的背景色（非焦点状态）
+    */
+    void SetInactiveSelectionBkColor(const DString& selectionBkColor);
+
+    /** 获取选择文本的背景颜色（非焦点状态）
+    */
+    DString GetInactiveSelectionBkColor() const;
+
+    /** 设置当前行的背景颜色（光标所在行，焦点状态）
     */
     void SetCurrentRowBkColor(const DString& currentRowBkColor);
 
-    /** 获取当前行的背景颜色
+    /** 获取当前行的背景颜色（焦点状态）
     */
     DString GetCurrentRowBkColor() const;
 
+    /** 设置当前行的背景颜色（光标所在行，非焦点状态）
+    */
+    void SetInactiveCurrentRowBkColor(const DString& currentRowBkColor);
+
+    /** 获取当前行的背景颜色（非焦点状态）
+    */
+    DString GetInactiveCurrentRowBkColor() const;
+
 public:
-    /** 设置是否显示提示文字
- * @param[in] bPrompt 设置为 true 为显示，false 为不显示
- */
+    /** 设置是否允许显示提示文字
+     * @param[in] bPrompt 设置为 true 为显示，false 为不显示
+     */
     void SetPromptMode(bool bPrompt);
+
+    /** 获取是否允许显示提示文字
+    */
+    bool AllowPromptMode() const;
 
     /** 获取提示文字
      */
     DString GetPromptText() const;
-
-    /** 获取提示文字
-     * @return 返回 UTF8 格式的提示文字
-     */
-    std::string GetUTF8PromptText() const;
 
     /** 设置提示文字
      * @param[in] strText 要设置的提示文字
      */
     void SetPromptText(const DString& strText);
 
-    /** 设置提示文字
-     * @param[in] strText 要设置的 UTF8 格式提示文字
-     */
-    void SetUTF8PromptText(const std::string& strText);
-
     /** 设置提示文字 ID
      * @param[in] strText 要设置的提示文字 ID，该 ID 必须在加载的语言文件中存在
      */
     void SetPromptTextId(const DString& strTextId);
 
-    /** 设置提示文字 ID
-     * @param[in] strText 要设置的 UTF8 格式提示文字 ID，该 ID 必须在加载的语言文件中存在
-     */
-    void SetUTF8PromptTextId(const std::string& strTextId);
+    /** 设置提示文字的颜色
+    */
+    void SetPromptTextColor(const DString& promptColor);
+
+    /** 获取提示文字的颜色
+    */
+    DString GetPromptTextColor() const;
 
 public:
     /** 设置文字内边距信息
@@ -970,8 +987,10 @@ private:
     UiString m_sTextColor;              //正常文本颜色
     UiString m_sDisabledTextColor;      //Disabled状态的文本颜色
 
-    UiString m_sCurrentRowBkColor;      //当前行的背景颜色（光标所在行）
-    UiString m_sSelectionBkColor;       //选择文本的背景颜色
+    UiString m_sCurrentRowBkColor;         //当前行的背景颜色（光标所在行，焦点状态）
+    UiString m_sInactiveCurrentRowBkColor; //当前行的背景颜色（光标所在行, 非焦点状态）
+    UiString m_sSelectionBkColor;          //选择文本的背景颜色（焦点状态）
+    UiString m_sInactiveSelectionBkColor;  //选择文本的背景颜色（非焦点状态）
 
     bool m_bAllowPrompt;                //是否支持提示文字
     UiString m_sPromptColor;            //提示文字颜色
