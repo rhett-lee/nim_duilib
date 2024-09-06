@@ -895,6 +895,10 @@ void RichEdit::EnsureCharVisible(int32_t nCharIndex)
 
 bool RichEdit::ReplaceSel(const DString& newText, bool bCanUndo)
 {
+    if (IsReadOnly() || !IsEnabled()) {
+        //只读或者Disable状态，禁止编辑
+        return false;
+    }
     int32_t nStartChar = -1;
     int32_t nEndChar = -1;
     GetSel(nStartChar, nEndChar);
@@ -903,6 +907,7 @@ bool RichEdit::ReplaceSel(const DString& newText, bool bCanUndo)
     if (bRet) {
         nEndChar = nStartChar + (int32_t)newText.size();
         SetSel(nStartChar, nEndChar);
+        UpdateScrollRange();
         OnTextChanged();
     }    
     return bRet;
@@ -961,11 +966,17 @@ bool RichEdit::IsHideSelection() const
 
 bool RichEdit::CanRedo() const
 {
+    if (IsReadOnly() || !IsEnabled()) {
+        return false;
+    }
     return m_pTextData->CanRedo();
 }
 
 bool RichEdit::Redo()
 {
+    if (!CanRedo()) {
+        return false;
+    }
     m_nSelXPos = -1;
     int32_t nEndCharIndex = 0;
     bool bRet = m_pTextData->Redo(nEndCharIndex);
@@ -978,11 +989,17 @@ bool RichEdit::Redo()
 
 bool RichEdit::CanUndo() const
 {
+    if (IsReadOnly() || !IsEnabled()) {
+        return false;
+    }
     return m_pTextData->CanUndo();
 }
 
 bool RichEdit::Undo()
 {
+    if (!CanUndo()) {
+        return false;
+    }
     m_nSelXPos = -1;
     int32_t nEndCharIndex = 0;
     bool bRet = m_pTextData->Undo(nEndCharIndex);
@@ -1030,6 +1047,7 @@ void RichEdit::Cut()
         SetSel(nStartChar, nStartChar);
         m_nSelXPos = -1;
         Invalidate();
+        UpdateScrollRange();
         OnTextChanged();
     }
 }
@@ -1050,6 +1068,7 @@ void RichEdit::Paste()
         SetSel(nNewSel, nNewSel);
         m_nSelXPos = -1;
         Invalidate();
+        UpdateScrollRange();
         OnTextChanged();
     }
 }
@@ -2641,6 +2660,9 @@ void RichEdit::OnTextRectsChanged()
         SetCaretPos(nSelStartChar);
         EnsureCharVisible(nSelStartChar);
     }
+
+    //更新滚动条的范围
+    UpdateScrollRange();
 }
 
 int32_t RichEdit::GetTextRowHeight() const
@@ -3903,6 +3925,10 @@ void RichEdit::OnFrameSelection(UiSize64 ptMouseDown64, UiSize64 ptMouseMove64)
 void RichEdit::OnInputChar(const EventArgs& msg)
 {
     m_nSelXPos = -1;
+    if (IsReadOnly() || !IsEnabled()) {
+        //只读或者Disable状态，禁止编辑
+        return;
+    }
     bool bInputChar = true;
     if (msg.vkCode == kVK_TAB) {
         //按下TAB键

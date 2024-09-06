@@ -187,31 +187,31 @@ public:
     /** 获取总行数
      * @return 返回总行数
      */
-    int32_t GetRowCount() const;
+    int32_t GetRowCount();
 
     /** 获取一行数据
      * @param[in] nRowIndex 行号
      * @return 返回获取的一行数据
      */
-    DStringW GetRowText(int32_t nRowIndex) const;
+    DStringW GetRowText(int32_t nRowIndex);
 
     /** 获取指定行的第一个字符索引
      * @param[in] nRowIndex 行号
      * @return 返回指定行的第一个字符索引, 失败时返回-1
      */
-    int32_t RowIndex(int32_t nRowIndex) const;
+    int32_t RowIndex(int32_t nRowIndex);
 
     /** 获取指定行的数据长度
      * @param[in] nRowIndex 行号
      * @return 返回指定行的数据长度
      */
-    int32_t RowLength(int32_t nRowIndex) const;
+    int32_t RowLength(int32_t nRowIndex);
 
     /** 获取指定字符所在行号
      * @param[in] nCharIndex 字符的索引下标
      * @return 返回当前字符所在的行号
      */
-    int32_t RowFromChar(int32_t nCharIndex) const;
+    int32_t RowFromChar(int32_t nCharIndex);
 
 public:
     /** 获取指定字符的光标位置

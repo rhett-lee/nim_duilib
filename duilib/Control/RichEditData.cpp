@@ -830,6 +830,7 @@ bool RichEditData::FindLineTextPos(int32_t nStartChar, int32_t nEndChar,
     if ((nStartChar < 0) || (nEndChar < 0) || (nStartChar > nEndChar)) {
         return false;
     }
+    ASSERT(!m_bCacheDirty);
     if (m_lineTextInfo.empty()) {
         //当前为空
         nStartLine = 0;
@@ -1031,7 +1032,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     }
     else if (bClearRedo){
         ClearUndoList();
-    }   
+    }
     return true;
 }
 
@@ -1137,6 +1138,7 @@ bool RichEditData::IsSingleLineMode() const
 
 bool RichEditData::GetCharLineRowIndex(int32_t nCharIndex, size_t& nLineNumber, size_t& nLineRowIndex, size_t& nStartCharRowOffset) const
 {
+    ASSERT(!m_bCacheDirty);
     ASSERT(nCharIndex >= 0);
     if (nCharIndex < 0) {
         return false;
@@ -1192,6 +1194,7 @@ bool RichEditData::GetCharLineRowIndex(int32_t nCharIndex, size_t& nLineNumber, 
 
 RichTextRowInfoPtr RichEditData::GetRowInfoFromPoint(const UiPoint& pt) const
 {
+    ASSERT(!m_bCacheDirty);
     RichTextRowInfoPtr spRowInfo;
     const RichTextLineInfoList& lineTextInfoList = m_lineTextInfo;
     const size_t nLineCount = lineTextInfoList.size();
@@ -1217,6 +1220,7 @@ RichTextRowInfoPtr RichEditData::GetRowInfoFromPoint(const UiPoint& pt) const
 
 RichTextRowInfoPtr RichEditData::GetCharRowInfo(int32_t nCharIndex, size_t& nStartCharRowOffset) const
 {
+    ASSERT(!m_bCacheDirty);
     size_t nLineNumber = 0;
     size_t nLineRowIndex = 0;
     RichTextRowInfoPtr spRowInfo;
@@ -1231,6 +1235,7 @@ RichTextRowInfoPtr RichEditData::GetCharRowInfo(int32_t nCharIndex, size_t& nSta
 
 RichTextRowInfoPtr RichEditData::GetFirstRowInfo() const
 {
+    ASSERT(!m_bCacheDirty);
     RichTextRowInfoPtr spRowInfo;
     const RichTextLineInfoList& lineTextInfoList = m_lineTextInfo;
     if (!lineTextInfoList.empty()) {
@@ -1245,6 +1250,7 @@ RichTextRowInfoPtr RichEditData::GetFirstRowInfo() const
 
 RichTextRowInfoPtr RichEditData::GetLastRowInfo() const
 {
+    ASSERT(!m_bCacheDirty);
     RichTextRowInfoPtr spRowInfo;
     const RichTextLineInfoList& lineTextInfoList = m_lineTextInfo;
     const size_t nLineCount = lineTextInfoList.size();
@@ -1261,6 +1267,7 @@ RichTextRowInfoPtr RichEditData::GetLastRowInfo() const
 
 size_t RichEditData::GetRowInfoStartIndex(const RichTextRowInfoPtr& spRowInfo) const
 {
+    ASSERT(!m_bCacheDirty);
     size_t nStartIndex = (size_t)-1;
     size_t nTextLen = 0; //文本总长度
     const RichTextLineInfoList& lineTextInfoList = m_lineTextInfo;
@@ -1658,6 +1665,8 @@ int32_t RichEditData::GetNextValidCharIndex(const int32_t nCharIndex)
     if (nCharIndex > nTextLength) {
         return nTextLength;
     }
+    //检查并计算字符位置
+    CheckCalcTextRects();
 
     int32_t nNewCharIndex = nCharIndex;
     size_t nTextLen = 0; //文本总长度
@@ -1722,6 +1731,8 @@ int32_t RichEditData::GetPrevValidCharIndex(int32_t nCharIndex)
     if (nCharIndex > nTextLength) {
         return nTextLength ;
     }
+    //检查并计算字符位置
+    CheckCalcTextRects();
 
     int32_t nNewCharIndex = nCharIndex;
     size_t nTextLen = 0; //文本总长度
@@ -1806,6 +1817,8 @@ int32_t RichEditData::GetNextValidWordIndex(int32_t nCharIndex)
     if (nCharIndex > nTextLength) {
         return nTextLength;
     }
+    //检查并计算字符位置
+    CheckCalcTextRects();
 
     int32_t nNewCharIndex = nCharIndex;
     size_t nTextLen = 0; //文本总长度
@@ -1887,6 +1900,8 @@ int32_t RichEditData::GetPrevValidWordIndex(int32_t nCharIndex)
     if (nCharIndex > nTextLength) {
         return nTextLength;
     }
+    //检查并计算字符位置
+    CheckCalcTextRects();
 
     int32_t nNewCharIndex = nCharIndex;
     size_t nTextLen = 0; //文本总长度
@@ -1987,6 +2002,8 @@ bool RichEditData::GetCurrentWordIndex(int32_t nCharIndex, int32_t& nWordStartIn
     if (nCharIndex > nTextLength) {
         return false;
     }
+    //检查并计算字符位置
+    CheckCalcTextRects();
 
     size_t nTextLen = 0; //文本总长度
     const size_t nLineCount = m_lineTextInfo.size();
@@ -2088,6 +2105,8 @@ int32_t RichEditData::GetRowStartCharIndex(int32_t nCharIndex)
     if (nCharIndex > nTextLength) {
         return nTextLength;
     }
+    //检查并计算字符位置
+    CheckCalcTextRects();
 
     int32_t nNewCharIndex = nCharIndex;
     size_t nTextLen = 0; //文本总长度
@@ -2124,6 +2143,8 @@ int32_t RichEditData::GetRowEndCharIndex(int32_t nCharIndex)
     if (nCharIndex > nTextLength) {
         return nTextLength;
     }
+    //检查并计算字符位置
+    CheckCalcTextRects();
 
     int32_t nNewCharIndex = nCharIndex;
     size_t nTextLen = 0; //文本总长度
@@ -2157,6 +2178,9 @@ int32_t RichEditData::GetRowEndCharIndex(int32_t nCharIndex)
 
 int32_t RichEditData::GetCharWidthValue(int32_t nCharIndex)
 {
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
     int32_t nCharWidth = 0;
     size_t nStartCharRowOffset = 0;
     RichTextRowInfoPtr spRowInfo = GetCharRowInfo(nCharIndex, nStartCharRowOffset);
@@ -2436,6 +2460,9 @@ bool RichEditData::CanUndo() const
 
 bool RichEditData::Undo(int32_t& nEndCharIndex)
 {
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
     bool bRet = false;
     if (!m_undoList.empty()) {
         //取出Undo列表尾部的数据
@@ -2463,6 +2490,9 @@ bool RichEditData::CanRedo() const
 
 bool RichEditData::Redo(int32_t& nEndCharIndex)
 {
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
     bool bRet = false;
     if (!m_redoList.empty()) {
         //取出Redo列表尾部的数据
@@ -2496,11 +2526,14 @@ void RichEditData::Clear()
     m_bTextRectYOffsetUpdated = false;
 
     ClearUndoList();
-    SetCacheDirty(true);
+    SetCacheDirty(false);
 }
 
-int32_t RichEditData::GetRowCount() const
+int32_t RichEditData::GetRowCount()
 {
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
     int32_t nRowIndex = 0; //行号
     const size_t nLineCount = m_lineTextInfo.size();
     for (size_t nIndex = 0; nIndex < nLineCount; ++nIndex) {
@@ -2511,8 +2544,11 @@ int32_t RichEditData::GetRowCount() const
     return nRowIndex;
 }
 
-DStringW RichEditData::GetRowText(int32_t nRowIndex) const
+DStringW RichEditData::GetRowText(int32_t nRowIndex)
 {
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
     DStringW rowText;
     bool bFound = false;
     int32_t nRows = 0; //逻辑行号
@@ -2546,8 +2582,11 @@ DStringW RichEditData::GetRowText(int32_t nRowIndex) const
     return rowText;
 }
 
-int32_t RichEditData::RowIndex(int32_t nRowIndex) const
+int32_t RichEditData::RowIndex(int32_t nRowIndex)
 {
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
     int32_t nRowStartIndex = -1;
     bool bFound = false;
     int32_t nRows = 0; //逻辑行号
@@ -2576,8 +2615,11 @@ int32_t RichEditData::RowIndex(int32_t nRowIndex) const
     return nRowStartIndex;
 }
 
-int32_t RichEditData::RowLength(int32_t nRowIndex) const
+int32_t RichEditData::RowLength(int32_t nRowIndex)
 {
+    //检查并计算字符位置
+    CheckCalcTextRects();
+
     int32_t nRowLength = 0;
     bool bFound = false;
     int32_t nRows = 0; //逻辑行号
@@ -2602,7 +2644,7 @@ int32_t RichEditData::RowLength(int32_t nRowIndex) const
     return nRowLength;
 }
 
-int32_t RichEditData::RowFromChar(int32_t nCharIndex) const
+int32_t RichEditData::RowFromChar(int32_t nCharIndex)
 {
     ASSERT(nCharIndex >= 0);
     if (nCharIndex < 0) {
@@ -2612,6 +2654,8 @@ int32_t RichEditData::RowFromChar(int32_t nCharIndex) const
     if (nTextLength < 1) {
         return 0;
     }
+    //检查并计算字符位置
+    CheckCalcTextRects();
 
     int32_t nRowIndex = 0; //逻辑行号
     size_t nTextLen = 0;   //文本总长度
