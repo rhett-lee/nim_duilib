@@ -987,7 +987,14 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
 
     std::wstring_view newTextView = newText;
     std::vector<std::wstring_view> lineTextViewList;
-    SplitLines(newTextView, lineTextViewList);
+    if (m_bSingleLineMode) {
+        //单行模式
+        lineTextViewList.push_back(newTextView);
+    }
+    else {
+        //多行模式
+        SplitLines(newTextView, lineTextViewList);
+    }    
 
     size_t nNewLineCount = 0;
     for (const std::wstring_view& textView : lineTextViewList) {

@@ -23,7 +23,7 @@ void BasicForm::OnInitWindow()
     ui::Button* pButton = (ui::Button*)FindControl(L"test");
     pButton->AttachClick([this](const ui::EventArgs& ){
         ui::RichEdit* pEdit = (ui::RichEdit*)FindControl(L"RichEdit");
-        pEdit->LineScroll(423);
+        pEdit->SetMultiLine(!pEdit->IsMultiLine());
         //int32_t n = pEdit->LineIndex(423);
         //pEdit->EnsureCharVisible(n);
         return true;
@@ -41,7 +41,7 @@ void BasicForm::OnInitWindow()
     text = (const char*)fileData.data();
 #endif
     ui::RichEdit* pEdit = (ui::RichEdit*)FindControl(L"RichEdit");
-   // pEdit->SetText(L"TEST\r\n");
+    pEdit->SetText(L"1 TEST\r\n2 测试看看\r\n3 第三行\n4");
     //pEdit->SetSelNone();
 
     __super::OnInitWindow();
