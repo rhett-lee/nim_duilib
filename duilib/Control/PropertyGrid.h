@@ -743,13 +743,13 @@ public:
     RichEdit* GetRichEdit() const { return m_pRichEdit; }
 
     /** 设置密码模式（显示 ***）
-     * @param[in] bPassword 设置为 true 让控件显示内容为 ***，false 为显示正常内容
+     * @param[in] bPasswordMode 设置为 true 让控件显示内容为 ***，false 为显示正常内容
      */
-    void SetPassword(bool bPassword);
+    void SetPasswordMode(bool bPasswordMode);
 
     /** 是否为密码模式
     */
-    bool IsPassword() const { return m_bPassword; }
+    bool IsPasswordMode() const { return m_bPasswordMode; }
 
     /** 设置是否支持Spin控件
     * @param [in] bEnable true表示支持Spin控件，false表示不支持Spin控件
@@ -776,7 +776,7 @@ private:
 
     /** 密码模式
     */
-    bool m_bPassword;
+    bool m_bPasswordMode;
 };
 
 /** 下拉框类型的属性：使用Combo编辑

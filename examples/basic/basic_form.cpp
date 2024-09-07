@@ -41,7 +41,8 @@ void BasicForm::OnInitWindow()
     text = (const char*)fileData.data();
 #endif
     ui::RichEdit* pEdit = (ui::RichEdit*)FindControl(L"RichEdit");
-    pEdit->SetText(L"1 TEST\r\n2 测试看看\r\n3 第三行\n4");
+    pEdit->SetText(L"1 \tTEST\r\n2 测试看看\r\n3 第三行\n4");
+
     //pEdit->SetSelNone();
 
     __super::OnInitWindow();

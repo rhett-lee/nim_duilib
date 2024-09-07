@@ -407,7 +407,25 @@ void RichEditData::CalcTextRects()
         return;
     }
     m_spDrawRichTextCache.reset();
-    m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam, m_spDrawRichTextCache, nullptr);
+    if (m_pRichText->IsTextPasswordMode()) {
+        //密码模式下，不使用绘制缓存
+        ASSERT(richTextDataList.size() == 1);
+        if (richTextDataList.size() == 1) {
+            RichTextData& richTextData = richTextDataList.front();
+            DStringW text = GetText();
+            m_pRichText->ReplacePasswordChar(text);
+            ASSERT(!text.empty());
+            richTextData.m_textView = text;
+            m_pRender->MeasureRichText2(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam, nullptr);
+            richTextData.m_textView = std::wstring_view();
+        }
+        else {
+            m_pRender->MeasureRichText2(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam, nullptr);
+        }
+    }
+    else {
+        m_pRender->MeasureRichText3(rcDrawText, szScrollOffset, m_pRenderFactory, richTextDataList, &lineInfoParam, m_spDrawRichTextCache, nullptr);
+    }    
     SetTextDrawRect(rcDrawText, false);
     CalcCacheTextRects(m_rcTextRect);
 
@@ -427,6 +445,7 @@ void RichEditData::CalcTextRects(size_t nStartLine,
                                  size_t nDeletedRows)
 {
     PerformanceStat statPerformance(_T("RichEditData::CalcTextRects2"));
+    ASSERT(!m_pRichText->IsTextPasswordMode());//密码模式下，不应使用该函数
     if (nStartLine != (size_t)-1) {
         ASSERT(!modifiedLines.empty() || !deletedLines.empty());
         if (!modifiedLines.empty()) {
@@ -661,14 +680,7 @@ bool RichEditData::SetText(const DStringW& text)
     }
     std::vector<std::wstring_view> lineTextViewList;
     std::wstring_view textView = text;
-    if (m_bSingleLineMode) {
-        //单行文本模式
-        lineTextViewList.push_back(textView);
-    }
-    else {
-        //多行文本模式
-        SplitLines(textView, lineTextViewList);
-    }
+    SplitLines(textView, lineTextViewList);
 
     const size_t nLineCount = lineTextViewList.size();
     bool bTextChanged = false;
@@ -718,6 +730,12 @@ void RichEditData::SplitLines(const std::wstring_view& textView, std::vector<std
     if (textView.empty()) {
         return;
     }
+    if (m_bSingleLineMode || m_pRichText->IsTextPasswordMode()) {
+        //单行文本模式, 密码模式时，不分行
+        lineTextViewList.push_back(textView);
+        return;
+    }
+    //多行文本模式
     std::vector<size_t> lineSeprators;
     const size_t nTextLen = textView.size();
     for (size_t nTextIndex = 0; nTextIndex < nTextLen; ++nTextIndex) {
@@ -988,14 +1006,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
 
     std::wstring_view newTextView = newText;
     std::vector<std::wstring_view> lineTextViewList;
-    if (m_bSingleLineMode) {
-        //单行模式
-        lineTextViewList.push_back(newTextView);
-    }
-    else {
-        //多行模式
-        SplitLines(newTextView, lineTextViewList);
-    }    
+    SplitLines(newTextView, lineTextViewList);
 
     size_t nNewLineCount = 0;
     for (const std::wstring_view& textView : lineTextViewList) {
@@ -1017,8 +1028,8 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
 
     if (!m_bCacheDirty && (!modifiedLines.empty() || !deletedLines.empty())) {
         //修改的行，需要重新计算(增量计算)
-        if (m_lineTextInfo.size() <= 1) {
-            //单行或者为空时，完整绘制
+        if ((m_lineTextInfo.size() <= 1) || m_pRichText->IsTextPasswordMode()) {
+            //单行模式、密码模式、文本为空时，完整绘制
             CalcTextRects();
         }
         else {

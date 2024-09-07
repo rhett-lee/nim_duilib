@@ -211,12 +211,12 @@ public:
     /** 是否是密码状态控件
      * @return 返回 true 表示是密码控件，否则为 false
      */
-    bool IsPassword() const;
+    bool IsPasswordMode() const;
 
     /** 设置控件为密码控件（显示 ***）
-     * @param[in] bPassword 设置为 true 让控件显示内容为 ***，false 为显示正常内容
+     * @param[in] bPasswordMode 设置为 true 让控件显示内容为 ***，false 为显示正常内容
      */
-    void SetPassword(bool bPassword);
+    void SetPasswordMode(bool bPasswordMode);
 
     /** 设置是否显示密码
     */

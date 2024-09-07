@@ -46,6 +46,14 @@ public:
     /** 获取光标的宽度
     */
     virtual int32_t GetTextCaretWidth() const = 0;
+
+    /** 当前是否为密码模式
+    */
+    virtual bool IsTextPasswordMode() const = 0;
+
+    /** 处理密码模式下的显示字符
+    */
+    virtual void ReplacePasswordChar(DStringW& text) const = 0;
 };
 
 class RichEditData

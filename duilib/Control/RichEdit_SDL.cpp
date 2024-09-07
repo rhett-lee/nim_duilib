@@ -67,6 +67,7 @@ RichEdit::RichEdit(Window* pWindow) :
     m_bShowPassword(false),
     m_chPasswordChar(L'*'),
     m_bFlashPasswordChar(false),
+    m_bInputPasswordChar(false),
     m_bNumberOnly(false),
     m_bWordWrap(false),
     m_nLimitText(0),
@@ -116,7 +117,7 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         SetReadOnly(strValue == _T("true"));
     }
     else if (strName == _T("password")) {
-        SetPassword(strValue == _T("true"));
+        SetPasswordMode(strValue == _T("true"));
     }
     else if (strName == _T("show_password")) {
         SetShowPassword(strValue == _T("true"));
@@ -415,16 +416,79 @@ void RichEdit::SetReadOnly(bool bReadOnly)
     }    
 }
 
-bool RichEdit::IsPassword() const
+bool RichEdit::RemoveInvalidPasswordChar(DStringA& text)
+{
+    bool bRet = false;
+    if (!text.empty()) {
+        DStringA oldText = text;
+        StringUtil::ReplaceAll("\r", "", text);
+        StringUtil::ReplaceAll("\n", "", text);
+        StringUtil::ReplaceAll("\t", "", text);
+        if (oldText != text) {
+            bRet = true;
+        }
+    }
+    return bRet;
+}
+
+bool RichEdit::RemoveInvalidPasswordChar(DStringW& text)
+{
+    bool bRet = false;
+    if (!text.empty()) {
+        DStringW oldText = text;
+        StringUtil::ReplaceAll(L"\r", L"", text);
+        StringUtil::ReplaceAll(L"\n", L"", text);
+        StringUtil::ReplaceAll(L"\t", L"", text);
+        if (oldText != text) {
+            bRet = true;
+        }
+    }
+    return bRet;
+}
+
+void RichEdit::ReplacePasswordChar(DStringW& text) const
+{
+    const size_t nTextLen = text.size();
+    if (!IsShowPassword() && (nTextLen > 0)) {
+        DStringW oldText = text;
+        text.clear();
+        text.resize(nTextLen, m_chPasswordChar);
+        if (IsFlashPasswordChar() && m_bInputPasswordChar) {
+            //最后一个字符：闪现
+            text[nTextLen - 1] = oldText[nTextLen - 1];
+        }
+    }
+}
+
+void RichEdit::StopFlashPasswordChar()
+{
+    if (m_bInputPasswordChar) {
+        m_bInputPasswordChar = false;
+        Invalidate();
+    }
+}
+
+bool RichEdit::IsPasswordMode() const
 {
     return m_bPasswordMode;
 }
 
-void RichEdit::SetPassword(bool bPassword)
+void RichEdit::SetPasswordMode(bool bPasswordMode)
 {
-    if (m_bPasswordMode != bPassword) {
-        m_bPasswordMode = bPassword;
-        Redraw();
+    if (m_bPasswordMode != bPasswordMode) {
+        m_bPasswordMode = bPasswordMode;
+        bool bUpdated = false;
+        if (bPasswordMode) {
+            //密码模式下，去掉文本中的回车，换行，TAB键
+            DString text = GetText();
+            if (RemoveInvalidPasswordChar(text)) {
+                SetText(text);
+                bUpdated = true;
+            }
+        }
+        if (!bUpdated) {
+            Redraw();
+        }
     }
 }
 
@@ -445,10 +509,15 @@ void RichEdit::SetPasswordChar(wchar_t ch)
 {
     if (m_chPasswordChar != ch) {
         m_chPasswordChar = ch;
-        if (IsPassword()) {
+        if (IsPasswordMode()) {
             Redraw();
         }
     }
+}
+
+wchar_t RichEdit::GetPasswordChar() const
+{
+    return m_chPasswordChar;
 }
 
 void RichEdit::SetFlashPasswordChar(bool bFlash)
@@ -695,7 +764,12 @@ bool RichEdit::IsEmpty() const
 
 DString RichEdit::GetText() const
 {
+    
+#ifdef DUILIB_UNICODE
     return m_pTextData->GetText();
+#else
+    return StringUtil::UTF16ToUTF8(m_pTextData->GetText());
+#endif
 }
 
 std::string RichEdit::GetUTF8Text() const
@@ -707,11 +781,28 @@ std::string RichEdit::GetUTF8Text() const
 void RichEdit::SetText(const DString& strText)
 {
     //目前内存占用情况：2MB的UTF16格式文本，Debug版本：占用约23MB的内存，Release版本：占用约12MB的内存。
-#ifdef DUILIB_UNICODE   
-    bool bChanged = m_pTextData->SetText(strText);
+    bool bChanged = false;
+#ifdef DUILIB_UNICODE
+    if (IsPasswordMode()) {
+        //密码模式
+        DStringW passwordText = strText;
+        RemoveInvalidPasswordChar(passwordText);
+        bChanged = m_pTextData->SetText(passwordText);
+    }
+    else {
+        bChanged = m_pTextData->SetText(strText);
+    }    
 #else
     DStringW text = StringUtil::UTF8ToUTF16(strText);
-    bool bChanged = m_pTextData->SetText(text);
+    if (IsPasswordMode()) {
+        //密码模式
+        DStringW passwordText = text;
+        RemoveInvalidPasswordChar(passwordText);
+        bChanged = m_pTextData->SetText(passwordText);
+    }
+    else {
+        bChanged = m_pTextData->SetText(text);
+    }
 #endif
     if (bChanged && IsInited()) {
         //重新计算字符区域
@@ -902,7 +993,15 @@ bool RichEdit::ReplaceSel(const DString& newText, bool bCanUndo)
     int32_t nStartChar = -1;
     int32_t nEndChar = -1;
     GetSel(nStartChar, nEndChar);
-    bool bRet = m_pTextData->ReplaceText(nStartChar, nEndChar, newText, bCanUndo);
+    bool bRet = false;
+    if (IsPasswordMode()) {
+        DString text = newText;
+        RemoveInvalidPasswordChar(text);
+        bRet = m_pTextData->ReplaceText(nStartChar, nEndChar, text, false);
+    }
+    else {
+        bRet = m_pTextData->ReplaceText(nStartChar, nEndChar, newText, bCanUndo);
+    }
     ASSERT(bRet);
     if (bRet) {
         nEndChar = nStartChar + (int32_t)newText.size();
@@ -1024,6 +1123,10 @@ void RichEdit::Clear()
 
 void RichEdit::Copy()
 {
+    if (IsPasswordMode()) {
+        //密码模式下，不支持复制
+        return;
+    }
     int32_t nStartChar = -1;
     int32_t nEndChar = -1;
     GetSel(nStartChar, nEndChar);
@@ -1033,7 +1136,8 @@ void RichEdit::Copy()
 
 void RichEdit::Cut()
 {
-    if (IsReadOnly() || !IsEnabled()) {
+    if (IsReadOnly() || !IsEnabled() || IsPasswordMode()) {
+        //只读模式，密码模式，Disable状态下，不支持剪切
         return;
     }
 
@@ -1043,7 +1147,8 @@ void RichEdit::Cut()
     DStringW text = m_pTextData->GetTextRange(nStartChar, nEndChar);
     if (!text.empty()) {
         Clipboard::SetClipboardText(text);
-        m_pTextData->ReplaceText(nStartChar, nEndChar, L"");
+        bool bCanUndo = !IsPasswordMode();
+        m_pTextData->ReplaceText(nStartChar, nEndChar, L"", bCanUndo);
         SetSel(nStartChar, nStartChar);
         m_nSelXPos = -1;
         Invalidate();
@@ -1059,11 +1164,15 @@ void RichEdit::Paste()
     }
     DStringW text;
     Clipboard::GetClipboardText(text);
+    if (IsPasswordMode()) {
+        RemoveInvalidPasswordChar(text);
+    }
     if (!text.empty()) {
         int32_t nStartChar = -1;
         int32_t nEndChar = -1;
         GetSel(nStartChar, nEndChar);
-        m_pTextData->ReplaceText(nStartChar, nEndChar, text, true);
+        bool bCanUndo = !IsPasswordMode();
+        m_pTextData->ReplaceText(nStartChar, nEndChar, text, bCanUndo);
         int32_t nNewSel = nStartChar + (int32_t)text.size();
         SetSel(nNewSel, nNewSel);
         m_nSelXPos = -1;
@@ -1408,43 +1517,67 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         }
     }
 
-    //绘制文字
-    std::vector<RichTextData> richTextDataList;
-    GetRichTextForDraw(richTextDataList);
-    UiSize szScrollOffset = GetScrollOffset();
-
-    std::shared_ptr<DrawRichTextCache> spDrawRichTextCache = m_pTextData->GetDrawRichTextCache();
-    if (spDrawRichTextCache != nullptr) {
-        //校验缓存是否失效
-        if (!pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache)) {
-            spDrawRichTextCache.reset();
-            m_pTextData->ClearDrawRichTextCache();
-        }
-    }
-
     //绘制选择背景色
     PaintSelectionColor(pRender, rcPaint);
 
     //绘制文字
-    if (spDrawRichTextCache != nullptr) {
-        //通过缓存绘制
-        rcDrawText.Offset(0, m_pTextData->GetTextRectOfssetY());
-        pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, m_pTextData->GetTextRowXOffset(), (uint8_t)GetAlpha());
-    }
-    else if(!richTextDataList.empty()){
-        spDrawRichTextCache.reset();
+    if (!IsPasswordMode()) {
+        //非密码模式，使用绘制缓存来绘制
+        std::vector<RichTextData> richTextDataList;
+        GetRichTextForDraw(richTextDataList);
 
-        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-        ASSERT(pRenderFactory != nullptr);
-        pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, spDrawRichTextCache);
-        ASSERT(spDrawRichTextCache != nullptr);
+        std::shared_ptr<DrawRichTextCache> spDrawRichTextCache = m_pTextData->GetDrawRichTextCache();
         if (spDrawRichTextCache != nullptr) {
-            ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache));
+            //校验缓存是否失效
+            if (!pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache)) {
+                spDrawRichTextCache.reset();
+                m_pTextData->ClearDrawRichTextCache();
+            }
+        }
+
+        //绘制文字
+        UiSize szScrollOffset = GetScrollOffset();
+        if (spDrawRichTextCache != nullptr) {
             //通过缓存绘制
             rcDrawText.Offset(0, m_pTextData->GetTextRectOfssetY());
             pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, m_pTextData->GetTextRowXOffset(), (uint8_t)GetAlpha());
-            m_pTextData->SetDrawRichTextCache(spDrawRichTextCache);
         }
+        else if (!richTextDataList.empty()) {
+            spDrawRichTextCache.reset();
+
+            IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+            ASSERT(pRenderFactory != nullptr);
+            pRender->CreateDrawRichTextCache(rcDrawText, szScrollOffset, pRenderFactory, richTextDataList, spDrawRichTextCache);
+            ASSERT(spDrawRichTextCache != nullptr);
+            if (spDrawRichTextCache != nullptr) {
+                ASSERT(pRender->IsValidDrawRichTextCache(rcDrawText, richTextDataList, spDrawRichTextCache));
+                //通过缓存绘制
+                rcDrawText.Offset(0, m_pTextData->GetTextRectOfssetY());
+                pRender->DrawRichTextCacheData(spDrawRichTextCache, rcDrawText, szScrollOffset, m_pTextData->GetTextRowXOffset(), (uint8_t)GetAlpha());
+                m_pTextData->SetDrawRichTextCache(spDrawRichTextCache);
+            }
+        }
+    }
+    else {
+        //密码模式，不使用绘制缓存
+        DStringW passwordText = m_pTextData->GetText();
+        //处理显示字符
+        ReplacePasswordChar(passwordText);
+
+        DString fontId = GetFontId();
+        ASSERT(!fontId.empty());
+        if (!passwordText.empty() && !fontId.empty()) {
+            UiRect rcDrawRect = GetRichTextDrawRect();
+            UiColor dwClrColor = GetUiColor(GetTextColor());
+            ASSERT(!dwClrColor.IsEmpty());
+            uint32_t dwStyle = GetTextStyle();
+#ifdef DUILIB_UNICODE
+            pRender->DrawString(rcDrawRect, passwordText, dwClrColor, GetIFontById(fontId), dwStyle);
+#else
+            pRender->DrawString(rcDrawRect, StringUtil::UTF16ToUTF8(passwordText), dwClrColor, GetIFontById(fontId), dwStyle);
+#endif
+            
+        }        
     }
 
     //绘制光标
@@ -2052,7 +2185,7 @@ bool RichEdit::IsEnableDefaultContextMenu() const
 void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 {
     RichEdit* pRichEdit = this;
-    if ((pRichEdit == nullptr) || !pRichEdit->IsEnabled() || pRichEdit->IsPassword()) {
+    if ((pRichEdit == nullptr) || !pRichEdit->IsEnabled() || pRichEdit->IsPasswordMode()) {
         return;
     }
 
@@ -2539,19 +2672,14 @@ uint16_t RichEdit::GetTextStyle() const
         uTextStyle |= TEXT_TOP;
     }
 
-    if (IsWordWrap()) {
+    //密码模式，不进行自动换行
+    if (IsWordWrap() && !IsPasswordMode()) {
         uTextStyle |= TEXT_WORD_WRAP;
     }
-    else {
-        uTextStyle &= ~TEXT_WORD_WRAP;
-    }
 
-    //单行/多行属性
+    //单行/多行属性(不设置属性则为多行模式)
     if (!IsMultiLine()) {
         uTextStyle |= TEXT_SINGLELINE;        
-    }
-    else {
-        uTextStyle &= ~TEXT_SINGLELINE;
     }
     return ui::TruncateToUInt16(uTextStyle);
 }
@@ -2673,6 +2801,11 @@ int32_t RichEdit::GetTextRowHeight() const
 int32_t RichEdit::GetTextCaretWidth() const
 {
     return m_iCaretWidth;
+}
+
+bool RichEdit::IsTextPasswordMode() const
+{
+    return IsPasswordMode();
 }
 
 UiSize RichEdit::EstimateText(UiSize szAvailable)
@@ -2859,7 +2992,7 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
     if ((m_pClearButton != nullptr) && !IsReadOnly()) {
         m_pClearButton->SetFadeVisible(true);
     }
-    if ((m_pShowPasswordButton != nullptr) && IsPassword() && !IsShowPassword()) {
+    if ((m_pShowPasswordButton != nullptr) && IsPasswordMode() && !IsShowPassword()) {
         m_pShowPasswordButton->SetFadeVisible(true);
     }
     Invalidate();
@@ -3044,7 +3177,7 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
     }
     else if ((msg.vkCode == 'W') && IsKeyDown(msg, ModifierKey::kControl)) {
         //Ctrl + W, 切换自动换行
-        if (IsMultiLine() && !IsPassword() && IsEnabled()) {
+        if (IsMultiLine() && !IsPasswordMode() && IsEnabled()) {
             SetWordWrap(!IsWordWrap());
         }
     }
@@ -4022,7 +4155,7 @@ void RichEdit::OnInputChar(const EventArgs& msg)
     DStringW text;
     text = (DStringW::value_type)msg.vkCode;
     if (msg.vkCode == kVK_RETURN) {
-        if (!IsMultiLine() || IsPassword()) {
+        if (!IsMultiLine() || IsPasswordMode()) {
             //单行模式下，或者密码模式下，不支持输入换行符
             return;
         }
@@ -4070,6 +4203,10 @@ void RichEdit::OnInputChar(const EventArgs& msg)
         }
     }
 
+    if (IsPasswordMode()) {
+        RemoveInvalidPasswordChar(text);
+    }
+
     if ((nSelEndChar == nSelStartChar) && text.empty()) {
         return;
     }
@@ -4080,9 +4217,9 @@ void RichEdit::OnInputChar(const EventArgs& msg)
 
     //是否检测数字模式
     bool bCheckNumberOnly = IsNumberOnly() && ((GetMinNumber() != INT_MIN) || (GetMaxNumber() != INT_MAX));
-    DString oldText;
+    DStringW oldText;
     if (bCheckNumberOnly) {
-        oldText = GetText();
+        oldText = m_pTextData->GetText();
     }
 
     bool bRet = m_pTextData->ReplaceText(nSelStartChar, nSelEndChar, text, true);
@@ -4092,6 +4229,18 @@ void RichEdit::OnInputChar(const EventArgs& msg)
     }
     int32_t nNewSelChar = nSelStartChar + (int32_t)text.size();
     InternalSetSel(nNewSelChar, nNewSelChar);
+
+    //闪现密码功能(仅当从尾部输入时，提供字符闪现功能)
+    if (IsPasswordMode()) {
+        m_falshPasswordFlag.Cancel();
+    }
+    if (IsPasswordMode() && !IsShowPassword() && IsFlashPasswordChar()) {
+        if (nNewSelChar == GetTextLength()) {
+            m_bInputPasswordChar = true;            
+            std::function<void()> closure = UiBind(&RichEdit::StopFlashPasswordChar, this);
+            GlobalManager::Instance().Timer().AddTimer(m_falshPasswordFlag.GetWeakFlag(), closure, 1500);
+        }
+    }
 
     //更新滚动条
     UpdateScrollRange();
@@ -4109,13 +4258,13 @@ void RichEdit::OnInputChar(const EventArgs& msg)
                 //超过最小数字，进行修正
                 int32_t newValue = GetMinNumber();
                 SetTextNoEvent(StringUtil::Printf(_T("%d"), newValue));
-                bTextChanged = (oldText != GetText()) ? true : false;
+                bTextChanged = (oldText != m_pTextData->GetText()) ? true : false;
             }
             else if (n > GetMaxNumber()) {
                 //超过最大数字，进行修正
                 int32_t newValue = GetMaxNumber();
                 SetTextNoEvent(StringUtil::Printf(_T("%d"), newValue));
-                bTextChanged = (oldText != GetText()) ? true : false;
+                bTextChanged = (oldText != m_pTextData->GetText()) ? true : false;
             }
         }
     }

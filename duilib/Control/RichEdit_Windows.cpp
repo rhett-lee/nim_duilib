@@ -588,7 +588,7 @@ void RichEdit::SetReadOnly(bool bReadOnly)
 #endif
 }
 
-bool RichEdit::IsPassword() const
+bool RichEdit::IsPasswordMode() const
 {
     if (m_pRichHost != nullptr) {
         return m_pRichHost->IsPassword();
@@ -596,13 +596,13 @@ bool RichEdit::IsPassword() const
     return false;
 }
 
-void RichEdit::SetPassword(bool bPassword)
+void RichEdit::SetPasswordMode(bool bPasswordMode)
 {
     if (m_pRichHost != nullptr) {
-        m_pRichHost->SetPassword(bPassword);
+        m_pRichHost->SetPassword(bPasswordMode);
     }
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
-    if (bPassword) {
+    if (bPasswordMode) {
         //密码模式关闭拖放功能
         SetEnableDragDrop(false);
     }
@@ -1664,7 +1664,7 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
     if ((m_pClearButton != nullptr) && !IsReadOnly()){
         m_pClearButton->SetFadeVisible(true);
     }
-    if ((m_pShowPasswordButton != nullptr) && IsPassword() && !IsShowPassword()) {
+    if ((m_pShowPasswordButton != nullptr) && IsPasswordMode() && !IsShowPassword()) {
         m_pShowPasswordButton->SetFadeVisible(true);
     }
     Invalidate();
@@ -3509,7 +3509,7 @@ void RichEdit::SetEnableDragDrop(bool bEnable)
     }
     if (bEnable) {
         //只读模式、密码模式、不可用模式，关闭拖放功能
-        if (IsReadOnly() || IsPassword() || !IsEnabled()) {
+        if (IsReadOnly() || IsPasswordMode() || !IsEnabled()) {
             bEnable = false;
         }
     }

@@ -1123,7 +1123,7 @@ PropertyGridTextProperty::PropertyGridTextProperty(Window* pWindow,
                                                    size_t nPropertyData):
     PropertyGridProperty(pWindow, propertyName, propertyValue, description, nPropertyData),
     m_pRichEdit(nullptr),
-    m_bPassword(false)
+    m_bPasswordMode(false)
 {
 }
 
@@ -1173,7 +1173,7 @@ Control* PropertyGridTextProperty::ShowEditControl(bool bShow)
     else {
         DString newText = m_pRichEdit->GetText();
         bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
-        if (IsPassword()) {
+        if (IsPasswordMode()) {
             DString showText;
             showText.resize(newText.size(), _T('*'));
             SetPropertyText(showText, bChanged);
@@ -1186,17 +1186,17 @@ Control* PropertyGridTextProperty::ShowEditControl(bool bShow)
     return m_pRichEdit;
 }
 
-void PropertyGridTextProperty::SetPassword(bool bPassword)
+void PropertyGridTextProperty::SetPasswordMode(bool bPasswordMode)
 {
-    m_bPassword = bPassword;
+    m_bPasswordMode = bPasswordMode;
     if (m_pRichEdit == nullptr) {
         return;
     }
-    m_pRichEdit->SetPassword(bPassword);
+    m_pRichEdit->SetPasswordMode(bPasswordMode);
     m_pRichEdit->SetFlashPasswordChar(true);
     DString text = m_pRichEdit->GetText();
     bool bChanged = text != GetPropertyValue(); //相对原值，是否有修改
-    if (bPassword) {
+    if (bPasswordMode) {
         DString showText;
         showText.resize(text.size(), _T('*'));
         SetPropertyText(showText, bChanged);

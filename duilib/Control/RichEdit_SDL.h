@@ -238,12 +238,12 @@ public:
     /** 是否是密码状态控件
      * @return 返回 true 表示是密码控件，否则为 false
      */
-    bool IsPassword() const;
+    bool IsPasswordMode() const;
 
     /** 设置控件为密码控件（显示 ***）
-     * @param[in] bPassword 设置为 true 让控件显示内容为 ***，false 为显示正常内容
+     * @param[in] bPasswordMode 设置为 true 让控件显示内容为 ***，false 为显示正常内容
      */
-    void SetPassword(bool bPassword);
+    void SetPasswordMode(bool bPasswordMode);
 
     /** 设置是否显示密码
     */
@@ -256,6 +256,10 @@ public:
     /** 设置密码字符
     */
     void SetPasswordChar(wchar_t ch);
+
+    /** 获取密码字符
+    */
+    wchar_t GetPasswordChar() const;
 
     /** 设置是否对输入的字符短暂显示再隐藏（仅当IsShowPassword()为true，即密码模式的时候有效）
     */
@@ -745,6 +749,14 @@ protected:
     */
     virtual int32_t GetTextCaretWidth() const override;
 
+    /** 当前是否为密码模式
+    */
+    virtual bool IsTextPasswordMode() const override;
+
+    /** 处理密码模式下的显示字符
+    */
+    virtual void ReplacePasswordChar(DStringW& text) const override;
+
 private:
     void OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bShiftDown);
     void OnLButtonUp(const UiPoint& ptMouse, Control* pSender);
@@ -843,6 +855,10 @@ private:
      */
     void PaintPromptText(IRender* pRender);
 
+    /** 停止密码字符闪现
+    */
+    void StopFlashPasswordChar();
+
 private:
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
@@ -934,6 +950,11 @@ private:
     */
     void TruncateLimitText(DStringW& text, int32_t nLimitLen) const;
 
+    /** 移除不支持的密码字符
+    */
+    bool RemoveInvalidPasswordChar(DStringA& text);
+    bool RemoveInvalidPasswordChar(DStringW& text);
+
     /** 更新滚动条的范围
     */
     void UpdateScrollRange();
@@ -957,6 +978,7 @@ private:
     bool m_bShowPassword;       //是否显示密码
     wchar_t m_chPasswordChar;   //密码字符
     bool m_bFlashPasswordChar;  //是否短暂的显示密码字符，然后再隐藏
+    bool m_bInputPasswordChar;  //当前是否存在输入密码
 
     bool m_bNumberOnly;         //是否只允许输入数字
     bool m_bWordWrap;           //当显示超出边界时，是否自动换行
@@ -1119,6 +1141,10 @@ private:
     /** 定时器滚动视图时的取消机制
     */
     WeakCallbackFlag m_scrollViewFlag;
+
+    /** 密码字符闪现功能的定时器取消机制
+    */
+    WeakCallbackFlag m_falshPasswordFlag;
 };
 
 } // namespace ui
