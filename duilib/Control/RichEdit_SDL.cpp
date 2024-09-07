@@ -3922,6 +3922,12 @@ void RichEdit::OnFrameSelection(UiSize64 ptMouseDown64, UiSize64 ptMouseMove64)
     m_nSelXPos = -1;
 }
 
+void RichEdit::UpdateScrollRange()
+{
+    //通过基类的SetPos完成
+    SetPos(GetPos());
+}
+
 void RichEdit::OnInputChar(const EventArgs& msg)
 {
     m_nSelXPos = -1;
@@ -4118,12 +4124,6 @@ void RichEdit::OnInputChar(const EventArgs& msg)
     if (bTextChanged) {
         OnTextChanged();
     }
-}
-
-void RichEdit::UpdateScrollRange()
-{
-    //通过基类的SetPos完成
-    SetPos(GetPos());
 }
 
 } // namespace ui

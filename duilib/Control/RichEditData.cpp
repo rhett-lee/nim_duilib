@@ -1547,6 +1547,11 @@ int32_t RichEditData::CharFromPos(UiPoint pt)
     //检查并计算字符位置
     CheckCalcTextRects();
 
+    if (m_rcTextDrawRect.IsEmpty()) {
+        //文本显示区域为空
+        return 0;
+    }
+
     //转换为内部坐标
     ConvertToInternal(pt);
 
@@ -1563,11 +1568,13 @@ int32_t RichEditData::CharFromPos(UiPoint pt)
     }
     if (spDestRow == nullptr) {
         RichTextRowInfoPtr spLastRow = GetLastRowInfo();
-        const UiRectF& rowRect = spLastRow->m_rowRect;
-        if (pt.y >= rowRect.bottom) {
-            //该点在区域下方，定位到最后一行
-            spDestRow = spLastRow;
-        }
+        if (spLastRow != nullptr) {
+            const UiRectF& rowRect = spLastRow->m_rowRect;
+            if (pt.y >= rowRect.bottom) {
+                //该点在区域下方，定位到最后一行
+                spDestRow = spLastRow;
+            }
+        }        
     }
 
     if (spDestRow == nullptr) {

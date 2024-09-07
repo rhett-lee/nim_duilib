@@ -620,7 +620,7 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
 
     //设置未模态对话框
     if (pParentWindow != nullptr) {
-        SDL_SetWindowModalFor(m_sdlWindow, pParentWindow->m_sdlWindow);
+        SDL_SetWindowModal(m_sdlWindow, SDL_TRUE);
     }
 
     //设置窗口居中
@@ -1192,7 +1192,10 @@ void NativeWindow_SDL::ShowModalFake(NativeWindow_SDL* pParentWindow)
     }
     ShowWindow(kSW_SHOW_NORMAL);
     if (pParentWindow != nullptr) {
-        SDL_bool nRet = SDL_SetWindowModalFor(m_sdlWindow, pParentWindow->m_sdlWindow);
+        SDL_bool nRet = SDL_SetWindowParent(m_sdlWindow, pParentWindow->m_sdlWindow);
+        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+
+        nRet = SDL_SetWindowModal(m_sdlWindow, SDL_TRUE);
         ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
         m_bFakeModal = true;
     }    
@@ -1201,6 +1204,12 @@ void NativeWindow_SDL::ShowModalFake(NativeWindow_SDL* pParentWindow)
 void NativeWindow_SDL::OnCloseModalFake(NativeWindow_SDL* pParentWindow)
 {
     if (IsFakeModal()) {
+        SDL_bool nRet = SDL_SetWindowModal(m_sdlWindow, SDL_FALSE);
+        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+
+        nRet = SDL_SetWindowParent(m_sdlWindow, nullptr);
+        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+
         if (pParentWindow != nullptr) {
             pParentWindow->EnableWindow(true);
             pParentWindow->SetWindowFocus();
