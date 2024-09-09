@@ -533,6 +533,10 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
         return false;
     }
 
+    if (createAttributes.m_bSizeBoxDefined && !createAttributes.m_rcSizeBox.IsZero()) {
+        SDL_SetWindowResizable(m_sdlWindow, SDL_TRUE);
+    }
+
     m_sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
     ASSERT(m_sdlRenderer != nullptr);
     if (m_sdlRenderer == nullptr) {
@@ -547,6 +551,13 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
     if (m_pOwner != nullptr) {
         bool bHandled = false;
         m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(0, 0, 0), bHandled);
+
+        bool bMinimizeBox = false;
+        bool bMaximizeBox = false;
+        if (m_pOwner->OnNativeHasMinMaxBox(bMinimizeBox, bMaximizeBox)) {
+            //如果有最大化按钮，设置可调整窗口大小的属性
+            SDL_SetWindowResizable(m_sdlWindow, SDL_TRUE);
+        }
     }
     return true;
 }
@@ -593,6 +604,10 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
         return -1;
     }
 
+    if (createAttributes.m_bSizeBoxDefined && !createAttributes.m_rcSizeBox.IsZero()) {
+        SDL_SetWindowResizable(m_sdlWindow, SDL_TRUE);
+    }
+
     m_sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
     ASSERT(m_sdlRenderer != nullptr);
     if (m_sdlRenderer == nullptr) {
@@ -610,6 +625,13 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
     if (m_pOwner != nullptr) {
         bool bHandled = false;
         m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(0, 0, 0), bHandled);
+
+        bool bMinimizeBox = false;
+        bool bMaximizeBox = false;
+        if (m_pOwner->OnNativeHasMinMaxBox(bMinimizeBox, bMaximizeBox)) {
+            //如果有最大化按钮，设置可调整窗口大小的属性
+            SDL_SetWindowResizable(m_sdlWindow, SDL_TRUE);
+        }
     }
 
     SDL_WindowID currentWindowId = SDL_GetWindowID(m_sdlWindow);
@@ -744,7 +766,10 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     }
 
     //窗口属性
-    SDL_WindowFlags windowFlags = SDL_WINDOW_INPUT_FOCUS | SDL_WINDOW_RESIZABLE;
+    SDL_WindowFlags windowFlags = SDL_WINDOW_INPUT_FOCUS;
+    if (createAttributes.m_bSizeBoxDefined && !createAttributes.m_rcSizeBox.IsZero()) {
+        windowFlags |= SDL_WINDOW_RESIZABLE;
+    }
 
     //创建的时候，窗口保持隐藏状态，需要调用API显示窗口，避免创建窗口的时候闪烁
     windowFlags |= SDL_WINDOW_HIDDEN;
@@ -774,7 +799,7 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     if (bPopupWindow && (m_createParam.m_dwExStyle & kWS_EX_NOACTIVATE)) {
         windowFlags |= SDL_WINDOW_NOT_FOCUSABLE;
     }
-    SDL_SetNumberProperty(props, "flags", windowFlags);
+    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, windowFlags);
 }
 
 SDL_HitTestResult SDLCALL NativeWindow_SDL_HitTest(SDL_Window* win,
