@@ -37,7 +37,7 @@ bool DpiAwareness::InitDpiAwareness(const DpiInitParam& initParam)
     return bRet;
 }
 
-DpiAwarenessMode DpiAwareness::SetDpiAwareness(DpiAwarenessMode /*dpiAwarenessMode*/) const
+DpiAwarenessMode DpiAwareness::SetDpiAwareness(DpiAwarenessMode /*dpiAwarenessMode*/)
 {
     return DpiAwarenessMode::kSystemDpiAware;
 }

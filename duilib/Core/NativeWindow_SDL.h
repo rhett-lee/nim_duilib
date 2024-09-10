@@ -8,7 +8,6 @@
 
 #ifdef DUILIB_BUILD_FOR_SDL
 
-#include "duilib/duilib_config_windows.h"
 #include <unordered_map>
 
 //SDL的类型，提前声明

@@ -560,7 +560,7 @@ bool CxImage::Encode2RGBA(CxFile *hFile, bool bFlipY)
  * \param imagetype: file format, see ENUM_CXIMAGE_FORMATS
  * \return true if everything is ok
  */
-bool CxImage::Load(const TCHAR * filename, uint32_t imagetype)
+bool CxImage::Load(const TCHAR* filename, uint32_t imagetype)
 //bool CxImage::Load(const char * filename, uint32_t imagetype)
 {
     /*FILE* hFile;    //file handle to read the image
@@ -570,30 +570,44 @@ bool CxImage::Load(const TCHAR * filename, uint32_t imagetype)
 
     /* automatic file type recognition */
     bool bOK = false;
-    if ( GetTypeIndexFromId(imagetype) ){
-        FILE* hFile;    //file handle to read the image
+    if (GetTypeIndexFromId(imagetype)) {
+        FILE* hFile = nullptr;    //file handle to read the image
 
-#ifdef WIN32
-        if ((hFile=_tfopen(filename,_T("rb")))==NULL)  return false;    // For UNICODE support
+#ifdef DUILIB_BUILD_FOR_WIN
+        if ((hFile = _tfopen(filename, _T("rb"))) == NULL)  return false;    // For UNICODE support
 #else
-        if ((hFile=fopen(filename,"rb"))==NULL)  return false;
+#ifdef DUILIB_UNICODE
+        ::_wfopen_s(&hFile, filename, _T("rb"));
+        if (hFile == nullptr) {
+            return false;
+        }
+#else
+        if ((hFile = fopen(filename, "rb")) == NULL)  return false;
+#endif
 #endif
 
-        bOK = Decode(hFile,imagetype);
+        bOK = Decode(hFile, imagetype);
         fclose(hFile);
         if (bOK) return bOK;
     }
 
     char szError[256];
-    strcpy(szError,info.szLastError); //save the first error
+    strcpy(szError, info.szLastError); //save the first error
 
     // if failed, try automatic recognition of the file...
-    FILE* hFile;
+    FILE* hFile = nullptr;
 
-#ifdef WIN32
-    if ((hFile=_tfopen(filename,_T("rb")))==NULL)  return false;    // For UNICODE support
+#ifdef DUILIB_BUILD_FOR_WIN
+    if ((hFile = _tfopen(filename, _T("rb"))) == NULL)  return false;    // For UNICODE support
+#else
+#ifdef DUILIB_UNICODE
+    ::_wfopen_s(&hFile, filename, _T("rb"));
+    if (hFile == nullptr) {
+        return false;
+    }
 #else
     if ((hFile=fopen(filename,"rb"))==NULL)  return false;
+#endif
 #endif
 
     bOK = Decode(hFile,CXIMAGE_FORMAT_UNKNOWN);
@@ -604,7 +618,7 @@ bool CxImage::Load(const TCHAR * filename, uint32_t imagetype)
     return bOK;
 }
 ////////////////////////////////////////////////////////////////////////////////
-#ifdef WIN32
+#ifdef DUILIB_BUILD_FOR_WIN
 //bool CxImage::Load(LPCWSTR filename, uint32_t imagetype)
 //{
 //    /*FILE* hFile;    //file handle to read the image

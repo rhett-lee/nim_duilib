@@ -292,6 +292,8 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
 #ifdef DUILIB_BUILD_FOR_WIN
             #define WHEEL_DELTA     120
 #else
+            //TODO: 确认其他平台应该时什么值
+            #define WHEEL_DELTA     120
 #endif
             int32_t wheelDelta = (int32_t)(sdlEvent.wheel.y * WHEEL_DELTA);
             UiPoint pt;
@@ -1636,6 +1638,7 @@ void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
     RECT rc = { rcItem.left, rcItem.top, rcItem.right, rcItem.bottom };
     ::InvalidateRect(hWnd, &rc, FALSE);
 #else
+    (void)rcItem;
     //暂时没有此功能, 只能发送一个绘制消息，触发界面绘制
     if (m_sdlWindow != nullptr) {
         SDL_Event sdlEvent;

@@ -174,6 +174,8 @@ SkCanvas* Render_Skia_SDL::GetSkCanvas() const
     return backbuffer->getCanvas();
 }
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
 HDC Render_Skia_SDL::GetRenderDC(HWND /*hWnd*/)
 {
     ASSERT(0);
@@ -184,6 +186,8 @@ void Render_Skia_SDL::ReleaseRenderDC(HDC /*hdc*/)
 {
     ASSERT(0);
 }
+
+#endif
 
 } // namespace ui
 
