@@ -52,7 +52,7 @@ void PerformanceUtil::EndStat(const DString& name)
     auto thisTime = std::chrono::duration_cast<std::chrono::microseconds>(stat.endTime - stat.startTime);
     stat.totalTimes += thisTime;
     stat.hasStarted = false;
-    stat.maxTime = std::max(stat.maxTime, thisTime);
+    stat.maxTime = (std::max)(stat.maxTime, thisTime);
 }
 
 }

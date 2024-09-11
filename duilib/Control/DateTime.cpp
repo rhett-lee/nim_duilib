@@ -1,5 +1,6 @@
 #include "DateTime.h"
 #include "DateTimeWnd_Windows.h"
+#include <sstream>
 
 namespace ui
 {
