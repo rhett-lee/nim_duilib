@@ -47,7 +47,7 @@ public:
             if (pdwEffect != nullptr) {
                 dwEffect = *pdwEffect;
             }
-            hr = pDropTarget->DragEnter((IDataObject*)pDataObj, grfKeyState, POINTL(pt.x, pt.y), &dwEffect);
+            hr = pDropTarget->DragEnter((IDataObject*)pDataObj, grfKeyState, POINTL{ pt.x, pt.y }, &dwEffect);
             if (pdwEffect != nullptr) {
                 *pdwEffect = dwEffect;
             }
@@ -85,7 +85,7 @@ public:
             if (pdwEffect != nullptr) {
                 dwEffect = *pdwEffect;
             }
-            hr = pDropTarget->DragOver(grfKeyState, POINTL(pt.x, pt.y), &dwEffect);
+            hr = pDropTarget->DragOver(grfKeyState, POINTL{ pt.x, pt.y }, &dwEffect);
             if (pdwEffect != nullptr) {
                 *pdwEffect = dwEffect;
             }
@@ -124,7 +124,7 @@ public:
             if (pdwEffect != nullptr) {
                 dwEffect = *pdwEffect;
             }
-            hr = pDropTarget->Drop((IDataObject*)pDataObj, grfKeyState, POINTL(pt.x, pt.y), &dwEffect);
+            hr = pDropTarget->Drop((IDataObject*)pDataObj, grfKeyState, POINTL{ pt.x, pt.y }, &dwEffect);
             if (pdwEffect != nullptr) {
                 *pdwEffect = dwEffect;
             }
@@ -2896,7 +2896,7 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
     long nEndChar = 0;
     pRichEdit->GetSel(nStartChar, nEndChar);
     if (nStartChar == nEndChar) {
-        int32_t pos = pRichEdit->m_richCtrl.CharFromPos(POINT(point.x, point.y));
+        int32_t pos = pRichEdit->m_richCtrl.CharFromPos(POINT{ point.x, point.y });
         if (pos > 0) {
             pRichEdit->SetSel(pos, pos);
             pRichEdit->GetSel(nStartChar, nEndChar);
