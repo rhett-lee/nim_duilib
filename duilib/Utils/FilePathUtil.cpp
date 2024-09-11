@@ -83,7 +83,9 @@ FilePath FilePathUtil::GetCurrentModuleDirectory()
     return currentDir;
 #else
     DStringW dirPath = std::filesystem::current_path().native();
-    return FilePath(dirPath);
+    FilePath filePath(dirPath);
+    filePath.NormalizeDirectoryPath();
+    return filePath;
 #endif
 }
 

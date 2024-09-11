@@ -27,6 +27,7 @@
     #pragma comment (lib, "Version.lib")
     #pragma comment (lib, "Winmm.lib")
     #pragma comment (lib, "Setupapi.lib")
+    #pragma comment (lib, "Imm32.lib")
 #endif
 
 #include <filesystem>
