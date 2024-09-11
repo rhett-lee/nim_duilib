@@ -773,11 +773,15 @@ void MainForm::RunListCtrlTest()
     pListCtrl->SetSubItemCheck(nDataItemIndex, nColumnIndex, true);
     ASSERT(pListCtrl->IsSubItemChecked(nDataItemIndex, nColumnIndex) == true);
 
+    int32_t nOldValue = pListCtrl->GetDataItemImageId(nDataItemIndex);
     pListCtrl->SetDataItemImageId(nDataItemIndex, 666);
     ASSERT(pListCtrl->GetDataItemImageId(nDataItemIndex) == 666);
+    pListCtrl->SetDataItemImageId(nDataItemIndex, nOldValue);
 
+    nOldValue = pListCtrl->GetSubItemImageId(nDataItemIndex, nColumnIndex);
     pListCtrl->SetSubItemImageId(nDataItemIndex, nColumnIndex, 667);
     ASSERT(pListCtrl->GetSubItemImageId(nDataItemIndex, nColumnIndex) == 667);
+    pListCtrl->SetSubItemImageId(nDataItemIndex, nColumnIndex, nOldValue);
 
     subItemData.text = _T("3");
     nColumnIndex = 0;
