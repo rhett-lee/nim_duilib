@@ -1,25 +1,7 @@
-#include "main.h"
-#include "basic_form.h"
+#include "MainThread.h"
+#include "BasicForm.h"
 
-//定义应用程序的入口点
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
-{
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
-
-    // 创建主线程
-    MainThread thread;
-
-    // 执行主线程循环
-    thread.RunOnCurrentThreadWithLoop();
-
-    return 0;
-}
-
-MainThread::MainThread():
+MainThread::MainThread() :
     FrameworkThread(_T("MainThread"), ui::kThreadUI)
 {
 }
@@ -67,9 +49,9 @@ void MainThread::OnInit()
     BasicForm* window = new BasicForm();
     window->CreateWnd(nullptr, ui::WindowCreateParam(_T("basic")));
     window->PostQuitMsgWhenClosed(true);
-   // window->CenterWindow();
+    // window->CenterWindow();
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
-   // window->ShowWindow(ui::kSW_SHOW_MAXIMIZED);
+    // window->ShowWindow(ui::kSW_SHOW_MAXIMIZED);
 }
 
 void MainThread::OnCleanup()

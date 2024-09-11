@@ -1,16 +1,10 @@
-#ifndef EXAMPLES_MAIN_H_
-#define EXAMPLES_MAIN_H_
+#ifndef EXAMPLES_MAIN_THREAD_H_
+#define EXAMPLES_MAIN_THREAD_H_
 
 // duilib
 #include "duilib/duilib.h"
 
-#include "resource.h"
-
-/** @class MainThread
-* @brief 主线程（UI线程）类
-* @copyright (c) 2015, NetEase Inc. All rights reserved
-* @author towik
-* @date 2015/1/1
+/** 主线程
 */
 class MainThread : public ui::FrameworkThread
 {
@@ -28,4 +22,4 @@ private:
     virtual void OnCleanup() override;
 };
 
-#endif //EXAMPLES_MAIN_H_
+#endif // EXAMPLES_MAIN_THREAD_H_

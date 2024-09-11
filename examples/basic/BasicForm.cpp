@@ -1,4 +1,4 @@
-#include "basic_form.h"
+#include "BasicForm.h"
 
 BasicForm::BasicForm()
 {
