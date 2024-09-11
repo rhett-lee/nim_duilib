@@ -617,7 +617,7 @@ struct RichTextLineInfo: public NVRefCount<RichTextLineInfo>
 
     /** 文本数据
     */
-    UiString m_lineText;
+    UiStringW m_lineText;
 
     /** 逻辑行的基本信息
     */

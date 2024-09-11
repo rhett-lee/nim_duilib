@@ -1035,7 +1035,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
             textSlice.m_fontInfo.m_fontSize = node.attribute(_T("size")).as_int();            
         }
         else if (nodeName == _T("br")) {
-            textSlice.m_text = _T("\n");
+            textSlice.m_text = L"\n";
             //换行节点, 不需要递归遍历子节点
             bParseChildren = false;
         }

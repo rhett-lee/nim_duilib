@@ -66,16 +66,6 @@ public:
      */
     int32_t GetTextLength() const;
 
-    /** 获取控件中的文本
-     * @return 返回控件中的文本内容 UTF8 格式
-     */
-    virtual std::string GetUTF8Text() const;
-
-    /** 设置控件的文本对应 ID
-     * @param[in] strTextId 要设置的 UTF8 格式 ID，该 ID 必须在加载的语言文件中存在
-     */
-    virtual void SetUTF8Text(const std::string& strText);
-
     /** 获取当前设置的字体索引
      * @return 返回字体索引（对应 global.xml 中字体的顺序）
      */

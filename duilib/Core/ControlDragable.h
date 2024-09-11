@@ -1125,7 +1125,7 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
                 m_pDragWindow->AddRef();
             }
             m_pDragWindow->SetDragImage(pDragImage);
-            m_pDragWindow->ShowWindow(kSW_SHOW_NORMAL);
+            m_pDragWindow->ShowWindow(kSW_SHOW_NA);
         }
     }
     if (m_pDragWindow != nullptr) {

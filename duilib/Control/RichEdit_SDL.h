@@ -38,7 +38,8 @@ public:
     /** 设置控件的文本, 会触发文本变化事件
      * @param [in] strText 要设置的文本内容
      */
-    void SetText(const DString& strText);
+    void SetText(const DStringW& strText);
+    void SetText(const DStringA& strText);
 
     /** 设置控件的文本，不触发文本变化事件
      * @param [in] strText 要设置的文本内容
@@ -54,6 +55,8 @@ public:
      * @return 返回控件中的文本内容
      */
     DString GetText() const;
+    DStringA GetTextA() const;
+    DStringW GetTextW() const;
 
     /** 获取内容的长度(按UTF16编码的字符个数，TODO：有歧义)
      * @return 返回内容长度
@@ -63,16 +66,6 @@ public:
     /** 是否为空
     */
     bool IsEmpty() const;
-
-    /** 获取控件中的文本
-     * @return 返回控件中的文本内容 UTF8 格式
-     */
-    virtual std::string GetUTF8Text() const;
-
-    /** 设置控件的文本对应 ID
-     * @param[in] strTextId 要设置的 UTF8 格式 ID，该 ID 必须在加载的语言文件中存在
-     */
-    virtual void SetUTF8Text(const std::string& strText);
 
     /** 获取当前设置的字体索引
      * @return 返回字体索引（对应 global.xml 中字体的顺序）

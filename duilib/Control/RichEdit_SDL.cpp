@@ -772,17 +772,20 @@ DString RichEdit::GetText() const
 #endif
 }
 
-std::string RichEdit::GetUTF8Text() const
+DStringA RichEdit::GetTextA() const
 {
-    std::string strOut = StringUtil::TToUTF8(GetText());
-    return strOut;
+    return StringUtil::UTF16ToUTF8(m_pTextData->GetText());
 }
 
-void RichEdit::SetText(const DString& strText)
+DStringW RichEdit::GetTextW() const
+{
+    return m_pTextData->GetText();
+}
+
+void RichEdit::SetText(const DStringW& strText)
 {
     //目前内存占用情况：2MB的UTF16格式文本，Debug版本：占用约23MB的内存，Release版本：占用约12MB的内存。
     bool bChanged = false;
-#ifdef DUILIB_UNICODE
     if (IsPasswordMode()) {
         //密码模式
         DStringW passwordText = strText;
@@ -791,8 +794,24 @@ void RichEdit::SetText(const DString& strText)
     }
     else {
         bChanged = m_pTextData->SetText(strText);
-    }    
-#else
+    }
+    if (bChanged && IsInited()) {
+        //重新计算字符区域
+        Redraw();
+
+        //文本变化时，选择点放到文本末端
+        int32_t nTextLen = (int32_t)m_pTextData->GetText().size();
+        InternalSetSel(nTextLen, nTextLen);
+
+        UpdateScrollRange();
+        OnTextChanged();
+    }
+}
+
+void RichEdit::SetText(const DStringA& strText)
+{
+    //目前内存占用情况：2MB的UTF16格式文本，Debug版本：占用约23MB的内存，Release版本：占用约12MB的内存。
+    bool bChanged = false;
     DStringW text = StringUtil::UTF8ToUTF16(strText);
     if (IsPasswordMode()) {
         //密码模式
@@ -803,7 +822,6 @@ void RichEdit::SetText(const DString& strText)
     else {
         bChanged = m_pTextData->SetText(text);
     }
-#endif
     if (bChanged && IsInited()) {
         //重新计算字符区域
         Redraw();
@@ -829,12 +847,6 @@ void RichEdit::SetTextId(const DString& strTextId)
 {
     DString strText = GlobalManager::Instance().Lang().GetStringViaID(strTextId);
     SetText(strText);
-}
-
-void RichEdit::SetUTF8Text( const std::string& strText )
-{
-    DString strOut = StringUtil::UTF8ToT(strText);
-    SetText(strOut);
 }
 
 bool RichEdit::GetModify() const
@@ -994,17 +1006,17 @@ bool RichEdit::ReplaceSel(const DString& newText, bool bCanUndo)
     int32_t nEndChar = -1;
     GetSel(nStartChar, nEndChar);
     bool bRet = false;
-    if (IsPasswordMode()) {
-        DString text = newText;
+    DStringW text = StringUtil::TToUTF16(newText);
+    if (IsPasswordMode()) {        
         RemoveInvalidPasswordChar(text);
         bRet = m_pTextData->ReplaceText(nStartChar, nEndChar, text, false);
     }
     else {
-        bRet = m_pTextData->ReplaceText(nStartChar, nEndChar, newText, bCanUndo);
+        bRet = m_pTextData->ReplaceText(nStartChar, nEndChar, text, bCanUndo);
     }
     ASSERT(bRet);
     if (bRet) {
-        nEndChar = nStartChar + (int32_t)newText.size();
+        nEndChar = nStartChar + (int32_t)text.size();
         SetSel(nStartChar, nEndChar);
         UpdateScrollRange();
         OnTextChanged();
@@ -1047,7 +1059,7 @@ void RichEdit::SetSelNone()
 
 DString RichEdit::GetTextRange(int32_t nStartChar, int32_t nEndChar) const
 {
-    return m_pTextData->GetTextRange(nStartChar, nEndChar);
+    return StringUtil::UTF16ToT(m_pTextData->GetTextRange(nStartChar, nEndChar));
 }
 
 void RichEdit::SetHideSelection(bool bHideSelection)
@@ -2597,7 +2609,7 @@ void RichEdit::SetFontIdInternal(const DString& fontId)
     }
 
     //按字体高度设置光标的高度
-    UiRect fontRect = pRender->MeasureString(L"T", pFont, 0);
+    UiRect fontRect = pRender->MeasureString(_T("T"), pFont, 0);
     m_nRowHeight = fontRect.Height();
     ASSERT(m_nRowHeight > 0);
     int32_t nCaretHeight = fontRect.Height();

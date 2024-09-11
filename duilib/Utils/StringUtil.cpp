@@ -646,14 +646,17 @@ std::wstring StringUtil::TToUTF16(const std::string& str)
     return StringUtil::UTF8ToUTF16(str);
 }
 
+#ifdef DUILIB_UNICODE
+const DString& StringUtil::UTF16ToT(const std::wstring& utf16)
+{
+    return utf16;
+}
+#else
 DString StringUtil::UTF16ToT(const std::wstring& utf16)
 {
-#ifdef DUILIB_UNICODE
-    return utf16;
-#else    
     return StringUtil::UTF16ToUTF8(utf16);
-#endif
 }
+#endif
 
 std::basic_string<UTF32Char> StringUtil::UTF8ToUTF32(const std::string& utf8)
 {

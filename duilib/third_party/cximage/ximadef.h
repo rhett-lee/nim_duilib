@@ -201,7 +201,7 @@ typedef struct tagcomplex {
 #ifdef DUILIB_UNICODE
     #define _tcsnicmp _wcsnicmp
 #else
-    #define _tcsnicmp strnicmp
+    #define _tcsnicmp _strnicmp
 #endif
 
 #endif

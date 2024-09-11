@@ -20,9 +20,9 @@ DString BasicForm::GetSkinFile()
 
 void BasicForm::OnInitWindow()
 {
-    ui::Button* pButton = (ui::Button*)FindControl(L"test");
+    ui::Button* pButton = (ui::Button*)FindControl(_T("test"));
     pButton->AttachClick([this](const ui::EventArgs& ){
-        ui::RichEdit* pEdit = (ui::RichEdit*)FindControl(L"RichEdit");
+        ui::RichEdit* pEdit = (ui::RichEdit*)FindControl(_T("RichEdit"));
         pEdit->SetMultiLine(!pEdit->IsMultiLine());
         //int32_t n = pEdit->LineIndex(423);
         //pEdit->EnsureCharVisible(n);
@@ -40,8 +40,8 @@ void BasicForm::OnInitWindow()
 #else
     text = (const char*)fileData.data();
 #endif
-    ui::RichEdit* pEdit = (ui::RichEdit*)FindControl(L"RichEdit");
-    pEdit->SetText(L"1 \tTEST\r\n2 测试看看\r\n3 第三行\n4");
+    ui::RichEdit* pEdit = (ui::RichEdit*)FindControl(_T("RichEdit"));
+    pEdit->SetText(_T("1 \tTEST\r\n2 测试看看\r\n3 第三行\n4"));
 
     //pEdit->SetSelNone();
 

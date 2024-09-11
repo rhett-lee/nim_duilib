@@ -745,7 +745,7 @@ DString RichText::ToString(const RichTextSlice& textSlice, const DString& indent
     if (textSlice.m_nodeName.empty()) {
         if (!textSlice.m_text.empty()) {
             richText += indent;
-            richText += textSlice.m_text.c_str();
+            richText += StringUtil::UTF16ToT(textSlice.m_text);
             richText += lineBreak;
         }
         //没有节点名称的情况下，就没有属性和子节点，直接返回
@@ -817,7 +817,7 @@ DString RichText::ToString(const RichTextSlice& textSlice, const DString& indent
         richText += _T(">");
 
         //添加超链接的文本
-        richText += textSlice.m_text.c_str();
+        richText += StringUtil::UTF16ToT(textSlice.m_text);
 
         //节点结束
         richText += _T("</");

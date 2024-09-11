@@ -257,7 +257,7 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         SetReadOnly(strValue == _T("true"));
     }
     else if (strName == _T("password")) {
-        SetPassword(strValue == _T("true"));
+        SetPasswordMode(strValue == _T("true"));
     }
     else if (strName == _T("show_password")) {
         SetShowPassword(strValue == _T("true"));
@@ -489,8 +489,18 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //SetEnableDragDrop(strValue == _T("true"));
     }
 #endif
+
+    //几个SDL版本支持但该版本不支持的属性，需要跳过
+    else if (strName == _T("selection_bkcolor")) {
+    }
+    else if (strName == _T("inactive_selection_bkcolor")) {
+    }
+    else if (strName == _T("current_row_bkcolor")) {
+    }
+    else if (strName == _T("inactive_current_row_bkcolor")) {
+    }
     else {
-        Box::SetAttribute(strName, strValue);
+        __super::SetAttribute(strName, strValue);
     }
 }
 
@@ -823,12 +833,6 @@ DString RichEdit::GetText() const
 #endif
 }
 
-std::string RichEdit::GetUTF8Text() const
-{
-    std::string strOut = StringUtil::TToUTF8(GetText());
-    return strOut;
-}
-
 void RichEdit::SetText(const DString& strText)
 {
     m_bDisableTextChangeEvent = false;
@@ -848,12 +852,6 @@ void RichEdit::SetTextId(const DString& strTextId)
 {
     DString strText = GlobalManager::Instance().Lang().GetStringViaID(strTextId);
     SetText(strText);
-}
-
-void RichEdit::SetUTF8Text( const std::string& strText )
-{
-    DString strOut = StringUtil::UTF8ToT(strText);
-    SetText(strOut);
 }
 
 bool RichEdit::GetModify() const
@@ -2680,7 +2678,7 @@ bool RichEdit::IsEnableDefaultContextMenu() const
 void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
 {
     RichEdit* pRichEdit = this;
-    if ((pRichEdit == nullptr) || !pRichEdit->IsEnabled() || pRichEdit->IsPassword()) {
+    if ((pRichEdit == nullptr) || !pRichEdit->IsEnabled() || pRichEdit->IsPasswordMode()) {
         return;
     }
 

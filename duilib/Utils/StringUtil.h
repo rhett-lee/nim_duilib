@@ -45,7 +45,11 @@ public:
 
     static const std::wstring& TToUTF16(const std::wstring& str);
     static std::wstring TToUTF16(const std::string& str);
+#ifdef DUILIB_UNICODE
+    static const DString& UTF16ToT(const std::wstring& utf16);
+#else
     static DString UTF16ToT(const std::wstring& utf16);
+#endif
 
     static std::basic_string<UTF32Char> UTF8ToUTF32(const UTF8Char* utf8, size_t length);
     static std::basic_string<UTF32Char> UTF8ToUTF32(const std::string& utf8);

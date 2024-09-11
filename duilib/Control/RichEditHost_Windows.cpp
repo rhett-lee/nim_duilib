@@ -396,10 +396,10 @@ void RichEditHost::TxViewChange(BOOL /*fUpdate*/)
 
 BOOL RichEditHost::TxCreateCaret(HBITMAP /*hbmp*/, INT xWidth, INT yHeight)
 {
-    if (m_pRichEdit == nullptr) {
-        return TRUE;
-    }
-    return m_pRichEdit->CreateCaret(xWidth, yHeight);
+    if (m_pRichEdit != nullptr) {
+        m_pRichEdit->CreateCaret(xWidth, yHeight);
+    }    
+    return TRUE;
 }
 
 BOOL RichEditHost::TxShowCaret(BOOL /*fShow*/)
@@ -409,10 +409,10 @@ BOOL RichEditHost::TxShowCaret(BOOL /*fShow*/)
 
 BOOL RichEditHost::TxSetCaretPos(INT x, INT y)
 {
-    if (m_pRichEdit == nullptr) {
-        return TRUE;
+    if (m_pRichEdit != nullptr) {
+        m_pRichEdit->SetCaretPos(x, y);
     }
-    return m_pRichEdit->SetCaretPos(x, y);
+    return TRUE;
 }
 
 BOOL RichEditHost::TxSetTimer(UINT idTimer, UINT uTimeout)
