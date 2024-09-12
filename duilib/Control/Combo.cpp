@@ -130,7 +130,7 @@ UiRect CComboWnd::GetComboWndRect() const
     pOwner->GetWindow()->ClientToScreen(rc);
 
     UiRect rcWork;
-    GetMonitorWorkRect(rcWork);
+    pOwner->GetWindow()->GetMonitorWorkRect(rcWork);
     if (rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
         rc.left = rcOwner.left;
         rc.right = rcOwner.right;

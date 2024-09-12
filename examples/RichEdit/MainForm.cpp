@@ -392,29 +392,8 @@ void MainForm::OnInitWindow()
         pZoomButtom->AttachClick([this, zoomInfoList](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
                 //放大：每次放大10%
-                int32_t nNum = 0;
-                int32_t nDen = 0;
-                m_pRichEdit->GetZoom(nNum, nDen);
-                if ((nNum > 0) && (nDen > 0)) {
-                    float zoomValue = nNum * 100.0f / nDen;
-                    zoomValue *= 1.10f;
-                    bool bFound = false;
-                    for (const ZoomInfo& zoomInfo : zoomInfoList) {
-                        if ((zoomInfo.nNum * 100.0f / zoomInfo.nDen) >= zoomValue){
-                            m_pRichEdit->SetZoom(zoomInfo.nNum, zoomInfo.nDen);
-                            bFound = true;
-                            break;
-                        }
-                    }
-                    if (!bFound) {
-                        ZoomInfo zoomInfo = zoomInfoList.back();
-                        m_pRichEdit->SetZoom(zoomInfo.nNum, zoomInfo.nDen);
-                    }
-                }
-                else {
-                    //100%
-                    m_pRichEdit->SetZoom(11, 10);
-                }
+                uint32_t nZoomPercent = GetNextZoomPercent(m_pRichEdit->GetZoomPercent(), true);
+                m_pRichEdit->SetZoomPercent(nZoomPercent);
                 UpdateZoomValue();
             }
             return true;
@@ -425,31 +404,8 @@ void MainForm::OnInitWindow()
         pZoomButtom->AttachClick([this, zoomInfoList](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
                 //缩小：每次缩小10%
-                int32_t nNum = 0;
-                int32_t nDen = 0;
-                m_pRichEdit->GetZoom(nNum, nDen);
-                if ((nNum > 0) && (nDen > 0)) {
-                    float zoomValue = nNum * 100.0f / nDen;
-                    zoomValue *= 0.90f;
-                    bool bFound = false;
-                    int32_t zoomCount = (int32_t)zoomInfoList.size();
-                    for (int32_t index = zoomCount - 1; index >= 0; --index) {
-                        const ZoomInfo& zoomInfo = zoomInfoList[index];
-                        if ((zoomInfo.nNum * 100.0f / zoomInfo.nDen) <= zoomValue) {
-                            m_pRichEdit->SetZoom(zoomInfo.nNum, zoomInfo.nDen);
-                            bFound = true;
-                            break;
-                        }
-                    }
-                    if (!bFound) {
-                        ZoomInfo zoomInfo = zoomInfoList.front();
-                        m_pRichEdit->SetZoom(zoomInfo.nNum, zoomInfo.nDen);
-                    }
-                }
-                else {
-                    //90%
-                    m_pRichEdit->SetZoom(9, 10);
-                }
+                uint32_t nZoomPercent = GetNextZoomPercent(m_pRichEdit->GetZoomPercent(), false);
+                m_pRichEdit->SetZoomPercent(nZoomPercent);
                 UpdateZoomValue();
             }
             return true;
@@ -460,7 +416,7 @@ void MainForm::OnInitWindow()
         pZoomButtom->AttachClick([this](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
                 //恢复
-                m_pRichEdit->SetZoomOff();
+                m_pRichEdit->SetZoomPercent(100);
                 UpdateZoomValue();
             }
             return true;
@@ -528,6 +484,89 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
+}
+
+uint32_t MainForm::GetNextZoomPercent(uint32_t nOldZoomPercent, bool bZoomIn) const
+{
+    //缩放百分比的最大值
+    const uint32_t MAX_ZOOM_PERCENT = 800;
+
+    //通过查表的方式设置缩放比例(放大和缩小的时候，能够按照原来的比例复原)
+    std::vector<uint32_t> zoomPercentList;
+    uint32_t nZoomPercent = 100;
+    while (nZoomPercent > 1) {
+        nZoomPercent = (uint32_t)(nZoomPercent * 0.90f);
+        zoomPercentList.insert(zoomPercentList.begin(), nZoomPercent);
+    }
+    nZoomPercent = 100;
+    while (nZoomPercent < MAX_ZOOM_PERCENT) {
+        zoomPercentList.insert(zoomPercentList.end(), nZoomPercent);
+        nZoomPercent = (uint32_t)(nZoomPercent * 1.10f);
+    }
+    zoomPercentList.insert(zoomPercentList.end(), MAX_ZOOM_PERCENT);
+
+    bool bFound = false;
+    nZoomPercent = nOldZoomPercent;
+    const size_t nPercentCount = zoomPercentList.size();
+    for (size_t nPercentIndex = 0; nPercentIndex < nPercentCount; ++nPercentIndex) {
+        if ((zoomPercentList[nPercentIndex] > nZoomPercent) || (nPercentIndex == (nPercentCount - 1))) {
+            if (nPercentIndex <= 1) {
+                size_t nCurrentIndex = 0;//当前是第一个元素
+                if (bZoomIn) {
+                    //放大
+                    nZoomPercent = zoomPercentList[nCurrentIndex + 1];
+                }
+                else {
+                    //缩小（已经到达最小值，无法再缩小）
+                    nZoomPercent = zoomPercentList[nCurrentIndex];
+                }
+            }
+            else if (zoomPercentList[nPercentIndex] > nZoomPercent) {
+                size_t nCurrentIndex = nPercentIndex - 1;//中间元素
+                if (bZoomIn) {
+                    //放大
+                    nZoomPercent = zoomPercentList[nCurrentIndex + 1];
+                }
+                else {
+                    //缩小
+                    nZoomPercent = zoomPercentList[nCurrentIndex - 1];
+                }
+            }
+            else if (nPercentIndex == (nPercentCount - 1)) {
+                size_t nCurrentIndex = nPercentCount - 1;//当前是最后一个元素
+                if (bZoomIn) {
+                    //放大（已经到达最大值，无法再放大）
+                    nZoomPercent = zoomPercentList[nCurrentIndex];
+                }
+                else {
+                    //缩小
+                    nZoomPercent = zoomPercentList[nCurrentIndex - 1];
+                }
+            }
+            bFound = true;
+            break;
+        }
+    }
+
+    if (!bFound) {
+        //如果查表得不到结果，则按比例放大或者缩小
+        if (bZoomIn) {
+            //放大
+            nZoomPercent = (uint32_t)(nZoomPercent * 1.10f);
+            if (nZoomPercent == nOldZoomPercent) {
+                //避免数值过小时无法放大
+                ++nZoomPercent;
+            }
+        }
+        else {
+            //缩小
+            nZoomPercent = (uint32_t)(nZoomPercent * 0.91f);
+        }
+    }
+    if (nZoomPercent < 1) {
+        nZoomPercent = 1;
+    }
+    return nZoomPercent;
 }
 
 void MainForm::InitColorCombo()
@@ -1449,17 +1488,8 @@ void MainForm::UpdateZoomValue()
 
     ui::Label* pZoomLabel = dynamic_cast<ui::Label*>(FindControl(_T("lavel_zoom_value")));
     if (pZoomLabel != nullptr) {
-        int32_t nNum = 0;
-        int32_t nDen = 0;
-        int32_t zoomValue = 100;
-        pRichEdit->GetZoom(nNum, nDen);
-        if ((nNum <= 0) || (nDen <= 0)) {
-            zoomValue = 1000;
-        }
-        else {
-            zoomValue = nNum * 1000 / nDen;
-        }
-        DString strZoom = ui::StringUtil::Printf(_T("%.01f%%"), zoomValue / 10.0);
+        uint32_t nZoomPercent = pRichEdit->GetZoomPercent();
+        DString strZoom = ui::StringUtil::Printf(_T("%u%%"), nZoomPercent);
         pZoomLabel->SetText(strZoom);
     }
 }

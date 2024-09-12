@@ -173,84 +173,80 @@ bool RichEditFindReplace::FindTextSimple(const DString& findText, bool bFindDown
     if (m_sFindNext.empty()) {
         return false;
     }
-
-    FINDTEXTEXW ft = {0, };
-    m_pRichEdit->GetSel(ft.chrg);
+    ui::FindTextParam findParam;
+    int32_t nStartChar = -1;
+    int32_t nEndChar = -1;
+    m_pRichEdit->GetSel(nStartChar, nEndChar);
     if (m_bFirstSearch) {
         if (bFindDown) {
-            m_nInitialSearchPos = ft.chrg.cpMin;
+            m_nInitialSearchPos = nStartChar;
         }
         else {
-            m_nInitialSearchPos = ft.chrg.cpMax;
+            m_nInitialSearchPos = nEndChar;
         }
         m_bFirstSearch = false;
     }
-
-    DStringW findTextW = ui::StringUtil::TToUTF16(findText);
-    ft.lpstrText = findTextW.c_str();
-
-    if (ft.chrg.cpMin != ft.chrg.cpMax)    {
+    findParam.chrg.cpMin = nStartChar;
+    findParam.chrg.cpMax = nEndChar;
+    findParam.findText = findText;
+    findParam.bFindDown = bFindDown;
+    findParam.bMatchCase = bMatchCase;
+    findParam.bMatchWholeWord = bMatchWholeWord;
+    if (findParam.chrg.cpMin != findParam.chrg.cpMax)    {
         if (bFindDown) {
-            ft.chrg.cpMin++;
+            findParam.chrg.cpMin++;
         }
         else {
-            ft.chrg.cpMin = std::max(ft.chrg.cpMin, 0L);
+            findParam.chrg.cpMin = std::max(findParam.chrg.cpMin, 0);
         }
     }
 
-    DWORD dwFlags = bMatchCase ? FR_MATCHCASE : 0;
-    dwFlags |= bMatchWholeWord ? FR_WHOLEWORD : 0;
-
-    ft.chrg.cpMax = m_pRichEdit->GetTextLength() + m_nInitialSearchPos;
+    findParam.chrg.cpMax = m_pRichEdit->GetTextLength() + m_nInitialSearchPos;
 
     if (bFindDown) {
         if (m_nInitialSearchPos >= 0) {
-            ft.chrg.cpMax = m_pRichEdit->GetTextLength();
+            findParam.chrg.cpMax = m_pRichEdit->GetTextLength();
         }
-        dwFlags |= FR_DOWN;
-        ASSERT(ft.chrg.cpMax >= ft.chrg.cpMin);
+        ASSERT(findParam.chrg.cpMax >= findParam.chrg.cpMin);
     }
     else {
         if (m_nInitialSearchPos >= 0) {
-            ft.chrg.cpMax = 0;
+            findParam.chrg.cpMax = 0;
         }
-        dwFlags &= ~FR_DOWN;
-        ASSERT(ft.chrg.cpMax <= ft.chrg.cpMin);
+        ASSERT(findParam.chrg.cpMax <= findParam.chrg.cpMin);
     }
 
     bool bRet = false;
-    if (FindAndSelect(dwFlags, ft) != -1) {
+    if (FindAndSelect(findParam)) {
         bRet = true;
     }
     else if (m_nInitialSearchPos > 0) {
         if (bFindDown) {
-            ft.chrg.cpMin = 0;
-            ft.chrg.cpMax = m_nInitialSearchPos;
+            findParam.chrg.cpMin = 0;
+            findParam.chrg.cpMax = m_nInitialSearchPos;
         }
         else {
-            ft.chrg.cpMin = m_pRichEdit->GetTextLength();
-            ft.chrg.cpMax = m_nInitialSearchPos;
+            findParam.chrg.cpMin = m_pRichEdit->GetTextLength();
+            findParam.chrg.cpMax = m_nInitialSearchPos;
         }
         m_nInitialSearchPos = m_nInitialSearchPos - m_pRichEdit->GetTextLength();
-        bRet = (FindAndSelect(dwFlags, ft) != -1) ? true : false;
+        bRet = FindAndSelect(findParam);
     }
     return bRet;
 }
 
-long RichEditFindReplace::FindAndSelect(DWORD dwFlags, FINDTEXTEXW& ft)
+bool RichEditFindReplace::FindAndSelect(const ui::FindTextParam& findParam)
 {
-    if (m_pRichEdit == nullptr) {
-        return -1;
-    }
-    LONG index = m_pRichEdit->FindRichText(dwFlags, ft);
-    if (index != -1) {
+    ui::TextCharRange chrgText;
+    if ((m_pRichEdit != nullptr) && m_pRichEdit->FindRichText(findParam, chrgText)) {
         //查找到了内容，选择所查到的内容
-        m_pRichEdit->SetSel(ft.chrgText);
+        m_pRichEdit->SetSel(chrgText.cpMin, chrgText.cpMax);
+        return true;
     }
-    return index;
+    return false;
 }
 
-bool RichEditFindReplace::SameAsSelected(const DString& replaceText, BOOL bMatchCase)
+bool RichEditFindReplace::SameAsSelected(const DString& replaceText, bool bMatchCase)
 {
     if (m_pRichEdit == nullptr) {
         return false;
@@ -292,8 +288,9 @@ void RichEditFindReplace::AdjustDialogPosition(ui::Window* pWndDialog)
             rect.Offset(0, pt.y - rect.bottom - 20);
         }
         else {
-            //TODO: 平台
-            int nVertExt = GetSystemMetrics(SM_CYSCREEN);
+            ui::UiRect rcWork;
+            pWndDialog->GetMonitorWorkRect(rcWork);
+            int32_t nVertExt = rcWork.Height();
             if ((pt.y + (rect.bottom - rect.top)) < nVertExt) {
                 rect.Offset(0, 40 + pt.y - rect.top);
             }
@@ -311,14 +308,14 @@ void RichEditFindReplace::OnReplaceAllCoreBegin()
     m_nOldCursor = ui::GlobalManager::Instance().Cursor().GetCursorID();
     ui::GlobalManager::Instance().Cursor().SetCursor(ui::CursorType::kCursorWait);
     if (m_pRichEdit != nullptr) {
-        m_pRichEdit->HideSelection(true, false);
+        m_pRichEdit->HideSelection(true);
     }
 }
 
 void RichEditFindReplace::OnReplaceAllCoreEnd(int /*replaceCount*/)
 {
     if (m_pRichEdit != nullptr) {
-        m_pRichEdit->HideSelection(false, false);
+        m_pRichEdit->HideSelection(false);
     }
     if (m_nOldCursor != 0) {
         ui::GlobalManager::Instance().Cursor().SetCursorByID(m_nOldCursor);

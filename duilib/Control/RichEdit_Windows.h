@@ -15,6 +15,25 @@
 namespace ui 
 {
 
+/** 字符的索引号范围
+*/
+struct TextCharRange
+{
+    int32_t cpMin = -1; //字符的起始索引值
+    int32_t cpMax = -1; //字符的结束索引值
+};
+
+/** 字符查找的参数
+*/
+struct FindTextParam
+{
+    bool bMatchCase = true;      //查找时是否区分大小写
+    bool bMatchWholeWord = true; //查找时，是否按词匹配
+    bool bFindDown = true;       //是否向后查找，为true表示向后查找，false表示反向查找
+    TextCharRange chrg;          //字符的查找范围
+    DString findText;            //查找的文本
+};
+
 class RichEditHost;
 class ControlDropTarget;
 class VBox;
@@ -613,6 +632,12 @@ public:
     */
     int32_t ConvertToFontHeight(int32_t fontSize) const;
 
+    /** 查找文本
+    * @param [in] findParam 查找参数
+    * @param [out] chrgText 匹配的文本，字符的索引号范围
+    */
+    bool FindRichText(const FindTextParam& findParam, TextCharRange& chrgText) const;
+
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
 public:
     /** 是否是富文本模式
@@ -645,30 +670,20 @@ public:
 
     /** 查找文本
     */
-    LONG FindRichText(DWORD dwFlags, FINDTEXTW& ft) const;
+    int32_t FindRichText(DWORD dwFlags, FINDTEXTW& ft) const;
 
     /** 查找文本
     */
-    LONG FindRichText(DWORD dwFlags, FINDTEXTEXW& ft) const;
+    int32_t FindRichText(DWORD dwFlags, FINDTEXTEXW& ft) const;
 
-    /** 获取当前缩放比， 按缩放比例分子/分母显示的缩放：1/64 < (wParam / lParam) < 64
-     * @param[out] nNum 缩放比率分子
-     * @param[out] nDen 缩放比率分母
-     * @return 如果处理了消息则返回 TRUE
-     */
-    bool GetZoom(int& nNum, int& nDen) const;
+    /** 设置缩放百分比
+    * @param [in] fZoomRatio 缩放比例，比如"100"表示100%, 无缩放; "200"表示缩放比例为200%
+    */
+    void SetZoomPercent(uint32_t nZoomPercent);
 
-    /** 设置缩放比
-     * @param[in] nNum 缩放比率分子，取值范围：[0, 64]
-     * @param[in] nDen 缩放比率分母，取值范围：[0, 64]
-     * @return 成功返回 true，失败返回 false
-     */
-    bool SetZoom(int nNum, int nDen);
-
-    /** 恢复缩放到初始状态
-     * @return 成功返回 true，否则返回 false
-     */
-    bool SetZoomOff();
+    /** 获取缩放百分比
+    */
+    uint32_t GetZoomPercent() const;
 
     /** 获取是否开启了自动 URL 检测(从RichEditHost读取)
      * @return 返回 true 表示开启了自动检测，否则为 false
@@ -988,6 +1003,25 @@ private:
     /** 取消一个定时器（由内部回调使用）
     */
     void KillTimer(UINT idTimer);
+
+    /** 获取当前缩放比， 按缩放比例分子/分母显示的缩放：1/64 < (wParam / lParam) < 64
+     * @param[out] nNum 缩放比率分子
+     * @param[out] nDen 缩放比率分母
+     * @return 如果处理了消息则返回 TRUE
+     */
+    bool GetZoom(int& nNum, int& nDen) const;
+
+    /** 设置缩放比
+     * @param[in] nNum 缩放比率分子，取值范围：[0, 64]
+     * @param[in] nDen 缩放比率分母，取值范围：[0, 64]
+     * @return 成功返回 true，失败返回 false
+     */
+    bool SetZoom(int nNum, int nDen);
+
+    /** 恢复缩放到初始状态
+     * @return 成功返回 true，否则返回 false
+     */
+    bool SetZoomOff();
 
 private:
     //RichEdit控制辅助工具类

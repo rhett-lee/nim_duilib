@@ -13,6 +13,25 @@ namespace ui
 class VBox;
 class DrawRichTextCache;
 
+/** 字符的索引号范围
+*/
+struct TextCharRange
+{
+    int32_t cpMin = -1; //字符的起始索引值
+    int32_t cpMax = -1; //字符的结束索引值
+};
+
+/** 字符查找的参数
+*/
+struct FindTextParam
+{
+    bool bMatchCase = true;      //查找时是否区分大小写
+    bool bMatchWholeWord = true; //查找时，是否按词匹配
+    bool bFindDown = true;       //是否向后查找，为true表示向后查找，false表示反向查找
+    TextCharRange chrg;          //字符的查找范围
+    DString findText;            //查找的文本
+};
+
 class UILIB_API RichEdit : public ScrollBox, protected IRichTextData
 {
 public:
@@ -621,6 +640,17 @@ public:
     */
     void EnsureCharVisible(int32_t nCharIndex);
 
+    /** 查找文本
+    * @param [in] findParam 查找参数
+    * @param [out] chrgText 匹配的文本，字符的索引号范围
+    */
+    bool FindRichText(const FindTextParam& findParam, TextCharRange& chrgText) const;
+
+    /** 设置隐藏或显示选择的文本
+     * @param [in] bHide 是否显示，true 为隐藏，false 为显示
+     */
+    void HideSelection(bool bHide);
+
 public:
     /** 向上一行
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
@@ -851,6 +881,12 @@ private:
     /** 停止密码字符闪现
     */
     void StopFlashPasswordChar();
+
+    /** 获取下一个缩放百分比值
+    * @param [in] nOldZoomPercent 当前的缩放百分比
+    * @param [in] bZoomIn true表示放大，false表示缩小
+    */
+    uint32_t GetNextZoomPercent(uint32_t nOldZoomPercent, bool bZoomIn) const;
 
 private:
 

@@ -41,10 +41,10 @@ private:
     bool FindTextSimple(const DString& findText, bool bFindDown, bool bMatchCase, bool bMatchWholeWord);
 
     //查找并选择
-    long FindAndSelect(DWORD dwFlags, FINDTEXTEXW& ft);
+    bool FindAndSelect(const ui::FindTextParam& findParam);
 
     //比较当前选择与文本是否匹配
-    bool SameAsSelected(const DString& replaceText, BOOL bMatchCase);
+    bool SameAsSelected(const DString& replaceText, bool bMatchCase);
 
     //没找到，回调函数
     void TextNotFound(const DString& findText);
@@ -76,7 +76,7 @@ private:
     bool m_bFirstSearch;
 
     //初始搜索的位置
-    long m_nInitialSearchPos;
+    int32_t m_nInitialSearchPos;
 
     //旧的光标
     ui::CursorID m_nOldCursor;

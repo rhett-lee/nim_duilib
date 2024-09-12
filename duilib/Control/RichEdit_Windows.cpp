@@ -3212,6 +3212,26 @@ int32_t RichEdit::ConvertToFontHeight(int32_t fontSize) const
     return lfHeight;
 }
 
+bool RichEdit::FindRichText(const FindTextParam& findParam, TextCharRange& chrgText) const
+{
+    DWORD dwFlags = findParam.bMatchCase ? FR_MATCHCASE : 0;
+    dwFlags |= findParam.bMatchWholeWord ? FR_WHOLEWORD : 0;
+    dwFlags |= findParam.bFindDown ? FR_DOWN : 0;
+    FINDTEXTEXW ft = { 0, };
+    ft.chrg.cpMin = findParam.chrg.cpMin;
+    ft.chrg.cpMax = findParam.chrg.cpMax;
+    DStringW findText = StringUtil::TToUTF16(findParam.findText);
+    ft.lpstrText = findText.c_str();
+    LONG nIndex = FindRichText(dwFlags, ft);
+    if (nIndex != -1) {
+        //查找到了内容，选择所查到的内容
+        chrgText.cpMin = ft.chrgText.cpMin;
+        chrgText.cpMax = ft.chrgText.cpMax;
+        return true;
+    }
+    return false;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
@@ -3364,19 +3384,69 @@ bool RichEdit::SetZoomOff()
     return m_richCtrl.SetZoomOff();
 }
 
+void RichEdit::SetZoomPercent(uint32_t nZoomPercent)
+{
+    bool bZoomIn = nZoomPercent > GetZoomPercent();
+    //缩放百分比的最大值
+    const uint32_t MAX_ZOOM_PERCENT = 800;
+    if (nZoomPercent > MAX_ZOOM_PERCENT) {
+        nZoomPercent = MAX_ZOOM_PERCENT;
+    }
+    if ((nZoomPercent == 0) || (nZoomPercent == 100)) {
+        m_richCtrl.SetZoomOff();
+    }
+    else {
+        for (int32_t nNum = 1; nNum < 64; ++nNum) {
+            for (int32_t nDen = 1; nDen < 64; ++nDen) {
+                if ((nNum * 100 / nDen) == (int32_t)nZoomPercent) {
+                    m_richCtrl.SetZoom(nNum, nDen);
+                    return;
+                }
+            }
+        }
+        //无法精准匹配的时候，估算一个值
+        int32_t nDen = 63;
+        int32_t nNum = (int32_t)(bZoomIn ? std::ceilf(nZoomPercent * nDen / 100.0f) : (nZoomPercent * nDen / 100.0f));
+        while (nNum > 63) {
+            --nDen;            
+            if (nDen < 1) {
+                nDen = 1;
+                nNum = (int32_t)(bZoomIn ? std::ceilf(nZoomPercent * nDen / 100.0f) : (nZoomPercent * nDen / 100.0f));
+                break;
+            }
+            else {
+                nNum = (int32_t)(bZoomIn ? std::ceilf(nZoomPercent * nDen / 100.0f) : (nZoomPercent * nDen / 100.0f));
+            }
+        }
+        m_richCtrl.SetZoom(nNum, nDen);
+    }
+}
+
+uint32_t RichEdit::GetZoomPercent() const
+{
+    uint32_t nZoomPercent = 100;
+    int32_t nNum = 0;
+    int32_t nDen = 0;
+    GetZoom(nNum, nDen);
+    if ((nNum > 0) && (nDen > 0)) {
+        nZoomPercent = nNum * 100 / nDen;
+    }
+    return nZoomPercent;
+}
+
 WORD RichEdit::GetSelectionType() const
 {
     return m_richCtrl.GetSelectionType();
 }
 
-LONG RichEdit::FindRichText(DWORD dwFlags, FINDTEXTW& ft) const
+int32_t RichEdit::FindRichText(DWORD dwFlags, FINDTEXTW& ft) const
 {
-    return m_richCtrl.FindTextW(dwFlags, ft);
+    return (int32_t)m_richCtrl.FindTextW(dwFlags, ft);
 }
 
-LONG RichEdit::FindRichText(DWORD dwFlags, FINDTEXTEXW& ft) const
+int32_t RichEdit::FindRichText(DWORD dwFlags, FINDTEXTEXW& ft) const
 {
-    return m_richCtrl.FindTextW(dwFlags, ft);
+    return (int32_t)m_richCtrl.FindTextW(dwFlags, ft);
 }
 
 bool RichEdit::GetAutoURLDetect() const

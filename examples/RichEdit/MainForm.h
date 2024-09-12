@@ -159,6 +159,12 @@ private:
     //显示拾色器窗口
     void ShowColorPicker();
 
+    /** 获取下一个缩放百分比值
+    * @param [in] nOldZoomPercent 当前的缩放百分比
+    * @param [in] bZoomIn true表示放大，false表示缩小
+    */
+    uint32_t GetNextZoomPercent(uint32_t nOldZoomPercent, bool bZoomIn) const;
+
 private:
 
     //RichEdit控件接口
