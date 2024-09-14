@@ -1461,12 +1461,17 @@ bool MainForm::LoadFile(const ui::FilePath& filePath)
     if (m_pRichEdit == nullptr) {
         return false;
     }
+    bool bRet = false;
     std::vector<uint8_t> fileData;
     ui::FileUtil::ReadFileData(filePath, fileData);
-    fileData.push_back(0);
-    fileData.push_back(0);
-
-    return false;
+    if (!fileData.empty()) {
+        DStringW text;
+        if (ui::StringCharset::GetDataAsString((const char*)fileData.data(), (uint32_t)fileData.size(), text)) {
+            m_pRichEdit->SetText(text);
+            bRet = true;
+        }
+    }
+    return bRet;
 }
 
 bool MainForm::SaveFile(const ui::FilePath& filePath)
@@ -1474,11 +1479,43 @@ bool MainForm::SaveFile(const ui::FilePath& filePath)
     //保存
     if (m_pRichEdit == nullptr) {
         return false;
+    }    
+    DStringW text = m_pRichEdit->GetTextW();
+    if (text.empty()) {
+        return false;
     }
-    DString filePathLocal = filePath.NativePath();
-    DString text = m_pRichEdit->GetText();
 
-    return false;
+    bool bRet = false;
+    ui::CharsetType charsetType = ui::CharsetType::UNKNOWN;
+    std::vector<uint8_t> fileData;
+    ui::FileUtil::ReadFileData(filePath, fileData);
+    if (!fileData.empty()) {
+        //检测原来文件的编码类型，尽量保持一致
+        charsetType = ui::StringCharset::GetDataCharsetByBOM((const char*)fileData.data(), (uint32_t)fileData.size());
+        if (charsetType == ui::CharsetType::UNKNOWN) {
+            charsetType = ui::StringCharset::GetDataCharset((const char*)fileData.data(), (uint32_t)fileData.size());
+        }
+        fileData.clear();
+    }
+    if (charsetType == ui::CharsetType::UTF16_LE) {
+        bRet = ui::FileUtil::WriteFileData(filePath, text);
+    }
+    else if (charsetType == ui::CharsetType::ANSI) {
+#ifdef DUILIB_BUILD_FOR_WIN
+        DStringA textA = ui::StringUtil::UnicodeToMBCS(text);
+        bRet = ui::FileUtil::WriteFileData(filePath, textA);
+#else
+        //按UTF8保存
+        DStringA textA = ui::StringUtil::UTF16ToUTF8(text);
+        bRet = ui::FileUtil::WriteFileData(filePath, textA);
+#endif        
+    }
+    else {
+        //按UTF8保存
+        DStringA textA = ui::StringUtil::UTF16ToUTF8(text);
+        bRet = ui::FileUtil::WriteFileData(filePath, textA);
+    }
+    return bRet;
 }
 
 #endif //defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)

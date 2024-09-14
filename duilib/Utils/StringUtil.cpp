@@ -681,8 +681,17 @@ std::wstring StringUtil::UTF32ToUTF16(const std::basic_string<UTF32Char>& utf32)
 #ifdef DUILIB_BUILD_FOR_WIN
 std::wstring StringUtil::MBCSToUnicode(const std::string& input, int32_t code_page)
 {
+    return MBCSToUnicode2(input.c_str(), input.size(), code_page);
+}
+
+std::wstring StringUtil::MBCSToUnicode2(const char* input, size_t inputSize, int32_t code_page)
+{
     std::wstring output;
-    int length = ::MultiByteToWideChar(code_page, 0, input.c_str(), static_cast<int>(input.size()), NULL, 0);
+    if ((inputSize == 0) || (input == nullptr)) {
+        return output;
+    }
+
+    int length = ::MultiByteToWideChar(code_page, 0, input, static_cast<int>(inputSize), NULL, 0);
     if (length < 0) {
         length = 0;
     }
@@ -691,11 +700,11 @@ std::wstring StringUtil::MBCSToUnicode(const std::string& input, int32_t code_pa
         return output;
     }
     ::MultiByteToWideChar(code_page,
-        0,
-        input.c_str(),
-        static_cast<int>(input.size()),
-        &output[0],
-        static_cast<int>(output.size()));
+                          0,
+                          input,
+                          static_cast<int>(inputSize),
+                          &output[0],
+                          static_cast<int>(output.size()));
     return output;
 }
 

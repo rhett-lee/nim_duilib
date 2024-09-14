@@ -32,4 +32,70 @@ bool FileUtil::ReadFileData(const FilePath& filePath, std::vector<uint8_t>& file
     return isReadOk;
 }
 
+bool FileUtil::WriteFileData(const FilePath& filePath, const std::vector<uint8_t>& fileData)
+{
+    bool isWriteOk = false;
+    FILE* f = nullptr;
+#ifdef DUILIB_UNICODE
+    errno_t ret = ::_wfopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+#else
+    errno_t ret = ::fopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+#endif
+    if ((ret == 0) && (f != nullptr)) {
+        if (!fileData.empty()) {
+            size_t nWriteLen = ::fwrite(fileData.data(), 1, fileData.size(), f);
+            ASSERT_UNUSED_VARIABLE(nWriteLen == fileData.size());
+            if (nWriteLen == fileData.size()) {
+                isWriteOk = true;
+            }
+        }
+        ::fclose(f);
+    }
+    return isWriteOk;
+}
+
+bool FileUtil::WriteFileData(const FilePath& filePath, const DStringW& fileData)
+{
+    bool isWriteOk = false;
+    FILE* f = nullptr;
+#ifdef DUILIB_UNICODE
+    errno_t ret = ::_wfopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+#else
+    errno_t ret = ::fopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+#endif
+    if ((ret == 0) && (f != nullptr)) {
+        if (!fileData.empty()) {
+            size_t nWriteLen = ::fwrite(fileData.data(), 2, fileData.size(), f);
+            ASSERT_UNUSED_VARIABLE(nWriteLen == fileData.size());
+            if (nWriteLen == fileData.size()) {
+                isWriteOk = true;
+            }
+        }
+        ::fclose(f);
+    }
+    return isWriteOk;
+}
+
+bool FileUtil::WriteFileData(const FilePath& filePath, const DStringA& fileData)
+{
+    bool isWriteOk = false;
+    FILE* f = nullptr;
+#ifdef DUILIB_UNICODE
+    errno_t ret = ::_wfopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+#else
+    errno_t ret = ::fopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+#endif
+    if ((ret == 0) && (f != nullptr)) {
+        if (!fileData.empty()) {
+            size_t nWriteLen = ::fwrite(fileData.data(), 1, fileData.size(), f);
+            ASSERT_UNUSED_VARIABLE(nWriteLen == fileData.size());
+            if (nWriteLen == fileData.size()) {
+                isWriteOk = true;
+            }
+        }
+        ::fclose(f);
+    }
+    return isWriteOk;
+}
+
 }//namespace ui

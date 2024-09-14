@@ -511,6 +511,7 @@
     <ClCompile Include="Utils\ScreenCapture_Windows.cpp" />
     <ClCompile Include="Utils\ShadowWnd_SDL.cpp" />
     <ClCompile Include="Utils\ShadowWnd_Windows.cpp" />
+    <ClCompile Include="Utils\StringCharset.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
     <ClCompile Include="Control\Combo.cpp" />
     <ClCompile Include="Control\Progress.cpp" />
@@ -703,6 +704,7 @@
     <ClInclude Include="Utils\PerformanceUtil.h" />
     <ClInclude Include="Utils\ScreenCapture.h" />
     <ClInclude Include="Utils\ShadowWnd.h" />
+    <ClInclude Include="Utils\StringCharset.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Delegate.h" />
     <ClInclude Include="Utils\Unicode.h" />

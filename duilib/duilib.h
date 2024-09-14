@@ -30,6 +30,7 @@
 #include "duilib_defs.h"
 #include "Utils/Delegate.h"
 #include "Utils/StringUtil.h"
+#include "Utils/StringCharset.h"
 #include "Utils/FilePath.h"
 #include "Utils/FileUtil.h"
 #include "Utils/FilePathUtil.h"

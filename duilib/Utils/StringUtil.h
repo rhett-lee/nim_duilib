@@ -64,6 +64,8 @@ public:
 #ifdef DUILIB_BUILD_FOR_WIN
     //本地Ansi编码或者UTF8编码等转换成Unicode编码
     static std::wstring MBCSToUnicode(const std::string& input, int32_t code_page = CP_ACP);
+    static std::wstring MBCSToUnicode2(const char* input, size_t inputSize, int32_t code_page = CP_ACP);
+
     //Unicode编码转换成本地Ansi编码或者UTF8编码等
     static std::string UnicodeToMBCS(const std::wstring& input, int32_t code_page = CP_ACP);
     //本地编码字符串，转换为UTF8或者UTF16编码

@@ -546,6 +546,9 @@
     <ClCompile Include="Utils\ScreenCapture_SDL.cpp">
       <Filter>Utils\SDL</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\StringCharset.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1134,6 +1137,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Utils\Clipboard.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\StringCharset.h">
       <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
