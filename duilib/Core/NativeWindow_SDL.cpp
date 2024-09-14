@@ -1604,7 +1604,7 @@ const UiSize& NativeWindow_SDL::GetWindowMinimumSize() const
 
 void NativeWindow_SDL::SetCapture()
 {
-    ASSERT(SDL_GetMouseFocus() == m_sdlWindow);
+    //ASSERT(SDL_GetMouseFocus() == m_sdlWindow);
     if (SDL_GetMouseFocus() == m_sdlWindow) {
         SDL_bool nRet = SDL_CaptureMouse(SDL_TRUE);
         ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);

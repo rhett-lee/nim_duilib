@@ -24,8 +24,11 @@ void BasicForm::OnInitWindow()
     pButton->AttachClick([this](const ui::EventArgs& ){
         ui::RichEdit* pEdit = (ui::RichEdit*)FindControl(_T("RichEdit"));
         pEdit->SetMultiLine(!pEdit->IsMultiLine());
-        //int32_t n = pEdit->LineIndex(423);
-        //pEdit->EnsureCharVisible(n);
+        //修改字体
+        ui::UiFont fontInfo = pEdit->GetFontInfo();
+        fontInfo.m_fontName = _T("宋体");
+        pEdit->SetFontInfo(fontInfo);
+
         return true;
         });
 

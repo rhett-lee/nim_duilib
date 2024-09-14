@@ -1,6 +1,10 @@
 #include "MainThread.h"
 #include "BasicForm.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+    #include "resource.h"
+#endif
+
 MainThread::MainThread() :
     FrameworkThread(_T("MainThread"), ui::kThreadUI)
 {

@@ -95,8 +95,23 @@ public:
      */
     void SetFontId(const DString& strFontId);
 
+    /** 获取字体信息(字体大小是进行过DPI缩放处理的)
+    * @return RichText模式时，返回的是当前所选择的文本的字体信息，否则返回默认的字体信息
+    */
+    UiFont GetFontInfo() const;
+
+    /** 设置字体信息（优先级高，会覆盖通过SetFontId设置的字体）
+    * @param [in] fontInfo 字体信息，字体大小是进行过DPI缩放处理的
+    */
+    bool SetFontInfo(const UiFont& fontInfo);
+
+    /** 获取当前使用的字体ID
+    * @return 返回值与GetFontId()函数相同
+    */
+    DString GetCurrentFontId() const;
+
     /** 设置正常文本颜色
-     * @param[in] dwTextColor 要设置的文本颜色，该颜色可在 global.xml 中存在
+     * @param[in] dwTextColor 要设置的文本颜色
      */
     void SetTextColor(const DString& dwTextColor);
 
@@ -104,8 +119,17 @@ public:
      */
     DString GetTextColor() const;
 
+    /** 获取所选文本颜色（仅富文本模式有效）
+    */
+    DString GetSelectionTextColor() const;
+
+    /** 设置所选文本的颜色（仅富文本模式有效）
+     * @param[in] textColor 要设置的文本颜色
+     */
+    void SetSelectionTextColor(const DString& textColor);
+
     /** 设置Disabled状态的文本颜色
-     * @param[in] dwTextColor 要设置的文本颜色，该颜色可在 global.xml 中存在
+     * @param[in] dwTextColor 要设置的文本颜色
      */
     void SetDisabledTextColor(const DString& dwTextColor);
 
@@ -291,8 +315,8 @@ public:
     void SetLimitChars(const DString& limitChars);
 
     /** 获取焦点状态下的图片
- * @return 返回焦点状态下的图片
- */
+    * @return 返回焦点状态下的图片
+    */
     DString GetFocusedImage();
 
     /** 设置焦点状态下的图片

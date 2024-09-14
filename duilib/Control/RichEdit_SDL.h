@@ -86,18 +86,32 @@ public:
     */
     bool IsEmpty() const;
 
-    /** 获取当前设置的字体索引
-     * @return 返回字体索引（对应 global.xml 中字体的顺序）
-     */
-    DString GetFontId() const;
-
-    /** 设置字体索引
-     * @param[in] index 要设置的字体索引（对应 global.xml 中字体的顺序）
+    /** 设置字体Id
+     * @param[in] index 要设置的字体Id（对应 global.xml 中字体的ID）
      */
     void SetFontId(const DString& strFontId);
 
+    /** 获取当前设置的字体Id（通过SetFontId设置的字体ID）
+     * @return 返回字体Id（对应 global.xml 中字体的ID）
+     */
+    DString GetFontId() const;
+
+    /** 获取字体信息(字体大小是进行过DPI缩放处理的)
+    */
+    UiFont GetFontInfo() const;
+
+    /** 设置字体信息（优先级高，会覆盖通过SetFontId设置的字体）
+    * @param [in] fontInfo 字体信息，字体大小是进行过DPI缩放处理的
+    */
+    bool SetFontInfo(const UiFont& fontInfo);
+
+    /** 获取当前使用的字体ID
+    * @return 如果调用SetFontInfo函数设置过字体，返回内部使用的字体ID；如果未调用过SetFontInfo函数设置字体，则返回通过SetFontId设置的字体ID
+    */
+    DString GetCurrentFontId() const;
+
     /** 设置正常文本颜色
-     * @param[in] dwTextColor 要设置的文本颜色，该颜色可在 global.xml 中存在
+     * @param[in] dwTextColor 要设置的文本颜色
      */
     void SetTextColor(const DString& dwTextColor);
 
@@ -105,8 +119,17 @@ public:
      */
     DString GetTextColor() const;
 
+    /** 获取所选文本颜色(不支持)
+    */
+    DString GetSelectionTextColor() const;
+
+    /** 设置所选文本的颜色(不支持)
+     * @param[in] textColor 要设置的文本颜色
+     */
+    void SetSelectionTextColor(const DString& textColor);
+
     /** 设置Disabled状态的文本颜色
-     * @param[in] dwTextColor 要设置的文本颜色，该颜色可在 global.xml 中存在
+     * @param[in] dwTextColor 要设置的文本颜色
      */
     void SetDisabledTextColor(const DString& dwTextColor);
 
@@ -651,6 +674,11 @@ public:
      */
     void HideSelection(bool bHide);
 
+    /** 是否是富文本模式
+     * @return 始终返回 false，为纯文本模式，不支持富文本模式
+     */
+    bool IsRichText() const;
+
 public:
     /** 向上一行
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
@@ -855,6 +883,10 @@ private:
     */
     IFont* GetIFontInternal(const DString& fontId) const;
 
+    /** 获取本控件内部的字体ID
+    */
+    DString GetInternalFontId() const;
+
     /** 绘制光标
      * @param[in] pRender 绘制引擎
      * @param[in] rcPaint 绘制位置
@@ -887,6 +919,14 @@ private:
     * @param [in] bZoomIn true表示放大，false表示缩小
     */
     uint32_t GetNextZoomPercent(uint32_t nOldZoomPercent, bool bZoomIn) const;
+
+    /** 缩放百分比变化
+    */
+    void OnZoomPercentChanged(uint32_t nOldZoomPercent, uint32_t nNewZoomPercent);
+
+    /** 字体发生变化
+    */
+    void OnFontChanged(const DString& fontId);
 
 private:
 

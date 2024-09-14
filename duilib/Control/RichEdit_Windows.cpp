@@ -734,6 +734,132 @@ void RichEdit::SetFontId(const DString& strFontId)
     }
 }
 
+UiFont RichEdit::GetFontInfo() const
+{
+    CHARFORMAT2W cf = {0, };
+    cf.cbSize = sizeof(CHARFORMAT2W);
+    if (IsRichText()) {
+        GetSelectionCharFormat(cf);
+    }
+    else {
+        GetDefaultCharFormat(cf);
+    }
+
+    UiFont uiFont;
+    ASSERT(cf.dwMask & CFM_SIZE);
+    if (cf.dwMask & CFM_SIZE) {
+        HWND hWnd = GetWindowHWND();
+        HDC hDC = ::GetDC(hWnd);
+        constexpr const int32_t LY_PER_INCH = 1440;
+        uiFont.m_fontSize = ::MulDiv(cf.yHeight, ::GetDeviceCaps(hDC, LOGPIXELSY), LY_PER_INCH);
+        if (uiFont.m_fontSize < 0) {
+            uiFont.m_fontSize = -uiFont.m_fontSize;
+        }
+        ::ReleaseDC(hWnd, hDC);
+    }
+    if (cf.dwMask & CFM_BOLD) {
+        uiFont.m_bBold = cf.dwEffects & CFE_BOLD ? true : false;
+    }
+    if (cf.dwMask & CFM_ITALIC) {
+        uiFont.m_bItalic = cf.dwEffects & CFE_ITALIC ? true : false;
+    }
+    if (cf.dwMask & CFM_UNDERLINE) {
+        uiFont.m_bUnderline = cf.dwEffects & CFE_UNDERLINE ? true : false;
+    }
+    if (cf.dwMask & CFM_STRIKEOUT) {
+        uiFont.m_bStrikeOut = cf.dwEffects & CFE_STRIKEOUT ? true : false;
+    }
+    ASSERT(cf.dwMask & CFM_FACE);
+    if (cf.dwMask & CFM_FACE) {
+        uiFont.m_fontName = cf.szFaceName;
+    }
+    return uiFont;
+}
+
+bool RichEdit::SetFontInfo(const UiFont& fontInfo)
+{
+    UiFont oldFontInfo = GetFontInfo();
+    if (fontInfo == oldFontInfo) {
+        return false;
+    }
+    ASSERT(!fontInfo.m_fontName.empty());
+    if (fontInfo.m_fontName.empty()) {
+        return false;
+    }
+    ASSERT(fontInfo.m_fontSize > 0);
+    if (fontInfo.m_fontSize <= 0) {
+        return false;
+    }
+
+    CHARFORMAT2W charFormat = { 0, };
+    charFormat.cbSize = sizeof(CHARFORMAT2W);
+    if (IsRichText()) {
+        GetSelectionCharFormat(charFormat);
+    }
+    else {
+        GetDefaultCharFormat(charFormat);
+    }
+    charFormat.dwMask = 0;
+    if (oldFontInfo.m_fontName != fontInfo.m_fontName) {
+        charFormat.dwMask |= CFM_FACE;
+        DStringW fontName = StringUtil::TToUTF16(fontInfo.m_fontName.c_str());
+        ui::StringUtil::StringCopy(charFormat.szFaceName, fontName.c_str());
+    }
+    if (oldFontInfo.m_fontSize != fontInfo.m_fontSize) {
+        charFormat.dwMask |= CFM_SIZE;
+        charFormat.yHeight = ConvertToFontHeight(fontInfo.m_fontSize);
+    }
+    if (oldFontInfo.m_bBold != fontInfo.m_bBold) {
+        charFormat.dwMask |= CFM_BOLD;
+        if (fontInfo.m_bBold) {
+            charFormat.dwEffects |= CFE_BOLD;
+        }
+        else {
+            charFormat.dwEffects &= ~CFE_BOLD;
+        }
+    }
+    if (oldFontInfo.m_bItalic != fontInfo.m_bItalic) {
+        charFormat.dwMask |= CFM_ITALIC;
+        if (fontInfo.m_bItalic) {
+            charFormat.dwEffects |= CFE_ITALIC;
+        }
+        else {
+            charFormat.dwEffects &= ~CFE_ITALIC;
+        }
+    }
+    if (oldFontInfo.m_bUnderline != fontInfo.m_bUnderline) {
+        charFormat.dwMask |= CFM_UNDERLINE;
+        if (fontInfo.m_bUnderline) {
+            charFormat.dwEffects |= CFE_UNDERLINE;
+        }
+        else {
+            charFormat.dwEffects &= ~CFE_UNDERLINE;
+        }
+    }
+    if (oldFontInfo.m_bStrikeOut != fontInfo.m_bStrikeOut) {
+        charFormat.dwMask |= CFM_STRIKEOUT;
+        if (fontInfo.m_bStrikeOut) {
+            charFormat.dwEffects |= CFE_STRIKEOUT;
+        }
+        else {
+            charFormat.dwEffects &= ~CFE_STRIKEOUT;
+        }
+    }
+    if (IsRichText()) {
+        SetSelectionCharFormat(charFormat);
+    }
+    else {
+        SetDefaultCharFormat(charFormat);
+    }
+    ASSERT(GetFontInfo() == fontInfo);
+    return true;
+}
+
+DString RichEdit::GetCurrentFontId() const
+{
+    return GetFontId();
+}
+
 void RichEdit::SetTextColor(const DString& dwTextColor)
 {
     m_sTextColor = dwTextColor;
@@ -750,6 +876,33 @@ DString RichEdit::GetTextColor() const
     }
     else {
         return GlobalManager::Instance().Color().GetDefaultTextColor();
+    }
+}
+
+DString RichEdit::GetSelectionTextColor() const
+{
+    CHARFORMAT2W cf;
+    ZeroMemory(&cf, sizeof(CHARFORMAT2W));
+    cf.cbSize = sizeof(CHARFORMAT2W);
+    m_richCtrl.GetSelectionCharFormat(cf);
+    UiColor dwTextColor;
+    dwTextColor.SetFromCOLORREF(cf.crTextColor);
+    return GetColorString(dwTextColor);
+}
+
+void RichEdit::SetSelectionTextColor(const DString& textColor)
+{
+    if (!textColor.empty()) {
+        UiColor dwTextColor = GetUiColor(textColor);
+        CHARFORMAT2W cf;
+        ZeroMemory(&cf, sizeof(CHARFORMAT2W));
+        cf.cbSize = sizeof(CHARFORMAT2W);
+        m_richCtrl.GetSelectionCharFormat(cf);
+        cf.dwMask = CFM_COLOR;
+        cf.crTextColor = dwTextColor.ToCOLORREF();
+        cf.dwEffects &= ~CFE_AUTOCOLOR;
+        BOOL bRet = m_richCtrl.SetSelectionCharFormat(cf);
+        ASSERT_UNUSED_VARIABLE(bRet);
     }
 }
 

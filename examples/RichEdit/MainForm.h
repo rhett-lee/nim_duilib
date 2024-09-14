@@ -70,12 +70,6 @@ private:
     bool LoadFile(const ui::FilePath& filePath);
     bool SaveFile(const ui::FilePath& filePath);
 
-    //判断一个文件扩展名是否为RTF文件
-    bool IsRtfFile(const DString& filePath) const;
-
-    static DWORD CALLBACK StreamReadCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb);
-    static DWORD CALLBACK StreamWriteCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb);
-
     //更新保存状态
     void UpdateSaveStatus();
 
@@ -86,24 +80,6 @@ private:
     void OnReplaceText();
 
 private://设置字体相关
-    struct FontInfo
-    {
-        LOGFONTW lf;
-        DWORD fontType;
-    };
-
-    //获取字体结构
-    bool GetRichEditLogFont(LOGFONTW& lf) const;
-
-    //初始化字体信息
-    void InitCharFormat(const LOGFONTW& lf, CHARFORMAT2W& charFormat) const;
-
-    //调用系统默认对话框，设置字体
-    void OnSetFont();
-
-    //获取系统字体列表
-    void GetSystemFontList(std::vector<FontInfo>& fontList) const;
-
     //更新字体按钮的状态
     void UpdateFontStatus();
 
@@ -135,20 +111,6 @@ private://设置字体相关
     */
     void SetTextColor(const DString& newColor);
 
-    //枚举字体回调函数
-    static int CALLBACK EnumFontFamExProc(const LOGFONTW* lpelfe, const TEXTMETRICW* lpntme, DWORD fontType, LPARAM lParam);
-
-    //将字体大小转换成Rich Edit控件的字体高度
-    int32_t ConvertToFontHeight(int32_t fontSize) const;
-
-    /** 获取RichEdit控件的字符格式
-    */
-    void GetCharFormat(CHARFORMAT2W& charFormat) const;
-
-    /** 设置RichEdit控件的字符格式
-    */
-    void SetCharFormat(CHARFORMAT2W& charFormat);
-
 private:
     //更新缩放比例
     void UpdateZoomValue();
@@ -164,6 +126,36 @@ private:
     * @param [in] bZoomIn true表示放大，false表示缩小
     */
     uint32_t GetNextZoomPercent(uint32_t nOldZoomPercent, bool bZoomIn) const;
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
+    //判断一个文件扩展名是否为RTF文件
+    bool IsRtfFile(const DString& filePath) const;
+
+    static DWORD CALLBACK StreamReadCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb);
+    static DWORD CALLBACK StreamWriteCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb);
+
+    //调用系统默认对话框，设置字体
+    void OnSetFont();
+
+    //获取字体结构
+    bool GetRichEditLogFont(LOGFONTW& lf) const;
+
+    //初始化字体信息
+    void InitCharFormat(const LOGFONTW& lf, CHARFORMAT2W& charFormat) const;
+
+    /** 获取RichEdit控件的字符格式
+*/
+    void GetCharFormat(CHARFORMAT2W& charFormat) const;
+
+    /** 设置RichEdit控件的字符格式
+    */
+    void SetCharFormat(CHARFORMAT2W& charFormat);
+
+    //将字体大小转换成Rich Edit控件的字体高度
+    int32_t ConvertToFontHeight(int32_t fontSize) const;
+
+#endif
 
 private:
 
@@ -187,7 +179,7 @@ private:
 
 private:
     //字体名称列表
-    std::vector<FontInfo> m_fontList;
+    std::vector<DString> m_fontList;
 
     //字体大小列表
     std::vector<ui::FontSizeInfo> m_fontSizeList;

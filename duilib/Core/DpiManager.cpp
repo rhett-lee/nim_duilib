@@ -1,6 +1,6 @@
 #include "DpiManager.h"
 #include "duilib/Utils/MonitorUtil.h"
-
+#include <cmath>
 
 namespace ui
 {
@@ -286,16 +286,13 @@ UiMargin DpiManager::GetScaleMargin(UiMargin margin, uint32_t nOldDpiScale) cons
     return margin;
 }
 
-int32_t DpiManager::MulDiv(int32_t nNumber, int32_t nNumerator, int32_t nDenominator) const
+int32_t DpiManager::MulDiv(int32_t nNumber, int32_t nNumerator, int32_t nDenominator)
 {
-#ifdef DUILIB_BUILD_FOR_WIN
-    return ::MulDiv(nNumber, nNumerator, nDenominator);
-#else
     if (nDenominator == 0) {
         return -1;
     }
-    return static_cast<int32_t>((int64_t)nNumber * (int64_t)nNumerator / (int64_t)nDenominator);
-#endif
+    int64_t v = (int64_t)nNumber * (int64_t)nNumerator;
+    return static_cast<int32_t>(std::ceil((double)v / nDenominator));
 }
 
 }

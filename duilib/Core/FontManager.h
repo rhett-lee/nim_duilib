@@ -33,7 +33,7 @@ public:
 public:
     /** 添加一个字体信息，字体大小未经DPI处理
      * @param [in] fontId 指定字体的ID标记
-     * @param [in] fontInfo 字体属性信息
+     * @param [in] fontInfo 字体属性信息, 字体大小为原始大小，未经DPI缩放
      * @param [in] bDefault 是否设置为默认字体
      */
     bool AddFont(const DString& fontId, const UiFont& fontInfo, bool bDefault);
@@ -51,6 +51,22 @@ public:
     * @return 成功返回字体接口，外部调用不需要释放资源；如果失败则返回nullptr
     */
     IFont* GetIFont(const DString& fontId, uint32_t nZoomPercent);
+
+    /** 是否包含该字体ID
+    * @param [in] fontId 指定字体的ID标记
+    */
+    bool HasFontId(const DString& fontId) const;
+
+    /** 删除一个字体ID
+    * @param [in] fontId 指定字体的ID标记
+    */
+    bool RemoveFontId(const DString& fontId);
+
+    /** 删除一个字体缓存，以释放内存
+    * @param [in] fontId 字体ID
+    * @param [in] nZoomPercent 字体大小缩放百分比，用于对字体大小进行缩放，举例：100代表100%，200代表200%
+    */
+    bool RemoveIFont(const DString& fontId, uint32_t nZoomPercent);
 
     /** 删除所有字体, 不包含已经加载的字体文件
      */

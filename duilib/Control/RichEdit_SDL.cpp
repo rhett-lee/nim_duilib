@@ -101,6 +101,10 @@ RichEdit::~RichEdit()
         delete m_pTextData;
         m_pTextData = nullptr;
     }
+    DString internalFontId = GetInternalFontId();
+    if (GlobalManager::Instance().Font().HasFontId(internalFontId)) {
+        GlobalManager::Instance().Font().RemoveFontId(internalFontId);
+    }
 }
 
 DString RichEdit::GetType() const { return DUI_CTR_RICHEDIT; }
@@ -255,11 +259,9 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //                         "wParam,lParam" 表示按缩放比例分子/分母显示的缩放，取值范围：1/64 < (wParam / lParam) < 64。
         //                         举例：则："0,0"表示关闭缩放功能，"2,1"表示放大到200%，"1,2"表示缩小到50%
         float fZoomRatio = 1.0f;
-        if (strValue.find(L'.') != DString::npos) {
+        if (strValue.find(L',') != DString::npos) {
             UiSize zoomValue;
             AttributeUtil::ParseSizeValue(strValue.c_str(), zoomValue);
-            ASSERT((zoomValue.cx > 0) && (zoomValue.cx <= 64));
-            ASSERT((zoomValue.cy > 0) && (zoomValue.cy <= 64));
             if ((zoomValue.cx > 0) && (zoomValue.cx <= 64) &&
                 (zoomValue.cy > 0) && (zoomValue.cy <= 64)) {
                 fZoomRatio = (float)zoomValue.cx / (float)zoomValue.cy;
@@ -336,7 +338,7 @@ void RichEdit::OnInit()
     __super::OnInit();
 
     //设置字体和字体颜色
-    DString fontId = GetFontId();
+    DString fontId = GetCurrentFontId();
     if (fontId.empty()) {
         fontId = GlobalManager::Instance().Font().GetDefaultFontId();
         SetFontId(fontId);
@@ -591,20 +593,168 @@ void RichEdit::SetMultiLine(bool bMultiLine)
     }
 }
 
+void RichEdit::SetFontId(const DString& strFontId)
+{
+    if (m_sFontId != strFontId) {
+        m_sFontId = strFontId;
+        //如果有外部设置的字体信息，则移除（使用SetFontInfo设置的字体信息）
+        DString internalFontId = GetInternalFontId();
+        if (GlobalManager::Instance().Font().HasFontId(internalFontId)) {
+            GlobalManager::Instance().Font().RemoveFontId(internalFontId);
+        }
+        OnFontChanged(strFontId);
+    }
+}
+
 DString RichEdit::GetFontId() const
 {
     return m_sFontId.c_str();
 }
 
-void RichEdit::SetFontId(const DString& strFontId)
+DString RichEdit::GetInternalFontId() const
 {
-    if (m_sFontId != strFontId) {
-        m_sFontId = strFontId;
-        m_pTextData->SetCacheDirty(true);
-        SetFontIdInternal(strFontId);
-        Redraw();
-        UpdateScrollRange();
+    return StringUtil::Printf(_T("RichEdit_SDL(0x%p)"), this);
+}
+
+DString RichEdit::GetCurrentFontId() const
+{
+    DString fontId = GetInternalFontId();
+    if (!GlobalManager::Instance().Font().HasFontId(fontId)) {
+        fontId = GetFontId();
     }
+    return fontId;
+}
+
+void RichEdit::SetFontIdInternal(const DString& fontId)
+{
+    //创建光标
+    IFont* pFont = GetIFontInternal(fontId);
+    ASSERT(pFont != nullptr);
+    if (pFont == nullptr) {
+        return;
+    }
+    IRender* pRender = nullptr;
+    Window* pWindow = GetWindow();
+    if (pWindow != nullptr) {
+        pRender = pWindow->GetRender();
+    }
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
+        return;
+    }
+
+    //按字体高度设置光标的高度
+    UiRect fontRect = pRender->MeasureString(_T("T"), pFont, 0);
+    m_nRowHeight = fontRect.Height();
+    ASSERT(m_nRowHeight > 0);
+    int32_t nCaretHeight = fontRect.Height();
+    int32_t nCaretWidth = Dpi().GetScaleInt(1);
+    CreateCaret(nCaretWidth, nCaretHeight);
+
+    //设置滚动条滚动一行的基本单位
+    SetVerScrollUnitPixels(m_nRowHeight, false);
+
+    m_nSelXPos = -1;
+}
+
+IFont* RichEdit::GetIFontInternal(const DString& fontId) const
+{
+    ASSERT(!fontId.empty());
+    const DpiManager& dpi = Dpi();
+    uint32_t nZoomPercent = GetZoomPercent();
+    ASSERT(nZoomPercent != 0);
+    nZoomPercent = DpiManager::MulDiv(nZoomPercent, dpi.GetScale(), 100);
+    IFont* pFont = GlobalManager::Instance().Font().GetIFont(fontId, nZoomPercent);
+    ASSERT(pFont != nullptr);
+    return pFont;
+}
+
+UiFont RichEdit::GetFontInfo() const
+{
+    UiFont uiFont;
+    IFont* pFont = GlobalManager::Instance().Font().GetIFont(GetCurrentFontId(), Dpi());
+    if (pFont != nullptr) {
+        uiFont.m_fontName = pFont->FontName();
+        uiFont.m_fontSize = pFont->FontSize();
+        uiFont.m_bBold = pFont->IsBold();
+        uiFont.m_bUnderline = pFont->IsUnderline();
+        uiFont.m_bItalic = pFont->IsItalic();
+        uiFont.m_bStrikeOut = pFont->IsStrikeOut();
+    }
+    return uiFont;
+}
+
+bool RichEdit::SetFontInfo(const UiFont& fontInfo)
+{
+    ASSERT(fontInfo.m_fontSize > 0);
+    if (fontInfo.m_fontSize <= 0) {
+        return false;
+    }
+    ASSERT(!fontInfo.m_fontName.empty());
+    if (fontInfo.m_fontName.empty()) {
+        return false;
+    }
+    //删除旧的字体信息
+    DString internalFontId = GetInternalFontId();
+    if (GlobalManager::Instance().Font().HasFontId(internalFontId)) {
+        GlobalManager::Instance().Font().RemoveFontId(internalFontId);
+    }
+    //添加字体信息(去除DPI缩放)
+    UiFont orgFontInfo = fontInfo;
+    const DpiManager& dpi = Dpi();
+    if (dpi.GetScale() > 0) {
+        orgFontInfo.m_fontSize = DpiManager::MulDiv(fontInfo.m_fontSize, 100, dpi.GetScale());
+        if (dpi.GetScaleInt(orgFontInfo.m_fontSize) != fontInfo.m_fontSize) {
+            //计算原来的字体大小
+            int32_t nFontSizeMax = fontInfo.m_fontSize;
+            if (dpi.GetScale() < 100) {
+                nFontSizeMax = DpiManager::MulDiv(fontInfo.m_fontSize, 100, dpi.GetScale()) + 1;
+            }
+            for (int32_t nFontSize = 1; nFontSize <= nFontSizeMax; ++nFontSize) {
+                int32_t nScaledFontSize = dpi.GetScaleInt(nFontSize);
+                if (nScaledFontSize == fontInfo.m_fontSize) {
+                    orgFontInfo.m_fontSize = nFontSize;
+                    break;
+                }
+            }
+        }
+        ASSERT(Dpi().GetScaleInt(orgFontInfo.m_fontSize) == fontInfo.m_fontSize);
+    }
+    GlobalManager::Instance().Font().AddFont(internalFontId, orgFontInfo, false);
+
+    OnFontChanged(internalFontId);
+    return true;
+}
+
+void RichEdit::OnFontChanged(const DString& fontId)
+{
+    m_pTextData->SetCacheDirty(true);
+    SetFontIdInternal(fontId);
+    Redraw();
+    UpdateScrollRange();
+}
+
+void RichEdit::OnZoomPercentChanged(uint32_t nOldZoomPercent, uint32_t nNewZoomPercent)
+{
+    //删除旧的字体缓存，以释放内存
+    if (nOldZoomPercent != 100) {
+        uint32_t nZoomPercent = DpiManager::MulDiv(nOldZoomPercent, Dpi().GetScale() , 100);
+        DString internalFontId = GetInternalFontId();
+        if (GlobalManager::Instance().Font().HasFontId(internalFontId)) {
+            GlobalManager::Instance().Font().RemoveIFont(internalFontId, nZoomPercent);
+        }
+        DString fontId = GetFontId();
+        if (GlobalManager::Instance().Font().HasFontId(fontId)) {
+            GlobalManager::Instance().Font().RemoveIFont(fontId, nZoomPercent);
+        }
+    }
+    m_pTextData->SetCacheDirty(true);
+    SetFontIdInternal(GetCurrentFontId());
+    Redraw();
+    UpdateScrollRange();
+
+    //触发kEventZoom事件
+    SendEvent(kEventZoom, (WPARAM)nNewZoomPercent, 0);
 }
 
 void RichEdit::SetTextColor(const DString& dwTextColor)
@@ -1004,6 +1154,22 @@ bool RichEdit::FindRichText(const FindTextParam& findParam, TextCharRange& chrgT
 void RichEdit::HideSelection(bool bHide)
 {
 
+}
+
+bool RichEdit::IsRichText() const
+{
+    return false;
+}
+
+DString RichEdit::GetSelectionTextColor() const
+{
+    ASSERT(0);
+    return DString();
+}
+
+void RichEdit::SetSelectionTextColor(const DString& /*textColor*/)
+{
+    ASSERT(0);
 }
 
 bool RichEdit::ReplaceSel(const DString& newText, bool bCanUndo)
@@ -1586,7 +1752,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         //处理显示字符
         ReplacePasswordChar(passwordText);
 
-        DString fontId = GetFontId();
+        DString fontId = GetCurrentFontId();
         ASSERT(!fontId.empty());
         if (!passwordText.empty() && !fontId.empty()) {
             UiRect rcDrawRect = GetRichTextDrawRect();
@@ -1594,9 +1760,9 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
             ASSERT(!dwClrColor.IsEmpty());
             uint32_t dwStyle = GetTextStyle();
 #ifdef DUILIB_UNICODE
-            pRender->DrawString(rcDrawRect, passwordText, dwClrColor, GetIFontById(fontId), dwStyle);
+            pRender->DrawString(rcDrawRect, passwordText, dwClrColor, GetIFontInternal(fontId), dwStyle);
 #else
-            pRender->DrawString(rcDrawRect, StringUtil::UTF16ToUTF8(passwordText), dwClrColor, GetIFontById(fontId), dwStyle);
+            pRender->DrawString(rcDrawRect, StringUtil::UTF16ToUTF8(passwordText), dwClrColor, GetIFontInternal(fontId), dwStyle);
 #endif
             
         }        
@@ -2033,7 +2199,7 @@ void RichEdit::PaintPromptText(IRender* pRender)
     if (promptTextColor.empty()) {
         return;
     }
-    DString fontId = GetFontId();
+    DString fontId = GetCurrentFontId();
     if (fontId.empty()) {
         return;
     }
@@ -2044,7 +2210,7 @@ void RichEdit::PaintPromptText(IRender* pRender)
     UiRect rcDrawRect = GetRichTextDrawRect();
     UiColor dwClrColor = GetUiColor(promptTextColor);
     uint32_t dwStyle = GetTextStyle();
-    pRender->DrawString(rcDrawRect, promptText, dwClrColor, GetIFontById(fontId), dwStyle);
+    pRender->DrawString(rcDrawRect, promptText, dwClrColor, GetIFontInternal(fontId), dwStyle);
 }
 
 DString RichEdit::GetFocusedImage()
@@ -2150,10 +2316,10 @@ void RichEdit::SetZoomPercent(uint32_t nZoomPercent)
         nZoomPercent = MAX_ZOOM_PERCENT;
     }
     if (m_nZoomPercent != nZoomPercent) {
+        uint32_t nOldZoomPercent = m_nZoomPercent;        
         m_nZoomPercent = TruncateToInt16(nZoomPercent);
-        m_pTextData->SetCacheDirty(true);
-        SetFontIdInternal(GetFontId());
-        Redraw();
+        uint32_t nNewZoomPercent = m_nZoomPercent;
+        OnZoomPercentChanged(nOldZoomPercent, nNewZoomPercent);
     }
 }
 
@@ -2589,49 +2755,6 @@ void RichEdit::SetShowPasswordBtnClass(const DString& btnClass)
     }
 }
 
-IFont* RichEdit::GetIFontInternal(const DString& fontId) const
-{
-    const DpiManager& dpi = Dpi();
-    uint32_t nZoomPercent = GetZoomPercent();
-    ASSERT(nZoomPercent != 0);
-    nZoomPercent = nZoomPercent * dpi.GetScale() / 100;
-    IFont* pFont = GlobalManager::Instance().Font().GetIFont(fontId, nZoomPercent);
-    ASSERT(pFont != nullptr);
-    return pFont;
-}
-
-void RichEdit::SetFontIdInternal(const DString& fontId)
-{
-    //创建光标
-    IFont* pFont = GetIFontInternal(fontId);
-    ASSERT(pFont != nullptr);
-    if (pFont == nullptr) {
-        return;
-    }
-    IRender* pRender = nullptr;
-    Window* pWindow = GetWindow();
-    if (pWindow != nullptr) {
-        pRender = pWindow->GetRender();
-    }
-    ASSERT(pRender != nullptr);
-    if (pRender == nullptr) {
-        return;
-    }
-
-    //按字体高度设置光标的高度
-    UiRect fontRect = pRender->MeasureString(_T("T"), pFont, 0);
-    m_nRowHeight = fontRect.Height();
-    ASSERT(m_nRowHeight > 0);
-    int32_t nCaretHeight = fontRect.Height();
-    int32_t nCaretWidth = Dpi().GetScaleInt(1);
-    CreateCaret(nCaretWidth, nCaretHeight);
-
-    //设置滚动条滚动一行的基本单位
-    SetVerScrollUnitPixels(m_nRowHeight, false);
-
-    m_nSelXPos = -1;
-}
-
 void RichEdit::SetHAlignType(HorAlignType alignType)
 {
     if (m_pTextData->GetHAlignType() != alignType) {
@@ -2731,7 +2854,7 @@ bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView
     if (textView.empty()) {
         return false;
     }
-    DString sFontId = GetFontId();
+    DString sFontId = GetCurrentFontId();
     ASSERT(!sFontId.empty());
     IFont* pFont = GetIFontInternal(sFontId);
     ASSERT(pFont != nullptr);
@@ -3902,8 +4025,7 @@ void RichEdit::OnMouseWheel(int32_t wheelDelta, bool bCtrlDown)
     if (bCtrlDown && IsEnableWheelZoom()) {
         bool bZoomIn = wheelDelta > 0 ? true : false;
         uint32_t nZoomPercent = GetNextZoomPercent(GetZoomPercent(), bZoomIn);
-        SetZoomPercent(nZoomPercent); 
-        SendEvent(kEventZoom, (WPARAM)nZoomPercent, 0);
+        SetZoomPercent(nZoomPercent);        
     }
 }
 

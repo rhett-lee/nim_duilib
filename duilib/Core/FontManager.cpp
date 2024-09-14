@@ -174,7 +174,7 @@ IFont* FontManager::GetIFont(const DString& fontId, uint32_t nZoomPercent)
     //对字体大小进行DPI缩放
     ASSERT(fontInfo.m_fontSize > 0);
     if (nZoomPercent != 100) {
-        fontInfo.m_fontSize = fontInfo.m_fontSize * nZoomPercent / 100;
+        fontInfo.m_fontSize = DpiManager::MulDiv(fontInfo.m_fontSize, nZoomPercent, 100);
         if (fontInfo.m_fontSize < 1) {
             fontInfo.m_fontSize = 1;
         }
@@ -194,6 +194,61 @@ IFont* FontManager::GetIFont(const DString& fontId, uint32_t nZoomPercent)
     }
     m_fontMap.insert(std::make_pair(dpiFontId, pFont));
     return pFont;
+}
+
+bool FontManager::HasFontId(const DString& fontId) const
+{
+    auto pos = m_fontIdMap.find(fontId);
+    bool bFound = pos != m_fontIdMap.end();
+    return bFound;
+}
+
+bool FontManager::RemoveFontId(const DString& fontId)
+{
+    ASSERT(fontId != m_defaultFontId);
+    if (fontId == m_defaultFontId) {
+        return false;
+    }
+    bool bDeleted = false;
+    const DString zoomFontId = fontId + _T("@");
+    auto iter = m_fontMap.begin();
+    while (iter != m_fontMap.end()) {
+        if (iter->first.find(zoomFontId) == 0) {
+            //匹配到字体ID
+            if (iter->second != nullptr) {
+                delete iter->second;//IFont指针
+            }
+            bDeleted = true;
+            iter = m_fontMap.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
+    auto pos = m_fontIdMap.find(fontId);
+    if (pos != m_fontIdMap.end()) {
+        m_fontIdMap.erase(pos);
+        bDeleted = true;
+    }
+    return bDeleted;
+}
+
+bool FontManager::RemoveIFont(const DString& fontId, uint32_t nZoomPercent)
+{
+    bool bDeleted = false;
+    if (!fontId.empty()) {
+        DString realFontId = GetDpiFontId(fontId, nZoomPercent);
+        auto iter = m_fontMap.find(realFontId);
+        if (iter != m_fontMap.end()) {
+            //匹配到字体ID
+            if (iter->second != nullptr) {
+                delete iter->second;//IFont指针
+            }
+            bDeleted = true;
+            m_fontMap.erase(iter);
+        }
+    }
+    return bDeleted;
 }
 
 void FontManager::RemoveAllFonts()
