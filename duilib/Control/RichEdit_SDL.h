@@ -581,7 +581,7 @@ public:
      */
     bool Undo();
 
-    /** 清空
+    /** 删除当前所选内容
      */
     void Clear();
 
@@ -808,6 +808,10 @@ protected:
     */
     virtual void ReplacePasswordChar(DStringW& text) const override;
 
+    /** 获取文本限制长度
+    */
+    virtual int32_t GetTextLimitLength() const override;
+
 private:
     void OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bShiftDown);
     void OnLButtonUp(const UiPoint& ptMouse, Control* pSender);
@@ -1015,10 +1019,6 @@ private:
      */
     int32_t InternalSetSel(int32_t nStartChar, int32_t nEndChar);
 
-    /** 按字符数限制，截断文本
-    */
-    void TruncateLimitText(DStringW& text, int32_t nLimitLen) const;
-
     /** 移除不支持的密码字符
     */
     bool RemoveInvalidPasswordChar(DStringA& text);
@@ -1147,6 +1147,10 @@ private:
     /** 当前控件是否处于激活状态
     */
     bool m_bActive;
+
+    /** 是否正在处于文本输入状态
+    */
+    bool m_bTextInputMode;
 
 private:
     /** 文本内容管理接口

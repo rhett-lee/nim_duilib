@@ -678,10 +678,22 @@ bool RichEditData::SetText(const DStringW& text)
         Clear();
         return true;
     }
-    std::vector<std::wstring_view> lineTextViewList;
-    std::wstring_view textView = text;
-    SplitLines(textView, lineTextViewList);
 
+    DStringW textLimit;
+    std::vector<std::wstring_view> lineTextViewList;
+    int32_t nLimitLength = m_pRichText->GetTextLimitLength();
+    if ((nLimitLength > 0) && ((int32_t)text.size() > nLimitLength)){
+        //截断字符串
+        textLimit = text;
+        TruncateLimitText(textLimit, nLimitLength);
+        std::wstring_view textView = textLimit;
+        SplitLines(textView, lineTextViewList);
+    }
+    else {
+        std::wstring_view textView = text;
+        SplitLines(textView, lineTextViewList);
+    }
+    
     const size_t nLineCount = lineTextViewList.size();
     bool bTextChanged = false;
     if (m_lineTextInfo.size() == lineTextViewList.size()) { //比较文本内容是否有变化
@@ -919,6 +931,17 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     ASSERT((nStartChar >= 0) && (nEndChar >= 0) && (nEndChar >= nStartChar));
     if ((nStartChar < 0) || (nEndChar < 0) || (nStartChar > nEndChar)) {
         return false;
+    }
+
+    int32_t nLimitLength = m_pRichText->GetTextLimitLength();
+    int32_t nTextLenDiff = (int32_t)text.size() - (nEndChar - nStartChar);
+    if ((nTextLenDiff > 0) && (nLimitLength > 0)) {
+        //字符串会变长，检查字符串长度是否超过限制
+        int32_t nDestTextLen = (int32_t)GetTextLength() + nTextLenDiff;
+        if (nDestTextLen > nLimitLength) {
+            //超过限制长度，返回错误
+            return false;
+        }
     }
 
     //检查并计算字符位置
@@ -2709,6 +2732,20 @@ int32_t RichEditData::RowFromChar(int32_t nCharIndex)
         }
     }
     return nRowIndex;
+}
+
+void RichEditData::TruncateLimitText(DStringW& text, int32_t nLimitLen) const
+{
+    if (nLimitLen <= 0) {
+        return;
+    }
+    if ((int32_t)text.size() > nLimitLen) {
+        DStringW::value_type ch = text.at(nLimitLen);
+        text.resize((size_t)nLimitLen);
+        if ((ch == L'\n') && (text.back() == L'\r')) {
+            text.pop_back();
+        }
+    }
 }
 
 } //namespace ui

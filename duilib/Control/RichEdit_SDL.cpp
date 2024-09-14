@@ -80,6 +80,7 @@ RichEdit::RichEdit(Window* pWindow) :
     m_nSelXPos(-1),
     m_bHideSelection(false),
     m_bActive(false),
+    m_bTextInputMode(false),
     m_bMouseDownInView(false),
     m_bMouseDown(false),
     m_bRMouseDown(false),
@@ -462,6 +463,11 @@ void RichEdit::ReplacePasswordChar(DStringW& text) const
     }
 }
 
+int32_t RichEdit::GetTextLimitLength() const
+{
+    return GetLimitText();
+}
+
 void RichEdit::StopFlashPasswordChar()
 {
     if (m_bInputPasswordChar) {
@@ -489,6 +495,7 @@ void RichEdit::SetPasswordMode(bool bPasswordMode)
             }
         }
         if (!bUpdated) {
+            m_pTextData->SetCacheDirty(true);
             Redraw();
         }
     }
@@ -498,6 +505,7 @@ void RichEdit::SetShowPassword(bool bShow)
 {
     if (m_bShowPassword != bShow) {
         m_bShowPassword = bShow;
+        m_pTextData->SetCacheDirty(true);
         Redraw();
     }
 }
@@ -512,6 +520,7 @@ void RichEdit::SetPasswordChar(wchar_t ch)
     if (m_chPasswordChar != ch) {
         m_chPasswordChar = ch;
         if (IsPasswordMode()) {
+            m_pTextData->SetCacheDirty(true);
             Redraw();
         }
     }
@@ -791,6 +800,9 @@ DString RichEdit::GetDisabledTextColor() const
     if (!m_sDisabledTextColor.empty()) {
         return m_sDisabledTextColor.c_str();
     }
+    else if (!m_sTextColor.empty()) {
+        return m_sTextColor.c_str();
+    }
     else {
         return GlobalManager::Instance().Color().GetDefaultDisabledTextColor();
     }
@@ -859,24 +871,10 @@ void RichEdit::SetLimitText(int32_t iChars)
         if (nTextLen > m_nLimitText) {
             //截断当前的文本
             DStringW text = m_pTextData->GetText();
-            TruncateLimitText(text, m_nLimitText);
+            m_pTextData->TruncateLimitText(text, m_nLimitText);
             SetText(text);
         }
     }    
-}
-
-void RichEdit::TruncateLimitText(DStringW& text, int32_t nLimitLen) const
-{
-    if (nLimitLen <= 0) {
-        return;
-    }
-    if ((int32_t)text.size() > nLimitLen) {
-        DStringW::value_type ch = text.at(nLimitLen);
-        text.resize((size_t)nLimitLen);
-        if ((ch == L'\n') && (text.back() == L'\r')) {
-            text.pop_back();
-        }        
-    }
 }
 
 DString RichEdit::GetLimitChars() const
@@ -949,7 +947,7 @@ void RichEdit::SetText(const DStringW& strText)
         Redraw();
 
         //文本变化时，选择点放到文本末端
-        int32_t nTextLen = (int32_t)m_pTextData->GetText().size();
+        int32_t nTextLen = (int32_t)m_pTextData->GetTextLength();
         InternalSetSel(nTextLen, nTextLen);
 
         UpdateScrollRange();
@@ -976,7 +974,7 @@ void RichEdit::SetText(const DStringA& strText)
         Redraw();
 
         //文本变化时，选择点放到文本末端
-        int32_t nTextLen = (int32_t)m_pTextData->GetText().size();
+        int32_t nTextLen = (int32_t)m_pTextData->GetTextLength();
         InternalSetSel(nTextLen, nTextLen);
 
         UpdateScrollRange();
@@ -1189,7 +1187,6 @@ bool RichEdit::ReplaceSel(const DString& newText, bool bCanUndo)
     else {
         bRet = m_pTextData->ReplaceText(nStartChar, nEndChar, text, bCanUndo);
     }
-    ASSERT(bRet);
     if (bRet) {
         nEndChar = nStartChar + (int32_t)text.size();
         SetSel(nStartChar, nEndChar);
@@ -1298,13 +1295,23 @@ bool RichEdit::Undo()
 
 void RichEdit::Clear()
 {
-    int32_t nTextLen = GetTextLength();
-    m_nSelXPos = -1;
-    m_pTextData->Clear();
-    SetSel(0, 0);
-    Invalidate();
-    if (nTextLen > 0) {
-        OnTextChanged();
+    if (IsReadOnly() || !IsEnabled() || !HasSelText()) {
+        return;
+    }
+    
+    int32_t nStartChar = -1;
+    int32_t nEndChar = -1;
+    GetSel(nStartChar, nEndChar);
+    if (nEndChar > nStartChar) {
+        bool bCanUndo = !IsPasswordMode();
+        bool bRet = m_pTextData->ReplaceText(nStartChar, nEndChar, L"", bCanUndo);
+        if (bRet) {
+            SetSel(nStartChar, nStartChar);
+            m_nSelXPos = -1;
+            Invalidate();
+            UpdateScrollRange();
+            OnTextChanged();
+        }
     }
 }
 
@@ -1335,12 +1342,14 @@ void RichEdit::Cut()
     if (!text.empty()) {
         Clipboard::SetClipboardText(text);
         bool bCanUndo = !IsPasswordMode();
-        m_pTextData->ReplaceText(nStartChar, nEndChar, L"", bCanUndo);
-        SetSel(nStartChar, nStartChar);
-        m_nSelXPos = -1;
-        Invalidate();
-        UpdateScrollRange();
-        OnTextChanged();
+        bool bRet = m_pTextData->ReplaceText(nStartChar, nEndChar, L"", bCanUndo);
+        if (bRet) {
+            SetSel(nStartChar, nStartChar);
+            m_nSelXPos = -1;
+            Invalidate();
+            UpdateScrollRange();
+            OnTextChanged();
+        }
     }
 }
 
@@ -1359,13 +1368,15 @@ void RichEdit::Paste()
         int32_t nEndChar = -1;
         GetSel(nStartChar, nEndChar);
         bool bCanUndo = !IsPasswordMode();
-        m_pTextData->ReplaceText(nStartChar, nEndChar, text, bCanUndo);
-        int32_t nNewSel = nStartChar + (int32_t)text.size();
-        SetSel(nNewSel, nNewSel);
-        m_nSelXPos = -1;
-        Invalidate();
-        UpdateScrollRange();
-        OnTextChanged();
+        bool bRet = m_pTextData->ReplaceText(nStartChar, nEndChar, text, bCanUndo);
+        if (bRet) {
+            int32_t nNewSel = nStartChar + (int32_t)text.size();
+            SetSel(nNewSel, nNewSel);
+            m_nSelXPos = -1;
+            Invalidate();
+            UpdateScrollRange();
+            OnTextChanged();
+        }        
     }
 }
 
@@ -1756,6 +1767,9 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
         if (!passwordText.empty() && !fontId.empty()) {
             UiRect rcDrawRect = GetRichTextDrawRect();
             UiColor dwClrColor = GetUiColor(GetTextColor());
+            if (!IsEnabled()) {
+                dwClrColor = GetUiColor(GetDisabledTextColor());
+            }
             ASSERT(!dwClrColor.IsEmpty());
             uint32_t dwStyle = GetTextStyle();
 #ifdef DUILIB_UNICODE
@@ -1891,18 +1905,23 @@ void RichEdit::ShowCaret(bool fShow)
         sdlRect.w = rc.right - sdlRect.x;
         sdlRect.h = m_nRowHeight; //高度设置与行高相同
         ASSERT(m_nRowHeight > 0);
-
-        //设置输入区域
-        int32_t nCursorOffset = xWidth + Dpi().GetScaleInt(1); //输入法的候选框与光标当前位置的距离（水平方向）, 避免遮盖光标        
-        SDL_SetTextInputArea((SDL_Window*)pWindow->NativeWnd()->GetWindowHandle(), &sdlRect, nCursorOffset);
+#ifdef DUILIB_BUILD_FOR_SDL
+        if (m_bTextInputMode) {
+            //设置输入区域
+            int32_t nCursorOffset = xWidth + Dpi().GetScaleInt(1); //输入法的候选框与光标当前位置的距离（水平方向）, 避免遮盖光标        
+            SDL_SetTextInputArea((SDL_Window*)pWindow->NativeWnd()->GetWindowHandle(), &sdlRect, nCursorOffset);
+        }
+#endif
     }
     else {
         m_bIsCaretVisiable = false;
         m_drawCaretFlag.Cancel();
-        if (pWindow != nullptr) {
+#ifdef DUILIB_BUILD_FOR_SDL
+        if (m_bTextInputMode && (pWindow != nullptr)) {
             //清除输入区域
             SDL_SetTextInputArea((SDL_Window*)pWindow->NativeWnd()->GetWindowHandle(), nullptr, 0);
         }
+#endif
     }
 
     Invalidate();
@@ -2003,7 +2022,7 @@ void RichEdit::PaintCaret(IRender* pRender, const UiRect& /*rcPaint*/)
         UiRect rcCaret(xPos, yPos, xPos + xWidth, yPos + yHeight);
         if(rcCaret.Intersect(rcDrawText)) {
             //光标在文字显示区域范围内时，绘制光标
-            UiColor dwClrColor(0xFFFF0000);
+            UiColor dwClrColor(0xFF000000);
             if (!m_sCaretColor.empty()) {
                 dwClrColor = this->GetUiColor(m_sCaretColor.c_str());
             }
@@ -2864,7 +2883,12 @@ bool RichEdit::GetRichTextForDraw(const std::vector<std::wstring_view>& textView
     //默认文本属性
     richTextData.m_textStyle = GetTextStyle();
     //默认文本颜色
-    richTextData.m_textColor = GetUiColor(GetTextColor());
+    if (!IsEnabled()) {
+        richTextData.m_textColor = GetUiColor(GetDisabledTextColor());
+    }
+    else {
+        richTextData.m_textColor = GetUiColor(GetTextColor());
+    }
     if (richTextData.m_textColor.IsEmpty()) {
         richTextData.m_textColor = UiColor(UiColors::Black);
     }
@@ -3120,9 +3144,7 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
         pWindow->GetCursorPos(cursorPos);
         pWindow->ScreenToClient(cursorPos);
     }
-    SetCaretPos(cursorPos);
 
-    ShowCaret(!HasSelText());
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     SetImmStatus(TRUE);
 #endif
@@ -3130,8 +3152,15 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 #ifdef DUILIB_BUILD_FOR_SDL
     if (IsVisible() && !IsReadOnly() && IsEnabled()) {
         SDL_StartTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
+        m_bTextInputMode = true;
     }
 #endif
+
+    //更新光标位置
+    SetCaretPos(cursorPos);
+
+    //设置是否显示光标
+    ShowCaret(!HasSelText());
 
     if ((m_pClearButton != nullptr) && !IsReadOnly()) {
         m_pClearButton->SetFadeVisible(true);
@@ -3160,7 +3189,8 @@ bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
 #endif
 
 #ifdef DUILIB_BUILD_FOR_SDL
-    if (IsVisible() && !IsReadOnly() && IsEnabled()) {
+    if (m_bTextInputMode) {
+        m_bTextInputMode = false;
         SDL_StopTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
     }
 #endif
@@ -4372,7 +4402,6 @@ void RichEdit::OnInputChar(const EventArgs& msg)
     }
 
     bool bRet = m_pTextData->ReplaceText(nSelStartChar, nSelEndChar, text, true);
-    ASSERT(bRet);
     if (!bRet) {
         return;
     }

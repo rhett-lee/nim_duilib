@@ -54,6 +54,10 @@ public:
     /** 处理密码模式下的显示字符
     */
     virtual void ReplacePasswordChar(DStringW& text) const = 0;
+
+    /** 获取文本限制长度
+    */
+    virtual int32_t GetTextLimitLength() const = 0;
 };
 
 class RichEditData
@@ -332,6 +336,10 @@ public:
     /** 检查并按需重新计算文本区域
     */
     void CheckCalcTextRects();
+
+    /** 按字符数限制，截断文本
+    */
+    void TruncateLimitText(DStringW& text, int32_t nLimitLen) const;
 
 private:
     /** 将内部坐标转换为外部坐标

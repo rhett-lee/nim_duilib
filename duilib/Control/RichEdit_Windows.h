@@ -516,7 +516,7 @@ public:
      */
     bool Undo();
 
-    /** 清空
+    /** 删除当前所选内容
      */
     void Clear();
 
