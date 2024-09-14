@@ -977,13 +977,13 @@ void MainForm::LoadRichEditData()
     controls_xml += GetResourcePath();
     controls_xml += GetSkinFile();
 
-    std::ifstream ifs(controls_xml.NativePath().c_str());
+    std::ifstream ifs(controls_xml.NativePath().c_str(), std::ios::binary);
     if (ifs.is_open()) {
         ifs.seekg(0, std::ios_base::end);
         length = ifs.tellg();
         ifs.seekg(0, std::ios_base::beg);
 
-        xml.resize(static_cast<unsigned int>(length) + 1);
+        xml.resize(static_cast<unsigned int>(length));
         ifs.read(&xml[0], length);
         ifs.close();
     }

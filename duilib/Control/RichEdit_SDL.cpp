@@ -1898,10 +1898,12 @@ void RichEdit::ShowCaret(bool fShow)
         int32_t yHeight = 0;
         GetCaretSize(xWidth, yHeight);
 
+        UiPoint scrollOffset = GetScrollOffsetInScrollBox();
+
         UiRect rc = GetRect();
         SDL_Rect sdlRect;
-        sdlRect.x = xPos;
-        sdlRect.y = yPos;
+        sdlRect.x = xPos - scrollOffset.x;
+        sdlRect.y = yPos - scrollOffset.y;
         sdlRect.w = rc.right - sdlRect.x;
         sdlRect.h = m_nRowHeight; //高度设置与行高相同
         ASSERT(m_nRowHeight > 0);
@@ -3151,6 +3153,7 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 
 #ifdef DUILIB_BUILD_FOR_SDL
     if (IsVisible() && !IsReadOnly() && IsEnabled()) {
+        SDL_SetTextInputArea((SDL_Window*)pWindow->NativeWnd()->GetWindowHandle(), nullptr, 0);
         SDL_StartTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
         m_bTextInputMode = true;
     }
