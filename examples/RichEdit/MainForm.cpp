@@ -721,7 +721,7 @@ void MainForm::UpdateFontSizeStatus()
         for (size_t nIndex = maxItemIndex; nIndex < m_fontSizeList.size(); ++nIndex) {
             //优先选择汉字的字号
             const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
-            if (fontInfo.m_fontSize == (int32_t)std::ceilf(fontSize.fDpiFontSize)) {
+            if (fontInfo.m_fontSize == (int32_t)std::roundf(fontSize.fDpiFontSize)) {
                 if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
                     bSelected = true;
                 }
@@ -729,10 +729,23 @@ void MainForm::UpdateFontSizeStatus()
             }
         }
         if (!bSelected) {
-            for (size_t nIndex = 0; nIndex < maxItemIndex; ++nIndex) {
+            for (size_t nIndex = 0; nIndex <= maxItemIndex; ++nIndex) {
                 //选择数字的字号
                 const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
-                if ((int32_t)std::ceilf(fontSize.fDpiFontSize) >= fontInfo.m_fontSize) {
+                if ((int32_t)std::roundf(fontSize.fDpiFontSize) >= fontInfo.m_fontSize) {
+                    if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
+                        bSelected = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!bSelected) {
+            for (size_t nIndex = 0; nIndex <= maxItemIndex; ++nIndex) {
+                //选择数字的字号
+                const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
+                int32_t nFontSize = Dpi().GetScaleInt((int32_t)std::roundf(fontSize.fFontSize));
+                if (nFontSize >= fontInfo.m_fontSize) {
                     if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
                         bSelected = true;
                         break;
@@ -758,7 +771,7 @@ void MainForm::SetFontSize(const DString& fontSize)
         if (fontSize == fontSizeInfo.fontSizeName) {
             if (m_pRichEdit != nullptr) {
                 ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
-                fontInfo.m_fontSize = (int32_t)(std::ceilf(fontSizeInfo.fDpiFontSize));
+                fontInfo.m_fontSize = (int32_t)(std::roundf(fontSizeInfo.fDpiFontSize));
                 m_pRichEdit->SetFontInfo(fontInfo);
             }
             break;
@@ -773,14 +786,46 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
     }
     std::map<int32_t, int32_t> fontSizeMap;
     for (const ui::FontSizeInfo& fontSizeInfo : m_fontSizeList) {
-        fontSizeMap[(int32_t)(std::ceilf(fontSizeInfo.fDpiFontSize))] = (int32_t)(std::ceilf(fontSizeInfo.fDpiFontSize));
+        fontSizeMap[(int32_t)(std::roundf(fontSizeInfo.fDpiFontSize))] = (int32_t)(std::roundf(fontSizeInfo.fFontSize));
     }
     std::vector<int32_t> fontSizeList;
     for (auto fontSize : fontSizeMap) {
-        fontSizeList.push_back(fontSize.first);
+        fontSizeList.push_back(fontSize.second);
     }
+    fontSizeList.erase(std::unique(fontSizeList.begin(), fontSizeList.end()));
 
     ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
+    //转换回原值
+    auto iter = fontSizeMap.find(fontInfo.m_fontSize);
+    if (iter != fontSizeMap.end()) {
+        fontInfo.m_fontSize = iter->second;
+    }
+    else {
+        bool bFound = false;
+        if (bIncreaseFontSize) {
+            for (iter = fontSizeMap.begin(); iter != fontSizeMap.end(); ++iter) {
+                if (iter->first > fontInfo.m_fontSize) {
+                    fontInfo.m_fontSize = iter->second;
+                    bFound = true;
+                    break;
+                }
+            }
+        }
+        else {
+            auto pos = fontSizeMap.rbegin();
+            for (; pos != fontSizeMap.rend(); ++pos) {
+                if (pos->first < fontInfo.m_fontSize) {
+                    fontInfo.m_fontSize = pos->second;
+                    bFound = true;
+                    break;
+                }
+            }
+        }
+        if (!bFound) {
+            fontInfo.m_fontSize = Dpi().MulDiv(fontInfo.m_fontSize, 100, Dpi().GetScale());
+        }
+    }
+
     const size_t fontCount = fontSizeList.size();
     for (size_t index = 0; index < fontCount; ++index) {
         if (fontInfo.m_fontSize == fontSizeList[index]) {
@@ -788,7 +833,7 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
             if (bIncreaseFontSize) {
                 //增加字体
                 if (index < (fontCount - 1)) {                  
-                    fontInfo.m_fontSize = fontSizeList[index + 1];
+                    fontInfo.m_fontSize = Dpi().GetScaleInt(fontSizeList[index + 1]);
                     if (m_pRichEdit->SetFontInfo(fontInfo)) {
                         UpdateFontSizeStatus();
                     }
@@ -797,7 +842,7 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
             else {
                 //减小字体
                 if (index > 0) {
-                    fontInfo.m_fontSize = fontSizeList[index - 1];
+                    fontInfo.m_fontSize = Dpi().GetScaleInt(fontSizeList[index - 1]);
                     if (m_pRichEdit->SetFontInfo(fontInfo)) {
                         UpdateFontSizeStatus();
                     }

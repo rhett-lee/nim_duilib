@@ -718,7 +718,6 @@ bool RichEdit::SetFontInfo(const UiFont& fontInfo)
                 }
             }
         }
-        ASSERT(Dpi().GetScaleInt(orgFontInfo.m_fontSize) == fontInfo.m_fontSize);
     }
     GlobalManager::Instance().Font().AddFont(internalFontId, orgFontInfo, false);
 

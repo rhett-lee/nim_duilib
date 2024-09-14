@@ -292,7 +292,7 @@ int32_t DpiManager::MulDiv(int32_t nNumber, int32_t nNumerator, int32_t nDenomin
         return -1;
     }
     int64_t v = (int64_t)nNumber * (int64_t)nNumerator;
-    return static_cast<int32_t>(std::ceil((double)v / nDenominator));
+    return static_cast<int32_t>(std::round((double)v / nDenominator));
 }
 
 }
