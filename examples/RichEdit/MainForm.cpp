@@ -938,7 +938,7 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
             }
         }
     }
-    if (!bControlDown && !bShiftDown && ui::Keyboard::IsKeyDown(ui::kVK_F3)) {
+    if (!bControlDown && !bShiftDown && (vkCode == ui::kVK_F3)) {
         //查找下一个
         OnFindNext();
     }

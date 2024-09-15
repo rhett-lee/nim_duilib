@@ -151,13 +151,13 @@ public:
      * @param[in] nStartChar 起始下标值
      * @param[in] nEndChar 结束下标值
      */
-    DStringW GetTextRange(int32_t nStartChar, int32_t nEndChar);
+    DStringW GetTextRange(int32_t nStartChar, int32_t nEndChar) const;
 
     /** 判断指定范围是否含有文本内容
      * @param[in] nStartChar 起始下标值
      * @param[in] nEndChar 结束下标值
      */
-    bool HasTextRange(int32_t nStartChar, int32_t nEndChar);
+    bool HasTextRange(int32_t nStartChar, int32_t nEndChar) const;
 
     /** 设置可撤销的限制次数
     */
@@ -194,6 +194,20 @@ public:
     /** 清空
      */
     void Clear();
+
+    /** 查找文本
+    * @param [in] bMatchCase 查找时，是否区分大小写
+    * @param [in] bMatchWholeWord 查找时，是否按词匹配
+    * @param [in] bFindDown 是否向后查找，为true表示向后查找，false表示反向查找
+    * @param [in] nFindStartChar 字符的查找范围的起始值
+    * @param [in] nFindEndChar 字符的查找范围的结束值
+    * @param [in] findText 待查找的文本内容
+    * @param [out] chrgText 匹配的文本，字符的索引号范围
+    */
+    bool FindRichText(bool bMatchCase, bool bMatchWholeWord, bool bFindDown,
+                      int32_t nFindStartChar, int32_t nFindEndChar,
+                      const DStringW& findText,
+                      int32_t& nFoundStartChar, int32_t& nFoundEndChar) const;
 
 public:
     /** 获取总行数

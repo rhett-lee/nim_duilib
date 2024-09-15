@@ -558,6 +558,7 @@ public:
      * @param [in] bHideSelection 是否显示，true 为隐藏，false 为显示
      */
     void SetHideSelection(bool bHideSelection);
+    void HideSelection(bool bHideSelection);
 
     /** 是否隐藏选择的文本（当控件处于非激活状态时，是否隐藏选择内容）
     */
@@ -668,11 +669,6 @@ public:
     * @param [out] chrgText 匹配的文本，字符的索引号范围
     */
     bool FindRichText(const FindTextParam& findParam, TextCharRange& chrgText) const;
-
-    /** 设置隐藏或显示选择的文本
-     * @param [in] bHide 是否显示，true 为隐藏，false 为显示
-     */
-    void HideSelection(bool bHide);
 
     /** 是否是富文本模式
      * @return 始终返回 false，为纯文本模式，不支持富文本模式

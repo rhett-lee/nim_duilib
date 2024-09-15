@@ -1165,6 +1165,8 @@ bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
                 SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, "false");
                 ASSERT(SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, SDL_TRUE) == SDL_FALSE);
             }
+            //调整窗口的Z-Order，避免有时候窗口不显示的问题
+            SDL_RaiseWindow(m_sdlWindow);
         }        
         break;
     case kSW_SHOW_NA:

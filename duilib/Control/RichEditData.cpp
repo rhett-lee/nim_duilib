@@ -856,11 +856,11 @@ bool RichEditData::FindLineTextPos(int32_t nStartChar, int32_t nEndChar,
                                    size_t& nStartLine, size_t& nEndLine,
                                    size_t& nStartCharLineOffset, size_t& nEndCharLineOffset) const
 {
+    //该函数不需要计算字符的矩形范围
     ASSERT((nStartChar >= 0) && (nEndChar >= 0) && (nEndChar >= nStartChar));
     if ((nStartChar < 0) || (nEndChar < 0) || (nStartChar > nEndChar)) {
         return false;
     }
-    ASSERT(!m_bCacheDirty);
     if (m_lineTextInfo.empty()) {
         //当前为空
         nStartLine = 0;
@@ -1070,13 +1070,11 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
     return true;
 }
 
-DStringW RichEditData::GetTextRange(int32_t nStartChar, int32_t nEndChar)
+DStringW RichEditData::GetTextRange(int32_t nStartChar, int32_t nEndChar) const
 {
     if ((nStartChar < 0) || (nEndChar < 0) || (nStartChar >= nEndChar)) {
         return DStringW();
     }
-    //检查并计算字符位置
-    CheckCalcTextRects();
 
     constexpr const size_t nNotFound = (size_t)-1;
     size_t nStartLine = nNotFound;              //起始行
@@ -1124,14 +1122,11 @@ DStringW RichEditData::GetTextRange(int32_t nStartChar, int32_t nEndChar)
     return selText;
 }
 
-bool RichEditData::HasTextRange(int32_t nStartChar, int32_t nEndChar)
+bool RichEditData::HasTextRange(int32_t nStartChar, int32_t nEndChar) const
 {
     if ((nStartChar < 0) || (nEndChar < 0) || (nStartChar >= nEndChar)) {
         return false;
     }
-    //检查并计算字符位置
-    CheckCalcTextRects();
-
     constexpr const size_t nNotFound = (size_t)-1;
     size_t nStartLine = nNotFound;              //起始行
     size_t nEndLine = nNotFound;                //结束行
@@ -2746,6 +2741,116 @@ void RichEditData::TruncateLimitText(DStringW& text, int32_t nLimitLen) const
             text.pop_back();
         }
     }
+}
+
+bool RichEditData::FindRichText(bool bMatchCase, bool bMatchWholeWord, bool bFindDown,
+                                int32_t nFindStartChar, int32_t nFindEndChar,
+                                const DStringW& findText,
+                                int32_t& nFoundStartChar, int32_t& nFoundEndChar) const
+{
+    if (findText.empty() || (nFindStartChar == nFindEndChar) || (nFindStartChar < 0) || (nFindEndChar < 0)){
+        return false;
+    }
+    const int32_t nTextLen = (int32_t)GetTextLength();
+    if (nFindStartChar > nTextLen) {
+        nFindStartChar = nTextLen;
+    }
+    if (nFindEndChar > nTextLen) {
+        nFindEndChar = nTextLen;
+    }
+
+    int32_t nStartChar = nFindStartChar;
+    int32_t nEndChar = nFindEndChar;
+    if (!bFindDown) {
+        nStartChar = nFindEndChar;
+        nEndChar = nFindStartChar;
+    }
+
+    DStringW text = GetTextRange(nStartChar, nEndChar);
+    DStringW findTextW = findText;
+    if (!bMatchCase) {
+        text = StringUtil::MakeLowerString(text);
+        findTextW = StringUtil::MakeLowerString(findTextW);
+    }
+
+    size_t nPos = bFindDown ? text.find(findTextW) : text.rfind(findTextW);
+    if (!bMatchWholeWord) {
+        //不是全字匹配，查找一次即返回
+        bool bFound = (nPos != DStringW::npos) ? true : false;
+        if (bFound) {
+            nFoundStartChar = nStartChar + (int32_t)nPos;
+            nFoundEndChar = nFoundStartChar + (int32_t)findTextW.size();
+        }
+        return bFound;
+    }
+
+    //全字匹配
+    bool bFound = false;
+    while (nPos != DStringW::npos) {
+        bFound = true;
+        if (iswalnum(findTextW[0])) {
+            if (nPos == 0) {
+                //第一个字符
+                int32_t nStartCharIndex = nStartChar + (int32_t)nPos;
+                if (nStartCharIndex > 0) {
+                    wchar_t charBeforeStart = 0;
+                    DStringW temp = GetTextRange(nStartCharIndex - 1, nStartCharIndex);
+                    ASSERT(temp.size() == 1);
+                    if (temp.size() == 1) {
+                        charBeforeStart = temp[0];
+                    }
+                    if (iswalnum(charBeforeStart)) {
+                        bFound = false;
+                    }
+                }
+            }
+            else {
+                //不是第一个字符
+                if (iswalnum(text[nPos - 1])) {
+                    bFound = false;
+                }
+            }
+        }
+        if (iswalnum(findTextW[findTextW.size() - 1])) {
+            if ((nPos + findTextW.size()) >= text.size()) {
+                //最后一个字符
+                int32_t nEndCharIndex = nStartChar + (int32_t)nPos + (int32_t)findTextW.size();
+                if (nEndCharIndex < nTextLen) {
+                    wchar_t charAfterEnd = 0;
+                    DStringW temp = GetTextRange(nEndCharIndex, nEndCharIndex + 1);
+                    ASSERT(temp.size() == 1);
+                    if (temp.size() == 1) {
+                        charAfterEnd = temp[0];
+                    }
+                    if (iswalnum(charAfterEnd)) {
+                        bFound = false;
+                    }
+                }
+            }
+            else {
+                //不是最后一个字符
+                if (iswalnum(text[nPos + findTextW.size()])) {
+                    bFound = false;
+                }
+            }            
+        }
+        if(bFound) {
+            nFoundStartChar = nStartChar + (int32_t)nPos;
+            nFoundEndChar = nFoundStartChar + (int32_t)findTextW.size();
+            break;
+        }
+        else {
+            //继续查找
+            size_t nLastPos = nPos;
+            nPos = bFindDown ? text.find(findTextW, nPos + 1) : text.rfind(findTextW, nPos - 1);
+            ASSERT(nLastPos != nPos);
+            if (nLastPos == nPos) {
+                //避免出现死循环
+                break;
+            }
+        }
+    }
+    return bFound;
 }
 
 } //namespace ui

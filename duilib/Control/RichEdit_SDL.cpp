@@ -1145,12 +1145,18 @@ void RichEdit::EnsureCharVisible(int32_t nCharIndex)
 
 bool RichEdit::FindRichText(const FindTextParam& findParam, TextCharRange& chrgText) const
 {
-    return false;
-}
-
-void RichEdit::HideSelection(bool bHide)
-{
-
+    DStringW findText = StringUtil::TToUTF16(findParam.findText);
+    if (findText.empty()) {
+        return false;
+    }
+    int32_t nFoundStartChar = -1;
+    int32_t nFoundEndChar = -1;
+    bool bRet = m_pTextData->FindRichText(findParam.bMatchCase, findParam.bMatchWholeWord, findParam.bFindDown,
+                                          findParam.chrg.cpMin, findParam.chrg.cpMax, findText,
+                                          nFoundStartChar, nFoundEndChar);
+    chrgText.cpMin = nFoundStartChar;
+    chrgText.cpMax = nFoundEndChar;
+    return bRet;
 }
 
 bool RichEdit::IsRichText() const
@@ -1232,6 +1238,11 @@ void RichEdit::SetSelNone()
 DString RichEdit::GetTextRange(int32_t nStartChar, int32_t nEndChar) const
 {
     return StringUtil::UTF16ToT(m_pTextData->GetTextRange(nStartChar, nEndChar));
+}
+
+void RichEdit::HideSelection(bool bHideSelection)
+{
+    SetHideSelection(bHideSelection);
 }
 
 void RichEdit::SetHideSelection(bool bHideSelection)
