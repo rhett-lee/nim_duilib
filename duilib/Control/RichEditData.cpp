@@ -8,7 +8,7 @@ RichEditData::RichEditData(IRichTextData* pRichTextData):
     m_pRichText(pRichTextData),
     m_hAlignType(HorAlignType::kHorAlignLeft),
     m_vAlignType(VerAlignType::kVerAlignTop),
-    m_bSingleLineMode(false),
+    m_bSingleLineMode(true),
     m_pRender(nullptr),
     m_pRenderFactory(nullptr),
     m_bCacheDirty(true),
@@ -172,8 +172,7 @@ UiRect RichEditData::EstimateTextDisplayBounds(const UiRect& rcAvailable)
     }
 
     UiRect rcDrawRect = m_pRichText->GetRichTextDrawRect();
-    ASSERT(rcAvailable.Width() == rcAvailable.Width());
-    if (rcAvailable.Width() == rcAvailable.Width()) {
+    if (rcAvailable.Width() == rcDrawRect.Width()) {
         //检查并计算字符位置
         CheckCalcTextRects();
         rect = GetTextRect();
@@ -2108,6 +2107,9 @@ bool RichEditData::GetCurrentWordIndex(int32_t nCharIndex, int32_t& nWordStartIn
                     i += 1;//跳过该字符
                 }
             }
+            if (nWordEndIndex == -1) {
+                nWordEndIndex = (int32_t)lineText.m_nLineTextLen;
+            }
 
             //定位起始字符：向前，直到找到一个分隔符（空格，标点符号等）
             int32_t j = (int32_t)nStartCharLineOffset - 1;
@@ -2841,6 +2843,10 @@ bool RichEditData::FindRichText(bool bMatchCase, bool bMatchWholeWord, bool bFin
         }
         else {
             //继续查找
+            if (!bFindDown && (nPos == 0)) {
+                //已经查找到字符串起始位置，未匹配到
+                break;
+            }
             size_t nLastPos = nPos;
             nPos = bFindDown ? text.find(findTextW, nPos + 1) : text.rfind(findTextW, nPos - 1);
             ASSERT(nLastPos != nPos);

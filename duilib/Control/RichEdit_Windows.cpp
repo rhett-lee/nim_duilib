@@ -150,7 +150,7 @@ RichEdit::RichEdit(Window* pWindow) :
     ScrollBox(pWindow, new Layout),
     m_pRichHost(nullptr), 
     m_bVScrollBarFixing(false), 
-    m_bWantTab(true),
+    m_bWantTab(false),
     m_bWantReturn(false),
     m_bWantCtrlReturn(false),
     m_bAllowPrompt(false),
@@ -278,6 +278,9 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("min_number")) {
         SetMinNumber(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("number_format")) {
+        SetNumberFormat64(strValue);
     }
     else if (strName == _T("text_align")) {
         if (strValue.find(_T("left")) != DString::npos) {
@@ -689,6 +692,16 @@ void RichEdit::SetMinNumber(int32_t minNumber)
 int32_t RichEdit::GetMinNumber() const
 {
     return m_minNumber;
+}
+
+void RichEdit::SetNumberFormat64(const DString& numberFormat)
+{
+    m_numberFormat = numberFormat;
+}
+
+DString RichEdit::GetNumberFormat64() const
+{
+    return m_numberFormat.c_str();
 }
 
 bool RichEdit::IsWordWrap() const
@@ -3124,7 +3137,18 @@ int64_t RichEdit::GetTextNumber() const
 
 void RichEdit::SetTextNumber(int64_t nValue)
 {
-    SetText(StringUtil::Printf(_T("%I64d"), nValue));
+    int32_t nSelStartChar = -1;
+    int32_t nSelEndChar = -1;
+    GetSel(nSelStartChar, nSelEndChar);
+    if (!m_numberFormat.empty()) {
+        SetText(StringUtil::Printf(m_numberFormat.c_str(), nValue));
+    }
+    else {
+        SetText(StringUtil::Printf(_T("%I64d"), nValue));
+    }
+    if ((nSelStartChar == nSelEndChar) && (nSelStartChar >= 0) && (nSelStartChar <= GetTextLength())) {
+        SetSel(nSelStartChar, nSelStartChar);
+    }
 }
 
 void RichEdit::AdjustTextNumber(int32_t nDelta)

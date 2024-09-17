@@ -28,9 +28,9 @@ namespace ui {
 
 RichEdit::RichEdit(Window* pWindow) :
     ScrollBox(pWindow, new Layout),
-    m_bWantTab(true),
-    m_bWantReturn(true),
-    m_bWantCtrlReturn(true),
+    m_bWantTab(false),
+    m_bWantReturn(false),
+    m_bWantCtrlReturn(false),
     m_bAllowPrompt(false),
     m_bSelAllEver(false),         
     m_bNoSelOnKillFocus(true), 
@@ -86,7 +86,11 @@ RichEdit::RichEdit(Window* pWindow) :
     m_bRMouseDown(false),
     m_bInMouseMove(false),
     m_pMouseSender(nullptr),
-    m_pTextData(nullptr)
+    m_pTextData(nullptr),
+    m_sSelectionBkColor(_T("CornflowerBlue")),
+    m_sInactiveSelectionBkColor(_T("DarkGray")),
+    m_sCurrentRowBkColor(_T("SkyBlue")),
+    m_sInactiveCurrentRowBkColor(_T(""))
 {
     m_pTextData = new RichEditData(this);
 }
@@ -143,6 +147,9 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("min_number")) {
         SetMinNumber(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("number_format")) {
+        SetNumberFormat64(strValue);
     }
     else if (strName == _T("text_align")) {
         if (strValue.find(_T("left")) != DString::npos) {
@@ -307,23 +314,20 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("enable_drag_drop")) {
         //是否允许拖放操作
     }
-
-
-    ////////////////////////////新添加属性, 需要添加到文档中
     else if (strName == _T("selection_bkcolor")) {
-        //选择文本的背景色（焦点状态）
+        //选择文本的背景色（焦点状态），如果设置为空，则不显示
         SetSelectionBkColor(strValue);
     }
     else if (strName == _T("inactive_selection_bkcolor")) {
-        //选择文本的背景色（非焦点状态）
+        //选择文本的背景色（非焦点状态），如果设置为空，则不显示
         SetInactiveSelectionBkColor(strValue);
     }
     else if (strName == _T("current_row_bkcolor")) {
-        //当前行的背景色（焦点状态），如果不设置，则在焦点状态不显示当前行的背景色
+        //当前行的背景色（焦点状态），如果设置为空，则在焦点状态不显示当前行的背景色
         SetCurrentRowBkColor(strValue);
     }
     else if (strName == _T("inactive_current_row_bkcolor")) {
-        //当前行的背景色（非焦点状态），如果不设置，则在非焦点状态不显示当前行的背景色
+        //当前行的背景色（非焦点状态），如果设置为空，则在非焦点状态不显示当前行的背景色
         SetInactiveCurrentRowBkColor(strValue);
     }
     else {
@@ -570,6 +574,16 @@ void RichEdit::SetMinNumber(int32_t minNumber)
 int32_t RichEdit::GetMinNumber() const
 {
     return m_minNumber;
+}
+
+void RichEdit::SetNumberFormat64(const DString& numberFormat)
+{
+    m_numberFormat = numberFormat;
+}
+
+DString RichEdit::GetNumberFormat64() const
+{
+    return m_numberFormat.c_str();
 }
 
 bool RichEdit::IsWordWrap() const
@@ -2674,7 +2688,18 @@ int64_t RichEdit::GetTextNumber() const
 
 void RichEdit::SetTextNumber(int64_t nValue)
 {
-    SetText(StringUtil::Printf(_T("%I64d"), nValue));
+    int32_t nSelStartChar = -1;
+    int32_t nSelEndChar = -1;
+    GetSel(nSelStartChar, nSelEndChar);
+    if (!m_numberFormat.empty()) {
+        SetText(StringUtil::Printf(m_numberFormat.c_str(), nValue));
+    }
+    else {
+        SetText(StringUtil::Printf(_T("%I64d"), nValue));
+    }
+    if ((nSelStartChar == nSelEndChar) && (nSelStartChar >= 0) && (nSelStartChar <= GetTextLength())) {
+        SetSel(nSelStartChar, nSelStartChar);
+    }
 }
 
 void RichEdit::AdjustTextNumber(int32_t nDelta)
@@ -2687,10 +2712,18 @@ void RichEdit::AdjustTextNumber(int32_t nDelta)
             if (nNewValue > GetMaxNumber()) {
                 //超过最大数字，进行修正
                 nNewValue = GetMaxNumber();
+                if ((nDelta == 1) && (nOldValue == GetMaxNumber())) {
+                    //循环
+                    nNewValue = GetMinNumber();
+                }
             }
             else if (nNewValue < GetMinNumber()) {
                 //小于最小数字，进行修正
                 nNewValue = GetMinNumber();
+                if ((nDelta == -1) && (nOldValue == GetMinNumber())) {
+                    //循环
+                    nNewValue = GetMaxNumber();
+                }
             }
         }
         if (nNewValue != nOldValue) {
@@ -3462,6 +3495,16 @@ bool RichEdit::OnArrowKeyDown(const EventArgs& msg)
     }
     if (!bArrowKeyDown) {
         return false;
+    }
+    if (IsNumberOnly() && !IsReadOnly() && IsEnabled() && ((msg.vkCode == kVK_UP) || (msg.vkCode == kVK_DOWN))) {
+        //数字模式，方向键调整数字大小
+        if (msg.vkCode == kVK_UP) {
+            AdjustTextNumber(1);
+        }
+        else {
+            AdjustTextNumber(-1);
+        }        
+        return true;
     }
 
     if (msg.vkCode == kVK_LEFT) {

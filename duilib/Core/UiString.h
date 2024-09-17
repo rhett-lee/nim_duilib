@@ -24,21 +24,32 @@ public:
             StringUtil::StringCopy(m_pData, strSize + 1, str.c_str());
         }
     }
-    UiStringT& operator=(const UiStringT& str)
+    UiStringT(const string_type& str) : m_pData(nullptr)
     {
-        if(&str == this){
-            return *this;
-        }
-        if (m_pData != nullptr) {
-            delete m_pData;
-            m_pData = nullptr;
-        }
         if (!str.empty()) {
             size_t strSize = StringUtil::StringLen(str.c_str());
             m_pData = new value_type[strSize + 1];
             StringUtil::StringCopy(m_pData, strSize + 1, str.c_str());
         }
-        return *this;
+    }
+    UiStringT(const std::basic_string_view<value_type>& str) : m_pData(nullptr)
+    {
+        if (!str.empty()) {
+            size_t strSize = StringUtil::StringLen(str.data());
+            m_pData = new value_type[strSize + 1];
+            StringUtil::StringCopy(m_pData, strSize + 1, str.data());
+        }
+    }
+    UiStringT(const value_type* pstr) : m_pData(nullptr)
+    {
+        if (pstr != nullptr) {
+            std::basic_string_view<value_type> str(pstr);
+            if (!str.empty()) {
+                size_t strSize = StringUtil::StringLen(str.data());
+                m_pData = new value_type[strSize + 1];
+                StringUtil::StringCopy(m_pData, strSize + 1, str.data());
+            }
+        }
     }
     ~UiStringT()
     { 
@@ -58,6 +69,23 @@ public:
             delete m_pData;
             m_pData = nullptr;
         }
+    }
+
+    UiStringT& operator=(const UiStringT& str)
+    {
+        if (&str == this) {
+            return *this;
+        }
+        if (m_pData != nullptr) {
+            delete m_pData;
+            m_pData = nullptr;
+        }
+        if (!str.empty()) {
+            size_t strSize = StringUtil::StringLen(str.c_str());
+            m_pData = new value_type[strSize + 1];
+            StringUtil::StringCopy(m_pData, strSize + 1, str.c_str());
+        }
+        return *this;
     }
 
     UiStringT& operator=(const string_type& str)

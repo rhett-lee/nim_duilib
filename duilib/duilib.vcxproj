@@ -386,6 +386,7 @@
     <ClCompile Include="Control\ColorSlider.cpp" />
     <ClCompile Include="Control\ComboButton.cpp" />
     <ClCompile Include="Control\DateTime.cpp" />
+    <ClCompile Include="Control\DateTimeWnd_SDL.cpp" />
     <ClCompile Include="Control\DateTimeWnd_Windows.cpp" />
     <ClCompile Include="Control\FilterCombo.cpp" />
     <ClCompile Include="Control\HotKey.cpp" />
@@ -556,6 +557,7 @@
     <ClInclude Include="Control\ColorSlider.h" />
     <ClInclude Include="Control\ComboButton.h" />
     <ClInclude Include="Control\DateTime.h" />
+    <ClInclude Include="Control\DateTimeWnd_SDL.h" />
     <ClInclude Include="Control\DateTimeWnd_Windows.h" />
     <ClInclude Include="Control\FilterCombo.h" />
     <ClInclude Include="Control\GroupBox.h" />

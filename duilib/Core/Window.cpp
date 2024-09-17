@@ -1633,21 +1633,31 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
     SetLastMousePos(pt);
     Control* pControl = FindControl(pt);
     if (pControl != nullptr) {
+        std::weak_ptr<WeakFlag> controlFlag = pControl->GetWeakFlag();
+        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+        std::weak_ptr<WeakFlag> clickFlag;
+        if (m_pEventClick != nullptr) {
+            clickFlag = m_pEventClick->GetWeakFlag();
+        }
         Control* pOldEventClick = m_pEventClick;
         m_pEventClick = pControl;
         pControl->SetFocus();
         SetCapture();
-        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-        EventArgs msgData;
-        msgData.modifierKey = modifierKey;
-        msgData.ptMouse = pt;
-        msgData.wParam = nativeMsg.wParam;
-        msgData.lParam = nativeMsg.lParam;
-        pControl->SendEvent(eventType, msgData);
         if (windowFlag.expired()) {
             return;
         }
-        if ((pOldEventClick != nullptr) && (pOldEventClick != pControl)) {
+        if (!controlFlag.expired()) {            
+            EventArgs msgData;
+            msgData.modifierKey = modifierKey;
+            msgData.ptMouse = pt;
+            msgData.wParam = nativeMsg.wParam;
+            msgData.lParam = nativeMsg.lParam;
+            pControl->SendEvent(eventType, msgData);
+            if (windowFlag.expired()) {
+                return;
+            }
+        }
+        if ((pOldEventClick != nullptr) && (pOldEventClick != pControl) && !clickFlag.expired()) {
             pOldEventClick->SendEvent(kEventMouseClickChanged);
             if (windowFlag.expired()) {
                 return;
@@ -1724,12 +1734,20 @@ void Window::SetFocusControl(Control* pControl)
     }
     if (m_pFocus != nullptr) {
         //WPARAM 是新的焦点控件接口
+        std::weak_ptr<WeakFlag> controlFlag;
+        if (pControl != nullptr) {
+            controlFlag = pControl->GetWeakFlag();
+        }
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         m_pFocus->SendEvent(kEventKillFocus, (WPARAM)pControl);
         if (windowFlag.expired()) {
             return;
         }
         m_pFocus = nullptr;
+        if ((pControl != nullptr) && controlFlag.expired()){
+            //该控件已经销毁
+            return;
+        }
     }
     if ((pControl != nullptr) && pControl->IsVisible() && pControl->IsEnabled()) {
         ASSERT(pControl->GetWindow() == this);

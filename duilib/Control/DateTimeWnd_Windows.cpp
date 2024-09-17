@@ -2,7 +2,7 @@
 #include "DateTime.h"
 #include "duilib/Core/GlobalManager.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include <windowsx.h>
 #include <ctime>
@@ -364,4 +364,4 @@ SYSTEMTIME DateTimeWnd::StdTimeToSystemTime(const std::tm& tmTime) const
 
 }//namespace ui
 
-#endif // DUILIB_BUILD_FOR_WIN
+#endif // (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)

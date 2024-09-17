@@ -23,7 +23,7 @@
 | control_padding | true | bool | SetEnableControlPadding|是否允许控件自身运用内边距 |
 | halign | left | string | SetHorAlignType|控件的横向位置,如(center),支持left、center、right三种位置 |
 | valign | top | string | SetVerAlignType|控件的纵向位置,如(center),支持top、center、bottom三种位置 |
-| float | false | bool | SetFloat|是否使用绝对定位,如(true) |
+| float | false | bool | SetFloat|是否使用绝对定位,如“true”|
 | bkcolor |  | string | SetBkColor|背景颜色字符串常量,如(white) |
 | bkcolor2 |  | string | SetBkColor2|第二背景颜色字符串常量,如果设置了第二背景色，则支持背景颜色渐变,如(blue) |
 | bkcolor2_direction | "1" | string | SetBkColor2Direction|第二背景色方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下|
@@ -57,13 +57,13 @@
 | tooltip_width |  | int | SetToolTipWidth| 鼠标悬浮提示所占的宽度 |
 | data_id |  | string | SetDataID|自定义字符串数据,辅助函数，供用户使用 |
 | user_data_id |  | size_t | SetUserDataID|自定义整型数据, 供用户使用 |
-| enabled | true | bool | SetEnabled|是否可以响应用户操作,如(true) |
-| mouse_enabled | true | bool | SetMouseEnabled|本控件是否可以响应鼠标操作,如(true) |
+| enabled | true | bool | SetEnabled|是否可以响应用户操作,如“true”|
+| mouse_enabled | true | bool | SetMouseEnabled|本控件是否可以响应鼠标操作,如“true”|
 | keyboard_enabled | true | bool | SetKeyboardEnabled|非CButtonUI类忽略该值,为false时不支持TAB_STOP,且该对象不处理键盘信息 |
-| visible | true | bool | SetVisible|是否可见,如(true) |
+| visible | true | bool | SetVisible|是否可见,如“true”|
 | fade_visible | true | bool | SetFadeVisible|是否可见,如(true),此属性会触发控件动画效果 |
-| menu | false | bool | |是否需要右键菜单,如(true) |
-| no_focus | false | bool | SetNoFocus|是否可以获取焦点,如(true) |
+| menu | false | bool | |是否需要右键菜单,如“true”|
+| no_focus | false | bool | SetNoFocus|是否可以获取焦点,如“true”|
 | tab_stop | true | bool | SetTabStop| 是否允许通过按TAB键切换到此控件 |
 | show_focus_rect | false| bool | SetLoadingBkColor| 是否显示焦点状态(一个虚线构成的矩形) |
 | focus_rect_color | | string | SetFocusRectColor| 焦点状态矩形的颜色 |
@@ -71,21 +71,21 @@
 | state | normal | string | SetState|控件的当前状态: 支持normal、hot、pushed、disabled状态 |
 | cursor_type | arrow | string | SetCursorType|鼠标移动到控件上时的鼠标光标: arrow(箭头)、hand(手型)、ibeam(“I”形状)、sizewe(左右拖动)、sizens(上下拖动)|
 | render_offset | 0,0 | size | SetRenderOffset|控件绘制时的偏移量,如(10,10),一般用于绘制动画 |
-| fade_alpha | false | bool | GetAnimationManager(). SetFadeAlpha|是否启用控件透明渐变动画,如(true) |
-| fade_hot | false | bool |GetAnimationManager(). SetFadeHot |是否启用控件悬浮状态下 的透明渐变动画,如(true) |
-| fade_width | false | bool | GetAnimationManager(). SetFadeWidth|是否启用控件宽度渐变动画,如(true) |
-| fade_height | false | bool | GetAnimationManager(). SetFadeHeight|是否启用控件高度渐变动画,如(true) |
-| fade_in_out_x_from_left | false | bool | GetAnimationManager(). SetFadeInOutX|是否启用控件从左到右的动画,如(true) |
-| fade_in_out_x_from_right | false | bool | GetAnimationManager(). SetFadeInOutX|是否启用控件从右到左的动画,如(true) | 
-| fade_in_out_y_from_top | false | bool | GetAnimationManager().  SetFadeInOutY|是否启用控件从上到下的动画,如(true) | 
-| fade_in_out_y_from_bottom | false | bool | GetAnimationManager().  SetFadeInOutY|是否启用控件从下到上的动画,如(true) |
+| fade_alpha | false | bool | GetAnimationManager(). SetFadeAlpha|是否启用控件透明渐变动画,如“true”|
+| fade_hot | false | bool |GetAnimationManager(). SetFadeHot |是否启用控件悬浮状态下 的透明渐变动画,如“true”|
+| fade_width | false | bool | GetAnimationManager(). SetFadeWidth|是否启用控件宽度渐变动画,如“true”|
+| fade_height | false | bool | GetAnimationManager(). SetFadeHeight|是否启用控件高度渐变动画,如“true”|
+| fade_in_out_x_from_left | false | bool | GetAnimationManager(). SetFadeInOutX|是否启用控件从左到右的动画,如“true”|
+| fade_in_out_x_from_right | false | bool | GetAnimationManager(). SetFadeInOutX|是否启用控件从右到左的动画,如“true”| 
+| fade_in_out_y_from_top | false | bool | GetAnimationManager().  SetFadeInOutY|是否启用控件从上到下的动画,如“true”| 
+| fade_in_out_y_from_bottom | false | bool | GetAnimationManager().  SetFadeInOutY|是否启用控件从下到上的动画,如“true”|
 | loading_image | | string | SetLoadingImage| 加载中状态的图片 |
 | loading_bkcolor | | string | SetLoadingBkColor| 加载中状态的背景色 |
 | paint_order | | string | SetPaintOrder| 设置绘制顺序：0 表示常规绘制，非0表示指定绘制顺序，值越大表示越晚绘制 |
 | start_gif_play | | int | StartGifPlay| 播放动画，参数表示播放循环次数 |
 | stop_gif_play | | int | StopGifPlay| 停止动画，参数表示停止在哪一帧 |
 | box_shadow | | string | SetBoxShadow|设置控件的阴影属性，举例：boxshadow="color='red' offset='0,0' blurradius='8' spreadradius='8' |
-| cache | false | bool |SetUseCache |是否启用控件绘制缓存,如(true) |
+| cache | false | bool |SetUseCache |是否启用控件绘制缓存,如“true”|
 
 ## ScrollBar的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
@@ -110,14 +110,14 @@
 | bk_hot_image |  | string | 背景鼠标悬浮状态图片 |
 | bk_pushed_image |  | string | 背景鼠标按下状态图片 |
 | bk_disabled_image |  | string | 背景禁用状态图片 |
-| horizontal | false | bool | 水平或垂直,如(true) |
+| horizontal | false | bool | 水平或垂直,如“true”|
 | line_size | 8 | int | 滚动一行的大小,如(8) |
 | thumb_min_length | 30 | int | 滑块的最小长度 |
 | range | 100 | int | 滚动范围,如(100) |
 | value | 0 | int | 滚动位置,如(0) |
-| show_button1 | true | bool | 是否显示左或上按钮,如(true) |
-| show_button2 | true | bool | 是否显示右或下按钮,如(true) |
-| auto_hide_scroll | true | bool | 是否自动隐藏滚动条,如(true) |
+| show_button1 | true | bool | 是否显示左或上按钮,如“true”|
+| show_button2 | true | bool | 是否显示右或下按钮,如“true”|
+| auto_hide_scroll | true | bool | 是否自动隐藏滚动条,如“true”|
 
 ScrollBar 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
 
@@ -265,6 +265,7 @@ CheckCombo 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 | :--- | :--- | :--- | :--- |
 | format | | string | 日期的格式，具体可参考：`DateTime.h`中函数的说明 |
 | edit_format | | string | 编辑状态时，日期的编辑格式，可选值："date_calendar"：年-月-日，通过下拉框展示月日历的方式来修改日期；"date_up_down"： 编辑时显示：年-月-日，通过控件的右侧放置一个向上-向下的控件以修改日期；"date_time_up_down"：编辑时显示：年-月-日 时:分:秒；"date_minute_up_down"：编辑时显示：年-月-日 时:分；"time_up_down"：编辑时显示：时:分:秒；"minute_up_down"：编辑时显示：时:分|
+| spin_class | | string | 日期中的Spin控件的Class属性，仅当使用SDL时有效，默认值为："rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down" |
 
 DateTime 控件继承了 `Label` 属性，更多可用属性请参考`Label`的属性
 
@@ -349,52 +350,56 @@ CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`的属性
 ## RichEdit的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| vscrollbar | false | bool | 是否使用竖向滚动条,如(true) |
-| hscrollbar | false | bool | 是否使用横向滚动条,如(true) |
-| auto_vscroll | false | bool | 是否随输入竖向滚动,如(true) |
-| auto_hscroll | false | bool | 是否随输入横向滚动,如(true) |
-| want_tab | true | bool | 是否接受tab按键消息,如(true) |
-| want_return | false | bool | 是否接受回车按键消息,如(true) |
-| want_ctrl_return | false | bool | 是否接受ctrl+return按键消息,如(true) |
-| rich_text | false | bool | 是否使用富格式,如(true) |
-| single_line | true | bool | 是否使用单行,如(true) |
-| multi_line | false | bool | 是否使用多行,该属性与single_line互斥,如(true) |
-| readonly | false | bool | 是否只读,如(false) |
-| password | false | bool | 是否为密码模式,如(true) |
-| show_password | false | bool | 是否显示密码符,如(true) |
-| password_char | | string | 设置密码字符，默认为 " * " 字符，可用通过这个属性改变|
+| vscrollbar | false | bool | 是否使用竖向滚动条,如“true”|
+| hscrollbar | false | bool | 是否使用横向滚动条,如“true”|
+| auto_vscroll | false | bool | 是否随输入竖向滚动,如“true”(当为SDL实现时，该选项无效)|
+| auto_hscroll | false | bool | 是否随输入横向滚动,如“true” (当为SDL实现时，该选项无效)|
+| want_tab | false | bool | 是否接受tab按键消息,如“true” |
+| want_return | false | bool | 是否接受回车按键消息,如“true” |
+| want_ctrl_return | false | bool | 是否接受ctrl+return按键消息,如“true”|
+| rich_text | false | bool | 是否使用富格式,如“true”(当为SDL实现时，该选项无效)|
+| single_line | true | bool | 是否使用单行,如“true”|
+| multi_line | false | bool | 是否使用多行,该属性与single_line互斥,如“true”|
+| readonly | false | bool | 是否只读,如"false" |
+| password | false | bool | 是否为密码模式,如“true”|
+| show_password | false | bool | 是否显示密码符,如“true”|
+| password_char || string | 设置密码字符，默认为 " * " 字符，可用通过这个属性改变|
 | flash_password_char | false | bool | 先显示字符，然后再显示密码字符|
-| number_only | false | bool | 是否只允许输入数字,如(false) |
+| number_only | false | bool | 是否只允许输入数字,如"false" |
 | max_number | INT_MAX | int | 允许的最大数字(仅当number_only为true的时候有效) |
 | min_number | INT_MIN | int | 允许的最小数字(仅当number_only为true的时候有效 |
-| text_align | left,top | string | 文字对齐方式, 取值: left、right、hcenter、top、vcenter、bottom, 如(right,bottom) |
+| text_align | left,top | string | 文字对齐方式, 取值: left、right、hcenter、top、vcenter、bottom, 如"right,bottom" |
 | text_padding |  | rect | 文本内边距，如："2,2,2,2" |
-| text |  | string | 显示文本,如(测试文本) |
+| text |  | string | 显示文本 |
 | text_id |  | string | 显示文本的多语言功能ID |
 | font | | string | 字体ID |
-| normal_text_color |  | string | 普通状态文字颜色,不指定则使用默认颜色,如(blue) |
-| disabled_text_color |  | string | 禁用状态文字颜色,不指定则使用默认颜色,如(blue) |
+| normal_text_color |  | string | 普通状态文字颜色,不指定则使用默认颜色,如"blue" |
+| disabled_text_color |  | string | 禁用状态文字颜色,不指定则使用默认颜色,如"blue" |
 | caret_color |  | string | 光标的颜色 |
-| prompt_mode | false | bool | 是否显示提示文字,如(true) |
+| prompt_mode | false | bool | 是否显示提示文字,如“true”|
 | prompt_text |  | string | 文本框内提示文字,当文本框text为空时显示 |
 | prompt_text_id |  | string | 多语言功能的ID,如(TEXT_OUT) |
 | prompt_color |  | string | 文本框内提示文字的颜色 |
 | focused_image |  | string | 焦点状态下的图片 |
-| auto_detect_url | false | bool | 是否自动检测URL，如果是URL则显示为超链接 |
+| auto_detect_url | false | bool | 是否自动检测URL，如果是URL则显示为超链接 (当为SDL实现时，该选项无效)|
 | limit_text | | int | 限制最多字符数 |
 | limit_chars | | string | 限制允许输入哪些字符，比如"abc"表示只允许输入a、b、c字符，不允许输入其他字符 |
-| allow_beep | false | bool | 是否允许发出Beep声音 |
+| allow_beep | false | bool | 是否允许发出Beep声音 (当为SDL实现时，该选项无效)|
 | word_wrap | false| bool | 是否自动换行 |
 | no_caret_readonly |false| bool | 只读模式，不显示光标 |
-| save_selection |false| bool | 如果 为 true，则当控件处于非活动状态时，应保存所选内容的边界 |
+| save_selection |false| bool | 如果 为 true，则当控件处于非活动状态时，应保存所选内容的边界 (当为SDL实现时，该选项无效)|
 | hide_selection | false | bool | 是否隐藏选择内容 |
 | zoom | | size | 设置缩放比例：设 wParam：缩放比例的分子，lParam：缩放比例的分母。"wParam,lParam" 表示按缩放比例分子/分母显示的缩放，取值范围：1/64 < (wParam / lParam) < 64。举例：则："0,0"表示关闭缩放功能，"2,1"表示放大到200%，"1,2"表示缩小到50% |
 | wheel_zoom | | bool | 是否允许Ctrl + 滚轮来调整缩放比例 |
 | default_context_menu | false | bool | 是否使用默认的右键菜单 |
-| enable_drag_drop |false| bool | 是否允许拖放操作 |
+| enable_drag_drop |false| bool | 是否允许拖放操作(当为SDL实现时，该选项无效) |
 | spin_class | | string | 设置Spin功能的Class名称，如果不为空则显示Spin按钮，详细用法参见示例程序|
 | clear_btn_class | | string | 设置清除按钮功能的Class名称，如果不为空则显示清楚按钮，详细用法参见示例程序 |
 | show_passowrd_btn_class | | string |设置显示密码按钮功能的Class名称，如果不为空则显示显示密码按钮 ，详细用法参见示例程序 |
+| selection_bkcolor | "CornflowerBlue" | string |选择文本的背景色（焦点状态） 如果设置为空，则不显示|
+| inactive_selection_bkcolor | "DarkGray" | string | 选择文本的背景色（非焦点状态），如果设置为空，则不显示 |
+| current_row_bkcolor | "SkyBlue" | string | 当前行的背景色（焦点状态），如果设置为空，则在焦点状态不显示当前行的背景色|
+| inactive_current_row_bkcolor | "" | string |当前行的背景色（非焦点状态），如果设置为空，则在非焦点状态不显示当前行的背景色  |
 
 RichEdit 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
 

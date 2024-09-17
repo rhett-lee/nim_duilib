@@ -295,6 +295,14 @@ public:
     */
     int32_t GetMinNumber() const;
 
+    /** 获取数字的格式（64位有符号整型的格式, 比如"I64d"等）
+    */
+    void SetNumberFormat64(const DString& numberFormat);
+
+    /** 获取数字的格式（64位有符号整型的格式）
+    */
+    DString GetNumberFormat64() const;
+
     /** 获取限制字符数量
      * @return 返回限制字符数量
      */
@@ -662,6 +670,18 @@ public:
     */
     bool FindRichText(const FindTextParam& findParam, TextCharRange& chrgText) const;
 
+    /** 获取文本内容，并转换为数字
+    */
+    int64_t GetTextNumber() const;
+
+    /** 将数字转换为文本，设置文本内容
+    */
+    void SetTextNumber(int64_t nValue);
+
+    /** 调整文本数字值
+    */
+    void AdjustTextNumber(int32_t nDelta);
+
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
 public:
     /** 是否是富文本模式
@@ -909,18 +929,6 @@ private:
     */
     bool SetSpinClass(const DString& spinClass);
 
-    /** 获取文本内容，并转换为数字
-    */
-    int64_t GetTextNumber() const;
-
-    /** 将数字转换为文本，设置文本内容
-    */
-    void SetTextNumber(int64_t nValue);
-
-    /** 调整文本数字值
-    */
-    void AdjustTextNumber(int32_t nDelta);
-
     /** 开始启动调整文本数字值的定时器
     */
     void StartAutoAdjustTextNumberTimer(int32_t nDelta);
@@ -1124,6 +1132,10 @@ private:
     /** 设置允许的最小数字(仅当IsNumberOnly()为true的时候有效)
     */
     int32_t m_minNumber;
+
+    /** 数字的格式
+    */
+    UiString m_numberFormat;
 
     /** Spin功能的容器
     */

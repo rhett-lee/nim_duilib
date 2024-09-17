@@ -549,6 +549,9 @@
     <ClCompile Include="Utils\StringCharset.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Control\DateTimeWnd_SDL.cpp">
+      <Filter>Control\SDL</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1141,6 +1144,9 @@
     </ClInclude>
     <ClInclude Include="Utils\StringCharset.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\DateTimeWnd_SDL.h">
+      <Filter>Control\SDL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
