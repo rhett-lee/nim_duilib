@@ -79,6 +79,12 @@ NativeWindow_SDL* NativeWindow_SDL::GetWindowFromID(SDL_WindowID id)
 
 SDL_WindowID NativeWindow_SDL::GetWindowIdFromEvent(const SDL_Event& sdlEvent)
 {
+    SDL_Window* sdlWindow = SDL_GetWindowFromEvent(&sdlEvent);
+    if (sdlWindow != nullptr) {
+        //优先使用SDL的API获取窗口ID
+        return SDL_GetWindowID(sdlWindow);
+    }
+
     if ((sdlEvent.type >= SDL_EVENT_WINDOW_FIRST) && (sdlEvent.type <= SDL_EVENT_WINDOW_LAST)) {
         //窗口事件
         return sdlEvent.window.windowID;
