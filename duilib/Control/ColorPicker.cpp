@@ -214,10 +214,15 @@ void ColorPicker::OnInitWindow()
     //选择：屏幕取色
     pButton = dynamic_cast<Button*>(FindControl(_T("color_picker_choose")));
     if (pButton != nullptr) {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
         pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
             OnPickColorFromScreen();
             return true;
             });
+#else
+        //其他平台不支持屏幕取词
+        pButton->SetEnabled(false);
+#endif
     }
 }
 
@@ -713,9 +718,10 @@ public:
 
     /** 抓取屏幕位图
     */
-    void ScreenCapture(const Window* pWindow)
+    bool ScreenCapture(const Window* pWindow)
     {
         m_spBitmap = ScreenCapture::CaptureBitmap(pWindow);
+        return m_spBitmap != nullptr;
     }
 
     /** 获取选择的颜色值
@@ -766,7 +772,10 @@ void ColorPicker::OnPickColorFromScreen()
 
     //抓取屏幕位图
     ScreenColorPickerWnd* pScreenColorPicker = new ScreenColorPickerWnd;    
-    pScreenColorPicker->ScreenCapture(this);
+    if (!pScreenColorPicker->ScreenCapture(this)) {
+        delete pScreenColorPicker;
+        return;
+    }
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_TRANSPARENT;
