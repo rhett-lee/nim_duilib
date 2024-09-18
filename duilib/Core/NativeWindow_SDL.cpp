@@ -538,8 +538,15 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
     if (createAttributes.m_bSizeBoxDefined && !createAttributes.m_rcSizeBox.IsZero()) {
         SDL_SetWindowResizable(m_sdlWindow, SDL_TRUE);
     }
-
-    m_sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
+    //备注：当前支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："direct3d11", "opengl"
+    m_sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "direct3d11");
+    if (m_sdlRenderer == nullptr) {
+        m_sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "opengl");
+    }
+    if (m_sdlRenderer == nullptr) {
+        //如果创建失败，则使用默认的Render引擎
+        m_sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
+    }    
     ASSERT(m_sdlRenderer != nullptr);
     if (m_sdlRenderer == nullptr) {
         SDL_DestroyWindow(m_sdlWindow);
