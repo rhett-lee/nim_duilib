@@ -370,7 +370,10 @@ void RichEdit::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     SetTextPadding(rcTextPadding, false);
 
     //更新字体大小
-    //TODO:
+    m_pTextData->SetCacheDirty(true);
+    SetFontIdInternal(GetCurrentFontId());
+    Redraw();
+    UpdateScrollRange();
 
     __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
