@@ -1543,7 +1543,11 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* /*pInsertAfterWindow
         }
     }
     if (uFlags & kSWP_SHOWWINDOW) {
-        if (!ShowWindow(ShowWindowCommands::kSW_SHOW)) {
+        ShowWindowCommands showCommand = ShowWindowCommands::kSW_SHOW;
+        if (uFlags & kSWP_NOACTIVATE) {
+            showCommand = ShowWindowCommands::kSW_SHOW_NA;
+        }
+        if (!ShowWindow(showCommand)) {
             bRet = false;
         }
     }
