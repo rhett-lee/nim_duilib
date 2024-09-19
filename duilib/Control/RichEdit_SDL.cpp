@@ -78,7 +78,7 @@ RichEdit::RichEdit(Window* pWindow) :
     m_nCtrlStartIndex(-1),
     m_bSelForward(true),
     m_nSelXPos(-1),
-    m_bHideSelection(false),
+    m_bHideSelection(true),
     m_bActive(false),
     m_bTextInputMode(false),
     m_bMouseDownInView(false),
@@ -89,7 +89,7 @@ RichEdit::RichEdit(Window* pWindow) :
     m_pTextData(nullptr),
     m_sSelectionBkColor(_T("CornflowerBlue")),
     m_sInactiveSelectionBkColor(_T("DarkGray")),
-    m_sCurrentRowBkColor(_T("SkyBlue")),
+    m_sCurrentRowBkColor(_T("")),
     m_sInactiveCurrentRowBkColor(_T(""))
 {
     m_pTextData = new RichEditData(this);
@@ -3079,6 +3079,10 @@ UiSize RichEdit::EstimateText(UiSize szAvailable)
     }
 
     fixedSize.cy = rect.Height();
+    if ((fixedSize.cy == 0) && GetFixedHeight().IsAuto() && (GetTextLength() == 0)) {
+        //文本为空，并且高度为"auto"时，设置高度为行高，与Windows版本的保持一致
+        fixedSize.cy = m_nRowHeight > 0 ? m_nRowHeight : 0;
+    }
     if (fixedSize.cy > 0) {
         fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
         fixedSize.cy += (rcPadding.top + rcPadding.bottom);

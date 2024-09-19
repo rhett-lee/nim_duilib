@@ -388,7 +388,7 @@ CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`的属性
 | word_wrap | false| bool | 是否自动换行 |
 | no_caret_readonly |false| bool | 只读模式，不显示光标 |
 | save_selection |false| bool | 如果 为 true，则当控件处于非活动状态时，应保存所选内容的边界 (当为SDL实现时，该选项无效)|
-| hide_selection | false | bool | 是否隐藏选择内容 |
+| hide_selection | true | bool | 是否隐藏选择内容 |
 | zoom | | size | 设置缩放比例：设 wParam：缩放比例的分子，lParam：缩放比例的分母。"wParam,lParam" 表示按缩放比例分子/分母显示的缩放，取值范围：1/64 < (wParam / lParam) < 64。举例：则："0,0"表示关闭缩放功能，"2,1"表示放大到200%，"1,2"表示缩小到50% |
 | wheel_zoom | | bool | 是否允许Ctrl + 滚轮来调整缩放比例 |
 | default_context_menu | false | bool | 是否使用默认的右键菜单 |
@@ -398,7 +398,7 @@ CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`Progress`的属性
 | show_passowrd_btn_class | | string |设置显示密码按钮功能的Class名称，如果不为空则显示显示密码按钮 ，详细用法参见示例程序 |
 | selection_bkcolor | "CornflowerBlue" | string |选择文本的背景色（焦点状态） 如果设置为空，则不显示|
 | inactive_selection_bkcolor | "DarkGray" | string | 选择文本的背景色（非焦点状态），如果设置为空，则不显示 |
-| current_row_bkcolor | "SkyBlue" | string | 当前行的背景色（焦点状态），如果设置为空，则在焦点状态不显示当前行的背景色|
+| current_row_bkcolor | "" | string | 当前行的背景色（焦点状态），如果设置为空，则在焦点状态不显示当前行的背景色|
 | inactive_current_row_bkcolor | "" | string |当前行的背景色（非焦点状态），如果设置为空，则在非焦点状态不显示当前行的背景色  |
 
 RichEdit 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性

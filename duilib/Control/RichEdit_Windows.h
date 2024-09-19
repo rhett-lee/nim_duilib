@@ -682,6 +682,10 @@ public:
     */
     void AdjustTextNumber(int32_t nDelta);
 
+    /** 设置是否隐藏选择项
+     */
+    void SetHideSelection(bool fHideSelection);
+
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
 public:
     /** 是否是富文本模式
@@ -694,6 +698,10 @@ public:
      * @param[in] bRichText 设置 true 为富文本模式，false 为纯文本模式
      */
     void SetRichText(bool bRichText);
+
+    /** 设置是否保存所选内容的边界
+    */
+    void SetSaveSelection(bool fSaveSelection);
 
     /** 设置是否允许拖放功能
     */
@@ -857,14 +865,6 @@ public:
      * @return 返回写入数据流的数据大小
      */
     long StreamOut(UINT nFormat, EDITSTREAM& es);
-
-    /** 设置是否保存所选内容的边界
-     */
-    void SetSaveSelection(bool fSaveSelection);
-
-    /** 设置是否隐藏选择项
-     */
-    void SetHideSelection(bool fHideSelection);
 
     /** 添加带颜色的文本
      * @param[in] str 文本内容

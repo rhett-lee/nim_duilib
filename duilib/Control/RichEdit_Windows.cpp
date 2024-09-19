@@ -388,6 +388,10 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //设置是否允许Ctrl + 滚轮来调整缩放比例
         SetEnableWheelZoom(strValue == _T("true"));
     }
+    else if (strName == _T("hide_selection")) {
+        //是否隐藏选择内容
+        SetHideSelection(strValue == _T("true"));
+    }
 
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     else if (strName == _T("zoom")) {
@@ -431,10 +435,6 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //如果 为 TRUE，则当控件处于非活动状态时，应保存所选内容的边界。
         //如果 为 FALSE，则当控件再次处于活动状态时，可以选择边界重置为 start = 0，length = 0。
         SetSaveSelection(strValue == _T("true"));
-    }
-    else if (strName == _T("hide_selection")) {
-        //是否隐藏选择内容
-        SetHideSelection(strValue == _T("true"));
     }
     else if (strName == _T("enable_drag_drop")) {
         //是否允许拖放操作
@@ -482,10 +482,6 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //如果 为 TRUE，则当控件处于非活动状态时，应保存所选内容的边界。
         //如果 为 FALSE，则当控件再次处于活动状态时，可以选择边界重置为 start = 0，length = 0。
         //SetSaveSelection(strValue == _T("true"));
-    }
-    else if (strName == _T("hide_selection")) {
-        //是否隐藏选择内容
-        //SetHideSelection(strValue == _T("true"));
     }
     else if (strName == _T("enable_drag_drop")) {
         //是否允许拖放操作
@@ -3409,6 +3405,13 @@ bool RichEdit::FindRichText(const FindTextParam& findParam, TextCharRange& chrgT
     return false;
 }
 
+void RichEdit::SetHideSelection(bool fHideSelection)
+{
+    if (m_pRichHost != nullptr) {
+        m_pRichHost->SetHideSelection(fHideSelection);
+    }
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
@@ -3416,13 +3419,6 @@ void RichEdit::SetSaveSelection(bool fSaveSelection)
 {
     if (m_pRichHost != nullptr) {
         m_pRichHost->SetSaveSelection(fSaveSelection);
-    }
-}
-
-void RichEdit::SetHideSelection(bool fHideSelection)
-{
-    if (m_pRichHost != nullptr) {
-        m_pRichHost->SetHideSelection(fHideSelection);
     }
 }
 
