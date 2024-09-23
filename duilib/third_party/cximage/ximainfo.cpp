@@ -7,7 +7,7 @@
 
 #if defined(linux) || defined(__linux) || defined(__linux__)
     #ifndef _tcsnicmp
-        #define _tcsnicmp(a,b,c) _strnicmp(a,b,c)
+        #define _tcsnicmp(a,b,c) strcasecmp(a,b)
     #endif
 #endif
 

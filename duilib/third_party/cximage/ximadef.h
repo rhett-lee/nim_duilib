@@ -198,10 +198,14 @@ typedef struct tagcomplex {
 
 #define _cabs(c) sqrt(c.x*c.x+c.y*c.y)
 
-#ifdef DUILIB_UNICODE
-    #define _tcsnicmp _wcsnicmp
+#if defined(linux) || defined(__linux) || defined(__linux__)
+    #define _tcsnicmp(a,b,c) strcasecmp(a,b)
 #else
-    #define _tcsnicmp _strnicmp
+    #ifdef DUILIB_UNICODE
+        #define _tcsnicmp _wcsnicmp
+    #else
+        #define _tcsnicmp _strnicmp
+    #endif
 #endif
 
 #endif
