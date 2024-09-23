@@ -4,17 +4,17 @@
 /** Windows or Linux 平台
 */
 #if defined (_WIN32) || defined (_WIN64)
-    #define DUILIB_BUILD_FOR_WIN     1
+    #define DUILIB_BUILD_FOR_WIN    1
+    //是否使用SDL的窗口和鼠标键盘事件（目前只支持SDL3）
+    //#define DUILIB_BUILD_FOR_SDL    1
 #elif defined(linux) || defined(__linux) || defined(__linux__)
-    #define DUILIB_BUILD_FOR_LINUX   1
+    #define DUILIB_BUILD_FOR_LINUX  1
+    //是否使用SDL的窗口和鼠标键盘事件（目前只支持SDL3）
+    #define DUILIB_BUILD_FOR_SDL    1
 #else
     //不支持的系统
     #pragma message("Unknown Platform!")
 #endif
-
-/** SDL 是否使用SDL的窗口和鼠标键盘事件（目前只支持SDL3）
-*/
-//#define DUILIB_BUILD_FOR_SDL   1
 
 /** 64位操作系统标识
 */

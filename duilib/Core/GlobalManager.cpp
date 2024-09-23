@@ -9,25 +9,9 @@
 #include "duilib/RenderSkia/RenderFactory_Skia.h"
 #include "duilib/Render/RenderConfig.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     //ToolTip/日期时间等标准控件，需要初始化commctrl
     #include <commctrl.h>
-#endif
-
-//依赖的Lib
-#ifdef DUILIB_BUILD_FOR_WIN
-    #pragma comment (lib, "Imm32.lib")
-    #pragma comment (lib, "comctl32.lib")
-    #pragma comment (lib, "User32.lib")
-    #pragma comment (lib, "shlwapi.lib")
-#endif
-
-#ifdef DUILIB_BUILD_FOR_SDL
-    #pragma comment (lib, "../../../SDL3/lib/SDL3-static.lib")
-    #pragma comment (lib, "Version.lib")
-    #pragma comment (lib, "Winmm.lib")
-    #pragma comment (lib, "Setupapi.lib")
-    #pragma comment (lib, "Imm32.lib")
 #endif
 
 #include <filesystem>
@@ -79,7 +63,7 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     //Skia渲染引擎实现
     m_renderFactory = std::make_unique<RenderFactory_Skia>();    
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     //Init Windows Common Controls (for the ToolTip control)
     ::InitCommonControls();
 #endif
