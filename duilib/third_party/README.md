@@ -6,11 +6,11 @@
 ## 当前各个第三方库的使用情况
 | 名称        | 更新日期   | 版本号|是否修改| 获取URL | 备注 |
 | :---        | :---       | :---  |:---    | :---    |:---  |
-| apng        | 2024-05-30 |       |无 ||暂未记录出处，通过libpng + libpng-1.6.43-apng.patch来支持的 |
-| libpng      | 2024-05-30 |v1.6.43|有 |https://sourceforge.net/projects/libpng/|参见后续说明|
+| apng        | 2024-09-23 |       |无 ||暂未记录出处，通过libpng + libpng-1.6.44-apng.patch来支持的 |
+| libpng      | 2024-09-23 |v1.6.44|有 |https://sourceforge.net/projects/libpng/|参见后续说明|
 | cximage     | 2024-05-30 |v7.02  |无 |https://sourceforge.net/projects/cximage/|2011-02-11后已停止更新|
 | libwebp     | 2024-05-30 |v1.4.0 |无 |https://github.com/webmproject/libwebp|tag/v1.4.0，config.h文件需要用cmake生成后再更新，使用了src目录下的子目录，覆盖后，删除不必要的文件即可|
-| stb_image   | 2024-05-30 |v2.29  |无 |https://github.com/nothings/stb||
+| stb_image   | 2024-09-23 |v2.30  |无 |https://github.com/nothings/stb||
 | svg         | 2024-05-30 |无     |有 |https://github.com/memononen/nanosvg| 代码更新到2023-12-30，修改参见提交记录|
 | zlib        | 2024-05-30 |v1.3.1 |无 |https://github.com/madler/zlib | |
 | xml         | 2024-05-30 |v1.14  |无 |https://github.com/zeux/pugixml| pugixml|
