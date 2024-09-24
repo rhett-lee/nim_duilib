@@ -18,8 +18,6 @@ if(MSVC)
     add_definitions(-DUNICODE -D_UNICODE)
 endif()
 
-add_definitions(-DHAVE_CONFIG_H)
-
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/src/dec DEC_SRC)
