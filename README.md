@@ -131,35 +131,44 @@
 2. 本项目是直接在NIM_Duilib_Framework项目的基础上继续开发的，项目地址：[NIM_Duilib_Framework](https://github.com/netease-im/NIM_Duilib_Framework/)
 
 ## 获取代码和编译（Windows平台）
-1. 设置工作目录：`D:\develop\`    
-2. 获取项目代码：`git clone https://github.com/rhett-lee/nim_duilib`
-3. 获取skia代码的编译方法和修改的代码：`git clone https://github.com/rhett-lee/skia_compile`    
-    （nim_duilib默认使用skia作为绘制引擎，所以先要编译skia）
-4. 编译skia源码：按照skia_compile目录中的[Windows下编译skia.md文档](https://github.com/rhett-lee/skia_compile/blob/main/Windows%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)中的方法，编译出skia相关的.lib文件    
-   注意事项：skia源码应该与nim_duilib源码位于相同的目录下    
-   注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅；如果使用VS编译，运行速度很慢，界面比较卡    
-   检查方法：编译成功以后，在`skia/out`的子目录下，有生成`skia.lib`等lib文件
-5. 编译nim_duilib：进入 `nim_duilib/examples` 目录，使用 Visual Studio 2022版本的 IDE 打开 `examples.sln`，选择编译选项为Debug|x64或者Release|x64，按下 F7 即可编译所有示例程序（编译完成的示例程序位于bin目录中）
-6. 编译附件说明：    
+1. 设置工作目录：`D:\develop\skia\`    
+2. 获取并编译Skia库（nim_duilib内部使用Skia作为界面绘制引擎，所以先要编译skia）：    
+（1）获取skia代码的编译方法和修改的代码：`git clone https://github.com/rhett-lee/skia_compile`    
+（2）编译skia源码：按照skia_compile目录中的[Windows下编译skia.md文档](https://github.com/rhett-lee/skia_compile/blob/main/Windows%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)中的方法，编译出skia相关的.lib文件    
+　　　注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅；如果使用VS编译，运行速度很慢，界面比较卡    
+　　　检查方法：编译成功以后，在`skia/out`的子目录下，有生成`skia.lib`等lib文件    
+（3）注意事项：skia源码应该与nim_duilib源码位于相同的目录下，目录结构：`D:\develop\skia\`  
+3. 获取项目代码：`git clone https://github.com/rhett-lee/nim_duilib`
+4. 编译nim_duilib：进入 `nim_duilib/examples` 目录，使用 Visual Studio 2022版本的 IDE 打开 `examples.sln`，选择编译选项为Debug|x64或者Release|x64，按下 F7 即可编译所有示例程序（编译完成的示例程序位于bin目录中）
+5. 编译附件说明：    
 （1）项目中工程的编译环境为Visual Studio 2022版本，如果使用其他版本的Visual Studio编译器，需要手动更新编译工程的属性。    
 （2）项目中的工程默认配置是x64的，如果需要编译Win32的程序，在编译skia的时候，也需要启动32位的命令行（x86 Native Tools Command Prompt for VS 2022）   
-（3）nim_duilib的代码兼容性默认是支持Win7以上系统，未支持Windows XP；Windows SDK的兼容性配置可在[duilib\duilib_config.h](duilib/duilib_config.h)文件中修改    
-（4）渲染引擎的支持：nim_duilib内部使用Skia作为界面绘制引擎。    
+（3）nim_duilib的代码兼容性默认是支持Win7以上系统，未支持Windows XP；Windows SDK的兼容性配置可在[duilib\duilib_config.h](duilib/duilib_config.h)文件中修改。     
 
 ## 获取代码和编译（Linux平台）
 1. 设置工作目录：`/home/develop/`    
-2. 获取项目代码：`git clone https://github.com/rhett-lee/nim_duilib`
-3. 获取skia代码的编译方法和修改的代码：`git clone https://github.com/rhett-lee/skia_compile`    
-    （nim_duilib默认使用skia作为绘制引擎，所以先要编译skia）
-4. 编译skia源码：按照skia_compile目录中的[OpenEuler下编译skia.md文档](https://github.com/rhett-lee/skia_compile/blob/main/OpenEuler%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)中的方法，编译出skia相关的.a文件    
-   注意事项：skia源码应该与nim_duilib源码位于相同的目录下    
-   注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅    
-   检查方法：编译成功以后，在`skia/out`的子目录下，有生成`libskia.a`等.a文件
-5. 编译nim_duilib：
-
-6. 编译附件说明：    
-（1）    
-（2）渲染引擎的支持：nim_duilib内部使用Skia作为界面绘制引擎。    
+2. 获取并编译Skia库（nim_duilib内部使用Skia作为界面绘制引擎，所以先要编译skia）：    
+（1）获取skia代码的编译方法和修改的代码：`git clone https://github.com/rhett-lee/skia_compile`    
+（2）编译skia源码：按照skia_compile目录中的[OpenEuler下编译skia.md文档](https://github.com/rhett-lee/skia_compile/blob/main/OpenEuler%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)中的方法，编译出skia相关的.a文件    
+　　　注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅    
+　　　检查方法：编译成功以后，在`skia/out`的子目录下，有生成`libskia.a`等.a文件    
+（3）注意事项：skia源码应该与nim_duilib源码位于相同的目录下，目录结构：`/home/develop/skia/`  
+3. 获取并编译SDL库（nim_duilib内部使用SDL作为Linux平台的界面绘制引擎，所以先要编译SDL）：    
+（1）进入工作目录：`cd /home/develop/`    
+（2）获取源码：`git clone https://github.com/libsdl-org/SDL.git`   
+（3）使用cmake设置：`cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="/home/develop/SDL3/" -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF`    
+（4）进入SDL编译目录：`cd /home/develop/SDL.build`    
+（5）编译SDL：`make`    
+（6）安装SDL：`make install`    
+（7）SDL3的安装目录为：`/home/develop/SDL3/`，子目录里面包含了.a文件和.h文件等；    
+（8）编译完成后，`SDL`目录和`SDL.build`可以删除，仅保留`SDL3`目录即可。
+4. 获取项目代码并编译：    
+（1）回到工作目录：`cd /home/develop/`    
+（2）获取项目代码：`git clone https://github.com/rhett-lee/nim_duilib`    
+（3）进入代码目录：`cd /home/develop/nim_duilib/`    
+（4）设置编译脚本可执行：`chmod +x linux_build.sh`    
+（5）执行脚本编译：`./linux_build.sh`    
+（6）编译完成后，编译成功后，在libs目录生成了.a文件（libz.a、libpng.a、libwebp.a、libcximage.a、libduilib.a），在bin目录中生成了可执行文件。
 
 ## 开发计划
  - 窗口的封装优化：支持跨平台的窗口引擎    
