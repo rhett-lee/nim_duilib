@@ -23,9 +23,13 @@ endif()
 
 add_definitions(-DSK_GANESH -DSK_GL -DSK_RELEASE)
 
-include_directories(${CMAKE_CURRENT_LIST_DIR}/../)
-include_directories(${CMAKE_CURRENT_LIST_DIR}/../../skia/)
-include_directories(${CMAKE_CURRENT_LIST_DIR}/../../SDL3/include/)
+get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
+get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
+get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/include/" ABSOLUTE)
+
+include_directories(${DUILIB_SRC_ROOT_DIR})
+include_directories(${SKIA_SRC_ROOT_DIR})
+include_directories(${SDL_SRC_ROOT_DIR})
 
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR} DIR_LIB_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Animation ANIMATION_SRC)
