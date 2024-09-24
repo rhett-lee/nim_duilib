@@ -132,9 +132,6 @@
     <ClCompile Include="Core\GlobalManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Core\Placeholder.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\Window.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -552,6 +549,9 @@
     <ClCompile Include="Control\DateTimeWnd_SDL.cpp">
       <Filter>Control\SDL</Filter>
     </ClCompile>
+    <ClCompile Include="Core\PlaceHolder.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -642,9 +642,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\GlobalManager.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Placeholder.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\ToolTip.h">
@@ -1147,6 +1144,9 @@
     </ClInclude>
     <ClInclude Include="Control\DateTimeWnd_SDL.h">
       <Filter>Control\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\PlaceHolder.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

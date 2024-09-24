@@ -438,7 +438,7 @@
     <ClCompile Include="Core\MessageLoop_Windows.cpp" />
     <ClCompile Include="Core\NativeWindow_SDL.cpp" />
     <ClCompile Include="Core\NativeWindow_Windows.cpp" />
-    <ClCompile Include="Core\Placeholder.cpp" />
+    <ClCompile Include="Core\PlaceHolder.cpp" />
     <ClCompile Include="Core\ScrollBar.cpp" />
     <ClCompile Include="Core\Shadow.cpp" />
     <ClCompile Include="Core\StateColorMap.cpp" />
@@ -616,7 +616,7 @@
     <ClInclude Include="Core\MessageLoop_Windows.h" />
     <ClInclude Include="Core\NativeWindow_SDL.h" />
     <ClInclude Include="Core\NativeWindow_Windows.h" />
-    <ClInclude Include="Core\Placeholder.h" />
+    <ClInclude Include="Core\PlaceHolder.h" />
     <ClInclude Include="Core\ResourceParam.h" />
     <ClInclude Include="Core\ScrollBar.h" />
     <ClInclude Include="Core\Shadow.h" />

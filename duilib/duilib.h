@@ -53,7 +53,7 @@
 #include "Core/GlobalManager.h"
 #include "Core/Window.h"
 #include "Core/FrameworkThread.h"
-#include "Core/Placeholder.h"
+#include "Core/PlaceHolder.h"
 #include "Core/Control.h"
 #include "Core/Box.h"
 #include "Core/ScrollBar.h"
