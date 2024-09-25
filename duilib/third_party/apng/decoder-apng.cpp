@@ -8,7 +8,7 @@
 
 #include "decoder-apng.h"
 #include <assert.h>
-#include <tchar.h>
+#include <cstring>
 
 #if defined (_WIN32) || defined (_WIN64)
 #include <windows.h>
