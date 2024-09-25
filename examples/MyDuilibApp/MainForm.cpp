@@ -21,7 +21,7 @@ DString MainForm::GetSkinFile()
 
 void MainForm::OnInitWindow()
 {
-    __super::OnInitWindow();
+    BaseClass::OnInitWindow();
     //窗口初始化完成，可以进行本Form的初始化
 
 }

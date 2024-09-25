@@ -12,6 +12,7 @@ class ListCtrlItem;
 class ListCtrlCheckBox;
 class ListCtrlSubItem : public ListCtrlLabel
 {
+    typedef ListCtrlLabel BaseClass;
 public:
     explicit ListCtrlSubItem(Window* pWindow);
 

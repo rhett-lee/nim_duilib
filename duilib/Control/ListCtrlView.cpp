@@ -44,7 +44,7 @@ void ListCtrlView::SetAttribute(const DString& strName, const DString& strValue)
         m_frameSelectionBorderColor = strValue;
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -58,7 +58,7 @@ void ListCtrlView::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetFrameSelectionBorderSize(iValue, false);
 
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void ListCtrlView::SetFrameSelectionBorderSize(int32_t nBorderSize, bool bNeedDpiScale)
@@ -79,7 +79,7 @@ int32_t ListCtrlView::GetFrameSelectionBorderSize() const
 
 void ListCtrlView::SendEventMsg(const EventArgs& msg)
 {
-    __super::SendEventMsg(msg);
+    BaseClass::SendEventMsg(msg);
     if ((msg.eventType == kEventSelect) || (msg.eventType == kEventUnSelect)) {
         SendEvent(kEventSelChange);
     }
@@ -131,14 +131,14 @@ void ListCtrlView::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     //禁止随鼠标滚轮的滚动改变选中项
     SetScrollSelect(false);
 }
 
 void ListCtrlView::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::PaintChild(pRender, rcPaint);
+    BaseClass::PaintChild(pRender, rcPaint);
     PaintFrameSelection(pRender);
 }
 
@@ -176,7 +176,7 @@ void ListCtrlView::AttachMouseEvents(Control* pListBoxItem)
 
 bool ListCtrlView::ButtonDown(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonDown(msg);
+    bool bRet = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -186,7 +186,7 @@ bool ListCtrlView::ButtonDown(const EventArgs& msg)
 
 bool ListCtrlView::ButtonUp(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonUp(msg);
+    bool bRet = BaseClass::ButtonUp(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -204,7 +204,7 @@ bool ListCtrlView::ButtonUp(const EventArgs& msg)
 
 bool ListCtrlView::RButtonDown(const EventArgs& msg)
 {
-    bool bRet = __super::RButtonDown(msg);
+    bool bRet = BaseClass::RButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -214,7 +214,7 @@ bool ListCtrlView::RButtonDown(const EventArgs& msg)
 
 bool ListCtrlView::RButtonUp(const EventArgs& msg)
 {
-    bool bRet = __super::RButtonUp(msg);
+    bool bRet = BaseClass::RButtonUp(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -224,7 +224,7 @@ bool ListCtrlView::RButtonUp(const EventArgs& msg)
 
 bool ListCtrlView::MouseMove(const EventArgs& msg)
 {
-    bool bRet = __super::MouseMove(msg);
+    bool bRet = BaseClass::MouseMove(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -234,7 +234,7 @@ bool ListCtrlView::MouseMove(const EventArgs& msg)
 
 bool ListCtrlView::OnWindowKillFocus(const EventArgs& msg)
 {
-    bool bRet = __super::OnWindowKillFocus(msg);
+    bool bRet = BaseClass::OnWindowKillFocus(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -710,7 +710,7 @@ void ListCtrlView::HandleEvent(const EventArgs& msg)
             pParent->SendEventMsg(msg);
         }
         else {
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
         return;
     }
@@ -719,7 +719,7 @@ void ListCtrlView::HandleEvent(const EventArgs& msg)
         bHandled = OnListCtrlKeyDown(msg);
     }
     if (!bHandled) {
-        __super::HandleEvent(msg);
+        BaseClass::HandleEvent(msg);
     }
 }
 

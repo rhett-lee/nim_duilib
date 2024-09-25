@@ -493,7 +493,7 @@ void ControlForm::OnProgressValueChagned(float value)
 
 LRESULT ControlForm::OnHotKeyMsg(int32_t hotkeyId, ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnHotKeyMsg(hotkeyId, vkCode, modifierKey, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnHotKeyMsg(hotkeyId, vkCode, modifierKey, nativeMsg, bHandled);
     bHandled = true;
     if (hotkeyId == SYSTEM_HOTKEY_ID) {
         SetWindowForeground();

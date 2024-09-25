@@ -26,7 +26,7 @@ void ListCtrlHeader::SetAttribute(const DString& strName, const DString& strValu
         SetIconSpacing(StringUtil::StringToInt32(strValue), true);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -43,7 +43,7 @@ void ListCtrlHeader::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale
     int32_t iValue = GetIconSpacing();
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetIconSpacing(iValue, false);
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void ListCtrlHeader::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)

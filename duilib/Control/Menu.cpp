@@ -196,7 +196,7 @@ DString Menu::GetSkinFile()
 
 LRESULT Menu::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
     bHandled = true;
     bool bInMenuWindowList = false;
     if (pSetFocusWindow != nullptr) {
@@ -461,7 +461,7 @@ bool Menu::ResizeSubMenu()
 
 void Menu::OnInitWindow()
 {
-    __super::OnInitWindow();
+    BaseClass::OnInitWindow();
     ASSERT(m_pListBox == nullptr);
     m_listBoxFlag.reset();
     if (m_pOwner != nullptr) {
@@ -508,7 +508,7 @@ void Menu::OnCloseWindow()
 {
     RemoveObserver();
     DetachOwner();
-    __super::OnCloseWindow();
+    BaseClass::OnCloseWindow();
 }
 
 bool Menu::AddMenuItem(MenuItem* pMenuItem)
@@ -876,7 +876,7 @@ bool MenuItem::ButtonUp(const ui::EventArgs& msg)
         return false;
     }
     std::weak_ptr<WeakFlag> weakFlag = pWindow->GetWeakFlag();
-    bool ret = __super::ButtonUp(msg);
+    bool ret = BaseClass::ButtonUp(msg);
     if (ret && !weakFlag.expired() && !msg.IsSenderExpired()) {
         //这里处理下如果有子菜单则显示子菜单
         if (!CheckSubMenuItem()){
@@ -894,10 +894,10 @@ bool MenuItem::MouseEnter(const ui::EventArgs& msg)
     Window* pWindow = GetWindow();
     ASSERT(pWindow != nullptr);
     if (pWindow == nullptr) {
-        return __super::MouseEnter(msg);
+        return BaseClass::MouseEnter(msg);
     }
     std::weak_ptr<WeakFlag> weakFlag = pWindow->GetWeakFlag();
-    bool ret = __super::MouseEnter(msg);
+    bool ret = BaseClass::MouseEnter(msg);
     if (!weakFlag.expired() && IsHotState() && !msg.IsSenderExpired()) {
         //这里处理下如果有子菜单则显示子菜单
         if (!CheckSubMenuItem()) {

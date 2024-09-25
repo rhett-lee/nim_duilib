@@ -38,13 +38,13 @@ void ListCtrlIconView::SetAttribute(const DString& strName, const DString& strVa
         SetHorizontalLayout(strValue == _T("true"));
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
 void ListCtrlIconViewItem::HandleEvent(const EventArgs& msg)
 {
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
     if (m_pListCtrl != nullptr) {
         if ((msg.eventType > kEventKeyBegin) && (msg.eventType < kEventKeyEnd)) {
             m_pListCtrl->OnViewKeyboardEvents(msg);
@@ -57,7 +57,7 @@ void ListCtrlIconViewItem::HandleEvent(const EventArgs& msg)
 
 void ListCtrlListViewItem::HandleEvent(const EventArgs& msg)
 {
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
     if (m_pListCtrl != nullptr) {
         if ((msg.eventType > kEventKeyBegin) && (msg.eventType < kEventKeyEnd)) {
             m_pListCtrl->OnViewKeyboardEvents(msg);
@@ -70,7 +70,7 @@ void ListCtrlListViewItem::HandleEvent(const EventArgs& msg)
 
 void ListCtrlIconView::HandleEvent(const EventArgs& msg)
 {
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
     if (m_pListCtrl != nullptr) {
         if ((msg.eventType > kEventKeyBegin) && (msg.eventType < kEventKeyEnd)) {
             m_pListCtrl->OnViewKeyboardEvents(msg);
@@ -144,7 +144,7 @@ void ListCtrlIconView::SetListCtrl(ListCtrl* pListCtrl)
 
 void ListCtrlIconView::SetDataProvider(VirtualListBoxElement* pProvider)
 {
-    __super::SetDataProvider(pProvider);
+    BaseClass::SetDataProvider(pProvider);
     m_pData = dynamic_cast<ListCtrlData*>(GetDataProvider());
 }
 

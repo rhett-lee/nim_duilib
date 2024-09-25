@@ -11,6 +11,7 @@ namespace ui
 {
 class CCheckComboWnd : public Window
 {
+    typedef Window BaseClass;
 public:
     /** 创建并显示下拉窗口
     */
@@ -161,12 +162,12 @@ void CCheckComboWnd::OnFinalMessage()
             m_pOwner->Invalidate();
         }
     }    
-    __super::OnFinalMessage();
+    BaseClass::OnFinalMessage();
 }
 
 void CCheckComboWnd::OnInitWindow()
 {
-    __super::OnInitWindow();
+    BaseClass::OnInitWindow();
     Box* pRoot = new Box(this);
     pRoot->SetAutoDestroyChild(false);
     pRoot->AddItem(m_pOwner->GetListBox());
@@ -185,12 +186,12 @@ void CCheckComboWnd::OnCloseWindow()
     }
     m_pOwner->SetPos(m_pOwner->GetPos());
     m_pOwner->SetFocus();
-    __super::OnCloseWindow();
+    BaseClass::OnCloseWindow();
 }
 
 LRESULT CCheckComboWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
     if (vkCode == kVK_ESCAPE) {
         //按住ESC键，取消
         CloseComboWnd();
@@ -200,7 +201,7 @@ LRESULT CCheckComboWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey
 
 LRESULT CCheckComboWnd::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
     //失去焦点，关闭窗口，正常关闭
     if (pSetFocusWindow != this) {
         CloseComboWnd();
@@ -384,7 +385,7 @@ void CheckCombo::SetAttribute(const DString& strName, const DString& strValue)
         SetPopupTop(strValue == _T("true"));
     }
     else if (strName == _T("height")) {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
         if (strValue != _T("stretch") && strValue != _T("auto")) {
             m_iOrgHeight = StringUtil::StringToInt32(strValue);
             ASSERT(m_iOrgHeight >= 0);
@@ -393,7 +394,7 @@ void CheckCombo::SetAttribute(const DString& strName, const DString& strValue)
         }
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -417,7 +418,7 @@ void CheckCombo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
         }
     }
 
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void CheckCombo::SetDropBoxAttributeList(const DString& pstrList)

@@ -10,6 +10,7 @@ namespace ui
 */
 class UILIB_API VTileLayout : public Layout
 {
+    typedef Layout BaseClass;
 public:
     VTileLayout();
 

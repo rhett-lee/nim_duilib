@@ -9,6 +9,7 @@ namespace ui {
 */
 class HyperLink : public Label
 {
+    typedef Label BaseClass;
 public:
     explicit HyperLink(Window* pWindow):
         Label(pWindow)
@@ -22,7 +23,7 @@ public:
             m_url = strValue;
         }
         else {
-            __super::SetAttribute(strName, strValue);
+            BaseClass::SetAttribute(strName, strValue);
         }
     }
 

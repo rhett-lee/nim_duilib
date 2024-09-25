@@ -165,7 +165,7 @@ LRESULT MultiBrowserForm::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPara
         return TRUE;
     }
 
-    return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
+    return BaseClass::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
 LRESULT MultiBrowserForm::OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg& nativeMsg, bool& bHandled)
@@ -189,7 +189,7 @@ LRESULT MultiBrowserForm::OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg&
             }
         }
     }
-    return __super::OnWindowCloseMsg(wParam, nativeMsg, bHandled);
+    return BaseClass::OnWindowCloseMsg(wParam, nativeMsg, bHandled);
 }
 
 void MultiBrowserForm::OnWndSizeMax(bool max)

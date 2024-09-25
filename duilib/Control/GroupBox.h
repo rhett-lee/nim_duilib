@@ -13,6 +13,7 @@ namespace ui
 template<typename InheritType>
 class UILIB_API GroupBoxTemplate : public LabelTemplate<InheritType>
 {
+    typedef LabelTemplate<InheritType> BaseClass;
 public:
     explicit GroupBoxTemplate(Window* pWindow);
     virtual ~GroupBoxTemplate() override;
@@ -184,10 +185,10 @@ void GroupBoxTemplate<InheritType>::SetAttribute(const DString& strName, const D
     }
     else if (strName == _T("text")) {
         //设置文本内容
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -205,14 +206,14 @@ void GroupBoxTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32
     int32_t iValue = this->GetLineWidth();
     iValue = this->Dpi().GetScaleInt(iValue, nOldDpiScale);
     this->SetLineWidth(iValue, false);
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 template<typename InheritType>
 void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
 {
     //先绘制文字
-    __super::PaintText(pRender);
+    BaseClass::PaintText(pRender);
 
     if (pRender == nullptr) {
         return;

@@ -6,6 +6,7 @@
 
 class ControlForm : public ui::WindowImplBase
 {
+    typedef ui::WindowImplBase BaseClass;
 public:
     ControlForm();
     virtual ~ControlForm() override;

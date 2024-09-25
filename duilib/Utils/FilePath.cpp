@@ -108,7 +108,7 @@ DString FilePath::GetPathSeparatorStr() const
             //转换为本机编码类型的字符串
             return StringUtil::UnicodeToMBCS(m_filePath.native());
         #else
-            return StringUtil::UTF16ToUTF8(m_filePath.native());
+            return m_filePath.native();
         #endif
     }
 #endif
@@ -122,36 +122,48 @@ DStringA FilePath::NativePathA() const
     //转换为本机编码类型的字符串
     return StringUtil::UnicodeToMBCS(m_filePath.native());
 #else
-    return StringUtil::UTF16ToUTF8(m_filePath.native());
+    return m_filePath.native();
 #endif
 }
 
 #ifdef DUILIB_UNICODE
-    const DString& FilePath::ToString() const
-    {
-        return m_filePath.native();
-    }
-#else
-    DString FilePath::ToString() const
-    {
-        if (m_filePath.empty()) {
-            return DStringA();
-        }
-        return StringUtil::UTF16ToUTF8(m_filePath.native());
-    }
-#endif
-
-const DStringW& FilePath::ToStringW() const
+const DString& FilePath::ToString() const
 {
     return m_filePath.native();
 }
+#else
+DString FilePath::ToString() const
+{
+    if (m_filePath.empty()) {
+        return DStringA();
+    }
+#ifdef DUILIB_BUILD_FOR_WIN
+    StringUtil::UTF16ToUTF8(m_filePath.native());
+#else
+    return m_filePath.native();
+#endif
+}
+#endif
 
+DStringW FilePath::ToStringW() const
+{
+#ifdef DUILIB_BUILD_FOR_WIN
+    return m_filePath.native();
+#else
+    return StringUtil::UTF8ToUTF16(m_filePath.native());
+#endif
+}
+ 
 DStringA FilePath::ToStringA() const
 {
     if (m_filePath.empty()) {
         return DStringA();
     }
+#ifdef DUILIB_BUILD_FOR_WIN
     return StringUtil::UTF16ToUTF8(m_filePath.native());
+#else
+    return m_filePath.native();
+#endif
 }
 
 DString FilePath::GetFileName() const
@@ -162,7 +174,11 @@ DString FilePath::GetFileName() const
 #ifdef DUILIB_UNICODE
     return m_filePath.filename().native();
 #else
+#ifdef DUILIB_BUILD_FOR_WIN
     return StringUtil::UTF16ToUTF8(m_filePath.filename().native());
+#else
+    return m_filePath.filename().native();
+#endif
 #endif
 }
 

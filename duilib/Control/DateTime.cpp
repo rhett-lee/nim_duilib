@@ -65,7 +65,7 @@ void DateTime::SetAttribute(const DString& strName, const DString& strValue)
         SetSpinClass(strValue);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -73,7 +73,11 @@ void DateTime::InitLocalTime()
 {
     time_t timeNow = std::time(nullptr);
     std::tm dateTime = {0, };
+#ifdef _MSC_VER
     ::localtime_s(&dateTime, &timeNow);
+#else
+    ::localtime_r(&timeNow, &dateTime);
+#endif
     SetDateTime(dateTime);
 }
 
@@ -167,7 +171,11 @@ bool DateTime::SetDateTimeString(const DString& dateTime)
         //如果不包含年月日，需要更新为当日值，否则编辑的时候认为是无效日期
         time_t timeNow = std::time(nullptr);
         std::tm tmTime = { 0, };
+#ifdef _MSC_VER
         ::localtime_s(&tmTime, &timeNow);
+#else
+        ::localtime_r(&timeNow, &tmTime);
+#endif
         if (m_dateTime.tm_year < 0) {
             m_dateTime.tm_year = tmTime.tm_year;
         }        
@@ -189,7 +197,11 @@ bool DateTime::SetDateTimeString(const DString& dateTime)
         time_t timeValue = std::mktime(&m_dateTime);
         ASSERT(timeValue != 0);
         if (timeValue != 0) {
+#ifdef _MSC_VER
             ::localtime_s(&m_dateTime, &timeValue);
+#else
+            ::localtime_r(&timeValue, &m_dateTime);
+#endif
         }
     }
     ASSERT(bRet);
@@ -322,7 +334,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
             pParent->SendEventMsg(msg);
         }
         else {
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
         return;
     }
@@ -396,7 +408,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
     if (msg.eventType == kEventMouseLeave) {
         return;
     }
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
 }
 
 void DateTime::OnInit()
@@ -404,7 +416,7 @@ void DateTime::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
 
     if (!IsValidDateTime()) {
         DString text = GetText();
@@ -434,7 +446,7 @@ void DateTime::SendEventMsg(const EventArgs& msg)
             return;
         }
     }
-    __super::SendEventMsg(msg);
+    BaseClass::SendEventMsg(msg);
 }
 
 void DateTime::EndEditDateTime()

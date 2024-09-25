@@ -26,7 +26,7 @@ void TabCtrl::SetAttribute(const DString& strName, const DString& strValue)
         SetTabBoxName(strValue);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -35,7 +35,7 @@ void TabCtrl::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
 
     //设置为单选
     SetMultiSelect(false);
@@ -79,7 +79,7 @@ void TabCtrl::HandleEvent(const EventArgs& msg)
             pItem->AdjustItemLineStatus();
         }        
     }
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
 }
 
 void TabCtrl::SetTabBoxName(const DString& tabBoxName)
@@ -121,7 +121,7 @@ TabBox* TabCtrl::GetTabBox() const
 bool TabCtrl::SetItemIndex(Control* pControl, size_t iIndex)
 {
     size_t nOldIndex = GetItemIndex(pControl);
-    bool bRet = __super::SetItemIndex(pControl, iIndex);
+    bool bRet = BaseClass::SetItemIndex(pControl, iIndex);
     if (bRet) {
         TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(nOldIndex));
         if (pItem != nullptr) {
@@ -137,7 +137,7 @@ bool TabCtrl::SetItemIndex(Control* pControl, size_t iIndex)
 
 bool TabCtrl::AddItem(Control* pControl)
 {
-    bool bRet = __super::AddItem(pControl);
+    bool bRet = BaseClass::AddItem(pControl);
     if (bRet) {
         TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(pControl);
         if (pItem != nullptr) {
@@ -149,7 +149,7 @@ bool TabCtrl::AddItem(Control* pControl)
 
 bool TabCtrl::AddItemAt(Control* pControl, size_t iIndex)
 {
-    bool bRet = __super::AddItemAt(pControl, iIndex);
+    bool bRet = BaseClass::AddItemAt(pControl, iIndex);
     if (bRet) {
         TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(pControl);
         if (pItem != nullptr) {
@@ -162,7 +162,7 @@ bool TabCtrl::AddItemAt(Control* pControl, size_t iIndex)
 bool TabCtrl::RemoveItem(Control* pControl)
 {
     size_t iIndex = GetItemIndex(pControl);
-    bool bRet = __super::RemoveItem(pControl);
+    bool bRet = BaseClass::RemoveItem(pControl);
     if (bRet) {
         TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(iIndex - 1));
         if (pItem != nullptr) {
@@ -174,7 +174,7 @@ bool TabCtrl::RemoveItem(Control* pControl)
 
 bool TabCtrl::RemoveItemAt(size_t iIndex)
 {
-    bool bRet = __super::RemoveItemAt(iIndex);
+    bool bRet = BaseClass::RemoveItemAt(iIndex);
     if (bRet) {
         TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(iIndex - 1));
         if (pItem != nullptr) {
@@ -186,7 +186,7 @@ bool TabCtrl::RemoveItemAt(size_t iIndex)
 
 void TabCtrl::RemoveAllItems()
 {
-    __super::RemoveAllItems();
+    BaseClass::RemoveAllItems();
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -256,7 +256,7 @@ void TabCtrlItem::SetAttribute(const DString& strName, const DString& strValue)
         SetAutoHideCloseButton(strValue == _T("true"));
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -265,7 +265,7 @@ void TabCtrlItem::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     SetIconClass(GetIconClass());
     SetTitleClass(GetTitleClass());
     SetLineClass(GetLineClass());
@@ -285,12 +285,12 @@ void TabCtrlItem::HandleEvent(const EventArgs& msg)
         //处理分割线的状态
         AdjustItemLineStatus();
     }
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
 }
 
 void TabCtrlItem::SetVisible(bool bVisible)
 {
-    __super::SetVisible(bVisible);
+    BaseClass::SetVisible(bVisible);
     if (m_pIcon != nullptr) {
         m_pIcon->SetVisible(!m_pIcon->GetBkImage().empty());
     }
@@ -302,7 +302,7 @@ void TabCtrlItem::SetVisible(bool bVisible)
 
 DString TabCtrlItem::GetToolTipText() const
 {
-    DString tooltip = __super::GetToolTipText();
+    DString tooltip = BaseClass::GetToolTipText();
     if (tooltip.empty()) {
         if (m_pLabel != nullptr) {
             tooltip = m_pLabel->GetToolTipText();
@@ -631,7 +631,7 @@ bool TabCtrlItem::IsAutoHideCloseButton() const
 
 bool TabCtrlItem::MouseEnter(const EventArgs& msg)
 {
-    bool bRet = __super::MouseEnter(msg);
+    bool bRet = BaseClass::MouseEnter(msg);
     if (IsAutoHideCloseButton() && (m_pCloseBtn != nullptr)) {
         m_pCloseBtn->SetFadeVisible(true);
     }
@@ -640,7 +640,7 @@ bool TabCtrlItem::MouseEnter(const EventArgs& msg)
 
 bool TabCtrlItem::MouseLeave(const EventArgs& msg)
 {
-    bool bRet = __super::MouseLeave(msg);
+    bool bRet = BaseClass::MouseLeave(msg);
     if (!GetRect().ContainsPt(msg.ptMouse)) {
         if (IsAutoHideCloseButton() && (m_pCloseBtn != nullptr)) {
             m_pCloseBtn->SetFadeVisible(IsSelected());
@@ -658,7 +658,7 @@ void TabCtrlItem::OnPrivateSetSelected()
 
 bool TabCtrlItem::ButtonDown(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonDown(msg);
+    bool bRet = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -681,7 +681,7 @@ void TabCtrlItem::PaintStateColors(IRender* pRender)
         PaintTabItemHot(pRender);
     }
     else {
-        __super::PaintStateColors(pRender);
+        BaseClass::PaintStateColors(pRender);
     }
 }
 

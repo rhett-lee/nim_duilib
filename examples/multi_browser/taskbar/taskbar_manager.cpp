@@ -147,7 +147,7 @@ LRESULT TaskbarTabItem::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
             
         return 0;
     }
-    return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
+    return BaseClass::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////

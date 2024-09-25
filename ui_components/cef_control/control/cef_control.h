@@ -12,7 +12,8 @@
 namespace nim_comp {
 
 class CefControl :public CefControlBase, public ui::IUIMessageFilter
-{    
+{
+    typedef CefControlBase BaseClass;
 public:
     explicit CefControl(ui::Window* pWindow);
     ~CefControl(void);    

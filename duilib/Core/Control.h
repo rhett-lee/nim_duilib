@@ -23,9 +23,9 @@ namespace ui
 
     typedef Control* (CALLBACK* FINDCONTROLPROC)(Control*, void*);
 
-class UILIB_API Control : 
-    public PlaceHolder
+class UILIB_API Control: public PlaceHolder
 {
+    typedef PlaceHolder BaseClass;
 public:
     explicit Control(Window* pWindow);
     Control(const Control& r) = delete;

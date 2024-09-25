@@ -49,7 +49,7 @@ void CefNativeControl::Init()
         js_bridge_.reset(new nim_comp::CefJSBridge);
     }
 
-    __super::Init();
+    BaseClass::Init();
 }
 
 void CefNativeControl::ReCreateBrowser()
@@ -68,7 +68,7 @@ void CefNativeControl::ReCreateBrowser()
 
 void CefNativeControl::SetPos(ui::UiRect rc)
 {
-    __super::SetPos(rc);
+    BaseClass::SetPos(rc);
 
     HWND hwnd = GetCefHandle();
     if (hwnd) 
@@ -86,12 +86,12 @@ void CefNativeControl::HandleEvent(const ui::EventArgs& msg)
             pParent->SendEventMsg(msg);
         }
         else {
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
         return;
     }
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() == NULL) {
-        return __super::HandleEvent(msg);
+        return BaseClass::HandleEvent(msg);
     }
 
     else if (msg.eventType == ui::kEventSetFocus) {
@@ -100,12 +100,12 @@ void CefNativeControl::HandleEvent(const ui::EventArgs& msg)
     else if (msg.eventType == ui::kEventKillFocus) {
         browser_handler_->GetBrowserHost()->SetFocus(false);
     }
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
 }
 
 void CefNativeControl::SetVisible(bool bVisible)
 {
-    __super::SetVisible(bVisible);
+    BaseClass::SetVisible(bVisible);
 
     HWND hwnd = GetCefHandle();
     if (hwnd)
@@ -138,7 +138,7 @@ void CefNativeControl::SetWindow(ui::Window* pWindow)
     LONG style = ::GetWindowLong(pWindow->NativeWnd()->GetHWND(), GWL_STYLE);
     ::SetWindowLong(pWindow->NativeWnd()->GetHWND(), GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
 
-    __super::SetWindow(pWindow);
+    BaseClass::SetWindow(pWindow);
 }
 
 bool CefNativeControl::AttachDevTools(Control* /*view*/)

@@ -62,7 +62,7 @@ void PropertyGrid::SetAttribute(const DString& strName, const DString& strValue)
         SetLeftColumnWidth(StringUtil::StringToInt32(strValue), true);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -83,7 +83,7 @@ void PropertyGrid::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (!IsInited() || (m_pHeaderLeft == nullptr)) {
         m_nLeftColumnWidth = Dpi().GetScaleInt(m_nLeftColumnWidth, nOldDpiScale);
     }
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
     if (IsInited() && (m_pHeaderLeft != nullptr)) {
         m_nLeftColumnWidth = GetLeftColumnWidth();
     }
@@ -94,7 +94,7 @@ void PropertyGrid::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     //初始化基本结构
     if (m_configXml.empty()) {
         //默认的配置文件
@@ -170,7 +170,7 @@ void PropertyGrid::OnInit()
 
 void PropertyGrid::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::PaintChild(pRender, rcPaint);
+    BaseClass::PaintChild(pRender, rcPaint);
 
     //网格线的绘制
     PaintGridLines(pRender);
@@ -797,7 +797,7 @@ void PropertyGridGroup::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     SetTabStop(false);
 
     HBox* pHBox = new HBox(GetWindow());
@@ -851,6 +851,7 @@ void PropertyGridGroup::RemoveAllProperties()
 
 class PropertyGridLabelBox : public LabelBox
 {
+    typedef LabelBox BaseClass;
 public:
     explicit PropertyGridLabelBox(Window* pWindow):
         LabelBox(pWindow)
@@ -867,7 +868,7 @@ public:
             pParent->SendEventMsg(msg);
         }
         if (!IsDisabledEvents(msg)) {
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
     }
 
@@ -878,7 +879,7 @@ public:
         if (IsInited()) {
             return;
         }
-        __super::OnInit();
+        BaseClass::OnInit();
         SetShowFocusRect(true);
         SetTabStop(false);
     }
@@ -906,7 +907,7 @@ void PropertyGridProperty::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     SetTabStop(false);
 
     m_pHBox = new HBox(GetWindow());
@@ -1066,6 +1067,7 @@ DString PropertyGridProperty::GetPropertyNewValue() const
 template<typename InheritType = Control>
 class PropertyGridEditTemplate : public InheritType
 {
+    typedef InheritType BaseClass;
 public:
     explicit PropertyGridEditTemplate(Window* pWindow);
 
@@ -1089,7 +1091,7 @@ public:
                     pParent->SendEventMsg(msg);
                 }
             }
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
     }
 
@@ -1100,7 +1102,7 @@ public:
         if (this->IsInited()) {
             return;
         }
-        __super::OnInit();
+        BaseClass::OnInit();
         this->SetShowFocusRect(false);
         this->SetTabStop(false);
     }
@@ -1413,7 +1415,7 @@ PropertyGridFontProperty::PropertyGridFontProperty(Window* pWindow,
 
 DString PropertyGridFontProperty::GetPropertyNewValue() const
 {
-    return __super::GetPropertyNewValue();
+    return BaseClass::GetPropertyNewValue();
 }
 
 void PropertyGridFontProperty::OnInit()
@@ -1421,7 +1423,7 @@ void PropertyGridFontProperty::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     std::vector<DString> fontList; 
     GlobalManager::Instance().Font().GetFontNameList(fontList);
     for (const DString& fontName : fontList) {
@@ -1442,7 +1444,7 @@ PropertyGridFontSizeProperty::PropertyGridFontSizeProperty(Window* pWindow,
 
 DString PropertyGridFontSizeProperty::GetPropertyNewValue() const
 {
-    return __super::GetPropertyNewValue();
+    return BaseClass::GetPropertyNewValue();
 }
 
 void PropertyGridFontSizeProperty::OnInit()
@@ -1450,7 +1452,7 @@ void PropertyGridFontSizeProperty::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     if (m_fontSizeList.empty()) {
         ui::GlobalManager::Instance().Font().GetFontSizeList(Dpi(), m_fontSizeList);
         const size_t nCount = m_fontSizeList.size();
@@ -1950,7 +1952,7 @@ PropertyGridFileProperty::PropertyGridFileProperty(Window* pWindow,
 
 void PropertyGridFileProperty::EnableEditControl(bool bEnable)
 {
-    __super::EnableEditControl(bEnable);
+    BaseClass::EnableEditControl(bEnable);
     if (!bEnable) {
         return;
     }
@@ -2004,7 +2006,7 @@ PropertyGridDirectoryProperty::PropertyGridDirectoryProperty(Window* pWindow,
 
 void PropertyGridDirectoryProperty::EnableEditControl(bool bEnable)
 {
-    __super::EnableEditControl(bEnable);
+    BaseClass::EnableEditControl(bEnable);
     if (!bEnable) {
         return;
     }

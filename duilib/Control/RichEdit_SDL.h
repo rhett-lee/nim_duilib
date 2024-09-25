@@ -34,6 +34,7 @@ struct FindTextParam
 
 class UILIB_API RichEdit : public ScrollBox, protected IRichTextData
 {
+    typedef ScrollBox BaseClass;
 public:
     explicit RichEdit(Window* pWindow);
     RichEdit(const RichEdit& r) = delete;

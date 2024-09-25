@@ -15,6 +15,7 @@ interface ITaskbarList4;
 class TaskbarManager;
 class TaskbarTabItem final : public ui::Window
 {
+    typedef ui::Window BaseClass;
 public:
     /**
     * @param[in] bind_control 与TaskbarTabItem绑定在一起的提供缩略图和预览图的控件的指针

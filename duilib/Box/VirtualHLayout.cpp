@@ -19,7 +19,7 @@ UiSize64 VirtualHLayout::ArrangeChild(const std::vector<ui::Control*>& items, ui
     VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     if ((pList == nullptr) || !pList->HasDataProvider()) {
         //如果未设置数据接口，则兼容基类的功能
-        return __super::ArrangeChild(items, rc);
+        return BaseClass::ArrangeChild(items, rc);
     }
     DeflatePadding(rc);
     int64_t nTotalWidth = GetElementsWidth(rc, Box::InvalidIndex);
@@ -34,7 +34,7 @@ UiSize VirtualHLayout::EstimateSizeByChild(const std::vector<Control*>& items, u
     VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     if ((pList == nullptr) || !pList->HasDataProvider()) {
         //如果未设置数据接口，则兼容基类的功能
-        return __super::EstimateSizeByChild(items, szAvailable);
+        return BaseClass::EstimateSizeByChild(items, szAvailable);
     }
     szAvailable.Validate();
     UiEstSize estSize;
@@ -88,7 +88,7 @@ void VirtualHLayout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldD
     UiSize szItem = GetItemSize();
     szItem = dpiManager.GetScaleSize(szItem, nOldDpiScale);
     SetItemSize(szItem);
-    __super::ChangeDpiScale(dpiManager, nOldDpiScale);
+    BaseClass::ChangeDpiScale(dpiManager, nOldDpiScale);
 }
 
 void VirtualHLayout::SetItemSize(UiSize szItem)

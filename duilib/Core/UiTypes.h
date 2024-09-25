@@ -14,6 +14,7 @@
 #include "duilib/Core/UiFixedInt.h"
 #include "duilib/Core/UiEstInt.h"
 #include "duilib/Core/UiString.h"
+#include <cmath>
 
 namespace ui
 {
@@ -204,6 +205,18 @@ namespace ui
         x = x > 0 ? x : 0;
         x = x < UINT8_MAX ? x : UINT8_MAX;
         return static_cast<uint8_t>(x);
+    }
+
+    /** 对std::ceilf的封装(负数的时候与std的实现不同)
+    */
+    inline float CEILF(float fValue)
+    {
+        if (fValue > 0) {
+            return std::ceil(fValue);
+        }
+        else {
+            return -std::ceil(-fValue);
+        }        
     }
 
 }//namespace ui

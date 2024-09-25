@@ -621,7 +621,7 @@ void HTileLayout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiS
     UiSize szItem = GetItemSize();
     szItem = dpiManager.GetScaleSize(szItem, nOldDpiScale);
     SetItemSize(szItem);
-    __super::ChangeDpiScale(dpiManager, nOldDpiScale);
+    BaseClass::ChangeDpiScale(dpiManager, nOldDpiScale);
 }
 
 const UiSize& HTileLayout::GetItemSize() const

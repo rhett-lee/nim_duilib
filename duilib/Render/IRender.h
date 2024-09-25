@@ -555,7 +555,7 @@ struct RichTextCharInfo
     */
     inline void SetCharWidth(float charWidth)
     {
-        uint32_t v = (uint32_t)(std::ceilf(charWidth * 1000.0f));
+        uint32_t v = (uint32_t)(ui::CEILF(charWidth * 1000.0f));
         ASSERT(v < 0x00FFFFFF);
         v &= 0x00FFFFFF;
         m_value &= 0xFF000000;

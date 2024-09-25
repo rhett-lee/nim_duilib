@@ -6,6 +6,7 @@
 
 class BasicForm : public ui::WindowImplBase
 {
+    typedef ui::WindowImplBase BaseClass;
 public:
     BasicForm();
     virtual ~BasicForm() override;

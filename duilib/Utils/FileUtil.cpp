@@ -8,12 +8,19 @@ bool FileUtil::ReadFileData(const FilePath& filePath, std::vector<uint8_t>& file
 {
     bool isReadOk = false;
     FILE* f = nullptr;
-#ifdef DUILIB_UNICODE
-    errno_t ret = ::_wfopen_s(&f, filePath.NativePath().c_str(), _T("rb"));
+#ifdef DUILIB_BUILD_FOR_WIN
+    //Windows平台
+    #ifdef DUILIB_UNICODE
+        ::_wfopen_s(&f, filePath.NativePath().c_str(), _T("rb"));
+    #else
+        ::fopen_s(&f, filePath.NativePath().c_str(), _T("rb"));
+    #endif
 #else
-    errno_t ret = ::fopen_s(&f, filePath.NativePath().c_str(), _T("rb"));
+    //Linux平台
+    f = fopen(filePath.NativePath().c_str(), _T("rb"));
 #endif
-    if ((ret == 0) && (f != nullptr)) {
+
+    if (f != nullptr) {
         isReadOk = true;
         ::fseek(f, 0, SEEK_END);
         int fileSize = ::ftell(f);
@@ -36,12 +43,19 @@ bool FileUtil::WriteFileData(const FilePath& filePath, const std::vector<uint8_t
 {
     bool isWriteOk = false;
     FILE* f = nullptr;
-#ifdef DUILIB_UNICODE
-    errno_t ret = ::_wfopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+#ifdef DUILIB_BUILD_FOR_WIN
+    //Windows平台
+    #ifdef DUILIB_UNICODE
+        ::_wfopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+    #else
+        ::fopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+    #endif
 #else
-    errno_t ret = ::fopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+    //Linux平台
+    f = fopen(filePath.NativePath().c_str(), _T("w+b"));
 #endif
-    if ((ret == 0) && (f != nullptr)) {
+
+    if (f != nullptr) {
         if (!fileData.empty()) {
             size_t nWriteLen = ::fwrite(fileData.data(), 1, fileData.size(), f);
             ASSERT_UNUSED_VARIABLE(nWriteLen == fileData.size());
@@ -58,12 +72,19 @@ bool FileUtil::WriteFileData(const FilePath& filePath, const DStringW& fileData)
 {
     bool isWriteOk = false;
     FILE* f = nullptr;
+#ifdef DUILIB_BUILD_FOR_WIN
+    //Windows平台
 #ifdef DUILIB_UNICODE
-    errno_t ret = ::_wfopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+    ::_wfopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
 #else
-    errno_t ret = ::fopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+    ::fopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
 #endif
-    if ((ret == 0) && (f != nullptr)) {
+#else
+    //Linux平台
+    f = fopen(filePath.NativePath().c_str(), _T("w+b"));
+#endif
+
+    if (f != nullptr) {
         if (!fileData.empty()) {
             size_t nWriteLen = ::fwrite(fileData.data(), 2, fileData.size(), f);
             ASSERT_UNUSED_VARIABLE(nWriteLen == fileData.size());
@@ -80,12 +101,19 @@ bool FileUtil::WriteFileData(const FilePath& filePath, const DStringA& fileData)
 {
     bool isWriteOk = false;
     FILE* f = nullptr;
+#ifdef DUILIB_BUILD_FOR_WIN
+    //Windows平台
 #ifdef DUILIB_UNICODE
-    errno_t ret = ::_wfopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+    ::_wfopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
 #else
-    errno_t ret = ::fopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
+    ::fopen_s(&f, filePath.NativePath().c_str(), _T("w+b"));
 #endif
-    if ((ret == 0) && (f != nullptr)) {
+#else
+    //Linux平台
+    f = fopen(filePath.NativePath().c_str(), _T("w+b"));
+#endif
+
+    if (f != nullptr) {
         if (!fileData.empty()) {
             size_t nWriteLen = ::fwrite(fileData.data(), 1, fileData.size(), f);
             ASSERT_UNUSED_VARIABLE(nWriteLen == fileData.size());

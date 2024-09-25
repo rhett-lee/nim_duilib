@@ -221,7 +221,7 @@ void HotKey::SetAttribute(const DString& strName, const DString& strValue)
         }
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -230,7 +230,7 @@ void HotKey::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     HotKeyRichEdit* pRichEdit = m_pRichEdit;
     ASSERT(pRichEdit != nullptr);
     if (pRichEdit == nullptr) {
@@ -255,7 +255,7 @@ void HotKey::SetFocus()
         m_pRichEdit->SetFocus();
     }
     else {
-        __super::SetFocus();
+        BaseClass::SetFocus();
     }
 }
 

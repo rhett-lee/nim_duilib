@@ -12,6 +12,7 @@
   */
 class BitmapControl : public ui::Control
 {
+    typedef ui::Control BaseClass;
 public:
     explicit BitmapControl(ui::Window* pWindow);
 

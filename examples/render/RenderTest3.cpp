@@ -14,12 +14,12 @@ RenderTest3::~RenderTest3()
 
 void RenderTest3::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::AlphaPaint(pRender, rcPaint);
+    BaseClass::AlphaPaint(pRender, rcPaint);
 }
 
 void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::Paint(pRender, rcPaint);
+    BaseClass::Paint(pRender, rcPaint);
     int marginLeft = 8;
     int marginTop = 4;
     Dpi().ScaleInt(marginLeft);
@@ -271,7 +271,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
 
 void RenderTest3::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::PaintChild(pRender, rcPaint);
+    BaseClass::PaintChild(pRender, rcPaint);
 }
 
 int RenderTest3::DpiScaledInt(int iValue)

@@ -17,6 +17,7 @@ namespace ui
  */
 class UILIB_API ScrollBox : public Box
 {
+    typedef Box BaseClass;
 public:
     explicit ScrollBox(Window* pWindow, Layout* pLayout = new Layout);
     ScrollBox(const ScrollBox& r) = delete;

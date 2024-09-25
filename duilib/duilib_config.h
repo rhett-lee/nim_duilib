@@ -62,6 +62,7 @@
 
 //字符串类
 #include <string>
+#include <cstring>
 
 /** Unicode版本的字符串宏定义
 */

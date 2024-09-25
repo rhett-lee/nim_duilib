@@ -11,6 +11,7 @@ namespace ui
 //
 class UILIB_API Box : public Control
 {
+    typedef Control BaseClass;
 public:
     explicit Box(Window* pWindow, Layout* pLayout = new Layout());
     Box(const Box& r) = delete;

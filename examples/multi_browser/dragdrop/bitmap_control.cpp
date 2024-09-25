@@ -16,7 +16,7 @@ void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
     }
     SetPaintRect(paintRect);
 
-    __super::Paint(pRender, rcPaint);
+    BaseClass::Paint(pRender, rcPaint);
 
     if (NULL == bitmap_)
         return;

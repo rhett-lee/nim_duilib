@@ -143,13 +143,13 @@ Box* ShadowWnd::AttachShadow(Box* pRoot)
     }
     ASSERT(m_pShadowWnd == nullptr);
     if (m_pShadowWnd != nullptr) {
-        return __super::AttachShadow(pRoot);
+        return BaseClass::AttachShadow(pRoot);
     }
 
     bool needCreateShadowWnd = NeedCreateShadowWnd();
     if (!needCreateShadowWnd) {
         //不满足附加透明窗口阴影条件，走原来逻辑
-        return __super::AttachShadow(pRoot);
+        return BaseClass::AttachShadow(pRoot);
     }
     else {
         //不附加默认的阴影，而是创建自己的透明窗口，作为阴影

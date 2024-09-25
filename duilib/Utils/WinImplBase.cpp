@@ -19,7 +19,7 @@ WindowImplBase::~WindowImplBase()
 
 void WindowImplBase::PreInitWindow()
 {
-    __super::PreInitWindow();
+    BaseClass::PreInitWindow();
     if (!IsUseSystemCaption()) {
         //关闭按钮
         Control* pControl = FindControl(DUI_CTR_BUTTON_CLOSE);
@@ -69,32 +69,32 @@ void WindowImplBase::PreInitWindow()
 
 DString WindowImplBase::GetSkinFolder()
 {
-    return __super::GetSkinFolder();
+    return BaseClass::GetSkinFolder();
 }
 
 DString WindowImplBase::GetSkinFile()
 {
-    return __super::GetSkinFile();
+    return BaseClass::GetSkinFile();
 }
 
 Control* WindowImplBase::CreateControl(const DString& strClass)
 {
-    return __super::CreateControl(strClass);
+    return BaseClass::CreateControl(strClass);
 }
 
 void WindowImplBase::OnInitWindow()
 {
-    __super::OnInitWindow();    
+    BaseClass::OnInitWindow();
 }
 
 void WindowImplBase::OnCloseWindow()
 {
-    __super::OnCloseWindow();
+    BaseClass::OnCloseWindow();
 }
 
 void WindowImplBase::OnFinalMessage()
 {
-    __super::OnFinalMessage();
+    BaseClass::OnFinalMessage();
 }
 
 bool WindowImplBase::OnButtonClick(const EventArgs& msg)
@@ -135,7 +135,7 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
 LRESULT WindowImplBase::OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled)
 {
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-    LRESULT lResult = __super::OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
     if (windowFlag.expired()) {
         return lResult;
     }
@@ -197,7 +197,7 @@ void WindowImplBase::OnWindowMinimized()
 
 void WindowImplBase::OnUseSystemCaptionBarChanged()
 {
-    __super::OnUseSystemCaptionBarChanged();
+    BaseClass::OnUseSystemCaptionBarChanged();
     if (GetRoot() == nullptr) {
         return;
     }
@@ -212,7 +212,7 @@ void WindowImplBase::OnUseSystemCaptionBarChanged()
 
 void WindowImplBase::OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI)
 {
-    __super::OnWindowDpiChanged(nOldDPI, nNewDPI);
+    BaseClass::OnWindowDpiChanged(nOldDPI, nNewDPI);
 }
 
 void WindowImplBase::ProcessMaxRestoreStatus()

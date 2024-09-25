@@ -115,7 +115,7 @@ void RichText::SetAttribute(const DString& strName, const DString& strValue)
         SetWordWrap(strValue == _T("true"));
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -129,7 +129,7 @@ void RichText::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     rcTextPadding = Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
     SetTextPadding(rcTextPadding, false);
 
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void RichText::Redraw()
@@ -842,7 +842,7 @@ DString RichText::ToString(const RichTextSlice& textSlice, const DString& indent
 
 bool RichText::ButtonDown(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonDown(msg);
+    bool bRet = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -865,7 +865,7 @@ bool RichText::ButtonDown(const EventArgs& msg)
 
 bool RichText::ButtonUp(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonUp(msg);
+    bool bRet = BaseClass::ButtonUp(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -905,7 +905,7 @@ bool RichText::ButtonUp(const EventArgs& msg)
 
 bool RichText::MouseMove(const EventArgs& msg)
 {
-    bool bRet = __super::MouseMove(msg);
+    bool bRet = BaseClass::MouseMove(msg);
     bool bOnLinkUrl = false;
     for (RichTextDataEx& textData : m_textData) {
         textData.m_bMouseHover = false;
@@ -931,7 +931,7 @@ bool RichText::MouseMove(const EventArgs& msg)
 
 bool RichText::MouseHover(const EventArgs& msg)
 {
-    bool bRet = __super::MouseHover(msg);
+    bool bRet = BaseClass::MouseHover(msg);
     bool hasHover = false;
     for (const RichTextDataEx& textData : m_textData) {
         if (textData.m_linkUrl.empty()) {
@@ -970,7 +970,7 @@ bool RichText::MouseLeave(const EventArgs& msg)
     if (bInvalidate) {
         Invalidate();
     }
-    return __super::MouseLeave(msg);
+    return BaseClass::MouseLeave(msg);
 }
 
 bool RichText::OnSetCursor(const EventArgs& msg)
@@ -987,7 +987,7 @@ bool RichText::OnSetCursor(const EventArgs& msg)
             }
         }
     }
-    return __super::OnSetCursor(msg);
+    return BaseClass::OnSetCursor(msg);
 }
 
 } // namespace ui

@@ -58,7 +58,7 @@ void CefControl::Init()
         js_bridge_.reset(new nim_comp::CefJSBridge);
     }
 
-    __super::Init();
+    BaseClass::Init();
 }
 
 void CefControl::ReCreateBrowser()
@@ -77,7 +77,7 @@ void CefControl::ReCreateBrowser()
 
 void CefControl::SetPos(ui::UiRect rc)
 {
-    __super::SetPos(rc);
+    BaseClass::SetPos(rc);
 
     if (browser_handler_.get())
     {
@@ -94,12 +94,12 @@ void CefControl::HandleEvent(const ui::EventArgs& msg)
             pParent->SendEventMsg(msg);
         }
         else {
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
         return;
     }
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() == NULL) {
-        return __super::HandleEvent(msg);
+        return BaseClass::HandleEvent(msg);
     }
 
     else if (msg.eventType == ui::kEventSetFocus) {
@@ -113,12 +113,12 @@ void CefControl::HandleEvent(const ui::EventArgs& msg)
         }
     }
 
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
 }
 
 void CefControl::SetVisible(bool bVisible)
 {
-    __super::SetVisible(bVisible);
+    BaseClass::SetVisible(bVisible);
     if (browser_handler_.get() && browser_handler_->GetBrowserHost().get())
     {
         browser_handler_->GetBrowserHost()->WasHidden(!bVisible);
@@ -127,7 +127,7 @@ void CefControl::SetVisible(bool bVisible)
 
 void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 {
-    __super::Paint(pRender, rcPaint);
+    BaseClass::Paint(pRender, rcPaint);
 
     if (dc_cef_.IsValid() && browser_handler_.get() && browser_handler_->GetBrowser().get()) {
         // 绘制cef PET_VIEW类型的位图
@@ -170,14 +170,14 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 void CefControl::SetWindow(ui::Window* pWindow)
 {
     if (!browser_handler_) {
-        __super::SetWindow(pWindow);
+        BaseClass::SetWindow(pWindow);
         return;
     }
 
     if (GetWindow()) {
         GetWindow()->RemoveMessageFilter(this);        
     }
-    __super::SetWindow(pWindow);
+    BaseClass::SetWindow(pWindow);
     if (pWindow != nullptr) {
         pWindow->AddMessageFilter(this);
     }

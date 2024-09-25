@@ -909,7 +909,7 @@ void MainForm::OnCloseWindow()
 
 LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
     bool bControlDown = ui::Keyboard::IsKeyDown(ui::kVK_CONTROL);
     bool bShiftDown = ui::Keyboard::IsKeyDown(ui::kVK_SHIFT);
     if (bControlDown) {
@@ -947,7 +947,7 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
 
 LRESULT MainForm::OnKeyUpMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKeyUpMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKeyUpMsg(vkCode, modifierKey, nativeMsg, bHandled);
     UpdateSaveStatus();
     return lResult;
 }

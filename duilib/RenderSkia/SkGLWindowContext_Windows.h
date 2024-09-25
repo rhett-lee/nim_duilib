@@ -31,6 +31,7 @@ class IRenderPaint;
 */
 class SkGLWindowContext_Windows: public skwindow::internal::GLWindowContext
 {
+    typedef skwindow::internal::GLWindowContext BaseClass;
 public:
     SkGLWindowContext_Windows(HWND hWnd, const skwindow::DisplayParams& params);
     SkGLWindowContext_Windows(const SkGLWindowContext_Windows& r) = delete;

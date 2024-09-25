@@ -10,6 +10,7 @@ namespace ui
 */
 class ColorPickerStatardGray : public Control
 {
+    typedef Control BaseClass;
 public:
     explicit ColorPickerStatardGray(Window* pWindow);
 

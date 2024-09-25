@@ -469,7 +469,7 @@ static bool EllipsisTextUTF(const char text[], size_t length, SkTextEncoding tex
     }
     SkScalar ellipsisWidth = font.measureText(ellipsisStr.c_str(), ellipsisStr.size()* charBytes, textEncoding, nullptr, &paint);
     SkScalar pathEndWidth = 0;    
-    string.assign((const T::value_type*)text, length / charBytes);
+    string.assign((const typename T::value_type*)text, length / charBytes);
     if (bPathEllipsis) {
         int pos = (int)string.find_last_of(pathSep);
         if (pos > 0) {

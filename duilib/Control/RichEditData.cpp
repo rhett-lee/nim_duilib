@@ -225,9 +225,9 @@ void RichEditData::CalcCacheTextRects(UiRect& rcTextRect)
         }
     }
     rcTextRect.left = (int32_t)rowRects.left;
-    rcTextRect.right = (int32_t)(std::ceilf(rowRects.right));
+    rcTextRect.right = (int32_t)(ui::CEILF(rowRects.right));
     rcTextRect.top = (int32_t)rowRects.top;
-    rcTextRect.bottom = (int32_t)(std::ceilf(rowRects.bottom));
+    rcTextRect.bottom = (int32_t)(ui::CEILF(rowRects.bottom));
 }
 
 void RichEditData::UpdateRowTextOffsetY(RichTextLineInfoList& lineTextInfo, int32_t nOffsetY) const
@@ -1465,7 +1465,7 @@ UiPoint RichEditData::CaretPosFromChar(int32_t nCharIndex)
                     const RichTextCharInfo& charInfo = rowInfo.m_charInfo[i];
                     xPos += charInfo.CharWidth();//右上角坐标
                 }
-                cursorPos.x = (int32_t)std::ceilf(xPos);
+                cursorPos.x = (int32_t)ui::CEILF(xPos);
             }
         }
     }
@@ -1503,7 +1503,7 @@ UiRect RichEditData::GetCharRowRect(int32_t nCharIndex)
             rowRect.left = 0;
             rowRect.right = std::max(rc.Width(), (int32_t)rowRectF.Width());
             rowRect.top = (int32_t)rowRectF.top;
-            rowRect.bottom = (int32_t)std::ceilf(rowRectF.bottom);
+            rowRect.bottom = (int32_t)ui::CEILF(rowRectF.bottom);
         }
     }
 
@@ -2226,7 +2226,7 @@ int32_t RichEditData::GetCharWidthValue(int32_t nCharIndex)
         const RichTextRowInfo& rowInfo = *spRowInfo;
         ASSERT(nStartCharRowOffset <= rowInfo.m_charInfo.size());
         if (nStartCharRowOffset < rowInfo.m_charInfo.size()) {
-            nCharWidth = (int32_t)std::ceilf(rowInfo.m_charInfo[nStartCharRowOffset].CharWidth());
+            nCharWidth = (int32_t)ui::CEILF(rowInfo.m_charInfo[nStartCharRowOffset].CharWidth());
         }
     }
     return nCharWidth;

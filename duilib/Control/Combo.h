@@ -8,11 +8,13 @@
 namespace ui 
 {
 class RichEdit;
+class CComboWnd;
 
 /** 组合框控件
 */
 class UILIB_API Combo : public Box
 {
+    typedef Box BaseClass;
     friend class CComboWnd;
 public:
     explicit Combo(Window* pWindow);

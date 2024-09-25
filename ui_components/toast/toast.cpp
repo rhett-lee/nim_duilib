@@ -60,7 +60,7 @@ LRESULT Toast::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bH
             m_close_button->SetFadeVisible(false);
         }
     }
-    return __super::OnWindowMessage(uMsg, wParam, lParam, bHandled);
+    return BaseClass::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
 void Toast::OnInitWindow()

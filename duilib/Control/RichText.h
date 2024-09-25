@@ -68,6 +68,7 @@ public:
 */
 class UILIB_API RichText : public Control
 {
+    typedef Control BaseClass;
 public:
     explicit RichText(Window* pWindow);
     RichText(const RichText& r) = delete;

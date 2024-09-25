@@ -8,6 +8,7 @@ namespace ui {
 template<typename InheritType = Control>
 class UILIB_API CheckBoxTemplate : public ButtonTemplate<InheritType>
 {
+    typedef ButtonTemplate<InheritType> BaseClass;
 public:
     explicit CheckBoxTemplate(Window* pWindow);
     CheckBoxTemplate(const CheckBoxTemplate& r) = delete;
@@ -387,7 +388,7 @@ void CheckBoxTemplate<InheritType>::SetAttribute(const DString& strName, const D
         SetAutoCheckSelect(strValue == _T("true"));
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -401,7 +402,7 @@ bool CheckBoxTemplate<InheritType>::ButtonUp(const EventArgs& msg)
     else {
         weakFlag = this->GetWeakFlag();
     }
-    bool bRet = __super::ButtonUp(msg);
+    bool bRet = BaseClass::ButtonUp(msg);
     if (weakFlag.expired()) {
         return true;
     }
@@ -522,7 +523,7 @@ bool CheckBoxTemplate<InheritType>::IsPartSelected() const
 template<typename InheritType>
 bool CheckBoxTemplate<InheritType>::HasHotState()
 {
-    if (__super::HasHotState()) {
+    if (BaseClass::HasHotState()) {
         return true;
     }
     if ((m_pSelectedColorMap != nullptr) && m_pSelectedColorMap->HasHotColor()) {
@@ -538,12 +539,12 @@ template<typename InheritType>
 DString CheckBoxTemplate<InheritType>::GetBorderColor(ControlStateType stateType) const
 {
     if (this->IsSelected()) {
-        DString borderColor = __super::GetBorderColor(kControlStatePushed);
+        DString borderColor = BaseClass::GetBorderColor(kControlStatePushed);
         if (!borderColor.empty()) {
             return borderColor;
         }
     }
-    return __super::GetBorderColor(stateType);
+    return BaseClass::GetBorderColor(stateType);
 }
 
 template<typename InheritType>
@@ -553,14 +554,14 @@ void CheckBoxTemplate<InheritType>::ClearStateImages()
         delete m_pCheckBoxImageRect;
         m_pCheckBoxImageRect = nullptr;
     }
-    __super::ClearStateImages();
+    BaseClass::ClearStateImages();
 }
 
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::PaintStateColors(IRender* pRender)
 {
     if (!IsSelected() || !CanPaintSelectedColors()) {
-        __super::PaintStateColors(pRender);
+        BaseClass::PaintStateColors(pRender);
         return;
     }
 
@@ -645,7 +646,7 @@ template<typename InheritType>
 void CheckBoxTemplate<InheritType>::PaintText(IRender* pRender)
 {
     if (!IsSelected()) {
-        __super::PaintText(pRender);
+        BaseClass::PaintText(pRender);
         return;
     }
     DString textValue = this->GetText();

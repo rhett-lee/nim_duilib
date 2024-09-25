@@ -186,6 +186,7 @@ protected:
 class UILIB_API AnimationPlayer : 
     public AnimationPlayerBase
 {
+    typedef AnimationPlayerBase BaseClass;
 public:
     AnimationPlayer();
     virtual ~AnimationPlayer() override;

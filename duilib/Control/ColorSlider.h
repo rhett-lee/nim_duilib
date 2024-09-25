@@ -54,6 +54,7 @@ public:
 */
 class ColorSlider: public Slider
 {
+    typedef Slider BaseClass;
 public:
     explicit ColorSlider(Window* pWindow);
 

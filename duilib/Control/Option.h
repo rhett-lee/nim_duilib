@@ -11,6 +11,7 @@ namespace ui
 template<typename InheritType = Control>
 class UILIB_API OptionTemplate : public CheckBoxTemplate<InheritType>
 {
+    typedef CheckBoxTemplate<InheritType> BaseClass;
 public:
     explicit OptionTemplate(Window* pWindow);
     virtual ~OptionTemplate() override;
@@ -65,7 +66,7 @@ inline DString OptionTemplate<Box>::GetType() const { return DUI_CTR_OPTIONBOX; 
 template<typename InheritType>
 void OptionTemplate<InheritType>::SetWindow(Window* pWindow)
 {
-    __super::SetWindow(pWindow);
+    BaseClass::SetWindow(pWindow);
     if (!m_sGroupName.empty()) {
         if (this->GetWindow()) {
             this->GetWindow()->AddOptionGroup(m_sGroupName.c_str(), this);
@@ -80,7 +81,7 @@ void OptionTemplate<InheritType>::SetAttribute(const DString& strName, const DSt
         SetGroup(strValue);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 

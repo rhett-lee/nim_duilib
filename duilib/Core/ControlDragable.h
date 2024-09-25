@@ -17,6 +17,7 @@ namespace ui
 template<typename T = Control>
 class UILIB_API ControlDragableT: public T
 {
+    typedef T BaseClass;
 public:
     explicit ControlDragableT(Window* pWindow);
     virtual ~ControlDragableT() override;
@@ -292,7 +293,7 @@ void ControlDragableT<T>::SetAttribute(const DString& strName, const DString& st
         SetEnableDragOut(strValue == _T("true"));
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -348,7 +349,7 @@ template<typename T>
 bool ControlDragableT<T>::ButtonDown(const EventArgs& msg)
 {
     m_bMouseDown = false;
-    bool bRet = __super::ButtonDown(msg);
+    bool bRet = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -377,7 +378,7 @@ bool ControlDragableT<T>::ButtonDown(const EventArgs& msg)
 template<typename T>
 bool ControlDragableT<T>::MouseMove(const EventArgs& msg)
 {
-    bool bRet = __super::MouseMove(msg);
+    bool bRet = BaseClass::MouseMove(msg);
     if (m_bMouseDown) {
         m_bDraggingOut = DragOutMouseMove(msg);
         if (!m_bDraggingOut) {
@@ -390,7 +391,7 @@ bool ControlDragableT<T>::MouseMove(const EventArgs& msg)
 template<typename T>
 bool ControlDragableT<T>::ButtonUp(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonUp(msg);
+    bool bRet = BaseClass::ButtonUp(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -404,7 +405,7 @@ bool ControlDragableT<T>::ButtonUp(const EventArgs& msg)
 template<typename T>
 bool ControlDragableT<T>::OnWindowKillFocus(const EventArgs& msg)
 {
-    bool bRet = __super::OnWindowKillFocus(msg);
+    bool bRet = BaseClass::OnWindowKillFocus(msg);
     ClearDragStatus();
     return bRet;
 }
@@ -412,7 +413,7 @@ bool ControlDragableT<T>::OnWindowKillFocus(const EventArgs& msg)
 template<typename T>
 void ControlDragableT<T>::HandleEvent(const EventArgs& msg)
 {
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
     if ((msg.eventType == kEventMouseClickChanged) ||
         (msg.eventType == kEventMouseClickEsc) ||
         (msg.eventType == kEventMouseRButtonDown)) {

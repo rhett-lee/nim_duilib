@@ -18,6 +18,7 @@ class TaskbarTabItem;
 class MultiBrowserForm;
 class BrowserBox : public ui::VBox
 {
+    typedef ui::VBox BaseClass;
 public:
     friend class MultiBrowserForm;
 

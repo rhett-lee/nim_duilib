@@ -16,6 +16,7 @@ class ColorPickerStatardGray;
 class ColorPickerCustom;
 class ColorPicker : public WindowImplBase
 {
+    typedef WindowImplBase BaseClass;
 public:
     ColorPicker();
     virtual ~ColorPicker() override;

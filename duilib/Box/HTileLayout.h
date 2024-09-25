@@ -10,6 +10,7 @@ namespace ui
 */
 class UILIB_API HTileLayout : public Layout
 {
+    typedef Layout BaseClass;
 public:
     HTileLayout();
 

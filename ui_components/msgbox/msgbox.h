@@ -25,6 +25,7 @@ void ShowMsgBox(ui::Window* pWindow, MsgboxCallback cb,
 
 class MsgBox : public ui::WindowImplBase
 {
+    typedef ui::WindowImplBase BaseClass;
 public:
     friend void ShowMsgBox(ui::Window* pWindow, MsgboxCallback cb,
                            const DString& content, bool content_is_id,

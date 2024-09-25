@@ -18,6 +18,7 @@ namespace ui
 */
 class UILIB_API WindowImplBase : public Window
 {
+    typedef Window BaseClass;
 public:
     WindowImplBase();
     virtual ~WindowImplBase() override;

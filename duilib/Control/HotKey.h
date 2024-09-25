@@ -11,6 +11,7 @@ class HotKeyRichEdit;
 */
 class HotKey: public HBox
 {
+    typedef HBox BaseClass;
 public:
     explicit HotKey(Window* pWindow);
     virtual ~HotKey() override;

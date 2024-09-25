@@ -14,6 +14,7 @@ class RichEdit;
 class ColorPickerRegular;
 class ColorPickerCustom : public Box
 {
+    typedef Box BaseClass;
 public:
     explicit ColorPickerCustom(Window* pWindow);
 

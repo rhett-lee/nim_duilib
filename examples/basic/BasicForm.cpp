@@ -48,6 +48,6 @@ void BasicForm::OnInitWindow()
 
     //pEdit->SetSelNone();
 
-    __super::OnInitWindow();
+    BaseClass::OnInitWindow();
 
 }

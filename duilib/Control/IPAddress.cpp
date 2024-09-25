@@ -19,7 +19,7 @@ void IPAddress::SetAttribute(const DString& strName, const DString& strValue)
         SetIPAddress(strValue);
     }    
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -28,7 +28,7 @@ void IPAddress::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     m_editList.clear();
     for (size_t index = 0; index < 4; ++index) {
         RichEdit* pRichEdit = new RichEdit(GetWindow());
@@ -95,7 +95,7 @@ void IPAddress::SetFocus()
         }
     }
     else {
-        __super::SetFocus();
+        BaseClass::SetFocus();
     }
 }
 
@@ -151,7 +151,7 @@ void IPAddress::SendEventMsg(const EventArgs& msg)
             return;
         }
     }
-    __super::SendEventMsg(msg);
+    BaseClass::SendEventMsg(msg);
 }
 
 void IPAddress::OnKillFocusEvent(RichEdit* pRichEdit, Control* pNewFocus)

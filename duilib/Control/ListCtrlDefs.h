@@ -136,6 +136,7 @@ public:
 */
 class ListCtrlLabel: public LabelTemplate<HBox>
 {
+    typedef LabelTemplate<HBox> BaseClass;
 public:
     explicit ListCtrlLabel(Window* pWindow):
         LabelTemplate<HBox>(pWindow)
@@ -177,7 +178,7 @@ public:
             }
             return;
         }
-        __super::HandleEvent(msg);
+        BaseClass::HandleEvent(msg);
     }
 
     /** 进入编辑状态
@@ -200,7 +201,7 @@ public:
         if (!m_textRect.IsZero()) {
             m_textRect = Dpi().GetScaleRect(m_textRect, nOldDpiScale);
         }
-        __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+        BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
     }
 
     /** 设置文本所在位置的矩形区域
@@ -265,6 +266,7 @@ struct ListCtrlEditParam
 */
 class ListCtrlCheckBox: public CheckBox
 {
+    typedef CheckBox BaseClass;
 public:
     explicit ListCtrlCheckBox(Window* pWindow):
         CheckBox(pWindow)
@@ -282,7 +284,7 @@ public:
             SetCheckBoxWidth(StringUtil::StringToInt32(strValue), true);
         }
         else {
-            __super::SetAttribute(strName, strValue);
+            BaseClass::SetAttribute(strName, strValue);
         }
     }
 
@@ -301,7 +303,7 @@ public:
             SetCheckBoxWidth(iValue, false);
         }
 
-        __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+        BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
     }
 
     /** 设置CheckBox所占的宽度值
@@ -355,6 +357,7 @@ private:
 class ListCtrl;
 class ListCtrlIconViewItem : public ListCtrlItemBaseV
 {
+    typedef ListCtrlItemBaseV BaseClass;
 public:
     explicit ListCtrlIconViewItem(Window* pWindow):
         ListCtrlItemBaseV(pWindow)
@@ -388,6 +391,7 @@ private:
 */
 class ListCtrlListViewItem : public ListCtrlItemBaseH
 {
+    typedef ListCtrlItemBaseH BaseClass;
 public:
     explicit ListCtrlListViewItem(Window* pWindow) :
         ListCtrlItemBaseH(pWindow)

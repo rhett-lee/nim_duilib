@@ -11,6 +11,7 @@ namespace ui
 */
 class UILIB_API Slider : public Progress
 {
+    typedef Progress BaseClass;
 public:
     explicit Slider(Window* pWindow);
 

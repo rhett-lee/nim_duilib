@@ -63,7 +63,7 @@ void MsgBox::OnInitWindow()
     m_content = dynamic_cast<ui::RichEdit*>(FindControl(_T("content")));
     m_btn_yes = dynamic_cast<ui::Button*>(FindControl(_T("btn_yes")));
     m_btn_no = dynamic_cast<ui::Button*>(FindControl(_T("btn_no")));
-    __super::OnInitWindow();
+    BaseClass::OnInitWindow();
 }
 
 void MsgBox::OnCloseWindow()
@@ -73,7 +73,7 @@ void MsgBox::OnCloseWindow()
         m_pParentWindow->EnableWindow(true);
         m_pParentWindow->SetWindowFocus();
     }
-    __super::OnCloseWindow();
+    BaseClass::OnCloseWindow();
 }
 
 bool MsgBox::OnClicked(const ui::EventArgs& msg)

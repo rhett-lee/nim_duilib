@@ -19,6 +19,7 @@ enum class TreeNodeCheck
 class TreeView;
 class UILIB_API TreeNode : public ListBoxItem
 {
+    typedef ListBoxItem BaseClass;
     friend class TreeView;
 public:
     explicit TreeNode(Window* pWindow);
@@ -333,6 +334,7 @@ private:
 
 class UILIB_API TreeView : public ListBox
 {
+    typedef ListBox BaseClass;
     friend class TreeNode;
 public:
     explicit TreeView(Window* pWindow);

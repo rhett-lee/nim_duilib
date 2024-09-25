@@ -96,6 +96,7 @@ private:
 */
 class UILIB_API VirtualListBox : public ListBox
 {
+    typedef ListBox BaseClass;
     friend class VirtualHLayout;
     friend class VirtualVLayout;    
     friend class VirtualHTileLayout;

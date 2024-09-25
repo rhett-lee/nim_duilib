@@ -65,7 +65,7 @@ void Box::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (m_pLayout != nullptr) {
         m_pLayout->ChangeDpiScale(Dpi(), nOldDpiScale);
     }
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
     for (auto pControl : m_items) {
         if (pControl != nullptr) {
             pControl->ChangeDpiScale(nOldDpiScale, nNewDpiScale);
@@ -188,7 +188,7 @@ void Box::SetVisible(bool bVisible)
         return;
     }
     bool v = IsVisible();
-    __super::SetVisible(bVisible);
+    BaseClass::SetVisible(bVisible);
     if (IsVisible() != v) {
         //子控件的Visible控件是同步的(如果支持不同步，相关业务逻辑需要做调整，除了判断控件自身是否可见，还要判断父控件是否可见)
         for (auto pControl : m_items){
@@ -217,7 +217,7 @@ UiEstSize Box::EstimateSize(UiSize szAvailable)
     UiSize szNewAvailable = szAvailable;
     szNewAvailable.cx -= (rcPadding.left + rcPadding.right);
     szNewAvailable.cy -= (rcPadding.top + rcPadding.bottom);
-    UiEstSize estSizeBySelf = __super::EstimateSize(szNewAvailable);
+    UiEstSize estSizeBySelf = BaseClass::EstimateSize(szNewAvailable);
     UiSize sizeBySelf;
     if (estSizeBySelf.cx.IsInt32()) {
         sizeBySelf.cx = estSizeBySelf.cx.GetInt32() + rcPadding.left + rcPadding.right;
@@ -526,7 +526,7 @@ void Box::ReSetLayout(Layout* pLayout)
 
 void Box::ClearImageCache()
 {
-    __super::ClearImageCache();
+    BaseClass::ClearImageCache();
     for (Control* pControl : m_items) {
         if (pControl != nullptr) {
             pControl->ClearImageCache();

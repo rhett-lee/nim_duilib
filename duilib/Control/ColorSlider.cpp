@@ -42,7 +42,7 @@ void ColorSlider::SetColorInfo(const ColorHSL& color, ColorAdjustMode adjustMode
 
 void ColorSlider::PaintBkImage(IRender* pRender)
 {
-    __super::PaintBkImage(pRender);
+    BaseClass::PaintBkImage(pRender);
     if (pRender == nullptr) {
         return;
     }

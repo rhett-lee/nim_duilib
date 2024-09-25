@@ -8,7 +8,100 @@
 
 namespace ui 
 {
-class IListBoxOwner;
+class IListBoxItem;
+
+/** 确保可见的附加标志(垂直方向，垂直滚动条)
+*/
+enum class ListBoxVerVisible
+{
+    kVisible,           //保证显示在可见区域
+    kVisibleAtTop,      //保证显示在可见区域的顶部
+    kVisibleAtCenter,   //保证显示在可见区域的中间
+    kVisibleAtBottom,   //保证显示在可见区域的低部
+};
+
+/** 确保可见的附加标志(水平方向，水平滚动条)
+*/
+enum class ListBoxHorVisible
+{
+    kVisible,           //保证显示在可见区域
+    kVisibleAtLeft,     //保证显示在可见区域的左侧
+    kVisibleAtCenter,   //保证显示在可见区域的中间
+    kVisibleAtRight,    //保证显示在可见区域的右侧
+};
+
+/** ListBox所有者接口
+*/
+class UILIB_API IListBoxOwner
+{
+public:
+    /** 触发事件
+    */
+    virtual void SendEventMsg(const EventArgs& msg) = 0;
+
+    /** 获取当前选择的索引，(如果无有效索引，则返回Box::InvalidIndex)
+    */
+    virtual size_t GetCurSel() const = 0;
+
+    /** 设置当前选择的索引
+    * @param [in] iIndex 子项目的ID
+    */
+    virtual void SetCurSel(size_t iIndex) = 0;
+
+    /** 选择子项
+    *  @param [in] iIndex 子项目的ID
+    *  @param [in] bTakeFocus 是否让子项控件成为焦点控件
+    *  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+    *  @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
+    */
+    virtual bool SelectItem(size_t iIndex, bool bTakeFocus,
+                            bool bTriggerEvent, uint64_t vkFlag = 0) = 0;
+
+    /** 取消选择子项
+    *  @param [in] iIndex 子项目的ID
+    *  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventUnSelect事件
+    */
+    virtual bool UnSelectItem(size_t iIndex, bool bTriggerEvent) = 0;
+
+    /** 子项的选择状态变化事件，用于状态同步
+    * @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+    * @param [in] pListBoxItem 关联的列表项接口
+    */
+    virtual void OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem) = 0;
+
+    /** 子项的勾选状态变化事件，用于状态同步
+    * @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+    * @param [in] pListBoxItem 关联的列表项接口
+    */
+    virtual void OnItemCheckedChanged(size_t iIndex, IListBoxItem* pListBoxItem) = 0;
+
+    /** 确保矩形区域可见
+    * @param [in] rcItem 可见区域的矩形范围
+    * @param [in] vVisibleType 垂直方向可见的附加标志
+    * @param [in] hVisibleType 水平方向可见的附加标志
+    */
+    virtual void EnsureVisible(const UiRect& rcItem,
+                               ListBoxVerVisible vVisibleType,
+                               ListBoxHorVisible hVisibleType) = 0;
+
+    /** 停止滚动条动画
+    */
+    virtual void StopScroll() = 0;
+
+    /** 是否绘制选择状态下的背景色，提供虚函数作为可选项
+        （比如ListBox/TreeView节点在多选时，由于有勾选项，并不需要绘制选择状态的背景色）
+        @param [in] bHasStateImages 当前列表项是否有CheckBox勾选项
+    */
+    virtual bool CanPaintSelectedColors(bool bHasStateImages) const = 0;
+
+    /** 是否允许多选
+    */
+    virtual bool IsMultiSelect() const = 0;
+
+    /** 选择子项后的事件，单选时用于保证只有一个选中项
+    */
+    virtual void EnsureSingleSelection() = 0;
+};
 
 /** ListBoxItem 接口
 */

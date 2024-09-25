@@ -499,7 +499,7 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("inactive_current_row_bkcolor")) {
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -522,7 +522,7 @@ void RichEdit::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     cf.dwMask |= CFM_SIZE;
     m_richCtrl.SetDefaultCharFormat(cf);
 
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void RichEdit::SetWindow(Window* pWindow)
@@ -532,7 +532,7 @@ void RichEdit::SetWindow(Window* pWindow)
         UnregisterDragDrop();
     }
 #endif
-    __super::SetWindow(pWindow);
+    BaseClass::SetWindow(pWindow);
 
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     if (IsEnableDragDrop()) {
@@ -1393,7 +1393,7 @@ bool RichEdit::ScreenToClient(UiPoint& pt)
         pt.y = point.y;
     }
     if (!bRet) {
-        bRet = __super::ScreenToClient(pt);
+        bRet = BaseClass::ScreenToClient(pt);
     }
     return bRet;
 }
@@ -1408,7 +1408,7 @@ bool RichEdit::ClientToScreen(UiPoint& pt)
         pt.y = point.y;
     }
     if (!bRet) {
-        bRet = __super::ClientToScreen(pt);
+        bRet = BaseClass::ClientToScreen(pt);
     }
     return bRet;
 }
@@ -1538,7 +1538,7 @@ void RichEdit::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
 
     //设置字体和字体颜色
     DString fontId = GetFontId();
@@ -1569,7 +1569,7 @@ void RichEdit::OnInit()
 
 void RichEdit::SetEnabled(bool bEnable /*= true*/)
 {
-    __super::SetEnabled(bEnable);
+    BaseClass::SetEnabled(bEnable);
     if (IsEnabled()) {
         SetState(kControlStateNormal);
         UiColor dwTextColor = GetUiColor(GetTextColor());
@@ -1718,7 +1718,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
             pParent->SendEventMsg(msg);
         }
         else {
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
         return;
     }
@@ -1794,7 +1794,7 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
 {
     if (m_bUseControlCursor) {
         //使用Control设置的光标
-        return __super::OnSetCursor(msg);
+        return BaseClass::OnSetCursor(msg);
     }
 
     if (m_pRichHost && m_pRichHost->SetCursor(nullptr, &msg.ptMouse)) {
@@ -2695,7 +2695,7 @@ void RichEdit::PaintStateImages(IRender* pRender)
         PaintPromptText(pRender);
     }
     else {
-        __super::PaintStateImages(pRender);
+        BaseClass::PaintStateImages(pRender);
         PaintPromptText(pRender);
     }
 }
@@ -2717,7 +2717,7 @@ void RichEdit::SetNoCaretReadonly()
 
 void RichEdit::ClearImageCache()
 {
-    __super::ClearImageCache();
+    BaseClass::ClearImageCache();
     if (m_pFocusedImage != nullptr) {
         m_pFocusedImage->ClearImageCache();
     }    
@@ -3579,16 +3579,16 @@ void RichEdit::SetZoomPercent(uint32_t nZoomPercent)
         }
         //无法精准匹配的时候，估算一个值
         int32_t nDen = 63;
-        int32_t nNum = (int32_t)(bZoomIn ? std::ceilf(nZoomPercent * nDen / 100.0f) : (nZoomPercent * nDen / 100.0f));
+        int32_t nNum = (int32_t)(bZoomIn ? ui::CEILF(nZoomPercent * nDen / 100.0f) : (nZoomPercent * nDen / 100.0f));
         while (nNum > 63) {
             --nDen;            
             if (nDen < 1) {
                 nDen = 1;
-                nNum = (int32_t)(bZoomIn ? std::ceilf(nZoomPercent * nDen / 100.0f) : (nZoomPercent * nDen / 100.0f));
+                nNum = (int32_t)(bZoomIn ? ui::CEILF(nZoomPercent * nDen / 100.0f) : (nZoomPercent * nDen / 100.0f));
                 break;
             }
             else {
-                nNum = (int32_t)(bZoomIn ? std::ceilf(nZoomPercent * nDen / 100.0f) : (nZoomPercent * nDen / 100.0f));
+                nNum = (int32_t)(bZoomIn ? ui::CEILF(nZoomPercent * nDen / 100.0f) : (nZoomPercent * nDen / 100.0f));
             }
         }
         m_richCtrl.SetZoom(nNum, nDen);

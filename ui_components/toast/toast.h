@@ -14,6 +14,7 @@ namespace nim_comp {
  */
 class Toast : public ui::WindowImplBase
 {
+    typedef ui::WindowImplBase BaseClass;
 public:
     /**
      * 在屏幕中间显示一个提示框

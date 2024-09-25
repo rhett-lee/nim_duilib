@@ -323,7 +323,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
         //绝对路径，语言文件在本地磁盘中
         for (auto const& dir_entry : std::filesystem::directory_iterator{ path }) {
             if (dir_entry.is_regular_file()) {
-                languageList.push_back({ StringUtil::UTF16ToT(dir_entry.path().filename().c_str()), _T("") });
+                languageList.push_back({ FilePath(dir_entry.path().filename()).ToString(), _T("")});
             }
         }
         if (!languageNameID.empty()) {

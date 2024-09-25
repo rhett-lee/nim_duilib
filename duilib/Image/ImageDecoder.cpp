@@ -215,7 +215,7 @@ namespace APNGImageLoader
             bitmapData.m_imageWidth = nWid;
             bitmapData.m_imageHeight = nHei;
             bitmapData.m_bitmapData.resize(imageDataSize);
-            memcpy(bitmapData.m_bitmapData.data(), p, imageDataSize);
+            ::memcpy(bitmapData.m_bitmapData.data(), p, imageDataSize);
 
             p += imageDataSize;
         }
@@ -549,7 +549,7 @@ namespace WebPImageLoader
             ImageDecoder::ImageData& bitmapData = imageData[(size_t)frame_idx - 1];
             const size_t dataSize = (size_t)width * hight * 4;
             bitmapData.m_bitmapData.resize(dataSize);
-            memcpy(bitmapData.m_bitmapData.data(), decode_data, dataSize);
+            ::memcpy(bitmapData.m_bitmapData.data(), decode_data, dataSize);
             bitmapData.m_imageWidth = width;
             bitmapData.m_imageHeight = hight;
             bitmapData.m_frameInterval = iter.duration;

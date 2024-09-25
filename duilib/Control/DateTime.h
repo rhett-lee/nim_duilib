@@ -11,6 +11,7 @@ namespace ui
 class DateTimeWnd;
 class UILIB_API DateTime : public LabelTemplate<HBox>
 {
+    typedef LabelTemplate<HBox> BaseClass;
     friend class DateTimeWnd;
 public:
     explicit DateTime(Window* pWindow);

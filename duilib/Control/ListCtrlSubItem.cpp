@@ -20,7 +20,7 @@ void ListCtrlSubItem::SetAttribute(const DString& strName, const DString& strVal
         SetIconSpacing(StringUtil::StringToInt32(strValue), true);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -33,7 +33,7 @@ void ListCtrlSubItem::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScal
     int32_t iValue = GetIconSpacing();
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetIconSpacing(iValue, false);
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void ListCtrlSubItem::SetListCtrlItem(ListCtrlItem* pItem)
@@ -225,7 +225,7 @@ void ListCtrlSubItem::PaintText(IRender* pRender)
     //文本前的图标
     ImagePtr pItemImage = LoadItemImage();
     if (pItemImage == nullptr) {
-        __super::PaintText(pRender);
+        BaseClass::PaintText(pRender);
         return;
     }
 
@@ -303,7 +303,7 @@ void ListCtrlSubItem::VAlignRect(UiRect& rc, uint32_t textStyle, int32_t nImageH
 
 UiSize ListCtrlSubItem::EstimateText(UiSize szAvailable)
 {
-    UiSize sz = __super::EstimateText(szAvailable);
+    UiSize sz = BaseClass::EstimateText(szAvailable);
 
     int32_t nIconTextSpacing = GetIconSpacing();
 

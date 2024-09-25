@@ -28,7 +28,7 @@ void ColorPickerCustom::SelectColor(const UiColor& color)
 void ColorPickerCustom::SetPos(UiRect rc)
 {
     InitPicker();
-    __super::SetPos(rc);
+    BaseClass::SetPos(rc);
 }
 
 void ColorPickerCustom::InitPicker()

@@ -248,7 +248,7 @@ void ListCtrl::SetAttribute(const DString& strName, const DString& strValue)
         SetRichEditClass(strValue);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -287,7 +287,7 @@ void ListCtrl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
             m_imageList[i]->ChangeDpiScale(Dpi(), nOldDpiScale);
         }
     }
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 
     //更新列宽
     size_t nColumnCount = GetColumnCount();
@@ -304,7 +304,7 @@ void ListCtrl::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 
 void ListCtrl::HandleEvent(const EventArgs& msg)
 {
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
     if ((msg.eventType > kEventKeyBegin) && (msg.eventType < kEventKeyEnd)) {
         OnViewKeyboardEvents(msg);
     }
@@ -318,7 +318,7 @@ void ListCtrl::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     //初始化Body
     ASSERT(m_pReportView != nullptr);
     AddItem(m_pReportView);

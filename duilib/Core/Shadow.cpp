@@ -9,6 +9,7 @@ namespace ui
 
 class ShadowBox : public Box
 {
+    typedef Box BaseClass;
 public:
     explicit ShadowBox(Window* pWindow):
         Box(pWindow)
@@ -30,7 +31,7 @@ public:
             return;
         }
         else {
-            __super::Paint(pRender, rcPaint);
+            BaseClass::Paint(pRender, rcPaint);
             FillRoundRect(pRender, rcPos);
         }
     };

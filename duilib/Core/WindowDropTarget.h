@@ -7,6 +7,7 @@ namespace ui
 {
 
 class ControlDropTarget;
+class WindowDropTargetImpl;
 class WindowBase;
 
 /** 窗口的拖放支持

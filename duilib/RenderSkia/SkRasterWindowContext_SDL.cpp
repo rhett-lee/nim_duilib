@@ -152,7 +152,7 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
     }
 
     //更新数据到Surface
-    memcpy(sdlSurface->pixels, m_fSurfaceMemory.get(), sdlSurface->h * sdlSurface->pitch);
+    ::memcpy(sdlSurface->pixels, m_fSurfaceMemory.get(), sdlSurface->h * sdlSurface->pitch);
 
     //更新数据的流程：Surface -> Texture -> Renderer
     SDL_Texture* sdlTextrue = SDL_CreateTextureFromSurface(sdlRenderer, sdlSurface);

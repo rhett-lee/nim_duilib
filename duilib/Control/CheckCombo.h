@@ -9,6 +9,7 @@ namespace ui
 class CCheckComboWnd;
 class UILIB_API CheckCombo : public Box
 {
+    typedef Box BaseClass;
     friend class CCheckComboWnd;
 public:
     explicit CheckCombo(Window* pWindow);

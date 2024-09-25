@@ -112,7 +112,7 @@ void ScrollBox::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (m_pHScrollBar != nullptr) {
         m_pHScrollBar->ChangeDpiScale(nOldDpiScale, nNewDpiScale);
     }
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void ScrollBox::SetPos(UiRect rc)
@@ -217,7 +217,7 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
             pParent->SendEventMsg(msg);
         }
         else {
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
         return;
     }
@@ -308,7 +308,7 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
 
 bool ScrollBox::MouseEnter(const EventArgs& msg)
 {
-    bool bRet = __super::MouseEnter(msg);
+    bool bRet = BaseClass::MouseEnter(msg);
     if (IsHotState() && (m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid() && m_pVScrollBar->IsEnabled()) {
         if (m_pVScrollBar->IsAutoHideScroll()) {
             m_pVScrollBar->SetFadeVisible(true);
@@ -324,7 +324,7 @@ bool ScrollBox::MouseEnter(const EventArgs& msg)
 
 bool ScrollBox::MouseLeave(const EventArgs& msg)
 {
-    bool bRet = __super::MouseLeave(msg);
+    bool bRet = BaseClass::MouseLeave(msg);
     if (!IsHotState() && (m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid() && m_pVScrollBar->IsEnabled()) {
         if ((m_pVScrollBar->GetThumbState() == kControlStateNormal) && 
              m_pVScrollBar->IsAutoHideScroll()) {
@@ -1152,7 +1152,7 @@ void ScrollBox::SetScrollBarPadding(UiPadding rcScrollBarPadding, bool bNeedDpiS
 
 void ScrollBox::ClearImageCache()
 {
-    __super::ClearImageCache();
+    BaseClass::ClearImageCache();
 
     if (m_pHScrollBar != nullptr) {
         m_pHScrollBar->ClearImageCache();

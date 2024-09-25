@@ -10,6 +10,7 @@ namespace ui
 class RichEdit;
 class IPAddress: public HBox
 {
+    typedef HBox BaseClass;
 public:
     explicit IPAddress(Window* pWindow);
 

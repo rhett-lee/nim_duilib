@@ -11,6 +11,7 @@ namespace nim_comp {
 
 class CefNativeControl : public CefControlBase
 {
+    typedef CefControlBase BaseClass;
 public:
     explicit CefNativeControl(ui::Window* pWindow);
     ~CefNativeControl(void);    

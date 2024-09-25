@@ -104,30 +104,30 @@ public:
         return ReturnT();
     }
 
-    template <typename ReturnT, typename ParamT>
+    template <typename ReturnType, typename ParamType>
     class Iterator
     {
-        ObserverImpl<ReturnT, ParamT> & _tbl;
+        ObserverImpl<ReturnType, ParamType>& _tbl;
         uint32_t index;
-        ReceiverImplBase<ReturnT, ParamT>* ptr;
+        ReceiverImplBase<ReturnType, ParamType>* ptr;
     public:
-        explicit Iterator( ObserverImpl & table )
-            : _tbl( table ), index(0), ptr(NULL)
+        explicit Iterator(ObserverImpl& table)
+            : _tbl(table), index(0), ptr(NULL)
         {}
 
-        explicit Iterator( const Iterator & v )
-            : _tbl( v._tbl ), index(v.index), ptr(v.ptr)
+        explicit Iterator(const Iterator& v)
+            : _tbl(v._tbl), index(v.index), ptr(v.ptr)
         {}
 
-        ReceiverImplBase<ReturnT, ParamT>* next()
+        ReceiverImplBase<ReturnType, ParamType>* next()
         {
-            if ( index >= _tbl.receivers_.size() )
+            if (index >= _tbl.receivers_.size())
                 return NULL;
 
-            for ( ; index < _tbl.receivers_.size(); )
+            for (; index < _tbl.receivers_.size(); )
             {
-                ptr = _tbl.receivers_[ index++ ];
-                if ( ptr )
+                ptr = _tbl.receivers_[index++];
+                if (ptr)
                     return ptr;
             }
             return NULL;

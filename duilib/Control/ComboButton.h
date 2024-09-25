@@ -9,11 +9,13 @@
 namespace ui 
 {
 typedef ButtonTemplate<VBox> ButtonVBox;
+class ComboButtonWnd;
 
 /** 带有下拉组合框的按钮
 */
 class UILIB_API ComboButton : public Box
 {
+    typedef Box BaseClass;
     friend class ComboButtonWnd;
 public:
     explicit ComboButton(Window* pWindow);

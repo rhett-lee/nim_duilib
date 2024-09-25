@@ -14,7 +14,11 @@ FilePath FilePathUtil::JoinFilePath(const FilePath& path1, const FilePath& path2
 
 FilePath FilePathUtil::NormalizeFilePath(const FilePath& filePath)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     DStringW nativePath;
+#else
+    DStringA nativePath;
+#endif
     try {
         std::filesystem::path file_path(filePath.ToStringW());
         nativePath = file_path.lexically_normal().native();
@@ -26,6 +30,8 @@ FilePath FilePathUtil::NormalizeFilePath(const FilePath& filePath)
 
 DString FilePathUtil::NormalizeFilePath(const DString& filePath)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
+    //Windows平台
     DStringW nativePath;
     try {
 #ifdef DUILIB_UNICODE
@@ -41,6 +47,18 @@ DString FilePathUtil::NormalizeFilePath(const DString& filePath)
     return nativePath;
 #else
     return StringUtil::UTF16ToUTF8(nativePath);
+#endif
+
+#else
+    //Linux平台
+    DString nativePath;
+    try {
+        std::filesystem::path file_path(filePath);
+        nativePath = file_path.lexically_normal().native();
+    }
+    catch (...) {
+    }
+    return nativePath;
 #endif
 }
 
@@ -82,7 +100,7 @@ FilePath FilePathUtil::GetCurrentModuleDirectory()
     currentDir.RemoveFileName();
     return currentDir;
 #else
-    DStringW dirPath = std::filesystem::current_path().native();
+    DString dirPath = std::filesystem::current_path().native();
     FilePath filePath(dirPath);
     filePath.NormalizeDirectoryPath();
     return filePath;

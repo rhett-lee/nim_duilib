@@ -21,6 +21,7 @@ namespace ui
 template<typename InheritType = Control>
 class UILIB_API LabelTemplate : public InheritType
 {
+    typedef InheritType BaseClass;
 public:
     explicit LabelTemplate(Window* pWindow);
     virtual ~LabelTemplate() override;
@@ -288,7 +289,7 @@ void LabelTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
         SetTextPadding(rcTextPadding, true);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -303,7 +304,7 @@ void LabelTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t 
     rcTextPadding = this->Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
     this->SetTextPadding(rcTextPadding, false);
 
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 template<typename InheritType>
@@ -327,14 +328,14 @@ void LabelTemplate<InheritType>::SetAutoToolTip(bool bAutoShow)
 template<typename InheritType /*= Control*/>
 void ui::LabelTemplate<InheritType>::SetPos(UiRect rc)
 {
-    __super::SetPos(rc);
+    BaseClass::SetPos(rc);
     CheckShowToolTip();
 }
 
 template<typename InheritType>
 DString LabelTemplate<InheritType>::GetToolTipText() const
 {
-    DString toolTip = __super::GetToolTipText();
+    DString toolTip = BaseClass::GetToolTipText();
     if (!toolTip.empty()) {
         return toolTip;
     }
@@ -438,7 +439,7 @@ void LabelTemplate<InheritType>::SetUTF8TextId(const std::string& strTextId)
 template<typename InheritType>
 bool LabelTemplate<InheritType>::HasHotState()
 {
-    if (__super::HasHotState()) {
+    if (BaseClass::HasHotState()) {
         return true;
     }
     if (m_pTextColorMap != nullptr) {

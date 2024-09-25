@@ -21,7 +21,7 @@ void ColorPickerStatardGray::SelectColor(const UiColor& color)
 
 void ColorPickerStatardGray::Paint(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::Paint(pRender, rcPaint);
+    BaseClass::Paint(pRender, rcPaint);
     ASSERT(pRender != nullptr);
     if (pRender == nullptr) {
         return;
@@ -251,12 +251,12 @@ bool ColorPickerStatardGray::MouseMove(const EventArgs& msg)
             SetToolTipText(_T(""));
         }
     }
-    return __super::MouseMove(msg);
+    return BaseClass::MouseMove(msg);
 }
 
 bool ColorPickerStatardGray::ButtonDown(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonDown(msg);
+    bool bRet = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -313,7 +313,7 @@ float ColorPickerStatardGray::GetPointsDistance(const UiPointF& pt1, const UiPoi
 {
     float a = std::abs(pt1.x - pt2.x);
     float b = std::abs(pt1.y - pt2.y);
-    float c = std::sqrtf(a * a + b * b);
+    float c = sqrtf(a * a + b * b);
     return c;
 }
 

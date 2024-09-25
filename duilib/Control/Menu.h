@@ -55,8 +55,9 @@ typedef class ReceiverImpl<bool, ContextMenuParam> ContextMenuReceiver;
 /** 菜单类
 */
 class MenuItem;
-class Menu : public ui::WindowImplBase, public ContextMenuReceiver
+class Menu : public WindowImplBase, public ContextMenuReceiver
 {
+    typedef WindowImplBase BaseClass;
 public:
     /** 构造函数，初始化菜单的父窗口句柄
     */
@@ -196,8 +197,9 @@ private:
 
 /** 菜单项
 */
-class MenuItem : public ui::ListBoxItem
+class MenuItem : public ListBoxItem
 {
+    typedef ListBoxItem BaseClass;
 public:
     explicit MenuItem(Window* pWindow);
 

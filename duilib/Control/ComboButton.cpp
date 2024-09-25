@@ -11,6 +11,7 @@ namespace ui
 */
 class ComboButtonWnd: public Window
 {
+    typedef Window BaseClass;
 public:
     void InitComboWnd(ComboButton* pOwner, bool bActivated);
     void UpdateComboWnd();
@@ -119,7 +120,7 @@ void ComboButtonWnd::OnFinalMessage()
             m_pOwner->Invalidate();
         }
     }
-    __super::OnFinalMessage();
+    BaseClass::OnFinalMessage();
 }
 
 void ComboButtonWnd::CloseComboWnd(bool bCanceled)
@@ -149,7 +150,7 @@ void ComboButtonWnd::CloseComboWnd(bool bCanceled)
 
 void ComboButtonWnd::OnInitWindow()
 {
-    __super::OnInitWindow();
+    BaseClass::OnInitWindow();
 
     Box* pRoot = new Box(this);
     pRoot->SetAutoDestroyChild(false);
@@ -169,12 +170,12 @@ void ComboButtonWnd::OnCloseWindow()
     }
     m_pOwner->SetPos(m_pOwner->GetPos());
     m_pOwner->SetFocus();
-    __super::OnCloseWindow();
+    BaseClass::OnCloseWindow();
 }
 
 LRESULT ComboButtonWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
     if (vkCode == kVK_ESCAPE) {
         //按住ESC键，取消
         CloseComboWnd(true);
@@ -188,7 +189,7 @@ LRESULT ComboButtonWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey
 
 LRESULT ComboButtonWnd::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
     //失去焦点，关闭窗口，正常关闭
     if (pSetFocusWindow != this) {
         CloseComboWnd(false);
@@ -289,7 +290,7 @@ void ComboButton::SetAttribute(const DString& strName, const DString& strValue)
         SetRightButtonClass(strValue);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -304,7 +305,7 @@ void ComboButton::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     szDropBoxSize = Dpi().GetScaleSize(szDropBoxSize, nOldDpiScale);
     SetDropBoxSize(szDropBoxSize, false);
 
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void ComboButton::SetLeftButtonClass(const DString& classValue)
@@ -456,19 +457,19 @@ DString ComboButton::GetBorderColor(ControlStateType stateType) const
     DString borderColor;
     if (borderColor.empty() && (m_pLeftButton != nullptr)) {
         if (m_pLeftButton->IsFocused() || m_pLeftButton->IsMouseFocused() || m_pLeftButton->IsHotState()) {
-            borderColor = __super::GetBorderColor(kControlStateHot);
+            borderColor = BaseClass::GetBorderColor(kControlStateHot);
         }
     }
     if (borderColor.empty() && (m_pRightButton != nullptr)) {
         if (m_pRightButton->IsFocused() || m_pRightButton->IsMouseFocused() || m_pRightButton->IsHotState()) {
-            borderColor = __super::GetBorderColor(kControlStateHot);
+            borderColor = BaseClass::GetBorderColor(kControlStateHot);
         }
     }
     if (borderColor.empty() && (m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
-        borderColor = __super::GetBorderColor(kControlStateHot);
+        borderColor = BaseClass::GetBorderColor(kControlStateHot);
     }
     if (borderColor.empty()) {
-        borderColor = __super::GetBorderColor(stateType);
+        borderColor = BaseClass::GetBorderColor(stateType);
     }
     return borderColor;
 }
@@ -478,7 +479,7 @@ void ComboButton::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
 
     HBox* pBox = new HBox(GetWindow());
     AddItem(pBox);

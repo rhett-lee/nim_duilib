@@ -80,7 +80,7 @@ void TreeNode::SetAttribute(const DString& strName, const DString& strValue)
         SetIconIndent(iValue, true);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -121,7 +121,7 @@ void TreeNode::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (m_iconTextPadding > 0) {
         m_iconTextPadding = ui::TruncateToUInt16(Dpi().GetScaleInt((int32_t)m_iconTextPadding, nOldDpiScale));
     }
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void TreeNode::SetExpandIndent(int32_t nExpandIndent, bool bNeedDpiScale)
@@ -216,7 +216,7 @@ void TreeNode::SetCollapseStateImage(ControlStateType stateType, const DString& 
 
 void TreeNode::PaintStateImages(IRender* pRender)
 {
-    __super::PaintStateImages(pRender);    
+    BaseClass::PaintStateImages(pRender);
     if (IsExpand()) {
         //绘制展开状态图标，如果没有子节点，不会只这个图标
         if ((m_expandImage != nullptr) && !m_aTreeNodes.empty()){
@@ -239,7 +239,7 @@ void TreeNode::PaintStateImages(IRender* pRender)
 
 bool TreeNode::ButtonDown(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonDown(msg);
+    bool bRet = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -348,7 +348,7 @@ bool TreeNode::SupportCheckedMode() const
     bool bHasStateImages = HasStateImages();
     if (!bHasStateImages || (m_pTreeView == nullptr)) {
         //如果没有状态图片(CheckBox打勾的图片)，返回默认值
-        return __super::SupportCheckedMode();
+        return BaseClass::SupportCheckedMode();
     }
     //多选的时候，支持; 单选的时候，不支持
     return m_pTreeView->IsMultiCheckMode();
@@ -1025,7 +1025,7 @@ TreeView::TreeView(Window* pWindow) :
     m_rootNode(),
     m_bEnableIcon(true)
 {
-    m_bMultiCheckMode = __super::IsMultiSelect();
+    m_bMultiCheckMode = BaseClass::IsMultiSelect();
     m_rootNode.reset(new TreeNode(pWindow));
     m_rootNode->SetTreeView(this);
     //缩进默认设置为20个像素
@@ -1078,7 +1078,7 @@ void TreeView::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetIndent(iValue, false);
 
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 bool TreeView::IsMultiSelect() const
@@ -1089,19 +1089,19 @@ bool TreeView::IsMultiSelect() const
             return false;
         }        
     }
-    return __super::IsMultiSelect();
+    return BaseClass::IsMultiSelect();
 }
 
 void TreeView::SetMultiSelect(bool bMultiSelect)
 {
-    bool bSelectChanged = (bMultiSelect != __super::IsMultiSelect()) ||
+    bool bSelectChanged = (bMultiSelect != BaseClass::IsMultiSelect()) ||
                           (m_bMultiCheckMode != bMultiSelect);
     if (!bSelectChanged) {
         return;
     }
     bool bOldCheckMode = IsMultiCheckMode();
     m_bMultiCheckMode = bMultiSelect;
-    __super::SetMultiSelect(bMultiSelect);
+    BaseClass::SetMultiSelect(bMultiSelect);
 
     bool isChanged = false;
     if (IsMultiCheckMode()) {
@@ -1137,7 +1137,7 @@ void TreeView::SetMultiSelect(bool bMultiSelect)
 bool TreeView::IsMultiCheckMode() const
 {
     if (!m_checkBoxClass.empty()) {
-        ASSERT(m_bMultiCheckMode == __super::IsMultiSelect());
+        ASSERT(m_bMultiCheckMode == BaseClass::IsMultiSelect());
         return m_bMultiCheckMode;
     }
     return false;
@@ -1149,13 +1149,13 @@ bool TreeView::CanPaintSelectedColors(bool bHasStateImages) const
         //如果有CheckBox，Check模式的时候，默认不显示选择背景色
         return false;
     }
-    return __super::CanPaintSelectedColors(bHasStateImages);
+    return BaseClass::CanPaintSelectedColors(bHasStateImages);
 }
 
 bool TreeView::OnSwitchToSingleSelect()
 {
     ASSERT(!IsMultiSelect());
-    bool bChanged = __super::OnSwitchToSingleSelect();
+    bool bChanged = BaseClass::OnSwitchToSingleSelect();
     if (IsMultiCheckMode()) {
         return bChanged;
     }
@@ -1478,7 +1478,7 @@ void TreeView::SetParent(Box* pParent)
 
 void TreeView::SetWindow(Window* pWindow)
 {
-    __super::SetWindow(pWindow);
+    BaseClass::SetWindow(pWindow);
     m_rootNode->SetWindow(pWindow);
 }
 

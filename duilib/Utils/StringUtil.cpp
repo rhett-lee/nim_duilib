@@ -3,13 +3,13 @@
 #include <filesystem>
 #include <cstdlib>
 #include <cstdarg>
+#include <vector>
 
 using namespace llvm; //for ConvertUTF.h
 
 namespace ui
 {
 
-#define GG_VA_COPY(a, b) (a = b)
 #define COUNT_OF(array)            (sizeof(array)/sizeof(array[0]))
 
 namespace
@@ -139,7 +139,11 @@ inline int vsnprintfT(char *dst, size_t count, const char *format, va_list ap)
 
 inline int vsnprintfT(wchar_t *dst, size_t count, const wchar_t *format, va_list ap)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     return _vsnwprintf_s(dst, count, count, format, ap);
+#else
+    return vswprintf(dst, count, format, ap);
+#endif
 }
 
 template<typename CharType>
@@ -149,7 +153,7 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
 
     /* first, we try to finish the task using a fixed-size buffer in the stack */
     va_list ap_copy;
-    GG_VA_COPY(ap_copy, ap);
+    va_copy(ap_copy, ap);
 
     int result = vsnprintfT(stack_buffer, COUNT_OF(stack_buffer), format, ap_copy);
     va_end(ap_copy);
@@ -182,7 +186,7 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
          * NOTE: You can only use a va_list once.  Since we're in a while loop, we
          * need to make a new copy each time so we don't use up the original.
          */
-        GG_VA_COPY(ap_copy, ap);
+        va_copy(ap_copy, ap);
         result = vsnprintfT(&heap_buffer[0], buffer_size, format, ap_copy);
         va_end(ap_copy);
 
@@ -436,7 +440,7 @@ std::wstring StringUtil::UTF8ToUTF16(const UTF8Char* utf8, size_t length)
             dst_begin + data.size(),
             lenientConversion);
 
-        utf16.append(output, dst_begin - reinterpret_cast<UTF16*>(output));
+        utf16.append((const std::wstring::value_type*)output, dst_begin - reinterpret_cast<UTF16*>(output));
         dst_begin = reinterpret_cast<UTF16*>(output);
         if (result == sourceIllegal || result == sourceExhausted)
         {
@@ -586,7 +590,7 @@ std::wstring StringUtil::UTF32ToUTF16(const UTF32Char* utf32, size_t length)
             dst_begin + data.size(),
             lenientConversion);
 
-        utf16.append(output, dst_begin - reinterpret_cast<UTF16*>(output));
+        utf16.append((const std::wstring::value_type*)output, dst_begin - reinterpret_cast<UTF16*>(output));
         dst_begin = reinterpret_cast<UTF16*>(output);
         if (result == sourceIllegal || result == sourceExhausted)
         {
@@ -605,7 +609,8 @@ std::wstring StringUtil::UTF8ToUTF16(const std::string& utf8)
 
 std::string StringUtil::UTF16ToUTF8(const std::wstring& utf16)
 {
-    return UTF16ToUTF8(utf16.c_str(), utf16.length());
+    ASSERT(sizeof(UTF16Char) == sizeof(std::wstring::value_type));
+    return UTF16ToUTF8((const UTF16Char*)utf16.c_str(), utf16.length());
 }
 
 std::string StringUtil::TToUTF8(const std::wstring& str)
@@ -670,7 +675,8 @@ std::string StringUtil::UTF32ToUTF8(const std::basic_string<UTF32Char>& utf32)
 
 std::basic_string<UTF32Char> StringUtil::UTF16ToUTF32(const std::wstring& utf16)
 {
-    return UTF16ToUTF32(utf16.c_str(), utf16.length());
+    ASSERT(sizeof(UTF16Char) == sizeof(std::wstring::value_type));
+    return UTF16ToUTF32((const UTF16Char*)utf16.c_str(), utf16.length());
 }
 
 std::wstring StringUtil::UTF32ToUTF16(const std::basic_string<UTF32Char>& utf32)
@@ -870,11 +876,19 @@ std::list<std::string> StringUtil::Split(const std::string& input, const std::st
         return output;
 
     char* context = nullptr;
+#ifdef DUILIB_BUILD_FOR_WIN
     char *token = strtok_s(input2.data(), delimitor.c_str(), &context);
+#else
+    char* token = strtok_r(input2.data(), delimitor.c_str(), &context);
+#endif
     while (token != NULL)
     {
         output.push_back(token);
+#ifdef DUILIB_BUILD_FOR_WIN
         token = strtok_s(NULL, delimitor.c_str(), &context);
+#else
+        token = strtok_r(NULL, delimitor.c_str(), &context);
+#endif
     }
     return output;
 }
@@ -889,11 +903,19 @@ std::list<std::wstring> StringUtil::Split(const std::wstring& input, const std::
     }
 
     wchar_t* context = nullptr;
+#ifdef DUILIB_BUILD_FOR_WIN
     wchar_t* token = wcstok_s(input2.data(), delimitor.c_str(), &context);
+#else
+    wchar_t* token = wcstok(input2.data(), delimitor.c_str(), &context);
+#endif
     while (token != NULL)
     {
         output.push_back(token);
+#ifdef DUILIB_BUILD_FOR_WIN
         token = wcstok_s(NULL, delimitor.c_str(), &context);
+#else
+        token = wcstok(NULL, delimitor.c_str(), &context);
+#endif
     }
     return output;
 }
@@ -1058,7 +1080,11 @@ int32_t StringUtil::StringCompare(const char* lhs, const char* rhs)
 
 int32_t StringUtil::StringICompare(const std::wstring& lhs, const std::wstring& rhs)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     return ::_wcsicmp(lhs.c_str(), rhs.c_str());
+#else
+    return ::wcscasecmp(lhs.c_str(), rhs.c_str());
+#endif
 }
 
 int32_t StringUtil::StringICompare(const wchar_t* lhs, const wchar_t* rhs)
@@ -1073,13 +1099,21 @@ int32_t StringUtil::StringICompare(const wchar_t* lhs, const wchar_t* rhs)
         return 1;
     }
     else {
+#ifdef DUILIB_BUILD_FOR_WIN
         return ::_wcsicmp(lhs, rhs);
+#else
+        return ::wcscasecmp(lhs, rhs);
+#endif
     }
 }
 
 int32_t StringUtil::StringICompare(const std::string& lhs, const std::string& rhs)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     return ::_stricmp(lhs.c_str(), rhs.c_str());
+#else
+    return ::strcasecmp(lhs.c_str(), rhs.c_str());
+#endif
 }
 
 int32_t StringUtil::StringICompare(const char* lhs, const char* rhs)
@@ -1094,7 +1128,11 @@ int32_t StringUtil::StringICompare(const char* lhs, const char* rhs)
         return 1;
     }
     else {
+#ifdef DUILIB_BUILD_FOR_WIN
         return ::_stricmp(lhs, rhs);
+#else
+        return ::strcasecmp(lhs, rhs);
+#endif
     }
 }
 
@@ -1166,14 +1204,22 @@ std::string StringUtil::UInt32ToString(uint32_t value)
 
 int32_t StringUtil::StringToInt32(const std::wstring& str)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     return ::_wtoi(str.c_str());
+#else
+    return wcstol(str.c_str(), nullptr, 10);
+#endif
 }
 
 int32_t StringUtil::StringToInt32(const std::wstring::value_type* str)
 {
     ASSERT(str != nullptr);
     if (str != nullptr) {
+#ifdef DUILIB_BUILD_FOR_WIN
         return ::_wtoi(str);
+#else
+        return wcstol(str, nullptr, 10);
+#endif
     }
     else {
         return 0;
@@ -1314,7 +1360,12 @@ int32_t StringUtil::StringCopy(wchar_t* dest, size_t destSize, const wchar_t* sr
     if ((dest == nullptr) || (destSize == 0) || (src == nullptr)) {
         return 0;
     }
+#ifdef DUILIB_BUILD_FOR_WIN
     return ::wcscpy_s(dest, destSize, src);
+#else
+    ::wcsncpy(dest, src, std::min((size_t)wcslen(src), destSize));
+    return 0;
+#endif
 }
 
 int32_t StringUtil::StringNCopy(wchar_t* dest, size_t destSize, const wchar_t* src, size_t srcSize)
@@ -1322,7 +1373,12 @@ int32_t StringUtil::StringNCopy(wchar_t* dest, size_t destSize, const wchar_t* s
     if ((dest == nullptr) || (destSize == 0) || (src == nullptr) || (srcSize == 0)) {
         return 0;
     }
+#ifdef DUILIB_BUILD_FOR_WIN
     return ::wcsncpy_s(dest, destSize, src, srcSize);
+#else
+    ::wcsncpy(dest, src, std::min(srcSize, destSize));
+    return 0;
+#endif
 }
 
 int32_t StringUtil::StringCopy(char* dest, size_t destSize, const char* src)
@@ -1330,7 +1386,12 @@ int32_t StringUtil::StringCopy(char* dest, size_t destSize, const char* src)
     if ((dest == nullptr) || (destSize == 0) || (src == nullptr)) {
         return 0;
     }
+#ifdef DUILIB_BUILD_FOR_WIN
     return ::strcpy_s(dest, destSize, src);
+#else
+    ::strncpy(dest, src, std::min(destSize, strlen(src)));
+    return 0;
+#endif
 }
 
 int32_t StringUtil::StringNCopy(char* dest, size_t destSize, const char* src, size_t srcSize)
@@ -1338,7 +1399,12 @@ int32_t StringUtil::StringNCopy(char* dest, size_t destSize, const char* src, si
     if ((dest == nullptr) || (destSize == 0) || (src == nullptr) || (srcSize == 0)) {
         return 0;
     }
+#ifdef DUILIB_BUILD_FOR_WIN
     return ::strncpy_s(dest, destSize, src, srcSize);
+#else
+    ::strncpy(dest, src, std::min(srcSize, destSize));
+    return 0;
+#endif
 }
 
 size_t StringUtil::StringLen(const wchar_t* str)

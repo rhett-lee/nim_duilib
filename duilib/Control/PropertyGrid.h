@@ -36,6 +36,7 @@ class PropertyGridDirectoryProperty;    //文件夹
 */
 class PropertyGrid : public VBox
 {
+    typedef VBox BaseClass;
 public:
     explicit PropertyGrid(Window* pWindow);
 
@@ -457,6 +458,7 @@ private:
 */
 class PropertyGridGroup : public TreeNode
 {
+    typedef TreeNode BaseClass;
 public:
     /** 构造一个组
     * @param [in] groupName 组的名称
@@ -554,6 +556,7 @@ enum class PropertyGridPropertyType
 */
 class PropertyGridProperty: public TreeNode
 {
+    typedef TreeNode BaseClass;
 public:
     /** 构造一个属性
     * @param [in] propertyName 属性的名称
@@ -888,6 +891,7 @@ private:
 */
 class PropertyGridFontProperty : public PropertyGridComboProperty
 {
+    typedef PropertyGridComboProperty BaseClass;
 public:
     /** 构造一个属性
     * @param [in] propertyName 属性的名称
@@ -924,6 +928,7 @@ protected:
 */
 class PropertyGridFontSizeProperty : public PropertyGridComboProperty
 {
+    typedef PropertyGridComboProperty BaseClass;
 public:
     /** 构造一个属性
     * @param [in] propertyName 属性的名称
@@ -1104,7 +1109,7 @@ private:
     DateTime::EditFormat m_editFormat;
 };
 
-#endif DUILIB_BUILD_FOR_WIN
+#endif //DUILIB_BUILD_FOR_WIN
 
 /** 设置IP地址的属性
 */
@@ -1204,6 +1209,7 @@ private:
 */
 class PropertyGridFileProperty : public PropertyGridTextProperty
 {
+    typedef PropertyGridTextProperty BaseClass;
 public:
     /** 构造一个属性
     * @param [in] propertyName 属性的名称
@@ -1269,6 +1275,7 @@ private:
 */
 class PropertyGridDirectoryProperty : public PropertyGridTextProperty
 {
+    typedef PropertyGridTextProperty BaseClass;
 public:
     /** 构造一个属性
     * @param [in] propertyName 属性的名称

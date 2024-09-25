@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.21)
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
   message(FATAL_ERROR "Prevented in-tree build. Please create a build directory outside of the source code and run \"cmake -S ${CMAKE_SOURCE_DIR} -B .\" from there")
@@ -7,7 +7,7 @@ endif()
 # MSVC runtime library flags are selected by an abstraction.
 set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
 
-project(duilib CXX)
+project(duilib CXX C)
 
 if(MSVC)
     add_compile_options("/utf-8")
@@ -16,6 +16,9 @@ endif()
 
 set(CMAKE_CXX_STANDARD 20) # C++20
 set(CMAKE_CXX_STANDARD_REQUIRED ON) # C++20
+
+set(CMAKE_C_STANDARD 17) # C17
+set(CMAKE_C_STANDARD_REQUIRED ON) # C17
 
 if(MSVC)
     add_definitions(-DUNICODE -D_UNICODE)

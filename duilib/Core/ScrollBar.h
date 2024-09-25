@@ -2,17 +2,17 @@
 #define UI_CORE_SCROLLBAR_H_
 
 #include "duilib/Core/Control.h"
+#include "duilib/Image/StateImage.h"
 
 namespace ui
 {
     class ScrollBox;
-    class StateImage;
 
 /** 滚动条控件
 */
-class UILIB_API ScrollBar: 
-    public Control
+class UILIB_API ScrollBar: public Control
 {
+    typedef Control BaseClass;
 public:
     explicit ScrollBar(Window* pWindow);
     ScrollBar(const ScrollBar& r) = delete;

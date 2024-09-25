@@ -340,7 +340,7 @@ void RichEdit::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
 
     //设置字体和字体颜色
     DString fontId = GetCurrentFontId();
@@ -375,7 +375,7 @@ void RichEdit::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     Redraw();
     UpdateScrollRange();
 
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 bool RichEdit::IsWantTab() const
@@ -1530,7 +1530,7 @@ void RichEdit::OnScrollOffsetChanged(const UiSize& /*oldScrollOffset*/, const Ui
 
 void RichEdit::SetWindow(Window* pWindow)
 {
-    __super::SetWindow(pWindow);
+    BaseClass::SetWindow(pWindow);
     if (pWindow != nullptr) {
         IRender* pRender = pWindow->GetRender();
         ASSERT(pRender != nullptr);
@@ -1547,12 +1547,12 @@ void RichEdit::SetWindow(Window* pWindow)
 
 void RichEdit::LineUp(int deltaValue, bool withAnimation)
 {
-    __super::LineUp(deltaValue, withAnimation);
+    BaseClass::LineUp(deltaValue, withAnimation);
 }
 
 void RichEdit::LineDown(int deltaValue, bool withAnimation)
 {
-    __super::LineDown(deltaValue, withAnimation);
+    BaseClass::LineDown(deltaValue, withAnimation);
 }
 
 void RichEdit::PageUp()
@@ -1573,48 +1573,48 @@ void RichEdit::PageDown()
 
 void RichEdit::HomeUp()
 {
-    __super::HomeUp();
+    BaseClass::HomeUp();
 }
 
 void RichEdit::EndDown(bool arrange, bool withAnimation)
 {
-    __super::EndDown(arrange, withAnimation);
+    BaseClass::EndDown(arrange, withAnimation);
 }
 
 void RichEdit::LineLeft(int deltaValue)
 {
-    __super::LineLeft(deltaValue);
+    BaseClass::LineLeft(deltaValue);
 }
 
 void RichEdit::LineRight(int deltaValue)
 {
-    __super::LineRight(deltaValue);
+    BaseClass::LineRight(deltaValue);
 }
 
 void RichEdit::PageLeft()
 {
-    __super::PageLeft();
+    BaseClass::PageLeft();
 }
 
 void RichEdit::PageRight()
 {
-    __super::PageRight();
+    BaseClass::PageRight();
 }
 
 void RichEdit::HomeLeft()
 {
-    __super::HomeLeft();
+    BaseClass::HomeLeft();
 }
 
 void RichEdit::EndRight()
 {
-    __super::EndRight();
+    BaseClass::EndRight();
 }
 
 void RichEdit::SetEnabled(bool bEnable)
 {
     bool bChanged = IsEnabled() != bEnable;
-    __super::SetEnabled(bEnable);
+    BaseClass::SetEnabled(bEnable);
     if (IsEnabled()) {
         SetState(kControlStateNormal);
     }
@@ -2151,18 +2151,18 @@ void RichEdit::PaintSelectionColor(IRender* pRender, const UiRect& /*rcPaint*/)
         if (rectF.IsEmpty()) {
             //空行，画一条线
             rowRect.left = (int32_t)rectF.left;
-            rowRect.right = (int32_t)std::ceilf(rectF.right);
+            rowRect.right = (int32_t)ui::CEILF(rectF.right);
             rowRect.top = (int32_t)rectF.top;
-            rowRect.bottom = (int32_t)std::ceilf(rectF.bottom);
+            rowRect.bottom = (int32_t)ui::CEILF(rectF.bottom);
             if (rowRect.left == rowRect.right) {
                 rowRect.right = rowRect.left + Dpi().GetScaleInt(2);
             }
         }
         else {
             rowRect.left = (int32_t)rectF.left;
-            rowRect.right = (int32_t)std::ceilf(rectF.right);
+            rowRect.right = (int32_t)ui::CEILF(rectF.right);
             rowRect.top = (int32_t)rectF.top;
-            rowRect.bottom = (int32_t)std::ceilf(rectF.bottom);
+            rowRect.bottom = (int32_t)ui::CEILF(rectF.bottom);
         }
         if (UiRect::Intersect(rcTemp, rcDrawText, rowRect)) {
             pRender->FillRect(rowRect, selectionColor);
@@ -2291,7 +2291,7 @@ void RichEdit::PaintStateImages(IRender* pRender)
         PaintPromptText(pRender);
     }
     else {
-        __super::PaintStateImages(pRender);
+        BaseClass::PaintStateImages(pRender);
         PaintPromptText(pRender);
     }
 }
@@ -2313,7 +2313,7 @@ void RichEdit::SetNoCaretReadonly()
 
 void RichEdit::ClearImageCache()
 {
-    __super::ClearImageCache();
+    BaseClass::ClearImageCache();
     if (m_pFocusedImage != nullptr) {
         m_pFocusedImage->ClearImageCache();
     }    
@@ -3118,7 +3118,7 @@ UiRect RichEdit::GetTextDrawRect(const UiRect& rc) const
 UiSize64 RichEdit::CalcRequiredSize(const UiRect& rc)
 {
     //计算子控件的大小
-    UiSize64 requiredSize = __super::CalcRequiredSize(rc);
+    UiSize64 requiredSize = BaseClass::CalcRequiredSize(rc);
     if (requiredSize.cx > rc.Width()) {
         requiredSize.cx = 0;
     }
@@ -3181,7 +3181,7 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
 {
     if (m_bUseControlCursor) {
         //使用Control设置的光标
-        return __super::OnSetCursor(msg);
+        return BaseClass::OnSetCursor(msg);
     }
     SetCursor(IsReadOnly() ? CursorType::kCursorArrow : CursorType::kCursorIBeam);
     return true;
@@ -3316,7 +3316,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
             pParent->SendEventMsg(msg);
         }
         else {
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
         return;
     }
@@ -3334,7 +3334,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
             return;
         }
     }
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
 }
 
 bool RichEdit::OnKeyDown(const EventArgs& msg)
@@ -3884,7 +3884,7 @@ void RichEdit::CheckKeyDownStartIndex(const EventArgs& msg)
 bool RichEdit::OnKeyUp(const EventArgs& msg)
 {
     CheckKeyDownStartIndex(msg);
-    return __super::OnKeyUp(msg);
+    return BaseClass::OnKeyUp(msg);
 }
 
 bool RichEdit::OnChar(const EventArgs& msg)
@@ -3900,7 +3900,7 @@ bool RichEdit::OnChar(const EventArgs& msg)
 
 bool RichEdit::ButtonDown(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonDown(msg);
+    bool bRet = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -3913,7 +3913,7 @@ bool RichEdit::ButtonDown(const EventArgs& msg)
 
 bool RichEdit::ButtonUp(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonUp(msg);
+    bool bRet = BaseClass::ButtonUp(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -3923,7 +3923,7 @@ bool RichEdit::ButtonUp(const EventArgs& msg)
 
 bool RichEdit::ButtonDoubleClick(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonDoubleClick(msg);
+    bool bRet = BaseClass::ButtonDoubleClick(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -3933,7 +3933,7 @@ bool RichEdit::ButtonDoubleClick(const EventArgs& msg)
 
 bool RichEdit::RButtonDown(const EventArgs& msg)
 {
-    bool bRet = __super::RButtonDown(msg);
+    bool bRet = BaseClass::RButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -3943,7 +3943,7 @@ bool RichEdit::RButtonDown(const EventArgs& msg)
 
 bool RichEdit::RButtonUp(const EventArgs& msg)
 {
-    bool bRet = __super::RButtonUp(msg);
+    bool bRet = BaseClass::RButtonUp(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -3953,7 +3953,7 @@ bool RichEdit::RButtonUp(const EventArgs& msg)
 
 bool RichEdit::MouseMove(const EventArgs& msg)
 {
-    bool bRet = __super::MouseMove(msg);
+    bool bRet = BaseClass::MouseMove(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -3963,7 +3963,7 @@ bool RichEdit::MouseMove(const EventArgs& msg)
 
 bool RichEdit::MouseWheel(const EventArgs& msg)
 {
-    bool bRet = __super::MouseWheel(msg);
+    bool bRet = BaseClass::MouseWheel(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -3973,7 +3973,7 @@ bool RichEdit::MouseWheel(const EventArgs& msg)
 
 bool RichEdit::OnWindowKillFocus(const EventArgs& msg)
 {
-    bool bRet = __super::OnWindowKillFocus(msg);
+    bool bRet = BaseClass::OnWindowKillFocus(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }

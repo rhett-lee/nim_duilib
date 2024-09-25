@@ -21,7 +21,7 @@ void FilterCombo::SetAttribute(const DString& strName, const DString& strValue)
         //忽略该属性设置
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -30,7 +30,7 @@ void FilterCombo::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     SetComboType(kCombo_DropDown);
 }
 

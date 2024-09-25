@@ -9,6 +9,7 @@ namespace ui {
 template<typename InheritType = Control>
 class UILIB_API ButtonTemplate : public LabelTemplate<InheritType>
 {
+    typedef LabelTemplate<InheritType> BaseClass;
 public:
     explicit ButtonTemplate(Window* pWindow);
 
@@ -55,7 +56,7 @@ void ButtonTemplate<InheritType>::HandleEvent(const EventArgs& msg)
             }
         }
     }
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
 }
 
 template<typename InheritType>

@@ -96,7 +96,7 @@ public:
 
     /** 转换为字符串(UTF16编码)
     */
-    const DStringW& ToStringW() const;
+    DStringW ToStringW() const;
 
     /** 转换为字符串(UTF8编码)
     */

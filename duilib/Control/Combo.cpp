@@ -12,6 +12,7 @@ namespace ui
 */
 class CComboWnd: public Window
 {
+    typedef Window BaseClass;
 public:
     /** 创建并显示下拉窗口
     */
@@ -166,7 +167,7 @@ void CComboWnd::OnFinalMessage()
             m_pOwner->Invalidate();
         }
     }
-    __super::OnFinalMessage();
+    BaseClass::OnFinalMessage();
 }
 
 void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
@@ -200,7 +201,7 @@ void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
 
 void CComboWnd::OnInitWindow()
 {
-    __super::OnInitWindow();
+    BaseClass::OnInitWindow();
 
     Box* pRoot = new Box(this);
     pRoot->SetAutoDestroyChild(false);
@@ -220,12 +221,12 @@ void CComboWnd::OnCloseWindow()
     }
     m_pOwner->SetPos(m_pOwner->GetPos());
     m_pOwner->SetFocus();
-    __super::OnCloseWindow();
+    BaseClass::OnCloseWindow();
 }
 
 LRESULT CComboWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
     if (vkCode == kVK_ESCAPE) {
         //按住ESC键，取消
         CloseComboWnd(true, false);
@@ -239,7 +240,7 @@ LRESULT CComboWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, con
 
 LRESULT CComboWnd::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
     //失去焦点，关闭窗口，正常关闭
     if (pSetFocusWindow != this) {
         CloseComboWnd(false, false);
@@ -322,7 +323,7 @@ void Combo::SetAttribute(const DString& strName, const DString& strValue)
         SetButtonControlClass(strValue);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -343,7 +344,7 @@ void Combo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if ((m_treeView.GetWindow() == GetWindow()) && (m_treeView.GetParent() == nullptr)) {
         m_treeView.ChangeDpiScale(nOldDpiScale, nNewDpiScale);
     }
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void Combo::SetComboTreeClass(const DString& classValue)
@@ -468,24 +469,24 @@ DString Combo::GetBorderColor(ControlStateType stateType) const
     DString borderColor;
     if (m_pIconControl != nullptr) {
         if (m_pIconControl->IsFocused() || m_pIconControl->IsMouseFocused()) {
-            borderColor = __super::GetBorderColor(kControlStateHot);
+            borderColor = BaseClass::GetBorderColor(kControlStateHot);
         }
     }
     if (borderColor.empty() && (m_pEditControl != nullptr)) {
         if (m_pEditControl->IsFocused() || m_pEditControl->IsMouseFocused()) {
-            borderColor = __super::GetBorderColor(kControlStateHot);
+            borderColor = BaseClass::GetBorderColor(kControlStateHot);
         }
     }
     if (borderColor.empty() && (m_pButtonControl != nullptr)) {
         if (m_pButtonControl->IsFocused() || m_pButtonControl->IsMouseFocused()) {
-            borderColor = __super::GetBorderColor(kControlStateHot);
+            borderColor = BaseClass::GetBorderColor(kControlStateHot);
         }
     }
     if (borderColor.empty() && (m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
-        borderColor = __super::GetBorderColor(kControlStateHot);
+        borderColor = BaseClass::GetBorderColor(kControlStateHot);
     }
     if (borderColor.empty()) {
-        borderColor = __super::GetBorderColor(stateType);
+        borderColor = BaseClass::GetBorderColor(stateType);
     }
     return borderColor;
 }
@@ -495,7 +496,7 @@ void Combo::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
 
     HBox* pBox = new HBox(GetWindow());
     AddItem(pBox);
@@ -1082,7 +1083,7 @@ void Combo::SetFocus()
         }
     }
     else {
-        __super::SetFocus();
+        BaseClass::SetFocus();
     }
 }
 

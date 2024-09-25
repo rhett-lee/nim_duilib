@@ -7,6 +7,7 @@ namespace ui
 */
 class DragWindowBitmap: public Control
 {
+    typedef Control BaseClass;
 public:
     explicit DragWindowBitmap(Window* pWindow):
         Control(pWindow)
@@ -17,7 +18,7 @@ public:
     */
     virtual void Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) override
     {
-        __super::Paint(pRender, rcPaint);
+        BaseClass::Paint(pRender, rcPaint);
         if ((pRender != nullptr) && (m_pBitmap != nullptr)) {
             UiRect rcCorners;
             UiRect destRect = GetRect();

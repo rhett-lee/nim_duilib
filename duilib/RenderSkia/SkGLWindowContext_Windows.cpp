@@ -44,7 +44,7 @@ void SkGLWindowContext_Windows::resize(int nWidth, int nHeight)
     if ((fWidth == nWidth) && (fHeight == nHeight)) {
         return;
     }
-    __super::resize(nWidth, nHeight);
+    BaseClass::resize(nWidth, nHeight);
     ASSERT(fWidth == nWidth);
     ASSERT(fHeight == nHeight);
 }
@@ -65,7 +65,7 @@ sk_sp<SkSurface> SkGLWindowContext_Windows::getBackbufferSurface()
     ASSERT(m_fHGLRC == hHGLRC);
 #endif
 
-    return __super::getBackbufferSurface();
+    return BaseClass::getBackbufferSurface();
 }
 
 sk_sp<const GrGLInterface> SkGLWindowContext_Windows::onInitializeContext()

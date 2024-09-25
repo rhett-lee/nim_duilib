@@ -1344,7 +1344,7 @@ void Control::SetVisible(bool bVisible)
         return;
     }
     bool v = IsVisible();
-    __super::SetVisible(bVisible);
+    BaseClass::SetVisible(bVisible);
 
     if (!IsVisible()) {
         EnsureNoFocus();
@@ -1483,7 +1483,7 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, void* pProcData,
 
 UiRect Control::GetPos() const
 {
-    return __super::GetPos();
+    return BaseClass::GetPos();
 }
 
 void Control::SetPos(UiRect rc)

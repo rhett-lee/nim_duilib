@@ -26,7 +26,7 @@ void ListCtrlItem::SetAttribute(const DString& strName, const DString& strValue)
         SetIconSpacing(StringUtil::StringToInt32(strValue), true);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -39,12 +39,12 @@ void ListCtrlItem::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     int32_t iValue = GetIconSpacing();
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetIconSpacing(iValue, false);
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void ListCtrlItem::HandleEvent(const EventArgs& msg)
 {
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
     if (m_pListCtrl != nullptr) {
         if ((msg.eventType > kEventKeyBegin) && (msg.eventType < kEventKeyEnd)) {
             m_pListCtrl->OnViewKeyboardEvents(msg);
@@ -145,7 +145,7 @@ bool ListCtrlItem::ButtonUp(const EventArgs& msg)
         return HBox::ButtonUp(msg);
     }
     else {
-        return __super::ButtonUp(msg);
+        return BaseClass::ButtonUp(msg);
     }
 }
 
@@ -209,7 +209,7 @@ int32_t ListCtrlItem::GetImageId() const
 
 void ListCtrlItem::Paint(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::Paint(pRender, rcPaint);
+    BaseClass::Paint(pRender, rcPaint);
     if (pRender == nullptr) {
         return;
     }

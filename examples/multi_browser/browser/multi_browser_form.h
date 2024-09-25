@@ -19,6 +19,7 @@ class BrowserBox;
 class BrowserTabItem;
 class MultiBrowserForm : public ui::ShadowWnd, public IDropTarget, public TaskbarManager::ITaskbarDelegate
 {
+    typedef ui::ShadowWnd BaseClass;
 public:
     MultiBrowserForm();
     virtual ~MultiBrowserForm() override;

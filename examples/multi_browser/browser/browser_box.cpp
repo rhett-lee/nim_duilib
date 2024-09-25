@@ -103,12 +103,12 @@ void BrowserBox::SetWindow(Window* pWindow)
     browser_form_ = dynamic_cast<MultiBrowserForm*>(pWindow);
     ASSERT(NULL != browser_form_);
 
-    __super::SetWindow(pWindow);
+    BaseClass::SetWindow(pWindow);
 }
 
 void BrowserBox::Invalidate()
 {
-    __super::Invalidate();
+    BaseClass::Invalidate();
 
     if (taskbar_item_)
         taskbar_item_->InvalidateTab();
@@ -116,7 +116,7 @@ void BrowserBox::Invalidate()
 
 void BrowserBox::SetPos(UiRect rc)
 {
-    __super::SetPos(rc);
+    BaseClass::SetPos(rc);
 
     if (taskbar_item_)
         taskbar_item_->InvalidateTab();
