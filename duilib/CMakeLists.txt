@@ -28,11 +28,11 @@ add_definitions(-DSK_GANESH -DSK_GL -DSK_RELEASE)
 
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
 get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
-get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/include/" ABSOLUTE)
+get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
 
 include_directories(${DUILIB_SRC_ROOT_DIR})
 include_directories(${SKIA_SRC_ROOT_DIR})
-include_directories(${SDL_SRC_ROOT_DIR})
+include_directories("${SDL_SRC_ROOT_DIR}/include")
 
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR} DIR_LIB_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Animation ANIMATION_SRC)
@@ -44,14 +44,38 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Render RENDER_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/RenderSkia RENDER_SKIA_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Utils UTILS_SRC)
 
-add_library(duilib
-	${DIR_LIB_SRC}
-	${ANIMATION_SRC}
-	${BOX_SRC}
-	${CONTROL_SRC}
-	${CORE_SRC}
-    ${IMAGE_SRC}
-	${RENDER_SRC}
-	${RENDER_SKIA_SRC}
-	${UTILS_SRC}
+aux_source_directory(${DUILIB_SRC_ROOT_DIR}/duilib/third_party/apng APNG_SRC)
+aux_source_directory(${DUILIB_SRC_ROOT_DIR}/duilib/third_party/stb_image STB_SRC)
+aux_source_directory(${DUILIB_SRC_ROOT_DIR}/duilib/third_party/svg SVG_SRC)
+aux_source_directory(${DUILIB_SRC_ROOT_DIR}/duilib/third_party/convert_utf UTF_SRC)
+aux_source_directory(${DUILIB_SRC_ROOT_DIR}/duilib/third_party/xml XML_SRC)
+
+set(UNZIP_HDRS
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/contrib/minizip/ioapi.h
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/contrib/minizip/unzip.h
 )
+
+set(UNZIP_SRCS
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/contrib/minizip/ioapi.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/contrib/minizip/unzip.c
+)
+
+
+add_library(duilib
+    	    ${DIR_LIB_SRC}
+    	    ${ANIMATION_SRC}
+    	    ${BOX_SRC}
+    	    ${CONTROL_SRC}
+    	    ${CORE_SRC}
+            ${IMAGE_SRC}
+    	    ${RENDER_SRC}
+    	    ${RENDER_SKIA_SRC}
+    	    ${UTILS_SRC}
+    	    ${APNG_SRC}
+    	    ${STB_SRC}
+    	    ${SVG_SRC}
+    	    ${UTF_SRC}
+    	    ${XML_SRC}
+    	    ${UNZIP_HDRS}
+    	    ${UNZIP_SRCS}
+           )

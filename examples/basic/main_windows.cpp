@@ -1,3 +1,5 @@
+#if defined (_WIN32) || defined (_WIN64)
+
 #include "duilib/duilib_config_windows.h"
 #include "TestApplication.h"
 
@@ -11,3 +13,5 @@ int APIENTRY wWinMain(_In_ HINSTANCE /*hInstance*/,
     app.Run();
     return 0;
 }
+
+#endif
