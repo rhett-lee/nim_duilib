@@ -65,9 +65,9 @@ bool CursorManager::SetCursor(CursorType cursorType)
     auto iter = m_impl->m_systemCursorMap.find(cursorType);
     if (iter != m_impl->m_systemCursorMap.end()) {
         ASSERT(iter->second != nullptr);
-        SDL_bool nRet = SDL_SetCursor(iter->second);
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
-        return nRet == SDL_TRUE;
+        bool nRet = SDL_SetCursor(iter->second);
+        ASSERT_UNUSED_VARIABLE(nRet);
+        return nRet;
     }
     
     SDL_Cursor* sdlCursor = nullptr;
@@ -117,13 +117,13 @@ bool CursorManager::SetCursor(CursorType cursorType)
         m_impl->m_systemCursorMap[cursorType] = sdlCursor;
     }
 
-    SDL_bool nRet = SDL_FALSE;
+    bool nRet = false;
     ASSERT(sdlCursor != nullptr);
     if (sdlCursor != nullptr) {
         nRet = SDL_SetCursor(sdlCursor);
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+        ASSERT_UNUSED_VARIABLE(nRet);
     }
-    return nRet == SDL_TRUE;
+    return nRet;
 }
 
 /** 从内存数据中加载光标
@@ -230,24 +230,24 @@ bool CursorManager::SetImageCursor(const Window* pWindow, const FilePath& curIma
     }
     ASSERT(sdlCursor != nullptr);
     if (sdlCursor != nullptr) {
-        SDL_bool nRet = SDL_SetCursor(sdlCursor);
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
-        return nRet == SDL_TRUE;
+        bool nRet = SDL_SetCursor(sdlCursor);
+        ASSERT_UNUSED_VARIABLE(nRet);
+        return nRet;
     }
     return false;
 }
 
 bool CursorManager::ShowCursor(bool bShow)
 {
-    SDL_bool nRet = SDL_FALSE;
+    bool nRet = false;
     if (bShow) {
         nRet = SDL_ShowCursor();
     }
     else {
         nRet = SDL_HideCursor();
     }
-    ASSERT(nRet == SDL_TRUE);
-    return nRet == SDL_TRUE;
+    ASSERT(nRet);
+    return nRet;
 }
 
 CursorID CursorManager::GetCursorID() const
@@ -257,9 +257,9 @@ CursorID CursorManager::GetCursorID() const
 
 bool CursorManager::SetCursorByID(CursorID cursorId)
 {
-    SDL_bool nRet = SDL_SetCursor((SDL_Cursor*)cursorId);
-    ASSERT(nRet == SDL_TRUE);
-    return nRet == SDL_TRUE;
+    bool nRet = SDL_SetCursor((SDL_Cursor*)cursorId);
+    ASSERT(nRet);
+    return nRet;
 }
 
 } // namespace ui

@@ -96,7 +96,7 @@ bool FileDialog::BrowseForFolder(Window* pWindow, FilePath& folderPath, const Fi
     if (!defaultFolder.empty()) {
         default_location = defaultFolder.c_str();
     }
-    SDL_bool allow_many = SDL_FALSE;
+    bool allow_many = false;
     SDL_ShowOpenFolderDialog(callback, userdata, sdlWindow, default_location, allow_many);
 
     //运行消息循环，等待退出
@@ -133,7 +133,7 @@ bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<FilePath>& folder
     if (!defaultFolder.empty()) {
         default_location = defaultFolder.c_str();
     }
-    SDL_bool allow_many = SDL_FALSE;
+    bool allow_many = false;
     SDL_ShowOpenFolderDialog(callback, userdata, sdlWindow, default_location, allow_many);
 
     //运行消息循环，等待退出
@@ -178,7 +178,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
     if (!defaultFileName.empty()) {
         default_location = defaultFileName.c_str();
     }
-    SDL_bool allow_many = SDL_FALSE;
+    bool allow_many = false;
 
     struct FileTypeA
     {
@@ -262,7 +262,7 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
     if (!defaultFileName.empty()) {
         default_location = defaultFileName.c_str();
     }
-    SDL_bool allow_many = SDL_TRUE;
+    bool allow_many = true;
 
     struct FileTypeA
     {

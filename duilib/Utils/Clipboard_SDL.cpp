@@ -17,7 +17,7 @@ bool Clipboard::GetClipboardText(DStringW& text)
 bool Clipboard::GetClipboardText(DStringA& text)
 {
     text.clear();
-    if (SDL_HasClipboardText() == SDL_TRUE) {
+    if (SDL_HasClipboardText()) {
         char* szTemp = SDL_GetClipboardText();
         if (szTemp != nullptr) {
             text = szTemp;
@@ -35,8 +35,7 @@ bool Clipboard::SetClipboardText(const DStringW& text)
 
 bool Clipboard::SetClipboardText(const DStringA& text)
 {
-    SDL_bool nRet = SDL_SetClipboardText(text.c_str());
-    return nRet == SDL_TRUE;
+    return SDL_SetClipboardText(text.c_str());
 }
 
 } //namespace ui

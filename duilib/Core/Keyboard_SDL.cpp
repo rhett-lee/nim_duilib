@@ -61,9 +61,9 @@ bool Keyboard::IsKeyDown(VirtualKeyCode nVirtKey)
                 SDL_Scancode sdlScancode = SDL_GetScancodeFromKey(sdlKeycode, nullptr);
                 if (sdlScancode != SDL_SCANCODE_UNKNOWN) {
                     int numkeys = 0;
-                    const SDL_bool* keyboardState = SDL_GetKeyboardState(&numkeys);
+                    const bool* keyboardState = SDL_GetKeyboardState(&numkeys);
                     if ((keyboardState != nullptr) && (sdlKeycode < (SDL_Keycode)numkeys)) {
-                        bKeyDown = (keyboardState[sdlScancode] == SDL_TRUE) ? true : false;
+                        bKeyDown = keyboardState[sdlScancode];
                     }
                 }
             }            

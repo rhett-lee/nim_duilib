@@ -512,7 +512,7 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
         return false;
     }
     if (!SDL_WasInit(SDL_INIT_VIDEO)) {
-        if (SDL_Init(SDL_INIT_VIDEO) != SDL_TRUE) {
+        if (!SDL_Init(SDL_INIT_VIDEO)) {
             SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
             return false;
         }
@@ -541,7 +541,7 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
     }
 
     if (createAttributes.m_bSizeBoxDefined && !createAttributes.m_rcSizeBox.IsZero()) {
-        SDL_SetWindowResizable(m_sdlWindow, SDL_TRUE);
+        SDL_SetWindowResizable(m_sdlWindow, true);
     }
 
     m_sdlRenderer = CreateSdlRenderer();
@@ -563,7 +563,7 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
         bool bMaximizeBox = false;
         if (m_pOwner->OnNativeHasMinMaxBox(bMinimizeBox, bMaximizeBox)) {
             //如果有最大化按钮，设置可调整窗口大小的属性
-            SDL_SetWindowResizable(m_sdlWindow, SDL_TRUE);
+            SDL_SetWindowResizable(m_sdlWindow, true);
         }
     }
     return true;
@@ -583,7 +583,7 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
         return -1;
     }
     if (!SDL_WasInit(SDL_INIT_VIDEO)) {
-        if (SDL_Init(SDL_INIT_VIDEO) != SDL_TRUE) {
+        if (!SDL_Init(SDL_INIT_VIDEO)) {
             SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
             return -1;
         }
@@ -612,7 +612,7 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
     }
 
     if (createAttributes.m_bSizeBoxDefined && !createAttributes.m_rcSizeBox.IsZero()) {
-        SDL_SetWindowResizable(m_sdlWindow, SDL_TRUE);
+        SDL_SetWindowResizable(m_sdlWindow, true);
     }
 
     m_sdlRenderer = CreateSdlRenderer();
@@ -637,7 +637,7 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
         bool bMaximizeBox = false;
         if (m_pOwner->OnNativeHasMinMaxBox(bMinimizeBox, bMaximizeBox)) {
             //如果有最大化按钮，设置可调整窗口大小的属性
-            SDL_SetWindowResizable(m_sdlWindow, SDL_TRUE);
+            SDL_SetWindowResizable(m_sdlWindow, true);
         }
     }
 
@@ -649,7 +649,7 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
 
     //设置未模态对话框
     if (pParentWindow != nullptr) {
-        SDL_SetWindowModal(m_sdlWindow, SDL_TRUE);
+        SDL_SetWindowModal(m_sdlWindow, true);
     }
 
     //设置窗口居中
@@ -951,18 +951,18 @@ void NativeWindow_SDL::InitNativeWindow()
 
     //设置Hit Test函数
     if (!IsUseSystemCaption()) {
-        SDL_bool nRet = SDL_SetWindowHitTest(m_sdlWindow, NativeWindow_SDL_HitTest, this);
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+        bool nRet = SDL_SetWindowHitTest(m_sdlWindow, NativeWindow_SDL_HitTest, this);
+        ASSERT_UNUSED_VARIABLE(nRet);
     }
     else {
-        SDL_bool nRet = SDL_SetWindowHitTest(m_sdlWindow, nullptr, nullptr);
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+        bool nRet = SDL_SetWindowHitTest(m_sdlWindow, nullptr, nullptr);
+        ASSERT_UNUSED_VARIABLE(nRet);
     }
 
     if (!m_createParam.m_windowTitle.empty()) {
         std::string windowTitle = StringUtil::TToUTF8(m_createParam.m_windowTitle);
-        SDL_bool nRet = SDL_SetWindowTitle(m_sdlWindow, windowTitle.c_str());
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+        bool nRet = SDL_SetWindowTitle(m_sdlWindow, windowTitle.c_str());
+        ASSERT_UNUSED_VARIABLE(nRet);
     }    
 }
 
@@ -1044,8 +1044,8 @@ void NativeWindow_SDL::CloseWnd(int32_t nRet)
         sdlEvent.window.data1 = 0;
         sdlEvent.window.data2 = 0;
         sdlEvent.window.windowID = SDL_GetWindowID(m_sdlWindow);
-        SDL_bool nRetE = SDL_PushEvent(&sdlEvent);
-        ASSERT_UNUSED_VARIABLE(nRetE == SDL_TRUE);
+        bool nRetE = SDL_PushEvent(&sdlEvent);
+        ASSERT_UNUSED_VARIABLE(nRetE);
     }
 }
 
@@ -1120,8 +1120,8 @@ void NativeWindow_SDL::SetLayeredWindowOpacity(int32_t nAlpha)
         //支持不透明度设置
         opacity = 1.0f * nAlpha / 255.0f;
     }
-    SDL_bool nRet = SDL_SetWindowOpacity(m_sdlWindow, opacity);
-    ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+    bool nRet = SDL_SetWindowOpacity(m_sdlWindow, opacity);
+    ASSERT_UNUSED_VARIABLE(nRet);
 }
 
 uint8_t NativeWindow_SDL::GetLayeredWindowOpacity() const
@@ -1135,8 +1135,8 @@ void NativeWindow_SDL::SetUseSystemCaption(bool bUseSystemCaption)
     if (IsUseSystemCaption()) {
         //使用系统默认标题栏, 需要增加标题栏风格
         if (IsWindow()) {
-            SDL_bool nRet = SDL_SetWindowBordered(m_sdlWindow, SDL_TRUE);
-            ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+            bool nRet = SDL_SetWindowBordered(m_sdlWindow, true);
+            ASSERT_UNUSED_VARIABLE(nRet);
         }
         //关闭层窗口
         if (IsLayeredWindow()) {
@@ -1149,12 +1149,12 @@ void NativeWindow_SDL::SetUseSystemCaption(bool bUseSystemCaption)
     else {
         //需要提前设置这个属性，在无边框的情况下，可以保持调整窗口大小的功能
         SDL_SetHint("SDL_BORDERLESS_RESIZABLE_STYLE", "true"); 
-        SDL_bool nRet = SDL_SetWindowBordered(m_sdlWindow, SDL_FALSE);
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+        bool nRet = SDL_SetWindowBordered(m_sdlWindow, false);
+        ASSERT_UNUSED_VARIABLE(nRet);
 
         //设置HitTest函数
         nRet = SDL_SetWindowHitTest(m_sdlWindow, NativeWindow_SDL_HitTest, this);
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+        ASSERT_UNUSED_VARIABLE(nRet);
     }
     m_pOwner->OnNativeUseSystemCaptionBarChanged();
 }
@@ -1170,7 +1170,7 @@ bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
     if (m_sdlWindow == nullptr) {
         return false;
     }
-    SDL_bool nRet = SDL_FALSE;
+    bool nRet = false;
     switch(nCmdShow)
     {
     case kSW_HIDE:
@@ -1179,15 +1179,15 @@ bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
     case kSW_SHOW:
     case kSW_SHOW_NORMAL:
         {
-            const SDL_bool bActivate = SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, SDL_TRUE);
+            const bool bActivate = SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, true);
             if (!bActivate) {
                 SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, "true");
-                ASSERT(SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, SDL_TRUE) == SDL_TRUE);
+                ASSERT(SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, true) == true);
             }
             nRet = SDL_ShowWindow(m_sdlWindow);
             if (!bActivate) {
                 SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, "false");
-                ASSERT(SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, SDL_TRUE) == SDL_FALSE);
+                ASSERT(SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, true) == false);
             }
             //调整窗口的Z-Order，避免有时候窗口不显示的问题
             SDL_RaiseWindow(m_sdlWindow);
@@ -1196,15 +1196,15 @@ bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
     case kSW_SHOW_NA:
     case kSW_SHOW_NOACTIVATE:
         {
-            const SDL_bool bActivate = SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, SDL_TRUE);
+            const bool bActivate = SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, true);
             if (bActivate) {
                 SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, "false");
-                ASSERT(SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, SDL_TRUE) == SDL_FALSE);
+                ASSERT(SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, true) == false);
             }
             nRet = SDL_ShowWindow(m_sdlWindow);
             if (bActivate) {
                 SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, "true");
-                ASSERT(SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, SDL_TRUE) == SDL_TRUE);
+                ASSERT(SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_SHOWN, true) == true);
             }
         }
         break;
@@ -1226,7 +1226,7 @@ bool NativeWindow_SDL::ShowWindow(ShowWindowCommands nCmdShow)
         ASSERT(false);
         break;
     }
-    return nRet == SDL_TRUE;
+    return nRet;
 }
 
 void NativeWindow_SDL::ShowModalFake(NativeWindow_SDL* pParentWindow)
@@ -1245,11 +1245,11 @@ void NativeWindow_SDL::ShowModalFake(NativeWindow_SDL* pParentWindow)
     }
     ShowWindow(kSW_SHOW_NORMAL);
     if (pParentWindow != nullptr) {
-        SDL_bool nRet = SDL_SetWindowParent(m_sdlWindow, pParentWindow->m_sdlWindow);
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+        bool nRet = SDL_SetWindowParent(m_sdlWindow, pParentWindow->m_sdlWindow);
+        ASSERT_UNUSED_VARIABLE(nRet);
 
-        nRet = SDL_SetWindowModal(m_sdlWindow, SDL_TRUE);
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+        nRet = SDL_SetWindowModal(m_sdlWindow, true);
+        ASSERT_UNUSED_VARIABLE(nRet);
         m_bFakeModal = true;
     }    
 }
@@ -1257,11 +1257,11 @@ void NativeWindow_SDL::ShowModalFake(NativeWindow_SDL* pParentWindow)
 void NativeWindow_SDL::OnCloseModalFake(NativeWindow_SDL* pParentWindow)
 {
     if (IsFakeModal()) {
-        SDL_bool nRet = SDL_SetWindowModal(m_sdlWindow, SDL_FALSE);
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+        bool nRet = SDL_SetWindowModal(m_sdlWindow, false);
+        ASSERT_UNUSED_VARIABLE(nRet);
 
         nRet = SDL_SetWindowParent(m_sdlWindow, nullptr);
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+        ASSERT_UNUSED_VARIABLE(nRet);
 
         if (pParentWindow != nullptr) {
             pParentWindow->EnableWindow(true);
@@ -1330,8 +1330,8 @@ void NativeWindow_SDL::SetWindowAlwaysOnTop(bool bOnTop)
     if (!IsWindow()) {
         return;
     }
-    SDL_bool nRet = SDL_SetWindowAlwaysOnTop(m_sdlWindow, bOnTop ? SDL_TRUE : SDL_FALSE);
-    ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+    bool nRet = SDL_SetWindowAlwaysOnTop(m_sdlWindow, bOnTop ? true : false);
+    ASSERT_UNUSED_VARIABLE(nRet);
 }
 
 bool NativeWindow_SDL::IsWindowAlwaysOnTop() const
@@ -1350,14 +1350,14 @@ bool NativeWindow_SDL::SetWindowForeground()
     if (!IsWindow()) {
         return false;
     }
-    SDL_bool nRet = SDL_RaiseWindow(m_sdlWindow);
-    ASSERT(nRet == SDL_TRUE);
+    bool nRet = SDL_RaiseWindow(m_sdlWindow);
+    ASSERT(nRet);
 //#ifdef _DEBUG
 //    备注：这里有时候会出现条件不成立的情况，暂时未发现影响功能
 //    auto pKeyboardFocus = SDL_GetKeyboardFocus();
 //    ASSERT(pKeyboardFocus == m_sdlWindow);
 //#endif
-    return (nRet == SDL_TRUE) ? true : false;
+    return nRet;
 }
 
 bool NativeWindow_SDL::IsWindowForeground() const
@@ -1419,9 +1419,9 @@ LRESULT NativeWindow_SDL::PostMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
     sdlEvent.user.data1 = (void*)wParam;
     sdlEvent.user.data2 = (void*)lParam;
     sdlEvent.user.windowID = SDL_GetWindowID(m_sdlWindow);
-    SDL_bool nRet = SDL_PushEvent(&sdlEvent);
-    ASSERT(nRet == SDL_TRUE);
-    return nRet == SDL_TRUE ? 0 : -1;
+    bool nRet = SDL_PushEvent(&sdlEvent);
+    ASSERT(nRet);
+    return nRet ? 0 : -1;
 }
 
 void NativeWindow_SDL::PostQuitMsg(int32_t /*nExitCode*/)
@@ -1429,8 +1429,8 @@ void NativeWindow_SDL::PostQuitMsg(int32_t /*nExitCode*/)
     SDL_Event sdlEvent;
     sdlEvent.type = SDL_EVENT_QUIT;
     sdlEvent.common.timestamp = 0;
-    SDL_bool nRet = SDL_PushEvent(&sdlEvent);
-    ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+    bool nRet = SDL_PushEvent(&sdlEvent);
+    ASSERT_UNUSED_VARIABLE(nRet);
 }
 
 bool NativeWindow_SDL::EnterFullScreen()
@@ -1448,13 +1448,13 @@ bool NativeWindow_SDL::EnterFullScreen()
     }
     m_bFullScreen = true;
 
-    SDL_bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, SDL_TRUE);
-    ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+    bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, true);
+    ASSERT_UNUSED_VARIABLE(nRet);
 
     m_lastWindowFlags = ::SDL_GetWindowFlags(m_sdlWindow);
     if (m_lastWindowFlags & SDL_WINDOW_RESIZABLE) {
         //需要去掉可调整窗口大小的属性
-        SDL_SetWindowResizable(m_sdlWindow, SDL_FALSE);
+        SDL_SetWindowResizable(m_sdlWindow, false);
     }
     
     m_pOwner->OnNativeWindowEnterFullScreen();
@@ -1471,12 +1471,12 @@ bool NativeWindow_SDL::ExitFullScreen()
         return false;
     }
 
-    SDL_bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, SDL_FALSE);
-    ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+    bool nRet = SDL_SetWindowFullscreen(m_sdlWindow, false);
+    ASSERT_UNUSED_VARIABLE(nRet);
 
     if (m_lastWindowFlags & SDL_WINDOW_RESIZABLE) {
         //需要恢复可调整窗口大小的属性
-        SDL_SetWindowResizable(m_sdlWindow, SDL_TRUE);
+        SDL_SetWindowResizable(m_sdlWindow, true);
     }
 
     m_bFullScreen = false;
@@ -1534,16 +1534,16 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* /*pInsertAfterWindow
     bool bRet = true;
     ASSERT(IsWindow());
     if (!(uFlags & kSWP_NOMOVE)) {
-        SDL_bool nRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
-        ASSERT(nRet == SDL_TRUE);
-        if (nRet != SDL_TRUE) {
+        bool nRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
+        ASSERT_UNUSED_VARIABLE(nRet);
+        if (!nRet) {
             bRet = false;
         }
     }
     if (!(uFlags & kSWP_NOSIZE)) {
-        SDL_bool nRet = SDL_SetWindowSize(m_sdlWindow, cx, cy);
-        ASSERT(nRet == SDL_TRUE);
-        if (nRet != SDL_TRUE) {
+        bool nRet = SDL_SetWindowSize(m_sdlWindow, cx, cy);
+        ASSERT_UNUSED_VARIABLE(nRet);
+        if (!nRet) {
             bRet = false;
         }
     }
@@ -1571,16 +1571,15 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* /*pInsertAfterWindow
 bool NativeWindow_SDL::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t nHeight, bool /*bRepaint*/)
 {
     ASSERT(IsWindow());
-    SDL_bool nRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
-    ASSERT(nRet == SDL_TRUE);
-    bool bRet = (nRet == SDL_TRUE) ? true : false;
-    nRet = SDL_SetWindowSize(m_sdlWindow, nWidth, nHeight);
-    ASSERT(nRet == SDL_TRUE);
-    if (nRet != SDL_TRUE) {
+    bool bRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
+    ASSERT(bRet);
+    bool nRet = SDL_SetWindowSize(m_sdlWindow, nWidth, nHeight);
+    ASSERT(nRet);
+    if (!nRet) {
         bRet = false;
-    }
+    }    
     SDL_SyncWindow(m_sdlWindow);
-    return bRet;
+    return nRet;
 }
 
 void NativeWindow_SDL::SetText(const DString& strText)
@@ -1588,8 +1587,8 @@ void NativeWindow_SDL::SetText(const DString& strText)
     ASSERT(IsWindow());
     //转为UTF-8编码
     DStringA utf8Text = StringUtil::TToUTF8(strText);
-    SDL_bool nRet = SDL_SetWindowTitle(m_sdlWindow, utf8Text.c_str());
-    ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+    bool nRet = SDL_SetWindowTitle(m_sdlWindow, utf8Text.c_str());
+    ASSERT_UNUSED_VARIABLE(nRet);
 }
 
 void NativeWindow_SDL::SetWindowMaximumSize(const UiSize& szMaxWindow)
@@ -1636,9 +1635,9 @@ void NativeWindow_SDL::SetCapture()
 {
     //ASSERT(SDL_GetMouseFocus() == m_sdlWindow);
     if (SDL_GetMouseFocus() == m_sdlWindow) {
-        SDL_bool nRet = SDL_CaptureMouse(SDL_TRUE);
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
-        if (nRet == SDL_TRUE) {
+        bool nRet = SDL_CaptureMouse(true);
+        ASSERT_UNUSED_VARIABLE(nRet);
+        if (nRet) {
             m_bMouseCapture = true;
         }
     }
@@ -1649,8 +1648,8 @@ void NativeWindow_SDL::ReleaseCapture()
     if (m_bMouseCapture) {
         ASSERT(SDL_GetMouseFocus() == m_sdlWindow);
         if (SDL_GetMouseFocus() == m_sdlWindow) {
-            SDL_bool nRet = SDL_CaptureMouse(SDL_FALSE);
-            ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+            bool nRet = SDL_CaptureMouse(false);
+            ASSERT_UNUSED_VARIABLE(nRet);
         }
         m_bMouseCapture = false;
     }
@@ -1677,8 +1676,8 @@ void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
         sdlEvent.window.data1 = 0;
         sdlEvent.window.data2 = 0;
         sdlEvent.window.windowID = SDL_GetWindowID(m_sdlWindow);
-        SDL_bool nRet = SDL_PushEvent(&sdlEvent);
-        ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+        bool nRet = SDL_PushEvent(&sdlEvent);
+        ASSERT_UNUSED_VARIABLE(nRet);
     }
 #endif
 }
@@ -1689,9 +1688,9 @@ void NativeWindow_SDL::GetClientRect(UiRect& rcClient) const
     ASSERT(IsWindow());
     int nWidth = 0;
     int nHeight = 0;
-    SDL_bool nRet = SDL_GetWindowSize(m_sdlWindow, &nWidth, &nHeight);
-    ASSERT(nRet == SDL_TRUE);
-    if (nRet == SDL_TRUE) {
+    bool nRet = SDL_GetWindowSize(m_sdlWindow, &nWidth, &nHeight);
+    ASSERT(nRet);
+    if (nRet) {
         rcClient.left = 0;
         rcClient.top = 0;
         rcClient.right = rcClient.left + nWidth;
@@ -1773,9 +1772,9 @@ void NativeWindow_SDL::ScreenToClient(UiPoint& pt) const
 #endif
     int nXPos = 0;
     int nYPos = 0;
-    SDL_bool nRet = SDL_GetWindowPosition(m_sdlWindow, &nXPos, &nYPos);
-    ASSERT(nRet == SDL_TRUE);
-    if (nRet == SDL_TRUE) {
+    bool nRet = SDL_GetWindowPosition(m_sdlWindow, &nXPos, &nYPos);
+    ASSERT(nRet);
+    if (nRet) {
         pt.x -= nXPos;
         pt.y -= nYPos;
     }
@@ -1796,9 +1795,9 @@ void NativeWindow_SDL::ClientToScreen(UiPoint& pt) const
 #endif
     int nXPos = 0;
     int nYPos = 0;
-    SDL_bool nRet = SDL_GetWindowPosition(m_sdlWindow, &nXPos, &nYPos);
-    ASSERT(nRet == SDL_TRUE);
-    if (nRet == SDL_TRUE) {
+    bool nRet = SDL_GetWindowPosition(m_sdlWindow, &nXPos, &nYPos);
+    ASSERT(nRet);
+    if (nRet) {
         pt.x += nXPos;
         pt.y += nYPos;
     }
@@ -1845,9 +1844,9 @@ bool NativeWindow_SDL::GetMonitorRect(SDL_Window* sdlWindow, UiRect& rcMonitor, 
     }
 
     SDL_Rect rect = {0, };
-    SDL_bool nRet = SDL_GetDisplayBounds(displayID, &rect);
-    ASSERT(nRet == SDL_TRUE);
-    if (nRet == SDL_TRUE) {
+    bool nRet = SDL_GetDisplayBounds(displayID, &rect);
+    ASSERT(nRet);
+    if (nRet) {
         rcMonitor.left = rect.x;
         rcMonitor.top = rect.y;
         rcMonitor.right = rcMonitor.left + rect.w;
@@ -1855,8 +1854,8 @@ bool NativeWindow_SDL::GetMonitorRect(SDL_Window* sdlWindow, UiRect& rcMonitor, 
     }
 
     nRet = SDL_GetDisplayUsableBounds(displayID, &rect);
-    ASSERT(nRet == SDL_TRUE);
-    if (nRet == SDL_TRUE) {
+    ASSERT(nRet);
+    if (nRet) {
         rcWork.left = rect.x;
         rcWork.top = rect.y;
         rcWork.right = rcWork.left + rect.w;
@@ -1875,7 +1874,7 @@ bool NativeWindow_SDL::GetPrimaryMonitorWorkRect(UiRect& rcWork)
 {
     rcWork.Clear();
     if (!SDL_WasInit(SDL_INIT_VIDEO)) {
-        if (SDL_Init(SDL_INIT_VIDEO) != SDL_TRUE) {
+        if (!SDL_Init(SDL_INIT_VIDEO)) {
             SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
             return false;
         }
@@ -1887,9 +1886,9 @@ bool NativeWindow_SDL::GetPrimaryMonitorWorkRect(UiRect& rcWork)
         return false;
     }
     SDL_Rect rect = { 0, };
-    SDL_bool nRet = SDL_GetDisplayUsableBounds(displayID, &rect);
-    ASSERT(nRet == SDL_TRUE);
-    if (nRet == SDL_TRUE) {
+    bool nRet = SDL_GetDisplayUsableBounds(displayID, &rect);
+    ASSERT(nRet);
+    if (nRet) {
         rcWork.left = rect.x;
         rcWork.top = rect.y;
         rcWork.right = rcWork.left + rect.w;
@@ -1912,9 +1911,9 @@ bool NativeWindow_SDL::GetMonitorWorkRect(const UiPoint& pt, UiRect& rcWork) con
     }
 
     SDL_Rect rect = { 0, };
-    SDL_bool nRet = SDL_GetDisplayUsableBounds(displayID, &rect);
-    ASSERT(nRet == SDL_TRUE);
-    if (nRet == SDL_TRUE) {
+    bool nRet = SDL_GetDisplayUsableBounds(displayID, &rect);
+    ASSERT(nRet);
+    if (nRet) {
         rcWork.left = rect.x;
         rcWork.top = rect.y;
         rcWork.right = rcWork.left + rect.w;
@@ -2042,10 +2041,10 @@ bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData, c
         return false;
     }
 
-    SDL_bool nRet = SDL_SetWindowIcon(m_sdlWindow, cursorSurface);
+    bool nRet = SDL_SetWindowIcon(m_sdlWindow, cursorSurface);
     SDL_DestroySurface(cursorSurface);
-    ASSERT(nRet == SDL_TRUE);
-    return nRet == SDL_TRUE;
+    ASSERT(nRet);
+    return nRet;
 }
 
 bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)

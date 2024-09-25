@@ -20,13 +20,13 @@ MessageLoop_SDL::~MessageLoop_SDL()
 int32_t MessageLoop_SDL::Run()
 {
     //初始化SDL
-    if (SDL_Init(SDL_INIT_VIDEO) != SDL_TRUE) {
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
         return -1;
     }
 
     //进入消息循环
-    SDL_bool bKeepGoing = SDL_TRUE;
+    bool bKeepGoing = true;
     SDL_Event sdlEvent;
     memset(&sdlEvent, 0, sizeof(sdlEvent));
     /* run the program until told to stop. */
@@ -36,7 +36,7 @@ int32_t MessageLoop_SDL::Run()
         while (bKeepGoing && SDL_WaitEvent(&sdlEvent)) {
             switch (sdlEvent.type) {
             case SDL_EVENT_QUIT:  /* triggers on last window close and other things. End the program. */
-                bKeepGoing = SDL_FALSE;
+                bKeepGoing = false;
                 break;
             default:
                 {
@@ -79,7 +79,7 @@ void MessageLoop_SDL::RunDoModal(NativeWindow_SDL& nativeWindow, bool bCloseByEs
         return;
     }
 
-    SDL_bool bKeepGoing = SDL_TRUE;
+    bool bKeepGoing = true;
     SDL_Event sdlEvent;
     memset(&sdlEvent, 0, sizeof(sdlEvent));
     /* run the program until told to stop. */
@@ -89,7 +89,7 @@ void MessageLoop_SDL::RunDoModal(NativeWindow_SDL& nativeWindow, bool bCloseByEs
         while (bKeepGoing && SDL_WaitEvent(&sdlEvent)) {
             switch (sdlEvent.type) {
             case SDL_EVENT_QUIT:  /* triggers on last window close and other things. End the program. */
-                bKeepGoing = SDL_FALSE;
+                bKeepGoing = false;
                 //重新放入一个Quit消息，让主消息循环也退出，避免该事件丢失
                 nativeWindow.PostQuitMsg(0);
                 break;
@@ -114,7 +114,7 @@ void MessageLoop_SDL::RunDoModal(NativeWindow_SDL& nativeWindow, bool bCloseByEs
 
                     if ((sdlEvent.type == SDL_EVENT_WINDOW_DESTROYED) && (windowID == currentWindowId)) {
                         //窗口已经退出，退出消息循环
-                        bKeepGoing = SDL_FALSE;
+                        bKeepGoing = false;
                     }
                     else if ((bCloseByEsc || bCloseByEnter) && (sdlEvent.type == SDL_EVENT_KEY_DOWN) && (windowID == currentWindowId)) {
                         VirtualKeyCode vkCode = Keycode::GetVirtualKeyCode(sdlEvent.key.key);
@@ -142,7 +142,7 @@ void MessageLoop_SDL::RunUserLoop(bool& bTerminate)
     if (bTerminate) {
         return;
     }
-    SDL_bool bKeepGoing = SDL_TRUE;
+    bool bKeepGoing = true;
     SDL_Event sdlEvent;
     memset(&sdlEvent, 0, sizeof(sdlEvent));
     /* run the program until told to stop. */
@@ -152,7 +152,7 @@ void MessageLoop_SDL::RunUserLoop(bool& bTerminate)
         while (bKeepGoing && SDL_WaitEvent(&sdlEvent)) {
             switch (sdlEvent.type) {
             case SDL_EVENT_QUIT:  /* triggers on last window close and other things. End the program. */
-                bKeepGoing = SDL_FALSE;
+                bKeepGoing = false;
                 //重新放入一个Quit消息，让主消息循环也退出，避免该事件丢失
                 SDL_Event quitEvent;
                 quitEvent.type = SDL_EVENT_QUIT;
@@ -180,7 +180,7 @@ void MessageLoop_SDL::RunUserLoop(bool& bTerminate)
 
                     if (bTerminate) {
                         //已经标记退出，退出该消息循环
-                        bKeepGoing = SDL_FALSE;
+                        bKeepGoing = false;
                     }
                 }
                 break;
@@ -210,9 +210,9 @@ bool MessageLoop_SDL::PostUserEvent(uint32_t msgId, WPARAM wParam, LPARAM lParam
     sdlEvent.user.data1 = (void*)wParam;
     sdlEvent.user.data2 = (void*)lParam;
     sdlEvent.user.windowID = 0;
-    SDL_bool nRet = SDL_PushEvent(&sdlEvent);
-    ASSERT(nRet == SDL_TRUE);
-    return nRet == SDL_TRUE;
+    bool nRet = SDL_PushEvent(&sdlEvent);
+    ASSERT(nRet);
+    return nRet;
 }
 
 void MessageLoop_SDL::PostNoneEvent()
@@ -227,8 +227,8 @@ void MessageLoop_SDL::PostNoneEvent()
     sdlEvent.user.data1 = 0;
     sdlEvent.user.data2 = 0;
     sdlEvent.user.windowID = 0;
-    SDL_bool nRet = SDL_PushEvent(&sdlEvent);
-    ASSERT_UNUSED_VARIABLE(nRet == SDL_TRUE);
+    bool nRet = SDL_PushEvent(&sdlEvent);
+    ASSERT_UNUSED_VARIABLE(nRet);
 }
 
 void MessageLoop_SDL::AddUserMessageCallback(uint32_t msgId, const SDLUserMessageCallback& callback)
