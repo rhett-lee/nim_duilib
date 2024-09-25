@@ -518,6 +518,10 @@ private:
     */
     void SetCreateWindowProperties(SDL_PropertiesID props, NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes);
 
+    /** 创建SDL窗口关联的Render
+    */
+    SDL_Renderer* CreateSdlRenderer() const;
+
 private:
     /** 设置窗口ID与窗口指针的关系
     */

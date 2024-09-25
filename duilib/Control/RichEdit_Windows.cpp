@@ -780,7 +780,7 @@ UiFont RichEdit::GetFontInfo() const
     }
     ASSERT(cf.dwMask & CFM_FACE);
     if (cf.dwMask & CFM_FACE) {
-        uiFont.m_fontName = cf.szFaceName;
+        uiFont.m_fontName = StringUtil::UTF16ToT(cf.szFaceName);
     }
     return uiFont;
 }

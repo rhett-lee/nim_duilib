@@ -20,34 +20,6 @@ DString BasicForm::GetSkinFile()
 
 void BasicForm::OnInitWindow()
 {
-    ui::Button* pButton = (ui::Button*)FindControl(_T("test"));
-    pButton->AttachClick([this](const ui::EventArgs& ){
-        ui::RichEdit* pEdit = (ui::RichEdit*)FindControl(_T("RichEdit"));
-        pEdit->SetMultiLine(!pEdit->IsMultiLine());
-        //修改字体
-        ui::UiFont fontInfo = pEdit->GetFontInfo();
-        fontInfo.m_fontName = _T("宋体");
-        pEdit->SetFontInfo(fontInfo);
-
-        return true;
-        });
-
-    std::vector<uint8_t> fileData;
-    ui::FileUtil::ReadFileData(ui::FilePath(L"D:\\1.h"), fileData);
-    fileData.push_back(0);
-    fileData.push_back(0);
-
-    DString text;
-#ifdef DUILIB_UNICODE    
-    text = ui::StringUtil::UTF8ToUTF16((const char*)fileData.data());
-#else
-    text = (const char*)fileData.data();
-#endif
-    ui::RichEdit* pEdit = (ui::RichEdit*)FindControl(_T("RichEdit"));
-    pEdit->SetText(_T("1 \tTEST\r\n2 测试看看\r\n3 第三行\n4"));
-
-    //pEdit->SetSelNone();
-
     BaseClass::OnInitWindow();
 
 }

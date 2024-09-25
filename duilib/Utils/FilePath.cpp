@@ -138,7 +138,7 @@ DString FilePath::ToString() const
         return DStringA();
     }
 #ifdef DUILIB_BUILD_FOR_WIN
-    StringUtil::UTF16ToUTF8(m_filePath.native());
+    return StringUtil::UTF16ToUTF8(m_filePath.native());
 #else
     return m_filePath.native();
 #endif

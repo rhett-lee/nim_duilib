@@ -412,11 +412,10 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         {
             //回调关闭事件
             bHandled = false;
-            pOwner->OnNativeWindowCloseMsg(0, NativeMsg(SDL_EVENT_WINDOW_CLOSE_REQUESTED, 0, 0), bHandled);
+            pOwner->OnNativeWindowCloseMsg((uint32_t)m_closeParam, NativeMsg(SDL_EVENT_WINDOW_CLOSE_REQUESTED, 0, 0), bHandled);
             if (bHandled && !ownerFlag.expired()) {
                 //拦截了关闭事件, 恢复关闭前的状态
                 m_bCloseing = false;
-                m_closeParam = kWindowCloseNormal;
             }
             else if(!ownerFlag.expired()) {
                 //PreClose事件
@@ -544,15 +543,8 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
     if (createAttributes.m_bSizeBoxDefined && !createAttributes.m_rcSizeBox.IsZero()) {
         SDL_SetWindowResizable(m_sdlWindow, SDL_TRUE);
     }
-    //备注：当前支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："direct3d11", "opengl"
-    m_sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "direct3d11");
-    if (m_sdlRenderer == nullptr) {
-        m_sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "opengl");
-    }
-    if (m_sdlRenderer == nullptr) {
-        //如果创建失败，则使用默认的Render引擎
-        m_sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
-    }    
+
+    m_sdlRenderer = CreateSdlRenderer();
     ASSERT(m_sdlRenderer != nullptr);
     if (m_sdlRenderer == nullptr) {
         SDL_DestroyWindow(m_sdlWindow);
@@ -623,7 +615,7 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
         SDL_SetWindowResizable(m_sdlWindow, SDL_TRUE);
     }
 
-    m_sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
+    m_sdlRenderer = CreateSdlRenderer();
     ASSERT(m_sdlRenderer != nullptr);
     if (m_sdlRenderer == nullptr) {
         SDL_DestroyWindow(m_sdlWindow);
@@ -639,7 +631,7 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
 
     if (m_pOwner != nullptr) {
         bool bHandled = false;
-        m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(0, 0, 0), bHandled);
+        m_pOwner->OnNativeCreateWndMsg(true, NativeMsg(0, 0, 0), bHandled);
 
         bool bMinimizeBox = false;
         bool bMaximizeBox = false;
@@ -676,6 +668,25 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
 
     m_bDoModal = false;
     return m_closeParam;
+}
+
+SDL_Renderer* NativeWindow_SDL::CreateSdlRenderer() const
+{
+    ASSERT(m_sdlWindow != nullptr);
+    if (m_sdlWindow == nullptr) {
+        return nullptr;
+    }
+    //备注：当前支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："direct3d11", "opengl"
+    SDL_Renderer* sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "direct3d11");
+    if (sdlRenderer == nullptr) {
+        sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "opengl");
+    }
+    if (sdlRenderer == nullptr) {
+        //如果创建失败，则使用默认的Render引擎
+        sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
+    }
+    ASSERT(sdlRenderer != nullptr);
+    return sdlRenderer;
 }
 
 void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes)
