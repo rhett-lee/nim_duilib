@@ -26,6 +26,7 @@ endif()
 
 add_definitions(-DSK_GANESH -DSK_GL -DSK_RELEASE)
 
+#设置include目录
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
 get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
 get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
@@ -34,6 +35,11 @@ include_directories(${DUILIB_SRC_ROOT_DIR})
 include_directories(${SKIA_SRC_ROOT_DIR})
 include_directories("${SDL_SRC_ROOT_DIR}/include")
 
+#设置库文件的输出目录
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/libs/")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/libs/")
+
+#添加源代码文件
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR} DIR_LIB_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Animation ANIMATION_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Box BOX_SRC)
@@ -60,6 +66,17 @@ set(UNZIP_SRCS
     ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/contrib/minizip/unzip.c
 )
 
+set(SKIA_HDRS
+    ${SKIA_SRC_ROOT_DIR}/tools/window/DisplayParams.h
+    ${SKIA_SRC_ROOT_DIR}/tools/window/RasterWindowContext.h
+    ${SKIA_SRC_ROOT_DIR}/tools/window/WindowContext.h
+    ${SKIA_SRC_ROOT_DIR}/tools/window/GLWindowContext.h
+)
+
+set(SKIA_SRCS
+    ${SKIA_SRC_ROOT_DIR}/tools/window/WindowContext.cpp
+    ${SKIA_SRC_ROOT_DIR}/tools/window/GLWindowContext.cpp
+)
 
 add_library(duilib
     	    ${DIR_LIB_SRC}
@@ -78,4 +95,6 @@ add_library(duilib
     	    ${XML_SRC}
     	    ${UNZIP_HDRS}
     	    ${UNZIP_SRCS}
+    	    ${SKIA_HDRS}
+    	    ${SKIA_SRCS}
            )

@@ -21,6 +21,11 @@ if(MSVC)
     add_definitions(-DUNICODE -D_UNICODE)
 endif()
 
+#设置库文件的输出目录
+get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/libs/")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/libs/")
+
 include_directories(${CMAKE_CURRENT_LIST_DIR}/../zlib)
 
 set(CXIMAGE_HDRS
@@ -51,4 +56,4 @@ set(CXIMAGE_SRCS
     xmemfile.cpp
 )
 
-add_library(cximage STATIC ${CXIMAGE_SRCS} ${CXIMAGE_HDRS})
+add_library(duilib-cximage STATIC ${CXIMAGE_SRCS} ${CXIMAGE_HDRS})

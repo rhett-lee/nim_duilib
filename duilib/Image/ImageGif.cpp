@@ -13,7 +13,8 @@ ImageGif::ImageGif():
     m_bPlayingGif(false),
     m_bAutoPlay(true),
     m_nCycledCount(0),
-    m_nMaxPlayCount(-1)
+    m_nMaxPlayCount(-1),
+    m_nVirtualEventGifStop(1)
 {
 }
 

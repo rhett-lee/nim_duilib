@@ -18,6 +18,11 @@ if(MSVC)
     add_definitions(-DUNICODE -D_UNICODE)
 endif()
 
+#设置库文件的输出目录
+get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/libs/")
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/libs/")
+
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/src/dec DEC_SRC)
@@ -27,4 +32,4 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/src/enc ENC_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/src/utils UTILS_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/src/webp WEBP_SRC)
 
-add_library(webp STATIC ${DEC_SRC} ${DEMUX_SRC} ${DSP_SRC} ${ENC_SRC} ${UTILS_SRC} ${WEBP_SRC})
+add_library(duilib-webp STATIC ${DEC_SRC} ${DEMUX_SRC} ${DSP_SRC} ${ENC_SRC} ${UTILS_SRC} ${WEBP_SRC})

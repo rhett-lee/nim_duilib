@@ -35,4 +35,4 @@ link_directories("${SKIA_SRC_ROOT_DIR}/out/LLVM.x64.Release/")
 link_directories("${SDL_SRC_ROOT_DIR}/lib64/")
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-target_link_libraries(${PROJECT_NAME} z png webp cximage duilib SDL3 skia)
+target_link_libraries(${PROJECT_NAME} duilib SDL3 skia duilib-cximage duilib-webp duilib-png duilib-zlib freetype)
