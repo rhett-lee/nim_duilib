@@ -5,25 +5,41 @@ namespace ui
 {
 
 FilePath::FilePath(const std::string& filePath) :
+#ifdef DUILIB_BUILD_FOR_WIN
     m_filePath(StringUtil::UTF8ToUTF16(filePath)),
+#else
+    m_filePath(filePath),
+#endif
     m_bLexicallyNormal(false)
 {
 }
 
 FilePath::FilePath(const std::wstring& filePath) :
+#ifdef DUILIB_BUILD_FOR_WIN
     m_filePath(filePath),
+#else
+    m_filePath(StringUtil::UTF16ToUTF8(filePath)),
+#endif
     m_bLexicallyNormal(false)
 {
 }
 
 FilePath::FilePath(const std::string& filePath, bool bLexicallyNormal):
+#ifdef DUILIB_BUILD_FOR_WIN
     m_filePath(StringUtil::UTF8ToUTF16(filePath)),
+#else
+    m_filePath(filePath),
+#endif
     m_bLexicallyNormal(bLexicallyNormal)
 {
 }
 
 FilePath::FilePath(const std::wstring& filePath, bool bLexicallyNormal) :
+#ifdef DUILIB_BUILD_FOR_WIN
     m_filePath(filePath),
+#else
+    m_filePath(StringUtil::UTF16ToUTF8(filePath)),
+#endif
     m_bLexicallyNormal(bLexicallyNormal)
 {
 }
@@ -132,17 +148,20 @@ const DString& FilePath::ToString() const
     return m_filePath.native();
 }
 #else
+#ifdef DUILIB_BUILD_FOR_WIN
 DString FilePath::ToString() const
 {
     if (m_filePath.empty()) {
         return DStringA();
     }
-#ifdef DUILIB_BUILD_FOR_WIN
     return StringUtil::UTF16ToUTF8(m_filePath.native());
-#else
-    return m_filePath.native();
-#endif
 }
+#else
+const DString& FilePath::ToString() const
+{
+    return m_filePath.native();
+}
+#endif
 #endif
 
 DStringW FilePath::ToStringW() const
@@ -231,8 +250,12 @@ FilePath& FilePath::operator = (const DString& rightPath)
 #ifdef DUILIB_UNICODE
     m_filePath = rightPath;
 #else
+#ifdef DUILIB_BUILD_FOR_WIN
     DStringW rightPathW = StringUtil::UTF8ToUTF16(rightPath);
     m_filePath = rightPathW;
+#else
+    m_filePath = rightPath;
+#endif
 #endif
     m_bLexicallyNormal = false;
     return *this;
@@ -260,8 +283,12 @@ FilePath& FilePath::operator += (const DString& rightPath)
 #ifdef DUILIB_UNICODE
     m_filePath += rightPath;
 #else
+#ifdef DUILIB_BUILD_FOR_WIN
     DStringW rightPathW = StringUtil::UTF8ToUTF16(rightPath);
     m_filePath += rightPathW;
+#else
+    m_filePath += rightPath;
+#endif
 #endif
     m_bLexicallyNormal = false;
     return *this;

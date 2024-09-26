@@ -20,7 +20,11 @@ FilePath FilePathUtil::NormalizeFilePath(const FilePath& filePath)
     DStringA nativePath;
 #endif
     try {
+#ifdef DUILIB_BUILD_FOR_WIN
         std::filesystem::path file_path(filePath.ToStringW());
+#else
+        std::filesystem::path file_path(filePath.ToStringA());
+#endif
         nativePath = file_path.lexically_normal().native();
     }
     catch (...) {
@@ -37,7 +41,11 @@ DString FilePathUtil::NormalizeFilePath(const DString& filePath)
 #ifdef DUILIB_UNICODE
         std::filesystem::path file_path(filePath);
 #else
+#ifdef DUILIB_BUILD_FOR_WIN
         std::filesystem::path file_path(StringUtil::UTF8ToUTF16(filePath));
+#else
+        std::filesystem::path file_path(filePath);
+#endif
 #endif
         nativePath = file_path.lexically_normal().native();
     }

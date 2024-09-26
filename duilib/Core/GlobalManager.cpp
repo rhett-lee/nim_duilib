@@ -318,7 +318,13 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
     }
 
     languageList.clear();
+#ifdef DUILIB_BUILD_FOR_WIN
+    //Windows: 路径字符串用的是wchar_t，UTF16
     const std::filesystem::path path{ languagePath.ToStringW()};
+#else
+    //Windows: 路径字符串用的是char，UTF8
+    const std::filesystem::path path{ languagePath.ToStringA() };
+#endif
     if (path.is_absolute()) {
         //绝对路径，语言文件在本地磁盘中
         for (auto const& dir_entry : std::filesystem::directory_iterator{ path }) {
