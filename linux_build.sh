@@ -36,7 +36,7 @@ make
 cd "$SRC_ROOT_DIR/"
 
 #编译duilib
-cmake -S "$SRC_ROOT_DIR/duilib/" -B "$SRC_ROOT_DIR/build_temp/duilib"
+cmake -S "$SRC_ROOT_DIR/duilib/" -B "$SRC_ROOT_DIR/build_temp/duilib" -DCMAKE_BUILD_TYPE=Debug
 cd "$SRC_ROOT_DIR/build_temp/duilib"
 make -j 4
 cd "$SRC_ROOT_DIR/"
