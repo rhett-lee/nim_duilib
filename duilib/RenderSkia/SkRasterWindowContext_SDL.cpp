@@ -145,7 +145,12 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
     }
 
     // 渲染到窗口（IRender -> 绘制到 SDL Render -> 更新到 SDL 窗口）
-    SDL_Surface* sdlSurface = SDL_CreateSurface(width(), height(), SDL_PIXELFORMAT_BGRA32);
+#ifdef DUILIB_BUILD_FOR_WIN
+    SDL_PixelFormat format = SDL_PIXELFORMAT_BGRA32;
+#else
+    SDL_PixelFormat format = SDL_PIXELFORMAT_RGBX32;
+#endif
+    SDL_Surface* sdlSurface = SDL_CreateSurface(width(), height(), format);
     ASSERT(sdlSurface != nullptr);
     if (sdlSurface == nullptr) {
         return false;
