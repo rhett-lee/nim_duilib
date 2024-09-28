@@ -229,6 +229,13 @@ void FilePath::NormalizeFilePath()
     try {
         //只对绝对路径进行规则化处理，相对路径在规则化的时候，会有错误的结果
         if (m_filePath.is_absolute()) {
+#ifndef DUILIB_BUILD_FOR_WIN
+            if (m_filePath.native().find(_T('\\')) != std::filesystem::path::string_type::npos) {
+                std::filesystem::path::string_type oldValue = m_filePath.native();
+                StringUtil::ReplaceAll(_T("\\"), _T("/"), oldValue);
+                m_filePath = oldValue;
+            }
+#endif
             m_filePath = m_filePath.lexically_normal();
             m_bLexicallyNormal = true;
         }

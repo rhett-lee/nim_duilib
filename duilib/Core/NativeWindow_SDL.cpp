@@ -503,6 +503,16 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
                                  const WindowCreateParam& createParam,
                                  const WindowCreateAttributes& createAttributes)
 {
+    //获取DiplayMode，避免在底层出现错误时，出现卡死现象
+    {
+        SDL_DisplayID id = SDL_GetPrimaryDisplay();
+        const SDL_DisplayMode* mode1 = SDL_GetDesktopDisplayMode(id);
+        const SDL_DisplayMode* mode2 = SDL_GetCurrentDisplayMode(id);
+        if (mode1 == mode2) {
+            id = 0;
+        }
+    }
+
     ASSERT(m_sdlWindow == nullptr);
     if (m_sdlWindow != nullptr) {
         return false;
@@ -676,6 +686,7 @@ SDL_Renderer* NativeWindow_SDL::CreateSdlRenderer() const
     if (m_sdlWindow == nullptr) {
         return nullptr;
     }
+#ifdef DUILIB_BUILD_FOR_WIN
     //备注：当前支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："direct3d11", "opengl"
     SDL_Renderer* sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "direct3d11");
     if (sdlRenderer == nullptr) {
@@ -685,6 +696,14 @@ SDL_Renderer* NativeWindow_SDL::CreateSdlRenderer() const
         //如果创建失败，则使用默认的Render引擎
         sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
     }
+#else
+    SDL_Renderer* sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "opengl");
+    if (sdlRenderer == nullptr) {
+        //如果创建失败，则使用默认的Render引擎
+        sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
+    }
+#endif
+
     ASSERT(sdlRenderer != nullptr);
     return sdlRenderer;
 }

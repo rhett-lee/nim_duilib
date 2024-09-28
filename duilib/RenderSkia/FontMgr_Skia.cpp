@@ -10,6 +10,8 @@
 
 #if defined(SK_BUILD_FOR_WIN)
     #include "include/ports/SkTypeface_win.h"
+#else
+    #include "include/ports/SkFontMgr_fontconfig.h"
 #endif
 
 #pragma warning (pop)
@@ -177,9 +179,11 @@ FontMgr_Skia::FontMgr_Skia()
 
     //创建Skia的字体管理器对象，进程内唯一
 #if defined(SK_BUILD_FOR_WIN)
+    //Windows系统
     m_impl->m_pSkFontMgr = SkFontMgr_New_DirectWrite();
 #else
-    m_impl->m_pSkFontMgr = nullptr;
+    //Linux系统
+    m_impl->m_pSkFontMgr = SkFontMgr_New_FontConfig(nullptr);
 #endif
 
     ASSERT(m_impl->m_pSkFontMgr != nullptr);

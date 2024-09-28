@@ -1363,7 +1363,9 @@ int32_t StringUtil::StringCopy(wchar_t* dest, size_t destSize, const wchar_t* sr
 #ifdef DUILIB_BUILD_FOR_WIN
     return ::wcscpy_s(dest, destSize, src);
 #else
-    ::wcsncpy(dest, src, std::min((size_t)wcslen(src), destSize));
+    size_t nLen = std::min((size_t)wcslen(src), destSize);
+    ::wcsncpy(dest, src, nLen);
+    dest[nLen] = L'\0';
     return 0;
 #endif
 }
@@ -1376,7 +1378,9 @@ int32_t StringUtil::StringNCopy(wchar_t* dest, size_t destSize, const wchar_t* s
 #ifdef DUILIB_BUILD_FOR_WIN
     return ::wcsncpy_s(dest, destSize, src, srcSize);
 #else
-    ::wcsncpy(dest, src, std::min(srcSize, destSize));
+    size_t nLen = std::min(srcSize, destSize);
+    ::wcsncpy(dest, src, nLen);
+    dest[nLen] = L'\0';
     return 0;
 #endif
 }
@@ -1389,7 +1393,9 @@ int32_t StringUtil::StringCopy(char* dest, size_t destSize, const char* src)
 #ifdef DUILIB_BUILD_FOR_WIN
     return ::strcpy_s(dest, destSize, src);
 #else
-    ::strncpy(dest, src, std::min(destSize, strlen(src)));
+    size_t nLen = std::min(destSize, strlen(src));
+    ::strncpy(dest, src, nLen);
+    dest[nLen] = '\0';
     return 0;
 #endif
 }
@@ -1402,7 +1408,9 @@ int32_t StringUtil::StringNCopy(char* dest, size_t destSize, const char* src, si
 #ifdef DUILIB_BUILD_FOR_WIN
     return ::strncpy_s(dest, destSize, src, srcSize);
 #else
-    ::strncpy(dest, src, std::min(srcSize, destSize));
+    size_t nLen = std::min(srcSize, destSize);
+    ::strncpy(dest, src, nLen);
+    dest[nLen] = '\0';
     return 0;
 #endif
 }

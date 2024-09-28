@@ -38,4 +38,4 @@ link_directories("${SDL_SRC_ROOT_DIR}/lib64/")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/bin/")
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-target_link_libraries(${PROJECT_NAME} duilib SDL3 skia duilib-cximage duilib-webp duilib-png duilib-zlib freetype)
+target_link_libraries(${PROJECT_NAME} duilib SDL3 skia duilib-cximage duilib-webp duilib-png duilib-zlib freetype fontconfig)
