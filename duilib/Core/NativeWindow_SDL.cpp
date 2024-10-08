@@ -713,6 +713,13 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
     m_bUseSystemCaption = false;
     if (createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption) {
         //使用系统标题栏
+        m_bUseSystemCaption = true;
+    }
+    //由于目前Linux系统尚不支持透明，所以强制使用系统标题栏
+    m_bUseSystemCaption = true;
+
+    if (m_bUseSystemCaption) {
+        //使用系统标题栏
         if (m_createParam.m_dwStyle & kWS_POPUP) {
             //弹出式窗口
             m_createParam.m_dwStyle |= (kWS_CAPTION | kWS_SYSMENU);
@@ -720,7 +727,6 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
         else {
             m_createParam.m_dwStyle |= (kWS_CAPTION | kWS_SYSMENU | kWS_MINIMIZEBOX | kWS_MAXIMIZEBOX);
         }
-        m_bUseSystemCaption = true;
     }
 
     //初始化层窗口属性
@@ -739,7 +745,7 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
     }
 
     //如果使用系统标题栏，关闭层窗口
-    if (createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption) {
+    if (m_bUseSystemCaption) {
         m_bIsLayeredWindow = false;
         m_createParam.m_dwExStyle &= ~kWS_EX_LAYERED;
     }
@@ -826,9 +832,7 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
 
     //如果是弹出窗口，并且无阴影和标题栏，则默认为无边框
     const bool bPopupWindow = m_createParam.m_dwStyle & kWS_POPUP;
-    bool bUseSystemCaption = createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption;
-    //bool bShadowAttached = createAttributes.m_bShadowAttachedDefined && createAttributes.m_bShadowAttached;
-    if (!bUseSystemCaption) {
+    if (!m_bUseSystemCaption) {
         //只要没有使用系统标题栏，就需要设置此属性，否则窗口就会带系统标题栏
         windowFlags |= SDL_WINDOW_BORDERLESS;
     }
@@ -1151,6 +1155,10 @@ uint8_t NativeWindow_SDL::GetLayeredWindowOpacity() const
 void NativeWindow_SDL::SetUseSystemCaption(bool bUseSystemCaption)
 {
     m_bUseSystemCaption = bUseSystemCaption;
+
+    //由于目前Linux系统尚不支持透明，所以强制使用系统标题栏
+    m_bUseSystemCaption = true;
+
     if (IsUseSystemCaption()) {
         //使用系统默认标题栏, 需要增加标题栏风格
         if (IsWindow()) {
