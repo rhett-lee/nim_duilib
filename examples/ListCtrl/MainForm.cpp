@@ -411,9 +411,14 @@ void MainForm::OnInitWindow()
     ui::ListCtrlHeader* pHeaderCtrl = pListCtrl->GetHeaderCtrl();
     if (pHeaderCtrl != nullptr) {
         pHeaderCtrl->AttachRClick([this](const ui::EventArgs&) {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
             if (::MessageBox(nullptr, _T("ListCtrlHeader RClick! 是否执行功能测试？"), _T(""), MB_YESNO) == IDYES) {
                 RunListCtrlTest();
-            }            
+            }
+#else
+            ui::SystemUtil::ShowMessageBox(this, _T("开始执行功能测试"), _T("ListCtrlHeader RClick!"));
+            RunListCtrlTest();
+#endif
             return true;
             });
     }

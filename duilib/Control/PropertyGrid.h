@@ -178,8 +178,6 @@ public:
                                                 const DString& description = _T(""),
                                                 size_t nPropertyData = 0);
 
-#ifdef DUILIB_BUILD_FOR_WIN
-
     /** 增加一个属性(日期时间)
     * @param [in] pGroup 该属性所属的分组
     * @param [in] propertyName 属性的名称
@@ -195,9 +193,7 @@ public:
                                                       const DString& description = _T(""),
                                                       size_t nPropertyData = 0,
                                                       DateTime::EditFormat editFormat = DateTime::EditFormat::kDateCalendar);
-
-#endif //DUILIB_BUILD_FOR_WIN
-    
+   
     /** 增加一个属性(IP地址)
     * @param [in] pGroup 该属性所属的分组
     * @param [in] propertyName 属性的名称
@@ -1050,8 +1046,6 @@ private:
     ComboButton* m_pComboButton;
 };
 
-#ifdef DUILIB_BUILD_FOR_WIN
-
 /** 设置日期时间的属性(仅Windows平台提供此功能)
 */
 class PropertyGridDateTimeProperty : public PropertyGridProperty
@@ -1108,8 +1102,6 @@ private:
     */
     DateTime::EditFormat m_editFormat;
 };
-
-#endif //DUILIB_BUILD_FOR_WIN
 
 /** 设置IP地址的属性
 */

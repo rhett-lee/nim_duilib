@@ -198,15 +198,18 @@
   <ItemGroup>
     <ClInclude Include="app_db.h" />
     <ClInclude Include="app_item.h" />
+    <ClInclude Include="MainThread.h" />
     <ClInclude Include="move_control.h" />
-    <ClInclude Include="main.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="app_db.cpp" />
     <ClCompile Include="app_item.cpp" />
+    <ClCompile Include="MainThread.cpp" />
+    <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="move_control.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="drag_drop_control.rc" />

@@ -34,6 +34,7 @@
 #include "Utils/FilePath.h"
 #include "Utils/FileUtil.h"
 #include "Utils/FilePathUtil.h"
+#include "Utils/SystemUtil.h"
 #include "Utils/WinImplBase.h"
 #include "Utils/ShadowWnd.h"
 

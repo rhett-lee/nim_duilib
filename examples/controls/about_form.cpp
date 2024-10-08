@@ -1,5 +1,4 @@
 #include "about_form.h"
-#include <shellapi.h>
 
 AboutForm::AboutForm()
 {
@@ -22,10 +21,9 @@ DString AboutForm::GetSkinFile()
 void AboutForm::OnInitWindow()
 {
     ui::Label* link = static_cast<ui::Label*>(FindControl(_T("link")));
-    if (link)
-    {
+    if (link != nullptr) {
         link->AttachButtonUp([link](const ui::EventArgs& args) {
-            ::ShellExecuteW(NULL, L"open", ui::StringUtil::TToUTF16(link->GetText()).c_str(), NULL, NULL, SW_SHOWDEFAULT);
+            ui::SystemUtil::OpenUrl(link->GetText());
             return true;
         });
     }

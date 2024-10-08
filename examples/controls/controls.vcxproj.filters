@@ -18,13 +18,16 @@
     <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="main.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="controls_form.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="about_form.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MainThread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TestApplication.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -32,10 +35,16 @@
     <ClCompile Include="controls_form.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="about_form.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="about_form.cpp">
+    <ClCompile Include="main_windows.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MainThread.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TestApplication.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

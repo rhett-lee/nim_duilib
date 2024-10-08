@@ -1,5 +1,10 @@
 #include "RenderTest1.h"
-#include "duilib/Utils/BitmapHelper_Windows.h"
+
+#if defined (DUILIB_BUILD_FOR_WIN)
+    #include "duilib/Utils/BitmapHelper_Windows.h"
+#elif defined(DUILIB_BUILD_FOR_SDL)
+    #include "duilib/Utils/BitmapHelper_SDL.h"
+#endif
 
 namespace ui {
 

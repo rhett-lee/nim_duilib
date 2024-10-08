@@ -1,5 +1,5 @@
-#ifndef UI_UTILS_BITMAP_HELPER_H_
-#define UI_UTILS_BITMAP_HELPER_H_
+#ifndef UI_UTILS_BITMAP_HELPER_WINDOWS_H_
+#define UI_UTILS_BITMAP_HELPER_WINDOWS_H_
 
 #include "duilib/Render/IRender.h"
 
@@ -39,5 +39,5 @@ namespace ui
 
 #endif //DUILIB_BUILD_FOR_WIN
 
-#endif //UI_UTILS_BITMAP_HELPER_H_
+#endif //UI_UTILS_BITMAP_HELPER_WINDOWS_H_
 

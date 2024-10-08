@@ -186,7 +186,7 @@ void ControlForm::OnInitWindow()
         pRichText->AttachLinkClick([this](const ui::EventArgs& args) {
             const DString::value_type* url = (const DString::value_type*)args.wParam;
             if (url != nullptr) {
-                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringUtil::TToUTF16(url).c_str(), L"RichText点击超链接", MB_OK);
+                ui::SystemUtil::ShowMessageBox(this, url, _T("RichText点击超链接"));
             }
             return true;
             });
@@ -198,7 +198,7 @@ void ControlForm::OnInitWindow()
         pHyperLink->AttachLinkClick([this](const ui::EventArgs& args) {
             const DString::value_type* url = (const DString::value_type*)args.wParam;
             if (url != nullptr) {
-                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringUtil::TToUTF16(url).c_str(), L"HyperLink点击超链接", MB_OK);
+                ui::SystemUtil::ShowMessageBox(this, url, _T("HyperLink点击超链接"));
             }
             return true;
             });
@@ -207,7 +207,7 @@ void ControlForm::OnInitWindow()
     pHyperLink = dynamic_cast<ui::HyperLink*>(FindControl(_T("hyper_link2")));
     if (pHyperLink != nullptr) {
         pHyperLink->AttachLinkClick([this](const ui::EventArgs& /*args*/) {
-            ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringUtil::TToUTF16(_T("文字按钮事件响应")).c_str(), L"HyperLink点击", MB_OK);
+            ui::SystemUtil::ShowMessageBox(this, _T("文字按钮事件响应"), _T("HyperLink点击"));
             return true;
             });
     }
@@ -282,7 +282,7 @@ void ControlForm::ShowColorPicker(bool bDoModal)
     }
 
     //窗口创建完成执行的函数
-    auto OnInitColorPicker = [=](const ui::EventArgs&) {
+    auto OnInitColorPicker = [this, pColorPicker](const ui::EventArgs&) {
         //窗口位置居中
         pColorPicker->CenterWindow();
 
@@ -497,7 +497,7 @@ LRESULT ControlForm::OnHotKeyMsg(int32_t hotkeyId, ui::VirtualKeyCode vkCode, ui
     bHandled = true;
     if (hotkeyId == SYSTEM_HOTKEY_ID) {
         SetWindowForeground();
-        ::MessageBoxW(NativeWnd()->GetHWND(), L"接收到系统热键命令", L"ControlForm::OnHotKeyMsg", MB_OK);
+        ui::SystemUtil::ShowMessageBox(this, _T("接收到系统热键命令"), _T("ControlForm::OnHotKeyMsg"));
     }
     return lResult;
 }

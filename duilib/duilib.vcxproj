@@ -496,6 +496,7 @@
     </ClCompile>
     <ClCompile Include="Utils\ApiWrapper_Windows.cpp" />
     <ClCompile Include="Utils\AttributeUtil.cpp" />
+    <ClCompile Include="Utils\BitmapHepler_SDL.cpp" />
     <ClCompile Include="Utils\BitmapHepler_Windows.cpp" />
     <ClCompile Include="Utils\Clipboard_SDL.cpp" />
     <ClCompile Include="Utils\Clipboard_Windows.cpp" />
@@ -518,6 +519,8 @@
     <ClCompile Include="Control\Progress.cpp" />
     <ClCompile Include="Control\Slider.cpp" />
     <ClCompile Include="Control\TreeView.cpp" />
+    <ClCompile Include="Utils\SystemUtil_SDL.cpp" />
+    <ClCompile Include="Utils\SystemUtil_Windows.cpp" />
     <ClCompile Include="Utils\WinImplBase.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -694,6 +697,7 @@
     <ClInclude Include="third_party\zlib\contrib\minizip\unzip.h" />
     <ClInclude Include="Utils\ApiWrapper_Windows.h" />
     <ClInclude Include="Utils\AttributeUtil.h" />
+    <ClInclude Include="Utils\BitmapHelper_SDL.h" />
     <ClInclude Include="Utils\BitmapHelper_Windows.h" />
     <ClInclude Include="Utils\Clipboard.h" />
     <ClInclude Include="Utils\FileDialog.h" />
@@ -709,6 +713,7 @@
     <ClInclude Include="Utils\StringCharset.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Delegate.h" />
+    <ClInclude Include="Utils\SystemUtil.h" />
     <ClInclude Include="Utils\Unicode.h" />
     <ClInclude Include="Utils\WinImplBase.h" />
     <ClInclude Include="Control\Button.h" />
