@@ -14,13 +14,13 @@ bool SystemUtil::OpenUrl(const DString& url)
     if (url.empty()) {
         return false;
     }
-    return ::ShellExecuteW(NULL, L"open", StringConvert::TToUTF16(url).c_str(), NULL, NULL, SW_SHOWDEFAULT) > (HINSTANCE)32;
+    return ::ShellExecuteW(NULL, L"open", StringConvert::TToWString(url).c_str(), NULL, NULL, SW_SHOWDEFAULT) > (HINSTANCE)32;
 }
 
 bool SystemUtil::ShowMessageBox(const Window* pWindow, const DString& content, const DString& title)
 {
     HWND hWnd = (pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr;
-    ::MessageBoxW(hWnd, StringConvert::TToUTF16(content).c_str(), StringConvert::TToUTF16(title).c_str(), MB_OK);
+    ::MessageBoxW(hWnd, StringConvert::TToWString(content).c_str(), StringConvert::TToWString(title).c_str(), MB_OK);
     return true;
 }
 

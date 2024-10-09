@@ -7,7 +7,7 @@ namespace ui
 
 FilePath::FilePath(const std::string& filePath) :
 #ifdef DUILIB_BUILD_FOR_WIN
-    m_filePath(StringConvert::UTF8ToUTF16(filePath)),
+    m_filePath(StringConvert::UTF8ToWString(filePath)),
 #else
     m_filePath(filePath),
 #endif
@@ -19,7 +19,7 @@ FilePath::FilePath(const std::wstring& filePath) :
 #ifdef DUILIB_BUILD_FOR_WIN
     m_filePath(filePath),
 #else
-    m_filePath(StringConvert::UTF16ToUTF8(filePath)),
+    m_filePath(StringConvert::WStringToUTF8(filePath)),
 #endif
     m_bLexicallyNormal(false)
 {
@@ -27,7 +27,7 @@ FilePath::FilePath(const std::wstring& filePath) :
 
 FilePath::FilePath(const std::string& filePath, bool bLexicallyNormal):
 #ifdef DUILIB_BUILD_FOR_WIN
-    m_filePath(StringConvert::UTF8ToUTF16(filePath)),
+    m_filePath(StringConvert::UTF8ToWString(filePath)),
 #else
     m_filePath(filePath),
 #endif
@@ -39,7 +39,7 @@ FilePath::FilePath(const std::wstring& filePath, bool bLexicallyNormal) :
 #ifdef DUILIB_BUILD_FOR_WIN
     m_filePath(filePath),
 #else
-    m_filePath(StringConvert::UTF16ToUTF8(filePath)),
+    m_filePath(StringConvert::WStringToUTF8(filePath)),
 #endif
     m_bLexicallyNormal(bLexicallyNormal)
 {
@@ -155,7 +155,7 @@ DString FilePath::ToString() const
     if (m_filePath.empty()) {
         return DStringA();
     }
-    return StringConvert::UTF16ToUTF8(m_filePath.native());
+    return StringConvert::WStringToUTF8(m_filePath.native());
 }
 #else
 const DString& FilePath::ToString() const
@@ -170,7 +170,7 @@ DStringW FilePath::ToStringW() const
 #ifdef DUILIB_BUILD_FOR_WIN
     return m_filePath.native();
 #else
-    return StringConvert::UTF8ToUTF16(m_filePath.native());
+    return StringConvert::UTF8ToWString(m_filePath.native());
 #endif
 }
  
@@ -180,7 +180,7 @@ DStringA FilePath::ToStringA() const
         return DStringA();
     }
 #ifdef DUILIB_BUILD_FOR_WIN
-    return StringConvert::UTF16ToUTF8(m_filePath.native());
+    return StringConvert::WStringToUTF8(m_filePath.native());
 #else
     return m_filePath.native();
 #endif
@@ -195,7 +195,7 @@ DString FilePath::GetFileName() const
     return m_filePath.filename().native();
 #else
 #ifdef DUILIB_BUILD_FOR_WIN
-    return StringConvert::UTF16ToUTF8(m_filePath.filename().native());
+    return StringConvert::WStringToUTF8(m_filePath.filename().native());
 #else
     return m_filePath.filename().native();
 #endif
@@ -259,7 +259,7 @@ FilePath& FilePath::operator = (const DString& rightPath)
     m_filePath = rightPath;
 #else
 #ifdef DUILIB_BUILD_FOR_WIN
-    DStringW rightPathW = StringConvert::UTF8ToUTF16(rightPath);
+    DStringW rightPathW = StringConvert::UTF8ToWString(rightPath);
     m_filePath = rightPathW;
 #else
     m_filePath = rightPath;
@@ -292,7 +292,7 @@ FilePath& FilePath::operator += (const DString& rightPath)
     m_filePath += rightPath;
 #else
 #ifdef DUILIB_BUILD_FOR_WIN
-    DStringW rightPathW = StringConvert::UTF8ToUTF16(rightPath);
+    DStringW rightPathW = StringConvert::UTF8ToWString(rightPath);
     m_filePath += rightPathW;
 #else
     m_filePath += rightPath;

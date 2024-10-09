@@ -107,7 +107,7 @@ bool FileDialog::BrowseForFolder(Window* pWindow, FilePath& folderPath, const Fi
 
     //读取数据
     if (!pUserData->m_filePaths.empty()) {
-        folderPath = FilePath(StringConvert::UTF8ToUTF16(pUserData->m_filePaths.front()));
+        folderPath = FilePath(StringConvert::UTF8ToWString(pUserData->m_filePaths.front()));
     }
 
     pUserData->Release();
@@ -145,7 +145,7 @@ bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<FilePath>& folder
     //读取数据    
     const size_t nCount = pUserData->m_filePaths.size();
     for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
-        folderPaths.push_back(FilePath(StringConvert::UTF8ToUTF16(pUserData->m_filePaths.at(nIndex))));
+        folderPaths.push_back(FilePath(StringConvert::UTF8ToWString(pUserData->m_filePaths.at(nIndex))));
     }
 
     pUserData->Release();
@@ -231,7 +231,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
 
     //读取数据
     if (!pUserData->m_filePaths.empty()) {
-        filePath = FilePath(StringConvert::UTF8ToUTF16(pUserData->m_filePaths.front()));
+        filePath = FilePath(StringConvert::UTF8ToWString(pUserData->m_filePaths.front()));
     }
 
     pUserData->Release();
@@ -311,7 +311,7 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
     //读取数据    
     const size_t nCount = pUserData->m_filePaths.size();
     for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
-        filePaths.push_back(FilePath(StringConvert::UTF8ToUTF16(pUserData->m_filePaths.at(nIndex))));
+        filePaths.push_back(FilePath(StringConvert::UTF8ToWString(pUserData->m_filePaths.at(nIndex))));
     }
 
     //TODO: 多选的情况下，SDL 3.0目前返回的值不对，有Bug，待修复。

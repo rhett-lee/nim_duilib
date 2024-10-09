@@ -41,7 +41,7 @@ bool Clipboard::GetClipboardText(DStringA& text)
 {
     DStringW textW;
     bool bRet = GetClipboardText(textW);
-    text = StringConvert::UTF16ToUTF8(textW);
+    text = StringConvert::WStringToUTF8(textW);
     return bRet;
 }
 
@@ -74,7 +74,7 @@ bool Clipboard::SetClipboardText(const DStringW& text)
 
 bool Clipboard::SetClipboardText(const DStringA& text)
 {
-    return SetClipboardText(StringConvert::UTF8ToUTF16(text));
+    return SetClipboardText(StringConvert::UTF8ToWString(text));
 }
 
 } //namespace ui

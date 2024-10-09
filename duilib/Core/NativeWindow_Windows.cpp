@@ -1064,7 +1064,7 @@ void NativeWindow_Windows::SetText(const DString& strText)
     ::SetWindowText(m_hWnd, strText.c_str());
 #else
     //strText是UTF-8编码
-    DString localText = StringUtil::TToLocal(strText);
+    DString localText = StringConvert::TToLocal(strText);
     ::SetWindowText(m_hWnd, localText.c_str());
 #endif
 }

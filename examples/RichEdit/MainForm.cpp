@@ -44,7 +44,7 @@ void MainForm::OnInitWindow()
                     const DString::value_type* pUrl = (const DString::value_type*)args.wParam;
                     if (pUrl != nullptr) {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-                        ::ShellExecuteW(NativeWnd()->GetHWND(), L"open", ui::StringConvert::TToUTF16(pUrl).c_str(), NULL, NULL, SW_SHOWNORMAL);
+                        ::ShellExecuteW(NativeWnd()->GetHWND(), L"open", ui::StringConvert::TToWString(pUrl).c_str(), NULL, NULL, SW_SHOWNORMAL);
 #endif
                     }
                 }
@@ -457,7 +457,7 @@ void MainForm::OnInitWindow()
             const DString::value_type* url = (const DString::value_type*)args.wParam;
             if (url != nullptr) {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringConvert::TToUTF16(url).c_str(), L"RichEdit点击超链接", MB_OK);
+                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringConvert::TToWString(url).c_str(), L"RichEdit点击超链接", MB_OK);
 #endif
             }
             return true;
@@ -1506,13 +1506,13 @@ bool MainForm::SaveFile(const ui::FilePath& filePath)
         bRet = ui::FileUtil::WriteFileData(filePath, textA);
 #else
         //按UTF8保存
-        DStringA textA = ui::StringConvert::UTF16ToUTF8(text);
+        DStringA textA = ui::StringConvert::WStringToUTF8(text);
         bRet = ui::FileUtil::WriteFileData(filePath, textA);
 #endif        
     }
     else {
         //按UTF8保存
-        DStringA textA = ui::StringConvert::UTF16ToUTF8(text);
+        DStringA textA = ui::StringConvert::WStringToUTF8(text);
         bRet = ui::FileUtil::WriteFileData(filePath, textA);
     }
     return bRet;

@@ -65,7 +65,7 @@ bool DateTimeWnd::Init(DateTime* pOwner)
         DString className = GetWindowClassName();
         UiRect rc = { pt1.x, pt1.y, pt2.x, pt2.y };
         m_hDateTimeWnd = ::CreateWindowExW(0,
-                                         StringConvert::TToUTF16(className).c_str(),
+                                         StringConvert::TToWString(className).c_str(),
                                          L"",
                                          dwStyle,
                                          rc.left, rc.top, rc.Width(), rc.Height(),
@@ -147,7 +147,7 @@ bool DateTimeWnd::RegisterSuperClass()
     m_OldWndProc = wc.lpfnWndProc;
     wc.lpfnWndProc = DateTimeWnd::__ControlProc;
     wc.hInstance = hModule;
-    DStringW className = StringConvert::TToUTF16(GetWindowClassName());
+    DStringW className = StringConvert::TToWString(GetWindowClassName());
     wc.lpszClassName = className.c_str();
     ATOM ret = ::RegisterClassExW(&wc);
     ASSERT(ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
@@ -315,7 +315,7 @@ HFONT DateTimeWnd::CreateHFont() const
     }
     LOGFONTW lf = { 0 };
     ::GetObjectW(::GetStockObject(DEFAULT_GUI_FONT), sizeof(LOGFONTW), &lf);
-    StringUtil::StringCopy(lf.lfFaceName, StringConvert::TToUTF16(pFont->FontName()).c_str());
+    StringUtil::StringCopy(lf.lfFaceName, StringConvert::TToWString(pFont->FontName()).c_str());
     lf.lfCharSet = DEFAULT_CHARSET;
     lf.lfHeight = -pFont->FontSize();
     if (pFont->IsUnderline()) {

@@ -37,7 +37,7 @@ bool DiskUtils::GetLogicalDriveList(std::vector<DString>& driveList)
     for (DWORD i = 0; i < dwSize; ++i) {
         if (driveStr[i] == L'\0' && begin != i) {
             driveName = driveStr + begin;
-            driveList.push_back(ui::StringConvert::UTF16ToT(driveName));
+            driveList.push_back(ui::StringConvert::WStringToT(driveName));
             begin = i + 1;
         }
     }
@@ -60,7 +60,7 @@ bool DiskUtils::GetLogicalDriveInfo(const DString& driveString, DiskInfo& diskIn
     if (pfnSHGetFileInfo == NULL) {
         return false;
     }
-    DStringW driveStringW = ui::StringConvert::TToUTF16(driveString);
+    DStringW driveStringW = ui::StringConvert::TToWString(driveString);
 
     DiskInfo currentDiskInfo;
     SHFILEINFOW shellInfo = {0, };
@@ -68,8 +68,8 @@ bool DiskUtils::GetLogicalDriveInfo(const DString& driveString, DiskInfo& diskIn
     if (result == 0) {
         return false;
     }
-    currentDiskInfo.m_volumeName = ui::StringConvert::UTF16ToT(shellInfo.szDisplayName);
-    currentDiskInfo.m_volumeType = ui::StringConvert::UTF16ToT(shellInfo.szTypeName);
+    currentDiskInfo.m_volumeName = ui::StringConvert::WStringToT(shellInfo.szDisplayName);
+    currentDiskInfo.m_volumeType = ui::StringConvert::WStringToT(shellInfo.szTypeName);
     
     DStringW::value_type volumeNameBuffer[MAX_PATH + 1] = {0};
     DWORD volumeNameSize = MAX_PATH;
@@ -88,7 +88,7 @@ bool DiskUtils::GetLogicalDriveInfo(const DString& driveString, DiskInfo& diskIn
                                 fileSystemNameBuffer, 
                                 fileSystemNameSize) != FALSE) {
         fileSystemNameBuffer[MAX_PATH] = 0;
-        currentDiskInfo.m_fileSystem = ui::StringConvert::UTF16ToT(fileSystemNameBuffer);
+        currentDiskInfo.m_fileSystem = ui::StringConvert::WStringToT(fileSystemNameBuffer);
         currentDiskInfo.m_hasFileSystem = true;
         
         DWORD dSectorsPerCluster = 0;
@@ -129,7 +129,7 @@ DString DiskUtils::GetMaxFreeSpaceLocalDisk()
     std::vector<DString> driveList;
     GetLogicalDriveList(driveList);
     for (size_t i = 0; i < driveList.size(); ++i) {
-        DStringW driveW = ui::StringConvert::TToUTF16(driveList[i]);
+        DStringW driveW = ui::StringConvert::TToWString(driveList[i]);
         UINT uType = ::GetDriveTypeW(driveW.c_str());
         if (uType != DRIVE_FIXED) {
             //只需要本地磁盘
@@ -137,7 +137,7 @@ DString DiskUtils::GetMaxFreeSpaceLocalDisk()
         }
 
         DiskInfo diskInfo;
-        bool bRet = GetLogicalDriveInfo(ui::StringConvert::UTF16ToT(driveW), diskInfo);
+        bool bRet = GetLogicalDriveInfo(ui::StringConvert::WStringToT(driveW), diskInfo);
         if (!bRet) {
             continue;
         }

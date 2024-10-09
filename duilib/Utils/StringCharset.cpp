@@ -143,20 +143,24 @@ bool StringCharset::GetDataAsString(const char* data, uint32_t length, CharsetTy
 #ifdef DUILIB_BUILD_FOR_WIN
         result = StringConvert::MBCSToUnicode2(realData, realLen);
 #else
-        result = StringConvert::UTF8ToUTF16(realData, realLen);
+        result = StringConvert::UTF8ToWString(std::string(realData, realLen));
 #endif
     }
     else if (outCharsetType == CharsetType::UTF8) {
-        result = StringConvert::UTF8ToUTF16(realData, realLen);
+        result = StringConvert::UTF8ToWString(std::string(realData, realLen));
     }
     else if (outCharsetType == CharsetType::UTF16_LE) {
+#if defined(WCHAR_T_IS_UTF16)
         result.assign((const wchar_t*)realData, realLen / sizeof(wchar_t));
+#else
+        result = StringConvert::UTF16ToUTF32((const UTF16Char*)realData, realLen / sizeof(UTF16Char));
+#endif
     }
     else if (outCharsetType == CharsetType::UTF16_BE) {
         // 将当前字符的字节序反转，并将其存储到输出LE编码的字符串中
-        uint32_t dataSize = realLen / sizeof(wchar_t);
+        uint32_t dataSize = realLen / sizeof(uint16_t);
         result.reserve(dataSize + 1);
-        const wchar_t* dataBE = (const wchar_t*)realData;
+        const uint16_t* dataBE = (const uint16_t*)realData;
         for (uint32_t i = 0; i < dataSize; i++) {
             result.push_back((dataBE[i] >> 8) | (dataBE[i] << 8));
         }

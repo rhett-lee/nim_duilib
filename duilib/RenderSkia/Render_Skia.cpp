@@ -3003,11 +3003,23 @@ void Render_Skia::SetRenderDpi(const IRenderDpiPtr& spRenderDpi)
 
 SkTextEncoding Render_Skia::GetTextEncoding() const
 {
+    constexpr const size_t nValueLen = sizeof(DString::value_type);
+    if constexpr (nValueLen == 1) {
+        return SkTextEncoding::kUTF8;
+    }
+    else if constexpr (nValueLen == 2) {
+        return SkTextEncoding::kUTF16;
+    }
+    else if constexpr (nValueLen == 4) {
+        return SkTextEncoding::kUTF32;
+    }
+    else {
 #ifdef DUILIB_UNICODE
-    return SkTextEncoding::kUTF16;
+        return SkTextEncoding::kUTF16;
 #else
-    return SkTextEncoding::kUTF8;
+        return SkTextEncoding::kUTF8;
 #endif
+    }
 }
 
 } // namespace ui

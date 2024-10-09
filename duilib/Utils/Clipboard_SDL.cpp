@@ -10,7 +10,7 @@ bool Clipboard::GetClipboardText(DStringW& text)
 {
     DStringA textA;
     bool bRet = GetClipboardText(textA);
-    text = StringConvert::UTF8ToUTF16(textA);
+    text = StringConvert::UTF8ToWString(textA);
     return bRet;
 }
 
@@ -30,7 +30,7 @@ bool Clipboard::GetClipboardText(DStringA& text)
 
 bool Clipboard::SetClipboardText(const DStringW& text)
 {
-    return SetClipboardText(StringConvert::UTF16ToUTF8(text));
+    return SetClipboardText(StringConvert::WStringToUTF8(text));
 }
 
 bool Clipboard::SetClipboardText(const DStringA& text)

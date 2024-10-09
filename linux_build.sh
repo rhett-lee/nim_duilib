@@ -24,18 +24,21 @@ rm -f "$SRC_ROOT_DIR/libs/libduilib-png.a"
 cp "$SRC_ROOT_DIR/build_temp/libpng/libpng16.a" "$SRC_ROOT_DIR/libs/libduilib-png.a"
 
 #编译cximage
+rm -f "$SRC_ROOT_DIR/libs/libduilib-cximage.a"
 cmake -S "$SRC_ROOT_DIR/duilib/third_party/cximage/" -B "$SRC_ROOT_DIR/build_temp/cximage"
 cd "$SRC_ROOT_DIR/build_temp/cximage"
 make 
 cd "$SRC_ROOT_DIR/"
 
 #编译libwebp
+rm -f "$SRC_ROOT_DIR/libs/libduilib-webp.a"
 cmake -S "$SRC_ROOT_DIR/duilib/third_party/libwebp/" -B "$SRC_ROOT_DIR/build_temp/libwebp"
 cd "$SRC_ROOT_DIR/build_temp/libwebp"
 make 
 cd "$SRC_ROOT_DIR/"
 
 #编译duilib
+rm -f "$SRC_ROOT_DIR/libs/libduilib.a"
 cmake -S "$SRC_ROOT_DIR/duilib/" -B "$SRC_ROOT_DIR/build_temp/duilib" -DCMAKE_BUILD_TYPE=Debug
 cd "$SRC_ROOT_DIR/build_temp/duilib"
 make -j 4

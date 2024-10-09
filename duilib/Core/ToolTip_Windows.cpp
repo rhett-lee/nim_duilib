@@ -1,5 +1,6 @@
 #include "ToolTip.h"
 #include "duilib/Core/WindowBase.h"
+#include "duilib/Utils/StringConvert.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
@@ -113,7 +114,7 @@ void ToolTip::TImpl::ShowToolTip(const WindowBase* pParentWnd,
     newText = text;    
 #else
     //text是Utf8编码
-    newText = StringConvert::UTF8ToUTF16(text);
+    newText = StringConvert::UTF8ToWString(text);
 #endif
     if (newText.size() > TOOLTIP_MAX_LEN) {
         newText.resize(TOOLTIP_MAX_LEN);

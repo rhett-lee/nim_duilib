@@ -397,7 +397,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             //相当于Windows下的WM_CHAR消息
             if (sdlEvent.text.text != nullptr) {
                 //该文本为UTF-8编码的
-                DStringW textW = StringConvert::UTF8ToUTF16(sdlEvent.text.text);
+                DStringW textW = StringConvert::UTF8ToWString(sdlEvent.text.text);
                 if (!textW.empty()) {
                     ASSERT(textW.size() == 1);
                     if (textW.size() == 1) { //这里可能是2，一个字（比如汉字），可能占1-2个Unicode字符

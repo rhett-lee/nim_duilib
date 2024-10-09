@@ -42,7 +42,7 @@ DString FilePathUtil::NormalizeFilePath(const DString& filePath)
         std::filesystem::path file_path(filePath);
 #else
 #ifdef DUILIB_BUILD_FOR_WIN
-        std::filesystem::path file_path(StringConvert::UTF8ToUTF16(filePath));
+        std::filesystem::path file_path(StringConvert::UTF8ToWString(filePath));
 #else
         std::filesystem::path file_path(filePath);
 #endif
@@ -54,7 +54,7 @@ DString FilePathUtil::NormalizeFilePath(const DString& filePath)
 #ifdef DUILIB_UNICODE
     return nativePath;
 #else
-    return StringConvert::UTF16ToUTF8(nativePath);
+    return StringConvert::WStringToUTF8(nativePath);
 #endif
 
 #else

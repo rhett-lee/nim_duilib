@@ -157,7 +157,7 @@ bool ZipManager::IsZipResExist(const FilePath& path) const
 #ifdef DUILIB_BUILD_FOR_WIN
                 DStringW innerFilePath = StringConvert::MBCSToUnicode(szFileName.data(), bUtf8 ? CP_UTF8 : CP_ACP);
 #else
-                DStringW innerFilePath = StringConvert::UTF8ToUTF16(szFileName.data());
+                DStringW innerFilePath = StringConvert::UTF8ToWString(szFileName.data());
 #endif
                 //压缩包内的文件名，都不区分大小写，转换为小写再比较
                 innerFilePath = StringUtil::MakeLowerString(innerFilePath);
