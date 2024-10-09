@@ -998,9 +998,6 @@
     <ClInclude Include="Core\ThreadManager.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\Unicode.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\LogUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -1162,6 +1159,9 @@
     </ClInclude>
     <ClInclude Include="Utils\BitmapHelper_SDL.h">
       <Filter>Utils\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="duilib_string.h">
+      <Filter>duilib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

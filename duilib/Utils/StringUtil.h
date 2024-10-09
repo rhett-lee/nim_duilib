@@ -2,7 +2,6 @@
 #define UI_UTILS_STRINGUTIL_H_
 
 #include "duilib/duilib_defs.h"
-#include "duilib/Utils/Unicode.h"
 #include <string>
 #include <list>
 

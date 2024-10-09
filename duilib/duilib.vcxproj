@@ -657,6 +657,7 @@
     <ClInclude Include="duilib_config.h" />
     <ClInclude Include="duilib_config_windows.h" />
     <ClInclude Include="duilib_defs.h" />
+    <ClInclude Include="duilib_string.h" />
     <ClInclude Include="Image\Image.h" />
     <ClInclude Include="Image\ImageAttribute.h" />
     <ClInclude Include="Image\ImageDecoder.h" />
@@ -714,7 +715,6 @@
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Delegate.h" />
     <ClInclude Include="Utils\SystemUtil.h" />
-    <ClInclude Include="Utils\Unicode.h" />
     <ClInclude Include="Utils\WinImplBase.h" />
     <ClInclude Include="Control\Button.h" />
     <ClInclude Include="Control\CheckBox.h" />
