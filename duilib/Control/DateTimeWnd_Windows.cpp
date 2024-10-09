@@ -159,7 +159,7 @@ DString DateTimeWnd::GetWindowClassName() const
     return _T("DateTimeWnd");
 }
 
-static const wchar_t* sPropName = L"DuiLibDateTimeWndX"; // 属性名称
+static const DStringW::value_type* sPropName = L"DuiLibDateTimeWndX"; // 属性名称
 
 LRESULT CALLBACK DateTimeWnd::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {

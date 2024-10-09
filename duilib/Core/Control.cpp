@@ -1704,7 +1704,7 @@ void Control::SendEventMsg(const EventArgs& msg)
 //#ifdef _DEBUG
 //    DString eventType = EventTypeToString(msg.eventType);
 //    DString type = GetType();
-//    wchar_t buf[256] = {};
+//    DStringW::value_type buf[256] = {};
 //    swprintf_s(buf, _T("Control::SendEventMsg: type=%s, eventType=%s\r\n"), type.c_str(), eventType.c_str());
 //    ::OutputDebugStringW(buf);    
 //#endif

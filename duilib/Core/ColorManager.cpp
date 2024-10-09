@@ -80,7 +80,7 @@ UiColor ColorManager::ConvertToUiColor(const DString& strColor)
         return color;
     }
     for (size_t i = 1; i < strColor.size(); ++i) {
-        wchar_t ch = strColor.at(i);
+        DString::value_type ch = strColor.at(i);
         bool isValid = (((ch >= _T('0')) && (ch <= _T('9'))) ||
             ((ch >= _T('a')) && (ch <= _T('f'))) ||
             ((ch >= _T('A')) && (ch <= _T('F'))));

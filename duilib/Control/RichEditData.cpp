@@ -1833,7 +1833,7 @@ int32_t RichEditData::GetPrevValidCharIndex(int32_t nCharIndex)
     return nNewCharIndex;
 }
 
-bool RichEditData::IsSeperatorChar(wchar_t ch) const
+bool RichEditData::IsSeperatorChar(DStringW::value_type ch) const
 {
     static const DStringW sep = L"`~!@#$%^&*()-=+\t[]{}|\\;:'\"\r\n,<.>/?·！￥…、，。《》？“”；：‘’（）【】";
     return sep.find(ch) != DStringW::npos;
@@ -2795,7 +2795,7 @@ bool RichEditData::FindRichText(bool bMatchCase, bool bMatchWholeWord, bool bFin
                 //第一个字符
                 int32_t nStartCharIndex = nStartChar + (int32_t)nPos;
                 if (nStartCharIndex > 0) {
-                    wchar_t charBeforeStart = 0;
+                    DStringW::value_type charBeforeStart = 0;
                     DStringW temp = GetTextRange(nStartCharIndex - 1, nStartCharIndex);
                     ASSERT(temp.size() == 1);
                     if (temp.size() == 1) {
@@ -2818,7 +2818,7 @@ bool RichEditData::FindRichText(bool bMatchCase, bool bMatchWholeWord, bool bFin
                 //最后一个字符
                 int32_t nEndCharIndex = nStartChar + (int32_t)nPos + (int32_t)findTextW.size();
                 if (nEndCharIndex < nTextLen) {
-                    wchar_t charAfterEnd = 0;
+                    DStringW::value_type charAfterEnd = 0;
                     DStringW temp = GetTextRange(nEndCharIndex, nEndCharIndex + 1);
                     ASSERT(temp.size() == 1);
                     if (temp.size() == 1) {

@@ -868,8 +868,8 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
     else if (textEncoding == SkTextEncoding::kUTF16) {
         charBytes = 2;
         
-        SkASSERT((byteLength % sizeof(wchar_t) == 0));//字符数必须是偶数
-        if (glyphChars.size() != (byteLength / sizeof(wchar_t))) {
+        SkASSERT((byteLength % sizeof(uint16_t) == 0));//字符数必须是偶数
+        if (glyphChars.size() != (byteLength / sizeof(uint16_t))) {
             //如果存在2个Unicode的字，检测具体哪个字符是双Unicode字节的，并做标记
             const uint16_t* src = static_cast<const uint16_t*>(text);
             const uint16_t* stop = src + (byteLength >> 1);

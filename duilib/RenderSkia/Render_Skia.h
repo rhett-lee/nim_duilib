@@ -249,7 +249,7 @@ private:
     * @param [in] glyphWidth 当前字符的绘制宽度
     * @param [in] nRowHeight 当前行高
     */
-    void OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam, wchar_t ch, uint8_t glyphChars, size_t glyphCount, 
+    void OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam, DStringW::value_type ch, uint8_t glyphChars, size_t glyphCount,
                            size_t nLineTextIndex, uint32_t nLineTextRowIndex, float xPos, int32_t yPos, float glyphWidth, int32_t nRowHeight);
 
 private:

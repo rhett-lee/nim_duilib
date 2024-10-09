@@ -117,7 +117,7 @@ bool ColorPickerCustom::IsValidColorString(const DString& colorText) const
 {
     if ((colorText.size() == 9) && (colorText.front() == _T('#'))) {
         for (size_t i = 1; i < colorText.size(); ++i) {
-            wchar_t ch = colorText.at(i);
+            DString::value_type ch = colorText.at(i);
             bool isValid = (((ch >= _T('0')) && (ch <= _T('9'))) ||
                             ((ch >= _T('a')) && (ch <= _T('f'))) ||
                             ((ch >= _T('A')) && (ch <= _T('F'))));

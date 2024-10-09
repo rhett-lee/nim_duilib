@@ -1535,7 +1535,7 @@ bool NativeWindow_Windows::UnregisterHotKey(int32_t id)
 
 /** 窗口句柄的属性名称
 */
-static const wchar_t* sPropName = L"DuiLibWindow"; // 属性名称
+static const DStringW::value_type* sPropName = L"DuiLibWindow"; // 属性名称
 
 LRESULT CALLBACK NativeWindow_Windows::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {

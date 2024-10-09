@@ -262,7 +262,7 @@ public:
 
     /** 设置密码字符
     */
-    void SetPasswordChar(wchar_t ch);
+    void SetPasswordChar(DStringW::value_type ch);
 
     /** 设置是否对输入的字符短暂显示再隐藏（仅当IsShowPassword()为true，即密码模式的时候有效）
     */
@@ -914,7 +914,7 @@ private:
 
     /** 判断一个字符，是否在限制字符列表中
     */
-    bool IsInLimitChars(wchar_t charValue) const;
+    bool IsInLimitChars(DStringW::value_type charValue) const;
 
     /** 判断是否可以进行粘贴操作(判断是否有字符限制、数字限制)
     * @return 如果返回true, 表示不可用进行粘贴操作
@@ -1120,7 +1120,7 @@ private:
 
     /** 允许输入的字符列表
     */
-    std::unique_ptr<wchar_t[]> m_pLimitChars;
+    std::unique_ptr<DStringW::value_type[]> m_pLimitChars;
 
     /** 是否禁止触发文本变化事件
     */

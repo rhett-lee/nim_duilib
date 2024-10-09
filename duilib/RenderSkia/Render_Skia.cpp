@@ -2031,9 +2031,9 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
         //绘制文字
         if ((textData.m_textView.size() == 1) && (textData.m_textView[0] == L'\t')) {
             //绘制TAB键
-            const char* text = (const char*)L" ";
-            const size_t len = 1 * sizeof(wchar_t); //字节数
-            DrawTextString(rcDestRect, text, len, textEncoding,
+            const char* text = (const char*)" ";
+            const size_t len = 1; //字节数
+            DrawTextString(rcDestRect, text, len, SkTextEncoding::kUTF8,
                             textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
                             skPaint, textData.m_spFont.get());
         }
@@ -2481,9 +2481,9 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
             //绘制文字
             if ((textData.m_textView.size() == 1) && (textData.m_textView[0] == L'\t')) {
                 //绘制TAB键
-                const char* text = (const char*)L" ";
-                const size_t len = 1 * sizeof(wchar_t); //字节数
-                DrawTextString(rcDestRect, text, len, textEncoding,
+                const char* text = (const char*)" ";
+                const size_t len = 1; //字节数
+                DrawTextString(rcDestRect, text, len, SkTextEncoding::kUTF8,
                                textData.m_textStyle | DrawStringFormat::TEXT_SINGLELINE,
                                skPaint, textData.m_spFont.get());
             }
@@ -2499,7 +2499,7 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
 }
 
 void Render_Skia::OnDrawUnicodeChar(RichTextLineInfoParam* pLineInfoParam,
-                                    wchar_t ch, uint8_t glyphChars, size_t glyphCount,
+                                    DStringW::value_type ch, uint8_t glyphChars, size_t glyphCount,
                                     size_t nLineTextIndex, uint32_t nLineTextRowIndex,
                                     float xPos, int32_t yPos, float glyphWidth, int32_t nRowHeight)
 {

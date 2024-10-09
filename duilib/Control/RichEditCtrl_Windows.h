@@ -236,11 +236,11 @@ public:
             return TRUE;
         }
         textLen += 1;
-        wchar_t* pText = new wchar_t[textLen];
+        DStringW::value_type* pText = new DStringW::value_type[textLen];
         if (pText == nullptr) {
             return FALSE;
         }
-        memset(pText, 0, sizeof(wchar_t) * textLen);
+        memset(pText, 0, sizeof(DStringW::value_type) * textLen);
         if (TxSendMessage(EM_GETSELTEXT, 0, (LPARAM)pText) == 0) {
             delete[] pText;
             return FALSE;

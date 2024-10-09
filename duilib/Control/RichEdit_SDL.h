@@ -291,11 +291,11 @@ public:
 
     /** 设置密码字符
     */
-    void SetPasswordChar(wchar_t ch);
+    void SetPasswordChar(DStringW::value_type ch);
 
     /** 获取密码字符
     */
-    wchar_t GetPasswordChar() const;
+    DStringW::value_type GetPasswordChar() const;
 
     /** 设置是否对输入的字符短暂显示再隐藏（仅当IsShowPassword()为true，即密码模式的时候有效）
     */
@@ -847,7 +847,7 @@ private:
 
     /** 判断一个字符，是否在限制字符列表中
     */
-    bool IsInLimitChars(wchar_t charValue) const;
+    bool IsInLimitChars(DStringW::value_type charValue) const;
 
     /** 判断是否可以进行粘贴操作(判断是否有字符限制、数字限制)
     * @return 如果返回true, 表示不可用进行粘贴操作
@@ -1050,7 +1050,7 @@ private:
     bool m_bReadOnly;           //是否为只读模式
     bool m_bPasswordMode;       //是否为密码模式
     bool m_bShowPassword;       //是否显示密码
-    wchar_t m_chPasswordChar;   //密码字符
+    DStringW::value_type m_chPasswordChar;   //密码字符
     bool m_bFlashPasswordChar;  //是否短暂的显示密码字符，然后再隐藏
     bool m_bInputPasswordChar;  //当前是否存在输入密码
 
@@ -1115,7 +1115,7 @@ private:
 
     /** 允许输入的字符列表
     */
-    std::unique_ptr<wchar_t[]> m_pLimitChars;
+    std::unique_ptr<DStringW::value_type[]> m_pLimitChars;
 
     /** 是否禁止触发文本变化事件
     */

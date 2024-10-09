@@ -633,7 +633,7 @@ bool RichEdit::IsShowPassword() const
     return false;
 }
 
-void RichEdit::SetPasswordChar(wchar_t ch)
+void RichEdit::SetPasswordChar(DStringW::value_type ch)
 {
     if (m_pRichHost != nullptr) {
         m_pRichHost->SetPasswordChar(ch);
@@ -963,8 +963,8 @@ void RichEdit::SetLimitChars(const DString& limitChars)
     DStringW limitCharsW = StringUtil::TToUTF16(limitChars);
     if (!limitCharsW.empty()) {
         size_t nLen = limitCharsW.size() + 1;
-        m_pLimitChars.reset(new wchar_t[nLen]);
-        memset(m_pLimitChars.get(), 0, nLen * sizeof(wchar_t));
+        m_pLimitChars.reset(new DStringW::value_type[nLen]);
+        memset(m_pLimitChars.get(), 0, nLen * sizeof(DStringW::value_type));
         StringUtil::StringCopy(m_pLimitChars.get(), nLen, limitCharsW.c_str());
     }
 }
@@ -982,8 +982,8 @@ DString RichEdit::GetText() const
         return DString();
     }
     nTextLen += 1;
-    wchar_t* pText = new wchar_t[nTextLen];
-    memset(pText, 0, sizeof(wchar_t) * nTextLen);
+    DStringW::value_type* pText = new DStringW::value_type[nTextLen];
+    memset(pText, 0, sizeof(DStringW::value_type) * nTextLen);
     m_richCtrl.GetTextEx(pText, nTextLen, GTL_DEFAULT, uCodePage);
     std::wstring sText(pText);
     delete[] pText;
@@ -1893,7 +1893,7 @@ bool RichEdit::OnChar(const EventArgs& msg)
 
     //限制允许输入的字符
     if (m_pLimitChars != nullptr) {
-        if (!IsInLimitChars((wchar_t)msg.vkCode)) {
+        if (!IsInLimitChars((DStringW::value_type)msg.vkCode)) {
             //字符不在列表里面，禁止输入
             return true;
         }
@@ -1921,7 +1921,7 @@ bool RichEdit::OnChar(const EventArgs& msg)
     else {
         if (m_pendingChars.size() == 1) {
             BYTE chMBCS[8] = {m_pendingChars.front(), (BYTE)msg.wParam, 0, };
-            wchar_t chWideChar[4] = {0, };
+            DStringW::value_type chWideChar[4] = {0, };
             ::MultiByteToWideChar(CP_ACP, 0, (const char*)chMBCS, 2, chWideChar, 4);
             if (chWideChar[0] != 0) {
                 WPARAM wParam = chWideChar[0];
@@ -1943,13 +1943,13 @@ bool RichEdit::OnChar(const EventArgs& msg)
     return true;
 }
 
-bool RichEdit::IsInLimitChars(wchar_t charValue) const
+bool RichEdit::IsInLimitChars(DStringW::value_type charValue) const
 {
     //返回false时：禁止输入
     if (m_pLimitChars == nullptr) {
         return true;
     }
-    const wchar_t* ch = m_pLimitChars.get();
+    const DStringW::value_type* ch = m_pLimitChars.get();
     if ((ch == nullptr) || (*ch == L'\0')) {
         return true;
     }
@@ -2760,9 +2760,9 @@ void RichEdit::GetClipboardText(DStringW& out )
         if(::IsClipboardFormatAvailable(CF_UNICODETEXT)) {
             HANDLE h = ::GetClipboardData(CF_UNICODETEXT);
             if(h != INVALID_HANDLE_VALUE) {
-                wchar_t* buf = (wchar_t*)::GlobalLock(h);
+                DStringW::value_type* buf = (DStringW::value_type*)::GlobalLock(h);
                 if(buf != NULL)    {
-                    DStringW str(buf, GlobalSize(h)/sizeof(wchar_t));
+                    DStringW str(buf, GlobalSize(h)/sizeof(DStringW::value_type));
                     out = str;
                     ::GlobalUnlock(h);
                 }

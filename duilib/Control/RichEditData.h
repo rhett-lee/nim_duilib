@@ -425,7 +425,7 @@ private:
 
     /** 判断一个字符是否为分隔符（空格，标点符号等）
     */
-    bool IsSeperatorChar(wchar_t ch) const;
+    bool IsSeperatorChar(DStringW::value_type ch) const;
 
     /** 获取指定字符的所在的物理行号和行内逻辑行号
     * @param [in] nCharIndex 字符索引位置

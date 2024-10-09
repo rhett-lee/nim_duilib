@@ -319,7 +319,7 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
 
     languageList.clear();
 #ifdef DUILIB_BUILD_FOR_WIN
-    //Windows: 路径字符串用的是wchar_t，UTF16
+    //Windows: 路径字符串用的是DStringW::value_type，UTF16
     const std::filesystem::path path{ languagePath.ToStringW()};
 #else
     //Windows: 路径字符串用的是char，UTF8

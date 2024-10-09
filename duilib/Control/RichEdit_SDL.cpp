@@ -522,7 +522,7 @@ bool RichEdit::IsShowPassword() const
     return m_bShowPassword;
 }
 
-void RichEdit::SetPasswordChar(wchar_t ch)
+void RichEdit::SetPasswordChar(DStringW::value_type ch)
 {
     if (m_chPasswordChar != ch) {
         m_chPasswordChar = ch;
@@ -533,7 +533,7 @@ void RichEdit::SetPasswordChar(wchar_t ch)
     }
 }
 
-wchar_t RichEdit::GetPasswordChar() const
+DStringW::value_type RichEdit::GetPasswordChar() const
 {
     return m_chPasswordChar;
 }
@@ -910,8 +910,8 @@ void RichEdit::SetLimitChars(const DString& limitChars)
     DStringW limitCharsW = StringUtil::TToUTF16(limitChars);
     if (!limitCharsW.empty()) {
         size_t nLen = limitCharsW.size() + 1;
-        m_pLimitChars.reset(new wchar_t[nLen]);
-        memset(m_pLimitChars.get(), 0, nLen * sizeof(wchar_t));
+        m_pLimitChars.reset(new DStringW::value_type[nLen]);
+        memset(m_pLimitChars.get(), 0, nLen * sizeof(DStringW::value_type));
         StringUtil::StringCopy(m_pLimitChars.get(), nLen, limitCharsW.c_str());
     }
 }
@@ -1631,13 +1631,13 @@ uint32_t RichEdit::GetControlFlags() const
     return IsEnabled() && IsAllowTabStop() ? UIFLAG_TABSTOP : UIFLAG_DEFAULT;
 }
 
-bool RichEdit::IsInLimitChars(wchar_t charValue) const
+bool RichEdit::IsInLimitChars(DStringW::value_type charValue) const
 {
     //返回false时：禁止输入
     if (m_pLimitChars == nullptr) {
         return true;
     }
-    const wchar_t* ch = m_pLimitChars.get();
+    const DStringW::value_type* ch = m_pLimitChars.get();
     if ((ch == nullptr) || (*ch == L'\0')) {
         return true;
     }
@@ -4378,7 +4378,7 @@ void RichEdit::OnInputChar(const EventArgs& msg)
 
         //限制允许输入的字符
         if (m_pLimitChars != nullptr) {
-            if (!IsInLimitChars((wchar_t)msg.vkCode)) {
+            if (!IsInLimitChars((DStringW::value_type)msg.vkCode)) {
                 //字符不在列表里面，禁止输入
                 return;
             }
