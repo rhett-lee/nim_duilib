@@ -8,6 +8,7 @@
 #include "duilib/Core/StateColorMap.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Animation/AnimationManager.h"
@@ -396,7 +397,7 @@ template<typename InheritType>
 std::string LabelTemplate<InheritType>::GetUTF8Text() const
 {
     DString strIn = GetText();
-    std::string strOut = StringUtil::TToUTF8(strIn);
+    std::string strOut = StringConvert::TToUTF8(strIn);
     return strOut;
 }
 
@@ -414,7 +415,7 @@ void LabelTemplate<InheritType>::SetText(const DString& strText)
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetUTF8Text(const std::string& strText)
 {
-    DString strOut = StringUtil::UTF8ToT(strText);
+    DString strOut = StringConvert::UTF8ToT(strText);
     SetText(strOut);
 }
 
@@ -432,7 +433,7 @@ void LabelTemplate<InheritType>::SetTextId(const DString& strTextId)
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetUTF8TextId(const std::string& strTextId)
 {
-    DString strOut = StringUtil::UTF8ToT(strTextId);
+    DString strOut = StringConvert::UTF8ToT(strTextId);
     SetTextId(strOut);
 }
 

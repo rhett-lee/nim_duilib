@@ -1,5 +1,5 @@
 #include "Keyboard.h"
-#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
 
@@ -95,7 +95,7 @@ DString Keyboard::GetKeyName(VirtualKeyCode nVirtKey, bool /*fExtended*/)
     if (sdlKeycode != SDLK_UNKNOWN) {
         const char* szName = SDL_GetKeyName(sdlKeycode);
         if (szName != nullptr) {
-            keyName = StringUtil::UTF8ToT(szName);
+            keyName = StringConvert::UTF8ToT(szName);
         }
     }
     return keyName;

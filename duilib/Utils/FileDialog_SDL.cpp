@@ -1,5 +1,7 @@
 #include "FileDialog.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Utils/StringConvert.h"
+#include "duilib/Utils/StringUtil.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
 #include "duilib/Core/MessageLoop_SDL.h"
@@ -105,7 +107,7 @@ bool FileDialog::BrowseForFolder(Window* pWindow, FilePath& folderPath, const Fi
 
     //读取数据
     if (!pUserData->m_filePaths.empty()) {
-        folderPath = FilePath(StringUtil::UTF8ToUTF16(pUserData->m_filePaths.front()));
+        folderPath = FilePath(StringConvert::UTF8ToUTF16(pUserData->m_filePaths.front()));
     }
 
     pUserData->Release();
@@ -143,7 +145,7 @@ bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<FilePath>& folder
     //读取数据    
     const size_t nCount = pUserData->m_filePaths.size();
     for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
-        folderPaths.push_back(FilePath(StringUtil::UTF8ToUTF16(pUserData->m_filePaths.at(nIndex))));
+        folderPaths.push_back(FilePath(StringConvert::UTF8ToUTF16(pUserData->m_filePaths.at(nIndex))));
     }
 
     pUserData->Release();
@@ -170,7 +172,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
     pUserData->m_bAllowMany = false;
 
     //初始选择的文件夹
-    DStringA defaultFileName = StringUtil::TToUTF8(fileName);
+    DStringA defaultFileName = StringConvert::TToUTF8(fileName);
     SDL_DialogFileCallback callback = DialogFileCallback;
     void* userdata = pUserData;
     pUserData->AddRef(); //增加一个引用计数，保护数据
@@ -189,8 +191,8 @@ bool FileDialog::BrowseForFile(Window* pWindow,
     if (!fileTypes.empty()) {
         FileTypeA fileTypeA;
         for (const FileType& fileType : fileTypes) {
-            fileTypeA.szNameA = StringUtil::TToUTF8(fileType.szName);
-            fileTypeA.szExtA = StringUtil::TToUTF8(fileType.szExt);
+            fileTypeA.szNameA = StringConvert::TToUTF8(fileType.szName);
+            fileTypeA.szExtA = StringConvert::TToUTF8(fileType.szExt);
             //将"*.txt"格式的转换为"txt"格式
             StringUtil::ReplaceAll("*.", "", fileTypeA.szExtA);
             if (!fileTypeA.szNameA.empty() && !fileTypeA.szExtA.empty()) {
@@ -229,7 +231,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
 
     //读取数据
     if (!pUserData->m_filePaths.empty()) {
-        filePath = FilePath(StringUtil::UTF8ToUTF16(pUserData->m_filePaths.front()));
+        filePath = FilePath(StringConvert::UTF8ToUTF16(pUserData->m_filePaths.front()));
     }
 
     pUserData->Release();
@@ -273,8 +275,8 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
     if (!fileTypes.empty()) {
         FileTypeA fileTypeA;
         for (const FileType& fileType : fileTypes) {
-            fileTypeA.szNameA = StringUtil::TToUTF8(fileType.szName);
-            fileTypeA.szExtA = StringUtil::TToUTF8(fileType.szExt);
+            fileTypeA.szNameA = StringConvert::TToUTF8(fileType.szName);
+            fileTypeA.szExtA = StringConvert::TToUTF8(fileType.szExt);
             //将"*.txt"格式的转换为"txt"格式
             StringUtil::ReplaceAll("*.", "", fileTypeA.szExtA);
             if (!fileTypeA.szNameA.empty() && !fileTypeA.szExtA.empty()) {
@@ -309,7 +311,7 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
     //读取数据    
     const size_t nCount = pUserData->m_filePaths.size();
     for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
-        filePaths.push_back(FilePath(StringUtil::UTF8ToUTF16(pUserData->m_filePaths.at(nIndex))));
+        filePaths.push_back(FilePath(StringConvert::UTF8ToUTF16(pUserData->m_filePaths.at(nIndex))));
     }
 
     //TODO: 多选的情况下，SDL 3.0目前返回的值不对，有Bug，待修复。

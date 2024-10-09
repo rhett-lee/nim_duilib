@@ -60,38 +60,7 @@
 
 #endif
 
-//字符串类
-#include <string>
-#include <cstring>
-
-/** Unicode版本的字符串宏定义
-*/
-#if !defined(_T)
-    #if defined (DUILIB_UNICODE)
-        #define _T(x)   L##x
-    #else
-        #define _T(x)   x
-    #endif
-#endif
-
-//字符串类型定义（Window下用Unicode，Linux下用Ansi）
-
-/** Unicode版本的字符串，数据为UTF16编码
-*/
-typedef std::wstring DStringW;
-
-/** Ansi版本的String，数据为UTF8编码
-*/
-typedef std::string  DStringA;
-
-/** String 类型宏定义
-*/
-#ifdef DUILIB_UNICODE
-    //Unicode版本：数据为UTF16编码
-    typedef std::wstring  DString;
-#else
-    //多字节编码：数据为UTF8编码
-    typedef std::string   DString;
-#endif
+//字符串类的定义
+#include "duilib_string.h"
 
 #endif //DUILIB_CONFIG_H_

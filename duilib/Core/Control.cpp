@@ -10,6 +10,7 @@
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Animation/AnimationManager.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
 
@@ -741,7 +742,7 @@ DString Control::GetBkImage() const
 
 std::string Control::GetUTF8BkImage() const
 {
-    std::string strOut = StringUtil::TToUTF8(GetBkImage());
+    std::string strOut = StringConvert::TToUTF8(GetBkImage());
     return strOut;
 }
 
@@ -762,7 +763,7 @@ void Control::SetBkImage(const DString& strImage)
 
 void Control::SetUTF8BkImage(const std::string& strImage)
 {
-    DString strOut = StringUtil::UTF8ToT(strImage);
+    DString strOut = StringConvert::UTF8ToT(strImage);
     SetBkImage(strOut);
 }
 
@@ -1225,7 +1226,7 @@ DString Control::GetToolTipText() const
 
 std::string Control::GetUTF8ToolTipText() const
 {
-    std::string strOut = StringUtil::TToUTF8(GetToolTipText());
+    std::string strOut = StringConvert::TToUTF8(GetToolTipText());
     return strOut;
 }
 
@@ -1249,7 +1250,7 @@ void Control::SetToolTipText(const DString& strText)
 
 void Control::SetUTF8ToolTipText(const std::string& strText)
 {
-    DString strOut = StringUtil::UTF8ToT(strText);
+    DString strOut = StringConvert::UTF8ToT(strText);
     if (strOut.empty()) {
         m_sToolTipText.clear();
         Invalidate();
@@ -1272,7 +1273,7 @@ void Control::SetToolTipTextId(const DString& strTextId)
 
 void Control::SetUTF8ToolTipTextId(const std::string& strTextId)
 {
-    DString strOut = StringUtil::UTF8ToT(strTextId);
+    DString strOut = StringConvert::UTF8ToT(strTextId);
     SetToolTipTextId(strOut);
 }
 
@@ -1304,7 +1305,7 @@ DString Control::GetDataID() const
 
 std::string Control::GetUTF8DataID() const
 {
-    std::string strOut = StringUtil::TToUTF8(GetDataID());
+    std::string strOut = StringConvert::TToUTF8(GetDataID());
     return strOut;
 }
 
@@ -1315,7 +1316,7 @@ void Control::SetDataID(const DString& strText)
 
 void Control::SetUTF8DataID(const std::string& strText)
 {
-    m_sUserDataID = StringUtil::UTF8ToT(strText);
+    m_sUserDataID = StringConvert::UTF8ToT(strText);
 }
 
 void Control::SetUserDataID(size_t dataID)

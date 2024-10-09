@@ -198,7 +198,7 @@ void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const 
         &shFileInfo,
         sizeof(SHFILEINFO),
         SHGFI_PIDL | SHGFI_DISPLAYNAME | SHGFI_ICON | SHGFI_SMALLICON)) {
-        DString displayName = ui::StringUtil::LocalToT(shFileInfo.szDisplayName);
+        DString displayName = ui::StringConvert::LocalToT(shFileInfo.szDisplayName);
         if (displayName.empty()) {
             displayName = name;
         }

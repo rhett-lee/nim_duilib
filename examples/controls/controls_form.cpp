@@ -439,7 +439,7 @@ void ControlForm::LoadRichEditData()
 
         ifs.close();
     }
-    DString xmlU = ui::StringUtil::UTF8ToT(xml);
+    DString xmlU = ui::StringConvert::UTF8ToT(xml);
 
     // Post task to UI thread
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&ControlForm::OnResourceFileLoaded, this, xmlU));

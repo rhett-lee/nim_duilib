@@ -2,6 +2,7 @@
 #include "duilib/Box/ScrollBox.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Core/GlobalManager.h"
 
 namespace ui
@@ -44,7 +45,7 @@ ui::Box* PlaceHolder::GetAncestor(const DString& strName)
 
 std::string PlaceHolder::GetUTF8Name() const
 {
-    std::string strOut = StringUtil::TToUTF8(GetName());
+    std::string strOut = StringConvert::TToUTF8(GetName());
     return strOut;
 }
 
@@ -65,7 +66,7 @@ void PlaceHolder::SetName(const DString& strName)
 
 void PlaceHolder::SetUTF8Name(const std::string& strName)
 {
-    DString strOut = StringUtil::UTF8ToT(strName);
+    DString strOut = StringConvert::UTF8ToT(strName);
     SetName(strOut);
 }
 

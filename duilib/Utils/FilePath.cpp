@@ -1,4 +1,5 @@
 #include "FilePath.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/StringUtil.h"
 
 namespace ui
@@ -6,7 +7,7 @@ namespace ui
 
 FilePath::FilePath(const std::string& filePath) :
 #ifdef DUILIB_BUILD_FOR_WIN
-    m_filePath(StringUtil::UTF8ToUTF16(filePath)),
+    m_filePath(StringConvert::UTF8ToUTF16(filePath)),
 #else
     m_filePath(filePath),
 #endif
@@ -18,7 +19,7 @@ FilePath::FilePath(const std::wstring& filePath) :
 #ifdef DUILIB_BUILD_FOR_WIN
     m_filePath(filePath),
 #else
-    m_filePath(StringUtil::UTF16ToUTF8(filePath)),
+    m_filePath(StringConvert::UTF16ToUTF8(filePath)),
 #endif
     m_bLexicallyNormal(false)
 {
@@ -26,7 +27,7 @@ FilePath::FilePath(const std::wstring& filePath) :
 
 FilePath::FilePath(const std::string& filePath, bool bLexicallyNormal):
 #ifdef DUILIB_BUILD_FOR_WIN
-    m_filePath(StringUtil::UTF8ToUTF16(filePath)),
+    m_filePath(StringConvert::UTF8ToUTF16(filePath)),
 #else
     m_filePath(filePath),
 #endif
@@ -38,7 +39,7 @@ FilePath::FilePath(const std::wstring& filePath, bool bLexicallyNormal) :
 #ifdef DUILIB_BUILD_FOR_WIN
     m_filePath(filePath),
 #else
-    m_filePath(StringUtil::UTF16ToUTF8(filePath)),
+    m_filePath(StringConvert::UTF16ToUTF8(filePath)),
 #endif
     m_bLexicallyNormal(bLexicallyNormal)
 {
@@ -122,7 +123,7 @@ DString FilePath::GetPathSeparatorStr() const
         }
         #ifdef DUILIB_BUILD_FOR_WIN
             //转换为本机编码类型的字符串
-            return StringUtil::UnicodeToMBCS(m_filePath.native());
+            return StringConvert::UnicodeToMBCS(m_filePath.native());
         #else
             return m_filePath.native();
         #endif
@@ -136,7 +137,7 @@ DStringA FilePath::NativePathA() const
     }
 #ifdef DUILIB_BUILD_FOR_WIN
     //转换为本机编码类型的字符串
-    return StringUtil::UnicodeToMBCS(m_filePath.native());
+    return StringConvert::UnicodeToMBCS(m_filePath.native());
 #else
     return m_filePath.native();
 #endif
@@ -154,7 +155,7 @@ DString FilePath::ToString() const
     if (m_filePath.empty()) {
         return DStringA();
     }
-    return StringUtil::UTF16ToUTF8(m_filePath.native());
+    return StringConvert::UTF16ToUTF8(m_filePath.native());
 }
 #else
 const DString& FilePath::ToString() const
@@ -169,7 +170,7 @@ DStringW FilePath::ToStringW() const
 #ifdef DUILIB_BUILD_FOR_WIN
     return m_filePath.native();
 #else
-    return StringUtil::UTF8ToUTF16(m_filePath.native());
+    return StringConvert::UTF8ToUTF16(m_filePath.native());
 #endif
 }
  
@@ -179,7 +180,7 @@ DStringA FilePath::ToStringA() const
         return DStringA();
     }
 #ifdef DUILIB_BUILD_FOR_WIN
-    return StringUtil::UTF16ToUTF8(m_filePath.native());
+    return StringConvert::UTF16ToUTF8(m_filePath.native());
 #else
     return m_filePath.native();
 #endif
@@ -194,7 +195,7 @@ DString FilePath::GetFileName() const
     return m_filePath.filename().native();
 #else
 #ifdef DUILIB_BUILD_FOR_WIN
-    return StringUtil::UTF16ToUTF8(m_filePath.filename().native());
+    return StringConvert::UTF16ToUTF8(m_filePath.filename().native());
 #else
     return m_filePath.filename().native();
 #endif
@@ -258,7 +259,7 @@ FilePath& FilePath::operator = (const DString& rightPath)
     m_filePath = rightPath;
 #else
 #ifdef DUILIB_BUILD_FOR_WIN
-    DStringW rightPathW = StringUtil::UTF8ToUTF16(rightPath);
+    DStringW rightPathW = StringConvert::UTF8ToUTF16(rightPath);
     m_filePath = rightPathW;
 #else
     m_filePath = rightPath;
@@ -291,7 +292,7 @@ FilePath& FilePath::operator += (const DString& rightPath)
     m_filePath += rightPath;
 #else
 #ifdef DUILIB_BUILD_FOR_WIN
-    DStringW rightPathW = StringUtil::UTF8ToUTF16(rightPath);
+    DStringW rightPathW = StringConvert::UTF8ToUTF16(rightPath);
     m_filePath += rightPathW;
 #else
     m_filePath += rightPath;

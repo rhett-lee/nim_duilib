@@ -1,5 +1,6 @@
 #include "LangManager.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/FileUtil.h"
 
 namespace ui 
@@ -49,7 +50,7 @@ bool LangManager::LoadStringTable(const std::vector<uint8_t>& fileData)
         if (it == '\0' || it == '\n') {
             if (!src.empty()) {
                 string_resourse.clear();
-                string_resourse = StringUtil::UTF8ToT(src);
+                string_resourse = StringConvert::UTF8ToT(src);
                 string_resourse = StringUtil::Trim(string_resourse);
                 if (!string_resourse.empty()) {
                     string_list.push_back(string_resourse);

@@ -561,6 +561,9 @@
     <ClCompile Include="Utils\BitmapHepler_SDL.cpp">
       <Filter>Utils\SDL</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\StringConvert.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1162,6 +1165,9 @@
     </ClInclude>
     <ClInclude Include="duilib_string.h">
       <Filter>duilib</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\StringConvert.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

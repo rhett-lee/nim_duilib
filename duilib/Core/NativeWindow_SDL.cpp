@@ -4,6 +4,8 @@
 #include "duilib/Image/ImageDecoder.h"
 #include "duilib/Image/ImageLoadAttribute.h"
 #include "duilib/Image/ImageInfo.h"
+#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
 
@@ -395,7 +397,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             //相当于Windows下的WM_CHAR消息
             if (sdlEvent.text.text != nullptr) {
                 //该文本为UTF-8编码的
-                DStringW textW = StringUtil::UTF8ToUTF16(sdlEvent.text.text);
+                DStringW textW = StringConvert::UTF8ToUTF16(sdlEvent.text.text);
                 if (!textW.empty()) {
                     ASSERT(textW.size() == 1);
                     if (textW.size() == 1) { //这里可能是2，一个字（比如汉字），可能占1-2个Unicode字符
@@ -780,7 +782,7 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     SDL_SetHint("SDL_BORDERLESS_RESIZABLE_STYLE", "true");
 
     if (!m_createParam.m_windowTitle.empty()) {
-        std::string windowTitle = StringUtil::TToUTF8(m_createParam.m_windowTitle);
+        std::string windowTitle = StringConvert::TToUTF8(m_createParam.m_windowTitle);
         SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, windowTitle.c_str());
     }
 
@@ -983,7 +985,7 @@ void NativeWindow_SDL::InitNativeWindow()
     }
 
     if (!m_createParam.m_windowTitle.empty()) {
-        std::string windowTitle = StringUtil::TToUTF8(m_createParam.m_windowTitle);
+        std::string windowTitle = StringConvert::TToUTF8(m_createParam.m_windowTitle);
         bool nRet = SDL_SetWindowTitle(m_sdlWindow, windowTitle.c_str());
         ASSERT_UNUSED_VARIABLE(nRet);
     }    
@@ -1613,7 +1615,7 @@ void NativeWindow_SDL::SetText(const DString& strText)
 {
     ASSERT(IsWindow());
     //转为UTF-8编码
-    DStringA utf8Text = StringUtil::TToUTF8(strText);
+    DStringA utf8Text = StringConvert::TToUTF8(strText);
     bool nRet = SDL_SetWindowTitle(m_sdlWindow, utf8Text.c_str());
     ASSERT_UNUSED_VARIABLE(nRet);
 }

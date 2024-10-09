@@ -1,5 +1,5 @@
 #include "FontMgr_Skia.h"
-#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 
 #pragma warning (push)
 #pragma warning (disable: 4244)
@@ -51,7 +51,7 @@ public:
             return false;
         }
 
-        DString fontFamilyName = StringUtil::UTF8ToT(fontName.c_str());
+        DString fontFamilyName = StringConvert::UTF8ToT(fontName.c_str());
         ASSERT(!fontFamilyName.empty());
         if (fontFamilyName.empty()) {
             return false;
@@ -223,7 +223,7 @@ bool FontMgr_Skia::GetFontName(uint32_t nIndex, DString& fontName) const
     if (nIndex < (uint32_t)m_impl->m_pSkFontMgr->countFamilies()) {
         SkString fontFamilyName;
         m_impl->m_pSkFontMgr->getFamilyName((int)nIndex, &fontFamilyName);
-        fontName = StringUtil::UTF8ToT(fontFamilyName.c_str());
+        fontName = StringConvert::UTF8ToT(fontFamilyName.c_str());
     }
     else {
         uint32_t nFontFileIndex = nIndex - (uint32_t)m_impl->m_pSkFontMgr->countFamilies();
@@ -243,7 +243,7 @@ bool FontMgr_Skia::HasFontName(const DString& fontName) const
     if (m_impl->m_pSkFontMgr == nullptr) {
         return false;
     }
-    std::string fontFamily = StringUtil::TToUTF8(fontName); //转换为UTF8格式
+    std::string fontFamily = StringConvert::TToUTF8(fontName); //转换为UTF8格式
     auto styleSet = m_impl->m_pSkFontMgr->matchFamily(fontFamily.c_str());
     if ((styleSet != nullptr) && (styleSet->count() > 0)) {
         return true;
@@ -268,7 +268,7 @@ bool FontMgr_Skia::LoadFontFile(const DString& fontFilePath)
         return false;
     }
 
-    std::string fontFile = StringUtil::TToUTF8(fontFilePath); //转换为UTF8格式的路径
+    std::string fontFile = StringConvert::TToUTF8(fontFilePath); //转换为UTF8格式的路径
     ASSERT(!fontFile.empty());
     if (fontFile.empty()) {
         return false;
@@ -329,7 +329,7 @@ SkFont* FontMgr_Skia::CreateSkFont(const UiFont& fontInfo)
     }
     if (spTypeface == nullptr) {
         //UTF8编码的字体名称
-        std::string fontName = StringUtil::TToUTF8(fontInfo.m_fontName.c_str());
+        std::string fontName = StringConvert::TToUTF8(fontInfo.m_fontName.c_str());
         ASSERT(!fontName.empty());
         if (fontName.empty()) {
             return nullptr;
@@ -343,7 +343,7 @@ SkFont* FontMgr_Skia::CreateSkFont(const UiFont& fontInfo)
             }
             if ((spTypeface == nullptr) && !m_impl->m_defaultFontName.empty()) {
                 //未能匹配则查询默认字体是否能匹配
-                std::string defaultFontName = StringUtil::TToUTF8(m_impl->m_defaultFontName);
+                std::string defaultFontName = StringConvert::TToUTF8(m_impl->m_defaultFontName);
                 skFontStyleSet = pSkFontMgr->matchFamily(defaultFontName.c_str());
                 if (skFontStyleSet != nullptr) {
                     spTypeface = skFontStyleSet->matchStyle(fontStyle);

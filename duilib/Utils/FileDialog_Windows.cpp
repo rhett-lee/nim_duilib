@@ -1,5 +1,6 @@
 #include "FileDialog.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Utils/StringConvert.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 #include "duilib/duilib_config_windows.h"
@@ -136,7 +137,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
     };
     std::vector<FileTypeW> fileTypesW;
     for (const FileType& fileType : fileTypes) {
-        fileTypesW.push_back({ StringUtil::TToUTF16(fileType.szName), StringUtil::TToUTF16(fileType.szExt) });
+        fileTypesW.push_back({ StringConvert::TToUTF16(fileType.szName), StringConvert::TToUTF16(fileType.szExt) });
     }
 
     if (SUCCEEDED(hr) && (pfd != nullptr)) {
@@ -156,11 +157,11 @@ bool FileDialog::BrowseForFile(Window* pWindow,
             ASSERT(SUCCEEDED(hr));
         }
         if (!defaultExt.empty()) {
-            hr = pfd->SetDefaultExtension(StringUtil::TToUTF16(defaultExt).c_str());
+            hr = pfd->SetDefaultExtension(StringConvert::TToUTF16(defaultExt).c_str());
             ASSERT(SUCCEEDED(hr));
         }
 
-        DStringW fileNameW = StringUtil::TToUTF16(fileName);
+        DStringW fileNameW = StringConvert::TToUTF16(fileName);
         pfd->SetFileName(fileNameW.c_str());
 
         //设置默认文件夹
@@ -221,7 +222,7 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
             ASSERT(SUCCEEDED(hr));
         }
         if (!defaultExt.empty()) {
-            hr = pfd->SetDefaultExtension(StringUtil::TToUTF16(defaultExt).c_str());
+            hr = pfd->SetDefaultExtension(StringConvert::TToUTF16(defaultExt).c_str());
             ASSERT(SUCCEEDED(hr));
         }
 

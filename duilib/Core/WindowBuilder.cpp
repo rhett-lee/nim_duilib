@@ -993,7 +993,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
 #ifdef DUILIB_UNICODE
             textSlice.m_text = pRichText->TrimText(node.value());
 #else
-            textSlice.m_text = StringUtil::UTF8ToUTF16(pRichText->TrimText(node.value()));
+            textSlice.m_text = StringConvert::UTF8ToUTF16(pRichText->TrimText(node.value()));
 #endif
             bParseChildren = false;
         }        
@@ -1001,7 +1001,7 @@ bool WindowBuilder::ParseRichTextXmlNode(const pugi::xml_node& xmlNode, Control*
 #ifdef DUILIB_UNICODE
             textSlice.m_text = pRichText->TrimText(node.first_child().value());
 #else
-            textSlice.m_text = StringUtil::UTF8ToUTF16(pRichText->TrimText(node.first_child().value()));
+            textSlice.m_text = StringConvert::UTF8ToUTF16(pRichText->TrimText(node.first_child().value()));
 #endif
             textSlice.m_linkUrl = StringUtil::Trim(node.attribute(_T("href")).as_string());
             //超级链接节点, 不需要递归遍历子节点

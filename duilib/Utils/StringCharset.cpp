@@ -1,5 +1,5 @@
 #include "StringCharset.h"
-#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 
 namespace ui
 {
@@ -141,13 +141,13 @@ bool StringCharset::GetDataAsString(const char* data, uint32_t length, CharsetTy
 
     if (outCharsetType == CharsetType::ANSI) {
 #ifdef DUILIB_BUILD_FOR_WIN
-        result = StringUtil::MBCSToUnicode2(realData, realLen);
+        result = StringConvert::MBCSToUnicode2(realData, realLen);
 #else
-        result = StringUtil::UTF8ToUTF16(realData, realLen);
+        result = StringConvert::UTF8ToUTF16(realData, realLen);
 #endif
     }
     else if (outCharsetType == CharsetType::UTF8) {
-        result = StringUtil::UTF8ToUTF16(realData, realLen);
+        result = StringConvert::UTF8ToUTF16(realData, realLen);
     }
     else if (outCharsetType == CharsetType::UTF16_LE) {
         result.assign((const wchar_t*)realData, realLen / sizeof(wchar_t));

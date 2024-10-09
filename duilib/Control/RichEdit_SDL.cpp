@@ -6,6 +6,7 @@
 #include "duilib/Core/ControlDropTarget.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/BitmapHelper_Windows.h"
 #include "duilib/Utils/PerformanceUtil.h"
@@ -897,7 +898,7 @@ void RichEdit::SetLimitText(int32_t iChars)
 DString RichEdit::GetLimitChars() const
 {
     if (m_pLimitChars != nullptr) {
-        return StringUtil::UTF16ToT(m_pLimitChars.get());
+        return StringConvert::UTF16ToT(m_pLimitChars.get());
     }
     else {
         return DString();
@@ -907,7 +908,7 @@ DString RichEdit::GetLimitChars() const
 void RichEdit::SetLimitChars(const DString& limitChars)
 {
     m_pLimitChars.reset();
-    DStringW limitCharsW = StringUtil::TToUTF16(limitChars);
+    DStringW limitCharsW = StringConvert::TToUTF16(limitChars);
     if (!limitCharsW.empty()) {
         size_t nLen = limitCharsW.size() + 1;
         m_pLimitChars.reset(new DStringW::value_type[nLen]);
@@ -932,13 +933,13 @@ DString RichEdit::GetText() const
 #ifdef DUILIB_UNICODE
     return m_pTextData->GetText();
 #else
-    return StringUtil::UTF16ToUTF8(m_pTextData->GetText());
+    return StringConvert::UTF16ToUTF8(m_pTextData->GetText());
 #endif
 }
 
 DStringA RichEdit::GetTextA() const
 {
-    return StringUtil::UTF16ToUTF8(m_pTextData->GetText());
+    return StringConvert::UTF16ToUTF8(m_pTextData->GetText());
 }
 
 DStringW RichEdit::GetTextW() const
@@ -976,7 +977,7 @@ void RichEdit::SetText(const DStringA& strText)
 {
     //目前内存占用情况：2MB的UTF16格式文本，Debug版本：占用约23MB的内存，Release版本：占用约12MB的内存。
     bool bChanged = false;
-    DStringW text = StringUtil::UTF8ToUTF16(strText);
+    DStringW text = StringConvert::UTF8ToUTF16(strText);
     if (IsPasswordMode()) {
         //密码模式
         DStringW passwordText = text;
@@ -1162,7 +1163,7 @@ void RichEdit::EnsureCharVisible(int32_t nCharIndex)
 
 bool RichEdit::FindRichText(const FindTextParam& findParam, TextCharRange& chrgText) const
 {
-    DStringW findText = StringUtil::TToUTF16(findParam.findText);
+    DStringW findText = StringConvert::TToUTF16(findParam.findText);
     if (findText.empty()) {
         return false;
     }
@@ -1202,7 +1203,7 @@ bool RichEdit::ReplaceSel(const DString& newText, bool bCanUndo)
     int32_t nEndChar = -1;
     GetSel(nStartChar, nEndChar);
     bool bRet = false;
-    DStringW text = StringUtil::TToUTF16(newText);
+    DStringW text = StringConvert::TToUTF16(newText);
     if (IsPasswordMode()) {        
         RemoveInvalidPasswordChar(text);
         bRet = m_pTextData->ReplaceText(nStartChar, nEndChar, text, false);
@@ -1228,7 +1229,7 @@ DString RichEdit::GetSelText() const
 #ifdef DUILIB_UNICODE
     return text;
 #else
-    return StringUtil::UTF16ToUTF8(text);
+    return StringConvert::UTF16ToUTF8(text);
 #endif
 }
 
@@ -1254,7 +1255,7 @@ void RichEdit::SetSelNone()
 
 DString RichEdit::GetTextRange(int32_t nStartChar, int32_t nEndChar) const
 {
-    return StringUtil::UTF16ToT(m_pTextData->GetTextRange(nStartChar, nEndChar));
+    return StringConvert::UTF16ToT(m_pTextData->GetTextRange(nStartChar, nEndChar));
 }
 
 void RichEdit::HideSelection(bool bHideSelection)
@@ -1433,7 +1434,7 @@ DString RichEdit::GetLine(int32_t nIndex, int32_t nMaxLength) const
     if ((int32_t)rowText.size() > nMaxLength) {
         rowText.resize((size_t)nMaxLength);
     }
-    return StringUtil::UTF16ToT(rowText);
+    return StringConvert::UTF16ToT(rowText);
 }
 
 int32_t RichEdit::LineIndex(int32_t nLine) const
@@ -1803,7 +1804,7 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 #ifdef DUILIB_UNICODE
             pRender->DrawString(rcDrawRect, passwordText, dwClrColor, GetIFontInternal(fontId), dwStyle);
 #else
-            pRender->DrawString(rcDrawRect, StringUtil::UTF16ToUTF8(passwordText), dwClrColor, GetIFontInternal(fontId), dwStyle);
+            pRender->DrawString(rcDrawRect, StringConvert::UTF16ToUTF8(passwordText), dwClrColor, GetIFontInternal(fontId), dwStyle);
 #endif
             
         }        

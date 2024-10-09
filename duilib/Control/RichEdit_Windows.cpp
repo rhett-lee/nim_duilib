@@ -780,7 +780,7 @@ UiFont RichEdit::GetFontInfo() const
     }
     ASSERT(cf.dwMask & CFM_FACE);
     if (cf.dwMask & CFM_FACE) {
-        uiFont.m_fontName = StringUtil::UTF16ToT(cf.szFaceName);
+        uiFont.m_fontName = StringConvert::UTF16ToT(cf.szFaceName);
     }
     return uiFont;
 }
@@ -811,7 +811,7 @@ bool RichEdit::SetFontInfo(const UiFont& fontInfo)
     charFormat.dwMask = 0;
     if (oldFontInfo.m_fontName != fontInfo.m_fontName) {
         charFormat.dwMask |= CFM_FACE;
-        DStringW fontName = StringUtil::TToUTF16(fontInfo.m_fontName.c_str());
+        DStringW fontName = StringConvert::TToUTF16(fontInfo.m_fontName.c_str());
         ui::StringUtil::StringCopy(charFormat.szFaceName, fontName.c_str());
     }
     if (oldFontInfo.m_fontSize != fontInfo.m_fontSize) {
@@ -950,7 +950,7 @@ void RichEdit::SetLimitText(int32_t iChars)
 DString RichEdit::GetLimitChars() const
 {
     if (m_pLimitChars != nullptr) {
-        return StringUtil::UTF16ToT(m_pLimitChars.get());
+        return StringConvert::UTF16ToT(m_pLimitChars.get());
     }
     else {
         return DString();
@@ -960,7 +960,7 @@ DString RichEdit::GetLimitChars() const
 void RichEdit::SetLimitChars(const DString& limitChars)
 {
     m_pLimitChars.reset();
-    DStringW limitCharsW = StringUtil::TToUTF16(limitChars);
+    DStringW limitCharsW = StringConvert::TToUTF16(limitChars);
     if (!limitCharsW.empty()) {
         size_t nLen = limitCharsW.size() + 1;
         m_pLimitChars.reset(new DStringW::value_type[nLen]);
@@ -991,7 +991,7 @@ DString RichEdit::GetText() const
 #ifdef DUILIB_UNICODE
     return sText;
 #else
-    return StringUtil::UTF16ToT(sText);
+    return StringConvert::UTF16ToT(sText);
 #endif
 }
 
@@ -1045,7 +1045,7 @@ void RichEdit::ReplaceSel(const DString& lpszNewText, bool bCanUndo)
 #ifdef DUILIB_UNICODE
     m_richCtrl.ReplaceSel(lpszNewText.c_str(), bCanUndo);
 #else
-    std::wstring newText = StringUtil::TToUTF16(lpszNewText);
+    std::wstring newText = StringConvert::TToUTF16(lpszNewText);
     m_richCtrl.ReplaceSel(newText.c_str(), bCanUndo);
 #endif
 }
@@ -1058,7 +1058,7 @@ DString RichEdit::GetSelText() const
 #else
     DStringW textW;
     m_richCtrl.GetSelText(textW);
-    text = StringUtil::UTF16ToUTF8(textW);
+    text = StringConvert::UTF16ToUTF8(textW);
 #endif
     return text;
 }
@@ -1095,7 +1095,7 @@ DString RichEdit::GetTextRange(int32_t nStartChar, int32_t nEndChar) const
 #ifdef DUILIB_UNICODE
     return sText;
 #else
-    return StringUtil::UTF16ToT(sText);
+    return StringConvert::UTF16ToT(sText);
 #endif
 }
 
@@ -1178,7 +1178,7 @@ DString RichEdit::GetLine(int32_t nIndex, int32_t nMaxLength) const
 #ifdef DUILIB_UNICODE
     return sText;
 #else
-    return StringUtil::UTF16ToUTF8(sText);
+    return StringConvert::UTF16ToUTF8(sText);
 #endif
 }
 
@@ -2607,7 +2607,7 @@ DString RichEdit::GetPromptText() const
 
 std::string RichEdit::GetUTF8PromptText() const
 {
-    std::string strOut = StringUtil::TToUTF8(GetPromptText());
+    std::string strOut = StringConvert::TToUTF8(GetPromptText());
     return strOut;
 }
 
@@ -2621,7 +2621,7 @@ void RichEdit::SetPromptText(const DString& strText)
 
 void RichEdit::SetUTF8PromptText(const std::string& strText)
 {
-    DString strOut = StringUtil::UTF8ToT(strText);
+    DString strOut = StringConvert::UTF8ToT(strText);
     SetPromptText(strOut);
 }
 
@@ -2635,7 +2635,7 @@ void RichEdit::SetPromptTextId(const DString& strTextId)
 
 void RichEdit::SetUTF8PromptTextId(const std::string& strTextId)
 {
-    DString strOut = StringUtil::UTF8ToT(strTextId);
+    DString strOut = StringConvert::UTF8ToT(strTextId);
     SetPromptTextId(strOut);
 }
 
@@ -2774,7 +2774,7 @@ void RichEdit::GetClipboardText(DStringW& out )
                 char* buf = (char*)::GlobalLock(h);
                 if(buf != NULL)    {
                     std::string str(buf, GlobalSize(h));
-                    out = StringUtil::MBCSToUnicode(str);
+                    out = StringConvert::MBCSToUnicode(str);
                     ::GlobalUnlock(h);
                 }
             }
@@ -3263,7 +3263,7 @@ void RichEdit::GetCharFormat(const DString& fontId, CHARFORMAT2W& cf) const
     m_richCtrl.GetDefaultCharFormat(cf);
     IFont* pFont = GlobalManager::Instance().Font().GetIFont(fontId, Dpi());
     if (pFont != nullptr) {
-        wcscpy_s(cf.szFaceName, StringUtil::TToUTF16(pFont->FontName()).c_str());
+        wcscpy_s(cf.szFaceName, StringConvert::TToUTF16(pFont->FontName()).c_str());
         cf.dwMask |= CFM_FACE;
 
         cf.yHeight = ConvertToFontHeight(pFont->FontSize());
@@ -3393,7 +3393,7 @@ bool RichEdit::FindRichText(const FindTextParam& findParam, TextCharRange& chrgT
     FINDTEXTEXW ft = { 0, };
     ft.chrg.cpMin = findParam.chrg.cpMin;
     ft.chrg.cpMax = findParam.chrg.cpMax;
-    DStringW findText = StringUtil::TToUTF16(findParam.findText);
+    DStringW findText = StringConvert::TToUTF16(findParam.findText);
     ft.lpstrText = findText.c_str();
     LONG nIndex = FindRichText(dwFlags, ft);
     if (nIndex != -1) {
@@ -3454,13 +3454,13 @@ void RichEdit::AddLinkColorTextEx(const DString& str, const DString& color, cons
         return;
     }
 
-    std::string link = StringUtil::TToMBCS(linkInfo);
-    std::string text = StringUtil::TToMBCS(str);
+    std::string link = StringConvert::TToMBCS(linkInfo);
+    std::string text = StringConvert::TToMBCS(str);
     std::string font_face;
 
     CHARFORMAT2W cf;
     GetCharFormat(strFontId, cf);
-    font_face = StringUtil::UnicodeToMBCS(cf.szFaceName);
+    font_face = StringConvert::UnicodeToMBCS(cf.szFaceName);
     UiColor dwTextColor = GlobalManager::Instance().Color().GetColor(color);
     static std::string font_format = "{\\fonttbl{\\f0\\fnil\\fcharset%d %s;}}";
     static std::string color_format = "{\\colortbl ;\\red%d\\green%d\\blue%d;}";
@@ -3655,7 +3655,7 @@ int32_t RichEdit::InsertText(long nInsertAfterChar, const DString& text, bool bC
 #ifdef DUILIB_UNICODE
     return m_richCtrl.InsertText(nInsertAfterChar, text.c_str(), bCanUndo);
 #else
-    return m_richCtrl.InsertText(nInsertAfterChar, StringUtil::TToUTF16(text).c_str(), bCanUndo);
+    return m_richCtrl.InsertText(nInsertAfterChar, StringConvert::TToUTF16(text).c_str(), bCanUndo);
 #endif
 }
 
@@ -3664,7 +3664,7 @@ int32_t RichEdit::AppendText(const DString& strText, bool bCanUndo)
 #ifdef DUILIB_UNICODE
     return m_richCtrl.AppendText(strText.c_str(), bCanUndo);
 #else
-    return m_richCtrl.AppendText(StringUtil::TToUTF16(strText).c_str(), bCanUndo);
+    return m_richCtrl.AppendText(StringConvert::TToUTF16(strText).c_str(), bCanUndo);
 #endif
 }
 

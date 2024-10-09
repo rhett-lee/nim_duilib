@@ -1,8 +1,10 @@
 #include "NativeWindow_Windows.h"
+#include "duilib/Utils/StringConvert.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include "duilib/Utils/ApiWrapper_Windows.h"
+
 #include <CommCtrl.h>
 #include <Olectl.h>
 #include <VersionHelpers.h>
@@ -90,7 +92,7 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
     }
 
     //注册窗口类
-    DString className = StringUtil::TToLocal(createParam.m_className);
+    DString className = StringConvert::TToLocal(createParam.m_className);
     WNDCLASSEX wc = { 0 };
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = createParam.m_dwClassStyle;
@@ -126,7 +128,7 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
     //父窗口句柄
     HWND hParentWnd = pParentWindow != nullptr ? pParentWindow->GetHWND() : nullptr;
     //窗口标题
-    DString windowTitle = StringUtil::TToLocal(m_createParam.m_windowTitle);
+    DString windowTitle = StringConvert::TToLocal(m_createParam.m_windowTitle);
     HWND hWnd = ::CreateWindowEx(m_createParam.m_dwExStyle,
                                  className.c_str(),
                                  windowTitle.c_str(),
@@ -349,7 +351,7 @@ void NativeWindow_Windows::InitNativeWindow()
     RegisterTouchWindowWrapper(hWnd, 0);
 
     if (!m_createParam.m_windowTitle.empty()) {
-        DString windowTitle = StringUtil::TToLocal(m_createParam.m_windowTitle);
+        DString windowTitle = StringConvert::TToLocal(m_createParam.m_windowTitle);
         ::SetWindowText(hWnd, windowTitle.c_str());
     }    
 }

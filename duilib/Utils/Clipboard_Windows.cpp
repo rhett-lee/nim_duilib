@@ -1,5 +1,5 @@
 #include "Clipboard.h"
-#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
@@ -27,7 +27,7 @@ bool Clipboard::GetClipboardText(DStringW& text)
                 char* buf = (char*)::GlobalLock(h);
                 if (buf != NULL) {
                     std::string str(buf, GlobalSize(h));
-                    text = StringUtil::MBCSToUnicode(str);
+                    text = StringConvert::MBCSToUnicode(str);
                     ::GlobalUnlock(h);
                 }
             }
@@ -41,7 +41,7 @@ bool Clipboard::GetClipboardText(DStringA& text)
 {
     DStringW textW;
     bool bRet = GetClipboardText(textW);
-    text = StringUtil::UTF16ToUTF8(textW);
+    text = StringConvert::UTF16ToUTF8(textW);
     return bRet;
 }
 
@@ -74,7 +74,7 @@ bool Clipboard::SetClipboardText(const DStringW& text)
 
 bool Clipboard::SetClipboardText(const DStringA& text)
 {
-    return SetClipboardText(StringUtil::UTF8ToUTF16(text));
+    return SetClipboardText(StringConvert::UTF8ToUTF16(text));
 }
 
 } //namespace ui

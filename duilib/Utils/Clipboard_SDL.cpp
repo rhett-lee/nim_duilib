@@ -1,5 +1,5 @@
 #include "Clipboard.h"
-#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
 #include <SDL3/SDL.h>
@@ -10,7 +10,7 @@ bool Clipboard::GetClipboardText(DStringW& text)
 {
     DStringA textA;
     bool bRet = GetClipboardText(textA);
-    text = StringUtil::UTF8ToUTF16(textA);
+    text = StringConvert::UTF8ToUTF16(textA);
     return bRet;
 }
 
@@ -30,7 +30,7 @@ bool Clipboard::GetClipboardText(DStringA& text)
 
 bool Clipboard::SetClipboardText(const DStringW& text)
 {
-    return SetClipboardText(StringUtil::UTF16ToUTF8(text));
+    return SetClipboardText(StringConvert::UTF16ToUTF8(text));
 }
 
 bool Clipboard::SetClipboardText(const DStringA& text)

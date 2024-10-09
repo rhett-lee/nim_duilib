@@ -113,7 +113,7 @@ void ToolTip::TImpl::ShowToolTip(const WindowBase* pParentWnd,
     newText = text;    
 #else
     //text是Utf8编码
-    newText = StringUtil::UTF8ToUTF16(text);
+    newText = StringConvert::UTF8ToUTF16(text);
 #endif
     if (newText.size() > TOOLTIP_MAX_LEN) {
         newText.resize(TOOLTIP_MAX_LEN);

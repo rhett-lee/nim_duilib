@@ -2,6 +2,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/ZipStreamIO.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/FilePathUtil.h"
 
 #include "duilib/third_party/zlib/zlib.h"
@@ -106,12 +107,12 @@ bool ZipManager::GetZipData(const FilePath& path, std::vector<unsigned char>& fi
         std::string password;
 #ifdef DUILIB_BUILD_FOR_WIN
     #ifdef DUILIB_UNICODE
-        password = StringUtil::UnicodeToMBCS(m_password);
+        password = StringConvert::UnicodeToMBCS(m_password);
     #else
         password = m_password;
     #endif
 #else
-        password = StringUtil::TToUTF8(m_password);
+        password = StringConvert::TToUTF8(m_password);
 #endif
         nRet = ::unzOpenCurrentFilePassword(m_hzip, password.c_str());
     }
@@ -154,9 +155,9 @@ bool ZipManager::IsZipResExist(const FilePath& path) const
                 DString fileName = GetZipFilePath(szFileName.data(), bUtf8);
 
 #ifdef DUILIB_BUILD_FOR_WIN
-                DStringW innerFilePath = StringUtil::MBCSToUnicode(szFileName.data(), bUtf8 ? CP_UTF8 : CP_ACP);
+                DStringW innerFilePath = StringConvert::MBCSToUnicode(szFileName.data(), bUtf8 ? CP_UTF8 : CP_ACP);
 #else
-                DStringW innerFilePath = StringUtil::UTF8ToUTF16(szFileName.data());
+                DStringW innerFilePath = StringConvert::UTF8ToUTF16(szFileName.data());
 #endif
                 //压缩包内的文件名，都不区分大小写，转换为小写再比较
                 innerFilePath = StringUtil::MakeLowerString(innerFilePath);
@@ -318,18 +319,18 @@ DString ZipManager::GetZipFilePath(const char* szInZipFilePath, bool bUtf8) cons
     }
 #ifdef DUILIB_BUILD_FOR_WIN
     #ifdef DUILIB_UNICODE
-        filePath = StringUtil::MBCSToUnicode(szInZipFilePath, bUtf8 ? CP_UTF8 : CP_ACP);
+        filePath = StringConvert::MBCSToUnicode(szInZipFilePath, bUtf8 ? CP_UTF8 : CP_ACP);
     #else
         if (bUtf8) {
             filePath = szInZipFilePath;            
         }
         else {
-            filePath = StringUtil::MBCSToT(szInZipFilePath);
+            filePath = StringConvert::MBCSToT(szInZipFilePath);
         }
     #endif
 #else
     UNUSED_VARIABLE(bUtf8);
-    filePath = StringUtil::UTF8ToT(szInZipFilePath);
+    filePath = StringConvert::UTF8ToT(szInZipFilePath);
 #endif
     return filePath;
 }
