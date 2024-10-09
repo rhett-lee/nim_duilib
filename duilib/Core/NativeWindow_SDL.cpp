@@ -1687,6 +1687,25 @@ bool NativeWindow_SDL::IsCaptured() const
     return m_bMouseCapture;
 }
 
+struct NativeWindowExposedEvent
+{
+    SDL_Window* m_sdlWindow = nullptr;
+    bool m_bFoundExposedEvent = false;
+};
+
+bool SDLCALL FilterNativeWindowExposedEvent(void* userdata, SDL_Event* event)
+{
+    if ((userdata != nullptr) && (event != nullptr)) {
+        NativeWindowExposedEvent* data = (NativeWindowExposedEvent*)userdata;
+        if (!data->m_bFoundExposedEvent && (event->type == SDL_EVENT_WINDOW_EXPOSED)) {
+            if (data->m_sdlWindow == SDL_GetWindowFromEvent(event)) {
+                data->m_bFoundExposedEvent = true;
+            }
+        }
+    }
+    return true;
+}
+
 void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
 {
 #ifdef DUILIB_BUILD_FOR_WIN
@@ -1697,14 +1716,21 @@ void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
     (void)rcItem;
     //暂时没有此功能, 只能发送一个绘制消息，触发界面绘制
     if (m_sdlWindow != nullptr) {
-        SDL_Event sdlEvent;
-        sdlEvent.type = SDL_EVENT_WINDOW_EXPOSED;
-        sdlEvent.common.timestamp = 0;
-        sdlEvent.window.data1 = 0;
-        sdlEvent.window.data2 = 0;
-        sdlEvent.window.windowID = SDL_GetWindowID(m_sdlWindow);
-        bool nRet = SDL_PushEvent(&sdlEvent);
-        ASSERT_UNUSED_VARIABLE(nRet);
+        NativeWindowExposedEvent data;
+        data.m_bFoundExposedEvent = false;
+        data.m_sdlWindow = m_sdlWindow;
+        SDL_FilterEvents(FilterNativeWindowExposedEvent, &data);
+        if (!data.m_bFoundExposedEvent) {
+            //如果队列中没有该窗口的绘制消息，则添加一个；但如果有的话，就不重复添加，避免重复绘制而影响性能
+            SDL_Event sdlEvent;
+            sdlEvent.type = SDL_EVENT_WINDOW_EXPOSED;
+            sdlEvent.common.timestamp = 0;
+            sdlEvent.window.data1 = 0;
+            sdlEvent.window.data2 = 0;
+            sdlEvent.window.windowID = SDL_GetWindowID(m_sdlWindow);
+            bool nRet = SDL_PushEvent(&sdlEvent);
+            ASSERT_UNUSED_VARIABLE(nRet);
+        }
     }
 #endif
 }
