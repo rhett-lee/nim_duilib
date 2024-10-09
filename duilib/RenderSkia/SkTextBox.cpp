@@ -376,7 +376,7 @@ SkScalar SkTextBox::visit(Visitor& visitor) const {
             y = SkScalarHalf(height - textHeight);
             if (y < 0) {
                 //如果居中对齐绘制区域不足，那么按照可显示的文字进行居中对齐
-                y = static_cast<SkScalar>((((int)height % (int)fontHeight) / 2)) ;
+                y = static_cast<SkScalar>((((int)height - (int)fontHeight) / 2)) ;
             }
             break;
         default:
