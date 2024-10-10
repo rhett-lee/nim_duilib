@@ -582,7 +582,13 @@ int32_t RichEdit::GetMinNumber() const
 
 void RichEdit::SetNumberFormat64(const DString& numberFormat)
 {
-    m_numberFormat = numberFormat;
+    DString format = numberFormat;
+#if defined (DUILIB_BUILD_FOR_WIN)
+    StringUtil::ReplaceAll(_T("lld"), _T("I64d"), format);
+#elif defined (DUILIB_BUILD_FOR_LINUX)
+    StringUtil::ReplaceAll(_T("I64d"), _T("lld"), format);
+#endif
+    m_numberFormat = format;
 }
 
 DString RichEdit::GetNumberFormat64() const
@@ -2699,7 +2705,13 @@ void RichEdit::SetTextNumber(int64_t nValue)
         SetText(StringUtil::Printf(m_numberFormat.c_str(), nValue));
     }
     else {
+#if defined (DUILIB_BUILD_FOR_WIN)
         SetText(StringUtil::Printf(_T("%I64d"), nValue));
+#elif defined (DUILIB_BUILD_FOR_LINUX)
+        SetText(StringUtil::Printf(_T("%lld"), nValue));
+#else
+        SetText(StringUtil::Printf(_T("%d"), nValue));
+#endif
     }
     if ((nSelStartChar == nSelEndChar) && (nSelStartChar >= 0) && (nSelStartChar <= GetTextLength())) {
         SetSel(nSelStartChar, nSelStartChar);

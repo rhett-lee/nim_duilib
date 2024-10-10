@@ -2082,8 +2082,8 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
         ASSERT(rcDrawRect.top == 0);
     }
 
-    //文本编码：固定为UTF16
-    constexpr const SkTextEncoding textEncoding = SkTextEncoding::kUTF16;
+    //文本编码：固定为UTF16 或者 UTF32
+    constexpr const SkTextEncoding textEncoding = (sizeof(DStringW::value_type) == sizeof(uint32_t)) ? SkTextEncoding::kUTF32 : SkTextEncoding::kUTF16;
     constexpr const size_t textCharSize = sizeof(DStringW::value_type);
 
     //当绘制超过目标矩形边界时，是否继续绘制

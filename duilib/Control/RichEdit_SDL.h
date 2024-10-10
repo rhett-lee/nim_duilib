@@ -329,7 +329,7 @@ public:
     */
     int32_t GetMinNumber() const;
 
-    /** 获取数字的格式（64位有符号整型的格式, 比如"I64d"等）
+    /** 获取数字的格式（64位有符号整型的格式, 比如"%I64d"等）
     */
     void SetNumberFormat64(const DString& numberFormat);
 
