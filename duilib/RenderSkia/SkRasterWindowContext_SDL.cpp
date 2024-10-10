@@ -148,7 +148,7 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
 #ifdef DUILIB_BUILD_FOR_WIN
     SDL_PixelFormat format = SDL_PIXELFORMAT_BGRA32;
 #else
-    SDL_PixelFormat format = SDL_PIXELFORMAT_RGBX32;
+    SDL_PixelFormat format = SDL_PIXELFORMAT_RGBA32;
 #endif
     SDL_Surface* sdlSurface = SDL_CreateSurface(width(), height(), format);
     ASSERT(sdlSurface != nullptr);

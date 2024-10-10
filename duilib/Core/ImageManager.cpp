@@ -115,7 +115,9 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
             imageInfo = imageDecoder.LoadImageData(fileData, 
                                                    imageLoadAtrribute, 
                                                    bEnableImageDpiScale, nImageDpiScale, dpi);
-            imageInfo->SetImageKey(imageKey);
+            if (imageInfo != nullptr) {
+                imageInfo->SetImageKey(imageKey);
+            }
         }
     }    
     std::shared_ptr<ImageInfo> sharedImage;

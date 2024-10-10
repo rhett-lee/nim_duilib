@@ -718,7 +718,9 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
         m_bUseSystemCaption = true;
     }
     //由于目前Linux系统尚不支持透明，所以强制使用系统标题栏
-    m_bUseSystemCaption = true;
+    if (createAttributes.m_bUseSystemCaptionDefined) {
+        m_bUseSystemCaption = true;
+    }
 
     if (m_bUseSystemCaption) {
         //使用系统标题栏
