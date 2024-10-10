@@ -2092,7 +2092,12 @@ bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData, c
         return false;
     }
 
-    SDL_Surface* cursorSurface = SDL_CreateSurfaceFrom(pBitmap->GetWidth(), pBitmap->GetHeight(), SDL_PIXELFORMAT_BGRA32, pPixelBits, pBitmap->GetWidth() * sizeof(uint32_t));
+#ifdef DUILIB_BUILD_FOR_WIN
+    SDL_PixelFormat format = SDL_PIXELFORMAT_BGRA32;
+#else
+    SDL_PixelFormat format = SDL_PIXELFORMAT_RGBA32;
+#endif
+    SDL_Surface* cursorSurface = SDL_CreateSurfaceFrom(pBitmap->GetWidth(), pBitmap->GetHeight(), format, pPixelBits, pBitmap->GetWidth() * sizeof(uint32_t));
     ASSERT(cursorSurface != nullptr);
     if (cursorSurface == nullptr) {
         return false;
