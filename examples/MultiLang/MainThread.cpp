@@ -46,7 +46,7 @@ void MainThread::OnInit()
     m_workerThread->Start();
 
     //初始化全局资源
-    constexpr ui::ResourceType resType = ui::ResourceType::kZipFile;
+    constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
     if (resType == ui::ResourceType::kLocalFiles) {
         //使用本地文件夹作为资源
         ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();

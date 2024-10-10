@@ -792,7 +792,10 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
     for (auto fontSize : fontSizeMap) {
         fontSizeList.push_back(fontSize.second);
     }
-    fontSizeList.erase(std::unique(fontSizeList.begin(), fontSizeList.end()));
+    auto pos = std::unique(fontSizeList.begin(), fontSizeList.end());
+    if (pos != fontSizeList.end()) {
+        fontSizeList.erase(pos);
+    }
 
     ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
     //转换回原值

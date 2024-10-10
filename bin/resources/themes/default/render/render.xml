@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="90%,90%" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" layered_window="true" sizebox="4,4,4,4" text="渲染引擎测试程序">
+<Window size="90%,90%" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" layered_window="true" sizebox="4,4,4,4" text="渲染引擎测试程序">
     <!-- 整个窗口中，所有控件都放在这个VBox容器中 -->  
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->  

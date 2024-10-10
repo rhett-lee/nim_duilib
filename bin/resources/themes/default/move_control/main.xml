@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="540,535" caption="0,0,0,35" shadow_attached="true" layered_window="true">
+<Window size="540,535" caption="0,0,0,35" use_system_caption="false" shadow_attached="true" layered_window="true">
     <!-- 聊天区域 -->
     <VBox>
         <HBox name="window_caption_bar" width="stretch" height="35" bkcolor="bk_wnd_lightcolor">

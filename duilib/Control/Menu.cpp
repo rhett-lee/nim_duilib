@@ -96,6 +96,9 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_TOPMOST | kWS_EX_LAYERED;
+    //设置初始位置，避免菜单初次显示时出现黑屏现象
+    createWndParam.m_nX = point.x;
+    createWndParam.m_nY = point.y;
     CreateWnd(m_pParentWindow, createWndParam);
     
     bool bShown = false;
@@ -334,6 +337,14 @@ bool Menu::ResizeMenu()
             point.y = rcWork.bottom - szInit.cy;
         }
     }
+#ifdef DUILIB_BUILD_FOR_SDL
+    if (m_noFocus) {
+        ShowWindow(kSW_SHOW_NA);
+    }
+    else {
+        ShowWindow(kSW_SHOW_NORMAL);
+    }
+#endif
     
     SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
                  point.x - rcCorner.left, point.y - rcCorner.top,
@@ -446,6 +457,14 @@ bool Menu::ResizeSubMenu()
         rc.left = rcWindow.right;
         rc.right = rc.left + cxFixed;
     }
+#ifdef DUILIB_BUILD_FOR_SDL
+    if (m_noFocus) {
+        ShowWindow(kSW_SHOW_NA);
+    }
+    else {
+        ShowWindow(kSW_SHOW_NORMAL);
+    }
+#endif
 
     SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
                  rc.left - rcCorner.left, rc.top - rcCorner.top,

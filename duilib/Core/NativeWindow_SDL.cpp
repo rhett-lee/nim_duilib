@@ -772,6 +772,12 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
             m_createParam.m_nHeight = createAttributes.m_szInitSize.cy;
         }
     }
+
+#ifndef DUILIB_BUILD_FOR_WIN
+    //Linux平台，目前还未能支持透明窗口
+    m_bIsLayeredWindow = false;
+    m_createParam.m_dwExStyle &= ~kWS_EX_LAYERED;
+#endif
 }
 
 void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeWindow_SDL* pParentWindow,
