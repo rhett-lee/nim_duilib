@@ -15,6 +15,8 @@ namespace ui
 class IUIMessageFilter
 {
 public:
+    virtual ~IUIMessageFilter() = default;
+
     /**  消息处理函数，处理优先级高于Window类的消息处理函数
     * @param [in] uMsg 消息内容
     * @param [in] wParam 消息附加参数

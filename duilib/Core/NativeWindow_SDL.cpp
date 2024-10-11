@@ -855,7 +855,7 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
         //但由于SDL未使用系统的父子窗口关系，弹出窗口后，主窗口便失去焦点，任务栏上显示的是非激活状态，体验不佳
         windowFlags |= SDL_WINDOW_UTILITY;
     }
-    if (bPopupWindow && (m_createParam.m_dwExStyle & kWS_EX_NOACTIVATE)) {
+    if (m_createParam.m_dwExStyle & kWS_EX_NOACTIVATE) {
         windowFlags |= SDL_WINDOW_NOT_FOCUSABLE;
     }
     SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, windowFlags);

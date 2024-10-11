@@ -10,6 +10,10 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Core/WindowCreateParam.h"
 
+#ifdef DUILIB_BUILD_FOR_SDL
+    #include "duilib/Core/DragWindowFilter_SDL.h"
+#endif
+
 namespace ui
 {
 /** 主要功能：支持相同Box内的子控件通过拖动来调整顺序
@@ -233,6 +237,12 @@ private:
     /** 拖拽的状态窗口
     */
     DragWindow* m_pDragWindow;
+
+#ifdef DUILIB_BUILD_FOR_SDL
+    /** 拖拽窗口的消息过滤器
+    */
+    std::unique_ptr<IUIMessageFilter> m_pDragWindowFilter;
+#endif
 
     /** 该拖出控件的位图
     */
@@ -619,12 +629,21 @@ void ControlDragableT<T>::ClearDragStatus()
         }
     }
     if (m_pDragWindow != nullptr) {
+#ifdef DUILIB_BUILD_FOR_SDL
+        if (m_pDragWindowFilter != nullptr) {
+            m_pDragWindow->RemoveMessageFilter(m_pDragWindowFilter.get());
+        }
+#endif
         if (!m_pDragWindow->IsClosingWnd()) {
             m_pDragWindow->SetDragImage(nullptr);
             m_pDragWindow->CloseWnd();
         }
         m_pDragWindow->Release();
         m_pDragWindow = nullptr;
+
+#ifdef DUILIB_BUILD_FOR_SDL
+        m_pDragWindowFilter.reset();
+#endif
     }
     m_pDragImage.reset();
     m_pTargetBox = nullptr;
@@ -1109,8 +1128,17 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
     //拖出父容器
     if ((m_pDragWindow == nullptr) || m_pDragWindow->IsClosingWnd()) {
         if (m_pDragWindow != nullptr) {
+#ifdef DUILIB_BUILD_FOR_SDL
+            if (m_pDragWindowFilter != nullptr) {
+                m_pDragWindow->RemoveMessageFilter(m_pDragWindowFilter.get());
+            }
+#endif
             m_pDragWindow->Release();
             m_pDragWindow = nullptr;
+
+#ifdef DUILIB_BUILD_FOR_SDL
+            m_pDragWindowFilter.reset();
+#endif
         }
         m_pDragWindow = CreateDragWindow();
         ASSERT(m_pDragWindow != nullptr);
@@ -1127,6 +1155,13 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
             }
             m_pDragWindow->SetDragImage(pDragImage);
             m_pDragWindow->ShowWindow(kSW_SHOW_NA);
+
+#ifdef DUILIB_BUILD_FOR_SDL
+            m_pDragWindowFilter = std::make_unique<DragWindowFilter>(this->GetWindow(), m_pDragWindow);
+            m_pDragWindow->AddMessageFilter(m_pDragWindowFilter.get());
+            //减缓显示时黑屏现象
+            m_pDragWindow->InvalidateAll();
+#endif
         }
     }
     if (m_pDragWindow != nullptr) {
