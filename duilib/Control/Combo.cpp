@@ -222,8 +222,10 @@ void CComboWnd::OnCloseWindow()
         m_pOwner->GetTreeView()->SetParent(nullptr);
         pRootBox->RemoveAllItems();
     }
-    m_pOwner->SetPos(m_pOwner->GetPos());
-    m_pOwner->SetFocus();
+    if ((m_pOwner->GetWindow() != nullptr) && m_pOwner->GetWindow()->IsWindow()) {
+        m_pOwner->SetPos(m_pOwner->GetPos());
+        m_pOwner->SetFocus();
+    }    
     BaseClass::OnCloseWindow();
 }
 
