@@ -1273,7 +1273,7 @@ void NativeWindow_SDL::ShowModalFake(NativeWindow_SDL* pParentWindow)
     if (!IsWindow()) {
         return;
     }
-    if (!pParentWindow->IsWindow()) {
+    if ((pParentWindow != nullptr) && !pParentWindow->IsWindow()) {
         pParentWindow = nullptr;
     }
     if (pParentWindow != nullptr) {

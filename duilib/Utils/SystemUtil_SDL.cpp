@@ -19,7 +19,7 @@ bool SystemUtil::ShowMessageBox(const Window* pWindow, const DString& content, c
 {
     SDL_Window* sdlWindow = (SDL_Window*)((pWindow != nullptr) ? pWindow->NativeWnd()->GetWindowHandle() : nullptr);
     SDL_MessageBoxFlags flags = SDL_MESSAGEBOX_INFORMATION;
-    return SDL_ShowSimpleMessageBox(flags, StringConvert::TToUTF8(content).c_str(), StringConvert::TToUTF8(title).c_str(), sdlWindow);
+    return SDL_ShowSimpleMessageBox(flags, StringConvert::TToUTF8(title).c_str(), StringConvert::TToUTF8(content).c_str(), sdlWindow);
 }
 
 } //namespace ui

@@ -619,9 +619,16 @@ void MainForm::ShowColorPicker()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("ColorPicker");
+#ifdef DUILIB_BUILD_FOR_WIN
     pColorPicker->CreateWnd(nullptr, createParam);
     pColorPicker->CenterWindow();
     pColorPicker->ShowModalFake();
+#else
+    pColorPicker->CreateWnd(this, createParam);
+    pColorPicker->CenterWindow();
+    pColorPicker->ShowModalFake();
+    pColorPicker->SetWindowForeground();
+#endif
 
     ui::RichEdit* pEdit = m_pRichEdit;
     if (pEdit != nullptr) {

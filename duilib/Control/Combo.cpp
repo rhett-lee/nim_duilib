@@ -70,6 +70,9 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     UiRect rcWnd = GetComboWndRect();
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
+#ifdef DUILIB_BUILD_FOR_SDL
+    createWndParam.m_dwExStyle = kWS_EX_NOACTIVATE;
+#endif
     createWndParam.m_nX = rcWnd.left;
     createWndParam.m_nY = rcWnd.top;
     createWndParam.m_nWidth = rcWnd.Width();

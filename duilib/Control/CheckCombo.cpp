@@ -57,7 +57,6 @@ void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
     UiRect rcWnd = GetComboWndRect();
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
-    createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_nX = rcWnd.left;
     createWndParam.m_nY = rcWnd.top;
     createWndParam.m_nWidth = rcWnd.Width();
