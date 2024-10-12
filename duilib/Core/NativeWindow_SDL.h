@@ -511,16 +511,29 @@ private:
     void GetWindowRect(SDL_Window* sdlWindow, UiRect& rcWindow) const;
 
     /** 同步创建窗口的属性
+    * @param [in] bSupportTransparent 是否支持透明，仅非Windows系统有效
     */
-    void SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes);
+    void SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes, bool bSupportTransparent);
 
     /** 根据创建窗口的输入参数，设置创建窗口的属性
+    * @param [in] bUseOpenGL 是否使用OpenGL的渲染接口，仅非Windows系统有效
     */
-    void SetCreateWindowProperties(SDL_PropertiesID props, NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes);
+    void SetCreateWindowProperties(SDL_PropertiesID props,
+                                   NativeWindow_SDL* pParentWindow,
+                                   const WindowCreateAttributes& createAttributes,
+                                   bool bUseOpenGL);
 
     /** 创建SDL窗口关联的Render
     */
     SDL_Renderer* CreateSdlRenderer() const;
+
+    /** 读取可用的Render
+    */
+    void HasOpenGLRenders(bool& bHasOpenGL, bool& bHasOpenGLES2) const;
+
+    /** 创建SDL窗口
+    */
+    SDL_Window* CreateSdlWindow(NativeWindow_SDL* pParentWindow,  const WindowCreateAttributes& createAttributes);
 
 private:
     /** 设置窗口ID与窗口指针的关系

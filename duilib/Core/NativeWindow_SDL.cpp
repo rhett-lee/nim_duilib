@@ -550,24 +550,14 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
         m_createParam.m_dwStyle = kWS_OVERLAPPEDWINDOW;
     }
 
-    //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
-    SyncCreateWindowAttributes(createAttributes);
-
-    //创建属性
-    SDL_PropertiesID props = SDL_CreateProperties();
-    SetCreateWindowProperties(props, pParentWindow, createAttributes);
-    m_sdlWindow = SDL_CreateWindowWithProperties(props);
-    SDL_DestroyProperties(props);
-
+    //创建SDL窗口
+    m_sdlWindow = CreateSdlWindow(pParentWindow, createAttributes);
     ASSERT(m_sdlWindow != nullptr);
     if (m_sdlWindow == nullptr) {
         return false;
     }
 
-    if (createAttributes.m_bSizeBoxDefined && !createAttributes.m_rcSizeBox.IsZero()) {
-        SDL_SetWindowResizable(m_sdlWindow, true);
-    }
-
+    //创建SDL渲染接口
     m_sdlRenderer = CreateSdlRenderer();
     ASSERT(m_sdlRenderer != nullptr);
     if (m_sdlRenderer == nullptr) {
@@ -591,6 +581,52 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
         }
     }
     return true;
+}
+
+SDL_Window* NativeWindow_SDL::CreateSdlWindow(NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes)
+{
+    bool bHasOpenGL = false;
+    bool bHasOpenGLES2 = false;
+#ifndef DUILIB_BUILD_FOR_WIN
+    HasOpenGLRenders(bHasOpenGL, bHasOpenGLES2);
+#endif
+
+    //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
+    SyncCreateWindowAttributes(createAttributes, bHasOpenGLES2);
+
+    //创建属性
+    SDL_PropertiesID props = SDL_CreateProperties();
+    SetCreateWindowProperties(props, pParentWindow, createAttributes, bHasOpenGL || bHasOpenGLES2);
+
+    SDL_Window* pSdlWindow = nullptr;
+#ifdef DUILIB_BUILD_FOR_WIN
+    pSdlWindow = SDL_CreateWindowWithProperties(props);
+#else
+    if (bHasOpenGLES2) {
+        //设置标志，以创建支持透明窗口的Render
+        bool bOldValue = SDL_GetHintBoolean(SDL_HINT_VIDEO_FORCE_EGL, false);
+        if (!bOldValue) {
+            SDL_SetHint(SDL_HINT_VIDEO_FORCE_EGL, "true");
+            pSdlWindow = SDL_CreateWindowWithProperties(props);
+            SDL_SetHint(SDL_HINT_VIDEO_FORCE_EGL, "false");
+        }
+        if (pSdlWindow == nullptr) {
+            pSdlWindow = SDL_CreateWindowWithProperties(props);
+        }
+    }
+    else {
+        pSdlWindow = SDL_CreateWindowWithProperties(props);
+    }
+#endif
+
+    SDL_DestroyProperties(props);
+
+    if (pSdlWindow != nullptr) {
+        if (createAttributes.m_bSizeBoxDefined && !createAttributes.m_rcSizeBox.IsZero()) {
+            SDL_SetWindowResizable(pSdlWindow, true);
+        }
+    }
+    return pSdlWindow;
 }
 
 int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
@@ -621,24 +657,14 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
         m_createParam.m_dwStyle = kWS_OVERLAPPEDWINDOW;
     }
 
-    //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
-    SyncCreateWindowAttributes(createAttributes);
-
-    //创建属性
-    SDL_PropertiesID props = SDL_CreateProperties();
-    SetCreateWindowProperties(props, pParentWindow, createAttributes);
-    m_sdlWindow = SDL_CreateWindowWithProperties(props);
-    SDL_DestroyProperties(props);
-
+    //创建SDL窗口
+    m_sdlWindow = CreateSdlWindow(pParentWindow, createAttributes);
     ASSERT(m_sdlWindow != nullptr);
     if (m_sdlWindow == nullptr) {
         return -1;
     }
 
-    if (createAttributes.m_bSizeBoxDefined && !createAttributes.m_rcSizeBox.IsZero()) {
-        SDL_SetWindowResizable(m_sdlWindow, true);
-    }
-
+    //创建SDL渲染接口
     m_sdlRenderer = CreateSdlRenderer();
     ASSERT(m_sdlRenderer != nullptr);
     if (m_sdlRenderer == nullptr) {
@@ -702,7 +728,7 @@ SDL_Renderer* NativeWindow_SDL::CreateSdlRenderer() const
         return nullptr;
     }
 #ifdef DUILIB_BUILD_FOR_WIN
-    //备注：当前支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："direct3d11", "opengl"
+    //备注：当前Windows平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："direct3d11", "opengl"
     SDL_Renderer* sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "direct3d11");
     if (sdlRenderer == nullptr) {
         sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "opengl");
@@ -712,7 +738,11 @@ SDL_Renderer* NativeWindow_SDL::CreateSdlRenderer() const
         sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
     }
 #else
-    SDL_Renderer* sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "opengl");
+    //Linux平台：当前Windows平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）有：opengles2
+    SDL_Renderer* sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "opengles2");
+    if (sdlRenderer == nullptr) {
+        sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "opengl");
+    }
     if (sdlRenderer == nullptr) {
         //如果创建失败，则使用默认的Render引擎
         sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
@@ -723,7 +753,26 @@ SDL_Renderer* NativeWindow_SDL::CreateSdlRenderer() const
     return sdlRenderer;
 }
 
-void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes)
+void NativeWindow_SDL::HasOpenGLRenders(bool& bHasOpenGL, bool& bHasOpenGLES2) const
+{
+    bHasOpenGL = false;
+    bHasOpenGLES2 = false;
+    int32_t nRenderCount = SDL_GetNumRenderDrivers();
+    for (int32_t nRenderIndex = 0; nRenderIndex < nRenderCount; ++nRenderIndex) {
+        const char* renderName = SDL_GetRenderDriver(nRenderIndex);
+        if (renderName != nullptr) {
+            std::string name = renderName;
+            if (name == "opengl") {
+                bHasOpenGL = true;
+            }
+            else if (name == "opengles2") {
+                bHasOpenGLES2 = true;
+            }
+        }
+    }
+}
+
+void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes, bool bSupportTransparent)
 {
     m_bUseSystemCaption = false;
     if (createAttributes.m_bUseSystemCaptionDefined && createAttributes.m_bUseSystemCaption) {
@@ -731,9 +780,13 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
         m_bUseSystemCaption = true;
     }
     //由于目前Linux系统尚不支持透明，所以强制使用系统标题栏
-    if (createAttributes.m_bUseSystemCaptionDefined) {
+#ifndef DUILIB_BUILD_FOR_WIN
+    if (!bSupportTransparent && createAttributes.m_bUseSystemCaptionDefined) {
         m_bUseSystemCaption = true;
     }
+#else
+    bSupportTransparent = true;
+#endif
 
     if (m_bUseSystemCaption) {
         //使用系统标题栏
@@ -786,15 +839,15 @@ void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& 
         }
     }
 
-#ifndef DUILIB_BUILD_FOR_WIN
-    //Linux平台，目前还未能支持透明窗口
-    m_bIsLayeredWindow = false;
-    m_createParam.m_dwExStyle &= ~kWS_EX_LAYERED;
-#endif
+    //Linux平台，仅部分Render支持透明窗口; Windows平台支持透明窗口
+    if (!bSupportTransparent) {
+        m_bIsLayeredWindow = false;
+        m_createParam.m_dwExStyle &= ~kWS_EX_LAYERED;
+    }
 }
 
 void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeWindow_SDL* pParentWindow,
-                                                 const WindowCreateAttributes& createAttributes)
+                                                 const WindowCreateAttributes& createAttributes, bool bUseOpenGL)
 {
     //设置关闭窗口的时候，不自动退出消息循环
     SDL_SetHint(SDL_HINT_QUIT_ON_LAST_WINDOW_CLOSE, "false");
@@ -871,6 +924,15 @@ void NativeWindow_SDL::SetCreateWindowProperties(SDL_PropertiesID props, NativeW
     if (m_createParam.m_dwExStyle & kWS_EX_NOACTIVATE) {
         windowFlags |= SDL_WINDOW_NOT_FOCUSABLE;
     }
+
+#ifdef DUILIB_BUILD_FOR_WIN
+    bUseOpenGL = false;
+#endif
+    if (bUseOpenGL) {
+        //添加OpenGL标志
+        windowFlags |= SDL_WINDOW_OPENGL;
+    }
+
     SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, windowFlags);
 }
 
@@ -1179,8 +1241,26 @@ void NativeWindow_SDL::SetUseSystemCaption(bool bUseSystemCaption)
 {
     m_bUseSystemCaption = bUseSystemCaption;
 
-    //由于目前Linux系统尚不支持透明，所以强制使用系统标题栏
-    m_bUseSystemCaption = true;
+#ifndef DUILIB_BUILD_FOR_WIN
+    //目前Linux系统只有OpenGLES2这个Render支持窗口半透明，所以如果不支持时，强制使用系统标题栏
+    bool bHasOpenGL = false;
+    bool bHasOpenGLES2 = false;
+    if (m_sdlRenderer != nullptr) {
+        const char* renderName = SDL_GetRendererName(m_sdlRenderer);
+        if (renderName != nullptr) {
+            std::string name = renderName;
+            if (name == "opengles2") {
+                bHasOpenGLES2 = true;
+            }
+        }
+    }
+    else {
+        HasOpenGLRenders(bHasOpenGL, bHasOpenGLES2);
+    }    
+    if (!bHasOpenGLES2) {
+        m_bUseSystemCaption = true;
+    }
+#endif
 
     if (IsUseSystemCaption()) {
         //使用系统默认标题栏, 需要增加标题栏风格
