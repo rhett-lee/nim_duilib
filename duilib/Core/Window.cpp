@@ -1305,6 +1305,7 @@ LRESULT Window::OnCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const Nat
         msgData.modifierKey = modifierKey;
         msgData.wParam = nativeMsg.wParam;
         msgData.lParam = nativeMsg.lParam;
+        msgData.eventData = nativeMsg.uMsg;
         pFocusControl->SendEvent(kEventChar, msgData);
     }
     return lResult;

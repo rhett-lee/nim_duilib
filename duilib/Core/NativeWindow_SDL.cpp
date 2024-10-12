@@ -399,25 +399,11 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
                 //该文本为UTF-8编码的
                 DStringW textW = StringConvert::UTF8ToWString(sdlEvent.text.text);
                 if (!textW.empty()) {
-#ifdef DUILIB_BUILD_FOR_WIN
-                    //Windows平台
-                    ASSERT(textW.size() == 1);
-                    if (textW.size() == 1) { //这里可能是2，一个字（比如汉字），可能占1-2个Unicode字符
-                        //转换成WM_CHAR事件
-                        VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(textW.front());
-                        uint32_t modifierKey = GetModifiers(SDL_GetModState());
-                        lResult = m_pOwner->OnNativeCharMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_TEXT_INPUT, 0, 0), bHandled);
-                    }
-#else
-                    //Linux平台
+                    //转换成WM_CHAR事件, 多个字符时，通过NativeMsg传递
+                    VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(textW.front());//首个字符通过vkCode传递
                     uint32_t modifierKey = GetModifiers(SDL_GetModState());
-                    size_t nCount = textW.size();
-                    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
-                        //转换成WM_CHAR事件
-                        VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(textW[nIndex]);                        
-                        lResult = m_pOwner->OnNativeCharMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_TEXT_INPUT, 0, 0), bHandled);
-                    }
-#endif
+                    NativeMsg nativeMsg(SDL_EVENT_TEXT_INPUT, (WPARAM)textW.c_str(), (LPARAM)textW.size());//wParam: 整个字符串的地址，lParam：字符数量
+                    lResult = m_pOwner->OnNativeCharMsg(vkCode, modifierKey, nativeMsg, bHandled);
                 }
             }
         }

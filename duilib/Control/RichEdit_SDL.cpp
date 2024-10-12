@@ -4409,7 +4409,15 @@ void RichEdit::OnInputChar(const EventArgs& msg)
     }
 
     DStringW text;
-    text = (DStringW::value_type)msg.vkCode;
+    if ((msg.eventData == SDL_EVENT_TEXT_INPUT) && (msg.wParam != 0) && (msg.lParam > 1)) {
+        //当前输入的是多个字符
+        text = (DStringW::value_type*)msg.wParam;
+    }
+    else {
+        //当前输入的是单个字符
+        text = (DStringW::value_type)msg.vkCode;
+    }
+    
     if (msg.vkCode == kVK_RETURN) {
         if (!IsMultiLine() || IsPasswordMode()) {
             //单行模式下，或者密码模式下，不支持输入换行符
