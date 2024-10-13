@@ -53,7 +53,7 @@ void TaskbarTabItem::UnInit()
 
 void TaskbarTabItem::SetTaskbarTitle(const DString& title)
 {
-    DString localText = StringUtil::TToLocal(title);
+    DString localText = StringConvert::TToLocal(title);
     ::SetWindowText(NativeWnd()->GetHWND(), localText.c_str());
 }
 

@@ -307,7 +307,7 @@ void MultiBrowserManager::OnBeforeDragBorwserBox(BrowserBox *browser_box, HBITMA
     ASSERT(box_count > 0);
     drop_browser_form_ = NULL;
 
-    drag_browser_form->OnBeforeDragBoxCallback(ui::StringUtil::UTF8ToT(draging_box_->GetId()));
+    drag_browser_form->OnBeforeDragBoxCallback(ui::StringConvert::UTF8ToT(draging_box_->GetId()));
 
     if (use_custom_drag_image_)
         DragForm::CreateCustomDragImage(bitmap, pt_offset);

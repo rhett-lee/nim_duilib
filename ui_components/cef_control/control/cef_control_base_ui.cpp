@@ -170,7 +170,7 @@ std::string CefControlBase::GetUTF8URL()
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get())
     {
-        return ui::StringUtil::UTF16ToUTF8(GetURL().c_str());
+        return ui::StringConvert::WStringToUTF8(GetURL().c_str());
     }
 
     return CefString();
@@ -188,7 +188,7 @@ bool CefControlBase::RegisterCppFunc(const DString& function_name, nim_comp::Cpp
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() && js_bridge_.get())
     {
-        return js_bridge_->RegisterCppFunc(ui::StringUtil::TToUTF8(function_name).c_str(), function, global_function ? nullptr : browser_handler_->GetBrowser());
+        return js_bridge_->RegisterCppFunc(ui::StringConvert::TToUTF8(function_name).c_str(), function, global_function ? nullptr : browser_handler_->GetBrowser());
     }
 
     return false;
@@ -198,7 +198,7 @@ void CefControlBase::UnRegisterCppFunc(const DString& function_name)
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() && js_bridge_.get())
     {
-        js_bridge_->UnRegisterCppFunc(ui::StringUtil::TToUTF8(function_name).c_str(), browser_handler_->GetBrowser());
+        js_bridge_->UnRegisterCppFunc(ui::StringConvert::TToUTF8(function_name).c_str(), browser_handler_->GetBrowser());
     }
 }
 
@@ -208,8 +208,8 @@ bool CefControlBase::CallJSFunction(const DString& js_function_name, const DStri
     {
         CefRefPtr<CefFrame> frame = frame_name == _T("") ? browser_handler_->GetBrowser()->GetMainFrame() : browser_handler_->GetBrowser()->GetFrame(frame_name);
 
-        if (!js_bridge_->CallJSFunction(ui::StringUtil::TToUTF8(js_function_name).c_str(),
-            ui::StringUtil::TToUTF8(params).c_str(), frame, callback))
+        if (!js_bridge_->CallJSFunction(ui::StringConvert::TToUTF8(js_function_name).c_str(),
+            ui::StringConvert::TToUTF8(params).c_str(), frame, callback))
         {
             return false;
         }
@@ -226,8 +226,8 @@ bool CefControlBase::CallJSFunction(const DString& js_function_name, const DStri
     {
         CefRefPtr<CefFrame> frame = browser_handler_->GetBrowser()->GetFrame(frame_id);
 
-        if (!js_bridge_->CallJSFunction(ui::StringUtil::TToUTF8(js_function_name).c_str(),
-            ui::StringUtil::TToUTF8(params).c_str(), frame, callback))
+        if (!js_bridge_->CallJSFunction(ui::StringConvert::TToUTF8(js_function_name).c_str(),
+            ui::StringConvert::TToUTF8(params).c_str(), frame, callback))
         {
             return false;
         }
