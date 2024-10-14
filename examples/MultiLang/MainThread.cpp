@@ -1,7 +1,7 @@
 //MainThread.cpp
 #include "MainThread.h"
 #include "MainForm.h"
-#include "resource.h"
+#include "Resource.h"
 
 WorkerThread::WorkerThread()
     : FrameworkThread(_T("WorkerThread"), ui::kThreadWorker)

@@ -33,6 +33,7 @@ include_directories(${DUILIB_SRC_ROOT_DIR})
 link_directories("${DUILIB_SRC_ROOT_DIR}/libs/")
 link_directories("${SKIA_SRC_ROOT_DIR}/out/LLVM.x64.Release/")
 link_directories("${SDL_SRC_ROOT_DIR}/lib64/")
+link_directories("${SDL_SRC_ROOT_DIR}/lib/")
 
 #设置可执行文件的输出目录
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/bin/")

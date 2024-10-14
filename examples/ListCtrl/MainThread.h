@@ -4,7 +4,7 @@
 // duilib
 #include "duilib/duilib.h"
 
-#include "resource.h"
+#include "Resource.h"
 
 /** 工作线程
 */

@@ -2,6 +2,7 @@
 #define DUILIB_CONFIG_LINUX_H_
 
 #include <cstddef>
+#include <cstdint>
 
 #define UILIB_API
 

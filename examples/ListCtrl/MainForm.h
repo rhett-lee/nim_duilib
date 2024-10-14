@@ -4,7 +4,7 @@
 // duilib
 #include "duilib/duilib.h"
 
-#include "resource.h"
+#include "Resource.h"
 
 class MainForm : public ui::WindowImplBase
 {

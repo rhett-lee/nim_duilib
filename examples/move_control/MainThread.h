@@ -4,7 +4,7 @@
 // duilib
 #include "duilib/duilib.h"
 
-#include "resource.h"
+#include "Resource.h"
 
 /** @class MainThread
 * @brief 主线程（UI线程）类
