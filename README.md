@@ -153,7 +153,8 @@
 　　　注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅    
 　　　检查方法：编译成功以后，在`skia/out`的子目录下，有生成`libskia.a`等.a文件    
 （3）注意事项：skia源码应该与nim_duilib源码位于相同的目录下，目录结构：`/home/develop/skia/`  
-3. 获取并编译SDL库（nim_duilib内部使用SDL作为Linux平台的界面绘制引擎，所以先要编译SDL）：    
+3. 获取并编译SDL库（nim_duilib内部使用SDL作为Linux平台的界面绘制引擎，所以先要编译SDL）：  
+（0）准备工作（Ubuntu Only）：需要通过`sudo apt install libxext-dev`来安装libxext，安装版本号为：1.3.4    
 （1）进入工作目录：`cd /home/develop/`    
 （2）获取源码：`git clone https://github.com/libsdl-org/SDL.git`   
 （3）使用cmake设置：`cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="/home/develop/SDL3/" -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF`    
@@ -169,6 +170,7 @@
 （4）设置编译脚本可执行：`chmod +x linux_build.sh`    
 （5）执行脚本编译：`./linux_build.sh`    
 （6）编译完成后，编译成功后，在libs目录生成了.a文件（libz.a、libpng.a、libwebp.a、libcximage.a、libduilib.a），在bin目录中生成了可执行文件。
+5. 备注：如果希望编译debug版本的.a文件，可在cmake的参数中追加：` -DCMAKE_BUILD_TYPE=Debug`
 
 ## 开发计划
  - 窗口的封装优化：支持跨平台的窗口引擎    
