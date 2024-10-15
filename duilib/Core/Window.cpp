@@ -58,7 +58,12 @@ void Window::AttachWindowClose(const EventCallback& callback)
 
 bool Window::SetRenderBackendType(RenderBackendType backendType)
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     m_renderBackendType = backendType;
+#else
+    backendType = RenderBackendType::kRaster_BackendType;
+    m_renderBackendType = backendType;
+#endif
     ASSERT(IsWindow());
     if (!IsWindow()) {
         return false;

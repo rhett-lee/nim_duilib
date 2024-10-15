@@ -316,12 +316,21 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
     bool bScaledCX = false;
     bool bScaledCY = false;
 
+    RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
     DString strName;
     DString strValue;
     for (pugi::xml_attribute attr : root.attributes()) {
         strName = attr.name();
         strValue = attr.value();
-        if (strName == _T("use_system_caption")) {
+        if (strName == _T("render_backend_type")) {            
+            if (StringUtil::IsEqualNoCase(strValue, _T("GL")) || StringUtil::IsEqualNoCase(strValue, _T("GPU"))) {
+                backendType = RenderBackendType::kNativeGL_BackendType;
+            }
+            else if (StringUtil::IsEqualNoCase(strValue, _T("CPU"))) {
+                backendType = RenderBackendType::kRaster_BackendType;
+            }
+        }
+        else if (strName == _T("use_system_caption")) {
             createAttributes.m_bUseSystemCaption = (strValue == _T("true"));
             createAttributes.m_bUseSystemCaptionDefined = true;
         }
@@ -404,6 +413,16 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
         createAttributes.m_szInitSize.cx = cx;
         createAttributes.m_szInitSize.cy = cy;        
     }
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    if (backendType == RenderBackendType::kNativeGL_BackendType) {
+        //使用OpenGL时，不能使用层窗口
+        if (!createAttributes.m_bLayeredWindowOpacityDefined || (createAttributes.m_nLayeredWindowOpacity == 255)) {
+            if (createAttributes.m_bIsLayeredWindowDefined) {
+                createAttributes.m_bIsLayeredWindow = false;
+            }
+        }
+    }
+#endif
     return true;
 }
 
@@ -424,7 +443,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         strValue = attr.value();
         if (strName == _T("render_backend_type")) {
             RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
-            if (StringUtil::IsEqualNoCase(strValue, _T("GL"))) {
+            if (StringUtil::IsEqualNoCase(strValue, _T("GL")) || StringUtil::IsEqualNoCase(strValue, _T("GPU"))) {
                 backendType = RenderBackendType::kNativeGL_BackendType;
             }
             else if (StringUtil::IsEqualNoCase(strValue, _T("CPU"))) {
@@ -540,6 +559,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
     }
 
     //最后设置窗口的初始化大小，因为初始化大小与是否阴影等相关
+    bool bLayeredWindowOpacityDefined = false;
     for (pugi::xml_attribute attr : root.attributes()) {
         strName = attr.name();
         strValue = attr.value();
@@ -570,9 +590,23 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             ASSERT(nAlpha >= 0 && nAlpha <= 255);
             if ((nAlpha >= 0) && (nAlpha <= 255)) {
                 pWindow->SetLayeredWindowOpacity(nAlpha);
+                bLayeredWindowOpacityDefined = true;
             }
         }
     }
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    if (pWindow->GetRenderBackendType() == RenderBackendType::kNativeGL_BackendType) {
+        //使用OpenGL时，不能使用层窗口
+        if (!bLayeredWindowOpacityDefined || (pWindow->GetLayeredWindowOpacity() == 255)) {
+            pWindow->SetLayeredWindow(false, false);
+        }
+        if (pWindow->IsShadowAttached() && !pWindow->IsUseSystemCaption()) {
+            //如果使用了阴影，则自动切换为使用系统标题栏，避免出现显示异常
+            pWindow->SetUseSystemCaption(true);
+        }
+    }
+#endif
 }
 
 void WindowBuilder::ParseWindowShareAttributes(Window* pWindow, const pugi::xml_node& root) const
