@@ -521,11 +521,9 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
     if (m_sdlRenderer != nullptr) {
         return false;
     }
-    if (!SDL_WasInit(SDL_INIT_VIDEO)) {
-        if (!SDL_Init(SDL_INIT_VIDEO)) {
-            SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
-            return false;
-        }
+    //初始化SDL
+    if (!MessageLoop_SDL::CheckInitSDL()) {
+        return false;
     }
 
     //保存参数
@@ -628,11 +626,9 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
     if (m_sdlRenderer != nullptr) {
         return -1;
     }
-    if (!SDL_WasInit(SDL_INIT_VIDEO)) {
-        if (!SDL_Init(SDL_INIT_VIDEO)) {
-            SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
-            return -1;
-        }
+    //初始化SDL
+    if (!MessageLoop_SDL::CheckInitSDL()) {
+        return -1;
     }
 
     //保存参数
@@ -2009,11 +2005,9 @@ bool NativeWindow_SDL::GetMonitorWorkRect(UiRect& rcWork) const
 bool NativeWindow_SDL::GetPrimaryMonitorWorkRect(UiRect& rcWork)
 {
     rcWork.Clear();
-    if (!SDL_WasInit(SDL_INIT_VIDEO)) {
-        if (!SDL_Init(SDL_INIT_VIDEO)) {
-            SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
-            return false;
-        }
+    //初始化SDL
+    if (!MessageLoop_SDL::CheckInitSDL()) {
+        return false;
     }
 
     SDL_DisplayID displayID = SDL_GetPrimaryDisplay();

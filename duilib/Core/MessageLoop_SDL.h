@@ -72,6 +72,10 @@ public:
     */
     static void PostNoneEvent();
 
+    /** 初始化SDL
+    */
+    static bool CheckInitSDL();
+
 private:
     /** 处理用户自定义消息
     */

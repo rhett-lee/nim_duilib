@@ -17,14 +17,24 @@ MessageLoop_SDL::~MessageLoop_SDL()
 {
 }
 
+bool MessageLoop_SDL::CheckInitSDL()
+{
+    //初始化SDL
+    bool bRet = true;
+    if (!SDL_WasInit(SDL_INIT_VIDEO)) {        
+        bRet = SDL_Init(SDL_INIT_VIDEO);
+        ASSERT_UNUSED_VARIABLE(bRet);
+    }
+    return bRet;
+}
+
 int32_t MessageLoop_SDL::Run()
 {
     //初始化SDL
-    if (!SDL_Init(SDL_INIT_VIDEO)) {
-        SDL_Log("SDL_Init(SDL_INIT_VIDEO) failed: %s", SDL_GetError());
+    if (!MessageLoop_SDL::CheckInitSDL()) {
         return -1;
     }
-
+    
     //进入消息循环
     bool bKeepGoing = true;
     SDL_Event sdlEvent;
