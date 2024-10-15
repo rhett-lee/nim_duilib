@@ -102,7 +102,6 @@ void* Render_Skia::GetPixelBits() const
             pPixelBits = pixmap.writable_addr();
         }
     }
-    ASSERT(pPixelBits != nullptr);
     if (pPixelBits == nullptr) {
         ASSERT(GetRenderBackendType() != RenderBackendType::kRaster_BackendType);
     }
