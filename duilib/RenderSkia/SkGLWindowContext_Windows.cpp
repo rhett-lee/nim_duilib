@@ -6,8 +6,8 @@
 #pragma warning (push)
 #pragma warning (disable: 4244 4201 4100)
 
-#include "include/gpu/GrDirectContext.h"
-#include "include/gpu/gl/GrGLInterface.h"
+#include "include/gpu/ganesh/GrDirectContext.h"
+#include "include/gpu/ganesh/gl/GrGLInterface.h"
 #include "tools/gpu/gl/win/SkWGL.h"
 #include "tools/window/GLWindowContext.h"
 
