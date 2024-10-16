@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <climits>
 
 #define UILIB_API
 
