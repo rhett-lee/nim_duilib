@@ -149,9 +149,11 @@
 1. 设置工作目录：`/home/develop/`    
 2. 获取并编译Skia库（nim_duilib内部使用Skia作为界面绘制引擎，所以先要编译skia）：    
 （1）获取skia代码的编译方法和修改的代码：`git clone https://github.com/rhett-lee/skia_compile`    
-（2）编译skia源码：按照skia_compile目录中的[OpenEuler下编译skia.md文档](https://github.com/rhett-lee/skia_compile/blob/main/OpenEuler%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)中的方法，编译出skia相关的.a文件    
+（2）编译skia源码：按照skia_compile目录中的说明文档中的方法，编译出skia相关的.a文件    
 　　　注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅    
 　　　检查方法：编译成功以后，在`skia/out`的子目录下，有生成`libskia.a`等.a文件    
+　　　OpenEuler平台参考文档：[OpenEuler下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenEuler%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)    
+　　　Ubuntu平台参考文档：[Ubuntu下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Ubuntu%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)    
 （3）注意事项：skia源码应该与nim_duilib源码位于相同的目录下，目录结构：`/home/develop/skia/`  
 3. 获取并编译SDL库（nim_duilib内部使用SDL作为Linux平台的界面绘制引擎，所以先要编译SDL）：  
 （0）准备工作（Ubuntu）：需要通过`sudo apt install libxext-dev`来安装libxext，安装版本号为：1.3.4    
