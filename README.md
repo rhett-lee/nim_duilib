@@ -154,11 +154,12 @@
 　　　检查方法：编译成功以后，在`skia/out`的子目录下，有生成`libskia.a`等.a文件    
 　　　OpenEuler平台参考文档：[OpenEuler下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenEuler%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)    
 　　　Ubuntu平台参考文档：[Ubuntu下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Ubuntu%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)    
+　　　Debian平台参考文档：[Debian下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Debian%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)    
 （3）注意事项：skia源码应该与nim_duilib源码位于相同的目录下，目录结构：`/home/develop/skia/`  
 3. 获取并编译SDL库（nim_duilib内部使用SDL作为Linux平台的界面绘制引擎，所以先要编译SDL）：  
-（0）准备工作（Ubuntu）：需要通过`sudo apt install libxext-dev`来安装libxext，安装版本号为：1.3.4    
-（0）准备工作（Ubuntu）：需要通过`sudo apt install libwayland-dev`来安装libwayland，安装版本号为：1.22.0    
-（0）准备工作（Ubuntu）：需要通过`sudo apt install libxkbcommon-dev`来安装libxkbcommon，安装版本号为：1.6.0    
+（0）准备工作（Ubuntu/Debian）：需要通过`sudo apt install libxext-dev`来安装libxext    
+（0）准备工作（Ubuntu/Debian）：需要通过`sudo apt install libwayland-dev`来安装libwayland    
+（0）准备工作（Ubuntu/Debian）：需要通过`sudo apt install libxkbcommon-dev`来安装libxkbcommon    
 （1）进入工作目录：`cd /home/develop/`    
 （2）获取源码：`git clone https://github.com/libsdl-org/SDL.git`   
 （3）使用cmake设置：`cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="/home/develop/SDL3/" -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF`    
