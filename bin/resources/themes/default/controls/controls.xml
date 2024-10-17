@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="1000,760" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" use_system_caption="false" shadow_attached="true" layered_window="true" sizebox="2,2,2,2" mininfo="400,320" >
+<Window size="1000,760" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" use_system_caption="false" shadow_attached="true" layered_window="true" sizebox="2,2,2,2" mininfo="400,320">
     <!-- 整个布局放在一个VBox容器中 -->
     <!-- 布局属性：margin="left,top,right,bottom"; padding="left,top,right,bottom" -->
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
             <Control width="auto" height="auto" bkimage="logo_18x18.png" valign="center" margin="8"/>
-            <Label text="Controls" valign="center" margin="8"/>
+            <Label name="window_title" text="Controls" valign="center" margin="8"/>
             <Control />
             <Button class="btn_wnd_settings_11" height="32" width="40" name="settings" margin="0,2,0,2" tooltip_text="设置"/>            
             <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>

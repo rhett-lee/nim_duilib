@@ -1,4 +1,5 @@
 #include "MessageLoop_SDL.h"
+#include "duilib/Utils/StringConvert.h"
 
 #if defined(DUILIB_BUILD_FOR_SDL)
 
@@ -17,11 +18,17 @@ MessageLoop_SDL::~MessageLoop_SDL()
 {
 }
 
-bool MessageLoop_SDL::CheckInitSDL()
+bool MessageLoop_SDL::CheckInitSDL(const DString& videoDriverName)
 {
     //初始化SDL
     bool bRet = true;
-    if (!SDL_WasInit(SDL_INIT_VIDEO)) {        
+    if (!SDL_WasInit(SDL_INIT_VIDEO)) {
+        if (!videoDriverName.empty()) {
+            DStringA videoDriverNameA = StringConvert::TToUTF8(videoDriverName);
+            if (!videoDriverNameA.empty()) {
+                SDL_SetHint(SDL_HINT_VIDEO_DRIVER, videoDriverNameA.c_str());
+            }            
+        }
         bRet = SDL_Init(SDL_INIT_VIDEO);
         ASSERT_UNUSED_VARIABLE(bRet);
     }

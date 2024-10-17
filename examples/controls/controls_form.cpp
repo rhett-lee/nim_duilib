@@ -28,6 +28,18 @@ DString ControlForm::GetSkinFile()
 
 void ControlForm::OnInitWindow()
 {
+#ifdef DUILIB_BUILD_FOR_SDL
+    //显示SDL的基本信息
+    ui::Label* pTitle = static_cast<ui::Label*>(FindControl(_T("window_title")));
+    if (pTitle != nullptr) {
+        DString title = pTitle->GetText();
+        DString driverName = GetVideoDriverName();
+        DString renderName = GetWindowRenderName();
+        DString newTitle = ui::StringUtil::Printf(_T("%s[SDL: VideoDriver:\"%s\", RenderName:\"%s\"]"), title.c_str(), driverName.c_str(), renderName.c_str());
+        pTitle->SetText(newTitle);
+    }
+#endif
+
     /**
      * 为了让代码看起来相对容易理解，不需要频繁跟进才能看明白示例代码
      * 我们将一些控件储存为局部变量，正确的使用应该是将他们作为成员变量

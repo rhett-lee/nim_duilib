@@ -542,7 +542,7 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
     }
 
     //创建SDL渲染接口
-    m_sdlRenderer = CreateSdlRenderer();
+    m_sdlRenderer = CreateSdlRenderer(createAttributes.m_sdlRenderName);
     ASSERT(m_sdlRenderer != nullptr);
     if (m_sdlRenderer == nullptr) {
         SDL_DestroyWindow(m_sdlWindow);
@@ -647,7 +647,7 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
     }
 
     //创建SDL渲染接口
-    m_sdlRenderer = CreateSdlRenderer();
+    m_sdlRenderer = CreateSdlRenderer(createAttributes.m_sdlRenderName);
     ASSERT(m_sdlRenderer != nullptr);
     if (m_sdlRenderer == nullptr) {
         SDL_DestroyWindow(m_sdlWindow);
@@ -703,34 +703,57 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
     return m_closeParam;
 }
 
-SDL_Renderer* NativeWindow_SDL::CreateSdlRenderer() const
+SDL_Renderer* NativeWindow_SDL::CreateSdlRenderer(const DString& sdlRenderName) const
 {
+    //以下为可用的Render名称列表（并不是每个名称的Render都可用，比如有的不能工作，有的不支持半透明窗口等特性）：
+    //Windows平台："gpu,direct3d11,direct3d12,direct3d,opengl,opengles2,vulkan,software"
+    //Linux平台  ："gpu,opengl,opengles2,vulkan,software"
+
+    //需要创建的Render名称列表，按优先级排列
+    std::vector<DString> renderNames;
+
+    //外部设置的Render名称优先
+    if (!sdlRenderName.empty()) {
+        std::list<DString> renderNameList = StringUtil::Split(sdlRenderName, _T(","));
+        for (auto iter = renderNameList.begin(); iter != renderNameList.end(); ++iter) {
+            DString name = *iter;
+            StringUtil::Trim(name);
+            if (!name.empty()) {
+                renderNames.push_back(name);
+            }
+        }
+    }
+
+#ifdef DUILIB_BUILD_FOR_WIN
+    //备注：当前Windows平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："direct3d11", "opengl"，"vulkan"
+    renderNames.push_back(_T("direct3d11"));
+    renderNames.push_back(_T("opengl"));
+    renderNames.push_back(_T("vulkan"));
+#else
+    //Linux平台：当前Windows平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："opengles2", "vulkan"
+    renderNames.push_back(_T("opengles2"));
+    renderNames.push_back(_T("vulkan"));
+    renderNames.push_back(_T("opengl"));
+#endif
+
+
     ASSERT(m_sdlWindow != nullptr);
     if (m_sdlWindow == nullptr) {
         return nullptr;
     }
-#ifdef DUILIB_BUILD_FOR_WIN
-    //备注：当前Windows平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："direct3d11", "opengl"
-    SDL_Renderer* sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "direct3d11");
-    if (sdlRenderer == nullptr) {
-        sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "opengl");
-    }
-    if (sdlRenderer == nullptr) {
-        //如果创建失败，则使用默认的Render引擎
-        sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
-    }
-#else
-    //Linux平台：当前Windows平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）有：opengles2
-    SDL_Renderer* sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "opengles2");
-    if (sdlRenderer == nullptr) {
-        sdlRenderer = SDL_CreateRenderer(m_sdlWindow, "opengl");
-    }
-    if (sdlRenderer == nullptr) {
-        //如果创建失败，则使用默认的Render引擎
-        sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
-    }
-#endif
 
+    SDL_Renderer* sdlRenderer = nullptr;
+    for (auto iter = renderNames.begin(); iter != renderNames.end(); ++iter) {
+        const DStringA renderName = StringConvert::TToUTF8(*iter);
+        sdlRenderer = SDL_CreateRenderer(m_sdlWindow, renderName.c_str());
+        if (sdlRenderer != nullptr) {
+            break;
+        }
+    }
+    if (sdlRenderer == nullptr) {
+        //如果创建失败，则使用默认的Render引擎
+        sdlRenderer = SDL_CreateRenderer(m_sdlWindow, nullptr);
+    }
     ASSERT(sdlRenderer != nullptr);
     return sdlRenderer;
 }
@@ -1072,6 +1095,28 @@ void NativeWindow_SDL::ClearNativeWindow()
 void* NativeWindow_SDL::GetWindowHandle() const
 {
     return m_sdlWindow;
+}
+
+DString NativeWindow_SDL::GetVideoDriverName() const
+{
+    DString driverName;
+    const char* name = SDL_GetCurrentVideoDriver();
+    if (name != nullptr) {
+        driverName = StringConvert::UTF8ToT(std::string(name));
+    }
+    return driverName;
+}
+
+DString NativeWindow_SDL::GetWindowRenderName() const
+{
+    DString renderName;
+    if (m_sdlRenderer != nullptr) {
+        const char* name = SDL_GetRendererName(m_sdlRenderer);
+        if (name != nullptr) {
+            renderName = StringConvert::UTF8ToT(std::string(name));
+        }
+    }
+    return renderName;
 }
 
 bool NativeWindow_SDL::IsWindow() const

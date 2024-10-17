@@ -551,9 +551,19 @@ public:
     */
     void SetLastMousePos(const UiPoint& pt);
 
-    /** 获取窗口的句柄（Windows平台返回的是窗口句柄HWND）
+    /** 获取窗口的句柄（Windows平台返回的是窗口句柄HWND, SDL实现时返回的是SDL_Window*）
     */
     void* GetWindowHandle() const;
+
+#ifdef DUILIB_BUILD_FOR_SDL
+    /** 获取当前窗口实现的驱动名称
+    */
+    DString GetVideoDriverName() const;
+
+    /** 获取当前Render绘制引擎的名称
+    */
+    DString GetWindowRenderName() const;
+#endif
 
 protected:
     /** 正在初始化窗口数据

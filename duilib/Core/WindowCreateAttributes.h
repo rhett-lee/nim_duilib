@@ -49,6 +49,10 @@ public:
     */
     UiSize m_szInitSize;
     bool m_bInitSizeDefined = false;//是否包含有效值
+
+    /** 期望的SDL Render名称（可选参数）
+    */
+    DString m_sdlRenderName;
 };
 
 } // namespace ui

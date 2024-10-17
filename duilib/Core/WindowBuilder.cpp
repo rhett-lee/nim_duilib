@@ -378,6 +378,10 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
         else if (strName == _T("maxinfo")) {
             AttributeUtil::ParseSizeValue(strValue.c_str(), szMaxSize);
         }
+        else if (strName == _T("sdl_render_name")) {
+            //期望的SDL Render的名称
+            createAttributes.m_sdlRenderName = strValue;
+        }
     }
     if (createAttributes.m_bInitSizeDefined) {
         int32_t cx = createAttributes.m_szInitSize.cx;

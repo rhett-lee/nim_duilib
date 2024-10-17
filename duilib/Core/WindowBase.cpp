@@ -778,6 +778,18 @@ void* WindowBase::GetWindowHandle() const
     return m_pNativeWindow->GetWindowHandle();
 }
 
+#ifdef DUILIB_BUILD_FOR_SDL
+DString WindowBase::GetVideoDriverName() const
+{
+    return m_pNativeWindow->GetVideoDriverName();
+}
+
+DString WindowBase::GetWindowRenderName() const
+{
+    return m_pNativeWindow->GetWindowRenderName();
+}
+#endif
+
 void WindowBase::OnWindowSize(WindowSizeType sizeType)
 {
     UiSize szRoundCorner = GetRoundCorner();

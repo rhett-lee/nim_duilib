@@ -73,8 +73,11 @@ public:
     static void PostNoneEvent();
 
     /** 初始化SDL
+    * @param [in] videoDriverName 显示驱动的名称, 有效值是：
+      Windows平台："windows"
+      Linux平台："X11" 或者 "wayland" 或者 "wayland,X11" 或者 "X11,wayland"
     */
-    static bool CheckInitSDL();
+    static bool CheckInitSDL(const DString& videoDriverName = _T(""));
 
 private:
     /** 处理用户自定义消息

@@ -78,6 +78,14 @@ public:
     */
     void* GetWindowHandle() const;
 
+    /** 获取当前窗口实现的驱动名称
+    */
+    DString GetVideoDriverName() const;
+
+    /** 获取当前Render绘制引擎的名称
+    */
+    DString GetWindowRenderName() const;
+
     /** 是否含有有效的窗口句柄
     */
     bool IsWindow() const;
@@ -525,7 +533,7 @@ private:
 
     /** 创建SDL窗口关联的Render
     */
-    SDL_Renderer* CreateSdlRenderer() const;
+    SDL_Renderer* CreateSdlRenderer(const DString& sdlRenderName) const;
 
     /** 读取可用的Render
     */
