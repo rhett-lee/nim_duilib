@@ -535,9 +535,21 @@ private:
     */
     SDL_Renderer* CreateSdlRenderer(const DString& sdlRenderName) const;
 
-    /** 读取可用的Render
+    /** 获取Render名称列表（按优先级排列）
     */
-    void HasOpenGLRenders(bool& bHasOpenGL, bool& bHasOpenGLES2) const;
+    void GetRenderNameList(const DString& externalRenderName, std::vector<DString>& renderNames) const;
+
+    /** 读取即将使用的Render属性
+    * @param [in] 外部传入的Render名称
+    * @param [out] bOpenGL 是否支持OpenGL
+    * @param [out] bOpenGLES2 是否支持OpenGL ES2
+    * @param [out] bSupportTransparent 是否支持透明
+    */
+    void QueryRenderProperties(const DString& externalRenderName, bool& bOpenGL, bool& bOpenGLES2, bool& bSupportTransparent) const;
+
+    /** 判断一个Render是否支持透明度
+    */
+    bool IsRenderSupportTransparent(const DString& renderName) const;
 
     /** 创建SDL窗口
     */

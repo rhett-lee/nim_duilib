@@ -569,24 +569,31 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
 
 SDL_Window* NativeWindow_SDL::CreateSdlWindow(NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes)
 {
-    bool bHasOpenGL = false;
-    bool bHasOpenGLES2 = false;
+    bool bOpenGL = false;
+    bool bSupportTransparent = false;
 #ifndef DUILIB_BUILD_FOR_WIN
-    HasOpenGLRenders(bHasOpenGL, bHasOpenGLES2);
+    //Linux平台    
+    bool bOpenGLES2 = false;    
+    QueryRenderProperties(createAttributes.m_sdlRenderName, bOpenGL, bOpenGLES2, bSupportTransparent);
 #endif
 
     //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
-    SyncCreateWindowAttributes(createAttributes, bHasOpenGLES2);
+    SyncCreateWindowAttributes(createAttributes, bSupportTransparent);
 
     //创建属性
     SDL_PropertiesID props = SDL_CreateProperties();
-    SetCreateWindowProperties(props, pParentWindow, createAttributes, bHasOpenGL || bHasOpenGLES2);
+    SetCreateWindowProperties(props, pParentWindow, createAttributes, bOpenGL);
 
     SDL_Window* pSdlWindow = nullptr;
-#ifdef DUILIB_BUILD_FOR_WIN
-    pSdlWindow = SDL_CreateWindowWithProperties(props);
-#else
-    if (bHasOpenGLES2) {
+#ifndef DUILIB_BUILD_FOR_WIN
+    //Linux平台
+    std::vector<DString> renderNames;
+    GetRenderNameList(createAttributes.m_sdlRenderName, renderNames);
+    DString firstRenderName;
+    if (!renderNames.empty()) {
+        firstRenderName = renderNames.front();
+    }
+    if (bSupportTransparent && (firstRenderName == _T("opengles2"))) {
         //设置标志，以创建支持透明窗口的Render
         bool bOldValue = SDL_GetHintBoolean(SDL_HINT_VIDEO_FORCE_EGL, false);
         if (!bOldValue) {
@@ -601,6 +608,9 @@ SDL_Window* NativeWindow_SDL::CreateSdlWindow(NativeWindow_SDL* pParentWindow, c
     else {
         pSdlWindow = SDL_CreateWindowWithProperties(props);
     }
+#else
+    //Windows平台
+    pSdlWindow = SDL_CreateWindowWithProperties(props);
 #endif
 
     SDL_DestroyProperties(props);
@@ -705,37 +715,8 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
 
 SDL_Renderer* NativeWindow_SDL::CreateSdlRenderer(const DString& sdlRenderName) const
 {
-    //以下为可用的Render名称列表（并不是每个名称的Render都可用，比如有的不能工作，有的不支持半透明窗口等特性）：
-    //Windows平台："gpu,direct3d11,direct3d12,direct3d,opengl,opengles2,vulkan,software"
-    //Linux平台  ："gpu,opengl,opengles2,vulkan,software"
-
-    //需要创建的Render名称列表，按优先级排列
     std::vector<DString> renderNames;
-
-    //外部设置的Render名称优先
-    if (!sdlRenderName.empty()) {
-        std::list<DString> renderNameList = StringUtil::Split(sdlRenderName, _T(","));
-        for (auto iter = renderNameList.begin(); iter != renderNameList.end(); ++iter) {
-            DString name = *iter;
-            StringUtil::Trim(name);
-            if (!name.empty()) {
-                renderNames.push_back(name);
-            }
-        }
-    }
-
-#ifdef DUILIB_BUILD_FOR_WIN
-    //备注：当前Windows平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："direct3d11", "opengl"，"vulkan"
-    renderNames.push_back(_T("direct3d11"));
-    renderNames.push_back(_T("opengl"));
-    renderNames.push_back(_T("vulkan"));
-#else
-    //Linux平台：当前Windows平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："opengles2", "vulkan"
-    renderNames.push_back(_T("opengles2"));
-    renderNames.push_back(_T("vulkan"));
-    renderNames.push_back(_T("opengl"));
-#endif
-
+    GetRenderNameList(sdlRenderName, renderNames);
 
     ASSERT(m_sdlWindow != nullptr);
     if (m_sdlWindow == nullptr) {
@@ -758,23 +739,175 @@ SDL_Renderer* NativeWindow_SDL::CreateSdlRenderer(const DString& sdlRenderName) 
     return sdlRenderer;
 }
 
-void NativeWindow_SDL::HasOpenGLRenders(bool& bHasOpenGL, bool& bHasOpenGLES2) const
+void NativeWindow_SDL::GetRenderNameList(const DString& externalRenderName, std::vector<DString>& renderNames) const
 {
-    bHasOpenGL = false;
-    bHasOpenGLES2 = false;
+    //以下为可用的Render名称列表（并不是每个名称的Render都可用，比如有的不能工作，有的不支持半透明窗口等特性）：
+    //Windows平台："gpu,direct3d11,direct3d12,direct3d,opengl,opengles2,vulkan,software"
+    //Linux平台  ："gpu,opengl,opengles2,vulkan,software"
+
+    //需要创建的Render名称列表，按优先级排列
+    renderNames.clear();
+    if (m_sdlRenderer != nullptr) {
+        //当前的Render为第一优先级
+        const char* renderName = SDL_GetRendererName(m_sdlRenderer);
+        if (renderName != nullptr) {
+            std::string name = renderName;
+            renderNames.push_back(StringConvert::UTF8ToT(name));
+        }
+    }
+
+    if (renderNames.empty()) {
+        //如果已经有窗口，则优先使用已有窗口的Render Name，避免同时存在的窗口使用不同的Render Name
+        int32_t nWindowCount = 0;
+        SDL_Window** ppSdlWindow = SDL_GetWindows(&nWindowCount);
+        if ((nWindowCount > 0) && (ppSdlWindow != nullptr)) {
+            for (int32_t nWindow = 0; nWindow < nWindowCount; ++nWindow) {
+                SDL_Renderer* pSdlRender = nullptr;
+                SDL_Window* pSdlWindow = ppSdlWindow[nWindow];
+                if (pSdlWindow != nullptr) {
+                    pSdlRender = SDL_GetRenderer(pSdlWindow);                    
+                }
+                if (pSdlRender != nullptr) {
+                    const char* pRenderName = SDL_GetRendererName(pSdlRender);
+                    if ((pRenderName != nullptr) && (pRenderName[0] != '\0')) {
+                        //作为第一优先级的Render名称
+                        DString name = StringConvert::UTF8ToT(std::string(pRenderName));
+                        renderNames.push_back(name);
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    //外部设置的Render名称优先
+    if (!externalRenderName.empty()) {
+        std::list<DString> renderNameList = StringUtil::Split(externalRenderName, _T(","));
+        for (auto iter = renderNameList.begin(); iter != renderNameList.end(); ++iter) {
+            DString name = *iter;
+            StringUtil::Trim(name);
+            if (!name.empty()) {
+                renderNames.push_back(name);
+            }
+        }
+    }
+
+    //优先级最低：默认的取值，按优先级顺序排列
+#ifdef DUILIB_BUILD_FOR_WIN
+    //备注：当前Windows平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："direct3d11", "opengl"，"vulkan"
+    renderNames.push_back(_T("direct3d11"));
+    renderNames.push_back(_T("opengl"));
+    renderNames.push_back(_T("vulkan"));
+#else
+    //Linux平台：当前Windows平台支持透明的（属性：SDL_WINDOW_TRANSPARENT）有："opengles2", "vulkan"
+    renderNames.push_back(_T("opengles2"));
+    renderNames.push_back(_T("vulkan"));
+    renderNames.push_back(_T("opengl"));
+#endif
+
+    //剔除不存在的
+    std::vector<DString> renderDrivers;
     int32_t nRenderCount = SDL_GetNumRenderDrivers();
     for (int32_t nRenderIndex = 0; nRenderIndex < nRenderCount; ++nRenderIndex) {
         const char* renderName = SDL_GetRenderDriver(nRenderIndex);
         if (renderName != nullptr) {
-            std::string name = renderName;
-            if (name == "opengl") {
-                bHasOpenGL = true;
-            }
-            else if (name == "opengles2") {
-                bHasOpenGLES2 = true;
+            DString name = StringConvert::UTF8ToT(std::string(renderName));
+            if (!name.empty()) {
+                renderDrivers.push_back(name);
             }
         }
     }
+    auto iter = renderNames.begin();
+    while ( iter != renderNames.end()) {
+        const DString& name = *iter;
+        if (std::find(renderDrivers.begin(), renderDrivers.end(), name) == renderDrivers.end()) {
+            //不存在，移除
+            iter = renderNames.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
+}
+
+void NativeWindow_SDL::QueryRenderProperties(const DString& externalRenderName, bool& bOpenGL, bool& bOpenGLES2, bool& bSupportTransparent) const
+{
+    bOpenGL = false;
+    bOpenGLES2 = false;
+    bSupportTransparent = false;
+
+    if (m_sdlRenderer != nullptr) {
+        //当前的Render为第一优先级
+        const char* renderName = SDL_GetRendererName(m_sdlRenderer);
+        if (renderName != nullptr) {
+            std::string name = renderName;
+            bSupportTransparent = IsRenderSupportTransparent(StringConvert::UTF8ToT(name));
+            if (name == "opengles2") {
+                bOpenGL = true;
+                bOpenGLES2 = true;
+            }
+            else if (name == "opengl") {
+                bOpenGL = true;
+            }
+            else if (name == "vulkan") {
+                //需要添加SDL_WINDOW_OPENGL标志，否则vulkan无法工作，原因未知
+                bOpenGL = true;
+            }
+            return;
+        }
+    }
+
+    std::vector<DString> renderNames;
+    GetRenderNameList(externalRenderName, renderNames);
+    for (auto iter = renderNames.begin(); iter != renderNames.end(); ++iter) {
+        const DString& name = *iter;
+        if (name.empty()) {
+            continue;
+        }
+        if (name == _T("opengles2")) {
+            bOpenGL = true;
+            bOpenGLES2 = true;
+        }
+        else if (name == _T("opengl")) {
+            bOpenGL = true;
+        }
+        else if (name == _T("vulkan")) {
+            //需要添加SDL_WINDOW_OPENGL标志，否则vulkan无法工作，原因未知
+            bOpenGL = true;
+        }
+        if (!bSupportTransparent) {
+            bSupportTransparent = IsRenderSupportTransparent(name);
+        }
+        //只取首个
+        break;
+    }
+}
+
+bool NativeWindow_SDL::IsRenderSupportTransparent(const DString& renderName) const
+{
+    bool bSupportTransparent = false;
+#ifdef DUILIB_BUILD_FOR_WIN
+    if (renderName == _T("direct3d11")) {
+        bSupportTransparent = true;
+    }
+    else if (renderName == _T("opengl")) {
+        bSupportTransparent = true;
+    }
+    else if (renderName == _T("vulkan")) {
+        bSupportTransparent = true;
+    }
+#else
+    if (renderName == _T("opengles2")) {
+        bSupportTransparent = true;
+    }
+    else if (renderName == _T("opengl")) {
+        bSupportTransparent = true;
+    }
+    else if (renderName == _T("vulkan")) {
+        bSupportTransparent = true;
+    }
+#endif
+    return bSupportTransparent;
 }
 
 void NativeWindow_SDL::SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes, bool bSupportTransparent)
@@ -1271,20 +1404,10 @@ void NativeWindow_SDL::SetUseSystemCaption(bool bUseSystemCaption)
 #ifndef DUILIB_BUILD_FOR_WIN
     //目前Linux系统只有OpenGLES2这个Render支持窗口半透明，所以如果不支持时，强制使用系统标题栏
     bool bHasOpenGL = false;
-    bool bHasOpenGLES2 = false;
-    if (m_sdlRenderer != nullptr) {
-        const char* renderName = SDL_GetRendererName(m_sdlRenderer);
-        if (renderName != nullptr) {
-            std::string name = renderName;
-            if (name == "opengles2") {
-                bHasOpenGLES2 = true;
-            }
-        }
-    }
-    else {
-        HasOpenGLRenders(bHasOpenGL, bHasOpenGLES2);
-    }    
-    if (!bHasOpenGLES2) {
+    bool bOpenGLES2 = false;
+    bool bSupportTransparent = false;
+    QueryRenderProperties(_T(""), bHasOpenGL, bOpenGLES2, bSupportTransparent);
+    if (!bSupportTransparent) {
         m_bUseSystemCaption = true;
     }
 #endif
