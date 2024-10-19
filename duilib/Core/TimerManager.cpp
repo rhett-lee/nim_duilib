@@ -230,8 +230,10 @@ void TimerManager::WorkerThreadProc()
                 //注意事项：发现gcc版本和glibc版本对wait_for都有问题（使用的时系统时间），gcc >=10 且 glibc >= 2.30 才会对程序行为没有影响。
                 m_cv.wait_for(taskGuard, std::chrono::milliseconds(nDetaTimeMs));
             }
-            //通知处理(发送到主线程执行)
+            //通知处理(发送到主线程执行, 此时不能加锁，避免出现死锁问题)
+            taskGuard.unlock();
             m_threadMsg.PostMsg(WM_USER_DEFINED_TIMER, 0, 0);
+            taskGuard.lock();
             //LogUtil::OutputLine(StringUtil::Printf(_T("PostMessage: send timer event")));
             if (m_bRunning) {
                 m_cv.wait(taskGuard);
