@@ -72,8 +72,8 @@ void MainThread::OnInit()
     createWndParam.m_className = _T("cef");
     createWndParam.m_windowTitle = createWndParam.m_className;
     createWndParam.m_dwExStyle = dwExStyle;
+    createWndParam.m_bCenterWindow = true;
     window->CreateWnd(nullptr, createWndParam);
-    window->CenterWindow();
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 

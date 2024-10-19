@@ -619,13 +619,12 @@ void MainForm::ShowColorPicker()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("ColorPicker");
+    createParam.m_bCenterWindow = true;
 #ifdef DUILIB_BUILD_FOR_WIN
     pColorPicker->CreateWnd(nullptr, createParam);
-    pColorPicker->CenterWindow();
     pColorPicker->ShowModalFake();
 #else
     pColorPicker->CreateWnd(this, createParam);
-    pColorPicker->CenterWindow();
     pColorPicker->ShowModalFake();
     pColorPicker->SetWindowForeground();
 #endif
@@ -1016,8 +1015,8 @@ void MainForm::OnFindText()
         createParam.m_dwStyle = ui::kWS_POPUP;
         createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
         createParam.m_windowTitle = _T("FindForm");
+        createParam.m_bCenterWindow = true;
         m_pFindForm->CreateWnd(this, createParam);
-        m_pFindForm->CenterWindow();
         m_pFindForm->ShowWindow(ui::kSW_SHOW);
         m_pFindForm->AttachWindowClose([this](const ui::EventArgs& args) {
                 m_pFindForm = nullptr;
@@ -1047,8 +1046,8 @@ void MainForm::OnReplaceText()
         createParam.m_dwStyle = ui::kWS_POPUP;
         createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
         createParam.m_windowTitle = _T("ReplaceForm");
+        createParam.m_bCenterWindow = true;
         m_pReplaceForm->CreateWnd(this, createParam);
-        m_pReplaceForm->CenterWindow();
         m_pReplaceForm->ShowWindow(ui::kSW_SHOW);
         m_pReplaceForm->AttachWindowClose([this](const ui::EventArgs& args) {
                 m_pReplaceForm = nullptr;

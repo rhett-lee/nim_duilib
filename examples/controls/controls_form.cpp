@@ -295,9 +295,6 @@ void ControlForm::ShowColorPicker(bool bDoModal)
 
     //窗口创建完成执行的函数
     auto OnInitColorPicker = [this, pColorPicker](const ui::EventArgs&) {
-        //窗口位置居中
-        pColorPicker->CenterWindow();
-
         ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit")));
         if (pEdit != nullptr) {
             DString oldTextColor = pEdit->GetTextColor();
@@ -333,6 +330,7 @@ void ControlForm::ShowColorPicker(bool bDoModal)
     ui::WindowCreateParam createParam;
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_bCenterWindow = true;
     if (!bModalDlg) {
         pColorPicker->CreateWnd(this, createParam);
         pColorPicker->ShowModalFake();
@@ -350,6 +348,7 @@ void ControlForm::ShowDoModalDlg()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("AboutForm");
+    createParam.m_bCenterWindow = true;
     simpleWnd.DoModal(this, createParam);
 }
 
@@ -423,8 +422,8 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
             createParam.m_dwStyle = ui::kWS_POPUP;
             createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
             createParam.m_windowTitle = _T("AboutForm");
+            createParam.m_bCenterWindow = true;
             about_form->CreateWnd(this, createParam);
-            about_form->CenterWindow();
             about_form->ShowModalFake();
             return true;
             });

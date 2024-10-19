@@ -29,8 +29,7 @@ void LayoutsForm::OnInitWindow()
 void LayoutsForm::ShowCustomWindow(const DString& class_name, const DString& theme_directory, const DString& layout_xml)
 {
     LayoutsForm* window = new LayoutsForm(class_name, theme_directory, layout_xml);
-    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("layouts")));
+    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("layouts"), true));
     window->PostQuitMsgWhenClosed(true);
-    window->CenterWindow();
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
 }

@@ -783,8 +783,8 @@ void ColorPicker::OnPickColorFromScreen()
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_TRANSPARENT;
+    createWndParam.m_bCenterWindow = true;
     pScreenColorPicker->CreateWnd(nullptr, createWndParam);
-    pScreenColorPicker->CenterWindow();
     pScreenColorPicker->ShowWindow(ui::kSW_SHOW_NORMAL);
     pScreenColorPicker->EnterFullScreen();
     pScreenColorPicker->AttachWindowClose([this, pScreenColorPicker, bHideWindow](const ui::EventArgs& /*args*/) {

@@ -18,9 +18,8 @@ void MainThread::OnInit()
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
     
     MoveControlForm* window = new MoveControlForm(_T("move_control"), _T("main.xml"));
-    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("move_control")));
+    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("move_control"), true));
     window->PostQuitMsgWhenClosed(true);
-    window->CenterWindow();
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 

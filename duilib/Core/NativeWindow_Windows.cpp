@@ -50,7 +50,6 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_ptLastMousePos(-1, -1),
     m_pfnOldWndProc(nullptr),
     m_bDoModal(false),
-    m_bCenterWindow(false),
     m_bCloseByEsc(false),
     m_bCloseByEnter(false),
     m_bSnapLayoutMenu(false),
@@ -125,6 +124,20 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
     //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
     SyncCreateWindowAttributes(createAttributes);
 
+    if (m_createParam.m_bCenterWindow) {
+        //窗口居中时，计算窗口的起始位置，避免窗口弹出时出现窗口位置变动的现象
+        int32_t xPos = 0;
+        int32_t yPos = 0;
+        HWND hCenterWindow = nullptr;
+        if (pParentWindow != nullptr) {
+            hCenterWindow = pParentWindow->GetHWND();
+        }
+        if (CalculateCenterWindowPos(hCenterWindow, xPos, yPos)) {
+            m_createParam.m_nX = xPos;
+            m_createParam.m_nY = yPos;
+        }
+    }
+
     //父窗口句柄
     HWND hParentWnd = pParentWindow != nullptr ? pParentWindow->GetHWND() : nullptr;
     //窗口标题
@@ -150,7 +163,7 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
 int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
                                       const WindowCreateParam& createParam,
                                       const WindowCreateAttributes& createAttributes,
-                                      bool bCenterWindow, bool bCloseByEsc, bool bCloseByEnter)
+                                      bool bCloseByEsc, bool bCloseByEnter)
 {
     ASSERT(m_hWnd == nullptr);
     if (m_hWnd != nullptr) {
@@ -163,7 +176,6 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
 
     //保存参数
     m_createParam = createParam;
-    m_bCenterWindow = bCenterWindow;
     m_bCloseByEsc = bCloseByEsc;
     m_bCloseByEnter = bCloseByEnter;
 
@@ -174,6 +186,20 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
 
     //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
     SyncCreateWindowAttributes(createAttributes);
+
+    if (m_createParam.m_bCenterWindow) {
+        //窗口居中时，计算窗口的起始位置，避免窗口弹出时出现窗口位置变动的现象
+        int32_t xPos = 0;
+        int32_t yPos = 0;
+        HWND hCenterWindow = nullptr;
+        if (pParentWindow != nullptr) {
+            hCenterWindow = pParentWindow->GetHWND();
+        }
+        if (CalculateCenterWindowPos(hCenterWindow, xPos, yPos)) {
+            m_createParam.m_nX = xPos;
+            m_createParam.m_nY = yPos;
+        }
+    }
 
     //窗口的位置和大小
     short x = 0;
@@ -186,12 +212,6 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
     }
     if (m_createParam.m_nY != kCW_USEDEFAULT) {
         y = (short)m_createParam.m_nY;
-    }
-    if (m_createParam.m_nWidth != kCW_USEDEFAULT) {
-        cx = (short)m_createParam.m_nWidth;
-    }
-    if (m_createParam.m_nHeight != kCW_USEDEFAULT) {
-        cy = (short)m_createParam.m_nHeight;
     }
 
     // 创建对话框资源结构体（对话框初始状态为可见状态）
@@ -303,6 +323,10 @@ LRESULT NativeWindow_Windows::OnCreateMsg(UINT uMsg, WPARAM wParam, LPARAM lPara
     //更新最大化/最小化按钮的风格
     UpdateMinMaxBoxStyle();
 
+    if (m_createParam.m_bCenterWindow) {
+        //在创建完成后设置窗口居中(弹出式窗口设置的初始位置不生效，需要窗口后设置，不影响效果)
+        CenterWindow();
+    }
     return 0;
 }
 
@@ -318,8 +342,8 @@ LRESULT NativeWindow_Windows::OnInitDialogMsg(UINT uMsg, WPARAM wParam, LPARAM l
     //更新最大化/最小化按钮的风格
     UpdateMinMaxBoxStyle();
 
-    if (m_bCenterWindow) {
-        //窗口居中
+    if (m_createParam.m_bCenterWindow) {
+        //在创建完成后设置窗口居中(弹出式窗口设置的初始位置不生效，需要窗口后设置，不影响效果)
         CenterWindow();
     }
 
@@ -353,7 +377,7 @@ void NativeWindow_Windows::InitNativeWindow()
     if (!m_createParam.m_windowTitle.empty()) {
         DString windowTitle = StringConvert::TToLocal(m_createParam.m_windowTitle);
         ::SetWindowText(hWnd, windowTitle.c_str());
-    }    
+    }
 }
 
 void NativeWindow_Windows::ClearNativeWindow()
@@ -686,52 +710,73 @@ bool NativeWindow_Windows::IsDoModal() const
 
 void NativeWindow_Windows::CenterWindow()
 {
-    ASSERT(::IsWindow(m_hWnd));
+    ASSERT(IsWindow());
+    if (!IsWindow()) {
+        return;
+    }
     ASSERT((::GetWindowLong(m_hWnd, GWL_STYLE) & WS_CHILD) == 0);
-    UiRect rcDlg;
-    GetWindowRect(rcDlg);
-    UiRect rcArea;
-    UiRect rcCenter;
-    HWND hWnd = GetHWND();
-    HWND hWndCenter = GetWindowOwner();
-    if (hWndCenter != nullptr) {
-        hWnd = hWndCenter;
+    HWND hCenterWindow = ::GetParent(m_hWnd);
+    int32_t xPos = 0;
+    int32_t yPos = 0;
+    if (CalculateCenterWindowPos(hCenterWindow, xPos, yPos)) {
+        ::SetWindowPos(m_hWnd, NULL, xPos, yPos, -1, -1, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+    }
+}
+
+bool NativeWindow_Windows::CalculateCenterWindowPos(HWND hCenterWindow, int32_t& xPos, int32_t& yPos) const
+{
+    //当前窗口的宽度和高度
+    int32_t nWindowWidth = 0;
+    int32_t nWindowHeight = 0;
+    if (IsWindow()) {
+        UiRect rcDlg;
+        GetWindowRect(rcDlg);
+        nWindowWidth = rcDlg.Width();
+        nWindowHeight = rcDlg.Height();
+    }
+    else {
+        if ((m_createParam.m_nWidth <= 0) || (m_createParam.m_nHeight <= 0)) {
+            //当前的窗口宽度未知，无法计算
+            return false;
+        }
+        nWindowWidth = m_createParam.m_nWidth;
+        nWindowHeight = m_createParam.m_nHeight;
     }
 
-    // 处理多显示器模式下屏幕居中
+    UiRect rcArea;
+    UiRect rcCenter;
     UiRect rcMonitor;
-    GetMonitorRect(hWnd, rcMonitor, rcArea);
-    if (hWndCenter == nullptr) {
+    GetMonitorRect(GetHWND() != nullptr ? GetHWND() : hCenterWindow, rcMonitor, rcArea);
+    if (hCenterWindow == nullptr) {
         rcCenter = rcArea;
     }
-    else if (::IsIconic(hWndCenter)) {
+    else if (::IsIconic(hCenterWindow)) {
         rcCenter = rcArea;
     }
     else {
-        GetWindowRect(hWndCenter, rcCenter);
+        GetWindowRect(hCenterWindow, rcCenter);
     }
 
-    int DlgWidth = rcDlg.right - rcDlg.left;
-    int DlgHeight = rcDlg.bottom - rcDlg.top;
-
     // Find dialog's upper left based on rcCenter
-    int xLeft = (rcCenter.left + rcCenter.right) / 2 - DlgWidth / 2;
-    int yTop = (rcCenter.top + rcCenter.bottom) / 2 - DlgHeight / 2;
+    int32_t xLeft = rcCenter.CenterX() - nWindowWidth / 2;
+    int32_t yTop = rcCenter.CenterY() - nWindowHeight / 2;
 
     // The dialog is outside the screen, move it inside
     if (xLeft < rcArea.left) {
         xLeft = rcArea.left;
     }
-    else if (xLeft + DlgWidth > rcArea.right) {
-        xLeft = rcArea.right - DlgWidth;
+    else if (xLeft + nWindowWidth > rcArea.right) {
+        xLeft = rcArea.right - nWindowWidth;
     }
     if (yTop < rcArea.top) {
         yTop = rcArea.top;
     }
-    else if (yTop + DlgHeight > rcArea.bottom) {
-        yTop = rcArea.bottom - DlgHeight;
+    else if (yTop + nWindowHeight > rcArea.bottom) {
+        yTop = rcArea.bottom - nWindowHeight;
     }
-    ::SetWindowPos(m_hWnd, NULL, xLeft, yTop, -1, -1, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+    xPos = xLeft;
+    yPos = yTop;
+    return true;
 }
 
 void NativeWindow_Windows::SetWindowAlwaysOnTop(bool bOnTop)
@@ -915,9 +960,9 @@ bool NativeWindow_Windows::IsWindowVisible() const
 }
 
 bool NativeWindow_Windows::SetWindowPos(const NativeWindow_Windows* pInsertAfterWindow,
-                                InsertAfterFlag insertAfterFlag,
-                                int32_t X, int32_t Y, int32_t cx, int32_t cy,
-                                uint32_t uFlags)
+                                        InsertAfterFlag insertAfterFlag,
+                                        int32_t X, int32_t Y, int32_t cx, int32_t cy,
+                                        uint32_t uFlags)
 {
     ASSERT(::IsWindow(m_hWnd));
     HWND hWndInsertAfter = HWND_TOP;
@@ -1288,10 +1333,15 @@ bool NativeWindow_Windows::GetMonitorRect(UiRect& rcMonitor) const
 
 bool NativeWindow_Windows::GetMonitorRect(HWND hWnd, UiRect& rcMonitor, UiRect& rcWork) const
 {
-    ASSERT(::IsWindow(hWnd));
     rcMonitor.Clear();
     rcWork.Clear();
-    HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+    HMONITOR hMonitor = nullptr;
+    if (::IsWindow(hWnd)) {
+        hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+    }
+    else {
+        hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTOPRIMARY);
+    }
     ASSERT(hMonitor != nullptr);
     if (hMonitor == nullptr) {
         return false;

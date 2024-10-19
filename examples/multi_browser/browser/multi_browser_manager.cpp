@@ -20,12 +20,11 @@ BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form
     if (enable_merge_) {
         if (!browser_form) {
             browser_form = new MultiBrowserForm;
-            if (!browser_form->CreateWnd(nullptr, ui::WindowCreateParam(_T("MultiBrowser")))) {
+            if (!browser_form->CreateWnd(nullptr, ui::WindowCreateParam(_T("MultiBrowser"), true))) {
                 browser_form = nullptr;
                 return nullptr;
             }
-            browser_form->ShowWindow(ui::ShowWindowCommands::kSW_SHOW_NORMAL);
-            browser_form->CenterWindow();            
+            browser_form->ShowWindow(ui::ShowWindowCommands::kSW_SHOW_NORMAL);          
         }
         browser_box = browser_form->CreateBox(id, url);
         if (nullptr == browser_box) {
@@ -34,7 +33,7 @@ BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form
     }
     else {
         browser_form = new MultiBrowserForm;
-        if (!browser_form->CreateWnd(nullptr, ui::WindowCreateParam(_T("MultiBrowser")))) {
+        if (!browser_form->CreateWnd(nullptr, ui::WindowCreateParam(_T("MultiBrowser"), true))) {
             return nullptr;
         }
         browser_box = browser_form->CreateBox(id, url);
@@ -42,7 +41,6 @@ BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form
             return nullptr;
         }
         browser_form->ShowWindow(ui::ShowWindowCommands::kSW_SHOW_NORMAL);
-        browser_form->CenterWindow();
     }
 
     box_map_[id] = browser_box;

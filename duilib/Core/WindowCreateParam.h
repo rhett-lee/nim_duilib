@@ -69,8 +69,15 @@ public:
     WindowCreateParam();
 
     /** 提供窗口标题的构造函数
+    * @param [in] windowTitle 窗口标题
     */
     explicit WindowCreateParam(const DString& windowTitle);
+
+    /** 提供窗口标题, 窗口居中的构造函数
+    * @param [in] windowTitle 窗口标题
+    * @param [in] bCenterWindow 窗口初始位置居中显示
+    */
+    WindowCreateParam(const DString& windowTitle, bool bCenterWindow);
 
 public:
     /** 平台相关数据（可选参数，如不填写则使用默认值：nullptr）
@@ -115,6 +122,10 @@ public:
     /** 窗口的宽度(如果不设置，则使用默认值)
     */
     int32_t m_nHeight;
+
+    /** 初始窗口是否居中显示(默认为false)
+    */
+    bool m_bCenterWindow;
 };
 
 } // namespace ui

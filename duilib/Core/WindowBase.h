@@ -45,13 +45,12 @@ public:
     *       (3) 已知问题：对话框中的RichEdit输入框，不支持输入文字（问题原因是IsDialogMessage函数未派发WM_CHAR消息给对话框窗口，暂未找到解决方案）
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
-    * @param [in] bCenterWindow 窗口是否居中
     * @param [in] bCloseByEsc 按ESC键的时候，是否关闭窗口
     * @param [in] bCloseByEnter 按Enter键的时候，是否关闭窗口
     * @return 窗口退出时的返回值, 如果失败则返回-1
     */
     int32_t DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
-                    bool bCenterWindow = true, bool bCloseByEsc = true, bool bCloseByEnter = false);
+                    bool bCloseByEsc = true, bool bCloseByEnter = false);
 
     /** 是否含有有效的窗口句柄
     */

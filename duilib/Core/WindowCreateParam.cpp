@@ -9,9 +9,10 @@ WindowCreateParam::WindowCreateParam():
     m_dwStyle(0),
     m_dwExStyle(0),
     m_nX(kCW_USEDEFAULT),
-    m_nY(0),
+    m_nY(kCW_USEDEFAULT),
     m_nWidth(kCW_USEDEFAULT),
-    m_nHeight(0)
+    m_nHeight(kCW_USEDEFAULT),
+    m_bCenterWindow(false)
 {
 }
 
@@ -19,6 +20,13 @@ WindowCreateParam::WindowCreateParam(const DString& windowTitle):
     WindowCreateParam()
 {
     m_windowTitle = windowTitle;
+}
+
+WindowCreateParam::WindowCreateParam(const DString& windowTitle, bool bCenterWindow) :
+    WindowCreateParam()
+{
+    m_windowTitle = windowTitle;
+    m_bCenterWindow = bCenterWindow;
 }
 
 } // namespace ui

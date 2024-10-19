@@ -545,7 +545,7 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
     }
 
     //创建SDL窗口
-    m_sdlWindow = CreateSdlWindow(pParentWindow, createAttributes, false);
+    m_sdlWindow = CreateSdlWindow(pParentWindow, createAttributes);
     ASSERT(m_sdlWindow != nullptr);
     if (m_sdlWindow == nullptr) {
         return false;
@@ -577,7 +577,7 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
     return true;
 }
 
-SDL_Window* NativeWindow_SDL::CreateSdlWindow(NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes, bool bCenterWindow)
+SDL_Window* NativeWindow_SDL::CreateSdlWindow(NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes)
 {
     bool bOpenGL = false;
     bool bSupportTransparent = false;
@@ -590,11 +590,12 @@ SDL_Window* NativeWindow_SDL::CreateSdlWindow(NativeWindow_SDL* pParentWindow, c
     //同步XML文件中Window的属性，在创建窗口的时候带着这些属性
     SyncCreateWindowAttributes(createAttributes, bSupportTransparent);
 
-    //窗口居中时，计算窗口的起始位置，避免窗口弹出时出现窗口位置变动的现象
-    if (bCenterWindow) {
+    if (m_createParam.m_bCenterWindow) {
+        //窗口居中时，计算窗口的起始位置，避免窗口弹出时出现窗口位置变动的现象
         int32_t xPos = 0;
         int32_t yPos = 0;
-        if (CalculateCenterWindowPos(pParentWindow->m_sdlWindow, xPos, yPos)) {
+        SDL_Window* pCenterWindow = pParentWindow != nullptr ? pParentWindow->m_sdlWindow : nullptr;
+        if (CalculateCenterWindowPos(pCenterWindow, xPos, yPos)) {
             m_createParam.m_nX = xPos;
             m_createParam.m_nY = yPos;
         }
@@ -650,7 +651,7 @@ SDL_Window* NativeWindow_SDL::CreateSdlWindow(NativeWindow_SDL* pParentWindow, c
 int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
                                   const WindowCreateParam& createParam,
                                   const WindowCreateAttributes& createAttributes,
-                                  bool bCenterWindow, bool bCloseByEsc, bool bCloseByEnter)
+                                  bool bCloseByEsc, bool bCloseByEnter)
 {
     ASSERT(m_sdlWindow == nullptr);
     if (m_sdlWindow != nullptr) {
@@ -674,7 +675,7 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
     }
 
     //创建SDL窗口
-    m_sdlWindow = CreateSdlWindow(pParentWindow, createAttributes, bCenterWindow);
+    m_sdlWindow = CreateSdlWindow(pParentWindow, createAttributes);
     ASSERT(m_sdlWindow != nullptr);
     if (m_sdlWindow == nullptr) {
         return -1;
@@ -717,11 +718,6 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
     if (pParentWindow != nullptr) {
         SDL_SetWindowParent(m_sdlWindow, pParentWindow->m_sdlWindow);
         SDL_SetWindowModal(m_sdlWindow, true);
-    }
-
-    //设置窗口居中
-    if (bCenterWindow) {
-        CenterWindow();
     }
 
     //显示窗口
@@ -1233,7 +1229,14 @@ void NativeWindow_SDL::InitNativeWindow()
         std::string windowTitle = StringConvert::TToUTF8(m_createParam.m_windowTitle);
         bool nRet = SDL_SetWindowTitle(m_sdlWindow, windowTitle.c_str());
         ASSERT_UNUSED_VARIABLE(nRet);
-    }    
+    }
+
+    if (m_createParam.m_bCenterWindow) {
+        if ((m_createParam.m_nWidth <= 0) || (m_createParam.m_nHeight <= 0)) {
+            //如果创建窗口时无法设置窗口居中，则在创建完成后设置窗口居中
+            CenterWindow();
+        }
+    }
 }
 
 void NativeWindow_SDL::ClearNativeWindow()
@@ -1603,7 +1606,7 @@ bool NativeWindow_SDL::CalculateCenterWindowPos(SDL_Window* pCenterWindow, int32
     }
     else {
         if ((m_createParam.m_nWidth <= 0) || (m_createParam.m_nHeight <= 0)) {
-            //无法计算
+            //当前的窗口宽度未知，无法计算
             return false;
         }
         nWindowWidth = m_createParam.m_nWidth;

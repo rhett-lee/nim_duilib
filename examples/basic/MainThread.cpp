@@ -51,9 +51,8 @@ void MainThread::OnInit()
 
     // 创建一个默认带有阴影的居中窗口
     BasicForm* window = new BasicForm();
-    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("basic")));
+    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("basic"), true));
     window->PostQuitMsgWhenClosed(true);
-    // window->CenterWindow();
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
     // window->ShowWindow(ui::kSW_SHOW_MAXIMIZED);
 }

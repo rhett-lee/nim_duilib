@@ -3,6 +3,7 @@
 
 // duilib
 #include "duilib/duilib.h"
+#include <shobjidl_core.h>
 
 interface ITaskbarList4;
 

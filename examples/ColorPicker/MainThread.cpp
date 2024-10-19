@@ -64,8 +64,7 @@ void MainThread::OnInit()
     }
 
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;
-    pColorPicker->CreateWnd(nullptr, ui::WindowCreateParam(_T("ColorPicker")));
-    pColorPicker->CenterWindow();
+    pColorPicker->CreateWnd(nullptr, ui::WindowCreateParam(_T("ColorPicker"), true));
     pColorPicker->ShowWindow(ui::kSW_SHOW_NORMAL);
 
     //设置选择前的颜色

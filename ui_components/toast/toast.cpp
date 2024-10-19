@@ -8,13 +8,12 @@ const DString Toast::kClassName = _T("Toast");
 void Toast::ShowToast(const DString &content, int duration, Window* pParentWindow)
 {
     Toast *toast = new Toast;
-    if (!toast->CreateWnd(pParentWindow, ui::WindowCreateParam(_T("")))) {
+    if (!toast->CreateWnd(pParentWindow, ui::WindowCreateParam(_T(""), true))) {
         delete toast;
         return;
     }
     toast->SetContent(content);
     toast->SetDuration(duration);
-    toast->CenterWindow();
     toast->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 

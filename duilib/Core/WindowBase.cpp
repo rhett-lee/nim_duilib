@@ -38,7 +38,7 @@ bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& c
 }
 
 int32_t WindowBase::DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
-                            bool bCenterWindow, bool bCloseByEsc, bool bCloseByEnter)
+                            bool bCloseByEsc, bool bCloseByEnter)
 {
     //解析XML，读取窗口的属性参数
     WindowCreateAttributes createAttributes;
@@ -50,7 +50,7 @@ int32_t WindowBase::DoModal(WindowBase* pParentWindow, const WindowCreateParam& 
         m_parentFlag = pParentWindow->GetWeakFlag();
     }
     NativeWindow* pNativeWindow = pParentWindow != nullptr ? pParentWindow->NativeWnd() : nullptr;
-    return m_pNativeWindow->DoModal(pNativeWindow, createParam, createAttributes, bCenterWindow, bCloseByEsc, bCloseByEnter);
+    return m_pNativeWindow->DoModal(pNativeWindow, createParam, createAttributes, bCloseByEsc, bCloseByEnter);
 }
 
 void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled)

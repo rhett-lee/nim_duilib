@@ -62,7 +62,6 @@ public:
     /** 显示模态窗口
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
-    * @param [in] bCenterWindow 窗口是否居中
     * @param [in] bCloseByEsc 按ESC键的时候，是否关闭窗口
     * @param [in] bCloseByEnter 按Enter键的时候，是否关闭窗口
     * @return 窗口退出时的返回值, 如果失败则返回-1
@@ -70,7 +69,6 @@ public:
     int32_t DoModal(NativeWindow_SDL* pParentWindow,
                     const WindowCreateParam& createParam,
                     const WindowCreateAttributes& createAttributes,
-                    bool bCenterWindow = true,
                     bool bCloseByEsc = true,
                     bool bCloseByEnter = false);
 
@@ -557,7 +555,7 @@ private:
 
     /** 创建SDL窗口
     */
-    SDL_Window* CreateSdlWindow(NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes, bool bCenterWindow);
+    SDL_Window* CreateSdlWindow(NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes);
 
     /** 计算窗口居中的位置
     */

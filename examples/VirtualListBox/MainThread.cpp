@@ -22,9 +22,8 @@ void MainThread::OnInit()
 
     // 创建一个默认带有阴影的居中窗口
     MainForm* window = new MainForm();
-    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("VirtualListBox")));
+    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("VirtualListBox"), true));
     window->PostQuitMsgWhenClosed(true);
-    window->CenterWindow();
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 

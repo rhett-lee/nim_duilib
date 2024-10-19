@@ -1668,8 +1668,8 @@ void PropertyGridColorProperty::ShowColorPicker()
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_LAYERED;
+    createWndParam.m_bCenterWindow = true;
     pColorPicker->CreateWnd(pWindow, createWndParam);
-    pColorPicker->CenterWindow();
     pColorPicker->ShowModalFake();
 
     if (!oldTextColor.empty()) {

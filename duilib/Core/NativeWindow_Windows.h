@@ -35,7 +35,6 @@ public:
     /** 显示模态窗口
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
-    * @param [in] bCenterWindow 窗口是否居中
     * @param [in] bCloseByEsc 按ESC键的时候，是否关闭窗口
     * @param [in] bCloseByEnter 按Enter键的时候，是否关闭窗口
     * @return 窗口退出时的返回值, 如果失败则返回-1
@@ -43,7 +42,6 @@ public:
     int32_t DoModal(NativeWindow_Windows* pParentWindow,
                     const WindowCreateParam& createParam,
                     const WindowCreateAttributes& createAttributes,
-                    bool bCenterWindow = true,
                     bool bCloseByEsc = true,
                     bool bCloseByEnter = false);
 
@@ -588,6 +586,10 @@ private:
     */
     void SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes);
 
+    /** 计算窗口居中的位置
+    */
+    bool CalculateCenterWindowPos(HWND hCenterWindow, int32_t& xPos, int32_t& yPos) const;
+
 private:
     /** 接收窗口事件的接口
     */
@@ -612,10 +614,6 @@ private:
     /** 当前窗口是否显示为模态对话框
     */
     bool m_bDoModal;
-
-    /** 窗口是否居中(仅模态对话框有效)
-    */
-    bool m_bCenterWindow;
 
     /** 按ESC键的时候，是否关闭窗口(仅模态对话框有效)
     */
