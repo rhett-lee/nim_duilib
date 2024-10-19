@@ -498,6 +498,10 @@ public:
     */
     int32_t SDL_HitTest(SDL_Window* win, const SDL_Point* area, void* data);
 
+    /** 绘制窗口
+    */
+    void PaintWindow();
+
 private:
     /** 初始化窗口资源
     */
@@ -553,7 +557,11 @@ private:
 
     /** 创建SDL窗口
     */
-    SDL_Window* CreateSdlWindow(NativeWindow_SDL* pParentWindow,  const WindowCreateAttributes& createAttributes);
+    SDL_Window* CreateSdlWindow(NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes, bool bCenterWindow);
+
+    /** 计算窗口居中的位置
+    */
+    bool CalculateCenterWindowPos(SDL_Window* pCenterWindow, int32_t& xPos, int32_t& yPos) const;
 
 private:
     /** 设置窗口ID与窗口指针的关系
