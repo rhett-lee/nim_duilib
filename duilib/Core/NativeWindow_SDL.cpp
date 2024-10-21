@@ -11,6 +11,10 @@
 
 #include <SDL3/SDL.h>
 
+/** 主动绘制
+*/
+#define WM_USER_PAINT_MSG (SDL_EVENT_USER + 3)
+
 namespace ui {
 
 //窗口指针与SDL窗口ID的映射关系，用于转接消息
@@ -253,10 +257,11 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         }
         break;
     case SDL_EVENT_WINDOW_EXPOSED:
-        //异步窗口绘制消息: 仅绘制自定义的消息，系统发生的消息已经进行了同步绘制，此处不重新绘制
-        if (sdlEvent.window.data1 != 0) {
-            PaintWindow();
-        }
+        //异步窗口绘制消息: 系统发生的消息已经进行了同步绘制，此处不重新绘制
+        break;
+    case WM_USER_PAINT_MSG:
+        //主动发起的窗口绘制消息
+        PaintWindow();
         break;
     case SDL_EVENT_WINDOW_MOUSE_ENTER:
         //不需要处理，Windows没有这个消息
@@ -1995,15 +2000,9 @@ static bool SDLCALL FilterNativeWindowExposedEvent(void* userdata, SDL_Event* ev
 {
     if ((userdata != nullptr) && (event != nullptr)) {
         NativeWindowExposedEvent* data = (NativeWindowExposedEvent*)userdata;
-        if (!data->m_bFoundExposedEvent && (event->type == SDL_EVENT_WINDOW_EXPOSED)) {
+        if (!data->m_bFoundExposedEvent && (event->type == WM_USER_PAINT_MSG)) {
             if (data->m_sdlWindow == SDL_GetWindowFromEvent(event)) {
-                if (event->window.data1 == 0) {
-                    //系统触发的绘制消息，移除
-                    return false;
-                }
-                else {
-                    data->m_bFoundExposedEvent = true;
-                }
+                data->m_bFoundExposedEvent = true;
             }
         }
     }
@@ -2027,11 +2026,11 @@ void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
         if (!data.m_bFoundExposedEvent) {
             //如果队列中没有该窗口的绘制消息，则添加一个；但如果有的话，就不重复添加，避免重复绘制而影响性能
             SDL_Event sdlEvent;
-            sdlEvent.type = SDL_EVENT_WINDOW_EXPOSED;
+            sdlEvent.type = WM_USER_PAINT_MSG;
             sdlEvent.common.timestamp = 0;
-            sdlEvent.window.data1 = 1; //设置自定义消息标志
-            sdlEvent.window.data2 = 0;
-            sdlEvent.window.windowID = SDL_GetWindowID(m_sdlWindow);
+            sdlEvent.user.data1 = 0;
+            sdlEvent.user.data2 = 0;
+            sdlEvent.user.windowID = SDL_GetWindowID(m_sdlWindow);
             bool nRet = SDL_PushEvent(&sdlEvent);
             ASSERT_UNUSED_VARIABLE(nRet);
         }

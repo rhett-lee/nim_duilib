@@ -31,6 +31,16 @@ bool MessageLoop_SDL::CheckInitSDL(const DString& videoDriverName)
         }
         bRet = SDL_Init(SDL_INIT_VIDEO);
         ASSERT_UNUSED_VARIABLE(bRet);
+
+        //处理自定义消息的范围(内部占用32个ID，备用)
+        uint32_t nBaseId = SDL_RegisterEvents(32);
+        ASSERT(nBaseId == SDL_EVENT_USER);
+
+        //自定义消息使用情况：
+        //1. SDL_EVENT_USER + 0:  MessageLoop_SDL::PostNoneEvent 函数占用
+        //2. SDL_EVENT_USER + 1:  duilib\Core\FrameworkThread.cpp WM_USER_DEFINED_MSG 消息占用
+        //3. SDL_EVENT_USER + 2:  duilib\Core\TimerManager.cpp WM_USER_DEFINED_TIMER 占用
+        //4. SDL_EVENT_USER + 3:  duilib\Core\NativeWindow_SDL.cpp WM_USER_PAINT_MSG 占用
     }
     return bRet;
 }

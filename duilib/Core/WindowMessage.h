@@ -128,7 +128,7 @@ public:
 */
 enum WindowMessage{
 #if defined(DUILIB_BUILD_FOR_SDL)
-    kWM_USER = 0x8000, //SDL_EVENT_USER
+    kWM_USER = 0x8000 + 32, //SDL_EVENT_USER
 #else
     kWM_USER = 0x0400, //WM_USER
 #endif

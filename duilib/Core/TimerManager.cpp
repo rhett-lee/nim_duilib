@@ -4,9 +4,17 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Core/WindowMessage.h"
 
+#if defined (DUILIB_BUILD_FOR_SDL)
+    #include <SDL3/SDL.h>
+#endif
+
 /** 自定义消息
 */
-#define WM_USER_DEFINED_TIMER  (kWM_USER + 567)
+#if defined (DUILIB_BUILD_FOR_SDL)
+    #define WM_USER_DEFINED_TIMER   (SDL_EVENT_USER + 2)
+#else
+    #define WM_USER_DEFINED_TIMER   (kWM_USER + 567)
+#endif
 
 namespace ui 
 {
