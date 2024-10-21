@@ -376,8 +376,13 @@ void RichText::PaintText(IRender* pRender)
                 m_spDrawRichTextCache.reset();
             }
         }
-        bool bRet = pRender->CreateDrawRichTextCache(textRect, szScrollOffset, pRenderFactory, richTextData, m_spDrawRichTextCache);
-        if (bRet && (m_spDrawRichTextCache != nullptr)) {
+        if (m_spDrawRichTextCache == nullptr) {
+            bool bRet = pRender->CreateDrawRichTextCache(textRect, szScrollOffset, pRenderFactory, richTextData, m_spDrawRichTextCache);
+            if (!bRet) {
+                m_spDrawRichTextCache.reset();
+            }
+        }
+        if (m_spDrawRichTextCache != nullptr) {
             //使用绘制缓存
             std::vector<int32_t> rowXOffset;//对齐方式为居中或者靠右时使用
             pRender->DrawRichTextCacheData(m_spDrawRichTextCache, textRect, szScrollOffset, rowXOffset, (uint8_t)GetAlpha(), &richTextRects);
