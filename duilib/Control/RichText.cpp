@@ -24,6 +24,7 @@ RichText::RichText(Window* pWindow) :
 
 RichText::~RichText()
 {
+    m_spDrawRichTextCache.reset();
 }
 
 DString RichText::GetType() const { return DUI_CTR_RICHTEXT; }
@@ -51,6 +52,7 @@ void RichText::SetAttribute(const DString& strName, const DString& strValue)
             SetVAlignType(VerAlignType::kVerAlignBottom);
         }
         m_textData.clear();
+        m_spDrawRichTextCache.reset();
     }    
     else if (strName == _T("font")) {
         SetFontId(strValue);
@@ -137,6 +139,7 @@ void RichText::Redraw()
 {
     //重新绘制
     m_textData.clear();
+    m_spDrawRichTextCache.reset();
     Invalidate();
 }
 
@@ -363,9 +366,47 @@ void RichText::PaintText(IRender* pRender)
                 richTextData.push_back(textDataEx);
             }
         }
-        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         std::vector<std::vector<UiRect>> richTextRects;
-        pRender->DrawRichText(rc, UiSize(), pRenderFactory, richTextData, (uint8_t)GetAlpha(), &richTextRects);
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+        const UiRect& textRect = rc;
+        UiSize szScrollOffset;
+        if (m_spDrawRichTextCache != nullptr) {
+            //校验缓存，如果失效则重新生成
+            if (!pRender->IsValidDrawRichTextCache(textRect, richTextData, m_spDrawRichTextCache)) {
+                m_spDrawRichTextCache.reset();
+            }
+        }
+        bool bRet = pRender->CreateDrawRichTextCache(textRect, szScrollOffset, pRenderFactory, richTextData, m_spDrawRichTextCache);
+        if (bRet && (m_spDrawRichTextCache != nullptr)) {
+            //使用绘制缓存
+            std::vector<int32_t> rowXOffset;//对齐方式为居中或者靠右时使用
+            pRender->DrawRichTextCacheData(m_spDrawRichTextCache, textRect, szScrollOffset, rowXOffset, (uint8_t)GetAlpha(), &richTextRects);
+
+#if 0
+            //测试代码结束(比较使用缓存绘制和不使用缓存绘制时结果是否相同)
+            std::vector<std::vector<UiRect>> richTextRectsOld;
+            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, (uint8_t)GetAlpha(), &richTextRectsOld);
+            ASSERT(richTextRects.size() == m_textData.size());
+            ASSERT(richTextRectsOld.size() == m_textData.size());
+            if (richTextRectsOld.size() == richTextRects.size()) {
+                for (size_t i = 0; i < richTextRectsOld.size(); ++i) {
+                    const std::vector<UiRect>& rectOld = richTextRectsOld[i];
+                    const std::vector<UiRect>& rectNew = richTextRects[i];
+                    ASSERT(rectOld.size() == rectNew.size());
+                    for (size_t j = 0; j < rectOld.size(); ++j) {
+                        const UiRect& oldRect = rectOld[j];
+                        const UiRect& newRect = rectNew[j];
+                        ASSERT(oldRect == newRect);
+                    }
+                }
+
+            }
+#endif      //测试代码结束
+        }
+        else {
+            //不使用绘制缓存            
+            pRender->DrawRichText(textRect, szScrollOffset, pRenderFactory, richTextData, (uint8_t)GetAlpha(), &richTextRects);
+        }
         ASSERT(richTextRects.size() == m_textData.size());
         if (richTextRects.size() == m_textData.size()) {
             for (size_t index = 0; index < m_textData.size(); ++index) {
@@ -386,11 +427,13 @@ void RichText::CheckParseText()
     //当DPI变化时，需要重新解析文本，更新字体大小
     if (m_nTextDataDPI != Dpi().GetDPI()) {
         m_textData.clear();
+        m_spDrawRichTextCache.reset();
     }
 
     if (m_textData.empty()) {
         ParseText(m_textData);
         m_nTextDataDPI = Dpi().GetDPI();
+        m_spDrawRichTextCache.reset();
     }
 }
 
@@ -615,6 +658,7 @@ bool RichText::SetTextId(const DString& richTextId)
 void RichText::Clear()
 {
     m_textData.clear();
+    m_spDrawRichTextCache.reset();
     if (!m_textSlice.empty()) {
         m_textSlice.clear();
         Invalidate();
@@ -707,12 +751,14 @@ void RichText::AppendTextSlice(const RichTextSlice&& textSlice)
 {
     m_textSlice.emplace_back(textSlice);
     m_textData.clear();
+    m_spDrawRichTextCache.reset();
 }
 
 void RichText::AppendTextSlice(const RichTextSlice& textSlice)
 {
     m_textSlice.emplace_back(textSlice);
     m_textData.clear();
+    m_spDrawRichTextCache.reset();
 }
 
 DString RichText::ToString() const

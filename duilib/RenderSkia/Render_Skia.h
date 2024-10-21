@@ -150,7 +150,8 @@ public:
                                        const UiRect& rcNewTextRect,
                                        const UiSize& szNewScrollOffset,
                                        const std::vector<int32_t>& rowXOffset,
-                                       uint8_t uFade) override;
+                                       uint8_t uFade,
+                                       std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) override;
 
     virtual void DrawBoxShadow(const UiRect& rc, const UiSize& roundSize, const UiPoint& cpOffset, int32_t nBlurRadius, int32_t nSpreadRadius, UiColor dwColor) override;
 

@@ -1972,7 +1972,8 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
                                         const UiRect& rcNewTextRect,
                                         const UiSize& szNewScrollOffset,
                                         const std::vector<int32_t>& rowXOffset,
-                                        uint8_t uFade)
+                                        uint8_t uFade,
+                                        std::vector<std::vector<UiRect>>* pRichTextRects)
 {
     PerformanceStat statPerformance(_T("Render_Skia::DrawRichTextCacheData"));
     ASSERT(spDrawRichTextCache != nullptr);
@@ -1985,7 +1986,7 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
     const SkTextEncoding textEncoding = spDrawRichTextCache->m_textEncoding;
     const size_t textCharSize = spDrawRichTextCache->m_textCharSize;
 
-    const auto& pendingTextData = spDrawRichTextCache->m_pendingTextData;
+    const std::vector<SharePtr<TPendingDrawRichText>>& pendingTextData = spDrawRichTextCache->m_pendingTextData;
 
     UiRect rcTemp;
     UiRect rcDestRect;
@@ -1995,6 +1996,12 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
         //透明度
         skPaint.setAlpha(uFade);
     }
+
+    if (pRichTextRects != nullptr) {
+        pRichTextRects->clear();
+        pRichTextRects->resize(spDrawRichTextCache->m_richTextData.size());
+    }
+
     UiColor textColor;
     for (const SharePtr<TPendingDrawRichText>& spTextData : pendingTextData) {
         const TPendingDrawRichText& textData = *spTextData;
@@ -2009,7 +2016,15 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
             if ((textData.m_nRowIndex < rowXOffset.size()) && (rowXOffset[textData.m_nRowIndex] > 0)) {
                 rcDestRect.Offset(rowXOffset[textData.m_nRowIndex], 0);
             }
-        }        
+        }
+
+        //记录绘制区域
+        if (pRichTextRects != nullptr) {
+            //保存绘制的目标区域，同一个文本，可能会有多个区域（换行时）
+            ASSERT(textData.m_nDataIndex < pRichTextRects->size());
+            std::vector<UiRect>& textRects = (*pRichTextRects)[textData.m_nDataIndex];
+            textRects.push_back(rcDestRect);
+        }
 
         if (!UiRect::Intersect(rcTemp, rcDestRect, rcTextRect)) {
             continue;

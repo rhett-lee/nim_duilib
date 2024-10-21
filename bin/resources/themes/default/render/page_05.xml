@@ -53,7 +53,7 @@
                 <Label height="stretch" width="stretch" text="C:\develop\编程开发学习\Windows内核原理与实现\编程开发\测试编程开发编程开发编程开发.txt" autotooltip="true" singleline="true" path_ellipsis="true"/>
             </HBox>
         </VBox>
-        <VBox width="300" margin="4">                            
+        <VBox width="240" margin="4">                            
             <HBox height="60" bkcolor="dark_gray">
                 <Label height="stretch" width="stretch" text="文本绘制-带下划线的字" font="system_underline_14"/>
             </HBox>
@@ -70,7 +70,7 @@
                 <Label height="stretch" width="stretch" text="文本绘制-全部风格" font="system_fullstyle_20" normaltextcolor="green"/>
             </HBox>
         </VBox>
-        <VBox width="300" margin="4">                            
+        <VBox width="260" margin="4">                            
             <RichText class="rich_text" bkcolor="green" row_spacing_mul="1.5" width="100%" height="auto">
                 RichText文本<br/>内容1
                 <b>
@@ -103,7 +103,7 @@
                 <bgcolor color="#802378">背景颜色演示</bgcolor>                
                 RichText文本内容2RichText文本内容3RichText文本内容4RichText文本内容5RichText文本内容6RichText文本内容7RichText文本内容8RichText文本内容9RichText文本内容10
             </RichText>
-            <ScrollBox vscrollbar="true" hscrollbar="true" width="300" height="200" bkcolor="white" border_size="2" border_color="red" padding="4,4,4,4">
+            <ScrollBox vscrollbar="true" hscrollbar="true" width="260" height="200" bkcolor="white" border_size="2" border_color="red" padding="4,4,4,4">
                 <RichText class="rich_text" bkcolor="green" row_spacing_mul="1.5" width="auto" height="auto" word_wrap="false">
                     第1行: RichText文本<br/>
                     第2行: RichText文本<br/>
@@ -117,6 +117,35 @@
                     第10行: RichText文本内容2RichText文本内容3RichText文本内容4RichText文本内容5RichText文本内容6RichText文本内容7RichText文本内容8RichText文本内容9RichText文本内容10<br/>
                 </RichText>
             </ScrollBox>
+        </VBox>
+        <VBox width="300" margin="4">
+            <HBox height="60" bkcolor="blue">
+                <RichText height="stretch" width="stretch" text="RichText文字(横向：左对齐，纵向：上对齐)" text_align="left,top"><b><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a></b></RichText>
+            </HBox>
+            <HBox height="60" bkcolor="dark_gray">
+                <RichText height="stretch" width="stretch" text="RichText文字(横向：左对齐，纵向：中对齐)" text_align="left,vcenter"><b><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a></b></RichText>
+            </HBox>
+            <HBox height="60" bkcolor="blue">
+                <RichText height="stretch" width="stretch" text="RichText文字(横向：左对齐，纵向：下对齐)" text_align="left,bottom"><b><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a></b></RichText>
+            </HBox>
+            <HBox height="60" bkcolor="dark_gray">
+                <RichText height="stretch" width="stretch" text="RichText文字(横向：中对齐，纵向：上对齐)" text_align="center,top"><b><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a></b></RichText>
+            </HBox>
+            <HBox height="60" bkcolor="blue">
+                <RichText height="stretch" width="stretch" text="RichText文字(横向：中对齐，纵向：中对齐)" text_align="center,vcenter"><b><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a></b></RichText>
+            </HBox>
+            <HBox height="60" bkcolor="dark_gray">
+                <RichText height="stretch" width="stretch" text="RichText文字(横向：中对齐，纵向：下对齐)" text_align="center,bottom"><b><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a></b></RichText>
+            </HBox>
+            <HBox height="60" bkcolor="blue">
+                <RichText height="stretch" width="stretch" text="RichText文字(横向：右对齐，纵向：上对齐)" text_align="right,top"><b><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a></b></RichText>
+            </HBox>
+            <HBox height="60" bkcolor="dark_gray">
+                <RichText height="stretch" width="stretch" text="RichText文字(横向：右对齐，纵向：中对齐)" text_align="right,vcenter"><b><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a></b></RichText>
+            </HBox>
+            <HBox height="60" bkcolor="blue">
+                <RichText height="stretch" width="stretch" text="RichText文字(横向：右对齐，纵向：下对齐)" text_align="right,bottom"><b><a href="www.sohu.com">这里是超级链接：点击访问搜狐首页</a></b></RichText>
+            </HBox>
         </VBox>
     </HBox>
 </Window>

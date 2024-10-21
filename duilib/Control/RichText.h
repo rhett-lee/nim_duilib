@@ -324,6 +324,10 @@ private:
     /** 是否自动换行（默认为true）
     */
     bool m_bWordWrap;
+
+    /** 绘制缓存
+    */
+    std::shared_ptr<DrawRichTextCache> m_spDrawRichTextCache;
 };
 
 } // namespace ui

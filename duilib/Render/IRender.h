@@ -1097,12 +1097,14 @@ public:
     * @param [in] szNewScrollOffset 新的滚动条位置
     * @param [in] rowXOffset 每行的横向偏移列表（逻辑行）
     * @param [in] uFade 透明度（0 - 255）
+    * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
     */
     virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,                                       
                                        const UiRect& textRect,
                                        const UiSize& szNewScrollOffset,
                                        const std::vector<int32_t>& rowXOffset,
-                                       uint8_t uFade) = 0;
+                                       uint8_t uFade,
+                                       std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) = 0;
 
     /** 在指定矩形周围绘制阴影（高斯模糊, 只支持外部阴影，不支持内部阴影）
     * @param [in] rc 矩形区域
