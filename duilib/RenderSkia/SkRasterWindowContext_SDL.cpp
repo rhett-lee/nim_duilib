@@ -96,7 +96,7 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
 
     //获取需要绘制的区域
     UiRect rcPaint;
-    bool bUpdateRect = GetUpdateRect(rcPaint); //返回true表示支持局部绘制，只绘制更新的部分区域，以提高效率
+    bool bUpdateRect = pRenderPaint->GetUpdateRect(rcPaint); //返回true表示支持局部绘制，只绘制更新的部分区域，以提高效率
     if (rcPaint.IsEmpty()) {
         bUpdateRect = false;
     }
@@ -112,6 +112,18 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
     //窗口透明度
     uint8_t nLayeredWindowAlpha = pRenderPaint->GetLayeredWindowAlpha();
 
+    //是否为完全绘制
+    const bool bFullPaint = (rcPaint.Width() == width()) && (rcPaint.Height() == height());
+    SkCanvas* skCanvas = nullptr;
+    if (!bFullPaint) {
+        //使用裁剪区域，避免绘制其他无关区域的数据
+        skCanvas = m_fBackbufferSurface->getCanvas();
+        if (skCanvas != nullptr) {
+            skCanvas->save();
+            skCanvas->clipIRect(SkIRect::MakeLTRB(rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom));
+        }
+    }
+
     //执行绘制
     bool bRet = pRenderPaint->DoPaint(rcPaint);
     if (bRet) {
@@ -122,6 +134,10 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
     //绘制完成后，将已经绘制的区域标记为有效区域
     if (bUpdateRect) {
         ValidateRect(rcPaint);
+    }
+
+    if (skCanvas != nullptr) {
+        skCanvas->restore();
     }
     return bRet;
 }
@@ -163,20 +179,8 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
     SDL_Texture* sdlTextrue = SDL_CreateTextureFromSurface(sdlRenderer, sdlSurface);
     ASSERT(sdlTextrue != nullptr);
     if (sdlTextrue != nullptr) {
-        SDL_FRect dstrect;
-        dstrect.x = (float)rcPaint.left;
-        dstrect.y = (float)rcPaint.top;
-        dstrect.w = (float)rcPaint.Width();
-        dstrect.h = (float)rcPaint.Height();
-
         //对源SDL窗口清零，避免透明窗口的情况下，绘制到残留图像上，导致窗口阴影越来越浓
-        SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 0);
-        if ((rcPaint.Width() == width()) && (rcPaint.Height() == height())) {
-            SDL_RenderClear(sdlRenderer);
-        }
-        else {
-            SDL_RenderFillRect(sdlRenderer, &dstrect);
-        }
+        SDL_RenderClear(sdlRenderer);
 
         //设置纹理的透明度
         if (nLayeredWindowAlpha != 255) {
@@ -184,7 +188,7 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
         }
         
         //将绘制的数据更新到SDL窗口        
-        SDL_RenderTexture(sdlRenderer, sdlTextrue, &dstrect, &dstrect);
+        SDL_RenderTexture(sdlRenderer, sdlTextrue, nullptr, nullptr);
         SDL_RenderPresent(sdlRenderer);
     }
 
@@ -210,31 +214,6 @@ void SkRasterWindowContext_SDL::GetClientRect(UiRect& rcClient) const
         rcClient.right = rcClient.left + nWidth;
         rcClient.bottom = rcClient.top + nHeight;
     }
-}
-
-bool SkRasterWindowContext_SDL::GetUpdateRect(UiRect& /*rcUpdate*/) const
-{
-    //局部绘制功能暂不开启；
-    //此功能开启时，需要修改SDL源码中对于WM_PAINT消息的处理，需要将"ValidateRect(hwnd, NULL);"这行代码注释掉，否则可能导致部分绘制消息丢失，出现不绘制的情况
-    return false;
-
-//    if (m_sdlWindow == nullptr) {
-//        return false;
-//    }
-//    rcUpdate.Clear();
-//#ifdef DUILIB_BUILD_FOR_WIN
-//    SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
-//    HWND hWnd = (HWND)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
-//    RECT rectUpdate = { 0, };
-//    if ((hWnd != nullptr) && ::IsWindow(hWnd) && ::GetUpdateRect(hWnd, &rectUpdate, FALSE)) {
-//        rcUpdate.left = rectUpdate.left;
-//        rcUpdate.top = rectUpdate.top;
-//        rcUpdate.right = rectUpdate.right;
-//        rcUpdate.bottom = rectUpdate.bottom;
-//        return true;
-//    }
-//#endif
-//    return false;
 }
 
 void SkRasterWindowContext_SDL::ValidateRect(UiRect& rcPaint) const

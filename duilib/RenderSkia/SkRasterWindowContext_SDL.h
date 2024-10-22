@@ -6,9 +6,10 @@
 #ifdef DUILIB_BUILD_FOR_SDL
 
 #pragma warning (push)
-#pragma warning (disable: 4244 4201 4100)
+#pragma warning (disable: 4244 4201 4100 4267)
 
 #include "include/core/SkSurface.h"
+#include "include/core/SkCanvas.h"
 #include "src/base/SkAutoMalloc.h"
 #include "tools/window/RasterWindowContext.h"
 
@@ -69,12 +70,6 @@ protected:
     * @param [out] rcClient 返回窗口的客户区坐标
     */
     void GetClientRect(UiRect& rcClient) const;
-
-    /** 获取界面需要绘制的区域，以实现局部绘制
-    * @param [out] rcUpdate 返回需要绘制的区域矩形范围
-    * @return 返回true表示支持局部绘制，返回false表示不支持局部绘制
-    */
-    bool GetUpdateRect(UiRect& rcUpdate) const;
 
     /** 将已经绘制的区域标记为有效区域
     */

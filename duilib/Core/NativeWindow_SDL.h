@@ -497,8 +497,13 @@ public:
     int32_t SDL_HitTest(SDL_Window* win, const SDL_Point* area, void* data);
 
     /** 绘制窗口
+    * @param [in] bPaintAll true表示消息由系统触发，需要全部绘制； false表示程序自己通过Invalidate函数触发，可支持局部绘制
     */
-    void PaintWindow();
+    void PaintWindow(bool bPaintAll);
+
+    /** 窗口更新的区域（需要绘制）
+    */
+    const UiRect& GetUpdateRect() const;
 
 private:
     /** 初始化窗口资源
@@ -650,6 +655,10 @@ private:
     /** 是否为层窗口
     */
     bool m_bIsLayeredWindow;
+
+    /** 窗口更新的区域（需要绘制）
+    */
+    UiRect m_rcUpdateRect;
 };
 
 /** 定义别名

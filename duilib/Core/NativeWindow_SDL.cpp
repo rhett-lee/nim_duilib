@@ -166,6 +166,16 @@ public:
     {
         return m_pNativeWindow->GetLayeredWindowAlpha();
     }
+
+    /** 获取界面需要绘制的区域，以实现局部绘制
+    * @param [out] rcUpdate 返回需要绘制的区域矩形范围
+    * @return 返回true表示支持局部绘制，返回false表示不支持局部绘制
+    */
+    virtual bool GetUpdateRect(UiRect& rcUpdate) const override
+    {
+        rcUpdate = m_pNativeWindow->GetUpdateRect();
+        return !rcUpdate.IsEmpty();
+    }
 };
 
 bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
@@ -262,7 +272,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         break;
     case WM_USER_PAINT_MSG:
         //主动发起的窗口绘制消息
-        PaintWindow();
+        PaintWindow(false);
         break;
     case SDL_EVENT_WINDOW_MOUSE_ENTER:
         //不需要处理，Windows没有这个消息
@@ -480,7 +490,7 @@ static bool SDLCALL OnNativeWindowExposedEvent(void* userdata, SDL_Event* event)
             (eventType == SDL_EVENT_WINDOW_MAXIMIZED)) {
             NativeWindow_SDL* pNativeWindow = (NativeWindow_SDL*)userdata;
             if ((SDL_Window*)pNativeWindow->GetWindowHandle() == SDL_GetWindowFromEvent(event)) {
-                pNativeWindow->PaintWindow();
+                pNativeWindow->PaintWindow(true);
             }
         }
     }
@@ -2012,12 +2022,13 @@ static bool SDLCALL FilterNativeWindowExposedEvent(void* userdata, SDL_Event* ev
 
 void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
 {
-#ifdef DUILIB_BUILD_FOR_WIN
-    HWND hWnd = GetHWND();
-    RECT rc = { rcItem.left, rcItem.top, rcItem.right, rcItem.bottom };
-    ::InvalidateRect(hWnd, &rc, FALSE);
-#else
-    (void)rcItem;
+    if (m_rcUpdateRect.IsZero()) {
+        m_rcUpdateRect = rcItem;
+    }
+    else {
+        m_rcUpdateRect.Union(rcItem);
+    }
+
     //暂时没有此功能, 只能发送一个绘制消息，触发界面绘制
     if (m_sdlWindow != nullptr) {
         NativeWindowExposedEvent data;
@@ -2036,12 +2047,15 @@ void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
             ASSERT_UNUSED_VARIABLE(nRet);
         }
     }
-#endif
 }
 
-void NativeWindow_SDL::PaintWindow()
+void NativeWindow_SDL::PaintWindow(bool bPaintAll)
 {
     PerformanceStat statPerformance(_T("PaintWindow, NativeWindow_SDL::PaintWindow(Total)"));
+    if (bPaintAll) {
+        //绘制全部
+        m_rcUpdateRect.Clear();
+    }
     INativeWindow* pOwner = m_pOwner;
     ASSERT(pOwner != nullptr);
     if (pOwner == nullptr) {
@@ -2062,6 +2076,12 @@ void NativeWindow_SDL::PaintWindow()
             bPaint = pRender->PaintAndSwapBuffers(&renderPaint);
         }
     }
+    m_rcUpdateRect.Clear();
+}
+
+const UiRect& NativeWindow_SDL::GetUpdateRect() const
+{
+    return m_rcUpdateRect;
 }
 
 void NativeWindow_SDL::GetClientRect(UiRect& rcClient) const
@@ -2078,20 +2098,6 @@ void NativeWindow_SDL::GetClientRect(UiRect& rcClient) const
         rcClient.right = rcClient.left + nWidth;
         rcClient.bottom = rcClient.top + nHeight;
     }
-#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
-    {
-        HWND hWnd = GetHWND();        
-        if (!::IsIconic(hWnd) && ::IsWindowVisible(hWnd)) {
-            //最小化的时候，或者隐藏的时候，不比对，两者不同
-            RECT rect = { 0, };
-            ::GetClientRect(hWnd, &rect);
-            ASSERT(rcClient.left == rect.left);
-            ASSERT(rcClient.top == rect.top);
-            ASSERT(rcClient.right == rect.right);
-            ASSERT(rcClient.bottom == rect.bottom);
-        }
-    }
-#endif
 }
 
 void NativeWindow_SDL::GetWindowRect(UiRect& rcWindow) const
