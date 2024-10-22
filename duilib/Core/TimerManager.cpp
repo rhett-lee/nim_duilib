@@ -58,7 +58,8 @@ public:
 
 TimerManager::TimerManager():
     m_nNextTimerId(1),
-    m_bRunning(false)
+    m_bRunning(false),
+    m_bHasPenddingPoll(false)
 {
 }
 
@@ -200,6 +201,7 @@ void TimerManager::Poll()
     }
     //唤醒工作线程，检查任务状态
     m_cv.notify_one();
+    m_bHasPenddingPoll = false;
 }
 
 void TimerManager::WorkerThreadProc()
@@ -239,11 +241,14 @@ void TimerManager::WorkerThreadProc()
                 m_cv.wait_for(taskGuard, std::chrono::milliseconds(nDetaTimeMs));
             }
             //通知处理(发送到主线程执行, 此时不能加锁，避免出现死锁问题)
+            m_bHasPenddingPoll = true;
             taskGuard.unlock();
+
             m_threadMsg.PostMsg(WM_USER_DEFINED_TIMER, 0, 0);
             taskGuard.lock();
             //LogUtil::OutputLine(StringUtil::Printf(_T("PostMessage: send timer event")));
-            if (m_bRunning) {
+
+            if (m_bRunning && m_bHasPenddingPoll) {
                 m_cv.wait(taskGuard);
             }
         }        
