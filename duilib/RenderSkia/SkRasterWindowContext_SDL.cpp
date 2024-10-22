@@ -128,7 +128,7 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
 
 bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t nLayeredWindowAlpha) const
 {
-    PerformanceStat statPerformance(_T("SkRasterWindowContext_SDL::SwapPaintBuffers"));
+    PerformanceStat statPerformance(_T("PaintWindow, SkRasterWindowContext_SDL::SwapPaintBuffers"));
     ASSERT(!rcPaint.IsEmpty());
     if (rcPaint.IsEmpty()) {
         return false;

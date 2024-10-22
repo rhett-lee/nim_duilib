@@ -1,11 +1,12 @@
 #include "NativeWindow_SDL.h"
 #include "MessageLoop_SDL.h"
-#include "duilib/Utils/FileUtil.h"
 #include "duilib/Image/ImageDecoder.h"
 #include "duilib/Image/ImageLoadAttribute.h"
 #include "duilib/Image/ImageInfo.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
+#include "duilib/Utils/FileUtil.h"
+#include "duilib/Utils/PerformanceUtil.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
 
@@ -2040,6 +2041,7 @@ void NativeWindow_SDL::Invalidate(const UiRect& rcItem)
 
 void NativeWindow_SDL::PaintWindow()
 {
+    PerformanceStat statPerformance(_T("PaintWindow, NativeWindow_SDL::PaintWindow(Total)"));
     INativeWindow* pOwner = m_pOwner;
     ASSERT(pOwner != nullptr);
     if (pOwner == nullptr) {

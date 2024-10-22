@@ -1004,8 +1004,8 @@ bool Window::OnPreparePaint()
 
 LRESULT Window::OnPaintMsg(const UiRect& rcPaint, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
+    PerformanceStat statPerformance(_T("PaintWindow, Window::OnPaintMsg"));
     bHandled = false;
-    PerformanceStat statPerformance(_T("Window::OnPaintMsg"));
     if (Paint(rcPaint)) {
         bHandled = true;
     }
