@@ -433,22 +433,17 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 void ControlForm::LoadRichEditData()
 {
     std::streamoff length = 0;
-    std::string xml;
+    
     ui::FilePath controls_xml = ui::GlobalManager::Instance().GetResourcePath();
     controls_xml += GetResourcePath();
     controls_xml += GetSkinFile();
 
-    std::ifstream ifs(controls_xml.NativePath().c_str());
-    if (ifs.is_open())
-    {
-        ifs.seekg(0, std::ios_base::end);
-        length = ifs.tellg();
-        ifs.seekg(0, std::ios_base::beg);
-
-        xml.resize(static_cast<unsigned int>(length)+1);
-        ifs.read(&xml[0], length);
-
-        ifs.close();
+    //XML 文件按UTF8编码加载
+    std::string xml;
+    std::vector<uint8_t> xmlData;
+    ui::FileUtil::ReadFileData(controls_xml, xmlData);
+    if (!xmlData.empty()) {
+        xml.append((const char*)xmlData.data(), xmlData.size());
     }
     DString xmlU = ui::StringConvert::UTF8ToT(xml);
 

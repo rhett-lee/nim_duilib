@@ -678,19 +678,30 @@ bool RichEditData::SetText(const DStringW& text)
         return true;
     }
 
-    DStringW textLimit;
     std::vector<std::wstring_view> lineTextViewList;
     int32_t nLimitLength = m_pRichText->GetTextLimitLength();
     if ((nLimitLength > 0) && ((int32_t)text.size() > nLimitLength)){
         //截断字符串
-        textLimit = text;
+        DStringW textLimit = text;
+        if (text.find(L'\0') != DStringW::npos) {
+            //如果包含L'\0'字符，需要截断处理
+            textLimit = text.c_str();
+        }
         TruncateLimitText(textLimit, nLimitLength);
         std::wstring_view textView = textLimit;
         SplitLines(textView, lineTextViewList);
     }
     else {
-        std::wstring_view textView = text;
-        SplitLines(textView, lineTextViewList);
+        if (text.find(L'\0') != DStringW::npos) {
+            //如果包含L'\0'字符，需要截断处理
+            DStringW validText = text.c_str();
+            std::wstring_view textView = validText;
+            SplitLines(textView, lineTextViewList);
+        }
+        else {
+            std::wstring_view textView = text;
+            SplitLines(textView, lineTextViewList);
+        }        
     }
     
     const size_t nLineCount = lineTextViewList.size();
