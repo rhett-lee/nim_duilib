@@ -482,12 +482,7 @@ static bool SDLCALL OnNativeWindowExposedEvent(void* userdata, SDL_Event* event)
     //窗口绘制事件：同步绘制，避免黑屏现象
     if ((userdata != nullptr) && (event != nullptr)) {
         SDL_EventType eventType = (SDL_EventType)event->type;
-        if ((eventType == SDL_EVENT_WINDOW_EXPOSED) ||
-            (eventType == SDL_EVENT_WINDOW_SHOWN)   ||
-            (eventType == SDL_EVENT_WINDOW_MOVED)   ||
-            (eventType == SDL_EVENT_WINDOW_RESIZED) ||
-            (eventType == SDL_EVENT_WINDOW_RESTORED)||
-            (eventType == SDL_EVENT_WINDOW_MAXIMIZED)) {
+        if ((eventType == SDL_EVENT_WINDOW_EXPOSED)) {
             NativeWindow_SDL* pNativeWindow = (NativeWindow_SDL*)userdata;
             if ((SDL_Window*)pNativeWindow->GetWindowHandle() == SDL_GetWindowFromEvent(event)) {
                 pNativeWindow->PaintWindow(true);
@@ -560,6 +555,27 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
         m_createParam.m_dwStyle = kWS_OVERLAPPEDWINDOW;
     }
 
+    //创建SDL窗口和Render
+    if (!CreateWindowAndRender(pParentWindow, createAttributes)) {
+        return false;
+    }
+
+    if (m_pOwner != nullptr) {
+        bool bHandled = false;
+        m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(0, 0, 0), bHandled);
+
+        bool bMinimizeBox = false;
+        bool bMaximizeBox = false;
+        if (m_pOwner->OnNativeHasMinMaxBox(bMinimizeBox, bMaximizeBox)) {
+            //如果有最大化按钮，设置可调整窗口大小的属性
+            SDL_SetWindowResizable(m_sdlWindow, true);
+        }
+    }
+    return true;
+}
+
+bool NativeWindow_SDL::CreateWindowAndRender(NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes)
+{
     //创建SDL窗口
     m_sdlWindow = CreateSdlWindow(pParentWindow, createAttributes);
     ASSERT(m_sdlWindow != nullptr);
@@ -578,18 +594,6 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
 
     //初始化
     InitNativeWindow();
-
-    if (m_pOwner != nullptr) {
-        bool bHandled = false;
-        m_pOwner->OnNativeCreateWndMsg(false, NativeMsg(0, 0, 0), bHandled);
-
-        bool bMinimizeBox = false;
-        bool bMaximizeBox = false;
-        if (m_pOwner->OnNativeHasMinMaxBox(bMinimizeBox, bMaximizeBox)) {
-            //如果有最大化按钮，设置可调整窗口大小的属性
-            SDL_SetWindowResizable(m_sdlWindow, true);
-        }
-    }
     return true;
 }
 
@@ -690,25 +694,11 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
         m_createParam.m_dwStyle = kWS_OVERLAPPEDWINDOW;
     }
 
-    //创建SDL窗口
-    m_sdlWindow = CreateSdlWindow(pParentWindow, createAttributes);
-    ASSERT(m_sdlWindow != nullptr);
-    if (m_sdlWindow == nullptr) {
-        return -1;
+    //创建SDL窗口和Render
+    if (!CreateWindowAndRender(pParentWindow, createAttributes)) {
+        return false;
     }
-
-    //创建SDL渲染接口
-    m_sdlRenderer = CreateSdlRenderer(createAttributes.m_sdlRenderName);
-    ASSERT(m_sdlRenderer != nullptr);
-    if (m_sdlRenderer == nullptr) {
-        SDL_DestroyWindow(m_sdlWindow);
-        m_sdlWindow = nullptr;
-        return -1;
-    }
-
-    //初始化
-    InitNativeWindow();
-
+    
     //标记为模式对话框状态
     m_bDoModal = true;
 
@@ -1286,10 +1276,13 @@ DString NativeWindow_SDL::GetVideoDriverName() const
 DString NativeWindow_SDL::GetWindowRenderName() const
 {
     DString renderName;
-    if (m_sdlRenderer != nullptr) {
-        const char* name = SDL_GetRendererName(m_sdlRenderer);
-        if (name != nullptr) {
-            renderName = StringConvert::UTF8ToT(std::string(name));
+    if (m_sdlWindow != nullptr) {
+        SDL_Renderer* sdlRenderer = SDL_GetRenderer(m_sdlWindow);
+        if (sdlRenderer != nullptr) {
+            const char* name = SDL_GetRendererName(sdlRenderer);
+            if (name != nullptr) {
+                renderName = StringConvert::UTF8ToT(std::string(name));
+            }
         }
     }
     return renderName;

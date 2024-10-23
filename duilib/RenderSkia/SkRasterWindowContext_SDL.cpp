@@ -166,6 +166,19 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
     if (m_sdlWindow == nullptr) {
         return false;
     }
+    ASSERT(m_fSurfaceMemory.get() != nullptr);
+    if (m_fSurfaceMemory.get() == nullptr) {
+        return false;
+    }
+    ASSERT(m_fBackbufferSurface.get() != nullptr);
+    if (m_fBackbufferSurface.get() == nullptr) {
+        return false;
+    }
+
+    if (SwapPaintBuffersFast(rcPaint, nLayeredWindowAlpha)) {
+        //直接通过窗口的Surface更新绘制数据到窗口设备(不使用GPU，速度更快)
+        return true;
+    }
 
     SDL_Renderer* sdlRenderer = SDL_GetRenderer(m_sdlWindow);
     ASSERT(sdlRenderer != nullptr);
@@ -191,7 +204,7 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
     //将界面数据复制到纹理
     bool bDrawOk = false;
     if ((rcPaint.Width() != width()) || (rcPaint.Height() != height())) {
-        //局部绘制
+        //局部绘制：只绘制更新的部分
         SDL_Rect rect;
         rect.x = rcPaint.left;
         rect.y = rcPaint.top;
@@ -226,6 +239,215 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
     //提交绘制数据（这一步速度最慢：Windows平台很快，时间可以忽略； 但Linux平台X11环境（虚拟机中）下每次调用需要9毫秒左右）
     SDL_RenderPresent(sdlRenderer);
     return true;
+}
+
+bool SkRasterWindowContext_SDL::SwapPaintBuffersFast(const UiRect& rcPaint, uint8_t nLayeredWindowAlpha)
+{
+    ASSERT(!rcPaint.IsEmpty());
+    if (rcPaint.IsEmpty()) {
+        return false;
+    }
+    ASSERT(m_sdlWindow != nullptr);
+    if (m_sdlWindow == nullptr) {
+        return false;
+    }
+    ASSERT(m_fSurfaceMemory.get() != nullptr);
+    if (m_fSurfaceMemory.get() == nullptr) {
+        return false;
+    }
+    ASSERT(m_fBackbufferSurface.get() != nullptr);
+    if (m_fBackbufferSurface.get() == nullptr) {
+        return false;
+    }
+
+    SDL_Surface* sdlSurface = SDL_GetWindowSurface(m_sdlWindow);
+    if (sdlSurface == nullptr) {
+        return false;
+    }
+
+    if ((sdlSurface->pixels == nullptr) || (sdlSurface->w != width()) || (sdlSurface->h != height()) || (sdlSurface->pitch != width() * sizeof(uint32_t))) {
+        //大小不匹配
+        return false;
+    }
+    
+    SkColorType backSurfaceColorType = m_fBackbufferSurface->imageInfo().colorInfo().colorType();
+    int32_t backR = -1;
+    int32_t backG = -1;
+    int32_t backB = -1;
+    int32_t backA = -1;
+    if (!GetSkiaColorByteOrder(backSurfaceColorType, backR, backG, backB, backA)) {
+        return false;
+    }
+
+    SDL_PixelFormat sdlFormat = sdlSurface->format;
+    int32_t sdlR = -1;
+    int32_t sdlG = -1;
+    int32_t sdlB = -1;
+    int32_t sdlA = -1;
+    if (!GetSDLColorByteOrder(sdlFormat, sdlR, sdlG, sdlB, sdlA)) {
+        return false;
+    }
+
+    //统计性能
+    PerformanceStat statPerformance(_T("PaintWindow, SkRasterWindowContext_SDL::SwapPaintBuffersFast"));
+
+    bool bDrawOk = false;
+    if ((rcPaint.Width() != width()) || (rcPaint.Height() != height())) {
+        //局部绘制：只绘制更新的部分
+        SDL_Rect rect;
+        rect.x = rcPaint.left;
+        rect.y = rcPaint.top;
+        rect.w = rcPaint.Width();
+        rect.h = rcPaint.Height();
+        //按行复制数据(每次复制1行数据)
+        const int32_t nMaxRow = rcPaint.top + rcPaint.Height();
+        const int32_t nWidth = rcPaint.Width();
+        for (int32_t nRow = rcPaint.top; nRow < nMaxRow; ++nRow) {
+            ::memcpy((uint32_t*)sdlSurface->pixels + nRow * sdlSurface->w + rcPaint.left,
+                     (uint32_t*)m_fSurfaceMemory.get() + nRow * sdlSurface->w + rcPaint.left,
+                     nWidth * sizeof(uint32_t));
+        }
+
+        //处理颜色顺序
+        UpdateColorByteOrder(sdlSurface->pixels, sdlSurface->w, rcPaint, backR, backG, backB, backA, sdlR, sdlG, sdlB, sdlA);
+        UpdateColorAlpha(sdlSurface->pixels, sdlSurface->w, rcPaint, nLayeredWindowAlpha, sdlR, sdlG, sdlB, sdlA);
+        SDL_UpdateWindowSurfaceRects(m_sdlWindow, &rect, 1);
+        bDrawOk = true;
+        ASSERT(bDrawOk);
+    }
+    if (!bDrawOk) {
+        //完整绘制
+        ::memcpy(sdlSurface->pixels, m_fSurfaceMemory.get(), sdlSurface->h * sdlSurface->pitch);
+        UpdateColorByteOrder(sdlSurface->pixels, sdlSurface->w, rcPaint, backR, backG, backB, backA, sdlR, sdlG, sdlB, sdlA);
+        UpdateColorAlpha(sdlSurface->pixels, sdlSurface->w, rcPaint, nLayeredWindowAlpha, sdlR, sdlG, sdlB, sdlA);
+        SDL_UpdateWindowSurface(m_sdlWindow);
+    }
+    return true;
+}
+
+bool SkRasterWindowContext_SDL::GetSkiaColorByteOrder(SkColorType backSurfaceColorType, int32_t& backR, int32_t& backG, int32_t& backB, int32_t& backA) const
+{
+    if (backSurfaceColorType == kBGRA_8888_SkColorType) {
+        backB = 0;
+        backG = 1;
+        backR = 2;
+        backA = 3;
+        return true;
+    }
+    else if (backSurfaceColorType == kRGBA_8888_SkColorType) {
+        backR = 0;
+        backG = 1;
+        backB = 2;
+        backA = 3;
+        return true;
+    }
+    return false;
+}
+
+bool SkRasterWindowContext_SDL::GetSDLColorByteOrder(int32_t sdlFormat, int32_t& sdlR, int32_t& sdlG, int32_t& sdlB, int32_t& sdlA) const
+{
+    int bpp = 0;
+    Uint32 sdlRmask = 0;
+    Uint32 sdlGmask = 0;
+    Uint32 sdlBmask = 0;
+    Uint32 sdlAmask = 0;
+    SDL_GetMasksForPixelFormat((SDL_PixelFormat)sdlFormat, &bpp, &sdlRmask, &sdlGmask, &sdlBmask, &sdlAmask);
+    if (bpp != 32) {
+        return false;
+    }
+    sdlR = GetColorByteOrder(sdlRmask);
+    sdlG = GetColorByteOrder(sdlGmask);
+    sdlB = GetColorByteOrder(sdlBmask);
+    if (sdlAmask != 0) {
+        sdlA = GetColorByteOrder(sdlAmask);
+    }
+    else {
+        sdlA = 3;
+        if ((sdlR == 3) || (sdlG == 3) || (sdlB == 3)) {
+            return false;
+        }
+    }
+    return (sdlR >= 0) && (sdlG >= 0) && (sdlB >= 0) && (sdlA >= 0);
+}
+
+int32_t SkRasterWindowContext_SDL::GetColorByteOrder(uint32_t mask) const
+{
+    //Endian Order: LE
+    int32_t colorOrder = -1;
+    if (mask == 0x000000FF) {
+        colorOrder = 0;
+    }
+    else if (mask == 0x0000FF00) {
+        colorOrder = 1;
+    }
+    else if (mask == 0x00FF0000) {
+        colorOrder = 2;
+    }
+    else if (mask == 0xFF000000) {
+        colorOrder = 3;
+    }
+    return colorOrder;
+}
+
+void SkRasterWindowContext_SDL::UpdateColorByteOrder(void* surfacePixels, int32_t nSurfaceWidth, const UiRect& rcPaint,
+                                                     int32_t backR, int32_t backG, int32_t backB, int32_t backA,
+                                                     int32_t sdlR, int32_t sdlG, int32_t sdlB, int32_t sdlA) const
+{
+    if ((surfacePixels == nullptr) || (nSurfaceWidth < 1) || rcPaint.IsEmpty()) {
+        return;
+    }
+    bool bDiffR = sdlR != backR;
+    bool bDiffG = sdlG != backG;
+    bool bDiffB = sdlB != backB;
+    bool bDiffA = sdlA != backA;
+    if (!bDiffR && !bDiffG && !bDiffB && !bDiffA) {
+        //颜色格式相同，无需更新颜色数据
+        return;
+    }
+    uint32_t colorValue = 0;
+    const int32_t nMaxRow = rcPaint.top + rcPaint.Height();
+    const int32_t nWidth = rcPaint.Width();
+    for (int32_t nRow = rcPaint.top; nRow < nMaxRow; ++nRow) {
+        for (int32_t nCol = 0; nCol < nWidth; ++nCol) {
+            uint32_t* pColorValue = (uint32_t*)surfacePixels + nRow * nSurfaceWidth + rcPaint.left + nCol;
+            colorValue = *pColorValue;
+            if (bDiffR) {
+                ((uint8_t*)pColorValue)[sdlR] = ((uint8_t*)&colorValue)[backR];
+            }
+            if (bDiffG) {
+                ((uint8_t*)pColorValue)[sdlG] = ((uint8_t*)&colorValue)[backG];
+            }
+            if (bDiffB) {
+                ((uint8_t*)pColorValue)[sdlB] = ((uint8_t*)&colorValue)[backB];
+            }
+            if (bDiffA) {
+                ((uint8_t*)pColorValue)[sdlA] = ((uint8_t*)&colorValue)[backA];
+            }
+        }
+    }
+}
+
+void SkRasterWindowContext_SDL::UpdateColorAlpha(void* surfacePixels, int32_t nSurfaceWidth, const UiRect& rcPaint, uint8_t nLayeredWindowAlpha,
+                                                 int32_t sdlR, int32_t sdlG, int32_t sdlB, int32_t sdlA)
+{
+    if ((surfacePixels == nullptr) || (nSurfaceWidth < 1) || rcPaint.IsEmpty() || (nLayeredWindowAlpha == 255)) {
+        return;
+    }
+    const int32_t nMaxRow = rcPaint.top + rcPaint.Height();
+    const int32_t nWidth = rcPaint.Width();
+    for (int32_t nRow = rcPaint.top; nRow < nMaxRow; ++nRow) {
+        for (int32_t nCol = 0; nCol < nWidth; ++nCol) {
+            uint32_t* pColorValue = (uint32_t*)surfacePixels + nRow * nSurfaceWidth + rcPaint.left + nCol;
+            uint8_t& r = ((uint8_t*)pColorValue)[sdlR];
+            uint8_t& g = ((uint8_t*)pColorValue)[sdlG];
+            uint8_t& b = ((uint8_t*)pColorValue)[sdlB];
+            uint8_t& a = ((uint8_t*)pColorValue)[sdlA];
+            r = r * nLayeredWindowAlpha / 255;
+            g = g * nLayeredWindowAlpha / 255;
+            b = b * nLayeredWindowAlpha / 255;
+            a = a * nLayeredWindowAlpha / 255;
+        }
+    }
 }
 
 void SkRasterWindowContext_SDL::GetClientRect(UiRect& rcClient) const

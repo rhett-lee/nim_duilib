@@ -506,6 +506,10 @@ public:
     const UiRect& GetUpdateRect() const;
 
 private:
+    /** 创建窗口和渲染接口
+    */
+    bool CreateWindowAndRender(NativeWindow_SDL* pParentWindow, const WindowCreateAttributes& createAttributes);
+
     /** 初始化窗口资源
     */
     void InitNativeWindow();

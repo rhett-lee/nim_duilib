@@ -67,6 +67,15 @@ protected:
     */
     bool SwapPaintBuffers(const UiRect& rcPaint, uint8_t nLayeredWindowAlpha);
 
+    /** 绘制结束后，绘制数据从渲染引擎更新到窗口(直接通过窗口的Surface更新绘制数据到窗口设备)
+    * @param [in] hPaintDC 当前绘制的DC
+    * @param [in] rcPaint 绘制的区域
+    * @param [in] pRender 绘制引擎接口，用于将绘制结果应用到窗口
+    * @param [in] nLayeredWindowAlpha 窗口透明度，在UpdateLayeredWindow函数中作为参数使用
+    * @return 成功返回true，失败则返回false
+    */
+    bool SwapPaintBuffersFast(const UiRect& rcPaint, uint8_t nLayeredWindowAlpha);
+
     /** 获取当前窗口的客户区矩形
     * @param [out] rcClient 返回窗口的客户区坐标
     */
@@ -75,6 +84,30 @@ protected:
     /** 将已经绘制的区域标记为有效区域
     */
     void ValidateRect(UiRect& rcPaint) const;
+
+private:
+    /** 获取Skia的颜色值顺序
+    */
+    bool GetSkiaColorByteOrder(SkColorType backSurfaceColorType, int32_t& backR, int32_t& backG, int32_t& backB, int32_t& backA) const;
+
+    /** 获取SDL的颜色值顺序
+    */
+    bool GetSDLColorByteOrder(int32_t sdlFormat, int32_t& sdlR, int32_t& sdlG, int32_t& sdlB, int32_t& sdlA) const;
+
+    /** 根据掩码获取颜色值的顺序
+    */
+    int32_t GetColorByteOrder(uint32_t mask) const;
+
+    /** 更新颜值的顺序
+    */
+    void UpdateColorByteOrder(void* surfacePixels, int32_t nSurfaceWidth, const UiRect& rcPaint,
+                              int32_t backR, int32_t backG, int32_t backB, int32_t backA,
+                              int32_t sdlR, int32_t sdlG, int32_t sdlB, int32_t sdlA) const;
+
+    /** 更新颜色中的Alpha值
+    */
+    void UpdateColorAlpha(void* surfacePixels, int32_t nSurfaceWidth, const UiRect& rcPaint, uint8_t nLayeredWindowAlpha,
+                          int32_t sdlR, int32_t sdlG, int32_t sdlB, int32_t sdlA);
 
 private:
     /** Surface数据
