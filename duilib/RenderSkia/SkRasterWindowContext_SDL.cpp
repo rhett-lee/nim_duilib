@@ -10,7 +10,8 @@ namespace ui {
 
 SkRasterWindowContext_SDL::SkRasterWindowContext_SDL(SDL_Window* sdlWindow, const skwindow::DisplayParams& params):
     skwindow::internal::RasterWindowContext(params),
-    m_sdlWindow(sdlWindow)
+    m_sdlWindow(sdlWindow),
+    m_sdlTextrue(nullptr)
 {
     fWidth = 0;
     fHeight = 0;
@@ -24,6 +25,10 @@ SkRasterWindowContext_SDL::SkRasterWindowContext_SDL(SDL_Window* sdlWindow, cons
 
 SkRasterWindowContext_SDL::~SkRasterWindowContext_SDL()
 {
+    if (m_sdlTextrue != nullptr) {
+        SDL_DestroyTexture(m_sdlTextrue);
+        m_sdlTextrue = nullptr;
+    }
 }
 
 void SkRasterWindowContext_SDL::setDisplayParams(const skwindow::DisplayParams& params)
@@ -64,6 +69,11 @@ void SkRasterWindowContext_SDL::resize(int nWidth, int nHeight)
 
     SkImageInfo info = SkImageInfo::Make(nWidth, nHeight, fDisplayParams.fColorType, SkAlphaType::kPremul_SkAlphaType, fDisplayParams.fColorSpace);
     m_fBackbufferSurface = SkSurfaces::WrapPixels(info, pixels, sizeof(uint32_t) * nWidth);
+
+    if (m_sdlTextrue != nullptr) {
+        SDL_DestroyTexture(m_sdlTextrue);
+        m_sdlTextrue = nullptr;
+    }
 }
 
 sk_sp<SkSurface> SkRasterWindowContext_SDL::getBackbufferSurface()
@@ -97,10 +107,13 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
     //获取需要绘制的区域
     UiRect rcPaint;
     bool bUpdateRect = pRenderPaint->GetUpdateRect(rcPaint); //返回true表示支持局部绘制，只绘制更新的部分区域，以提高效率
-    if (rcPaint.IsEmpty()) {
-        bUpdateRect = false;
+    if (bUpdateRect && !rcPaint.IsEmpty()) {
+        //确保区域的有效性
+        UiRect rcClient;
+        GetClientRect(rcClient);
+        rcPaint.Intersect(rcClient);
     }
-    if (!bUpdateRect) {
+    if (rcPaint.IsEmpty()) {
         //不支持局部绘制，每次都是需要重绘整个窗口的客户区域
         GetClientRect(rcPaint);
     }
@@ -142,7 +155,7 @@ bool SkRasterWindowContext_SDL::PaintAndSwapBuffers(IRender* pRender, IRenderPai
     return bRet;
 }
 
-bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t nLayeredWindowAlpha) const
+bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t nLayeredWindowAlpha)
 {
     PerformanceStat statPerformance(_T("PaintWindow, SkRasterWindowContext_SDL::SwapPaintBuffers"));
     ASSERT(!rcPaint.IsEmpty());
@@ -160,43 +173,58 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffers(const UiRect& rcPaint, uint8_t 
         return false;
     }
 
-    // 渲染到窗口（IRender -> 绘制到 SDL Render -> 更新到 SDL 窗口）
+    if (m_sdlTextrue == nullptr) {
+        // 渲染到窗口（IRender -> 绘制到 SDL Render -> 更新到 SDL 窗口）
 #ifdef DUILIB_BUILD_FOR_WIN
-    SDL_PixelFormat format = SDL_PIXELFORMAT_BGRA32;
+        SDL_PixelFormat format = SDL_PIXELFORMAT_BGRA32;
 #else
-    SDL_PixelFormat format = SDL_PIXELFORMAT_RGBA32;
+        SDL_PixelFormat format = SDL_PIXELFORMAT_RGBA32;
 #endif
-    SDL_Surface* sdlSurface = SDL_CreateSurface(width(), height(), format);
-    ASSERT(sdlSurface != nullptr);
-    if (sdlSurface == nullptr) {
+        m_sdlTextrue = SDL_CreateTexture(sdlRenderer, format, SDL_TextureAccess::SDL_TEXTUREACCESS_STREAMING, width(), height());
+        ASSERT(m_sdlTextrue != nullptr);
+    }
+    
+    if (m_sdlTextrue == nullptr) {
         return false;
     }
 
-    //更新数据到Surface
-    ::memcpy(sdlSurface->pixels, m_fSurfaceMemory.get(), sdlSurface->h * sdlSurface->pitch);
-
-    //更新数据的流程：Surface -> Texture -> Renderer
-    SDL_Texture* sdlTextrue = SDL_CreateTextureFromSurface(sdlRenderer, sdlSurface);
-    ASSERT(sdlTextrue != nullptr);
-    if (sdlTextrue != nullptr) {
-        //对源SDL窗口清零，避免透明窗口的情况下，绘制到残留图像上，导致窗口阴影越来越浓
-        SDL_RenderClear(sdlRenderer);
-
-        //设置纹理的透明度
-        if (nLayeredWindowAlpha != 255) {
-            SDL_SetTextureAlphaMod(sdlTextrue, nLayeredWindowAlpha);
+    //将界面数据复制到纹理
+    bool bDrawOk = false;
+    if ((rcPaint.Width() != width()) || (rcPaint.Height() != height())) {
+        //局部绘制
+        SDL_Rect rect;
+        rect.x = rcPaint.left;
+        rect.y = rcPaint.top;
+        rect.w = rcPaint.Width();
+        rect.h = rcPaint.Height();        
+        SkIRect bounds = SkIRect::MakeLTRB(rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom);
+        sk_sp<SkImage> snapshotImage = m_fBackbufferSurface->makeImageSnapshot(bounds);
+        if (snapshotImage != nullptr) {
+            SkPixmap pixmap;
+            if (snapshotImage->peekPixels(&pixmap) && (pixmap.addr() != nullptr) && (pixmap.width() == rcPaint.Width()) && (pixmap.height() == rcPaint.Height())) {
+                SDL_UpdateTexture(m_sdlTextrue, &rect, pixmap.addr(), (int)pixmap.rowBytes());
+                bDrawOk = true;
+            }
         }
-        
-        //将绘制的数据更新到SDL窗口        
-        SDL_RenderTexture(sdlRenderer, sdlTextrue, nullptr, nullptr);
-        SDL_RenderPresent(sdlRenderer);
+        ASSERT(bDrawOk);
+    }
+    if (!bDrawOk) {
+        //完整绘制
+        SDL_UpdateTexture(m_sdlTextrue, nullptr, m_fSurfaceMemory.get(), m_fBackbufferSurface->width() * sizeof(uint32_t));
     }
 
-    //销毁资源
-    SDL_DestroyTexture(sdlTextrue);
-    SDL_DestroySurface(sdlSurface);
-    sdlTextrue = nullptr;
-    sdlSurface = nullptr;
+    //设置纹理的透明度
+    if (nLayeredWindowAlpha != 255) {
+        SDL_SetTextureAlphaMod(m_sdlTextrue, nLayeredWindowAlpha);
+    }
+    //对源SDL窗口清零，避免透明窗口的情况下，绘制到残留图像上，导致窗口阴影越来越浓
+    SDL_RenderClear(sdlRenderer);
+
+    //绘制纹理
+    SDL_RenderTexture(sdlRenderer, m_sdlTextrue, nullptr, nullptr);
+
+    //提交绘制数据（这一步速度最慢：Windows平台很快，时间可以忽略； 但Linux平台X11环境（虚拟机中）下每次调用需要9毫秒左右）
+    SDL_RenderPresent(sdlRenderer);
     return true;
 }
 
