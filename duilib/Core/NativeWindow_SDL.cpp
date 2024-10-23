@@ -1865,13 +1865,21 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* /*pInsertAfterWindow
                                    int32_t X, int32_t Y, int32_t cx, int32_t cy,
                                    uint32_t uFlags)
 {
+    ASSERT(m_sdlWindow != nullptr);
+    if (m_sdlWindow == nullptr) {
+        return false;
+    }
     bool bRet = true;
+    bool bModified = false;
     ASSERT(IsWindow());
     if (!(uFlags & kSWP_NOMOVE)) {
         bool nRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
         ASSERT_UNUSED_VARIABLE(nRet);
         if (!nRet) {
             bRet = false;
+        }
+        else {
+            bModified = true;
         }
     }
     if (!(uFlags & kSWP_NOSIZE)) {
@@ -1880,11 +1888,21 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* /*pInsertAfterWindow
         if (!nRet) {
             bRet = false;
         }
+        else {
+            bModified = true;
+        }
     }
-
+    //同步窗口
+    if (bModified) {
+        SDL_SyncWindow(m_sdlWindow);
+        bModified = false;
+    }
     if (uFlags & kSWP_HIDEWINDOW) {
         if (!ShowWindow(ShowWindowCommands::kSW_HIDE)) {
             bRet = false;
+        }
+        else {
+            bModified = true;
         }
     }
     if (uFlags & kSWP_SHOWWINDOW) {
@@ -1894,6 +1912,9 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* /*pInsertAfterWindow
         }
         if (!ShowWindow(showCommand)) {
             bRet = false;
+        }
+        else {
+            bModified = true;
         }
     }
     if (bRet) {

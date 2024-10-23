@@ -130,8 +130,8 @@ void ControlForm::OnInitWindow()
         settings->AttachClick([this](const ui::EventArgs& args) {
             ui::UiRect rect = args.GetSender()->GetPos();
             ui::UiPoint point;
-            point.x = rect.left - 175;
-            point.y = rect.top + 10;
+            point.x = rect.left;
+            point.y = rect.bottom;
             ClientToScreen(point);
 
             ShowPopupMenu(point);

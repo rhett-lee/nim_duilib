@@ -337,15 +337,7 @@ bool Menu::ResizeMenu()
             point.y = rcWork.bottom - szInit.cy;
         }
     }
-#ifdef DUILIB_BUILD_FOR_SDL
-    if (m_noFocus) {
-        ShowWindow(kSW_SHOW_NA);
-    }
-    else {
-        ShowWindow(kSW_SHOW_NORMAL);
-    }
-#endif
-    
+   
     SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
                  point.x - rcCorner.left, point.y - rcCorner.top,
                  szAvailable.cx, szAvailable.cy,
@@ -457,14 +449,6 @@ bool Menu::ResizeSubMenu()
         rc.left = rcWindow.right;
         rc.right = rc.left + cxFixed;
     }
-#ifdef DUILIB_BUILD_FOR_SDL
-    if (m_noFocus) {
-        ShowWindow(kSW_SHOW_NA);
-    }
-    else {
-        ShowWindow(kSW_SHOW_NORMAL);
-    }
-#endif
 
     SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
                  rc.left - rcCorner.left, rc.top - rcCorner.top,
