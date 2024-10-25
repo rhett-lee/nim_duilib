@@ -362,40 +362,48 @@ bool Menu::ResizeSubMenu()
     // Position the popup window in absolute space
     UiRect rcOwner = m_pOwner->GetPos();
     UiRect rc = rcOwner;
-
-    int cxFixed = 0;
-    int cyFixed = 0;
-
-    UiRect rcWork;
-    GetMonitorWorkRect(m_menuPoint, rcWork);
-    UiSize szAvailable = { rcWork.Width(), rcWork.Height()};
-    ListBox* pLayoutListBox = Menu::GetLayoutListBox();
-    ASSERT(pLayoutListBox != nullptr);
-    if (pLayoutListBox == nullptr) {
-        return false;
-    }
-
-    const size_t itemCount = pLayoutListBox->GetItemCount();
-    for (size_t it = 0; it < itemCount; ++it) {
-        //取子菜单项中的最大值作为菜单项
-        MenuItem* pItem = dynamic_cast<MenuItem*>(pLayoutListBox->GetItemAt(it));
-        if (pItem != nullptr) {
-            UiEstSize estSize = pItem->EstimateSize(szAvailable);
-            UiSize sz(estSize.cx.GetInt32(), estSize.cy.GetInt32());            
-            cyFixed += sz.cy;
-            if (cxFixed < sz.cx) {
-                cxFixed = sz.cx;
-            }                
-        }
-    }
+   
     UiPadding rcCorner = GetShadowCorner();
     UiRect rcWindow;
     m_pOwner->GetWindow()->GetWindowRect(rcWindow);
+
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    rcClient.Deflate(rcCorner);
+    int32_t cxFixed = rcClient.Width();
+    int32_t cyFixed = rcClient.Height();
+    rcClient.Inflate(rcCorner);
+    if (rcClient.Width() < (rcCorner.left + rcCorner.right)) {
+        //窗口大小还没有生效，需要估算
+        Box* pRoot = GetRoot();
+        if (pRoot != nullptr) {
+            UiSize maxSize(999999, 999999);
+            UiEstSize estSize = pRoot->EstimateSize(maxSize);
+            if (!estSize.cx.IsStretch() && !estSize.cy.IsStretch()) {
+                UiSize needSize = MakeSize(estSize);
+                if (needSize.cx < pRoot->GetMinWidth()) {
+                    needSize.cx = pRoot->GetMinWidth();
+                }
+                if (needSize.cx > pRoot->GetMaxWidth()) {
+                    needSize.cx = pRoot->GetMaxWidth();
+                }
+                if (needSize.cy < pRoot->GetMinHeight()) {
+                    needSize.cy = pRoot->GetMinHeight();
+                }
+                if (needSize.cy > pRoot->GetMaxHeight()) {
+                    needSize.cy = pRoot->GetMaxHeight();
+                }
+                cxFixed = needSize.cx - rcCorner.left - rcCorner.right;
+                cyFixed = needSize.cy - rcCorner.top - rcCorner.bottom;
+            }
+        }
+    }
+
     //去阴影
     rcWindow.Deflate(rcCorner);
 
     m_pOwner->GetWindow()->ClientToScreen(rc);
-    
+   
     rc.left = rcWindow.right;
     rc.right = rc.left + cxFixed;
     rc.bottom = rc.top + cyFixed;
@@ -430,6 +438,9 @@ bool Menu::ResizeSubMenu()
         rc.left = rc.right - cxFixed;
     }
 
+    UiRect rcWork;
+    GetMonitorWorkRect(m_menuPoint, rcWork);
+
     if (rc.bottom > rcWork.bottom) {
         rc.bottom = rc.top;
         rc.top = rc.bottom - cyFixed;
@@ -450,10 +461,15 @@ bool Menu::ResizeSubMenu()
         rc.right = rc.left + cxFixed;
     }
 
+    //调整窗口位置，显示窗口，但不调整窗口的大小
+    int32_t nNewWidth = rc.Width() + rcCorner.left + rcCorner.right;
+    int32_t nNewHeight = rc.Height() + rcCorner.top + rcCorner.bottom;
+    ASSERT(nNewWidth == rcClient.Width());
+    ASSERT(nNewHeight == rcClient.Height());
     SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
                  rc.left - rcCorner.left, rc.top - rcCorner.top,
-                 rc.right - rc.left, rc.bottom - rc.top,
-                 kSWP_SHOWWINDOW | (m_noFocus ? kSWP_NOACTIVATE : 0));
+                 nNewWidth, nNewHeight,
+                 kSWP_SHOWWINDOW | kSWP_NOSIZE | (m_noFocus ? kSWP_NOACTIVATE : 0));
 
     if (!m_noFocus) {
         SetWindowForeground();
@@ -462,9 +478,8 @@ bool Menu::ResizeSubMenu()
     return true;
 }
 
-void Menu::OnInitWindow()
+void Menu::PostInitWindow()
 {
-    BaseClass::OnInitWindow();
     ASSERT(m_pListBox == nullptr);
     m_listBoxFlag.reset();
     if (m_pOwner != nullptr) {
@@ -500,6 +515,9 @@ void Menu::OnInitWindow()
             m_listBoxFlag = m_pListBox->GetWeakFlag();
         }
     }
+
+    //需要在最后才调用基类的实现函数
+    BaseClass::PostInitWindow();
 }
 
 ListBox* Menu::GetLayoutListBox() const

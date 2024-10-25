@@ -135,7 +135,7 @@ private:
     virtual ui::Control* CreateControl(const DString& pstrClass) override;
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
-    virtual void OnInitWindow() override;
+    virtual void PostInitWindow() override;
     virtual void OnCloseWindow() override;
 
     /** 窗口失去焦点(WM_KILLFOCUS)

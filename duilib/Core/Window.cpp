@@ -1974,7 +1974,10 @@ void Window::AutoResizeWindow(bool bRepaint)
             UiRect rect;
             GetWindowRect(rect);
             if ((rect.Width() != needSize.cx) || (rect.Height() != needSize.cy)) {
-                MoveWindow(rect.left, rect.top, needSize.cx, needSize.cy, bRepaint);
+                Resize(needSize.cx, needSize.cy, true, false);
+                if (bRepaint) {
+                    InvalidateAll();
+                }
             }
         }
     }
