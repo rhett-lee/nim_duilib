@@ -1,5 +1,6 @@
 #include "FontMgr_Skia.h"
 #include "duilib/Utils/StringConvert.h"
+#include "duilib/Utils/PerformanceUtil.h"
 
 #pragma warning (push)
 #pragma warning (disable: 4244)
@@ -15,6 +16,8 @@
 #endif
 
 #pragma warning (pop)
+
+#include <map>
 
 namespace ui
 {
@@ -171,6 +174,10 @@ public:
     /** 默认的字体名称
     */
     DString m_defaultFontName;
+
+    /** 字体名称对应的FontStyleSet缓存（发现部分Linux系统创建字体时，速度特别慢，调用一次需要几十毫秒，所以有必要做缓存）
+    */
+    std::map<std::string, sk_sp<SkFontStyleSet>> m_fontStyleSetMap;
 };
 
 FontMgr_Skia::FontMgr_Skia()
@@ -243,17 +250,32 @@ bool FontMgr_Skia::HasFontName(const DString& fontName) const
     if (m_impl->m_pSkFontMgr == nullptr) {
         return false;
     }
+    bool bFound = false;
     std::string fontFamily = StringConvert::TToUTF8(fontName); //转换为UTF8格式
-    auto styleSet = m_impl->m_pSkFontMgr->matchFamily(fontFamily.c_str());
-    if ((styleSet != nullptr) && (styleSet->count() > 0)) {
-        return true;
+    int nCountFamilies = m_impl->m_pSkFontMgr->countFamilies();
+    for (int nIndex = 0; nIndex < nCountFamilies; ++nIndex) {
+        SkString fontFamilyName;
+        m_impl->m_pSkFontMgr->getFamilyName((int)nIndex, &fontFamilyName);
+        if (!fontFamilyName.isEmpty() && (fontFamily == fontFamilyName.c_str())) {
+            bFound = true;
+            break;
+        }
     }
-    return m_impl->m_fontFileMgr.HasFontName(fontName);
+    if (!bFound) {
+        bFound = m_impl->m_fontFileMgr.HasFontName(fontName);
+    }
+    return bFound;
 }
 
 void FontMgr_Skia::SetDefaultFontName(const DString& fontName)
 {
-    m_impl->m_defaultFontName = fontName;
+    if (HasFontName(fontName)) {
+        //字体必须存在
+        m_impl->m_defaultFontName = fontName;
+    }
+    else {
+        ASSERT(0);
+    }
 }
 
 bool FontMgr_Skia::LoadFontFile(const DString& fontFilePath)
@@ -298,8 +320,14 @@ void FontMgr_Skia::ClearFontFiles()
     m_impl->m_fontFileMgr.Clear();
 }
 
+void FontMgr_Skia::ClearFontCache()
+{
+    m_impl->m_fontStyleSetMap.clear();
+}
+
 SkFont* FontMgr_Skia::CreateSkFont(const UiFont& fontInfo)
 {
+    PerformanceStat statPerformance(_T("FontMgr_Skia::CreateSkFont"));
     ASSERT(!fontInfo.m_fontName.empty());
     if (fontInfo.m_fontName.empty()) {
         return nullptr;
@@ -320,39 +348,57 @@ SkFont* FontMgr_Skia::CreateSkFont(const UiFont& fontInfo)
     else if (fontInfo.m_bItalic) {
         fontStyle = SkFontStyle::Italic();
     }
-
-    //优先检查外部加载的字体是否满足要求, 如果未能匹配，再通过系统字体创建
-    sk_sp<SkTypeface> spTypeface = m_impl->m_fontFileMgr.MakeTypeface(fontInfo.m_fontName.c_str(), fontStyle);
-    if ((spTypeface == nullptr) && !m_impl->m_defaultFontName.empty()){
-        //未能匹配则查询默认字体是否能匹配
-        spTypeface = m_impl->m_fontFileMgr.MakeTypeface(m_impl->m_defaultFontName, fontStyle);
+    sk_sp<SkFontMgr> pSkFontMgr = m_impl->m_pSkFontMgr;
+    ASSERT(pSkFontMgr != nullptr);
+    if (pSkFontMgr == nullptr) {
+        return nullptr;
     }
-    if (spTypeface == nullptr) {
-        //UTF8编码的字体名称
-        std::string fontName = StringConvert::TToUTF8(fontInfo.m_fontName.c_str());
+
+    //需要创建的字体列表（包含默认字体）
+    std::vector<DString> fontNameList;
+    if (!fontInfo.m_fontName.empty() && HasFontName(fontInfo.m_fontName.c_str())) {
+        fontNameList.push_back(fontInfo.m_fontName.c_str());
+    }
+    if (!m_impl->m_defaultFontName.empty() && (m_impl->m_defaultFontName != fontInfo.m_fontName) && HasFontName(m_impl->m_defaultFontName)) {
+        fontNameList.push_back(m_impl->m_defaultFontName);
+    }
+
+    sk_sp<SkTypeface> spTypeface;
+    for (const DString& inFontName : fontNameList) {
+        //优先检查外部加载的字体是否满足要求, 如果未能匹配，再通过系统字体创建
+        spTypeface = m_impl->m_fontFileMgr.MakeTypeface(inFontName.c_str(), fontStyle);
+        if (spTypeface != nullptr) {
+            break;
+        }
+
+        //使用FontMgr接口创建字体
+        std::string fontName = StringConvert::TToUTF8(inFontName);
         ASSERT(!fontName.empty());
         if (fontName.empty()) {
-            return nullptr;
+            continue;
         }
-        sk_sp<SkFontMgr> pSkFontMgr = m_impl->m_pSkFontMgr;
-        ASSERT(pSkFontMgr != nullptr);
-        if (pSkFontMgr != nullptr) {
-            sk_sp<SkFontStyleSet> skFontStyleSet = pSkFontMgr->matchFamily(fontName.c_str());
+        sk_sp<SkFontStyleSet> skFontStyleSet;
+        auto iter = m_impl->m_fontStyleSetMap.find(fontName.c_str());
+        if (iter != m_impl->m_fontStyleSetMap.end()) {
+            skFontStyleSet = iter->second;
+        }
+        if (skFontStyleSet == nullptr) {
+            skFontStyleSet = pSkFontMgr->matchFamily(fontName.c_str());
             if (skFontStyleSet != nullptr) {
-                spTypeface = skFontStyleSet->matchStyle(fontStyle);
+                m_impl->m_fontStyleSetMap[fontName] = skFontStyleSet;
             }
-            if ((spTypeface == nullptr) && !m_impl->m_defaultFontName.empty()) {
-                //未能匹配则查询默认字体是否能匹配
-                std::string defaultFontName = StringConvert::TToUTF8(m_impl->m_defaultFontName);
-                skFontStyleSet = pSkFontMgr->matchFamily(defaultFontName.c_str());
-                if (skFontStyleSet != nullptr) {
-                    spTypeface = skFontStyleSet->matchStyle(fontStyle);
-                }
-            }
-            if (spTypeface == nullptr) {
-                spTypeface = pSkFontMgr->legacyMakeTypeface(fontName.c_str(), fontStyle);
-            }            
-        }          
+        }
+        if (skFontStyleSet != nullptr) {
+            spTypeface = skFontStyleSet->matchStyle(fontStyle);
+        }
+        if (spTypeface != nullptr) {
+            break;
+        }
+    }
+
+    if (spTypeface == nullptr) {
+        //使用系统默认字体（但不能保证正确，比如Windows平台，该接口创建的字体是不能显示中文的）
+        spTypeface = pSkFontMgr->legacyMakeTypeface(nullptr, fontStyle);
     }
     ASSERT(spTypeface != nullptr);
     if (spTypeface == nullptr) {

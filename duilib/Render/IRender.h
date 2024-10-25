@@ -86,6 +86,10 @@ public:
     /** 清除已加载的字体文件
     */
     virtual void ClearFontFiles() = 0;
+
+    /** 清除字体缓存
+    */
+    virtual void ClearFontCache() = 0;
 };
 
 /** Skia引擎需要传入Alpha类型
