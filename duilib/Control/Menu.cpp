@@ -999,7 +999,23 @@ void MenuItem::CreateMenuWnd()
             subXmlFile = FilePathUtil::JoinFilePath(xmlPath, subXmlFile);
         }
         m_pSubWindow->SetSubMenuXml(pParentWindow->m_submenuXml.c_str(), pParentWindow->m_submenuNodeName.c_str());
-        m_pSubWindow->ShowMenu(subXmlFile.ToString(), UiPoint(), MenuPopupPosType::RIGHT_BOTTOM, false, this);
+
+        //设置子菜单窗口的左上角坐标(避免子菜单弹出时出现闪黑屏现象)
+        UiPoint subMenuPt;
+        if (pWindow != nullptr) {
+            UiRect rcOwner = GetPos();
+            UiRect rc = rcOwner;
+            UiPadding rcCorner = pWindow->GetShadowCorner();
+            UiRect rcWindow;
+            GetWindow()->GetWindowRect(rcWindow);
+            //去阴影
+            rcWindow.Deflate(rcCorner);
+            GetWindow()->ClientToScreen(rc);
+            rc.left = rcWindow.right;
+            subMenuPt.x = rc.left - rcCorner.left;
+            subMenuPt.y = rc.top - rcCorner.top;
+        }
+        m_pSubWindow->ShowMenu(subXmlFile.ToString(), subMenuPt, MenuPopupPosType::RIGHT_BOTTOM, false, this);
     }
 }
 
