@@ -568,7 +568,9 @@ bool NativeWindow_SDL::CreateWnd(NativeWindow_SDL* pParentWindow,
         bool bMaximizeBox = false;
         if (m_pOwner->OnNativeHasMinMaxBox(bMinimizeBox, bMaximizeBox)) {
             //如果有最大化按钮，设置可调整窗口大小的属性
-            SDL_SetWindowResizable(m_sdlWindow, true);
+            if (bMaximizeBox) {
+                SDL_SetWindowResizable(m_sdlWindow, true);
+            }
         }
     }
     return true;
@@ -710,7 +712,9 @@ int32_t NativeWindow_SDL::DoModal(NativeWindow_SDL* pParentWindow,
         bool bMaximizeBox = false;
         if (m_pOwner->OnNativeHasMinMaxBox(bMinimizeBox, bMaximizeBox)) {
             //如果有最大化按钮，设置可调整窗口大小的属性
-            SDL_SetWindowResizable(m_sdlWindow, true);
+            if (bMaximizeBox) {
+                SDL_SetWindowResizable(m_sdlWindow, true);
+            }
         }
     }
 
