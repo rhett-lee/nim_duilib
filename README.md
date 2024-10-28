@@ -162,6 +162,7 @@
 （3）注意事项：skia源码应该与nim_duilib源码位于相同的目录下，目录结构：`/home/develop/skia/`  
 3. 获取并编译SDL库（nim_duilib内部使用SDL作为Linux平台的界面绘制引擎，所以先要编译SDL）：  
 （0）准备工作（Ubuntu/Debian/中科方德/OpenKylin/UbuntuKylin）：需要通过`sudo apt install libxext-dev`来安装libxext（必须安装）    
+（0）准备工作（OpenSuse）：需要通过`sudo zypper install libXext-devel`来安装libxext（必须安装）    
 （0）准备工作（Ubuntu/Debian/OpenKylin）：需要通过`sudo apt install libwayland-dev`来安装libwayland（可选，以支持wayland）    
 （0）准备工作（Ubuntu/Debian/OpenKylin）：需要通过`sudo apt install libxkbcommon-dev`来安装libxkbcommon（可选，以支持wayland）    
 （0）准备工作（Fedora）：需要通过`sudo dnf install wayland-devel`来安装libwayland（可选，以支持wayland）    
@@ -182,6 +183,21 @@
 （5）执行脚本编译：`./linux_build.sh`    
 （6）编译完成后，编译成功后，在libs目录生成了.a文件（libz.a、libpng.a、libwebp.a、libcximage.a、libduilib.a），在bin目录中生成了可执行文件。
 5. 备注：如果希望编译debug版本的.a文件，可在cmake的参数中追加：` -DCMAKE_BUILD_TYPE=Debug`
+6. 如果想自己编译最新版的gcc/g++（比如系统自带的gcc/g++版本较低时，由于不支持C++20，所以无法成功编译nim_duilib源码）    
+　　可以参照如下流程编译（以gcc-14.2.0为例）：    
+（1）创建源码目录：`cd /home/develop; mkdir src; cd src`    
+（2）进入工作目录：`/home/develop/src`    
+（3）下载：`wget https://ftp.gnu.org/gnu/gcc/gcc-14.2.0/gcc-14.2.0.tar.gz`    
+（4）解压：`tar -xzf gcc-14.2.0.tar.gz`    
+（5）下载gcc依赖的第三方库：进入gcc-14.2.0目录，然后下载依赖的第三方库    
+　　`cd /home/develop/src/gcc-14.2.0`    
+　　`./contrib/download_prerequisites`    
+（6）配置：    
+　　`mkdir -p /home/develop/src/gcc-14.2.0.build`    
+　　`cd /home/develop/src/gcc-14.2.0.build`    
+　　`../gcc-14.2.0/configure --prefix=/home/develop/install/gcc-14.2.0 --disable-multilib --enable-ld --enable-bootstrap`    
+（7）编译：`make -j 4` 多进程编译，编译参数可参考电脑实际有几个核心。    
+（8）安装：`make install`    
 
 ## 开发计划
  - 窗口的封装优化：支持跨平台的窗口引擎    
