@@ -156,12 +156,14 @@
 　　　OpenKylin（开放麒麟）平台参考文档：[OpenKylin下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenKylin%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)    
 　　　UbuntuKylin（优麒麟）平台参考文档：[UbuntuKylin下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/UbuntuKylin%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)    
 　　　中科方德平台参考文档：[中科方德下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/%E4%B8%AD%E7%A7%91%E6%96%B9%E5%BE%B7%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)    
+　　　统信UOS平台参考文档：[统信UOS下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/%E7%BB%9F%E4%BF%A1UOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)    
 　　　Ubuntu平台参考文档：[Ubuntu下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Ubuntu%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)    
 　　　Debian平台参考文档：[Debian下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Debian%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)    
 　　　Fedora平台参考文档：[Fedora下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Fedora%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)    
+　　　OpenSuse平台参考文档：[OpenSuse下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenSuse%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)    
 （3）注意事项：skia源码应该与nim_duilib源码位于相同的目录下，目录结构：`/home/develop/skia/`  
 3. 获取并编译SDL库（nim_duilib内部使用SDL作为Linux平台的界面绘制引擎，所以先要编译SDL）：  
-（0）准备工作（Ubuntu/Debian/中科方德/OpenKylin/UbuntuKylin）：需要通过`sudo apt install libxext-dev`来安装libxext（必须安装）    
+（0）准备工作（Ubuntu/Debian/中科方德/OpenKylin/UbuntuKylin/统信UOS）：需要通过`sudo apt install libxext-dev`来安装libxext（必须安装）    
 （0）准备工作（OpenSuse）：需要通过`sudo zypper install libXext-devel`来安装libxext（必须安装）    
 （0）准备工作（Ubuntu/Debian/OpenKylin）：需要通过`sudo apt install libwayland-dev`来安装libwayland（可选，以支持wayland）    
 （0）准备工作（Ubuntu/Debian/OpenKylin）：需要通过`sudo apt install libxkbcommon-dev`来安装libxkbcommon（可选，以支持wayland）    
@@ -198,6 +200,15 @@
 　　`../gcc-14.2.0/configure --prefix=/home/develop/install/gcc-14.2.0 --disable-multilib --enable-ld --enable-bootstrap`    
 （7）编译：`make -j 4` 多进程编译，编译参数可参考电脑实际有几个核心。    
 （8）安装：`make install`    
+（9）设置环境变量，以使新版gcc/g++可用：    
+　　`export PATH=/home/develop/install/gcc-14.2.0/bin/:$PATH`    
+　　`export LD_LIBRARY_PATH=/home/develop/install/gcc-14.2.0/lib64/:$LD_LIBRARY_PATH`    
+　　`export C_INCLUDE_PATH=/home/develop/install/gcc-14.2.0/include/c++/14.2.0/:/home/develop/install/gcc-14.2.0/include/c++/14.2.0/x86_64-pc-linux-gnu/:$C_INCLUDE_PATH`    
+　　`export CPLUS_INCLUDE_PATH=/home/develop/install/gcc-14.2.0/include/c++/14.2.0/:/home/develop/install/gcc-14.2.0/include/c++/14.2.0/x86_64-pc-linux-gnu/:$CPLUS_INCLUDE_PATH`    
+（10）进入项目目录并编译源码：  
+　　`cd /home/develop/nim_duilib`    
+　　`chmod +x linux_build.sh`    
+　　`./linux_build.sh`    
 
 ## 开发计划
  - 窗口的封装优化：支持跨平台的窗口引擎    
