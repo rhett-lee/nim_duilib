@@ -273,9 +273,7 @@
 　　`./linux_build.sh`    
 
 ## 开发计划
- - 窗口的封装优化：支持跨平台的窗口引擎    
- （目前正在开发基于[SDL3.0](https://www.libsdl.org/)的作为窗口管理器的方案，可实现界面库的跨平台的支持）    
- （相关的进度参见文档：[跨平台开发相关事项.md](跨平台开发相关事项.md)）
+ - 跨平台（Windows/Linux系统）的窗口引擎（基于[SDL3.0](https://www.libsdl.org/)）不断测试与完善（X11和Wayland）
  - 动画功能的加强
  - 不断测试发现缺陷并修复，不断完善代码
  - 其他待补充
@@ -285,3 +283,4 @@
  - [快速上手](docs/Getting-Started.md)
  - [参考文档](docs/Summary.md)
  - [示例程序](docs/Examples.md)
+ - 跨平台（Windows/Linux系统）的窗口引擎（基于[SDL3.0](https://www.libsdl.org/)），相关的进展参见文档：[跨平台开发相关事项.md](跨平台开发相关事项.md)
