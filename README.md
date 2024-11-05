@@ -153,6 +153,7 @@
 （3）编译skia源码：按照skia_compile目录中的说明文档中的方法，编译出skia相关的.a文件    
 　　　注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅    
 　　　检查方法：编译成功以后，在`skia/out`的子目录下，有生成`libskia.a`等.a文件    
+
 | 操作系统平台            |参考文档    |  备注 |
 | :---                    | :---       |:---   |
 |OpenEuler                |[OpenEuler下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenEuler%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|     |
@@ -164,8 +165,10 @@
 |Debian                   |[Debian下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Debian%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |     |
 |Fedora                   |[Fedora下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Fedora%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |     |
 |OpenSuse                 |[OpenSuse下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenSuse%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |     |
+
 3. 获取并编译SDL库（nim_duilib内部使用SDL作为Linux平台的界面绘制引擎，所以先要编译SDL）：  
 （0）准备工作    
+
 | 操作系统平台            |桌面类型        |需要安装的模块| 安装命令 | 可选/必选 |
 | :---                    | :---           | :---         | :---     | :---      |
 |OpenEuler                |UKUI/DDE（X11） |libxext       |`sudo dnf install libXext-devel`| 必选 |
