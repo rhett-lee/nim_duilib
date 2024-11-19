@@ -1237,6 +1237,25 @@ public:
     {
         return m_pNativeWindow->GetLayeredWindowAlpha();
     }
+
+    /** 获取界面需要绘制的区域，以实现局部绘制
+    * @param [out] rcUpdate 返回需要绘制的区域矩形范围
+    * @return 返回true表示支持局部绘制，返回false表示不支持局部绘制
+    */
+    virtual bool GetUpdateRect(UiRect& rcUpdate) const override
+    {
+        RECT rectUpdate = { 0, };
+        if (::GetUpdateRect(m_pNativeWindow->GetHWND(), &rectUpdate, FALSE)) {
+            rcUpdate.left = rectUpdate.left;
+            rcUpdate.top = rectUpdate.top;
+            rcUpdate.right = rectUpdate.right;
+            rcUpdate.bottom = rectUpdate.bottom;
+        }
+        else {
+            rcUpdate.Clear();
+        }
+        return !rcUpdate.IsEmpty();
+    }
 };
 
 LRESULT NativeWindow_Windows::OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
