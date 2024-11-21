@@ -40,72 +40,72 @@
     </tr>
     <tr>
         <td rowspan="9">整体改进</td>
-        <td>1. 调整了代码的组织结构，按照功能模块划分，大文件按类拆分为多个小文件，有利于理解整个库的体系结构</td>
+        <td align="left">1. 调整了代码的组织结构，按照功能模块划分，大文件按类拆分为多个小文件，有利于理解整个库的体系结构</td>
     </tr>
-    <tr><td>2. 梳理了代码的接口文件，补充各个接口的注释和功能注释，有利于阅读和理解代码</td></tr>
-    <tr><td>3. 对配置XML文件进行优化，调整了属性命名规则，控件的宽度和高度可以按百分比设置，图片属性增加了部分扩展，优化了图片加载流程</td></tr>
-    <tr><td>4. 扩展了图片资源的支持：新增加APNG/WEBP动画，新增对ICO的支持，并优化了图片加载引擎及代码实现逻辑</td></tr>
-    <tr><td>5. 对布局进行了梳理，归类为：自由布局（浮动布局）、水平布局、垂直布局、水平瓦片布局、垂直瓦片布局、虚表水平布局、虚表垂直布局、虚表水平瓦片布局、虚表垂直瓦片布局，使布局的概念更易理解，易于扩展</td></tr>
-    <tr><td>6. XML文件解析引擎替换为pugixml parser，性能更优</td></tr>
-    <tr><td>7. 移除对base库的依赖，消息循环和线程通信相关功能改为自己实现</td></tr>
-    <tr><td>8. 集成了Skia引擎，并作为默认的渲染引擎</td></tr>
-    <tr><td>9. 支持SDL3，支持跨平台（已经适配了Windows平台、Linux平台）</td></tr>    
+    <tr><td align="left">2. 梳理了代码的接口文件，补充各个接口的注释和功能注释，有利于阅读和理解代码</td></tr>
+    <tr><td align="left">3. 对配置XML文件进行优化，调整了属性命名规则，控件的宽度和高度可以按百分比设置，图片属性增加了部分扩展，优化了图片加载流程</td></tr>
+    <tr><td align="left">4. 扩展了图片资源的支持：新增加APNG/WEBP动画，新增对ICO的支持，并优化了图片加载引擎及代码实现逻辑</td></tr>
+    <tr><td align="left">5. 对布局进行了梳理，归类为：自由布局（浮动布局）、水平布局、垂直布局、水平瓦片布局、垂直瓦片布局、虚表水平布局、虚表垂直布局、虚表水平瓦片布局、虚表垂直瓦片布局，使布局的概念更易理解，易于扩展</td></tr>
+    <tr><td align="left">6. XML文件解析引擎替换为pugixml parser，性能更优</td></tr>
+    <tr><td align="left">7. 移除对base库的依赖，消息循环和线程通信相关功能改为自己实现</td></tr>
+    <tr><td align="left">8. 集成了Skia引擎，并作为默认的渲染引擎</td></tr>
+    <tr><td align="left">9. 支持SDL3，支持跨平台（已经适配了Windows平台、Linux平台）</td></tr>    
     <tr>
         <td rowspan="15">功能完善</td>
-        <td>1. 对窗口类（Window）增加了新的属性：的功能进行了完善，提高对DPI自适应、窗口消息的代码容错，代码结构做了调整</td>
+        <td align="left">1. 对窗口类（Window）增加了新的属性：的功能进行了完善，提高对DPI自适应、窗口消息的代码容错，代码结构做了调整</td>
     </tr>
-    <tr><td>2. 对窗口类（Window）增加了新的属性：use_system_caption，snap_layout_menu，sys_menu，sys_menu_rect, icon属性，提供使用操作系统默认标题栏的选项，自绘标题栏的功能与系统标题栏的功能相似</td></tr>
-    <tr><td>3. 对窗口（Window）引入WindowDropTarget辅助类，提供对基于窗口的拖放功能的支持</td></tr>
-    <tr><td>4. 对资源管理相关的部分做了梳理，使得字体、颜色、图片等资源管理更容易理解</td></tr>
-    <tr><td>5. 对ListBox控件进行了优化：细分为ListBox、VListBox、HListBox、VTileListBox、HTileListBox、VirtualListBox、VirtualVListBox、VirtualHListBox、VirtualVTileListBox、VirtualHTileListBox几种，功能更加完善，基于虚表的ListBox功能可用性提升</td></tr>
-    <tr><td>6. 对组合框（Combo）关联的控件（CheckCombo、FilterCombo）进行了优化，提升可用性</td></tr>
-    <tr><td>7. 对日期时间（DateTime）控件的编辑功能进行了完善</td></tr>
-    <tr><td>8. 对菜单（CMenuWnd）类的功能代码进行优化，按新的结构重新实现菜单，使得菜单内的控件完全兼容现有容器/控件体系，易于理解和维护</td></tr>
-    <tr><td>9. 对富文本编辑控件（RichEdit）进行功能优化和扩展，丰富了较多常用功能</td></tr>
-    <tr><td>10. 对树控件（TreeView）进行功能优化和扩展，丰富了较多常用功能，提升可用性</td></tr>
-    <tr><td>11. 全局资源（GlobalManager）的接口进行了优化，使得所有资源全部通过此接口管理，易于理解和维护</td></tr>
-    <tr><td>12. 同一个窗口内的不同容器之间，容器内的控件可以通过属性设置支持拖出和拖入操作</td></tr>
-    <tr><td>13. 控件的背景色支持渐变色</td></tr>
-    <tr><td>14. 完善了多国语言的功能，能够更好的支持多语言动态切换，并提供示例程序examples/MultiLang</td></tr>
-    <tr><td>15. 完善了DPI感知功能，支持Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配，提供了示例程序examples/DpiAware</td></tr>
+    <tr><td align="left">2. 对窗口类（Window）增加了新的属性：use_system_caption，snap_layout_menu，sys_menu，sys_menu_rect, icon属性，提供使用操作系统默认标题栏的选项，自绘标题栏的功能与系统标题栏的功能相似</td></tr>
+    <tr><td align="left">3. 对窗口（Window）引入WindowDropTarget辅助类，提供对基于窗口的拖放功能的支持</td></tr>
+    <tr><td align="left">4. 对资源管理相关的部分做了梳理，使得字体、颜色、图片等资源管理更容易理解</td></tr>
+    <tr><td align="left">5. 对ListBox控件进行了优化：细分为ListBox、VListBox、HListBox、VTileListBox、HTileListBox、VirtualListBox、VirtualVListBox、VirtualHListBox、VirtualVTileListBox、VirtualHTileListBox几种，功能更加完善，基于虚表的ListBox功能可用性提升</td></tr>
+    <tr><td align="left">6. 对组合框（Combo）关联的控件（CheckCombo、FilterCombo）进行了优化，提升可用性</td></tr>
+    <tr><td align="left">7. 对日期时间（DateTime）控件的编辑功能进行了完善</td></tr>
+    <tr><td align="left">8. 对菜单（CMenuWnd）类的功能代码进行优化，按新的结构重新实现菜单，使得菜单内的控件完全兼容现有容器/控件体系，易于理解和维护</td></tr>
+    <tr><td align="left">9. 对富文本编辑控件（RichEdit）进行功能优化和扩展，丰富了较多常用功能</td></tr>
+    <tr><td align="left">10. 对树控件（TreeView）进行功能优化和扩展，丰富了较多常用功能，提升可用性</td></tr>
+    <tr><td align="left">11. 全局资源（GlobalManager）的接口进行了优化，使得所有资源全部通过此接口管理，易于理解和维护</td></tr>
+    <tr><td align="left">12. 同一个窗口内的不同容器之间，容器内的控件可以通过属性设置支持拖出和拖入操作</td></tr>
+    <tr><td align="left">13. 控件的背景色支持渐变色</td></tr>
+    <tr><td align="left">14. 完善了多国语言的功能，能够更好的支持多语言动态切换，并提供示例程序examples/MultiLang</td></tr>
+    <tr><td align="left">15. 完善了DPI感知功能，支持Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配，提供了示例程序examples/DpiAware</td></tr>
     <tr>
         <td rowspan="13">新增控件</td>
-        <td>1. GroupBox：分组容器</td>
+        <td align="left">1. GroupBox：分组容器</td>
     </tr>
-    <tr><td>2. HotKey：热键控件</td></tr>
-    <tr><td>3. HyperLink：带有超级链接的文字</td></tr>
-    <tr><td>4. IPAddress：IP地址控件</td></tr>
-    <tr><td>5. Line：画线控件</td></tr>
-    <tr><td>6. RichText：格式化文本（类HTML格式）</td></tr>
-    <tr><td>7. Split: 分割条控件/容器</td></tr>
-    <tr><td>8. TabCtrl：多标签控件（类似浏览器的多标签）</td></tr>
-    <tr><td>9. ListCtrl：列表控件（Report/Icon/List三个视图）</td></tr>
-    <tr><td>10. PropertyGrid: 属性表控件，支持文本、数字、复选框、字体、颜色、日期、IP地址、热键、文件路径、文件夹等属性</td></tr>
-    <tr><td>11. ColorPicker：拾色器，独立窗口，其中的子控件，可以单独作为颜色控件来使用</td></tr>
-    <tr><td>12. ComboButton：带有下拉组合框的按钮</td></tr>
-    <tr><td>13. 新增加了ShadowWnd类：是WinImplBase的子类，使用附加阴影窗口实现的基类，实现了创建窗口并附加的功能，提供没有 kWS_EX_LAYERED 属性的窗口阴影</td></tr>
+    <tr><td align="left">2. HotKey：热键控件</td></tr>
+    <tr><td align="left">3. HyperLink：带有超级链接的文字</td></tr>
+    <tr><td align="left">4. IPAddress：IP地址控件</td></tr>
+    <tr><td align="left">5. Line：画线控件</td></tr>
+    <tr><td align="left">6. RichText：格式化文本（类HTML格式）</td></tr>
+    <tr><td align="left">7. Split: 分割条控件/容器</td></tr>
+    <tr><td align="left">8. TabCtrl：多标签控件（类似浏览器的多标签）</td></tr>
+    <tr><td align="left">9. ListCtrl：列表控件（Report/Icon/List三个视图）</td></tr>
+    <tr><td align="left">10. PropertyGrid: 属性表控件，支持文本、数字、复选框、字体、颜色、日期、IP地址、热键、文件路径、文件夹等属性</td></tr>
+    <tr><td align="left">11. ColorPicker：拾色器，独立窗口，其中的子控件，可以单独作为颜色控件来使用</td></tr>
+    <tr><td align="left">12. ComboButton：带有下拉组合框的按钮</td></tr>
+    <tr><td align="left">13. 新增加了ShadowWnd类：是WinImplBase的子类，使用附加阴影窗口实现的基类，实现了创建窗口并附加的功能，提供没有 kWS_EX_LAYERED 属性的窗口阴影</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
-        <td>1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>
+        <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>
     </tr>
-    <tr><td>2. 优化了动画绘制流程，合并定时器的触发事件，避免播放控件动画或者播放动画图片的过程中导致界面很卡的现象</td></tr>
-    <tr><td>3. 基于虚表的ListBox控件及关联控件：通过优化实现机制，使得可用性和性能有较大改善</td></tr>
+    <tr><td align="left">2. 优化了动画绘制流程，合并定时器的触发事件，避免播放控件动画或者播放动画图片的过程中导致界面很卡的现象</td></tr>
+    <tr><td align="left">3. 基于虚表的ListBox控件及关联控件：通过优化实现机制，使得可用性和性能有较大改善</td></tr>
     <tr>
         <td rowspan="8">示例程序完善</td>
-        <td>1. examples/ColorPicker: 新增加了拾色器示例程序</td>
+        <td align="left">1. examples/ColorPicker: 新增加了拾色器示例程序</td>
     </tr>
-    <tr><td>2. examples/ListCtrl：新增加了列表的示例程序，演示列表的个性功能</td></tr>
-    <tr><td>3. examples/render：新增加了渲染引擎示例程序，演示了大部分容器、控件、资源管理的功能</td></tr>
-    <tr><td>4. examples/TreeView：新增加了树控件的示例程序，演示了树控件的各种功能</td></tr>
-    <tr><td>5. examples/RichEdit：新增加了富文本编辑控件的示例程序，演示了富文本编辑控件的各种功能</td></tr>
-    <tr><td>6. examples/MultiLang：提供多语言的动态切换功能演示</td></tr>
-    <tr><td>7. examples/DpiAware：提供了DPI感知功能的功能演示</td></tr>
-    <tr><td>8. 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用</td></tr>
+    <tr><td align="left">2. examples/ListCtrl：新增加了列表的示例程序，演示列表的个性功能</td></tr>
+    <tr><td align="left">3. examples/render：新增加了渲染引擎示例程序，演示了大部分容器、控件、资源管理的功能</td></tr>
+    <tr><td align="left">4. examples/TreeView：新增加了树控件的示例程序，演示了树控件的各种功能</td></tr>
+    <tr><td align="left">5. examples/RichEdit：新增加了富文本编辑控件的示例程序，演示了富文本编辑控件的各种功能</td></tr>
+    <tr><td align="left">6. examples/MultiLang：提供多语言的动态切换功能演示</td></tr>
+    <tr><td align="left">7. examples/DpiAware：提供了DPI感知功能的功能演示</td></tr>
+    <tr><td align="left">8. 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用</td></tr>
     <tr>
         <td rowspan="8">完善文档</td>
-        <td>1. README.md和docs子目录的文档重新进行了梳理，使得阅读者更容易理解界面库的功能、用法，更易上手</td>
+        <td align="left">1. README.md和docs子目录的文档重新进行了梳理，使得阅读者更容易理解界面库的功能、用法，更易上手</td>
     </tr>
-    <tr><td>2. 各个控件的接口没有单独整理成文档，因为可以直接阅读接口文件中的注释来达到目的，目前各个接口的注释是比较完善的</td></tr>
+    <tr><td align="left">2. 各个控件的接口没有单独整理成文档，因为可以直接阅读接口文件中的注释来达到目的，目前各个接口的注释是比较完善的</td></tr>
 </table>
 
 ## 使用的第三方库说明
