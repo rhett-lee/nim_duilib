@@ -32,7 +32,7 @@ class IRenderPaint;
 class SkRasterWindowContext_Windows: public skwindow::internal::RasterWindowContext
 {
 public:
-    SkRasterWindowContext_Windows(HWND hWnd, const skwindow::DisplayParams& params);
+    SkRasterWindowContext_Windows(HWND hWnd, std::unique_ptr<const skwindow::DisplayParams> params);
     SkRasterWindowContext_Windows(const SkRasterWindowContext_Windows& r) = delete;
     SkRasterWindowContext_Windows& operator = (const SkRasterWindowContext_Windows& r) = delete;
     virtual ~SkRasterWindowContext_Windows() override;
@@ -41,7 +41,7 @@ public:
     virtual sk_sp<SkSurface> getBackbufferSurface() override;
     virtual bool isValid() override { return SkToBool(m_hWnd); }
     virtual void resize(int w, int h) override;
-    virtual void setDisplayParams(const skwindow::DisplayParams& params) override;
+    virtual void setDisplayParams(std::unique_ptr<const skwindow::DisplayParams> params) override;
 
 public:
     /** 绘制并刷新到屏幕（Render的实现已经与窗口关联）, 同步完成
