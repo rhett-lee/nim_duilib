@@ -8,8 +8,8 @@
 
 namespace ui {
 
-SkRasterWindowContext_SDL::SkRasterWindowContext_SDL(SDL_Window* sdlWindow, const skwindow::DisplayParams& params):
-    skwindow::internal::RasterWindowContext(params),
+SkRasterWindowContext_SDL::SkRasterWindowContext_SDL(SDL_Window* sdlWindow, std::unique_ptr<const skwindow::DisplayParams> params):
+    skwindow::internal::RasterWindowContext(std::move(params)),
     m_sdlWindow(sdlWindow),
     m_sdlTextrue(nullptr)
 {
@@ -31,9 +31,9 @@ SkRasterWindowContext_SDL::~SkRasterWindowContext_SDL()
     }
 }
 
-void SkRasterWindowContext_SDL::setDisplayParams(const skwindow::DisplayParams& params)
+void SkRasterWindowContext_SDL::setDisplayParams(std::unique_ptr<const skwindow::DisplayParams> params)
 {
-    fDisplayParams = params;
+    fDisplayParams = std::move(params);
     UiRect rect;
     GetClientRect(rect);
     this->resize(rect.Width(), rect.Height());
@@ -50,6 +50,13 @@ void SkRasterWindowContext_SDL::resize(int nWidth, int nHeight)
     if ((fWidth == nWidth) && (fHeight == nHeight)) {
         return;
     }
+    const skwindow::DisplayParams* pDisplayParams = getDisplayParams();
+    ASSERT(pDisplayParams != nullptr);
+    if (pDisplayParams == nullptr) {
+        return;
+    }
+
+
     fWidth = nWidth;
     fHeight = nHeight;
 
@@ -67,7 +74,7 @@ void SkRasterWindowContext_SDL::resize(int nWidth, int nHeight)
         return;
     }
 
-    SkImageInfo info = SkImageInfo::Make(nWidth, nHeight, fDisplayParams.fColorType, SkAlphaType::kPremul_SkAlphaType, fDisplayParams.fColorSpace);
+    SkImageInfo info = SkImageInfo::Make(nWidth, nHeight, pDisplayParams->colorType(), SkAlphaType::kPremul_SkAlphaType, pDisplayParams->colorSpace());
     m_fBackbufferSurface = SkSurfaces::WrapPixels(info, pixels, sizeof(uint32_t) * nWidth);
 
     if (m_sdlTextrue != nullptr) {
