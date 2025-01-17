@@ -18,9 +18,9 @@ namespace ui {
 * @param [in] hWnd 关联的窗口句柄，可以为nullptr
 * @param [in] params 显示相关的参数
 */
-std::unique_ptr<skwindow::WindowContext> MakeRasterForSDL(SDL_Window* sdlWindow, const skwindow::DisplayParams& params)
+std::unique_ptr<skwindow::WindowContext> MakeRasterForSDL(SDL_Window* sdlWindow, std::unique_ptr<const skwindow::DisplayParams> params)
 {
-    std::unique_ptr<skwindow::WindowContext> ctx(new SkRasterWindowContext_SDL(sdlWindow, params));
+    std::unique_ptr<skwindow::WindowContext> ctx(new SkRasterWindowContext_SDL(sdlWindow, std::move(params)));
     return ctx;
 }
 
@@ -60,7 +60,7 @@ Render_Skia_SDL::Render_Skia_SDL(SDL_Window* sdlWindow, RenderBackendType backen
     //如果GL不成功，则创建CPU绘制的上下文
     if (m_pWindowContext == nullptr) {
         //CPU绘制
-        m_pWindowContext = MakeRasterForSDL(m_sdlWindow, skwindow::DisplayParams());
+        m_pWindowContext = MakeRasterForSDL(m_sdlWindow, std::make_unique<skwindow::DisplayParams>());
         ASSERT(m_pWindowContext != nullptr);
         if (m_pWindowContext != nullptr) {
             m_backendType = RenderBackendType::kRaster_BackendType;
