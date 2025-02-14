@@ -74,6 +74,10 @@ Render_Skia::~Render_Skia()
         delete m_pSkPaint;
         m_pSkPaint = nullptr;
     }
+    if (m_pSkPointOrg) {
+        delete m_pSkPointOrg;
+        m_pSkPointOrg = nullptr;
+    }
 }
 
 RenderType Render_Skia::GetRenderType() const
