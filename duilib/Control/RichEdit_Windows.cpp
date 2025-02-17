@@ -3650,7 +3650,7 @@ void RichEdit::ScrollCaret()
     m_richCtrl.ScrollCaret();
 }
 
-int32_t RichEdit::InsertText(long nInsertAfterChar, const DString& text, bool bCanUndo)
+int32_t RichEdit::InsertText(int32_t nInsertAfterChar, const DString& text, bool bCanUndo)
 {
 #ifdef DUILIB_UNICODE
     return m_richCtrl.InsertText(nInsertAfterChar, text.c_str(), bCanUndo);
@@ -3659,12 +3659,12 @@ int32_t RichEdit::InsertText(long nInsertAfterChar, const DString& text, bool bC
 #endif
 }
 
-int32_t RichEdit::AppendText(const DString& strText, bool bCanUndo)
+int32_t RichEdit::AppendText(const DString& text, bool bCanUndo)
 {
 #ifdef DUILIB_UNICODE
-    return m_richCtrl.AppendText(strText.c_str(), bCanUndo);
+    return m_richCtrl.AppendText(text.c_str(), bCanUndo);
 #else
-    return m_richCtrl.AppendText(StringConvert::TToWString(strText).c_str(), bCanUndo);
+    return m_richCtrl.AppendText(StringConvert::TToWString(text).c_str(), bCanUndo);
 #endif
 }
 

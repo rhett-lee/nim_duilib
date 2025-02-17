@@ -83,6 +83,21 @@ public:
      */
     int32_t GetTextLength() const;
 
+    /** 插入文字
+     * @param[in] nInsertAfterChar 要插入的位置
+     * @param[in] text 要插入的文本
+     * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false，默认为 false
+     * @return 返回插入后的文本位置
+     */
+    int32_t InsertText(int32_t nInsertAfterChar, const DString& text, bool bCanUndo = false);
+
+    /** 追加文字
+     * @param[in] text 要追加的文字
+     * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false，默认为 false
+     * @return 返回追加后的文字位置
+     */
+    int32_t AppendText(const DString& text, bool bCanUndo = false);
+
     /** 是否为空
     */
     bool IsEmpty() const;
@@ -1020,7 +1035,7 @@ private:
     /** 选择一部分内容(内部函数)
      * @param[in] nStartChar 要选择的起始位置
      * @param[in] nEndChar 要选择的结束位置
-     * @return 返回选择的文字数量
+     * @return 返回选择的文字起始下标值
      */
     int32_t InternalSetSel(int32_t nStartChar, int32_t nEndChar);
 

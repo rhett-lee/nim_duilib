@@ -928,6 +928,20 @@ int32_t RichEdit::GetTextLength() const
     return (int32_t)m_pTextData->GetTextLength();
 }
 
+int32_t RichEdit::InsertText(int32_t nInsertAfterChar, const DString& text, bool bCanUndo)
+{
+    int32_t nRet = SetSel(nInsertAfterChar, nInsertAfterChar);
+    ReplaceSel(text, bCanUndo);
+    return nRet;
+}
+
+int32_t RichEdit::AppendText(const DString& text, bool bCanUndo)
+{
+    int32_t nRet = SetSel(-1, -1);
+    ReplaceSel(text, bCanUndo);
+    return nRet;
+}
+
 bool RichEdit::IsEmpty() const
 {
     return m_pTextData->IsEmpty();
@@ -1047,10 +1061,10 @@ void RichEdit::GetSel(int32_t& nStartChar, int32_t& nEndChar) const
 int32_t RichEdit::SetSel(int32_t nStartChar, int32_t nEndChar)
 {
     m_nSelXPos = -1;
-    int32_t nSelCount = InternalSetSel(nStartChar, nEndChar);
+    int32_t nSelStartChar = InternalSetSel(nStartChar, nEndChar);
     //确保选择末尾的字符可见
     EnsureCharVisible(nEndChar);
-    return nSelCount;
+    return nSelStartChar;
 }
 
 int32_t RichEdit::InternalSetSel(int32_t nStartChar, int32_t nEndChar)
@@ -1114,7 +1128,6 @@ int32_t RichEdit::InternalSetSel(int32_t nStartChar, int32_t nEndChar)
     bool bChanged = (m_nSelStartIndex != nStartChar) || (m_nSelEndCharIndex != nEndChar);
     m_nSelStartIndex = nStartChar;
     m_nSelEndCharIndex = nEndChar;
-    int32_t nSelCount = nEndChar - nStartChar;
 
     //根据选择的文本，调整光标的位置，并控制光标的显示或者隐藏
     SetCaretPos(nEndChar);
@@ -1126,7 +1139,7 @@ int32_t RichEdit::InternalSetSel(int32_t nStartChar, int32_t nEndChar)
         //触发文本选择变化事件
         SendEvent(kEventSelChange);
     }
-    return nSelCount;
+    return nStartChar;
 }
 
 void RichEdit::EnsureCharVisible(int32_t nCharIndex)

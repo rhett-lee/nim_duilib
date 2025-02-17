@@ -1046,7 +1046,7 @@ bool RichEditData::ReplaceText(int32_t nStartChar, int32_t nEndChar, const DStri
         if (!textView.empty()) {
             //插入新行
             RichTextLineInfoPtr lineTextInfo(new RichTextLineInfo);
-            lineTextInfo->m_lineText = textView.data();
+            lineTextInfo->m_lineText = textView;
             lineTextInfo->m_nLineTextLen = (uint32_t)textView.size();
             m_lineTextInfo.insert(m_lineTextInfo.begin() + nStartLine + nNewLineCount, lineTextInfo);
             ++nNewLineCount;

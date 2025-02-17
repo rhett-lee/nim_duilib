@@ -35,7 +35,7 @@ public:
     UiStringT(const std::basic_string_view<value_type>& str) : m_pData(nullptr)
     {
         if (!str.empty()) {
-            size_t strSize = StringUtil::StringLen(str.data());
+            size_t strSize = str.size();
             m_pData = new value_type[strSize + 1];
             StringUtil::StringCopy(m_pData, strSize + 1, str.data());
         }
@@ -45,7 +45,7 @@ public:
         if (pstr != nullptr) {
             std::basic_string_view<value_type> str(pstr);
             if (!str.empty()) {
-                size_t strSize = StringUtil::StringLen(str.data());
+                size_t strSize = str.size();
                 m_pData = new value_type[strSize + 1];
                 StringUtil::StringCopy(m_pData, strSize + 1, str.data());
             }

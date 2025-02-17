@@ -784,14 +784,14 @@ public:
      * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false，默认为 false
      * @return 返回插入后的文本位置
      */
-    int32_t InsertText(long nInsertAfterChar, const DString& text, bool bCanUndo = false);
+    int32_t InsertText(int32_t nInsertAfterChar, const DString& text, bool bCanUndo = false);
 
     /** 追加文字
-     * @param[in] strText 要追加的文字
+     * @param[in] text 要追加的文字
      * @param[in] bCanUndo 是否可以撤销，true 为可以，否则为 false，默认为 false
      * @return 返回追加后的文字位置
      */
-    int32_t AppendText(const DString& strText, bool bCanUndo = false);
+    int32_t AppendText(const DString& text, bool bCanUndo = false);
 
     /** 获取字符格式
      * @param[out] cf 返回获取的字符格式
