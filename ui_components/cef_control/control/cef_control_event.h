@@ -5,6 +5,9 @@
 * @date 2016/7/22
 */
 #pragma once
+
+#include "duilib/duilib_config.h"
+
 #pragma warning (push)
 #pragma warning (disable:4100)
 #include "include/cef_load_handler.h"
@@ -25,7 +28,7 @@ namespace nim_comp
     typedef std::function<void(const DString& url)> OnUrlChangeEvent;
 
     typedef std::function<bool(const DString& url)> OnLinkClickEvent;
-    typedef std::function<CefRequestHandler::ReturnValue(CefRefPtr<CefRequest> request, bool is_redirect)> OnBeforeResourceLoadEvent;
+    typedef std::function<CefResourceRequestHandler::ReturnValue(CefRefPtr<CefRequest> request, bool is_redirect)> OnBeforeResourceLoadEvent;
     typedef std::function<void(const CefString& old_url, const CefString& new_url)> OnMainURLChengeEvent;
 
     typedef std::function<void(bool isLoading, bool canGoBack, bool canGoForward)> OnLoadingStateChangeEvent;
@@ -43,5 +46,6 @@ namespace nim_comp
     typedef std::function<void(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item, const CefString& suggested_name, CefRefPtr<CefBeforeDownloadCallback> callback)> OnBeforeDownloadEvent;
     typedef std::function<void(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item, CefRefPtr<CefDownloadItemCallback> callback)> OnDownloadUpdatedEvent;
 
+    //TODO: 修正参数
     typedef std::function<bool(CefDialogHandler::FileDialogMode mode, const CefString& title, const CefString& default_file_path, const std::vector<CefString>& accept_filters, int selected_accept_filter, CefRefPtr<CefFileDialogCallback> callback)> OnFileDialogEvent;
 }

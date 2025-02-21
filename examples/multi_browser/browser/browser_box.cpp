@@ -149,7 +149,7 @@ bool BrowserBox::OnLinkClick(const DString& url)
     return true;
 }
 
-CefRequestHandler::ReturnValue BrowserBox::OnBeforeNavigate(CefRefPtr<CefRequest> request, bool is_redirect)
+cef_return_value_t BrowserBox::OnBeforeNavigate(CefRefPtr<CefRequest> request, bool is_redirect)
 {
     // 返回RV_CANCEL截断导航
     return RV_CONTINUE;

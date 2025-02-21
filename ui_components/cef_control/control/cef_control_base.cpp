@@ -139,7 +139,7 @@ void CefControlBase::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const Ce
         cb_protocol_execution_(browser, url, allow_os_execution);
 }
 
-CefRequestHandler::ReturnValue CefControlBase::OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, CefRefPtr<CefRequestCallback> callback)
+cef_return_value_t CefControlBase::OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, CefRefPtr<CefCallback> callback)
 {
     if (cb_before_resource_load_)
         return cb_before_resource_load_(request, false);
@@ -172,12 +172,12 @@ bool CefControlBase::OnFileDialog(CefRefPtr<CefBrowser> browser, CefDialogHandle
         return false;
 }
 
-bool CefControlBase::OnExecuteCppFunc(const CefString& function_name, const CefString& params, int js_callback_id, CefRefPtr<CefBrowser> browser)
+bool CefControlBase::OnExecuteCppFunc(const CefString& function_name, const CefString& params, int js_callback_id, CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
 {
     if (js_bridge_.get())
     {
         js_callback_thread_id_ = ui::GlobalManager::Instance().Thread().GetCurrentThreadIdentifier();
-        return js_bridge_->ExecuteCppFunc(function_name, params, js_callback_id, browser);
+        return js_bridge_->ExecuteCppFunc(function_name, params, js_callback_id, browser, frame);
     }
 
     return false;

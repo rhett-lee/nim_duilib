@@ -7,7 +7,6 @@
 #pragma warning (disable:4100)
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
-#include "include/cef_runnable.h"
 #pragma warning (pop)
 
 namespace nim_comp {
@@ -44,29 +43,6 @@ void CefControlBase::LoadURL(const CefString& url)
             ui::StdClosure cb = ToWeakCallback([this, url]()
             {
                 LoadURL(url);
-            });
-            browser_handler_->AddAfterCreateTask(cb);
-        }
-    }
-}
-
-void CefControlBase::LoadString(const CefString& stringW, const CefString& url)
-{
-    if (browser_handler_.get() && browser_handler_->GetBrowser().get())
-    {
-        CefRefPtr<CefFrame> frame = browser_handler_->GetBrowser()->GetMainFrame();
-        if (!frame)
-            return;
-
-        frame->LoadString(stringW, url);
-    }
-    else
-    {
-        if (browser_handler_.get())
-        {
-            ui::StdClosure cb = ToWeakCallback([this, stringW, url]()
-            {
-                LoadString(stringW, url);
             });
             browser_handler_->AddAfterCreateTask(cb);
         }
@@ -170,7 +146,7 @@ std::string CefControlBase::GetUTF8URL()
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get())
     {
-        return ui::StringConvert::WStringToUTF8(GetURL().c_str());
+        return ui::StringConvert::WStringToUTF8((const wchar_t*)GetURL().c_str());
     }
 
     return CefString();
@@ -206,7 +182,7 @@ bool CefControlBase::CallJSFunction(const DString& js_function_name, const DStri
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() && js_bridge_.get())
     {
-        CefRefPtr<CefFrame> frame = frame_name == _T("") ? browser_handler_->GetBrowser()->GetMainFrame() : browser_handler_->GetBrowser()->GetFrame(frame_name);
+        CefRefPtr<CefFrame> frame = frame_name == _T("") ? browser_handler_->GetBrowser()->GetMainFrame() : browser_handler_->GetBrowser()->GetFrameByName(frame_name);
 
         if (!js_bridge_->CallJSFunction(ui::StringConvert::TToUTF8(js_function_name).c_str(),
             ui::StringConvert::TToUTF8(params).c_str(), frame, callback))
@@ -220,11 +196,11 @@ bool CefControlBase::CallJSFunction(const DString& js_function_name, const DStri
     return false;
 }
 
-bool CefControlBase::CallJSFunction(const DString& js_function_name, const DString& params, nim_comp::CallJsFunctionCallback callback, int frame_id)
+bool CefControlBase::CallJSFunction(const DString& js_function_name, const DString& params, nim_comp::CallJsFunctionCallback callback, const CefString& frame_id)
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() && js_bridge_.get())
     {
-        CefRefPtr<CefFrame> frame = browser_handler_->GetBrowser()->GetFrame(frame_id);
+        CefRefPtr<CefFrame> frame = browser_handler_->GetBrowser()->GetFrameByIdentifier(frame_id);
 
         if (!js_bridge_->CallJSFunction(ui::StringConvert::TToUTF8(js_function_name).c_str(),
             ui::StringConvert::TToUTF8(params).c_str(), frame, callback))

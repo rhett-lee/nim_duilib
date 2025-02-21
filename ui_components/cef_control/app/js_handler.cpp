@@ -23,7 +23,7 @@ bool CefJSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object, 
     CefRefPtr<CefBrowser> browser = context->GetBrowser();
 
     int64_t browser_id = browser->GetIdentifier();
-    int64_t frame_id = frame->GetIdentifier();
+    CefString frame_id = frame->GetIdentifier();
     (void)browser_id;
     (void)frame_id;
 

@@ -6,7 +6,11 @@
 #pragma warning (disable:4100)
 #include "include/wrapper/cef_closure_task.h"
 #include "include/base/cef_bind.h"
+#include "include/base/cef_callback.h"
 #pragma warning (pop)
+
+//TODO: 
+#pragma comment (lib, "libcef.lib")
 
 namespace nim_comp
 {
@@ -53,9 +57,9 @@ void CefManager::AddCefDllToPath()
     ui::FilePath cef_path = ui::FilePathUtil::GetCurrentModuleDirectory();
 
 #ifdef _WIN64
-    cef_path += _T("cef_x64");
+    cef_path += _T("libcef\\x64");
 #else
-    cef_path += _T("cef");
+    cef_path += _T("libcef\\Win32");
 #endif
 
     if (!cef_path.IsExistsDirectory()) {
@@ -65,11 +69,6 @@ void CefManager::AddCefDllToPath()
     DString new_envirom(cef_path.NativePath());
     new_envirom.append(_T(";")).append(path_envirom);
     SetEnvironmentVariable(_T("path"), new_envirom.c_str());
-
-    // 解决播放flash弹出黑框的问题
-    // https://blog.csdn.net/zhuhongshu/article/details/77482985
-    DString cmd_path = cef_path.NativePath() + _T("\\dummy_cmd.exe");
-    SetEnvironmentVariable(_T("ComSpec"), cmd_path.c_str());
 }
 
 // Cef的初始化接口，同时备注了使用各个版本的Cef时遇到的各种坑
@@ -100,7 +99,7 @@ bool CefManager::Initialize(const DString& app_data_dir, CefSettings &settings, 
     if (is_enable_offset_render_)
     {
         HWND hwnd = ::CreateWindowW(L"Static", L"", WS_POPUP, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
-        CefPostTask(TID_UI, base::Bind(&FixContextMenuBug, hwnd));
+        CefPostTask(TID_UI, base::BindOnce(&FixContextMenuBug, hwnd));
     }
 
     return bRet;
@@ -210,14 +209,6 @@ void CefManager::GetCefSetting(const DString& app_data_dir, CefSettings &setting
 
     // 设置debug log文件位置
     CefString(&settings.log_file) = app_data_dir + _T("cef.log");
-
-    // 调试模型下使用单进程，但是千万不要在release发布版本中使用，官方已经不推荐使用单进程模式
-    // cef1916版本debug模式:在单进程模式下程序退出时会触发中断
-#ifdef _DEBUG
-    settings.single_process = true;
-#else
-    settings.single_process = false;
-#endif
 
     // cef2623、2526版本debug模式:在使用multi_threaded_message_loop时退出程序会触发中断
     // 加入disable-extensions参数可以修复这个问题，但是会导致一些页面打开时报错

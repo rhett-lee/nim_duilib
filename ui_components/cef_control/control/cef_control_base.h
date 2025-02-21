@@ -32,14 +32,6 @@ public:
     void LoadURL(const CefString& url);
 
     /**
-    * @brief 给指定地址添加一个字符串资源
-    * @param[in] stringW 字符串资源
-    * @param[in] url 网址
-    * @return 无
-    */
-    void LoadString(const CefString& stringW, const CefString& url);
-
-    /**
     * @brief 后退
     * @return 无
     */
@@ -154,7 +146,7 @@ public:
     * @param[in] frame_id 要调用哪个 ID frame 下的方法，默认使用主 frame
     * @return 返回 true 表示成功调用，false 表示调用失败，方法可能不存在
     */
-    bool CallJSFunction(const DString& js_function_name, const DString& params, nim_comp::CallJsFunctionCallback callback, int frame_id);
+    bool CallJSFunction(const DString& js_function_name, const DString& params, nim_comp::CallJsFunctionCallback callback, const CefString& frame_id);
 
     /**
     * @brief 修复浏览器
@@ -328,40 +320,40 @@ private:
         const CefRenderHandler::RectList& dirtyRects,
         const std::string* buffer,
         int width,
-        int height) OVERRIDE;
-    virtual void ClientToControl(POINT &pt) OVERRIDE;
+        int height) override;
+    virtual void ClientToControl(POINT &pt) override;
 
-    virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) OVERRIDE;
+    virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) override;
 
-    virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) OVERRIDE;
+    virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) override;
 
-    virtual void UpdateWindowPos() OVERRIDE;
+    virtual void UpdateWindowPos() override;
 
 protected:
-    virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model) OVERRIDE;
+    virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model) override;
 
 public:
     virtual bool OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefFrame> frame,
         CefRefPtr<CefContextMenuParams> params,
         int command_id,
-        CefContextMenuHandler::EventFlags event_flags) OVERRIDE;
+        CefContextMenuHandler::EventFlags event_flags) override;
 
-    virtual void OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& url) OVERRIDE;
+    virtual void OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& url) override;
 
-    virtual void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) OVERRIDE;
+    virtual void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) override;
 
-    virtual void OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward) OVERRIDE;
+    virtual void OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward) override;
 
-    virtual void OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame) OVERRIDE;
+    virtual void OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame) override;
 
-    virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) OVERRIDE;
+    virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) override;
 
     virtual void OnLoadError(CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefFrame> frame,
         CefLoadHandler::ErrorCode errorCode,
         const CefString& errorText,
-        const CefString& failedUrl) OVERRIDE;
+        const CefString& failedUrl) override;
 
     // 在非UI线程中被调用
     virtual bool OnBeforePopup(CefRefPtr<CefBrowser> browser,
@@ -374,36 +366,36 @@ public:
         CefWindowInfo& windowInfo,
         CefRefPtr<CefClient>& client,
         CefBrowserSettings& settings,
-        bool* no_javascript_access) OVERRIDE;
+        bool* no_javascript_access) override;
 
-    virtual bool OnAfterCreated(CefRefPtr<CefBrowser> browser) OVERRIDE;
+    virtual bool OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
 
-    virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) OVERRIDE;
-
-    // 在非UI线程中被调用
-    virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool is_redirect) OVERRIDE;
-
-    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution) OVERRIDE;
+    virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
 
     // 在非UI线程中被调用
-    virtual CefRequestHandler::ReturnValue OnBeforeResourceLoad(
+    virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool is_redirect) override;
+
+    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution) override;
+
+    // 在非UI线程中被调用
+    virtual cef_return_value_t OnBeforeResourceLoad(
         CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefFrame> frame,
         CefRefPtr<CefRequest> request,
-        CefRefPtr<CefRequestCallback> callback) OVERRIDE;
+        CefRefPtr<CefCallback> callback) override;
 
-    virtual void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, CefRequestHandler::TerminationStatus status) OVERRIDE;
+    virtual void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, CefRequestHandler::TerminationStatus status) override;
 
     // 下载文件相关
     virtual void OnBeforeDownload(CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefDownloadItem> download_item,
         const CefString& suggested_name,
-        CefRefPtr<CefBeforeDownloadCallback> callback) OVERRIDE;
+        CefRefPtr<CefBeforeDownloadCallback> callback) override;
 
     virtual void OnDownloadUpdated(
         CefRefPtr<CefBrowser> browser,
         CefRefPtr<CefDownloadItem> download_item,
-        CefRefPtr<CefDownloadItemCallback> callback) OVERRIDE;
+        CefRefPtr<CefDownloadItemCallback> callback) override;
 
     // 打开文件相关
     virtual bool OnFileDialog(
@@ -413,11 +405,11 @@ public:
         const CefString& default_file_path,
         const std::vector<CefString>& accept_filters,
         int selected_accept_filter,
-        CefRefPtr<CefFileDialogCallback> callback) OVERRIDE;
+        CefRefPtr<CefFileDialogCallback> callback) override;
 
-    virtual bool OnExecuteCppFunc(const CefString& function_name, const CefString& params, int js_callback_id, CefRefPtr<CefBrowser> browser) OVERRIDE;
+    virtual bool OnExecuteCppFunc(const CefString& function_name, const CefString& params, int js_callback_id, CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame) override;
 
-    virtual bool OnExecuteCppCallbackFunc(int cpp_callback_id, const CefString& json_string) OVERRIDE;
+    virtual bool OnExecuteCppCallbackFunc(int cpp_callback_id, const CefString& json_string) override;
 
 protected:
     CefRefPtr<nim_comp::BrowserHandler> browser_handler_ = nullptr;

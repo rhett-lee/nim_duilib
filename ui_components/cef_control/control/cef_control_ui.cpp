@@ -10,7 +10,6 @@
 #pragma warning (disable:4100)
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
-#include "include/cef_runnable.h"
 #pragma warning (pop)
 
 namespace nim_comp {
@@ -67,11 +66,11 @@ void CefControl::ReCreateBrowser()
     {
         // 使用无窗模式，离屏渲染
         CefWindowInfo window_info;
-        window_info.SetAsWindowless(GetWindow()->NativeWnd()->GetHWND(), false);
+        window_info.SetAsWindowless(GetWindow()->NativeWnd()->GetHWND());
         CefBrowserSettings browser_settings;
         //browser_settings.file_access_from_file_urls = STATE_ENABLED;
         //browser_settings.universal_access_from_file_urls = STATE_ENABLED;
-        CefBrowserHost::CreateBrowser(window_info, browser_handler_, _T(""), browser_settings, NULL);
+        CefBrowserHost::CreateBrowser(window_info, browser_handler_, _T(""), browser_settings, nullptr, nullptr);
     }    
 }
 
@@ -104,12 +103,12 @@ void CefControl::HandleEvent(const ui::EventArgs& msg)
 
     else if (msg.eventType == ui::kEventSetFocus) {
         if (browser_handler_->GetBrowserHost().get()) {
-            browser_handler_->GetBrowserHost()->SendFocusEvent(true);
+            browser_handler_->GetBrowserHost()->SetFocus(true);
         }
     }
     else if (msg.eventType == ui::kEventKillFocus) {
         if (browser_handler_->GetBrowserHost().get()) {
-            browser_handler_->GetBrowserHost()->SendFocusEvent(false);
+            browser_handler_->GetBrowserHost()->SetFocus(false);
         }
     }
 
@@ -306,7 +305,7 @@ bool CefControl::AttachDevTools(Control* control)
     else
     {
         CefWindowInfo windowInfo;
-        windowInfo.SetAsWindowless(GetWindow()->NativeWnd()->GetHWND(), false);
+        windowInfo.SetAsWindowless(GetWindow()->NativeWnd()->GetHWND());
         CefBrowserSettings settings;
         browser->GetHost()->ShowDevTools(windowInfo, view_browser->GetHost()->GetClient(), settings, CefPoint());
         devtool_attached_ = true;
