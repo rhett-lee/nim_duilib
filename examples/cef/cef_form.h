@@ -4,9 +4,8 @@
 // duilib
 #include "duilib/duilib.h"
 
-// ui components
-#include "ui_components/ui_components.h"
-#include "ui_components/ui_cef_control.h"
+// CEF
+#include "duilib/duilib_cef.h"
 
 // 控制是否使用离屏渲染：
 // 当为 true  时将使用默认窗口阴影方案，离屏渲染模式下窗口有 WS_EX_LAYERED 属性；
@@ -44,8 +43,8 @@ private:
     void OnLoadEnd(int httpStatusCode);
 
 private:
-    nim_comp::CefControlBase* cef_control_;
-    nim_comp::CefControlBase* cef_control_dev_;
+    ui::CefControlBase* cef_control_;
+    ui::CefControlBase* cef_control_dev_;
     ui::Button*            btn_dev_tool_;
     ui::RichEdit*        edit_url_;
 };

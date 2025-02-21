@@ -105,7 +105,7 @@ void MultiBrowserManager::RemoveBorwserBox( std::string id, const BrowserBox* bo
     }
 
     if (box_map_.empty())
-        nim_comp::CefManager::GetInstance()->PostQuitMessage(0);
+        ui::CefManager::GetInstance()->PostQuitMessage(0);
 }
 
 void MultiBrowserManager::SetEnableMerge(bool enable)

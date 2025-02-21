@@ -22,7 +22,7 @@ MultiBrowserForm* BrowserBox::GetBrowserForm() const
     return browser_form_;
 }
 
-nim_comp::CefControlBase* BrowserBox::GetCefControl()
+ui::CefControlBase* BrowserBox::GetCefControl()
 {
     return cef_control_;
 }
@@ -34,7 +34,7 @@ DString& BrowserBox::GetTitle()
 
 void BrowserBox::InitBrowserBox(const DString &url)
 {
-    cef_control_ = static_cast<nim_comp::CefControlBase*>(FindSubControl(_T("cef_control")));
+    cef_control_ = static_cast<ui::CefControlBase*>(FindSubControl(_T("cef_control")));
     cef_control_->AttachBeforeContextMenu(UiBind(&BrowserBox::OnBeforeMenu, this, std::placeholders::_1, std::placeholders::_2));
     cef_control_->AttachMenuCommand(UiBind(&BrowserBox::OnMenuCommand, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     cef_control_->AttachTitleChange(UiBind(&BrowserBox::OnTitleChange, this, std::placeholders::_1));
@@ -84,10 +84,10 @@ ui::Control* BrowserBox::CreateControl(const DString& pstrClass)
 {
     if (pstrClass == _T("CefControl"))
     {
-        if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender())
-            return new nim_comp::CefControl(GetWindow());
+        if (ui::CefManager::GetInstance()->IsEnableOffsetRender())
+            return new ui::CefControl(GetWindow());
         else
-            return new nim_comp::CefNativeControl(GetWindow());
+            return new ui::CefNativeControl(GetWindow());
     }
 
     return NULL;
@@ -168,7 +168,7 @@ void BrowserBox::OnLoadStart()
 void BrowserBox::OnLoadEnd(int httpStatusCode)
 {
     // 注册一个方法提供前端调用
-    cef_control_->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([](const std::string& params, nim_comp::ReportResultFunction callback) {
+    cef_control_->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([](const std::string& params, ui::ReportResultFunction callback) {
         ::MessageBoxW(NULL, ui::StringConvert::UTF8ToWString(params).c_str(), L"接收到 JavaScript 发来的消息", MB_OK);
         callback(false, R"({ "message": "Success." })");
     }));
