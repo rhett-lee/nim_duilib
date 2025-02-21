@@ -1,9 +1,6 @@
 #ifndef UI_COMPONENTS_H_
 #define UI_COMPONENTS_H_
 
-#include "ui_components/msgbox/msgbox.h"
-#include "ui_components/toast/toast.h"
-
 #if 0
 // CEF 控件需要使用第三方 libcef_dll_wrapper 封装层
 // 需要引入时请从项目模块直接引入

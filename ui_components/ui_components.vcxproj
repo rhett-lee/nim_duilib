@@ -219,9 +219,7 @@
     <ClInclude Include="cef_control\manager\cef_manager.h" />
     <ClInclude Include="cef_control\util\memory_dc.h" />
     <ClInclude Include="cef_control\util\util.h" />
-    <ClInclude Include="msgbox\msgbox.h" />
     <ClInclude Include="targetver.h" />
-    <ClInclude Include="toast\toast.h" />
     <ClInclude Include="ui_components.h" />
   </ItemGroup>
   <ItemGroup>
@@ -241,8 +239,6 @@
     <ClCompile Include="cef_control\handler\drag\util_win.cc" />
     <ClCompile Include="cef_control\manager\cef_manager.cpp" />
     <ClCompile Include="cef_control\util\memory_dc.cpp" />
-    <ClCompile Include="msgbox\msgbox.cpp" />
-    <ClCompile Include="toast\toast.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

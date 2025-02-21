@@ -5,12 +5,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="msgbox">
-      <UniqueIdentifier>{a8b7a538-745b-4449-bd1d-1d1f08187341}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="toast">
-      <UniqueIdentifier>{58d06459-bf5d-48b5-b653-9461e77b1773}</UniqueIdentifier>
-    </Filter>
     <Filter Include="cef_control">
       <UniqueIdentifier>{510a5c72-09fb-4840-b95d-6978a740e3ab}</UniqueIdentifier>
     </Filter>
@@ -36,12 +30,6 @@
   <ItemGroup>
     <ClInclude Include="targetver.h">
       <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="msgbox\msgbox.h">
-      <Filter>msgbox</Filter>
-    </ClInclude>
-    <ClInclude Include="toast\toast.h">
-      <Filter>toast</Filter>
     </ClInclude>
     <ClInclude Include="ui_components.h">
       <Filter>头文件</Filter>
@@ -102,12 +90,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="msgbox\msgbox.cpp">
-      <Filter>msgbox</Filter>
-    </ClCompile>
-    <ClCompile Include="toast\toast.cpp">
-      <Filter>toast</Filter>
-    </ClCompile>
     <ClCompile Include="cef_control\app\cef_js_bridge.cpp">
       <Filter>cef_control\app</Filter>
     </ClCompile>
