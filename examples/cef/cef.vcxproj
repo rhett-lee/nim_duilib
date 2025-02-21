@@ -244,9 +244,6 @@
     <ProjectReference Include="..\..\duilib\third_party\libwebp\libwebp.vcxproj">
       <Project>{9ce07309-2808-45fa-b1af-ef49510e83ab}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\ui_components\ui_components.vcxproj">
-      <Project>{0149ba6e-3c0a-426d-aa0a-0b9ec7742f19}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

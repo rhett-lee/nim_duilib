@@ -4,9 +4,8 @@
 // duilib
 #include "duilib/duilib.h"
 
-// ui components
-#include "ui_components/ui_components.h"
-#include "ui_components/ui_cef_control.h"
+// CEF
+#include "duilib/duilib_cef.h"
 
 /** @file browser_box.h
 * @brief 标签页盒子
@@ -45,7 +44,7 @@ public:
     * 获取Cef控件指针
     * @return ui::CefControlBase* Cef控件
     */
-    nim_comp::CefControlBase* GetCefControl();
+    ui::CefControlBase* GetCefControl();
 
     /**
     * 获取网页标题
@@ -114,7 +113,7 @@ private:
     void OnLoadError(CefLoadHandler::ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl);
 
 private:
-    nim_comp::CefControlBase    *cef_control_;
+    ui::CefControlBase    *cef_control_;
 
     // 任务栏缩略图管理
     TaskbarTabItem        *taskbar_item_;

@@ -47,6 +47,7 @@
 //
 
 #include "duilib.h"
+#include "duilib_cef.h"
 
 #ifdef UILIB_DLL
 

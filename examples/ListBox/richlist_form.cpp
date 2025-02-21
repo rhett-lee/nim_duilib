@@ -71,7 +71,7 @@ bool RichlistForm::OnSelected(const ui::EventArgs& args)
             m_pListBox->EnsureVisible(21, vVisibleType, hVisibleType);
         }
     }*/
-    //nim_comp::ShowMsgBox(GetHWND(), nim_comp::MsgboxCallback(), message, false, _T("提示"), false);
+    //ui::ShowMsgBox(GetHWND(), ui::MsgboxCallback(), message, false, _T("提示"), false);
 
     return true;
 }

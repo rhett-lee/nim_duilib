@@ -15,7 +15,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     // 将 bin\\cef 目录添加到环境变量，这样可以将所有 CEF 相关文件放到该目录下，方便管理
     // 在项目属性->连接器->输入，延迟加载 nim_libcef.dll
-    nim_comp::CefManager::GetInstance()->AddCefDllToPath();
+    ui::CefManager::GetInstance()->AddCefDllToPath();
 
     HRESULT hr = ::OleInitialize(NULL);
     if (FAILED(hr))
@@ -28,7 +28,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     CefSettings settings;
     ui::FilePath appDataDir = ui::FilePathUtil::GetCurrentModuleDirectory();
     appDataDir += _T("cef_temp\\");//TODO: 需要一个可写目录
-    if (!nim_comp::CefManager::GetInstance()->Initialize(appDataDir.ToString(), settings, kEnableOffsetRender)) {
+    if (!ui::CefManager::GetInstance()->Initialize(appDataDir.ToString(), settings, kEnableOffsetRender)) {
         return 0;
     }
 
@@ -39,7 +39,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     thread.RunOnCurrentThreadWithLoop();
 
     // 清理 CEF
-    nim_comp::CefManager::GetInstance()->UnInitialize();
+    ui::CefManager::GetInstance()->UnInitialize();
 
     ::OleUninitialize();
 
@@ -65,7 +65,7 @@ void MainThread::OnInit()
     // 创建一个默认带有阴影的居中窗口
     CefForm* window = new CefForm();
     uint32_t dwExStyle = 0;
-    if (nim_comp::CefManager::GetInstance()->IsEnableOffsetRender()) {
+    if (ui::CefManager::GetInstance()->IsEnableOffsetRender()) {
         dwExStyle |= ui::kWS_EX_LAYERED;
     }
     ui::WindowCreateParam createWndParam;

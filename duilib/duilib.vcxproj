@@ -121,7 +121,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef\;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;SK_GANESH;SK_GL;SK_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -179,7 +179,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef\;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;SK_GANESH;SK_GL;SK_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -237,7 +237,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef\;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;SK_GANESH;SK_GL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -295,7 +295,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef\;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;SK_GANESH;SK_GL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -374,6 +374,22 @@
     <ClCompile Include="Box\VirtualVTileLayout.cpp" />
     <ClCompile Include="Box\VLayout.cpp" />
     <ClCompile Include="Box\VTileLayout.cpp" />
+    <ClCompile Include="CEFControl\app\cef_js_bridge.cpp" />
+    <ClCompile Include="CEFControl\app\client_app.cpp" />
+    <ClCompile Include="CEFControl\app\client_app_browser.cpp" />
+    <ClCompile Include="CEFControl\app\client_app_render.cpp" />
+    <ClCompile Include="CEFControl\app\js_handler.cpp" />
+    <ClCompile Include="CEFControl\control\cef_control.cpp" />
+    <ClCompile Include="CEFControl\control\cef_control_base.cpp" />
+    <ClCompile Include="CEFControl\control\cef_control_base_ui.cpp" />
+    <ClCompile Include="CEFControl\control\cef_control_ui.cpp" />
+    <ClCompile Include="CEFControl\control\cef_native_control.cpp" />
+    <ClCompile Include="CEFControl\handler\browser_handler.cpp" />
+    <ClCompile Include="CEFControl\handler\drag\bytes_write_handler.cc" />
+    <ClCompile Include="CEFControl\handler\drag\osr_dragdrop_win.cc" />
+    <ClCompile Include="CEFControl\handler\drag\util_win.cc" />
+    <ClCompile Include="CEFControl\manager\cef_manager.cpp" />
+    <ClCompile Include="CEFControl\util\memory_dc.cpp" />
     <ClCompile Include="Control\CheckCombo.cpp" />
     <ClCompile Include="Control\CircleProgress.cpp" />
     <ClCompile Include="Control\ColorControl.cpp" />
@@ -551,6 +567,23 @@
     <ClInclude Include="Box\VirtualVTileLayout.h" />
     <ClInclude Include="Box\VLayout.h" />
     <ClInclude Include="Box\VTileLayout.h" />
+    <ClInclude Include="CEFControl\app\cef_js_bridge.h" />
+    <ClInclude Include="CEFControl\app\client_app.h" />
+    <ClInclude Include="CEFControl\app\ipc_string_define.h" />
+    <ClInclude Include="CEFControl\app\js_handler.h" />
+    <ClInclude Include="CEFControl\control\cef_control.h" />
+    <ClInclude Include="CEFControl\control\cef_control_base.h" />
+    <ClInclude Include="CEFControl\control\cef_control_event.h" />
+    <ClInclude Include="CEFControl\control\cef_native_control.h" />
+    <ClInclude Include="CEFControl\handler\browser_handler.h" />
+    <ClInclude Include="CEFControl\handler\drag\bytes_write_handler.h" />
+    <ClInclude Include="CEFControl\handler\drag\osr_dragdrop_events.h" />
+    <ClInclude Include="CEFControl\handler\drag\osr_dragdrop_win.h" />
+    <ClInclude Include="CEFControl\handler\drag\util_win.h" />
+    <ClInclude Include="CEFControl\manager\cef_manager.h" />
+    <ClInclude Include="CEFControl\util\auto_unregister.h" />
+    <ClInclude Include="CEFControl\util\memory_dc.h" />
+    <ClInclude Include="CEFControl\util\util.h" />
     <ClInclude Include="Control\CheckCombo.h" />
     <ClInclude Include="Control\ColorControl.h" />
     <ClInclude Include="Control\ColorConvert.h" />
@@ -657,6 +690,7 @@
     <ClInclude Include="Core\ZipManager.h" />
     <ClInclude Include="Core\ZipStreamIO.h" />
     <ClInclude Include="duilib.h" />
+    <ClInclude Include="duilib_cef.h" />
     <ClInclude Include="duilib_config.h" />
     <ClInclude Include="duilib_config_windows.h" />
     <ClInclude Include="duilib_defs.h" />
