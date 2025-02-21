@@ -8,7 +8,6 @@
 #pragma warning (disable:4100)
 #include "include/cef_browser.h"
 #include "include/cef_frame.h"
-#include "include/cef_runnable.h"
 #pragma warning (pop)
 
 namespace nim_comp {
@@ -58,11 +57,11 @@ void CefNativeControl::ReCreateBrowser()
     {
         // 使用有窗模式
         CefWindowInfo window_info;
-        RECT rect = { GetRect().left, GetRect().top, GetRect().right, GetRect().bottom};
+        CefRect rect = { GetRect().left, GetRect().top, GetRect().right, GetRect().bottom};
         window_info.SetAsChild(this->GetWindow()->NativeWnd()->GetHWND(), rect);
 
         CefBrowserSettings browser_settings;
-        CefBrowserHost::CreateBrowser(window_info, browser_handler_, _T(""), browser_settings, NULL);
+        CefBrowserHost::CreateBrowser(window_info, browser_handler_, _T(""), browser_settings, nullptr, nullptr);
     }
 }
 
@@ -163,8 +162,8 @@ bool CefNativeControl::AttachDevTools(Control* /*view*/)
         CefWindowInfo windowInfo;
         windowInfo.SetAsPopup(NULL, _T("cef_devtools"));
         CefBrowserSettings settings;
-        windowInfo.width = 900;
-        windowInfo.height = 700;
+       // windowInfo.width = 900;
+       // windowInfo.height = 700;
         browser->GetHost()->ShowDevTools(windowInfo, new nim_comp::BrowserHandler, settings, CefPoint());
         devtool_attached_ = true;
         if (cb_devtool_visible_change_ != nullptr)

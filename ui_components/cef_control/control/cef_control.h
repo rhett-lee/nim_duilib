@@ -159,13 +159,13 @@ private:
         const CefRenderHandler::RectList& dirtyRects,
         const std::string* buffer,
         int width,
-        int height) OVERRIDE;
+        int height) override;
 
-    virtual void ClientToControl(POINT &pt) OVERRIDE;
+    virtual void ClientToControl(POINT &pt) override;
 
-    virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) OVERRIDE;
+    virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) override;
 
-    virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) OVERRIDE;
+    virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) override;
 
     //处理DPI自适应（离屏渲染模式与正常模式不同）
     void AdaptDpiScale(CefMouseEvent& mouse_event);

@@ -107,7 +107,7 @@ private:
     void OnTitleChange(const DString& title);
     void OnUrlChange(const DString& url);
     bool OnLinkClick(const DString& url);
-    CefRequestHandler::ReturnValue OnBeforeNavigate(CefRefPtr<CefRequest> request, bool is_redirect);
+    cef_return_value_t OnBeforeNavigate(CefRefPtr<CefRequest> request, bool is_redirect);
     void OnLoadingStateChange(bool isLoading, bool canGoBack, bool canGoForward);
     void OnLoadStart();
     void OnLoadEnd(int httpStatusCode);

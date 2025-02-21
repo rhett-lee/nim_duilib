@@ -30,9 +30,10 @@ bool CefJSBridge::CallCppFunction(const CefString& function_name, const CefStrin
         render_callback_.emplace(js_callback_id_++, std::make_pair(context, callback));
 
         // 发送消息到 browser 进程
-        CefRefPtr<CefBrowser> browser = context->GetBrowser();
-        browser->SendProcessMessage(PID_BROWSER, message);
-
+        CefRefPtr<CefFrame> frame = context->GetFrame();
+        if (frame != nullptr) {
+            frame->SendProcessMessage(PID_BROWSER, message);
+        }
         return true;
     }
 
@@ -78,11 +79,11 @@ bool CefJSBridge::ExecuteJSCallbackFunc(int js_callback_id, bool has_error, cons
             CefV8ValueList json_parse_args;
             json_parse_args.push_back(CefV8Value::CreateString(json_result));
             CefRefPtr<CefV8Value> json_parse = context->GetGlobal()->GetValue("JSON")->GetValue("parse");
-            CefRefPtr<CefV8Value> json_object = json_parse->ExecuteFunction(NULL, json_parse_args);
+            CefRefPtr<CefV8Value> json_object = json_parse->ExecuteFunction(nullptr, json_parse_args);
             arguments.push_back(json_object);
 
             // 执行 JS 方法
-            CefRefPtr<CefV8Value> retval = callback->ExecuteFunction(NULL, arguments);
+            CefRefPtr<CefV8Value> retval = callback->ExecuteFunction(nullptr, arguments);
             if (retval.get())
             {
                 if (retval->IsBool())
@@ -146,7 +147,7 @@ void CefJSBridge::UnRegisterJSFuncWithFrame(CefRefPtr<CefFrame> frame)
     {
         for (auto it = render_registered_function_.begin(); it != render_registered_function_.end();)
         {
-            auto child_frame = browser->GetFrame(it->first.second);
+            auto child_frame = browser->GetFrameByIdentifier(it->first.second);
             if (child_frame.get() && child_frame->GetV8Context()->IsSame(frame->GetV8Context()))
             {
                 it = render_registered_function_.erase(it);
@@ -180,24 +181,27 @@ bool CefJSBridge::ExecuteJSFunc(const CefString& function_name, const CefString&
             CefRefPtr<CefV8Value> json_object = context->GetGlobal()->GetValue("JSON");
             CefRefPtr<CefV8Value> json_parse = json_object->GetValue("parse");
             CefRefPtr<CefV8Value> json_stringify = json_object->GetValue("stringify");
-            CefRefPtr<CefV8Value> json_object_args = json_parse->ExecuteFunction(NULL, json_parse_args);
+            CefRefPtr<CefV8Value> json_object_args = json_parse->ExecuteFunction(nullptr, json_parse_args);
             arguments.push_back(json_object_args);
 
             // 执行回调函数
-            CefRefPtr<CefV8Value> retval = function->ExecuteFunction(NULL, arguments);
+            CefRefPtr<CefV8Value> retval = function->ExecuteFunction(nullptr, arguments);
             if (retval.get() && retval->IsObject())
             {
                 // 回复调用 JS 后的返回值
                 CefV8ValueList json_stringify_args;
                 json_stringify_args.push_back(retval);
-                CefRefPtr<CefV8Value> json_string = json_stringify->ExecuteFunction(NULL, json_stringify_args);
+                CefRefPtr<CefV8Value> json_string = json_stringify->ExecuteFunction(nullptr, json_stringify_args);
                 CefString str = json_string->GetStringValue();
 
                 CefRefPtr<CefProcessMessage> message = CefProcessMessage::Create(kExecuteCppCallbackMessage);
                 CefRefPtr<CefListValue> args = message->GetArgumentList();
                 args->SetString(0, json_string->GetStringValue());
                 args->SetInt(1, cpp_callback_id);
-                context->GetBrowser()->SendProcessMessage(PID_BROWSER, message);
+
+                if (context->GetFrame() != nullptr) {
+                    context->GetFrame()->SendProcessMessage(PID_BROWSER, message);
+                }
             }
 
             context->Exit();
@@ -228,9 +232,9 @@ bool CefJSBridge::CallJSFunction(const CefString& js_function_name, const CefStr
         args->SetString(0, js_function_name);
         args->SetString(1, params);
         args->SetInt(2, cpp_callback_id_++);
-        args->SetInt(3, (int)(frame->GetIdentifier()));
+        args->SetString(3, frame->GetIdentifier());
 
-        frame->GetBrowser()->SendProcessMessage(PID_RENDERER, message);
+        frame->SendProcessMessage(PID_RENDERER, message);
 
         return true;
     }
@@ -283,8 +287,11 @@ void CefJSBridge::UnRegisterCppFunc(const CefString& function_name, CefRefPtr<Ce
     browser_registered_function_.erase(std::make_pair(function_name, browser ? browser->GetIdentifier() : -1));
 }
 
-bool CefJSBridge::ExecuteCppFunc(const CefString& function_name, const CefString& params, int js_callback_id, CefRefPtr<CefBrowser> browser)
+bool CefJSBridge::ExecuteCppFunc(const CefString& function_name, const CefString& params, int js_callback_id, CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
 {
+    if ((frame == nullptr) && (browser != nullptr)) {
+        frame = browser->GetMainFrame();
+    }
     CefRefPtr<CefProcessMessage> message = CefProcessMessage::Create(kExecuteJsCallbackMessage);
     CefRefPtr<CefListValue> args = message->GetArgumentList();
 
@@ -298,7 +305,9 @@ bool CefJSBridge::ExecuteCppFunc(const CefString& function_name, const CefString
                 args->SetInt(0, js_callback_id);
                 args->SetBool(1, has_error);
                 args->SetString(2, json_result);
-                browser->SendProcessMessage(PID_RENDERER, message);
+                if (frame != nullptr) {
+                    frame->SendProcessMessage(PID_RENDERER, message);
+                }                
             });
         });
         return true;
@@ -314,7 +323,9 @@ bool CefJSBridge::ExecuteCppFunc(const CefString& function_name, const CefString
                 args->SetInt(0, js_callback_id);
                 args->SetBool(1, has_error);
                 args->SetString(2, json_result);
-                browser->SendProcessMessage(PID_RENDERER, message);
+                if (frame != nullptr) {
+                    frame->SendProcessMessage(PID_RENDERER, message);
+                }
             });
         });
         return true;
@@ -324,7 +335,9 @@ bool CefJSBridge::ExecuteCppFunc(const CefString& function_name, const CefString
         args->SetInt(0, js_callback_id);
         args->SetBool(1, true);
         args->SetString(2, R"({"message":"Function does not exist."})");
-        browser->SendProcessMessage(PID_RENDERER, message);
+        if (frame != nullptr) {
+            frame->SendProcessMessage(PID_RENDERER, message);
+        }
         return false;
     }
 }

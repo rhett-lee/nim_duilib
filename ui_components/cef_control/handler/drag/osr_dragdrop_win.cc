@@ -251,13 +251,13 @@ bool DragDataToDataObject(CefRefPtr<CefDragData> drag_data,
     curr_index++;
   }
 
-  size_t bufferSize = drag_data->GetFileContents(NULL);
+  size_t bufferSize = drag_data->GetFileContents(nullptr);
   if (bufferSize) {
     CefRefPtr<BytesWriteHandler> handler = new BytesWriteHandler(bufferSize);
     CefRefPtr<CefStreamWriter> writer =
         CefStreamWriter::CreateForHandler(handler.get());
     drag_data->GetFileContents(writer);
-    DCHECK_EQ(handler->GetDataSize(), static_cast<int64>(bufferSize));
+    DCHECK_EQ(handler->GetDataSize(), static_cast<int64_t>(bufferSize));
     CefString fileName = drag_data->GetFileName();
 #if defined(UNICODE) || defined(_UNICODE)
     GetStorageForFileDescriptor(&stgmeds[curr_index], fileName.ToWString());
@@ -402,7 +402,7 @@ CefBrowserHost::DragOperationsMask DropTargetWin::StartDragging(
     browser_handler_ = nullptr;
     if (res != DRAGDROP_S_DROP)
       resEffect = DROPEFFECT_NONE;
-    current_drag_data_ = NULL;
+    current_drag_data_ = nullptr;
   }
   return DropEffectToDragOperation(resEffect);
 }

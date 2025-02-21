@@ -18,7 +18,7 @@ typedef std::function<void(const std::string& params, ReportResultFunction callb
 typedef std::map<int/* js_callback_id*/, std::pair<CefRefPtr<CefV8Context>/* context*/, CefRefPtr<CefV8Value>/* callback*/>> RenderCallbackMap;
 typedef std::map<int/* cpp_callback_id*/, CallJsFunctionCallback/* callback*/> BrowserCallbackMap;
 
-typedef std::map<std::pair<CefString/* function_name*/, int64_t/* frame_id*/>, CefRefPtr<CefV8Value>/* function*/> RenderRegisteredFunction;
+typedef std::map<std::pair<CefString/* function_name*/, CefString/* frame_id*/>, CefRefPtr<CefV8Value>/* function*/> RenderRegisteredFunction;
 typedef std::map<std::pair<CefString/* function_name*/, int64_t/* browser_id*/>, CppFunction/* function*/> BrowserRegisteredFunction;
 
 class CefJSBridge
@@ -129,11 +129,11 @@ public:
      * param[in] browser        browser 实例句柄
      * return 返回 true 表示执行成功，返回 false 表示执行失败，函数名可能不存在
      */
-    bool ExecuteCppFunc(const CefString& function_name, const CefString& params, int js_callback_id, CefRefPtr<CefBrowser> browser);
+    bool ExecuteCppFunc(const CefString& function_name, const CefString& params, int js_callback_id, CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame);
 
 private:
-    uint32                        js_callback_id_ = 0;            // JS 端回调函数的索引计数
-    uint32                        cpp_callback_id_ = 0;            // C++ 端回调函数的索引计数
+    uint32_t                        js_callback_id_ = 0;            // JS 端回调函数的索引计数
+    uint32_t                        cpp_callback_id_ = 0;            // C++ 端回调函数的索引计数
 
     RenderCallbackMap            render_callback_;                // JS 端回调函数的对应列表
     BrowserCallbackMap            browser_callback_;                // C++ 端回调函数的对应列表
