@@ -45,4 +45,18 @@ void CefClientApp::OnBeforeCommandLineProcessing(const CefString& process_type, 
     }
 }
 
+void CefClientApp::OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> /*registrar*/)
+{
+}
+
+CefRefPtr<CefBrowserProcessHandler> CefClientApp::GetBrowserProcessHandler()
+{
+    return this;
+}
+
+CefRefPtr<CefRenderProcessHandler> CefClientApp::GetRenderProcessHandler()
+{
+    return this;
+}
+
 }

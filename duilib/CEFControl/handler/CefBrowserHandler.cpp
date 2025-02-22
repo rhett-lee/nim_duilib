@@ -9,7 +9,6 @@
 #include "include/cef_frame.h"
 #include "include/base/cef_callback.h"
 #include "include/base/cef_bind.h"
-#pragma warning (pop)
 
 namespace ui
 {
@@ -151,6 +150,19 @@ bool BrowserHandler::OnBeforePopup( CefRefPtr<CefBrowser> browser,
     return true;
 }
 
+void BrowserHandler::OnBeforePopupAborted(CefRefPtr<CefBrowser> /*browser*/, int /*popup_id*/)
+{
+}
+
+void BrowserHandler::OnBeforeDevToolsPopup(CefRefPtr<CefBrowser> /*browser*/,
+                                           CefWindowInfo& /*windowInfo*/,
+                                           CefRefPtr<CefClient>& /*client*/,
+                                           CefBrowserSettings& /*settings*/,
+                                           CefRefPtr<CefDictionaryValue>& /*extra_info*/,
+                                           bool* /*use_default_window*/)
+{
+}
+
 void BrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
     REQUIRE_UI_THREAD();
@@ -230,6 +242,12 @@ void BrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 
 #pragma region CefRenderHandler
 // CefRenderHandler methods
+
+CefRefPtr<CefAccessibilityHandler> BrowserHandler::GetAccessibilityHandler()
+{
+    return nullptr;
+}
+
 bool BrowserHandler::GetRootScreenRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 {
     if ((window_ == nullptr) || window_flag_.expired()) {
@@ -358,16 +376,35 @@ void BrowserHandler::OnPaint(CefRefPtr<CefBrowser> browser,
     }
 }
 
-bool BrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
-                                    CefCursorHandle cursor,
-                                    cef_cursor_type_t /*type*/,
-                                    const CefCursorInfo& /*custom_cursor_info*/)
+void BrowserHandler::OnAcceleratedPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList& dirtyRects, const CefAcceleratedPaintInfo& info)
 {
-    if ((window_ != nullptr) && !window_flag_.expired()) {
-        SetClassLongPtr(window_->NativeWnd()->GetHWND(), GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
-    }
-    SetCursor(cursor);
-    return true;
+}
+
+void BrowserHandler::GetTouchHandleSize(CefRefPtr<CefBrowser> browser,
+                                        cef_horizontal_alignment_t orientation,
+                                        CefSize& size) {
+}
+
+void BrowserHandler::OnTouchHandleStateChanged(CefRefPtr<CefBrowser> browser, const CefTouchHandleState& state)
+{
+}
+
+void BrowserHandler::OnScrollOffsetChanged(CefRefPtr<CefBrowser> browser, double x, double y)
+{
+}
+
+void BrowserHandler::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> browser,
+                                                  const CefRange& selected_range,
+                                                  const RectList& character_bounds)
+{
+}
+
+void BrowserHandler::OnTextSelectionChanged(CefRefPtr<CefBrowser> browser, const CefString& selected_text, const CefRange& selected_range)
+{
+}
+
+void BrowserHandler::OnVirtualKeyboardRequested(CefRefPtr<CefBrowser> browser, TextInputMode input_mode)
+{
 }
 
 bool BrowserHandler::StartDragging(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y)
@@ -501,6 +538,29 @@ void BrowserHandler::OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRe
 
 }
 
+bool BrowserHandler::RunQuickMenu(CefRefPtr<CefBrowser> browser,
+                                  CefRefPtr<CefFrame> frame,
+                                  const CefPoint& location,
+                                  const CefSize& size,
+                                  QuickMenuEditStateFlags edit_state_flags,
+                                  CefRefPtr<CefRunQuickMenuCallback> callback)
+{
+    return false;
+}
+
+bool BrowserHandler::OnQuickMenuCommand(CefRefPtr<CefBrowser> browser,
+                                        CefRefPtr<CefFrame> frame,
+                                        int command_id,
+                                        EventFlags event_flags)
+{
+    return false;
+}
+
+void BrowserHandler::OnQuickMenuDismissed(CefRefPtr<CefBrowser> browser,
+                                          CefRefPtr<CefFrame> frame)
+{
+}
+
 #pragma endregion
 
 #pragma region CefDisplayHandler
@@ -520,6 +580,23 @@ void BrowserHandler::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefStrin
         ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&HandlerDelegate::OnTitleChange, handle_delegate_, browser, title));
 }
 
+void BrowserHandler::OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls)
+{
+}
+
+void BrowserHandler::OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool fullscreen)
+{
+}
+
+bool BrowserHandler::OnTooltip(CefRefPtr<CefBrowser> browser, CefString& text)
+{
+    return false;
+}
+
+void BrowserHandler::OnStatusMessage(CefRefPtr<CefBrowser> browser, const CefString& value)
+{
+}
+
 bool BrowserHandler::OnConsoleMessage(CefRefPtr<CefBrowser> /*browser*/,
                                       cef_log_severity_t /*level*/,
                                       const CefString& /*message*/,
@@ -529,7 +606,43 @@ bool BrowserHandler::OnConsoleMessage(CefRefPtr<CefBrowser> /*browser*/,
     // Log a console message...
     return true;
 }
+
+bool BrowserHandler::OnAutoResize(CefRefPtr<CefBrowser> browser, const CefSize& new_size)
+{
+    return false;
+}
+
+void BrowserHandler::OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress)
+{
+}
+
+bool BrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
+                                    CefCursorHandle cursor,
+                                    cef_cursor_type_t type,
+                                    const CefCursorInfo& custom_cursor_info)
+{
+    if ((window_ != nullptr) && !window_flag_.expired()) {
+        SetClassLongPtr(window_->NativeWnd()->GetHWND(), GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
+    }
+    SetCursor(cursor);
+    return true;
+}
+
+void BrowserHandler::OnMediaAccessChange(CefRefPtr<CefBrowser> browser,
+                                         bool has_video_access,
+                                         bool has_audio_access) {
+}
+
 #pragma endregion
+
+bool BrowserHandler::OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask)
+{
+    return false;
+}
+
+void BrowserHandler::OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions)
+{
+}
 
 // CefLoadHandler methods
 void BrowserHandler::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
@@ -579,6 +692,32 @@ bool BrowserHandler::OnJSDialog(CefRefPtr<CefBrowser> /*browser*/,
     return false;
 }
 
+bool BrowserHandler::OnBeforeUnloadDialog(CefRefPtr<CefBrowser> browser,
+                                          const CefString& message_text,
+                                          bool is_reload,
+                                          CefRefPtr<CefJSDialogCallback> callback)
+{
+    return false;
+}
+
+void BrowserHandler::OnResetDialogState(CefRefPtr<CefBrowser> browser)
+{
+}
+
+void BrowserHandler::OnDialogClosed(CefRefPtr<CefBrowser> browser)
+{
+}
+
+bool BrowserHandler::OnPreKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEvent& event, CefEventHandle os_event, bool* is_keyboard_shortcut)
+{
+    return false;
+}
+
+bool BrowserHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEvent& event, CefEventHandle os_event)
+{
+    return false;
+}
+
 // CefRequestHandler methods
 bool BrowserHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
                                     CefRefPtr<CefFrame> frame,
@@ -592,10 +731,89 @@ bool BrowserHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
     return false;
 }
 
-void BrowserHandler::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution)
+bool BrowserHandler::OnOpenURLFromTab(CefRefPtr<CefBrowser> browser,
+                                      CefRefPtr<CefFrame> frame,
+                                      const CefString& target_url,
+                                      CefRequestHandler::WindowOpenDisposition target_disposition,
+                                      bool user_gesture)
+{
+    return false;
+}
+
+CefRefPtr<CefResourceRequestHandler> BrowserHandler::GetResourceRequestHandler(CefRefPtr<CefBrowser> browser,
+                                                                               CefRefPtr<CefFrame> frame,
+                                                                               CefRefPtr<CefRequest> request,
+                                                                               bool is_navigation,
+                                                                               bool is_download,
+                                                                               const CefString& request_initiator,
+                                                                               bool& disable_default_handling)
+{
+    return this;
+}
+
+bool BrowserHandler::GetAuthCredentials(CefRefPtr<CefBrowser> browser,
+                                        const CefString& origin_url,
+                                        bool isProxy,
+                                        const CefString& host,
+                                        int port,
+                                        const CefString& realm,
+                                        const CefString& scheme,
+                                        CefRefPtr<CefAuthCallback> callback)
+{
+    return false;
+}
+
+bool BrowserHandler::OnCertificateError(CefRefPtr<CefBrowser> browser,
+                                        cef_errorcode_t cert_error,
+                                        const CefString& request_url,
+                                        CefRefPtr<CefSSLInfo> ssl_info,
+                                        CefRefPtr<CefCallback> callback)
+{
+    return false;
+}
+
+bool BrowserHandler::OnSelectClientCertificate(CefRefPtr<CefBrowser> browser,
+                                               bool isProxy,
+                                               const CefString& host,
+                                               int port,
+                                               const X509CertificateList& certificates,
+                                               CefRefPtr<CefSelectClientCertificateCallback> callback)
+{
+    return false;
+}
+
+void BrowserHandler::OnRenderViewReady(CefRefPtr<CefBrowser> browser)
+{
+}
+
+bool BrowserHandler::OnRenderProcessUnresponsive(CefRefPtr<CefBrowser> browser,
+                                                 CefRefPtr<CefUnresponsiveProcessCallback> callback)
+{
+    return false;
+}
+
+void BrowserHandler::OnRenderProcessResponsive(CefRefPtr<CefBrowser> browser)
+{
+}
+
+void BrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
+                                               TerminationStatus status,
+                                               int error_code,
+                                               const CefString& error_string)
 {
     if (handle_delegate_)
-        handle_delegate_->OnProtocolExecution(browser, url, allow_os_execution);
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&HandlerDelegate::OnRenderProcessTerminated, handle_delegate_, browser, status));
+}
+
+void BrowserHandler::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
+{
+}
+
+CefRefPtr<CefCookieAccessFilter> BrowserHandler::GetCookieAccessFilter(CefRefPtr<CefBrowser> browser,
+                                                                       CefRefPtr<CefFrame> frame,
+                                                                       CefRefPtr<CefRequest> request)
+{
+    return this;
 }
 
 CefResourceRequestHandler::ReturnValue BrowserHandler::OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser,
@@ -609,14 +827,74 @@ CefResourceRequestHandler::ReturnValue BrowserHandler::OnBeforeResourceLoad(CefR
     return RV_CONTINUE;
 }
 
-void BrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
-                                               TerminationStatus status,
-                                               int /*error_code*/,
-                                               const CefString& /*error_string*/)
+CefRefPtr<CefResourceHandler> BrowserHandler::GetResourceHandler(CefRefPtr<CefBrowser> browser,
+                                                                 CefRefPtr<CefFrame> frame,
+                                                                 CefRefPtr<CefRequest> request)
+{
+    return nullptr;
+}
+
+void BrowserHandler::OnResourceRedirect(CefRefPtr<CefBrowser> browser,
+                                        CefRefPtr<CefFrame> frame,
+                                        CefRefPtr<CefRequest> request,
+                                        CefRefPtr<CefResponse> response,
+                                        CefString& new_url)
+{
+}
+
+bool BrowserHandler::OnResourceResponse(CefRefPtr<CefBrowser> browser,
+                                        CefRefPtr<CefFrame> frame,
+                                        CefRefPtr<CefRequest> request,
+                                        CefRefPtr<CefResponse> response)
+{
+    return false;
+}
+
+CefRefPtr<CefResponseFilter> BrowserHandler::GetResourceResponseFilter(CefRefPtr<CefBrowser> browser,
+                                                                       CefRefPtr<CefFrame> frame,
+                                                                       CefRefPtr<CefRequest> request,
+                                                                       CefRefPtr<CefResponse> response)
+{
+    return nullptr;
+}
+
+void BrowserHandler::OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
+                                            CefRefPtr<CefFrame> frame,
+                                            CefRefPtr<CefRequest> request,
+                                            CefRefPtr<CefResponse> response,
+                                            URLRequestStatus status,
+                                            int64_t received_content_length)
+{
+}
+
+void BrowserHandler::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution)
 {
     if (handle_delegate_)
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&HandlerDelegate::OnRenderProcessTerminated, handle_delegate_, browser, status));
+        handle_delegate_->OnProtocolExecution(browser, url, allow_os_execution);
+}
 
+bool BrowserHandler::CanSendCookie(CefRefPtr<CefBrowser> browser,
+                                   CefRefPtr<CefFrame> frame,
+                                   CefRefPtr<CefRequest> request,
+                                   const CefCookie& cookie)
+{
+    return true;
+}
+
+bool BrowserHandler::CanSaveCookie(CefRefPtr<CefBrowser> browser,
+                                   CefRefPtr<CefFrame> frame,
+                                   CefRefPtr<CefRequest> request,
+                                   CefRefPtr<CefResponse> response,
+                                   const CefCookie& cookie)
+{
+    return true;
+}
+
+bool BrowserHandler::CanDownload(CefRefPtr<CefBrowser> browser,
+                                 const CefString& url,
+                                 const CefString& request_method)
+{
+    return true;
 }
 
 bool BrowserHandler::OnBeforeDownload(CefRefPtr<CefBrowser> browser,
@@ -654,3 +932,5 @@ bool BrowserHandler::OnFileDialog(  CefRefPtr<CefBrowser> browser,
 }
 
 }
+
+#pragma warning (pop)
