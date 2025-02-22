@@ -1,7 +1,7 @@
-#include "cef_control_base.h"
-#include "duilib/CEFControl/handler/browser_handler.h"
-#include "duilib/CEFControl/manager/cef_manager.h"
-#include "duilib/CEFControl/app/cef_js_bridge.h"
+#include "CefControlBase.h"
+#include "duilib/CEFControl/handler/CefBrowserHandler.h"
+#include "duilib/CEFControl/manager/CefManager.h"
+#include "duilib/CEFControl/app/CefJSBridge.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)

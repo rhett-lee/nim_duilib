@@ -8,7 +8,7 @@
 #define UI_CEF_CONTROL_JS_HANDLER_H_
 
 #include "duilib/duilib_config.h"
-#include "duilib/CEFControl/app/cef_js_bridge.h"
+#include "duilib/CEFControl/app/CefJSBridge.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)

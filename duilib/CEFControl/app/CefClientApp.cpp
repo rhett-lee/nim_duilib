@@ -1,6 +1,6 @@
-#include "client_app.h" 
-#include "duilib/CEFControl/manager/cef_manager.h"
-#include "duilib/CEFControl/util/util.h"
+#include "CefClientApp.h" 
+#include "duilib/CEFControl/manager/CefManager.h"
+#include "duilib/CEFControl/util/CefUtil.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -15,14 +15,14 @@
 namespace ui
 {
 
-ClientApp::ClientApp() 
+CefClientApp::CefClientApp() 
 {
     last_node_is_editable_ = false;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // CefApp methods.
-void ClientApp::OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line)
+void CefClientApp::OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line)
 {
     // Pass additional command-line flags to the browser process.
     if (process_type.empty()) 

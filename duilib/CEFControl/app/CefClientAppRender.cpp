@@ -1,9 +1,9 @@
-#include "client_app.h" 
-#include "duilib/CEFControl/util/util.h"
+#include "CefClientApp.h" 
+#include "duilib/CEFControl/util/CefUtil.h"
 
-#include "duilib/CEFControl/app/js_handler.h"
-#include "duilib/CEFControl/app/ipc_string_define.h"
-#include "duilib/CEFControl/app/cef_js_bridge.h"
+#include "duilib/CEFControl/app/CefJsHandler.h"
+#include "duilib/CEFControl/app/CefIPCStringDefs.h"
+#include "duilib/CEFControl/app/CefJSBridge.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -19,7 +19,7 @@ namespace ui
 {
 //////////////////////////////////////////////////////////////////////////////////////////
 
-void ClientApp::OnWebKitInitialized() 
+void CefClientApp::OnWebKitInitialized() 
 {
     /**
      * JavaScript 扩展代码，这里定义一个 NimCefWebFunction 对象提供 call 方法来让 Web 端触发 native 的 CefV8Handler 处理代码
@@ -58,33 +58,33 @@ void ClientApp::OnWebKitInitialized()
      CefRegisterExtension("v8/extern", extensionCode, handler);
 }
 
-void ClientApp::OnBrowserCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDictionaryValue> extra_info)
+void CefClientApp::OnBrowserCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDictionaryValue> extra_info)
 {
     if (!render_js_bridge_.get())
         render_js_bridge_.reset(new CefJSBridge);
 }
 
-void ClientApp::OnBrowserDestroyed(CefRefPtr<CefBrowser> browser) 
+void CefClientApp::OnBrowserDestroyed(CefRefPtr<CefBrowser> browser) 
 {
 }
 
-CefRefPtr<CefLoadHandler> ClientApp::GetLoadHandler()
+CefRefPtr<CefLoadHandler> CefClientApp::GetLoadHandler()
 {
     return nullptr;
 }
 
-void ClientApp::OnContextCreated(CefRefPtr<CefBrowser> /*browser*/, CefRefPtr<CefFrame> /*frame*/, CefRefPtr<CefV8Context> /*context*/)
+void CefClientApp::OnContextCreated(CefRefPtr<CefBrowser> /*browser*/, CefRefPtr<CefFrame> /*frame*/, CefRefPtr<CefV8Context> /*context*/)
 {
 
 }
 
-void ClientApp::OnContextReleased(CefRefPtr<CefBrowser> /*browser*/, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> /*context*/)
+void CefClientApp::OnContextReleased(CefRefPtr<CefBrowser> /*browser*/, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> /*context*/)
 {
     render_js_bridge_->RemoveCallbackFuncWithFrame(frame);
     render_js_bridge_->UnRegisterJSFuncWithFrame(frame);
 }
 
-void ClientApp::OnUncaughtException(
+void CefClientApp::OnUncaughtException(
     CefRefPtr<CefBrowser> /*browser*/,
     CefRefPtr<CefFrame> /*frame*/,
     CefRefPtr<CefV8Context> /*context*/,
@@ -93,7 +93,7 @@ void ClientApp::OnUncaughtException(
 {
 }
 
-void ClientApp::OnFocusedNodeChanged(
+void CefClientApp::OnFocusedNodeChanged(
     CefRefPtr<CefBrowser> browser,
     CefRefPtr<CefFrame> frame,
     CefRefPtr<CefDOMNode> node) 
@@ -112,7 +112,7 @@ void ClientApp::OnFocusedNodeChanged(
     }
 }
 
-bool ClientApp::OnProcessMessageReceived( CefRefPtr<CefBrowser> browser,
+bool CefClientApp::OnProcessMessageReceived( CefRefPtr<CefBrowser> browser,
                                           CefRefPtr<CefFrame> frame,
                                           CefProcessId source_process,
                                           CefRefPtr<CefProcessMessage> message)

@@ -1,6 +1,6 @@
-#include "memory_dc.h"
+#include "CefMemoryDC.h"
 
-MemoryDC::MemoryDC() 
+CefMemoryDC::CefMemoryDC() 
 {
     bitmap_ = NULL;
     old_bitmap_ = NULL;
@@ -11,12 +11,12 @@ MemoryDC::MemoryDC()
     valid_ = false;
 }
 
-MemoryDC::~MemoryDC()
+CefMemoryDC::~CefMemoryDC()
 {
     DeleteDC();
 }
 
-void MemoryDC::DeleteDC()
+void CefMemoryDC::DeleteDC()
 {
     if (old_bitmap_ != NULL)
     {
@@ -37,7 +37,7 @@ void MemoryDC::DeleteDC()
     valid_ = false;
 }
 
-bool MemoryDC::Init(HDC src_dc, int width, int height, const LPVOID pBits/*=NULL*/)
+bool CefMemoryDC::Init(HDC src_dc, int width, int height, const LPVOID pBits/*=NULL*/)
 {
     DeleteDC();
 
@@ -61,7 +61,7 @@ bool MemoryDC::Init(HDC src_dc, int width, int height, const LPVOID pBits/*=NULL
     return bRet;
 }
 
-bool MemoryDC::CreateMemoryDC(HDC src_dc, int width, int height, void** pBits)
+bool CefMemoryDC::CreateMemoryDC(HDC src_dc, int width, int height, void** pBits)
 {
     if (mem_dc_ != NULL || src_dc == NULL || width == 0 || height == 0)
         return false;
@@ -87,7 +87,7 @@ bool MemoryDC::CreateMemoryDC(HDC src_dc, int width, int height, void** pBits)
     return true;
 }
 
-BYTE* MemoryDC::GetBits()
+BYTE* CefMemoryDC::GetBits()
 {
     ASSERT(valid_);
     BYTE *pPiexl = LPBYTE(bitmap_info_.bmBits);
@@ -95,29 +95,29 @@ BYTE* MemoryDC::GetBits()
     return pPiexl;
 }
 
-int MemoryDC::GetWidth()
+int CefMemoryDC::GetWidth()
 {
     return bitmap_size_.cx;
 }
 
-int MemoryDC::GetHeight()
+int CefMemoryDC::GetHeight()
 {
     return bitmap_size_.cy;
 }
 
-HBITMAP MemoryDC::GetBitmap()
+HBITMAP CefMemoryDC::GetBitmap()
 {
     ASSERT(bitmap_ != NULL && valid_);
     return bitmap_;
 }
 
-HDC MemoryDC::GetDC()
+HDC CefMemoryDC::GetDC()
 {
     ASSERT(mem_dc_ != NULL);
     return mem_dc_;
 }
 
-bool MemoryDC::IsValid()
+bool CefMemoryDC::IsValid()
 {
     return valid_ && mem_dc_ != NULL && bitmap_ != NULL;
 }

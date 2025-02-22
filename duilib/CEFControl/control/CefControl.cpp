@@ -1,5 +1,5 @@
-#include "cef_control.h"
-#include "duilib/CEFControl/util/util.h"
+#include "CefControl.h"
+#include "duilib/CEFControl/util/CefUtil.h"
 
 namespace ui {
 

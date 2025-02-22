@@ -1,6 +1,6 @@
-#include "cef_manager.h"
-#include "duilib/CEFControl//app/client_app.h"
-#include "duilib/CEFControl/handler/browser_handler.h"
+#include "CefManager.h"
+#include "duilib/CEFControl/app/CefClientApp.h"
+#include "duilib/CEFControl/handler/CefBrowserHandler.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -77,7 +77,7 @@ bool CefManager::Initialize(const DString& app_data_dir, CefSettings &settings, 
     is_enable_offset_render_ = is_enable_offset_render;
 
     CefMainArgs main_args(GetModuleHandle(NULL));
-    CefRefPtr<ClientApp> app(new ClientApp);
+    CefRefPtr<CefClientApp> app(new CefClientApp);
     
     // 如果是在子进程中调用，会堵塞直到子进程退出，并且exit_code返回大于等于0
     // 如果在Browser进程中调用，则立即返回-1

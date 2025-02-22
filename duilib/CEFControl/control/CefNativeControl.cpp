@@ -1,6 +1,6 @@
-#include "cef_native_control.h"
-#include "duilib/CEFControl/handler/browser_handler.h"
-#include "duilib/CEFControl/manager/cef_manager.h"
+#include "CefNativeControl.h"
+#include "duilib/CEFControl/handler/CefBrowserHandler.h"
+#include "duilib/CEFControl/manager/CefManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
 

@@ -1,7 +1,7 @@
-#include "js_handler.h"
-#include "duilib/CEFControl/util/util.h"
-#include "duilib/CEFControl/app/ipc_string_define.h"
-#include "duilib/CEFControl/app/cef_js_bridge.h"
+#include "CefJsHandler.h"
+#include "duilib/CEFControl/util/CefUtil.h"
+#include "duilib/CEFControl/app/CefIPCStringDefs.h"
+#include "duilib/CEFControl/app/CefJSBridge.h"
 #include "duilib/duilib.h"
 
 namespace ui

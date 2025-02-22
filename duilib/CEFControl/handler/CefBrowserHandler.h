@@ -7,8 +7,8 @@
 #define UI_CEF_CONTROL_BROWSER_HANDLER_H_
 
 #include "duilib/duilib_config.h"
-#include "duilib/CEFControl/util/auto_unregister.h"
-#include "duilib/CEFControl/app/cef_js_bridge.h"
+#include "duilib/CEFControl/util/CefAutoUnregister.h"
+#include "duilib/CEFControl/app/CefJSBridge.h"
 #include "duilib/CEFControl/handler/drag/osr_dragdrop_win.h"
 
 #pragma warning (push)
@@ -172,7 +172,7 @@ public:
 
     // 添加一个任务到队列中，当Browser对象创建成功后，会依次触发任务
     // 比如创建Browser后调用LoadUrl加载网页，但是这时Browser很可能还没有创建成功，就把LoadUrl任务添加到队列
-     UnregisterCallback AddAfterCreateTask(const ui::StdClosure& cb);
+     CefUnregisterCallback AddAfterCreateTask(const ui::StdClosure& cb);
 
      void CloseAllBrowser();
 public:
@@ -353,7 +353,7 @@ protected:
     RECT                    rect_cef_control_;
     std::string                paint_buffer_;
     bool                    is_focus_oneditable_field_;
-    UnregistedCallbackList<ui::StdClosure>    task_list_after_created_;
+    CefUnregistedCallbackList<ui::StdClosure>    task_list_after_created_;
 
     client::DropTargetHandle drop_target_;
     CefRenderHandler::DragOperation current_drag_op_;

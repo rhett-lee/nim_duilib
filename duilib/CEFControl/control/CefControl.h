@@ -7,8 +7,8 @@
 #define UI_CEF_CONTROL_CEF_CONTROL_H_
 
 #include "duilib/duilib_config.h"
-#include "duilib/CEFControl/control/cef_control_base.h"
-#include "duilib/CEFControl/util/memory_dc.h"
+#include "duilib/CEFControl/control/CefControlBase.h"
+#include "duilib/CEFControl/util/CefMemoryDC.h"
 #include "duilib/Core/Window.h"
 
 namespace ui {
@@ -173,8 +173,8 @@ private:
     void AdaptDpiScale(CefMouseEvent& mouse_event);
 
 private:
-    MemoryDC            dc_cef_;        // 内存dc,把cef离屏渲染的数据保存到dc中
-    MemoryDC            dc_cef_popup_;    // 内存dc,把cef的popup窗口的离屏渲染数据保存到dc中
+    CefMemoryDC            dc_cef_;        // 内存dc,把cef离屏渲染的数据保存到dc中
+    CefMemoryDC            dc_cef_popup_;    // 内存dc,把cef的popup窗口的离屏渲染数据保存到dc中
     CefRect                rect_popup_;    // 当网页的组合框一类的控件弹出时，记录弹出的位置
     CefControl*         devtool_view_;  //开发者工具对应的控件
 };

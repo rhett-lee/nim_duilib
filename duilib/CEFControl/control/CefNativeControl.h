@@ -6,7 +6,7 @@
 #ifndef UI_CEF_CONTROL_CEF_NATIVE_CONTROL_H_
 #define UI_CEF_CONTROL_CEF_NATIVE_CONTROL_H_
 
-#include "cef_control_base.h"
+#include "CefControlBase.h"
 
 namespace ui {
 
