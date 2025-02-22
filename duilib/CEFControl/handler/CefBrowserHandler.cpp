@@ -1,8 +1,8 @@
-#include "browser_handler.h"
-#include "duilib/CEFControl/manager/cef_manager.h"
-#include "duilib/CEFControl/util/util.h"
-#include "duilib/CEFControl/app/ipc_string_define.h"
-#include "duilib/CEFControl/app/cef_js_bridge.h"
+#include "CefBrowserHandler.h"
+#include "duilib/CEFControl/manager/CefManager.h"
+#include "duilib/CEFControl/util/CefUtil.h"
+#include "duilib/CEFControl/app/CefIPCStringDefs.h"
+#include "duilib/CEFControl/app/CefJSBridge.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -53,7 +53,7 @@ CefRefPtr<CefBrowserHost> BrowserHandler::GetBrowserHost()
     return nullptr;
 }
 
-UnregisterCallback BrowserHandler::AddAfterCreateTask(const ui::StdClosure& cb)
+CefUnregisterCallback BrowserHandler::AddAfterCreateTask(const ui::StdClosure& cb)
 {
     return task_list_after_created_.AddCallback(cb);
 }

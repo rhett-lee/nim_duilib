@@ -7,9 +7,9 @@
 #define UI_CEF_CONTROL_CEF_CONTROL_BASE_H_
 
 #include "duilib/duilib_config.h"
-#include "duilib/CEFControl/control/cef_control_event.h"
-#include "duilib/CEFControl/app/cef_js_bridge.h"
-#include "duilib/CEFControl/handler/browser_handler.h"
+#include "duilib/CEFControl/control/CefControlEvent.h"
+#include "duilib/CEFControl/app/CefJSBridge.h"
+#include "duilib/CEFControl/handler/CefBrowserHandler.h"
 #include "duilib/Core/Control.h"
 
 #pragma warning (push)

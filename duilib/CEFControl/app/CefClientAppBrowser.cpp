@@ -1,6 +1,6 @@
-#include "client_app.h" 
+#include "CefClientApp.h" 
 
-#include "duilib/CEFControl/util/util.h"
+#include "duilib/CEFControl/util/CefUtil.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -14,7 +14,7 @@ namespace ui
 {
 //////////////////////////////////////////////////////////////////////////////////////////
 // CefBrowserProcessHandler methods.
-void ClientApp::OnContextInitialized() 
+void CefClientApp::OnContextInitialized() 
 {
     
 }

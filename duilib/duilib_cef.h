@@ -5,9 +5,9 @@
 
 //lib CEF 控件的头文件包含
 
-#include "duilib/CEFControl/control/cef_control_base.h"
-#include "duilib/CEFControl/control/cef_control.h"
-#include "duilib/CEFControl/control/cef_native_control.h"
-#include "duilib/CEFControl/manager/cef_manager.h"
+#include "duilib/CEFControl/control/CefControlBase.h"
+#include "duilib/CEFControl/control/CefControl.h"
+#include "duilib/CEFControl/control/CefNativeControl.h"
+#include "duilib/CEFControl/manager/CefManager.h"
 
 #endif //DUILIB_CEF_CONTROL_H_

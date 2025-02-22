@@ -7,7 +7,7 @@
 #define UI_CEF_CONTROL_CLIENT_APP_H_
 
 #include "duilib/duilib_config.h"
-#include "duilib/CEFControl/app/cef_js_bridge.h"
+#include "duilib/CEFControl/app/CefJSBridge.h"
 #include <map>
 #include <set>
 #include <string>
@@ -20,12 +20,12 @@
 
 namespace ui
 {
-class ClientApp : public CefApp,
+class CefClientApp : public CefApp,
                   public CefBrowserProcessHandler,
                   public CefRenderProcessHandler
 {
 public:
-    ClientApp();
+    CefClientApp();
 
 private:
     // CefApp methods.
@@ -67,7 +67,7 @@ private:
     std::shared_ptr<CefJSBridge>    render_js_bridge_;
     bool                            last_node_is_editable_;
     // both the browser and renderer process.
-    IMPLEMENT_REFCOUNTING(ClientApp);
+    IMPLEMENT_REFCOUNTING(CefClientApp);
 };
 }
 

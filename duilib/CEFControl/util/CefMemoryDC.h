@@ -9,11 +9,11 @@
 
 #include "duilib/duilib_defs.h"
 
-class MemoryDC
+class CefMemoryDC
 {
 public:
-    MemoryDC();
-    ~MemoryDC();
+    CefMemoryDC();
+    ~CefMemoryDC();
 
     // 初始化内存dc数据，并创建出对应的位图对象
     // 如果pBits参数不为空，则用pBits参数的数据填充位图

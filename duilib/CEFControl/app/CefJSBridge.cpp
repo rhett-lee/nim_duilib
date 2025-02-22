@@ -1,5 +1,5 @@
-#include "cef_js_bridge.h"
-#include "ipc_string_define.h"
+#include "CefJSBridge.h"
+#include "CefIPCStringDefs.h"
 
 #include "duilib/duilib.h"
 

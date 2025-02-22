@@ -588,39 +588,6 @@
     <ClCompile Include="Core\DragWindowFilter_SDL.cpp">
       <Filter>Core\SDL</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\app\cef_js_bridge.cpp">
-      <Filter>CEFControl\app</Filter>
-    </ClCompile>
-    <ClCompile Include="CEFControl\app\client_app.cpp">
-      <Filter>CEFControl\app</Filter>
-    </ClCompile>
-    <ClCompile Include="CEFControl\app\client_app_browser.cpp">
-      <Filter>CEFControl\app</Filter>
-    </ClCompile>
-    <ClCompile Include="CEFControl\app\client_app_render.cpp">
-      <Filter>CEFControl\app</Filter>
-    </ClCompile>
-    <ClCompile Include="CEFControl\app\js_handler.cpp">
-      <Filter>CEFControl\app</Filter>
-    </ClCompile>
-    <ClCompile Include="CEFControl\control\cef_control.cpp">
-      <Filter>CEFControl\control</Filter>
-    </ClCompile>
-    <ClCompile Include="CEFControl\control\cef_control_base.cpp">
-      <Filter>CEFControl\control</Filter>
-    </ClCompile>
-    <ClCompile Include="CEFControl\control\cef_control_base_ui.cpp">
-      <Filter>CEFControl\control</Filter>
-    </ClCompile>
-    <ClCompile Include="CEFControl\control\cef_control_ui.cpp">
-      <Filter>CEFControl\control</Filter>
-    </ClCompile>
-    <ClCompile Include="CEFControl\control\cef_native_control.cpp">
-      <Filter>CEFControl\control</Filter>
-    </ClCompile>
-    <ClCompile Include="CEFControl\handler\browser_handler.cpp">
-      <Filter>CEFControl\handler</Filter>
-    </ClCompile>
     <ClCompile Include="CEFControl\handler\drag\bytes_write_handler.cc">
       <Filter>CEFControl\handler\drag</Filter>
     </ClCompile>
@@ -630,10 +597,43 @@
     <ClCompile Include="CEFControl\handler\drag\util_win.cc">
       <Filter>CEFControl\handler\drag</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\manager\cef_manager.cpp">
+    <ClCompile Include="CEFControl\app\CefJSBridge.cpp">
+      <Filter>CEFControl\app</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\app\CefClientApp.cpp">
+      <Filter>CEFControl\app</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\app\CefClientAppBrowser.cpp">
+      <Filter>CEFControl\app</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\app\CefClientAppRender.cpp">
+      <Filter>CEFControl\app</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\app\CefJsHandler.cpp">
+      <Filter>CEFControl\app</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\control\CefControl.cpp">
+      <Filter>CEFControl\control</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\control\CefControlBase.cpp">
+      <Filter>CEFControl\control</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\control\CefControlBaseUI.cpp">
+      <Filter>CEFControl\control</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\control\CefControlUI.cpp">
+      <Filter>CEFControl\control</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\control\CefNativeControl.cpp">
+      <Filter>CEFControl\control</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\handler\CefBrowserHandler.cpp">
+      <Filter>CEFControl\handler</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\manager\CefManager.cpp">
       <Filter>CEFControl\manager</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\util\memory_dc.cpp">
+    <ClCompile Include="CEFControl\util\CefMemoryDC.cpp">
       <Filter>CEFControl\util</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1247,33 +1247,6 @@
     <ClInclude Include="duilib_cef.h">
       <Filter>duilib</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\app\cef_js_bridge.h">
-      <Filter>CEFControl\app</Filter>
-    </ClInclude>
-    <ClInclude Include="CEFControl\app\client_app.h">
-      <Filter>CEFControl\app</Filter>
-    </ClInclude>
-    <ClInclude Include="CEFControl\app\ipc_string_define.h">
-      <Filter>CEFControl\app</Filter>
-    </ClInclude>
-    <ClInclude Include="CEFControl\app\js_handler.h">
-      <Filter>CEFControl\app</Filter>
-    </ClInclude>
-    <ClInclude Include="CEFControl\control\cef_control.h">
-      <Filter>CEFControl\control</Filter>
-    </ClInclude>
-    <ClInclude Include="CEFControl\control\cef_control_base.h">
-      <Filter>CEFControl\control</Filter>
-    </ClInclude>
-    <ClInclude Include="CEFControl\control\cef_control_event.h">
-      <Filter>CEFControl\control</Filter>
-    </ClInclude>
-    <ClInclude Include="CEFControl\control\cef_native_control.h">
-      <Filter>CEFControl\control</Filter>
-    </ClInclude>
-    <ClInclude Include="CEFControl\handler\browser_handler.h">
-      <Filter>CEFControl\handler</Filter>
-    </ClInclude>
     <ClInclude Include="CEFControl\handler\drag\bytes_write_handler.h">
       <Filter>CEFControl\handler\drag</Filter>
     </ClInclude>
@@ -1286,16 +1259,37 @@
     <ClInclude Include="CEFControl\handler\drag\util_win.h">
       <Filter>CEFControl\handler\drag</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\manager\cef_manager.h">
+    <ClInclude Include="CEFControl\app\CefJSBridge.h">
+      <Filter>CEFControl\app</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\app\CefClientApp.h">
+      <Filter>CEFControl\app</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\app\CefJsHandler.h">
+      <Filter>CEFControl\app</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\control\CefControl.h">
+      <Filter>CEFControl\control</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\control\CefControlBase.h">
+      <Filter>CEFControl\control</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\control\CefNativeControl.h">
+      <Filter>CEFControl\control</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\handler\CefBrowserHandler.h">
+      <Filter>CEFControl\handler</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\manager\CefManager.h">
       <Filter>CEFControl\manager</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\util\auto_unregister.h">
+    <ClInclude Include="CEFControl\util\CefAutoUnregister.h">
       <Filter>CEFControl\util</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\util\memory_dc.h">
+    <ClInclude Include="CEFControl\util\CefMemoryDC.h">
       <Filter>CEFControl\util</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\util\util.h">
+    <ClInclude Include="CEFControl\util\CefUtil.h">
       <Filter>CEFControl\util</Filter>
     </ClInclude>
   </ItemGroup>
