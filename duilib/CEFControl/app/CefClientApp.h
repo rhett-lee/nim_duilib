@@ -20,49 +20,47 @@
 
 namespace ui
 {
-class CefClientApp : public CefApp,
-                  public CefBrowserProcessHandler,
-                  public CefRenderProcessHandler
+class CefClientApp:
+    public CefApp,
+    public CefBrowserProcessHandler,
+    public CefRenderProcessHandler
 {
 public:
     CefClientApp();
 
 private:
-    // CefApp methods.
+    // CefApp接口的实现
     virtual void OnBeforeCommandLineProcessing(const CefString& process_type, CefRefPtr<CefCommandLine> command_line) override;
-    virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) override {};
-    virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override{ return this; }
-    virtual CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() override{ return this; }
+    virtual void OnRegisterCustomSchemes(CefRawPtr<CefSchemeRegistrar> registrar) override;
+    virtual CefRefPtr<CefBrowserProcessHandler> GetBrowserProcessHandler() override;
+    virtual CefRefPtr<CefRenderProcessHandler> GetRenderProcessHandler() override;
 
-    // CefBrowserProcessHandler methods.
-    virtual void OnRegisterCustomPreferences(cef_preferences_type_t type, CefRawPtr<CefPreferenceRegistrar> registrar) override {}
+    // CefBrowserProcessHandler接口的实现
+    virtual void OnRegisterCustomPreferences(cef_preferences_type_t type, CefRawPtr<CefPreferenceRegistrar> registrar) override;
     virtual void OnContextInitialized() override;
-    virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) override {} 
-    virtual bool OnAlreadyRunningAppRelaunch(CefRefPtr<CefCommandLine> command_line, const CefString& current_directory) override  { return false; }
-    virtual void OnScheduleMessagePumpWork(int64_t delay_ms) override {}
-    virtual CefRefPtr<CefClient> GetDefaultClient() override { return nullptr; }
-    virtual CefRefPtr<CefRequestContextHandler> GetDefaultRequestContextHandler() override { return nullptr; }
+    virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) override;
+    virtual bool OnAlreadyRunningAppRelaunch(CefRefPtr<CefCommandLine> command_line, const CefString& current_directory) override;
+    virtual void OnScheduleMessagePumpWork(int64_t delay_ms) override;
+    virtual CefRefPtr<CefClient> GetDefaultClient() override;
+    virtual CefRefPtr<CefRequestContextHandler> GetDefaultRequestContextHandler() override;
 
-    // CefRenderProcessHandler methods.
+    // CefRenderProcessHandler接口的实现
     virtual void OnWebKitInitialized() override;
     virtual void OnBrowserCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDictionaryValue> extra_info) override;
     virtual void OnBrowserDestroyed(CefRefPtr<CefBrowser> browser) override;
     virtual CefRefPtr<CefLoadHandler> GetLoadHandler() override;
     virtual void OnContextCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context) override;
     virtual void OnContextReleased(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefV8Context> context) override;
-    virtual void OnUncaughtException( CefRefPtr<CefBrowser> browser,
-                                      CefRefPtr<CefFrame> frame,
-                                      CefRefPtr<CefV8Context> context,
-                                      CefRefPtr<CefV8Exception> exception,
-                                      CefRefPtr<CefV8StackTrace> stackTrace) override;
-    virtual void OnFocusedNodeChanged(
-        CefRefPtr<CefBrowser> browser,
-        CefRefPtr<CefFrame> frame,
-        CefRefPtr<CefDOMNode> node) override;
-    virtual bool OnProcessMessageReceived( CefRefPtr<CefBrowser> browser,
-                                           CefRefPtr<CefFrame> frame,
-                                           CefProcessId source_process,
-                                           CefRefPtr<CefProcessMessage> message) override;
+    virtual void OnUncaughtException(CefRefPtr<CefBrowser> browser,
+                                     CefRefPtr<CefFrame> frame,
+                                     CefRefPtr<CefV8Context> context,
+                                     CefRefPtr<CefV8Exception> exception,
+                                     CefRefPtr<CefV8StackTrace> stackTrace) override;
+    virtual void OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefDOMNode> node) override;
+    virtual bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
+                                          CefRefPtr<CefFrame> frame,
+                                          CefProcessId source_process,
+                                          CefRefPtr<CefProcessMessage> message) override;
 private:
     std::shared_ptr<CefJSBridge>    render_js_bridge_;
     bool                            last_node_is_editable_;

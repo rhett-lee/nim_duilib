@@ -84,19 +84,17 @@ void CefClientApp::OnContextReleased(CefRefPtr<CefBrowser> /*browser*/, CefRefPt
     render_js_bridge_->UnRegisterJSFuncWithFrame(frame);
 }
 
-void CefClientApp::OnUncaughtException(
-    CefRefPtr<CefBrowser> /*browser*/,
-    CefRefPtr<CefFrame> /*frame*/,
-    CefRefPtr<CefV8Context> /*context*/,
-    CefRefPtr<CefV8Exception> /*exception*/,
-    CefRefPtr<CefV8StackTrace> /*stackTrace*/)
+void CefClientApp::OnUncaughtException(CefRefPtr<CefBrowser> /*browser*/,
+                                       CefRefPtr<CefFrame> /*frame*/,
+                                       CefRefPtr<CefV8Context> /*context*/,
+                                       CefRefPtr<CefV8Exception> /*exception*/,
+                                       CefRefPtr<CefV8StackTrace> /*stackTrace*/)
 {
 }
 
-void CefClientApp::OnFocusedNodeChanged(
-    CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefFrame> frame,
-    CefRefPtr<CefDOMNode> node) 
+void CefClientApp::OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
+                                        CefRefPtr<CefFrame> frame,
+                                        CefRefPtr<CefDOMNode> node) 
 {
     bool is_editable = (node.get() && node->IsEditable());
     if (is_editable != last_node_is_editable_)
@@ -112,10 +110,10 @@ void CefClientApp::OnFocusedNodeChanged(
     }
 }
 
-bool CefClientApp::OnProcessMessageReceived( CefRefPtr<CefBrowser> browser,
-                                          CefRefPtr<CefFrame> frame,
-                                          CefProcessId source_process,
-                                          CefRefPtr<CefProcessMessage> message)
+bool CefClientApp::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
+                                            CefRefPtr<CefFrame> frame,
+                                            CefProcessId source_process,
+                                            CefRefPtr<CefProcessMessage> message)
 {
     (void)source_process;
     ASSERT(source_process == PID_BROWSER);
