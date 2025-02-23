@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=7531cd190856e409b80b48bd62c4691dcb9596bf$
+// $hash=85c9861aebc3d72c74df5bb149494347f07b6ccf$
 //
 
 #include "libcef_dll/ctocpp/permission_prompt_callback_ctocpp.h"
@@ -24,6 +24,10 @@ void CefPermissionPromptCallbackCToCpp::Continue(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cont) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

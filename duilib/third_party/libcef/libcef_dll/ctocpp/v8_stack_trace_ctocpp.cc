@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=d4d5fbf56bca653054ff927f772bef2c2c74e5c9$
+// $hash=e266e8fa54710840714befc5f7c65f93b3844269$
 //
 
 #include "libcef_dll/ctocpp/v8_stack_trace_ctocpp.h"
@@ -38,6 +38,10 @@ NO_SANITIZE("cfi-icall") bool CefV8StackTraceCToCpp::IsValid() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_valid) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -51,6 +55,10 @@ NO_SANITIZE("cfi-icall") int CefV8StackTraceCToCpp::GetFrameCount() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_frame_count) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -65,6 +73,10 @@ CefRefPtr<CefV8StackFrame> CefV8StackTraceCToCpp::GetFrame(int index) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_frame) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=5dc6380d40e65cb7a595860a6180da402665542b$
+// $hash=82ad8134886c03d28bca83de81e96d2f03287d9d$
 //
 
 #include "libcef_dll/ctocpp/task_runner_ctocpp.h"
@@ -52,6 +52,10 @@ bool CefTaskRunnerCToCpp::IsSame(CefRefPtr<CefTaskRunner> that) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_same) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: that; type: refptr_same
@@ -71,6 +75,10 @@ NO_SANITIZE("cfi-icall") bool CefTaskRunnerCToCpp::BelongsToCurrentThread() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->belongs_to_current_thread) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -85,6 +93,10 @@ bool CefTaskRunnerCToCpp::BelongsToThread(CefThreadId threadId) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->belongs_to_thread) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -99,6 +111,10 @@ bool CefTaskRunnerCToCpp::PostTask(CefRefPtr<CefTask> task) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->post_task) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: task; type: refptr_diff
@@ -120,6 +136,10 @@ bool CefTaskRunnerCToCpp::PostDelayedTask(CefRefPtr<CefTask> task,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->post_delayed_task) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: task; type: refptr_diff

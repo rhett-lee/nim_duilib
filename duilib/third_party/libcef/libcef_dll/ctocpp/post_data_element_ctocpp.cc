@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=6c323049a4fdce53d9735428789b39b5f115030c$
+// $hash=4db2c76215553d8117bf18e21f2a11dc7253fde1$
 //
 
 #include "libcef_dll/ctocpp/post_data_element_ctocpp.h"
@@ -31,6 +31,10 @@ CefRefPtr<CefPostDataElement> CefPostDataElement::Create() {
 
 NO_SANITIZE("cfi-icall") bool CefPostDataElementCToCpp::IsReadOnly() {
   auto* _struct = GetStruct();
+  if (!_struct->is_read_only) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -42,6 +46,10 @@ NO_SANITIZE("cfi-icall") bool CefPostDataElementCToCpp::IsReadOnly() {
 
 NO_SANITIZE("cfi-icall") void CefPostDataElementCToCpp::SetToEmpty() {
   auto* _struct = GetStruct();
+  if (!_struct->set_to_empty) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -51,6 +59,10 @@ NO_SANITIZE("cfi-icall") void CefPostDataElementCToCpp::SetToEmpty() {
 NO_SANITIZE("cfi-icall")
 void CefPostDataElementCToCpp::SetToFile(const CefString& fileName) {
   auto* _struct = GetStruct();
+  if (!_struct->set_to_file) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: fileName; type: string_byref_const
@@ -66,6 +78,10 @@ void CefPostDataElementCToCpp::SetToFile(const CefString& fileName) {
 NO_SANITIZE("cfi-icall")
 void CefPostDataElementCToCpp::SetToBytes(size_t size, const void* bytes) {
   auto* _struct = GetStruct();
+  if (!_struct->set_to_bytes) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: bytes; type: simple_byaddr
@@ -81,6 +97,10 @@ void CefPostDataElementCToCpp::SetToBytes(size_t size, const void* bytes) {
 NO_SANITIZE("cfi-icall")
 CefPostDataElement::Type CefPostDataElementCToCpp::GetType() {
   auto* _struct = GetStruct();
+  if (!_struct->get_type) {
+    return PDE_TYPE_EMPTY;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -92,6 +112,10 @@ CefPostDataElement::Type CefPostDataElementCToCpp::GetType() {
 
 NO_SANITIZE("cfi-icall") CefString CefPostDataElementCToCpp::GetFile() {
   auto* _struct = GetStruct();
+  if (!_struct->get_file) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -105,6 +129,10 @@ NO_SANITIZE("cfi-icall") CefString CefPostDataElementCToCpp::GetFile() {
 
 NO_SANITIZE("cfi-icall") size_t CefPostDataElementCToCpp::GetBytesCount() {
   auto* _struct = GetStruct();
+  if (!_struct->get_bytes_count) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -117,6 +145,10 @@ NO_SANITIZE("cfi-icall") size_t CefPostDataElementCToCpp::GetBytesCount() {
 NO_SANITIZE("cfi-icall")
 size_t CefPostDataElementCToCpp::GetBytes(size_t size, void* bytes) {
   auto* _struct = GetStruct();
+  if (!_struct->get_bytes) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: bytes; type: simple_byaddr

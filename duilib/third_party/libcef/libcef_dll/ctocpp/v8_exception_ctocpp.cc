@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=84416ebd282582420238b17e25d2bd6b887efbc4$
+// $hash=b526fc9328005169181fb26787151d4dc1193b70$
 //
 
 #include "libcef_dll/ctocpp/v8_exception_ctocpp.h"
@@ -18,6 +18,10 @@
 
 NO_SANITIZE("cfi-icall") CefString CefV8ExceptionCToCpp::GetMessage() {
   auto* _struct = GetStruct();
+  if (!_struct->get_message) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -31,6 +35,10 @@ NO_SANITIZE("cfi-icall") CefString CefV8ExceptionCToCpp::GetMessage() {
 
 NO_SANITIZE("cfi-icall") CefString CefV8ExceptionCToCpp::GetSourceLine() {
   auto* _struct = GetStruct();
+  if (!_struct->get_source_line) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -45,6 +53,10 @@ NO_SANITIZE("cfi-icall") CefString CefV8ExceptionCToCpp::GetSourceLine() {
 NO_SANITIZE("cfi-icall")
 CefString CefV8ExceptionCToCpp::GetScriptResourceName() {
   auto* _struct = GetStruct();
+  if (!_struct->get_script_resource_name) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -58,6 +70,10 @@ CefString CefV8ExceptionCToCpp::GetScriptResourceName() {
 
 NO_SANITIZE("cfi-icall") int CefV8ExceptionCToCpp::GetLineNumber() {
   auto* _struct = GetStruct();
+  if (!_struct->get_line_number) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -69,6 +85,10 @@ NO_SANITIZE("cfi-icall") int CefV8ExceptionCToCpp::GetLineNumber() {
 
 NO_SANITIZE("cfi-icall") int CefV8ExceptionCToCpp::GetStartPosition() {
   auto* _struct = GetStruct();
+  if (!_struct->get_start_position) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -80,6 +100,10 @@ NO_SANITIZE("cfi-icall") int CefV8ExceptionCToCpp::GetStartPosition() {
 
 NO_SANITIZE("cfi-icall") int CefV8ExceptionCToCpp::GetEndPosition() {
   auto* _struct = GetStruct();
+  if (!_struct->get_end_position) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -91,6 +115,10 @@ NO_SANITIZE("cfi-icall") int CefV8ExceptionCToCpp::GetEndPosition() {
 
 NO_SANITIZE("cfi-icall") int CefV8ExceptionCToCpp::GetStartColumn() {
   auto* _struct = GetStruct();
+  if (!_struct->get_start_column) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -102,6 +130,10 @@ NO_SANITIZE("cfi-icall") int CefV8ExceptionCToCpp::GetStartColumn() {
 
 NO_SANITIZE("cfi-icall") int CefV8ExceptionCToCpp::GetEndColumn() {
   auto* _struct = GetStruct();
+  if (!_struct->get_end_column) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

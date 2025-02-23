@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=34360cf5b02bc3e829f3575c167ae7585f0a200c$
+// $hash=3f7687a8a765f4b2caad7dc63a345aca135f1f96$
 //
 
 #include "libcef_dll/ctocpp/value_ctocpp.h"
@@ -39,6 +39,10 @@ NO_SANITIZE("cfi-icall") bool CefValueCToCpp::IsValid() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_valid) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -52,6 +56,10 @@ NO_SANITIZE("cfi-icall") bool CefValueCToCpp::IsOwned() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_owned) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -65,6 +73,10 @@ NO_SANITIZE("cfi-icall") bool CefValueCToCpp::IsReadOnly() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_read_only) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -78,6 +90,10 @@ NO_SANITIZE("cfi-icall") bool CefValueCToCpp::IsSame(CefRefPtr<CefValue> that) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_same) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: that; type: refptr_same
@@ -98,6 +114,10 @@ bool CefValueCToCpp::IsEqual(CefRefPtr<CefValue> that) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_equal) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: that; type: refptr_same
@@ -117,6 +137,10 @@ NO_SANITIZE("cfi-icall") CefRefPtr<CefValue> CefValueCToCpp::Copy() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->copy) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -130,6 +154,10 @@ NO_SANITIZE("cfi-icall") CefValueType CefValueCToCpp::GetType() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_type) {
+    return VTYPE_INVALID;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -143,6 +171,10 @@ NO_SANITIZE("cfi-icall") bool CefValueCToCpp::GetBool() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_bool) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -156,6 +188,10 @@ NO_SANITIZE("cfi-icall") int CefValueCToCpp::GetInt() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_int) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -169,6 +205,10 @@ NO_SANITIZE("cfi-icall") double CefValueCToCpp::GetDouble() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_double) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -182,6 +222,10 @@ NO_SANITIZE("cfi-icall") CefString CefValueCToCpp::GetString() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_string) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -197,6 +241,10 @@ NO_SANITIZE("cfi-icall") CefRefPtr<CefBinaryValue> CefValueCToCpp::GetBinary() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_binary) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -211,6 +259,10 @@ CefRefPtr<CefDictionaryValue> CefValueCToCpp::GetDictionary() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_dictionary) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -224,6 +276,10 @@ NO_SANITIZE("cfi-icall") CefRefPtr<CefListValue> CefValueCToCpp::GetList() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_list) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -237,6 +293,10 @@ NO_SANITIZE("cfi-icall") bool CefValueCToCpp::SetNull() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_null) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -250,6 +310,10 @@ NO_SANITIZE("cfi-icall") bool CefValueCToCpp::SetBool(bool value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_bool) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -263,6 +327,10 @@ NO_SANITIZE("cfi-icall") bool CefValueCToCpp::SetInt(int value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_int) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -276,6 +344,10 @@ NO_SANITIZE("cfi-icall") bool CefValueCToCpp::SetDouble(double value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_double) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -290,6 +362,10 @@ bool CefValueCToCpp::SetString(const CefString& value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_string) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: value
@@ -306,6 +382,10 @@ bool CefValueCToCpp::SetBinary(CefRefPtr<CefBinaryValue> value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_binary) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: value; type: refptr_same
@@ -327,6 +407,10 @@ bool CefValueCToCpp::SetDictionary(CefRefPtr<CefDictionaryValue> value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_dictionary) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: value; type: refptr_same
@@ -348,6 +432,10 @@ bool CefValueCToCpp::SetList(CefRefPtr<CefListValue> value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_list) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: value; type: refptr_same

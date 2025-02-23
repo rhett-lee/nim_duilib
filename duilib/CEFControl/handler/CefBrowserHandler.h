@@ -443,6 +443,7 @@ public:
                               CefRefPtr<CefFileDialogCallback> callback) override;
 
 protected:
+    base::Lock lock_;
     CefRefPtr<CefBrowser>    browser_;
     std::vector<CefRefPtr<CefBrowser>> browser_list_;
     ui::Window*                window_;

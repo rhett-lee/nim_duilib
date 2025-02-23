@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=60cafd8ec037a03c5823c5a08d1326ec059b9b0e$
+// $hash=033db61f2edf6d30322a113bdd23f841586a3564$
 //
 
 #include "libcef_dll/ctocpp/x509_cert_principal_ctocpp.h"
@@ -24,6 +24,10 @@ CefString CefX509CertPrincipalCToCpp::GetDisplayName() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_display_name) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -39,6 +43,10 @@ NO_SANITIZE("cfi-icall") CefString CefX509CertPrincipalCToCpp::GetCommonName() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_common_name) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -55,6 +63,10 @@ CefString CefX509CertPrincipalCToCpp::GetLocalityName() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_locality_name) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -71,6 +83,10 @@ CefString CefX509CertPrincipalCToCpp::GetStateOrProvinceName() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_state_or_province_name) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -87,6 +103,10 @@ CefString CefX509CertPrincipalCToCpp::GetCountryName() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_country_name) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -104,6 +124,10 @@ void CefX509CertPrincipalCToCpp::GetOrganizationNames(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_organization_names) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: names; type: string_vec_byref
@@ -130,6 +154,10 @@ void CefX509CertPrincipalCToCpp::GetOrganizationUnitNames(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_organization_unit_names) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: names; type: string_vec_byref

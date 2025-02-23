@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=2d41b0bf34130e6543f1c5d7ea937c92f96a292f$
+// $hash=badfeedcf74b6a9e0a01eb5437529655ba25ffa5$
 //
 
 #include "libcef_dll/ctocpp/drag_data_ctocpp.h"
@@ -39,6 +39,10 @@ NO_SANITIZE("cfi-icall") CefRefPtr<CefDragData> CefDragDataCToCpp::Clone() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->clone) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -52,6 +56,10 @@ NO_SANITIZE("cfi-icall") bool CefDragDataCToCpp::IsReadOnly() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_read_only) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -65,6 +73,10 @@ NO_SANITIZE("cfi-icall") bool CefDragDataCToCpp::IsLink() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_link) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -78,6 +90,10 @@ NO_SANITIZE("cfi-icall") bool CefDragDataCToCpp::IsFragment() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_fragment) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -91,6 +107,10 @@ NO_SANITIZE("cfi-icall") bool CefDragDataCToCpp::IsFile() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_file) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -104,6 +124,10 @@ NO_SANITIZE("cfi-icall") CefString CefDragDataCToCpp::GetLinkURL() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_link_url) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -119,6 +143,10 @@ NO_SANITIZE("cfi-icall") CefString CefDragDataCToCpp::GetLinkTitle() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_link_title) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -134,6 +162,10 @@ NO_SANITIZE("cfi-icall") CefString CefDragDataCToCpp::GetLinkMetadata() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_link_metadata) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -149,6 +181,10 @@ NO_SANITIZE("cfi-icall") CefString CefDragDataCToCpp::GetFragmentText() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_fragment_text) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -164,6 +200,10 @@ NO_SANITIZE("cfi-icall") CefString CefDragDataCToCpp::GetFragmentHtml() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_fragment_html) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -179,6 +219,10 @@ NO_SANITIZE("cfi-icall") CefString CefDragDataCToCpp::GetFragmentBaseURL() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_fragment_base_url) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -194,6 +238,10 @@ NO_SANITIZE("cfi-icall") CefString CefDragDataCToCpp::GetFileName() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_file_name) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -210,6 +258,10 @@ size_t CefDragDataCToCpp::GetFileContents(CefRefPtr<CefStreamWriter> writer) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_file_contents) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: writer
@@ -227,6 +279,10 @@ bool CefDragDataCToCpp::GetFileNames(std::vector<CefString>& names) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_file_names) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: names; type: string_vec_byref
@@ -255,6 +311,10 @@ bool CefDragDataCToCpp::GetFilePaths(std::vector<CefString>& paths) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_file_paths) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: paths; type: string_vec_byref
@@ -283,6 +343,10 @@ void CefDragDataCToCpp::SetLinkURL(const CefString& url) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_link_url) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: url
@@ -296,6 +360,10 @@ void CefDragDataCToCpp::SetLinkTitle(const CefString& title) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_link_title) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: title
@@ -309,6 +377,10 @@ void CefDragDataCToCpp::SetLinkMetadata(const CefString& data) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_link_metadata) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: data
@@ -322,6 +394,10 @@ void CefDragDataCToCpp::SetFragmentText(const CefString& text) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_fragment_text) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: text
@@ -335,6 +411,10 @@ void CefDragDataCToCpp::SetFragmentHtml(const CefString& html) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_fragment_html) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: html
@@ -348,6 +428,10 @@ void CefDragDataCToCpp::SetFragmentBaseURL(const CefString& base_url) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_fragment_base_url) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: base_url
@@ -360,6 +444,10 @@ NO_SANITIZE("cfi-icall") void CefDragDataCToCpp::ResetFileContents() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->reset_file_contents) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -372,6 +460,10 @@ void CefDragDataCToCpp::AddFile(const CefString& path,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->add_file) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: path; type: string_byref_const
@@ -389,6 +481,10 @@ NO_SANITIZE("cfi-icall") void CefDragDataCToCpp::ClearFilenames() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->clear_filenames) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -399,6 +495,10 @@ NO_SANITIZE("cfi-icall") CefRefPtr<CefImage> CefDragDataCToCpp::GetImage() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_image) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -412,6 +512,10 @@ NO_SANITIZE("cfi-icall") CefPoint CefDragDataCToCpp::GetImageHotspot() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_image_hotspot) {
+    return CefPoint();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -425,6 +529,10 @@ NO_SANITIZE("cfi-icall") bool CefDragDataCToCpp::HasImage() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->has_image) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

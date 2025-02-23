@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=7b0a0300f4ba8c1bd98f75b05ee6294af43fda08$
+// $hash=5bf4e3de765155c88147355b3d1510116714fba2$
 //
 
 #include "libcef_dll/ctocpp/test/api_version_test_scoped_library_child_child_v1_ctocpp.h"
@@ -51,6 +51,10 @@ CefOwnPtr<
 NO_SANITIZE("cfi-icall")
 int CefApiVersionTestScopedLibraryChildChildV1CToCpp::GetOtherOtherValue() {
   auto* _struct = GetStruct();
+  if (!_struct->get_other_other_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -64,6 +68,10 @@ NO_SANITIZE("cfi-icall")
 void CefApiVersionTestScopedLibraryChildChildV1CToCpp::SetOtherOtherValue(
     int value) {
   auto* _struct = GetStruct();
+  if (!_struct->set_other_other_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -75,6 +83,10 @@ int CefApiVersionTestScopedLibraryChildChildV1CToCpp::GetOtherValue() {
   auto* _struct =
       reinterpret_cast<cef_api_version_test_scoped_library_child_t*>(
           GetStruct());
+  if (!_struct->get_other_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -90,6 +102,10 @@ void CefApiVersionTestScopedLibraryChildChildV1CToCpp::SetOtherValue(
   auto* _struct =
       reinterpret_cast<cef_api_version_test_scoped_library_child_t*>(
           GetStruct());
+  if (!_struct->set_other_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -100,6 +116,10 @@ NO_SANITIZE("cfi-icall")
 int CefApiVersionTestScopedLibraryChildChildV1CToCpp::GetValueLegacy() {
   auto* _struct =
       reinterpret_cast<cef_api_version_test_scoped_library_t*>(GetStruct());
+  if (!_struct->get_value_legacy) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -114,6 +134,10 @@ void CefApiVersionTestScopedLibraryChildChildV1CToCpp::SetValueLegacy(
     int value) {
   auto* _struct =
       reinterpret_cast<cef_api_version_test_scoped_library_t*>(GetStruct());
+  if (!_struct->set_value_legacy) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -125,6 +149,10 @@ NO_SANITIZE("cfi-icall")
 int CefApiVersionTestScopedLibraryChildChildV1CToCpp::GetValueExp() {
   auto* _struct =
       reinterpret_cast<cef_api_version_test_scoped_library_t*>(GetStruct());
+  if (!_struct->get_value_exp) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -140,6 +168,10 @@ NO_SANITIZE("cfi-icall")
 void CefApiVersionTestScopedLibraryChildChildV1CToCpp::SetValueExp(int value) {
   auto* _struct =
       reinterpret_cast<cef_api_version_test_scoped_library_t*>(GetStruct());
+  if (!_struct->set_value_exp) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -152,6 +184,10 @@ NO_SANITIZE("cfi-icall")
 int CefApiVersionTestScopedLibraryChildChildV1CToCpp::GetValue() {
   auto* _struct =
       reinterpret_cast<cef_api_version_test_scoped_library_t*>(GetStruct());
+  if (!_struct->get_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -167,6 +203,10 @@ NO_SANITIZE("cfi-icall")
 void CefApiVersionTestScopedLibraryChildChildV1CToCpp::SetValue(int value) {
   auto* _struct =
       reinterpret_cast<cef_api_version_test_scoped_library_t*>(GetStruct());
+  if (!_struct->set_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -179,6 +219,10 @@ NO_SANITIZE("cfi-icall")
 int CefApiVersionTestScopedLibraryChildChildV1CToCpp::GetValueV1() {
   auto* _struct =
       reinterpret_cast<cef_api_version_test_scoped_library_t*>(GetStruct());
+  if (!_struct->get_value_v1) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -194,6 +238,10 @@ NO_SANITIZE("cfi-icall")
 void CefApiVersionTestScopedLibraryChildChildV1CToCpp::SetValueV1(int value) {
   auto* _struct =
       reinterpret_cast<cef_api_version_test_scoped_library_t*>(GetStruct());
+  if (!_struct->set_value_v1) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -206,6 +254,10 @@ NO_SANITIZE("cfi-icall")
 int CefApiVersionTestScopedLibraryChildChildV1CToCpp::GetValueV2() {
   auto* _struct =
       reinterpret_cast<cef_api_version_test_scoped_library_t*>(GetStruct());
+  if (!_struct->get_value_v2) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -221,6 +273,10 @@ NO_SANITIZE("cfi-icall")
 void CefApiVersionTestScopedLibraryChildChildV1CToCpp::SetValueV2(int value) {
   auto* _struct =
       reinterpret_cast<cef_api_version_test_scoped_library_t*>(GetStruct());
+  if (!_struct->set_value_v2) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

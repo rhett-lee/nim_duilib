@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=1557a6558ac33781464833da38a6fd0e7cf5867e$
+// $hash=5a067ec411e53c8737406db0030b707f90d5f070$
 //
 
 #include "libcef_dll/ctocpp/shared_memory_region_ctocpp.h"
@@ -22,6 +22,10 @@ NO_SANITIZE("cfi-icall") bool CefSharedMemoryRegionCToCpp::IsValid() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_valid) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -35,6 +39,10 @@ NO_SANITIZE("cfi-icall") size_t CefSharedMemoryRegionCToCpp::Size() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->size) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -48,6 +56,10 @@ NO_SANITIZE("cfi-icall") void* CefSharedMemoryRegionCToCpp::Memory() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->memory) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

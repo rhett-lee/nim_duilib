@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=a428298a975e7fd1fca83a115d3c29573fe089fd$
+// $hash=78f886d07601d6ac21370fe48131622ab930d71c$
 //
 
 #include "libcef_dll/ctocpp/urlrequest_ctocpp.h"
@@ -59,6 +59,10 @@ CefRefPtr<CefRequest> CefURLRequestCToCpp::GetRequest() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_request) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -73,6 +77,10 @@ CefRefPtr<CefURLRequestClient> CefURLRequestCToCpp::GetClient() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_client) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -87,6 +95,10 @@ CefURLRequest::Status CefURLRequestCToCpp::GetRequestStatus() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_request_status) {
+    return UR_UNKNOWN;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -101,6 +113,10 @@ CefURLRequest::ErrorCode CefURLRequestCToCpp::GetRequestError() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_request_error) {
+    return ERR_NONE;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -115,6 +131,10 @@ CefRefPtr<CefResponse> CefURLRequestCToCpp::GetResponse() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_response) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -128,6 +148,10 @@ NO_SANITIZE("cfi-icall") bool CefURLRequestCToCpp::ResponseWasCached() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->response_was_cached) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -141,6 +165,10 @@ NO_SANITIZE("cfi-icall") void CefURLRequestCToCpp::Cancel() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cancel) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

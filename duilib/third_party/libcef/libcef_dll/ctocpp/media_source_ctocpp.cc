@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=d0cc00f696dd86250350b5a4808334eb02e76f77$
+// $hash=cf9da7c6e72ad081fee8669176cc436742870a75$
 //
 
 #include "libcef_dll/ctocpp/media_source_ctocpp.h"
@@ -22,6 +22,10 @@ NO_SANITIZE("cfi-icall") CefString CefMediaSourceCToCpp::GetId() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_id) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -37,6 +41,10 @@ NO_SANITIZE("cfi-icall") bool CefMediaSourceCToCpp::IsCastSource() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_cast_source) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -50,6 +58,10 @@ NO_SANITIZE("cfi-icall") bool CefMediaSourceCToCpp::IsDialSource() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_dial_source) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

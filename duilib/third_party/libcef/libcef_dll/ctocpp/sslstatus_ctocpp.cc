@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=52ec13fac712ca69e2f9048364450d745cefe0d7$
+// $hash=bdfd21e422f2236969f3d7e1f636a7678ca029d0$
 //
 
 #include "libcef_dll/ctocpp/sslstatus_ctocpp.h"
@@ -23,6 +23,10 @@ NO_SANITIZE("cfi-icall") bool CefSSLStatusCToCpp::IsSecureConnection() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_secure_connection) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -36,6 +40,10 @@ NO_SANITIZE("cfi-icall") cef_cert_status_t CefSSLStatusCToCpp::GetCertStatus() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_cert_status) {
+    return CERT_STATUS_NONE;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -49,6 +57,10 @@ NO_SANITIZE("cfi-icall") cef_ssl_version_t CefSSLStatusCToCpp::GetSSLVersion() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_sslversion) {
+    return SSL_CONNECTION_VERSION_UNKNOWN;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -63,6 +75,10 @@ cef_ssl_content_status_t CefSSLStatusCToCpp::GetContentStatus() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_content_status) {
+    return SSL_CONTENT_NORMAL_CONTENT;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -77,6 +93,10 @@ CefRefPtr<CefX509Certificate> CefSSLStatusCToCpp::GetX509Certificate() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_x509_certificate) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

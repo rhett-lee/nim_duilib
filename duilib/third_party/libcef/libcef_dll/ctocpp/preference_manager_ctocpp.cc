@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=b3e871ca870ab4c63ebbd8ff39b1a8b63128f48f$
+// $hash=a489f82c1012929cbf68febb46a72921a62dcd47$
 //
 
 #include "libcef_dll/ctocpp/preference_manager_ctocpp.h"
@@ -37,6 +37,10 @@ CefRefPtr<
 NO_SANITIZE("cfi-icall")
 bool CefPreferenceManagerCToCpp::HasPreference(const CefString& name) {
   auto* _struct = GetStruct();
+  if (!_struct->has_preference) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: name; type: string_byref_const
@@ -56,6 +60,10 @@ NO_SANITIZE("cfi-icall")
 CefRefPtr<CefValue> CefPreferenceManagerCToCpp::GetPreference(
     const CefString& name) {
   auto* _struct = GetStruct();
+  if (!_struct->get_preference) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: name; type: string_byref_const
@@ -75,6 +83,10 @@ NO_SANITIZE("cfi-icall")
 CefRefPtr<CefDictionaryValue> CefPreferenceManagerCToCpp::GetAllPreferences(
     bool include_defaults) {
   auto* _struct = GetStruct();
+  if (!_struct->get_all_preferences) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -87,6 +99,10 @@ CefRefPtr<CefDictionaryValue> CefPreferenceManagerCToCpp::GetAllPreferences(
 NO_SANITIZE("cfi-icall")
 bool CefPreferenceManagerCToCpp::CanSetPreference(const CefString& name) {
   auto* _struct = GetStruct();
+  if (!_struct->can_set_preference) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: name; type: string_byref_const
@@ -107,6 +123,10 @@ bool CefPreferenceManagerCToCpp::SetPreference(const CefString& name,
                                                CefRefPtr<CefValue> value,
                                                CefString& error) {
   auto* _struct = GetStruct();
+  if (!_struct->set_preference) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: name; type: string_byref_const

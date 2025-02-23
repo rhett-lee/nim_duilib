@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=202c1eddc8d4a20b3ce98673240d7987c80fb09c$
+// $hash=c9c4be48d36d029203bc7f92cda4bddb1f03eb13$
 //
 
 #include "libcef_dll/ctocpp/process_message_ctocpp.h"
@@ -45,6 +45,10 @@ NO_SANITIZE("cfi-icall") bool CefProcessMessageCToCpp::IsValid() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_valid) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -58,6 +62,10 @@ NO_SANITIZE("cfi-icall") bool CefProcessMessageCToCpp::IsReadOnly() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_read_only) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -72,6 +80,10 @@ CefRefPtr<CefProcessMessage> CefProcessMessageCToCpp::Copy() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->copy) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -85,6 +97,10 @@ NO_SANITIZE("cfi-icall") CefString CefProcessMessageCToCpp::GetName() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_name) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -101,6 +117,10 @@ CefRefPtr<CefListValue> CefProcessMessageCToCpp::GetArgumentList() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_argument_list) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -116,6 +136,10 @@ CefRefPtr<
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_shared_memory_region) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

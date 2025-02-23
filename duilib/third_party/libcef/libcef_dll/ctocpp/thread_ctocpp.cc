@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=acc36e0f18a9a91789c0e070528c4cea155d4e79$
+// $hash=5613fa81f3b9661cc302a9abf882c3eb9d92539a$
 //
 
 #include "libcef_dll/ctocpp/thread_ctocpp.h"
@@ -48,6 +48,10 @@ CefRefPtr<CefTaskRunner> CefThreadCToCpp::GetTaskRunner() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_task_runner) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -62,6 +66,10 @@ cef_platform_thread_id_t CefThreadCToCpp::GetPlatformThreadId() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_platform_thread_id) {
+    return kInvalidPlatformThreadId;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -75,6 +83,10 @@ NO_SANITIZE("cfi-icall") void CefThreadCToCpp::Stop() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->stop) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -85,6 +97,10 @@ NO_SANITIZE("cfi-icall") bool CefThreadCToCpp::IsRunning() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_running) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

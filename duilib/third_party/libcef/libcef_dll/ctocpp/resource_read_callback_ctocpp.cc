@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=79d455b71662de94160b036474445b6eda74de92$
+// $hash=08c9225f466dc11ee13b1668f3ae37f6bb7442e6$
 //
 
 #include "libcef_dll/ctocpp/resource_read_callback_ctocpp.h"
@@ -23,6 +23,10 @@ void CefResourceReadCallbackCToCpp::Continue(int bytes_read) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cont) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

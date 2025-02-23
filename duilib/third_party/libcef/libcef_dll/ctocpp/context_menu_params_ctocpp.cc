@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=6ae2c0fad7245666be55678ddd9e7c3517e11fe6$
+// $hash=264b5e2103cef05b5e2be77c6688a4e0b5e0d507$
 //
 
 #include "libcef_dll/ctocpp/context_menu_params_ctocpp.h"
@@ -23,6 +23,10 @@ NO_SANITIZE("cfi-icall") int CefContextMenuParamsCToCpp::GetXCoord() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_xcoord) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -36,6 +40,10 @@ NO_SANITIZE("cfi-icall") int CefContextMenuParamsCToCpp::GetYCoord() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_ycoord) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -50,6 +58,10 @@ CefContextMenuParams::TypeFlags CefContextMenuParamsCToCpp::GetTypeFlags() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_type_flags) {
+    return CM_TYPEFLAG_NONE;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -63,6 +75,10 @@ NO_SANITIZE("cfi-icall") CefString CefContextMenuParamsCToCpp::GetLinkUrl() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_link_url) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -79,6 +95,10 @@ CefString CefContextMenuParamsCToCpp::GetUnfilteredLinkUrl() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_unfiltered_link_url) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -94,6 +114,10 @@ NO_SANITIZE("cfi-icall") CefString CefContextMenuParamsCToCpp::GetSourceUrl() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_source_url) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -109,6 +133,10 @@ NO_SANITIZE("cfi-icall") bool CefContextMenuParamsCToCpp::HasImageContents() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->has_image_contents) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -122,6 +150,10 @@ NO_SANITIZE("cfi-icall") CefString CefContextMenuParamsCToCpp::GetTitleText() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_title_text) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -137,6 +169,10 @@ NO_SANITIZE("cfi-icall") CefString CefContextMenuParamsCToCpp::GetPageUrl() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_page_url) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -152,6 +188,10 @@ NO_SANITIZE("cfi-icall") CefString CefContextMenuParamsCToCpp::GetFrameUrl() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_frame_url) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -168,6 +208,10 @@ CefString CefContextMenuParamsCToCpp::GetFrameCharset() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_frame_charset) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -184,6 +228,10 @@ CefContextMenuParams::MediaType CefContextMenuParamsCToCpp::GetMediaType() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_media_type) {
+    return CM_MEDIATYPE_NONE;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -199,6 +247,10 @@ CefContextMenuParams::MediaStateFlags
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_media_state_flags) {
+    return CM_MEDIAFLAG_NONE;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -214,6 +266,10 @@ CefString CefContextMenuParamsCToCpp::GetSelectionText() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_selection_text) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -230,6 +286,10 @@ CefString CefContextMenuParamsCToCpp::GetMisspelledWord() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_misspelled_word) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -247,6 +307,10 @@ bool CefContextMenuParamsCToCpp::GetDictionarySuggestions(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_dictionary_suggestions) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: suggestions; type: string_vec_byref
@@ -274,6 +338,10 @@ NO_SANITIZE("cfi-icall") bool CefContextMenuParamsCToCpp::IsEditable() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_editable) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -288,6 +356,10 @@ bool CefContextMenuParamsCToCpp::IsSpellCheckEnabled() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_spell_check_enabled) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -303,6 +375,10 @@ CefContextMenuParams::EditStateFlags
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_edit_state_flags) {
+    return CM_EDITFLAG_NONE;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -317,6 +393,10 @@ NO_SANITIZE("cfi-icall") bool CefContextMenuParamsCToCpp::IsCustomMenu() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_custom_menu) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

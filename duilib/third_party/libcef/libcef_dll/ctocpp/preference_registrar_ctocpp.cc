@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=22d8a079362c9dc6abdbef3181355100354ccfee$
+// $hash=34c21edf0ddb3d28717f7e5d4727ea3f3f31e912$
 //
 
 #include "libcef_dll/ctocpp/preference_registrar_ctocpp.h"
@@ -23,6 +23,10 @@ bool CefPreferenceRegistrarCToCpp::AddPreference(
     const CefString& name,
     CefRefPtr<CefValue> default_value) {
   auto* _struct = GetStruct();
+  if (!_struct->add_preference) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: name; type: string_byref_const

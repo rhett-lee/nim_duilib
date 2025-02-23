@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=4683eca0dffd9e321419bf7c17d31a4d86cb8829$
+// $hash=038e97d660e185b65a6f4c903a16bec97de1a97d$
 //
 
 #include "libcef_dll/ctocpp/before_download_callback_ctocpp.h"
@@ -24,6 +24,10 @@ void CefBeforeDownloadCallbackCToCpp::Continue(const CefString& download_path,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cont) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: download_path

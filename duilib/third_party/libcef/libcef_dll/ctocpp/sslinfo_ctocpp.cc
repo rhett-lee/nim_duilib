@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=3855df1f7ecde066b9a9dc03d7040a3eff68d9c1$
+// $hash=9358f17a8e9c9a17766892e264cf228bf996becc$
 //
 
 #include "libcef_dll/ctocpp/sslinfo_ctocpp.h"
@@ -23,6 +23,10 @@ NO_SANITIZE("cfi-icall") cef_cert_status_t CefSSLInfoCToCpp::GetCertStatus() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_cert_status) {
+    return CERT_STATUS_NONE;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -37,6 +41,10 @@ CefRefPtr<CefX509Certificate> CefSSLInfoCToCpp::GetX509Certificate() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_x509_certificate) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

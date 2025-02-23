@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=6b4307aeb767ce94749fc9fff56a6687c741d49c$
+// $hash=ae42b40cc49c2eb0cfecd58fdc40f3eacac22692$
 //
 
 #include "libcef_dll/ctocpp/test/translator_test_ctocpp.h"
@@ -48,6 +48,10 @@ NO_SANITIZE("cfi-icall") void CefTranslatorTestCToCpp::GetVoid() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_void) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -58,6 +62,10 @@ NO_SANITIZE("cfi-icall") bool CefTranslatorTestCToCpp::GetBool() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_bool) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -71,6 +79,10 @@ NO_SANITIZE("cfi-icall") int CefTranslatorTestCToCpp::GetInt() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_int) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -84,6 +96,10 @@ NO_SANITIZE("cfi-icall") double CefTranslatorTestCToCpp::GetDouble() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_double) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -97,6 +113,10 @@ NO_SANITIZE("cfi-icall") long CefTranslatorTestCToCpp::GetLong() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_long) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -110,6 +130,10 @@ NO_SANITIZE("cfi-icall") size_t CefTranslatorTestCToCpp::GetSizet() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_sizet) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -123,6 +147,10 @@ NO_SANITIZE("cfi-icall") bool CefTranslatorTestCToCpp::SetVoid() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_void) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -136,6 +164,10 @@ NO_SANITIZE("cfi-icall") bool CefTranslatorTestCToCpp::SetBool(bool val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_bool) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -149,6 +181,10 @@ NO_SANITIZE("cfi-icall") bool CefTranslatorTestCToCpp::SetInt(int val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_int) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -162,6 +198,10 @@ NO_SANITIZE("cfi-icall") bool CefTranslatorTestCToCpp::SetDouble(double val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_double) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -175,6 +215,10 @@ NO_SANITIZE("cfi-icall") bool CefTranslatorTestCToCpp::SetLong(long val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_long) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -188,6 +232,10 @@ NO_SANITIZE("cfi-icall") bool CefTranslatorTestCToCpp::SetSizet(size_t val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_sizet) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -202,6 +250,10 @@ bool CefTranslatorTestCToCpp::SetIntList(const std::vector<int>& val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_int_list) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: simple_vec_byref_const
@@ -234,6 +286,10 @@ bool CefTranslatorTestCToCpp::GetIntListByRef(IntList& val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_int_list_by_ref) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: simple_vec_byref
@@ -273,6 +329,10 @@ NO_SANITIZE("cfi-icall") size_t CefTranslatorTestCToCpp::GetIntListSize() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_int_list_size) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -286,6 +346,10 @@ NO_SANITIZE("cfi-icall") CefString CefTranslatorTestCToCpp::GetString() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_string) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -302,6 +366,10 @@ bool CefTranslatorTestCToCpp::SetString(const CefString& val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_string) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: string_byref_const
@@ -322,6 +390,10 @@ void CefTranslatorTestCToCpp::GetStringByRef(CefString& val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_string_by_ref) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -333,6 +405,10 @@ bool CefTranslatorTestCToCpp::SetStringList(const std::vector<CefString>& val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_string_list) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: string_vec_byref_const
@@ -359,6 +435,10 @@ bool CefTranslatorTestCToCpp::GetStringListByRef(StringList& val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_string_list_by_ref) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: string_vec_byref
@@ -387,6 +467,10 @@ bool CefTranslatorTestCToCpp::SetStringMap(const StringMap& val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_string_map) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: string_map_single_byref_const
@@ -414,6 +498,10 @@ bool CefTranslatorTestCToCpp::GetStringMapByRef(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_string_map_by_ref) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: string_map_single_byref
@@ -443,6 +531,10 @@ bool CefTranslatorTestCToCpp::SetStringMultimap(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_string_multimap) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: string_map_multi_byref_const
@@ -469,6 +561,10 @@ bool CefTranslatorTestCToCpp::GetStringMultimapByRef(StringMultimap& val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_string_multimap_by_ref) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: string_map_multi_byref
@@ -496,6 +592,10 @@ NO_SANITIZE("cfi-icall") CefPoint CefTranslatorTestCToCpp::GetPoint() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_point) {
+    return CefPoint();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -510,6 +610,10 @@ bool CefTranslatorTestCToCpp::SetPoint(const CefPoint& val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_point) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -524,6 +628,10 @@ void CefTranslatorTestCToCpp::GetPointByRef(CefPoint& val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_point_by_ref) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -535,6 +643,10 @@ bool CefTranslatorTestCToCpp::SetPointList(const std::vector<CefPoint>& val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_point_list) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: simple_vec_byref_const
@@ -567,6 +679,10 @@ bool CefTranslatorTestCToCpp::GetPointListByRef(PointList& val) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_point_list_by_ref) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: simple_vec_byref
@@ -606,6 +722,10 @@ NO_SANITIZE("cfi-icall") size_t CefTranslatorTestCToCpp::GetPointListSize() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_point_list_size) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -621,6 +741,10 @@ CefRefPtr<CefTranslatorTestRefPtrLibrary> CefTranslatorTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_ref_ptr_library) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -636,6 +760,10 @@ int CefTranslatorTestCToCpp::SetRefPtrLibrary(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_ref_ptr_library) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_same
@@ -658,6 +786,10 @@ CefRefPtr<CefTranslatorTestRefPtrLibrary> CefTranslatorTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_ref_ptr_library_and_return) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_same
@@ -680,6 +812,10 @@ int CefTranslatorTestCToCpp::SetChildRefPtrLibrary(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_ref_ptr_library) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_same
@@ -703,6 +839,10 @@ CefRefPtr<CefTranslatorTestRefPtrLibrary> CefTranslatorTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_ref_ptr_library_and_return_parent) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_same
@@ -727,6 +867,10 @@ bool CefTranslatorTestCToCpp::SetRefPtrLibraryList(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_ref_ptr_library_list) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: refptr_vec_same_byref_const
@@ -762,6 +906,10 @@ bool CefTranslatorTestCToCpp::GetRefPtrLibraryListByRef(RefPtrLibraryList& val,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_ref_ptr_library_list_by_ref) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: refptr_vec_same_byref
@@ -804,6 +952,10 @@ size_t CefTranslatorTestCToCpp::GetRefPtrLibraryListSize() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_ref_ptr_library_list_size) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -819,6 +971,10 @@ int CefTranslatorTestCToCpp::SetRefPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_ref_ptr_client) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_diff
@@ -841,6 +997,10 @@ CefRefPtr<CefTranslatorTestRefPtrClient> CefTranslatorTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_ref_ptr_client_and_return) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_diff
@@ -863,6 +1023,10 @@ int CefTranslatorTestCToCpp::SetChildRefPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_ref_ptr_client) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_diff
@@ -886,6 +1050,10 @@ CefRefPtr<CefTranslatorTestRefPtrClient> CefTranslatorTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_ref_ptr_client_and_return_parent) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_diff
@@ -910,6 +1078,10 @@ bool CefTranslatorTestCToCpp::SetRefPtrClientList(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_ref_ptr_client_list) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: refptr_vec_diff_byref_const
@@ -946,6 +1118,10 @@ bool CefTranslatorTestCToCpp::GetRefPtrClientListByRef(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_ref_ptr_client_list_by_ref) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val1; type: refptr_diff
@@ -1001,6 +1177,10 @@ size_t CefTranslatorTestCToCpp::GetRefPtrClientListSize() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_ref_ptr_client_list_size) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -1016,6 +1196,10 @@ CefOwnPtr<CefTranslatorTestScopedLibrary> CefTranslatorTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_own_ptr_library) {
+    return CefOwnPtr<CefTranslatorTestScopedLibrary>();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -1031,6 +1215,10 @@ int CefTranslatorTestCToCpp::SetOwnPtrLibrary(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_own_ptr_library) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_same
@@ -1053,6 +1241,10 @@ CefOwnPtr<CefTranslatorTestScopedLibrary> CefTranslatorTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_own_ptr_library_and_return) {
+    return CefOwnPtr<CefTranslatorTestScopedLibrary>();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_same
@@ -1075,6 +1267,10 @@ int CefTranslatorTestCToCpp::SetChildOwnPtrLibrary(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_own_ptr_library) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_same
@@ -1099,6 +1295,10 @@ CefOwnPtr<CefTranslatorTestScopedLibrary> CefTranslatorTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_own_ptr_library_and_return_parent) {
+    return CefOwnPtr<CefTranslatorTestScopedLibrary>();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_same
@@ -1122,6 +1322,10 @@ int CefTranslatorTestCToCpp::SetOwnPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_own_ptr_client) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_diff
@@ -1144,6 +1348,10 @@ CefOwnPtr<CefTranslatorTestScopedClient> CefTranslatorTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_own_ptr_client_and_return) {
+    return CefOwnPtr<CefTranslatorTestScopedClient>();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_diff
@@ -1166,6 +1374,10 @@ int CefTranslatorTestCToCpp::SetChildOwnPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_own_ptr_client) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_diff
@@ -1190,6 +1402,10 @@ CefOwnPtr<CefTranslatorTestScopedClient> CefTranslatorTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_own_ptr_client_and_return_parent) {
+    return CefOwnPtr<CefTranslatorTestScopedClient>();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_diff
@@ -1213,6 +1429,10 @@ int CefTranslatorTestCToCpp::SetRawPtrLibrary(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_raw_ptr_library) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: rawptr_same
@@ -1235,6 +1455,10 @@ int CefTranslatorTestCToCpp::SetChildRawPtrLibrary(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_raw_ptr_library) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: rawptr_same
@@ -1259,6 +1483,10 @@ bool CefTranslatorTestCToCpp::SetRawPtrLibraryList(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_raw_ptr_library_list) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: rawptr_vec_same_byref_const
@@ -1293,6 +1521,10 @@ int CefTranslatorTestCToCpp::SetRawPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_raw_ptr_client) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: rawptr_diff
@@ -1317,6 +1549,10 @@ int CefTranslatorTestCToCpp::SetChildRawPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_raw_ptr_client) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: rawptr_diff
@@ -1344,6 +1580,10 @@ bool CefTranslatorTestCToCpp::SetRawPtrClientList(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_raw_ptr_client_list) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: rawptr_vec_diff_byref_const

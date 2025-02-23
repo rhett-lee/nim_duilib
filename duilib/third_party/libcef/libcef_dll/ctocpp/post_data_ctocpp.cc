@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=1b390b7b2b9c8232aa7a095987438919cd3be8ac$
+// $hash=33730ef63b35f4f142f8e36e305c0c3e8899d910$
 //
 
 #include "libcef_dll/ctocpp/post_data_ctocpp.h"
@@ -34,6 +34,10 @@ NO_SANITIZE("cfi-icall") CefRefPtr<CefPostData> CefPostData::Create() {
 
 NO_SANITIZE("cfi-icall") bool CefPostDataCToCpp::IsReadOnly() {
   auto* _struct = GetStruct();
+  if (!_struct->is_read_only) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -45,6 +49,10 @@ NO_SANITIZE("cfi-icall") bool CefPostDataCToCpp::IsReadOnly() {
 
 NO_SANITIZE("cfi-icall") bool CefPostDataCToCpp::HasExcludedElements() {
   auto* _struct = GetStruct();
+  if (!_struct->has_excluded_elements) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -56,6 +64,10 @@ NO_SANITIZE("cfi-icall") bool CefPostDataCToCpp::HasExcludedElements() {
 
 NO_SANITIZE("cfi-icall") size_t CefPostDataCToCpp::GetElementCount() {
   auto* _struct = GetStruct();
+  if (!_struct->get_element_count) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -68,6 +80,10 @@ NO_SANITIZE("cfi-icall") size_t CefPostDataCToCpp::GetElementCount() {
 NO_SANITIZE("cfi-icall")
 void CefPostDataCToCpp::GetElements(ElementVector& elements) {
   auto* _struct = GetStruct();
+  if (!_struct->get_elements) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: elements; type: refptr_vec_same_byref
@@ -103,6 +119,10 @@ void CefPostDataCToCpp::GetElements(ElementVector& elements) {
 NO_SANITIZE("cfi-icall")
 bool CefPostDataCToCpp::RemoveElement(CefRefPtr<CefPostDataElement> element) {
   auto* _struct = GetStruct();
+  if (!_struct->remove_element) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: element; type: refptr_same
@@ -122,6 +142,10 @@ bool CefPostDataCToCpp::RemoveElement(CefRefPtr<CefPostDataElement> element) {
 NO_SANITIZE("cfi-icall")
 bool CefPostDataCToCpp::AddElement(CefRefPtr<CefPostDataElement> element) {
   auto* _struct = GetStruct();
+  if (!_struct->add_element) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: element; type: refptr_same
@@ -140,6 +164,10 @@ bool CefPostDataCToCpp::AddElement(CefRefPtr<CefPostDataElement> element) {
 
 NO_SANITIZE("cfi-icall") void CefPostDataCToCpp::RemoveElements() {
   auto* _struct = GetStruct();
+  if (!_struct->remove_elements) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

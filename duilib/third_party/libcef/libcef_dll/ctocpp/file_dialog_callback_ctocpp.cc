@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=63a340ea57d8f4ddcb4df13be3a3d903d7610c78$
+// $hash=b6d86a18511920f3ea60f9dc8f6575866898fbe2$
 //
 
 #include "libcef_dll/ctocpp/file_dialog_callback_ctocpp.h"
@@ -25,6 +25,10 @@ void CefFileDialogCallbackCToCpp::Continue(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cont) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: file_paths
@@ -49,6 +53,10 @@ NO_SANITIZE("cfi-icall") void CefFileDialogCallbackCToCpp::Cancel() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cancel) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

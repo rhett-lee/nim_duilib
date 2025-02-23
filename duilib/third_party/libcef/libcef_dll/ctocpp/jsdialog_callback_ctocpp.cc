@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=2a73e62052fbd8fe7b0d65f69b551226dc26d0e4$
+// $hash=a8d2b1bdaf699b6ffe8ae24cdd8a0f11514fdaf8$
 //
 
 #include "libcef_dll/ctocpp/jsdialog_callback_ctocpp.h"
@@ -24,6 +24,10 @@ void CefJSDialogCallbackCToCpp::Continue(bool success,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cont) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: user_input

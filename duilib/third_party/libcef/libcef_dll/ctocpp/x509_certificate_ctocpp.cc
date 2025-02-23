@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=1ee99e8b11cb41d7959b6407a8e6c4c73f895a50$
+// $hash=1183925ea39954b72ee3c01e2dd3d51210d91b7e$
 //
 
 #include "libcef_dll/ctocpp/x509_certificate_ctocpp.h"
@@ -27,6 +27,10 @@ CefRefPtr<CefX509CertPrincipal> CefX509CertificateCToCpp::GetSubject() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_subject) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -41,6 +45,10 @@ CefRefPtr<CefX509CertPrincipal> CefX509CertificateCToCpp::GetIssuer() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_issuer) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -55,6 +63,10 @@ CefRefPtr<CefBinaryValue> CefX509CertificateCToCpp::GetSerialNumber() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_serial_number) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -68,6 +80,10 @@ NO_SANITIZE("cfi-icall") CefBaseTime CefX509CertificateCToCpp::GetValidStart() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_valid_start) {
+    return CefBaseTime();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -82,6 +98,10 @@ CefBaseTime CefX509CertificateCToCpp::GetValidExpiry() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_valid_expiry) {
+    return CefBaseTime();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -96,6 +116,10 @@ CefRefPtr<CefBinaryValue> CefX509CertificateCToCpp::GetDEREncoded() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_derencoded) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -110,6 +134,10 @@ CefRefPtr<CefBinaryValue> CefX509CertificateCToCpp::GetPEMEncoded() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_pemencoded) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -123,6 +151,10 @@ NO_SANITIZE("cfi-icall") size_t CefX509CertificateCToCpp::GetIssuerChainSize() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_issuer_chain_size) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -138,6 +170,10 @@ void CefX509CertificateCToCpp::GetDEREncodedIssuerChain(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_derencoded_issuer_chain) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: chain; type: refptr_vec_same_byref
@@ -176,6 +212,10 @@ void CefX509CertificateCToCpp::GetPEMEncodedIssuerChain(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_pemencoded_issuer_chain) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: chain; type: refptr_vec_same_byref

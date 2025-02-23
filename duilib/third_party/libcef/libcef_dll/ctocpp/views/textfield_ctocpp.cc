@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=1d3f8d8cba36a7c3d691967ecd9030cfa34b36bf$
+// $hash=40a1fea6602dd4382114f96668ff91af56d28ce4$
 //
 
 #include "libcef_dll/ctocpp/views/textfield_ctocpp.h"
@@ -50,6 +50,10 @@ void CefTextfieldCToCpp::SetPasswordInput(bool password_input) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_password_input) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -60,6 +64,10 @@ NO_SANITIZE("cfi-icall") bool CefTextfieldCToCpp::IsPasswordInput() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_password_input) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -73,6 +81,10 @@ NO_SANITIZE("cfi-icall") void CefTextfieldCToCpp::SetReadOnly(bool read_only) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_read_only) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -83,6 +95,10 @@ NO_SANITIZE("cfi-icall") bool CefTextfieldCToCpp::IsReadOnly() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_read_only) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -96,6 +112,10 @@ NO_SANITIZE("cfi-icall") CefString CefTextfieldCToCpp::GetText() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_text) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -112,6 +132,10 @@ void CefTextfieldCToCpp::SetText(const CefString& text) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_text) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: text; type: string_byref_const
@@ -129,6 +153,10 @@ void CefTextfieldCToCpp::AppendText(const CefString& text) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->append_text) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: text; type: string_byref_const
@@ -146,6 +174,10 @@ void CefTextfieldCToCpp::InsertOrReplaceText(const CefString& text) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->insert_or_replace_text) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: text; type: string_byref_const
@@ -162,6 +194,10 @@ NO_SANITIZE("cfi-icall") bool CefTextfieldCToCpp::HasSelection() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->has_selection) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -175,6 +211,10 @@ NO_SANITIZE("cfi-icall") CefString CefTextfieldCToCpp::GetSelectedText() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_selected_text) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -190,6 +230,10 @@ NO_SANITIZE("cfi-icall") void CefTextfieldCToCpp::SelectAll(bool reversed) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->select_all) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -200,6 +244,10 @@ NO_SANITIZE("cfi-icall") void CefTextfieldCToCpp::ClearSelection() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->clear_selection) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -210,6 +258,10 @@ NO_SANITIZE("cfi-icall") CefRange CefTextfieldCToCpp::GetSelectedRange() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_selected_range) {
+    return CefRange();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -224,6 +276,10 @@ void CefTextfieldCToCpp::SelectRange(const CefRange& range) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->select_range) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -234,6 +290,10 @@ NO_SANITIZE("cfi-icall") size_t CefTextfieldCToCpp::GetCursorPosition() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_cursor_position) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -248,6 +308,10 @@ void CefTextfieldCToCpp::SetTextColor(cef_color_t color) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_text_color) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -258,6 +322,10 @@ NO_SANITIZE("cfi-icall") cef_color_t CefTextfieldCToCpp::GetTextColor() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_text_color) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -272,6 +340,10 @@ void CefTextfieldCToCpp::SetSelectionTextColor(cef_color_t color) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_selection_text_color) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -283,6 +355,10 @@ cef_color_t CefTextfieldCToCpp::GetSelectionTextColor() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_selection_text_color) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -297,6 +373,10 @@ void CefTextfieldCToCpp::SetSelectionBackgroundColor(cef_color_t color) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_selection_background_color) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -308,6 +388,10 @@ cef_color_t CefTextfieldCToCpp::GetSelectionBackgroundColor() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_selection_background_color) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -322,6 +406,10 @@ void CefTextfieldCToCpp::SetFontList(const CefString& font_list) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_font_list) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: font_list; type: string_byref_const
@@ -340,6 +428,10 @@ void CefTextfieldCToCpp::ApplyTextColor(cef_color_t color,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->apply_text_color) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -353,6 +445,10 @@ void CefTextfieldCToCpp::ApplyTextStyle(cef_text_style_t style,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->apply_text_style) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -365,6 +461,10 @@ bool CefTextfieldCToCpp::IsCommandEnabled(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_command_enabled) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -379,6 +479,10 @@ void CefTextfieldCToCpp::ExecuteCommand(cef_text_field_commands_t command_id) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->execute_command) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -389,6 +493,10 @@ NO_SANITIZE("cfi-icall") void CefTextfieldCToCpp::ClearEditHistory() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->clear_edit_history) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -400,6 +508,10 @@ void CefTextfieldCToCpp::SetPlaceholderText(const CefString& text) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_placeholder_text) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: text; type: string_byref_const
@@ -416,6 +528,10 @@ NO_SANITIZE("cfi-icall") CefString CefTextfieldCToCpp::GetPlaceholderText() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_placeholder_text) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -432,6 +548,10 @@ void CefTextfieldCToCpp::SetPlaceholderTextColor(cef_color_t color) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_placeholder_text_color) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -443,6 +563,10 @@ void CefTextfieldCToCpp::SetAccessibleName(const CefString& name) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_accessible_name) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: name; type: string_byref_const
@@ -460,6 +584,10 @@ CefRefPtr<CefBrowserView> CefTextfieldCToCpp::AsBrowserView() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->as_browser_view) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -473,6 +601,10 @@ NO_SANITIZE("cfi-icall") CefRefPtr<CefButton> CefTextfieldCToCpp::AsButton() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->as_button) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -486,6 +618,10 @@ NO_SANITIZE("cfi-icall") CefRefPtr<CefPanel> CefTextfieldCToCpp::AsPanel() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->as_panel) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -500,6 +636,10 @@ CefRefPtr<CefScrollView> CefTextfieldCToCpp::AsScrollView() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->as_scroll_view) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -514,6 +654,10 @@ CefRefPtr<CefTextfield> CefTextfieldCToCpp::AsTextfield() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->as_textfield) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -527,6 +671,10 @@ NO_SANITIZE("cfi-icall") CefString CefTextfieldCToCpp::GetTypeString() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_type_string) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -543,6 +691,10 @@ CefString CefTextfieldCToCpp::ToString(bool include_children) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->to_string) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -558,6 +710,10 @@ NO_SANITIZE("cfi-icall") bool CefTextfieldCToCpp::IsValid() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->is_valid) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -571,6 +727,10 @@ NO_SANITIZE("cfi-icall") bool CefTextfieldCToCpp::IsAttached() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->is_attached) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -585,6 +745,10 @@ bool CefTextfieldCToCpp::IsSame(CefRefPtr<CefView> that) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->is_same) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: that; type: refptr_same
@@ -605,6 +769,10 @@ CefRefPtr<CefViewDelegate> CefTextfieldCToCpp::GetDelegate() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_delegate) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -618,6 +786,10 @@ NO_SANITIZE("cfi-icall") CefRefPtr<CefWindow> CefTextfieldCToCpp::GetWindow() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_window) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -631,6 +803,10 @@ NO_SANITIZE("cfi-icall") int CefTextfieldCToCpp::GetID() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_id) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -644,6 +820,10 @@ NO_SANITIZE("cfi-icall") void CefTextfieldCToCpp::SetID(int id) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->set_id) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -654,6 +834,10 @@ NO_SANITIZE("cfi-icall") int CefTextfieldCToCpp::GetGroupID() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_group_id) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -667,6 +851,10 @@ NO_SANITIZE("cfi-icall") void CefTextfieldCToCpp::SetGroupID(int group_id) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->set_group_id) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -678,6 +866,10 @@ CefRefPtr<CefView> CefTextfieldCToCpp::GetParentView() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_parent_view) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -692,6 +884,10 @@ CefRefPtr<CefView> CefTextfieldCToCpp::GetViewForID(int id) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_view_for_id) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -706,6 +902,10 @@ void CefTextfieldCToCpp::SetBounds(const CefRect& bounds) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->set_bounds) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -716,6 +916,10 @@ NO_SANITIZE("cfi-icall") CefRect CefTextfieldCToCpp::GetBounds() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_bounds) {
+    return CefRect();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -729,6 +933,10 @@ NO_SANITIZE("cfi-icall") CefRect CefTextfieldCToCpp::GetBoundsInScreen() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_bounds_in_screen) {
+    return CefRect();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -742,6 +950,10 @@ NO_SANITIZE("cfi-icall") void CefTextfieldCToCpp::SetSize(const CefSize& size) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->set_size) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -752,6 +964,10 @@ NO_SANITIZE("cfi-icall") CefSize CefTextfieldCToCpp::GetSize() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_size) {
+    return CefSize();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -766,6 +982,10 @@ void CefTextfieldCToCpp::SetPosition(const CefPoint& position) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->set_position) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -776,6 +996,10 @@ NO_SANITIZE("cfi-icall") CefPoint CefTextfieldCToCpp::GetPosition() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_position) {
+    return CefPoint();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -790,6 +1014,10 @@ void CefTextfieldCToCpp::SetInsets(const CefInsets& insets) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->set_insets) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -800,6 +1028,10 @@ NO_SANITIZE("cfi-icall") CefInsets CefTextfieldCToCpp::GetInsets() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_insets) {
+    return CefInsets();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -813,6 +1045,10 @@ NO_SANITIZE("cfi-icall") CefSize CefTextfieldCToCpp::GetPreferredSize() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_preferred_size) {
+    return CefSize();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -826,6 +1062,10 @@ NO_SANITIZE("cfi-icall") void CefTextfieldCToCpp::SizeToPreferredSize() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->size_to_preferred_size) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -836,6 +1076,10 @@ NO_SANITIZE("cfi-icall") CefSize CefTextfieldCToCpp::GetMinimumSize() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_minimum_size) {
+    return CefSize();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -849,6 +1093,10 @@ NO_SANITIZE("cfi-icall") CefSize CefTextfieldCToCpp::GetMaximumSize() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_maximum_size) {
+    return CefSize();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -862,6 +1110,10 @@ NO_SANITIZE("cfi-icall") int CefTextfieldCToCpp::GetHeightForWidth(int width) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_height_for_width) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -875,6 +1127,10 @@ NO_SANITIZE("cfi-icall") void CefTextfieldCToCpp::InvalidateLayout() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->invalidate_layout) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -885,6 +1141,10 @@ NO_SANITIZE("cfi-icall") void CefTextfieldCToCpp::SetVisible(bool visible) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->set_visible) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -895,6 +1155,10 @@ NO_SANITIZE("cfi-icall") bool CefTextfieldCToCpp::IsVisible() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->is_visible) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -908,6 +1172,10 @@ NO_SANITIZE("cfi-icall") bool CefTextfieldCToCpp::IsDrawn() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->is_drawn) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -921,6 +1189,10 @@ NO_SANITIZE("cfi-icall") void CefTextfieldCToCpp::SetEnabled(bool enabled) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->set_enabled) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -931,6 +1203,10 @@ NO_SANITIZE("cfi-icall") bool CefTextfieldCToCpp::IsEnabled() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->is_enabled) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -944,6 +1220,10 @@ NO_SANITIZE("cfi-icall") void CefTextfieldCToCpp::SetFocusable(bool focusable) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->set_focusable) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -954,6 +1234,10 @@ NO_SANITIZE("cfi-icall") bool CefTextfieldCToCpp::IsFocusable() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->is_focusable) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -967,6 +1251,10 @@ NO_SANITIZE("cfi-icall") bool CefTextfieldCToCpp::IsAccessibilityFocusable() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->is_accessibility_focusable) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -980,6 +1268,10 @@ NO_SANITIZE("cfi-icall") bool CefTextfieldCToCpp::HasFocus() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->has_focus) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -993,6 +1285,10 @@ NO_SANITIZE("cfi-icall") void CefTextfieldCToCpp::RequestFocus() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->request_focus) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -1004,6 +1300,10 @@ void CefTextfieldCToCpp::SetBackgroundColor(cef_color_t color) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->set_background_color) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -1014,6 +1314,10 @@ NO_SANITIZE("cfi-icall") cef_color_t CefTextfieldCToCpp::GetBackgroundColor() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_background_color) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -1028,6 +1332,10 @@ cef_color_t CefTextfieldCToCpp::GetThemeColor(int color_id) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->get_theme_color) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -1042,6 +1350,10 @@ bool CefTextfieldCToCpp::ConvertPointToScreen(CefPoint& point) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->convert_point_to_screen) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -1056,6 +1368,10 @@ bool CefTextfieldCToCpp::ConvertPointFromScreen(CefPoint& point) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->convert_point_from_screen) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -1070,6 +1386,10 @@ bool CefTextfieldCToCpp::ConvertPointToWindow(CefPoint& point) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->convert_point_to_window) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -1084,6 +1404,10 @@ bool CefTextfieldCToCpp::ConvertPointFromWindow(CefPoint& point) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->convert_point_from_window) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -1099,6 +1423,10 @@ bool CefTextfieldCToCpp::ConvertPointToView(CefRefPtr<CefView> view,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->convert_point_to_view) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: view; type: refptr_same
@@ -1121,6 +1449,10 @@ bool CefTextfieldCToCpp::ConvertPointFromView(CefRefPtr<CefView> view,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_view_t*>(GetStruct());
+  if (!_struct->convert_point_from_view) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: view; type: refptr_same

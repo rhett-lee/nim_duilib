@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=ead17ad1b61eb8663690546854bfdd1557e6fded$
+// $hash=3722c398a32be688ba93ea7112a82b5beb448b95$
 //
 
 #include "libcef_dll/ctocpp/v8_context_ctocpp.h"
@@ -59,6 +59,10 @@ NO_SANITIZE("cfi-icall") bool CefV8Context::InContext() {
 NO_SANITIZE("cfi-icall")
 CefRefPtr<CefTaskRunner> CefV8ContextCToCpp::GetTaskRunner() {
   auto* _struct = GetStruct();
+  if (!_struct->get_task_runner) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -70,6 +74,10 @@ CefRefPtr<CefTaskRunner> CefV8ContextCToCpp::GetTaskRunner() {
 
 NO_SANITIZE("cfi-icall") bool CefV8ContextCToCpp::IsValid() {
   auto* _struct = GetStruct();
+  if (!_struct->is_valid) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -82,6 +90,10 @@ NO_SANITIZE("cfi-icall") bool CefV8ContextCToCpp::IsValid() {
 NO_SANITIZE("cfi-icall")
 CefRefPtr<CefBrowser> CefV8ContextCToCpp::GetBrowser() {
   auto* _struct = GetStruct();
+  if (!_struct->get_browser) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -93,6 +105,10 @@ CefRefPtr<CefBrowser> CefV8ContextCToCpp::GetBrowser() {
 
 NO_SANITIZE("cfi-icall") CefRefPtr<CefFrame> CefV8ContextCToCpp::GetFrame() {
   auto* _struct = GetStruct();
+  if (!_struct->get_frame) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -104,6 +120,10 @@ NO_SANITIZE("cfi-icall") CefRefPtr<CefFrame> CefV8ContextCToCpp::GetFrame() {
 
 NO_SANITIZE("cfi-icall") CefRefPtr<CefV8Value> CefV8ContextCToCpp::GetGlobal() {
   auto* _struct = GetStruct();
+  if (!_struct->get_global) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -115,6 +135,10 @@ NO_SANITIZE("cfi-icall") CefRefPtr<CefV8Value> CefV8ContextCToCpp::GetGlobal() {
 
 NO_SANITIZE("cfi-icall") bool CefV8ContextCToCpp::Enter() {
   auto* _struct = GetStruct();
+  if (!_struct->enter) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -126,6 +150,10 @@ NO_SANITIZE("cfi-icall") bool CefV8ContextCToCpp::Enter() {
 
 NO_SANITIZE("cfi-icall") bool CefV8ContextCToCpp::Exit() {
   auto* _struct = GetStruct();
+  if (!_struct->exit) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -138,6 +166,10 @@ NO_SANITIZE("cfi-icall") bool CefV8ContextCToCpp::Exit() {
 NO_SANITIZE("cfi-icall")
 bool CefV8ContextCToCpp::IsSame(CefRefPtr<CefV8Context> that) {
   auto* _struct = GetStruct();
+  if (!_struct->is_same) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: that; type: refptr_same
@@ -160,6 +192,10 @@ bool CefV8ContextCToCpp::Eval(const CefString& code,
                               CefRefPtr<CefV8Value>& retval,
                               CefRefPtr<CefV8Exception>& exception) {
   auto* _struct = GetStruct();
+  if (!_struct->eval) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: code; type: string_byref_const

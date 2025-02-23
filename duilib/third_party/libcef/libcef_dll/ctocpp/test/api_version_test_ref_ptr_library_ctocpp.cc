@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=5cd9b31b0d8648100ff9c45d6d0970fcc186003e$
+// $hash=db09da0773720538052281df611d8cb13f3cd4d7$
 //
 
 #include "libcef_dll/ctocpp/test/api_version_test_ref_ptr_library_ctocpp.h"
@@ -60,6 +60,10 @@ int CefApiVersionTestRefPtrLibraryCToCpp::GetValueLegacy() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_value_legacy) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -74,6 +78,10 @@ void CefApiVersionTestRefPtrLibraryCToCpp::SetValueLegacy(int value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_value_legacy) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -86,6 +94,10 @@ int CefApiVersionTestRefPtrLibraryCToCpp::GetValueExp() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_value_exp) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -102,6 +114,10 @@ void CefApiVersionTestRefPtrLibraryCToCpp::SetValueExp(int value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_value_exp) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -114,6 +130,10 @@ NO_SANITIZE("cfi-icall") int CefApiVersionTestRefPtrLibraryCToCpp::GetValue() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -130,6 +150,10 @@ void CefApiVersionTestRefPtrLibraryCToCpp::SetValue(int value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -143,6 +167,10 @@ int CefApiVersionTestRefPtrLibraryCToCpp::GetValueV1() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_value_v1) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -159,6 +187,10 @@ void CefApiVersionTestRefPtrLibraryCToCpp::SetValueV1(int value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_value_v1) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -172,6 +204,10 @@ int CefApiVersionTestRefPtrLibraryCToCpp::GetValueV2() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_value_v2) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -188,6 +224,10 @@ void CefApiVersionTestRefPtrLibraryCToCpp::SetValueV2(int value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_value_v2) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

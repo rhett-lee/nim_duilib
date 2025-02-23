@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=11bda45701b8549a9f95eb06f9b889508295ad18$
+// $hash=4dbbea7448d9725971738609a4779fa1a26e96b4$
 //
 
 #include "libcef_dll/ctocpp/unresponsive_process_callback_ctocpp.h"
@@ -22,6 +22,10 @@ NO_SANITIZE("cfi-icall") void CefUnresponsiveProcessCallbackCToCpp::Wait() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->wait) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -33,6 +37,10 @@ void CefUnresponsiveProcessCallbackCToCpp::Terminate() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->terminate) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

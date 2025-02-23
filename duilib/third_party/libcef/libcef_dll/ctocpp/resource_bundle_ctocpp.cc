@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=947d5daed136f12f1d7e4846b140efdd01d16ca9$
+// $hash=90ecb7cf96775fa6ad61f043ab2a1d4b6c65b660$
 //
 
 #include "libcef_dll/ctocpp/resource_bundle_ctocpp.h"
@@ -34,6 +34,10 @@ CefRefPtr<CefResourceBundle> CefResourceBundle::GetGlobal() {
 NO_SANITIZE("cfi-icall")
 CefString CefResourceBundleCToCpp::GetLocalizedString(int string_id) {
   auto* _struct = GetStruct();
+  if (!_struct->get_localized_string) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -50,6 +54,10 @@ NO_SANITIZE("cfi-icall")
 CefRefPtr<CefBinaryValue> CefResourceBundleCToCpp::GetDataResource(
     int resource_id) {
   auto* _struct = GetStruct();
+  if (!_struct->get_data_resource) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -64,6 +72,10 @@ CefRefPtr<CefBinaryValue> CefResourceBundleCToCpp::GetDataResourceForScale(
     int resource_id,
     ScaleFactor scale_factor) {
   auto* _struct = GetStruct();
+  if (!_struct->get_data_resource_for_scale) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

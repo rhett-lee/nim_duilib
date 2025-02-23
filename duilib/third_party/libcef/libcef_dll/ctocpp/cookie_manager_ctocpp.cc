@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=876130b088bde750ef6529c4730de776fc0b18aa$
+// $hash=68b9138b3ae01d8f5e32c63ba28b709754390e58$
 //
 
 #include "libcef_dll/ctocpp/cookie_manager_ctocpp.h"
@@ -42,6 +42,10 @@ NO_SANITIZE("cfi-icall")
 bool CefCookieManagerCToCpp::VisitAllCookies(
     CefRefPtr<CefCookieVisitor> visitor) {
   auto* _struct = GetStruct();
+  if (!_struct->visit_all_cookies) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: visitor; type: refptr_diff
@@ -64,6 +68,10 @@ bool CefCookieManagerCToCpp::VisitUrlCookies(
     bool includeHttpOnly,
     CefRefPtr<CefCookieVisitor> visitor) {
   auto* _struct = GetStruct();
+  if (!_struct->visit_url_cookies) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: url; type: string_byref_const
@@ -92,6 +100,10 @@ bool CefCookieManagerCToCpp::SetCookie(
     const CefCookie& cookie,
     CefRefPtr<CefSetCookieCallback> callback) {
   auto* _struct = GetStruct();
+  if (!_struct->set_cookie) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: url; type: string_byref_const
@@ -115,6 +127,10 @@ bool CefCookieManagerCToCpp::DeleteCookies(
     const CefString& cookie_name,
     CefRefPtr<CefDeleteCookiesCallback> callback) {
   auto* _struct = GetStruct();
+  if (!_struct->delete_cookies) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: url, cookie_name, callback
@@ -132,6 +148,10 @@ NO_SANITIZE("cfi-icall")
 bool CefCookieManagerCToCpp::FlushStore(
     CefRefPtr<CefCompletionCallback> callback) {
   auto* _struct = GetStruct();
+  if (!_struct->flush_store) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: callback

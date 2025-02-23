@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=2a2929280c285597ec9916b9e9048ff0ec8be46b$
+// $hash=f014f626ee0ddbc224548c83c2b8774f1c2b9fd6$
 //
 
 #include "libcef_dll/ctocpp/resource_skip_callback_ctocpp.h"
@@ -23,6 +23,10 @@ void CefResourceSkipCallbackCToCpp::Continue(int64_t bytes_skipped) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cont) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

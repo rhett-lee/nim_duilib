@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=822a93f58301050731fc15b5e9b491e849794e3a$
+// $hash=da2a74576bbc2ef5cd90672e9105546216408689$
 //
 
 #include "libcef_dll/ctocpp/test/api_version_test_ref_ptr_library_child_ctocpp.h"
@@ -62,6 +62,10 @@ int CefApiVersionTestRefPtrLibraryChildCToCpp::GetOtherValue() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_other_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -76,6 +80,10 @@ void CefApiVersionTestRefPtrLibraryChildCToCpp::SetOtherValue(int value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_other_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -88,6 +96,10 @@ int CefApiVersionTestRefPtrLibraryChildCToCpp::GetValueLegacy() {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->get_value_legacy) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -103,6 +115,10 @@ void CefApiVersionTestRefPtrLibraryChildCToCpp::SetValueLegacy(int value) {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->set_value_legacy) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -116,6 +132,10 @@ int CefApiVersionTestRefPtrLibraryChildCToCpp::GetValueExp() {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->get_value_exp) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -133,6 +153,10 @@ void CefApiVersionTestRefPtrLibraryChildCToCpp::SetValueExp(int value) {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->set_value_exp) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -147,6 +171,10 @@ int CefApiVersionTestRefPtrLibraryChildCToCpp::GetValue() {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->get_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -164,6 +192,10 @@ void CefApiVersionTestRefPtrLibraryChildCToCpp::SetValue(int value) {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->set_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -178,6 +210,10 @@ int CefApiVersionTestRefPtrLibraryChildCToCpp::GetValueV1() {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->get_value_v1) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -195,6 +231,10 @@ void CefApiVersionTestRefPtrLibraryChildCToCpp::SetValueV1(int value) {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->set_value_v1) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -209,6 +249,10 @@ int CefApiVersionTestRefPtrLibraryChildCToCpp::GetValueV2() {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->get_value_v2) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -226,6 +270,10 @@ void CefApiVersionTestRefPtrLibraryChildCToCpp::SetValueV2(int value) {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->set_value_v2) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

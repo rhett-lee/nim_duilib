@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=6fe6eecb07a1cbe184dd4d52a158be47b5c29dd5$
+// $hash=f5dbb433011b5ff2853255e6a7e3b95c260d99e8$
 //
 
 #include "libcef_dll/ctocpp/test/test_server_ctocpp.h"
@@ -50,6 +50,10 @@ NO_SANITIZE("cfi-icall") void CefTestServerCToCpp::Stop() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->stop) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -60,6 +64,10 @@ NO_SANITIZE("cfi-icall") CefString CefTestServerCToCpp::GetOrigin() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_origin) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

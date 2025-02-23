@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=2affe7fd8b1314968e2a553200d1a1a13e9d4f86$
+// $hash=3ee6b7cc720c5abce0465d97abae4d897857a9f6$
 //
 
 #include "libcef_dll/ctocpp/test/api_version_test_ctocpp.h"
@@ -51,6 +51,10 @@ CefRefPtr<CefApiVersionTestRefPtrLibrary> CefApiVersionTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_ref_ptr_library) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -66,6 +70,10 @@ int CefApiVersionTestCToCpp::SetRefPtrLibrary(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_ref_ptr_library) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_same
@@ -88,6 +96,10 @@ CefRefPtr<CefApiVersionTestRefPtrLibrary> CefApiVersionTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_ref_ptr_library_and_return) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_same
@@ -110,6 +122,10 @@ int CefApiVersionTestCToCpp::SetChildRefPtrLibrary(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_ref_ptr_library) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_same
@@ -133,6 +149,10 @@ CefRefPtr<CefApiVersionTestRefPtrLibrary> CefApiVersionTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_ref_ptr_library_and_return_parent) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_same
@@ -157,6 +177,10 @@ bool CefApiVersionTestCToCpp::SetRefPtrLibraryList(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_ref_ptr_library_list) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: refptr_vec_same_byref_const
@@ -192,6 +216,10 @@ bool CefApiVersionTestCToCpp::GetRefPtrLibraryListByRef(RefPtrLibraryList& val,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_ref_ptr_library_list_by_ref) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: refptr_vec_same_byref
@@ -234,6 +262,10 @@ size_t CefApiVersionTestCToCpp::GetRefPtrLibraryListSize() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_ref_ptr_library_list_size) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -249,6 +281,10 @@ int CefApiVersionTestCToCpp::SetRefPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_ref_ptr_client) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_diff
@@ -271,6 +307,10 @@ CefRefPtr<CefApiVersionTestRefPtrClient> CefApiVersionTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_ref_ptr_client_and_return) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_diff
@@ -294,6 +334,10 @@ int CefApiVersionTestCToCpp::SetChildRefPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_ref_ptr_client) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_diff
@@ -319,6 +363,10 @@ CefRefPtr<CefApiVersionTestRefPtrClient> CefApiVersionTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_ref_ptr_client_and_return_parent) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_diff
@@ -343,6 +391,10 @@ int CefApiVersionTestCToCpp::SetChildRefPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_ref_ptr_client_v2) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_diff
@@ -368,6 +420,10 @@ CefRefPtr<CefApiVersionTestRefPtrClient> CefApiVersionTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_ref_ptr_client_and_return_parent_v2) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: refptr_diff
@@ -393,6 +449,10 @@ bool CefApiVersionTestCToCpp::SetRefPtrClientList(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_ref_ptr_client_list) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: refptr_vec_diff_byref_const
@@ -429,6 +489,10 @@ bool CefApiVersionTestCToCpp::GetRefPtrClientListByRef(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_ref_ptr_client_list_by_ref) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val1; type: refptr_diff
@@ -484,6 +548,10 @@ size_t CefApiVersionTestCToCpp::GetRefPtrClientListSize() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_ref_ptr_client_list_size) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -499,6 +567,10 @@ CefOwnPtr<CefApiVersionTestScopedLibrary> CefApiVersionTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_own_ptr_library) {
+    return CefOwnPtr<CefApiVersionTestScopedLibrary>();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -514,6 +586,10 @@ int CefApiVersionTestCToCpp::SetOwnPtrLibrary(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_own_ptr_library) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_same
@@ -536,6 +612,10 @@ CefOwnPtr<CefApiVersionTestScopedLibrary> CefApiVersionTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_own_ptr_library_and_return) {
+    return CefOwnPtr<CefApiVersionTestScopedLibrary>();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_same
@@ -558,6 +638,10 @@ int CefApiVersionTestCToCpp::SetChildOwnPtrLibrary(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_own_ptr_library) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_same
@@ -582,6 +666,10 @@ CefOwnPtr<CefApiVersionTestScopedLibrary> CefApiVersionTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_own_ptr_library_and_return_parent) {
+    return CefOwnPtr<CefApiVersionTestScopedLibrary>();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_same
@@ -605,6 +693,10 @@ int CefApiVersionTestCToCpp::SetOwnPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_own_ptr_client) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_diff
@@ -627,6 +719,10 @@ CefOwnPtr<CefApiVersionTestScopedClient> CefApiVersionTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_own_ptr_client_and_return) {
+    return CefOwnPtr<CefApiVersionTestScopedClient>();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_diff
@@ -650,6 +746,10 @@ int CefApiVersionTestCToCpp::SetChildOwnPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_own_ptr_client) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_diff
@@ -676,6 +776,10 @@ CefOwnPtr<CefApiVersionTestScopedClient> CefApiVersionTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_own_ptr_client_and_return_parent) {
+    return CefOwnPtr<CefApiVersionTestScopedClient>();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_diff
@@ -701,6 +805,10 @@ int CefApiVersionTestCToCpp::SetChildOwnPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_own_ptr_client_v2) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_diff
@@ -727,6 +835,10 @@ CefOwnPtr<CefApiVersionTestScopedClient> CefApiVersionTestCToCpp::
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_own_ptr_client_and_return_parent_v2) {
+    return CefOwnPtr<CefApiVersionTestScopedClient>();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: ownptr_diff
@@ -751,6 +863,10 @@ int CefApiVersionTestCToCpp::SetRawPtrLibrary(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_raw_ptr_library) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: rawptr_same
@@ -773,6 +889,10 @@ int CefApiVersionTestCToCpp::SetChildRawPtrLibrary(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_raw_ptr_library) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: rawptr_same
@@ -797,6 +917,10 @@ bool CefApiVersionTestCToCpp::SetRawPtrLibraryList(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_raw_ptr_library_list) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: rawptr_vec_same_byref_const
@@ -831,6 +955,10 @@ int CefApiVersionTestCToCpp::SetRawPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_raw_ptr_client) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: rawptr_diff
@@ -856,6 +984,10 @@ int CefApiVersionTestCToCpp::SetChildRawPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_raw_ptr_client) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: rawptr_diff
@@ -883,6 +1015,10 @@ int CefApiVersionTestCToCpp::SetChildRawPtrClient(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_child_raw_ptr_client_v2) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: val; type: rawptr_diff
@@ -911,6 +1047,10 @@ bool CefApiVersionTestCToCpp::SetRawPtrClientList(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_raw_ptr_client_list) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: val; type: rawptr_vec_diff_byref_const

@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=294b7ee61aa81f89ed5c9af685b5caedb7d25ae4$
+// $hash=701860e91e77c795595aea922912f9f4c0b985a9$
 //
 
 #include "libcef_dll/ctocpp/media_router_ctocpp.h"
@@ -49,6 +49,10 @@ CefRefPtr<CefRegistration> CefMediaRouterCToCpp::AddObserver(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->add_observer) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: observer; type: refptr_diff
@@ -71,6 +75,10 @@ CefRefPtr<CefMediaSource> CefMediaRouterCToCpp::GetSource(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_source) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: urn; type: string_byref_const
@@ -90,6 +98,10 @@ NO_SANITIZE("cfi-icall") void CefMediaRouterCToCpp::NotifyCurrentSinks() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->notify_current_sinks) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -104,6 +116,10 @@ void CefMediaRouterCToCpp::CreateRoute(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->create_route) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: source; type: refptr_same
@@ -132,6 +148,10 @@ NO_SANITIZE("cfi-icall") void CefMediaRouterCToCpp::NotifyCurrentRoutes() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->notify_current_routes) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=075c456e0694389985f12dbcc4e92b4631c53c0f$
+// $hash=cc8270818581a0524d0894105e26477648eb3781$
 //
 
 #include "libcef_dll/ctocpp/media_sink_ctocpp.h"
@@ -24,6 +24,10 @@ NO_SANITIZE("cfi-icall") CefString CefMediaSinkCToCpp::GetId() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_id) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -39,6 +43,10 @@ NO_SANITIZE("cfi-icall") CefString CefMediaSinkCToCpp::GetName() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_name) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -55,6 +63,10 @@ CefMediaSink::IconType CefMediaSinkCToCpp::GetIconType() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_icon_type) {
+    return CEF_MSIT_GENERIC;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -70,6 +82,10 @@ void CefMediaSinkCToCpp::GetDeviceInfo(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_device_info) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: callback; type: refptr_diff
@@ -87,6 +103,10 @@ NO_SANITIZE("cfi-icall") bool CefMediaSinkCToCpp::IsCastSink() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_cast_sink) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -100,6 +120,10 @@ NO_SANITIZE("cfi-icall") bool CefMediaSinkCToCpp::IsDialSink() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_dial_sink) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -114,6 +138,10 @@ bool CefMediaSinkCToCpp::IsCompatibleWith(CefRefPtr<CefMediaSource> source) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_compatible_with) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: source; type: refptr_same

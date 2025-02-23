@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=e3c1374ac29d7c1df7ee25b85418921f54257758$
+// $hash=ce8c52f4eede293b684111bf1700f6af740a2884$
 //
 
 #include "libcef_dll/ctocpp/test/translator_test_ref_ptr_library_ctocpp.h"
@@ -40,6 +40,10 @@ NO_SANITIZE("cfi-icall") int CefTranslatorTestRefPtrLibraryCToCpp::GetValue() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -54,6 +58,10 @@ void CefTranslatorTestRefPtrLibraryCToCpp::SetValue(int value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

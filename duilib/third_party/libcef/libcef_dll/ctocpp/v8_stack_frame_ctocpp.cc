@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=66460ef670e9dfa0913b6887002369d70ca01059$
+// $hash=1927400a02edf63a7db18ce9373cccede25e62f5$
 //
 
 #include "libcef_dll/ctocpp/v8_stack_frame_ctocpp.h"
@@ -18,6 +18,10 @@
 
 NO_SANITIZE("cfi-icall") bool CefV8StackFrameCToCpp::IsValid() {
   auto* _struct = GetStruct();
+  if (!_struct->is_valid) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -29,6 +33,10 @@ NO_SANITIZE("cfi-icall") bool CefV8StackFrameCToCpp::IsValid() {
 
 NO_SANITIZE("cfi-icall") CefString CefV8StackFrameCToCpp::GetScriptName() {
   auto* _struct = GetStruct();
+  if (!_struct->get_script_name) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -43,6 +51,10 @@ NO_SANITIZE("cfi-icall") CefString CefV8StackFrameCToCpp::GetScriptName() {
 NO_SANITIZE("cfi-icall")
 CefString CefV8StackFrameCToCpp::GetScriptNameOrSourceURL() {
   auto* _struct = GetStruct();
+  if (!_struct->get_script_name_or_source_url) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -57,6 +69,10 @@ CefString CefV8StackFrameCToCpp::GetScriptNameOrSourceURL() {
 
 NO_SANITIZE("cfi-icall") CefString CefV8StackFrameCToCpp::GetFunctionName() {
   auto* _struct = GetStruct();
+  if (!_struct->get_function_name) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -70,6 +86,10 @@ NO_SANITIZE("cfi-icall") CefString CefV8StackFrameCToCpp::GetFunctionName() {
 
 NO_SANITIZE("cfi-icall") int CefV8StackFrameCToCpp::GetLineNumber() {
   auto* _struct = GetStruct();
+  if (!_struct->get_line_number) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -81,6 +101,10 @@ NO_SANITIZE("cfi-icall") int CefV8StackFrameCToCpp::GetLineNumber() {
 
 NO_SANITIZE("cfi-icall") int CefV8StackFrameCToCpp::GetColumn() {
   auto* _struct = GetStruct();
+  if (!_struct->get_column) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -92,6 +116,10 @@ NO_SANITIZE("cfi-icall") int CefV8StackFrameCToCpp::GetColumn() {
 
 NO_SANITIZE("cfi-icall") bool CefV8StackFrameCToCpp::IsEval() {
   auto* _struct = GetStruct();
+  if (!_struct->is_eval) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -103,6 +131,10 @@ NO_SANITIZE("cfi-icall") bool CefV8StackFrameCToCpp::IsEval() {
 
 NO_SANITIZE("cfi-icall") bool CefV8StackFrameCToCpp::IsConstructor() {
   auto* _struct = GetStruct();
+  if (!_struct->is_constructor) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

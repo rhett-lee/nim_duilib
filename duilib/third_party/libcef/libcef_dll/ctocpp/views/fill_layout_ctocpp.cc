@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=8d24b9b678ba8cd7871ebeff4f9c91e950b0f451$
+// $hash=f958aef3602b89f47adb736d82274d37e3e95857$
 //
 
 #include "libcef_dll/ctocpp/views/fill_layout_ctocpp.h"
@@ -24,6 +24,10 @@ CefRefPtr<CefBoxLayout> CefFillLayoutCToCpp::AsBoxLayout() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_layout_t*>(GetStruct());
+  if (!_struct->as_box_layout) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -38,6 +42,10 @@ CefRefPtr<CefFillLayout> CefFillLayoutCToCpp::AsFillLayout() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_layout_t*>(GetStruct());
+  if (!_struct->as_fill_layout) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -51,6 +59,10 @@ NO_SANITIZE("cfi-icall") bool CefFillLayoutCToCpp::IsValid() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = reinterpret_cast<cef_layout_t*>(GetStruct());
+  if (!_struct->is_valid) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

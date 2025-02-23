@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=89166707a46e114fa662a4cdf0e2eaa8da61314a$
+// $hash=4db9ad6ac68143f2fd038c1ae8a601436dbadff9$
 //
 
 #include "libcef_dll/ctocpp/test/api_version_test_ref_ptr_library_child_child_ctocpp.h"
@@ -42,6 +42,10 @@ int CefApiVersionTestRefPtrLibraryChildChildCToCpp::GetOtherOtherValue() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_other_other_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -57,6 +61,10 @@ void CefApiVersionTestRefPtrLibraryChildChildCToCpp::SetOtherOtherValue(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_other_other_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -70,6 +78,10 @@ int CefApiVersionTestRefPtrLibraryChildChildCToCpp::GetOtherValue() {
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_child_t*>(
           GetStruct());
+  if (!_struct->get_other_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -86,6 +98,10 @@ void CefApiVersionTestRefPtrLibraryChildChildCToCpp::SetOtherValue(int value) {
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_child_t*>(
           GetStruct());
+  if (!_struct->set_other_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -98,6 +114,10 @@ int CefApiVersionTestRefPtrLibraryChildChildCToCpp::GetValueLegacy() {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->get_value_legacy) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -113,6 +133,10 @@ void CefApiVersionTestRefPtrLibraryChildChildCToCpp::SetValueLegacy(int value) {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->set_value_legacy) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -126,6 +150,10 @@ int CefApiVersionTestRefPtrLibraryChildChildCToCpp::GetValueExp() {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->get_value_exp) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -143,6 +171,10 @@ void CefApiVersionTestRefPtrLibraryChildChildCToCpp::SetValueExp(int value) {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->set_value_exp) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -157,6 +189,10 @@ int CefApiVersionTestRefPtrLibraryChildChildCToCpp::GetValue() {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->get_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -174,6 +210,10 @@ void CefApiVersionTestRefPtrLibraryChildChildCToCpp::SetValue(int value) {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->set_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -188,6 +228,10 @@ int CefApiVersionTestRefPtrLibraryChildChildCToCpp::GetValueV1() {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->get_value_v1) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -205,6 +249,10 @@ void CefApiVersionTestRefPtrLibraryChildChildCToCpp::SetValueV1(int value) {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->set_value_v1) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -219,6 +267,10 @@ int CefApiVersionTestRefPtrLibraryChildChildCToCpp::GetValueV2() {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->get_value_v2) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -236,6 +288,10 @@ void CefApiVersionTestRefPtrLibraryChildChildCToCpp::SetValueV2(int value) {
 
   auto* _struct =
       reinterpret_cast<cef_api_version_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->set_value_v2) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

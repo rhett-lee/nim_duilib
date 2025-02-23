@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=3d67658336f768823e9f97f37d2ea64bef998255$
+// $hash=9f06c66d56b6fb027f6a25f0f60fc293545be4c6$
 //
 
 #include "libcef_dll/ctocpp/test/translator_test_scoped_library_ctocpp.h"
@@ -35,6 +35,10 @@ CefOwnPtr<CefTranslatorTestScopedLibrary> CefTranslatorTestScopedLibrary::
 
 NO_SANITIZE("cfi-icall") int CefTranslatorTestScopedLibraryCToCpp::GetValue() {
   auto* _struct = GetStruct();
+  if (!_struct->get_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -47,6 +51,10 @@ NO_SANITIZE("cfi-icall") int CefTranslatorTestScopedLibraryCToCpp::GetValue() {
 NO_SANITIZE("cfi-icall")
 void CefTranslatorTestScopedLibraryCToCpp::SetValue(int value) {
   auto* _struct = GetStruct();
+  if (!_struct->set_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
