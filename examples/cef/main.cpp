@@ -14,7 +14,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     UNREFERENCED_PARAMETER(lpCmdLine);
 
     // 将 bin\\cef 目录添加到环境变量，这样可以将所有 CEF 相关文件放到该目录下，方便管理
-    // 在项目属性->连接器->输入，延迟加载 nim_libcef.dll
+    // 在项目属性->连接器->输入，延迟加载 libcef.dll
     ui::CefManager::GetInstance()->AddCefDllToPath();
 
     HRESULT hr = ::OleInitialize(NULL);

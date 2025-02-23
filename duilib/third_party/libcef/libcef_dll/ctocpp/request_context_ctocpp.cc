@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=fc3285dc8554eac0069c24bbd091a12245cfd7d4$
+// $hash=19479f88b525f3af8d43006ed31d453ce1d449bd$
 //
 
 #include "libcef_dll/ctocpp/request_context_ctocpp.h"
@@ -79,6 +79,10 @@ CefRefPtr<CefRequestContext> CefRequestContext::CreateContext(
 NO_SANITIZE("cfi-icall")
 bool CefRequestContextCToCpp::IsSame(CefRefPtr<CefRequestContext> other) {
   auto* _struct = GetStruct();
+  if (!_struct->is_same) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: other; type: refptr_same
@@ -99,6 +103,10 @@ NO_SANITIZE("cfi-icall")
 bool CefRequestContextCToCpp::IsSharingWith(
     CefRefPtr<CefRequestContext> other) {
   auto* _struct = GetStruct();
+  if (!_struct->is_sharing_with) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: other; type: refptr_same
@@ -117,6 +125,10 @@ bool CefRequestContextCToCpp::IsSharingWith(
 
 NO_SANITIZE("cfi-icall") bool CefRequestContextCToCpp::IsGlobal() {
   auto* _struct = GetStruct();
+  if (!_struct->is_global) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -129,6 +141,10 @@ NO_SANITIZE("cfi-icall") bool CefRequestContextCToCpp::IsGlobal() {
 NO_SANITIZE("cfi-icall")
 CefRefPtr<CefRequestContextHandler> CefRequestContextCToCpp::GetHandler() {
   auto* _struct = GetStruct();
+  if (!_struct->get_handler) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -140,6 +156,10 @@ CefRefPtr<CefRequestContextHandler> CefRequestContextCToCpp::GetHandler() {
 
 NO_SANITIZE("cfi-icall") CefString CefRequestContextCToCpp::GetCachePath() {
   auto* _struct = GetStruct();
+  if (!_struct->get_cache_path) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -155,6 +175,10 @@ NO_SANITIZE("cfi-icall")
 CefRefPtr<CefCookieManager> CefRequestContextCToCpp::GetCookieManager(
     CefRefPtr<CefCompletionCallback> callback) {
   auto* _struct = GetStruct();
+  if (!_struct->get_cookie_manager) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: callback
@@ -173,6 +197,10 @@ bool CefRequestContextCToCpp::RegisterSchemeHandlerFactory(
     const CefString& domain_name,
     CefRefPtr<CefSchemeHandlerFactory> factory) {
   auto* _struct = GetStruct();
+  if (!_struct->register_scheme_handler_factory) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: scheme_name; type: string_byref_const
@@ -194,6 +222,10 @@ bool CefRequestContextCToCpp::RegisterSchemeHandlerFactory(
 NO_SANITIZE("cfi-icall")
 bool CefRequestContextCToCpp::ClearSchemeHandlerFactories() {
   auto* _struct = GetStruct();
+  if (!_struct->clear_scheme_handler_factories) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -207,6 +239,10 @@ NO_SANITIZE("cfi-icall")
 void CefRequestContextCToCpp::ClearCertificateExceptions(
     CefRefPtr<CefCompletionCallback> callback) {
   auto* _struct = GetStruct();
+  if (!_struct->clear_certificate_exceptions) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: callback
@@ -220,6 +256,10 @@ NO_SANITIZE("cfi-icall")
 void CefRequestContextCToCpp::ClearHttpAuthCredentials(
     CefRefPtr<CefCompletionCallback> callback) {
   auto* _struct = GetStruct();
+  if (!_struct->clear_http_auth_credentials) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: callback
@@ -233,6 +273,10 @@ NO_SANITIZE("cfi-icall")
 void CefRequestContextCToCpp::CloseAllConnections(
     CefRefPtr<CefCompletionCallback> callback) {
   auto* _struct = GetStruct();
+  if (!_struct->close_all_connections) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: callback
@@ -247,6 +291,10 @@ void CefRequestContextCToCpp::ResolveHost(
     const CefString& origin,
     CefRefPtr<CefResolveCallback> callback) {
   auto* _struct = GetStruct();
+  if (!_struct->resolve_host) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: origin; type: string_byref_const
@@ -269,6 +317,10 @@ NO_SANITIZE("cfi-icall")
 CefRefPtr<CefMediaRouter> CefRequestContextCToCpp::GetMediaRouter(
     CefRefPtr<CefCompletionCallback> callback) {
   auto* _struct = GetStruct();
+  if (!_struct->get_media_router) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: callback
@@ -287,6 +339,10 @@ CefRefPtr<CefValue> CefRequestContextCToCpp::GetWebsiteSetting(
     const CefString& top_level_url,
     cef_content_setting_types_t content_type) {
   auto* _struct = GetStruct();
+  if (!_struct->get_website_setting) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: requesting_url, top_level_url
@@ -307,6 +363,10 @@ void CefRequestContextCToCpp::SetWebsiteSetting(
     cef_content_setting_types_t content_type,
     CefRefPtr<CefValue> value) {
   auto* _struct = GetStruct();
+  if (!_struct->set_website_setting) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: requesting_url, top_level_url, value
@@ -323,6 +383,10 @@ cef_content_setting_values_t CefRequestContextCToCpp::GetContentSetting(
     const CefString& top_level_url,
     cef_content_setting_types_t content_type) {
   auto* _struct = GetStruct();
+  if (!_struct->get_content_setting) {
+    return CEF_CONTENT_SETTING_VALUE_DEFAULT;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: requesting_url, top_level_url
@@ -343,6 +407,10 @@ void CefRequestContextCToCpp::SetContentSetting(
     cef_content_setting_types_t content_type,
     cef_content_setting_values_t value) {
   auto* _struct = GetStruct();
+  if (!_struct->set_content_setting) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: requesting_url, top_level_url
@@ -356,6 +424,10 @@ NO_SANITIZE("cfi-icall")
 void CefRequestContextCToCpp::SetChromeColorScheme(cef_color_variant_t variant,
                                                    cef_color_t user_color) {
   auto* _struct = GetStruct();
+  if (!_struct->set_chrome_color_scheme) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -365,6 +437,10 @@ void CefRequestContextCToCpp::SetChromeColorScheme(cef_color_variant_t variant,
 NO_SANITIZE("cfi-icall")
 cef_color_variant_t CefRequestContextCToCpp::GetChromeColorSchemeMode() {
   auto* _struct = GetStruct();
+  if (!_struct->get_chrome_color_scheme_mode) {
+    return CEF_COLOR_VARIANT_SYSTEM;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -377,6 +453,10 @@ cef_color_variant_t CefRequestContextCToCpp::GetChromeColorSchemeMode() {
 NO_SANITIZE("cfi-icall")
 cef_color_t CefRequestContextCToCpp::GetChromeColorSchemeColor() {
   auto* _struct = GetStruct();
+  if (!_struct->get_chrome_color_scheme_color) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -389,6 +469,10 @@ cef_color_t CefRequestContextCToCpp::GetChromeColorSchemeColor() {
 NO_SANITIZE("cfi-icall")
 cef_color_variant_t CefRequestContextCToCpp::GetChromeColorSchemeVariant() {
   auto* _struct = GetStruct();
+  if (!_struct->get_chrome_color_scheme_variant) {
+    return CEF_COLOR_VARIANT_SYSTEM;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -402,6 +486,10 @@ cef_color_variant_t CefRequestContextCToCpp::GetChromeColorSchemeVariant() {
 NO_SANITIZE("cfi-icall")
 bool CefRequestContextCToCpp::HasPreference(const CefString& name) {
   auto* _struct = reinterpret_cast<cef_preference_manager_t*>(GetStruct());
+  if (!_struct->has_preference) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: name; type: string_byref_const
@@ -421,6 +509,10 @@ NO_SANITIZE("cfi-icall")
 CefRefPtr<CefValue> CefRequestContextCToCpp::GetPreference(
     const CefString& name) {
   auto* _struct = reinterpret_cast<cef_preference_manager_t*>(GetStruct());
+  if (!_struct->get_preference) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: name; type: string_byref_const
@@ -440,6 +532,10 @@ NO_SANITIZE("cfi-icall")
 CefRefPtr<CefDictionaryValue> CefRequestContextCToCpp::GetAllPreferences(
     bool include_defaults) {
   auto* _struct = reinterpret_cast<cef_preference_manager_t*>(GetStruct());
+  if (!_struct->get_all_preferences) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -452,6 +548,10 @@ CefRefPtr<CefDictionaryValue> CefRequestContextCToCpp::GetAllPreferences(
 NO_SANITIZE("cfi-icall")
 bool CefRequestContextCToCpp::CanSetPreference(const CefString& name) {
   auto* _struct = reinterpret_cast<cef_preference_manager_t*>(GetStruct());
+  if (!_struct->can_set_preference) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: name; type: string_byref_const
@@ -472,6 +572,10 @@ bool CefRequestContextCToCpp::SetPreference(const CefString& name,
                                             CefRefPtr<CefValue> value,
                                             CefString& error) {
   auto* _struct = reinterpret_cast<cef_preference_manager_t*>(GetStruct());
+  if (!_struct->set_preference) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: name; type: string_byref_const

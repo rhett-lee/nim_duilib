@@ -468,9 +468,7 @@ class CefMessageRouterBrowserSideImpl : public CefMessageRouterBrowserSide {
       int request_id,
       const CefRefPtr<cmru::BrowserResponseBuilder>& builder) {
     if (auto message = builder->Build(context_id, request_id)) {
-        if (frame != nullptr) {
-            frame->SendProcessMessage(PID_RENDERER, message);
-        }
+      frame->SendProcessMessage(PID_RENDERER, message);
     }
   }
 
@@ -495,9 +493,7 @@ class CefMessageRouterBrowserSideImpl : public CefMessageRouterBrowserSide {
     args->SetBool(2, false);  // Indicates a failure result.
     args->SetInt(3, error_code);
     args->SetString(4, error_message);
-    if (frame != nullptr) {
-        frame->SendProcessMessage(PID_RENDERER, message);
-    }
+    frame->SendProcessMessage(PID_RENDERER, message);
   }
 
   // Cancel a query that has not been sent to a handler.

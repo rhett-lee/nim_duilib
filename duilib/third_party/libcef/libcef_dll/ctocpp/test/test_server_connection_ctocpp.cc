@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=c05c77a3eb19fbb007ac5b1fea8996b115fedf9b$
+// $hash=a5cb14778694231600edbf78beb46f3316f82a09$
 //
 
 #include "libcef_dll/ctocpp/test/test_server_connection_ctocpp.h"
@@ -27,6 +27,10 @@ void CefTestServerConnectionCToCpp::SendHttp200Response(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->send_http200_response) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: content_type; type: string_byref_const
@@ -50,6 +54,10 @@ void CefTestServerConnectionCToCpp::SendHttp404Response() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->send_http404_response) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -62,6 +70,10 @@ void CefTestServerConnectionCToCpp::SendHttp500Response(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->send_http500_response) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: error_message; type: string_byref_const
@@ -84,6 +96,10 @@ void CefTestServerConnectionCToCpp::SendHttpResponse(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->send_http_response) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: content_type; type: string_byref_const

@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=a3a992d7ec99407b1ac232dfcb9404d9c797def8$
+// $hash=5180bd0e954014fe861789404ca7d3829e0930bc$
 //
 
 #include "libcef_dll/ctocpp/waitable_event_ctocpp.h"
@@ -40,6 +40,10 @@ NO_SANITIZE("cfi-icall") void CefWaitableEventCToCpp::Reset() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->reset) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -50,6 +54,10 @@ NO_SANITIZE("cfi-icall") void CefWaitableEventCToCpp::Signal() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->signal) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -60,6 +68,10 @@ NO_SANITIZE("cfi-icall") bool CefWaitableEventCToCpp::IsSignaled() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_signaled) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -73,6 +85,10 @@ NO_SANITIZE("cfi-icall") void CefWaitableEventCToCpp::Wait() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->wait) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -84,6 +100,10 @@ bool CefWaitableEventCToCpp::TimedWait(int64_t max_ms) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->timed_wait) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

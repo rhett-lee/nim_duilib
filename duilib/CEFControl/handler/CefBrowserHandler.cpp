@@ -32,15 +32,22 @@ void BrowserHandler::SetHostWindow(ui::Window* window)
 void BrowserHandler::SetViewRect(RECT rc)
 {
     if (!CefCurrentlyOn(TID_UI)) {
-        // 把操作跳转到Cef线程执行
+        // 把操作跳转到Cef线程执行后续设置
+        {
+            base::AutoLock lock_scope(lock_);
+            rect_cef_control_ = rc;//此处需要设置，否则首次绑定时，CefPostTask还未执行时，rect_cef_control_就会被读取，0值会触发错误
+        }        
         CefPostTask(TID_UI, base::BindOnce(&BrowserHandler::SetViewRect, this, rc));
         return;
     }
-
-    rect_cef_control_ = rc;
+    {
+        base::AutoLock lock_scope(lock_);
+        rect_cef_control_ = rc;
+    }
     // 调用WasResized接口，调用后，BrowserHandler会调用GetViewRect接口来获取浏览器对象新的位置
-    if (browser_.get() && browser_->GetHost().get())
+    if (browser_.get() && browser_->GetHost().get()) {
         browser_->GetHost()->WasResized();
+    }
 }
 
 CefRefPtr<CefBrowserHost> BrowserHandler::GetBrowserHost()
@@ -270,10 +277,29 @@ void BrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
     }
     if (handle_delegate_)
     {
+        RECT rect_cef_control;
+        {
+            base::AutoLock lock_scope(lock_);
+            rect_cef_control = rect_cef_control_;
+        }
         rect.x = 0;
         rect.y = 0;
-        rect.width = rect_cef_control_.right - rect_cef_control_.left;
-        rect.height = rect_cef_control_.bottom - rect_cef_control_.top;
+        rect.width = rect_cef_control.right - rect_cef_control.left;
+        rect.height = rect_cef_control.bottom - rect_cef_control.top;
+
+        //返回的区域大小不能为0，否则返回会导致程序崩溃
+        if (rect.width == 0)
+        {
+            ui::UiRect clientRect;
+            window_->GetClientRect(clientRect);
+            rect.width = clientRect.Width();
+        }
+        if (rect.height == 0)
+        {
+            ui::UiRect clientRect;
+            window_->GetClientRect(clientRect);
+            rect.height = clientRect.Height();
+        }
 
         if (CefManager::GetInstance()->IsEnableOffsetRender()) {
             //离屏渲染模式，需要传给原始宽度和高度，因为CEF内部会进一步做DPI自适应
@@ -317,8 +343,13 @@ bool BrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, in
         }
     }
     //将页面坐标转换为窗口客户区坐标，否则页面弹出的右键菜单位置不正确
-    screen_pt.x = screen_pt.x + rect_cef_control_.left;
-    screen_pt.y = screen_pt.y + rect_cef_control_.top;
+    RECT rect_cef_control;
+    {
+        base::AutoLock lock_scope(lock_);
+        rect_cef_control = rect_cef_control_;
+    }
+    screen_pt.x = screen_pt.x + rect_cef_control.left;
+    screen_pt.y = screen_pt.y + rect_cef_control.top;
     window_->ClientToScreen(screen_pt);
     screenX = screen_pt.x;
     screenY = screen_pt.y;

@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=76a86797d872b9a965b30e29b9d0ed6e5c3b4c8d$
+// $hash=dc13c63e4b1b93d647611aa29db277df713ac216$
 //
 
 #include "libcef_dll/ctocpp/task_manager_ctocpp.h"
@@ -39,6 +39,10 @@ NO_SANITIZE("cfi-icall") size_t CefTaskManagerCToCpp::GetTasksCount() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_tasks_count) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -53,6 +57,10 @@ bool CefTaskManagerCToCpp::GetTaskIdsList(TaskIdList& task_ids) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_task_ids_list) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Translate param: task_ids; type: simple_vec_byref
@@ -94,6 +102,10 @@ bool CefTaskManagerCToCpp::GetTaskInfo(int64_t task_id, CefTaskInfo& info) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_task_info) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -107,6 +119,10 @@ NO_SANITIZE("cfi-icall") bool CefTaskManagerCToCpp::KillTask(int64_t task_id) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->kill_task) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -121,6 +137,10 @@ int64_t CefTaskManagerCToCpp::GetTaskIdForBrowserId(int browser_id) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_task_id_for_browser_id) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

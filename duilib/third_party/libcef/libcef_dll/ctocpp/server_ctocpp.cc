@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=536c52462084431be9435e5a8c7217f10fe0b6a5$
+// $hash=85034099aa455d4fe9501d1c4fef5e5125894f26$
 //
 
 #include "libcef_dll/ctocpp/server_ctocpp.h"
@@ -53,6 +53,10 @@ CefRefPtr<CefTaskRunner> CefServerCToCpp::GetTaskRunner() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_task_runner) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -66,6 +70,10 @@ NO_SANITIZE("cfi-icall") void CefServerCToCpp::Shutdown() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->shutdown) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -76,6 +84,10 @@ NO_SANITIZE("cfi-icall") bool CefServerCToCpp::IsRunning() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_running) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -89,6 +101,10 @@ NO_SANITIZE("cfi-icall") CefString CefServerCToCpp::GetAddress() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_address) {
+    return CefString();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -104,6 +120,10 @@ NO_SANITIZE("cfi-icall") bool CefServerCToCpp::HasConnection() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->has_connection) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -118,6 +138,10 @@ bool CefServerCToCpp::IsValidConnection(int connection_id) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_valid_connection) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -135,6 +159,10 @@ void CefServerCToCpp::SendHttp200Response(int connection_id,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->send_http200_response) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: content_type; type: string_byref_const
@@ -158,6 +186,10 @@ void CefServerCToCpp::SendHttp404Response(int connection_id) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->send_http404_response) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -170,6 +202,10 @@ void CefServerCToCpp::SendHttp500Response(int connection_id,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->send_http500_response) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: error_message; type: string_byref_const
@@ -192,6 +228,10 @@ void CefServerCToCpp::SendHttpResponse(int connection_id,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->send_http_response) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: content_type; type: string_byref_const
@@ -226,6 +266,10 @@ void CefServerCToCpp::SendRawData(int connection_id,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->send_raw_data) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: data; type: simple_byaddr
@@ -243,6 +287,10 @@ void CefServerCToCpp::CloseConnection(int connection_id) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->close_connection) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -256,6 +304,10 @@ void CefServerCToCpp::SendWebSocketMessage(int connection_id,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->send_web_socket_message) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: data; type: simple_byaddr

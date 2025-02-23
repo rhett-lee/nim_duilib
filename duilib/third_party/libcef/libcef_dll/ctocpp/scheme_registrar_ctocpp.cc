@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=b78ac3e0e6bcfa3f5f7e46561a28ab7305aeffdb$
+// $hash=a11fdc9f24bc921c5de1d6c4643ed747da2d4011$
 //
 
 #include "libcef_dll/ctocpp/scheme_registrar_ctocpp.h"
@@ -20,6 +20,10 @@ NO_SANITIZE("cfi-icall")
 bool CefSchemeRegistrarCToCpp::AddCustomScheme(const CefString& scheme_name,
                                                int options) {
   auto* _struct = GetStruct();
+  if (!_struct->add_custom_scheme) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: scheme_name; type: string_byref_const

@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=7734c20cc94aae2385e2c2c4e094b831673974cb$
+// $hash=ad313a5c2fef4d85fd6b42d6e1279b1d20b05eb7$
 //
 
 #include "libcef_dll/ctocpp/callback_ctocpp.h"
@@ -22,6 +22,10 @@ NO_SANITIZE("cfi-icall") void CefCallbackCToCpp::Continue() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cont) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -32,6 +36,10 @@ NO_SANITIZE("cfi-icall") void CefCallbackCToCpp::Cancel() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cancel) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

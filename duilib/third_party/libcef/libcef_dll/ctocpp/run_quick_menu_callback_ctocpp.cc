@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=92bedffb1c261817916d1d8ca9ff7b3a00683539$
+// $hash=da5bfe7c7e45c192788bb5e09194a89ab4f6836e$
 //
 
 #include "libcef_dll/ctocpp/run_quick_menu_callback_ctocpp.h"
@@ -24,6 +24,10 @@ void CefRunQuickMenuCallbackCToCpp::Continue(int command_id,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cont) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -34,6 +38,10 @@ NO_SANITIZE("cfi-icall") void CefRunQuickMenuCallbackCToCpp::Cancel() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cancel) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

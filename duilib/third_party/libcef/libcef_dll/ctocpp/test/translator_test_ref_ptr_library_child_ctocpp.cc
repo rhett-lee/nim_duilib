@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=6e3f0aac711ab099d5b642bf8c2f0b8564e4ae45$
+// $hash=67a5f51dac972f53f32e2ad4b525a65a0eab51d1$
 //
 
 #include "libcef_dll/ctocpp/test/translator_test_ref_ptr_library_child_ctocpp.h"
@@ -42,6 +42,10 @@ int CefTranslatorTestRefPtrLibraryChildCToCpp::GetOtherValue() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_other_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -56,6 +60,10 @@ void CefTranslatorTestRefPtrLibraryChildCToCpp::SetOtherValue(int value) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_other_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -68,6 +76,10 @@ int CefTranslatorTestRefPtrLibraryChildCToCpp::GetValue() {
 
   auto* _struct =
       reinterpret_cast<cef_translator_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->get_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -83,6 +95,10 @@ void CefTranslatorTestRefPtrLibraryChildCToCpp::SetValue(int value) {
 
   auto* _struct =
       reinterpret_cast<cef_translator_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->set_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=2cccacb51bebecbca991b42a53c5f9fe687e33a3$
+// $hash=ef079baa8eb823a977368d61700ee4e8994a22fe$
 //
 
 #include "libcef_dll/ctocpp/stream_reader_ctocpp.h"
@@ -87,6 +87,10 @@ size_t CefStreamReaderCToCpp::Read(void* ptr, size_t size, size_t n) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->read) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: ptr; type: simple_byaddr
@@ -107,6 +111,10 @@ int CefStreamReaderCToCpp::Seek(int64_t offset, int whence) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->seek) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -120,6 +128,10 @@ NO_SANITIZE("cfi-icall") int64_t CefStreamReaderCToCpp::Tell() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->tell) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -133,6 +145,10 @@ NO_SANITIZE("cfi-icall") int CefStreamReaderCToCpp::Eof() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->eof) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -146,6 +162,10 @@ NO_SANITIZE("cfi-icall") bool CefStreamReaderCToCpp::MayBlock() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->may_block) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

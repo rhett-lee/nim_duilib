@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=8b0e98c827dbf613db829c29d85a5d39b6767e37$
+// $hash=938750132f616560b31ea791768868c61db1eb30$
 //
 
 #include "libcef_dll/ctocpp/print_job_callback_ctocpp.h"
@@ -22,6 +22,10 @@ NO_SANITIZE("cfi-icall") void CefPrintJobCallbackCToCpp::Continue() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cont) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

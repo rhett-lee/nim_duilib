@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=ae02c0bb1f2f40b78a45b68c6fe10fe5f71ff45d$
+// $hash=e76cadddeb7ccd9d164b24179e5e86ff7230961c$
 //
 
 #include "libcef_dll/ctocpp/binary_value_ctocpp.h"
@@ -44,6 +44,10 @@ NO_SANITIZE("cfi-icall") bool CefBinaryValueCToCpp::IsValid() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_valid) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -57,6 +61,10 @@ NO_SANITIZE("cfi-icall") bool CefBinaryValueCToCpp::IsOwned() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_owned) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -71,6 +79,10 @@ bool CefBinaryValueCToCpp::IsSame(CefRefPtr<CefBinaryValue> that) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_same) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: that; type: refptr_same
@@ -91,6 +103,10 @@ bool CefBinaryValueCToCpp::IsEqual(CefRefPtr<CefBinaryValue> that) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_equal) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: that; type: refptr_same
@@ -111,6 +127,10 @@ CefRefPtr<CefBinaryValue> CefBinaryValueCToCpp::Copy() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->copy) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -124,6 +144,10 @@ NO_SANITIZE("cfi-icall") const void* CefBinaryValueCToCpp::GetRawData() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_raw_data) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -137,6 +161,10 @@ NO_SANITIZE("cfi-icall") size_t CefBinaryValueCToCpp::GetSize() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_size) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -153,6 +181,10 @@ size_t CefBinaryValueCToCpp::GetData(void* buffer,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_data) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Verify param: buffer; type: simple_byaddr

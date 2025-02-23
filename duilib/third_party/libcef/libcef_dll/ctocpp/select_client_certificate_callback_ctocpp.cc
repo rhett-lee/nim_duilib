@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=fbc0fc4cda8c9d83fff10e94ceb51bd525b9fbf6$
+// $hash=7445695dc7c4bbc2129c9bae2657761718b3d4d4$
 //
 
 #include "libcef_dll/ctocpp/select_client_certificate_callback_ctocpp.h"
@@ -25,6 +25,10 @@ void CefSelectClientCertificateCallbackCToCpp::Select(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->select) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: cert

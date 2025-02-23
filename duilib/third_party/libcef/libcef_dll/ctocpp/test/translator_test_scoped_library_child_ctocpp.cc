@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=13a14f121e0e5f56e9beda6bf202d4b2fa012105$
+// $hash=5349edba5f16cefb8c065b2cffce81f608383c85$
 //
 
 #include "libcef_dll/ctocpp/test/translator_test_scoped_library_child_ctocpp.h"
@@ -37,6 +37,10 @@ CefOwnPtr<
 NO_SANITIZE("cfi-icall")
 int CefTranslatorTestScopedLibraryChildCToCpp::GetOtherValue() {
   auto* _struct = GetStruct();
+  if (!_struct->get_other_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -49,6 +53,10 @@ int CefTranslatorTestScopedLibraryChildCToCpp::GetOtherValue() {
 NO_SANITIZE("cfi-icall")
 void CefTranslatorTestScopedLibraryChildCToCpp::SetOtherValue(int value) {
   auto* _struct = GetStruct();
+  if (!_struct->set_other_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -59,6 +67,10 @@ NO_SANITIZE("cfi-icall")
 int CefTranslatorTestScopedLibraryChildCToCpp::GetValue() {
   auto* _struct =
       reinterpret_cast<cef_translator_test_scoped_library_t*>(GetStruct());
+  if (!_struct->get_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -72,6 +84,10 @@ NO_SANITIZE("cfi-icall")
 void CefTranslatorTestScopedLibraryChildCToCpp::SetValue(int value) {
   auto* _struct =
       reinterpret_cast<cef_translator_test_scoped_library_t*>(GetStruct());
+  if (!_struct->set_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

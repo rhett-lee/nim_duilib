@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=61cf0d5b1c0f922a3e300d53496c1239590ad8bd$
+// $hash=5499f31d219589c45a08eee0da0def32175c16a7$
 //
 
 #include "libcef_dll/ctocpp/auth_callback_ctocpp.h"
@@ -24,6 +24,10 @@ void CefAuthCallbackCToCpp::Continue(const CefString& username,
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cont) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Unverified params: username, password
@@ -36,6 +40,10 @@ NO_SANITIZE("cfi-icall") void CefAuthCallbackCToCpp::Cancel() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->cancel) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

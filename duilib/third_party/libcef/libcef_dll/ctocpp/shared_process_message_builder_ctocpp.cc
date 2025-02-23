@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=b970c2951578fd136bfb8180fc106660f8ec7a8c$
+// $hash=b800cc37305836b785267206c39f3a0939252281$
 //
 
 #include "libcef_dll/ctocpp/shared_process_message_builder_ctocpp.h"
@@ -46,6 +46,10 @@ NO_SANITIZE("cfi-icall") bool CefSharedProcessMessageBuilderCToCpp::IsValid() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->is_valid) {
+    return false;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -59,6 +63,10 @@ NO_SANITIZE("cfi-icall") size_t CefSharedProcessMessageBuilderCToCpp::Size() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->size) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -72,6 +80,10 @@ NO_SANITIZE("cfi-icall") void* CefSharedProcessMessageBuilderCToCpp::Memory() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->memory) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -86,6 +98,10 @@ CefRefPtr<CefProcessMessage> CefSharedProcessMessageBuilderCToCpp::Build() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->build) {
+    return nullptr;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

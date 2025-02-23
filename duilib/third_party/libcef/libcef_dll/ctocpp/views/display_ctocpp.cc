@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=459f9ed39c83f2cabd18b4e3c5f28cb2e60ab900$
+// $hash=0fdf023044b55c1ef8c536646fc90dc8c291f08c$
 //
 
 #include "libcef_dll/ctocpp/views/display_ctocpp.h"
@@ -168,6 +168,10 @@ NO_SANITIZE("cfi-icall") int64_t CefDisplayCToCpp::GetID() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_id) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -181,6 +185,10 @@ NO_SANITIZE("cfi-icall") float CefDisplayCToCpp::GetDeviceScaleFactor() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_device_scale_factor) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -195,6 +203,10 @@ void CefDisplayCToCpp::ConvertPointToPixels(CefPoint& point) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->convert_point_to_pixels) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -206,6 +218,10 @@ void CefDisplayCToCpp::ConvertPointFromPixels(CefPoint& point) {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->convert_point_from_pixels) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -216,6 +232,10 @@ NO_SANITIZE("cfi-icall") CefRect CefDisplayCToCpp::GetBounds() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_bounds) {
+    return CefRect();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -229,6 +249,10 @@ NO_SANITIZE("cfi-icall") CefRect CefDisplayCToCpp::GetWorkArea() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_work_area) {
+    return CefRect();
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -242,6 +266,10 @@ NO_SANITIZE("cfi-icall") int CefDisplayCToCpp::GetRotation() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_rotation) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute

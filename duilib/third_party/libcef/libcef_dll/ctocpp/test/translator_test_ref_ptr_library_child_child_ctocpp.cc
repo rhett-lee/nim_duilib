@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=f6c3529b5765bbed1c3607f66336df370440c0f5$
+// $hash=6c68d542553308270d470c6b61ccf0981ac10aac$
 //
 
 #include "libcef_dll/ctocpp/test/translator_test_ref_ptr_library_child_child_ctocpp.h"
@@ -41,6 +41,10 @@ int CefTranslatorTestRefPtrLibraryChildChildCToCpp::GetOtherOtherValue() {
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->get_other_other_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -56,6 +60,10 @@ void CefTranslatorTestRefPtrLibraryChildChildCToCpp::SetOtherOtherValue(
   shutdown_checker::AssertNotShutdown();
 
   auto* _struct = GetStruct();
+  if (!_struct->set_other_other_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -69,6 +77,10 @@ int CefTranslatorTestRefPtrLibraryChildChildCToCpp::GetOtherValue() {
   auto* _struct =
       reinterpret_cast<cef_translator_test_ref_ptr_library_child_t*>(
           GetStruct());
+  if (!_struct->get_other_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -85,6 +97,10 @@ void CefTranslatorTestRefPtrLibraryChildChildCToCpp::SetOtherValue(int value) {
   auto* _struct =
       reinterpret_cast<cef_translator_test_ref_ptr_library_child_t*>(
           GetStruct());
+  if (!_struct->set_other_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -97,6 +113,10 @@ int CefTranslatorTestRefPtrLibraryChildChildCToCpp::GetValue() {
 
   auto* _struct =
       reinterpret_cast<cef_translator_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->get_value) {
+    return 0;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
@@ -112,6 +132,10 @@ void CefTranslatorTestRefPtrLibraryChildChildCToCpp::SetValue(int value) {
 
   auto* _struct =
       reinterpret_cast<cef_translator_test_ref_ptr_library_t*>(GetStruct());
+  if (!_struct->set_value) {
+    return;
+  }
+
   // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
 
   // Execute
