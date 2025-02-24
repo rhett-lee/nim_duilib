@@ -51,6 +51,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DpiAware", "DpiAware\DpiAwa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper", "..\duilib\third_party\libcef\libcef_dll_wrapper.vcxproj", "{BA5C702F-BB68-37F9-A109-74F215FE14C5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper_109", "..\duilib\third_party\libcef109\libcef_dll_wrapper.vcxproj", "{34C50672-6115-3723-B8FD-09568AA8527E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -235,6 +237,14 @@ Global
 		{BA5C702F-BB68-37F9-A109-74F215FE14C5}.Release|Win32.Build.0 = Release|Win32
 		{BA5C702F-BB68-37F9-A109-74F215FE14C5}.Release|x64.ActiveCfg = Release|x64
 		{BA5C702F-BB68-37F9-A109-74F215FE14C5}.Release|x64.Build.0 = Release|x64
+		{34C50672-6115-3723-B8FD-09568AA8527E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{34C50672-6115-3723-B8FD-09568AA8527E}.Debug|Win32.Build.0 = Debug|Win32
+		{34C50672-6115-3723-B8FD-09568AA8527E}.Debug|x64.ActiveCfg = Debug|x64
+		{34C50672-6115-3723-B8FD-09568AA8527E}.Debug|x64.Build.0 = Debug|x64
+		{34C50672-6115-3723-B8FD-09568AA8527E}.Release|Win32.ActiveCfg = Release|Win32
+		{34C50672-6115-3723-B8FD-09568AA8527E}.Release|Win32.Build.0 = Release|Win32
+		{34C50672-6115-3723-B8FD-09568AA8527E}.Release|x64.ActiveCfg = Release|x64
+		{34C50672-6115-3723-B8FD-09568AA8527E}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -261,6 +271,7 @@ Global
 		{17BB871A-B630-4E42-95CE-C2789B102091} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{B153E62E-29A4-435E-9150-E2C2CEA28524} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{BA5C702F-BB68-37F9-A109-74F215FE14C5} = {1DA0A8E2-5832-42FC-83F7-2CDCAD379C90}
+		{34C50672-6115-3723-B8FD-09568AA8527E} = {1DA0A8E2-5832-42FC-83F7-2CDCAD379C90}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {68CA0970-4242-4E4F-94D2-C19760FCA05D}
