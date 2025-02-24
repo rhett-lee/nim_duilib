@@ -8,15 +8,11 @@
 
 #include "duilib/duilib_config.h"
 #include "duilib/CEFControl/app/CefJSBridge.h"
-#include <map>
-#include <set>
-#include <string>
-#include <utility>
-#include <vector>
 
 #pragma warning (push)
 #pragma warning (disable:4100)
 #include "include/cef_app.h"
+#pragma warning (pop)
 
 namespace ui
 {
@@ -68,7 +64,5 @@ private:
     IMPLEMENT_REFCOUNTING(CefClientApp);
 };
 }
-
-#pragma warning (pop)
 
 #endif //UI_CEF_CONTROL_CLIENT_APP_H_

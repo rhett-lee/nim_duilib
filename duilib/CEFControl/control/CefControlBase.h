@@ -6,16 +6,9 @@
 #ifndef UI_CEF_CONTROL_CEF_CONTROL_BASE_H_
 #define UI_CEF_CONTROL_CEF_CONTROL_BASE_H_
 
-#include "duilib/duilib_config.h"
-#include "duilib/CEFControl/control/CefControlEvent.h"
-#include "duilib/CEFControl/app/CefJSBridge.h"
-#include "duilib/CEFControl/handler/CefBrowserHandler.h"
 #include "duilib/Core/Control.h"
-
-#pragma warning (push)
-#pragma warning (disable:4100)
-#include "include/cef_base.h"
-#pragma warning (pop)
+#include "duilib/CEFControl/control/CefControlEvent.h"
+#include "duilib/CEFControl/handler/CefBrowserHandler.h"
 
 namespace ui {
 

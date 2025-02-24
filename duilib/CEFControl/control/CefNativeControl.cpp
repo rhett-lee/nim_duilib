@@ -1,14 +1,6 @@
 #include "CefNativeControl.h"
-#include "duilib/CEFControl/handler/CefBrowserHandler.h"
-#include "duilib/CEFControl/manager/CefManager.h"
-#include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
-
-#pragma warning (push)
-#pragma warning (disable:4100)
-#include "include/cef_browser.h"
-#include "include/cef_frame.h"
-#pragma warning (pop)
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui {
 

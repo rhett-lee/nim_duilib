@@ -1,4 +1,7 @@
 #include "CefManager.h"
+#include "duilib/Utils/FilePathUtil.h"
+#include "duilib/Core/GlobalManager.h"
+
 #include "duilib/CEFControl/app/CefClientApp.h"
 #include "duilib/CEFControl/handler/CefBrowserHandler.h"
 

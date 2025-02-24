@@ -6,10 +6,9 @@
 #ifndef UI_CEF_CONTROL_CEF_CONTROL_H_
 #define UI_CEF_CONTROL_CEF_CONTROL_H_
 
-#include "duilib/duilib_config.h"
+#include "duilib/Core/Window.h"
 #include "duilib/CEFControl/control/CefControlBase.h"
 #include "duilib/CEFControl/util/CefMemoryDC.h"
-#include "duilib/Core/Window.h"
 
 namespace ui {
 

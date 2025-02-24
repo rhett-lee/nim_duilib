@@ -1,7 +1,7 @@
 #include "CefJSBridge.h"
 #include "CefIPCStringDefs.h"
 
-#include "duilib/duilib.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui {
 

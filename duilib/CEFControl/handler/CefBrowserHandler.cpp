@@ -1,14 +1,14 @@
 #include "CefBrowserHandler.h"
+#include "duilib/Core/GlobalManager.h"
+
 #include "duilib/CEFControl/manager/CefManager.h"
 #include "duilib/CEFControl/app/CefIPCStringDefs.h"
 #include "duilib/CEFControl/app/CefJSBridge.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
-#include "include/cef_frame.h"
 #include "include/base/cef_callback.h"
 #include "include/base/cef_bind.h"
-#include "include/cef_task.h"
 #include "include/wrapper/cef_closure_task.h"
 
 namespace ui
