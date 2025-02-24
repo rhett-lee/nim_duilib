@@ -10,12 +10,6 @@
 #include "duilib/duilib_config.h"
 #include "duilib/CEFControl/app/CefJSBridge.h"
 
-#pragma warning (push)
-#pragma warning (disable:4100)
-#include "include/cef_base.h"
-#include "include/cef_app.h"
-#pragma warning (pop)
-
 namespace ui
 {
     

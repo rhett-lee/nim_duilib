@@ -6,7 +6,7 @@
 #ifndef UI_CEF_CONTROL_CEF_MANAGER_H_
 #define UI_CEF_CONTROL_CEF_MANAGER_H_
 
-#include "duilib/duilib.h"
+#include "duilib/Core/Callback.h"
 #include "duilib/CEFControl/handler/drag/osr_dragdrop_win.h"
 
 #pragma warning (push)

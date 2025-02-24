@@ -1,7 +1,7 @@
 #include "CefJsHandler.h"
 #include "duilib/CEFControl/app/CefIPCStringDefs.h"
 #include "duilib/CEFControl/app/CefJSBridge.h"
-#include "duilib/duilib.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui
 {

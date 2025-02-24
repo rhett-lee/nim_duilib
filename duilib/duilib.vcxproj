@@ -381,8 +381,6 @@
     <ClCompile Include="CEFControl\app\CefJsHandler.cpp" />
     <ClCompile Include="CEFControl\control\CefControl.cpp" />
     <ClCompile Include="CEFControl\control\CefControlBase.cpp" />
-    <ClCompile Include="CEFControl\control\CefControlBaseUI.cpp" />
-    <ClCompile Include="CEFControl\control\CefControlUI.cpp" />
     <ClCompile Include="CEFControl\control\CefNativeControl.cpp" />
     <ClCompile Include="CEFControl\handler\CefBrowserHandler.cpp" />
     <ClCompile Include="CEFControl\handler\drag\bytes_write_handler.cc" />
@@ -568,6 +566,7 @@
     <ClInclude Include="Box\VLayout.h" />
     <ClInclude Include="Box\VTileLayout.h" />
     <ClInclude Include="CEFControl\app\CefClientApp.h" />
+    <ClInclude Include="CEFControl\app\CefIPCStringDefs.h" />
     <ClInclude Include="CEFControl\app\CefJSBridge.h" />
     <ClInclude Include="CEFControl\app\CefJsHandler.h" />
     <ClInclude Include="CEFControl\control\CefControl.h" />

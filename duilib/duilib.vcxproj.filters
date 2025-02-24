@@ -618,12 +618,6 @@
     <ClCompile Include="CEFControl\control\CefControlBase.cpp">
       <Filter>CEFControl\control</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\control\CefControlBaseUI.cpp">
-      <Filter>CEFControl\control</Filter>
-    </ClCompile>
-    <ClCompile Include="CEFControl\control\CefControlUI.cpp">
-      <Filter>CEFControl\control</Filter>
-    </ClCompile>
     <ClCompile Include="CEFControl\control\CefNativeControl.cpp">
       <Filter>CEFControl\control</Filter>
     </ClCompile>
@@ -1288,6 +1282,9 @@
     </ClInclude>
     <ClInclude Include="CEFControl\util\CefMemoryDC.h">
       <Filter>CEFControl\util</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\app\CefIPCStringDefs.h">
+      <Filter>CEFControl\app</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
