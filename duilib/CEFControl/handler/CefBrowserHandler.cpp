@@ -1,6 +1,5 @@
 #include "CefBrowserHandler.h"
 #include "duilib/CEFControl/manager/CefManager.h"
-#include "duilib/CEFControl/util/CefUtil.h"
 #include "duilib/CEFControl/app/CefIPCStringDefs.h"
 #include "duilib/CEFControl/app/CefJSBridge.h"
 
@@ -9,6 +8,8 @@
 #include "include/cef_frame.h"
 #include "include/base/cef_callback.h"
 #include "include/base/cef_bind.h"
+#include "include/cef_task.h"
+#include "include/wrapper/cef_closure_task.h"
 
 namespace ui
 {
@@ -172,7 +173,7 @@ void BrowserHandler::OnBeforeDevToolsPopup(CefRefPtr<CefBrowser> /*browser*/,
 
 void BrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
-    REQUIRE_UI_THREAD();
+    ASSERT(CefCurrentlyOn(TID_UI));
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser](){
         browser_list_.emplace_back(browser);
         if (browser_ != nullptr)
@@ -218,7 +219,7 @@ bool BrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
 
 void BrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
-    REQUIRE_UI_THREAD();
+    ASSERT(CefCurrentlyOn(TID_UI));
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser](){
         CefManager::GetInstance()->SubBrowserCount();
         auto it = std::find_if(browser_list_.begin(), browser_list_.end(), [&](const CefRefPtr<CefBrowser>& item){
@@ -440,7 +441,7 @@ void BrowserHandler::OnVirtualKeyboardRequested(CefRefPtr<CefBrowser> browser, T
 
 bool BrowserHandler::StartDragging(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y)
 {
-    REQUIRE_UI_THREAD();
+    ASSERT(CefCurrentlyOn(TID_UI));
     if (!handle_delegate_)
         return false;
 
@@ -471,13 +472,13 @@ bool BrowserHandler::StartDragging(CefRefPtr<CefBrowser> browser, CefRefPtr<CefD
 
 void BrowserHandler::UpdateDragCursor(CefRefPtr<CefBrowser> browser, CefRenderHandler::DragOperation operation)
 {
-    REQUIRE_UI_THREAD();
+    ASSERT(CefCurrentlyOn(TID_UI));
     current_drag_op_ = operation;
 }
 
 CefBrowserHost::DragOperationsMask BrowserHandler::OnDragEnter(CefRefPtr<CefDragData> drag_data, CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect)
 {
-    REQUIRE_UI_THREAD();
+    ASSERT(CefCurrentlyOn(TID_UI));
     if (browser_) {
         POINT pt = { ev.x, ev.y };
         handle_delegate_->ClientToControl(pt);
@@ -491,7 +492,7 @@ CefBrowserHost::DragOperationsMask BrowserHandler::OnDragEnter(CefRefPtr<CefDrag
 
 CefBrowserHost::DragOperationsMask BrowserHandler::OnDragOver(CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect)
 {
-    REQUIRE_UI_THREAD();
+    ASSERT(CefCurrentlyOn(TID_UI));
     if (browser_) {
         POINT pt = { ev.x, ev.y };
         handle_delegate_->ClientToControl(pt);
@@ -504,7 +505,7 @@ CefBrowserHost::DragOperationsMask BrowserHandler::OnDragOver(CefMouseEvent ev, 
 
 void BrowserHandler::OnDragLeave()
 {
-    REQUIRE_UI_THREAD();
+    ASSERT(CefCurrentlyOn(TID_UI));
     if (browser_)
         browser_->GetHost()->DragTargetDragLeave();
 }
@@ -531,7 +532,7 @@ CefRefPtr<CefFrame> frame,
 CefRefPtr<CefContextMenuParams> params,
 CefRefPtr<CefMenuModel> model)
 {
-    REQUIRE_UI_THREAD();
+    ASSERT(CefCurrentlyOn(TID_UI));
 
     if (handle_delegate_)
     {
