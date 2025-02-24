@@ -1289,9 +1289,6 @@
     <ClInclude Include="CEFControl\util\CefMemoryDC.h">
       <Filter>CEFControl\util</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\util\CefUtil.h">
-      <Filter>CEFControl\util</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />
