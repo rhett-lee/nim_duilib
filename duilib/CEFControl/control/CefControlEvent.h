@@ -11,17 +11,20 @@
 
 #pragma warning (push)
 #pragma warning (disable:4100)
-#include "include/cef_load_handler.h"
-#include "include/cef_request_handler.h"
-#include "include/cef_context_menu_handler.h"
-#include "include/cef_download_handler.h"
-#include "include/cef_dialog_handler.h"
+#include "include/cef_client.h"
 #pragma warning (pop)
 
 #include <functional>
 
 namespace ui
 {
+    //JS相关的回调函数
+    typedef std::function<void(bool has_error, const std::string& result)> ReportResultFunction;
+    typedef std::function<void(const std::string& result)> CallJsFunctionCallback;
+    typedef std::function<void(const std::string& params, ReportResultFunction callback)> CppFunction;
+
+
+    //浏览器控件相关的回调函数
     typedef std::function<void(CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)> OnBeforeMenuEvent;
     typedef std::function<bool(CefRefPtr<CefContextMenuParams> params, int command_id, CefContextMenuHandler::EventFlags event_flags)> OnMenuCommandEvent;
 

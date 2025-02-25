@@ -8,133 +8,110 @@
 
 #include "duilib/Core/Control.h"
 #include "duilib/CEFControl/control/CefControlEvent.h"
-#include "duilib/CEFControl/handler/CefBrowserHandler.h"
+#include "duilib/CEFControl/handler/CefBrowserHandlerDelegate.h"
 
 namespace ui {
 
-class CefControlBase : public ui::Control, public ui::BrowserHandler::HandlerDelegate
+class CefJSBridge;
+class CefBrowserHandler;
+
+class CefControlBase : public Control, public CefBrowserHandlerDelegate
 {
 public:
     explicit CefControlBase(ui::Window* pWindow);
     virtual ~CefControlBase() override;
 
 public:
-    /**
-    * @brief 加载一个地址
-    * @param[in] url 网站地址
-    * @return 无
+    /** 加载一个地址
+    * @param [in] url 网站地址
     */
     void LoadURL(const CefString& url);
 
-    /**
-    * @brief 后退
-    * @return 无
+    /** 后退
     */
     void GoBack();
 
-    /**
-    * @brief 前进
-    * @return 无
+    /** 前进
     */
     void GoForward();
 
-    /**
-    * @brief 判断是否可以后退
+    /** 判断是否可以后退
     * @return 返回 true 表示可以，false 表示不可以
     */
     bool CanGoBack();
 
-    /**
-    * @brief 判断是否可以前进
+    /** 判断是否可以前进
     * @return 返回 true 表示可以，false 表示不可以
     */
     bool CanGoForward();
 
-    /**
-    * @brief 刷新
-    * @return 无
+    /** 刷新
     */
     void Refresh();
 
-    /**
-    * @brief 停止加载
-    * @return 无
+    /** 停止加载
     */
     void StopLoad();
 
-    /**
-    * @brief 是否加载中
+    /** 是否加载中
     * @return 返回 true 表示加载中，否则为 false
     */
     bool IsLoading();
 
-    /**
-    * @brief 开始一个下载任务
+    /** 开始一个下载任务
     * @param[in] url 要下载的文件地址
-    * @return 无
     */
     void StartDownload(const CefString& url);
 
-    /**
-    * @brief 设置页面缩放比例
+    /** 设置页面缩放比例
     * @param[in] zoom_level 比例值
-    * @return 无
     */
     void SetZoomLevel(float zoom_level);
 
-    /**
-    * @brief 获取浏览器对象所属的窗体句柄
+    /** 获取浏览器对象所属的窗体句柄
     * @return 窗口句柄
     */
-    HWND GetCefHandle() const;
+    HWND GetCefHandle() const;//TODO: 跨平台
 
-    /**
-    * @brief 获取页面 URL
+    /** 获取页面 URL
     * @return 返回 URL 地址
     */
     CefString GetURL();
 
-    /**
-    * @brief 获取 UTF8 格式 URL
+    /** 获取 UTF8 格式 URL
     * @return 返回 URL 地址
     */
     std::string GetUTF8URL();
 
-    /**
-    * @brief 获取网址 # 号前的地址
+    /** 获取网址 # 号前的地址
     * @param[in] url 要获取的完整地址
     * @return 返回截取后的地址
     */
     CefString GetMainURL(const CefString& url);
 
-    /**
-    * @brief 注册一个 C++ 方法提供前端调用
+    /** 注册一个 C++ 方法提供前端调用
     * @param[in] function_name 方法名称
     * @param[in] function 方法函数体
     * @param[in] global_function 是否是一个全局方法
     * @return 返回 true 表示注册成功，false 可能已经注册
     */
-    bool RegisterCppFunc(const DString& function_name, ui::CppFunction function, bool global_function = false);
+    bool RegisterCppFunc(const DString& function_name, CppFunction function, bool global_function = false);
 
-    /**
-    * @brief 反注册一个 C++ 方法
+    /** 反注册一个 C++ 方法
     * @param[in] function_name 方法名称
-    * @return 无
     */
     void UnRegisterCppFunc(const DString& function_name);
 
-    /**
-    * @brief 调用一个前端已经注册好的方法
+    /** 调用一个前端已经注册好的方法
     * @param[in] js_function_name 前端提供的方法名
     * @param[in] params 传递 JSON 字符串格式的参数
     * @param[in] callback 前端执行完成后的回调函数
     * @param[in] frame_name 要调用哪个名称 frame 下的方法，默认使用主 frame
     * @return 返回 true 表示成功调用，false 表示调用失败，方法可能不存在
     */
-    bool CallJSFunction(const DString& js_function_name, const DString& params, ui::CallJsFunctionCallback callback, const DString& frame_name = _T(""));
+    bool CallJSFunction(const DString& js_function_name, const DString& params, CallJsFunctionCallback callback, const DString& frame_name = _T(""));
 
-    /**
-    * @brief 调用一个前端已经注册好的方法
+    /** 调用一个前端已经注册好的方法
     * @param[in] js_function_name 前端提供的方法名
     * @param[in] params 传递 JSON 字符串格式的参数
     * @param[in] callback 前端执行完成后的回调函数
@@ -143,170 +120,128 @@ public:
     */
     bool CallJSFunction(const DString& js_function_name, const DString& params, ui::CallJsFunctionCallback callback, const CefString& frame_id);
 
-    /**
-    * @brief 修复浏览器
-    * @return 无
+    /** 修复浏览器对象（重新创建Browser对象）
     */
     virtual void RepairBrowser();
 
-    /**
-    * @brief 打开开发者工具
+    /** 打开开发者工具
     * @param[in] view 一个 CefControl 控件实例(仅在CefControl类里需要传入)
     * @return 成功返回 true，失败返回 false
     */
-    virtual bool AttachDevTools(ui::Control* view) = 0;
+    virtual bool AttachDevTools(Control* view) = 0;
 
-    /**
-    * @brief 关闭开发者工具
-    * @return 无
+    /** 关闭开发者工具
     */
     virtual void DettachDevTools();
 
-    /**
-    * @brief 判断是否打开开发者工具
+    /** 判断是否打开开发者工具
     * @return 返回 true 表示已经绑定，false 为未绑定
     */
     virtual bool IsAttachedDevTools() const { return devtool_attached_; }
 
 protected:
+    /** 重新创建Browser对象
+    */
     virtual void ReCreateBrowser() = 0;
 
 public:
-    /**
-    * @brief 绑定一个回调函数用于监听右键菜单弹出
-    * @param[in] callback 一个回调函数，参考 OnBeforeMenuEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听右键菜单弹出
+    * @param [in] callback 一个回调函数，参考 OnBeforeMenuEvent 声明
     */
     void AttachBeforeContextMenu(const OnBeforeMenuEvent& callback){ cb_before_menu_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听选择了哪个右键菜单
-    * @param[in] callback 一个回调函数，参考 OnMenuCommandEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听选择了哪个右键菜单
+    * @param [in] callback 一个回调函数，参考 OnMenuCommandEvent 声明
     */
     void AttachMenuCommand(const OnMenuCommandEvent& callback){ cb_menu_command_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听页面 Title 改变
-    * @param[in] callback 一个回调函数，参考 OnTitleChangeEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听页面 Title 改变
+    * @param [in] callback 一个回调函数，参考 OnTitleChangeEvent 声明
     */
     void AttachTitleChange(const OnTitleChangeEvent& callback){ cb_title_change_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听页面中 frame URL 地址改变
-    * @param[in] callback 一个回调函数，参考 OnUrlChangeEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听页面中 frame URL 地址改变
+    * @param [in] callback 一个回调函数，参考 OnUrlChangeEvent 声明
     */
     void AttachUrlChange(const OnUrlChangeEvent& callback){ cb_url_change_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听主页面 URL 地址改变
-    * @param[in] callback 一个回调函数，参考 OnMainURLChengeEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听主页面 URL 地址改变
+    * @param [in] callback 一个回调函数，参考 OnMainURLChengeEvent 声明
     */
     void AttachMainURLChange(OnMainURLChengeEvent cb){ cb_main_url_change_ = cb; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听页面资源全部加载完毕
-    * @param[in] callback 一个回调函数，参考 OnBeforeResourceLoadEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听页面资源全部加载完毕
+    * @param [in] callback 一个回调函数，参考 OnBeforeResourceLoadEvent 声明
     */
     void AttachBeforeNavigate(const OnBeforeResourceLoadEvent& callback){ cb_before_resource_load_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听一个弹出窗口弹出的通知
-    * @param[in] callback 一个回调函数，参考 OnLinkClickEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听一个弹出窗口弹出的通知
+    * @param [in] callback 一个回调函数，参考 OnLinkClickEvent 声明
     */
     void AttachLinkClick(const OnLinkClickEvent& callback){ cb_link_click_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听页面加载状态改变
-    * @param[in] callback 一个回调函数，参考 OnLoadingStateChangeEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听页面加载状态改变
+    * @param [in] callback 一个回调函数，参考 OnLoadingStateChangeEvent 声明
     */
     void AttachLoadingStateChange(const OnLoadingStateChangeEvent& callback){ cb_loadstate_change_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听页面开始加载通知
-    * @param[in] callback 一个回调函数，参考 OnLoadStartEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听页面开始加载通知
+    * @param [in] callback 一个回调函数，参考 OnLoadStartEvent 声明
     */
     void AttachLoadStart(const OnLoadStartEvent& callback){ cb_load_start_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听页面加载完毕通知
-    * @param[in] callback 一个回调函数，参考 OnLoadEndEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听页面加载完毕通知
+    * @param [in] callback 一个回调函数，参考 OnLoadEndEvent 声明
     */
     void AttachLoadEnd(const OnLoadEndEvent& callback){ cb_load_end_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听界面加载错误通知
-    * @param[in] callback 一个回调函数，参考 OnLoadErrorEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听界面加载错误通知
+    * @param [in] callback 一个回调函数，参考 OnLoadErrorEvent 声明
     */
     void AttachLoadError(const OnLoadErrorEvent& callback){ cb_load_error_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听开发者工具状态改变通知
-    * @param[in] callback 一个回调函数，参考 OnDevToolAttachedStateChangeEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听开发者工具状态改变通知
+    * @param [in] callback 一个回调函数，参考 OnDevToolAttachedStateChangeEvent 声明
     */
     void AttachDevToolAttachedStateChange(const OnDevToolAttachedStateChangeEvent& callback){ cb_devtool_visible_change_ = callback; };
 
-    /**
-    * @brief 绑定一个回调函数用于监听一个新的浏览器实例创建完毕通知
-    * @param[in] callback 一个回调函数，参考 OnAfterCreatedEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听一个新的浏览器实例创建完毕通知
+    * @param [in] callback 一个回调函数，参考 OnAfterCreatedEvent 声明
     */
     void AttachAfterCreated(const OnAfterCreatedEvent& callback){ cb_after_created_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听一个浏览器实例关闭前的通知
-    * @param[in] callback 一个回调函数，参考 OnBeforeCloseEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听一个浏览器实例关闭前的通知
+    * @param [in] callback 一个回调函数，参考 OnBeforeCloseEvent 声明
     */
     void AttachBeforeCLose(const OnBeforeCloseEvent& callback) { cb_before_close_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听一个浏览器实例加载通知
-    * @param[in] callback 一个回调函数，参考 OnBeforeBrowserEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听一个浏览器实例加载通知
+    * @param [in] callback 一个回调函数，参考 OnBeforeBrowserEvent 声明
     */
     void AttachBeforeBrowser(const OnBeforeBrowserEvent& callback) { cb_before_browser_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听一个未知的 Protocol
+    /** 绑定一个回调函数用于监听一个未知的 Protocol
     * @param[in] callback 一个回调函数，参考 OnProtocolExecutionEvent 声明
-    * @return 无
     */
     void AttachProtocolExecution(const OnProtocolExecutionEvent& callback) { cb_protocol_execution_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听一个下载任务开始之前的通知
-    * @param[in] callback 一个回调函数，参考 OnBeforeDownloadEvent 声明
-    * @return 无
+    /** 绑定一个回调函数用于监听一个下载任务开始之前的通知
+    * @param [in] callback 一个回调函数，参考 OnBeforeDownloadEvent 声明
     */
     void AttachBeforeDownload(const OnBeforeDownloadEvent& callback) { cb_before_download_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听下载过程中任务的状态改变通知
+    /** 绑定一个回调函数用于监听下载过程中任务的状态改变通知
     * @param[in] callback 一个回调函数，参考 OnDownloadUpdatedEvent 声明
-    * @return 无
     */
     void AttachDownloadUpdated(const OnDownloadUpdatedEvent& callback) { cb_download_updated_ = callback; }
 
-    /**
-    * @brief 绑定一个回调函数用于监听一个从对话框中打开文件的通知
+    /** 绑定一个回调函数用于监听一个从对话框中打开文件的通知
     * @param[in] callback 一个回调函数，参考 OnFileDialogEvent 声明
-    * @return 无
     */
     void AttachFileDialog(const OnFileDialogEvent& callback) { cb_file_dialog_ = callback; }
 
 private:
-    // 处理BrowserHandler的HandlerDelegate委托接口
+    // 处理CefBrowserHandler的CefBrowserHandlerDelegate委托接口
     // 当浏览器渲染数据变化时，会触发此接口，此时把渲染数据保存到内存dc
     // 并且通知窗体刷新控件，在控件的Paint函数里把内存dc的位图画到窗体上
     // 由此实现离屏渲染数据画到窗体上
@@ -407,8 +342,8 @@ public:
     virtual bool OnExecuteCppCallbackFunc(int cpp_callback_id, const CefString& json_string) override;
 
 protected:
-    CefRefPtr<ui::BrowserHandler> browser_handler_ = nullptr;
-    std::shared_ptr<ui::CefJSBridge> js_bridge_;
+    CefRefPtr<CefBrowserHandler> browser_handler_ = nullptr;
+    std::shared_ptr<CefJSBridge> js_bridge_;
     CefString url_;
     bool devtool_attached_;
 

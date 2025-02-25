@@ -2,6 +2,9 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringConvert.h"
 
+#include "duilib/CEFControl/app/CefJSBridge.h"
+#include "duilib/CEFControl/handler/CefBrowserHandler.h"
+
 namespace ui {
 
 CefControlBase::CefControlBase(ui::Window* pWindow):

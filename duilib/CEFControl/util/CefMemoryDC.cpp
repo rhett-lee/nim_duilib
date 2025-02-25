@@ -1,5 +1,7 @@
 #include "CefMemoryDC.h"
 
+namespace ui {
+
 CefMemoryDC::CefMemoryDC() 
 {
     bitmap_ = NULL;
@@ -121,3 +123,5 @@ bool CefMemoryDC::IsValid()
 {
     return valid_ && mem_dc_ != NULL && bitmap_ != NULL;
 }
+
+} //namespace ui

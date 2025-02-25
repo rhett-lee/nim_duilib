@@ -1286,6 +1286,12 @@
     <ClInclude Include="CEFControl\app\CefIPCStringDefs.h">
       <Filter>CEFControl\app</Filter>
     </ClInclude>
+    <ClInclude Include="CEFControl\handler\CefBrowserHandlerDelegate.h">
+      <Filter>CEFControl\handler</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\control\CefControlEvent.h">
+      <Filter>CEFControl\control</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />
