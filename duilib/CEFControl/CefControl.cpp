@@ -1,10 +1,11 @@
 #include "CefControl.h"
 
-#include "duilib/CEFControl/manager/CefManager.h"
+#include "duilib/CEFControl/CefManager.h"
+#include "duilib/CEFControl/internal/handler/CefBrowserHandler.h"
+#include "duilib/CEFControl/internal/util/CefMemoryDC.h"
+
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Box.h"
-#include "duilib/CEFControl/handler/CefBrowserHandler.h"
-#include "duilib/CEFControl/util/CefMemoryDC.h"
 
 namespace ui {
 

@@ -2,8 +2,8 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringConvert.h"
 
-#include "duilib/CEFControl/app/CefJSBridge.h"
-#include "duilib/CEFControl/handler/CefBrowserHandler.h"
+#include "duilib/CEFControl/internal/app/CefJSBridge.h"
+#include "duilib/CEFControl/internal/handler/CefBrowserHandler.h"
 
 namespace ui {
 

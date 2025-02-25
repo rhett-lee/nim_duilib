@@ -7,7 +7,7 @@
 #define UI_CEF_CONTROL_CEF_MANAGER_H_
 
 #include "duilib/Core/Callback.h"
-#include "duilib/CEFControl/handler/drag/osr_dragdrop_win.h"
+#include "duilib/CEFControl/internal/handler/drag/osr_dragdrop_win.h" //TODO: 待改进，不开放该头文件
 
 #pragma warning (push)
 #pragma warning (disable:4100)

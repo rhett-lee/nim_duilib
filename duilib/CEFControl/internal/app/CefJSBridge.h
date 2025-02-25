@@ -1,7 +1,7 @@
 #ifndef UI_CEF_CONTROL_CEF_JS_BRIDGE_H_
 #define UI_CEF_CONTROL_CEF_JS_BRIDGE_H_
 
-#include "duilib/CEFControl/control/CefControlEvent.h"
+#include "duilib/CEFControl/CefControlEvent.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)

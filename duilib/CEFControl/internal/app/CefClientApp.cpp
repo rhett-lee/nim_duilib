@@ -1,5 +1,5 @@
 #include "CefClientApp.h" 
-#include "duilib/CEFControl/manager/CefManager.h"
+#include "duilib/CEFControl/CefManager.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)

@@ -1,10 +1,10 @@
 #include "CefBrowserHandler.h"
-#include "CefBrowserHandlerDelegate.h"
-#include "duilib/Core/GlobalManager.h"
+#include "duilib/CEFControl/CefBrowserHandlerDelegate.h"
+#include "duilib/CEFControl/CefManager.h"
+#include "duilib/CEFControl/internal/app/CefIPCStringDefs.h"
+#include "duilib/CEFControl/internal/app/CefJSBridge.h"
 
-#include "duilib/CEFControl/manager/CefManager.h"
-#include "duilib/CEFControl/app/CefIPCStringDefs.h"
-#include "duilib/CEFControl/app/CefJSBridge.h"
+#include "duilib/Core/GlobalManager.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
