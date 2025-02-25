@@ -8,7 +8,7 @@
 #define UI_CEF_CONTROL_JS_HANDLER_H_
 
 #include "duilib/duilib_config.h"
-#include "duilib/CEFControl/app/CefJSBridge.h"
+#include "duilib/CEFControl/internal/app/CefJSBridge.h"
 
 namespace ui
 {

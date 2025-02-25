@@ -79,23 +79,20 @@
     <Filter Include="CEFControl">
       <UniqueIdentifier>{673add5e-a1c1-4f08-bf1c-da1fb4f2ce4d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CEFControl\app">
-      <UniqueIdentifier>{8c816602-e613-4c20-ad0c-3f501a17ae7d}</UniqueIdentifier>
+    <Filter Include="CEFControl\internal">
+      <UniqueIdentifier>{41303673-a68f-4149-a9a6-9bea1132164b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CEFControl\control">
-      <UniqueIdentifier>{6aa04743-ca64-4c5f-9ec6-6535c39c6360}</UniqueIdentifier>
+    <Filter Include="CEFControl\internal\app">
+      <UniqueIdentifier>{4b9fcaf9-e1a8-416e-a535-a7bcebca88e5}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CEFControl\handler">
-      <UniqueIdentifier>{860e8c28-2c1f-4fbe-8aee-5c4c3543b5de}</UniqueIdentifier>
+    <Filter Include="CEFControl\internal\util">
+      <UniqueIdentifier>{fd5008c7-16f9-4369-9a37-26a9b1fffaaf}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CEFControl\handler\drag">
-      <UniqueIdentifier>{5ecf4665-664b-4854-92ab-b20d111da5df}</UniqueIdentifier>
+    <Filter Include="CEFControl\internal\handler">
+      <UniqueIdentifier>{adc4782a-ca67-4098-b32a-defda4f58c63}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CEFControl\manager">
-      <UniqueIdentifier>{9f7790a7-5ac1-4d70-8b81-b753928cb134}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="CEFControl\util">
-      <UniqueIdentifier>{7c1b1502-8699-4d77-b031-99f8de7c796a}</UniqueIdentifier>
+    <Filter Include="CEFControl\internal\handler\drag">
+      <UniqueIdentifier>{a3bcc399-4ce5-4d65-85cb-6693baff57a1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -588,47 +585,47 @@
     <ClCompile Include="Core\DragWindowFilter_SDL.cpp">
       <Filter>Core\SDL</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\handler\drag\bytes_write_handler.cc">
-      <Filter>CEFControl\handler\drag</Filter>
+    <ClCompile Include="CEFControl\CefControl.cpp">
+      <Filter>CEFControl</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\handler\drag\osr_dragdrop_win.cc">
-      <Filter>CEFControl\handler\drag</Filter>
+    <ClCompile Include="CEFControl\CefControlBase.cpp">
+      <Filter>CEFControl</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\handler\drag\util_win.cc">
-      <Filter>CEFControl\handler\drag</Filter>
+    <ClCompile Include="CEFControl\CefNativeControl.cpp">
+      <Filter>CEFControl</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\app\CefJSBridge.cpp">
-      <Filter>CEFControl\app</Filter>
+    <ClCompile Include="CEFControl\CefManager.cpp">
+      <Filter>CEFControl</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\app\CefClientApp.cpp">
-      <Filter>CEFControl\app</Filter>
+    <ClCompile Include="CEFControl\internal\app\CefClientApp.cpp">
+      <Filter>CEFControl\internal\app</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\app\CefClientAppBrowser.cpp">
-      <Filter>CEFControl\app</Filter>
+    <ClCompile Include="CEFControl\internal\app\CefClientAppBrowser.cpp">
+      <Filter>CEFControl\internal\app</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\app\CefClientAppRender.cpp">
-      <Filter>CEFControl\app</Filter>
+    <ClCompile Include="CEFControl\internal\app\CefClientAppRender.cpp">
+      <Filter>CEFControl\internal\app</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\app\CefJsHandler.cpp">
-      <Filter>CEFControl\app</Filter>
+    <ClCompile Include="CEFControl\internal\app\CefJSBridge.cpp">
+      <Filter>CEFControl\internal\app</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\control\CefControl.cpp">
-      <Filter>CEFControl\control</Filter>
+    <ClCompile Include="CEFControl\internal\app\CefJsHandler.cpp">
+      <Filter>CEFControl\internal\app</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\control\CefControlBase.cpp">
-      <Filter>CEFControl\control</Filter>
+    <ClCompile Include="CEFControl\internal\handler\CefBrowserHandler.cpp">
+      <Filter>CEFControl\internal\handler</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\control\CefNativeControl.cpp">
-      <Filter>CEFControl\control</Filter>
+    <ClCompile Include="CEFControl\internal\util\CefMemoryDC.cpp">
+      <Filter>CEFControl\internal\util</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\handler\CefBrowserHandler.cpp">
-      <Filter>CEFControl\handler</Filter>
+    <ClCompile Include="CEFControl\internal\handler\drag\bytes_write_handler.cc">
+      <Filter>CEFControl\internal\handler\drag</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\manager\CefManager.cpp">
-      <Filter>CEFControl\manager</Filter>
+    <ClCompile Include="CEFControl\internal\handler\drag\osr_dragdrop_win.cc">
+      <Filter>CEFControl\internal\handler\drag</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\util\CefMemoryDC.cpp">
-      <Filter>CEFControl\util</Filter>
+    <ClCompile Include="CEFControl\internal\handler\drag\util_win.cc">
+      <Filter>CEFControl\internal\handler\drag</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1241,56 +1238,56 @@
     <ClInclude Include="duilib_cef.h">
       <Filter>duilib</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\handler\drag\bytes_write_handler.h">
-      <Filter>CEFControl\handler\drag</Filter>
+    <ClInclude Include="CEFControl\CefControl.h">
+      <Filter>CEFControl</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\handler\drag\osr_dragdrop_events.h">
-      <Filter>CEFControl\handler\drag</Filter>
+    <ClInclude Include="CEFControl\CefControlBase.h">
+      <Filter>CEFControl</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\handler\drag\osr_dragdrop_win.h">
-      <Filter>CEFControl\handler\drag</Filter>
+    <ClInclude Include="CEFControl\CefControlEvent.h">
+      <Filter>CEFControl</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\handler\drag\util_win.h">
-      <Filter>CEFControl\handler\drag</Filter>
+    <ClInclude Include="CEFControl\CefNativeControl.h">
+      <Filter>CEFControl</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\app\CefJSBridge.h">
-      <Filter>CEFControl\app</Filter>
+    <ClInclude Include="CEFControl\CefManager.h">
+      <Filter>CEFControl</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\app\CefClientApp.h">
-      <Filter>CEFControl\app</Filter>
+    <ClInclude Include="CEFControl\CefBrowserHandlerDelegate.h">
+      <Filter>CEFControl</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\app\CefJsHandler.h">
-      <Filter>CEFControl\app</Filter>
+    <ClInclude Include="CEFControl\internal\app\CefClientApp.h">
+      <Filter>CEFControl\internal\app</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\control\CefControl.h">
-      <Filter>CEFControl\control</Filter>
+    <ClInclude Include="CEFControl\internal\app\CefIPCStringDefs.h">
+      <Filter>CEFControl\internal\app</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\control\CefControlBase.h">
-      <Filter>CEFControl\control</Filter>
+    <ClInclude Include="CEFControl\internal\app\CefJSBridge.h">
+      <Filter>CEFControl\internal\app</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\control\CefNativeControl.h">
-      <Filter>CEFControl\control</Filter>
+    <ClInclude Include="CEFControl\internal\app\CefJsHandler.h">
+      <Filter>CEFControl\internal\app</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\handler\CefBrowserHandler.h">
-      <Filter>CEFControl\handler</Filter>
+    <ClInclude Include="CEFControl\internal\handler\CefBrowserHandler.h">
+      <Filter>CEFControl\internal\handler</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\manager\CefManager.h">
-      <Filter>CEFControl\manager</Filter>
+    <ClInclude Include="CEFControl\internal\util\CefAutoUnregister.h">
+      <Filter>CEFControl\internal\util</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\util\CefAutoUnregister.h">
-      <Filter>CEFControl\util</Filter>
+    <ClInclude Include="CEFControl\internal\util\CefMemoryDC.h">
+      <Filter>CEFControl\internal\util</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\util\CefMemoryDC.h">
-      <Filter>CEFControl\util</Filter>
+    <ClInclude Include="CEFControl\internal\handler\drag\bytes_write_handler.h">
+      <Filter>CEFControl\internal\handler\drag</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\app\CefIPCStringDefs.h">
-      <Filter>CEFControl\app</Filter>
+    <ClInclude Include="CEFControl\internal\handler\drag\osr_dragdrop_events.h">
+      <Filter>CEFControl\internal\handler\drag</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\handler\CefBrowserHandlerDelegate.h">
-      <Filter>CEFControl\handler</Filter>
+    <ClInclude Include="CEFControl\internal\handler\drag\osr_dragdrop_win.h">
+      <Filter>CEFControl\internal\handler\drag</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\control\CefControlEvent.h">
-      <Filter>CEFControl\control</Filter>
+    <ClInclude Include="CEFControl\internal\handler\drag\util_win.h">
+      <Filter>CEFControl\internal\handler\drag</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

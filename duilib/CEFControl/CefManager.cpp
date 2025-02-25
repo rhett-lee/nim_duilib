@@ -1,9 +1,9 @@
 #include "CefManager.h"
+#include "duilib/CEFControl/internal/app/CefClientApp.h"
+#include "duilib/CEFControl/internal/handler/CefBrowserHandler.h"
+
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Core/GlobalManager.h"
-
-#include "duilib/CEFControl/app/CefClientApp.h"
-#include "duilib/CEFControl/handler/CefBrowserHandler.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)

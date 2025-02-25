@@ -7,9 +7,9 @@
 #define UI_CEF_CONTROL_BROWSER_HANDLER_H_
 
 #include "duilib/duilib_config.h"
-#include "duilib/CEFControl/util/CefAutoUnregister.h"
-#include "duilib/CEFControl/app/CefJSBridge.h"
-#include "duilib/CEFControl/handler/drag/osr_dragdrop_win.h"
+#include "duilib/CEFControl/internal/util/CefAutoUnregister.h"
+#include "duilib/CEFControl/internal/app/CefJSBridge.h"
+#include "duilib/CEFControl/internal/handler/drag/osr_dragdrop_win.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)

@@ -7,7 +7,7 @@
 #define UI_CEF_CONTROL_CEF_CONTROL_H_
 
 #include "duilib/Core/Window.h"
-#include "duilib/CEFControl/control/CefControlBase.h"
+#include "duilib/CEFControl/CefControlBase.h"
 
 namespace ui {
 

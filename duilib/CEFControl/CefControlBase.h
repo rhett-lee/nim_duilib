@@ -7,8 +7,8 @@
 #define UI_CEF_CONTROL_CEF_CONTROL_BASE_H_
 
 #include "duilib/Core/Control.h"
-#include "duilib/CEFControl/control/CefControlEvent.h"
-#include "duilib/CEFControl/handler/CefBrowserHandlerDelegate.h"
+#include "duilib/CEFControl/CefControlEvent.h"
+#include "duilib/CEFControl/CefBrowserHandlerDelegate.h"
 
 namespace ui {
 
