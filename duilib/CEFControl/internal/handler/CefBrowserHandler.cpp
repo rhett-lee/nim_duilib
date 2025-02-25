@@ -453,13 +453,10 @@ bool CefBrowserHandler::StartDragging(CefRefPtr<CefBrowser> browser, CefRefPtr<C
     CefBrowserHost::DragOperationsMask result =
         drop_target_->StartDragging(this, drag_data, allowed_ops, x, y);
     current_drag_op_ = DRAG_OPERATION_NONE;
-    POINT pt = {};
+    UiPoint pt = {};
     if ((window_ != nullptr) && !window_flag_.expired()) {
-        ui::UiPoint uiPt;
-        window_->GetCursorPos(uiPt);
-        window_->ScreenToClient(uiPt);
-        pt.x = uiPt.x;
-        pt.y = uiPt.y;
+        window_->GetCursorPos(pt);
+        window_->ScreenToClient(pt);
     }
     handle_delegate_->ClientToControl(pt);
     browser->GetHost()->DragSourceEndedAt(
@@ -481,7 +478,7 @@ CefBrowserHost::DragOperationsMask CefBrowserHandler::OnDragEnter(CefRefPtr<CefD
 {
     ASSERT(CefCurrentlyOn(TID_UI));
     if (browser_) {
-        POINT pt = { ev.x, ev.y };
+        UiPoint pt = { ev.x, ev.y };
         handle_delegate_->ClientToControl(pt);
         ev.x = pt.x;
         ev.y = pt.y;
@@ -495,7 +492,7 @@ CefBrowserHost::DragOperationsMask CefBrowserHandler::OnDragOver(CefMouseEvent e
 {
     ASSERT(CefCurrentlyOn(TID_UI));
     if (browser_) {
-        POINT pt = { ev.x, ev.y };
+        UiPoint pt = { ev.x, ev.y };
         handle_delegate_->ClientToControl(pt);
         ev.x = pt.x;
         ev.y = pt.y;
@@ -514,7 +511,7 @@ void CefBrowserHandler::OnDragLeave()
 CefBrowserHost::DragOperationsMask CefBrowserHandler::OnDrop(CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect)
 {
     if (browser_) {
-        POINT pt = { ev.x, ev.y };
+        UiPoint pt = { ev.x, ev.y };
         handle_delegate_->ClientToControl(pt);
         ev.x = pt.x;
         ev.y = pt.y;

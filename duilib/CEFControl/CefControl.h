@@ -153,21 +153,20 @@ protected:
     static int GetCefMouseModifiers(WPARAM wparam);
 
 private:
-    // 当浏览器渲染数据变化时，会触发此接口，此时把渲染数据保存到内存dc
-    // 并且通知窗体刷新控件，在控件的Paint函数里把内存dc的位图画到窗体上
-    // 由此实现离屏渲染数据画到窗体上
-    virtual void OnPaint(CefRefPtr<CefBrowser> browser,
-        CefRenderHandler::PaintElementType type,
-        const CefRenderHandler::RectList& dirtyRects,
-        const std::string* buffer,
-        int width,
-        int height) override;
+    /** CefRenderHandler接口, 在非UI线程中被调用
+    *   当浏览器渲染数据变化时，会触发此接口，此时把渲染数据保存到内存dc
+        并且通知窗体刷新控件，在控件的Paint函数里把内存dc的位图画到窗体上
+        由此实现离屏渲染数据画到窗体上
+    */
+    virtual void OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type,
+                         const CefRenderHandler::RectList& dirtyRects, const std::string* buffer,
+                         int width, int height) override;//CefRenderHandler接口
+    virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) override;//CefRenderHandler接口
+    virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) override;//CefRenderHandler接口
 
-    virtual void ClientToControl(POINT &pt) override;
-
-    virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) override;
-
-    virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) override;
+    /** 客户区坐标转换为控件坐标
+    */
+    virtual void ClientToControl(UiPoint& pt) override;
 
     //处理DPI自适应（离屏渲染模式与正常模式不同）
     void AdaptDpiScale(CefMouseEvent& mouse_event);

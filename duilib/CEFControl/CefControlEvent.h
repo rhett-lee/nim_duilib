@@ -1,9 +1,3 @@
-/**@brief Cef控件事件处理接口
-*  @copyright (c) 2016, NetEase Inc. All rights reserved
-*  @author Redrain
-*  @date 2016/7/22
-*/
-
 #ifndef UI_CEF_CONTROL_CEF_CONTROL_EVENT_H_
 #define UI_CEF_CONTROL_CEF_CONTROL_EVENT_H_
 
@@ -16,6 +10,11 @@
 
 #include <functional>
 
+/** Cef控件事件处理接口
+*  @copyright (c) 2016, NetEase Inc. All rights reserved
+*  @author Redrain
+*  @date 2016/7/22
+*/
 namespace ui
 {
     //JS相关的回调函数

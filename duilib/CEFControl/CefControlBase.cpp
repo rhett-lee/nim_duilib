@@ -233,7 +233,7 @@ void CefControlBase::OnPaint(CefRefPtr<CefBrowser> /*browser*/, CefRenderHandler
     return;
 }
 
-void CefControlBase::ClientToControl(POINT &/*pt*/)
+void CefControlBase::ClientToControl(UiPoint&/*pt*/)
 {
     return;
 }
