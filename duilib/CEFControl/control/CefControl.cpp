@@ -3,11 +3,36 @@
 #include "duilib/CEFControl/manager/CefManager.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Box.h"
+#include "duilib/CEFControl/handler/CefBrowserHandler.h"
+#include "duilib/CEFControl/util/CefMemoryDC.h"
 
 namespace ui {
 
 #define GET_X_LPARAM(lp)                        ((int)(short)LOWORD(lp))
 #define GET_Y_LPARAM(lp)                        ((int)(short)HIWORD(lp))
+
+CefControl::CefControl(ui::Window* pWindow) :
+    CefControlBase(pWindow),
+    m_pDevToolView(nullptr)
+{
+    m_pCefDC = std::make_unique<CefMemoryDC>();
+    m_pCefPopupDC = std::make_unique<CefMemoryDC>();
+}
+
+CefControl::~CefControl(void)
+{
+    if (browser_handler_.get())
+    {
+        browser_handler_->SetHostWindow(NULL);
+        browser_handler_->SetHandlerDelegate(NULL);
+
+        if (browser_handler_->GetBrowser().get()) {
+            // Request that the main browser close.
+            browser_handler_->CloseAllBrowser();
+        }
+    }
+    GetWindow()->RemoveMessageFilter(this);
+}
 
 void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& /*dirtyRects*/, const std::string* buffer, int width, int height)
 {
@@ -19,28 +44,28 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
 
     if (type == PET_VIEW)
     {
-        if (dc_cef_.GetWidth() != width || dc_cef_.GetHeight() != height) {
+        if (m_pCefDC->GetWidth() != width || m_pCefDC->GetHeight() != height) {
             HWND hWnd = GetWindow()->NativeWnd()->GetHWND();
             HDC hDC = ::GetDC(hWnd);
-            dc_cef_.Init(hDC, width, height);
+            m_pCefDC->Init(hDC, width, height);
             ::ReleaseDC(hWnd, hDC);
         }
 
-        LPBYTE pDst = (LPBYTE)dc_cef_.GetBits();
+        LPBYTE pDst = (LPBYTE)m_pCefDC->GetBits();
         if (pDst)
             memcpy(pDst, (char*)buffer->c_str(), height * width * 4);
     }
-    else if (type == PET_POPUP && dc_cef_.IsValid() && rect_popup_.width > 0 && rect_popup_.height > 0)
+    else if (type == PET_POPUP && m_pCefDC->IsValid() && m_rectPopup.width > 0 && m_rectPopup.height > 0)
     {
         // 单独保存popup窗口的位图
-        if (dc_cef_popup_.GetWidth() != width || dc_cef_popup_.GetHeight() != height) {
+        if (m_pCefPopupDC->GetWidth() != width || m_pCefPopupDC->GetHeight() != height) {
             HWND hWnd = GetWindow()->NativeWnd()->GetHWND();
             HDC hDC = ::GetDC(hWnd);
-            dc_cef_popup_.Init(hDC, width, height);
+            m_pCefPopupDC->Init(hDC, width, height);
             ::ReleaseDC(hWnd, hDC);
         }
 
-        LPBYTE pDst = (LPBYTE)dc_cef_popup_.GetBits();
+        LPBYTE pDst = (LPBYTE)m_pCefPopupDC->GetBits();
         if (pDst)
             memcpy(pDst, (char*)buffer->c_str(), width * height * 4);
     }
@@ -60,8 +85,8 @@ void CefControl::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
     if (!show)
     {
         // 当popup窗口隐藏时，刷新popup区域
-        CefRect rect_dirty = rect_popup_;
-        rect_popup_.Set(0, 0, 0, 0);
+        CefRect rect_dirty = m_rectPopup;
+        m_rectPopup.Set(0, 0, 0, 0);
         browser->GetHost()->Invalidate(PET_VIEW);
     }
 }
@@ -71,28 +96,7 @@ void CefControl::OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect)
     if (rect.width <= 0 || rect.height <= 0)
         return;
 
-    rect_popup_ = rect;
-}
-
-CefControl::CefControl(ui::Window* pWindow) :
-    CefControlBase(pWindow),
-    devtool_view_(nullptr)
-{
-}
-
-CefControl::~CefControl(void)
-{
-    if (browser_handler_.get())
-    {
-        browser_handler_->SetHostWindow(NULL);
-        browser_handler_->SetHandlerDelegate(NULL);
-
-        if (browser_handler_->GetBrowser().get()) {
-            // Request that the main browser close.
-            browser_handler_->CloseAllBrowser();
-        }
-    }
-    GetWindow()->RemoveMessageFilter(this);
+    m_rectPopup = rect;
 }
 
 void CefControl::Init()
@@ -101,7 +105,7 @@ void CefControl::Init()
     {
         GetWindow()->AddMessageFilter(this);
 
-        browser_handler_ = new ui::BrowserHandler;
+        browser_handler_ = new ui::CefBrowserHandler;
         browser_handler_->SetHostWindow(GetWindow());
         browser_handler_->SetHandlerDelegate(this);
         ReCreateBrowser();
@@ -183,40 +187,40 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 {
     BaseClass::Paint(pRender, rcPaint);
 
-    if (dc_cef_.IsValid() && browser_handler_.get() && browser_handler_->GetBrowser().get()) {
+    if (m_pCefDC->IsValid() && browser_handler_.get() && browser_handler_->GetBrowser().get()) {
         // 绘制cef PET_VIEW类型的位图
         ui::UiRect rect = GetRect();
 
         //通过直接写入数据的接口，性能最佳
         ui::UiRect dcPaint = rect;
-        dcPaint.right = dcPaint.left + dc_cef_.GetWidth();
-        dcPaint.bottom = dcPaint.top + dc_cef_.GetHeight();
+        dcPaint.right = dcPaint.left + m_pCefDC->GetWidth();
+        dcPaint.bottom = dcPaint.top + m_pCefDC->GetHeight();
         if (!rcPaint.IsEmpty()) {
-            bool bRet = pRender->WritePixels(dc_cef_.GetBits(), dc_cef_.GetWidth() * dc_cef_.GetHeight() * sizeof(uint32_t), dcPaint);
+            bool bRet = pRender->WritePixels(m_pCefDC->GetBits(), m_pCefDC->GetWidth() * m_pCefDC->GetHeight() * sizeof(uint32_t), dcPaint);
             ASSERT_UNUSED_VARIABLE(bRet);
         }
 
         // 绘制cef PET_POPUP类型的位图
-        if (!rect_popup_.IsEmpty() && dc_cef_popup_.IsValid()) {
+        if (!m_rectPopup.IsEmpty() && m_pCefPopupDC->IsValid()) {
             // 假如popup窗口位置在控件的范围外，则修正到控件范围内，指绘制控件范围内的popup窗口
-            int paint_x = rect_popup_.x;
-            int paint_y = rect_popup_.y;
+            int paint_x = m_rectPopup.x;
+            int paint_y = m_rectPopup.y;
             int paint_buffer_x = 0;
             int paint_buffer_y = 0;
-            if (rect_popup_.x < 0) {
+            if (m_rectPopup.x < 0) {
                 paint_x = 0;
-                paint_buffer_x = -rect_popup_.x;
+                paint_buffer_x = -m_rectPopup.x;
             }
-            if (rect_popup_.y < 0) {
+            if (m_rectPopup.y < 0) {
                 paint_y = 0;
-                paint_buffer_y = -rect_popup_.y;
+                paint_buffer_y = -m_rectPopup.y;
             }
             rect = GetRect();
 
             ASSERT(false);
             //TODO: 待测试，修正
             //原始代码
-            //pRender->BitBlt(rect.left + paint_x, rect.top + paint_y, rect_popup_.width, rect_popup_.height, bitmap.get(), paint_buffer_x, paint_buffer_y, ui::RopMode::kSrcCopy);
+            //pRender->BitBlt(rect.left + paint_x, rect.top + paint_y, m_rectPopup.width, m_rectPopup.height, bitmap.get(), paint_buffer_x, paint_buffer_y, ui::RopMode::kSrcCopy);
         }
     }
 }
@@ -364,7 +368,7 @@ bool CefControl::AttachDevTools(Control* control)
         CefBrowserSettings settings;
         browser->GetHost()->ShowDevTools(windowInfo, view_browser->GetHost()->GetClient(), settings, CefPoint());
         devtool_attached_ = true;
-        devtool_view_ = view;
+        m_pDevToolView = view;
         if (cb_devtool_visible_change_ != nullptr) {
             cb_devtool_visible_change_(devtool_attached_);
         }
@@ -375,12 +379,12 @@ bool CefControl::AttachDevTools(Control* control)
 void CefControl::DettachDevTools()
 {
     CefControlBase::DettachDevTools();
-    devtool_view_ = nullptr;
+    m_pDevToolView = nullptr;
 }
 
 void CefControl::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)
 {
-    if (devtool_attached_ && (devtool_view_ != nullptr) && CefManager::GetInstance()->IsEnableOffsetRender()) {
+    if (devtool_attached_ && (m_pDevToolView != nullptr) && CefManager::GetInstance()->IsEnableOffsetRender()) {
         //离屏渲染模式，开发者工具与页面位于相同的客户区位置
         int x = params->GetXCoord();
         int y = params->GetYCoord();
@@ -398,9 +402,9 @@ void CefControl::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
         ui::UiPoint offsetPt = GetScrollOffsetInScrollBox();
         pt.Offset(offsetPt);
         ui::UiRect rect = GetRect();
-        ui::UiRect rectView = devtool_view_->GetRect();
+        ui::UiRect rectView = m_pDevToolView->GetRect();
         bool isPtInPageRect = GetRect().ContainsPt(pt);
-        bool isPtInToolRect = devtool_view_->GetRect().ContainsPt(pt);
+        bool isPtInToolRect = m_pDevToolView->GetRect().ContainsPt(pt);
         if (isPtInToolRect && !isPtInPageRect) {
             //如果点击区域，位于开发工具区域，则不弹出页面的右键菜单
             if (model->GetCount() > 0) {

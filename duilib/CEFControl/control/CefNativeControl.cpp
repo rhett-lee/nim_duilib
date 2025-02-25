@@ -1,6 +1,7 @@
 #include "CefNativeControl.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/CEFControl/handler/CefBrowserHandler.h"
 
 namespace ui {
 
@@ -29,7 +30,7 @@ void CefNativeControl::Init()
         ::SetWindowLong(hWnd, GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
         ASSERT((::GetWindowLong(hWnd, GWL_EXSTYLE) & WS_EX_LAYERED) == 0 && _T("无法在分层窗口内使用本控件"));
 
-        browser_handler_ = new ui::BrowserHandler;
+        browser_handler_ = new CefBrowserHandler;
         browser_handler_->SetHostWindow(GetWindow());
         browser_handler_->SetHandlerDelegate(this);
         ReCreateBrowser();
@@ -156,7 +157,7 @@ bool CefNativeControl::AttachDevTools(Control* /*view*/)
         CefBrowserSettings settings;
        // windowInfo.width = 900;
        // windowInfo.height = 700;
-        browser->GetHost()->ShowDevTools(windowInfo, new ui::BrowserHandler, settings, CefPoint());
+        browser->GetHost()->ShowDevTools(windowInfo, new ui::CefBrowserHandler, settings, CefPoint());
         devtool_attached_ = true;
         if (cb_devtool_visible_change_ != nullptr)
             cb_devtool_visible_change_(devtool_attached_);

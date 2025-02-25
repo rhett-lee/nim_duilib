@@ -9,6 +9,8 @@
 
 #include "duilib/duilib_defs.h"
 
+namespace ui {
+
 class CefMemoryDC
 {
 public:
@@ -48,5 +50,7 @@ private:
     SIZE    bitmap_size_;
     bool    valid_;
 };
+
+} //namespace ui
 
 #endif //UI_CEF_CONTROL_MEMORY_DC_H_

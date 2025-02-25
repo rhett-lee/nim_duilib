@@ -1,7 +1,7 @@
 #ifndef UI_CEF_CONTROL_CEF_JS_BRIDGE_H_
 #define UI_CEF_CONTROL_CEF_JS_BRIDGE_H_
 
-#include "duilib/duilib_config.h"
+#include "duilib/CEFControl/control/CefControlEvent.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -13,11 +13,6 @@
 
 namespace ui
 {
-
-typedef std::function<void(bool has_error, const std::string& result)> ReportResultFunction;
-
-typedef std::function<void(const std::string& result)> CallJsFunctionCallback;
-typedef std::function<void(const std::string& params, ReportResultFunction callback)> CppFunction;
 
 typedef std::map<int/* js_callback_id*/, std::pair<CefRefPtr<CefV8Context>/* context*/, CefRefPtr<CefV8Value>/* callback*/>> RenderCallbackMap;
 typedef std::map<int/* cpp_callback_id*/, CallJsFunctionCallback/* callback*/> BrowserCallbackMap;

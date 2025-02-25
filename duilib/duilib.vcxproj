@@ -571,8 +571,10 @@
     <ClInclude Include="CEFControl\app\CefJsHandler.h" />
     <ClInclude Include="CEFControl\control\CefControl.h" />
     <ClInclude Include="CEFControl\control\CefControlBase.h" />
+    <ClInclude Include="CEFControl\control\CefControlEvent.h" />
     <ClInclude Include="CEFControl\control\CefNativeControl.h" />
     <ClInclude Include="CEFControl\handler\CefBrowserHandler.h" />
+    <ClInclude Include="CEFControl\handler\CefBrowserHandlerDelegate.h" />
     <ClInclude Include="CEFControl\handler\drag\bytes_write_handler.h" />
     <ClInclude Include="CEFControl\handler\drag\osr_dragdrop_events.h" />
     <ClInclude Include="CEFControl\handler\drag\osr_dragdrop_win.h" />
