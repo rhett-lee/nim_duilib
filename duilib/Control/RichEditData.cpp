@@ -1191,7 +1191,7 @@ bool RichEditData::GetCharLineRowIndex(int32_t nCharIndex, size_t& nLineNumber, 
         const RichTextLineInfo& lineTextInfo = *lineTextInfoList[nLineIndex];
         ASSERT(lineTextInfo.m_nLineTextLen > 0);
         nTextLen += lineTextInfo.m_nLineTextLen;
-        if (nCharIndex < nTextLen) {
+        if ((size_t)nCharIndex < nTextLen) {
             const size_t nStartBaseLen = nTextLen - lineTextInfo.m_nLineTextLen;
             const size_t nStartLineOffset = (size_t)nCharIndex - nStartBaseLen;
             ASSERT(nStartLineOffset < lineTextInfo.m_nLineTextLen);
@@ -1214,7 +1214,7 @@ bool RichEditData::GetCharLineRowIndex(int32_t nCharIndex, size_t& nLineNumber, 
             }
             break;
         }
-        else if ((nCharIndex == nTextLen) && (nLineIndex == (nLineCount - 1))) {
+        else if (((size_t)nCharIndex == nTextLen) && (nLineIndex == (nLineCount - 1))) {
             //最后一行的最后一个字符之后的位置
             const size_t nRowCount = lineTextInfo.m_rowInfo.size();
             ASSERT(nRowCount != 0);

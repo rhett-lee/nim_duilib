@@ -2,6 +2,7 @@
 #include "CefIPCStringDefs.h"
 
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui {
 
@@ -110,19 +111,34 @@ bool CefJSBridge::ExecuteJSCallbackFunc(int js_callback_id, bool has_error, cons
 bool CefJSBridge::RegisterJSFunc(const CefString& function_name, CefRefPtr<CefV8Value> function, bool replace/* = false*/)
 {
     CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
+    ASSERT(context != nullptr);
+    if (context == nullptr) {
+        return false;
+    }
     CefRefPtr<CefFrame> frame = context->GetFrame();
+    ASSERT(frame != nullptr);
+    if (frame == nullptr) {
+        return false;
+    }
+#if CEF_VERSION_MAJOR <= 109
+    //CEF 109版本
+    CefString frameId = CefJSBridge::Int64ToCefString(frame->GetIdentifier());
+#else
+    //CEF 高版本
+    CefString frameId = frame->GetIdentifier();
+#endif
 
     if (replace)
     {
-        render_registered_function_.emplace(std::make_pair(function_name, frame->GetIdentifier()), function);
+        render_registered_function_.emplace(std::make_pair(function_name, frameId), function);
         return true;
     }
     else
     {
-        auto it = render_registered_function_.find(std::make_pair(function_name, frame->GetIdentifier()));
+        auto it = render_registered_function_.find(std::make_pair(function_name, frameId));
         if (it == render_registered_function_.cend())
         {
-            render_registered_function_.emplace(std::make_pair(function_name, frame->GetIdentifier()), function);
+            render_registered_function_.emplace(std::make_pair(function_name, frameId), function);
             return true;
         }
 
@@ -134,20 +150,47 @@ bool CefJSBridge::RegisterJSFunc(const CefString& function_name, CefRefPtr<CefV8
 
 void CefJSBridge::UnRegisterJSFunc(const CefString& function_name, CefRefPtr<CefFrame> frame)
 {
-    render_registered_function_.erase(std::make_pair(function_name, frame->GetIdentifier()));
+    ASSERT(frame != nullptr);
+    if (frame == nullptr) {
+        return;
+    }
+#if CEF_VERSION_MAJOR <= 109
+    //CEF 109版本
+    CefString frameId = CefJSBridge::Int64ToCefString(frame->GetIdentifier());
+#else
+    //CEF 高版本
+    CefString frameId = frame->GetIdentifier();
+#endif
+    render_registered_function_.erase(std::make_pair(function_name, frameId));
 }
 
 void CefJSBridge::UnRegisterJSFuncWithFrame(CefRefPtr<CefFrame> frame)
 {
+    ASSERT(frame != nullptr);
+    if (frame == nullptr) {
+        return;
+    }
+
     // 由于本类中每一个 render 和 browser 进程都独享一份实例，而不是单例模式
     // 所以这里获取的 browser 都是全局唯一的，可以根据这个 browser 获取所有 frame 和 context
     auto browser = frame->GetBrowser();
+    ASSERT(browser != nullptr);
+    if (browser == nullptr) {
+        return;
+    }
 
     if (!render_registered_function_.empty())
     {
         for (auto it = render_registered_function_.begin(); it != render_registered_function_.end();)
         {
+#if CEF_VERSION_MAJOR <= 109
+            //CEF 109版本
+            int64 identifier = StringUtil::StringToInt64(it->first.second.c_str());
+            auto child_frame = browser->GetFrame(identifier);
+#else
+            //CEF 高版本
             auto child_frame = browser->GetFrameByIdentifier(it->first.second);
+#endif
             if (child_frame.get() && child_frame->GetV8Context()->IsSame(frame->GetV8Context()))
             {
                 it = render_registered_function_.erase(it);
@@ -162,7 +205,19 @@ void CefJSBridge::UnRegisterJSFuncWithFrame(CefRefPtr<CefFrame> frame)
 
 bool CefJSBridge::ExecuteJSFunc(const CefString& function_name, const CefString& json_params, CefRefPtr<CefFrame> frame, int cpp_callback_id)
 {
-    auto it = render_registered_function_.find(std::make_pair(function_name, frame->GetIdentifier()));
+    ASSERT(frame != nullptr);
+    if (frame == nullptr) {
+        return false;
+    }
+#if CEF_VERSION_MAJOR <= 109
+    //CEF 109版本
+    CefString frameId = CefJSBridge::Int64ToCefString(frame->GetIdentifier());
+#else
+    //CEF 高版本
+    CefString frameId = frame->GetIdentifier();
+#endif
+
+    auto it = render_registered_function_.find(std::make_pair(function_name, frameId));
     if (it != render_registered_function_.cend())
     {
 
@@ -232,7 +287,14 @@ bool CefJSBridge::CallJSFunction(const CefString& js_function_name, const CefStr
         args->SetString(0, js_function_name);
         args->SetString(1, params);
         args->SetInt(2, cpp_callback_id_++);
-        args->SetString(3, frame->GetIdentifier());
+#if CEF_VERSION_MAJOR <= 109
+        //CEF 109版本
+        CefString frameId = CefJSBridge::Int64ToCefString(frame->GetIdentifier());
+#else
+        //CEF 高版本
+        CefString frameId = frame->GetIdentifier();
+#endif
+        args->SetString(3, frameId);
 
         frame->SendProcessMessage(PID_RENDERER, message);
 
@@ -340,6 +402,19 @@ bool CefJSBridge::ExecuteCppFunc(const CefString& function_name, const CefString
         }
         return false;
     }
+}
+
+CefString CefJSBridge::Int64ToCefString(int64_t nValue)
+{
+    DString str;
+#if defined (DUILIB_BUILD_FOR_WIN)
+    str = StringUtil::Printf(_T("%I64d"), nValue);
+#elif defined (DUILIB_BUILD_FOR_LINUX)
+    str = StringUtil::Printf(_T("%lld"), nValue);
+#else
+    str = StringUtil::Printf(_T("%d"), nValue);
+#endif
+    return CefString(str);
 }
 
 }

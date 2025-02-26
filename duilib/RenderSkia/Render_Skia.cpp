@@ -1803,7 +1803,7 @@ bool Render_Skia::UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& sp
         if (!bUpdateLineRows && bUpdateIndex) {
             if ((nUpdateCacheStartIndex != (size_t)-1)) {
                 //更新行号(有修改，并且修改点不再最后)
-                if (nIndex >= nUpdateCacheStartIndex) {
+                if (nIndex >= (int32_t)nUpdateCacheStartIndex) {
                     bUpdateLineRows = true;
                 }
             }

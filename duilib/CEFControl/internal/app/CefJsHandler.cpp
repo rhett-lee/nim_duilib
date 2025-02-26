@@ -18,13 +18,33 @@ bool CefJSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object, 
     }
 
     CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
-    CefRefPtr<CefFrame> frame = context->GetFrame();
-    CefRefPtr<CefBrowser> browser = context->GetBrowser();
+    ASSERT(context != nullptr);
+    if (context == nullptr) {
+        return false;
+    }
 
-    int64_t browser_id = browser->GetIdentifier();
-    CefString frame_id = frame->GetIdentifier();
-    (void)browser_id;
-    (void)frame_id;
+    CefRefPtr<CefFrame> frame = context->GetFrame();
+    ASSERT(frame != nullptr);
+    if (frame == nullptr) {
+        return false;
+    }
+
+    CefRefPtr<CefBrowser> browser = context->GetBrowser();
+    ASSERT(browser != nullptr);
+    if (browser == nullptr) {
+        return false;
+    }
+
+    int64_t browserId = browser->GetIdentifier();
+#if CEF_VERSION_MAJOR <= 109
+    //CEF 109版本
+    CefString frameId = CefJSBridge::Int64ToCefString(frame->GetIdentifier());
+#else
+    //CEF 高版本
+    CefString frameId = frame->GetIdentifier();
+#endif
+    (void)browserId;
+    (void)frameId;
 
     if (name == "call")
     {

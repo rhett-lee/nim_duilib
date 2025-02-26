@@ -55,7 +55,7 @@ public:
     void SetHandlerDelegate(CefBrowserHandlerDelegate* handler){ handle_delegate_ = handler; }
 
     // 设置Cef渲染内容的大小
-    void SetViewRect(RECT rc);
+    void SetViewRect(const UiRect& rc);
 
     // 当前Web页面中获取焦点的元素是否可编辑
     bool IsCurFieldEditable(){ return is_focus_oneditable_field_; }
@@ -97,6 +97,8 @@ public:
                                           CefRefPtr<CefProcessMessage> message) override;
 
     // CefLifeSpanHandler接口的实现
+#if CEF_VERSION_MAJOR > 109
+    //CEF 高版本
     virtual bool OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                CefRefPtr<CefFrame> frame,
                                int popup_id,
@@ -117,6 +119,21 @@ public:
                                        CefBrowserSettings& settings,
                                        CefRefPtr<CefDictionaryValue>& extra_info,
                                        bool* use_default_window) override;
+#else
+    //CEF 109版本
+    virtual bool OnBeforePopup(CefRefPtr<CefBrowser> browser,
+                               CefRefPtr<CefFrame> frame,
+                               const CefString& target_url,
+                               const CefString& target_frame_name,
+                               CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+                               bool user_gesture,
+                               const CefPopupFeatures& popupFeatures,
+                               CefWindowInfo& windowInfo,
+                               CefRefPtr<CefClient>& client,
+                               CefBrowserSettings& settings,
+                               CefRefPtr<CefDictionaryValue>& extra_info,
+                               bool* no_javascript_access) override;
+#endif
     virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
     virtual bool DoClose(CefRefPtr<CefBrowser> browser) override;
     virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
@@ -130,7 +147,13 @@ public:
     virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) override;
     virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) override;
     virtual void OnPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList& dirtyRects, const void* buffer, int width, int height) override;
+#if CEF_VERSION_MAJOR <= 109
+    //CEF 109版本
+    virtual void OnAcceleratedPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList& dirtyRects, void* shared_handle) override;
+#else
+    //CEF 高版本
     virtual void OnAcceleratedPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList& dirtyRects, const CefAcceleratedPaintInfo& info) override;
+#endif
     virtual void GetTouchHandleSize(CefRefPtr<CefBrowser> browser, cef_horizontal_alignment_t orientation, CefSize& size) override;
     virtual void OnTouchHandleStateChanged(CefRefPtr<CefBrowser> browser, const CefTouchHandleState& state) override;
     virtual bool StartDragging(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y) override;
@@ -261,13 +284,22 @@ public:
                                            const X509CertificateList& certificates,
                                            CefRefPtr<CefSelectClientCertificateCallback> callback) override;
     virtual void OnRenderViewReady(CefRefPtr<CefBrowser> browser) override;
+
+#if CEF_VERSION_MAJOR > 109
+    //CEF 高版本
     virtual bool OnRenderProcessUnresponsive(CefRefPtr<CefBrowser> browser,
                                              CefRefPtr<CefUnresponsiveProcessCallback> callback) override;
     virtual void OnRenderProcessResponsive(CefRefPtr<CefBrowser> browser) override;
+
     virtual void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
                                            TerminationStatus status,
                                            int error_code,
                                            const CefString& error_string) override;
+#else
+    //CEF 109版本
+    virtual void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, TerminationStatus status) override;
+#endif
+
     virtual void OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser) override;
 
     //CefResourceRequestHandler接口的实现
@@ -317,15 +349,34 @@ public:
     virtual bool CanDownload(CefRefPtr<CefBrowser> browser,
                              const CefString& url,
                              const CefString& request_method) override;
+#if CEF_VERSION_MAJOR <= 109
+    //CEF 109版本
+    virtual void OnBeforeDownload(CefRefPtr<CefBrowser> browser,
+                                  CefRefPtr<CefDownloadItem> download_item,
+                                  const CefString& suggested_name,
+                                  CefRefPtr<CefBeforeDownloadCallback> callback) override;
+#else
+    //CEF 高版本
     virtual bool OnBeforeDownload(CefRefPtr<CefBrowser> browser,
                                   CefRefPtr<CefDownloadItem> download_item,
                                   const CefString& suggested_name,
                                   CefRefPtr<CefBeforeDownloadCallback> callback) override;
+#endif
     virtual void OnDownloadUpdated(CefRefPtr<CefBrowser> browser,
                                    CefRefPtr<CefDownloadItem> download_item,
                                    CefRefPtr<CefDownloadItemCallback> callback) override;
 
     // CefDialogHandler接口的实现
+#if CEF_VERSION_MAJOR <= 109
+    //CEF 109版本
+    virtual bool OnFileDialog(CefRefPtr<CefBrowser> browser,
+                              FileDialogMode mode,
+                              const CefString& title,
+                              const CefString& default_file_path,
+                              const std::vector<CefString>& accept_filters,
+                              CefRefPtr<CefFileDialogCallback> callback) override;
+#else
+    //CEF 高版本
     virtual bool OnFileDialog(CefRefPtr<CefBrowser> browser,
                               FileDialogMode mode,
                               const CefString& title,
@@ -334,6 +385,22 @@ public:
                               const std::vector<CefString>& accept_extensions,
                               const std::vector<CefString>& accept_descriptions,
                               CefRefPtr<CefFileDialogCallback> callback) override;
+#endif
+
+private:
+    bool DoOnBeforePopup(CefRefPtr<CefBrowser> browser,
+                         CefRefPtr<CefFrame> frame,
+                         int popup_id,
+                         const CefString& target_url,
+                         const CefString& target_frame_name,
+                         CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+                         bool user_gesture,
+                         const CefPopupFeatures& popupFeatures,
+                         CefWindowInfo& windowInfo,
+                         CefRefPtr<CefClient>& client,
+                         CefBrowserSettings& settings,
+                         CefRefPtr<CefDictionaryValue>& extra_info,
+                         bool* no_javascript_access);
 
 protected:
     base::Lock lock_;
@@ -342,7 +409,8 @@ protected:
     ui::Window*                window_;
     std::weak_ptr<ui::WeakFlag> window_flag_;    
     CefBrowserHandlerDelegate* handle_delegate_;
-    RECT                    rect_cef_control_;
+    //控件的位置
+    UiRect m_rcCefControl;
     std::string                paint_buffer_;
     bool                    is_focus_oneditable_field_;
     CefUnregistedCallbackList<ui::StdClosure>    task_list_after_created_;

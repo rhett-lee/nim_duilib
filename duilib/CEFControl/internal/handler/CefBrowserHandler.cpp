@@ -7,7 +7,7 @@
 #include "duilib/Core/GlobalManager.h"
 
 #pragma warning (push)
-#pragma warning (disable:4100)
+#pragma warning (disable:4100 4324)
 #include "include/base/cef_callback.h"
 #include "include/base/cef_bind.h"
 #include "include/wrapper/cef_closure_task.h"
@@ -19,7 +19,6 @@ CefBrowserHandler::CefBrowserHandler()
     window_ = nullptr;
     handle_delegate_ = nullptr;
     is_focus_oneditable_field_ = false;
-    ZeroMemory(&rect_cef_control_, sizeof(RECT));
 }
 
 void CefBrowserHandler::SetHostWindow(ui::Window* window)
@@ -31,20 +30,20 @@ void CefBrowserHandler::SetHostWindow(ui::Window* window)
     }
 }
 
-void CefBrowserHandler::SetViewRect(RECT rc)
+void CefBrowserHandler::SetViewRect(const UiRect& rc)
 {
     if (!CefCurrentlyOn(TID_UI)) {
         // 把操作跳转到Cef线程执行后续设置
         {
             base::AutoLock lock_scope(lock_);
-            rect_cef_control_ = rc;//此处需要设置，否则首次绑定时，CefPostTask还未执行时，rect_cef_control_就会被读取，0值会触发错误
+            m_rcCefControl = rc;//此处需要设置，否则首次绑定时，CefPostTask还未执行时，m_rcCefControl就会被读取，0值会触发错误
         }        
         CefPostTask(TID_UI, base::BindOnce(&CefBrowserHandler::SetViewRect, this, rc));
         return;
     }
     {
         base::AutoLock lock_scope(lock_);
-        rect_cef_control_ = rc;
+        m_rcCefControl = rc;
     }
     // 调用WasResized接口，调用后，CefBrowserHandler会调用GetViewRect接口来获取浏览器对象新的位置
     if (browser_.get() && browser_->GetHost().get()) {
@@ -126,20 +125,20 @@ bool CefBrowserHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
 }
 
 #pragma region CefLifeSpanHandler
-// CefLifeSpanHandler methods
-bool CefBrowserHandler::OnBeforePopup( CefRefPtr<CefBrowser> browser,
-                                    CefRefPtr<CefFrame> frame,
-                                    int /*popup_id*/,
-                                    const CefString& target_url,
-                                    const CefString& target_frame_name,
-                                    CefLifeSpanHandler::WindowOpenDisposition target_disposition,
-                                    bool user_gesture,
-                                    const CefPopupFeatures& popupFeatures,
-                                    CefWindowInfo& windowInfo,
-                                    CefRefPtr<CefClient>& client,
-                                    CefBrowserSettings& settings,
-                                    CefRefPtr<CefDictionaryValue>& /*extra_info*/,
-                                    bool* no_javascript_access)
+
+bool CefBrowserHandler::DoOnBeforePopup(CefRefPtr<CefBrowser> browser,
+                                        CefRefPtr<CefFrame> frame,
+                                        int popup_id,
+                                        const CefString& target_url,
+                                        const CefString& target_frame_name,
+                                        CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+                                        bool user_gesture,
+                                        const CefPopupFeatures& popupFeatures,
+                                        CefWindowInfo& windowInfo,
+                                        CefRefPtr<CefClient>& client,
+                                        CefBrowserSettings& settings,
+                                        CefRefPtr<CefDictionaryValue>& extra_info,
+                                        bool* no_javascript_access)
 {
     // 让新的链接在原浏览器对象中打开
     if (browser_.get() && !target_url.empty())
@@ -159,18 +158,63 @@ bool CefBrowserHandler::OnBeforePopup( CefRefPtr<CefBrowser> browser,
     return true;
 }
 
+#if CEF_VERSION_MAJOR > 109
+//CEF 高版本
+// CefLifeSpanHandler methods
+bool CefBrowserHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
+                                      CefRefPtr<CefFrame> frame,
+                                      int /*popup_id*/,
+                                      const CefString& target_url,
+                                      const CefString& target_frame_name,
+                                      CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+                                      bool user_gesture,
+                                      const CefPopupFeatures& popupFeatures,
+                                      CefWindowInfo& windowInfo,
+                                      CefRefPtr<CefClient>& client,
+                                      CefBrowserSettings& settings,
+                                      CefRefPtr<CefDictionaryValue>& /*extra_info*/,
+                                      bool* no_javascript_access)
+{
+    return DoOnBeforePopup(browser, frame, popup_id,
+                           target_url, target_frame_name, target_disposition,
+                           user_gesture, popupFeatures, windowInfo,
+                           client, settings, extra_info,
+                           no_javascript_access);
+}
+
 void CefBrowserHandler::OnBeforePopupAborted(CefRefPtr<CefBrowser> /*browser*/, int /*popup_id*/)
 {
 }
 
 void CefBrowserHandler::OnBeforeDevToolsPopup(CefRefPtr<CefBrowser> /*browser*/,
-                                           CefWindowInfo& /*windowInfo*/,
-                                           CefRefPtr<CefClient>& /*client*/,
-                                           CefBrowserSettings& /*settings*/,
-                                           CefRefPtr<CefDictionaryValue>& /*extra_info*/,
-                                           bool* /*use_default_window*/)
+                                              CefWindowInfo& /*windowInfo*/,
+                                              CefRefPtr<CefClient>& /*client*/,
+                                              CefBrowserSettings& /*settings*/,
+                                              CefRefPtr<CefDictionaryValue>& /*extra_info*/,
+                                              bool* /*use_default_window*/)
 {
 }
+#else
+bool CefBrowserHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
+                                      CefRefPtr<CefFrame> frame,
+                                      const CefString& target_url,
+                                      const CefString& target_frame_name,
+                                      CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+                                      bool user_gesture,
+                                      const CefPopupFeatures& popupFeatures,
+                                      CefWindowInfo& windowInfo,
+                                      CefRefPtr<CefClient>& client,
+                                      CefBrowserSettings& settings,
+                                      CefRefPtr<CefDictionaryValue>& extra_info,
+                                      bool* no_javascript_access)
+{
+    return DoOnBeforePopup(browser, frame, 0,
+                           target_url, target_frame_name, target_disposition,
+                           user_gesture, popupFeatures, windowInfo,
+                           client, settings, extra_info,
+                           no_javascript_access);
+}
+#endif
 
 void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
@@ -279,10 +323,10 @@ void CefBrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect
     }
     if (handle_delegate_)
     {
-        RECT rect_cef_control;
+        UiRect rect_cef_control;
         {
             base::AutoLock lock_scope(lock_);
-            rect_cef_control = rect_cef_control_;
+            rect_cef_control = m_rcCefControl;
         }
         rect.x = 0;
         rect.y = 0;
@@ -345,10 +389,10 @@ bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX,
         }
     }
     //将页面坐标转换为窗口客户区坐标，否则页面弹出的右键菜单位置不正确
-    RECT rect_cef_control;
+    UiRect rect_cef_control;
     {
         base::AutoLock lock_scope(lock_);
-        rect_cef_control = rect_cef_control_;
+        rect_cef_control = m_rcCefControl;
     }
     screen_pt.x = screen_pt.x + rect_cef_control.left;
     screen_pt.y = screen_pt.y + rect_cef_control.top;
@@ -408,10 +452,17 @@ void CefBrowserHandler::OnPaint(CefRefPtr<CefBrowser> browser,
         ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnPaint, handle_delegate_, browser, type, dirtyRects, &paint_buffer_, width, height));
     }
 }
-
+#if CEF_VERSION_MAJOR <= 109
+//CEF 109版本
+void CefBrowserHandler::OnAcceleratedPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList& dirtyRects, void* shared_handle)
+{
+}
+#else
+//CEF 高版本
 void CefBrowserHandler::OnAcceleratedPaint(CefRefPtr<CefBrowser> browser, PaintElementType type, const RectList& dirtyRects, const CefAcceleratedPaintInfo& info)
 {
 }
+#endif
 
 void CefBrowserHandler::GetTouchHandleSize(CefRefPtr<CefBrowser> browser,
                                         cef_horizontal_alignment_t orientation,
@@ -816,6 +867,8 @@ void CefBrowserHandler::OnRenderViewReady(CefRefPtr<CefBrowser> browser)
 {
 }
 
+#if CEF_VERSION_MAJOR > 109
+//CEF 高版本
 bool CefBrowserHandler::OnRenderProcessUnresponsive(CefRefPtr<CefBrowser> browser,
                                                  CefRefPtr<CefUnresponsiveProcessCallback> callback)
 {
@@ -834,6 +887,13 @@ void CefBrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
     if (handle_delegate_)
         ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnRenderProcessTerminated, handle_delegate_, browser, status));
 }
+#else
+void CefBrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, TerminationStatus status)
+{
+    if (handle_delegate_)
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnRenderProcessTerminated, handle_delegate_, browser, status));
+}
+#endif
 
 void CefBrowserHandler::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
 {
@@ -927,40 +987,75 @@ bool CefBrowserHandler::CanDownload(CefRefPtr<CefBrowser> browser,
     return true;
 }
 
+#if CEF_VERSION_MAJOR <= 109
+//CEF 109版本
+void CefBrowserHandler::OnBeforeDownload(CefRefPtr<CefBrowser> browser,
+                                         CefRefPtr<CefDownloadItem> download_item,
+                                         const CefString& suggested_name,
+                                         CefRefPtr<CefBeforeDownloadCallback> callback)
+{
+    if (handle_delegate_) {
+        handle_delegate_->OnBeforeDownload(browser, download_item, suggested_name, callback);
+    }
+}
+#else
+//CEF 高版本
 bool CefBrowserHandler::OnBeforeDownload(CefRefPtr<CefBrowser> browser,
                                       CefRefPtr<CefDownloadItem> download_item,
                                       const CefString& suggested_name,
                                       CefRefPtr<CefBeforeDownloadCallback> callback)
 {
-    if (handle_delegate_)
+    if (handle_delegate_) {
         handle_delegate_->OnBeforeDownload(browser, download_item, suggested_name, callback);
+    }
     return true;
 }
+#endif
 
-void CefBrowserHandler::OnDownloadUpdated(
-    CefRefPtr<CefBrowser> browser,
-    CefRefPtr<CefDownloadItem> download_item,
-    CefRefPtr<CefDownloadItemCallback> callback)
+void CefBrowserHandler::OnDownloadUpdated(CefRefPtr<CefBrowser> browser,
+                                          CefRefPtr<CefDownloadItem> download_item,
+                                          CefRefPtr<CefDownloadItemCallback> callback)
 {
-    if (handle_delegate_)
+    if (handle_delegate_) {
         handle_delegate_->OnDownloadUpdated(browser, download_item, callback);
+    }
 }
 
-bool CefBrowserHandler::OnFileDialog(  CefRefPtr<CefBrowser> browser,
-                                    FileDialogMode mode,
-                                    const CefString& title,
-                                    const CefString& default_file_path,
-                                    const std::vector<CefString>& accept_filters,
-                                    const std::vector<CefString>& /*accept_extensions*/,
-                                    const std::vector<CefString>& /*accept_descriptions*/,
-                                    CefRefPtr<CefFileDialogCallback> callback)
+#if CEF_VERSION_MAJOR <= 109
+//CEF 109版本
+bool CefBrowserHandler::OnFileDialog(CefRefPtr<CefBrowser> browser,
+                                     FileDialogMode mode,
+                                     const CefString& title,
+                                     const CefString& default_file_path,
+                                     const std::vector<CefString>& accept_filters,
+                                     CefRefPtr<CefFileDialogCallback> callback)
 {
-    if (handle_delegate_)
+    if (handle_delegate_) {
         return handle_delegate_->OnFileDialog(browser, mode, title, default_file_path, accept_filters, 0, callback);
-    else
+    }
+    else {
         return false;
+    }
 }
-
+#else
+//CEF 高版本
+bool CefBrowserHandler::OnFileDialog(CefRefPtr<CefBrowser> browser,
+                                     FileDialogMode mode,
+                                     const CefString& title,
+                                     const CefString& default_file_path,
+                                     const std::vector<CefString>& accept_filters,
+                                     const std::vector<CefString>& /*accept_extensions*/,
+                                     const std::vector<CefString>& /*accept_descriptions*/,
+                                     CefRefPtr<CefFileDialogCallback> callback)
+{
+    if (handle_delegate_) {
+        return handle_delegate_->OnFileDialog(browser, mode, title, default_file_path, accept_filters, 0, callback);
+    }
+    else {
+        return false;
+    }
+}
+#endif
 }
 
 #pragma warning (pop)

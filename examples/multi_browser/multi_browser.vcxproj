@@ -107,7 +107,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>../../duilib/third_party/libcef/lib/Win32/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>../../manifest/duilib.x86.manifest</AdditionalManifestFiles>
@@ -138,7 +138,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>../../duilib/third_party/libcef/lib/Win32/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>../../manifest/duilib.x86.manifest</AdditionalManifestFiles>
@@ -152,7 +152,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>..\..\;..\..\duilib\third_party\libcef\;.\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\;..\..\duilib\third_party\libcef109\;.\</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile />
@@ -160,7 +160,7 @@
     </ClCompile>
     <Link>
       <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>../../duilib/third_party/libcef/lib/x64/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>../../manifest/duilib.x64.manifest</AdditionalManifestFiles>
@@ -181,7 +181,7 @@
     </ClCompile>
     <Link>
       <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>../../duilib/third_party/libcef/lib/x64/</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>../../manifest/duilib.x64.manifest</AdditionalManifestFiles>
@@ -228,9 +228,6 @@
     </ProjectReference>
     <ProjectReference Include="..\..\duilib\third_party\cximage\cximage.vcxproj">
       <Project>{b8c41401-6a2b-488d-b198-b0564c2b7404}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\duilib\third_party\libcef\libcef_dll_wrapper.vcxproj">
-      <Project>{ba5c702f-bb68-37f9-a109-74f215fe14c5}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\duilib\third_party\libpng\projects\vstudio\libpng\libpng.vcxproj">
       <Project>{d6973076-9317-4ef2-a0b8-b7a18ac0713e}</Project>
