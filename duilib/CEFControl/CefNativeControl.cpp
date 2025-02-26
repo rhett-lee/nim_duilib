@@ -13,61 +13,60 @@ CefNativeControl::CefNativeControl(ui::Window* pWindow):
 
 CefNativeControl::~CefNativeControl(void)
 {
-    if (browser_handler_.get() && browser_handler_->GetBrowser().get())
-    {
+    if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get()) {
         // Request that the main browser close.
-        browser_handler_->GetBrowserHost()->CloseBrowser(true);
-        browser_handler_->SetHostWindow(NULL);
-        browser_handler_->SetHandlerDelegate(NULL);
+        if (m_pBrowserHandler->GetBrowserHost() != nullptr) {
+            m_pBrowserHandler->GetBrowserHost()->CloseBrowser(true);
+        }
+        m_pBrowserHandler->SetHostWindow(nullptr);
+        m_pBrowserHandler->SetHandlerDelegate(nullptr);
     }
 }
 
 void CefNativeControl::Init()
 {
-    if (browser_handler_.get() == nullptr)
-    {
+    if (m_pBrowserHandler.get() == nullptr) {
+#if DUILIB_BUILD_FOR_WIN
+        //检测是否在分层窗口中创建控件
         HWND hWnd = GetWindow()->NativeWnd()->GetHWND();
         LONG style = ::GetWindowLong(hWnd, GWL_STYLE);
         ::SetWindowLong(hWnd, GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
         ASSERT((::GetWindowLong(hWnd, GWL_EXSTYLE) & WS_EX_LAYERED) == 0 && _T("无法在分层窗口内使用本控件"));
-
-        browser_handler_ = new CefBrowserHandler;
-        browser_handler_->SetHostWindow(GetWindow());
-        browser_handler_->SetHandlerDelegate(this);
+#endif
+        m_pBrowserHandler = new CefBrowserHandler;
+        m_pBrowserHandler->SetHostWindow(GetWindow());
+        m_pBrowserHandler->SetHandlerDelegate(this);
         ReCreateBrowser();
     }
 
-    if (!js_bridge_.get())
-    {
-        js_bridge_.reset(new ui::CefJSBridge);
+    if (!m_jsBridge.get()) {
+        m_jsBridge.reset(new ui::CefJSBridge);
     }
-
     BaseClass::Init();
 }
 
 void CefNativeControl::ReCreateBrowser()
 {
-    if (browser_handler_->GetBrowser() == nullptr)
-    {
+    if (m_pBrowserHandler->GetBrowser() == nullptr) {
         // 使用有窗模式
         CefWindowInfo window_info;
         CefRect rect = { GetRect().left, GetRect().top, GetRect().right, GetRect().bottom};
         window_info.SetAsChild(this->GetWindow()->NativeWnd()->GetHWND(), rect);
 
         CefBrowserSettings browser_settings;
-        CefBrowserHost::CreateBrowser(window_info, browser_handler_, _T(""), browser_settings, nullptr, nullptr);
+        CefBrowserHost::CreateBrowser(window_info, m_pBrowserHandler, _T(""), browser_settings, nullptr, nullptr);
     }
 }
 
 void CefNativeControl::SetPos(ui::UiRect rc)
 {
     BaseClass::SetPos(rc);
-
+#if DUILIB_BUILD_FOR_WIN
     HWND hwnd = GetCefHandle();
-    if (hwnd) 
-    {
+    if (hwnd) {
         ::SetWindowPos(hwnd, HWND_TOP, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER);
     }
+#endif
 }
 
 void CefNativeControl::HandleEvent(const ui::EventArgs& msg)
@@ -83,15 +82,15 @@ void CefNativeControl::HandleEvent(const ui::EventArgs& msg)
         }
         return;
     }
-    if (browser_handler_.get() && browser_handler_->GetBrowser().get() == NULL) {
+    if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get() == nullptr) {
         return BaseClass::HandleEvent(msg);
     }
 
     else if (msg.eventType == ui::kEventSetFocus) {
-        browser_handler_->GetBrowserHost()->SetFocus(true);
+        m_pBrowserHandler->GetBrowserHost()->SetFocus(true);
     }
     else if (msg.eventType == ui::kEventKillFocus) {
-        browser_handler_->GetBrowserHost()->SetFocus(false);
+        m_pBrowserHandler->GetBrowserHost()->SetFocus(false);
     }
     BaseClass::HandleEvent(msg);
 }
@@ -99,19 +98,17 @@ void CefNativeControl::HandleEvent(const ui::EventArgs& msg)
 void CefNativeControl::SetVisible(bool bVisible)
 {
     BaseClass::SetVisible(bVisible);
-
+#if DUILIB_BUILD_FOR_WIN
     HWND hwnd = GetCefHandle();
-    if (hwnd)
-    {
-        if (bVisible)
-        {
+    if (hwnd) {
+        if (bVisible) {
             ShowWindow(hwnd, SW_SHOW);
         }
-        else
-        {
+        else {
             ::SetWindowPos(hwnd, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
         }
     }
+#endif
 }
 
 void CefNativeControl::SetWindow(ui::Window* pWindow)
@@ -119,51 +116,53 @@ void CefNativeControl::SetWindow(ui::Window* pWindow)
     if (pWindow == nullptr) {
         return;
     }
-    if (browser_handler_)
-        browser_handler_->SetHostWindow(pWindow);
-
+    if (m_pBrowserHandler) {
+        m_pBrowserHandler->SetHostWindow(pWindow);
+    }
+#if DUILIB_BUILD_FOR_WIN
     // 设置Cef窗口句柄为新的主窗口的子窗口
     auto hwnd = GetCefHandle();
-    if (hwnd)
+    if (hwnd) {
         ::SetParent(hwnd, pWindow->NativeWnd()->GetHWND());
+    }
 
     // 为新的主窗口重新设置WS_CLIPSIBLINGS、WS_CLIPCHILDREN样式，否则Cef窗口刷新会出问题
     LONG style = ::GetWindowLong(pWindow->NativeWnd()->GetHWND(), GWL_STYLE);
     ::SetWindowLong(pWindow->NativeWnd()->GetHWND(), GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
+#endif
 
     BaseClass::SetWindow(pWindow);
 }
 
 bool CefNativeControl::AttachDevTools(Control* /*view*/)
 {
-    if (devtool_attached_)
+    if (IsAttachedDevTools()) {
         return true;
+    }
+    if (m_pBrowserHandler == nullptr) {
+        return false;
+    }
 
-    auto browser = browser_handler_->GetBrowser();
-    if (browser == nullptr)
-    {
-        auto task = ToWeakCallback([this]()
-        {
+    auto browser = m_pBrowserHandler->GetBrowser();
+    if (browser == nullptr) {
+        auto task = ToWeakCallback([this]() {
                 ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this](){
                 AttachDevTools(nullptr);
             }));
         });
-
-        browser_handler_->AddAfterCreateTask(task);
+        m_pBrowserHandler->AddAfterCreateTask(task);
     }
-    else
-    {
+    else {
         CefWindowInfo windowInfo;
-        windowInfo.SetAsPopup(NULL, _T("cef_devtools"));
+        windowInfo.SetAsPopup(nullptr, _T("cef_devtools"));
         CefBrowserSettings settings;
-       // windowInfo.width = 900;
-       // windowInfo.height = 700;
-        browser->GetHost()->ShowDevTools(windowInfo, new ui::CefBrowserHandler, settings, CefPoint());
-        devtool_attached_ = true;
-        if (cb_devtool_visible_change_ != nullptr)
-            cb_devtool_visible_change_(devtool_attached_);
+        if (browser->GetHost() != nullptr) {
+            browser->GetHost()->ShowDevTools(windowInfo, new ui::CefBrowserHandler, settings, CefPoint());
+            SetAttachedDevTools(true);
+            OnDevToolsVisibleChanged();
+        }
     }
-    return true;
+    return IsAttachedDevTools();
 }
 
 }

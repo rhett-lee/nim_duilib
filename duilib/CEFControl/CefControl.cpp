@@ -22,14 +22,13 @@ CefControl::CefControl(ui::Window* pWindow) :
 
 CefControl::~CefControl(void)
 {
-    if (browser_handler_.get())
-    {
-        browser_handler_->SetHostWindow(NULL);
-        browser_handler_->SetHandlerDelegate(NULL);
+    if (m_pBrowserHandler.get()) {
+        m_pBrowserHandler->SetHostWindow(nullptr);
+        m_pBrowserHandler->SetHandlerDelegate(nullptr);
 
-        if (browser_handler_->GetBrowser().get()) {
+        if (m_pBrowserHandler->GetBrowser().get()) {
             // Request that the main browser close.
-            browser_handler_->CloseAllBrowser();
+            m_pBrowserHandler->CloseAllBrowser();
         }
     }
     GetWindow()->RemoveMessageFilter(this);
@@ -40,11 +39,11 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
     //必须不使用缓存，否则绘制异常
     ASSERT(IsUseCache() == false);
 
-    if (NULL == buffer)
+    if (nullptr == buffer) {
         return;
+    }
 
-    if (type == PET_VIEW)
-    {
+    if (type == PET_VIEW) {
         if (m_pCefDC->GetWidth() != width || m_pCefDC->GetHeight() != height) {
             HWND hWnd = GetWindow()->NativeWnd()->GetHWND();
             HDC hDC = ::GetDC(hWnd);
@@ -53,8 +52,9 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
         }
 
         LPBYTE pDst = (LPBYTE)m_pCefDC->GetBits();
-        if (pDst)
+        if (pDst) {
             memcpy(pDst, (char*)buffer->c_str(), height * width * 4);
+        }
     }
     else if (type == PET_POPUP && m_pCefDC->IsValid() && m_rectPopup.width > 0 && m_rectPopup.height > 0)
     {
@@ -67,8 +67,9 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
         }
 
         LPBYTE pDst = (LPBYTE)m_pCefPopupDC->GetBits();
-        if (pDst)
+        if (pDst) {
             memcpy(pDst, (char*)buffer->c_str(), width * height * 4);
+        }
     }
 
     this->Invalidate();
@@ -83,8 +84,7 @@ void CefControl::ClientToControl(UiPoint&pt)
 
 void CefControl::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
 {
-    if (!show)
-    {
+    if (!show) {
         // 当popup窗口隐藏时，刷新popup区域
         CefRect rect_dirty = m_rectPopup;
         m_rectPopup.Set(0, 0, 0, 0);
@@ -94,43 +94,39 @@ void CefControl::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
 
 void CefControl::OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect)
 {
-    if (rect.width <= 0 || rect.height <= 0)
+    if ((rect.width <= 0) || (rect.height <= 0)) {
         return;
-
+    }
     m_rectPopup = rect;
 }
 
 void CefControl::Init()
 {
-    if (browser_handler_.get() == nullptr)
-    {
+    if (m_pBrowserHandler.get() == nullptr) {
         GetWindow()->AddMessageFilter(this);
 
-        browser_handler_ = new ui::CefBrowserHandler;
-        browser_handler_->SetHostWindow(GetWindow());
-        browser_handler_->SetHandlerDelegate(this);
+        m_pBrowserHandler = new ui::CefBrowserHandler;
+        m_pBrowserHandler->SetHostWindow(GetWindow());
+        m_pBrowserHandler->SetHandlerDelegate(this);
         ReCreateBrowser();
     }
 
-    if (!js_bridge_.get())
-    {
-        js_bridge_.reset(new ui::CefJSBridge);
+    if (!m_jsBridge.get()) {
+        m_jsBridge.reset(new ui::CefJSBridge);
     }
-
     BaseClass::Init();
 }
 
 void CefControl::ReCreateBrowser()
 {
-    if (browser_handler_->GetBrowser() == nullptr)
-    {
+    if (m_pBrowserHandler->GetBrowser() == nullptr) {
         // 使用无窗模式，离屏渲染
         CefWindowInfo window_info;
         window_info.SetAsWindowless(GetWindow()->NativeWnd()->GetHWND());
         CefBrowserSettings browser_settings;
         //browser_settings.file_access_from_file_urls = STATE_ENABLED;
         //browser_settings.universal_access_from_file_urls = STATE_ENABLED;
-        CefBrowserHost::CreateBrowser(window_info, browser_handler_, _T(""), browser_settings, nullptr, nullptr);
+        CefBrowserHost::CreateBrowser(window_info, m_pBrowserHandler, _T(""), browser_settings, nullptr, nullptr);
     }
 }
 
@@ -138,9 +134,8 @@ void CefControl::SetPos(ui::UiRect rc)
 {
     BaseClass::SetPos(rc);
 
-    if (browser_handler_.get())
-    {
-        browser_handler_->SetViewRect({ rc.left, rc.top, rc.right, rc.bottom });
+    if (m_pBrowserHandler.get()) {
+        m_pBrowserHandler->SetViewRect({ rc.left, rc.top, rc.right, rc.bottom });
     }
 }
 
@@ -157,18 +152,18 @@ void CefControl::HandleEvent(const ui::EventArgs& msg)
         }
         return;
     }
-    if (browser_handler_.get() && browser_handler_->GetBrowser().get() == NULL) {
+    if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get() == NULL) {
         return BaseClass::HandleEvent(msg);
     }
 
     else if (msg.eventType == ui::kEventSetFocus) {
-        if (browser_handler_->GetBrowserHost().get()) {
-            browser_handler_->GetBrowserHost()->SetFocus(true);
+        if (m_pBrowserHandler->GetBrowserHost().get()) {
+            m_pBrowserHandler->GetBrowserHost()->SetFocus(true);
         }
     }
     else if (msg.eventType == ui::kEventKillFocus) {
-        if (browser_handler_->GetBrowserHost().get()) {
-            browser_handler_->GetBrowserHost()->SetFocus(false);
+        if (m_pBrowserHandler->GetBrowserHost().get()) {
+            m_pBrowserHandler->GetBrowserHost()->SetFocus(false);
         }
     }
 
@@ -178,9 +173,8 @@ void CefControl::HandleEvent(const ui::EventArgs& msg)
 void CefControl::SetVisible(bool bVisible)
 {
     BaseClass::SetVisible(bVisible);
-    if (browser_handler_.get() && browser_handler_->GetBrowserHost().get())
-    {
-        browser_handler_->GetBrowserHost()->WasHidden(!bVisible);
+    if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowserHost().get()) {
+        m_pBrowserHandler->GetBrowserHost()->WasHidden(!bVisible);
     }
 }
 
@@ -188,7 +182,7 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 {
     BaseClass::Paint(pRender, rcPaint);
 
-    if (m_pCefDC->IsValid() && browser_handler_.get() && browser_handler_->GetBrowser().get()) {
+    if (m_pCefDC->IsValid() && m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get()) {
         // 绘制cef PET_VIEW类型的位图
         ui::UiRect rect = GetRect();
 
@@ -228,7 +222,7 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 
 void CefControl::SetWindow(ui::Window* pWindow)
 {
-    if (!browser_handler_) {
+    if (!m_pBrowserHandler) {
         BaseClass::SetWindow(pWindow);
         return;
     }
@@ -240,20 +234,20 @@ void CefControl::SetWindow(ui::Window* pWindow)
     if (pWindow != nullptr) {
         pWindow->AddMessageFilter(this);
     }
-    browser_handler_->SetHostWindow(pWindow);
+    m_pBrowserHandler->SetHostWindow(pWindow);
 }
 
 LRESULT CefControl::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-    if (!IsVisible() || !IsEnabled())
-    {
+    if (!IsVisible() || !IsEnabled()) {
         bHandled = false;
         return 0;
     }
 
     bHandled = false;
-    if (browser_handler_.get() == nullptr || browser_handler_->GetBrowser().get() == nullptr)
+    if ((m_pBrowserHandler.get() == nullptr) || (m_pBrowserHandler->GetBrowser().get() == nullptr)) {
         return 0;
+    }
 
     switch (uMsg)
     {
@@ -269,8 +263,9 @@ LRESULT CefControl::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
         ui::UiPoint pt;
         GetWindow()->GetCursorPos(pt);
         GetWindow()->ScreenToClient(pt);
-        if (!GetRect().ContainsPt(pt))
+        if (!GetRect().ContainsPt(pt)) {
             return 0;
+        }
 
         GetWindow()->NativeWnd()->CallDefaultWindowProc(uMsg, wParam, lParam);
         bHandled = true;
@@ -345,36 +340,38 @@ LRESULT CefControl::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
 bool CefControl::AttachDevTools(Control* control)
 {
     CefControl* view = dynamic_cast<CefControl*>(control);
-    if (devtool_attached_ || !view) {
+    if (IsAttachedDevTools() || !view) {
         return true;
     }
-    auto browser = browser_handler_->GetBrowser();
-    auto view_browser = view->browser_handler_->GetBrowser();
-    if (browser == nullptr || view_browser == nullptr)
-    {
+    if ((m_pBrowserHandler == nullptr) || (view->m_pBrowserHandler == nullptr)) {
+        return false;
+    }
+    auto browser = m_pBrowserHandler->GetBrowser();
+    auto view_browser = view->m_pBrowserHandler->GetBrowser();
+    if ((browser == nullptr) || (view_browser == nullptr)) {
         auto weak = view->GetWeakFlag();
         auto task = [this, weak, view]() {
             ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, weak, view]() {
-                if (weak.expired())
-                    return;
-                AttachDevTools(view);
+                    if (weak.expired()) {
+                        return;
+                    }
+                    AttachDevTools(view);
                 }));
             };
-        view->browser_handler_->AddAfterCreateTask(task);
+        view->m_pBrowserHandler->AddAfterCreateTask(task);
     }
-    else
-    {
+    else {
         CefWindowInfo windowInfo;
         windowInfo.SetAsWindowless(GetWindow()->NativeWnd()->GetHWND());
         CefBrowserSettings settings;
-        browser->GetHost()->ShowDevTools(windowInfo, view_browser->GetHost()->GetClient(), settings, CefPoint());
-        devtool_attached_ = true;
-        m_pDevToolView = view;
-        if (cb_devtool_visible_change_ != nullptr) {
-            cb_devtool_visible_change_(devtool_attached_);
+        if ((browser->GetHost() != nullptr) && (view_browser->GetHost() != nullptr)) {
+            browser->GetHost()->ShowDevTools(windowInfo, view_browser->GetHost()->GetClient(), settings, CefPoint());
+            SetAttachedDevTools(true);
+            m_pDevToolView = view;
+            OnDevToolsVisibleChanged();
         }
     }
-    return true;
+    return IsAttachedDevTools();
 }
 
 void CefControl::DettachDevTools()
@@ -385,7 +382,7 @@ void CefControl::DettachDevTools()
 
 void CefControl::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)
 {
-    if (devtool_attached_ && (m_pDevToolView != nullptr) && CefManager::GetInstance()->IsEnableOffsetRender()) {
+    if (IsAttachedDevTools() && (m_pDevToolView != nullptr) && CefManager::GetInstance()->IsEnableOffsetRender()) {
         //离屏渲染模式，开发者工具与页面位于相同的客户区位置
         int x = params->GetXCoord();
         int y = params->GetYCoord();
@@ -421,12 +418,13 @@ void CefControl::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
 //////////////////////////////////////////////////////////////////////////////////
 LRESULT CefControl::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-    CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
+    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
     pt.Offset(GetScrollOffsetInScrollBox());
-    if (!GetRect().ContainsPt(pt))
+    if (!GetRect().ContainsPt(pt)) {
         return 0;
+    }
 
     this->SetFocus();
     CefMouseEvent mouse_event;
@@ -446,12 +444,13 @@ LRESULT CefControl::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam,
 
 LRESULT CefControl::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-    CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
+    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
     pt.Offset(GetScrollOffsetInScrollBox());
-    if (!GetRect().ContainsPt(pt))
+    if (!GetRect().ContainsPt(pt)) {
         return 0;
+    }
 
     CefMouseEvent mouse_event;
     mouse_event.x = pt.x - GetRect().left;
@@ -470,12 +469,13 @@ LRESULT CefControl::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM l
 
 LRESULT CefControl::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-    CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
+    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
     pt.Offset(GetScrollOffsetInScrollBox());
-    if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured())
+    if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured()) {
         return 0;
+    }
 
     CefMouseEvent mouse_event;
     mouse_event.x = pt.x - GetRect().left;
@@ -494,12 +494,13 @@ LRESULT CefControl::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, b
 
 LRESULT CefControl::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-    CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
+    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
     pt.Offset(GetScrollOffsetInScrollBox());
-    if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured())
+    if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured()) {
         return 0;
+    }
 
     CefMouseEvent mouse_event;
     mouse_event.x = pt.x - GetRect().left;
@@ -514,7 +515,7 @@ LRESULT CefControl::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPar
 
 LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-    CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
+    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
     ui::Window* pScrolledWnd = GetWindow()->WindowFromPoint(pt);
@@ -524,8 +525,9 @@ LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 
     GetWindow()->ScreenToClient(pt);
     pt.Offset(GetScrollOffsetInScrollBox());
-    if (!GetRect().ContainsPt(pt))
+    if (!GetRect().ContainsPt(pt)) {
         return 0;
+    }
 
     int delta = GET_WHEEL_DELTA_WPARAM(wParam);
 
@@ -542,12 +544,13 @@ LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 
 LRESULT CefControl::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-    CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
+    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
     pt.Offset(GetScrollOffsetInScrollBox());
-    if (!GetRect().ContainsPt(pt))
+    if (!GetRect().ContainsPt(pt)) {
         return 0;
+    }
 
     CefMouseEvent mouse_event;
     mouse_event.x = pt.x - GetRect().left;
@@ -562,7 +565,7 @@ LRESULT CefControl::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
 
 LRESULT CefControl::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-    CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
+    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     CefKeyEvent event;
     event.windows_key_code = static_cast<int>(wParam);
@@ -585,7 +588,7 @@ LRESULT CefControl::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
 
 LRESULT CefControl::SendCaptureLostEvent(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
 {
-    CefRefPtr<CefBrowserHost> host = browser_handler_->GetBrowserHost();
+    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     host->SendCaptureLostEvent();
     bHandled = true;
