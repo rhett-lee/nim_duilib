@@ -18,12 +18,12 @@ class CefJSHandler : public CefV8Handler
 public:
     CefJSHandler() {}
     virtual bool Execute(const CefString& name,    CefRefPtr<CefV8Value> object, const CefV8ValueList& arguments, CefRefPtr<CefV8Value>& retval, CefString& exception) override;
-    void AttachJSBridge(std::shared_ptr<CefJSBridge> js_bridge) { js_bridge_ = js_bridge; }
+    void AttachJSBridge(std::shared_ptr<CefJSBridge> js_bridge) { m_jsBridge = js_bridge; }
 
     IMPLEMENT_REFCOUNTING(CefJSHandler);
 
 private:
-    std::shared_ptr<CefJSBridge> js_bridge_;
+    std::shared_ptr<CefJSBridge> m_jsBridge;
 };
 }
 

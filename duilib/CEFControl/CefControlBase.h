@@ -137,7 +137,11 @@ public:
     /** 判断是否打开开发者工具
     * @return 返回 true 表示已经绑定，false 为未绑定
     */
-    virtual bool IsAttachedDevTools() const { return devtool_attached_; }
+    bool IsAttachedDevTools() const;
+
+    /** 设置打开开发者工具标志
+    */
+    void SetAttachedDevTools(bool bAttachedDevTools);
 
 protected:
     /** 重新创建Browser对象
@@ -148,97 +152,97 @@ public:
     /** 绑定一个回调函数用于监听右键菜单弹出
     * @param [in] callback 一个回调函数，参考 OnBeforeMenuEvent 声明
     */
-    void AttachBeforeContextMenu(const OnBeforeMenuEvent& callback){ cb_before_menu_ = callback; }
+    void AttachBeforeContextMenu(const OnBeforeMenuEvent& callback){ m_pfnBeforeMenu = callback; }
 
     /** 绑定一个回调函数用于监听选择了哪个右键菜单
     * @param [in] callback 一个回调函数，参考 OnMenuCommandEvent 声明
     */
-    void AttachMenuCommand(const OnMenuCommandEvent& callback){ cb_menu_command_ = callback; }
+    void AttachMenuCommand(const OnMenuCommandEvent& callback){ m_pfnMenuCommand = callback; }
 
     /** 绑定一个回调函数用于监听页面 Title 改变
     * @param [in] callback 一个回调函数，参考 OnTitleChangeEvent 声明
     */
-    void AttachTitleChange(const OnTitleChangeEvent& callback){ cb_title_change_ = callback; }
+    void AttachTitleChange(const OnTitleChangeEvent& callback){ m_pfnTitleChange = callback; }
 
     /** 绑定一个回调函数用于监听页面中 frame URL 地址改变
     * @param [in] callback 一个回调函数，参考 OnUrlChangeEvent 声明
     */
-    void AttachUrlChange(const OnUrlChangeEvent& callback){ cb_url_change_ = callback; }
+    void AttachUrlChange(const OnUrlChangeEvent& callback){ m_pfnUrlChange = callback; }
 
     /** 绑定一个回调函数用于监听主页面 URL 地址改变
     * @param [in] callback 一个回调函数，参考 OnMainURLChengeEvent 声明
     */
-    void AttachMainURLChange(OnMainURLChengeEvent cb){ cb_main_url_change_ = cb; }
+    void AttachMainURLChange(OnMainURLChengeEvent cb){ m_pfnMainUrlChange = cb; }
 
     /** 绑定一个回调函数用于监听页面资源全部加载完毕
     * @param [in] callback 一个回调函数，参考 OnBeforeResourceLoadEvent 声明
     */
-    void AttachBeforeNavigate(const OnBeforeResourceLoadEvent& callback){ cb_before_resource_load_ = callback; }
+    void AttachBeforeNavigate(const OnBeforeResourceLoadEvent& callback){ m_pfnBeforeResourceLoad = callback; }
 
     /** 绑定一个回调函数用于监听一个弹出窗口弹出的通知
     * @param [in] callback 一个回调函数，参考 OnLinkClickEvent 声明
     */
-    void AttachLinkClick(const OnLinkClickEvent& callback){ cb_link_click_ = callback; }
+    void AttachLinkClick(const OnLinkClickEvent& callback){ m_pfnLinkClick = callback; }
 
     /** 绑定一个回调函数用于监听页面加载状态改变
     * @param [in] callback 一个回调函数，参考 OnLoadingStateChangeEvent 声明
     */
-    void AttachLoadingStateChange(const OnLoadingStateChangeEvent& callback){ cb_loadstate_change_ = callback; }
+    void AttachLoadingStateChange(const OnLoadingStateChangeEvent& callback){ m_pfnLoadStateChange = callback; }
 
     /** 绑定一个回调函数用于监听页面开始加载通知
     * @param [in] callback 一个回调函数，参考 OnLoadStartEvent 声明
     */
-    void AttachLoadStart(const OnLoadStartEvent& callback){ cb_load_start_ = callback; }
+    void AttachLoadStart(const OnLoadStartEvent& callback){ m_pfnLoadStart = callback; }
 
     /** 绑定一个回调函数用于监听页面加载完毕通知
     * @param [in] callback 一个回调函数，参考 OnLoadEndEvent 声明
     */
-    void AttachLoadEnd(const OnLoadEndEvent& callback){ cb_load_end_ = callback; }
+    void AttachLoadEnd(const OnLoadEndEvent& callback){ m_pfnLoadEnd = callback; }
 
     /** 绑定一个回调函数用于监听界面加载错误通知
     * @param [in] callback 一个回调函数，参考 OnLoadErrorEvent 声明
     */
-    void AttachLoadError(const OnLoadErrorEvent& callback){ cb_load_error_ = callback; }
+    void AttachLoadError(const OnLoadErrorEvent& callback){ m_pfnLoadError = callback; }
 
     /** 绑定一个回调函数用于监听开发者工具状态改变通知
     * @param [in] callback 一个回调函数，参考 OnDevToolAttachedStateChangeEvent 声明
     */
-    void AttachDevToolAttachedStateChange(const OnDevToolAttachedStateChangeEvent& callback){ cb_devtool_visible_change_ = callback; };
+    void AttachDevToolAttachedStateChange(const OnDevToolAttachedStateChangeEvent& callback){ m_pfnDevToolVisibleChange = callback; };
 
     /** 绑定一个回调函数用于监听一个新的浏览器实例创建完毕通知
     * @param [in] callback 一个回调函数，参考 OnAfterCreatedEvent 声明
     */
-    void AttachAfterCreated(const OnAfterCreatedEvent& callback){ cb_after_created_ = callback; }
+    void AttachAfterCreated(const OnAfterCreatedEvent& callback){ m_pfnAfterCreated = callback; }
 
     /** 绑定一个回调函数用于监听一个浏览器实例关闭前的通知
     * @param [in] callback 一个回调函数，参考 OnBeforeCloseEvent 声明
     */
-    void AttachBeforeCLose(const OnBeforeCloseEvent& callback) { cb_before_close_ = callback; }
+    void AttachBeforeCLose(const OnBeforeCloseEvent& callback) { m_pfnBeforeClose = callback; }
 
     /** 绑定一个回调函数用于监听一个浏览器实例加载通知
-    * @param [in] callback 一个回调函数，参考 OnBeforeBrowserEvent 声明
+    * @param [in] callback 一个回调函数，参考 OnBeforeBrowseEvent 声明
     */
-    void AttachBeforeBrowser(const OnBeforeBrowserEvent& callback) { cb_before_browser_ = callback; }
+    void AttachBeforeBrowser(const OnBeforeBrowseEvent& callback) { m_pfnBeforeBrowse = callback; }
 
     /** 绑定一个回调函数用于监听一个未知的 Protocol
     * @param[in] callback 一个回调函数，参考 OnProtocolExecutionEvent 声明
     */
-    void AttachProtocolExecution(const OnProtocolExecutionEvent& callback) { cb_protocol_execution_ = callback; }
+    void AttachProtocolExecution(const OnProtocolExecutionEvent& callback) { m_pfnProtocolExecution = callback; }
 
     /** 绑定一个回调函数用于监听一个下载任务开始之前的通知
     * @param [in] callback 一个回调函数，参考 OnBeforeDownloadEvent 声明
     */
-    void AttachBeforeDownload(const OnBeforeDownloadEvent& callback) { cb_before_download_ = callback; }
+    void AttachBeforeDownload(const OnBeforeDownloadEvent& callback) { m_pfnBeforeDownload = callback; }
 
     /** 绑定一个回调函数用于监听下载过程中任务的状态改变通知
     * @param[in] callback 一个回调函数，参考 OnDownloadUpdatedEvent 声明
     */
-    void AttachDownloadUpdated(const OnDownloadUpdatedEvent& callback) { cb_download_updated_ = callback; }
+    void AttachDownloadUpdated(const OnDownloadUpdatedEvent& callback) { m_pfnDownloadUpdated = callback; }
 
     /** 绑定一个回调函数用于监听一个从对话框中打开文件的通知
     * @param[in] callback 一个回调函数，参考 OnFileDialogEvent 声明
     */
-    void AttachFileDialog(const OnFileDialogEvent& callback) { cb_file_dialog_ = callback; }
+    void AttachFileDialog(const OnFileDialogEvent& callback) { m_pfnFileDialog = callback; }
 
 public:
     /** CefRenderHandler接口, 在非UI线程中被调用
@@ -339,31 +343,43 @@ public:
     virtual bool OnExecuteCppCallbackFunc(int cpp_callback_id, const CefString& json_string) override;
 
 protected:
-    CefRefPtr<CefBrowserHandler> browser_handler_ = nullptr;
-    std::shared_ptr<CefJSBridge> js_bridge_;
-    CefString url_;
-    bool devtool_attached_;
+    /** 开发者工具的显示属性发生变化
+    */
+    void OnDevToolsVisibleChanged();
 
-    OnBeforeMenuEvent            cb_before_menu_ = nullptr;
-    OnMenuCommandEvent            cb_menu_command_ = nullptr;
-    OnTitleChangeEvent            cb_title_change_ = nullptr;
-    OnBeforeResourceLoadEvent    cb_before_resource_load_ = nullptr;
-    OnUrlChangeEvent            cb_url_change_ = nullptr;
-    OnMainURLChengeEvent        cb_main_url_change_ = nullptr;
-    OnLinkClickEvent            cb_link_click_ = nullptr;
-    OnLoadingStateChangeEvent    cb_loadstate_change_ = nullptr;
-    OnLoadStartEvent            cb_load_start_ = nullptr;
-    OnLoadEndEvent                cb_load_end_ = nullptr;
-    OnLoadErrorEvent            cb_load_error_ = nullptr;
-    OnAfterCreatedEvent            cb_after_created_ = nullptr;
-    OnBeforeCloseEvent            cb_before_close_ = nullptr;
-    OnBeforeBrowserEvent        cb_before_browser_ = nullptr;
-    OnProtocolExecutionEvent    cb_protocol_execution_ = nullptr;
-    OnBeforeDownloadEvent        cb_before_download_ = nullptr;
-    OnDownloadUpdatedEvent        cb_download_updated_ = nullptr;
-    OnFileDialogEvent            cb_file_dialog_ = nullptr;
-    OnDevToolAttachedStateChangeEvent cb_devtool_visible_change_ = nullptr;
-    int                            js_callback_thread_id_ = -1; // 保存接收到 JS 调用 CPP 函数的代码所属线程，以后触发 JS 回调时把回调转到那个线程
+protected:
+    CefRefPtr<CefBrowserHandler> m_pBrowserHandler = nullptr;
+    std::shared_ptr<CefJSBridge> m_jsBridge;
+private:
+
+    //URL
+    CefString m_url;
+
+    //开发者工具是否显示
+    bool m_bAttachedDevTools;
+
+    // 保存接收到 JS 调用 CPP 函数的代码所属线程，以后触发 JS 回调时把回调转到那个线程
+    int32_t m_jsCallbackThreadId = -1;
+
+    OnBeforeMenuEvent               m_pfnBeforeMenu = nullptr;
+    OnMenuCommandEvent              m_pfnMenuCommand = nullptr;
+    OnTitleChangeEvent              m_pfnTitleChange = nullptr;
+    OnBeforeResourceLoadEvent       m_pfnBeforeResourceLoad = nullptr;
+    OnUrlChangeEvent                m_pfnUrlChange = nullptr;
+    OnMainURLChengeEvent            m_pfnMainUrlChange = nullptr;
+    OnLinkClickEvent                m_pfnLinkClick = nullptr;
+    OnLoadingStateChangeEvent       m_pfnLoadStateChange = nullptr;
+    OnLoadStartEvent                m_pfnLoadStart = nullptr;
+    OnLoadEndEvent                  m_pfnLoadEnd = nullptr;
+    OnLoadErrorEvent                m_pfnLoadError = nullptr;
+    OnAfterCreatedEvent             m_pfnAfterCreated = nullptr;
+    OnBeforeCloseEvent              m_pfnBeforeClose = nullptr;
+    OnBeforeBrowseEvent            m_pfnBeforeBrowse = nullptr;
+    OnProtocolExecutionEvent        m_pfnProtocolExecution = nullptr;
+    OnBeforeDownloadEvent           m_pfnBeforeDownload = nullptr;
+    OnDownloadUpdatedEvent          m_pfnDownloadUpdated = nullptr;
+    OnFileDialogEvent               m_pfnFileDialog = nullptr;
+    OnDevToolAttachedStateChangeEvent m_pfnDevToolVisibleChange = nullptr;    
 };
 }
 

@@ -69,7 +69,7 @@ bool CefJSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object, 
         }
 
         // 执行 C++ 方法
-        if (!js_bridge_->CallCppFunction(function_name, params, callback))
+        if (!m_jsBridge->CallCppFunction(function_name, params, callback))
         {
             exception = ui::StringUtil::Printf("Failed to call function %s.", function_name.c_str()).c_str();
             return false;
@@ -83,7 +83,7 @@ bool CefJSHandler::Execute(const CefString& name, CefRefPtr<CefV8Value> object, 
         {
             std::string function_name = arguments[0]->GetStringValue();
             CefRefPtr<CefV8Value> callback = arguments[1];
-            if (!js_bridge_->RegisterJSFunc(function_name, callback))
+            if (!m_jsBridge->RegisterJSFunc(function_name, callback))
             {
                 exception = "Failed to register function.";
                 return false;
