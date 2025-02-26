@@ -1,9 +1,3 @@
-/**
- * @brief 内存dc类，维护HBITMAP与HDC对象，方便快速的储存位图数据
- * @copyright (c) 2016, NetEase Inc. All rights reserved
- * @author Redrain
- * @date 2016/7/19
- */
 #ifndef UI_CEF_CONTROL_MEMORY_DC_H_
 #define UI_CEF_CONTROL_MEMORY_DC_H_
 
@@ -11,6 +5,11 @@
 
 namespace ui {
 
+/** 内存dc类，维护HBITMAP与HDC对象，方便快速的储存位图数据
+ * @copyright (c) 2016, NetEase Inc. All rights reserved
+ * @author Redrain
+ * @date 2016/7/19
+ */
 class CefMemoryDC
 {
 public:
@@ -34,7 +33,7 @@ public:
     // 获取内存位图数据指针，可用于填充位图
     BYTE* GetBits();
     // 获取内存位图的宽度
-    int    GetWidth();
+    int GetWidth();
     // 获取内存位图的高度
     int GetHeight();
 
@@ -42,13 +41,13 @@ private:
     bool CreateMemoryDC(HDC src_dc, int width, int height, void** pBits);
 
 private:
-    HDC        mem_dc_;
-    HBITMAP    bitmap_;
-    HBITMAP    old_bitmap_;
-    BITMAP    bitmap_info_;
+    HDC m_hMemDC;
+    HBITMAP m_pBitmap;
+    HBITMAP m_pOldBitmap;
+    BITMAP m_bitmapInfo;
 
-    SIZE    bitmap_size_;
-    bool    valid_;
+    SIZE m_bitmapSize;
+    bool m_bValid;
 };
 
 } //namespace ui

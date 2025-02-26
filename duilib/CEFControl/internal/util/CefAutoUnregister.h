@@ -14,62 +14,61 @@ class CefAutoUnregister
 public:
     CefAutoUnregister()
     {
-
     }
 
     void Add(const CefUnregisterCallback& cb)
     {
-        cb_list_.emplace_back(cb);
+        m_callbackList.emplace_back(cb);
     }
     void Add(CefUnregisterCallback&& cb)
     {
-        cb_list_.emplace_back(std::forward<CefUnregisterCallback>(cb));
+        m_callbackList.emplace_back(std::forward<CefUnregisterCallback>(cb));
     }
 
     ~CefAutoUnregister()
     {
-        for (auto iter = cb_list_.begin(); iter != cb_list_.end(); iter ++)
+        for (auto iter = m_callbackList.begin(); iter != m_callbackList.end(); iter++) {
             (*iter)();
+        }
     }
 
 private:
-    std::list<CefUnregisterCallback> cb_list_;
+    std::list<CefUnregisterCallback> m_callbackList;
 };
 template<typename TCallback>
 class CefUnregistedCallbackList : public virtual ui::SupportWeakCallback
 {
 public:
     CefUnregistedCallbackList() {}
-    ~CefUnregistedCallbackList(){ element_list_.clear(); };
-    void Clear() { element_list_.clear(); }
+    ~CefUnregistedCallbackList(){ m_elementList.clear(); };
+    void Clear() { m_elementList.clear(); }
     CefUnregisterCallback AddCallback(const TCallback& cb)
     {
         auto new_cb = std::make_shared<TCallback>(cb);
         size_t cb_id = (size_t)new_cb.get();
-        element_list_.insert(std::make_pair(cb_id, new_cb));
+        m_elementList.insert(std::make_pair(cb_id, new_cb));
         return ToWeakCallback([this, cb_id]() {
-            element_list_.erase(cb_id);
+            m_elementList.erase(cb_id);
         });
     }
     CefUnregisterCallback AddCallback(TCallback&& cb)
     {
         auto new_cb = std::make_shared<TCallback>(std::forward<TCallback>(cb));
         size_t cb_id = (size_t)new_cb.get();
-        element_list_.insert(std::make_pair(cb_id, new_cb));
+        m_elementList.insert(std::make_pair(cb_id, new_cb));
         return ToWeakCallback([this, cb_id]() {
-            element_list_.erase(cb_id);
+            m_elementList.erase(cb_id);
         });
     }
     template<typename... TParams>
     void operator ()(const TParams&... params)
     {
-        for (auto& it : element_list_)
-        {
+        for (auto& it : m_elementList) {
             (*it.second)(params...);
         }
     }    
 private:
-    std::unordered_map<size_t, std::shared_ptr<TCallback>> element_list_;
+    std::unordered_map<size_t, std::shared_ptr<TCallback>> m_elementList;
 };
 
 }

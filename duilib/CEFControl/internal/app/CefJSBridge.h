@@ -136,16 +136,33 @@ public:
     static CefString Int64ToCefString(int64_t nValue);
 
 private:
-    uint32_t                        js_callback_id_ = 0;            // JS 端回调函数的索引计数
-    uint32_t                        cpp_callback_id_ = 0;            // C++ 端回调函数的索引计数
+    // JS 端回调函数?索引计数
+    uint32_t m_jsCallbackId = 0;
+     
+    // C++ 端回调函??的索引计数
+    uint32_t m_cppCallbackId = 0;
 
-    RenderCallbackMap            render_callback_;                // JS 端回调函数的对应列表
-    BrowserCallbackMap            browser_callback_;                // C++ 端回调函数的对应列表
+    // JS 端回调函数的对??列表
+    RenderCallbackMap m_renderCallbackMap;
+    
+    // C++ 端回调函数的对?列表
+    BrowserCallbackMap m_browserCallbackMap;
 
-    RenderRegisteredFunction    render_registered_function_;    // 保存 JS 端已经注册好的持久函数列表
-    BrowserRegisteredFunction    browser_registered_function_;    // 保存 C++ 端已经注册好的持久函数列表
+    // 保存 JS 端已经注册??的持久函数列表
+    RenderRegisteredFunction m_renderRegisteredFunction; 
+    
+    // 保存 C++ 端已经注册?的持久函数列表
+    BrowserRegisteredFunction m_browserRegisteredFunction;
 };
 
 }
 
 #endif //UI_CEF_CONTROL_CEF_JS_BRIDGE_H_
+
+
+
+
+
+
+
+
