@@ -4,13 +4,13 @@ namespace ui {
 
 CefMemoryDC::CefMemoryDC() 
 {
-    bitmap_ = NULL;
-    old_bitmap_ = NULL;
-    mem_dc_ = NULL;
-    memset(&bitmap_info_, 0, sizeof(bitmap_info_));
+    m_pBitmap = nullptr;
+    m_pOldBitmap = nullptr;
+    m_hMemDC = nullptr;
+    memset(&m_bitmapInfo, 0, sizeof(m_bitmapInfo));
 
-    bitmap_size_.cx = bitmap_size_.cy = 0;
-    valid_ = false;
+    m_bitmapSize.cx = m_bitmapSize.cy = 0;
+    m_bValid = false;
 }
 
 CefMemoryDC::~CefMemoryDC()
@@ -20,43 +20,37 @@ CefMemoryDC::~CefMemoryDC()
 
 void CefMemoryDC::DeleteDC()
 {
-    if (old_bitmap_ != NULL)
-    {
-        ::SelectObject(mem_dc_, old_bitmap_);
-        old_bitmap_ = NULL;
+    if (m_pOldBitmap != nullptr) {
+        ::SelectObject(m_hMemDC, m_pOldBitmap);
+        m_pOldBitmap = nullptr;
     }
-    if (bitmap_ != NULL)
-    {
-        ::DeleteObject(bitmap_);
-        bitmap_ = NULL;
+    if (m_pBitmap != nullptr) {
+        ::DeleteObject(m_pBitmap);
+        m_pBitmap = nullptr;
     }
-    if (mem_dc_ != NULL)
-    {
-        ::DeleteDC(mem_dc_);
-        mem_dc_ = NULL;
+    if (m_hMemDC != nullptr)  {
+        ::DeleteDC(m_hMemDC);
+        m_hMemDC = nullptr;
     }
-    memset(&bitmap_info_, 0, sizeof(bitmap_info_));
-    valid_ = false;
+    memset(&m_bitmapInfo, 0, sizeof(m_bitmapInfo));
+    m_bValid = false;
 }
 
-bool CefMemoryDC::Init(HDC src_dc, int width, int height, const LPVOID pBits/*=NULL*/)
+bool CefMemoryDC::Init(HDC src_dc, int width, int height, const LPVOID pBits/*=nullptr*/)
 {
     DeleteDC();
 
-    LPVOID pBmpBits = NULL;
+    LPVOID pBmpBits = nullptr;
     bool bRet = CreateMemoryDC(src_dc, width, height, &pBmpBits);
-    if (bRet)
-    {
-        bitmap_size_.cx = width;
-        bitmap_size_.cy = height;
-        int stride = bitmap_size_.cx * 4;
-        if (pBits)
-        {
-            memcpy(pBmpBits, pBits, stride*bitmap_size_.cy);
+    if (bRet) {
+        m_bitmapSize.cx = width;
+        m_bitmapSize.cy = height;
+        int stride = m_bitmapSize.cx * 4;
+        if (pBits) {
+            memcpy(pBmpBits, pBits, stride*m_bitmapSize.cy);
         }
-        else
-        {
-            memset(pBmpBits, 0, stride*bitmap_size_.cy);
+        else {
+            memset(pBmpBits, 0, stride*m_bitmapSize.cy);
         }
     }
 
@@ -65,10 +59,11 @@ bool CefMemoryDC::Init(HDC src_dc, int width, int height, const LPVOID pBits/*=N
 
 bool CefMemoryDC::CreateMemoryDC(HDC src_dc, int width, int height, void** pBits)
 {
-    if (mem_dc_ != NULL || src_dc == NULL || width == 0 || height == 0)
+    if (m_hMemDC != nullptr || src_dc == nullptr || width == 0 || height == 0) {
         return false;
+    }
 
-    mem_dc_ = ::CreateCompatibleDC(src_dc);
+    m_hMemDC = ::CreateCompatibleDC(src_dc);
 
     BITMAPINFO bmi;
     ::ZeroMemory(&bmi, sizeof(bmi));
@@ -80,48 +75,48 @@ bool CefMemoryDC::CreateMemoryDC(HDC src_dc, int width, int height, void** pBits
     bmi.bmiHeader.biCompression = BI_RGB;
     bmi.bmiHeader.biSizeImage = width * height * 4;
 
-    bitmap_ = ::CreateDIBSection(src_dc, &bmi, DIB_RGB_COLORS, pBits, NULL, 0);
-    old_bitmap_ = (HBITMAP)::SelectObject(mem_dc_, bitmap_);
+    m_pBitmap = ::CreateDIBSection(src_dc, &bmi, DIB_RGB_COLORS, pBits, nullptr, 0);
+    m_pOldBitmap = (HBITMAP)::SelectObject(m_hMemDC, m_pBitmap);
 
-    ::GetObject(bitmap_, sizeof(bitmap_info_), &bitmap_info_);
-    valid_ = true;
+    ::GetObject(m_pBitmap, sizeof(m_bitmapInfo), &m_bitmapInfo);
+    m_bValid = true;
 
     return true;
 }
 
 BYTE* CefMemoryDC::GetBits()
 {
-    ASSERT(valid_);
-    BYTE *pPiexl = LPBYTE(bitmap_info_.bmBits);
-    ASSERT(pPiexl != NULL);
+    ASSERT(m_bValid);
+    BYTE *pPiexl = LPBYTE(m_bitmapInfo.bmBits);
+    ASSERT(pPiexl != nullptr);
     return pPiexl;
 }
 
 int CefMemoryDC::GetWidth()
 {
-    return bitmap_size_.cx;
+    return m_bitmapSize.cx;
 }
 
 int CefMemoryDC::GetHeight()
 {
-    return bitmap_size_.cy;
+    return m_bitmapSize.cy;
 }
 
 HBITMAP CefMemoryDC::GetBitmap()
 {
-    ASSERT(bitmap_ != NULL && valid_);
-    return bitmap_;
+    ASSERT(m_pBitmap != nullptr && m_bValid);
+    return m_pBitmap;
 }
 
 HDC CefMemoryDC::GetDC()
 {
-    ASSERT(mem_dc_ != NULL);
-    return mem_dc_;
+    ASSERT(m_hMemDC != nullptr);
+    return m_hMemDC;
 }
 
 bool CefMemoryDC::IsValid()
 {
-    return valid_ && mem_dc_ != NULL && bitmap_ != NULL;
+    return m_bValid && m_hMemDC != nullptr && m_pBitmap != nullptr;
 }
 
 } //namespace ui
