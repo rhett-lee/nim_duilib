@@ -52,15 +52,15 @@ public:
 
     // 设置委托类指针，浏览器对象的一些事件会交给此指针对象来处理
     // 当指针所指的对象不需要处理事件时，应该给参数传入NULL
-    void SetHandlerDelegate(CefBrowserHandlerDelegate* handler){ handle_delegate_ = handler; }
+    void SetHandlerDelegate(CefBrowserHandlerDelegate* handler){ m_pHandleDelegate = handler; }
 
     // 设置Cef渲染内容的大小
     void SetViewRect(const UiRect& rc);
 
     // 当前Web页面中获取焦点的元素是否可编辑
-    bool IsCurFieldEditable(){ return is_focus_oneditable_field_; }
+    bool IsCurFieldEditable(){ return m_bFocusOnEditableField; }
 
-    CefRefPtr<CefBrowser> GetBrowser(){ return browser_; }
+    CefRefPtr<CefBrowser> GetBrowser(){ return m_browser; }
 
     CefRefPtr<CefBrowserHost> GetBrowserHost();
 
@@ -402,21 +402,22 @@ private:
                          CefRefPtr<CefDictionaryValue>& extra_info,
                          bool* no_javascript_access);
 
-protected:
+private:
     base::Lock lock_;
-    CefRefPtr<CefBrowser>    browser_;
-    std::vector<CefRefPtr<CefBrowser>> browser_list_;
-    ui::Window*                window_;
-    std::weak_ptr<ui::WeakFlag> window_flag_;    
-    CefBrowserHandlerDelegate* handle_delegate_;
+    CefRefPtr<CefBrowser> m_browser;
+    std::vector<CefRefPtr<CefBrowser>> m_browserList;
+    ui::Window* m_pWindow;
+    std::weak_ptr<ui::WeakFlag> m_windowFlag;    
+    CefBrowserHandlerDelegate* m_pHandleDelegate;
     //控件的位置
     UiRect m_rcCefControl;
-    std::string                paint_buffer_;
-    bool                    is_focus_oneditable_field_;
-    CefUnregistedCallbackList<ui::StdClosure>    task_list_after_created_;
+    std::string m_paintBuffer;
+    bool m_bFocusOnEditableField;
+    CefUnregistedCallbackList<ui::StdClosure> m_taskListAfterCreated;
 
-    client::DropTargetHandle drop_target_;
-    CefRenderHandler::DragOperation current_drag_op_;
+    client::DropTargetHandle m_dropTarget;
+    CefRenderHandler::DragOperation m_currentDragOperation;
+
     IMPLEMENT_REFCOUNTING(CefBrowserHandler);
 };
 }
