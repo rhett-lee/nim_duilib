@@ -12,8 +12,45 @@
 #include "include/base/cef_callback.h"
 #pragma warning (pop)
 
-//TODO: 
-#pragma comment (lib, "libcef.lib")
+#if CEF_VERSION_MAJOR <= 109
+    //CEF 109版本
+    #ifdef _WIN64
+        //64位操作系统
+        #pragma comment (lib, "duilib/third_party/libcef109/lib/x64/libcef.lib")
+        #ifdef _DEBUG
+            #pragma comment (lib, "Libs/x64/libcef_dll_wrapper_109_d.lib")
+        #else
+            #pragma comment (lib, "Libs/x64/libcef_dll_wrapper_109.lib")
+        #endif
+    #else
+        //32位操作系统
+        #pragma comment (lib, "duilib/third_party/libcef109/lib/Win32/libcef.lib")
+        #ifdef _DEBUG
+            #pragma comment (lib, "Libs/libcef_dll_wrapper_109_d.lib")
+        #else
+            #pragma comment (lib, "Libs/libcef_dll_wrapper_109.lib")
+        #endif
+    #endif
+#else
+    //CEF 高版本
+    #ifdef _WIN64
+        //64位操作系统
+        #pragma comment (lib, "duilib/third_party/libcef/lib/x64/libcef.lib")
+        #ifdef _DEBUG
+            #pragma comment (lib, "Libs/x64/libcef_dll_wrapper_d.lib")
+        #else
+            #pragma comment (lib, "Libs/x64/libcef_dll_wrapper.lib")
+        #endif
+    #else
+        //32位操作系统
+        #pragma comment (lib, "duilib/third_party/libcef/lib/Win32/libcef.lib")
+        #ifdef _DEBUG
+            #pragma comment (lib, "Libs/libcef_dll_wrapper_d.lib")
+        #else
+            #pragma comment (lib, "Libs/libcef_dll_wrapper.lib")
+        #endif
+    #endif
+#endif
 
 namespace ui
 {
@@ -55,14 +92,26 @@ void CefManager::AddCefDllToPath()
     
     ui::FilePath cef_path = ui::FilePathUtil::GetCurrentModuleDirectory();
 
-#ifdef _WIN64
-    cef_path += _T("libcef\\x64");
+#if CEF_VERSION_MAJOR <= 109
+    //CEF 109版本
+    #ifdef _WIN64
+        cef_path += _T("libcef109\\x64");
+    #else
+        cef_path += _T("libcef109\\Win32");
+    #endif
 #else
-    cef_path += _T("libcef\\Win32");
+    //CEF 高版本
+    #ifdef _WIN64
+        cef_path += _T("libcef\\x64");
+    #else
+        cef_path += _T("libcef\\Win32");
+    #endif
 #endif
 
+
+
     if (!cef_path.IsExistsDirectory()) {
-        ::MessageBoxW(NULL, L"请解压Cef.rar压缩包", L"提示", MB_OK);
+        ::MessageBoxW(NULL, L"请解压CEF压缩包，将libcef.dll释放到bin目录", L"提示", MB_OK);
         exit(0);
     }
     DString new_envirom(cef_path.NativePath());

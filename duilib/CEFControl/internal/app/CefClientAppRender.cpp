@@ -3,6 +3,7 @@
 #include "duilib/CEFControl/internal/app/CefJsHandler.h"
 #include "duilib/CEFControl/internal/app/CefIPCStringDefs.h"
 #include "duilib/CEFControl/internal/app/CefJSBridge.h"
+#include "duilib/Utils/StringUtil.h"
 
 namespace ui
 {
@@ -100,16 +101,24 @@ void CefClientApp::OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
 }
 
 bool CefClientApp::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
-                                            CefRefPtr<CefFrame> frame,
+                                            CefRefPtr<CefFrame> /*frame*/,
                                             CefProcessId source_process,
                                             CefRefPtr<CefProcessMessage> message)
 {
     (void)source_process;
     ASSERT(source_process == PID_BROWSER);
+    ASSERT(message != nullptr);
+    if (message == nullptr) {
+        return false;
+    }
+    ASSERT(browser != nullptr);
+    if (browser == nullptr) {
+        return false;
+    }
+
     // 收到 browser 的消息回复
     const CefString& message_name = message->GetName();
-    if (message_name == kExecuteJsCallbackMessage)
-    {
+    if (message_name == kExecuteJsCallbackMessage) {
         int callback_id = message->GetArgumentList()->GetInt(0);
         bool has_error = message->GetArgumentList()->GetBool(1);
         CefString json_string = message->GetArgumentList()->GetString(2);
@@ -117,16 +126,29 @@ bool CefClientApp::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
         // 将收到的参数通过管理器传递给调用时传递的回调函数
         render_js_bridge_->ExecuteJSCallbackFunc(callback_id, has_error, json_string);
     }
-    else if (message_name == kCallJsFunctionMessage)
-    {
+    else if (message_name == kCallJsFunctionMessage) {
         CefString function_name = message->GetArgumentList()->GetString(0);
         CefString json_string = message->GetArgumentList()->GetString(1);
         int cpp_callback_id = message->GetArgumentList()->GetInt(2);
         CefString frame_id_string = message->GetArgumentList()->GetString(3);
 
+        CefRefPtr<CefFrame> jsFrame;
+        if (frame_id_string.empty()) {
+            jsFrame = browser->GetMainFrame();
+        }
+        else {
+#if CEF_VERSION_MAJOR <= 109
+            //CEF 109版本
+            jsFrame = browser->GetFrame(StringUtil::StringToInt64(frame_id_string.c_str()));
+#else
+            //CEF 高版本
+            jsFrame = browser->GetFrameByIdentifier(frame_id_string);
+#endif
+        }
+
         // 通过 C++ 执行一个已经注册过的 JS 方法
         // frame_id 小于 0 则可能是 browser 进程的 browser 是无效的，所以这里为了避免出现错误就获取一个顶层 frame 执行代码
-        render_js_bridge_->ExecuteJSFunc(function_name, json_string, frame_id_string.empty() ? browser->GetMainFrame() : browser->GetFrameByIdentifier(frame_id_string), cpp_callback_id);
+        render_js_bridge_->ExecuteJSFunc(function_name, json_string, jsFrame, cpp_callback_id);
     }
 
     return false;

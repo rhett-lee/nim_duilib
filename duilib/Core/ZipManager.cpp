@@ -126,8 +126,8 @@ bool ZipManager::GetZipData(const FilePath& path, std::vector<unsigned char>& fi
     fileData.resize(file_info.uncompressed_size);
     nRet = ::unzReadCurrentFile(m_hzip, &fileData[0], (uLong)fileData.size());
     ::unzCloseCurrentFile(m_hzip);
-    ASSERT(nRet == fileData.size());
-    if (nRet != fileData.size()) {
+    ASSERT(nRet == (int)fileData.size());
+    if (nRet != (int)fileData.size()) {
         fileData.clear();
         return false;
     }

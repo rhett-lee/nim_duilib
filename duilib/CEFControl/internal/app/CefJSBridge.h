@@ -130,6 +130,11 @@ public:
      */
     bool ExecuteCppFunc(const CefString& function_name, const CefString& params, int js_callback_id, CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame);
 
+public:
+    /** 将64位整型值转换为CefString
+    */
+    static CefString Int64ToCefString(int64_t nValue);
+
 private:
     uint32_t                        js_callback_id_ = 0;            // JS 端回调函数的索引计数
     uint32_t                        cpp_callback_id_ = 0;            // C++ 端回调函数的索引计数

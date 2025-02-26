@@ -35,10 +35,17 @@ private:
     virtual void OnRegisterCustomPreferences(cef_preferences_type_t type, CefRawPtr<CefPreferenceRegistrar> registrar) override;
     virtual void OnContextInitialized() override;
     virtual void OnBeforeChildProcessLaunch(CefRefPtr<CefCommandLine> command_line) override;
+#if CEF_VERSION_MAJOR > 109
+    //CEF 高版本
     virtual bool OnAlreadyRunningAppRelaunch(CefRefPtr<CefCommandLine> command_line, const CefString& current_directory) override;
+#endif
     virtual void OnScheduleMessagePumpWork(int64_t delay_ms) override;
     virtual CefRefPtr<CefClient> GetDefaultClient() override;
+
+#if CEF_VERSION_MAJOR > 109
+    //CEF 高版本
     virtual CefRefPtr<CefRequestContextHandler> GetDefaultRequestContextHandler() override;
+#endif
 
     // CefRenderProcessHandler接口的实现
     virtual void OnWebKitInitialized() override;

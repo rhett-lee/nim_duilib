@@ -175,7 +175,19 @@ bool CefControlBase::CallJSFunction(const DString& js_function_name, const DStri
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() && js_bridge_.get())
     {
-        CefRefPtr<CefFrame> frame = frame_name == _T("") ? browser_handler_->GetBrowser()->GetMainFrame() : browser_handler_->GetBrowser()->GetFrameByName(frame_name);
+        CefRefPtr<CefFrame> frame;
+        if (frame_name.empty()) {
+            frame = browser_handler_->GetBrowser()->GetMainFrame();
+        }
+        else {
+#if CEF_VERSION_MAJOR <= 109
+            //CEF 109版本
+            frame = browser_handler_->GetBrowser()->GetFrame(frame_name);
+#else
+            //CEF 高版本
+            frame = browser_handler_->GetBrowser()->GetFrameByName(frame_name);
+#endif
+        }
 
         if (!js_bridge_->CallJSFunction(ui::StringConvert::TToUTF8(js_function_name).c_str(),
             ui::StringConvert::TToUTF8(params).c_str(), frame, callback))
@@ -193,8 +205,19 @@ bool CefControlBase::CallJSFunction(const DString& js_function_name, const DStri
 {
     if (browser_handler_.get() && browser_handler_->GetBrowser().get() && js_bridge_.get())
     {
-        CefRefPtr<CefFrame> frame = browser_handler_->GetBrowser()->GetFrameByIdentifier(frame_id);
-
+        CefRefPtr<CefFrame> frame;
+        if (frame_id.empty()) {
+            frame = browser_handler_->GetBrowser()->GetMainFrame();
+        }
+        else {
+#if CEF_VERSION_MAJOR <= 109
+            //CEF 109版本
+            frame = browser_handler_->GetBrowser()->GetFrame(StringUtil::StringToInt64(frame_id.c_str()));
+#else
+            //CEF 高版本
+            frame = browser_handler_->GetBrowser()->GetFrameByIdentifier(frame_id);
+#endif
+        }
         if (!js_bridge_->CallJSFunction(ui::StringConvert::TToUTF8(js_function_name).c_str(),
             ui::StringConvert::TToUTF8(params).c_str(), frame, callback))
         {
