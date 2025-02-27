@@ -36,8 +36,10 @@ CefControl::~CefControl(void)
 
 void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& /*dirtyRects*/, const std::string* buffer, int width, int height)
 {
+    //只有离屏渲染才会走这个绘制接口
     //必须不使用缓存，否则绘制异常
     ASSERT(IsUseCache() == false);
+
 
     if (nullptr == buffer) {
         return;
@@ -56,10 +58,9 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
             memcpy(pDst, (char*)buffer->c_str(), height * width * 4);
         }
     }
-    else if (type == PET_POPUP && m_pCefDC->IsValid() && m_rectPopup.width > 0 && m_rectPopup.height > 0)
-    {
+    else if (type == PET_POPUP) {
         // 单独保存popup窗口的位图
-        if (m_pCefPopupDC->GetWidth() != width || m_pCefPopupDC->GetHeight() != height) {
+        if ((m_pCefPopupDC->GetWidth() != width) || (m_pCefPopupDC->GetHeight() != height)) {
             HWND hWnd = GetWindow()->NativeWnd()->GetHWND();
             HDC hDC = ::GetDC(hWnd);
             m_pCefPopupDC->Init(hDC, width, height);
@@ -86,9 +87,10 @@ void CefControl::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
 {
     if (!show) {
         // 当popup窗口隐藏时，刷新popup区域
-        CefRect rect_dirty = m_rectPopup;
         m_rectPopup.Set(0, 0, 0, 0);
-        browser->GetHost()->Invalidate(PET_VIEW);
+        if (browser->GetHost() != nullptr) {
+            browser->GetHost()->Invalidate(PET_VIEW);
+        }
     }
 }
 
@@ -181,8 +183,11 @@ void CefControl::SetVisible(bool bVisible)
 void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 {
     BaseClass::Paint(pRender, rcPaint);
+    if ((pRender == nullptr) || (m_pBrowserHandler == nullptr) || (m_pBrowserHandler->GetBrowser() == nullptr)) {
+        return;
+    }
 
-    if (m_pCefDC->IsValid() && m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get()) {
+    if (m_pCefDC->IsValid()) {
         // 绘制cef PET_VIEW类型的位图
         ui::UiRect rect = GetRect();
 
@@ -198,24 +203,15 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
         // 绘制cef PET_POPUP类型的位图
         if (!m_rectPopup.IsEmpty() && m_pCefPopupDC->IsValid()) {
             // 假如popup窗口位置在控件的范围外，则修正到控件范围内，指绘制控件范围内的popup窗口
-            int paint_x = m_rectPopup.x;
-            int paint_y = m_rectPopup.y;
-            int paint_buffer_x = 0;
-            int paint_buffer_y = 0;
-            if (m_rectPopup.x < 0) {
-                paint_x = 0;
-                paint_buffer_x = -m_rectPopup.x;
+            dcPaint = GetRect();
+            dcPaint.left += Dpi().GetScaleInt(m_rectPopup.x);
+            dcPaint.top += Dpi().GetScaleInt(m_rectPopup.y);
+            dcPaint.right = dcPaint.left + m_pCefPopupDC->GetWidth();
+            dcPaint.bottom = dcPaint.top + m_pCefPopupDC->GetHeight();
+            if (!rcPaint.IsEmpty()) {
+                bool bRet = pRender->WritePixels(m_pCefPopupDC->GetBits(), m_pCefPopupDC->GetWidth() * m_pCefPopupDC->GetHeight() * sizeof(uint32_t), dcPaint);
+                ASSERT_UNUSED_VARIABLE(bRet);
             }
-            if (m_rectPopup.y < 0) {
-                paint_y = 0;
-                paint_buffer_y = -m_rectPopup.y;
-            }
-            rect = GetRect();
-
-            ASSERT(false);
-            //TODO: 待测试，修正
-            //原始代码
-            //pRender->BitBlt(rect.left + paint_x, rect.top + paint_y, m_rectPopup.width, m_rectPopup.height, bitmap.get(), paint_buffer_x, paint_buffer_y, ui::RopMode::kSrcCopy);
         }
     }
 }
