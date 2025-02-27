@@ -48,7 +48,7 @@ public:
 
     //CefLoadHandler接口
     virtual void OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward) = 0;
-    virtual void OnLoadStart(CefRefPtr<CefBrowser> browser,    CefRefPtr<CefFrame> frame) = 0;
+    virtual void OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t transition_type) = 0;
     virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) = 0;
     virtual void OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
                              CefLoadHandler::ErrorCode errorCode,
@@ -58,6 +58,7 @@ public:
     //CefLifeSpanHandler接口, 在非UI线程中被调用
     virtual bool OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                CefRefPtr<CefFrame> frame,
+                               int popup_id,//仅在CEF 133及以上版本存在
                                const CefString& target_url,
                                const CefString& target_frame_name,
                                CefLifeSpanHandler::WindowOpenDisposition target_disposition,
@@ -71,7 +72,7 @@ public:
     virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) = 0;
 
     //CefRequestHandler接口, 在非UI线程中被调用
-    virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool is_redirect) = 0;
+    virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool user_gesture, bool is_redirect) = 0;
 
     //CefResourceRequestHandler接口
     virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution) = 0;
@@ -83,7 +84,10 @@ public:
                                                     CefRefPtr<CefCallback> callback) = 0;
 
     //CefRequestHandler接口
-    virtual void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, CefRequestHandler::TerminationStatus status) = 0;
+    virtual void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
+                                           CefRequestHandler::TerminationStatus status,
+                                           int error_code,
+                                           CefString error_string) = 0;
 
     //CefDownloadHandler接口 文件下载相关
     virtual void OnBeforeDownload(CefRefPtr<CefBrowser> browser,
@@ -100,8 +104,9 @@ public:
                               const CefString& title,
                               const CefString& default_file_path,
                               const std::vector<CefString>& accept_filters,
-                              int selected_accept_filter,
-                              CefRefPtr<CefFileDialogCallback> callback) = 0;
+                              const std::vector<CefString>& accept_extensions,
+                              const std::vector<CefString>& accept_descriptions,
+                              CefRefPtr<CefFileDialogCallback> callback)  = 0;
 
 public:
     /** 客户区坐标转换为控件坐标

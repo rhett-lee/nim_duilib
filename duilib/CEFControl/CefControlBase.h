@@ -270,7 +270,7 @@ public:
 
     //CefLoadHandler接口
     virtual void OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward) override;
-    virtual void OnLoadStart(CefRefPtr<CefBrowser> browser,    CefRefPtr<CefFrame> frame) override;
+    virtual void OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t transition_type) override;
     virtual void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode) override;
     virtual void OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame,
                              CefLoadHandler::ErrorCode errorCode,
@@ -280,6 +280,7 @@ public:
     //CefLifeSpanHandler接口, 在非UI线程中被调用
     virtual bool OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                CefRefPtr<CefFrame> frame,
+                               int popup_id,//仅在CEF 133及以上版本存在
                                const CefString& target_url,
                                const CefString& target_frame_name,
                                CefLifeSpanHandler::WindowOpenDisposition target_disposition,
@@ -293,7 +294,7 @@ public:
     virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
 
     //CefRequestHandler接口, 在非UI线程中被调用
-    virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool is_redirect) override;
+    virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool user_gesture, bool is_redirect) override;
 
     //CefResourceRequestHandler接口
     virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution) override;
@@ -305,7 +306,10 @@ public:
                                                     CefRefPtr<CefCallback> callback) override;
 
     //CefRequestHandler接口
-    virtual void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, CefRequestHandler::TerminationStatus status) override;
+    virtual void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
+                                           CefRequestHandler::TerminationStatus status,
+                                           int error_code,
+                                           CefString error_string) override;
 
     //CefDownloadHandler接口 文件下载相关
     virtual void OnBeforeDownload(CefRefPtr<CefBrowser> browser,
@@ -322,7 +326,8 @@ public:
                               const CefString& title,
                               const CefString& default_file_path,
                               const std::vector<CefString>& accept_filters,
-                              int selected_accept_filter,
+                              const std::vector<CefString>& accept_extensions,
+                              const std::vector<CefString>& accept_descriptions,
                               CefRefPtr<CefFileDialogCallback> callback) override;
 
 public:

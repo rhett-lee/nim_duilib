@@ -309,7 +309,7 @@ void CefControlBase::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool is
     }
 }
 
-void CefControlBase::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
+void CefControlBase::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t transition_type)
 {
     if (m_pfnLoadStart) {
         m_pfnLoadStart();
@@ -332,6 +332,7 @@ void CefControlBase::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFra
 
 bool CefControlBase::OnBeforePopup(CefRefPtr<CefBrowser> /*browser*/,
                                    CefRefPtr<CefFrame> /*frame*/,
+                                   int popup_id,
                                    const CefString& target_url,
                                    const CefString& /*target_frame_name*/,
                                    CefLifeSpanHandler::WindowOpenDisposition /*target_disposition*/,
@@ -345,7 +346,7 @@ bool CefControlBase::OnBeforePopup(CefRefPtr<CefBrowser> /*browser*/,
     if (m_pfnLinkClick && !target_url.empty()) {
         return m_pfnLinkClick(target_url);
     }
-    return false;
+    return true;
 }
 
 bool CefControlBase::OnAfterCreated(CefRefPtr<CefBrowser> browser)
@@ -363,11 +364,11 @@ void CefControlBase::OnBeforeClose(CefRefPtr<CefBrowser> browser)
     }
 }
 
-bool CefControlBase::OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool is_redirect)
+bool CefControlBase::OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool user_gesture, bool is_redirect)
 {
     bool result = false; 
     if (m_pfnBeforeBrowse) {
-        result = m_pfnBeforeBrowse(browser, frame, request, is_redirect);
+        result = m_pfnBeforeBrowse(browser, frame, request, user_gesture, is_redirect);
     }
     return result;
 }
@@ -387,7 +388,10 @@ cef_return_value_t CefControlBase::OnBeforeResourceLoad(CefRefPtr<CefBrowser> br
     return RV_CONTINUE;
 }
 
-void CefControlBase::OnRenderProcessTerminated(CefRefPtr<CefBrowser> /*browser*/, CefRequestHandler::TerminationStatus /*status*/)
+void CefControlBase::OnRenderProcessTerminated(CefRefPtr<CefBrowser> /*browser*/,
+                                               CefRequestHandler::TerminationStatus /*status*/,
+                                               int error_code,
+                                               CefString error_string)
 {
     return;
 }
@@ -406,10 +410,17 @@ void CefControlBase::OnDownloadUpdated(CefRefPtr<CefBrowser> browser, CefRefPtr<
     }
 }
 
-bool CefControlBase::OnFileDialog(CefRefPtr<CefBrowser> browser, CefDialogHandler::FileDialogMode mode, const CefString& title, const CefString& default_file_path, const std::vector<CefString>& accept_filters, int selected_accept_filter, CefRefPtr<CefFileDialogCallback> callback)
+bool CefControlBase::OnFileDialog(CefRefPtr<CefBrowser> browser,
+                                  CefBrowserHost::FileDialogMode mode,
+                                  const CefString& title,
+                                  const CefString& default_file_path,
+                                  const std::vector<CefString>& accept_filters,
+                                  const std::vector<CefString>& accept_extensions,
+                                  const std::vector<CefString>& accept_descriptions,
+                                  CefRefPtr<CefFileDialogCallback> callback)
 {
     if (m_pfnFileDialog) {
-        return m_pfnFileDialog(mode, title, default_file_path, accept_filters, selected_accept_filter, callback);
+        return m_pfnFileDialog(browser, mode, title, default_file_path, accept_filters, accept_extensions, accept_descriptions, callback);
     }
     return false;        
 }
