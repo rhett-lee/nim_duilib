@@ -52,7 +52,7 @@ public:
 
     // 设置委托类指针，浏览器对象的一些事件会交给此指针对象来处理
     // 当指针所指的对象不需要处理事件时，应该给参数传入NULL
-    void SetHandlerDelegate(CefBrowserHandlerDelegate* handler){ m_pHandleDelegate = handler; }
+    void SetHandlerDelegate(CefBrowserHandlerDelegate* handler){ m_pHandlerDelegate = handler; }
 
     // 设置Cef渲染内容的大小
     void SetViewRect(const UiRect& rc);
@@ -408,7 +408,7 @@ private:
     std::vector<CefRefPtr<CefBrowser>> m_browserList;
     ui::Window* m_pWindow;
     std::weak_ptr<ui::WeakFlag> m_windowFlag;    
-    CefBrowserHandlerDelegate* m_pHandleDelegate;
+    CefBrowserHandlerDelegate* m_pHandlerDelegate;
     //控件的位置
     UiRect m_rcCefControl;
     std::string m_paintBuffer;
