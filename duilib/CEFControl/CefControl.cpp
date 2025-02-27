@@ -126,6 +126,8 @@ void CefControl::ReCreateBrowser()
         CefWindowInfo window_info;
         window_info.SetAsWindowless(GetWindow()->NativeWnd()->GetHWND());
         CefBrowserSettings browser_settings;
+        //背景色：设置为白色（如果不设置的话，是透明的，网页如果不设置背景色，则背景会被显示为黑色）
+        browser_settings.background_color = CefColorSetARGB(255, 255, 255, 255);
         //browser_settings.file_access_from_file_urls = STATE_ENABLED;
         //browser_settings.universal_access_from_file_urls = STATE_ENABLED;
         CefBrowserHost::CreateBrowser(window_info, m_pBrowserHandler, _T(""), browser_settings, nullptr, nullptr);
