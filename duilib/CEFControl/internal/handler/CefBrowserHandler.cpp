@@ -90,9 +90,9 @@ void CefBrowserHandler::CloseAllBrowser()
 }
 
 bool CefBrowserHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
-                                             CefRefPtr<CefFrame> frame,
-                                             CefProcessId /*source_process*/,
-                                             CefRefPtr<CefProcessMessage> message)
+                                                 CefRefPtr<CefFrame> frame,
+                                                 CefProcessId /*source_process*/,
+                                                 CefRefPtr<CefProcessMessage> message)
 {
     // 处理render进程发来的消息
     std::string message_name = message->GetName();
@@ -139,7 +139,7 @@ bool CefBrowserHandler::DoOnBeforePopup(CefRefPtr<CefBrowser> browser,
     if (m_browser.get() && !target_url.empty()) {
         if (m_pHandleDelegate) {
             // 返回true则继续在控件内打开新链接，false则禁止访问
-            bool bRet = m_pHandleDelegate->OnBeforePopup(browser, frame, target_url, target_frame_name, target_disposition, user_gesture, popupFeatures, windowInfo, client, settings, no_javascript_access);
+            bool bRet = m_pHandleDelegate->OnBeforePopup(browser, frame, popup_id, target_url, target_frame_name, target_disposition, user_gesture, popupFeatures, windowInfo, client, settings, no_javascript_access);
             if (bRet) {
                 if (m_browser->GetMainFrame() != nullptr) {
                     m_browser->GetMainFrame()->LoadURL(target_url);
@@ -608,25 +608,25 @@ void CefBrowserHandler::OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, Ce
 }
 
 bool CefBrowserHandler::RunQuickMenu(CefRefPtr<CefBrowser> browser,
-                                  CefRefPtr<CefFrame> frame,
-                                  const CefPoint& location,
-                                  const CefSize& size,
-                                  QuickMenuEditStateFlags edit_state_flags,
-                                  CefRefPtr<CefRunQuickMenuCallback> callback)
+                                     CefRefPtr<CefFrame> frame,
+                                     const CefPoint& location,
+                                     const CefSize& size,
+                                     QuickMenuEditStateFlags edit_state_flags,
+                                     CefRefPtr<CefRunQuickMenuCallback> callback)
 {
     return false;
 }
 
 bool CefBrowserHandler::OnQuickMenuCommand(CefRefPtr<CefBrowser> browser,
-                                        CefRefPtr<CefFrame> frame,
-                                        int command_id,
-                                        EventFlags event_flags)
+                                           CefRefPtr<CefFrame> frame,
+                                           int command_id,
+                                           EventFlags event_flags)
 {
     return false;
 }
 
 void CefBrowserHandler::OnQuickMenuDismissed(CefRefPtr<CefBrowser> browser,
-                                          CefRefPtr<CefFrame> frame)
+                                             CefRefPtr<CefFrame> frame)
 {
 }
 
@@ -696,8 +696,8 @@ bool CefBrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
 }
 
 void CefBrowserHandler::OnMediaAccessChange(CefRefPtr<CefBrowser> browser,
-                                         bool has_video_access,
-                                         bool has_audio_access) {
+                                            bool has_video_access,
+                                            bool has_audio_access) {
 }
 
 bool CefBrowserHandler::OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask)
@@ -720,11 +720,11 @@ void CefBrowserHandler::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool
 
 void CefBrowserHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
                                     CefRefPtr<CefFrame> frame,
-                                    TransitionType /*transition_type*/)
+                                    TransitionType transition_type)
 {
     // A frame has started loading content...
     if (m_pHandleDelegate) {
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadStart, m_pHandleDelegate, browser, frame));
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadStart, m_pHandleDelegate, browser, frame, transition_type));
     }
 }
 
@@ -762,9 +762,9 @@ bool CefBrowserHandler::OnJSDialog(CefRefPtr<CefBrowser> /*browser*/,
 }
 
 bool CefBrowserHandler::OnBeforeUnloadDialog(CefRefPtr<CefBrowser> browser,
-                                          const CefString& message_text,
-                                          bool is_reload,
-                                          CefRefPtr<CefJSDialogCallback> callback)
+                                             const CefString& message_text,
+                                             bool is_reload,
+                                             CefRefPtr<CefJSDialogCallback> callback)
 {
     return false;
 }
@@ -789,13 +789,13 @@ bool CefBrowserHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEv
 
 // CefRequestHandler methods
 bool CefBrowserHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
-                                    CefRefPtr<CefFrame> frame,
-                                    CefRefPtr<CefRequest> request,
-                                    bool /*user_gesture*/,
-                                    bool is_redirect)
+                                       CefRefPtr<CefFrame> frame,
+                                       CefRefPtr<CefRequest> request,
+                                       bool user_gesture,
+                                       bool is_redirect)
 {
     if (m_pHandleDelegate) {
-        return m_pHandleDelegate->OnBeforeBrowse(browser, frame, request, is_redirect);
+        return m_pHandleDelegate->OnBeforeBrowse(browser, frame, request, user_gesture, is_redirect);
     }    
     return false;
 }
@@ -858,7 +858,7 @@ void CefBrowserHandler::OnRenderViewReady(CefRefPtr<CefBrowser> browser)
 #if CEF_VERSION_MAJOR > 109
 //CEF 高版本
 bool CefBrowserHandler::OnRenderProcessUnresponsive(CefRefPtr<CefBrowser> browser,
-                                                 CefRefPtr<CefUnresponsiveProcessCallback> callback)
+                                                    CefRefPtr<CefUnresponsiveProcessCallback> callback)
 {
     return false;
 }
@@ -873,14 +873,14 @@ void CefBrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
                                                   const CefString& error_string)
 {
     if (m_pHandleDelegate) {
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnRenderProcessTerminated, m_pHandleDelegate, browser, status));
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnRenderProcessTerminated, m_pHandleDelegate, browser, status, error_code, error_string));
     }
 }
 #else
 void CefBrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, TerminationStatus status)
 {
     if (m_pHandleDelegate) {
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnRenderProcessTerminated, m_pHandleDelegate, browser, status));
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnRenderProcessTerminated, m_pHandleDelegate, browser, status, 0, ""));
     }
 }
 #endif
@@ -997,7 +997,7 @@ bool CefBrowserHandler::OnBeforeDownload(CefRefPtr<CefBrowser> browser,
                                          CefRefPtr<CefBeforeDownloadCallback> callback)
 {
     if (m_pHandleDelegate) {
-        m_pHandleDelegate->OnBeforeDownload(browser, download_item, suggested_name, callback);
+        return m_pHandleDelegate->OnBeforeDownload(browser, download_item, suggested_name, callback);
     }
     return true;
 }
@@ -1022,7 +1022,7 @@ bool CefBrowserHandler::OnFileDialog(CefRefPtr<CefBrowser> browser,
                                      CefRefPtr<CefFileDialogCallback> callback)
 {
     if (m_pHandleDelegate) {
-        return m_pHandleDelegate->OnFileDialog(browser, mode, title, default_file_path, accept_filters, 0, callback);
+        return m_pHandleDelegate->OnFileDialog(browser, mode, title, default_file_path, accept_filters, std::vector<CefString>(), std::vector<CefString>(), callback);
     }
     return false;
 }
@@ -1033,12 +1033,12 @@ bool CefBrowserHandler::OnFileDialog(CefRefPtr<CefBrowser> browser,
                                      const CefString& title,
                                      const CefString& default_file_path,
                                      const std::vector<CefString>& accept_filters,
-                                     const std::vector<CefString>& /*accept_extensions*/,
-                                     const std::vector<CefString>& /*accept_descriptions*/,
+                                     const std::vector<CefString>& accept_extensions,
+                                     const std::vector<CefString>& accept_descriptions,
                                      CefRefPtr<CefFileDialogCallback> callback)
 {
     if (m_pHandleDelegate) {
-        return m_pHandleDelegate->OnFileDialog(browser, mode, title, default_file_path, accept_filters, 0, callback);
+        return m_pHandleDelegate->OnFileDialog(browser, mode, title, default_file_path, accept_filters, accept_extensions, accept_descriptions, callback);
     }
     return false;
 }

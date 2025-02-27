@@ -43,14 +43,20 @@ namespace ui
     typedef std::function<bool(CefRefPtr<CefBrowser> browser)> OnAfterCreatedEvent;
     typedef std::function<void(CefRefPtr<CefBrowser> browser)> OnBeforeCloseEvent;
 
-    typedef std::function<bool(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool is_redirect)> OnBeforeBrowseEvent;
+    typedef std::function<bool(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool user_gesture, bool is_redirect)> OnBeforeBrowseEvent;
     typedef std::function<void(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution)> OnProtocolExecutionEvent;
 
     typedef std::function<void(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item, const CefString& suggested_name, CefRefPtr<CefBeforeDownloadCallback> callback)> OnBeforeDownloadEvent;
     typedef std::function<void(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item, CefRefPtr<CefDownloadItemCallback> callback)> OnDownloadUpdatedEvent;
 
-    //TODO: 修正参数
-    typedef std::function<bool(CefDialogHandler::FileDialogMode mode, const CefString& title, const CefString& default_file_path, const std::vector<CefString>& accept_filters, int selected_accept_filter, CefRefPtr<CefFileDialogCallback> callback)> OnFileDialogEvent;
+    typedef std::function<bool(CefRefPtr<CefBrowser> browser,
+                               CefBrowserHost::FileDialogMode mode,
+                               const CefString& title,
+                               const CefString& default_file_path,
+                               const std::vector<CefString>& accept_filters,
+                               const std::vector<CefString>& accept_extensions,
+                               const std::vector<CefString>& accept_descriptions,
+                               CefRefPtr<CefFileDialogCallback> callback)> OnFileDialogEvent;
 }
 
 #endif //UI_CEF_CONTROL_CEF_CONTROL_EVENT_H_
