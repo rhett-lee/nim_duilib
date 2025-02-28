@@ -384,7 +384,7 @@
     <ClCompile Include="CEFControl\internal\CefClientAppRender.cpp" />
     <ClCompile Include="CEFControl\internal\CefJSBridge.cpp" />
     <ClCompile Include="CEFControl\internal\CefJsHandler.cpp" />
-    <ClCompile Include="CEFControl\internal\CefMemoryDC.cpp" />
+    <ClCompile Include="CEFControl\internal\CefMemoryBlock.cpp" />
     <ClCompile Include="CEFControl\internal\drag\bytes_write_handler.cc" />
     <ClCompile Include="CEFControl\internal\drag\osr_dragdrop_win.cc" />
     <ClCompile Include="CEFControl\internal\drag\util_win.cc" />
@@ -577,7 +577,7 @@
     <ClInclude Include="CEFControl\internal\CefIPCStringDefs.h" />
     <ClInclude Include="CEFControl\internal\CefJSBridge.h" />
     <ClInclude Include="CEFControl\internal\CefJsHandler.h" />
-    <ClInclude Include="CEFControl\internal\CefMemoryDC.h" />
+    <ClInclude Include="CEFControl\internal\CefMemoryBlock.h" />
     <ClInclude Include="CEFControl\internal\drag\bytes_write_handler.h" />
     <ClInclude Include="CEFControl\internal\drag\osr_dragdrop_events.h" />
     <ClInclude Include="CEFControl\internal\drag\osr_dragdrop_win.h" />

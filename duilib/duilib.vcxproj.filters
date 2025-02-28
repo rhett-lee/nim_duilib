@@ -606,9 +606,6 @@
     <ClCompile Include="CEFControl\internal\CefJsHandler.cpp">
       <Filter>CEFControl\internal</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\internal\CefMemoryDC.cpp">
-      <Filter>CEFControl\internal</Filter>
-    </ClCompile>
     <ClCompile Include="CEFControl\internal\drag\bytes_write_handler.cc">
       <Filter>CEFControl\drag</Filter>
     </ClCompile>
@@ -617,6 +614,9 @@
     </ClCompile>
     <ClCompile Include="CEFControl\internal\drag\util_win.cc">
       <Filter>CEFControl\drag</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\CefMemoryBlock.cpp">
+      <Filter>CEFControl\internal</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1265,9 +1265,6 @@
     <ClInclude Include="CEFControl\internal\CefJsHandler.h">
       <Filter>CEFControl\internal</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\internal\CefMemoryDC.h">
-      <Filter>CEFControl\internal</Filter>
-    </ClInclude>
     <ClInclude Include="CEFControl\internal\drag\bytes_write_handler.h">
       <Filter>CEFControl\drag</Filter>
     </ClInclude>
@@ -1279,6 +1276,9 @@
     </ClInclude>
     <ClInclude Include="CEFControl\internal\drag\util_win.h">
       <Filter>CEFControl\drag</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\CefMemoryBlock.h">
+      <Filter>CEFControl\internal</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
