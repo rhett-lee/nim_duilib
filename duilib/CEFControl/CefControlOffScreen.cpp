@@ -1,8 +1,8 @@
 #include "CefControlOffScreen.h"
 
 #include "duilib/CEFControl/CefManager.h"
-#include "duilib/CEFControl/internal/handler/CefBrowserHandler.h"
-#include "duilib/CEFControl/internal/util/CefMemoryDC.h"
+#include "duilib/CEFControl/internal/CefBrowserHandler.h"
+#include "duilib/CEFControl/internal/CefMemoryDC.h"
 
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Box.h"

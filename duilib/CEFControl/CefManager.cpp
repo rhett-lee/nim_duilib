@@ -1,6 +1,6 @@
 #include "CefManager.h"
-#include "duilib/CEFControl/internal/app/CefClientApp.h"
-#include "duilib/CEFControl/internal/handler/CefBrowserHandler.h"
+#include "duilib/CEFControl/internal/CefClientApp.h"
+#include "duilib/CEFControl/internal/CefBrowserHandler.h"
 #include "duilib/CEFControl/CefControlNative.h"
 #include "duilib/CEFControl/CefControlOffScreen.h"
 

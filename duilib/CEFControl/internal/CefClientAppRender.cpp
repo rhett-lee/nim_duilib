@@ -1,8 +1,8 @@
 #include "CefClientApp.h" 
 
-#include "duilib/CEFControl/internal/app/CefJsHandler.h"
-#include "duilib/CEFControl/internal/app/CefIPCStringDefs.h"
-#include "duilib/CEFControl/internal/app/CefJSBridge.h"
+#include "duilib/CEFControl/internal/CefJsHandler.h"
+#include "duilib/CEFControl/internal/CefIPCStringDefs.h"
+#include "duilib/CEFControl/internal/CefJSBridge.h"
 #include "duilib/Utils/StringUtil.h"
 
 namespace ui
