@@ -12,12 +12,12 @@ namespace ui {
 #define GET_X_LPARAM(lp)                        ((int)(short)LOWORD(lp))
 #define GET_Y_LPARAM(lp)                        ((int)(short)HIWORD(lp))
 
-CefControlOffScreen::CefControlOffScreen(ui::Window* pWindow) :
+CefControlOffScreen::CefControlOffScreen(Window* pWindow) :
     CefControlBase(pWindow),
     m_pDevToolView(nullptr)
 {
-    m_pCefDC = std::make_unique<CefMemoryBlock>();
-    m_pCefPopupDC = std::make_unique<CefMemoryBlock>();
+    m_pCefMemData = std::make_unique<CefMemoryBlock>();
+    m_pCefPopupMemData = std::make_unique<CefMemoryBlock>();
 }
 
 CefControlOffScreen::~CefControlOffScreen(void)
@@ -34,7 +34,7 @@ CefControlOffScreen::~CefControlOffScreen(void)
     GetWindow()->RemoveMessageFilter(this);
 }
 
-void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& /*dirtyRects*/, const std::string* buffer, int width, int height)
+void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& /*dirtyRects*/, const void* buffer, int width, int height)
 {
     //只有离屏渲染才会走这个绘制接口
     //必须不使用缓存，否则绘制异常
@@ -45,27 +45,16 @@ void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandle
     }
 
     if (type == PET_VIEW) {
-        if ((m_pCefDC->GetWidth() != width) || (m_pCefDC->GetHeight() != height)) {
-            m_pCefDC->Init(width, height);
-        }
-        uint8_t* pDst = m_pCefDC->GetBits();
-        if (pDst) {
-            memcpy(pDst, (char*)buffer->c_str(), width * height * sizeof(uint32_t));
-        }
+        //页面的绘制数据
+        m_pCefMemData->Init(buffer, width, height);
     }
     else if (type == PET_POPUP) {
-        // 单独保存popup窗口的位图
-        if ((m_pCefPopupDC->GetWidth() != width) || (m_pCefPopupDC->GetHeight() != height)) {
-            m_pCefPopupDC->Init(width, height);
-        }
-
-        uint8_t* pDst = m_pCefPopupDC->GetBits();
-        if (pDst) {
-            memcpy(pDst, (char*)buffer->c_str(), width * height * sizeof(uint32_t));
-        }
+        ////页面弹出窗口的绘制数据
+        m_pCefPopupMemData->Init(buffer, width, height);
     }
 
-    this->Invalidate();
+    //在UI线程中调用Invalidate，触发绘制
+    GlobalManager::Instance().Thread().PostTask(kThreadUI, UiBind(&CefControlOffScreen::Invalidate, this));
 }
 
 void CefControlOffScreen::ClientToControl(UiPoint&pt)
@@ -99,14 +88,14 @@ void CefControlOffScreen::Init()
     if (m_pBrowserHandler.get() == nullptr) {
         GetWindow()->AddMessageFilter(this);
 
-        m_pBrowserHandler = new ui::CefBrowserHandler;
+        m_pBrowserHandler = new CefBrowserHandler;
         m_pBrowserHandler->SetHostWindow(GetWindow());
         m_pBrowserHandler->SetHandlerDelegate(this);
         ReCreateBrowser();
     }
 
     if (!m_jsBridge.get()) {
-        m_jsBridge.reset(new ui::CefJSBridge);
+        m_jsBridge.reset(new CefJSBridge);
     }
     BaseClass::Init();
 }
@@ -126,7 +115,7 @@ void CefControlOffScreen::ReCreateBrowser()
     }
 }
 
-void CefControlOffScreen::SetPos(ui::UiRect rc)
+void CefControlOffScreen::SetPos(UiRect rc)
 {
     BaseClass::SetPos(rc);
 
@@ -135,11 +124,11 @@ void CefControlOffScreen::SetPos(ui::UiRect rc)
     }
 }
 
-void CefControlOffScreen::HandleEvent(const ui::EventArgs& msg)
+void CefControlOffScreen::HandleEvent(const EventArgs& msg)
 {
     if (IsDisabledEvents(msg)) {
         //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
-        ui::Box* pParent = GetParent();
+        Box* pParent = GetParent();
         if (pParent != nullptr) {
             pParent->SendEventMsg(msg);
         }
@@ -152,12 +141,12 @@ void CefControlOffScreen::HandleEvent(const ui::EventArgs& msg)
         return BaseClass::HandleEvent(msg);
     }
 
-    else if (msg.eventType == ui::kEventSetFocus) {
+    else if (msg.eventType == kEventSetFocus) {
         if (m_pBrowserHandler->GetBrowserHost().get()) {
             m_pBrowserHandler->GetBrowserHost()->SetFocus(true);
         }
     }
-    else if (msg.eventType == ui::kEventKillFocus) {
+    else if (msg.eventType == kEventKillFocus) {
         if (m_pBrowserHandler->GetBrowserHost().get()) {
             m_pBrowserHandler->GetBrowserHost()->SetFocus(false);
         }
@@ -174,43 +163,30 @@ void CefControlOffScreen::SetVisible(bool bVisible)
     }
 }
 
-void CefControlOffScreen::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
+void CefControlOffScreen::Paint(IRender* pRender, const UiRect& rcPaint)
 {
     BaseClass::Paint(pRender, rcPaint);
     if ((pRender == nullptr) || (m_pBrowserHandler == nullptr) || (m_pBrowserHandler->GetBrowser() == nullptr)) {
         return;
     }
 
-    if (m_pCefDC->IsValid()) {
+    if (m_pCefMemData->IsValid()) {
         // 绘制cef PET_VIEW类型的位图
-        ui::UiRect rect = GetRect();
-
-        //通过直接写入数据的接口，性能最佳
-        ui::UiRect dcPaint = rect;
-        dcPaint.right = dcPaint.left + m_pCefDC->GetWidth();
-        dcPaint.bottom = dcPaint.top + m_pCefDC->GetHeight();
-        if (!rcPaint.IsEmpty()) {
-            bool bRet = pRender->WritePixels(m_pCefDC->GetBits(), m_pCefDC->GetWidth() * m_pCefDC->GetHeight() * sizeof(uint32_t), dcPaint);
-            ASSERT_UNUSED_VARIABLE(bRet);
-        }
+        UiRect rect = GetRect();
+        m_pCefMemData->PaintData(pRender, rcPaint, rect.left, rect.top);
 
         // 绘制cef PET_POPUP类型的位图
-        if (!m_rectPopup.IsEmpty() && m_pCefPopupDC->IsValid()) {
+        if (!m_rectPopup.IsEmpty() && m_pCefPopupMemData->IsValid()) {
             // 假如popup窗口位置在控件的范围外，则修正到控件范围内，指绘制控件范围内的popup窗口
-            dcPaint = GetRect();
+            UiRect dcPaint = GetRect();
             dcPaint.left += Dpi().GetScaleInt(m_rectPopup.x);
             dcPaint.top += Dpi().GetScaleInt(m_rectPopup.y);
-            dcPaint.right = dcPaint.left + m_pCefPopupDC->GetWidth();
-            dcPaint.bottom = dcPaint.top + m_pCefPopupDC->GetHeight();
-            if (!rcPaint.IsEmpty()) {
-                bool bRet = pRender->WritePixels(m_pCefPopupDC->GetBits(), m_pCefPopupDC->GetWidth() * m_pCefPopupDC->GetHeight() * sizeof(uint32_t), dcPaint);
-                ASSERT_UNUSED_VARIABLE(bRet);
-            }
+            m_pCefPopupMemData->PaintData(pRender, rcPaint, dcPaint.left, dcPaint.top);
         }
     }
 }
 
-void CefControlOffScreen::SetWindow(ui::Window* pWindow)
+void CefControlOffScreen::SetWindow(Window* pWindow)
 {
     if (!m_pBrowserHandler) {
         BaseClass::SetWindow(pWindow);
@@ -250,7 +226,7 @@ LRESULT CefControlOffScreen::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
     case WM_SETCURSOR:
     {
         // 这里拦截WM_SETCURSOR消息，不让duilib处理（duilib会改变光标样式），否则会影响Cef中的鼠标光标
-        ui::UiPoint pt;
+        UiPoint pt;
         GetWindow()->GetCursorPos(pt);
         GetWindow()->ScreenToClient(pt);
         if (!GetRect().ContainsPt(pt)) {
@@ -341,7 +317,7 @@ bool CefControlOffScreen::AttachDevTools(Control* control)
     if ((browser == nullptr) || (view_browser == nullptr)) {
         auto weak = view->GetWeakFlag();
         auto task = [this, weak, view]() {
-            ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, weak, view]() {
+            GlobalManager::Instance().Thread().PostTask(kThreadUI, ToWeakCallback([this, weak, view]() {
                     if (weak.expired()) {
                         return;
                     }
@@ -386,11 +362,11 @@ void CefControlOffScreen::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, Cef
             y = y * dpiScale / 100;
         }
 
-        ui::UiPoint pt = { x + GetRect().left, y + GetRect().top };
-        ui::UiPoint offsetPt = GetScrollOffsetInScrollBox();
+        UiPoint pt = { x + GetRect().left, y + GetRect().top };
+        UiPoint offsetPt = GetScrollOffsetInScrollBox();
         pt.Offset(offsetPt);
-        ui::UiRect rect = GetRect();
-        ui::UiRect rectView = m_pDevToolView->GetRect();
+        UiRect rect = GetRect();
+        UiRect rectView = m_pDevToolView->GetRect();
         bool isPtInPageRect = GetRect().ContainsPt(pt);
         bool isPtInToolRect = m_pDevToolView->GetRect().ContainsPt(pt);
         if (isPtInToolRect && !isPtInPageRect) {
@@ -410,7 +386,7 @@ LRESULT CefControlOffScreen::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARA
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
-    ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
     pt.Offset(GetScrollOffsetInScrollBox());
     if (!GetRect().ContainsPt(pt)) {
         return 0;
@@ -436,7 +412,7 @@ LRESULT CefControlOffScreen::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam,
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
-    ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
     pt.Offset(GetScrollOffsetInScrollBox());
     if (!GetRect().ContainsPt(pt)) {
         return 0;
@@ -461,7 +437,7 @@ LRESULT CefControlOffScreen::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM 
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
-    ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
     pt.Offset(GetScrollOffsetInScrollBox());
     if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured()) {
         return 0;
@@ -486,7 +462,7 @@ LRESULT CefControlOffScreen::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LP
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
-    ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
     pt.Offset(GetScrollOffsetInScrollBox());
     if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured()) {
         return 0;
@@ -507,8 +483,8 @@ LRESULT CefControlOffScreen::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, L
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
-    ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-    ui::Window* pScrolledWnd = GetWindow()->WindowFromPoint(pt);
+    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    Window* pScrolledWnd = GetWindow()->WindowFromPoint(pt);
     if (pScrolledWnd != GetWindow()) {
         return 0;
     }
@@ -536,7 +512,7 @@ LRESULT CefControlOffScreen::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, L
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
-    ui::UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
     pt.Offset(GetScrollOffsetInScrollBox());
     if (!GetRect().ContainsPt(pt)) {
         return 0;
