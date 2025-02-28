@@ -24,11 +24,11 @@ public:
 
     /// 重写父类接口，提供个性化功能
     virtual void Init() override;
-    virtual void SetPos(ui::UiRect rc) override;
+    virtual void SetPos(UiRect rc) override;
     virtual void HandleEvent(const ui::EventArgs& msg) override;
     virtual void SetVisible(bool bVisible) override;
-    virtual void Paint(ui::IRender* pRender, const ui::UiRect& rcPaint) override;
-    virtual void SetWindow(ui::Window* pWindow) override;
+    virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
+    virtual void SetWindow(Window* pWindow) override;
 
     virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override; // 处理窗体消息，转发到Cef浏览器对象
 
@@ -161,7 +161,7 @@ private:
         由此实现离屏渲染数据画到窗体上
     */
     virtual void OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type,
-                         const CefRenderHandler::RectList& dirtyRects, const std::string* buffer,
+                         const CefRenderHandler::RectList& dirtyRects, const void* buffer,
                          int width, int height) override;//CefRenderHandler接口
     virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) override;//CefRenderHandler接口
     virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) override;//CefRenderHandler接口
@@ -174,11 +174,11 @@ private:
     void AdaptDpiScale(CefMouseEvent& mouse_event);
 
 private:
-    // 内存dc,把cef离屏渲染的数据保存到dc中
-    std::unique_ptr<CefMemoryBlock> m_pCefDC;
+    // 页面绘制的内存数据,把cef离屏渲染的数据保存到缓存中
+    std::unique_ptr<CefMemoryBlock> m_pCefMemData;
 
-    // 内存dc,把cef的popup窗口的离屏渲染数据保存到dc中
-    std::unique_ptr<CefMemoryBlock> m_pCefPopupDC;
+    // 页面弹出窗口的绘制的内存数据，把cef的popup窗口的离屏渲染数据保存到缓存中
+    std::unique_ptr<CefMemoryBlock> m_pCefPopupMemData;
 
     // 当网页的组合框一类的控件弹出时，记录弹出的位置
     CefRect m_rectPopup;

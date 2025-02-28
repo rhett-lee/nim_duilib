@@ -242,7 +242,7 @@ void CefControlBase::OnDevToolsVisibleChanged()
     }
 }
 
-void CefControlBase::OnPaint(CefRefPtr<CefBrowser> /*browser*/, CefRenderHandler::PaintElementType /*type*/, const CefRenderHandler::RectList& /*dirtyRects*/, const std::string* /*buffer*/, int /*width*/, int /*height*/)
+void CefControlBase::OnPaint(CefRefPtr<CefBrowser> /*browser*/, CefRenderHandler::PaintElementType /*type*/, const CefRenderHandler::RectList& /*dirtyRects*/, const void* /*buffer*/, int /*width*/, int /*height*/)
 {
     //必须不使用缓存，否则绘制异常
     ASSERT(IsUseCache() == false);
@@ -309,7 +309,7 @@ void CefControlBase::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool is
     }
 }
 
-void CefControlBase::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t transition_type)
+void CefControlBase::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t /*transition_type*/)
 {
     if (m_pfnLoadStart) {
         m_pfnLoadStart();
@@ -332,7 +332,7 @@ void CefControlBase::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFra
 
 bool CefControlBase::OnBeforePopup(CefRefPtr<CefBrowser> /*browser*/,
                                    CefRefPtr<CefFrame> /*frame*/,
-                                   int popup_id,
+                                   int /*popup_id*/,
                                    const CefString& target_url,
                                    const CefString& /*target_frame_name*/,
                                    CefLifeSpanHandler::WindowOpenDisposition /*target_disposition*/,
@@ -390,8 +390,8 @@ cef_return_value_t CefControlBase::OnBeforeResourceLoad(CefRefPtr<CefBrowser> br
 
 void CefControlBase::OnRenderProcessTerminated(CefRefPtr<CefBrowser> /*browser*/,
                                                CefRequestHandler::TerminationStatus /*status*/,
-                                               int error_code,
-                                               CefString error_string)
+                                               int /*error_code*/,
+                                               CefString /*error_string*/)
 {
     return;
 }

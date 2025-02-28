@@ -430,14 +430,7 @@ void CefBrowserHandler::OnPaint(CefRefPtr<CefBrowser> browser,
                                 int height)
 {
     if (m_pHandlerDelegate) {
-        // 多线程消息循环模式中，OnPaint在Cef的线程被触发，这时把数据保存到paint_buffer_中，跳转到UI线程执行渲染操作。
-        // 这里不对paint_buffer_加锁，即使两个线程操作paint_buffer_发生竞争，也只是让某一次渲染效果有瑕疵，不会崩溃，这个瑕疵是可以接受的
-        int buffer_length = width * height * 4;
-        if (buffer_length > (int)m_paintBuffer.size()) {
-            m_paintBuffer.resize(buffer_length + 1);
-        }
-        memcpy(&m_paintBuffer[0], (char*)buffer, width * height * 4);
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnPaint, m_pHandlerDelegate, browser, type, dirtyRects, &m_paintBuffer, width, height));
+        m_pHandlerDelegate->OnPaint(browser, type, dirtyRects, buffer, width, height);
     }
 }
 #if CEF_VERSION_MAJOR <= 109

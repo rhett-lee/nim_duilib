@@ -29,7 +29,7 @@ public:
         由此实现离屏渲染数据画到窗体上
     */
     virtual void OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type,
-                         const CefRenderHandler::RectList& dirtyRects, const std::string* buffer,
+                         const CefRenderHandler::RectList& dirtyRects, const void* buffer,
                          int width, int height) = 0;//CefRenderHandler接口
     virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) = 0;//CefRenderHandler接口
     virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) = 0;//CefRenderHandler接口

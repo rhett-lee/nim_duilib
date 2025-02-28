@@ -411,7 +411,6 @@ private:
     CefBrowserHandlerDelegate* m_pHandlerDelegate;
     //控件的位置
     UiRect m_rcCefControl;
-    std::string m_paintBuffer;
     bool m_bFocusOnEditableField;
     CefUnregistedCallbackList<ui::StdClosure> m_taskListAfterCreated;
 
