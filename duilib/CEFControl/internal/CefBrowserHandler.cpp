@@ -1,8 +1,8 @@
 #include "CefBrowserHandler.h"
 #include "duilib/CEFControl/CefBrowserHandlerDelegate.h"
 #include "duilib/CEFControl/CefManager.h"
-#include "duilib/CEFControl/internal/app/CefIPCStringDefs.h"
-#include "duilib/CEFControl/internal/app/CefJSBridge.h"
+#include "duilib/CEFControl/internal/CefIPCStringDefs.h"
+#include "duilib/CEFControl/internal/CefJSBridge.h"
 
 #include "duilib/Core/GlobalManager.h"
 

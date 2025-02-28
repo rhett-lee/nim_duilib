@@ -7,7 +7,7 @@
 #define UI_CEF_CONTROL_CLIENT_APP_H_
 
 #include "duilib/duilib_config.h"
-#include "duilib/CEFControl/internal/app/CefJSBridge.h"
+#include "duilib/CEFControl/internal/CefJSBridge.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
