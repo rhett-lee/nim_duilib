@@ -20,7 +20,6 @@ namespace ui
 {
 
 GlobalManager::GlobalManager():
-    m_pfnCreateControlCallback(nullptr),
     m_platformData(nullptr)
 {
 }
@@ -50,9 +49,6 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     //记录平台相关数据
     m_platformData = resParam.platformData;
 
-    //保存回调函数
-    m_pfnCreateControlCallback = callback;
-
     //初始化DPI感知模式，//初始化DPI值
     DpiManager& dpiManager = Dpi();
     dpiManager.InitDpiAwareness(dpiInitParam);
@@ -75,9 +71,13 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
 
     //加载资源
     if (!ReloadResource(resParam, false)) {
-        m_pfnCreateControlCallback = nullptr;
         m_renderFactory.reset();
         return false;
+    }
+
+    //保存回调函数
+    if (callback != nullptr) {
+        m_pfnCreateControlCallbackList.push_back(callback);
     }
     return true;
 }
@@ -95,7 +95,7 @@ void GlobalManager::Shutdown()
     
     m_renderFactory.reset();
     m_renderFactory = nullptr;
-    m_pfnCreateControlCallback = nullptr;
+    m_pfnCreateControlCallbackList.clear();
     m_globalClass.clear();
     m_windowList.clear();
     m_dwUiThreadId = std::thread::id();
@@ -635,10 +635,23 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXm
 
 Control* GlobalManager::CreateControl(const DString& strControlName)
 {
-    if (m_pfnCreateControlCallback) {
-        return m_pfnCreateControlCallback(strControlName);
+    Control* pControl = nullptr;
+    for (CreateControlCallback pfnCreateControlCallback : m_pfnCreateControlCallbackList) {
+        if (pfnCreateControlCallback != nullptr) {
+            pControl = pfnCreateControlCallback(strControlName);
+            if (pControl != nullptr) {
+                break;
+            }
+        }
     }
-    return nullptr;
+    return pControl;
+}
+
+void GlobalManager::AddCreateControlCallback(const CreateControlCallback& pfnCreateControlCallback)
+{
+    if (pfnCreateControlCallback != nullptr) {
+        m_pfnCreateControlCallbackList.push_back(pfnCreateControlCallback);
+    }
 }
 
 void GlobalManager::AssertUIThread() const

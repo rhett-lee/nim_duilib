@@ -1,4 +1,4 @@
-#include "CefControl.h"
+#include "CefControlOffScreen.h"
 
 #include "duilib/CEFControl/CefManager.h"
 #include "duilib/CEFControl/internal/handler/CefBrowserHandler.h"
@@ -12,7 +12,7 @@ namespace ui {
 #define GET_X_LPARAM(lp)                        ((int)(short)LOWORD(lp))
 #define GET_Y_LPARAM(lp)                        ((int)(short)HIWORD(lp))
 
-CefControl::CefControl(ui::Window* pWindow) :
+CefControlOffScreen::CefControlOffScreen(ui::Window* pWindow) :
     CefControlBase(pWindow),
     m_pDevToolView(nullptr)
 {
@@ -20,7 +20,7 @@ CefControl::CefControl(ui::Window* pWindow) :
     m_pCefPopupDC = std::make_unique<CefMemoryDC>();
 }
 
-CefControl::~CefControl(void)
+CefControlOffScreen::~CefControlOffScreen(void)
 {
     if (m_pBrowserHandler.get()) {
         m_pBrowserHandler->SetHostWindow(nullptr);
@@ -34,7 +34,7 @@ CefControl::~CefControl(void)
     GetWindow()->RemoveMessageFilter(this);
 }
 
-void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& /*dirtyRects*/, const std::string* buffer, int width, int height)
+void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& /*dirtyRects*/, const std::string* buffer, int width, int height)
 {
     //只有离屏渲染才会走这个绘制接口
     //必须不使用缓存，否则绘制异常
@@ -76,14 +76,14 @@ void CefControl::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintE
     this->Invalidate();
 }
 
-void CefControl::ClientToControl(UiPoint&pt)
+void CefControlOffScreen::ClientToControl(UiPoint&pt)
 {
     auto offset = GetScrollOffsetInScrollBox();
     pt.x = pt.x + offset.x - GetRect().left;
     pt.y = pt.y + offset.y - GetRect().top;
 }
 
-void CefControl::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
+void CefControlOffScreen::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
 {
     if (!show) {
         // 当popup窗口隐藏时，刷新popup区域
@@ -94,7 +94,7 @@ void CefControl::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
     }
 }
 
-void CefControl::OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect)
+void CefControlOffScreen::OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect)
 {
     if ((rect.width <= 0) || (rect.height <= 0)) {
         return;
@@ -102,7 +102,7 @@ void CefControl::OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect)
     m_rectPopup = rect;
 }
 
-void CefControl::Init()
+void CefControlOffScreen::Init()
 {
     if (m_pBrowserHandler.get() == nullptr) {
         GetWindow()->AddMessageFilter(this);
@@ -119,7 +119,7 @@ void CefControl::Init()
     BaseClass::Init();
 }
 
-void CefControl::ReCreateBrowser()
+void CefControlOffScreen::ReCreateBrowser()
 {
     if (m_pBrowserHandler->GetBrowser() == nullptr) {
         // 使用无窗模式，离屏渲染
@@ -134,7 +134,7 @@ void CefControl::ReCreateBrowser()
     }
 }
 
-void CefControl::SetPos(ui::UiRect rc)
+void CefControlOffScreen::SetPos(ui::UiRect rc)
 {
     BaseClass::SetPos(rc);
 
@@ -143,7 +143,7 @@ void CefControl::SetPos(ui::UiRect rc)
     }
 }
 
-void CefControl::HandleEvent(const ui::EventArgs& msg)
+void CefControlOffScreen::HandleEvent(const ui::EventArgs& msg)
 {
     if (IsDisabledEvents(msg)) {
         //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
@@ -174,7 +174,7 @@ void CefControl::HandleEvent(const ui::EventArgs& msg)
     BaseClass::HandleEvent(msg);
 }
 
-void CefControl::SetVisible(bool bVisible)
+void CefControlOffScreen::SetVisible(bool bVisible)
 {
     BaseClass::SetVisible(bVisible);
     if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowserHost().get()) {
@@ -182,7 +182,7 @@ void CefControl::SetVisible(bool bVisible)
     }
 }
 
-void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
+void CefControlOffScreen::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 {
     BaseClass::Paint(pRender, rcPaint);
     if ((pRender == nullptr) || (m_pBrowserHandler == nullptr) || (m_pBrowserHandler->GetBrowser() == nullptr)) {
@@ -218,7 +218,7 @@ void CefControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
     }
 }
 
-void CefControl::SetWindow(ui::Window* pWindow)
+void CefControlOffScreen::SetWindow(ui::Window* pWindow)
 {
     if (!m_pBrowserHandler) {
         BaseClass::SetWindow(pWindow);
@@ -235,7 +235,7 @@ void CefControl::SetWindow(ui::Window* pWindow)
     m_pBrowserHandler->SetHostWindow(pWindow);
 }
 
-LRESULT CefControl::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT CefControlOffScreen::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     if (!IsVisible() || !IsEnabled()) {
         bHandled = false;
@@ -335,9 +335,9 @@ LRESULT CefControl::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool&
     return 0;
 }
 
-bool CefControl::AttachDevTools(Control* control)
+bool CefControlOffScreen::AttachDevTools(Control* control)
 {
-    CefControl* view = dynamic_cast<CefControl*>(control);
+    CefControlOffScreen* view = dynamic_cast<CefControlOffScreen*>(control);
     if (IsAttachedDevTools() || !view) {
         return true;
     }
@@ -372,13 +372,13 @@ bool CefControl::AttachDevTools(Control* control)
     return IsAttachedDevTools();
 }
 
-void CefControl::DettachDevTools()
+void CefControlOffScreen::DettachDevTools()
 {
     CefControlBase::DettachDevTools();
     m_pDevToolView = nullptr;
 }
 
-void CefControl::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)
+void CefControlOffScreen::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)
 {
     if (IsAttachedDevTools() && (m_pDevToolView != nullptr) && CefManager::GetInstance()->IsEnableOffsetRender()) {
         //离屏渲染模式，开发者工具与页面位于相同的客户区位置
@@ -414,7 +414,7 @@ void CefControl::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
 }
 
 //////////////////////////////////////////////////////////////////////////////////
-LRESULT CefControl::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT CefControlOffScreen::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
@@ -440,7 +440,7 @@ LRESULT CefControl::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam,
     return 0;
 }
 
-LRESULT CefControl::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT CefControlOffScreen::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
@@ -465,7 +465,7 @@ LRESULT CefControl::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM l
     return 0;
 }
 
-LRESULT CefControl::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT CefControlOffScreen::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
@@ -490,7 +490,7 @@ LRESULT CefControl::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, b
     return 0;
 }
 
-LRESULT CefControl::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT CefControlOffScreen::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
@@ -511,7 +511,7 @@ LRESULT CefControl::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPar
     return 0;
 }
 
-LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT CefControlOffScreen::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
@@ -540,7 +540,7 @@ LRESULT CefControl::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
     return 0;
 }
 
-LRESULT CefControl::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT CefControlOffScreen::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
@@ -561,7 +561,7 @@ LRESULT CefControl::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lPa
     return 0;
 }
 
-LRESULT CefControl::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+LRESULT CefControlOffScreen::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
@@ -584,7 +584,7 @@ LRESULT CefControl::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& 
     return 0;
 }
 
-LRESULT CefControl::SendCaptureLostEvent(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+LRESULT CefControlOffScreen::SendCaptureLostEvent(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
 {
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
@@ -593,12 +593,12 @@ LRESULT CefControl::SendCaptureLostEvent(UINT /*uMsg*/, WPARAM /*wParam*/, LPARA
     return 0;
 }
 
-bool CefControl::IsKeyDown(WPARAM wparam)
+bool CefControlOffScreen::IsKeyDown(WPARAM wparam)
 {
     return (GetKeyState(static_cast<int>(wparam)) & 0x8000) != 0;
 }
 
-int CefControl::GetCefMouseModifiers(WPARAM wparam)
+int CefControlOffScreen::GetCefMouseModifiers(WPARAM wparam)
 {
     int modifiers = 0;
     if (wparam & MK_CONTROL)
@@ -622,7 +622,7 @@ int CefControl::GetCefMouseModifiers(WPARAM wparam)
     return modifiers;
 }
 
-int CefControl::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
+int CefControlOffScreen::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
 {
     int modifiers = 0;
     if (IsKeyDown(VK_SHIFT))
@@ -703,7 +703,7 @@ int CefControl::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
     return modifiers;
 }
 
-void CefControl::AdaptDpiScale(CefMouseEvent& mouse_event)
+void CefControlOffScreen::AdaptDpiScale(CefMouseEvent& mouse_event)
 {
     if (CefManager::GetInstance()->IsEnableOffsetRender()) {
         //离屏渲染模式，需要传给原始宽度和高度，因为CEF内部会进一步做DPI自适应

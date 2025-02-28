@@ -585,13 +585,7 @@
     <ClCompile Include="Core\DragWindowFilter_SDL.cpp">
       <Filter>Core\SDL</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\CefControl.cpp">
-      <Filter>CEFControl</Filter>
-    </ClCompile>
     <ClCompile Include="CEFControl\CefControlBase.cpp">
-      <Filter>CEFControl</Filter>
-    </ClCompile>
-    <ClCompile Include="CEFControl\CefNativeControl.cpp">
       <Filter>CEFControl</Filter>
     </ClCompile>
     <ClCompile Include="CEFControl\CefManager.cpp">
@@ -626,6 +620,12 @@
     </ClCompile>
     <ClCompile Include="CEFControl\internal\handler\drag\util_win.cc">
       <Filter>CEFControl\internal\handler\drag</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\CefControlNative.cpp">
+      <Filter>CEFControl</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\CefControlOffScreen.cpp">
+      <Filter>CEFControl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1238,16 +1238,10 @@
     <ClInclude Include="duilib_cef.h">
       <Filter>duilib</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\CefControl.h">
-      <Filter>CEFControl</Filter>
-    </ClInclude>
     <ClInclude Include="CEFControl\CefControlBase.h">
       <Filter>CEFControl</Filter>
     </ClInclude>
     <ClInclude Include="CEFControl\CefControlEvent.h">
-      <Filter>CEFControl</Filter>
-    </ClInclude>
-    <ClInclude Include="CEFControl\CefNativeControl.h">
       <Filter>CEFControl</Filter>
     </ClInclude>
     <ClInclude Include="CEFControl\CefManager.h">
@@ -1288,6 +1282,12 @@
     </ClInclude>
     <ClInclude Include="CEFControl\internal\handler\drag\util_win.h">
       <Filter>CEFControl\internal\handler\drag</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\CefControlNative.h">
+      <Filter>CEFControl</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\CefControlOffScreen.h">
+      <Filter>CEFControl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

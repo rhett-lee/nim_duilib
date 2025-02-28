@@ -80,19 +80,6 @@ void BrowserBox::UninitBrowserBox()
         taskbar_item_->UnInit();
 }
 
-ui::Control* BrowserBox::CreateControl(const DString& pstrClass)
-{
-    if (pstrClass == _T("CefControl"))
-    {
-        if (ui::CefManager::GetInstance()->IsEnableOffsetRender())
-            return new ui::CefControl(GetWindow());
-        else
-            return new ui::CefNativeControl(GetWindow());
-    }
-
-    return NULL;
-}
-
 TaskbarTabItem* BrowserBox::GetTaskbarItem()
 {
     return taskbar_item_;

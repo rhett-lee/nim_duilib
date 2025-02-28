@@ -882,10 +882,16 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
             // User-supplied control factory
             if( pControl == nullptr) {
                 pControl = GlobalManager::Instance().CreateControl(strClass);
+                if (pControl != nullptr) {
+                    pControl->SetWindow(pWindow);
+                }
             }
 
             if( pControl == nullptr && m_createControlCallback ) {
                 pControl = m_createControlCallback(strClass);
+                if (pControl != nullptr) {
+                    pControl->SetWindow(pWindow);
+                }
             }
         }
 

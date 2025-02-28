@@ -18,20 +18,6 @@ DString CefForm::GetSkinFile()
     return _T("cef.xml");
 }
 
-ui::Control* CefForm::CreateControl(const DString& pstrClass)
-{
-    // 扫描 XML 发现有名称为 CefControl 的节点，则创建一个 ui::CefControl 控件
-    if (pstrClass == _T("CefControl"))
-    {
-        if (ui::CefManager::GetInstance()->IsEnableOffsetRender())
-            return new ui::CefControl(this);
-        else
-            return new ui::CefNativeControl(this);
-    }
-
-    return NULL;
-}
-
 void CefForm::OnInitWindow()
 {
     // 监听鼠标单击事件

@@ -65,13 +65,6 @@ public:
     */
     virtual void UninitBrowserBox();
 
-    /**
-    * 根据控件类名创建自定义控件
-    * @param[in] pstrClass 控件类名
-    * @return Control* 创建的控件的指针
-    */
-    ui::Control* CreateControl(const DString& pstrClass);
-
     //////////////////////////////////////////////////////////////////////////
     //窗口合并功能相关的操作
 public:

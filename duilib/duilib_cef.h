@@ -7,8 +7,8 @@
 
 #include "duilib/CEFControl/CefControlEvent.h"
 #include "duilib/CEFControl/CefControlBase.h"
-#include "duilib/CEFControl/CefControl.h"
-#include "duilib/CEFControl/CefNativeControl.h"
+#include "duilib/CEFControl/CefControlOffScreen.h"
+#include "duilib/CEFControl/CefControlNative.h"
 #include "duilib/CEFControl/CefManager.h"
 
 #endif //DUILIB_CEF_CONTROL_H_
