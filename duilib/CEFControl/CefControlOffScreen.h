@@ -11,7 +11,7 @@
 
 namespace ui {
 
-class CefMemoryDC;
+class CefMemoryBlock;
 
 /** duilib的CEF控件，离屏渲染模式
 */
@@ -175,10 +175,10 @@ private:
 
 private:
     // 内存dc,把cef离屏渲染的数据保存到dc中
-    std::unique_ptr<CefMemoryDC> m_pCefDC;
+    std::unique_ptr<CefMemoryBlock> m_pCefDC;
 
     // 内存dc,把cef的popup窗口的离屏渲染数据保存到dc中
-    std::unique_ptr<CefMemoryDC> m_pCefPopupDC;
+    std::unique_ptr<CefMemoryBlock> m_pCefPopupDC;
 
     // 当网页的组合框一类的控件弹出时，记录弹出的位置
     CefRect m_rectPopup;

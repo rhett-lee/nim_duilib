@@ -2,7 +2,7 @@
 
 #include "duilib/CEFControl/CefManager.h"
 #include "duilib/CEFControl/internal/CefBrowserHandler.h"
-#include "duilib/CEFControl/internal/CefMemoryDC.h"
+#include "duilib/CEFControl/internal/CefMemoryBlock.h"
 
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Box.h"
@@ -16,8 +16,8 @@ CefControlOffScreen::CefControlOffScreen(ui::Window* pWindow) :
     CefControlBase(pWindow),
     m_pDevToolView(nullptr)
 {
-    m_pCefDC = std::make_unique<CefMemoryDC>();
-    m_pCefPopupDC = std::make_unique<CefMemoryDC>();
+    m_pCefDC = std::make_unique<CefMemoryBlock>();
+    m_pCefPopupDC = std::make_unique<CefMemoryBlock>();
 }
 
 CefControlOffScreen::~CefControlOffScreen(void)
@@ -40,36 +40,28 @@ void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandle
     //必须不使用缓存，否则绘制异常
     ASSERT(IsUseCache() == false);
 
-
-    if (nullptr == buffer) {
+    if ((buffer == nullptr) || (width <= 0) || (height <= 0)) {
         return;
     }
 
     if (type == PET_VIEW) {
-        if (m_pCefDC->GetWidth() != width || m_pCefDC->GetHeight() != height) {
-            HWND hWnd = GetWindow()->NativeWnd()->GetHWND();
-            HDC hDC = ::GetDC(hWnd);
-            m_pCefDC->Init(hDC, width, height);
-            ::ReleaseDC(hWnd, hDC);
+        if ((m_pCefDC->GetWidth() != width) || (m_pCefDC->GetHeight() != height)) {
+            m_pCefDC->Init(width, height);
         }
-
-        LPBYTE pDst = (LPBYTE)m_pCefDC->GetBits();
+        uint8_t* pDst = m_pCefDC->GetBits();
         if (pDst) {
-            memcpy(pDst, (char*)buffer->c_str(), height * width * 4);
+            memcpy(pDst, (char*)buffer->c_str(), width * height * sizeof(uint32_t));
         }
     }
     else if (type == PET_POPUP) {
         // 单独保存popup窗口的位图
         if ((m_pCefPopupDC->GetWidth() != width) || (m_pCefPopupDC->GetHeight() != height)) {
-            HWND hWnd = GetWindow()->NativeWnd()->GetHWND();
-            HDC hDC = ::GetDC(hWnd);
-            m_pCefPopupDC->Init(hDC, width, height);
-            ::ReleaseDC(hWnd, hDC);
+            m_pCefPopupDC->Init(width, height);
         }
 
-        LPBYTE pDst = (LPBYTE)m_pCefPopupDC->GetBits();
+        uint8_t* pDst = m_pCefPopupDC->GetBits();
         if (pDst) {
-            memcpy(pDst, (char*)buffer->c_str(), width * height * 4);
+            memcpy(pDst, (char*)buffer->c_str(), width * height * sizeof(uint32_t));
         }
     }
 
