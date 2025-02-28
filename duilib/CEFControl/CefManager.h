@@ -1,23 +1,20 @@
-/**@brief 管理Cef组件的初始化、销毁、消息循环
- * @copyright (c) 2016, NetEase Inc. All rights reserved
- * @author Redrain
- * @date 2016/7/19
- */
 #ifndef UI_CEF_CONTROL_CEF_MANAGER_H_
 #define UI_CEF_CONTROL_CEF_MANAGER_H_
 
 #include "duilib/Core/Callback.h"
-#include "duilib/CEFControl/internal/drag/osr_dragdrop_win.h" //TODO: 待改进，不开放该头文件
 
 #pragma warning (push)
 #pragma warning (disable:4100)
-#include "include/cef_app.h"
+    #include "include/cef_app.h"
+    #include "include/cef_version.h"
 #pragma warning (pop)
 
 namespace ui
 {
-/** @class CefManager
- * @brief Cef组件初始化和销毁
+/**@brief 管理Cef组件的初始化、销毁、消息循环
+ * @copyright (c) 2016, NetEase Inc. All rights reserved
+ * @author Redrain
+ * @date 2016/7/19
  */
 class CefManager : public virtual ui::SupportWeakCallback
 {
@@ -63,13 +60,11 @@ public:
     // 记录浏览器对象的数量
     void AddBrowserCount();
     void SubBrowserCount();
-    int    GetBrowserCount();
+    int  GetBrowserCount();
 
     // 在Cef浏览器对象销毁后发送WM_QUIT消息
     void PostQuitMessage(int nExitCode);
 
-    // 获取某个窗口对应的DropTarget，用于浏览器控件的拖动功能
-    client::DropTargetHandle GetDropTarget(HWND hwnd);
 private:
     /**
     * 设置cef配置信息
@@ -82,8 +77,6 @@ private:
 private:
     int browser_count_;
     bool is_enable_offset_render_;
-
-    std::map<HWND, std::weak_ptr<client::DropTargetWin>> map_drag_target_reference_; // 各个DropTarget的弱引用，一个窗口对应一个DropTarget，这个DropTarget可以给多个BorwserHandler使用
 };
 }
 

@@ -4,6 +4,10 @@
 #include "duilib/CEFControl/CefControlNative.h"
 #include "duilib/CEFControl/CefControlOffScreen.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+    #include "CefDragDrop_Windows.h"
+#endif
+
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Core/GlobalManager.h"
 
@@ -57,6 +61,22 @@
 namespace ui
 {
 
+#ifdef DUILIB_BUILD_FOR_WIN
+// 发现一个非常奇葩的bug，离屏渲染+多线程消息循环模式下，在浏览器对象上右击弹出菜单，是无法正常关闭的
+// 翻cef源码后发现菜单是用TrackPopupMenu函数创建的，在MSDN资料上查看后发现调用TrackPopupMenu前
+// 需要给其父窗口调用SetForegroundWindow。但是在cef源码中没有调用
+// 最终翻cef源码后得到的解决方法是在cef的UI线程创建一个窗口，这个窗体的父窗口必须是在主程序UI线程创建的
+// 这样操作之后就不会出现菜单无法关闭的bug了，虽然不知道为什么但是bug解决了
+
+// 另外还有个问题：如果不采取这个方法，离屏渲染的页面中，拖拽操作有异常，当拖出数据时，会卡死
+//
+static void FixContextMenuBug(HWND hwnd)
+{
+    ::CreateWindowW(L"Static", L"", WS_CHILD, 0, 0, 0, 0, hwnd, NULL, NULL, NULL);
+    ::PostMessage(hwnd, WM_CLOSE, 0, 0);
+}
+#endif
+
 //创建CEF控件的回调函数
 Control* DuilibCreateCefControl(const DString& className)
 {
@@ -81,7 +101,6 @@ CefManager::CefManager()
 
 CefManager::~CefManager()
 {
-    ASSERT(map_drag_target_reference_.empty());
 }
 
 CefManager* CefManager::GetInstance()
@@ -113,8 +132,6 @@ void CefManager::AddCefDllToPath()
     #endif
 #endif
 
-
-
     if (!cef_path.IsExistsDirectory()) {
         ::MessageBoxW(NULL, L"请解压CEF压缩包，将libcef.dll释放到bin目录", L"提示", MB_OK);
         exit(0);
@@ -145,6 +162,13 @@ bool CefManager::Initialize(const DString& app_data_dir, CefSettings &settings, 
     GetCefSetting(app_data_dir, settings);
 
     bool bRet = CefInitialize(main_args, settings, app.get(), NULL);
+
+#ifdef DUILIB_BUILD_FOR_WIN
+    if (IsEnableOffsetRender()) {
+        HWND hwnd = ::CreateWindowW(L"Static", L"", WS_POPUP, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
+        CefPostTask(TID_UI, base::BindOnce(&FixContextMenuBug, hwnd));
+    }
+#endif
     
     //添加窗口CEF控件的回调函数
     GlobalManager::Instance().AddCreateControlCallback(DuilibCreateCefControl);
@@ -153,6 +177,9 @@ bool CefManager::Initialize(const DString& app_data_dir, CefSettings &settings, 
 
 void CefManager::UnInitialize()
 {
+#ifdef DUILIB_BUILD_FOR_WIN
+    CefDragDrop::GetInstance().Clear();
+#endif
     CefShutdown();
 }
 
@@ -196,42 +223,6 @@ void CefManager::PostQuitMessage(int nExitCode)
         };
 
         ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, cb, 500);
-    }
-}
-
-client::DropTargetHandle CefManager::GetDropTarget(HWND hwnd)
-{
-    // 查找是否存在这个弱引用
-    auto it = map_drag_target_reference_.find(hwnd);
-    if (it == map_drag_target_reference_.end()) {
-        auto deleter = [this](client::DropTargetWin *src) {
-            auto it = map_drag_target_reference_.find(src->GetHWND());
-            if (it != map_drag_target_reference_.end()) {
-                RevokeDragDrop(src->GetHWND());
-
-                // 移除弱引用对象
-                map_drag_target_reference_.erase(it);
-            }
-            else {
-                ASSERT(false);
-            }
-
-            delete src;
-        };
-        
-        // 如果不存在就新增一个
-        client::DropTargetHandle handle(new client::DropTargetWin(hwnd), deleter);
-        map_drag_target_reference_[hwnd] = handle;
-
-        HRESULT register_res = ::RegisterDragDrop(hwnd, handle.get());
-        (void)register_res;
-        ASSERT((register_res == S_OK) || (register_res == DRAGDROP_E_ALREADYREGISTERED));
-
-        return handle;
-    }
-    else {
-        // 如果存在就返回弱引用对应的强引用指针
-        return it->second.lock();
     }
 }
 

@@ -179,7 +179,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef109\;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef\;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;SK_GANESH;SK_GL;SK_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -377,6 +377,7 @@
     <ClCompile Include="CEFControl\CefControlBase.cpp" />
     <ClCompile Include="CEFControl\CefControlNative.cpp" />
     <ClCompile Include="CEFControl\CefControlOffScreen.cpp" />
+    <ClCompile Include="CEFControl\CefDragDrop_Windows.cpp" />
     <ClCompile Include="CEFControl\CefManager.cpp" />
     <ClCompile Include="CEFControl\internal\CefBrowserHandler.cpp" />
     <ClCompile Include="CEFControl\internal\CefClientApp.cpp" />
@@ -385,9 +386,9 @@
     <ClCompile Include="CEFControl\internal\CefJSBridge.cpp" />
     <ClCompile Include="CEFControl\internal\CefJsHandler.cpp" />
     <ClCompile Include="CEFControl\internal\CefMemoryBlock.cpp" />
-    <ClCompile Include="CEFControl\internal\drag\bytes_write_handler.cc" />
-    <ClCompile Include="CEFControl\internal\drag\osr_dragdrop_win.cc" />
-    <ClCompile Include="CEFControl\internal\drag\util_win.cc" />
+    <ClCompile Include="CEFControl\internal\Windows\bytes_write_handler.cc" />
+    <ClCompile Include="CEFControl\internal\Windows\osr_dragdrop_win.cc" />
+    <ClCompile Include="CEFControl\internal\Windows\util_win.cc" />
     <ClCompile Include="Control\CheckCombo.cpp" />
     <ClCompile Include="Control\CircleProgress.cpp" />
     <ClCompile Include="Control\ColorControl.cpp" />
@@ -570,6 +571,7 @@
     <ClInclude Include="CEFControl\CefControlEvent.h" />
     <ClInclude Include="CEFControl\CefControlNative.h" />
     <ClInclude Include="CEFControl\CefControlOffScreen.h" />
+    <ClInclude Include="CEFControl\CefDragDrop_Windows.h" />
     <ClInclude Include="CEFControl\CefManager.h" />
     <ClInclude Include="CEFControl\internal\CefAutoUnregister.h" />
     <ClInclude Include="CEFControl\internal\CefBrowserHandler.h" />
@@ -578,10 +580,10 @@
     <ClInclude Include="CEFControl\internal\CefJSBridge.h" />
     <ClInclude Include="CEFControl\internal\CefJsHandler.h" />
     <ClInclude Include="CEFControl\internal\CefMemoryBlock.h" />
-    <ClInclude Include="CEFControl\internal\drag\bytes_write_handler.h" />
-    <ClInclude Include="CEFControl\internal\drag\osr_dragdrop_events.h" />
-    <ClInclude Include="CEFControl\internal\drag\osr_dragdrop_win.h" />
-    <ClInclude Include="CEFControl\internal\drag\util_win.h" />
+    <ClInclude Include="CEFControl\internal\osr_dragdrop_events.h" />
+    <ClInclude Include="CEFControl\internal\Windows\bytes_write_handler.h" />
+    <ClInclude Include="CEFControl\internal\Windows\osr_dragdrop_win.h" />
+    <ClInclude Include="CEFControl\internal\Windows\util_win.h" />
     <ClInclude Include="Control\CheckCombo.h" />
     <ClInclude Include="Control\ColorControl.h" />
     <ClInclude Include="Control\ColorConvert.h" />

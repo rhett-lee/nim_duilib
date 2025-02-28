@@ -4,6 +4,11 @@
 #include "duilib/CEFControl/internal/CefIPCStringDefs.h"
 #include "duilib/CEFControl/internal/CefJSBridge.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+    #include "duilib/CEFControl/CefDragDrop_Windows.h"
+    #include "duilib/CEFControl/internal/Windows/osr_dragdrop_win.h"
+#endif
+
 #include "duilib/Core/GlobalManager.h"
 
 #pragma warning (push)
@@ -162,7 +167,7 @@ bool CefBrowserHandler::DoOnBeforePopup(CefRefPtr<CefBrowser> browser,
 // CefLifeSpanHandler methods
 bool CefBrowserHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                       CefRefPtr<CefFrame> frame,
-                                      int /*popup_id*/,
+                                      int popup_id,
                                       const CefString& target_url,
                                       const CefString& target_frame_name,
                                       CefLifeSpanHandler::WindowOpenDisposition target_disposition,
@@ -171,7 +176,7 @@ bool CefBrowserHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                       CefWindowInfo& windowInfo,
                                       CefRefPtr<CefClient>& client,
                                       CefBrowserSettings& settings,
-                                      CefRefPtr<CefDictionaryValue>& /*extra_info*/,
+                                      CefRefPtr<CefDictionaryValue>& extra_info,
                                       bool* no_javascript_access)
 {
     return DoOnBeforePopup(browser, frame, popup_id,
@@ -250,9 +255,12 @@ void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
     // RegisterDragDrop内部会在调用这个API的线程里创建一个窗口，用过这个窗口来做消息循环模拟阻塞的过程
     // 所以哪个线程调用RegisterDragDrop，就会在哪个线程阻塞并触发IDragTarget回调
     // 见https://docs.microsoft.com/zh-cn/windows/win32/api/ole2/nf-ole2-registerdragdrop
+
+#ifdef DUILIB_BUILD_FOR_WIN
     if ((m_pWindow != nullptr) && !m_windowFlag.expired()) {
-        m_dropTarget = CefManager::GetInstance()->GetDropTarget(m_pWindow->NativeWnd()->GetHWND());
+        m_dropTarget = CefDragDrop::GetInstance().GetDropTarget(m_pWindow->NativeWnd()->GetHWND());
     }
+#endif
 }
 
 bool CefBrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)

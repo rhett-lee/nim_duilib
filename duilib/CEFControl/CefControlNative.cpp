@@ -51,7 +51,11 @@ void CefControlNative::ReCreateBrowser()
         // 使用有窗模式
         CefWindowInfo window_info;
         CefRect rect = { GetRect().left, GetRect().top, GetRect().right, GetRect().bottom};
+#if DUILIB_BUILD_FOR_WIN
         window_info.SetAsChild(this->GetWindow()->NativeWnd()->GetHWND(), rect);
+#else
+        error
+#endif
 
         CefBrowserSettings browser_settings;
         CefBrowserHost::CreateBrowser(window_info, m_pBrowserHandler, _T(""), browser_settings, nullptr, nullptr);
