@@ -125,7 +125,7 @@ public:
     virtual void RepairBrowser();
 
     /** 打开开发者工具
-    * @param[in] view 一个 CefControl 控件实例(仅在CefControl类里需要传入)
+    * @param[in] view 一个 CefControlOffScreen 控件实例(仅在CefControlOffScreen类里需要传入)
     * @return 成功返回 true，失败返回 false
     */
     virtual bool AttachDevTools(Control* view) = 0;

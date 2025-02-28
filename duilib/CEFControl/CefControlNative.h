@@ -10,12 +10,14 @@
 
 namespace ui {
 
-class CefNativeControl : public CefControlBase
+/** duilib的CEF控件，窗口模式
+*/
+class CefControlNative : public CefControlBase
 {
     typedef CefControlBase BaseClass;
 public:
-    explicit CefNativeControl(ui::Window* pWindow);
-    ~CefNativeControl(void);    
+    explicit CefControlNative(ui::Window* pWindow);
+    ~CefControlNative(void);    
 
     virtual void Init() override;
     virtual void SetPos(ui::UiRect rc) override;
@@ -25,7 +27,7 @@ public:
 
     /**
     * @brief 打开开发者工具
-    * @param[in] view 一个 CefControl 控件实例(仅在CefControl类里需要传入)
+    * @param[in] view 一个 CefControlOffScreen 控件实例(仅在CefControlOffScreen类里需要传入)
     * @return 成功返回 true，失败返回 false
     */
     virtual bool AttachDevTools(ui::Control* view) override;

@@ -298,7 +298,7 @@ BrowserBox* MultiBrowserForm::CreateBox(const std::string &browser_id, DString u
 
     BrowserBox* browser_box = new BrowserBox(borwser_box_tab_->GetWindow(), browser_id);
     borwser_box_tab_->AddItem(browser_box);
-    GlobalManager::Instance().FillBoxWithCache(browser_box, ui::FilePath(_T("multi_browser/browser_box.xml")), UiBind(&BrowserBox::CreateControl, browser_box, std::placeholders::_1));
+    GlobalManager::Instance().FillBoxWithCache(browser_box, ui::FilePath(_T("multi_browser/browser_box.xml")), nullptr);
     browser_box->SetName(id);
     browser_box->InitBrowserBox(url);
     auto taskbar_item = browser_box->GetTaskbarItem();

@@ -374,10 +374,10 @@
     <ClCompile Include="Box\VirtualVTileLayout.cpp" />
     <ClCompile Include="Box\VLayout.cpp" />
     <ClCompile Include="Box\VTileLayout.cpp" />
-    <ClCompile Include="CEFControl\CefControl.cpp" />
     <ClCompile Include="CEFControl\CefControlBase.cpp" />
+    <ClCompile Include="CEFControl\CefControlNative.cpp" />
+    <ClCompile Include="CEFControl\CefControlOffScreen.cpp" />
     <ClCompile Include="CEFControl\CefManager.cpp" />
-    <ClCompile Include="CEFControl\CefNativeControl.cpp" />
     <ClCompile Include="CEFControl\internal\app\CefClientApp.cpp" />
     <ClCompile Include="CEFControl\internal\app\CefClientAppBrowser.cpp" />
     <ClCompile Include="CEFControl\internal\app\CefClientAppRender.cpp" />
@@ -566,11 +566,11 @@
     <ClInclude Include="Box\VLayout.h" />
     <ClInclude Include="Box\VTileLayout.h" />
     <ClInclude Include="CEFControl\CefBrowserHandlerDelegate.h" />
-    <ClInclude Include="CEFControl\CefControl.h" />
     <ClInclude Include="CEFControl\CefControlBase.h" />
     <ClInclude Include="CEFControl\CefControlEvent.h" />
+    <ClInclude Include="CEFControl\CefControlNative.h" />
+    <ClInclude Include="CEFControl\CefControlOffScreen.h" />
     <ClInclude Include="CEFControl\CefManager.h" />
-    <ClInclude Include="CEFControl\CefNativeControl.h" />
     <ClInclude Include="CEFControl\internal\app\CefClientApp.h" />
     <ClInclude Include="CEFControl\internal\app\CefIPCStringDefs.h" />
     <ClInclude Include="CEFControl\internal\app\CefJSBridge.h" />

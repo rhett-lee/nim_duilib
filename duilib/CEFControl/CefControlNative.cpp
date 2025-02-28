@@ -1,4 +1,4 @@
-#include "CefNativeControl.h"
+#include "CefControlNative.h"
 #include "duilib/CEFControl/internal/handler/CefBrowserHandler.h"
 
 #include "duilib/Core/Box.h"
@@ -6,12 +6,12 @@
 
 namespace ui {
 
-CefNativeControl::CefNativeControl(ui::Window* pWindow):
+CefControlNative::CefControlNative(ui::Window* pWindow):
     CefControlBase(pWindow)
 {
 }
 
-CefNativeControl::~CefNativeControl(void)
+CefControlNative::~CefControlNative(void)
 {
     if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get()) {
         // Request that the main browser close.
@@ -23,7 +23,7 @@ CefNativeControl::~CefNativeControl(void)
     }
 }
 
-void CefNativeControl::Init()
+void CefControlNative::Init()
 {
     if (m_pBrowserHandler.get() == nullptr) {
 #if DUILIB_BUILD_FOR_WIN
@@ -45,7 +45,7 @@ void CefNativeControl::Init()
     BaseClass::Init();
 }
 
-void CefNativeControl::ReCreateBrowser()
+void CefControlNative::ReCreateBrowser()
 {
     if (m_pBrowserHandler->GetBrowser() == nullptr) {
         // 使用有窗模式
@@ -58,7 +58,7 @@ void CefNativeControl::ReCreateBrowser()
     }
 }
 
-void CefNativeControl::SetPos(ui::UiRect rc)
+void CefControlNative::SetPos(ui::UiRect rc)
 {
     BaseClass::SetPos(rc);
 #if DUILIB_BUILD_FOR_WIN
@@ -69,7 +69,7 @@ void CefNativeControl::SetPos(ui::UiRect rc)
 #endif
 }
 
-void CefNativeControl::HandleEvent(const ui::EventArgs& msg)
+void CefControlNative::HandleEvent(const ui::EventArgs& msg)
 {
     if (IsDisabledEvents(msg)) {
         //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
@@ -95,7 +95,7 @@ void CefNativeControl::HandleEvent(const ui::EventArgs& msg)
     BaseClass::HandleEvent(msg);
 }
 
-void CefNativeControl::SetVisible(bool bVisible)
+void CefControlNative::SetVisible(bool bVisible)
 {
     BaseClass::SetVisible(bVisible);
 #if DUILIB_BUILD_FOR_WIN
@@ -111,7 +111,7 @@ void CefNativeControl::SetVisible(bool bVisible)
 #endif
 }
 
-void CefNativeControl::SetWindow(ui::Window* pWindow)
+void CefControlNative::SetWindow(ui::Window* pWindow)
 {
     if (pWindow == nullptr) {
         return;
@@ -134,7 +134,7 @@ void CefNativeControl::SetWindow(ui::Window* pWindow)
     BaseClass::SetWindow(pWindow);
 }
 
-bool CefNativeControl::AttachDevTools(Control* /*view*/)
+bool CefControlNative::AttachDevTools(Control* /*view*/)
 {
     if (IsAttachedDevTools()) {
         return true;

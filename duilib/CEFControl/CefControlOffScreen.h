@@ -13,12 +13,14 @@ namespace ui {
 
 class CefMemoryDC;
 
-class CefControl :public CefControlBase, public ui::IUIMessageFilter
+/** duilib的CEF控件，离屏渲染模式
+*/
+class CefControlOffScreen :public CefControlBase, public ui::IUIMessageFilter
 {
     typedef CefControlBase BaseClass;
 public:
-    explicit CefControl(ui::Window* pWindow);
-    ~CefControl(void);    
+    explicit CefControlOffScreen(ui::Window* pWindow);
+    ~CefControlOffScreen(void);    
 
     /// 重写父类接口，提供个性化功能
     virtual void Init() override;
@@ -32,7 +34,7 @@ public:
 
     /**
     * @brief 打开开发者工具
-    * @param[in] view 一个 CefControl 控件实例(仅在CefControl类里需要传入)
+    * @param[in] view 一个 CefControlOffScreen 控件实例(仅在CefControlOffScreen类里需要传入)
     * @return 成功返回 true，失败返回 false
     */
     virtual bool AttachDevTools(Control* view) override;
@@ -182,7 +184,7 @@ private:
     CefRect m_rectPopup;
 
     //开发者工具对应的控件
-    CefControl* m_pDevToolView;
+    CefControlOffScreen* m_pDevToolView;
 };
 
 }

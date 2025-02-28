@@ -1,6 +1,8 @@
 #include "CefManager.h"
 #include "duilib/CEFControl/internal/app/CefClientApp.h"
 #include "duilib/CEFControl/internal/handler/CefBrowserHandler.h"
+#include "duilib/CEFControl/CefControlNative.h"
+#include "duilib/CEFControl/CefControlOffScreen.h"
 
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Core/GlobalManager.h"
@@ -65,6 +67,21 @@ void FixContextMenuBug(HWND hwnd)
 {
     ::CreateWindowW(L"Static", L"", WS_CHILD, 0, 0, 0, 0, hwnd, NULL, NULL, NULL);
     ::PostMessage(hwnd, WM_CLOSE, 0, 0);
+}
+
+//创建CEF控件的回调函数
+Control* DuilibCreateCefControl(const DString& className)
+{
+    Control* pControl = nullptr;
+    if (className == _T("CefControl")) {
+        if (ui::CefManager::GetInstance()->IsEnableOffsetRender()) {
+            pControl = new CefControlOffScreen(nullptr);
+        }
+        else {
+            pControl = new CefControlNative(nullptr);
+        }
+    }
+    return pControl;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
@@ -146,6 +163,9 @@ bool CefManager::Initialize(const DString& app_data_dir, CefSettings &settings, 
         HWND hwnd = ::CreateWindowW(L"Static", L"", WS_POPUP, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
         CefPostTask(TID_UI, base::BindOnce(&FixContextMenuBug, hwnd));
     }
+
+    //添加窗口CEF控件的回调函数
+    GlobalManager::Instance().AddCreateControlCallback(DuilibCreateCefControl);
 
     return bRet;
 }
