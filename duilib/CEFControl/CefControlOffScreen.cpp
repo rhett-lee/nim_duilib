@@ -57,11 +57,15 @@ void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandle
     GlobalManager::Instance().Thread().PostTask(kThreadUI, UiBind(&CefControlOffScreen::Invalidate, this));
 }
 
-void CefControlOffScreen::ClientToControl(UiPoint&pt)
+void CefControlOffScreen::ClientToControl(UiPoint& pt)
 {
     auto offset = GetScrollOffsetInScrollBox();
     pt.x = pt.x + offset.x - GetRect().left;
     pt.y = pt.y + offset.y - GetRect().top;
+
+    //传回的值，是未经DPI缩放的原始值(96 DPI)，然后CEF内部会进行DPI缩放
+    pt.x = DpiManager::MulDiv(pt.x, 96, Dpi().GetDPI());
+    pt.y = DpiManager::MulDiv(pt.y, 96, Dpi().GetDPI());
 }
 
 void CefControlOffScreen::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)

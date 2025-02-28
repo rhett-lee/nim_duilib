@@ -9,7 +9,7 @@
 
 #pragma warning (push)
 #pragma warning (disable:4100)
-#include "include/cef_render_handler.h"
+    #include "include/cef_render_handler.h"
 #pragma warning (pop)
 
 namespace client {
@@ -32,7 +32,7 @@ class OsrDragEvents {
       CefBrowserHost::DragOperationsMask effect) = 0;
 
  protected:
-  virtual ~OsrDragEvents() {}
+  virtual ~OsrDragEvents() = default;
 };
 
 }  // namespace client

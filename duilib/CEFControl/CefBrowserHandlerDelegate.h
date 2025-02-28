@@ -10,8 +10,9 @@
 
 #pragma warning (push)
 #pragma warning (disable:4100)
-#include "include/cef_client.h"
-#include "include/cef_browser.h"
+    #include "include/cef_client.h"
+    #include "include/cef_browser.h"
+    #include "include/cef_version.h"
 #pragma warning (pop)
 
 namespace ui
@@ -90,7 +91,7 @@ public:
                                            CefString error_string) = 0;
 
     //CefDownloadHandler接口 文件下载相关
-    virtual void OnBeforeDownload(CefRefPtr<CefBrowser> browser,
+    virtual bool OnBeforeDownload(CefRefPtr<CefBrowser> browser,
                                   CefRefPtr<CefDownloadItem> download_item,
                                   const CefString& suggested_name,
                                   CefRefPtr<CefBeforeDownloadCallback> callback) = 0;

@@ -11,7 +11,8 @@
 
 #pragma warning (push)
 #pragma warning (disable:4100)
-#include "include/cef_app.h"
+    #include "include/cef_app.h"
+    #include "include/cef_version.h"
 #pragma warning (pop)
 
 namespace ui

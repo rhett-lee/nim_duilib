@@ -9,15 +9,25 @@
 #include "duilib/duilib_config.h"
 #include "duilib/CEFControl/internal/CefAutoUnregister.h"
 #include "duilib/CEFControl/internal/CefJSBridge.h"
-#include "duilib/CEFControl/internal/drag/osr_dragdrop_win.h"
+#include "duilib/CEFControl/internal/osr_dragdrop_events.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
-#include "include/cef_client.h"
-#include "include/cef_browser.h"
+    #include "include/cef_client.h"
+    #include "include/cef_browser.h"
+    #include "include/cef_version.h"
 #pragma warning (pop)
 
 #include "duilib/Core/Window.h"
+
+#ifdef DUILIB_BUILD_FOR_WIN
+
+//Windows平台的DropTarget实现
+namespace client {
+    class DropTargetWin;
+}
+
+#endif
 
 namespace ui
 {
@@ -164,10 +174,10 @@ public:
     virtual void OnVirtualKeyboardRequested(CefRefPtr<CefBrowser> browser, TextInputMode input_mode) override;
 
     // OsrDragEvents接口的实现
-    CefBrowserHost::DragOperationsMask OnDragEnter( CefRefPtr<CefDragData> drag_data, CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect) override;
-    CefBrowserHost::DragOperationsMask OnDragOver(CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect) override;
-    void OnDragLeave() override;
-    CefBrowserHost::DragOperationsMask OnDrop(CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect) override;
+    virtual CefBrowserHost::DragOperationsMask OnDragEnter( CefRefPtr<CefDragData> drag_data, CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect) override;
+    virtual CefBrowserHost::DragOperationsMask OnDragOver(CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect) override;
+    virtual void OnDragLeave() override;
+    virtual CefBrowserHost::DragOperationsMask OnDrop(CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect) override;
 
     // CefContextMenuHandler接口的实现
     virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
@@ -413,9 +423,11 @@ private:
     UiRect m_rcCefControl;
     bool m_bFocusOnEditableField;
     CefUnregistedCallbackList<ui::StdClosure> m_taskListAfterCreated;
-
-    client::DropTargetHandle m_dropTarget;
     CefRenderHandler::DragOperation m_currentDragOperation;
+
+#ifdef DUILIB_BUILD_FOR_WIN
+    std::shared_ptr<client::DropTargetWin> m_dropTarget;
+#endif
 
     IMPLEMENT_REFCOUNTING(CefBrowserHandler);
 };

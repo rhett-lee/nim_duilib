@@ -71,7 +71,7 @@ public:
     /** 获取浏览器对象所属的窗体句柄
     * @return 窗口句柄
     */
-    HWND GetCefHandle() const;//TODO: 跨平台
+    CefWindowHandle GetCefHandle() const;
 
     /** 获取页面 URL
     * @return 返回 URL 地址
@@ -312,7 +312,7 @@ public:
                                            CefString error_string) override;
 
     //CefDownloadHandler接口 文件下载相关
-    virtual void OnBeforeDownload(CefRefPtr<CefBrowser> browser,
+    virtual bool OnBeforeDownload(CefRefPtr<CefBrowser> browser,
                                   CefRefPtr<CefDownloadItem> download_item,
                                   const CefString& suggested_name,
                                   CefRefPtr<CefBeforeDownloadCallback> callback) override;
@@ -379,7 +379,7 @@ private:
     OnLoadErrorEvent                m_pfnLoadError = nullptr;
     OnAfterCreatedEvent             m_pfnAfterCreated = nullptr;
     OnBeforeCloseEvent              m_pfnBeforeClose = nullptr;
-    OnBeforeBrowseEvent            m_pfnBeforeBrowse = nullptr;
+    OnBeforeBrowseEvent             m_pfnBeforeBrowse = nullptr;
     OnProtocolExecutionEvent        m_pfnProtocolExecution = nullptr;
     OnBeforeDownloadEvent           m_pfnBeforeDownload = nullptr;
     OnDownloadUpdatedEvent          m_pfnDownloadUpdated = nullptr;

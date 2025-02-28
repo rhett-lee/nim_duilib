@@ -104,7 +104,7 @@ void CefControlBase::SetZoomLevel(float zoom_level)
     }
 }
 
-HWND CefControlBase::GetCefHandle() const
+CefWindowHandle CefControlBase::GetCefHandle() const
 {
     if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowserHost().get()) {
         return m_pBrowserHandler->GetBrowserHost()->GetWindowHandle();
@@ -396,11 +396,12 @@ void CefControlBase::OnRenderProcessTerminated(CefRefPtr<CefBrowser> /*browser*/
     return;
 }
 
-void CefControlBase::OnBeforeDownload(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item, const CefString& suggested_name, CefRefPtr<CefBeforeDownloadCallback> callback)
+bool CefControlBase::OnBeforeDownload(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item, const CefString& suggested_name, CefRefPtr<CefBeforeDownloadCallback> callback)
 {
     if (m_pfnBeforeDownload) {
-        m_pfnBeforeDownload(browser, download_item, suggested_name, callback);
+        return m_pfnBeforeDownload(browser, download_item, suggested_name, callback);
     }
+    return true;
 }
 
 void CefControlBase::OnDownloadUpdated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item, CefRefPtr<CefDownloadItemCallback> callback)

@@ -509,6 +509,8 @@ std::list<std::string> StringUtil::Split(const std::string& input, const std::st
     char* context = nullptr;
 #ifdef DUILIB_BUILD_FOR_WIN
     char *token = strtok_s(input2.data(), delimitor.c_str(), &context);
+#elif defined _MSC_VER
+    char* token = strtok_s(input2.data(), delimitor.c_str(), &context);
 #else
     char* token = strtok_r(input2.data(), delimitor.c_str(), &context);
 #endif
@@ -516,6 +518,8 @@ std::list<std::string> StringUtil::Split(const std::string& input, const std::st
     {
         output.push_back(token);
 #ifdef DUILIB_BUILD_FOR_WIN
+        token = strtok_s(NULL, delimitor.c_str(), &context);
+#elif defined _MSC_VER
         token = strtok_s(NULL, delimitor.c_str(), &context);
 #else
         token = strtok_r(NULL, delimitor.c_str(), &context);
@@ -536,6 +540,8 @@ std::list<std::wstring> StringUtil::Split(const std::wstring& input, const std::
     wchar_t* context = nullptr;
 #ifdef DUILIB_BUILD_FOR_WIN
     wchar_t* token = wcstok_s(input2.data(), delimitor.c_str(), &context);
+#elif defined _MSC_VER
+    wchar_t* token = wcstok_s(input2.data(), delimitor.c_str(), &context);
 #else
     wchar_t* token = wcstok(input2.data(), delimitor.c_str(), &context);
 #endif
@@ -543,6 +549,8 @@ std::list<std::wstring> StringUtil::Split(const std::wstring& input, const std::
     {
         output.push_back(token);
 #ifdef DUILIB_BUILD_FOR_WIN
+        token = wcstok_s(NULL, delimitor.c_str(), &context);
+#elif defined _MSC_VER
         token = wcstok_s(NULL, delimitor.c_str(), &context);
 #else
         token = wcstok(NULL, delimitor.c_str(), &context);
@@ -713,6 +721,8 @@ int32_t StringUtil::StringICompare(const std::wstring& lhs, const std::wstring& 
 {
 #ifdef DUILIB_BUILD_FOR_WIN
     return ::_wcsicmp(lhs.c_str(), rhs.c_str());
+#elif defined _MSC_VER
+    return ::_wcsicmp(lhs.c_str(), rhs.c_str());
 #else
     return ::wcscasecmp(lhs.c_str(), rhs.c_str());
 #endif
@@ -732,6 +742,8 @@ int32_t StringUtil::StringICompare(const wchar_t* lhs, const wchar_t* rhs)
     else {
 #ifdef DUILIB_BUILD_FOR_WIN
         return ::_wcsicmp(lhs, rhs);
+#elif defined _MSC_VER
+        return ::_wcsicmp(lhs, rhs);
 #else
         return ::wcscasecmp(lhs, rhs);
 #endif
@@ -741,6 +753,8 @@ int32_t StringUtil::StringICompare(const wchar_t* lhs, const wchar_t* rhs)
 int32_t StringUtil::StringICompare(const std::string& lhs, const std::string& rhs)
 {
 #ifdef DUILIB_BUILD_FOR_WIN
+    return ::_stricmp(lhs.c_str(), rhs.c_str());
+#elif defined _MSC_VER
     return ::_stricmp(lhs.c_str(), rhs.c_str());
 #else
     return ::strcasecmp(lhs.c_str(), rhs.c_str());
@@ -760,6 +774,8 @@ int32_t StringUtil::StringICompare(const char* lhs, const char* rhs)
     }
     else {
 #ifdef DUILIB_BUILD_FOR_WIN
+        return ::_stricmp(lhs, rhs);
+#elif defined _MSC_VER
         return ::_stricmp(lhs, rhs);
 #else
         return ::strcasecmp(lhs, rhs);
@@ -993,6 +1009,8 @@ int32_t StringUtil::StringCopy(wchar_t* dest, size_t destSize, const wchar_t* sr
     }
 #ifdef DUILIB_BUILD_FOR_WIN
     return ::wcscpy_s(dest, destSize, src);
+#elif defined _MSC_VER
+    return ::wcscpy_s(dest, destSize, src);
 #else
     size_t nLen = std::min((size_t)wcslen(src), destSize);
     ::wcsncpy(dest, src, nLen);
@@ -1007,6 +1025,8 @@ int32_t StringUtil::StringNCopy(wchar_t* dest, size_t destSize, const wchar_t* s
         return 0;
     }
 #ifdef DUILIB_BUILD_FOR_WIN
+    return ::wcsncpy_s(dest, destSize, src, srcSize);
+#elif defined _MSC_VER
     return ::wcsncpy_s(dest, destSize, src, srcSize);
 #else
     size_t nLen = std::min(srcSize, destSize);
@@ -1023,6 +1043,8 @@ int32_t StringUtil::StringCopy(char* dest, size_t destSize, const char* src)
     }
 #ifdef DUILIB_BUILD_FOR_WIN
     return ::strcpy_s(dest, destSize, src);
+#elif defined _MSC_VER
+    return ::strcpy_s(dest, destSize, src);
 #else
     size_t nLen = std::min(destSize, strlen(src));
     ::strncpy(dest, src, nLen);
@@ -1037,6 +1059,8 @@ int32_t StringUtil::StringNCopy(char* dest, size_t destSize, const char* src, si
         return 0;
     }
 #ifdef DUILIB_BUILD_FOR_WIN
+    return ::strncpy_s(dest, destSize, src, srcSize);
+#elif defined _MSC_VER
     return ::strncpy_s(dest, destSize, src, srcSize);
 #else
     size_t nLen = std::min(srcSize, destSize);

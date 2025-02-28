@@ -5,7 +5,8 @@
 
 #pragma warning (push)
 #pragma warning (disable:4100)
-#include "include/cef_v8.h"
+    #include "include/cef_v8.h"
+    #include "include/cef_version.h"
 #pragma warning (pop)
 
 #include <functional>
