@@ -56,18 +56,6 @@
 
 namespace ui
 {
-///////////////////////////////////////////////////////////////////////////////////
-
-// 发现一个非常奇葩的bug，离屏渲染+多线程消息循环模式下，在浏览器对象上右击弹出菜单，是无法正常关闭的
-// 翻cef源码后发现菜单是用TrackPopupMenu函数创建的，在MSDN资料上查看后发现调用TrackPopupMenu前
-// 需要给其父窗口调用SetForegroundWindow。但是在cef源码中没有调用
-// 最终翻cef源码后得到的解决方法是在cef的UI线程创建一个窗口，这个窗体的父窗口必须是在主程序UI线程创建的
-// 这样操作之后就不会出现菜单无法关闭的bug了，虽然不知道为什么但是bug解决了
-void FixContextMenuBug(HWND hwnd)
-{
-    ::CreateWindowW(L"Static", L"", WS_CHILD, 0, 0, 0, 0, hwnd, NULL, NULL, NULL);
-    ::PostMessage(hwnd, WM_CLOSE, 0, 0);
-}
 
 //创建CEF控件的回调函数
 Control* DuilibCreateCefControl(const DString& className)
@@ -158,15 +146,8 @@ bool CefManager::Initialize(const DString& app_data_dir, CefSettings &settings, 
 
     bool bRet = CefInitialize(main_args, settings, app.get(), NULL);
     
-    if (is_enable_offset_render_)
-    {
-        HWND hwnd = ::CreateWindowW(L"Static", L"", WS_POPUP, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
-        CefPostTask(TID_UI, base::BindOnce(&FixContextMenuBug, hwnd));
-    }
-
     //添加窗口CEF控件的回调函数
     GlobalManager::Instance().AddCreateControlCallback(DuilibCreateCefControl);
-
     return bRet;
 }
 
