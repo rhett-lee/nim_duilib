@@ -10,6 +10,7 @@
 
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/WindowBase.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -225,11 +226,7 @@ void CefManager::PostQuitMessage(int32_t nExitCode)
     // 应该等所有浏览器对象都销毁后再调用::PostQuitMessage
     if (m_browserCount == 0) {
         GlobalManager::Instance().Thread().PostTask(kThreadUI, [nExitCode]() {
-#ifdef DUILIB_BUILD_FOR_WIN
-            ::PostQuitMessage(nExitCode);
-#else
-            Linux
-#endif
+            NativeWindow::PostQuitMsg(0);
         });
     }
     else {

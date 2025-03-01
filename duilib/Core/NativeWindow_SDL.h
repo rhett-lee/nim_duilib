@@ -235,7 +235,7 @@ public:
     /** 向消息队列发送退出消息
     * @param [in] nExitCode 退出码
     */
-    void PostQuitMsg(int32_t nExitCode);
+    static void PostQuitMsg(int32_t nExitCode);
 
 public:
     /** 使窗口进入全屏状态
