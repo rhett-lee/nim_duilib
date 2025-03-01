@@ -57,9 +57,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MultiLang", "MultiLang\Mult
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DpiAware", "DpiAware\DpiAware.vcxproj", "{B153E62E-29A4-435E-9150-E2C2CEA28524}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper", "..\duilib\third_party\libcef\libcef_dll_wrapper.vcxproj", "{BA5C702F-BB68-37F9-A109-74F215FE14C5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper", "..\duilib\third_party\libcef_win\libcef_dll_wrapper.vcxproj", "{BA5C702F-BB68-37F9-A109-74F215FE14C5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper_109", "..\duilib\third_party\libcef109\libcef_dll_wrapper_109.vcxproj", "{34C50672-6115-3723-B8FD-09568AA8527E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper_109", "..\duilib\third_party\libcef_win_109\libcef_dll_wrapper_109.vcxproj", "{34C50672-6115-3723-B8FD-09568AA8527E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
