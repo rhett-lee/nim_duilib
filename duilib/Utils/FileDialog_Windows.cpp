@@ -24,7 +24,7 @@ bool FileDialog::BrowseForFolder(Window* pWindow, FilePath& folderPath, const Fi
         if (!defaultLocation.IsEmpty()) {
             DStringW defaultPath = defaultLocation.ToStringW();
             IShellItem* psi = nullptr;
-            hr = SHCreateItemFromParsingName(defaultPath.c_str(), NULL, IID_IShellItem, reinterpret_cast<void**>(&psi));
+            hr = SHCreateItemFromParsingName(defaultPath.c_str(), nullptr, IID_IShellItem, reinterpret_cast<void**>(&psi));
             if (SUCCEEDED(hr) && (psi != nullptr)) {
                 pfd->SetDefaultFolder(psi);
                 psi->Release();
@@ -68,7 +68,7 @@ bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<FilePath>& folder
         if (!defaultLocation.IsEmpty()) {
             DStringW defaultPath = defaultLocation.ToStringW();
             IShellItem* psi = nullptr;
-            hr = SHCreateItemFromParsingName(defaultPath.c_str(), NULL, IID_IShellItem, reinterpret_cast<void**>(&psi));
+            hr = SHCreateItemFromParsingName(defaultPath.c_str(), nullptr, IID_IShellItem, reinterpret_cast<void**>(&psi));
             if (SUCCEEDED(hr) && (psi != nullptr)) {
                 pfd->SetDefaultFolder(psi);
                 psi->Release();
@@ -168,7 +168,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
         if (!defaultLocation.IsEmpty()) {
             DStringW defaultPath = defaultLocation.ToStringW();
             IShellItem* psi = nullptr;
-            hr = SHCreateItemFromParsingName(defaultPath.c_str(), NULL, IID_IShellItem, reinterpret_cast<void**>(&psi));
+            hr = SHCreateItemFromParsingName(defaultPath.c_str(), nullptr, IID_IShellItem, reinterpret_cast<void**>(&psi));
             if (SUCCEEDED(hr) && (psi != nullptr)) {
                 pfd->SetDefaultFolder(psi);
                 psi->Release();
@@ -230,7 +230,7 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
         if (!defaultLocation.IsEmpty()) {
             DStringW defaultPath = defaultLocation.ToStringW();
             IShellItem* psi = nullptr;
-            hr = SHCreateItemFromParsingName(defaultPath.c_str(), NULL, IID_IShellItem, reinterpret_cast<void**>(&psi));
+            hr = SHCreateItemFromParsingName(defaultPath.c_str(), nullptr, IID_IShellItem, reinterpret_cast<void**>(&psi));
             if (SUCCEEDED(hr) && (psi != nullptr)) {
                 pfd->SetDefaultFolder(psi);
                 psi->Release();

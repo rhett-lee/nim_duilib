@@ -8,13 +8,13 @@ namespace ui
 bool Clipboard::GetClipboardText(DStringW& text)
 {
     text.clear();
-    BOOL ret = ::OpenClipboard(NULL);
+    BOOL ret = ::OpenClipboard(nullptr);
     if (ret) {
         if (::IsClipboardFormatAvailable(CF_UNICODETEXT)) {
             HANDLE h = ::GetClipboardData(CF_UNICODETEXT);
             if (h != INVALID_HANDLE_VALUE) {
                 wchar_t* buf = (wchar_t*)::GlobalLock(h);
-                if (buf != NULL) {
+                if (buf != nullptr) {
                     DStringW str(buf, GlobalSize(h) / sizeof(wchar_t));
                     text = str;
                     ::GlobalUnlock(h);
@@ -25,7 +25,7 @@ bool Clipboard::GetClipboardText(DStringW& text)
             HANDLE h = ::GetClipboardData(CF_TEXT);
             if (h != INVALID_HANDLE_VALUE) {
                 char* buf = (char*)::GlobalLock(h);
-                if (buf != NULL) {
+                if (buf != nullptr) {
                     std::string str(buf, GlobalSize(h));
                     text = StringConvert::MBCSToUnicode(str);
                     ::GlobalUnlock(h);
@@ -47,7 +47,7 @@ bool Clipboard::GetClipboardText(DStringA& text)
 
 bool Clipboard::SetClipboardText(const DStringW& text)
 {
-    if (!::OpenClipboard(NULL)) {
+    if (!::OpenClipboard(nullptr)) {
         return false;
     }
 

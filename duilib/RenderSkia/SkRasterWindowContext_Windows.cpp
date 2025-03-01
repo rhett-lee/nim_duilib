@@ -210,7 +210,7 @@ bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect&
             ASSERT(hdc != nullptr);
             if (hdc != nullptr) {
                 //按分层窗口模式绘制
-                bRet = ::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA) != FALSE;
+                bRet = ::UpdateLayeredWindow(m_hWnd, nullptr, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA) != FALSE;
                 bPainted = true;
                 ASSERT(bRet);
                 pRender->ReleaseRenderDC(hdc);
@@ -277,7 +277,7 @@ HBITMAP SkRasterWindowContext_Windows::CreateHBitmap(int32_t nWidth, int32_t nHe
     HDC hdc = ::GetDC(m_hWnd);
     ASSERT(hdc != nullptr);
     if (hdc != nullptr) {
-        hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, NULL, 0);
+        hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, nullptr, 0);
     }
     ::ReleaseDC(m_hWnd, hdc);
     return hBitmap;

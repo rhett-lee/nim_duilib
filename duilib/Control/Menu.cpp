@@ -30,7 +30,7 @@ ui::Control* Menu::CreateControl(const DString& pstrClass)
     else if (pstrClass == DUI_CTR_SUB_MENU) {
         return new SubMenu(this);
     }
-    return NULL;
+    return nullptr;
 }
 
 bool Menu::Receive(ContextMenuParam param)
@@ -43,7 +43,7 @@ bool Menu::Receive(ContextMenuParam param)
         case MenuCloseType::eMenuCloseThis:
         {
             Window* pParentWindow = GetParentWindow();
-            while (pParentWindow != NULL) {
+            while (pParentWindow != nullptr) {
                 if (pParentWindow == param.pWindow) {
                     CloseMenu();
                     break;

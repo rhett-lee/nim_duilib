@@ -1265,7 +1265,7 @@ bool ListBox::SetItemIndex(Control* pControl, size_t iIndex)
     for(size_t i = iMinIndex; i < iMaxIndex + 1; ++i) {
         Control* pItemControl = GetItemAt(i);
         IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pItemControl);
-        if( pListItem != NULL ) {
+        if( pListItem != nullptr ) {
             pListItem->SetListBoxIndex(i);
         }
     }

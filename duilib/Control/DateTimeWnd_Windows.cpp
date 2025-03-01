@@ -69,7 +69,7 @@ bool DateTimeWnd::Init(DateTime* pOwner)
                                          L"",
                                          dwStyle,
                                          rc.left, rc.top, rc.Width(), rc.Height(),
-                                         hParentWnd, NULL, hModule, this);
+                                         hParentWnd, nullptr, hModule, this);
 
         ASSERT(m_hDateTimeWnd != nullptr);
 
@@ -119,7 +119,7 @@ bool DateTimeWnd::Init(DateTime* pOwner)
     ::SetFocus(m_hDateTimeWnd);
 
     HWND hWndParent = m_hDateTimeWnd;
-    while (::GetParent(hWndParent) != NULL) {
+    while (::GetParent(hWndParent) != nullptr) {
         hWndParent = ::GetParent(hWndParent);
     }
     ::SendMessage(hWndParent, WM_NCACTIVATE, TRUE, 0L);
@@ -138,7 +138,7 @@ bool DateTimeWnd::RegisterSuperClass()
     WNDCLASSEXW wc = { 0 };
     wc.cbSize = sizeof(WNDCLASSEXW);
     DStringW superClassName = DATETIMEPICK_CLASSW;
-    if (!::GetClassInfoExW(NULL, superClassName.c_str(), &wc)) {
+    if (!::GetClassInfoExW(nullptr, superClassName.c_str(), &wc)) {
         if (!::GetClassInfoExW(hModule, superClassName.c_str(), &wc)) {
             ASSERT(!"Unable to locate window class");
             return false;
@@ -150,8 +150,8 @@ bool DateTimeWnd::RegisterSuperClass()
     DStringW className = StringConvert::TToWString(GetWindowClassName());
     wc.lpszClassName = className.c_str();
     ATOM ret = ::RegisterClassExW(&wc);
-    ASSERT(ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
-    return ret != NULL || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
+    ASSERT(ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS);
+    return ret != 0 || ::GetLastError() == ERROR_CLASS_ALREADY_EXISTS;
 }
 
 DString DateTimeWnd::GetWindowClassName() const
@@ -176,7 +176,7 @@ LRESULT CALLBACK DateTimeWnd::__ControlProc(HWND hWnd, UINT uMsg, WPARAM wParam,
         pThis = static_cast<DateTimeWnd*>(::GetPropW(hWnd, sPropName));
         if (uMsg == WM_NCDESTROY && pThis != nullptr) {
             LRESULT lRes = ::CallWindowProc(pThis->m_OldWndProc, hWnd, uMsg, wParam, lParam);
-            ::SetPropW(hWnd, sPropName, NULL);
+            ::SetPropW(hWnd, sPropName, nullptr);
             ASSERT(hWnd == pThis->m_hDateTimeWnd);
             pThis->OnFinalMessage();
             return lRes;

@@ -254,7 +254,7 @@ HDC Render_Skia_Windows::GetRenderDC(HWND hWnd)
                 pRc[nCount++] = rc;
             }
 
-            HRGN hRgn = ::ExtCreateRegion(NULL, nSize, rgnData);
+            HRGN hRgn = ::ExtCreateRegion(nullptr, nSize, rgnData);
             ::free(rgnData);
             ::SelectClipRgn(hGetDC, hRgn);
             ::DeleteObject(hRgn);
@@ -263,7 +263,7 @@ HDC Render_Skia_Windows::GetRenderDC(HWND hWnd)
 
     ::SetGraphicsMode(hGetDC, GM_ADVANCED);
     const SkPoint& ptOrg = GetPointOrg();
-    ::SetViewportOrgEx(hGetDC, (int)ptOrg.x(), (int)ptOrg.y(), NULL);
+    ::SetViewportOrgEx(hGetDC, (int)ptOrg.x(), (int)ptOrg.y(), nullptr);
 
     struct IxForm
     {

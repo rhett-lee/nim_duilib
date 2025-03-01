@@ -34,7 +34,7 @@ static HBITMAP CreateBitmap(const Window* pWindow, int32_t nWidth, int32_t nHeig
     HDC hdc = ::GetDC(hWnd);
     ASSERT(hdc != nullptr);
     if (hdc != nullptr) {
-        hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, NULL, 0);
+        hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, nullptr, 0);
     }
     ::ReleaseDC(hWnd, hdc);
     return hBitmap;

@@ -446,7 +446,7 @@ bool Box::AddItemAt(Control* pControl, size_t iIndex)
 bool Box::DoAddItemAt(Control* pControl, size_t iIndex)
 {
     ASSERT(pControl != nullptr);
-    if (pControl == NULL) {
+    if (pControl == nullptr) {
         return false;
     }
     if(iIndex > m_items.size() ) {
@@ -476,7 +476,7 @@ bool Box::RemoveItem(Control* pControl)
 bool Box::RemoveItemAt(size_t iIndex)
 {
     Control* pControl = GetItemAt(iIndex);
-    if (pControl != NULL) {
+    if (pControl != nullptr) {
         return DoRemoveItem(pControl);
     }
     return false;

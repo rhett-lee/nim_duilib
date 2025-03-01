@@ -86,7 +86,7 @@ bool GetProcessDpiAwarenessContextWrapper(PROCESS_DPI_AWARENESS_CONTEXT& value)
     static GetDpiAwarenessContextForProcessPtr get_process_dpi_awareness_context_func = reinterpret_cast<GetDpiAwarenessContextForProcessPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "GetDpiAwarenessContextForProcess"));
     bool isOk = false;
     if (get_process_dpi_awareness_context_func) {
-        value = get_process_dpi_awareness_context_func(NULL);
+        value = get_process_dpi_awareness_context_func(nullptr);
         isOk = true;
     }
     return isOk;
@@ -109,7 +109,7 @@ bool GetProcessDPIAwarenessWrapper(PROCESS_DPI_AWARENESS& awareness)
     typedef BOOL (WINAPI* GetProcessDpiAwarenessPtr)(HANDLE, PROCESS_DPI_AWARENESS*);
     static GetProcessDpiAwarenessPtr get_process_dpi_awareness_func = reinterpret_cast<GetProcessDpiAwarenessPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "GetProcessDpiAwarenessInternal"));
     if (get_process_dpi_awareness_func) {
-        if (get_process_dpi_awareness_func(NULL, &awareness)) {
+        if (get_process_dpi_awareness_func(nullptr, &awareness)) {
             return true;
         }
     }

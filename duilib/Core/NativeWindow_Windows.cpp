@@ -147,7 +147,7 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
                                  windowTitle.c_str(),
                                  m_createParam.m_dwStyle,
                                  m_createParam.m_nX, m_createParam.m_nY, m_createParam.m_nWidth, m_createParam.m_nHeight,
-                                 hParentWnd, NULL, GetResModuleHandle(), this);
+                                 hParentWnd, nullptr, GetResModuleHandle(), this);
     ASSERT(::IsWindow(hWnd));
     ASSERT(hWnd == m_hWnd);
     if (hWnd != m_hWnd) {
@@ -463,7 +463,7 @@ bool NativeWindow_Windows::SetLayeredWindow(bool bIsLayeredWindow, bool bRedraw)
     SetLayeredWindowStyle(bIsLayeredWindow, bChanged);
     if (bRedraw && bChanged && IsWindow()) {
         // 强制窗口重绘
-        ::SetWindowPos(m_hWnd, NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+        ::SetWindowPos(m_hWnd, nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
     }
     return true;
 }
@@ -605,7 +605,7 @@ void NativeWindow_Windows::SetUseSystemCaption(bool bUseSystemCaption)
         }
         if (bChanged) {
             // 强制窗口重绘
-            ::SetWindowPos(GetHWND(), NULL, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
+            ::SetWindowPos(GetHWND(), nullptr, 0, 0, 0, 0, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE);
             //重新激活窗口的非客户区绘制
             if (IsWindowForeground()) {
                 KeepParentActive();
@@ -719,7 +719,7 @@ void NativeWindow_Windows::CenterWindow()
     int32_t xPos = 0;
     int32_t yPos = 0;
     if (CalculateCenterWindowPos(hCenterWindow, xPos, yPos)) {
-        ::SetWindowPos(m_hWnd, NULL, xPos, yPos, -1, -1, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+        ::SetWindowPos(m_hWnd, nullptr, xPos, yPos, -1, -1, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
     }
 }
 
@@ -896,7 +896,7 @@ bool NativeWindow_Windows::EnterFullScreen()
     // 去掉标题栏、边框
     DWORD dwFullScreenStyle = (m_dwLastStyle | WS_VISIBLE | WS_POPUP | WS_MAXIMIZE) & ~WS_CAPTION & ~WS_BORDER & ~WS_THICKFRAME & ~WS_DLGFRAME;
     ::SetWindowLongPtr(m_hWnd, GWL_STYLE, dwFullScreenStyle);
-    ::SetWindowPos(m_hWnd, NULL, rcMonitor.left, rcMonitor.top, rcMonitor.Width(), rcMonitor.Height(), SWP_FRAMECHANGED); // 设置位置和大小
+    ::SetWindowPos(m_hWnd, nullptr, rcMonitor.left, rcMonitor.top, rcMonitor.Width(), rcMonitor.Height(), SWP_FRAMECHANGED); // 设置位置和大小
     
     m_pOwner->OnNativeWindowEnterFullScreen();
     return true;
@@ -1293,7 +1293,7 @@ void NativeWindow_Windows::KeepParentActive()
 {
     HWND hWndParent = GetHWND();
     if (::IsWindow(hWndParent)) {
-        while (::GetParent(hWndParent) != NULL) {
+        while (::GetParent(hWndParent) != nullptr) {
             hWndParent = ::GetParent(hWndParent);
         }
     }
@@ -1629,7 +1629,7 @@ LRESULT CALLBACK NativeWindow_Windows::__WndProc(HWND hWnd, UINT uMsg, WPARAM wP
         if (uMsg == WM_NCDESTROY && pThis != nullptr) {            
             LRESULT lRes = ::DefWindowProc(hWnd, uMsg, wParam, lParam);
             ::SetWindowLongPtr(pThis->m_hWnd, GWLP_USERDATA, 0L);
-            ::SetPropW(hWnd, sPropName, NULL);
+            ::SetPropW(hWnd, sPropName, nullptr);
             ASSERT(hWnd == pThis->GetHWND());
             pThis->OnFinalMessage();
             return lRes;
@@ -1707,7 +1707,7 @@ LRESULT CALLBACK NativeWindow_Windows::__DialogWndProc(HWND hWnd, UINT uMsg, WPA
         }
         LRESULT lRes = ::DefWindowProc(hWnd, uMsg, wParam, lParam);
         ::SetWindowLongPtr(pThis->m_hWnd, GWLP_USERDATA, 0L);
-        ::SetPropW(hWnd, sPropName, NULL);
+        ::SetPropW(hWnd, sPropName, nullptr);
         ASSERT(hWnd == pThis->GetHWND());
         pThis->OnFinalMessage();
         return lRes;
@@ -2514,7 +2514,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
         else if (!IsUseSystemCaption() && (wParam == HTSYSMENU) && IsEnableSysMenu()) {
             //鼠标点击在窗口菜单位置，启动定时器，延迟显示系统的窗口菜单
             StopSysMenuTimer();            
-            m_nSysMenuTimerId = ::SetTimer(m_hWnd, UI_SYS_MEMU_TIMER_ID, 300, NULL);
+            m_nSysMenuTimerId = ::SetTimer(m_hWnd, UI_SYS_MEMU_TIMER_ID, 300, nullptr);
         }
         break;
     }
@@ -2607,7 +2607,7 @@ bool NativeWindow_Windows::ShowWindowSysMenu(HWND hWnd, const POINT& pt) const
     }
 
     // 在点击位置显示系统菜单
-    int32_t nRet = ::TrackPopupMenu(hSysMenu, TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, NULL);
+    int32_t nRet = ::TrackPopupMenu(hSysMenu, TPM_RIGHTBUTTON | TPM_NONOTIFY | TPM_RETURNCMD, pt.x, pt.y, 0, hWnd, nullptr);
     if (nRet != 0) {
         ::PostMessage(hWnd, WM_SYSCOMMAND, nRet, 0);
     }

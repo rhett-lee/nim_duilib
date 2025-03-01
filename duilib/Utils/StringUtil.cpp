@@ -514,15 +514,14 @@ std::list<std::string> StringUtil::Split(const std::string& input, const std::st
 #else
     char* token = strtok_r(input2.data(), delimitor.c_str(), &context);
 #endif
-    while (token != NULL)
-    {
+    while (token != nullptr) {
         output.push_back(token);
 #ifdef DUILIB_BUILD_FOR_WIN
-        token = strtok_s(NULL, delimitor.c_str(), &context);
+        token = strtok_s(nullptr, delimitor.c_str(), &context);
 #elif defined _MSC_VER
-        token = strtok_s(NULL, delimitor.c_str(), &context);
+        token = strtok_s(nullptr, delimitor.c_str(), &context);
 #else
-        token = strtok_r(NULL, delimitor.c_str(), &context);
+        token = strtok_r(nullptr, delimitor.c_str(), &context);
 #endif
     }
     return output;
@@ -545,15 +544,14 @@ std::list<std::wstring> StringUtil::Split(const std::wstring& input, const std::
 #else
     wchar_t* token = wcstok(input2.data(), delimitor.c_str(), &context);
 #endif
-    while (token != NULL)
-    {
+    while (token != nullptr) {
         output.push_back(token);
 #ifdef DUILIB_BUILD_FOR_WIN
-        token = wcstok_s(NULL, delimitor.c_str(), &context);
+        token = wcstok_s(nullptr, delimitor.c_str(), &context);
 #elif defined _MSC_VER
-        token = wcstok_s(NULL, delimitor.c_str(), &context);
+        token = wcstok_s(nullptr, delimitor.c_str(), &context);
 #else
-        token = wcstok(NULL, delimitor.c_str(), &context);
+        token = wcstok(nullptr, delimitor.c_str(), &context);
 #endif
     }
     return output;

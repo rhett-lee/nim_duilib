@@ -82,7 +82,7 @@ public:
             //初始化COM环境（必须，否则退出时会崩溃）
             if (!m_bInitCOM) {
                 m_bInitCOM = true;
-                ::OleInitialize(NULL);
+                ::OleInitialize(nullptr);
             }            
             m_hRichEditModule = ::LoadLibrary(RichEditCtrl::GetLibraryName());
             ASSERT(m_hRichEditModule != nullptr);
@@ -175,7 +175,7 @@ void RichEditHost::Init()
     }
 
     if (pfnTextServicesProc) {
-        pfnTextServicesProc(NULL, this, &pUnk);
+        pfnTextServicesProc(nullptr, this, &pUnk);
     }
 
     ASSERT(m_pTextServices == nullptr);
@@ -698,7 +698,7 @@ HRESULT RichEditHost::TxNotify(DWORD iNotify, void* pv)
 
 HIMC RichEditHost::TxImmGetContext(void)
 {
-    return NULL;
+    return nullptr;
 }
 
 void RichEditHost::TxImmReleaseContext(HIMC /*himc*/)
@@ -1070,8 +1070,8 @@ bool RichEditHost::SetCursor(const UiRect* prc, const UiPoint* pt)
             pRect = &rect;
         }
         if (m_pTextServices != nullptr) {
-            m_pTextServices->OnTxSetCursor(DVASPECT_CONTENT, -1, NULL, NULL, m_pRichEdit->GetDrawDC(),
-                                           NULL, pRect, newPt.x, newPt.y);
+            m_pTextServices->OnTxSetCursor(DVASPECT_CONTENT, -1, nullptr, nullptr, m_pRichEdit->GetDrawDC(),
+                                           nullptr, pRect, newPt.x, newPt.y);
             return true;
         }
     }

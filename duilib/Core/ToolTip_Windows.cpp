@@ -152,10 +152,10 @@ void ToolTip::TImpl::ShowToolTip(const WindowBase* pParentWnd,
     m_ToolTip.rect.right = rect.right;
     m_ToolTip.rect.bottom = rect.bottom;
     if (m_hwndTooltip == nullptr) {
-        m_hwndTooltip = ::CreateWindowExW(0, TOOLTIPS_CLASSW, NULL, 
+        m_hwndTooltip = ::CreateWindowExW(0, TOOLTIPS_CLASSW, nullptr,
                                           WS_POPUP | TTS_NOPREFIX | TTS_ALWAYSTIP, CW_USEDEFAULT,
                                           CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, 
-                                          hParentWnd, NULL, hModule, NULL);
+                                          hParentWnd, nullptr, hModule, nullptr);
         ::SendMessage(m_hwndTooltip, TTM_ADDTOOL, 0, (LPARAM)&m_ToolTip);
         ::SetWindowPos(m_hwndTooltip, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
     }

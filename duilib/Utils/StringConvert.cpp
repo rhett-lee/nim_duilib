@@ -302,7 +302,7 @@ std::wstring StringConvert::MBCSToUnicode2(const char* input, size_t inputSize, 
         return output;
     }
 
-    int length = ::MultiByteToWideChar(code_page, 0, input, static_cast<int>(inputSize), NULL, 0);
+    int length = ::MultiByteToWideChar(code_page, 0, input, static_cast<int>(inputSize), nullptr, 0);
     if (length < 0) {
         length = 0;
     }
@@ -329,7 +329,7 @@ DString StringConvert::MBCSToT(const std::string& input)
 std::string StringConvert::UnicodeToMBCS(const std::wstring& input, int32_t code_page)
 {
     std::string output;
-    int length = ::WideCharToMultiByte(code_page, 0, input.c_str(), static_cast<int>(input.size()), NULL, 0, NULL, NULL);
+    int length = ::WideCharToMultiByte(code_page, 0, input.c_str(), static_cast<int>(input.size()), nullptr, 0, nullptr, nullptr);
     if (length < 0) {
         length = 0;
     }
@@ -338,7 +338,7 @@ std::string StringConvert::UnicodeToMBCS(const std::wstring& input, int32_t code
         return output;
     }
     ::WideCharToMultiByte(code_page, 0, input.c_str(), static_cast<int>(input.size()),
-                          &output[0], static_cast<int>(output.size()), NULL, NULL);
+                          &output[0], static_cast<int>(output.size()), nullptr, nullptr);
     return output;
 }
 
