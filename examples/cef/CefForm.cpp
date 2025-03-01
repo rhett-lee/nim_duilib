@@ -109,7 +109,7 @@ void CefForm::OnLoadEnd(int httpStatusCode)
     // 注册一个方法提供前端调用
     m_pCefControl->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([this](const std::string& params, ui::ReportResultFunction callback) {
         DString value = ui::StringConvert::UTF8ToT(params);
-        //ui::Toast::ShowToast(value, 3000, this);
+        ui::SystemUtil::ShowMessageBox(this, value.c_str(), _T("JavaScript ShowMessageBox"));
         callback(false, R"({ "message": "Success." })");
     }));
 }

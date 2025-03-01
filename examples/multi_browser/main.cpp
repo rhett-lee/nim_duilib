@@ -28,9 +28,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 //    wprintf_s(L"Command:\n%s\n\n", lpCmdLine);
 //#endif
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     HRESULT hr = ::OleInitialize(nullptr);
-    if (FAILED(hr))
+    if (FAILED(hr)) {
         return 0;
+    }
+#endif
 
     //必须在CefManager::Initialize前调用，设置DPI自适应属性，否则会导致显示不正常
     ui::GlobalManager::Instance().Dpi().InitDpiAwareness(dpiInitParam);
@@ -52,7 +55,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // 清理 CEF
     ui::CefManager::GetInstance()->UnInitialize();
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleUninitialize();
+#endif
 
     return 0;
 }
