@@ -352,7 +352,7 @@ void CefControlOffScreen::DettachDevTools()
 
 void CefControlOffScreen::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)
 {
-    if (IsAttachedDevTools() && (m_pDevToolView != nullptr) && CefManager::GetInstance()->IsEnableOffsetRender()) {
+    if (IsAttachedDevTools() && (m_pDevToolView != nullptr) && CefManager::GetInstance()->IsEnableOffScreenRendering()) {
         //离屏渲染模式，开发者工具与页面位于相同的客户区位置
         int x = params->GetXCoord();
         int y = params->GetYCoord();
@@ -677,7 +677,7 @@ int CefControlOffScreen::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
 
 void CefControlOffScreen::AdaptDpiScale(CefMouseEvent& mouse_event)
 {
-    if (CefManager::GetInstance()->IsEnableOffsetRender()) {
+    if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
         //离屏渲染模式，需要传给原始宽度和高度，因为CEF内部会进一步做DPI自适应
         uint32_t dpiScale = 100;
         if (GetWindow() != nullptr) {

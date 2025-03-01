@@ -30,32 +30,26 @@ public:
 private:
     ~CefManager();
 public:
-    /**
-    * 把cef dll文件的位置添加到程序的"path"环境变量中,这样可以把dll文件放到bin以外的目录，并且不需要手动频繁切换dll文件
-    * @return void    无返回值
+    /** 把cef dll文件的位置添加到程序的"path"环境变量中,这样可以把dll文件放到bin以外的目录，并且不需要手动频繁切换dll文件
     */
     void AddCefDllToPath();
 
-    /**
-    * 初始化cef组件
-    * @param[in] app_data_dir 应用路径名称
-    * @param[in] settings Cef全部配置
-    * @param[in] is_enable_offset_render 是否开启离屏渲染
+    /** 初始化cef组件
+    * @param [in] app_data_dir 应用路径名称
+    * @param [in] settings Cef全部配置
+    * @param [in] bEnableOffScreenRendering 是否开启离屏渲染
     * @return bool true 继续运行，false 应该结束程序
     */
-    bool Initialize(const DString& app_data_dir, CefSettings &settings, bool is_enable_offset_render = true);
+    bool Initialize(const DString& app_data_dir, CefSettings& settings, bool bEnableOffScreenRendering = true);
 
-    /**
-    * 清理cef组件
-    * @return void    无返回值
+    /** 清理cef组件
     */
     void UnInitialize();
 
-    /**
-    * 是否开启离屏渲染
+    /** 是否开启离屏渲染
     * @return bool true 开启，false 不开启
     */
-    bool IsEnableOffsetRender() const;
+    bool IsEnableOffScreenRendering() const;
 
     // 记录浏览器对象的数量
     void AddBrowserCount();
@@ -63,20 +57,20 @@ public:
     int  GetBrowserCount();
 
     // 在Cef浏览器对象销毁后发送WM_QUIT消息
-    void PostQuitMessage(int nExitCode);
+    void PostQuitMessage(int32_t nExitCode);
 
 private:
-    /**
-    * 设置cef配置信息
-    * @param[in] app_data_dir 应用路径名称(UTF16或者UTF8编码)，见nim::Client::Init的说明
-    * @param[out] settings cef配置类
-    * @return void    无返回值
+    /** 设置cef配置信息
+    * @param [in] app_data_dir 应用路径名称(UTF16或者UTF8编码)
+    * @param [out] settings cef配置类
     */
-    void GetCefSetting(const DString& app_data_dir, CefSettings &settings);
+    void GetCefSetting(const DString& app_data_dir, CefSettings& settings);
 
 private:
     int browser_count_;
-    bool is_enable_offset_render_;
+
+    //是否启用离屏渲染
+    bool m_bEnableOffScreenRendering;
 };
 }
 

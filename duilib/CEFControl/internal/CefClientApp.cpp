@@ -33,7 +33,7 @@ void CefClientApp::OnBeforeCommandLineProcessing(const CefString& process_type, 
         //command_line->AppendSwitchWithValue("proxy-server", "SOCKS5://127.0.0.1:1080");    
 
         // 开启离屏渲染
-        if (CefManager::GetInstance()->IsEnableOffsetRender()) {
+        if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
             command_line->AppendSwitch("disable-surfaces");
             command_line->AppendSwitch("enable-begin-frame-scheduling");
         }
