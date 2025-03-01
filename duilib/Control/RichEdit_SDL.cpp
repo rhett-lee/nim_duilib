@@ -1523,8 +1523,8 @@ void RichEdit::SetImmStatus(BOOL bOpen)
     // 失去焦点时关闭输入法
     HIMC hImc = ::ImmGetContext(hwnd);
     // 失去焦点是会把关联的输入法去掉，导致无法无法输入中文
-    //::ImmAssociateContext(hwnd, bOpen ? hImc : NULL);
-    if (hImc != NULL) {
+    //::ImmAssociateContext(hwnd, bOpen ? hImc : nullptr);
+    if (hImc != nullptr) {
         if (::ImmGetOpenStatus(hImc)) {
             if (!bOpen) {
                 ::ImmSetOpenStatus(hImc, FALSE);

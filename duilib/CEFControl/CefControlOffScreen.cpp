@@ -141,7 +141,7 @@ void CefControlOffScreen::HandleEvent(const EventArgs& msg)
         }
         return;
     }
-    if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get() == NULL) {
+    if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get() == nullptr) {
         return BaseClass::HandleEvent(msg);
     }
 

@@ -109,7 +109,7 @@ void CefControlNative::SetVisible(bool bVisible)
             ShowWindow(hwnd, SW_SHOW);
         }
         else {
-            ::SetWindowPos(hwnd, NULL, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
+            ::SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
         }
     }
 #endif

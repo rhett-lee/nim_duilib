@@ -220,13 +220,13 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     if (strName == _T("vscrollbar")) {
         //纵向滚动条
         if (strValue == _T("true")) {
-            EnableScrollBar(true, GetHScrollBar() != NULL);
+            EnableScrollBar(true, GetHScrollBar() != nullptr);
             if (m_pRichHost != nullptr) {
                 m_pRichHost->SetVScrollBar(true);
             }
         }
         else {
-            EnableScrollBar(false, GetHScrollBar() != NULL);
+            EnableScrollBar(false, GetHScrollBar() != nullptr);
             if (m_pRichHost != nullptr) {
                 m_pRichHost->SetVScrollBar(false);
             }
@@ -235,13 +235,13 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("hscrollbar")) {
         //横向滚动条
         if (strValue == _T("true")) {
-            EnableScrollBar(GetVScrollBar() != NULL, true);
+            EnableScrollBar(GetVScrollBar() != nullptr, true);
             if (m_pRichHost != nullptr) {
                 m_pRichHost->SetHScrollBar(true);
             }
         }
         else {
-            EnableScrollBar(GetVScrollBar() != NULL, false);
+            EnableScrollBar(GetVScrollBar() != nullptr, false);
             if (m_pRichHost != nullptr) {
                 m_pRichHost->SetHScrollBar(false);
             }
@@ -1078,7 +1078,7 @@ DString RichEdit::GetTextRange(int32_t nStartChar, int32_t nEndChar) const
     TEXTRANGEW tr = { 0 };
     tr.chrg.cpMin = nStartChar;
     tr.chrg.cpMax = nEndChar;
-    LPWSTR lpText = NULL;
+    LPWSTR lpText = nullptr;
     const int32_t nLen = nEndChar - nStartChar + 1;
     if (nLen < 1) {
         return DString();
@@ -1324,8 +1324,8 @@ UiSize RichEdit::GetNaturalSize(LONG width, LONG height)
     if (pTextServices != nullptr) {
         pTextServices->TxGetNaturalSize(DVASPECT_CONTENT,
                                         GetDrawDC(),
-                                        NULL,
-                                        NULL,
+                                        nullptr,
+                                        nullptr,
                                         TXTNS_FITTOCONTENT,
                                         &szExtent,
                                         &lWidth,
@@ -1345,8 +1345,8 @@ void RichEdit::SetImmStatus(BOOL bOpen)
     // 失去焦点时关闭输入法
     HIMC hImc = ::ImmGetContext(hwnd);
     // 失去焦点是会把关联的输入法去掉，导致无法无法输入中文
-    //::ImmAssociateContext(hwnd, bOpen ? hImc : NULL);
-    if (hImc != NULL) {
+    //::ImmAssociateContext(hwnd, bOpen ? hImc : nullptr);
+    if (hImc != nullptr) {
         if (::ImmGetOpenStatus(hImc)) {
             if (!bOpen) {
                 ::ImmSetOpenStatus(hImc, FALSE);
@@ -1689,7 +1689,7 @@ void RichEdit::SetPos(UiRect rc)
         UiRect rcScrollBarPos(rc.right, rc.top, rc.right + pVScrollBar->GetFixedWidth().GetInt32(), rc.bottom);
         pVScrollBar->SetPos(rcScrollBarPos);
     }
-    if (pHScrollBar != NULL && pHScrollBar->IsValid()) {
+    if (pHScrollBar != nullptr && pHScrollBar->IsValid()) {
         UiRect rcScrollBarPos(rc.left, rc.bottom, rc.right, rc.bottom + pHScrollBar->GetFixedHeight().GetInt32());
         pHScrollBar->SetPos(rcScrollBarPos);
     }
@@ -1809,7 +1809,7 @@ bool RichEdit::OnSetCursor(const EventArgs& msg)
 bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 {
     if (m_pRichHost != nullptr) {
-        m_pRichHost->OnTxInPlaceActivate(NULL);
+        m_pRichHost->OnTxInPlaceActivate(nullptr);
         m_richCtrl.TxSendMessage(WM_SETFOCUS, 0, 0);
         ShowCaret(true);
     }
@@ -1834,7 +1834,7 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
 {
     if (m_pRichHost) {
-        m_pRichHost->OnTxInPlaceActivate(NULL);
+        m_pRichHost->OnTxInPlaceActivate(nullptr);
         m_richCtrl.TxSendMessage(WM_KILLFOCUS, 0, 0);
         ShowCaret(false);
     }
@@ -2136,18 +2136,18 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 #endif
         if(hdc != nullptr){
             RECT paintRect = { rcPaint.left, rcPaint.top, rcPaint.right, rcPaint.bottom };
-            pTextServices->TxDraw(DVASPECT_CONTENT,         // Draw Aspect
-                                  /*-1*/0,                  // Lindex
-                                  NULL,                     // Info for drawing optimazation
-                                  NULL,                     // target device information
-                                  hdc,                      // Draw device HDC
-                                  NULL,                     // Target device HDC
-                                  (RECTL*)&rc,              // Bounding client rectangle
-                                  NULL,                     // Clipping rectangle for metafiles
-                                  &paintRect,               // Update rectangle
-                                  NULL,                     // Call back function
-                                  NULL,                     // Call back parameter
-                                  0);                       // What view of the object
+            pTextServices->TxDraw(DVASPECT_CONTENT,     // Draw Aspect
+                                  /*-1*/0,              // Lindex
+                                  nullptr,              // Info for drawing optimazation
+                                  nullptr,              // target device information
+                                  hdc,                  // Draw device HDC
+                                  nullptr,              // Target device HDC
+                                  (RECTL*)&rc,          // Bounding client rectangle
+                                  nullptr,              // Clipping rectangle for metafiles
+                                  &paintRect,           // Update rectangle
+                                  nullptr,              // Call back function
+                                  0,                    // Call back parameter
+                                  0);                   // What view of the object
 
             pRender->ReleaseRenderDC(hdc);
             //绘制完成后，做标记，避免重复绘制
@@ -2375,7 +2375,7 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
             RECT rcClip = { rcUpdate.left, rcUpdate.top, rcUpdate.right, rcUpdate.bottom };
             pRc[nCount++] = rcClip;
 
-            HRGN hRgn = ::ExtCreateRegion(NULL, (DWORD)nSize, rgnData);
+            HRGN hRgn = ::ExtCreateRegion(nullptr, (DWORD)nSize, rgnData);
             ::free(rgnData);
             if (hRgn != nullptr) {
                 bSetClipRect = true;
@@ -2389,18 +2389,18 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
     }
     
     RECT rectUpdate = { rcUpdate.left, rcUpdate.top, rcUpdate.right, rcUpdate.bottom };
-    pTextServices->TxDraw(DVASPECT_CONTENT,      // Draw Aspect
-                            /*-1*/0,               // Lindex
-                            NULL,                  // Info for drawing optimazation
-                            NULL,                  // target device information
-                            hDrawDC,               // Draw device HDC
-                            NULL,                  // Target device HDC
-                            &rcBitmap,             // Bounding client rectangle
-                            NULL,                  // Clipping rectangle for metafiles
-                            &rectUpdate,           // Update rectangle
-                            NULL,                  // Call back function
-                            NULL,                  // Call back parameter
-                            0);                    // What view of the object
+    pTextServices->TxDraw(DVASPECT_CONTENT,     // Draw Aspect
+                            /*-1*/0,            // Lindex
+                            nullptr,            // Info for drawing optimazation
+                            nullptr,            // target device information
+                            hDrawDC,            // Draw device HDC
+                            nullptr,            // Target device HDC
+                            &rcBitmap,          // Bounding client rectangle
+                            nullptr,            // Clipping rectangle for metafiles
+                            &rectUpdate,        // Update rectangle
+                            nullptr,            // Call back function
+                            0,                  // Call back parameter
+                            0);                 // What view of the object
 
     //恢复Alpha(绘制过程中，会导致绘制区域部分的Alpha通道出现异常)
     for (int32_t i = nTop; i < nBottom; i++) {
@@ -2755,13 +2755,13 @@ void RichEdit::SetUseControlCursor(bool bUseControlCursor)
 void RichEdit::GetClipboardText(DStringW& out )
 {
     out.clear();
-    BOOL ret = ::OpenClipboard(NULL);
+    BOOL ret = ::OpenClipboard(nullptr);
     if(ret) {
         if(::IsClipboardFormatAvailable(CF_UNICODETEXT)) {
             HANDLE h = ::GetClipboardData(CF_UNICODETEXT);
             if(h != INVALID_HANDLE_VALUE) {
                 DStringW::value_type* buf = (DStringW::value_type*)::GlobalLock(h);
-                if(buf != NULL)    {
+                if(buf != nullptr)    {
                     DStringW str(buf, GlobalSize(h)/sizeof(DStringW::value_type));
                     out = str;
                     ::GlobalUnlock(h);
@@ -2772,7 +2772,7 @@ void RichEdit::GetClipboardText(DStringW& out )
             HANDLE h = ::GetClipboardData(CF_TEXT);
             if(h != INVALID_HANDLE_VALUE) {
                 char* buf = (char*)::GlobalLock(h);
-                if(buf != NULL)    {
+                if(buf != nullptr)    {
                     std::string str(buf, GlobalSize(h));
                     out = StringConvert::MBCSToUnicode(str);
                     ::GlobalUnlock(h);

@@ -146,9 +146,9 @@ namespace BitmapHelper {
         bmi.bmiHeader.biCompression = BI_RGB;
         bmi.bmiHeader.biSizeImage = nWidth * nHeight * sizeof(DWORD);
 
-        HDC hdc = ::GetDC(NULL);
-        HBITMAP hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, NULL, 0);
-        ::ReleaseDC(NULL, hdc);
+        HDC hdc = ::GetDC(nullptr);
+        HBITMAP hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, nullptr, 0);
+        ::ReleaseDC(nullptr, hdc);
         return hBitmap;
     }
     

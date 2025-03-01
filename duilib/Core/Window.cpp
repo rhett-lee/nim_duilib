@@ -1816,7 +1816,7 @@ bool Window::SetNextTabControl(bool bForward)
         if (bForward) {
             // Wrap around
             FINDTABINFO info2 = { 0 };
-            info2.pFocus = bForward ? NULL : info1.pLast;
+            info2.pFocus = bForward ? nullptr : info1.pLast;
             info2.bForward = bForward;
             pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromTab, &info2, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_ME_FIRST);
         }

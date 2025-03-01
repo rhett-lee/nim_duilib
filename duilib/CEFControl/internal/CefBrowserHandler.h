@@ -61,7 +61,7 @@ public:
     void SetHostWindow(ui::Window* window);
 
     // 设置委托类指针，浏览器对象的一些事件会交给此指针对象来处理
-    // 当指针所指的对象不需要处理事件时，应该给参数传入NULL
+    // 当指针所指的对象不需要处理事件时，应该给参数传入nullptr
     void SetHandlerDelegate(CefBrowserHandlerDelegate* handler){ m_pHandlerDelegate = handler; }
 
     // 设置Cef渲染内容的大小

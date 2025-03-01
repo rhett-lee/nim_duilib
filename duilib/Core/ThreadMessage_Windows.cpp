@@ -61,7 +61,7 @@ void ThreadMessage::Initialize(void* platformData)
     if (m_impl->m_hMessageWnd != nullptr) {
         return;
     }
-    auto hinst = platformData != nullptr ? (HMODULE)platformData : ::GetModuleHandle(NULL);
+    auto hinst = platformData != nullptr ? (HMODULE)platformData : ::GetModuleHandle(nullptr);
     WNDCLASSEXW wc = { 0 };
     wc.cbSize = sizeof(wc);
     wc.lpfnWndProc = ThreadMessage::TImpl::WndProcThunk;

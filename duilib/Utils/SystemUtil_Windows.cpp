@@ -14,7 +14,7 @@ bool SystemUtil::OpenUrl(const DString& url)
     if (url.empty()) {
         return false;
     }
-    return ::ShellExecuteW(NULL, L"open", StringConvert::TToWString(url).c_str(), NULL, NULL, SW_SHOWDEFAULT) > (HINSTANCE)32;
+    return ::ShellExecuteW(nullptr, L"open", StringConvert::TToWString(url).c_str(), nullptr, nullptr, SW_SHOWDEFAULT) > (HINSTANCE)32;
 }
 
 bool SystemUtil::ShowMessageBox(const Window* pWindow, const DString& content, const DString& title)

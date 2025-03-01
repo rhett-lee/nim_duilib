@@ -465,7 +465,7 @@ public:
         return (int)TxSendMessage(EM_GETTEXTEX, (WPARAM)pGetTextEx, (LPARAM)lpstrText);
     }
 
-    int GetTextEx(LPWSTR lpstrText, int nTextLen, DWORD dwFlags = GT_DEFAULT, UINT uCodePage = CP_ACP, LPCSTR lpDefaultChar = NULL, LPBOOL lpUsedDefChar = NULL) const
+    int GetTextEx(LPWSTR lpstrText, int nTextLen, DWORD dwFlags = GT_DEFAULT, UINT uCodePage = CP_ACP, LPCSTR lpDefaultChar = nullptr, LPBOOL lpUsedDefChar = nullptr) const
     {
         ASSERT(m_pTextServices != nullptr);
         GETTEXTEX gte = {};
@@ -543,14 +543,14 @@ public:
     void GetScrollPos(LPPOINT lpPoint) const
     {
         ASSERT(m_pTextServices != nullptr);
-        ASSERT(lpPoint != NULL);
+        ASSERT(lpPoint != nullptr);
         TxSendMessage(EM_GETSCROLLPOS, 0, (LPARAM)lpPoint);
     }
 
     void SetScrollPos(LPPOINT lpPoint)
     {
         ASSERT(m_pTextServices != nullptr);
-        ASSERT(lpPoint != NULL);
+        ASSERT(lpPoint != nullptr);
         TxSendMessage(EM_SETSCROLLPOS, 0, (LPARAM)lpPoint);
     }
 
@@ -788,7 +788,7 @@ public:
     IRichEditOle* GetOleInterface() const
     {
         ASSERT(m_pTextServices != nullptr);
-        IRichEditOle* pRichEditOle = NULL;
+        IRichEditOle* pRichEditOle = nullptr;
         TxSendMessage(EM_GETOLEINTERFACE, 0, (LPARAM)&pRichEditOle);
         return pRichEditOle;
     }

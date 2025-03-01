@@ -154,7 +154,7 @@ void SkGLWindowContext_Windows::onDestroyContext()
 {
     if (m_fHGLRC != nullptr) {
         ASSERT(m_fHGLRC == wglGetCurrentContext());
-        wglMakeCurrent(NULL, NULL);
+        wglMakeCurrent(nullptr, nullptr);
         wglDeleteContext(m_fHGLRC);
         m_fHGLRC = nullptr;
     }
