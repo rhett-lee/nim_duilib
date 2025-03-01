@@ -23,7 +23,7 @@
     //CEF 109版本
     #ifdef _WIN64
         //64位操作系统
-        #pragma comment (lib, "duilib/third_party/libcef109/lib/x64/libcef.lib")
+        #pragma comment (lib, "duilib/third_party/libcef_win_109/lib/x64/libcef.lib")
         #ifdef _DEBUG
             #pragma comment (lib, "Libs/x64/libcef_dll_wrapper_109_d.lib")
         #else
@@ -31,7 +31,7 @@
         #endif
     #else
         //32位操作系统
-        #pragma comment (lib, "duilib/third_party/libcef109/lib/Win32/libcef.lib")
+        #pragma comment (lib, "duilib/third_party/libcef_win_109/lib/Win32/libcef.lib")
         #ifdef _DEBUG
             #pragma comment (lib, "Libs/libcef_dll_wrapper_109_d.lib")
         #else
@@ -42,7 +42,7 @@
     //CEF 高版本
     #ifdef _WIN64
         //64位操作系统
-        #pragma comment (lib, "duilib/third_party/libcef/lib/x64/libcef.lib")
+        #pragma comment (lib, "duilib/third_party/libcef_win/lib/x64/libcef.lib")
         #ifdef _DEBUG
             #pragma comment (lib, "Libs/x64/libcef_dll_wrapper_d.lib")
         #else
@@ -50,7 +50,7 @@
         #endif
     #else
         //32位操作系统
-        #pragma comment (lib, "duilib/third_party/libcef/lib/Win32/libcef.lib")
+        #pragma comment (lib, "duilib/third_party/libcef_win/lib/Win32/libcef.lib")
         #ifdef _DEBUG
             #pragma comment (lib, "Libs/libcef_dll_wrapper_d.lib")
         #else
@@ -122,16 +122,16 @@ void CefManager::AddCefDllToPath()
 #if CEF_VERSION_MAJOR <= 109
     //CEF 109版本
     #ifdef _WIN64
-        cef_path += _T("libcef109\\x64");
+        cef_path += _T("libcef_win_109\\x64");
     #else
-        cef_path += _T("libcef109\\Win32");
+        cef_path += _T("libcef_win_109\\Win32");
     #endif
 #else
     //CEF 高版本
     #ifdef _WIN64
-        cef_path += _T("libcef\\x64");
+        cef_path += _T("libcef_win\\x64");
     #else
-        cef_path += _T("libcef\\Win32");
+        cef_path += _T("libcef_win\\Win32");
     #endif
 #endif
 
