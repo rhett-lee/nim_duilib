@@ -210,12 +210,12 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CefForm.h" />
     <ClInclude Include="main.h" />
-    <ClInclude Include="cef_form.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cef_form.cpp" />
+    <ClCompile Include="CefForm.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>

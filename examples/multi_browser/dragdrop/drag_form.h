@@ -73,9 +73,9 @@ private:
     void SetDragImage(HBITMAP bitmap);
 
 private:
-    static HHOOK    s_mouse_hook;
-    static DragForm *s_drag_form;
-    static POINT    s_point_offset;
-    BitmapControl    *bitmap_control_;
+    static HHOOK s_mouse_hook;
+    static DragForm* s_drag_form;
+    static POINT s_point_offset;
+    BitmapControl* m_pBitmapControl;
 };
 #endif //EXAMPLES_DRAG_FROM_H_

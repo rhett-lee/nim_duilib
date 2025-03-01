@@ -1,25 +1,23 @@
 #include "main.h"
-#include "cef_form.h"
+#include "CefForm.h"
 
 //开启DPI感知功能设置参数
 ui::DpiInitParam dpiInitParam;
 
 //定义应用程序的入口点
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
-                     _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR    lpCmdLine,
-                     _In_ int       nCmdShow)
+int APIENTRY wWinMain(_In_ HINSTANCE /*hInstance*/,
+                     _In_opt_ HINSTANCE /*hPrevInstance*/,
+                     _In_ LPWSTR    /*lpCmdLine*/,
+                     _In_ int       /*nCmdShow*/)
 {
-    UNREFERENCED_PARAMETER(hPrevInstance);
-    UNREFERENCED_PARAMETER(lpCmdLine);
-
     // 将 bin\\cef 目录添加到环境变量，这样可以将所有 CEF 相关文件放到该目录下，方便管理
     // 在项目属性->连接器->输入，延迟加载 libcef.dll
     ui::CefManager::GetInstance()->AddCefDllToPath();
 
-    HRESULT hr = ::OleInitialize(NULL);
-    if (FAILED(hr))
+    HRESULT hr = ::OleInitialize(nullptr);
+    if (FAILED(hr)) {
         return 0;
+    }
 
     //必须在CefManager::Initialize前调用，设置DPI自适应属性，否则会导致显示不正常
     ui::GlobalManager::Instance().Dpi().InitDpiAwareness(dpiInitParam);
@@ -28,7 +26,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     CefSettings settings;
     ui::FilePath appDataDir = ui::FilePathUtil::GetCurrentModuleDirectory();
     appDataDir += _T("cef_temp\\");//TODO: 需要一个可写目录
-    if (!ui::CefManager::GetInstance()->Initialize(appDataDir.ToString(), settings, kEnableOffsetRender)) {
+    if (!ui::CefManager::GetInstance()->Initialize(appDataDir.ToString(), settings, kEnableOffScreenRendering)) {
         return 0;
     }
 

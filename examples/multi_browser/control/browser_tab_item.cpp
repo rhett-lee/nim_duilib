@@ -4,9 +4,9 @@ using namespace ui;
 
 BrowserTabItem::BrowserTabItem(ui::Window* pWindow):
     ui::ListBoxItem(pWindow),
-    icon_(nullptr),
-    name_(nullptr),
-    button_close_(nullptr)
+    m_pIcon(nullptr),
+    m_pName(nullptr),
+    m_pButtonClose(nullptr)
 {
 }
 
@@ -16,9 +16,9 @@ void BrowserTabItem::InitControl(const std::string& browser_id)
     this->AttachMouseEnter(UiBind(&BrowserTabItem::OnMouseEnter, this, std::placeholders::_1));
     this->AttachMouseLeave(UiBind(&BrowserTabItem::OnMouseLeave, this, std::placeholders::_1));
 
-    icon_ = dynamic_cast<Button*>(this->FindSubControl(_T("tab_item_icon")));
-    name_ = dynamic_cast<Label*>(this->FindSubControl(_T("tab_item_name")));
-    button_close_ = dynamic_cast<Button*>(this->FindSubControl(_T("tab_item_close")));
+    m_pIcon = dynamic_cast<Button*>(this->FindSubControl(_T("tab_item_icon")));
+    m_pName = dynamic_cast<Label*>(this->FindSubControl(_T("tab_item_name")));
+    m_pButtonClose = dynamic_cast<Button*>(this->FindSubControl(_T("tab_item_close")));
 
     this->SetUTF8Name(browser_id);
 }
@@ -26,17 +26,17 @@ void BrowserTabItem::InitControl(const std::string& browser_id)
 void BrowserTabItem::SetTitle(const DString& name)
 {
     this->SetToolTipText(name);
-    name_->SetText(name);
+    m_pName->SetText(name);
 }
 
 void BrowserTabItem::SetIcon(const DString& icon)
 {
-    icon_->SetBkImage(icon);
+    m_pIcon->SetBkImage(icon);
 }
 
 bool BrowserTabItem::OnMouseEnter(const ui::EventArgs& msg)
 {
-    button_close_->SetFadeVisible(true);
+    m_pButtonClose->SetFadeVisible(true);
 
     return true;
 }
@@ -45,7 +45,7 @@ bool BrowserTabItem::OnMouseLeave(const ui::EventArgs& msg)
 {
     if (!GetRect().ContainsPt(msg.ptMouse))
     {
-        button_close_->SetFadeVisible(false);
+        m_pButtonClose->SetFadeVisible(false);
     }
     
     return false;

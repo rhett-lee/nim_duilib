@@ -4,7 +4,7 @@ using namespace ui;
 
 BitmapControl::BitmapControl(ui::Window* pWindow):
     ui::Control(pWindow),
-    bitmap_(nullptr)
+    m_hBitmap(nullptr)
 {
 }
 
@@ -18,8 +18,9 @@ void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 
     BaseClass::Paint(pRender, rcPaint);
 
-    if (NULL == bitmap_)
+    if (nullptr == m_hBitmap) {
         return;
+    }
 
     std::unique_ptr<IRender> render;
     std::unique_ptr<IBitmap> bitmap;
@@ -41,7 +42,7 @@ void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
     }
 
     BITMAP bm = { 0 };
-    ::GetObject(bitmap_, sizeof(bm), &bm);
+    ::GetObject(m_hBitmap, sizeof(bm), &bm);
     //ASSERT((bm.bmBits != nullptr) && (bm.bmBitsPixel == 32) && (bm.bmHeight > 0) && (bm.bmWidth > 0));
     if ((bm.bmBits != nullptr) && (bm.bmBitsPixel == 32) && (bm.bmHeight > 0) && (bm.bmWidth > 0)) {
         const uint32_t imageDataSize = bm.bmHeight * bm.bmWidth * 4;
@@ -70,5 +71,5 @@ void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 
 void BitmapControl::SetBitmapImage(HBITMAP bitmap)
 {
-    bitmap_ = bitmap;
+    m_hBitmap = bitmap;
 }

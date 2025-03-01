@@ -27,7 +27,7 @@ typedef struct _DATASTORAGE
 class SdkDataObject : public IDataObject
 {
 public:
-    SdkDataObject(/*SdkDropSource *pDropSource = NULL*/);
+    SdkDataObject(/*SdkDropSource *pDropSource = nullptr*/);
     BOOL IsDataAvailable(CLIPFORMAT cfFormat);
     BOOL GetGlobalData(CLIPFORMAT cfFormat, void **ppData);
     BOOL GetGlobalDataArray(CLIPFORMAT cfFormat,

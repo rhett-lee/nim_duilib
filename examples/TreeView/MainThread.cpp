@@ -12,7 +12,7 @@ WorkerThread::~WorkerThread()
 
 void WorkerThread::OnInit()
 {
-    ::CoInitialize(NULL);
+    ::CoInitialize(nullptr);
 }
 
 void WorkerThread::OnCleanup()
@@ -31,7 +31,7 @@ MainThread::~MainThread()
 
 void MainThread::OnInit()
 {
-    ::CoInitialize(NULL);
+    ::CoInitialize(nullptr);
 
     //启动工作线程
     m_workerThread.reset(new WorkerThread);
