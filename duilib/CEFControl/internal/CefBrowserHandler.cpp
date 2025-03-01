@@ -236,7 +236,7 @@ void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
         }
 
         // 有窗模式下，浏览器创建完毕后，让上层更新一下自己的位置；因为在异步状态下，上层更新位置时可能Cef窗口还没有创建出来
-        if (!CefManager::GetInstance()->IsEnableOffsetRender() && m_pHandlerDelegate) {
+        if (!CefManager::GetInstance()->IsEnableOffScreenRendering() && m_pHandlerDelegate) {
             m_pHandlerDelegate->UpdateWindowPos();
         }
 
@@ -345,7 +345,7 @@ void CefBrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect
             rect.height = clientRect.Height();
         }
 
-        if (CefManager::GetInstance()->IsEnableOffsetRender()) {
+        if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
             //离屏渲染模式，需要传给原始宽度和高度，因为CEF内部会进一步做DPI自适应
             uint32_t dpiScale = m_pWindow->Dpi().GetScale();
             if (dpiScale > 100) {
@@ -375,7 +375,7 @@ bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX,
 
     // Convert the point from view coordinates to actual screen coordinates.
     ui::UiPoint screen_pt = { viewX, viewY};
-    if (CefManager::GetInstance()->IsEnableOffsetRender()) {
+    if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
         //离屏渲染模式下，给到的参数是原始坐标，未经DPI自适应，所以需要做DPI自适应处理，否则页面的右键菜单位置显示不对
         uint32_t dpiScale = m_pWindow->Dpi().GetScale();
         if (dpiScale > 100) {
@@ -400,7 +400,7 @@ bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX,
 bool CefBrowserHandler::GetScreenInfo(CefRefPtr<CefBrowser> browser, CefScreenInfo& screen_info)
 {
     //只有离屏渲染模式下，才处理DPI缩放因子
-    if (!CefManager::GetInstance()->IsEnableOffsetRender()) {
+    if (!CefManager::GetInstance()->IsEnableOffScreenRendering()) {
         return false;
     }
     if ((m_pWindow == nullptr) || m_windowFlag.expired()) {

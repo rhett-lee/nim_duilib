@@ -13,9 +13,9 @@
 
 #pragma warning (push)
 #pragma warning (disable:4100)
-#include "include/wrapper/cef_closure_task.h"
-#include "include/base/cef_bind.h"
-#include "include/base/cef_callback.h"
+    #include "include/wrapper/cef_closure_task.h"
+    #include "include/base/cef_bind.h"
+    #include "include/base/cef_callback.h"
 #pragma warning (pop)
 
 #if CEF_VERSION_MAJOR <= 109
@@ -72,7 +72,7 @@ namespace ui
 //
 static void FixContextMenuBug(HWND hwnd)
 {
-    ::CreateWindowW(L"Static", L"", WS_CHILD, 0, 0, 0, 0, hwnd, NULL, NULL, NULL);
+    ::CreateWindowW(L"Static", L"", WS_CHILD, 0, 0, 0, 0, hwnd, nullptr, nullptr, nullptr);
     ::PostMessage(hwnd, WM_CLOSE, 0, 0);
 }
 #endif
@@ -82,7 +82,7 @@ Control* DuilibCreateCefControl(const DString& className)
 {
     Control* pControl = nullptr;
     if (className == _T("CefControl")) {
-        if (ui::CefManager::GetInstance()->IsEnableOffsetRender()) {
+        if (ui::CefManager::GetInstance()->IsEnableOffScreenRendering()) {
             pControl = new CefControlOffScreen(nullptr);
         }
         else {
@@ -93,10 +93,10 @@ Control* DuilibCreateCefControl(const DString& className)
 }
 
 ///////////////////////////////////////////////////////////////////////////////////
-CefManager::CefManager()
+CefManager::CefManager():
+    m_bEnableOffScreenRendering(true)
 {
     browser_count_ = 0;
-    is_enable_offset_render_ = true;
 }
 
 CefManager::~CefManager()
@@ -109,10 +109,12 @@ CefManager* CefManager::GetInstance()
     return &self;
 }
 
+#ifdef DUILIB_BUILD_FOR_WIN
+//Windows系统
 void CefManager::AddCefDllToPath()
 {
     TCHAR path_envirom[4096] = { 0 };
-    GetEnvironmentVariable(_T("path"), path_envirom, 4096);
+    ::GetEnvironmentVariable(_T("path"), path_envirom, 4096);
     
     ui::FilePath cef_path = ui::FilePathUtil::GetCurrentModuleDirectory();
 
@@ -133,39 +135,52 @@ void CefManager::AddCefDllToPath()
 #endif
 
     if (!cef_path.IsExistsDirectory()) {
-        ::MessageBoxW(NULL, L"请解压CEF压缩包，将libcef.dll释放到bin目录", L"提示", MB_OK);
+        ::MessageBoxW(nullptr, L"请解压CEF压缩包，将libcef.dll释放到bin目录", L"提示", MB_OK);
         exit(0);
     }
     DString new_envirom(cef_path.NativePath());
     new_envirom.append(_T(";")).append(path_envirom);
-    SetEnvironmentVariable(_T("path"), new_envirom.c_str());
+    ::SetEnvironmentVariable(_T("path"), new_envirom.c_str());
 }
+
+#else
+//Linux系统
+void CefManager::AddCefDllToPath()
+{
+}
+
+#endif
 
 // Cef的初始化接口，同时备注了使用各个版本的Cef时遇到的各种坑
 // Cef1916版本较稳定，各个功能使用正常，但是某些在debug模式网页打开时会出中断警告（但并不是错误），可能是因为对新html标准支持不够，但是在release模式下正常使用
 // Cef2357版本无法使用，当程序处理重定向信息并且重新加载页面后，渲染进程会崩掉
 // Cef2526、2623版本对各种新页面都支持，唯一的坑就是debug模式在多线程消息循环开启下，程序退出时会中断，但是release模式正常。
 //        (PS:如果开发者不使用负责Cef功能的开发，可以切换到release模式的cef dll文件，这样即使在deubg下也不会报错，修改AddCefDllToPath代码可以切换到release目录)
-bool CefManager::Initialize(const DString& app_data_dir, CefSettings &settings, bool is_enable_offset_render /*= true*/)
+bool CefManager::Initialize(const DString& app_data_dir, CefSettings &settings, bool bEnableOffScreenRendering /*= true*/)
 {
-    is_enable_offset_render_ = is_enable_offset_render;
+    m_bEnableOffScreenRendering = bEnableOffScreenRendering;
+#ifdef DUILIB_BUILD_FOR_WIN
+    CefMainArgs main_args(GetModuleHandle(nullptr));
+#else
+    Linux
+#endif
 
-    CefMainArgs main_args(GetModuleHandle(NULL));
     CefRefPtr<CefClientApp> app(new CefClientApp);
     
     // 如果是在子进程中调用，会堵塞直到子进程退出，并且exit_code返回大于等于0
     // 如果在Browser进程中调用，则立即返回-1
-    int exit_code = CefExecuteProcess(main_args, app.get(), NULL);
-    if (exit_code >= 0)
+    int exit_code = CefExecuteProcess(main_args, app.get(), nullptr);
+    if (exit_code >= 0) {
         return false;
+    }
 
     GetCefSetting(app_data_dir, settings);
 
-    bool bRet = CefInitialize(main_args, settings, app.get(), NULL);
+    bool bRet = CefInitialize(main_args, settings, app.get(), nullptr);
 
 #ifdef DUILIB_BUILD_FOR_WIN
-    if (IsEnableOffsetRender()) {
-        HWND hwnd = ::CreateWindowW(L"Static", L"", WS_POPUP, 0, 0, 0, 0, NULL, NULL, NULL, NULL);
+    if (IsEnableOffScreenRendering()) {
+        HWND hwnd = ::CreateWindowW(L"Static", L"", WS_POPUP, 0, 0, 0, 0, nullptr, nullptr, nullptr, nullptr);
         CefPostTask(TID_UI, base::BindOnce(&FixContextMenuBug, hwnd));
     }
 #endif
@@ -183,9 +198,9 @@ void CefManager::UnInitialize()
     CefShutdown();
 }
 
-bool CefManager::IsEnableOffsetRender() const
+bool CefManager::IsEnableOffScreenRendering() const
 {
-    return is_enable_offset_render_;
+    return m_bEnableOffScreenRendering;
 }
 
 void CefManager::AddBrowserCount()
@@ -204,25 +219,24 @@ int CefManager::GetBrowserCount()
     return browser_count_;
 }
 
-void CefManager::PostQuitMessage(int nExitCode)
+void CefManager::PostQuitMessage(int32_t nExitCode)
 {
     // 当我们需要结束进程时，千万不要直接调用::PostQuitMessage，这是可能还有浏览器对象没有销毁
     // 应该等所有浏览器对象都销毁后再调用::PostQuitMessage
-    if (browser_count_ == 0)
-    {
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, [nExitCode]()
-         {
+    if (browser_count_ == 0) {
+        GlobalManager::Instance().Thread().PostTask(kThreadUI, [nExitCode]() {
+#ifdef DUILIB_BUILD_FOR_WIN
             ::PostQuitMessage(nExitCode);
+#else
+            Linux
+#endif
         });
     }
-    else
-    {
-        auto cb = [nExitCode]()
-        {
+    else {
+        auto cb = [nExitCode]()  {
             CefManager::GetInstance()->PostQuitMessage(nExitCode);
         };
-
-        ui::GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, cb, 500);
+        GlobalManager::Instance().Thread().PostDelayedTask(kThreadUI, cb, 500);
     }
 }
 
@@ -245,7 +259,7 @@ void CefManager::GetCefSetting(const DString& app_data_dir, CefSettings &setting
     settings.multi_threaded_message_loop = true;
 
     // 开启离屏渲染
-    settings.windowless_rendering_enabled = is_enable_offset_render_;
+    settings.windowless_rendering_enabled = IsEnableOffScreenRendering();
 }
 
 }

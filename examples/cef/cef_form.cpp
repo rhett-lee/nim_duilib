@@ -45,7 +45,7 @@ void CefForm::OnInitWindow()
     cefHtml += _T("resources\\themes\\default\\cef\\cef.html");
     cef_control_->LoadURL(cefHtml.ToString());
 
-    if (!ui::CefManager::GetInstance()->IsEnableOffsetRender())
+    if (!ui::CefManager::GetInstance()->IsEnableOffScreenRendering())
         cef_control_dev_->SetFadeVisible(false);
 }
 
@@ -70,7 +70,7 @@ bool CefForm::OnClicked(const ui::EventArgs& msg)
             cef_control_->AttachDevTools(cef_control_dev_);
         }
 
-        if (ui::CefManager::GetInstance()->IsEnableOffsetRender())
+        if (ui::CefManager::GetInstance()->IsEnableOffScreenRendering())
         {
             cef_control_dev_->SetFadeVisible(cef_control_->IsAttachedDevTools());
         }
