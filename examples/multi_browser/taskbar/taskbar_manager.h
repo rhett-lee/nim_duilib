@@ -102,10 +102,10 @@ private:
     void OnSendPreview();
 
 private:
-    bool            is_win7_or_greater_;
-    ui::Control        *bind_control_;
-    std::string        id_;
-    TaskbarManager    *taskbar_manager_;
+    bool m_bWin7orGreater;
+    ui::Control* m_pBindControl;
+    std::string m_id;
+    TaskbarManager* m_taskbarManager;
 };
 
 /** @class TaskbarManager
@@ -236,8 +236,8 @@ public:
     */
     void OnTabItemClicked(TaskbarTabItem &tab_item);
 private:
-    ITaskbarDelegate    *taskbar_delegate_;
-    ITaskbarList4        *taskbar_list_;
+    ITaskbarDelegate* m_pTaskbarDelegate;
+    ITaskbarList4* m_pTaskbarList;
 };
 
 #endif //EXAMPLES_TASKBAR_MANAGER_H_

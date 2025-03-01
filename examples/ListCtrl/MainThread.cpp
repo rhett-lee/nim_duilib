@@ -13,7 +13,7 @@ WorkerThread::~WorkerThread()
 void WorkerThread::OnInit()
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    ::OleInitialize(NULL);
+    ::OleInitialize(nullptr);
 #endif
 }
 
@@ -36,7 +36,7 @@ MainThread::~MainThread()
 void MainThread::OnInit()
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    ::OleInitialize(NULL);
+    ::OleInitialize(nullptr);
 #endif
 
     //启动工作线程

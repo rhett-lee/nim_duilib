@@ -23,12 +23,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 //#ifdef _DEBUG
 //    AllocConsole();
-//    FILE* fp = NULL;
+//    FILE* fp = nullptr;
 //    freopen_s(&fp, "CONOUT$", "w+t", stdout);
 //    wprintf_s(L"Command:\n%s\n\n", lpCmdLine);
 //#endif
 
-    HRESULT hr = ::OleInitialize(NULL);
+    HRESULT hr = ::OleInitialize(nullptr);
     if (FAILED(hr))
         return 0;
 
@@ -75,7 +75,7 @@ void MainThread::OnInit()
 
     uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
     std::string timeStamp = ui::StringUtil::Printf("%I64u", nTimeMS);
-    MultiBrowserManager::GetInstance()->CreateBorwserBox(NULL, timeStamp, _T(""));
+    MultiBrowserManager::GetInstance()->CreateBorwserBox(nullptr, timeStamp, _T(""));
 }
 
 void MainThread::OnCleanup()

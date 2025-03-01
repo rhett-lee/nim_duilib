@@ -9,42 +9,42 @@ using namespace std;
 BrowserBox::BrowserBox(ui::Window* pWindow, std::string id):
     ui::VBox(pWindow)
 {
-    taskbar_item_ = nullptr;
-    browser_form_ = nullptr;
-    cef_control_ = nullptr;
-    browser_id_ = id;
+    m_pTaskBarItem = nullptr;
+    m_pBrowserForm = nullptr;
+    m_pCefControl = nullptr;
+    m_browserId = id;
 }
 
 MultiBrowserForm* BrowserBox::GetBrowserForm() const
 {
-    ASSERT(NULL != browser_form_);
-    ASSERT(browser_form_->IsWindow());
-    return browser_form_;
+    ASSERT(nullptr != m_pBrowserForm);
+    ASSERT(m_pBrowserForm->IsWindow());
+    return m_pBrowserForm;
 }
 
 ui::CefControlBase* BrowserBox::GetCefControl()
 {
-    return cef_control_;
+    return m_pCefControl;
 }
 
 DString& BrowserBox::GetTitle()
 {
-    return title_;
+    return m_title;
 }
 
 void BrowserBox::InitBrowserBox(const DString &url)
 {
-    cef_control_ = static_cast<ui::CefControlBase*>(FindSubControl(_T("cef_control")));
-    cef_control_->AttachBeforeContextMenu(UiBind(&BrowserBox::OnBeforeMenu, this, std::placeholders::_1, std::placeholders::_2));
-    cef_control_->AttachMenuCommand(UiBind(&BrowserBox::OnMenuCommand, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    cef_control_->AttachTitleChange(UiBind(&BrowserBox::OnTitleChange, this, std::placeholders::_1));
-    cef_control_->AttachUrlChange(UiBind(&BrowserBox::OnUrlChange, this, std::placeholders::_1));
-    cef_control_->AttachLinkClick(UiBind(&BrowserBox::OnLinkClick, this, std::placeholders::_1));
-    cef_control_->AttachBeforeNavigate(UiBind(&BrowserBox::OnBeforeNavigate, this, std::placeholders::_1, std::placeholders::_2));
-    cef_control_->AttachLoadingStateChange(UiBind(&BrowserBox::OnLoadingStateChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    cef_control_->AttachLoadStart(UiBind(&BrowserBox::OnLoadStart, this));
-    cef_control_->AttachLoadEnd(UiBind(&BrowserBox::OnLoadEnd, this, std::placeholders::_1));
-    cef_control_->AttachLoadError(UiBind(&BrowserBox::OnLoadError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl = static_cast<ui::CefControlBase*>(FindSubControl(_T("cef_control")));
+    m_pCefControl->AttachBeforeContextMenu(UiBind(&BrowserBox::OnBeforeMenu, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachMenuCommand(UiBind(&BrowserBox::OnMenuCommand, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachTitleChange(UiBind(&BrowserBox::OnTitleChange, this, std::placeholders::_1));
+    m_pCefControl->AttachUrlChange(UiBind(&BrowserBox::OnUrlChange, this, std::placeholders::_1));
+    m_pCefControl->AttachLinkClick(UiBind(&BrowserBox::OnLinkClick, this, std::placeholders::_1));
+    m_pCefControl->AttachBeforeNavigate(UiBind(&BrowserBox::OnBeforeNavigate, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachLoadingStateChange(UiBind(&BrowserBox::OnLoadingStateChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachLoadStart(UiBind(&BrowserBox::OnLoadStart, this));
+    m_pCefControl->AttachLoadEnd(UiBind(&BrowserBox::OnLoadEnd, this, std::placeholders::_1));
+    m_pCefControl->AttachLoadError(UiBind(&BrowserBox::OnLoadError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     // 加载默认网页
     DString html_path = url;
@@ -54,41 +54,42 @@ void BrowserBox::InitBrowserBox(const DString &url)
         localPath += _T("resources\\themes\\default\\cef\\cef.html");
         html_path = localPath.ToString();
     }
-    cef_control_->LoadURL(html_path);
+    m_pCefControl->LoadURL(html_path);
 
     // 初始化任务栏缩略图
     if (GetWindow()->IsLayeredWindow()) {
-        taskbar_item_ = new TaskbarTabItem(this);
-        if (taskbar_item_) {
-            taskbar_item_->Init(url, browser_id_);
+        m_pTaskBarItem = new TaskbarTabItem(this);
+        if (m_pTaskBarItem) {
+            m_pTaskBarItem->Init(url, m_browserId);
         }
     }
 
     // Box获取焦点时把焦点转移给Cef控件
     this->AttachSetFocus([this](const ui::EventArgs& param)->bool
     {
-        cef_control_->SetFocus();
+        m_pCefControl->SetFocus();
         return true;
     }); 
 }
 
 void BrowserBox::UninitBrowserBox()
 {
-    MultiBrowserManager::GetInstance()->RemoveBorwserBox(browser_id_, this);
+    MultiBrowserManager::GetInstance()->RemoveBorwserBox(m_browserId, this);
 
-    if (taskbar_item_)
-        taskbar_item_->UnInit();
+    if (m_pTaskBarItem) {
+        m_pTaskBarItem->UnInit();
+    }
 }
 
 TaskbarTabItem* BrowserBox::GetTaskbarItem()
 {
-    return taskbar_item_;
+    return m_pTaskBarItem;
 }
 
 void BrowserBox::SetWindow(Window* pWindow)
 {
-    browser_form_ = dynamic_cast<MultiBrowserForm*>(pWindow);
-    ASSERT(NULL != browser_form_);
+    m_pBrowserForm = dynamic_cast<MultiBrowserForm*>(pWindow);
+    ASSERT(nullptr != m_pBrowserForm);
 
     BaseClass::SetWindow(pWindow);
 }
@@ -97,16 +98,18 @@ void BrowserBox::Invalidate()
 {
     BaseClass::Invalidate();
 
-    if (taskbar_item_)
-        taskbar_item_->InvalidateTab();
+    if (m_pTaskBarItem) {
+        m_pTaskBarItem->InvalidateTab();
+    }
 }
 
 void BrowserBox::SetPos(UiRect rc)
 {
     BaseClass::SetPos(rc);
 
-    if (taskbar_item_)
-        taskbar_item_->InvalidateTab();
+    if (m_pTaskBarItem) {
+        m_pTaskBarItem->InvalidateTab();
+    }
 }
 
 void BrowserBox::OnBeforeMenu(CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)
@@ -121,14 +124,14 @@ bool BrowserBox::OnMenuCommand(CefRefPtr<CefContextMenuParams> params, int comma
 
 void BrowserBox::OnTitleChange(const DString& title)
 {
-    title_ = title;
-    browser_form_->SetTabItemName(ui::StringConvert::UTF8ToT(browser_id_), title);
+    m_title = title;
+    m_pBrowserForm->SetTabItemName(ui::StringConvert::UTF8ToT(m_browserId), title);
 }
 
 void BrowserBox::OnUrlChange(const DString& url)
 {
-    url_ = url;
-    browser_form_->SetURL(browser_id_, url);
+    m_url = url;
+    m_pBrowserForm->SetURL(m_browserId, url);
 }
 
 bool BrowserBox::OnLinkClick(const DString& url)
@@ -155,8 +158,8 @@ void BrowserBox::OnLoadStart()
 void BrowserBox::OnLoadEnd(int httpStatusCode)
 {
     // 注册一个方法提供前端调用
-    cef_control_->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([](const std::string& params, ui::ReportResultFunction callback) {
-        ::MessageBoxW(NULL, ui::StringConvert::UTF8ToWString(params).c_str(), L"接收到 JavaScript 发来的消息", MB_OK);
+    m_pCefControl->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([](const std::string& params, ui::ReportResultFunction callback) {
+        ::MessageBoxW(nullptr, ui::StringConvert::UTF8ToWString(params).c_str(), L"接收到 JavaScript 发来的消息", MB_OK);
         callback(false, R"({ "message": "Success." })");
     }));
 }

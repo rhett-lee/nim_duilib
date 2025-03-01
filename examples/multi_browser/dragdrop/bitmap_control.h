@@ -32,7 +32,7 @@ public:
     void SetBitmapImage(HBITMAP bitmap);
 
 private:
-    HBITMAP bitmap_;
+    HBITMAP m_hBitmap;
 };
 
 #endif //EXAMPLES_BITMAP_CONTROL_H_

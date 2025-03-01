@@ -269,23 +269,23 @@ private:
     ui::IBitmap* GenerateBoxWindowBitmap();
 
 private:
-    ui::Label        *lbl_title_;
-    ui::Button        *btn_max_restore_;
-    ui::RichEdit    *edit_url_;
+    ui::Label* m_pTitle;
+    ui::Button* m_pMaxRestoreBtn;
+    ui::RichEdit* m_pEditUrl;
 
-    ui::ListBox            *tab_list_;
-    ui::TabBox            *borwser_box_tab_;
-    BrowserBox            *active_browser_box_;
+    ui::ListBox* m_pTabList;
+    ui::TabBox* m_pBorwserBoxTab;
+    BrowserBox* m_pActiveBrowserBox;
 
     // 处理浏览器盒子拖放事件
-    IDropTargetHelper    *drop_helper_;
+    IDropTargetHelper* m_pDropHelper;
 
     // 处理浏览器盒子拖拽事件
-    bool                is_drag_state_;
-    POINT                old_drag_point_;
-    DString        draging_browser_id_;
+    bool m_bDragState;
+    POINT m_oldDragPoint;
+    DString m_dragingBrowserId;
 
     // 任务栏缩略图管理器
-    TaskbarManager        taskbar_manager_;
+    TaskbarManager m_taskbarManager;
 };
 #endif //EXAMPLES_MULTI_BROWSER_FORM_H_

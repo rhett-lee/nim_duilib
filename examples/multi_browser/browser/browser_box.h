@@ -32,7 +32,7 @@ public:
     * 获取id
     * @return string 标识id
     */
-    std::string GetId() const { return browser_id_; }
+    std::string GetId() const { return m_browserId; }
 
     /**
     * 获取本浏览器盒子所属的浏览器窗口指针
@@ -106,14 +106,14 @@ private:
     void OnLoadError(CefLoadHandler::ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl);
 
 private:
-    ui::CefControlBase    *cef_control_;
+    ui::CefControlBase* m_pCefControl;
 
     // 任务栏缩略图管理
-    TaskbarTabItem        *taskbar_item_;
-    MultiBrowserForm    *browser_form_;
-    std::string            browser_id_;
-    DString        url_;
-    DString        title_;
+    TaskbarTabItem* m_pTaskBarItem;
+    MultiBrowserForm* m_pBrowserForm;
+    std::string m_browserId;
+    DString m_url;
+    DString m_title;
 };
 
 #endif //EXAMPLES_BROWSER_BOX_H_

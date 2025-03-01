@@ -25,7 +25,7 @@ private:
 public:
     /**
     * 创建一个浏览器盒子
-    * @param[in] browser_form 浏览器窗口，如果为NULL则创建一个新的窗口，否则在这个窗口里新建浏览器盒子
+    * @param[in] browser_form 浏览器窗口，如果为nullptr则创建一个新的窗口，否则在这个窗口里新建浏览器盒子
     * @param[in] id 某个浏览器盒子的唯一标识
     * @param[in] url 初始化URL
     * @return BorwserBox*    浏览器盒子指针
@@ -52,7 +52,7 @@ public:
     * @param[in] box id对应的浏览器盒子指针
     * @return void 无返回值
     */
-    void RemoveBorwserBox(std::string id, const BrowserBox* box = NULL);
+    void RemoveBorwserBox(std::string id, const BrowserBox* box = nullptr);
 
 public:
     /**
@@ -128,11 +128,11 @@ private:
     void OnAfterDragBorwserBox();
 
 private:
-    bool                enable_merge_;
-    bool                use_custom_drag_image_;
-    BrowserBox            *draging_box_;    // 当下正在被拖拽的浏览器盒子
-    MultiBrowserForm    *drop_browser_form_;    // 拖入浏览器盒子的浏览器窗口，用于附加拖拽来的浏览器盒子
+    bool m_bEnableMerge;
+    bool m_bUseCustomDragImage;
+    BrowserBox* m_pDragingBox;    // 当下正在被拖拽的浏览器盒子
+    MultiBrowserForm* m_pDropBrowserForm;    // 拖入浏览器盒子的浏览器窗口，用于附加拖拽来的浏览器盒子
 
-    std::map<std::string, BrowserBox*>    box_map_;
+    std::map<std::string, BrowserBox*> m_boxMap;
 };
 #endif //EXAMPLES_MULTI_BROWSER_MANAGER_H_

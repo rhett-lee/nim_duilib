@@ -74,10 +74,10 @@ private:
     bool MergeItemMenuItemClick(const ui::EventArgs& msg);
 
 private:
-    ui::Control* icon_;
-    ui::Label* name_;
-    ui::Button* button_close_;
+    ui::Control* m_pIcon;
+    ui::Label* m_pName;
+    ui::Button* m_pButtonClose;
 
-    DString    session_id_;
+    DString m_sessionId;
 };
 #endif //EXAMPLES_BROWSER_TAB_ITEM_H_

@@ -15,10 +15,9 @@ public:
     MainForm();
     virtual ~MainForm() override;
 
-    /**
-     * 一下三个接口是必须要覆写的接口，父类会调用这三个接口来构建窗口
-     * GetSkinFolder        接口设置你要绘制的窗口皮肤资源路径
-     * GetSkinFile            接口设置你要绘制的窗口的 xml 描述文件
+    /** 资源相关接口
+     * GetSkinFolder 接口设置你要绘制的窗口皮肤资源路径
+     * GetSkinFile 接口设置你要绘制的窗口的 xml 描述文件
      */
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;

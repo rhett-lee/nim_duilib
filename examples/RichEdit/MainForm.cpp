@@ -44,7 +44,7 @@ void MainForm::OnInitWindow()
                     const DString::value_type* pUrl = (const DString::value_type*)args.wParam;
                     if (pUrl != nullptr) {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-                        ::ShellExecuteW(NativeWnd()->GetHWND(), L"open", ui::StringConvert::TToWString(pUrl).c_str(), NULL, NULL, SW_SHOWNORMAL);
+                        ::ShellExecuteW(NativeWnd()->GetHWND(), L"open", ui::StringConvert::TToWString(pUrl).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
 #endif
                     }
                 }
@@ -1191,7 +1191,7 @@ bool MainForm::LoadFile(const ui::FilePath& filePath)
         return false;
     }
     DString filePathLocal = filePath.NativePath();
-    HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+    HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
     if (hFile == INVALID_HANDLE_VALUE) {
         return false;
     }
@@ -1215,7 +1215,7 @@ bool MainForm::SaveFile(const ui::FilePath& filePath)
         return false;
     }
     DString filePathLocal = filePath.NativePath();
-    HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+    HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
     if (hFile == INVALID_HANDLE_VALUE) {
         return false;
     }
@@ -1247,17 +1247,17 @@ bool MainForm::IsRtfFile(const DString& filePath) const
 DWORD MainForm::StreamReadCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb)
 {
     ASSERT(dwCookie != 0);
-    ASSERT(pcb != NULL);
+    ASSERT(pcb != nullptr);
 
-    return !::ReadFile((HANDLE)dwCookie, pbBuff, cb, (LPDWORD)pcb, NULL);
+    return !::ReadFile((HANDLE)dwCookie, pbBuff, cb, (LPDWORD)pcb, nullptr);
 }
 
 DWORD MainForm::StreamWriteCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb)
 {
     ASSERT(dwCookie != 0);
-    ASSERT(pcb != NULL);
+    ASSERT(pcb != nullptr);
 
-    return !::WriteFile((HANDLE)dwCookie, pbBuff, cb, (LPDWORD)pcb, NULL);
+    return !::WriteFile((HANDLE)dwCookie, pbBuff, cb, (LPDWORD)pcb, nullptr);
 }
 
 int32_t MainForm::ConvertToFontHeight(int32_t fontSize) const
@@ -1392,7 +1392,7 @@ void MainForm::OnSetFont()
     cf.lpszStyle = (LPWSTR)&szStyleName;
     cf.Flags = dwFlags;
 
-    if (lplfInitial != NULL) {
+    if (lplfInitial != nullptr) {
         cf.lpLogFont = lplfInitial;
         cf.Flags |= CF_INITTOLOGFONTSTRUCT;
         lf = *lplfInitial;
