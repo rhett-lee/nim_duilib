@@ -20,7 +20,7 @@ class CefControlOffScreen :public CefControlBase, public ui::IUIMessageFilter
     typedef CefControlBase BaseClass;
 public:
     explicit CefControlOffScreen(ui::Window* pWindow);
-    ~CefControlOffScreen(void);    
+    virtual ~CefControlOffScreen(void) override;
 
     /// 重写父类接口，提供个性化功能
     virtual void Init() override;

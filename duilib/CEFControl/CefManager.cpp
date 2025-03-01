@@ -94,9 +94,9 @@ Control* DuilibCreateCefControl(const DString& className)
 
 ///////////////////////////////////////////////////////////////////////////////////
 CefManager::CefManager():
-    m_bEnableOffScreenRendering(true)
+    m_bEnableOffScreenRendering(true),
+    m_browserCount(0)
 {
-    browser_count_ = 0;
 }
 
 CefManager::~CefManager()
@@ -205,25 +205,25 @@ bool CefManager::IsEnableOffScreenRendering() const
 
 void CefManager::AddBrowserCount()
 {
-    browser_count_++;
+    m_browserCount++;
 }
 
 void CefManager::SubBrowserCount()
 {
-    browser_count_--;
-    ASSERT(browser_count_ >= 0);
+    m_browserCount--;
+    ASSERT(m_browserCount >= 0);
 }
 
 int CefManager::GetBrowserCount()
 {
-    return browser_count_;
+    return m_browserCount;
 }
 
 void CefManager::PostQuitMessage(int32_t nExitCode)
 {
     // 当我们需要结束进程时，千万不要直接调用::PostQuitMessage，这是可能还有浏览器对象没有销毁
     // 应该等所有浏览器对象都销毁后再调用::PostQuitMessage
-    if (browser_count_ == 0) {
+    if (m_browserCount == 0) {
         GlobalManager::Instance().Thread().PostTask(kThreadUI, [nExitCode]() {
 #ifdef DUILIB_BUILD_FOR_WIN
             ::PostQuitMessage(nExitCode);

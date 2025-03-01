@@ -54,7 +54,7 @@ public:
     // 记录浏览器对象的数量
     void AddBrowserCount();
     void SubBrowserCount();
-    int  GetBrowserCount();
+    int32_t GetBrowserCount();
 
     // 在Cef浏览器对象销毁后发送WM_QUIT消息
     void PostQuitMessage(int32_t nExitCode);
@@ -67,7 +67,8 @@ private:
     void GetCefSetting(const DString& app_data_dir, CefSettings& settings);
 
 private:
-    int browser_count_;
+    //浏览器控件的计数器
+    int32_t m_browserCount;
 
     //是否启用离屏渲染
     bool m_bEnableOffScreenRendering;
