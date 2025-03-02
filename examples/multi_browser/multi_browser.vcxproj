@@ -196,10 +196,11 @@
     <ClInclude Include="dragdrop\bitmap_control.h" />
     <ClInclude Include="dragdrop\drag_drop.h" />
     <ClInclude Include="dragdrop\drag_form.h" />
-    <ClInclude Include="main.h" />
+    <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="taskbar\dwm_util.h" />
     <ClInclude Include="taskbar\taskbar_manager.h" />
+    <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="browser\browser_box.cpp" />
@@ -211,9 +212,12 @@
     <ClCompile Include="dragdrop\bitmap_control.cpp" />
     <ClCompile Include="dragdrop\drag_drop.cpp" />
     <ClCompile Include="dragdrop\drag_form.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MainThread.cpp" />
+    <ClCompile Include="main_linux.cpp" />
+    <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="taskbar\dwm_util.cpp" />
     <ClCompile Include="taskbar\taskbar_manager.cpp" />
+    <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="multi_browser.rc" />

@@ -30,9 +30,6 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="main.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="browser\multi_browser_manager.h">
       <Filter>browser</Filter>
     </ClInclude>
@@ -63,11 +60,14 @@
     <ClInclude Include="browser\custom_layout.h">
       <Filter>browser</Filter>
     </ClInclude>
+    <ClInclude Include="MainThread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TestApplication.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="browser\browser_box.cpp">
       <Filter>browser</Filter>
     </ClCompile>
@@ -100,6 +100,18 @@
     </ClCompile>
     <ClCompile Include="browser\custom_layout.cpp">
       <Filter>browser</Filter>
+    </ClCompile>
+    <ClCompile Include="MainThread.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main_linux.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="main_windows.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TestApplication.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
