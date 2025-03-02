@@ -19,6 +19,7 @@
 #pragma warning (pop)
 
 #include "duilib/Core/Window.h"
+#include <mutex>
 
 #ifdef DUILIB_BUILD_FOR_WIN
 
@@ -413,7 +414,10 @@ private:
                          bool* no_javascript_access);
 
 private:
-    base::Lock lock_;
+    /** 数据多线程同步锁
+    */
+    std::mutex m_rectMutex;
+
     CefRefPtr<CefBrowser> m_browser;
     std::vector<CefRefPtr<CefBrowser>> m_browserList;
     ui::Window* m_pWindow;
