@@ -36,7 +36,9 @@ int TestApplication::Run(int argc, char** argv)
     // 初始化 CEF
     CefSettings settings;
     ui::FilePath appDataDir = ui::FilePathUtil::GetCurrentModuleDirectory();
-    appDataDir += _T("cef_temp\\");//TODO: 需要一个可写目录
+
+    //需要一个可写目录
+    appDataDir += _T("cef_temp\\");
 
 #ifdef DUILIB_BUILD_FOR_WIN
     (void)argc;

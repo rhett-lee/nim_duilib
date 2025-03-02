@@ -40,14 +40,14 @@ void CefBrowserHandler::SetViewRect(const UiRect& rc)
     if (!CefCurrentlyOn(TID_UI)) {
         // 把操作跳转到Cef线程执行后续设置
         {
-            base::AutoLock lock_scope(lock_);
+            std::lock_guard<std::mutex> threadGuard(m_rectMutex);
             m_rcCefControl = rc;//此处需要设置，否则首次绑定时，CefPostTask还未执行时，m_rcCefControl就会被读取，0值会触发错误
         }        
         CefPostTask(TID_UI, base::BindOnce(&CefBrowserHandler::SetViewRect, this, rc));
         return;
     }
     {
-        base::AutoLock lock_scope(lock_);
+        std::lock_guard<std::mutex> threadGuard(m_rectMutex);
         m_rcCefControl = rc;
     }
     // 调用WasResized接口，调用后，CefBrowserHandler会调用GetViewRect接口来获取浏览器对象新的位置
@@ -327,7 +327,7 @@ void CefBrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect
     if (m_pHandlerDelegate) {
         UiRect rect_cef_control;
         {
-            base::AutoLock lock_scope(lock_);
+            std::lock_guard<std::mutex> threadGuard(m_rectMutex);
             rect_cef_control = m_rcCefControl;
         }
         rect.x = 0;
@@ -388,7 +388,7 @@ bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX,
     //将页面坐标转换为窗口客户区坐标，否则页面弹出的右键菜单位置不正确
     UiRect rect_cef_control;
     {
-        base::AutoLock lock_scope(lock_);
+        std::lock_guard<std::mutex> threadGuard(m_rectMutex);
         rect_cef_control = m_rcCefControl;
     }
     screen_pt.x = screen_pt.x + rect_cef_control.left;

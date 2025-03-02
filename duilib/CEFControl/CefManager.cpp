@@ -259,16 +259,29 @@ void CefManager::PostQuitMessage(int32_t nExitCode)
 
 void CefManager::GetCefSetting(const DString& app_data_dir, CefSettings &settings)
 {
-    if (!ui::FilePath(app_data_dir).IsExistsDirectory()) {
-        ui::FilePathUtil::CreateDirectories(app_data_dir);
+    DString appDataRootDir = app_data_dir;
+    if (!appDataRootDir.empty()) {
+#ifdef DUILIB_BUILD_FOR_WIN
+        if (appDataRootDir[appDataRootDir.size() - 1] == _T('/')) {
+            appDataRootDir[appDataRootDir.size() - 1] = _T('\\');
+        }
+#else
+        if (appDataRootDir[appDataRootDir.size() - 1] == _T('\\')) {
+            appDataRootDir[appDataRootDir.size() - 1] = _T('/');
+        }
+#endif
+    }
+
+    if (!ui::FilePath(appDataRootDir).IsExistsDirectory()) {
+        ui::FilePathUtil::CreateDirectories(appDataRootDir);
     }
     settings.no_sandbox = true;
 
     // 设置localstorage，不要在路径末尾加"\\"，否则运行时会报错
-    CefString(&settings.cache_path) = app_data_dir + _T("CefLocalStorage");
+    CefString(&settings.cache_path) = appDataRootDir + _T("CefLocalStorage");
 
     // 设置debug log文件位置
-    CefString(&settings.log_file) = app_data_dir + _T("cef.log");
+    CefString(&settings.log_file) = appDataRootDir + _T("cef.log");
 
     // cef2623、2526版本debug模式:在使用multi_threaded_message_loop时退出程序会触发中断
     // 加入disable-extensions参数可以修复这个问题，但是会导致一些页面打开时报错

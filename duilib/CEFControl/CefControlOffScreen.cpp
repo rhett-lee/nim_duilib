@@ -109,7 +109,11 @@ void CefControlOffScreen::ReCreateBrowser()
     if (m_pBrowserHandler->GetBrowser() == nullptr) {
         // 使用无窗模式，离屏渲染
         CefWindowInfo window_info;
+#ifdef DUILIB_BUILD_FOR_WIN
         window_info.SetAsWindowless(GetWindow()->NativeWnd()->GetHWND());
+#else
+
+#endif
         CefBrowserSettings browser_settings;
         //背景色：设置为白色（如果不设置的话，是透明的，网页如果不设置背景色，则背景会被显示为黑色）
         browser_settings.background_color = CefColorSetARGB(255, 255, 255, 255);
@@ -218,7 +222,7 @@ LRESULT CefControlOffScreen::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
     if ((m_pBrowserHandler.get() == nullptr) || (m_pBrowserHandler->GetBrowser().get() == nullptr)) {
         return 0;
     }
-
+#ifdef DUILIB_BUILD_FOR_WIN
     switch (uMsg)
     {
     case WM_MOUSEMOVE:
@@ -303,7 +307,7 @@ LRESULT CefControlOffScreen::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
     default:
         bHandled = false;
     }
-
+#endif
     return 0;
 }
 
@@ -332,7 +336,12 @@ bool CefControlOffScreen::AttachDevTools(Control* control)
     }
     else {
         CefWindowInfo windowInfo;
+#ifdef DUILIB_BUILD_FOR_WIN
         windowInfo.SetAsWindowless(GetWindow()->NativeWnd()->GetHWND());
+#else
+
+#endif
+
         CefBrowserSettings settings;
         if ((browser->GetHost() != nullptr) && (view_browser->GetHost() != nullptr)) {
             browser->GetHost()->ShowDevTools(windowInfo, view_browser->GetHost()->GetClient(), settings, CefPoint());
@@ -388,6 +397,7 @@ void CefControlOffScreen::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, Cef
 //////////////////////////////////////////////////////////////////////////////////
 LRESULT CefControlOffScreen::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
@@ -407,13 +417,14 @@ LRESULT CefControlOffScreen::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARA
             uMsg == WM_RBUTTONDOWN ? MBT_RIGHT : MBT_MIDDLE));
     AdaptDpiScale(mouse_event);
     host->SendMouseClickEvent(mouse_event, btnType, false, 1);
-
+#endif
     bHandled = false;
     return 0;
 }
 
 LRESULT CefControlOffScreen::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
@@ -432,13 +443,14 @@ LRESULT CefControlOffScreen::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam,
             uMsg == WM_RBUTTONDOWN ? MBT_RIGHT : MBT_MIDDLE));
 
     host->SendMouseClickEvent(mouse_event, btnType, false, 2);
-
+#endif
     bHandled = true;
     return 0;
 }
 
 LRESULT CefControlOffScreen::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
@@ -457,13 +469,14 @@ LRESULT CefControlOffScreen::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM 
             uMsg == WM_RBUTTONUP ? MBT_RIGHT : MBT_MIDDLE));
 
     host->SendMouseClickEvent(mouse_event, btnType, true, 1);
-
+#endif
     bHandled = false;
     return 0;
 }
 
 LRESULT CefControlOffScreen::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
@@ -478,13 +491,14 @@ LRESULT CefControlOffScreen::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LP
     mouse_event.modifiers = GetCefMouseModifiers(wParam);
     AdaptDpiScale(mouse_event);
     host->SendMouseMoveEvent(mouse_event, false);
-
+#endif
     bHandled = false;
     return 0;
 }
 
 LRESULT CefControlOffScreen::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
@@ -508,6 +522,7 @@ LRESULT CefControlOffScreen::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, L
     AdaptDpiScale(mouse_event);
     host->SendMouseWheelEvent(mouse_event, IsKeyDown(VK_SHIFT) ? delta : 0, !IsKeyDown(VK_SHIFT) ? delta : 0);
 
+#endif
     bHandled = true;
     return 0;
 }
@@ -535,6 +550,7 @@ LRESULT CefControlOffScreen::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, L
 
 LRESULT CefControlOffScreen::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
 
     CefKeyEvent event;
@@ -551,6 +567,7 @@ LRESULT CefControlOffScreen::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lPara
     event.modifiers = GetCefKeyboardModifiers(wParam, lParam);
 
     host->SendKeyEvent(event);
+#endif
 
     bHandled = true;
     return 0;
@@ -567,12 +584,17 @@ LRESULT CefControlOffScreen::SendCaptureLostEvent(UINT /*uMsg*/, WPARAM /*wParam
 
 bool CefControlOffScreen::IsKeyDown(WPARAM wparam)
 {
-    return (GetKeyState(static_cast<int>(wparam)) & 0x8000) != 0;
+#ifdef DUILIB_BUILD_FOR_WIN
+    return (::GetKeyState(static_cast<int>(wparam)) & 0x8000) != 0;
+#else
+    return false;
+#endif
 }
 
 int CefControlOffScreen::GetCefMouseModifiers(WPARAM wparam)
 {
     int modifiers = 0;
+#ifdef DUILIB_BUILD_FOR_WIN
     if (wparam & MK_CONTROL)
         modifiers |= EVENTFLAG_CONTROL_DOWN;
     if (wparam & MK_SHIFT)
@@ -591,12 +613,15 @@ int CefControlOffScreen::GetCefMouseModifiers(WPARAM wparam)
         modifiers |= EVENTFLAG_NUM_LOCK_ON;
     if (::GetKeyState(VK_CAPITAL) & 1)
         modifiers |= EVENTFLAG_CAPS_LOCK_ON;
+#endif
     return modifiers;
 }
 
 int CefControlOffScreen::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
 {
     int modifiers = 0;
+
+#ifdef DUILIB_BUILD_FOR_WIN
     if (IsKeyDown(VK_SHIFT))
         modifiers |= EVENTFLAG_SHIFT_DOWN;
     if (IsKeyDown(VK_CONTROL))
@@ -672,6 +697,7 @@ int CefControlOffScreen::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
         modifiers |= EVENTFLAG_IS_RIGHT;
         break;
     }
+#endif
     return modifiers;
 }
 
