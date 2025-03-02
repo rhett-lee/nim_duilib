@@ -4,6 +4,7 @@
 #include "duilib/Core/Callback.h"
 #include <unordered_map>
 #include <functional>
+#include <list>
 
 namespace ui {
 

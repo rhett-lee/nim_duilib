@@ -211,12 +211,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CefForm.h" />
-    <ClInclude Include="main.h" />
+    <ClInclude Include="MainThread.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CefForm.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MainThread.cpp" />
+    <ClCompile Include="main_windows.cpp" />
+    <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="cef.rc" />

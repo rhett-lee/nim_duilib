@@ -157,14 +157,11 @@ void CefManager::AddCefDllToPath()
 // Cef2357版本无法使用，当程序处理重定向信息并且重新加载页面后，渲染进程会崩掉
 // Cef2526、2623版本对各种新页面都支持，唯一的坑就是debug模式在多线程消息循环开启下，程序退出时会中断，但是release模式正常。
 //        (PS:如果开发者不使用负责Cef功能的开发，可以切换到release模式的cef dll文件，这样即使在deubg下也不会报错，修改AddCefDllToPath代码可以切换到release目录)
-bool CefManager::Initialize(const DString& app_data_dir, CefSettings &settings, bool bEnableOffScreenRendering /*= true*/)
+#ifdef DUILIB_BUILD_FOR_WIN
+bool CefManager::Initialize(const DString& app_data_dir, CefSettings& settings, bool bEnableOffScreenRendering /*= true*/)
 {
     m_bEnableOffScreenRendering = bEnableOffScreenRendering;
-#ifdef DUILIB_BUILD_FOR_WIN
-    CefMainArgs main_args(GetModuleHandle(nullptr));
-#else
-    Linux
-#endif
+    CefMainArgs main_args(::GetModuleHandle(nullptr));
 
     CefRefPtr<CefClientApp> app(new CefClientApp);
     
@@ -179,17 +176,40 @@ bool CefManager::Initialize(const DString& app_data_dir, CefSettings &settings, 
 
     bool bRet = CefInitialize(main_args, settings, app.get(), nullptr);
 
-#ifdef DUILIB_BUILD_FOR_WIN
     if (IsEnableOffScreenRendering()) {
         HWND hwnd = ::CreateWindowW(L"Static", L"", WS_POPUP, 0, 0, 0, 0, nullptr, nullptr, nullptr, nullptr);
         CefPostTask(TID_UI, base::BindOnce(&FixContextMenuBug, hwnd));
     }
-#endif
     
     //添加窗口CEF控件的回调函数
     GlobalManager::Instance().AddCreateControlCallback(DuilibCreateCefControl);
     return bRet;
 }
+#else
+//Linux系统
+bool CefManager::Initialize(const DString& app_data_dir, CefSettings& settings, bool bEnableOffScreenRendering, int argc, char** argv)
+{
+    m_bEnableOffScreenRendering = bEnableOffScreenRendering;
+    CefMainArgs main_args(argc, argv);
+
+    CefRefPtr<CefClientApp> app(new CefClientApp);
+
+    // 如果是在子进程中调用，会堵塞直到子进程退出，并且exit_code返回大于等于0
+    // 如果在Browser进程中调用，则立即返回-1
+    int exit_code = CefExecuteProcess(main_args, app.get(), nullptr);
+    if (exit_code >= 0) {
+        return false;
+    }
+
+    GetCefSetting(app_data_dir, settings);
+
+    bool bRet = CefInitialize(main_args, settings, app.get(), nullptr);
+
+    //添加窗口CEF控件的回调函数
+    GlobalManager::Instance().AddCreateControlCallback(DuilibCreateCefControl);
+    return bRet;
+}
+#endif
 
 void CefManager::UnInitialize()
 {

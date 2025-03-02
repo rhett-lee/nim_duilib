@@ -38,9 +38,19 @@ public:
     * @param [in] app_data_dir 应用路径名称
     * @param [in] settings Cef全部配置
     * @param [in] bEnableOffScreenRendering 是否开启离屏渲染
+    * @param [in] argc 程序启动时的参数个数(仅Linux环境使用)
+    * @param [in] argv 程序启动时的参数列表(仅Linux环境使用)
     * @return bool true 继续运行，false 应该结束程序
     */
+#ifdef DUILIB_BUILD_FOR_WIN
     bool Initialize(const DString& app_data_dir, CefSettings& settings, bool bEnableOffScreenRendering = true);
+#else
+    bool Initialize(const DString& app_data_dir,
+                    CefSettings& settings,
+                    bool bEnableOffScreenRendering,
+                    int argc,
+                    char** argv);
+#endif
 
     /** 清理cef组件
     */

@@ -54,7 +54,7 @@ void CefControlNative::ReCreateBrowser()
 #if DUILIB_BUILD_FOR_WIN
         window_info.SetAsChild(this->GetWindow()->NativeWnd()->GetHWND(), rect);
 #else
-        error
+        //TODO:
 #endif
 
         CefBrowserSettings browser_settings;
@@ -158,7 +158,9 @@ bool CefControlNative::AttachDevTools(Control* /*view*/)
     }
     else {
         CefWindowInfo windowInfo;
+#if DUILIB_BUILD_FOR_WIN
         windowInfo.SetAsPopup(nullptr, _T("cef_devtools"));
+#endif
         CefBrowserSettings settings;
         if (browser->GetHost() != nullptr) {
             browser->GetHost()->ShowDevTools(windowInfo, new ui::CefBrowserHandler, settings, CefPoint());

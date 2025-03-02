@@ -2,6 +2,9 @@
 
 SRC_ROOT_DIR=$(realpath $(dirname "$0"))
 
+# 创建目录
+mkdir "$SRC_ROOT_DIR/libs/"
+
 # 编译zlib(.a文件有改名)
 cmake -S "$SRC_ROOT_DIR/duilib/third_party/zlib/" -B "$SRC_ROOT_DIR/build_temp/zlib" -DZLIB_BUILD_EXAMPLES=OFF
 cd "$SRC_ROOT_DIR/build_temp/zlib"
@@ -35,6 +38,14 @@ rm -f "$SRC_ROOT_DIR/libs/libduilib-webp.a"
 cmake -S "$SRC_ROOT_DIR/duilib/third_party/libwebp/" -B "$SRC_ROOT_DIR/build_temp/libwebp"
 cd "$SRC_ROOT_DIR/build_temp/libwebp"
 make 
+cd "$SRC_ROOT_DIR/"
+
+#编译libcef_dll_wrapper
+rm -f "$SRC_ROOT_DIR/libs/libcef_dll_wrapper.a"
+cmake -S "$SRC_ROOT_DIR/duilib/third_party/libcef_linux/" -B "$SRC_ROOT_DIR/build_temp/libcef_dll_wrapper"
+cd "$SRC_ROOT_DIR/build_temp/libcef_dll_wrapper"
+make 
+cp "$SRC_ROOT_DIR/build_temp/libcef_dll_wrapper/libcef_dll_wrapper/libcef_dll_wrapper.a" "$SRC_ROOT_DIR/libs/libcef_dll_wrapper.a"
 cd "$SRC_ROOT_DIR/"
 
 #编译duilib
@@ -102,6 +113,11 @@ cd "$SRC_ROOT_DIR/"
 
 cmake -S "$SRC_ROOT_DIR/examples/VirtualListBox/" -B "$SRC_ROOT_DIR/build_temp/VirtualListBox" -DCMAKE_BUILD_TYPE=Debug
 cd "$SRC_ROOT_DIR/build_temp/VirtualListBox"
+make clean; make
+cd "$SRC_ROOT_DIR/"
+
+cmake -S "$SRC_ROOT_DIR/examples/cef/" -B "$SRC_ROOT_DIR/build_temp/cef" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/cef"
 make clean; make
 cd "$SRC_ROOT_DIR/"
 
