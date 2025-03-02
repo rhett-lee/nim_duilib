@@ -1,8 +1,8 @@
-#include "multi_browser_form.h"
-#include "browser/browser_box.h"
-#include "browser/multi_browser_manager.h"
-#include "control/browser_tab_item.h"
-#include "custom_layout.h"
+#include "MultiBrowserForm.h"
+#include "browser/BrowserBox.h"
+#include "browser/MultiBrowserManager.h"
+#include "control/BrowserTabItem.h"
+#include "CustomLayout.h"
 #include <chrono>
 
 using namespace ui;

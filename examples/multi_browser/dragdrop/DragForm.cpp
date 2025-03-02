@@ -1,5 +1,5 @@
-#include "drag_form.h"
-#include "bitmap_control.h"
+#include "DragForm.h"
+#include "BitmapControl.h"
 
 using namespace ui;
 

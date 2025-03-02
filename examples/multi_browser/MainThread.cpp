@@ -1,5 +1,5 @@
 #include "MainThread.h"
-#include "browser/multi_browser_manager.h"
+#include "browser/MultiBrowserManager.h"
 
 #include <chrono>
 

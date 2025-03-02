@@ -1,7 +1,7 @@
 #ifndef EXAMPLES_MULTI_BROWSER_MANAGER_H_
 #define EXAMPLES_MULTI_BROWSER_MANAGER_H_
 
-#include "browser_box.h"
+#include "BrowserBox.h"
 
 /** @class MultiBrowserManager
   * @brief 多标签浏览器管理类，用于统一管理多标签浏览器打开、合并、拆分、拖拽功能

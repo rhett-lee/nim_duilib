@@ -1,8 +1,8 @@
-#include "multi_browser_manager.h"
-#include "multi_browser_form.h"
-#include "browser_box.h"
-#include "dragdrop/drag_form.h"
-#include "dragdrop/drag_drop.h"
+#include "MultiBrowserManager.h"
+#include "MultiBrowserForm.h"
+#include "BrowserBox.h"
+#include "dragdrop/DragForm.h"
+#include "dragdrop/DragDrop.h"
 
 namespace
 {
