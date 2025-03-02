@@ -42,7 +42,7 @@ cd "$SRC_ROOT_DIR/"
 
 #编译libcef_dll_wrapper
 rm -f "$SRC_ROOT_DIR/libs/libcef_dll_wrapper.a"
-cmake -S "$SRC_ROOT_DIR/duilib/third_party/libcef_linux/" -B "$SRC_ROOT_DIR/build_temp/libcef_dll_wrapper"
+cmake -S "$SRC_ROOT_DIR/duilib/third_party/libcef_linux/" -B "$SRC_ROOT_DIR/build_temp/libcef_dll_wrapper" -DCMAKE_BUILD_TYPE=Debug
 cd "$SRC_ROOT_DIR/build_temp/libcef_dll_wrapper"
 make 
 cp "$SRC_ROOT_DIR/build_temp/libcef_dll_wrapper/libcef_dll_wrapper/libcef_dll_wrapper.a" "$SRC_ROOT_DIR/libs/libcef_dll_wrapper.a"
