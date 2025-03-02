@@ -10,7 +10,7 @@
 * @author Redrain
 * @date 2019/3/20
 */
-#include "taskbar/taskbar_manager.h"
+#include "taskbar/TaskbarManager.h"
 #include "ShObjidl.h"
 
 interface IDropTargetHelper;

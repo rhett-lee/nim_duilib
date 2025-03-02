@@ -1,8 +1,11 @@
-#include "taskbar_manager.h"
+#include "TaskbarManager.h"
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
 #include "duilib/Utils/BitmapHelper_Windows.h"
 #include "duilib/Utils/StringUtil.h"
 
-#include "dwm_util.h"
+#include "DwmUtil.h"
 #include <shobjidl.h>
 #include <VersionHelpers.h>
 
@@ -388,3 +391,5 @@ void TaskbarManager::OnTabItemClicked(TaskbarTabItem &tab_item)
 {
     m_pTaskbarDelegate->SetActiveTaskbarItem(tab_item.GetId());
 }
+
+#endif //(DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)

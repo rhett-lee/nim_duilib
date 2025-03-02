@@ -1,6 +1,6 @@
-#include "multi_browser_form.h"
-#include "browser_box.h"
-#include "multi_browser_manager.h"
+#include "MultiBrowserForm.h"
+#include "BrowserBox.h"
+#include "MultiBrowserManager.h"
 
 #include "duilib/Utils/BitmapHelper_Windows.h"
 

@@ -1,4 +1,4 @@
-#include "browser_tab_item.h"
+#include "BrowserTabItem.h"
 
 using namespace ui;
 

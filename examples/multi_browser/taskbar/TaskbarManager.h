@@ -3,6 +3,9 @@
 
 // duilib
 #include "duilib/duilib.h"
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
 #include <shobjidl_core.h>
 
 interface ITaskbarList4;
@@ -239,5 +242,7 @@ private:
     ITaskbarDelegate* m_pTaskbarDelegate;
     ITaskbarList4* m_pTaskbarList;
 };
+
+#endif //(DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #endif //EXAMPLES_TASKBAR_MANAGER_H_

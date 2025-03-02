@@ -188,35 +188,35 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="browser\browser_box.h" />
-    <ClInclude Include="browser\custom_layout.h" />
-    <ClInclude Include="browser\multi_browser_form.h" />
-    <ClInclude Include="browser\multi_browser_manager.h" />
-    <ClInclude Include="control\browser_tab_item.h" />
-    <ClInclude Include="dragdrop\bitmap_control.h" />
-    <ClInclude Include="dragdrop\drag_drop.h" />
-    <ClInclude Include="dragdrop\drag_form.h" />
+    <ClInclude Include="browser\BrowserBox.h" />
+    <ClInclude Include="browser\CustomLayout.h" />
+    <ClInclude Include="browser\MultiBrowserForm.h" />
+    <ClInclude Include="browser\MultiBrowserManager.h" />
+    <ClInclude Include="control\BrowserTabItem.h" />
+    <ClInclude Include="dragdrop\BitmapControl.h" />
+    <ClInclude Include="dragdrop\DragDrop.h" />
+    <ClInclude Include="dragdrop\DragForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="taskbar\dwm_util.h" />
-    <ClInclude Include="taskbar\taskbar_manager.h" />
+    <ClInclude Include="taskbar\DwmUtil.h" />
+    <ClInclude Include="taskbar\TaskbarManager.h" />
     <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="browser\browser_box.cpp" />
-    <ClCompile Include="browser\custom_layout.cpp" />
-    <ClCompile Include="browser\multi_browser_form.cpp" />
-    <ClCompile Include="browser\multi_browser_form_dragdrop.cpp" />
-    <ClCompile Include="browser\multi_browser_manager.cpp" />
-    <ClCompile Include="control\browser_tab_item.cpp" />
-    <ClCompile Include="dragdrop\bitmap_control.cpp" />
-    <ClCompile Include="dragdrop\drag_drop.cpp" />
-    <ClCompile Include="dragdrop\drag_form.cpp" />
+    <ClCompile Include="browser\BrowserBox.cpp" />
+    <ClCompile Include="browser\CustomLayout.cpp" />
+    <ClCompile Include="browser\MultiBrowserForm.cpp" />
+    <ClCompile Include="browser\MultiBrowserFormDragdrop.cpp" />
+    <ClCompile Include="browser\MultiBrowserManager.cpp" />
+    <ClCompile Include="control\BrowserTabItem.cpp" />
+    <ClCompile Include="dragdrop\BitmapControl.cpp" />
+    <ClCompile Include="dragdrop\DragDrop.cpp" />
+    <ClCompile Include="dragdrop\DragForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_linux.cpp" />
     <ClCompile Include="main_windows.cpp" />
-    <ClCompile Include="taskbar\dwm_util.cpp" />
-    <ClCompile Include="taskbar\taskbar_manager.cpp" />
+    <ClCompile Include="taskbar\DwmUtil.cpp" />
+    <ClCompile Include="taskbar\TaskbarManager.cpp" />
     <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
