@@ -25,10 +25,12 @@ add_definitions(-DSK_GANESH -DSK_GL -DSK_RELEASE)
 
 #设置include目录
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
+get_filename_component(CEF_INCLUDE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/libcef_linux/" ABSOLUTE)
 get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
 get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
 
 include_directories(${DUILIB_SRC_ROOT_DIR})
+include_directories(${CEF_INCLUDE_ROOT_DIR})
 include_directories(${SKIA_SRC_ROOT_DIR})
 include_directories("${SDL_SRC_ROOT_DIR}/include")
 
@@ -46,6 +48,9 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Image IMAGE_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Render RENDER_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/RenderSkia RENDER_SKIA_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Utils UTILS_SRC)
+
+aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl CEF_CONTROL_SRC)
+aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl/internal CEF_CONTROL_INTERNAL_SRC)
 
 aux_source_directory(${DUILIB_SRC_ROOT_DIR}/duilib/third_party/apng APNG_SRC)
 aux_source_directory(${DUILIB_SRC_ROOT_DIR}/duilib/third_party/stb_image STB_SRC)
@@ -85,6 +90,8 @@ add_library(duilib
     	    ${RENDER_SRC}
     	    ${RENDER_SKIA_SRC}
     	    ${UTILS_SRC}
+    	    ${CEF_CONTROL_SRC}
+    	    ${CEF_CONTROL_INTERNAL_SRC}
     	    ${APNG_SRC}
     	    ${STB_SRC}
     	    ${SVG_SRC}

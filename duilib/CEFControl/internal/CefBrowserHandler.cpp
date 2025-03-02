@@ -308,12 +308,14 @@ bool CefBrowserHandler::GetRootScreenRect(CefRefPtr<CefBrowser> browser, CefRect
     if ((m_pWindow == nullptr) || m_windowFlag.expired()) {
         return false;
     }
+#ifdef DUILIB_BUILD_FOR_WIN
     RECT window_rect = { 0 };
     HWND root_window = GetAncestor(m_pWindow->NativeWnd()->GetHWND(), GA_ROOT);
     if (::GetWindowRect(root_window, &window_rect)) {
         rect = CefRect(window_rect.left, window_rect.top, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top);
         return true;
     }
+#endif
     return false;
 }
 
@@ -482,6 +484,7 @@ void CefBrowserHandler::OnVirtualKeyboardRequested(CefRefPtr<CefBrowser> browser
 
 bool CefBrowserHandler::StartDragging(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     ASSERT(CefCurrentlyOn(TID_UI));
     if (!m_pHandlerDelegate) {
         return false;
@@ -506,6 +509,9 @@ bool CefBrowserHandler::StartDragging(CefRefPtr<CefBrowser> browser, CefRefPtr<C
     browser->GetHost()->DragSourceEndedAt(pt.x, pt.y, result);
     browser->GetHost()->DragSourceSystemDragEnded();
     return true;
+#else
+    return false;
+#endif
 }
 
 void CefBrowserHandler::UpdateDragCursor(CefRefPtr<CefBrowser> browser, CefRenderHandler::DragOperation operation)
@@ -689,11 +695,15 @@ bool CefBrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
                                        cef_cursor_type_t type,
                                        const CefCursorInfo& custom_cursor_info)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     if ((m_pWindow != nullptr) && !m_windowFlag.expired()) {
         SetClassLongPtr(m_pWindow->NativeWnd()->GetHWND(), GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
     }
-    SetCursor(cursor);
+    ::SetCursor(cursor);
     return true;
+#else
+    return false;
+#endif
 }
 
 void CefBrowserHandler::OnMediaAccessChange(CefRefPtr<CefBrowser> browser,

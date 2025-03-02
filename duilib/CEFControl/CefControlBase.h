@@ -353,7 +353,12 @@ protected:
     void OnDevToolsVisibleChanged();
 
 protected:
-    CefRefPtr<CefBrowserHandler> m_pBrowserHandler = nullptr;
+    /** 控件关联的CEF浏览器对象
+    */
+    CefRefPtr<CefBrowserHandler> m_pBrowserHandler;
+
+    /** JS 功能管理接口
+    */
     std::shared_ptr<CefJSBridge> m_jsBridge;
 private:
 

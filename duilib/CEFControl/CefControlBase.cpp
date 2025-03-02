@@ -109,7 +109,7 @@ CefWindowHandle CefControlBase::GetCefHandle() const
     if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowserHost().get()) {
         return m_pBrowserHandler->GetBrowserHost()->GetWindowHandle();
     }
-    return nullptr;
+    return 0;
 }
 
 CefString CefControlBase::GetURL()
