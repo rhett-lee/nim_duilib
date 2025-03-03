@@ -64,7 +64,7 @@ private:
     * @param[in] point 弹出坐标
     * @return void    无返回值
     */
-    void PopupItemMenu(POINT point);
+    void PopupItemMenu(const ui::UiPoint& pt);
 
     /**
     * 处理菜单项被单击的消息

@@ -1,4 +1,7 @@
 #include "MultiBrowserForm.h"
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
 #include "BrowserBox.h"
 #include "MultiBrowserManager.h"
 
@@ -259,3 +262,5 @@ ui::IBitmap* MultiBrowserForm::GenerateBoxWindowBitmap()
     ::ReleaseDC(cef_window, cef_window_dc);
     return pBitmap;
 }
+
+#endif // (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)

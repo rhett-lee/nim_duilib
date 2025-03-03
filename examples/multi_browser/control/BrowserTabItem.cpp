@@ -53,13 +53,15 @@ bool BrowserTabItem::OnMouseLeave(const ui::EventArgs& msg)
 
 bool BrowserTabItem::OnItemMenu(const ui::EventArgs& /*arg*/)
 {
-    POINT point;
-    ::GetCursorPos(&point);
-    PopupItemMenu(point);
+    if (GetWindow() != nullptr) {
+        UiPoint pt;
+        GetWindow()->GetCursorPos(pt);
+        PopupItemMenu(pt);
+    }   
     return true;
 }
 
-void BrowserTabItem::PopupItemMenu(POINT point)
+void BrowserTabItem::PopupItemMenu(const ui::UiPoint& pt)
 {
 
 }

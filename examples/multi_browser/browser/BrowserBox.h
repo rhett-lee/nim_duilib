@@ -13,7 +13,10 @@
 * @author Redrain
 * @date 2019/3/20
 */
-class TaskbarTabItem;
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    class TaskbarTabItem;
+#endif
+
 class MultiBrowserForm;
 class BrowserBox : public ui::VBox
 {
@@ -68,11 +71,13 @@ public:
     //////////////////////////////////////////////////////////////////////////
     //窗口合并功能相关的操作
 public:
-    /**
-    * 获取与本浏览器盒子绑定的Tab指针
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    /** 获取与本浏览器盒子绑定的Tab指针
     * @return TaskbarItem*    Tab指针
     */
     TaskbarTabItem* GetTaskbarItem();
+#endif
 
     /**
     * 覆盖父类虚函数，用于指定本控件所属窗体
@@ -107,13 +112,15 @@ private:
 
 private:
     ui::CefControlBase* m_pCefControl;
-
-    // 任务栏缩略图管理
-    TaskbarTabItem* m_pTaskBarItem;
     MultiBrowserForm* m_pBrowserForm;
     std::string m_browserId;
     DString m_url;
     DString m_title;
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    // 任务栏缩略图管理
+    TaskbarTabItem* m_pTaskBarItem;
+#endif
 };
 
 #endif //EXAMPLES_BROWSER_BOX_H_

@@ -4,20 +4,26 @@
 // duilib
 #include "duilib/duilib.h"
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    #include "taskbar/TaskbarManager.h"
+    #include "ShObjidl.h"
+    interface IDropTargetHelper;
+#endif
+
+class BrowserBox;
+class BrowserTabItem;
+
 /** @file multi_browser_form.h
 * @brief 离屏模式Cef多标签浏览器窗口
 * @copyright (c) 2016, NetEase Inc. All rights reserved
 * @author Redrain
 * @date 2019/3/20
 */
-#include "taskbar/TaskbarManager.h"
-#include "ShObjidl.h"
-
-interface IDropTargetHelper;
-
-class BrowserBox;
-class BrowserTabItem;
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 class MultiBrowserForm : public ui::ShadowWnd, public IDropTarget, public TaskbarManager::ITaskbarDelegate
+#else
+class MultiBrowserForm : public ui::ShadowWnd
+#endif
 {
     typedef ui::ShadowWnd BaseClass;
 public:
@@ -129,6 +135,7 @@ public:
     */
     int GetBoxCount() const;
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /**
     * 在执行拖拽操作前，如果被拖拽的浏览器盒子属于本窗口，则通知本窗口
     * @param[in] browser_id 浏览器id
@@ -142,6 +149,7 @@ public:
     * @return void    无返回值
     */
     void OnAfterDragBoxCallback(bool drop_succeed);
+#endif
 
 private:
 
@@ -182,6 +190,7 @@ private:
     bool ChangeToBox(const DString &browser_id);
 
 public:
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /**
     * 获取窗体句柄
     * @return HWND    窗体句柄
@@ -207,6 +216,7 @@ public:
     * @return void 无返回值
     */
     virtual void SetActiveTaskbarItem(const std::string &id) override { SetActiveBox(id); }
+#endif
 
     /**
     * 设置某个浏览器对应的标签控件的标题
@@ -224,8 +234,8 @@ public:
     */
     void SetURL(const std::string &browser_id, const DString &url);
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 public:
-
     /**
     * 初始化窗口拖放功能
     * @return void    无返回值
@@ -267,6 +277,7 @@ private:
     * @return HBITMAP 生成的位图
     */
     ui::IBitmap* GenerateBoxWindowBitmap();
+#endif
 
 private:
     ui::Label* m_pTitle;
@@ -277,6 +288,7 @@ private:
     ui::TabBox* m_pBorwserBoxTab;
     BrowserBox* m_pActiveBrowserBox;
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     // 处理浏览器盒子拖放事件
     IDropTargetHelper* m_pDropHelper;
 
@@ -287,5 +299,6 @@ private:
 
     // 任务栏缩略图管理器
     TaskbarManager m_taskbarManager;
+#endif
 };
 #endif //EXAMPLES_MULTI_BROWSER_FORM_H_

@@ -208,7 +208,7 @@ void MultiBrowserManager::SetDropForm(MultiBrowserForm *browser_form)
     }
     m_pDropBrowserForm = browser_form;
 }
-
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 bool MultiBrowserManager::DoDragBorwserBox(BrowserBox *browser_box, HBITMAP bitmap, POINT pt_offset)
 {
     if (!m_bEnableMerge) {
@@ -242,7 +242,9 @@ bool MultiBrowserManager::DoDragBorwserBox(BrowserBox *browser_box, HBITMAP bitm
     data_object->Release();
     return true;
 }
+#endif
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 SdkDataObject* MultiBrowserManager::CreateDragDataObject(HBITMAP bitmap, POINT pt_offset)
 {
     SdkDataObject* data_object = new SdkDataObject;
@@ -283,7 +285,9 @@ SdkDataObject* MultiBrowserManager::CreateDragDataObject(HBITMAP bitmap, POINT p
 
     return data_object;
 }
+#endif
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 void MultiBrowserManager::OnBeforeDragBorwserBox(BrowserBox *browser_box, HBITMAP bitmap, POINT pt_offset)
 {
     // 获取当前被拖拽的浏览器盒子所属的浏览器窗口
@@ -374,3 +378,5 @@ void MultiBrowserManager::OnAfterDragBorwserBox()
     m_pDragingBox = nullptr;
     m_pDropBrowserForm = nullptr;
 }
+
+#endif

@@ -1,5 +1,7 @@
 #include "BitmapControl.h"
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
 using namespace ui;
 
 BitmapControl::BitmapControl(ui::Window* pWindow):
@@ -73,3 +75,5 @@ void BitmapControl::SetBitmapImage(HBITMAP bitmap)
 {
     m_hBitmap = bitmap;
 }
+
+#endif //(DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)

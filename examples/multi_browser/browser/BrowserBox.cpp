@@ -9,7 +9,9 @@ using namespace std;
 BrowserBox::BrowserBox(ui::Window* pWindow, std::string id):
     ui::VBox(pWindow)
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     m_pTaskBarItem = nullptr;
+#endif
     m_pBrowserForm = nullptr;
     m_pCefControl = nullptr;
     m_browserId = id;
@@ -56,6 +58,7 @@ void BrowserBox::InitBrowserBox(const DString &url)
     }
     m_pCefControl->LoadURL(html_path);
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     // 初始化任务栏缩略图
     if (GetWindow()->IsLayeredWindow()) {
         m_pTaskBarItem = new TaskbarTabItem(this);
@@ -63,6 +66,7 @@ void BrowserBox::InitBrowserBox(const DString &url)
             m_pTaskBarItem->Init(url, m_browserId);
         }
     }
+#endif
 
     // Box获取焦点时把焦点转移给Cef控件
     this->AttachSetFocus([this](const ui::EventArgs& param)->bool
@@ -75,16 +79,19 @@ void BrowserBox::InitBrowserBox(const DString &url)
 void BrowserBox::UninitBrowserBox()
 {
     MultiBrowserManager::GetInstance()->RemoveBorwserBox(m_browserId, this);
-
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (m_pTaskBarItem) {
         m_pTaskBarItem->UnInit();
     }
+#endif
 }
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 TaskbarTabItem* BrowserBox::GetTaskbarItem()
 {
     return m_pTaskBarItem;
 }
+#endif
 
 void BrowserBox::SetWindow(Window* pWindow)
 {
@@ -97,19 +104,21 @@ void BrowserBox::SetWindow(Window* pWindow)
 void BrowserBox::Invalidate()
 {
     BaseClass::Invalidate();
-
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (m_pTaskBarItem) {
         m_pTaskBarItem->InvalidateTab();
     }
+#endif
 }
 
 void BrowserBox::SetPos(UiRect rc)
 {
     BaseClass::SetPos(rc);
-
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (m_pTaskBarItem) {
         m_pTaskBarItem->InvalidateTab();
     }
+#endif
 }
 
 void BrowserBox::OnBeforeMenu(CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)
