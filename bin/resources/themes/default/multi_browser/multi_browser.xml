@@ -5,7 +5,10 @@
         <Label class="font_title" name="title" width="stretch" valign="center" normaltextcolor="darkcolor" textid="STRID_CEF_BROWSER_MULTI_TAB" />
         <Control />
         <Button class="btn_wnd_min" name="minbtn" margin="10,6,0,0"/>
-        <Button class="btn_wnd_max" name="btn_max_restore" margin="10,6,0,0"/>
+        <Box width="21" margin="10,6,0,0">
+            <Button class="btn_wnd_max" name="maxbtn"/>
+            <Button class="btn_wnd_restore" name="restorebtn" visible="false"/>
+        </Box>
         <Button class="btn_wnd_close" name="btn_close" margin="10,6,0,0"/>
     </HBox>
 

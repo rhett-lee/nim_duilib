@@ -4,6 +4,8 @@
 // duilib
 #include "duilib/duilib.h"
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
 /** @class DragForm
   * @brief 模仿系统拖拽功能的半透明窗体，因为使用了低级键盘钩子所以一些安全软件会拦截
   * @copyright (c) 2016, NetEase Inc. All rights reserved
@@ -78,4 +80,7 @@ private:
     static POINT s_point_offset;
     BitmapControl* m_pBitmapControl;
 };
+
+#endif //(DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
 #endif //EXAMPLES_DRAG_FROM_H_

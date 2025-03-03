@@ -1,4 +1,7 @@
 #include "DragForm.h"
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
 #include "BitmapControl.h"
 
 using namespace ui;
@@ -118,3 +121,5 @@ void DragForm::SetDragImage(HBITMAP bitmap)
     ASSERT(nullptr != bitmap);
     m_pBitmapControl->SetBitmapImage(bitmap);
 }
+
+#endif //(DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)

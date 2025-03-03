@@ -4,6 +4,8 @@
 // duilib
 #include "duilib/duilib.h"
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
 /** @class BitmapControl
   * @brief 把HBITMAP作为背景的控件,控件不负责销毁HBITMAP
   * @copyright (c) 2016, NetEase Inc. All rights reserved
@@ -34,5 +36,7 @@ public:
 private:
     HBITMAP m_hBitmap;
 };
+
+#endif //(DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #endif //EXAMPLES_BITMAP_CONTROL_H_

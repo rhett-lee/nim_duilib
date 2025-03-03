@@ -7,7 +7,10 @@
   * @brief 多标签浏览器管理类，用于统一管理多标签浏览器打开、合并、拆分、拖拽功能
   * @date 2019/3/20
   */
-class SdkDataObject;
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    class SdkDataObject;
+#endif
+
 class MultiBrowserManager : public virtual ui::SupportWeakCallback
 {
 public:
@@ -96,6 +99,7 @@ public:
     */
     void SetDropForm(MultiBrowserForm *browser_form);
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /**
     * 执行拖拽浏览器盒子的操作
     * @param[in] browser_box 浏览器盒子
@@ -104,9 +108,11 @@ public:
     * @return bool true 成功，false 失败
     */
     bool DoDragBorwserBox(BrowserBox *browser_box, HBITMAP bitmap, POINT pt_offset);
+#endif
 
 private:
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /**
     * 创建一个用于拖拽的IDataObject对象
     * @param[in] bitmap 用于生成拖拽效果的位图
@@ -126,6 +132,7 @@ private:
     * @return void    无返回值
     */
     void OnAfterDragBorwserBox();
+#endif
 
 private:
     bool m_bEnableMerge;

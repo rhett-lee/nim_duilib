@@ -1,6 +1,11 @@
 #ifndef EXAMPLES_DRAG_DROP_H_
 #define EXAMPLES_DRAG_DROP_H_
 
+// duilib
+#include "duilib/duilib.h"
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
 // Copyright (c) 2015, NetEase Inc.
 // All rights reserved.
 //
@@ -8,9 +13,6 @@
 // Date: 2015/09/24
 //
 // brife: 实现控件的拖拽和窗体的拖放功能
-
-// duilib
-#include "duilib/duilib.h"
 
 #include "OleIdl.h"
 #include "ShObjIdl.h"
@@ -115,4 +117,7 @@ public:
 private:
     IDragSourceHelper* m_pDragSourceHelper;
 };
+
+#endif //(DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
 #endif //EXAMPLES_DRAG_DROP_H_

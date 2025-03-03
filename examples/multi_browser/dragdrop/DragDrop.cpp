@@ -1,4 +1,7 @@
 #include "DragDrop.h"
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
 #include <shlobj.h>
 #include <shlobj.h>
 #include <shlwapi.h>
@@ -375,3 +378,5 @@ HRESULT SdkDragSourceHelper::InitializeFromWindow(HWND hwnd, POINT& pt, IDataObj
     }
     return m_pDragSourceHelper->InitializeFromWindow(hwnd, &pt, pDataObject);
 }
+
+#endif //(DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
