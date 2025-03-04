@@ -870,8 +870,8 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
             GetWindowRect(rcWindow);
             UiRect rcClientRect;
             GetClientRect(rcClientRect);
-            ASSERT(rcClientRect.Width() == rcWindow.Width());
-            ASSERT(rcClientRect.Height() == rcWindow.Height());
+            //ASSERT(rcClientRect.Width() == rcWindow.Width());
+            //ASSERT(rcClientRect.Height() == rcWindow.Height());
             if ((rcClientRect.Width() == rcWindow.Width()) && (rcClientRect.Height() == rcWindow.Height())) {
                 //全屏时，设置外边距，避免客户区的内容溢出屏幕
                 UiRect rcWork;
