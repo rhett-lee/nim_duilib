@@ -53,7 +53,11 @@ void BrowserBox::InitBrowserBox(const DString &url)
     if (html_path.empty()) {
         ui::FilePath localPath = ui::FilePathUtil::GetCurrentModuleDirectory();
         localPath.NormalizeDirectoryPath();
+#if defined (DUILIB_BUILD_FOR_WIN)
         localPath += _T("resources\\themes\\default\\cef\\cef.html");
+#else
+        localPath += _T("resources/themes/default/cef/cef.html");
+#endif
         html_path = localPath.ToString();
     }
     m_pCefControl->LoadURL(html_path);
@@ -167,8 +171,9 @@ void BrowserBox::OnLoadStart()
 void BrowserBox::OnLoadEnd(int httpStatusCode)
 {
     // 注册一个方法提供前端调用
-    m_pCefControl->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([](const std::string& params, ui::ReportResultFunction callback) {
-        ::MessageBoxW(nullptr, ui::StringConvert::UTF8ToWString(params).c_str(), L"接收到 JavaScript 发来的消息", MB_OK);
+    m_pCefControl->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([this](const std::string& params, ui::ReportResultFunction callback) {
+        DString value = ui::StringConvert::UTF8ToT(params);
+        ui::SystemUtil::ShowMessageBox(GetWindow(), value.c_str(), _T("C++ 接收到 JavaScript 发来的消息"));
         callback(false, R"({ "message": "Success." })");
     }));
 }

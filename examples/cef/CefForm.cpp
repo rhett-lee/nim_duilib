@@ -46,7 +46,11 @@ void CefForm::OnInitWindow()
     // 加载皮肤目录下的 html 文件
     ui::FilePath cefHtml = ui::FilePathUtil::GetCurrentModuleDirectory();
     cefHtml.NormalizeDirectoryPath();
+#if defined (DUILIB_BUILD_FOR_WIN)
     cefHtml += _T("resources\\themes\\default\\cef\\cef.html");
+#else
+    cefHtml += _T("resources/themes/default/cef/cef.html");
+#endif
     m_pCefControl->LoadURL(cefHtml.ToString());
 
     if (!ui::CefManager::GetInstance()->IsEnableOffScreenRendering()) {
@@ -109,7 +113,7 @@ void CefForm::OnLoadEnd(int httpStatusCode)
     // 注册一个方法提供前端调用
     m_pCefControl->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([this](const std::string& params, ui::ReportResultFunction callback) {
         DString value = ui::StringConvert::UTF8ToT(params);
-        ui::SystemUtil::ShowMessageBox(this, value.c_str(), _T("JavaScript ShowMessageBox"));
+        ui::SystemUtil::ShowMessageBox(this, value.c_str(), _T("C++ 接收到 JavaScript 发来的消息"));
         callback(false, R"({ "message": "Success." })");
     }));
 }

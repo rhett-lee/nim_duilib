@@ -51,6 +51,15 @@ public:
     */
     virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
+    /** 键盘按下(WM_KEYDOWN 或者 WM_SYSKEYDOWN)
+    * @param [in] vkCode 虚拟键盘代码
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kFirstPress, ModifierKey::kAlt
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
+
     /** 窗口关闭消息（WM_CLOSE）
     * @param [in] wParam 消息的wParam参数
     * @param [in] nativeMsg 从系统接收到的原始消息内容
@@ -68,7 +77,6 @@ public:
     virtual void OnCloseWindow() override;
 
 private:
-    void OnWndSizeMax(bool max);
     bool OnClicked(const ui::EventArgs& arg);
     bool OnReturn(const ui::EventArgs& arg);
 
@@ -281,7 +289,6 @@ private:
 
 private:
     ui::Label* m_pTitle;
-    ui::Button* m_pMaxRestoreBtn;
     ui::RichEdit* m_pEditUrl;
 
     ui::ListBox* m_pTabList;
