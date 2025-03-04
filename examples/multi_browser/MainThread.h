@@ -4,8 +4,6 @@
 // duilib
 #include "duilib/duilib.h"
 
-#include "resource.h"
-
 /** @class MainThread
 * @brief 主线程（UI线程）类
 * @copyright (c) 2015, NetEase Inc. All rights reserved
