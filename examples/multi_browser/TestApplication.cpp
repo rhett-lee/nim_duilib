@@ -20,7 +20,11 @@ int TestApplication::Run(int argc, char** argv)
     // 在项目属性->连接器->输入，延迟加载 libcef.dll
     ui::CefManager::GetInstance()->AddCefDllToPath();
 
+#if defined (DUILIB_BUILD_FOR_WIN)
     _wsetlocale(LC_ALL, L"chs");
+#else
+    setlocale(LC_ALL, "chs");
+#endif
 
     //#ifdef _DEBUG
     //    AllocConsole();

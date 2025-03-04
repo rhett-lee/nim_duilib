@@ -121,6 +121,11 @@ cd "$SRC_ROOT_DIR/build_temp/cef"
 make clean; make
 cd "$SRC_ROOT_DIR/"
 
+cmake -S "$SRC_ROOT_DIR/examples/multi_browser/" -B "$SRC_ROOT_DIR/build_temp/multi_browser" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/multi_browser"
+make clean; make
+cd "$SRC_ROOT_DIR/"
+
 #清理临时目录
 #rm -rf "$SRC_ROOT_DIR/build_temp/"
 
