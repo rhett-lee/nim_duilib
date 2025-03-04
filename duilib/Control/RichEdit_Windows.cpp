@@ -2011,9 +2011,15 @@ bool RichEdit::IsPasteLimited() const
 
 bool RichEdit::OnKeyDown(const EventArgs& msg)
 {
-    if (msg.vkCode == kVK_RETURN && ::GetKeyState(VK_SHIFT) >= 0)    {
-        if (m_bWantReturn && ((m_bWantCtrlReturn && ::GetKeyState(VK_CONTROL) < 0) ||
-            (!m_bWantCtrlReturn && ::GetKeyState(VK_CONTROL) >= 0))) {
+    if (msg.vkCode == kVK_RETURN && ::GetKeyState(VK_SHIFT) >= 0) {
+        bool bCtrlDown = (::GetKeyState(VK_CONTROL) < 0);
+        if (bCtrlDown && !m_bWantCtrlReturn) {
+            //按了Ctrl + 回车键
+            SendEvent(kEventReturn);
+            return true;
+        }
+        else if (!m_bWantReturn) {
+            //按了回车键
             SendEvent(kEventReturn);
             return true;
         }
