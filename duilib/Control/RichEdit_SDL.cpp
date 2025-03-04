@@ -4337,74 +4337,124 @@ void RichEdit::OnInputChar(const EventArgs& msg)
         //只读或者Disable状态，禁止编辑
         return;
     }
-    bool bInputChar = true;
+
+    //对TAB键和回车键的预处理
+    bool bEnableInputChar = true;
     if (msg.vkCode == kVK_TAB) {
         //按下TAB键
         if (!m_bWantTab) {
             //不接受TAB键，触发TAB按键事件
-            bInputChar = false;
+            bEnableInputChar = false;
             SendEvent(kEventTab);
         }
         else {
             //接受TAB键，当作输入字符
-            bInputChar = true;
+            bEnableInputChar = true;
+        }
+
+        if (bEnableInputChar && IsPasswordMode()) {
+            //密码模式下，不支持输入TAB键字符
+            bEnableInputChar = false;
         }
     }
     if (msg.vkCode == kVK_RETURN) {
+        //按下回车键
         bool bShiftDown = IsKeyDown(msg, ModifierKey::kShift);
         bool bCtrlDown = IsKeyDown(msg, ModifierKey::kControl);
         if (bCtrlDown && !bShiftDown) {
             if (!m_bWantCtrlReturn) {
                 //不接受Ctrl + Enter，触发回车键事件
-                bInputChar = false;
+                bEnableInputChar = false;
                 SendEvent(kEventReturn);
             }
             else {
                 //接受Ctrl + Enter，当作输入字符
-                bInputChar = true;
+                bEnableInputChar = true;
             }
         }
         else {
             if (!m_bWantReturn) {
                 //不接受Enter键，触发回车键事件
-                bInputChar = false;
+                bEnableInputChar = false;
                 SendEvent(kEventReturn);                
             }
             else {
                 //接受Enter键，当作输入字符
-                bInputChar = true;
+                bEnableInputChar = true;
             }
+        }
+        if (bEnableInputChar && (!IsMultiLine() || IsPasswordMode())) {
+            //单行模式下，或者密码模式下，不支持输入换行符
+            bEnableInputChar = false;
         }
     }
 
-    if (!bInputChar || IsReadOnly() || !IsEnabled()) {
-        //无需编辑文本 或者 禁止编辑文本
+    if (!bEnableInputChar) {
+        //无需编辑文本
         return;
     }
 
-    if ((msg.vkCode != kVK_DELETE) && (msg.vkCode != kVK_BACK)) {
-        if (IsNumberOnly()) {
-            //数字模式：只允许输入数字
-            if (msg.vkCode < '0' || msg.vkCode > '9') {
-                if (msg.vkCode == _T('-')) {
-                    if (GetTextLength() > 0) {
-                        //不是第一个字符，禁止输入负号
-                        return;
-                    }
-                    else if (GetMinNumber() >= 0) {
-                        //最小数字是0或者正数，禁止输入负号
-                        return;
-                    }
-                }
-                else {
-                    return;
-                }
+    //获取本次输入的文本
+    DStringW text;
+    if ((msg.vkCode == kVK_RETURN) || (msg.vkCode == kVK_TAB) || (msg.vkCode == kVK_DELETE) || (msg.vkCode == kVK_BACK)) {
+        //回车键, TAB键, 删除键，退格键的处理逻辑，无输入文本
+        ASSERT(msg.eventData != SDL_EVENT_TEXT_INPUT);
+        if (msg.vkCode == kVK_RETURN) {
+            //回车: 转换成换行："\r\n" 或者 "\n"
+#if defined (DUILIB_BUILD_FOR_WIN)
+            text = L"\r\n";
+#else
+            text = L"\n";
+#endif
+        }
+        else if (msg.vkCode == kVK_TAB) {
+            //TAB键
+            text = L"\t";
+        }
+    }
+    else {
+        ASSERT(msg.eventData == SDL_EVENT_TEXT_INPUT);
+        ASSERT(msg.vkCode == kVK_None);
+        if ((msg.eventData == SDL_EVENT_TEXT_INPUT) && (msg.wParam != 0) && (msg.lParam > 0)) {
+            //当前输入的字符或者字符串（比如中文输入时，候选词是一次输入，而不像Windows SDK那样按字符逐次输入）
+            text = (DStringW::value_type*)msg.wParam;
+        }
+    }
+
+    //密码模式下：删除非法字符
+    if (!text.empty() && IsPasswordMode()) {
+        RemoveInvalidPasswordChar(text);
+    }
+
+    //数字模式下，检查是否存在不允许输入的字符（数字模式：只允许输入数字）
+    if (!text.empty() && IsNumberOnly()) {
+        size_t nTextIndex = 0;
+        if (text[0] == _T('-')) {
+            //首字符是减号，对应的是负数
+            if (GetTextLength() > 0) {
+                //不是第一个字符，禁止输入减号
+                return;
+            }
+            else if (GetMinNumber() >= 0) {
+                //最小数字是0或者正数，禁止输入减号
+                return;
+            }
+            nTextIndex += 1;
+        }
+        const size_t nTextCount = text.size();
+        for (; nTextIndex < nTextCount; ++nTextIndex) {
+            if (text[nTextIndex] < L'0' || text[nTextIndex] > L'9') {
+                //遇到非数字字符，禁止输入
+                return;
             }
         }
+    }
 
-        //限制允许输入的字符
-        if (m_pLimitChars != nullptr) {
-            if (!IsInLimitChars((DStringW::value_type)msg.vkCode)) {
+    //有限制字符的模式下，检查是否存在不允许输入的字符
+    if (!text.empty() && (m_pLimitChars != nullptr)) {
+        const size_t nTextCount = text.size();
+        for (size_t nIndex = 0; nIndex < nTextCount; ++nIndex) {
+            if (!IsInLimitChars(text[nIndex])) {
                 //字符不在列表里面，禁止输入
                 return;
             }
@@ -4421,29 +4471,7 @@ void RichEdit::OnInputChar(const EventArgs& msg)
         return;
     }
 
-    DStringW text;
-    if ((msg.eventData == SDL_EVENT_TEXT_INPUT) && (msg.wParam != 0) && (msg.lParam > 1)) {
-        //当前输入的是多个字符
-        text = (DStringW::value_type*)msg.wParam;
-    }
-    else {
-        //当前输入的是单个字符
-        text = (DStringW::value_type)msg.vkCode;
-    }
-    
-    if (msg.vkCode == kVK_RETURN) {
-        if (!IsMultiLine() || IsPasswordMode()) {
-            //单行模式下，或者密码模式下，不支持输入换行符
-            return;
-        }
-        //回车: 转换成换行："\r\n"
-        text += L'\n';
-    }
-    else if (msg.vkCode == kVK_TAB) {
-        //TAB键
-        text = L"\t";
-    }
-    else if (msg.vkCode == kVK_DELETE) {
+    if (msg.vkCode == kVK_DELETE) {
         //删除键
         if (nSelEndChar > nSelStartChar) {
             //有选择文本：删除选择内容
@@ -4459,6 +4487,10 @@ void RichEdit::OnInputChar(const EventArgs& msg)
             else {
                 nSelEndChar = m_pTextData->GetNextValidCharIndex(nSelStartChar);
             }            
+        }
+        if ((nSelEndChar == nSelStartChar) && text.empty()) {
+            //不满足删除条件
+            return;
         }
     }
     else if (msg.vkCode == kVK_BACK) {
@@ -4478,17 +4510,13 @@ void RichEdit::OnInputChar(const EventArgs& msg)
                 nSelStartChar = m_pTextData->GetPrevValidCharIndex(nSelStartChar);
             }            
         }
+        if ((nSelEndChar == nSelStartChar) && text.empty()) {
+            //不满足删除条件
+            return;
+        }
     }
-
-    if (IsPasswordMode()) {
-        RemoveInvalidPasswordChar(text);
-    }
-
-    if ((nSelEndChar == nSelStartChar) && text.empty()) {
-        return;
-    }
-
-    if (!bInputChar) {
+    else if (text.empty()) {
+        //无输入文本
         return;
     }
 

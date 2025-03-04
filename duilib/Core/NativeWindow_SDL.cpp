@@ -403,7 +403,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
                 DStringW textW = StringConvert::UTF8ToWString(sdlEvent.text.text);
                 if (!textW.empty()) {
                     //转换成WM_CHAR事件, 多个字符时，通过NativeMsg传递
-                    VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(textW.front());//首个字符通过vkCode传递
+                    VirtualKeyCode vkCode = VirtualKeyCode::kVK_None;
                     uint32_t modifierKey = GetModifiers(SDL_GetModState());
                     NativeMsg nativeMsg(SDL_EVENT_TEXT_INPUT, (WPARAM)textW.c_str(), (LPARAM)textW.size());//wParam: 整个字符串的地址，lParam：字符数量
                     lResult = m_pOwner->OnNativeCharMsg(vkCode, modifierKey, nativeMsg, bHandled);
@@ -1733,6 +1733,13 @@ void NativeWindow_SDL::CheckSetWindowFocus()
     if (!IsWindowFocused()) {
         SetWindowFocus();
     }
+#ifdef DUILIB_BUILD_FOR_WIN
+    //当存在子窗口时，SDL获取的焦点窗口存在问题，不正确，需要补充检查（影响RichEdit输入）
+    HWND hWnd = GetHWND();
+    if (::GetFocus() != hWnd) {
+        ::SetFocus(hWnd);
+    }
+#endif
 }
 
 LRESULT NativeWindow_SDL::PostMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
