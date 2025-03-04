@@ -26,7 +26,6 @@ namespace
 MultiBrowserForm::MultiBrowserForm()
 {
     m_pTitle = nullptr;
-    m_pMaxRestoreBtn = nullptr;
     m_pEditUrl = nullptr;
     m_pTabList = nullptr;
     m_pBorwserBoxTab = nullptr;
@@ -41,7 +40,6 @@ MultiBrowserForm::MultiBrowserForm()
 MultiBrowserForm::~MultiBrowserForm()
 {
     m_pTitle = nullptr;
-    m_pMaxRestoreBtn = nullptr;
     m_pEditUrl = nullptr;
     m_pTabList = nullptr;
     m_pBorwserBoxTab = nullptr;
@@ -78,7 +76,6 @@ ui::Control* MultiBrowserForm::CreateControl(const DString& pstrClass)
 void MultiBrowserForm::OnInitWindow()
 {
     GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MultiBrowserForm::OnClicked, this, std::placeholders::_1));
-    m_pMaxRestoreBtn = static_cast<Button*>(FindControl(_T("btn_max_restore")));
 
     m_pEditUrl = static_cast<RichEdit*>(FindControl(_T("edit_url")));
     m_pTitle = static_cast<Label*>(FindControl(_T("title")));
@@ -117,26 +114,9 @@ void MultiBrowserForm::OnCloseWindow()
 
 LRESULT MultiBrowserForm::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
-    bHandled = true;
-    if (uMsg == WM_KEYDOWN) {
-        // 处理Ctrl+Tab快捷键
-        if (wParam == VK_TAB && ::GetKeyState(VK_CONTROL) < 0) {
-            int next = (int)m_pTabList->GetCurSel();
-            next = (next + 1) % GetBoxCount();
-            m_pTabList->SelectItem(next, true, true);
-            return 0;
-        }
-        // 处理ESC快捷键
-        else if (wParam == VK_ESCAPE) {
-            BOOL bHandled = FALSE;
-            if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox() && nullptr != m_pActiveBrowserBox) {
-                this->CloseBox(m_pActiveBrowserBox->GetId());
-            }
-            return 0;
-        }
-    }
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    else if (uMsg == WM_TASKBARBUTTONCREATED) {
+    if (uMsg == WM_TASKBARBUTTONCREATED) {
+        bHandled = true;
         m_taskbarManager.Init(this);
 
         // 因为窗口刚创建时，浏览器盒子已经创建但是那时还没有收到WM_TASKBARBUTTONCREATED消息，导致RegisterTab函数没有被调用，所以收到消息后重新遍历一下没有被注册的Tab
@@ -166,12 +146,33 @@ LRESULT MultiBrowserForm::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPara
     return BaseClass::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
+LRESULT MultiBrowserForm::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    if ((vkCode == VirtualKeyCode::kVK_TAB) && (modifierKey & ModifierKey::kControl)){
+        // 处理Ctrl+Tab快捷键
+        bHandled = true;
+        int next = (int)m_pTabList->GetCurSel();
+        next = (next + 1) % GetBoxCount();
+        m_pTabList->SelectItem(next, true, true);        
+        return 0;
+    }
+    else if (vkCode == VirtualKeyCode::kVK_ESCAPE) {
+        // 处理ESC快捷键
+        bHandled = true;
+        if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox() && nullptr != m_pActiveBrowserBox) {
+            this->CloseBox(m_pActiveBrowserBox->GetId());
+        }
+        return 0;
+    }
+    return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+}
+
 LRESULT MultiBrowserForm::OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
     int browser_count = GetBoxCount();
     if (browser_count > 0 && nullptr != m_pActiveBrowserBox) {
         // 如果只有一个浏览器盒子，就直接关闭
-        if (1 == browser_count)    {
+        if (1 == browser_count) {
             CloseBox(m_pActiveBrowserBox->GetId());
         }        
         else {
@@ -189,34 +190,16 @@ LRESULT MultiBrowserForm::OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg&
     return BaseClass::OnWindowCloseMsg(wParam, nativeMsg, bHandled);
 }
 
-void MultiBrowserForm::OnWndSizeMax(bool max)
-{
-    if (m_pMaxRestoreBtn) {
-        m_pMaxRestoreBtn->SetClass(max ? _T("btn_wnd_restore") : _T("btn_wnd_max"));
-    }
-}
-
 bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
 {
     DString name = arg.GetSender()->GetName();
-    if (name == _T("btn_max_restore")) {
-        if (IsWindowMaximized()) {
-            ShowWindow(ui::kSW_RESTORE);
-        }
-        else {
-            ShowWindow(ui::kSW_SHOW_MAXIMIZED);
-        }
-    }
-    else if (name == _T("btn_close")) {
+    if (name == _T("btn_close")) {
         if (nullptr == m_pActiveBrowserBox) {
             ASSERT(0);
             return true;
         }
 
         CloseBox(m_pActiveBrowserBox->GetId());
-    }
-    else if (name == _T("btn_min")) {
-        ShowWindow(ui::kSW_MINIMIZE);
     }
     else if (name == _T("btn_add")) {
         uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
@@ -253,7 +236,7 @@ bool MultiBrowserForm::OnReturn(const ui::EventArgs& arg)
          if (cef_control)
              cef_control->LoadURL(m_pEditUrl->GetText());
 #endif
-         uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
+        uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
         std::string timeStamp = ui::StringUtil::Printf("%I64u", nTimeMS);
         // 新建标签页
         MultiBrowserManager::GetInstance()->CreateBorwserBox(this, timeStamp, m_pEditUrl->GetText());
