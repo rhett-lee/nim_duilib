@@ -4,13 +4,18 @@
 #include "duilib/CEFControl/internal/CefBrowserHandler.h"
 #include "duilib/CEFControl/internal/CefMemoryBlock.h"
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    #include "duilib/CEFControl/internal/Windows/util_win.h"
+#endif
+
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Box.h"
 
-namespace ui {
+#if defined (DUILIB_BUILD_FOR_SDL)
+    #include <SDL3/SDL.h>
+#endif
 
-#define GET_X_LPARAM(lp)                        ((int)(short)LOWORD(lp))
-#define GET_Y_LPARAM(lp)                        ((int)(short)HIWORD(lp))
+namespace ui {
 
 CefControlOffScreen::CefControlOffScreen(Window* pWindow) :
     CefControlBase(pWindow),
@@ -31,7 +36,11 @@ CefControlOffScreen::~CefControlOffScreen(void)
             m_pBrowserHandler->CloseAllBrowser();
         }
     }
-    GetWindow()->RemoveMessageFilter(this);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    if (GetWindow() != nullptr) {
+        GetWindow()->RemoveMessageFilter(this);
+    }
+#endif
 }
 
 void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& /*dirtyRects*/, const void* buffer, int width, int height)
@@ -90,7 +99,12 @@ void CefControlOffScreen::OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRe
 void CefControlOffScreen::Init()
 {
     if (m_pBrowserHandler.get() == nullptr) {
-        GetWindow()->AddMessageFilter(this);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+        ASSERT(GetWindow() != nullptr);
+        if (GetWindow() != nullptr) {
+            GetWindow()->AddMessageFilter(this);
+        }
+#endif
 
         m_pBrowserHandler = new CefBrowserHandler;
         m_pBrowserHandler->SetHostWindow(GetWindow());
@@ -200,115 +214,18 @@ void CefControlOffScreen::SetWindow(Window* pWindow)
         BaseClass::SetWindow(pWindow);
         return;
     }
-
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (GetWindow()) {
         GetWindow()->RemoveMessageFilter(this);
     }
+#endif
     BaseClass::SetWindow(pWindow);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (pWindow != nullptr) {
         pWindow->AddMessageFilter(this);
     }
-    m_pBrowserHandler->SetHostWindow(pWindow);
-}
-
-LRESULT CefControlOffScreen::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    if (!IsVisible() || !IsEnabled()) {
-        bHandled = false;
-        return 0;
-    }
-
-    bHandled = false;
-    if ((m_pBrowserHandler.get() == nullptr) || (m_pBrowserHandler->GetBrowser().get() == nullptr)) {
-        return 0;
-    }
-#ifdef DUILIB_BUILD_FOR_WIN
-    switch (uMsg)
-    {
-    case WM_MOUSEMOVE:
-    {
-        return SendMouseMoveEvent(uMsg, wParam, lParam, bHandled);
-    }
-    break;
-
-    case WM_SETCURSOR:
-    {
-        // 这里拦截WM_SETCURSOR消息，不让duilib处理（duilib会改变光标样式），否则会影响Cef中的鼠标光标
-        UiPoint pt;
-        GetWindow()->GetCursorPos(pt);
-        GetWindow()->ScreenToClient(pt);
-        if (!GetRect().ContainsPt(pt)) {
-            return 0;
-        }
-
-        GetWindow()->NativeWnd()->CallDefaultWindowProc(uMsg, wParam, lParam);
-        bHandled = true;
-        return 0;
-    }
-    break;
-
-    case WM_LBUTTONDOWN:
-    case WM_MBUTTONDOWN:
-    case WM_RBUTTONDOWN:
-    {
-        return SendButtonDownEvent(uMsg, wParam, lParam, bHandled);
-    }
-    break;
-
-    case WM_LBUTTONUP:
-    case WM_MBUTTONUP:
-    case WM_RBUTTONUP:
-    {
-        return SendButtonUpEvent(uMsg, wParam, lParam, bHandled);
-    }
-    break;
-
-    case WM_SYSCHAR:
-    case WM_SYSKEYDOWN:
-    case WM_SYSKEYUP:
-    case WM_KEYDOWN:
-    case WM_KEYUP:
-    case WM_CHAR:
-    {
-        if (IsFocused())
-        {
-            return SendKeyEvent(uMsg, wParam, lParam, bHandled);
-        }
-    }
-    break;
-
-    case WM_LBUTTONDBLCLK:
-    case WM_MBUTTONDBLCLK:
-    case WM_RBUTTONDBLCLK:
-    {
-        return SendButtonDoubleDownEvent(uMsg, wParam, lParam, bHandled);
-    }
-    break;
-
-    case WM_CAPTURECHANGED:
-    case WM_CANCELMODE:
-    {
-        return SendCaptureLostEvent(uMsg, wParam, lParam, bHandled);
-    }
-    break;
-
-    case WM_MOUSEWHEEL:
-    {
-        return SendMouseWheelEvent(uMsg, wParam, lParam, bHandled);
-    }
-    break;
-
-    case WM_MOUSELEAVE:
-    {
-        return SendMouseLeaveEvent(uMsg, wParam, lParam, bHandled);
-    }
-    break;
-
-    default:
-        bHandled = false;
-    }
 #endif
-    return 0;
+    m_pBrowserHandler->SetHostWindow(pWindow);
 }
 
 bool CefControlOffScreen::AttachDevTools(Control* control)
@@ -394,313 +311,6 @@ void CefControlOffScreen::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, Cef
     CefControlBase::OnBeforeContextMenu(browser, frame, params, model);
 }
 
-//////////////////////////////////////////////////////////////////////////////////
-LRESULT CefControlOffScreen::SendButtonDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-#ifdef DUILIB_BUILD_FOR_WIN
-    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
-
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-    pt.Offset(GetScrollOffsetInScrollBox());
-    if (!GetRect().ContainsPt(pt)) {
-        return 0;
-    }
-
-    this->SetFocus();
-    CefMouseEvent mouse_event;
-    mouse_event.x = pt.x - GetRect().left;
-    mouse_event.y = pt.y - GetRect().top;
-    mouse_event.modifiers = GetCefMouseModifiers(wParam);
-
-    CefBrowserHost::MouseButtonType btnType =
-        (uMsg == WM_LBUTTONDOWN ? MBT_LEFT : (
-            uMsg == WM_RBUTTONDOWN ? MBT_RIGHT : MBT_MIDDLE));
-    AdaptDpiScale(mouse_event);
-    host->SendMouseClickEvent(mouse_event, btnType, false, 1);
-#endif
-    bHandled = false;
-    return 0;
-}
-
-LRESULT CefControlOffScreen::SendButtonDoubleDownEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-#ifdef DUILIB_BUILD_FOR_WIN
-    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
-
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-    pt.Offset(GetScrollOffsetInScrollBox());
-    if (!GetRect().ContainsPt(pt)) {
-        return 0;
-    }
-
-    CefMouseEvent mouse_event;
-    mouse_event.x = pt.x - GetRect().left;
-    mouse_event.y = pt.y - GetRect().top;
-    mouse_event.modifiers = GetCefMouseModifiers(wParam);
-    AdaptDpiScale(mouse_event);
-    CefBrowserHost::MouseButtonType btnType =
-        (uMsg == WM_LBUTTONDOWN ? MBT_LEFT : (
-            uMsg == WM_RBUTTONDOWN ? MBT_RIGHT : MBT_MIDDLE));
-
-    host->SendMouseClickEvent(mouse_event, btnType, false, 2);
-#endif
-    bHandled = true;
-    return 0;
-}
-
-LRESULT CefControlOffScreen::SendButtonUpEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-#ifdef DUILIB_BUILD_FOR_WIN
-    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
-
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-    pt.Offset(GetScrollOffsetInScrollBox());
-    if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured()) {
-        return 0;
-    }
-
-    CefMouseEvent mouse_event;
-    mouse_event.x = pt.x - GetRect().left;
-    mouse_event.y = pt.y - GetRect().top;
-    mouse_event.modifiers = GetCefMouseModifiers(wParam);
-    AdaptDpiScale(mouse_event);
-    CefBrowserHost::MouseButtonType btnType =
-        (uMsg == WM_LBUTTONUP ? MBT_LEFT : (
-            uMsg == WM_RBUTTONUP ? MBT_RIGHT : MBT_MIDDLE));
-
-    host->SendMouseClickEvent(mouse_event, btnType, true, 1);
-#endif
-    bHandled = false;
-    return 0;
-}
-
-LRESULT CefControlOffScreen::SendMouseMoveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-#ifdef DUILIB_BUILD_FOR_WIN
-    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
-
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-    pt.Offset(GetScrollOffsetInScrollBox());
-    if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured()) {
-        return 0;
-    }
-
-    CefMouseEvent mouse_event;
-    mouse_event.x = pt.x - GetRect().left;
-    mouse_event.y = pt.y - GetRect().top;
-    mouse_event.modifiers = GetCefMouseModifiers(wParam);
-    AdaptDpiScale(mouse_event);
-    host->SendMouseMoveEvent(mouse_event, false);
-#endif
-    bHandled = false;
-    return 0;
-}
-
-LRESULT CefControlOffScreen::SendMouseWheelEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-#ifdef DUILIB_BUILD_FOR_WIN
-    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
-
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-    Window* pScrolledWnd = GetWindow()->WindowFromPoint(pt);
-    if (pScrolledWnd != GetWindow()) {
-        return 0;
-    }
-
-    GetWindow()->ScreenToClient(pt);
-    pt.Offset(GetScrollOffsetInScrollBox());
-    if (!GetRect().ContainsPt(pt)) {
-        return 0;
-    }
-
-    int delta = GET_WHEEL_DELTA_WPARAM(wParam);
-
-    CefMouseEvent mouse_event;
-    mouse_event.x = pt.x - GetRect().left;
-    mouse_event.y = pt.y - GetRect().top;
-    mouse_event.modifiers = GetCefMouseModifiers(wParam);
-    AdaptDpiScale(mouse_event);
-    host->SendMouseWheelEvent(mouse_event, IsKeyDown(VK_SHIFT) ? delta : 0, !IsKeyDown(VK_SHIFT) ? delta : 0);
-
-#endif
-    bHandled = true;
-    return 0;
-}
-
-LRESULT CefControlOffScreen::SendMouseLeaveEvent(UINT /*uMsg*/, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
-
-    UiPoint pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
-    pt.Offset(GetScrollOffsetInScrollBox());
-    if (!GetRect().ContainsPt(pt)) {
-        return 0;
-    }
-
-    CefMouseEvent mouse_event;
-    mouse_event.x = pt.x - GetRect().left;
-    mouse_event.y = pt.y - GetRect().top;
-    mouse_event.modifiers = GetCefMouseModifiers(wParam);
-    AdaptDpiScale(mouse_event);
-    host->SendMouseMoveEvent(mouse_event, true);
-
-    bHandled = true;
-    return 0;
-}
-
-LRESULT CefControlOffScreen::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-#ifdef DUILIB_BUILD_FOR_WIN
-    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
-
-    CefKeyEvent event;
-    event.windows_key_code = static_cast<int>(wParam);
-    event.native_key_code = static_cast<int>(lParam);
-    event.is_system_key = uMsg == WM_SYSCHAR || uMsg == WM_SYSKEYDOWN || uMsg == WM_SYSKEYUP;
-
-    if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN)
-        event.type = KEYEVENT_RAWKEYDOWN;
-    else if (uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP)
-        event.type = KEYEVENT_KEYUP;
-    else
-        event.type = KEYEVENT_CHAR;
-    event.modifiers = GetCefKeyboardModifiers(wParam, lParam);
-
-    host->SendKeyEvent(event);
-#endif
-
-    bHandled = true;
-    return 0;
-}
-
-LRESULT CefControlOffScreen::SendCaptureLostEvent(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    CefRefPtr<CefBrowserHost> host = m_pBrowserHandler->GetBrowserHost();
-
-    host->SendCaptureLostEvent();
-    bHandled = true;
-    return 0;
-}
-
-bool CefControlOffScreen::IsKeyDown(WPARAM wparam)
-{
-#ifdef DUILIB_BUILD_FOR_WIN
-    return (::GetKeyState(static_cast<int>(wparam)) & 0x8000) != 0;
-#else
-    return false;
-#endif
-}
-
-int CefControlOffScreen::GetCefMouseModifiers(WPARAM wparam)
-{
-    int modifiers = 0;
-#ifdef DUILIB_BUILD_FOR_WIN
-    if (wparam & MK_CONTROL)
-        modifiers |= EVENTFLAG_CONTROL_DOWN;
-    if (wparam & MK_SHIFT)
-        modifiers |= EVENTFLAG_SHIFT_DOWN;
-    if (IsKeyDown(VK_MENU))
-        modifiers |= EVENTFLAG_ALT_DOWN;
-    if (wparam & MK_LBUTTON)
-        modifiers |= EVENTFLAG_LEFT_MOUSE_BUTTON;
-    if (wparam & MK_MBUTTON)
-        modifiers |= EVENTFLAG_MIDDLE_MOUSE_BUTTON;
-    if (wparam & MK_RBUTTON)
-        modifiers |= EVENTFLAG_RIGHT_MOUSE_BUTTON;
-
-    // Low bit set from GetKeyState indicates "toggled".
-    if (::GetKeyState(VK_NUMLOCK) & 1)
-        modifiers |= EVENTFLAG_NUM_LOCK_ON;
-    if (::GetKeyState(VK_CAPITAL) & 1)
-        modifiers |= EVENTFLAG_CAPS_LOCK_ON;
-#endif
-    return modifiers;
-}
-
-int CefControlOffScreen::GetCefKeyboardModifiers(WPARAM wparam, LPARAM lparam)
-{
-    int modifiers = 0;
-
-#ifdef DUILIB_BUILD_FOR_WIN
-    if (IsKeyDown(VK_SHIFT))
-        modifiers |= EVENTFLAG_SHIFT_DOWN;
-    if (IsKeyDown(VK_CONTROL))
-        modifiers |= EVENTFLAG_CONTROL_DOWN;
-    if (IsKeyDown(VK_MENU))
-        modifiers |= EVENTFLAG_ALT_DOWN;
-
-    // Low bit set from GetKeyState indicates "toggled".
-    if (::GetKeyState(VK_NUMLOCK) & 1)
-        modifiers |= EVENTFLAG_NUM_LOCK_ON;
-    if (::GetKeyState(VK_CAPITAL) & 1)
-        modifiers |= EVENTFLAG_CAPS_LOCK_ON;
-
-    switch (wparam) {
-    case VK_RETURN:
-        if ((lparam >> 16) & KF_EXTENDED)
-            modifiers |= EVENTFLAG_IS_KEY_PAD;
-        break;
-    case VK_INSERT:
-    case VK_DELETE:
-    case VK_HOME:
-    case VK_END:
-    case VK_PRIOR:
-    case VK_NEXT:
-    case VK_UP:
-    case VK_DOWN:
-    case VK_LEFT:
-    case VK_RIGHT:
-        if (!((lparam >> 16) & KF_EXTENDED))
-            modifiers |= EVENTFLAG_IS_KEY_PAD;
-        break;
-    case VK_NUMLOCK:
-    case VK_NUMPAD0:
-    case VK_NUMPAD1:
-    case VK_NUMPAD2:
-    case VK_NUMPAD3:
-    case VK_NUMPAD4:
-    case VK_NUMPAD5:
-    case VK_NUMPAD6:
-    case VK_NUMPAD7:
-    case VK_NUMPAD8:
-    case VK_NUMPAD9:
-    case VK_DIVIDE:
-    case VK_MULTIPLY:
-    case VK_SUBTRACT:
-    case VK_ADD:
-    case VK_DECIMAL:
-    case VK_CLEAR:
-        modifiers |= EVENTFLAG_IS_KEY_PAD;
-        break;
-    case VK_SHIFT:
-        if (IsKeyDown(VK_LSHIFT))
-            modifiers |= EVENTFLAG_IS_LEFT;
-        else if (IsKeyDown(VK_RSHIFT))
-            modifiers |= EVENTFLAG_IS_RIGHT;
-        break;
-    case VK_CONTROL:
-        if (IsKeyDown(VK_LCONTROL))
-            modifiers |= EVENTFLAG_IS_LEFT;
-        else if (IsKeyDown(VK_RCONTROL))
-            modifiers |= EVENTFLAG_IS_RIGHT;
-        break;
-    case VK_MENU:
-        if (IsKeyDown(VK_LMENU))
-            modifiers |= EVENTFLAG_IS_LEFT;
-        else if (IsKeyDown(VK_RMENU))
-            modifiers |= EVENTFLAG_IS_RIGHT;
-        break;
-    case VK_LWIN:
-        modifiers |= EVENTFLAG_IS_LEFT;
-        break;
-    case VK_RWIN:
-        modifiers |= EVENTFLAG_IS_RIGHT;
-        break;
-    }
-#endif
-    return modifiers;
-}
-
 void CefControlOffScreen::AdaptDpiScale(CefMouseEvent& mouse_event)
 {
     if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
@@ -715,5 +325,490 @@ void CefControlOffScreen::AdaptDpiScale(CefMouseEvent& mouse_event)
         }
     }
 }
+
+int32_t CefControlOffScreen::GetCefMouseModifiers(const EventArgs& /*msg*/) const
+{
+    int32_t modifiers = 0;
+    if (Keyboard::IsKeyDown(kVK_CONTROL)) {
+        modifiers |= EVENTFLAG_CONTROL_DOWN;
+    }
+    if (Keyboard::IsKeyDown(kVK_SHIFT)) {
+        modifiers |= EVENTFLAG_SHIFT_DOWN;
+    }
+    if (Keyboard::IsKeyDown(kVK_MENU)) {
+        modifiers |= EVENTFLAG_ALT_DOWN;
+    }
+    if (Keyboard::IsKeyDown(kVK_LBUTTON)) {
+        modifiers |= EVENTFLAG_LEFT_MOUSE_BUTTON;
+    }
+    if (Keyboard::IsKeyDown(kVK_MBUTTON)) {
+        modifiers |= EVENTFLAG_MIDDLE_MOUSE_BUTTON;
+    }
+    if (Keyboard::IsKeyDown(kVK_RBUTTON)) {
+        modifiers |= EVENTFLAG_RIGHT_MOUSE_BUTTON;
+    }
+
+    // Low bit set from GetKeyState indicates "toggled".
+    if (Keyboard::IsKeyDown(kVK_NUMLOCK)) {
+        modifiers |= EVENTFLAG_NUM_LOCK_ON;
+    }
+    if (Keyboard::IsKeyDown(kVK_CAPITAL)) {
+        modifiers |= EVENTFLAG_CAPS_LOCK_ON;
+    }
+    return modifiers;
+}
+
+bool CefControlOffScreen::MouseMove(const EventArgs& msg)
+{
+    bool bRet = BaseClass::MouseMove(msg);
+    CefRefPtr<CefBrowserHost> host;
+    if (m_pBrowserHandler != nullptr) {
+        host = m_pBrowserHandler->GetBrowserHost();
+    }
+    Window* pWindow = GetWindow();
+    if ((pWindow != nullptr) && (host != nullptr)) {
+        UiPoint pt = msg.ptMouse;
+        pt.Offset(GetScrollOffsetInScrollBox());
+        if (!GetRect().ContainsPt(pt) && !pWindow->IsCaptured()) {
+            return 0;
+        }
+
+        CefMouseEvent mouse_event;
+        mouse_event.x = pt.x - GetRect().left;
+        mouse_event.y = pt.y - GetRect().top;
+        mouse_event.modifiers = GetCefMouseModifiers(msg);
+        AdaptDpiScale(mouse_event);
+        host->SendMouseMoveEvent(mouse_event, false);
+    }
+    return bRet;
+}
+
+bool CefControlOffScreen::MouseLeave(const EventArgs& msg)
+{
+    bool bRet = BaseClass::MouseLeave(msg);
+    CefRefPtr<CefBrowserHost> host;
+    if (m_pBrowserHandler != nullptr) {
+        host = m_pBrowserHandler->GetBrowserHost();
+    }
+    if (host == nullptr) {
+        return bRet;
+    }
+
+    UiPoint pt = msg.ptMouse;
+    pt.Offset(GetScrollOffsetInScrollBox());
+    if (!GetRect().ContainsPt(pt)) {
+        return bRet;
+    }
+
+    CefMouseEvent mouse_event;
+    mouse_event.x = pt.x - GetRect().left;
+    mouse_event.y = pt.y - GetRect().top;
+    mouse_event.modifiers = GetCefMouseModifiers(msg);
+    AdaptDpiScale(mouse_event);
+    host->SendMouseMoveEvent(mouse_event, true);
+    return bRet;
+}
+
+bool CefControlOffScreen::MouseWheel(const EventArgs& msg)
+{
+    bool bRet = BaseClass::MouseWheel(msg);
+    CefRefPtr<CefBrowserHost> host;
+    if (m_pBrowserHandler != nullptr) {
+        host = m_pBrowserHandler->GetBrowserHost();
+    }
+    if (host == nullptr) {
+        return bRet;
+    }
+    Window* pWindow = GetWindow();
+    if (pWindow == nullptr) {
+        return bRet;
+    }
+
+    UiPoint pt = msg.ptMouse;
+    Window* pScrolledWnd = pWindow->WindowFromPoint(pt);
+    if (pScrolledWnd != pWindow) {
+        return bRet;
+    }
+
+    pt.Offset(GetScrollOffsetInScrollBox());
+    if (!GetRect().ContainsPt(pt)) {
+        return bRet;
+    }
+
+    int delta = msg.eventData;
+    CefMouseEvent mouse_event;
+    mouse_event.x = pt.x - GetRect().left;
+    mouse_event.y = pt.y - GetRect().top;
+    mouse_event.modifiers = GetCefMouseModifiers(msg);
+    AdaptDpiScale(mouse_event);
+    bool bShiftDown = Keyboard::IsKeyDown(kVK_SHIFT);
+    host->SendMouseWheelEvent(mouse_event, bShiftDown ? delta : 0, !bShiftDown ? delta : 0);
+    return bRet;
+}
+
+bool CefControlOffScreen::ButtonDown(const EventArgs& msg)
+{
+    bool bRet = BaseClass::ButtonDown(msg);
+    SendButtonDownEvent(msg);
+    return bRet;
+}
+
+bool CefControlOffScreen::ButtonUp(const EventArgs& msg)
+{
+    bool bRet = BaseClass::ButtonUp(msg);
+    SendButtonUpEvent(msg);
+    return bRet;
+}
+
+bool CefControlOffScreen::ButtonDoubleClick(const EventArgs& msg)
+{
+    bool bRet = BaseClass::ButtonDoubleClick(msg);
+    SendButtonDoubleClickEvent(msg);
+    return bRet;
+}
+
+bool CefControlOffScreen::RButtonDown(const EventArgs& msg)
+{
+    bool bRet = BaseClass::RButtonDown(msg);
+    SendButtonDownEvent(msg);
+    return bRet;
+}
+
+bool CefControlOffScreen::RButtonUp(const EventArgs& msg)
+{
+    bool bRet = BaseClass::RButtonUp(msg);
+    SendButtonUpEvent(msg);
+    return bRet;
+}
+
+bool CefControlOffScreen::RButtonDoubleClick(const EventArgs& msg)
+{
+    bool bRet = BaseClass::RButtonDoubleClick(msg);
+    SendButtonDoubleClickEvent(msg);
+    return bRet;
+}
+
+bool CefControlOffScreen::MButtonDown(const EventArgs& msg)
+{
+    bool bRet = BaseClass::MButtonDown(msg);
+    SendButtonDownEvent(msg);
+    return bRet;
+}
+
+bool CefControlOffScreen::MButtonUp(const EventArgs& msg)
+{
+    bool bRet = BaseClass::MButtonUp(msg);
+    SendButtonUpEvent(msg);
+    return bRet;
+}
+
+bool CefControlOffScreen::MButtonDoubleClick(const EventArgs& msg)
+{
+    bool bRet = BaseClass::MButtonDoubleClick(msg);
+    SendButtonDoubleClickEvent(msg);
+    return bRet;
+}
+
+void CefControlOffScreen::SendButtonDownEvent(const EventArgs& msg)
+{
+    CefRefPtr<CefBrowserHost> host;
+    if (m_pBrowserHandler != nullptr) {
+        host = m_pBrowserHandler->GetBrowserHost();
+    }
+    if (host == nullptr) {
+        return;
+    }
+
+    UiPoint pt = msg.ptMouse;
+    pt.Offset(GetScrollOffsetInScrollBox());
+    if (!GetRect().ContainsPt(pt)) {
+        return;
+    }
+
+    SetFocus();
+    CefMouseEvent mouse_event;
+    mouse_event.x = pt.x - GetRect().left;
+    mouse_event.y = pt.y - GetRect().top;
+    mouse_event.modifiers = GetCefMouseModifiers(msg);
+
+    CefBrowserHost::MouseButtonType btnType =
+        (msg.eventType == kEventMouseButtonDown ? MBT_LEFT : (
+            msg.eventType == kEventMouseRButtonDown ? MBT_RIGHT : MBT_MIDDLE));
+    AdaptDpiScale(mouse_event);
+    host->SendMouseClickEvent(mouse_event, btnType, false, 1);
+}
+
+void CefControlOffScreen::SendButtonUpEvent(const EventArgs& msg)
+{
+    CefRefPtr<CefBrowserHost> host;
+    if (m_pBrowserHandler != nullptr) {
+        host = m_pBrowserHandler->GetBrowserHost();
+    }
+    if (host == nullptr) {
+        return;
+    }
+
+    UiPoint pt = msg.ptMouse;
+    pt.Offset(GetScrollOffsetInScrollBox());
+    if (!GetRect().ContainsPt(pt) && !GetWindow()->IsCaptured()) {
+        return;
+    }
+
+    CefMouseEvent mouse_event;
+    mouse_event.x = pt.x - GetRect().left;
+    mouse_event.y = pt.y - GetRect().top;
+    mouse_event.modifiers = GetCefMouseModifiers(msg);
+    AdaptDpiScale(mouse_event);
+    CefBrowserHost::MouseButtonType btnType =
+        (msg.eventType == kEventMouseButtonUp ? MBT_LEFT : (
+            msg.eventType == kEventMouseRButtonUp ? MBT_RIGHT : MBT_MIDDLE));
+    host->SendMouseClickEvent(mouse_event, btnType, true, 1);
+}
+
+void CefControlOffScreen::SendButtonDoubleClickEvent(const EventArgs& msg)
+{
+    CefRefPtr<CefBrowserHost> host;
+    if (m_pBrowserHandler != nullptr) {
+        host = m_pBrowserHandler->GetBrowserHost();
+    }
+    if (host == nullptr) {
+        return;
+    }
+
+    UiPoint pt = msg.ptMouse;
+    pt.Offset(GetScrollOffsetInScrollBox());
+    if (!GetRect().ContainsPt(pt)) {
+        return;
+    }
+
+    CefMouseEvent mouse_event;
+    mouse_event.x = pt.x - GetRect().left;
+    mouse_event.y = pt.y - GetRect().top;
+    mouse_event.modifiers = GetCefMouseModifiers(msg);
+    AdaptDpiScale(mouse_event);
+    CefBrowserHost::MouseButtonType btnType =
+        (msg.eventType == kEventMouseDoubleClick ? MBT_LEFT : (
+            msg.eventType == kEventMouseRDoubleClick ? MBT_RIGHT : MBT_MIDDLE));
+    host->SendMouseClickEvent(mouse_event, btnType, true, 2);
+}
+
+bool CefControlOffScreen::OnChar(const EventArgs& msg)
+{
+    bool bRet = BaseClass::OnChar(msg);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    return bRet;
+#else
+    SendKeyEvent(msg, KEYEVENT_CHAR);
+    return bRet;
+#endif
+}
+
+bool CefControlOffScreen::OnKeyDown(const EventArgs& msg)
+{
+    bool bRet = BaseClass::OnKeyDown(msg);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    return bRet;
+#else
+    SendKeyEvent(msg, KEYEVENT_KEYDOWN);
+    return bRet;
+#endif
+}
+
+bool CefControlOffScreen::OnKeyUp(const EventArgs& msg)
+{
+    bool bRet = BaseClass::OnKeyUp(msg);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    return bRet;
+#else
+    SendKeyEvent(msg, KEYEVENT_KEYUP);
+    return bRet;
+#endif
+}
+
+#if defined (DUILIB_BUILD_FOR_SDL)
+
+/** 获取按键标志
+*/
+static uint32_t GetCefModifiers(SDL_Keymod mod)
+{
+    uint32_t modifiers = 0;
+    if (mod & SDL_KMOD_CTRL) {
+        modifiers |= EVENTFLAG_CONTROL_DOWN;
+    }
+    if (mod & SDL_KMOD_SHIFT) {
+        modifiers |= EVENTFLAG_SHIFT_DOWN;
+    }
+    if (mod & SDL_KMOD_ALT) {
+        modifiers |= EVENTFLAG_ALT_DOWN;
+    }
+
+    if (mod & SDL_KMOD_CAPS) {
+        modifiers |= EVENTFLAG_CAPS_LOCK_ON;
+    }
+    if (mod & SDL_KMOD_NUM) {
+        modifiers |= EVENTFLAG_NUM_LOCK_ON;
+    }
+    return modifiers;
+}
+
+//Linux平台
+void CefControlOffScreen::SendKeyEvent(const EventArgs& msg, cef_key_event_type_t type)
+{
+    if (!IsVisible() || !IsEnabled()) {
+        return;
+    }
+    CefRefPtr<CefBrowserHost> host;
+    if (m_pBrowserHandler != nullptr) {
+        host = m_pBrowserHandler->GetBrowserHost();
+    }
+    if (host == nullptr) {
+        return;
+    }
+
+    SDL_EventType eventType = (SDL_EventType)msg.wParam;
+    if (type == KEYEVENT_KEYDOWN) {
+        ASSERT(eventType == SDL_EVENT_KEY_DOWN);
+        ASSERT(msg.lParam != 0);
+        if ((eventType != SDL_EVENT_KEY_DOWN) || (msg.lParam == 0)) {
+            return;
+        }
+    }
+    else if (type == KEYEVENT_KEYUP) {
+        ASSERT(eventType == SDL_EVENT_KEY_UP);
+        ASSERT(msg.lParam != 0);
+        if ((eventType != SDL_EVENT_KEY_UP) || (msg.lParam == 0)) {
+            return;
+        }
+    }
+    if ((type == KEYEVENT_KEYDOWN) || (type == KEYEVENT_KEYUP)) {
+        SDL_KeyboardEvent* key = (SDL_KeyboardEvent*)msg.lParam;
+        CefKeyEvent event;
+        event.type = (type == KEYEVENT_KEYDOWN) ? KEYEVENT_KEYDOWN : KEYEVENT_KEYUP;
+        event.windows_key_code = msg.vkCode;
+        event.native_key_code = key->scancode;
+        event.is_system_key = false;
+        event.modifiers = GetCefModifiers(key->mod);
+
+        host->SendKeyEvent(event);
+    }
+    else if (type == KEYEVENT_CHAR) {
+        ASSERT(msg.eventData == SDL_EVENT_TEXT_INPUT);
+        ASSERT(msg.vkCode == kVK_None);
+        if ((msg.eventData == SDL_EVENT_TEXT_INPUT) && (msg.wParam != 0) && (msg.lParam > 0)) {
+            //当前输入的字符或者字符串（比如中文输入时，候选词是一次输入，而不像Windows SDK那样按字符逐次输入）
+            DStringW text = (DStringW::value_type*)msg.wParam;
+            CefKeyEvent event;
+            event.type = KEYEVENT_CHAR;
+            event.modifiers = GetCefModifiers(SDL_GetModState());
+            size_t nCharCount = text.size();
+            for (size_t nCharIndex = 0; nCharIndex < nCharCount; ++nCharIndex) {
+                event.character = text[nCharIndex];
+                host->SendKeyEvent(event);
+            }
+        }
+    }
+}
+#endif
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
+LRESULT CefControlOffScreen::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    if (!IsVisible() || !IsEnabled()) {
+        bHandled = false;
+        return 0;
+    }
+
+    bHandled = false;
+    if ((m_pBrowserHandler == nullptr) || (m_pBrowserHandler->GetBrowser() == nullptr) || (GetWindow() == nullptr)) {
+        return 0;
+    }
+    switch (uMsg) {
+        case WM_SETCURSOR:
+            {
+                // 这里拦截WM_SETCURSOR消息，不让duilib处理（duilib会改变光标样式），否则会影响Cef中的鼠标光标
+                UiPoint pt;
+                GetWindow()->GetCursorPos(pt);
+                GetWindow()->ScreenToClient(pt);
+                if (!GetRect().ContainsPt(pt)) {
+                    return 0;
+                }
+
+                GetWindow()->NativeWnd()->CallDefaultWindowProc(uMsg, wParam, lParam);
+                bHandled = true;
+                return 0;
+            }
+            break;
+        case WM_CAPTURECHANGED:
+        case WM_CANCELMODE:
+            {
+                return SendCaptureLostEvent(uMsg, wParam, lParam, bHandled);
+            }
+            break;
+
+        case WM_SYSCHAR:
+        case WM_SYSKEYDOWN:
+        case WM_SYSKEYUP:
+        case WM_KEYDOWN:
+        case WM_KEYUP:
+        case WM_CHAR:
+            {
+                if (IsFocused()) {
+                    return SendKeyEvent(uMsg, wParam, lParam, bHandled);
+                }
+            }
+            break;
+        default:
+            break;
+    }
+    return 0;
+}
+
+LRESULT CefControlOffScreen::SendCaptureLostEvent(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
+{
+    CefRefPtr<CefBrowserHost> host;
+    if (m_pBrowserHandler != nullptr) {
+        host = m_pBrowserHandler->GetBrowserHost();
+    }
+    if (host != nullptr) {
+        host->SendCaptureLostEvent();
+    }
+    bHandled = true;
+    return 0;
+}
+
+
+LRESULT CefControlOffScreen::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
+{
+    CefRefPtr<CefBrowserHost> host;
+    if (m_pBrowserHandler != nullptr) {
+        host = m_pBrowserHandler->GetBrowserHost();
+    }
+    if (host == nullptr) {
+        return 0;
+    }
+
+    CefKeyEvent event;
+    event.windows_key_code = static_cast<int>(wParam);
+    event.native_key_code = static_cast<int>(lParam);
+    event.is_system_key = uMsg == WM_SYSCHAR || uMsg == WM_SYSKEYDOWN || uMsg == WM_SYSKEYUP;
+
+    if (uMsg == WM_KEYDOWN || uMsg == WM_SYSKEYDOWN) {
+        event.type = KEYEVENT_RAWKEYDOWN;
+    }
+    else if (uMsg == WM_KEYUP || uMsg == WM_SYSKEYUP) {
+        event.type = KEYEVENT_KEYUP;
+    }
+    else {
+        event.type = KEYEVENT_CHAR;
+    }
+    event.modifiers = client::GetCefKeyboardModifiers(wParam, lParam);
+
+    host->SendKeyEvent(event);
+    bHandled = true;
+    return 0;
+}
+
+#endif //defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 } //namespace ui
