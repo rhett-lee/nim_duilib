@@ -190,6 +190,12 @@ DString EventTypeToString(EventType eventType)
         return _T("kEventMouseRButtonUp");
     case kEventMouseRDoubleClick:
         return _T("kEventMouseRDoubleClick");
+    case kEventMouseMButtonDown:
+        return _T("kEventMouseMButtonDown");
+    case kEventMouseMButtonUp:
+        return _T("kEventMouseMButtonUp");
+    case kEventMouseMDoubleClick:
+        return _T("kEventMouseMDoubleClick");
     case kEventContextMenu:
         return _T("kEventContextMenu");
     case kEventMouseEnd:

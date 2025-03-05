@@ -1997,6 +1997,33 @@ bool Control::RButtonDoubleClick(const EventArgs& /*msg*/)
     return true;
 }
 
+bool Control::MButtonDown(const EventArgs& msg)
+{
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    if (IsEnabled()) {
+        SetMouseFocused(true);
+    }
+    return true;
+}
+
+bool Control::MButtonUp(const EventArgs& msg)
+{
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    if (IsMouseFocused()) {
+        SetMouseFocused(false);
+    }
+    return true;
+}
+
+bool Control::MButtonDoubleClick(const EventArgs& /*msg*/)
+{
+    return true;
+}
+
 bool Control::MouseMove(const EventArgs& /*msg*/)
 {
     return true;

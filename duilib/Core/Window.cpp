@@ -589,6 +589,9 @@ bool Window::IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const
     case kEventMouseRButtonDown:
     case kEventMouseRButtonUp:
     case kEventMouseRDoubleClick:
+    case kEventMouseMButtonDown:
+    case kEventMouseMButtonUp:
+    case kEventMouseMDoubleClick:
         if (modifierKey == ModifierKey::kControl) {
             return msg.modifierKey & ModifierKey::kControl;
         }
@@ -1586,7 +1589,7 @@ LRESULT Window::OnMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, con
     return 0;
 }
 
-LRESULT  Window::OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+LRESULT Window::OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
 #ifdef _DEBUG
     if (modifierKey & ModifierKey::kControl) {
@@ -1599,6 +1602,54 @@ LRESULT  Window::OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKe
 
     bHandled = false;
     OnButtonDown(kEventMouseRDoubleClick, pt, nativeMsg, modifierKey);
+    return 0;
+}
+
+LRESULT Window::OnMouseMButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
+    bHandled = false;
+    OnButtonDown(kEventMouseMButtonDown, pt, nativeMsg, modifierKey);
+    return 0;
+}
+
+LRESULT Window::OnMouseMButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
+    bHandled = false;
+    OnButtonUp(kEventMouseMButtonUp, pt, nativeMsg, modifierKey);
+    return 0;
+}
+
+LRESULT Window::OnMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
+    bHandled = false;
+    OnButtonDown(kEventMouseMDoubleClick, pt, nativeMsg, modifierKey);
     return 0;
 }
 
@@ -1631,10 +1682,12 @@ void Window::OnCreateWndMsg(bool bDoModal, const NativeMsg& /*nativeMsg*/, bool&
 
 void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey)
 {
-    ASSERT(eventType == kEventMouseButtonDown || 
-           eventType == kEventMouseRButtonDown || 
-           eventType == kEventMouseDoubleClick ||
-           eventType == kEventMouseRDoubleClick);
+    ASSERT(eventType == kEventMouseButtonDown   || 
+           eventType == kEventMouseRButtonDown  ||
+           eventType == kEventMouseMButtonDown  || 
+           eventType == kEventMouseDoubleClick  ||
+           eventType == kEventMouseRDoubleClick ||
+           eventType == kEventMouseMDoubleClick);
     CheckSetWindowFocus();
     SetLastMousePos(pt);
     Control* pControl = FindControl(pt);
@@ -1674,7 +1727,7 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
 
 void Window::OnButtonUp(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey)
 {
-    ASSERT(eventType == kEventMouseButtonUp || eventType == kEventMouseRButtonUp);
+    ASSERT(eventType == kEventMouseButtonUp || eventType == kEventMouseRButtonUp || eventType == kEventMouseMButtonUp);
     SetLastMousePos(pt);
     ReleaseCapture();
     if (m_pEventClick != nullptr) {

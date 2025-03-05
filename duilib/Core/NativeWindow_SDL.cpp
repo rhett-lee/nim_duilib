@@ -328,6 +328,10 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
                 //鼠标右键
                 lResult = pOwner->OnNativeMouseRButtonDownMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_DOWN, 0, 0), bHandled);
             }
+            else if (sdlEvent.button.button == SDL_BUTTON_MIDDLE) {
+                //鼠标中键
+                lResult = pOwner->OnNativeMouseMButtonDownMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_DOWN, 0, 0), bHandled);
+            }
         }
         break;
     case SDL_EVENT_MOUSE_BUTTON_UP:
@@ -354,6 +358,13 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
                 }
                 if (!bHandled && bDoubleClick && !ownerFlag.expired()) {
                     lResult = pOwner->OnNativeMouseRButtonDbClickMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
+                }
+            }
+            else if (sdlEvent.button.button == SDL_BUTTON_MIDDLE) {
+                //鼠标中键: 先触发中键弹起消息，然后再触发中键双击消息，避免中键弹起消息丢失的现象
+                lResult = pOwner->OnNativeMouseMButtonUpMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
+                if (!bHandled && bDoubleClick) {
+                    lResult = pOwner->OnNativeMouseMButtonDbClickMsg(pt, modifierKey, NativeMsg(SDL_EVENT_MOUSE_BUTTON_UP, 0, 0), bHandled);
                 }
             }
         }
@@ -385,14 +396,14 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
         {            
             VirtualKeyCode vkCode = Keycode::GetVirtualKeyCode(sdlEvent.key.key);
             uint32_t modifierKey = GetModifiers(sdlEvent.key.mod);
-            lResult = pOwner->OnNativeKeyDownMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_KEY_DOWN, 0, 0), bHandled);
+            lResult = pOwner->OnNativeKeyDownMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_KEY_DOWN, SDL_EVENT_KEY_DOWN, (WPARAM)(SDL_KeyboardEvent*)&sdlEvent.key), bHandled);
         }
         break;
     case SDL_EVENT_KEY_UP:
         {
             VirtualKeyCode vkCode = Keycode::GetVirtualKeyCode(sdlEvent.key.key);
             uint32_t modifierKey = GetModifiers(sdlEvent.key.mod);
-            lResult = pOwner->OnNativeKeyUpMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_KEY_UP, 0, 0), bHandled);
+            lResult = pOwner->OnNativeKeyUpMsg(vkCode, modifierKey, NativeMsg(SDL_EVENT_KEY_UP, SDL_EVENT_KEY_UP, (WPARAM)(SDL_KeyboardEvent*)&sdlEvent.key), bHandled);
         }
         break;
     case SDL_EVENT_TEXT_INPUT:

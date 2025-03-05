@@ -2477,6 +2477,36 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
         lResult = m_pOwner->OnNativeMouseRButtonDbClickMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
+    case WM_MBUTTONDOWN:
+    {
+        UiPoint pt;
+        pt.x = GET_X_LPARAM(lParam);
+        pt.y = GET_Y_LPARAM(lParam);
+        uint32_t modifierKey = 0;
+        GetModifiers(uMsg, wParam, lParam, modifierKey);
+        lResult = m_pOwner->OnNativeMouseMButtonDownMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
+        break;
+    }
+    case WM_MBUTTONUP:
+    {
+        UiPoint pt;
+        pt.x = GET_X_LPARAM(lParam);
+        pt.y = GET_Y_LPARAM(lParam);
+        uint32_t modifierKey = 0;
+        GetModifiers(uMsg, wParam, lParam, modifierKey);
+        lResult = m_pOwner->OnNativeMouseMButtonUpMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
+        break;
+    }
+    case WM_MBUTTONDBLCLK:
+    {
+        UiPoint pt;
+        pt.x = GET_X_LPARAM(lParam);
+        pt.y = GET_Y_LPARAM(lParam);
+        uint32_t modifierKey = 0;
+        GetModifiers(uMsg, wParam, lParam, modifierKey);
+        lResult = m_pOwner->OnNativeMouseMButtonDbClickMsg(pt, modifierKey, NativeMsg(uMsg, wParam, lParam), bHandled);
+        break;
+    }
     case WM_CAPTURECHANGED:
     {
         lResult = m_pOwner->OnNativeCaptureChangedMsg(NativeMsg(uMsg, wParam, lParam), bHandled);

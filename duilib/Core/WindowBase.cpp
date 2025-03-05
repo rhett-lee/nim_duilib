@@ -1047,6 +1047,21 @@ LRESULT WindowBase::OnNativeMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t m
     return OnMouseRButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
 }
 
+LRESULT WindowBase::OnNativeMouseMButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    return OnMouseMButtonDownMsg(pt, modifierKey, nativeMsg, bHandled);
+}
+
+LRESULT WindowBase::OnNativeMouseMButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    return OnMouseMButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
+}
+
+LRESULT WindowBase::OnNativeMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    return OnMouseMButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
+}
+
 LRESULT WindowBase::OnNativeCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
     return OnCaptureChangedMsg(nativeMsg, bHandled);

@@ -1017,6 +1017,9 @@ protected:
     virtual bool RButtonDown(const EventArgs& msg);
     virtual bool RButtonUp(const EventArgs& msg);
     virtual bool RButtonDoubleClick(const EventArgs& msg);
+    virtual bool MButtonDown(const EventArgs& msg);
+    virtual bool MButtonUp(const EventArgs& msg);
+    virtual bool MButtonDoubleClick(const EventArgs& msg);
     virtual bool MouseMove(const EventArgs& msg);
     virtual bool MouseHover(const EventArgs& msg);
     virtual bool MouseWheel(const EventArgs& msg);
