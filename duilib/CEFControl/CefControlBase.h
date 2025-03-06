@@ -177,7 +177,32 @@ public:
     /** 绑定一个回调函数用于监听主页面 URL 地址改变（回调函数的调用线程：主进程的UI线程）
     * @param [in] callback 一个回调函数，参考 OnMainUrlChangeEvent 声明
     */
-    void AttachMainUrlChange(OnMainUrlChangeEvent cb){ m_pfnMainUrlChange = cb; }
+    void AttachMainUrlChange(OnMainUrlChangeEvent callback){ m_pfnMainUrlChange = callback; }
+
+    /** 绑定一个回调函数用于监听主页面 FaviconURL 地址改变（回调函数的调用线程：CEF的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnFaviconURLChangeEvent 声明
+    */
+    void AttachFaviconURLChange(OnFaviconURLChangeEvent callback) { m_pfnFaviconURLChange = callback; }
+
+    /** 绑定一个回调函数用于监听页面的全屏状态改变（回调函数的调用线程：主进程的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnFullscreenModeChangeEvent 声明
+    */
+    void AttachFullscreenModeChange(OnFullscreenModeChangeEvent callback) { m_pfnFullscreenModeChange = callback; }
+
+    /** 绑定一个回调函数用于监听页面的状态信息改变（回调函数的调用线程：主进程的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnStatusMessageEvent 声明
+    */
+    void AttachStatusMessage(OnStatusMessageEvent callback) { m_pfnStatusMessage = callback; }
+
+    /** 绑定一个回调函数用于监听页面的加载进度改变（回调函数的调用线程：主进程的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnLoadingProgressChangeEvent 声明
+    */
+    void AttachLoadingProgressChange(OnLoadingProgressChangeEvent callback) { m_pfnLoadingProgressChange = callback; }
+
+    /** 绑定一个回调函数用于监听页面的多媒体访问情况改变（回调函数的调用线程：主进程的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnMediaAccessChangeEvent 声明
+    */
+    void AttachMediaAccessChange(OnMediaAccessChangeEvent callback) { m_pfnMediaAccessChange = callback; }
 
     /** 绑定一个回调函数用于监听一个弹出窗口弹出的通知（回调函数的调用线程：CEF的UI线程）
     * @param [in] callback 一个回调函数，参考 OnBeforePopupEvent 声明
@@ -274,6 +299,11 @@ public:
     */
     void AttachFileDialog(const OnFileDialogEvent& callback) { m_pfnFileDialog = callback; }
 
+    /** 绑定一个回调函数用于监听一个主框架的文档加载完成的通知（回调函数的调用线程：主线程的UI线程）
+    * @param[in] callback 一个回调函数，参考 OnDocumentAvailableInMainFrameEvent 声明
+    */
+    void AttachDocumentAvailableInMainFrame(const OnDocumentAvailableInMainFrameEvent& callback) { m_pfnDocumentAvailableInMainFrame = callback; }
+
 public:
     /** CefRenderHandler接口, 在非UI线程中被调用
     *   当浏览器渲染数据变化时，会触发此接口，此时把渲染数据保存到内存dc
@@ -299,6 +329,11 @@ public:
     //CefDisplayHandler接口
     virtual void OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& url) override;
     virtual void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) override;
+    virtual void OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls) override;
+    virtual void OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool fullscreen) override;
+    virtual void OnStatusMessage(CefRefPtr<CefBrowser> browser, const DString& value) override;
+    virtual void OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress) override;
+    virtual void OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_video_access, bool has_audio_access) override;
 
     //CefLoadHandler接口
     virtual void OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward) override;
@@ -357,6 +392,7 @@ public:
                                            CefRequestHandler::TerminationStatus status,
                                            int error_code,
                                            CefString error_string) override;
+    virtual void OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser) override;
 
     //CefDownloadHandler接口 文件下载相关
     virtual bool OnCanDownload(CefRefPtr<CefBrowser> browser,
@@ -432,6 +468,11 @@ private:
     OnProtocolExecutionEvent        m_pfnProtocolExecution = nullptr;
     OnUrlChangeEvent                m_pfnUrlChange = nullptr;
     OnMainUrlChangeEvent            m_pfnMainUrlChange = nullptr;
+    OnFaviconURLChangeEvent         m_pfnFaviconURLChange = nullptr;
+    OnFullscreenModeChangeEvent     m_pfnFullscreenModeChange = nullptr;
+    OnStatusMessageEvent            m_pfnStatusMessage = nullptr;
+    OnLoadingProgressChangeEvent    m_pfnLoadingProgressChange = nullptr;
+    OnMediaAccessChangeEvent        m_pfnMediaAccessChange = nullptr;
     OnBeforePopupEvent              m_pfnBeforePopup = nullptr;
     OnBeforePopupAbortedEvent       m_pfnBeforePopupAborted = nullptr;
     OnLoadingStateChangeEvent       m_pfnLoadingStateChange = nullptr;
@@ -445,7 +486,8 @@ private:
     OnBeforeDownloadEvent           m_pfnBeforeDownload = nullptr;
     OnDownloadUpdatedEvent          m_pfnDownloadUpdated = nullptr;
     OnFileDialogEvent               m_pfnFileDialog = nullptr;
-    OnDevToolAttachedStateChangeEvent m_pfnDevToolVisibleChange = nullptr;    
+    OnDevToolAttachedStateChangeEvent   m_pfnDevToolVisibleChange = nullptr;
+    OnDocumentAvailableInMainFrameEvent m_pfnDocumentAvailableInMainFrame = nullptr;
 };
 }
 

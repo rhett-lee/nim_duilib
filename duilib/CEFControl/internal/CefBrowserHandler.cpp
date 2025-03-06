@@ -459,8 +459,8 @@ void CefBrowserHandler::OnScrollOffsetChanged(CefRefPtr<CefBrowser> browser, dou
 }
 
 void CefBrowserHandler::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> browser,
-                                                  const CefRange& selected_range,
-                                                  const RectList& character_bounds)
+                                                     const CefRange& selected_range,
+                                                     const RectList& character_bounds)
 {
 }
 
@@ -648,10 +648,16 @@ void CefBrowserHandler::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefSt
 
 void CefBrowserHandler::OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls)
 {
+    if (m_pHandlerDelegate) {
+        return m_pHandlerDelegate->OnFaviconURLChange(browser, icon_urls);
+    }
 }
 
 void CefBrowserHandler::OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool fullscreen)
 {
+    if (m_pHandlerDelegate) {
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnFullscreenModeChange, m_pHandlerDelegate, browser, fullscreen));
+    }
 }
 
 bool CefBrowserHandler::OnTooltip(CefRefPtr<CefBrowser> browser, CefString& text)
@@ -661,6 +667,9 @@ bool CefBrowserHandler::OnTooltip(CefRefPtr<CefBrowser> browser, CefString& text
 
 void CefBrowserHandler::OnStatusMessage(CefRefPtr<CefBrowser> browser, const CefString& value)
 {
+    if (m_pHandlerDelegate) {
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnStatusMessage, m_pHandlerDelegate, browser, value));
+    }
 }
 
 bool CefBrowserHandler::OnConsoleMessage(CefRefPtr<CefBrowser> /*browser*/,
@@ -680,6 +689,9 @@ bool CefBrowserHandler::OnAutoResize(CefRefPtr<CefBrowser> browser, const CefSiz
 
 void CefBrowserHandler::OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress)
 {
+    if (m_pHandlerDelegate) {
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadingProgressChange, m_pHandlerDelegate, browser, progress));
+    }
 }
 
 bool CefBrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
@@ -700,7 +712,11 @@ bool CefBrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
 
 void CefBrowserHandler::OnMediaAccessChange(CefRefPtr<CefBrowser> browser,
                                             bool has_video_access,
-                                            bool has_audio_access) {
+                                            bool has_audio_access)
+{
+    if (m_pHandlerDelegate) {
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnMediaAccessChange, m_pHandlerDelegate, browser, has_video_access, has_audio_access));
+    }
 }
 
 bool CefBrowserHandler::OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask)
@@ -876,7 +892,7 @@ void CefBrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
                                                   const CefString& error_string)
 {
     if (m_pHandlerDelegate) {
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnRenderProcessTerminated, m_pHandlerDelegate, browser, status, error_code, error_string));
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnRenderProcessTerminated, m_pHandlerDelegate, browser, status, error_code, error_string));
     }
 }
 #else
@@ -890,6 +906,9 @@ void CefBrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
 
 void CefBrowserHandler::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
 {
+    if (m_pHandlerDelegate) {
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnDocumentAvailableInMainFrame, m_pHandlerDelegate, browser));
+    }
 }
 
 CefRefPtr<CefCookieAccessFilter> CefBrowserHandler::GetCookieAccessFilter(CefRefPtr<CefBrowser> browser,

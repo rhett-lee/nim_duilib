@@ -66,49 +66,84 @@ namespace ui
 
 
     //页面加载状态发生变化的回调函数（回调函数的调用线程：主进程的UI线程）
-    typedef std::function<void(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)> OnLoadingStateChangeEvent;
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                bool isLoading,
+                                bool canGoBack,
+                                bool canGoForward)> OnLoadingStateChangeEvent;
 
     //页面开始加载的回调函数（回调函数的调用线程：主进程的UI线程）
-    typedef std::function<void(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t transition_type)> OnLoadStartEvent;
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefFrame> frame,
+                                cef_transition_type_t transition_type)> OnLoadStartEvent;
 
     //页面加载完成的回调函数（回调函数的调用线程：主进程的UI线程）
-    typedef std::function<void(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)> OnLoadEndEvent;
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefFrame> frame,
+                                int httpStatusCode)> OnLoadEndEvent;
 
     //页面加载发生错误的回调函数（回调函数的调用线程：主进程的UI线程）
-    typedef std::function<void(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_errorcode_t errorCode, const DString& errorText, const DString& failedUrl)> OnLoadErrorEvent;
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefFrame> frame,
+                                cef_errorcode_t errorCode,
+                                const DString& errorText,
+                                const DString& failedUrl)> OnLoadErrorEvent;
 
     //Browser对象创建完成（回调函数的调用线程：主进程的UI线程）
-    typedef std::function<bool(CefRefPtr<CefBrowser> browser)> OnAfterCreatedEvent;
+    typedef std::function<bool (CefRefPtr<CefBrowser> browser)> OnAfterCreatedEvent;
 
     //Browser对象即将关闭（回调函数的调用线程：主进程的UI线程）
-    typedef std::function<void(CefRefPtr<CefBrowser> browser)> OnBeforeCloseEvent;
+    typedef std::function<void (CefRefPtr<CefBrowser> browser)> OnBeforeCloseEvent;
 
     //菜单弹出（回调函数的调用线程：CEF的UI线程）
     typedef std::function<void (CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame,
                                 CefRefPtr<CefContextMenuParams> params,
-                                CefRefPtr<CefMenuModel> model)
-                          > OnBeforeContextMenuEvent;
+                                CefRefPtr<CefMenuModel> model)> OnBeforeContextMenuEvent;
 
     //执行了菜单命令（回调函数的调用线程：CEF的UI线程）
     typedef std::function<bool (CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame,
                                 CefRefPtr<CefContextMenuParams> params,
                                 int command_id,
-                                CefContextMenuHandler::EventFlags event_flags)> OnContextMenuCommandEvent;
+                                cef_event_flags_t event_flags)> OnContextMenuCommandEvent;
 
     //菜单消失（回调函数的调用线程：CEF的UI线程）
     typedef std::function<void (CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame)> OnContextMenuDismissedEvent;
 
     //标题变化（回调函数的调用线程：主进程的UI线程）
-    typedef std::function<void (CefRefPtr<CefBrowser> browser, const DString& title)> OnTitleChangeEvent;
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                const DString& title)> OnTitleChangeEvent;
 
     //URL变化（回调函数的调用线程：主进程的UI线程）
-    typedef std::function<void (CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const DString& url)> OnUrlChangeEvent;
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefFrame> frame,
+                                const DString& url)> OnUrlChangeEvent;
 
     //主Frame的URL变化（回调函数的调用线程：主进程的UI线程）
-    typedef std::function<void (const DString& oldUrl, const DString& newUrl)> OnMainUrlChangeEvent;
+    typedef std::function<void (const DString& oldUrl,
+                                const DString& newUrl)> OnMainUrlChangeEvent;
+
+    //FaviconURL变化（回调函数的调用线程：CEF的UI线程）
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                const std::vector<CefString>& icon_urls)> OnFaviconURLChangeEvent;
+
+    //全屏状态变化（回调函数的调用线程：主进程的UI线程）
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                bool bFullscreen)> OnFullscreenModeChangeEvent;
+
+    //状态信息变化（回调函数的调用线程：主进程的UI线程）
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                const DString& value)> OnStatusMessageEvent;
+
+    //加载进度变化（回调函数的调用线程：主进程的UI线程）
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                double progress)> OnLoadingProgressChangeEvent;
+
+    //多媒体访问情况变化（回调函数的调用线程：主进程的UI线程）
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                bool has_video_access,
+                                bool has_audio_access)> OnMediaAccessChangeEvent;
 
     //点击了超级链接，即将弹出新窗口（回调函数的调用线程：CEF的UI线程）
     typedef std::function<bool (CefRefPtr<CefBrowser> browser,
@@ -126,7 +161,8 @@ namespace ui
                                 bool* no_javascript_access)> OnBeforePopupEvent;
 
     //弹出新窗口失败的通知（回调函数的调用线程：主进程的UI线程）
-    typedef std::function<void (CefRefPtr<CefBrowser> browser, int popup_id)> OnBeforePopupAbortedEvent;
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                int popup_id)> OnBeforePopupAbortedEvent;
 
     //开发者工具的显示属性发生变化（回调函数的调用线程：主进程的UI线程）
     typedef std::function<void (bool bVisible)> OnDevToolAttachedStateChangeEvent;
@@ -156,6 +192,9 @@ namespace ui
                                 const std::vector<CefString>& accept_extensions,
                                 const std::vector<CefString>& accept_descriptions,
                                 CefRefPtr<CefFileDialogCallback> callback)> OnFileDialogEvent;
+
+    //主框架的文档加载完成的回调函数（回调函数的调用线程：主进程的UI线程）
+    typedef std::function<void (CefRefPtr<CefBrowser> browser)> OnDocumentAvailableInMainFrameEvent;
 }
 
 #endif //UI_CEF_CONTROL_CEF_CONTROL_EVENT_H_

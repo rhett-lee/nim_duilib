@@ -48,6 +48,11 @@ void BrowserBox::InitBrowserBox(const DString &url)
     m_pCefControl->AttachTitleChange(UiBind(&BrowserBox::OnTitleChange, this, std::placeholders::_1, std::placeholders::_2));
     m_pCefControl->AttachUrlChange(UiBind(&BrowserBox::OnUrlChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     m_pCefControl->AttachMainUrlChange(UiBind(&BrowserBox::OnMainUrlChange, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachFaviconURLChange(UiBind(&BrowserBox::OnFaviconURLChange, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachFullscreenModeChange(UiBind(&BrowserBox::OnFullscreenModeChange, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachStatusMessage(UiBind(&BrowserBox::OnStatusMessage, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachLoadingProgressChange(UiBind(&BrowserBox::OnLoadingProgressChange, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachMediaAccessChange(UiBind(&BrowserBox::OnMediaAccessChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     m_pCefControl->AttachBeforePopup(UiBind(&BrowserBox::OnBeforePopup, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8, std::placeholders::_9, std::placeholders::_10, std::placeholders::_11, std::placeholders::_12, std::placeholders::_13));
     m_pCefControl->AttachBeforePopupAborted(UiBind(&BrowserBox::OnBeforePopupAborted, this, std::placeholders::_1, std::placeholders::_2));
@@ -71,6 +76,8 @@ void BrowserBox::InitBrowserBox(const DString &url)
     m_pCefControl->AttachDownloadUpdated(UiBind(&BrowserBox::OnDownloadUpdated, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     m_pCefControl->AttachFileDialog(UiBind(&BrowserBox::OnFileDialog, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8));
+
+    m_pCefControl->AttachDocumentAvailableInMainFrame(UiBind(&BrowserBox::OnDocumentAvailableInMainFrame, this, std::placeholders::_1));
 
     // 加载默认网页
     DString html_path = url;
@@ -160,7 +167,7 @@ bool BrowserBox::OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
                                       CefRefPtr<CefFrame> frame,
                                       CefRefPtr<CefContextMenuParams> params,
                                       int command_id,
-                                      CefContextMenuHandler::EventFlags event_flags)
+                                      cef_event_flags_t event_flags)
 {
     return false;
 }
@@ -182,6 +189,26 @@ void BrowserBox::OnUrlChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> 
 }
 
 void BrowserBox::OnMainUrlChange(const DString& oldUrl, const DString& newUrl)
+{
+}
+
+void BrowserBox::OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls)
+{
+}
+
+void BrowserBox::OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool bFullscreen)
+{
+}
+
+void BrowserBox::OnStatusMessage(CefRefPtr<CefBrowser> browser, const DString& value)
+{
+}
+
+void BrowserBox::OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress)
+{
+}
+
+void BrowserBox::OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_video_access, bool has_audio_access)
 {
 }
 
@@ -314,4 +341,8 @@ bool BrowserBox::OnFileDialog(CefRefPtr<CefBrowser> browser,
                               CefRefPtr<CefFileDialogCallback> callback)
 {
     return false;
+}
+
+void BrowserBox::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
+{
 }

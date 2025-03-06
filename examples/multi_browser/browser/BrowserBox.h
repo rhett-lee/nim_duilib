@@ -107,12 +107,17 @@ private:
                               CefRefPtr<CefFrame> frame,
                               CefRefPtr<CefContextMenuParams> params,
                               int command_id,
-                              CefContextMenuHandler::EventFlags event_flags);
+                              cef_event_flags_t event_flags);
     void OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame);
 
     void OnTitleChange(CefRefPtr<CefBrowser> browser, const DString& title);
     void OnUrlChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const DString& url);
     void OnMainUrlChange(const DString& oldUrl, const DString& newUrl);
+    void OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls);
+    void OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool bFullscreen);
+    void OnStatusMessage(CefRefPtr<CefBrowser> browser, const DString& value);
+    void OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress);
+    void OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_video_access, bool has_audio_access);
 
     bool OnBeforePopup(CefRefPtr<CefBrowser> browser,
                        CefRefPtr<CefFrame> frame,
@@ -187,6 +192,7 @@ private:
                       const std::vector<CefString>& accept_descriptions,
                       CefRefPtr<CefFileDialogCallback> callback);
 
+    void OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser);
 
 private:
     ui::CefControlBase* m_pCefControl;

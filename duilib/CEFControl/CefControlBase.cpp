@@ -309,6 +309,41 @@ void CefControlBase::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefStrin
     }
 }
 
+void CefControlBase::OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls)
+{
+    if (m_pfnFaviconURLChange) {
+        m_pfnFaviconURLChange(browser, icon_urls);
+    }
+}
+
+void CefControlBase::OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool fullscreen)
+{
+    if (m_pfnFullscreenModeChange) {
+        m_pfnFullscreenModeChange(browser, fullscreen);
+    }
+}
+
+void CefControlBase::OnStatusMessage(CefRefPtr<CefBrowser> browser, const DString& value)
+{
+    if (m_pfnStatusMessage) {
+        m_pfnStatusMessage(browser, value);
+    }
+}
+
+void CefControlBase::OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress)
+{
+    if (m_pfnLoadingProgressChange) {
+        m_pfnLoadingProgressChange(browser, progress);
+    }
+}
+
+void CefControlBase::OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_video_access, bool has_audio_access)
+{
+    if (m_pfnMediaAccessChange) {
+        m_pfnMediaAccessChange(browser, has_video_access, has_audio_access);
+    }
+}
+
 void CefControlBase::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
 {
     if (m_pfnLoadingStateChange) {
@@ -444,7 +479,13 @@ void CefControlBase::OnRenderProcessTerminated(CefRefPtr<CefBrowser> /*browser*/
                                                int /*error_code*/,
                                                CefString /*error_string*/)
 {
-    return;
+}
+
+void CefControlBase::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
+{
+    if (m_pfnDocumentAvailableInMainFrame) {
+        m_pfnDocumentAvailableInMainFrame(browser);
+    }
 }
 
 bool CefControlBase::OnCanDownload(CefRefPtr<CefBrowser> browser,

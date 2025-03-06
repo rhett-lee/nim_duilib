@@ -48,6 +48,11 @@ public:
     //CefDisplayHandler接口
     virtual void OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& url) = 0;
     virtual void OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title) = 0;
+    virtual void OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls) = 0;
+    virtual void OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool fullscreen) = 0;
+    virtual void OnStatusMessage(CefRefPtr<CefBrowser> browser, const DString& value) = 0;
+    virtual void OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress) = 0;
+    virtual void OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_video_access, bool has_audio_access) = 0;
 
     //CefLoadHandler接口
     virtual void OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward) = 0;
@@ -106,6 +111,7 @@ public:
                                            CefRequestHandler::TerminationStatus status,
                                            int error_code,
                                            CefString error_string) = 0;
+    virtual void OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser) = 0;
 
     //CefDownloadHandler接口 文件下载相关
     virtual bool OnCanDownload(CefRefPtr<CefBrowser> browser,
