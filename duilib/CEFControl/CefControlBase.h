@@ -179,37 +179,57 @@ public:
     */
     void AttachMainUrlChange(OnMainUrlChangeEvent cb){ m_pfnMainUrlChange = cb; }
 
-    /** 绑定一个回调函数用于监听一个弹出窗口弹出的通知
+    /** 绑定一个回调函数用于监听一个弹出窗口弹出的通知（回调函数的调用线程：CEF的UI线程）
     * @param [in] callback 一个回调函数，参考 OnBeforePopupEvent 声明
     */
     void AttachBeforePopup(const OnBeforePopupEvent& callback){ m_pfnBeforePopup = callback; }
 
-    /** 绑定一个回调函数用于监听一个弹出窗口失败的通知
+    /** 绑定一个回调函数用于监听一个弹出窗口失败的通知（回调函数的调用线程：主进程的UI线程）
     * @param [in] callback 一个回调函数，参考 OnBeforePopupAbortedEvent 声明
     */
     void AttachBeforePopupAborted(const OnBeforePopupAbortedEvent& callback) { m_pfnBeforePopupAborted = callback; }
 
-    /** 绑定一个回调函数用于监听页面资源全部加载完毕
+    /** 绑定一个回调函数用于监听页面资源加载事件（回调函数的调用线程：CEF的UI线程）
     * @param [in] callback 一个回调函数，参考 OnBeforeResourceLoadEvent 声明
     */
-    void AttachBeforeNavigate(const OnBeforeResourceLoadEvent& callback) { m_pfnBeforeResourceLoad = callback; }
+    void AttachBeforeResourceLoad(const OnBeforeResourceLoadEvent& callback) { m_pfnBeforeResourceLoad = callback; }
 
-    /** 绑定一个回调函数用于监听页面加载状态改变
+    /** 绑定一个回调函数用于监听页面资源加载重定向事件（回调函数的调用线程：CEF的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnResourceRedirectEvent 声明
+    */
+    void AttachResourceRedirect(const OnResourceRedirectEvent& callback) { m_pfnResourceRedirect = callback; }
+
+    /** 绑定一个回调函数用于监听页面资源加载收到回应事件（回调函数的调用线程：CEF的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnResourceResponseEvent 声明
+    */
+    void AttachResourceResponse(const OnResourceResponseEvent& callback) { m_pfnResourceResponse = callback; }
+
+    /** 绑定一个回调函数用于监听页面资源加载完成事件（回调函数的调用线程：CEF的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnResourceLoadCompleteEvent 声明
+    */
+    void AttachResourceLoadComplete(const OnResourceLoadCompleteEvent& callback) { m_pfnResourceLoadComplete = callback; }
+
+    /** 绑定一个回调函数用于监听一个未知的 Protocol（回调函数的调用线程：CEF的UI线程）
+    * @param[in] callback 一个回调函数，参考 OnProtocolExecutionEvent 声明
+    */
+    void AttachProtocolExecution(const OnProtocolExecutionEvent& callback) { m_pfnProtocolExecution = callback; }
+
+    /** 绑定一个回调函数用于监听页面加载状态改变（回调函数的调用线程：主进程的UI线程）
     * @param [in] callback 一个回调函数，参考 OnLoadingStateChangeEvent 声明
     */
-    void AttachLoadingStateChange(const OnLoadingStateChangeEvent& callback){ m_pfnLoadStateChange = callback; }
+    void AttachLoadingStateChange(const OnLoadingStateChangeEvent& callback){ m_pfnLoadingStateChange = callback; }
 
-    /** 绑定一个回调函数用于监听页面开始加载通知
+    /** 绑定一个回调函数用于监听页面开始加载通知（回调函数的调用线程：主进程的UI线程）
     * @param [in] callback 一个回调函数，参考 OnLoadStartEvent 声明
     */
     void AttachLoadStart(const OnLoadStartEvent& callback){ m_pfnLoadStart = callback; }
 
-    /** 绑定一个回调函数用于监听页面加载完毕通知
+    /** 绑定一个回调函数用于监听页面加载完毕通知（回调函数的调用线程：主进程的UI线程）
     * @param [in] callback 一个回调函数，参考 OnLoadEndEvent 声明
     */
     void AttachLoadEnd(const OnLoadEndEvent& callback){ m_pfnLoadEnd = callback; }
 
-    /** 绑定一个回调函数用于监听界面加载错误通知
+    /** 绑定一个回调函数用于监听界面加载错误通知（回调函数的调用线程：主进程的UI线程）
     * @param [in] callback 一个回调函数，参考 OnLoadErrorEvent 声明
     */
     void AttachLoadError(const OnLoadErrorEvent& callback){ m_pfnLoadError = callback; }
@@ -219,25 +239,20 @@ public:
     */
     void AttachDevToolAttachedStateChange(const OnDevToolAttachedStateChangeEvent& callback){ m_pfnDevToolVisibleChange = callback; };
 
-    /** 绑定一个回调函数用于监听一个新的浏览器实例创建完毕通知
+    /** 绑定一个回调函数用于监听一个新的浏览器实例创建完毕通知（回调函数的调用线程：主进程的UI线程）
     * @param [in] callback 一个回调函数，参考 OnAfterCreatedEvent 声明
     */
     void AttachAfterCreated(const OnAfterCreatedEvent& callback){ m_pfnAfterCreated = callback; }
 
-    /** 绑定一个回调函数用于监听一个浏览器实例关闭前的通知
+    /** 绑定一个回调函数用于监听一个浏览器实例关闭前的通知（回调函数的调用线程：主进程的UI线程）
     * @param [in] callback 一个回调函数，参考 OnBeforeCloseEvent 声明
     */
     void AttachBeforeCLose(const OnBeforeCloseEvent& callback) { m_pfnBeforeClose = callback; }
 
-    /** 绑定一个回调函数用于监听一个浏览器实例加载通知
+    /** 绑定一个回调函数用于监听一个浏览器实例加载通知（回调函数的调用线程：CEF的UI线程）
     * @param [in] callback 一个回调函数，参考 OnBeforeBrowseEvent 声明
     */
-    void AttachBeforeBrowser(const OnBeforeBrowseEvent& callback) { m_pfnBeforeBrowse = callback; }
-
-    /** 绑定一个回调函数用于监听一个未知的 Protocol
-    * @param[in] callback 一个回调函数，参考 OnProtocolExecutionEvent 声明
-    */
-    void AttachProtocolExecution(const OnProtocolExecutionEvent& callback) { m_pfnProtocolExecution = callback; }
+    void AttachBeforeBrowse(const OnBeforeBrowseEvent& callback) { m_pfnBeforeBrowse = callback; }
 
     /** 绑定一个回调函数用于监听一个下载任务开始之前的通知
     * @param [in] callback 一个回调函数，参考 OnBeforeDownloadEvent 声明
@@ -310,14 +325,27 @@ public:
     //CefRequestHandler接口, 在非UI线程中被调用
     virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool user_gesture, bool is_redirect) override;
 
-    //CefResourceRequestHandler接口
-    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution) override;
-
     //CefResourceRequestHandler接口, 在非UI线程中被调用
     virtual cef_return_value_t OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser,
                                                     CefRefPtr<CefFrame> frame,
                                                     CefRefPtr<CefRequest> request,
                                                     CefRefPtr<CefCallback> callback) override;
+    virtual void OnResourceRedirect(CefRefPtr<CefBrowser> browser,
+                                    CefRefPtr<CefFrame> frame,
+                                    CefRefPtr<CefRequest> request,
+                                    CefRefPtr<CefResponse> response,
+                                    CefString& new_url) override;
+    virtual bool OnResourceResponse(CefRefPtr<CefBrowser> browser,
+                                    CefRefPtr<CefFrame> frame,
+                                    CefRefPtr<CefRequest> request,
+                                    CefRefPtr<CefResponse> response) override;
+    virtual void OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
+                                        CefRefPtr<CefFrame> frame,
+                                        CefRefPtr<CefRequest> request,
+                                        CefRefPtr<CefResponse> response,
+                                        cef_urlrequest_status_t status,
+                                        int64_t received_content_length) override;
+    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution) override;
 
     //CefRequestHandler接口
     virtual void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
@@ -390,18 +418,21 @@ private:
     OnContextMenuDismissedEvent     m_pfnContextMenuDismissed = nullptr;
     OnTitleChangeEvent              m_pfnTitleChange = nullptr;
     OnBeforeResourceLoadEvent       m_pfnBeforeResourceLoad = nullptr;
+    OnResourceRedirectEvent         m_pfnResourceRedirect = nullptr;
+    OnResourceResponseEvent         m_pfnResourceResponse = nullptr;
+    OnResourceLoadCompleteEvent     m_pfnResourceLoadComplete = nullptr;
+    OnProtocolExecutionEvent        m_pfnProtocolExecution = nullptr;
     OnUrlChangeEvent                m_pfnUrlChange = nullptr;
     OnMainUrlChangeEvent            m_pfnMainUrlChange = nullptr;
     OnBeforePopupEvent              m_pfnBeforePopup = nullptr;
     OnBeforePopupAbortedEvent       m_pfnBeforePopupAborted = nullptr;
-    OnLoadingStateChangeEvent       m_pfnLoadStateChange = nullptr;
+    OnLoadingStateChangeEvent       m_pfnLoadingStateChange = nullptr;
     OnLoadStartEvent                m_pfnLoadStart = nullptr;
     OnLoadEndEvent                  m_pfnLoadEnd = nullptr;
     OnLoadErrorEvent                m_pfnLoadError = nullptr;
     OnAfterCreatedEvent             m_pfnAfterCreated = nullptr;
     OnBeforeCloseEvent              m_pfnBeforeClose = nullptr;
-    OnBeforeBrowseEvent             m_pfnBeforeBrowse = nullptr;
-    OnProtocolExecutionEvent        m_pfnProtocolExecution = nullptr;
+    OnBeforeBrowseEvent             m_pfnBeforeBrowse = nullptr;    
     OnBeforeDownloadEvent           m_pfnBeforeDownload = nullptr;
     OnDownloadUpdatedEvent          m_pfnDownloadUpdated = nullptr;
     OnFileDialogEvent               m_pfnFileDialog = nullptr;

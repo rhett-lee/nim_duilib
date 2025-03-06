@@ -79,14 +79,27 @@ public:
     //CefRequestHandler接口, 在非UI线程中被调用
     virtual bool OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool user_gesture, bool is_redirect) = 0;
 
-    //CefResourceRequestHandler接口
-    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution) = 0;
-
     //CefResourceRequestHandler接口, 在非UI线程中被调用
     virtual cef_return_value_t OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser,
                                                     CefRefPtr<CefFrame> frame,
                                                     CefRefPtr<CefRequest> request,
                                                     CefRefPtr<CefCallback> callback) = 0;
+    virtual void OnResourceRedirect(CefRefPtr<CefBrowser> browser,
+                                    CefRefPtr<CefFrame> frame,
+                                    CefRefPtr<CefRequest> request,
+                                    CefRefPtr<CefResponse> response,
+                                    CefString& new_url) = 0;
+    virtual bool OnResourceResponse(CefRefPtr<CefBrowser> browser,
+                                    CefRefPtr<CefFrame> frame,
+                                    CefRefPtr<CefRequest> request,
+                                    CefRefPtr<CefResponse> response) = 0;
+    virtual void OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
+                                        CefRefPtr<CefFrame> frame,
+                                        CefRefPtr<CefRequest> request,
+                                        CefRefPtr<CefResponse> response,
+                                        cef_urlrequest_status_t status,
+                                        int64_t received_content_length) = 0;
+    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution) = 0;
 
     //CefRequestHandler接口
     virtual void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,

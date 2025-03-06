@@ -51,12 +51,18 @@ void BrowserBox::InitBrowserBox(const DString &url)
 
     m_pCefControl->AttachBeforePopup(UiBind(&BrowserBox::OnBeforePopup, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8, std::placeholders::_9, std::placeholders::_10, std::placeholders::_11, std::placeholders::_12, std::placeholders::_13));
     m_pCefControl->AttachBeforePopupAborted(UiBind(&BrowserBox::OnBeforePopupAborted, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachBeforeBrowse(UiBind(&BrowserBox::OnBeforeBrowse, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
 
-    m_pCefControl->AttachBeforeNavigate(UiBind(&BrowserBox::OnBeforeNavigate, this, std::placeholders::_1, std::placeholders::_2));
-    m_pCefControl->AttachLoadingStateChange(UiBind(&BrowserBox::OnLoadingStateChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    m_pCefControl->AttachLoadStart(UiBind(&BrowserBox::OnLoadStart, this));
-    m_pCefControl->AttachLoadEnd(UiBind(&BrowserBox::OnLoadEnd, this, std::placeholders::_1));
-    m_pCefControl->AttachLoadError(UiBind(&BrowserBox::OnLoadError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachBeforeResourceLoad(UiBind(&BrowserBox::OnBeforeResourceLoad, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    m_pCefControl->AttachResourceRedirect(UiBind(&BrowserBox::OnResourceRedirect, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+    m_pCefControl->AttachResourceResponse(UiBind(&BrowserBox::OnResourceResponse, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    m_pCefControl->AttachResourceLoadComplete(UiBind(&BrowserBox::OnResourceLoadComplete, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
+    m_pCefControl->AttachProtocolExecution(UiBind(&BrowserBox::OnProtocolExecution, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+    m_pCefControl->AttachLoadingStateChange(UiBind(&BrowserBox::OnLoadingStateChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    m_pCefControl->AttachLoadStart(UiBind(&BrowserBox::OnLoadStart, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachLoadEnd(UiBind(&BrowserBox::OnLoadEnd, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachLoadError(UiBind(&BrowserBox::OnLoadError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
 
     // 加载默认网页
     DString html_path = url;
@@ -196,23 +202,62 @@ void BrowserBox::OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_i
 
 }
 
-cef_return_value_t BrowserBox::OnBeforeNavigate(CefRefPtr<CefRequest> request, bool is_redirect)
+bool BrowserBox::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefFrame> frame,
+                                CefRefPtr<CefRequest> request,
+                                bool user_gesture,
+                                bool is_redirect)
+{
+    return false;
+}
+
+cef_return_value_t BrowserBox::OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser,
+                                                    CefRefPtr<CefFrame> frame,
+                                                    CefRefPtr<CefRequest> request,
+                                                    CefRefPtr<CefCallback> callback)
 {
     // 返回RV_CANCEL截断导航
     return RV_CONTINUE;
 }
 
-void BrowserBox::OnLoadingStateChange(bool isLoading, bool canGoBack, bool canGoForward)
+void BrowserBox::OnResourceRedirect(CefRefPtr<CefBrowser> browser,
+                                    CefRefPtr<CefFrame> frame,
+                                    CefRefPtr<CefRequest> request,
+                                    CefRefPtr<CefResponse> response,
+                                    CefString& new_url)
 {
-    return;
 }
 
-void BrowserBox::OnLoadStart()
+bool BrowserBox::OnResourceResponse(CefRefPtr<CefBrowser> browser,
+                                    CefRefPtr<CefFrame> frame,
+                                    CefRefPtr<CefRequest> request,
+                                    CefRefPtr<CefResponse> response)
 {
-    return;
+    return false;
 }
 
-void BrowserBox::OnLoadEnd(int httpStatusCode)
+void BrowserBox::OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
+                                        CefRefPtr<CefFrame> frame,
+                                        CefRefPtr<CefRequest> request,
+                                        CefRefPtr<CefResponse> response,
+                                        cef_urlrequest_status_t status,
+                                        int64_t received_content_length)
+{
+}
+
+void BrowserBox::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution)
+{
+}
+
+void BrowserBox::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
+{
+}
+
+void BrowserBox::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t transition_type)
+{
+}
+
+void BrowserBox::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
     // 注册一个方法提供前端调用
     m_pCefControl->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([this](const std::string& params, ui::ReportResultFunction callback) {
@@ -222,7 +267,6 @@ void BrowserBox::OnLoadEnd(int httpStatusCode)
     }));
 }
 
-void BrowserBox::OnLoadError(CefLoadHandler::ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl)
+void BrowserBox::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_errorcode_t errorCode, const DString& errorText, const DString& failedUrl)
 {
-    return;
 }
