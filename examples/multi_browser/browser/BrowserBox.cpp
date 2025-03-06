@@ -37,11 +37,21 @@ DString& BrowserBox::GetTitle()
 void BrowserBox::InitBrowserBox(const DString &url)
 {
     m_pCefControl = static_cast<ui::CefControlBase*>(FindSubControl(_T("cef_control")));
-    m_pCefControl->AttachBeforeContextMenu(UiBind(&BrowserBox::OnBeforeMenu, this, std::placeholders::_1, std::placeholders::_2));
-    m_pCefControl->AttachMenuCommand(UiBind(&BrowserBox::OnMenuCommand, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    m_pCefControl->AttachTitleChange(UiBind(&BrowserBox::OnTitleChange, this, std::placeholders::_1));
-    m_pCefControl->AttachUrlChange(UiBind(&BrowserBox::OnUrlChange, this, std::placeholders::_1));
-    m_pCefControl->AttachLinkClick(UiBind(&BrowserBox::OnLinkClick, this, std::placeholders::_1));
+    ASSERT(m_pCefControl != nullptr);
+    if (m_pCefControl == nullptr) {
+        return;
+    }
+    m_pCefControl->AttachBeforeContextMenu(UiBind(&BrowserBox::OnBeforeContextMenu, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    m_pCefControl->AttachContextMenuCommand(UiBind(&BrowserBox::OnContextMenuCommand, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+    m_pCefControl->AttachContextMenuDismissed(UiBind(&BrowserBox::OnContextMenuDismissed, this, std::placeholders::_1, std::placeholders::_2));
+
+    m_pCefControl->AttachTitleChange(UiBind(&BrowserBox::OnTitleChange, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachUrlChange(UiBind(&BrowserBox::OnUrlChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachMainUrlChange(UiBind(&BrowserBox::OnMainUrlChange, this, std::placeholders::_1, std::placeholders::_2));
+
+    m_pCefControl->AttachBeforePopup(UiBind(&BrowserBox::OnBeforePopup, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8, std::placeholders::_9, std::placeholders::_10, std::placeholders::_11, std::placeholders::_12, std::placeholders::_13));
+
+
     m_pCefControl->AttachBeforeNavigate(UiBind(&BrowserBox::OnBeforeNavigate, this, std::placeholders::_1, std::placeholders::_2));
     m_pCefControl->AttachLoadingStateChange(UiBind(&BrowserBox::OnLoadingStateChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     m_pCefControl->AttachLoadStart(UiBind(&BrowserBox::OnLoadStart, this));
@@ -125,29 +135,55 @@ void BrowserBox::SetPos(UiRect rc)
 #endif
 }
 
-void BrowserBox::OnBeforeMenu(CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)
+void BrowserBox::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
+                                     CefRefPtr<CefFrame> frame,
+                                     CefRefPtr<CefContextMenuParams> params,
+                                     CefRefPtr<CefMenuModel> model)
 {
-
 }
 
-bool BrowserBox::OnMenuCommand(CefRefPtr<CefContextMenuParams> params, int command_id, CefContextMenuHandler::EventFlags event_flags)
+bool BrowserBox::OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
+                                      CefRefPtr<CefFrame> frame,
+                                      CefRefPtr<CefContextMenuParams> params,
+                                      int command_id,
+                                      CefContextMenuHandler::EventFlags event_flags)
 {
     return false;
 }
 
-void BrowserBox::OnTitleChange(const DString& title)
+void BrowserBox::OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
+{
+}
+
+void BrowserBox::OnTitleChange(CefRefPtr<CefBrowser> browser, const DString& title)
 {
     m_title = title;
     m_pBrowserForm->SetTabItemName(ui::StringConvert::UTF8ToT(m_browserId), title);
 }
 
-void BrowserBox::OnUrlChange(const DString& url)
+void BrowserBox::OnUrlChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const DString& url)
 {
     m_url = url;
     m_pBrowserForm->SetURL(m_browserId, url);
 }
 
-bool BrowserBox::OnLinkClick(const DString& url)
+void BrowserBox::OnMainUrlChange(const DString& oldUrl, const DString& newUrl)
+{
+}
+
+bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
+                               CefRefPtr<CefFrame> frame,
+                               int popup_id,
+                               const CefString& target_url,
+                               const CefString& target_frame_name,
+                               CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+                               bool user_gesture,
+                               const CefPopupFeatures& popupFeatures,
+                               CefWindowInfo& windowInfo,
+                               CefRefPtr<CefClient>& client,
+                               CefBrowserSettings& settings,
+                               CefRefPtr<CefDictionaryValue>& extra_info,
+                               bool* no_javascript_access)
 {
     return true;
 }

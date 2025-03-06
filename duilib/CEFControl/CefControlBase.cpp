@@ -267,26 +267,33 @@ void CefControlBase::UpdateWindowPos()
 
 void CefControlBase::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)
 {
-    if (m_pfnBeforeMenu) {
-        m_pfnBeforeMenu(params, model);
+    if (m_pfnBeforeContextMenu) {
+        m_pfnBeforeContextMenu(browser, frame, params, model);
     }
 }
 
 bool CefControlBase::OnContextMenuCommand(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, int command_id, CefContextMenuHandler::EventFlags event_flags)
 {
-    if (m_pfnMenuCommand) {
-        return m_pfnMenuCommand(params, command_id, event_flags);
+    if (m_pfnContextMenuCommand) {
+        return m_pfnContextMenuCommand(browser, frame, params, command_id, event_flags);
     }
     return false;
+}
+
+void CefControlBase::OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
+{
+    if (m_pfnContextMenuDismissed) {
+        m_pfnContextMenuDismissed(browser, frame);
+    }
 }
 
 void CefControlBase::OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& url)
 {
     if (m_pfnUrlChange) {
-        m_pfnUrlChange(url);
+        m_pfnUrlChange(browser, frame, url);
     }
 
-    if (frame->IsMain()) {
+    if ((frame != nullptr) && frame->IsMain()) {
         auto old_url = m_url;
         m_url = frame->GetURL();
         if (m_pfnMainUrlChange != nullptr && GetMainURL(old_url).compare(GetMainURL(m_url)) != 0) {
@@ -298,7 +305,7 @@ void CefControlBase::OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
 void CefControlBase::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title)
 {
     if (m_pfnTitleChange) {
-        m_pfnTitleChange(title);
+        m_pfnTitleChange(browser, title);
     }
 }
 
@@ -330,21 +337,24 @@ void CefControlBase::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFra
     }
 }
 
-bool CefControlBase::OnBeforePopup(CefRefPtr<CefBrowser> /*browser*/,
-                                   CefRefPtr<CefFrame> /*frame*/,
-                                   int /*popup_id*/,
+bool CefControlBase::OnBeforePopup(CefRefPtr<CefBrowser> browser,
+                                   CefRefPtr<CefFrame> frame,
+                                   int popup_id,
                                    const CefString& target_url,
-                                   const CefString& /*target_frame_name*/,
-                                   CefLifeSpanHandler::WindowOpenDisposition /*target_disposition*/,
-                                   bool /*user_gesture*/,
-                                   const CefPopupFeatures& /*popupFeatures*/,
-                                   CefWindowInfo& /*windowInfo*/,
-                                   CefRefPtr<CefClient>& /*client*/,
-                                   CefBrowserSettings& /*settings*/,
-                                   bool* /*no_javascript_access*/)
+                                   const CefString& target_frame_name,
+                                   CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+                                   bool user_gesture,
+                                   const CefPopupFeatures& popupFeatures,
+                                   CefWindowInfo& windowInfo,
+                                   CefRefPtr<CefClient>& client,
+                                   CefBrowserSettings& settings,
+                                   CefRefPtr<CefDictionaryValue>& extra_info,
+                                   bool* no_javascript_access)
 {
-    if (m_pfnLinkClick && !target_url.empty()) {
-        return m_pfnLinkClick(target_url);
+    if (m_pfnBeforePopup) {
+        return m_pfnBeforePopup(browser, frame, popup_id, target_url, target_frame_name,
+                                target_disposition, user_gesture, popupFeatures, windowInfo,
+                                client, settings, extra_info, no_javascript_access);
     }
     return true;
 }

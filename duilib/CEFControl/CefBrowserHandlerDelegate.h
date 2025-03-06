@@ -42,6 +42,8 @@ public:
     //CefContextMenuHandler接口, 在非UI线程中被调用
     virtual bool OnContextMenuCommand(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params,
                                       int command_id, CefContextMenuHandler::EventFlags event_flags) = 0;
+    //CefContextMenuHandler接口, 在非UI线程中被调用
+    virtual void OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame) = 0;
 
     //CefDisplayHandler接口
     virtual void OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& url) = 0;
@@ -68,6 +70,7 @@ public:
                                CefWindowInfo& windowInfo,
                                CefRefPtr<CefClient>& client,
                                CefBrowserSettings& settings,
+                               CefRefPtr<CefDictionaryValue>& extra_info,
                                bool* no_javascript_access) = 0;
     virtual bool OnAfterCreated(CefRefPtr<CefBrowser> browser) = 0;
     virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) = 0;
