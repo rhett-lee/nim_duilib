@@ -64,6 +64,14 @@ void BrowserBox::InitBrowserBox(const DString &url)
     m_pCefControl->AttachLoadEnd(UiBind(&BrowserBox::OnLoadEnd, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
     m_pCefControl->AttachLoadError(UiBind(&BrowserBox::OnLoadError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
 
+    m_pCefControl->AttachDevToolAttachedStateChange(UiBind(&BrowserBox::OnDevToolAttachedStateChange, this, std::placeholders::_1));
+
+    m_pCefControl->AttachCanDownload(UiBind(&BrowserBox::OnCanDownload, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachBeforeDownload(UiBind(&BrowserBox::OnBeforeDownload, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    m_pCefControl->AttachDownloadUpdated(UiBind(&BrowserBox::OnDownloadUpdated, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+    m_pCefControl->AttachFileDialog(UiBind(&BrowserBox::OnFileDialog, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8));
+
     // 加载默认网页
     DString html_path = url;
     if (html_path.empty()) {
@@ -269,4 +277,41 @@ void BrowserBox::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> fr
 
 void BrowserBox::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_errorcode_t errorCode, const DString& errorText, const DString& failedUrl)
 {
+}
+
+void BrowserBox::OnDevToolAttachedStateChange(bool bVisible)
+{
+}
+
+bool BrowserBox::OnCanDownload(CefRefPtr<CefBrowser> browser,
+                               const CefString& url,
+                               const CefString& request_method)
+{
+    return true;
+}
+
+bool BrowserBox::OnBeforeDownload(CefRefPtr<CefBrowser> browser,
+                                  CefRefPtr<CefDownloadItem> download_item,
+                                  const CefString& suggested_name,
+                                  CefRefPtr<CefBeforeDownloadCallback> callback)
+{
+    return false;
+}
+
+void BrowserBox::OnDownloadUpdated(CefRefPtr<CefBrowser> browser,
+                                   CefRefPtr<CefDownloadItem> download_item,
+                                   CefRefPtr<CefDownloadItemCallback> callback)
+{
+}
+
+bool BrowserBox::OnFileDialog(CefRefPtr<CefBrowser> browser,
+                              cef_file_dialog_mode_t mode,
+                              const CefString& title,
+                              const CefString& default_file_path,
+                              const std::vector<CefString>& accept_filters,
+                              const std::vector<CefString>& accept_extensions,
+                              const std::vector<CefString>& accept_descriptions,
+                              CefRefPtr<CefFileDialogCallback> callback)
+{
+    return false;
 }

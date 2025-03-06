@@ -108,6 +108,9 @@ public:
                                            CefString error_string) = 0;
 
     //CefDownloadHandler接口 文件下载相关
+    virtual bool OnCanDownload(CefRefPtr<CefBrowser> browser,
+                               const CefString& url,
+                               const CefString& request_method) = 0;
     virtual bool OnBeforeDownload(CefRefPtr<CefBrowser> browser,
                                   CefRefPtr<CefDownloadItem> download_item,
                                   const CefString& suggested_name,

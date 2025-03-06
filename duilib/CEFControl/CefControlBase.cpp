@@ -447,12 +447,22 @@ void CefControlBase::OnRenderProcessTerminated(CefRefPtr<CefBrowser> /*browser*/
     return;
 }
 
+bool CefControlBase::OnCanDownload(CefRefPtr<CefBrowser> browser,
+                                   const CefString& url,
+                                   const CefString& request_method)
+{
+    if (m_pfnCanDownload) {
+        return m_pfnCanDownload(browser, url, request_method);
+    }
+    return true;
+}
+
 bool CefControlBase::OnBeforeDownload(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item, const CefString& suggested_name, CefRefPtr<CefBeforeDownloadCallback> callback)
 {
     if (m_pfnBeforeDownload) {
         return m_pfnBeforeDownload(browser, download_item, suggested_name, callback);
     }
-    return true;
+    return false;
 }
 
 void CefControlBase::OnDownloadUpdated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item, CefRefPtr<CefDownloadItemCallback> callback)
