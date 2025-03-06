@@ -311,29 +311,29 @@ void CefControlBase::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefStrin
 
 void CefControlBase::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
 {
-    if (m_pfnLoadStateChange) {
-        m_pfnLoadStateChange(isLoading, canGoBack, canGoForward);
+    if (m_pfnLoadingStateChange) {
+        m_pfnLoadingStateChange(browser, isLoading, canGoBack, canGoForward);
     }
 }
 
-void CefControlBase::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t /*transition_type*/)
+void CefControlBase::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t transition_type)
 {
     if (m_pfnLoadStart) {
-        m_pfnLoadStart();
+        m_pfnLoadStart(browser, frame, transition_type);
     }
 }
 
 void CefControlBase::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
     if (m_pfnLoadEnd) {
-        m_pfnLoadEnd(httpStatusCode);
+        m_pfnLoadEnd(browser, frame, httpStatusCode);
     }
 }
 
 void CefControlBase::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefLoadHandler::ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl)
 {
     if (m_pfnLoadError) {
-        m_pfnLoadError(errorCode, errorText, failedUrl);
+        m_pfnLoadError(browser, frame, errorCode, errorText, failedUrl);
     }
 }
 
@@ -390,19 +390,53 @@ bool CefControlBase::OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<Cef
     return result;
 }
 
+cef_return_value_t CefControlBase::OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, CefRefPtr<CefCallback> callback)
+{
+    if (m_pfnBeforeResourceLoad) {
+        return m_pfnBeforeResourceLoad(browser, frame, request, callback);
+    }
+    return RV_CONTINUE;
+}
+
+void CefControlBase::OnResourceRedirect(CefRefPtr<CefBrowser> browser,
+                                        CefRefPtr<CefFrame> frame,
+                                        CefRefPtr<CefRequest> request,
+                                        CefRefPtr<CefResponse> response,
+                                        CefString& new_url)
+{
+    if (m_pfnResourceRedirect) {
+        m_pfnResourceRedirect(browser, frame, request, response, new_url);
+    }
+}
+
+bool CefControlBase::OnResourceResponse(CefRefPtr<CefBrowser> browser,
+                                        CefRefPtr<CefFrame> frame,
+                                        CefRefPtr<CefRequest> request,
+                                        CefRefPtr<CefResponse> response)
+{
+    if (m_pfnResourceResponse) {
+        return m_pfnResourceResponse(browser, frame, request, response);
+    }
+    return false;
+}
+
+void CefControlBase::OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
+                                            CefRefPtr<CefFrame> frame,
+                                            CefRefPtr<CefRequest> request,
+                                            CefRefPtr<CefResponse> response,
+                                            cef_urlrequest_status_t status,
+                                            int64_t received_content_length)
+{
+    if (m_pfnResourceLoadComplete) {
+        m_pfnResourceLoadComplete(browser, frame, request, response, status, received_content_length);
+    }
+}
+
 void CefControlBase::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution)
 {
     if (m_pfnProtocolExecution) {
         m_pfnProtocolExecution(browser, url, allow_os_execution);
     }
-}
-
-cef_return_value_t CefControlBase::OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, CefRefPtr<CefCallback> callback)
-{
-    if (m_pfnBeforeResourceLoad) {
-        return m_pfnBeforeResourceLoad(request, false);
-    }
-    return RV_CONTINUE;
 }
 
 void CefControlBase::OnRenderProcessTerminated(CefRefPtr<CefBrowser> /*browser*/,

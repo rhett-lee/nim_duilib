@@ -213,7 +213,7 @@ bool CefBrowserHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
 void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
-    ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser](){
+    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser](){
         m_browserList.emplace_back(browser);
         if ((m_browser != nullptr) && (m_browser->GetHost() != nullptr)) {
             m_browser->GetHost()->WasHidden(true);
@@ -261,7 +261,7 @@ bool CefBrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
 void CefBrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
-    ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser](){
+    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser](){
         CefManager::GetInstance()->SubBrowserCount();
         auto it = std::find_if(m_browserList.begin(), m_browserList.end(), [&](const CefRefPtr<CefBrowser>& item){
             return item->IsSame(browser);
@@ -717,7 +717,7 @@ void CefBrowserHandler::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool
 {
     // Update UI for browser state...
     if (m_pHandlerDelegate) {
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadingStateChange, m_pHandlerDelegate, browser, isLoading, canGoBack, canGoForward));
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadingStateChange, m_pHandlerDelegate, browser, isLoading, canGoBack, canGoForward));
     }
 }
 
@@ -727,7 +727,7 @@ void CefBrowserHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
 {
     // A frame has started loading content...
     if (m_pHandlerDelegate) {
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadStart, m_pHandlerDelegate, browser, frame, transition_type));
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadStart, m_pHandlerDelegate, browser, frame, transition_type));
     }
 }
 
@@ -735,7 +735,7 @@ void CefBrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFr
 {
     // A frame has finished loading content...
     if (m_pHandlerDelegate) {
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadEnd, m_pHandlerDelegate, browser, frame, httpStatusCode));
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadEnd, m_pHandlerDelegate, browser, frame, httpStatusCode));
     }
 }
 
@@ -743,7 +743,7 @@ void CefBrowserHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<Cef
 {
     // A frame has failed to load content...
     if (m_pHandlerDelegate) {
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadError, m_pHandlerDelegate, browser, frame, errorCode, errorText, failedUrl));
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadError, m_pHandlerDelegate, browser, frame, errorCode, errorText, failedUrl));
     }
 }
 
@@ -923,6 +923,9 @@ void CefBrowserHandler::OnResourceRedirect(CefRefPtr<CefBrowser> browser,
                                            CefRefPtr<CefResponse> response,
                                            CefString& new_url)
 {
+    if (m_pHandlerDelegate) {
+        m_pHandlerDelegate->OnResourceRedirect(browser, frame, request, response, new_url);
+    }
 }
 
 bool CefBrowserHandler::OnResourceResponse(CefRefPtr<CefBrowser> browser,
@@ -930,6 +933,9 @@ bool CefBrowserHandler::OnResourceResponse(CefRefPtr<CefBrowser> browser,
                                            CefRefPtr<CefRequest> request,
                                            CefRefPtr<CefResponse> response)
 {
+    if (m_pHandlerDelegate) {
+        return m_pHandlerDelegate->OnResourceResponse(browser, frame, request, response);
+    }
     return false;
 }
 
@@ -948,6 +954,9 @@ void CefBrowserHandler::OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
                                                URLRequestStatus status,
                                                int64_t received_content_length)
 {
+    if (m_pHandlerDelegate) {
+        m_pHandlerDelegate->OnResourceLoadComplete(browser, frame, request, response, status, received_content_length);
+    }
 }
 
 void CefBrowserHandler::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution)
