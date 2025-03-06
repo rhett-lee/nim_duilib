@@ -126,22 +126,36 @@ namespace ui
                                 bool* no_javascript_access)> OnBeforePopupEvent;
 
     //弹出新窗口失败的通知（回调函数的调用线程：主进程的UI线程）
-    typedef std::function<void(CefRefPtr<CefBrowser> browser, int popup_id)> OnBeforePopupAbortedEvent;
+    typedef std::function<void (CefRefPtr<CefBrowser> browser, int popup_id)> OnBeforePopupAbortedEvent;
 
+    //开发者工具的显示属性发生变化（回调函数的调用线程：主进程的UI线程）
+    typedef std::function<void (bool bVisible)> OnDevToolAttachedStateChangeEvent;
 
-    typedef std::function<void(bool visible)> OnDevToolAttachedStateChangeEvent;
+    //是否可以下载文件（回调函数的调用线程：CEF的UI线程）
+    typedef std::function<bool (CefRefPtr<CefBrowser> browser,
+                                const CefString& url,
+                                const CefString& request_method)> OnCanDownloadEvent;
 
-    typedef std::function<bool(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item, const CefString& suggested_name, CefRefPtr<CefBeforeDownloadCallback> callback)> OnBeforeDownloadEvent;
-    typedef std::function<void(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDownloadItem> download_item, CefRefPtr<CefDownloadItemCallback> callback)> OnDownloadUpdatedEvent;
+    //下载文件之前事件的回调函数，CEF109版本忽略返回值（回调函数的调用线程：CEF的UI线程）
+    typedef std::function<bool (CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefDownloadItem> download_item,
+                                const CefString& suggested_name,
+                                CefRefPtr<CefBeforeDownloadCallback> callback)> OnBeforeDownloadEvent;
 
-    typedef std::function<bool(CefRefPtr<CefBrowser> browser,
-                               CefBrowserHost::FileDialogMode mode,
-                               const CefString& title,
-                               const CefString& default_file_path,
-                               const std::vector<CefString>& accept_filters,
-                               const std::vector<CefString>& accept_extensions,
-                               const std::vector<CefString>& accept_descriptions,
-                               CefRefPtr<CefFileDialogCallback> callback)> OnFileDialogEvent;
+    //下载文件信息更新事件的回调函数（回调函数的调用线程：CEF的UI线程）
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefDownloadItem> download_item,
+                                CefRefPtr<CefDownloadItemCallback> callback)> OnDownloadUpdatedEvent;
+
+    //打开文件/保存文件/选择文件夹对话框的回调函数（回调函数的调用线程：CEF的UI线程）
+    typedef std::function<bool (CefRefPtr<CefBrowser> browser,
+                                cef_file_dialog_mode_t mode,
+                                const CefString& title,
+                                const CefString& default_file_path,
+                                const std::vector<CefString>& accept_filters,
+                                const std::vector<CefString>& accept_extensions,
+                                const std::vector<CefString>& accept_descriptions,
+                                CefRefPtr<CefFileDialogCallback> callback)> OnFileDialogEvent;
 }
 
 #endif //UI_CEF_CONTROL_CEF_CONTROL_EVENT_H_

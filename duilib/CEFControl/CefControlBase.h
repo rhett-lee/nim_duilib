@@ -234,7 +234,7 @@ public:
     */
     void AttachLoadError(const OnLoadErrorEvent& callback){ m_pfnLoadError = callback; }
 
-    /** 绑定一个回调函数用于监听开发者工具状态改变通知
+    /** 绑定一个回调函数用于监听开发者工具状态改变通知（回调函数的调用线程：主进程的UI线程）
     * @param [in] callback 一个回调函数，参考 OnDevToolAttachedStateChangeEvent 声明
     */
     void AttachDevToolAttachedStateChange(const OnDevToolAttachedStateChangeEvent& callback){ m_pfnDevToolVisibleChange = callback; };
@@ -254,17 +254,22 @@ public:
     */
     void AttachBeforeBrowse(const OnBeforeBrowseEvent& callback) { m_pfnBeforeBrowse = callback; }
 
-    /** 绑定一个回调函数用于监听一个下载任务开始之前的通知
+    /** 绑定一个回调函数用于监听一个是否可执行下载任务的通知（回调函数的调用线程：CEF的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnCanDownloadEvent 声明
+    */
+    void AttachCanDownload(const OnCanDownloadEvent& callback) { m_pfnCanDownload = callback; }
+
+    /** 绑定一个回调函数用于监听一个下载任务开始之前的通知（回调函数的调用线程：CEF的UI线程）
     * @param [in] callback 一个回调函数，参考 OnBeforeDownloadEvent 声明
     */
     void AttachBeforeDownload(const OnBeforeDownloadEvent& callback) { m_pfnBeforeDownload = callback; }
 
-    /** 绑定一个回调函数用于监听下载过程中任务的状态改变通知
+    /** 绑定一个回调函数用于监听下载过程中任务的状态改变通知（回调函数的调用线程：CEF的UI线程）
     * @param[in] callback 一个回调函数，参考 OnDownloadUpdatedEvent 声明
     */
     void AttachDownloadUpdated(const OnDownloadUpdatedEvent& callback) { m_pfnDownloadUpdated = callback; }
 
-    /** 绑定一个回调函数用于监听一个从对话框中打开文件的通知
+    /** 绑定一个回调函数用于监听一个从对话框中打开文件的通知（回调函数的调用线程：CEF的UI线程）
     * @param[in] callback 一个回调函数，参考 OnFileDialogEvent 声明
     */
     void AttachFileDialog(const OnFileDialogEvent& callback) { m_pfnFileDialog = callback; }
@@ -354,6 +359,9 @@ public:
                                            CefString error_string) override;
 
     //CefDownloadHandler接口 文件下载相关
+    virtual bool OnCanDownload(CefRefPtr<CefBrowser> browser,
+                               const CefString& url,
+                               const CefString& request_method) override;
     virtual bool OnBeforeDownload(CefRefPtr<CefBrowser> browser,
                                   CefRefPtr<CefDownloadItem> download_item,
                                   const CefString& suggested_name,
@@ -432,7 +440,8 @@ private:
     OnLoadErrorEvent                m_pfnLoadError = nullptr;
     OnAfterCreatedEvent             m_pfnAfterCreated = nullptr;
     OnBeforeCloseEvent              m_pfnBeforeClose = nullptr;
-    OnBeforeBrowseEvent             m_pfnBeforeBrowse = nullptr;    
+    OnBeforeBrowseEvent             m_pfnBeforeBrowse = nullptr;
+    OnCanDownloadEvent              m_pfnCanDownload = nullptr;
     OnBeforeDownloadEvent           m_pfnBeforeDownload = nullptr;
     OnDownloadUpdatedEvent          m_pfnDownloadUpdated = nullptr;
     OnFileDialogEvent               m_pfnFileDialog = nullptr;

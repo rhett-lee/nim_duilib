@@ -987,6 +987,9 @@ bool CefBrowserHandler::CanDownload(CefRefPtr<CefBrowser> browser,
                                     const CefString& url,
                                     const CefString& request_method)
 {
+    if (m_pHandlerDelegate) {
+        return m_pHandlerDelegate->OnCanDownload(browser, url, request_method);
+    }
     return true;
 }
 

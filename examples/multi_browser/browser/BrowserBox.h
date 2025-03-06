@@ -158,11 +158,35 @@ private:
                                 int64_t received_content_length);
     void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution);
 
-
     void OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward);
     void OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t transition_type);
     void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode);
     void OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_errorcode_t errorCode, const DString& errorText, const DString& failedUrl);
+
+    void OnDevToolAttachedStateChange(bool bVisible);
+
+    bool OnCanDownload(CefRefPtr<CefBrowser> browser,
+                       const CefString& url,
+                       const CefString& request_method);
+
+    bool OnBeforeDownload(CefRefPtr<CefBrowser> browser,
+                          CefRefPtr<CefDownloadItem> download_item,
+                          const CefString& suggested_name,
+                          CefRefPtr<CefBeforeDownloadCallback> callback);
+
+    void OnDownloadUpdated(CefRefPtr<CefBrowser> browser,
+                           CefRefPtr<CefDownloadItem> download_item,
+                           CefRefPtr<CefDownloadItemCallback> callback);
+
+    bool OnFileDialog(CefRefPtr<CefBrowser> browser,
+                      cef_file_dialog_mode_t mode,
+                      const CefString& title,
+                      const CefString& default_file_path,
+                      const std::vector<CefString>& accept_filters,
+                      const std::vector<CefString>& accept_extensions,
+                      const std::vector<CefString>& accept_descriptions,
+                      CefRefPtr<CefFileDialogCallback> callback);
+
 
 private:
     ui::CefControlBase* m_pCefControl;
