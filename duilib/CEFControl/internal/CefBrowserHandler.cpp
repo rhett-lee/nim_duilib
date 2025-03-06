@@ -140,26 +140,12 @@ bool CefBrowserHandler::DoOnBeforePopup(CefRefPtr<CefBrowser> browser,
                                         CefRefPtr<CefDictionaryValue>& extra_info,
                                         bool* no_javascript_access)
 {
-    // 让新的链接在原浏览器对象中打开
-    if (m_browser.get() != nullptr) {
-        if (m_pHandlerDelegate) {
-            // 返回true则继续在控件内打开新链接，false则禁止访问
-            bool bRet = m_pHandlerDelegate->OnBeforePopup(browser, frame, popup_id, target_url, target_frame_name, target_disposition, user_gesture, popupFeatures, windowInfo, client, settings, extra_info, no_javascript_access);
-            if (bRet) {
-                if (m_browser->GetMainFrame() != nullptr) {
-                    m_browser->GetMainFrame()->LoadURL(target_url);
-                }
-            }
-            return bRet;
-        }
-        else {
-            if (m_browser->GetMainFrame() != nullptr) {
-                m_browser->GetMainFrame()->LoadURL(target_url);
-            }
-        }
+    //让新的链接在原浏览器对象中打开
+    if (m_pHandlerDelegate) {
+        // 返回true则继续在控件内打开新链接，false则禁止访问
+        return m_pHandlerDelegate->OnBeforePopup(browser, frame, popup_id, target_url, target_frame_name, target_disposition, user_gesture, popupFeatures, windowInfo, client, settings, extra_info, no_javascript_access);;
     }
-
-    // 禁止弹出popup窗口
+    // 默认禁止弹出popup窗口
     return true;
 }
 
@@ -187,8 +173,11 @@ bool CefBrowserHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                            no_javascript_access);
 }
 
-void CefBrowserHandler::OnBeforePopupAborted(CefRefPtr<CefBrowser> /*browser*/, int /*popup_id*/)
+void CefBrowserHandler::OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_id)
 {
+    if (m_pHandlerDelegate) {
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnBeforePopupAborted, m_pHandlerDelegate, browser, popup_id));
+    }
 }
 
 void CefBrowserHandler::OnBeforeDevToolsPopup(CefRefPtr<CefBrowser> /*browser*/,
@@ -645,7 +634,7 @@ void CefBrowserHandler::OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr
 {
     // Update the URL in the address bar...
     if (m_pHandlerDelegate) {
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnAddressChange, m_pHandlerDelegate, browser, frame, url));
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnAddressChange, m_pHandlerDelegate, browser, frame, url));
     }
 }
 
@@ -653,7 +642,7 @@ void CefBrowserHandler::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefSt
 {
     // Update the browser window title...
     if (m_pHandlerDelegate) {
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnTitleChange, m_pHandlerDelegate, browser, title));
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnTitleChange, m_pHandlerDelegate, browser, title));
     }
 }
 

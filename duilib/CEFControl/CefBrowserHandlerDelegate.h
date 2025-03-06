@@ -72,6 +72,7 @@ public:
                                CefBrowserSettings& settings,
                                CefRefPtr<CefDictionaryValue>& extra_info,
                                bool* no_javascript_access) = 0;
+    virtual void OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_id) = 0;//仅在CEF 133及以上版本存在
     virtual bool OnAfterCreated(CefRefPtr<CefBrowser> browser) = 0;
     virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) = 0;
 

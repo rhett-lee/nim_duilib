@@ -127,6 +127,7 @@ private:
                        CefBrowserSettings& settings,
                        CefRefPtr<CefDictionaryValue>& extra_info,
                        bool* no_javascript_access);
+    void OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_id);
 
 
     cef_return_value_t OnBeforeNavigate(CefRefPtr<CefRequest> request, bool is_redirect);

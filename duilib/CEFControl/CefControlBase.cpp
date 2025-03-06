@@ -359,6 +359,13 @@ bool CefControlBase::OnBeforePopup(CefRefPtr<CefBrowser> browser,
     return true;
 }
 
+void CefControlBase::OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_id)
+{
+    if (m_pfnBeforePopupAborted) {
+        return m_pfnBeforePopupAborted(browser, popup_id);
+    }
+}
+
 bool CefControlBase::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
     if (m_pfnAfterCreated) {
