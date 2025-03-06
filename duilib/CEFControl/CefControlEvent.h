@@ -62,6 +62,8 @@ namespace ui
                                 CefBrowserSettings& settings,
                                 CefRefPtr<CefDictionaryValue>& extra_info,
                                 bool* no_javascript_access)> OnBeforePopupEvent;
+    //弹出新窗口失败的通知（回调函数的调用线程：主进程的UI线程）
+    typedef std::function<void(CefRefPtr<CefBrowser> browser, int popup_id)> OnBeforePopupAbortedEvent;
 
     typedef std::function<CefResourceRequestHandler::ReturnValue(CefRefPtr<CefRequest> request, bool is_redirect)> OnBeforeResourceLoadEvent;
     

@@ -50,7 +50,7 @@ void BrowserBox::InitBrowserBox(const DString &url)
     m_pCefControl->AttachMainUrlChange(UiBind(&BrowserBox::OnMainUrlChange, this, std::placeholders::_1, std::placeholders::_2));
 
     m_pCefControl->AttachBeforePopup(UiBind(&BrowserBox::OnBeforePopup, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8, std::placeholders::_9, std::placeholders::_10, std::placeholders::_11, std::placeholders::_12, std::placeholders::_13));
-
+    m_pCefControl->AttachBeforePopupAborted(UiBind(&BrowserBox::OnBeforePopupAborted, this, std::placeholders::_1, std::placeholders::_2));
 
     m_pCefControl->AttachBeforeNavigate(UiBind(&BrowserBox::OnBeforeNavigate, this, std::placeholders::_1, std::placeholders::_2));
     m_pCefControl->AttachLoadingStateChange(UiBind(&BrowserBox::OnLoadingStateChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -185,7 +185,15 @@ bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                CefRefPtr<CefDictionaryValue>& extra_info,
                                bool* no_javascript_access)
 {
+    if (frame != nullptr) {
+        frame->LoadURL(target_url);
+    }
     return true;
+}
+
+void BrowserBox::OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_id)
+{
+
 }
 
 cef_return_value_t BrowserBox::OnBeforeNavigate(CefRefPtr<CefRequest> request, bool is_redirect)

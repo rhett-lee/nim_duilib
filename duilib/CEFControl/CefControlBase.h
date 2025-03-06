@@ -184,6 +184,11 @@ public:
     */
     void AttachBeforePopup(const OnBeforePopupEvent& callback){ m_pfnBeforePopup = callback; }
 
+    /** 绑定一个回调函数用于监听一个弹出窗口失败的通知
+    * @param [in] callback 一个回调函数，参考 OnBeforePopupAbortedEvent 声明
+    */
+    void AttachBeforePopupAborted(const OnBeforePopupAbortedEvent& callback) { m_pfnBeforePopupAborted = callback; }
+
     /** 绑定一个回调函数用于监听页面资源全部加载完毕
     * @param [in] callback 一个回调函数，参考 OnBeforeResourceLoadEvent 声明
     */
@@ -298,6 +303,7 @@ public:
                                CefBrowserSettings& settings,
                                CefRefPtr<CefDictionaryValue>& extra_info,
                                bool* no_javascript_access) override;
+    virtual void OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_id) override;
     virtual bool OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
     virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
 
@@ -387,6 +393,7 @@ private:
     OnUrlChangeEvent                m_pfnUrlChange = nullptr;
     OnMainUrlChangeEvent            m_pfnMainUrlChange = nullptr;
     OnBeforePopupEvent              m_pfnBeforePopup = nullptr;
+    OnBeforePopupAbortedEvent       m_pfnBeforePopupAborted = nullptr;
     OnLoadingStateChangeEvent       m_pfnLoadStateChange = nullptr;
     OnLoadStartEvent                m_pfnLoadStart = nullptr;
     OnLoadEndEvent                  m_pfnLoadEnd = nullptr;
