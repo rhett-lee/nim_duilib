@@ -24,15 +24,47 @@ namespace ui
 
 
     //浏览器控件相关的回调函数
-    typedef std::function<void(CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)> OnBeforeMenuEvent;
-    typedef std::function<bool(CefRefPtr<CefContextMenuParams> params, int command_id, CefContextMenuHandler::EventFlags event_flags)> OnMenuCommandEvent;
 
-    typedef std::function<void(const DString& title)> OnTitleChangeEvent;
-    typedef std::function<void(const DString& url)> OnUrlChangeEvent;
+    //菜单弹出（回调函数的调用线程：CEF的UI线程）
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefFrame> frame,
+                                CefRefPtr<CefContextMenuParams> params,
+                                CefRefPtr<CefMenuModel> model)
+                          > OnBeforeContextMenuEvent;
+    //执行了菜单命令（回调函数的调用线程：CEF的UI线程）
+    typedef std::function<bool (CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefFrame> frame,
+                                CefRefPtr<CefContextMenuParams> params,
+                                int command_id,
+                                CefContextMenuHandler::EventFlags event_flags)> OnContextMenuCommandEvent;
+    //菜单消失（回调函数的调用线程：CEF的UI线程）
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefFrame> frame)> OnContextMenuDismissedEvent;
 
-    typedef std::function<bool(const DString& url)> OnLinkClickEvent;
+    //标题变化（回调函数的调用线程：主进程的UI线程）
+    typedef std::function<void (CefRefPtr<CefBrowser> browser, const DString& title)> OnTitleChangeEvent;
+    //URL变化（回调函数的调用线程：主进程的UI线程）
+    typedef std::function<void (CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const DString& url)> OnUrlChangeEvent;
+    //主Frame的URL变化（回调函数的调用线程：主进程的UI线程）
+    typedef std::function<void (const DString& oldUrl, const DString& newUrl)> OnMainUrlChangeEvent;
+
+    //点击了超级链接，即将弹出新窗口（回调函数的调用线程：CEF的UI线程）
+    typedef std::function<bool (CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefFrame> frame,
+                                int popup_id,
+                                const CefString& target_url,
+                                const CefString& target_frame_name,
+                                CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+                                bool user_gesture,
+                                const CefPopupFeatures& popupFeatures,
+                                CefWindowInfo& windowInfo,
+                                CefRefPtr<CefClient>& client,
+                                CefBrowserSettings& settings,
+                                CefRefPtr<CefDictionaryValue>& extra_info,
+                                bool* no_javascript_access)> OnBeforePopupEvent;
+
     typedef std::function<CefResourceRequestHandler::ReturnValue(CefRefPtr<CefRequest> request, bool is_redirect)> OnBeforeResourceLoadEvent;
-    typedef std::function<void(const CefString& old_url, const CefString& new_url)> OnMainURLChengeEvent;
+    
 
     typedef std::function<void(bool isLoading, bool canGoBack, bool canGoForward)> OnLoadingStateChangeEvent;
     typedef std::function<void()> OnLoadStartEvent;

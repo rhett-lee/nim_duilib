@@ -99,11 +99,36 @@ public:
     virtual void SetPos(ui::UiRect rc) override;
 
 private:
-    void OnBeforeMenu(CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model);
-    bool OnMenuCommand(CefRefPtr<CefContextMenuParams> params, int command_id, CefContextMenuHandler::EventFlags event_flags);
-    void OnTitleChange(const DString& title);
-    void OnUrlChange(const DString& url);
-    bool OnLinkClick(const DString& url);
+    void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
+                             CefRefPtr<CefFrame> frame,
+                             CefRefPtr<CefContextMenuParams> params,
+                             CefRefPtr<CefMenuModel> model);
+    bool OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
+                              CefRefPtr<CefFrame> frame,
+                              CefRefPtr<CefContextMenuParams> params,
+                              int command_id,
+                              CefContextMenuHandler::EventFlags event_flags);
+    void OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame);
+
+    void OnTitleChange(CefRefPtr<CefBrowser> browser, const DString& title);
+    void OnUrlChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const DString& url);
+    void OnMainUrlChange(const DString& oldUrl, const DString& newUrl);
+
+    bool OnBeforePopup(CefRefPtr<CefBrowser> browser,
+                       CefRefPtr<CefFrame> frame,
+                       int popup_id,
+                       const CefString& target_url,
+                       const CefString& target_frame_name,
+                       CefLifeSpanHandler::WindowOpenDisposition target_disposition,
+                       bool user_gesture,
+                       const CefPopupFeatures& popupFeatures,
+                       CefWindowInfo& windowInfo,
+                       CefRefPtr<CefClient>& client,
+                       CefBrowserSettings& settings,
+                       CefRefPtr<CefDictionaryValue>& extra_info,
+                       bool* no_javascript_access);
+
+
     cef_return_value_t OnBeforeNavigate(CefRefPtr<CefRequest> request, bool is_redirect);
     void OnLoadingStateChange(bool isLoading, bool canGoBack, bool canGoForward);
     void OnLoadStart();

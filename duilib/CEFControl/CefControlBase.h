@@ -149,40 +149,45 @@ protected:
     virtual void ReCreateBrowser() = 0;
 
 public:
-    /** 绑定一个回调函数用于监听右键菜单弹出
-    * @param [in] callback 一个回调函数，参考 OnBeforeMenuEvent 声明
+    /** 绑定一个回调函数用于监听右键菜单弹出（回调函数的调用线程：CEF的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnBeforeContextMenuEvent 声明
     */
-    void AttachBeforeContextMenu(const OnBeforeMenuEvent& callback){ m_pfnBeforeMenu = callback; }
+    void AttachBeforeContextMenu(const OnBeforeContextMenuEvent& callback){ m_pfnBeforeContextMenu = callback; }
 
-    /** 绑定一个回调函数用于监听选择了哪个右键菜单
-    * @param [in] callback 一个回调函数，参考 OnMenuCommandEvent 声明
+    /** 绑定一个回调函数用于监听选择了哪个右键菜单（回调函数的调用线程：CEF的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnContextMenuCommandEvent 声明
     */
-    void AttachMenuCommand(const OnMenuCommandEvent& callback){ m_pfnMenuCommand = callback; }
+    void AttachContextMenuCommand(const OnContextMenuCommandEvent& callback){ m_pfnContextMenuCommand = callback; }
 
-    /** 绑定一个回调函数用于监听页面 Title 改变
+    /** 绑定一个回调函数用于监听右键菜单消失（回调函数的调用线程：CEF的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnContextMenuDismissedEvent 声明
+    */
+    void AttachContextMenuDismissed(const OnContextMenuDismissedEvent& callback) { m_pfnContextMenuDismissed = callback; }
+
+    /** 绑定一个回调函数用于监听页面 Title 改变（回调函数的调用线程：主进程的UI线程）
     * @param [in] callback 一个回调函数，参考 OnTitleChangeEvent 声明
     */
     void AttachTitleChange(const OnTitleChangeEvent& callback){ m_pfnTitleChange = callback; }
 
-    /** 绑定一个回调函数用于监听页面中 frame URL 地址改变
+    /** 绑定一个回调函数用于监听页面中 frame URL 地址改变（回调函数的调用线程：主进程的UI线程）
     * @param [in] callback 一个回调函数，参考 OnUrlChangeEvent 声明
     */
     void AttachUrlChange(const OnUrlChangeEvent& callback){ m_pfnUrlChange = callback; }
 
-    /** 绑定一个回调函数用于监听主页面 URL 地址改变
-    * @param [in] callback 一个回调函数，参考 OnMainURLChengeEvent 声明
+    /** 绑定一个回调函数用于监听主页面 URL 地址改变（回调函数的调用线程：主进程的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnMainUrlChangeEvent 声明
     */
-    void AttachMainURLChange(OnMainURLChengeEvent cb){ m_pfnMainUrlChange = cb; }
+    void AttachMainUrlChange(OnMainUrlChangeEvent cb){ m_pfnMainUrlChange = cb; }
+
+    /** 绑定一个回调函数用于监听一个弹出窗口弹出的通知
+    * @param [in] callback 一个回调函数，参考 OnBeforePopupEvent 声明
+    */
+    void AttachBeforePopup(const OnBeforePopupEvent& callback){ m_pfnBeforePopup = callback; }
 
     /** 绑定一个回调函数用于监听页面资源全部加载完毕
     * @param [in] callback 一个回调函数，参考 OnBeforeResourceLoadEvent 声明
     */
-    void AttachBeforeNavigate(const OnBeforeResourceLoadEvent& callback){ m_pfnBeforeResourceLoad = callback; }
-
-    /** 绑定一个回调函数用于监听一个弹出窗口弹出的通知
-    * @param [in] callback 一个回调函数，参考 OnLinkClickEvent 声明
-    */
-    void AttachLinkClick(const OnLinkClickEvent& callback){ m_pfnLinkClick = callback; }
+    void AttachBeforeNavigate(const OnBeforeResourceLoadEvent& callback) { m_pfnBeforeResourceLoad = callback; }
 
     /** 绑定一个回调函数用于监听页面加载状态改变
     * @param [in] callback 一个回调函数，参考 OnLoadingStateChangeEvent 声明
@@ -263,6 +268,8 @@ public:
     //CefContextMenuHandler接口, 在非UI线程中被调用
     virtual bool OnContextMenuCommand(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params,
                                       int command_id, CefContextMenuHandler::EventFlags event_flags) override;
+    //CefContextMenuHandler接口, 在非UI线程中被调用
+    virtual void OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame) override;
 
     //CefDisplayHandler接口
     virtual void OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& url) override;
@@ -289,6 +296,7 @@ public:
                                CefWindowInfo& windowInfo,
                                CefRefPtr<CefClient>& client,
                                CefBrowserSettings& settings,
+                               CefRefPtr<CefDictionaryValue>& extra_info,
                                bool* no_javascript_access) override;
     virtual bool OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
     virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
@@ -371,13 +379,14 @@ private:
     // 保存接收到 JS 调用 CPP 函数的代码所属线程，以后触发 JS 回调时把回调转到那个线程
     int32_t m_jsCallbackThreadId = -1;
 
-    OnBeforeMenuEvent               m_pfnBeforeMenu = nullptr;
-    OnMenuCommandEvent              m_pfnMenuCommand = nullptr;
+    OnBeforeContextMenuEvent        m_pfnBeforeContextMenu = nullptr;
+    OnContextMenuCommandEvent       m_pfnContextMenuCommand = nullptr;
+    OnContextMenuDismissedEvent     m_pfnContextMenuDismissed = nullptr;
     OnTitleChangeEvent              m_pfnTitleChange = nullptr;
     OnBeforeResourceLoadEvent       m_pfnBeforeResourceLoad = nullptr;
     OnUrlChangeEvent                m_pfnUrlChange = nullptr;
-    OnMainURLChengeEvent            m_pfnMainUrlChange = nullptr;
-    OnLinkClickEvent                m_pfnLinkClick = nullptr;
+    OnMainUrlChangeEvent            m_pfnMainUrlChange = nullptr;
+    OnBeforePopupEvent              m_pfnBeforePopup = nullptr;
     OnLoadingStateChangeEvent       m_pfnLoadStateChange = nullptr;
     OnLoadStartEvent                m_pfnLoadStart = nullptr;
     OnLoadEndEvent                  m_pfnLoadEnd = nullptr;

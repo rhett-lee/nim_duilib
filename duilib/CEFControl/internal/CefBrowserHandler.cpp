@@ -141,15 +141,16 @@ bool CefBrowserHandler::DoOnBeforePopup(CefRefPtr<CefBrowser> browser,
                                         bool* no_javascript_access)
 {
     // 让新的链接在原浏览器对象中打开
-    if (m_browser.get() && !target_url.empty()) {
+    if (m_browser.get() != nullptr) {
         if (m_pHandlerDelegate) {
             // 返回true则继续在控件内打开新链接，false则禁止访问
-            bool bRet = m_pHandlerDelegate->OnBeforePopup(browser, frame, popup_id, target_url, target_frame_name, target_disposition, user_gesture, popupFeatures, windowInfo, client, settings, no_javascript_access);
+            bool bRet = m_pHandlerDelegate->OnBeforePopup(browser, frame, popup_id, target_url, target_frame_name, target_disposition, user_gesture, popupFeatures, windowInfo, client, settings, extra_info, no_javascript_access);
             if (bRet) {
                 if (m_browser->GetMainFrame() != nullptr) {
                     m_browser->GetMainFrame()->LoadURL(target_url);
                 }
             }
+            return bRet;
         }
         else {
             if (m_browser->GetMainFrame() != nullptr) {
@@ -611,7 +612,9 @@ bool CefBrowserHandler::OnContextMenuCommand(CefRefPtr<CefBrowser> browser, CefR
 
 void CefBrowserHandler::OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
 {
-
+    if (m_pHandlerDelegate) {
+        return m_pHandlerDelegate->OnContextMenuDismissed(browser, frame);
+    }
 }
 
 bool CefBrowserHandler::RunQuickMenu(CefRefPtr<CefBrowser> browser,
