@@ -8,7 +8,7 @@
 
 #include "duilib/Core/Control.h"
 #include "duilib/CEFControl/CefControlEvent.h"
-#include "duilib/CEFControl/CefBrowserHandlerDelegate.h"
+#include "duilib/CEFControl/internal/CefBrowserHandlerDelegate.h"
 
 namespace ui {
 

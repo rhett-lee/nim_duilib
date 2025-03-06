@@ -566,7 +566,6 @@
     <ClInclude Include="Box\VirtualVTileLayout.h" />
     <ClInclude Include="Box\VLayout.h" />
     <ClInclude Include="Box\VTileLayout.h" />
-    <ClInclude Include="CEFControl\CefBrowserHandlerDelegate.h" />
     <ClInclude Include="CEFControl\CefControlBase.h" />
     <ClInclude Include="CEFControl\CefControlEvent.h" />
     <ClInclude Include="CEFControl\CefControlNative.h" />
@@ -575,6 +574,7 @@
     <ClInclude Include="CEFControl\CefManager.h" />
     <ClInclude Include="CEFControl\internal\CefAutoUnregister.h" />
     <ClInclude Include="CEFControl\internal\CefBrowserHandler.h" />
+    <ClInclude Include="CEFControl\internal\CefBrowserHandlerDelegate.h" />
     <ClInclude Include="CEFControl\internal\CefClientApp.h" />
     <ClInclude Include="CEFControl\internal\CefIPCStringDefs.h" />
     <ClInclude Include="CEFControl\internal\CefJSBridge.h" />
