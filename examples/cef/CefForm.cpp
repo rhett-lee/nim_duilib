@@ -38,7 +38,7 @@ void CefForm::OnInitWindow()
     m_pEditUrl->AttachReturn(UiBind(&CefForm::OnNavigate, this, std::placeholders::_1));
 
     // 监听页面加载完毕通知
-    m_pCefControl->AttachLoadEnd(UiBind(&CefForm::OnLoadEnd, this, std::placeholders::_1));
+    m_pCefControl->AttachLoadEnd(UiBind(&CefForm::OnLoadEnd, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     // 打开开发者工具
     //m_pCefControl->AttachDevTools(m_pCefControlDev);
@@ -105,7 +105,7 @@ bool CefForm::OnNavigate(const ui::EventArgs& /*msg*/)
     return true;
 }
 
-void CefForm::OnLoadEnd(int httpStatusCode)
+void CefForm::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
     FindControl(_T("btn_back"))->SetEnabled(m_pCefControl->CanGoBack());
     FindControl(_T("btn_forward"))->SetEnabled(m_pCefControl->CanGoForward());

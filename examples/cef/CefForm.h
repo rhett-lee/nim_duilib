@@ -38,7 +38,7 @@ public:
 private:
     bool OnClicked(const ui::EventArgs& msg);
     bool OnNavigate(const ui::EventArgs& msg);
-    void OnLoadEnd(int httpStatusCode);
+    void OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode);
 
 private:
     ui::CefControlBase* m_pCefControl;
