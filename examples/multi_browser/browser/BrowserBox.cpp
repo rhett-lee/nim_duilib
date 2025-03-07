@@ -41,6 +41,10 @@ void BrowserBox::InitBrowserBox(const DString &url)
     if (m_pCefControl == nullptr) {
         return;
     }
+
+    m_pCefControl->AttachAfterCreated(UiBind(&BrowserBox::OnAfterCreated, this, std::placeholders::_1));
+    m_pCefControl->AttachBeforeClose(UiBind(&BrowserBox::OnBeforeClose, this, std::placeholders::_1));
+
     m_pCefControl->AttachBeforeContextMenu(UiBind(&BrowserBox::OnBeforeContextMenu, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
     m_pCefControl->AttachContextMenuCommand(UiBind(&BrowserBox::OnContextMenuCommand, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
     m_pCefControl->AttachContextMenuDismissed(UiBind(&BrowserBox::OnContextMenuDismissed, this, std::placeholders::_1, std::placeholders::_2));
@@ -154,6 +158,14 @@ void BrowserBox::SetPos(UiRect rc)
         m_pTaskBarItem->InvalidateTab();
     }
 #endif
+}
+
+void BrowserBox::OnAfterCreated(CefRefPtr<CefBrowser> browser)
+{
+}
+
+void BrowserBox::OnBeforeClose(CefRefPtr<CefBrowser> browser)
+{
 }
 
 void BrowserBox::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
