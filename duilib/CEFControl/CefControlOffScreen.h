@@ -54,6 +54,9 @@ protected:
     //光标消息
     virtual bool OnSetCursor(const EventArgs& msg) override;
 
+    //控件所属窗口的鼠标捕获丢失
+    virtual bool OnCaptureChanged(const EventArgs& msg) override;
+
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
     virtual bool MouseMove(const EventArgs& msg) override;
     virtual bool MouseLeave(const EventArgs& msg) override;
@@ -97,15 +100,6 @@ protected:
     /** 对消息进行过滤，处理部分业务(处理窗体消息，转发到Cef浏览器对象)
     */
     virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
-
-    /** 转发捕获焦点消息到 BrowserHost
-     * @param[in] uMsg 消息
-     * @param[in] wParam 消息附加参数
-     * @param[in] lParam 消息附加参数
-     * @param[out] bHandled 是否继续传递消息
-     * @return 返回消息处理结果
-     */
-    LRESULT SendCaptureLostEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
     /** 转发键盘相关消息到 BrowserHost
      * @param[in] uMsg 消息

@@ -332,6 +332,18 @@ bool CefControlOffScreen::OnSetCursor(const EventArgs& /*msg*/)
     return true;
 }
 
+bool CefControlOffScreen::OnCaptureChanged(const EventArgs& /*msg*/)
+{
+    CefRefPtr<CefBrowserHost> host;
+    if (m_pBrowserHandler != nullptr) {
+        host = m_pBrowserHandler->GetBrowserHost();
+    }
+    if (host != nullptr) {
+        host->SendCaptureLostEvent();
+    }
+    return false;
+}
+
 int32_t CefControlOffScreen::GetCefMouseModifiers(const EventArgs& /*msg*/) const
 {
     int32_t modifiers = 0;
@@ -730,13 +742,6 @@ LRESULT CefControlOffScreen::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         return 0;
     }
     switch (uMsg) {
-        case WM_CAPTURECHANGED:
-        case WM_CANCELMODE:
-            {
-                return SendCaptureLostEvent(uMsg, wParam, lParam, bHandled);
-            }
-            break;
-
         case WM_SYSCHAR:
         case WM_SYSKEYDOWN:
         case WM_SYSKEYUP:
@@ -754,20 +759,6 @@ LRESULT CefControlOffScreen::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
     }
     return 0;
 }
-
-LRESULT CefControlOffScreen::SendCaptureLostEvent(UINT /*uMsg*/, WPARAM /*wParam*/, LPARAM /*lParam*/, bool& bHandled)
-{
-    CefRefPtr<CefBrowserHost> host;
-    if (m_pBrowserHandler != nullptr) {
-        host = m_pBrowserHandler->GetBrowserHost();
-    }
-    if (host != nullptr) {
-        host->SendCaptureLostEvent();
-    }
-    bHandled = true;
-    return 0;
-}
-
 
 LRESULT CefControlOffScreen::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
