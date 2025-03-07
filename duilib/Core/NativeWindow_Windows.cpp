@@ -59,10 +59,10 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     ASSERT(m_pOwner != nullptr);
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
 
-    //Windows 11及新版本，支持显示贴靠布局菜单
-    if (UiIsWindows11OrGreater()) {
+    //Windows 11及新版本，支持显示贴靠布局菜单（默认关闭，最新版的Win11下，会触发NC绘制，显示出系统绘制的内容，效果不好）
+    /*if (UiIsWindows11OrGreater()) {
         m_bSnapLayoutMenu = true;
-    }
+    }*/
 }
 
 NativeWindow_Windows::~NativeWindow_Windows()
