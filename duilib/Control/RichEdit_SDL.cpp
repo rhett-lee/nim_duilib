@@ -3915,6 +3915,10 @@ bool RichEdit::OnKeyUp(const EventArgs& msg)
 
 bool RichEdit::OnChar(const EventArgs& msg)
 {
+    if (msg.modifierKey & ModifierKey::kIsSystemKey) {
+        //不处理
+        return true;
+    }
     if ((msg.vkCode == kVK_RETURN) || (msg.vkCode == kVK_TAB) || (msg.vkCode == kVK_DELETE) || (msg.vkCode == kVK_BACK)) {
         //回车键, TAB键, 删除键，退格键的处理逻辑，统一在KEYDOWN处理
         return true;

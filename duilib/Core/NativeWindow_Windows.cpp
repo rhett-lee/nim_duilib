@@ -1444,6 +1444,7 @@ bool NativeWindow_Windows::GetModifiers(UINT message, WPARAM wParam, LPARAM lPar
     bool bRet = true;
     modifierKey = ModifierKey::kNone;
     switch (message) {
+    case WM_SYSCHAR:
     case WM_CHAR:
         if (0 == (lParam & (1 << 30))) {
             modifierKey |= ModifierKey::kFirstPress;
@@ -1519,6 +1520,9 @@ bool NativeWindow_Windows::GetModifiers(UINT message, WPARAM wParam, LPARAM lPar
     default:
         bRet = false;
         break;
+    }
+    if ((message == WM_SYSCHAR) || (message == WM_SYSKEYDOWN) || (message == WM_SYSKEYUP)) {
+        modifierKey |= ModifierKey::kIsSystemKey;
     }
     ASSERT(bRet);
     return bRet;
@@ -2364,6 +2368,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
         break;
     }
     case WM_CHAR:
+    case WM_SYSCHAR:
     {
         VirtualKeyCode vkCode = static_cast<VirtualKeyCode>(wParam);
         uint32_t modifierKey = 0;

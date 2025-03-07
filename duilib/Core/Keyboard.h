@@ -15,6 +15,7 @@ enum ModifierKey {
     kAlt        = 1 << 2,   //按住了Alt键
     kWin        = 1 << 3,   //按住了Win键
     kFirstPress = 1 << 4,   //第一次按键标志（即如果在发送消息之前，键处于未按下状态）
+    kIsSystemKey= 1 << 5    //该消息是以下消息之一：WM_SYSCHAR/WM_SYSKEYDOWN/WM_SYSKEYUP（限Windows系统）
 };
 
 /** 键盘操作

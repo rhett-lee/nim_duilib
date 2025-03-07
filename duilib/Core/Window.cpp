@@ -553,6 +553,9 @@ bool Window::IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const
         else if (modifierKey == ModifierKey::kAlt) {
             return msg.modifierKey & ModifierKey::kAlt;
         }
+        else if (modifierKey == ModifierKey::kIsSystemKey) {
+            return msg.modifierKey & ModifierKey::kIsSystemKey;
+        }
         break;
 
     case kEventKeyDown:
@@ -562,11 +565,17 @@ bool Window::IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const
         else if (modifierKey == ModifierKey::kAlt) {
             return msg.modifierKey & ModifierKey::kAlt;
         }
+        else if (modifierKey == ModifierKey::kIsSystemKey) {
+            return msg.modifierKey & ModifierKey::kIsSystemKey;
+        }
         break;
 
     case kEventKeyUp:
         if (modifierKey == ModifierKey::kAlt) {
             return msg.modifierKey & ModifierKey::kAlt;
+        }
+        else if (modifierKey == ModifierKey::kIsSystemKey) {
+            return msg.modifierKey & ModifierKey::kIsSystemKey;
         }
         break;
 
