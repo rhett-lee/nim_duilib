@@ -806,6 +806,27 @@ bool CefBrowserHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEv
     return false;
 }
 
+void CefBrowserHandler::OnTakeFocus(CefRefPtr<CefBrowser> browser, bool next)
+{
+
+}
+
+bool CefBrowserHandler::OnSetFocus(CefRefPtr<CefBrowser> browser, cef_focus_source_t source)
+{
+    return false;
+}
+
+void CefBrowserHandler::OnGotFocus(CefRefPtr<CefBrowser> browser)
+{
+#ifdef DUILIB_BUILD_FOR_WIN
+    //修正首次显示页面时，中文输入法的输入框显示位置错误问题，原因是此时的焦点窗口不正确
+    HWND hHostWnd = browser->GetHost()->GetWindowHandle();
+    if (::IsWindow(hHostWnd) && (hHostWnd != ::GetFocus())) {
+        ::SetFocus(hHostWnd);
+    }
+#endif
+}
+
 // CefRequestHandler methods
 bool CefBrowserHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
                                        CefRefPtr<CefFrame> frame,
@@ -1077,6 +1098,7 @@ bool CefBrowserHandler::OnFileDialog(CefRefPtr<CefBrowser> browser,
     return false;
 }
 #endif
-}
+
+} //namespace ui
 
 #pragma warning (pop)
