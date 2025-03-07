@@ -624,6 +624,9 @@
     <ClCompile Include="CEFControl\internal\Windows\util_win.cc">
       <Filter>CEFControl\internal\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="CEFControl\internal\Windows\osr_ime_handler_win.cc">
+      <Filter>CEFControl\internal\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1288,6 +1291,9 @@
     </ClInclude>
     <ClInclude Include="CEFControl\internal\CefBrowserHandlerDelegate.h">
       <Filter>CEFControl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\Windows\osr_ime_handler_win.h">
+      <Filter>CEFControl\internal\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

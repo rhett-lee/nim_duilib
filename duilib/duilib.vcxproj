@@ -388,6 +388,7 @@
     <ClCompile Include="CEFControl\internal\CefMemoryBlock.cpp" />
     <ClCompile Include="CEFControl\internal\Windows\bytes_write_handler.cc" />
     <ClCompile Include="CEFControl\internal\Windows\osr_dragdrop_win.cc" />
+    <ClCompile Include="CEFControl\internal\Windows\osr_ime_handler_win.cc" />
     <ClCompile Include="CEFControl\internal\Windows\util_win.cc" />
     <ClCompile Include="Control\CheckCombo.cpp" />
     <ClCompile Include="Control\CircleProgress.cpp" />
@@ -583,6 +584,7 @@
     <ClInclude Include="CEFControl\internal\osr_dragdrop_events.h" />
     <ClInclude Include="CEFControl\internal\Windows\bytes_write_handler.h" />
     <ClInclude Include="CEFControl\internal\Windows\osr_dragdrop_win.h" />
+    <ClInclude Include="CEFControl\internal\Windows\osr_ime_handler_win.h" />
     <ClInclude Include="CEFControl\internal\Windows\util_win.h" />
     <ClInclude Include="Control\CheckCombo.h" />
     <ClInclude Include="Control\ColorControl.h" />
