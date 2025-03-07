@@ -51,6 +51,9 @@ protected:
     // 在非UI线程中被调用
     virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model) override;
 
+    //光标消息
+    virtual bool OnSetCursor(const EventArgs& msg) override;
+
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
     virtual bool MouseMove(const EventArgs& msg) override;
     virtual bool MouseLeave(const EventArgs& msg) override;

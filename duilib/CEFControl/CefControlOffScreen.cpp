@@ -326,6 +326,12 @@ void CefControlOffScreen::AdaptDpiScale(CefMouseEvent& mouse_event)
     }
 }
 
+bool CefControlOffScreen::OnSetCursor(const EventArgs& /*msg*/)
+{
+    //离屏渲染时，控件本身不处理光标，由CEF模块内部处理光标，否则会影响Cef中的鼠标光标
+    return true;
+}
+
 int32_t CefControlOffScreen::GetCefMouseModifiers(const EventArgs& /*msg*/) const
 {
     int32_t modifiers = 0;
@@ -724,21 +730,6 @@ LRESULT CefControlOffScreen::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lPar
         return 0;
     }
     switch (uMsg) {
-        case WM_SETCURSOR:
-            {
-                // 这里拦截WM_SETCURSOR消息，不让duilib处理（duilib会改变光标样式），否则会影响Cef中的鼠标光标
-                UiPoint pt;
-                GetWindow()->GetCursorPos(pt);
-                GetWindow()->ScreenToClient(pt);
-                if (!GetRect().ContainsPt(pt)) {
-                    return 0;
-                }
-
-                GetWindow()->NativeWnd()->CallDefaultWindowProc(uMsg, wParam, lParam);
-                bHandled = true;
-                return 0;
-            }
-            break;
         case WM_CAPTURECHANGED:
         case WM_CANCELMODE:
             {
