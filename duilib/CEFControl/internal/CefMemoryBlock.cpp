@@ -42,6 +42,7 @@ bool CefMemoryBlock::Init(const void* buffer, int32_t width, int32_t height)
 
 void CefMemoryBlock::Clear()
 {
+    std::lock_guard<std::mutex> threadGuard(m_memMutex);
     if (m_pBits != nullptr) {
         delete[] m_pBits;
         m_pBits = nullptr;
