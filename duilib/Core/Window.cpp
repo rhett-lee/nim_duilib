@@ -1656,14 +1656,11 @@ LRESULT Window::OnMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey
 LRESULT Window::OnCaptureChangedMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
-
-    //if (m_pEventClick) {
-    //    //如果没有收到WM_POINTERUP消息，需要补一个（TODO：检查是否有副作用）
-    //    m_pEventClick->SendEvent(kEventMouseButtonUp, wParam, lParam, 0, lastMousePos);
-    //    m_pEventClick = nullptr;
-    //}
-
     ReleaseCapture();
+
+    if (m_pFocus != nullptr) {
+        m_pFocus->SendEvent(kEventCaptureChanged);
+    }
     return 0;
 }
 

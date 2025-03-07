@@ -292,6 +292,7 @@ namespace ui
         kEventSetFocus,             //Window类：发送给Focus控件，当控件获得焦点时触发事件（控件焦点不是窗口焦点，两者完全不同）
         kEventKillFocus,            //Window类：发送给Focus控件，当控件失去焦点时触发事件（控件焦点不是窗口焦点，两者完全不同）        
         kEventSetCursor,            //Window类：发送给当前鼠标所在控件，设置光标
+        kEventCaptureChanged,       //Window类：发送给Focus控件，当收到WM_CAPTURECHANGED消息时触发
         kEventImeStartComposition,  //Window类：发送给Focus控件，当收到系统WM_IME_STARTCOMPOSITION消息时触发
         kEventImeEndComposition,    //Window类：发送给Focus控件，当收到系统WM_IME_ENDCOMPOSITION消息时触发
 

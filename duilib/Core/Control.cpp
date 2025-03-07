@@ -1763,6 +1763,11 @@ void Control::HandleEvent(const EventArgs& msg)
             return;
         }
     }
+    else if (msg.eventType == kEventCaptureChanged) {
+        if (OnCaptureChanged(msg)) {
+            return;
+        }
+    }
     else if (msg.eventType == kEventImeStartComposition) {
         if (OnImeStartComposition(msg)) {
             return;
@@ -2121,6 +2126,12 @@ bool Control::OnKillFocus(const EventArgs& msg)
 }
 
 bool Control::OnWindowKillFocus(const EventArgs& /*msg*/)
+{
+    //默认不处理，交由父控件处理
+    return false;
+}
+
+bool Control::OnCaptureChanged(const EventArgs& /*msg*/)
 {
     //默认不处理，交由父控件处理
     return false;
