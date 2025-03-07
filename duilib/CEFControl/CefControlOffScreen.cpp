@@ -36,11 +36,6 @@ CefControlOffScreen::~CefControlOffScreen(void)
             m_pBrowserHandler->CloseAllBrowser();
         }
     }
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if (GetWindow() != nullptr) {
-        GetWindow()->RemoveMessageFilter(this);
-    }
-#endif
 }
 
 void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& /*dirtyRects*/, const void* buffer, int width, int height)
@@ -99,13 +94,6 @@ void CefControlOffScreen::OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRe
 void CefControlOffScreen::Init()
 {
     if (m_pBrowserHandler.get() == nullptr) {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-        ASSERT(GetWindow() != nullptr);
-        if (GetWindow() != nullptr) {
-            GetWindow()->AddMessageFilter(this);
-        }
-#endif
-
         m_pBrowserHandler = new CefBrowserHandler;
         m_pBrowserHandler->SetHostWindow(GetWindow());
         m_pBrowserHandler->SetHandlerDelegate(this);
@@ -210,22 +198,10 @@ void CefControlOffScreen::Paint(IRender* pRender, const UiRect& rcPaint)
 
 void CefControlOffScreen::SetWindow(Window* pWindow)
 {
-    if (!m_pBrowserHandler) {
-        BaseClass::SetWindow(pWindow);
-        return;
-    }
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if (GetWindow()) {
-        GetWindow()->RemoveMessageFilter(this);
-    }
-#endif
     BaseClass::SetWindow(pWindow);
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if (pWindow != nullptr) {
-        pWindow->AddMessageFilter(this);
-    }
-#endif
-    m_pBrowserHandler->SetHostWindow(pWindow);
+    if (m_pBrowserHandler) {
+        m_pBrowserHandler->SetHostWindow(pWindow);
+    }    
 }
 
 bool CefControlOffScreen::AttachDevTools(Control* control)
@@ -614,7 +590,14 @@ bool CefControlOffScreen::OnChar(const EventArgs& msg)
 {
     bool bRet = BaseClass::OnChar(msg);
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    return bRet;
+    bool bHandled = false;
+    if (msg.modifierKey & ModifierKey::kIsSystemKey) {
+        SendKeyEvent(WM_SYSCHAR, msg.wParam, msg.lParam, bHandled);
+    }
+    else {
+        SendKeyEvent(WM_CHAR, msg.wParam, msg.lParam, bHandled);
+    }
+    return bRet || bHandled;
 #else
     SendKeyEvent(msg, KEYEVENT_CHAR);
     return bRet;
@@ -625,7 +608,14 @@ bool CefControlOffScreen::OnKeyDown(const EventArgs& msg)
 {
     bool bRet = BaseClass::OnKeyDown(msg);
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    return bRet;
+    bool bHandled = false;
+    if (msg.modifierKey & ModifierKey::kIsSystemKey) {
+        SendKeyEvent(WM_SYSKEYDOWN, msg.wParam, msg.lParam, bHandled);
+    }
+    else {
+        SendKeyEvent(WM_KEYDOWN, msg.wParam, msg.lParam, bHandled);
+    }
+    return bRet || bHandled;
 #else
     SendKeyEvent(msg, KEYEVENT_KEYDOWN);
     return bRet;
@@ -636,7 +626,14 @@ bool CefControlOffScreen::OnKeyUp(const EventArgs& msg)
 {
     bool bRet = BaseClass::OnKeyUp(msg);
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    return bRet;
+    bool bHandled = false;
+    if (msg.modifierKey & ModifierKey::kIsSystemKey) {
+        SendKeyEvent(WM_SYSKEYUP, msg.wParam, msg.lParam, bHandled);
+    }
+    else {
+        SendKeyEvent(WM_KEYUP, msg.wParam, msg.lParam, bHandled);
+    }
+    return bRet || bHandled;
 #else
     SendKeyEvent(msg, KEYEVENT_KEYUP);
     return bRet;
@@ -729,36 +726,6 @@ void CefControlOffScreen::SendKeyEvent(const EventArgs& msg, cef_key_event_type_
 #endif
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-
-LRESULT CefControlOffScreen::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-    if (!IsVisible() || !IsEnabled()) {
-        bHandled = false;
-        return 0;
-    }
-
-    bHandled = false;
-    if ((m_pBrowserHandler == nullptr) || (m_pBrowserHandler->GetBrowser() == nullptr) || (GetWindow() == nullptr)) {
-        return 0;
-    }
-    switch (uMsg) {
-        case WM_SYSCHAR:
-        case WM_SYSKEYDOWN:
-        case WM_SYSKEYUP:
-        case WM_KEYDOWN:
-        case WM_KEYUP:
-        case WM_CHAR:
-            {
-                if (IsFocused()) {
-                    return SendKeyEvent(uMsg, wParam, lParam, bHandled);
-                }
-            }
-            break;
-        default:
-            break;
-    }
-    return 0;
-}
 
 LRESULT CefControlOffScreen::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {

@@ -16,9 +16,6 @@ class CefMemoryBlock;
 /** duilib的CEF控件，离屏渲染模式
 */
 class CefControlOffScreen :public CefControlBase
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    , public ui::IUIMessageFilter
-#endif
 {
     typedef CefControlBase BaseClass;
 public:
@@ -97,10 +94,6 @@ private:
 protected:
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 对消息进行过滤，处理部分业务(处理窗体消息，转发到Cef浏览器对象)
-    */
-    virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
-
     /** 转发键盘相关消息到 BrowserHost
      * @param[in] uMsg 消息
      * @param[in] wParam 消息附加参数

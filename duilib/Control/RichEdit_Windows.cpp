@@ -1905,7 +1905,12 @@ bool RichEdit::OnChar(const EventArgs& msg)
     wParam = msg.vkCode;
     lParam = 0;
 #endif
-    m_richCtrl.TxSendMessage(WM_CHAR, wParam, lParam);
+    if (msg.modifierKey & ModifierKey::kIsSystemKey) {
+        m_richCtrl.TxSendMessage(WM_SYSCHAR, wParam, lParam);
+    }
+    else {
+        m_richCtrl.TxSendMessage(WM_CHAR, wParam, lParam);
+    }    
 #else
     //只支持1字节和2字节的文字输入，不支持4字节的文字输入
     if ((::GetTickCount() - m_dwLastCharTime) > 5000) {
