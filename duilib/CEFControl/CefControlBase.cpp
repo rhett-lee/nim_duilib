@@ -202,6 +202,33 @@ bool CefControlBase::CallJSFunction(const DString& js_function_name, const DStri
     return false;
 }
 
+
+bool CefControlBase::OnExecuteCppFunc(const CefString& function_name, const CefString& params, int js_callback_id, CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
+{
+    if (m_jsBridge.get()) {
+        m_jsCallbackThreadId = ui::GlobalManager::Instance().Thread().GetCurrentThreadIdentifier();
+        return m_jsBridge->ExecuteCppFunc(function_name, params, js_callback_id, browser, frame);
+    }
+    return false;
+}
+
+bool CefControlBase::OnExecuteCppCallbackFunc(int cpp_callback_id, const CefString& json_string)
+{
+    if (m_jsBridge.get()) {
+        if (m_jsCallbackThreadId != -1) {
+            ui::GlobalManager::Instance().Thread().PostTask(m_jsCallbackThreadId, [this, cpp_callback_id, json_string]
+                {
+                    m_jsBridge->ExecuteCppCallbackFunc(cpp_callback_id, json_string);
+                });
+        }
+        else {
+            return m_jsBridge->ExecuteCppCallbackFunc(cpp_callback_id, json_string);
+        }
+
+    }
+    return false;
+}
+
 void CefControlBase::RepairBrowser()
 {
     ReCreateBrowser();
@@ -270,12 +297,18 @@ void CefControlBase::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPt
     if (m_pfnBeforeContextMenu) {
         m_pfnBeforeContextMenu(browser, frame, params, model);
     }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnBeforeContextMenu(browser, frame, params, model);
+    }
 }
 
 bool CefControlBase::OnContextMenuCommand(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, int command_id, CefContextMenuHandler::EventFlags event_flags)
 {
     if (m_pfnContextMenuCommand) {
         return m_pfnContextMenuCommand(browser, frame, params, command_id, event_flags);
+    }
+    else if (m_pCefControlEventHandler) {
+        return m_pCefControlEventHandler->OnContextMenuCommand(browser, frame, params, command_id, event_flags);
     }
     return false;
 }
@@ -284,6 +317,9 @@ void CefControlBase::OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRe
 {
     if (m_pfnContextMenuDismissed) {
         m_pfnContextMenuDismissed(browser, frame);
+    }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnContextMenuDismissed(browser, frame);
     }
 }
 
@@ -300,12 +336,18 @@ void CefControlBase::OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
             m_pfnMainUrlChange(old_url, m_url);
         }
     }
+    if (!m_pfnUrlChange && m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnUrlChange(browser, frame, url);
+    }
 }
 
 void CefControlBase::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title)
 {
     if (m_pfnTitleChange) {
         m_pfnTitleChange(browser, title);
+    }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnTitleChange(browser, title);
     }
 }
 
@@ -314,12 +356,18 @@ void CefControlBase::OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std
     if (m_pfnFaviconURLChange) {
         m_pfnFaviconURLChange(browser, icon_urls);
     }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnFaviconURLChange(browser, icon_urls);
+    }
 }
 
 void CefControlBase::OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool fullscreen)
 {
     if (m_pfnFullscreenModeChange) {
         m_pfnFullscreenModeChange(browser, fullscreen);
+    }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnFullscreenModeChange(browser, fullscreen);
     }
 }
 
@@ -328,12 +376,18 @@ void CefControlBase::OnStatusMessage(CefRefPtr<CefBrowser> browser, const DStrin
     if (m_pfnStatusMessage) {
         m_pfnStatusMessage(browser, value);
     }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnStatusMessage(browser, value);
+    }
 }
 
 void CefControlBase::OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress)
 {
     if (m_pfnLoadingProgressChange) {
         m_pfnLoadingProgressChange(browser, progress);
+    }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnLoadingProgressChange(browser, progress);
     }
 }
 
@@ -342,12 +396,18 @@ void CefControlBase::OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has
     if (m_pfnMediaAccessChange) {
         m_pfnMediaAccessChange(browser, has_video_access, has_audio_access);
     }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnMediaAccessChange(browser, has_video_access, has_audio_access);
+    }
 }
 
 void CefControlBase::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
 {
     if (m_pfnLoadingStateChange) {
         m_pfnLoadingStateChange(browser, isLoading, canGoBack, canGoForward);
+    }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnLoadingStateChange(browser, isLoading, canGoBack, canGoForward);
     }
 }
 
@@ -356,6 +416,9 @@ void CefControlBase::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFra
     if (m_pfnLoadStart) {
         m_pfnLoadStart(browser, frame, transition_type);
     }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnLoadStart(browser, frame, transition_type);
+    }
 }
 
 void CefControlBase::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
@@ -363,12 +426,18 @@ void CefControlBase::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame
     if (m_pfnLoadEnd) {
         m_pfnLoadEnd(browser, frame, httpStatusCode);
     }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnLoadEnd(browser, frame, httpStatusCode);
+    }
 }
 
 void CefControlBase::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefLoadHandler::ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl)
 {
     if (m_pfnLoadError) {
         m_pfnLoadError(browser, frame, errorCode, errorText, failedUrl);
+    }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnLoadError(browser, frame, errorCode, errorText, failedUrl);
     }
 }
 
@@ -391,6 +460,11 @@ bool CefControlBase::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                 target_disposition, user_gesture, popupFeatures, windowInfo,
                                 client, settings, extra_info, no_javascript_access);
     }
+    else if (m_pCefControlEventHandler) {
+        return m_pCefControlEventHandler->OnBeforePopup(browser, frame, popup_id, target_url, target_frame_name,
+                                                        target_disposition, user_gesture, popupFeatures, windowInfo,
+                                                        client, settings, extra_info, no_javascript_access);
+    }
     return true;
 }
 
@@ -399,14 +473,19 @@ void CefControlBase::OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int pop
     if (m_pfnBeforePopupAborted) {
         return m_pfnBeforePopupAborted(browser, popup_id);
     }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnBeforePopupAborted(browser, popup_id);
+    }
 }
 
-bool CefControlBase::OnAfterCreated(CefRefPtr<CefBrowser> browser)
+void CefControlBase::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
     if (m_pfnAfterCreated) {
-        return m_pfnAfterCreated(browser);
+        m_pfnAfterCreated(browser);
     }
-    return false;
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnAfterCreated(browser);
+    }
 }
 
 void CefControlBase::OnBeforeClose(CefRefPtr<CefBrowser> browser)
@@ -414,21 +493,29 @@ void CefControlBase::OnBeforeClose(CefRefPtr<CefBrowser> browser)
     if (m_pfnBeforeClose) {
         m_pfnBeforeClose(browser);
     }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnBeforeClose(browser);
+    }
 }
 
 bool CefControlBase::OnBeforeBrowse(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, bool user_gesture, bool is_redirect)
 {
-    bool result = false; 
     if (m_pfnBeforeBrowse) {
-        result = m_pfnBeforeBrowse(browser, frame, request, user_gesture, is_redirect);
+        return m_pfnBeforeBrowse(browser, frame, request, user_gesture, is_redirect);
     }
-    return result;
+    else if (m_pCefControlEventHandler) {
+        return m_pCefControlEventHandler->OnBeforeBrowse(browser, frame, request, user_gesture, is_redirect);
+    }
+    return false;
 }
 
 cef_return_value_t CefControlBase::OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefRequest> request, CefRefPtr<CefCallback> callback)
 {
     if (m_pfnBeforeResourceLoad) {
         return m_pfnBeforeResourceLoad(browser, frame, request, callback);
+    }
+    else if (m_pCefControlEventHandler) {
+        return m_pCefControlEventHandler->OnBeforeResourceLoad(browser, frame, request, callback);
     }
     return RV_CONTINUE;
 }
@@ -442,6 +529,9 @@ void CefControlBase::OnResourceRedirect(CefRefPtr<CefBrowser> browser,
     if (m_pfnResourceRedirect) {
         m_pfnResourceRedirect(browser, frame, request, response, new_url);
     }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnResourceRedirect(browser, frame, request, response, new_url);
+    }
 }
 
 bool CefControlBase::OnResourceResponse(CefRefPtr<CefBrowser> browser,
@@ -451,6 +541,9 @@ bool CefControlBase::OnResourceResponse(CefRefPtr<CefBrowser> browser,
 {
     if (m_pfnResourceResponse) {
         return m_pfnResourceResponse(browser, frame, request, response);
+    }
+    else if (m_pCefControlEventHandler) {
+        return m_pCefControlEventHandler->OnResourceResponse(browser, frame, request, response);
     }
     return false;
 }
@@ -465,12 +558,18 @@ void CefControlBase::OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
     if (m_pfnResourceLoadComplete) {
         m_pfnResourceLoadComplete(browser, frame, request, response, status, received_content_length);
     }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnResourceLoadComplete(browser, frame, request, response, status, received_content_length);
+    }
 }
 
 void CefControlBase::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution)
 {
     if (m_pfnProtocolExecution) {
         m_pfnProtocolExecution(browser, url, allow_os_execution);
+    }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnProtocolExecution(browser, url, allow_os_execution);
     }
 }
 
@@ -486,6 +585,9 @@ void CefControlBase::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browse
     if (m_pfnDocumentAvailableInMainFrame) {
         m_pfnDocumentAvailableInMainFrame(browser);
     }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnDocumentAvailableInMainFrame(browser);
+    }
 }
 
 bool CefControlBase::OnCanDownload(CefRefPtr<CefBrowser> browser,
@@ -495,6 +597,9 @@ bool CefControlBase::OnCanDownload(CefRefPtr<CefBrowser> browser,
     if (m_pfnCanDownload) {
         return m_pfnCanDownload(browser, url, request_method);
     }
+    else if (m_pCefControlEventHandler) {
+        return m_pCefControlEventHandler->OnCanDownload(browser, url, request_method);
+    }
     return true;
 }
 
@@ -503,6 +608,9 @@ bool CefControlBase::OnBeforeDownload(CefRefPtr<CefBrowser> browser, CefRefPtr<C
     if (m_pfnBeforeDownload) {
         return m_pfnBeforeDownload(browser, download_item, suggested_name, callback);
     }
+    else if (m_pCefControlEventHandler) {
+        return m_pCefControlEventHandler->OnBeforeDownload(browser, download_item, suggested_name, callback);
+    }
     return false;
 }
 
@@ -510,6 +618,9 @@ void CefControlBase::OnDownloadUpdated(CefRefPtr<CefBrowser> browser, CefRefPtr<
 {
     if (m_pfnDownloadUpdated) {
         m_pfnDownloadUpdated(browser, download_item, callback);
+    }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnDownloadUpdated(browser, download_item, callback);
     }
 }
 
@@ -525,33 +636,20 @@ bool CefControlBase::OnFileDialog(CefRefPtr<CefBrowser> browser,
     if (m_pfnFileDialog) {
         return m_pfnFileDialog(browser, mode, title, default_file_path, accept_filters, accept_extensions, accept_descriptions, callback);
     }
+    else if (m_pCefControlEventHandler) {
+        return m_pCefControlEventHandler->OnFileDialog(browser, mode, title, default_file_path, accept_filters, accept_extensions, accept_descriptions, callback);
+    }
     return false;        
 }
 
-bool CefControlBase::OnExecuteCppFunc(const CefString& function_name, const CefString& params, int js_callback_id, CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
+void CefControlBase::SetCefEventHandler(CefControlEvent* pCefControlEventHandler)
 {
-    if (m_jsBridge.get()) {
-        m_jsCallbackThreadId = ui::GlobalManager::Instance().Thread().GetCurrentThreadIdentifier();
-        return m_jsBridge->ExecuteCppFunc(function_name, params, js_callback_id, browser, frame);
-    }
-    return false;
+    m_pCefControlEventHandler = pCefControlEventHandler;
 }
 
-bool CefControlBase::OnExecuteCppCallbackFunc(int cpp_callback_id, const CefString& json_string)
+CefControlEvent* CefControlBase::GetCefEventHandler() const
 {
-    if (m_jsBridge.get()) {
-        if (m_jsCallbackThreadId != -1) {
-            ui::GlobalManager::Instance().Thread().PostTask(m_jsCallbackThreadId, [this, cpp_callback_id, json_string]
-            {
-                m_jsBridge->ExecuteCppCallbackFunc(cpp_callback_id, json_string);
-            });
-        }
-        else {
-            return m_jsBridge->ExecuteCppCallbackFunc(cpp_callback_id, json_string);
-        }
-
-    }
-    return false;
+    return m_pCefControlEventHandler;
 }
 
 } //namespace ui

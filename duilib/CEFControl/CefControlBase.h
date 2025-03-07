@@ -272,7 +272,7 @@ public:
     /** 绑定一个回调函数用于监听一个浏览器实例关闭前的通知（回调函数的调用线程：主进程的UI线程）
     * @param [in] callback 一个回调函数，参考 OnBeforeCloseEvent 声明
     */
-    void AttachBeforeCLose(const OnBeforeCloseEvent& callback) { m_pfnBeforeClose = callback; }
+    void AttachBeforeClose(const OnBeforeCloseEvent& callback) { m_pfnBeforeClose = callback; }
 
     /** 绑定一个回调函数用于监听一个浏览器实例加载通知（回调函数的调用线程：CEF的UI线程）
     * @param [in] callback 一个回调函数，参考 OnBeforeBrowseEvent 声明
@@ -305,6 +305,18 @@ public:
     void AttachDocumentAvailableInMainFrame(const OnDocumentAvailableInMainFrameEvent& callback) { m_pfnDocumentAvailableInMainFrame = callback; }
 
 public:
+    /** 设置CEF控件事件的回调接口
+        （1）如果设置此回调接口，那么可以不使用上述的AttachXXX事件回调函数，二者可以取其一使用，但功能互斥，AttachXXX为高优先级）
+        （2）对于接口中的回调函数，如果同时设置了对应的AttachXXX事件回调函数，那么AttachXXX为高优先级，pCefControlEventHandler对应的函数不会被回调
+    * @param [in] pCefControlEventHandler CEF控件事件的回调接口
+    */
+    void SetCefEventHandler(CefControlEvent* pCefControlEventHandler);
+
+    /** 获取CEF控件事件的回调接口
+    */
+    CefControlEvent* GetCefEventHandler() const;
+
+protected:
     /** CefRenderHandler接口, 在非UI线程中被调用
     *   当浏览器渲染数据变化时，会触发此接口，此时把渲染数据保存到内存dc
         并且通知窗体刷新控件，在控件的Paint函数里把内存dc的位图画到窗体上
@@ -359,7 +371,7 @@ public:
                                CefRefPtr<CefDictionaryValue>& extra_info,
                                bool* no_javascript_access) override;
     virtual void OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_id) override;
-    virtual bool OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
+    virtual void OnAfterCreated(CefRefPtr<CefBrowser> browser) override;
     virtual void OnBeforeClose(CefRefPtr<CefBrowser> browser) override;
 
     //CefRequestHandler接口, 在非UI线程中被调用
@@ -416,7 +428,7 @@ public:
                               const std::vector<CefString>& accept_descriptions,
                               CefRefPtr<CefFileDialogCallback> callback) override;
 
-public:
+protected:
     /** 客户区坐标转换为控件坐标
     */
     virtual void ClientToControl(UiPoint& pt) override;
@@ -488,6 +500,10 @@ private:
     OnFileDialogEvent               m_pfnFileDialog = nullptr;
     OnDevToolAttachedStateChangeEvent   m_pfnDevToolVisibleChange = nullptr;
     OnDocumentAvailableInMainFrameEvent m_pfnDocumentAvailableInMainFrame = nullptr;
+
+    /** CEF控件的事件回调接口
+    */
+    CefControlEvent* m_pCefControlEventHandler = nullptr;
 };
 }
 
