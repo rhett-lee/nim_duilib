@@ -112,7 +112,15 @@ void CefControlOffScreen::ReCreateBrowser()
         // 使用无窗模式，离屏渲染
         CefWindowInfo window_info;
 #ifdef DUILIB_BUILD_FOR_WIN
-        window_info.SetAsWindowless(GetWindow()->NativeWnd()->GetHWND());
+        HWND hWnd = nullptr;
+        if (GetWindow() != nullptr) {
+            hWnd = GetWindow()->NativeWnd()->GetHWND();
+        }
+        window_info.SetAsWindowless(hWnd);
+        if (::GetWindowLongPtr(hWnd, GWL_EXSTYLE) & WS_EX_NOACTIVATE) {
+            // Don't activate the browser window on creation.
+            window_info.ex_style |= WS_EX_NOACTIVATE;
+        }
 #else
 
 #endif
