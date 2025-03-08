@@ -651,25 +651,33 @@ bool CefControlOffScreen::OnKeyUp(const EventArgs& msg)
 
 bool CefControlOffScreen::OnImeSetContext(const EventArgs& msg)
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     OnIMESetContext(WM_IME_SETCONTEXT, msg.wParam, msg.lParam);
+#endif
     return true;
 }
 
 bool CefControlOffScreen::OnImeStartComposition(const EventArgs& /*msg*/)
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     OnIMEStartComposition();
+#endif
     return true;
 }
 
 bool CefControlOffScreen::OnImeComposition(const EventArgs& msg)
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     OnIMEComposition(WM_IME_COMPOSITION, msg.wParam, msg.lParam);
+#endif
     return true;
 }
 
 bool CefControlOffScreen::OnImeEndComposition(const EventArgs& /*msg*/)
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     OnIMECancelCompositionEvent();
+#endif
     return true;
 }
 
