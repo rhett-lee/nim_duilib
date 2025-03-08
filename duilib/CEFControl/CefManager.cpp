@@ -135,8 +135,14 @@ void CefManager::AddCefDllToPath()
     #endif
 #endif
 
-    if (!cef_path.IsExistsDirectory()) {
-        ::MessageBoxW(nullptr, L"请解压CEF压缩包，将libcef.dll释放到bin目录", L"提示", MB_OK);
+    ui::FilePath cefDllPath = cef_path;
+    cefDllPath.NormalizeDirectoryPath();
+    cefDllPath += ui::FilePath(L"libcef.dll");
+
+    if (!cef_path.IsExistsDirectory() || !cefDllPath.IsExistsFile()) {
+        DStringW errMsg = L"无法加载libcef.dll文件！\n请将libcef.dll等相关的CEF二进制文件和资源文件释放到以下目录：\n";
+        errMsg += cef_path.ToStringW();
+        ::MessageBoxW(nullptr, errMsg.c_str(), L"错误提示", MB_OK);
         exit(0);
     }
     DString new_envirom(cef_path.NativePath());
