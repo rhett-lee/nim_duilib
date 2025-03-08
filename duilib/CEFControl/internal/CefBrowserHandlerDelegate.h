@@ -34,7 +34,7 @@ public:
                          int width, int height) = 0;//CefRenderHandler接口
     virtual void OnPopupShow(CefRefPtr<CefBrowser> browser, bool show) = 0;//CefRenderHandler接口
     virtual void OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect) = 0;//CefRenderHandler接口
-
+    virtual void OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> browser, const CefRange& selected_range, const std::vector<CefRect>& character_bounds) = 0;
 
     //CefContextMenuHandler接口, 在非UI线程中被调用
     virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model) = 0;

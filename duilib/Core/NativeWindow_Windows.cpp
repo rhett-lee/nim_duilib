@@ -2322,9 +2322,19 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
         lResult = m_pOwner->OnNativeKillFocusMsg(pSetFocusWindow, NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
+    case WM_IME_SETCONTEXT:
+    {
+        lResult = m_pOwner->OnNativeImeSetContextMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
+        break;
+    }
     case WM_IME_STARTCOMPOSITION:
     {
         lResult = m_pOwner->OnNativeImeStartCompositionMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
+        break;
+    }
+    case WM_IME_COMPOSITION:
+    {
+        lResult = m_pOwner->OnNativeImeCompositionMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
         break;
     }
     case WM_IME_ENDCOMPOSITION:

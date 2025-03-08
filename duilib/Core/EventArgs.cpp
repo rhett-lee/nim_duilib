@@ -208,8 +208,12 @@ DString EventTypeToString(EventType eventType)
         return _T("kEventSetCursor");
     case kEventCaptureChanged:
         return _T("kEventCaptureChanged");
+    case kEventImeSetContext:
+        return _T("kEventImeSetContext");
     case kEventImeStartComposition:
         return _T("kEventImeStartComposition");
+    case kEventImeComposition:
+        return _T("kEventImeComposition");
     case kEventImeEndComposition:
         return _T("kEventImeEndComposition");
     case kEventWindowKillFocus:

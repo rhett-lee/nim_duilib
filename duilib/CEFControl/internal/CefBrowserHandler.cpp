@@ -462,6 +462,9 @@ void CefBrowserHandler::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> brows
                                                      const CefRange& selected_range,
                                                      const RectList& character_bounds)
 {
+    if (m_pHandlerDelegate) {
+        m_pHandlerDelegate->OnImeCompositionRangeChanged(browser, selected_range, character_bounds);
+    }
 }
 
 void CefBrowserHandler::OnTextSelectionChanged(CefRefPtr<CefBrowser> browser, const CefString& selected_text, const CefRange& selected_range)

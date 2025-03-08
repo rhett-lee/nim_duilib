@@ -957,9 +957,19 @@ LRESULT WindowBase::OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, const N
     return OnKillFocusMsg(pSetFocusWindowBase, nativeMsg, bHandled);
 }
 
+LRESULT WindowBase::OnNativeImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled)
+{
+    return OnImeSetContextMsg(nativeMsg, bHandled);
+}
+
 LRESULT WindowBase::OnNativeImeStartCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
     return OnImeStartCompositionMsg(nativeMsg, bHandled);
+}
+
+LRESULT WindowBase::OnNativeImeCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled)
+{
+    return OnImeCompositionMsg(nativeMsg, bHandled);
 }
 
 LRESULT WindowBase::OnNativeImeEndCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled)

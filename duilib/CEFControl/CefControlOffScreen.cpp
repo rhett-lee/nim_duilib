@@ -6,6 +6,7 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     #include "duilib/CEFControl/internal/Windows/util_win.h"
+    #include "duilib/CEFControl/internal/Windows/osr_ime_handler_win.h"
 #endif
 
 #include "duilib/Core/GlobalManager.h"
@@ -648,6 +649,30 @@ bool CefControlOffScreen::OnKeyUp(const EventArgs& msg)
 #endif
 }
 
+bool CefControlOffScreen::OnImeSetContext(const EventArgs& msg)
+{
+    OnIMESetContext(WM_IME_SETCONTEXT, msg.wParam, msg.lParam);
+    return true;
+}
+
+bool CefControlOffScreen::OnImeStartComposition(const EventArgs& /*msg*/)
+{
+    OnIMEStartComposition();
+    return true;
+}
+
+bool CefControlOffScreen::OnImeComposition(const EventArgs& msg)
+{
+    OnIMEComposition(WM_IME_COMPOSITION, msg.wParam, msg.lParam);
+    return true;
+}
+
+bool CefControlOffScreen::OnImeEndComposition(const EventArgs& /*msg*/)
+{
+    OnIMECancelCompositionEvent();
+    return true;
+}
+
 #if defined (DUILIB_BUILD_FOR_SDL)
 
 /** 获取按键标志
@@ -733,6 +758,40 @@ void CefControlOffScreen::SendKeyEvent(const EventArgs& msg, cef_key_event_type_
 }
 #endif
 
+static int LogicalToDevice(int value, float device_scale_factor)
+{
+    float scaled_val = static_cast<float>(value) * device_scale_factor;
+    return static_cast<int>(std::floor(scaled_val));
+}
+
+static CefRect LogicalToDevice(const CefRect& value, float device_scale_factor)
+{
+    return CefRect(LogicalToDevice(value.x, device_scale_factor),
+                   LogicalToDevice(value.y, device_scale_factor),
+                   LogicalToDevice(value.width, device_scale_factor),
+                   LogicalToDevice(value.height, device_scale_factor));
+}
+
+void CefControlOffScreen::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> browser, const CefRange& selected_range, const std::vector<CefRect>& character_bounds)
+{
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    CefCurrentlyOn(TID_UI);
+    if (m_imeHandler != nullptr) {
+        float device_scale_factor = Dpi().GetDPI() / 96.0f;
+        // Convert from view coordinates to device coordinates.
+        CefRenderHandler::RectList device_bounds;
+        CefRenderHandler::RectList::const_iterator it = character_bounds.begin();
+        for (; it != character_bounds.end(); ++it) {
+            CefRect value = LogicalToDevice(*it, device_scale_factor);
+            value.x += GetRect().left;
+            value.y += GetRect().top;
+            device_bounds.push_back(value);
+        }
+        m_imeHandler->ChangeCompositionRange(selected_range, device_bounds);
+    }
+#endif
+}
+
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 LRESULT CefControlOffScreen::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -765,6 +824,112 @@ LRESULT CefControlOffScreen::SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lPara
     bHandled = true;
     return 0;
 }
+
+void CefControlOffScreen::OnIMEStartComposition()
+{
+    HWND hWnd = nullptr;
+    if (GetWindow() != nullptr) {
+        ASSERT(GetWindow()->IsWindow());
+        hWnd = (HWND)GetWindow()->GetWindowHandle();
+    }
+    ASSERT(hWnd != nullptr);
+    if (hWnd == nullptr) {
+        return;
+    }
+    if ((m_imeHandler == nullptr) || (m_imeHandler->GetHandlerHWND() != hWnd)) {
+        //创建IME管理器        
+        m_imeHandler = std::make_unique<client::OsrImeHandlerWin>(hWnd);        
+    }
+    if (m_imeHandler) {
+        m_imeHandler->SetInputLanguage();
+        m_imeHandler->CreateImeWindow();
+        m_imeHandler->MoveImeWindow();
+        m_imeHandler->ResetComposition();
+    }
+}
+
+void CefControlOffScreen::OnIMESetContext(UINT message, WPARAM wParam, LPARAM lParam)
+{
+    if (GetWindow() == nullptr) {
+        return;
+    }
+    HWND hWnd = (HWND)GetWindow()->GetWindowHandle();
+    // We handle the IME Composition Window ourselves (but let the IME Candidates
+    // Window be handled by IME through DefWindowProc()), so clear the
+    // ISC_SHOWUICOMPOSITIONWINDOW flag:
+    lParam &= ~ISC_SHOWUICOMPOSITIONWINDOW;
+    ::DefWindowProc(hWnd, message, wParam, lParam);
+
+    // Create Caret Window if required
+    if ((m_imeHandler == nullptr) || (m_imeHandler->GetHandlerHWND() != hWnd)) {
+        //创建IME管理器        
+        m_imeHandler = std::make_unique<client::OsrImeHandlerWin>(hWnd);
+        m_imeHandler->SetInputLanguage();
+    }
+    if (m_imeHandler) {
+        m_imeHandler->CreateImeWindow();
+        m_imeHandler->MoveImeWindow();
+    }
+}
+
+void CefControlOffScreen::OnIMEComposition(UINT /*message*/, WPARAM /*wParam*/, LPARAM lParam)
+{
+    ASSERT(m_imeHandler != nullptr);
+    CefRefPtr<CefBrowser> browser;
+    if (m_pBrowserHandler != nullptr) {
+        browser = m_pBrowserHandler->GetBrowser();
+    }
+    if ((browser != nullptr) && (browser->GetHost() != nullptr) && (m_imeHandler != nullptr)) {
+        CefString cTextStr;
+        if (m_imeHandler->GetResult(lParam, cTextStr)) {
+            // Send the text to the browser. The |replacement_range| and
+            // |relative_cursor_pos| params are not used on Windows, so provide
+            // default invalid values.
+            browser->GetHost()->ImeCommitText(cTextStr, CefRange::InvalidRange(), 0);
+            m_imeHandler->ResetComposition();
+            // Continue reading the composition string - Japanese IMEs send both
+            // GCS_RESULTSTR and GCS_COMPSTR.
+        }
+
+        std::vector<CefCompositionUnderline> underlines;
+        int composition_start = 0;
+
+        if (m_imeHandler->GetComposition(lParam, cTextStr, underlines,
+            composition_start)) {
+            // Send the composition string to the browser. The |replacement_range|
+            // param is not used on Windows, so provide a default invalid value.
+            browser->GetHost()->ImeSetComposition(
+                cTextStr, underlines, CefRange::InvalidRange(),
+                CefRange(composition_start,
+                    static_cast<int>(composition_start + cTextStr.length())));
+
+            // Update the Candidate Window position. The cursor is at the end so
+            // subtract 1. This is safe because IMM32 does not support non-zero-width
+            // in a composition. Also,  negative values are safely ignored in
+            // MoveImeWindow
+            m_imeHandler->UpdateCaretPosition(composition_start - 1);
+        }
+        else {
+            OnIMECancelCompositionEvent();
+        }
+    }
+}
+
+void CefControlOffScreen::OnIMECancelCompositionEvent()
+{
+    CefRefPtr<CefBrowser> browser;
+    if (m_pBrowserHandler != nullptr) {
+        browser = m_pBrowserHandler->GetBrowser();
+    }
+    if ((browser != nullptr) && (browser->GetHost() != nullptr)) {
+        browser->GetHost()->ImeCancelComposition();
+    }
+    if (m_imeHandler != nullptr) {
+        m_imeHandler->ResetComposition();
+        m_imeHandler->DestroyImeWindow();
+    }
+}
+
 
 #endif //defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 

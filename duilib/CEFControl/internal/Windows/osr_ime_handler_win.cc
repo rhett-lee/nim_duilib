@@ -113,10 +113,10 @@ void OsrImeHandlerWin::SetInputLanguage() {
   // keyboard layout is installed. And the language from GetKeyboardLayoutName
   // indicates the language of the keyboard layout itself.
   // See crbug.com/344834.
-  WCHAR keyboard_layout[KL_NAMELENGTH];
+  WCHAR keyboard_layout[KL_NAMELENGTH] = {0, };
   if (::GetKeyboardLayoutNameW(keyboard_layout)) {
     input_language_id_ =
-        static_cast<LANGID>(_wtoi(&keyboard_layout[KL_NAMELENGTH >> 1]));
+        static_cast<LANGID>(::wcstoull(&keyboard_layout[KL_NAMELENGTH >> 1], nullptr, 16)); //字符串是16进制的
   } else {
     input_language_id_ = 0x0409;  // Fallback to en-US.
   }

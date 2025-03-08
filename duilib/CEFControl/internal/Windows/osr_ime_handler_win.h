@@ -72,6 +72,9 @@ class OsrImeHandlerWin {
   // Updates the position of the IME windows.
   void MoveImeWindow();
 
+  //获取关联的窗口
+  HWND GetHandlerHWND() const { return hwnd_; }
+
  private:
   // Retrieves the composition information.
   void GetCompositionInfo(HIMC imm_context,

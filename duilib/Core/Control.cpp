@@ -1768,8 +1768,18 @@ void Control::HandleEvent(const EventArgs& msg)
             return;
         }
     }
+    else if (msg.eventType == kEventImeSetContext) {
+        if (OnImeSetContext(msg)) {
+            return;
+        }
+    }
     else if (msg.eventType == kEventImeStartComposition) {
         if (OnImeStartComposition(msg)) {
+            return;
+        }
+    }
+    else if (msg.eventType == kEventImeComposition) {
+        if (OnImeComposition(msg)) {
             return;
         }
     }
@@ -2137,7 +2147,19 @@ bool Control::OnCaptureChanged(const EventArgs& /*msg*/)
     return false;
 }
 
+bool Control::OnImeSetContext(const EventArgs& /*msg*/)
+{
+    //默认不处理，交由父控件处理
+    return false;
+}
+
 bool Control::OnImeStartComposition(const EventArgs& /*msg*/)
+{
+    //默认不处理，交由父控件处理
+    return false;
+}
+
+bool Control::OnImeComposition(const EventArgs& /*msg*/)
 {
     //默认不处理，交由父控件处理
     return false;
