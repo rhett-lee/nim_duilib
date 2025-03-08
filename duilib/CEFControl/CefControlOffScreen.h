@@ -9,6 +9,13 @@
 #include "duilib/Core/Window.h"
 #include "duilib/CEFControl/CefControlBase.h"
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+namespace client
+{
+    class OsrImeHandlerWin;
+}
+#endif
+
 namespace ui {
 
 class CefMemoryBlock;
@@ -30,6 +37,10 @@ public:
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
     virtual void SetWindow(Window* pWindow) override;
 
+    /** 是否为OSR模式（CEF的离屏渲染控件）
+    */
+    virtual bool IsCefOSR() const override { return true; }
+
     /** 打开开发者工具
     * @param [in] view 一个 CefControlOffScreen 控件实例(仅在CefControlOffScreen类里需要传入)
     * @return 成功返回 true，失败返回 false
@@ -44,9 +55,8 @@ protected:
     /** 重新创建Browser控件
     */
     virtual void ReCreateBrowser() override;
-
-    // 在非UI线程中被调用
     virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model) override;
+    virtual void OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> browser, const CefRange& selected_range, const std::vector<CefRect>& character_bounds) override;
 
     //光标消息
     virtual bool OnSetCursor(const EventArgs& msg) override;
@@ -73,6 +83,12 @@ protected:
     virtual bool OnChar(const EventArgs& msg) override;
     virtual bool OnKeyDown(const EventArgs& msg) override;
     virtual bool OnKeyUp(const EventArgs& msg) override;
+
+    //输入法相关消息处理
+    virtual bool OnImeSetContext(const EventArgs& msg) override;
+    virtual bool OnImeStartComposition(const EventArgs& msg) override;
+    virtual bool OnImeComposition(const EventArgs& msg) override;
+    virtual bool OnImeEndComposition(const EventArgs& msg) override;
 
 private:
     void SendButtonDownEvent(const EventArgs& msg);
@@ -102,6 +118,18 @@ protected:
      * @return 返回消息处理结果
      */
     LRESULT SendKeyEvent(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
+
+    /** 输入法相关的消息处理
+    */
+    void OnIMEStartComposition();
+    void OnIMESetContext(UINT message, WPARAM wParam, LPARAM lParam);
+    void OnIMEComposition(UINT message, WPARAM wParam, LPARAM lParam);
+    void OnIMECancelCompositionEvent();
+
+private:
+    /** IME消息处理，以支持输入法的输入操作
+    */
+    std::unique_ptr<client::OsrImeHandlerWin> m_imeHandler;
 
 #endif
 

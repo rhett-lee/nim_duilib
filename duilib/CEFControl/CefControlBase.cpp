@@ -287,6 +287,10 @@ void CefControlBase::OnPopupSize(CefRefPtr<CefBrowser> /*rowser*/, const CefRect
 {
 }
 
+void CefControlBase::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> /*browser*/, const CefRange& /*selected_range*/, const std::vector<CefRect>& /*character_bounds*/)
+{
+}
+
 void CefControlBase::UpdateWindowPos()
 {
     this->SetPos(this->GetPos());

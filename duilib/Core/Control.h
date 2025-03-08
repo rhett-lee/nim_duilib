@@ -933,6 +933,10 @@ public:
     */
     bool IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const;
 
+    /** 是否为OSR模式（CEF的离屏渲染控件）
+    */
+    virtual bool IsCefOSR() const { return false; }
+
 public:
     /**@name 事件监听相关接口
     * @{
@@ -1036,7 +1040,9 @@ protected:
     virtual bool OnKillFocus(const EventArgs& msg); //控件失去焦点
     virtual bool OnWindowKillFocus(const EventArgs& msg);//控件所属的窗口失去焦点
     virtual bool OnCaptureChanged(const EventArgs& msg);//控件所属窗口的鼠标捕获丢失
+    virtual bool OnImeSetContext(const EventArgs& msg);
     virtual bool OnImeStartComposition(const EventArgs& msg);
+    virtual bool OnImeComposition(const EventArgs& msg);
     virtual bool OnImeEndComposition(const EventArgs& msg);
 
     /// 绘制相关保护成员函数，不允许外部直接调用
