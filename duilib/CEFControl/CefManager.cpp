@@ -257,7 +257,7 @@ void CefManager::PostQuitMessage(int32_t nExitCode)
     }
 }
 
-void CefManager::GetCefSetting(const DString& app_data_dir, CefSettings &settings)
+void CefManager::GetCefSetting(const DString& app_data_dir, CefSettings& settings)
 {
     DString appDataRootDir = app_data_dir;
     if (!appDataRootDir.empty()) {
@@ -283,6 +283,9 @@ void CefManager::GetCefSetting(const DString& app_data_dir, CefSettings &setting
     // 设置debug log文件位置
     CefString(&settings.log_file) = appDataRootDir + _T("cef.log");
 
+    //设置日志级别
+    //settings.log_severity = LOGSEVERITY_VERBOSE;
+
     // cef2623、2526版本debug模式:在使用multi_threaded_message_loop时退出程序会触发中断
     // 加入disable-extensions参数可以修复这个问题，但是会导致一些页面打开时报错
     // 开启Cef多线程消息循环，兼容nbase库消息循环
@@ -290,6 +293,9 @@ void CefManager::GetCefSetting(const DString& app_data_dir, CefSettings &setting
 
     // 开启离屏渲染
     settings.windowless_rendering_enabled = IsEnableOffScreenRendering();
+
+    //设置默认语言为简体中文
+    CefString(&settings.locale) = _T("zh-CN");
 }
 
 }
