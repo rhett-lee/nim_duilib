@@ -176,7 +176,15 @@ bool CefForm::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                             CefRefPtr<CefClient>& client,
                             CefBrowserSettings& settings,
                             CefRefPtr<CefDictionaryValue>& extra_info,
-                            bool* no_javascript_access) { return true; }
+                            bool* no_javascript_access)
+{
+
+    //拦截弹窗，并导航到弹出网址
+    if ((browser != nullptr) && (browser->GetMainFrame() != nullptr) && !target_url.empty()) {
+        browser->GetMainFrame()->LoadURL(target_url);
+    }
+    return true;
+}
 
 void CefForm::OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_id)
 {

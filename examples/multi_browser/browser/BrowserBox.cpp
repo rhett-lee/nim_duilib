@@ -238,8 +238,9 @@ bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                CefRefPtr<CefDictionaryValue>& extra_info,
                                bool* no_javascript_access)
 {
-    if (frame != nullptr) {
-        frame->LoadURL(target_url);
+    //拦截弹窗，并导航到弹出网址
+    if ((browser != nullptr) && (browser->GetMainFrame() != nullptr) && !target_url.empty()) {
+        browser->GetMainFrame()->LoadURL(target_url);
     }
     return true;
 }
