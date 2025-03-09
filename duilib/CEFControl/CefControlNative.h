@@ -6,15 +6,15 @@
 #ifndef UI_CEF_CONTROL_CEF_NATIVE_CONTROL_H_
 #define UI_CEF_CONTROL_CEF_NATIVE_CONTROL_H_
 
-#include "CefControlBase.h"
+#include "CefControl.h"
 
 namespace ui {
 
 /** duilib的CEF控件，窗口模式
 */
-class CefControlNative : public CefControlBase
+class CefControlNative : public CefControl
 {
-    typedef CefControlBase BaseClass;
+    typedef CefControl BaseClass;
 public:
     explicit CefControlNative(ui::Window* pWindow);
     virtual ~CefControlNative(void) override;

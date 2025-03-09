@@ -579,9 +579,6 @@
     <ClCompile Include="Core\DragWindowFilter_SDL.cpp">
       <Filter>Core\SDL</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\CefControlBase.cpp">
-      <Filter>CEFControl</Filter>
-    </ClCompile>
     <ClCompile Include="CEFControl\CefManager.cpp">
       <Filter>CEFControl</Filter>
     </ClCompile>
@@ -626,6 +623,9 @@
     </ClCompile>
     <ClCompile Include="CEFControl\internal\Windows\osr_ime_handler_win.cc">
       <Filter>CEFControl\internal\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\CefControl.cpp">
+      <Filter>CEFControl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1238,9 +1238,6 @@
     <ClInclude Include="duilib_cef.h">
       <Filter>duilib</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\CefControlBase.h">
-      <Filter>CEFControl</Filter>
-    </ClInclude>
     <ClInclude Include="CEFControl\CefControlEvent.h">
       <Filter>CEFControl</Filter>
     </ClInclude>
@@ -1294,6 +1291,9 @@
     </ClInclude>
     <ClInclude Include="CEFControl\internal\Windows\osr_ime_handler_win.h">
       <Filter>CEFControl\internal\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\CefControl.h">
+      <Filter>CEFControl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

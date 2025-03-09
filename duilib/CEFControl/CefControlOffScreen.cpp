@@ -19,7 +19,7 @@
 namespace ui {
 
 CefControlOffScreen::CefControlOffScreen(Window* pWindow) :
-    CefControlBase(pWindow),
+    CefControl(pWindow),
     m_pDevToolView(nullptr)
 {
     m_pCefMemData = std::make_unique<CefMemoryBlock>();
@@ -257,7 +257,7 @@ bool CefControlOffScreen::AttachDevTools(Control* control)
 
 void CefControlOffScreen::DettachDevTools()
 {
-    CefControlBase::DettachDevTools();
+    CefControl::DettachDevTools();
     m_pDevToolView = nullptr;
 }
 
@@ -293,7 +293,7 @@ void CefControlOffScreen::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, Cef
             return;
         }
     }
-    CefControlBase::OnBeforeContextMenu(browser, frame, params, model);
+    CefControl::OnBeforeContextMenu(browser, frame, params, model);
 }
 
 void CefControlOffScreen::AdaptDpiScale(CefMouseEvent& mouse_event)

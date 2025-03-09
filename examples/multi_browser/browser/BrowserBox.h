@@ -45,9 +45,9 @@ public:
 
     /**
     * 获取Cef控件指针
-    * @return ui::CefControlBase* Cef控件
+    * @return ui::CefControl* Cef控件
     */
-    ui::CefControlBase* GetCefControl();
+    ui::CefControl* GetCefControl();
 
     /**
     * 获取网页标题
@@ -281,7 +281,7 @@ private:
     void OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser);
 
 private:
-    ui::CefControlBase* m_pCefControl;
+    ui::CefControl* m_pCefControl;
     MultiBrowserForm* m_pBrowserForm;
     std::string m_browserId;
     DString m_url;

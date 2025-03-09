@@ -221,8 +221,8 @@ private:
     virtual void OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser) override;
 
 private:
-    ui::CefControlBase* m_pCefControl;
-    ui::CefControlBase* m_pCefControlDev;
+    ui::CefControl* m_pCefControl;
+    ui::CefControl* m_pCefControlDev;
     ui::Button* m_pDevToolBtn;
     ui::RichEdit* m_pEditUrl;
 };

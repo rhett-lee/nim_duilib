@@ -24,7 +24,7 @@ MultiBrowserForm* BrowserBox::GetBrowserForm() const
     return m_pBrowserForm;
 }
 
-ui::CefControlBase* BrowserBox::GetCefControl()
+ui::CefControl* BrowserBox::GetCefControl()
 {
     return m_pCefControl;
 }
@@ -36,7 +36,7 @@ DString& BrowserBox::GetTitle()
 
 void BrowserBox::InitBrowserBox(const DString &url)
 {
-    m_pCefControl = static_cast<ui::CefControlBase*>(FindSubControl(_T("cef_control")));
+    m_pCefControl = static_cast<ui::CefControl*>(FindSubControl(_T("cef_control")));
     ASSERT(m_pCefControl != nullptr);
     if (m_pCefControl == nullptr) {
         return;
