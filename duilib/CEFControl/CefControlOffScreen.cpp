@@ -653,6 +653,8 @@ bool CefControlOffScreen::OnImeSetContext(const EventArgs& msg)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     OnIMESetContext(WM_IME_SETCONTEXT, msg.wParam, msg.lParam);
+#else
+    UNUSED_VARIABLE(msg);
 #endif
     return true;
 }
@@ -669,6 +671,8 @@ bool CefControlOffScreen::OnImeComposition(const EventArgs& msg)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     OnIMEComposition(WM_IME_COMPOSITION, msg.wParam, msg.lParam);
+#else
+    UNUSED_VARIABLE(msg);
 #endif
     return true;
 }
@@ -766,6 +770,7 @@ void CefControlOffScreen::SendKeyEvent(const EventArgs& msg, cef_key_event_type_
 }
 #endif
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 static int LogicalToDevice(int value, float device_scale_factor)
 {
     float scaled_val = static_cast<float>(value) * device_scale_factor;
@@ -779,6 +784,7 @@ static CefRect LogicalToDevice(const CefRect& value, float device_scale_factor)
                    LogicalToDevice(value.width, device_scale_factor),
                    LogicalToDevice(value.height, device_scale_factor));
 }
+#endif
 
 void CefControlOffScreen::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> browser, const CefRange& selected_range, const std::vector<CefRect>& character_bounds)
 {
@@ -797,6 +803,10 @@ void CefControlOffScreen::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> bro
         }
         m_imeHandler->ChangeCompositionRange(selected_range, device_bounds);
     }
+#else
+    UNUSED_VARIABLE(browser);
+    UNUSED_VARIABLE(selected_range);
+    UNUSED_VARIABLE(character_bounds);
 #endif
 }
 

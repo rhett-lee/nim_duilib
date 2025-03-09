@@ -30,7 +30,7 @@ void LogUtil::Output(const DString& log)
     DString logMsg = GetTimeStamp() + log;
 #ifdef DUILIB_BUILD_FOR_WIN
     ::OutputDebugString(logMsg.c_str());
-#else
+#elif defined (DUILIB_BUILD_FOR_SDL)
     SDL_Log("%s", logMsg.c_str());
 #endif
 }
