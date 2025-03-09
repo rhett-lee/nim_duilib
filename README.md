@@ -169,74 +169,21 @@
 3. 获取并编译SDL库（nim_duilib内部使用SDL作为Linux平台的界面绘制引擎，所以先要编译SDL）：  
 （0）准备工作    
 
-| 操作系统平台            |桌面类型        |需要安装的模块| 安装命令 | 可选/必选 |
-| :---                    | :---           | :---         | :---     | :---      |
-|OpenEuler                |UKUI/DDE（X11） |libxext       |`sudo dnf install libXext-devel`| 必选 |
-|OpenEuler                |UKUI/DDE（X11） |libxcursor    |`sudo dnf install libXcursor-devel`| 必选 |
-|OpenEuler                |UKUI/DDE（X11） |libxi         |`sudo dnf install libXi-devel`| 必选 |
-|OpenEuler                |UKUI/DDE（X11） |libxrandr     |`sudo dnf install libXrandr-devel`| 必选 |
-|OpenEuler                |UKUI/DDE（X11） |libdbus       |`sudo dnf install dbus-devel`| 必选 |
-|OpenEuler                |UKUI/DDE（X11） |libibus       |`sudo dnf install ibus-devel`| 必选 |
-|OpenKylin（开放麒麟）    | Wayland        |libxext       |`sudo apt install libxext-dev`| 必选 |
-|OpenKylin（开放麒麟）    | Wayland        |libxcursor    |`sudo apt install libxcursor-dev`| 必选 |
-|OpenKylin（开放麒麟）    | Wayland        |libxi         |`sudo apt install libxi-dev`| 必选 |
-|OpenKylin（开放麒麟）    | Wayland        |libxrandr     |`sudo apt install libxrandr-dev`| 必选 |
-|OpenKylin（开放麒麟）    | Wayland        |libdbus       |`sudo apt install libdbus-1-dev`| 必选 |
-|OpenKylin（开放麒麟）    | Wayland        |libibus       |`sudo apt install libibus-1.0-dev`| 必选 |
-|OpenKylin（开放麒麟）    | Wayland        |libwayland    |`sudo apt install libwayland-dev`   | 可选，以支持wayland |
-|OpenKylin（开放麒麟）    | Wayland        |libxkbcommon  |`sudo apt install libxkbcommon-dev` | 可选，以支持wayland |
-|UbuntuKylin（优麒麟）    | X11            |libxext       |`sudo apt install libxext-dev`| 必选 |
-|UbuntuKylin（优麒麟）    | X11            |libxcursor    |`sudo apt install libxcursor-dev`| 必选 |
-|UbuntuKylin（优麒麟）    | X11            |libxi         |`sudo apt install libxi-dev`| 必选 |
-|UbuntuKylin（优麒麟）    | X11            |libxrandr     |`sudo apt install libxrandr-dev`| 必选 |
-|UbuntuKylin（优麒麟）    | X11            |libdbus       |`sudo apt install libdbus-1-dev`| 必选 |
-|UbuntuKylin（优麒麟）    | X11            |libibus       |`sudo apt install libibus-1.0-dev`| 必选 |
-|中科方德                 | X11            |libxext       |`sudo apt install libxext-dev`| 必选 |
-|中科方德                 | X11            |libxcursor    |`sudo apt install libxcursor-dev`| 必选 |
-|中科方德                 | X11            |libxi         |`sudo apt install libxi-dev`| 必选 |
-|中科方德                 | X11            |libxrandr     |`sudo apt install libxrandr-dev`| 必选 |
-|中科方德                 | X11            |libdbus       |`sudo apt install libdbus-1-dev`| 必选 |
-|中科方德                 | X11            |libibus       |`sudo apt install libibus-1.0-dev`| 必选 |
-|统信UOS                  | X11            |libxext       |`sudo apt install libxext-dev`| 必选 |
-|统信UOS                  | X11            |libxcursor    |`sudo apt install libxcursor-dev`| 必选 |
-|统信UOS                  | X11            |libxi         |`sudo apt install libxi-dev`| 必选 |
-|统信UOS                  | X11            |libxrandr     |`sudo apt install libxrandr-dev`| 必选 |
-|统信UOS                  | X11            |libdbus       |`sudo apt install libdbus-1-dev`| 必选 |
-|统信UOS                  | X11            |libibus       |`sudo apt install libibus-1.0-dev`| 必选 |
-|Ubuntu                   |GNOME（Wayland）|libxext       |`sudo apt install libxext-dev`| 必选 |
-|Ubuntu                   |GNOME（Wayland）|libxcursor    |`sudo apt install libxcursor-dev`| 必选 |
-|Ubuntu                   |GNOME（Wayland）|libxi         |`sudo apt install libxi-dev`| 必选 |
-|Ubuntu                   |GNOME（Wayland）|libxrandr     |`sudo apt install libxrandr-dev`| 必选 |
-|Ubuntu                   |GNOME（Wayland）|libdbus       |`sudo apt install libdbus-1-dev`| 必选 |
-|Ubuntu                   |GNOME（Wayland）|libibus       |`sudo apt install libibus-1.0-dev`| 必选 |
-|Ubuntu                   |GNOME（Wayland）|libwayland    |`sudo apt install libwayland-dev`   | 可选，以支持wayland |
-|Ubuntu                   |GNOME（Wayland）|libxkbcommon  |`sudo apt install libxkbcommon-dev` | 可选，以支持wayland |
-|Debian                   |GNOME（Wayland）|libxext       |`sudo apt install libxext-dev`| 必选 |
-|Debian                   |GNOME（Wayland）|libxcursor    |`sudo apt install libxcursor-dev`| 必选 |
-|Debian                   |GNOME（Wayland）|libxi         |`sudo apt install libxi-dev`| 必选 |
-|Debian                   |GNOME（Wayland）|libxrandr     |`sudo apt install libxrandr-dev`| 必选 |
-|Debian                   |GNOME（Wayland）|libdbus       |`sudo apt install libdbus-1-dev`| 必选 |
-|Debian                   |GNOME（Wayland）|libibus       |`sudo apt install libibus-1.0-dev`| 必选 |
-|Debian                   |GNOME（Wayland）|libwayland    |`sudo apt install libwayland-dev`   | 可选，以支持wayland |
-|Debian                   |GNOME（Wayland）|libxkbcommon  |`sudo apt install libxkbcommon-dev` | 可选，以支持wayland |
-|Fedora                   |GNOME（Wayland）|libxext       |`sudo dnf install libXext-devel`| 必选 |
-|Fedora                   |GNOME（Wayland）|libxcursor    |`sudo dnf install libXcursor-devel`| 必选 |
-|Fedora                   |GNOME（Wayland）|libxi         |`sudo dnf install libXi-devel`| 必选 |
-|Fedora                   |GNOME（Wayland）|libxrandr     |`sudo dnf install libXrandr-devel`| 必选 |
-|Fedora                   |GNOME（Wayland）|libdbus       |`sudo dnf install dbus-devel`| 必选 |
-|Fedora                   |GNOME（Wayland）|libibus       |`sudo dnf install ibus-devel`| 必选 |
-|Fedora                   |GNOME（Wayland）|libwayland    |`sudo dnf install wayland-devel`     |可选，以支持wayland|
-|Fedora                   |GNOME（Wayland）|libxkbcommon  |`sudo dnf install libxkbcommon-devel`|可选，以支持wayland|
-|OpenSuse                 |KDE（X11）      |libxext       |`sudo zypper install libXext-devel`  | 必选 |
-|OpenSuse                 |KDE（X11）      |libxcursor    |`sudo zypper install libXcursor-devel`| 必选 |
-|OpenSuse                 |KDE（X11）      |libxi         |`sudo zypper install libXi-devel`| 必选 |
-|OpenSuse                 |KDE（X11）      |libxrandr     |`sudo zypper install libXrandr-devel`| 必选 |
-|OpenSuse                 |KDE（X11）      |libdbus       |`sudo zypper install dbus-1-devel`| 必选 |
-|OpenSuse                 |KDE（X11）      |libibus       |`sudo zypper install ibus-devel`| 必选 |
+| 操作系统平台            |桌面类型        |需要安装的模块及安装命令 | 
+| :---                    | :---           | :---                    |
+|OpenEuler                |UKUI/DDE（X11） |`sudo dnf install libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-devel ibus-devel`| 
+|OpenKylin（开放麒麟）    | Wayland        |`sudo apt install libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev`| 
+|UbuntuKylin（优麒麟）    | X11            |`sudo apt install libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev`| 
+|中科方德                 | X11            |`sudo apt install libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev`| 
+|统信UOS                  | X11            |`sudo apt install libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev`| 
+|Ubuntu                   |GNOME（Wayland）|`sudo apt install libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev`| 
+|Debian                   |GNOME（Wayland）|`sudo apt install libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev`| 
+|Fedora                   |GNOME（Wayland）|`sudo dnf install libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-devel ibus-devel wayland-devel libxkbcommon-devel`|
+|OpenSuse                 |KDE（X11）      |`sudo zypper install libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-1-devel ibus-devel`|
 
 　（1）进入工作目录：`cd /home/develop/`    
 　（2）获取源码：`git clone https://github.com/libsdl-org/SDL.git`   
-　（3）使用cmake设置：`cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="/home/develop/SDL3/" -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF`    
+　（3）使用cmake设置：`cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="/home/develop/SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF`    
 　（4）进入SDL编译目录：`cd /home/develop/SDL.build`    
 　（5）编译SDL：`make`    
 　（6）安装SDL：`make install`    
