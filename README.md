@@ -16,7 +16,7 @@
  - 使用Skia作为界面渲染引擎，性能较好，功能丰富，控件的功能扩展较容易
  - 支持DPI感知（Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式），支持独立设置DPI，支持高清DPI的适配
  - 多国语言支持，支持动态多种语言切换，易于实现国际化
- - CEF 控件支持（仅Windows平台）
+ - CEF 控件支持（支持libcef 109 版本，以兼容Win7系统；支持libcef 133 版本，支持Win10及以上操作系统）
  - 支持SDL3：可使用SDL3作为窗口管理和输入输出等基本功能提供者，从而支持跨平台（目前已经适配了Linux平台）
 
 ## 目录
@@ -24,13 +24,11 @@
 | :---          | :--- |
 | duilib        | 项目的核心代码|
 | docs          | 项目的说明文档|
-| libs          | 静态库编译后的输出目录，包含预设的一些 CEF 组件静态库|
 | bin           | 各个示例程序输出目录，包含预设的皮肤和语言文件以及 CEF 依赖|
 | manifest      | 应用程序清单文件（仅Windows平台）|
 | licenses      | 引用的其他开源代码对应的licenses文件|
 | examples      | 项目的示例程序源代码|
 | duilib/third_party| 项目代码依赖的第三方库，详细内容见后续文档|
-| ui_components | 基于 nim_duilib 封装的常用组件库如 msgbox、toast、cef_control 等（仅Windows平台）|
 
 ## 基于NIM_Duilib_Framework源码做的主要修改
 <table>
@@ -39,7 +37,7 @@
         <th>修改内容</th>
     </tr>
     <tr>
-        <td rowspan="9">整体改进</td>
+        <td rowspan="10">整体改进</td>
         <td align="left">1. 调整了代码的组织结构，按照功能模块划分，大文件按类拆分为多个小文件，有利于理解整个库的体系结构</td>
     </tr>
     <tr><td align="left">2. 梳理了代码的接口文件，补充各个接口的注释和功能注释，有利于阅读和理解代码</td></tr>
@@ -49,9 +47,10 @@
     <tr><td align="left">6. XML文件解析引擎替换为pugixml parser，性能更优</td></tr>
     <tr><td align="left">7. 移除对base库的依赖，消息循环和线程通信相关功能改为自己实现</td></tr>
     <tr><td align="left">8. 集成了Skia引擎，并作为默认的渲染引擎</td></tr>
-    <tr><td align="left">9. 支持SDL3，支持跨平台（已经适配了Windows平台、Linux平台）</td></tr>    
+    <tr><td align="left">9. 支持SDL3，支持跨平台（已经适配了Windows平台、Linux平台）</td></tr>
+    <tr><td align="left">10. CEF组件放到duilib工程，并对CEF的版本进行了升级（支持libcef 109 版本，以兼容Win7系统；支持libcef 133 版本，支持Win10及以上操作系统）</td></tr>
     <tr>
-        <td rowspan="15">功能完善</td>
+        <td rowspan="16">功能完善</td>
         <td align="left">1. 对窗口类（Window）增加了新的属性：的功能进行了完善，提高对DPI自适应、窗口消息的代码容错，代码结构做了调整</td>
     </tr>
     <tr><td align="left">2. 对窗口类（Window）增加了新的属性：use_system_caption，snap_layout_menu，sys_menu，sys_menu_rect, icon属性，提供使用操作系统默认标题栏的选项，自绘标题栏的功能与系统标题栏的功能相似</td></tr>
@@ -68,6 +67,7 @@
     <tr><td align="left">13. 控件的背景色支持渐变色</td></tr>
     <tr><td align="left">14. 完善了多国语言的功能，能够更好的支持多语言动态切换，并提供示例程序examples/MultiLang</td></tr>
     <tr><td align="left">15. 完善了DPI感知功能，支持Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配，提供了示例程序examples/DpiAware</td></tr>
+    <tr><td align="left">16. 移除了ui_components工程，CEF组件代码重新梳理，继承到duilib工程中，其他内容删除</td></tr>
     <tr>
         <td rowspan="13">新增控件</td>
         <td align="left">1. GroupBox：分组容器</td>
