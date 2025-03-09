@@ -903,7 +903,7 @@ void CefControlOffScreen::OnIMEComposition(UINT /*message*/, WPARAM /*wParam*/, 
             // Send the text to the browser. The |replacement_range| and
             // |relative_cursor_pos| params are not used on Windows, so provide
             // default invalid values.
-            browser->GetHost()->ImeCommitText(cTextStr, CefRange::InvalidRange(), 0);
+            browser->GetHost()->ImeCommitText(cTextStr, CefRange((std::numeric_limits<uint32_t>::max)(), (std::numeric_limits<uint32_t>::max)()), 0);
             m_imeHandler->ResetComposition();
             // Continue reading the composition string - Japanese IMEs send both
             // GCS_RESULTSTR and GCS_COMPSTR.
@@ -917,7 +917,7 @@ void CefControlOffScreen::OnIMEComposition(UINT /*message*/, WPARAM /*wParam*/, 
             // Send the composition string to the browser. The |replacement_range|
             // param is not used on Windows, so provide a default invalid value.
             browser->GetHost()->ImeSetComposition(
-                cTextStr, underlines, CefRange::InvalidRange(),
+                cTextStr, underlines, CefRange((std::numeric_limits<uint32_t>::max)(), (std::numeric_limits<uint32_t>::max)()),
                 CefRange(composition_start,
                     static_cast<int>(composition_start + cTextStr.length())));
 
