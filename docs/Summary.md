@@ -1,4 +1,4 @@
-## 项目关联内容链接
+﻿## 项目关联内容链接
 
 * [项目简介](../README.md)
 * [快速上手](Getting-Started.md)
@@ -10,6 +10,7 @@
 * [菜单的样式](Menu.md)
 * [XML文件中各控件的节点名称](XmlNode.md)
 * [控件的事件/消息](Events.md)
+* [CEF控件](CEF.md)
 
 ## 项目中主要类的简表
 各个类的详细接口说明请参考关联头文件，有较详细的注释。    
@@ -138,8 +139,6 @@
 | IMatrix | [duilib/Render/IRender.h](../duilib/Render/IRender.h) | 矩阵接口 |
 | IRender | [duilib/Render/IRender.h](../duilib/Render/IRender.h) | 渲染接口，用于画图、绘制文字等 |
 
-* GdiPlus渲染引擎(略，不推荐使用。仅旧功能支持此引擎，新功能均不再支持该引擎，后续不再维护）
-
 * Skia渲染引擎
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
@@ -150,7 +149,10 @@
 | Brush_Skia | [duilib/RenderSkia/Brush_Skia.h](../duilib/RenderSkia/Brush_Skia.h) | 画刷接口的实现 |
 | Path_Skia | [duilib/RenderSkia/Path_Skia.h](../duilib/RenderSkia/Path_Skia.h) | 路径接口的实现 |
 | Matrix_Skia | [duilib/RenderSkia/Matrix_Skia.h](../duilib/RenderSkia/Matrix_Skia.h) | 矩阵接口的实现 |
+| FontMgr_Skia | [duilib/RenderSkia/FontMgr_Skia.h](../duilib/RenderSkia/FontMgr_Skia.h) | 字体管理器的接口实现 |
 | Render_Skia | [duilib/RenderSkia/Render_Skia.h](../duilib/RenderSkia/Render_Skia.h) | 渲染接口的实现，用于画图、绘制文字等 |
+| Render_Skia_Windows | [duilib/RenderSkia/Render_Skia_Windows.h](../duilib/RenderSkia/Render_Skia_Windows.h) | 渲染接口的Windows相关功能的实现 |
+| Render_Skia_SDL | [duilib/RenderSkia/Render_Skia_SDL.h](../duilib/RenderSkia/Render_Skia_SDL.h) | 渲染接口的SDL相关功能的实现，主要用于Linux，Windows也支持 |
 
 * 控件/功能组件
 | 类名称/功能组件 | 基类 | 关联头文件| 用途 |
@@ -181,8 +183,9 @@
 | Slider | Progress| [duilib/Control/Slider.h](../duilib/Control/Slider.h) | 滑块控件 |
 | CircleProgress | Control| [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | 环形进度条 |
 | RichEdit | ScrollBox| [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | 富文本编辑框控件 |
-| RichEdit实现类 | | [duilib/Control/RichEditCtrl.h](../duilib/Control/RichEditCtrl.h) | 富文本编辑框的主要功能封装 |
-| RichEdit实现类 | | [duilib/Control/RichEditHost.h](../duilib/Control/RichEditHost.h) | 富文本编辑框的主要功能实现 |
+| RichEdit实现类 | | [duilib/Control/RichEditCtrl_Windows.h](../duilib/Control/RichEditCtrl_Windows.h) | 富文本编辑框的主要功能封装（Windows） |
+| RichEdit实现类 | | [duilib/Control/RichEditHost_Windows.h](../duilib/Control/RichEditHost_Windows.h) | 富文本编辑框的主要功能实现（Windows） |
+| RichEdit实现类 | | [duilib/Control/RichEdit_SDL.h](../duilib/Control/RichEdit_SDL.h) | 富文本编辑框的主要功能封装（SDL） |
 | RichText | Control| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | 格式化文本（类HTML格式） |
 | Split | Control| [duilib/Control/Split.h](../duilib/Control/Split.h) | 分割条控件 |
 | SplitBox | Box| [duilib/Control/Split.h](../duilib/Control/Split.h) | 分割条容器 |
@@ -225,3 +228,15 @@
 | DpiManager | [duilib/Core/DpiManager.h](../duilib/Core/DpiManager.h) | DPI管理器，用于支持DPI自适应等功能 |
 | TimerManager | [duilib/Core/TimerManager.h](../duilib/Core/TimerManager.h) | 定时器管理器 |
 | LangManager | [duilib/Core/LangManager.h](../duilib/Core/LangManager.h) | 多语言支持管理器 |
+| CursorManager | [duilib/Core/CursorManager.h](../duilib/Core/CursorManager.h) | 光标管理器 |
+| ThreadManager | [duilib/Core/ThreadManager.h](../duilib/Core/ThreadManager.h) | 线程管理器 |
+| ColorManager | [duilib/Core/ColorManager.h](../duilib/Core/ColorManager.h) | 颜色管理器 |
+
+* libcef控件封装相关
+| 类名称 | 关联头文件| 用途 |
+| :--- | :--- | :--- |
+| CefManager | [duilib/CEFControl/CefManager.h](../duilib/CEFControl/CefManager.h) | CEF控件管理器，负责CEF模块的初始化和反初始化相关工作 |
+| CefControl | [duilib/CEFControl/CefControl.h](../duilib/CEFControl/CefControl.h) | CEF控件接口，提供网页浏览相关的基本功能及事件的接受等功能 |
+| CefControlEvent | [duilib/CEFControl/CefControlEvent.h](../duilib/CEFControl/CefControlEvent.h) | CEF控件的网页浏览相关事件接收接口 |
+| CefControlNative | [duilib/CEFControl/CefControlNative.h](../duilib/CEFControl/CefControlNative.h) | CEF控件窗口模式的封装 |
+| CefControlOffScreen | [duilib/CEFControl/CefControlOffScreen.h](../duilib/CEFControl/CefControlOffScreen.h) | CEF控件离屏渲染模式的封装 |
