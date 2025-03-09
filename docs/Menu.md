@@ -1,102 +1,102 @@
-## ²Ëµ¥
-²Ëµ¥µÄÊµÏÖÊÇ»ùÓÚ´°¿Ú([WindowImplBase](../duilib/Utils/WinImplBase.h))ÊµÏÖµÄ£¬Ö÷ÒªÓÉ[Menu](../duilib/Control/Menu.h)ºÍ[MenuItem](../duilib/Control/Menu.h)Á½¸öÀà×é³É¡£
-1. ²Ëµ¥µÄĞ§¹ûÔ¤ÀÀ
-Õâ¸öÔ¤ÀÀÊÇ`examples/controls`Ê¾Àı³ÌĞòÖĞµÄ²Ëµ¥¡£
+ï»¿## èœå•
+èœå•çš„å®ç°æ˜¯åŸºäºçª—å£([WindowImplBase](../duilib/Utils/WinImplBase.h))å®ç°çš„ï¼Œä¸»è¦ç”±[Menu](../duilib/Control/Menu.h)å’Œ[MenuItem](../duilib/Control/Menu.h)ä¸¤ä¸ªç±»ç»„æˆã€‚
+1. èœå•çš„æ•ˆæœé¢„è§ˆ
+è¿™ä¸ªé¢„è§ˆæ˜¯`examples/controls`ç¤ºä¾‹ç¨‹åºä¸­çš„èœå•ã€‚
 <img src="./Images/Menu.png"/>
-2. ²Ëµ¥µÄÊµÏÖ°üº¬ÁËÏµÍ³²Ëµ¥ÖĞµÄ»ù±¾¹¦ÄÜ£ºÖ§³ÖÍ¼±ê¡¢¹´Ñ¡¿ò¡¢¶à¼¶²Ëµ¥¡¢²Ëµ¥Ïî·Ö¸îÌõ¡¢¶¯Ì¬ĞŞ¸Ä²Ëµ¥Ïî¡¢²Ëµ¥ÖĞ²åÈë·Ç²Ëµ¥¿Ø¼şµÈ¡£
-3. `settings_menu.xml`ÖĞµÄÖ÷ÒªÄÚÈİ£º
+2. èœå•çš„å®ç°åŒ…å«äº†ç³»ç»Ÿèœå•ä¸­çš„åŸºæœ¬åŠŸèƒ½ï¼šæ”¯æŒå›¾æ ‡ã€å‹¾é€‰æ¡†ã€å¤šçº§èœå•ã€èœå•é¡¹åˆ†å‰²æ¡ã€åŠ¨æ€ä¿®æ”¹èœå•é¡¹ã€èœå•ä¸­æ’å…¥éèœå•æ§ä»¶ç­‰ã€‚
+3. `settings_menu.xml`ä¸­çš„ä¸»è¦å†…å®¹ï¼š
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <Window>
     <VListBox class="menu">
-        <!-- Ò»¼¶²Ëµ¥ -->
+        <!-- ä¸€çº§èœå• -->
         <MenuItem class="menu_element" name="first" width="180">
           <Button name="button_01" width="auto" height="auto" bkimage="menu_settings.png" valign="center" mouse="false"/>
-          <Label class="menu_text" text="Ò»¼¶²Ëµ¥Ïî 1" margin="30,0,0,0"/>
+          <Label class="menu_text" text="ä¸€çº§èœå•é¡¹ 1" margin="30,0,0,0"/>
         </MenuItem>
     
         <MenuItem class="menu_element" name="second" width="180">
           <Button name="button_02" width="auto" height="auto" bkimage="menu_proxy.png" valign="center" mouse="false"/>
-          <Label class="menu_text" text="Ò»¼¶²Ëµ¥Ïî 2" margin="30,0,0,0"/>
+          <Label class="menu_text" text="ä¸€çº§èœå•é¡¹ 2" margin="30,0,0,0"/>
         </MenuItem>
         
-        <!-- ÔÚ²Ëµ¥ÖĞ²åÈëÆÕÍ¨¿Ø¼ş£¬ÊµÏÖÌØ¶¨¹¦ÄÜ -->
+        <!-- åœ¨èœå•ä¸­æ’å…¥æ™®é€šæ§ä»¶ï¼Œå®ç°ç‰¹å®šåŠŸèƒ½ -->
         <HBox class="menu_split_box" height="36">
-            <Label class="menu_text" text="ÒôÁ¿" textpadding="0,0,6,0"/>
+            <Label class="menu_text" text="éŸ³é‡" textpadding="0,0,6,0"/>
             <Control width="auto" height="auto" bkimage="menu_speaker.png" valign="center"/>
             <Slider class="slider_green" value="70" tooltiptext="ui::Slider"/>        
         </HBox>
         
-        <!-- ²Ëµ¥ÏîÖ®¼äµÄ·Ö¸îÏß -->
+        <!-- èœå•é¡¹ä¹‹é—´çš„åˆ†å‰²çº¿ -->
         <Box class="menu_split_box">
             <Control class="menu_split_line" />
         </Box>
         
         <MenuItem class="menu_element" name="third" width="180">
             <Button name="button_03" width="auto" height="auto" bkimage="menu_logs.png" valign="center" mouse="false"/>
-            <Label class="menu_text" text="Ò»¼¶²Ëµ¥Ïî 3" margin="30,0,0,0"/>
+            <Label class="menu_text" text="ä¸€çº§èœå•é¡¹ 3" margin="30,0,0,0"/>
         </MenuItem>
         
         <MenuItem class="menu_element" name="fourth" width="180">
             <Button name="button_04" width="auto" height="auto" bkimage="menu_tree.png" valign="center" mouse="false"/>
-            <Label class="menu_text" text="¶ş¼¶²Ëµ¥" margin="30,0,0,0"/>
-            <!-- ¶ş¼¶²Ëµ¥£ºµÚÒ»ÖÖÖ§³ÖµÄĞÎÊ½£¨±£³Ö¾É°æ±¾µÄ¼æÈİĞÔ£© -->
+            <Label class="menu_text" text="äºŒçº§èœå•" margin="30,0,0,0"/>
+            <!-- äºŒçº§èœå•ï¼šç¬¬ä¸€ç§æ”¯æŒçš„å½¢å¼ï¼ˆä¿æŒæ—§ç‰ˆæœ¬çš„å…¼å®¹æ€§ï¼‰ -->
             <MenuItem class="menu_element" name="sub_menu0" width="180">
                 <Button name="button_44" width="auto" height="auto" bkimage="menu_tree.png" valign="center" mouse="false"/>
-                <Label class="menu_text" text="¶ş¼¶²Ëµ¥Ïî 0" margin="30,0,0,0"/>
+                <Label class="menu_text" text="äºŒçº§èœå•é¡¹ 0" margin="30,0,0,0"/>
             </MenuItem>
-            <!-- ¶ş¼¶²Ëµ¥£ºµÚ¶şÖÖÖ§³ÖµÄĞÎÊ½£¨ĞÂÔö¸ñÊ½£¬·½±ãÔÚ×Ó²Ëµ¥ÖĞÌí¼ÓÍ¨ÓÃ¿Ø¼ş£© -->
+            <!-- äºŒçº§èœå•ï¼šç¬¬äºŒç§æ”¯æŒçš„å½¢å¼ï¼ˆæ–°å¢æ ¼å¼ï¼Œæ–¹ä¾¿åœ¨å­èœå•ä¸­æ·»åŠ é€šç”¨æ§ä»¶ï¼‰ -->
             <SubMenu>
                 <MenuItem class="menu_element" name="sub_menu1" width="180">
-                    <Label class="menu_text" text="¶ş¼¶²Ëµ¥Ïî 1" margin="30,0,0,0"/>
+                    <Label class="menu_text" text="äºŒçº§èœå•é¡¹ 1" margin="30,0,0,0"/>
                 </MenuItem>
                 <MenuItem class="menu_element" name="sub_menu2" width="180">
-                    <Label class="menu_text" text="¶ş¼¶²Ëµ¥Ïî 2" margin="30,0,0,0"/>
+                    <Label class="menu_text" text="äºŒçº§èœå•é¡¹ 2" margin="30,0,0,0"/>
                 </MenuItem>
                 <MenuItem class="menu_element" name="sub_menu3" width="180">
-                    <Label class="menu_text" text="¶ş¼¶²Ëµ¥Ïî 3" margin="30,0,0,0"/>
+                    <Label class="menu_text" text="äºŒçº§èœå•é¡¹ 3" margin="30,0,0,0"/>
                 </MenuItem>
                 <MenuItem class="menu_element" name="sub_menu4" width="180">
                     <Button name="button_05" width="auto" height="auto" bkimage="menu_tree.png" valign="center" mouse="false"/>
-                    <Label class="menu_text" text="Èı¼¶²Ëµ¥" margin="30,0,0,0"/>
-                    <!-- Èı¼¶²Ëµ¥ -->
+                    <Label class="menu_text" text="ä¸‰çº§èœå•" margin="30,0,0,0"/>
+                    <!-- ä¸‰çº§èœå• -->
                     <MenuItem class="menu_element" name="sub_sub_menu1" width="180">
-                        <Label class="menu_text" text="Èı¼¶²Ëµ¥Ïî 1"/>
+                        <Label class="menu_text" text="ä¸‰çº§èœå•é¡¹ 1"/>
                     </MenuItem>
                     <MenuItem class="menu_element" name="sub_sub_menu2" width="180">
-                        <Label class="menu_text" text="Èı¼¶²Ëµ¥Ïî 2"/>
+                        <Label class="menu_text" text="ä¸‰çº§èœå•é¡¹ 2"/>
                     </MenuItem>
                 </MenuItem>
             </SubMenu>
         </MenuItem>
         
-        <!-- ²Ëµ¥ÏîÖ®¼äµÄ·Ö¸îÏß -->
+        <!-- èœå•é¡¹ä¹‹é—´çš„åˆ†å‰²çº¿ -->
         <Box class="menu_split_box">
             <Control class="menu_split_line" />
         </Box>
         
-        <!-- ´ø¹´Ñ¡ÏîµÄ²Ëµ¥Ïî -->
+        <!-- å¸¦å‹¾é€‰é¡¹çš„èœå•é¡¹ -->
         <MenuItem class="menu_element" name="menu_check_01" width="180">
-            <CheckBox class="menu_checkbox" name="menu_checkbox_01" text="ÅÅĞò·½Ê½£ºµİÔö" margin="0,5,0,10" selected="true" tooltiptext="ui::Checkbox"/>
+            <CheckBox class="menu_checkbox" name="menu_checkbox_01" text="æ’åºæ–¹å¼ï¼šé€’å¢" margin="0,5,0,10" selected="true" tooltiptext="ui::Checkbox"/>
         </MenuItem>
         <MenuItem class="menu_element" name="menu_check_02" width="180">
-            <CheckBox class="menu_checkbox" name="menu_checkbox_02" text="ÅÅĞò·½Ê½£ºµİ¼õ" margin="0,5,0,10" selected="false" tooltiptext="ui::Checkbox"/>
+            <CheckBox class="menu_checkbox" name="menu_checkbox_02" text="æ’åºæ–¹å¼ï¼šé€’å‡" margin="0,5,0,10" selected="false" tooltiptext="ui::Checkbox"/>
         </MenuItem>
         
-        <!-- ²Ëµ¥ÏîÖ®¼äµÄ·Ö¸îÏß -->
+        <!-- èœå•é¡¹ä¹‹é—´çš„åˆ†å‰²çº¿ -->
         <Box class="menu_split_box">
             <Control class="menu_split_line" />
         </Box>
     
         <MenuItem class="menu_element" name="about" width="180">
             <Button name="button_06" width="auto" height="auto" bkimage="menu_about.png" valign="center" mouse="false"/>
-            <Label class="menu_text" text="¹ØÓÚ" margin="30,0,0,0"/>
+            <Label class="menu_text" text="å…³äº" margin="30,0,0,0"/>
         </MenuItem>
   </VListBox>
 </Window>
 ```
 
-4. `submenu.xml`ÖĞµÄÖ÷ÒªÄÚÈİ£º
+4. `submenu.xml`ä¸­çš„ä¸»è¦å†…å®¹ï¼š
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
 <Window>
@@ -105,24 +105,24 @@
   </VListBox>
 </Window>
 ```
-`submenu.xml`ÊÇ×Ó²Ëµ¥µÄÅäÖÃÎÄ¼ş£¬¿ÉÒÔÍ¨¹ı`Menu::SetSubMenuXml`½Ó¿ÚĞŞ¸Ä£º
+`submenu.xml`æ˜¯å­èœå•çš„é…ç½®æ–‡ä»¶ï¼Œå¯ä»¥é€šè¿‡`Menu::SetSubMenuXml`æ¥å£ä¿®æ”¹ï¼š
 ```cpp
-/** ÉèÖÃ¶à¼¶×Ó²Ëµ¥µÄXMLÄ£°åÎÄ¼ş¼°ÊôĞÔ
-@param [in] submenuXml ×Ó²Ëµ¥µÄXMLÄ£°åÎÄ¼şÃû£¬Èç¹ûÃ»ÉèÖÃ£¬ÄÚ²¿Ä¬ÈÏÎª "submenu.xml"
-@param [in] submenuNodeName ×Ó²Ëµ¥XMLÎÄ¼şÖĞ£¬×Ó²Ëµ¥Ïî²åÈëÎ»ÖÃµÄ½ÚµãÃû³Æ£¬Èç¹ûÃ»ÉèÖÃ£¬ÄÚ²¿Ä¬ÈÏÎª "submenu"
+/** è®¾ç½®å¤šçº§å­èœå•çš„XMLæ¨¡æ¿æ–‡ä»¶åŠå±æ€§
+@param [in] submenuXml å­èœå•çš„XMLæ¨¡æ¿æ–‡ä»¶åï¼Œå¦‚æœæ²¡è®¾ç½®ï¼Œå†…éƒ¨é»˜è®¤ä¸º "submenu.xml"
+@param [in] submenuNodeName å­èœå•XMLæ–‡ä»¶ä¸­ï¼Œå­èœå•é¡¹æ’å…¥ä½ç½®çš„èŠ‚ç‚¹åç§°ï¼Œå¦‚æœæ²¡è®¾ç½®ï¼Œå†…éƒ¨é»˜è®¤ä¸º "submenu"
 */
 void SetSubMenuXml(const std::wstring& submenuXml, const std::wstring& submenuNodeName);
 ```
-5. `examples/controls`Ê¾Àı³ÌĞòÖĞÏÔÊ¾²Ëµ¥µÄ´úÂëÆ¬¶Î    
-ÏÔÊ¾²Ëµ¥£¬²¢ÇÒÔÚ¶ş¼¶²Ëµ¥ÖĞ£¬Ìí¼Ó×Ó²Ëµ¥Ïî£º
+5. `examples/controls`ç¤ºä¾‹ç¨‹åºä¸­æ˜¾ç¤ºèœå•çš„ä»£ç ç‰‡æ®µ    
+æ˜¾ç¤ºèœå•ï¼Œå¹¶ä¸”åœ¨äºŒçº§èœå•ä¸­ï¼Œæ·»åŠ å­èœå•é¡¹ï¼š
 ```cpp
 void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 {
-    ui::Menu* menu = new ui::Menu(GetHWND());//ĞèÒªÉèÖÃ¸¸´°¿Ú£¬·ñÔÚ²Ëµ¥µ¯³öµÄÊ±ºò£¬³ÌĞò×´Ì¬À¸±à³Ì·Ç¼¤»î×´Ì¬
+    ui::Menu* menu = new ui::Menu(GetHWND());//éœ€è¦è®¾ç½®çˆ¶çª—å£ï¼Œå¦åœ¨èœå•å¼¹å‡ºçš„æ—¶å€™ï¼Œç¨‹åºçŠ¶æ€æ ç¼–ç¨‹éæ¿€æ´»çŠ¶æ€
     std::wstring xml(L"settings_menu.xml");
     menu->ShowMenu(xml, point);
 
-    //ÔÚ¶ş¼¶²Ëµ¥ÖĞ£¬Ìí¼Ó×Ó²Ëµ¥Ïî
+    //åœ¨äºŒçº§èœå•ä¸­ï¼Œæ·»åŠ å­èœå•é¡¹
     ui::MenuItem* menu_fourth = static_cast<ui::MenuItem*>(menu->FindControl(L"fourth"));
 	if (menu_fourth != nullptr) {
 		ui::MenuItem* menu_item = new ui::MenuItem;
@@ -131,11 +131,11 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 		menu_item->SetFixedWidth(ui::UiFixedInt(180), true, true);
 		menu_item->SetFontId(L"system_14");
 		menu_item->SetTextPadding({ 20, 0, 20, 0 });
-		menu_fourth->AddSubMenuItemAt(menu_item, 1);//Ìí¼Óºó£¬×ÊÔ´ÓÉ²Ëµ¥Í³Ò»¹ÜÀí
+		menu_fourth->AddSubMenuItemAt(menu_item, 1);//æ·»åŠ åï¼Œèµ„æºç”±èœå•ç»Ÿä¸€ç®¡ç†
 	}
 ```
 
-Ìí¼Ó²Ëµ¥ÏîµÄ¹ØÁªÏìÓ¦º¯Êı£º
+æ·»åŠ èœå•é¡¹çš„å…³è”å“åº”å‡½æ•°ï¼š
 ```cpp
     /* About menu */
     ui::MenuItem* menu_about = static_cast<ui::MenuItem*>(menu->FindControl(L"about"));

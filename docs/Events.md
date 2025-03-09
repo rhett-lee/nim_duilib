@@ -1,62 +1,62 @@
-## ¿Ø¼şµÄÊÂ¼ş£¨EventArgs£©ËµÃ÷ÎÄµµ
+ï»¿## æ§ä»¶çš„äº‹ä»¶ï¼ˆEventArgsï¼‰è¯´æ˜æ–‡æ¡£
 
-| ÊÂ¼ş(eventType)           | ²ÎÊı(wParam)  | ²ÎÊı(lParam) | ²ÎÊı(ptMouse) | ²ÎÊı(vkCode) | ²ÎÊı(modifierKey) |²ÎÊı(eventData) | ±¸×¢     |
+| äº‹ä»¶(eventType)           | å‚æ•°(wParam)  | å‚æ•°(lParam) | å‚æ•°(ptMouse) | å‚æ•°(vkCode) | å‚æ•°(modifierKey) |å‚æ•°(eventData) | å¤‡æ³¨     |
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |
-|kEventKeyDown              |Ô­Ê¼Öµ|Ô­Ê¼Öµ|     |   ¹ØÁªµÄ°´¼ü  |  °´¼ü±êÖ¾  |     |     |
-|kEventKeyUp                |Ô­Ê¼Öµ|Ô­Ê¼Öµ |     |   ¹ØÁªµÄ°´¼ü  |  °´¼ü±êÖ¾  |     |     |
-|kEventChar                 |Ô­Ê¼Öµ|Ô­Ê¼Öµ|     |   ¹ØÁªµÄ°´¼ü  |  °´¼ü±êÖ¾  |     |     |
-|kEventMouseEnter           |     |     |Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê   |     | °´¼ü±êÖ¾   |     |     |
-|kEventMouseLeave           |     |     |Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê   |     | °´¼ü±êÖ¾   |     |     |
-|kEventMouseMove            |Ô­Ê¼Öµ|Ô­Ê¼Öµ|Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê   |     | °´¼ü±êÖ¾   |     |     |
-|kEventMouseHover           |Ô­Ê¼Öµ|Ô­Ê¼Öµ|Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê   |     | °´¼ü±êÖ¾   |     |     |
-|kEventMouseWheel           |Ô­Ê¼Öµ|Ô­Ê¼Öµ|Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê   |     | °´¼ü±êÖ¾   |  wheelDeltaÊı¾İ |     |
-|kEventMouseButtonDown      |Ô­Ê¼Öµ|Ô­Ê¼Öµ|Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê   |     | °´¼ü±êÖ¾   |     |     |
-|kEventMouseButtonUp        |Ô­Ê¼Öµ|Ô­Ê¼Öµ|Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê   |     | °´¼ü±êÖ¾   |     |     |
-|kEventMouseDoubleClick     |Ô­Ê¼Öµ|Ô­Ê¼Öµ|Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê   |     | °´¼ü±êÖ¾   |     |     |
-|kEventMouseRButtonDown     |Ô­Ê¼Öµ|Ô­Ê¼Öµ|Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê   |     | °´¼ü±êÖ¾   |     |     |
-|kEventMouseRButtonUp       |Ô­Ê¼Öµ|Ô­Ê¼Öµ|Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê   |     | °´¼ü±êÖ¾   |     |     |
-|kEventMouseRDoubleClick    |Ô­Ê¼Öµ|Ô­Ê¼Öµ|Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê   |     | °´¼ü±êÖ¾   |     |     |
-|kEventContextMenu          |     |Control*<br> Êó±êËùÔÚÎ»ÖÃµÄ¿Ø¼ş| Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê    |     |       |     | Èç¹ûÓÃ»§¼üÈë SHIFT+F10£¬<br> ÔòptMouseÎª(-1,-1)£¬lParamÎª0 |
-|kEventClick                |     |     |Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê   | ²ÎÊı(vkCode)   | °´¼ü±êÖ¾   | ¾ÉµÄÊÂ¼şÀàĞÍ  | ²ÎÊı¿ÉÄÜĞÔ½Ï¶à£¬ĞèÒª¼ì²â  |
-|kEventRClick               |     |     |Êó±êËùÔÚÎ»ÖÃ<br>µÄ¿Í»§Çø×ø±ê   |     | °´¼ü±êÖ¾   |     |     |
-|kEventMouseClickChanged    |     |     |     |     |       |     | ÎŞ²ÎÊı |
-|kEventMouseClickEsc        |     |     |     |     |       |     | ÎŞ²ÎÊı |
+|kEventKeyDown              |åŸå§‹å€¼|åŸå§‹å€¼|     |   å…³è”çš„æŒ‰é”®  |  æŒ‰é”®æ ‡å¿—  |     |     |
+|kEventKeyUp                |åŸå§‹å€¼|åŸå§‹å€¼ |     |   å…³è”çš„æŒ‰é”®  |  æŒ‰é”®æ ‡å¿—  |     |     |
+|kEventChar                 |åŸå§‹å€¼|åŸå§‹å€¼|     |   å…³è”çš„æŒ‰é”®  |  æŒ‰é”®æ ‡å¿—  |     |     |
+|kEventMouseEnter           |     |     |é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡   |     | æŒ‰é”®æ ‡å¿—   |     |     |
+|kEventMouseLeave           |     |     |é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡   |     | æŒ‰é”®æ ‡å¿—   |     |     |
+|kEventMouseMove            |åŸå§‹å€¼|åŸå§‹å€¼|é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡   |     | æŒ‰é”®æ ‡å¿—   |     |     |
+|kEventMouseHover           |åŸå§‹å€¼|åŸå§‹å€¼|é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡   |     | æŒ‰é”®æ ‡å¿—   |     |     |
+|kEventMouseWheel           |åŸå§‹å€¼|åŸå§‹å€¼|é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡   |     | æŒ‰é”®æ ‡å¿—   |  wheelDeltaæ•°æ® |     |
+|kEventMouseButtonDown      |åŸå§‹å€¼|åŸå§‹å€¼|é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡   |     | æŒ‰é”®æ ‡å¿—   |     |     |
+|kEventMouseButtonUp        |åŸå§‹å€¼|åŸå§‹å€¼|é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡   |     | æŒ‰é”®æ ‡å¿—   |     |     |
+|kEventMouseDoubleClick     |åŸå§‹å€¼|åŸå§‹å€¼|é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡   |     | æŒ‰é”®æ ‡å¿—   |     |     |
+|kEventMouseRButtonDown     |åŸå§‹å€¼|åŸå§‹å€¼|é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡   |     | æŒ‰é”®æ ‡å¿—   |     |     |
+|kEventMouseRButtonUp       |åŸå§‹å€¼|åŸå§‹å€¼|é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡   |     | æŒ‰é”®æ ‡å¿—   |     |     |
+|kEventMouseRDoubleClick    |åŸå§‹å€¼|åŸå§‹å€¼|é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡   |     | æŒ‰é”®æ ‡å¿—   |     |     |
+|kEventContextMenu          |     |Control*<br> é¼ æ ‡æ‰€åœ¨ä½ç½®çš„æ§ä»¶| é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡    |     |       |     | å¦‚æœç”¨æˆ·é”®å…¥ SHIFT+F10ï¼Œ<br> åˆ™ptMouseä¸º(-1,-1)ï¼ŒlParamä¸º0 |
+|kEventClick                |     |     |é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡   | å‚æ•°(vkCode)   | æŒ‰é”®æ ‡å¿—   | æ—§çš„äº‹ä»¶ç±»å‹  | å‚æ•°å¯èƒ½æ€§è¾ƒå¤šï¼Œéœ€è¦æ£€æµ‹  |
+|kEventRClick               |     |     |é¼ æ ‡æ‰€åœ¨ä½ç½®<br>çš„å®¢æˆ·åŒºåæ ‡   |     | æŒ‰é”®æ ‡å¿—   |     |     |
+|kEventMouseClickChanged    |     |     |     |     |       |     | æ— å‚æ•° |
+|kEventMouseClickEsc        |     |     |     |     |       |     | æ— å‚æ•° |
 
-| ÊÂ¼ş(eventType)           | ²ÎÊı(wParam)  | ²ÎÊı(lParam) | ²ÎÊı(ptMouse) | ²ÎÊı(vkCode) | ²ÎÊı(modifierKey) |²ÎÊı(eventData) | ±¸×¢     |
+| äº‹ä»¶(eventType)           | å‚æ•°(wParam)  | å‚æ•°(lParam) | å‚æ•°(ptMouse) | å‚æ•°(vkCode) | å‚æ•°(modifierKey) |å‚æ•°(eventData) | å¤‡æ³¨     |
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |
-|kEventSetFocus             |     |     |     |     |       |     | ÎŞ²ÎÊı |
-|kEventKillFocus            |     |Control*<br> ĞÂµÄ½¹µã¿Ø¼ş<br>»òÕßÎªnullptr |     |     |       |     |     |
-|kEventSetCursor            |     |     | Êó±êµÄ<br>¿Í»§Çø×ø±ê   |     |       |     |   |
-|kEventImeStartComposition  |     |     |     |     |       |     |ÎŞ²ÎÊı|
-|kEventImeEndComposition    |     |     |     |     |       |     |ÎŞ²ÎÊı|
-|kEventWindowKillFocus      |     |     |     |     |       |     |ÎŞ²ÎÊı |
-|kEventWindowSize           |     |     |     |     |       |´°¿Ú´óĞ¡±ä»¯ÀàĞÍ£º<br>WindowSizeType|     |
-|kEventWindowMove           |     |     | ´°¿ÚµÄ<br>×óÉÏ½Ç×ø±ê    |     |       |     |     |
-|kEventWindowClose          |0: Õı³£¹Ø±Õ <br> 1: È¡Ïû¹Ø±Õ|     |     |     |       |     |     |
-|kEventSelect               |ListBox/Combo: <br>ĞÂÑ¡ÔñµÄË÷ÒıºÅ | ListBox/Combo: <br>¾ÉÑ¡ÏîÔñË÷ÒıºÅ|     |     |       |     | ÆäËûÀàÎŞ²ÎÊı |
-|kEventUnSelect             |ListBox: <br>ĞÂÑ¡ÔñµÄË÷ÒıºÅ | ListBox£º<br>¾ÉÑ¡ÏîÔñË÷ÒıºÅ|     |     |       |     |  ÆäËûÀàÎŞ²ÎÊı   |
-|kEventChecked              |     |     |     |     |       |     | ÎŞ²ÎÊı |
-|kEventUnCheck              |     |     |     |     |       |     | ÎŞ²ÎÊı |
-|kEventTabSelect            |ĞÂÑ¡ÔñµÄË÷ÒıºÅ | ¾ÉÑ¡ÏîÔñË÷ÒıºÅ|     |     |    |     |    |
-|kEventExpand               |     |     |     |     |       |     | ÎŞ²ÎÊı |
-|kEventCollapse             |     |     |     |     |       |     | ÎŞ²ÎÊı |
+|kEventSetFocus             |     |     |     |     |       |     | æ— å‚æ•° |
+|kEventKillFocus            |     |Control*<br> æ–°çš„ç„¦ç‚¹æ§ä»¶<br>æˆ–è€…ä¸ºnullptr |     |     |       |     |     |
+|kEventSetCursor            |     |     | é¼ æ ‡çš„<br>å®¢æˆ·åŒºåæ ‡   |     |       |     |   |
+|kEventImeStartComposition  |     |     |     |     |       |     |æ— å‚æ•°|
+|kEventImeEndComposition    |     |     |     |     |       |     |æ— å‚æ•°|
+|kEventWindowKillFocus      |     |     |     |     |       |     |æ— å‚æ•° |
+|kEventWindowSize           |     |     |     |     |       |çª—å£å¤§å°å˜åŒ–ç±»å‹ï¼š<br>WindowSizeType|     |
+|kEventWindowMove           |     |     | çª—å£çš„<br>å·¦ä¸Šè§’åæ ‡    |     |       |     |     |
+|kEventWindowClose          |0: æ­£å¸¸å…³é—­ <br> 1: å–æ¶ˆå…³é—­|     |     |     |       |     |     |
+|kEventSelect               |ListBox/Combo: <br>æ–°é€‰æ‹©çš„ç´¢å¼•å· | ListBox/Combo: <br>æ—§é€‰é¡¹æ‹©ç´¢å¼•å·|     |     |       |     | å…¶ä»–ç±»æ— å‚æ•° |
+|kEventUnSelect             |ListBox: <br>æ–°é€‰æ‹©çš„ç´¢å¼•å· | ListBoxï¼š<br>æ—§é€‰é¡¹æ‹©ç´¢å¼•å·|     |     |       |     |  å…¶ä»–ç±»æ— å‚æ•°   |
+|kEventChecked              |     |     |     |     |       |     | æ— å‚æ•° |
+|kEventUnCheck              |     |     |     |     |       |     | æ— å‚æ•° |
+|kEventTabSelect            |æ–°é€‰æ‹©çš„ç´¢å¼•å· | æ—§é€‰é¡¹æ‹©ç´¢å¼•å·|     |     |    |     |    |
+|kEventExpand               |     |     |     |     |       |     | æ— å‚æ•° |
+|kEventCollapse             |     |     |     |     |       |     | æ— å‚æ•° |
 
 
-| ÊÂ¼ş(eventType)           | ²ÎÊı(wParam)  | ²ÎÊı(lParam) | ²ÎÊı(ptMouse) | ²ÎÊı(vkCode) | ²ÎÊı(modifierKey) |²ÎÊı(eventData) | ±¸×¢     |
+| äº‹ä»¶(eventType)           | å‚æ•°(wParam)  | å‚æ•°(lParam) | å‚æ•°(ptMouse) | å‚æ•°(vkCode) | å‚æ•°(modifierKey) |å‚æ•°(eventData) | å¤‡æ³¨     |
 | :---                      | :---          | :---         |:---           |:---          |:---               |:---            |:---      |
-|kEventZoom                 | °´Ëõ·Å±ÈÀı·Ö×Ó[0,64] | °´Ëõ·Å±ÈÀı·ÖÄ¸(0,64] |     |     |       |     | RichEdit: Ctrl + ¹öÂÖ£ºËõ·Å¹¦ÄÜ|
-|kEventTextChange           |     |     |     |     |       |     | ÎŞ²ÎÊı |
-|kEventSelChange            |     |     |     |     |       |     | ÎŞ²ÎÊı |
-|kEventReturn               |     |     |     |     |       |     | ÎŞ²ÎÊı    |
-|kEventTab                  |     |     |     |     |       |     | ÎŞ²ÎÊı   |
-|kEventLinkClick            | DString.c_str()<br> URL×Ö·û´®    |     |     |     |       |     |     |
-|kEventScrollChange         | 0: cyÎŞ±ä»¯<br> 1: cyÓĞ±ä»¯   | 0: cxÎŞ±ä»¯<br> 1: cxÓĞ±ä»¯    |     |     |       |     |     |
-|kEventValueChange          |     |     |     |     |       |     | ÎŞ²ÎÊı |
-|kEventResize               |     |     |     |     |       |     | ÎŞ²ÎÊı |
-|kEventVisibleChange        |     |     |     |     |       |     | ÎŞ²ÎÊı |
-|kEventStateChange          | ĞÂ×´Ì¬ | ¾É×´Ì¬   |     |     |       |     | ControlStateType |
-|kEventSelectColor          | ËùÑ¡ÑÕÉ« |     |     |     |       |     | newColor.GetARGB() |
-|kEventSplitDraged          | Control*: <br>µÚ1¸ö¿Ø¼ş½Ó¿Ú| Control*:<br>µÚ2¸ö¿Ø¼ş½Ó¿Ú|     |     |       |     |  ¿ÉÄÜÊÇnullptr  |
-|kEventEnterEdit            | ListCtrlEditParam*:<br>½øÈë±à¼­×´Ì¬µÄÊı¾İ  |     |     |     |       |     |     |
-|kEventLeaveEdit            | ListCtrlEditParam*:<br>Àë¿ª±à¼­×´Ì¬µÄÊı¾İ    |     |     |     |       |     |     |
-|kEventLast                 |     |     |     |     |       |     |  ÎŞ²ÎÊı   |
+|kEventZoom                 | æŒ‰ç¼©æ”¾æ¯”ä¾‹åˆ†å­[0,64] | æŒ‰ç¼©æ”¾æ¯”ä¾‹åˆ†æ¯(0,64] |     |     |       |     | RichEdit: Ctrl + æ»šè½®ï¼šç¼©æ”¾åŠŸèƒ½|
+|kEventTextChange           |     |     |     |     |       |     | æ— å‚æ•° |
+|kEventSelChange            |     |     |     |     |       |     | æ— å‚æ•° |
+|kEventReturn               |     |     |     |     |       |     | æ— å‚æ•°    |
+|kEventTab                  |     |     |     |     |       |     | æ— å‚æ•°   |
+|kEventLinkClick            | DString.c_str()<br> URLå­—ç¬¦ä¸²    |     |     |     |       |     |     |
+|kEventScrollChange         | 0: cyæ— å˜åŒ–<br> 1: cyæœ‰å˜åŒ–   | 0: cxæ— å˜åŒ–<br> 1: cxæœ‰å˜åŒ–    |     |     |       |     |     |
+|kEventValueChange          |     |     |     |     |       |     | æ— å‚æ•° |
+|kEventResize               |     |     |     |     |       |     | æ— å‚æ•° |
+|kEventVisibleChange        |     |     |     |     |       |     | æ— å‚æ•° |
+|kEventStateChange          | æ–°çŠ¶æ€ | æ—§çŠ¶æ€   |     |     |       |     | ControlStateType |
+|kEventSelectColor          | æ‰€é€‰é¢œè‰² |     |     |     |       |     | newColor.GetARGB() |
+|kEventSplitDraged          | Control*: <br>ç¬¬1ä¸ªæ§ä»¶æ¥å£| Control*:<br>ç¬¬2ä¸ªæ§ä»¶æ¥å£|     |     |       |     |  å¯èƒ½æ˜¯nullptr  |
+|kEventEnterEdit            | ListCtrlEditParam*:<br>è¿›å…¥ç¼–è¾‘çŠ¶æ€çš„æ•°æ®  |     |     |     |       |     |     |
+|kEventLeaveEdit            | ListCtrlEditParam*:<br>ç¦»å¼€ç¼–è¾‘çŠ¶æ€çš„æ•°æ®    |     |     |     |       |     |     |
+|kEventLast                 |     |     |     |     |       |     |  æ— å‚æ•°   |
