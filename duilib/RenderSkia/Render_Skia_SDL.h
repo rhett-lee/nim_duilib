@@ -14,7 +14,7 @@ struct SDL_Window;
 
 namespace ui 
 {
-/** 渲染引擎接口的Windows实现
+/** 渲染引擎接口的SDL实现
 */
 class UILIB_API Render_Skia_SDL: public Render_Skia
 {

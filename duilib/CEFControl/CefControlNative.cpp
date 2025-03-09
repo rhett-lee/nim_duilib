@@ -7,7 +7,7 @@
 namespace ui {
 
 CefControlNative::CefControlNative(ui::Window* pWindow):
-    CefControlBase(pWindow)
+    CefControl(pWindow)
 {
 }
 

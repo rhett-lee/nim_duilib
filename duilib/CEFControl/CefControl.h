@@ -1,10 +1,5 @@
-/**@brief 封装Cef浏览器对象为duilib控件基类
- * @copyright (c) 2016, NetEase Inc. All rights reserved
- * @author Redrain
- * @date 2019/3/20
- */
-#ifndef UI_CEF_CONTROL_CEF_CONTROL_BASE_H_
-#define UI_CEF_CONTROL_CEF_CONTROL_BASE_H_
+#ifndef UI_CEF_CONTROL_CEF_CONTROL_H_
+#define UI_CEF_CONTROL_CEF_CONTROL_H_
 
 #include "duilib/Core/Control.h"
 #include "duilib/CEFControl/CefControlEvent.h"
@@ -15,11 +10,16 @@ namespace ui {
 class CefJSBridge;
 class CefBrowserHandler;
 
-class CefControlBase : public Control, public CefBrowserHandlerDelegate
+/**@brief 封装Cef浏览器对象为duilib控件基类
+ * @copyright (c) 2016, NetEase Inc. All rights reserved
+ * @author Redrain
+ * @date 2019/3/20
+ */
+class CefControl : public Control, public CefBrowserHandlerDelegate
 {
 public:
-    explicit CefControlBase(ui::Window* pWindow);
-    virtual ~CefControlBase() override;
+    explicit CefControl(ui::Window* pWindow);
+    virtual ~CefControl() override;
 
 public:
     /** 加载一个地址
@@ -507,4 +507,4 @@ private:
 };
 }
 
-#endif //UI_CEF_CONTROL_CEF_CONTROL_BASE_H_
+#endif //UI_CEF_CONTROL_CEF_CONTROL_H_

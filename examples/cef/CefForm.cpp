@@ -24,8 +24,8 @@ void CefForm::OnInitWindow()
     GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&CefForm::OnClicked, this, std::placeholders::_1));
 
     // 从 XML 中查找指定控件
-    m_pCefControl = dynamic_cast<ui::CefControlBase*>(FindControl(_T("cef_control")));
-    m_pCefControlDev = dynamic_cast<ui::CefControlBase*>(FindControl(_T("cef_control_dev")));
+    m_pCefControl = dynamic_cast<ui::CefControl*>(FindControl(_T("cef_control")));
+    m_pCefControlDev = dynamic_cast<ui::CefControl*>(FindControl(_T("cef_control_dev")));
     m_pDevToolBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_dev_tool")));
     m_pEditUrl = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_url")));
     ASSERT(m_pCefControl != nullptr);

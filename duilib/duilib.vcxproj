@@ -374,7 +374,7 @@
     <ClCompile Include="Box\VirtualVTileLayout.cpp" />
     <ClCompile Include="Box\VLayout.cpp" />
     <ClCompile Include="Box\VTileLayout.cpp" />
-    <ClCompile Include="CEFControl\CefControlBase.cpp" />
+    <ClCompile Include="CEFControl\CefControl.cpp" />
     <ClCompile Include="CEFControl\CefControlNative.cpp" />
     <ClCompile Include="CEFControl\CefControlOffScreen.cpp" />
     <ClCompile Include="CEFControl\CefDragDrop_Windows.cpp" />
@@ -567,7 +567,7 @@
     <ClInclude Include="Box\VirtualVTileLayout.h" />
     <ClInclude Include="Box\VLayout.h" />
     <ClInclude Include="Box\VTileLayout.h" />
-    <ClInclude Include="CEFControl\CefControlBase.h" />
+    <ClInclude Include="CEFControl\CefControl.h" />
     <ClInclude Include="CEFControl\CefControlEvent.h" />
     <ClInclude Include="CEFControl\CefControlNative.h" />
     <ClInclude Include="CEFControl\CefControlOffScreen.h" />
