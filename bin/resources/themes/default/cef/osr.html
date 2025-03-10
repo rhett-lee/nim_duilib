@@ -1,0 +1,90 @@
+<html>
+<head>
+<meta charset="UTF-8" />
+</head>
+
+<button onclick="showDialog()">点击弹出对话框</button>
+
+<dialog id="myDialog" class="modern-dialog">
+  <div class="dialog-header">
+    <h3>系统提示</h3>
+    <button onclick="closeDialog()">×</button>
+  </div>
+  <p>这是一个模态对话框示例！</p>
+  <button class="confirm-btn" onclick="closeDialog()">确定</button>
+</dialog>
+
+<style>
+.modern-dialog {
+  border: none;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  animation: scaleIn 0.25s ease;
+}
+
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+.confirm-btn {
+  background: #007bff;
+  color: white;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+</style>
+
+<script>
+function showDialog() {
+  const dialog = document.getElementById('myDialog');
+  dialog.showModal(); // 使用HTML5原生dialog API
+}
+
+function closeDialog() {
+  const dialog = document.getElementById('myDialog');
+  dialog.close();
+}
+</script>
+
+<!-- 需禁用CEF原生控件 -->
+<select size="5" style="margin-top:30px">
+  <option>选项1</option>
+  <option>选项2</option>
+  <option>选项3</option>
+</select>
+
+<script>
+// 通过window.open触发弹出层
+function showPopup() {
+  // 必须设置尺寸参数，CEF才会识别为弹窗
+  window.open('', '_blank', 'width=300,height=200');
+}
+</script>
+<button onclick="showPopup()">触发弹窗</button>
+
+<!-- type=date触发的原生控件 -->
+<input type="date" 
+       onclick="this.showPicker()"
+       style="padding:8px">
+
+<script>
+document.addEventListener('contextmenu', (e) => {
+  e.preventDefault();
+  // 模拟浏览器右键菜单行为
+  window.open('about:blank', '_blank', 'popup=yes');
+});
+</script>
+<div style="height:200px; border:1px solid gray">
+  右键点击此区域
+</div>
+
+</html>
