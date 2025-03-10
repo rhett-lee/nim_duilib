@@ -554,3 +554,10 @@ ColorPicker 控件继承了 `Window` 属性，更多可用属性请参考`Window
 | drag_out | true | bool | 是否支持拖出操纵（在相同窗口的不同容器内） |
 
 ControlDragable 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
+## CefControl的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| url |  | string | 控件创建成功后，导航到此URL网址 |
+
+CefControl 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
