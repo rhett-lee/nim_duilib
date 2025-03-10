@@ -15,6 +15,7 @@
 ## 项目中主要类的简表
 各个类的详细接口说明请参考关联头文件，有较详细的注释。    
 * 基本数据类型
+
 | 类名称 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | UiSize | [duilib/Core/UiSize.h](../duilib/Core/UiSize.h) | 32位Size类型的封装|
@@ -35,6 +36,7 @@
 | UiColors | [duilib/Core/UiColors.h](../duilib/Core/UiColors.h) | 常见颜色值常量(ARGB格式)|
 
 * 窗口相关
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | Window | [duilib/Core/Window.h](../duilib/Core/Window.h) | duilib核心窗口的封装|
@@ -48,6 +50,7 @@
 | Windows版本兼容性 | [duilib/duilib_config.h](../duilib/duilib_config.h) | Windows版本兼容性定义，默认配置兼容Win7以上操作系统|
 
 * 控件与容器的基类
+
 | 类名称 | 基类名称 |关联头文件| 用途 |
 | :--- | :--- |:--- | :--- |
 | PlaceHolder |nbase::SupportWeakCallback| [duilib/Core/PlaceHolder.h](../duilib/Core/PlaceHolder.h) | 所有控件和容器的顶层基类，封装了控件的位置、大小、外观形状等基本数据|
@@ -55,6 +58,7 @@
 | Box | Control| [duilib/Core/Box.h](../duilib/Core/Box.h) | 所有容器的基类，封装了容器的位置、大小、外观形状、子控件管理（添加、删除、修改、绘制、操作、拖放、布局等）|
 
 * 布局
+
 | 类名称 | 基类名称 |关联头文件| 用途 |
 | :--- | :--- |:--- | :--- |
 | Layout | |[duilib/Box/Layout.h](../duilib/Box/Layout.h) | 自由布局（浮动布局）|
@@ -68,6 +72,7 @@
 | VirtualVTileLayout |VTileLayout| [duilib/Box/VirtualVTileLayout.h](../duilib/Box/VirtualVTileLayout.h) | 虚表垂直瓦片布局|
 
 * 容器
+
 | 类名称 | 基类名称 |布局类型|关联头文件| 名称/用途 |
 | :--- | :--- |:--- |:--- | :--- |
 | Box | Control|[Layout](../duilib/Box/Layout.h)|[duilib/Core/Box.h](../duilib/Core/Box.h) | 自由布局容器，所有容器的基类，封装了容器的位置、大小、外观形状、子控件管理（添加、删除、修改、绘制、操作、拖放、布局等）|
@@ -93,6 +98,7 @@
 | VirtualHTileListBox | VirtualListBox|[VirtualHTileLayout](../duilib/Box/VirtualHTileLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的水平布局的列表容器|
 
 * 图片
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | Image | [duilib/Image/Image.h](../duilib/Image/Image.h) | 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO|
@@ -108,12 +114,14 @@
 | IconManager | [duilib/Core/IconManager.h](../duilib/Core/IconManager_Windows.h) | HICON句柄管理器|
 
 * 动画
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | AnimationManager | [duilib/Animation/AnimationManager.h](../duilib/Animation/AnimationManager.h) | 图片动画管理器|
 | AnimationPlayer | [duilib/Animation/AnimationPlayer.h](../duilib/Animation/AnimationPlayer.h) | 图片动画播放状态管理|
 
 * 颜色
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | UiColor | [duilib/Core/UiColor.h](../duilib/Core/UiColor.h) | 颜色类型的封装|
@@ -121,12 +129,14 @@
 | StateColorMap | [duilib/Core/StateColorMap.h](../duilib/Core/UiColors.h) | 控件状态与颜色值的映射|
 
 * 字体
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | UiFont | [duilib/Core/UiFont.h](../duilib/Core/UiFont.h) | 字体类型的封装|
 | FontManager | [duilib/Core/FontManager.h](../duilib/Core/FontManager.h) | 字体管理器|
 
 * 渲染引擎接口
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | 渲染引擎设置 | [duilib/Render/RenderConfig.h](../duilib/Render/RenderConfig.h) | 可设置使用哪个引擎（Skia引擎，或者GdiPlus引擎）|
@@ -140,6 +150,7 @@
 | IRender | [duilib/Render/IRender.h](../duilib/Render/IRender.h) | 渲染接口，用于画图、绘制文字等 |
 
 * Skia渲染引擎
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | RenderFactory_Skia | [duilib/RenderSkia/RenderFactory_Skia.h](../duilib/RenderSkia/RenderFactory_Skia.h) | 渲染工厂接口的实现 |
@@ -155,6 +166,7 @@
 | Render_Skia_SDL | [duilib/RenderSkia/Render_Skia_SDL.h](../duilib/RenderSkia/Render_Skia_SDL.h) | 渲染接口的SDL相关功能的实现，主要用于Linux，Windows也支持 |
 
 * 控件/功能组件
+
 | 类名称/功能组件 | 基类 | 关联头文件| 用途 |
 | :--- | :--- | :---| :--- |
 | ScrollBar | Control| [duilib/Core/ScrollBar.h](../duilib/Core/ScrollBar.h) | 滚动条控件 |
@@ -217,6 +229,7 @@
 | VBoxDragable | VBoxDragable | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 
 * 全局资源
+
 | 类名称 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | GlobalManager | [duilib/Core/GlobalManager.h](../duilib/Core/GlobalManager.h) | 全局属性管理工具类，用于管理一些全局属性的工具类，包含全局样式（global.xml）和语言设置等 |
@@ -233,6 +246,7 @@
 | ColorManager | [duilib/Core/ColorManager.h](../duilib/Core/ColorManager.h) | 颜色管理器 |
 
 * libcef控件封装相关
+
 | 类名称 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | CefManager | [duilib/CEFControl/CefManager.h](../duilib/CEFControl/CefManager.h) | CEF控件管理器，负责CEF模块的初始化和反初始化相关工作 |
