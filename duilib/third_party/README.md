@@ -15,6 +15,9 @@
 | zlib        | 2024-05-30 |v1.3.1 |无 |https://github.com/madler/zlib | |
 | xml         | 2024-05-30 |v1.14  |无 |https://github.com/zeux/pugixml| pugixml|
 | convert_utf | 2024-05-30 |v18.1.6|无 |https://releases.llvm.org      | 下载最新版的源码包，解压后找到这两个文件  |
+| libcef_win_109|2023-02-03|cef_binary 109.1.18+gf1c41e4<br>chromium-109.0.5414.120|无 |x64版本：https://cef-builds.spotifycdn.com/index.html#windows64:109 <br> Win32版本：https://cef-builds.spotifycdn.com/index.html#windows32:109| x64版本：https://cef-builds.spotifycdn.com/cef_binary_109.1.18%2Bgf1c41e4%2Bchromium-109.0.5414.120_windows64.tar.bz2 <br> Win32版本：https://cef-builds.spotifycdn.com/cef_binary_109.1.18%2Bgf1c41e4%2Bchromium-109.0.5414.120_windows32.tar.bz2|
+| libcef_win  |2023-03-08|cef_binary_133.4.8+g99a2ab1<br>chromium-133.0.6943.142|无 |x64版本：https://cef-builds.spotifycdn.com/index.html#windows64:133 <br> Win32版本：https://cef-builds.spotifycdn.com/index.html#windows32:133| x64版本：https://cef-builds.spotifycdn.com/cef_binary_133.4.8%2Bg99a2ab1%2Bchromium-133.0.6943.142_windows64.tar.bz2 <br> Win32版本：https://cef-builds.spotifycdn.com/cef_binary_133.4.8%2Bg99a2ab1%2Bchromium-133.0.6943.142_windows32.tar.bz2|
+| libcef_linux|2023-03-08|cef_binary_133.4.8+g99a2ab1<br>chromium-133.0.6943.142|无 |x64版本：https://cef-builds.spotifycdn.com/index.html#linux64:133| x64版本：https://cef-builds.spotifycdn.com/cef_binary_133.4.8%2Bg99a2ab1%2Bchromium-133.0.6943.142_linux64.tar.bz2|
 
 ## libpng 库更新说明
 1. 下载最新版本的压缩包：https://sourceforge.net/projects/libpng/

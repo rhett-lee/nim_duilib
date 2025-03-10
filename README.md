@@ -125,6 +125,7 @@
 |directui  |                       | 借鉴界面库框架|[directui.LICENSE.txt](licenses/directui.LICENSE.txt)|
 |duilib    |                       | 最早基于duilib开发|[duilib.LICENSE.txt](licenses/duilib.LICENSE.txt)|
 |NIM_Duilib Framework|             | 基于NIM_Duilib_Framework开发|[NIM_Duilib_Framework.LICENSE.txt](licenses/NIM_Duilib_Framework.LICENSE.txt)|
+|libcef    |duilib/third_party/libcef_win<br>duilib/third_party/libcef_win_109<br>duilib/third_party/libcef_linux| 用于加载CEF模块|[libcef.LICENSE.txt](licenses/libcef.LICENSE.txt)|
 
 备注：    
 1. 本项目最早是基于duilib开发的，项目地址：[duilib](https://github.com/duilib/duilib)
