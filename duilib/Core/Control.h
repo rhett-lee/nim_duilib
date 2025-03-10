@@ -933,7 +933,11 @@ public:
     */
     bool IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const;
 
-    /** 是否为OSR并自己处理输入法消息的模式（CEF的离屏渲染控件）
+    /** 是否为CEF的离屏渲染控件
+    */
+    virtual bool IsCefOSR() const { return false; }
+
+    /** 是否为CEF的离屏渲染控件，并自己处理输入法消息的模式
     */
     virtual bool IsCefOsrImeMode() const { return false; }
 

@@ -37,7 +37,11 @@ public:
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
     virtual void SetWindow(Window* pWindow) override;
 
-    /** 是否为OSR并自己处理输入法消息的模式（CEF的离屏渲染控件）
+    /** 是否为CEF的离屏渲染控件
+    */
+    virtual bool IsCefOSR() const override;
+
+    /** 是否为CEF的离屏渲染控件，并自己处理输入法消息的模式
     */
     virtual bool IsCefOsrImeMode() const override;
 

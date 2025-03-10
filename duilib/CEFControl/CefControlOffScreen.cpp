@@ -649,6 +649,11 @@ bool CefControlOffScreen::OnKeyUp(const EventArgs& msg)
 #endif
 }
 
+bool CefControlOffScreen::IsCefOSR() const
+{
+    return true;
+}
+
 bool CefControlOffScreen::IsCefOsrImeMode() const
 {
 #if CEF_VERSION_MAJOR > 109

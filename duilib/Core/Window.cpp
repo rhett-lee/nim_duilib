@@ -1190,6 +1190,10 @@ LRESULT Window::OnSetCursorMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
         if (windowFlag.expired()) {
             return 0;
         }
+        else if (pControl->IsCefOSR()) {
+            //离屏渲染模式下，需要让系统处理光标消息，否则光标会出现异常现象
+            bHandled = false;
+        }
     }
     return 0;
 }
