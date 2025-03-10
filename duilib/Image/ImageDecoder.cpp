@@ -151,9 +151,16 @@ namespace STBImageLoader
                 else {
                     argbData[colorIndex + 3] = 255; //A, alpha
                 }
+#ifdef DUILIB_BUILD_FOR_WIN
+                //数据格式：Window平台BGRA，其他平台RGBA
                 argbData[colorIndex + 0] = rgbaData[colorIndex + 2]; //B, blue
                 argbData[colorIndex + 1] = rgbaData[colorIndex + 1]; //G, green
                 argbData[colorIndex + 2] = rgbaData[colorIndex + 0]; //R, red
+#else
+                argbData[colorIndex + 0] = rgbaData[colorIndex + 0]; //R, red
+                argbData[colorIndex + 1] = rgbaData[colorIndex + 1]; //G, green
+                argbData[colorIndex + 2] = rgbaData[colorIndex + 2]; //B, blue
+#endif
             }
 
             imageData.bFlipHeight = true;
@@ -193,9 +200,16 @@ namespace APNGImageLoader
             uint8_t t = p[0];
             if (a)
             {
+#ifdef DUILIB_BUILD_FOR_WIN
+                //数据格式：Window平台BGRA，其他平台RGBA
                 p[0] = (p[2] * a) / 255;
                 p[1] = (p[1] * a) / 255;
                 p[2] = (t * a) / 255;
+#else
+                p[0] = (p[0] * a) / 255;
+                p[1] = (p[1] * a) / 255;
+                p[2] = (p[2] * a) / 255;
+#endif
             }
             else
             {
@@ -215,7 +229,7 @@ namespace APNGImageLoader
             bitmapData.m_imageWidth = nWid;
             bitmapData.m_imageHeight = nHei;
             bitmapData.m_bitmapData.resize(imageDataSize);
-            memcpy(bitmapData.m_bitmapData.data(), p, imageDataSize);
+            ::memcpy(bitmapData.m_bitmapData.data(), p, imageDataSize);
 
             p += imageDataSize;
         }
@@ -320,6 +334,8 @@ namespace SVGImageLoader
         }
         nsvgRasterize(rast.get(), svg.get(), 0, 0, scale, pBmpBits, width, height, width * dataSize);
 
+#ifdef DUILIB_BUILD_FOR_WIN
+        //数据格式：Window平台BGRA，其他平台RGBA
         // nanosvg内部已经做过alpha预乘，这里只做R和B的交换
         for (int y = 0; y < height; ++y) {
             unsigned char* row = &pBmpBits[y * width * dataSize];
@@ -332,6 +348,7 @@ namespace SVGImageLoader
                 row += 4;
             }
         }
+#endif
 
         imageData.m_frameInterval = 0;
         imageData.bFlipHeight = true;
@@ -450,6 +467,14 @@ namespace CxImageLoader
                             pBit->rgbBlue = pBit->rgbBlue * a / 255;
                         }
                     }
+#ifdef DUILIB_BUILD_FOR_WIN
+                    //数据格式：Window平台BGRA，其他平台RGBA
+#else
+                    //其他平台，交换R和B值
+                    uint8_t r = pBit->rgbRed;
+                    pBit->rgbRed = pBit->rgbBlue;
+                    pBit->rgbBlue = r;
+#endif
                     ++pBit;
                 }
             }
@@ -539,7 +564,14 @@ namespace WebPImageLoader
             }
             int width = 0;
             int hight = 0;
-            uint8_t* decode_data = WebPDecodeBGRA(iter.fragment.bytes, iter.fragment.size, &width, &hight);
+            uint8_t* decode_data = nullptr;
+#ifdef DUILIB_BUILD_FOR_WIN
+            //数据格式：Window平台BGRA，其他平台RGBA
+            decode_data = WebPDecodeBGRA(iter.fragment.bytes, iter.fragment.size, &width, &hight);
+#else
+            decode_data = WebPDecodeRGBA(iter.fragment.bytes, iter.fragment.size, &width, &hight);
+#endif
+            
             ASSERT((decode_data != nullptr) && (width > 0) && (hight > 0));
             if ((decode_data == nullptr) || (width <= 0) || (hight <= 0)) {
                 imageData.clear();
@@ -549,7 +581,7 @@ namespace WebPImageLoader
             ImageDecoder::ImageData& bitmapData = imageData[(size_t)frame_idx - 1];
             const size_t dataSize = (size_t)width * hight * 4;
             bitmapData.m_bitmapData.resize(dataSize);
-            memcpy(bitmapData.m_bitmapData.data(), decode_data, dataSize);
+            ::memcpy(bitmapData.m_bitmapData.data(), decode_data, dataSize);
             bitmapData.m_imageWidth = width;
             bitmapData.m_imageHeight = hight;
             bitmapData.m_frameInterval = iter.duration;
@@ -593,6 +625,9 @@ ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const DString& path)
         imageFormat = ImageFormat::kBMP;
     }
     else if (fileExt == _T("ICO")) {
+        imageFormat = ImageFormat::kICO;
+    }
+    else if (fileExt == _T("CUR")) {
         imageFormat = ImageFormat::kICO;
     }
     return imageFormat;

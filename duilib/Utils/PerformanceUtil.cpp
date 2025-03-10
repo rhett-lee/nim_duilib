@@ -36,22 +36,23 @@ void PerformanceUtil::BeginStat(const DString& name)
     ASSERT(!name.empty());
     TStat& stat = m_stat[name];
     stat.startTime = std::chrono::steady_clock::now();
-    stat.hasStarted = true;
+    ASSERT(stat.nStartRefCount >= 0);
+    stat.nStartRefCount++;
 }
 
 void PerformanceUtil::EndStat(const DString& name)
 {
     ASSERT(!name.empty());
     TStat& stat = m_stat[name];
-    ASSERT(stat.hasStarted);
-    if (!stat.hasStarted) {
+    ASSERT(stat.nStartRefCount > 0);
+    if (stat.nStartRefCount <= 0) {
         return;
     }
     stat.endTime = std::chrono::steady_clock::now();
     stat.totalCount += 1;
     auto thisTime = std::chrono::duration_cast<std::chrono::microseconds>(stat.endTime - stat.startTime);
     stat.totalTimes += thisTime;
-    stat.hasStarted = false;
+    stat.nStartRefCount--;
     stat.maxTime = (std::max)(stat.maxTime, thisTime);
 }
 

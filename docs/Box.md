@@ -1,208 +1,208 @@
-## ²¼¾ÖµÄÊôÐÔ
-| ÀàÃû³Æ | »ùÀàÃû³Æ |¹ØÁªÍ·ÎÄ¼þ| ÓÃÍ¾ |
+ï»¿## å¸ƒå±€çš„å±žæ€§
+| ç±»åç§° | åŸºç±»åç§° |å…³è”å¤´æ–‡ä»¶| ç”¨é€” |
 | :--- | :--- |:--- | :--- |
-| Layout | |[duilib/Box/Layout.h](../duilib/Box/Layout.h) | ×ÔÓÉ²¼¾Ö£¨¸¡¶¯²¼¾Ö£©|
-| HLayout |Layout |[duilib/Box/HLayout.h](../duilib/Box/HLayout.h) | Ë®Æ½²¼¾Ö|
-| VLayout |Layout |[duilib/Box/VLayout.h](../duilib/Box/VLayout.h) | ´¹Ö±²¼¾Ö|
-| HTileLayout |Layout| [duilib/Box/HTileLayout.h](../duilib/Box/HTileLayout.h) | Ë®Æ½ÍßÆ¬²¼¾Ö|
-| VTileLayout |Layout| [duilib/Box/VTileLayout.h](../duilib/Box/VTileLayout.h) | ´¹Ö±ÍßÆ¬²¼¾Ö|
-| VirtualHLayout |HLayout| [duilib/Box/VirtualHLayout.h](../duilib/Box/VirtualHLayout.h) | Ðé±íË®Æ½²¼¾Ö|
-| VirtualVLayout |VLayout| [duilib/Box/VirtualVLayout.h](../duilib/Box/VirtualVLayout.h) | Ðé±í´¹Ö±²¼¾Ö|
-| VirtualHTileLayout |HTileLayout| [duilib/Box/VirtualHTileLayout.h](../duilib/Box/VirtualHTileLayout.h) | Ðé±íË®Æ½ÍßÆ¬²¼¾Ö|
-| VirtualVTileLayout |VTileLayout| [duilib/Box/VirtualVTileLayout.h](../duilib/Box/VirtualVTileLayout.h) | Ðé±í´¹Ö±ÍßÆ¬²¼¾Ö|
+| Layout | |[duilib/Box/Layout.h](../duilib/Box/Layout.h) | è‡ªç”±å¸ƒå±€ï¼ˆæµ®åŠ¨å¸ƒå±€ï¼‰|
+| HLayout |Layout |[duilib/Box/HLayout.h](../duilib/Box/HLayout.h) | æ°´å¹³å¸ƒå±€|
+| VLayout |Layout |[duilib/Box/VLayout.h](../duilib/Box/VLayout.h) | åž‚ç›´å¸ƒå±€|
+| HTileLayout |Layout| [duilib/Box/HTileLayout.h](../duilib/Box/HTileLayout.h) | æ°´å¹³ç“¦ç‰‡å¸ƒå±€|
+| VTileLayout |Layout| [duilib/Box/VTileLayout.h](../duilib/Box/VTileLayout.h) | åž‚ç›´ç“¦ç‰‡å¸ƒå±€|
+| VirtualHLayout |HLayout| [duilib/Box/VirtualHLayout.h](../duilib/Box/VirtualHLayout.h) | è™šè¡¨æ°´å¹³å¸ƒå±€|
+| VirtualVLayout |VLayout| [duilib/Box/VirtualVLayout.h](../duilib/Box/VirtualVLayout.h) | è™šè¡¨åž‚ç›´å¸ƒå±€|
+| VirtualHTileLayout |HTileLayout| [duilib/Box/VirtualHTileLayout.h](../duilib/Box/VirtualHTileLayout.h) | è™šè¡¨æ°´å¹³ç“¦ç‰‡å¸ƒå±€|
+| VirtualVTileLayout |VTileLayout| [duilib/Box/VirtualVTileLayout.h](../duilib/Box/VirtualVTileLayout.h) | è™šè¡¨åž‚ç›´ç“¦ç‰‡å¸ƒå±€|
 
-1. ×ÔÓÉ²¼¾Ö£¨Layout£¬¸¡¶¯²¼¾Ö£©
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+1. è‡ªç”±å¸ƒå±€ï¼ˆLayoutï¼Œæµ®åŠ¨å¸ƒå±€ï¼‰
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| child_margin | 0 | int | ×Ó¿Ø¼þÖ®¼äµÄ¶îÍâ±ß¾à: X Öá·½Ïò ºÍ Y Öá·½ÏòÍ¬Ê±ÉèÖÃÎªÏàÍ¬Öµ|
-| child_margin_x | 0 | int | ×Ó¿Ø¼þÖ®¼äµÄ¶îÍâ±ß¾à: X Öá·½Ïò |
-| child_margin_y | 0 | int | ×Ó¿Ø¼þÖ®¼äµÄ¶îÍâ±ß¾à: Y Öá·½Ïò|
-2. Ë®Æ½²¼¾Ö£¨HLayout£©£º¿ÉÓÃÊôÐÔ¼Ì³Ð×ÔÓÉ²¼¾ÖµÄÊôÐÔ
-3. ´¹Ö±²¼¾Ö£¨VLayout£©£º¿ÉÓÃÊôÐÔ¼Ì³Ð×ÔÓÉ²¼¾ÖµÄÊôÐÔ
-4. Ë®Æ½ÍßÆ¬²¼¾Ö£¨HTileLayout£©£º¿ÉÓÃÊôÐÔ¼Ì³Ð×ÔÓÉ²¼¾ÖµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+| child_margin | 0 | int | å­æŽ§ä»¶ä¹‹é—´çš„é¢å¤–è¾¹è·: X è½´æ–¹å‘ å’Œ Y è½´æ–¹å‘åŒæ—¶è®¾ç½®ä¸ºç›¸åŒå€¼|
+| child_margin_x | 0 | int | å­æŽ§ä»¶ä¹‹é—´çš„é¢å¤–è¾¹è·: X è½´æ–¹å‘ |
+| child_margin_y | 0 | int | å­æŽ§ä»¶ä¹‹é—´çš„é¢å¤–è¾¹è·: Y è½´æ–¹å‘|
+2. æ°´å¹³å¸ƒå±€ï¼ˆHLayoutï¼‰ï¼šå¯ç”¨å±žæ€§ç»§æ‰¿è‡ªç”±å¸ƒå±€çš„å±žæ€§
+3. åž‚ç›´å¸ƒå±€ï¼ˆVLayoutï¼‰ï¼šå¯ç”¨å±žæ€§ç»§æ‰¿è‡ªç”±å¸ƒå±€çš„å±žæ€§
+4. æ°´å¹³ç“¦ç‰‡å¸ƒå±€ï¼ˆHTileLayoutï¼‰ï¼šå¯ç”¨å±žæ€§ç»§æ‰¿è‡ªç”±å¸ƒå±€çš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | ×ÓÏî´óÐ¡, ¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼þµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ£¬±ÈÈç"100,40"|
-| rows | 0 | int | Èç¹ûÉèÖÃÎª"auto"£¬±íÊ¾×Ô¶¯¼ÆËãÐÐÊý£¬Èç¹ûÎªÊýÖµ£¬±íÊ¾ÉèÖÃÎª¹Ì¶¨ÐÐÊý|
-| scale_down | true | bool | µ±¿Ø¼þÄÚÈÝ³¬³ö±ß½çÊ±£¬°´±ÈÀýËõÐ¡£¬ÒÔÊ¹¿Ø¼þÄÚÈÝÍêÈ«ÏÔÊ¾ÔÚÍßÆ¬ÇøÓòÄÚ|
-5. ´¹Ö±ÍßÆ¬²¼¾Ö£¨VTileLayout£©£º¿ÉÓÃÊôÐÔ¼Ì³Ð×ÔÓÉ²¼¾ÖµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+| item_size | 0,0 | size | å­é¡¹å¤§å°, è¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æŽ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„ï¼Œæ¯”å¦‚"100,40"|
+| rows | 0 | int | å¦‚æžœè®¾ç½®ä¸º"auto"ï¼Œè¡¨ç¤ºè‡ªåŠ¨è®¡ç®—è¡Œæ•°ï¼Œå¦‚æžœä¸ºæ•°å€¼ï¼Œè¡¨ç¤ºè®¾ç½®ä¸ºå›ºå®šè¡Œæ•°|
+| scale_down | true | bool | å½“æŽ§ä»¶å†…å®¹è¶…å‡ºè¾¹ç•Œæ—¶ï¼ŒæŒ‰æ¯”ä¾‹ç¼©å°ï¼Œä»¥ä½¿æŽ§ä»¶å†…å®¹å®Œå…¨æ˜¾ç¤ºåœ¨ç“¦ç‰‡åŒºåŸŸå†…|
+5. åž‚ç›´ç“¦ç‰‡å¸ƒå±€ï¼ˆVTileLayoutï¼‰ï¼šå¯ç”¨å±žæ€§ç»§æ‰¿è‡ªç”±å¸ƒå±€çš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | ×ÓÏî´óÐ¡, ¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼þµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ£¬±ÈÈç"100,40"|
-| columns | 0 | int | Èç¹ûÉèÖÃÎª"auto"£¬±íÊ¾×Ô¶¯¼ÆËãÁÐÊý£¬Èç¹ûÎªÊýÖµ£¬±íÊ¾ÉèÖÃÎª¹Ì¶¨ÁÐÊý|
-| scale_down | true | bool | µ±¿Ø¼þÄÚÈÝ³¬³ö±ß½çÊ±£¬°´±ÈÀýËõÐ¡£¬ÒÔÊ¹¿Ø¼þÄÚÈÝÍêÈ«ÏÔÊ¾ÔÚÍßÆ¬ÇøÓòÄÚ|
-6. Ðé±íË®Æ½²¼¾Ö£¨VirtualHLayout£©£º¿ÉÓÃÊôÐÔ¼Ì³ÐË®Æ½²¼¾ÖµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+| item_size | 0,0 | size | å­é¡¹å¤§å°, è¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æŽ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„ï¼Œæ¯”å¦‚"100,40"|
+| columns | 0 | int | å¦‚æžœè®¾ç½®ä¸º"auto"ï¼Œè¡¨ç¤ºè‡ªåŠ¨è®¡ç®—åˆ—æ•°ï¼Œå¦‚æžœä¸ºæ•°å€¼ï¼Œè¡¨ç¤ºè®¾ç½®ä¸ºå›ºå®šåˆ—æ•°|
+| scale_down | true | bool | å½“æŽ§ä»¶å†…å®¹è¶…å‡ºè¾¹ç•Œæ—¶ï¼ŒæŒ‰æ¯”ä¾‹ç¼©å°ï¼Œä»¥ä½¿æŽ§ä»¶å†…å®¹å®Œå…¨æ˜¾ç¤ºåœ¨ç“¦ç‰‡åŒºåŸŸå†…|
+6. è™šè¡¨æ°´å¹³å¸ƒå±€ï¼ˆVirtualHLayoutï¼‰ï¼šå¯ç”¨å±žæ€§ç»§æ‰¿æ°´å¹³å¸ƒå±€çš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | ×ÓÏî´óÐ¡, ¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼þµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ£¬±ÈÈç"100,40"|
-7. Ðé±í´¹Ö±²¼¾Ö£¨VirtualVLayout£©£º¿ÉÓÃÊôÐÔ¼Ì³Ð´¹Ö±²¼¾ÖµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+| item_size | 0,0 | size | å­é¡¹å¤§å°, è¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æŽ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„ï¼Œæ¯”å¦‚"100,40"|
+7. è™šè¡¨åž‚ç›´å¸ƒå±€ï¼ˆVirtualVLayoutï¼‰ï¼šå¯ç”¨å±žæ€§ç»§æ‰¿åž‚ç›´å¸ƒå±€çš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | ×ÓÏî´óÐ¡, ¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼þµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ£¬±ÈÈç"100,40"|
-8. Ðé±íË®Æ½ÍßÆ¬²¼¾Ö£¨VirtualHLayout£©£º¿ÉÓÃÊôÐÔ¼Ì³ÐË®Æ½ÍßÆ¬²¼¾ÖµÄÊôÐÔ
-9. Ðé±í´¹Ö±ÍßÆ¬²¼¾Ö£¨VirtualVLayout£©£º¿ÉÓÃÊôÐÔ¼Ì³Ð´¹Ö±ÍßÆ¬²¼¾ÖµÄÊôÐÔ
+| item_size | 0,0 | size | å­é¡¹å¤§å°, è¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æŽ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„ï¼Œæ¯”å¦‚"100,40"|
+8. è™šè¡¨æ°´å¹³ç“¦ç‰‡å¸ƒå±€ï¼ˆVirtualHLayoutï¼‰ï¼šå¯ç”¨å±žæ€§ç»§æ‰¿æ°´å¹³ç“¦ç‰‡å¸ƒå±€çš„å±žæ€§
+9. è™šè¡¨åž‚ç›´ç“¦ç‰‡å¸ƒå±€ï¼ˆVirtualVLayoutï¼‰ï¼šå¯ç”¨å±žæ€§ç»§æ‰¿åž‚ç›´ç“¦ç‰‡å¸ƒå±€çš„å±žæ€§
 
-## BoxµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+## Boxçš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| child_margin | 0 | int | ×Ó¿Ø¼þÖ®¼äµÄ¶îÍâ±ß¾à: X Öá·½Ïò ºÍ Y Öá·½ÏòÍ¬Ê±ÉèÖÃÎªÏàÍ¬Öµ|
-| child_margin_x | 0 | int | ×Ó¿Ø¼þÖ®¼äµÄ¶îÍâ±ß¾à: X Öá·½Ïò |
-| child_margin_y | 0 | int | ×Ó¿Ø¼þÖ®¼äµÄ¶îÍâ±ß¾à: Y Öá·½Ïò|
-| margin | 0,0,0,0 | rect | Íâ±ß¾à,Èç(2,2,2,2) |
-| padding | 0,0,0,0 | rect | ÄÚ±ß¾à,Èç(2,2,2,2) |
-| mouse_child | true | bool | ±¾¿Ø¼þµÄ×Ó¿Ø¼þÊÇ·ñ¿ÉÒÔÏìÓ¦ÓÃ»§²Ù×÷, true »òÕß false|
-| drag_out_id |  | int | ÉèÖÃÊÇ·ñÖ§³ÖÍÏ×§ÍÏ³ö¸ÃÈÝÆ÷£ºÈç¹û²»µÈÓÚ0£¬Ö§³ÖÍÏ³ö£¬·ñÔò²»Ö§³ÖÍÏ³ö£¨ÍÏ³öµ½drop_in_id==drag_out_idµÄÈÝÆ÷£©|
-| drop_in_id |  | int | ÉèÖÃÊÇ·ñÖ§³ÖÍÏ×§Í¶·Å½øÈë¸ÃÈÝÆ÷: Èç¹û²»µÈÓÚ0£¬Ö§³ÖÍÏÈë£¬·ñÔò²»Ö§³ÖÍÏÈë(´Ódrag_out_id==drop_in_idµÄÈÝÆ÷ÍÏÈëµ½¸ÃÈÝÆ÷)|
+| child_margin | 0 | int | å­æŽ§ä»¶ä¹‹é—´çš„é¢å¤–è¾¹è·: X è½´æ–¹å‘ å’Œ Y è½´æ–¹å‘åŒæ—¶è®¾ç½®ä¸ºç›¸åŒå€¼|
+| child_margin_x | 0 | int | å­æŽ§ä»¶ä¹‹é—´çš„é¢å¤–è¾¹è·: X è½´æ–¹å‘ |
+| child_margin_y | 0 | int | å­æŽ§ä»¶ä¹‹é—´çš„é¢å¤–è¾¹è·: Y è½´æ–¹å‘|
+| margin | 0,0,0,0 | rect | å¤–è¾¹è·,å¦‚(2,2,2,2) |
+| padding | 0,0,0,0 | rect | å†…è¾¹è·,å¦‚(2,2,2,2) |
+| mouse_child | true | bool | æœ¬æŽ§ä»¶çš„å­æŽ§ä»¶æ˜¯å¦å¯ä»¥å“åº”ç”¨æˆ·æ“ä½œ, true æˆ–è€… false|
+| drag_out_id |  | int | è®¾ç½®æ˜¯å¦æ”¯æŒæ‹–æ‹½æ‹–å‡ºè¯¥å®¹å™¨ï¼šå¦‚æžœä¸ç­‰äºŽ0ï¼Œæ”¯æŒæ‹–å‡ºï¼Œå¦åˆ™ä¸æ”¯æŒæ‹–å‡ºï¼ˆæ‹–å‡ºåˆ°drop_in_id==drag_out_idçš„å®¹å™¨ï¼‰|
+| drop_in_id |  | int | è®¾ç½®æ˜¯å¦æ”¯æŒæ‹–æ‹½æŠ•æ”¾è¿›å…¥è¯¥å®¹å™¨: å¦‚æžœä¸ç­‰äºŽ0ï¼Œæ”¯æŒæ‹–å…¥ï¼Œå¦åˆ™ä¸æ”¯æŒæ‹–å…¥(ä»Ždrag_out_id==drop_in_idçš„å®¹å™¨æ‹–å…¥åˆ°è¯¥å®¹å™¨)|
 
-Box ¿Ø¼þ¼Ì³ÐÁË `Control` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼£º»ùÀà[Control(»ù´¡¿Ø¼þ)µÄÊôÐÔ](./Control.md)
+Box æŽ§ä»¶ç»§æ‰¿äº† `Control` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒï¼šåŸºç±»[Control(åŸºç¡€æŽ§ä»¶)çš„å±žæ€§](./Control.md)
 
-## VBoxµÄÊôÐÔ
-VBox ¿Ø¼þ¼Ì³ÐÁË `Box` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`Box`µÄÊôÐÔ
+## VBoxçš„å±žæ€§
+VBox æŽ§ä»¶ç»§æ‰¿äº† `Box` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`Box`çš„å±žæ€§
 
-## HBoxµÄÊôÐÔ
-HBox ¿Ø¼þ¼Ì³ÐÁË `Box` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`Box`µÄÊôÐÔ
+## HBoxçš„å±žæ€§
+HBox æŽ§ä»¶ç»§æ‰¿äº† `Box` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`Box`çš„å±žæ€§
 
-## TabBoxµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+## TabBoxçš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| fade_switch | false | bool | µ±ÇÐ»»Ò³ÃæÊ±ÊÇ·ñÊ¹ÓÃ¶¯»­Ð§¹û, Èç(false) |
-| selected_id | 0 | int | Ä¬ÈÏÑ¡ÖÐµÄÒ³Ãæid, Èç(0) |
+| fade_switch | false | bool | å½“åˆ‡æ¢é¡µé¢æ—¶æ˜¯å¦ä½¿ç”¨åŠ¨ç”»æ•ˆæžœ, å¦‚(false) |
+| selected_id | 0 | int | é»˜è®¤é€‰ä¸­çš„é¡µé¢id, å¦‚(0) |
 
-TabBox ¿Ø¼þ¼Ì³ÐÁË `Box` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`Box`µÄÊôÐÔ
+TabBox æŽ§ä»¶ç»§æ‰¿äº† `Box` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`Box`çš„å±žæ€§
 
-## VTileBoxµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+## VTileBoxçš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | ×ÓÏî´óÐ¡, ¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼þµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ£¬±ÈÈç"100,40"|
-| columns | 0 | int | Èç¹ûÉèÖÃÎª"auto"£¬±íÊ¾×Ô¶¯¼ÆËãÁÐÊý£¬Èç¹ûÎªÊýÖµ£¬±íÊ¾ÉèÖÃÎª¹Ì¶¨ÁÐÊý|
-| scale_down | true | bool | µ±¿Ø¼þÄÚÈÝ³¬³ö±ß½çÊ±£¬°´±ÈÀýËõÐ¡£¬ÒÔÊ¹¿Ø¼þÄÚÈÝÍêÈ«ÏÔÊ¾ÔÚÍßÆ¬ÇøÓòÄÚ|
+| item_size | 0,0 | size | å­é¡¹å¤§å°, è¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æŽ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„ï¼Œæ¯”å¦‚"100,40"|
+| columns | 0 | int | å¦‚æžœè®¾ç½®ä¸º"auto"ï¼Œè¡¨ç¤ºè‡ªåŠ¨è®¡ç®—åˆ—æ•°ï¼Œå¦‚æžœä¸ºæ•°å€¼ï¼Œè¡¨ç¤ºè®¾ç½®ä¸ºå›ºå®šåˆ—æ•°|
+| scale_down | true | bool | å½“æŽ§ä»¶å†…å®¹è¶…å‡ºè¾¹ç•Œæ—¶ï¼ŒæŒ‰æ¯”ä¾‹ç¼©å°ï¼Œä»¥ä½¿æŽ§ä»¶å†…å®¹å®Œå…¨æ˜¾ç¤ºåœ¨ç“¦ç‰‡åŒºåŸŸå†…|
 
-VTileBox ¿Ø¼þ¼Ì³ÐÁË `Box` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`Box`µÄÊôÐÔ
+VTileBox æŽ§ä»¶ç»§æ‰¿äº† `Box` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`Box`çš„å±žæ€§
 
-## HTileBoxµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+## HTileBoxçš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | ×ÓÏî´óÐ¡, ¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼þµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ£¬±ÈÈç"100,40"|
-| rows | 0 | int | Èç¹ûÉèÖÃÎª"auto"£¬±íÊ¾×Ô¶¯¼ÆËãÐÐÊý£¬Èç¹ûÎªÊýÖµ£¬±íÊ¾ÉèÖÃÎª¹Ì¶¨ÐÐÊý|
-| scale_down | true | bool | µ±¿Ø¼þÄÚÈÝ³¬³ö±ß½çÊ±£¬°´±ÈÀýËõÐ¡£¬ÒÔÊ¹¿Ø¼þÄÚÈÝÍêÈ«ÏÔÊ¾ÔÚÍßÆ¬ÇøÓòÄÚ|
+| item_size | 0,0 | size | å­é¡¹å¤§å°, è¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æŽ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„ï¼Œæ¯”å¦‚"100,40"|
+| rows | 0 | int | å¦‚æžœè®¾ç½®ä¸º"auto"ï¼Œè¡¨ç¤ºè‡ªåŠ¨è®¡ç®—è¡Œæ•°ï¼Œå¦‚æžœä¸ºæ•°å€¼ï¼Œè¡¨ç¤ºè®¾ç½®ä¸ºå›ºå®šè¡Œæ•°|
+| scale_down | true | bool | å½“æŽ§ä»¶å†…å®¹è¶…å‡ºè¾¹ç•Œæ—¶ï¼ŒæŒ‰æ¯”ä¾‹ç¼©å°ï¼Œä»¥ä½¿æŽ§ä»¶å†…å®¹å®Œå…¨æ˜¾ç¤ºåœ¨ç“¦ç‰‡åŒºåŸŸå†…|
 
-HTileBox ¿Ø¼þ¼Ì³ÐÁË `Box` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`Box`µÄÊôÐÔ
+HTileBox æŽ§ä»¶ç»§æ‰¿äº† `Box` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`Box`çš„å±žæ€§
 
-## ScrollBoxµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+## ScrollBoxçš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| vscrollbar | false | bool | ÊÇ·ñÊ¹ÓÃÊúÏò¹ö¶¯Ìõ,Èç(true) |
-| hscrollbar | false | bool | ÊÇ·ñÊ¹ÓÃºáÏò¹ö¶¯Ìõ,Èç(true) |
-| vscrollbar_style |  | string | ÉèÖÃ±¾ÈÝÆ÷µÄ×ÝÏò¹ö¶¯ÌõµÄÑùÊ½ |
-| hscrollbar_style |  | string | ÉèÖÃ±¾ÈÝÆ÷µÄºáÏò¹ö¶¯ÌõµÄÑùÊ½ |
-| scrollbar_padding | 0,0,0,0 | rect | ¹ö¶¯ÌõµÄÍâ±ß¾à,¿ÉÒÔÈÃ¹ö¶¯Ìõ²»Õ¼ÂúÈÝÆ÷,Èç(2,2,2,2) |
-| vscroll_unit | 30 | int | ÈÝÆ÷µÄ´¹Ö±¹ö¶¯Ìõ¹ö¶¯²½³¤, 0´ú±íÊ¹ÓÃÄ¬ÈÏ²½³¤ |
-| hscroll_unit | 30 | int | ÈÝÆ÷µÄË®Æ½¹ö¶¯Ìõ¹ö¶¯²½³¤, 0´ú±íÊ¹ÓÃÄ¬ÈÏ²½³¤ |
-| scrollbar_float | true | bool | ÈÝÆ÷µÄ¹ö¶¯ÌõÊÇ·ñÐü¸¡ÔÚ×Ó¿Ø¼þÉÏÃæ,Èç(true) |
-| vscrollbar_left | false | bool | ÈÝÆ÷µÄ¹ö¶¯ÌõÊÇ·ñÔÚ×ó²àÏÔÊ¾ |
-| hold_end | false | bool | ÊÇ·ñÒ»Ö±±£³ÖÏÔÊ¾Ä©Î²Î»ÖÃ,Èç(true) |
+| vscrollbar | false | bool | æ˜¯å¦ä½¿ç”¨ç«–å‘æ»šåŠ¨æ¡,å¦‚(true) |
+| hscrollbar | false | bool | æ˜¯å¦ä½¿ç”¨æ¨ªå‘æ»šåŠ¨æ¡,å¦‚(true) |
+| vscrollbar_style |  | string | è®¾ç½®æœ¬å®¹å™¨çš„çºµå‘æ»šåŠ¨æ¡çš„æ ·å¼ |
+| hscrollbar_style |  | string | è®¾ç½®æœ¬å®¹å™¨çš„æ¨ªå‘æ»šåŠ¨æ¡çš„æ ·å¼ |
+| scrollbar_padding | 0,0,0,0 | rect | æ»šåŠ¨æ¡çš„å¤–è¾¹è·,å¯ä»¥è®©æ»šåŠ¨æ¡ä¸å æ»¡å®¹å™¨,å¦‚(2,2,2,2) |
+| vscroll_unit | 30 | int | å®¹å™¨çš„åž‚ç›´æ»šåŠ¨æ¡æ»šåŠ¨æ­¥é•¿, 0ä»£è¡¨ä½¿ç”¨é»˜è®¤æ­¥é•¿ |
+| hscroll_unit | 30 | int | å®¹å™¨çš„æ°´å¹³æ»šåŠ¨æ¡æ»šåŠ¨æ­¥é•¿, 0ä»£è¡¨ä½¿ç”¨é»˜è®¤æ­¥é•¿ |
+| scrollbar_float | true | bool | å®¹å™¨çš„æ»šåŠ¨æ¡æ˜¯å¦æ‚¬æµ®åœ¨å­æŽ§ä»¶ä¸Šé¢,å¦‚(true) |
+| vscrollbar_left | false | bool | å®¹å™¨çš„æ»šåŠ¨æ¡æ˜¯å¦åœ¨å·¦ä¾§æ˜¾ç¤º |
+| hold_end | false | bool | æ˜¯å¦ä¸€ç›´ä¿æŒæ˜¾ç¤ºæœ«å°¾ä½ç½®,å¦‚(true) |
 
-ScrollBox ¿Ø¼þ¼Ì³ÐÁË `Box` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`Box`µÄÊôÐÔ
+ScrollBox æŽ§ä»¶ç»§æ‰¿äº† `Box` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`Box`çš„å±žæ€§
 
-## VScrollBoxµÄÊôÐÔ
-VScrollBox ¿Ø¼þ¼Ì³ÐÁË `ScrollBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`ScrollBox`µÄÊôÐÔ
+## VScrollBoxçš„å±žæ€§
+VScrollBox æŽ§ä»¶ç»§æ‰¿äº† `ScrollBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`ScrollBox`çš„å±žæ€§
 
-## HScrollBoxµÄÊôÐÔ
-HScrollBox ¿Ø¼þ¼Ì³ÐÁË `ScrollBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`ScrollBox`µÄÊôÐÔ
+## HScrollBoxçš„å±žæ€§
+HScrollBox æŽ§ä»¶ç»§æ‰¿äº† `ScrollBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`ScrollBox`çš„å±žæ€§
 
-## VTileScrollBoxµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+## VTileScrollBoxçš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | ×ÓÏî´óÐ¡, ¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼þµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ£¬±ÈÈç"100,40"|
-| columns | 0 | int | Èç¹ûÉèÖÃÎª"auto"£¬±íÊ¾×Ô¶¯¼ÆËãÁÐÊý£¬Èç¹ûÎªÊýÖµ£¬±íÊ¾ÉèÖÃÎª¹Ì¶¨ÁÐÊý|
-| scale_down | true | bool | µ±¿Ø¼þÄÚÈÝ³¬³ö±ß½çÊ±£¬°´±ÈÀýËõÐ¡£¬ÒÔÊ¹¿Ø¼þÄÚÈÝÍêÈ«ÏÔÊ¾ÔÚÍßÆ¬ÇøÓòÄÚ|
+| item_size | 0,0 | size | å­é¡¹å¤§å°, è¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æŽ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„ï¼Œæ¯”å¦‚"100,40"|
+| columns | 0 | int | å¦‚æžœè®¾ç½®ä¸º"auto"ï¼Œè¡¨ç¤ºè‡ªåŠ¨è®¡ç®—åˆ—æ•°ï¼Œå¦‚æžœä¸ºæ•°å€¼ï¼Œè¡¨ç¤ºè®¾ç½®ä¸ºå›ºå®šåˆ—æ•°|
+| scale_down | true | bool | å½“æŽ§ä»¶å†…å®¹è¶…å‡ºè¾¹ç•Œæ—¶ï¼ŒæŒ‰æ¯”ä¾‹ç¼©å°ï¼Œä»¥ä½¿æŽ§ä»¶å†…å®¹å®Œå…¨æ˜¾ç¤ºåœ¨ç“¦ç‰‡åŒºåŸŸå†…|
 
-VTileScrollBox ¿Ø¼þ¼Ì³ÐÁË `ScrollBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`ScrollBox`µÄÊôÐÔ
+VTileScrollBox æŽ§ä»¶ç»§æ‰¿äº† `ScrollBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`ScrollBox`çš„å±žæ€§
 
-## HTileScrollBoxµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+## HTileScrollBoxçš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | ×ÓÏî´óÐ¡, ¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼þµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ£¬±ÈÈç"100,40"|
-| rows | 0 | int | Èç¹ûÉèÖÃÎª"auto"£¬±íÊ¾×Ô¶¯¼ÆËãÐÐÊý£¬Èç¹ûÎªÊýÖµ£¬±íÊ¾ÉèÖÃÎª¹Ì¶¨ÐÐÊý|
-| scale_down | true | bool | µ±¿Ø¼þÄÚÈÝ³¬³ö±ß½çÊ±£¬°´±ÈÀýËõÐ¡£¬ÒÔÊ¹¿Ø¼þÄÚÈÝÍêÈ«ÏÔÊ¾ÔÚÍßÆ¬ÇøÓòÄÚ|
+| item_size | 0,0 | size | å­é¡¹å¤§å°, è¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æŽ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„ï¼Œæ¯”å¦‚"100,40"|
+| rows | 0 | int | å¦‚æžœè®¾ç½®ä¸º"auto"ï¼Œè¡¨ç¤ºè‡ªåŠ¨è®¡ç®—è¡Œæ•°ï¼Œå¦‚æžœä¸ºæ•°å€¼ï¼Œè¡¨ç¤ºè®¾ç½®ä¸ºå›ºå®šè¡Œæ•°|
+| scale_down | true | bool | å½“æŽ§ä»¶å†…å®¹è¶…å‡ºè¾¹ç•Œæ—¶ï¼ŒæŒ‰æ¯”ä¾‹ç¼©å°ï¼Œä»¥ä½¿æŽ§ä»¶å†…å®¹å®Œå…¨æ˜¾ç¤ºåœ¨ç“¦ç‰‡åŒºåŸŸå†…|
 
-HTileScrollBox ¿Ø¼þ¼Ì³ÐÁË `ScrollBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`ScrollBox`µÄÊôÐÔ
+HTileScrollBox æŽ§ä»¶ç»§æ‰¿äº† `ScrollBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`ScrollBox`çš„å±žæ€§
 
-## ListBoxµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+## ListBoxçš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| multi_select | false | bool | ÊÇ·ñÖ§³Ö¶àÑ¡ |
-| paint_selected_colors | Ä¬ÈÏ¹æÔò | bool | ¶àÑ¡µÄÊ±ºò£¬ÊÇ·ñÏÔÊ¾Ñ¡Ôñ±³¾°É« |
-| scroll_select | false | bool | ÊÇ·ñËæÊó±ê¹öÂÖµÄ¹ö¶¯¸Ä±äÑ¡ÖÐÏîÉèÖÃ(´ËÑ¡Ïî½öµ¥Ñ¡ÓÐÐ§) |
-| select_next_when_active_removed | | bool | ÔÚÒÆ³ýÒ»¸ö×ÓÏîºó, Èç¹û±»ÒÆ³ýÏîÊÇÑ¡ÔñÏî£¬ÊÇ·ñ×Ô¶¯Ñ¡ÔñÏÂÒ»Ïî(´ËÑ¡Ïî½öµ¥Ñ¡ÓÐÐ§) |
+| multi_select | false | bool | æ˜¯å¦æ”¯æŒå¤šé€‰ |
+| paint_selected_colors | é»˜è®¤è§„åˆ™ | bool | å¤šé€‰çš„æ—¶å€™ï¼Œæ˜¯å¦æ˜¾ç¤ºé€‰æ‹©èƒŒæ™¯è‰² |
+| scroll_select | false | bool | æ˜¯å¦éšé¼ æ ‡æ»šè½®çš„æ»šåŠ¨æ”¹å˜é€‰ä¸­é¡¹è®¾ç½®(æ­¤é€‰é¡¹ä»…å•é€‰æœ‰æ•ˆ) |
+| select_next_when_active_removed | | bool | åœ¨ç§»é™¤ä¸€ä¸ªå­é¡¹åŽ, å¦‚æžœè¢«ç§»é™¤é¡¹æ˜¯é€‰æ‹©é¡¹ï¼Œæ˜¯å¦è‡ªåŠ¨é€‰æ‹©ä¸‹ä¸€é¡¹(æ­¤é€‰é¡¹ä»…å•é€‰æœ‰æ•ˆ) |
 
-ListBox ¿Ø¼þ¼Ì³ÐÁË `ScrollBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`ScrollBox`µÄÊôÐÔ
+ListBox æŽ§ä»¶ç»§æ‰¿äº† `ScrollBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`ScrollBox`çš„å±žæ€§
 
-## VListBoxµÄÊôÐÔ
-VListBox ¿Ø¼þ¼Ì³ÐÁË `ListBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`ListBox`µÄÊôÐÔ
+## VListBoxçš„å±žæ€§
+VListBox æŽ§ä»¶ç»§æ‰¿äº† `ListBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`ListBox`çš„å±žæ€§
 
-## HListBoxµÄÊôÐÔ
-HListBox ¿Ø¼þ¼Ì³ÐÁË `ListBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`ListBox`µÄÊôÐÔ
+## HListBoxçš„å±žæ€§
+HListBox æŽ§ä»¶ç»§æ‰¿äº† `ListBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`ListBox`çš„å±žæ€§
 
-## VTileListBoxµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+## VTileListBoxçš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | ×ÓÏî´óÐ¡, ¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼þµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ£¬±ÈÈç"100,40"|
-| columns | 0 | int | Èç¹ûÉèÖÃÎª"auto"£¬±íÊ¾×Ô¶¯¼ÆËãÁÐÊý£¬Èç¹ûÎªÊýÖµ£¬±íÊ¾ÉèÖÃÎª¹Ì¶¨ÁÐÊý|
-| scale_down | true | bool | µ±¿Ø¼þÄÚÈÝ³¬³ö±ß½çÊ±£¬°´±ÈÀýËõÐ¡£¬ÒÔÊ¹¿Ø¼þÄÚÈÝÍêÈ«ÏÔÊ¾ÔÚÍßÆ¬ÇøÓòÄÚ|
+| item_size | 0,0 | size | å­é¡¹å¤§å°, è¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æŽ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„ï¼Œæ¯”å¦‚"100,40"|
+| columns | 0 | int | å¦‚æžœè®¾ç½®ä¸º"auto"ï¼Œè¡¨ç¤ºè‡ªåŠ¨è®¡ç®—åˆ—æ•°ï¼Œå¦‚æžœä¸ºæ•°å€¼ï¼Œè¡¨ç¤ºè®¾ç½®ä¸ºå›ºå®šåˆ—æ•°|
+| scale_down | true | bool | å½“æŽ§ä»¶å†…å®¹è¶…å‡ºè¾¹ç•Œæ—¶ï¼ŒæŒ‰æ¯”ä¾‹ç¼©å°ï¼Œä»¥ä½¿æŽ§ä»¶å†…å®¹å®Œå…¨æ˜¾ç¤ºåœ¨ç“¦ç‰‡åŒºåŸŸå†…|
 
-VTileListBox ¿Ø¼þ¼Ì³ÐÁË `ListBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`ListBox`µÄÊôÐÔ
+VTileListBox æŽ§ä»¶ç»§æ‰¿äº† `ListBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`ListBox`çš„å±žæ€§
 
-## HTileListBoxµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+## HTileListBoxçš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | ×ÓÏî´óÐ¡, ¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼þµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ£¬±ÈÈç"100,40"|
-| rows | 0 | int | Èç¹ûÉèÖÃÎª"auto"£¬±íÊ¾×Ô¶¯¼ÆËãÐÐÊý£¬Èç¹ûÎªÊýÖµ£¬±íÊ¾ÉèÖÃÎª¹Ì¶¨ÐÐÊý|
-| scale_down | true | bool | µ±¿Ø¼þÄÚÈÝ³¬³ö±ß½çÊ±£¬°´±ÈÀýËõÐ¡£¬ÒÔÊ¹¿Ø¼þÄÚÈÝÍêÈ«ÏÔÊ¾ÔÚÍßÆ¬ÇøÓòÄÚ|
+| item_size | 0,0 | size | å­é¡¹å¤§å°, è¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æŽ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„ï¼Œæ¯”å¦‚"100,40"|
+| rows | 0 | int | å¦‚æžœè®¾ç½®ä¸º"auto"ï¼Œè¡¨ç¤ºè‡ªåŠ¨è®¡ç®—è¡Œæ•°ï¼Œå¦‚æžœä¸ºæ•°å€¼ï¼Œè¡¨ç¤ºè®¾ç½®ä¸ºå›ºå®šè¡Œæ•°|
+| scale_down | true | bool | å½“æŽ§ä»¶å†…å®¹è¶…å‡ºè¾¹ç•Œæ—¶ï¼ŒæŒ‰æ¯”ä¾‹ç¼©å°ï¼Œä»¥ä½¿æŽ§ä»¶å†…å®¹å®Œå…¨æ˜¾ç¤ºåœ¨ç“¦ç‰‡åŒºåŸŸå†…|
 
-HTileListBox ¿Ø¼þ¼Ì³ÐÁË `ListBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`ListBox`µÄÊôÐÔ
+HTileListBox æŽ§ä»¶ç»§æ‰¿äº† `ListBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`ListBox`çš„å±žæ€§
 
-## VirtualListBoxµÄÊôÐÔ
-VirtualListBox ¿Ø¼þ¼Ì³ÐÁË `ListBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`ListBox`µÄÊôÐÔ
+## VirtualListBoxçš„å±žæ€§
+VirtualListBox æŽ§ä»¶ç»§æ‰¿äº† `ListBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`ListBox`çš„å±žæ€§
 
-## VirtualVListBoxµÄÊôÐÔ
-VirtualVListBox ¿Ø¼þ¼Ì³ÐÁË `VirtualListBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`VirtualListBox`µÄÊôÐÔ
+## VirtualVListBoxçš„å±žæ€§
+VirtualVListBox æŽ§ä»¶ç»§æ‰¿äº† `VirtualListBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`VirtualListBox`çš„å±žæ€§
 
-## VirtualHListBoxµÄÊôÐÔ
-VirtualHListBox ¿Ø¼þ¼Ì³ÐÁË `VirtualListBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`VirtualListBox`µÄÊôÐÔ
+## VirtualHListBoxçš„å±žæ€§
+VirtualHListBox æŽ§ä»¶ç»§æ‰¿äº† `VirtualListBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`VirtualListBox`çš„å±žæ€§
 
-## VirtualVTileListBoxµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+## VirtualVTileListBoxçš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | ×ÓÏî´óÐ¡, ¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼þµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ£¬±ÈÈç"100,40"|
-| columns | 0 | int | Èç¹ûÉèÖÃÎª"auto"£¬±íÊ¾×Ô¶¯¼ÆËãÁÐÊý£¬Èç¹ûÎªÊýÖµ£¬±íÊ¾ÉèÖÃÎª¹Ì¶¨ÁÐÊý|
-| scale_down | true | bool | µ±¿Ø¼þÄÚÈÝ³¬³ö±ß½çÊ±£¬°´±ÈÀýËõÐ¡£¬ÒÔÊ¹¿Ø¼þÄÚÈÝÍêÈ«ÏÔÊ¾ÔÚÍßÆ¬ÇøÓòÄÚ|
+| item_size | 0,0 | size | å­é¡¹å¤§å°, è¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æŽ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„ï¼Œæ¯”å¦‚"100,40"|
+| columns | 0 | int | å¦‚æžœè®¾ç½®ä¸º"auto"ï¼Œè¡¨ç¤ºè‡ªåŠ¨è®¡ç®—åˆ—æ•°ï¼Œå¦‚æžœä¸ºæ•°å€¼ï¼Œè¡¨ç¤ºè®¾ç½®ä¸ºå›ºå®šåˆ—æ•°|
+| scale_down | true | bool | å½“æŽ§ä»¶å†…å®¹è¶…å‡ºè¾¹ç•Œæ—¶ï¼ŒæŒ‰æ¯”ä¾‹ç¼©å°ï¼Œä»¥ä½¿æŽ§ä»¶å†…å®¹å®Œå…¨æ˜¾ç¤ºåœ¨ç“¦ç‰‡åŒºåŸŸå†…|
 
-VirtualVTileListBox ¿Ø¼þ¼Ì³ÐÁË `VirtualListBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`VirtualListBox`µÄÊôÐÔ
+VirtualVTileListBox æŽ§ä»¶ç»§æ‰¿äº† `VirtualListBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`VirtualListBox`çš„å±žæ€§
 
-## VirtualHTileListBoxµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+## VirtualHTileListBoxçš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| item_size | 0,0 | size | ×ÓÏî´óÐ¡, ¸Ã¿í¶ÈºÍ¸ß¶È£¬ÊÇ°üº¬ÁË¿Ø¼þµÄÍâ±ß¾àºÍÄÚ±ß¾àµÄ£¬±ÈÈç"100,40"|
-| rows | 0 | int | Èç¹ûÉèÖÃÎª"auto"£¬±íÊ¾×Ô¶¯¼ÆËãÐÐÊý£¬Èç¹ûÎªÊýÖµ£¬±íÊ¾ÉèÖÃÎª¹Ì¶¨ÐÐÊý|
-| scale_down | true | bool | µ±¿Ø¼þÄÚÈÝ³¬³ö±ß½çÊ±£¬°´±ÈÀýËõÐ¡£¬ÒÔÊ¹¿Ø¼þÄÚÈÝÍêÈ«ÏÔÊ¾ÔÚÍßÆ¬ÇøÓòÄÚ|
+| item_size | 0,0 | size | å­é¡¹å¤§å°, è¯¥å®½åº¦å’Œé«˜åº¦ï¼Œæ˜¯åŒ…å«äº†æŽ§ä»¶çš„å¤–è¾¹è·å’Œå†…è¾¹è·çš„ï¼Œæ¯”å¦‚"100,40"|
+| rows | 0 | int | å¦‚æžœè®¾ç½®ä¸º"auto"ï¼Œè¡¨ç¤ºè‡ªåŠ¨è®¡ç®—è¡Œæ•°ï¼Œå¦‚æžœä¸ºæ•°å€¼ï¼Œè¡¨ç¤ºè®¾ç½®ä¸ºå›ºå®šè¡Œæ•°|
+| scale_down | true | bool | å½“æŽ§ä»¶å†…å®¹è¶…å‡ºè¾¹ç•Œæ—¶ï¼ŒæŒ‰æ¯”ä¾‹ç¼©å°ï¼Œä»¥ä½¿æŽ§ä»¶å†…å®¹å®Œå…¨æ˜¾ç¤ºåœ¨ç“¦ç‰‡åŒºåŸŸå†…|
 
-VirtualHTileListBox ¿Ø¼þ¼Ì³ÐÁË `VirtualListBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`VirtualListBox`µÄÊôÐÔ
+VirtualHTileListBox æŽ§ä»¶ç»§æ‰¿äº† `VirtualListBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`VirtualListBox`çš„å±žæ€§
 
-## BoxDragableµÄÊôÐÔ
-| ÊôÐÔÃû³Æ | Ä¬ÈÏÖµ | ²ÎÊýÀàÐÍ | ÓÃÍ¾ |
+## BoxDragableçš„å±žæ€§
+| å±žæ€§åç§° | é»˜è®¤å€¼ | å‚æ•°ç±»åž‹ | ç”¨é€” |
 | :--- | :--- | :--- | :--- |
-| drag_order | true | bool | ÊÇ·ñÖ§³ÖÍÏ¶¯µ÷ÕûË³Ðò£¨ÔÚÍ¬Ò»¸öÈÝÆ÷ÄÚ£© |
-| drag_alpha | 216 | int | ÉèÖÃÍÏ¶¯Ë³ÐòÊ±£¬¿Ø¼þµÄÍ¸Ã÷¶È£¨0 - 255£© |
-| drag_out | true | bool | ÊÇ·ñÖ§³ÖÍÏ³ö²Ù×Ý£¨ÔÚÏàÍ¬´°¿ÚµÄ²»Í¬ÈÝÆ÷ÄÚ£© |
+| drag_order | true | bool | æ˜¯å¦æ”¯æŒæ‹–åŠ¨è°ƒæ•´é¡ºåºï¼ˆåœ¨åŒä¸€ä¸ªå®¹å™¨å†…ï¼‰ |
+| drag_alpha | 216 | int | è®¾ç½®æ‹–åŠ¨é¡ºåºæ—¶ï¼ŒæŽ§ä»¶çš„é€æ˜Žåº¦ï¼ˆ0 - 255ï¼‰ |
+| drag_out | true | bool | æ˜¯å¦æ”¯æŒæ‹–å‡ºæ“çºµï¼ˆåœ¨ç›¸åŒçª—å£çš„ä¸åŒå®¹å™¨å†…ï¼‰ |
 
-BoxDragable ¿Ø¼þ¼Ì³ÐÁË `Box` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`Box`µÄÊôÐÔ
+BoxDragable æŽ§ä»¶ç»§æ‰¿äº† `Box` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`Box`çš„å±žæ€§
 
-## HBoxDragableµÄÊôÐÔ
-HBoxDragable Óë BoxDragableÊÇÒ»¸öÄ£°åÀàÊµÏÖµÄ£¬ÊôÐÔÇë²Î¿¼`BoxDragable`µÄÊôÐÔ    
-HBoxDragable ¿Ø¼þ¼Ì³ÐÁË `HBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`HBox`µÄÊôÐÔ
+## HBoxDragableçš„å±žæ€§
+HBoxDragable ä¸Ž BoxDragableæ˜¯ä¸€ä¸ªæ¨¡æ¿ç±»å®žçŽ°çš„ï¼Œå±žæ€§è¯·å‚è€ƒ`BoxDragable`çš„å±žæ€§    
+HBoxDragable æŽ§ä»¶ç»§æ‰¿äº† `HBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`HBox`çš„å±žæ€§
 
-## VBoxDragableµÄÊôÐÔ
-VBoxDragable Óë BoxDragableÊÇÒ»¸öÄ£°åÀàÊµÏÖµÄ£¬ÊôÐÔÇë²Î¿¼`BoxDragable`µÄÊôÐÔ    
-VBoxDragable ¿Ø¼þ¼Ì³ÐÁË `VBox` ÊôÐÔ£¬¸ü¶à¿ÉÓÃÊôÐÔÇë²Î¿¼`VBox`µÄÊôÐÔ
+## VBoxDragableçš„å±žæ€§
+VBoxDragable ä¸Ž BoxDragableæ˜¯ä¸€ä¸ªæ¨¡æ¿ç±»å®žçŽ°çš„ï¼Œå±žæ€§è¯·å‚è€ƒ`BoxDragable`çš„å±žæ€§    
+VBoxDragable æŽ§ä»¶ç»§æ‰¿äº† `VBox` å±žæ€§ï¼Œæ›´å¤šå¯ç”¨å±žæ€§è¯·å‚è€ƒ`VBox`çš„å±žæ€§
 

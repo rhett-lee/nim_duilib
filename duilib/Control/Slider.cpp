@@ -43,7 +43,7 @@ void Slider::HandleEvent(const EventArgs& msg)
             pParent->SendEventMsg(msg);
         }
         else {
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
         return;
     }
@@ -187,7 +187,7 @@ void Slider::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     szThumbSize = Dpi().GetScaleSize(szThumbSize, nOldDpiScale);
     SetThumbSize(szThumbSize, false);
 
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void Slider::PaintBkColor(IRender* pRender)
@@ -253,7 +253,7 @@ void Slider::PaintStateImages(IRender* pRender)
 
 void Slider::ClearImageCache()
 {
-    __super::ClearImageCache();
+    BaseClass::ClearImageCache();
     m_thumbStateImage.ClearImageCache();
 }
 

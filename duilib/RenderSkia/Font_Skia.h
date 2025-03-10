@@ -25,7 +25,7 @@ public:
 
     /**@brief 获取字体名
      */
-    virtual const DString& FontName() const override { return m_uiFont.m_fontName; }
+    virtual DString FontName() const override { return m_uiFont.m_fontName.c_str(); }
 
     /**@brief 获取字体大小
      */

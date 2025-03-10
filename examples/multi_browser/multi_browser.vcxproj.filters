@@ -30,75 +30,87 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="main.h">
+    <ClInclude Include="MainThread.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="browser\multi_browser_manager.h">
-      <Filter>browser</Filter>
+    <ClInclude Include="TestApplication.h">
+      <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="browser\browser_box.h">
-      <Filter>browser</Filter>
+    <ClInclude Include="taskbar\DwmUtil.h">
+      <Filter>taskbar</Filter>
     </ClInclude>
-    <ClInclude Include="browser\multi_browser_form.h">
-      <Filter>browser</Filter>
+    <ClInclude Include="taskbar\TaskbarManager.h">
+      <Filter>taskbar</Filter>
     </ClInclude>
-    <ClInclude Include="control\browser_tab_item.h">
+    <ClInclude Include="dragdrop\BitmapControl.h">
+      <Filter>dragdrop</Filter>
+    </ClInclude>
+    <ClInclude Include="dragdrop\DragDrop.h">
+      <Filter>dragdrop</Filter>
+    </ClInclude>
+    <ClInclude Include="dragdrop\DragForm.h">
+      <Filter>dragdrop</Filter>
+    </ClInclude>
+    <ClInclude Include="control\BrowserTabItem.h">
       <Filter>control</Filter>
     </ClInclude>
-    <ClInclude Include="dragdrop\drag_form.h">
-      <Filter>dragdrop</Filter>
+    <ClInclude Include="browser\BrowserBox.h">
+      <Filter>browser</Filter>
     </ClInclude>
-    <ClInclude Include="dragdrop\bitmap_control.h">
-      <Filter>dragdrop</Filter>
+    <ClInclude Include="browser\CustomLayout.h">
+      <Filter>browser</Filter>
     </ClInclude>
-    <ClInclude Include="dragdrop\drag_drop.h">
-      <Filter>dragdrop</Filter>
+    <ClInclude Include="browser\MultiBrowserForm.h">
+      <Filter>browser</Filter>
     </ClInclude>
-    <ClInclude Include="taskbar\taskbar_manager.h">
-      <Filter>taskbar</Filter>
-    </ClInclude>
-    <ClInclude Include="taskbar\dwm_util.h">
-      <Filter>taskbar</Filter>
-    </ClInclude>
-    <ClInclude Include="browser\custom_layout.h">
+    <ClInclude Include="browser\MultiBrowserManager.h">
       <Filter>browser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="MainThread.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="browser\browser_box.cpp">
-      <Filter>browser</Filter>
+    <ClCompile Include="main_linux.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="browser\multi_browser_form.cpp">
-      <Filter>browser</Filter>
+    <ClCompile Include="main_windows.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="browser\multi_browser_form_dragdrop.cpp">
-      <Filter>browser</Filter>
+    <ClCompile Include="TestApplication.cpp">
+      <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="browser\multi_browser_manager.cpp">
-      <Filter>browser</Filter>
+    <ClCompile Include="taskbar\DwmUtil.cpp">
+      <Filter>taskbar</Filter>
     </ClCompile>
-    <ClCompile Include="control\browser_tab_item.cpp">
+    <ClCompile Include="taskbar\TaskbarManager.cpp">
+      <Filter>taskbar</Filter>
+    </ClCompile>
+    <ClCompile Include="dragdrop\BitmapControl.cpp">
+      <Filter>dragdrop</Filter>
+    </ClCompile>
+    <ClCompile Include="dragdrop\DragDrop.cpp">
+      <Filter>dragdrop</Filter>
+    </ClCompile>
+    <ClCompile Include="dragdrop\DragForm.cpp">
+      <Filter>dragdrop</Filter>
+    </ClCompile>
+    <ClCompile Include="control\BrowserTabItem.cpp">
       <Filter>control</Filter>
     </ClCompile>
-    <ClCompile Include="dragdrop\bitmap_control.cpp">
-      <Filter>dragdrop</Filter>
+    <ClCompile Include="browser\BrowserBox.cpp">
+      <Filter>browser</Filter>
     </ClCompile>
-    <ClCompile Include="dragdrop\drag_drop.cpp">
-      <Filter>dragdrop</Filter>
+    <ClCompile Include="browser\CustomLayout.cpp">
+      <Filter>browser</Filter>
     </ClCompile>
-    <ClCompile Include="dragdrop\drag_form.cpp">
-      <Filter>dragdrop</Filter>
+    <ClCompile Include="browser\MultiBrowserForm.cpp">
+      <Filter>browser</Filter>
     </ClCompile>
-    <ClCompile Include="taskbar\dwm_util.cpp">
-      <Filter>taskbar</Filter>
+    <ClCompile Include="browser\MultiBrowserFormDragdrop.cpp">
+      <Filter>browser</Filter>
     </ClCompile>
-    <ClCompile Include="taskbar\taskbar_manager.cpp">
-      <Filter>taskbar</Filter>
-    </ClCompile>
-    <ClCompile Include="browser\custom_layout.cpp">
+    <ClCompile Include="browser\MultiBrowserManager.cpp">
       <Filter>browser</Filter>
     </ClCompile>
   </ItemGroup>

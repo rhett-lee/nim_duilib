@@ -18,6 +18,7 @@ class ListCtrl;
 class ListCtrlSubItem;
 class ListCtrlItem : public ListCtrlItemBaseH
 {
+    typedef ListCtrlItemBaseH BaseClass;
     friend class ListCtrlReportView;//开放部分protect接口
 public:
     explicit ListCtrlItem(Window* pWindow);

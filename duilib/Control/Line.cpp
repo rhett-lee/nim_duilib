@@ -34,7 +34,7 @@ void Line::SetAttribute(const DString& strName, const DString& strValue)
         SetLineDashStyle(strValue);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -48,7 +48,7 @@ void Line::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetLineWidth(iValue, false);
 
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void Line::SetLineWidth(int32_t lineWidth, bool bNeedDpiScale)
@@ -146,7 +146,7 @@ DString Line::GetLineDashStyle() const
 
 void Line::Paint(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::Paint(pRender, rcPaint);
+    BaseClass::Paint(pRender, rcPaint);
     if (pRender == nullptr) {
         return;
     }

@@ -60,7 +60,7 @@ void ListBox::HandleEvent(const EventArgs& msg)
             pParent->SendEventMsg(msg);
         }
         else {
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
         return;
     }
@@ -72,7 +72,7 @@ void ListBox::HandleEvent(const EventArgs& msg)
         bHandled = OnListBoxMouseWheel(msg);
     }    
     if(!bHandled) {
-        __super::HandleEvent(msg);
+        BaseClass::HandleEvent(msg);
     }
 }
 
@@ -791,7 +791,7 @@ void ListBox::GetSelectedItems(std::vector<size_t>& selectedIndexs) const
 
 size_t ListBox::FindSelectable(size_t iIndex, bool bForward) const
 {
-    return __super::FindSelectable(iIndex, bForward);
+    return BaseClass::FindSelectable(iIndex, bForward);
 }
 
 bool ListBox::OnFindSelectable(size_t /*nCurSel*/, SelectableMode /*mode*/,
@@ -1126,7 +1126,7 @@ bool ListBox::CanPaintSelectedColors(bool bHasStateImages) const
 
 bool ListBox::ButtonDown(const EventArgs& msg)
 {
-    bool ret = __super::ButtonDown(msg);
+    bool ret = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -1265,7 +1265,7 @@ bool ListBox::SetItemIndex(Control* pControl, size_t iIndex)
     for(size_t i = iMinIndex; i < iMaxIndex + 1; ++i) {
         Control* pItemControl = GetItemAt(i);
         IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pItemControl);
-        if( pListItem != NULL ) {
+        if( pListItem != nullptr ) {
             pListItem->SetListBoxIndex(i);
         }
     }
@@ -1411,7 +1411,11 @@ bool ListBox::SortItems(PFNCompareFunc pfnCompare, void* pCompareContext)
 
     m_pCompareFunc = pfnCompare;
     m_pCompareContext = pCompareContext;
-    qsort_s(&(*m_items.begin()), m_items.size(), sizeof(Control*), ListBox::ItemComareFunc, this);    
+#ifdef _MSC_VER
+    qsort_s(&(*m_items.begin()), m_items.size(), sizeof(Control*), ListBox::ItemComareFuncWindows, this);
+#else
+    qsort_r(&(*m_items.begin()), m_items.size(), sizeof(Control*), ListBox::ItemComareFuncLinux, this);
+#endif    
     IListBoxItem* pItem = nullptr;
     const size_t itemCount = m_items.size();
     for (size_t i = 0; i < itemCount; ++i) {
@@ -1428,7 +1432,16 @@ bool ListBox::SortItems(PFNCompareFunc pfnCompare, void* pCompareContext)
     return true;
 }
 
-int __cdecl ListBox::ItemComareFunc(void *pvlocale, const void *item1, const void *item2)
+int ListBox::ItemComareFuncWindows(void* pvlocale, const void* item1, const void* item2)
+{
+    ListBox* pThis = (ListBox*)pvlocale;
+    if (!pThis || !item1 || !item2) {
+        return 0;
+    }
+    return pThis->ItemComareFunc(item1, item2);
+}
+
+int ListBox::ItemComareFuncLinux(const void *item1, const void *item2, void* pvlocale)
 {
     ListBox *pThis = (ListBox*)pvlocale;
     if (!pThis || !item1 || !item2) {
@@ -1437,7 +1450,7 @@ int __cdecl ListBox::ItemComareFunc(void *pvlocale, const void *item1, const voi
     return pThis->ItemComareFunc(item1, item2);
 }
 
-int __cdecl ListBox::ItemComareFunc(const void *item1, const void *item2)
+int ListBox::ItemComareFunc(const void *item1, const void *item2)
 {
     if (!item1 || !item2) {
         return 0;

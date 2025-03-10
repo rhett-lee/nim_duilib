@@ -190,6 +190,12 @@ DString EventTypeToString(EventType eventType)
         return _T("kEventMouseRButtonUp");
     case kEventMouseRDoubleClick:
         return _T("kEventMouseRDoubleClick");
+    case kEventMouseMButtonDown:
+        return _T("kEventMouseMButtonDown");
+    case kEventMouseMButtonUp:
+        return _T("kEventMouseMButtonUp");
+    case kEventMouseMDoubleClick:
+        return _T("kEventMouseMDoubleClick");
     case kEventContextMenu:
         return _T("kEventContextMenu");
     case kEventMouseEnd:
@@ -200,8 +206,14 @@ DString EventTypeToString(EventType eventType)
         return _T("kEventKillFocus");
     case kEventSetCursor:
         return _T("kEventSetCursor");
+    case kEventCaptureChanged:
+        return _T("kEventCaptureChanged");
+    case kEventImeSetContext:
+        return _T("kEventImeSetContext");
     case kEventImeStartComposition:
         return _T("kEventImeStartComposition");
+    case kEventImeComposition:
+        return _T("kEventImeComposition");
     case kEventImeEndComposition:
         return _T("kEventImeEndComposition");
     case kEventWindowKillFocus:

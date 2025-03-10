@@ -2,6 +2,8 @@
 #define DUILIB_CONFIG_LINUX_H_
 
 #include <cstddef>
+#include <cstdint>
+#include <climits>
 
 #define UILIB_API
 
@@ -32,6 +34,6 @@ typedef long long           LRESULT;
 //
 // C函数的调用方式
 //
-#define CALLBACK __stdcall
+#define CALLBACK 
 
 #endif //DUILIB_CONFIG_LINUX_H_

@@ -11,6 +11,7 @@ namespace ui
 */
 class UILIB_API Progress : public LabelTemplate<Control>
 {
+    typedef LabelTemplate<Control> BaseClass;
 public:
     explicit Progress(Window* pWindow);
     virtual ~Progress() override;

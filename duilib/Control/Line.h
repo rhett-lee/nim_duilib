@@ -9,6 +9,7 @@ namespace ui
 */
 class Line: public Control
 {
+    typedef Control BaseClass;
 public:
     explicit Line(Window* pWindow);
 

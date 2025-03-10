@@ -517,7 +517,7 @@ public:
     // file operations
 #if CXIMAGE_SUPPORT_DECODE
 /** \addtogroup Decode */ //@{
-#ifdef WIN32
+#ifdef DUILIB_BUILD_FOR_WIN
     //bool Load(LPCWSTR filename, uint32_t imagetype=0);
     bool LoadResource(HRSRC hRes, uint32_t imagetype, HMODULE hModule=NULL);
 #endif

@@ -11,6 +11,7 @@ namespace ui
 //
 class UILIB_API Box : public Control
 {
+    typedef Control BaseClass;
 public:
     explicit Box(Window* pWindow, Layout* pLayout = new Layout());
     Box(const Box& r) = delete;
@@ -59,7 +60,7 @@ public:
 
     /** 计算控件大小(宽和高)
         如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
-     *  @param [in] szAvailable 可用大小，不包含外边距
+     *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
      *  @return 控件的估算大小，包含内边距(Box)，不包含外边距
      */
     virtual UiEstSize EstimateSize(UiSize szAvailable) override;

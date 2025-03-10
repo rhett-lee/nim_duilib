@@ -184,6 +184,7 @@
     <ClInclude Include="ReplaceForm.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="RichEditFindReplace.h" />
+    <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="RichEdit.rc" />
@@ -194,11 +195,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FindForm.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
+    <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="ReplaceForm.cpp" />
     <ClCompile Include="RichEditFindReplace.cpp" />
+    <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">

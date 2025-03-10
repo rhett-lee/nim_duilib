@@ -10,6 +10,7 @@ namespace ui
 class RichEdit;
 class IPAddress: public HBox
 {
+    typedef HBox BaseClass;
 public:
     explicit IPAddress(Window* pWindow);
 
@@ -41,7 +42,7 @@ protected:
      */
     virtual void SendEventMsg(const EventArgs& msg) override;
 
-    /** 编辑框的焦点转移时间
+    /** 编辑框的焦点转移事件
     */
     void OnKillFocusEvent(RichEdit* pRichEdit, Control* pNewFocus);
 

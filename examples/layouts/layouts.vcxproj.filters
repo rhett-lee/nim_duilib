@@ -18,18 +18,27 @@
     <ClInclude Include="resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="main.h">
+    <ClInclude Include="layouts_form.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="layouts_form.h">
+    <ClInclude Include="MainThread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="TestApplication.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="layouts_form.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="layouts_form.cpp">
+    <ClCompile Include="main_windows.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MainThread.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="TestApplication.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

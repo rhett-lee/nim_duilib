@@ -14,6 +14,7 @@ class ListCtrlData;
 struct ListCtrlItemData;
 class ListCtrlReportView : public ListCtrlView, public IListCtrlView
 {
+    typedef ListCtrlView BaseClass;
     friend class ListCtrlReportLayout;
 public:
     explicit ListCtrlReportView(Window* pWindow);

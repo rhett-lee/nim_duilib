@@ -15,9 +15,9 @@ public:
     */
     UiString m_nodeName;
 
-    /** 文字内容
+    /** 文字内容(UTF16编码)
     */
-    UiString m_text;
+    DStringW m_text;
 
     /** 超链接的URL: "href"
     */
@@ -47,6 +47,10 @@ class RichTextDataEx:
     public RichTextData
 {
 public:
+    /** 对象绘制区域(输出参数)
+    */
+    std::vector<UiRect> m_textRects;
+
     /** 超链接的URL
     */
     UiString m_linkUrl;
@@ -64,6 +68,7 @@ public:
 */
 class UILIB_API RichText : public Control
 {
+    typedef Control BaseClass;
 public:
     explicit RichText(Window* pWindow);
     RichText(const RichText& r) = delete;
@@ -123,6 +128,32 @@ public:
     /** 设置行间距倍数
     */
     void SetRowSpacingMul(float fRowSpacingMul);
+
+    /** 获取超出矩形区域的文本显示方式
+     * @return 返回 true 时并且在多行模式下内容被换行显示，false 则表示截断显示
+     */
+    bool IsWordWrap() const;
+
+    /** 设置超出矩形区域的文本显示方式
+     * @param[in] bWordWrap 为 true 时并且在多行模式下内容被换行显示，false 则表示截断显示
+     */
+    void SetWordWrap(bool bWordWrap);
+
+    /** 设置文本水平对齐方式
+    */
+    void SetHAlignType(HorAlignType alignType);
+
+    /** 获取文本水平对齐方式
+    */
+    HorAlignType GetHAlignType() const;
+
+    /** 设置文本垂直对齐方式
+    */
+    void SetVAlignType(VerAlignType alignType);
+
+    /** 获取文本垂直对齐方式
+    */
+    VerAlignType GetVAlignType() const;
 
 public:
     /** 设置格式的文本
@@ -196,6 +227,14 @@ private:
     */
     DString ToString(const RichTextSlice& textSlice, const DString& indent) const;
 
+    /** 重绘
+    */
+    void Redraw();
+
+    /** 获取当前绘制文字的属性
+    */
+    uint16_t GetTextStyle() const;
+
     /** 计算绘制后的目标区域大小
     */
     void CalcDestRect(IRender* pRender, const UiRect& rc, UiRect& rect);
@@ -222,9 +261,13 @@ private:
     */
     UiString m_sTextColor;
 
-    /** 文本对齐方式
+    /** 文本水平对齐方式
     */
-    uint32_t m_uTextStyle;
+    HorAlignType m_hAlignType;
+
+    /** 文本垂直对齐方式
+    */
+    VerAlignType m_vAlignType;
 
     /** 行间距倍数
     */
@@ -277,6 +320,14 @@ private:
     /** 文本的Trim策略
     */
     TrimPolicy m_trimPolicy = TrimPolicy::kAll;
+
+    /** 是否自动换行（默认为true）
+    */
+    bool m_bWordWrap;
+
+    /** 绘制缓存
+    */
+    std::shared_ptr<DrawRichTextCache> m_spDrawRichTextCache;
 };
 
 } // namespace ui

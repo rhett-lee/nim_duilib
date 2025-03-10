@@ -45,12 +45,28 @@ public:
         @param textEncoding   text encoding, SkTextEncoding::kUTF8 or kUTF16 or kUTF32
         @param maxWidth       advance limit; text is measured while advance is less than maxWidth
         @param measuredWidth  returns the width of the text less than or equal to maxWidth
+        @param measuredHeight  returns the height of the text
         @return               bytes of text that fit, always less than or equal to length
     */
     static size_t breakText(const void* text, size_t byteLength, SkTextEncoding textEncoding,
-                            const SkFont& font, const SkPaint& paint,
-                            SkScalar maxWidth, SkScalar* measuredWidth = nullptr);
+                            const SkFont& font, const SkPaint& paint, SkScalar maxWidth,
+                            SkScalar* measuredWidth = nullptr, SkScalar* measuredHeight = nullptr);
 
+    /** 特殊版本，进行了性能优化
+    * @param [out] glyphs 绘制了多少个Glyph字符
+    * @param [out] glyphChars 返回每个Glyph字符占几个输入字符
+    * @param [out] glyphWidths 返回每个Glyph字符绘制的宽度
+    * @param [out] glyphCharList 返回每个glyph字符由几个输入字符构成的
+    * @param [out] glyphWidthList 返回每个glyph字符的输出宽度值
+    */
+    static size_t breakText(const void* text, size_t byteLength, SkTextEncoding textEncoding,
+                            const SkFont& font, const SkPaint& paint, SkScalar maxWidth,
+                            SkScalar* measuredWidth, SkScalar* measuredHeight,
+                            std::vector<SkGlyphID>& glyphs,
+                            std::vector<uint8_t>& glyphChars,
+                            std::vector<SkScalar>& glyphWidths,
+                            std::vector<uint8_t>* glyphCharList,
+                            std::vector<SkScalar>* glyphWidthList);
 public:
     //换行模式
     enum LineMode {
@@ -153,7 +169,7 @@ private:
     static bool TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding textEncoding, 
                              const SkFont& font,
                              std::vector<SkGlyphID>& glyphs,
-                             std::vector<size_t>& glyphChars,
+                             std::vector<uint8_t>& glyphChars,
                              size_t& charBytes);
 
 private:

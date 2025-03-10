@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window caption="0,0,0,160" shadow_attached="false" layered_window="true" custom_shadow="20,70,20,20">
+<Window caption="0,0,0,160" use_system_caption="false" shadow_attached="false" layered_window="true" custom_shadow="20,70,20,20">
   <Box width="304" height="auto">
     <Box width="130" height="130" margin="0,10,0,0" halign="center">
       <Control width="auto" height="auto" halign="center" valign="center" bkimage="head_shadow.png" mouse="false"/>

@@ -10,6 +10,10 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Core/WindowCreateParam.h"
 
+#ifdef DUILIB_BUILD_FOR_SDL
+    #include "duilib/Core/DragWindowFilter_SDL.h"
+#endif
+
 namespace ui
 {
 /** 主要功能：支持相同Box内的子控件通过拖动来调整顺序
@@ -17,6 +21,7 @@ namespace ui
 template<typename T = Control>
 class UILIB_API ControlDragableT: public T
 {
+    typedef T BaseClass;
 public:
     explicit ControlDragableT(Window* pWindow);
     virtual ~ControlDragableT() override;
@@ -233,6 +238,12 @@ private:
     */
     DragWindow* m_pDragWindow;
 
+#ifdef DUILIB_BUILD_FOR_SDL
+    /** 拖拽窗口的消息过滤器
+    */
+    std::unique_ptr<IUIMessageFilter> m_pDragWindowFilter;
+#endif
+
     /** 该拖出控件的位图
     */
     std::shared_ptr<IBitmap> m_pDragImage;
@@ -292,7 +303,7 @@ void ControlDragableT<T>::SetAttribute(const DString& strName, const DString& st
         SetEnableDragOut(strValue == _T("true"));
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -348,7 +359,7 @@ template<typename T>
 bool ControlDragableT<T>::ButtonDown(const EventArgs& msg)
 {
     m_bMouseDown = false;
-    bool bRet = __super::ButtonDown(msg);
+    bool bRet = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -377,7 +388,7 @@ bool ControlDragableT<T>::ButtonDown(const EventArgs& msg)
 template<typename T>
 bool ControlDragableT<T>::MouseMove(const EventArgs& msg)
 {
-    bool bRet = __super::MouseMove(msg);
+    bool bRet = BaseClass::MouseMove(msg);
     if (m_bMouseDown) {
         m_bDraggingOut = DragOutMouseMove(msg);
         if (!m_bDraggingOut) {
@@ -390,7 +401,7 @@ bool ControlDragableT<T>::MouseMove(const EventArgs& msg)
 template<typename T>
 bool ControlDragableT<T>::ButtonUp(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonUp(msg);
+    bool bRet = BaseClass::ButtonUp(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -404,7 +415,7 @@ bool ControlDragableT<T>::ButtonUp(const EventArgs& msg)
 template<typename T>
 bool ControlDragableT<T>::OnWindowKillFocus(const EventArgs& msg)
 {
-    bool bRet = __super::OnWindowKillFocus(msg);
+    bool bRet = BaseClass::OnWindowKillFocus(msg);
     ClearDragStatus();
     return bRet;
 }
@@ -412,7 +423,7 @@ bool ControlDragableT<T>::OnWindowKillFocus(const EventArgs& msg)
 template<typename T>
 void ControlDragableT<T>::HandleEvent(const EventArgs& msg)
 {
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
     if ((msg.eventType == kEventMouseClickChanged) ||
         (msg.eventType == kEventMouseClickEsc) ||
         (msg.eventType == kEventMouseRButtonDown)) {
@@ -618,12 +629,21 @@ void ControlDragableT<T>::ClearDragStatus()
         }
     }
     if (m_pDragWindow != nullptr) {
+#ifdef DUILIB_BUILD_FOR_SDL
+        if (m_pDragWindowFilter != nullptr) {
+            m_pDragWindow->RemoveMessageFilter(m_pDragWindowFilter.get());
+        }
+#endif
         if (!m_pDragWindow->IsClosingWnd()) {
             m_pDragWindow->SetDragImage(nullptr);
             m_pDragWindow->CloseWnd();
         }
         m_pDragWindow->Release();
         m_pDragWindow = nullptr;
+
+#ifdef DUILIB_BUILD_FOR_SDL
+        m_pDragWindowFilter.reset();
+#endif
     }
     m_pDragImage.reset();
     m_pTargetBox = nullptr;
@@ -1108,8 +1128,17 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
     //拖出父容器
     if ((m_pDragWindow == nullptr) || m_pDragWindow->IsClosingWnd()) {
         if (m_pDragWindow != nullptr) {
+#ifdef DUILIB_BUILD_FOR_SDL
+            if (m_pDragWindowFilter != nullptr) {
+                m_pDragWindow->RemoveMessageFilter(m_pDragWindowFilter.get());
+            }
+#endif
             m_pDragWindow->Release();
             m_pDragWindow = nullptr;
+
+#ifdef DUILIB_BUILD_FOR_SDL
+            m_pDragWindowFilter.reset();
+#endif
         }
         m_pDragWindow = CreateDragWindow();
         ASSERT(m_pDragWindow != nullptr);
@@ -1118,12 +1147,21 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
 
             WindowCreateParam createWndParam;
             createWndParam.m_dwStyle = kWS_POPUP;
-            createWndParam.m_dwExStyle = kWS_EX_LAYERED;
+            createWndParam.m_dwExStyle = kWS_EX_LAYERED | kWS_EX_NOACTIVATE;
             m_pDragWindow->CreateWnd(this->GetWindow(), createWndParam);
+            ASSERT(m_pDragWindow->IsWindow());
             if (m_pDragWindow->IsWindow()) {
                 m_pDragWindow->AddRef();
             }
             m_pDragWindow->SetDragImage(pDragImage);
+            m_pDragWindow->ShowWindow(kSW_SHOW_NA);
+
+#ifdef DUILIB_BUILD_FOR_SDL
+            m_pDragWindowFilter = std::make_unique<DragWindowFilter>(this->GetWindow(), m_pDragWindow);
+            m_pDragWindow->AddMessageFilter(m_pDragWindowFilter.get());
+            //减缓显示时黑屏现象
+            m_pDragWindow->InvalidateAll();
+#endif
         }
     }
     if (m_pDragWindow != nullptr) {

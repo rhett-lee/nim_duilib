@@ -10,6 +10,7 @@
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Animation/AnimationManager.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
 
@@ -741,7 +742,7 @@ DString Control::GetBkImage() const
 
 std::string Control::GetUTF8BkImage() const
 {
-    std::string strOut = StringUtil::TToUTF8(GetBkImage());
+    std::string strOut = StringConvert::TToUTF8(GetBkImage());
     return strOut;
 }
 
@@ -762,7 +763,7 @@ void Control::SetBkImage(const DString& strImage)
 
 void Control::SetUTF8BkImage(const std::string& strImage)
 {
-    DString strOut = StringUtil::UTF8ToT(strImage);
+    DString strOut = StringConvert::UTF8ToT(strImage);
     SetBkImage(strOut);
 }
 
@@ -1225,7 +1226,7 @@ DString Control::GetToolTipText() const
 
 std::string Control::GetUTF8ToolTipText() const
 {
-    std::string strOut = StringUtil::TToUTF8(GetToolTipText());
+    std::string strOut = StringConvert::TToUTF8(GetToolTipText());
     return strOut;
 }
 
@@ -1249,7 +1250,7 @@ void Control::SetToolTipText(const DString& strText)
 
 void Control::SetUTF8ToolTipText(const std::string& strText)
 {
-    DString strOut = StringUtil::UTF8ToT(strText);
+    DString strOut = StringConvert::UTF8ToT(strText);
     if (strOut.empty()) {
         m_sToolTipText.clear();
         Invalidate();
@@ -1272,7 +1273,7 @@ void Control::SetToolTipTextId(const DString& strTextId)
 
 void Control::SetUTF8ToolTipTextId(const std::string& strTextId)
 {
-    DString strOut = StringUtil::UTF8ToT(strTextId);
+    DString strOut = StringConvert::UTF8ToT(strTextId);
     SetToolTipTextId(strOut);
 }
 
@@ -1304,7 +1305,7 @@ DString Control::GetDataID() const
 
 std::string Control::GetUTF8DataID() const
 {
-    std::string strOut = StringUtil::TToUTF8(GetDataID());
+    std::string strOut = StringConvert::TToUTF8(GetDataID());
     return strOut;
 }
 
@@ -1315,7 +1316,7 @@ void Control::SetDataID(const DString& strText)
 
 void Control::SetUTF8DataID(const std::string& strText)
 {
-    m_sUserDataID = StringUtil::UTF8ToT(strText);
+    m_sUserDataID = StringConvert::UTF8ToT(strText);
 }
 
 void Control::SetUserDataID(size_t dataID)
@@ -1344,7 +1345,7 @@ void Control::SetVisible(bool bVisible)
         return;
     }
     bool v = IsVisible();
-    __super::SetVisible(bVisible);
+    BaseClass::SetVisible(bVisible);
 
     if (!IsVisible()) {
         EnsureNoFocus();
@@ -1483,7 +1484,7 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, void* pProcData,
 
 UiRect Control::GetPos() const
 {
-    return __super::GetPos();
+    return BaseClass::GetPos();
 }
 
 void Control::SetPos(UiRect rc)
@@ -1540,14 +1541,50 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
         return GetEstimateSize();
     }
 
+    UiSize szControlSize = EstimateControlSize(szAvailable);
+
+    //选取图片和文本区域高度和宽度的最大值
+    if (fixedSize.cx.IsAuto()) {
+        fixedSize.cx.SetInt32(szControlSize.cx);
+    }
+    if (fixedSize.cy.IsAuto()) {
+        fixedSize.cy.SetInt32(szControlSize.cy);
+    }
+    //保持结果到缓存，避免每次都重新估算
+    UiEstSize estSize = MakeEstSize(fixedSize);
+    SetEstimateSize(estSize, szAvailable);
+    SetReEstimateSize(false);
+    return estSize;
+}
+
+UiSize Control::EstimateControlSize(UiSize szAvailable)
+{
     //估算图片区域大小
+    UiSize imageSize = EstimateImage(szAvailable);
+
+    //估算文本区域大小, 函数计算时，已经包含了内边距
+    UiSize textSize = EstimateText(szAvailable);
+
+    UiSize szControlSize;
+    szControlSize.cx = std::max(imageSize.cx, textSize.cx);
+    szControlSize.cy = std::max(imageSize.cy, textSize.cy);
+    return szControlSize;
+}
+
+UiSize Control::EstimateText(UiSize /*szAvailable*/)
+{
+    return UiSize(0, 0);
+}
+
+UiSize Control::EstimateImage(UiSize /*szAvailable*/)
+{
     UiSize imageSize;
     std::shared_ptr<ImageInfo> imageCache;
     Image* image = GetEstimateImage();
     if (image != nullptr) {
         //加载图片：需要获取图片的宽和高
         LoadImageData(*image);
-        imageCache = image->GetImageCache();        
+        imageCache = image->GetImageCache();
     }
     if ((imageCache != nullptr) && (image != nullptr)) {
         ImageAttribute imageAttribute = image->GetImageAttribute();
@@ -1596,29 +1633,14 @@ UiEstSize Control::EstimateSize(UiSize szAvailable)
     imageCache.reset();
 
     //图片大小，需要附加控件的内边距
-    UiPadding rcPadding = this->GetControlPadding();
+    UiPadding rcPadding = GetControlPadding();
     if (imageSize.cx > 0) {
         imageSize.cx += (rcPadding.left + rcPadding.right);
     }
     if (imageSize.cy > 0) {
         imageSize.cy += (rcPadding.top + rcPadding.bottom);
     }
-
-    //估算文本区域大小, 函数计算时，已经包含了内边距
-    UiSize textSize = EstimateText(szAvailable);
-
-    //选取图片和文本区域高度和宽度的最大值
-    if (fixedSize.cx.IsAuto()) {
-        fixedSize.cx.SetInt32(std::max(imageSize.cx, textSize.cx));
-    }
-    if (fixedSize.cy.IsAuto()) {
-        fixedSize.cy.SetInt32(std::max(imageSize.cy, textSize.cy));
-    }
-    //保持结果到缓存，避免每次都重新估算
-    UiEstSize estSize = MakeEstSize(fixedSize);
-    SetEstimateSize(estSize, szAvailable);
-    SetReEstimateSize(false);
-    return estSize;
+    return imageSize;
 }
 
 Image* Control::GetEstimateImage()
@@ -1634,11 +1656,6 @@ Image* Control::GetEstimateImage()
         }
     }
     return estimateImage;
-}
-
-UiSize Control::EstimateText(UiSize /*szAvailable*/)
-{
-    return UiSize(0, 0);
 }
 
 bool Control::IsPointInWithScrollOffset(const UiPoint& point) const
@@ -1688,7 +1705,7 @@ void Control::SendEventMsg(const EventArgs& msg)
 //#ifdef _DEBUG
 //    DString eventType = EventTypeToString(msg.eventType);
 //    DString type = GetType();
-//    wchar_t buf[256] = {};
+//    DStringW::value_type buf[256] = {};
 //    swprintf_s(buf, _T("Control::SendEventMsg: type=%s, eventType=%s\r\n"), type.c_str(), eventType.c_str());
 //    ::OutputDebugStringW(buf);    
 //#endif
@@ -1746,8 +1763,23 @@ void Control::HandleEvent(const EventArgs& msg)
             return;
         }
     }
+    else if (msg.eventType == kEventCaptureChanged) {
+        if (OnCaptureChanged(msg)) {
+            return;
+        }
+    }
+    else if (msg.eventType == kEventImeSetContext) {
+        if (OnImeSetContext(msg)) {
+            return;
+        }
+    }
     else if (msg.eventType == kEventImeStartComposition) {
         if (OnImeStartComposition(msg)) {
+            return;
+        }
+    }
+    else if (msg.eventType == kEventImeComposition) {
+        if (OnImeComposition(msg)) {
             return;
         }
     }
@@ -1980,6 +2012,33 @@ bool Control::RButtonDoubleClick(const EventArgs& /*msg*/)
     return true;
 }
 
+bool Control::MButtonDown(const EventArgs& msg)
+{
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    if (IsEnabled()) {
+        SetMouseFocused(true);
+    }
+    return true;
+}
+
+bool Control::MButtonUp(const EventArgs& msg)
+{
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    if (IsMouseFocused()) {
+        SetMouseFocused(false);
+    }
+    return true;
+}
+
+bool Control::MButtonDoubleClick(const EventArgs& /*msg*/)
+{
+    return true;
+}
+
 bool Control::MouseMove(const EventArgs& /*msg*/)
 {
     return true;
@@ -2082,7 +2141,25 @@ bool Control::OnWindowKillFocus(const EventArgs& /*msg*/)
     return false;
 }
 
+bool Control::OnCaptureChanged(const EventArgs& /*msg*/)
+{
+    //默认不处理，交由父控件处理
+    return false;
+}
+
+bool Control::OnImeSetContext(const EventArgs& /*msg*/)
+{
+    //默认不处理，交由父控件处理
+    return false;
+}
+
 bool Control::OnImeStartComposition(const EventArgs& /*msg*/)
+{
+    //默认不处理，交由父控件处理
+    return false;
+}
+
+bool Control::OnImeComposition(const EventArgs& /*msg*/)
 {
     //默认不处理，交由父控件处理
     return false;

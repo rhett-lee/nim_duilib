@@ -38,7 +38,7 @@ private:
     struct TStat
     {
         //是否有开始数据
-        bool hasStarted = false;
+        int32_t nStartRefCount = 0;
 
         //开始时间
         std::chrono::steady_clock::time_point startTime;

@@ -1,18 +1,18 @@
-#include "MessageLoop.h"
+#include "MessageLoop_Windows.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN)
 
 namespace ui
 {
-MessageLoop::MessageLoop()
+MessageLoop_Windows::MessageLoop_Windows()
 {
 }
 
-MessageLoop::~MessageLoop()
+MessageLoop_Windows::~MessageLoop_Windows()
 {
 }
 
-int32_t MessageLoop::Run()
+int32_t MessageLoop_Windows::Run()
 {
     MSG msg = { 0, };
     BOOL bRet = FALSE;

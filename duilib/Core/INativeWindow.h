@@ -15,6 +15,8 @@ namespace ui
 class IUIMessageFilter
 {
 public:
+    virtual ~IUIMessageFilter() = default;
+
     /**  消息处理函数，处理优先级高于Window类的消息处理函数
     * @param [in] uMsg 消息内容
     * @param [in] wParam 消息附加参数
@@ -68,16 +70,6 @@ public:
     /** 判断一个点是否在最大化或者还原按钮上
     */
     virtual bool OnNativeIsPtInMaximizeRestoreButton(const UiPoint& pt) const = 0;
-
-    /** 获取窗口最小范围，对应 XML 中 mininfo 属性
-    * @param [in] bContainShadow 是否包含阴影范围，默认为 false
-    */
-    virtual UiSize OnNativeGetMinInfo(bool bContainShadow /*= false*/) const = 0;
-
-    /** 获取窗口最大范围，对应 XML 中 maxinfo 属性
-    * @param [in] bContainShadow 是否包含阴影范围，默认为 false
-    */
-    virtual UiSize OnNativeGetMaxInfo(bool bContainShadow /*= false*/) const = 0;
 
     /** 进入全屏状态
     */
@@ -182,12 +174,26 @@ public:
     */
     virtual LRESULT OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
+    /** 通知应用程序输入焦点变化(WM_IME_SETCONTEXT)
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnNativeImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
     /** 输入法开始生成组合字符串(WM_IME_STARTCOMPOSITION)
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
     virtual LRESULT OnNativeImeStartCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 更改按键组合状态(WM_IME_COMPOSITION)
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnNativeImeCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
     /** 输入法结束组合(WM_IME_ENDCOMPOSITION)
     * @param [in] nativeMsg 从系统接收到的原始消息内容
@@ -337,6 +343,33 @@ public:
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
     virtual LRESULT OnNativeMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 鼠标中键按下消息（WM_MBUTTONDOWN）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnNativeMouseMButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 鼠标中键弹起消息（WM_MBUTTONUP）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnNativeMouseMButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 鼠标中键双击消息（WM_MBUTTONDBLCLK）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnNativeMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
     /** 窗口丢失鼠标捕获（WM_CAPTURECHANGED）
     * @param [in] nativeMsg 从系统接收到的原始消息内容

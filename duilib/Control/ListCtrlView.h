@@ -10,6 +10,7 @@ namespace ui
 */
 class ListCtrlView : public VirtualListBox
 {
+    typedef VirtualListBox BaseClass;
 public:
     ListCtrlView(Window* pWindow, Layout* pLayout);
     virtual ~ListCtrlView() override;
@@ -226,6 +227,7 @@ private:
 template<typename InheritType>
 class UILIB_API ListCtrlItemTemplate : public ListBoxItemTemplate<InheritType>
 {
+    typedef ListBoxItemTemplate<InheritType> BaseClass;
 public:
     explicit ListCtrlItemTemplate(Window* pWindow):
         ListBoxItemTemplate<InheritType>(pWindow)
@@ -239,8 +241,8 @@ public:
   */
     virtual void Selected(bool bSelect, bool bTriggerEvent) override
     {
-        if (__super::IsSelected() != bSelect) {
-            __super::Selected(bSelect, bTriggerEvent);
+        if (BaseClass::IsSelected() != bSelect) {
+            BaseClass::Selected(bSelect, bTriggerEvent);
         }
     }
 
@@ -278,7 +280,7 @@ protected:
             //左键按下的时候，选择
             SelectItem(vkFlag);
         }
-        return __super::ButtonDown(msg);
+        return BaseClass::ButtonDown(msg);
     }
 
     /** 鼠标右键按下事件：触发选择子项事件
@@ -296,7 +298,7 @@ protected:
             //右键按下的时候，选择
             SelectItem(vkFlag);
         }
-        return __super::RButtonDown(msg);
+        return BaseClass::RButtonDown(msg);
     }
 
     /** 执行选择功能

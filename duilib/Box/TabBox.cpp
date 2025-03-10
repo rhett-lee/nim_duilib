@@ -42,7 +42,7 @@ void TabBox::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     if (Box::IsValidItemIndex(m_iInitSel)) {
         SelectItem(m_iInitSel);
     }

@@ -15,6 +15,7 @@ namespace ui
 
 class UILIB_API CircleProgress : public Progress
 {
+    typedef Progress BaseClass;
 public:
     explicit CircleProgress(Window* pWindow);
     virtual ~CircleProgress() override;

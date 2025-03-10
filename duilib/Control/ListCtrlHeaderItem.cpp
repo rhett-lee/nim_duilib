@@ -51,7 +51,7 @@ void ListCtrlHeaderItem::SetAttribute(const DString& strName, const DString& str
         SetShowIconAtTop(strValue == _T("true"));
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -70,7 +70,7 @@ void ListCtrlHeaderItem::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiS
         nColumnWidth = Dpi().GetScaleInt(nColumnWidth, nOldDpiScale);
         SetColumnWidth(nColumnWidth, false);
     }
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void ListCtrlHeaderItem::PaintText(IRender* pRender)
@@ -159,7 +159,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     }
 
     if ((pSortImage == nullptr) && (pItemImage == nullptr)) {
-        __super::PaintText(pRender);
+        BaseClass::PaintText(pRender);
         return;
     }
 
@@ -354,17 +354,17 @@ void ListCtrlHeaderItem::Activate(const EventArgs* pMsg)
             pHeader->OnHeaderColumnSorted(this);
         }
     }
-    __super::Activate(pMsg);
+    BaseClass::Activate(pMsg);
 }
 
 void ListCtrlHeaderItem::SetFadeVisible(bool bVisible)
 {
-    __super::SetFadeVisible(bVisible);
+    BaseClass::SetFadeVisible(bVisible);
 }
 
 void ListCtrlHeaderItem::SetVisible(bool bVisible)
 {
-    __super::SetVisible(bVisible);
+    BaseClass::SetVisible(bVisible);
 }
 
 void ListCtrlHeaderItem::SetSortMode(SortMode sortMode, bool bTriggerEvent)
@@ -563,7 +563,7 @@ bool ListCtrlHeaderItem::IsEnableDragOrder() const
             return false;
         }
     }
-    return __super::IsEnableDragOrder();
+    return BaseClass::IsEnableDragOrder();
 }
 
 bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)

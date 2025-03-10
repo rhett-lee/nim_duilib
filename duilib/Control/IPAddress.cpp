@@ -19,7 +19,7 @@ void IPAddress::SetAttribute(const DString& strName, const DString& strValue)
         SetIPAddress(strValue);
     }    
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -28,16 +28,18 @@ void IPAddress::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     m_editList.clear();
     for (size_t index = 0; index < 4; ++index) {
         RichEdit* pRichEdit = new RichEdit(GetWindow());
         pRichEdit->SetText(_T(""));
         pRichEdit->SetAttribute(_T("text_align"), _T("vcenter,hcenter"));
         pRichEdit->SetAttribute(_T("limit_text"), _T("3"));
-        pRichEdit->SetAttribute(_T("want_return_msg"), _T("true"));
+        pRichEdit->SetAttribute(_T("want_return_msg"), _T("false"));
         pRichEdit->SetAttribute(_T("want_tab"), _T("false"));
-        pRichEdit->SetAttribute(_T("number_only"), _T("true"));        
+        pRichEdit->SetAttribute(_T("number_only"), _T("true"));
+        pRichEdit->SetMinNumber(0);
+        pRichEdit->SetMaxNumber(255);
         AddItem(pRichEdit);
         m_editList.push_back(pRichEdit);
         if (index != 3) {
@@ -69,22 +71,6 @@ void IPAddress::OnInit()
             }
             return true;
             });
-        pRichEdit->AttachTextChange([this, pRichEdit](const ui::EventArgs& /*args*/) {
-            if (pRichEdit != nullptr) {
-                DString text = pRichEdit->GetText();
-                int32_t nValue = StringUtil::StringToInt32(text);
-                if (nValue < 0) {
-                    nValue = 0;
-                    pRichEdit->SetTextNoEvent(_T("0"));
-                }
-                else if (nValue > 255) {
-                    nValue = 255;
-                    pRichEdit->SetTextNoEvent(_T("255"));
-                }
-            }
-            return true;
-            });
-
         pRichEdit->AttachKillFocus([this, pRichEdit](const EventArgs& args) {
             OnKillFocusEvent(pRichEdit, (Control*)args.wParam);
             return true;
@@ -109,7 +95,7 @@ void IPAddress::SetFocus()
         }
     }
     else {
-        __super::SetFocus();
+        BaseClass::SetFocus();
     }
 }
 
@@ -165,7 +151,7 @@ void IPAddress::SendEventMsg(const EventArgs& msg)
             return;
         }
     }
-    __super::SendEventMsg(msg);
+    BaseClass::SendEventMsg(msg);
 }
 
 void IPAddress::OnKillFocusEvent(RichEdit* pRichEdit, Control* pNewFocus)

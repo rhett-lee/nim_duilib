@@ -11,6 +11,7 @@ class ListCtrl;
 class ListCtrlData;
 class ListCtrlIconView : public ListCtrlView, public IListCtrlView
 {
+    typedef ListCtrlView BaseClass;
 public:
     /** 设置是否为List模式
     * @param [in] bListMode true表示列表视图，否则为图标视图

@@ -145,6 +145,11 @@ public:
     */
     void RemoveWindow(Window* pWindow);
 
+    /** 判断当前是否含有窗口
+    * @param [in] pWindow 窗口的接口
+    */
+    bool HasWindow(Window* pWindow) const;
+
     /** 添加一个全局 Class 属性
      * @param[in] strClassName 全局 Class 名称
      * @param[in] strControlAttrList 属性列表，需要做 XML 转义
@@ -257,6 +262,10 @@ public:
      */
     Control* CreateControl(const DString& strControlName);
 
+    /** 添加控件创建函数，用于用户自定义控件的创建
+    */
+    void AddCreateControlCallback(const CreateControlCallback& pfnCreateControlCallback);
+
     /** 如果该函数不是在UI线程中调用的，进行断言报错
     */
     void AssertUIThread() const;
@@ -303,7 +312,7 @@ private:
 
     /** 控件创建函数，用于用户自定义控件的创建
     */
-    CreateControlCallback m_pfnCreateControlCallback;
+    std::vector<CreateControlCallback> m_pfnCreateControlCallbackList;
 
     /** 每个Class的名称(KEY)和属性列表(VALUE)（比如global.xml中定义的Class）
     */

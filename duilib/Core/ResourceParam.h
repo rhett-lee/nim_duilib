@@ -54,7 +54,11 @@ public:
 public:
     /** 主题路径名称（相对路径）
     */
+#if defined (DUILIB_BUILD_FOR_WIN)
     FilePath themePath = FilePath(_T("themes\\default"));
+#else
+    FilePath themePath = FilePath(_T("themes/default"));
+#endif
 
     /** 外部字体文件所在路径
     */

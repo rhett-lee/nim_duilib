@@ -132,18 +132,18 @@ bool MainForm::OnClicked(const ui::EventArgs& args)
             }
         }
 
-        int nTotal = _ttoi(m_EditTotal->GetText().c_str());
+        int nTotal = ui::StringUtil::StringToInt32(m_EditTotal->GetText().c_str());
         if (nTotal > 0) {
             m_DataProvider->SetTotal(nTotal);
         }
     }
     else if (sName == _T("btn_update")) {
-        size_t nIndex = _ttoi(m_EditUpdate->GetText().c_str()) - 1;
+        size_t nIndex = (size_t)ui::StringUtil::StringToInt32(m_EditUpdate->GetText().c_str()) - 1;
         ASSERT(nIndex < m_DataProvider->GetElementCount());
         m_DataProvider->ChangeTaskName(nIndex, m_EditTaskName->GetText());
     }
     else if (sName == _T("btn_delete")) {
-        size_t nIndex = _ttoi(m_EditDelete->GetText().c_str()) - 1;
+        size_t nIndex = (size_t)ui::StringUtil::StringToInt32(m_EditDelete->GetText().c_str()) - 1;
         ASSERT(nIndex < m_DataProvider->GetElementCount());
         m_DataProvider->RemoveTask(nIndex);
     }

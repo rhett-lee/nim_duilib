@@ -184,6 +184,7 @@
     <ClInclude Include="MainForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TreeView.rc" />
@@ -196,9 +197,10 @@
     <ClCompile Include="DiskUtils.cpp" />
     <ClCompile Include="FileInfoItem.cpp" />
     <ClCompile Include="FileInfoList.cpp" />
-    <ClCompile Include="main.cpp" />
     <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
+    <ClCompile Include="main_windows.cpp" />
+    <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">

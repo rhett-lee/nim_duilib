@@ -124,7 +124,7 @@ private:
 
     /** GIF背景图片播放完成事件的ID
     */
-    static const int32_t m_nVirtualEventGifStop = 1;
+    const int32_t m_nVirtualEventGifStop;
 };
 
 } // namespace ui

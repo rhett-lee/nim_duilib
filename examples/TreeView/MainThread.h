@@ -1,7 +1,7 @@
 #ifndef EXAMPLES_MAIN_THREAD_H_
 #define EXAMPLES_MAIN_THREAD_H_
 
-#include "resource.h"
+#include "Resource.h"
 
 // duilib
 #include "duilib/duilib.h"

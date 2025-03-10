@@ -16,6 +16,7 @@ class ListCtrlHeader;
 class ListCtrlHeaderItem:
     public ControlDragableT<ButtonBox>
 {
+    typedef ControlDragableT<ButtonBox> BaseClass;
 public:
     explicit ListCtrlHeaderItem(Window* pWindow);
     virtual ~ListCtrlHeaderItem() override;

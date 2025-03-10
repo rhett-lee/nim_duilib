@@ -2,14 +2,16 @@
 #define _UI_CONTROL_DATETIME_H_
 
 #include "duilib/Control/Label.h"
+#include "duilib/Box/HBox.h"
 
 namespace ui
 {
 /** 日期时间选择控件
 */
 class DateTimeWnd;
-class UILIB_API DateTime : public Label
+class UILIB_API DateTime : public LabelTemplate<HBox>
 {
+    typedef LabelTemplate<HBox> BaseClass;
     friend class DateTimeWnd;
 public:
     explicit DateTime(Window* pWindow);
@@ -95,7 +97,7 @@ public:
     */
     enum class EditFormat
     {
-        kDateCalendar,      //编辑时显示：年-月-日，通过下拉框展示月日历的方式来修改日期，不支持选择时间
+        kDateCalendar,      //编辑时显示：年-月-日，通过下拉框展示月日历的方式来修改日期，不支持选择时间(SDL实现时，同kDateUpDown)
         kDateUpDown,        //编辑时显示：年-月-日，通过控件的右侧放置一个向上-向下的控件以修改日期，不支持选择时间
         kDateTimeUpDown,    //编辑时显示：年-月-日 时:分:秒，通过控件的右侧放置一个向上-向下的控件以修改日期和时间
         kDateMinuteUpDown,  //编辑时显示：年-月-日 时:分，通过控件的右侧放置一个向上-向下的控件以修改日期和时间
@@ -111,9 +113,21 @@ public:
     */
     EditFormat GetEditFormat() const;
 
+    /** 获取年月日的分隔符
+    */
+    DString::value_type GetDateSeparator() const;
+
     /** 更新下编辑窗口的位置
     */
     void UpdateEditWndPos();
+
+    /** 设置Spin功能的Class名称
+    */
+    void SetSpinClass(const DString& spinClass);
+
+    /** 获取Spin功能的Class名称
+    */
+    DString GetSpinClass() const;
 
     /** 添加日期时间值变化监听事件
     */
@@ -128,10 +142,19 @@ public:
     //用于初始化xml属性
     virtual void OnInit() override;
 
+    /** 将消息派发到消息处理函数
+     * @param[in] msg 消息内容
+     */
+    virtual void SendEventMsg(const EventArgs& msg) override;
+
 private:
     /** 比较两个时间是否相同
     */
     bool IsEqual(const std::tm& a, const std::tm& b) const;
+
+    /** 结束编辑
+    */
+    void EndEditDateTime();
 
 private:
     /** 当前的日期时间值
@@ -153,6 +176,10 @@ private:
     /** 设置日期控件窗口接口
     */
     DateTimeWnd* m_pDateWindow;
+
+    /** Spin功能的Class名称
+    */
+    UiString m_spinClass;
 };
 
 }//namespace ui

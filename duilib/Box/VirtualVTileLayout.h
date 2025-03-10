@@ -11,6 +11,7 @@ namespace ui
 class VirtualListBox;
 class UILIB_API VirtualVTileLayout : public VTileLayout, public VirtualLayout
 {
+    typedef VTileLayout BaseClass;
 public:
     VirtualVTileLayout();
 

@@ -1,5 +1,5 @@
-## XMLÎÄ¼şÖĞ¸÷¿Ø¼şµÄ½ÚµãÃû³Æ
-| ÀàÃû³Æ | XML½ÚµãÃû³Æ |¹ØÁªÍ·ÎÄ¼ş| ±¸×¢ |
+ï»¿## XMLæ–‡ä»¶ä¸­å„æ§ä»¶çš„èŠ‚ç‚¹åç§°
+| ç±»åç§° | XMLèŠ‚ç‚¹åç§° |å…³è”å¤´æ–‡ä»¶| å¤‡æ³¨ |
 | :--- | :--- |:--- | :--- |
 | Control | "Control" | [duilib/Core/Control.h](../duilib/Core/Control.h) | |
 | ControlDragable | "ControlDragable" | [duilib/Core/ControlDragable.h](../duilib/Core/ControlDragable.h) | |
@@ -69,12 +69,13 @@
 | ColorPickerStatard | "ColorPickerStatard"| [duilib/Control/ColorPickerStatard.h](../duilib/Control/ColorPickerStatard.h) | |
 | ColorPickerStatardGray | "ColorPickerStatardGray"| [duilib/Control/ColorPickerStatardGray.h](../duilib/Control/ColorPickerStatardGray.h) | |
 | ColorPickerCustom | "ColorPickerCustom"| [duilib/Control/ColorPickerCustom.h](../duilib/Control/ColorPickerCustom.h) | |
+| CefControl | "CefControl"| [duilib/CEFControl/CefControl.h](../duilib/CEFControl/CefControl.h) | |
 
-## XMLÎÄ¼şÖĞ¸÷´°¿ÚÏà¹Ø¿Ø¼şµÄ½ÚµãÃû³Æ
-| ÀàÃû³Æ | XML½ÚµãÃû³Æ |¹ØÁªÍ·ÎÄ¼ş| ±¸×¢ |
+## XMLæ–‡ä»¶ä¸­å„çª—å£ç›¸å…³æ§ä»¶çš„èŠ‚ç‚¹åç§°
+| ç±»åç§° | XMLèŠ‚ç‚¹åç§° |å…³è”å¤´æ–‡ä»¶| å¤‡æ³¨ |
 | :--- | :--- |:--- | :--- |
-| ´°¿Ú(Window) | "Window" | [duilib/Core/Window.h](../duilib/Core/Window.h) | |
-| ²Ëµ¥(Menu) | "Menu" | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | |
-| ×Ó²Ëµ¥(SubMenu) | "SubMenu" | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | |
-| ²Ëµ¥Ïî(MenuItem) | "MenuItem" | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | |
+| çª—å£(Window) | "Window" | [duilib/Core/Window.h](../duilib/Core/Window.h) | |
+| èœå•(Menu) | "Menu" | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | |
+| å­èœå•(SubMenu) | "SubMenu" | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | |
+| èœå•é¡¹(MenuItem) | "MenuItem" | [duilib/Control/Menu.h](../duilib/Control/Menu.h) | |
 

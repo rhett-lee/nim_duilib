@@ -13,13 +13,24 @@ namespace ui
 {
 class RichEdit;
 
+class ListCtrlData;
+class ListCtrlReportView;
+class ListCtrlIconView;
+class ListCtrlHeader;
+class ListCtrlHeaderItem;
+class ListCtrlItem;
+class ListCtrlSubItem;
+class ListCtrlIconViewItem;
+class ListCtrlListViewItem;
+
 /** ListCtrl控件
 */
 class ListCtrl: public VBox
 {
+    typedef VBox BaseClass;
     friend class ListCtrlData;          //列表数据管理容器
     friend class ListCtrlReportView;    //列表数据显示UI控件
-    friend class ListCtrlIconView;    //列表数据显示UI控件
+    friend class ListCtrlIconView;      //列表数据显示UI控件
     friend class ListCtrlHeader;
     friend class ListCtrlHeaderItem;
     friend class ListCtrlItem;

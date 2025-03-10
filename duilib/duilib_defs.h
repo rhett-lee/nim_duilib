@@ -107,6 +107,7 @@ namespace ui
     #define  DUI_CTR_MENU_ITEM                       (_T("MenuItem"))
 
     #define  DUI_CTR_DATETIME                        (_T("DateTime"))
+    #define  DUI_CTR_CEF                             (_T("CefControl"))
 
     //颜色相关的部分控件
     #define  DUI_CTR_COLOR_CONTROL                   (_T("ColorControl"))
@@ -281,7 +282,10 @@ namespace ui
         kEventMouseDoubleClick,     //Window类：当收到WM_LBUTTONDBLCLK消息时触发，发送给当前鼠标所在位置对应的控件        
         kEventMouseRButtonDown,     //Window类：当收到WM_RBUTTONDOWN消息时触发，发送给鼠标右键按下时对应的控件
         kEventMouseRButtonUp,       //Window类：当收到WM_RBUTTONUP消息时触发，发送给鼠标右键按下时对应的控件
-        kEventMouseRDoubleClick,    //Window类：当收到WM_RBUTTONDBLCLK消息时触发，发送给当前鼠标所在位置对应的控件    
+        kEventMouseRDoubleClick,    //Window类：当收到WM_RBUTTONDBLCLK消息时触发，发送给当前鼠标所在位置对应的控件
+        kEventMouseMButtonDown,     //Window类：当收到WM_MBUTTONDOWN消息时触发，发送给鼠标右键按下时对应的控件
+        kEventMouseMButtonUp,       //Window类：当收到WM_MBUTTONUP消息时触发，发送给鼠标右键按下时对应的控件
+        kEventMouseMDoubleClick,    //Window类：当收到WM_MBUTTONDBLCLK消息时触发，发送给当前鼠标所在位置对应的控件
         kEventContextMenu,          //Window类：当收到WM_CONTEXTMENU消息时触发，发送给所有注册回调函数的控件
         kEventMouseEnd,
 
@@ -289,7 +293,10 @@ namespace ui
         kEventSetFocus,             //Window类：发送给Focus控件，当控件获得焦点时触发事件（控件焦点不是窗口焦点，两者完全不同）
         kEventKillFocus,            //Window类：发送给Focus控件，当控件失去焦点时触发事件（控件焦点不是窗口焦点，两者完全不同）        
         kEventSetCursor,            //Window类：发送给当前鼠标所在控件，设置光标
-        kEventImeStartComposition,  //Window类：发送给Focus控件，当收到系统WM_IME_STARTCOMPOSITION消息时触发
+        kEventCaptureChanged,       //Window类：发送给Focus控件，当收到WM_CAPTURECHANGED消息时触发
+        kEventImeSetContext,        //Window类：发送给Focus控件，当收到系统WM_IME_SETCONTEXT消息时触发
+        kEventImeStartComposition,  //Window类：发送给Focus控件，当收到系统WM_IME_STARTCOMPOSITION消息时触发        
+        kEventImeComposition,       //Window类：发送给Focus控件，当收到系统WM_IME_COMPOSITION消息时触发
         kEventImeEndComposition,    //Window类：发送给Focus控件，当收到系统WM_IME_ENDCOMPOSITION消息时触发
 
         kEventWindowKillFocus,      //Window类：发送给鼠标左键、右键按下时记录的控件、焦点控件，当窗口失去焦点时触发事件（主要用于恢复一些内部状态）
@@ -321,12 +328,12 @@ namespace ui
         kEventExpand,               //TreeNode类：当树节点展开时触发
         kEventCollapse,             //TreeNode类：当树节点收起时触发
 
-        kEventZoom,                 //RichEdit类：当缩放比例发生变化时，按缩放比例分子/分母显示的缩放：1/64 < (wParam / lParam) < 64
+        kEventZoom,                 //RichEdit类：当缩放比例发生变化时，wParam表示缩放百分比，比如200表示200%
         kEventTextChange,           //RichEdit类：当文本内容发生变化时触发
         kEventSelChange,            //ListCtrl类：选择项发生变化，RichEdit类：当文本选择内容发生变化时触发
         kEventReturn,               //ListCtrl、VirtualListBox、ListBoxItem、RichEdit类：当收到回车键时触发
         kEventTab,                  //RichEdit类：在WantTab为false时，当收到TAB键时触发
-        kEventLinkClick,            //RichEdit类、RichText类：当点击到超级链接的数据上时触发, 可以通过WPARAM获取点击的URL，类型为const wchar_t*
+        kEventLinkClick,            //RichEdit类、RichText类：当点击到超级链接的数据上时触发, 可以通过WPARAM获取点击的URL，类型为const DStringW::value_type*
 
         kEventScrollChange,         //ScrollBox类：当滚动条位置发生变化时触发
         kEventValueChange,          //DateTime、Slider类：当值发生变化时触发, Slider类：WPARAM是新值，LPARAM是旧值

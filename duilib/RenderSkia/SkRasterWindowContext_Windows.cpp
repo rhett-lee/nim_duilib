@@ -1,12 +1,13 @@
 #include "SkRasterWindowContext_Windows.h"
 #include "duilib/Render/IRender.h"
+#include "duilib/Utils/PerformanceUtil.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
 
 namespace ui {
 
-SkRasterWindowContext_Windows::SkRasterWindowContext_Windows(HWND hWnd, const skwindow::DisplayParams& params):
-    skwindow::internal::RasterWindowContext(params),
+SkRasterWindowContext_Windows::SkRasterWindowContext_Windows(HWND hWnd, std::unique_ptr<const skwindow::DisplayParams> params):
+    skwindow::internal::RasterWindowContext(std::move(params)),
     m_hWnd(hWnd),
     m_hBitmap(nullptr)
 {
@@ -35,9 +36,9 @@ SkRasterWindowContext_Windows::~SkRasterWindowContext_Windows()
     }
 }
 
-void SkRasterWindowContext_Windows::setDisplayParams(const skwindow::DisplayParams& params)
+void SkRasterWindowContext_Windows::setDisplayParams(std::unique_ptr<const skwindow::DisplayParams> params)
 {
-    fDisplayParams = params;
+    fDisplayParams = std::move(params);
     RECT rect;
     ::GetClientRect(m_hWnd, &rect);
     this->resize(rect.right - rect.left, rect.bottom - rect.top);
@@ -54,6 +55,12 @@ void SkRasterWindowContext_Windows::resize(int nWidth, int nHeight)
     if ((fWidth == nWidth) && (fHeight == nHeight)) {
         return;
     }
+    const skwindow::DisplayParams* pDisplayParams = getDisplayParams();
+    ASSERT(pDisplayParams != nullptr);
+    if (pDisplayParams == nullptr) {
+        return;
+    }
+
     fWidth = nWidth;
     fHeight = nHeight;
 
@@ -79,7 +86,7 @@ void SkRasterWindowContext_Windows::resize(int nWidth, int nHeight)
         return;
     }
     m_hBitmap = hBitmap;
-    SkImageInfo info = SkImageInfo::Make(nWidth, nHeight, fDisplayParams.fColorType, SkAlphaType::kPremul_SkAlphaType, fDisplayParams.fColorSpace);
+    SkImageInfo info = SkImageInfo::Make(nWidth, nHeight, pDisplayParams->colorType(), SkAlphaType::kPremul_SkAlphaType, pDisplayParams->colorSpace());
     m_fBackbufferSurface = SkSurfaces::WrapPixels(info, pixels, sizeof(uint32_t) * nWidth);
 }
 
@@ -166,6 +173,7 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRende
 
 bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender, uint8_t nLayeredWindowAlpha) const
 {
+    PerformanceStat statPerformance(_T("SkRasterWindowContext_Windows::SwapPaintBuffers"));
     ASSERT(hPaintDC != nullptr);
     if (hPaintDC == nullptr) {
         return false;
@@ -202,7 +210,7 @@ bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect&
             ASSERT(hdc != nullptr);
             if (hdc != nullptr) {
                 //按分层窗口模式绘制
-                bRet = ::UpdateLayeredWindow(m_hWnd, NULL, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA) != FALSE;
+                bRet = ::UpdateLayeredWindow(m_hWnd, nullptr, &pt, &szWindow, hdc, &ptSrc, 0, &bf, ULW_ALPHA) != FALSE;
                 bPainted = true;
                 ASSERT(bRet);
                 pRender->ReleaseRenderDC(hdc);
@@ -269,7 +277,7 @@ HBITMAP SkRasterWindowContext_Windows::CreateHBitmap(int32_t nWidth, int32_t nHe
     HDC hdc = ::GetDC(m_hWnd);
     ASSERT(hdc != nullptr);
     if (hdc != nullptr) {
-        hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, NULL, 0);
+        hBitmap = ::CreateDIBSection(hdc, &bmi, DIB_RGB_COLORS, pBits, nullptr, 0);
     }
     ::ReleaseDC(m_hWnd, hdc);
     return hBitmap;

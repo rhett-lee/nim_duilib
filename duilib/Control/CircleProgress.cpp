@@ -63,7 +63,7 @@ void CircleProgress::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale
     int32_t iValue = GetCircleWidth();
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetCircleWidth(iValue, false);
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void CircleProgress::PaintStateImages(IRender* pRender)
@@ -169,7 +169,7 @@ void CircleProgress::PaintStateImages(IRender* pRender)
 
 void CircleProgress::ClearImageCache()
 {
-    __super::ClearImageCache();
+    BaseClass::ClearImageCache();
     if (m_pIndicatorImage != nullptr) {
         m_pIndicatorImage->ClearImageCache();
     }    

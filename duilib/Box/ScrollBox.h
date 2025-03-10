@@ -17,6 +17,7 @@ namespace ui
  */
 class UILIB_API ScrollBox : public Box
 {
+    typedef Box BaseClass;
 public:
     explicit ScrollBox(Window* pWindow, Layout* pLayout = new Layout);
     ScrollBox(const ScrollBox& r) = delete;
@@ -51,6 +52,12 @@ public:
     */
     UiSize GetScrollOffset() const;
 
+    /** ScrollOffset 值变化通知接口
+    * @param [in] oldScrollOffset 旧值
+    * @param [in] newScrollOffset 新值
+    */
+    virtual void OnScrollOffsetChanged(const UiSize& /*oldScrollOffset*/, const UiSize& /*newScrollOffset*/) {}
+
     /** 获取滚动条位置(cx代表横向滚动条的位置，cy代表纵向滚动条的位置)
      */
     virtual UiSize64 GetScrollPos() const;
@@ -76,13 +83,13 @@ public:
     
     /** 向上滚动滚动条
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
-      * @param[in] withAnimation 是否附带动画效果，默认为 true
+     * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
     virtual void LineUp(int deltaValue = DUI_NOSET_VALUE, bool withAnimation = true);
     
     /** 向下滚动滚动条
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
-      * @param[in] withAnimation 是否附带动画效果，默认为 true
+     * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
     virtual void LineDown(int deltaValue = DUI_NOSET_VALUE, bool withAnimation = true);
     
@@ -265,10 +272,9 @@ public:
     void SetScrollVirtualOffsetX(int64_t xOffset);
 
 protected:
-
     /** 计算所需的尺寸
      * @param[in] rc 当前位置信息, 外部调用时，不需要剪去内边距
-     * @return 返回所需尺寸大小
+     * @return 返回所需尺寸大小, 包含ScrollBox自身的内边距，不包含外边距
      */
     virtual UiSize64 CalcRequiredSize(const UiRect& rc);
 

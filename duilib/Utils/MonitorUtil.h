@@ -21,7 +21,7 @@ public:
     /** 获取主显示器DPI
     * @return 返回 DPI值
     */
-    static uint32_t GetMainMonitorDPI();
+    static uint32_t GetPrimaryMonitorDPI();
 
 };
 

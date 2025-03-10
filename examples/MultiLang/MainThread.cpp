@@ -1,7 +1,7 @@
 //MainThread.cpp
 #include "MainThread.h"
 #include "MainForm.h"
-#include "resource.h"
+#include "Resource.h"
 
 WorkerThread::WorkerThread()
     : FrameworkThread(_T("WorkerThread"), ui::kThreadWorker)
@@ -14,12 +14,16 @@ WorkerThread::~WorkerThread()
 
 void WorkerThread::OnInit()
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleInitialize(nullptr);
+#endif
 }
 
 void WorkerThread::OnCleanup()
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleUninitialize();
+#endif
 }
 
 MainThread::MainThread() :
@@ -33,14 +37,16 @@ MainThread::~MainThread()
 
 void MainThread::OnInit()
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleInitialize(nullptr);
+#endif
 
     //启动工作线程
     m_workerThread.reset(new WorkerThread);
     m_workerThread->Start();
 
     //初始化全局资源
-    constexpr ui::ResourceType resType = ui::ResourceType::kZipFile;
+    constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
     if (resType == ui::ResourceType::kLocalFiles) {
         //使用本地文件夹作为资源
         ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
@@ -56,6 +62,7 @@ void MainThread::OnInit()
         resParam.zipPassword = _T("");
         ui::GlobalManager::Instance().Startup(resParam);
     }
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     else if (resType == ui::ResourceType::kResZipFile) {
         //使用exe资源文件中的zip压缩包
         ui::ResZipFileResParam resParam;
@@ -66,6 +73,7 @@ void MainThread::OnInit()
         resParam.zipPassword = _T("");
         ui::GlobalManager::Instance().Startup(resParam);
     }
+#endif
     else {
         return;
     }
@@ -73,9 +81,8 @@ void MainThread::OnInit()
     //在下面加入启动窗口代码
     //创建一个默认带有阴影的居中窗口
     MainForm* window = new MainForm();
-    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("MultiLang")));
+    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("MultiLang"), true));
     window->PostQuitMsgWhenClosed(true);
-    window->CenterWindow();
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 
@@ -86,5 +93,7 @@ void MainThread::OnCleanup()
         m_workerThread->Stop();
         m_workerThread.reset(nullptr);
     }
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleUninitialize();
+#endif
 }

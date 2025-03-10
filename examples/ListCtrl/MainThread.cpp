@@ -12,12 +12,16 @@ WorkerThread::~WorkerThread()
 
 void WorkerThread::OnInit()
 {
-    ::OleInitialize(NULL);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    ::OleInitialize(nullptr);
+#endif
 }
 
 void WorkerThread::OnCleanup()
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleUninitialize();
+#endif
 }
 
 MainThread::MainThread() :
@@ -31,7 +35,9 @@ MainThread::~MainThread()
 
 void MainThread::OnInit()
 {
-    ::OleInitialize(NULL);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    ::OleInitialize(nullptr);
+#endif
 
     //启动工作线程
     m_workerThread.reset(new WorkerThread);
@@ -44,9 +50,8 @@ void MainThread::OnInit()
 
     //创建主窗口
     MainForm* pWindow = new MainForm();
-    pWindow->CreateWnd(nullptr, ui::WindowCreateParam(_T("ListCtrl控件测试程序")));
+    pWindow->CreateWnd(nullptr, ui::WindowCreateParam(_T("ListCtrl控件测试程序"), true));
     pWindow->PostQuitMsgWhenClosed(true);
-    pWindow->CenterWindow();
     pWindow->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 
@@ -57,5 +62,7 @@ void MainThread::OnCleanup()
         m_workerThread->Stop();
         m_workerThread.reset(nullptr);
     }
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleUninitialize();
+#endif
 }

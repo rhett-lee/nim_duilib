@@ -24,7 +24,7 @@ void AppItemUi::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     m_app_icon = static_cast<ui::Control*>(FindSubControl(_T("app_icon")));
     if (m_app_icon) {
         m_app_icon->SetBkImage(m_app_data.m_icon);
@@ -52,7 +52,7 @@ void AppItemUi::SetAppdata(const AppItem& item, bool refresh)
 
 ui::Control* AppItemUi::CreateDestControl(Box* pTargetBox)
 {
-    Control* pControl = __super::CreateDestControl(pTargetBox);
+    Control* pControl = BaseClass::CreateDestControl(pTargetBox);
     if (pControl != nullptr) {
         pControl->SetBkImage(_T("file='move_control/1.png'"));
     }

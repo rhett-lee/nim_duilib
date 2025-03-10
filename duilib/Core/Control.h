@@ -23,9 +23,9 @@ namespace ui
 
     typedef Control* (CALLBACK* FINDCONTROLPROC)(Control*, void*);
 
-class UILIB_API Control : 
-    public PlaceHolder
+class UILIB_API Control: public PlaceHolder
 {
+    typedef PlaceHolder BaseClass;
 public:
     explicit Control(Window* pWindow);
     Control(const Control& r) = delete;
@@ -515,7 +515,7 @@ public:
     /** 获取控件位置（子类可改变行为）
     * @return 返回控件的矩形区域，包含内边距，不包含外边距
      */
-    virtual    UiRect GetPos() const override;
+    virtual UiRect GetPos() const override;
 
     /** 设置控件位置（子类可改变行为）
      * @param [in] rc 要设置的矩形区域信息，包含内边距，不包含外边距
@@ -524,7 +524,7 @@ public:
 
     /** 计算控件大小(宽和高)
         如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
-     *  @param [in] szAvailable 可用大小，不包含外边距
+     *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
      *  @return 控件的估算大小，包含内边距(Box)，不包含外边距
      */
     virtual UiEstSize EstimateSize(UiSize szAvailable);
@@ -534,6 +534,12 @@ public:
      *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
      */
     virtual UiSize EstimateText(UiSize szAvailable);
+
+    /** 计算图片区域大小（宽和高）
+     *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
+     *  @return 控件的文本估算大小，包含内边距(Box)，不包含外边距
+     */
+    virtual UiSize EstimateImage(UiSize szAvailable);
 
     /**
      * @brief 检查指定坐标是否在滚动条当前滚动位置的范围内
@@ -927,6 +933,14 @@ public:
     */
     bool IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const;
 
+    /** 是否为CEF的离屏渲染控件
+    */
+    virtual bool IsCefOSR() const { return false; }
+
+    /** 是否为CEF的离屏渲染控件，并自己处理输入法消息的模式
+    */
+    virtual bool IsCefOsrImeMode() const { return false; }
+
 public:
     /**@name 事件监听相关接口
     * @{
@@ -1011,6 +1025,9 @@ protected:
     virtual bool RButtonDown(const EventArgs& msg);
     virtual bool RButtonUp(const EventArgs& msg);
     virtual bool RButtonDoubleClick(const EventArgs& msg);
+    virtual bool MButtonDown(const EventArgs& msg);
+    virtual bool MButtonUp(const EventArgs& msg);
+    virtual bool MButtonDoubleClick(const EventArgs& msg);
     virtual bool MouseMove(const EventArgs& msg);
     virtual bool MouseHover(const EventArgs& msg);
     virtual bool MouseWheel(const EventArgs& msg);
@@ -1026,7 +1043,10 @@ protected:
     virtual bool OnSetFocus(const EventArgs& msg);
     virtual bool OnKillFocus(const EventArgs& msg); //控件失去焦点
     virtual bool OnWindowKillFocus(const EventArgs& msg);//控件所属的窗口失去焦点
+    virtual bool OnCaptureChanged(const EventArgs& msg);//控件所属窗口的鼠标捕获丢失
+    virtual bool OnImeSetContext(const EventArgs& msg);
     virtual bool OnImeStartComposition(const EventArgs& msg);
+    virtual bool OnImeComposition(const EventArgs& msg);
     virtual bool OnImeEndComposition(const EventArgs& msg);
 
     /// 绘制相关保护成员函数，不允许外部直接调用
@@ -1128,6 +1148,13 @@ protected:
     /** 停止播放GIF动画(背景图片的动画等)
     */
     void CheckStopGifPlay();
+
+    /** 计算控件大小(宽和高)
+        如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
+     *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
+     *  @return 控件的估算大小，包含内边距(Box)，不包含外边距
+     */
+    UiSize EstimateControlSize(UiSize szAvailable);
 
 private:
     /** 绘制边框：根据条件判断绘制圆角矩形边框还是普通矩形边框

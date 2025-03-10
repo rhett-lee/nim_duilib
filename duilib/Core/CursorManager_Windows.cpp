@@ -2,10 +2,11 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/FilePathUtil.h"
-#include "duilib/Utils/ApiWrapper_Windows.h"
 #include <map>
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
+#include "duilib/Utils/ApiWrapper_Windows.h"
 
 namespace ui
 {
@@ -51,37 +52,37 @@ bool CursorManager::SetCursor(CursorType cursorType)
     bool bRet = true;
     switch (cursorType) {
     case CursorType::kCursorArrow:
-        ::SetCursor(::LoadCursor(NULL, IDC_ARROW));
+        ::SetCursor(::LoadCursor(nullptr, IDC_ARROW));
         break;
     case CursorType::kCursorIBeam:
-        ::SetCursor(::LoadCursor(NULL, IDC_IBEAM));
+        ::SetCursor(::LoadCursor(nullptr, IDC_IBEAM));
         break;
     case CursorType::kCursorHand:
-        ::SetCursor(::LoadCursor(NULL, IDC_HAND));
+        ::SetCursor(::LoadCursor(nullptr, IDC_HAND));
         break;
     case CursorType::kCursorWait:
-        ::SetCursor(::LoadCursor(NULL, IDC_WAIT));
+        ::SetCursor(::LoadCursor(nullptr, IDC_WAIT));
         break;
     case CursorType::kCursorCross:
-        ::SetCursor(::LoadCursor(NULL, IDC_CROSS));
+        ::SetCursor(::LoadCursor(nullptr, IDC_CROSS));
         break;
     case CursorType::kCursorSizeWE:
-        ::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
+        ::SetCursor(::LoadCursor(nullptr, IDC_SIZEWE));
         break;
     case CursorType::kCursorSizeNS:
-        ::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
+        ::SetCursor(::LoadCursor(nullptr, IDC_SIZENS));
         break;
     case CursorType::kCursorSizeNWSE:
-        ::SetCursor(::LoadCursor(NULL, IDC_SIZENWSE));
+        ::SetCursor(::LoadCursor(nullptr, IDC_SIZENWSE));
         break;
     case CursorType::kCursorSizeNESW:
-        ::SetCursor(::LoadCursor(NULL, IDC_SIZENESW));
+        ::SetCursor(::LoadCursor(nullptr, IDC_SIZENESW));
         break;
     case CursorType::kCursorSizeAll:
-        ::SetCursor(::LoadCursor(NULL, IDC_SIZEALL));
+        ::SetCursor(::LoadCursor(nullptr, IDC_SIZEALL));
         break;    
     case CursorType::kCursorNo:
-        ::SetCursor(::LoadCursor(NULL, IDC_NO));
+        ::SetCursor(::LoadCursor(nullptr, IDC_NO));
         break;    
     default:
         bRet = false;
@@ -92,7 +93,7 @@ bool CursorManager::SetCursor(CursorType cursorType)
 
 /** 从内存数据中加载光标
 */
-HCURSOR LoadCursorFromData(const Window* pWindow, std::vector<uint8_t>& fileData)
+static HCURSOR LoadCursorFromData(const Window* pWindow, std::vector<uint8_t>& fileData)
 {
     if (fileData.empty() || (pWindow == nullptr)) {
         return nullptr;
@@ -215,7 +216,7 @@ bool CursorManager::SetImageCursor(const Window* pWindow, const FilePath& curIma
         }
         else {
             //使用本地文件
-            hCursor = (HCURSOR)::LoadImage(NULL, cursorFullPath.NativePath().c_str(), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+            hCursor = (HCURSOR)::LoadImage(nullptr, cursorFullPath.NativePath().c_str(), IMAGE_CURSOR, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
             ASSERT(hCursor != nullptr);
             if (hCursor != nullptr) {
                 m_impl->m_cursorMap[cursorFullPath] = hCursor;

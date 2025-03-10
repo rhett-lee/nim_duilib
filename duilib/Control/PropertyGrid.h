@@ -36,6 +36,7 @@ class PropertyGridDirectoryProperty;    //文件夹
 */
 class PropertyGrid : public VBox
 {
+    typedef VBox BaseClass;
 public:
     explicit PropertyGrid(Window* pWindow);
 
@@ -177,8 +178,6 @@ public:
                                                 const DString& description = _T(""),
                                                 size_t nPropertyData = 0);
 
-#ifdef DUILIB_BUILD_FOR_WIN
-
     /** 增加一个属性(日期时间)
     * @param [in] pGroup 该属性所属的分组
     * @param [in] propertyName 属性的名称
@@ -194,9 +193,7 @@ public:
                                                       const DString& description = _T(""),
                                                       size_t nPropertyData = 0,
                                                       DateTime::EditFormat editFormat = DateTime::EditFormat::kDateCalendar);
-
-#endif //DUILIB_BUILD_FOR_WIN
-    
+   
     /** 增加一个属性(IP地址)
     * @param [in] pGroup 该属性所属的分组
     * @param [in] propertyName 属性的名称
@@ -457,6 +454,7 @@ private:
 */
 class PropertyGridGroup : public TreeNode
 {
+    typedef TreeNode BaseClass;
 public:
     /** 构造一个组
     * @param [in] groupName 组的名称
@@ -554,6 +552,7 @@ enum class PropertyGridPropertyType
 */
 class PropertyGridProperty: public TreeNode
 {
+    typedef TreeNode BaseClass;
 public:
     /** 构造一个属性
     * @param [in] propertyName 属性的名称
@@ -743,13 +742,13 @@ public:
     RichEdit* GetRichEdit() const { return m_pRichEdit; }
 
     /** 设置密码模式（显示 ***）
-     * @param[in] bPassword 设置为 true 让控件显示内容为 ***，false 为显示正常内容
+     * @param[in] bPasswordMode 设置为 true 让控件显示内容为 ***，false 为显示正常内容
      */
-    void SetPassword(bool bPassword);
+    void SetPasswordMode(bool bPasswordMode);
 
     /** 是否为密码模式
     */
-    bool IsPassword() const { return m_bPassword; }
+    bool IsPasswordMode() const { return m_bPasswordMode; }
 
     /** 设置是否支持Spin控件
     * @param [in] bEnable true表示支持Spin控件，false表示不支持Spin控件
@@ -776,7 +775,7 @@ private:
 
     /** 密码模式
     */
-    bool m_bPassword;
+    bool m_bPasswordMode;
 };
 
 /** 下拉框类型的属性：使用Combo编辑
@@ -888,6 +887,7 @@ private:
 */
 class PropertyGridFontProperty : public PropertyGridComboProperty
 {
+    typedef PropertyGridComboProperty BaseClass;
 public:
     /** 构造一个属性
     * @param [in] propertyName 属性的名称
@@ -924,6 +924,7 @@ protected:
 */
 class PropertyGridFontSizeProperty : public PropertyGridComboProperty
 {
+    typedef PropertyGridComboProperty BaseClass;
 public:
     /** 构造一个属性
     * @param [in] propertyName 属性的名称
@@ -1045,8 +1046,6 @@ private:
     ComboButton* m_pComboButton;
 };
 
-#ifdef DUILIB_BUILD_FOR_WIN
-
 /** 设置日期时间的属性(仅Windows平台提供此功能)
 */
 class PropertyGridDateTimeProperty : public PropertyGridProperty
@@ -1103,8 +1102,6 @@ private:
     */
     DateTime::EditFormat m_editFormat;
 };
-
-#endif DUILIB_BUILD_FOR_WIN
 
 /** 设置IP地址的属性
 */
@@ -1204,6 +1201,7 @@ private:
 */
 class PropertyGridFileProperty : public PropertyGridTextProperty
 {
+    typedef PropertyGridTextProperty BaseClass;
 public:
     /** 构造一个属性
     * @param [in] propertyName 属性的名称
@@ -1269,6 +1267,7 @@ private:
 */
 class PropertyGridDirectoryProperty : public PropertyGridTextProperty
 {
+    typedef PropertyGridTextProperty BaseClass;
 public:
     /** 构造一个属性
     * @param [in] propertyName 属性的名称

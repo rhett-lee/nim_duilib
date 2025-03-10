@@ -1,6 +1,7 @@
 #include "WindowBase.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/WindowDropTarget.h"
+#include "duilib/Core/WindowCreateAttributes.h"
 
 namespace ui
 {
@@ -21,27 +22,35 @@ WindowBase::~WindowBase()
     }
 }
 
-bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& createParam )
+bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& createParam)
 {
+    //解析XML，读取窗口的属性参数
+    WindowCreateAttributes createAttributes;
+    GetCreateWindowAttributes(createAttributes);
+
     m_pParentWindow = pParentWindow;
     m_parentFlag.reset();
     if (pParentWindow != nullptr) {
         m_parentFlag = pParentWindow->GetWeakFlag();
     }
     NativeWindow* pNativeWindow = pParentWindow != nullptr ? pParentWindow->NativeWnd() : nullptr;
-    return m_pNativeWindow->CreateWnd(pNativeWindow, createParam);
+    return m_pNativeWindow->CreateWnd(pNativeWindow, createParam, createAttributes);
 }
 
 int32_t WindowBase::DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
-                            bool bCenterWindow, bool bCloseByEsc, bool bCloseByEnter)
+                            bool bCloseByEsc, bool bCloseByEnter)
 {
+    //解析XML，读取窗口的属性参数
+    WindowCreateAttributes createAttributes;
+    GetCreateWindowAttributes(createAttributes);
+
     m_pParentWindow = pParentWindow;
     m_parentFlag.reset();
     if (pParentWindow != nullptr) {
         m_parentFlag = pParentWindow->GetWeakFlag();
     }
     NativeWindow* pNativeWindow = pParentWindow != nullptr ? pParentWindow->NativeWnd() : nullptr;
-    return m_pNativeWindow->DoModal(pNativeWindow, createParam, bCenterWindow, bCloseByEsc, bCloseByEnter);
+    return m_pNativeWindow->DoModal(pNativeWindow, createParam, createAttributes, bCloseByEsc, bCloseByEnter);
 }
 
 void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled)
@@ -162,11 +171,6 @@ bool WindowBase::RemoveMessageFilter(IUIMessageFilter* pFilter)
     return false;
 }
 
-LRESULT WindowBase::SendMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-    return m_pNativeWindow->SendMsg(uMsg, wParam, lParam);
-}
-
 LRESULT WindowBase::PostMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     return m_pNativeWindow->PostMsg(uMsg, wParam, lParam);
@@ -242,19 +246,31 @@ void WindowBase::ClientToScreen(UiPoint& pt) const
     m_pNativeWindow->ClientToScreen(pt);
 }
 
+void WindowBase::ClientToScreen(UiRect& rc) const
+{
+    UiPoint pt;
+    pt.x = rc.left;
+    pt.y = rc.top;
+    ClientToScreen(pt);
+    rc.right = pt.x + rc.Width();
+    rc.left = pt.x;
+    rc.bottom = pt.y + rc.Height();
+    rc.top = pt.y;
+}
+
 void WindowBase::GetCursorPos(UiPoint& pt) const
 {
     m_pNativeWindow->GetCursorPos(pt);
 }
 
-void WindowBase::MapWindowDesktopRect(UiRect& rc) const
-{
-    m_pNativeWindow->MapWindowDesktopRect(rc);
-}
-
 bool WindowBase::GetMonitorRect(UiRect& rcMonitor) const
 {
     return m_pNativeWindow->GetMonitorRect(rcMonitor);
+}
+
+bool WindowBase::GetPrimaryMonitorWorkRect(UiRect& rcWork)
+{
+    return NativeWindow::GetPrimaryMonitorWorkRect(rcWork);
 }
 
 bool WindowBase::GetMonitorWorkRect(UiRect& rcWork) const
@@ -308,14 +324,14 @@ void WindowBase::CenterWindow()
     m_pNativeWindow->CenterWindow();
 }
 
-void WindowBase::ToTopMost()
+void WindowBase::SetWindowAlwaysOnTop(bool bOnTop)
 {
-    m_pNativeWindow->ToTopMost();
+    m_pNativeWindow->SetWindowAlwaysOnTop(bOnTop);
 }
 
-void WindowBase::BringToTop()
+bool WindowBase::IsWindowAlwaysOnTop() const
 {
-    m_pNativeWindow->BringToTop();
+    return m_pNativeWindow->IsWindowAlwaysOnTop();
 }
 
 bool WindowBase::SetWindowForeground()
@@ -341,11 +357,6 @@ bool WindowBase::KillWindowFocus()
 bool WindowBase::IsWindowFocused() const
 {
     return m_pNativeWindow->IsWindowFocused();
-}
-
-bool WindowBase::SetOwnerWindowFocus()
-{
-    return m_pNativeWindow->SetOwnerWindowFocus();
 }
 
 void WindowBase::CheckSetWindowFocus()
@@ -446,9 +457,9 @@ bool WindowBase::SetWindowIcon(const FilePath& iconFilePath)
     return m_pNativeWindow->SetWindowIcon(iconFilePath);
 }
 
-bool WindowBase::SetWindowIcon(const std::vector<uint8_t>& iconFileData)
+bool WindowBase::SetWindowIcon(const std::vector<uint8_t>& iconFileData, const DString& iconFileName)
 {
-    return m_pNativeWindow->SetWindowIcon(iconFileData);
+    return m_pNativeWindow->SetWindowIcon(iconFileData, iconFileName);
 }
 
 void WindowBase::SetText(const DString& strText)
@@ -543,8 +554,14 @@ void WindowBase::OnDpiScaleChanged(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (nNewDpiScale != Dpi().GetScale()) {
         return;
     }
-    m_szMinWindow = Dpi().GetScaleSize(m_szMinWindow, nOldDpiScale);
-    m_szMaxWindow = Dpi().GetScaleSize(m_szMaxWindow, nOldDpiScale);
+    UiSize szMinWindow = NativeWnd()->GetWindowMinimumSize();
+    szMinWindow = Dpi().GetScaleSize(szMinWindow, nOldDpiScale);
+    NativeWnd()->SetWindowMinimumSize(szMinWindow);
+
+    UiSize szMaxWindow = NativeWnd()->GetWindowMaximumSize();    
+    szMaxWindow = Dpi().GetScaleSize(szMaxWindow, nOldDpiScale);    
+    NativeWnd()->SetWindowMaximumSize(szMaxWindow);
+
     m_rcSizeBox = Dpi().GetScaleRect(m_rcSizeBox, nOldDpiScale);
     m_szRoundCorner = Dpi().GetScaleSize(m_szRoundCorner, nOldDpiScale);
     m_rcCaption = Dpi().GetScaleRect(m_rcCaption, nOldDpiScale);
@@ -679,91 +696,34 @@ void WindowBase::SetRoundCorner(int cx, int cy, bool bNeedDpiScale)
     m_szRoundCorner.cy = cy;
 }
 
-UiSize WindowBase::GetMinInfo(bool bContainShadow) const
+void WindowBase::SetWindowMaximumSize(const UiSize& szMinWindow, bool bNeedDpiScale)
 {
-    UiSize xy = m_szMinWindow;
-    if (!bContainShadow) {
-        UiPadding rcShadow;
-        GetShadowCorner(rcShadow);
-        if (xy.cx != 0) {
-            xy.cx -= rcShadow.left + rcShadow.right;
-        }
-        if (xy.cy != 0) {
-            xy.cy -= rcShadow.top + rcShadow.bottom;
-        }
-    }
-    return xy;
-}
-
-void WindowBase::SetMinInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
-{
-    ASSERT(cx >= 0 && cy >= 0);
-    if (cx < 0) {
-        cx = 0;
-    }
-    if (cy < 0) {
-        cy = 0;
-    }
     if (bNeedDpiScale) {
-        Dpi().ScaleInt(cx);
-        Dpi().ScaleInt(cy);
+        NativeWnd()->SetWindowMaximumSize(Dpi().GetScaleSize(szMinWindow));
     }
-    if (!bContainShadow) {
-        UiPadding rcShadow;
-        GetShadowCorner(rcShadow);
-        if (cx != 0) {
-            cx += rcShadow.left + rcShadow.right;
-        }
-        if (cy != 0) {
-            cy += rcShadow.top + rcShadow.bottom;
-        }
+    else {
+        NativeWnd()->SetWindowMaximumSize(szMinWindow);
     }
-    m_szMinWindow.cx = cx;
-    m_szMinWindow.cy = cy;
 }
 
-UiSize WindowBase::GetMaxInfo(bool bContainShadow) const
+const UiSize& WindowBase::GetWindowMaximumSize() const
 {
-    UiSize xy = m_szMaxWindow;
-    if (!bContainShadow) {
-        UiPadding rcShadow;
-        GetShadowCorner(rcShadow);
-        if (xy.cx != 0) {
-            xy.cx -= rcShadow.left + rcShadow.right;
-        }
-        if (xy.cy != 0) {
-            xy.cy -= rcShadow.top + rcShadow.bottom;
-        }
-    }
-
-    return xy;
+    return NativeWnd()->GetWindowMaximumSize();
 }
 
-void WindowBase::SetMaxInfo(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
+void WindowBase::SetWindowMinimumSize(const UiSize& szMaxWindow, bool bNeedDpiScale)
 {
-    ASSERT(cx >= 0 && cy >= 0);
-    if (cx < 0) {
-        cx = 0;
-    }
-    if (cy < 0) {
-        cy = 0;
-    }
     if (bNeedDpiScale) {
-        Dpi().ScaleInt(cx);
-        Dpi().ScaleInt(cy);
+        NativeWnd()->SetWindowMinimumSize(Dpi().GetScaleSize(szMaxWindow));
     }
-    if (!bContainShadow) {
-        UiPadding rcShadow;
-        GetShadowCorner(rcShadow);
-        if (cx != 0) {
-            cx += rcShadow.left + rcShadow.right;
-        }
-        if (cy != 0) {
-            cy += rcShadow.top + rcShadow.bottom;
-        }
+    else {
+        NativeWnd()->SetWindowMinimumSize(szMaxWindow);
     }
-    m_szMaxWindow.cx = cx;
-    m_szMaxWindow.cy = cy;
+}
+
+const UiSize& WindowBase::GetWindowMinimumSize() const
+{
+    return NativeWnd()->GetWindowMaximumSize();
 }
 
 int32_t WindowBase::SetWindowHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
@@ -817,6 +777,18 @@ void* WindowBase::GetWindowHandle() const
 {
     return m_pNativeWindow->GetWindowHandle();
 }
+
+#ifdef DUILIB_BUILD_FOR_SDL
+DString WindowBase::GetVideoDriverName() const
+{
+    return m_pNativeWindow->GetVideoDriverName();
+}
+
+DString WindowBase::GetWindowRenderName() const
+{
+    return m_pNativeWindow->GetWindowRenderName();
+}
+#endif
 
 void WindowBase::OnWindowSize(WindowSizeType sizeType)
 {
@@ -885,16 +857,6 @@ bool WindowBase::OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) co
 bool WindowBase::OnNativeIsPtInMaximizeRestoreButton(const UiPoint& pt) const
 {
     return IsPtInMaximizeRestoreButton(pt);
-}
-
-UiSize WindowBase::OnNativeGetMinInfo(bool bContainShadow) const
-{
-    return GetMinInfo(bContainShadow);
-}
-
-UiSize WindowBase::OnNativeGetMaxInfo(bool bContainShadow) const
-{
-    return GetMaxInfo(bContainShadow);
 }
 
 void WindowBase::OnNativePreCloseWindow()
@@ -995,9 +957,19 @@ LRESULT WindowBase::OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, const N
     return OnKillFocusMsg(pSetFocusWindowBase, nativeMsg, bHandled);
 }
 
+LRESULT WindowBase::OnNativeImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled)
+{
+    return OnImeSetContextMsg(nativeMsg, bHandled);
+}
+
 LRESULT WindowBase::OnNativeImeStartCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled)
 {
     return OnImeStartCompositionMsg(nativeMsg, bHandled);
+}
+
+LRESULT WindowBase::OnNativeImeCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled)
+{
+    return OnImeCompositionMsg(nativeMsg, bHandled);
 }
 
 LRESULT WindowBase::OnNativeImeEndCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled)
@@ -1083,6 +1055,21 @@ LRESULT WindowBase::OnNativeMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifi
 LRESULT WindowBase::OnNativeMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     return OnMouseRButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
+}
+
+LRESULT WindowBase::OnNativeMouseMButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    return OnMouseMButtonDownMsg(pt, modifierKey, nativeMsg, bHandled);
+}
+
+LRESULT WindowBase::OnNativeMouseMButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    return OnMouseMButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
+}
+
+LRESULT WindowBase::OnNativeMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+    return OnMouseMButtonDbClickMsg(pt, modifierKey, nativeMsg, bHandled);
 }
 
 LRESULT WindowBase::OnNativeCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled)

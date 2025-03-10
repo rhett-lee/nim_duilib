@@ -113,13 +113,14 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>..\..\;..\..\third_party\cef_wrapper\;..\..\ui_components\third_party\cef_wrapper</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\;..\..\duilib\third_party\libcef_win\</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <DelayLoadDLLs>nim_libcef.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
+      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>../../manifest/duilib.x86.manifest</AdditionalManifestFiles>
@@ -137,13 +138,14 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>..\..\;..\..\third_party\cef_wrapper\;..\..\ui_components\third_party\cef_wrapper</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\;..\..\duilib\third_party\libcef_win\</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <DelayLoadDLLs>nim_libcef.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
+      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>../../manifest/duilib.x64.manifest</AdditionalManifestFiles>
@@ -163,7 +165,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>..\..\;..\..\third_party\cef_wrapper\;..\..\ui_components\third_party\cef_wrapper</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\;..\..\duilib\third_party\libcef_win\</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -171,7 +173,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <DelayLoadDLLs>nim_libcef.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
+      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>../../manifest/duilib.x86.manifest</AdditionalManifestFiles>
@@ -191,7 +194,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalIncludeDirectories>..\..\;..\..\third_party\cef_wrapper\;..\..\ui_components\third_party\cef_wrapper</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\;..\..\duilib\third_party\libcef_win\</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -199,20 +202,24 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <DelayLoadDLLs>nim_libcef.dll</DelayLoadDLLs>
+      <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
+      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
     </Link>
     <Manifest>
       <AdditionalManifestFiles>../../manifest/duilib.x64.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="main.h" />
-    <ClInclude Include="cef_form.h" />
+    <ClInclude Include="CefForm.h" />
+    <ClInclude Include="MainThread.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cef_form.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="CefForm.cpp" />
+    <ClCompile Include="MainThread.cpp" />
+    <ClCompile Include="main_windows.cpp" />
+    <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="cef.rc" />
@@ -236,9 +243,6 @@
     </ProjectReference>
     <ProjectReference Include="..\..\duilib\third_party\libwebp\libwebp.vcxproj">
       <Project>{9ce07309-2808-45fa-b1af-ef49510e83ab}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\ui_components\ui_components.vcxproj">
-      <Project>{0149ba6e-3c0a-426d-aa0a-0b9ec7742f19}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -342,3 +342,8 @@ ASALocalRun/
 
 # BeatPulse healthcheck temp database 
 healthchecksdb
+/build_temp
+/bin/libcef
+/bin/libcef_linux
+/bin/libcef_win
+/bin/libcef_win_109

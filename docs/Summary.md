@@ -10,10 +10,12 @@
 * [菜单的样式](Menu.md)
 * [XML文件中各控件的节点名称](XmlNode.md)
 * [控件的事件/消息](Events.md)
+* [CEF控件](CEF.md)
 
 ## 项目中主要类的简表
 各个类的详细接口说明请参考关联头文件，有较详细的注释。    
 * 基本数据类型
+
 | 类名称 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | UiSize | [duilib/Core/UiSize.h](../duilib/Core/UiSize.h) | 32位Size类型的封装|
@@ -34,6 +36,7 @@
 | UiColors | [duilib/Core/UiColors.h](../duilib/Core/UiColors.h) | 常见颜色值常量(ARGB格式)|
 
 * 窗口相关
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | Window | [duilib/Core/Window.h](../duilib/Core/Window.h) | duilib核心窗口的封装|
@@ -47,6 +50,7 @@
 | Windows版本兼容性 | [duilib/duilib_config.h](../duilib/duilib_config.h) | Windows版本兼容性定义，默认配置兼容Win7以上操作系统|
 
 * 控件与容器的基类
+
 | 类名称 | 基类名称 |关联头文件| 用途 |
 | :--- | :--- |:--- | :--- |
 | PlaceHolder |nbase::SupportWeakCallback| [duilib/Core/PlaceHolder.h](../duilib/Core/PlaceHolder.h) | 所有控件和容器的顶层基类，封装了控件的位置、大小、外观形状等基本数据|
@@ -54,6 +58,7 @@
 | Box | Control| [duilib/Core/Box.h](../duilib/Core/Box.h) | 所有容器的基类，封装了容器的位置、大小、外观形状、子控件管理（添加、删除、修改、绘制、操作、拖放、布局等）|
 
 * 布局
+
 | 类名称 | 基类名称 |关联头文件| 用途 |
 | :--- | :--- |:--- | :--- |
 | Layout | |[duilib/Box/Layout.h](../duilib/Box/Layout.h) | 自由布局（浮动布局）|
@@ -67,6 +72,7 @@
 | VirtualVTileLayout |VTileLayout| [duilib/Box/VirtualVTileLayout.h](../duilib/Box/VirtualVTileLayout.h) | 虚表垂直瓦片布局|
 
 * 容器
+
 | 类名称 | 基类名称 |布局类型|关联头文件| 名称/用途 |
 | :--- | :--- |:--- |:--- | :--- |
 | Box | Control|[Layout](../duilib/Box/Layout.h)|[duilib/Core/Box.h](../duilib/Core/Box.h) | 自由布局容器，所有容器的基类，封装了容器的位置、大小、外观形状、子控件管理（添加、删除、修改、绘制、操作、拖放、布局等）|
@@ -92,6 +98,7 @@
 | VirtualHTileListBox | VirtualListBox|[VirtualHTileLayout](../duilib/Box/VirtualHTileLayout.h)|[duilib/Box/VirtualListBox.h](../duilib/Box/VirtualListBox.h) | 虚表实现的水平布局的列表容器|
 
 * 图片
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | Image | [duilib/Image/Image.h](../duilib/Image/Image.h) | 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO|
@@ -107,12 +114,14 @@
 | IconManager | [duilib/Core/IconManager.h](../duilib/Core/IconManager_Windows.h) | HICON句柄管理器|
 
 * 动画
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | AnimationManager | [duilib/Animation/AnimationManager.h](../duilib/Animation/AnimationManager.h) | 图片动画管理器|
 | AnimationPlayer | [duilib/Animation/AnimationPlayer.h](../duilib/Animation/AnimationPlayer.h) | 图片动画播放状态管理|
 
 * 颜色
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | UiColor | [duilib/Core/UiColor.h](../duilib/Core/UiColor.h) | 颜色类型的封装|
@@ -120,12 +129,14 @@
 | StateColorMap | [duilib/Core/StateColorMap.h](../duilib/Core/UiColors.h) | 控件状态与颜色值的映射|
 
 * 字体
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | UiFont | [duilib/Core/UiFont.h](../duilib/Core/UiFont.h) | 字体类型的封装|
 | FontManager | [duilib/Core/FontManager.h](../duilib/Core/FontManager.h) | 字体管理器|
 
 * 渲染引擎接口
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | 渲染引擎设置 | [duilib/Render/RenderConfig.h](../duilib/Render/RenderConfig.h) | 可设置使用哪个引擎（Skia引擎，或者GdiPlus引擎）|
@@ -138,9 +149,8 @@
 | IMatrix | [duilib/Render/IRender.h](../duilib/Render/IRender.h) | 矩阵接口 |
 | IRender | [duilib/Render/IRender.h](../duilib/Render/IRender.h) | 渲染接口，用于画图、绘制文字等 |
 
-* GdiPlus渲染引擎(略，不推荐使用。仅旧功能支持此引擎，新功能均不再支持该引擎，后续不再维护）
-
 * Skia渲染引擎
+
 | 类名称/说明 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | RenderFactory_Skia | [duilib/RenderSkia/RenderFactory_Skia.h](../duilib/RenderSkia/RenderFactory_Skia.h) | 渲染工厂接口的实现 |
@@ -150,9 +160,13 @@
 | Brush_Skia | [duilib/RenderSkia/Brush_Skia.h](../duilib/RenderSkia/Brush_Skia.h) | 画刷接口的实现 |
 | Path_Skia | [duilib/RenderSkia/Path_Skia.h](../duilib/RenderSkia/Path_Skia.h) | 路径接口的实现 |
 | Matrix_Skia | [duilib/RenderSkia/Matrix_Skia.h](../duilib/RenderSkia/Matrix_Skia.h) | 矩阵接口的实现 |
+| FontMgr_Skia | [duilib/RenderSkia/FontMgr_Skia.h](../duilib/RenderSkia/FontMgr_Skia.h) | 字体管理器的接口实现 |
 | Render_Skia | [duilib/RenderSkia/Render_Skia.h](../duilib/RenderSkia/Render_Skia.h) | 渲染接口的实现，用于画图、绘制文字等 |
+| Render_Skia_Windows | [duilib/RenderSkia/Render_Skia_Windows.h](../duilib/RenderSkia/Render_Skia_Windows.h) | 渲染接口的Windows相关功能的实现 |
+| Render_Skia_SDL | [duilib/RenderSkia/Render_Skia_SDL.h](../duilib/RenderSkia/Render_Skia_SDL.h) | 渲染接口的SDL相关功能的实现，主要用于Linux，Windows也支持 |
 
 * 控件/功能组件
+
 | 类名称/功能组件 | 基类 | 关联头文件| 用途 |
 | :--- | :--- | :---| :--- |
 | ScrollBar | Control| [duilib/Core/ScrollBar.h](../duilib/Core/ScrollBar.h) | 滚动条控件 |
@@ -181,8 +195,9 @@
 | Slider | Progress| [duilib/Control/Slider.h](../duilib/Control/Slider.h) | 滑块控件 |
 | CircleProgress | Control| [duilib/Control/CircleProgress.h](../duilib/Control/CircleProgress.h) | 环形进度条 |
 | RichEdit | ScrollBox| [duilib/Control/RichEdit.h](../duilib/Control/RichEdit.h) | 富文本编辑框控件 |
-| RichEdit实现类 | | [duilib/Control/RichEditCtrl.h](../duilib/Control/RichEditCtrl.h) | 富文本编辑框的主要功能封装 |
-| RichEdit实现类 | | [duilib/Control/RichEditHost.h](../duilib/Control/RichEditHost.h) | 富文本编辑框的主要功能实现 |
+| RichEdit实现类 | | [duilib/Control/RichEditCtrl_Windows.h](../duilib/Control/RichEditCtrl_Windows.h) | 富文本编辑框的主要功能封装（Windows） |
+| RichEdit实现类 | | [duilib/Control/RichEditHost_Windows.h](../duilib/Control/RichEditHost_Windows.h) | 富文本编辑框的主要功能实现（Windows） |
+| RichEdit实现类 | | [duilib/Control/RichEdit_SDL.h](../duilib/Control/RichEdit_SDL.h) | 富文本编辑框的主要功能封装（SDL） |
 | RichText | Control| [duilib/Control/RichText.h](../duilib/Control/RichText.h) | 格式化文本（类HTML格式） |
 | Split | Control| [duilib/Control/Split.h](../duilib/Control/Split.h) | 分割条控件 |
 | SplitBox | Box| [duilib/Control/Split.h](../duilib/Control/Split.h) | 分割条容器 |
@@ -214,6 +229,7 @@
 | VBoxDragable | VBoxDragable | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 
 * 全局资源
+
 | 类名称 | 关联头文件| 用途 |
 | :--- | :--- | :--- |
 | GlobalManager | [duilib/Core/GlobalManager.h](../duilib/Core/GlobalManager.h) | 全局属性管理工具类，用于管理一些全局属性的工具类，包含全局样式（global.xml）和语言设置等 |
@@ -225,3 +241,16 @@
 | DpiManager | [duilib/Core/DpiManager.h](../duilib/Core/DpiManager.h) | DPI管理器，用于支持DPI自适应等功能 |
 | TimerManager | [duilib/Core/TimerManager.h](../duilib/Core/TimerManager.h) | 定时器管理器 |
 | LangManager | [duilib/Core/LangManager.h](../duilib/Core/LangManager.h) | 多语言支持管理器 |
+| CursorManager | [duilib/Core/CursorManager.h](../duilib/Core/CursorManager.h) | 光标管理器 |
+| ThreadManager | [duilib/Core/ThreadManager.h](../duilib/Core/ThreadManager.h) | 线程管理器 |
+| ColorManager | [duilib/Core/ColorManager.h](../duilib/Core/ColorManager.h) | 颜色管理器 |
+
+* libcef控件封装相关
+
+| 类名称 | 关联头文件| 用途 |
+| :--- | :--- | :--- |
+| CefManager | [duilib/CEFControl/CefManager.h](../duilib/CEFControl/CefManager.h) | CEF控件管理器，负责CEF模块的初始化和反初始化相关工作 |
+| CefControl | [duilib/CEFControl/CefControl.h](../duilib/CEFControl/CefControl.h) | CEF控件接口，提供网页浏览相关的基本功能及事件的接受等功能 |
+| CefControlEvent | [duilib/CEFControl/CefControlEvent.h](../duilib/CEFControl/CefControlEvent.h) | CEF控件的网页浏览相关事件接收接口 |
+| CefControlNative | [duilib/CEFControl/CefControlNative.h](../duilib/CEFControl/CefControlNative.h) | CEF控件窗口模式的封装 |
+| CefControlOffScreen | [duilib/CEFControl/CefControlOffScreen.h](../duilib/CEFControl/CefControlOffScreen.h) | CEF控件离屏渲染模式的封装 |

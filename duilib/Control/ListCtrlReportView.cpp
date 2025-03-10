@@ -34,7 +34,7 @@ ListCtrlReportView::~ListCtrlReportView()
 
 void ListCtrlReportView::HandleEvent(const EventArgs& msg)
 {
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
     if (m_pListCtrl != nullptr) {
         if ((msg.eventType > kEventKeyBegin) && (msg.eventType < kEventKeyEnd)) {
             m_pListCtrl->OnViewKeyboardEvents(msg);
@@ -52,9 +52,14 @@ void ListCtrlReportView::SetListCtrl(ListCtrl* pListCtrl)
 
 void ListCtrlReportView::SetDataProvider(VirtualListBoxElement* pProvider)
 {
-    __super::SetDataProvider(pProvider);
-    m_pData = dynamic_cast<ListCtrlData*>(GetDataProvider());
-    ASSERT(m_pData != nullptr);
+    BaseClass::SetDataProvider(pProvider);
+    if (GetDataProvider() != nullptr) {
+        m_pData = dynamic_cast<ListCtrlData*>(GetDataProvider());
+        ASSERT(m_pData != nullptr);
+    }
+    else {
+        m_pData = nullptr;
+    }
 }
 
 void ListCtrlReportView::Refresh()
@@ -570,12 +575,12 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
     const size_t nItemCount = GetItemCount();
     if (nItemCount <= 1) {
         //首行是表头，直接绘制
-        __super::PaintChild(pRender, rcPaint);
+        BaseClass::PaintChild(pRender, rcPaint);
         return;
     }
     ListCtrlHeader* pHeaderCtrl = dynamic_cast<ListCtrlHeader*>(GetItemAt(0));
     if ((pHeaderCtrl == nullptr) || !pHeaderCtrl->IsVisible()) {
-        __super::PaintChild(pRender, rcPaint);
+        BaseClass::PaintChild(pRender, rcPaint);
         return;
     }
 
@@ -745,7 +750,7 @@ Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, void* pProcData,
 {
     //重写：ScrollBox::FindControl 函数，让Header优先被查找到，只处理含有UIFIND_TOP_FIRST标志的情况
     if ((uFlags & UIFIND_TOP_FIRST) == 0) {
-        return __super::FindControl(Proc, pProcData, uFlags, ptMouse, scrollPos);
+        return BaseClass::FindControl(Proc, pProcData, uFlags, ptMouse, scrollPos);
     }
 
     std::vector<Control*> newItems = m_items;
@@ -1294,7 +1299,7 @@ void ListCtrlReportView::OnItemSelectedChanged(size_t iIndex, IListBoxItem* pLis
     if (!IsEnableUpdateProvider()) {
         return;
     }
-    __super::OnItemSelectedChanged(iIndex, pListBoxItem);
+    BaseClass::OnItemSelectedChanged(iIndex, pListBoxItem);
     OnSelectStatusChanged();
 }
 

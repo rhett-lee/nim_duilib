@@ -1,6 +1,6 @@
 #include "ThreadMessage.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 namespace ui
 {
@@ -61,7 +61,7 @@ void ThreadMessage::Initialize(void* platformData)
     if (m_impl->m_hMessageWnd != nullptr) {
         return;
     }
-    auto hinst = platformData != nullptr ? (HMODULE)platformData : ::GetModuleHandle(NULL);
+    auto hinst = platformData != nullptr ? (HMODULE)platformData : ::GetModuleHandle(nullptr);
     WNDCLASSEXW wc = { 0 };
     wc.cbSize = sizeof(wc);
     wc.lpfnWndProc = ThreadMessage::TImpl::WndProcThunk;

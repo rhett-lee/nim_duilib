@@ -58,7 +58,12 @@ void Window::AttachWindowClose(const EventCallback& callback)
 
 bool Window::SetRenderBackendType(RenderBackendType backendType)
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     m_renderBackendType = backendType;
+#else
+    backendType = RenderBackendType::kRaster_BackendType;
+    m_renderBackendType = backendType;
+#endif
     ASSERT(IsWindow());
     if (!IsWindow()) {
         return false;
@@ -106,7 +111,7 @@ bool Window::SetWindowIcon(const DString& iconFilePath)
             GlobalManager::Instance().Zip().GetZipData(iconFullPath, fileData);
             ASSERT(!fileData.empty());
             if (!fileData.empty()) {
-                bRet = WindowBase::SetWindowIcon(fileData);
+                bRet = WindowBase::SetWindowIcon(fileData, iconFilePath);
             }
         }
         else {
@@ -123,6 +128,101 @@ bool Window::SetWindowIcon(const DString& iconFilePath)
         }
     }
     return bRet;
+}
+
+void Window::InitSkin(const DString& skinFolder, const DString& skinFile)
+{
+    m_skinFolder = skinFolder;
+    m_skinFile = skinFile;
+    m_windowBuilder.reset();
+}
+
+DString Window::GetSkinFolder()
+{
+    return m_skinFolder;
+}
+
+DString Window::GetSkinFile()
+{
+    return m_skinFile;
+}
+
+Control* Window::CreateControl(const DString& /*strClass*/)
+{
+    return nullptr;
+}
+
+void Window::GetCreateWindowAttributes(WindowCreateAttributes& createAttributes)
+{
+    //解析窗口关联的XML文件
+    if (m_windowBuilder == nullptr) {
+        ParseWindowXml();
+    }
+
+    //解析出窗口的属性
+    if (m_windowBuilder != nullptr) {
+        m_windowBuilder->ParseWindowCreateAttributes(createAttributes);
+    }
+}
+
+void Window::ParseWindowXml()
+{
+    FilePath skinFolder(GetSkinFolder());
+    DString xmlFile = GetSkinFile();
+    if (skinFolder.IsEmpty() && xmlFile.empty()) {
+        return;
+    }
+
+    //资源路径不支持绝对路径
+    ASSERT(!skinFolder.IsAbsolutePath());
+    if (skinFolder.IsAbsolutePath()) {
+        return;
+    }
+
+    //保存资源所在路径
+    SetResourcePath(skinFolder);
+    SetXmlPath(FilePath());
+
+    //XML文件所在路径，应是相对路径    
+    DString skinXmlFileData;
+    FilePath skinXmlFilePath;
+    if (!xmlFile.empty() && xmlFile.front() == _T('<')) {
+        //返回的内容是XML文件内容，而不是文件路径        
+        skinXmlFileData = std::move(xmlFile);
+    }
+    else {
+        FilePath xmlFilePath(xmlFile);
+        ASSERT(!xmlFilePath.IsAbsolutePath());
+        if (xmlFilePath.IsAbsolutePath()) {
+            return;
+        }
+
+        //保存XML文件所在路径
+        size_t nPos = xmlFile.find_last_of(_T("/\\"));
+        if (nPos != DString::npos) {
+            DString xmlPath = xmlFile.substr(0, nPos);
+            if (!xmlPath.empty()) {
+                SetXmlPath(FilePath(xmlPath));
+            }
+        }
+        skinXmlFilePath = GetResourcePath();
+        skinXmlFilePath.JoinFilePath(xmlFilePath);
+    }
+    //解析XML文件
+    bool bRet = false;
+    m_windowBuilder = std::make_unique<WindowBuilder>();
+    if (!skinXmlFileData.empty()) {
+        bRet = m_windowBuilder->ParseXmlData(skinXmlFileData);
+    }
+    else {
+        ASSERT(!skinXmlFilePath.IsEmpty());
+        bRet = m_windowBuilder->ParseXmlFile(skinXmlFilePath);
+    }
+    if (!bRet) {
+        m_windowBuilder.reset();
+        SetResourcePath(FilePath());
+        SetXmlPath(FilePath());
+    }
 }
 
 void Window::PreInitWindow()
@@ -145,6 +245,35 @@ void Window::PreInitWindow()
 
     //添加到全局管理器
     GlobalManager::Instance().AddWindow(this);
+
+    //解析窗口关联的XML文件
+    if (m_windowBuilder == nullptr) {
+        ParseWindowXml();
+    }
+
+    Box* pRoot = nullptr;
+    if (m_windowBuilder != nullptr) {
+        auto callback = UiBind(&Window::CreateControl, this, std::placeholders::_1);
+        Control* pControl = m_windowBuilder->CreateControls(callback, this);
+        pRoot = m_windowBuilder->ToBox(pControl);
+        ASSERT(pRoot != nullptr);
+    }
+
+    if (pRoot != nullptr) {
+        if (IsUseSystemCaption()) {
+            //关闭阴影
+            SetShadowAttached(false);
+        }
+
+        //关联窗口附加阴影
+        pRoot = AttachShadow(pRoot);
+
+        //关联Root对象
+        AttachBox(pRoot);
+
+        //更新自绘制标题栏状态
+        OnUseSystemCaptionBarChanged();
+    }
 }
 
 void Window::PostInitWindow()
@@ -161,7 +290,7 @@ void Window::PostInitWindow()
 
     //根据XML的size属性，初始化窗口大小
     if ((m_szInitSize.cx > 0) && (m_szInitSize.cy > 0)) {
-        Resize(m_szInitSize.cx, m_szInitSize.cy, false, false);
+        Resize(m_szInitSize.cx, m_szInitSize.cy, true, false);
     }
 
     //检测是否需要根据root节点的auto类型设置窗口大小（比如菜单等有此种用法）
@@ -203,7 +332,8 @@ void Window::OnFinalMessage()
 
 void Window::ClearWindow(bool bSendClose)
 {
-    if (bSendClose && IsWindow()) {
+    bool bHasWindow = GlobalManager::Instance().HasWindow(this);
+    if (bSendClose && bHasWindow) {
         //发送关闭事件
         WPARAM wParam = (WPARAM)GetCloseParam();
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
@@ -423,6 +553,9 @@ bool Window::IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const
         else if (modifierKey == ModifierKey::kAlt) {
             return msg.modifierKey & ModifierKey::kAlt;
         }
+        else if (modifierKey == ModifierKey::kIsSystemKey) {
+            return msg.modifierKey & ModifierKey::kIsSystemKey;
+        }
         break;
 
     case kEventKeyDown:
@@ -432,11 +565,17 @@ bool Window::IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const
         else if (modifierKey == ModifierKey::kAlt) {
             return msg.modifierKey & ModifierKey::kAlt;
         }
+        else if (modifierKey == ModifierKey::kIsSystemKey) {
+            return msg.modifierKey & ModifierKey::kIsSystemKey;
+        }
         break;
 
     case kEventKeyUp:
         if (modifierKey == ModifierKey::kAlt) {
             return msg.modifierKey & ModifierKey::kAlt;
+        }
+        else if (modifierKey == ModifierKey::kIsSystemKey) {
+            return msg.modifierKey & ModifierKey::kIsSystemKey;
         }
         break;
 
@@ -459,6 +598,9 @@ bool Window::IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const
     case kEventMouseRButtonDown:
     case kEventMouseRButtonUp:
     case kEventMouseRDoubleClick:
+    case kEventMouseMButtonDown:
+    case kEventMouseMButtonUp:
+    case kEventMouseMDoubleClick:
         if (modifierKey == ModifierKey::kControl) {
             return msg.modifierKey & ModifierKey::kControl;
         }
@@ -683,7 +825,7 @@ void Window::SetInitSize(int cx, int cy)
         m_szInitSize.cy = cy;
     }
     else {
-        Resize(cx, cy, false, false);
+        Resize(cx, cy, true, false);
     }
 }
 
@@ -740,8 +882,8 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
             GetWindowRect(rcWindow);
             UiRect rcClientRect;
             GetClientRect(rcClientRect);
-            ASSERT(rcClientRect.Width() == rcWindow.Width());
-            ASSERT(rcClientRect.Height() == rcWindow.Height());
+            //ASSERT(rcClientRect.Width() == rcWindow.Width());
+            //ASSERT(rcClientRect.Height() == rcWindow.Height());
             if ((rcClientRect.Width() == rcWindow.Width()) && (rcClientRect.Height() == rcWindow.Height())) {
                 //全屏时，设置外边距，避免客户区的内容溢出屏幕
                 UiRect rcWork;
@@ -874,8 +1016,8 @@ bool Window::OnPreparePaint()
 
 LRESULT Window::OnPaintMsg(const UiRect& rcPaint, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
+    PerformanceStat statPerformance(_T("PaintWindow, Window::OnPaintMsg"));
     bHandled = false;
-    PerformanceStat statPerformance(_T("Window::OnPaintMsg"));
     if (Paint(rcPaint)) {
         bHandled = true;
     }
@@ -977,11 +1119,38 @@ LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg&
     return 0;
 }
 
+LRESULT Window::OnImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled)
+{
+    bHandled = false;
+    if (m_pFocus != nullptr) {
+        m_pFocus->SendEvent(kEventImeSetContext, nativeMsg.wParam, nativeMsg.lParam);
+        if (m_pFocus && m_pFocus->IsCefOsrImeMode()) {
+            bHandled = true;
+        }
+    }
+    return 0;
+}
+
 LRESULT Window::OnImeStartCompositionMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventImeStartComposition);
+        if (m_pFocus && m_pFocus->IsCefOsrImeMode()) {
+            bHandled = true;
+        }
+    }
+    return 0;
+}
+
+LRESULT Window::OnImeCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled)
+{
+    bHandled = false;
+    if (m_pFocus != nullptr) {
+        m_pFocus->SendEvent(kEventImeComposition, nativeMsg.wParam, nativeMsg.lParam);
+        if (m_pFocus && m_pFocus->IsCefOsrImeMode()) {
+            bHandled = true;
+        }
     }
     return 0;
 }
@@ -991,6 +1160,9 @@ LRESULT Window::OnImeEndCompositionMsg(const NativeMsg& /*nativeMsg*/, bool& bHa
     bHandled = false;
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventImeEndComposition);
+        if (m_pFocus && m_pFocus->IsCefOsrImeMode()) {
+            bHandled = true;
+        }
     }
     return 0;
 }
@@ -1017,6 +1189,10 @@ LRESULT Window::OnSetCursorMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
         bHandled = true;
         if (windowFlag.expired()) {
             return 0;
+        }
+        else if (pControl->IsCefOSR()) {
+            //离屏渲染模式下，需要让系统处理光标消息，否则光标会出现异常现象
+            bHandled = false;
         }
     }
     return 0;
@@ -1095,18 +1271,20 @@ LRESULT Window::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const 
         return lResult;
     }
     if (m_pFocus != nullptr) {
+        bool bMsgHandled = false;
         if (vkCode == kVK_TAB) {
             if (m_pFocus->IsVisible() &&
                 m_pFocus->IsEnabled() &&
                 m_pFocus->IsWantTab()) {
-                return lResult;
+                bMsgHandled = false;
             }
             else {
                 //通过TAB键切换焦点控件
                 SetNextTabControl(!Keyboard::IsKeyDown(kVK_SHIFT));
+                bMsgHandled = true;
             }
         }
-        else {
+        if(!bMsgHandled) {
             m_pEventKey = m_pFocus;
             std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
             EventArgs msgData;
@@ -1178,6 +1356,7 @@ LRESULT Window::OnCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const Nat
         msgData.modifierKey = modifierKey;
         msgData.wParam = nativeMsg.wParam;
         msgData.lParam = nativeMsg.lParam;
+        msgData.eventData = nativeMsg.uMsg;
         pFocusControl->SendEvent(kEventChar, msgData);
     }
     return lResult;
@@ -1453,7 +1632,7 @@ LRESULT Window::OnMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, con
     return 0;
 }
 
-LRESULT  Window::OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+LRESULT Window::OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
 #ifdef _DEBUG
     if (modifierKey & ModifierKey::kControl) {
@@ -1469,17 +1648,62 @@ LRESULT  Window::OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKe
     return 0;
 }
 
+LRESULT Window::OnMouseMButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
+    bHandled = false;
+    OnButtonDown(kEventMouseMButtonDown, pt, nativeMsg, modifierKey);
+    return 0;
+}
+
+LRESULT Window::OnMouseMButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
+    bHandled = false;
+    OnButtonUp(kEventMouseMButtonUp, pt, nativeMsg, modifierKey);
+    return 0;
+}
+
+LRESULT Window::OnMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
+{
+#ifdef _DEBUG
+    if (modifierKey & ModifierKey::kControl) {
+        ASSERT(Keyboard::IsKeyDown(kVK_CONTROL));
+    }
+    if (modifierKey & ModifierKey::kShift) {
+        ASSERT(Keyboard::IsKeyDown(kVK_SHIFT));
+    }
+#endif
+
+    bHandled = false;
+    OnButtonDown(kEventMouseMDoubleClick, pt, nativeMsg, modifierKey);
+    return 0;
+}
+
 LRESULT Window::OnCaptureChangedMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
-
-    //if (m_pEventClick) {
-    //    //如果没有收到WM_POINTERUP消息，需要补一个（TODO：检查是否有副作用）
-    //    m_pEventClick->SendEvent(kEventMouseButtonUp, wParam, lParam, 0, lastMousePos);
-    //    m_pEventClick = nullptr;
-    //}
-
     ReleaseCapture();
+
+    if (m_pFocus != nullptr) {
+        m_pFocus->SendEvent(kEventCaptureChanged);
+    }
     return 0;
 }
 
@@ -1498,29 +1722,41 @@ void Window::OnCreateWndMsg(bool bDoModal, const NativeMsg& /*nativeMsg*/, bool&
 
 void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey)
 {
-    ASSERT(eventType == kEventMouseButtonDown || 
-           eventType == kEventMouseRButtonDown || 
-           eventType == kEventMouseDoubleClick ||
-           eventType == kEventMouseRDoubleClick);
+    ASSERT(eventType == kEventMouseButtonDown   || 
+           eventType == kEventMouseRButtonDown  ||
+           eventType == kEventMouseMButtonDown  || 
+           eventType == kEventMouseDoubleClick  ||
+           eventType == kEventMouseRDoubleClick ||
+           eventType == kEventMouseMDoubleClick);
     CheckSetWindowFocus();
     SetLastMousePos(pt);
     Control* pControl = FindControl(pt);
     if (pControl != nullptr) {
+        std::weak_ptr<WeakFlag> controlFlag = pControl->GetWeakFlag();
+        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+        std::weak_ptr<WeakFlag> clickFlag;
+        if (m_pEventClick != nullptr) {
+            clickFlag = m_pEventClick->GetWeakFlag();
+        }
         Control* pOldEventClick = m_pEventClick;
         m_pEventClick = pControl;
         pControl->SetFocus();
         SetCapture();
-        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-        EventArgs msgData;
-        msgData.modifierKey = modifierKey;
-        msgData.ptMouse = pt;
-        msgData.wParam = nativeMsg.wParam;
-        msgData.lParam = nativeMsg.lParam;
-        pControl->SendEvent(eventType, msgData);
         if (windowFlag.expired()) {
             return;
         }
-        if ((pOldEventClick != nullptr) && (pOldEventClick != pControl)) {
+        if (!controlFlag.expired()) {            
+            EventArgs msgData;
+            msgData.modifierKey = modifierKey;
+            msgData.ptMouse = pt;
+            msgData.wParam = nativeMsg.wParam;
+            msgData.lParam = nativeMsg.lParam;
+            pControl->SendEvent(eventType, msgData);
+            if (windowFlag.expired()) {
+                return;
+            }
+        }
+        if ((pOldEventClick != nullptr) && (pOldEventClick != pControl) && !clickFlag.expired()) {
             pOldEventClick->SendEvent(kEventMouseClickChanged);
             if (windowFlag.expired()) {
                 return;
@@ -1531,7 +1767,7 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
 
 void Window::OnButtonUp(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey)
 {
-    ASSERT(eventType == kEventMouseButtonUp || eventType == kEventMouseRButtonUp);
+    ASSERT(eventType == kEventMouseButtonUp || eventType == kEventMouseRButtonUp || eventType == kEventMouseMButtonUp);
     SetLastMousePos(pt);
     ReleaseCapture();
     if (m_pEventClick != nullptr) {
@@ -1597,12 +1833,20 @@ void Window::SetFocusControl(Control* pControl)
     }
     if (m_pFocus != nullptr) {
         //WPARAM 是新的焦点控件接口
+        std::weak_ptr<WeakFlag> controlFlag;
+        if (pControl != nullptr) {
+            controlFlag = pControl->GetWeakFlag();
+        }
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         m_pFocus->SendEvent(kEventKillFocus, (WPARAM)pControl);
         if (windowFlag.expired()) {
             return;
         }
         m_pFocus = nullptr;
+        if ((pControl != nullptr) && controlFlag.expired()){
+            //该控件已经销毁
+            return;
+        }
     }
     if ((pControl != nullptr) && pControl->IsVisible() && pControl->IsEnabled()) {
         ASSERT(pControl->GetWindow() == this);
@@ -1665,7 +1909,7 @@ bool Window::SetNextTabControl(bool bForward)
         if (bForward) {
             // Wrap around
             FINDTABINFO info2 = { 0 };
-            info2.pFocus = bForward ? NULL : info1.pLast;
+            info2.pFocus = bForward ? nullptr : info1.pLast;
             info2.bForward = bForward;
             pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromTab, &info2, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_ME_FIRST);
         }
@@ -1823,7 +2067,10 @@ void Window::AutoResizeWindow(bool bRepaint)
             UiRect rect;
             GetWindowRect(rect);
             if ((rect.Width() != needSize.cx) || (rect.Height() != needSize.cy)) {
-                MoveWindow(rect.left, rect.top, needSize.cx, needSize.cy, bRepaint);
+                Resize(needSize.cx, needSize.cy, true, false);
+                if (bRepaint) {
+                    InvalidateAll();
+                }
             }
         }
     }

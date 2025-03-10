@@ -12,9 +12,17 @@ namespace ui
 */
 class CComboWnd: public Window
 {
+    typedef Window BaseClass;
 public:
+    /** 创建并显示下拉窗口
+    */
     void InitComboWnd(Combo* pOwner, bool bActivated);
+
+    /** 更新下拉窗口的位置和大小
+    */
     void UpdateComboWnd();
+
+    //基类虚函数的重写
     virtual void OnInitWindow() override;
     virtual void OnCloseWindow() override;
     virtual void OnFinalMessage() override;
@@ -27,6 +35,11 @@ public:
     * @param [in] needUpdateSelItem true表示需要更新选择项，否则不需要更新选择项
     */
     void CloseComboWnd(bool bCanceled, bool needUpdateSelItem);
+
+private:
+    /** 计算下拉框的显示矩形
+    */
+    UiRect GetComboWndRect() const;
 
 private:
     //关联的Combo接口
@@ -53,8 +66,17 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     m_editText = m_pOwner->GetText();
     m_bIsClosed = false;
 
+    //设置下拉框的显示位置和大小，避免弹出界面的时候出现黑屏现象
+    UiRect rcWnd = GetComboWndRect();
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
+#ifdef DUILIB_BUILD_FOR_SDL
+    createWndParam.m_dwExStyle = kWS_EX_NOACTIVATE;
+#endif
+    createWndParam.m_nX = rcWnd.left;
+    createWndParam.m_nY = rcWnd.top;
+    createWndParam.m_nWidth = rcWnd.Width();
+    createWndParam.m_nHeight = rcWnd.Height();
     CreateWnd(pOwner->GetWindow(), createWndParam);
 
     UpdateComboWnd();
@@ -76,11 +98,11 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     }
 }
 
-void CComboWnd::UpdateComboWnd()
+UiRect CComboWnd::GetComboWndRect() const
 {
     Combo* pOwner = m_pOwner;
     if (pOwner == nullptr) {
-        return;
+        return UiRect();
     }
     // Position the popup window in absolute space
     UiSize szDrop = pOwner->GetDropBoxSize();
@@ -109,10 +131,10 @@ void CComboWnd::UpdateComboWnd()
     }
     rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
 
-    pOwner->GetWindow()->MapWindowDesktopRect(rc);
+    pOwner->GetWindow()->ClientToScreen(rc);
 
     UiRect rcWork;
-    GetMonitorWorkRect(rcWork);
+    pOwner->GetWindow()->GetMonitorWorkRect(rcWork);
     if (rc.bottom > rcWork.bottom || m_pOwner->IsPopupTop()) {
         rc.left = rcOwner.left;
         rc.right = rcOwner.right;
@@ -121,7 +143,16 @@ void CComboWnd::UpdateComboWnd()
         }
         rc.top = rcOwner.top - std::min(cyFixed, szDrop.cy);
         rc.bottom = rcOwner.top;
-        pOwner->GetWindow()->MapWindowDesktopRect(rc);
+        pOwner->GetWindow()->ClientToScreen(rc);
+    }
+    return rc;
+}
+
+void CComboWnd::UpdateComboWnd()
+{
+    UiRect rc = GetComboWndRect();
+    if (rc.IsEmpty()) {
+        return;
     }
     SetWindowPos(InsertAfterWnd(), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_NOZORDER | kSWP_NOACTIVATE);
 }
@@ -139,7 +170,7 @@ void CComboWnd::OnFinalMessage()
             m_pOwner->Invalidate();
         }
     }
-    __super::OnFinalMessage();
+    BaseClass::OnFinalMessage();
 }
 
 void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
@@ -173,7 +204,7 @@ void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
 
 void CComboWnd::OnInitWindow()
 {
-    __super::OnInitWindow();
+    BaseClass::OnInitWindow();
 
     Box* pRoot = new Box(this);
     pRoot->SetAutoDestroyChild(false);
@@ -191,14 +222,16 @@ void CComboWnd::OnCloseWindow()
         m_pOwner->GetTreeView()->SetParent(nullptr);
         pRootBox->RemoveAllItems();
     }
-    m_pOwner->SetPos(m_pOwner->GetPos());
-    m_pOwner->SetFocus();
-    __super::OnCloseWindow();
+    if ((m_pOwner->GetWindow() != nullptr) && m_pOwner->GetWindow()->IsWindow()) {
+        m_pOwner->SetPos(m_pOwner->GetPos());
+        m_pOwner->SetFocus();
+    }    
+    BaseClass::OnCloseWindow();
 }
 
 LRESULT CComboWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
     if (vkCode == kVK_ESCAPE) {
         //按住ESC键，取消
         CloseComboWnd(true, false);
@@ -212,7 +245,7 @@ LRESULT CComboWnd::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, con
 
 LRESULT CComboWnd::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
     //失去焦点，关闭窗口，正常关闭
     if (pSetFocusWindow != this) {
         CloseComboWnd(false, false);
@@ -295,7 +328,7 @@ void Combo::SetAttribute(const DString& strName, const DString& strValue)
         SetButtonControlClass(strValue);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -316,7 +349,7 @@ void Combo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if ((m_treeView.GetWindow() == GetWindow()) && (m_treeView.GetParent() == nullptr)) {
         m_treeView.ChangeDpiScale(nOldDpiScale, nNewDpiScale);
     }
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void Combo::SetComboTreeClass(const DString& classValue)
@@ -441,24 +474,24 @@ DString Combo::GetBorderColor(ControlStateType stateType) const
     DString borderColor;
     if (m_pIconControl != nullptr) {
         if (m_pIconControl->IsFocused() || m_pIconControl->IsMouseFocused()) {
-            borderColor = __super::GetBorderColor(kControlStateHot);
+            borderColor = BaseClass::GetBorderColor(kControlStateHot);
         }
     }
     if (borderColor.empty() && (m_pEditControl != nullptr)) {
         if (m_pEditControl->IsFocused() || m_pEditControl->IsMouseFocused()) {
-            borderColor = __super::GetBorderColor(kControlStateHot);
+            borderColor = BaseClass::GetBorderColor(kControlStateHot);
         }
     }
     if (borderColor.empty() && (m_pButtonControl != nullptr)) {
         if (m_pButtonControl->IsFocused() || m_pButtonControl->IsMouseFocused()) {
-            borderColor = __super::GetBorderColor(kControlStateHot);
+            borderColor = BaseClass::GetBorderColor(kControlStateHot);
         }
     }
     if (borderColor.empty() && (m_pWindow != nullptr) && !m_pWindow->IsClosingWnd()) {
-        borderColor = __super::GetBorderColor(kControlStateHot);
+        borderColor = BaseClass::GetBorderColor(kControlStateHot);
     }
     if (borderColor.empty()) {
-        borderColor = __super::GetBorderColor(stateType);
+        borderColor = BaseClass::GetBorderColor(stateType);
     }
     return borderColor;
 }
@@ -468,7 +501,7 @@ void Combo::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
 
     HBox* pBox = new HBox(GetWindow());
     AddItem(pBox);
@@ -496,7 +529,7 @@ void Combo::OnInit()
         m_pButtonControl->AttachClick(UiBind(&Combo::OnButtonClicked, this, std::placeholders::_1));
     }
     if (m_pEditControl != nullptr) {
-        m_pEditControl->SetNeedReturnMsg(true);
+        m_pEditControl->SetWantReturn(true);
         m_pEditControl->AttachButtonDown(UiBind(&Combo::OnEditButtonDown, this, std::placeholders::_1));
         m_pEditControl->AttachButtonUp(UiBind(&Combo::OnEditButtonUp, this, std::placeholders::_1));
         m_pEditControl->AttachEvent(kEventKeyDown, UiBind(&Combo::OnEditKeyDown, this, std::placeholders::_1));
@@ -1055,7 +1088,7 @@ void Combo::SetFocus()
         }
     }
     else {
-        __super::SetFocus();
+        BaseClass::SetFocus();
     }
 }
 

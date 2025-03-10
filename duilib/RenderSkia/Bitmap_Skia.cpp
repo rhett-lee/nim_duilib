@@ -56,7 +56,7 @@ bool Bitmap_Skia::Init(uint32_t nWidth, uint32_t nHeight, bool flipHeight,
     }
     //复制图片数据到位图
     if (pPixelBits != nullptr) {
-        memcpy(pBits, pPixelBits, nWidth * nHeight * sizeof(uint32_t));
+        ::memcpy(pBits, pPixelBits, nWidth * nHeight * sizeof(uint32_t));
     }
     
     //更新图片的透明通道数据
@@ -72,7 +72,7 @@ void Bitmap_Skia::FlipPixelBits(const uint8_t* pPixelBits, uint32_t nWidth, uint
     for (uint32_t row = 0; row < nHeight; ++row) {
         uint8_t* dest = flipBits.data() + row * dwEffWidth;
         const uint8_t* src = pPixelBits + (nHeight - 1 - row) * dwEffWidth;
-        memcpy(dest, src, dwEffWidth);
+        ::memcpy(dest, src, dwEffWidth);
     }
 }
 

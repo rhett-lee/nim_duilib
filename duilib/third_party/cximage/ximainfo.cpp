@@ -6,7 +6,9 @@
 #include "ximage.h"
 
 #if defined(linux) || defined(__linux) || defined(__linux__)
- #define _tcsnicmp(a,b,c) strcasecmp(a,b)
+    #ifndef _tcsnicmp
+        #define _tcsnicmp(a,b,c) strcasecmp(a,b)
+    #endif
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////

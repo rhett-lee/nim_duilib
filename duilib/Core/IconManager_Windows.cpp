@@ -71,8 +71,8 @@ UiSize IconManager::GetIconSize(const DString& str) const
 struct ScopedICONINFO :
     public ICONINFO {
     ScopedICONINFO() {
-        hbmColor = NULL;
-        hbmMask = NULL;
+        hbmColor = nullptr;
+        hbmMask = nullptr;
     }
     ~ScopedICONINFO() {
         if (hbmColor) {

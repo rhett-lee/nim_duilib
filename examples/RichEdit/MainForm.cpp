@@ -2,9 +2,12 @@
 #include "FindForm.h"
 #include "ReplaceForm.h"
 #include "MainThread.h"
+#include <fstream>
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 #include <ShellApi.h>
 #include <commdlg.h>
-#include <fstream>
+#endif
 
 #ifndef LY_PER_INCH
     #define LY_PER_INCH 1440
@@ -40,8 +43,9 @@ void MainForm::OnInitWindow()
                 if (args.GetSender() == pRichEdit) {
                     const DString::value_type* pUrl = (const DString::value_type*)args.wParam;
                     if (pUrl != nullptr) {
-                        //TODO: 平台
-                        ::ShellExecuteW(NativeWnd()->GetHWND(), L"open", ui::StringUtil::TToUTF16(pUrl).c_str(), NULL, NULL, SW_SHOWNORMAL);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+                        ::ShellExecuteW(NativeWnd()->GetHWND(), L"open", ui::StringConvert::TToWString(pUrl).c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+#endif
                     }
                 }
                 return true;
@@ -212,21 +216,26 @@ void MainForm::OnInitWindow()
     //设置字体
     pButton = dynamic_cast<ui::Button*>(FindControl(_T("set_font")));
     if (pButton != nullptr) {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
         pButton->AttachClick([this, pButton](const ui::EventArgs& args) {
             if (args.GetSender() == pButton) {
                 OnSetFont();
             }
             return true;
             });
+#else
+        pButton->SetEnabled(false);
+#endif
     }
 
     //初始化字体信息
     ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_name"))); 
-    if (pFontNameCombo != nullptr) {        
-        GetSystemFontList(m_fontList);
+    if (pFontNameCombo != nullptr) {
+        m_fontList.clear();
+        ui::GlobalManager::Instance().Font().GetFontNameList(m_fontList);
         for (size_t nIndex = 0; nIndex < m_fontList.size(); ++nIndex) {
-            const FontInfo& font = m_fontList[nIndex];
-            size_t nItemIndex = pFontNameCombo->AddTextItem(ui::StringUtil::UTF16ToT(font.lf.lfFaceName));
+            const DString& fontName = m_fontList[nIndex];
+            size_t nItemIndex = pFontNameCombo->AddTextItem(fontName);
             if (ui::Box::IsValidItemIndex(nItemIndex)) {
                 pFontNameCombo->SetItemData(nItemIndex, nIndex);
             }
@@ -356,30 +365,6 @@ void MainForm::OnInitWindow()
             });
     }
 
-    //缩放比例
-    struct ZoomInfo
-    {
-        int32_t nNum;
-        int32_t nDen;
-
-        bool operator < (const ZoomInfo& r)
-        {
-            if ((nDen == 0) || (r.nDen == 0)) {
-                return false;
-            }
-            return (1.0f * nNum / nDen) < (1.0f * r.nNum / r.nDen);
-        }
-    };
-    std::vector<ZoomInfo> zoomInfoList;
-    for (int32_t nDen = 64; nDen >= 1; --nDen) {
-        for (int32_t nNum = 1; nNum <= 64; ++nNum) {
-            zoomInfoList.push_back({ nNum , nDen });
-        }
-    }
-    zoomInfoList.pop_back();//不包括64/1
-    zoomInfoList.erase(zoomInfoList.begin()); //不包括1/64
-    std::sort(zoomInfoList.begin(), zoomInfoList.end());//排序：升序
-
     UpdateZoomValue();
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->AttachZoom([this](const ui::EventArgs& args) {
@@ -389,32 +374,11 @@ void MainForm::OnInitWindow()
     }
     ui::Button* pZoomButtom = dynamic_cast<ui::Button*>(FindControl(_T("btn_zoom_in")));
     if (pZoomButtom != nullptr) {
-        pZoomButtom->AttachClick([this, zoomInfoList](const ui::EventArgs& args) {
+        pZoomButtom->AttachClick([this](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
                 //放大：每次放大10%
-                int32_t nNum = 0;
-                int32_t nDen = 0;
-                m_pRichEdit->GetZoom(nNum, nDen);
-                if ((nNum > 0) && (nDen > 0)) {
-                    float zoomValue = nNum * 100.0f / nDen;
-                    zoomValue *= 1.10f;
-                    bool bFound = false;
-                    for (const ZoomInfo& zoomInfo : zoomInfoList) {
-                        if ((zoomInfo.nNum * 100.0f / zoomInfo.nDen) >= zoomValue){
-                            m_pRichEdit->SetZoom(zoomInfo.nNum, zoomInfo.nDen);
-                            bFound = true;
-                            break;
-                        }
-                    }
-                    if (!bFound) {
-                        ZoomInfo zoomInfo = zoomInfoList.back();
-                        m_pRichEdit->SetZoom(zoomInfo.nNum, zoomInfo.nDen);
-                    }
-                }
-                else {
-                    //100%
-                    m_pRichEdit->SetZoom(11, 10);
-                }
+                uint32_t nZoomPercent = GetNextZoomPercent(m_pRichEdit->GetZoomPercent(), true);
+                m_pRichEdit->SetZoomPercent(nZoomPercent);
                 UpdateZoomValue();
             }
             return true;
@@ -422,34 +386,11 @@ void MainForm::OnInitWindow()
     }
     pZoomButtom = dynamic_cast<ui::Button*>(FindControl(_T("btn_zoom_out")));
     if (pZoomButtom != nullptr) {
-        pZoomButtom->AttachClick([this, zoomInfoList](const ui::EventArgs& args) {
+        pZoomButtom->AttachClick([this](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
                 //缩小：每次缩小10%
-                int32_t nNum = 0;
-                int32_t nDen = 0;
-                m_pRichEdit->GetZoom(nNum, nDen);
-                if ((nNum > 0) && (nDen > 0)) {
-                    float zoomValue = nNum * 100.0f / nDen;
-                    zoomValue *= 0.90f;
-                    bool bFound = false;
-                    int32_t zoomCount = (int32_t)zoomInfoList.size();
-                    for (int32_t index = zoomCount - 1; index >= 0; --index) {
-                        const ZoomInfo& zoomInfo = zoomInfoList[index];
-                        if ((zoomInfo.nNum * 100.0f / zoomInfo.nDen) <= zoomValue) {
-                            m_pRichEdit->SetZoom(zoomInfo.nNum, zoomInfo.nDen);
-                            bFound = true;
-                            break;
-                        }
-                    }
-                    if (!bFound) {
-                        ZoomInfo zoomInfo = zoomInfoList.front();
-                        m_pRichEdit->SetZoom(zoomInfo.nNum, zoomInfo.nDen);
-                    }
-                }
-                else {
-                    //90%
-                    m_pRichEdit->SetZoom(9, 10);
-                }
+                uint32_t nZoomPercent = GetNextZoomPercent(m_pRichEdit->GetZoomPercent(), false);
+                m_pRichEdit->SetZoomPercent(nZoomPercent);
                 UpdateZoomValue();
             }
             return true;
@@ -460,7 +401,7 @@ void MainForm::OnInitWindow()
         pZoomButtom->AttachClick([this](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
                 //恢复
-                m_pRichEdit->SetZoomOff();
+                m_pRichEdit->SetZoomPercent(100);
                 UpdateZoomValue();
             }
             return true;
@@ -470,7 +411,7 @@ void MainForm::OnInitWindow()
     //是否自动换行
     pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_word_wrap")));
     if ((pCheckBox != nullptr) && (m_pRichEdit != nullptr)) {
-        pCheckBox->SetSelected(m_pRichEdit->GetWordWrap());
+        pCheckBox->SetSelected(m_pRichEdit->IsWordWrap());
         pCheckBox->AttachSelect([this](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
                 m_pRichEdit->SetWordWrap(true);
@@ -491,6 +432,7 @@ void MainForm::OnInitWindow()
     pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_rich_text")));
     if ((pCheckBox != nullptr) && (m_pRichEdit != nullptr)) {
         pCheckBox->SetSelected(m_pRichEdit->IsRichText());
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
         pCheckBox->AttachSelect([this](const ui::EventArgs& args) {
             if (m_pRichEdit != nullptr) {
                 m_pRichEdit->SetRichText(true);
@@ -503,6 +445,7 @@ void MainForm::OnInitWindow()
             }
             return true;
             });
+#endif
     }
 
     //更新字体按钮的状态
@@ -513,8 +456,9 @@ void MainForm::OnInitWindow()
         m_pRichEdit->AttachLinkClick([this](const ui::EventArgs& args) {
             const DString::value_type* url = (const DString::value_type*)args.wParam;
             if (url != nullptr) {
-                //TODO: 平台相关
-                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringUtil::TToUTF16(url).c_str(), L"RichEdit点击超链接", MB_OK);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringConvert::TToWString(url).c_str(), L"RichEdit点击超链接", MB_OK);
+#endif
             }
             return true;
             });
@@ -528,6 +472,89 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
+}
+
+uint32_t MainForm::GetNextZoomPercent(uint32_t nOldZoomPercent, bool bZoomIn) const
+{
+    //缩放百分比的最大值
+    const uint32_t MAX_ZOOM_PERCENT = 800;
+
+    //通过查表的方式设置缩放比例(放大和缩小的时候，能够按照原来的比例复原)
+    std::vector<uint32_t> zoomPercentList;
+    uint32_t nZoomPercent = 100;
+    while (nZoomPercent > 1) {
+        nZoomPercent = (uint32_t)(nZoomPercent * 0.90f);
+        zoomPercentList.insert(zoomPercentList.begin(), nZoomPercent);
+    }
+    nZoomPercent = 100;
+    while (nZoomPercent < MAX_ZOOM_PERCENT) {
+        zoomPercentList.insert(zoomPercentList.end(), nZoomPercent);
+        nZoomPercent = (uint32_t)(nZoomPercent * 1.10f);
+    }
+    zoomPercentList.insert(zoomPercentList.end(), MAX_ZOOM_PERCENT);
+
+    bool bFound = false;
+    nZoomPercent = nOldZoomPercent;
+    const size_t nPercentCount = zoomPercentList.size();
+    for (size_t nPercentIndex = 0; nPercentIndex < nPercentCount; ++nPercentIndex) {
+        if ((zoomPercentList[nPercentIndex] > nZoomPercent) || (nPercentIndex == (nPercentCount - 1))) {
+            if (nPercentIndex <= 1) {
+                size_t nCurrentIndex = 0;//当前是第一个元素
+                if (bZoomIn) {
+                    //放大
+                    nZoomPercent = zoomPercentList[nCurrentIndex + 1];
+                }
+                else {
+                    //缩小（已经到达最小值，无法再缩小）
+                    nZoomPercent = zoomPercentList[nCurrentIndex];
+                }
+            }
+            else if (zoomPercentList[nPercentIndex] > nZoomPercent) {
+                size_t nCurrentIndex = nPercentIndex - 1;//中间元素
+                if (bZoomIn) {
+                    //放大
+                    nZoomPercent = zoomPercentList[nCurrentIndex + 1];
+                }
+                else {
+                    //缩小
+                    nZoomPercent = zoomPercentList[nCurrentIndex - 1];
+                }
+            }
+            else if (nPercentIndex == (nPercentCount - 1)) {
+                size_t nCurrentIndex = nPercentCount - 1;//当前是最后一个元素
+                if (bZoomIn) {
+                    //放大（已经到达最大值，无法再放大）
+                    nZoomPercent = zoomPercentList[nCurrentIndex];
+                }
+                else {
+                    //缩小
+                    nZoomPercent = zoomPercentList[nCurrentIndex - 1];
+                }
+            }
+            bFound = true;
+            break;
+        }
+    }
+
+    if (!bFound) {
+        //如果查表得不到结果，则按比例放大或者缩小
+        if (bZoomIn) {
+            //放大
+            nZoomPercent = (uint32_t)(nZoomPercent * 1.10f);
+            if (nZoomPercent == nOldZoomPercent) {
+                //避免数值过小时无法放大
+                ++nZoomPercent;
+            }
+        }
+        else {
+            //缩小
+            nZoomPercent = (uint32_t)(nZoomPercent * 0.91f);
+        }
+    }
+    if (nZoomPercent < 1) {
+        nZoomPercent = 1;
+    }
+    return nZoomPercent;
 }
 
 void MainForm::InitColorCombo()
@@ -592,9 +619,15 @@ void MainForm::ShowColorPicker()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("ColorPicker");
+    createParam.m_bCenterWindow = true;
+#ifdef DUILIB_BUILD_FOR_WIN
     pColorPicker->CreateWnd(nullptr, createParam);
-    pColorPicker->CenterWindow();
     pColorPicker->ShowModalFake();
+#else
+    pColorPicker->CreateWnd(this, createParam);
+    pColorPicker->ShowModalFake();
+    pColorPicker->SetWindowForeground();
+#endif
 
     ui::RichEdit* pEdit = m_pRichEdit;
     if (pEdit != nullptr) {
@@ -633,13 +666,12 @@ void MainForm::UpdateFontStatus()
     if (pRichEdit == nullptr) {
         return;
     }
-    LOGFONTW logFont = {};
-    GetRichEditLogFont(logFont);
+    const ui::UiFont fontInfo = pRichEdit->GetFontInfo();
 
     //更新字体名称
     ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_name")));
     if (pFontNameCombo != nullptr) {
-        pFontNameCombo->SelectTextItem(ui::StringUtil::UTF16ToT(logFont.lfFaceName));
+        pFontNameCombo->SelectTextItem(fontInfo.m_fontName.c_str());
     }
 
     //更新字体大小
@@ -648,36 +680,38 @@ void MainForm::UpdateFontStatus()
     //更新是否粗体
     ui::CheckBox* pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_bold")));
     if (pCheckBox != nullptr) {
-        pCheckBox->SetSelected(logFont.lfWeight >= FW_BOLD);
+        pCheckBox->SetSelected(fontInfo.m_bBold);
     }
 
     //更新是否斜体
     pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_italic")));
     if (pCheckBox != nullptr) {
-        pCheckBox->SetSelected(logFont.lfItalic != FALSE);
+        pCheckBox->SetSelected(fontInfo.m_bItalic);
     }
 
     //更新是否下划线
     pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_underline")));
     if (pCheckBox != nullptr) {
-        pCheckBox->SetSelected(logFont.lfUnderline != FALSE);
+        pCheckBox->SetSelected(fontInfo.m_bUnderline);
     }
 
     //更新是否删除线
     pCheckBox = dynamic_cast<ui::CheckBox*>(FindControl(_T("btn_font_strikeout")));
     if (pCheckBox != nullptr) {
-        pCheckBox->SetSelected(logFont.lfStrikeOut != FALSE);
+        pCheckBox->SetSelected(fontInfo.m_bStrikeOut);
     }
 }
 
 void MainForm::UpdateFontSizeStatus()
 {
-    LOGFONTW logFont = {};
-    GetRichEditLogFont(logFont);
+    ui::RichEdit* pRichEdit = GetRichEdit();
+    if (pRichEdit == nullptr) {
+        return;
+    }
+    const ui::UiFont fontInfo = pRichEdit->GetFontInfo();
 
     ui::Combo* pFontSizeCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_size")));
     if (pFontSizeCombo != nullptr) {
-        int32_t fHeight = -logFont.lfHeight;
         size_t maxItemIndex = 0;
         for (size_t nIndex = 0; nIndex < m_fontSizeList.size(); ++nIndex) {
             if (nIndex == (m_fontSizeList.size() - 1)) {
@@ -693,7 +727,7 @@ void MainForm::UpdateFontSizeStatus()
         for (size_t nIndex = maxItemIndex; nIndex < m_fontSizeList.size(); ++nIndex) {
             //优先选择汉字的字号
             const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
-            if (fHeight == fontSize.fDpiFontSize) {
+            if (fontInfo.m_fontSize == (int32_t)std::roundf(fontSize.fDpiFontSize)) {
                 if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
                     bSelected = true;
                 }
@@ -701,10 +735,23 @@ void MainForm::UpdateFontSizeStatus()
             }
         }
         if (!bSelected) {
-            for (size_t nIndex = 0; nIndex < maxItemIndex; ++nIndex) {
+            for (size_t nIndex = 0; nIndex <= maxItemIndex; ++nIndex) {
                 //选择数字的字号
                 const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
-                if (fontSize.fDpiFontSize >= fHeight) {
+                if ((int32_t)std::roundf(fontSize.fDpiFontSize) >= fontInfo.m_fontSize) {
+                    if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
+                        bSelected = true;
+                        break;
+                    }
+                }
+            }
+        }
+        if (!bSelected) {
+            for (size_t nIndex = 0; nIndex <= maxItemIndex; ++nIndex) {
+                //选择数字的字号
+                const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
+                int32_t nFontSize = Dpi().GetScaleInt((int32_t)std::roundf(fontSize.fFontSize));
+                if (nFontSize >= fontInfo.m_fontSize) {
                     if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
                         bSelected = true;
                         break;
@@ -717,47 +764,21 @@ void MainForm::UpdateFontSizeStatus()
 
 void MainForm::SetFontName(const DString& fontName)
 {
-    if (m_pRichEdit == nullptr) {
-        return;
-    }
-    DStringW fontNameW = ui::StringUtil::TToUTF16(fontName);
-    for (const FontInfo& fontInfo : m_fontList) {
-        if (fontNameW == fontInfo.lf.lfFaceName) {
-            CHARFORMAT2W charFormat = {};
-            GetCharFormat(charFormat);
-            if (fontNameW != charFormat.szFaceName) {
-                ui::StringUtil::StringCopy(charFormat.szFaceName, fontNameW.c_str());
-                charFormat.dwMask = CFM_FACE;
-                SetCharFormat(charFormat);
-            }        
-            break;
-        }
-    }
-}
-
-int32_t MainForm::ConvertToFontHeight(int32_t fontSize) const
-{
     if (m_pRichEdit != nullptr) {
-        return m_pRichEdit->ConvertToFontHeight(fontSize);        
+        ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
+        fontInfo.m_fontName = fontName;
+        m_pRichEdit->SetFontInfo(fontInfo);
     }
-    return fontSize;
 }
 
 void MainForm::SetFontSize(const DString& fontSize)
 {
-    if (m_pRichEdit == nullptr) {
-        return;
-    }
     for (const ui::FontSizeInfo& fontSizeInfo : m_fontSizeList) {
         if (fontSize == fontSizeInfo.fontSizeName) {
-            CHARFORMAT2W charFormat = {};
-            GetCharFormat(charFormat);
-            LONG lfHeight = ConvertToFontHeight((int32_t)fontSizeInfo.fDpiFontSize);
-            charFormat.cbSize = sizeof(CHARFORMAT2W);
-            charFormat.dwMask = CFM_SIZE;
-            if (charFormat.yHeight != lfHeight) {
-                charFormat.yHeight = lfHeight;
-                SetCharFormat(charFormat);
+            if (m_pRichEdit != nullptr) {
+                ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
+                fontInfo.m_fontSize = (int32_t)(std::roundf(fontSizeInfo.fDpiFontSize));
+                m_pRichEdit->SetFontInfo(fontInfo);
             }
             break;
         }
@@ -771,31 +792,58 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
     }
     std::map<int32_t, int32_t> fontSizeMap;
     for (const ui::FontSizeInfo& fontSizeInfo : m_fontSizeList) {
-        fontSizeMap[(int32_t)fontSizeInfo.fDpiFontSize] = (int32_t)fontSizeInfo.fDpiFontSize;
+        fontSizeMap[(int32_t)(std::roundf(fontSizeInfo.fDpiFontSize))] = (int32_t)(std::roundf(fontSizeInfo.fFontSize));
     }
     std::vector<int32_t> fontSizeList;
     for (auto fontSize : fontSizeMap) {
-        fontSizeList.push_back(fontSize.first);
+        fontSizeList.push_back(fontSize.second);
     }
-    
-    CHARFORMAT2W charFormat = {};
-    charFormat.cbSize = sizeof(CHARFORMAT2W);
-    GetCharFormat(charFormat);
+    auto pos = std::unique(fontSizeList.begin(), fontSizeList.end());
+    if (pos != fontSizeList.end()) {
+        fontSizeList.erase(pos);
+    }
+
+    ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
+    //转换回原值
+    auto iter = fontSizeMap.find(fontInfo.m_fontSize);
+    if (iter != fontSizeMap.end()) {
+        fontInfo.m_fontSize = iter->second;
+    }
+    else {
+        bool bFound = false;
+        if (bIncreaseFontSize) {
+            for (iter = fontSizeMap.begin(); iter != fontSizeMap.end(); ++iter) {
+                if (iter->first > fontInfo.m_fontSize) {
+                    fontInfo.m_fontSize = iter->second;
+                    bFound = true;
+                    break;
+                }
+            }
+        }
+        else {
+            auto pos = fontSizeMap.rbegin();
+            for (; pos != fontSizeMap.rend(); ++pos) {
+                if (pos->first < fontInfo.m_fontSize) {
+                    fontInfo.m_fontSize = pos->second;
+                    bFound = true;
+                    break;
+                }
+            }
+        }
+        if (!bFound) {
+            fontInfo.m_fontSize = Dpi().MulDiv(fontInfo.m_fontSize, 100, Dpi().GetScale());
+        }
+    }
+
     const size_t fontCount = fontSizeList.size();
     for (size_t index = 0; index < fontCount; ++index) {
-        LONG lfHeight = ConvertToFontHeight(fontSizeList[index]);
-        if (lfHeight == charFormat.yHeight) {
+        if (fontInfo.m_fontSize == fontSizeList[index]) {
             //匹配到当前字体大小
             if (bIncreaseFontSize) {
                 //增加字体
-                if (index < (fontCount - 1)) {
-                    int32_t newFontSize = fontSizeList[index + 1];
-                    lfHeight = ConvertToFontHeight(newFontSize);
-                    charFormat.cbSize = sizeof(CHARFORMAT2W);
-                    charFormat.dwMask = CFM_SIZE;
-                    if (charFormat.yHeight != lfHeight) {
-                        charFormat.yHeight = lfHeight;
-                        SetCharFormat(charFormat);
+                if (index < (fontCount - 1)) {                  
+                    fontInfo.m_fontSize = Dpi().GetScaleInt(fontSizeList[index + 1]);
+                    if (m_pRichEdit->SetFontInfo(fontInfo)) {
                         UpdateFontSizeStatus();
                     }
                 }
@@ -803,13 +851,8 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
             else {
                 //减小字体
                 if (index > 0) {
-                    int32_t newFontSize = fontSizeList[index - 1];
-                    lfHeight = ConvertToFontHeight(newFontSize);
-                    charFormat.cbSize = sizeof(CHARFORMAT2W);
-                    charFormat.dwMask = CFM_SIZE;
-                    if (charFormat.yHeight != lfHeight) {
-                        charFormat.yHeight = lfHeight;
-                        SetCharFormat(charFormat);
+                    fontInfo.m_fontSize = Dpi().GetScaleInt(fontSizeList[index - 1]);
+                    if (m_pRichEdit->SetFontInfo(fontInfo)) {
                         UpdateFontSizeStatus();
                     }
                 }
@@ -821,95 +864,61 @@ void MainForm::AdjustFontSize(bool bIncreaseFontSize)
 
 void MainForm::SetFontBold(bool bBold)
 {
-    if (m_pRichEdit == nullptr) {
-        return;
+    if (m_pRichEdit != nullptr) {
+        ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
+        fontInfo.m_bBold = bBold;
+        m_pRichEdit->SetFontInfo(fontInfo);
     }
-    CHARFORMAT2W charFormat = {};
-    GetCharFormat(charFormat);
-    charFormat.dwMask = CFM_BOLD;
-    if (bBold) {
-        charFormat.dwEffects |= CFE_BOLD;
-    }
-    else {
-        charFormat.dwEffects &= ~CFE_BOLD;
-    }    
-    SetCharFormat(charFormat);
 }
 
 void MainForm::SetFontItalic(bool bItalic)
 {
-    if (m_pRichEdit == nullptr) {
-        return;
+    if (m_pRichEdit != nullptr) {
+        ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
+        fontInfo.m_bItalic = bItalic;
+        m_pRichEdit->SetFontInfo(fontInfo);
     }
-    CHARFORMAT2W charFormat = {};
-    GetCharFormat(charFormat);
-    charFormat.dwMask = CFM_ITALIC;
-    if (bItalic) {
-        charFormat.dwEffects |= CFE_ITALIC;
-    }
-    else {
-        charFormat.dwEffects &= ~CFE_ITALIC;
-    }
-    SetCharFormat(charFormat);
 }
 
 void MainForm::SetFontUnderline(bool bUnderline)
 {
-    if (m_pRichEdit == nullptr) {
-        return;
+    if (m_pRichEdit != nullptr) {
+        ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
+        fontInfo.m_bUnderline = bUnderline;
+        m_pRichEdit->SetFontInfo(fontInfo);
     }
-    CHARFORMAT2W charFormat = {};
-    GetCharFormat(charFormat);
-    charFormat.dwMask = CFM_UNDERLINE;
-    if (bUnderline) {
-        charFormat.dwEffects |= CFE_UNDERLINE;
-    }
-    else {
-        charFormat.dwEffects &= ~CFE_UNDERLINE;
-    }
-    SetCharFormat(charFormat);
 }
 
 void MainForm::SetFontStrikeOut(bool bStrikeOut)
 {
-    if (m_pRichEdit == nullptr) {
-        return;
+    if (m_pRichEdit != nullptr) {
+        ui::UiFont fontInfo = m_pRichEdit->GetFontInfo();
+        fontInfo.m_bStrikeOut = bStrikeOut;
+        m_pRichEdit->SetFontInfo(fontInfo);
     }
-    CHARFORMAT2W charFormat = {};
-    GetCharFormat(charFormat);
-    charFormat.dwMask = CFM_STRIKEOUT;
-    if (bStrikeOut) {
-        charFormat.dwEffects |= CFE_STRIKEOUT;
-    }
-    else {
-        charFormat.dwEffects &= ~CFE_STRIKEOUT;
-    }
-    SetCharFormat(charFormat);
 }
 
 void MainForm::SetTextColor(const DString& newColor)
 {
-    if (m_pRichEdit == nullptr) {
-        return;
+    if (m_pRichEdit != nullptr) {
+        if (m_pRichEdit->IsRichText()) {
+            m_pRichEdit->SetSelectionTextColor(newColor);
+        }
+        else {
+            m_pRichEdit->SetTextColor(newColor);
+        }        
     }
-    ui::UiColor dwColor = m_pRichEdit->GetUiColor(newColor);
-    CHARFORMAT2W charFormat = {};
-    GetCharFormat(charFormat);
-    charFormat.dwMask = CFM_COLOR;
-    charFormat.crTextColor = dwColor.ToCOLORREF();
-    charFormat.dwEffects &= ~CFE_AUTOCOLOR;
-    SetCharFormat(charFormat);
 }
 
 void MainForm::OnCloseWindow()
 {
     //关闭窗口后，退出主线程的消息循环，关闭程序
-    PostQuitMessage(0L);
+    PostQuitMsg(0);
 }
 
 LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
     bool bControlDown = ui::Keyboard::IsKeyDown(ui::kVK_CONTROL);
     bool bShiftDown = ui::Keyboard::IsKeyDown(ui::kVK_SHIFT);
     if (bControlDown) {
@@ -938,7 +947,7 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
             }
         }
     }
-    if (!bControlDown && !bShiftDown && ui::Keyboard::IsKeyDown(ui::kVK_F3)) {
+    if (!bControlDown && !bShiftDown && (vkCode == ui::kVK_F3)) {
         //查找下一个
         OnFindNext();
     }
@@ -947,7 +956,7 @@ LRESULT MainForm::OnKeyDownMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, 
 
 LRESULT MainForm::OnKeyUpMsg(ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKeyUpMsg(vkCode, modifierKey, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKeyUpMsg(vkCode, modifierKey, nativeMsg, bHandled);
     UpdateSaveStatus();
     return lResult;
 }
@@ -977,17 +986,17 @@ void MainForm::LoadRichEditData()
     controls_xml += GetResourcePath();
     controls_xml += GetSkinFile();
 
-    std::ifstream ifs(controls_xml.NativePath().c_str());
+    std::ifstream ifs(controls_xml.NativePath().c_str(), std::ios::binary);
     if (ifs.is_open()) {
         ifs.seekg(0, std::ios_base::end);
         length = ifs.tellg();
         ifs.seekg(0, std::ios_base::beg);
 
-        xml.resize(static_cast<unsigned int>(length) + 1);
+        xml.resize(static_cast<unsigned int>(length));
         ifs.read(&xml[0], length);
         ifs.close();
     }
-    DString xmlU = ui::StringUtil::UTF8ToT(xml);
+    DString xmlU = ui::StringConvert::UTF8ToT(xml);
 
     if (m_pRichEdit != nullptr) {
         m_pRichEdit->SetText(xmlU);
@@ -998,147 +1007,6 @@ void MainForm::LoadRichEditData()
     }
 }
 
-void MainForm::OnOpenFile()
-{
-    std::vector<ui::FileDialog::FileType> fileTypes;
-    fileTypes.push_back({ _T("所有文件 (*.*)"), _T("*.*")});
-    fileTypes.push_back({ _T("文本文件 (*.txt)"), _T("*.txt") });
-    fileTypes.push_back({ _T("RTF文件 (*.rtf)"), _T("*.rtf") });
-
-    DString defaultExt;
-    int32_t nFileTypeIndex = 1;
-    if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
-        nFileTypeIndex = 2;
-    }
-    DString fileName = m_filePath.GetFileName();
-
-    ui::FilePath filePath;
-    ui::FileDialog openFileDlg;
-    if (openFileDlg.BrowseForFile(this, filePath, true, fileTypes, nFileTypeIndex, defaultExt, fileName)) {
-        if (LoadFile(filePath)) {
-            m_filePath = filePath;
-            if (m_pRichEdit != nullptr) {
-                m_pRichEdit->SetModify(false);
-                UpdateSaveStatus();
-            }
-        }        
-    }
-}
-
-void MainForm::OnSaveFile()
-{
-    if (m_pRichEdit != nullptr) {
-        if (m_pRichEdit->GetModify()) {
-            if (SaveFile(m_filePath)) {
-                m_pRichEdit->SetModify(false);
-                UpdateSaveStatus();
-            }
-        }
-    }
-}
-
-void MainForm::OnSaveAsFile()
-{
-    std::vector<ui::FileDialog::FileType> fileTypes;
-    fileTypes.push_back({ _T("所有文件 (*.*)"), _T("*.*") });
-    fileTypes.push_back({ _T("文本文件 (*.txt)"), _T("*.txt") });
-    fileTypes.push_back({ _T("RTF文件 (*.rtf)"), _T("*.rtf") });
-
-    DString defaultExt;
-    int32_t nFileTypeIndex = 1;
-    if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
-        nFileTypeIndex = 2;
-    }
-    DString fileName = m_filePath.GetFileName();
-
-    ui::FilePath filePath;
-    ui::FileDialog openFileDlg;
-    if (openFileDlg.BrowseForFile(this, filePath, false, fileTypes, nFileTypeIndex, defaultExt, fileName)) {
-        if (SaveFile(filePath)) {
-            m_filePath = filePath;
-            if (m_pRichEdit != nullptr) {
-                m_pRichEdit->SetModify(false);
-                UpdateSaveStatus();
-            }
-        }        
-    }
-}
-
-bool MainForm::LoadFile(const ui::FilePath& filePath)
-{
-    if (m_pRichEdit == nullptr) {
-        return false;
-    }
-    DString filePathLocal = filePath.NativePath();
-    HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-    if (hFile == INVALID_HANDLE_VALUE) {
-        return false;
-    }
-
-    EDITSTREAM es;
-    es.dwCookie = (DWORD_PTR)hFile;
-    es.dwError = 0;
-    es.pfnCallback = StreamReadCallback;
-    UINT nFormat = SF_TEXT;
-    if (m_pRichEdit->IsRichText()) {
-        nFormat = IsRtfFile(filePathLocal) ? SF_RTF : SF_TEXT;
-    }
-    m_pRichEdit->StreamIn(nFormat, es);
-    ::CloseHandle(hFile);
-    return !(BOOL)es.dwError;
-}
-
-bool MainForm::SaveFile(const ui::FilePath& filePath)
-{
-    if (m_pRichEdit == nullptr) {
-        return false;
-    }
-    DString filePathLocal = filePath.NativePath();
-    HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, NULL);
-    if (hFile == INVALID_HANDLE_VALUE) {
-        return false;
-    }
-
-    EDITSTREAM es;
-    es.dwCookie = (DWORD_PTR)hFile;
-    es.dwError = 0;
-    es.pfnCallback = StreamWriteCallback;
-    UINT nFormat = SF_TEXT;
-    if (m_pRichEdit->IsRichText()) {
-        nFormat = IsRtfFile(filePathLocal) ? SF_RTF : SF_TEXT;
-    }
-    m_pRichEdit->StreamOut(nFormat, es);
-    ::CloseHandle(hFile);
-    return !(BOOL)es.dwError;
-}
-
-bool MainForm::IsRtfFile(const DString& filePath) const
-{
-    DString fileExt;
-    size_t pos = filePath.find_last_of(_T("."));
-    if (pos != DString::npos) {
-        fileExt = filePath.substr(pos);
-        fileExt = ui::StringUtil::MakeLowerString(fileExt);
-    }
-    return fileExt == _T(".rtf");
-}
-
-DWORD MainForm::StreamReadCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb)
-{
-    ASSERT(dwCookie != 0);
-    ASSERT(pcb != NULL);
-
-    return !::ReadFile((HANDLE)dwCookie, pbBuff, cb, (LPDWORD)pcb, NULL);
-}
-
-DWORD MainForm::StreamWriteCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb)
-{
-    ASSERT(dwCookie != 0);
-    ASSERT(pcb != NULL);
-
-    return !::WriteFile((HANDLE)dwCookie, pbBuff, cb, (LPDWORD)pcb, NULL);
-}
-
 void MainForm::OnFindText()
 {
     if (m_pFindForm == nullptr) {
@@ -1147,8 +1015,8 @@ void MainForm::OnFindText()
         createParam.m_dwStyle = ui::kWS_POPUP;
         createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
         createParam.m_windowTitle = _T("FindForm");
+        createParam.m_bCenterWindow = true;
         m_pFindForm->CreateWnd(this, createParam);
-        m_pFindForm->CenterWindow();
         m_pFindForm->ShowWindow(ui::kSW_SHOW);
         m_pFindForm->AttachWindowClose([this](const ui::EventArgs& args) {
                 m_pFindForm = nullptr;
@@ -1178,8 +1046,8 @@ void MainForm::OnReplaceText()
         createParam.m_dwStyle = ui::kWS_POPUP;
         createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
         createParam.m_windowTitle = _T("ReplaceForm");
+        createParam.m_bCenterWindow = true;
         m_pReplaceForm->CreateWnd(this, createParam);
-        m_pReplaceForm->CenterWindow();
         m_pReplaceForm->ShowWindow(ui::kSW_SHOW);
         m_pReplaceForm->AttachWindowClose([this](const ui::EventArgs& args) {
                 m_pReplaceForm = nullptr;
@@ -1226,40 +1094,178 @@ ui::RichEdit* MainForm::GetRichEdit() const
     return m_pRichEdit;
 }
 
-void MainForm::GetSystemFontList(std::vector<FontInfo>& fontList) const
+void MainForm::UpdateZoomValue()
 {
     ui::RichEdit* pRichEdit = GetRichEdit();
     if (pRichEdit == nullptr) {
         return;
     }
 
-    fontList.clear();
-    LOGFONTW logfont = {};
-    logfont.lfCharSet = DEFAULT_CHARSET;
-    logfont.lfFaceName[0] = L'\0';
-    logfont.lfPitchAndFamily = 0;
+    ui::Label* pZoomLabel = dynamic_cast<ui::Label*>(FindControl(_T("lavel_zoom_value")));
+    if (pZoomLabel != nullptr) {
+        uint32_t nZoomPercent = pRichEdit->GetZoomPercent();
+        DString strZoom = ui::StringUtil::Printf(_T("%u%%"), nZoomPercent);
+        pZoomLabel->SetText(strZoom);
+    }
+}
 
-    HWND hWnd = NativeWnd()->GetHWND();
-    HDC hDC = ::GetDC(hWnd);
-    ::EnumFontFamiliesExW(hDC, &logfont, EnumFontFamExProc, (LPARAM)&fontList, 0);
-    ::ReleaseDC(hWnd, hDC);
+void MainForm::OnOpenFile()
+{
+    std::vector<ui::FileDialog::FileType> fileTypes;
+    fileTypes.push_back({ _T("所有文件 (*.*)"), _T("*.*")});
+    fileTypes.push_back({ _T("文本文件 (*.txt)"), _T("*.txt") });
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    fileTypes.push_back({ _T("RTF文件 (*.rtf)"), _T("*.rtf") });
+#endif
 
-    //字体名称列表
-    std::map<DStringW, FontInfo> fontMap;
-    for (auto font : fontList) {
-        if (font.lf.lfWeight != FW_NORMAL) {
-            continue;
+    DString defaultExt;
+    int32_t nFileTypeIndex = 1;
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
+        nFileTypeIndex = 2;
+    }
+#endif
+    DString fileName = m_filePath.GetFileName();
+
+    ui::FilePath filePath;
+    ui::FileDialog openFileDlg;
+    if (openFileDlg.BrowseForFile(this, filePath, true, fileTypes, nFileTypeIndex, defaultExt, fileName)) {
+        if (LoadFile(filePath)) {
+            m_filePath = filePath;
+            if (m_pRichEdit != nullptr) {
+                m_pRichEdit->SetModify(false);
+                UpdateSaveStatus();
+            }
+        }        
+    }
+}
+
+void MainForm::OnSaveFile()
+{
+    if (m_pRichEdit != nullptr) {
+        if (m_pRichEdit->GetModify()) {
+            if (SaveFile(m_filePath)) {
+                m_pRichEdit->SetModify(false);
+                UpdateSaveStatus();
+            }
         }
-        if (font.lf.lfFaceName[0] == L'@') {
-            continue;
-        }
-        fontMap[font.lf.lfFaceName] = font;
+    }
+}
+
+void MainForm::OnSaveAsFile()
+{
+    std::vector<ui::FileDialog::FileType> fileTypes;
+    fileTypes.push_back({ _T("所有文件 (*.*)"), _T("*.*") });
+    fileTypes.push_back({ _T("文本文件 (*.txt)"), _T("*.txt") });
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    fileTypes.push_back({ _T("RTF文件 (*.rtf)"), _T("*.rtf") });
+#endif
+
+    DString defaultExt;
+    int32_t nFileTypeIndex = 1;
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    if ((m_pRichEdit != nullptr) && m_pRichEdit->IsRichText()) {
+        nFileTypeIndex = 2;
+    }
+#endif
+    DString fileName = m_filePath.GetFileName();
+
+    ui::FilePath filePath;
+    ui::FileDialog openFileDlg;
+    if (openFileDlg.BrowseForFile(this, filePath, false, fileTypes, nFileTypeIndex, defaultExt, fileName)) {
+        if (SaveFile(filePath)) {
+            m_filePath = filePath;
+            if (m_pRichEdit != nullptr) {
+                m_pRichEdit->SetModify(false);
+                UpdateSaveStatus();
+            }
+        }        
+    }
+}
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
+bool MainForm::LoadFile(const ui::FilePath& filePath)
+{
+    if (m_pRichEdit == nullptr) {
+        return false;
+    }
+    DString filePathLocal = filePath.NativePath();
+    HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_READ, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+    if (hFile == INVALID_HANDLE_VALUE) {
+        return false;
     }
 
-    fontList.clear();
-    for (auto iter : fontMap) {
-        fontList.push_back(iter.second);
+    EDITSTREAM es;
+    es.dwCookie = (DWORD_PTR)hFile;
+    es.dwError = 0;
+    es.pfnCallback = StreamReadCallback;
+    UINT nFormat = SF_TEXT;
+    if (m_pRichEdit->IsRichText()) {
+        nFormat = IsRtfFile(filePathLocal) ? SF_RTF : SF_TEXT;
     }
+    m_pRichEdit->StreamIn(nFormat, es);
+    ::CloseHandle(hFile);
+    return !(BOOL)es.dwError;
+}
+
+bool MainForm::SaveFile(const ui::FilePath& filePath)
+{
+    if (m_pRichEdit == nullptr) {
+        return false;
+    }
+    DString filePathLocal = filePath.NativePath();
+    HANDLE hFile = ::CreateFile(filePathLocal.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+    if (hFile == INVALID_HANDLE_VALUE) {
+        return false;
+    }
+
+    EDITSTREAM es;
+    es.dwCookie = (DWORD_PTR)hFile;
+    es.dwError = 0;
+    es.pfnCallback = StreamWriteCallback;
+    UINT nFormat = SF_TEXT;
+    if (m_pRichEdit->IsRichText()) {
+        nFormat = IsRtfFile(filePathLocal) ? SF_RTF : SF_TEXT;
+    }
+    m_pRichEdit->StreamOut(nFormat, es);
+    ::CloseHandle(hFile);
+    return !(BOOL)es.dwError;
+}
+
+bool MainForm::IsRtfFile(const DString& filePath) const
+{
+    DString fileExt;
+    size_t pos = filePath.find_last_of(_T("."));
+    if (pos != DString::npos) {
+        fileExt = filePath.substr(pos);
+        fileExt = ui::StringUtil::MakeLowerString(fileExt);
+    }
+    return fileExt == _T(".rtf");
+}
+
+DWORD MainForm::StreamReadCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb)
+{
+    ASSERT(dwCookie != 0);
+    ASSERT(pcb != nullptr);
+
+    return !::ReadFile((HANDLE)dwCookie, pbBuff, cb, (LPDWORD)pcb, nullptr);
+}
+
+DWORD MainForm::StreamWriteCallback(DWORD_PTR dwCookie, LPBYTE pbBuff, LONG cb, LONG FAR* pcb)
+{
+    ASSERT(dwCookie != 0);
+    ASSERT(pcb != nullptr);
+
+    return !::WriteFile((HANDLE)dwCookie, pbBuff, cb, (LPDWORD)pcb, nullptr);
+}
+
+int32_t MainForm::ConvertToFontHeight(int32_t fontSize) const
+{
+    if (m_pRichEdit != nullptr) {
+        return m_pRichEdit->ConvertToFontHeight(fontSize);
+    }
+    return fontSize;
 }
 
 bool MainForm::GetRichEditLogFont(LOGFONTW& lf) const
@@ -1358,7 +1364,13 @@ void MainForm::OnSetFont()
         return;
     }
     //文本颜色
-    ui::UiColor textColor = pRichEdit->GetUiColor(pRichEdit->GetTextColor());
+    ui::UiColor textColor;
+    if (pRichEdit->IsRichText()) {
+        textColor = pRichEdit->GetUiColor(pRichEdit->GetSelectionTextColor());
+    }
+    else {
+        textColor = pRichEdit->GetUiColor(pRichEdit->GetTextColor());
+    }
 
     LOGFONTW logFont = {};
     GetRichEditLogFont(logFont);
@@ -1380,7 +1392,7 @@ void MainForm::OnSetFont()
     cf.lpszStyle = (LPWSTR)&szStyleName;
     cf.Flags = dwFlags;
 
-    if (lplfInitial != NULL) {
+    if (lplfInitial != nullptr) {
         cf.lpLogFont = lplfInitial;
         cf.Flags |= CF_INITTOLOGFONTSTRUCT;
         lf = *lplfInitial;
@@ -1420,50 +1432,6 @@ void MainForm::OnSetFont()
     UpdateFontStatus();
 }
 
-int MainForm::EnumFontFamExProc(const LOGFONTW* lpelfe, const TEXTMETRICW* /*lpntme*/, DWORD fontType, LPARAM lParam)
-{
-    std::vector<FontInfo>* pFontList = (std::vector<FontInfo>*)lParam;
-    if (pFontList != nullptr) {
-        FontInfo fontInfo;
-        if (lpelfe != nullptr) {
-            fontInfo.lf = *lpelfe;
-        }
-        else {
-            fontInfo.lf = {};
-        }
-        fontInfo.fontType = fontType;
-        pFontList->emplace_back(std::move(fontInfo));
-        return 1;
-    }
-    else {
-        return 0;
-    }
-}
-
-void MainForm::UpdateZoomValue()
-{
-    ui::RichEdit* pRichEdit = GetRichEdit();
-    if (pRichEdit == nullptr) {
-        return;
-    }
-
-    ui::Label* pZoomLabel = dynamic_cast<ui::Label*>(FindControl(_T("lavel_zoom_value")));
-    if (pZoomLabel != nullptr) {
-        int32_t nNum = 0;
-        int32_t nDen = 0;
-        int32_t zoomValue = 100;
-        pRichEdit->GetZoom(nNum, nDen);
-        if ((nNum <= 0) || (nDen <= 0)) {
-            zoomValue = 1000;
-        }
-        else {
-            zoomValue = nNum * 1000 / nDen;
-        }
-        DString strZoom = ui::StringUtil::Printf(_T("%.01f%%"), zoomValue / 10.0);
-        pZoomLabel->SetText(strZoom);
-    }
-}
-
 void MainForm::GetCharFormat(CHARFORMAT2W& charFormat) const
 {
     charFormat = {};
@@ -1493,3 +1461,70 @@ void MainForm::SetCharFormat(CHARFORMAT2W& charFormat)
         }
     }
 }
+
+#else //defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+
+bool MainForm::LoadFile(const ui::FilePath& filePath)
+{
+    //打开文件
+    if (m_pRichEdit == nullptr) {
+        return false;
+    }
+    bool bRet = false;
+    std::vector<uint8_t> fileData;
+    ui::FileUtil::ReadFileData(filePath, fileData);
+    if (!fileData.empty()) {
+        DStringW text;
+        if (ui::StringCharset::GetDataAsString((const char*)fileData.data(), (uint32_t)fileData.size(), text)) {
+            m_pRichEdit->SetText(text);
+            bRet = true;
+        }
+    }
+    return bRet;
+}
+
+bool MainForm::SaveFile(const ui::FilePath& filePath)
+{
+    //保存
+    if (m_pRichEdit == nullptr) {
+        return false;
+    }    
+    DStringW text = m_pRichEdit->GetTextW();
+    if (text.empty()) {
+        return false;
+    }
+
+    bool bRet = false;
+    ui::CharsetType charsetType = ui::CharsetType::UNKNOWN;
+    std::vector<uint8_t> fileData;
+    ui::FileUtil::ReadFileData(filePath, fileData);
+    if (!fileData.empty()) {
+        //检测原来文件的编码类型，尽量保持一致
+        charsetType = ui::StringCharset::GetDataCharsetByBOM((const char*)fileData.data(), (uint32_t)fileData.size());
+        if (charsetType == ui::CharsetType::UNKNOWN) {
+            charsetType = ui::StringCharset::GetDataCharset((const char*)fileData.data(), (uint32_t)fileData.size());
+        }
+        fileData.clear();
+    }
+    if (charsetType == ui::CharsetType::UTF16_LE) {
+        bRet = ui::FileUtil::WriteFileData(filePath, text);
+    }
+    else if (charsetType == ui::CharsetType::ANSI) {
+#ifdef DUILIB_BUILD_FOR_WIN
+        DStringA textA = ui::StringConvert::UnicodeToMBCS(text);
+        bRet = ui::FileUtil::WriteFileData(filePath, textA);
+#else
+        //按UTF8保存
+        DStringA textA = ui::StringConvert::WStringToUTF8(text);
+        bRet = ui::FileUtil::WriteFileData(filePath, textA);
+#endif        
+    }
+    else {
+        //按UTF8保存
+        DStringA textA = ui::StringConvert::WStringToUTF8(text);
+        bRet = ui::FileUtil::WriteFileData(filePath, textA);
+    }
+    return bRet;
+}
+
+#endif //defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)

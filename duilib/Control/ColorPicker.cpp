@@ -14,6 +14,7 @@ namespace ui
 */
 class ColorPreviewLabel: public Label
 {
+    typedef Label BaseClass;
 public:
     explicit ColorPreviewLabel(Window* pWindow): Label(pWindow)
     {
@@ -49,7 +50,7 @@ public:
         }
 
         //绘制实际显示的颜色
-        __super::PaintBkColor(pRender);
+        BaseClass::PaintBkColor(pRender);
     }
 };
 
@@ -90,7 +91,7 @@ LRESULT ColorPicker::OnWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMs
         }
     }    
     m_selectedColor = selectedColor;
-    return __super::OnWindowCloseMsg(wParam, nativeMsg, bHandled);
+    return BaseClass::OnWindowCloseMsg(wParam, nativeMsg, bHandled);
 }
 
 void ColorPicker::AttachSelectColor(const EventCallback& callback)
@@ -100,7 +101,7 @@ void ColorPicker::AttachSelectColor(const EventCallback& callback)
 
 void ColorPicker::AttachWindowClose(const EventCallback& callback)
 {
-    __super::AttachWindowClose(callback);
+    BaseClass::AttachWindowClose(callback);
 }
 
 Control* ColorPicker::CreateControl(const DString& strClass)
@@ -214,10 +215,15 @@ void ColorPicker::OnInitWindow()
     //选择：屏幕取色
     pButton = dynamic_cast<Button*>(FindControl(_T("color_picker_choose")));
     if (pButton != nullptr) {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
         pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
             OnPickColorFromScreen();
             return true;
             });
+#else
+        //其他平台不支持屏幕取词
+        pButton->SetEnabled(false);
+#endif
     }
 }
 
@@ -285,6 +291,7 @@ UiColor ColorPicker::GetSelectedColor() const
 */
 class ScreenColorPreview : public Label
 {
+    typedef Label BaseClass;
 public:
     explicit ScreenColorPreview(Window* pWindow):
         Label(pWindow)
@@ -295,7 +302,7 @@ public:
     */
     virtual void PaintBkImage(IRender* pRender) override
     {
-        __super::PaintBkImage(pRender);
+        BaseClass::PaintBkImage(pRender);
         if (pRender == nullptr) {
             return;
         }
@@ -369,6 +376,7 @@ private:
 */
 class ScreenColorPicker : public Control
 {
+    typedef Control BaseClass;
 public:
     explicit ScreenColorPicker(Window* pWindow):
         Control(pWindow),
@@ -391,7 +399,7 @@ public:
             m_cursorFile = strValue;
         }
         else {
-            __super::SetAttribute(strName, strValue);
+            BaseClass::SetAttribute(strName, strValue);
         }
     }
 
@@ -422,7 +430,7 @@ private:
     */
     virtual void PaintBkImage(IRender* pRender) override
     {
-        __super::PaintBkImage(pRender);
+        BaseClass::PaintBkImage(pRender);
         if (pRender == nullptr) {
             return;
         }
@@ -466,7 +474,7 @@ private:
     */
     virtual bool ButtonDown(const EventArgs& msg) override
     {
-        bool bRet = __super::ButtonDown(msg);
+        bool bRet = BaseClass::ButtonDown(msg);
         if (msg.IsSenderExpired()) {
             return false;
         }
@@ -665,6 +673,7 @@ private:
 */
 class ScreenColorPickerWnd : public WindowImplBase
 {
+    typedef WindowImplBase BaseClass;
 public:
     ScreenColorPickerWnd(): m_pScreenColorPicker(nullptr)
     {
@@ -707,15 +716,16 @@ public:
     */
     virtual void OnWindowExitFullScreen() override
     {
-        __super::OnWindowExitFullScreen();
+        BaseClass::OnWindowExitFullScreen();
         CloseWnd();
     }
 
     /** 抓取屏幕位图
     */
-    void ScreenCapture(const Window* pWindow)
+    bool ScreenCapture(const Window* pWindow)
     {
         m_spBitmap = ScreenCapture::CaptureBitmap(pWindow);
+        return m_spBitmap != nullptr;
     }
 
     /** 获取选择的颜色值
@@ -745,6 +755,10 @@ void ColorPicker::OnPickColorFromScreen()
     if (pCheckBox != nullptr) {
         bHideWindow = pCheckBox->IsSelected();
     }
+#ifdef DUILIB_BUILD_FOR_SDL
+    bHideWindow = false;
+#else
+    //SDL的实现，如果窗口隐藏，则所有子窗口都会被隐藏，所以不能隐藏本窗口
     if (bHideWindow) {
         //隐藏本窗口
         ShowWindow(kSW_HIDE);
@@ -756,16 +770,21 @@ void ColorPicker::OnPickColorFromScreen()
             pParentWnd->SetWindowForeground();
             pParentWnd->UpdateWindow();
         }
+        UpdateWindow();
     }
+#endif
 
     //抓取屏幕位图
     ScreenColorPickerWnd* pScreenColorPicker = new ScreenColorPickerWnd;    
-    pScreenColorPicker->ScreenCapture(this);
+    if (!pScreenColorPicker->ScreenCapture(this)) {
+        delete pScreenColorPicker;
+        return;
+    }
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_TRANSPARENT;
-    pScreenColorPicker->CreateWnd(this, createWndParam);
-    pScreenColorPicker->CenterWindow();
+    createWndParam.m_bCenterWindow = true;
+    pScreenColorPicker->CreateWnd(nullptr, createWndParam);
     pScreenColorPicker->ShowWindow(ui::kSW_SHOW_NORMAL);
     pScreenColorPicker->EnterFullScreen();
     pScreenColorPicker->AttachWindowClose([this, pScreenColorPicker, bHideWindow](const ui::EventArgs& /*args*/) {

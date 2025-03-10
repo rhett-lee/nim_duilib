@@ -411,9 +411,14 @@ void MainForm::OnInitWindow()
     ui::ListCtrlHeader* pHeaderCtrl = pListCtrl->GetHeaderCtrl();
     if (pHeaderCtrl != nullptr) {
         pHeaderCtrl->AttachRClick([this](const ui::EventArgs&) {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
             if (::MessageBox(nullptr, _T("ListCtrlHeader RClick! 是否执行功能测试？"), _T(""), MB_YESNO) == IDYES) {
                 RunListCtrlTest();
-            }            
+            }
+#else
+            ui::SystemUtil::ShowMessageBox(this, _T("开始执行功能测试"), _T("ListCtrlHeader RClick!"));
+            RunListCtrlTest();
+#endif
             return true;
             });
     }
@@ -773,11 +778,15 @@ void MainForm::RunListCtrlTest()
     pListCtrl->SetSubItemCheck(nDataItemIndex, nColumnIndex, true);
     ASSERT(pListCtrl->IsSubItemChecked(nDataItemIndex, nColumnIndex) == true);
 
+    int32_t nOldValue = pListCtrl->GetDataItemImageId(nDataItemIndex);
     pListCtrl->SetDataItemImageId(nDataItemIndex, 666);
     ASSERT(pListCtrl->GetDataItemImageId(nDataItemIndex) == 666);
+    pListCtrl->SetDataItemImageId(nDataItemIndex, nOldValue);
 
+    nOldValue = pListCtrl->GetSubItemImageId(nDataItemIndex, nColumnIndex);
     pListCtrl->SetSubItemImageId(nDataItemIndex, nColumnIndex, 667);
     ASSERT(pListCtrl->GetSubItemImageId(nDataItemIndex, nColumnIndex) == 667);
+    pListCtrl->SetSubItemImageId(nDataItemIndex, nColumnIndex, nOldValue);
 
     subItemData.text = _T("3");
     nColumnIndex = 0;

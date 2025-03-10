@@ -18,7 +18,7 @@ DString ColorControl::GetType() const { return DUI_CTR_COLOR_CONTROL; }
 
 void ColorControl::PaintBkImage(IRender* pRender)
 {
-    __super::PaintBkImage(pRender);
+    BaseClass::PaintBkImage(pRender);
     if (pRender == nullptr) {
         return;
     }
@@ -50,7 +50,7 @@ void ColorControl::PaintBkImage(IRender* pRender)
 
 bool ColorControl::ButtonDown(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonDown(msg);
+    bool bRet = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -65,7 +65,7 @@ bool ColorControl::ButtonDown(const EventArgs& msg)
 
 bool ColorControl::MouseMove(const EventArgs& msg)
 {
-    bool bRet = __super::MouseMove(msg);
+    bool bRet = BaseClass::MouseMove(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -80,7 +80,7 @@ bool ColorControl::ButtonUp(const EventArgs& msg)
 {
     m_bMouseDown = false;
     SetMouseCapture(false);
-    return __super::ButtonUp(msg);
+    return BaseClass::ButtonUp(msg);
 }
 
 void ColorControl::SelectColor(const UiColor& selColor)

@@ -10,6 +10,7 @@ namespace ui
 */
 class UILIB_API FilterCombo : public Combo
 {
+    typedef Combo BaseClass;
 public:
     explicit FilterCombo(Window* pWindow);
     FilterCombo(const FilterCombo& r) = delete;

@@ -192,7 +192,7 @@ void Progress::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetMarqueeStep(iValue, false);
 
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void Progress::PaintStateImages(IRender* pRender)
@@ -308,7 +308,7 @@ UiRect Progress::GetProgressPos()
 
 void Progress::ClearImageCache()
 {
-    __super::ClearImageCache();
+    BaseClass::ClearImageCache();
     if (m_pProgressImage != nullptr) {
         m_pProgressImage->ClearImageCache();
     }    

@@ -61,6 +61,10 @@ public:
     */
     virtual void ClearFontFiles() override;
 
+    /** 清除字体缓存
+    */
+    virtual void ClearFontCache() override;
+
 public:
     /** 创建Skia字体
     * @param [in] fontInfo 字体属性

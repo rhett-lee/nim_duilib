@@ -1,64 +1,64 @@
-## ʾ������
-examples Ŀ¼�а�����һЩʾ����������Բο���Щʾ���������������Ӧ�ó���
+﻿## 示例程序
+examples 目录中包含了一些示例程序，你可以参考这些示例程序来完善你的应用程序。
 
 ## 1. examples/basic
-һ�������Ĵ���ʾ�����򣬴�����С������󻯡���ԭ�͹رհ�ť��    
+一个基础的窗口示例程序，带有最小化、最大化、还原和关闭按钮。    
 <img src="./Images/basic.png"/>
 
 ## 2. examples/cef
-��ʾ����� nim_duilib ��ʹ�� CEF �ؼ������� C++ �� JavaScript ������    
+演示如何在 nim_duilib 中使用 CEF 控件，包含 C++ 与 JavaScript 交互。    
 <img src="./Images/cef.png"/>
 
 ## 3. examples/ColorPicker
-��ʾ���ʹ��ʰɫ���ؼ��ĳ���
+演示如何使用拾色器控件的程序。
 <img src="./Images/ColorPicker.png"/>
 
 ## 4. examples/controls
-һЩ���ÿؼ�����ʽʹ�÷���ʾ����    
+一些常用控件的样式使用方法示例。    
 <img src="./Images/controls.png"/>
 
 ## 5. examples/layouts
-����һ����¼���ں�һ��ģ��΢�� PC ���첼�ֵĴ���ʾ����    
+包含一个登录窗口和一个模拟微信 PC 聊天布局的窗口示例。    
 <img src="./Images/layouts.png"/>
 
 ## 6. examples/ListBox
-��ʾ���ʹ��ListBox�����ĳ���
+演示如何使用ListBox容器的程序。
 <img src="./Images/ListBox.png"/>
     
 ## 7. examples/ListCtrl
-��ʾ���ʹ��ListCtrl�ؼ���    
+演示如何使用ListCtrl控件。    
 <img src="./Images/ListCtrl.png"/>
 
 ## 8. examples/move_control
-��ʾ���ʹ��Box������"drag_out_id"��"drop_in_id"������ʵ�ֿؼ��ڲ�ͬ����֮����ƶ�Ч����    
+演示如何使用Box容器的"drag_out_id"和"drop_in_id"属性来实现控件在不同容器之间的移动效果。    
 <img src="./Images/move_control.png"/>
     
 ## 9. examples/multi_browser
-���� CEF ���Զ�����ǩ����ҷ�����ʾ����
+基于 CEF 的自定义多标签可拖曳浏览器示例。
 <img src="./Images/multi_browser.png"/>
     
 ## 10. examples/render
-��ʾ���ʹ����Ⱦ����ĳ���ͬʱҲ�����˸��ֿؼ�/������ʹ��ʾ����    
+演示如何使用渲染引擎的程序，同时也包含了各种控件/容器的使用示例。    
 <img src="./Images/render01.png"/>
 <img src="./Images/render02.png"/>
 <img src="./Images/render03.png"/>
 
 ## 11. examples/RichEdit
-��ʾ���ʹ��RichEdit�ؼ���    
+演示如何使用RichEdit控件。    
 <img src="./Images/RichEdit.png"/>
 
 ## 12. examples/TreeView
-��ʾ���ʹ��TreeView�ؼ���    
+演示如何使用TreeView控件。    
 <img src="./Images/TreeView.png"/>
     
 ## 13. examples/VirtualListBox
-��ʾ���ʹ�û������ʵ�ֵ�ListBox������    
+演示如何使用基于虚表实现的ListBox容器。    
 <img src="./Images/VirtualListBox.png"/>
     
 ## 14. examples/MultiLang
-��ʾ���ʹ�ö����Թ��ܣ�֧�ֶ����ԵĶ�̬�л���    
+演示如何使用多语言功能，支持多语言的动态切换。    
 <img src="./Images/MultiLang.png"/>
 
 ## 15. examples/DpiAware
-��ʾ���ʹ��DPI��֪���ܣ���ζ�̬���ô��ڵ�DPI��    
+演示如何使用DPI感知功能，如何动态设置窗口的DPI。    
 <img src="./Images/DpiAware.png"/>

@@ -8,6 +8,7 @@ namespace ui
 
 class UILIB_API TabBox : public Box
 {
+    typedef Box BaseClass;
 public:
     explicit TabBox(Window* pWindow, Layout* pLayout = new Layout());
 

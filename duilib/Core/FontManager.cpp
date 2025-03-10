@@ -67,21 +67,30 @@ void FontManager::SetDefaultFontFamilyNames(const DString& defaultFontFamilyName
     }
 }
 
-DString FontManager::GetDpiFontId(const DString& fontId, const DpiManager& dpi) const
+DString FontManager::GetDpiFontId(const DString& fontId, uint32_t nZoomPercent) const
 {
     DString dpiFontId;
     if (!fontId.empty()) {
-        dpiFontId = fontId + _T("@") + StringUtil::UInt32ToString(dpi.GetScale());
+        dpiFontId = fontId + _T("@") + StringUtil::UInt32ToString(nZoomPercent);
     }
     return dpiFontId;
 }
 
 IFont* FontManager::GetIFont(const DString& fontId, const DpiManager& dpi)
 {
+    return GetIFont(fontId, dpi.GetScale());
+}
+
+IFont* FontManager::GetIFont(const DString& fontId, uint32_t nZoomPercent)
+{
+    ASSERT(nZoomPercent != 0);
+    if (nZoomPercent == 0) {
+        nZoomPercent = 100;
+    }
     //先在缓存中查找
     IFont* pFont = nullptr;
     if (!fontId.empty()) {        
-        DString dpiFontId = GetDpiFontId(fontId, dpi);
+        DString dpiFontId = GetDpiFontId(fontId, nZoomPercent);
         auto iter = m_fontMap.find(dpiFontId);
         if (iter != m_fontMap.end()) {
             pFont = iter->second;
@@ -91,7 +100,7 @@ IFont* FontManager::GetIFont(const DString& fontId, const DpiManager& dpi)
         auto iter = m_fontIdMap.find(fontId);
         if ((iter == m_fontIdMap.end()) && !m_defaultFontId.empty()) {
             //没有这个字体ID，使用默认的字体ID
-            DString dpiFontId = GetDpiFontId(m_defaultFontId, dpi);
+            DString dpiFontId = GetDpiFontId(m_defaultFontId, nZoomPercent);
             auto pos = m_fontMap.find(dpiFontId);
             if (pos != m_fontMap.end()) {
                 pFont = pos->second;
@@ -151,9 +160,9 @@ IFont* FontManager::GetIFont(const DString& fontId, const DpiManager& dpi)
         }
     }
 
-    DString dpiFontId = GetDpiFontId(realFontId, dpi);    
+    DString dpiFontId = GetDpiFontId(realFontId, nZoomPercent);
     if (fontInfo.m_fontName.empty() || 
-        StringUtil::IsEqualNoCase(fontInfo.m_fontName, _T("system"))) {        
+        StringUtil::IsEqualNoCase(fontInfo.m_fontName.c_str(), _T("system"))) {
         if (!m_defaultFontFamilyNames.empty()) {
             fontInfo.m_fontName = m_defaultFontFamilyNames.front();
         }
@@ -164,8 +173,12 @@ IFont* FontManager::GetIFont(const DString& fontId, const DpiManager& dpi)
 
     //对字体大小进行DPI缩放
     ASSERT(fontInfo.m_fontSize > 0);
-    dpi.ScaleInt(fontInfo.m_fontSize);
-    ASSERT(fontInfo.m_fontSize > 0);
+    if (nZoomPercent != 100) {
+        fontInfo.m_fontSize = DpiManager::MulDiv(fontInfo.m_fontSize, nZoomPercent, 100);
+        if (fontInfo.m_fontSize < 1) {
+            fontInfo.m_fontSize = 1;
+        }
+    }
 
     pFont = pRenderFactory->CreateIFont();
     ASSERT(pFont != nullptr);
@@ -183,6 +196,61 @@ IFont* FontManager::GetIFont(const DString& fontId, const DpiManager& dpi)
     return pFont;
 }
 
+bool FontManager::HasFontId(const DString& fontId) const
+{
+    auto pos = m_fontIdMap.find(fontId);
+    bool bFound = pos != m_fontIdMap.end();
+    return bFound;
+}
+
+bool FontManager::RemoveFontId(const DString& fontId)
+{
+    ASSERT(fontId != m_defaultFontId);
+    if (fontId == m_defaultFontId) {
+        return false;
+    }
+    bool bDeleted = false;
+    const DString zoomFontId = fontId + _T("@");
+    auto iter = m_fontMap.begin();
+    while (iter != m_fontMap.end()) {
+        if (iter->first.find(zoomFontId) == 0) {
+            //匹配到字体ID
+            if (iter->second != nullptr) {
+                delete iter->second;//IFont指针
+            }
+            bDeleted = true;
+            iter = m_fontMap.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
+    auto pos = m_fontIdMap.find(fontId);
+    if (pos != m_fontIdMap.end()) {
+        m_fontIdMap.erase(pos);
+        bDeleted = true;
+    }
+    return bDeleted;
+}
+
+bool FontManager::RemoveIFont(const DString& fontId, uint32_t nZoomPercent)
+{
+    bool bDeleted = false;
+    if (!fontId.empty()) {
+        DString realFontId = GetDpiFontId(fontId, nZoomPercent);
+        auto iter = m_fontMap.find(realFontId);
+        if (iter != m_fontMap.end()) {
+            //匹配到字体ID
+            if (iter->second != nullptr) {
+                delete iter->second;//IFont指针
+            }
+            bDeleted = true;
+            m_fontMap.erase(iter);
+        }
+    }
+    return bDeleted;
+}
+
 void FontManager::RemoveAllFonts()
 {
     for (auto fontInfo : m_fontMap) {
@@ -194,6 +262,15 @@ void FontManager::RemoveAllFonts()
     m_fontMap.clear();
     m_defaultFontId.clear();
     m_fontIdMap.clear();
+
+    IFontMgr* pFontMgr = nullptr;
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    if (pRenderFactory != nullptr) {
+        pFontMgr = pRenderFactory->GetFontMgr();
+    }
+    if (pFontMgr != nullptr) {
+        pFontMgr->ClearFontCache();
+    }
 }
 
 bool FontManager::AddFontFile(const DString& strFontFile, const DString& /*strFontDesc*/)

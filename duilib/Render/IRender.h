@@ -3,6 +3,8 @@
 
 #include "duilib/Core/Callback.h"
 #include "duilib/Core/UiTypes.h"
+#include "duilib/Core/SharePtr.h"
+#include <map>
 
 namespace ui 
 {
@@ -17,7 +19,7 @@ public:
 
     /** 获取字体名
     */
-    virtual const DString& FontName() const = 0;
+    virtual DString FontName() const = 0;
 
     /** 获取字体大小(字体高度)
     */
@@ -84,6 +86,10 @@ public:
     /** 清除已加载的字体文件
     */
     virtual void ClearFontFiles() = 0;
+
+    /** 清除字体缓存
+    */
+    virtual void ClearFontCache() = 0;
 };
 
 /** Skia引擎需要传入Alpha类型
@@ -166,7 +172,7 @@ public:
     {
         kButt_Cap   = 0,    //平笔帽（默认）
         kRound_Cap  = 1,    //圆笔帽
-        kSquare_Cap = 2        //方笔帽
+        kSquare_Cap = 2     //方笔帽
     };
 
     /** 设置线段起始的笔帽样式
@@ -199,7 +205,7 @@ public:
     {
         kMiter_Join = 0,    //尖角（默认）
         kBevel_Join = 1,    //平角
-        kRound_Join = 2        //圆角        
+        kRound_Join = 2     //圆角        
     };
 
     /** 设置线段末尾使用的联接样式
@@ -428,6 +434,12 @@ public:
     /** 回调接口，获取当前窗口的透明度值
     */
     virtual uint8_t GetLayeredWindowAlpha() = 0;
+
+    /** 获取界面需要绘制的区域，以实现局部绘制
+    * @param [out] rcUpdate 返回需要绘制的区域矩形范围
+    * @return 返回true表示支持局部绘制，返回false表示不支持局部绘制
+    */
+    virtual bool GetUpdateRect(UiRect& rcUpdate) const = 0;
 };
 
 /** 光栅操作代码
@@ -444,19 +456,20 @@ enum class UILIB_API RopMode
 */
 enum UILIB_API DrawStringFormat
 {
-    TEXT_LEFT           = 0x0001,
-    TEXT_CENTER         = 0x0002,
-    TEXT_RIGHT          = 0x0004,
+    TEXT_LEFT           = 0x0001,   //水平对齐方式：靠左
+    TEXT_CENTER         = 0x0002,   //水平对齐方式：居中
+    TEXT_RIGHT          = 0x0004,   //水平对齐方式：靠右
 
-    TEXT_TOP            = 0x0010,
-    TEXT_VCENTER        = 0x0020,
-    TEXT_BOTTOM         = 0x0040,
+    TEXT_TOP            = 0x0010,   //垂直对齐方式：靠上
+    TEXT_VCENTER        = 0x0020,   //垂直对齐方式：居中
+    TEXT_BOTTOM         = 0x0040,   //垂直对齐方式：靠下
 
-    TEXT_SINGLELINE     = 0x0100,
-    TEXT_NOCLIP         = 0x0200,
+    TEXT_SINGLELINE     = 0x0100,   //单行文本
+    TEXT_NOCLIP         = 0x0200,   //绘制的时候，不设置剪辑区域
+    TEXT_WORD_WRAP      = 0x0400,   //自动换行（仅在IRender::DrawRichText接口支持此属性，其他文字绘制函数不支持该属性）
 
-    TEXT_PATH_ELLIPSIS  = 0x4000,
-    TEXT_END_ELLIPSIS   = 0x8000
+    TEXT_PATH_ELLIPSIS  = 0x4000,   //如果绘制区域不足，按显示文件路径的方式，在中间加"..."省略部分文字
+    TEXT_END_ELLIPSIS   = 0x8000    //如果绘制区域不足，在结尾加"..."，省略部分文字
 };
 
 /** Render类型
@@ -471,9 +484,9 @@ enum class RenderType
 class RichTextData
 {
 public:
-    /** 文字内容
+    /** 文字内容(由外部负责保证字符串指向内存的生命周期)
     */
-    UiString m_text;
+    std::wstring_view m_textView;
 
     /** 文字颜色
     */
@@ -485,16 +498,167 @@ public:
 
     /** 字体信息
     */
-    UiFont m_fontInfo;
+    SharePtr<UiFontEx> m_pFontInfo;
 
     /** 行间距
     */
     float m_fRowSpacingMul = 1.0f;
 
-    /** 对象绘制区域(输出参数)
+    /** 绘制文字的属性(包含文本对齐方式等属性，参见 enum DrawStringFormat)
     */
-    std::vector<UiRect> m_textRects;
+    uint16_t m_textStyle = 0;
 };
+
+/** 绘制的字符标记位
+*/
+enum RichTextCharFlag: uint8_t
+{
+    kIsIgnoredChar  = 0x01,     //当前字符为未绘制字符
+    kIsLowSurrogate = 0x02,     //该字符为低代理字符（由两个Unicode字符构成的字，UTF16编码的字形，每个字占1个或者2个Unicode字符）
+    kIsReturn       = 0x04,     //当前字符是否为回车'\r'
+    kIsNewLine      = 0x08,     //当前字符是否为换行'\n'
+};
+
+/** 绘制的字符属性（共4个字节）
+*/
+struct RichTextCharInfo
+{
+    /** 属性标志(读取)
+    */
+    inline uint8_t CharFlag() const
+    {
+        uint32_t v = m_value;
+        v >>= 24;
+        return (uint8_t)v;
+    }
+
+    /** 属性标志(设置)
+    */
+    inline void SetCharFlag(uint8_t flag)
+    {
+        uint32_t v = flag;
+        v <<= 24;
+        m_value &= 0x00FFFFFF;
+        m_value |= v;
+    }
+
+    /** 属性标志(添加)
+    */
+    inline void AddCharFlag(uint8_t flag)
+    {
+        uint32_t v = flag;
+        v <<= 24;
+        m_value |= v;
+    }
+
+    /** 字符宽度(读取)
+    */
+    inline float CharWidth() const
+    {
+        uint32_t v = m_value & 0x00FFFFFF;
+        float fValue = (float)v;
+        fValue /= 1000.0f;
+        return fValue;
+    }
+
+    /** 字符宽度(设置)
+    */
+    inline void SetCharWidth(float charWidth)
+    {
+        uint32_t v = (uint32_t)(ui::CEILF(charWidth * 1000.0f));
+        ASSERT(v < 0x00FFFFFF);
+        v &= 0x00FFFFFF;
+        m_value &= 0xFF000000;
+        m_value |= v;
+    }
+
+    /** 该字符是否为回车
+    */
+    inline bool IsReturn() const { return CharFlag() & RichTextCharFlag::kIsReturn; }
+
+    /** 该字符是否为换行符
+    */
+    inline bool IsNewLine() const { return CharFlag() & RichTextCharFlag::kIsNewLine; }
+
+    /** 该字符是否为非绘制字符
+    */
+    inline bool IsIgnoredChar() const { return CharFlag() & RichTextCharFlag::kIsIgnoredChar; }
+
+    /** 该字符是否为低代理字符
+    */
+    inline bool IsLowSurrogate() const { return CharFlag() & RichTextCharFlag::kIsLowSurrogate; }
+
+    /** 比较操作符
+    */
+    inline bool operator == (const RichTextCharInfo& r) const { return m_value == r.m_value; }
+    inline bool operator != (const RichTextCharInfo& r) const { return m_value != r.m_value; }
+
+private:
+    /** 使用整型存储，减少内存占有量
+    */
+    uint32_t m_value = 0;
+};
+
+/** 逻辑行(矩形区域内显示的行，物理行数据在自动换行的情况下会对应多个逻辑行)的基本信息
+*/
+struct RichTextRowInfo: public NVRefCount<RichTextRowInfo>
+{
+    /** 本行中的字符个数，字符属性
+    */
+    std::vector<RichTextCharInfo> m_charInfo;
+
+    /** 该行的文字所占矩形区域
+    */
+    UiRectF m_rowRect;
+
+    /** 本行的left坐标偏移量（用于支持居中和靠右对齐）
+    */
+    int32_t m_xOffset = 0;
+};
+typedef SharePtr<RichTextRowInfo> RichTextRowInfoPtr;
+
+/** 物理行文本的数据
+*/
+struct RichTextLineInfo: public NVRefCount<RichTextLineInfo>
+{
+    /** 文本数据长度
+    */
+    uint32_t m_nLineTextLen = 0;
+
+    /** 文本数据
+    */
+    UiStringW m_lineText;
+
+    /** 逻辑行的基本信息
+    */
+    std::vector<RichTextRowInfoPtr> m_rowInfo;
+};
+typedef SharePtr<RichTextLineInfo> RichTextLineInfoPtr;
+
+/** 物理行的数据结构
+*/
+typedef std::vector<RichTextLineInfoPtr> RichTextLineInfoList;
+
+/** 物理行的数据传入参数
+*/
+struct RichTextLineInfoParam
+{
+    /** 本次绘制中，关联的物理行的数据起始下标值
+    */
+    uint32_t m_nStartLineIndex = 0;
+
+    /** 起始的行号（逻辑行号）
+    */
+    uint32_t m_nStartRowIndex = 0;
+
+    /** 物理行的数据
+    */
+    RichTextLineInfoList* m_pLineInfoList = nullptr;
+};
+
+/** DrawRichText的绘制缓存
+*/
+class DrawRichTextCache;
 
 /** 裁剪区域类型
 */
@@ -816,34 +980,141 @@ public:
                                  uint32_t uFormat,
                                  int32_t width = DUI_NOSET_VALUE) = 0;
     /** 绘制文字
-    * @param [in] 矩形区域
+    * @param [in] textRect 文字绘制的矩形区域
     * @param [in] strText 文字内容
     * @param [in] dwTextColor 文字颜色值
     * @param [in] pFont 文字的字体数据接口
     * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
     * @param [in] uFade 透明度（0 - 255）
     */
-    virtual void DrawString(const UiRect& rc,
+    virtual void DrawString(const UiRect& textRect,
                             const DString& strText,
                             UiColor dwTextColor,
                             IFont* pFont, 
                             uint32_t uFormat,
                             uint8_t uFade = 255) = 0;
 
-    /** 绘制格式文本
-    * @param [in] 矩形区域
+    /** 计算格式文本的宽度和高度
+    * @param [in] textRect 绘制文本的矩形区域
+    * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
     * @param [in] pRenderFactory 渲染接口，用于创建字体
-    * @param [in,out] richTextData 格式化文字内容，返回文字绘制的区域
-    * @param [in] uFormat 文字的格式，参见 enum DrawStringFormat 类型定义
-    * @param [in] bMeasureOnly 如果为true，仅评估绘制文字所需区域，不执行文字绘制
-    * @param [in] uFade 透明度（0 - 255）
+    * @param [in] richTextData 格式化文字内容，返回文字绘制的区域
+    * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
     */
-    virtual void DrawRichText(const UiRect& rc,
+    virtual void MeasureRichText(const UiRect& textRect,
+                                 const UiSize& szScrollOffset,
+                                 IRenderFactory* pRenderFactory, 
+                                 const std::vector<RichTextData>& richTextData,
+                                 std::vector<std::vector<UiRect>>* pRichTextRects) = 0;
+
+    /** 计算格式文本的宽度和高度, 并计算每个字符的位置
+    * @param [in] textRect 绘制文本的矩形区域
+    * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
+    * @param [in] pRenderFactory 渲染接口，用于创建字体
+    * @param [in] richTextData 格式化文字内容
+    * @param [in,out] pLineInfoParam 如果不为nullptr，则计算每个字符的区域
+    * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
+    */
+    virtual void MeasureRichText2(const UiRect& textRect,
+                                  const UiSize& szScrollOffset,
+                                  IRenderFactory* pRenderFactory, 
+                                  const std::vector<RichTextData>& richTextData,
+                                  RichTextLineInfoParam* pLineInfoParam,
+                                  std::vector<std::vector<UiRect>>* pRichTextRects) = 0;
+
+    /** 计算格式文本的宽度和高度, 并计算每个字符的位置，并创建绘制缓存
+    * @param [in] textRect 绘制文本的矩形区域
+    * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
+    * @param [in] pRenderFactory 渲染接口，用于创建字体
+    * @param [in] richTextData 格式化文字内容
+    * @param [in,out] pLineInfoParam 如果不为nullptr，则计算每个字符的区域
+    * @param [out] spDrawRichTextCache 返回绘制缓存
+    * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
+    */
+    virtual void MeasureRichText3(const UiRect& textRect,
+                                  const UiSize& szScrollOffset,
+                                  IRenderFactory* pRenderFactory, 
+                                  const std::vector<RichTextData>& richTextData,
+                                  RichTextLineInfoParam* pLineInfoParam,
+                                  std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,
+                                  std::vector<std::vector<UiRect>>* pRichTextRects) = 0;
+
+    /** 绘制格式文本
+    * @param [in] textRect 绘制文本的矩形区域
+    * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
+    * @param [in] pRenderFactory 渲染接口，用于创建字体
+    * @param [in] richTextData 格式化文字内容
+    * @param [in] uFade 透明度（0 - 255）
+    * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
+    */
+    virtual void DrawRichText(const UiRect& textRect,
+                              const UiSize& szScrollOffset,
                               IRenderFactory* pRenderFactory, 
-                              std::vector<RichTextData>& richTextData,
-                              uint32_t uFormat = 0,
-                              bool bMeasureOnly = false,
-                              uint8_t uFade = 255) = 0;
+                              const std::vector<RichTextData>& richTextData,
+                              uint8_t uFade = 255,
+                              std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) = 0;
+
+    /** 创建RichText的绘制缓存
+    * @param [in] textRect 绘制文本的矩形区域
+    * @param [in] szScrollOffset 绘制文本的矩形区域所占的滚动条位置
+    * @param [in] pRenderFactory 渲染接口，用于创建字体
+    * @param [in] richTextData 格式化文字内容
+    * @param [out] spDrawRichTextCache 返回绘制缓存
+    */
+    virtual bool CreateDrawRichTextCache(const UiRect& textRect,
+                                         const UiSize& szScrollOffset,
+                                         IRenderFactory* pRenderFactory,
+                                         const std::vector<RichTextData>& richTextData,
+                                         std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
+
+    /** 判断RichText的绘制缓存是否有效
+    * @param [in] textRect 绘制文本的矩形区域
+    * @param [in] richTextData 格式化文字内容，返回文字绘制的区域
+    * @param [out] spDrawRichTextCache 返回绘制缓存
+    */
+    virtual bool IsValidDrawRichTextCache(const UiRect& textRect,
+                                          const std::vector<RichTextData>& richTextData,
+                                          const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache) = 0;
+
+    /** 更新RichText的绘制缓存(增量计算)
+    * @param [in] spOldDrawRichTextCache 需要更新的缓存
+    * @param [in] spUpdateDrawRichTextCache 增量绘制的缓存
+    * @param [in,out] richTextDataNew 最新的完整数据, 数据会交换给内部容器
+    * @param [in] nStartLine 重新计算的起始行号
+    * @param [in] modifiedLines 有修改的行号
+    * @param [in] nModifiedRows 修改后的文本，计算后切分为几行（逻辑行）
+    * @param [in] deletedLines 删除的行
+    * @param [in] nDeletedRows 删除了几个逻辑行
+    * @param [in] rowRectTopList 每个逻辑行的top坐标，用于更新行的坐标(下标值为逻辑行，从0开始编号)
+    */
+    virtual bool UpdateDrawRichTextCache(std::shared_ptr<DrawRichTextCache>& spOldDrawRichTextCache,
+                                         const std::shared_ptr<DrawRichTextCache>& spUpdateDrawRichTextCache,
+                                         std::vector<RichTextData>& richTextDataNew,
+                                         size_t nStartLine,
+                                         const std::vector<size_t>& modifiedLines,
+                                         size_t nModifiedRows,
+                                         const std::vector<size_t>& deletedLines,
+                                         size_t nDeletedRows,
+                                         const std::vector<int32_t>& rowRectTopList) = 0;
+
+    /** 比较两个绘制缓存的数据是否一致
+    */
+    virtual bool IsDrawRichTextCacheEqual(const DrawRichTextCache& first, const DrawRichTextCache& second) const = 0;
+
+    /** 绘制RichText的缓存中的内容（绘制前，需要使用IsValidDrawRichTextCache判断缓存是否失效）
+    * @param [in] spDrawRichTextCache 缓存的数据
+    * @param [in] rcNewTextRect 绘制文本的矩形区域
+    * @param [in] szNewScrollOffset 新的滚动条位置
+    * @param [in] rowXOffset 每行的横向偏移列表（逻辑行）
+    * @param [in] uFade 透明度（0 - 255）
+    * @param [out] pRichTextRects 如果不为nullptr，则返回richTextData中每个数据绘制的矩形范围列表
+    */
+    virtual void DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>& spDrawRichTextCache,                                       
+                                       const UiRect& textRect,
+                                       const UiSize& szNewScrollOffset,
+                                       const std::vector<int32_t>& rowXOffset,
+                                       uint8_t uFade,
+                                       std::vector<std::vector<UiRect>>* pRichTextRects = nullptr) = 0;
 
     /** 在指定矩形周围绘制阴影（高斯模糊, 只支持外部阴影，不支持内部阴影）
     * @param [in] rc 矩形区域

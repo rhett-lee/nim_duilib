@@ -8,6 +8,7 @@ namespace ui {
 
 class RenderTest2 : public ui::Control
 {
+    typedef ui::Control BaseClass;
 public:
     explicit RenderTest2(ui::Window* pWindow);
     virtual ~RenderTest2() override;

@@ -13,17 +13,17 @@ RenderTest2::~RenderTest2()
 
 void RenderTest2::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::AlphaPaint(pRender, rcPaint);
+    BaseClass::AlphaPaint(pRender, rcPaint);
 }
 
 void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::Paint(pRender, rcPaint);
+    BaseClass::Paint(pRender, rcPaint);
 }
 
 void RenderTest2::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::PaintChild(pRender, rcPaint);
+    BaseClass::PaintChild(pRender, rcPaint);
 }
 
 } //end of namespace ui

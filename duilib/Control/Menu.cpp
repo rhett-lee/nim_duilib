@@ -30,7 +30,7 @@ ui::Control* Menu::CreateControl(const DString& pstrClass)
     else if (pstrClass == DUI_CTR_SUB_MENU) {
         return new SubMenu(this);
     }
-    return NULL;
+    return nullptr;
 }
 
 bool Menu::Receive(ContextMenuParam param)
@@ -43,7 +43,7 @@ bool Menu::Receive(ContextMenuParam param)
         case MenuCloseType::eMenuCloseThis:
         {
             Window* pParentWindow = GetParentWindow();
-            while (pParentWindow != NULL) {
+            while (pParentWindow != nullptr) {
                 if (pParentWindow == param.pWindow) {
                     CloseMenu();
                     break;
@@ -96,18 +96,25 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_TOPMOST | kWS_EX_LAYERED;
+    //设置初始位置，避免菜单初次显示时出现黑屏现象
+    createWndParam.m_nX = point.x;
+    createWndParam.m_nY = point.y;
     CreateWnd(m_pParentWindow, createWndParam);
-    if (noFocus) {
-        ShowWindow(kSW_SHOW_NA);
-    }
-    else {
-        ShowWindow(kSW_SHOW_NORMAL);
-    }
+    
+    bool bShown = false;
     if (m_pOwner) {
-        ResizeSubMenu();
+        bShown = ResizeSubMenu();
     }
     else {
-        ResizeMenu();
+        bShown = ResizeMenu();
+    }
+    if (!bShown) {
+        if (noFocus) {
+            ShowWindow(kSW_SHOW_NA);
+        }
+        else {
+            ShowWindow(kSW_SHOW_NORMAL);
+        }
     }
     KeepParentActive();
     //修正菜单项的宽度，保持一致
@@ -192,7 +199,7 @@ DString Menu::GetSkinFile()
 
 LRESULT Menu::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnKillFocusMsg(pSetFocusWindow, nativeMsg, bHandled);
     bHandled = true;
     bool bInMenuWindowList = false;
     if (pSetFocusWindow != nullptr) {
@@ -276,11 +283,12 @@ LRESULT Menu::OnMouseRButtonDbClickMsg(const UiPoint& /*pt*/, uint32_t /*modifie
     return 0;
 }
 
-void Menu::ResizeMenu()
+bool Menu::ResizeMenu()
 {
     ui::Control* pRoot = GetRoot();
+    ASSERT(pRoot != nullptr);
     if (pRoot == nullptr) {
-        return;
+        return false;
     }
     //点击在哪里，以哪里的屏幕为主
     ui::UiRect rcWork;
@@ -329,62 +337,73 @@ void Menu::ResizeMenu()
             point.y = rcWork.bottom - szInit.cy;
         }
     }
+   
+    SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
+                 point.x - rcCorner.left, point.y - rcCorner.top,
+                 szAvailable.cx, szAvailable.cy,
+                 kSWP_SHOWWINDOW | (m_noFocus ? kSWP_NOACTIVATE : 0));
+
     if (!m_noFocus) {
         SetWindowForeground();
         ListBox* pLayoutListBox = Menu::GetLayoutListBox();
         SetFocusControl(pLayoutListBox);
     }
-    SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
-                 point.x - rcCorner.left, point.y - rcCorner.top,
-                 szAvailable.cx, szAvailable.cy,
-                 kSWP_SHOWWINDOW | (m_noFocus ? kSWP_NOACTIVATE : 0));
+    return true;
 }
 
-void Menu::ResizeSubMenu()
+bool Menu::ResizeSubMenu()
 {
     ASSERT(m_pOwner != nullptr);
     if (m_pOwner == nullptr) {
-        return;
+        return false;
     }
     ASSERT(m_pOwner->GetWindow() != nullptr);
 
     // Position the popup window in absolute space
     UiRect rcOwner = m_pOwner->GetPos();
     UiRect rc = rcOwner;
-
-    int cxFixed = 0;
-    int cyFixed = 0;
-
-    UiRect rcWork;
-    GetMonitorWorkRect(m_menuPoint, rcWork);
-    UiSize szAvailable = { rcWork.Width(), rcWork.Height()};
-    ListBox* pLayoutListBox = Menu::GetLayoutListBox();
-    ASSERT(pLayoutListBox != nullptr);
-    if (pLayoutListBox == nullptr) {
-        return;
-    }
-
-    const size_t itemCount = pLayoutListBox->GetItemCount();
-    for (size_t it = 0; it < itemCount; ++it) {
-        //取子菜单项中的最大值作为菜单项
-        MenuItem* pItem = dynamic_cast<MenuItem*>(pLayoutListBox->GetItemAt(it));
-        if (pItem != nullptr) {
-            UiEstSize estSize = pItem->EstimateSize(szAvailable);
-            UiSize sz(estSize.cx.GetInt32(), estSize.cy.GetInt32());            
-            cyFixed += sz.cy;
-            if (cxFixed < sz.cx) {
-                cxFixed = sz.cx;
-            }                
-        }
-    }
+   
     UiPadding rcCorner = GetShadowCorner();
     UiRect rcWindow;
     m_pOwner->GetWindow()->GetWindowRect(rcWindow);
+
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    rcClient.Deflate(rcCorner);
+    int32_t cxFixed = rcClient.Width();
+    int32_t cyFixed = rcClient.Height();
+    rcClient.Inflate(rcCorner);
+    if (rcClient.Width() < (rcCorner.left + rcCorner.right)) {
+        //窗口大小还没有生效，需要估算
+        Box* pRoot = GetRoot();
+        if (pRoot != nullptr) {
+            UiSize maxSize(999999, 999999);
+            UiEstSize estSize = pRoot->EstimateSize(maxSize);
+            if (!estSize.cx.IsStretch() && !estSize.cy.IsStretch()) {
+                UiSize needSize = MakeSize(estSize);
+                if (needSize.cx < pRoot->GetMinWidth()) {
+                    needSize.cx = pRoot->GetMinWidth();
+                }
+                if (needSize.cx > pRoot->GetMaxWidth()) {
+                    needSize.cx = pRoot->GetMaxWidth();
+                }
+                if (needSize.cy < pRoot->GetMinHeight()) {
+                    needSize.cy = pRoot->GetMinHeight();
+                }
+                if (needSize.cy > pRoot->GetMaxHeight()) {
+                    needSize.cy = pRoot->GetMaxHeight();
+                }
+                cxFixed = needSize.cx - rcCorner.left - rcCorner.right;
+                cyFixed = needSize.cy - rcCorner.top - rcCorner.bottom;
+            }
+        }
+    }
+
     //去阴影
     rcWindow.Deflate(rcCorner);
 
-    m_pOwner->GetWindow()->MapWindowDesktopRect(rc);
-    
+    m_pOwner->GetWindow()->ClientToScreen(rc);
+   
     rc.left = rcWindow.right;
     rc.right = rc.left + cxFixed;
     rc.bottom = rc.top + cyFixed;
@@ -419,6 +438,9 @@ void Menu::ResizeSubMenu()
         rc.left = rc.right - cxFixed;
     }
 
+    UiRect rcWork;
+    GetMonitorWorkRect(m_menuPoint, rcWork);
+
     if (rc.bottom > rcWork.bottom) {
         rc.bottom = rc.top;
         rc.top = rc.bottom - cyFixed;
@@ -439,19 +461,25 @@ void Menu::ResizeSubMenu()
         rc.right = rc.left + cxFixed;
     }
 
-    if (!m_noFocus) {
-        SetWindowForeground();        
-        SetFocusControl(Menu::GetLayoutListBox());
-    }
+    //调整窗口位置，显示窗口，但不调整窗口的大小
+    int32_t nNewWidth = rc.Width() + rcCorner.left + rcCorner.right;
+    int32_t nNewHeight = rc.Height() + rcCorner.top + rcCorner.bottom;
+    ASSERT(nNewWidth == rcClient.Width());
+    ASSERT(nNewHeight == rcClient.Height());
     SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
                  rc.left - rcCorner.left, rc.top - rcCorner.top,
-                 rc.right - rc.left, rc.bottom - rc.top,
-                 kSWP_SHOWWINDOW | (m_noFocus ? kSWP_NOACTIVATE : 0));
+                 nNewWidth, nNewHeight,
+                 kSWP_SHOWWINDOW | kSWP_NOSIZE | (m_noFocus ? kSWP_NOACTIVATE : 0));
+
+    if (!m_noFocus) {
+        SetWindowForeground();
+        SetFocusControl(Menu::GetLayoutListBox());
+    }
+    return true;
 }
 
-void Menu::OnInitWindow()
+void Menu::PostInitWindow()
 {
-    __super::OnInitWindow();
     ASSERT(m_pListBox == nullptr);
     m_listBoxFlag.reset();
     if (m_pOwner != nullptr) {
@@ -487,6 +515,9 @@ void Menu::OnInitWindow()
             m_listBoxFlag = m_pListBox->GetWeakFlag();
         }
     }
+
+    //需要在最后才调用基类的实现函数
+    BaseClass::PostInitWindow();
 }
 
 ListBox* Menu::GetLayoutListBox() const
@@ -498,7 +529,7 @@ void Menu::OnCloseWindow()
 {
     RemoveObserver();
     DetachOwner();
-    __super::OnCloseWindow();
+    BaseClass::OnCloseWindow();
 }
 
 bool Menu::AddMenuItem(MenuItem* pMenuItem)
@@ -866,7 +897,7 @@ bool MenuItem::ButtonUp(const ui::EventArgs& msg)
         return false;
     }
     std::weak_ptr<WeakFlag> weakFlag = pWindow->GetWeakFlag();
-    bool ret = __super::ButtonUp(msg);
+    bool ret = BaseClass::ButtonUp(msg);
     if (ret && !weakFlag.expired() && !msg.IsSenderExpired()) {
         //这里处理下如果有子菜单则显示子菜单
         if (!CheckSubMenuItem()){
@@ -884,10 +915,10 @@ bool MenuItem::MouseEnter(const ui::EventArgs& msg)
     Window* pWindow = GetWindow();
     ASSERT(pWindow != nullptr);
     if (pWindow == nullptr) {
-        return __super::MouseEnter(msg);
+        return BaseClass::MouseEnter(msg);
     }
     std::weak_ptr<WeakFlag> weakFlag = pWindow->GetWeakFlag();
-    bool ret = __super::MouseEnter(msg);
+    bool ret = BaseClass::MouseEnter(msg);
     if (!weakFlag.expired() && IsHotState() && !msg.IsSenderExpired()) {
         //这里处理下如果有子菜单则显示子菜单
         if (!CheckSubMenuItem()) {
@@ -986,7 +1017,23 @@ void MenuItem::CreateMenuWnd()
             subXmlFile = FilePathUtil::JoinFilePath(xmlPath, subXmlFile);
         }
         m_pSubWindow->SetSubMenuXml(pParentWindow->m_submenuXml.c_str(), pParentWindow->m_submenuNodeName.c_str());
-        m_pSubWindow->ShowMenu(subXmlFile.ToString(), UiPoint(), MenuPopupPosType::RIGHT_BOTTOM, false, this);
+
+        //设置子菜单窗口的左上角坐标(避免子菜单弹出时出现闪黑屏现象)
+        UiPoint subMenuPt;
+        if (pWindow != nullptr) {
+            UiRect rcOwner = GetPos();
+            UiRect rc = rcOwner;
+            UiPadding rcCorner = pWindow->GetShadowCorner();
+            UiRect rcWindow;
+            GetWindow()->GetWindowRect(rcWindow);
+            //去阴影
+            rcWindow.Deflate(rcCorner);
+            GetWindow()->ClientToScreen(rc);
+            rc.left = rcWindow.right;
+            subMenuPt.x = rc.left - rcCorner.left;
+            subMenuPt.y = rc.top - rcCorner.top;
+        }
+        m_pSubWindow->ShowMenu(subXmlFile.ToString(), subMenuPt, MenuPopupPosType::RIGHT_BOTTOM, false, this);
     }
 }
 

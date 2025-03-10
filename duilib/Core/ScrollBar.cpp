@@ -171,7 +171,7 @@ void ScrollBar::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
     SetThumbMinLength(iValue, false);
 
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 void ScrollBar::SetEnabled(bool bEnable)
@@ -205,7 +205,7 @@ void ScrollBar::SetVisible(bool bVisible)
         return;
     }
     bool v = IsVisible();
-    __super::SetVisible(bVisible);
+    BaseClass::SetVisible(bVisible);
     if( IsVisible() != v) {
         ArrangeSelf();
     }
@@ -247,7 +247,7 @@ bool ScrollBar::HasHotState()
 
 bool ScrollBar::MouseEnter(const EventArgs& msg)
 {
-    bool ret = __super::MouseEnter(msg);
+    bool ret = BaseClass::MouseEnter(msg);
     if (IsHotState() && !msg.IsSenderExpired()) {
         m_uButton1State = kControlStateHot;
         m_uButton2State = kControlStateHot;
@@ -258,7 +258,7 @@ bool ScrollBar::MouseEnter(const EventArgs& msg)
 
 bool ScrollBar::MouseLeave(const EventArgs& msg)
 {
-    bool ret = __super::MouseLeave(msg);
+    bool ret = BaseClass::MouseLeave(msg);
     if (!IsHotState() && !msg.IsSenderExpired()) {
         m_uButton1State = kControlStateNormal;
         m_uButton2State = kControlStateNormal;
@@ -444,7 +444,7 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
             m_pOwner->SendEventMsg(msg);
         }
         else {
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
         return;
     }
@@ -656,7 +656,7 @@ void ScrollBar::Paint(IRender* pRender, const UiRect& rcPaint)
 
 void ScrollBar::ClearImageCache()
 {
-    __super::ClearImageCache();
+    BaseClass::ClearImageCache();
     m_bkStateImage->ClearImageCache();
     m_button1StateImage->ClearImageCache();
     m_button2StateImage->ClearImageCache();

@@ -20,6 +20,7 @@ struct AppItem
 //App UI类
 class AppItemUi : public ui::ControlDragableT<ui::VBox>
 {
+    typedef ui::ControlDragableT<ui::VBox> BaseClass;
 public:
     static AppItemUi* Create(const AppItem& item, Box* p);
 

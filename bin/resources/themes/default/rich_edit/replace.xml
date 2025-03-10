@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="500,248" caption="0,0,0,35" shadow_attached="true" layered_window="true">
+<Window size="500,248" caption="0,0,0,35" text="替换" use_system_caption="false" shadow_attached="true" layered_window="true">
     <VBox bkcolor="bk_wnd_darkcolor">
-        <HBox width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
+        <HBox name="window_caption_bar" width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
             <Control width="auto" height="auto" bkimage="logo_18x18.png" valign="center" margin="8"/>
             <Label text="替换" valign="center" margin="8"/>
             <Control />

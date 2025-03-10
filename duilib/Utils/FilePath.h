@@ -91,12 +91,16 @@ public:
     */
     const DString& ToString() const;
 #else
+#ifdef DUILIB_BUILD_FOR_WIN
     DString ToString() const;
+#else
+    const DString& ToString() const;
+#endif
 #endif
 
     /** 转换为字符串(UTF16编码)
     */
-    const DStringW& ToStringW() const;
+    DStringW ToStringW() const;
 
     /** 转换为字符串(UTF8编码)
     */

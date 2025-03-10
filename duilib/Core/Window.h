@@ -15,6 +15,7 @@ class Box;
 class Control;
 class Shadow;
 class ToolTip;
+class WindowBuilder;
 
 /** 窗口类
 *  //外部调用需要初始化的基本流程:
@@ -356,6 +357,31 @@ public:
     */
     bool IsWindowAttributesApplied() const;
 
+    /** 初始化皮肤配置文件
+    * @param [in] skinFolder 窗口皮肤目录, 为相对路径
+    * @param [in] skinFile 窗口皮肤 XML 描述文件
+    */
+    void InitSkin(const DString& skinFolder, const DString& skinFile);
+
+public:
+    /**  创建窗口时被调用，由子类实现用以获取窗口皮肤目录
+    * @return 子类需实现并返回窗口皮肤目录, 为相对路径
+    */
+    virtual DString GetSkinFolder();
+
+    /**  创建窗口时被调用，由子类实现用以获取窗口皮肤 XML 描述文件
+    * @return 子类需实现并返回窗口皮肤 XML 描述文件
+    *         返回的内容，可以是XML文件内容（以字符'<'为开始的字符串），
+    *         或者是文件路径（不是以'<'字符开始的字符串），文件要在GetSkinFolder()路径中能够找到
+    */
+    virtual DString GetSkinFile();
+
+    /** 当要创建的控件不是标准的控件名称时会调用该函数
+    * @param [in] strClass 控件名称
+    * @return 返回一个自定义控件指针，一般情况下根据 strClass 参数创建自定义的控件
+    */
+    virtual Control* CreateControl(const DString& strClass);
+
 protected:
     /** 正在初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
     */
@@ -428,6 +454,11 @@ protected:
     */
     virtual bool IsPtInMaximizeRestoreButton(const UiPoint& pt) const override;
 
+    /** 获取创建窗口的属性（从XML文件的Window标签中读取的属性值）
+    * @param [out] createAttributes 返回从XML文件的Window标签中读取的创建窗口的属性
+    */
+    virtual void GetCreateWindowAttributes(WindowCreateAttributes& createAttributes) override;
+
     /** @name 窗口消息处理相关
         * @{
     */
@@ -489,12 +520,26 @@ protected:
     */
     virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
 
+    /** 通知应用程序输入焦点变化(WM_IME_SETCONTEXT)
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
+
     /** 输入法开始生成组合字符串(WM_IME_STARTCOMPOSITION)
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
     virtual LRESULT OnImeStartCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 更改按键组合状态(WM_IME_COMPOSITION)
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnImeCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
 
     /** 输入法结束组合(WM_IME_ENDCOMPOSITION)
     * @param [in] nativeMsg 从系统接收到的原始消息内容
@@ -645,6 +690,33 @@ protected:
     */
     virtual LRESULT OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
 
+    /** 鼠标中键按下消息（WM_MBUTTONDOWN）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseMButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 鼠标中键弹起消息（WM_MBUTTONUP）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseMButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 鼠标中键双击消息（WM_MBUTTONDBLCLK）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
+
     /** 窗口丢失鼠标捕获（WM_CAPTURECHANGED）
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
@@ -764,6 +836,10 @@ private:
     */
     bool ResizeRenderToClientSize() const;
 
+    /** 解析窗口关联的XML文件
+    */
+    void ParseWindowXml();
+
 private:
     //事件回调管理器
     EventMap m_OnEvent;
@@ -817,22 +893,41 @@ private:
     std::unique_ptr<IRender> m_render;
 
 private:
-    //每个窗口的资源路径(相对于资源根目录的路径)
+    /** 每个窗口的资源路径(相对于资源根目录的路径)
+    */
     FilePath m_resourcePath;
 
-    //窗口关联的XML文件所在路径(相对于m_resourcePath目录的路径), 实际XML文件所在目录是：m_resourcePath + m_xmlPath
+    /** 窗口关联的XML文件所在路径(相对于m_resourcePath目录的路径), 实际XML文件所在目录是：m_resourcePath + m_xmlPath
+    */
     FilePath m_xmlPath;
 
-    //窗口配置中class名称与属性映射关系
+    /** 皮肤路径
+    */
+    DString m_skinFolder;
+
+    /** 皮肤配置文件
+    */
+    DString m_skinFile;
+
+    /** XML解析及控件创建
+    */
+    std::unique_ptr<WindowBuilder> m_windowBuilder;
+
+private:
+    /** 窗口配置中class名称与属性映射关系
+    */
     std::map<DString, DString> m_defaultAttrHash;
 
-    //窗口颜色字符串与颜色值（ARGB）的映射关系
+    /** 窗口颜色字符串与颜色值（ARGB）的映射关系
+    */
     ColorMap m_colorMap;
 
-    //该窗口下每个Option group下的控件（即单选控件是分组的）
+    /** 该窗口下每个Option group下的控件（即单选控件是分组的）
+    */
     std::map<DString, std::vector<Control*>> m_mOptionGroup;
 
-    //Tooltip
+    /** Tooltip
+    */
     std::unique_ptr<ToolTip> m_toolTip;
 
     /** 窗口关闭的时候，发送退出消息循环的请求

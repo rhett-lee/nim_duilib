@@ -189,14 +189,14 @@ void AnimationPlayer::InitData()
 
 void AnimationPlayer::Init()
 {
-    __super::Init();
+    BaseClass::Init();
     InitData();
 }
 
 void AnimationPlayer::StartTimer()
 {
     InitFactor();
-    __super::StartTimer();
+    BaseClass::StartTimer();
 }
 
 int64_t AnimationPlayer::GetCurrentValue() const

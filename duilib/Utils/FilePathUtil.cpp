@@ -1,5 +1,5 @@
 #include "FilePathUtil.h"
-#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include <filesystem>
 
 namespace ui
@@ -14,9 +14,17 @@ FilePath FilePathUtil::JoinFilePath(const FilePath& path1, const FilePath& path2
 
 FilePath FilePathUtil::NormalizeFilePath(const FilePath& filePath)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     DStringW nativePath;
+#else
+    DStringA nativePath;
+#endif
     try {
+#ifdef DUILIB_BUILD_FOR_WIN
         std::filesystem::path file_path(filePath.ToStringW());
+#else
+        std::filesystem::path file_path(filePath.ToStringA());
+#endif
         nativePath = file_path.lexically_normal().native();
     }
     catch (...) {
@@ -26,12 +34,18 @@ FilePath FilePathUtil::NormalizeFilePath(const FilePath& filePath)
 
 DString FilePathUtil::NormalizeFilePath(const DString& filePath)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
+    //Windows平台
     DStringW nativePath;
     try {
 #ifdef DUILIB_UNICODE
         std::filesystem::path file_path(filePath);
 #else
-        std::filesystem::path file_path(StringUtil::UTF8ToUTF16(filePath));
+#ifdef DUILIB_BUILD_FOR_WIN
+        std::filesystem::path file_path(StringConvert::UTF8ToWString(filePath));
+#else
+        std::filesystem::path file_path(filePath);
+#endif
 #endif
         nativePath = file_path.lexically_normal().native();
     }
@@ -40,7 +54,19 @@ DString FilePathUtil::NormalizeFilePath(const DString& filePath)
 #ifdef DUILIB_UNICODE
     return nativePath;
 #else
-    return StringUtil::UTF16ToUTF8(nativePath);
+    return StringConvert::WStringToUTF8(nativePath);
+#endif
+
+#else
+    //Linux平台
+    DString nativePath;
+    try {
+        std::filesystem::path file_path(filePath);
+        nativePath = file_path.lexically_normal().native();
+    }
+    catch (...) {
+    }
+    return nativePath;
 #endif
 }
 
@@ -82,8 +108,10 @@ FilePath FilePathUtil::GetCurrentModuleDirectory()
     currentDir.RemoveFileName();
     return currentDir;
 #else
-    DStringW dirPath = std::filesystem::current_path().native();
-    return FilePath(dirPath);
+    DString dirPath = std::filesystem::current_path().native();
+    FilePath filePath(dirPath);
+    filePath.NormalizeDirectoryPath();
+    return filePath;
 #endif
 }
 

@@ -1,0 +1,9 @@
+下载来源：https://cef-builds.spotifycdn.com/index.html
+
+Linux：
+03/01/2025 - 133.4.5+gdb28106+chromium-133.0.6943.142 / Chromium 133.0.6943.142
+https://cef-builds.spotifycdn.com/cef_binary_133.4.5%2Bgdb28106%2Bchromium-133.0.6943.142_linux64.tar.bz2
+
+Chrome源码：
+    https://github.com/chromium/chromium/archive/refs/tags/133.0.6943.142.tar.gz
+

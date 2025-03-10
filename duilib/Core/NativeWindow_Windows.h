@@ -3,9 +3,10 @@
 
 #include "duilib/Core/INativeWindow.h"
 #include "duilib/Core/WindowCreateParam.h"
+#include "duilib/Core/WindowCreateAttributes.h"
 #include "duilib/Utils/FilePath.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include "duilib/duilib_config_windows.h"
 
@@ -25,19 +26,24 @@ public:
     /** 创建窗口
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
+    * @param [in] createAttributes XML文件中Window的相关属性
     */
-    bool CreateWnd(NativeWindow_Windows* pParentWindow, const WindowCreateParam& createParam);
+    bool CreateWnd(NativeWindow_Windows* pParentWindow,
+                  const WindowCreateParam& createParam,
+                  const WindowCreateAttributes& createAttributes);
 
     /** 显示模态窗口
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
-    * @param [in] bCenterWindow 窗口是否居中
     * @param [in] bCloseByEsc 按ESC键的时候，是否关闭窗口
     * @param [in] bCloseByEnter 按Enter键的时候，是否关闭窗口
     * @return 窗口退出时的返回值, 如果失败则返回-1
     */
-    int32_t DoModal(NativeWindow_Windows* pParentWindow, const WindowCreateParam& createParam,
-                    bool bCenterWindow = true, bool bCloseByEsc = true, bool bCloseByEnter = false);
+    int32_t DoModal(NativeWindow_Windows* pParentWindow,
+                    const WindowCreateParam& createParam,
+                    const WindowCreateAttributes& createAttributes,
+                    bool bCloseByEsc = true,
+                    bool bCloseByEnter = false);
 
     /** 获取窗口所属的 Windows 句柄
     */
@@ -146,13 +152,15 @@ public:
     */
     void CenterWindow();
 
-    /** 将窗口设置为置顶窗口
+    /** 是否将窗口设置为置顶窗口
+    * @param [in] bOnTop true表示设置为置顶窗口，false表示取消置顶窗口
     */
-    void ToTopMost();
+    void SetWindowAlwaysOnTop(bool bOnTop);
 
-    /** 将窗口调整为顶层窗口
+    /** 判断当前窗口是否为置顶窗口
+    * @return true表示当前为置顶窗口，false表示当前不是置顶窗口
     */
-    void BringToTop();
+    bool IsWindowAlwaysOnTop() const;
 
     /** 设置窗口为前端窗口
     */
@@ -174,21 +182,9 @@ public:
     */
     bool IsWindowFocused() const;
 
-    /** 设置Owner窗口为焦点窗口
-    */
-    bool SetOwnerWindowFocus();
-
     /** 检查并确保当前窗口为焦点窗口
     */
     void CheckSetWindowFocus();
-
-    /** 发送消息，对 Windows SendMessage 的一层封装
-    * @param [in] uMsg 消息类型
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @return 返回窗口对消息的处理结果
-    */
-    LRESULT SendMsg(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0L);
 
     /** 投递一个消息到消息队列
     * @param [in] uMsg 消息类型
@@ -201,7 +197,7 @@ public:
     /** 向消息队列发送退出消息
     * @param [in] nExitCode 退出码
     */
-    void PostQuitMsg(int32_t nExitCode);
+    static void PostQuitMsg(int32_t nExitCode);
 
 public:
     /** 使窗口进入全屏状态
@@ -267,13 +263,32 @@ public:
 
     /** 设置窗口图标（支持*.ico格式）
     *  @param [in] iconFileData ico文件的数据
+    *  @param [in] iconFileName 包含扩展名的文件名，用于识别图片类型
     */
-    bool SetWindowIcon(const std::vector<uint8_t>& iconFileData);
+    bool SetWindowIcon(const std::vector<uint8_t>& iconFileData, const DString& iconFileName);
 
     /** 设置窗口标题栏文本
     * @param [in] strText 窗口标题栏文本
     */
     void SetText(const DString& strText);
+
+    /** 设置窗口大小的最小值（宽度和高度，内部不按DPI调整大小，DPI自适应需要调用方来做）
+    * @param [in] szMaxWindow 窗口的最大宽度和最小高度，如果值为0，表示不做限制
+    */
+    void SetWindowMaximumSize(const UiSize& szMaxWindow);
+
+    /** 获取窗口大小的最小值（宽度和高度）
+    */
+    const UiSize& GetWindowMaximumSize() const;
+
+    /** 设置窗口大小的最大值（宽度和高度，内部不按DPI调整大小，DPI自适应需要调用方来做）
+    * @param [in] szMinWindow 窗口的最小宽度和最小高度，如果值为0，表示不做限制
+    */
+    void SetWindowMinimumSize(const UiSize& szMinWindow);
+
+    /** 获取窗口大小的最大值（宽度和高度）
+    */
+    const UiSize& GetWindowMinimumSize() const;
 
 public:
     /** 设置当要捕获的鼠标窗口句柄为当前绘制窗口
@@ -339,15 +354,15 @@ public:
     */
     void GetCursorPos(UiPoint& pt) const;
 
-    /* 将rc的左上角坐标和右下角坐标点从相对于当前窗口的坐标空间转换为相对于桌面窗口的坐标空间
-    * @param [out] rc 返回屏幕坐标
-    */
-    void MapWindowDesktopRect(UiRect& rc) const;
-
     /** 获取指定窗口所在显示器的显示器矩形
     * @param [out] rcMonitor 显示器的矩形区域
     */
     bool GetMonitorRect(UiRect& rcMonitor) const;
+
+    /** 获取当前主显示器的工作区矩形
+    * @param [out] rcWork 返回主屏幕坐标
+    */
+    static bool GetPrimaryMonitorWorkRect(UiRect& rcWork);
 
     /** 获取当前窗口所在显示器的工作区矩形，以虚拟屏幕坐标表示。
         请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
@@ -523,6 +538,10 @@ private:
     */
     void OnFinalMessage();
 
+    /** 设置Owner窗口为焦点窗口
+    */
+    bool SetOwnerWindowFocus();
+
     /** 获取当前窗口Owner窗口句柄
     */
     HWND GetWindowOwner() const;
@@ -563,6 +582,14 @@ private:
     */
     LRESULT OnPaintMsg(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
+    /** 同步创建窗口的属性
+    */
+    void SyncCreateWindowAttributes(const WindowCreateAttributes& createAttributes);
+
+    /** 计算窗口居中的位置
+    */
+    bool CalculateCenterWindowPos(HWND hCenterWindow, int32_t& xPos, int32_t& yPos) const;
+
 private:
     /** 接收窗口事件的接口
     */
@@ -587,10 +614,6 @@ private:
     /** 当前窗口是否显示为模态对话框
     */
     bool m_bDoModal;
-
-    /** 窗口是否居中(仅模态对话框有效)
-    */
-    bool m_bCenterWindow;
 
     /** 按ESC键的时候，是否关闭窗口(仅模态对话框有效)
     */
@@ -661,6 +684,14 @@ private:
     /** 系统全局热键的ID
     */
     std::vector<int32_t> m_hotKeyIds;
+
+    /** 窗口大小的最小值（宽度和高度）
+    */
+    UiSize m_szMinWindow;
+
+    /** 窗口大小的最大值（宽度和高度）
+    */
+    UiSize m_szMaxWindow;
 };
 
 /** 定义别名

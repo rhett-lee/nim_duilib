@@ -19,75 +19,7 @@ WindowImplBase::~WindowImplBase()
 
 void WindowImplBase::PreInitWindow()
 {
-    __super::PreInitWindow();
-
-    //保存资源所在路径(不支持绝对路径)
-    FilePath skinFolder(GetSkinFolder());
-    ASSERT(!skinFolder.IsAbsolutePath());
-    if (skinFolder.IsAbsolutePath()) {
-        return;
-    }
-
-    SetResourcePath(skinFolder);
-    SetXmlPath(FilePath());
-
-    //XML文件所在路径，应是相对路
-    DString xmlFile = GetSkinFile();
-    DString skinXmlFileData;
-    FilePath skinXmlFilePath;
-    if (!xmlFile.empty() && xmlFile.front() == _T('<')) {
-        //返回的内容是XML文件内容，而不是文件路径        
-        skinXmlFileData = std::move(xmlFile);
-    }
-    else {
-        FilePath xmlFilePath(xmlFile);
-        ASSERT(!xmlFilePath.IsAbsolutePath());
-        if (xmlFilePath.IsAbsolutePath()) {
-            return;
-        }
-
-        //保存XML文件所在路径
-        size_t nPos = xmlFile.find_last_of(_T("/\\"));
-        if (nPos != DString::npos) {
-            DString xmlPath = xmlFile.substr(0, nPos);
-            if (!xmlPath.empty()) {
-                SetXmlPath(FilePath(xmlPath));
-            }
-        }
-        skinXmlFilePath = GetResourcePath();
-        skinXmlFilePath.JoinFilePath(xmlFilePath);
-    }
-    auto callback = UiBind(&WindowImplBase::CreateControl, this, std::placeholders::_1);
-    WindowBuilder builder;
-    Box* pRoot = nullptr;
-    if (!skinXmlFileData.empty()) {
-        Control* pControl = builder.CreateFromXmlData(skinXmlFileData, callback, this);
-        pRoot = builder.ToBox(pControl);
-    }
-    else {
-        ASSERT(!skinXmlFilePath.IsEmpty());
-        Control* pControl = builder.CreateFromXmlFile(skinXmlFilePath, callback, this);
-        pRoot = builder.ToBox(pControl);
-    }
-
-    ASSERT(pRoot && _T("Faield to load xml file."));
-    if (pRoot == nullptr) {
-        return;
-    }
-
-    if (IsUseSystemCaption()) {
-        //关闭阴影
-        SetShadowAttached(false);
-    }
-
-    //关联窗口附加阴影
-    pRoot = AttachShadow(pRoot);
-
-    //关联Root对象
-    AttachBox(pRoot);
-
-    //更新自绘制标题栏状态
-    OnUseSystemCaptionBarChanged();
+    BaseClass::PreInitWindow();
     if (!IsUseSystemCaption()) {
         //关闭按钮
         Control* pControl = FindControl(DUI_CTR_BUTTON_CLOSE);
@@ -137,38 +69,32 @@ void WindowImplBase::PreInitWindow()
 
 DString WindowImplBase::GetSkinFolder()
 {
-    return m_skinFolder;
+    return BaseClass::GetSkinFolder();
 }
 
 DString WindowImplBase::GetSkinFile()
 {
-    return m_skinFile;
+    return BaseClass::GetSkinFile();
 }
 
-void WindowImplBase::InitSkin(const DString& skinFolder, const DString& skinFile)
+Control* WindowImplBase::CreateControl(const DString& strClass)
 {
-    m_skinFolder = skinFolder;
-    m_skinFile = skinFile;
+    return BaseClass::CreateControl(strClass);
 }
 
 void WindowImplBase::OnInitWindow()
 {
-    __super::OnInitWindow();    
+    BaseClass::OnInitWindow();
 }
 
 void WindowImplBase::OnCloseWindow()
 {
-    __super::OnCloseWindow();
+    BaseClass::OnCloseWindow();
 }
 
 void WindowImplBase::OnFinalMessage()
 {
-    __super::OnFinalMessage();
-}
-
-Control* WindowImplBase::CreateControl(const DString& /*strClass*/)
-{
-    return nullptr;
+    BaseClass::OnFinalMessage();
 }
 
 bool WindowImplBase::OnButtonClick(const EventArgs& msg)
@@ -209,7 +135,7 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
 LRESULT WindowImplBase::OnSizeMsg(WindowSizeType sizeType, const UiSize& newWindowSize, const NativeMsg& nativeMsg, bool& bHandled)
 {
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-    LRESULT lResult = __super::OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnSizeMsg(sizeType, newWindowSize, nativeMsg, bHandled);
     if (windowFlag.expired()) {
         return lResult;
     }
@@ -271,7 +197,7 @@ void WindowImplBase::OnWindowMinimized()
 
 void WindowImplBase::OnUseSystemCaptionBarChanged()
 {
-    __super::OnUseSystemCaptionBarChanged();
+    BaseClass::OnUseSystemCaptionBarChanged();
     if (GetRoot() == nullptr) {
         return;
     }
@@ -286,7 +212,7 @@ void WindowImplBase::OnUseSystemCaptionBarChanged()
 
 void WindowImplBase::OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI)
 {
-    __super::OnWindowDpiChanged(nOldDPI, nNewDPI);
+    BaseClass::OnWindowDpiChanged(nOldDPI, nNewDPI);
 }
 
 void WindowImplBase::ProcessMaxRestoreStatus()

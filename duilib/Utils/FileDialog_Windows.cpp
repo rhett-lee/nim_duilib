@@ -1,22 +1,37 @@
 #include "FileDialog.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Utils/StringConvert.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 #include "duilib/duilib_config_windows.h"
 #include <shlobj.h>
 
 namespace ui
 {
-bool FileDialog::BrowseForFolder(Window* pWindow, FilePath& folderPath)
+bool FileDialog::BrowseForFolder(Window* pWindow, FilePath& folderPath, const FilePath& defaultLocation)
 {
     folderPath.Clear();
     IFileDialog* pfd = nullptr;//仅Win7以及上支持
     HRESULT hr = ::CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
+    ASSERT(SUCCEEDED(hr));
     if (SUCCEEDED(hr) && (pfd != nullptr)) {
         FILEOPENDIALOGOPTIONS fos = 0;
         pfd->GetOptions(&fos);
         fos |= FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM;
         pfd->SetOptions(fos);
+
+        //设置默认文件夹
+        if (!defaultLocation.IsEmpty()) {
+            DStringW defaultPath = defaultLocation.ToStringW();
+            IShellItem* psi = nullptr;
+            hr = SHCreateItemFromParsingName(defaultPath.c_str(), nullptr, IID_IShellItem, reinterpret_cast<void**>(&psi));
+            if (SUCCEEDED(hr) && (psi != nullptr)) {
+                pfd->SetDefaultFolder(psi);
+                psi->Release();
+                psi = nullptr;
+            }
+        }
+
         hr = pfd->Show((pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr);
         if (SUCCEEDED(hr)) {
             IShellItem* pItem = nullptr;
@@ -37,16 +52,30 @@ bool FileDialog::BrowseForFolder(Window* pWindow, FilePath& folderPath)
     return !folderPath.IsEmpty();
 }
 
-bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<FilePath>& folderPaths)
+bool FileDialog::BrowseForFolders(Window* pWindow, std::vector<FilePath>& folderPaths, const FilePath& defaultLocation)
 {
     folderPaths.clear();
     IFileOpenDialog* pfd = nullptr;//仅Win7以及上支持
     HRESULT hr = ::CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd));
+    ASSERT(SUCCEEDED(hr));
     if (SUCCEEDED(hr) && (pfd != nullptr)) {
         FILEOPENDIALOGOPTIONS fos = 0;
         pfd->GetOptions(&fos);
         fos |= FOS_PICKFOLDERS | FOS_FORCEFILESYSTEM | FOS_ALLOWMULTISELECT;
         pfd->SetOptions(fos);
+
+        //设置默认文件夹
+        if (!defaultLocation.IsEmpty()) {
+            DStringW defaultPath = defaultLocation.ToStringW();
+            IShellItem* psi = nullptr;
+            hr = SHCreateItemFromParsingName(defaultPath.c_str(), nullptr, IID_IShellItem, reinterpret_cast<void**>(&psi));
+            if (SUCCEEDED(hr) && (psi != nullptr)) {
+                pfd->SetDefaultFolder(psi);
+                psi->Release();
+                psi = nullptr;
+            }
+        }
+
         hr = pfd->Show((pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr);
         if (SUCCEEDED(hr)) {
             IShellItemArray* pSelResultArray = nullptr;
@@ -88,7 +117,8 @@ bool FileDialog::BrowseForFile(Window* pWindow,
                                const std::vector<FileType>& fileTypes,
                                int32_t nFileTypeIndex,
                                const DString& defaultExt,
-                               const DString& fileName)
+                               const DString& fileName,
+                               const FilePath& defaultLocation)
 {
     filePath.Clear();
     IFileDialog* pfd = nullptr;//仅Win7以及上支持
@@ -107,7 +137,7 @@ bool FileDialog::BrowseForFile(Window* pWindow,
     };
     std::vector<FileTypeW> fileTypesW;
     for (const FileType& fileType : fileTypes) {
-        fileTypesW.push_back({ StringUtil::TToUTF16(fileType.szName), StringUtil::TToUTF16(fileType.szExt) });
+        fileTypesW.push_back({ StringConvert::TToWString(fileType.szName), StringConvert::TToWString(fileType.szExt) });
     }
 
     if (SUCCEEDED(hr) && (pfd != nullptr)) {
@@ -127,12 +157,24 @@ bool FileDialog::BrowseForFile(Window* pWindow,
             ASSERT(SUCCEEDED(hr));
         }
         if (!defaultExt.empty()) {
-            hr = pfd->SetDefaultExtension(StringUtil::TToUTF16(defaultExt).c_str());
+            hr = pfd->SetDefaultExtension(StringConvert::TToWString(defaultExt).c_str());
             ASSERT(SUCCEEDED(hr));
         }
 
-        DStringW fileNameW = StringUtil::TToUTF16(fileName);
+        DStringW fileNameW = StringConvert::TToWString(fileName);
         pfd->SetFileName(fileNameW.c_str());
+
+        //设置默认文件夹
+        if (!defaultLocation.IsEmpty()) {
+            DStringW defaultPath = defaultLocation.ToStringW();
+            IShellItem* psi = nullptr;
+            hr = SHCreateItemFromParsingName(defaultPath.c_str(), nullptr, IID_IShellItem, reinterpret_cast<void**>(&psi));
+            if (SUCCEEDED(hr) && (psi != nullptr)) {
+                pfd->SetDefaultFolder(psi);
+                psi->Release();
+                psi = nullptr;
+            }
+        }
 
         if (pfd->Show((pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr) == S_OK) {
             IShellItem* pItem = nullptr;
@@ -154,10 +196,11 @@ bool FileDialog::BrowseForFile(Window* pWindow,
 }
 
 bool FileDialog::BrowseForFiles(Window* pWindow, 
-                                std::vector<DString>& filePaths,                                
+                                std::vector<FilePath>& filePaths,                                
                                 const std::vector<FileType>& fileTypes,
                                 int32_t nFileTypeIndex,
-                                const DString& defaultExt)
+                                const DString& defaultExt,
+                                const FilePath& defaultLocation)
 {
     filePaths.clear();
     IFileOpenDialog* pfd = nullptr;//仅Win7以及上支持
@@ -179,9 +222,22 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
             ASSERT(SUCCEEDED(hr));
         }
         if (!defaultExt.empty()) {
-            hr = pfd->SetDefaultExtension(StringUtil::TToUTF16(defaultExt).c_str());
+            hr = pfd->SetDefaultExtension(StringConvert::TToWString(defaultExt).c_str());
             ASSERT(SUCCEEDED(hr));
         }
+
+        //设置默认文件夹
+        if (!defaultLocation.IsEmpty()) {
+            DStringW defaultPath = defaultLocation.ToStringW();
+            IShellItem* psi = nullptr;
+            hr = SHCreateItemFromParsingName(defaultPath.c_str(), nullptr, IID_IShellItem, reinterpret_cast<void**>(&psi));
+            if (SUCCEEDED(hr) && (psi != nullptr)) {
+                pfd->SetDefaultFolder(psi);
+                psi->Release();
+                psi = nullptr;
+            }
+        }
+
         hr = pfd->Show((pWindow != nullptr) ? pWindow->NativeWnd()->GetHWND() : nullptr);
         if (SUCCEEDED(hr)) {
             IShellItemArray* pSelResultArray = nullptr;
@@ -199,11 +255,11 @@ bool FileDialog::BrowseForFiles(Window* pWindow,
                         LPWSTR pName = nullptr;
                         hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &pName);
                         if (SUCCEEDED(hr) && (pName != nullptr)) {
-                            DString folderPath = StringUtil::UTF16ToT(pName);
+                            DStringW folderPath = pName;
                             ::CoTaskMemFree(pName);
                             pName = nullptr;
                             if (!folderPath.empty()) {
-                                filePaths.push_back(folderPath);
+                                filePaths.push_back(FilePath(folderPath));
                             }
                         }
                         pItem->Release();

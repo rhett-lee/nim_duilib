@@ -1,11 +1,16 @@
 #include "DateTime.h"
-#include "DateTimeWnd_Windows.h"
 #include <sstream>
+
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    #include "DateTimeWnd_Windows.h"
+#elif defined (DUILIB_BUILD_FOR_SDL)
+    #include "DateTimeWnd_SDL.h"
+#endif
 
 namespace ui
 {
 DateTime::DateTime(Window* pWindow):
-    Label(pWindow),
+    LabelTemplate<HBox>(pWindow),
     m_dateTime({0,}),
     m_pDateWindow(nullptr),
     m_editFormat(EditFormat::kDateCalendar),
@@ -16,6 +21,10 @@ DateTime::DateTime(Window* pWindow):
     SetAttribute(_T("border_color"), _T("gray"));
     SetAttribute(_T("text_align"), _T("vcenter"));
     SetAttribute(_T("text_padding"), _T("2,0,0,0"));
+#ifdef DUILIB_BUILD_FOR_SDL
+    SetAttribute(_T("padding"), _T("1,1,1,1"));
+    SetAttribute(_T("spin_class"), _T("rich_edit_spin_box,rich_edit_spin_btn_up,rich_edit_spin_btn_down"));
+#endif
 }
 
 DateTime::~DateTime()
@@ -52,8 +61,11 @@ void DateTime::SetAttribute(const DString& strName, const DString& strValue)
             ASSERT(0);
         }
     }
+    else if (strName == _T("spin_class")) {
+        SetSpinClass(strValue);
+    }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -61,7 +73,11 @@ void DateTime::InitLocalTime()
 {
     time_t timeNow = std::time(nullptr);
     std::tm dateTime = {0, };
+#ifdef _MSC_VER
     ::localtime_s(&dateTime, &timeNow);
+#else
+    ::localtime_r(&timeNow, &dateTime);
+#endif
     SetDateTime(dateTime);
 }
 
@@ -155,7 +171,11 @@ bool DateTime::SetDateTimeString(const DString& dateTime)
         //如果不包含年月日，需要更新为当日值，否则编辑的时候认为是无效日期
         time_t timeNow = std::time(nullptr);
         std::tm tmTime = { 0, };
+#ifdef _MSC_VER
         ::localtime_s(&tmTime, &timeNow);
+#else
+        ::localtime_r(&timeNow, &tmTime);
+#endif
         if (m_dateTime.tm_year < 0) {
             m_dateTime.tm_year = tmTime.tm_year;
         }        
@@ -177,7 +197,11 @@ bool DateTime::SetDateTimeString(const DString& dateTime)
         time_t timeValue = std::mktime(&m_dateTime);
         ASSERT(timeValue != 0);
         if (timeValue != 0) {
+#ifdef _MSC_VER
             ::localtime_s(&m_dateTime, &timeValue);
+#else
+            ::localtime_r(&timeValue, &m_dateTime);
+#endif
         }
     }
     ASSERT(bRet);
@@ -289,13 +313,16 @@ DateTime::EditFormat DateTime::GetEditFormat() const
     return m_editFormat;
 }
 
+DString::value_type DateTime::GetDateSeparator() const
+{
+    return m_dateSeparator;
+}
+
 void DateTime::UpdateEditWndPos()
 {
-#ifdef DUILIB_BUILD_FOR_WIN
     if (m_pDateWindow != nullptr) {
         m_pDateWindow->UpdateWndPos();
     }
-#endif
 }
 
 void DateTime::HandleEvent(const EventArgs& msg)
@@ -307,7 +334,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
             pParent->SendEventMsg(msg);
         }
         else {
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
         return;
     }
@@ -333,8 +360,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
             //尚未显示，刷新一次窗口，确保控件先确定位置，然后再显示编辑窗口
             GetWindow()->UpdateWindow();
         }
-        if (IsFocused()) {
-#ifdef DUILIB_BUILD_FOR_WIN
+        if (IsFocused() && IsEnabled()) {
             m_pDateWindow = new DateTimeWnd(this);
             if (m_pDateWindow->Init(this)) {
                 m_pDateWindow->ShowWindow();
@@ -343,8 +369,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
                 delete m_pDateWindow;
                 m_pDateWindow = nullptr;
             }
-#endif
-        }        
+        }
     }
     if (msg.eventType == kEventKillFocus) {
         Invalidate();
@@ -355,8 +380,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
         if (GetWindow() != nullptr) {
             GetWindow()->ReleaseCapture();
         }
-#ifdef DUILIB_BUILD_FOR_WIN
-        if (IsFocused() && (m_pDateWindow == nullptr)) {
+        if (IsFocused() && IsEnabled() && (m_pDateWindow == nullptr)) {
             m_pDateWindow = new DateTimeWnd(this);
         }
         if (m_pDateWindow != nullptr) {
@@ -368,7 +392,6 @@ void DateTime::HandleEvent(const EventArgs& msg)
                 m_pDateWindow = nullptr;
             }
         }
-#endif
     }
     if (msg.eventType == kEventMouseMove) {
         return;
@@ -385,7 +408,7 @@ void DateTime::HandleEvent(const EventArgs& msg)
     if (msg.eventType == kEventMouseLeave) {
         return;
     }
-    __super::HandleEvent(msg);
+    BaseClass::HandleEvent(msg);
 }
 
 void DateTime::OnInit()
@@ -393,7 +416,7 @@ void DateTime::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
 
     if (!IsValidDateTime()) {
         DString text = GetText();
@@ -402,6 +425,33 @@ void DateTime::OnInit()
             SetDateTimeString(text);
         }
     }
+}
+
+void DateTime::SetSpinClass(const DString& spinClass)
+{
+    m_spinClass = spinClass;
+}
+
+DString DateTime::GetSpinClass() const
+{
+    return m_spinClass.c_str();
+}
+
+void DateTime::SendEventMsg(const EventArgs& msg)
+{
+    if ((msg.GetSender() == this) && (msg.eventType == kEventKillFocus)) {
+        Control* pNewFocus = (Control*)msg.wParam;
+        if ((pNewFocus != nullptr) && (GetItemIndex(pNewFocus) != Box::InvalidIndex)) {
+            //焦点切换到子控件，不发出KillFocus事件
+            return;
+        }
+    }
+    BaseClass::SendEventMsg(msg);
+}
+
+void DateTime::EndEditDateTime()
+{
+    SendEvent(kEventKillFocus);
 }
 
 }//namespace ui

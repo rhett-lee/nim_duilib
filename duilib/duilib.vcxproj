@@ -121,7 +121,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\;..\..\skia\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef_win\;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;SK_GANESH;SK_GL;SK_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -140,6 +140,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -178,7 +179,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\;..\..\skia\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef_win\;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;SK_GANESH;SK_GL;SK_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -196,6 +197,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -235,7 +237,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\;..\..\skia\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef_win\;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;SK_GANESH;SK_GL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -253,6 +255,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -292,7 +295,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\;..\..\skia\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef_win\;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;SK_GANESH;SK_GL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -310,6 +313,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
+      <ShowIncludes>false</ShowIncludes>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -370,6 +374,22 @@
     <ClCompile Include="Box\VirtualVTileLayout.cpp" />
     <ClCompile Include="Box\VLayout.cpp" />
     <ClCompile Include="Box\VTileLayout.cpp" />
+    <ClCompile Include="CEFControl\CefControl.cpp" />
+    <ClCompile Include="CEFControl\CefControlNative.cpp" />
+    <ClCompile Include="CEFControl\CefControlOffScreen.cpp" />
+    <ClCompile Include="CEFControl\CefDragDrop_Windows.cpp" />
+    <ClCompile Include="CEFControl\CefManager.cpp" />
+    <ClCompile Include="CEFControl\internal\CefBrowserHandler.cpp" />
+    <ClCompile Include="CEFControl\internal\CefClientApp.cpp" />
+    <ClCompile Include="CEFControl\internal\CefClientAppBrowser.cpp" />
+    <ClCompile Include="CEFControl\internal\CefClientAppRender.cpp" />
+    <ClCompile Include="CEFControl\internal\CefJSBridge.cpp" />
+    <ClCompile Include="CEFControl\internal\CefJsHandler.cpp" />
+    <ClCompile Include="CEFControl\internal\CefMemoryBlock.cpp" />
+    <ClCompile Include="CEFControl\internal\Windows\bytes_write_handler.cc" />
+    <ClCompile Include="CEFControl\internal\Windows\osr_dragdrop_win.cc" />
+    <ClCompile Include="CEFControl\internal\Windows\osr_ime_handler_win.cc" />
+    <ClCompile Include="CEFControl\internal\Windows\util_win.cc" />
     <ClCompile Include="Control\CheckCombo.cpp" />
     <ClCompile Include="Control\CircleProgress.cpp" />
     <ClCompile Include="Control\ColorControl.cpp" />
@@ -382,6 +402,7 @@
     <ClCompile Include="Control\ColorSlider.cpp" />
     <ClCompile Include="Control\ComboButton.cpp" />
     <ClCompile Include="Control\DateTime.cpp" />
+    <ClCompile Include="Control\DateTimeWnd_SDL.cpp" />
     <ClCompile Include="Control\DateTimeWnd_Windows.cpp" />
     <ClCompile Include="Control\FilterCombo.cpp" />
     <ClCompile Include="Control\HotKey.cpp" />
@@ -398,7 +419,10 @@
     <ClCompile Include="Control\ListCtrlView.cpp" />
     <ClCompile Include="Control\Menu.cpp" />
     <ClCompile Include="Control\PropertyGrid.cpp" />
-    <ClCompile Include="Control\RichEditHost.cpp" />
+    <ClCompile Include="Control\RichEditData.cpp" />
+    <ClCompile Include="Control\RichEditHost_Windows.cpp" />
+    <ClCompile Include="Control\RichEdit_SDL.cpp" />
+    <ClCompile Include="Control\RichEdit_Windows.cpp" />
     <ClCompile Include="Control\RichText.cpp" />
     <ClCompile Include="Control\TabCtrl.cpp" />
     <ClCompile Include="Core\Box.cpp" />
@@ -408,11 +432,14 @@
     <ClCompile Include="Core\ControlDropTarget.cpp" />
     <ClCompile Include="Core\ControlFinder.cpp" />
     <ClCompile Include="Core\ControlLoading.cpp" />
+    <ClCompile Include="Core\CursorManager_SDL.cpp" />
     <ClCompile Include="Core\CursorManager_Windows.cpp" />
     <ClCompile Include="Core\DpiAwareness.cpp" />
+    <ClCompile Include="Core\DpiAwareness_SDL.cpp" />
     <ClCompile Include="Core\DpiAwareness_Windows.cpp" />
     <ClCompile Include="Core\DpiManager.cpp" />
     <ClCompile Include="Core\DragWindow.cpp" />
+    <ClCompile Include="Core\DragWindowFilter_SDL.cpp" />
     <ClCompile Include="Core\EventArgs.cpp" />
     <ClCompile Include="Core\FontManager.cpp" />
     <ClCompile Include="Core\FrameworkThread.cpp" />
@@ -420,23 +447,30 @@
     <ClCompile Include="Core\IconManager_Windows.cpp" />
     <ClCompile Include="Core\ImageList.cpp" />
     <ClCompile Include="Core\ImageManager.cpp" />
+    <ClCompile Include="Core\Keyboard_SDL.cpp" />
     <ClCompile Include="Core\Keyboard_Windows.cpp" />
+    <ClCompile Include="Core\Keycode_SDL.cpp" />
     <ClCompile Include="Core\LangManager.cpp" />
+    <ClCompile Include="Core\MessageLoop_SDL.cpp" />
     <ClCompile Include="Core\MessageLoop_Windows.cpp" />
+    <ClCompile Include="Core\NativeWindow_SDL.cpp" />
     <ClCompile Include="Core\NativeWindow_Windows.cpp" />
-    <ClCompile Include="Core\Placeholder.cpp" />
+    <ClCompile Include="Core\PlaceHolder.cpp" />
     <ClCompile Include="Core\ScrollBar.cpp" />
     <ClCompile Include="Core\Shadow.cpp" />
     <ClCompile Include="Core\StateColorMap.cpp" />
     <ClCompile Include="Core\ThreadManager.cpp" />
+    <ClCompile Include="Core\ThreadMessage_SDL.cpp" />
     <ClCompile Include="Core\ThreadMessage_Windows.cpp" />
     <ClCompile Include="Core\TimerManager.cpp" />
+    <ClCompile Include="Core\ToolTip_SDL.cpp" />
     <ClCompile Include="Core\ToolTip_Windows.cpp" />
     <ClCompile Include="Core\UiColors.cpp" />
     <ClCompile Include="Core\Window.cpp" />
     <ClCompile Include="Core\WindowBase.cpp" />
     <ClCompile Include="Core\WindowBuilder.cpp" />
     <ClCompile Include="Core\WindowCreateParam.cpp" />
+    <ClCompile Include="Core\WindowDropTarget_SDL.cpp" />
     <ClCompile Include="Core\WindowDropTarget_Windows.cpp" />
     <ClCompile Include="Core\ZipManager.cpp" />
     <ClCompile Include="Core\ZipStreamIO.cpp" />
@@ -458,8 +492,10 @@
     <ClCompile Include="RenderSkia\Pen_Skia.cpp" />
     <ClCompile Include="RenderSkia\RenderFactory_Skia.cpp" />
     <ClCompile Include="RenderSkia\Render_Skia.cpp" />
+    <ClCompile Include="RenderSkia\Render_Skia_SDL.cpp" />
     <ClCompile Include="RenderSkia\Render_Skia_Windows.cpp" />
     <ClCompile Include="RenderSkia\SkGLWindowContext_Windows.cpp" />
+    <ClCompile Include="RenderSkia\SkRasterWindowContext_SDL.cpp" />
     <ClCompile Include="RenderSkia\SkRasterWindowContext_Windows.cpp" />
     <ClCompile Include="RenderSkia\SkTextBox.cpp" />
     <ClCompile Include="RenderSkia\SkUtils.cpp" />
@@ -477,22 +513,32 @@
     </ClCompile>
     <ClCompile Include="Utils\ApiWrapper_Windows.cpp" />
     <ClCompile Include="Utils\AttributeUtil.cpp" />
-    <ClCompile Include="Utils\BitmapHepler.cpp" />
+    <ClCompile Include="Utils\BitmapHepler_SDL.cpp" />
+    <ClCompile Include="Utils\BitmapHepler_Windows.cpp" />
+    <ClCompile Include="Utils\Clipboard_SDL.cpp" />
+    <ClCompile Include="Utils\Clipboard_Windows.cpp" />
+    <ClCompile Include="Utils\FileDialog_SDL.cpp" />
     <ClCompile Include="Utils\FileDialog_Windows.cpp" />
     <ClCompile Include="Utils\FilePath.cpp" />
     <ClCompile Include="Utils\FilePathUtil.cpp" />
     <ClCompile Include="Utils\FileUtil.cpp" />
     <ClCompile Include="Utils\LogUtil.cpp" />
+    <ClCompile Include="Utils\MonitorUtil_SDL.cpp" />
     <ClCompile Include="Utils\MonitorUtil_Windows.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
+    <ClCompile Include="Utils\ScreenCapture_SDL.cpp" />
     <ClCompile Include="Utils\ScreenCapture_Windows.cpp" />
+    <ClCompile Include="Utils\ShadowWnd_SDL.cpp" />
     <ClCompile Include="Utils\ShadowWnd_Windows.cpp" />
+    <ClCompile Include="Utils\StringCharset.cpp" />
+    <ClCompile Include="Utils\StringConvert.cpp" />
     <ClCompile Include="Utils\StringUtil.cpp" />
     <ClCompile Include="Control\Combo.cpp" />
     <ClCompile Include="Control\Progress.cpp" />
-    <ClCompile Include="Control\RichEdit.cpp" />
     <ClCompile Include="Control\Slider.cpp" />
     <ClCompile Include="Control\TreeView.cpp" />
+    <ClCompile Include="Utils\SystemUtil_SDL.cpp" />
+    <ClCompile Include="Utils\SystemUtil_Windows.cpp" />
     <ClCompile Include="Utils\WinImplBase.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -521,6 +567,25 @@
     <ClInclude Include="Box\VirtualVTileLayout.h" />
     <ClInclude Include="Box\VLayout.h" />
     <ClInclude Include="Box\VTileLayout.h" />
+    <ClInclude Include="CEFControl\CefControl.h" />
+    <ClInclude Include="CEFControl\CefControlEvent.h" />
+    <ClInclude Include="CEFControl\CefControlNative.h" />
+    <ClInclude Include="CEFControl\CefControlOffScreen.h" />
+    <ClInclude Include="CEFControl\CefDragDrop_Windows.h" />
+    <ClInclude Include="CEFControl\CefManager.h" />
+    <ClInclude Include="CEFControl\internal\CefAutoUnregister.h" />
+    <ClInclude Include="CEFControl\internal\CefBrowserHandler.h" />
+    <ClInclude Include="CEFControl\internal\CefBrowserHandlerDelegate.h" />
+    <ClInclude Include="CEFControl\internal\CefClientApp.h" />
+    <ClInclude Include="CEFControl\internal\CefIPCStringDefs.h" />
+    <ClInclude Include="CEFControl\internal\CefJSBridge.h" />
+    <ClInclude Include="CEFControl\internal\CefJsHandler.h" />
+    <ClInclude Include="CEFControl\internal\CefMemoryBlock.h" />
+    <ClInclude Include="CEFControl\internal\osr_dragdrop_events.h" />
+    <ClInclude Include="CEFControl\internal\Windows\bytes_write_handler.h" />
+    <ClInclude Include="CEFControl\internal\Windows\osr_dragdrop_win.h" />
+    <ClInclude Include="CEFControl\internal\Windows\osr_ime_handler_win.h" />
+    <ClInclude Include="CEFControl\internal\Windows\util_win.h" />
     <ClInclude Include="Control\CheckCombo.h" />
     <ClInclude Include="Control\ColorControl.h" />
     <ClInclude Include="Control\ColorConvert.h" />
@@ -532,6 +597,7 @@
     <ClInclude Include="Control\ColorSlider.h" />
     <ClInclude Include="Control\ComboButton.h" />
     <ClInclude Include="Control\DateTime.h" />
+    <ClInclude Include="Control\DateTimeWnd_SDL.h" />
     <ClInclude Include="Control\DateTimeWnd_Windows.h" />
     <ClInclude Include="Control\FilterCombo.h" />
     <ClInclude Include="Control\GroupBox.h" />
@@ -552,8 +618,12 @@
     <ClInclude Include="Control\Menu.h" />
     <ClInclude Include="Control\observer_impl_base.hpp" />
     <ClInclude Include="Control\PropertyGrid.h" />
-    <ClInclude Include="Control\RichEditCtrl.h" />
-    <ClInclude Include="Control\RichEditHost.h" />
+    <ClInclude Include="Control\RichEdit.h" />
+    <ClInclude Include="Control\RichEditCtrl_Windows.h" />
+    <ClInclude Include="Control\RichEditData.h" />
+    <ClInclude Include="Control\RichEditHost_Windows.h" />
+    <ClInclude Include="Control\RichEdit_SDL.h" />
+    <ClInclude Include="Control\RichEdit_Windows.h" />
     <ClInclude Include="Control\RichText.h" />
     <ClInclude Include="Control\CircleProgress.h" />
     <ClInclude Include="Control\Split.h" />
@@ -571,6 +641,7 @@
     <ClInclude Include="Core\DpiAwareness.h" />
     <ClInclude Include="Core\DpiManager.h" />
     <ClInclude Include="Core\DragWindow.h" />
+    <ClInclude Include="Core\DragWindowFilter_SDL.h" />
     <ClInclude Include="Core\EventArgs.h" />
     <ClInclude Include="Core\FontManager.h" />
     <ClInclude Include="Core\FrameworkThread.h" />
@@ -580,14 +651,17 @@
     <ClInclude Include="Core\ImageManager.h" />
     <ClInclude Include="Core\INativeWindow.h" />
     <ClInclude Include="Core\Keyboard.h" />
-    <ClInclude Include="Core\KeyCode.h" />
+    <ClInclude Include="Core\Keycode.h" />
     <ClInclude Include="Core\LangManager.h" />
-    <ClInclude Include="Core\MessageLoop.h" />
+    <ClInclude Include="Core\MessageLoop_SDL.h" />
+    <ClInclude Include="Core\MessageLoop_Windows.h" />
+    <ClInclude Include="Core\NativeWindow_SDL.h" />
     <ClInclude Include="Core\NativeWindow_Windows.h" />
-    <ClInclude Include="Core\Placeholder.h" />
+    <ClInclude Include="Core\PlaceHolder.h" />
     <ClInclude Include="Core\ResourceParam.h" />
     <ClInclude Include="Core\ScrollBar.h" />
     <ClInclude Include="Core\Shadow.h" />
+    <ClInclude Include="Core\SharePtr.h" />
     <ClInclude Include="Core\StateColorMap.h" />
     <ClInclude Include="Core\ThreadManager.h" />
     <ClInclude Include="Core\ThreadMessage.h" />
@@ -603,6 +677,7 @@
     <ClInclude Include="Core\UiPoint.h" />
     <ClInclude Include="Core\UiPointF.h" />
     <ClInclude Include="Core\UiRect.h" />
+    <ClInclude Include="Core\UiRectF.h" />
     <ClInclude Include="Core\UiSize.h" />
     <ClInclude Include="Core\UiSize64.h" />
     <ClInclude Include="Core\UiString.h" />
@@ -610,15 +685,18 @@
     <ClInclude Include="Core\Window.h" />
     <ClInclude Include="Core\WindowBase.h" />
     <ClInclude Include="Core\WindowBuilder.h" />
+    <ClInclude Include="Core\WindowCreateAttributes.h" />
     <ClInclude Include="Core\WindowCreateParam.h" />
     <ClInclude Include="Core\WindowDropTarget.h" />
     <ClInclude Include="Core\WindowMessage.h" />
     <ClInclude Include="Core\ZipManager.h" />
     <ClInclude Include="Core\ZipStreamIO.h" />
     <ClInclude Include="duilib.h" />
+    <ClInclude Include="duilib_cef.h" />
     <ClInclude Include="duilib_config.h" />
     <ClInclude Include="duilib_config_windows.h" />
     <ClInclude Include="duilib_defs.h" />
+    <ClInclude Include="duilib_string.h" />
     <ClInclude Include="Image\Image.h" />
     <ClInclude Include="Image\ImageAttribute.h" />
     <ClInclude Include="Image\ImageDecoder.h" />
@@ -636,8 +714,10 @@
     <ClInclude Include="RenderSkia\Pen_Skia.h" />
     <ClInclude Include="RenderSkia\RenderFactory_Skia.h" />
     <ClInclude Include="RenderSkia\Render_Skia.h" />
+    <ClInclude Include="RenderSkia\Render_Skia_SDL.h" />
     <ClInclude Include="RenderSkia\Render_Skia_Windows.h" />
     <ClInclude Include="RenderSkia\SkGLWindowContext_Windows.h" />
+    <ClInclude Include="RenderSkia\SkRasterWindowContext_SDL.h" />
     <ClInclude Include="RenderSkia\SkRasterWindowContext_Windows.h" />
     <ClInclude Include="RenderSkia\SkTextBox.h" />
     <ClInclude Include="RenderSkia\SkUtils.h" />
@@ -657,7 +737,9 @@
     <ClInclude Include="third_party\zlib\contrib\minizip\unzip.h" />
     <ClInclude Include="Utils\ApiWrapper_Windows.h" />
     <ClInclude Include="Utils\AttributeUtil.h" />
-    <ClInclude Include="Utils\BitmapHelper.h" />
+    <ClInclude Include="Utils\BitmapHelper_SDL.h" />
+    <ClInclude Include="Utils\BitmapHelper_Windows.h" />
+    <ClInclude Include="Utils\Clipboard.h" />
     <ClInclude Include="Utils\FileDialog.h" />
     <ClInclude Include="Utils\FilePath.h" />
     <ClInclude Include="Utils\FilePathUtil.h" />
@@ -668,9 +750,11 @@
     <ClInclude Include="Utils\PerformanceUtil.h" />
     <ClInclude Include="Utils\ScreenCapture.h" />
     <ClInclude Include="Utils\ShadowWnd.h" />
+    <ClInclude Include="Utils\StringCharset.h" />
+    <ClInclude Include="Utils\StringConvert.h" />
     <ClInclude Include="Utils\StringUtil.h" />
     <ClInclude Include="Utils\Delegate.h" />
-    <ClInclude Include="Utils\Unicode.h" />
+    <ClInclude Include="Utils\SystemUtil.h" />
     <ClInclude Include="Utils\WinImplBase.h" />
     <ClInclude Include="Control\Button.h" />
     <ClInclude Include="Control\CheckBox.h" />
@@ -678,7 +762,6 @@
     <ClInclude Include="Control\Label.h" />
     <ClInclude Include="Control\Option.h" />
     <ClInclude Include="Control\Progress.h" />
-    <ClInclude Include="Control\RichEdit.h" />
     <ClInclude Include="Control\Slider.h" />
     <ClInclude Include="Control\TreeView.h" />
   </ItemGroup>

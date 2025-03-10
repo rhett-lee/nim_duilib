@@ -43,10 +43,10 @@ public:
 
     virtual void AddReceiver(ReceiverImplBase<ReturnT, ParamT>* receiver)
     {
-        if (receiver == NULL)
+        if (receiver == nullptr) {
             return;
-        if (std::find(receivers_.cbegin(), receivers_.cend(), receiver) != receivers_.cend())
-        {
+        }
+        if (std::find(receivers_.cbegin(), receivers_.cend(), receiver) != receivers_.cend()) {
             ASSERT(0);
             return;
         }
@@ -57,14 +57,13 @@ public:
 
     virtual void RemoveReceiver(ReceiverImplBase<ReturnT, ParamT>* receiver)
     {
-        if (receiver == NULL)
+        if (receiver == nullptr) {
             return;
+        }
 
         auto it = receivers_.begin();
-        for (; it != receivers_.end(); ++it)
-        {
-            if (*it == receiver)
-            {
+        for (; it != receivers_.end(); ++it) {
+            if (*it == receiver) {
                 receivers_.erase(it);
                 break;
             }
@@ -74,8 +73,7 @@ public:
     virtual ReturnT Broadcast(ParamT param) override
     {
         auto it = receivers_.begin();
-        for (; it != receivers_.end(); ++it)
-        {
+        for (; it != receivers_.end(); ++it) {
             (*it)->Receive(param);
         }
 
@@ -85,8 +83,7 @@ public:
     virtual ReturnT RBroadcast(ParamT param) override
     {
         auto it = receivers_.rbegin();
-        for (; it != receivers_.rend(); ++it)
-        {
+        for (; it != receivers_.rend(); ++it) {
             (*it)->Receive(param);
         }
 
@@ -96,41 +93,41 @@ public:
     virtual ReturnT Notify(ParamT param) override
     {
         auto it = receivers_.begin();
-        for (; it != receivers_.end(); ++it)
-        {
+        for (; it != receivers_.end(); ++it) {
             (*it)->Respond(param, this);
         }
 
         return ReturnT();
     }
 
-    template <typename ReturnT, typename ParamT>
+    template <typename ReturnType, typename ParamType>
     class Iterator
     {
-        ObserverImpl<ReturnT, ParamT> & _tbl;
+        ObserverImpl<ReturnType, ParamType>& _tbl;
         uint32_t index;
-        ReceiverImplBase<ReturnT, ParamT>* ptr;
+        ReceiverImplBase<ReturnType, ParamType>* ptr;
     public:
-        explicit Iterator( ObserverImpl & table )
-            : _tbl( table ), index(0), ptr(NULL)
+        explicit Iterator(ObserverImpl& table)
+            : _tbl(table), index(0), ptr(nullptr)
         {}
 
-        explicit Iterator( const Iterator & v )
-            : _tbl( v._tbl ), index(v.index), ptr(v.ptr)
+        explicit Iterator(const Iterator& v)
+            : _tbl(v._tbl), index(v.index), ptr(v.ptr)
         {}
 
-        ReceiverImplBase<ReturnT, ParamT>* next()
+        ReceiverImplBase<ReturnType, ParamType>* next()
         {
-            if ( index >= _tbl.receivers_.size() )
-                return NULL;
-
-            for ( ; index < _tbl.receivers_.size(); )
-            {
-                ptr = _tbl.receivers_[ index++ ];
-                if ( ptr )
-                    return ptr;
+            if (index >= _tbl.receivers_.size()) {
+                return nullptr;
             }
-            return NULL;
+
+            for (; index < _tbl.receivers_.size(); ) {
+                ptr = _tbl.receivers_[index++];
+                if (ptr) {
+                    return ptr;
+                }
+            }
+            return nullptr;
         }
     };
 
@@ -155,8 +152,7 @@ public:
     virtual void RemoveObserver() override
     {
         auto it = observers_.begin();
-        for (; it != observers_.end(); ++it)
-        {
+        for (; it != observers_.end(); ++it) {
             (*it)->RemoveReceiver(this);
         }
     }

@@ -10,6 +10,7 @@ namespace ui
 class ColorPickerRegularProvider;
 class ColorPickerRegular : public VirtualVTileListBox
 {
+    typedef VirtualVTileListBox BaseClass;
 public:
     explicit ColorPickerRegular(Window* pWindow);
 

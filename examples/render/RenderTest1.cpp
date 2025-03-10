@@ -1,5 +1,10 @@
 #include "RenderTest1.h"
-#include "duilib/Utils/BitmapHelper.h"
+
+#if defined (DUILIB_BUILD_FOR_WIN)
+    #include "duilib/Utils/BitmapHelper_Windows.h"
+#elif defined(DUILIB_BUILD_FOR_SDL)
+    #include "duilib/Utils/BitmapHelper_SDL.h"
+#endif
 
 namespace ui {
 
@@ -14,12 +19,12 @@ RenderTest1::~RenderTest1()
 
 void RenderTest1::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::AlphaPaint(pRender, rcPaint);
+    BaseClass::AlphaPaint(pRender, rcPaint);
 }
 
 void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::Paint(pRender, rcPaint);
+    BaseClass::Paint(pRender, rcPaint);
     int marginLeft = 8;
     int marginTop = 4;
     Dpi().ScaleInt(marginLeft);
@@ -104,7 +109,7 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
 
 void RenderTest1::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::PaintChild(pRender, rcPaint);
+    BaseClass::PaintChild(pRender, rcPaint);
 }
 
 } //end of namespace ui

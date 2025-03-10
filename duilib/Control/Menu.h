@@ -55,8 +55,9 @@ typedef class ReceiverImpl<bool, ContextMenuParam> ContextMenuReceiver;
 /** 菜单类
 */
 class MenuItem;
-class Menu : public ui::WindowImplBase, public ContextMenuReceiver
+class Menu : public WindowImplBase, public ContextMenuReceiver
 {
+    typedef WindowImplBase BaseClass;
 public:
     /** 构造函数，初始化菜单的父窗口句柄
     */
@@ -118,10 +119,10 @@ private:
 
 private:
     // 重新调整菜单的大小
-    void ResizeMenu();
+    bool ResizeMenu();
 
     // 重新调整子菜单的大小
-    void ResizeSubMenu();
+    bool ResizeSubMenu();
 
     /** 获取布局管理的ListBox接口
     */
@@ -134,7 +135,7 @@ private:
     virtual ui::Control* CreateControl(const DString& pstrClass) override;
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;
-    virtual void OnInitWindow() override;
+    virtual void PostInitWindow() override;
     virtual void OnCloseWindow() override;
 
     /** 窗口失去焦点(WM_KILLFOCUS)
@@ -196,8 +197,9 @@ private:
 
 /** 菜单项
 */
-class MenuItem : public ui::ListBoxItem
+class MenuItem : public ListBoxItem
 {
+    typedef ListBoxItem BaseClass;
 public:
     explicit MenuItem(Window* pWindow);
 

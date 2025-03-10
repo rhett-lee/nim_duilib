@@ -83,15 +83,15 @@ bool VirtualListBox::HasDataProvider() const
 
 bool VirtualListBox::IsMultiSelect() const
 {
-    return __super::IsMultiSelect();
+    return BaseClass::IsMultiSelect();
 }
 
 void VirtualListBox::SetMultiSelect(bool bMultiSelect)
 {
     bool bOldValue = m_bEnableUpdateProvider;
     m_bEnableUpdateProvider = false;
-    bool bChanged = __super::IsMultiSelect() != bMultiSelect;
-    __super::SetMultiSelect(bMultiSelect);
+    bool bChanged = BaseClass::IsMultiSelect() != bMultiSelect;
+    BaseClass::SetMultiSelect(bMultiSelect);
     if (m_pDataProvider != nullptr) {
         if (!bChanged) {
             bChanged = m_pDataProvider->IsMultiSelect() != bMultiSelect;
@@ -567,7 +567,7 @@ void VirtualListBox::EnsureVisible(const UiRect& rcItem,
                                    ListBoxVerVisible vVisibleType,
                                    ListBoxHorVisible hVisibleType)
 {
-    __super::EnsureVisible(rcItem, vVisibleType, hVisibleType);
+    BaseClass::EnsureVisible(rcItem, vVisibleType, hVisibleType);
 }
 
 size_t VirtualListBox::EnsureVisible(size_t iIndex, ListBoxVerVisible vVisibleType, ListBoxHorVisible hVisibleType)
@@ -575,7 +575,7 @@ size_t VirtualListBox::EnsureVisible(size_t iIndex, ListBoxVerVisible vVisibleTy
     size_t nNewIndex = iIndex;
     size_t nElementIndex = GetDisplayItemElementIndex(iIndex);
     if (nElementIndex >= GetElementCount()) {
-        nNewIndex = __super::EnsureVisible(iIndex, vVisibleType, hVisibleType);
+        nNewIndex = BaseClass::EnsureVisible(iIndex, vVisibleType, hVisibleType);
     }
     else {
         EnsureVisible(nElementIndex, false);
@@ -609,7 +609,7 @@ void VirtualListBox::SetPos(ui::UiRect rc)
 void VirtualListBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
     ReArrangeChild(false);
-    __super::PaintChild(pRender, rcPaint);
+    BaseClass::PaintChild(pRender, rcPaint);
 }
 
 void VirtualListBox::SendEventMsg(const EventArgs& msg)
@@ -631,7 +631,7 @@ void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem)
             newMsg.wParam = Box::InvalidIndex;
             newMsg.lParam = Box::InvalidIndex;
         }        
-        __super::SendEventMsg(newMsg);
+        BaseClass::SendEventMsg(newMsg);
     }
     else if ((msg.eventType == kEventMouseDoubleClick) ||
              (msg.eventType == kEventClick) ||
@@ -642,30 +642,30 @@ void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem)
             EventArgs newMsg = msg;
             newMsg.wParam = Box::InvalidIndex;
             newMsg.lParam = Box::InvalidIndex;
-            __super::SendEventMsg(newMsg);
+            BaseClass::SendEventMsg(newMsg);
         }
         else {
-            __super::SendEventMsg(msg);
+            BaseClass::SendEventMsg(msg);
         }
     }
     else {
-        __super::SendEventMsg(msg);
+        BaseClass::SendEventMsg(msg);
     }
 }
 
 bool VirtualListBox::RemoveItem(Control* pControl)
 {
-    return __super::RemoveItem(pControl);
+    return BaseClass::RemoveItem(pControl);
 }
 
 bool VirtualListBox::RemoveItemAt(size_t iIndex)
 {
-    return __super::RemoveItemAt(iIndex);
+    return BaseClass::RemoveItemAt(iIndex);
 }
 
 void VirtualListBox::RemoveAllItems()
 {
-    return __super::RemoveAllItems();
+    return BaseClass::RemoveAllItems();
 }
 
 void VirtualListBox::ReArrangeChild(bool bForce)

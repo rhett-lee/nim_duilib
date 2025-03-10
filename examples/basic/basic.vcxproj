@@ -202,13 +202,16 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="main.h" />
-    <ClInclude Include="basic_form.h" />
+    <ClInclude Include="BasicForm.h" />
+    <ClInclude Include="MainThread.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="basic_form.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="BasicForm.cpp" />
+    <ClCompile Include="MainThread.cpp" />
+    <ClCompile Include="main_windows.cpp" />
+    <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="basic.rc" />

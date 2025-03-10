@@ -52,6 +52,42 @@
     <Filter Include="RenderSkia\Skia">
       <UniqueIdentifier>{9c093c10-7a9b-4154-b865-18b9cde23965}</UniqueIdentifier>
     </Filter>
+    <Filter Include="RenderSkia\SDL">
+      <UniqueIdentifier>{a02c0cab-6bee-4351-bfbd-c822c46a8e10}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\SDL">
+      <UniqueIdentifier>{126a61ed-8dc3-476e-8c8b-bbcf4ba97677}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Windows">
+      <UniqueIdentifier>{661c22e9-c563-41cc-88b6-d83cb704c831}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="RenderSkia\Windows">
+      <UniqueIdentifier>{1f14ee75-d2c8-4b95-8276-b9a8e21c99b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\Windows">
+      <UniqueIdentifier>{480a2bd4-8217-469e-9d3f-ab9152a1fc33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Control\Windows">
+      <UniqueIdentifier>{1f1d0b6e-57aa-4bdb-a0ad-e0a880214efa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils\SDL">
+      <UniqueIdentifier>{d7bb0053-b383-407e-a8d2-59a1614592d8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Control\SDL">
+      <UniqueIdentifier>{be0e4864-bcc3-4091-97af-c44373bb7890}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CEFControl">
+      <UniqueIdentifier>{673add5e-a1c1-4f08-bf1c-da1fb4f2ce4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CEFControl\internal">
+      <UniqueIdentifier>{41303673-a68f-4149-a9a6-9bea1132164b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CEFControl\Windows">
+      <UniqueIdentifier>{f5ec9395-859f-467e-95cc-d3317d2c7dcb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CEFControl\internal\Windows">
+      <UniqueIdentifier>{eeacd0ad-992e-498d-88f2-c5963e05d711}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -73,9 +109,6 @@
       <Filter>Control</Filter>
     </ClCompile>
     <ClCompile Include="Control\Progress.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Control\RichEdit.cpp">
       <Filter>Control</Filter>
     </ClCompile>
     <ClCompile Include="Control\Slider.cpp">
@@ -109,9 +142,6 @@
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\GlobalManager.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Placeholder.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="Core\Window.cpp">
@@ -252,9 +282,6 @@
     <ClCompile Include="Core\ControlLoading.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Control\RichEditHost.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
     <ClCompile Include="Control\FilterCombo.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -384,62 +411,14 @@
     <ClCompile Include="Core\WindowBase.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="Control\DateTimeWnd_Windows.cpp">
-      <Filter>Control</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\NativeWindow_Windows.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\BitmapHepler.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Core\WindowCreateParam.cpp">
       <Filter>Core</Filter>
     </ClCompile>
     <ClCompile Include="RenderSkia\FontMgr_Skia.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\ApiWrapper_Windows.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\DpiAwareness_Windows.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Core\DpiAwareness.cpp">
       <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\MonitorUtil_Windows.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\IconManager_Windows.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Keyboard_Windows.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\ToolTip_Windows.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\WindowDropTarget_Windows.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\CursorManager_Windows.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\ScreenCapture_Windows.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\FileDialog_Windows.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\ThreadMessage_Windows.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\MessageLoop_Windows.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="Utils\ShadowWnd_Windows.cpp">
-      <Filter>Utils</Filter>
     </ClCompile>
     <ClCompile Include="Utils\FilePath.cpp">
       <Filter>Utils</Filter>
@@ -450,20 +429,203 @@
     <ClCompile Include="..\..\skia\tools\window\WindowContext.cpp">
       <Filter>RenderSkia\Skia</Filter>
     </ClCompile>
-    <ClCompile Include="RenderSkia\Render_Skia_Windows.cpp">
-      <Filter>RenderSkia</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderSkia\SkRasterWindowContext_Windows.cpp">
-      <Filter>RenderSkia</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderSkia\SkGLWindowContext_Windows.cpp">
-      <Filter>RenderSkia</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\skia\tools\window\GLWindowContext.cpp">
       <Filter>RenderSkia\Skia</Filter>
     </ClCompile>
     <ClCompile Include="..\..\skia\tools\gpu\gl\win\SkWGL_win.cpp">
       <Filter>RenderSkia\Skia</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\Render_Skia_SDL.cpp">
+      <Filter>RenderSkia\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\SkRasterWindowContext_SDL.cpp">
+      <Filter>RenderSkia\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\MessageLoop_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NativeWindow_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\CursorManager_Windows.cpp">
+      <Filter>Core\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DpiAwareness_Windows.cpp">
+      <Filter>Core\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\IconManager_Windows.cpp">
+      <Filter>Core\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\MessageLoop_Windows.cpp">
+      <Filter>Core\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Keyboard_Windows.cpp">
+      <Filter>Core\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\NativeWindow_Windows.cpp">
+      <Filter>Core\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ThreadMessage_Windows.cpp">
+      <Filter>Core\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ToolTip_Windows.cpp">
+      <Filter>Core\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\WindowDropTarget_Windows.cpp">
+      <Filter>Core\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Keyboard_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\Render_Skia_Windows.cpp">
+      <Filter>RenderSkia\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\SkGLWindowContext_Windows.cpp">
+      <Filter>RenderSkia\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSkia\SkRasterWindowContext_Windows.cpp">
+      <Filter>RenderSkia\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\ApiWrapper_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\FileDialog_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\MonitorUtil_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\ScreenCapture_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\ShadowWnd_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\DateTimeWnd_Windows.cpp">
+      <Filter>Control\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Keycode_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\CursorManager_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DpiAwareness_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ToolTip_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\WindowDropTarget_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ThreadMessage_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\MonitorUtil_SDL.cpp">
+      <Filter>Utils\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\BitmapHepler_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\FileDialog_SDL.cpp">
+      <Filter>Utils\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\ShadowWnd_SDL.cpp">
+      <Filter>Utils\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichEdit_Windows.cpp">
+      <Filter>Control\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichEditHost_Windows.cpp">
+      <Filter>Control\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichEdit_SDL.cpp">
+      <Filter>Control\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\RichEditData.cpp">
+      <Filter>Control\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\Clipboard_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\Clipboard_SDL.cpp">
+      <Filter>Utils\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\ScreenCapture_SDL.cpp">
+      <Filter>Utils\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\StringCharset.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\DateTimeWnd_SDL.cpp">
+      <Filter>Control\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\PlaceHolder.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\SystemUtil_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\SystemUtil_SDL.cpp">
+      <Filter>Utils\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\BitmapHepler_SDL.cpp">
+      <Filter>Utils\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\StringConvert.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\DragWindowFilter_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\CefManager.cpp">
+      <Filter>CEFControl</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\CefControlNative.cpp">
+      <Filter>CEFControl</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\CefControlOffScreen.cpp">
+      <Filter>CEFControl</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\CefBrowserHandler.cpp">
+      <Filter>CEFControl\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\CefClientApp.cpp">
+      <Filter>CEFControl\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\CefClientAppBrowser.cpp">
+      <Filter>CEFControl\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\CefClientAppRender.cpp">
+      <Filter>CEFControl\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\CefJSBridge.cpp">
+      <Filter>CEFControl\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\CefJsHandler.cpp">
+      <Filter>CEFControl\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\CefMemoryBlock.cpp">
+      <Filter>CEFControl\internal</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\CefDragDrop_Windows.cpp">
+      <Filter>CEFControl\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\Windows\bytes_write_handler.cc">
+      <Filter>CEFControl\internal\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\Windows\osr_dragdrop_win.cc">
+      <Filter>CEFControl\internal\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\Windows\util_win.cc">
+      <Filter>CEFControl\internal\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\Windows\osr_ime_handler_win.cc">
+      <Filter>CEFControl\internal\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\CefControl.cpp">
+      <Filter>CEFControl</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -512,9 +674,6 @@
     <ClInclude Include="Control\Progress.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Control\RichEdit.h">
-      <Filter>Control</Filter>
-    </ClInclude>
     <ClInclude Include="Control\Slider.h">
       <Filter>Control</Filter>
     </ClInclude>
@@ -558,9 +717,6 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\GlobalManager.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Placeholder.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\ToolTip.h">
@@ -764,12 +920,6 @@
     <ClInclude Include="Control\Split.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Control\RichEditHost.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Control\RichEditCtrl.h">
-      <Filter>Control</Filter>
-    </ClInclude>
     <ClInclude Include="Control\GroupBox.h">
       <Filter>Control</Filter>
     </ClInclude>
@@ -914,9 +1064,6 @@
     <ClInclude Include="Core\ThreadManager.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\Unicode.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\LogUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -941,9 +1088,6 @@
     <ClInclude Include="Core\Keyboard.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\KeyCode.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Core\WindowMessage.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -953,20 +1097,11 @@
     <ClInclude Include="Core\WindowBase.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Control\DateTimeWnd_Windows.h">
-      <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\NativeWindow_Windows.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Core\INativeWindow.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="third_party\stb_image\stb_image_resize2.h">
       <Filter>third_party\stb_image</Filter>
-    </ClInclude>
-    <ClInclude Include="Utils\BitmapHelper.h">
-      <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Core\WindowCreateParam.h">
       <Filter>Core</Filter>
@@ -974,19 +1109,10 @@
     <ClInclude Include="RenderSkia\FontMgr_Skia.h">
       <Filter>RenderSkia</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\ApiWrapper_Windows.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\MonitorUtil.h">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Core\IconManager_Windows.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Core\ThreadMessage.h">
-      <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\MessageLoop.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Utils\FilePath.h">
@@ -1001,15 +1127,6 @@
     <ClInclude Include="..\..\skia\tools\window\WindowContext.h">
       <Filter>RenderSkia\Skia</Filter>
     </ClInclude>
-    <ClInclude Include="RenderSkia\Render_Skia_Windows.h">
-      <Filter>RenderSkia</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderSkia\SkRasterWindowContext_Windows.h">
-      <Filter>RenderSkia</Filter>
-    </ClInclude>
-    <ClInclude Include="RenderSkia\SkGLWindowContext_Windows.h">
-      <Filter>RenderSkia</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\skia\tools\window\GLWindowContext.h">
       <Filter>RenderSkia\Skia</Filter>
     </ClInclude>
@@ -1019,8 +1136,164 @@
     <ClInclude Include="..\..\skia\tools\gpu\gl\win\SkWGL.h">
       <Filter>RenderSkia\Skia</Filter>
     </ClInclude>
+    <ClInclude Include="RenderSkia\Render_Skia_SDL.h">
+      <Filter>RenderSkia\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\SkRasterWindowContext_SDL.h">
+      <Filter>RenderSkia\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NativeWindow_SDL.h">
+      <Filter>Core\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\MessageLoop_SDL.h">
+      <Filter>Core\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WindowCreateAttributes.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\IconManager_Windows.h">
+      <Filter>Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\MessageLoop_Windows.h">
+      <Filter>Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\NativeWindow_Windows.h">
+      <Filter>Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\SkGLWindowContext_Windows.h">
+      <Filter>RenderSkia\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\SkRasterWindowContext_Windows.h">
+      <Filter>RenderSkia\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\Render_Skia_Windows.h">
+      <Filter>RenderSkia\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ApiWrapper_Windows.h">
+      <Filter>Utils\Windows</Filter>
+    </ClInclude>
     <ClInclude Include="Utils\Macros_Windows.h">
+      <Filter>Utils\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\DateTimeWnd_Windows.h">
+      <Filter>Control\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Keycode.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\BitmapHelper_Windows.h">
+      <Filter>Utils\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEdit_Windows.h">
+      <Filter>Control\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEditCtrl_Windows.h">
+      <Filter>Control\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEditHost_Windows.h">
+      <Filter>Control\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEdit.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEdit_SDL.h">
+      <Filter>Control\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\UiRectF.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\RichEditData.h">
+      <Filter>Control\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\SharePtr.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Clipboard.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\StringCharset.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\DateTimeWnd_SDL.h">
+      <Filter>Control\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\PlaceHolder.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\SystemUtil.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\BitmapHelper_SDL.h">
+      <Filter>Utils\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="duilib_string.h">
+      <Filter>duilib</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\StringConvert.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\DragWindowFilter_SDL.h">
+      <Filter>Core\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="duilib_cef.h">
+      <Filter>duilib</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\CefControlEvent.h">
+      <Filter>CEFControl</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\CefManager.h">
+      <Filter>CEFControl</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\CefControlNative.h">
+      <Filter>CEFControl</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\CefControlOffScreen.h">
+      <Filter>CEFControl</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\CefAutoUnregister.h">
+      <Filter>CEFControl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\CefBrowserHandler.h">
+      <Filter>CEFControl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\CefClientApp.h">
+      <Filter>CEFControl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\CefIPCStringDefs.h">
+      <Filter>CEFControl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\CefJSBridge.h">
+      <Filter>CEFControl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\CefJsHandler.h">
+      <Filter>CEFControl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\CefMemoryBlock.h">
+      <Filter>CEFControl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\CefDragDrop_Windows.h">
+      <Filter>CEFControl\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\Windows\bytes_write_handler.h">
+      <Filter>CEFControl\internal\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\Windows\osr_dragdrop_win.h">
+      <Filter>CEFControl\internal\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\Windows\util_win.h">
+      <Filter>CEFControl\internal\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\osr_dragdrop_events.h">
+      <Filter>CEFControl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\CefBrowserHandlerDelegate.h">
+      <Filter>CEFControl\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\Windows\osr_ime_handler_win.h">
+      <Filter>CEFControl\internal\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\CefControl.h">
+      <Filter>CEFControl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

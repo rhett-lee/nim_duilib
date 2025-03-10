@@ -10,6 +10,7 @@ namespace ui
 */
 class ColorControl: public Control
 {
+    typedef Control BaseClass;
 public:
     explicit ColorControl(Window* pWindow);
 

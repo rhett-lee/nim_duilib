@@ -31,7 +31,7 @@ AnimationPlayer* AnimationManager::SetFadeHot(bool bFadeHot)
         animationArgs->SetSpeedUpRatio(0.3);
         animationArgs->SetSpeedDownRatio(0.7);
         animationArgs->SetTotalMillSeconds(50);//控件处于焦点状态时，动画效果的总时长
-        auto playCallback = UiBind(&Control::SetHotAlpha, m_pControl, std::placeholders::_1);
+        PlayCallback playCallback = UiBind(&Control::SetHotAlpha, m_pControl, std::placeholders::_1);
         animationArgs->SetCallback(playCallback);
         m_animationMap[AnimationType::kAnimationHot].reset(animationArgs);
     }

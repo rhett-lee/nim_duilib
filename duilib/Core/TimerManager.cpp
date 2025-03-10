@@ -4,9 +4,17 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Core/WindowMessage.h"
 
+#if defined (DUILIB_BUILD_FOR_SDL)
+    #include <SDL3/SDL.h>
+#endif
+
 /** 自定义消息
 */
-#define WM_USER_DEFINED_TIMER  (kWM_USER + 567)
+#if defined (DUILIB_BUILD_FOR_SDL)
+    #define WM_USER_DEFINED_TIMER   (SDL_EVENT_USER + 2)
+#else
+    #define WM_USER_DEFINED_TIMER   (kWM_USER + 567)
+#endif
 
 namespace ui 
 {
@@ -50,7 +58,8 @@ public:
 
 TimerManager::TimerManager():
     m_nNextTimerId(1),
-    m_bRunning(false)
+    m_bRunning(false),
+    m_bHasPenddingPoll(false)
 {
 }
 
@@ -192,6 +201,7 @@ void TimerManager::Poll()
     }
     //唤醒工作线程，检查任务状态
     m_cv.notify_one();
+    m_bHasPenddingPoll = false;
 }
 
 void TimerManager::WorkerThreadProc()
@@ -230,10 +240,15 @@ void TimerManager::WorkerThreadProc()
                 //注意事项：发现gcc版本和glibc版本对wait_for都有问题（使用的时系统时间），gcc >=10 且 glibc >= 2.30 才会对程序行为没有影响。
                 m_cv.wait_for(taskGuard, std::chrono::milliseconds(nDetaTimeMs));
             }
-            //通知处理(发送到主线程执行)
+            //通知处理(发送到主线程执行, 此时不能加锁，避免出现死锁问题)
+            m_bHasPenddingPoll = true;
+            taskGuard.unlock();
+
             m_threadMsg.PostMsg(WM_USER_DEFINED_TIMER, 0, 0);
+            taskGuard.lock();
             //LogUtil::OutputLine(StringUtil::Printf(_T("PostMessage: send timer event")));
-            if (m_bRunning) {
+
+            if (m_bRunning && m_bHasPenddingPoll) {
                 m_cv.wait(taskGuard);
             }
         }        

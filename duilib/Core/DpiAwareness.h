@@ -87,11 +87,16 @@ public:
     *             依次为：kPerMonitorDpiAware_V2 -> kPerMonitorDpiAware -> kSystemDpiAware
     * @return 返回实际的进程DPI感知模式
     */
-    DpiAwarenessMode SetDpiAwareness(DpiAwarenessMode dpiAwarenessMode) const;
+    DpiAwarenessMode SetDpiAwareness(DpiAwarenessMode dpiAwarenessMode);
 
     /** 获取当前进程的DPI感知模式
     */
     DpiAwarenessMode GetDpiAwareness() const;
+
+private:
+    /** 外部设置的值
+    */
+    DpiAwarenessMode m_dpiAwarenessMode;
 };
 }
 #endif //UI_CORE_DPI_AWARENESS_H_

@@ -17,8 +17,8 @@
 
 namespace ui {
 
-SkGLWindowContext_Windows::SkGLWindowContext_Windows(HWND hWnd, const skwindow::DisplayParams& params):
-    skwindow::internal::GLWindowContext(params),
+SkGLWindowContext_Windows::SkGLWindowContext_Windows(HWND hWnd, std::unique_ptr<const skwindow::DisplayParams> params):
+    skwindow::internal::GLWindowContext(std::move(params)),
     m_hWnd(hWnd),
     m_fHGLRC(nullptr)
 {
@@ -44,7 +44,7 @@ void SkGLWindowContext_Windows::resize(int nWidth, int nHeight)
     if ((fWidth == nWidth) && (fHeight == nHeight)) {
         return;
     }
-    __super::resize(nWidth, nHeight);
+    BaseClass::resize(nWidth, nHeight);
     ASSERT(fWidth == nWidth);
     ASSERT(fHeight == nHeight);
 }
@@ -65,7 +65,7 @@ sk_sp<SkSurface> SkGLWindowContext_Windows::getBackbufferSurface()
     ASSERT(m_fHGLRC == hHGLRC);
 #endif
 
-    return __super::getBackbufferSurface();
+    return BaseClass::getBackbufferSurface();
 }
 
 sk_sp<const GrGLInterface> SkGLWindowContext_Windows::onInitializeContext()
@@ -74,12 +74,18 @@ sk_sp<const GrGLInterface> SkGLWindowContext_Windows::onInitializeContext()
     if (!::IsWindow(m_hWnd)) {
         return nullptr;
     }
+    const skwindow::DisplayParams* pDisplayParams = getDisplayParams();
+    ASSERT(pDisplayParams != nullptr);
+    if (pDisplayParams == nullptr) {
+        return nullptr;
+    }
+
     if (m_fHGLRC != nullptr) {
         destroyContext();
     }
 
     HDC dc = ::GetDC(m_hWnd);
-    m_fHGLRC = SkCreateWGLContext(dc, fDisplayParams.fMSAASampleCount, false /* deepColor */,
+    m_fHGLRC = SkCreateWGLContext(dc, pDisplayParams->msaaSampleCount(), false /* deepColor */,
                                   kGLPreferCompatibilityProfile_SkWGLContextRequest);
     if (nullptr == m_fHGLRC) {
         ::ReleaseDC(m_hWnd, dc);
@@ -88,7 +94,7 @@ sk_sp<const GrGLInterface> SkGLWindowContext_Windows::onInitializeContext()
 
     SkWGLExtensions extensions;
     if (extensions.hasExtension(dc, "WGL_EXT_swap_control")) {
-        extensions.swapInterval(fDisplayParams.fDisableVsync ? 0 : 1);
+        extensions.swapInterval(pDisplayParams->disableVsync() ? 0 : 1);
     }
 
     // Look to see if RenderDoc is attached. If so, re-create the context with a core profile
@@ -98,7 +104,7 @@ sk_sp<const GrGLInterface> SkGLWindowContext_Windows::onInitializeContext()
         interface.reset(nullptr);
         if (renderDocAttached) {
             wglDeleteContext(m_fHGLRC);
-            m_fHGLRC = SkCreateWGLContext(dc, fDisplayParams.fMSAASampleCount, false /* deepColor */,
+            m_fHGLRC = SkCreateWGLContext(dc, pDisplayParams->msaaSampleCount(), false /* deepColor */,
                                           kGLPreferCoreProfile_SkWGLContextRequest);
             if (nullptr == m_fHGLRC) {
                 ::ReleaseDC(m_hWnd, dc);
@@ -148,7 +154,7 @@ void SkGLWindowContext_Windows::onDestroyContext()
 {
     if (m_fHGLRC != nullptr) {
         ASSERT(m_fHGLRC == wglGetCurrentContext());
-        wglMakeCurrent(NULL, NULL);
+        wglMakeCurrent(nullptr, nullptr);
         wglDeleteContext(m_fHGLRC);
         m_fHGLRC = nullptr;
     }

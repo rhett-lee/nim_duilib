@@ -9,17 +9,9 @@
 #include "duilib/RenderSkia/RenderFactory_Skia.h"
 #include "duilib/Render/RenderConfig.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     //ToolTip/日期时间等标准控件，需要初始化commctrl
     #include <commctrl.h>
-#endif
-
-//依赖的Lib
-#ifdef DUILIB_BUILD_FOR_WIN
-    #pragma comment (lib, "Imm32.lib")
-    #pragma comment (lib, "comctl32.lib")
-    #pragma comment (lib, "User32.lib")
-    #pragma comment (lib, "shlwapi.lib")
 #endif
 
 #include <filesystem>
@@ -28,7 +20,6 @@ namespace ui
 {
 
 GlobalManager::GlobalManager():
-    m_pfnCreateControlCallback(nullptr),
     m_platformData(nullptr)
 {
 }
@@ -58,9 +49,6 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     //记录平台相关数据
     m_platformData = resParam.platformData;
 
-    //保存回调函数
-    m_pfnCreateControlCallback = callback;
-
     //初始化DPI感知模式，//初始化DPI值
     DpiManager& dpiManager = Dpi();
     dpiManager.InitDpiAwareness(dpiInitParam);
@@ -71,7 +59,7 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     //Skia渲染引擎实现
     m_renderFactory = std::make_unique<RenderFactory_Skia>();    
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     //Init Windows Common Controls (for the ToolTip control)
     ::InitCommonControls();
 #endif
@@ -83,9 +71,13 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
 
     //加载资源
     if (!ReloadResource(resParam, false)) {
-        m_pfnCreateControlCallback = nullptr;
         m_renderFactory.reset();
         return false;
+    }
+
+    //保存回调函数
+    if (callback != nullptr) {
+        m_pfnCreateControlCallbackList.push_back(callback);
     }
     return true;
 }
@@ -103,7 +95,7 @@ void GlobalManager::Shutdown()
     
     m_renderFactory.reset();
     m_renderFactory = nullptr;
-    m_pfnCreateControlCallback = nullptr;
+    m_pfnCreateControlCallbackList.clear();
     m_globalClass.clear();
     m_windowList.clear();
     m_dwUiThreadId = std::thread::id();
@@ -221,7 +213,9 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
     if (!resParam.globalXmlFileName.empty()) {
         WindowBuilder dialog_builder;
         Window paint_manager;
-        dialog_builder.CreateFromXmlFile(FilePath(resParam.globalXmlFileName), CreateControlCallback(), &paint_manager);
+        if (dialog_builder.ParseXmlFile(FilePath(resParam.globalXmlFileName))) {
+            dialog_builder.CreateControls(CreateControlCallback(), &paint_manager);
+        }        
     }
 
     //加载多语言文件(可选)
@@ -324,12 +318,18 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
     }
 
     languageList.clear();
+#ifdef DUILIB_BUILD_FOR_WIN
+    //Windows: 路径字符串用的是DStringW::value_type，UTF16
     const std::filesystem::path path{ languagePath.ToStringW()};
+#else
+    //Windows: 路径字符串用的是char，UTF8
+    const std::filesystem::path path{ languagePath.ToStringA() };
+#endif
     if (path.is_absolute()) {
         //绝对路径，语言文件在本地磁盘中
         for (auto const& dir_entry : std::filesystem::directory_iterator{ path }) {
             if (dir_entry.is_regular_file()) {
-                languageList.push_back({ StringUtil::UTF16ToT(dir_entry.path().filename().c_str()), _T("") });
+                languageList.push_back({ FilePath(dir_entry.path().filename()).ToString(), _T("")});
             }
         }
         if (!languageNameID.empty()) {
@@ -441,6 +441,19 @@ void GlobalManager::RemoveWindow(Window* pWindow)
     }
 }
 
+bool GlobalManager::HasWindow(Window* pWindow) const
+{
+    AssertUIThread();
+    if (pWindow != nullptr) {
+        for (auto iter = m_windowList.begin(); iter != m_windowList.end(); ++iter) {
+            if (iter->m_pWindow == pWindow) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void GlobalManager::RemoveAllImages()
 {
     AssertUIThread();
@@ -542,9 +555,12 @@ CursorManager& GlobalManager::Cursor()
 Box* GlobalManager::CreateBox(const FilePath& strXmlPath, CreateControlCallback callback)
 {
     WindowBuilder builder;
-    Control* pControl = builder.CreateFromXmlFile(strXmlPath, callback);
-    ASSERT(pControl != nullptr);
-    return builder.ToBox(pControl);
+    if (builder.ParseXmlFile(strXmlPath)) {
+        Control* pControl = builder.CreateControls(callback);
+        ASSERT(pControl != nullptr);
+        return builder.ToBox(pControl);
+    }
+    return nullptr;
 }
 
 Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControlCallback callback)
@@ -553,8 +569,10 @@ Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControl
     auto it = m_builderMap.find(strXmlPath);
     if (it == m_builderMap.end()) {
         WindowBuilder* builder = new WindowBuilder();
-        Control* pControl = builder->CreateFromXmlFile(strXmlPath, callback);
-        box = builder->ToBox(pControl);
+        if (builder->ParseXmlFile(strXmlPath)) {
+            Control* pControl = builder->CreateControls(callback);
+            box = builder->ToBox(pControl);
+        }        
         if (box != nullptr) {
             m_builderMap[strXmlPath].reset(builder);
         }
@@ -564,7 +582,7 @@ Box* GlobalManager::CreateBoxWithCache(const FilePath& strXmlPath, CreateControl
         }
     }
     else {
-        Control* pControl = it->second->CreateFromCachedXml(callback);
+        Control* pControl = it->second->CreateControls(callback);
         box = it->second->ToBox(pControl);
     }
     ASSERT(box != nullptr);
@@ -576,9 +594,11 @@ void GlobalManager::FillBox(Box* pUserDefinedBox, const FilePath& strXmlPath, Cr
     ASSERT(pUserDefinedBox != nullptr);
     if (pUserDefinedBox != nullptr) {
         WindowBuilder winBuilder;
-        Control* pControl = winBuilder.CreateFromXmlFile(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
-        Box* box = winBuilder.ToBox(pControl);
-        ASSERT_UNUSED_VARIABLE(box != nullptr);
+        if (winBuilder.ParseXmlFile(strXmlPath)) {
+            Control* pControl = winBuilder.CreateControls(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+            Box* box = winBuilder.ToBox(pControl);
+            ASSERT_UNUSED_VARIABLE(box != nullptr);
+        }
     }    
 }
 
@@ -593,8 +613,10 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXm
     auto it = m_builderMap.find(strXmlPath);
     if (it == m_builderMap.end()) {
         WindowBuilder* winBuilder = new WindowBuilder();
-        Control* pControl = winBuilder->CreateFromXmlFile(strXmlPath, callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
-        box = winBuilder->ToBox(pControl);
+        if (winBuilder->ParseXmlFile(strXmlPath)) {
+            Control* pControl = winBuilder->CreateControls(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+            box = winBuilder->ToBox(pControl);
+        }        
         if (box != nullptr) {
             m_builderMap[strXmlPath].reset(winBuilder);
         }
@@ -604,7 +626,7 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXm
         }
     }
     else {
-        Control* pControl = it->second->CreateFromCachedXml(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
+        Control* pControl = it->second->CreateControls(callback, pUserDefinedBox->GetWindow(), nullptr, pUserDefinedBox);
         box = it->second->ToBox(pControl);
     }
     ASSERT(pUserDefinedBox == box);
@@ -613,10 +635,23 @@ void GlobalManager::FillBoxWithCache(Box* pUserDefinedBox, const FilePath& strXm
 
 Control* GlobalManager::CreateControl(const DString& strControlName)
 {
-    if (m_pfnCreateControlCallback) {
-        return m_pfnCreateControlCallback(strControlName);
+    Control* pControl = nullptr;
+    for (CreateControlCallback pfnCreateControlCallback : m_pfnCreateControlCallbackList) {
+        if (pfnCreateControlCallback != nullptr) {
+            pControl = pfnCreateControlCallback(strControlName);
+            if (pControl != nullptr) {
+                break;
+            }
+        }
     }
-    return nullptr;
+    return pControl;
+}
+
+void GlobalManager::AddCreateControlCallback(const CreateControlCallback& pfnCreateControlCallback)
+{
+    if (pfnCreateControlCallback != nullptr) {
+        m_pfnCreateControlCallbackList.push_back(pfnCreateControlCallback);
+    }
 }
 
 void GlobalManager::AssertUIThread() const

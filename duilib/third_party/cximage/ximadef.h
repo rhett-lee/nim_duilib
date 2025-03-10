@@ -62,15 +62,7 @@
  #define PI 3.141592653589793f
 #endif
 
-#if defined (_WIN32) || defined (_WIN64)
-    #include "../../duilib_config_windows.h"
-#endif
-
 #include "../../duilib_config.h"
-
-#if defined(WIN32) || defined(_WIN32_WCE)
-    #include <tchar.h>
-#endif
 
 #include <stdio.h>
 #include <math.h>
@@ -90,11 +82,11 @@ typedef struct tagcomplex {
 
 #endif
 
-#if defined(WIN32) || defined(_WIN32_WCE)
+#if defined(DUILIB_BUILD_FOR_WIN)
  #include <stdint.h>
 #endif
 
-#if !defined(WIN32) && !defined(_WIN32_WCE)
+#if !defined(DUILIB_BUILD_FOR_WIN)
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -118,7 +110,11 @@ typedef void*      HRGN;
 #endif
 
 #ifndef TCHAR
-#define TCHAR char
+    #ifdef DUILIB_UNICODE
+        #define TCHAR wchar_t
+    #else
+        #define TCHAR char
+    #endif
 #endif
 
 typedef struct tagRECT
@@ -201,6 +197,16 @@ typedef struct tagcomplex {
 #endif
 
 #define _cabs(c) sqrt(c.x*c.x+c.y*c.y)
+
+#if defined(linux) || defined(__linux) || defined(__linux__)
+    #define _tcsnicmp(a,b,c) strcasecmp(a,b)
+#else
+    #ifdef DUILIB_UNICODE
+        #define _tcsnicmp _wcsnicmp
+    #else
+        #define _tcsnicmp _strnicmp
+    #endif
+#endif
 
 #endif
 

@@ -15,6 +15,7 @@ namespace ui
 template<typename InheritType = Control>
 class UILIB_API SplitTemplate : public InheritType
 {
+    typedef InheritType BaseClass;
 public:
     explicit SplitTemplate(Window* pWindow);
 
@@ -120,7 +121,7 @@ void SplitTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
         SetEnableSplitSingle(strValue == _T("true"));
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -199,13 +200,13 @@ bool SplitTemplate<InheritType>::MouseEnter(const EventArgs& msg)
             this->SetCursorType(CursorType::kCursorSizeNS);
         }
     }
-    return __super::MouseEnter(msg);
+    return BaseClass::MouseEnter(msg);
 }
 
 template<typename InheritType>
 bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonDown(msg);
+    bool bRet = BaseClass::ButtonDown(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -302,7 +303,7 @@ bool SplitTemplate<InheritType>::ButtonDown(const EventArgs& msg)
 template<typename InheritType>
 bool SplitTemplate<InheritType>::ButtonUp(const EventArgs& msg)
 {
-    bool bRet = __super::ButtonUp(msg);
+    bool bRet = BaseClass::ButtonUp(msg);
     if (msg.IsSenderExpired()) {
         return false;
     }
@@ -365,7 +366,7 @@ int32_t SplitTemplate<InheritType>::CalculateControlPos(bool bHLayout, const int
 template<typename InheritType>
 bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
 {
-    bool bRet = __super::MouseMove(msg);
+    bool bRet = BaseClass::MouseMove(msg);
     if (!IsSplitDragValid() || !this->IsMouseFocused()) {
         return bRet;
     }

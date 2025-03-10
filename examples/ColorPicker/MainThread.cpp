@@ -11,12 +11,16 @@ WorkerThread::~WorkerThread()
 
 void WorkerThread::OnInit()
 {
-    ::OleInitialize(NULL);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    ::OleInitialize(nullptr);
+#endif
 }
 
 void WorkerThread::OnCleanup()
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleUninitialize();
+#endif
 }
 
 MainThread::MainThread() :
@@ -30,7 +34,9 @@ MainThread::~MainThread()
 
 void MainThread::OnInit()
 {
-    ::OleInitialize(NULL);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    ::OleInitialize(nullptr);
+#endif
 
     //启动工作线程
     m_workerThread.reset(new WorkerThread);
@@ -58,8 +64,7 @@ void MainThread::OnInit()
     }
 
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;
-    pColorPicker->CreateWnd(nullptr, ui::WindowCreateParam(_T("ColorPicker")));
-    pColorPicker->CenterWindow();
+    pColorPicker->CreateWnd(nullptr, ui::WindowCreateParam(_T("ColorPicker"), true));
     pColorPicker->ShowWindow(ui::kSW_SHOW_NORMAL);
 
     //设置选择前的颜色
@@ -76,5 +81,7 @@ void MainThread::OnCleanup()
         m_workerThread->Stop();
         m_workerThread.reset(nullptr);
     }
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleUninitialize();
+#endif
 }

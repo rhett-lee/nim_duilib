@@ -1,15 +1,12 @@
 #include "StringUtil.h"
-#include "duilib/third_party/convert_utf/ConvertUTF.h"
 #include <filesystem>
 #include <cstdlib>
 #include <cstdarg>
-
-using namespace llvm; //for ConvertUTF.h
+#include <vector>
 
 namespace ui
 {
 
-#define GG_VA_COPY(a, b) (a = b)
 #define COUNT_OF(array)            (sizeof(array)/sizeof(array[0]))
 
 namespace
@@ -139,7 +136,11 @@ inline int vsnprintfT(char *dst, size_t count, const char *format, va_list ap)
 
 inline int vsnprintfT(wchar_t *dst, size_t count, const wchar_t *format, va_list ap)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     return _vsnwprintf_s(dst, count, count, format, ap);
+#else
+    return vswprintf(dst, count, format, ap);
+#endif
 }
 
 template<typename CharType>
@@ -149,7 +150,7 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
 
     /* first, we try to finish the task using a fixed-size buffer in the stack */
     va_list ap_copy;
-    GG_VA_COPY(ap_copy, ap);
+    va_copy(ap_copy, ap);
 
     int result = vsnprintfT(stack_buffer, COUNT_OF(stack_buffer), format, ap_copy);
     va_end(ap_copy);
@@ -182,7 +183,7 @@ void StringAppendVT(const CharType *format, va_list ap, std::basic_string<CharTy
          * NOTE: You can only use a va_list once.  Since we're in a while loop, we
          * need to make a new copy each time so we don't use up the original.
          */
-        GG_VA_COPY(ap_copy, ap);
+        va_copy(ap_copy, ap);
         result = vsnprintfT(&heap_buffer[0], buffer_size, format, ap_copy);
         va_end(ap_copy);
 
@@ -418,358 +419,6 @@ std::string StringUtil::MakeUpperString(const std::string& str)
     return resStr;
 }
 
-std::wstring StringUtil::UTF8ToUTF16(const UTF8Char* utf8, size_t length)
-{
-    std::vector<UTF16Char> data;
-    data.resize(8192);
-    UTF16Char* output = &data[0];
-    const UTF8* src_begin = reinterpret_cast<const UTF8*>(utf8);
-    const UTF8* src_end = src_begin + length;
-    UTF16* dst_begin = reinterpret_cast<UTF16*>(output);
-
-    std::wstring utf16;
-    while (src_begin < src_end)
-    {
-        ConversionResult result = ConvertUTF8toUTF16(&src_begin,
-            src_end,
-            &dst_begin,
-            dst_begin + data.size(),
-            lenientConversion);
-
-        utf16.append(output, dst_begin - reinterpret_cast<UTF16*>(output));
-        dst_begin = reinterpret_cast<UTF16*>(output);
-        if (result == sourceIllegal || result == sourceExhausted)
-        {
-            utf16.clear();
-            break;
-        }
-    }
-
-    return utf16;
-}
-
-std::string StringUtil::UTF16ToUTF8(const UTF16Char* utf16, size_t length)
-{
-    std::vector<UTF8Char> data;
-    data.resize(8192);
-    UTF8Char* output = &data[0];
-    const UTF16* src_begin = reinterpret_cast<const UTF16*>(utf16);
-    const UTF16* src_end = src_begin + length;
-    UTF8* dst_begin = reinterpret_cast<UTF8*>(output);
-
-    std::string utf8;
-    while (src_begin < src_end)
-    {
-        ConversionResult result = ConvertUTF16toUTF8(&src_begin,
-            src_end,
-            &dst_begin,
-            dst_begin + data.size(),
-            lenientConversion);
-
-        utf8.append(output, dst_begin - reinterpret_cast<UTF8*>(output));
-        dst_begin = reinterpret_cast<UTF8*>(output);
-        if (result == sourceIllegal || result == sourceExhausted)
-        {
-            utf8.clear();
-            break;
-        }
-    }
-
-    return utf8;
-}
-
-std::basic_string<UTF32Char> StringUtil::UTF8ToUTF32(const UTF8Char* utf8, size_t length)
-{
-    std::vector<UTF32Char> data;
-    data.resize(8192);
-    UTF32Char* output = &data[0];
-    const UTF8* src_begin = reinterpret_cast<const UTF8*>(utf8);
-    const UTF8* src_end = src_begin + length;
-    UTF32* dst_begin = reinterpret_cast<UTF32*>(output);
-
-    std::basic_string<UTF32Char> utf32;
-    while (src_begin < src_end)
-    {
-        ConversionResult result = ConvertUTF8toUTF32(&src_begin,
-            src_end,
-            &dst_begin,
-            dst_begin + data.size(),
-            lenientConversion);
-
-        utf32.append(output, dst_begin - reinterpret_cast<UTF32*>(output));
-        dst_begin = reinterpret_cast<UTF32*>(output);
-        if (result == sourceIllegal || result == sourceExhausted)
-        {
-            utf32.clear();
-            break;
-        }
-    }
-
-    return utf32;
-}
-
-std::string StringUtil::UTF32ToUTF8(const UTF32Char* utf32, size_t length)
-{
-    std::vector<UTF8Char> data;
-    data.resize(8192);
-    UTF8Char* output = &data[0];
-    const UTF32* src_begin = reinterpret_cast<const UTF32*>(utf32);
-    const UTF32* src_end = src_begin + length;
-    UTF8* dst_begin = reinterpret_cast<UTF8*>(output);
-
-    std::string utf8;
-    while (src_begin < src_end)
-    {
-        ConversionResult result = ConvertUTF32toUTF8(&src_begin,
-            src_end,
-            &dst_begin,
-            dst_begin + data.size(),
-            lenientConversion);
-
-        utf8.append(output, dst_begin - reinterpret_cast<UTF8*>(output));
-        dst_begin = reinterpret_cast<UTF8*>(output);
-        if (result == sourceIllegal || result == sourceExhausted)
-        {
-            utf8.clear();
-            break;
-        }
-    }
-
-    return utf8;
-}
-
-std::basic_string<UTF32Char> StringUtil::UTF16ToUTF32(const UTF16Char* utf16, size_t length)
-{
-    std::vector<UTF32Char> data;
-    data.resize(8192);
-    UTF32Char* output = &data[0];
-    const UTF16* src_begin = reinterpret_cast<const UTF16*>(utf16);
-    const UTF16* src_end = src_begin + length;
-    UTF32* dst_begin = reinterpret_cast<UTF32*>(output);
-
-    std::basic_string<UTF32Char> utf32;
-    while (src_begin < src_end)
-    {
-        ConversionResult result = ConvertUTF16toUTF32(&src_begin,
-            src_end,
-            &dst_begin,
-            dst_begin + data.size(),
-            lenientConversion);
-
-        utf32.append(output, dst_begin - reinterpret_cast<UTF32*>(output));
-        dst_begin = reinterpret_cast<UTF32*>(output);
-        if (result == sourceIllegal || result == sourceExhausted)
-        {
-            utf32.clear();
-            break;
-        }
-    }
-
-    return utf32;
-}
-
-std::wstring StringUtil::UTF32ToUTF16(const UTF32Char* utf32, size_t length)
-{
-    std::vector<UTF16Char> data;
-    data.resize(8192);
-    UTF16Char* output = &data[0];
-    const UTF32* src_begin = reinterpret_cast<const UTF32*>(utf32);
-    const UTF32* src_end = src_begin + length;
-    UTF16* dst_begin = reinterpret_cast<UTF16*>(output);
-
-    std::wstring utf16;
-    while (src_begin < src_end)
-    {
-        ConversionResult result = ConvertUTF32toUTF16(&src_begin,
-            src_end,
-            &dst_begin,
-            dst_begin + data.size(),
-            lenientConversion);
-
-        utf16.append(output, dst_begin - reinterpret_cast<UTF16*>(output));
-        dst_begin = reinterpret_cast<UTF16*>(output);
-        if (result == sourceIllegal || result == sourceExhausted)
-        {
-            utf16.clear();
-            break;
-        }
-    }
-
-    return utf16;
-}
-
-std::wstring StringUtil::UTF8ToUTF16(const std::string& utf8)
-{
-    return UTF8ToUTF16(utf8.c_str(), utf8.length());
-}
-
-std::string StringUtil::UTF16ToUTF8(const std::wstring& utf16)
-{
-    return UTF16ToUTF8(utf16.c_str(), utf16.length());
-}
-
-std::string StringUtil::TToUTF8(const std::wstring& str)
-{
-    return StringUtil::UTF16ToUTF8(str);
-}
-
-const std::string& StringUtil::TToUTF8(const std::string& str)
-{
-    return str;
-}
-
-DString StringUtil::UTF8ToT(const UTF8Char* utf8, size_t length)
-{
-#ifdef DUILIB_UNICODE
-    return StringUtil::UTF8ToUTF16(utf8, length);
-#else
-    return std::string(utf8, length);
-#endif
-}
-
-DString StringUtil::UTF8ToT(const std::string& utf8)
-{
-#ifdef DUILIB_UNICODE
-    return StringUtil::UTF8ToUTF16(utf8);
-#else
-    return utf8;
-#endif
-}
-
-const std::wstring& StringUtil::TToUTF16(const std::wstring& str)
-{
-    return str;
-}
-
-std::wstring StringUtil::TToUTF16(const std::string& str)
-{
-    return StringUtil::UTF8ToUTF16(str);
-}
-
-DString StringUtil::UTF16ToT(const std::wstring& utf16)
-{
-#ifdef DUILIB_UNICODE
-    return utf16;
-#else    
-    return StringUtil::UTF16ToUTF8(utf16);
-#endif
-}
-
-std::basic_string<UTF32Char> StringUtil::UTF8ToUTF32(const std::string& utf8)
-{
-    return UTF8ToUTF32(utf8.c_str(), utf8.length());
-}
-
-std::string StringUtil::UTF32ToUTF8(const std::basic_string<UTF32Char>& utf32)
-{
-    return UTF32ToUTF8(utf32.c_str(), utf32.length());
-}
-
-std::basic_string<UTF32Char> StringUtil::UTF16ToUTF32(const std::wstring& utf16)
-{
-    return UTF16ToUTF32(utf16.c_str(), utf16.length());
-}
-
-std::wstring StringUtil::UTF32ToUTF16(const std::basic_string<UTF32Char>& utf32)
-{
-    return UTF32ToUTF16(utf32.c_str(), utf32.length());
-}
-
-#ifdef DUILIB_BUILD_FOR_WIN
-std::wstring StringUtil::MBCSToUnicode(const std::string& input, int32_t code_page)
-{
-    std::wstring output;
-    int length = ::MultiByteToWideChar(code_page, 0, input.c_str(), static_cast<int>(input.size()), NULL, 0);
-    if (length < 0) {
-        length = 0;
-    }
-    output.resize(length);
-    if (output.empty()) {
-        return output;
-    }
-    ::MultiByteToWideChar(code_page,
-        0,
-        input.c_str(),
-        static_cast<int>(input.size()),
-        &output[0],
-        static_cast<int>(output.size()));
-    return output;
-}
-
-DString StringUtil::MBCSToT(const std::string& input)
-{
-    DString output;
-#ifdef DUILIB_UNICODE
-    output = MBCSToUnicode(input);
-#else
-    std::wstring temp = MBCSToUnicode(input);
-    output = UTF16ToUTF8(temp);
-#endif
-    return output;
-}
-
-std::string StringUtil::UnicodeToMBCS(const std::wstring& input, int32_t code_page)
-{
-    std::string output;
-    int length = ::WideCharToMultiByte(code_page, 0, input.c_str(), static_cast<int>(input.size()), NULL, 0, NULL, NULL);
-    if (length < 0) {
-        length = 0;
-    }
-    output.resize(length);
-    if (output.empty()) {
-        return output;
-    }
-    ::WideCharToMultiByte(code_page,
-        0,
-        input.c_str(),
-        static_cast<int>(input.size()),
-        &output[0],
-        static_cast<int>(output.size()),
-        NULL,
-        NULL);
-    return output;
-}
-
-std::string StringUtil::TToMBCS(const DString& input)
-{
-    std::string output;
-#ifdef DUILIB_UNICODE
-    output = UnicodeToMBCS(input);
-#else
-    std::wstring temp = UTF8ToUTF16(input);
-    output = UnicodeToMBCS(temp);
-#endif
-    return output;
-}
-
-DString StringUtil::TToLocal(const DString& input)
-{
-#ifdef DUILIB_UNICODE
-    return input;
-#elif defined (DUILIB_BUILD_FOR_WIN)
-    DString output;
-    std::wstring temp = UTF8ToUTF16(input);
-    output = UnicodeToMBCS(temp);
-    return output;
-#else
-    return input;
-#endif
-}
-
-DString StringUtil::LocalToT(const DString& input)
-{
-#ifdef DUILIB_UNICODE
-    return input;
-#elif defined (DUILIB_BUILD_FOR_WIN)
-    DStringW output = MBCSToUnicode(input);
-    return UTF16ToUTF8(output);
-#else
-    return input;
-#endif
-}
-
-#endif
-
 std::string StringUtil::TrimLeft(const char *input)
 {
     std::string output = input;
@@ -858,11 +507,22 @@ std::list<std::string> StringUtil::Split(const std::string& input, const std::st
         return output;
 
     char* context = nullptr;
+#ifdef DUILIB_BUILD_FOR_WIN
     char *token = strtok_s(input2.data(), delimitor.c_str(), &context);
-    while (token != NULL)
-    {
+#elif defined _MSC_VER
+    char* token = strtok_s(input2.data(), delimitor.c_str(), &context);
+#else
+    char* token = strtok_r(input2.data(), delimitor.c_str(), &context);
+#endif
+    while (token != nullptr) {
         output.push_back(token);
-        token = strtok_s(NULL, delimitor.c_str(), &context);
+#ifdef DUILIB_BUILD_FOR_WIN
+        token = strtok_s(nullptr, delimitor.c_str(), &context);
+#elif defined _MSC_VER
+        token = strtok_s(nullptr, delimitor.c_str(), &context);
+#else
+        token = strtok_r(nullptr, delimitor.c_str(), &context);
+#endif
     }
     return output;
 }
@@ -877,11 +537,22 @@ std::list<std::wstring> StringUtil::Split(const std::wstring& input, const std::
     }
 
     wchar_t* context = nullptr;
+#ifdef DUILIB_BUILD_FOR_WIN
     wchar_t* token = wcstok_s(input2.data(), delimitor.c_str(), &context);
-    while (token != NULL)
-    {
+#elif defined _MSC_VER
+    wchar_t* token = wcstok_s(input2.data(), delimitor.c_str(), &context);
+#else
+    wchar_t* token = wcstok(input2.data(), delimitor.c_str(), &context);
+#endif
+    while (token != nullptr) {
         output.push_back(token);
-        token = wcstok_s(NULL, delimitor.c_str(), &context);
+#ifdef DUILIB_BUILD_FOR_WIN
+        token = wcstok_s(nullptr, delimitor.c_str(), &context);
+#elif defined _MSC_VER
+        token = wcstok_s(nullptr, delimitor.c_str(), &context);
+#else
+        token = wcstok(nullptr, delimitor.c_str(), &context);
+#endif
     }
     return output;
 }
@@ -1046,7 +717,13 @@ int32_t StringUtil::StringCompare(const char* lhs, const char* rhs)
 
 int32_t StringUtil::StringICompare(const std::wstring& lhs, const std::wstring& rhs)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     return ::_wcsicmp(lhs.c_str(), rhs.c_str());
+#elif defined _MSC_VER
+    return ::_wcsicmp(lhs.c_str(), rhs.c_str());
+#else
+    return ::wcscasecmp(lhs.c_str(), rhs.c_str());
+#endif
 }
 
 int32_t StringUtil::StringICompare(const wchar_t* lhs, const wchar_t* rhs)
@@ -1061,13 +738,25 @@ int32_t StringUtil::StringICompare(const wchar_t* lhs, const wchar_t* rhs)
         return 1;
     }
     else {
+#ifdef DUILIB_BUILD_FOR_WIN
         return ::_wcsicmp(lhs, rhs);
+#elif defined _MSC_VER
+        return ::_wcsicmp(lhs, rhs);
+#else
+        return ::wcscasecmp(lhs, rhs);
+#endif
     }
 }
 
 int32_t StringUtil::StringICompare(const std::string& lhs, const std::string& rhs)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     return ::_stricmp(lhs.c_str(), rhs.c_str());
+#elif defined _MSC_VER
+    return ::_stricmp(lhs.c_str(), rhs.c_str());
+#else
+    return ::strcasecmp(lhs.c_str(), rhs.c_str());
+#endif
 }
 
 int32_t StringUtil::StringICompare(const char* lhs, const char* rhs)
@@ -1082,7 +771,13 @@ int32_t StringUtil::StringICompare(const char* lhs, const char* rhs)
         return 1;
     }
     else {
+#ifdef DUILIB_BUILD_FOR_WIN
         return ::_stricmp(lhs, rhs);
+#elif defined _MSC_VER
+        return ::_stricmp(lhs, rhs);
+#else
+        return ::strcasecmp(lhs, rhs);
+#endif
     }
 }
 
@@ -1154,14 +849,22 @@ std::string StringUtil::UInt32ToString(uint32_t value)
 
 int32_t StringUtil::StringToInt32(const std::wstring& str)
 {
+#ifdef DUILIB_BUILD_FOR_WIN
     return ::_wtoi(str.c_str());
+#else
+    return wcstol(str.c_str(), nullptr, 10);
+#endif
 }
 
 int32_t StringUtil::StringToInt32(const std::wstring::value_type* str)
 {
     ASSERT(str != nullptr);
     if (str != nullptr) {
+#ifdef DUILIB_BUILD_FOR_WIN
         return ::_wtoi(str);
+#else
+        return wcstol(str, nullptr, 10);
+#endif
     }
     else {
         return 0;
@@ -1302,7 +1005,33 @@ int32_t StringUtil::StringCopy(wchar_t* dest, size_t destSize, const wchar_t* sr
     if ((dest == nullptr) || (destSize == 0) || (src == nullptr)) {
         return 0;
     }
+#ifdef DUILIB_BUILD_FOR_WIN
     return ::wcscpy_s(dest, destSize, src);
+#elif defined _MSC_VER
+    return ::wcscpy_s(dest, destSize, src);
+#else
+    size_t nLen = std::min((size_t)wcslen(src), destSize);
+    ::wcsncpy(dest, src, nLen);
+    dest[nLen] = L'\0';
+    return 0;
+#endif
+}
+
+int32_t StringUtil::StringNCopy(wchar_t* dest, size_t destSize, const wchar_t* src, size_t srcSize)
+{
+    if ((dest == nullptr) || (destSize == 0) || (src == nullptr) || (srcSize == 0)) {
+        return 0;
+    }
+#ifdef DUILIB_BUILD_FOR_WIN
+    return ::wcsncpy_s(dest, destSize, src, srcSize);
+#elif defined _MSC_VER
+    return ::wcsncpy_s(dest, destSize, src, srcSize);
+#else
+    size_t nLen = std::min(srcSize, destSize);
+    ::wcsncpy(dest, src, nLen);
+    dest[nLen] = L'\0';
+    return 0;
+#endif
 }
 
 int32_t StringUtil::StringCopy(char* dest, size_t destSize, const char* src)
@@ -1310,7 +1039,33 @@ int32_t StringUtil::StringCopy(char* dest, size_t destSize, const char* src)
     if ((dest == nullptr) || (destSize == 0) || (src == nullptr)) {
         return 0;
     }
+#ifdef DUILIB_BUILD_FOR_WIN
     return ::strcpy_s(dest, destSize, src);
+#elif defined _MSC_VER
+    return ::strcpy_s(dest, destSize, src);
+#else
+    size_t nLen = std::min(destSize, strlen(src));
+    ::strncpy(dest, src, nLen);
+    dest[nLen] = '\0';
+    return 0;
+#endif
+}
+
+int32_t StringUtil::StringNCopy(char* dest, size_t destSize, const char* src, size_t srcSize)
+{
+    if ((dest == nullptr) || (destSize == 0) || (src == nullptr) || (srcSize == 0)) {
+        return 0;
+    }
+#ifdef DUILIB_BUILD_FOR_WIN
+    return ::strncpy_s(dest, destSize, src, srcSize);
+#elif defined _MSC_VER
+    return ::strncpy_s(dest, destSize, src, srcSize);
+#else
+    size_t nLen = std::min(srcSize, destSize);
+    ::strncpy(dest, src, nLen);
+    dest[nLen] = '\0';
+    return 0;
+#endif
 }
 
 size_t StringUtil::StringLen(const wchar_t* str)

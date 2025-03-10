@@ -8,6 +8,7 @@
 #include "duilib/Core/StateColorMap.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Animation/AnimationManager.h"
@@ -21,6 +22,7 @@ namespace ui
 template<typename InheritType = Control>
 class UILIB_API LabelTemplate : public InheritType
 {
+    typedef InheritType BaseClass;
 public:
     explicit LabelTemplate(Window* pWindow);
     virtual ~LabelTemplate() override;
@@ -288,7 +290,7 @@ void LabelTemplate<InheritType>::SetAttribute(const DString& strName, const DStr
         SetTextPadding(rcTextPadding, true);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -303,7 +305,7 @@ void LabelTemplate<InheritType>::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t 
     rcTextPadding = this->Dpi().GetScalePadding(rcTextPadding, nOldDpiScale);
     this->SetTextPadding(rcTextPadding, false);
 
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
 template<typename InheritType>
@@ -327,14 +329,14 @@ void LabelTemplate<InheritType>::SetAutoToolTip(bool bAutoShow)
 template<typename InheritType /*= Control*/>
 void ui::LabelTemplate<InheritType>::SetPos(UiRect rc)
 {
-    __super::SetPos(rc);
+    BaseClass::SetPos(rc);
     CheckShowToolTip();
 }
 
 template<typename InheritType>
 DString LabelTemplate<InheritType>::GetToolTipText() const
 {
-    DString toolTip = __super::GetToolTipText();
+    DString toolTip = BaseClass::GetToolTipText();
     if (!toolTip.empty()) {
         return toolTip;
     }
@@ -395,7 +397,7 @@ template<typename InheritType>
 std::string LabelTemplate<InheritType>::GetUTF8Text() const
 {
     DString strIn = GetText();
-    std::string strOut = StringUtil::TToUTF8(strIn);
+    std::string strOut = StringConvert::TToUTF8(strIn);
     return strOut;
 }
 
@@ -413,7 +415,7 @@ void LabelTemplate<InheritType>::SetText(const DString& strText)
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetUTF8Text(const std::string& strText)
 {
-    DString strOut = StringUtil::UTF8ToT(strText);
+    DString strOut = StringConvert::UTF8ToT(strText);
     SetText(strOut);
 }
 
@@ -431,14 +433,14 @@ void LabelTemplate<InheritType>::SetTextId(const DString& strTextId)
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetUTF8TextId(const std::string& strTextId)
 {
-    DString strOut = StringUtil::UTF8ToT(strTextId);
+    DString strOut = StringConvert::UTF8ToT(strTextId);
     SetTextId(strOut);
 }
 
 template<typename InheritType>
 bool LabelTemplate<InheritType>::HasHotState()
 {
-    if (__super::HasHotState()) {
+    if (BaseClass::HasHotState()) {
         return true;
     }
     if (m_pTextColorMap != nullptr) {
@@ -457,36 +459,45 @@ UiSize LabelTemplate<InheritType>::EstimateText(UiSize szAvailable)
         m_uTextStyle &= ~TEXT_SINGLELINE;
     }
 
-    int32_t width = szAvailable.cx;
+    int32_t nWidth = szAvailable.cx;
     if (this->GetFixedWidth().IsStretch()) {
         //如果是拉伸类型，使用外部宽度
-        width = CalcStretchValue(this->GetFixedWidth(), szAvailable.cx);
+        nWidth = CalcStretchValue(this->GetFixedWidth(), szAvailable.cx);
     }
     else if (this->GetFixedWidth().IsInt32()) {
-        width = this->GetFixedWidth().GetInt32();
+        nWidth = this->GetFixedWidth().GetInt32();
     }
-    UiPadding rcTextPadding = this->GetTextPadding();
-    UiPadding rcPadding = this->GetControlPadding();
-    width -= (rcPadding.left + rcPadding.right);
-    width -= (rcTextPadding.left + rcTextPadding.right);
-    if (width < 0) {
-        width = 0;
+    else if (this->GetFixedWidth().IsAuto()) {
+        //宽度为自动时，不限制宽度
+        nWidth = INT_MAX;
+    }
+    const UiPadding rcTextPadding = this->GetTextPadding();
+    const UiPadding rcPadding = this->GetControlPadding();
+    if (nWidth != INT_MAX) {        
+        nWidth -= (rcPadding.left + rcPadding.right);
+        nWidth -= (rcTextPadding.left + rcTextPadding.right);
+    }
+    if (nWidth < 0) {
+        nWidth = 0;
     }
     UiSize fixedSize;
     DString textValue = GetText();
     if (!textValue.empty() && (this->GetWindow() != nullptr)) {
         auto pRender = this->GetWindow()->GetRender();
         if (pRender != nullptr) {
-            UiRect rect = pRender->MeasureString(textValue, this->GetIFontById(GetFontId()), m_uTextStyle, width);            
-            if (this->GetFixedWidth().IsAuto()) {
-                fixedSize.cx = rect.Width() + rcTextPadding.left + rcTextPadding.right;
+            UiRect rect = pRender->MeasureString(textValue, this->GetIFontById(GetFontId()), m_uTextStyle, nWidth);
+            fixedSize.cx = rect.Width();
+            if (fixedSize.cx > 0) {
+                fixedSize.cx += (rcTextPadding.left + rcTextPadding.right);
                 fixedSize.cx += (rcPadding.left + rcPadding.right);
             }
-            if (this->GetFixedHeight().IsAuto()) {
-                fixedSize.cy = rect.Height() + rcTextPadding.top + rcTextPadding.bottom;
+
+            fixedSize.cy = rect.Height();
+            if (fixedSize.cy) {
+                fixedSize.cy += (rcTextPadding.top + rcTextPadding.bottom);
                 fixedSize.cy += (rcPadding.top + rcPadding.bottom);
             }
-        }        
+        }
     }
     return fixedSize;
 }

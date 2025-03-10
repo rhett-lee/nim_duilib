@@ -46,10 +46,6 @@ public:
 
     template<class... Args>
     auto operator ()(Args && ... args) const
-#if _MSC_VER > 1900
-#else
-        ->decltype(m_func(std::forward<Args>(args)...))
-#endif
     {
         if (!m_weak_flag.expired()) {
             return m_func(std::forward<Args>(args)...);

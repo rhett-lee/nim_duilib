@@ -77,7 +77,7 @@ void RenderForm::TestPropertyGrid()
     p2->SetReadOnly(true);
 
     auto p3 = pPropertyGrid->AddTextProperty(pGroup, _T("属性3-3(密码)"), _T("值3-3"), _T("属性3的描述信息"));
-    p3->SetPassword(true);
+    p3->SetPasswordMode(true);
 
     pGroup = pPropertyGrid->AddGroup(_T("分组四"), _T("描述信息四"));
     auto p10 = pPropertyGrid->AddComboProperty(pGroup, _T("属性4-1(下拉表)"), _T("文本值4"), _T("属性4的描述信息"));

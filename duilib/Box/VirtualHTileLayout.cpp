@@ -57,7 +57,7 @@ UiSize64 VirtualHTileLayout::ArrangeChild(const std::vector<ui::Control*>& items
     VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     if ((pList == nullptr) || !pList->HasDataProvider()) {
         //如果未设置数据接口，则兼容基类的功能
-        return __super::ArrangeChild(items, rc);
+        return BaseClass::ArrangeChild(items, rc);
     }
     DeflatePadding(rc);
     int64_t nTotalWidth = GetElementsWidth(rc, Box::InvalidIndex);
@@ -72,7 +72,7 @@ UiSize VirtualHTileLayout::EstimateSizeByChild(const std::vector<Control*>& item
     VirtualListBox* pList = dynamic_cast<VirtualListBox*>(GetOwner());
     if ((pList == nullptr) || !pList->HasDataProvider()) {
         //如果未设置数据接口，则兼容基类的功能
-        return __super::EstimateSizeByChild(items, szAvailable);
+        return BaseClass::EstimateSizeByChild(items, szAvailable);
     }
     UiSize szItem = GetItemSize();
     ASSERT((szItem.cx > 0) || (szItem.cy > 0));

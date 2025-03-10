@@ -13,6 +13,7 @@ class ListCtrlHeaderItem;
 struct ListCtrlColumn;
 class ListCtrlHeader : public ListBoxItemH
 {
+    typedef ListBoxItemH BaseClass;
     friend class ListCtrlHeaderItem;
 public:
     explicit ListCtrlHeader(Window* pWindow);

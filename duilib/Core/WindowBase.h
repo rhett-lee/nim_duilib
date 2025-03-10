@@ -4,8 +4,12 @@
 #include "duilib/Core/INativeWindow.h"
 #include "duilib/Utils/FilePath.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_SDL)
+    #include "duilib/Core/NativeWindow_SDL.h"
+#elif defined (DUILIB_BUILD_FOR_WIN)
     #include "duilib/Core/NativeWindow_Windows.h"
+#else
+    class NativeWindow;
 #endif
 
 namespace ui
@@ -14,6 +18,7 @@ class WindowDropTarget;
 class ControlDropTarget;
 class IRender;
 class WindowCreateParam;
+class WindowCreateAttributes;
 
 /** 窗口的基本功能封装（平台相关的窗口功能封装）
 */
@@ -40,13 +45,12 @@ public:
     *       (3) 已知问题：对话框中的RichEdit输入框，不支持输入文字（问题原因是IsDialogMessage函数未派发WM_CHAR消息给对话框窗口，暂未找到解决方案）
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
-    * @param [in] bCenterWindow 窗口是否居中
     * @param [in] bCloseByEsc 按ESC键的时候，是否关闭窗口
     * @param [in] bCloseByEnter 按Enter键的时候，是否关闭窗口
     * @return 窗口退出时的返回值, 如果失败则返回-1
     */
     int32_t DoModal(WindowBase* pParentWindow, const WindowCreateParam& createParam,
-                    bool bCenterWindow = true, bool bCloseByEsc = true, bool bCloseByEnter = false);
+                    bool bCloseByEsc = true, bool bCloseByEnter = false);
 
     /** 是否含有有效的窗口句柄
     */
@@ -143,13 +147,15 @@ public:
     */
     void CenterWindow();
 
-    /** 将窗口设置为置顶窗口
+    /** 是否将窗口设置为置顶窗口
+    * @param [in] bOnTop true表示设置为置顶窗口，false表示取消置顶窗口
     */
-    void ToTopMost();
+    void SetWindowAlwaysOnTop(bool bOnTop);
 
-    /** 将窗口调整为顶层窗口
+    /** 判断当前窗口是否为置顶窗口
+    * @return true表示当前为置顶窗口，false表示当前不是置顶窗口
     */
-    void BringToTop();
+    bool IsWindowAlwaysOnTop() const;
 
     /** 设置窗口为前端窗口
     */
@@ -170,10 +176,6 @@ public:
     /** 当前窗口是否为输入焦点窗口
     */
     bool IsWindowFocused() const;
-
-    /** 设置Owner窗口为焦点窗口
-    */
-    bool SetOwnerWindowFocus();
 
     /** 检查并确保当前窗口为焦点窗口
     */
@@ -253,8 +255,9 @@ public:
 
     /** 设置窗口图标（支持*.ico格式）
     *  @param [in] iconFileData ico文件的数据
+    *  @param [in] iconFileName 包含扩展名的文件名，用于识别图片类型
     */
-    bool SetWindowIcon(const std::vector<uint8_t>& iconFileData);
+    bool SetWindowIcon(const std::vector<uint8_t>& iconFileData, const DString& iconFileName);
 
     /** 设置窗口标题栏文本
     * @param [in] strText 窗口标题栏文本
@@ -380,31 +383,25 @@ public:
     */
     void SetRoundCorner(int cx, int cy, bool bNeedDpiScale);
 
-    /** 获取窗口最小范围，对应 XML 中 mininfo 属性
-    * @param [in] bContainShadow 是否包含阴影范围，默认为 false
+    /** 设置窗口大小的最小值（宽度和高度）
+    * @param [in] szMinWindow 窗口的最小宽度和最小高度，如果值为0，表示不做限制
+    * @param [in] bNeedDpiScale 为 false 表示不需要根据 DPI 自动调整
     */
-    UiSize GetMinInfo(bool bContainShadow /*= false*/) const;
+    void SetWindowMaximumSize(const UiSize& szMinWindow, bool bNeedDpiScale);
 
-    /** 设置窗口最小范围
-    * @param [in] cx 宽度
-    * @param [in] cy 高度
-    * @param [in] bContainShadow 为 false 表示 cx cy 不包含阴影
-    * @param [in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
+    /** 获取窗口大小的最小值（宽度和高度）
     */
-    void SetMinInfo(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
+    const UiSize& GetWindowMaximumSize() const;
 
-    /** 获取窗口最大范围，对应 XML 中 maxinfo 属性
-    * @param [in] bContainShadow 是否包含阴影范围，默认为 false
+    /** 设置窗口大小的最大值（宽度和高度）
+    * @param [in] szMaxWindow 窗口的最大宽度和最小高度，如果值为0，表示不做限制
+    * @param [in] bNeedDpiScale 为 false 表示不需要根据 DPI 自动调整
     */
-    UiSize GetMaxInfo(bool bContainShadow /*= false*/) const;
+    void SetWindowMinimumSize(const UiSize& szMaxWindow, bool bNeedDpiScale);
 
-    /** 设置窗口最大范围
-    * @param [in] cx 宽度
-    * @param [in] cy 高度
-    * @param [in] bContainShadow 为 false 表示 cx cy 不包含阴影
-    * @param [in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
+    /** 获取窗口大小的最大值（宽度和高度）
     */
-    void SetMaxInfo(int cx, int cy, bool bContainShadow /*= false*/, bool bNeedDpiScale);
+    const UiSize& GetWindowMinimumSize() const;
 
     /** @}*/
 
@@ -421,14 +418,6 @@ public:
     * @param [in] pFilter 一个继承了 IUIMessageFilter 的对象实例
     */
     bool RemoveMessageFilter(IUIMessageFilter* pFilter);
-
-    /** 发送消息，对 Windows SendMessage 的一层封装
-    * @param [in] uMsg 消息类型
-    * @param [in] wParam 消息附加参数
-    * @param [in] lParam 消息附加参数
-    * @return 返回窗口对消息的处理结果
-    */
-    LRESULT SendMsg(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0L);
 
     /** 投递一个消息到消息队列
     * @param [in] uMsg 消息类型
@@ -466,20 +455,25 @@ public:
     */
     void ClientToScreen(UiPoint& pt) const;
 
+    /* 将rc的左上角坐标和右下角坐标点从相对于当前窗口的坐标空间转换为相对于桌面窗口的坐标空间
+    * @param [out] rc 返回屏幕坐标
+    */
+    void ClientToScreen(UiRect& rc) const;
+
     /** 获取当前鼠标所在坐标
     * @param [out] pt 返回屏幕坐标
     */
     void GetCursorPos(UiPoint& pt) const;
 
-    /* 将rc的左上角坐标和右下角坐标点从相对于当前窗口的坐标空间转换为相对于桌面窗口的坐标空间
-    * @param [out] rc 返回屏幕坐标
-    */
-    void MapWindowDesktopRect(UiRect& rc) const;
-
     /** 获取指定窗口所在显示器的显示器矩形
     * @param [out] rcMonitor 显示器的矩形区域
     */
     bool GetMonitorRect(UiRect& rcMonitor) const;
+
+    /** 获取当前主显示器的工作区矩形
+    * @param [out] rcWork 返回主屏幕坐标
+    */
+    static bool GetPrimaryMonitorWorkRect(UiRect& rcWork);
 
     /** 获取当前窗口所在显示器的工作区矩形，以虚拟屏幕坐标表示。
         请注意，如果显示器不是主显示器，则一些矩形的坐标可能是负值。
@@ -556,9 +550,19 @@ public:
     */
     void SetLastMousePos(const UiPoint& pt);
 
-    /** 获取窗口的句柄（Windows平台返回的是窗口句柄HWND）
+    /** 获取窗口的句柄（Windows平台返回的是窗口句柄HWND, SDL实现时返回的是SDL_Window*）
     */
     void* GetWindowHandle() const;
+
+#ifdef DUILIB_BUILD_FOR_SDL
+    /** 获取当前窗口实现的驱动名称
+    */
+    DString GetVideoDriverName() const;
+
+    /** 获取当前Render绘制引擎的名称
+    */
+    DString GetWindowRenderName() const;
+#endif
 
 protected:
     /** 正在初始化窗口数据
@@ -636,6 +640,11 @@ protected:
     */
     virtual bool IsPtInMaximizeRestoreButton(const UiPoint& pt) const = 0;
 
+    /** 获取创建窗口的属性（从XML文件的Window标签中读取的属性值）
+    * @param [out] createAttributes 返回从XML文件的Window标签中读取的创建窗口的属性
+    */
+    virtual void GetCreateWindowAttributes(WindowCreateAttributes& createAttributes) = 0;
+
     /** 窗口的DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
     * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
@@ -708,12 +717,26 @@ protected:
     */
     virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
+    /** 通知应用程序输入焦点变化(WM_IME_SETCONTEXT)
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
     /** 输入法开始生成组合字符串(WM_IME_STARTCOMPOSITION)
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
     virtual LRESULT OnImeStartCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 更改按键组合状态(WM_IME_COMPOSITION)
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnImeCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
     /** 输入法结束组合(WM_IME_ENDCOMPOSITION)
     * @param [in] nativeMsg 从系统接收到的原始消息内容
@@ -864,6 +887,33 @@ protected:
     */
     virtual LRESULT OnMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
+    /** 鼠标中键按下消息（WM_MBUTTONDOWN）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseMButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 鼠标中键弹起消息（WM_MBUTTONUP）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseMButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
+    /** 鼠标中键双击消息（WM_MBUTTONDBLCLK）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) = 0;
+
     /** 窗口丢失鼠标捕获（WM_CAPTURECHANGED）
     * @param [in] nativeMsg 从系统接收到的原始消息内容
     * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
@@ -925,8 +975,6 @@ private:
     virtual bool OnNativeIsPtInCaptionBarControl(const UiPoint& pt) const override;
     virtual bool OnNativeHasMinMaxBox(bool& bMinimizeBox, bool& bMaximizeBox) const override;
     virtual bool OnNativeIsPtInMaximizeRestoreButton(const UiPoint& pt) const override;
-    virtual UiSize OnNativeGetMinInfo(bool bContainShadow /*= false*/) const override;
-    virtual UiSize OnNativeGetMaxInfo(bool bContainShadow /*= false*/) const override;
     virtual void OnNativePreCloseWindow() override;
     virtual void OnNativePostCloseWindow() override;
     virtual void OnNativeUseSystemCaptionBarChanged() override;
@@ -944,6 +992,8 @@ private:
     virtual LRESULT OnNativeSetFocusMsg(INativeWindow* pLostFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeKillFocusMsg(INativeWindow* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeImeStartCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
+    virtual LRESULT OnNativeImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
+    virtual LRESULT OnNativeImeCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeImeEndCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeSetCursorMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeContextMenuMsg(const UiPoint& pt, const NativeMsg& nativeMsg, bool& bHandled) override;
@@ -961,6 +1011,9 @@ private:
     virtual LRESULT OnNativeMouseRButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeMouseRButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeMouseRButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
+    virtual LRESULT OnNativeMouseMButtonDownMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
+    virtual LRESULT OnNativeMouseMButtonUpMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
+    virtual LRESULT OnNativeMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeCaptureChangedMsg(const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnNativeWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) override;
 
@@ -983,12 +1036,6 @@ private:
 
     //窗口标题栏文本的文本ID
     DString m_textId;
-
-    //窗口最小信息
-    UiSize m_szMinWindow;
-
-    //窗口最大信息
-    UiSize m_szMaxWindow;
 
     //窗口四边可拉伸范围信息
     UiRect m_rcSizeBox;

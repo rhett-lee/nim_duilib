@@ -1,0 +1,11 @@
+下载来源：https://cef-builds.spotifycdn.com/index.html
+
+Windows：
+03/01/2025 - 133.4.5+gdb28106+chromium-133.0.6943.142 / Chromium 133.0.6943.142
+下载链接：https://cef-builds.spotifycdn.com/cef_binary_133.4.5%2Bgdb28106%2Bchromium-133.0.6943.142_windows64.tar.bz2
+
+CEF/Chrome源码：
+https://bitbucket.org/chromiumembedded/cef/get/6943.tar.bz2
+https://github.com/chromium/chromium/archive/refs/tags/133.0.6943.142.tar.gz
+
+支持的操作系统：Win10及以上，不支持Win7.

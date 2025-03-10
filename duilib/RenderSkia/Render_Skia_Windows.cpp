@@ -19,9 +19,9 @@ namespace ui {
 * @param [in] hWnd 关联的窗口句柄，可以为nullptr
 * @param [in] params 显示相关的参数
 */
-std::unique_ptr<skwindow::WindowContext> MakeRasterForWin(HWND hWnd, const skwindow::DisplayParams& params)
+std::unique_ptr<skwindow::WindowContext> MakeRasterForWin(HWND hWnd, std::unique_ptr<const skwindow::DisplayParams> params)
 {
-    std::unique_ptr<skwindow::WindowContext> ctx(new SkRasterWindowContext_Windows(hWnd, params));
+    std::unique_ptr<skwindow::WindowContext> ctx(new SkRasterWindowContext_Windows(hWnd, std::move(params)));
     return ctx;
 }
 
@@ -29,9 +29,9 @@ std::unique_ptr<skwindow::WindowContext> MakeRasterForWin(HWND hWnd, const skwin
 * @param [in] hWnd 关联的窗口句柄，可以为nullptr
 * @param [in] params 显示相关的参数
 */
-std::unique_ptr<skwindow::WindowContext> MakeGLForWin(HWND hWnd, const skwindow::DisplayParams& params)
+std::unique_ptr<skwindow::WindowContext> MakeGLForWin(HWND hWnd, std::unique_ptr<const skwindow::DisplayParams> params)
 {
-    std::unique_ptr<skwindow::WindowContext> ctx(new SkGLWindowContext_Windows(hWnd, params));
+    std::unique_ptr<skwindow::WindowContext> ctx(new SkGLWindowContext_Windows(hWnd, std::move(params)));
     if (!ctx->isValid()) {
         return nullptr;
     }
@@ -54,7 +54,7 @@ Render_Skia_Windows::Render_Skia_Windows(HWND hWnd, RenderBackendType backendTyp
     //创建WindowContext
     if (backendType == RenderBackendType::kNativeGL_BackendType) {
         //GPU绘制
-        m_pWindowContext = MakeGLForWin(hWnd, skwindow::DisplayParams());
+        m_pWindowContext = MakeGLForWin(hWnd, std::make_unique<skwindow::DisplayParams>());
         ASSERT(m_pWindowContext != nullptr);
         if (m_pWindowContext != nullptr) {
             m_backendType = RenderBackendType::kNativeGL_BackendType;
@@ -63,7 +63,7 @@ Render_Skia_Windows::Render_Skia_Windows(HWND hWnd, RenderBackendType backendTyp
     //如果GL不成功，则创建CPU绘制的上下文
     if (m_pWindowContext == nullptr) {
         //CPU绘制
-        m_pWindowContext = MakeRasterForWin(hWnd, skwindow::DisplayParams());
+        m_pWindowContext = MakeRasterForWin(hWnd, std::make_unique <skwindow::DisplayParams>());
         ASSERT(m_pWindowContext != nullptr);
         if (m_pWindowContext != nullptr) {
             m_backendType = RenderBackendType::kRaster_BackendType;
@@ -254,7 +254,7 @@ HDC Render_Skia_Windows::GetRenderDC(HWND hWnd)
                 pRc[nCount++] = rc;
             }
 
-            HRGN hRgn = ::ExtCreateRegion(NULL, nSize, rgnData);
+            HRGN hRgn = ::ExtCreateRegion(nullptr, nSize, rgnData);
             ::free(rgnData);
             ::SelectClipRgn(hGetDC, hRgn);
             ::DeleteObject(hRgn);
@@ -263,7 +263,7 @@ HDC Render_Skia_Windows::GetRenderDC(HWND hWnd)
 
     ::SetGraphicsMode(hGetDC, GM_ADVANCED);
     const SkPoint& ptOrg = GetPointOrg();
-    ::SetViewportOrgEx(hGetDC, (int)ptOrg.x(), (int)ptOrg.y(), NULL);
+    ::SetViewportOrgEx(hGetDC, (int)ptOrg.x(), (int)ptOrg.y(), nullptr);
 
     struct IxForm
     {

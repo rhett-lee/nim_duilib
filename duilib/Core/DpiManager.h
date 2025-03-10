@@ -124,10 +124,10 @@ public:
     UiPadding GetScalePadding(UiPadding padding, uint32_t nOldDpiScale) const;
     UiMargin GetScaleMargin(UiMargin margin, uint32_t nOldDpiScale) const;
 
-private:
     /** MulDiv 函数封装
+    * @return 如果nDenominator为0，返回-1；否则返回nNumber * nNumerator / nDenominator的运算结果, 可确保运算中间结果不越界，并且计算结果有四舍五入
     */
-    int32_t MulDiv(int32_t nNumber, int32_t nNumerator, int32_t nDenominator) const;
+    static int32_t MulDiv(int32_t nNumber, int32_t nNumerator, int32_t nDenominator);
 
 private:
     /** 是否已经初始化过

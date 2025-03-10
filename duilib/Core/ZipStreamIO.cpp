@@ -49,7 +49,7 @@ uLong ZCALLBACK ZipStreamIO::fread_file_func(voidpf opaque, voidpf stream, void*
         if ((pStreamIO->m_nCurPos + nSize) <= pStreamIO->m_nDataLen) {
             //数据还没结束
             if (buf != nullptr) {
-                memcpy(buf, pStreamIO->m_pData + pStreamIO->m_nCurPos, (size_t)nSize);
+                ::memcpy(buf, pStreamIO->m_pData + pStreamIO->m_nCurPos, (size_t)nSize);
             }
             pStreamIO->m_nCurPos += nSize;
             nRet = nSize;
@@ -59,7 +59,7 @@ uLong ZCALLBACK ZipStreamIO::fread_file_func(voidpf opaque, voidpf stream, void*
             if (pStreamIO->m_nCurPos < pStreamIO->m_nDataLen) {
                 nRet = pStreamIO->m_nDataLen - pStreamIO->m_nCurPos;
                 if (buf != nullptr) {
-                    memcpy(buf, pStreamIO->m_pData + pStreamIO->m_nCurPos, (size_t)nRet);
+                    ::memcpy(buf, pStreamIO->m_pData + pStreamIO->m_nCurPos, (size_t)nRet);
                 }
                 pStreamIO->m_nCurPos += nRet;
             }

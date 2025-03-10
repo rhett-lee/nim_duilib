@@ -1,0 +1,11 @@
+下载来源：https://cef-builds.spotifycdn.com/index.html
+
+Windows：
+02/03/2023 - 109.1.18+gf1c41e4+chromium-109.0.5414.120 / Chromium 109.0.5414.120
+下载链接：https://cef-builds.spotifycdn.com/cef_binary_109.1.18%2Bgf1c41e4%2Bchromium-109.0.5414.120_windows64.tar.bz2
+
+CEF/Chrome源码：
+https://bitbucket.org/chromiumembedded/cef/get/5414.tar.bz2
+https://codeload.github.com/chromium/chromium/tar.gz/refs/tags/109.0.5414.120
+
+支持的操作系统：Win7及以上。

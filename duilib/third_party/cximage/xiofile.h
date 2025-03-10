@@ -21,10 +21,14 @@ public:
     bool Open(const TCHAR * filename, const TCHAR * mode)
     {
         if (m_fp) return false;    // Can't re-open without closing first
-#if defined (_WIN32) || defined (_WIN64)
+#if defined (DUILIB_BUILD_FOR_WIN)
         m_fp = _tfopen(filename, mode);
 #else
+#ifdef DUILIB_UNICODE
+        _wfopen_s(&m_fp, filename, mode);
+#else
         m_fp = fopen(filename, mode);
+#endif
 #endif
         if (!m_fp) return false;
 

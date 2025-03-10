@@ -1,7 +1,7 @@
 #include "DpiAwareness.h"
 
 //仅限非Windows平台
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include <VersionHelpers.h>
@@ -15,7 +15,8 @@ DpiInitParam::DpiInitParam() :
 {
 }
 
-DpiAwareness::DpiAwareness()
+DpiAwareness::DpiAwareness():
+    m_dpiAwarenessMode(DpiAwarenessMode::kPerMonitorDpiAware_V2)
 {
 }
 
@@ -40,10 +41,11 @@ bool DpiAwareness::InitDpiAwareness(const DpiInitParam& initParam)
     return bRet;
 }
 
-DpiAwarenessMode DpiAwareness::SetDpiAwareness(DpiAwarenessMode dpiAwarenessMode) const
+DpiAwarenessMode DpiAwareness::SetDpiAwareness(DpiAwarenessMode dpiAwarenessMode)
 {
     if (!::IsWindowsVistaOrGreater()) {
         //Vista以下版本系统，不支持DPI感知
+        m_dpiAwarenessMode = DpiAwarenessMode::kDpiUnaware;
         return DpiAwarenessMode::kDpiUnaware;
     }
 
@@ -113,7 +115,8 @@ DpiAwarenessMode DpiAwareness::SetDpiAwareness(DpiAwarenessMode dpiAwarenessMode
             }
         }
     }
-    return GetDpiAwareness();
+    m_dpiAwarenessMode = GetDpiAwareness();
+    return m_dpiAwarenessMode;
 }
 
 DpiAwarenessMode DpiAwareness::GetDpiAwareness() const

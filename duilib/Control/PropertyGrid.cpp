@@ -62,7 +62,7 @@ void PropertyGrid::SetAttribute(const DString& strName, const DString& strValue)
         SetLeftColumnWidth(StringUtil::StringToInt32(strValue), true);
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 
@@ -83,7 +83,7 @@ void PropertyGrid::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (!IsInited() || (m_pHeaderLeft == nullptr)) {
         m_nLeftColumnWidth = Dpi().GetScaleInt(m_nLeftColumnWidth, nOldDpiScale);
     }
-    __super::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
+    BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
     if (IsInited() && (m_pHeaderLeft != nullptr)) {
         m_nLeftColumnWidth = GetLeftColumnWidth();
     }
@@ -94,7 +94,7 @@ void PropertyGrid::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     //初始化基本结构
     if (m_configXml.empty()) {
         //默认的配置文件
@@ -170,7 +170,7 @@ void PropertyGrid::OnInit()
 
 void PropertyGrid::PaintChild(IRender* pRender, const UiRect& rcPaint)
 {
-    __super::PaintChild(pRender, rcPaint);
+    BaseClass::PaintChild(pRender, rcPaint);
 
     //网格线的绘制
     PaintGridLines(pRender);
@@ -647,8 +647,6 @@ PropertyGridColorProperty* PropertyGrid::AddColorProperty(PropertyGridGroup* pGr
     return pProperty;
 }
 
-#ifdef DUILIB_BUILD_FOR_WIN
-
 PropertyGridDateTimeProperty* PropertyGrid::AddDateTimeProperty(PropertyGridGroup* pGroup,
                                                                 const DString& propertyName,
                                                                 const DString& dateTimeValue,                                                                
@@ -663,8 +661,6 @@ PropertyGridDateTimeProperty* PropertyGrid::AddDateTimeProperty(PropertyGridGrou
     }
     return pProperty;
 }
-
-#endif //DUILIB_BUILD_FOR_WIN
 
 PropertyGridIPAddressProperty* PropertyGrid::AddIPAddressProperty(PropertyGridGroup* pGroup,
                                                                   const DString& propertyName,
@@ -797,7 +793,7 @@ void PropertyGridGroup::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     SetTabStop(false);
 
     HBox* pHBox = new HBox(GetWindow());
@@ -851,6 +847,7 @@ void PropertyGridGroup::RemoveAllProperties()
 
 class PropertyGridLabelBox : public LabelBox
 {
+    typedef LabelBox BaseClass;
 public:
     explicit PropertyGridLabelBox(Window* pWindow):
         LabelBox(pWindow)
@@ -867,7 +864,7 @@ public:
             pParent->SendEventMsg(msg);
         }
         if (!IsDisabledEvents(msg)) {
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
     }
 
@@ -878,7 +875,7 @@ public:
         if (IsInited()) {
             return;
         }
-        __super::OnInit();
+        BaseClass::OnInit();
         SetShowFocusRect(true);
         SetTabStop(false);
     }
@@ -906,7 +903,7 @@ void PropertyGridProperty::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     SetTabStop(false);
 
     m_pHBox = new HBox(GetWindow());
@@ -1066,6 +1063,7 @@ DString PropertyGridProperty::GetPropertyNewValue() const
 template<typename InheritType = Control>
 class PropertyGridEditTemplate : public InheritType
 {
+    typedef InheritType BaseClass;
 public:
     explicit PropertyGridEditTemplate(Window* pWindow);
 
@@ -1089,7 +1087,7 @@ public:
                     pParent->SendEventMsg(msg);
                 }
             }
-            __super::HandleEvent(msg);
+            BaseClass::HandleEvent(msg);
         }
     }
 
@@ -1100,7 +1098,7 @@ public:
         if (this->IsInited()) {
             return;
         }
-        __super::OnInit();
+        BaseClass::OnInit();
         this->SetShowFocusRect(false);
         this->SetTabStop(false);
     }
@@ -1123,7 +1121,7 @@ PropertyGridTextProperty::PropertyGridTextProperty(Window* pWindow,
                                                    size_t nPropertyData):
     PropertyGridProperty(pWindow, propertyName, propertyValue, description, nPropertyData),
     m_pRichEdit(nullptr),
-    m_bPassword(false)
+    m_bPasswordMode(false)
 {
 }
 
@@ -1173,7 +1171,7 @@ Control* PropertyGridTextProperty::ShowEditControl(bool bShow)
     else {
         DString newText = m_pRichEdit->GetText();
         bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
-        if (IsPassword()) {
+        if (IsPasswordMode()) {
             DString showText;
             showText.resize(newText.size(), _T('*'));
             SetPropertyText(showText, bChanged);
@@ -1186,17 +1184,17 @@ Control* PropertyGridTextProperty::ShowEditControl(bool bShow)
     return m_pRichEdit;
 }
 
-void PropertyGridTextProperty::SetPassword(bool bPassword)
+void PropertyGridTextProperty::SetPasswordMode(bool bPasswordMode)
 {
-    m_bPassword = bPassword;
+    m_bPasswordMode = bPasswordMode;
     if (m_pRichEdit == nullptr) {
         return;
     }
-    m_pRichEdit->SetPassword(bPassword);
+    m_pRichEdit->SetPasswordMode(bPasswordMode);
     m_pRichEdit->SetFlashPasswordChar(true);
     DString text = m_pRichEdit->GetText();
     bool bChanged = text != GetPropertyValue(); //相对原值，是否有修改
-    if (bPassword) {
+    if (bPasswordMode) {
         DString showText;
         showText.resize(text.size(), _T('*'));
         SetPropertyText(showText, bChanged);
@@ -1413,7 +1411,7 @@ PropertyGridFontProperty::PropertyGridFontProperty(Window* pWindow,
 
 DString PropertyGridFontProperty::GetPropertyNewValue() const
 {
-    return __super::GetPropertyNewValue();
+    return BaseClass::GetPropertyNewValue();
 }
 
 void PropertyGridFontProperty::OnInit()
@@ -1421,7 +1419,7 @@ void PropertyGridFontProperty::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     std::vector<DString> fontList; 
     GlobalManager::Instance().Font().GetFontNameList(fontList);
     for (const DString& fontName : fontList) {
@@ -1442,7 +1440,7 @@ PropertyGridFontSizeProperty::PropertyGridFontSizeProperty(Window* pWindow,
 
 DString PropertyGridFontSizeProperty::GetPropertyNewValue() const
 {
-    return __super::GetPropertyNewValue();
+    return BaseClass::GetPropertyNewValue();
 }
 
 void PropertyGridFontSizeProperty::OnInit()
@@ -1450,7 +1448,7 @@ void PropertyGridFontSizeProperty::OnInit()
     if (IsInited()) {
         return;
     }
-    __super::OnInit();
+    BaseClass::OnInit();
     if (m_fontSizeList.empty()) {
         ui::GlobalManager::Instance().Font().GetFontSizeList(Dpi(), m_fontSizeList);
         const size_t nCount = m_fontSizeList.size();
@@ -1670,8 +1668,8 @@ void PropertyGridColorProperty::ShowColorPicker()
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
     createWndParam.m_dwExStyle = kWS_EX_LAYERED;
+    createWndParam.m_bCenterWindow = true;
     pColorPicker->CreateWnd(pWindow, createWndParam);
-    pColorPicker->CenterWindow();
     pColorPicker->ShowModalFake();
 
     if (!oldTextColor.empty()) {
@@ -1716,8 +1714,6 @@ void PropertyGridColorProperty::OnSelectColor(const DString& color)
         pLabelColor->SetBkColor(color);
     }
 }
-
-#ifdef DUILIB_BUILD_FOR_WIN
 
 ////////////////////////////////////////////////////////////////////////////
 ///
@@ -1803,8 +1799,6 @@ void PropertyGridDateTimeProperty::OnScrollPosChanged()
         m_pDateTime->UpdateEditWndPos();
     }
 }
-
-#endif // DUILIB_BUILD_FOR_WIN
 
 ////////////////////////////////////////////////////////////////////////////
 ///
@@ -1950,7 +1944,7 @@ PropertyGridFileProperty::PropertyGridFileProperty(Window* pWindow,
 
 void PropertyGridFileProperty::EnableEditControl(bool bEnable)
 {
-    __super::EnableEditControl(bEnable);
+    BaseClass::EnableEditControl(bEnable);
     if (!bEnable) {
         return;
     }
@@ -2004,7 +1998,7 @@ PropertyGridDirectoryProperty::PropertyGridDirectoryProperty(Window* pWindow,
 
 void PropertyGridDirectoryProperty::EnableEditControl(bool bEnable)
 {
-    __super::EnableEditControl(bEnable);
+    BaseClass::EnableEditControl(bEnable);
     if (!bEnable) {
         return;
     }

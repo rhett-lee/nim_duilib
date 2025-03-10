@@ -184,7 +184,7 @@ void ColorPickerRegular::SetPos(UiRect rc)
             }
         }
     }
-    __super::SetPos(rc);
+    BaseClass::SetPos(rc);
 }
 
 void ColorPickerRegular::SetColumns(int32_t nColumns)
@@ -216,7 +216,7 @@ void ColorPickerRegular::SetAttribute(const DString& strName, const DString& str
         }
     }
     else {
-        __super::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 

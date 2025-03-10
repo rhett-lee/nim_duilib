@@ -11,6 +11,7 @@ namespace ui
 class TabBox;
 class TabCtrl: public ListBox
 {
+    typedef ListBox BaseClass;
 public:
     explicit TabCtrl(Window* pWindow);
 
@@ -96,6 +97,7 @@ private:
 */
 class TabCtrlItem : public ControlDragableT<ListBoxItemH>
 {
+    typedef ControlDragableT<ListBoxItemH> BaseClass;
 public:
     explicit TabCtrlItem(Window* pWindow);
 

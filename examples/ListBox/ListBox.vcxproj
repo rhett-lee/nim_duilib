@@ -203,14 +203,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="item.h" />
-    <ClInclude Include="main.h" />
+    <ClInclude Include="MainThread.h" />
     <ClInclude Include="richlist_form.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="item.cpp" />
+    <ClCompile Include="MainThread.cpp" />
+    <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="richlist_form.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="richlist.rc" />

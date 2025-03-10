@@ -1,37 +1,37 @@
-## WindowÏûÏ¢×¢½â
-| ÏûÏ¢          | ²ÎÊıËµÃ÷     | ×ÊÁÏ     |
+ï»¿## Windowæ¶ˆæ¯æ³¨è§£
+| æ¶ˆæ¯          | å‚æ•°è¯´æ˜     | èµ„æ–™     |
 | :---          | :---     | :---     |
-| WM_SIZE       | wParam£¨¾ßÌåÖµ£©, lParam£¨ĞÂµÄ¿í¶ÈºÍ¸ß¶È£©          | https://learn.microsoft.com/zh-cn/windows/win32/winmsg/wm-size|
-| WM_MOVE       | lParam£¨´°¿Ú¿Í»§¶ËÇøÓò×óÉÏ½ÇµÄ x ×ø±êºÍ y ×ø±ê£©    |  https://learn.microsoft.com/zh-cn/windows/win32/winmsg/wm-move   |
-| WM_PAINT      | ÎŞ²ÎÊı    |https://learn.microsoft.com/zh-cn/windows/win32/gdi/wm-paint|
-| WM_SETFOCUS   | wParam ÒÑÊ§È¥¼üÅÌ½¹µãµÄ´°¿ÚµÄ¾ä±ú | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-setfocus|
-| WM_KILLFOCUS  | wParam ½ÓÊÕ¼üÅÌ½¹µãµÄ´°¿ÚµÄ¾ä±ú | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-killfocus|
-| WM_CHAR       | wParam ¼üµÄ×Ö·û´úÂë£¬lParam É¨Ãè´úÂë¡¢À©Õ¹¼ü±êÖ¾µÈ  | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-char |
-| WM_KEYDOWN    | wParam virtual-key code, lParam É¨Ãè´úÂë¡¢À©Õ¹¼ü±êÖ¾µÈ  | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-keydown|
-| WM_KEYUP      | Í¬WM_KEYDOWN | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-keyup|
-| WM_SYSKEYDOWN | Í¬WM_KEYDOWN | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-syskeydown|
-| WM_SYSKEYUP   | Í¬WM_KEYDOWN | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-syskeyup|
-| WM_HOTKEY     | wParam£¬lParam Èı¸öÖµ  |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-hotkey|
-| WM_IME_STARTCOMPOSITION |  ÎŞ²ÎÊı   |  https://learn.microsoft.com/zh-cn/windows/win32/intl/wm-ime-startcomposition   |
-| WM_IME_ENDCOMPOSITION   |  ÎŞ²ÎÊı   |  https://learn.microsoft.com/zh-cn/windows/win32/intl/wm-ime-endcomposition   |
-| WM_SETCURSOR  | wParam ´°¿Ú¾ä±ú£¬lParam ´¥·¢ÊÂ¼şµÈ   | https://learn.microsoft.com/zh-cn/windows/win32/menurc/wm-setcursor    |
-| -WM_SYSCOMMAND | wParam ÇëÇóµÄÏµÍ³ÃüÁîµÄÀàĞÍ | https://learn.microsoft.com/zh-cn/windows/win32/menurc/wm-syscommand    |
-| WM_CONTEXTMENU| wParam ´°¿Ú¾ä±ú£¬lParam¹â±ê×ø±êx,y | https://learn.microsoft.com/zh-cn/windows/win32/menurc/wm-contextmenu?redirectedfrom=MSDN|
-| WM_MOUSELEAVE | ÎŞ²ÎÊı | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-mouseleave    |
-| WM_MOUSEHOVER | wParam Ö¸Ê¾¸÷ÖÖĞéÄâ¼üÊÇ·ñÒÑ°´ÏÂ£¬lParam¹â±ê×ø±êx,y  | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-mousehover    |
-| WM_MOUSEMOVE  | wParam Ö¸Ê¾¸÷ÖÖĞéÄâ¼üÊÇ·ñÒÑ°´ÏÂ£¬lParam¹â±ê×ø±êx,y  | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-mousemove    |
-| WM_MOUSEWHEEL | wParam WHEEL_DELTA + ĞéÄâ¼üÊÇ·ñÒÑ°´ÏÂ£¬lParam¹â±ê×ø±êx,y| https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-mousewheel    |
-| WM_LBUTTONDOWN| wParam Ö¸Ê¾¸÷ÖÖĞéÄâ¼üÊÇ·ñÒÑ°´ÏÂ£¬lParam¹â±ê×ø±êx,y  |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-lbuttondown     |
-| WM_LBUTTONUP  | wParam Ö¸Ê¾¸÷ÖÖĞéÄâ¼üÊÇ·ñÒÑ°´ÏÂ£¬lParam¹â±ê×ø±êx,y  | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-lbuttonup    |
-| WM_LBUTTONDBLCLK |  ÏàÍ¬   |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-lbuttondblclk |
-| WM_RBUTTONDOWN   |  ÏàÍ¬   |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-rbuttondown     |
-| WM_RBUTTONUP     |  ÏàÍ¬   |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-rbuttonup     |
-| WM_RBUTTONDBLCLK |  ÏàÍ¬   |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-rbuttondblclk    |
-| WM_CAPTURECHANGED|  ÏûÏ¢·¢ËÍµ½¶ªÊ§Êó±ê²¶»ñµÄ´°¿Ú£¬lParam »ñÈ¡Êó±ê²¶»ñµÄ´°¿ÚµÄ¾ä±ú   | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-capturechanged |
+| WM_SIZE       | wParamï¼ˆå…·ä½“å€¼ï¼‰, lParamï¼ˆæ–°çš„å®½åº¦å’Œé«˜åº¦ï¼‰          | https://learn.microsoft.com/zh-cn/windows/win32/winmsg/wm-size|
+| WM_MOVE       | lParamï¼ˆçª—å£å®¢æˆ·ç«¯åŒºåŸŸå·¦ä¸Šè§’çš„ x åæ ‡å’Œ y åæ ‡ï¼‰    |  https://learn.microsoft.com/zh-cn/windows/win32/winmsg/wm-move   |
+| WM_PAINT      | æ— å‚æ•°    |https://learn.microsoft.com/zh-cn/windows/win32/gdi/wm-paint|
+| WM_SETFOCUS   | wParam å·²å¤±å»é”®ç›˜ç„¦ç‚¹çš„çª—å£çš„å¥æŸ„ | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-setfocus|
+| WM_KILLFOCUS  | wParam æ¥æ”¶é”®ç›˜ç„¦ç‚¹çš„çª—å£çš„å¥æŸ„ | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-killfocus|
+| WM_CHAR       | wParam é”®çš„å­—ç¬¦ä»£ç ï¼ŒlParam æ‰«æä»£ç ã€æ‰©å±•é”®æ ‡å¿—ç­‰  | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-char |
+| WM_KEYDOWN    | wParam virtual-key code, lParam æ‰«æä»£ç ã€æ‰©å±•é”®æ ‡å¿—ç­‰  | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-keydown|
+| WM_KEYUP      | åŒWM_KEYDOWN | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-keyup|
+| WM_SYSKEYDOWN | åŒWM_KEYDOWN | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-syskeydown|
+| WM_SYSKEYUP   | åŒWM_KEYDOWN | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-syskeyup|
+| WM_HOTKEY     | wParamï¼ŒlParam ä¸‰ä¸ªå€¼  |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-hotkey|
+| WM_IME_STARTCOMPOSITION |  æ— å‚æ•°   |  https://learn.microsoft.com/zh-cn/windows/win32/intl/wm-ime-startcomposition   |
+| WM_IME_ENDCOMPOSITION   |  æ— å‚æ•°   |  https://learn.microsoft.com/zh-cn/windows/win32/intl/wm-ime-endcomposition   |
+| WM_SETCURSOR  | wParam çª—å£å¥æŸ„ï¼ŒlParam è§¦å‘äº‹ä»¶ç­‰   | https://learn.microsoft.com/zh-cn/windows/win32/menurc/wm-setcursor    |
+| -WM_SYSCOMMAND | wParam è¯·æ±‚çš„ç³»ç»Ÿå‘½ä»¤çš„ç±»å‹ | https://learn.microsoft.com/zh-cn/windows/win32/menurc/wm-syscommand    |
+| WM_CONTEXTMENU| wParam çª—å£å¥æŸ„ï¼ŒlParamå…‰æ ‡åæ ‡x,y | https://learn.microsoft.com/zh-cn/windows/win32/menurc/wm-contextmenu?redirectedfrom=MSDN|
+| WM_MOUSELEAVE | æ— å‚æ•° | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-mouseleave    |
+| WM_MOUSEHOVER | wParam æŒ‡ç¤ºå„ç§è™šæ‹Ÿé”®æ˜¯å¦å·²æŒ‰ä¸‹ï¼ŒlParamå…‰æ ‡åæ ‡x,y  | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-mousehover    |
+| WM_MOUSEMOVE  | wParam æŒ‡ç¤ºå„ç§è™šæ‹Ÿé”®æ˜¯å¦å·²æŒ‰ä¸‹ï¼ŒlParamå…‰æ ‡åæ ‡x,y  | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-mousemove    |
+| WM_MOUSEWHEEL | wParam WHEEL_DELTA + è™šæ‹Ÿé”®æ˜¯å¦å·²æŒ‰ä¸‹ï¼ŒlParamå…‰æ ‡åæ ‡x,y| https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-mousewheel    |
+| WM_LBUTTONDOWN| wParam æŒ‡ç¤ºå„ç§è™šæ‹Ÿé”®æ˜¯å¦å·²æŒ‰ä¸‹ï¼ŒlParamå…‰æ ‡åæ ‡x,y  |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-lbuttondown     |
+| WM_LBUTTONUP  | wParam æŒ‡ç¤ºå„ç§è™šæ‹Ÿé”®æ˜¯å¦å·²æŒ‰ä¸‹ï¼ŒlParamå…‰æ ‡åæ ‡x,y  | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-lbuttonup    |
+| WM_LBUTTONDBLCLK |  ç›¸åŒ   |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-lbuttondblclk |
+| WM_RBUTTONDOWN   |  ç›¸åŒ   |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-rbuttondown     |
+| WM_RBUTTONUP     |  ç›¸åŒ   |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-rbuttonup     |
+| WM_RBUTTONDBLCLK |  ç›¸åŒ   |https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-rbuttondblclk    |
+| WM_CAPTURECHANGED|  æ¶ˆæ¯å‘é€åˆ°ä¸¢å¤±é¼ æ ‡æ•è·çš„çª—å£ï¼ŒlParam è·å–é¼ æ ‡æ•è·çš„çª—å£çš„å¥æŸ„   | https://learn.microsoft.com/zh-cn/windows/win32/inputdev/wm-capturechanged |
 | WM_CLOSE    |     |     |
 |     |     |     |
-| WM_TASKBARBUTTONCREATED |  Ê¾ÀıÊ¹ÓÃ£¬ÎŞ²ÎÊı   |     |
-| WM_SHOWWINDOW| wParam Ö¸Ê¾ÊÇ·ñÏÔÊ¾´°¿Ú¡£ Èç¹û wParam Îª TRUE£¬ÔòÏÔÊ¾´°¿Ú¡£ Èç¹û wParam Îª FALSE£¬Ôò±íÊ¾´°¿Ú´¦ÓÚÒş²Ø×´Ì¬¡£| https://learn.microsoft.com/zh-cn/windows/win32/winmsg/wm-showwindow?redirectedfrom=MSDN
+| WM_TASKBARBUTTONCREATED |  ç¤ºä¾‹ä½¿ç”¨ï¼Œæ— å‚æ•°   |     |
+| WM_SHOWWINDOW| wParam æŒ‡ç¤ºæ˜¯å¦æ˜¾ç¤ºçª—å£ã€‚ å¦‚æœ wParam ä¸º TRUEï¼Œåˆ™æ˜¾ç¤ºçª—å£ã€‚ å¦‚æœ wParam ä¸º FALSEï¼Œåˆ™è¡¨ç¤ºçª—å£å¤„äºéšè—çŠ¶æ€ã€‚| https://learn.microsoft.com/zh-cn/windows/win32/winmsg/wm-showwindow?redirectedfrom=MSDN
 |     |     |     |
 |     |     |     |
 |     |     |     |

@@ -28,6 +28,18 @@ DString ControlForm::GetSkinFile()
 
 void ControlForm::OnInitWindow()
 {
+#ifdef DUILIB_BUILD_FOR_SDL
+    //显示SDL的基本信息
+    ui::Label* pTitle = static_cast<ui::Label*>(FindControl(_T("window_title")));
+    if (pTitle != nullptr) {
+        DString title = pTitle->GetText();
+        DString driverName = GetVideoDriverName();
+        DString renderName = GetWindowRenderName();
+        DString newTitle = ui::StringUtil::Printf(_T("%s[SDL: VideoDriver:\"%s\", RenderName:\"%s\"]"), title.c_str(), driverName.c_str(), renderName.c_str());
+        pTitle->SetText(newTitle);
+    }
+#endif
+
     /**
      * 为了让代码看起来相对容易理解，不需要频繁跟进才能看明白示例代码
      * 我们将一些控件储存为局部变量，正确的使用应该是将他们作为成员变量
@@ -118,8 +130,8 @@ void ControlForm::OnInitWindow()
         settings->AttachClick([this](const ui::EventArgs& args) {
             ui::UiRect rect = args.GetSender()->GetPos();
             ui::UiPoint point;
-            point.x = rect.left - 175;
-            point.y = rect.top + 10;
+            point.x = rect.left;
+            point.y = rect.bottom;
             ClientToScreen(point);
 
             ShowPopupMenu(point);
@@ -186,7 +198,7 @@ void ControlForm::OnInitWindow()
         pRichText->AttachLinkClick([this](const ui::EventArgs& args) {
             const DString::value_type* url = (const DString::value_type*)args.wParam;
             if (url != nullptr) {
-                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringUtil::TToUTF16(url).c_str(), L"RichText点击超链接", MB_OK);
+                ui::SystemUtil::ShowMessageBox(this, url, _T("RichText点击超链接"));
             }
             return true;
             });
@@ -198,7 +210,7 @@ void ControlForm::OnInitWindow()
         pHyperLink->AttachLinkClick([this](const ui::EventArgs& args) {
             const DString::value_type* url = (const DString::value_type*)args.wParam;
             if (url != nullptr) {
-                ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringUtil::TToUTF16(url).c_str(), L"HyperLink点击超链接", MB_OK);
+                ui::SystemUtil::ShowMessageBox(this, url, _T("HyperLink点击超链接"));
             }
             return true;
             });
@@ -207,7 +219,7 @@ void ControlForm::OnInitWindow()
     pHyperLink = dynamic_cast<ui::HyperLink*>(FindControl(_T("hyper_link2")));
     if (pHyperLink != nullptr) {
         pHyperLink->AttachLinkClick([this](const ui::EventArgs& /*args*/) {
-            ::MessageBoxW(NativeWnd()->GetHWND(), ui::StringUtil::TToUTF16(_T("文字按钮事件响应")).c_str(), L"HyperLink点击", MB_OK);
+            ui::SystemUtil::ShowMessageBox(this, _T("文字按钮事件响应"), _T("HyperLink点击"));
             return true;
             });
     }
@@ -282,10 +294,7 @@ void ControlForm::ShowColorPicker(bool bDoModal)
     }
 
     //窗口创建完成执行的函数
-    auto OnInitColorPicker = [=](const ui::EventArgs&) {
-        //窗口位置居中
-        pColorPicker->CenterWindow();
-
+    auto OnInitColorPicker = [this, pColorPicker](const ui::EventArgs&) {
         ui::RichEdit* pEdit = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit")));
         if (pEdit != nullptr) {
             DString oldTextColor = pEdit->GetTextColor();
@@ -321,6 +330,7 @@ void ControlForm::ShowColorPicker(bool bDoModal)
     ui::WindowCreateParam createParam;
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_bCenterWindow = true;
     if (!bModalDlg) {
         pColorPicker->CreateWnd(this, createParam);
         pColorPicker->ShowModalFake();
@@ -338,6 +348,7 @@ void ControlForm::ShowDoModalDlg()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("AboutForm");
+    createParam.m_bCenterWindow = true;
     simpleWnd.DoModal(this, createParam);
 }
 
@@ -411,8 +422,8 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
             createParam.m_dwStyle = ui::kWS_POPUP;
             createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
             createParam.m_windowTitle = _T("AboutForm");
+            createParam.m_bCenterWindow = true;
             about_form->CreateWnd(this, createParam);
-            about_form->CenterWindow();
             about_form->ShowModalFake();
             return true;
             });
@@ -422,24 +433,19 @@ void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
 void ControlForm::LoadRichEditData()
 {
     std::streamoff length = 0;
-    std::string xml;
+    
     ui::FilePath controls_xml = ui::GlobalManager::Instance().GetResourcePath();
     controls_xml += GetResourcePath();
     controls_xml += GetSkinFile();
 
-    std::ifstream ifs(controls_xml.NativePath().c_str());
-    if (ifs.is_open())
-    {
-        ifs.seekg(0, std::ios_base::end);
-        length = ifs.tellg();
-        ifs.seekg(0, std::ios_base::beg);
-
-        xml.resize(static_cast<unsigned int>(length)+1);
-        ifs.read(&xml[0], length);
-
-        ifs.close();
+    //XML 文件按UTF8编码加载
+    std::string xml;
+    std::vector<uint8_t> xmlData;
+    ui::FileUtil::ReadFileData(controls_xml, xmlData);
+    if (!xmlData.empty()) {
+        xml.append((const char*)xmlData.data(), xmlData.size());
     }
-    DString xmlU = ui::StringUtil::UTF8ToT(xml);
+    DString xmlU = ui::StringConvert::UTF8ToT(xml);
 
     // Post task to UI thread
     ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&ControlForm::OnResourceFileLoaded, this, xmlU));
@@ -493,11 +499,11 @@ void ControlForm::OnProgressValueChagned(float value)
 
 LRESULT ControlForm::OnHotKeyMsg(int32_t hotkeyId, ui::VirtualKeyCode vkCode, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
-    LRESULT lResult = __super::OnHotKeyMsg(hotkeyId, vkCode, modifierKey, nativeMsg, bHandled);
+    LRESULT lResult = BaseClass::OnHotKeyMsg(hotkeyId, vkCode, modifierKey, nativeMsg, bHandled);
     bHandled = true;
     if (hotkeyId == SYSTEM_HOTKEY_ID) {
         SetWindowForeground();
-        ::MessageBoxW(NativeWnd()->GetHWND(), L"接收到系统热键命令", L"ControlForm::OnHotKeyMsg", MB_OK);
+        ui::SystemUtil::ShowMessageBox(this, _T("接收到系统热键命令"), _T("ControlForm::OnHotKeyMsg"));
     }
     return lResult;
 }

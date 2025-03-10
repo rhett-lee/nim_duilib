@@ -96,6 +96,10 @@ private:
     */
     volatile bool m_bRunning;
 
+    /** 是否正在等待主线程处理定时器的回调事件
+    */
+    volatile bool m_bHasPenddingPoll;
+
     /** 后台线程
     */
     std::unique_ptr<std::thread> m_pWorkerThread;

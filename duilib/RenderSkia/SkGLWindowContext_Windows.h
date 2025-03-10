@@ -31,8 +31,9 @@ class IRenderPaint;
 */
 class SkGLWindowContext_Windows: public skwindow::internal::GLWindowContext
 {
+    typedef skwindow::internal::GLWindowContext BaseClass;
 public:
-    SkGLWindowContext_Windows(HWND hWnd, const skwindow::DisplayParams& params);
+    SkGLWindowContext_Windows(HWND hWnd, std::unique_ptr<const skwindow::DisplayParams> params);
     SkGLWindowContext_Windows(const SkGLWindowContext_Windows& r) = delete;
     SkGLWindowContext_Windows& operator = (const SkGLWindowContext_Windows& r) = delete;
     virtual ~SkGLWindowContext_Windows() override;
