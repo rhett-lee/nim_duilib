@@ -107,6 +107,7 @@ namespace ui
     #define  DUI_CTR_MENU_ITEM                       (_T("MenuItem"))
 
     #define  DUI_CTR_DATETIME                        (_T("DateTime"))
+    #define  DUI_CTR_CEF                             (_T("CefControl"))
 
     //颜色相关的部分控件
     #define  DUI_CTR_COLOR_CONTROL                   (_T("ColorControl"))

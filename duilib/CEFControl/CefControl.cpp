@@ -17,10 +17,23 @@ CefControl::CefControl(ui::Window* pWindow):
 
 CefControl::~CefControl(void)
 {
-
 }
+
+DString CefControl::GetType() const { return DUI_CTR_CEF; }
+
+void CefControl::SetAttribute(const DString& strName, const DString& strValue)
+{
+    if (strName == L"url") {
+        m_initUrl = strValue;
+    }
+    else {
+        BaseClass::SetAttribute(strName, strValue);
+    }    
+}
+
 void CefControl::LoadURL(const CefString& url)
 {
+    m_initUrl.clear();
     if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get()) {
         CefRefPtr<CefFrame> frame = m_pBrowserHandler->GetBrowser()->GetMainFrame();
         if (!frame) {
@@ -484,6 +497,20 @@ void CefControl::OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_i
 
 void CefControl::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
+    if (!m_initUrl.empty()) {
+        DString url = m_initUrl;
+        if (!url.empty()) {
+            m_initUrl.clear();
+            //加载初始网址
+            if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get()) {
+                CefRefPtr<CefFrame> frame = m_pBrowserHandler->GetBrowser()->GetMainFrame();
+                if (!frame) {
+                    return;
+                }
+                frame->LoadURL(url);
+            }
+        }
+    }
     if (m_pfnAfterCreated) {
         m_pfnAfterCreated(browser);
     }

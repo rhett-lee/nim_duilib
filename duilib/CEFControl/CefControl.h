@@ -17,6 +17,7 @@ class CefBrowserHandler;
  */
 class CefControl : public Control, public CefBrowserHandlerDelegate
 {
+    typedef Control BaseClass;
 public:
     explicit CefControl(ui::Window* pWindow);
     virtual ~CefControl() override;
@@ -142,11 +143,6 @@ public:
     /** 设置打开开发者工具标志
     */
     void SetAttachedDevTools(bool bAttachedDevTools);
-
-protected:
-    /** 重新创建Browser对象
-    */
-    virtual void ReCreateBrowser() = 0;
 
 public:
     /** 绑定一个回调函数用于监听右键菜单弹出（回调函数的调用线程：CEF的UI线程）
@@ -315,6 +311,20 @@ public:
     /** 获取CEF控件事件的回调接口
     */
     CefControlEvent* GetCefEventHandler() const;
+
+public:
+    /** 获取控件类型
+    */
+    virtual DString GetType() const override;
+
+    /** 设置控件指定属性
+     */
+    virtual void SetAttribute(const DString& strName, const DString& strValue) override;
+
+protected:
+        /** 重新创建Browser对象
+        */
+        virtual void ReCreateBrowser() = 0;
 
 protected:
     /** CefRenderHandler接口, 在非UI线程中被调用
@@ -504,6 +514,10 @@ private:
     /** CEF控件的事件回调接口
     */
     CefControlEvent* m_pCefControlEventHandler = nullptr;
+
+    /** 初始化加载的网址
+    */
+    DString m_initUrl;
 };
 }
 
