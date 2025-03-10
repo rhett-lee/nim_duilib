@@ -1,7 +1,6 @@
-
 /* pngtest.c - a test program for libpng
  *
- * Copyright (c) 2018-2024 Cosmin Truta
+ * Copyright (c) 2018-2025 Cosmin Truta
  * Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson
  * Copyright (c) 1996-1997 Andreas Dilger
  * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
@@ -51,7 +50,7 @@
 #define STDERR stdout
 
 /* Generate a compiler error if there is an old png.h in the search path. */
-typedef png_libpng_version_1_6_44 Your_png_h_is_not_version_1_6_44;
+typedef png_libpng_version_1_6_47 Your_png_h_is_not_version_1_6_47;
 
 /* Ensure that all version numbers in png.h are consistent with one another. */
 #if (PNG_LIBPNG_VER != PNG_LIBPNG_VER_MAJOR * 10000 + \
@@ -882,10 +881,6 @@ test_one_file(const char *inname, const char *outname)
    int bit_depth, color_type;
    user_chunk_info my_user_chunk_data;
    int pass, num_passes;
-#ifdef PNG_APNG_SUPPORTED
-   png_uint_32 num_frames;
-   png_uint_32 num_plays;
-#endif
 
    row_buf = NULL;
    error_parameters.file_name = inname;
@@ -1147,6 +1142,30 @@ test_one_file(const char *inname, const char *outname)
          png_set_gAMA_fixed(write_ptr, write_info_ptr, gamma);
    }
 #endif
+#ifdef PNG_cLLI_SUPPORTED
+   {
+      png_uint_32 maxCLL;
+      png_uint_32 maxFALL;
+
+      if (png_get_cLLI_fixed(read_ptr, read_info_ptr, &maxCLL, &maxFALL) != 0)
+         png_set_cLLI_fixed(write_ptr, write_info_ptr, maxCLL, maxFALL);
+   }
+#endif
+#ifdef PNG_mDCV_SUPPORTED
+   {
+      png_fixed_point white_x, white_y, red_x, red_y, green_x, green_y, blue_x,
+          blue_y;
+      png_uint_32 maxDL;
+      png_uint_32 minDL;
+
+      if (png_get_mDCV_fixed(read_ptr, read_info_ptr, &white_x, &white_y,
+               &red_x, &red_y, &green_x, &green_y, &blue_x, &blue_y,
+               &maxDL, &minDL) != 0)
+         png_set_mDCV_fixed(write_ptr, write_info_ptr, white_x, white_y,
+               red_x, red_y, green_x, green_y, blue_x, blue_y,
+               maxDL, minDL);
+   }
+#endif
 #else /* Use floating point versions */
 #ifdef PNG_FLOATING_POINT_SUPPORTED
 #ifdef PNG_cHRM_SUPPORTED
@@ -1170,8 +1189,46 @@ test_one_file(const char *inname, const char *outname)
          png_set_gAMA(write_ptr, write_info_ptr, gamma);
    }
 #endif
+#ifdef PNG_cLLI_SUPPORTED
+   {
+      double maxCLL;
+      double maxFALL;
+
+      if (png_get_cLLI(read_ptr, read_info_ptr, &maxCLL, &maxFALL) != 0)
+         png_set_cLLI(write_ptr, write_info_ptr, maxCLL, maxFALL);
+   }
+#endif
+#ifdef PNG_mDCV_SUPPORTED
+   {
+      double white_x, white_y, red_x, red_y, green_x, green_y, blue_x, blue_y;
+      double maxDL;
+      double minDL;
+
+      if (png_get_mDCV(read_ptr, read_info_ptr, &white_x, &white_y,
+               &red_x, &red_y, &green_x, &green_y, &blue_x, &blue_y,
+               &maxDL, &minDL) != 0)
+         png_set_mDCV(write_ptr, write_info_ptr, white_x, white_y,
+               red_x, red_y, green_x, green_y, blue_x, blue_y,
+               maxDL, minDL);
+   }
+#endif
 #endif /* Floating point */
 #endif /* Fixed point */
+#ifdef PNG_cICP_SUPPORTED
+   {
+      png_byte colour_primaries;
+      png_byte transfer_function;
+      png_byte matrix_coefficients;
+      png_byte video_full_range_flag;
+
+      if (png_get_cICP(read_ptr, read_info_ptr,
+                       &colour_primaries, &transfer_function,
+                       &matrix_coefficients, &video_full_range_flag) != 0)
+         png_set_cICP(write_ptr, write_info_ptr,
+                      colour_primaries, transfer_function,
+                      matrix_coefficients, video_full_range_flag);
+   }
+#endif
 #ifdef PNG_iCCP_SUPPORTED
    {
       png_charp name;
@@ -1384,22 +1441,6 @@ test_one_file(const char *inname, const char *outname)
       }
    }
 #endif
-
-#ifdef PNG_APNG_SUPPORTED
-   if (png_get_valid(read_ptr, read_info_ptr, PNG_INFO_acTL))
-   {
-      if (png_get_acTL(read_ptr, read_info_ptr, &num_frames, &num_plays))
-      {
-         png_byte is_hidden;
-         pngtest_debug2("Handling acTL chunks (frames %ld, plays %ld)",
-                    num_frames, num_plays);
-         png_set_acTL(write_ptr, write_info_ptr, num_frames, num_plays);
-         is_hidden = png_get_first_frame_is_hidden(read_ptr, read_info_ptr);
-         png_set_first_frame_is_hidden(write_ptr, write_info_ptr, is_hidden);
-      }
-   }
-#endif
-
 #ifdef PNG_WRITE_UNKNOWN_CHUNKS_SUPPORTED
    {
       png_unknown_chunkp unknowns;
@@ -1458,110 +1499,6 @@ test_one_file(const char *inname, const char *outname)
    t_stop = (float)clock();
    t_misc += (t_stop - t_start);
    t_start = t_stop;
-#endif
-#ifdef PNG_APNG_SUPPORTED
-   if (png_get_valid(read_ptr, read_info_ptr, PNG_INFO_acTL))
-   {
-      png_uint_32 frame;
-      for (frame = 0; frame < num_frames; frame++)
-      {
-         png_uint_32 frame_width;
-         png_uint_32 frame_height;
-         png_uint_32 x_offset;
-         png_uint_32 y_offset;
-         png_uint_16 delay_num;
-         png_uint_16 delay_den;
-         png_byte dispose_op;
-         png_byte blend_op;
-         png_read_frame_head(read_ptr, read_info_ptr);
-         if (png_get_valid(read_ptr, read_info_ptr, PNG_INFO_fcTL))
-         {
-            png_get_next_frame_fcTL(read_ptr, read_info_ptr,
-                                    &frame_width, &frame_height,
-                                    &x_offset, &y_offset,
-                                    &delay_num, &delay_den,
-                                    &dispose_op, &blend_op);
-         }
-         else
-         {
-            frame_width = width;
-            frame_height = height;
-            x_offset = 0;
-            y_offset = 0;
-            delay_num = 1;
-            delay_den = 1;
-            dispose_op = PNG_DISPOSE_OP_NONE;
-            blend_op = PNG_BLEND_OP_SOURCE;
-         }
-#ifdef PNG_WRITE_APNG_SUPPORTED
-         png_write_frame_head(write_ptr, write_info_ptr, (png_bytepp)&row_buf,
-                              frame_width, frame_height,
-                              x_offset, y_offset,
-                              delay_num, delay_den,
-                              dispose_op, blend_op);
-#endif
-         for (pass = 0; pass < num_passes; pass++)
-         {
-#           ifdef calc_pass_height
-               png_uint_32 pass_height;
-
-               if (num_passes == 7) /* interlaced */
-               {
-                  if (PNG_PASS_COLS(frame_width, pass) > 0)
-                     pass_height = PNG_PASS_ROWS(frame_height, pass);
-
-                  else
-                     pass_height = 0;
-               }
-
-               else /* not interlaced */
-                  pass_height = frame_height;
-#           else
-#              define pass_height frame_height
-#           endif
-
-            pngtest_debug1("Writing row data for pass %d", pass);
-            for (y = 0; y < pass_height; y++)
-            {
-#ifndef SINGLE_ROWBUF_ALLOC
-               pngtest_debug2("Allocating row buffer (pass %d, y = %u)...", pass, y);
-
-               row_buf = (png_bytep)png_malloc(read_ptr,
-                  png_get_rowbytes(read_ptr, read_info_ptr));
-
-               pngtest_debug2("\t0x%08lx (%lu bytes)", (unsigned long)row_buf,
-                  (unsigned long)png_get_rowbytes(read_ptr, read_info_ptr));
-
-#endif /* !SINGLE_ROWBUF_ALLOC */
-               png_read_rows(read_ptr, (png_bytepp)&row_buf, NULL, 1);
-
-#ifdef PNG_WRITE_SUPPORTED
-#ifdef PNGTEST_TIMING
-               t_stop = (float)clock();
-               t_decode += (t_stop - t_start);
-               t_start = t_stop;
-#endif
-               png_write_rows(write_ptr, (png_bytepp)&row_buf, 1);
-#ifdef PNGTEST_TIMING
-               t_stop = (float)clock();
-               t_encode += (t_stop - t_start);
-               t_start = t_stop;
-#endif
-#endif /* PNG_WRITE_SUPPORTED */
-
-#ifndef SINGLE_ROWBUF_ALLOC
-               pngtest_debug2("Freeing row buffer (pass %d, y = %u)", pass, y);
-               png_free(read_ptr, row_buf);
-               row_buf = NULL;
-#endif /* !SINGLE_ROWBUF_ALLOC */
-            }
-         }
-#ifdef PNG_WRITE_APNG_SUPPORTED
-         png_write_frame_tail(write_ptr, write_info_ptr);
-#endif
-      }
-   }
-   else
 #endif
    for (pass = 0; pass < num_passes; pass++)
    {
@@ -2200,6 +2137,7 @@ main(int argc, char *argv[])
       fprintf(STDERR, " libpng FAILS test\n");
 
    dummy_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+#ifdef PNG_USER_LIMITS_SUPPORTED
    fprintf(STDERR, " Default limits:\n");
    fprintf(STDERR, "  width_max  = %lu\n",
        (unsigned long) png_get_user_width_max(dummy_ptr));
@@ -2215,6 +2153,7 @@ main(int argc, char *argv[])
    else
       fprintf(STDERR, "  malloc_max = %lu\n",
           (unsigned long) png_get_chunk_malloc_max(dummy_ptr));
+#endif
    png_destroy_read_struct(&dummy_ptr, NULL, NULL);
 
    return (ierror != 0);
