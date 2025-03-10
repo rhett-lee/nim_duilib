@@ -649,40 +649,58 @@ bool CefControlOffScreen::OnKeyUp(const EventArgs& msg)
 #endif
 }
 
+bool CefControlOffScreen::IsCefOsrImeMode() const
+{
+#if CEF_VERSION_MAJOR > 109
+    //109版本的离屏渲染模式，输入法输入时，libcef.dll内部会崩溃，原因未知，现禁止输入法功能（副作用：中文输入法的候选框位置不正确）
+    return true;
+#else
+    return false;
+#endif
+}
+
 bool CefControlOffScreen::OnImeSetContext(const EventArgs& msg)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    OnIMESetContext(WM_IME_SETCONTEXT, msg.wParam, msg.lParam);
+    if (IsCefOsrImeMode()) {
+        OnIMESetContext(WM_IME_SETCONTEXT, msg.wParam, msg.lParam);
+    }
 #else
     UNUSED_VARIABLE(msg);
 #endif
-    return true;
+    return false;
 }
 
 bool CefControlOffScreen::OnImeStartComposition(const EventArgs& /*msg*/)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    OnIMEStartComposition();
+    if (IsCefOsrImeMode()) {
+        OnIMEStartComposition();
+    }
 #endif
-    return true;
+    return false;
 }
 
 bool CefControlOffScreen::OnImeComposition(const EventArgs& msg)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    OnIMEComposition(WM_IME_COMPOSITION, msg.wParam, msg.lParam);
+    if (IsCefOsrImeMode()) {
+        OnIMEComposition(WM_IME_COMPOSITION, msg.wParam, msg.lParam);
+    }
 #else
     UNUSED_VARIABLE(msg);
 #endif
-    return true;
+    return false;
 }
 
 bool CefControlOffScreen::OnImeEndComposition(const EventArgs& /*msg*/)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    OnIMECancelCompositionEvent();
+    if (IsCefOsrImeMode()) {
+        OnIMECancelCompositionEvent();
+    }
 #endif
-    return true;
+    return false;
 }
 
 #if defined (DUILIB_BUILD_FOR_SDL)

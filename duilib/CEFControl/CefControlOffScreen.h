@@ -37,9 +37,9 @@ public:
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
     virtual void SetWindow(Window* pWindow) override;
 
-    /** 是否为OSR模式（CEF的离屏渲染控件）
+    /** 是否为OSR并自己处理输入法消息的模式（CEF的离屏渲染控件）
     */
-    virtual bool IsCefOSR() const override { return true; }
+    virtual bool IsCefOsrImeMode() const override;
 
     /** 打开开发者工具
     * @param [in] view 一个 CefControlOffScreen 控件实例(仅在CefControlOffScreen类里需要传入)
