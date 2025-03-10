@@ -1124,7 +1124,7 @@ LRESULT Window::OnImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled)
     bHandled = false;
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventImeSetContext, nativeMsg.wParam, nativeMsg.lParam);
-        if (m_pFocus && m_pFocus->IsCefOSR()) {
+        if (m_pFocus && m_pFocus->IsCefOsrImeMode()) {
             bHandled = true;
         }
     }
@@ -1136,7 +1136,7 @@ LRESULT Window::OnImeStartCompositionMsg(const NativeMsg& /*nativeMsg*/, bool& b
     bHandled = false;
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventImeStartComposition);
-        if (m_pFocus && m_pFocus->IsCefOSR()) {
+        if (m_pFocus && m_pFocus->IsCefOsrImeMode()) {
             bHandled = true;
         }
     }
@@ -1148,7 +1148,7 @@ LRESULT Window::OnImeCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled)
     bHandled = false;
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventImeComposition, nativeMsg.wParam, nativeMsg.lParam);
-        if (m_pFocus && m_pFocus->IsCefOSR()) {
+        if (m_pFocus && m_pFocus->IsCefOsrImeMode()) {
             bHandled = true;
         }
     }
@@ -1160,7 +1160,7 @@ LRESULT Window::OnImeEndCompositionMsg(const NativeMsg& /*nativeMsg*/, bool& bHa
     bHandled = false;
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventImeEndComposition);
-        if (m_pFocus && m_pFocus->IsCefOSR()) {
+        if (m_pFocus && m_pFocus->IsCefOsrImeMode()) {
             bHandled = true;
         }
     }
