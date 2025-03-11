@@ -25,10 +25,12 @@ extern "C" {
 #ifdef _LINUX
  #undef _DLL
  #include <png.h>
+ #include "pngpriv.h"
  #include <pngstruct.h>
  #include <pnginfo.h>
 #else
  #include "../libpng/png.h"
+ #include "../libpng/pngpriv.h"
  #include "../libpng/pngstruct.h"
  #include "../libpng/pnginfo.h"
 #endif
