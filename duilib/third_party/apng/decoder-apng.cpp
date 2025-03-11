@@ -3,6 +3,7 @@
 
 #include "duilib/third_party/zlib/zlib.h"
 #include "duilib/third_party/libpng/png.h"
+#include "duilib/third_party/libpng/pngpriv.h"
 #include "duilib/third_party/libpng/pngstruct.h"
 #include "duilib/third_party/libpng/pnginfo.h"
 
