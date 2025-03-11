@@ -10,8 +10,8 @@
 | libpng      | 2025-03-10 |v1.6.47|有 |https://sourceforge.net/projects/libpng/|参见后续说明|
 | cximage     | 2024-05-30 |v7.02  |无 |https://sourceforge.net/projects/cximage/|2011-02-11后已停止更新|
 | libwebp     | 2025-03-11 |v1.5.0 |无 |https://github.com/webmproject/libwebp|tag/v1.5.0，使用了src目录下的子目录，覆盖后，删除不必要的文件即可（基本方法：新旧版本源码比较，然后看文件增删改，再同步，项目只使用了图片解码功能，没有用到图片编码功能，目前没有用到config.h文件）|
-| stb_image   | 2024-09-23 |v2.30  |无 |https://github.com/nothings/stb|无修改|
-| svg         | 2024-05-30 |无     |有 |https://github.com/memononen/nanosvg| 代码更新到2023-12-30，修改参见提交记录|
+| stb_image   | 2025-03-11 |v2.30  |无 |https://github.com/nothings/stb|无修改，直接取master的代码|
+| svg         | 2025-03-11 |无     |有 |https://github.com/memononen/nanosvg| 代码更新到2024-12-20，修改参见提交记录|
 | zlib        | 2024-05-30 |v1.3.1 |无 |https://github.com/madler/zlib | |
 | xml         | 2024-05-30 |v1.14  |无 |https://github.com/zeux/pugixml| pugixml|
 | convert_utf | 2024-05-30 |v18.1.6|无 |https://releases.llvm.org      | 下载最新版的源码包，解压后找到这两个文件  |
