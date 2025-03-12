@@ -316,7 +316,7 @@ void Progress::ClearImageCache()
 
 void Progress::Play()
 {
-    if (!m_bMarquee) {
+    if (!m_bMarquee || !IsVisible() || !IsEnabled()) {
         m_timer.Cancel();
         return;
     }

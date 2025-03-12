@@ -939,7 +939,7 @@ void PropertyGridProperty::OnInit()
         });
 
     //允许或者禁止编辑控件
-    EnableEditControl(!IsReadOnly() && IsEnabled());
+    EnableEditControl(!IsReadOnly());
 
     //滚动条滚动事件
     TreeView* pTreeView = GetTreeView();
@@ -1129,8 +1129,10 @@ void PropertyGridTextProperty::EnableEditControl(bool bEnable)
 {
     ASSERT(IsInited());
     if (!bEnable) {
-        RemovePropertySubItem(m_pRichEdit);
-        m_pRichEdit = nullptr;
+        if (m_pRichEdit != nullptr) {
+            RemovePropertySubItem(m_pRichEdit);
+            m_pRichEdit = nullptr;
+        }
         return;
     }
     if (m_pRichEdit != nullptr) {
@@ -1207,7 +1209,9 @@ void PropertyGridTextProperty::SetPasswordMode(bool bPasswordMode)
 void PropertyGridTextProperty::SetEnableSpin(bool bEnable, int32_t nMin, int32_t nMax)
 {
     RichEdit* pRichEdit = GetRichEdit();
-    ASSERT(pRichEdit != nullptr);
+    if (IsEnabled()) {
+        ASSERT(pRichEdit != nullptr);
+    }    
     if (pRichEdit != nullptr) {
         DString spinClass = _T("property_grid_spin_box,property_grid_spin_btn_up,property_grid_spin_btn_down");
         pRichEdit->SetEnableSpin(bEnable, spinClass, nMin, nMax);
@@ -1244,8 +1248,10 @@ void PropertyGridComboProperty::EnableEditControl(bool bEnable)
 {
     ASSERT(IsInited());
     if (!bEnable) {
-        RemovePropertySubItem(m_pCombo);
-        m_pCombo = nullptr;
+        if (m_pCombo != nullptr) {
+            RemovePropertySubItem(m_pCombo);
+            m_pCombo = nullptr;
+        }
         return;
     }
     if (m_pCombo != nullptr) {

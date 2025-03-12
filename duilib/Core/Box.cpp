@@ -460,6 +460,14 @@ bool Box::DoAddItemAt(Control* pControl, size_t iIndex)
     }
     pControl->SetParent(this);
 
+    //同步Enable属性和Visible属性
+    if (!IsEnabled()) {
+        pControl->SetEnabled(IsEnabled());
+    }
+    if (!IsVisible()) {
+        pControl->SetVisible(IsVisible());
+    }
+
     //在添加到父容器以后，调用初始化函数
     pControl->Init();
     if (IsVisible()) {
