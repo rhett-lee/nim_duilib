@@ -1709,7 +1709,11 @@ void Control::SendEventMsg(const EventArgs& msg)
 //    swprintf_s(buf, _T("Control::SendEventMsg: type=%s, eventType=%s\r\n"), type.c_str(), eventType.c_str());
 //    ::OutputDebugStringW(buf);    
 //#endif
-    bool bRet = FireAllEvents(msg);    
+
+    bool bRet = true;
+    if (!IsDisabledEvents(msg)) {
+        bRet = FireAllEvents(msg);
+    }
     if(bRet) {
         HandleEvent(msg);
     }

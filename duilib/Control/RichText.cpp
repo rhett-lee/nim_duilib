@@ -1027,15 +1027,17 @@ bool RichText::MouseLeave(const EventArgs& msg)
 
 bool RichText::OnSetCursor(const EventArgs& msg)
 {
-    for (const RichTextDataEx& textData : m_textData) {
-        if (textData.m_linkUrl.empty()) {
-            continue;
-        }
-        for (const UiRect& textRect : textData.m_textRects) {
-            if (textRect.ContainsPt(msg.ptMouse)) {
-                //超级链接，光标变成手型
-                SetCursor(CursorType::kCursorHand);
-                return true;
+    if (IsEnabled() && IsVisible()) {
+        for (const RichTextDataEx& textData : m_textData) {
+            if (textData.m_linkUrl.empty()) {
+                continue;
+            }
+            for (const UiRect& textRect : textData.m_textRects) {
+                if (textRect.ContainsPt(msg.ptMouse)) {
+                    //超级链接，光标变成手型
+                    SetCursor(CursorType::kCursorHand);
+                    return true;
+                }
             }
         }
     }
