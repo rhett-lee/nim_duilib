@@ -23,7 +23,7 @@ DString CefControl::GetType() const { return DUI_CTR_CEF; }
 
 void CefControl::SetAttribute(const DString& strName, const DString& strValue)
 {
-    if (strName == L"url") {
+    if (strName == _T("url")) {
         m_initUrl = strValue;
     }
     else {

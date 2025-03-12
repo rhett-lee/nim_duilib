@@ -239,7 +239,7 @@ bool CefControlOffScreen::AttachDevTools(Control* control)
     else {
         CefWindowInfo windowInfo;
 #ifdef DUILIB_BUILD_FOR_WIN
-        windowInfo.SetAsWindowless(GetWindow()->NativeWnd()->GetHWND());
+        windowInfo.SetAsWindowless(browser->GetHost()->GetWindowHandle());
 #else
 
 #endif

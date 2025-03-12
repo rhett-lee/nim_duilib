@@ -46,7 +46,7 @@ bool ShadowWndBase::Create(Window* window)
 {
     m_pWindow = window;
     WindowCreateParam createParam;
-    createParam.m_dwExStyle = kWS_EX_TRANSPARENT | kWS_EX_LAYERED;
+    createParam.m_dwExStyle = kWS_EX_TRANSPARENT | kWS_EX_LAYERED | kWS_EX_TOOLWINDOW;
     createParam.m_className = _T("ShadowWnd");
     return Window::CreateWnd(nullptr, createParam);
 }

@@ -31,7 +31,7 @@ void CefControlNative::Init()
         HWND hWnd = GetWindow()->NativeWnd()->GetHWND();
         LONG style = ::GetWindowLong(hWnd, GWL_STYLE);
         ::SetWindowLong(hWnd, GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-        ASSERT((::GetWindowLong(hWnd, GWL_EXSTYLE) & WS_EX_LAYERED) == 0 && _T("无法在分层窗口内使用本控件"));
+        ASSERT((::GetWindowLong(hWnd, GWL_EXSTYLE) & WS_EX_LAYERED) == 0 && _T("CefControlNative：无法在分层窗口内使用本控件"));
 #endif
         m_pBrowserHandler = new CefBrowserHandler;
         m_pBrowserHandler->SetHostWindow(GetWindow());
