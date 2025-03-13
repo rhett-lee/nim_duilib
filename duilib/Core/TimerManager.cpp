@@ -208,6 +208,9 @@ void TimerManager::WorkerThreadProc()
 {
     while (m_bRunning) {
         std::unique_lock taskGuard(m_taskMutex);
+        if (!m_bRunning) {
+            break;
+        }
         if (m_aTimers.empty()) {
             //为空，等待任务
             m_cv.wait(taskGuard);
