@@ -299,6 +299,7 @@ bool CefBrowserHandler::GetRootScreenRect(CefRefPtr<CefBrowser> browser, CefRect
         return false;
     }
 #ifdef DUILIB_BUILD_FOR_WIN
+    //Windows平台
     RECT window_rect = { 0 };
     HWND root_window = GetAncestor(m_pWindow->NativeWnd()->GetHWND(), GA_ROOT);
     if (::GetWindowRect(root_window, &window_rect)) {
@@ -306,7 +307,11 @@ bool CefBrowserHandler::GetRootScreenRect(CefRefPtr<CefBrowser> browser, CefRect
         return true;
     }
 #endif
-    return false;
+    //其他平台
+    UiRect rcWindow;
+    m_pWindow->GetWindowRect(rcWindow);
+    rect = CefRect(rcWindow.left, rcWindow.top, rcWindow.Width(), rcWindow.Height());
+    return true;
 }
 
 void CefBrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
