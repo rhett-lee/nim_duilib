@@ -8,10 +8,10 @@ Global 全局样式提供了通用的样式列表，避免在多个不同的 XML
 ## 1. 默认字体名称（DefaultFontFamilyNames）
 ```xml
 <!--默认字体名称，列表形式，依次匹配，直到发现第一个有效字体作为默认字体名称，多个字体名称用逗号分隔-->
-<DefaultFontFamilyNames value="Microsoft YaHei,SimSun"/>
+<DefaultFontFamilyNames value="微软雅黑,宋体"/>
 ```
-DefaultFontFamilyNames只有一个value属性，用于设置默认字体列表。    
-上述设置代表，按照微软雅黑（Microsoft YaHei）、宋体（SimSun）的顺序确定默认字体名称，如果存在微软雅黑字体则用微软雅黑字体作为默认字体，否则用宋体作为默认字体。
+DefaultFontFamilyNames只有一个value属性，用于设置默认字体列表，不同的字体用逗号（半角字符）分隔。    
+上述设置代表，按照微软雅黑、宋体的顺序确定默认字体名称，如果存在微软雅黑字体则用微软雅黑字体作为默认字体，否则用宋体作为默认字体。
 
 ## 2. 字体（Font）
 
@@ -19,14 +19,15 @@ DefaultFontFamilyNames只有一个value属性，用于设置默认字体列表�
 
 ```xml
 <!-- name 代表字体名称，size 代表字体大小，bold 代表是否粗体，underline 代表是否包含下划线 -->
-<Font id="system_12" name="system" size="10" bold="true" underline="true"/>
+<Font id="system_12" name="system" size="12" bold="true" underline="true"/>
 ```
 
-当需要使用时，指定字体ID即可。比如你希望一个 Button 按钮使用 ID 为 system_12 的字体，可以这样写：
+Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一个字体属性：字体名称、字体大小、粗体、斜体、删除线、下划线。当需要使用时，指定字体ID即可。比如你希望一个 Button 按钮使用 ID 为 `system_12` 的字体，可以这样写：
 
 ```xml
 <Button text="Hello Button" font="system_12"/>
 ```
+在界面显示时，duilib界面库会以字体ID为"system_12"标识的字体属性（字体名称：系统默认字体，字体大小：12，粗体：是，斜体：是）来绘制这个按钮的文字。
 
 ### Font 所有可用属性
 
@@ -44,12 +45,19 @@ DefaultFontFamilyNames只有一个value属性，用于设置默认字体列表�
 字体属性解析相关代码，参见`WindowBuilder::ParseFontXmlNode`函数
 
 ## 3. 字体文件（FontFile）
-程序可用自带字体文件，在程序启动时加载，不需要安装为系统字体即可使用。
-如果你想添加一个字体，则在 global.xml 中添加如下代码：
+程序可用自带字体文件，在程序启动时加载，不需要安装为系统字体即可使用。    
+一般定义一个完整的字体，需要4个字体文件：常规字体文件、粗体文件、斜体文件、粗斜体文件。    
+举例：如果想添加一个字体名称为`Roboto Mono`的字体文件，可在 global.xml 中添加如下代码：
 ```xml
 <!-- 字体文件（放在资源根目录的fonts目录中），程序启动时加载，加载后可以按照使用系统字体相同的方式使用 -->
-<FontFile file="RobotoMono-Regular.ttf" desc="Roboto Mono 正常字体"/>
+<FontFile file="RobotoMono-Regular.ttf" desc="字体名称：Roboto Mono，常规字体"/>
+<FontFile file="RobotoMono-Bold.ttf" desc="字体名称：Roboto Mono，粗体"/>
+<FontFile file="RobotoMono-Italic.ttf" desc="字体名称：Roboto Mono，斜体"/>
+<FontFile file="RobotoMono-BoldItalic.ttf" desc="字体名称：Roboto Mono，粗斜体"/>
 ```
+将`RobotoMono-Regular.ttf`、`RobotoMono-Bold.ttf`、`RobotoMono-Italic.ttf`、`RobotoMono-BoldItalic.ttf`这四个字体文件，放在资源根目录的fonts目录（bin\resources\fonts）中，程序启动后，就会加载这些字体文件。    
+字体文件加载完成后，就可以使用`Roboto Mono`这个字体了，使用方法与微软雅黑、宋体这种字体的方法是相同的，参见文档中的`2. 字体（Font）`的描述的用法。
+
 ### FontFile 所有可用属性
 
 | 属性名称 | 默认值 | 参数类型 | 用途 |
@@ -58,6 +66,19 @@ DefaultFontFamilyNames只有一个value属性，用于设置默认字体列表�
 | desc |      | string | 字体文件的描述信息，无其他用途|
 
 字体文件设置以后，使用方法与系统字体完全相同（即可以通过Font标签指定使用该字体）。
+
+### FontFile 的用法示例
+前序文档部分，使用FontFile标签定义了一个字体名称为`Roboto Mono`的字体，使用时首先定义一个字体ID：
+```xml
+<!-- name 代表字体名称，size 代表字体大小，bold 代表是否粗体，italic 代表是否斜体 -->
+<Font id="roboto_mono_12" name="Roboto Mono" size="12" bold="true" italic="true"/>
+```
+然后使用该字体ID（`roboto_mono_12`）定义控件中文字的字体属性了。    
+假设想要用该字体ID定义一个按钮，XML配置可以这样写：
+```xml
+<Button text="Roboto Mono Button" font="roboto_mono_12"/>
+```
+注意事项：该RobotoMono字体只能用于显示英文字母，不支持中文，所以不要用这个字体来显示中文。    
 
 ## 4. 颜色（TextColor）
 

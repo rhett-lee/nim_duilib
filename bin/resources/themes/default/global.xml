@@ -49,10 +49,11 @@
     <Font id="arial_bold_22" name="arial" size="22" bold="true"/>
     
     <!-- 字体文件（放在资源根目录的fonts目录中），程序启动时加载，加载后可以按照使用系统字体相同的方式使用 -->
-    <FontFile file="RobotoMono-Regular.ttf" desc="Roboto Mono 正常字体"/>
-    <FontFile file="RobotoMono-Bold.ttf" desc="Roboto Mono 粗体"/>
-    <FontFile file="RobotoMono-Italic.ttf" desc="Roboto Mono 斜体"/>
-    <FontFile file="RobotoMono-BoldItalic.ttf" desc="Roboto Mono 粗斜体"/>
+    <!-- 注意事项：该RobotoMono字体只能用于显示英文字母，不支持中文 -->
+    <FontFile file="RobotoMono-Regular.ttf" desc="字体名称：Roboto Mono，常规字体"/>
+    <FontFile file="RobotoMono-Bold.ttf" desc="字体名称：Roboto Mono，粗体"/>
+    <FontFile file="RobotoMono-Italic.ttf" desc="字体名称：Roboto Mono，斜体"/>
+    <FontFile file="RobotoMono-BoldItalic.ttf" desc="字体名称：Roboto Mono，粗斜体"/>
     
     <!-- 默认文本颜色值：常规状态 -->
     <TextColor name="default_font_color" value="#FF000000"/>
