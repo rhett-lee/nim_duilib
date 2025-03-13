@@ -221,6 +221,11 @@ private:
     virtual void OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser) override;
 
 private:
+    /** 开发者工具的状态发生变化
+    */
+    void OnDevToolVisibleStateChanged(bool bVisible, bool bPopup);
+
+private:
     ui::CefControl* m_pCefControl;
     ui::CefControl* m_pCefControlDev;
     ui::Button* m_pDevToolBtn;

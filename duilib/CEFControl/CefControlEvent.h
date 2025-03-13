@@ -164,7 +164,7 @@ namespace ui
                                 int popup_id)> OnBeforePopupAbortedEvent;
 
     //开发者工具的显示属性发生变化（回调函数的调用线程：主进程的UI线程）
-    typedef std::function<void (bool bVisible)> OnDevToolAttachedStateChangeEvent;
+    typedef std::function<void (bool bVisible, bool bPopup)> OnDevToolAttachedStateChangeEvent;
 
     //是否可以下载文件（回调函数的调用线程：CEF的UI线程）
     typedef std::function<bool (CefRefPtr<CefBrowser> browser,

@@ -28,8 +28,6 @@ void CefForm::OnInitWindow()
     m_pCefControlDev = dynamic_cast<ui::CefControl*>(FindControl(_T("cef_control_dev")));
     m_pDevToolBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_dev_tool")));
     m_pEditUrl = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_url")));
-    ASSERT(m_pCefControl != nullptr);
-    ASSERT(m_pCefControlDev != nullptr);
     ASSERT(m_pDevToolBtn != nullptr);
     ASSERT(m_pEditUrl != nullptr);
 
@@ -37,10 +35,13 @@ void CefForm::OnInitWindow()
     m_pEditUrl->SetSelAllOnFocus(true);
     m_pEditUrl->AttachReturn(UiBind(&CefForm::OnNavigate, this, std::placeholders::_1));
 
-    m_pCefControl->SetCefEventHandler(this);
+    if (m_pCefControl != nullptr) {
+        m_pCefControl->SetCefEventHandler(this);
+    }
 
-    // 打开开发者工具
-    //m_pCefControl->AttachDevTools(m_pCefControlDev);
+    if (m_pCefControl != nullptr) {
+        m_pCefControl->AttachDevToolAttachedStateChange(UiBind(&CefForm::OnDevToolVisibleStateChanged, this, std::placeholders::_1, std::placeholders::_2));
+    }
 
     // 加载皮肤目录下的 html 文件
     ui::FilePath cefHtml = ui::FilePathUtil::GetCurrentModuleDirectory();
@@ -50,9 +51,11 @@ void CefForm::OnInitWindow()
 #else
     cefHtml += _T("resources/themes/default/cef/cef.html");
 #endif
-    m_pCefControl->LoadURL(cefHtml.ToString());
+    if (m_pCefControl != nullptr) {
+        m_pCefControl->LoadURL(cefHtml.ToString());
+    }
 
-    if (!ui::CefManager::GetInstance()->IsEnableOffScreenRendering()) {
+    if (m_pCefControlDev != nullptr) {
         m_pCefControlDev->SetFadeVisible(false);
     }
 }
@@ -68,38 +71,47 @@ bool CefForm::OnClicked(const ui::EventArgs& msg)
     DString name = msg.GetSender()->GetName();
 
     if (name == _T("btn_dev_tool")) {
-        if (m_pCefControl->IsAttachedDevTools()) {
-            m_pCefControl->DettachDevTools();
-        }
-        else {
-            m_pCefControl->AttachDevTools(m_pCefControlDev);
-        }
-
-        if (ui::CefManager::GetInstance()->IsEnableOffScreenRendering()) {
-            m_pCefControlDev->SetFadeVisible(m_pCefControl->IsAttachedDevTools());
+        if ((m_pCefControl != nullptr) && (m_pCefControlDev != nullptr)) {
+            if (m_pCefControl->IsAttachedDevTools()) {
+                m_pCefControl->DettachDevTools();
+                if (m_pCefControlDev != nullptr) {
+                    m_pCefControlDev->SetFadeVisible(false);
+                }
+            }
+            else {
+                m_pCefControl->AttachDevTools(m_pCefControlDev);
+            }
         }
     }
     else if (name == _T("btn_back")) {
-        m_pCefControl->GoBack();
+        if (m_pCefControl != nullptr) {
+            m_pCefControl->GoBack();
+        }
     }
     else if (name == _T("btn_forward")) {
-        m_pCefControl->GoForward();
+        if (m_pCefControl != nullptr) {
+            m_pCefControl->GoForward();
+        }
     }
     else if (name == _T("btn_navigate")) {
         ui::EventArgs emptyMsg;
         OnNavigate(emptyMsg);
     }
     else if (name == _T("btn_refresh")) {
-        m_pCefControl->Refresh();
+        if (m_pCefControl != nullptr) {
+            m_pCefControl->Refresh();
+        }
     }
     return true;
 }
 
 bool CefForm::OnNavigate(const ui::EventArgs& /*msg*/)
 {
-    if (!m_pEditUrl->GetText().empty()) {
-        m_pCefControl->LoadURL(m_pEditUrl->GetText());
-        m_pCefControl->SetFocus();
+    if ((m_pEditUrl != nullptr) && !m_pEditUrl->GetText().empty()) {
+        if (m_pCefControl != nullptr) {
+            m_pCefControl->LoadURL(m_pEditUrl->GetText());
+            m_pCefControl->SetFocus();
+        }
     }
     return true;
 }
@@ -313,4 +325,18 @@ bool CefForm::OnFileDialog(CefRefPtr<CefBrowser> browser,
 
 void CefForm::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
 {
+}
+
+void CefForm::OnDevToolVisibleStateChanged(bool bVisible, bool bPopup)
+{
+    if (bPopup || !bVisible) {
+        if (m_pCefControlDev != nullptr) {
+            m_pCefControlDev->SetFadeVisible(false);
+        }
+    }
+    else if (bVisible && !bPopup) {
+        if (m_pCefControlDev != nullptr) {
+            m_pCefControlDev->SetFadeVisible(true);
+        }
+    }
 }

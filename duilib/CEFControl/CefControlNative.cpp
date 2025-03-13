@@ -138,6 +138,35 @@ void CefControlNative::SetWindow(ui::Window* pWindow)
     BaseClass::SetWindow(pWindow);
 }
 
+class DevToolBrowserHandlerNative : public CefBrowserHandler
+{
+public:
+    explicit DevToolBrowserHandlerNative(CefControlNative* pCefControl) :
+        m_pCefControl(pCefControl)
+    {
+        if (pCefControl) {
+            m_pCefControlFlag = pCefControl->GetWeakFlag();
+        }        
+    }
+    virtual ~DevToolBrowserHandlerNative() override
+    {
+        //窗口关闭后，发出一个通知
+        if (!m_pCefControlFlag.expired() && (m_pCefControl != nullptr)) {
+            CefControlNative* pCefControl = m_pCefControl;
+            ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, pCefControl->ToWeakCallback([pCefControl]() {
+                if (pCefControl->IsAttachedDevTools()) {
+                    pCefControl->ResetDevToolAttachedState();
+                }
+                }));            
+        }
+    }
+
+private:
+    //关联的CEF控件接口
+    CefControlNative* m_pCefControl;
+    std::weak_ptr<WeakFlag> m_pCefControlFlag;
+};
+
 bool CefControlNative::AttachDevTools(Control* /*view*/)
 {
     if (IsAttachedDevTools()) {
@@ -150,7 +179,7 @@ bool CefControlNative::AttachDevTools(Control* /*view*/)
     auto browser = m_pBrowserHandler->GetBrowser();
     if (browser == nullptr) {
         auto task = ToWeakCallback([this]() {
-                ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this](){
+                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this](){
                 AttachDevTools(nullptr);
             }));
         });
@@ -163,12 +192,13 @@ bool CefControlNative::AttachDevTools(Control* /*view*/)
 #endif
         CefBrowserSettings settings;
         if (browser->GetHost() != nullptr) {
-            browser->GetHost()->ShowDevTools(windowInfo, new ui::CefBrowserHandler, settings, CefPoint());
-            SetAttachedDevTools(true);
-            OnDevToolsVisibleChanged();
+
+
+            browser->GetHost()->ShowDevTools(windowInfo, new DevToolBrowserHandlerNative(this), settings, CefPoint());
+            SetAttachedDevTools(true, true);
         }
     }
-    return IsAttachedDevTools();
+    return true;
 }
 
 }

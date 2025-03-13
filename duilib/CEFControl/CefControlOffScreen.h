@@ -169,6 +169,9 @@ private:
 
     //开发者工具对应的控件
     CefControlOffScreen* m_pDevToolView;
+
+    //开发者工具控件的生命周期
+    std::weak_ptr<WeakFlag> m_pDevToolViewFlag;
 };
 
 }

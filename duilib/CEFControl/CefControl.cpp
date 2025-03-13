@@ -8,9 +8,10 @@
 namespace ui {
 
 CefControl::CefControl(ui::Window* pWindow):
-    ui::Control(pWindow)
+    ui::Control(pWindow),
+    m_bAttachedDevTools(false),
+    m_bDevToolsPopup(false)
 {
-    m_bAttachedDevTools = false;
     //这个标记必须为false，否则绘制有问题
     SetUseCache(false);
 }
@@ -247,21 +248,31 @@ void CefControl::RepairBrowser()
     ReCreateBrowser();
 }
 
+void CefControl::ResetDevToolAttachedState()
+{
+    bool bAttachedDevTools = m_bAttachedDevTools;
+    m_bAttachedDevTools = false;
+    if (bAttachedDevTools) {
+        if (m_pfnDevToolVisibleChange != nullptr) {
+            m_pfnDevToolVisibleChange(false, m_bDevToolsPopup);
+        }
+    }
+}
+
 void CefControl::DettachDevTools()
 {
-    if (!m_bAttachedDevTools) {
-        return;
-    }
+    bool bAttachedDevTools = m_bAttachedDevTools;
+    m_bAttachedDevTools = false;
+
     auto browser = m_pBrowserHandler->GetBrowser();
     if ((browser != nullptr) && (browser->GetHost() != nullptr)) {
         browser->GetHost()->CloseDevTools();
-        m_bAttachedDevTools = false;
-        if (m_pfnDevToolVisibleChange != nullptr) {
-            m_pfnDevToolVisibleChange(m_bAttachedDevTools);
-        }
     }
-    else {
-        m_bAttachedDevTools = false;
+
+    if (bAttachedDevTools) {        
+        if (m_pfnDevToolVisibleChange != nullptr) {
+            m_pfnDevToolVisibleChange(false, m_bDevToolsPopup);
+        }
     }
 }
 
@@ -270,15 +281,13 @@ bool CefControl::IsAttachedDevTools() const
     return m_bAttachedDevTools;
 }
 
-void CefControl::SetAttachedDevTools(bool bAttachedDevTools)
+void CefControl::SetAttachedDevTools(bool bAttachedDevTools, bool bPopup)
 {
+    bool bChanged = m_bAttachedDevTools != bAttachedDevTools;
     m_bAttachedDevTools = bAttachedDevTools;
-}
-
-void CefControl::OnDevToolsVisibleChanged()
-{
-    if (m_pfnDevToolVisibleChange != nullptr) {
-        m_pfnDevToolVisibleChange(IsAttachedDevTools());
+    m_bDevToolsPopup = bPopup;
+    if (bChanged && (m_pfnDevToolVisibleChange != nullptr)) {
+        m_pfnDevToolVisibleChange(m_bAttachedDevTools, bPopup);
     }
 }
 

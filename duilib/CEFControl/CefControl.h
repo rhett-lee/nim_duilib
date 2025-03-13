@@ -140,9 +140,9 @@ public:
     */
     bool IsAttachedDevTools() const;
 
-    /** 设置打开开发者工具标志
+    /** 清除DevTools绑定标志，并按需触发事件
     */
-    void SetAttachedDevTools(bool bAttachedDevTools);
+    void ResetDevToolAttachedState();
 
 public:
     /** 绑定一个回调函数用于监听右键菜单弹出（回调函数的调用线程：CEF的UI线程）
@@ -456,9 +456,11 @@ protected:
     virtual bool OnExecuteCppCallbackFunc(int cpp_callback_id, const CefString& json_string) override;
 
 protected:
-    /** 开发者工具的显示属性发生变化
+    /** 设置打开开发者工具标志
+    * @param [in] bAttachedDevTools 打开/关闭关联开发者工具
+    * @param [in] bPopup 开发者工具是否为弹出式窗口模式
     */
-    void OnDevToolsVisibleChanged();
+    void SetAttachedDevTools(bool bAttachedDevTools, bool bPopup);
 
 protected:
     /** 控件关联的CEF浏览器对象
@@ -475,6 +477,9 @@ private:
 
     //开发者工具是否显示
     bool m_bAttachedDevTools;
+
+    //开发者工具是否为弹出窗口模式
+    bool m_bDevToolsPopup;
 
     // 保存接收到 JS 调用 CPP 函数的代码所属线程，以后触发 JS 回调时把回调转到那个线程
     int32_t m_jsCallbackThreadId = -1;

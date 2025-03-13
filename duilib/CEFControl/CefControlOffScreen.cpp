@@ -213,10 +213,39 @@ void CefControlOffScreen::SetWindow(Window* pWindow)
     }    
 }
 
+class DevToolBrowserHandlerOffScreen : public CefBrowserHandler
+{
+public:
+    explicit DevToolBrowserHandlerOffScreen(CefControlOffScreen* pCefControl) :
+        m_pCefControl(pCefControl)
+    {
+        if (pCefControl) {
+            m_pCefControlFlag = pCefControl->GetWeakFlag();
+        }
+    }
+    virtual ~DevToolBrowserHandlerOffScreen() override
+    {
+        //窗口关闭后，发出一个通知
+        if (!m_pCefControlFlag.expired() && (m_pCefControl != nullptr)) {
+            CefControlOffScreen* pCefControl = m_pCefControl;
+            ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, pCefControl->ToWeakCallback([pCefControl]() {
+                if (pCefControl->IsAttachedDevTools()) {
+                    pCefControl->ResetDevToolAttachedState();
+                }
+                }));
+        }
+    }
+
+private:
+    //关联的CEF控件接口
+    CefControlOffScreen* m_pCefControl;
+    std::weak_ptr<WeakFlag> m_pCefControlFlag;
+};
+
 bool CefControlOffScreen::AttachDevTools(Control* control)
 {
     CefControlOffScreen* view = dynamic_cast<CefControlOffScreen*>(control);
-    if (IsAttachedDevTools() || !view) {
+    if (IsAttachedDevTools() || (view == nullptr)) {
         return true;
     }
     if ((m_pBrowserHandler == nullptr) || (view->m_pBrowserHandler == nullptr)) {
@@ -237,33 +266,47 @@ bool CefControlOffScreen::AttachDevTools(Control* control)
         view->m_pBrowserHandler->AddAfterCreateTask(task);
     }
     else {
+        m_pDevToolView = nullptr;
+        m_pDevToolViewFlag.reset();
+
         CefWindowInfo windowInfo;
+#if CEF_VERSION_MAJOR > 109
+#if DUILIB_BUILD_FOR_WIN
+        windowInfo.SetAsPopup(nullptr, _T("cef_devtools"));
+#endif
+        //CEF 高版本(开发者工具只支持弹窗模式，不支持无弹出窗口模式，应该是个Bug)
+        CefBrowserSettings settings;
+        if (browser->GetHost() != nullptr) {
+            browser->GetHost()->ShowDevTools(windowInfo, new DevToolBrowserHandlerOffScreen(this), settings, CefPoint());
+            SetAttachedDevTools(true, true);
+        }
+#else
+        //CEF 109版本: 支持无弹出窗口模式
 #ifdef DUILIB_BUILD_FOR_WIN
         windowInfo.SetAsWindowless(browser->GetHost()->GetWindowHandle());
-#else
-
-#endif
-
+#endif        
         CefBrowserSettings settings;
         if ((browser->GetHost() != nullptr) && (view_browser->GetHost() != nullptr)) {
             browser->GetHost()->ShowDevTools(windowInfo, view_browser->GetHost()->GetClient(), settings, CefPoint());
-            SetAttachedDevTools(true);
             m_pDevToolView = view;
-            OnDevToolsVisibleChanged();
+            m_pDevToolViewFlag = view->GetWeakFlag();
+            SetAttachedDevTools(true, false);
         }
+#endif
     }
-    return IsAttachedDevTools();
+    return true;
 }
 
 void CefControlOffScreen::DettachDevTools()
 {
     CefControl::DettachDevTools();
     m_pDevToolView = nullptr;
+    m_pDevToolViewFlag.reset();
 }
 
 void CefControlOffScreen::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)
 {
-    if (IsAttachedDevTools() && (m_pDevToolView != nullptr) && CefManager::GetInstance()->IsEnableOffScreenRendering()) {
+    if (IsAttachedDevTools() && !m_pDevToolViewFlag.expired() && (m_pDevToolView != nullptr) && CefManager::GetInstance()->IsEnableOffScreenRendering()) {
         //离屏渲染模式，开发者工具与页面位于相同的客户区位置
         int x = params->GetXCoord();
         int y = params->GetYCoord();
