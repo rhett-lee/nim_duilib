@@ -4,6 +4,21 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Core/GlobalManager.h"
 
+#ifdef DUILIB_BUILD_FOR_LINUX
+    //Linux OS
+    #include <X11/Xlib.h>
+    
+    //判断窗口是否有效
+    static bool IsX11WindowValid(Display* display, ::Window window)
+    {
+        // 尝试获取窗口属性
+        XWindowAttributes attrs;        
+        Status status = XGetWindowAttributes(display, window, &attrs);
+        return (status != 0);  // 返回1有效，0无效
+    }
+
+#endif
+
 namespace ui {
 
 CefControlNative::CefControlNative(ui::Window* pWindow):
@@ -26,7 +41,7 @@ CefControlNative::~CefControlNative(void)
 void CefControlNative::Init()
 {
     if (m_pBrowserHandler.get() == nullptr) {
-#if DUILIB_BUILD_FOR_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
         //检测是否在分层窗口中创建控件
         HWND hWnd = GetWindow()->NativeWnd()->GetHWND();
         LONG style = ::GetWindowLong(hWnd, GWL_STYLE);
@@ -47,14 +62,25 @@ void CefControlNative::Init()
 
 void CefControlNative::ReCreateBrowser()
 {
+    Window* pWindow = GetWindow();
+    ASSERT(pWindow != nullptr);
+    if (pWindow == nullptr) {
+        return;
+    }
+    ASSERT(m_pBrowserHandler != nullptr);
+    if (m_pBrowserHandler == nullptr) {
+        return;
+    }
     if (m_pBrowserHandler->GetBrowser() == nullptr) {
         // 使用有窗模式
         CefWindowInfo window_info;
         CefRect rect = { GetRect().left, GetRect().top, GetRect().right, GetRect().bottom};
-#if DUILIB_BUILD_FOR_WIN
-        window_info.SetAsChild(this->GetWindow()->NativeWnd()->GetHWND(), rect);
-#else
-        //TODO:
+#ifdef DUILIB_BUILD_FOR_WIN
+        //Windows
+        window_info.SetAsChild(pWindow->NativeWnd()->GetHWND(), rect);
+#elif defined DUILIB_BUILD_FOR_LINUX
+        //Linux
+        window_info.SetAsChild(pWindow->NativeWnd()->GetX11WindowNumber(), rect);
 #endif
 
         CefBrowserSettings browser_settings;
@@ -62,14 +88,51 @@ void CefControlNative::ReCreateBrowser()
     }
 }
 
+#ifdef DUILIB_BUILD_FOR_LINUX
+//设置X11窗口的位置和大小
+class SetX11WindowPosTask : public CefTask
+{
+    IMPLEMENT_REFCOUNTING(SetX11WindowPosTask);
+public:
+    explicit SetX11WindowPosTask(CefControl* pCefControl):
+        m_pCefControl(pCefControl)
+    {
+        m_pCefControlFlag = pCefControl->GetWeakFlag();
+    }
+public:
+    void Execute()
+    {
+        if (m_pCefControlFlag.expired() || !m_pCefControl->IsVisible()) {
+            //窗口隐藏的时候，不需要设置；如果设置的话，会导致程序崩溃
+            return;
+        }
+        CefWindowHandle handle = m_pCefControl->GetCefHandle();
+        ui::UiRect rc = m_pCefControl->GetPos();
+        if (handle != 0) {
+            Display* display = XOpenDisplay(nullptr);
+            if ((display != nullptr) && IsX11WindowValid(display, handle)){
+                XMoveResizeWindow(display, handle, rc.left, rc.top, rc.Width(), rc.Height());
+                XFlush(display);
+                XCloseDisplay(display);
+            }
+        }
+    }
+private:
+    CefControl* m_pCefControl;
+    std::weak_ptr<WeakFlag> m_pCefControlFlag;
+};
+#endif
+
 void CefControlNative::SetPos(ui::UiRect rc)
 {
     BaseClass::SetPos(rc);
-#if DUILIB_BUILD_FOR_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     HWND hwnd = GetCefHandle();
-    if (hwnd) {
+    if (::IsWindow(hwnd)) {
         ::SetWindowPos(hwnd, HWND_TOP, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER);
     }
+#elif defined DUILIB_BUILD_FOR_LINUX
+    CefPostTask(TID_UI, new SetX11WindowPosTask(this));
 #endif
 }
 
@@ -87,7 +150,8 @@ void CefControlNative::HandleEvent(const ui::EventArgs& msg)
         return;
     }
     if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get() == nullptr) {
-        return BaseClass::HandleEvent(msg);
+        BaseClass::HandleEvent(msg);
+        return;
     }
 
     else if (msg.eventType == ui::kEventSetFocus) {
@@ -99,10 +163,48 @@ void CefControlNative::HandleEvent(const ui::EventArgs& msg)
     BaseClass::HandleEvent(msg);
 }
 
+#ifdef DUILIB_BUILD_FOR_LINUX
+//设置X11窗口的显示或者隐藏
+class SetX11WindowVisibleTask : public CefTask
+{
+    IMPLEMENT_REFCOUNTING(SetX11WindowVisibleTask);
+public:
+    explicit SetX11WindowVisibleTask(CefControl* pCefControl):
+        m_pCefControl(pCefControl)
+    {
+        m_pCefControlFlag = pCefControl->GetWeakFlag();
+    }
+public:
+    void Execute()
+    {
+        if (m_pCefControlFlag.expired()) {
+            return;
+        }
+        CefWindowHandle handle = m_pCefControl->GetCefHandle();
+        if (handle != 0) {
+            Display* display = XOpenDisplay(nullptr);
+            if ((display != nullptr) && IsX11WindowValid(display, handle)){
+                if (m_pCefControl->IsVisible()) {
+                    XMapWindow(display, handle);
+                }
+                else {
+                    XUnmapWindow(display, handle);
+                }
+                XFlush(display);
+                XCloseDisplay(display);
+            }
+        }
+    }
+private:
+    CefControl* m_pCefControl;
+    std::weak_ptr<WeakFlag> m_pCefControlFlag;
+};
+#endif
+
 void CefControlNative::SetVisible(bool bVisible)
 {
     BaseClass::SetVisible(bVisible);
-#if DUILIB_BUILD_FOR_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     HWND hwnd = GetCefHandle();
     if (hwnd) {
         if (bVisible) {
@@ -112,18 +214,61 @@ void CefControlNative::SetVisible(bool bVisible)
             ::SetWindowPos(hwnd, nullptr, 0, 0, 0, 0, SWP_NOZORDER | SWP_NOMOVE | SWP_NOACTIVATE);
         }
     }
+#elif defined DUILIB_BUILD_FOR_LINUX
+    CefPostTask(TID_UI, new SetX11WindowVisibleTask(this));
 #endif
 }
 
+#ifdef DUILIB_BUILD_FOR_LINUX
+//设置X窗口的父窗口
+class SetX11WindowParentWindowTask : public CefTask
+{
+    IMPLEMENT_REFCOUNTING(SetX11WindowParentWindowTask);
+public:
+    explicit SetX11WindowParentWindowTask(CefControl* pCefControl):
+        m_pCefControl(pCefControl)
+    {
+        m_pCefControlFlag = pCefControl->GetWeakFlag();
+    }
+public:
+    void Execute()
+    {
+        if (m_pCefControlFlag.expired()) {
+            return;
+        }
+        CefWindowHandle hParentHandle = 0;
+        Window* pWindow = m_pCefControl->GetWindow();
+        if (pWindow != nullptr) {
+            hParentHandle = pWindow->NativeWnd()->GetX11WindowNumber();
+        }
+        CefWindowHandle handle = m_pCefControl->GetCefHandle();
+        if ((handle != 0) && (hParentHandle != 0)) {
+            Display* display = XOpenDisplay(nullptr);
+            if ((display != nullptr) && IsX11WindowValid(display, handle) && IsX11WindowValid(display, hParentHandle)) {
+                UiRect rc = m_pCefControl->GetPos();
+                XReparentWindow(display, handle, hParentHandle, rc.left, rc.top);
+                XFlush(display);
+                XCloseDisplay(display);
+            }
+        }
+    }
+private:
+    CefControl* m_pCefControl;
+    std::weak_ptr<WeakFlag> m_pCefControlFlag;
+};
+#endif
+
 void CefControlNative::SetWindow(ui::Window* pWindow)
 {
-    if (pWindow == nullptr) {
+    if ((pWindow == nullptr) || (BaseClass::GetWindow() == pWindow)) {
         return;
     }
+    BaseClass::SetWindow(pWindow);
+
     if (m_pBrowserHandler) {
         m_pBrowserHandler->SetHostWindow(pWindow);
     }
-#if DUILIB_BUILD_FOR_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
     // 设置Cef窗口句柄为新的主窗口的子窗口
     auto hwnd = GetCefHandle();
     if (hwnd) {
@@ -133,9 +278,9 @@ void CefControlNative::SetWindow(ui::Window* pWindow)
     // 为新的主窗口重新设置WS_CLIPSIBLINGS、WS_CLIPCHILDREN样式，否则Cef窗口刷新会出问题
     LONG style = ::GetWindowLong(pWindow->NativeWnd()->GetHWND(), GWL_STYLE);
     ::SetWindowLong(pWindow->NativeWnd()->GetHWND(), GWL_STYLE, style | WS_CLIPSIBLINGS | WS_CLIPCHILDREN);
-#endif
-
-    BaseClass::SetWindow(pWindow);
+#elif defined DUILIB_BUILD_FOR_LINUX
+    CefPostTask(TID_UI, new SetX11WindowParentWindowTask(this));
+#endif    
 }
 
 class DevToolBrowserHandlerNative : public CefBrowserHandler
@@ -187,13 +332,11 @@ bool CefControlNative::AttachDevTools(Control* /*view*/)
     }
     else {
         CefWindowInfo windowInfo;
-#if DUILIB_BUILD_FOR_WIN
+#ifdef DUILIB_BUILD_FOR_WIN
         windowInfo.SetAsPopup(nullptr, _T("cef_devtools"));
 #endif
         CefBrowserSettings settings;
         if (browser->GetHost() != nullptr) {
-
-
             browser->GetHost()->ShowDevTools(windowInfo, new DevToolBrowserHandlerNative(this), settings, CefPoint());
             SetAttachedDevTools(true, true);
         }

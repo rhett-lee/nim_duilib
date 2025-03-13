@@ -89,7 +89,6 @@ public:
     bool IsWindow() const;
 
 #ifdef DUILIB_BUILD_FOR_WIN
-
     /** 获取窗口句柄
     */
     HWND GetHWND() const;
@@ -101,7 +100,12 @@ public:
     /** 获取窗口的绘制DC句柄
     */
     HDC GetPaintDC() const;
+#endif
 
+#if defined DUILIB_BUILD_FOR_LINUX
+    /** 获取X11的窗口标识符
+    */
+    uint64_t GetX11WindowNumber() const;
 #endif
 
 public:
