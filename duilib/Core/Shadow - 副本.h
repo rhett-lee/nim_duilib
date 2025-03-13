@@ -95,8 +95,9 @@ public:
 
 private:
     /** 将阴影附加到窗口
+     * @param [in] pRoot 窗口的顶层容器
      */
-    void DoAttachShadow(Box* pNewRoot, Box* pOrgRoot, bool bNewAttach, bool bUseDefaultImage, bool isMaximized) const;
+    void DoAttachShadow(Box* pRoot, bool bOldAttach, bool bNewAttach, bool bUseDefaultImage, bool isMaximized) const;
 
 private:
     //是否支持阴影效果

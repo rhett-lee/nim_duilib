@@ -14,8 +14,13 @@ const bool kEnableOffScreenRendering = false;
 
 /** CEF控件的窗口
 */
+#if defined (DUILIB_BUILD_FOR_WIN)
 class CefForm: public std::conditional<kEnableOffScreenRendering, ui::WindowImplBase, ui::ShadowWnd>::type,
                public ui::CefControlEvent
+#else
+class CefForm : public ui::WindowImplBase,
+                public ui::CefControlEvent
+#endif
 {
 public:
     CefForm();

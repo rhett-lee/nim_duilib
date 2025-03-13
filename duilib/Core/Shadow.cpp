@@ -103,17 +103,85 @@ UiSize Shadow::GetChildBoxBorderRound(const Box* pBox)
 Shadow::Shadow(Window* pWindow):
     m_bShadowAttached(true),
     m_bUseDefaultShadowAttached(true),
+    m_isMaximized(false),
     m_pRoot(nullptr),
     m_pWindow(pWindow)
 {
     ResetDefaultShadow();
 }
 
+
+Box* Shadow::AttachShadow(Box* pRoot)
+{
+    if (!m_bShadowAttached) {
+        return pRoot;
+    }
+    ASSERT(m_pRoot == nullptr);
+    if (m_pRoot != nullptr) {
+        return pRoot;
+    }
+
+    if (pRoot == nullptr) {
+        return nullptr;
+    }
+
+    m_pRoot = new ShadowBox(pRoot->GetWindow());
+    m_pRoot->AddItem(pRoot);
+    DoAttachShadow(m_pRoot, pRoot, true, m_bUseDefaultImage, m_isMaximized);
+    return m_pRoot;
+}
+
+void Shadow::DoAttachShadow(Box* pNewRoot, Box* pOrgRoot, bool bNewAttach, bool bUseDefaultImage, bool isMaximized) const
+{
+    ASSERT((pNewRoot != nullptr) && (pOrgRoot != nullptr));
+    if ((pNewRoot == nullptr) || (pOrgRoot == nullptr)) {
+        return;
+    }
+
+    pNewRoot->SetPadding((bNewAttach && !isMaximized) ? m_rcShadowCorner : UiPadding(0, 0, 0, 0), false);
+    UiPadding rcShadowCorner = !isMaximized ? m_rcShadowCorner : m_rcShadowCornerBackup;
+    if (pOrgRoot->GetFixedWidth().IsInt32()) {
+        int32_t rootWidth = pOrgRoot->GetFixedWidth().GetInt32();
+        if (bNewAttach) {
+            rootWidth += (rcShadowCorner.left + rcShadowCorner.right);
+        }
+        pNewRoot->SetFixedWidth(UiFixedInt(rootWidth), true, false);
+    }
+    else {
+        pNewRoot->SetFixedWidth(pOrgRoot->GetFixedWidth(), true, false);
+    }
+    if (pOrgRoot->GetFixedHeight().IsInt32()) {
+        int32_t rootHeight = pOrgRoot->GetFixedHeight().GetInt32();
+        if (bNewAttach) {
+            rootHeight += (rcShadowCorner.top + rcShadowCorner.bottom);
+        }       
+        pNewRoot->SetFixedHeight(UiFixedInt(rootHeight), true, false);
+    }
+    else {
+        pNewRoot->SetFixedHeight(pOrgRoot->GetFixedHeight(), true, false);
+    }
+
+    if (bUseDefaultImage) {
+        pOrgRoot->SetBorderRound(bNewAttach ? Shadow::GetChildBoxBorderRound(pOrgRoot) : UiSize(), false);
+    }
+    pNewRoot->SetBkImage(bNewAttach ? m_strImage : DString());
+}
+
 void Shadow::SetShadowAttached(bool bShadowAttached)
 {
-    m_bShadowAttached = bShadowAttached; 
+    m_bShadowAttached = bShadowAttached;
+
     //外部设置后，即更新为非默认值
     m_bUseDefaultShadowAttached = false;
+
+    //如果已经调用了AttachShadow，需要进行些处理
+    if (m_pRoot != nullptr) {
+        Box* pOrgRoot = nullptr;
+        if (m_pRoot->GetItemCount() > 0) {
+            pOrgRoot = dynamic_cast<Box*>(m_pRoot->GetItemAt(0));
+        }
+        DoAttachShadow(m_pRoot, pOrgRoot, bShadowAttached, m_bUseDefaultImage, m_isMaximized);
+    }
 }
 
 bool Shadow::IsShadowAttached() const
@@ -180,52 +248,9 @@ void Shadow::ResetDefaultShadow()
     m_rcShadowCornerBackup = m_rcShadowCorner;
 }
 
-Box* Shadow::AttachShadow(Box* pRoot)
-{
-    if (!m_bShadowAttached) {
-        return pRoot;
-    }
-    ASSERT(m_pRoot == nullptr);
-    if (m_pRoot != nullptr) {
-        return pRoot;
-    }
-
-    if (pRoot == nullptr) {
-        return nullptr;
-    }
-
-    m_pRoot = new ShadowBox(pRoot->GetWindow());
-    m_pRoot->SetPadding(m_rcShadowCorner, false);
-
-    if (pRoot->GetFixedWidth().IsInt32()) {
-        int32_t rootWidth = pRoot->GetFixedWidth().GetInt32();
-        rootWidth += m_rcShadowCorner.left + m_rcShadowCorner.right;
-        m_pRoot->SetFixedWidth(UiFixedInt(rootWidth), true, false);
-    }
-    else {
-        m_pRoot->SetFixedWidth(pRoot->GetFixedWidth(), true, false);
-    }
-    if (pRoot->GetFixedHeight().IsInt32()) {
-        int32_t rootHeight = pRoot->GetFixedHeight().GetInt32();
-        rootHeight += m_rcShadowCorner.top + m_rcShadowCorner.bottom;
-        m_pRoot->SetFixedHeight(UiFixedInt(rootHeight), true, false);
-    }
-    else {
-        m_pRoot->SetFixedHeight(pRoot->GetFixedHeight(), true, false);
-    }
-
-    if (m_bUseDefaultImage)    {
-        pRoot->SetBorderRound(Shadow::GetChildBoxBorderRound(pRoot), false);
-    }
-
-    m_pRoot->AddItem(pRoot);
-    m_pRoot->SetBkImage(m_strImage);
-
-    return m_pRoot;
-}
-
 void Shadow::MaximizedOrRestored(bool isMaximized)
 {
+    m_isMaximized = isMaximized;
     if (!m_bShadowAttached) {
         return;
     }
