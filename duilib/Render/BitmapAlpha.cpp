@@ -49,28 +49,28 @@ void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
         return;
     }
 
-    unsigned int * pBmpBits = (unsigned int *)m_pPiexl;
-    int nTop = std::max((int)rcDirty.top, 0);
-    int nBottom = std::min((int)rcDirty.bottom, (int)m_nHeight);
-    int nLeft = std::max((int)rcDirty.left, 0);
-    int nRight = std::min((int)rcDirty.right, (int)m_nWidth);
+    uint32_t * pBmpBits = (uint32_t*)m_pPiexl;
+    int32_t nTop = std::max(rcDirty.top, 0);
+    int32_t nBottom = std::min(rcDirty.bottom, m_nHeight);
+    int32_t nLeft = std::max(rcDirty.left, 0);
+    int32_t nRight = std::min(rcDirty.right, m_nWidth);
 
-    for (int i = nTop; i < nBottom; i++) {
-        for (int j = nLeft; j < nRight; j++) {
+    nLeft = std::max(nLeft, rcShadowPadding.left);
+    nRight = std::min(nRight, m_nWidth - rcShadowPadding.right);
+    nTop = std::max(nTop, rcShadowPadding.top);
+    nBottom = std::min(nBottom, m_nHeight - rcShadowPadding.bottom);
+
+    for (int32_t i = nTop; i < nBottom; i++) {
+        for (int32_t j = nLeft; j < nRight; j++) {
             uint8_t* a = (uint8_t*)(pBmpBits + i * m_nWidth + j) + 3;
-
-            if (((j >= rcShadowPadding.left && j < m_nWidth - rcShadowPadding.right)
-                || (i >= rcShadowPadding.top && i < m_nHeight - rcShadowPadding.bottom))) {
-
-                // ClearAlpha时，把alpha通道设置为某个值
-                // 如果此值没有变化，则证明上面没有绘制任何内容，把alpha设为0
-                if (alpha != 0 && *a == alpha) {
-                    *a = 0;
-                }
-                // 如果此值变为0，则证明上面被类似DrawText等GDI函数绘制过导致alpha被设为0，此时alpha设为255
-                else if (*a == 0) {
-                    *a = 255;
-                }
+            // ClearAlpha时，把alpha通道设置为某个值
+            // 如果此值没有变化，则证明上面没有绘制任何内容，把alpha设为0
+            if (alpha != 0 && *a == alpha) {
+                *a = 0;
+            }
+            // 如果此值变为0，则证明上面被类似DrawText等GDI函数绘制过导致alpha被设为0，此时alpha设为255
+            else if (*a == 0) {
+                *a = 255;
             }
         }
     }
@@ -85,20 +85,22 @@ void BitmapAlpha::RestoreAlpha(const UiRect& rcDirty, const UiPadding& rcShadowP
         return;
     }
 
-    unsigned int * pBmpBits = (unsigned int *)m_pPiexl;
-    int nTop = std::max((int)rcDirty.top, 0);
-    int nBottom = std::min((int)rcDirty.bottom, (int)m_nHeight);
-    int nLeft = std::max((int)rcDirty.left, 0);
-    int nRight = std::min((int)rcDirty.right, (int)m_nWidth);
+    uint32_t* pBmpBits = (uint32_t*)m_pPiexl;
+    int32_t nTop = std::max(rcDirty.top, 0);
+    int32_t nBottom = std::min(rcDirty.bottom, m_nHeight);
+    int32_t nLeft = std::max(rcDirty.left, 0);
+    int32_t nRight = std::min(rcDirty.right, m_nWidth);
 
-    for (int i = nTop; i < nBottom; i++) {
-        for (int j = nLeft; j < nRight; j++) {
+    nLeft = std::max(nLeft, rcShadowPadding.left);
+    nRight = std::min(nRight, m_nWidth - rcShadowPadding.right);
+    nTop = std::max(nTop, rcShadowPadding.top);
+    nBottom = std::min(nBottom, m_nHeight - rcShadowPadding.bottom);
+
+    for (int i = nTop; i < nBottom; ++i) {
+        for (int j = nLeft; j < nRight; ++j) {            
             uint8_t* a = (uint8_t*)(pBmpBits + i * m_nWidth + j) + 3;
-            if (((j >= rcShadowPadding.left && j < m_nWidth - rcShadowPadding.right) ||
-                 (i >= rcShadowPadding.top && i < m_nHeight - rcShadowPadding.bottom))) {
-                if (*a != 255) {
-                    *a = 255;
-                }
+            if (*a != 255) {
+                *a = 255;
             }
         }
     }
