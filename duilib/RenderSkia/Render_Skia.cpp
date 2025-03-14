@@ -473,8 +473,16 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     if (skiaBitmap == nullptr) {
         return;
     }
+    
     const SkBitmap& skSrcBitmap = skiaBitmap->GetSkBitmap();
-    sk_sp<SkImage> skImage = skSrcBitmap.asImage();//这里是复制了一份位图数据的，有性能损耗
+    SkPixmap skSrcPixmap;
+    sk_sp<SkImage> skImage;
+    if (skSrcBitmap.peekPixels(&skSrcPixmap)) {
+        skImage = SkImages::RasterFromPixmap(skSrcPixmap, nullptr, nullptr);
+    }
+    if (skImage == nullptr) {
+        skImage = skSrcBitmap.asImage();
+    }
 
     UiRect rcTemp;
     UiRect rcDrawSource;
@@ -791,7 +799,14 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
         return;
     }
     const SkBitmap& skSrcBitmap = skiaBitmap->GetSkBitmap();
-    sk_sp<SkImage> skImage = skSrcBitmap.asImage();//这里是复制了一份位图数据的，有性能损耗
+    SkPixmap skSrcPixmap;
+    sk_sp<SkImage> skImage;
+    if (skSrcBitmap.peekPixels(&skSrcPixmap)) {
+        skImage = SkImages::RasterFromPixmap(skSrcPixmap, nullptr, nullptr);
+    }
+    if (skImage == nullptr) {
+        skImage = skSrcBitmap.asImage();
+    }
 
     bool isMatrixSet = false;
     if (pMatrix != nullptr) {
