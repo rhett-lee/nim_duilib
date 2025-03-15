@@ -26,15 +26,21 @@ void BitmapAlpha::ClearAlpha(const UiRect& rcDirty, uint8_t alpha) const
     if ((m_pPiexl == nullptr) || (m_nChannels != 4) || (m_nWidth <= 0) ||(m_nHeight <= 0)){
         return;
     }
+    if ((rcDirty.left == 0) && (rcDirty.top == 0) && (rcDirty.Width() == m_nWidth) && (rcDirty.Height() == m_nHeight)) {
+        //全部清除
+        ::memset(m_pPiexl, alpha, m_nHeight * m_nWidth * m_nChannels);
+        return;
+    }
 
-    unsigned int * pBmpBits = (unsigned int *)m_pPiexl;
-    int nTop = std::max((int)rcDirty.top, 0);
-    int nBottom = std::min((int)rcDirty.bottom, (int)m_nHeight);
-    int nLeft = std::max((int)rcDirty.left, 0);
-    int nRight = std::min((int)rcDirty.right, (int)m_nWidth);
-    if (nRight > nLeft)    {
-        for (int i = nTop; i < nBottom; ++i) {
-            ::memset(pBmpBits + i * m_nWidth + nLeft, alpha, (nRight - nLeft) * 4);
+    uint32_t* pBmpBits = (uint32_t*)m_pPiexl;
+    int32_t nTop = std::max(rcDirty.top, 0);
+    int32_t nBottom = std::min(rcDirty.bottom, m_nHeight);
+    int32_t nLeft = std::max(rcDirty.left, 0);
+    int32_t nRight = std::min(rcDirty.right, m_nWidth);
+    if (nRight > nLeft) {
+        const size_t nBytes = (size_t)(nRight - nLeft) * 4;
+        for (int32_t i = nTop; i < nBottom; ++i) {
+            ::memset(pBmpBits + i * m_nWidth + nLeft, alpha, nBytes);
         }
     }
 }

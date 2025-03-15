@@ -16,6 +16,10 @@
     #pragma message("Unknown Platform!")
 #endif
 
+/** RichEdit控件绘制优化选项是否开启
+*/
+#define DUILIB_RICH_EDIT_DRAW_OPT 1
+
 /** 64位操作系统标识
 */
 #if defined(_M_X64) || defined(_M_AMD64) || defined(_WIN64) || defined(__x86_64__) 
