@@ -1035,11 +1035,13 @@ bool Window::Paint(const UiRect& rcPaint)
 
     //开始绘制前，去掉alpha通道
     if (IsLayeredWindow()) {
+        PerformanceStat statPerformance(_T("PaintWindow, Window::Paint ClearAlpha"));
         pRender->ClearAlpha(rcPaint);
     }
 
     // 绘制    
     if (m_pRoot->IsVisible()) {
+        PerformanceStat statPerformance(_T("PaintWindow, Window::Paint Paint/PaintChild"));
         AutoClip rectClip(pRender, rcPaint, true);
         UiPoint ptOldWindOrg = pRender->OffsetWindowOrg(m_renderOffset);
         m_pRoot->Paint(pRender, rcPaint);
@@ -1056,6 +1058,7 @@ bool Window::Paint(const UiRect& rcPaint)
 
     //开始绘制前，进行alpha通道修复
     if (IsLayeredWindow()) {
+        PerformanceStat statPerformance(_T("PaintWindow, Window::Paint RestoreAlpha"));
         if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() &&
             (m_renderOffset.x == 0) && (m_renderOffset.y == 0)) {
             //补救由于Gdi绘制造成的alpha通道为0

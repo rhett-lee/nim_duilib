@@ -627,6 +627,9 @@
     <ClCompile Include="CEFControl\CefControl.cpp">
       <Filter>CEFControl</Filter>
     </ClCompile>
+    <ClCompile Include="RenderSkia\DrawSkiaImage.cpp">
+      <Filter>RenderSkia</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1294,6 +1297,9 @@
     </ClInclude>
     <ClInclude Include="CEFControl\CefControl.h">
       <Filter>CEFControl</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\DrawSkiaImage.h">
+      <Filter>RenderSkia</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
