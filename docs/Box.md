@@ -51,8 +51,8 @@
 | margin | 0,0,0,0 | rect | 外边距,如(2,2,2,2) |
 | padding | 0,0,0,0 | rect | 内边距,如(2,2,2,2) |
 | mouse_child | true | bool | 本控件的子控件是否可以响应用户操作, true 或者 false|
-| drag_out_id |  | int | 设置是否支持拖拽拖出该容器：如果不等于0，支持拖出，否则不支持拖出（拖出到drop_in_id==drag_out_id的容器）|
-| drop_in_id |  | int | 设置是否支持拖拽投放进入该容器: 如果不等于0，支持拖入，否则不支持拖入(从drag_out_id==drop_in_id的容器拖入到该容器)|
+| drag_out_id | 0 | int | 设置是否支持拖拽拖出该容器：如果不等于0，支持拖出，否则不支持拖出（拖出到drop_in_id==drag_out_id的容器）|
+| drop_in_id | 0 | int | 设置是否支持拖拽投放进入该容器: 如果不等于0，支持拖入，否则不支持拖入(从drag_out_id==drop_in_id的容器拖入到该容器)|
 
 Box 控件继承了 `Control` 属性，更多可用属性请参考：基类[Control(基础控件)的属性](./Control.md)
 

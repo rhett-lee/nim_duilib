@@ -458,9 +458,36 @@ SplitBox 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属�
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
 | selected_id | | int | 默认选择的子项 |
-| tab_box_name | | string | 绑定的TabBox控件名称，绑定后TabCtrl的选择项变化时，TabBox的选择项会跟随变化 |
+| tab_box_name| | string | 绑定的TabBox控件名称，绑定后TabCtrl的选择项变化时，TabBox的选择项会跟随变化 |
+| drag_order  | true | bool | 是否支持拖动调整顺序（在同一个标签内），默认是开启的 |
+| drag_out_id | 0 | int | 设置是否支持拖拽拖出该容器：如果不等于0，支持拖出，否则不支持拖出（拖出到drop_in_id==drag_out_id的容器）|
+| drop_in_id | 0 | int | 设置是否支持拖拽投放进入该容器: 如果不等于0，支持拖入，否则不支持拖入(从drag_out_id==drop_in_id的容器拖入到该容器)|
 
 TabCtrl 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性
+
+## TabCtrlItem的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :---     | :---   | :---     | :--- |
+| tab_box_item_index | | int | 绑定的TabBox子项索引号（即点击这个标签页，切换到此索引号的TabBox页面） |
+| title | | string | 标签页的标题文字 |
+| title_class | | string | 标签页的标题文字资源属性Class值|
+| icon | | string | 标签页的图标资源字符串 |
+| icon_class | | string | 标签页的图标资源属性Class值|
+| close_button_class | | string | 标签页的关闭按钮资源属性Class值|
+| line_class | | string | 标签页的分割线资源属性Class值|
+| selected_round_corner | | 大小 | 标签页选择状态时的圆角大小|
+| hot_round_corner | | 大小 | 标签页悬停状态时的圆角大小|
+| hot_padding | | 大小 | 标签页Hot状态的背景色的内边距|
+| auto_hide_close_button | 否 | bool | 关闭按钮是否自动隐藏|
+
+TabCtrlItem 控件继承了 `ControlDragableT` 属性，更多可用属性请参考`ControlDragableT`的属性
+
+## ControlDragableT的属性(模板类)
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :---     | :---   | :---     | :--- |
+| drag_order  | true | bool | 是否支持拖动调整顺序（在同一个容器内），默认是开启的 |
+| drag_out    | true| bool | 是否支持拖出操作（在相同窗口的不同容器内），默认是开启的 |
+| drag_alpha  | 216 | uint8_t | 拖动顺序时，控件的透明度 |
 
 ## TreeView的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |

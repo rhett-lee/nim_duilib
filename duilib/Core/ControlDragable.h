@@ -259,11 +259,11 @@ template<typename T>
 ControlDragableT<T>::ControlDragableT(Window* pWindow):
     T(pWindow),
     m_bEnableDragOrder(true),
-    m_bMouseDown(false),
-    m_bInDraggingOrder(false),
-    m_nDragAlpha(216),
-    m_nOldAlpha(255),
     m_bEnableDragOut(true),
+    m_bInDraggingOrder(false),
+    m_bMouseDown(false),
+    m_nDragAlpha(216),
+    m_nOldAlpha(255),    
     m_pTargetBox(nullptr),
     m_pDestControl(nullptr),
     m_pDragWindow(nullptr),
@@ -299,7 +299,7 @@ void ControlDragableT<T>::SetAttribute(const DString& strName, const DString& st
         SetDragAlpha((uint8_t)StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("drag_out")) {
-        //是否支持拖出操纵（在相同窗口的不同容器内）
+        //是否支持拖出操作（在相同窗口的不同容器内）
         SetEnableDragOut(strValue == _T("true"));
     }
     else {

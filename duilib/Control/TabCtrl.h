@@ -37,6 +37,14 @@ public:
     */
     TabBox* GetTabBox() const;
 
+    /** 设置是否支持拖动改变控件的顺序
+    */
+    void SetEnableDragOrder(bool bEnable);
+
+    /** 判断是否支持拖动改变控件的顺序
+    */
+    bool IsEnableDragOrder() const;
+
 public:
     /** 设置子项的位置索引
      * @param [in] pControl 子项指针
@@ -91,6 +99,10 @@ private:
     /** 绑定的TabBox接口
     */
     TabBox* m_pTabBox;
+
+    /** 是否支持拖动改变列的顺序(功能开关)
+    */
+    bool m_bEnableDragOrder;
 };
 
 /** 多标签控件的一个标签页
@@ -213,6 +225,11 @@ public:
     /** 处理分割线的显示或者隐藏
     */
     void AdjustItemLineStatus();
+
+public:
+    /** 判断是否支持拖动改变控件的顺序
+    */
+    virtual bool IsEnableDragOrder() const override;
 
 protected:
     /** 初始化接口

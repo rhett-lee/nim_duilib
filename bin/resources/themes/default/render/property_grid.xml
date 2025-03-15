@@ -15,25 +15,33 @@
         <Split bkcolor="splitline_level1" width="2"/>
         <VBox>
             <HBox bkcolor="white">
-                <TabCtrl class="tab_ctrl" name="tab_list1" margin="10,10,10,10" drag_out_id="1">
+                <TabCtrl class="tab_ctrl" name="tab_list1" margin="10,10,10,10" drag_order="true" drag_out_id="1">
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-1" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-2" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-3" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签1-4" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
                 </TabCtrl>                
-                <TabCtrl class="tab_ctrl" margin="10,10,10,10" drop_in_id="1">
+                <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="true" drop_in_id="1">
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-1" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-2" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-3" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
                     <TabCtrlItem class="tab_ctrl_item" title="标签2-4" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
                 </TabCtrl>
             </HBox>
-            <VListBox margin="10,10,10,10" drop_in_id="1" width="128">
-                <TabCtrlItem class="tab_ctrl_item" title="标签2-1" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
-                <TabCtrlItem class="tab_ctrl_item" title="标签2-2" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
-                <TabCtrlItem class="tab_ctrl_item" title="标签2-3" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
-                <TabCtrlItem class="tab_ctrl_item" title="标签2-4" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
-            </VListBox>
+            <HBox bkcolor="white">
+                <TabCtrl class="tab_ctrl" margin="10,10,10,10" drag_order="false">
+                    <TabCtrlItem class="tab_ctrl_item" title="标签3-1：不支持拖动调序" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" title="标签3-2" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" title="标签3-3" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" title="标签3-4" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                </TabCtrl>
+                <VListBox margin="10,10,10,10" width="128">
+                    <TabCtrlItem class="tab_ctrl_item" drag_order="true" title="标签-1" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" drag_order="true" title="标签-2" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" drag_order="true" title="标签-3" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    <TabCtrlItem class="tab_ctrl_item" drag_order="true" title="标签-4" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                </VListBox>
+            </HBox>
             <HBox bkcolor="white" margin="4,4,4,0">
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="1" margin="0,0,4,0"/>
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="2" margin="0,0,4,0"/>

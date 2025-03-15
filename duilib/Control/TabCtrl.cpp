@@ -7,7 +7,8 @@ namespace ui
 TabCtrl::TabCtrl(Window* pWindow):
     ListBox(pWindow, new HLayout),
     m_nSelectedId(Box::InvalidIndex),
-    m_pTabBox(nullptr)
+    m_pTabBox(nullptr),
+    m_bEnableDragOrder(true)
 {
 }
 
@@ -25,9 +26,23 @@ void TabCtrl::SetAttribute(const DString& strName, const DString& strValue)
         //绑定的TabBox控件名称，绑定后TabCtrl的选择项变化时，TabBox的选择项会跟随变化
         SetTabBoxName(strValue);
     }
+    else if (strName == _T("drag_order")) {
+        //是否支持拖动调整顺序（在同一个标签内），默认是开启的
+        SetEnableDragOrder(strValue == _T("true"));
+    }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
+}
+
+void TabCtrl::SetEnableDragOrder(bool bEnable)
+{
+    m_bEnableDragOrder = bEnable;
+}
+
+bool TabCtrl::IsEnableDragOrder() const
+{
+    return m_bEnableDragOrder;
 }
 
 void TabCtrl::OnInit()
@@ -837,6 +852,18 @@ void TabCtrlItem::SetTabBoxItemIndex(size_t nTabBoxItemIndex)
 size_t TabCtrlItem::GetTabBoxItemIndex() const
 {
     return m_nTabBoxItemIndex;
+}
+
+bool TabCtrlItem::IsEnableDragOrder() const
+{
+    TabCtrl* pTabCtrl = GetTabCtrl();
+    if (pTabCtrl != nullptr) {
+        if (!pTabCtrl->IsEnableDragOrder()) {
+            //TabCtrl的总开关，控制总体功能关闭
+            return false;
+        }
+    }
+    return BaseClass::IsEnableDragOrder();
 }
 
 }//namespace ui
