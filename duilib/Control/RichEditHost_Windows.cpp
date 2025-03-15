@@ -387,6 +387,11 @@ void RichEditHost::TxInvalidateRect(LPCRECT prc, BOOL /*fMode*/)
     UiPoint scrollOffset = m_pRichEdit->GetScrollOffsetInScrollBox();
     UiRect rc = (prc == nullptr) ? m_rcClient : MakeUiRect(*prc);
     rc.Offset(-scrollOffset.x, -scrollOffset.y);
+
+    //标记窗口指定区域为脏区域，进行重绘(取控件位置部分，避免引发其他控件的重绘)
+    UiRect rcRichEdit = m_pRichEdit->GetRect();
+    rcRichEdit.Offset(-scrollOffset.x, -scrollOffset.y);
+    rc.Intersect(rcRichEdit);
     pWindow->Invalidate(rc);
 }
 
