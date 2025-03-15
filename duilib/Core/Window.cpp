@@ -1071,8 +1071,9 @@ bool Window::Paint(const UiRect& rcPaint)
             rcRootPadding.top += 1;
             rcRootPadding.right += 1;
             rcRootPadding.bottom += 1;
-
-            pRender->RestoreAlpha(rcNewPaint, rcRootPadding);
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_RICH_EDIT_DRAW_OPT)
+            pRender->RestoreAlpha(rcNewPaint, rcRootPadding);//目前只有Windows的RichEdit绘制导致窗体透明，所以才需要回复
+#endif
         }
         else {
             UiRect rcAlphaFixCorner = GetAlphaFixCorner();
@@ -1081,11 +1082,12 @@ bool Window::Paint(const UiRect& rcPaint)
                 UiRect rcNewPaint = rcPaint;
                 UiRect rcRootPaddingPos = m_pRoot->GetPosWithoutPadding();
                 rcRootPaddingPos.Deflate(rcAlphaFixCorner.left, rcAlphaFixCorner.top,
-                    rcAlphaFixCorner.right, rcAlphaFixCorner.bottom);
+                                         rcAlphaFixCorner.right, rcAlphaFixCorner.bottom);
                 rcNewPaint.Intersect(rcRootPaddingPos);
-
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_RICH_EDIT_DRAW_OPT)
                 UiPadding rcRootPadding;
-                pRender->RestoreAlpha(rcNewPaint, rcRootPadding);
+                pRender->RestoreAlpha(rcNewPaint, rcRootPadding);//目前只有Windows的RichEdit绘制导致窗体透明，所以才需要回复
+#endif
             }
         }
     }

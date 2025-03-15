@@ -9,6 +9,7 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
 #include "duilib/Utils/BitmapHelper_Windows.h"
+#include "duilib/Utils/PerformanceUtil.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Animation/AnimationManager.h"
@@ -2104,6 +2105,7 @@ void RichEdit::OnMouseMessage(uint32_t uMsg, const EventArgs& msg)
 
 void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
 {
+    PerformanceStat statPerformance(_T("PaintWindow, RichEdit::Paint"));
     if (pRender == nullptr) {
         return;
     }
@@ -2134,13 +2136,8 @@ void RichEdit::Paint(IRender* pRender, const UiRect& rcPaint)
     UiRect rc;
     m_pRichHost->GetControlRect(&rc);
 
-    bool bNormalPrint = true;
-    if (bNeedPaint && bNormalPrint) {
-        // Remember wparam is actually the hdc and lparam is the update
-        // rect because this message has been preprocessed by the window.
-#if defined (DUILIB_BUILD_FOR_SDL)
-        HDC hdc = nullptr;
-#elif defined (DUILIB_BUILD_FOR_WIN) 
+    if (bNeedPaint) {
+#if !defined (DUILIB_RICH_EDIT_DRAW_OPT) 
         HDC hdc = pRender->GetRenderDC(GetWindow()->NativeWnd()->GetHWND());
 #else
         HDC hdc = nullptr;
@@ -2344,10 +2341,18 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
     const int32_t nLeft = std::max(rcUpdate.left, 0);
     const int32_t nRight = std::min(rcUpdate.right, rc.Width());
     const int32_t nWidth = rc.Width();
-    for (int32_t i = nTop; i < nBottom; i++) {
-        for (int32_t j = nLeft; j < nRight; j++) {
-            uint8_t* a = (uint8_t*)pBitmapBits + (i * nWidth + j) * sizeof(uint32_t) + 3;
-            *a = 0;
+
+
+    constexpr const int32_t nColorBits = sizeof(uint32_t); //每个颜色点所占字节数
+    uint8_t* pRowStart = nullptr; //每行Alpha通道值起始的位置
+    uint8_t* pRowEnd = nullptr;   //每行Alpha通道值结束的位置
+
+    for (int32_t i = nTop; i < nBottom; ++i) {
+        pRowStart = (uint8_t*)pBitmapBits + (i * nWidth + nLeft) * nColorBits + 3;
+        pRowEnd = (uint8_t*)pBitmapBits + (i * nWidth + nRight) * nColorBits;
+        while (pRowStart < pRowEnd) {
+            *pRowStart = 0;
+            pRowStart += 4;
         }
     }
 
@@ -2414,12 +2419,14 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
                             0);                 // What view of the object
 
     //恢复Alpha(绘制过程中，会导致绘制区域部分的Alpha通道出现异常)
-    for (int32_t i = nTop; i < nBottom; i++) {
-        for (int32_t j = nLeft; j < nRight; j++) {
-            uint8_t* a = (uint8_t*)pBitmapBits + (i * nWidth + j) * sizeof(uint32_t)+ 3;
-            if (*a == 0) {
-                *a = 255;
+    for (int32_t i = nTop; i < nBottom; ++i) {
+        pRowStart = (uint8_t*)pBitmapBits + (i * nWidth + nLeft) * nColorBits + 3;
+        pRowEnd = (uint8_t*)pBitmapBits + (i * nWidth + nRight) * nColorBits;
+        while (pRowStart < pRowEnd) {
+            if (*pRowStart == 0) {
+                *pRowStart = 255;
             }
+            pRowStart += 4;
         }
     }
 
