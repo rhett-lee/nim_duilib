@@ -29,15 +29,15 @@
     #pragma warning (pop)
 #endif
 
-#ifdef DUILIB_HAVE_OPENCV
-    #ifdef _DEBUG
-        #pragma comment (lib, "D:\\rhett-lee.github.com\\opencv-4.11.0\\opencv-4.11.0.build\\install\\x64\\vc17\\staticlib\\opencv_core4110d.lib")
-        #pragma comment (lib, "D:\\rhett-lee.github.com\\opencv-4.11.0\\opencv-4.11.0.build\\install\\x64\\vc17\\staticlib\\opencv_imgproc4110d.lib")
-    #else
-        #pragma comment (lib, "D:\\rhett-lee.github.com\\opencv-4.11.0\\opencv-4.11.0.build\\install\\x64\\vc17\\staticlib\\opencv_core4110.lib")
-        #pragma comment (lib, "D:\\rhett-lee.github.com\\opencv-4.11.0\\opencv-4.11.0.build\\install\\x64\\vc17\\staticlib\\opencv_imgproc4110.lib")
-    #endif
-#endif
+//#ifdef DUILIB_HAVE_OPENCV
+//    #ifdef _DEBUG
+//        #pragma comment (lib, "opencv_core4110d.lib")
+//        #pragma comment (lib, "opencv_imgproc4110d.lib")
+//    #else
+//        #pragma comment (lib, "opencv_core4110.lib")
+//        #pragma comment (lib, "opencv_imgproc4110.lib")
+//    #endif
+//#endif
 
 namespace ui 
 {
