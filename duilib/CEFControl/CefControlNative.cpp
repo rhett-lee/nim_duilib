@@ -40,6 +40,7 @@ CefControlNative::~CefControlNative(void)
 
 void CefControlNative::Init()
 {
+    GlobalManager::Instance().AssertUIThread();
     if (m_pBrowserHandler.get() == nullptr) {
 #ifdef DUILIB_BUILD_FOR_WIN
         //检测是否在分层窗口中创建控件
@@ -62,6 +63,7 @@ void CefControlNative::Init()
 
 void CefControlNative::ReCreateBrowser()
 {
+    GlobalManager::Instance().AssertUIThread();
     Window* pWindow = GetWindow();
     ASSERT(pWindow != nullptr);
     if (pWindow == nullptr) {
@@ -125,6 +127,7 @@ private:
 
 void CefControlNative::SetPos(ui::UiRect rc)
 {
+    GlobalManager::Instance().AssertUIThread();
     BaseClass::SetPos(rc);
 #ifdef DUILIB_BUILD_FOR_WIN
     HWND hwnd = GetCefHandle();
@@ -203,6 +206,7 @@ private:
 
 void CefControlNative::SetVisible(bool bVisible)
 {
+    GlobalManager::Instance().AssertUIThread();
     BaseClass::SetVisible(bVisible);
 #ifdef DUILIB_BUILD_FOR_WIN
     HWND hwnd = GetCefHandle();
@@ -260,6 +264,7 @@ private:
 
 void CefControlNative::SetWindow(ui::Window* pWindow)
 {
+    GlobalManager::Instance().AssertUIThread();
     if ((pWindow == nullptr) || (BaseClass::GetWindow() == pWindow)) {
         return;
     }

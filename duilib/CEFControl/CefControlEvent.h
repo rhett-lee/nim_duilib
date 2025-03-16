@@ -31,26 +31,26 @@ namespace ui
                                 bool user_gesture,
                                 bool is_redirect)> OnBeforeBrowseEvent;
 
-    //资源加载前回调函数（回调函数的调用线程：CEF的UI线程）
+    //资源加载前回调函数（回调函数的调用线程：CEF的IO线程）
     typedef std::function<cef_return_value_t (CefRefPtr<CefBrowser> browser,
                                               CefRefPtr<CefFrame> frame,
                                               CefRefPtr<CefRequest> request,
                                               CefRefPtr<CefCallback> callback)> OnBeforeResourceLoadEvent;
 
-    //资源重定向回调函数（回调函数的调用线程：CEF的UI线程）
+    //资源重定向回调函数（回调函数的调用线程：CEF的IO线程）
     typedef std::function<void (CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame,
                                 CefRefPtr<CefRequest> request,
                                 CefRefPtr<CefResponse> response,
                                 CefString& new_url)> OnResourceRedirectEvent;
 
-    //资源收到回应回调函数（回调函数的调用线程：CEF的UI线程）
+    //资源收到回应回调函数（回调函数的调用线程：CEF的IO线程）
     typedef std::function<bool (CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame,
                                 CefRefPtr<CefRequest> request,
                                 CefRefPtr<CefResponse> response)> OnResourceResponseEvent;
 
-    //资源加载完成回调函数（回调函数的调用线程：CEF的UI线程）
+    //资源加载完成回调函数（回调函数的调用线程：CEF的IO线程）
     typedef std::function<void (CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame,
                                 CefRefPtr<CefRequest> request,
@@ -58,7 +58,7 @@ namespace ui
                                 cef_urlrequest_status_t status,
                                 int64_t received_content_length)> OnResourceLoadCompleteEvent;
 
-    //资源执行协议回调函数（回调函数的调用线程：CEF的UI线程）
+    //资源执行协议回调函数（回调函数的调用线程：CEF的IO线程）
     typedef std::function<void (CefRefPtr<CefBrowser> browser,
                                 const CefString& url,
                                 bool& allow_os_execution)> OnProtocolExecutionEvent;
@@ -123,7 +123,7 @@ namespace ui
     typedef std::function<void (const DString& oldUrl,
                                 const DString& newUrl)> OnMainUrlChangeEvent;
 
-    //FaviconURL变化（回调函数的调用线程：CEF的UI线程）
+    //FaviconURL变化（回调函数的调用线程：主进程的UI线程）
     typedef std::function<void (CefRefPtr<CefBrowser> browser,
                                 const std::vector<CefString>& icon_urls)> OnFaviconURLChangeEvent;
 
@@ -243,7 +243,7 @@ public:
     */
     virtual void OnMainUrlChange(const DString& oldUrl, const DString& newUrl) {}
     
-    /** FaviconURL变化（回调函数的调用线程：CEF的UI线程）
+    /** FaviconURL变化（回调函数的调用线程：主进程的UI线程）
     */
     virtual void OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls) {}
         
@@ -291,14 +291,14 @@ public:
                                 bool user_gesture,
                                 bool is_redirect) { return false; }
 
-    /** 资源加载前回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源加载前回调函数（回调函数的调用线程：CEF的IO线程）
     */
     virtual cef_return_value_t OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser,
                                                     CefRefPtr<CefFrame> frame,
                                                     CefRefPtr<CefRequest> request,
                                                     CefRefPtr<CefCallback> callback) { return RV_CONTINUE; }
 
-    /** 资源重定向回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源重定向回调函数（回调函数的调用线程：CEF的IO线程）
     */
     virtual void OnResourceRedirect(CefRefPtr<CefBrowser> browser,
                                     CefRefPtr<CefFrame> frame,
@@ -306,14 +306,14 @@ public:
                                     CefRefPtr<CefResponse> response,
                                     CefString& new_url) {}
     
-    /** 资源收到回应回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源收到回应回调函数（回调函数的调用线程：CEF的IO线程）
     */
     virtual bool OnResourceResponse(CefRefPtr<CefBrowser> browser,
                                     CefRefPtr<CefFrame> frame,
                                     CefRefPtr<CefRequest> request,
                                     CefRefPtr<CefResponse> response) { return false; }
 
-    /** 资源加载完成回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源加载完成回调函数（回调函数的调用线程：CEF的IO线程）
     */
     virtual void OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
                                         CefRefPtr<CefFrame> frame,
@@ -322,7 +322,7 @@ public:
                                         cef_urlrequest_status_t status,
                                         int64_t received_content_length) {}
 
-    /** 资源执行协议回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源执行协议回调函数（回调函数的调用线程：CEF的IO线程）
     */
     virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution) {}
 

@@ -10,7 +10,7 @@
 // 控制是否使用离屏渲染：
 // 当为 true  时将使用默认窗口阴影方案，离屏渲染模式下窗口有 WS_EX_LAYERED 属性；
 // 当为 false 时因使用了真窗口模式不支持带有 WS_EX_LAYERED 属性窗口，所以使用外置窗口阴影方案；
-const bool kEnableOffScreenRendering = false;
+const bool kEnableOffScreenRendering = true;
 
 /** CEF控件的窗口
 */
@@ -85,7 +85,7 @@ private:
     */
     virtual void OnMainUrlChange(const DString& oldUrl, const DString& newUrl) override;
     
-    /** FaviconURL变化（回调函数的调用线程：CEF的UI线程）
+    /** FaviconURL变化（回调函数的调用线程：主进程的UI线程）
     */
     virtual void OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls) override;
         
@@ -133,14 +133,14 @@ private:
                                 bool user_gesture,
                                 bool is_redirect) override;
 
-    /** 资源加载前回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源加载前回调函数（回调函数的调用线程：CEF的IO线程）
     */
     virtual cef_return_value_t OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser,
                                                     CefRefPtr<CefFrame> frame,
                                                     CefRefPtr<CefRequest> request,
                                                     CefRefPtr<CefCallback> callback) override;
 
-    /** 资源重定向回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源重定向回调函数（回调函数的调用线程：CEF的IO线程）
     */
     virtual void OnResourceRedirect(CefRefPtr<CefBrowser> browser,
                                     CefRefPtr<CefFrame> frame,
@@ -148,14 +148,14 @@ private:
                                     CefRefPtr<CefResponse> response,
                                     CefString& new_url) override;
     
-    /** 资源收到回应回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源收到回应回调函数（回调函数的调用线程：CEF的IO线程）
     */
     virtual bool OnResourceResponse(CefRefPtr<CefBrowser> browser,
                                     CefRefPtr<CefFrame> frame,
                                     CefRefPtr<CefRequest> request,
                                     CefRefPtr<CefResponse> response) override;
 
-    /** 资源加载完成回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源加载完成回调函数（回调函数的调用线程：CEF的IO线程）
     */
     virtual void OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
                                         CefRefPtr<CefFrame> frame,
@@ -164,7 +164,7 @@ private:
                                         cef_urlrequest_status_t status,
                                         int64_t received_content_length) override;
 
-    /** 资源执行协议回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源执行协议回调函数（回调函数的调用线程：CEF的IO线程）
     */
     virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution) override;
 

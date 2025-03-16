@@ -40,6 +40,7 @@ CefControlOffScreen::~CefControlOffScreen(void)
 
 void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& /*dirtyRects*/, const void* buffer, int width, int height)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     //只有离屏渲染才会走这个绘制接口
     //必须不使用缓存，否则绘制异常
     ASSERT(IsUseCache() == false);
@@ -74,6 +75,7 @@ void CefControlOffScreen::ClientToControl(UiPoint& pt)
 
 void CefControlOffScreen::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     if (!show) {
         // 当popup窗口隐藏时，刷新popup区域
         m_rectPopup.Set(0, 0, 0, 0);
@@ -85,6 +87,7 @@ void CefControlOffScreen::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
 
 void CefControlOffScreen::OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     if ((rect.width <= 0) || (rect.height <= 0)) {
         return;
     }
@@ -93,6 +96,7 @@ void CefControlOffScreen::OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRe
 
 void CefControlOffScreen::Init()
 {
+    GlobalManager::Instance().AssertUIThread();
     if (m_pBrowserHandler.get() == nullptr) {
         m_pBrowserHandler = new CefBrowserHandler;
         m_pBrowserHandler->SetHostWindow(GetWindow());
@@ -108,6 +112,7 @@ void CefControlOffScreen::Init()
 
 void CefControlOffScreen::ReCreateBrowser()
 {
+    GlobalManager::Instance().AssertUIThread();
     if (m_pBrowserHandler->GetBrowser() == nullptr) {
         // 使用无窗模式，离屏渲染
         CefWindowInfo window_info;
@@ -135,6 +140,7 @@ void CefControlOffScreen::ReCreateBrowser()
 
 void CefControlOffScreen::SetPos(UiRect rc)
 {
+    GlobalManager::Instance().AssertUIThread();
     BaseClass::SetPos(rc);
 
     if (m_pBrowserHandler.get()) {
@@ -175,6 +181,7 @@ void CefControlOffScreen::HandleEvent(const EventArgs& msg)
 
 void CefControlOffScreen::SetVisible(bool bVisible)
 {
+    GlobalManager::Instance().AssertUIThread();
     BaseClass::SetVisible(bVisible);
     if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowserHost().get()) {
         m_pBrowserHandler->GetBrowserHost()->WasHidden(!bVisible);
@@ -183,6 +190,7 @@ void CefControlOffScreen::SetVisible(bool bVisible)
 
 void CefControlOffScreen::Paint(IRender* pRender, const UiRect& rcPaint)
 {
+    GlobalManager::Instance().AssertUIThread();
     BaseClass::Paint(pRender, rcPaint);
     if ((pRender == nullptr) || (m_pBrowserHandler == nullptr) || (m_pBrowserHandler->GetBrowser() == nullptr)) {
         return;
@@ -206,6 +214,7 @@ void CefControlOffScreen::Paint(IRender* pRender, const UiRect& rcPaint)
 
 void CefControlOffScreen::SetWindow(Window* pWindow)
 {
+    GlobalManager::Instance().AssertUIThread();
     BaseClass::SetWindow(pWindow);
     if (m_pBrowserHandler) {
         m_pBrowserHandler->SetHostWindow(pWindow);

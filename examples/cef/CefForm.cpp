@@ -129,10 +129,12 @@ bool CefForm::OnNavigate(const ui::EventArgs& /*msg*/)
 
 void CefForm::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void CefForm::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void CefForm::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
@@ -140,6 +142,7 @@ void CefForm::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
                                   CefRefPtr<CefContextMenuParams> params,
                                   CefRefPtr<CefMenuModel> model)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
 }
 
 bool CefForm::OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
@@ -148,43 +151,53 @@ bool CefForm::OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
                                    int command_id,
                                    cef_event_flags_t event_flags)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     return false;
 }
     
 void CefForm::OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
 }
 
 void CefForm::OnTitleChange(CefRefPtr<CefBrowser> browser, const DString& title)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
     
 void CefForm::OnUrlChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const DString& url)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
     
 void CefForm::OnMainUrlChange(const DString& oldUrl, const DString& newUrl)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
     
 void CefForm::OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
         
 void CefForm::OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool bFullscreen)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
     
 void CefForm::OnStatusMessage(CefRefPtr<CefBrowser> browser, const DString& value)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
     
 void CefForm::OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
     
 void CefForm::OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_video_access, bool has_audio_access)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 bool CefForm::OnBeforePopup(CefRefPtr<CefBrowser> browser,
@@ -201,7 +214,7 @@ bool CefForm::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                             CefRefPtr<CefDictionaryValue>& extra_info,
                             bool* no_javascript_access)
 {
-
+    ASSERT(CefCurrentlyOn(TID_UI));
     //拦截弹窗，并导航到弹出网址
     if ((browser != nullptr) && (browser->GetMainFrame() != nullptr) && !target_url.empty()) {
         browser->GetMainFrame()->LoadURL(target_url);
@@ -211,6 +224,7 @@ bool CefForm::OnBeforePopup(CefRefPtr<CefBrowser> browser,
 
 void CefForm::OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_id)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
 }
 
 bool CefForm::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
@@ -219,6 +233,7 @@ bool CefForm::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
                              bool user_gesture,
                              bool is_redirect)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     return false;
 }
 
@@ -227,6 +242,7 @@ cef_return_value_t CefForm::OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser,
                                                  CefRefPtr<CefRequest> request,
                                                  CefRefPtr<CefCallback> callback)
 {
+    ASSERT(CefCurrentlyOn(TID_IO));
     return RV_CONTINUE;
 }
 
@@ -236,6 +252,7 @@ void CefForm::OnResourceRedirect(CefRefPtr<CefBrowser> browser,
                                  CefRefPtr<CefResponse> response,
                                  CefString& new_url)
 {
+    ASSERT(CefCurrentlyOn(TID_IO));
 }
     
 bool CefForm::OnResourceResponse(CefRefPtr<CefBrowser> browser,
@@ -243,6 +260,7 @@ bool CefForm::OnResourceResponse(CefRefPtr<CefBrowser> browser,
                                  CefRefPtr<CefRequest> request,
                                  CefRefPtr<CefResponse> response)
 {
+    ASSERT(CefCurrentlyOn(TID_IO));
     return false;
 }
 
@@ -253,22 +271,27 @@ void CefForm::OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
                                      cef_urlrequest_status_t status,
                                      int64_t received_content_length)
 {
+    ASSERT(CefCurrentlyOn(TID_IO));
 }
 
 void CefForm::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution)
 {
+    ASSERT(CefCurrentlyOn(TID_IO));
 }
 
 void CefForm::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
     
 void CefForm::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t transition_type)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
     
 void CefForm::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
     ui::Control* pControl = FindControl(_T("btn_back"));
     if ((pControl != nullptr) && (m_pCefControl != nullptr)) {
         pControl->SetEnabled(m_pCefControl->CanGoBack());
@@ -295,16 +318,19 @@ void CefForm::OnLoadError(CefRefPtr<CefBrowser> browser,
                           const DString& errorText,
                           const DString& failedUrl)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void CefForm::OnDevToolAttachedStateChange(bool bVisible)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 bool CefForm::OnCanDownload(CefRefPtr<CefBrowser> browser,
                             const CefString& url,
                             const CefString& request_method)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     return true;
 }
 
@@ -313,6 +339,7 @@ bool CefForm::OnBeforeDownload(CefRefPtr<CefBrowser> browser,
                                const CefString& suggested_name,
                                CefRefPtr<CefBeforeDownloadCallback> callback)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     return true;
 }
 
@@ -320,6 +347,7 @@ void CefForm::OnDownloadUpdated(CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefDownloadItem> download_item,
                                 CefRefPtr<CefDownloadItemCallback> callback)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
 }
 
 bool CefForm::OnFileDialog(CefRefPtr<CefBrowser> browser,
@@ -331,15 +359,18 @@ bool CefForm::OnFileDialog(CefRefPtr<CefBrowser> browser,
                            const std::vector<CefString>& accept_descriptions,
                            CefRefPtr<CefFileDialogCallback> callback)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     return false;
 }
 
 void CefForm::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void CefForm::OnDevToolVisibleStateChanged(bool bVisible, bool bPopup)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
     if (bPopup || !bVisible) {
         if (m_pCefControlDev != nullptr) {
             m_pCefControlDev->SetFadeVisible(false);

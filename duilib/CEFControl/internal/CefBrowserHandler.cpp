@@ -657,7 +657,7 @@ void CefBrowserHandler::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefSt
 void CefBrowserHandler::OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls)
 {
     if (m_pHandlerDelegate) {
-        return m_pHandlerDelegate->OnFaviconURLChange(browser, icon_urls);
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnFaviconURLChange, m_pHandlerDelegate, browser, icon_urls));
     }
 }
 

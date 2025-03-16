@@ -139,7 +139,7 @@ private:
     */
     void OnMainUrlChange(const DString& oldUrl, const DString& newUrl);
     
-    /** FaviconURL变化（回调函数的调用线程：CEF的UI线程）
+    /** FaviconURL变化（回调函数的调用线程：主进程的UI线程）
     */
     void OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls);
         
@@ -187,14 +187,14 @@ private:
                         bool user_gesture,
                         bool is_redirect);
 
-    /** 资源加载前回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源加载前回调函数（回调函数的调用线程：CEF的IO线程）
     */
     cef_return_value_t OnBeforeResourceLoad(CefRefPtr<CefBrowser> browser,
                                             CefRefPtr<CefFrame> frame,
                                             CefRefPtr<CefRequest> request,
                                             CefRefPtr<CefCallback> callback);
 
-    /** 资源重定向回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源重定向回调函数（回调函数的调用线程：CEF的IO线程）
     */
     void OnResourceRedirect(CefRefPtr<CefBrowser> browser,
                             CefRefPtr<CefFrame> frame,
@@ -202,14 +202,14 @@ private:
                             CefRefPtr<CefResponse> response,
                             CefString& new_url);
     
-    /** 资源收到回应回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源收到回应回调函数（回调函数的调用线程：CEF的IO线程）
     */
     bool OnResourceResponse(CefRefPtr<CefBrowser> browser,
                             CefRefPtr<CefFrame> frame,
                             CefRefPtr<CefRequest> request,
                             CefRefPtr<CefResponse> response);
 
-    /** 资源加载完成回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源加载完成回调函数（回调函数的调用线程：CEF的IO线程）
     */
     void OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame,
@@ -218,7 +218,7 @@ private:
                                 cef_urlrequest_status_t status,
                                 int64_t received_content_length);
 
-    /** 资源执行协议回调函数（回调函数的调用线程：CEF的UI线程）
+    /** 资源执行协议回调函数（回调函数的调用线程：CEF的IO线程）
     */
     void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution);
 
