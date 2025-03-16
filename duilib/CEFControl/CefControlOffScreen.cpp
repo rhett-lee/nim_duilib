@@ -113,21 +113,28 @@ void CefControlOffScreen::Init()
 void CefControlOffScreen::ReCreateBrowser()
 {
     GlobalManager::Instance().AssertUIThread();
+    Window* pWindow = GetWindow();
+    ASSERT(pWindow != nullptr);
+    if (pWindow == nullptr) {
+        return;
+    }
+    ASSERT(pWindow->IsWindow());
+    ASSERT(m_pBrowserHandler != nullptr);
+    if (m_pBrowserHandler == nullptr) {
+        return;
+    }
     if (m_pBrowserHandler->GetBrowser() == nullptr) {
         // 使用无窗模式，离屏渲染
         CefWindowInfo window_info;
 #ifdef DUILIB_BUILD_FOR_WIN
-        HWND hWnd = nullptr;
-        if (GetWindow() != nullptr) {
-            hWnd = GetWindow()->NativeWnd()->GetHWND();
-        }
+        HWND hWnd = pWindow->NativeWnd()->GetHWND();
         window_info.SetAsWindowless(hWnd);
         if (::GetWindowLongPtr(hWnd, GWL_EXSTYLE) & WS_EX_NOACTIVATE) {
             // Don't activate the browser window on creation.
             window_info.ex_style |= WS_EX_NOACTIVATE;
         }
-#else
-
+#elif defined DUILIB_BUILD_FOR_LINUX
+        window_info.SetAsWindowless(pWindow->NativeWnd()->GetX11WindowNumber());
 #endif
         CefBrowserSettings browser_settings;
         //背景色：设置为白色（如果不设置的话，是透明的，网页如果不设置背景色，则背景会被显示为黑色）
