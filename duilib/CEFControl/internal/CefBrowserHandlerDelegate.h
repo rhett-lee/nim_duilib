@@ -17,6 +17,8 @@
 
 namespace ui
 {
+enum class CefCallbackID;
+
 /** CefBrowserHandler的消息委托类接口，CefBrowserHandler类会处理多数Cef浏览器对象的事件
 *  其中一些需要与上层交互的事件接口封装到此类中，CefBrowserHandler把这些事件传递到委托接口中
 *  可以根据需求来扩展此接口
@@ -160,6 +162,52 @@ public:
     /** 执行C++回调函数（JS 与 C++ 交互的功能）
     */
     virtual bool OnExecuteCppCallbackFunc(int cpp_callback_id, const CefString& json_string) = 0;
+
+    /** 检查是否存在如下回调函数（用以减少向UI线程发消息，以提高效率）
+    * @param [in] nCallbackID 回调函数的ID，参见枚举类型定义
+    */
+    virtual bool IsCallbackExists(CefCallbackID nCallbackID) = 0;
+};
+
+/** 回调函数的ID
+*/
+enum class CefCallbackID
+{
+    OnPopupShow,
+    OnPopupSize,
+    OnImeCompositionRangeChanged,
+    OnBeforeContextMenu,
+    OnContextMenuCommand,
+    OnContextMenuDismissed,
+    OnAddressChange,
+    OnTitleChange,
+    OnFaviconURLChange,
+    OnFullscreenModeChange,
+    OnStatusMessage,
+    OnLoadingProgressChange,
+    OnMediaAccessChange,
+    OnLoadingStateChange,
+    OnLoadStart,
+    OnLoadEnd,
+    OnLoadError,
+    OnBeforePopup,
+    OnBeforePopupAborted,
+    OnAfterCreated,
+    OnBeforeClose,
+    OnBeforeBrowse,
+    OnBeforeResourceLoad,
+    OnResourceRedirect,
+    OnResourceResponse,
+    OnResourceLoadComplete,
+    OnProtocolExecution,
+    OnRenderProcessTerminated,
+    OnDocumentAvailableInMainFrame,
+    OnCanDownload,
+    OnBeforeDownload,
+    OnDownloadUpdated,
+    OnFileDialog,
+    OnPreKeyEvent,
+    OnKeyEvent,
 };
 
 }//namespace ui

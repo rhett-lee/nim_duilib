@@ -885,4 +885,46 @@ CefControlEvent* CefControl::GetCefEventHandler() const
     return m_pCefControlEventHandler;
 }
 
+bool CefControl::IsCallbackExists(CefCallbackID nCallbackID)
+{
+    if (m_pCefControlEventHandler != nullptr) {
+        //该接口会接收所有的回调函数
+        return true;
+    }
+    switch (nCallbackID) {
+    case CefCallbackID::OnBeforeContextMenu:        return m_pfnBeforeContextMenu != nullptr;
+    case CefCallbackID::OnContextMenuCommand:       return m_pfnContextMenuCommand != nullptr;
+    case CefCallbackID::OnContextMenuDismissed:     return m_pfnContextMenuDismissed != nullptr;
+    case CefCallbackID::OnTitleChange:              return m_pfnTitleChange != nullptr;
+    case CefCallbackID::OnBeforeResourceLoad:       return m_pfnBeforeResourceLoad != nullptr;
+    case CefCallbackID::OnResourceRedirect:         return m_pfnResourceRedirect != nullptr;
+    case CefCallbackID::OnResourceResponse:         return m_pfnResourceResponse != nullptr;
+    case CefCallbackID::OnResourceLoadComplete:     return m_pfnResourceLoadComplete != nullptr;
+    case CefCallbackID::OnProtocolExecution:        return m_pfnProtocolExecution != nullptr;
+    case CefCallbackID::OnAddressChange:            return m_pfnUrlChange != nullptr;
+    case CefCallbackID::OnFaviconURLChange:         return m_pfnFaviconURLChange != nullptr;
+    case CefCallbackID::OnFullscreenModeChange:     return m_pfnFullscreenModeChange != nullptr;
+    case CefCallbackID::OnStatusMessage:            return m_pfnStatusMessage != nullptr;
+    case CefCallbackID::OnLoadingProgressChange:    return m_pfnLoadingProgressChange != nullptr;
+    case CefCallbackID::OnMediaAccessChange:        return m_pfnMediaAccessChange != nullptr;
+    case CefCallbackID::OnBeforePopup:              return m_pfnBeforePopup != nullptr;
+    case CefCallbackID::OnBeforePopupAborted:       return m_pfnBeforePopupAborted != nullptr;
+    case CefCallbackID::OnLoadingStateChange:       return m_pfnLoadingStateChange != nullptr;
+    case CefCallbackID::OnLoadStart:                return m_pfnLoadStart != nullptr;
+    case CefCallbackID::OnLoadEnd:                  return m_pfnLoadEnd != nullptr;
+    case CefCallbackID::OnLoadError:                return m_pfnLoadError != nullptr;
+    case CefCallbackID::OnAfterCreated:             return m_pfnAfterCreated != nullptr;
+    case CefCallbackID::OnBeforeClose:              return m_pfnBeforeClose != nullptr;
+    case CefCallbackID::OnBeforeBrowse:             return m_pfnBeforeBrowse != nullptr;
+    case CefCallbackID::OnCanDownload:              return m_pfnCanDownload != nullptr;
+    case CefCallbackID::OnBeforeDownload:           return m_pfnBeforeDownload != nullptr;
+    case CefCallbackID::OnDownloadUpdated:          return m_pfnDownloadUpdated != nullptr;
+    case CefCallbackID::OnFileDialog:               return m_pfnFileDialog != nullptr;
+    case CefCallbackID::OnDocumentAvailableInMainFrame: return m_pfnDocumentAvailableInMainFrame != nullptr;
+    default:
+        break;
+    }
+    return false;
+}
+
 } //namespace ui

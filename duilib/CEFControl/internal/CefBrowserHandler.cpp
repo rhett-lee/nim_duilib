@@ -175,7 +175,7 @@ bool CefBrowserHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
 
 void CefBrowserHandler::OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_id)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnBeforePopupAborted)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnBeforePopupAborted, m_pHandlerDelegate, browser, popup_id));
     }
 }
@@ -641,7 +641,7 @@ void CefBrowserHandler::OnQuickMenuDismissed(CefRefPtr<CefBrowser> browser,
 void CefBrowserHandler::OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& url)
 {
     // Update the URL in the address bar...
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnAddressChange)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnAddressChange, m_pHandlerDelegate, browser, frame, url));
     }
 }
@@ -656,14 +656,14 @@ void CefBrowserHandler::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefSt
 
 void CefBrowserHandler::OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnFaviconURLChange)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnFaviconURLChange, m_pHandlerDelegate, browser, icon_urls));
     }
 }
 
 void CefBrowserHandler::OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool fullscreen)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnFullscreenModeChange)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnFullscreenModeChange, m_pHandlerDelegate, browser, fullscreen));
     }
 }
@@ -675,7 +675,7 @@ bool CefBrowserHandler::OnTooltip(CefRefPtr<CefBrowser> browser, CefString& text
 
 void CefBrowserHandler::OnStatusMessage(CefRefPtr<CefBrowser> browser, const CefString& value)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnStatusMessage)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnStatusMessage, m_pHandlerDelegate, browser, value));
     }
 }
@@ -697,7 +697,7 @@ bool CefBrowserHandler::OnAutoResize(CefRefPtr<CefBrowser> browser, const CefSiz
 
 void CefBrowserHandler::OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadingProgressChange)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadingProgressChange, m_pHandlerDelegate, browser, progress));
     }
 }
@@ -722,7 +722,7 @@ void CefBrowserHandler::OnMediaAccessChange(CefRefPtr<CefBrowser> browser,
                                             bool has_video_access,
                                             bool has_audio_access)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnMediaAccessChange)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnMediaAccessChange, m_pHandlerDelegate, browser, has_video_access, has_audio_access));
     }
 }
@@ -740,7 +740,7 @@ void CefBrowserHandler::OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser,
 void CefBrowserHandler::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
 {
     // Update UI for browser state...
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadingStateChange)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadingStateChange, m_pHandlerDelegate, browser, isLoading, canGoBack, canGoForward));
     }
 }
@@ -750,7 +750,7 @@ void CefBrowserHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
                                     TransitionType transition_type)
 {
     // A frame has started loading content...
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadStart)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadStart, m_pHandlerDelegate, browser, frame, transition_type));
     }
 }
@@ -758,7 +758,7 @@ void CefBrowserHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
 void CefBrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
     // A frame has finished loading content...
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadEnd)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadEnd, m_pHandlerDelegate, browser, frame, httpStatusCode));
     }
 }
@@ -766,7 +766,7 @@ void CefBrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFr
 void CefBrowserHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl)
 {
     // A frame has failed to load content...
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadError)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadError, m_pHandlerDelegate, browser, frame, errorCode, errorText, failedUrl));
     }
 }
@@ -926,14 +926,14 @@ void CefBrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
                                                   int error_code,
                                                   const CefString& error_string)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnRenderProcessTerminated)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnRenderProcessTerminated, m_pHandlerDelegate, browser, status, error_code, error_string));
     }
 }
 #else
 void CefBrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, TerminationStatus status)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnRenderProcessTerminated)) {
         ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnRenderProcessTerminated, m_pHandlerDelegate, browser, status, 0, ""));
     }
 }
@@ -941,7 +941,7 @@ void CefBrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
 
 void CefBrowserHandler::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnDocumentAvailableInMainFrame)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnDocumentAvailableInMainFrame, m_pHandlerDelegate, browser));
     }
 }

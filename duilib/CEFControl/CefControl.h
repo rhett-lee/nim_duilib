@@ -478,6 +478,11 @@ protected:
     */
     virtual bool OnExecuteCppCallbackFunc(int cpp_callback_id, const CefString& json_string) override;
 
+    /** 检查是否存在如下回调函数（用以减少向UI线程发消息，以提高效率）
+    * @param [in] nCallbackID 回调函数的ID，参见枚举类型定义
+    */
+    virtual bool IsCallbackExists(CefCallbackID nCallbackID) override;
+
 protected:
     /** 设置打开开发者工具标志
     * @param [in] bAttachedDevTools 打开/关闭关联开发者工具
