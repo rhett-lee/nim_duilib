@@ -44,6 +44,10 @@ void CefForm::OnInitWindow()
 
     if (m_pCefControl != nullptr) {
         m_pCefControl->SetCefEventHandler(this);
+        if (m_pCefControlDev != nullptr) {
+            //m_pCefControl的开发者工具，显示在m_pCefControlDev这个控件中
+            m_pCefControl->SetDevToolsView(m_pCefControlDev);
+        }
     }
 
     if (m_pCefControl != nullptr) {
@@ -78,7 +82,7 @@ bool CefForm::OnClicked(const ui::EventArgs& msg)
     DString name = msg.GetSender()->GetName();
 
     if (name == _T("btn_dev_tool")) {
-        if ((m_pCefControl != nullptr) && (m_pCefControlDev != nullptr)) {
+        if (m_pCefControl != nullptr) {
             if (m_pCefControl->IsAttachedDevTools()) {
                 m_pCefControl->DettachDevTools();
                 if (m_pCefControlDev != nullptr) {
@@ -86,7 +90,7 @@ bool CefForm::OnClicked(const ui::EventArgs& msg)
                 }
             }
             else {
-                m_pCefControl->AttachDevTools(m_pCefControlDev);
+                m_pCefControl->AttachDevTools();
             }
         }
     }

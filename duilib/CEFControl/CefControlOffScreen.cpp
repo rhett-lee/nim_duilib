@@ -19,8 +19,7 @@
 namespace ui {
 
 CefControlOffScreen::CefControlOffScreen(Window* pWindow) :
-    CefControl(pWindow),
-    m_pDevToolView(nullptr)
+    CefControl(pWindow)
 {
     m_pCefMemData = std::make_unique<CefMemoryBlock>();
     m_pCefPopupMemData = std::make_unique<CefMemoryBlock>();
@@ -211,132 +210,6 @@ void CefControlOffScreen::SetWindow(Window* pWindow)
     if (m_pBrowserHandler) {
         m_pBrowserHandler->SetHostWindow(pWindow);
     }    
-}
-
-class DevToolBrowserHandlerOffScreen : public CefBrowserHandler
-{
-public:
-    explicit DevToolBrowserHandlerOffScreen(CefControlOffScreen* pCefControl) :
-        m_pCefControl(pCefControl)
-    {
-        if (pCefControl) {
-            m_pCefControlFlag = pCefControl->GetWeakFlag();
-        }
-    }
-    virtual ~DevToolBrowserHandlerOffScreen() override
-    {
-        //窗口关闭后，发出一个通知
-        if (!m_pCefControlFlag.expired() && (m_pCefControl != nullptr)) {
-            CefControlOffScreen* pCefControl = m_pCefControl;
-            ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, pCefControl->ToWeakCallback([pCefControl]() {
-                if (pCefControl->IsAttachedDevTools()) {
-                    pCefControl->ResetDevToolAttachedState();
-                }
-                }));
-        }
-    }
-
-private:
-    //关联的CEF控件接口
-    CefControlOffScreen* m_pCefControl;
-    std::weak_ptr<WeakFlag> m_pCefControlFlag;
-};
-
-bool CefControlOffScreen::AttachDevTools(Control* control)
-{
-    CefControlOffScreen* view = dynamic_cast<CefControlOffScreen*>(control);
-    if (IsAttachedDevTools() || (view == nullptr)) {
-        return true;
-    }
-    if ((m_pBrowserHandler == nullptr) || (view->m_pBrowserHandler == nullptr)) {
-        return false;
-    }
-    auto browser = m_pBrowserHandler->GetBrowser();
-    auto view_browser = view->m_pBrowserHandler->GetBrowser();
-    if ((browser == nullptr) || (view_browser == nullptr)) {
-        auto weak = view->GetWeakFlag();
-        auto task = [this, weak, view]() {
-            GlobalManager::Instance().Thread().PostTask(kThreadUI, ToWeakCallback([this, weak, view]() {
-                    if (weak.expired()) {
-                        return;
-                    }
-                    AttachDevTools(view);
-                }));
-            };
-        view->m_pBrowserHandler->AddAfterCreateTask(task);
-    }
-    else {
-        m_pDevToolView = nullptr;
-        m_pDevToolViewFlag.reset();
-
-        CefWindowInfo windowInfo;
-#if CEF_VERSION_MAJOR > 109
-#if DUILIB_BUILD_FOR_WIN
-        windowInfo.SetAsPopup(nullptr, _T("cef_devtools"));
-#endif
-        //CEF 高版本(开发者工具只支持弹窗模式，不支持无弹出窗口模式，应该是个Bug)
-        CefBrowserSettings settings;
-        if (browser->GetHost() != nullptr) {
-            browser->GetHost()->ShowDevTools(windowInfo, new DevToolBrowserHandlerOffScreen(this), settings, CefPoint());
-            SetAttachedDevTools(true, true);
-        }
-#else
-        //CEF 109版本: 支持无弹出窗口模式
-#ifdef DUILIB_BUILD_FOR_WIN
-        windowInfo.SetAsWindowless(browser->GetHost()->GetWindowHandle());
-#endif        
-        CefBrowserSettings settings;
-        if ((browser->GetHost() != nullptr) && (view_browser->GetHost() != nullptr)) {
-            browser->GetHost()->ShowDevTools(windowInfo, view_browser->GetHost()->GetClient(), settings, CefPoint());
-            m_pDevToolView = view;
-            m_pDevToolViewFlag = view->GetWeakFlag();
-            SetAttachedDevTools(true, false);
-        }
-#endif
-    }
-    return true;
-}
-
-void CefControlOffScreen::DettachDevTools()
-{
-    CefControl::DettachDevTools();
-    m_pDevToolView = nullptr;
-    m_pDevToolViewFlag.reset();
-}
-
-void CefControlOffScreen::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)
-{
-    if (IsAttachedDevTools() && !m_pDevToolViewFlag.expired() && (m_pDevToolView != nullptr) && CefManager::GetInstance()->IsEnableOffScreenRendering()) {
-        //离屏渲染模式，开发者工具与页面位于相同的客户区位置
-        int x = params->GetXCoord();
-        int y = params->GetYCoord();
-        //离屏渲染模式下，给到的参数是原始坐标，未经DPI自适应，所以需要做DPI自适应处理，否则页面的右键菜单位置显示不对
-        uint32_t dpiScale = 100;
-        if (GetWindow() != nullptr) {
-            dpiScale = GetWindow()->Dpi().GetScale();
-        }
-        if (dpiScale > 100) {
-            x = x * dpiScale / 100;
-            y = y * dpiScale / 100;
-        }
-
-        UiPoint pt = { x + GetRect().left, y + GetRect().top };
-        UiPoint offsetPt = GetScrollOffsetInScrollBox();
-        pt.Offset(offsetPt);
-        UiRect rect = GetRect();
-        UiRect rectView = m_pDevToolView->GetRect();
-        bool isPtInPageRect = GetRect().ContainsPt(pt);
-        bool isPtInToolRect = m_pDevToolView->GetRect().ContainsPt(pt);
-        if (isPtInToolRect && !isPtInPageRect) {
-            //如果点击区域，位于开发工具区域，则不弹出页面的右键菜单
-            if (model->GetCount() > 0) {
-                // 禁止右键菜单
-                model->Clear();
-            }
-            return;
-        }
-    }
-    CefControl::OnBeforeContextMenu(browser, frame, params, model);
 }
 
 void CefControlOffScreen::AdaptDpiScale(CefMouseEvent& mouse_event)

@@ -4,13 +4,16 @@
 
 #include "duilib/CEFControl/internal/CefJSBridge.h"
 #include "duilib/CEFControl/internal/CefBrowserHandler.h"
+#include "duilib/CEFControl/CefManager.h"
 
 namespace ui {
 
 CefControl::CefControl(ui::Window* pWindow):
     ui::Control(pWindow),
     m_bAttachedDevTools(false),
-    m_bDevToolsPopup(false)
+    m_bDevToolsPopup(false),
+    m_pDevToolsView(nullptr),
+    m_bEnableF12(true)
 {
     //这个标记必须为false，否则绘制有问题
     SetUseCache(false);
@@ -26,6 +29,9 @@ void CefControl::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("url")) {
         m_initUrl = strValue;
+    }
+    else if (strName == _T("F12")) {
+        SetEnableF12(strValue == _T("true"));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -253,10 +259,126 @@ void CefControl::ResetDevToolAttachedState()
     bool bAttachedDevTools = m_bAttachedDevTools;
     m_bAttachedDevTools = false;
     if (bAttachedDevTools) {
-        if (m_pfnDevToolVisibleChange != nullptr) {
-            m_pfnDevToolVisibleChange(false, m_bDevToolsPopup);
+        OnDevToolVisibleChanged(false, m_bDevToolsPopup);
+    }
+}
+
+void CefControl::SetDevToolsView(CefControl* pDevToolsView)
+{
+    if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
+        //离屏渲染模式
+        m_pDevToolsView = pDevToolsView;
+        m_pDevToolsViewFlag.reset();
+        if (pDevToolsView != nullptr) {
+            m_pDevToolsViewFlag = pDevToolsView->GetWeakFlag();
+            pDevToolsView->SetEnableF12(false);
+        }        
+    }
+    else {
+        //子窗口模式
+        m_pDevToolsView = nullptr;
+        m_pDevToolsViewFlag.reset();
+    }
+}
+
+void CefControl::SetEnableF12(bool bEnableF12)
+{
+    m_bEnableF12 = bEnableF12;
+}
+
+bool CefControl::IsEnableF12() const
+{
+    return m_bEnableF12;
+}
+
+class DevToolBrowserHandler: public CefBrowserHandler
+{
+public:
+    explicit DevToolBrowserHandler(CefControl* pCefControl) :
+        m_pCefControl(pCefControl)
+    {
+        if (pCefControl) {
+            m_pCefControlFlag = pCefControl->GetWeakFlag();
         }
     }
+    virtual ~DevToolBrowserHandler() override
+    {
+        //窗口关闭后，发出一个通知
+        if (!m_pCefControlFlag.expired() && (m_pCefControl != nullptr)) {
+            CefControl* pCefControl = m_pCefControl;
+            ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, pCefControl->ToWeakCallback([pCefControl]() {
+                if (pCefControl->IsAttachedDevTools()) {
+                    pCefControl->ResetDevToolAttachedState();
+                }
+                }));
+        }
+    }
+
+private:
+    //关联的CEF控件接口
+    CefControl* m_pCefControl;
+    std::weak_ptr<WeakFlag> m_pCefControlFlag;
+};
+
+bool CefControl::AttachDevTools()
+{
+    if (IsAttachedDevTools()) {
+        return true;
+    }
+    if (m_pBrowserHandler == nullptr) {
+        return false;
+    }
+
+    auto browser = m_pBrowserHandler->GetBrowser();
+    if (browser == nullptr) {
+        auto task = ToWeakCallback([this]() {
+            GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this]() {
+                AttachDevTools();
+                }));
+            });
+        m_pBrowserHandler->AddAfterCreateTask(task);
+    }
+    else {
+#if CEF_VERSION_MAJOR > 109
+        bool bPopup = true;  //CEF 133 只支持弹出式的窗口显示开发者工具
+#else
+        bool bPopup = false; //CEF 109 支持将开发者工具内嵌在一个Browser控件中显示
+#endif
+
+        CefWindowInfo windowInfo;
+        CefBrowserSettings settings;
+        if (browser->GetHost() != nullptr) {
+            CefRefPtr<CefBrowserHost> viewBrowserHost;
+            if (!bPopup) {
+                CefRefPtr<CefBrowser> viewBrowser;
+                if (!m_pDevToolsViewFlag.expired() && (m_pDevToolsView != nullptr) && (m_pDevToolsView->m_pBrowserHandler != nullptr)) {
+                    viewBrowser = m_pDevToolsView->m_pBrowserHandler->GetBrowser();
+                }
+                if (viewBrowser != nullptr) {
+                    viewBrowserHost = viewBrowser->GetHost();
+                }
+            }
+
+            if (viewBrowserHost != nullptr) {
+                //内嵌在一个Browser对象中显示
+#ifdef DUILIB_BUILD_FOR_WIN
+                ASSERT(viewBrowserHost->GetWindowHandle() != nullptr);
+                windowInfo.SetAsWindowless(viewBrowserHost->GetWindowHandle());
+#endif
+                browser->GetHost()->ShowDevTools(windowInfo, viewBrowserHost->GetClient(), settings, CefPoint());
+                SetAttachedDevTools(true, false);
+            }
+            else {
+                //弹出式窗口显示
+#ifdef DUILIB_BUILD_FOR_WIN
+                windowInfo.SetAsPopup(nullptr, _T("cef_devtools"));
+#endif
+                browser->GetHost()->ShowDevTools(windowInfo, new DevToolBrowserHandler(this), settings, CefPoint());
+                SetAttachedDevTools(true, true);
+            }
+        }
+    }
+    return true;
 }
 
 void CefControl::DettachDevTools()
@@ -269,10 +391,8 @@ void CefControl::DettachDevTools()
         browser->GetHost()->CloseDevTools();
     }
 
-    if (bAttachedDevTools) {        
-        if (m_pfnDevToolVisibleChange != nullptr) {
-            m_pfnDevToolVisibleChange(false, m_bDevToolsPopup);
-        }
+    if (bAttachedDevTools) {
+        OnDevToolVisibleChanged(false, m_bDevToolsPopup);
     }
 }
 
@@ -286,8 +406,21 @@ void CefControl::SetAttachedDevTools(bool bAttachedDevTools, bool bPopup)
     bool bChanged = m_bAttachedDevTools != bAttachedDevTools;
     m_bAttachedDevTools = bAttachedDevTools;
     m_bDevToolsPopup = bPopup;
-    if (bChanged && (m_pfnDevToolVisibleChange != nullptr)) {
-        m_pfnDevToolVisibleChange(m_bAttachedDevTools, bPopup);
+    if (bChanged) {
+        OnDevToolVisibleChanged(m_bAttachedDevTools, bPopup);
+    }
+}
+
+void CefControl::OnDevToolVisibleChanged(bool bAttachedDevTools, bool bPopup)
+{
+    if (m_pfnDevToolVisibleChange != nullptr) {
+        if (CefCurrentlyOn(TID_UI)) {
+            //当前在CEF的UI线程, 转接到主进程的UI线程
+            GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefControl::OnDevToolVisibleChanged, this, bAttachedDevTools, bPopup));
+        }
+        else {
+            m_pfnDevToolVisibleChange(bAttachedDevTools, bPopup);
+        }
     }
 }
 
@@ -680,6 +813,36 @@ bool CefControl::OnFileDialog(CefRefPtr<CefBrowser> browser,
         return m_pCefControlEventHandler->OnFileDialog(browser, mode, title, default_file_path, accept_filters, accept_extensions, accept_descriptions, callback);
     }
     return false;        
+}
+
+bool CefControl::OnPreKeyEvent(CefRefPtr<CefBrowser> /*browser*/,
+                               const CefKeyEvent& event,
+                               CefEventHandle /*os_event*/,
+                               bool* /*is_keyboard_shortcut*/)
+{
+    if (event.type == KEYEVENT_RAWKEYDOWN) {
+        if (event.windows_key_code == kVK_F12) {
+            if (m_bEnableF12) {
+                //按F12，显示开发者工具
+                if (IsAttachedDevTools()) {
+                    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefControl::DettachDevTools, this));
+                }
+                else {
+                    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefControl::AttachDevTools, this));
+                }
+            }
+            //拦截该快捷键
+            return true;
+        }
+    }
+    return false;
+}
+
+bool CefControl::OnKeyEvent(CefRefPtr<CefBrowser> /*browser*/,
+                            const CefKeyEvent& /*event*/,
+                            CefEventHandle /*os_event*/)
+{
+    return false;
 }
 
 void CefControl::SetCefEventHandler(CefControlEvent* pCefControlEventHandler)
