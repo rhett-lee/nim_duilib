@@ -162,10 +162,12 @@ void BrowserBox::SetPos(UiRect rc)
 
 void BrowserBox::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void BrowserBox::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void BrowserBox::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
@@ -173,6 +175,7 @@ void BrowserBox::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
                                      CefRefPtr<CefContextMenuParams> params,
                                      CefRefPtr<CefMenuModel> model)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
 }
 
 bool BrowserBox::OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
@@ -181,47 +184,57 @@ bool BrowserBox::OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
                                       int command_id,
                                       cef_event_flags_t event_flags)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     return false;
 }
 
 void BrowserBox::OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
 }
 
 void BrowserBox::OnTitleChange(CefRefPtr<CefBrowser> browser, const DString& title)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
     m_title = title;
     m_pBrowserForm->SetTabItemName(ui::StringConvert::UTF8ToT(m_browserId), title);
 }
 
 void BrowserBox::OnUrlChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const DString& url)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
     m_url = url;
     m_pBrowserForm->SetURL(m_browserId, url);
 }
 
 void BrowserBox::OnMainUrlChange(const DString& oldUrl, const DString& newUrl)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void BrowserBox::OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void BrowserBox::OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool bFullscreen)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void BrowserBox::OnStatusMessage(CefRefPtr<CefBrowser> browser, const DString& value)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void BrowserBox::OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void BrowserBox::OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_video_access, bool has_audio_access)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
@@ -238,6 +251,7 @@ bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                CefRefPtr<CefDictionaryValue>& extra_info,
                                bool* no_javascript_access)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     //拦截弹窗，并导航到弹出网址
     if ((browser != nullptr) && (browser->GetMainFrame() != nullptr) && !target_url.empty()) {
         browser->GetMainFrame()->LoadURL(target_url);
@@ -247,7 +261,7 @@ bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
 
 void BrowserBox::OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_id)
 {
-
+    ASSERT(CefCurrentlyOn(TID_UI));
 }
 
 bool BrowserBox::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
@@ -256,6 +270,7 @@ bool BrowserBox::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
                                 bool user_gesture,
                                 bool is_redirect)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     return false;
 }
 
@@ -264,6 +279,7 @@ cef_return_value_t BrowserBox::OnBeforeResourceLoad(CefRefPtr<CefBrowser> browse
                                                     CefRefPtr<CefRequest> request,
                                                     CefRefPtr<CefCallback> callback)
 {
+    ASSERT(CefCurrentlyOn(TID_IO));
     // 返回RV_CANCEL截断导航
     return RV_CONTINUE;
 }
@@ -274,6 +290,7 @@ void BrowserBox::OnResourceRedirect(CefRefPtr<CefBrowser> browser,
                                     CefRefPtr<CefResponse> response,
                                     CefString& new_url)
 {
+    ASSERT(CefCurrentlyOn(TID_IO));
 }
 
 bool BrowserBox::OnResourceResponse(CefRefPtr<CefBrowser> browser,
@@ -281,6 +298,7 @@ bool BrowserBox::OnResourceResponse(CefRefPtr<CefBrowser> browser,
                                     CefRefPtr<CefRequest> request,
                                     CefRefPtr<CefResponse> response)
 {
+    ASSERT(CefCurrentlyOn(TID_IO));
     return false;
 }
 
@@ -291,22 +309,27 @@ void BrowserBox::OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
                                         cef_urlrequest_status_t status,
                                         int64_t received_content_length)
 {
+    ASSERT(CefCurrentlyOn(TID_IO));
 }
 
 void BrowserBox::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution)
 {
+    ASSERT(CefCurrentlyOn(TID_IO));
 }
 
 void BrowserBox::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void BrowserBox::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t transition_type)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void BrowserBox::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
     // 注册一个方法提供前端调用
     m_pCefControl->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([this](const std::string& params, ui::ReportResultFunction callback) {
         DString value = ui::StringConvert::UTF8ToT(params);
@@ -317,16 +340,19 @@ void BrowserBox::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> fr
 
 void BrowserBox::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_errorcode_t errorCode, const DString& errorText, const DString& failedUrl)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 void BrowserBox::OnDevToolAttachedStateChange(bool bVisible)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
 
 bool BrowserBox::OnCanDownload(CefRefPtr<CefBrowser> browser,
                                const CefString& url,
                                const CefString& request_method)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     return true;
 }
 
@@ -335,6 +361,7 @@ bool BrowserBox::OnBeforeDownload(CefRefPtr<CefBrowser> browser,
                                   const CefString& suggested_name,
                                   CefRefPtr<CefBeforeDownloadCallback> callback)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     return false;
 }
 
@@ -342,6 +369,7 @@ void BrowserBox::OnDownloadUpdated(CefRefPtr<CefBrowser> browser,
                                    CefRefPtr<CefDownloadItem> download_item,
                                    CefRefPtr<CefDownloadItemCallback> callback)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
 }
 
 bool BrowserBox::OnFileDialog(CefRefPtr<CefBrowser> browser,
@@ -353,9 +381,11 @@ bool BrowserBox::OnFileDialog(CefRefPtr<CefBrowser> browser,
                               const std::vector<CefString>& accept_descriptions,
                               CefRefPtr<CefFileDialogCallback> callback)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     return false;
 }
 
 void BrowserBox::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
 }
