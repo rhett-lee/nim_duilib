@@ -54,16 +54,14 @@ void CefForm::OnInitWindow()
         m_pCefControl->AttachDevToolAttachedStateChange(UiBind(&CefForm::OnDevToolVisibleStateChanged, this, std::placeholders::_1, std::placeholders::_2));
     }
 
-    // 加载皮肤目录下的 html 文件
-    ui::FilePath cefHtml = ui::FilePathUtil::GetCurrentModuleDirectory();
-    cefHtml.NormalizeDirectoryPath();
-#if defined (DUILIB_BUILD_FOR_WIN)
-    cefHtml += _T("resources\\themes\\default\\cef\\cef.html");
-#else
-    cefHtml += _T("resources/themes/default/cef/cef.html");
-#endif
     if (m_pCefControl != nullptr) {
-        m_pCefControl->LoadURL(cefHtml.ToString());
+        // 加载皮肤目录下的 html 文件
+        ui::FilePath cefHtml = ui::FilePathUtil::GetCurrentModuleDirectory();
+        cefHtml.NormalizeDirectoryPath();
+        cefHtml += _T("resources/themes/default/cef/cef.html");
+        DString htmlFileUrl = cefHtml.ToString();
+        htmlFileUrl = _T("file:///") + htmlFileUrl;
+        m_pCefControl->LoadURL(htmlFileUrl);
     }
 
     if (m_pCefControlDev != nullptr) {

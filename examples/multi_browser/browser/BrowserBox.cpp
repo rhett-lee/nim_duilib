@@ -88,12 +88,9 @@ void BrowserBox::InitBrowserBox(const DString &url)
     if (html_path.empty()) {
         ui::FilePath localPath = ui::FilePathUtil::GetCurrentModuleDirectory();
         localPath.NormalizeDirectoryPath();
-#if defined (DUILIB_BUILD_FOR_WIN)
-        localPath += _T("resources\\themes\\default\\cef\\cef.html");
-#else
         localPath += _T("resources/themes/default/cef/cef.html");
-#endif
         html_path = localPath.ToString();
+        html_path = _T("file:///") + html_path;
     }
     m_pCefControl->LoadURL(html_path);
 
