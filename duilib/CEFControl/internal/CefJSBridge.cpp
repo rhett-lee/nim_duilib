@@ -372,14 +372,7 @@ bool CefJSBridge::ExecuteCppFunc(const CefString& function_name, const CefString
 
 CefString CefJSBridge::Int64ToCefString(int64_t nValue)
 {
-    DString str;
-#if defined (DUILIB_BUILD_FOR_WIN)
-    str = StringUtil::Printf(_T("%I64d"), nValue);
-#elif defined (DUILIB_BUILD_FOR_LINUX)
-    str = StringUtil::Printf(_T("%lld"), nValue);
-#else
-    str = StringUtil::Printf(_T("%d"), nValue);
-#endif
+    DString str = StringUtil::Int64ToString(nValue);
     return CefString(str);
 }
 

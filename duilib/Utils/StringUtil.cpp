@@ -824,6 +824,34 @@ std::string StringUtil::UInt32ToStringA(uint32_t value)
     return UInt64ToStringA(value);
 }
 
+std::wstring StringUtil::Int64ToStringW(int64_t value)
+{
+#if defined (DUILIB_BUILD_FOR_WIN)
+    return StringUtil::Printf(L"%I64d", value);
+#else
+    return StringUtil::Printf(L"%lld", value);
+#endif
+}
+
+std::wstring StringUtil::Int32ToStringW(int32_t value)
+{
+    return StringUtil::Printf(L"%d", value);
+}
+
+std::string StringUtil::Int64ToStringA(int64_t value)
+{
+#if defined (DUILIB_BUILD_FOR_WIN)
+    return StringUtil::Printf("%I64d", value);
+#else
+    return StringUtil::Printf("%lld", value);
+#endif
+}
+
+std::string StringUtil::Int32ToStringA(int32_t value)
+{
+    return StringUtil::Printf("%d", value);
+}
+
 #ifdef DUILIB_UNICODE
 std::wstring StringUtil::UInt64ToString(uint64_t value)
 {
@@ -833,6 +861,16 @@ std::wstring StringUtil::UInt64ToString(uint64_t value)
 std::wstring StringUtil::UInt32ToString(uint32_t value)
 {
     return UInt32ToStringW(value);
+}
+
+std::wstring StringUtil::Int64ToString(int64_t value)
+{
+    return Int64ToStringW(value);
+}
+
+std::wstring StringUtil::Int32ToString(int32_t value)
+{
+    return Int32ToStringW(value);
 }
 #else
 
@@ -844,6 +882,16 @@ std::string StringUtil::UInt64ToString(uint64_t value)
 std::string StringUtil::UInt32ToString(uint32_t value)
 {
     return UInt32ToStringA(value);
+}
+
+std::string StringUtil::Int64ToString(int64_t value)
+{
+    return Int64ToStringA(value);
+}
+
+std::string StringUtil::Int32ToString(int32_t value)
+{
+    return Int32ToStringA(value);
 }
 #endif
 

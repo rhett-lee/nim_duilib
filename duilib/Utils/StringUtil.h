@@ -90,12 +90,21 @@ public:
     static std::string UInt64ToStringA(uint64_t value);
     static std::string UInt32ToStringA(uint32_t value);
 
+    static std::wstring Int64ToStringW(int64_t value);
+    static std::wstring Int32ToStringW(int32_t value);
+    static std::string Int64ToStringA(int64_t value);
+    static std::string Int32ToStringA(int32_t value);
+
 #ifdef DUILIB_UNICODE
     static std::wstring UInt64ToString(uint64_t value);
     static std::wstring UInt32ToString(uint32_t value);
+    static std::wstring Int64ToString(int64_t value);
+    static std::wstring Int32ToString(int32_t value);
 #else
     static std::string UInt64ToString(uint64_t value);
     static std::string UInt32ToString(uint32_t value);
+    static std::string Int64ToString(int64_t value);
+    static std::string Int32ToString(int32_t value);
 #endif
 
     /** 将字符串转换成整型(十进制)
