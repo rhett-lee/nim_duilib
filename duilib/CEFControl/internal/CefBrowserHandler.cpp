@@ -220,18 +220,18 @@ void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
         }
         m_browser = browser;
         CefManager::GetInstance()->AddBrowserCount();
-
-        if (m_pHandlerDelegate) {
-            m_pHandlerDelegate->OnAfterCreated(browser);
-        }
-
-        // 有窗模式下，浏览器创建完毕后，让上层更新一下自己的位置；因为在异步状态下，上层更新位置时可能Cef窗口还没有创建出来
-        if (!CefManager::GetInstance()->IsEnableOffScreenRendering() && m_pHandlerDelegate) {
+        
+        if (m_pHandlerDelegate != nullptr) {
+            // 有窗模式下，浏览器创建完毕后，让上层更新一下自己的位置；因为在异步状态下，上层更新位置时可能Cef窗口还没有创建出来
             m_pHandlerDelegate->UpdateWindowPos();
         }
 
         m_taskListAfterCreated();
         m_taskListAfterCreated.Clear();
+
+        if (m_pHandlerDelegate) {
+            m_pHandlerDelegate->OnAfterCreated(browser);
+        }
     }));
 
     // 必须在cef ui线程调用RegisterDragDrop

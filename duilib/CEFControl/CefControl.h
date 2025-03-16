@@ -474,7 +474,7 @@ protected:
     */
     virtual void ClientToControl(UiPoint& pt) override;
 
-    /** 更新控件的位置
+    /** 更新控件的位置(在Browser控件创建成功后调用)
     */
     virtual void UpdateWindowPos() override;
 

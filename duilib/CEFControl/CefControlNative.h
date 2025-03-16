@@ -29,6 +29,10 @@ protected:
     /** 重新创建Browser对象
     */
     virtual void ReCreateBrowser() override;
+
+    /** 更新控件的位置(在Browser控件创建成功后调用)
+    */
+    virtual void UpdateWindowPos() override;
 };
 }
 
