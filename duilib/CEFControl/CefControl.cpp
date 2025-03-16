@@ -449,7 +449,6 @@ void CefControl::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> /*browser*/,
 void CefControl::UpdateWindowPos()
 {
     GlobalManager::Instance().AssertUIThread();
-    this->SetPos(this->GetPos());
 }
 
 void CefControl::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model)

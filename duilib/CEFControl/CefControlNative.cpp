@@ -223,6 +223,14 @@ void CefControlNative::SetVisible(bool bVisible)
 #endif
 }
 
+void CefControlNative::UpdateWindowPos()
+{
+    BaseClass::UpdateWindowPos();
+    //在Browser控件创建完成后，更新窗口位置和可见性
+    SetPos(GetPos());
+    SetVisible(IsVisible());
+}
+
 #ifdef DUILIB_BUILD_FOR_LINUX
 //设置X窗口的父窗口
 class SetX11WindowParentWindowTask : public CefTask
