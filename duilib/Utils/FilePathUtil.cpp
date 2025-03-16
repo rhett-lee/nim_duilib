@@ -2,6 +2,11 @@
 #include "duilib/Utils/StringConvert.h"
 #include <filesystem>
 
+#ifdef DUILIB_BUILD_FOR_LINUX
+    #include <unistd.h>
+    #include <limits.h>
+#endif
+
 namespace ui
 {
 
@@ -107,12 +112,28 @@ FilePath FilePathUtil::GetCurrentModuleDirectory()
     FilePath currentDir(dirPath);
     currentDir.RemoveFileName();
     return currentDir;
-#else
-    DString dirPath = std::filesystem::current_path().native();
+#elif defined (DUILIB_BUILD_FOR_LINUX)
+    DString dirPath;
+    char exe_path[PATH_MAX];
+    ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+    if (len != -1) {
+        exe_path[len] = '\0'; // 确保字符串终止
+        dirPath = exe_path;
+        size_t pos = dirPath.rfind("/");
+        if (pos != DString::npos) {
+            dirPath = dirPath.substr(0, pos);
+        }
+    }
+#else 
+    DString dirPath;
+#endif
+    if (dirPath.empty()) {
+        dirPath = std::filesystem::current_path().native();
+    }    
     FilePath filePath(dirPath);
     filePath.NormalizeDirectoryPath();
     return filePath;
-#endif
+
 }
 
 } // namespace ui
