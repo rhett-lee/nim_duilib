@@ -125,15 +125,21 @@ public:
     */
     virtual void RepairBrowser();
 
+public:
+
+    /** 设置开发者工具关联的控件(设置后，开发者的内容就显示在这个控件中；如果为nullptr，则开发者工具显示为弹出式窗口)
+    *   仅当离屏渲染时，此参数设置才会生效；不是离屏渲染时，该参数被忽略
+    */
+    void SetDevToolsView(CefControl* pDevToolsView);
+
     /** 打开开发者工具
-    * @param[in] view 一个 CefControlOffScreen 控件实例(仅在CefControlOffScreen类里需要传入)
     * @return 成功返回 true，失败返回 false
     */
-    virtual bool AttachDevTools(Control* view) = 0;
+    bool AttachDevTools();
 
     /** 关闭开发者工具
     */
-    virtual void DettachDevTools();
+    void DettachDevTools();
 
     /** 判断是否打开开发者工具
     * @return 返回 true 表示已经绑定，false 为未绑定
@@ -143,6 +149,14 @@ public:
     /** 清除DevTools绑定标志，并按需触发事件
     */
     void ResetDevToolAttachedState();
+
+    /** 设置是否允许F12快捷键(开发者工具)
+    */
+    void SetEnableF12(bool bEnableF12);
+
+    /** 是否允许F12快捷键(开发者工具)
+    */
+    bool IsEnableF12() const;
 
 public:
     /** 绑定一个回调函数用于监听右键菜单弹出（回调函数的调用线程：CEF的UI线程）
@@ -438,6 +452,15 @@ protected:
                               const std::vector<CefString>& accept_descriptions,
                               CefRefPtr<CefFileDialogCallback> callback) override;
 
+    //CefKeyboardHandler接口
+    virtual bool OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
+                               const CefKeyEvent& event,
+                               CefEventHandle os_event,
+                               bool* is_keyboard_shortcut) override;
+    virtual bool OnKeyEvent(CefRefPtr<CefBrowser> browser,
+                            const CefKeyEvent& event,
+                            CefEventHandle os_event) override;
+
 protected:
     /** 客户区坐标转换为控件坐标
     */
@@ -462,6 +485,10 @@ protected:
     */
     void SetAttachedDevTools(bool bAttachedDevTools, bool bPopup);
 
+    /** 开发者工具的可见性发生变化, 触发接口回调（确保在主进程的UI线程回调）
+    */
+    void OnDevToolVisibleChanged(bool bAttachedDevTools, bool bPopup);
+
 protected:
     /** 控件关联的CEF浏览器对象
     */
@@ -474,12 +501,6 @@ private:
 
     //URL
     CefString m_url;
-
-    //开发者工具是否显示
-    bool m_bAttachedDevTools;
-
-    //开发者工具是否为弹出窗口模式
-    bool m_bDevToolsPopup;
 
     // 保存接收到 JS 调用 CPP 函数的代码所属线程，以后触发 JS 回调时把回调转到那个线程
     int32_t m_jsCallbackThreadId = -1;
@@ -523,6 +544,22 @@ private:
     /** 初始化加载的网址
     */
     DString m_initUrl;
+
+private:
+    //开发者工具是否显示
+    bool m_bAttachedDevTools;
+
+    //开发者工具是否为弹出窗口模式
+    bool m_bDevToolsPopup;
+
+    //开发者工具关联的控件
+    CefControl* m_pDevToolsView;
+
+    //开发者工具关联的控件的生命周期
+    std::weak_ptr<WeakFlag> m_pDevToolsViewFlag;
+
+    //是否允许F12快捷键(开发者工具)
+    bool m_bEnableF12;
 };
 }
 

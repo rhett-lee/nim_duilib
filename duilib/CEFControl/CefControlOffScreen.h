@@ -45,21 +45,10 @@ public:
     */
     virtual bool IsCefOsrImeMode() const override;
 
-    /** 打开开发者工具
-    * @param [in] view 一个 CefControlOffScreen 控件实例(仅在CefControlOffScreen类里需要传入)
-    * @return 成功返回 true，失败返回 false
-    */
-    virtual bool AttachDevTools(Control* view) override;
-
-    /** 关闭开发者工具
-    */
-    virtual void DettachDevTools() override;
-
 protected:
     /** 重新创建Browser控件
     */
     virtual void ReCreateBrowser() override;
-    virtual void OnBeforeContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, CefRefPtr<CefMenuModel> model) override;
     virtual void OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> browser, const CefRange& selected_range, const std::vector<CefRect>& character_bounds) override;
 
     //光标消息
@@ -166,12 +155,6 @@ private:
 
     // 当网页的组合框一类的控件弹出时，记录弹出的位置
     CefRect m_rectPopup;
-
-    //开发者工具对应的控件
-    CefControlOffScreen* m_pDevToolView;
-
-    //开发者工具控件的生命周期
-    std::weak_ptr<WeakFlag> m_pDevToolViewFlag;
 };
 
 }

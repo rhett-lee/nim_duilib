@@ -806,11 +806,17 @@ void CefBrowserHandler::OnDialogClosed(CefRefPtr<CefBrowser> browser)
 
 bool CefBrowserHandler::OnPreKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEvent& event, CefEventHandle os_event, bool* is_keyboard_shortcut)
 {
+    if (m_pHandlerDelegate) {
+        m_pHandlerDelegate->OnPreKeyEvent(browser, event, os_event, is_keyboard_shortcut);
+    }
     return false;
 }
 
 bool CefBrowserHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEvent& event, CefEventHandle os_event)
 {
+    if (m_pHandlerDelegate) {
+        m_pHandlerDelegate->OnKeyEvent(browser, event, os_event);
+    }
     return false;
 }
 

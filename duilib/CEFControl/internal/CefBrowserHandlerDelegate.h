@@ -135,6 +135,15 @@ public:
                               const std::vector<CefString>& accept_descriptions,
                               CefRefPtr<CefFileDialogCallback> callback)  = 0;
 
+    //CefKeyboardHandler接口
+    virtual bool OnPreKeyEvent(CefRefPtr<CefBrowser> browser,
+                               const CefKeyEvent& event,
+                               CefEventHandle os_event,
+                               bool* is_keyboard_shortcut) = 0;
+    virtual bool OnKeyEvent(CefRefPtr<CefBrowser> browser,
+                            const CefKeyEvent& event,
+                            CefEventHandle os_event) = 0 ;
+
 public:
     /** 客户区坐标转换为控件坐标
     */
