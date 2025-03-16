@@ -69,6 +69,7 @@ void CefControlNative::ReCreateBrowser()
     if (pWindow == nullptr) {
         return;
     }
+    ASSERT(pWindow->IsWindow());
     ASSERT(m_pBrowserHandler != nullptr);
     if (m_pBrowserHandler == nullptr) {
         return;

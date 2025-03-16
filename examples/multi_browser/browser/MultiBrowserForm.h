@@ -21,11 +21,13 @@ class BrowserTabItem;
 */
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 class MultiBrowserForm : public ui::ShadowWnd, public IDropTarget, public TaskbarManager::ITaskbarDelegate
-#else
-class MultiBrowserForm : public ui::ShadowWnd
-#endif
 {
     typedef ui::ShadowWnd BaseClass;
+#else
+class MultiBrowserForm : public ui::WindowImplBase
+{
+    typedef ui::WindowImplBase BaseClass;
+#endif
 public:
     MultiBrowserForm();
     virtual ~MultiBrowserForm() override;
