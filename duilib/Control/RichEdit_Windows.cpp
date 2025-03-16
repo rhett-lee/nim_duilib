@@ -3158,7 +3158,7 @@ void RichEdit::SetTextNumber(int64_t nValue)
         SetText(StringUtil::Printf(m_numberFormat.c_str(), nValue));
     }
     else {
-        SetText(StringUtil::Printf(_T("%I64d"), nValue));
+        SetText(StringUtil::Int64ToString(nValue));
     }
     if ((nSelStartChar == nSelEndChar) && (nSelStartChar >= 0) && (nSelStartChar <= GetTextLength())) {
         SetSel(nSelStartChar, nSelStartChar);

@@ -124,15 +124,18 @@ FilePath FilePathUtil::GetCurrentModuleDirectory()
             dirPath = dirPath.substr(0, pos);
         }
     }
-#else 
-    DString dirPath;
-#endif
     if (dirPath.empty()) {
         dirPath = std::filesystem::current_path().native();
-    }    
+    }
     FilePath filePath(dirPath);
     filePath.NormalizeDirectoryPath();
     return filePath;
+#else 
+    DString dirPath = std::filesystem::current_path().native(); 
+    FilePath filePath(dirPath);
+    filePath.NormalizeDirectoryPath();
+    return filePath;
+#endif
 
 }
 

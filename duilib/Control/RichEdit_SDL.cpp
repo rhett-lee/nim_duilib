@@ -2718,13 +2718,7 @@ void RichEdit::SetTextNumber(int64_t nValue)
         SetText(StringUtil::Printf(m_numberFormat.c_str(), nValue));
     }
     else {
-#if defined (DUILIB_BUILD_FOR_WIN)
-        SetText(StringUtil::Printf(_T("%I64d"), nValue));
-#elif defined (DUILIB_BUILD_FOR_LINUX)
-        SetText(StringUtil::Printf(_T("%lld"), nValue));
-#else
-        SetText(StringUtil::Printf(_T("%d"), nValue));
-#endif
+        SetText(StringUtil::Int64ToString(nValue));
     }
     if ((nSelStartChar == nSelEndChar) && (nSelStartChar >= 0) && (nSelStartChar <= GetTextLength())) {
         SetSel(nSelStartChar, nSelStartChar);
