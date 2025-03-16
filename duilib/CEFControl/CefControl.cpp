@@ -885,6 +885,24 @@ CefControlEvent* CefControl::GetCefEventHandler() const
     return m_pCefControlEventHandler;
 }
 
+CefRefPtr<CefBrowser> CefControl::GetCefBrowser()
+{
+    CefRefPtr<CefBrowser> browser;
+    if (m_pBrowserHandler != nullptr) {
+        browser = m_pBrowserHandler->GetBrowser();
+    }
+    return browser;
+}
+
+CefRefPtr<CefBrowserHost> CefControl::GetCefBrowserHost()
+{
+    CefRefPtr<CefBrowserHost> browserHost;
+    if (m_pBrowserHandler != nullptr) {
+        browserHost = m_pBrowserHandler->GetBrowserHost();
+    }
+    return browserHost;
+}
+
 bool CefControl::IsCallbackExists(CefCallbackID nCallbackID)
 {
     if (m_pCefControlEventHandler != nullptr) {

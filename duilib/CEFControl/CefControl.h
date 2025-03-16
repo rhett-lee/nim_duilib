@@ -326,6 +326,14 @@ public:
     */
     CefControlEvent* GetCefEventHandler() const;
 
+    /** 获取CEF的Browser对象
+    */
+    CefRefPtr<CefBrowser> GetCefBrowser();
+
+    /** 获取CEF的BrowserHost对象
+    */
+    CefRefPtr<CefBrowserHost> GetCefBrowserHost();
+
 public:
     /** 获取控件类型
     */
