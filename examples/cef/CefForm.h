@@ -10,7 +10,7 @@
 // 控制是否使用离屏渲染：
 // 当为 true  时将使用默认窗口阴影方案，离屏渲染模式下窗口有 WS_EX_LAYERED 属性；
 // 当为 false 时因使用了真窗口模式不支持带有 WS_EX_LAYERED 属性窗口，所以使用外置窗口阴影方案；
-const bool kEnableOffScreenRendering = true;
+const bool kEnableOffScreenRendering = false;
 
 /** CEF控件的窗口
 */
