@@ -96,7 +96,8 @@ Control* DuilibCreateCefControl(const DString& className)
 ///////////////////////////////////////////////////////////////////////////////////
 CefManager::CefManager():
     m_bEnableOffScreenRendering(true),
-    m_browserCount(0)
+    m_browserCount(0),
+    m_pfnAlreadyRunningAppRelaunch(nullptr)
 {
 }
 
@@ -216,6 +217,16 @@ bool CefManager::Initialize(const DString& app_data_dir, CefSettings& settings, 
     return bRet;
 }
 #endif
+
+void CefManager::SetAlreadyRunningAppRelaunch(const OnAlreadyRunningAppRelaunchEvent& callback)
+{
+    m_pfnAlreadyRunningAppRelaunch = callback;
+}
+
+OnAlreadyRunningAppRelaunchEvent CefManager::GetAlreadyRunningAppRelaunch() const
+{
+    return m_pfnAlreadyRunningAppRelaunch;
+}
 
 void CefManager::UnInitialize()
 {

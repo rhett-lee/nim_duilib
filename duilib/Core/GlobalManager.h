@@ -266,6 +266,10 @@ public:
     */
     void AddCreateControlCallback(const CreateControlCallback& pfnCreateControlCallback);
 
+    /** 判断当前是否在UI线程
+    */
+    bool IsInUIThread() const;
+
     /** 如果该函数不是在UI线程中调用的，进行断言报错
     */
     void AssertUIThread() const;

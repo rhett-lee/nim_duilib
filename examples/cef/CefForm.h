@@ -45,6 +45,10 @@ private:
     bool OnClicked(const ui::EventArgs& msg);
     bool OnNavigate(const ui::EventArgs& msg);
 
+    /** 控制主进程单例的回调函数
+    */
+    void OnAlreadyRunningAppRelaunch(const std::vector<DString>& argumentList);
+
 private:
     /** Browser对象创建完成（回调函数的调用线程：主进程的UI线程）
     */

@@ -82,6 +82,14 @@ private:
     bool OnClicked(const ui::EventArgs& arg);
     bool OnReturn(const ui::EventArgs& arg);
 
+    /** 打开新标签
+    */
+    void CreateNewTabPage(const DString& url);
+
+    /** 控制主进程单例的回调函数
+    */
+    void OnAlreadyRunningAppRelaunch(const std::vector<DString>& argumentList);
+
 public:
     /**
     * 在本窗口内创建一个新浏览器盒子

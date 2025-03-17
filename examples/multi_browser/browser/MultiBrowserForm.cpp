@@ -89,6 +89,9 @@ void MultiBrowserForm::OnInitWindow()
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     InitDragDrop();
 #endif
+
+    //设置控制主进程单例的回调函数
+    ui::CefManager::GetInstance()->SetAlreadyRunningAppRelaunch(UiBind(&MultiBrowserForm::OnAlreadyRunningAppRelaunch, this, std::placeholders::_1));
 }
 
 void MultiBrowserForm::OnCloseWindow()
@@ -230,19 +233,36 @@ bool MultiBrowserForm::OnReturn(const ui::EventArgs& arg)
 {
     DString name = arg.GetSender()->GetName();
     if (name == _T("edit_url")) {
-#if 0
-         // 在当前页面跳转
-         auto cef_control = m_pActiveBrowserBox->GetCefControl();
-         if (cef_control)
-             cef_control->LoadURL(m_pEditUrl->GetText());
-#endif
-        uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
-        std::string timeStamp = ui::StringUtil::UInt64ToStringA(nTimeMS);
-        // 新建标签页
-        MultiBrowserManager::GetInstance()->CreateBorwserBox(this, timeStamp, m_pEditUrl->GetText());
+         //新建标签页
+         CreateNewTabPage(m_pEditUrl->GetText());
     }
-
     return false;
+}
+
+void MultiBrowserForm::CreateNewTabPage(const DString& url)
+{
+    if (!url.empty()) {
+        uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
+        std::string timeStamp = ui::StringUtil::UInt64ToStringA(nTimeMS);        
+        MultiBrowserManager::GetInstance()->CreateBorwserBox(this, timeStamp, url);
+    }
+}
+
+void MultiBrowserForm::OnAlreadyRunningAppRelaunch(const std::vector<DString>& argumentList)
+{
+    if (ui::GlobalManager::Instance().IsInUIThread()) {
+        //CEF 133版本会调用此接口
+        SetWindowForeground();
+        if (!argumentList.empty()) {
+            //只处理第一个参数
+            DString url = argumentList[0];
+            CreateNewTabPage(url);
+        }
+    }
+    else {
+        //转发到UI线程处理
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&MultiBrowserForm::OnAlreadyRunningAppRelaunch, this, argumentList));
+    }
 }
 
 BrowserBox* MultiBrowserForm::CreateBox(const std::string &browser_id, DString url)

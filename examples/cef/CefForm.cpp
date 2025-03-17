@@ -78,12 +78,35 @@ void CefForm::OnInitWindow()
     if (m_pCefControlDev != nullptr) {
         m_pCefControlDev->SetFadeVisible(false);
     }
+
+    //设置控制主进程单例的回调函数
+    ui::CefManager::GetInstance()->SetAlreadyRunningAppRelaunch(UiBind(&CefForm::OnAlreadyRunningAppRelaunch, this, std::placeholders::_1));
 }
 
 void CefForm::OnCloseWindow()
 {
     //关闭窗口后，退出主线程的消息循环，关闭程序
     ui::CefManager::GetInstance()->PostQuitMessage(0L);
+}
+
+void CefForm::OnAlreadyRunningAppRelaunch(const std::vector<DString>& argumentList)
+{
+    if (ui::GlobalManager::Instance().IsInUIThread()) {
+        //CEF 133版本会调用此接口
+        SetWindowForeground();
+        if (!argumentList.empty()) {
+            //只处理第一个参数
+            DString url = argumentList[0];
+            if (m_pCefControl != nullptr) {                
+                m_pCefControl->LoadURL(url);
+                m_pCefControl->SetFocus();
+            }
+        }
+    }
+    else {
+        //转发到UI线程处理
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefForm::OnAlreadyRunningAppRelaunch, this, argumentList));
+    }
 }
 
 bool CefForm::OnClicked(const ui::EventArgs& msg)
