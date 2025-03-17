@@ -9,9 +9,18 @@
     #include "include/cef_version.h"
 #pragma warning (pop)
 
+#include <vector>
+
 namespace ui
 {
-/**@brief 管理Cef组件的初始化、销毁、消息循环
+    /** Browser进程单例控制的回调函数
+     * (1) 由于一个Browser进程，需要启动好多个Render子进程，资源开销比较大，所以有必要控制保证只有一个Browser进程)
+     * (2) CEF 133版本及以上版本，自身有单例控制功能，只要实现接口就可以了；但CEF 109版本无此功能，允许同时存在多个Browser进程
+     * @param [in] argumentList 重新启动的Browser进程的启动参数列表
+     */
+    typedef std::function<void (const std::vector<DString>& argumentList)> OnAlreadyRunningAppRelaunchEvent;
+
+/** 管理Cef组件的初始化、销毁、消息循环
  * @copyright (c) 2016, NetEase Inc. All rights reserved
  * @author Redrain
  * @date 2016/7/19
@@ -22,13 +31,13 @@ public:
     CefManager();
     CefManager(const CefManager&) = delete;
     CefManager& operator=(const CefManager&) = delete;
-
+private:
+    ~CefManager();
+public:
     /** 单例对象
     */
     static CefManager* GetInstance();
 
-private:
-    ~CefManager();
 public:
     /** 把cef dll文件的位置添加到程序的"path"环境变量中,这样可以把dll文件放到bin以外的目录，并且不需要手动频繁切换dll文件
     */
@@ -43,7 +52,9 @@ public:
     * @return bool true 继续运行，false 应该结束程序
     */
 #ifdef DUILIB_BUILD_FOR_WIN
-    bool Initialize(const DString& app_data_dir, CefSettings& settings, bool bEnableOffScreenRendering = true);
+    bool Initialize(const DString& app_data_dir,
+                    CefSettings& settings,
+                    bool bEnableOffScreenRendering = true);
 #else
     bool Initialize(const DString& app_data_dir,
                     CefSettings& settings,
@@ -51,6 +62,15 @@ public:
                     int argc,
                     char** argv);
 #endif
+
+    /** 绑定一个回调函数用于监听Browser进程启动事件
+    * @param [in] callback 一个回调函数，参考 OnAlreadyRunningAppRelaunchEvent 声明
+    */
+    void SetAlreadyRunningAppRelaunch(const OnAlreadyRunningAppRelaunchEvent& callback);
+
+    /** 获取监听Browser进程启动事件的回调函数
+    */
+    OnAlreadyRunningAppRelaunchEvent GetAlreadyRunningAppRelaunch() const;
 
     /** 清理cef组件
     */
@@ -82,6 +102,9 @@ private:
 
     //是否启用离屏渲染
     bool m_bEnableOffScreenRendering;
+
+    //另外一个Browser进程启动时的回调函数
+    OnAlreadyRunningAppRelaunchEvent m_pfnAlreadyRunningAppRelaunch;
 };
 }
 

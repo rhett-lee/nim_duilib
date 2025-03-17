@@ -654,6 +654,11 @@ void GlobalManager::AddCreateControlCallback(const CreateControlCallback& pfnCre
     }
 }
 
+bool GlobalManager::IsInUIThread() const
+{
+    return (m_dwUiThreadId == std::this_thread::get_id()) ? true : false;
+}
+
 void GlobalManager::AssertUIThread() const
 {
     ASSERT(m_dwUiThreadId == std::this_thread::get_id());
