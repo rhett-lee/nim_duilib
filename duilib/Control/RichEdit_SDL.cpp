@@ -3223,9 +3223,9 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 #endif
 
 #ifdef DUILIB_BUILD_FOR_SDL
-    if (IsVisible() && !IsReadOnly() && IsEnabled()) {
+    if ((pWindow != nullptr) && IsVisible() && !IsReadOnly() && IsEnabled()) {
         SDL_SetTextInputArea((SDL_Window*)pWindow->NativeWnd()->GetWindowHandle(), nullptr, 0);
-        SDL_StartTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
+        SDL_StartTextInput((SDL_Window*)pWindow->NativeWnd()->GetWindowHandle());
         m_bTextInputMode = true;
     }
 #endif

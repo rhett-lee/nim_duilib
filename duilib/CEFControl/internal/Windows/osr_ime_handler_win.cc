@@ -83,8 +83,8 @@ void GetCompositionUnderlines(
       underline.thick = 0;
 
       // Use thick underline for the target clause.
-      if (underline.range.from >= target_start &&
-          underline.range.to <= target_end) {
+      if (underline.range.from >= (int)target_start &&
+          underline.range.to <= (int)target_end) {
         underline.thick = 1;
       }
       underlines.push_back(underline);
@@ -163,7 +163,7 @@ void OsrImeHandlerWin::MoveImeWindow() {
   }
 
   // Offset location by the composition range start if required.
-  if (location >= composition_range_.from) {
+  if ((int)location >= composition_range_.from) {
     location -= composition_range_.from;
   }
 
