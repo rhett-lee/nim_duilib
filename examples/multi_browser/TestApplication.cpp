@@ -54,7 +54,7 @@ int TestApplication::Run(int argc, char** argv)
     appDataDir += _T("cef_temp\\multi_browser\\");
 
 #ifdef DUILIB_BUILD_FOR_WIN
-    if (!ui::CefManager::GetInstance()->Initialize(appDataDir.ToString(), settings, true)) {
+    if (!ui::CefManager::GetInstance()->Initialize(appDataDir.ToString(), settings, true, _T("duilib_multi_browser"))) {
         return 0;
     }
 #else

@@ -6,8 +6,10 @@
 
 #ifdef DUILIB_BUILD_FOR_WIN
     #include "CefDragDrop_Windows.h"
+    #include "duilib/Utils/ProcessSingleton.h"
 #endif
 
+#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/WindowBase.h"
@@ -165,8 +167,50 @@ void CefManager::AddCefDllToPath()
 // Cef2526、2623版本对各种新页面都支持，唯一的坑就是debug模式在多线程消息循环开启下，程序退出时会中断，但是release模式正常。
 //        (PS:如果开发者不使用负责Cef功能的开发，可以切换到release模式的cef dll文件，这样即使在deubg下也不会报错，修改AddCefDllToPath代码可以切换到release目录)
 #ifdef DUILIB_BUILD_FOR_WIN
-bool CefManager::Initialize(const DString& app_data_dir, CefSettings& settings, bool bEnableOffScreenRendering /*= true*/)
+
+#if CEF_VERSION_MAJOR <= 109
+/** 浏览器单例控制回调函数
+*/
+void CefManager::OnBrowserAlreadyRunningAppRelaunch(const std::vector<DString>& argumentList)
 {
+    OnAlreadyRunningAppRelaunchEvent pfnAlreadyRunningAppRelaunch = CefManager::GetInstance()->GetAlreadyRunningAppRelaunch();
+    if (pfnAlreadyRunningAppRelaunch != nullptr) {
+        pfnAlreadyRunningAppRelaunch(argumentList);
+    }
+}
+
+#endif
+
+bool CefManager::Initialize(const DString& app_data_dir, CefSettings& settings, bool bEnableOffScreenRendering, const DString& appName)
+{
+#if CEF_VERSION_MAJOR <= 109
+    //CEF 109版本，控制进程单例
+    // 解析命令行参数，识别是否为Browser进程
+    if (!appName.empty()) {
+        CefRefPtr<CefCommandLine> command_line = CefCommandLine::CreateCommandLine();
+        command_line->InitFromString(::GetCommandLineW());
+        if (!command_line->HasSwitch("type")) {
+            // Browser进程逻辑
+            m_pProcessSingleton = ProcessSingleton::Create(appName);
+            if ((m_pProcessSingleton != nullptr) && m_pProcessSingleton->IsAnotherInstanceRunning()) {
+                //已经有其他Browser进程在运行, 发送启动参数后，退出
+                std::vector<CefString> argv;
+                command_line->GetArgv(argv);
+                std::vector<std::string> argumentList;
+                std::string arg;
+                for (size_t i = 1; i < argv.size(); ++i) {
+                    arg = StringConvert::WStringToUTF8(argv[i]);
+                    if (!arg.empty()) {
+                        argumentList.push_back(arg);
+                    }
+                }
+                m_pProcessSingleton->SendArgumentsToExistingInstance(argumentList);
+                return false;
+            }
+        }
+    }
+#endif
+
     m_bEnableOffScreenRendering = bEnableOffScreenRendering;
     CefMainArgs main_args(::GetModuleHandle(nullptr));
 
@@ -182,6 +226,9 @@ bool CefManager::Initialize(const DString& app_data_dir, CefSettings& settings, 
     GetCefSetting(app_data_dir, settings);
 
     bool bRet = CefInitialize(main_args, settings, app.get(), nullptr);
+    if (!bRet) {
+        return false;
+    }
 
     if (IsEnableOffScreenRendering()) {
         HWND hwnd = ::CreateWindowW(L"Static", L"", WS_POPUP, 0, 0, 0, 0, nullptr, nullptr, nullptr, nullptr);
@@ -190,7 +237,14 @@ bool CefManager::Initialize(const DString& app_data_dir, CefSettings& settings, 
     
     //添加窗口CEF控件的回调函数
     GlobalManager::Instance().AddCreateControlCallback(DuilibCreateCefControl);
-    return bRet;
+
+#if CEF_VERSION_MAJOR <= 109
+    //启动单例进程监控
+    if (m_pProcessSingleton != nullptr) {
+        m_pProcessSingleton->StartListener(OnBrowserAlreadyRunningAppRelaunch);
+    }
+#endif
+    return true;
 }
 #else
 //Linux系统

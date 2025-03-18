@@ -121,7 +121,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef_win\;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef_win_109\;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;SK_GANESH;SK_GL;SK_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -179,7 +179,7 @@
     </Midl>
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef_win\;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef_win_109\;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;SK_GANESH;SK_GL;SK_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -237,7 +237,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef_win\;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef_win_109\;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;SK_GANESH;SK_GL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -295,7 +295,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef_win\;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\;..\..\skia\;..\..\SDL3\include\;..\duilib\third_party\libcef_win_109\;</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;SK_GANESH;SK_GL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -527,6 +527,7 @@
     <ClCompile Include="Utils\MonitorUtil_SDL.cpp" />
     <ClCompile Include="Utils\MonitorUtil_Windows.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
+    <ClCompile Include="Utils\ProcessSingleton.cpp" />
     <ClCompile Include="Utils\ScreenCapture_SDL.cpp" />
     <ClCompile Include="Utils\ScreenCapture_Windows.cpp" />
     <ClCompile Include="Utils\ShadowWnd_SDL.cpp" />
@@ -750,6 +751,9 @@
     <ClInclude Include="Utils\Macros_Windows.h" />
     <ClInclude Include="Utils\MonitorUtil.h" />
     <ClInclude Include="Utils\PerformanceUtil.h" />
+    <ClInclude Include="Utils\ProcessSingleton.h" />
+    <ClInclude Include="Utils\ProcessSingletonData.h" />
+    <ClInclude Include="Utils\ProcessSingleton_Windows.h" />
     <ClInclude Include="Utils\ScreenCapture.h" />
     <ClInclude Include="Utils\ShadowWnd.h" />
     <ClInclude Include="Utils\StringCharset.h" />

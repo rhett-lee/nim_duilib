@@ -43,7 +43,7 @@ int TestApplication::Run(int argc, char** argv)
 #ifdef DUILIB_BUILD_FOR_WIN
     (void)argc;
     (void)argv;
-    if (!ui::CefManager::GetInstance()->Initialize(appDataDir.ToString(), settings, kEnableOffScreenRendering)) {
+    if (!ui::CefManager::GetInstance()->Initialize(appDataDir.ToString(), settings, kEnableOffScreenRendering, _T("duilib_cef"))) {
         return 0;
     }
 #else
