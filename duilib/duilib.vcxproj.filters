@@ -630,6 +630,9 @@
     <ClCompile Include="RenderSkia\DrawSkiaImage.cpp">
       <Filter>RenderSkia</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\ProcessSingleton.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1300,6 +1303,15 @@
     </ClInclude>
     <ClInclude Include="RenderSkia\DrawSkiaImage.h">
       <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ProcessSingleton_Windows.h">
+      <Filter>Utils\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ProcessSingleton.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\ProcessSingletonData.h">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

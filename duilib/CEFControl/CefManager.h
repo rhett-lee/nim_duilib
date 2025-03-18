@@ -20,6 +20,9 @@ namespace ui
      */
     typedef std::function<void (const std::vector<DString>& argumentList)> OnAlreadyRunningAppRelaunchEvent;
 
+    //进程单例控制（CEF109）
+    class ProcessSingleton;
+
 /** 管理Cef组件的初始化、销毁、消息循环
  * @copyright (c) 2016, NetEase Inc. All rights reserved
  * @author Redrain
@@ -47,6 +50,7 @@ public:
     * @param [in] app_data_dir 应用路径名称
     * @param [in] settings Cef全部配置
     * @param [in] bEnableOffScreenRendering 是否开启离屏渲染
+    * @param [in] appName 产品名称标识符（保证唯一性，用于控制Browser进程单例）
     * @param [in] argc 程序启动时的参数个数(仅Linux环境使用)
     * @param [in] argv 程序启动时的参数列表(仅Linux环境使用)
     * @return bool true 继续运行，false 应该结束程序
@@ -54,7 +58,8 @@ public:
 #ifdef DUILIB_BUILD_FOR_WIN
     bool Initialize(const DString& app_data_dir,
                     CefSettings& settings,
-                    bool bEnableOffScreenRendering = true);
+                    bool bEnableOffScreenRendering,
+                    const DString& appName);
 #else
     bool Initialize(const DString& app_data_dir,
                     CefSettings& settings,
@@ -96,6 +101,12 @@ private:
     */
     void GetCefSetting(const DString& app_data_dir, CefSettings& settings);
 
+#if CEF_VERSION_MAJOR <= 109
+    /** 浏览器单例控制回调函数
+    */
+    static void OnBrowserAlreadyRunningAppRelaunch(const std::vector<DString>& argumentList);
+#endif
+
 private:
     //浏览器控件的计数器
     int32_t m_browserCount;
@@ -105,6 +116,11 @@ private:
 
     //另外一个Browser进程启动时的回调函数
     OnAlreadyRunningAppRelaunchEvent m_pfnAlreadyRunningAppRelaunch;
+
+#ifdef DUILIB_BUILD_FOR_WIN
+    //进程单例控制（CEF 109）
+    std::unique_ptr<ProcessSingleton> m_pProcessSingleton;
+#endif
 };
 }
 
