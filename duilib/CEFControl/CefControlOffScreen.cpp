@@ -33,7 +33,7 @@ CefControlOffScreen::~CefControlOffScreen(void)
 
         if (m_pBrowserHandler->GetBrowser().get()) {
             // Request that the main browser close.
-            m_pBrowserHandler->CloseAllBrowser();
+            m_pBrowserHandler->CloseAllBrowsers();
         }
     }
 }

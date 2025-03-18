@@ -23,6 +23,9 @@ namespace ui
     //进程单例控制（CEF109）
     class ProcessSingleton;
 
+    //窗口类型
+    class Window;
+
 /** 管理Cef组件的初始化、销毁、消息循环
  * @copyright (c) 2016, NetEase Inc. All rights reserved
  * @author Redrain
@@ -91,7 +94,12 @@ public:
     void SubBrowserCount();
     int32_t GetBrowserCount();
 
-    // 在Cef浏览器对象销毁后发送WM_QUIT消息
+    /** 窗口关闭时，处理该窗口下的所有Browser控件，在窗口关闭前退出
+    */
+    void ProcessWindowCloseEvent(Window* pWindow);
+
+    /** 在Cef浏览器对象销毁后发送 WM_QUIT 消息，退出主进程的消息循环
+    */
     void PostQuitMessage(int32_t nExitCode);
 
 private:

@@ -121,9 +121,13 @@ public:
     */
     bool CallJSFunction(const DString& js_function_name, const DString& params, ui::CallJsFunctionCallback callback, const CefString& frame_id);
 
-    /** 修复浏览器对象（重新创建Browser对象）
+    /** 修复浏览器对象（如果Browser对象未创建，则重新创建Browser对象）
     */
     virtual void RepairBrowser();
+
+    /** 关闭所有的Browser对象
+    */
+    virtual void CloseAllBrowsers();
 
 public:
 

@@ -397,6 +397,10 @@ protected:
 
     /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */
+    virtual void OnPreCloseWindow() {};
+
+    /** 当窗口已经被关闭时调用此函数，供子类中做一些收尾工作
+    */
     virtual void OnCloseWindow() {};
 
     /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是调用delete销毁自身，若不想销毁自身，可重写该函数）

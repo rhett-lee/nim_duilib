@@ -254,6 +254,13 @@ void CefControl::RepairBrowser()
     ReCreateBrowser();
 }
 
+void CefControl::CloseAllBrowsers()
+{
+    if (m_pBrowserHandler != nullptr) {
+        m_pBrowserHandler->CloseAllBrowsers();
+    }
+}
+
 void CefControl::ResetDevToolAttachedState()
 {
     bool bAttachedDevTools = m_bAttachedDevTools;

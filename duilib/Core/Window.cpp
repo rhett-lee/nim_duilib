@@ -303,6 +303,7 @@ void Window::PostInitWindow()
 void Window::PreCloseWindow()
 {
     ClearStatus();
+    OnPreCloseWindow();
 }
 
 void Window::PostCloseWindow()

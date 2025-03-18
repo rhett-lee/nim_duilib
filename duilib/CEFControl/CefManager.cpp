@@ -12,7 +12,8 @@
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Core/GlobalManager.h"
-#include "duilib/Core/WindowBase.h"
+#include "duilib/Core/Window.h"
+#include "duilib/Core/Box.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100)
@@ -287,6 +288,14 @@ void CefManager::UnInitialize()
 #ifdef DUILIB_BUILD_FOR_WIN
     CefDragDrop::GetInstance().Clear();
 #endif
+
+#if CEF_VERSION_MAJOR <= 109
+    //启动单例进程监控
+    if (m_pProcessSingleton != nullptr) {
+        m_pProcessSingleton.reset();
+    }
+#endif
+
     CefShutdown();
 }
 
@@ -309,6 +318,49 @@ void CefManager::SubBrowserCount()
 int CefManager::GetBrowserCount()
 {
     return m_browserCount;
+}
+
+static void GetCefControlList(Box* pRoot, std::vector<Control*>& cefControlList)
+{
+    if (pRoot == nullptr) {
+        return;
+    }
+    std::vector<Box*> boxList;
+    size_t nItemCount = pRoot->GetItemCount();
+    for (size_t nItem = 0; nItem < nItemCount; ++nItem) {
+        Control* pControl = pRoot->GetItemAt(nItem);
+        if (pControl == nullptr) {
+            continue;
+        }
+        if (dynamic_cast<CefControl*>(pControl) != nullptr) {
+            cefControlList.push_back(pControl);
+        }
+        Box* pBox = dynamic_cast<Box*>(pControl);
+        if (pBox != nullptr) {
+            boxList.push_back(pBox);
+        }
+    }
+
+    for (Box* pBox : boxList) {
+        GetCefControlList(pBox, cefControlList);
+    }
+}
+
+void CefManager::ProcessWindowCloseEvent(Window* pWindow)
+{
+    Box* pRoot = nullptr;
+    if (pWindow != nullptr) {
+        pRoot = pWindow->GetRoot();
+    }
+    std::vector<Control*> cefControlList;
+    GetCefControlList(pRoot, cefControlList);
+
+    for (Control* pControl : cefControlList) {
+        CefControl* pCefControl = dynamic_cast<CefControl*>(pControl);
+        if (pCefControl != nullptr) {
+            pCefControl->CloseAllBrowsers();
+        }
+    }
 }
 
 void CefManager::PostQuitMessage(int32_t nExitCode)

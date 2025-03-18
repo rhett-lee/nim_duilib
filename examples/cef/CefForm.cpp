@@ -83,9 +83,15 @@ void CefForm::OnInitWindow()
     ui::CefManager::GetInstance()->SetAlreadyRunningAppRelaunch(UiBind(&CefForm::OnAlreadyRunningAppRelaunch, this, std::placeholders::_1));
 }
 
-void CefForm::OnCloseWindow()
+void CefForm::OnPreCloseWindow()
 {
-    //关闭窗口后，退出主线程的消息循环，关闭程序
+    //关闭窗口时，先关闭该窗口关联的所有Browser对象
+    ui::CefManager::GetInstance()->ProcessWindowCloseEvent(this);
+}
+
+void CefForm::OnCloseWindow()
+{   
+    //关闭窗口后，退出主线程的消息循环，关闭程序    
     ui::CefManager::GetInstance()->PostQuitMessage(0L);
 }
 

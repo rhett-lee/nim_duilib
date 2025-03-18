@@ -69,7 +69,7 @@ CefUnregisterCallback CefBrowserHandler::AddAfterCreateTask(const ui::StdClosure
     return m_taskListAfterCreated.AddCallback(cb);
 }
 
-void CefBrowserHandler::CloseAllBrowser()
+void CefBrowserHandler::CloseAllBrowsers()
 {
     class CloseAllBrowserTask : public CefTask
     {

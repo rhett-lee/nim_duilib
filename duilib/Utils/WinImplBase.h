@@ -50,6 +50,10 @@ protected:
 
     /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
     */
+    virtual void OnPreCloseWindow() override;
+
+    /** 当窗口已经被关闭时调用此函数，供子类中做一些收尾工作
+    */
     virtual void OnCloseWindow() override;
 
     /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并销毁该窗口对象）

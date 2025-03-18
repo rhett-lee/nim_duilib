@@ -80,7 +80,9 @@ public:
     // 比如创建Browser后调用LoadUrl加载网页，但是这时Browser很可能还没有创建成功，就把LoadUrl任务添加到队列
      CefUnregisterCallback AddAfterCreateTask(const ui::StdClosure& cb);
 
-     void CloseAllBrowser();
+     /** 关闭所有的Browser对象
+     */
+     void CloseAllBrowsers();
 public:
     
     // CefClient的接口实现

@@ -87,6 +87,11 @@ void WindowImplBase::OnInitWindow()
     BaseClass::OnInitWindow();
 }
 
+void WindowImplBase::OnPreCloseWindow()
+{
+    BaseClass::OnPreCloseWindow();
+}
+
 void WindowImplBase::OnCloseWindow()
 {
     BaseClass::OnCloseWindow();

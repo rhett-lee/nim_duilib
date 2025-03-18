@@ -232,6 +232,18 @@ void CefControlNative::UpdateWindowPos()
     SetVisible(IsVisible());
 }
 
+void CefControlNative::CloseAllBrowsers()
+{
+#ifdef DUILIB_BUILD_FOR_WIN
+    //关闭窗口时，取消父子关系，避免导致退出时的崩溃问题
+    HWND hWnd = GetCefHandle();
+    if (::IsWindow(hWnd)) {
+        ::SetParent(hWnd, nullptr);
+    }
+#endif
+    BaseClass::CloseAllBrowsers();
+}
+
 #ifdef DUILIB_BUILD_FOR_LINUX
 //设置X窗口的父窗口
 class SetX11WindowParentWindowTask : public CefTask
