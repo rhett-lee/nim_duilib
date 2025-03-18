@@ -43,11 +43,20 @@ public:
             ::ConvertStringSecurityDescriptorToSecurityDescriptorW(L"S:(ML;;NW;;;LW)", SDDL_REVISION_1, &sa.lpSecurityDescriptor, nullptr);
             std::wstring wstrMutexName = GetUserSpecificName();
             m_hMutex = ::CreateMutexW(&sa, FALSE, wstrMutexName.c_str());
+            m_dwLastError = ::GetLastError();
             if (!m_hMutex) {
                 ::LocalFree(sa.lpSecurityDescriptor);
                 throw std::system_error(GetLastError(), std::system_category(), "CreateMutex failed");
             }
             ::LocalFree(sa.lpSecurityDescriptor);
+
+            if (m_hCancelEvent == nullptr) {
+                m_hCancelEvent = ::CreateEvent(nullptr, TRUE, FALSE, nullptr); // 手动重置的取消事件                
+                ASSERT(m_hCancelEvent != nullptr);
+                if (m_hCancelEvent) {
+                    ::ResetEvent(m_hCancelEvent);
+                }
+            }
         }
         catch (const std::exception& /*ex*/) {
             CleanupPlatformComponents();
@@ -57,7 +66,7 @@ public:
 
     virtual bool PlatformCheckInstance() override final
     {
-        return ::GetLastError() == ERROR_ALREADY_EXISTS;
+        return m_dwLastError == ERROR_ALREADY_EXISTS;
     }
 
     virtual bool PlatformSendData(const std::string& strData) override final
@@ -122,9 +131,12 @@ public:
                 OVERLAPPED overlapped = { 0 };
                 overlapped.hEvent = ::CreateEvent(nullptr, TRUE, FALSE, nullptr);
 
+                bool bConnected = true;
                 if (!::ConnectNamedPipe(m_hPipe, &overlapped)) {
                     if (::GetLastError() == ERROR_IO_PENDING) {
-                        ::WaitForSingleObject(overlapped.hEvent, INFINITE);
+                        if (!WaitForPipe(m_hPipe, overlapped, m_hCancelEvent)) {
+                            bConnected = false;
+                        }
                     }
                     else {
                         ::CloseHandle(m_hPipe);
@@ -135,7 +147,7 @@ public:
 
                 char pBuffer[ProcessSingletonData::MAX_DATA_SIZE + sizeof(ProcessSingletonData::ProtocolHeader)] = { 0 };
                 DWORD dwRead = 0;
-                if (::ReadFile(m_hPipe, pBuffer, sizeof(pBuffer), &dwRead, &overlapped)) {
+                if (bConnected && m_bRunning && ::ReadFile(m_hPipe, pBuffer, sizeof(pBuffer), &dwRead, &overlapped)) {
                     try {
                         auto vecArgs = ProcessSingletonData::DeserializeData(std::string(pBuffer, dwRead));
                         OnAlreadyRunningAppRelaunch(vecArgs);
@@ -158,21 +170,72 @@ public:
     
     virtual void CleanupPlatformComponents() override final
     {
+        m_bRunning = false;
+        if (m_hCancelEvent) {
+            ::SetEvent(m_hCancelEvent);
+        }        
+        if (m_thListener.joinable()) {
+            m_thListener.join();
+        }
+        if (m_hCancelEvent != nullptr) {
+            ::CloseHandle(m_hCancelEvent);
+            m_hCancelEvent = nullptr;
+        }
         if (m_hMutex) {
             ::CloseHandle(m_hMutex);
             m_hMutex = nullptr;
         }
-        if (m_hPipe != INVALID_HANDLE_VALUE) {
-            ::CloseHandle(m_hPipe);
-            m_hPipe = INVALID_HANDLE_VALUE;
-        }
-        
-        if (m_thListener.joinable()) {
-            m_thListener.join();
-        }
     }
     
 private:
+    bool WaitForPipe(HANDLE hPipe, OVERLAPPED& overlapped, HANDLE hCancelEvent) const
+    {
+        HANDLE waitHandles[2] = {overlapped.hEvent, hCancelEvent};
+        DWORD waitResult = ::WaitForMultipleObjects(2, waitHandles, FALSE, INFINITE);
+
+        bool bRet = false;
+        switch (waitResult) {
+            case WAIT_OBJECT_0: // 连接完成或取消
+                {
+                    DWORD bytesTransferred = 0;
+                    BOOL success = ::GetOverlappedResult(hPipe, &overlapped, &bytesTransferred, FALSE);
+                    if (!success) {
+                        DWORD error = ::GetLastError();
+                        if (error == ERROR_OPERATION_ABORTED) {
+                            // 操作被取消
+                            bRet = false;
+                        }
+                        else {
+                            // 其他错误
+                            bRet = false;
+                        }
+                    }
+                    else {
+                        // 连接成功处理
+                        bRet = true;
+                    }
+                    break;
+                }
+            case WAIT_OBJECT_0 + 1: // 取消事件触发
+                {
+                    // 取消I/O操作
+                    ::CancelIo(hPipe);
+
+                    // 等待重叠操作完成
+                    ::WaitForSingleObject(overlapped.hEvent, INFINITE);
+                    DWORD error = ::GetLastError();
+                    if (error == ERROR_OPERATION_ABORTED) {
+                        // 确认已取消
+                        bRet = false;
+                    }
+                    break;
+                }
+            default:
+                // 处理等待错误
+                break;
+        }
+        return bRet;
+    }
     std::wstring GetUserSpecificName() 
     {
         HANDLE hToken = nullptr;
@@ -220,6 +283,8 @@ private:
     // Windows实现
     HANDLE m_hMutex = nullptr;
     HANDLE m_hPipe = INVALID_HANDLE_VALUE;
+    DWORD m_dwLastError = 0;
+    HANDLE m_hCancelEvent = nullptr;
 };
 
 }
