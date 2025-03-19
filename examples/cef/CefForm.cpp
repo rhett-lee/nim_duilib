@@ -47,11 +47,13 @@ void CefForm::OnInitWindow()
     m_pDevToolBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_dev_tool")));
     m_pEditUrl = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_url")));
     ASSERT(m_pDevToolBtn != nullptr);
-    ASSERT(m_pEditUrl != nullptr);
+    //ASSERT(m_pEditUrl != nullptr);
 
     // 设置输入框样式
-    m_pEditUrl->SetSelAllOnFocus(true);
-    m_pEditUrl->AttachReturn(UiBind(&CefForm::OnNavigate, this, std::placeholders::_1));
+    if (m_pEditUrl != nullptr) {
+        m_pEditUrl->SetSelAllOnFocus(true);
+        m_pEditUrl->AttachReturn(UiBind(&CefForm::OnNavigate, this, std::placeholders::_1));
+    }
 
     if (m_pCefControl != nullptr) {
         m_pCefControl->SetCefEventHandler(this);
@@ -81,6 +83,15 @@ void CefForm::OnInitWindow()
 
     //设置控制主进程单例的回调函数
     ui::CefManager::GetInstance()->SetAlreadyRunningAppRelaunch(UiBind(&CefForm::OnAlreadyRunningAppRelaunch, this, std::placeholders::_1));
+
+    if (!ui::CefManager::GetInstance()->IsEnableOffScreenRendering()) {
+        //处理控件多焦点问题（由于cef控件是子窗口模式，duilib内部无法自己完成这个功能）
+        AttachWindowKillFocus([this](const ui::EventArgs& args) {
+            //当窗口失去焦点的时候，让界面中的控件失去焦点，避免出现网页与界面控件同时处于焦点状态的问题
+            KillFocusControl();
+            return true;
+            });
+    }
 }
 
 void CefForm::OnPreCloseWindow()

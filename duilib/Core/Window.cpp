@@ -56,6 +56,16 @@ void Window::AttachWindowClose(const EventCallback& callback)
     m_OnEvent[kEventWindowClose] += callback;
 }
 
+void Window::AttachWindowSetFocus(const EventCallback& callback)
+{
+    m_OnEvent[kEventWindowSetFocus] += callback;
+}
+
+void Window::AttachWindowKillFocus(const EventCallback& callback)
+{
+    m_OnEvent[kEventWindowKillFocus] += callback;
+}
+
 bool Window::SetRenderBackendType(RenderBackendType backendType)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
@@ -1095,13 +1105,14 @@ bool Window::Paint(const UiRect& rcPaint)
     return true;
 }
 
-LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
+LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
+    SendNotify(kEventWindowSetFocus, nativeMsg.wParam);
     return 0;
 }
 
-LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
+LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
     Control* pEventClick = m_pEventClick;
@@ -1121,6 +1132,10 @@ LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg&
         if (windowFlag.expired()) {
             return 0;
         }
+    }
+
+    if (!windowFlag.expired()) {
+        SendNotify(kEventWindowKillFocus, nativeMsg.wParam);
     }
     return 0;
 }
