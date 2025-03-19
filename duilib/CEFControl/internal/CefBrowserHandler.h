@@ -50,7 +50,6 @@ class CefBrowserHandler : public virtual ui::SupportWeakCallback,
     public CefCookieAccessFilter,
     public CefDownloadHandler,
     public CefDialogHandler,
-    public CefFocusHandler,
     public client::OsrDragEvents
 {
 public:
@@ -92,8 +91,8 @@ public:
     virtual CefRefPtr<CefFrameHandler> GetFrameHandler() override { return nullptr; }
     virtual CefRefPtr<CefPermissionHandler> GetPermissionHandler() override { return nullptr; }
     virtual CefRefPtr<CefPrintHandler> GetPrintHandler() override { return nullptr; }
+    virtual CefRefPtr<CefFocusHandler> GetFocusHandler() override { return nullptr; }
 
-    virtual CefRefPtr<CefFocusHandler> GetFocusHandler() override { return this; }
     virtual CefRefPtr<CefContextMenuHandler> GetContextMenuHandler() override {    return this; }
     virtual CefRefPtr<CefRenderHandler>  GetRenderHandler() override { return this; }
     virtual CefRefPtr<CefDisplayHandler> GetDisplayHandler() override{ return this; }
@@ -400,11 +399,6 @@ public:
                               const std::vector<CefString>& accept_descriptions,
                               CefRefPtr<CefFileDialogCallback> callback) override;
 #endif
-
-    //CefFocusHandler接口的实现
-    virtual void OnTakeFocus(CefRefPtr<CefBrowser> browser, bool next) override;
-    virtual bool OnSetFocus(CefRefPtr<CefBrowser> browser, cef_focus_source_t source) override;
-    virtual void OnGotFocus(CefRefPtr<CefBrowser> browser) override;
 
 private:
     bool DoOnBeforePopup(CefRefPtr<CefBrowser> browser,
