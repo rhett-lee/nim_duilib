@@ -140,31 +140,22 @@ void CefControlNative::SetPos(ui::UiRect rc)
 #endif
 }
 
-void CefControlNative::HandleEvent(const ui::EventArgs& msg)
+bool CefControlNative::OnSetFocus(const EventArgs& msg)
 {
-    if (IsDisabledEvents(msg)) {
-        //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
-        ui::Box* pParent = GetParent();
-        if (pParent != nullptr) {
-            pParent->SendEventMsg(msg);
-        }
-        else {
-            BaseClass::HandleEvent(msg);
-        }
-        return;
+    CefRefPtr<CefBrowserHost> browserHost = GetCefBrowserHost();
+    if (browserHost != nullptr) {
+        browserHost->SetFocus(true);
     }
-    if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get() == nullptr) {
-        BaseClass::HandleEvent(msg);
-        return;
-    }
+    return BaseClass::OnSetFocus(msg);
+}
 
-    else if (msg.eventType == ui::kEventSetFocus) {
-        m_pBrowserHandler->GetBrowserHost()->SetFocus(true);
+bool CefControlNative::OnKillFocus(const EventArgs& msg)
+{
+    CefRefPtr<CefBrowserHost> browserHost = GetCefBrowserHost();
+    if (browserHost != nullptr) {
+        browserHost->SetFocus(false);
     }
-    else if (msg.eventType == ui::kEventKillFocus) {
-        m_pBrowserHandler->GetBrowserHost()->SetFocus(false);
-    }
-    BaseClass::HandleEvent(msg);
+    return BaseClass::OnKillFocus(msg);
 }
 
 #ifdef DUILIB_BUILD_FOR_LINUX

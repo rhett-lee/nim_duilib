@@ -155,37 +155,6 @@ void CefControlOffScreen::SetPos(UiRect rc)
     }
 }
 
-void CefControlOffScreen::HandleEvent(const EventArgs& msg)
-{
-    if (IsDisabledEvents(msg)) {
-        //如果是鼠标键盘消息，并且控件是Disabled的，转发给上层控件
-        Box* pParent = GetParent();
-        if (pParent != nullptr) {
-            pParent->SendEventMsg(msg);
-        }
-        else {
-            BaseClass::HandleEvent(msg);
-        }
-        return;
-    }
-    if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get() == nullptr) {
-        return BaseClass::HandleEvent(msg);
-    }
-
-    else if (msg.eventType == kEventSetFocus) {
-        if (m_pBrowserHandler->GetBrowserHost().get()) {
-            m_pBrowserHandler->GetBrowserHost()->SetFocus(true);
-        }
-    }
-    else if (msg.eventType == kEventKillFocus) {
-        if (m_pBrowserHandler->GetBrowserHost().get()) {
-            m_pBrowserHandler->GetBrowserHost()->SetFocus(false);
-        }
-    }
-
-    BaseClass::HandleEvent(msg);
-}
-
 void CefControlOffScreen::SetVisible(bool bVisible)
 {
     GlobalManager::Instance().AssertUIThread();
@@ -525,6 +494,24 @@ void CefControlOffScreen::SendButtonDoubleClickEvent(const EventArgs& msg)
         (msg.eventType == kEventMouseDoubleClick ? MBT_LEFT : (
             msg.eventType == kEventMouseRDoubleClick ? MBT_RIGHT : MBT_MIDDLE));
     host->SendMouseClickEvent(mouse_event, btnType, true, 2);
+}
+
+bool CefControlOffScreen::OnSetFocus(const EventArgs& msg)
+{
+    CefRefPtr<CefBrowserHost> browserHost = GetCefBrowserHost();
+    if (browserHost != nullptr) {
+        browserHost->SetFocus(true);
+    }
+    return BaseClass::OnSetFocus(msg);
+}
+
+bool CefControlOffScreen::OnKillFocus(const EventArgs& msg)
+{
+    CefRefPtr<CefBrowserHost> browserHost = GetCefBrowserHost();
+    if (browserHost != nullptr) {
+        browserHost->SetFocus(false);
+    }
+    return BaseClass::OnKillFocus(msg);
 }
 
 bool CefControlOffScreen::OnChar(const EventArgs& msg)
