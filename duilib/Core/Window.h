@@ -77,6 +77,16 @@ public:
     */
     void AttachWindowClose(const EventCallback& callback);
 
+    /** 监听窗口获取焦点事件
+    * @param [in] callback 指定的回调函数
+    */
+    void AttachWindowSetFocus(const EventCallback& callback);
+
+    /** 监听窗口失去焦点事件
+    * @param [in] callback 指定的回调函数
+    */
+    void AttachWindowKillFocus(const EventCallback& callback);
+
     /** 主动发起一个消息, 发送给该窗口的事件回调管理器（m_OnEvent）中注册的消息处理函数
     * @param [in] eventType 转化后的消息体
     * @param [in] wParam 消息附加参数

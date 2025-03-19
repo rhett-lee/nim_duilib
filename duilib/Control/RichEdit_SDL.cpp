@@ -1520,10 +1520,8 @@ void RichEdit::SetImmStatus(BOOL bOpen)
     if (hwnd == nullptr) {
         return;
     }
-    // 失去焦点时关闭输入法
+    //失去焦点时关闭输入法(避免出现当焦点为其他非输入控件时，也能使用中文输入法但无法使输入的文字上屏的问题)
     HIMC hImc = ::ImmGetContext(hwnd);
-    // 失去焦点是会把关联的输入法去掉，导致无法无法输入中文
-    //::ImmAssociateContext(hwnd, bOpen ? hImc : nullptr);
     if (hImc != nullptr) {
         if (::ImmGetOpenStatus(hImc)) {
             if (!bOpen) {
@@ -3259,7 +3257,18 @@ bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
     }
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    SetImmStatus(FALSE);
+    HWND hWnd = GetWindowHWND();
+    HWND hFocusWnd = ::GetFocus();
+    bool bNewFocusIsChildWnd = false;
+    if ((hFocusWnd != hWnd) && ::IsWindow(hWnd) && ::IsWindow(hFocusWnd)) {
+        if (::IsChild(hWnd, hFocusWnd)) {
+            bNewFocusIsChildWnd = true;
+        }
+    }
+    if (!bNewFocusIsChildWnd) {
+        //如果新的焦点窗口为当前窗口的子窗口，不关闭输入法，其他情况才关闭输入法
+        SetImmStatus(FALSE);
+    }
 #endif
 
 #ifdef DUILIB_BUILD_FOR_SDL

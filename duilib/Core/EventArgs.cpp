@@ -216,6 +216,8 @@ DString EventTypeToString(EventType eventType)
         return _T("kEventImeComposition");
     case kEventImeEndComposition:
         return _T("kEventImeEndComposition");
+    case kEventWindowSetFocus:
+        return _T("kEventWindowSetFocus");
     case kEventWindowKillFocus:
         return _T("kEventWindowKillFocus");
     case kEventWindowSize:
