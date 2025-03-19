@@ -32,7 +32,6 @@ public:
     /// 重写父类接口，提供个性化功能
     virtual void Init() override;
     virtual void SetPos(UiRect rc) override;
-    virtual void HandleEvent(const ui::EventArgs& msg) override;
     virtual void SetVisible(bool bVisible) override;
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
     virtual void SetWindow(Window* pWindow) override;
@@ -71,6 +70,10 @@ protected:
     virtual bool MButtonDown(const EventArgs& msg) override;
     virtual bool MButtonUp(const EventArgs& msg) override;
     virtual bool MButtonDoubleClick(const EventArgs& msg) override;
+
+    //焦点相关消息处理
+    virtual bool OnSetFocus(const EventArgs& msg);
+    virtual bool OnKillFocus(const EventArgs& msg);
 
     //键盘消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
     virtual bool OnChar(const EventArgs& msg) override;

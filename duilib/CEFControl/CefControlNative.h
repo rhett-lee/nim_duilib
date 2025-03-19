@@ -21,7 +21,8 @@ public:
 
     virtual void Init() override;
     virtual void SetPos(ui::UiRect rc) override;
-    virtual void HandleEvent(const ui::EventArgs& msg) override;
+    virtual bool OnSetFocus(const EventArgs& msg);
+    virtual bool OnKillFocus(const EventArgs& msg);
     virtual void SetVisible(bool bVisible) override;
     virtual void SetWindow(ui::Window* pWindow) override;
 
