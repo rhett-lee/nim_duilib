@@ -496,13 +496,26 @@ void CefControlOffScreen::SendButtonDoubleClickEvent(const EventArgs& msg)
     host->SendMouseClickEvent(mouse_event, btnType, true, 2);
 }
 
-bool CefControlOffScreen::OnSetFocus(const EventArgs& msg)
+bool CefControlOffScreen::OnSetFocus(const EventArgs& /*msg*/)
 {
+    //获得焦点时，打开输入法
+    Window* pWindow = GetWindow();
+    if (pWindow != nullptr) {
+        bool bEnableIME = IsVisible() && IsEnabled();
+        pWindow->NativeWnd()->SetImeOpenStatus(bEnableIME);
+    }
+
     CefRefPtr<CefBrowserHost> browserHost = GetCefBrowserHost();
     if (browserHost != nullptr) {
         browserHost->SetFocus(true);
     }
-    return BaseClass::OnSetFocus(msg);
+
+    //不调用基类的方法(基类的方法会关闭输入法)
+    if (GetState() == kControlStateNormal) {
+        SetState(kControlStateHot);
+    }
+    Invalidate();
+    return true;
 }
 
 bool CefControlOffScreen::OnKillFocus(const EventArgs& msg)
@@ -575,12 +588,12 @@ bool CefControlOffScreen::IsCefOSR() const
 
 bool CefControlOffScreen::IsCefOsrImeMode() const
 {
-#if CEF_VERSION_MAJOR > 109
-    //109版本的离屏渲染模式，输入法输入时，libcef.dll内部会崩溃，原因未知，现禁止输入法功能（副作用：中文输入法的候选框位置不正确）
-    return true;
+    //109版本的64位版本离屏渲染模式，输入法输入时，libcef.dll内部会崩溃，原因未知，现禁止输入法功能（副作用：中文输入法的候选框位置不正确）
+#if defined (_WIN64)
+    return (CEF_VERSION_MAJOR > 109) ? true : false;
 #else
-    return false;
-#endif
+    return true;
+#endif    
 }
 
 bool CefControlOffScreen::OnImeSetContext(const EventArgs& msg)

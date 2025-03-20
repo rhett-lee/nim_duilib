@@ -79,6 +79,10 @@ public:
     TaskbarTabItem* GetTaskbarItem();
 #endif
 
+    /** 控件类型
+    */
+    virtual DString GetType() const override { return _T("BrowserBox"); }
+
     /**
     * 覆盖父类虚函数，用于指定本控件所属窗体
     * @param[in] pWindow 所属窗口指针
@@ -97,6 +101,11 @@ public:
     * @return void    无返回值
     */
     virtual void SetPos(ui::UiRect rc) override;
+
+protected:
+    /** 获取焦点
+    */
+    virtual bool OnSetFocus(const ui::EventArgs& msg) override;
 
 private:
 
