@@ -2701,23 +2701,19 @@ bool NativeWindow_Windows::IsEnableSysMenu() const
 
 void NativeWindow_Windows::SetImeOpenStatus(bool bOpen)
 {
-    HWND hwnd = m_hWnd;
-    if (!::IsWindow(hwnd)) {
-        return;
-    }
-
     if (!bOpen) {
         //禁用输入法
-        EnableIME(hwnd, false);
+        EnableIME(m_hWnd, false);
     }
     else {
         //启用输入法
-        EnableIME(hwnd, true);
+        EnableIME(m_hWnd, true);
     }
 }
 
 void NativeWindow_Windows::EnableIME(HWND hwnd, bool bEnable)
 {
+    ASSERT(::IsWindow(hwnd));
     if (!::IsWindow(hwnd)) {
         return;
     }
@@ -2734,6 +2730,18 @@ void NativeWindow_Windows::EnableIME(HWND hwnd, bool bEnable)
             HIMC hImc = ::ImmAssociateContext(hwnd, m_hImc);
             m_hImc = nullptr;
             ASSERT(hImc == nullptr);
+        }
+        else {
+            //检查输入法是否打开，给出断言
+            HIMC hImc = ::ImmGetContext(hwnd);
+            ASSERT(hImc != nullptr);
+            if (hImc != nullptr) {
+                ASSERT(::ImmGetOpenStatus(hImc));
+                if (!::ImmGetOpenStatus(hImc)) {
+                    ::ImmSetOpenStatus(hImc, TRUE);
+                }
+                ::ImmReleaseContext(hwnd, hImc);
+            }
         }
     }
 }

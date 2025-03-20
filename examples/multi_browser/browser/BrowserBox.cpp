@@ -103,13 +103,6 @@ void BrowserBox::InitBrowserBox(const DString &url)
         }
     }
 #endif
-
-    // Box获取焦点时把焦点转移给Cef控件
-    this->AttachSetFocus([this](const ui::EventArgs& param)->bool
-    {
-        m_pCefControl->SetFocus();
-        return true;
-    }); 
 }
 
 void BrowserBox::UninitBrowserBox()
@@ -155,6 +148,21 @@ void BrowserBox::SetPos(UiRect rc)
         m_pTaskBarItem->InvalidateTab();
     }
 #endif
+}
+
+bool BrowserBox::OnSetFocus(const ui::EventArgs& msg)
+{
+    // Box获取焦点时把焦点转移给Cef控件
+    if (m_pCefControl) {
+        m_pCefControl->SetFocus();
+    }
+
+    //不再调用基类的方法，避免覆盖输入法管理的逻辑（基类会关闭输入法）
+    if (GetState() == kControlStateNormal) {
+        SetState(kControlStateHot);
+        Invalidate();
+    }
+    return true;
 }
 
 void BrowserBox::OnAfterCreated(CefRefPtr<CefBrowser> browser)
