@@ -1042,6 +1042,7 @@ protected:
     virtual bool OnSetCursor(const EventArgs& msg);
     virtual bool OnSetFocus(const EventArgs& msg);
     virtual bool OnKillFocus(const EventArgs& msg); //控件失去焦点
+    virtual bool OnWindowSetFocus(const EventArgs& msg);//控件所属的窗口获得焦点
     virtual bool OnWindowKillFocus(const EventArgs& msg);//控件所属的窗口失去焦点
     virtual bool OnCaptureChanged(const EventArgs& msg);//控件所属窗口的鼠标捕获丢失
     virtual bool OnImeSetContext(const EventArgs& msg);

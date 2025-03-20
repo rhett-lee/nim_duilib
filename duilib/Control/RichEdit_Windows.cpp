@@ -1337,29 +1337,6 @@ UiSize RichEdit::GetNaturalSize(LONG width, LONG height)
     return sz;
 }
 
-void RichEdit::SetImmStatus(BOOL bOpen)
-{
-    HWND hwnd = GetWindowHWND();
-    if (hwnd == nullptr) {
-        return;
-    }
-    //失去焦点时关闭输入法(避免出现当焦点为其他非输入控件时，也能使用中文输入法但无法使输入的文字上屏的问题)
-    HIMC hImc = ::ImmGetContext(hwnd);
-    if (hImc != nullptr) {
-        if (::ImmGetOpenStatus(hImc)) {
-            if (!bOpen) {
-                ::ImmSetOpenStatus(hImc, FALSE);
-            }
-        }
-        else {
-            if (bOpen) {
-                ::ImmSetOpenStatus(hImc, TRUE);
-            }
-        }
-        ::ImmReleaseContext(hwnd, hImc);
-    }
-}
-
 void RichEdit::SetTimer(UINT idTimer, UINT uTimeout)
 {
     auto timeFlag = m_timeFlagMap.find(idTimer);
@@ -1812,7 +1789,13 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
         m_richCtrl.TxSendMessage(WM_SETFOCUS, 0, 0);
         ShowCaret(true);
     }
-    SetImmStatus(TRUE);
+
+    //获得焦点时，打开输入法
+    Window* pWindow = GetWindow();
+    if (pWindow != nullptr) {
+        bool bEnableIME = IsVisible() && !IsReadOnly() && IsEnabled();
+        pWindow->NativeWnd()->SetImeOpenStatus(bEnableIME);
+    }
 
 #ifdef DUILIB_BUILD_FOR_SDL
     if (IsVisible() && !IsReadOnly() && IsEnabled()) {
@@ -1826,11 +1809,16 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
     if ((m_pShowPasswordButton != nullptr) && IsPasswordMode() && !IsShowPassword()) {
         m_pShowPasswordButton->SetFadeVisible(true);
     }
+
+    //不调用基类的方法
+    if (GetState() == kControlStateNormal) {
+        SetState(kControlStateHot);
+    }
     Invalidate();
     return true;
 }
 
-bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
+bool RichEdit::OnKillFocus(const EventArgs& msg)
 {
     if (m_pRichHost) {
         m_pRichHost->OnTxInPlaceActivate(nullptr);
@@ -1846,19 +1834,6 @@ bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
         SetSelNone();
     }
 
-    HWND hWnd = GetWindowHWND();
-    HWND hFocusWnd = ::GetFocus();
-    bool bNewFocusIsChildWnd = false;
-    if ((hFocusWnd != hWnd) && ::IsWindow(hWnd) && ::IsWindow(hFocusWnd)) {
-        if (::IsChild(hWnd, hFocusWnd)) {
-            bNewFocusIsChildWnd = true;
-        }
-    }
-    if (!bNewFocusIsChildWnd) {
-        //如果新的焦点窗口为当前窗口的子窗口，不关闭输入法，其他情况才关闭输入法
-        SetImmStatus(FALSE);
-    }
-
 #ifdef DUILIB_BUILD_FOR_SDL
     if (IsVisible() && !IsReadOnly() && IsEnabled()) {
         SDL_StopTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
@@ -1871,8 +1846,8 @@ bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
     if (m_pShowPasswordButton != nullptr) {
         m_pShowPasswordButton->SetFadeVisible(false);
     }
-    Invalidate();
-    return true;
+
+    return BaseClass::OnKillFocus(msg);
 }
 
 bool RichEdit::OnChar(const EventArgs& msg)

@@ -1025,10 +1025,6 @@ private:
     */
     UiSize GetNaturalSize(LONG width, LONG height);
 
-    /** 设置输入法状态
-    */
-    void SetImmStatus(BOOL bOpen);
-
     /** 设置一个定时器（由内部回调使用）
     */
     void SetTimer(UINT idTimer, UINT uTimeout);

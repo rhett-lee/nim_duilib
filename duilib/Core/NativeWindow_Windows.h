@@ -454,6 +454,11 @@ public:
     */
     LRESULT CallDefaultWindowProc(UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+    /** 设置输入法的开关状态（关闭再打开以后，能够保持原输入法状态）
+    * @param [in] bOpen true标识打开输入法，false标识关闭输入法
+    */
+    void SetImeOpenStatus(bool bOpen);
+
 private:
     /** 窗口过程函数
     * @param [in] hWnd 窗口句柄
@@ -590,6 +595,10 @@ private:
     */
     bool CalculateCenterWindowPos(HWND hCenterWindow, int32_t& xPos, int32_t& yPos) const;
 
+    /** 启用/禁用输入法
+    */
+    void EnableIME(HWND hwnd, bool bEnable);
+
 private:
     /** 接收窗口事件的接口
     */
@@ -692,6 +701,10 @@ private:
     /** 窗口大小的最大值（宽度和高度）
     */
     UiSize m_szMaxWindow;
+
+    /** 输入法的上下文
+    */
+    HIMC m_hImc;
 };
 
 /** 定义别名

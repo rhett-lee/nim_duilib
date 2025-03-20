@@ -854,6 +854,10 @@ private:
     */
     void ParseWindowXml();
 
+    /** 焦点控件发生变化
+    */
+    void OnFocusControlChanged();
+
 private:
     //事件回调管理器
     EventMap m_OnEvent;

@@ -958,10 +958,6 @@ private:
     /** 获取关联的窗口局部
     */
     HWND GetWindowHWND() const;
-
-    /** 设置输入法状态
-    */
-    void SetImmStatus(BOOL bOpen);
 #endif
 
 private:
