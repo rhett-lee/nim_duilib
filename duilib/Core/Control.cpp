@@ -1762,11 +1762,16 @@ void Control::HandleEvent(const EventArgs& msg)
             return;
         }
     }
+    else if (msg.eventType == kEventWindowSetFocus) {
+        if (OnWindowSetFocus(msg)) {
+            return;
+        }
+    }
     else if (msg.eventType == kEventWindowKillFocus) {
         if (OnWindowKillFocus(msg)) {
             return;
         }
-    }
+    }    
     else if (msg.eventType == kEventCaptureChanged) {
         if (OnCaptureChanged(msg)) {
             return;
@@ -2111,6 +2116,14 @@ void Control::SetCursor(CursorType cursorType)
 
 bool Control::OnSetFocus(const EventArgs& /*msg*/)
 {
+#if defined (DUILIB_BUILD_FOR_WIN)
+    //默认情况下，控件获得焦点时，关闭输入法
+    Window* pWindow = GetWindow();
+    if (pWindow != nullptr) {
+        pWindow->NativeWnd()->SetImeOpenStatus(false);
+    }
+#endif
+
     if (GetState() == kControlStateNormal) {
         SetState(kControlStateHot);
         Invalidate();
@@ -2137,6 +2150,12 @@ bool Control::OnKillFocus(const EventArgs& msg)
     }
     Invalidate();
     return true;
+}
+
+bool Control::OnWindowSetFocus(const EventArgs& /*msg*/)
+{
+    //默认不处理，交由父控件处理
+    return false;
 }
 
 bool Control::OnWindowKillFocus(const EventArgs& /*msg*/)

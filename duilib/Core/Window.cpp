@@ -421,10 +421,15 @@ void Window::ReapObjects(Control* pControl)
     if (pControl == m_pEventClick) {
         m_pEventClick = nullptr;
     }
+    bool bFocusChanged = false;
     if (pControl == m_pFocus) {
-        m_pFocus = nullptr;
+        bFocusChanged = (m_pFocus != nullptr) ? true : false;
+        m_pFocus = nullptr;        
     }
     m_controlFinder.RemoveControl(pControl);
+    if (bFocusChanged) {
+        OnFocusControlChanged();
+    }
 }
 
 void Window::SetResourcePath(const FilePath& strPath)
@@ -1108,7 +1113,24 @@ bool Window::Paint(const UiRect& rcPaint)
 LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
-    SendNotify(kEventWindowSetFocus, nativeMsg.wParam);
+    //获得焦点时，如果无焦点控件，则关闭输入法
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    Control* pFocus = m_pFocus;
+    if (pFocus != nullptr) {
+        pFocus->SendEvent(kEventWindowSetFocus);
+
+        //重新激活控件焦点
+        if (!windowFlag.expired() && (pFocus == m_pFocus)) {
+            pFocus->SendEvent(kEventSetFocus);
+        }
+    }
+    else {
+        NativeWnd()->SetImeOpenStatus(false);
+    }
+
+    if (!windowFlag.expired()) {
+        SendNotify(kEventWindowSetFocus, nativeMsg.wParam);
+    }
     return 0;
 }
 
@@ -1852,13 +1874,14 @@ void Window::SetFocusControl(Control* pControl)
     if (pControl == m_pFocus) {
         return;
     }
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    Control* pOldFocus = m_pFocus;
     if (m_pFocus != nullptr) {
         //WPARAM 是新的焦点控件接口
         std::weak_ptr<WeakFlag> controlFlag;
         if (pControl != nullptr) {
             controlFlag = pControl->GetWeakFlag();
-        }
-        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+        }        
         m_pFocus->SendEvent(kEventKillFocus, (WPARAM)pControl);
         if (windowFlag.expired()) {
             return;
@@ -1866,6 +1889,7 @@ void Window::SetFocusControl(Control* pControl)
         m_pFocus = nullptr;
         if ((pControl != nullptr) && controlFlag.expired()){
             //该控件已经销毁
+            OnFocusControlChanged();
             return;
         }
     }
@@ -1874,12 +1898,13 @@ void Window::SetFocusControl(Control* pControl)
 
         //设置控件为焦点控件
         m_pFocus = pControl;
-
-        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         m_pFocus->SendEvent(kEventSetFocus);
         if (windowFlag.expired()) {
             return;
-        }
+        }        
+    }
+    if (!windowFlag.expired() && (pOldFocus != m_pFocus)) {
+        OnFocusControlChanged();
     }
 }
 
@@ -1888,10 +1913,18 @@ void Window::KillFocusControl()
     if (m_pFocus != nullptr) {
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         m_pFocus->SendEvent(kEventKillFocus);
-        if (windowFlag.expired()) {
-            return;
-        }
-        m_pFocus = nullptr;
+        if (!windowFlag.expired()) {
+            m_pFocus = nullptr;
+            OnFocusControlChanged();
+        }        
+    }
+}
+
+void Window::OnFocusControlChanged()
+{
+    if (IsWindowFocused() & (m_pFocus == nullptr)) {
+        //无焦点控件时，关闭输入法
+        NativeWnd()->SetImeOpenStatus(false);
     }
 }
 

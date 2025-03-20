@@ -54,7 +54,8 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_bCloseByEnter(false),
     m_bSnapLayoutMenu(false),
     m_bEnableSysMenu(true),
-    m_nSysMenuTimerId(0)
+    m_nSysMenuTimerId(0),
+    m_hImc(nullptr)
 {
     ASSERT(m_pOwner != nullptr);
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
@@ -395,6 +396,10 @@ void NativeWindow_Windows::ClearNativeWindow()
     if (m_hDcPaint != nullptr) {
         ::ReleaseDC(m_hWnd, m_hDcPaint);
         m_hDcPaint = nullptr;
+    }
+    if (m_hImc != nullptr) {
+        ::ImmAssociateContext(m_hWnd, m_hImc);
+        m_hImc = nullptr;
     }
     m_hWnd = nullptr;
 }
@@ -2692,6 +2697,45 @@ void NativeWindow_Windows::SetEnableSysMenu(bool bEnable)
 bool NativeWindow_Windows::IsEnableSysMenu() const
 {
     return m_bEnableSysMenu;
+}
+
+void NativeWindow_Windows::SetImeOpenStatus(bool bOpen)
+{
+    HWND hwnd = m_hWnd;
+    if (!::IsWindow(hwnd)) {
+        return;
+    }
+
+    if (!bOpen) {
+        //禁用输入法
+        EnableIME(hwnd, false);
+    }
+    else {
+        //启用输入法
+        EnableIME(hwnd, true);
+    }
+}
+
+void NativeWindow_Windows::EnableIME(HWND hwnd, bool bEnable)
+{
+    if (!::IsWindow(hwnd)) {
+        return;
+    }
+    if (!bEnable) {
+        //禁用
+        if (m_hImc == nullptr) {
+            m_hImc = ::ImmAssociateContext(hwnd, nullptr);
+            ASSERT(m_hImc != nullptr);
+        }
+    }
+    else {
+        //启用
+        if (m_hImc != nullptr) {
+            HIMC hImc = ::ImmAssociateContext(hwnd, m_hImc);
+            m_hImc = nullptr;
+            ASSERT(hImc == nullptr);
+        }
+    }
 }
 
 } // namespace ui
