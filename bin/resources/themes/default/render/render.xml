@@ -41,6 +41,7 @@
                 <TabCtrlItem class="tab_ctrl_item" title="ListBox" close_button_class="" tab_box_item_index="14"/>
                 <TabCtrlItem class="tab_ctrl_item" title="Layout" close_button_class="" tab_box_item_index="15"/>
                 <TabCtrlItem class="tab_ctrl_item" title="PropertyGrid" close_button_class="" tab_box_item_index="16"/>
+                <TabCtrlItem class="tab_ctrl_item" title="TabBox" close_button_class="" tab_box_item_index="17"/>
             </TabCtrl>
             <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="16">
                 <VBox name="main_view_page_01">
@@ -101,6 +102,9 @@
                 </VBox>
                 <VBox name="main_view_page_17">
                     <Include src="property_grid.xml"/>
+                </VBox>
+                <VBox name="main_view_page_18">
+                    <Include src="tabbox.xml"/>
                 </VBox>
             </TabBox>
         </VBox>

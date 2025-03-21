@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <Label text="TabBox测试: TabBox中包含了一个内嵌的TabBox控件"/>
+    <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab_test" selected_id="0">
+        <TabCtrlItem class="tab_ctrl_item" title="标签1" close_button_class="" tab_box_item_index="0"/>
+        <TabCtrlItem class="tab_ctrl_item" title="标签2" close_button_class="" tab_box_item_index="1"/>
+        <TabCtrlItem class="tab_ctrl_item" title="标签3" close_button_class="" tab_box_item_index="2"/>
+    </TabCtrl>
+    <TabBox name="main_view_tab_test" bkcolor="white" selected_id="0">
+        <VBox name="main_view_page_01" bkcolor="white">
+            <Label text="页面1：这里是页面1"/>
+        </VBox>
+        <VBox name="main_view_page_02" bkcolor="blue">
+            <Label text="页面2：这里是页面2"/>
+        </VBox>
+        <VBox name="main_view_page_03" bkcolor="green">
+            <Label text="页面3：这里是页面3"/>
+            <TabBox name="sub_view_tab" selected_id="2" bkcolor="Cornsilk">
+                <VBox name="sub_view_tab_page1" height="200" bkcolor="LightBlue">
+                    <Label text="内嵌页面1：这里是内嵌页面1"/>
+                </VBox>
+                <VBox name="sub_view_tab_page2" height="400" bkcolor="LightCoral">
+                    <Label text="内嵌页面2：这里是内嵌页面2"/>
+                    <Label text="内嵌页面2：这里是内嵌页面2"/>
+                </VBox>
+                <VBox name="sub_view_tab_page3" height="600" bkcolor="LightCyan">
+                    <Label text="内嵌页面3：这里是内嵌页面3"/>
+                    <Label text="内嵌页面3：这里是内嵌页面3"/>
+                    <Label text="内嵌页面3：这里是内嵌页面3"/>
+                </VBox>
+            </TabBox>
+        </VBox>
+    </TabBox>
+</Window>

@@ -37,14 +37,41 @@ void TabBox::SetAttribute(const DString& strName, const DString& strValue)
     }
 }
 
+void TabBox::SetVisible(bool bVisible)
+{
+    if (!IsInited() || !bVisible) {
+        //未初始化或者隐藏时，调用基类的实现
+        BaseClass::SetVisible(bVisible);
+        return;
+    }
+
+    //显示时，只能显示一个页面，其他页面需要隐藏
+    BaseClass::SetVisible(bVisible);
+    size_t nCurSel = GetCurSel();
+    bool bSelected = false;
+    if (Box::IsValidItemIndex(nCurSel)) {
+        bSelected = DoSelectItem(nCurSel, false, false);
+    }
+    if (!bSelected && (GetItemCount() > 0) && (GetCurSel() > GetItemCount())) {
+        //默认选择第一个页面，避免所有页面都同时显示出来
+        DoSelectItem(0, false, false);
+    }
+}
+
 void TabBox::OnInit()
 {
     if (IsInited()) {
         return;
     }
     BaseClass::OnInit();
+    bool bSelected = false;
     if (Box::IsValidItemIndex(m_iInitSel)) {
-        SelectItem(m_iInitSel);
+        bSelected = DoSelectItem(m_iInitSel, false, true);
+    }
+
+    if (!bSelected && (GetItemCount() > 0) && (m_iCurSel > GetItemCount())) {
+        //初始化时，默认选择第一个页面，避免所有页面都同时显示出来
+        DoSelectItem(0, false, true);
     }
 }
 
@@ -65,15 +92,18 @@ bool TabBox::AddItemAt(Control* pControl, size_t iIndex)
     }        
 
     if(!Box::IsValidItemIndex(m_iCurSel) && pControl->IsVisible()) {
+        //如果当前无选择页，则选择新插入的页面
         size_t iCurSel = GetItemIndex(pControl);
         ASSERT(iCurSel == iIndex);
         ret = SelectItem(iCurSel);
     }
     else if(Box::IsValidItemIndex(m_iCurSel) && (iIndex <= m_iCurSel)) {
+        //在当前选择页面前面插入一个新的页面
         m_iCurSel += 1;
     }
 
     if (m_iCurSel != iIndex) {
+        //如果不是选择页面，则隐藏
         pControl->SetFadeVisible(false);
         OnHideTabItem(iIndex);
     }
@@ -94,14 +124,14 @@ bool TabBox::RemoveItem(Control* pControl)
     }
 
     if( m_iCurSel == index)    {
-        if( GetItemCount() > 0 ) {
+        if (GetItemCount() > 0) {
             //移除当前选择的TAB页面后，选择被移除页面的前一个TAB页面
             size_t newSel = m_iCurSel - 1;
             if (newSel >= GetItemCount()) {
                 newSel = Box::InvalidIndex;
             }
             m_iCurSel = Box::InvalidIndex;
-            ret = SelectItem(newSel);
+            ret = DoSelectItem(newSel, false, true);
         }
         else {
             //当前只有一个TAB页，被移除以后，更新选择为未选择
@@ -137,14 +167,16 @@ size_t TabBox::GetCurSel() const
     return m_iCurSel;
 }
     
-bool TabBox::SelectItem(size_t iIndex)
+bool TabBox::DoSelectItem(size_t iIndex, bool bFadeSwith, bool bCheckChanged)
 {
     ASSERT(iIndex < m_items.size());
     if (!Box::IsValidItemIndex(iIndex) || (iIndex >= m_items.size())) {
         return false;
     }
-    if (iIndex == m_iCurSel) {
-        return true;
+    if (bCheckChanged) {
+        if (iIndex == m_iCurSel) {
+            return true;
+        }
     }
 
     const size_t iOldSel = m_iCurSel;
@@ -157,7 +189,7 @@ bool TabBox::SelectItem(size_t iIndex)
             //当前选择的TAB Item
             OnShowTabItem(it);
 
-            if (!IsFadeSwitch()) {
+            if (!bFadeSwith) {
                 pItemControl->SetFadeVisible(true);
             }
             else {
@@ -187,7 +219,7 @@ bool TabBox::SelectItem(size_t iIndex)
         else {
             //不是当前选择的TAB页面
             OnHideTabItem(it);
-            if ((it == iOldSel) && IsFadeSwitch()) {
+            if ((it == iOldSel) && bFadeSwith) {
                 //对于原来选择的TAB页面，出发动画效果
                 pItemControl->SetVisible(true);
                 int startValue = 0;
@@ -215,8 +247,10 @@ bool TabBox::SelectItem(size_t iIndex)
                 pItemControl->SetFadeVisible(false);
             }
         }
-    }        
-    SendEvent(kEventTabSelect, m_iCurSel, iOldSel);
+    }
+    if (bCheckChanged && (iOldSel != m_iCurSel)) {
+        SendEvent(kEventTabSelect, m_iCurSel, iOldSel);
+    }    
     return true;
 }
 
@@ -270,6 +304,11 @@ void TabBox::OnAnimationComplete(size_t index)
             pContol->SetVisible(false);
         }
     }
+}
+
+bool TabBox::SelectItem(size_t iIndex)
+{
+    return DoSelectItem(iIndex, IsFadeSwitch(), true);
 }
 
 bool TabBox::SelectItem( Control* pControl )
