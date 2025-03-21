@@ -1,30 +1,46 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Window size="75%,90%" mininfo="800,500" caption="0,0,0,34" sizebox="4,4,4,4" textid="STRID_CEF_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="false">
 <VBox bkcolor="bk_wnd_lightcolor">
+    <!-- 标题栏区域 -->
     <HBox class="caption" name="window_caption_bar" height="34">
         <Label class="font_title" name="title" width="stretch" valign="center" normaltextcolor="darkcolor" textid="STRID_CEF_BROWSER_MULTI_TAB" />
         <Control />
-        <Button class="btn_wnd_min" name="minbtn" margin="10,6,0,0"/>
+        <Button class="btn_wnd_min_11" name="minbtn" margin="10,6,0,0"/>
         <Box width="21" margin="10,6,0,0">
-            <Button class="btn_wnd_max" name="maxbtn"/>
-            <Button class="btn_wnd_restore" name="restorebtn" visible="false"/>
+            <Button class="btn_wnd_max_11" name="maxbtn"/>
+            <Button class="btn_wnd_restore_11" name="restorebtn" visible="false"/>
         </Box>
-        <Button class="btn_wnd_close" name="btn_close" margin="10,6,0,0"/>
+        <Button class="btn_wnd_close_11" name="btn_close" margin="10,6,0,0"/>
     </HBox>
-
+    
+    <!-- 后退/前进/刷新按钮，地址栏，标签栏区域 -->
     <HBox height="30" margin="10,2,10,2" childmargin="3">
         <Button class="btn_global_blue_80x30" name="btn_back" width="50" height="30" textid="STRID_CEF_BROWSER_BACKWARD" valign="center" font="system_12" />
         <Button class="btn_global_blue_80x30" name="btn_forward" width="50" height="30" textid="STRID_CEF_BROWSER_FORWARD" valign="center" font="system_12" />
         <Button class="btn_global_blue_80x30" name="btn_refresh" width="50" height="30" textid="STRID_CEF_BROWSER_REFRESH" valign="center" font="system_12" />
-        <RichEdit class="simple prompt" name="edit_url" width="400" height="30" text_padding="5,2,5,0" text_align="vcenter" valign="center" 
-        border_color="gray" bordersize="1" font="system_14" prompt_textid="STRID_CEF_BROWSER_INPUT_ADDRESS" vscrollbar="false" auto_vscroll="false" hscrollbar="false" auto_hscroll="true"/>
+        <!-- 地址栏 -->
+        <RichEdit class="simple prompt" name="edit_url" width="400" height="30" 
+                                        text_padding="5,2,5,0" 
+                                        text_align="vcenter" 
+                                        valign="center" 
+                                        border_color="gray" 
+                                        border_size="1" 
+                                        font="system_14"
+                                        prompt_textid="STRID_CEF_BROWSER_INPUT_ADDRESS" 
+                                        vscrollbar="false" 
+                                        auto_vscroll="false" 
+                                        hscrollbar="false" 
+                                        auto_hscroll="true"/>
 		<!-- 顶部标签列表 -->
 		<HListBox class="list" name="tab_list" >
 			<Button class="btn_global_blue_80x30" name="btn_add" text="+" width="20" height="20" valign="center" align="center,vcenter" font="system_14" />
 		</HListBox>
     </HBox>
+    
+    <!-- 一条分割线 -->
     <Control class="splitline_hor_level1" margin="0,0,0,0" />
-	<!-- 浏览器盒子列表 -->
+    
+	<!-- 网页显示区域：浏览器盒子列表 -->
 	<CustomTabBox name="browser_box_tab" bkcolor="white" padding="2,2,2,2"/>
 </VBox>
 </Window>

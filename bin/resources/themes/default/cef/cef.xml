@@ -3,13 +3,13 @@
   <VBox bkcolor="bk_wnd_darkcolor">
     <HBox name="window_caption_bar" width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
       <Control />
-      <Button name="btn_dev_tool" width="auto" height="auto" valign="center" tooltiptext="开发者工具" bkimage="btn_dev_tool.png" margin="4"/>
-      <Button class="btn_wnd_min" name="minbtn" margin="4,6,0,0"/>
+      <Button name="btn_dev_tool" width="auto" height="auto" margin="4,6,0,0" valign="center" tooltiptext="开发者工具" bkimage="btn_dev_tool.png"/>
+      <Button class="btn_wnd_min_11" name="minbtn" margin="4,6,0,0"/>
       <Box width="21" margin="4,6,0,0">
-        <Button class="btn_wnd_max" name="maxbtn"/>
-        <Button class="btn_wnd_restore" name="restorebtn" visible="false"/>
+        <Button class="btn_wnd_max_11" name="maxbtn"/>
+        <Button class="btn_wnd_restore_11" name="restorebtn" visible="false"/>
       </Box>
-      <Button class="btn_wnd_close" name="closebtn" margin="4,6,8,0"/>
+      <Button class="btn_wnd_close_11" name="closebtn" margin="4,6,8,0"/>
     </HBox>
     <HBox height="auto">
       <Button class="btn_global_blue_80x30" name="btn_back" text="后退" width="60"/>
