@@ -55,6 +55,16 @@ void CefForm::OnInitWindow()
         m_pEditUrl->AttachReturn(UiBind(&CefForm::OnNavigate, this, std::placeholders::_1));
     }
 
+    ui::Control* pControl = FindControl(_T("btn_back"));
+    if (pControl != nullptr) {
+        pControl->SetEnabled(false);
+    }
+
+    pControl = FindControl(_T("btn_forward"));
+    if (pControl != nullptr) {
+        pControl->SetEnabled(false);
+    }
+
     if (m_pCefControl != nullptr) {
         m_pCefControl->SetCefEventHandler(this);
         if (m_pCefControlDev != nullptr) {
@@ -320,16 +330,6 @@ void CefForm::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString
 void CefForm::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
 {
     ui::GlobalManager::Instance().AssertUIThread();
-}
-    
-void CefForm::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t transition_type)
-{
-    ui::GlobalManager::Instance().AssertUIThread();
-}
-    
-void CefForm::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
-{
-    ui::GlobalManager::Instance().AssertUIThread();
     ui::Control* pControl = FindControl(_T("btn_back"));
     if ((pControl != nullptr) && (m_pCefControl != nullptr)) {
         pControl->SetEnabled(m_pCefControl->CanGoBack());
@@ -339,7 +339,15 @@ void CefForm::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame
     if ((pControl != nullptr) && (m_pCefControl != nullptr)) {
         pControl->SetEnabled(m_pCefControl->CanGoForward());
     }
-
+}
+    
+void CefForm::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t transition_type)
+{
+    ui::GlobalManager::Instance().AssertUIThread();
+}
+    
+void CefForm::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
+{
     // 注册一个方法提供前端调用
     if (m_pCefControl != nullptr) {
         m_pCefControl->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([this](const std::string& params, ui::ReportResultFunction callback) {
