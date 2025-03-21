@@ -213,6 +213,9 @@ bool CefBrowserHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
 void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
+    if (browser == nullptr) {
+        return;
+    }
     GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser](){
         m_browserList.emplace_back(browser);
         if ((m_browser != nullptr) && (m_browser->GetHost() != nullptr)) {

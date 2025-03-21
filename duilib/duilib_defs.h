@@ -302,9 +302,10 @@ namespace ui
         kEventWindowSetFocus,       //Window类：发送给焦点控件，当窗口获得焦点时触发事件；发送给接收者的回调函数（wParam: 已失去键盘焦点的窗口的句柄）
         kEventWindowKillFocus,      //Window类：发送给鼠标左键、右键按下时记录的控件、焦点控件，当窗口失去焦点时触发事件（主要用于恢复一些内部状态）；发送给接收者的回调函数（wParam: 接收键盘焦点的窗口的句柄）
         kEventWindowSize,           //Window类：发送给Focus控件，当窗口大小发生变化时触发事件
-        kEventWindowMove,           //Window类：发送给Focus控件，当窗口大小发生变化时触发事件
+        kEventWindowMove,           //Window类：发送给Focus控件，当窗口大小发生变化时触发事件        
         kEventWindowCreate,         //Window类，当窗口创建完成时触发，wParam为1表示DoModal对话框，为0表示普通窗口
         kEventWindowClose,          //Window类，Combo控件：当窗口关闭（或者Combo的下拉框窗口关闭）时触发，wParam参数表示窗口关闭参数，参见enum WindowCloseParam
+        kEventWindowFirstShown,     //Window类，当窗口第一次显示时回调此事件（必须在界面显示前设置回调，即当IsWindowFirstShown()返回false的情况下设置，否则没有机会再回调）
 
         //左键点击/右键点击事件
         kEventClick,                //Button类、ListBoxItem、Option、CheckBox等：当点击按钮（或者键盘回车）时触发

@@ -21,6 +21,7 @@ Window::Window() :
     m_pEventKey(nullptr),
     m_rcAlphaFix(0, 0, 0, 0),
     m_bFirstLayout(true),
+    m_bWindowFirstShown(false),
     m_bIsArranged(false),
     m_bPostQuitMsgWhenClosed(false),
     m_renderBackendType(RenderBackendType::kRaster_BackendType),
@@ -44,6 +45,12 @@ Window* Window::GetParentWindow() const
     else {
         return nullptr;
     }
+}
+
+bool Window::AttachWindowFirstShown(const EventCallback& callback)
+{
+    m_OnEvent[kEventWindowFirstShown] += callback;
+    return !IsWindowFirstShown();
 }
 
 void Window::AttachWindowCreate(const EventCallback& callback)
@@ -1030,12 +1037,23 @@ bool Window::OnPreparePaint()
     return true;
 }
 
+bool Window::IsWindowFirstShown() const
+{
+    return m_bWindowFirstShown;
+}
+
 LRESULT Window::OnPaintMsg(const UiRect& rcPaint, const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     PerformanceStat statPerformance(_T("PaintWindow, Window::OnPaintMsg"));
     bHandled = false;
     if (Paint(rcPaint)) {
         bHandled = true;
+    }
+
+    //首次绘制事件, 给一次回调
+    if (!IsWindowFirstShown()) {
+        m_bWindowFirstShown = true;
+        SendNotify(kEventWindowFirstShown);
     }
     return 0;
 }

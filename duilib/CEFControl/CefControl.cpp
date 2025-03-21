@@ -28,7 +28,7 @@ DString CefControl::GetType() const { return DUI_CTR_CEF; }
 void CefControl::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("url")) {
-        m_initUrl = strValue;
+        SetInitURL(strValue);
     }
     else if (strName == _T("F12")) {
         SetEnableF12(strValue == _T("true"));
@@ -40,16 +40,25 @@ void CefControl::SetAttribute(const DString& strName, const DString& strValue)
 
 void CefControl::LoadURL(const CefString& url)
 {
-    m_initUrl.clear();
-    if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get()) {
+    if (url.empty()) {
+        return;
+    }
+    //该函数必须在主线程执行, 如果在其他线程中调用，则转发到主线程执行
+    if (!GlobalManager::Instance().IsInUIThread()) {
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefControl::LoadURL, this, url));
+        return;
+    }
+
+    //在主线程中执行该函数
+    if ((m_pBrowserHandler != nullptr) && (m_pBrowserHandler->GetBrowser() != nullptr)) {
         CefRefPtr<CefFrame> frame = m_pBrowserHandler->GetBrowser()->GetMainFrame();
-        if (!frame) {
-            return;
-        }
-        frame->LoadURL(url);
+        ASSERT(frame != nullptr);
+        if (frame != nullptr) {
+            frame->LoadURL(url);
+        }        
     }
     else {
-        if (m_pBrowserHandler.get()) {
+        if ((m_pBrowserHandler != nullptr)) {
             ui::StdClosure cb = ToWeakCallback([this, url]() {
                 LoadURL(url);
             });
@@ -296,6 +305,16 @@ void CefControl::SetEnableF12(bool bEnableF12)
 bool CefControl::IsEnableF12() const
 {
     return m_bEnableF12;
+}
+
+void CefControl::SetInitURL(const DString& url)
+{
+    m_initUrl = url;
+}
+
+const DString& CefControl::GetInitURL() const
+{
+    return m_initUrl;
 }
 
 class DevToolBrowserHandler: public CefBrowserHandler
@@ -663,20 +682,6 @@ void CefControl::OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_i
 void CefControl::OnAfterCreated(CefRefPtr<CefBrowser> browser)
 {
     GlobalManager::Instance().AssertUIThread();
-    if (!m_initUrl.empty()) {
-        DString url = m_initUrl;
-        if (!url.empty()) {
-            m_initUrl.clear();
-            //加载初始网址
-            if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get()) {
-                CefRefPtr<CefFrame> frame = m_pBrowserHandler->GetBrowser()->GetMainFrame();
-                if (!frame) {
-                    return;
-                }
-                frame->LoadURL(url);
-            }
-        }
-    }
     if (m_pfnAfterCreated) {
         m_pfnAfterCreated(browser);
     }

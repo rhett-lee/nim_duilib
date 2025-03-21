@@ -162,6 +162,14 @@ public:
     */
     bool IsEnableF12() const;
 
+    /** 设置初始加载的URL(仅在控件初始化前调用有效)
+    */
+    void SetInitURL(const DString& url);
+
+    /** 获取初始加载的URL
+    */
+    const DString& GetInitURL() const;
+
 public:
     /** 绑定一个回调函数用于监听右键菜单弹出（回调函数的调用线程：CEF的UI线程）
     * @param [in] callback 一个回调函数，参考 OnBeforeContextMenuEvent 声明
@@ -516,7 +524,12 @@ protected:
     std::shared_ptr<CefJSBridge> m_jsBridge;
 private:
 
-    //URL
+    /** 初始化加载的网址
+    */
+    DString m_initUrl;
+
+    /** 当前主Frame的URL
+    */
     CefString m_url;
 
     // 保存接收到 JS 调用 CPP 函数的代码所属线程，以后触发 JS 回调时把回调转到那个线程
@@ -557,10 +570,6 @@ private:
     /** CEF控件的事件回调接口
     */
     CefControlEvent* m_pCefControlEventHandler = nullptr;
-
-    /** 初始化加载的网址
-    */
-    DString m_initUrl;
 
 private:
     //开发者工具是否显示

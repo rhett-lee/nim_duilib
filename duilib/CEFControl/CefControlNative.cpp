@@ -52,7 +52,9 @@ void CefControlNative::Init()
         m_pBrowserHandler = new CefBrowserHandler;
         m_pBrowserHandler->SetHostWindow(GetWindow());
         m_pBrowserHandler->SetHandlerDelegate(this);
-        ReCreateBrowser();
+
+        //异步创建Browser对象, 避免阻塞主界面的解析和显示速度
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefControlNative::ReCreateBrowser, this));
     }
 
     if (!m_jsBridge.get()) {
@@ -74,21 +76,37 @@ void CefControlNative::ReCreateBrowser()
     if (m_pBrowserHandler == nullptr) {
         return;
     }
-    if (m_pBrowserHandler->GetBrowser() == nullptr) {
-        // 使用有窗模式
-        CefWindowInfo window_info;
-        CefRect rect = { GetRect().left, GetRect().top, GetRect().right, GetRect().bottom};
+    if (m_pBrowserHandler->GetBrowser() != nullptr) {
+        //已经完成创建，不再重复创建Browser对象
+        return;
+    }
+
+    //如果窗口没有完成首次显示，则等首次显示时再创建，避免出现闪黑屏现象
+    if (!pWindow->IsWindowFirstShown()) {
+        std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
+        pWindow->AttachWindowFirstShown([weakFlag, this](const EventArgs& /*args*/) {
+            if (!weakFlag.expired()) {
+                ReCreateBrowser();
+            }            
+            return true;
+            });
+        return;
+    }
+
+    // 使用有窗模式
+    CefWindowInfo window_info;
+    CefRect rect = { GetRect().left, GetRect().top, GetRect().right, GetRect().bottom};
 #ifdef DUILIB_BUILD_FOR_WIN
-        //Windows
-        window_info.SetAsChild(pWindow->NativeWnd()->GetHWND(), rect);
+    //Windows
+    window_info.SetAsChild(pWindow->NativeWnd()->GetHWND(), rect);
 #elif defined DUILIB_BUILD_FOR_LINUX
-        //Linux
-        window_info.SetAsChild(pWindow->NativeWnd()->GetX11WindowNumber(), rect);
+    //Linux
+    window_info.SetAsChild(pWindow->NativeWnd()->GetX11WindowNumber(), rect);
 #endif
 
-        CefBrowserSettings browser_settings;
-        CefBrowserHost::CreateBrowser(window_info, m_pBrowserHandler, _T(""), browser_settings, nullptr, nullptr);
-    }
+    CefBrowserSettings browser_settings;
+    CefString url = GetInitURL();//创建成功后，立即加载的URL
+    CefBrowserHost::CreateBrowser(window_info, m_pBrowserHandler, url, browser_settings, nullptr, nullptr);
 }
 
 #ifdef DUILIB_BUILD_FOR_LINUX

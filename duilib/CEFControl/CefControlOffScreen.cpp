@@ -101,7 +101,9 @@ void CefControlOffScreen::Init()
         m_pBrowserHandler = new CefBrowserHandler;
         m_pBrowserHandler->SetHostWindow(GetWindow());
         m_pBrowserHandler->SetHandlerDelegate(this);
-        ReCreateBrowser();
+
+        //异步创建Browser对象, 避免阻塞主界面的解析和显示速度
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefControlOffScreen::ReCreateBrowser, this));
     }
 
     if (!m_jsBridge.get()) {
@@ -123,26 +125,31 @@ void CefControlOffScreen::ReCreateBrowser()
     if (m_pBrowserHandler == nullptr) {
         return;
     }
-    if (m_pBrowserHandler->GetBrowser() == nullptr) {
-        // 使用无窗模式，离屏渲染
-        CefWindowInfo window_info;
-#ifdef DUILIB_BUILD_FOR_WIN
-        HWND hWnd = pWindow->NativeWnd()->GetHWND();
-        window_info.SetAsWindowless(hWnd);
-        if (::GetWindowLongPtr(hWnd, GWL_EXSTYLE) & WS_EX_NOACTIVATE) {
-            // Don't activate the browser window on creation.
-            window_info.ex_style |= WS_EX_NOACTIVATE;
-        }
-#elif defined DUILIB_BUILD_FOR_LINUX
-        window_info.SetAsWindowless(pWindow->NativeWnd()->GetX11WindowNumber());
-#endif
-        CefBrowserSettings browser_settings;
-        //背景色：设置为白色（如果不设置的话，是透明的，网页如果不设置背景色，则背景会被显示为黑色）
-        browser_settings.background_color = CefColorSetARGB(255, 255, 255, 255);
-        //browser_settings.file_access_from_file_urls = STATE_ENABLED;
-        //browser_settings.universal_access_from_file_urls = STATE_ENABLED;
-        CefBrowserHost::CreateBrowser(window_info, m_pBrowserHandler, _T(""), browser_settings, nullptr, nullptr);
+
+    if (m_pBrowserHandler->GetBrowser() != nullptr) {
+        //已经完成创建，不再重复创建Browser对象
+        return;
     }
+
+    // 使用无窗模式，离屏渲染
+    CefWindowInfo window_info;
+#ifdef DUILIB_BUILD_FOR_WIN
+    HWND hWnd = pWindow->NativeWnd()->GetHWND();
+    window_info.SetAsWindowless(hWnd);
+    if (::GetWindowLongPtr(hWnd, GWL_EXSTYLE) & WS_EX_NOACTIVATE) {
+        // Don't activate the browser window on creation.
+        window_info.ex_style |= WS_EX_NOACTIVATE;
+    }
+#elif defined DUILIB_BUILD_FOR_LINUX
+    window_info.SetAsWindowless(pWindow->NativeWnd()->GetX11WindowNumber());
+#endif
+    CefBrowserSettings browser_settings;
+    //背景色：设置为白色（如果不设置的话，是透明的，网页如果不设置背景色，则背景会被显示为黑色）
+    browser_settings.background_color = CefColorSetARGB(255, 255, 255, 255);
+    //browser_settings.file_access_from_file_urls = STATE_ENABLED;
+    //browser_settings.universal_access_from_file_urls = STATE_ENABLED;
+    CefString url = GetInitURL();//创建成功后，立即加载的URL
+    CefBrowserHost::CreateBrowser(window_info, m_pBrowserHandler, url, browser_settings, nullptr, nullptr);
 }
 
 void CefControlOffScreen::SetPos(UiRect rc)

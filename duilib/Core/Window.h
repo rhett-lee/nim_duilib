@@ -67,6 +67,16 @@ public:
     */
     Window* GetParentWindow() const;
 
+    /** 界面是否完成首次显示
+    */
+    bool IsWindowFirstShown() const;
+
+    /** 监听窗口首次显示事件
+    * @param [in] callback 当窗口第一次显示时回调此事件（必须在界面显示前设置回调，即当IsWindowFirstShown()返回false的情况下设置，否则没有机会再回调）
+    * @return 如果窗口已经完成第一次显示返回false，表示不会有回调函数；如果窗口未完成第一次显示，返回true
+    */
+    bool AttachWindowFirstShown(const EventCallback& callback);
+
     /** 监听窗口创建并初始化完成事件
     * @param [in] callback 指定创建并初始化完成后的回调函数，参数的wParam代表：wParam为1表示DoModal对话框，为0表示普通窗口
     */
@@ -900,6 +910,9 @@ private:
 
     //布局是否需要初始化
     bool m_bFirstLayout;
+
+    //界面是否完成首次显示
+    bool m_bWindowFirstShown;
 
     //绘制时的偏移量（动画用）
     UiPoint m_renderOffset;
