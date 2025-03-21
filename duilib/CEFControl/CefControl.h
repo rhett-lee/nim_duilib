@@ -168,7 +168,15 @@ public:
 
     /** 获取初始加载的URL
     */
-    const DString& GetInitURL() const;
+    DString GetInitURL() const;
+
+    /** 设置初始加载的URL是否为本地文件
+    */
+    void SetInitUrlIsLocalFile(bool bUrlIsLocalFile);
+
+    /** 获取初始加载的URL是否为本地文件
+    */
+    bool IsInitUrlIsLocalFile() const;
 
 public:
     /** 绑定一个回调函数用于监听右键菜单弹出（回调函数的调用线程：CEF的UI线程）
@@ -527,6 +535,10 @@ private:
     /** 初始化加载的网址
     */
     DString m_initUrl;
+
+    /** 设置初始加载的URL是否为本地文件
+    */
+    bool m_bUrlIsLocalFile;
 
     /** 当前主Frame的URL
     */

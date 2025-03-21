@@ -1,6 +1,7 @@
 #include "CefControl.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringConvert.h"
+#include "duilib/Utils/FilePathUtil.h"
 
 #include "duilib/CEFControl/internal/CefJSBridge.h"
 #include "duilib/CEFControl/internal/CefBrowserHandler.h"
@@ -13,7 +14,8 @@ CefControl::CefControl(ui::Window* pWindow):
     m_bAttachedDevTools(false),
     m_bDevToolsPopup(false),
     m_pDevToolsView(nullptr),
-    m_bEnableF12(true)
+    m_bEnableF12(true),
+    m_bUrlIsLocalFile(false)
 {
     //这个标记必须为false，否则绘制有问题
     SetUseCache(false);
@@ -28,7 +30,12 @@ DString CefControl::GetType() const { return DUI_CTR_CEF; }
 void CefControl::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("url")) {
+        //初始化加载的URL
         SetInitURL(strValue);
+    }
+    else if (strName == _T("url_is_local_file")) {
+        //初始化加载的URL是否为本地文件
+        SetInitUrlIsLocalFile(strValue == _T("true"));
     }
     else if (strName == _T("F12")) {
         SetEnableF12(strValue == _T("true"));
@@ -312,9 +319,34 @@ void CefControl::SetInitURL(const DString& url)
     m_initUrl = url;
 }
 
-const DString& CefControl::GetInitURL() const
+DString CefControl::GetInitURL() const
 {
-    return m_initUrl;
+    DString initUrl = m_initUrl;
+    if (IsInitUrlIsLocalFile() && !initUrl.empty()) {
+        //该URL是本地路径
+        DString url = StringUtil::MakeLowerString(initUrl);
+        if ((url.find(_T("http://")) != 0) && (url.find(_T("https://")) != 0) && (url.find(_T("file:///")) != 0)) {
+            //有明确的协议前缀时，不做任何转换，否则按照本地exe所在路径的资源文件加载
+            FilePath cefHtml = FilePathUtil::GetCurrentModuleDirectory();
+            cefHtml.NormalizeDirectoryPath();
+            cefHtml += initUrl;            
+            cefHtml.NormalizeFilePath();
+            initUrl = _T("file:///");
+            initUrl += cefHtml.ToString();
+            StringUtil::ReplaceAll(_T("\\"), _T("/"), initUrl);
+        }
+    }
+    return initUrl;
+}
+
+void CefControl::SetInitUrlIsLocalFile(bool bUrlIsLocalFile)
+{
+    m_bUrlIsLocalFile = bUrlIsLocalFile;
+}
+
+bool CefControl::IsInitUrlIsLocalFile() const
+{
+    return m_bUrlIsLocalFile;
 }
 
 class DevToolBrowserHandler: public CefBrowserHandler

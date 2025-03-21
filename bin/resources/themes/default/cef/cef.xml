@@ -18,7 +18,7 @@
       <Button class="btn_global_blue_80x30" name="btn_navigate" text="转到" width="60" margin="5"/>
       <Button class="btn_global_blue_80x30" name="btn_refresh" text="刷新" width="60" margin="5"/>
     </HBox>
-    <CefControl name="cef_control" bkcolor="white"/>
+    <CefControl name="cef_control" bkcolor="white" url_is_local_file="true" url="resources/themes/default/cef/cef.html"/>
     <CefControl name="cef_control_dev" bkcolor="white"/>
   </VBox>
 </Window>
