@@ -876,6 +876,10 @@ bool ListCtrlHeaderItem::AdjustItemOrders(const UiPoint& pt,
         else {
             //向右侧交换
             nMouseItemIndex += 1;
+            if (nMouseItemIndex >= itemCount) {
+                //已经到最后一列，将其放在最后
+                nMouseItemIndex = itemCount - 1;
+            }
             ASSERT(nMouseItemIndex < itemCount);
             if (nMouseItemIndex < itemCount) {
                 pHeader->SetItemIndex(this, nMouseItemIndex);
