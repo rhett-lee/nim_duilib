@@ -756,7 +756,6 @@ UiFont RichEdit::GetFontInfo() const
     }
 
     UiFont uiFont;
-    ASSERT(cf.dwMask & CFM_SIZE);
     if (cf.dwMask & CFM_SIZE) {
         HWND hWnd = GetWindowHWND();
         HDC hDC = ::GetDC(hWnd);
@@ -766,6 +765,10 @@ UiFont RichEdit::GetFontInfo() const
             uiFont.m_fontSize = -uiFont.m_fontSize;
         }
         ::ReleaseDC(hWnd, hDC);
+    }
+    else {
+        //富文本模式下，如果混合选择，那么可能不含字体大小信息
+        uiFont.m_fontSize = 0;
     }
     if (cf.dwMask & CFM_BOLD) {
         uiFont.m_bBold = cf.dwEffects & CFE_BOLD ? true : false;
@@ -779,9 +782,12 @@ UiFont RichEdit::GetFontInfo() const
     if (cf.dwMask & CFM_STRIKEOUT) {
         uiFont.m_bStrikeOut = cf.dwEffects & CFE_STRIKEOUT ? true : false;
     }
-    ASSERT(cf.dwMask & CFM_FACE);
     if (cf.dwMask & CFM_FACE) {
         uiFont.m_fontName = StringConvert::WStringToT(cf.szFaceName);
+    }
+    else {
+        //富文本模式下，如果混合选择，那么可能不含字体名称信息
+        uiFont.m_fontName.clear();
     }
     return uiFont;
 }
@@ -790,14 +796,6 @@ bool RichEdit::SetFontInfo(const UiFont& fontInfo)
 {
     UiFont oldFontInfo = GetFontInfo();
     if (fontInfo == oldFontInfo) {
-        return false;
-    }
-    ASSERT(!fontInfo.m_fontName.empty());
-    if (fontInfo.m_fontName.empty()) {
-        return false;
-    }
-    ASSERT(fontInfo.m_fontSize > 0);
-    if (fontInfo.m_fontSize <= 0) {
         return false;
     }
 
@@ -810,12 +808,12 @@ bool RichEdit::SetFontInfo(const UiFont& fontInfo)
         GetDefaultCharFormat(charFormat);
     }
     charFormat.dwMask = 0;
-    if (oldFontInfo.m_fontName != fontInfo.m_fontName) {
+    if (!fontInfo.m_fontName.empty() && (oldFontInfo.m_fontName != fontInfo.m_fontName)) {
         charFormat.dwMask |= CFM_FACE;
         DStringW fontName = StringConvert::TToWString(fontInfo.m_fontName.c_str());
         ui::StringUtil::StringCopy(charFormat.szFaceName, fontName.c_str());
     }
-    if (oldFontInfo.m_fontSize != fontInfo.m_fontSize) {
+    if ((fontInfo.m_fontSize > 0) && (oldFontInfo.m_fontSize != fontInfo.m_fontSize)) {
         charFormat.dwMask |= CFM_SIZE;
         charFormat.yHeight = ConvertToFontHeight(fontInfo.m_fontSize);
     }

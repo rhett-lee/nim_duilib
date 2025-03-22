@@ -21,11 +21,11 @@ public:
         m_bStrikeOut(false)
     {}
 
-    /** 字体名称
+    /** 字体名称（如果为空，表示不含有效字体名称）
     */
     UiString m_fontName;
 
-    /** 字体大小（单位：像素）
+    /** 字体大小（单位：像素），如果为0表示不含字体大小信息
     */
     int32_t m_fontSize;
 

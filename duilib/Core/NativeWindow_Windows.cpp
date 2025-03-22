@@ -2735,11 +2735,11 @@ void NativeWindow_Windows::EnableIME(HWND hwnd, bool bEnable)
             //检查输入法是否打开，给出断言
             HIMC hImc = ::ImmGetContext(hwnd);
             ASSERT(hImc != nullptr);
-            if (hImc != nullptr) {
-                ASSERT(::ImmGetOpenStatus(hImc));
+            if (hImc != nullptr) {                
                 if (!::ImmGetOpenStatus(hImc)) {
                     ::ImmSetOpenStatus(hImc, TRUE);
                 }
+                ASSERT(::ImmGetOpenStatus(hImc));
                 ::ImmReleaseContext(hwnd, hImc);
             }
         }
