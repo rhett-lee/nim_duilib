@@ -1,25 +1,36 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Window size="75%,90%" mininfo="800,500" caption="0,0,0,34" sizebox="4,4,4,4" textid="STRID_CEF_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="false">
+<Window size="75%,90%" mininfo="800,500" caption="0,0,0,36" sizebox="4,4,4,4" textid="STRID_CEF_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="true" icon="../public/caption/logo.ico">
 <VBox bkcolor="bk_wnd_lightcolor">
-    <!-- 标题栏区域 -->
-    <HBox class="caption" name="window_caption_bar" height="34">
-        <Label class="font_title" name="title" width="stretch" valign="center" normaltextcolor="darkcolor" textid="STRID_CEF_BROWSER_MULTI_TAB" />
-        <Control />
-        <Button class="btn_wnd_min_11" name="minbtn" margin="10,6,0,0"/>
-        <Box width="21" margin="10,6,0,0">
-            <Button class="btn_wnd_max_11" name="maxbtn"/>
-            <Button class="btn_wnd_restore_11" name="restorebtn" visible="false"/>
-        </Box>
-        <Button class="btn_wnd_close_11" name="btn_close" margin="10,6,0,0"/>
+    <HBox width="stretch" height="36">
+        <!-- 图标区域 -->
+        <Control width="36" height="36" bkimage="file='../public/caption/logo.ico' width='22' height='22' halign='center' valign='center'"/>
+        
+        <!-- 竖线区域 -->
+        <Line width="4" height="32" vertical="true" dash_style="solid" line_color="gray" line_width="1" padding="0,6,0,6"/>
+        
+        <!-- 顶部标签列表 -->
+		<HListBox class="list" name="tab_list" margin="4,0,0,0">
+			<Button class="btn_global_blue_80x30" name="btn_add" text="+" width="20" height="20" valign="center" align="center,vcenter" font="system_14" />
+		</HListBox>
+		
+        <!-- 标题栏区域 -->
+        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+            <Control />
+            <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+            <Box height="stretch" width="40" margin="0,2,0,2">
+                <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
+                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+            </Box>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+        </HBox>
     </HBox>
-    
     <!-- 后退/前进/刷新按钮，地址栏，标签栏区域 -->
     <HBox height="30" margin="10,2,10,2" childmargin="3">
         <Button class="btn_global_blue_80x30" name="btn_back" width="50" height="30" textid="STRID_CEF_BROWSER_BACKWARD" valign="center" font="system_12" />
         <Button class="btn_global_blue_80x30" name="btn_forward" width="50" height="30" textid="STRID_CEF_BROWSER_FORWARD" valign="center" font="system_12" />
         <Button class="btn_global_blue_80x30" name="btn_refresh" width="50" height="30" textid="STRID_CEF_BROWSER_REFRESH" valign="center" font="system_12" />
         <!-- 地址栏 -->
-        <RichEdit class="simple prompt" name="edit_url" width="400" height="30" 
+        <RichEdit class="simple prompt" name="edit_url" width="stretch" height="30" 
                                         text_padding="5,2,5,0" 
                                         text_align="vcenter" 
                                         valign="center" 
@@ -30,11 +41,7 @@
                                         vscrollbar="false" 
                                         auto_vscroll="false" 
                                         hscrollbar="false" 
-                                        auto_hscroll="true"/>
-		<!-- 顶部标签列表 -->
-		<HListBox class="list" name="tab_list" >
-			<Button class="btn_global_blue_80x30" name="btn_add" text="+" width="20" height="20" valign="center" align="center,vcenter" font="system_14" />
-		</HListBox>
+                                        auto_hscroll="true"/>		
     </HBox>
     
     <!-- 一条分割线 -->

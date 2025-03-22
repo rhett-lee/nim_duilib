@@ -20,9 +20,9 @@ class BrowserTabItem;
 * @date 2019/3/20
 */
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-class MultiBrowserForm : public ui::ShadowWnd, public IDropTarget, public TaskbarManager::ITaskbarDelegate
+class MultiBrowserForm : public ui::WindowImplBase, public IDropTarget, public TaskbarManager::ITaskbarDelegate
 {
-    typedef ui::ShadowWnd BaseClass;
+    typedef ui::WindowImplBase BaseClass;
 #else
 class MultiBrowserForm : public ui::WindowImplBase
 {
