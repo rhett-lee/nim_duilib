@@ -2202,6 +2202,9 @@ void Window::OnInitLayout()
 
 Control* Window::FindControl(const UiPoint& pt) const
 {
+    if (GetRoot() == nullptr) {
+        return nullptr;
+    }
     Control* pControl = m_controlFinder.FindControl(pt);
     if ((pControl != nullptr) && (pControl->GetWindow() != this)) {
         ASSERT(0);
