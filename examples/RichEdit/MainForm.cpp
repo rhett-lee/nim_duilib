@@ -671,7 +671,7 @@ void MainForm::UpdateFontStatus()
     //更新字体名称
     ui::Combo* pFontNameCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_name")));
     if (pFontNameCombo != nullptr) {
-        pFontNameCombo->SelectTextItem(fontInfo.m_fontName.c_str());
+        pFontNameCombo->SelectTextItem(fontInfo.m_fontName.c_str(), false);
     }
 
     //更新字体大小
@@ -708,54 +708,60 @@ void MainForm::UpdateFontSizeStatus()
     if (pRichEdit == nullptr) {
         return;
     }
-    const ui::UiFont fontInfo = pRichEdit->GetFontInfo();
-
     ui::Combo* pFontSizeCombo = dynamic_cast<ui::Combo*>(FindControl(_T("combo_font_size")));
-    if (pFontSizeCombo != nullptr) {
-        size_t maxItemIndex = 0;
-        for (size_t nIndex = 0; nIndex < m_fontSizeList.size(); ++nIndex) {
-            if (nIndex == (m_fontSizeList.size() - 1)) {
-                break;
-            }
-            if (m_fontSizeList[nIndex].fFontSize > m_fontSizeList[nIndex + 1].fFontSize) {
-                maxItemIndex = nIndex;
-                break;
-            }
+    if (pFontSizeCombo == nullptr) {
+        return;
+    }
+    const ui::UiFont fontInfo = pRichEdit->GetFontInfo();
+    if (fontInfo.m_fontSize == 0) {
+        //不含有效字体大小信息
+        pFontSizeCombo->SetCurSel(ui::Box::InvalidIndex);
+        return;
+    }
+   
+    size_t maxItemIndex = 0;
+    for (size_t nIndex = 0; nIndex < m_fontSizeList.size(); ++nIndex) {
+        if (nIndex == (m_fontSizeList.size() - 1)) {
+            break;
         }
+        if (m_fontSizeList[nIndex].fFontSize > m_fontSizeList[nIndex + 1].fFontSize) {
+            maxItemIndex = nIndex;
+            break;
+        }
+    }
 
-        bool bSelected = false;
-        for (size_t nIndex = maxItemIndex; nIndex < m_fontSizeList.size(); ++nIndex) {
-            //优先选择汉字的字号
+    bool bSelected = false;
+    for (size_t nIndex = maxItemIndex; nIndex < m_fontSizeList.size(); ++nIndex) {
+        //优先选择汉字的字号
+        const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
+        if (fontInfo.m_fontSize == (int32_t)std::roundf(fontSize.fDpiFontSize)) {
+            if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName, false) != ui::Box::InvalidIndex) {
+                bSelected = true;
+            }
+            break;
+        }
+    }
+    if (!bSelected) {
+        for (size_t nIndex = 0; nIndex <= maxItemIndex; ++nIndex) {
+            //选择数字的字号
             const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
-            if (fontInfo.m_fontSize == (int32_t)std::roundf(fontSize.fDpiFontSize)) {
-                if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
+            if ((int32_t)std::roundf(fontSize.fDpiFontSize) >= fontInfo.m_fontSize) {
+                if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName, false) != ui::Box::InvalidIndex) {
                     bSelected = true;
-                }
-                break;
-            }
-        }
-        if (!bSelected) {
-            for (size_t nIndex = 0; nIndex <= maxItemIndex; ++nIndex) {
-                //选择数字的字号
-                const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
-                if ((int32_t)std::roundf(fontSize.fDpiFontSize) >= fontInfo.m_fontSize) {
-                    if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
-                        bSelected = true;
-                        break;
-                    }
+                    break;
                 }
             }
         }
-        if (!bSelected) {
-            for (size_t nIndex = 0; nIndex <= maxItemIndex; ++nIndex) {
-                //选择数字的字号
-                const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
-                int32_t nFontSize = Dpi().GetScaleInt((int32_t)std::roundf(fontSize.fFontSize));
-                if (nFontSize >= fontInfo.m_fontSize) {
-                    if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName) != ui::Box::InvalidIndex) {
-                        bSelected = true;
-                        break;
-                    }
+    }
+    if (!bSelected) {
+        for (size_t nIndex = 0; nIndex <= maxItemIndex; ++nIndex) {
+            //选择数字的字号
+            const ui::FontSizeInfo& fontSize = m_fontSizeList[nIndex];
+            int32_t nFontSize = Dpi().GetScaleInt((int32_t)std::roundf(fontSize.fFontSize));
+            if (nFontSize >= fontInfo.m_fontSize) {
+                if (pFontSizeCombo->SelectTextItem(fontSize.fontSizeName, false) != ui::Box::InvalidIndex) {
+                    bSelected = true;
+                    break;
                 }
             }
         }

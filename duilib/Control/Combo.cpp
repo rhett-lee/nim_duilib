@@ -677,6 +677,7 @@ bool Combo::SetItemText(size_t iIndex, const DString& itemText)
         ASSERT(pTreeNode != nullptr);
         if (pTreeNode != nullptr) {
             pTreeNode->SetText(itemText);
+            OnSelectedItemChanged();
             return true;
         }
     }
@@ -738,12 +739,16 @@ bool Combo::DeleteItem(size_t iIndex)
             }
         }
     }
+    if (bRemoved) {
+        OnSelectedItemChanged();
+    }
     return bRemoved;
 }
 
 void Combo::DeleteAllItems()
 {
     m_treeView.GetRootNode()->RemoveAllChildNodes();
+    OnSelectedItemChanged();
 }
 
 size_t Combo::SelectTextItem(const DString& itemText, bool bTriggerEvent)
@@ -763,8 +768,9 @@ size_t Combo::SelectTextItem(const DString& itemText, bool bTriggerEvent)
             }
         }
     }
-    if (Box::IsValidItemIndex(nSelIndex)) {
-        m_treeView.SelectItem(nSelIndex, false, bTriggerEvent);
+    m_treeView.SelectItem(nSelIndex, false, bTriggerEvent);
+    if (!bTriggerEvent) {
+        OnSelectedItemChanged();
     }
     return nSelIndex;
 }
@@ -990,7 +996,10 @@ void Combo::OnSelectedItemChanged()
         size_t nSelIndex = GetCurSel();
         if (Box::IsValidItemIndex(nSelIndex)) {
             m_pEditControl->SetText(GetItemText(nSelIndex));
-        }        
+        }
+        else {
+            m_pEditControl->SetText(DString());
+        }
     }
 }
 
