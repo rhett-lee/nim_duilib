@@ -39,7 +39,10 @@
     <HBox height="30" margin="10,2,10,2" child_margin="3">
         <Button class="btn_global_blue_80x30" name="btn_back" width="50" height="30" textid="STRID_CEF_BROWSER_BACKWARD" valign="center" font="system_12" />
         <Button class="btn_global_blue_80x30" name="btn_forward" width="50" height="30" textid="STRID_CEF_BROWSER_FORWARD" valign="center" font="system_12" />
-        <Button class="btn_global_blue_80x30" name="btn_refresh" width="50" height="30" textid="STRID_CEF_BROWSER_REFRESH" valign="center" font="system_12" />
+        <Box width="50" height="30" valign="center">
+            <Button class="btn_global_blue_80x30" name="btn_refresh" width="50" height="30" textid="STRID_CEF_BROWSER_REFRESH" valign="center" font="system_12" />
+            <Button class="btn_global_blue_80x30" name="btn_stop" width="50" height="30" textid="STRID_CEF_BROWSER_STOP" valign="center" font="system_12" />
+        </Box>
         <!-- 地址栏 -->
         <RichEdit class="simple prompt" name="edit_url" width="stretch" height="30" 
                                         text_padding="5,2,5,0" 

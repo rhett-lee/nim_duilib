@@ -203,6 +203,24 @@ void MultiBrowserForm::OnInitWindow()
     InitDragDrop();
 #endif
 
+    //设置按钮的状态
+    Control* pButton = FindControl(_T("btn_back"));
+    if (pButton != nullptr) {
+        pButton->SetEnabled(false);
+    }
+    pButton = FindControl(_T("btn_forward"));
+    if (pButton != nullptr) {
+        pButton->SetEnabled(false);
+    }
+    pButton = FindControl(_T("btn_refresh"));
+    if (pButton != nullptr) {
+        pButton->SetVisible(true);
+    }
+    pButton = FindControl(_T("btn_stop"));
+    if (pButton != nullptr) {
+        pButton->SetVisible(false);
+    }
+
     //设置控制主进程单例的回调函数
     ui::CefManager::GetInstance()->SetAlreadyRunningAppRelaunch(UiBind(&MultiBrowserForm::OnAlreadyRunningAppRelaunch, this, std::placeholders::_1));
 }
@@ -226,6 +244,36 @@ void MultiBrowserForm::OnCloseWindow()
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     UnInitDragDrop();
 #endif
+}
+
+void MultiBrowserForm::OnLoadingStateChange(BrowserBox* pBrowserBox)
+{
+    if (m_pActiveBrowserBox != pBrowserBox) {
+        return;
+    }
+    ui::CefControl* pCefCcontrol = m_pActiveBrowserBox->GetCefControl();
+    if ((pCefCcontrol == nullptr) || (pCefCcontrol->GetCefBrowser() == nullptr)) {
+        return;
+    }
+    bool isLoading = pCefCcontrol->GetCefBrowser()->IsLoading();
+    bool canGoBack = pCefCcontrol->GetCefBrowser()->CanGoBack();
+    bool canGoForward = pCefCcontrol->GetCefBrowser()->CanGoForward();
+    Control* pButton = FindControl(_T("btn_back"));
+    if (pButton != nullptr) {
+        pButton->SetEnabled(canGoBack);
+    }
+    pButton = FindControl(_T("btn_forward"));
+    if (pButton != nullptr) {
+        pButton->SetEnabled(canGoForward);
+    }
+    pButton = FindControl(_T("btn_refresh"));
+    if (pButton != nullptr) {
+        pButton->SetVisible(!isLoading);
+    }
+    pButton = FindControl(_T("btn_stop"));
+    if (pButton != nullptr) {
+        pButton->SetVisible(isLoading);
+    }
 }
 
 LRESULT MultiBrowserForm::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -302,12 +350,9 @@ bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
 {
     DString name = arg.GetSender()->GetName();
     if (name == _T("btn_close")) {
-        if (nullptr == m_pActiveBrowserBox) {
-            ASSERT(0);
-            return true;
+        if (m_pActiveBrowserBox != nullptr) {
+            CloseBox(m_pActiveBrowserBox->GetId());
         }
-
-        CloseBox(m_pActiveBrowserBox->GetId());
     }
     else if (name == _T("btn_add")) {
         uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
@@ -329,6 +374,9 @@ bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
         else if (name == _T("btn_refresh")) {
             cef_control->Refresh();
         }
+        else if (name == _T("btn_stop")) {
+            cef_control->StopLoad();
+        }
     }
 
     return true;
@@ -336,12 +384,14 @@ bool MultiBrowserForm::OnClicked(const ui::EventArgs& arg )
 
 bool MultiBrowserForm::OnReturn(const ui::EventArgs& arg)
 {
-    DString name = arg.GetSender()->GetName();
-    if (name == _T("edit_url")) {
-         //新建标签页
-         CreateNewTabPage(m_pEditUrl->GetText());
+    if (m_pEditUrl != nullptr) {
+        //新建标签页
+        DString url = m_pEditUrl->GetText();         
+        if (!url.empty()) {
+            CreateNewTabPage(url);
+        }        
     }
-    return false;
+    return true;
 }
 
 void MultiBrowserForm::CreateNewTabPage(const DString& url)
@@ -785,7 +835,9 @@ bool MultiBrowserForm::ChangeToBox(const DString &browser_id)
 
     box_item->SetFocus();
     m_pActiveBrowserBox = box_item;
-    m_pEditUrl->SetText(m_pActiveBrowserBox->GetCefControl()->GetURL().ToWString());
+
     // 根据当前激活的浏览器盒子，更新任务栏的图标和标题
+    m_pEditUrl->SetText(m_pActiveBrowserBox->GetCefControl()->GetURL().ToWString());    
+    OnLoadingStateChange(m_pActiveBrowserBox);
     return true;
 }

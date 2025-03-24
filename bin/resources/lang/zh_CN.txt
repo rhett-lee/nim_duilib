@@ -19,6 +19,7 @@ STRID_CEF_BROWSER_FORWARD           =    前进
 STRID_CEF_BROWSER_INPUT_ADDRESS     =    请输入地址
 STRID_CEF_BROWSER_BROWSE_TO         =    转到
 STRID_CEF_BROWSER_REFRESH           =    刷新
+STRID_CEF_BROWSER_STOP              =    停止
 STRID_CEF_BROWSER_HELLO_JS          =    你好JS！
 STRID_CEF_BROWSER_INPUT_TEXT        =    输入发送给JS的文本
 STRID_CEF_BROWSER_SEND_TO_JS        =    发送给JS
