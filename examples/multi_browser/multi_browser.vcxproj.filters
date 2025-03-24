@@ -16,9 +16,6 @@
     <Filter Include="browser">
       <UniqueIdentifier>{cb4e3f7f-99c3-4721-8777-1d7624c6cac1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="control">
-      <UniqueIdentifier>{fe5c6456-4694-4c06-b9db-813feeaa7633}</UniqueIdentifier>
-    </Filter>
     <Filter Include="dragdrop">
       <UniqueIdentifier>{39ffc9f6-a6ef-4a3c-99f8-97c06128b731}</UniqueIdentifier>
     </Filter>
@@ -50,9 +47,6 @@
     </ClInclude>
     <ClInclude Include="dragdrop\DragForm.h">
       <Filter>dragdrop</Filter>
-    </ClInclude>
-    <ClInclude Include="control\BrowserTabItem.h">
-      <Filter>control</Filter>
     </ClInclude>
     <ClInclude Include="browser\BrowserBox.h">
       <Filter>browser</Filter>
@@ -94,9 +88,6 @@
     </ClCompile>
     <ClCompile Include="dragdrop\DragForm.cpp">
       <Filter>dragdrop</Filter>
-    </ClCompile>
-    <ClCompile Include="control\BrowserTabItem.cpp">
-      <Filter>control</Filter>
     </ClCompile>
     <ClCompile Include="browser\BrowserBox.cpp">
       <Filter>browser</Filter>

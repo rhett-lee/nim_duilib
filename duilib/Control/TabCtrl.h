@@ -45,6 +45,10 @@ public:
     */
     bool IsEnableDragOrder() const;
 
+    /** 处理分割线的显示或者隐藏
+    */
+    void AdjustItemLineStatus();
+
 public:
     /** 设置子项的位置索引
      * @param [in] pControl 子项指针
@@ -161,6 +165,10 @@ public:
     */
     Button* GetCloseButton() const { return m_pCloseBtn; }
 
+    /** 获取标签之间的分割线的控件
+    */
+    Control* GetLineControl() const { return m_pLine; }
+
 public:
     /** 图标控件的Class
     */
@@ -225,6 +233,14 @@ public:
     /** 处理分割线的显示或者隐藏
     */
     void AdjustItemLineStatus();
+
+    /** 当前标签的分割线是否处于显示状态
+    */
+    bool IsItemLineVisible() const;
+
+    /** 设置标签分割线的显示或者隐藏
+    */
+    void SetItemLineVisible(bool bVisible);
 
 public:
     /** 判断是否支持拖动改变控件的顺序

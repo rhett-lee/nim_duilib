@@ -1,16 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-    <ListContainerElement class="listitem" maxwidth="150">
-        <HBox padding="5,0,10,0" childmargin="5" mouse="false">
-            <Box width="40" height="40" valign="center" mouse="false" mousechild="false" visible="false">
-                <Control name="tab_item_icon" width="38" height="38" borderround="38,38,38,38" margin="1,1,0,0"/>
-                <Control />
-            </Box>
-            <Label name="tab_item_name" width="stretch" valign="center" font="system_12" mouse="false"/>
-
-            <Box width="auto" height="auto" float="true" halign="right" valign="center">
-                <Button class="btn_del_search" name="tab_item_close" width="16" height="16" halign="center" valign="center" visible="false"/>
-            </Box>             
-        </HBox>
-    </ListContainerElement>
+    <TabCtrlItem class="tab_ctrl_item_auto" min_width="30" max_width="240" valign="center" halign="center"/>
 </Window>

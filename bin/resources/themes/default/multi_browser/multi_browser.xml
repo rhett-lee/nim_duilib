@@ -1,20 +1,30 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Window size="75%,90%" mininfo="800,500" caption="0,0,0,36" sizebox="4,4,4,4" textid="STRID_CEF_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="true" icon="../public/caption/logo.ico">
+<!--新建标签按钮：纯色按钮-->
+<Class name="tab_item_new_add_btn" font="system_18" text_align="hcenter,vcenter" valign="center" 
+                                   normal_text_color="black" 
+                                   disabled_text_color="gray" 
+                                   normal_color="#FFD3E3FD" 
+                                   hot_color="#FFA8C7FA" 
+                                   pushed_color="#FF9DB9E8"/>
+<Class name="tab_ctrl_left_line" bkcolor="#FFA8C7FA" width="1" height="22" halign="center" valign="center" mouse="false"/>
+
 <VBox bkcolor="bk_wnd_lightcolor">
-    <HBox width="stretch" height="36">
+    <HBox name="title_bar" width="stretch" height="36" bkcolor="#FFD3E3FD">
         <!-- 图标区域 -->
         <Control width="36" height="36" bkimage="file='../public/caption/logo.ico' width='22' height='22' halign='center' valign='center'"/>
         
         <!-- 竖线区域 -->
-        <Line width="4" height="32" vertical="true" dash_style="solid" line_color="gray" line_width="1" padding="0,6,0,6"/>
+        <Control class="tab_ctrl_left_line" padding="0,6,0,6" margin="0,0,2,0"/>
         
         <!-- 顶部标签列表 -->
-		<HListBox class="list" name="tab_list" margin="4,0,0,0">
-			<Button class="btn_global_blue_80x30" name="btn_add" text="+" width="20" height="20" valign="center" align="center,vcenter" font="system_14" />
-		</HListBox>
+        <TabCtrl class="tab_ctrl_auto" name="tab_ctrl"/>
+        
+        <!-- 顶部标签列表后面放一个新建标签按钮 -->
+        <Button class="tab_item_new_add_btn" name="btn_add" text="+" tooltip_text="新建标签页" width="24" height="24" border_round="8,8" text_padding="0,0,0,2"/>
 		
         <!-- 标题栏区域 -->
-        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+        <HBox name="window_caption_bar" width="auto" height="36" bkcolor="">
             <Control />
             <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
             <Box height="stretch" width="40" margin="0,2,0,2">
@@ -25,7 +35,7 @@
         </HBox>
     </HBox>
     <!-- 后退/前进/刷新按钮，地址栏，标签栏区域 -->
-    <HBox height="30" margin="10,2,10,2" childmargin="3">
+    <HBox height="30" margin="10,2,10,2" child_margin="3">
         <Button class="btn_global_blue_80x30" name="btn_back" width="50" height="30" textid="STRID_CEF_BROWSER_BACKWARD" valign="center" font="system_12" />
         <Button class="btn_global_blue_80x30" name="btn_forward" width="50" height="30" textid="STRID_CEF_BROWSER_FORWARD" valign="center" font="system_12" />
         <Button class="btn_global_blue_80x30" name="btn_refresh" width="50" height="30" textid="STRID_CEF_BROWSER_REFRESH" valign="center" font="system_12" />

@@ -174,12 +174,16 @@ public:
      */
     Layout* GetLayout() const { return m_pLayout; }
 
-    /**
-     * @brief 重新关联布局对象
-     * @param[in] pLayout 布局对象指针
-     * @return 无
+    /** 重新关联布局对象, 并返回原来关联的布局对象
+     * @param [in] pNewLayout 布局对象指针
+     * @return 返回旧的布局对象，如果不再使用，需要用FreeLayout释放对象
      */
-    void ReSetLayout(Layout* pLayout);
+    Layout* ResetLayout(Layout* pNewLayout);
+
+    /** 释放布局对象
+    * @param [in] pLayout 布局对象指针
+    */
+    void FreeLayout(Layout* pLayout);
 
 public:
     /** 设置是否支持拖拽投放进入该容器: 如果不等于0，支持拖入，否则不支持拖入(从DragOutId==DropInId的容器拖入到该容器)
