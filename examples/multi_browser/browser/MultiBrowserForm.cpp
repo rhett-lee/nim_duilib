@@ -264,20 +264,12 @@ LRESULT MultiBrowserForm::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lPara
 
 LRESULT MultiBrowserForm::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
-    if ((vkCode == VirtualKeyCode::kVK_TAB) && (modifierKey & ModifierKey::kControl)){
-        // 处理Ctrl+Tab快捷键
+    if ((vkCode == VirtualKeyCode::kVK_TAB) && ui::Keyboard::IsKeyDown(VirtualKeyCode::kVK_CONTROL)) {
+        // 处理Ctrl+Tab快捷键: 切换标签
         bHandled = true;
-        int next = (int)m_pTabCtrl->GetCurSel();
-        next = (next + 1) % GetBoxCount();
-        m_pTabCtrl->SelectItem(next, true, true);
-        return 0;
-    }
-    else if (vkCode == VirtualKeyCode::kVK_ESCAPE) {
-        // 处理ESC快捷键
-        bHandled = true;
-        if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox() && nullptr != m_pActiveBrowserBox) {
-            this->CloseBox(m_pActiveBrowserBox->GetId());
-        }
+        size_t nNextItem = m_pTabCtrl->GetCurSel();
+        nNextItem = (nNextItem + 1) % m_pTabCtrl->GetItemCount();
+        m_pTabCtrl->SelectItem(nNextItem, true, true);
         return 0;
     }
     return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
@@ -704,18 +696,15 @@ void MultiBrowserForm::OnAfterDragBoxCallback(bool drop_succeed)
 bool MultiBrowserForm::OnTabItemSelected(const ui::EventArgs& param)
 {
     if (kEventSelect == param.eventType) {
-        DString name = param.GetSender()->GetName();
-
-        if (name == _T("tab_list")) {
+        ASSERT(param.GetSender() == m_pTabCtrl);
+        if (m_pTabCtrl != nullptr) {
             // 如果单击了顶部的标签，则找到下方Tab里对应的浏览器盒子并选中
-            Control *select_item = m_pTabCtrl->GetItemAt(m_pTabCtrl->GetCurSel());
-            ASSERT(nullptr != select_item);
-            if (nullptr == select_item) {
-                return true;
+            Control* pSelectedItem = m_pTabCtrl->GetItemAt(m_pTabCtrl->GetCurSel());
+            ASSERT(pSelectedItem != nullptr);
+            if (pSelectedItem != nullptr) {
+                DString session_id = pSelectedItem->GetName();
+                ChangeToBox(session_id);
             }
-
-            DString session_id = select_item->GetName();
-            ChangeToBox(session_id);
         }
     }
     else if (kEventMouseButtonDown == param.eventType) {
@@ -787,7 +776,7 @@ bool MultiBrowserForm::ChangeToBox(const DString &browser_id)
         return false;
     }
 
-    BrowserBox *box_item = FindBox(browser_id);
+    BrowserBox* box_item = FindBox(browser_id);
     if (nullptr == box_item) {
         return false;
     }
