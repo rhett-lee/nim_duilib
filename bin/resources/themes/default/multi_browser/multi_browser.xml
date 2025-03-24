@@ -18,7 +18,7 @@
         <Control class="tab_ctrl_left_line" padding="0,6,0,6" margin="0,0,2,0"/>
         
         <!-- 顶部标签列表 -->
-        <TabCtrl class="tab_ctrl_auto" name="tab_ctrl"/>
+        <TabCtrl class="tab_ctrl" name="tab_ctrl"/>
         
         <!-- 顶部标签列表后面放一个新建标签按钮 -->
         <Button class="tab_item_new_add_btn" name="btn_add" text="+" tooltip_text="新建标签页" width="24" height="24" border_round="8,8" text_padding="0,0,0,2"/>
@@ -26,6 +26,7 @@
         <!-- 标题栏区域 -->
         <HBox name="window_caption_bar" width="auto" height="36" bkcolor="">
             <Control />
+            <Control width="36"/>
             <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
             <Box height="stretch" width="40" margin="0,2,0,2">
                 <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
