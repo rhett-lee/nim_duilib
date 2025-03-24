@@ -88,62 +88,86 @@ public:
     {
         UiSize64 szSize = HLayout::ArrangeChild(items, rc);
         ASSERT(items.empty() || items.size() == 5);
-        if (items.size() == 5) {
-            //固定结构, 校验后修改标签栏的宽度
-            int64_t nTotalWidth = 0;
-            for (Control* pControl : items) {
-                if (pControl == nullptr) {
-                    continue;
-                }
-                ui::UiMargin margin = pControl->GetMargin();
-                nTotalWidth += (pControl->GetRect().Width() + margin.left + margin.right);
-            }
-            ASSERT(szSize.cx == nTotalWidth);
-            if (szSize.cx == nTotalWidth) {
-                if (nTotalWidth > rc.Width()) {
-                    //超过总宽度: 调整标签栏的宽度
-                    int32_t diff = (int32_t)nTotalWidth - rc.Width();
-                    Control* pItem = items[2];
-                    if (pItem != nullptr) {
-                        ASSERT(dynamic_cast<ui::TabCtrl*>(pItem) != nullptr);
-                        UiRect rcTabCtrl = pItem->GetPos();
-                        rcTabCtrl.right -= diff;
-                        rcTabCtrl.Validate();
-                        pItem->SetPos(rcTabCtrl);
-                    }
-
-                    for (size_t nItem = 3; nItem < 5; ++nItem) {
-                        Control* pItem = items[nItem];
-                        if (pItem != nullptr) {
-                            UiRect rcItem = pItem->GetPos();
-                            rcItem.Offset(-diff, 0);
-                            pItem->SetPos(rcItem);
-                        }
-                    }
-                }
-                else if (nTotalWidth < rc.Width()) {
-                    //小于总宽度：将宽度加到最后一个控件
-                    Control* pItem = items[items.size() - 1];
-                    if (pItem != nullptr) {
-                        UiRect rcItem = pItem->GetPos();
-                        rcItem.right += (rc.Width() - (int32_t)nTotalWidth);
-                        pItem->SetPos(rcItem);
-                    }
-                }
-            }
-            szSize.cx = rc.Width();
-
-            //最后再校验
-            nTotalWidth = 0;
-            for (Control* pControl : items) {
-                if (pControl == nullptr) {
-                    continue;
-                }
-                ui::UiMargin margin = pControl->GetMargin();
-                nTotalWidth += (pControl->GetRect().Width() + margin.left + margin.right);
-            }
-            ASSERT(rc.Width() == nTotalWidth);
+        if (items.size() != 5) {
+            return szSize;
         }
+        //固定结构, 校验后修改标签栏的宽度
+        int64_t nTotalWidth = 0;
+        for (Control* pControl : items) {
+            if (pControl == nullptr) {
+                continue;
+            }
+            ui::UiMargin margin = pControl->GetMargin();
+            nTotalWidth += (pControl->GetRect().Width() + margin.left + margin.right);
+        }
+        ASSERT(szSize.cx == nTotalWidth);
+        if (szSize.cx != nTotalWidth) {
+            return szSize;
+        }
+        ASSERT(rc.Width() == nTotalWidth);
+        if (rc.Width() != nTotalWidth) {
+            return szSize;
+        }
+
+        //校验标签栏的TabCtrl控件
+        ui::TabCtrl* pTabCtrl = nullptr;
+        ui::Control* pItem = items[2];
+        if (pItem != nullptr) {
+            pTabCtrl = dynamic_cast<ui::TabCtrl*>(pItem);            
+        }
+        ASSERT(pTabCtrl != nullptr);
+        if (pTabCtrl == nullptr) {
+            return szSize;
+        }
+        ASSERT(pTabCtrl->GetFixedWidth().IsStretch());
+        if (!pTabCtrl->GetFixedWidth().IsStretch()) {
+            return szSize;
+        }
+
+        //等于总宽度：计算标签控件的实际总宽度
+        int32_t nTabItemTotalWidth = 0;
+        UiRect rcTabCtrl = pItem->GetPos();
+        const size_t nTabItemCount = pTabCtrl->GetItemCount();
+        for (size_t nTabItem = 0; nTabItem < nTabItemCount; ++nTabItem) {
+            Control* pTabItem = pTabCtrl->GetItemAt(nTabItem);
+            if ((pTabItem == nullptr) || !pTabItem->IsVisible()) {
+                continue;
+            }
+            ui::UiMargin rcTabItemMargin = pTabItem->GetMargin();
+            nTabItemTotalWidth += (pTabItem->GetPos().Width() + rcTabItemMargin.left + rcTabItemMargin.right);
+        }
+        if (nTabItemTotalWidth < rcTabCtrl.Width()) {
+            int32_t nItemDiff = rcTabCtrl.Width() - nTabItemTotalWidth;
+            //标签控件：长度缩短
+            rcTabCtrl.right -= nItemDiff;
+            pTabCtrl->SetPos(rcTabCtrl);
+
+            //新建按钮控件：向左移动
+            Control* pItem = items[items.size() - 2];
+            if (pItem != nullptr) {
+                UiRect rcItem = pItem->GetPos();
+                rcItem.Offset(-nItemDiff, 0);
+                pItem->SetPos(rcItem);
+            }
+            //最后的控件：宽度增加
+            pItem = items[items.size() - 1];
+            if (pItem != nullptr) {
+                UiRect rcItem = pItem->GetPos();
+                rcItem.left -= nItemDiff;
+                pItem->SetPos(rcItem);
+            }
+        }
+
+        //最后再校验
+        nTotalWidth = 0;
+        for (Control* pControl : items) {
+            if (pControl == nullptr) {
+                continue;
+            }
+            ui::UiMargin margin = pControl->GetMargin();
+            nTotalWidth += (pControl->GetRect().Width() + margin.left + margin.right);
+        }
+        ASSERT(rc.Width() == nTotalWidth);
         return szSize;
     }
 };
