@@ -523,13 +523,25 @@ void Box::RemoveAllItems()
     }    
 }
 
-void Box::ReSetLayout(Layout* pLayout)
+Layout* Box::ResetLayout(Layout* pNewLayout)
 {
-    ASSERT(pLayout != nullptr);
+    ASSERT(pNewLayout != nullptr);
+    if (pNewLayout != nullptr) {        
+        pNewLayout->SetOwner(this);
+    }
+    Layout* pOldLayout = m_pLayout;
+    m_pLayout = pNewLayout;
+    return pOldLayout;
+}
+
+void Box::FreeLayout(Layout* pLayout)
+{
     if (pLayout != nullptr) {
-        m_pLayout = pLayout;
-        m_pLayout->SetOwner(this);
-    }    
+        ASSERT(m_pLayout != pLayout);
+        if (m_pLayout != pLayout) {
+            delete pLayout;
+        }        
+    }
 }
 
 void Box::ClearImageCache()

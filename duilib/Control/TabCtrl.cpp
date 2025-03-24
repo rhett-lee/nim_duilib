@@ -59,6 +59,9 @@ void TabCtrl::OnInit()
     if (m_nSelectedId != Box::InvalidIndex) {
         SelectItem(m_nSelectedId);
     }
+
+    //调整标签分割线的显示状态
+    AdjustItemLineStatus();
 }
 
 void TabCtrl::HandleEvent(const EventArgs& msg)
@@ -135,17 +138,9 @@ TabBox* TabCtrl::GetTabBox() const
 
 bool TabCtrl::SetItemIndex(Control* pControl, size_t iIndex)
 {
-    size_t nOldIndex = GetItemIndex(pControl);
     bool bRet = BaseClass::SetItemIndex(pControl, iIndex);
     if (bRet) {
-        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(nOldIndex));
-        if (pItem != nullptr) {
-            pItem->AdjustItemLineStatus();
-        }
-        pItem = dynamic_cast<TabCtrlItem*>(pControl);
-        if (pItem != nullptr) {
-            pItem->AdjustItemLineStatus();
-        }
+        AdjustItemLineStatus();
     }
     return bRet;
 }
@@ -154,10 +149,7 @@ bool TabCtrl::AddItem(Control* pControl)
 {
     bool bRet = BaseClass::AddItem(pControl);
     if (bRet) {
-        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(pControl);
-        if (pItem != nullptr) {
-            pItem->AdjustItemLineStatus();
-        }
+        AdjustItemLineStatus();
     }
     return bRet;
 }
@@ -166,23 +158,16 @@ bool TabCtrl::AddItemAt(Control* pControl, size_t iIndex)
 {
     bool bRet = BaseClass::AddItemAt(pControl, iIndex);
     if (bRet) {
-        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(pControl);
-        if (pItem != nullptr) {
-            pItem->AdjustItemLineStatus();
-        }
+        AdjustItemLineStatus();
     }
     return bRet;
 }
 
 bool TabCtrl::RemoveItem(Control* pControl)
 {
-    size_t iIndex = GetItemIndex(pControl);
     bool bRet = BaseClass::RemoveItem(pControl);
     if (bRet) {
-        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(iIndex - 1));
-        if (pItem != nullptr) {
-            pItem->AdjustItemLineStatus();
-        }
+        AdjustItemLineStatus();
     }
     return bRet;
 }
@@ -191,10 +176,7 @@ bool TabCtrl::RemoveItemAt(size_t iIndex)
 {
     bool bRet = BaseClass::RemoveItemAt(iIndex);
     if (bRet) {
-        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(iIndex - 1));
-        if (pItem != nullptr) {
-            pItem->AdjustItemLineStatus();
-        }
+        AdjustItemLineStatus();
     }
     return bRet;
 }
@@ -202,6 +184,40 @@ bool TabCtrl::RemoveItemAt(size_t iIndex)
 void TabCtrl::RemoveAllItems()
 {
     BaseClass::RemoveAllItems();
+}
+
+void TabCtrl::AdjustItemLineStatus()
+{
+    TabCtrlItem* pLastItem = nullptr;
+    const size_t nCount = GetItemCount();
+    for (size_t nItem = 0; nItem < nCount; ++nItem) {
+        TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(GetItemAt(nItem));
+        if ((pItem == nullptr) || !pItem->IsVisible()) {
+            continue;
+        }
+        ControlStateType state = pItem->GetState();
+        if ((state == kControlStateHot) || (state == kControlStatePushed) || pItem->IsSelected()) {
+            //活动标签，不显示分割线
+            pItem->SetItemLineVisible(false);
+
+            if (pLastItem != nullptr) {
+                //活动标签的前一个标签，不显示分割线
+                pLastItem->SetItemLineVisible(false);
+            }
+        }
+        else {
+            //其他状态的标签，显示分割线
+            pItem->SetItemLineVisible(true);
+        }
+        
+        if (nItem == (nCount - 1)) {
+            //最后一个标签，不显示分割线
+            pItem->SetItemLineVisible(false);
+        }
+
+        //记录上一个标签
+        pLastItem = pItem;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////
@@ -493,54 +509,39 @@ void TabCtrlItem::AdjustSubItemIndex()
 
 void TabCtrlItem::AdjustItemLineStatus()
 {
+    TabCtrl* pTabCtrl = GetTabCtrl();
+    if (pTabCtrl != nullptr) {
+        pTabCtrl->AdjustItemLineStatus();
+    }
+}
+
+bool TabCtrlItem::IsItemLineVisible() const
+{
+    if ((m_pLine == nullptr) || !m_pLine->IsVisible()) {
+        return false;
+    }
+    DString bkColor = m_pLine->GetBkColor();
+    if (bkColor.empty()) {
+        return false;
+    }
+    UiColor color = GetUiColor(bkColor);
+    return color.GetA() != 0;
+}
+
+void TabCtrlItem::SetItemLineVisible(bool bVisible)
+{
     if (m_pLine == nullptr) {
         return;
     }
-    TabCtrl* pTabCtrl = GetTabCtrl();
-    if (pTabCtrl == nullptr) {
+    DString bkColor = m_pLine->GetBkColor();
+    if (bkColor.empty()) {
         return;
     }
-    const size_t nCount = pTabCtrl->GetItemCount();
-    if (nCount == 0) {
-        return;
-    }
-    size_t nItem = pTabCtrl->GetItemIndex(this);
-    if (nItem >= nCount) {
-        return;
-    }
-    bool bLineVisible = true;
-    TabCtrlItem* pItem = dynamic_cast<TabCtrlItem*>(pTabCtrl->GetItemAt(nItem));
-    if ((pItem != nullptr) && (pItem->m_pLine != nullptr)) {        
-        ControlStateType state = pItem->GetState();
-        if ((state == kControlStateHot) || (state == kControlStatePushed) || pItem->IsSelected()) {
-            bLineVisible = false;
-        }
-        if (pItem->m_pLine->IsVisible() != bLineVisible) {
-            pItem->m_pLine->SetVisible(bLineVisible);
-        }        
-    }
-    //当前标签前面一个标签的分割线
-    if ((nItem > 0) && (pItem != nullptr)) {
-        if (!pItem->IsVisible()) {
-            bLineVisible = true;
-        }
-        pItem = dynamic_cast<TabCtrlItem*>(pTabCtrl->GetItemAt(nItem - 1));
-        if ((pItem != nullptr) && (pItem->m_pLine != nullptr)) {
-            ControlStateType state = pItem->GetState();
-            if ((state == kControlStateHot) || (state == kControlStatePushed) || pItem->IsSelected()) {
-                bLineVisible = false;
-            }
-            if (pItem->m_pLine->IsVisible() != bLineVisible) {
-                pItem->m_pLine->SetVisible(bLineVisible);
-            }
-        }
-    }
-
-    //最后一个标签，不显示分割线
-    nItem = nCount - 1;
-    TabCtrlItem* pLastItem = dynamic_cast<TabCtrlItem*>(pTabCtrl->GetItemAt(nItem));
-    if ((pLastItem != nullptr) && (pLastItem->m_pLine != nullptr) && pLastItem->m_pLine->IsVisible()) {
-        pLastItem->m_pLine->SetVisible(false);
+    UiColor oldColor = GetUiColor(bkColor);
+    uint8_t a = bVisible ? 255 : 0;
+    UiColor newColor = UiColor(a, oldColor.GetR(), oldColor.GetG(), oldColor.GetB());
+    if (newColor != oldColor) {
+        m_pLine->SetBkColor(newColor);
     }
 }
 

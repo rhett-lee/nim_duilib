@@ -11,14 +11,10 @@ ListCtrlIconView::ListCtrlIconView(Window* pWindow, bool bListMode):
     m_bListMode(bListMode)
 {
     if (bListMode) {
-        Layout* pLayout = GetLayout();
         VirtualHTileLayout* pNewLayout = new VirtualHTileLayout;
-        ReSetLayout(pNewLayout);
+        Layout* pLayout = ResetLayout(pNewLayout);
         SetVirtualLayout(pNewLayout);
-        if (pLayout) {
-            delete pLayout;
-            pLayout = nullptr;
-        }        
+        FreeLayout(pLayout);
     }
     else {
         VirtualVTileLayout* pDataLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
@@ -89,7 +85,7 @@ void ListCtrlIconView::SetHorizontalLayout(bool bHorizontal)
             Layout* pLayout = GetLayout();
             VirtualVTileLayout* pOldLayout = dynamic_cast<VirtualVTileLayout*>(pLayout);
             VirtualHTileLayout* pNewLayout = new VirtualHTileLayout;
-            ReSetLayout(pNewLayout);
+            ResetLayout(pNewLayout);
             SetVirtualLayout(pNewLayout);
             if (pOldLayout != nullptr) {
                 //同步属性
@@ -100,10 +96,7 @@ void ListCtrlIconView::SetHorizontalLayout(bool bHorizontal)
                 pNewLayout->SetChildMarginY(pOldLayout->GetChildMarginY());
                 pNewLayout->SetScaleDown(pOldLayout->IsScaleDown());
             }
-            if (pLayout) {
-                delete pLayout;
-                pLayout = nullptr;
-            }
+            FreeLayout(pLayout);
         }
     }
     else {
@@ -112,7 +105,7 @@ void ListCtrlIconView::SetHorizontalLayout(bool bHorizontal)
             Layout* pLayout = GetLayout();
             VirtualHTileLayout* pOldLayout = dynamic_cast<VirtualHTileLayout*>(pLayout);
             VirtualVTileLayout* pNewLayout = new VirtualVTileLayout;
-            ReSetLayout(pNewLayout);
+            ResetLayout(pNewLayout);
             SetVirtualLayout(pNewLayout);
             if (pOldLayout != nullptr) {
                 //同步属性
@@ -123,10 +116,7 @@ void ListCtrlIconView::SetHorizontalLayout(bool bHorizontal)
                 pNewLayout->SetChildMarginY(pOldLayout->GetChildMarginY());
                 pNewLayout->SetScaleDown(pOldLayout->IsScaleDown());
             }
-            if (pLayout) {
-                delete pLayout;
-                pLayout = nullptr;
-            }
+            FreeLayout(pLayout);
         }
     }
 }

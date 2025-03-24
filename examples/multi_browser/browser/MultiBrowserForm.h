@@ -11,7 +11,6 @@
 #endif
 
 class BrowserBox;
-class BrowserTabItem;
 
 /** @file multi_browser_form.h
 * @brief 离屏模式Cef多标签浏览器窗口
@@ -97,14 +96,12 @@ public:
     * @param[in] url 初始化URL
     * @return BrowserBox* 浏览器盒子
     */
-    BrowserBox* CreateBox(const std::string &browser_id, DString url);
+    BrowserBox* CreateBox(const std::string& browser_id, DString url);
 
-    /**
-    * 关闭本窗口内的一个浏览器盒子
-    * @param[in] browser_id 浏览器id
-    * @return void    无返回值
-    */
-    void CloseBox(const std::string &browser_id);
+    /** 关闭本窗口内的一个浏览器盒子
+     * @param[in] browser_id 浏览器id
+     */
+    bool CloseBox(const std::string& browser_id);
 
     /**
     * 把一个其他窗口内的浏览器盒子附加到本窗口内
@@ -198,7 +195,7 @@ private:
     * @param[in] browser_id 浏览器id
     * @return BrowserBox* 浏览器盒子
     */
-    BrowserTabItem* FindTabItem(const DString &browser_id);
+    ui::TabCtrlItem* FindTabItem(const DString &browser_id);
 
     /**
     * 切换某个浏览器盒子为显示状态
@@ -298,10 +295,14 @@ private:
 #endif
 
 private:
-    ui::Label* m_pTitle;
+    /** 地址栏控件（用于显示和输入URL）
+    */
     ui::RichEdit* m_pEditUrl;
 
-    ui::ListBox* m_pTabList;
+    /** 标签栏
+    */
+    ui::TabCtrl* m_pTabCtrl;
+
     ui::TabBox* m_pBorwserBoxTab;
     BrowserBox* m_pActiveBrowserBox;
 

@@ -57,6 +57,11 @@ public:
      */
     void SetBkColor2(const DString& strColor);
 
+    /** 设置第二背景色（实现渐变背景色）
+     * @param [in] color 要设置的背景颜色值
+     */
+    void SetBkColor2(const UiColor& color);
+
     /** 获取第二背景色（实现渐变背景色）
      */
     DString GetBkColor2() const;

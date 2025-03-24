@@ -657,7 +657,7 @@ void Control::SetBkColor(const UiColor& color)
     }
     else {
         SetBkColor(GetColorString(color));
-    }    
+    }
 }
 
 void Control::SetBkColor2(const DString& strColor)
@@ -668,6 +668,16 @@ void Control::SetBkColor2(const DString& strColor)
     }
     m_strBkColor2 = strColor;
     Invalidate();
+}
+
+void Control::SetBkColor2(const UiColor& color)
+{
+    if (color.IsEmpty()) {
+        SetBkColor2(_T(""));
+    }
+    else {
+        SetBkColor2(GetColorString(color));
+    }
 }
 
 DString Control::GetBkColor2() const
