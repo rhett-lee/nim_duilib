@@ -325,6 +325,9 @@ void BrowserBox::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefStr
 void BrowserBox::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
 {
     ui::GlobalManager::Instance().AssertUIThread();
+    if (m_pBrowserForm != nullptr) {
+        m_pBrowserForm->OnLoadingStateChange(this);
+    }
 }
 
 void BrowserBox::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, cef_transition_type_t transition_type)

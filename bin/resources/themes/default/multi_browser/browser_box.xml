@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Window>
-<VBox >
-    <CefControl name="cef_control" bkcolor="bk_wnd_lightcolor"/>
-</VBox>
+    <VBox >
+        <CefControl name="cef_control" bkcolor="white"/>
+    </VBox>
 </Window>

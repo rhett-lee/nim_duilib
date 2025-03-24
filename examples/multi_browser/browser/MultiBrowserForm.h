@@ -168,41 +168,36 @@ public:
 
 private:
 
-    /**
-    * 处理标签控件的选中消息
-    * @param[in] param 消息的相关信息
+    /** 处理标签控件的选中消息
+    * @param [in] param 消息的相关信息
     * @return bool true 继续传递控件消息，false 停止传递控件消息
     */
     bool OnTabItemSelected(const ui::EventArgs& param);
 
-    /**
-    * 处理标签控件的关闭按钮的单击消息
-    * @param[in] param 消息的相关信息
-    * @param[in] browser_id 列表项对应的浏览器id
+    /** 处理标签控件的关闭按钮的单击消息
+    * @param [in] param 消息的相关信息
+    * @param [in] browser_id 列表项对应的浏览器id
     * @return bool true 继续传递控件消息，false 停止传递控件消息
     */
     bool OnTabItemClose(const ui::EventArgs& param, const std::string& browser_id);
 
-    /**
-    * 在本窗口内查找浏览器盒子
-    * @param[in] browser_id 浏览器id
+    /** 在本窗口内查找浏览器盒子
+    * @param [in] browser_id 浏览器id
     * @return BrowserBox* 浏览器盒子
     */
     BrowserBox* FindBox(const DString &browser_id);
 
-    /**
-    * 在本窗口内查找标签控件
-    * @param[in] browser_id 浏览器id
+    /** 在本窗口内查找标签控件
+    * @param [in] browser_id 浏览器id
     * @return BrowserBox* 浏览器盒子
     */
-    ui::TabCtrlItem* FindTabItem(const DString &browser_id);
+    ui::TabCtrlItem* FindTabItem(const DString& browser_id);
 
-    /**
-    * 切换某个浏览器盒子为显示状态
-    * @param[in] browser_id 浏览器id
+    /** 切换某个浏览器盒子为显示状态
+    * @param [in] browser_id 浏览器id
     * @return bool true 成功，false 失败
     */
-    bool ChangeToBox(const DString &browser_id);
+    bool ChangeToBox(const DString& browser_id);
 
 public:
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
@@ -237,17 +232,18 @@ public:
     * 设置某个浏览器对应的标签控件的标题
     * @param[in] browser_id 浏览器id
     * @param[in] name 标题
-    * @return void    无返回值
     */
-    void SetTabItemName(const DString &browser_id, const DString &name);
+    void SetTabItemName(const DString& browser_id, const DString& name);
 
-    /**
-    * 设置某个浏览器对应的标签控件的URL
-    * @param[in] browser_id 浏览器id
-    * @param[in] url URL
-    * @return void    无返回值
+    /** 设置某个浏览器对应的标签控件的URL
+    * @param [in] browser_id 浏览器id
+    * @param [in] url URL
     */
-    void SetURL(const std::string &browser_id, const DString &url);
+    void SetURL(const std::string& browser_id, const DString& url);
+
+    /** Browser的加载状态发生变化，更新界面
+    */
+    void OnLoadingStateChange(BrowserBox* pBrowserBox);
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 public:
@@ -303,7 +299,12 @@ private:
     */
     ui::TabCtrl* m_pTabCtrl;
 
+    /** BrowserBox 管理器
+    */
     ui::TabBox* m_pBorwserBoxTab;
+
+    /** 当前激活的BrowserBox接口
+    */
     BrowserBox* m_pActiveBrowserBox;
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
