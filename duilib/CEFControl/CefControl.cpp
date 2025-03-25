@@ -15,6 +15,7 @@ CefControl::CefControl(ui::Window* pWindow):
     m_bDevToolsPopup(false),
     m_pDevToolsView(nullptr),
     m_bEnableF12(true),
+    m_bDownloadFaviconImage(false),
     m_bUrlIsLocalFile(false)
 {
     //这个标记必须为false，否则绘制有问题
@@ -38,7 +39,12 @@ void CefControl::SetAttribute(const DString& strName, const DString& strValue)
         SetInitUrlIsLocalFile(strValue == _T("true"));
     }
     else if (strName == _T("F12")) {
+        //是否允许按F12打开开发者工具
         SetEnableF12(strValue == _T("true"));
+    }
+    else if (strName == _T("download_favicon_image")) {
+        //是否下载网站的FavIcon图标
+        SetDownloadFaviconImage(strValue == _T("true"));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
@@ -314,6 +320,16 @@ bool CefControl::IsEnableF12() const
     return m_bEnableF12;
 }
 
+void CefControl::SetDownloadFaviconImage(bool bDownload)
+{
+    m_bDownloadFaviconImage = bDownload;
+}
+
+bool CefControl::IsDownloadFaviconImage() const
+{
+    return m_bDownloadFaviconImage;
+}
+
 void CefControl::SetInitURL(const DString& url)
 {
     m_initUrl = url;
@@ -573,15 +589,68 @@ void CefControl::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& t
     }
 }
 
+class CefControlDownloadImageCallback : public CefDownloadImageCallback {
+public:
+    explicit CefControlDownloadImageCallback(CefControl* pCefControl):
+        m_pCefControl(pCefControl)
+    {
+        if (pCefControl != nullptr) {
+            m_pCefControlFlag = pCefControl->GetWeakFlag();
+        }
+    }
+
+    void OnDownloadImageFinished(const CefString& image_url, int http_status_code, CefRefPtr<CefImage> image) override
+    {
+        if (image && !m_pCefControlFlag.expired() && (m_pCefControl != nullptr)) {
+            m_pCefControl->OnDownloadImageFinished(image_url, http_status_code, image);
+        }
+    }
+
+private:
+    CefControl* m_pCefControl;
+    std::weak_ptr<WeakFlag> m_pCefControlFlag;
+
+    IMPLEMENT_REFCOUNTING(CefControlDownloadImageCallback);
+    DISALLOW_COPY_AND_ASSIGN(CefControlDownloadImageCallback);
+};
+
 void CefControl::OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls)
 {
-    GlobalManager::Instance().AssertUIThread();
+    GlobalManager::Instance().AssertUIThread();    
+    if (m_bDownloadFaviconImage && !icon_urls.empty() && (browser != nullptr) && (browser->GetHost() != nullptr)) {
+        //下载网站图标
+        for (const CefString& iconUrl : icon_urls) {
+            if (!iconUrl.empty()) {
+                browser->GetHost()->DownloadImage(iconUrl, true, 16, false, new CefControlDownloadImageCallback(this));
+                break;
+            }
+        }
+    }
     if (m_pfnFaviconURLChange) {
         m_pfnFaviconURLChange(browser, icon_urls);
     }
     else if (m_pCefControlEventHandler) {
         m_pCefControlEventHandler->OnFaviconURLChange(browser, icon_urls);
     }
+}
+
+void CefControl::OnDownloadImageFinished(const CefString& image_url,
+                                         int http_status_code,
+                                         CefRefPtr<CefImage> image)
+{
+    ASSERT(CefCurrentlyOn(TID_UI));
+    if (!GlobalManager::Instance().IsInUIThread()) {
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, image_url, http_status_code, image]() {
+            CefRefPtr<CefBrowser> browser = GetCefBrowser();
+            if (m_pfnDownloadFavIconFinished) {
+                m_pfnDownloadFavIconFinished(browser, image_url, http_status_code, image);
+            }
+            else if (m_pCefControlEventHandler) {
+                m_pCefControlEventHandler->OnDownloadFavIconFinished(browser, image_url, http_status_code, image);
+            }
+            }));
+    }
+    
 }
 
 void CefControl::OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool fullscreen)

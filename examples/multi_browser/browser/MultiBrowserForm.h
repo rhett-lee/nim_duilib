@@ -4,6 +4,9 @@
 // duilib
 #include "duilib/duilib.h"
 
+// CEF
+#include "duilib/duilib_cef.h"
+
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     #include "taskbar/TaskbarManager.h"
     #include "ShObjidl.h"
@@ -108,14 +111,14 @@ public:
     * @param[in] browser_box 浏览器盒子
     * @return bool true 成功，false 失败
     */
-    bool AttachBox(BrowserBox *browser_box);
+    bool AttachBox(BrowserBox* browser_box);
 
     /**
     * 把本窗口内的一个浏览器盒子脱离窗口
     * @param[in] browser_box 浏览器盒子
     * @return bool true 成功，false 失败
     */
-    bool DetachBox(BrowserBox *browser_box);
+    bool DetachBox(BrowserBox* browser_box);
 
     /**
     * 获取当前显示的浏览器盒子
@@ -128,27 +131,31 @@ public:
     * @param[in] browser_id 浏览器id
     * @return void 无返回值
     */
-    void SetActiveBox(const std::string &browser_id);
+    void SetActiveBox(const std::string& browser_id);
 
     /**
     * 判断浏览器盒子是否处于激活状态(同时判断浏览器窗口是否被激活)
     * @param[in] browser_box 浏览器盒子
     * @return bool true 是，false 否
     */
-    bool IsActiveBox(const BrowserBox *browser_box);
+    bool IsActiveBox(const BrowserBox* browser_box);
 
     /**
     * 判断浏览器盒子是否处于激活状态(同时判断浏览器窗口是否被激活)
     * @param[in] browser_id 浏览器id
     * @return bool true 是，false 否
     */
-    bool IsActiveBox(const DString &browser_id);
+    bool IsActiveBox(const DString& browser_id);
 
     /**
     * 获取本窗口内浏览器盒子的总量
     * @return int    总量
     */
     int GetBoxCount() const;
+
+    /** 网站的FavIcon图标下载完成
+    */
+    void NotifyFavicon(const BrowserBox* browser_box, CefRefPtr<CefImage> image);
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /**

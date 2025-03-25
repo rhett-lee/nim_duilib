@@ -414,6 +414,14 @@ void CefForm::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
     ui::GlobalManager::Instance().AssertUIThread();
 }
 
+void CefForm::OnDownloadFavIconFinished(CefRefPtr<CefBrowser> browser,
+                                        const CefString& image_url,
+                                        int http_status_code,
+                                        CefRefPtr<CefImage> image)
+{
+    ui::GlobalManager::Instance().AssertUIThread();
+}
+
 void CefForm::OnDevToolVisibleStateChanged(bool bVisible, bool bPopup)
 {
     ui::GlobalManager::Instance().AssertUIThread();

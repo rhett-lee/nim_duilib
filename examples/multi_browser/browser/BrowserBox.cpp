@@ -82,6 +82,7 @@ void BrowserBox::InitBrowserBox(const DString &url)
     m_pCefControl->AttachFileDialog(UiBind(&BrowserBox::OnFileDialog, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8));
 
     m_pCefControl->AttachDocumentAvailableInMainFrame(UiBind(&BrowserBox::OnDocumentAvailableInMainFrame, this, std::placeholders::_1));
+    m_pCefControl->AttachDownloadFavIconFinished(UiBind(&BrowserBox::OnDownloadFavIconFinished, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 
     // 加载默认网页
     DString html_path = url;
@@ -396,4 +397,15 @@ bool BrowserBox::OnFileDialog(CefRefPtr<CefBrowser> browser,
 void BrowserBox::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
 {
     ui::GlobalManager::Instance().AssertUIThread();
+}
+
+void BrowserBox::OnDownloadFavIconFinished(CefRefPtr<CefBrowser> browser,
+                                           const CefString& image_url,
+                                           int http_status_code,
+                                           CefRefPtr<CefImage> image)
+{
+    ui::GlobalManager::Instance().AssertUIThread();
+    if ((m_pBrowserForm != nullptr) && (image != nullptr)) {
+        m_pBrowserForm->NotifyFavicon(this, image);
+    }
 }
