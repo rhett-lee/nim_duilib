@@ -52,6 +52,7 @@
                                         border_size="1" 
                                         font="system_14"
                                         prompt_textid="STRID_CEF_BROWSER_INPUT_ADDRESS" 
+                                        default_context_menu="true" 
                                         vscrollbar="false" 
                                         auto_vscroll="false" 
                                         hscrollbar="false" 
