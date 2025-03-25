@@ -1,22 +1,22 @@
-#ifndef EXAMPLES_BITMAP_CONTROL_H_
-#define EXAMPLES_BITMAP_CONTROL_H_
+#ifndef EXAMPLES_HBITMAP_CONTROL_H_
+#define EXAMPLES_HBITMAP_CONTROL_H_
 
 // duilib
 #include "duilib/duilib.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
-/** @class BitmapControl
+/** @class HBitmapControl
   * @brief 把HBITMAP作为背景的控件,控件不负责销毁HBITMAP
   * @copyright (c) 2016, NetEase Inc. All rights reserved
   * @author Redrain
   * @date 2019/3/20
   */
-class BitmapControl : public ui::Control
+class HBitmapControl : public ui::Control
 {
     typedef ui::Control BaseClass;
 public:
-    explicit BitmapControl(ui::Window* pWindow);
+    explicit HBitmapControl(ui::Window* pWindow);
 
     /**
     * 重写父控件绘制函数
@@ -39,4 +39,4 @@ private:
 
 #endif //(DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
-#endif //EXAMPLES_BITMAP_CONTROL_H_
+#endif //EXAMPLES_HBITMAP_CONTROL_H_

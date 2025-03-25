@@ -192,9 +192,9 @@
     <ClInclude Include="browser\CustomLayout.h" />
     <ClInclude Include="browser\MultiBrowserForm.h" />
     <ClInclude Include="browser\MultiBrowserManager.h" />
-    <ClInclude Include="dragdrop\BitmapControl.h" />
     <ClInclude Include="dragdrop\DragDrop.h" />
     <ClInclude Include="dragdrop\DragForm.h" />
+    <ClInclude Include="dragdrop\HBitmapControl.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="taskbar\DwmUtil.h" />
@@ -207,9 +207,9 @@
     <ClCompile Include="browser\MultiBrowserForm.cpp" />
     <ClCompile Include="browser\MultiBrowserFormDragdrop.cpp" />
     <ClCompile Include="browser\MultiBrowserManager.cpp" />
-    <ClCompile Include="dragdrop\BitmapControl.cpp" />
     <ClCompile Include="dragdrop\DragDrop.cpp" />
     <ClCompile Include="dragdrop\DragForm.cpp" />
+    <ClCompile Include="dragdrop\HBitmapControl.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_linux.cpp" />
     <ClCompile Include="main_windows.cpp" />
