@@ -1,16 +1,16 @@
-#include "BitmapControl.h"
+#include "HBitmapControl.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 using namespace ui;
 
-BitmapControl::BitmapControl(ui::Window* pWindow):
+HBitmapControl::HBitmapControl(ui::Window* pWindow):
     ui::Control(pWindow),
     m_hBitmap(nullptr)
 {
 }
 
-void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
+void HBitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
 {
     UiRect paintRect = GetPaintRect();
     if (!UiRect::Intersect(paintRect, rcPaint, GetRect())) {
@@ -71,7 +71,7 @@ void BitmapControl::Paint(ui::IRender* pRender, const ui::UiRect& rcPaint)
                         0, 0, rect.Width(), rect.Height());
 }
 
-void BitmapControl::SetBitmapImage(HBITMAP bitmap)
+void HBitmapControl::SetBitmapImage(HBITMAP bitmap)
 {
     m_hBitmap = bitmap;
 }

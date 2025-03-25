@@ -12,7 +12,7 @@
   * @author Redrain
   * @date 2019/3/20
   */
-class BitmapControl;
+class HBitmapControl;
 class DragForm : public ui::WindowImplBase
 {
 public:
@@ -78,7 +78,7 @@ private:
     static HHOOK s_mouse_hook;
     static DragForm* s_drag_form;
     static POINT s_point_offset;
-    BitmapControl* m_pBitmapControl;
+    HBitmapControl* m_pBitmapControl;
 };
 
 #endif //(DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)

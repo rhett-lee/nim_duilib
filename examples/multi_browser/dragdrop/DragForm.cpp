@@ -2,7 +2,7 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
-#include "BitmapControl.h"
+#include "HBitmapControl.h"
 
 using namespace ui;
 
@@ -100,15 +100,15 @@ DString DragForm::GetSkinFile()
 
 ui::Control* DragForm::CreateControl(const DString& pstrClass)
 {
-    if (pstrClass == _T("BitmapControl")) {
-        return new BitmapControl(this);
+    if (pstrClass == _T("HBitmapControl")) {
+        return new HBitmapControl(this);
     }
     return nullptr;
 }
 
 void DragForm::OnInitWindow()
 {
-    m_pBitmapControl = static_cast<BitmapControl*>(FindControl(_T("bitmap")));
+    m_pBitmapControl = static_cast<HBitmapControl*>(FindControl(_T("bitmap")));
     ASSERT(nullptr != m_pBitmapControl);
 
     // 设置背景透明度

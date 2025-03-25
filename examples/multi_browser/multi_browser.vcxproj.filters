@@ -39,9 +39,6 @@
     <ClInclude Include="taskbar\TaskbarManager.h">
       <Filter>taskbar</Filter>
     </ClInclude>
-    <ClInclude Include="dragdrop\BitmapControl.h">
-      <Filter>dragdrop</Filter>
-    </ClInclude>
     <ClInclude Include="dragdrop\DragDrop.h">
       <Filter>dragdrop</Filter>
     </ClInclude>
@@ -59,6 +56,9 @@
     </ClInclude>
     <ClInclude Include="browser\MultiBrowserManager.h">
       <Filter>browser</Filter>
+    </ClInclude>
+    <ClInclude Include="dragdrop\HBitmapControl.h">
+      <Filter>dragdrop</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -80,9 +80,6 @@
     <ClCompile Include="taskbar\TaskbarManager.cpp">
       <Filter>taskbar</Filter>
     </ClCompile>
-    <ClCompile Include="dragdrop\BitmapControl.cpp">
-      <Filter>dragdrop</Filter>
-    </ClCompile>
     <ClCompile Include="dragdrop\DragDrop.cpp">
       <Filter>dragdrop</Filter>
     </ClCompile>
@@ -103,6 +100,9 @@
     </ClCompile>
     <ClCompile Include="browser\MultiBrowserManager.cpp">
       <Filter>browser</Filter>
+    </ClCompile>
+    <ClCompile Include="dragdrop\HBitmapControl.cpp">
+      <Filter>dragdrop</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
