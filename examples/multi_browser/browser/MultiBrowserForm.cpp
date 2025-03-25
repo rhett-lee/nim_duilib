@@ -840,3 +840,18 @@ bool MultiBrowserForm::ChangeToBox(const DString &browser_id)
     OnLoadingStateChange(m_pActiveBrowserBox);
     return true;
 }
+
+void MultiBrowserForm::NotifyFavicon(const BrowserBox* browser_box, CefRefPtr<CefImage> image)
+{
+    if ((browser_box == nullptr) || (image == nullptr)) {
+        return;
+    }
+
+    DString id = ui::StringConvert::UTF8ToT(browser_box->GetId());
+    TabCtrlItem* tab_item = FindTabItem(id);
+    if (tab_item == nullptr) {
+        return;
+    }
+    Control* pIconControl = tab_item->GetIconControl();
+
+}

@@ -194,6 +194,12 @@ namespace ui
 
     //主框架的文档加载完成的回调函数（回调函数的调用线程：主进程的UI线程）
     typedef std::function<void (CefRefPtr<CefBrowser> browser)> OnDocumentAvailableInMainFrameEvent;
+
+    //网站图标下载完成事件（回调函数的调用线程：主进程的UI线程）
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                const CefString& image_url,
+                                int http_status_code,
+                                CefRefPtr<CefImage> image)> OnDownloadFavIconFinishedEvent;
 }
 
 namespace ui
@@ -383,6 +389,13 @@ public:
     /** 主框架的文档加载完成的回调函数（回调函数的调用线程：主进程的UI线程）
     */
     virtual void OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser) {}
+
+    /** 网站图标下载完成事件（回调函数的调用线程：主进程的UI线程）
+    */
+    virtual void OnDownloadFavIconFinished(CefRefPtr<CefBrowser> browser,
+                                           const CefString& image_url,
+                                           int http_status_code,
+                                           CefRefPtr<CefImage> image) {}
 
 public:
     virtual ~CefControlEvent() = default;

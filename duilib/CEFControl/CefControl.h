@@ -15,7 +15,7 @@ class CefBrowserHandler;
  * @author Redrain
  * @date 2019/3/20
  */
-class CefControl : public Control, public CefBrowserHandlerDelegate
+class CefControl: public Control, public CefBrowserHandlerDelegate
 {
     typedef Control BaseClass;
 public:
@@ -161,6 +161,15 @@ public:
     /** 是否允许F12快捷键(开发者工具)
     */
     bool IsEnableF12() const;
+
+    /** 设置是否下载网站的FavIcon图标
+    * @param [in] bDownload true表示下载，false表示不下载
+    */
+    void SetDownloadFaviconImage(bool bDownload);
+
+    /** 是否下载网站的FavIcon图标
+    */
+    bool IsDownloadFaviconImage() const;
 
     /** 设置初始加载的URL(仅在控件初始化前调用有效)
     */
@@ -333,6 +342,11 @@ public:
     * @param[in] callback 一个回调函数，参考 OnDocumentAvailableInMainFrameEvent 声明
     */
     void AttachDocumentAvailableInMainFrame(const OnDocumentAvailableInMainFrameEvent& callback) { m_pfnDocumentAvailableInMainFrame = callback; }
+
+    /** 绑定一个回调函数用于监听网站图标下载完成的通知（回调函数的调用线程：主线程的UI线程）
+    * @param[in] callback 一个回调函数，参考 OnDownloadFavIconFinishedEvent 声明
+    */
+    void AttachDownloadFavIconFinished(const OnDownloadFavIconFinishedEvent& callback) { m_pfnDownloadFavIconFinished = callback; }
 
 public:
     /** 设置CEF控件事件的回调接口
@@ -511,6 +525,17 @@ protected:
     */
     virtual bool IsCallbackExists(CefCallbackID nCallbackID) override;
 
+    /// Method that will be executed when the image download has completed.
+    /// |image_url| is the URL that was downloaded and |http_status_code| is the
+    /// resulting HTTP status code. |image| is the resulting image, possibly at
+    /// multiple scale factors, or empty if the download failed.
+    ///
+    /*--cef(optional_param=image)--*/
+    friend class CefControlDownloadImageCallback;
+    virtual void OnDownloadImageFinished(const CefString& image_url,
+                                         int http_status_code,
+                                         CefRefPtr<CefImage> image);
+
 protected:
     /** 设置打开开发者工具标志
     * @param [in] bAttachedDevTools 打开/关闭关联开发者工具
@@ -578,6 +603,7 @@ private:
     OnFileDialogEvent               m_pfnFileDialog = nullptr;
     OnDevToolAttachedStateChangeEvent   m_pfnDevToolVisibleChange = nullptr;
     OnDocumentAvailableInMainFrameEvent m_pfnDocumentAvailableInMainFrame = nullptr;
+    OnDownloadFavIconFinishedEvent      m_pfnDownloadFavIconFinished = nullptr;
 
     /** CEF控件的事件回调接口
     */
@@ -598,6 +624,9 @@ private:
 
     //是否允许F12快捷键(开发者工具)
     bool m_bEnableF12;
+
+    //是否下载网站的FavIcon图标
+    bool m_bDownloadFaviconImage;
 };
 }
 
