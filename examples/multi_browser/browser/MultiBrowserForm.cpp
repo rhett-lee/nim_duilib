@@ -830,9 +830,8 @@ bool MultiBrowserForm::ChangeToBox(const DString &browser_id)
     if (nullptr == box_item) {
         return false;
     }
-
+    box_item->SetPos(box_item->GetPos());
     m_pBorwserBoxTab->SelectItem(box_item);
-
     box_item->SetFocus();
     m_pActiveBrowserBox = box_item;
 
