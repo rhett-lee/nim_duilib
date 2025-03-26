@@ -633,6 +633,9 @@
     <ClCompile Include="Utils\ProcessSingleton.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Control\IconControl.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1312,6 +1315,9 @@
     </ClInclude>
     <ClInclude Include="Utils\ProcessSingletonData.h">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\IconControl.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

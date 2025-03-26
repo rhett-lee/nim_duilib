@@ -119,9 +119,10 @@ namespace ui
 
     #define  DUI_CTR_LINE                            (_T("Line"))
     #define  DUI_CTR_IPADDRESS                       (_T("IPAddress"))
-    #define  DUI_CTR_HOTKEY                          (_T("HotKey"))    
+    #define  DUI_CTR_HOTKEY                          (_T("HotKey"))
     #define  DUI_CTR_TAB_CTRL                        (_T("TabCtrl"))
     #define  DUI_CTR_TAB_CTRL_ITEM                   (_T("TabCtrlItem"))
+    #define  DUI_CTR_ICON_CONTROL                    (_T("IconControl"))    
 
     // 窗口标题栏按钮：最大化、最小化、关闭、还原、全屏窗口的名字，代码中写死的
     #define  DUI_CTR_CAPTION_BAR                     (_T("window_caption_bar"))

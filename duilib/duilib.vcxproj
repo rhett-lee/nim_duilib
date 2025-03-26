@@ -406,6 +406,7 @@
     <ClCompile Include="Control\DateTimeWnd_Windows.cpp" />
     <ClCompile Include="Control\FilterCombo.cpp" />
     <ClCompile Include="Control\HotKey.cpp" />
+    <ClCompile Include="Control\IconControl.cpp" />
     <ClCompile Include="Control\IPAddress.cpp" />
     <ClCompile Include="Control\Line.cpp" />
     <ClCompile Include="Control\ListCtrl.cpp" />
@@ -605,6 +606,7 @@
     <ClInclude Include="Control\GroupBox.h" />
     <ClInclude Include="Control\HotKey.h" />
     <ClInclude Include="Control\HyperLink.h" />
+    <ClInclude Include="Control\IconControl.h" />
     <ClInclude Include="Control\IPAddress.h" />
     <ClInclude Include="Control\Line.h" />
     <ClInclude Include="Control\ListCtrl.h" />
