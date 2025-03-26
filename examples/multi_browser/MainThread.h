@@ -28,6 +28,10 @@ private:
     */
     virtual void OnCleanup() override;
 
+    /** 控制主进程单例的回调函数
+    */
+    void OnAlreadyRunningAppRelaunch(const std::vector<DString>& argumentList);
+
 private:
     //开启DPI感知功能设置参数
     ui::DpiInitParam m_dpiInitParam;

@@ -1,6 +1,6 @@
 #include "MainThread.h"
 #include "browser/MultiBrowserManager.h"
-
+#include "browser/MultiBrowserForm.h"
 #include <chrono>
 
 MainThread::MainThread() :
@@ -24,12 +24,35 @@ void MainThread::OnInit()
     resourcePath += _T("resources\\");
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), GetDpiInitParam());
 
-    uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
-    std::string timeStamp = ui::StringUtil::UInt64ToStringA(nTimeMS);
-    MultiBrowserManager::GetInstance()->CreateBorwserBox(nullptr, timeStamp, _T(""));
+    //设置控制主进程单例的回调函数
+    ui::CefManager::GetInstance()->SetAlreadyRunningAppRelaunch(UiBind(&MainThread::OnAlreadyRunningAppRelaunch, this, std::placeholders::_1));
+
+    //创建第一个窗口
+    std::string id = MultiBrowserManager::GetInstance()->CreateBrowserID();
+    MultiBrowserManager::GetInstance()->CreateBorwserBox(nullptr, id, _T(""));
 }
 
 void MainThread::OnCleanup()
 {
     ui::GlobalManager::Instance().Shutdown();
+}
+
+void MainThread::OnAlreadyRunningAppRelaunch(const std::vector<DString>& argumentList)
+{
+    if (ui::GlobalManager::Instance().IsInUIThread()) {
+        //CEF 133版本会调用此接口
+        MultiBrowserForm* pBrowserForm = MultiBrowserManager::GetInstance()->GetLastActiveBrowserForm();
+        if (pBrowserForm != nullptr) {
+            pBrowserForm->SetWindowForeground();
+            if (!argumentList.empty()) {
+                //只处理第一个参数
+                DString url = argumentList[0];
+                pBrowserForm->OpenLinkUrl(url, false);
+            }
+        }
+    }
+    else {
+        //转发到UI线程处理
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&MainThread::OnAlreadyRunningAppRelaunch, this, argumentList));
+    }
 }

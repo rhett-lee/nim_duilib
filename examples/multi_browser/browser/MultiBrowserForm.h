@@ -80,18 +80,6 @@ public:
     */
     virtual void OnCloseWindow() override;
 
-private:
-    bool OnClicked(const ui::EventArgs& arg);
-    bool OnReturn(const ui::EventArgs& arg);
-
-    /** 打开新标签
-    */
-    void CreateNewTabPage(const DString& url);
-
-    /** 控制主进程单例的回调函数
-    */
-    void OnAlreadyRunningAppRelaunch(const std::vector<DString>& argumentList);
-
 public:
     /**
     * 在本窗口内创建一个新浏览器盒子
@@ -173,39 +161,6 @@ public:
     void OnAfterDragBoxCallback(bool drop_succeed);
 #endif
 
-private:
-
-    /** 处理标签控件的选中消息
-    * @param [in] param 消息的相关信息
-    * @return bool true 继续传递控件消息，false 停止传递控件消息
-    */
-    bool OnTabItemSelected(const ui::EventArgs& param);
-
-    /** 处理标签控件的关闭按钮的单击消息
-    * @param [in] param 消息的相关信息
-    * @param [in] browser_id 列表项对应的浏览器id
-    * @return bool true 继续传递控件消息，false 停止传递控件消息
-    */
-    bool OnTabItemClose(const ui::EventArgs& param, const std::string& browser_id);
-
-    /** 在本窗口内查找浏览器盒子
-    * @param [in] browser_id 浏览器id
-    * @return BrowserBox* 浏览器盒子
-    */
-    BrowserBox* FindBox(const DString &browser_id);
-
-    /** 在本窗口内查找标签控件
-    * @param [in] browser_id 浏览器id
-    * @return BrowserBox* 浏览器盒子
-    */
-    ui::TabCtrlItem* FindTabItem(const DString& browser_id);
-
-    /** 切换某个浏览器盒子为显示状态
-    * @param [in] browser_id 浏览器id
-    * @return bool true 成功，false 失败
-    */
-    bool ChangeToBox(const DString& browser_id);
-
 public:
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /**
@@ -273,6 +228,47 @@ public:
     HRESULT STDMETHODCALLTYPE DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
     HRESULT STDMETHODCALLTYPE DragLeave(void);
     HRESULT STDMETHODCALLTYPE Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD __RPC_FAR *pdwEffect);
+
+    /** 在新标签/新窗口中打开链接
+    */
+    void OpenLinkUrl(const DString& url, bool bInNewWindow);
+
+private:
+    bool OnClicked(const ui::EventArgs& arg);
+    bool OnReturn(const ui::EventArgs& arg);
+
+private:
+
+    /** 处理标签控件的选中消息
+    * @param [in] param 消息的相关信息
+    * @return bool true 继续传递控件消息，false 停止传递控件消息
+    */
+    bool OnTabItemSelected(const ui::EventArgs& param);
+
+    /** 处理标签控件的关闭按钮的单击消息
+    * @param [in] param 消息的相关信息
+    * @param [in] browser_id 列表项对应的浏览器id
+    * @return bool true 继续传递控件消息，false 停止传递控件消息
+    */
+    bool OnTabItemClose(const ui::EventArgs& param, const std::string& browser_id);
+
+    /** 在本窗口内查找浏览器盒子
+    * @param [in] browser_id 浏览器id
+    * @return BrowserBox* 浏览器盒子
+    */
+    BrowserBox* FindBox(const DString& browser_id);
+
+    /** 在本窗口内查找标签控件
+    * @param [in] browser_id 浏览器id
+    * @return BrowserBox* 浏览器盒子
+    */
+    ui::TabCtrlItem* FindTabItem(const DString& browser_id);
+
+    /** 切换某个浏览器盒子为显示状态
+    * @param [in] browser_id 浏览器id
+    * @return bool true 成功，false 失败
+    */
+    bool ChangeToBox(const DString& browser_id);
 
 private:
     /**

@@ -12,13 +12,14 @@ namespace
     const int kDragFormYOffset = -20;    //拖拽出新浏览器窗口后的相对鼠标的y偏移坐标
 }
 
-BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form, const std::string &id, const DString &url)
+BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm* browser_form, const std::string& id, const DString& url)
 {
     BrowserBox *browser_box = nullptr;
     // 如果启用了窗口合并功能，就把新浏览器盒子都集中创建到某一个浏览器窗口里
     // 否则每个浏览器盒子都创建一个浏览器窗口
     if (m_bEnableMerge) {
-        if (!browser_form) {
+        //多标签模式：一个窗口内允许有多个标签
+        if (browser_form == nullptr) {
             browser_form = new MultiBrowserForm;
             if (!browser_form->CreateWnd(nullptr, ui::WindowCreateParam(_T("MultiBrowser"), true))) {
                 browser_form = nullptr;
@@ -27,11 +28,13 @@ BrowserBox* MultiBrowserManager::CreateBorwserBox(MultiBrowserForm *browser_form
             browser_form->ShowWindow(ui::ShowWindowCommands::kSW_SHOW_NORMAL);          
         }
         browser_box = browser_form->CreateBox(id, url);
-        if (nullptr == browser_box) {
+        ASSERT(browser_box != nullptr);
+        if (browser_box == nullptr) {
             return nullptr;
         }
     }
     else {
+        //多窗口模式：一个窗口仅支持一个标签
         browser_form = new MultiBrowserForm;
         if (!browser_form->CreateWnd(nullptr, ui::WindowCreateParam(_T("MultiBrowser"), true))) {
             return nullptr;
@@ -66,15 +69,15 @@ MultiBrowserManager* MultiBrowserManager::GetInstance()
 
 bool MultiBrowserManager::IsBorwserBoxActive(const std::string& id)
 {
-    BrowserBox *browser_box = FindBorwserBox(id);
-    if (nullptr != browser_box) {
-        MultiBrowserForm *parent_form = browser_box->GetBrowserForm();
+    BrowserBox* browser_box = FindBorwserBox(id);
+    if (browser_box != nullptr) {
+        MultiBrowserForm* parent_form = browser_box->GetBrowserForm();
         return parent_form->IsActiveBox(browser_box);
     }
     return false;
 }
 
-BrowserBox* MultiBrowserManager::FindBorwserBox( const std::string &id )
+BrowserBox* MultiBrowserManager::FindBorwserBox(const std::string& id)
 {
     std::map<std::string, BrowserBox*>::const_iterator i = m_boxMap.find(id);
     if (i == m_boxMap.end()) {
@@ -85,14 +88,14 @@ BrowserBox* MultiBrowserManager::FindBorwserBox( const std::string &id )
     }
 }
 
-void MultiBrowserManager::RemoveBorwserBox( std::string id, const BrowserBox* box /*=nullptr*/)
+void MultiBrowserManager::RemoveBorwserBox(const std::string& id, const BrowserBox* box)
 {
     auto it_box = m_boxMap.find(id);
     if (it_box == m_boxMap.end()) {
         ASSERT(0);
     }
     else {
-        if (nullptr == box || box == it_box->second) {
+        if ((box == nullptr) || (box == it_box->second)) {
             m_boxMap.erase(it_box);
         }
         else {
@@ -103,6 +106,33 @@ void MultiBrowserManager::RemoveBorwserBox( std::string id, const BrowserBox* bo
     if (m_boxMap.empty()) {
         ui::CefManager::GetInstance()->PostQuitMessage(0);
     }
+}
+
+MultiBrowserForm* MultiBrowserManager::GetLastActiveBrowserForm() const
+{
+    MultiBrowserForm* pLastActiveBrowserForm = nullptr;
+    for (auto iter : m_boxMap) {
+        if (iter.second != nullptr) {
+            MultiBrowserForm* pBrowserForm = iter.second->GetBrowserForm();
+            if ((pBrowserForm != nullptr) && pBrowserForm->IsWindow() && pBrowserForm->IsWindowVisible()) {
+                if (pBrowserForm->IsWindowForeground()) {
+                    pLastActiveBrowserForm = pBrowserForm;
+                    break;
+                }
+                else {
+                    pLastActiveBrowserForm = pBrowserForm;
+                }
+            }
+        }
+    }
+    return pLastActiveBrowserForm;
+}
+
+std::string MultiBrowserManager::CreateBrowserID() const
+{
+    uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
+    std::string id = ui::StringUtil::UInt64ToStringA(nTimeMS);
+    return id;
 }
 
 void MultiBrowserManager::SetEnableMerge(bool enable)
@@ -120,7 +150,7 @@ void MultiBrowserManager::SetEnableMerge(bool enable)
         }
 
         // 选择第一个浏览器盒子所属的窗口作为合并窗口
-        MultiBrowserForm *merge_form = m_boxMap.begin()->second->GetBrowserForm();
+        MultiBrowserForm* merge_form = m_boxMap.begin()->second->GetBrowserForm();
 
         // 遍历所有浏览器盒子，脱离原浏览器窗口，再附加到合并窗口里
         for (auto it_box : m_boxMap) {
@@ -201,7 +231,7 @@ bool MultiBrowserManager::IsDragingBorwserBox() const
     return m_bEnableMerge && (nullptr != m_pDragingBox);
 }
 
-void MultiBrowserManager::SetDropForm(MultiBrowserForm *browser_form)
+void MultiBrowserManager::SetDropForm(MultiBrowserForm* browser_form)
 {
     if (nullptr == browser_form) {
         return;

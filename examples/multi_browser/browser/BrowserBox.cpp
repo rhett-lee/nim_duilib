@@ -176,12 +176,26 @@ void BrowserBox::OnBeforeClose(CefRefPtr<CefBrowser> browser)
     ui::GlobalManager::Instance().AssertUIThread();
 }
 
+// 定义自定义菜单项ID（避免与默认ID冲突）
+static const int MENU_ID_OPEN_LINK_IN_NEW_TAB       = MENU_ID_USER_FIRST + 1;
+static const int MENU_ID_OPEN_LINK_IN_NEW_WINDOW    = MENU_ID_USER_FIRST + 2;
+static const int MENU_ID_COPY_LINK                  = MENU_ID_USER_FIRST + 3;
+
 void BrowserBox::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
                                      CefRefPtr<CefFrame> frame,
                                      CefRefPtr<CefContextMenuParams> params,
                                      CefRefPtr<CefMenuModel> model)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
+    if ((params != nullptr) && (model != nullptr)  && !params->GetLinkUrl().empty()) {
+        // 在菜单顶部添加自定义项
+        if (model->GetCount() > 0) {
+            model->InsertSeparatorAt(0);
+        }
+        model->InsertItemAt(0, MENU_ID_COPY_LINK, "复制链接");
+        model->InsertItemAt(0, MENU_ID_OPEN_LINK_IN_NEW_WINDOW, "在新窗口中打开链接");
+        model->InsertItemAt(0, MENU_ID_OPEN_LINK_IN_NEW_TAB, "在新标签页中打开链接");
+    }
 }
 
 bool BrowserBox::OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
@@ -191,6 +205,32 @@ bool BrowserBox::OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
                                       cef_event_flags_t event_flags)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
+    if (params != nullptr) {
+        if (command_id == MENU_ID_OPEN_LINK_IN_NEW_TAB) {
+            CefString url = params->GetLinkUrl();
+            if (!url.empty() && (m_pBrowserForm != nullptr)) {
+                //在新标签页中打开链接
+                m_pBrowserForm->OpenLinkUrl(url, false);
+            }
+            return true;
+        }
+        else if (command_id == MENU_ID_OPEN_LINK_IN_NEW_WINDOW) {
+            CefString url = params->GetLinkUrl();
+            if (!url.empty() && (m_pBrowserForm != nullptr)) {
+                //在新窗口中打开链接
+                m_pBrowserForm->OpenLinkUrl(url, true);
+            }
+            return true;
+        }
+        else if (command_id == MENU_ID_COPY_LINK) {
+            CefString url = params->GetLinkUrl();
+            if (!url.empty()) {
+                //复制链接
+                ui::Clipboard::SetClipboardText(url.c_str());
+            }
+            return true;
+        }
+    }
     return false;
 }
 
