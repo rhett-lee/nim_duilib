@@ -224,9 +224,6 @@ void MultiBrowserForm::OnInitWindow()
     if (pButton != nullptr) {
         pButton->SetVisible(false);
     }
-
-    //设置控制主进程单例的回调函数
-    ui::CefManager::GetInstance()->SetAlreadyRunningAppRelaunch(UiBind(&MultiBrowserForm::OnAlreadyRunningAppRelaunch, this, std::placeholders::_1));
 }
 
 void MultiBrowserForm::OnCloseWindow()
@@ -392,35 +389,26 @@ bool MultiBrowserForm::OnReturn(const ui::EventArgs& arg)
         //新建标签页
         DString url = m_pEditUrl->GetText();         
         if (!url.empty()) {
-            CreateNewTabPage(url);
+            OpenLinkUrl(url, false);
         }        
     }
     return true;
 }
 
-void MultiBrowserForm::CreateNewTabPage(const DString& url)
-{
-    if (!url.empty()) {
-        uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
-        std::string timeStamp = ui::StringUtil::UInt64ToStringA(nTimeMS);        
-        MultiBrowserManager::GetInstance()->CreateBorwserBox(this, timeStamp, url);
-    }
-}
-
-void MultiBrowserForm::OnAlreadyRunningAppRelaunch(const std::vector<DString>& argumentList)
+void MultiBrowserForm::OpenLinkUrl(const DString& url, bool bInNewWindow)
 {
     if (ui::GlobalManager::Instance().IsInUIThread()) {
-        //CEF 133版本会调用此接口
-        SetWindowForeground();
-        if (!argumentList.empty()) {
-            //只处理第一个参数
-            DString url = argumentList[0];
-            CreateNewTabPage(url);
+        std::string id = MultiBrowserManager::GetInstance()->CreateBrowserID();
+        if (bInNewWindow) {
+            MultiBrowserManager::GetInstance()->CreateBorwserBox(nullptr, id, url);
+        }
+        else {
+            MultiBrowserManager::GetInstance()->CreateBorwserBox(this, id, url);
         }
     }
     else {
         //转发到UI线程处理
-        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&MultiBrowserForm::OnAlreadyRunningAppRelaunch, this, argumentList));
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&MultiBrowserForm::OpenLinkUrl, this, url, bInNewWindow));
     }
 }
 
@@ -657,13 +645,13 @@ void MultiBrowserForm::SetActiveBox(const std::string &browser_id)
     ChangeToBox(id);
 }
 
-bool MultiBrowserForm::IsActiveBox(const BrowserBox *browser_box)
+bool MultiBrowserForm::IsActiveBox(const BrowserBox* browser_box)
 {
     ASSERT(nullptr != browser_box);
     return (browser_box == m_pActiveBrowserBox && IsWindowForeground() && !IsWindowMinimized() && IsWindowVisible());
 }
 
-bool MultiBrowserForm::IsActiveBox(const DString &browser_id)
+bool MultiBrowserForm::IsActiveBox(const DString& browser_id)
 {
     ASSERT(!browser_id.empty());
     return (IsWindowForeground() && !IsWindowMinimized() && IsWindowVisible() && FindBox(browser_id) == m_pActiveBrowserBox);

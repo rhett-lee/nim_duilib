@@ -38,6 +38,7 @@
 #include "Utils/SystemUtil.h"
 #include "Utils/WinImplBase.h"
 #include "Utils/ShadowWnd.h"
+#include "Utils/Clipboard.h"
 
 #include "Image/Image.h"
 #include "Animation/AnimationPlayer.h"
