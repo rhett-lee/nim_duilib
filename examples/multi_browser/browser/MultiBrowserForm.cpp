@@ -178,6 +178,10 @@ void MultiBrowserForm::OnInitWindow()
 
     m_pEditUrl = static_cast<RichEdit*>(FindControl(_T("edit_url")));
     m_pEditUrl->AttachReturn(UiBind(&MultiBrowserForm::OnReturn, this, std::placeholders::_1));
+    if (m_pEditUrl != nullptr) {
+        //鼠标点击切入地址栏时，全选文本
+        m_pEditUrl->SetSelAllOnFocus(true);
+    }
 
     //替换标题栏的布局
     HBox* pTitleBar = static_cast<HBox*>(FindControl(_T("title_bar")));
