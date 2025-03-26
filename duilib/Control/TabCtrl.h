@@ -3,6 +3,7 @@
 
 #include "duilib/Box/ListBox.h"
 #include "duilib/Core/ControlDragable.h"
+#include "duilib/Control/IconControl.h"
 
 namespace ui
 {
@@ -135,6 +136,14 @@ public:
     */
     DString GetIcon() const;
 
+    /** 设置图标的位图数据(数据格式：ARGB格式，alpha type为kPremul_SkAlphaType)
+    * @param [in] nWidth 宽度
+    * @param [in] nHeight 高度
+    * @param [in] pPixelBits 位图数据
+    * @param [in] nPixelBitsSize 位图数据的长度（按字节）
+    */
+    bool SetIconData(int32_t nWidth, int32_t nHeight, const uint8_t* pPixelBits, int32_t nPixelBitsSize);
+
     /** 设置文字内容
     */
     void SetTitle(const DString& title);
@@ -155,7 +164,7 @@ public:
 public:
     /** 获取图标控件
     */
-    Control* GetIconControl() const { return m_pIcon; }
+    IconControl* GetIconControl() const { return m_pIcon; }
 
     /** 获取文本控件
     */
@@ -297,6 +306,10 @@ protected:
     */
     TabCtrl* GetTabCtrl() const;
 
+    /** 检查并设置图标的可见性
+    */
+    void CheckIconVisible();
+
 private:
     /** 选择标签的圆角大小
     */
@@ -334,7 +347,7 @@ private:
 
     /** 图标控件
     */
-    Control* m_pIcon;
+    IconControl* m_pIcon;
 
     /** 文本控件
     */

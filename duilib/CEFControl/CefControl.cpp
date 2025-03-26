@@ -337,7 +337,7 @@ void CefControl::SetInitURL(const DString& url)
 
 DString CefControl::GetInitURL() const
 {
-    DString initUrl = m_initUrl;
+    DString initUrl = m_initUrl.c_str();
     if (IsInitUrlIsLocalFile() && !initUrl.empty()) {
         //该URL是本地路径
         DString url = StringUtil::MakeLowerString(initUrl);
@@ -567,10 +567,11 @@ void CefControl::OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFra
     }
 
     if ((frame != nullptr) && frame->IsMain()) {
-        auto old_url = m_url;
-        m_url = frame->GetURL();
-        if (m_pfnMainUrlChange != nullptr && GetMainURL(old_url).compare(GetMainURL(m_url)) != 0) {
-            m_pfnMainUrlChange(old_url, m_url);
+        DString oldUrl = m_url.c_str();
+        DString newUrl = frame->GetURL();
+        m_url = newUrl;
+        if (m_pfnMainUrlChange != nullptr && GetMainURL(oldUrl).compare(GetMainURL(newUrl)) != 0) {
+            m_pfnMainUrlChange(oldUrl, newUrl);
         }
     }
     if (!m_pfnUrlChange && m_pCefControlEventHandler) {
@@ -621,7 +622,7 @@ void CefControl::OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::ve
         //下载网站图标
         for (const CefString& iconUrl : icon_urls) {
             if (!iconUrl.empty()) {
-                browser->GetHost()->DownloadImage(iconUrl, true, 16, false, new CefControlDownloadImageCallback(this));
+                browser->GetHost()->DownloadImage(iconUrl, true, 32, false, new CefControlDownloadImageCallback(this));
                 break;
             }
         }
@@ -641,6 +642,7 @@ void CefControl::OnDownloadImageFinished(const CefString& image_url,
     ASSERT(CefCurrentlyOn(TID_UI));
     if (!GlobalManager::Instance().IsInUIThread()) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, image_url, http_status_code, image]() {
+            m_favIconUrl = image_url.c_str();
             CefRefPtr<CefBrowser> browser = GetCefBrowser();
             if (m_pfnDownloadFavIconFinished) {
                 m_pfnDownloadFavIconFinished(browser, image_url, http_status_code, image);
@@ -651,6 +653,19 @@ void CefControl::OnDownloadImageFinished(const CefString& image_url,
             }));
     }
     
+}
+
+bool CefControl::ReDownloadFavIcon()
+{
+    ASSERT(GlobalManager::Instance().IsInUIThread());
+    if (!m_favIconUrl.empty()) {
+        CefRefPtr<CefBrowserHost> browserHost = GetCefBrowserHost();
+        if (browserHost != nullptr) {
+            browserHost->DownloadImage(m_favIconUrl.c_str(), true, 32, false, new CefControlDownloadImageCallback(this));
+            return true;
+        }
+    }
+    return false;
 }
 
 void CefControl::OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool fullscreen)

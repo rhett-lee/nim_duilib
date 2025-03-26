@@ -522,7 +522,7 @@ bool MultiBrowserForm::CloseBox(const std::string& browser_id)
     return bRet;
 }
 
-bool MultiBrowserForm::AttachBox(BrowserBox *browser_box)
+bool MultiBrowserForm::AttachBox(BrowserBox* browser_box)
 {
     if (nullptr == browser_box) {
         return false;
@@ -572,10 +572,15 @@ bool MultiBrowserForm::AttachBox(BrowserBox *browser_box)
     tab_item->Selected(true, false);
     ChangeToBox(id);
 
+    //重新下载网站图标
+    ui::CefControl* pCefControl = browser_box->GetCefControl();
+    if (pCefControl != nullptr) {
+        pCefControl->ReDownloadFavIcon();
+    }
     return true;
 }
 
-bool MultiBrowserForm::DetachBox(BrowserBox *browser_box)
+bool MultiBrowserForm::DetachBox(BrowserBox* browser_box)
 {
     if (nullptr == browser_box) {
         return false;
@@ -799,13 +804,13 @@ TabCtrlItem* MultiBrowserForm::FindTabItem(const DString &browser_id)
         }
 
         if (tab_item->GetName() == browser_id) {
-            return static_cast<TabCtrlItem*>(tab_item);
+            return dynamic_cast<TabCtrlItem*>(tab_item);
         }
     }
     return nullptr;
 }
 
-void MultiBrowserForm::SetTabItemName(const DString &browser_id, const DString &name)
+void MultiBrowserForm::SetTabItemName(const DString& browser_id, const DString& name)
 {
     TabCtrlItem* tab_item = FindTabItem(browser_id);
     if (nullptr != tab_item) {
@@ -813,14 +818,14 @@ void MultiBrowserForm::SetTabItemName(const DString &browser_id, const DString &
     }
 }
 
-void MultiBrowserForm::SetURL(const std::string &browser_id, const DString &url)
+void MultiBrowserForm::SetURL(const std::string& browser_id, const DString& url)
 {
-    if (m_pActiveBrowserBox && m_pActiveBrowserBox->GetId() == browser_id) {
+    if ((m_pEditUrl != nullptr) && (m_pActiveBrowserBox != nullptr) && (m_pActiveBrowserBox->GetId() == browser_id)) {
         m_pEditUrl->SetText(url);
     }
 }
 
-bool MultiBrowserForm::ChangeToBox(const DString &browser_id)
+bool MultiBrowserForm::ChangeToBox(const DString& browser_id)
 {
     if (browser_id.empty()) {
         return false;
@@ -852,6 +857,28 @@ void MultiBrowserForm::NotifyFavicon(const BrowserBox* browser_box, CefRefPtr<Ce
     if (tab_item == nullptr) {
         return;
     }
-    Control* pIconControl = tab_item->GetIconControl();
 
+    int32_t nWidth = 0;
+    int32_t nHeight = 0;    
+    CefRefPtr<CefBinaryValue> cefImageData = image->GetAsBitmap(Dpi().GetScale() / 100.0f, CEF_COLOR_TYPE_BGRA_8888, CEF_ALPHA_TYPE_PREMULTIPLIED, nWidth, nHeight);
+    if (cefImageData == nullptr) {
+        return;
+    }
+    size_t nDataSize = cefImageData->GetSize();
+    if (nDataSize == 0) {
+        return;
+    }
+    ASSERT((int32_t)nDataSize == nHeight * nWidth * sizeof(uint32_t));
+    if ((int32_t)nDataSize != nHeight * nWidth * sizeof(uint32_t)) {
+        return;
+    }
+    std::vector<uint8_t> imageData;
+    imageData.resize(nDataSize);
+    nDataSize = cefImageData->GetData(imageData.data(), imageData.size(), 0);
+    ASSERT(nDataSize == imageData.size());
+    if (nDataSize != imageData.size()) {
+        return;
+    }
+
+    tab_item->SetIconData(nWidth, nHeight, imageData.data(), (int32_t)imageData.size());
 }

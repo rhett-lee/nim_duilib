@@ -368,6 +368,10 @@ public:
     */
     CefRefPtr<CefBrowserHost> GetCefBrowserHost();
 
+    /** 重新下载网站的FavIcon
+    */
+    bool ReDownloadFavIcon();
+
 public:
     /** 获取控件类型
     */
@@ -555,11 +559,12 @@ protected:
     /** JS 功能管理接口
     */
     std::shared_ptr<CefJSBridge> m_jsBridge;
+
 private:
 
     /** 初始化加载的网址
     */
-    DString m_initUrl;
+    UiString m_initUrl;
 
     /** 设置初始加载的URL是否为本地文件
     */
@@ -567,7 +572,7 @@ private:
 
     /** 当前主Frame的URL
     */
-    CefString m_url;
+    UiString m_url;
 
     // 保存接收到 JS 调用 CPP 函数的代码所属线程，以后触发 JS 回调时把回调转到那个线程
     int32_t m_jsCallbackThreadId = -1;
@@ -627,6 +632,9 @@ private:
 
     //是否下载网站的FavIcon图标
     bool m_bDownloadFaviconImage;
+
+    //网站FavIcon图标的URL
+    UiString m_favIconUrl;
 };
 }
 

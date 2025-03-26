@@ -591,3 +591,6 @@ ControlDragable 控件继承了 `Control` 属性，更多可用属性请参考`C
 | download_favicon_image | false | bool | 是否下载网站的FavIcon图标 |
 
 CefControl 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
+## IconControl的属性
+IconControl 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性

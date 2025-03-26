@@ -101,6 +101,7 @@
 #include "Control/ListCtrl.h"
 #include "Control/PropertyGrid.h"
 #include "Control/TabCtrl.h"
+#include "Control/IconControl.h"
 
 #include "Control/ColorPicker.h"
 #include "Control/ColorControl.h"

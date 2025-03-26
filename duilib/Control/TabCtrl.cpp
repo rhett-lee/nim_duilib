@@ -86,6 +86,8 @@ void TabCtrl::HandleEvent(const EventArgs& msg)
             }
         }
     }
+    BaseClass::HandleEvent(msg);
+
     if ((msg.GetSender() == this) && ((msg.eventType == kEventSelect) || (msg.eventType == kEventUnSelect))) {
         TabCtrlItem* pItem = nullptr;
         size_t nSelectIndex = msg.wParam;
@@ -95,9 +97,8 @@ void TabCtrl::HandleEvent(const EventArgs& msg)
         }
         if (pItem != nullptr) {
             pItem->AdjustItemLineStatus();
-        }        
+        }
     }
-    BaseClass::HandleEvent(msg);
 }
 
 void TabCtrl::SetTabBoxName(const DString& tabBoxName)
@@ -301,9 +302,7 @@ void TabCtrlItem::OnInit()
     SetTitleClass(GetTitleClass());
     SetLineClass(GetLineClass());
     SetCloseButtonClass(GetCloseButtonClass());
-    if (m_pIcon != nullptr) {
-        m_pIcon->SetVisible(!m_pIcon->GetBkImage().empty());
-    }
+    CheckIconVisible();
     if (m_pCloseBtn != nullptr) {
         m_pCloseBtn->SetVisible(!IsAutoHideCloseButton() || IsSelected());
     }
@@ -312,19 +311,17 @@ void TabCtrlItem::OnInit()
 
 void TabCtrlItem::HandleEvent(const EventArgs& msg)
 {
-    if ((msg.GetSender() == this) && (msg.eventType == kEventStateChange) && (m_pLine != nullptr)) {
+    BaseClass::HandleEvent(msg);
+    if ((msg.GetSender() == this) && (m_pLine != nullptr) && (msg.eventType == kEventStateChange)) {
         //处理分割线的状态
         AdjustItemLineStatus();
     }
-    BaseClass::HandleEvent(msg);
 }
 
 void TabCtrlItem::SetVisible(bool bVisible)
 {
     BaseClass::SetVisible(bVisible);
-    if (m_pIcon != nullptr) {
-        m_pIcon->SetVisible(!m_pIcon->GetBkImage().empty());
-    }
+    CheckIconVisible();
     if (IsVisible() && (m_pCloseBtn != nullptr)) {
         m_pCloseBtn->SetVisible(!IsAutoHideCloseButton() || IsSelected());
     }
@@ -353,7 +350,7 @@ void TabCtrlItem::SetIconClass(const DString& iconClass)
     }
     if (!iconClass.empty()) {
         if (m_pIcon == nullptr) {
-            m_pIcon = new Control(GetWindow());
+            m_pIcon = new IconControl(GetWindow());
             m_pIcon->SetClass(iconClass);
             AddItem(m_pIcon);
             if (!m_iconImageString.empty()) {
@@ -670,6 +667,8 @@ void TabCtrlItem::OnPrivateSetSelected()
     if (IsAutoHideCloseButton() && (m_pCloseBtn != nullptr)) {
         m_pCloseBtn->SetVisible(IsSelected());
     }
+    //处理分割线的状态
+    AdjustItemLineStatus();
 }
 
 bool TabCtrlItem::ButtonDown(const EventArgs& msg)
@@ -799,8 +798,8 @@ void TabCtrlItem::SetIcon(const DString& iconImageString)
     Control* pIconControl = GetIconControl();
     if (pIconControl != nullptr) {
         pIconControl->SetBkImage(iconImageString);
-        pIconControl->SetVisible(!iconImageString.empty());
         m_iconImageString.clear();
+        CheckIconVisible();
     }
     else {
         m_iconImageString = iconImageString;
@@ -818,6 +817,33 @@ DString TabCtrlItem::GetIcon() const
         iconString = m_iconImageString.c_str();
     }
     return iconString;
+}
+
+bool TabCtrlItem::SetIconData(int32_t nWidth, int32_t nHeight, const uint8_t* pPixelBits, int32_t nPixelBitsSize)
+{
+    bool bRet = false;
+    IconControl* pIconControl = GetIconControl();
+    if (pIconControl != nullptr) {
+        bRet = pIconControl->SetIconData(nWidth, nHeight, pPixelBits, nPixelBitsSize);
+        if (bRet) {
+            CheckIconVisible();
+        }
+    }
+    return bRet;
+}
+
+void TabCtrlItem::CheckIconVisible()
+{
+    IconControl* pIconControl = GetIconControl();
+    if (pIconControl != nullptr) {
+        bool bVisible = !pIconControl->GetBkImage().empty() || pIconControl->HasIconData();
+        if (!IsVisible()) {
+            bVisible = false;
+        }
+        if (pIconControl->IsVisible() != bVisible) {
+            pIconControl->SetVisible(bVisible);
+        }        
+    }
 }
 
 void TabCtrlItem::SetTitle(const DString& title)
