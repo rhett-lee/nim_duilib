@@ -9,7 +9,6 @@
 #define IDM_ABOUT                       104
 #define IDM_EXIT                        105
 #define IDI_BASIC                       107
-#define IDI_SMALL                       108
 #define IDC_BASIC                       109
 #define IDR_MAINFRAME                   128
 #define IDR_THEME1                      129

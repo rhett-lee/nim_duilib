@@ -218,7 +218,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="layouts.ico" />
-    <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">

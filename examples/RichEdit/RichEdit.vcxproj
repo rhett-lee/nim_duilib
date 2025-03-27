@@ -191,7 +191,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="RichEdit.ico" />
-    <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FindForm.cpp" />

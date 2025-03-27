@@ -188,7 +188,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="ListCtrl.ico" />
-    <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainForm.cpp" />

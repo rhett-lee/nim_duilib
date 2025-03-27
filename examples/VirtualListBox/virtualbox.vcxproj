@@ -207,7 +207,6 @@
     <ResourceCompile Include="VirtualBox.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico" />
     <Image Include="VirtualBox.ico" />
   </ItemGroup>
   <ItemGroup>

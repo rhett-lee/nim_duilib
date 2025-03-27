@@ -190,7 +190,6 @@
     <ResourceCompile Include="TreeView.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico" />
     <Image Include="TreeView.ico" />
   </ItemGroup>
   <ItemGroup>
