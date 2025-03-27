@@ -220,7 +220,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="controls.ico" />
-    <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">

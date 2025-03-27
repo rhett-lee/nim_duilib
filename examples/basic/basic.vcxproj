@@ -218,7 +218,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="basic.ico" />
-    <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\bin\resources.zip" />

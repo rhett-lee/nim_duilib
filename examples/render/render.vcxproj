@@ -201,7 +201,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="render.ico" />
-    <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">

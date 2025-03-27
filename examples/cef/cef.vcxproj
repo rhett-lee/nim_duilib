@@ -226,7 +226,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="cef.ico" />
-    <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">

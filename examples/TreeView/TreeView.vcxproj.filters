@@ -43,9 +43,6 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="TreeView.ico">
       <Filter>Resource Files</Filter>
     </Image>

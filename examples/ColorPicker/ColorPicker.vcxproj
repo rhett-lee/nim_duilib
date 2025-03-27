@@ -187,7 +187,6 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="ColorPicker.ico" />
-    <Image Include="small.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">
