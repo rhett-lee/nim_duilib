@@ -53,6 +53,8 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\bin\resources.zip" />
+    <None Include="..\..\bin\resources.zip">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
