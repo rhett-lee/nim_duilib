@@ -64,7 +64,7 @@ public:
 
     /** 将线程ID转换为字符串
     */
-    DString ThreadIdToString(const std::thread::id& threadId) const;
+    static DString ThreadIdToString(const std::thread::id& threadId);
 
     /** 获取当前线程标识符，线程唯一标识，用于线程间通信使用(线程构造时初始化的值)
     */

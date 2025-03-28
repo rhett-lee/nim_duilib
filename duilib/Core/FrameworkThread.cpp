@@ -119,7 +119,7 @@ std::thread::id FrameworkThread::GetThreadId() const
     return m_nThisThreadId;
 }
 
-DString FrameworkThread::ThreadIdToString(const std::thread::id& threadId) const
+DString FrameworkThread::ThreadIdToString(const std::thread::id& threadId)
 {
     // 转为字符串
 #ifdef DUILIB_UNICODE    
