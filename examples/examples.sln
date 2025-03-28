@@ -57,6 +57,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MoveControl", "MoveControl\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CefBrowser", "CefBrowser\CefBrowser.vcxproj", "{FDB5539F-1060-4975-B603-B66454C8C897}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "threads", "threads\threads.vcxproj", "{F1A9371F-9A34-45A0-98EB-83FF371F066A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -249,6 +251,14 @@ Global
 		{FDB5539F-1060-4975-B603-B66454C8C897}.Release|Win32.Build.0 = Release|Win32
 		{FDB5539F-1060-4975-B603-B66454C8C897}.Release|x64.ActiveCfg = Release|x64
 		{FDB5539F-1060-4975-B603-B66454C8C897}.Release|x64.Build.0 = Release|x64
+		{F1A9371F-9A34-45A0-98EB-83FF371F066A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F1A9371F-9A34-45A0-98EB-83FF371F066A}.Debug|Win32.Build.0 = Debug|Win32
+		{F1A9371F-9A34-45A0-98EB-83FF371F066A}.Debug|x64.ActiveCfg = Debug|x64
+		{F1A9371F-9A34-45A0-98EB-83FF371F066A}.Debug|x64.Build.0 = Debug|x64
+		{F1A9371F-9A34-45A0-98EB-83FF371F066A}.Release|Win32.ActiveCfg = Release|Win32
+		{F1A9371F-9A34-45A0-98EB-83FF371F066A}.Release|Win32.Build.0 = Release|Win32
+		{F1A9371F-9A34-45A0-98EB-83FF371F066A}.Release|x64.ActiveCfg = Release|x64
+		{F1A9371F-9A34-45A0-98EB-83FF371F066A}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -276,6 +286,7 @@ Global
 		{34C50672-6115-3723-B8FD-09568AA8527E} = {1DA0A8E2-5832-42FC-83F7-2CDCAD379C90}
 		{D31E3A5D-7AD3-41FF-B8CF-D02FB1D0412F} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 		{FDB5539F-1060-4975-B603-B66454C8C897} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
+		{F1A9371F-9A34-45A0-98EB-83FF371F066A} = {B2087994-3DF6-4A57-B8C6-6F744520D7FA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {68CA0970-4242-4E4F-94D2-C19760FCA05D}

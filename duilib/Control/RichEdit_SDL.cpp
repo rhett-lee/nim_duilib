@@ -935,10 +935,16 @@ int32_t RichEdit::InsertText(int32_t nInsertAfterChar, const DString& text, bool
     return nRet;
 }
 
-int32_t RichEdit::AppendText(const DString& text, bool bCanUndo)
+int32_t RichEdit::AppendText(const DString& text, bool bCanUndo, bool bScrollBottom)
 {
     int32_t nRet = SetSel(-1, -1);
     ReplaceSel(text, bCanUndo);
+    if (bScrollBottom) {
+        int64_t nScrollRangeY = GetScrollRange().cy;
+        if (nScrollRangeY > 0) {
+            SetScrollPosY(nScrollRangeY);
+        }
+    }
     return nRet;
 }
 
@@ -1254,7 +1260,7 @@ DString RichEdit::GetSelText() const
 
 bool RichEdit::HasSelText() const
 {
-    ASSERT(m_pTextData->GetText().size() == GetTextLength());
+    ASSERT((int32_t)m_pTextData->GetText().size() == GetTextLength());
 
     int32_t nSelStartChar = -1;
     int32_t nSelEndChar = -1;
@@ -3232,7 +3238,7 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
     return true;
 }
 
-bool RichEdit::OnKillFocus(const EventArgs& /*msg*/)
+bool RichEdit::OnKillFocus(const EventArgs& msg)
 {
     m_bActive = false;
     ShowCaret(false);
