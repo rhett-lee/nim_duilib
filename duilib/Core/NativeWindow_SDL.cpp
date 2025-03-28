@@ -2136,6 +2136,10 @@ const UiRect& NativeWindow_SDL::GetUpdateRect() const
     return m_rcUpdateRect;
 }
 
+void NativeWindow_SDL::SetImeOpenStatus(bool /*bOpen*/)
+{
+}
+
 void NativeWindow_SDL::GetClientRect(UiRect& rcClient) const
 {
     rcClient.Clear();

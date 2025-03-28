@@ -509,6 +509,11 @@ public:
     */
     const UiRect& GetUpdateRect() const;
 
+    /** 设置输入法的开关状态（关闭再打开以后，能够保持原输入法状态）
+    * @param [in] bOpen true标识打开输入法，false标识关闭输入法
+    */
+    void SetImeOpenStatus(bool bOpen);
+
 private:
     /** 创建窗口和渲染接口
     */
