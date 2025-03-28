@@ -119,6 +119,16 @@ std::thread::id FrameworkThread::GetThreadId() const
     return m_nThisThreadId;
 }
 
+int32_t FrameworkThread::GetThreadIdentifier() const
+{
+    return m_nThreadIdentifier;
+}
+
+const DString& FrameworkThread::GetThreadName() const
+{
+    return m_threadName;
+}
+
 size_t FrameworkThread::PostTask(const StdClosure& task)
 {
     ASSERT(task != nullptr);
@@ -273,7 +283,8 @@ void FrameworkThread::OnTaskMessage(uint32_t msgId, WPARAM wParam, LPARAM /*lPar
 
 void FrameworkThread::WorkerThreadProc()
 {
-    ASSERT(std::this_thread::get_id() == m_nThisThreadId);
+    m_nThisThreadId = std::this_thread::get_id();
+    OnInit();
     while (m_bRunning) {
         std::unique_lock lk(m_penddingTaskMutex);
         m_cv.wait(lk);
@@ -291,6 +302,7 @@ void FrameworkThread::WorkerThreadProc()
         }
     }
     m_bRunning = false;
+    OnCleanup();
 }
 
 void FrameworkThread::OnInit()

@@ -3659,13 +3659,21 @@ int32_t RichEdit::InsertText(int32_t nInsertAfterChar, const DString& text, bool
 #endif
 }
 
-int32_t RichEdit::AppendText(const DString& text, bool bCanUndo)
+int32_t RichEdit::AppendText(const DString& text, bool bCanUndo, bool bScrollBottom)
 {
+    int32_t nRet = -1;
 #ifdef DUILIB_UNICODE
-    return m_richCtrl.AppendText(text.c_str(), bCanUndo);
+    nRet = m_richCtrl.AppendText(text.c_str(), bCanUndo);
 #else
-    return m_richCtrl.AppendText(StringConvert::TToWString(text).c_str(), bCanUndo);
+    nRet = m_richCtrl.AppendText(StringConvert::TToWString(text).c_str(), bCanUndo);
 #endif
+    if (bScrollBottom) {
+        int64_t nScrollRangeY = GetScrollRange().cy;
+        if (nScrollRangeY > 0) {
+            SetScrollPosY(nScrollRangeY);
+        }
+    }
+    return nRet;
 }
 
 DWORD RichEdit::GetDefaultCharFormat(CHARFORMAT2W& cf) const

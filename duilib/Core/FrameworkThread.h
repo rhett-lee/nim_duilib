@@ -18,7 +18,8 @@ enum ThreadIdentifier
     kThreadNone     = -1,   //无线程标识ID
     kThreadUI       = 0,    //UI线程
     kThreadWorker   = 1,    //工作线程
-    kThreadMisc     = 2     //杂事线程
+    kThreadMisc     = 2,    //杂事线程
+    kThreadUser     = 3     //用户自定义线程的起始ID，如果创建更多线程时，可在此ID后递增ID
 };
 
 /** 框架线程
@@ -57,10 +58,19 @@ public:
     bool IsUIThread() const;
 
 public:
-    /** 获取当前线程的线程ID
+    /** 获取当前线程的线程ID(与操作系统的线程ID意义相同)
     */
     std::thread::id GetThreadId() const;
 
+    /** 获取当前线程标识符，线程唯一标识，用于线程间通信使用(线程构造时初始化的值)
+    */
+    int32_t GetThreadIdentifier() const;
+
+    /** 返回线程名称(线程构造时初始化的值)
+    */
+    const DString& GetThreadName() const;
+
+public:
     /** 向线程发送一个任务，立即执行
     * @param [in] task 任务回调函数
     * @return 成功返回任务ID(大于0)，如果失败则返回0
@@ -166,7 +176,7 @@ private:
 
     /** 当前线程的线程ID
     */
-    std::thread::id m_nThisThreadId;
+    std::atomic<std::thread::id> m_nThisThreadId;
 
     /** 是否为UI线程
     */

@@ -91,8 +91,8 @@ cd "$SRC_ROOT_DIR/build_temp/ListCtrl"
 make clean; make
 cd "$SRC_ROOT_DIR/"
 
-cmake -S "$SRC_ROOT_DIR/examples/move_control/" -B "$SRC_ROOT_DIR/build_temp/move_control" -DCMAKE_BUILD_TYPE=Debug
-cd "$SRC_ROOT_DIR/build_temp/move_control"
+cmake -S "$SRC_ROOT_DIR/examples/MoveControl/" -B "$SRC_ROOT_DIR/build_temp/MoveControl" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/MoveControl"
 make clean; make
 cd "$SRC_ROOT_DIR/"
 
@@ -116,13 +116,18 @@ cd "$SRC_ROOT_DIR/build_temp/VirtualListBox"
 make clean; make
 cd "$SRC_ROOT_DIR/"
 
+cmake -S "$SRC_ROOT_DIR/examples/threads/" -B "$SRC_ROOT_DIR/build_temp/threads" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/threads"
+make clean; make
+cd "$SRC_ROOT_DIR/"
+
 cmake -S "$SRC_ROOT_DIR/examples/cef/" -B "$SRC_ROOT_DIR/build_temp/cef" -DCMAKE_BUILD_TYPE=Debug
 cd "$SRC_ROOT_DIR/build_temp/cef"
 make clean; make
 cd "$SRC_ROOT_DIR/"
 
-cmake -S "$SRC_ROOT_DIR/examples/multi_browser/" -B "$SRC_ROOT_DIR/build_temp/multi_browser" -DCMAKE_BUILD_TYPE=Debug
-cd "$SRC_ROOT_DIR/build_temp/multi_browser"
+cmake -S "$SRC_ROOT_DIR/examples/CefBrowser/" -B "$SRC_ROOT_DIR/build_temp/CefBrowser" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/CefBrowser"
 make clean; make
 cd "$SRC_ROOT_DIR/"
 
