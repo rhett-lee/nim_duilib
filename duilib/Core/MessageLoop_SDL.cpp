@@ -34,7 +34,7 @@ bool MessageLoop_SDL::CheckInitSDL(const DString& videoDriverName)
 
         //处理自定义消息的范围(内部占用32个ID，备用)
         uint32_t nBaseId = SDL_RegisterEvents(32);
-        ASSERT(nBaseId == SDL_EVENT_USER);
+        ASSERT_UNUSED_VARIABLE(nBaseId == SDL_EVENT_USER);
 
         //自定义消息使用情况：
         //1. SDL_EVENT_USER + 0:  MessageLoop_SDL::PostNoneEvent 函数占用

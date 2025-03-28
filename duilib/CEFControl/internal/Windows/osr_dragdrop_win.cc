@@ -18,7 +18,7 @@
 #include "include/wrapper/cef_helpers.h"
 #pragma warning (pop)
 
-#include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/StringConvert.h"
 
 namespace client {
 
@@ -220,12 +220,12 @@ void CFHtmlToHtml(const std::string& cf_html,
 }
 
 DWORD GetMozUrlFormat() {
-  static DWORD moz_url_format = ::RegisterClipboardFormat(L"text/x-moz-url");
+  static DWORD moz_url_format = ::RegisterClipboardFormat(_T("text/x-moz-url"));
   return moz_url_format;
 }
 
 DWORD GetHtmlFormat() {
-  static DWORD html_format = ::RegisterClipboardFormat(L"HTML Format");
+  static DWORD html_format = ::RegisterClipboardFormat(_T("HTML Format"));
   return html_format;
 }
 
@@ -289,7 +289,7 @@ bool DragDataToDataObject(CefRefPtr<CefDragData> drag_data,
 #if defined(UNICODE) || defined(_UNICODE)
     GetStorageForFileDescriptor(&stgmeds[curr_index], fileName.ToWString());
 #else
-    DString temp = ui::StringUtil::TToMBCS(fileName.ToString());
+    DString temp = ui::StringConvert::TToMBCS(fileName.ToString());
     GetStorageForFileDescriptor(&stgmeds[curr_index], temp);
 #endif
     fmtetc.cfFormat = static_cast<decltype(fmtetc.cfFormat)>(file_desc_format);
