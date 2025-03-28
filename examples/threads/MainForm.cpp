@@ -108,7 +108,7 @@ void MainForm::ExecuteTaskInThread()
     ASSERT(!ui::GlobalManager::Instance().IsInUIThread());
 
     //执行具体的计算任务，此处只是显示一条日志（也是通过线程间通信，让主线程更新日志数据到界面）
-    DString log = ui::StringUtil::Printf(_T("[执行线程ID:%05d]: MainForm::ExecuteTaskInThread 在子线程中执行"), std::this_thread::get_id());
+    DString log = ui::StringUtil::Printf(_T("[执行线程ID:%s]: MainForm::ExecuteTaskInThread 在子线程中执行"), ui::FrameworkThread::ThreadIdToString(std::this_thread::get_id()));
     PrintLog(log);
 }
 
