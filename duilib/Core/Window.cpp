@@ -1142,7 +1142,17 @@ LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg&
             pFocus->SendEvent(kEventSetFocus);
         }
         if (!windowFlag.expired() && (pFocus == m_pFocus)) {
-            pFocus->SetState(kControlStateNormal);
+            UiPoint pt;
+            GetCursorPos(pt);
+            ScreenToClient(pt);
+            if (pFocus->IsPointInWithScrollOffset(pt)) {
+                //鼠标还在控件范围内，保持hot状态
+                pFocus->SetState(kControlStateHot);
+            }
+            else {
+                //鼠标不再控件范围内，恢复为Normal状态
+                pFocus->SetState(kControlStateNormal);
+            }
         }
     }
     else {

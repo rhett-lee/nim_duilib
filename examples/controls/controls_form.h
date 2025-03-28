@@ -27,7 +27,7 @@ private:
     /** 显示菜单
     * @param [in] point 显示位置坐标，屏幕坐标
     */
-    void ShowPopupMenu(const ui::UiPoint& point);
+    void ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedControl);
 
     /**
      * 被投递到杂事线程读取 xml 数据的任务函数

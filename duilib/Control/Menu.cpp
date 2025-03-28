@@ -59,8 +59,9 @@ bool Menu::Receive(ContextMenuParam param)
     return true;
 }
 
-Menu::Menu(Window* pParentWindow) :
+Menu::Menu(Window* pParentWindow, Control* pRelatedControl):
     m_pParentWindow(pParentWindow),
+    m_pRelatedControl(pRelatedControl),
     m_menuPoint({ 0, 0 }),
     m_popupPosType(MenuPopupPosType::RIGHT_TOP),
     m_noFocus(false),
@@ -481,14 +482,12 @@ bool Menu::ResizeSubMenu()
 void Menu::PostInitWindow()
 {
     ASSERT(m_pListBox == nullptr);
-    m_listBoxFlag.reset();
     if (m_pOwner != nullptr) {
         m_pListBox = dynamic_cast<ui::ListBox*>(FindControl(m_submenuNodeName.c_str()));
         ASSERT(m_pListBox != nullptr);
         if (m_pListBox == nullptr) {
             return;
         }
-        m_listBoxFlag = m_pListBox->GetWeakFlag();
         //设置不自动销毁Child对象（因为是从owner复制过来的，资源公用，由Owner管理生命对象的周期）
         m_pListBox->SetAutoDestroyChild(false);
 
@@ -511,9 +510,11 @@ void Menu::PostInitWindow()
             }
         }
         ASSERT(m_pListBox != nullptr);
-        if (m_pListBox != nullptr) {
-            m_listBoxFlag = m_pListBox->GetWeakFlag();
-        }
+    }
+
+    //菜单显示后，让关联控件处于Push状态(异步)
+    if (m_pRelatedControl != nullptr) {
+        m_pRelatedControl->SetState(kControlStatePushed);
     }
 
     //需要在最后才调用基类的实现函数
@@ -522,7 +523,7 @@ void Menu::PostInitWindow()
 
 ListBox* Menu::GetLayoutListBox() const
 {
-    return m_listBoxFlag.expired() ? nullptr : m_pListBox;
+    return m_pListBox.get();
 }
 
 void Menu::OnCloseWindow()
@@ -998,7 +999,7 @@ void MenuItem::CreateMenuWnd()
     }
 
     Window* pWindow = GetWindow();
-    m_pSubWindow = new Menu(pWindow);
+    m_pSubWindow = new Menu(pWindow, nullptr);
     ContextMenuParam param;
     param.pWindow = pWindow;
     param.wParam = MenuCloseType::eMenuCloseThis;
