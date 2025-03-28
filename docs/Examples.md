@@ -29,13 +29,13 @@ examples 目录中包含了一些示例程序，你可以参考这些示例程�
 演示如何使用ListCtrl控件。    
 <img src="./Images/ListCtrl.png"/>
 
-## 8. examples/move_control
+## 8. examples/MoveControl
 演示如何使用Box容器的"drag_out_id"和"drop_in_id"属性来实现控件在不同容器之间的移动效果。    
-<img src="./Images/move_control.png"/>
+<img src="./Images/MoveControl.png"/>
     
-## 9. examples/multi_browser
+## 9. examples/CefBrowser
 基于 CEF 的自定义多标签可拖曳浏览器示例。
-<img src="./Images/multi_browser.png"/>
+<img src="./Images/CefBrowser.png"/>
     
 ## 10. examples/render
 演示如何使用渲染引擎的程序，同时也包含了各种控件/容器的使用示例。    
@@ -62,3 +62,7 @@ examples 目录中包含了一些示例程序，你可以参考这些示例程�
 ## 15. examples/DpiAware
 演示如何使用DPI感知功能，如何动态设置窗口的DPI。    
 <img src="./Images/DpiAware.png"/>
+
+## 16. examples/threads
+演示如何使用多线程功能，包含多线程通信等。    
+<img src="./Images/threads.png"/>
