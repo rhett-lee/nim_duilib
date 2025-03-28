@@ -36,7 +36,7 @@ void TaskbarTabItem::Init(const DString &taskbar_title, const std::string &id)
         return;
     }
 
-    CreateWnd(nullptr, ui::WindowCreateParam(_T("multi_browser")));
+    CreateWnd(nullptr, ui::WindowCreateParam(_T("CefBrowser")));
     ShowWindow(ui::kSW_SHOW);
 
     HRESULT ret = S_OK;
