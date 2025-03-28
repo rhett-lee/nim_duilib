@@ -272,7 +272,7 @@ bool SkRasterWindowContext_SDL::SwapPaintBuffersFast(const UiRect& rcPaint, uint
         return false;
     }
 
-    if ((sdlSurface->pixels == nullptr) || (sdlSurface->w != width()) || (sdlSurface->h != height()) || (sdlSurface->pitch != width() * sizeof(uint32_t))) {
+    if ((sdlSurface->pixels == nullptr) || (sdlSurface->w != width()) || (sdlSurface->h != height()) || (sdlSurface->pitch != width() * (int32_t)sizeof(uint32_t))) {
         //大小不匹配
         return false;
     }

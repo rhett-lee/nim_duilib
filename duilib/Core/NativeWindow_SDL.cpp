@@ -2499,7 +2499,7 @@ bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData, c
 bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)
 {
     //不支持该功能
-    ASSERT(bIsLayeredWindow == bIsLayeredWindow);
+    ASSERT_UNUSED_VARIABLE(bIsLayeredWindow == bIsLayeredWindow);
     //m_bIsLayeredWindow = bIsLayeredWindow;
     //SDL_WINDOW_TRANSPARENT 这个属性，不支持修改，所以此属性不支持修改，在创建窗口的时候已经设置正确的属性
     return true;

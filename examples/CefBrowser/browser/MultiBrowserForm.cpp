@@ -833,7 +833,7 @@ bool MultiBrowserForm::ChangeToBox(const DString& browser_id)
     m_pActiveBrowserBox = box_item;
 
     // 根据当前激活的浏览器盒子，更新任务栏的图标和标题
-    m_pEditUrl->SetText(m_pActiveBrowserBox->GetCefControl()->GetURL().ToWString());    
+    m_pEditUrl->SetText(m_pActiveBrowserBox->GetCefControl()->GetURL());    
     OnLoadingStateChange(m_pActiveBrowserBox);
     return true;
 }
