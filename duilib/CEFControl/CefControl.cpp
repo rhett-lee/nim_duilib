@@ -642,7 +642,7 @@ void CefControl::OnDownloadImageFinished(const CefString& image_url,
     ASSERT(CefCurrentlyOn(TID_UI));
     if (!GlobalManager::Instance().IsInUIThread()) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, image_url, http_status_code, image]() {
-            m_favIconUrl = image_url.c_str();
+            m_favIconUrl = image_url;
             CefRefPtr<CefBrowser> browser = GetCefBrowser();
             if (m_pfnDownloadFavIconFinished) {
                 m_pfnDownloadFavIconFinished(browser, image_url, http_status_code, image);
@@ -661,7 +661,7 @@ bool CefControl::ReDownloadFavIcon()
     if (!m_favIconUrl.empty()) {
         CefRefPtr<CefBrowserHost> browserHost = GetCefBrowserHost();
         if (browserHost != nullptr) {
-            browserHost->DownloadImage(m_favIconUrl.c_str(), true, 32, false, new CefControlDownloadImageCallback(this));
+            browserHost->DownloadImage(m_favIconUrl, true, 32, false, new CefControlDownloadImageCallback(this));
             return true;
         }
     }

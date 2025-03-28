@@ -634,7 +634,7 @@ private:
     bool m_bDownloadFaviconImage;
 
     //网站FavIcon图标的URL
-    UiString m_favIconUrl;
+    CefString m_favIconUrl;
 };
 }
 
