@@ -119,6 +119,22 @@ std::thread::id FrameworkThread::GetThreadId() const
     return m_nThisThreadId;
 }
 
+DString FrameworkThread::ThreadIdToString(const std::thread::id& threadId) const
+{
+    // 转为字符串
+#ifdef DUILIB_UNICODE    
+    std::wstringstream ss;
+    ss << threadId;
+    std::wstring thread_id_str = ss.str();
+    return thread_id_str;
+#else
+    std::stringstream ss;
+    ss << threadId;
+    std::string thread_id_str = ss.str();
+    return thread_id_str;
+#endif
+}
+
 int32_t FrameworkThread::GetThreadIdentifier() const
 {
     return m_nThreadIdentifier;

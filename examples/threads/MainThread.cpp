@@ -112,8 +112,12 @@ int32_t MainThread::GetPoolThreadCount() const
 
 void MainThread::PrintLog(const DString& log)
 {
-    DString logMsg = ui::StringUtil::Printf(_T("[调用线程：%05d][线程ID：%05u, 线程名称: %s    , 线程标识符：%d]: %s"),
-                                                std::this_thread::get_id(), GetThreadId(), GetThreadName().c_str(), GetThreadIdentifier(), log.c_str());
+    DString logMsg = ui::StringUtil::Printf(_T("[调用线程ID：%s][线程ID：%s, 线程名称: %s, 线程标识符：%d]: %s"),
+                                            ThreadIdToString(std::this_thread::get_id()).c_str(),
+                                            ThreadIdToString(GetThreadId()).c_str(),
+                                            GetThreadName().c_str(),
+                                            GetThreadIdentifier(),
+                                            log.c_str());
     if (!m_mainFormFlag.expired() && (m_pMainForm != nullptr)) {        
         m_pMainForm->PrintLog(logMsg);
     }
