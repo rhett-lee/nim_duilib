@@ -28,7 +28,6 @@ void MainThread::OnInit()
 
     // 创建一个默认带有阴影的居中窗口
     m_pMainForm = new MainForm(this);
-    m_mainFormFlag = m_pMainForm->GetWeakFlag();
     m_pMainForm->CreateWnd(nullptr, ui::WindowCreateParam(_T("threads"), true));
     m_pMainForm->PostQuitMsgWhenClosed(true);
     m_pMainForm->ShowWindow(ui::kSW_SHOW_NORMAL);
@@ -58,24 +57,24 @@ void MainThread::StartThreads()
 
     //创建子线程（这两个子线程是为了方便通常情况下的使用，创建后可以直接用ui::kThreadWorker，ui::kThreadMisc这两个线程标识来进行线程间通信）
     m_workerThread = std::make_unique<WorkerThread>(ui::kThreadWorker);
-    m_workerThread->SetMainForm(m_pMainForm);
+    m_workerThread->SetMainForm(m_pMainForm.get());
     m_workerThread->Start();
 
     m_miscThread = std::make_unique<WorkerThread>(ui::kThreadMisc);
-    m_miscThread->SetMainForm(m_pMainForm);
+    m_miscThread->SetMainForm(m_pMainForm.get());
     m_miscThread->Start();
 
     //创建线程池（线程创建后，需要使用线程标识符来进行线程间通信：ui::kThreadUser + nThread）
     const size_t nMaxThreads = 4;
     for (size_t nThread = 0; nThread < nMaxThreads; ++nThread) {
         std::shared_ptr<WorkerThread> pThread = std::make_shared<WorkerThread>(ui::kThreadUser + (int32_t)nThread);
-        pThread->SetMainForm(m_pMainForm);
+        pThread->SetMainForm(m_pMainForm.get());
         pThread->Start();
         m_threadPools.push_back(pThread);
     }
 
     //更新界面状态
-    if (!m_mainFormFlag.expired() && (m_pMainForm != nullptr)) {
+    if (m_pMainForm != nullptr) {
         m_pMainForm->UpdateUI();
     }
 }
@@ -100,7 +99,7 @@ void MainThread::StopThreads()
     m_threadPools.clear();
 
     //更新界面状态
-    if (!m_mainFormFlag.expired() && (m_pMainForm != nullptr)) {
+    if (m_pMainForm != nullptr) {
         m_pMainForm->UpdateUI();
     }
 }
@@ -118,7 +117,7 @@ void MainThread::PrintLog(const DString& log)
                                             GetThreadName().c_str(),
                                             GetThreadIdentifier(),
                                             log.c_str());
-    if (!m_mainFormFlag.expired() && (m_pMainForm != nullptr)) {        
+    if (m_pMainForm != nullptr) {        
         m_pMainForm->PrintLog(logMsg);
     }
 }
