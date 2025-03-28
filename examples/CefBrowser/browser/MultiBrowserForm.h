@@ -228,7 +228,9 @@ public:
     HRESULT STDMETHODCALLTYPE DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
     HRESULT STDMETHODCALLTYPE DragLeave(void);
     HRESULT STDMETHODCALLTYPE Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD __RPC_FAR *pdwEffect);
+#endif
 
+public:
     /** 在新标签/新窗口中打开链接
     */
     void OpenLinkUrl(const DString& url, bool bInNewWindow);
@@ -270,6 +272,7 @@ private:
     */
     bool ChangeToBox(const DString& browser_id);
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 private:
     /**
     * 判断是否要拖拽浏览器盒子

@@ -226,7 +226,8 @@ bool BrowserBox::OnContextMenuCommand(CefRefPtr<CefBrowser> browser,
             CefString url = params->GetLinkUrl();
             if (!url.empty()) {
                 //复制链接
-                ui::Clipboard::SetClipboardText(url.c_str());
+                DStringW urlW = url;
+                ui::Clipboard::SetClipboardText(urlW);
             }
             return true;
         }

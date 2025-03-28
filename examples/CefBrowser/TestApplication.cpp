@@ -51,10 +51,10 @@ int TestApplication::Run(int argc, char** argv)
     ui::FilePath appDataDir = ui::FilePathUtil::GetCurrentModuleDirectory();
 
     //需要一个可写目录，并且每个程序一个目录
-    appDataDir += _T("cef_temp\\multi_browser\\");
+    appDataDir += _T("cef_temp\\CefBrowser\\");
 
 #ifdef DUILIB_BUILD_FOR_WIN
-    if (!ui::CefManager::GetInstance()->Initialize(appDataDir.ToString(), settings, true, _T("duilib_multi_browser"))) {
+    if (!ui::CefManager::GetInstance()->Initialize(appDataDir.ToString(), settings, true, _T("duilib_cef_browser"))) {
         return 0;
     }
 #else
