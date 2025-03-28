@@ -1,4 +1,4 @@
-﻿# 快速上手
+﻿# 快速上手（Windows系统，VS 2022）
 
 此示例将引导你快速部署一个基于 nim_duilib 的基本应用，此示例与 `samples` 中的 `MyDuilibApp` 项目一致，如果你更喜欢查看代码可以参考示例代码而无需多花费时间。
 
@@ -31,17 +31,18 @@ git clone https://github.com/rhett-lee/skia_compile
 1. 在`samples\\samples.sln` 解决方案中新建一个 Windows 桌面程序（VS2022，程序类型为：Windows Desktop Application），假定程序名为：MyDuilibApp
 2. 将生成的代码清理一下，只保留关键的 wWinMain 函数：
 ```cpp
-#include "MyDuilibApp.h"
+#include "MainThread.h"
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
-                     _In_ LPWSTR lpCmdLine,
-                     _In_ int nCmdShow)
+                     _In_ LPWSTR    lpCmdLine,
+                     _In_ int       nCmdShow)
 {
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
 
+    //正常退出程序
     return 0;
 }
 ```
@@ -65,7 +66,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 - 项目属性->C/C++->常规->包含目录中，添加 `nim_duilib` 根目录到包含目录中：
 1. `Additional Include Directories` 改为：`../../`
-2. 如果需要使用 CEF 模块，`Additional Include Directories` 改为：`..\..\;..\..\third_party\cef_wrapper\;..\..\ui_components\third_party\cef_wrapper`
+2. 如果需要使用 CEF 模块，`Additional Include Directories` 改为：`..\..\;..\..\duilib\third_party\libcef_win\`
 
 <img src="./Images/vs02.png"/>
 
@@ -159,12 +160,16 @@ WorkerThread::~WorkerThread()
 
 void WorkerThread::OnInit()
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleInitialize(nullptr);
+#endif
 }
 
 void WorkerThread::OnCleanup()
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleUninitialize();
+#endif
 }
 
 MainThread::MainThread() :
@@ -178,7 +183,9 @@ MainThread::~MainThread()
 
 void MainThread::OnInit()
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleInitialize(nullptr);
+#endif
 
     //启动工作线程
     m_workerThread.reset(new WorkerThread);
@@ -190,7 +197,12 @@ void MainThread::OnInit()
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     //在下面加入启动窗口代码
-
+    //
+    //创建一个默认带有阴影的居中窗口
+    MainForm* window = new MainForm();
+    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("MyDuilibApp"), true));
+    window->PostQuitMsgWhenClosed(true);
+    window->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 
 void MainThread::OnCleanup()
@@ -200,7 +212,9 @@ void MainThread::OnCleanup()
         m_workerThread->Stop();
         m_workerThread.reset(nullptr);
     }
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleUninitialize();
+#endif
 }
 ```
 
@@ -247,6 +261,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 */
 class MainForm : public ui::WindowImplBase
 {
+    typedef ui::WindowImplBase BaseClass;
 public:
     MainForm();
     virtual ~MainForm() override;
@@ -295,7 +310,7 @@ DString MainForm::GetSkinFile()
 
 void MainForm::OnInitWindow()
 {
-    __super::OnInitWindow();
+    BaseClass::OnInitWindow();
     //窗口初始化完成，可以进行本Form的初始化
 
 }
@@ -340,7 +355,9 @@ void MainForm::OnInitWindow()
 ```cpp
 void MainThread::OnInit()
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleInitialize(nullptr);
+#endif
 
     //启动工作线程
     m_workerThread.reset(new WorkerThread);
@@ -355,9 +372,8 @@ void MainThread::OnInit()
     //
     //创建一个默认带有阴影的居中窗口
     MainForm* window = new MainForm();
-    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("MyDuilibApp")));
+    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("MyDuilibApp"), true));
     window->PostQuitMsgWhenClosed(true);
-    window->CenterWindow();
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 ```
