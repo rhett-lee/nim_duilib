@@ -68,7 +68,7 @@ void MainThread::StartThreads()
     //创建线程池（线程创建后，需要使用线程标识符来进行线程间通信：ui::kThreadUser + nThread）
     const size_t nMaxThreads = 4;
     for (size_t nThread = 0; nThread < nMaxThreads; ++nThread) {
-        std::shared_ptr<WorkerThread> pThread = std::make_shared<WorkerThread>(ui::kThreadUser + nThread);
+        std::shared_ptr<WorkerThread> pThread = std::make_shared<WorkerThread>(ui::kThreadUser + (int32_t)nThread);
         pThread->SetMainForm(m_pMainForm);
         pThread->Start();
         m_threadPools.push_back(pThread);
