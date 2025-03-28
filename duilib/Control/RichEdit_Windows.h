@@ -64,7 +64,8 @@ public:
     /** 设置控件的文本, 会触发文本变化事件
      * @param [in] strText 要设置的文本内容
      */
-    void SetText(const DString& strText);
+    void SetText(const DStringW& strText);
+    void SetText(const DStringA& strText);
 
     /** 设置控件的文本，不触发文本变化事件
      * @param [in] strText 要设置的文本内容
