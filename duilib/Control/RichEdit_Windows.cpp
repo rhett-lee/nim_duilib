@@ -994,11 +994,29 @@ DString RichEdit::GetText() const
 #endif
 }
 
-void RichEdit::SetText(const DString& strText)
+void RichEdit::SetText(const DStringW& strText)
 {
     m_bDisableTextChangeEvent = false;
     SetSel(0, -1);
+
+#ifdef DUILIB_UNICODE
     ReplaceSel(strText, FALSE);
+#else
+    DString text = StringConvert::WStringToT(strText);
+    ReplaceSel(text, FALSE);
+#endif
+}
+
+void RichEdit::SetText(const DStringA& strText)
+{
+    m_bDisableTextChangeEvent = false;
+    SetSel(0, -1);
+#ifdef DUILIB_UNICODE
+    DString text = StringConvert::UTF8ToT(strText);
+    ReplaceSel(text, FALSE);
+#else
+    ReplaceSel(strText, FALSE);
+#endif
 }
 
 void RichEdit::SetTextNoEvent(const DString& strText)
