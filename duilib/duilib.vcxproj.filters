@@ -1319,6 +1319,9 @@
     <ClInclude Include="Control\IconControl.h">
       <Filter>Control</Filter>
     </ClInclude>
+    <ClInclude Include="Core\ControlPtr.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />

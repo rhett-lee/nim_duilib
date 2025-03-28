@@ -3,6 +3,7 @@
 
 #include "duilib/Utils/WinImplBase.h"
 #include "duilib/Box/ListBox.h"
+#include "duilib/Core/ControlPtr.h"
 
 namespace ui {
 
@@ -60,8 +61,10 @@ class Menu : public WindowImplBase, public ContextMenuReceiver
     typedef WindowImplBase BaseClass;
 public:
     /** 构造函数，初始化菜单的父窗口句柄
+    * @param [in] pParentWindow 菜单的父窗口
+    * @param [in] pRelatedControl 菜单的关联控件，菜单弹出时，设置关联控件的状态为Pushed
     */
-    explicit Menu(Window* pParentWindow);
+    explicit Menu(Window* pParentWindow, Control* pRelatedControl = nullptr);
 
     /** 设置资源加载的文件夹名称，如果没设置，内部默认为 "menu"
     *   XML文件中的资源（图片、XML等），均在这个文件夹中查找
@@ -190,9 +193,10 @@ private:
     MenuItem* m_pOwner;
 
     //菜单的布局接口
-    ListBox* m_pListBox;
-    std::weak_ptr<WeakFlag> m_listBoxFlag;
+    ControlPtr<ListBox> m_pListBox;
 
+    //关联的控件
+    ControlPtr<Control> m_pRelatedControl;
 };
 
 /** 菜单项

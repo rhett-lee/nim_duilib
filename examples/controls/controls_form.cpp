@@ -127,14 +127,15 @@ void ControlForm::OnInitWindow()
     /* Show settings menu */
     ui::Button* settings = static_cast<ui::Button*>(FindControl(_T("settings")));
     if (settings != nullptr) {
-        settings->AttachClick([this](const ui::EventArgs& args) {
+        settings->AttachClick([this, settings](const ui::EventArgs& args) {
             ui::UiRect rect = args.GetSender()->GetPos();
             ui::UiPoint point;
             point.x = rect.left;
             point.y = rect.bottom;
             ClientToScreen(point);
 
-            ShowPopupMenu(point);
+            //显示菜单，并保持settings按钮处于Push状态
+            ShowPopupMenu(point, settings);
             return true;
             });
     }
@@ -152,13 +153,13 @@ void ControlForm::OnInitWindow()
 
                     //鼠标消息产生的上下文菜单
                     ClientToScreen(pt);
-                    ShowPopupMenu(pt);
+                    ShowPopupMenu(pt, nullptr);
                 }
                 else {
                     //按Shift + F10，由系统产生上下文菜单
                     pt = { 100, 100 };
                     ClientToScreen(pt);
-                    ShowPopupMenu(pt);
+                    ShowPopupMenu(pt, nullptr);
                 }
             }
             return true;
@@ -352,9 +353,9 @@ void ControlForm::ShowDoModalDlg()
     simpleWnd.DoModal(this, createParam);
 }
 
-void ControlForm::ShowPopupMenu(const ui::UiPoint& point)
+void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedControl)
 {
-    ui::Menu* menu = new ui::Menu(this);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+    ui::Menu* menu = new ui::Menu(this, pRelatedControl);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
     menu->SetSkinFolder(GetResourcePath().ToString());
     DString xml(_T("menu/settings_menu.xml"));
     menu->ShowMenu(xml, point);
