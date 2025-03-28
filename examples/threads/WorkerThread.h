@@ -39,11 +39,7 @@ private:
 private:
     /** 主界面的接口
     */
-    MainForm* m_pMainForm;
-
-    /** 主界面的接口的生命周期
-    */
-    std::weak_ptr<ui::WeakFlag> m_mainFormFlag;
+    ui::ControlPtr<MainForm> m_pMainForm;
 
 };
 

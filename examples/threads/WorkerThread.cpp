@@ -26,12 +26,6 @@ void WorkerThread::OnCleanup()
 void WorkerThread::SetMainForm(MainForm* pMainForm)
 {
     m_pMainForm = pMainForm;
-    if (pMainForm != nullptr) {
-        m_mainFormFlag = pMainForm->GetWeakFlag();
-    }
-    else {
-        m_mainFormFlag.reset();
-    }
 }
 
 void WorkerThread::PrintLog(const DString& log)
@@ -42,7 +36,7 @@ void WorkerThread::PrintLog(const DString& log)
                                             GetThreadName().c_str(),
                                             GetThreadIdentifier(),
                                             log.c_str());
-    if (!m_mainFormFlag.expired() && (m_pMainForm != nullptr)) {
+    if (m_pMainForm != nullptr) {
         m_pMainForm->PrintLog(logMsg);
     }
 }
