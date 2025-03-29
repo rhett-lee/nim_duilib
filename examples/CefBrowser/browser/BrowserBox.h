@@ -296,6 +296,14 @@ private:
                                    int http_status_code,
                                    CefRefPtr<CefImage> image);
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+private:
+    /** 将CEF的图片转换为图标句柄
+    */
+    HICON ConvertCefImageToHICON(CefImage& cefImage) const;
+#endif
+
+
 private:
     ui::CefControl* m_pCefControl;
     MultiBrowserForm* m_pBrowserForm;

@@ -39,36 +39,32 @@ public:
     */
     std::string& GetId();
 
-    /**
-    * 初始化函数，TaskbarTabItem被new后立即调用
+    /** 初始化函数，TaskbarTabItem被new后立即调用
     * @param[in] taskbar_title 在任务栏缩略图上显示的标题
     * @param[in] id 缩略图Tab的唯一id
-    * @return void    无返回值
     */
     void Init(const DString &taskbar_title, const std::string &id);
 
-    /**
-    * 反初始化函数
-    * @return void    无返回值
+    /** 反初始化函数
     */
     void UnInit();
 
-    /**
-    * 设置本Tab缩略图的标题
+    /** 设置本Tab缩略图的标题
     * @param[in] title 标题
-    * @return void    无返回值
     */
     void SetTaskbarTitle(const DString &title);
 
-    /**
-    * 设置本Tab所属的窗体对应的TaskbarManager
+    /** 设置本Tab缩略图的窗口图标
+    * @param [in] title 标题
+    */
+    void SetTaskbarIcon(HICON hIcon);
+
+    /** 设置本Tab所属的窗体对应的TaskbarManager
     * @param[in] taskbar_manager TaskbarManager指针
-    * @return void    无返回值
     */
     void SetTaskbarManager(TaskbarManager *taskbar_manager);
 
-    /**
-    * 获取本Tab所属的窗体对应的TaskbarManager
+    /** 获取本Tab所属的窗体对应的TaskbarManager
     * @return TaskbarManager* TaskbarManager指针
     */
     TaskbarManager* GetTaskbarManager();

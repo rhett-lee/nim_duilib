@@ -61,6 +61,18 @@ void TaskbarTabItem::SetTaskbarTitle(const DString& title)
     ::SetWindowText(NativeWnd()->GetHWND(), localText.c_str());
 }
 
+void TaskbarTabItem::SetTaskbarIcon(HICON hIcon)
+{
+    if (hIcon != nullptr) {
+        if (::IsWindow(NativeWnd()->GetHWND())) {
+            ::SendMessage(NativeWnd()->GetHWND(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);   // 设置大图标（通常32x32）
+        }
+        else {
+            ::DestroyIcon(hIcon);
+        }
+    }
+}
+
 void TaskbarTabItem::SetTaskbarManager(TaskbarManager *taskbar_manager)
 {
     m_taskbarManager = taskbar_manager;
@@ -93,7 +105,7 @@ void TaskbarTabItem::OnSendThumbnail(int width, int height)
         pBitmap = nullptr;
     }
     if (hBitmap != nullptr) {
-       // ::DeleteObject(hBitmap);
+        ::DeleteObject(hBitmap);
         hBitmap = nullptr;
     }
 }
