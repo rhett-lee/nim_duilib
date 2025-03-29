@@ -63,6 +63,6 @@
     <Control class="splitline_hor_level1" margin="0,0,0,0" />
     
 	<!-- 网页显示区域：浏览器盒子列表 -->
-	<CustomTabBox name="browser_box_tab" bkcolor="white" padding="2,2,2,2"/>
+	<TabBox name="browser_box_tab" bkcolor="white" padding="2,2,2,2"/>
 </VBox>
 </Window>

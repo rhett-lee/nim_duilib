@@ -45,9 +45,6 @@
     <ClInclude Include="browser\BrowserBox.h">
       <Filter>browser</Filter>
     </ClInclude>
-    <ClInclude Include="browser\CustomLayout.h">
-      <Filter>browser</Filter>
-    </ClInclude>
     <ClInclude Include="browser\MultiBrowserForm.h">
       <Filter>browser</Filter>
     </ClInclude>
@@ -87,9 +84,6 @@
       <Filter>dragdrop</Filter>
     </ClCompile>
     <ClCompile Include="browser\BrowserBox.cpp">
-      <Filter>browser</Filter>
-    </ClCompile>
-    <ClCompile Include="browser\CustomLayout.cpp">
       <Filter>browser</Filter>
     </ClCompile>
     <ClCompile Include="browser\MultiBrowserForm.cpp">

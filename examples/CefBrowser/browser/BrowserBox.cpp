@@ -97,11 +97,9 @@ void BrowserBox::InitBrowserBox(const DString &url)
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     // 初始化任务栏缩略图
-    if (GetWindow()->IsLayeredWindow()) {
-        m_pTaskBarItem = new TaskbarTabItem(m_pCefControl);
-        if (m_pTaskBarItem) {
-            m_pTaskBarItem->Init(url, m_browserId);
-        }
+    m_pTaskBarItem = new TaskbarTabItem(m_pCefControl);
+    if (m_pTaskBarItem) {
+        m_pTaskBarItem->Init(url, m_browserId);
     }
 #endif
 }

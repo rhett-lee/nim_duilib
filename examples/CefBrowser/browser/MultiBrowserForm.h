@@ -38,15 +38,7 @@ public:
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;   
 
-    /**
-    * 根据控件类名创建自定义控件
-    * @param[in] pstrClass 控件类名
-    * @return Control* 创建的控件的指针
-    */
-    virtual ui::Control* CreateControl(const DString& pstrClass) override;
-
-    /**
-    * 拦截并处理底层窗体消息
+    /** 拦截并处理底层窗体消息
     * @param[in] uMsg 消息类型
     * @param[in] wParam 附加参数
     * @param[in] lParam 附加参数

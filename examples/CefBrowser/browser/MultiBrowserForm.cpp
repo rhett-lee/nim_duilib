@@ -1,11 +1,9 @@
 #include "MultiBrowserForm.h"
 #include "browser/BrowserBox.h"
 #include "browser/MultiBrowserManager.h"
-#include "CustomLayout.h"
 #include <chrono>
 
 using namespace ui;
-using namespace std;
 
 namespace
 {
@@ -55,19 +53,6 @@ DString MultiBrowserForm::GetSkinFolder()
 DString MultiBrowserForm::GetSkinFile()
 {
     return _T("cef_browser.xml");
-}
-
-ui::Control* MultiBrowserForm::CreateControl(const DString& pstrClass)
-{
-    if (pstrClass == _T("CustomTabBox")) {
-        if (IsLayeredWindow()) {
-            return new TabBox(this, new CustomLayout);
-        }
-        else {
-            return new TabBox(this, new Layout);
-        }
-    }
-    return nullptr;
 }
 
 /** 标题栏区域的布局管理

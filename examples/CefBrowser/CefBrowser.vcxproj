@@ -189,7 +189,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="browser\BrowserBox.h" />
-    <ClInclude Include="browser\CustomLayout.h" />
     <ClInclude Include="browser\MultiBrowserForm.h" />
     <ClInclude Include="browser\MultiBrowserManager.h" />
     <ClInclude Include="dragdrop\DragDrop.h" />
@@ -203,7 +202,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="browser\BrowserBox.cpp" />
-    <ClCompile Include="browser\CustomLayout.cpp" />
     <ClCompile Include="browser\MultiBrowserForm.cpp" />
     <ClCompile Include="browser\MultiBrowserFormDragdrop.cpp" />
     <ClCompile Include="browser\MultiBrowserManager.cpp" />
