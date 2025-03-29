@@ -1,9 +1,9 @@
-#include "MultiBrowserForm.h"
+#include "BrowserForm.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include "BrowserBox.h"
-#include "MultiBrowserManager.h"
+#include "BrowserManager.h"
 
 #include "duilib/Utils/BitmapHelper_Windows.h"
 
@@ -19,7 +19,7 @@ namespace
     const int kDragImageHeight = 300;
 }
 
-bool MultiBrowserForm::InitDragDrop()
+bool BrowserForm::InitDragDrop()
 {
     if (nullptr != m_pDropHelper) {
         return false;
@@ -38,7 +38,7 @@ bool MultiBrowserForm::InitDragDrop()
     return true;
 }
 
-void MultiBrowserForm::UnInitDragDrop()
+void BrowserForm::UnInitDragDrop()
 {
     if (nullptr != m_pDropHelper) {
         m_pDropHelper->Release();
@@ -46,7 +46,7 @@ void MultiBrowserForm::UnInitDragDrop()
     ::RevokeDragDrop(this->NativeWnd()->GetHWND());
 }
 
-HRESULT MultiBrowserForm::QueryInterface(REFIID iid, void ** ppvObject)
+HRESULT BrowserForm::QueryInterface(REFIID iid, void ** ppvObject)
 {
     if (nullptr == m_pDropHelper) {
         return E_NOINTERFACE;
@@ -54,7 +54,7 @@ HRESULT MultiBrowserForm::QueryInterface(REFIID iid, void ** ppvObject)
     return m_pDropHelper->QueryInterface(iid, ppvObject);
 }
 
-ULONG MultiBrowserForm::AddRef(void)
+ULONG BrowserForm::AddRef(void)
 {
     if (nullptr == m_pDropHelper) {
         return 0;
@@ -62,7 +62,7 @@ ULONG MultiBrowserForm::AddRef(void)
     return m_pDropHelper->AddRef();
 }
 
-ULONG MultiBrowserForm::Release(void)
+ULONG BrowserForm::Release(void)
 {
     if (nullptr == m_pDropHelper) {
         return 0;
@@ -70,14 +70,14 @@ ULONG MultiBrowserForm::Release(void)
     return m_pDropHelper->Release();
 }
 
-HRESULT MultiBrowserForm::DragEnter(IDataObject * pDataObject, DWORD grfKeyState, POINTL pt, DWORD * pdwEffect)
+HRESULT BrowserForm::DragEnter(IDataObject * pDataObject, DWORD grfKeyState, POINTL pt, DWORD * pdwEffect)
 {
     if (nullptr == m_pDropHelper) {
         return S_OK;
     }
 
     // 如果不是拖拽浏览器盒子
-    if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox()) {
+    if (!BrowserManager::GetInstance()->IsDragingBorwserBox()) {
         if (nullptr != m_pActiveBrowserBox) {
             //m_pActiveBrowserBox->DragEnter(pDataObject, grfKeyState, pt, pdwEffect);
             if (IsWindowMinimized()) {
@@ -95,14 +95,14 @@ HRESULT MultiBrowserForm::DragEnter(IDataObject * pDataObject, DWORD grfKeyState
     return S_OK;
 }
 
-HRESULT MultiBrowserForm::DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
+HRESULT BrowserForm::DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect)
 {
     if (nullptr == m_pDropHelper) {
         return S_OK;
     }
 
     // 如果不是拖拽浏览器盒子
-    if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox()) {
+    if (!BrowserManager::GetInstance()->IsDragingBorwserBox()) {
         if (nullptr != m_pActiveBrowserBox) {
             //m_pActiveBrowserBox->DragOver(grfKeyState, pt, pdwEffect);
         }
@@ -115,14 +115,14 @@ HRESULT MultiBrowserForm::DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffec
     return S_OK;
 }
 
-HRESULT MultiBrowserForm::DragLeave(void)
+HRESULT BrowserForm::DragLeave(void)
 {
     if (nullptr == m_pDropHelper) {
         return S_OK;
     }
 
     // 如果不是拖拽浏览器盒子
-    if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox()) {
+    if (!BrowserManager::GetInstance()->IsDragingBorwserBox()) {
         if (nullptr != m_pActiveBrowserBox) {
             //m_pActiveBrowserBox->DragLeave();
         }
@@ -131,10 +131,10 @@ HRESULT MultiBrowserForm::DragLeave(void)
     return S_OK;
 }
 
-HRESULT MultiBrowserForm::Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD __RPC_FAR *pdwEffect)
+HRESULT BrowserForm::Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD __RPC_FAR *pdwEffect)
 {
     // 如果不是拖拽浏览器盒子
-    if (!MultiBrowserManager::GetInstance()->IsDragingBorwserBox()) {
+    if (!BrowserManager::GetInstance()->IsDragingBorwserBox()) {
 #if 0
          if (nullptr != m_pActiveBrowserBox && m_pActiveBrowserBox->CheckDropEnable(pt)) {
              m_pActiveBrowserBox->Drop(pDataObj, grfKeyState, pt, pdwEffect);
@@ -143,16 +143,16 @@ HRESULT MultiBrowserForm::Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL 
     }
     else {
         *pdwEffect = DROPEFFECT_MOVE;
-        MultiBrowserManager::GetInstance()->SetDropForm(this);
+        BrowserManager::GetInstance()->SetDropForm(this);
     }
 
     m_pDropHelper->Drop(pDataObj, (LPPOINT)&pt, *pdwEffect);
     return S_OK;
 }
 
-bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
+bool BrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
 {
-    if (!MultiBrowserManager::GetInstance()->IsEnableMerge()) {
+    if (!BrowserManager::GetInstance()->IsEnableMerge()) {
         return true;
     }
 
@@ -191,7 +191,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
             POINT pt = { kDragImageWidth / 2, 0 };
 
             StdClosure cb = [=]{
-                MultiBrowserManager::GetInstance()->DoDragBorwserBox(m_pActiveBrowserBox, hBitmap, pt);
+                BrowserManager::GetInstance()->DoDragBorwserBox(m_pActiveBrowserBox, hBitmap, pt);
                 ::DeleteObject(hBitmap);
             };
             ui::GlobalManager::Instance().Thread().PostTask(kThreadUI, cb);
@@ -208,7 +208,7 @@ bool MultiBrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
     return true;
 }
 
-ui::IBitmap* MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_rect)
+ui::IBitmap* BrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_rect)
 {
     ASSERT(!src_rect.IsEmpty());
     int src_width = src_rect.right - src_rect.left;
@@ -243,7 +243,7 @@ ui::IBitmap* MultiBrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_r
 
 }
 
-ui::IBitmap* MultiBrowserForm::GenerateBoxWindowBitmap()
+ui::IBitmap* BrowserForm::GenerateBoxWindowBitmap()
 {
     if (!m_pActiveBrowserBox) {
         return nullptr;

@@ -45,17 +45,17 @@
     <ClInclude Include="browser\BrowserBox.h">
       <Filter>browser</Filter>
     </ClInclude>
-    <ClInclude Include="browser\MultiBrowserForm.h">
-      <Filter>browser</Filter>
-    </ClInclude>
-    <ClInclude Include="browser\MultiBrowserManager.h">
-      <Filter>browser</Filter>
-    </ClInclude>
     <ClInclude Include="dragdrop\HBitmapControl.h">
       <Filter>dragdrop</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="browser\BrowserForm.h">
+      <Filter>browser</Filter>
+    </ClInclude>
+    <ClInclude Include="browser\BrowserManager.h">
+      <Filter>browser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -86,17 +86,17 @@
     <ClCompile Include="browser\BrowserBox.cpp">
       <Filter>browser</Filter>
     </ClCompile>
-    <ClCompile Include="browser\MultiBrowserForm.cpp">
-      <Filter>browser</Filter>
-    </ClCompile>
-    <ClCompile Include="browser\MultiBrowserFormDragdrop.cpp">
-      <Filter>browser</Filter>
-    </ClCompile>
-    <ClCompile Include="browser\MultiBrowserManager.cpp">
-      <Filter>browser</Filter>
-    </ClCompile>
     <ClCompile Include="dragdrop\HBitmapControl.cpp">
       <Filter>dragdrop</Filter>
+    </ClCompile>
+    <ClCompile Include="browser\BrowserForm.cpp">
+      <Filter>browser</Filter>
+    </ClCompile>
+    <ClCompile Include="browser\BrowserFormDragdrop.cpp">
+      <Filter>browser</Filter>
+    </ClCompile>
+    <ClCompile Include="browser\BrowserManager.cpp">
+      <Filter>browser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

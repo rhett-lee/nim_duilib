@@ -1,9 +1,9 @@
-#ifndef EXAMPLES_MULTI_BROWSER_MANAGER_H_
-#define EXAMPLES_MULTI_BROWSER_MANAGER_H_
+#ifndef EXAMPLES_BROWSER_MANAGER_H_
+#define EXAMPLES_BROWSER_MANAGER_H_
 
 #include "BrowserBox.h"
 
-/** @class MultiBrowserManager
+/** @class BrowserManager
   * @brief 多标签浏览器管理类，用于统一管理多标签浏览器打开、合并、拆分、拖拽功能
   * @date 2019/3/20
   */
@@ -11,19 +11,19 @@
     class SdkDataObject;
 #endif
 
-class MultiBrowserManager : public virtual ui::SupportWeakCallback
+class BrowserManager : public virtual ui::SupportWeakCallback
 {
 public:
-    MultiBrowserManager();
-    MultiBrowserManager(const MultiBrowserManager&) = delete;
-    MultiBrowserManager& operator=(const MultiBrowserManager&) = delete;
+    BrowserManager();
+    BrowserManager(const BrowserManager&) = delete;
+    BrowserManager& operator=(const BrowserManager&) = delete;
 
     /** 单例对象
     */
-    static MultiBrowserManager* GetInstance();
+    static BrowserManager* GetInstance();
 
 private:
-    ~MultiBrowserManager();
+    ~BrowserManager();
 
 public:
     /** 创建一个浏览器盒子
@@ -32,7 +32,7 @@ public:
     * @param[in] url 初始化URL
     * @return BorwserBox*    浏览器盒子指针
     */
-    BrowserBox* CreateBorwserBox(MultiBrowserForm* browser_form, const std::string& id, const DString& url);
+    BrowserBox* CreateBorwserBox(BrowserForm* browser_form, const std::string& id, const DString& url);
 
     /** 判断某个浏览器盒子是否处于激活状态
     * @param[in] id 某个浏览器盒子的唯一标识
@@ -54,7 +54,7 @@ public:
 
     /** 找到一个活动的窗口
     */
-    MultiBrowserForm* GetLastActiveBrowserForm() const;
+    BrowserForm* GetLastActiveBrowserForm() const;
 
     /** 创建Browser ID
     */
@@ -100,7 +100,7 @@ public:
     * @param[in] browser_form 浏览器窗口
     * @return void    无返回值
     */
-    void SetDropForm(MultiBrowserForm *browser_form);
+    void SetDropForm(BrowserForm *browser_form);
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     /**
@@ -141,8 +141,8 @@ private:
     bool m_bEnableMerge;
     bool m_bUseCustomDragImage;
     BrowserBox* m_pDragingBox;    // 当下正在被拖拽的浏览器盒子
-    MultiBrowserForm* m_pDropBrowserForm;    // 拖入浏览器盒子的浏览器窗口，用于附加拖拽来的浏览器盒子
+    BrowserForm* m_pDropBrowserForm;    // 拖入浏览器盒子的浏览器窗口，用于附加拖拽来的浏览器盒子
 
     std::map<std::string, BrowserBox*> m_boxMap;
 };
-#endif //EXAMPLES_MULTI_BROWSER_MANAGER_H_
+#endif //EXAMPLES_BROWSER_MANAGER_H_

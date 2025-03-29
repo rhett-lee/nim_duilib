@@ -1,6 +1,6 @@
 #include "MainThread.h"
-#include "browser/MultiBrowserManager.h"
-#include "browser/MultiBrowserForm.h"
+#include "browser/BrowserManager.h"
+#include "browser/BrowserForm.h"
 #include <chrono>
 
 MainThread::MainThread() :
@@ -28,8 +28,8 @@ void MainThread::OnInit()
     ui::CefManager::GetInstance()->SetAlreadyRunningAppRelaunch(UiBind(&MainThread::OnAlreadyRunningAppRelaunch, this, std::placeholders::_1));
 
     //创建第一个窗口
-    std::string id = MultiBrowserManager::GetInstance()->CreateBrowserID();
-    MultiBrowserManager::GetInstance()->CreateBorwserBox(nullptr, id, _T(""));
+    std::string id = BrowserManager::GetInstance()->CreateBrowserID();
+    BrowserManager::GetInstance()->CreateBorwserBox(nullptr, id, _T(""));
 }
 
 void MainThread::OnCleanup()
@@ -41,7 +41,7 @@ void MainThread::OnAlreadyRunningAppRelaunch(const std::vector<DString>& argumen
 {
     if (ui::GlobalManager::Instance().IsInUIThread()) {
         //CEF 133版本会调用此接口
-        MultiBrowserForm* pBrowserForm = MultiBrowserManager::GetInstance()->GetLastActiveBrowserForm();
+        BrowserForm* pBrowserForm = BrowserManager::GetInstance()->GetLastActiveBrowserForm();
         if (pBrowserForm != nullptr) {
             pBrowserForm->SetWindowForeground();
             if (!argumentList.empty()) {

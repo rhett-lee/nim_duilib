@@ -17,12 +17,12 @@
     class TaskbarTabItem;
 #endif
 
-class MultiBrowserForm;
+class BrowserForm;
 class BrowserBox : public ui::VBox
 {
     typedef ui::VBox BaseClass;
 public:
-    friend class MultiBrowserForm;
+    friend class BrowserForm;
 
     /**
     * 构造函数
@@ -39,9 +39,9 @@ public:
 
     /**
     * 获取本浏览器盒子所属的浏览器窗口指针
-    * @return MultiBrowserForm* 浏览器窗口
+    * @return BrowserForm* 浏览器窗口
     */
-    MultiBrowserForm* GetBrowserForm() const;
+    BrowserForm* GetBrowserForm() const;
 
     /**
     * 获取Cef控件指针
@@ -306,7 +306,7 @@ private:
 
 private:
     ui::CefControl* m_pCefControl;
-    MultiBrowserForm* m_pBrowserForm;
+    BrowserForm* m_pBrowserForm;
     std::string m_browserId;
     DString m_url;
     DString m_title;

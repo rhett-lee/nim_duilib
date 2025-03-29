@@ -1,6 +1,6 @@
 #include "BrowserBox.h"
-#include "browser/MultiBrowserForm.h"
-#include "browser/MultiBrowserManager.h"
+#include "browser/BrowserForm.h"
+#include "browser/BrowserManager.h"
 #include "taskbar/TaskbarManager.h"
 
 using namespace ui;
@@ -17,7 +17,7 @@ BrowserBox::BrowserBox(ui::Window* pWindow, std::string id):
     m_browserId = id;
 }
 
-MultiBrowserForm* BrowserBox::GetBrowserForm() const
+BrowserForm* BrowserBox::GetBrowserForm() const
 {
     ASSERT(nullptr != m_pBrowserForm);
     ASSERT(m_pBrowserForm->IsWindow());
@@ -106,7 +106,7 @@ void BrowserBox::InitBrowserBox(const DString &url)
 
 void BrowserBox::UninitBrowserBox()
 {
-    MultiBrowserManager::GetInstance()->RemoveBorwserBox(m_browserId, this);
+    BrowserManager::GetInstance()->RemoveBorwserBox(m_browserId, this);
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (m_pTaskBarItem) {
         m_pTaskBarItem->UnInit();
@@ -123,7 +123,7 @@ TaskbarTabItem* BrowserBox::GetTaskbarItem()
 
 void BrowserBox::SetWindow(Window* pWindow)
 {
-    m_pBrowserForm = dynamic_cast<MultiBrowserForm*>(pWindow);
+    m_pBrowserForm = dynamic_cast<BrowserForm*>(pWindow);
     ASSERT(nullptr != m_pBrowserForm);
 
     BaseClass::SetWindow(pWindow);

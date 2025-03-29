@@ -1,5 +1,5 @@
-#ifndef EXAMPLES_MULTI_BROWSER_FORM_H_
-#define EXAMPLES_MULTI_BROWSER_FORM_H_
+#ifndef EXAMPLES_BROWSER_FORM_H_
+#define EXAMPLES_BROWSER_FORM_H_
 
 // duilib
 #include "duilib/duilib.h"
@@ -22,17 +22,17 @@ class BrowserBox;
 * @date 2019/3/20
 */
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-class MultiBrowserForm : public ui::WindowImplBase, public IDropTarget, public TaskbarManager::ITaskbarDelegate
+class BrowserForm : public ui::WindowImplBase, public IDropTarget, public TaskbarManager::ITaskbarDelegate
 {
     typedef ui::WindowImplBase BaseClass;
 #else
-class MultiBrowserForm : public ui::WindowImplBase
+class BrowserForm : public ui::WindowImplBase
 {
     typedef ui::WindowImplBase BaseClass;
 #endif
 public:
-    MultiBrowserForm();
-    virtual ~MultiBrowserForm() override;
+    BrowserForm();
+    virtual ~BrowserForm() override;
     
     //覆盖虚函数
     virtual DString GetSkinFolder() override;
@@ -318,4 +318,4 @@ private:
     TaskbarManager m_taskbarManager;
 #endif
 };
-#endif //EXAMPLES_MULTI_BROWSER_FORM_H_
+#endif //EXAMPLES_BROWSER_FORM_H_
