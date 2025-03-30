@@ -342,6 +342,11 @@ void BrowserForm::OpenLinkUrl(const DString& url, bool bInNewWindow)
     }
 }
 
+BrowserBox* BrowserForm::CreateBrowserBox(ui::Window* pWindow, std::string id)
+{
+    return new BrowserBox(pWindow, id);
+}
+
 BrowserBox* BrowserForm::CreateBox(const std::string &browser_id, DString url)
 {
     DString id = ui::StringConvert::UTF8ToT(browser_id);
@@ -365,7 +370,7 @@ BrowserBox* BrowserForm::CreateBox(const std::string &browser_id, DString url)
         btn_item_close->AttachClick(UiBind(&BrowserForm::OnTabItemClose, this, std::placeholders::_1, browser_id));
     }
 
-    BrowserBox* browser_box = new BrowserBox(m_pBorwserBoxTab->GetWindow(), browser_id);
+    BrowserBox* browser_box = CreateBrowserBox(m_pBorwserBoxTab->GetWindow(), browser_id);
     m_pBorwserBoxTab->AddItem(browser_box);
     GlobalManager::Instance().FillBoxWithCache(browser_box, ui::FilePath(_T("cef_browser/browser_box.xml")), nullptr);
     browser_box->SetName(id);

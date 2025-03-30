@@ -55,6 +55,12 @@ public:
     virtual void OnCloseWindow() override;
 
 public:
+    /** 创建BrowserBox对象
+    * @param [in] pWindow 关联的窗口
+    * @param [in] id 浏览器盒子的唯一标识，用于区分不同的标签页
+    */
+    virtual BrowserBox* CreateBrowserBox(ui::Window* pWindow, std::string id);
+
     /** 在本窗口内创建一个新浏览器盒子
     * @param[in] browser_id 浏览器id
     * @param[in] url 初始化URL

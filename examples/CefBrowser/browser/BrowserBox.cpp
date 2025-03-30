@@ -1,17 +1,12 @@
 #include "BrowserBox.h"
 #include "browser/BrowserForm.h"
 #include "browser/BrowserManager.h"
-#include "Windows/taskbar/TaskbarManager.h"
 
 using namespace ui;
-using namespace std;
 
 BrowserBox::BrowserBox(ui::Window* pWindow, std::string id):
     ui::VBox(pWindow)
 {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    m_pTaskBarItem = nullptr;
-#endif
     m_pBrowserForm = nullptr;
     m_pCefControl = nullptr;
     m_browserId = id;
@@ -29,12 +24,12 @@ ui::CefControl* BrowserBox::GetCefControl()
     return m_pCefControl;
 }
 
-DString& BrowserBox::GetTitle()
+const DString& BrowserBox::GetTitle() const
 {
     return m_title;
 }
 
-void BrowserBox::InitBrowserBox(const DString &url)
+void BrowserBox::InitBrowserBox(const DString& url)
 {
     m_pCefControl = static_cast<ui::CefControl*>(FindSubControl(_T("cef_control")));
     ASSERT(m_pCefControl != nullptr);
@@ -94,32 +89,12 @@ void BrowserBox::InitBrowserBox(const DString &url)
         html_path = _T("file:///") + html_path;
     }
     m_pCefControl->LoadURL(html_path);
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    // 初始化任务栏缩略图
-    m_pTaskBarItem = new TaskbarTabItem(m_pCefControl);
-    if (m_pTaskBarItem) {
-        m_pTaskBarItem->Init(url, m_browserId);
-    }
-#endif
 }
 
 void BrowserBox::UninitBrowserBox()
 {
     BrowserManager::GetInstance()->RemoveBorwserBox(m_browserId, this);
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if (m_pTaskBarItem) {
-        m_pTaskBarItem->UnInit();
-    }
-#endif
 }
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-TaskbarTabItem* BrowserBox::GetTaskbarItem()
-{
-    return m_pTaskBarItem;
-}
-#endif
 
 void BrowserBox::SetWindow(Window* pWindow)
 {
@@ -127,26 +102,6 @@ void BrowserBox::SetWindow(Window* pWindow)
     ASSERT(nullptr != m_pBrowserForm);
 
     BaseClass::SetWindow(pWindow);
-}
-
-void BrowserBox::Invalidate()
-{
-    BaseClass::Invalidate();
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if (m_pTaskBarItem) {
-        m_pTaskBarItem->InvalidateTab();
-    }
-#endif
-}
-
-void BrowserBox::SetPos(UiRect rc)
-{
-    BaseClass::SetPos(rc);
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if (m_pTaskBarItem) {
-        m_pTaskBarItem->InvalidateTab();
-    }
-#endif
 }
 
 bool BrowserBox::OnSetFocus(const ui::EventArgs& msg)
@@ -243,11 +198,6 @@ void BrowserBox::OnTitleChange(CefRefPtr<CefBrowser> browser, const DString& tit
     ui::GlobalManager::Instance().AssertUIThread();
     m_title = title;
     m_pBrowserForm->SetTabItemName(ui::StringConvert::UTF8ToT(m_browserId), title);
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if (m_pTaskBarItem) {
-        m_pTaskBarItem->SetTaskbarTitle(title);
-    }
-#endif
 }
 
 void BrowserBox::OnUrlChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const DString& url)
@@ -452,71 +402,5 @@ void BrowserBox::OnDownloadFavIconFinished(CefRefPtr<CefBrowser> browser,
     if ((m_pBrowserForm != nullptr) && (image != nullptr)) {
         m_pBrowserForm->NotifyFavicon(this, image);
     }
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if ((m_pTaskBarItem != nullptr) && (image != nullptr)) {
-        HICON hIcon = ConvertCefImageToHICON(*image);
-        m_pTaskBarItem->SetTaskbarIcon(hIcon);
-    }
-#endif
 }
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-HICON BrowserBox::ConvertCefImageToHICON(CefImage& cefImage) const
-{
-    // 1. 获取CefImage参数
-    int32_t nWidth = cefImage.GetWidth();
-    int32_t nHeight = cefImage.GetHeight();
-    if ((nWidth < 1) || (nHeight < 1)) {
-        return nullptr;
-    }
-    CefRefPtr<CefBinaryValue> cefImageData = cefImage.GetAsBitmap(1.0f, CEF_COLOR_TYPE_BGRA_8888, CEF_ALPHA_TYPE_PREMULTIPLIED, nWidth, nHeight);
-    if (cefImageData == nullptr) {
-        return nullptr;
-    }
-    size_t nDataSize = cefImageData->GetSize();
-    if (nDataSize == 0) {
-        return nullptr;
-    }
-    ASSERT((int32_t)nDataSize == nHeight * nWidth * sizeof(uint32_t));
-    if ((int32_t)nDataSize != nHeight * nWidth * sizeof(uint32_t)) {
-        return nullptr;
-    }
-
-    std::vector<uint8_t> imageData;
-    imageData.resize(nDataSize);
-    nDataSize = cefImageData->GetData(imageData.data(), imageData.size(), 0);
-    ASSERT(nDataSize == imageData.size());
-    if (nDataSize != imageData.size()) {
-        return nullptr;
-    }
-
-    // 2. 创建颜色位图
-    BITMAPINFO bmi = { 0 };
-    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bmi.bmiHeader.biWidth = nWidth;
-    bmi.bmiHeader.biHeight = -nHeight;  // 顶部到底部布局
-    bmi.bmiHeader.biPlanes = 1;
-    bmi.bmiHeader.biBitCount = 32;
-    bmi.bmiHeader.biCompression = BI_RGB;
-
-    void* pBitsColor = nullptr;
-    HBITMAP hBmpColor = ::CreateDIBSection(nullptr, &bmi, DIB_RGB_COLORS, &pBitsColor, nullptr, 0);
-    memcpy(pBitsColor, imageData.data(), nWidth * nHeight * 4);  // 复制ARGB数据
-
-    // 3. 创建掩码位图（此处可优化为实际掩码生成逻辑）
-    HBITMAP hBmpMask = ::CreateBitmap(nWidth, nHeight, 1, 1, nullptr);
-
-    // 4. 生成HICON
-    ICONINFO iconInfo = { 0 };
-    iconInfo.fIcon = TRUE;
-    iconInfo.hbmColor = hBmpColor;
-    iconInfo.hbmMask = hBmpMask;
-    HICON hIcon = ::CreateIconIndirect(&iconInfo);
-
-    // 5. 释放临时资源
-    ::DeleteObject(hBmpColor);
-    ::DeleteObject(hBmpMask);
-
-    return hIcon;
-}
-#endif

@@ -7,16 +7,11 @@
 // CEF
 #include "duilib/duilib_cef.h"
 
-/** @file browser_box.h
-* @brief 标签页盒子
+/** 标签页盒子
 * @copyright (c) 2016, NetEase Inc. All rights reserved
 * @author Redrain
 * @date 2019/3/20
 */
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    class TaskbarTabItem;
-#endif
-
 class BrowserForm;
 class BrowserBox : public ui::VBox
 {
@@ -24,12 +19,12 @@ class BrowserBox : public ui::VBox
 public:
     friend class BrowserForm;
 
-    /**
-    * 构造函数
-    * @param[in] id    浏览器盒子的唯一标识，用于区分不同的标签页
+    /** 构造函数
+    * @param [in] pWindow 关联的窗口
+    * @param [in] id 浏览器盒子的唯一标识，用于区分不同的标签页
     */
     BrowserBox(ui::Window* pWindow, std::string id);
-    ~BrowserBox() { };
+    virtual ~BrowserBox() override {};
 
     /**
     * 获取id
@@ -49,36 +44,22 @@ public:
     */
     ui::CefControl* GetCefControl();
 
-    /**
-    * 获取网页标题
-    * @return DString& 网页标题
+    /** 获取网页标题
     */
-    DString& GetTitle();
+    const DString& GetTitle() const;
 
-    /**
-    * 初始化浏览器盒子
-    * @param[in] url 初始化URL
-    * @return void    无返回值
+    /** 初始化浏览器盒子
+    * @param [in] url 初始化URL
     */
-    virtual void InitBrowserBox(const DString &url);
+    virtual void InitBrowserBox(const DString& url);
 
-    /**
-    * 反初始化浏览器盒子
-    * @return void    无返回值
+    /** 反初始化浏览器盒子
     */
     virtual void UninitBrowserBox();
 
     //////////////////////////////////////////////////////////////////////////
     //窗口合并功能相关的操作
 public:
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /** 获取与本浏览器盒子绑定的Tab指针
-    * @return TaskbarItem*    Tab指针
-    */
-    TaskbarTabItem* GetTaskbarItem();
-#endif
-
     /** 控件类型
     */
     virtual DString GetType() const override { return _T("BrowserBox"); }
@@ -89,25 +70,12 @@ public:
     */
     virtual void SetWindow(ui::Window* pWindow) override;
 
-    /**
-    * 覆盖基类虚函数，为了在重绘任务栏显示的缩略图
-    * @return void    无返回值
-    */
-    virtual void Invalidate() override;
-
-    /**
-    * 覆盖基类虚函数，为了在重绘任务栏显示的缩略图
-    * @param[in] rc 要设置的控件的位置
-    * @return void    无返回值
-    */
-    virtual void SetPos(ui::UiRect rc) override;
-
 protected:
     /** 获取焦点
     */
     virtual bool OnSetFocus(const ui::EventArgs& msg) override;
 
-private:
+protected:
 
     /** Browser对象创建完成（回调函数的调用线程：主进程的UI线程）
     */
@@ -138,7 +106,7 @@ private:
 
     /** 标题变化（回调函数的调用线程：主进程的UI线程）
     */
-    void OnTitleChange(CefRefPtr<CefBrowser> browser, const DString& title);
+    virtual void OnTitleChange(CefRefPtr<CefBrowser> browser, const DString& title);
     
     /** URL变化（回调函数的调用线程：主进程的UI线程）
     */
@@ -291,18 +259,10 @@ private:
 
     /** 网站图标下载完成事件（回调函数的调用线程：主进程的UI线程）
     */
-    void OnDownloadFavIconFinished(CefRefPtr<CefBrowser> browser,
-                                   const CefString& image_url,
-                                   int http_status_code,
-                                   CefRefPtr<CefImage> image);
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-private:
-    /** 将CEF的图片转换为图标句柄
-    */
-    HICON ConvertCefImageToHICON(CefImage& cefImage) const;
-#endif
-
+    virtual void OnDownloadFavIconFinished(CefRefPtr<CefBrowser> browser,
+                                           const CefString& image_url,
+                                           int http_status_code,
+                                           CefRefPtr<CefImage> image);
 
 private:
     ui::CefControl* m_pCefControl;
@@ -310,11 +270,6 @@ private:
     std::string m_browserId;
     DString m_url;
     DString m_title;
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    // 任务栏缩略图管理
-    TaskbarTabItem* m_pTaskBarItem;
-#endif
 };
 
 #endif //EXAMPLES_BROWSER_BOX_H_

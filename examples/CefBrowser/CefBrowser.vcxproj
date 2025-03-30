@@ -194,6 +194,7 @@
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="TestApplication.h" />
+    <ClInclude Include="Windows\BrowserBox_Windows.h" />
     <ClInclude Include="Windows\BrowserForm_Windows.h" />
     <ClInclude Include="Windows\dragdrop\DragDrop.h" />
     <ClInclude Include="Windows\dragdrop\DragDropManager.h" />
@@ -210,6 +211,7 @@
     <ClCompile Include="main_linux.cpp" />
     <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="TestApplication.cpp" />
+    <ClCompile Include="Windows\BrowserBox_Windows.cpp" />
     <ClCompile Include="Windows\BrowserForm_Windows.cpp" />
     <ClCompile Include="Windows\dragdrop\DragDrop.cpp" />
     <ClCompile Include="Windows\dragdrop\DragDropManager.cpp" />

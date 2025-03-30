@@ -3,7 +3,7 @@
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 #include "duilib/Utils/BitmapHelper_Windows.h"
 #include "Windows/dragdrop/DragDropManager.h"
-#include "browser/BrowserBox.h"
+#include "Windows/BrowserBox_Windows.h"
 #include "browser/BrowserManager.h"
 
 #include <OleIdl.h>
@@ -34,6 +34,11 @@ BrowserForm_Windows::~BrowserForm_Windows()
     m_pDropHelper = nullptr;
 }
 
+BrowserBox* BrowserForm_Windows::CreateBrowserBox(ui::Window* pWindow, std::string id)
+{
+    return new BrowserBox_Windows(pWindow, id);
+}
+
 void BrowserForm_Windows::OnInitWindow()
 {
     BaseClass::OnInitWindow();
@@ -55,21 +60,20 @@ LRESULT BrowserForm_Windows::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lP
         // 因为窗口刚创建时，浏览器盒子已经创建但是那时还没有收到WM_TASKBARBUTTONCREATED消息，导致RegisterTab函数没有被调用，所以收到消息后重新遍历一下没有被注册的Tab
         for (size_t i = 0; i < m_pBorwserBoxTab->GetItemCount(); ++i) {
             Control *box_item = m_pBorwserBoxTab->GetItemAt(i);
-            ASSERT(nullptr != box_item);
-            if (nullptr == box_item) {
+            ASSERT(box_item != nullptr);
+            if (box_item == nullptr) {
                 continue;
             }
 
-            BrowserBox* browser_box = dynamic_cast<BrowserBox*>(box_item);
-            if (nullptr == browser_box) {
+            BrowserBox_Windows* pBrowserBox = dynamic_cast<BrowserBox_Windows*>(box_item);
+            if (pBrowserBox == nullptr) {
                 continue;
             }
 
-            TaskbarTabItem* taskbar_item = browser_box->GetTaskbarItem();
-            if (nullptr == taskbar_item) {
-                continue;
+            TaskbarTabItem* taskbar_item = pBrowserBox->GetTaskbarItem();
+            if (taskbar_item != nullptr) {
+                m_taskbarManager.RegisterTab(*taskbar_item);
             }
-            m_taskbarManager.RegisterTab(*taskbar_item);
         }
 
         return TRUE;
@@ -83,8 +87,9 @@ void BrowserForm_Windows::OnCreateNewTabPage(ui::TabCtrlItem* tab_item, BrowserB
         tab_item->AttachAllEvents(UiBind(&BrowserForm_Windows::OnProcessTabItemDrag, this, std::placeholders::_1));
     }
 
-    if (browser_box != nullptr) {
-        auto taskbar_item = browser_box->GetTaskbarItem();
+    BrowserBox_Windows* pBrowserBox = dynamic_cast<BrowserBox_Windows*>(browser_box);
+    if (pBrowserBox != nullptr) {
+        auto taskbar_item = pBrowserBox->GetTaskbarItem();
         if (taskbar_item) {
             m_taskbarManager.RegisterTab(*taskbar_item);
         }
@@ -93,8 +98,9 @@ void BrowserForm_Windows::OnCreateNewTabPage(ui::TabCtrlItem* tab_item, BrowserB
 
 void BrowserForm_Windows::OnCloseTabPage(BrowserBox* browser_box)
 {
-    if (browser_box != nullptr) {
-        auto taskbar_item = browser_box->GetTaskbarItem();
+    BrowserBox_Windows* pBrowserBox = dynamic_cast<BrowserBox_Windows*>(browser_box);
+    if (pBrowserBox != nullptr) {
+        auto taskbar_item = pBrowserBox->GetTaskbarItem();
         if (taskbar_item) {
             m_taskbarManager.UnregisterTab(*taskbar_item);
         }

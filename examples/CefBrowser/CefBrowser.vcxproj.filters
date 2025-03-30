@@ -66,6 +66,9 @@
     <ClInclude Include="Windows\BrowserForm_Windows.h">
       <Filter>Windows</Filter>
     </ClInclude>
+    <ClInclude Include="Windows\BrowserBox_Windows.h">
+      <Filter>Windows</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainThread.cpp">
@@ -108,6 +111,9 @@
       <Filter>Windows\dragdrop</Filter>
     </ClCompile>
     <ClCompile Include="Windows\BrowserForm_Windows.cpp">
+      <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Windows\BrowserBox_Windows.cpp">
       <Filter>Windows</Filter>
     </ClCompile>
   </ItemGroup>

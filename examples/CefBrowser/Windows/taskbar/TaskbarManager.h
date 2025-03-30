@@ -40,10 +40,10 @@ public:
     std::string& GetId();
 
     /** 初始化函数，TaskbarTabItem被new后立即调用
-    * @param[in] taskbar_title 在任务栏缩略图上显示的标题
-    * @param[in] id 缩略图Tab的唯一id
+    * @param [in] taskbar_title 在任务栏缩略图上显示的标题
+    * @param [in] id 缩略图Tab的唯一id
     */
-    void Init(const DString &taskbar_title, const std::string &id);
+    void Init(const DString& taskbar_title, const std::string& id);
 
     /** 反初始化函数
     */

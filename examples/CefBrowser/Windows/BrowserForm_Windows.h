@@ -22,6 +22,12 @@ public:
     BrowserForm_Windows();
     virtual ~BrowserForm_Windows() override;
 
+    /** 创建BrowserBox对象
+    * @param [in] pWindow 关联的窗口
+    * @param [in] id 浏览器盒子的唯一标识，用于区分不同的标签页
+    */
+    virtual BrowserBox* CreateBrowserBox(ui::Window* pWindow, std::string id) override;
+
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() override;
