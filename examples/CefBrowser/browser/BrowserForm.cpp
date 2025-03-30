@@ -7,11 +7,6 @@ using namespace ui;
 
 namespace
 {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    // 注册这个消息，收到这个消息后表示窗口对应的任务栏按钮被系统创建，这时候初始化ITaskbarList4接口
-    UINT WM_TASKBARBUTTONCREATED = ::RegisterWindowMessage(TEXT("TaskbarButtonCreated"));
-#endif
-
     // 窗口收到WM_CLOSE消息的原因
     enum CloseReason
     {
@@ -26,11 +21,6 @@ BrowserForm::BrowserForm()
     m_pTabCtrl = nullptr;
     m_pBorwserBoxTab = nullptr;
     m_pActiveBrowserBox = nullptr;
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    m_pDropHelper = nullptr;
-    m_bDragState = false;
-    m_oldDragPoint = {0, 0};
-#endif
 }
 
 BrowserForm::~BrowserForm()
@@ -39,10 +29,6 @@ BrowserForm::~BrowserForm()
     m_pTabCtrl = nullptr;
     m_pBorwserBoxTab = nullptr;
     m_pActiveBrowserBox = nullptr;
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    m_pDropHelper = nullptr;
-#endif
 }
 
 DString BrowserForm::GetSkinFolder()
@@ -188,10 +174,6 @@ void BrowserForm::OnInitWindow()
         m_pTabCtrl->AttachSelect(UiBind(&BrowserForm::OnTabItemSelected, this, std::placeholders::_1));
     }
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    InitDragDrop();
-#endif
-
     //设置按钮的状态
     Control* pButton = FindControl(_T("btn_back"));
     if (pButton != nullptr) {
@@ -227,9 +209,6 @@ void BrowserForm::OnCloseWindow()
             browser_box->UninitBrowserBox();
         }
     }
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    UnInitDragDrop();
-#endif
 }
 
 void BrowserForm::OnLoadingStateChange(BrowserBox* pBrowserBox)
@@ -260,40 +239,6 @@ void BrowserForm::OnLoadingStateChange(BrowserBox* pBrowserBox)
     if (pButton != nullptr) {
         pButton->SetVisible(isLoading);
     }
-}
-
-LRESULT BrowserForm::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
-{
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    if (uMsg == WM_TASKBARBUTTONCREATED) {
-        bHandled = true;
-        m_taskbarManager.Init(this);
-
-        // 因为窗口刚创建时，浏览器盒子已经创建但是那时还没有收到WM_TASKBARBUTTONCREATED消息，导致RegisterTab函数没有被调用，所以收到消息后重新遍历一下没有被注册的Tab
-        for (size_t i = 0; i < m_pBorwserBoxTab->GetItemCount(); ++i) {
-            Control *box_item = m_pBorwserBoxTab->GetItemAt(i);
-            ASSERT(nullptr != box_item);
-            if (nullptr == box_item) {
-                continue;
-            }
-
-            BrowserBox* browser_box = dynamic_cast<BrowserBox*>(box_item);
-            if (nullptr == browser_box) {
-                continue;
-            }
-
-            TaskbarTabItem* taskbar_item = browser_box->GetTaskbarItem();
-            if (nullptr == taskbar_item) {
-                continue;
-            }
-            m_taskbarManager.RegisterTab(*taskbar_item);
-        }
-
-        return TRUE;
-    }
-#endif
-
-    return BaseClass::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
 LRESULT BrowserForm::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
@@ -412,9 +357,6 @@ BrowserBox* BrowserForm::CreateBox(const std::string &browser_id, DString url)
     TabCtrlItem* tab_item = new TabCtrlItem(m_pTabCtrl->GetWindow());
     GlobalManager::Instance().FillBoxWithCache(tab_item, ui::FilePath(_T("cef_browser/tab_item.xml")));
     m_pTabCtrl->AddItemAt(tab_item, GetBoxCount());
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    tab_item->AttachAllEvents(UiBind(&BrowserForm::OnProcessTabItemDrag, this, std::placeholders::_1));
-#endif
     tab_item->AttachButtonDown(UiBind(&BrowserForm::OnTabItemSelected, this, std::placeholders::_1));
     tab_item->SetUTF8Name(browser_id);
     Button* btn_item_close = tab_item->GetCloseButton();
@@ -428,12 +370,6 @@ BrowserBox* BrowserForm::CreateBox(const std::string &browser_id, DString url)
     GlobalManager::Instance().FillBoxWithCache(browser_box, ui::FilePath(_T("cef_browser/browser_box.xml")), nullptr);
     browser_box->SetName(id);
     browser_box->InitBrowserBox(url);
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    auto taskbar_item = browser_box->GetTaskbarItem();
-    if (taskbar_item) {
-        m_taskbarManager.RegisterTab(*taskbar_item);
-    }
-#endif
 
     if (GetBoxCount() <= 1) {
         m_pActiveBrowserBox = browser_box;
@@ -444,6 +380,7 @@ BrowserBox* BrowserForm::CreateBox(const std::string &browser_id, DString url)
     tab_item->Selected(true, false);
     ChangeToBox(id);
 
+    OnCreateNewTabPage(tab_item, browser_box);
     return browser_box;
 }
 
@@ -465,14 +402,9 @@ bool BrowserForm::CloseBox(const std::string& browser_id)
 
     // 在浏览器列表中找到浏览器盒子并且移除盒子
     BrowserBox* browser_box = FindBox(id);
-    ASSERT(nullptr != browser_box);
-    if (nullptr != browser_box) {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-        auto taskbar_item = browser_box->GetTaskbarItem();
-        if (taskbar_item) {
-            m_taskbarManager.UnregisterTab(*taskbar_item);
-        }
-#endif
+    ASSERT(browser_box != nullptr);
+    if (browser_box != nullptr) {
+        OnCloseTabPage(browser_box);
         browser_box->UninitBrowserBox();
         // 如果浏览器盒子的数量大于1就立马移除盒子，否则不移除
         // 如果最后一个浏览器盒子在这里立马移除，在窗口关闭时界面会因为没有控件而变成黑色
@@ -518,9 +450,6 @@ bool BrowserForm::AttachBox(BrowserBox* browser_box)
     TabCtrlItem* tab_item = new TabCtrlItem(m_pTabCtrl->GetWindow());
     GlobalManager::Instance().FillBoxWithCache(tab_item, ui::FilePath(_T("cef_browser/tab_item.xml")));
     m_pTabCtrl->AddItemAt(tab_item, GetBoxCount());
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    tab_item->AttachAllEvents(UiBind(&BrowserForm::OnProcessTabItemDrag, this, std::placeholders::_1));
-#endif
     tab_item->AttachButtonDown(UiBind(&BrowserForm::OnTabItemSelected, this, std::placeholders::_1));
     tab_item->SetUTF8Name(browser_box->GetId());
     tab_item->SetTitle(browser_box->GetTitle());
@@ -533,12 +462,6 @@ bool BrowserForm::AttachBox(BrowserBox* browser_box)
     // 当另一个窗体创建的browser_box浏览器盒子控件添加到另一个窗体内的容器控件时
     // AddItem函数会重新的修改browser_box内所有子控件的m_pWindow为新的窗体指针
     m_pBorwserBoxTab->AddItem(browser_box);
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    auto taskbar_item = browser_box->GetTaskbarItem();
-    if (taskbar_item) {
-        m_taskbarManager.RegisterTab(*taskbar_item);
-    }
-#endif
 
     if (GetBoxCount() <= 1) {
         m_pActiveBrowserBox = browser_box;
@@ -554,12 +477,14 @@ bool BrowserForm::AttachBox(BrowserBox* browser_box)
     if (pCefControl != nullptr) {
         pCefControl->ReDownloadFavIcon();
     }
+
+    OnCreateNewTabPage(tab_item, browser_box);
     return true;
 }
 
 bool BrowserForm::DetachBox(BrowserBox* browser_box)
 {
-    if (nullptr == browser_box) {
+    if (browser_box == nullptr) {
         return false;
     }
 
@@ -567,18 +492,12 @@ bool BrowserForm::DetachBox(BrowserBox* browser_box)
 
     // 从顶部标签页移除对应item
     TabCtrlItem* tab_item = FindTabItem(id);
-    if (nullptr == tab_item) {
+    if (tab_item == nullptr) {
         return false;
     }
 
     m_pTabCtrl->RemoveItem(tab_item);
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    auto taskbar_item = browser_box->GetTaskbarItem();
-    if (taskbar_item) {
-        m_taskbarManager.UnregisterTab(*taskbar_item);
-    }
-#endif
+    OnCloseTabPage(browser_box);
 
     // 在右侧Tab浏览器盒子列表中找到浏览器盒子并且移除盒子
     // 在这里不能delete browser_box
@@ -647,83 +566,6 @@ int BrowserForm::GetBoxCount() const
     int nBoxCount = (int)m_pTabCtrl->GetItemCount();
     return nBoxCount;
 }
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-void BrowserForm::OnBeforeDragBoxCallback(const DString &browser_id)
-{
-    // 如果当前被拖拽的浏览器盒子所属的浏览器窗口只有一个浏览器盒子，则在拖拽时隐藏浏览器窗口
-    int box_count = this->GetBoxCount();
-    if (1 == box_count) {
-        this->ShowWindow(kSW_HIDE);
-    }
-    // 否则隐藏被拖拽的浏览器盒子和标签
-    else {
-        BrowserBox *browser_box = FindBox(browser_id);
-        if (nullptr != browser_box) {
-            browser_box->SetFadeVisible(false);
-        }
-
-        TabCtrlItem* tab_item = FindTabItem(browser_id);
-        if (nullptr != tab_item) {
-            tab_item->SetFadeVisible(false);
-        }
-
-        // 找到新的被显示的浏览器盒子
-        int index = tab_item->GetListBoxIndex();
-        if (index > 0) {
-            index--;
-        }
-        else {
-            index++;
-        }
-        TabCtrlItem* new_tab_item = static_cast<TabCtrlItem*>(m_pTabCtrl->GetItemAt(index));
-        if (nullptr != new_tab_item) {
-            new_tab_item->Selected(true, false);
-            ChangeToBox(new_tab_item->GetName());
-        }
-        m_dragingBrowserId = browser_id;
-    }
-}
-
-void BrowserForm::OnAfterDragBoxCallback(bool drop_succeed)
-{
-    m_bDragState = false;
-
-    if (drop_succeed) {
-        int box_count = this->GetBoxCount();
-        // 如果当前被拖拽的浏览器盒子所属的浏览器窗口只有一个浏览器盒子，并且拖拽到新的浏览器窗口里，这个浏览器窗口就会关闭
-        if (1 == box_count) {
-
-        }
-        else {
-        }
-    }
-    else {
-        int box_count = this->GetBoxCount();
-        // 如果当前被拖拽的浏览器盒子所属的浏览器窗口只有一个浏览器盒子，并且没有拖拽到新的浏览器窗口里
-        // 就显示浏览器窗口
-        if (1 == box_count) {
-            this->ShowWindow(kSW_SHOW_NORMAL);
-        }
-        // 如果当前被拖拽的浏览器盒子所属的浏览器窗口有多个浏览器盒子，并且没有拖拽到新的浏览器窗口里
-        // 就显示之前被隐藏的浏览器盒子和标签
-        else {
-            BrowserBox *browser_box = FindBox(m_dragingBrowserId);
-            if (nullptr != browser_box) {
-                browser_box->SetFadeVisible(true);
-            }
-
-            TabCtrlItem* tab_item = FindTabItem(m_dragingBrowserId);
-            if (nullptr != tab_item) {
-                tab_item->SetFadeVisible(true);
-                tab_item->Selected(true, false);
-                ChangeToBox(m_dragingBrowserId);
-            }
-            m_dragingBrowserId.clear();
-        }
-    }
-}
-#endif
 
 bool BrowserForm::OnTabItemSelected(const ui::EventArgs& param)
 {

@@ -1,7 +1,7 @@
 #include "BrowserBox.h"
 #include "browser/BrowserForm.h"
 #include "browser/BrowserManager.h"
-#include "taskbar/TaskbarManager.h"
+#include "Windows/taskbar/TaskbarManager.h"
 
 using namespace ui;
 using namespace std;

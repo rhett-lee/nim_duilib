@@ -191,29 +191,32 @@
     <ClInclude Include="browser\BrowserBox.h" />
     <ClInclude Include="browser\BrowserForm.h" />
     <ClInclude Include="browser\BrowserManager.h" />
-    <ClInclude Include="dragdrop\DragDrop.h" />
-    <ClInclude Include="dragdrop\DragForm.h" />
-    <ClInclude Include="dragdrop\HBitmapControl.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="taskbar\DwmUtil.h" />
-    <ClInclude Include="taskbar\TaskbarManager.h" />
     <ClInclude Include="TestApplication.h" />
+    <ClInclude Include="Windows\BrowserForm_Windows.h" />
+    <ClInclude Include="Windows\dragdrop\DragDrop.h" />
+    <ClInclude Include="Windows\dragdrop\DragDropManager.h" />
+    <ClInclude Include="Windows\dragdrop\DragForm.h" />
+    <ClInclude Include="Windows\dragdrop\HBitmapControl.h" />
+    <ClInclude Include="Windows\taskbar\DwmUtil.h" />
+    <ClInclude Include="Windows\taskbar\TaskbarManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="browser\BrowserBox.cpp" />
     <ClCompile Include="browser\BrowserForm.cpp" />
-    <ClCompile Include="browser\BrowserFormDragdrop.cpp" />
     <ClCompile Include="browser\BrowserManager.cpp" />
-    <ClCompile Include="dragdrop\DragDrop.cpp" />
-    <ClCompile Include="dragdrop\DragForm.cpp" />
-    <ClCompile Include="dragdrop\HBitmapControl.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_linux.cpp" />
     <ClCompile Include="main_windows.cpp" />
-    <ClCompile Include="taskbar\DwmUtil.cpp" />
-    <ClCompile Include="taskbar\TaskbarManager.cpp" />
     <ClCompile Include="TestApplication.cpp" />
+    <ClCompile Include="Windows\BrowserForm_Windows.cpp" />
+    <ClCompile Include="Windows\dragdrop\DragDrop.cpp" />
+    <ClCompile Include="Windows\dragdrop\DragDropManager.cpp" />
+    <ClCompile Include="Windows\dragdrop\DragForm.cpp" />
+    <ClCompile Include="Windows\dragdrop\HBitmapControl.cpp" />
+    <ClCompile Include="Windows\taskbar\DwmUtil.cpp" />
+    <ClCompile Include="Windows\taskbar\TaskbarManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">

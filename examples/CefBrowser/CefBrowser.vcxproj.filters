@@ -4,12 +4,6 @@
     <Filter Include="browser">
       <UniqueIdentifier>{cb4e3f7f-99c3-4721-8777-1d7624c6cac1}</UniqueIdentifier>
     </Filter>
-    <Filter Include="dragdrop">
-      <UniqueIdentifier>{39ffc9f6-a6ef-4a3c-99f8-97c06128b731}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="taskbar">
-      <UniqueIdentifier>{275b7dcc-edae-40fc-a380-26e4371d0859}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
@@ -22,6 +16,15 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Windows">
+      <UniqueIdentifier>{b4868d12-d24a-412f-9ea7-5df9199289e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Windows\dragdrop">
+      <UniqueIdentifier>{194f02f1-60c2-4035-b10a-7cb3b88ad59a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Windows\taskbar">
+      <UniqueIdentifier>{fc56ebad-17ad-4679-829f-87c9ea31a6a2}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainThread.h">
@@ -30,23 +33,8 @@
     <ClInclude Include="TestApplication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="taskbar\DwmUtil.h">
-      <Filter>taskbar</Filter>
-    </ClInclude>
-    <ClInclude Include="taskbar\TaskbarManager.h">
-      <Filter>taskbar</Filter>
-    </ClInclude>
-    <ClInclude Include="dragdrop\DragDrop.h">
-      <Filter>dragdrop</Filter>
-    </ClInclude>
-    <ClInclude Include="dragdrop\DragForm.h">
-      <Filter>dragdrop</Filter>
-    </ClInclude>
     <ClInclude Include="browser\BrowserBox.h">
       <Filter>browser</Filter>
-    </ClInclude>
-    <ClInclude Include="dragdrop\HBitmapControl.h">
-      <Filter>dragdrop</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
       <Filter>Resource Files</Filter>
@@ -56,6 +44,27 @@
     </ClInclude>
     <ClInclude Include="browser\BrowserManager.h">
       <Filter>browser</Filter>
+    </ClInclude>
+    <ClInclude Include="Windows\dragdrop\DragDrop.h">
+      <Filter>Windows\dragdrop</Filter>
+    </ClInclude>
+    <ClInclude Include="Windows\dragdrop\DragForm.h">
+      <Filter>Windows\dragdrop</Filter>
+    </ClInclude>
+    <ClInclude Include="Windows\dragdrop\HBitmapControl.h">
+      <Filter>Windows\dragdrop</Filter>
+    </ClInclude>
+    <ClInclude Include="Windows\taskbar\DwmUtil.h">
+      <Filter>Windows\taskbar</Filter>
+    </ClInclude>
+    <ClInclude Include="Windows\taskbar\TaskbarManager.h">
+      <Filter>Windows\taskbar</Filter>
+    </ClInclude>
+    <ClInclude Include="Windows\dragdrop\DragDropManager.h">
+      <Filter>Windows\dragdrop</Filter>
+    </ClInclude>
+    <ClInclude Include="Windows\BrowserForm_Windows.h">
+      <Filter>Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -71,32 +80,35 @@
     <ClCompile Include="TestApplication.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="taskbar\DwmUtil.cpp">
-      <Filter>taskbar</Filter>
-    </ClCompile>
-    <ClCompile Include="taskbar\TaskbarManager.cpp">
-      <Filter>taskbar</Filter>
-    </ClCompile>
-    <ClCompile Include="dragdrop\DragDrop.cpp">
-      <Filter>dragdrop</Filter>
-    </ClCompile>
-    <ClCompile Include="dragdrop\DragForm.cpp">
-      <Filter>dragdrop</Filter>
-    </ClCompile>
     <ClCompile Include="browser\BrowserBox.cpp">
       <Filter>browser</Filter>
-    </ClCompile>
-    <ClCompile Include="dragdrop\HBitmapControl.cpp">
-      <Filter>dragdrop</Filter>
     </ClCompile>
     <ClCompile Include="browser\BrowserForm.cpp">
       <Filter>browser</Filter>
     </ClCompile>
-    <ClCompile Include="browser\BrowserFormDragdrop.cpp">
-      <Filter>browser</Filter>
-    </ClCompile>
     <ClCompile Include="browser\BrowserManager.cpp">
       <Filter>browser</Filter>
+    </ClCompile>
+    <ClCompile Include="Windows\dragdrop\DragDrop.cpp">
+      <Filter>Windows\dragdrop</Filter>
+    </ClCompile>
+    <ClCompile Include="Windows\dragdrop\DragForm.cpp">
+      <Filter>Windows\dragdrop</Filter>
+    </ClCompile>
+    <ClCompile Include="Windows\dragdrop\HBitmapControl.cpp">
+      <Filter>Windows\dragdrop</Filter>
+    </ClCompile>
+    <ClCompile Include="Windows\taskbar\DwmUtil.cpp">
+      <Filter>Windows\taskbar</Filter>
+    </ClCompile>
+    <ClCompile Include="Windows\taskbar\TaskbarManager.cpp">
+      <Filter>Windows\taskbar</Filter>
+    </ClCompile>
+    <ClCompile Include="Windows\dragdrop\DragDropManager.cpp">
+      <Filter>Windows\dragdrop</Filter>
+    </ClCompile>
+    <ClCompile Include="Windows\BrowserForm_Windows.cpp">
+      <Filter>Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

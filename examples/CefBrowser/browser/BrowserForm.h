@@ -7,29 +7,20 @@
 // CEF
 #include "duilib/duilib_cef.h"
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    #include "taskbar/TaskbarManager.h"
-    #include "ShObjidl.h"
-    interface IDropTargetHelper;
-#endif
-
 class BrowserBox;
 
-/** @file multi_browser_form.h
-* @brief 离屏模式Cef多标签浏览器窗口
+namespace ui {
+    class TabCtrlItem;
+}
+
+/** 离屏模式Cef多标签浏览器窗口
 * @copyright (c) 2016, NetEase Inc. All rights reserved
 * @author Redrain
 * @date 2019/3/20
 */
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-class BrowserForm : public ui::WindowImplBase, public IDropTarget, public TaskbarManager::ITaskbarDelegate
-{
-    typedef ui::WindowImplBase BaseClass;
-#else
 class BrowserForm : public ui::WindowImplBase
 {
     typedef ui::WindowImplBase BaseClass;
-#endif
 public:
     BrowserForm();
     virtual ~BrowserForm() override;
@@ -37,15 +28,6 @@ public:
     //覆盖虚函数
     virtual DString GetSkinFolder() override;
     virtual DString GetSkinFile() override;   
-
-    /** 拦截并处理底层窗体消息
-    * @param[in] uMsg 消息类型
-    * @param[in] wParam 附加参数
-    * @param[in] lParam 附加参数
-    * @param[out] bHandled 是否处理了消息，如果处理了不继续传递消息
-    * @return LRESULT 处理结果
-    */
-    virtual LRESULT OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
 
     /** 键盘按下(WM_KEYDOWN 或者 WM_SYSKEYDOWN)
     * @param [in] vkCode 虚拟键盘代码
@@ -73,8 +55,7 @@ public:
     virtual void OnCloseWindow() override;
 
 public:
-    /**
-    * 在本窗口内创建一个新浏览器盒子
+    /** 在本窗口内创建一个新浏览器盒子
     * @param[in] browser_id 浏览器id
     * @param[in] url 初始化URL
     * @return BrowserBox* 浏览器盒子
@@ -86,49 +67,42 @@ public:
      */
     bool CloseBox(const std::string& browser_id);
 
-    /**
-    * 把一个其他窗口内的浏览器盒子附加到本窗口内
+    /** 把一个其他窗口内的浏览器盒子附加到本窗口内
     * @param[in] browser_box 浏览器盒子
     * @return bool true 成功，false 失败
     */
     bool AttachBox(BrowserBox* browser_box);
 
-    /**
-    * 把本窗口内的一个浏览器盒子脱离窗口
+    /** 把本窗口内的一个浏览器盒子脱离窗口
     * @param[in] browser_box 浏览器盒子
     * @return bool true 成功，false 失败
     */
     bool DetachBox(BrowserBox* browser_box);
 
-    /**
-    * 获取当前显示的浏览器盒子
+    /** 获取当前显示的浏览器盒子
     * @return BrowserBox* 浏览器盒子
     */
     BrowserBox* GetSelectedBox();
 
-    /**
-    * 激活并切换到某个浏览器盒子(同时让浏览器窗口激活)
+    /** 激活并切换到某个浏览器盒子(同时让浏览器窗口激活)
     * @param[in] browser_id 浏览器id
     * @return void 无返回值
     */
     void SetActiveBox(const std::string& browser_id);
 
-    /**
-    * 判断浏览器盒子是否处于激活状态(同时判断浏览器窗口是否被激活)
+    /** 判断浏览器盒子是否处于激活状态(同时判断浏览器窗口是否被激活)
     * @param[in] browser_box 浏览器盒子
     * @return bool true 是，false 否
     */
     bool IsActiveBox(const BrowserBox* browser_box);
 
-    /**
-    * 判断浏览器盒子是否处于激活状态(同时判断浏览器窗口是否被激活)
+    /** 判断浏览器盒子是否处于激活状态(同时判断浏览器窗口是否被激活)
     * @param[in] browser_id 浏览器id
     * @return bool true 是，false 否
     */
     bool IsActiveBox(const DString& browser_id);
 
-    /**
-    * 获取本窗口内浏览器盒子的总量
+    /** 获取本窗口内浏览器盒子的总量
     * @return int    总量
     */
     int GetBoxCount() const;
@@ -137,53 +111,7 @@ public:
     */
     void NotifyFavicon(const BrowserBox* browser_box, CefRefPtr<CefImage> image);
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /**
-    * 在执行拖拽操作前，如果被拖拽的浏览器盒子属于本窗口，则通知本窗口
-    * @param[in] browser_id 浏览器id
-    * @return void    无返回值
-    */
-    void OnBeforeDragBoxCallback(const DString &browser_id);
-
-    /**
-    * 在执行拖拽操作后，如果被拖拽的浏览器盒子属于本窗口，则通知本窗口操作结果
-    * @param[in] drop_succeed 浏览器盒子是否被拖拽到了外部
-    * @return void    无返回值
-    */
-    void OnAfterDragBoxCallback(bool drop_succeed);
-#endif
-
-public:
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    /**
-    * 获取窗体句柄
-    * @return HWND    窗体句柄
-    */
-    virtual HWND GetHandle() const override { return this->NativeWnd()->GetHWND(); };
-
-    /**
-    * 获取渲染接口
-    * @return IRender*    渲染接口
-    */
-    virtual ui::IRender* GetTaskbarRender() const override { return this->GetRender(); };
-
-    /**
-    * 关闭一个任务栏项
-    * @param[in] id 任务栏项id
-    * @return void    无返回值
-    */
-    virtual void CloseTaskbarItem(const std::string &id) override { CloseBox(id); }
-
-    /**
-    * 激活并切换到一个任务栏项
-    * @param[in] id 任务栏项id
-    * @return void 无返回值
-    */
-    virtual void SetActiveTaskbarItem(const std::string &id) override { SetActiveBox(id); }
-#endif
-
-    /**
-    * 设置某个浏览器对应的标签控件的标题
+    /** 设置某个浏览器对应的标签控件的标题
     * @param[in] browser_id 浏览器id
     * @param[in] name 标题
     */
@@ -199,39 +127,19 @@ public:
     */
     void OnLoadingStateChange(BrowserBox* pBrowserBox);
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-public:
-    /**
-    * 初始化窗口拖放功能
-    * @return void    无返回值
-    */
-    bool InitDragDrop();
-
-    /**
-    * 反初始化窗口拖放功能
-    * @return void    无返回值
-    */
-    void UnInitDragDrop();
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void ** ppvObject);
-    ULONG STDMETHODCALLTYPE AddRef(void);
-    ULONG STDMETHODCALLTYPE Release(void);
-    HRESULT STDMETHODCALLTYPE DragEnter(IDataObject * pDataObject, DWORD grfKeyState, POINTL pt, DWORD * pdwEffect);
-    HRESULT STDMETHODCALLTYPE DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
-    HRESULT STDMETHODCALLTYPE DragLeave(void);
-    HRESULT STDMETHODCALLTYPE Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD __RPC_FAR *pdwEffect);
-#endif
-
 public:
     /** 在新标签/新窗口中打开链接
     */
     void OpenLinkUrl(const DString& url, bool bInNewWindow);
 
-private:
+protected:
+    /** 点击事件
+    */
     bool OnClicked(const ui::EventArgs& arg);
-    bool OnReturn(const ui::EventArgs& arg);
 
-private:
+    /** 回车事件
+    */
+    bool OnReturn(const ui::EventArgs& arg);
 
     /** 处理标签控件的选中消息
     * @param [in] param 消息的相关信息
@@ -264,31 +172,18 @@ private:
     */
     bool ChangeToBox(const DString& browser_id);
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-private:
-    /**
-    * 判断是否要拖拽浏览器盒子
-    * @param[in] param 处理浏览器窗口左侧会话合并列表项发送的事件
-    * @return bool 返回值true: 继续传递控件消息， false: 停止传递控件消息
+    /** 新建了一个标签
+    * @param [in] tab_item 标签页的接口
+    * @param [in] browser_box 网页盒子的接口
     */
-    bool OnProcessTabItemDrag(const ui::EventArgs& param);
+    virtual void OnCreateNewTabPage(ui::TabCtrlItem* tab_item, BrowserBox* browser_box) {}
 
-    /**
-    * 生成当前窗体中某个区域对应的位图，用于离屏渲染模式
-    * @param[in] src_rect 目标位图的位置
-    * @return HBITMAP 生成的位图
+    /** 关闭了一个标签
+    * @param [in] browser_box 网页盒子的接口
     */
-    ui::IBitmap* GenerateBoxOffsetRenderBitmap(const ui::UiRect &src_rect);
+    virtual void OnCloseTabPage(BrowserBox* browser_box) {}
 
-    /**
-    * 生成当前激活的浏览器盒子的位图，用于有窗模式
-    * @param[in] src_rect 目标位图的位置
-    * @return HBITMAP 生成的位图
-    */
-    ui::IBitmap* GenerateBoxWindowBitmap();
-#endif
-
-private:
+protected:
     /** 地址栏控件（用于显示和输入URL）
     */
     ui::RichEdit* m_pEditUrl;
@@ -304,18 +199,6 @@ private:
     /** 当前激活的BrowserBox接口
     */
     BrowserBox* m_pActiveBrowserBox;
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    // 处理浏览器盒子拖放事件
-    IDropTargetHelper* m_pDropHelper;
-
-    // 处理浏览器盒子拖拽事件
-    bool m_bDragState;
-    POINT m_oldDragPoint;
-    DString m_dragingBrowserId;
-
-    // 任务栏缩略图管理器
-    TaskbarManager m_taskbarManager;
-#endif
 };
+
 #endif //EXAMPLES_BROWSER_FORM_H_
