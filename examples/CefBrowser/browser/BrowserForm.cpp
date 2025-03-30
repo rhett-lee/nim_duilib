@@ -402,6 +402,7 @@ bool BrowserForm::CloseBox(const std::string& browser_id)
     TabCtrlItem* tab_item = FindTabItem(id);
     if (nullptr != tab_item) {
         m_pTabCtrl->RemoveItem(tab_item);
+        m_pTabCtrl->ArrangeAncestor();
         bRet = true;
     }
 
@@ -502,6 +503,7 @@ bool BrowserForm::DetachBox(BrowserBox* browser_box)
     }
 
     m_pTabCtrl->RemoveItem(tab_item);
+    m_pTabCtrl->ArrangeAncestor();
     OnCloseTabPage(browser_box);
 
     // 在右侧Tab浏览器盒子列表中找到浏览器盒子并且移除盒子

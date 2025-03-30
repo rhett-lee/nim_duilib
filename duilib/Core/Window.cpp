@@ -1046,8 +1046,15 @@ LRESULT Window::OnPaintMsg(const UiRect& rcPaint, const NativeMsg& /*nativeMsg*/
 {
     PerformanceStat statPerformance(_T("PaintWindow, Window::OnPaintMsg"));
     bHandled = false;
-    if (Paint(rcPaint)) {
-        bHandled = true;
+    if (!IsWindowFirstShown()) {
+        //首次绘制的时候，需要完整绘制（避免初始窗口部分在屏幕外时，然后拖动窗口到屏幕中间时，界面显示不完整的问题）
+        UiRect rc;
+        GetClientRect(rc);
+        bHandled = Paint(rc);
+    }
+    else {
+        //非首次绘制时，只绘制脏区域
+        bHandled = Paint(rcPaint);
     }
 
     //首次绘制事件, 给一次回调
