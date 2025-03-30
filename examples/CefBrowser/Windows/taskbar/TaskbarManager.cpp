@@ -37,7 +37,6 @@ void TaskbarTabItem::Init(const DString &taskbar_title, const std::string &id)
     }
 
     CreateWnd(nullptr, ui::WindowCreateParam(_T("CefBrowser")));
-    ShowWindow(ui::kSW_SHOW);
 
     HRESULT ret = S_OK;
     BOOL truth = TRUE;
