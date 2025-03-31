@@ -45,9 +45,6 @@ bool DragDropManager::IsDragingBorwserBox() const
 
 void DragDropManager::SetDropForm(BrowserForm_Windows* browser_form)
 {
-    if (nullptr == browser_form) {
-        return;
-    }
     m_pDropBrowserForm = browser_form;
 }
 

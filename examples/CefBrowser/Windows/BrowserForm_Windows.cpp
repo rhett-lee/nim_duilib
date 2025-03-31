@@ -245,82 +245,50 @@ ULONG BrowserForm_Windows::Release(void)
 
 HRESULT BrowserForm_Windows::DragEnter(IDataObject* pDataObject, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
 {
-    if (nullptr == m_pDropHelper) {
+    if (m_pDropHelper == nullptr) {
         return S_OK;
     }
-
-    // 如果不是拖拽浏览器盒子
-    if (!DragDropManager::GetInstance()->IsDragingBorwserBox()) {
-        if (nullptr != m_pActiveBrowserBox) {
-            //m_pActiveBrowserBox->DragEnter(pDataObject, grfKeyState, pt, pdwEffect);
-            if (IsWindowMinimized()) {
-                ShowWindow(kSW_RESTORE);
-            }
-            else {
-                ShowWindow(kSW_SHOW);
-            }
-        }
-    }
-    else {
+    if (pdwEffect != nullptr) {
         *pdwEffect = DROPEFFECT_MOVE;
     }
-    m_pDropHelper->DragEnter(this->NativeWnd()->GetHWND(), pDataObject, (LPPOINT)&pt, *pdwEffect);
-    return S_OK;
+    if (IsWindowMinimized()) {
+        ShowWindow(kSW_RESTORE);
+    }
+    else {
+        ShowWindow(kSW_SHOW);
+    }
+    return m_pDropHelper->DragEnter(this->NativeWnd()->GetHWND(), pDataObject, (LPPOINT)&pt, *pdwEffect);
 }
 
 HRESULT BrowserForm_Windows::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
 {
-    if (nullptr == m_pDropHelper) {
+    if (m_pDropHelper == nullptr) {
         return S_OK;
     }
-
-    // 如果不是拖拽浏览器盒子
-    if (!DragDropManager::GetInstance()->IsDragingBorwserBox()) {
-        if (nullptr != m_pActiveBrowserBox) {
-            //m_pActiveBrowserBox->DragOver(grfKeyState, pt, pdwEffect);
-        }
-    }
-    else {
+    if (pdwEffect != nullptr) {
         *pdwEffect = DROPEFFECT_MOVE;
     }
-
-    m_pDropHelper->DragOver((LPPOINT)&pt, *pdwEffect);
-    return S_OK;
+    return m_pDropHelper->DragOver((LPPOINT)&pt, *pdwEffect);
 }
 
 HRESULT BrowserForm_Windows::DragLeave(void)
 {
-    if (nullptr == m_pDropHelper) {
+    if (m_pDropHelper == nullptr) {
         return S_OK;
     }
-
-    // 如果不是拖拽浏览器盒子
-    if (!DragDropManager::GetInstance()->IsDragingBorwserBox()) {
-        if (nullptr != m_pActiveBrowserBox) {
-            //m_pActiveBrowserBox->DragLeave();
-        }
-    }
-    m_pDropHelper->DragLeave();
-    return S_OK;
+    return m_pDropHelper->DragLeave();
 }
 
 HRESULT BrowserForm_Windows::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD __RPC_FAR* pdwEffect)
 {
-    // 如果不是拖拽浏览器盒子
-    if (!DragDropManager::GetInstance()->IsDragingBorwserBox()) {
-#if 0
-        if (nullptr != m_pActiveBrowserBox && m_pActiveBrowserBox->CheckDropEnable(pt)) {
-            m_pActiveBrowserBox->Drop(pDataObj, grfKeyState, pt, pdwEffect);
-        }
-#endif
+    if (m_pDropHelper == nullptr) {
+        return S_OK;
     }
-    else {
+    if (pdwEffect != nullptr) {
         *pdwEffect = DROPEFFECT_MOVE;
-        DragDropManager::GetInstance()->SetDropForm(this);
     }
-
-    m_pDropHelper->Drop(pDataObj, (LPPOINT)&pt, *pdwEffect);
-    return S_OK;
+    DragDropManager::GetInstance()->SetDropForm(this);
+    return m_pDropHelper->Drop(pDataObj, (LPPOINT)&pt, *pdwEffect);
 }
 
 bool BrowserForm_Windows::OnProcessTabItemDrag(const ui::EventArgs& param)
