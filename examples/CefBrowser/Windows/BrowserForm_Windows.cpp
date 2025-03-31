@@ -24,6 +24,7 @@ namespace
 
 BrowserForm_Windows::BrowserForm_Windows()
 {
+    m_bButtonDown = false;
     m_pDropHelper = nullptr;
     m_bDragState = false;
     m_oldDragPoint = {0, 0};
@@ -115,19 +116,24 @@ void BrowserForm_Windows::OnBeforeDragBoxCallback(const DString &browser_id)
         this->ShowWindow(kSW_HIDE);
     }
     // 否则隐藏被拖拽的浏览器盒子和标签
-    else {
-        BrowserBox *browser_box = FindBox(browser_id);
-        if (nullptr != browser_box) {
-            browser_box->SetFadeVisible(false);
+    else {        
+        BrowserBox* browser_box = FindBox(browser_id);
+        if (browser_box != nullptr) {
+            browser_box->SetVisible(false);
         }
+        else {
+            return;
+        }
+        m_dragingBrowserId = browser_id;
 
         TabCtrlItem* tab_item = FindTabItem(browser_id);
-        if (nullptr != tab_item) {
-            tab_item->SetFadeVisible(false);
+        if (tab_item != nullptr) {
+            tab_item->CancelDragOperation();
+            tab_item->SetVisible(false);
         }
 
         // 找到新的被显示的浏览器盒子
-        int index = tab_item->GetListBoxIndex();
+        size_t index = tab_item->GetListBoxIndex();
         if (index > 0) {
             index--;
         }
@@ -135,11 +141,15 @@ void BrowserForm_Windows::OnBeforeDragBoxCallback(const DString &browser_id)
             index++;
         }
         TabCtrlItem* new_tab_item = static_cast<TabCtrlItem*>(m_pTabCtrl->GetItemAt(index));
-        if (nullptr != new_tab_item) {
+        if (new_tab_item != nullptr) {
             new_tab_item->Selected(true, false);
             ChangeToBox(new_tab_item->GetName());
         }
-        m_dragingBrowserId = browser_id;
+
+        //由于标签隐藏，通知标签的父控件重新计算位置
+        if (m_pTabCtrl != nullptr) {
+            m_pTabCtrl->ArrangeAncestor();
+        }
     }
 }
 
@@ -322,51 +332,55 @@ bool BrowserForm_Windows::OnProcessTabItemDrag(const ui::EventArgs& param)
     switch (param.eventType)
     {
     case kEventMouseMove:
-    {
-        if (::GetKeyState(VK_LBUTTON) >= 0) {
-            break;
-        }
-
-        LONG cx = abs(param.ptMouse.x - m_oldDragPoint.x);
-        LONG cy = abs(param.ptMouse.y - m_oldDragPoint.y);
-
-        if (!m_bDragState && (cx > 5 || cy > 5)) {
-            if (nullptr == m_pActiveBrowserBox) {
+        {
+            if (!m_bButtonDown || (m_pActiveBrowserBox == nullptr) || (::GetKeyState(VK_LBUTTON) >= 0)) {
                 break;
             }
 
-            m_bDragState = true;
+            DString id = ui::StringConvert::UTF8ToT(m_pActiveBrowserBox->GetId());
+            TabCtrlItem* tab_item = FindTabItem(id);
+            if (tab_item == nullptr) {
+                break;
+            }
 
-            // 把被拖拽的浏览器盒子生成一个宽度300的位图
-            IBitmap* pBitmap = nullptr;
-            if (ui::CefManager::GetInstance()->IsEnableOffScreenRendering()) {
-                pBitmap = GenerateBoxOffsetRenderBitmap(m_pBorwserBoxTab->GetPos());
-            }
-            else {
-                pBitmap = GenerateBoxWindowBitmap();
-            }
-            HBITMAP hBitmap = ui::BitmapHelper::CreateGDIBitmap(pBitmap);
-            if (pBitmap != nullptr) {
-                delete pBitmap;
-                pBitmap = nullptr;
-            }
-            // pt应该指定相对bitmap位图的左上角(0,0)的坐标,这里设置为bitmap的中上点
-            POINT pt = { kDragImageWidth / 2, 0 };
+            //当鼠标纵向滑动的距离超过标签宽度的时候，开始拖出操作
+            LONG cy = abs(param.ptMouse.y - m_oldDragPoint.y);
+            if (!m_bDragState && (cy > tab_item->GetPos().Height())) {
 
-            StdClosure cb = [=] {
-                    DragDropManager::GetInstance()->DoDragBorwserBox(m_pActiveBrowserBox, hBitmap, pt);
-                    ::DeleteObject(hBitmap);
-                };
-            ui::GlobalManager::Instance().Thread().PostTask(kThreadUI, cb);
+                m_bDragState = true;
+
+                // 把被拖拽的浏览器盒子生成一个宽度300的位图
+                IBitmap* pBitmap = nullptr;
+                if (ui::CefManager::GetInstance()->IsEnableOffScreenRendering()) {
+                    pBitmap = GenerateBoxOffsetRenderBitmap(m_pBorwserBoxTab->GetPos());
+                }
+                else {
+                    pBitmap = GenerateBoxWindowBitmap();
+                }
+                HBITMAP hBitmap = ui::BitmapHelper::CreateGDIBitmap(pBitmap);
+                if (pBitmap != nullptr) {
+                    delete pBitmap;
+                    pBitmap = nullptr;
+                }
+                // pt应该指定相对bitmap位图的左上角(0,0)的坐标,这里设置为bitmap的中上点
+                POINT pt = { kDragImageWidth / 2, 0 };
+
+                StdClosure cb = [=] {
+                        DragDropManager::GetInstance()->DoDragBorwserBox(m_pActiveBrowserBox, hBitmap, pt);
+                        ::DeleteObject(hBitmap);
+                    };
+                ui::GlobalManager::Instance().Thread().PostTask(kThreadUI, cb);
+            }
         }
-    }
-    break;
+        break;
     case kEventMouseButtonDown:
-    {
         m_oldDragPoint = { param.ptMouse.x, param.ptMouse.y };
         m_bDragState = false;
-    }
-    break;
+        m_bButtonDown = true;
+        break;
+    case kEventMouseButtonUp:
+        m_bButtonDown = false;
+        break;
     }
     return true;
 }

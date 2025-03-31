@@ -140,6 +140,7 @@ private:
     IDropTargetHelper* m_pDropHelper;
 
     // 处理浏览器盒子拖拽事件
+    bool m_bButtonDown;
     bool m_bDragState;
     POINT m_oldDragPoint;
     DString m_dragingBrowserId;

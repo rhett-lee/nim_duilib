@@ -62,6 +62,10 @@ public:
     */
     bool IsInDraggingOut() const;
 
+    /** 取消拖动操作
+    */
+    void CancelDragOperation();
+
 protected:
     /** @name 拖动相关的成员函数
     * @{ */
@@ -356,6 +360,12 @@ bool ControlDragableT<T>::IsInDraggingOut() const
 }
 
 template<typename T>
+void ControlDragableT<T>::CancelDragOperation()
+{
+    ClearDragStatus();
+}
+
+template<typename T>
 bool ControlDragableT<T>::ButtonDown(const EventArgs& msg)
 {
     m_bMouseDown = false;
@@ -645,10 +655,16 @@ void ControlDragableT<T>::ClearDragStatus()
         m_pDragWindowFilter.reset();
 #endif
     }
+
+    const bool bInDraggingOut = IsInDraggingOut();
     m_pDragImage.reset();
     m_pTargetBox = nullptr;
     m_bDraggingOut = false;
-    this->SetVisible(true);
+
+    if (bInDraggingOut) {
+        //只有执行了拖出操作，才恢复可见，避免产生副作用
+        this->SetVisible(true);
+    }    
 
     //恢复拖动调序操作的状态
     if (m_bInDraggingOrder) {
