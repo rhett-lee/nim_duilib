@@ -392,6 +392,8 @@ void CefManager::GetCefSetting(const DString& app_data_dir, CefSettings& setting
         if (appDataRootDir[appDataRootDir.size() - 1] == _T('\\')) {
             appDataRootDir[appDataRootDir.size() - 1] = _T('/');
         }
+        //替换路径分隔符
+        StringUtil::ReplaceAll(_T("\\"), _T("/"), appDataRootDir);
 #endif
     }
 
