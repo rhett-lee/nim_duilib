@@ -126,7 +126,7 @@ bool TabBox::RemoveItem(Control* pControl)
     if( m_iCurSel == index)    {
         if (GetItemCount() > 0) {
             //移除当前选择的TAB页面后，选择被移除页面的前一个TAB页面
-            size_t newSel = m_iCurSel - 1;
+            size_t newSel = m_iCurSel > 0 ? m_iCurSel - 1 : 0;
             if (newSel >= GetItemCount()) {
                 newSel = Box::InvalidIndex;
             }
