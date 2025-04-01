@@ -362,7 +362,6 @@ BrowserBox* BrowserForm::CreateBox(const std::string &browser_id, DString url)
     TabCtrlItem* tab_item = new TabCtrlItem(m_pTabCtrl->GetWindow());
     GlobalManager::Instance().FillBoxWithCache(tab_item, ui::FilePath(_T("cef_browser/tab_item.xml")));
     m_pTabCtrl->AddItemAt(tab_item, GetBoxCount());
-    tab_item->AttachButtonDown(UiBind(&BrowserForm::OnTabItemSelected, this, std::placeholders::_1));
     tab_item->SetUTF8Name(browser_id);
     Button* btn_item_close = tab_item->GetCloseButton();
     ASSERT(btn_item_close != nullptr);
@@ -456,7 +455,6 @@ bool BrowserForm::AttachBox(BrowserBox* browser_box)
     TabCtrlItem* tab_item = new TabCtrlItem(m_pTabCtrl->GetWindow());
     GlobalManager::Instance().FillBoxWithCache(tab_item, ui::FilePath(_T("cef_browser/tab_item.xml")));
     m_pTabCtrl->AddItemAt(tab_item, GetBoxCount());
-    tab_item->AttachButtonDown(UiBind(&BrowserForm::OnTabItemSelected, this, std::placeholders::_1));
     tab_item->SetUTF8Name(browser_box->GetId());
     tab_item->SetTitle(browser_box->GetTitle());
     Button* btn_item_close = tab_item->GetCloseButton();
@@ -588,14 +586,7 @@ bool BrowserForm::OnTabItemSelected(const ui::EventArgs& param)
             }
         }
     }
-    else if (kEventMouseButtonDown == param.eventType) {
-        TabCtrlItem* tab_item = dynamic_cast<TabCtrlItem*>(param.GetSender());
-        if (tab_item) {
-            DString browser_id = tab_item->GetName();
-            ChangeToBox(browser_id);
-        }
-    }
-    return false;
+    return true;
 }
 
 bool BrowserForm::OnTabItemClose(const ui::EventArgs& param, const std::string& browser_id)
