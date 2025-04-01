@@ -339,10 +339,16 @@ void CefBrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect
             m_pWindow->GetClientRect(clientRect);
             rect.width = clientRect.Width();
         }
+        if (rect.width == 0) {
+            rect.width = 1;
+        }
         if (rect.height == 0) {
             ui::UiRect clientRect;
             m_pWindow->GetClientRect(clientRect);
             rect.height = clientRect.Height();
+        }
+        if (rect.height == 0) {
+            rect.height = 1;
         }
 
         if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
@@ -360,8 +366,13 @@ void CefBrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect
         rect.x = rect.y = 0;
         rect.width = clientRect.right;
         rect.height = clientRect.bottom;
+        if (rect.width == 0) {
+            rect.width = 1;
+        }
+        if (rect.height == 0) {
+            rect.height = 1;
+        }
     }
-
 }
 
 bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, int viewY, int& screenX, int& screenY)
@@ -391,7 +402,10 @@ bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX,
     }
     screen_pt.x = screen_pt.x + rect_cef_control.left;
     screen_pt.y = screen_pt.y + rect_cef_control.top;
+#if defined (DUILIB_BUILD_FOR_WIN)
+    //Windows平台：需要转换为屏幕坐标；Linux平台则不需要
     m_pWindow->ClientToScreen(screen_pt);
+#endif
     screenX = screen_pt.x;
     screenY = screen_pt.y;
     return true;
