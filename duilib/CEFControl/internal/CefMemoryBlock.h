@@ -3,6 +3,7 @@
 
 #include "duilib/duilib_config.h"
 #include <mutex>
+#include <vector>
 
 namespace ui {
 
@@ -19,7 +20,7 @@ public:
 
     /** 初始化位图的数据
     */
-    bool Init(const void* buffer, int32_t width, int32_t height);
+    bool Init(const void* buffer, const std::vector<UiRect>& dirtyRectList, int32_t width, int32_t height);
 
     /** 将位图数据绘制到Render
     */

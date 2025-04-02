@@ -38,7 +38,7 @@ CefControlOffScreen::~CefControlOffScreen(void)
     }
 }
 
-void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& /*dirtyRects*/, const void* buffer, int width, int height)
+void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const void* buffer, int width, int height)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
     //只有离屏渲染才会走这个绘制接口
@@ -49,13 +49,17 @@ void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandle
         return;
     }
 
+    std::vector<UiRect> dirtyRectList;
+    for (const CefRect& rect : dirtyRects) {
+        dirtyRectList.push_back(UiRect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height));
+    }
     if (type == PET_VIEW) {
-        //页面的绘制数据
-        m_pCefMemData->Init(buffer, width, height);
+        //页面的绘制数据        
+        m_pCefMemData->Init(buffer, dirtyRectList, width, height);
     }
     else if (type == PET_POPUP) {
         ////页面弹出窗口的绘制数据
-        m_pCefPopupMemData->Init(buffer, width, height);
+        m_pCefPopupMemData->Init(buffer, dirtyRectList, width, height);
     }
 
     //在UI线程中调用Invalidate，触发绘制
