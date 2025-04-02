@@ -340,10 +340,14 @@ ASALocalRun/
 # Local History for Visual Studio
 .localhistory/
 
+# macos .DS_store
+.DS_Store
+
 # BeatPulse healthcheck temp database 
 healthchecksdb
 /build_temp
 /bin/libcef
 /bin/libcef_linux
+/bin/libcef_macos
 /bin/libcef_win
 /bin/libcef_win_109

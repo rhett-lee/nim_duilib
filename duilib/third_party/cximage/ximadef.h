@@ -198,9 +198,15 @@ typedef struct tagcomplex {
 
 #define _cabs(c) sqrt(c.x*c.x+c.y*c.y)
 
-#if defined(linux) || defined(__linux) || defined(__linux__)
-    #define _tcsnicmp(a,b,c) strcasecmp(a,b)
+#if defined(linux) || defined(__linux) || defined(__linux__) || defined(__APPLE__)
+    // Linux/macOS 平台使用 strcasecmp 或 strncasecmp
+    #ifdef DUILIB_UNICODE
+        #define _tcsnicmp(a,b,c) wcsncasecmp(a,b,c)  // Unicode 版本
+    #else
+        #define _tcsnicmp(a,b,c) strncasecmp(a,b,c)   // ANSI 版本
+    #endif
 #else
+    // Windows 平台使用原生函数
     #ifdef DUILIB_UNICODE
         #define _tcsnicmp _wcsnicmp
     #else
