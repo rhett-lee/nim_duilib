@@ -220,11 +220,11 @@ public:
     */
     enum DashStyle
     {
-        kDashStyleSolid            = 0,    //实线（默认）
-        kDashStyleDash            = 1,    //虚线
-        kDashStyleDot            = 2,    //虚线
-        kDashStyleDashDot        = 3,    //交替虚线
-        kDashStyleDashDotDot    = 4        //交替短划线点点线
+        kDashStyleSolid         = 0,    //实线（默认）
+        kDashStyleDash          = 1,    //虚线
+        kDashStyleDot           = 2,    //虚线
+        kDashStyleDashDot       = 3,    //交替虚线
+        kDashStyleDashDotDot    = 4     //交替短划线点点线
     };
 
     /** 设置绘制的线条样式
@@ -876,6 +876,13 @@ public:
     */
     virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect = false) = 0;
 
+    /** 绘制矩形，支持各种线形
+    * @param [in] rc 矩形区域
+    * @param [in] pen 画笔的接口
+    * @param [in] bLineInRect 如果为true，表示确保画出的线条严格限制在rc矩形内部，否则线的中心点是与rc边线对齐的，线条会有部分超出rc矩形范围
+    */
+    virtual void DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect = false) = 0;
+
     /** 用颜色填充矩形
     * @param [in] rc 目标矩形区域
     * @param [in] dwColor 颜色值
@@ -899,6 +906,13 @@ public:
     * @param [in] nWidth 画笔的宽度
     */
     virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int32_t nWidth) = 0;
+
+    /** 绘制圆角矩形，支持各种线形
+    * @param [in] rc 矩形区域
+    * @param [in] roundSize 圆角的宽和高
+    * @param [in] pen 画笔的接口
+    */
+    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, IPen* pen) = 0;
 
     /** 用颜色填充圆角矩形
     * @param [in] rc 矩形区域
@@ -938,6 +952,13 @@ public:
     * @param [in] nWidth 画笔的宽度
     */
     virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int32_t nWidth) = 0;
+
+    /** 绘制圆形，支持各种线形
+    * @param [in] centerPt 圆心坐标点
+    * @param [in] radius 圆的半径
+    * @param [in] pen 画笔的接口
+    */
+    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, IPen* pen) = 0;
 
     /** 填充圆形
     * @param [in] centerPt 圆心坐标点
