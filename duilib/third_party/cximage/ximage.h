@@ -48,7 +48,7 @@
 #if !defined(__CXIMAGE_H)
 #define __CXIMAGE_H
 
-#ifdef _LINUX
+#if defined(_LINUX) || defined(__APPLE__)
   #define _XOPEN_SOURCE
   #include <unistd.h>
   #include <arpa/inet.h>
