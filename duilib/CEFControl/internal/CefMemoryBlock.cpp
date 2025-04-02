@@ -15,13 +15,24 @@ CefMemoryBlock::~CefMemoryBlock()
     Clear();
 }
 
-bool CefMemoryBlock::Init(const void* buffer, int32_t width, int32_t height)
+bool CefMemoryBlock::Init(const void* buffer, const std::vector<UiRect>& dirtyRectList, int32_t width, int32_t height)
 {
     std::lock_guard<std::mutex> threadGuard(m_memMutex);
     ASSERT((width > 0) && (height > 0) && (buffer != nullptr));
     if ((width <= 0) || (height <= 0) || (buffer == nullptr)) {
         return false;
     }
+
+    bool bDirtyRectValid = !dirtyRectList.empty();
+    for (const UiRect& rect : dirtyRectList) {
+        if ((rect.left < 0) || (rect.right > width) ||
+            (rect.top < 0) || (rect.bottom > height) ||
+            (rect.right <= rect.left) || (rect.bottom <= rect.top)) {
+            bDirtyRectValid = false;
+            break;
+        }
+    }
+
     if ((m_nWidth != width) || (m_nHeight != height) || (m_pBits == nullptr)) {
         //需重新初始化
         if (m_pBits != nullptr) {
@@ -31,10 +42,26 @@ bool CefMemoryBlock::Init(const void* buffer, int32_t width, int32_t height)
         m_pBits = new uint8_t[width * height * sizeof(uint32_t)];
         m_nWidth = width;
         m_nHeight = height;
+        bDirtyRectValid = false;
     }
     //复制数据
     if (m_pBits != nullptr) {
-        memcpy(m_pBits, buffer, width * height * sizeof(uint32_t));
+        if (!bDirtyRectValid || dirtyRectList.empty() || dirtyRectList[0] == UiRect(0, 0, width, height)) {
+            //完整绘制
+            memcpy(m_pBits, buffer, width * height * sizeof(uint32_t));
+        }
+        else {
+            //增量绘制：只绘制脏区域
+            uint32_t* pBmpBits = (uint32_t*)m_pBits;
+            int32_t offset = 0;
+            for (const UiRect& rect : dirtyRectList) {
+                for (int32_t i = rect.top; i < rect.bottom; ++i) {
+                    //按行复制数据
+                    offset = i * width + rect.left;
+                    memcpy(pBmpBits + offset, (uint32_t*)buffer + offset, rect.Width() * sizeof (uint32_t));
+                }
+            }
+        }
         return true;
     }
     return false;
