@@ -70,14 +70,17 @@ public:
     virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen) override;
 
     virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect) override;
+    virtual void DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect) override;
     virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) override;
     virtual void FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
     virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int32_t nWidth) override;
+    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, IPen* pen) override;
     virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) override;
     virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
     virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int32_t nWidth) override;
+    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, IPen* pen) override;
     virtual void FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dwColor, uint8_t uFade = 255) override;
 
     virtual void DrawArc(const UiRect& rc, float startAngle, float sweepAngle, bool useCenter, 

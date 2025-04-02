@@ -982,6 +982,35 @@ void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, b
     }
 }
 
+void Render_Skia::DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect)
+{
+    ASSERT(pen != nullptr);
+    if (pen == nullptr) {
+        return;
+    }
+    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    SkPaint skPaint = *m_pSkPaint;
+    SetPaintByPen(skPaint, pen);
+
+    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
+    SkRect rcSkDest = SkRect::Make(rcSkDestI);
+    if (bLineInRect) {
+        //确保画的线，都在矩形范围内
+        SkScalar fHalfStrokeWidth = skPaint.getStrokeWidth() / 2;
+        rcSkDest.fLeft += fHalfStrokeWidth;
+        rcSkDest.fRight -= fHalfStrokeWidth;
+        rcSkDest.fTop += fHalfStrokeWidth;
+        rcSkDest.fBottom -= fHalfStrokeWidth;
+    }
+    rcSkDest.offset(*m_pSkPointOrg);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawRect(rcSkDest, skPaint);
+    }
+}
+
 void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int32_t nWidth)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
@@ -989,6 +1018,27 @@ void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiCol
     skPaint.setARGB(penColor.GetA(), penColor.GetR(), penColor.GetG(), penColor.GetB());
     skPaint.setStrokeWidth(SkIntToScalar(nWidth));
     skPaint.setStyle(SkPaint::kStroke_Style);
+
+    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
+    SkRect rcSkDest = SkRect::Make(rcSkDestI);
+    rcSkDest.offset(*m_pSkPointOrg);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawRoundRect(rcSkDest, SkIntToScalar(roundSize.cx), SkIntToScalar(roundSize.cy), skPaint);
+    }
+}
+
+void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, IPen* pen)
+{
+    ASSERT(pen != nullptr);
+    if (pen == nullptr) {
+        return;
+    }
+    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    SkPaint skPaint = *m_pSkPaint;
+    SetPaintByPen(skPaint, pen);
 
     SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
     SkRect rcSkDest = SkRect::Make(rcSkDestI);
@@ -1055,6 +1105,26 @@ void Render_Skia::DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor pe
     skPaint.setARGB(penColor.GetA(), penColor.GetR(), penColor.GetG(), penColor.GetB());
     skPaint.setStrokeWidth(SkIntToScalar(nWidth));
     skPaint.setStyle(SkPaint::kStroke_Style);
+
+    SkPoint rcSkPoint = SkPoint::Make(SkIntToScalar(centerPt.x), SkIntToScalar(centerPt.y));
+    rcSkPoint.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawCircle(rcSkPoint.fX, rcSkPoint.fY, SkIntToScalar(radius), skPaint);
+    }
+}
+
+void Render_Skia::DrawCircle(const UiPoint& centerPt, int32_t radius, IPen* pen)
+{
+    ASSERT(pen != nullptr);
+    if (pen == nullptr) {
+        return;
+    }
+    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    SkPaint skPaint = *m_pSkPaint;
+    SetPaintByPen(skPaint, pen);
 
     SkPoint rcSkPoint = SkPoint::Make(SkIntToScalar(centerPt.x), SkIntToScalar(centerPt.y));
     rcSkPoint.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);

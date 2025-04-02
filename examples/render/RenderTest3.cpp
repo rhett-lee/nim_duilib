@@ -20,6 +20,9 @@ void RenderTest3::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
 void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
 {
     BaseClass::Paint(pRender, rcPaint);
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+
     int marginLeft = 8;
     int marginTop = 4;
     Dpi().ScaleInt(marginLeft);
@@ -40,7 +43,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     int currentBottom = rect.bottom;//记录当前的bottom值
 
     //画直线
-    int sep = DpiScaledInt(10);
+    const int sep = DpiScaledInt(10);
     for (int32_t topValue = rect.top; topValue <= rect.bottom; topValue += sep) {
         pRender->DrawLine(UiPoint(rect.left, topValue), UiPoint(rect.right, topValue), UiColor(UiColors::DarkCyan), DpiScaledInt(4));
     }
@@ -48,6 +51,36 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
     pRender->DrawString(textRect, _T("DrawLine"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+
+    //画各种线形的线
+    rect.Offset(UiPoint(rect.Width() + 10, 0));
+    if (pRenderFactory != nullptr) {
+        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(UiColors::CornflowerBlue), DpiScaledInt(2)));
+        int32_t style = 0;
+        for (int32_t topValue = rect.top; topValue <= rect.bottom; topValue += sep) {
+            if (style == 0) {
+                pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleSolid);
+            }
+            else if (style == 1) {
+                pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDash);
+            }
+            else if (style == 2) {
+                pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDot);
+            }
+            else if (style == 3) {
+                pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDashDot);
+            }
+            else if (style == 4) {
+                pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDashDotDot);
+            }
+            pRender->DrawLine(UiPoint(rect.left, topValue), UiPoint(rect.right, topValue), pen.get());
+            ++style;
+            if (style > 4) {
+                style = 0;
+            }
+        }
+    }
+
 
     //画一个正六边形
     UiRect hexagonRect = rect;
@@ -79,6 +112,31 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
     pRender->DrawString(textRect, _T("DrawRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+
+    //画各种线形的矩形
+    for (size_t style = 0; style < 5; ++style) {
+        rect.left = rect.right + marginLeft;
+        rect.right = rect.left + nSize;
+
+        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(UiColors::CornflowerBlue), DpiScaledInt(2)));
+        if (style == 0) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleSolid);
+        }
+        else if (style == 1) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDash);
+        }
+        else if (style == 2) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDot);
+        }
+        else if (style == 3) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDashDot);
+        }
+        else if (style == 4) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDashDotDot);
+        }
+        pRender->DrawRect(rect, pen.get());
+    }
+    
 
     //填充矩形
     rect.left = rect.right + marginLeft;
@@ -119,7 +177,31 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("DrawRoundRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawRoundRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_12")), TEXT_CENTER);
+
+    //画各种线形的圆角矩形
+    for (size_t style = 0; style < 5; ++style) {
+        rect.left = rect.right + marginLeft;
+        rect.right = rect.left + nSize;
+
+        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(UiColors::CornflowerBlue), DpiScaledInt(2)));
+        if (style == 0) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleSolid);
+        }
+        else if (style == 1) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDash);
+        }
+        else if (style == 2) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDot);
+        }
+        else if (style == 3) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDashDot);
+        }
+        else if (style == 4) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDashDotDot);
+        }
+        pRender->DrawRoundRect(rect, roundSize, pen.get());
+    }
 
     //填充圆角矩形
     rect.left = rect.right + marginLeft;
@@ -138,6 +220,14 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect.bottom = textRect.top + nTextLineHeight;
     pRender->DrawString(textRect, _T("FillRoundRect Alpha"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
 
+    //换行
+    currentBottom = textRect.bottom;//记录当前的bottom值
+    rect = GetRect();
+    rect.left += marginLeft;
+    rect.right = rect.left;
+    rect.top = currentBottom + marginTop;
+    rect.bottom = rect.top + nSize;
+
     //画圆形/填充圆形
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
@@ -147,6 +237,30 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
     pRender->DrawString(textRect, _T("DrawCircle"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+
+    //画各种线形的圆形
+    for (size_t style = 0; style < 5; ++style) {
+        rect.left = rect.right + marginLeft;
+        rect.right = rect.left + nSize;
+
+        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(UiColors::CornflowerBlue), DpiScaledInt(2)));
+        if (style == 0) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleSolid);
+        }
+        else if (style == 1) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDash);
+        }
+        else if (style == 2) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDot);
+        }
+        else if (style == 3) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDashDot);
+        }
+        else if (style == 4) {
+            pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDashDotDot);
+        }
+        pRender->DrawCircle(rect.Center(), radius, pen.get());
+    }
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
@@ -174,9 +288,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
 
     //用DrawPath画圆角四边形
     rect.left = rect.right + marginLeft;
-    rect.right = rect.left + nSize;
-    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
-    ASSERT(pRenderFactory != nullptr);
+    rect.right = rect.left + nSize;    
     if (pRenderFactory != nullptr) {
         std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(0xff006DD9), DpiScaledInt(2)));
         std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
