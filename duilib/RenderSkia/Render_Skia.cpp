@@ -930,6 +930,29 @@ void Render_Skia::DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor pen
     }
 }
 
+void Render_Skia::DrawLine(const UiPointF& pt1, const UiPointF& pt2, IPen* pen)
+{
+    ASSERT(pen != nullptr);
+    if (pen == nullptr) {
+        return;
+    }
+    ASSERT((GetWidth() > 0) && (GetHeight() > 0));
+    SkPaint skPaint = *m_pSkPaint;
+    SetPaintByPen(skPaint, pen);
+
+    SkPoint skPt1 = SkPoint::Make(pt1.x, pt1.y);
+    skPt1.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+
+    SkPoint skPt2 = SkPoint::Make(pt2.x, pt2.y);
+    skPt2.offset(m_pSkPointOrg->fX, m_pSkPointOrg->fY);
+
+    SkCanvas* skCanvas = GetSkCanvas();
+    ASSERT(skCanvas != nullptr);
+    if (skCanvas != nullptr) {
+        skCanvas->drawLine(skPt1, skPt2, skPaint);
+    }
+}
+
 void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen)
 {
     ASSERT(pen != nullptr);

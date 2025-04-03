@@ -30,6 +30,7 @@ Control::Control(Window* pWindow) :
     m_cxyBorderRound(),
     m_rcPaint(),
     m_rcBorderSize(),
+    m_borderDashStyle((int8_t)IPen::DashStyle::kDashStyleSolid),
     m_cursorType(CursorType::kCursorArrow),
     m_controlState(kControlStateNormal),
     m_nTooltipWidth(300),
@@ -154,6 +155,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetBkColor2Direction(strValue);
     }
     else if ((strName == _T("border_size")) || (strName == _T("bordersize"))) {
+        //边线宽度
         DString nValue = strValue;
         if (nValue.find(_T(',')) == DString::npos) {
             int32_t nBorderSize = StringUtil::StringToInt32(strValue);
@@ -169,6 +171,26 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
             UiRect rcBorder(rcMargin.left, rcMargin.top, rcMargin.right, rcMargin.bottom);
             SetBorderSize(rcBorder, true);
         }
+    }
+    else if (strName == _T("border_dash_style")) {
+        //边线的线形（四个边的边线的线形只能一致，不支持分开设置）
+        IPen::DashStyle dashStyle = IPen::kDashStyleSolid;
+        if (strValue == _T("solid")) {
+            dashStyle = IPen::kDashStyleSolid;
+        }
+        else if (strValue == _T("dash")) {
+            dashStyle = IPen::kDashStyleDash;
+        }
+        else if (strValue == _T("dot")) {
+            dashStyle = IPen::kDashStyleDot;
+        }
+        else if (strValue == _T("dash_dot")) {
+            dashStyle = IPen::kDashStyleDashDot;
+        }
+        else if (strValue == _T("dash_dot_dot")) {
+            dashStyle = IPen::kDashStyleDashDotDot;
+        }
+        SetBorderDashStyle((int8_t)dashStyle);
     }
     else if ((strName == _T("border_round")) || (strName == _T("borderround"))) {
         UiSize cxyRound;
@@ -1167,6 +1189,32 @@ void Control::SetBottomBorderSize(int32_t nSize, bool bNeedDpiScale)
         m_rcBorderSize.bottom = nSize;
         Invalidate();
     }    
+}
+
+void Control::SetBorderDashStyle(int8_t borderDashStyle)
+{
+    IPen::DashStyle dashStyle = IPen::kDashStyleSolid;
+    if (borderDashStyle == IPen::kDashStyleDash) {
+        dashStyle = IPen::kDashStyleDash;
+    }
+    else if (borderDashStyle == IPen::kDashStyleDot) {
+        dashStyle = IPen::kDashStyleDot;
+    }
+    else if (borderDashStyle == IPen::kDashStyleDashDot) {
+        dashStyle = IPen::kDashStyleDashDot;
+    }
+    else if (borderDashStyle == IPen::kDashStyleDashDotDot) {
+        dashStyle = IPen::kDashStyleDashDotDot;
+    }
+    if (m_borderDashStyle != dashStyle) {
+        m_borderDashStyle = (int8_t)dashStyle;
+        Invalidate();
+    }
+}
+
+int8_t Control::GetBorderDashStyle() const
+{
+    return m_borderDashStyle;
 }
 
 const UiSize& Control::GetBorderRound() const
@@ -2626,7 +2674,7 @@ void Control::PaintBorder(IRender* pRender)
         //四个边都存在，且大小相同，则直接绘制矩形, 支持圆角矩形
         if (ShouldBeRoundRectBorders()) {
             //仅圆角矩形，使用这个函数绘制边线
-            PaintBorders(pRender, GetRect(), (int32_t)m_rcBorderSize.left, dwBorderColor);
+            PaintBorders(pRender, GetRect(), (int32_t)m_rcBorderSize.left, dwBorderColor, GetBorderDashStyle());
             bPainted = true;
         }
     }
@@ -2639,10 +2687,10 @@ void Control::PaintBorder(IRender* pRender)
             if (m_rcBorderSize.left == 1) {
                 rcBorder.bottom -= 1;
             }
-            float fWidth = (float)m_rcBorderSize.left;
+            const float fWidth = (float)m_rcBorderSize.left;
             UiPointF pt1((float)rcBorder.left + fWidth / 2, (float)rcBorder.top);
             UiPointF pt2((float)rcBorder.left + fWidth / 2, (float)rcBorder.bottom);
-            pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
+            DrawBorderLine(pRender, pt1, pt2, m_rcBorderSize.left, dwBorderColor, GetBorderDashStyle());
         }
         if (m_rcBorderSize.top > 0) {
             //上边线
@@ -2650,10 +2698,10 @@ void Control::PaintBorder(IRender* pRender)
             if (m_rcBorderSize.top == 1) {
                 rcBorder.right -= 1;
             }
-            float fWidth = (float)m_rcBorderSize.top;
+            const float fWidth = (float)m_rcBorderSize.top;
             UiPointF pt1((float)rcBorder.left, (float)rcBorder.top + fWidth / 2);
             UiPointF pt2((float)rcBorder.right, (float)rcBorder.top + fWidth / 2);
-            pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
+            DrawBorderLine(pRender, pt1, pt2, m_rcBorderSize.top, dwBorderColor, GetBorderDashStyle());
         }
         if (m_rcBorderSize.right > 0) {
             //右边线
@@ -2661,10 +2709,10 @@ void Control::PaintBorder(IRender* pRender)
             if (m_rcBorderSize.right == 1) {
                 rcBorder.bottom -= 1;
             }
-            float fWidth = (float)m_rcBorderSize.right;
+            const float fWidth = (float)m_rcBorderSize.right;
             UiPointF pt1((float)rcBorder.right - fWidth / 2, (float)rcBorder.top);
             UiPointF pt2((float)rcBorder.right - fWidth / 2, (float)rcBorder.bottom);
-            pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
+            DrawBorderLine(pRender, pt1, pt2, m_rcBorderSize.right, dwBorderColor, GetBorderDashStyle());
         }
         if (m_rcBorderSize.bottom > 0) {
             //下边线
@@ -2672,16 +2720,43 @@ void Control::PaintBorder(IRender* pRender)
             if (m_rcBorderSize.bottom == 1) {
                 rcBorder.right -= 1;
             }
-            float fWidth = (float)m_rcBorderSize.bottom;
+            const float fWidth = (float)m_rcBorderSize.bottom;
             UiPointF pt1((float)rcBorder.left, (float)rcBorder.bottom - fWidth / 2);
-            UiPointF pt2((float)rcBorder.right, (float)rcBorder.bottom - fWidth / 2);            
+            UiPointF pt2((float)rcBorder.right, (float)rcBorder.bottom - fWidth / 2);
+            DrawBorderLine(pRender, pt1, pt2, m_rcBorderSize.bottom, dwBorderColor, GetBorderDashStyle());
+        }
+    }
+}
+
+void Control::DrawBorderLine(IRender* pRender, const UiPointF& pt1, const UiPointF& pt2,
+                             int32_t nBorderSize, UiColor dwBorderColor, int8_t borderDashStyle)
+{
+    ASSERT(pRender != nullptr);
+    if (pRender == nullptr) {
+        return;
+    }
+    IPen::DashStyle dashStyle = (IPen::DashStyle)borderDashStyle;
+    const float fWidth = (float)nBorderSize;
+    if (dashStyle == IPen::DashStyle::kDashStyleSolid) {
+        //普通实线
+        pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
+    }
+    else {
+        //其他线形
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+        if (pRenderFactory != nullptr) {
+            std::unique_ptr<IPen> pPen(pRenderFactory->CreatePen(dwBorderColor, nBorderSize));
+            pPen->SetDashStyle(dashStyle);
+            pRender->DrawLine(pt1, pt2, pPen.get());
+        }
+        else {
             pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
         }
     }
 }
 
 void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
-                           int32_t nBorderSize, UiColor dwBorderColor) const
+                           int32_t nBorderSize, UiColor dwBorderColor, int8_t borderDashStyle) const
 {
     if ((pRender == nullptr) || rcDraw.IsEmpty() || (nBorderSize < 1) || (dwBorderColor.GetARGB() == 0)) {
         return;
@@ -2698,10 +2773,25 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
         rcDraw.right -= 1;
     }
     if (ShouldBeRoundRectBorders()) {
-        DrawRoundRect(pRender, rcDraw, m_cxyBorderRound, dwBorderColor, nBorderSize);
+        DrawRoundRect(pRender, rcDraw, m_cxyBorderRound, dwBorderColor, nBorderSize, GetBorderDashStyle());
     }
     else {
-        pRender->DrawRect(rcDraw, dwBorderColor, nBorderSize, false);
+        if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {
+            //普通实线
+            pRender->DrawRect(rcDraw, dwBorderColor, nBorderSize, false);
+        }
+        else {
+            //其他线形
+            IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+            if (pRenderFactory != nullptr) {
+                std::unique_ptr<IPen> pPen(pRenderFactory->CreatePen(dwBorderColor, nBorderSize));
+                pPen->SetDashStyle((IPen::DashStyle)borderDashStyle);
+                pRender->DrawRect(rcDraw, pPen.get(), false);
+            }
+            else {
+                pRender->DrawRect(rcDraw, dwBorderColor, nBorderSize, false);
+            }
+        }
     }
 }
 
@@ -2852,13 +2942,16 @@ void Control::AddRoundRectPath(IPath* path, const UiRect& rc, UiSize roundSize) 
     path->Close();
 }
 
-void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize, UiColor dwBorderColor, int32_t nBorderSize) const
+void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize,
+                            UiColor dwBorderColor, int32_t nBorderSize,
+                            int8_t borderDashStyle) const
 {
     ASSERT(pRender != nullptr);
     if (pRender == nullptr) {
         return;
     }
     if (pRender->GetRenderType() != RenderType::kRenderType_Skia) {
+        ASSERT(0);//目前没有其他类型的绘制引擎，代码走不到这里了。
         pRender->DrawRoundRect(rc, roundSize, dwBorderColor, nBorderSize);
         return;
     }
@@ -2871,6 +2964,9 @@ void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
             std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, nBorderSize));
             std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
             if (pen && path) {
+                if (borderDashStyle != IPen::DashStyle::kDashStyleSolid) {
+                    pen->SetDashStyle((IPen::DashStyle)borderDashStyle);
+                }
                 //这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
                 AddRoundRectPath(path.get(), rc, roundSize);
                 pRender->DrawPath(path.get(), pen.get());
@@ -2879,7 +2975,22 @@ void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
         }
     }
     if(!isDrawOk) {
-        pRender->DrawRoundRect(rc, roundSize, dwBorderColor, nBorderSize);
+        if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {
+            //普通实线
+            pRender->DrawRoundRect(rc, roundSize, dwBorderColor, nBorderSize);
+        }
+        else {
+            //其他线形
+            IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+            if (pRenderFactory != nullptr) {
+                std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, nBorderSize));
+                pen->SetDashStyle((IPen::DashStyle)borderDashStyle);
+                pRender->DrawRoundRect(rc, roundSize, pen.get());
+            }
+            else {
+                pRender->DrawRoundRect(rc, roundSize, dwBorderColor, nBorderSize);
+            }
+        }
     }
 }
 

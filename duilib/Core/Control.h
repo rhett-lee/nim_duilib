@@ -266,6 +266,15 @@ public:
      */
     void SetBottomBorderSize(int32_t nSize, bool bNeedDpiScale);
 
+    /** 设置控件四周边框的线条类型（四个边的边线的线形只能一致，不支持分开设置）
+    * @param [in] borderDashStyle 线条类型, 取值范围参见 IPen::DashStyle枚举定义
+    */
+    void SetBorderDashStyle(int8_t borderDashStyle); 
+
+    /** 控件四周边框的线条类型, 取值范围参见 IPen::DashStyle枚举定义
+    */
+    int8_t GetBorderDashStyle() const;
+
     /** 获取圆角大小
      */
     const UiSize& GetBorderRound() const;
@@ -1166,11 +1175,19 @@ private:
     /** 绘制边框：根据条件判断绘制圆角矩形边框还是普通矩形边框
     */
     void PaintBorders(IRender* pRender, UiRect rcDraw, 
-                      int32_t nBorderSize, UiColor dwBorderColor) const;
+                      int32_t nBorderSize, UiColor dwBorderColor,
+                      int8_t borderDashStyle) const;
+
+    /** 画边框线
+    */
+    void DrawBorderLine(IRender* pRender, const UiPointF& pt1, const UiPointF& pt2,
+                        int32_t nBorderSize, UiColor dwBorderColor, int8_t borderDashStyle);
 
     /** 绘制圆角矩形
     */
-    void DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize, UiColor dwBorderColor, int32_t nBorderSize) const;
+    void DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize,
+                       UiColor dwBorderColor, int32_t nBorderSize,
+                       int8_t borderDashStyle) const;
 
     /** 填充圆角矩形
     */
@@ -1259,6 +1276,9 @@ private:
 
     //控件四边的边框大小（可分别设置top/bottom/left/right四个边的值）
     UiRect m_rcBorderSize;
+
+    //控件四边边框的线条类型
+    int8_t m_borderDashStyle;
 
 private:
     //控件的背景颜色
