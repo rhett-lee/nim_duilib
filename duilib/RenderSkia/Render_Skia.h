@@ -68,6 +68,7 @@ public:
     virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth) override;
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) override;
     virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen) override;
+    virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, IPen* pen) override;
 
     virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect) override;
     virtual void DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect) override;

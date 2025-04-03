@@ -67,8 +67,7 @@
                 </VBox>
                 <VBox name="main_view_page_06">
                     <Label text="页面6：DrawBoxShadow测试"/>
-                    <Control margin="50,50" width="300" height="100" borderround="12,12" boxshadow="color='red' offset='0,0' blurradius='8' spreadradius='8'"/>
-                    <Control margin="50,50" width="300" height="100" borderround="0,0" bordercolor="blue" bordersize="1,1,1,1" bkcolor="green" boxshadow="color='red' offset='3,3' blurradius='2' spreadradius='2'"/>
+                    <Include src="page_06.xml"/>
                 </VBox>
                 <VBox name="main_view_page_07">
                     <Include src="page_box.xml"/>
@@ -101,10 +100,10 @@
                     <Include src="page_layout.xml"/>
                 </VBox>
                 <VBox name="main_view_page_17">
-                    <Include src="property_grid.xml"/>
+                    <Include src="page_property_grid.xml"/>
                 </VBox>
                 <VBox name="main_view_page_18">
-                    <Include src="tabbox.xml"/>
+                    <Include src="page_tabbox.xml"/>
                 </VBox>
             </TabBox>
         </VBox>
