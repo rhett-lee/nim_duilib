@@ -50,7 +50,7 @@ public:
     * @param [in] brushColor 画刷的颜色，如果为0，则填充颜色
     */
     bool DrawRegularHexagon(IRender* pRender, const UiPointF& centerPt, int32_t radius,
-                            const UiColor& penColor, int32_t penWidth, const UiColor& brushColor);
+                            const UiColor& penColor, float penWidth, const UiColor& brushColor);
 
     /** 鼠标移动
     */

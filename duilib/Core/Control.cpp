@@ -162,13 +162,13 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
             if (nBorderSize < 0) {
                 nBorderSize = 0;
             }
-            UiRect rcBorder(nBorderSize, nBorderSize, nBorderSize, nBorderSize);
+            UiRectF rcBorder((float)nBorderSize, (float)nBorderSize, (float)nBorderSize, (float)nBorderSize);
             SetBorderSize(rcBorder, true);
         }
         else {
             UiMargin rcMargin;
             AttributeUtil::ParseMarginValue(strValue.c_str(), rcMargin);
-            UiRect rcBorder(rcMargin.left, rcMargin.top, rcMargin.right, rcMargin.bottom);
+            UiRectF rcBorder((float)rcMargin.left, (float)rcMargin.top, (float)rcMargin.right, (float)rcMargin.bottom);
             SetBorderSize(rcBorder, true);
         }
     }
@@ -347,16 +347,16 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         SetFocusBorderColor(strValue);
     }
     else if ((strName == _T("left_border_size")) || (strName == _T("leftbordersize"))) {
-        SetLeftBorderSize(StringUtil::StringToInt32(strValue), true);
+        SetLeftBorderSize((float)StringUtil::StringToInt32(strValue), true);
     }
     else if ((strName == _T("top_border_size")) || (strName == _T("topbordersize"))) {
-        SetTopBorderSize(StringUtil::StringToInt32(strValue), true);
+        SetTopBorderSize((float)StringUtil::StringToInt32(strValue), true);
     }
     else if ((strName == _T("right_border_size")) || (strName == _T("rightbordersize"))) {
-        SetRightBorderSize(StringUtil::StringToInt32(strValue), true);
+        SetRightBorderSize((float)StringUtil::StringToInt32(strValue), true);
     }
     else if ((strName == _T("bottom_border_size")) || (strName == _T("bottombordersize"))) {
-        SetBottomBorderSize(StringUtil::StringToInt32(strValue), true);
+        SetBottomBorderSize((float)StringUtil::StringToInt32(strValue), true);
     }
     else if (strName == _T("bkimage")) {
         SetBkImage(strValue);
@@ -513,8 +513,11 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     rcPadding = Dpi().GetScalePadding(rcPadding, nOldDpiScale);
     SetPadding(rcPadding, false);
 
-    UiRect rcBorder = GetBorderSize();
-    rcBorder = Dpi().GetScaleRect(rcBorder, nOldDpiScale);
+    UiRectF rcBorder = GetBorderSize();
+    rcBorder.left = Dpi().GetScaleFloat(rcBorder.left, nOldDpiScale);
+    rcBorder.top = Dpi().GetScaleFloat(rcBorder.top, nOldDpiScale);
+    rcBorder.right = Dpi().GetScaleFloat(rcBorder.right, nOldDpiScale);
+    rcBorder.bottom = Dpi().GetScaleFloat(rcBorder.bottom, nOldDpiScale);
     SetBorderSize(rcBorder, false);
 
     UiSize cxyRound = GetBorderRound();
@@ -1107,86 +1110,89 @@ DString Control::GetFocusBorderColor() const
     return m_focusBorderColor.c_str();
 }
 
-void Control::SetBorderSize(UiRect rc, bool bNeedDpiScale)
+void Control::SetBorderSize(UiRectF rc, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        Dpi().ScaleRect(rc);
+        rc.left = Dpi().GetScaleFloat(rc.left);
+        rc.top = Dpi().GetScaleFloat(rc.top);
+        rc.right = Dpi().GetScaleFloat(rc.right);
+        rc.bottom = Dpi().GetScaleFloat(rc.bottom);
     }
-    rc.left = std::max(rc.left, 0);
-    rc.top = std::max(rc.top, 0);
-    rc.right = std::max(rc.right, 0);
-    rc.bottom = std::max(rc.bottom, 0);
+    rc.left = std::max(rc.left, 0.0f);
+    rc.top = std::max(rc.top, 0.0f);
+    rc.right = std::max(rc.right, 0.0f);
+    rc.bottom = std::max(rc.bottom, 0.0f);
     if (m_rcBorderSize != rc) {
         m_rcBorderSize = rc;
         Invalidate();
     }    
 }
 
-const UiRect& Control::GetBorderSize() const
+const UiRectF& Control::GetBorderSize() const
 {
     return m_rcBorderSize;
 }
 
-int32_t Control::GetLeftBorderSize() const
+float Control::GetLeftBorderSize() const
 {
     return m_rcBorderSize.left;
 }
 
-void Control::SetLeftBorderSize(int32_t nSize, bool bNeedDpiScale)
+void Control::SetLeftBorderSize(float fSize, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        Dpi().ScaleInt(nSize);
+        fSize = Dpi().GetScaleFloat(fSize);
     }
-    if (m_rcBorderSize.left != nSize) {
-        m_rcBorderSize.left = nSize;
+    if (m_rcBorderSize.left != fSize) {
+        m_rcBorderSize.left = fSize;
         Invalidate();
     }    
 }
 
-int32_t Control::GetTopBorderSize() const
+float Control::GetTopBorderSize() const
 {
     return m_rcBorderSize.top;
 }
 
-void Control::SetTopBorderSize(int32_t nSize, bool bNeedDpiScale)
+void Control::SetTopBorderSize(float fSize, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        Dpi().ScaleInt(nSize);
+        fSize = Dpi().GetScaleFloat(fSize);
     }
-    if (m_rcBorderSize.top != nSize) {
-        m_rcBorderSize.top = nSize;
+    if (m_rcBorderSize.top != fSize) {
+        m_rcBorderSize.top = fSize;
         Invalidate();
-    }    
+    }
 }
 
-int32_t Control::GetRightBorderSize() const
+float Control::GetRightBorderSize() const
 {
     return m_rcBorderSize.right;
 }
 
-void Control::SetRightBorderSize(int32_t nSize, bool bNeedDpiScale)
+void Control::SetRightBorderSize(float fSize, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        Dpi().ScaleInt(nSize);
+        fSize = Dpi().GetScaleFloat(fSize);
     }
-    if (m_rcBorderSize.right != nSize) {
-        m_rcBorderSize.right = nSize;
+    if (m_rcBorderSize.right != fSize) {
+        m_rcBorderSize.right = fSize;
         Invalidate();
     }    
 }
 
-int32_t Control::GetBottomBorderSize() const
+float Control::GetBottomBorderSize() const
 {
     return m_rcBorderSize.bottom;
 }
 
-void Control::SetBottomBorderSize(int32_t nSize, bool bNeedDpiScale)
+void Control::SetBottomBorderSize(float fSize, bool bNeedDpiScale)
 {
     if (bNeedDpiScale) {
-        Dpi().ScaleInt(nSize);
+        fSize = Dpi().GetScaleFloat(fSize);
     }
-    if (m_rcBorderSize.bottom != nSize) {
-        m_rcBorderSize.bottom = nSize;
+    if (m_rcBorderSize.bottom != fSize) {
+        m_rcBorderSize.bottom = fSize;
         Invalidate();
     }    
 }
@@ -2609,7 +2615,7 @@ void Control::PaintBkColor(IRender* pRender)
             (m_rcBorderSize.left == m_rcBorderSize.top) &&
             (m_rcBorderSize.left == m_rcBorderSize.bottom)) {
             //四个边都存在，且大小相同
-            nBorderSize = m_rcBorderSize.left;
+            nBorderSize = static_cast<int32_t>(m_rcBorderSize.left);//不做四舍五入
         }
         nBorderSize /= 2;
 
@@ -2674,7 +2680,7 @@ void Control::PaintBorder(IRender* pRender)
         //四个边都存在，且大小相同，则直接绘制矩形, 支持圆角矩形
         if (ShouldBeRoundRectBorders()) {
             //仅圆角矩形，使用这个函数绘制边线
-            PaintBorders(pRender, GetRect(), (int32_t)m_rcBorderSize.left, dwBorderColor, GetBorderDashStyle());
+            PaintBorders(pRender, GetRect(), m_rcBorderSize.left, dwBorderColor, GetBorderDashStyle());
             bPainted = true;
         }
     }
@@ -2729,38 +2735,38 @@ void Control::PaintBorder(IRender* pRender)
 }
 
 void Control::DrawBorderLine(IRender* pRender, const UiPointF& pt1, const UiPointF& pt2,
-                             int32_t nBorderSize, UiColor dwBorderColor, int8_t borderDashStyle)
+                             float fBorderSize, UiColor dwBorderColor, int8_t borderDashStyle)
 {
     ASSERT(pRender != nullptr);
     if (pRender == nullptr) {
         return;
     }
     IPen::DashStyle dashStyle = (IPen::DashStyle)borderDashStyle;
-    const float fWidth = (float)nBorderSize;
     if (dashStyle == IPen::DashStyle::kDashStyleSolid) {
         //普通实线
-        pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
+        pRender->DrawLine(pt1, pt2, dwBorderColor, fBorderSize);
     }
     else {
         //其他线形
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         if (pRenderFactory != nullptr) {
-            std::unique_ptr<IPen> pPen(pRenderFactory->CreatePen(dwBorderColor, nBorderSize));
+            std::unique_ptr<IPen> pPen(pRenderFactory->CreatePen(dwBorderColor, fBorderSize));
             pPen->SetDashStyle(dashStyle);
             pRender->DrawLine(pt1, pt2, pPen.get());
         }
         else {
-            pRender->DrawLine(pt1, pt2, dwBorderColor, fWidth);
+            pRender->DrawLine(pt1, pt2, dwBorderColor, fBorderSize);
         }
     }
 }
 
 void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
-                           int32_t nBorderSize, UiColor dwBorderColor, int8_t borderDashStyle) const
+                           float fBorderSize, UiColor dwBorderColor, int8_t borderDashStyle) const
 {
-    if ((pRender == nullptr) || rcDraw.IsEmpty() || (nBorderSize < 1) || (dwBorderColor.GetARGB() == 0)) {
+    if ((pRender == nullptr) || rcDraw.IsEmpty() || (fBorderSize < 0.1) || (dwBorderColor.GetARGB() == 0)) {
         return;
     }
+    int32_t nBorderSize = static_cast<int32_t>(fBorderSize + 0.5);//四舍五入
     int32_t nDeltaValue = nBorderSize / 2;
     rcDraw.top += nDeltaValue;
     rcDraw.bottom -= nDeltaValue;
@@ -2773,23 +2779,23 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
         rcDraw.right -= 1;
     }
     if (ShouldBeRoundRectBorders()) {
-        DrawRoundRect(pRender, rcDraw, m_cxyBorderRound, dwBorderColor, nBorderSize, GetBorderDashStyle());
+        DrawRoundRect(pRender, rcDraw, m_cxyBorderRound, dwBorderColor, fBorderSize, GetBorderDashStyle());
     }
     else {
         if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {
             //普通实线
-            pRender->DrawRect(rcDraw, dwBorderColor, nBorderSize, false);
+            pRender->DrawRect(rcDraw, dwBorderColor, fBorderSize, false);
         }
         else {
             //其他线形
             IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
             if (pRenderFactory != nullptr) {
-                std::unique_ptr<IPen> pPen(pRenderFactory->CreatePen(dwBorderColor, nBorderSize));
+                std::unique_ptr<IPen> pPen(pRenderFactory->CreatePen(dwBorderColor, fBorderSize));
                 pPen->SetDashStyle((IPen::DashStyle)borderDashStyle);
                 pRender->DrawRect(rcDraw, pPen.get(), false);
             }
             else {
-                pRender->DrawRect(rcDraw, dwBorderColor, nBorderSize, false);
+                pRender->DrawRect(rcDraw, dwBorderColor, fBorderSize, false);
             }
         }
     }
@@ -2841,7 +2847,7 @@ void Control::DoPaintFocusRect(IRender* pRender)
     if (pRenderFactory == nullptr) {
         return;
     }
-    int32_t nWidth =  Dpi().GetScaleInt(1); //画笔宽度
+    float fWidth =  Dpi().GetScaleFloat(1.0f); //画笔宽度
     UiColor dwBorderColor;//画笔颜色
     DString focusRectColor = GetFocusRectColor();
     if (!focusRectColor.empty()) {
@@ -2857,7 +2863,7 @@ void Control::DoPaintFocusRect(IRender* pRender)
     if (rcFocusRect.IsEmpty()) {
         return;
     }
-    std::unique_ptr<IPen> pPen(pRenderFactory->CreatePen(dwBorderColor, nWidth));
+    std::unique_ptr<IPen> pPen(pRenderFactory->CreatePen(dwBorderColor, fWidth));
     pPen->SetDashStyle(IPen::DashStyle::kDashStyleDot);
 
     if (rcBorderSize.left > 0) {
@@ -2943,7 +2949,7 @@ void Control::AddRoundRectPath(IPath* path, const UiRect& rc, UiSize roundSize) 
 }
 
 void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize,
-                            UiColor dwBorderColor, int32_t nBorderSize,
+                            UiColor dwBorderColor, float fBorderSize,
                             int8_t borderDashStyle) const
 {
     ASSERT(pRender != nullptr);
@@ -2952,7 +2958,7 @@ void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
     }
     if (pRender->GetRenderType() != RenderType::kRenderType_Skia) {
         ASSERT(0);//目前没有其他类型的绘制引擎，代码走不到这里了。
-        pRender->DrawRoundRect(rc, roundSize, dwBorderColor, nBorderSize);
+        pRender->DrawRoundRect(rc, roundSize, dwBorderColor, fBorderSize);
         return;
     }
     bool isDrawOk = false;
@@ -2961,7 +2967,7 @@ void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
         //参见：WindowBase::OnSizeMsg中的CreateRoundRectRgn（Skia的圆角画法和CreateRoundRectRgn不一样）
         IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
         if (pRenderFactory != nullptr) {
-            std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, nBorderSize));
+            std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, fBorderSize));
             std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
             if (pen && path) {
                 if (borderDashStyle != IPen::DashStyle::kDashStyleSolid) {
@@ -2977,18 +2983,18 @@ void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
     if(!isDrawOk) {
         if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {
             //普通实线
-            pRender->DrawRoundRect(rc, roundSize, dwBorderColor, nBorderSize);
+            pRender->DrawRoundRect(rc, roundSize, dwBorderColor, fBorderSize);
         }
         else {
             //其他线形
             IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
             if (pRenderFactory != nullptr) {
-                std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, nBorderSize));
+                std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, fBorderSize));
                 pen->SetDashStyle((IPen::DashStyle)borderDashStyle);
                 pRender->DrawRoundRect(rc, roundSize, pen.get());
             }
             else {
-                pRender->DrawRoundRect(rc, roundSize, dwBorderColor, nBorderSize);
+                pRender->DrawRoundRect(rc, roundSize, dwBorderColor, fBorderSize);
             }
         }
     }

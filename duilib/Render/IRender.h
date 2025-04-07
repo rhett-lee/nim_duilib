@@ -152,11 +152,11 @@ class UILIB_API IPen : public virtual SupportWeakCallback
 public:
     /** 设置画笔宽度
     */
-    virtual void SetWidth(int width) = 0;
+    virtual void SetWidth(float fWidth) = 0;
 
     /** 获取画笔宽度
     */
-    virtual int GetWidth() const = 0;
+    virtual float GetWidth() const = 0;
 
     /** 设置画笔颜色
     */
@@ -413,10 +413,16 @@ class UILIB_API IRenderDpi : public SupportWeakCallback
 {
 public:
     /** 根据界面缩放比来缩放整数
-    * @param[in] iValue 整数
+    * @param [in] iValue 整数
     * @return int 缩放后的值
     */
     virtual int32_t GetScaleInt(int32_t iValue) const = 0;
+
+    /** 根据界面缩放比来缩放整数
+    * @param [in] fValue 浮点数
+    * @return 缩放后的值
+    */
+    virtual float GetScaleFloat(float fValue) const = 0;
 };
 
 typedef std::shared_ptr<IRenderDpi> IRenderDpiPtr;
@@ -857,6 +863,14 @@ public:
     * @param [in] pt1 起始点坐标
     * @param [in] pt2 终止点坐标
     * @param [in] penColor 画笔的颜色值
+    * @param [in] fWidth 画笔的宽度
+    */
+    virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, float fWidth) = 0;
+
+    /** 绘制直线
+    * @param [in] pt1 起始点坐标
+    * @param [in] pt2 终止点坐标
+    * @param [in] penColor 画笔的颜色值
     * @param [in] nWidth 画笔的宽度
     */
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) = 0;
@@ -882,6 +896,14 @@ public:
     * @param [in] bLineInRect 如果为true，表示确保画出的线条严格限制在rc矩形内部，否则线的中心点是与rc边线对齐的，线条会有部分超出rc矩形范围
     */
     virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect = false) = 0;
+
+    /** 绘制矩形
+    * @param [in] rc 矩形区域
+    * @param [in] penColor 画笔的颜色值
+    * @param [in] fWidth 画笔的宽度
+    * @param [in] bLineInRect 如果为true，表示确保画出的线条严格限制在rc矩形内部，否则线的中心点是与rc边线对齐的，线条会有部分超出rc矩形范围
+    */
+    virtual void DrawRect(const UiRect& rc, UiColor penColor, float fWidth, bool bLineInRect = false) = 0;
 
     /** 绘制矩形，支持各种线形
     * @param [in] rc 矩形区域
@@ -913,6 +935,14 @@ public:
     * @param [in] nWidth 画笔的宽度
     */
     virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int32_t nWidth) = 0;
+
+    /** 绘制圆角矩形
+    * @param [in] rc 矩形区域
+    * @param [in] roundSize 圆角的宽和高
+    * @param [in] penColor 画笔的颜色值
+    * @param [in] fWidth 画笔的宽度
+    */
+    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, float fWidth) = 0;
 
     /** 绘制圆角矩形，支持各种线形
     * @param [in] rc 矩形区域
@@ -959,6 +989,14 @@ public:
     * @param [in] nWidth 画笔的宽度
     */
     virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int32_t nWidth) = 0;
+
+    /** 绘制圆形
+    * @param [in] centerPt 圆心坐标点
+    * @param [in] radius 圆的半径
+    * @param [in] penColor 画笔的颜色值
+    * @param [in] fWidth 画笔的宽度
+    */
+    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, float fWidth) = 0;
 
     /** 绘制圆形，支持各种线形
     * @param [in] centerPt 圆心坐标点
@@ -1276,7 +1314,7 @@ public:
 
     /** 创建一个Pen对象
     */
-    virtual IPen* CreatePen(UiColor color, int width = 1) = 0;
+    virtual IPen* CreatePen(UiColor color, float fWidth = 1) = 0;
 
     /** 创建一个Brush对象
     */

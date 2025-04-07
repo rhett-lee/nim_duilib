@@ -42,13 +42,19 @@ void ColorPickerStatard::Paint(IRender* pRender, const UiRect& rcPaint)
 void ColorPickerStatard::DrawColorMap(IRender* pRender, const UiRect& rect)
 {
     int32_t rectSize = std::min(rect.Width(), rect.Height());
-    int32_t radius = static_cast<int32_t>(rectSize / 13 / 2 / std::cos(30 / 57.2957795f)); //半径
+    const int32_t radius = static_cast<int32_t>(rectSize / 13 / 2 / std::cos(30 / 57.2957795f)); //半径
     m_radius = radius;
     const float distance = radius * std::cos(30 / 57.2957795f); //中心点到边的垂直距离
 
     UiPointF firstCenterPt = UiPointF((float)rect.CenterX(), (float)rect.CenterY()); //矩形中心点坐标
     firstCenterPt.x = firstCenterPt.x - distance * 2 * 6 * std::sin(30 / 57.2957795f); //第一个六边形中心点X坐标
     firstCenterPt.y = firstCenterPt.y - distance * 2 * 6 * std::cos(30 / 57.2957795f); //第一个六边形中心点Y坐标
+
+    //当前选择的图像绘制参数
+    const UiColor penColor = UiColor(UiColors::Orange);
+    const float penWidth = Dpi().GetScaleFloat(2);
+    UiPointF selectCenterPt;
+    UiColor selectBrushColor;
 
     size_t colorIndex = 0;
     for (int32_t y = 0; y < 13; ++y) { //共计13行
@@ -68,26 +74,34 @@ void ColorPickerStatard::DrawColorMap(IRender* pRender, const UiRect& rect)
                 centerPt.x += distance * 2 * x - distance * (13 - y - 1);
             }
             centerPt.y += radius * 1.5f * y;
-
-            UiColor penColor = UiColor(UiColors::Orange);
-            int32_t penWidth = 0;
+            
+            bool bSelected = false;
             UiColor brushColor = UiColor(UiColors::Salmon);
             if (colorIndex < m_colorMap.size()) {
                 brushColor = m_colorMap[colorIndex].color;
                 m_colorMap[colorIndex].centerPt = centerPt;
                 if (m_selectedColor == brushColor) {
                     //当前选择的颜色，边框加粗显示
-                    penWidth += 3;
+                    bSelected = true;
+                    selectCenterPt = centerPt;
+                    selectBrushColor = brushColor;
                 }
             }
-            DrawRegularHexagon(pRender, centerPt, radius, penColor, penWidth, brushColor);
+            if (!bSelected) {
+                DrawRegularHexagon(pRender, centerPt, radius, UiColor(), 0.0f, brushColor);
+            }            
             ++colorIndex;
         }
+    }
+
+    //画选择的六边形（为了避免选择边框被后面画的内容覆盖，影响美观度）
+    if (!selectBrushColor.IsEmpty()) {
+        DrawRegularHexagon(pRender, selectCenterPt, radius, penColor, penWidth, selectBrushColor);
     }
 }
 
 bool ColorPickerStatard::DrawRegularHexagon(IRender* pRender, const UiPointF& centerPt, int32_t radius,
-                                            const UiColor& penColor, int32_t penWidth, const UiColor& brushColor)
+                                            const UiColor& penColor, float penWidth, const UiColor& brushColor)
 {
     ASSERT(pRender != nullptr);
     if (pRender == nullptr) {
@@ -119,12 +133,12 @@ bool ColorPickerStatard::DrawRegularHexagon(IRender* pRender, const UiPointF& ce
     path->Close();
 
     bool bRet = false;
-    if (brushColor.GetARGB() != 0) {
+    if (!brushColor.IsEmpty()) {
         std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(brushColor));
         pRender->FillPath(path.get(), brush.get());
         bRet = true;
     }
-    if ((penColor.GetARGB() != 0) && (penWidth > 0)) {
+    if (!penColor.IsEmpty() && (penWidth > 0.1f)) {
         std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(penColor, penWidth));
         pRender->DrawPath(path.get(), pen.get());
         bRet = true;

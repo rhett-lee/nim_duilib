@@ -888,11 +888,16 @@ void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, 
 
 void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth)
 {
+    DrawLine(pt1, pt2, penColor, (float)nWidth);
+}
+
+void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, float fWidth)
+{
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     SkPaint skPaint = *m_pSkPaint;
     skPaint.setARGB(penColor.GetA(), penColor.GetR(), penColor.GetG(), penColor.GetB());
     skPaint.setStyle(SkPaint::kStroke_Style);
-    skPaint.setStrokeWidth(SkScalar(nWidth));
+    skPaint.setStrokeWidth(SkScalar(fWidth));
 
     SkPoint skPt1;
     skPt1.iset(pt1.x, pt1.y);
@@ -980,10 +985,15 @@ void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen)
 
 void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect)
 {
+    DrawRect(rc, penColor, (float)nWidth, bLineInRect);
+}
+
+void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, float fWidth, bool bLineInRect)
+{
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     SkPaint skPaint = *m_pSkPaint;
     skPaint.setARGB(penColor.GetA(), penColor.GetR(), penColor.GetG(), penColor.GetB());
-    skPaint.setStrokeWidth(SkIntToScalar(nWidth));
+    skPaint.setStrokeWidth(SkIntToScalar(fWidth));
     skPaint.setStyle(SkPaint::kStroke_Style);
 
     SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
@@ -1036,10 +1046,15 @@ void Render_Skia::DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect)
 
 void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int32_t nWidth)
 {
+    DrawRoundRect(rc, roundSize, penColor, (float)nWidth);
+}
+
+void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, float fWidth)
+{
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     SkPaint skPaint = *m_pSkPaint;
     skPaint.setARGB(penColor.GetA(), penColor.GetR(), penColor.GetG(), penColor.GetB());
-    skPaint.setStrokeWidth(SkIntToScalar(nWidth));
+    skPaint.setStrokeWidth(SkIntToScalar(fWidth));
     skPaint.setStyle(SkPaint::kStroke_Style);
 
     SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
@@ -1121,12 +1136,17 @@ void Render_Skia::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiCol
     }
 }
 
-void Render_Skia::DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int nWidth)
+void Render_Skia::DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int32_t nWidth)
+{
+    DrawCircle(centerPt, radius, penColor, (float)nWidth);
+}
+
+void Render_Skia::DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, float fWidth)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     SkPaint skPaint = *m_pSkPaint;
     skPaint.setARGB(penColor.GetA(), penColor.GetR(), penColor.GetG(), penColor.GetB());
-    skPaint.setStrokeWidth(SkIntToScalar(nWidth));
+    skPaint.setStrokeWidth(SkIntToScalar(fWidth));
     skPaint.setStyle(SkPaint::kStroke_Style);
 
     SkPoint rcSkPoint = SkPoint::Make(SkIntToScalar(centerPt.x), SkIntToScalar(centerPt.y));
@@ -1245,12 +1265,12 @@ void Render_Skia::DrawPath(const IPath* path, const IPen* pen)
     }
 }
 
-int32_t Render_Skia::GetScaleInt(int32_t iValue) const
+float Render_Skia::GetScaleFloat(float fValue) const
 {
     if (m_spRenderDpi != nullptr) {
-        return m_spRenderDpi->GetScaleInt(iValue);
+        return m_spRenderDpi->GetScaleFloat(fValue);
     }
-    return iValue;
+    return fValue;
 }
 
 void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
@@ -1263,42 +1283,43 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
     sk_sp<SkPathEffect> skPathEffect;
     IPen::DashStyle dashStyle = pen->GetDashStyle();
     //线宽的倍数
-    int32_t nRatio = pen->GetWidth() / GetScaleInt(1);
+    float fRatio = pen->GetWidth() / GetScaleFloat(1.0f);
     switch (dashStyle) {
     case IPen::kDashStyleSolid:
     {
-        SkScalar intervals[] = { 1.0f, 0.0f };
+        float fValue = GetScaleFloat(1.0f) * fRatio;
+        SkScalar intervals[] = { fValue * 1.0f, 0.0f };
         skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
         break;
     }
     case IPen::kDashStyleDash:
     {
-        int32_t nValue = GetScaleInt(5) * nRatio;
-        SkScalar intervals[] = { nValue * 1.0f, nValue * 1.0f };
+        float fValue = GetScaleFloat(5.0f) * fRatio;
+        SkScalar intervals[] = { fValue * 1.0f, fValue * 1.0f };
         skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
         break;
     }
     case IPen::kDashStyleDot:
     {
-        int32_t nValue1 = GetScaleInt(1) * nRatio;
-        int32_t nValue4 = GetScaleInt(4) * nRatio;
-        SkScalar intervals[] = { nValue1 * 1.0f, nValue4 * 1.0f };
+        float fValue1 = GetScaleFloat(1.0f) * fRatio;
+        float fValue4 = GetScaleFloat(4.0f) * fRatio;
+        SkScalar intervals[] = { fValue1 * 1.0f, fValue4 * 1.0f };
         skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
         break;
     }
     case IPen::kDashStyleDashDot:
     {
-        int32_t nValue1 = GetScaleInt(1) * nRatio;
-        int32_t nValue4 = GetScaleInt(4) * nRatio;
-        SkScalar intervals[] = { nValue4 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f };
+        float fValue1 = GetScaleFloat(1.0f) * fRatio;
+        float fValue4 = GetScaleFloat(4.0f) * fRatio;
+        SkScalar intervals[] = { fValue4 * 1.0f, fValue1 * 1.0f, fValue1 * 1.0f, fValue1 * 1.0f };
         skPathEffect = SkDashPathEffect::Make(intervals, 4, 0.0f);
         break;
     }
     case IPen::kDashStyleDashDotDot:
     {
-        int32_t nValue1 = GetScaleInt(1) * nRatio;
-        int32_t nValue4 = GetScaleInt(4) * nRatio;
-        SkScalar intervals[] = { nValue4 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f, nValue1 * 1.0f };
+        float fValue1 = GetScaleFloat(1.0f) * fRatio;
+        float fValue4 = GetScaleFloat(4.0f) * fRatio;
+        SkScalar intervals[] = { fValue4 * 1.0f, fValue1 * 1.0f, fValue1 * 1.0f, fValue1 * 1.0f, fValue1 * 1.0f, fValue1 * 1.0f };
         skPathEffect = SkDashPathEffect::Make(intervals, 6, 0.0f);
         break;
     }

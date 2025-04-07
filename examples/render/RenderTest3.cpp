@@ -43,9 +43,18 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     int currentBottom = rect.bottom;//记录当前的bottom值
 
     //画直线
+    int32_t nLineIndex = 0;
     const int sep = DpiScaledInt(10);
     for (int32_t topValue = rect.top; topValue <= rect.bottom; topValue += sep) {
-        pRender->DrawLine(UiPoint(rect.left, topValue), UiPoint(rect.right, topValue), UiColor(UiColors::DarkCyan), DpiScaledInt(4));
+        const int nLineWidth = 3;
+        const float fWidth = Dpi().GetScale() / 100.f * nLineWidth;
+        if ((nLineIndex % 2) == 0) {
+            pRender->DrawLine(UiPointF((float)rect.left, (float)topValue), UiPointF((float)rect.right, (float)topValue), UiColor(UiColors::DarkCyan), fWidth);
+        }
+        else {
+            pRender->DrawLine(UiPoint(rect.left, topValue), UiPoint(rect.right, topValue), UiColor(UiColors::DarkCyan), DpiScaledInt(nLineWidth));
+        }
+        ++nLineIndex;
     }
     textRect = rect;
     textRect.top = rect.bottom;
@@ -55,7 +64,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     //画各种线形的线
     rect.Offset(UiPoint(rect.Width() + 10, 0));
     if (pRenderFactory != nullptr) {
-        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(UiColors::CornflowerBlue), DpiScaledInt(2)));
+        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(UiColors::CornflowerBlue), DpiScaledFloat(2)));
         int32_t style = 0;
         for (int32_t topValue = rect.top; topValue <= rect.bottom; topValue += sep) {
             if (style == 0) {
@@ -118,7 +127,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
         rect.left = rect.right + marginLeft;
         rect.right = rect.left + nSize;
 
-        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(UiColors::CornflowerBlue), DpiScaledInt(2)));
+        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(UiColors::CornflowerBlue), DpiScaledFloat(2)));
         if (style == 0) {
             pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleSolid);
         }
@@ -173,7 +182,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     roundSize.cx = (roundSize.cx / 2) * 2;
     roundSize.cy = (roundSize.cy / 2) * 2;
 
-    pRender->DrawRoundRect(rect, roundSize, UiColor(0xffC63535), DpiScaledInt(2));
+    pRender->DrawRoundRect(rect, roundSize, UiColor(0xffC63535), DpiScaledFloat(2));
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
@@ -184,7 +193,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
         rect.left = rect.right + marginLeft;
         rect.right = rect.left + nSize;
 
-        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(UiColors::CornflowerBlue), DpiScaledInt(2)));
+        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(UiColors::CornflowerBlue), DpiScaledFloat(2)));
         if (style == 0) {
             pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleSolid);
         }
@@ -232,7 +241,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
     int32_t radius = std::min(rect.Width(), rect.Height()) / 2;//圆的半径
-    pRender->DrawCircle(rect.Center(), radius, UiColor(UiColors::Blue), 2);
+    pRender->DrawCircle(rect.Center(), radius, UiColor(UiColors::Blue), DpiScaledFloat(2));
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
@@ -243,7 +252,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
         rect.left = rect.right + marginLeft;
         rect.right = rect.left + nSize;
 
-        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(UiColors::CornflowerBlue), DpiScaledInt(2)));
+        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(UiColors::CornflowerBlue), DpiScaledFloat(2)));
         if (style == 0) {
             pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleSolid);
         }
@@ -290,7 +299,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;    
     if (pRenderFactory != nullptr) {
-        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(0xff006DD9), DpiScaledInt(2)));
+        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(0xff006DD9), DpiScaledFloat(2)));
         std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
         if (pen && path) {
             const UiRect& rc = rect;
@@ -317,7 +326,7 @@ void RenderTest3::Paint(IRender* pRender, const UiRect& rcPaint)
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
     if (pRenderFactory != nullptr) {
-        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(0xff006DD9), DpiScaledInt(2)));
+        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(UiColor(0xff006DD9), DpiScaledFloat(2)));
         std::unique_ptr<IBrush> brush(pRenderFactory->CreateBrush(UiColor(UiColors::Red)));
         std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
 
@@ -391,6 +400,11 @@ int RenderTest3::DpiScaledInt(int iValue)
     return Dpi().GetScaleInt(iValue);
 }
 
+float RenderTest3::DpiScaledFloat(int32_t iValue)
+{
+    return Dpi().GetScaleFloat(iValue);
+}
+
 void RenderTest3::DrawColorMap(IRender* pRender, const UiRect& rect)
 {
     int32_t radius = static_cast<int32_t>(rect.Width() / 13 / 2 / std::cos(30 / 57.2957795f)); //半径
@@ -461,7 +475,7 @@ bool RenderTest3::DrawRegularHexagon(IRender* pRender, const UiPointF& centerPt,
         bRet = true;
     }
     if ((penColor.GetARGB() != 0) && (penWidth > 0)) {
-        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(penColor, penWidth));
+        std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(penColor, (float)penWidth));
         pRender->DrawPath(path.get(), pen.get());
         bRet = true;
     }
@@ -514,7 +528,7 @@ bool RenderTest3::DrawRegularHexagon3(IRender* pRender, const UiPoint& centerPt,
             bRet = true;
         }
         if ((penColor.GetARGB() != 0) && (penWidth > 0)) {
-            std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(penColor, penWidth));
+            std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(penColor, (float)penWidth));
             pRender->DrawPath(path.get(), pen.get());
             bRet = true;
         }

@@ -17,7 +17,7 @@ public:
     virtual ~RenderFactory_Skia() override;
 
     virtual IFont* CreateIFont() override;
-    virtual IPen* CreatePen(UiColor color, int width = 1) override;
+    virtual IPen* CreatePen(UiColor color, float fWidth = 1.0f) override;
     virtual IBrush* CreateBrush(UiColor corlor) override;
     virtual IPath* CreatePath() override;
     virtual IMatrix* CreateMatrix() override;

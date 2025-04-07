@@ -45,9 +45,9 @@ IFont* RenderFactory_Skia::CreateIFont()
     return new Font_Skia(m_impl->m_pFontMgr);
 }
 
-IPen* RenderFactory_Skia::CreatePen(UiColor color, int width /*= 1*/)
+IPen* RenderFactory_Skia::CreatePen(UiColor color, float fWidth)
 {
-    return new Pen_Skia(color, width);
+    return new Pen_Skia(color, fWidth);
 }
 
 IBrush* RenderFactory_Skia::CreateBrush(UiColor color)

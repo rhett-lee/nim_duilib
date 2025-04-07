@@ -66,21 +66,25 @@ public:
                                uint8_t uFade = 255, IMatrix* pMatrix = nullptr) override;
 
     virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, int32_t nWidth) override;
+    virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, UiColor penColor, float fWidth) override;
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, UiColor penColor, float fWidth) override;
     virtual void DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen) override;
     virtual void DrawLine(const UiPointF& pt1, const UiPointF& pt2, IPen* pen) override;
 
     virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect) override;
+    virtual void DrawRect(const UiRect& rc, UiColor penColor, float fWidth, bool bLineInRect) override;
     virtual void DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect) override;
     virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) override;
     virtual void FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
     virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int32_t nWidth) override;
+    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, float fWidth) override;
     virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, IPen* pen) override;
     virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) override;
     virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
     virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int32_t nWidth) override;
+    virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, float fWidth) override;
     virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, IPen* pen) override;
     virtual void FillCircle(const UiPoint& centerPt, int32_t radius, UiColor dwColor, uint8_t uFade = 255) override;
 
@@ -240,7 +244,7 @@ private:
 
     /** 整数的DPI转换
     */
-    int32_t GetScaleInt(int32_t iValue) const;
+    float GetScaleFloat(float fValue) const;
 
     /** 绘制一个字符，记录字符属性
     * @param [in] pLineInfoParam 字符属性记录表

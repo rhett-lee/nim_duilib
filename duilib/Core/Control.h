@@ -214,57 +214,57 @@ public:
     DString GetFocusBorderColor() const;
 
     /** 设置边框的大小(left、top、right、bottom分别对应左边框大小，上边框大小，右边框大小、下边框大小)
-     * @param [in] rc 一个 `UiRect` 结构的边框大小集合
+     * @param [in] rc 一个 `UiRectF` 结构的边框大小集合
      * @param [in] bNeedDpiScale 是否需要做DPI自适应
      */
-    void SetBorderSize(UiRect rc, bool bNeedDpiScale);
+    void SetBorderSize(UiRectF rc, bool bNeedDpiScale);
 
     /** 获取边框大小
     */
-    const UiRect& GetBorderSize() const;
+    const UiRectF& GetBorderSize() const;
 
     /** 获取左侧边框大小
      * @return 左侧边框的大小  
      */
-    int32_t GetLeftBorderSize() const;
+    float GetLeftBorderSize() const;
 
     /** 设置左侧边框大小
-     * @param [in] nSize 要设置的左侧边框大小
+     * @param [in] fSize 要设置的左侧边框大小
      * @param [in] bNeedDpiScale 是否需要做DPI自适应
      */
-    void SetLeftBorderSize(int32_t nSize, bool bNeedDpiScale);
+    void SetLeftBorderSize(float fSize, bool bNeedDpiScale);
 
     /** 获取顶部边框大小
      */
-    int32_t GetTopBorderSize() const;
+    float GetTopBorderSize() const;
 
     /** 设置顶部边框大小
-     * @param [in] nSize 要设置的上方边框大小
+     * @param [in] fSize 要设置的上方边框大小
      * @param [in] bNeedDpiScale 是否需要做DPI自适应
      */
-    void SetTopBorderSize(int32_t nSize, bool bNeedDpiScale);
+    void SetTopBorderSize(float fSize, bool bNeedDpiScale);
 
     /** 获取右侧边框大小
      * @return 右侧的边框大小
      */
-    int32_t GetRightBorderSize() const;
+    float GetRightBorderSize() const;
 
     /** 设置右侧边框大小
-     * @param [in] nSize 要设置的右侧边框大小
+     * @param [in] fSize 要设置的右侧边框大小
      * @param [in] bNeedDpiScale 是否需要做DPI自适应
      */
-    void SetRightBorderSize(int32_t nSize, bool bNeedDpiScale);
+    void SetRightBorderSize(float fSize, bool bNeedDpiScale);
 
     /** 获取下方边框大小
      * @return 下方边框大小
      */
-    int32_t GetBottomBorderSize() const;
+    float GetBottomBorderSize() const;
 
     /** 设置下方边框大小
-     * @param [in] nSize 要设置的下方边框大小
+     * @param [in] fSize 要设置的下方边框大小
      * @param [in] bNeedDpiScale 是否需要做DPI自适应
      */
-    void SetBottomBorderSize(int32_t nSize, bool bNeedDpiScale);
+    void SetBottomBorderSize(float fSize, bool bNeedDpiScale);
 
     /** 设置控件四周边框的线条类型（四个边的边线的线形只能一致，不支持分开设置）
     * @param [in] borderDashStyle 线条类型, 取值范围参见 IPen::DashStyle枚举定义
@@ -1175,18 +1175,18 @@ private:
     /** 绘制边框：根据条件判断绘制圆角矩形边框还是普通矩形边框
     */
     void PaintBorders(IRender* pRender, UiRect rcDraw, 
-                      int32_t nBorderSize, UiColor dwBorderColor,
+                      float fBorderSize, UiColor dwBorderColor,
                       int8_t borderDashStyle) const;
 
     /** 画边框线
     */
     void DrawBorderLine(IRender* pRender, const UiPointF& pt1, const UiPointF& pt2,
-                        int32_t nBorderSize, UiColor dwBorderColor, int8_t borderDashStyle);
+                        float fBorderSize, UiColor dwBorderColor, int8_t borderDashStyle);
 
     /** 绘制圆角矩形
     */
     void DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize,
-                       UiColor dwBorderColor, int32_t nBorderSize,
+                       UiColor dwBorderColor, float fBorderSize,
                        int8_t borderDashStyle) const;
 
     /** 填充圆角矩形
@@ -1275,7 +1275,7 @@ private:
     std::unique_ptr<StateColorMap> m_pBorderColorMap;
 
     //控件四边的边框大小（可分别设置top/bottom/left/right四个边的值）
-    UiRect m_rcBorderSize;
+    UiRectF m_rcBorderSize;
 
     //控件四边边框的线条类型
     int8_t m_borderDashStyle;

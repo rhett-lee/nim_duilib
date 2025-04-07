@@ -33,14 +33,14 @@ public:
     bool IsLineVertical() const;
 
     /** 设置线条的宽度
-    * @param [in] lineWidth 线条宽度
+    * @param [in] fLineWidth 线条宽度
     * @param [in] bNeedDpiScale 是否支持DPI缩放
     */
-    void SetLineWidth(int32_t lineWidth, bool bNeedDpiScale);
+    void SetLineWidth(float fLineWidth, bool bNeedDpiScale);
 
     /** 获取线条的宽度
     */
-    int32_t GetLineWidth() const;
+    float GetLineWidth() const;
 
     /** 设置线条颜色
     */
@@ -76,11 +76,11 @@ private:
 
     /** 线条宽度
     */
-    int32_t m_lineWidth;
+    float m_fLineWidth;
 
     /** 线条类型
     */
-    int32_t m_dashStyle;
+    int8_t m_dashStyle;
 };
 
 }//namespace ui

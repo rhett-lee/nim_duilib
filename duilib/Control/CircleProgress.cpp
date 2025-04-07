@@ -7,7 +7,7 @@ CircleProgress::CircleProgress(Window* pWindow) :
     Progress(pWindow),
     m_bCircular(true),
     m_bClockwise(true),
-    m_nCircleWidth(1),
+    m_fCircleWidth(1.0f),
     m_dwBackgroundColor(0),
     m_dwForegroundColor(0),
     m_dwGradientColor(0),
@@ -32,7 +32,7 @@ void CircleProgress::SetAttribute(const DString& srName, const DString& strValue
     }
     else if ((srName == _T("circle_width")) || (srName == _T("circlewidth"))) {
         int32_t iValue = StringUtil::StringToInt32(strValue);
-        SetCircleWidth(iValue, true);
+        SetCircleWidth((float)iValue, true);
     }
     else if (srName == _T("indicator")) {
         SetIndicator(strValue);
@@ -60,9 +60,9 @@ void CircleProgress::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale
     if (nNewDpiScale != Dpi().GetScale()) {
         return;
     }
-    int32_t iValue = GetCircleWidth();
-    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
-    SetCircleWidth(iValue, false);
+    float fValue = GetCircleWidth();
+    fValue = Dpi().GetScaleFloat(fValue, nOldDpiScale);
+    SetCircleWidth(fValue, false);
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
@@ -82,13 +82,13 @@ void CircleProgress::PaintStateImages(IRender* pRender)
     if (pRenderFactory == nullptr) {
         return;
     }
-    IPen* bgPen = pRenderFactory->CreatePen(m_dwBackgroundColor, m_nCircleWidth);
+    IPen* bgPen = pRenderFactory->CreatePen(m_dwBackgroundColor, m_fCircleWidth);
     std::unique_ptr<IPen> spBgPen(bgPen);
     ASSERT(bgPen != nullptr);
     if (bgPen == nullptr) {
         return;
     }
-    IPen* fgPen = pRenderFactory->CreatePen(m_dwForegroundColor, m_nCircleWidth);
+    IPen* fgPen = pRenderFactory->CreatePen(m_dwForegroundColor, m_fCircleWidth);
     std::unique_ptr<IPen> spFgPen(fgPen);
     ASSERT(fgPen != nullptr);
     if (fgPen == nullptr) {
@@ -128,7 +128,7 @@ void CircleProgress::PaintStateImages(IRender* pRender)
                       -1 * pIndicatorImageInfo->GetWidth() / 2);
     }
     else {
-        outer.Inflate(-1 * m_nCircleWidth / 2, -1 * m_nCircleWidth / 2);
+        outer.Inflate(-1 * (int32_t)(m_fCircleWidth / 2), -1 * (int32_t)(m_fCircleWidth / 2));
     }
     int inflateValue = Dpi().GetScaleInt(-1);
     outer.Inflate(inflateValue, inflateValue);
@@ -186,23 +186,23 @@ void CircleProgress::SetClockwiseRotation(bool bClockwise /*= true*/)
     m_bClockwise = bClockwise;
 }
 
-void CircleProgress::SetCircleWidth(int nCircleWidth, bool bNeedDpiScale)
+void CircleProgress::SetCircleWidth(float fCircleWidth, bool bNeedDpiScale)
 {
-    if (nCircleWidth < 0) {
-        nCircleWidth = 0;
+    if (fCircleWidth < 0) {
+        fCircleWidth = 0.0f;
     }
     if (bNeedDpiScale) {
-        Dpi().ScaleInt(nCircleWidth);
+        fCircleWidth = Dpi().GetScaleFloat(fCircleWidth);
     }
-    if (m_nCircleWidth != nCircleWidth) {
-        m_nCircleWidth = nCircleWidth;
+    if (m_fCircleWidth != fCircleWidth) {
+        m_fCircleWidth = fCircleWidth;
         Invalidate();
     }    
 }
 
-int32_t CircleProgress::GetCircleWidth() const
+float CircleProgress::GetCircleWidth() const
 {
-    return m_nCircleWidth;
+    return m_fCircleWidth;
 }
 
 void CircleProgress::SetBackgroudColor(const DString& strColor)

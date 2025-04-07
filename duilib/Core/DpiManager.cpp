@@ -151,6 +151,29 @@ uint32_t DpiManager::GetScaleInt(uint32_t iValue) const
     return iValue;
 }
 
+float DpiManager::GetScaleFloat(int32_t iValue) const
+{
+    return (iValue * m_nScaleFactor) / 100.0f;
+}
+
+float DpiManager::GetScaleFloat(uint32_t iValue) const
+{
+    return (iValue * m_nScaleFactor) / 100.0f;
+}
+
+float DpiManager::GetScaleFloat(float fValue) const
+{
+    return (fValue * m_nScaleFactor) / 100.0f;
+}
+
+float DpiManager::GetScaleFloat(float fValue, uint32_t nOldDpiScale) const
+{
+    if ((nOldDpiScale == 0) || (m_nScaleFactor == 0)) {
+        return fValue;
+    }
+    return (fValue * m_nScaleFactor) / (float)nOldDpiScale;
+}
+
 int32_t DpiManager::GetScaleInt(int32_t iValue, uint32_t nOldDpiScale) const
 {
     if ((nOldDpiScale == 0) || (m_nScaleFactor == 0)) {
