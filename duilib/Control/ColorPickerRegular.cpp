@@ -259,8 +259,12 @@ Control* ColorPickerRegularProvider::CreateElement(VirtualListBox* pVirtualListB
         return nullptr;
     }
     ASSERT(pVirtualListBox->GetWindow() != nullptr);
+    if (pVirtualListBox->GetWindow() == nullptr) {
+        return nullptr;
+    }
     ListBoxItem* pControl = new ListBoxItem(pVirtualListBox->GetWindow());
-    UiRect borderSize(1, 1, 1, 1);
+    float fBorderSize = 2.0f;
+    UiRectF borderSize(fBorderSize, fBorderSize, fBorderSize, fBorderSize);
     pControl->SetBorderSize(borderSize, true);
     pControl->SetBorderColor(kControlStatePushed, _T("blue"));
     return pControl;

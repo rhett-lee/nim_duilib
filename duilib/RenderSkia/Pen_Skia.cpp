@@ -2,9 +2,9 @@
 
 namespace ui {
 
-Pen_Skia::Pen_Skia(UiColor color, int width /*= 1*/):
+Pen_Skia::Pen_Skia(UiColor color, float fWidth):
     m_color(color),
-    m_width(width),
+    m_fWidth(fWidth),
     m_startCap(kButt_Cap),
     m_dashCap(kButt_Cap),
     m_endCap(kButt_Cap),
@@ -16,7 +16,7 @@ Pen_Skia::Pen_Skia(UiColor color, int width /*= 1*/):
 Pen_Skia::Pen_Skia(const Pen_Skia& r)
 {
     m_color = r.m_color;
-    m_width = r.m_width;
+    m_fWidth = r.m_fWidth;
     m_startCap = r.m_startCap;
     m_dashCap = r.m_dashCap;
     m_endCap = r.m_endCap;
@@ -29,14 +29,14 @@ ui::IPen* Pen_Skia::Clone() const
     return new Pen_Skia(*this);
 }
 
-void Pen_Skia::SetWidth(int width)
+void Pen_Skia::SetWidth(float fWidth)
 {
-    m_width = width;
+    m_fWidth = fWidth;
 }
 
-int Pen_Skia::GetWidth() const
+float Pen_Skia::GetWidth() const
 {
-    return m_width;
+    return m_fWidth;
 }
 
 void Pen_Skia::SetColor(UiColor color)

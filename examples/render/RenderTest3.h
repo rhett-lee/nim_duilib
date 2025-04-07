@@ -40,7 +40,8 @@ public:
 private:
     /** 对整型值进行DPI自适应
     */
-    int DpiScaledInt(int iValue);
+    int32_t DpiScaledInt(int32_t iValue);
+    float DpiScaledFloat(int32_t iValue);
 
     /** 在一个矩形内绘制正六边形拼接的颜色地图, 尽量充满整个矩形
     */

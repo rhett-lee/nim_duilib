@@ -9,10 +9,10 @@ namespace ui
 Line::Line(Window* pWindow):
     Control(pWindow),
     m_bLineVertical(false),
-    m_dashStyle(IPen::kDashStyleDashDot),
-    m_lineWidth(0)
+    m_dashStyle((int8_t)IPen::kDashStyleDashDot),
+    m_fLineWidth(0)
 {
-    SetLineWidth(1, true);
+    SetLineWidth(1.0f, true);
 }
 
 DString Line::GetType() const { return DUI_CTR_LINE; }
@@ -27,7 +27,7 @@ void Line::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("line_width")) {
         if (!strValue.empty()) {
-            SetLineWidth(StringUtil::StringToInt32(strValue), true);
+            SetLineWidth((float)StringUtil::StringToInt32(strValue), true);
         }
     }
     else if (strName == _T("dash_style")) {
@@ -44,30 +44,30 @@ void Line::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     if (nNewDpiScale != Dpi().GetScale()) {
         return;
     }
-    int32_t iValue = GetLineWidth();
-    iValue = Dpi().GetScaleInt(iValue, nOldDpiScale);
-    SetLineWidth(iValue, false);
+    float fValue = GetLineWidth();
+    fValue = Dpi().GetScaleFloat(fValue, nOldDpiScale);
+    SetLineWidth(fValue, false);
 
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
-void Line::SetLineWidth(int32_t lineWidth, bool bNeedDpiScale)
+void Line::SetLineWidth(float fLineWidth, bool bNeedDpiScale)
 {
-    if (lineWidth < 0) {
-        lineWidth = 1;
+    if (fLineWidth < 0) {
+        fLineWidth = 1.0f;
     }
     if (bNeedDpiScale) {
-        Dpi().ScaleInt(lineWidth);
+        fLineWidth = Dpi().GetScaleFloat(fLineWidth);
     }
-    if (m_lineWidth != lineWidth) {
-        m_lineWidth = lineWidth;
+    if (m_fLineWidth != fLineWidth) {
+        m_fLineWidth = fLineWidth;
         Invalidate();
     }
 }
 
-int32_t Line::GetLineWidth() const
+float Line::GetLineWidth() const
 {
-    return m_lineWidth;
+    return m_fLineWidth;
 }
 
 void Line::SetLineVertical(bool bVertical)
@@ -161,11 +161,11 @@ void Line::Paint(IRender* pRender, const UiRect& rcPaint)
         sLineColor = GlobalManager::Instance().Color().GetDefaultTextColor();
     }
     UiColor lineColor = GetUiColor(sLineColor);
-    int32_t lineWidth = m_lineWidth;
-    if (lineWidth <= 0) {
-        lineWidth = this->Dpi().GetScaleInt(1);
+    float fLineWidth = GetLineWidth();
+    if (fLineWidth <= 0) {
+        fLineWidth = this->Dpi().GetScaleFloat(1);
     }
-    IPen* pLinePen = pRenderFactory->CreatePen(lineColor, lineWidth);
+    IPen* pLinePen = pRenderFactory->CreatePen(lineColor, fLineWidth);
     ASSERT(pLinePen != nullptr);
     if (pLinePen == nullptr) {
         return;

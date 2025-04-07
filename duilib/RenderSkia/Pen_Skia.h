@@ -9,17 +9,17 @@ namespace ui
 class UILIB_API Pen_Skia : public IPen
 {
 public:
-    explicit Pen_Skia(UiColor color, int width = 1);
+    explicit Pen_Skia(UiColor color, float fWidth = 1.0f);
     Pen_Skia(const Pen_Skia& r);
     Pen_Skia& operator=(const Pen_Skia& r) = delete;
 
     /** 设置画笔宽度
     */
-    virtual void SetWidth(int width) override;
+    virtual void SetWidth(float fWidth) override;
 
     /** 获取画笔宽度
     */
-    virtual int GetWidth() const override;
+    virtual float GetWidth() const override;
 
     /** 设置画笔颜色
     */
@@ -80,7 +80,7 @@ private:
 
     /** 画笔宽度
     */
-    int m_width;
+    float m_fWidth;
 
     /** 线段起始笔帽形状
     */

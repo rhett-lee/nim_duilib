@@ -97,6 +97,12 @@ public:
     int32_t GetScaleInt(int32_t iValue, uint32_t nOldDpiScale) const;
     uint32_t GetScaleInt(uint32_t iValue, uint32_t nOldDpiScale) const;
 
+    float GetScaleFloat(int32_t iValue) const;
+    float GetScaleFloat(uint32_t iValue) const;
+    float GetScaleFloat(float fValue) const;
+
+    float GetScaleFloat(float fValue, uint32_t nOldDpiScale) const;
+
     /** 根据界面缩放比来缩放SIZE
     * @param[in] size 需要缩放的Size引用
     */

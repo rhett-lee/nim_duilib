@@ -43,14 +43,14 @@ public:
     void SetClockwiseRotation(bool bClockwise = true);
 
     /** 设置圆环宽度
-    * @param [in] nCircleWidth 宽度数值
+    * @param [in] fCircleWidth 宽度数值
     * @param [in] bNeedDpiScale 是否支持DPI缩放
     */
-    void SetCircleWidth(int32_t nCircleWidth, bool bNeedDpiScale);
+    void SetCircleWidth(float fCircleWidth, bool bNeedDpiScale);
 
     /** 获取圆环宽度
     */
-    int32_t GetCircleWidth() const;
+    float GetCircleWidth() const;
 
     /** 设置进度条背景颜色
     * @param [in] strColor要设置的背景颜色字符串，该字符串必须在 global.xml 中存在
@@ -75,7 +75,7 @@ public:
 protected:
     bool m_bCircular;
     bool m_bClockwise;
-    int m_nCircleWidth;
+    float m_fCircleWidth;
     UiColor m_dwBackgroundColor;
     UiColor m_dwForegroundColor;
     UiColor m_dwGradientColor;

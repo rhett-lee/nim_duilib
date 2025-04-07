@@ -2083,6 +2083,16 @@ public:
         return dpi.GetScaleInt(iValue);
     }
 
+    /** 根据界面缩放比来缩放整数
+    * @param [in] fValue 浮点数
+    * @return 缩放后的值
+    */
+    virtual float GetScaleFloat(float fValue) const override
+    {
+        const DpiManager& dpi = ((m_pWindow != nullptr) && !m_windowFlag.expired()) ? m_pWindow->Dpi() : GlobalManager::Instance().Dpi();
+        return dpi.GetScaleFloat(fValue);
+    }
+
 private:
     Window* m_pWindow;
     std::weak_ptr<WeakFlag> m_windowFlag;

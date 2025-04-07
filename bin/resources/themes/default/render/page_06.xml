@@ -13,6 +13,15 @@
             <Control width="80" height="60" margin="10,0,0,0" border_size="2" border_color="gray" border_dash_style="dash_dot_dot"/>
         </HBox>
         
+        <HBox margin="20,20,0,0" height="64">
+            <Control width="80" height="60" margin="10,0,0,0" bkcolor="blue" border_size="2" border_color="gold"/>
+            <Control width="80" height="60" margin="10,0,0,0" bkcolor="blue" border_size="2" border_color="gold" border_dash_style="solid"/>
+            <Control width="80" height="60" margin="10,0,0,0" bkcolor="blue" border_size="2" border_color="gold" border_dash_style="dash"/>
+            <Control width="80" height="60" margin="10,0,0,0" bkcolor="blue" border_size="2" border_color="gold" border_dash_style="dot"/>
+            <Control width="80" height="60" margin="10,0,0,0" bkcolor="blue" border_size="2" border_color="gold" border_dash_style="dash_dot"/>
+            <Control width="80" height="60" margin="10,0,0,0" bkcolor="blue" border_size="2" border_color="gold" border_dash_style="dash_dot_dot"/>
+        </HBox>
+        
         <HBox margin="20,2,0,0"  height="64">
             <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2" border_color="gray"/>
             <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2" border_color="gray" border_dash_style="solid"/>
@@ -23,12 +32,30 @@
         </HBox>
         
         <HBox margin="20,2,0,0"  height="64">
-            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2,2,2,1" border_color="gray"/>
-            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2,2,2,1" border_color="gray" border_dash_style="solid"/>
-            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2,2,2,1" border_color="gray" border_dash_style="dash"/>
-            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2,2,2,1" border_color="gray" border_dash_style="dot"/>
-            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2,2,2,1" border_color="gray" border_dash_style="dash_dot"/>
-            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2,2,2,1" border_color="gray" border_dash_style="dash_dot_dot"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" bkcolor="blue" border_size="2" border_color="gold"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" bkcolor="blue" border_size="2" border_color="gold" border_dash_style="solid"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" bkcolor="blue" border_size="2" border_color="gold" border_dash_style="dash"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" bkcolor="blue" border_size="2" border_color="gold" border_dash_style="dot"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" bkcolor="blue" border_size="2" border_color="gold" border_dash_style="dash_dot"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" bkcolor="blue" border_size="2" border_color="gold" border_dash_style="dash_dot_dot"/>
+        </HBox>
+        
+        <HBox margin="20,2,0,0"  height="64">
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2,1,2,1" border_color="gray"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2,1,2,1" border_color="gray" border_dash_style="solid"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2,1,2,1" border_color="gray" border_dash_style="dash"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2,1,2,1" border_color="gray" border_dash_style="dot"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2,1,2,1" border_color="gray" border_dash_style="dash_dot"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" border_size="2,1,2,1" border_color="gray" border_dash_style="dash_dot_dot"/>
+        </HBox>
+        
+        <HBox margin="20,2,0,0"  height="64">
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" bkcolor="blue" border_size="2,1,2,1" border_color="gold"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" bkcolor="blue" border_size="2,1,2,1" border_color="gold" border_dash_style="solid"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" bkcolor="blue" border_size="2,1,2,1" border_color="gold" border_dash_style="dash"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" bkcolor="blue" border_size="2,1,2,1" border_color="gold" border_dash_style="dot"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" bkcolor="blue" border_size="2,1,2,1" border_color="gold" border_dash_style="dash_dot"/>
+            <Control width="80" height="60" border_round="8,8" margin="10,0,0,0" bkcolor="blue" border_size="2,1,2,1" border_color="gold" border_dash_style="dash_dot_dot"/>
         </HBox>
         
     </VBox>
