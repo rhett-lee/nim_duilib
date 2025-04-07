@@ -11,13 +11,13 @@ class UILIB_API StringConvert
 {
 public:
     //UTF8字符串转换为UTF16
-    static std::basic_string<UTF16Char> UTF8ToUTF16(const UTF8Char* utf8, size_t length);
+    static std::basic_string<DUTF16Char> UTF8ToUTF16(const DUTF8Char* utf8, size_t length);
 
     //UTF8字符串转换为DStringW
     static DStringW UTF8ToWString(const std::string& utf8);
 
     //UTF16字符串转换为UTF8字符串
-    static std::string UTF16ToUTF8(const UTF16Char* utf16, size_t length);
+    static std::string UTF16ToUTF8(const DUTF16Char* utf16, size_t length);
 
     //DStringW字符串转换为UTF8字符串
     static std::string WStringToUTF8(const DStringW& wstr);
@@ -28,7 +28,7 @@ public:
 
     //UTF8字符串转换为DString
     static DString UTF8ToT(const std::string& utf8);
-    static DString UTF8ToT(const UTF8Char* utf8, size_t length);
+    static DString UTF8ToT(const DUTF8Char* utf8, size_t length);
 
     //DString转换为DStringW
     static const DStringW& TToWString(const std::wstring& str);
@@ -42,22 +42,22 @@ public:
 #endif
 
     //UTF8转换为UTF32字符串
-    static std::basic_string<UTF32Char> UTF8ToUTF32(const UTF8Char* utf8, size_t length);
-    static std::basic_string<UTF32Char> UTF8ToUTF32(const std::string& utf8);
+    static std::basic_string<DUTF32Char> UTF8ToUTF32(const DUTF8Char* utf8, size_t length);
+    static std::basic_string<DUTF32Char> UTF8ToUTF32(const std::string& utf8);
 
     //UTF32转换为UTF8字符串
-    static std::string UTF32ToUTF8(const UTF32Char* utf32, size_t length);
-    static std::string UTF32ToUTF8(const std::basic_string<UTF32Char>& utf32);
+    static std::string UTF32ToUTF8(const DUTF32Char* utf32, size_t length);
+    static std::string UTF32ToUTF8(const std::basic_string<DUTF32Char>& utf32);
 
     //UTF16转换为UTF32字符串
-    static std::basic_string<UTF32Char> UTF16ToUTF32(const UTF16Char* utf16, size_t length);
+    static std::basic_string<DUTF32Char> UTF16ToUTF32(const DUTF16Char* utf16, size_t length);
 
     //DStringW字符串转换为UTF32字符串
-    static std::basic_string<UTF32Char> WStringToUTF32(const DStringW& wstr);
+    static std::basic_string<DUTF32Char> WStringToUTF32(const DStringW& wstr);
 
     //UTF32字符串转换为DStringW
-    static DStringW UTF32ToWString(const UTF32Char* utf32, size_t length);
-    static DStringW UTF32ToWString(const std::basic_string<UTF32Char>& utf32);
+    static DStringW UTF32ToWString(const DUTF32Char* utf32, size_t length);
+    static DStringW UTF32ToWString(const std::basic_string<DUTF32Char>& utf32);
 
 #ifdef DUILIB_BUILD_FOR_WIN
     //本地Ansi编码或者UTF8编码等转换成Unicode编码

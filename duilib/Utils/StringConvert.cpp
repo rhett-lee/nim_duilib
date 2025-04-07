@@ -7,26 +7,26 @@ using namespace llvm; //for ConvertUTF.h
 namespace ui
 {
 
-std::basic_string<UTF16Char> StringConvert::UTF8ToUTF16(const UTF8Char* utf8, size_t length)
+std::basic_string<DUTF16Char> StringConvert::UTF8ToUTF16(const DUTF8Char* utf8, size_t length)
 {
     if ((utf8 == nullptr) || (length == 0)) {
-        return std::basic_string<UTF16Char>();
+        return std::basic_string<DUTF16Char>();
     }
-    std::vector<UTF16Char> data;
+    std::vector<DUTF16Char> data;
     data.resize(8192);
-    UTF16Char* output = &data[0];
+    DUTF16Char* output = &data[0];
     const UTF8* src_begin = reinterpret_cast<const UTF8*>(utf8);
     const UTF8* src_end = src_begin + length;
     UTF16* dst_begin = reinterpret_cast<UTF16*>(output);
 
-    std::basic_string<UTF16Char> utf16;
+    std::basic_string<DUTF16Char> utf16;
     while (src_begin < src_end) {
         ConversionResult result = ConvertUTF8toUTF16(&src_begin,
                                                      src_end,
                                                      &dst_begin,
                                                      dst_begin + data.size(),
                                                      lenientConversion);
-        utf16.append((const UTF16Char*)output, dst_begin - reinterpret_cast<UTF16*>(output));
+        utf16.append((const DUTF16Char*)output, dst_begin - reinterpret_cast<UTF16*>(output));
         dst_begin = reinterpret_cast<UTF16*>(output);
         if (result == sourceIllegal || result == sourceExhausted)
         {
@@ -46,14 +46,14 @@ DStringW StringConvert::UTF8ToWString(const std::string& utf8)
 #endif
 }
 
-std::string StringConvert::UTF16ToUTF8(const UTF16Char* utf16, size_t length)
+std::string StringConvert::UTF16ToUTF8(const DUTF16Char* utf16, size_t length)
 {
     if ((utf16 == nullptr) || (length == 0)) {
         return std::string();
     }
-    std::vector<UTF8Char> data;
+    std::vector<DUTF8Char> data;
     data.resize(8192);
-    UTF8Char* output = &data[0];
+    DUTF8Char* output = &data[0];
     const UTF16* src_begin = reinterpret_cast<const UTF16*>(utf16);
     const UTF16* src_end = src_begin + length;
     UTF8* dst_begin = reinterpret_cast<UTF8*>(output);
@@ -79,24 +79,24 @@ std::string StringConvert::UTF16ToUTF8(const UTF16Char* utf16, size_t length)
 std::string StringConvert::WStringToUTF8(const std::wstring& wstr)
 {
 #if defined(WCHAR_T_IS_UTF16)
-    ASSERT(sizeof(UTF16Char) == sizeof(std::wstring::value_type));
-    return UTF16ToUTF8((const UTF16Char*)wstr.c_str(), wstr.length());
+    ASSERT(sizeof(DUTF16Char) == sizeof(std::wstring::value_type));
+    return UTF16ToUTF8((const DUTF16Char*)wstr.c_str(), wstr.length());
 #else
-    ASSERT(sizeof(UTF32Char) == sizeof(std::wstring::value_type));
-    return UTF32ToUTF8((const UTF32Char*)wstr.c_str(), wstr.length());
+    ASSERT(sizeof(DUTF32Char) == sizeof(std::wstring::value_type));
+    return UTF32ToUTF8((const DUTF32Char*)wstr.c_str(), wstr.length());
 #endif
 }
 
-std::basic_string<UTF32Char> StringConvert::UTF8ToUTF32(const UTF8Char* utf8, size_t length)
+std::basic_string<DUTF32Char> StringConvert::UTF8ToUTF32(const DUTF8Char* utf8, size_t length)
 {
-    std::vector<UTF32Char> data;
+    std::vector<DUTF32Char> data;
     data.resize(8192);
-    UTF32Char* output = &data[0];
+    DUTF32Char* output = &data[0];
     const UTF8* src_begin = reinterpret_cast<const UTF8*>(utf8);
     const UTF8* src_end = src_begin + length;
     UTF32* dst_begin = reinterpret_cast<UTF32*>(output);
 
-    std::basic_string<UTF32Char> utf32;
+    std::basic_string<DUTF32Char> utf32;
     while (src_begin < src_end)
     {
         ConversionResult result = ConvertUTF8toUTF32(&src_begin,
@@ -117,11 +117,11 @@ std::basic_string<UTF32Char> StringConvert::UTF8ToUTF32(const UTF8Char* utf8, si
     return utf32;
 }
 
-std::string StringConvert::UTF32ToUTF8(const UTF32Char* utf32, size_t length)
+std::string StringConvert::UTF32ToUTF8(const DUTF32Char* utf32, size_t length)
 {
-    std::vector<UTF8Char> data;
+    std::vector<DUTF8Char> data;
     data.resize(8192);
-    UTF8Char* output = &data[0];
+    DUTF8Char* output = &data[0];
     const UTF32* src_begin = reinterpret_cast<const UTF32*>(utf32);
     const UTF32* src_end = src_begin + length;
     UTF8* dst_begin = reinterpret_cast<UTF8*>(output);
@@ -147,19 +147,19 @@ std::string StringConvert::UTF32ToUTF8(const UTF32Char* utf32, size_t length)
     return utf8;
 }
 
-std::basic_string<UTF32Char> StringConvert::UTF16ToUTF32(const UTF16Char* utf16, size_t length)
+std::basic_string<DUTF32Char> StringConvert::UTF16ToUTF32(const DUTF16Char* utf16, size_t length)
 {
     if ((utf16 == nullptr) || (length == 0)) {
-        return std::basic_string<UTF32Char>();
+        return std::basic_string<DUTF32Char>();
     }
-    std::vector<UTF32Char> data;
+    std::vector<DUTF32Char> data;
     data.resize(8192);
-    UTF32Char* output = &data[0];
+    DUTF32Char* output = &data[0];
     const UTF16* src_begin = reinterpret_cast<const UTF16*>(utf16);
     const UTF16* src_end = src_begin + length;
     UTF32* dst_begin = reinterpret_cast<UTF32*>(output);
 
-    std::basic_string<UTF32Char> utf32;
+    std::basic_string<DUTF32Char> utf32;
     while (src_begin < src_end) {
         ConversionResult result = ConvertUTF16toUTF32(&src_begin,
                                                       src_end,
@@ -176,28 +176,28 @@ std::basic_string<UTF32Char> StringConvert::UTF16ToUTF32(const UTF16Char* utf16,
     return utf32;
 }
 
-std::basic_string<UTF32Char> StringConvert::WStringToUTF32(const DStringW& wstr)
+std::basic_string<DUTF32Char> StringConvert::WStringToUTF32(const DStringW& wstr)
 {
 #if defined(WCHAR_T_IS_UTF16)
-    ASSERT(sizeof(UTF16Char) == sizeof(std::wstring::value_type));
-    return UTF16ToUTF32((const UTF16Char*)wstr.c_str(), wstr.length());
+    ASSERT(sizeof(DUTF16Char) == sizeof(std::wstring::value_type));
+    return UTF16ToUTF32((const DUTF16Char*)wstr.c_str(), wstr.length());
 #else
-    ASSERT(sizeof(UTF32Char) == sizeof(std::wstring::value_type));
-    std::basic_string<UTF32Char> utf32;
-    utf32.append((const UTF32Char*)wstr.c_str(), wstr.length());
+    ASSERT(sizeof(DUTF32Char) == sizeof(std::wstring::value_type));
+    std::basic_string<DUTF32Char> utf32;
+    utf32.append((const DUTF32Char*)wstr.c_str(), wstr.length());
     return utf32;
 #endif
 }
 
-DStringW StringConvert::UTF32ToWString(const UTF32Char* utf32, size_t length)
+DStringW StringConvert::UTF32ToWString(const DUTF32Char* utf32, size_t length)
 {
     if ((utf32 == nullptr) || (length == 0)) {
         return DStringW();
     }
 #if defined(WCHAR_T_IS_UTF16)
-    std::vector<UTF16Char> data;
+    std::vector<DUTF16Char> data;
     data.resize(8192);
-    UTF16Char* output = &data[0];
+    DUTF16Char* output = &data[0];
     const UTF32* src_begin = reinterpret_cast<const UTF32*>(utf32);
     const UTF32* src_end = src_begin + length;
     UTF16* dst_begin = reinterpret_cast<UTF16*>(output);
@@ -217,14 +217,14 @@ DStringW StringConvert::UTF32ToWString(const UTF32Char* utf32, size_t length)
     }
     return utf16;
 #else
-    ASSERT(sizeof(wchar_t) == sizeof(UTF32Char));
+    ASSERT(sizeof(wchar_t) == sizeof(DUTF32Char));
     std::wstring utf32String;
     utf32String.append(utf32, length);
     return utf32String;
 #endif
 }
 
-DStringW StringConvert::UTF32ToWString(const std::basic_string<UTF32Char>& utf32)
+DStringW StringConvert::UTF32ToWString(const std::basic_string<DUTF32Char>& utf32)
 {
     return UTF32ToWString(utf32.c_str(), utf32.length());
 }
@@ -239,7 +239,7 @@ const std::string& StringConvert::TToUTF8(const std::string& str)
     return str;
 }
 
-DString StringConvert::UTF8ToT(const UTF8Char* utf8, size_t length)
+DString StringConvert::UTF8ToT(const DUTF8Char* utf8, size_t length)
 {
 #ifdef DUILIB_UNICODE
     return StringConvert::UTF8ToUTF16(utf8, length);
@@ -279,12 +279,12 @@ DString StringConvert::WStringToT(const std::wstring& wstr)
 }
 #endif
 
-std::basic_string<UTF32Char> StringConvert::UTF8ToUTF32(const std::string& utf8)
+std::basic_string<DUTF32Char> StringConvert::UTF8ToUTF32(const std::string& utf8)
 {
     return UTF8ToUTF32(utf8.c_str(), utf8.length());
 }
 
-std::string StringConvert::UTF32ToUTF8(const std::basic_string<UTF32Char>& utf32)
+std::string StringConvert::UTF32ToUTF8(const std::basic_string<DUTF32Char>& utf32)
 {
     return UTF32ToUTF8(utf32.c_str(), utf32.length());
 }

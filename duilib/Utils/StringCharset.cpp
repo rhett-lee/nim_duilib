@@ -153,7 +153,7 @@ bool StringCharset::GetDataAsString(const char* data, uint32_t length, CharsetTy
 #if defined(WCHAR_T_IS_UTF16)
         result.assign((const wchar_t*)realData, realLen / sizeof(wchar_t));
 #else
-        result = StringConvert::UTF16ToUTF32((const UTF16Char*)realData, realLen / sizeof(UTF16Char));
+        result = StringConvert::UTF16ToUTF32((const DUTF16Char*)realData, realLen / sizeof(DUTF16Char));
 #endif
     }
     else if (outCharsetType == CharsetType::UTF16_BE) {
