@@ -43,31 +43,31 @@
     #endif
 #endif
 
-typedef char UTF8Char;
+typedef char DUTF8Char;
 #if defined(WCHAR_T_IS_UTF16)
-    typedef wchar_t UTF16Char;
-    typedef int32_t UTF32Char;
+    typedef wchar_t DUTF16Char;
+    typedef int32_t DUTF32Char;
 #else
-    typedef int16_t UTF16Char;
-    typedef wchar_t UTF32Char;
+    typedef int16_t DUTF16Char;
+    typedef wchar_t DUTF32Char;
 #endif
 
-typedef std::basic_string<UTF8Char> UTF8String;
+typedef std::basic_string<DUTF8Char> UTF8String;
 typedef UTF8String U8String;
 
-typedef std::basic_string_view<UTF8Char> UTF8StringView;
+typedef std::basic_string_view<DUTF8Char> UTF8StringView;
 typedef UTF8StringView U8StringView;
 
-typedef std::basic_string<UTF16Char> UTF16String;
+typedef std::basic_string<DUTF16Char> UTF16String;
 typedef UTF16String U16String;
 
-typedef std::basic_string_view<UTF16Char> UTF16StringView;
+typedef std::basic_string_view<DUTF16Char> UTF16StringView;
 typedef UTF16StringView U16StringView;
 
-typedef std::basic_string<UTF32Char> UTF32String;
+typedef std::basic_string<DUTF32Char> UTF32String;
 typedef UTF32String U32String;
 
-typedef std::basic_string_view<UTF32Char> UTF32StringView;
+typedef std::basic_string_view<DUTF32Char> UTF32StringView;
 typedef UTF32StringView U32StringView;
 
 //字符串类型定义（Window下用Unicode，Linux下用Ansi）
