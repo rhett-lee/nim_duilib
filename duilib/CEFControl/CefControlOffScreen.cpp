@@ -514,6 +514,15 @@ bool CefControlOffScreen::OnSetFocus(const EventArgs& /*msg*/)
     if (pWindow != nullptr) {
         bool bEnableIME = IsVisible() && IsEnabled();
         pWindow->NativeWnd()->SetImeOpenStatus(bEnableIME);
+        if (bEnableIME) {
+            UiRect inputRect = GetRect();
+            UiPoint scrollOffset = GetScrollOffsetInScrollBox();
+            inputRect.Offset(-scrollOffset.x, -scrollOffset.y);
+            if (inputRect.Height() > Dpi().GetScaleInt(100)) {
+                inputRect.bottom = inputRect.top + Dpi().GetScaleInt(100);
+            }
+            pWindow->NativeWnd()->SetTextInputArea(&inputRect, 0);
+        }
     }
 
     CefRefPtr<CefBrowserHost> browserHost = GetCefBrowserHost();

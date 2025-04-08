@@ -2136,8 +2136,36 @@ const UiRect& NativeWindow_SDL::GetUpdateRect() const
     return m_rcUpdateRect;
 }
 
-void NativeWindow_SDL::SetImeOpenStatus(bool /*bOpen*/)
+void NativeWindow_SDL::SetImeOpenStatus(bool bOpen)
 {
+    if (m_sdlWindow == nullptr) {
+        return;
+    }
+    SDL_SetTextInputArea(m_sdlWindow, nullptr, 0);
+    if (bOpen) {
+        SDL_StartTextInput(m_sdlWindow);
+    }
+    else {
+        SDL_StopTextInput(m_sdlWindow);
+    }
+}
+
+void NativeWindow_SDL::SetTextInputArea(const UiRect* rect, int32_t nCursor)
+{
+    if (m_sdlWindow == nullptr) {
+        return;
+    }
+    if (rect == nullptr) {
+        SDL_SetTextInputArea(m_sdlWindow, nullptr, nCursor);
+    }
+    else {
+        SDL_Rect sdlRect;
+        sdlRect.x = rect->left;
+        sdlRect.y = rect->top;
+        sdlRect.w = rect->Width();
+        sdlRect.h = rect->Height();
+        SDL_SetTextInputArea(m_sdlWindow, &sdlRect, nCursor);
+    }
 }
 
 void NativeWindow_SDL::GetClientRect(UiRect& rcClient) const

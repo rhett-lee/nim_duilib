@@ -20,10 +20,6 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
-#ifdef DUILIB_BUILD_FOR_SDL
-#include <SDL3/SDL.h>
-#endif
-
 namespace ui {
 
 /** 拖放操作接口的实现（仅是拖入操作）
@@ -1813,12 +1809,6 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
         pWindow->NativeWnd()->SetImeOpenStatus(bEnableIME);
     }
 
-#ifdef DUILIB_BUILD_FOR_SDL
-    if (IsVisible() && !IsReadOnly() && IsEnabled()) {
-        SDL_StartTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
-    }
-#endif
-
     if ((m_pClearButton != nullptr) && !IsReadOnly()){
         m_pClearButton->SetFadeVisible(true);
     }
@@ -1849,12 +1839,6 @@ bool RichEdit::OnKillFocus(const EventArgs& msg)
     if (m_bSelAllOnFocus && IsEnabled()) {
         SetSelNone();
     }
-
-#ifdef DUILIB_BUILD_FOR_SDL
-    if (IsVisible() && !IsReadOnly() && IsEnabled()) {
-        SDL_StopTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
-    }
-#endif
 
     if (m_pClearButton != nullptr) {
         m_pClearButton->SetFadeVisible(false);
@@ -1902,10 +1886,6 @@ bool RichEdit::OnChar(const EventArgs& msg)
 #ifdef DUILIB_UNICODE
     WPARAM wParam = msg.wParam;
     WPARAM lParam = msg.lParam;
-#ifdef DUILIB_BUILD_FOR_SDL
-    wParam = msg.vkCode;
-    lParam = 0;
-#endif
     if (msg.modifierKey & ModifierKey::kIsSystemKey) {
         m_richCtrl.TxSendMessage(WM_SYSCHAR, wParam, lParam);
     }
@@ -2038,11 +2018,6 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
 
     WPARAM wParam = msg.wParam;
     LPARAM lParam = msg.lParam;
-#ifdef DUILIB_BUILD_FOR_SDL
-    wParam = msg.vkCode;
-    lParam = 0;
-#endif
-
     m_richCtrl.TxSendMessage(WM_KEYDOWN, wParam, lParam);
     return true;
 }
@@ -2091,15 +2066,6 @@ void RichEdit::OnMouseMessage(uint32_t uMsg, const EventArgs& msg)
     UiPoint pt = msg.ptMouse;
     pt.Offset(GetScrollOffsetInScrollBox());
     WPARAM wParam = msg.wParam;
-#ifdef DUILIB_BUILD_FOR_SDL
-    wParam = 0;
-    if (IsKeyDown(msg, ModifierKey::kControl)) {
-        wParam |= MK_CONTROL;
-    }
-    if (IsKeyDown(msg, ModifierKey::kShift)) {
-        wParam |= MK_SHIFT;
-    }
-#endif
     m_richCtrl.TxSendMessage(uMsg, wParam, MAKELPARAM(pt.x, pt.y));
 }
 

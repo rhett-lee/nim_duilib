@@ -459,6 +459,12 @@ public:
     */
     void SetImeOpenStatus(bool bOpen);
 
+    /** 设置输入区域
+    * @param [in] rect 文本输入矩形区域
+    * @param [in] nCursor 文本输入的位置(相对于rect.left的偏移)
+    */
+    void SetTextInputArea(const UiRect* rect, int32_t nCursor);
+
 private:
     /** 窗口过程函数
     * @param [in] hWnd 窗口句柄

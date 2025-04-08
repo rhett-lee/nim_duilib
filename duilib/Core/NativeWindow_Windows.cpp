@@ -2746,6 +2746,10 @@ void NativeWindow_Windows::EnableIME(HWND hwnd, bool bEnable)
     }
 }
 
+void NativeWindow_Windows::SetTextInputArea(const UiRect* /*rect*/, int32_t /*nCursor*/)
+{
+}
+
 } // namespace ui
 
 #endif //DUILIB_BUILD_FOR_WIN

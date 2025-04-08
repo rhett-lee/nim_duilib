@@ -1919,7 +1919,14 @@ void RichEdit::ShowCaret(bool fShow)
         m_drawCaretFlag.Cancel();
         std::function<void()> closure = UiBind(&RichEdit::ChangeCaretVisiable, this);
         GlobalManager::Instance().Timer().AddTimer(m_drawCaretFlag.GetWeakFlag(), closure, 500);
+    }
+    else {
+        m_bIsCaretVisiable = false;
+        m_drawCaretFlag.Cancel();
+    }
 
+    if (m_bTextInputMode) {
+        //设置输入框的位置
         int32_t xPos = 0;
         int32_t yPos = 0;
         GetCaretPos(xPos, yPos);
@@ -1928,32 +1935,26 @@ void RichEdit::ShowCaret(bool fShow)
         int32_t yHeight = 0;
         GetCaretSize(xWidth, yHeight);
 
-        UiPoint scrollOffset = GetScrollOffsetInScrollBox();
-
         UiRect rc = GetRect();
-        SDL_Rect sdlRect;
-        sdlRect.x = xPos - scrollOffset.x;
-        sdlRect.y = yPos - scrollOffset.y;
-        sdlRect.w = rc.right - sdlRect.x;
-        sdlRect.h = m_nRowHeight; //高度设置与行高相同
+        UiSize szScrollOffset = GetScrollOffset();
+        rc.Offset(-szScrollOffset.cx, -szScrollOffset.cy);
+
+        UiPoint scrollOffset = GetScrollOffsetInScrollBox();
+        rc.Offset(-scrollOffset.x, -scrollOffset.y);
+
+        UiRect inputRect;
+        inputRect.left = xPos - scrollOffset.x;
+        inputRect.top = yPos - scrollOffset.y;
+        inputRect.right = inputRect.left + (rc.right - inputRect.left);
+        if (inputRect.right <= inputRect.left) {
+            inputRect.right = inputRect.left + 2;
+        }
+        inputRect.bottom = inputRect.top + m_nRowHeight; //高度设置与行高相同
         ASSERT(m_nRowHeight > 0);
-#ifdef DUILIB_BUILD_FOR_SDL
-        if (m_bTextInputMode) {
-            //设置输入区域
-            int32_t nCursorOffset = xWidth + Dpi().GetScaleInt(1); //输入法的候选框与光标当前位置的距离（水平方向）, 避免遮盖光标        
-            SDL_SetTextInputArea((SDL_Window*)pWindow->NativeWnd()->GetWindowHandle(), &sdlRect, nCursorOffset);
-        }
-#endif
-    }
-    else {
-        m_bIsCaretVisiable = false;
-        m_drawCaretFlag.Cancel();
-#ifdef DUILIB_BUILD_FOR_SDL
-        if (m_bTextInputMode && (pWindow != nullptr)) {
-            //清除输入区域
-            SDL_SetTextInputArea((SDL_Window*)pWindow->NativeWnd()->GetWindowHandle(), nullptr, 0);
-        }
-#endif
+
+        //设置输入区域
+        int32_t nCursorOffset = xWidth + Dpi().GetScaleInt(1); //输入法的候选框与光标当前位置的距离（水平方向）, 避免遮盖光标        
+        pWindow->NativeWnd()->SetTextInputArea(&inputRect, nCursorOffset);
     }
 
     Invalidate();
@@ -3200,22 +3201,24 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
         pWindow->ScreenToClient(cursorPos);
     }
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     //获得焦点时，打开输入法
-    Window* pWindow = GetWindow();
     if (pWindow != nullptr) {
         bool bEnableIME = IsVisible() && !IsReadOnly() && IsEnabled();
         pWindow->NativeWnd()->SetImeOpenStatus(bEnableIME);
+        if (bEnableIME) {
+            UiRect inputRect = GetRect();
+            UiPoint scrollOffset = GetScrollOffsetInScrollBox();
+            inputRect.Offset(-scrollOffset.x, -scrollOffset.y);
+            pWindow->NativeWnd()->SetTextInputArea(&inputRect, 0);
+        }
     }
-#endif
 
-#ifdef DUILIB_BUILD_FOR_SDL
     if ((pWindow != nullptr) && IsVisible() && !IsReadOnly() && IsEnabled()) {
-        SDL_SetTextInputArea((SDL_Window*)pWindow->NativeWnd()->GetWindowHandle(), nullptr, 0);
-        SDL_StartTextInput((SDL_Window*)pWindow->NativeWnd()->GetWindowHandle());
         m_bTextInputMode = true;
     }
-#endif
+    else {
+        m_bTextInputMode = false;
+    }
 
     //更新光标位置
     SetCaretPos(cursorPos);
@@ -3250,12 +3253,7 @@ bool RichEdit::OnKillFocus(const EventArgs& msg)
         SetSelNone();
     }
 
-#ifdef DUILIB_BUILD_FOR_SDL
-    if (m_bTextInputMode) {
-        m_bTextInputMode = false;
-        SDL_StopTextInput((SDL_Window*)GetWindow()->NativeWnd()->GetWindowHandle());
-    }
-#endif
+    m_bTextInputMode = false;
 
     if (m_pClearButton != nullptr) {
         m_pClearButton->SetFadeVisible(false);
