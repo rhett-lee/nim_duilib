@@ -50,6 +50,15 @@ protected:
     virtual void ReCreateBrowser() override;
     virtual void OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> browser, const CefRange& selected_range, const std::vector<CefRect>& character_bounds) override;
 
+    /** 焦点元素发生变化（在主线程中调用）
+    */
+    virtual void OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
+                                      CefRefPtr<CefFrame> frame,
+                                      CefDOMNode::Type type,
+                                      bool bText,
+                                      bool bEditable,
+                                      const CefRect& nodeRect) override;
+
     //光标消息
     virtual bool OnSetCursor(const EventArgs& msg) override;
 
@@ -149,6 +158,10 @@ private:
     */
     void AdaptDpiScale(CefMouseEvent& mouse_event);
 
+    /** 处理焦点元素变化事件
+    */
+    void OnFocusedNodeChanged(bool bEditable, const CefRect& nodeRect);
+
 private:
     // 页面绘制的内存数据,把cef离屏渲染的数据保存到缓存中
     std::unique_ptr<CefMemoryBlock> m_pCefMemData;
@@ -158,6 +171,12 @@ private:
 
     // 当网页的组合框一类的控件弹出时，记录弹出的位置
     CefRect m_rectPopup;
+
+private:
+    //焦点元素的属性
+    bool m_bHasFocusNode;
+    bool m_bFocusNodeEditable;
+    CefRect m_focusNodeRect;
 };
 
 }

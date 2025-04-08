@@ -38,6 +38,15 @@ protected:
     /** 关闭所有的Browser对象
     */
     virtual void CloseAllBrowsers() override;
+
+    /** 焦点元素发生变化（在主线程中调用）
+    */
+    virtual void OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
+                                      CefRefPtr<CefFrame> frame,
+                                      CefDOMNode::Type type,
+                                      bool bText,
+                                      bool bEditable,
+                                      const CefRect& nodeRect) override;
 };
 }
 

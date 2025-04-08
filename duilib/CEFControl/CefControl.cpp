@@ -1072,4 +1072,13 @@ bool CefControl::IsCallbackExists(CefCallbackID nCallbackID)
     return false;
 }
 
+void CefControl::OnFocusedNodeChanged(CefRefPtr<CefBrowser> /*browser*/,
+                                      CefRefPtr<CefFrame> /*frame*/,
+                                      CefDOMNode::Type /*type*/,
+                                      bool /*bText*/,
+                                      bool /*bEditable*/,
+                                      const CefRect& /*nodeRect*/)
+{
+}
+
 } //namespace ui

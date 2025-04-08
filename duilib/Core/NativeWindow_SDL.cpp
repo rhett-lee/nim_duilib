@@ -2140,13 +2140,16 @@ void NativeWindow_SDL::SetImeOpenStatus(bool bOpen)
 {
     if (m_sdlWindow == nullptr) {
         return;
-    }
-    SDL_SetTextInputArea(m_sdlWindow, nullptr, 0);
+    }    
     if (bOpen) {
-        SDL_StartTextInput(m_sdlWindow);
+        if (!SDL_TextInputActive(m_sdlWindow)) {
+            SDL_StartTextInput(m_sdlWindow);
+            SDL_SetTextInputArea(m_sdlWindow, nullptr, 0);
+        }        
     }
     else {
-        SDL_StopTextInput(m_sdlWindow);
+        SDL_SetTextInputArea(m_sdlWindow, nullptr, 0);
+        SDL_StopTextInput(m_sdlWindow);        
     }
 }
 

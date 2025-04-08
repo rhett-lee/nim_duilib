@@ -529,6 +529,15 @@ protected:
     */
     virtual bool IsCallbackExists(CefCallbackID nCallbackID) override;
 
+    /** 焦点元素发生变化（在主线程中调用）
+    */
+    virtual void OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
+                                      CefRefPtr<CefFrame> frame,
+                                      CefDOMNode::Type type,
+                                      bool bText,
+                                      bool bEditable,
+                                      const CefRect& nodeRect) override;
+
     /// Method that will be executed when the image download has completed.
     /// |image_url| is the URL that was downloaded and |http_status_code| is the
     /// resulting HTTP status code. |image| is the resulting image, possibly at

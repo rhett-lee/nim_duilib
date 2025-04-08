@@ -68,9 +68,6 @@ public:
     // 设置Cef渲染内容的大小
     void SetViewRect(const UiRect& rc);
 
-    // 当前Web页面中获取焦点的元素是否可编辑
-    bool IsCurFieldEditable(){ return m_bFocusOnEditableField; }
-
     CefRefPtr<CefBrowser> GetBrowser(){ return m_browser; }
 
     CefRefPtr<CefBrowserHost> GetBrowserHost();
@@ -427,7 +424,6 @@ private:
     CefBrowserHandlerDelegate* m_pHandlerDelegate;
     //控件的位置
     UiRect m_rcCefControl;
-    bool m_bFocusOnEditableField;
     CefUnregistedCallbackList<ui::StdClosure> m_taskListAfterCreated;
     CefRenderHandler::DragOperation m_currentDragOperation;
 

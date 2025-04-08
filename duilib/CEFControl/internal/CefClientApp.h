@@ -67,7 +67,6 @@ private:
                                           CefRefPtr<CefProcessMessage> message) override;
 private:
     std::shared_ptr<CefJSBridge> m_renderJsBridge;
-    bool m_bLastNodeIsEditable;
     // both the browser and renderer process.
     IMPLEMENT_REFCOUNTING(CefClientApp);
 };

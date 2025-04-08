@@ -90,17 +90,26 @@ void CefClientApp::OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
                                         CefRefPtr<CefFrame> frame,
                                         CefRefPtr<CefDOMNode> node) 
 {
-    bool is_editable = (node.get() && node->IsEditable());
-    if (is_editable != m_bLastNodeIsEditable)
-    {
-        // Notify the browser of the change in focused element type.
-        m_bLastNodeIsEditable = is_editable;
-        CefRefPtr<CefProcessMessage> message = CefProcessMessage::Create(kFocusedNodeChangedMessage);
+    if (frame == nullptr){
+        return;
+    }
+    CefDOMNode::Type type = (node != nullptr) ? node->GetType() : CefDOMNode::Type::DOM_NODE_TYPE_UNSUPPORTED;
+    bool bText = (node != nullptr) ? node->IsText() : false;
+    bool bEditable = (node != nullptr) ? node->IsEditable() : false;
+    CefRect nodeRect = (node != nullptr) ? node->GetElementBounds() : CefRect();
 
-        message->GetArgumentList()->SetBool(0, is_editable);
-        if (frame != nullptr) {
-            frame->SendProcessMessage(PID_BROWSER, message);
-        }
+    CefRefPtr<CefProcessMessage> message = CefProcessMessage::Create(kFocusedNodeChangedMessage);
+    if (message != nullptr) {
+        message->GetArgumentList()->SetInt(0, (int)type);
+        message->GetArgumentList()->SetBool(1, bText);
+        message->GetArgumentList()->SetBool(2, bEditable);
+
+        message->GetArgumentList()->SetInt(3, nodeRect.x);
+        message->GetArgumentList()->SetInt(4, nodeRect.y);
+        message->GetArgumentList()->SetInt(5, nodeRect.width);
+        message->GetArgumentList()->SetInt(6, nodeRect.height);
+
+        frame->SendProcessMessage(PID_BROWSER, message);
     }
 }
 

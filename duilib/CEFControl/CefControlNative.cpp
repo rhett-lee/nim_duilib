@@ -318,4 +318,20 @@ void CefControlNative::SetWindow(ui::Window* pWindow)
 #endif    
 }
 
+void CefControlNative::OnFocusedNodeChanged(CefRefPtr<CefBrowser> /*browser*/,
+                                            CefRefPtr<CefFrame> /*frame*/,
+                                            CefDOMNode::Type /*type*/,
+                                            bool /*bText*/,
+                                            bool /*bEditable*/,
+                                            const CefRect& /*nodeRect*/)
+{
+    if (!IsVisible() || !IsEnabled()) {
+        return;
+    }
+    if (!IsFocused()) {
+        //避免双焦点控件的出现
+        SetFocus();
+    }
+}
+
 }

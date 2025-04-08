@@ -14,8 +14,7 @@
 namespace ui
 {
 
-CefClientApp::CefClientApp():
-    m_bLastNodeIsEditable(false)
+CefClientApp::CefClientApp()
 {
 }
 

@@ -19,11 +19,10 @@
 
 namespace ui
 {
-CefBrowserHandler::CefBrowserHandler()
+CefBrowserHandler::CefBrowserHandler():
+    m_pWindow(nullptr),
+    m_pHandlerDelegate(nullptr)
 {
-    m_pWindow = nullptr;
-    m_pHandlerDelegate = nullptr;
-    m_bFocusOnEditableField = false;
 }
 
 void CefBrowserHandler::SetHostWindow(ui::Window* window)
@@ -102,7 +101,21 @@ bool CefBrowserHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
     // 处理render进程发来的消息
     std::string message_name = message->GetName();
     if (message_name == kFocusedNodeChangedMessage) {
-        m_bFocusOnEditableField = message->GetArgumentList()->GetBool(0);
+        CefDOMNode::Type type = (CefDOMNode::Type)message->GetArgumentList()->GetInt(0);
+        bool bText = message->GetArgumentList()->GetBool(1);
+        bool bEditable = message->GetArgumentList()->GetBool(2);
+
+        CefRect nodeRect;
+        nodeRect.x = message->GetArgumentList()->GetInt(3);
+        nodeRect.y = message->GetArgumentList()->GetInt(4);
+        nodeRect.width = message->GetArgumentList()->GetInt(5);
+        nodeRect.height = message->GetArgumentList()->GetInt(6);
+
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser, frame, type, bText, bEditable, nodeRect]() {
+                if (m_pHandlerDelegate) {
+                    m_pHandlerDelegate->OnFocusedNodeChanged(browser, frame, type, bText, bEditable, nodeRect);
+                }
+            }));
         return true;
     }
     else if (message_name == kCallCppFunctionMessage) {

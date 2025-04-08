@@ -19,7 +19,9 @@
 namespace ui {
 
 CefControlOffScreen::CefControlOffScreen(Window* pWindow) :
-    CefControl(pWindow)
+    CefControl(pWindow),
+    m_bHasFocusNode(false),
+    m_bFocusNodeEditable(false)
 {
     m_pCefMemData = std::make_unique<CefMemoryBlock>();
     m_pCefPopupMemData = std::make_unique<CefMemoryBlock>();
@@ -509,22 +511,6 @@ void CefControlOffScreen::SendButtonDoubleClickEvent(const EventArgs& msg)
 
 bool CefControlOffScreen::OnSetFocus(const EventArgs& /*msg*/)
 {
-    //获得焦点时，打开输入法
-    Window* pWindow = GetWindow();
-    if (pWindow != nullptr) {
-        bool bEnableIME = IsVisible() && IsEnabled();
-        pWindow->NativeWnd()->SetImeOpenStatus(bEnableIME);
-        if (bEnableIME) {
-            UiRect inputRect = GetRect();
-            UiPoint scrollOffset = GetScrollOffsetInScrollBox();
-            inputRect.Offset(-scrollOffset.x, -scrollOffset.y);
-            if (inputRect.Height() > Dpi().GetScaleInt(100)) {
-                inputRect.bottom = inputRect.top + Dpi().GetScaleInt(100);
-            }
-            pWindow->NativeWnd()->SetTextInputArea(&inputRect, 0);
-        }
-    }
-
     CefRefPtr<CefBrowserHost> browserHost = GetCefBrowserHost();
     if (browserHost != nullptr) {
         browserHost->SetFocus(true);
@@ -533,6 +519,18 @@ bool CefControlOffScreen::OnSetFocus(const EventArgs& /*msg*/)
     //不调用基类的方法(基类的方法会关闭输入法)
     if (GetState() == kControlStateNormal) {
         SetState(kControlStateHot);
+    }
+
+    //设置输入法相关属性
+    if (m_bHasFocusNode) {
+        OnFocusedNodeChanged(m_bFocusNodeEditable, m_focusNodeRect);
+    }
+    else {
+        Window* pWindow = GetWindow();
+        if (pWindow != nullptr) {
+            pWindow->NativeWnd()->SetTextInputArea(nullptr, 0);
+            pWindow->NativeWnd()->SetImeOpenStatus(false);
+        }
     }
     Invalidate();
     return true;
@@ -738,6 +736,10 @@ void CefControlOffScreen::SendKeyEvent(const EventArgs& msg, cef_key_event_type_
             size_t nCharCount = text.size();
             for (size_t nCharIndex = 0; nCharIndex < nCharCount; ++nCharIndex) {
                 event.character = text[nCharIndex];
+
+                //下列值在Windows平台需要设置
+                event.unmodified_character = event.character;
+                event.windows_key_code = event.character;
                 host->SendKeyEvent(event);
             }
         }
@@ -783,6 +785,51 @@ void CefControlOffScreen::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> bro
     UNUSED_VARIABLE(selected_range);
     UNUSED_VARIABLE(character_bounds);
 #endif
+}
+
+void CefControlOffScreen::OnFocusedNodeChanged(CefRefPtr<CefBrowser> /*browser*/,
+                                               CefRefPtr<CefFrame> /*frame*/,
+                                               CefDOMNode::Type /*type*/,
+                                               bool /*bText*/,
+                                               bool bEditable,
+                                               const CefRect& nodeRect)
+{
+    OnFocusedNodeChanged(bEditable, nodeRect);
+}
+
+void CefControlOffScreen::OnFocusedNodeChanged(bool bEditable, const CefRect& nodeRect)
+{
+    m_bHasFocusNode = true;
+    m_bFocusNodeEditable = bEditable;
+    m_focusNodeRect = nodeRect;
+
+    if (!IsVisible() || !IsEnabled() || !IsFocused()) {
+        return;
+    }
+    Window* pWindow = GetWindow();
+    if (pWindow == nullptr) {
+        return;
+    }
+
+    //如果在文本编辑框内，打开输入法，否则关闭输入法
+    bool bEnableIME = bEditable;
+    pWindow->NativeWnd()->SetImeOpenStatus(bEnableIME);
+    if (bEnableIME) {
+        UiRect rc = GetRect();
+        UiPoint scrollOffset = GetScrollOffsetInScrollBox();
+        rc.Offset(-scrollOffset.x, -scrollOffset.y);
+
+        UiRect inputRect;
+        inputRect.left = rc.left + nodeRect.x;
+        inputRect.right = inputRect.left + nodeRect.width;
+        inputRect.top = rc.top + nodeRect.y;
+        inputRect.bottom = inputRect.top + nodeRect.height;
+
+        pWindow->NativeWnd()->SetTextInputArea(&inputRect, 0);
+    }
+    else {
+        pWindow->NativeWnd()->SetTextInputArea(nullptr, 0);
+    }
 }
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
