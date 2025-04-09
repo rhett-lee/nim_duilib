@@ -152,11 +152,10 @@ void ScrollBox::SetPosInternally(const UiRect& rc)
                 cx = rc.Width();
             }
         }
-        else {
-            if (cx < rc.Width()) {
-                cx = rc.Width();
-            }
-        }        
+        if (cx < rc.Width()) {
+            cx = rc.Width();
+        }
+
         int32_t cy = TruncateToInt32(requiredSize.cy);
         if (layoutType == LayoutType::HTileLayout) {
             //HTile模式是限制高度，但不限制宽度
@@ -164,11 +163,10 @@ void ScrollBox::SetPosInternally(const UiRect& rc)
                 cy = rc.Height();
             }
         }
-        else {
-            if (cy < rc.Height()) {
-                cy = rc.Height();
-            }
+        if (cy < rc.Height()) {
+            cy = rc.Height();
         }
+
         UiRect realRect(rc.left, rc.top, rc.left + cx, rc.top + cy);
         if ((realRect.Width() != rc.Width()) || (realRect.Height() != rc.Height())) {
             requiredSize = CalcRequiredSize(realRect);
