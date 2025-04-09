@@ -1534,9 +1534,11 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, void* pProcData,
     pt.Offset(scrollPos);
 #ifdef _DEBUG
     if (((uFlags & UIFIND_HITTEST) != 0) && ((uFlags & UIFIND_DRAG_DROP) == 0) && (pProcData != nullptr)) {
-        UiPoint ptOrg(*(UiPoint*)pProcData);
-        ptOrg.Offset(this->GetScrollOffsetInScrollBox());
-        ASSERT(ptOrg == pt);
+        if (!IsFloat()) {
+            UiPoint ptOrg(*(UiPoint*)pProcData);
+            ptOrg.Offset(GetScrollOffsetInScrollBox());
+            ASSERT(ptOrg == pt);
+        }
     }
 #endif // _DEBUG
     if ((uFlags & UIFIND_HITTEST) != 0 && 

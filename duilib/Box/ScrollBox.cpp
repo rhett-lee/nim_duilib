@@ -468,9 +468,11 @@ Control* ScrollBox::FindControl(FINDCONTROLPROC Proc, void* pProcData,
     boxPt.Offset(scrollPos);
 #ifdef _DEBUG
     if (((uFlags & UIFIND_HITTEST) != 0) && ((uFlags & UIFIND_DRAG_DROP) == 0) && (pProcData != nullptr)) {
-        UiPoint ptOrg(*(UiPoint*)pProcData);
-        ptOrg.Offset(this->GetScrollOffsetInScrollBox());
-        ASSERT(ptOrg == boxPt);
+        if (!IsFloat()) {
+            UiPoint ptOrg(*(UiPoint*)pProcData);
+            ptOrg.Offset(GetScrollOffsetInScrollBox());
+            ASSERT(ptOrg == boxPt);
+        }
     }
 #endif // _DEBUG
     if ((uFlags & UIFIND_HITTEST) != 0) {
