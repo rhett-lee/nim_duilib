@@ -1,7 +1,7 @@
 #ifndef DUILIB_CONFIG_H_
 #define DUILIB_CONFIG_H_
 
-/** Windows or Linux 平台
+/** 平台检测：Windows、Linux 或 macOS
 */
 #if defined (_WIN32) || defined (_WIN64)
     #define DUILIB_BUILD_FOR_WIN    1
@@ -11,6 +11,13 @@
     #define DUILIB_BUILD_FOR_LINUX  1
     //是否使用SDL的窗口和鼠标键盘事件（目前只支持SDL3）
     #define DUILIB_BUILD_FOR_SDL    1
+#elif defined(__APPLE__) && defined(__MACH__)
+    #include <TargetConditionals.h>
+    #if TARGET_OS_MAC
+        #define DUILIB_BUILD_FOR_MACOS  1
+        //是否使用SDL的窗口和鼠标键盘事件（目前只支持SDL3）
+        #define DUILIB_BUILD_FOR_SDL    1
+    #endif
 #else
     //不支持的系统
     #pragma message("Unknown Platform!")
@@ -52,8 +59,18 @@
         #define ASSERT(expr)  _ASSERTE(expr)
     #endif
 
-#elif defined  DUILIB_BUILD_FOR_LINUX
+#elif defined DUILIB_BUILD_FOR_LINUX
     #include "duilib_config_linux.h"
+    #include <cassert>
+
+    #ifdef _DEBUG
+        #define ASSERT(expr)  assert(expr)
+    #else
+        #define ASSERT(expr)  ((void)(0))
+    #endif
+
+#elif defined DUILIB_BUILD_FOR_MACOS
+    #include "duilib_config_macos.h"
     #include <cassert>
 
     #ifdef _DEBUG
