@@ -19,28 +19,34 @@
     #endif
 #endif
 
-//检测wchar_t的定义：Linux平台下，wchar_t是4个字节；Windows平台下，wchar_t是2个字节
+//检测wchar_t的定义：各平台下的wchar_t大小
 #if defined(DUILIB_BUILD_FOR_WIN)
-    //Windows平台
+    //Windows平台：wchar_t是2字节(UTF-16)
     #define WCHAR_T_IS_UTF16
-#elif defined(DUILIB_BUILD_FOR_LINUX) && defined(__GNUC__) && \
-      defined(__WCHAR_MAX__) && \
-      (__WCHAR_MAX__ == 0x7fffffff || __WCHAR_MAX__ == 0xffffffff)
-    #define WCHAR_T_IS_UTF32
-#elif defined(DUILIB_BUILD_FOR_LINUX) && defined(__GNUC__) && \
-      defined(__WCHAR_MAX__) && \
-      (__WCHAR_MAX__ == 0x7fff || __WCHAR_MAX__ == 0xffff)
+#elif defined(DUILIB_BUILD_FOR_LINUX) || defined(DUILIB_BUILD_FOR_MACOS)
+    #if defined(__GNUC__)
+        #if defined(__WCHAR_MAX__)
+            #if (__WCHAR_MAX__ == 0x7fffffff || __WCHAR_MAX__ == 0xffffffff)
+                //Linux/macOS GCC: wchar_t通常是4字节(UTF-32)
+                #define WCHAR_T_IS_UTF32
+            #elif (__WCHAR_MAX__ == 0x7fff || __WCHAR_MAX__ == 0xffff)
     // On Posix, we'll detect short wchar_t, but projects aren't guaranteed to
     // compile in this mode (in particular, Chrome doesn't). This is intended for
     // other projects using base who manage their own dependencies and make sure
     // short wchar works for them.
-    #define WCHAR_T_IS_UTF16
-#else
-    #if defined (_WIN32) || defined (_WIN64)
-        #define WCHAR_T_IS_UTF16
-    #else
-        #error Please add support for your compiler
+                //某些特殊配置下可能是2字节
+                #define WCHAR_T_IS_UTF16
+            #endif
+        #endif
     #endif
+    
+    // 如果未检测到，默认处理
+    #if !defined(WCHAR_T_IS_UTF16) && !defined(WCHAR_T_IS_UTF32)
+        // macOS默认情况下wchar_t是4字节
+        #define WCHAR_T_IS_UTF32
+    #endif
+#else
+    #error "不支持的平台，请添加对您的编译器的支持"
 #endif
 
 typedef char DUTF8Char;
@@ -83,11 +89,42 @@ typedef std::string  DStringA;
 /** String 类型宏定义
 */
 #ifdef DUILIB_UNICODE
-    //Unicode版本：数据为wchar_t类型（Windows平台为UTF16编码，Linux平台为UTF32编码）
+    //Unicode版本：数据为wchar_t类型
+    //Windows平台为UTF16编码，Linux/macOS平台为UTF32编码
     typedef std::wstring  DString;
 #else
     //多字节编码：数据为UTF8编码
     typedef std::string   DString;
 #endif
+
+// macOS特定字符串处理辅助函数
+#if defined(DUILIB_BUILD_FOR_MACOS)
+#include <CoreFoundation/CoreFoundation.h>
+
+namespace duilib {
+    // CFStringRef转换为UTF8字符串
+    inline DStringA CFStringToUTF8(CFStringRef cfStr) {
+        if (!cfStr) return DStringA();
+        
+        CFIndex length = CFStringGetLength(cfStr);
+        CFIndex maxSize = CFStringGetMaximumSizeForEncoding(length, kCFStringEncodingUTF8) + 1;
+        DStringA result;
+        result.resize(maxSize);
+        
+        if (CFStringGetCString(cfStr, &result[0], maxSize, kCFStringEncodingUTF8)) {
+            result.resize(strlen(result.c_str()));
+            return result;
+        }
+        return DStringA();
+    }
+    
+    // UTF8字符串转换为CFStringRef
+    inline CFStringRef UTF8ToCFString(const DStringA& utf8Str) {
+        return CFStringCreateWithCString(kCFAllocatorDefault, 
+                                       utf8Str.c_str(), 
+                                       kCFStringEncodingUTF8);
+    }
+}
+#endif // DUILIB_BUILD_FOR_MACOS
 
 #endif //DUILIB_STRING_H_
