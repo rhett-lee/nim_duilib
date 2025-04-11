@@ -1,0 +1,9 @@
+下载来源：https://cef-builds.spotifycdn.com/index.html
+
+MacOS ARM64：
+03/01/2025 - 133.4.8+g99a2ab1+chromium-133.0.6943.142 / Chromium 133.0.6943.142
+https://cef-builds.spotifycdn.com/cef_binary_133.4.8%2Bg99a2ab1%2Bchromium-133.0.6943.142_macosarm64.tar.bz2
+
+Chrome源码：
+    https://github.com/chromium/chromium/archive/refs/tags/133.0.6943.142.tar.gz
+
