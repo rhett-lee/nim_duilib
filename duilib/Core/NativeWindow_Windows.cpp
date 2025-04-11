@@ -4,6 +4,7 @@
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
 #include "duilib/Utils/ApiWrapper_Windows.h"
+#include "duilib/Utils/InlineHook_Windows.h"
 
 #include <CommCtrl.h>
 #include <Olectl.h>
@@ -161,6 +162,56 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
     return (m_hWnd != nullptr);
 }
 
+//使得DoModal的界面中，可以输入文字
+#ifdef DUILIB_ENABLE_INLINE_HOOK
+
+/** Hook函数的单例对象
+*/
+class UILIB_API HookIsDialogMessage: public InlineHook
+{
+public:
+    HookIsDialogMessage() = default;
+    ~HookIsDialogMessage() = default;
+    HookIsDialogMessage(const HookIsDialogMessage&) = delete;
+    HookIsDialogMessage& operator = (const HookIsDialogMessage&) = delete;
+
+
+    static HookIsDialogMessage& Instance()
+    {
+        static HookIsDialogMessage self;
+        return self;
+    }
+};
+
+
+/** 目标函数的类型
+*/
+typedef BOOL(WINAPI* PfnIsDialogMessage)(_In_ HWND hDlg, _In_ LPMSG lpMsg);
+
+/** 替换后的函数
+*/
+static BOOL WINAPI IsDialogMessageDuiLib(_In_ HWND hDlg, _In_ LPMSG lpMsg)
+{
+    // 调用原始函数（通过跳板）
+    BOOL bRet = FALSE;
+    if ((lpMsg != nullptr) && (lpMsg->message == WM_CHAR)) {
+        //不将WM_CHAR识别为对话框消息
+        return bRet;
+    }
+    auto original = HookIsDialogMessage::Instance().GetTrampoline<PfnIsDialogMessage>();
+    if (original) {
+        __try {
+            bRet = original(hDlg, lpMsg);
+        }
+        __except (EXCEPTION_EXECUTE_HANDLER) {
+            bRet = false;
+        }
+    }
+    return bRet;
+}
+
+#endif //DUILIB_ENABLE_INLINE_HOOK
+
 int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
                                       const WindowCreateParam& createParam,
                                       const WindowCreateAttributes& createAttributes,
@@ -248,6 +299,25 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
     //标记为模式对话框状态
     m_bDoModal = true;
 
+#ifdef DUILIB_ENABLE_INLINE_HOOK
+    //处理IsDialogMessage，支持RichEdit控件输入文字
+    {
+        FARPROC targetFunc = nullptr;
+        HMODULE hModule = ::GetModuleHandle(_T("User32.dll"));
+        if (hModule != nullptr) {
+#if defined(UNICODE) || defined(_UNICODE)
+            targetFunc = ::GetProcAddress(hModule, "IsDialogMessageW");
+#else
+            targetFunc = ::GetProcAddress(hModule, "IsDialogMessageA");
+#endif
+        }
+        if (targetFunc != nullptr) {
+            HookIsDialogMessage::Instance().Install(targetFunc, IsDialogMessageDuiLib);
+        }
+        HookIsDialogMessage::Instance().Install(::IsDialogMessage, IsDialogMessageDuiLib);
+    }
+#endif //DUILIB_ENABLE_INLINE_HOOK
+
     //显示模态对话框
     INT_PTR nRet = ::DialogBoxIndirectParam(GetResModuleHandle(), (LPDLGTEMPLATE)lpDialogTemplate, hParentWnd, NativeWindow_Windows::__DialogProc, (LPARAM)this);
     // 清理资源
@@ -256,6 +326,11 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
     if (nRet != -1) {
         nRet = m_closeParam;
     }
+
+#ifdef DUILIB_ENABLE_INLINE_HOOK
+    HookIsDialogMessage::Instance().Uninstall();
+#endif
+
     return (int32_t)nRet;
 }
 
@@ -2729,7 +2804,7 @@ void NativeWindow_Windows::EnableIME(HWND hwnd, bool bEnable)
         if (m_hImc != nullptr) {
             HIMC hImc = ::ImmAssociateContext(hwnd, m_hImc);
             m_hImc = nullptr;
-            ASSERT(hImc == nullptr);
+            ASSERT_UNUSED_VARIABLE(hImc == nullptr);
         }
         else {
             //检查输入法是否打开，给出断言
