@@ -505,6 +505,42 @@
     <ClCompile Include="Render\BitmapAlpha.cpp" />
     <ClCompile Include="third_party\apng\decoder-apng.cpp" />
     <ClCompile Include="third_party\convert_utf\ConvertUTF.cpp" />
+    <ClCompile Include="third_party\libudis86\decode.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="third_party\libudis86\itab.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="third_party\libudis86\syn-att.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="third_party\libudis86\syn-intel.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="third_party\libudis86\syn.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
+    <ClCompile Include="third_party\libudis86\udis86.c">
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+    </ClCompile>
     <ClCompile Include="third_party\xml\pugixml.cpp" />
     <ClCompile Include="third_party\zlib\contrib\minizip\ioapi.c" />
     <ClCompile Include="third_party\zlib\contrib\minizip\unzip.c">
@@ -524,6 +560,7 @@
     <ClCompile Include="Utils\FilePath.cpp" />
     <ClCompile Include="Utils\FilePathUtil.cpp" />
     <ClCompile Include="Utils\FileUtil.cpp" />
+    <ClCompile Include="Utils\InlineHook_Windows.cpp" />
     <ClCompile Include="Utils\LogUtil.cpp" />
     <ClCompile Include="Utils\MonitorUtil_SDL.cpp" />
     <ClCompile Include="Utils\MonitorUtil_Windows.cpp" />
@@ -733,6 +770,13 @@
     <ClInclude Include="Render\RenderConfig.h" />
     <ClInclude Include="third_party\apng\decoder-apng.h" />
     <ClInclude Include="third_party\convert_utf\ConvertUTF.h" />
+    <ClInclude Include="third_party\libudis86\decode.h" />
+    <ClInclude Include="third_party\libudis86\extern.h" />
+    <ClInclude Include="third_party\libudis86\itab.h" />
+    <ClInclude Include="third_party\libudis86\syn.h" />
+    <ClInclude Include="third_party\libudis86\types.h" />
+    <ClInclude Include="third_party\libudis86\udint.h" />
+    <ClInclude Include="third_party\libudis86\udis86.h" />
     <ClInclude Include="third_party\stb_image\stb_image.h" />
     <ClInclude Include="third_party\stb_image\stb_image_resize2.h" />
     <ClInclude Include="third_party\svg\nanosvg.h" />
@@ -750,6 +794,7 @@
     <ClInclude Include="Utils\FilePath.h" />
     <ClInclude Include="Utils\FilePathUtil.h" />
     <ClInclude Include="Utils\FileUtil.h" />
+    <ClInclude Include="Utils\InlineHook_Windows.h" />
     <ClInclude Include="Utils\LogUtil.h" />
     <ClInclude Include="Utils\Macros_Windows.h" />
     <ClInclude Include="Utils\MonitorUtil.h" />

@@ -88,6 +88,9 @@
     <Filter Include="CEFControl\internal\Windows">
       <UniqueIdentifier>{eeacd0ad-992e-498d-88f2-c5963e05d711}</UniqueIdentifier>
     </Filter>
+    <Filter Include="third_party\libudis86">
+      <UniqueIdentifier>{b0c15824-2ae6-4a01-b939-f84256133f8d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -635,6 +638,27 @@
     </ClCompile>
     <ClCompile Include="Control\IconControl.cpp">
       <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\InlineHook_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\libudis86\decode.c">
+      <Filter>third_party\libudis86</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\libudis86\itab.c">
+      <Filter>third_party\libudis86</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\libudis86\syn.c">
+      <Filter>third_party\libudis86</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\libudis86\syn-att.c">
+      <Filter>third_party\libudis86</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\libudis86\syn-intel.c">
+      <Filter>third_party\libudis86</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\libudis86\udis86.c">
+      <Filter>third_party\libudis86</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1321,6 +1345,30 @@
     </ClInclude>
     <ClInclude Include="Core\ControlPtr.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\InlineHook_Windows.h">
+      <Filter>Utils\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\libudis86\decode.h">
+      <Filter>third_party\libudis86</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\libudis86\extern.h">
+      <Filter>third_party\libudis86</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\libudis86\itab.h">
+      <Filter>third_party\libudis86</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\libudis86\syn.h">
+      <Filter>third_party\libudis86</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\libudis86\types.h">
+      <Filter>third_party\libudis86</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\libudis86\udint.h">
+      <Filter>third_party\libudis86</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\libudis86\udis86.h">
+      <Filter>third_party\libudis86</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

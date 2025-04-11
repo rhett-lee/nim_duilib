@@ -42,7 +42,6 @@ public:
     *   注意事项：
     *       (1) DoModal 是阻塞式的，窗口窗口后，直到窗口销毁后，该函数才返回
     *       (2) DoModal的窗口在窗口销毁时，不会销毁自身（包括Window子类）对象，需要自己管理对象的生命周期
-    *       (3) 已知问题：对话框中的RichEdit输入框，不支持输入文字（问题原因是IsDialogMessage函数未派发WM_CHAR消息给对话框窗口，暂未找到解决方案）
     * @param [in] pParentWindow 父窗口
     * @param [in] createParam 创建窗口所需的参数
     * @param [in] bCloseByEsc 按ESC键的时候，是否关闭窗口
