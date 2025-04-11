@@ -33,16 +33,16 @@ cd "$SRC_ROOT_DIR/build_temp/cximage"
 make 
 cd "$SRC_ROOT_DIR/"
 
-# #编译libwebp
-# rm -f "$SRC_ROOT_DIR/libs/libduilib-webp.a"
-# cmake -S "$SRC_ROOT_DIR/duilib/third_party/libwebp/" -B "$SRC_ROOT_DIR/build_temp/libwebp" \
-# -DWEBP_ENABLE_SIMD=ON \
-# -DWEBP_NEAR_LOSSLESS=OFF \
-# -DCMAKE_OSX_ARCHITECTURES="arm64" \
-# -DCMAKE_SYSTEM_PROCESSOR="arm64"
-# cd "$SRC_ROOT_DIR/build_temp/libwebp"
-# make 
-# cd "$SRC_ROOT_DIR/"
+#编译libwebp
+rm -f "$SRC_ROOT_DIR/libs/libduilib-webp.a"
+cmake -S "$SRC_ROOT_DIR/duilib/third_party/libwebp/" -B "$SRC_ROOT_DIR/build_temp/libwebp" \
+-DWEBP_ENABLE_SIMD=ON \
+-DWEBP_NEAR_LOSSLESS=OFF \
+-DCMAKE_OSX_ARCHITECTURES="arm64" \
+-DCMAKE_SYSTEM_PROCESSOR="arm64"
+cd "$SRC_ROOT_DIR/build_temp/libwebp"
+make 
+cd "$SRC_ROOT_DIR/"
 
 # # 编译libcef_dll_wrapper
 # rm -f "$SRC_ROOT_DIR/libs/libcef_dll_wrapper.a"
