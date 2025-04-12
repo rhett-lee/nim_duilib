@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Global>
     <!--默认字体名称，列表形式，依次匹配，直到发现第一个有效字体作为默认字体名称，多个字体名称用逗号分隔-->
-    <DefaultFontFamilyNames value="微软雅黑,宋体"/>
+    <DefaultFontFamilyNames value="微软雅黑,宋体,PingFang SC"/>
     
     <!--所有字体：默认为五号字-->
     <Font id="system_12" name="system" size="12"/>

@@ -1413,6 +1413,8 @@ bool ListBox::SortItems(PFNCompareFunc pfnCompare, void* pCompareContext)
     m_pCompareContext = pCompareContext;
 #ifdef _MSC_VER
     qsort_s(&(*m_items.begin()), m_items.size(), sizeof(Control*), ListBox::ItemComareFuncWindows, this);
+#elif defined(__APPLE__) // macOS
+    qsort_r(&(*m_items.begin()), m_items.size(), sizeof(Control*), this, ListBox::ItemComareFuncMacOS);   
 #else
     qsort_r(&(*m_items.begin()), m_items.size(), sizeof(Control*), ListBox::ItemComareFuncLinux, this);
 #endif    
@@ -1444,6 +1446,15 @@ int ListBox::ItemComareFuncWindows(void* pvlocale, const void* item1, const void
 int ListBox::ItemComareFuncLinux(const void *item1, const void *item2, void* pvlocale)
 {
     ListBox *pThis = (ListBox*)pvlocale;
+    if (!pThis || !item1 || !item2) {
+        return 0;
+    }
+    return pThis->ItemComareFunc(item1, item2);
+}
+
+int ListBox::ItemComareFuncMacOS(void* context, const void* item1, const void* item2)
+{
+    ListBox* pThis = (ListBox*)context;
     if (!pThis || !item1 || !item2) {
         return 0;
     }

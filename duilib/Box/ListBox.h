@@ -300,6 +300,8 @@ protected:
      */
     static int ItemComareFuncWindows(void* pvlocale, const void* item1, const void* item2);
     static int ItemComareFuncLinux(const void* item1, const void* item2, void* pvlocale);
+    static int ItemComareFuncMacOS(void* context, const void* item1, const void* item2);
+
     int ItemComareFunc(const void* item1, const void* item2);
 
     /** 选择子项(单选)
