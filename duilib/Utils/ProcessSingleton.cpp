@@ -4,6 +4,8 @@
     #include "ProcessSingleton_Windows.h"
 #elif defined (DUILIB_BUILD_FOR_LINUX)
     #include "ProcessSingleton_Linux.h"
+#elif defined (DUILIB_BUILD_FOR_MACOS)
+    #include "ProcessSingleton_MacOS.h"
 #endif
 
 #include "duilib/Utils/StringConvert.h"

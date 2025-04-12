@@ -35,11 +35,7 @@ cd "$SRC_ROOT_DIR/"
 
 #编译libwebp
 rm -f "$SRC_ROOT_DIR/libs/libduilib-webp.a"
-cmake -S "$SRC_ROOT_DIR/duilib/third_party/libwebp/" -B "$SRC_ROOT_DIR/build_temp/libwebp" \
--DWEBP_ENABLE_SIMD=ON \
--DWEBP_NEAR_LOSSLESS=OFF \
--DCMAKE_OSX_ARCHITECTURES="arm64" \
--DCMAKE_SYSTEM_PROCESSOR="arm64"
+cmake -S "$SRC_ROOT_DIR/duilib/third_party/libwebp/" -B "$SRC_ROOT_DIR/build_temp/libwebp" 
 cd "$SRC_ROOT_DIR/build_temp/libwebp"
 make 
 cd "$SRC_ROOT_DIR/"
@@ -52,12 +48,12 @@ make
 cp "$SRC_ROOT_DIR/build_temp/libcef_dll_wrapper/libcef_dll_wrapper/libcef_dll_wrapper.a" "$SRC_ROOT_DIR/libs/libcef_dll_wrapper.a"
 cd "$SRC_ROOT_DIR/"
 
-# # #编译duilib
-# rm -f "$SRC_ROOT_DIR/libs/libduilib.a"
-# cmake -S "$SRC_ROOT_DIR/duilib/" -B "$SRC_ROOT_DIR/build_temp/duilib" -DCMAKE_BUILD_TYPE=Debug
-# cd "$SRC_ROOT_DIR/build_temp/duilib"
-# make -j 4
-# cd "$SRC_ROOT_DIR/"
+# #编译duilib
+rm -f "$SRC_ROOT_DIR/libs/libduilib.a"
+cmake -S "$SRC_ROOT_DIR/duilib/" -B "$SRC_ROOT_DIR/build_temp/duilib" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/duilib"
+make -j 4
+cd "$SRC_ROOT_DIR/"
 
 
 
