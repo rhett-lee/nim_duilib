@@ -9,9 +9,12 @@
 #include "include/core/SkFont.h"
 #include "include/core/SkData.h"
 
-#include "include/core/SkRefCnt.h"  // 包含sk_sp的完整定义
-#include "include/ports/SkFontMgr_mac_ct.h"  // macOS专用API
-#include "include/core/SkTypeface.h" // 确保SkFontMgr完整定义
+#include "include/core/SkRefCnt.h"      // 包含sk_sp的完整定义
+#include "include/core/SkTypeface.h"    // 确保SkFontMgr完整定义
+
+#if defined(SK_BUILD_FOR_MAC)
+    #include "include/ports/SkFontMgr_mac_ct.h"  // macOS专用API
+#endif
 
 #if defined(SK_BUILD_FOR_WIN)
     #include "include/ports/SkTypeface_win.h"
