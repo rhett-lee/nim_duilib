@@ -30,14 +30,12 @@ Control::Control(Window* pWindow) :
     m_nAlpha(255),
     m_nHotAlpha(0),
     m_sUserDataID(),
-    m_strBkColor(),
     m_pBoxShadow(nullptr),
     m_isBoxShadowPainted(false),
     m_uUserDataID((size_t)-1),
     m_pLoading(nullptr),
     m_bShowFocusRect(false),
-    m_nPaintOrder(0),
-    m_nBkColor2Direction(0)
+    m_nPaintOrder(0)
 {
 }
 
@@ -637,13 +635,21 @@ AnimationManager& Control::GetAnimationManager()
     return *m_animationManager;
 }
 
+DString Control::GetBkColor() const
+{
+    return (m_pBkColorData != nullptr) ? m_pBkColorData->m_strBkColor.c_str() : DString();
+}
+
 void Control::SetBkColor(const DString& strColor)
 {
     ASSERT(strColor.empty() || HasUiColor(strColor));
-    if (m_strBkColor == strColor) {
+    if (m_pBkColorData == nullptr) {
+        m_pBkColorData = std::make_unique<TBkColorData>();
+    }
+    if (m_pBkColorData->m_strBkColor == strColor) {
         return;
     }
-    m_strBkColor = strColor;
+    m_pBkColorData->m_strBkColor = strColor;
     Invalidate();
 }
 
@@ -660,10 +666,13 @@ void Control::SetBkColor(const UiColor& color)
 void Control::SetBkColor2(const DString& strColor)
 {
     ASSERT(strColor.empty() || HasUiColor(strColor));
-    if (m_strBkColor2 == strColor) {
+    if (m_pBkColorData == nullptr) {
+        m_pBkColorData = std::make_unique<TBkColorData>();
+    }
+    if (m_pBkColorData->m_strBkColor2 == strColor) {
         return;
     }
-    m_strBkColor2 = strColor;
+    m_pBkColorData->m_strBkColor2 = strColor;
     Invalidate();
 }
 
@@ -679,14 +688,17 @@ void Control::SetBkColor2(const UiColor& color)
 
 DString Control::GetBkColor2() const
 {
-    return m_strBkColor2.c_str();
+    return (m_pBkColorData != nullptr) ? m_pBkColorData->m_strBkColor2.c_str() : DString();
 }
 
 void Control::SetBkColor2Direction(const DString& direction)
 {
     int8_t nDirection = GetColor2Direction(direction);
-    if (m_nBkColor2Direction != nDirection) {
-        m_nBkColor2Direction = nDirection;
+    if (m_pBkColorData == nullptr) {
+        m_pBkColorData = std::make_unique<TBkColorData>();
+    }
+    if (m_pBkColorData->m_nBkColor2Direction != nDirection) {
+        m_pBkColorData->m_nBkColor2Direction = nDirection;
         Invalidate();
     }
 }
@@ -694,14 +706,16 @@ void Control::SetBkColor2Direction(const DString& direction)
 DString Control::GetBkColor2Direction() const
 {
     DString strBkColor2Direction = _T("1");
-    if (m_nBkColor2Direction == 2) {
-        strBkColor2Direction = _T("2");
-    }
-    else if (m_nBkColor2Direction == 3) {
-        strBkColor2Direction = _T("3");
-    }
-    else if (m_nBkColor2Direction == 4) {
-        strBkColor2Direction = _T("4");
+    if (m_pBkColorData != nullptr) {
+        if (m_pBkColorData->m_nBkColor2Direction == 2) {
+            strBkColor2Direction = _T("2");
+        }
+        else if (m_pBkColorData->m_nBkColor2Direction == 3) {
+            strBkColor2Direction = _T("3");
+        }
+        else if (m_pBkColorData->m_nBkColor2Direction == 4) {
+            strBkColor2Direction = _T("4");
+        }
     }
     return strBkColor2Direction;
 }
@@ -2636,7 +2650,7 @@ void Control::PaintShadow(IRender* pRender)
 
 void Control::PaintBkColor(IRender* pRender)
 {
-    if (m_strBkColor.empty()) {
+    if ((m_pBkColorData == nullptr) || m_pBkColorData->m_strBkColor.empty()) {
         return;
     }
     ASSERT(pRender != nullptr);
@@ -2644,7 +2658,7 @@ void Control::PaintBkColor(IRender* pRender)
         return;
     }
 
-    UiColor dwBackColor = GetUiColor(m_strBkColor.c_str());
+    UiColor dwBackColor = GetUiColor(m_pBkColorData->m_strBkColor.c_str());
     if(dwBackColor.GetARGB() != 0) {
         int32_t nBorderSize = 0;
         if ((m_pBorderData != nullptr) && (m_pBorderData->m_rcBorderSize.left > 0.001f) &&
@@ -2669,12 +2683,16 @@ void Control::PaintBkColor(IRender* pRender)
         }
         else {            
             UiColor dwBackColor2;
-            if (!m_strBkColor2.empty()) {
-                dwBackColor2 = GetUiColor(m_strBkColor2.c_str());
+            if ((m_pBkColorData != nullptr) && !m_pBkColorData->m_strBkColor2.empty()) {
+                dwBackColor2 = GetUiColor(m_pBkColorData->m_strBkColor2.c_str());
             }
             if (!dwBackColor2.IsEmpty()) {
                 //渐变背景色
-                pRender->FillRect(fillRect, dwBackColor, dwBackColor2, m_nBkColor2Direction);
+                int8_t nColor2Direction = 1;
+                if (m_pBkColorData != nullptr) {
+                    nColor2Direction = m_pBkColorData->m_nBkColor2Direction;
+                }
+                pRender->FillRect(fillRect, dwBackColor, dwBackColor2, nColor2Direction);
             }
             else {
                 pRender->FillRect(fillRect, dwBackColor);
@@ -3061,12 +3079,16 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
                 //这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
                 AddRoundRectPath(path.get(), rc, roundSize);
                 UiColor dwBackColor2;
-                if (!m_strBkColor2.empty()) {
-                    dwBackColor2 = GetUiColor(m_strBkColor2.c_str());
+                if ((m_pBkColorData != nullptr) && !m_pBkColorData->m_strBkColor2.empty()) {
+                    dwBackColor2 = GetUiColor(m_pBkColorData->m_strBkColor2.c_str());
                 }
                 if (!dwBackColor2.IsEmpty()) {
                     //渐变背景色
-                    pRender->FillPath(path.get(), rc, dwColor, dwBackColor2, m_nBkColor2Direction);
+                    int8_t nColor2Direction = 1;
+                    if (m_pBkColorData != nullptr) {
+                        nColor2Direction = m_pBkColorData->m_nBkColor2Direction;
+                    }
+                    pRender->FillPath(path.get(), rc, dwColor, dwBackColor2, nColor2Direction);
                 }
                 else {
                     pRender->FillPath(path.get(), brush.get());
@@ -3077,12 +3099,16 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
     }
     if (!isDrawOk) {
         UiColor dwBackColor2;
-        if (!m_strBkColor2.empty()) {
-            dwBackColor2 = GetUiColor(m_strBkColor2.c_str());
+        if ((m_pBkColorData != nullptr) && !m_pBkColorData->m_strBkColor2.empty()) {
+            dwBackColor2 = GetUiColor(m_pBkColorData->m_strBkColor2.c_str());
         }
         if (!dwBackColor2.IsEmpty()) {
             //渐变背景色
-            pRender->FillRoundRect(rc, roundSize, dwColor, dwBackColor2, m_nBkColor2Direction);
+            int8_t nColor2Direction = 1;
+            if (m_pBkColorData != nullptr) {
+                nColor2Direction = m_pBkColorData->m_nBkColor2Direction;
+            }
+            pRender->FillRoundRect(rc, roundSize, dwColor, dwBackColor2, nColor2Direction);
         }
         else {
             pRender->FillRoundRect(rc, roundSize, dwColor);
