@@ -1214,6 +1214,66 @@ private:
     int8_t GetColor2Direction(const UiString& bkColor2Direction) const;
 
 private:
+    /** 获取AttachXXX接口的监听事件管理器
+    */
+    EventMap& GetAttachEventMap();
+    bool HasAttachEventMap() const;
+
+    /** 获取通过XML中，配置<Event>标签添加的响应事件管理接口
+    */
+    EventMap& GetXmlEventMap();
+    bool HasXmlEventMap() const;
+
+    /** 获取通过AttachBubbledEvent接口添加的事件管理接口
+    */
+    EventMap& GetBubbledEventMap();
+    bool HasBubbledEventMap() const;
+
+    /** 获取通过XML中，配置<BubbledEvent>标签添加的响应事件管理接口
+    */
+    EventMap& GetXmlBubbledEventMap();
+    bool HasXmlBubbledEventMap() const;
+
+private:
+    //回调事件管理
+    struct TEventMapData
+    {
+        TEventMapData():
+            m_pXmlEvent(nullptr),
+            m_pBubbledEvent(nullptr),
+            m_pXmlBubbledEvent(nullptr)
+        {
+        }
+        ~TEventMapData()
+        {
+            if (m_pXmlEvent != nullptr) {
+                delete m_pXmlEvent;
+                m_pXmlEvent = nullptr;
+            }
+            if (m_pBubbledEvent != nullptr) {
+                delete m_pBubbledEvent;
+                m_pBubbledEvent = nullptr;
+            }
+            if (m_pXmlBubbledEvent != nullptr) {
+                delete m_pXmlBubbledEvent;
+                m_pXmlBubbledEvent = nullptr;
+            }
+        }
+
+        //通过AttachXXX接口，添加的监听事件
+        EventMap m_attachEvent;
+
+        //通过XML中，配置<Event标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
+        EventMap* m_pXmlEvent;
+
+        //通过AttachBubbledEvent接口添加的事件
+        EventMap* m_pBubbledEvent;
+
+        //通过XML中，配置<BubbledEvent标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
+        EventMap* m_pXmlBubbledEvent;
+    };
+
+private:
     //控件阴影，其圆角大小通过m_cxyBorderRound变量控制
     BoxShadow* m_pBoxShadow;
 
@@ -1283,18 +1343,9 @@ private:
     //用户数据ID(整型值)
     size_t m_uUserDataID;
 
-private:
-    //通过AttachXXX接口，添加的监听事件
-    EventMap* m_pOnEvent;
-
-    //通过XML中，配置<Event标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
-    EventMap* m_pOnXmlEvent;
-
-    //通过AttachBubbledEvent接口添加的事件
-    EventMap* m_pOnBubbledEvent;
-
-    //通过XML中，配置<BubbledEvent标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
-    EventMap* m_pOnXmlBubbledEvent;
+    /** 回调事件管理器
+    */
+    std::unique_ptr<TEventMapData> m_pEventMapData;
 
 private:
     /** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
