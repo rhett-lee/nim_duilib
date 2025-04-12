@@ -1413,6 +1413,8 @@ bool ListBox::SortItems(PFNCompareFunc pfnCompare, void* pCompareContext)
     m_pCompareContext = pCompareContext;
 #ifdef _MSC_VER
     qsort_s(&(*m_items.begin()), m_items.size(), sizeof(Control*), ListBox::ItemComareFuncWindows, this);
+#elif defined(__APPLE__) // macOS
+    qsort_r(&(*m_items.begin()), m_items.size(), sizeof(Control*), this, ListBox::ItemComareFuncMacOS);   
 #else
     qsort_r(&(*m_items.begin()), m_items.size(), sizeof(Control*), ListBox::ItemComareFuncLinux, this);
 #endif    

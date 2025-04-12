@@ -87,7 +87,7 @@ private:
         bool m_bSelected = false;
 
         //比较函数
-        bool operator < (const RegularColor& r)
+        bool operator < (const RegularColor& r) const
         {
             //按照颜色的灰度值排序
             double v1 = colorValue.GetR() * 0.299 + colorValue.GetG() * 0.587 + colorValue.GetB() * 0.114;

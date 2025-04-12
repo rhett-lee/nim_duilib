@@ -23,9 +23,20 @@ endif()
 
 add_definitions(-DSK_GANESH -DSK_GL -DSK_RELEASE)
 
+#设置libcef目录路径
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")  # macOS
+    set(CEF_LIB_DIR "libcef_macos")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")  # Linux
+    set(CEF_LIB_DIR "libcef_linux")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows
+    set(CEF_LIB_DIR "libcef_windows")
+else()
+    message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
+endif()
+
 #设置include目录
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
-get_filename_component(CEF_INCLUDE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/libcef_linux/" ABSOLUTE)
+get_filename_component(CEF_INCLUDE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/${CEF_LIB_DIR}/" ABSOLUTE)
 get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
 get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
 
@@ -102,3 +113,19 @@ add_library(duilib
     	    ${SKIA_HDRS}
     	    ${SKIA_SRCS}
            )
+
+# macOS 特有链接库
+if(APPLE)
+    find_package(Freetype REQUIRED)
+    find_library(CORETEXT_LIBRARY CoreText)
+    target_link_libraries(duilib
+        PRIVATE
+        Freetype::Freetype
+        ${CORETEXT_LIBRARY}
+        "-framework Cocoa"
+        "-framework OpenGL"
+        "-framework IOKit"
+        "-framework CoreFoundation"
+        "-framework CoreGraphics"
+    )
+endif()
