@@ -39,10 +39,6 @@ Control::Control(Window* pWindow) :
     m_pBoxShadow(nullptr),
     m_isBoxShadowPainted(false),
     m_uUserDataID((size_t)-1),
-    m_pOnEvent(nullptr),
-    m_pOnXmlEvent(nullptr),
-    m_pOnBubbledEvent(nullptr),
-    m_pOnXmlBubbledEvent(nullptr),
     m_pLoading(nullptr),
     m_bShowFocusRect(false),
     m_nPaintOrder(0),
@@ -71,22 +67,6 @@ Control::~Control()
     if (m_pBoxShadow != nullptr) {
         delete m_pBoxShadow;
         m_pBoxShadow = nullptr;
-    }
-    if (m_pOnEvent != nullptr) {
-        delete m_pOnEvent;
-        m_pOnEvent = nullptr;
-    }
-    if (m_pOnXmlEvent != nullptr) {
-        delete m_pOnXmlEvent;
-        m_pOnXmlEvent = nullptr;
-    }
-    if (m_pOnBubbledEvent != nullptr) {
-        delete m_pOnBubbledEvent;
-        m_pOnBubbledEvent = nullptr;
-    }
-    if (m_pOnXmlBubbledEvent != nullptr) {
-        delete m_pOnXmlBubbledEvent;
-        m_pOnXmlBubbledEvent = nullptr;
     }
 }
 
@@ -3266,10 +3246,8 @@ void Control::ClearImageCache()
 
 void Control::AttachEvent(EventType type, const EventCallback& callback)
 {
-    if (m_pOnEvent == nullptr) {
-        m_pOnEvent = new EventMap;
-    }
-    (*m_pOnEvent)[type] += callback;
+    EventMap& attachEventMap = GetAttachEventMap();
+    attachEventMap[type] += callback;
     if ((type == kEventContextMenu) || (type == kEventAll)) {
         SetContextMenuUsed(true);
     }
@@ -3277,16 +3255,17 @@ void Control::AttachEvent(EventType type, const EventCallback& callback)
 
 void Control::DetachEvent(EventType type)
 {
-    if (m_pOnEvent == nullptr) {
+    if (!HasAttachEventMap()) {
         return;
     }
-    auto event = m_pOnEvent->find(type);
-    if (event != m_pOnEvent->end()) {
-        m_pOnEvent->erase(event);
+    EventMap& attachEventMap = GetAttachEventMap();
+    auto event = attachEventMap.find(type);
+    if (event != attachEventMap.end()) {
+        attachEventMap.erase(event);
     }
     if ((type == kEventContextMenu) || (type == kEventAll)) {
-        if ((m_pOnEvent->find(kEventAll) == m_pOnEvent->end()) &&
-            (m_pOnEvent->find(kEventContextMenu) == m_pOnEvent->end())) {
+        if ((attachEventMap.find(kEventAll) == attachEventMap.end()) &&
+            (attachEventMap.find(kEventContextMenu) == attachEventMap.end())) {
             SetContextMenuUsed(false);
         }
     }
@@ -3294,58 +3273,55 @@ void Control::DetachEvent(EventType type)
 
 void Control::AttachXmlEvent(EventType eventType, const EventCallback& callback)
 {
-    if (m_pOnXmlEvent == nullptr) {
-        m_pOnXmlEvent = new EventMap;
-    }
-    (*m_pOnXmlEvent)[eventType] += callback; 
+    EventMap& xmlEventMap = GetXmlEventMap();
+    xmlEventMap[eventType] += callback;
 }
 
 void Control::DetachXmlEvent(EventType type)
 {
-    if (m_pOnXmlEvent == nullptr) {
+    if (!HasXmlEventMap()) {
         return;
     }
-    auto event = m_pOnXmlEvent->find(type);
-    if (event != m_pOnXmlEvent->end()) {
-        m_pOnXmlEvent->erase(event);
+    EventMap& xmlEventMap = GetXmlEventMap();
+    auto event = xmlEventMap.find(type);
+    if (event != xmlEventMap.end()) {
+        xmlEventMap.erase(event);
     }
 }
 
 void Control::AttachBubbledEvent(EventType eventType, const EventCallback& callback)
 {
-    if (m_pOnBubbledEvent == nullptr) {
-        m_pOnBubbledEvent = new EventMap;
-    }
-    (*m_pOnBubbledEvent)[eventType] += callback;
+    EventMap& bubbledEventMap = GetBubbledEventMap();
+    bubbledEventMap[eventType] += callback;
 }
 
 void Control::DetachBubbledEvent(EventType eventType)
 {
-    if (m_pOnBubbledEvent == nullptr) {
+    if (!HasBubbledEventMap()) {
         return;
     }
-    auto event = m_pOnBubbledEvent->find(eventType);
-    if (event != m_pOnBubbledEvent->end()) {
-        m_pOnBubbledEvent->erase(eventType);
+    EventMap& bubbledEventMap = GetBubbledEventMap();
+    auto event = bubbledEventMap.find(eventType);
+    if (event != bubbledEventMap.end()) {
+        bubbledEventMap.erase(eventType);
     }
 }
 
 void Control::AttachXmlBubbledEvent(EventType eventType, const EventCallback& callback)
 {
-    if (m_pOnXmlBubbledEvent == nullptr) {
-        m_pOnXmlBubbledEvent = new EventMap;
-    }
-    (*m_pOnXmlBubbledEvent)[eventType] += callback;
+    EventMap& xmlBubbledEventMap = GetXmlBubbledEventMap();
+    xmlBubbledEventMap[eventType] += callback;
 }
 
 void Control::DetachXmlBubbledEvent(EventType eventType)
 {
-    if (m_pOnXmlBubbledEvent == nullptr) {
+    if (!HasXmlBubbledEventMap()) {
         return;
     }
-    auto event = m_pOnXmlBubbledEvent->find(eventType);
-    if (event != m_pOnXmlBubbledEvent->end())    {
-        m_pOnXmlBubbledEvent->erase(eventType);
+    EventMap& xmlBubbledEventMap = GetXmlBubbledEventMap();
+    auto event = xmlBubbledEventMap.find(eventType);
+    if (event != xmlBubbledEventMap.end())    {
+        xmlBubbledEventMap.erase(eventType);
     }
 }
 
@@ -3358,17 +3334,18 @@ bool Control::FireAllEvents(const EventArgs& msg)
     bool bRet = true;//当值为false时，就不再调用回调函数和处理函数
 
     if (msg.GetSender() == this) {
-        if (bRet && (m_pOnEvent != nullptr) && !m_pOnEvent->empty()) {
-            auto callback = m_pOnEvent->find(msg.eventType);
-            if (callback != m_pOnEvent->end()) {
+        if (bRet && HasAttachEventMap() && !GetAttachEventMap().empty()) {
+            const EventMap& attachEventMap = GetAttachEventMap();
+            auto callback = attachEventMap.find(msg.eventType);
+            if (callback != attachEventMap.end()) {
                 bRet = callback->second(msg);
             }
             if (weakflag.expired() || msg.IsSenderExpired()) {
                 return false;
             }
 
-            callback = m_pOnEvent->find(kEventAll);
-            if (callback != m_pOnEvent->end()) {
+            callback = attachEventMap.find(kEventAll);
+            if (callback != attachEventMap.end()) {
                 bRet = callback->second(msg);
             }
             if (weakflag.expired() || msg.IsSenderExpired()) {
@@ -3376,17 +3353,18 @@ bool Control::FireAllEvents(const EventArgs& msg)
             }
         }
 
-        if (bRet && (m_pOnXmlEvent != nullptr) && !m_pOnXmlEvent->empty()) {
-            auto callback = m_pOnXmlEvent->find(msg.eventType);
-            if (callback != m_pOnXmlEvent->end()) {
+        if (bRet && HasXmlEventMap() && !GetXmlEventMap().empty()) {
+            const EventMap& xmlEventMap = GetXmlEventMap();
+            auto callback = xmlEventMap.find(msg.eventType);
+            if (callback != xmlEventMap.end()) {
                 bRet = callback->second(msg);
             }
             if (weakflag.expired() || msg.IsSenderExpired()) {
                 return false;
             }
 
-            callback = m_pOnXmlEvent->find(kEventAll);
-            if (callback != m_pOnXmlEvent->end()) {
+            callback = xmlEventMap.find(kEventAll);
+            if (callback != xmlEventMap.end()) {
                 bRet = callback->second(msg);
             }
             if (weakflag.expired() || msg.IsSenderExpired()) {
@@ -3395,17 +3373,18 @@ bool Control::FireAllEvents(const EventArgs& msg)
         }
     }
 
-    if (bRet && (m_pOnBubbledEvent != nullptr) && !m_pOnBubbledEvent->empty()) {
-        auto callback = m_pOnBubbledEvent->find(msg.eventType);
-        if (callback != m_pOnBubbledEvent->end()) {
+    if (bRet && HasBubbledEventMap() && !GetBubbledEventMap().empty()) {
+        const EventMap& bubbledEventMap = GetBubbledEventMap();
+        auto callback = bubbledEventMap.find(msg.eventType);
+        if (callback != bubbledEventMap.end()) {
             bRet = callback->second(msg);
         }
         if (weakflag.expired() || msg.IsSenderExpired()) {
             return false;
         }
 
-        callback = m_pOnBubbledEvent->find(kEventAll);
-        if (callback != m_pOnBubbledEvent->end()) {
+        callback = bubbledEventMap.find(kEventAll);
+        if (callback != bubbledEventMap.end()) {
             bRet = callback->second(msg);
         }
         if (weakflag.expired() || msg.IsSenderExpired()) {
@@ -3413,17 +3392,18 @@ bool Control::FireAllEvents(const EventArgs& msg)
         }
     }
 
-    if (bRet && (m_pOnXmlBubbledEvent != nullptr) && !m_pOnXmlBubbledEvent->empty()) {
-        auto callback = m_pOnXmlBubbledEvent->find(msg.eventType);
-        if (callback != m_pOnXmlBubbledEvent->end()) {
+    if (bRet && HasXmlBubbledEventMap() && !GetXmlBubbledEventMap().empty()) {
+        const EventMap& xmlBubbledEventMap = GetXmlBubbledEventMap();
+        auto callback = xmlBubbledEventMap.find(msg.eventType);
+        if (callback != xmlBubbledEventMap.end()) {
             bRet = callback->second(msg);
         }
         if (weakflag.expired() || msg.IsSenderExpired()) {
             return false;
         }
 
-        callback = m_pOnXmlBubbledEvent->find(kEventAll);
-        if (callback != m_pOnXmlBubbledEvent->end()) {
+        callback = xmlBubbledEventMap.find(kEventAll);
+        if (callback != xmlBubbledEventMap.end()) {
             bRet = callback->second(msg);
         }
         if (weakflag.expired() || msg.IsSenderExpired()) {
@@ -3589,6 +3569,67 @@ uint8_t Control::GetPaintOrder() const
 IFont* Control::GetIFontById(const DString& strFontId) const
 {
     return GlobalManager::Instance().Font().GetIFont(strFontId, this->Dpi());
+}
+
+EventMap& Control::GetAttachEventMap()
+{
+    if (m_pEventMapData == nullptr) {
+        m_pEventMapData = std::make_unique<TEventMapData>();
+    }
+    return m_pEventMapData->m_attachEvent;
+}
+
+bool Control::HasAttachEventMap() const
+{
+    return m_pEventMapData != nullptr;
+}
+
+EventMap& Control::GetXmlEventMap()
+{
+    if (m_pEventMapData == nullptr) {
+        m_pEventMapData = std::make_unique<TEventMapData>();
+    }
+    if (m_pEventMapData->m_pXmlEvent == nullptr) {
+        m_pEventMapData->m_pXmlEvent = new EventMap;
+    }
+    return *m_pEventMapData->m_pXmlEvent;
+}
+
+bool Control::HasXmlEventMap() const
+{
+    return (m_pEventMapData != nullptr) && (m_pEventMapData->m_pXmlEvent != nullptr);
+}
+
+EventMap& Control::GetBubbledEventMap()
+{
+    if (m_pEventMapData == nullptr) {
+        m_pEventMapData = std::make_unique<TEventMapData>();
+    }
+    if (m_pEventMapData->m_pBubbledEvent == nullptr) {
+        m_pEventMapData->m_pBubbledEvent = new EventMap;
+    }
+    return *m_pEventMapData->m_pBubbledEvent;
+}
+
+bool Control::HasBubbledEventMap() const
+{
+    return (m_pEventMapData != nullptr) && (m_pEventMapData->m_pBubbledEvent != nullptr);
+}
+
+EventMap& Control::GetXmlBubbledEventMap()
+{
+    if (m_pEventMapData == nullptr) {
+        m_pEventMapData = std::make_unique<TEventMapData>();
+    }
+    if (m_pEventMapData->m_pXmlBubbledEvent == nullptr) {
+        m_pEventMapData->m_pXmlBubbledEvent = new EventMap;
+    }
+    return *m_pEventMapData->m_pXmlBubbledEvent;
+}
+
+bool Control::HasXmlBubbledEventMap() const
+{
+    return (m_pEventMapData != nullptr) && (m_pEventMapData->m_pXmlBubbledEvent != nullptr);
 }
 
 } // namespace ui

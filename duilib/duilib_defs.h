@@ -258,7 +258,7 @@ namespace ui
     };
 
     //定义所有消息类型
-    enum EventType
+    enum EventType: int8_t
     {
         kEventNone,
         kEventFirst,                //第一个消息（暂时没用到）
