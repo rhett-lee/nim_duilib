@@ -19,12 +19,8 @@ namespace ui
 Control::Control(Window* pWindow) :
     PlaceHolder(pWindow),
     m_bContextMenuUsed(false),
-    m_bEnabled(true),
-    m_bMouseEnabled(true),
-    m_bKeyboardEnabled(true),
     m_bMouseFocused(false),
     m_bNoFocus(false),
-    m_bClip(true),
     m_bAllowTabstop(true),
     m_renderOffset(),
     m_cxyBorderRound(),
@@ -49,7 +45,8 @@ Control::Control(Window* pWindow) :
     m_pOnXmlBubbledEvent(nullptr),
     m_pLoading(nullptr),
     m_bShowFocusRect(false),
-    m_nPaintOrder(0)
+    m_nPaintOrder(0),
+    m_nBkColor2Direction(0)
 {
 }
 
@@ -712,16 +709,26 @@ DString Control::GetBkColor2() const
 
 void Control::SetBkColor2Direction(const DString& direction)
 {
-    if (m_strBkColor2Direction == direction) {
-        return;
+    int8_t nDirection = GetColor2Direction(direction);
+    if (m_nBkColor2Direction != nDirection) {
+        m_nBkColor2Direction = nDirection;
+        Invalidate();
     }
-    m_strBkColor2Direction = direction;
-    Invalidate();
 }
 
 DString Control::GetBkColor2Direction() const
 {
-    return m_strBkColor2Direction.c_str();
+    DString strBkColor2Direction = _T("1");
+    if (m_nBkColor2Direction == 2) {
+        strBkColor2Direction = _T("2");
+    }
+    else if (m_nBkColor2Direction == 3) {
+        strBkColor2Direction = _T("3");
+    }
+    else if (m_nBkColor2Direction == 4) {
+        strBkColor2Direction = _T("4");
+    }
+    return strBkColor2Direction;
 }
 
 int8_t Control::GetColor2Direction(const UiString& bkColor2Direction) const
@@ -786,7 +793,7 @@ void Control::SetBkImage(const DString& strImage)
     CheckStopGifPlay();
     if (!strImage.empty()) {
         if (m_pBkImage == nullptr) {
-            m_pBkImage = std::make_shared<Image>();
+            m_pBkImage = std::make_unique<Image>();
             m_pBkImage->SetControl(this);
         }
     }
@@ -1122,20 +1129,24 @@ void Control::SetBorderSize(UiRectF rc, bool bNeedDpiScale)
     rc.top = std::max(rc.top, 0.0f);
     rc.right = std::max(rc.right, 0.0f);
     rc.bottom = std::max(rc.bottom, 0.0f);
-    if (m_rcBorderSize != rc) {
-        m_rcBorderSize = rc;
+
+    if (m_rcBorderSize == nullptr) {
+        m_rcBorderSize = std::make_unique<UiRectF>();
+    }
+    if (*m_rcBorderSize != rc) {
+        *m_rcBorderSize = rc;
         Invalidate();
     }    
 }
 
-const UiRectF& Control::GetBorderSize() const
+UiRectF Control::GetBorderSize() const
 {
-    return m_rcBorderSize;
+    return (m_rcBorderSize != nullptr) ? *m_rcBorderSize : UiRectF();
 }
 
 float Control::GetLeftBorderSize() const
 {
-    return m_rcBorderSize.left;
+    return (m_rcBorderSize != nullptr) ? m_rcBorderSize->left : 0.0f;
 }
 
 void Control::SetLeftBorderSize(float fSize, bool bNeedDpiScale)
@@ -1143,15 +1154,19 @@ void Control::SetLeftBorderSize(float fSize, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         fSize = Dpi().GetScaleFloat(fSize);
     }
-    if (m_rcBorderSize.left != fSize) {
-        m_rcBorderSize.left = fSize;
+
+    if (m_rcBorderSize == nullptr) {
+        m_rcBorderSize = std::make_unique<UiRectF>();
+    }
+    if (m_rcBorderSize->left != fSize) {
+        m_rcBorderSize->left = fSize;
         Invalidate();
     }    
 }
 
 float Control::GetTopBorderSize() const
 {
-    return m_rcBorderSize.top;
+    return (m_rcBorderSize != nullptr) ? m_rcBorderSize->top : 0.0f;
 }
 
 void Control::SetTopBorderSize(float fSize, bool bNeedDpiScale)
@@ -1159,15 +1174,19 @@ void Control::SetTopBorderSize(float fSize, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         fSize = Dpi().GetScaleFloat(fSize);
     }
-    if (m_rcBorderSize.top != fSize) {
-        m_rcBorderSize.top = fSize;
+
+    if (m_rcBorderSize == nullptr) {
+        m_rcBorderSize = std::make_unique<UiRectF>();
+    }
+    if (m_rcBorderSize->top != fSize) {
+        m_rcBorderSize->top = fSize;
         Invalidate();
     }
 }
 
 float Control::GetRightBorderSize() const
 {
-    return m_rcBorderSize.right;
+    return (m_rcBorderSize != nullptr) ? m_rcBorderSize->right : 0.0f;
 }
 
 void Control::SetRightBorderSize(float fSize, bool bNeedDpiScale)
@@ -1175,15 +1194,19 @@ void Control::SetRightBorderSize(float fSize, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         fSize = Dpi().GetScaleFloat(fSize);
     }
-    if (m_rcBorderSize.right != fSize) {
-        m_rcBorderSize.right = fSize;
+
+    if (m_rcBorderSize == nullptr) {
+        m_rcBorderSize = std::make_unique<UiRectF>();
+    }
+    if (m_rcBorderSize->right != fSize) {
+        m_rcBorderSize->right = fSize;
         Invalidate();
     }    
 }
 
 float Control::GetBottomBorderSize() const
 {
-    return m_rcBorderSize.bottom;
+    return  (m_rcBorderSize != nullptr) ? m_rcBorderSize->bottom : 0.0f;
 }
 
 void Control::SetBottomBorderSize(float fSize, bool bNeedDpiScale)
@@ -1191,8 +1214,12 @@ void Control::SetBottomBorderSize(float fSize, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         fSize = Dpi().GetScaleFloat(fSize);
     }
-    if (m_rcBorderSize.bottom != fSize) {
-        m_rcBorderSize.bottom = fSize;
+
+    if (m_rcBorderSize == nullptr) {
+        m_rcBorderSize = std::make_unique<UiRectF>();
+    }
+    if (m_rcBorderSize->bottom != fSize) {
+        m_rcBorderSize->bottom = fSize;
         Invalidate();
     }    
 }
@@ -1223,9 +1250,9 @@ int8_t Control::GetBorderDashStyle() const
     return m_borderDashStyle;
 }
 
-const UiSize& Control::GetBorderRound() const
+UiSize Control::GetBorderRound() const
 {
-    return m_cxyBorderRound;
+    return UiSize(m_cxyBorderRound.cx, m_cxyBorderRound.cy);
 }
 
 void Control::SetBorderRound(UiSize cxyRound, bool bNeedDpiScale)
@@ -1252,8 +1279,9 @@ void Control::SetBorderRound(UiSize cxyRound, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScaleSize(cxyRound);
     }
-    if (m_cxyBorderRound != cxyRound) {
-        m_cxyBorderRound = cxyRound;
+    if ((m_cxyBorderRound.cx != cxyRound.cx) || (m_cxyBorderRound.cy != cxyRound.cy)) {
+        m_cxyBorderRound.cx = ui::TruncateToInt16(cxyRound.cx);
+        m_cxyBorderRound.cy = ui::TruncateToInt16(cxyRound.cy);
         Invalidate();
     }    
 }
@@ -1426,14 +1454,16 @@ void Control::SetVisible(bool bVisible)
     SendEvent(kEventVisibleChange);
 }
 
+bool Control::IsEnabled() const
+{
+    return BaseClass::IsEnabled();
+}
+
 void Control::SetEnabled(bool bEnabled)
 {
-    if (m_bEnabled == bEnabled) {
-        return;
-    }
-
-    m_bEnabled = bEnabled;
-    if (m_bEnabled) {
+    bool bChanged = IsEnabled() != bEnabled;
+    BaseClass::SetEnabled(bEnabled);
+    if (IsEnabled()) {
         PrivateSetState(kControlStateNormal);
         m_nHotAlpha = 0;
     }
@@ -1444,17 +1474,9 @@ void Control::SetEnabled(bool bEnabled)
     if (!IsEnabled()) {
         CheckStopGifPlay();
     }
-    Invalidate();
-}
-
-void Control::SetMouseEnabled(bool bEnabled)
-{
-    m_bMouseEnabled = bEnabled;
-}
-
-void Control::SetKeyboardEnabled(bool bEnabled)
-{
-    m_bKeyboardEnabled = bEnabled ; 
+    if (bChanged) {
+        Invalidate();
+    }    
 }
 
 bool Control::IsFocused() const
@@ -1542,7 +1564,7 @@ Control* Control::FindControl(FINDCONTROLPROC Proc, void* pProcData,
     }
 #endif // _DEBUG
     if ((uFlags & UIFIND_HITTEST) != 0 && 
-        (!m_bMouseEnabled || !GetRect().ContainsPt(pt))) {
+        (!IsMouseEnabled() || !GetRect().ContainsPt(pt))) {
         return nullptr;
     }
     return Proc(this, pProcData);
@@ -2591,7 +2613,7 @@ void Control::PaintShadow(IRender* pRender)
     ASSERT(pRender != nullptr);
     if (pRender != nullptr) {
         pRender->DrawBoxShadow(m_rcPaint,
-                               m_cxyBorderRound,
+                               GetBorderRound(),
                                boxShadow.m_cpOffset,
                                boxShadow.m_nBlurRadius,
                                boxShadow.m_nSpreadRadius,
@@ -2612,12 +2634,12 @@ void Control::PaintBkColor(IRender* pRender)
     UiColor dwBackColor = GetUiColor(m_strBkColor.c_str());
     if(dwBackColor.GetARGB() != 0) {
         int32_t nBorderSize = 0;
-        if ((m_rcBorderSize.left > 0) &&
-            (m_rcBorderSize.left == m_rcBorderSize.right) &&
-            (m_rcBorderSize.left == m_rcBorderSize.top) &&
-            (m_rcBorderSize.left == m_rcBorderSize.bottom)) {
+        if ((m_rcBorderSize != nullptr) && (m_rcBorderSize->left > 0.001f) &&
+            IsFloatEqual(m_rcBorderSize->left, m_rcBorderSize->right) &&
+            IsFloatEqual(m_rcBorderSize->left, m_rcBorderSize->top)   &&
+            IsFloatEqual(m_rcBorderSize->left, m_rcBorderSize->bottom)) {
             //四个边都存在，且大小相同
-            nBorderSize = static_cast<int32_t>(m_rcBorderSize.left);//不做四舍五入
+            nBorderSize = static_cast<int32_t>(m_rcBorderSize->left);//不做四舍五入
         }
         nBorderSize /= 2;
 
@@ -2630,7 +2652,7 @@ void Control::PaintBkColor(IRender* pRender)
         }
         if (ShouldBeRoundRectFill()) {
             //需要绘制圆角矩形，填充也需要填充圆角矩形
-            FillRoundRect(pRender, fillRect, m_cxyBorderRound, dwBackColor);
+            FillRoundRect(pRender, fillRect, GetBorderRound(), dwBackColor);
         }
         else {            
             UiColor dwBackColor2;
@@ -2639,8 +2661,7 @@ void Control::PaintBkColor(IRender* pRender)
             }
             if (!dwBackColor2.IsEmpty()) {
                 //渐变背景色
-                int8_t nColor2Direction = GetColor2Direction(m_strBkColor2Direction);
-                pRender->FillRect(fillRect, dwBackColor, dwBackColor2, nColor2Direction);
+                pRender->FillRect(fillRect, dwBackColor, dwBackColor2, m_nBkColor2Direction);
             }
             else {
                 pRender->FillRect(fillRect, dwBackColor);
@@ -2675,63 +2696,64 @@ void Control::PaintBorder(IRender* pRender)
         return;
     }
     bool bPainted = false;
-    if ((m_rcBorderSize.left > 0) &&
-        (m_rcBorderSize.left == m_rcBorderSize.right) &&
-        (m_rcBorderSize.left == m_rcBorderSize.top) &&
-        (m_rcBorderSize.left == m_rcBorderSize.bottom)) {
+    if ((m_rcBorderSize != nullptr) && (m_rcBorderSize->left > 0.001f) &&
+        IsFloatEqual(m_rcBorderSize->left, m_rcBorderSize->right) &&
+        IsFloatEqual(m_rcBorderSize->left, m_rcBorderSize->top)   &&
+        IsFloatEqual(m_rcBorderSize->left, m_rcBorderSize->bottom)) {
         //四个边都存在，且大小相同，则直接绘制矩形, 支持圆角矩形
         if (ShouldBeRoundRectBorders()) {
             //仅圆角矩形，使用这个函数绘制边线
-            PaintBorders(pRender, GetRect(), m_rcBorderSize.left, dwBorderColor, GetBorderDashStyle());
+            PaintBorders(pRender, GetRect(), m_rcBorderSize->left, dwBorderColor, GetBorderDashStyle());
             bPainted = true;
         }
     }
 
     if(!bPainted) {
         //非圆角矩形，四个边分别按照设置绘制边线
-        if (m_rcBorderSize.left > 0) {
+        const float epsilon = 0.001f;
+        if ((m_rcBorderSize != nullptr) && (m_rcBorderSize->left > epsilon)) {
             //左边线
             UiRect rcBorder = GetRect();
-            if (m_rcBorderSize.left == 1) {
+            if (std::fabs(m_rcBorderSize->left - 1.0f) < epsilon) {
                 rcBorder.bottom -= 1;
             }
-            const float fWidth = (float)m_rcBorderSize.left;
+            const float fWidth = (float)m_rcBorderSize->left;
             UiPointF pt1((float)rcBorder.left + fWidth / 2, (float)rcBorder.top);
             UiPointF pt2((float)rcBorder.left + fWidth / 2, (float)rcBorder.bottom);
-            DrawBorderLine(pRender, pt1, pt2, m_rcBorderSize.left, dwBorderColor, GetBorderDashStyle());
+            DrawBorderLine(pRender, pt1, pt2, m_rcBorderSize->left, dwBorderColor, GetBorderDashStyle());
         }
-        if (m_rcBorderSize.top > 0) {
+        if ((m_rcBorderSize != nullptr) && (m_rcBorderSize->top > epsilon)) {
             //上边线
             UiRect rcBorder = GetRect();
-            if (m_rcBorderSize.top == 1) {
+            if (std::fabs(m_rcBorderSize->top - 1.0f) < epsilon) {
                 rcBorder.right -= 1;
             }
-            const float fWidth = (float)m_rcBorderSize.top;
+            const float fWidth = (float)m_rcBorderSize->top;
             UiPointF pt1((float)rcBorder.left, (float)rcBorder.top + fWidth / 2);
             UiPointF pt2((float)rcBorder.right, (float)rcBorder.top + fWidth / 2);
-            DrawBorderLine(pRender, pt1, pt2, m_rcBorderSize.top, dwBorderColor, GetBorderDashStyle());
+            DrawBorderLine(pRender, pt1, pt2, m_rcBorderSize->top, dwBorderColor, GetBorderDashStyle());
         }
-        if (m_rcBorderSize.right > 0) {
+        if ((m_rcBorderSize != nullptr) && (m_rcBorderSize->right > epsilon)) {
             //右边线
             UiRect rcBorder = GetRect();
-            if (m_rcBorderSize.right == 1) {
+            if (std::fabs(m_rcBorderSize->right - 1.0f) < epsilon) {
                 rcBorder.bottom -= 1;
             }
-            const float fWidth = (float)m_rcBorderSize.right;
+            const float fWidth = (float)m_rcBorderSize->right;
             UiPointF pt1((float)rcBorder.right - fWidth / 2, (float)rcBorder.top);
             UiPointF pt2((float)rcBorder.right - fWidth / 2, (float)rcBorder.bottom);
-            DrawBorderLine(pRender, pt1, pt2, m_rcBorderSize.right, dwBorderColor, GetBorderDashStyle());
+            DrawBorderLine(pRender, pt1, pt2, m_rcBorderSize->right, dwBorderColor, GetBorderDashStyle());
         }
-        if (m_rcBorderSize.bottom > 0) {
+        if ((m_rcBorderSize != nullptr) && (m_rcBorderSize->bottom > epsilon)) {
             //下边线
             UiRect rcBorder = GetRect();
-            if (m_rcBorderSize.bottom == 1) {
+            if (std::fabs(m_rcBorderSize->bottom - 1.0f) < epsilon) {
                 rcBorder.right -= 1;
             }
-            const float fWidth = (float)m_rcBorderSize.bottom;
+            const float fWidth = (float)m_rcBorderSize->bottom;
             UiPointF pt1((float)rcBorder.left, (float)rcBorder.bottom - fWidth / 2);
             UiPointF pt2((float)rcBorder.right, (float)rcBorder.bottom - fWidth / 2);
-            DrawBorderLine(pRender, pt1, pt2, m_rcBorderSize.bottom, dwBorderColor, GetBorderDashStyle());
+            DrawBorderLine(pRender, pt1, pt2, m_rcBorderSize->bottom, dwBorderColor, GetBorderDashStyle());
         }
     }
 }
@@ -2781,7 +2803,7 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
         rcDraw.right -= 1;
     }
     if (ShouldBeRoundRectBorders()) {
-        DrawRoundRect(pRender, rcDraw, m_cxyBorderRound, dwBorderColor, fBorderSize, GetBorderDashStyle());
+        DrawRoundRect(pRender, rcDraw, GetBorderRound(), dwBorderColor, fBorderSize, GetBorderDashStyle());
     }
     else {
         if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {
@@ -2806,10 +2828,10 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
 bool Control::ShouldBeRoundRectFill() const
 {
     bool isRoundRect = false;
-    if ((m_rcBorderSize.left >= 0) &&
-        (m_rcBorderSize.left == m_rcBorderSize.right) &&
-        (m_rcBorderSize.left == m_rcBorderSize.top)   &&
-        (m_rcBorderSize.left == m_rcBorderSize.bottom)) {
+    if ((m_rcBorderSize != nullptr) && (m_rcBorderSize->left > 0.001f) &&
+        IsFloatEqual(m_rcBorderSize->left, m_rcBorderSize->right)      &&
+        IsFloatEqual(m_rcBorderSize->left, m_rcBorderSize->top)        &&
+        IsFloatEqual(m_rcBorderSize->left, m_rcBorderSize->bottom)) {
         //四个边大小相同(无论是零还是大于零)，支持圆角矩形
         if (m_cxyBorderRound.cx > 0 && m_cxyBorderRound.cy > 0) {
             isRoundRect = true;
@@ -2829,7 +2851,7 @@ bool Control::ShouldBeRoundRectFill() const
 bool Control::ShouldBeRoundRectBorders() const
 {
     bool isRoundRect = ShouldBeRoundRectFill();
-    return isRoundRect && (m_rcBorderSize.left > 0);
+    return isRoundRect && (m_rcBorderSize != nullptr) && (m_rcBorderSize->left > 0.001f);
 }
 
 void Control::PaintFocusRect(IRender* pRender)
@@ -3031,8 +3053,7 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
                 }
                 if (!dwBackColor2.IsEmpty()) {
                     //渐变背景色
-                    int8_t nColor2Direction = GetColor2Direction(m_strBkColor2Direction);
-                    pRender->FillPath(path.get(), rc, dwColor, dwBackColor2, nColor2Direction);
+                    pRender->FillPath(path.get(), rc, dwColor, dwBackColor2, m_nBkColor2Direction);
                 }
                 else {
                     pRender->FillPath(path.get(), brush.get());
@@ -3048,8 +3069,7 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
         }
         if (!dwBackColor2.IsEmpty()) {
             //渐变背景色
-            int8_t nColor2Direction = GetColor2Direction(m_strBkColor2Direction);
-            pRender->FillRoundRect(rc, roundSize, dwColor, dwBackColor2, nColor2Direction);
+            pRender->FillRoundRect(rc, roundSize, dwColor, dwBackColor2, m_nBkColor2Direction);
         }
         else {
             pRender->FillRoundRect(rc, roundSize, dwColor);
@@ -3181,7 +3201,7 @@ void Control::StopGifPlay(bool bTriggerEvent, GifFrameType stopType)
 void Control::AttachGifPlayStop(const EventCallback& callback)
 {
     if (m_pBkImage == nullptr) {
-        m_pBkImage = std::make_shared<Image>();
+        m_pBkImage = std::make_unique<Image>();
         m_pBkImage->SetControl(this);
     }
     m_pBkImage->AttachGifPlayStop(callback);

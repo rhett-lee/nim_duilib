@@ -221,7 +221,7 @@ public:
 
     /** 获取边框大小
     */
-    const UiRectF& GetBorderSize() const;
+    UiRectF GetBorderSize() const;
 
     /** 获取左侧边框大小
      * @return 左侧边框的大小  
@@ -277,7 +277,7 @@ public:
 
     /** 获取圆角大小
      */
-    const UiSize& GetBorderRound() const;
+    UiSize GetBorderRound() const;
 
     /** 设置边框大小
      * @param [in] cxyRound 一个 UiSize 结构表示圆角大小
@@ -399,58 +399,27 @@ public:
     size_t GetUserDataID() const;
 
     /// 一些重要的属性
-    /**
-     * @brief 以淡入淡出等动画形式设置控件是否可见, 调用的结果与SetVisible相同，只是过程包含了动画效果。
-              调用SetFadeVisible以后，不需要再调用SetVisible函数修改可见属性。
-              该函数内部会调用SetVisible这个虚函数。
+    /** 以淡入淡出等动画形式设置控件是否可见, 调用的结果与SetVisible相同，只是过程包含了动画效果。
+        调用SetFadeVisible以后，不需要再调用SetVisible函数修改可见属性。
+        该函数内部会调用SetVisible这个虚函数。
      * @param[in] bVisible 为 true 时控件可见，为 false 时控件被隐藏
-     * @return 无
      */
     virtual void SetFadeVisible(bool bVisible);
 
     /** 设置控件是否可见
-     * @param[in] @param[in] bVisible 为 true 时控件可见，为 false 时控件被隐藏
+     * @param [in] @param[in] bVisible 为 true 时控件可见，为 false 时控件被隐藏
      */
     virtual void SetVisible(bool bVisible) override;
 
-    /**
-     * @brief 检查控件是否可用
+    /** 检查控件是否可用
      * @return 控件可用状态，返回 true 控件可用，否则为 false
      */
-    virtual bool IsEnabled() const { return m_bEnabled; };
+    virtual bool IsEnabled() const override;
 
-    /**
-     * @brief 设置控件可用状态
-     * @param[in] bEnable 为 true 时控件可用，为 false 时控件为禁用状态则不可用
-     * @return 无
+    /** 设置控件可用状态
+     * @param [in] bEnable 为 true 时控件可用，为 false 时控件为禁用状态则不可用
      */
-    virtual void SetEnabled(bool bEnable = true);
-
-    /**
-     * @brief 检查控件是否响应鼠标事件
-     * @return 返回控件是否响应鼠标事件，返回 true 响应鼠标事件，false 为不响应
-     */
-    virtual bool IsMouseEnabled() const { return m_bMouseEnabled; };
-
-    /**
-     * @brief 设置控件是否响应鼠标事件
-     * @param[in] bEnable 为 true 响应鼠标事件，为 false 时不响应鼠标事件
-     * @return 无
-     */
-    virtual void SetMouseEnabled(bool bEnable);
-
-    /**
-     * @brief 检查控件是否响应键盘事件
-     * @return 返回控件是否响应键盘事件，返回 true 响应键盘事件，false 不响应键盘事件
-     */
-    virtual bool IsKeyboardEnabled() const { return m_bKeyboardEnabled; };
-
-    /**
-     * @brief 设置控件是否响应键盘事件
-     * @param[in] bEnable 为 true 响应键盘事件，为 false 时不响应键盘事件
-     * @return 无
-     */
-    virtual void SetKeyboardEnabled(bool bEnable);
+    virtual void SetEnabled(bool bEnable) override;
 
     /** 检查控件是否具有焦点
      * @return 返回控件是否具有检点，为 true 时是当前具有焦点，为 false 时控件没有焦点
@@ -670,19 +639,6 @@ public:
     * @return 无
     */
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) { (void)pRender; (void)rcPaint; };
-
-    /**
-    * @brief 设置是否对绘制范围做剪裁限制
-    * @param[in] clip 设置 true 为需要，否则为不需要，见绘制函数
-    * @return 无
-    */
-    void SetClip(bool clip) { m_bClip = clip; };
-
-    /**
-    * @brief 判断是否对绘制范围做剪裁限制
-    * @return 返回 true 为需要，false 为不需要
-    */
-    bool IsClip() const { return m_bClip; }
 
     /**
      * @brief 设置控件透明度
@@ -1258,11 +1214,6 @@ private:
     int8_t GetColor2Direction(const UiString& bkColor2Direction) const;
 
 private:
-    /** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
-        仅当 m_rcBorderSize 四个边框值都有效, 并且都相同时
-    */
-    UiSize m_cxyBorderRound;
-
     //控件阴影，其圆角大小通过m_cxyBorderRound变量控制
     BoxShadow* m_pBoxShadow;
 
@@ -1270,15 +1221,15 @@ private:
     */
     UiString m_focusBorderColor;
 
+    //焦点状态虚线矩形的颜色
+    UiString m_focusRectColor;
+
     /** 边框颜色, 每个状态可以指定不同的边框颜色
     */
     std::unique_ptr<StateColorMap> m_pBorderColorMap;
 
     //控件四边的边框大小（可分别设置top/bottom/left/right四个边的值）
-    UiRectF m_rcBorderSize;
-
-    //控件四边边框的线条类型
-    int8_t m_borderDashStyle;
+    std::unique_ptr<UiRectF> m_rcBorderSize;
 
 private:
     //控件的背景颜色
@@ -1287,17 +1238,10 @@ private:
     //控件的第二背景色(实现渐变背景色)
     UiString m_strBkColor2;
 
-    //控件的第二背景色方向：："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
-    UiString m_strBkColor2Direction;
-
     //控件的背景图片
-    std::shared_ptr<Image> m_pBkImage;
+    std::unique_ptr<Image> m_pBkImage;
 
 private:
-    /** 控件状态(ControlStateType)
-    */
-    int8_t m_controlState;
-
     /** 状态与颜色值MAP，每个状态可以指定不同的颜色
     */
     std::unique_ptr<StateColorMap> m_pColorMap;
@@ -1318,28 +1262,13 @@ private:
     //控件播放动画时的渲染偏移(X坐标偏移和Y坐标偏移)
     UiPoint m_renderOffset;
     
-    //控件的透明度（0 - 255，0为完全透明，255为不透明）
-    uint8_t m_nAlpha;
-
-    //控件为Hot状态时的透明度（0 - 255，0为完全透明，255为不透明）
-    uint8_t m_nHotAlpha;
-
-    //是否对绘制范围做剪裁限制
-    bool m_bClip;
-
     //控件的绘制区域
     UiRect m_rcPaint;
 
     //绘制渲染引擎接口
     std::unique_ptr<IRender> m_render;
 
-    //box-shadow是否已经绘制（由于box-shadow绘制会超过GetRect()范围，所以需要特殊处理）
-    bool m_isBoxShadowPainted;
-
 private:
-    //ToolTip的宽度
-    uint16_t m_nTooltipWidth;
-
     //ToolTip的文本内容
     UiString m_sToolTipText;
 
@@ -1368,14 +1297,34 @@ private:
     EventMap* m_pOnXmlBubbledEvent;
 
 private:
-    //控件的Enable状态（当为false的时候，不响应鼠标、键盘等输入消息）
-    bool m_bEnabled;
+    /** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
+        仅当 m_rcBorderSize 四个边框值都有效, 并且都相同时
+    */
+    UiSize16 m_cxyBorderRound;
 
-    //鼠标消息的Enable状态（当为false的时候，不响应鼠标消息）
-    bool m_bMouseEnabled;
+    /** ToolTip的宽度
+    */
+    uint16_t m_nTooltipWidth;
 
-    //键盘消息的Enable状态（当为false的时候，不响应键盘消息）
-    bool m_bKeyboardEnabled;
+    //控件的第二背景色方向：："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
+    int8_t m_nBkColor2Direction;
+
+    /** box - shadow是否已经绘制（由于box - shadow绘制会超过GetRect()范围，所以需要特殊处理）
+    */
+    bool m_isBoxShadowPainted;
+
+    /** 控件状态(ControlStateType)
+    */
+    int8_t m_controlState;
+
+    //控件的透明度（0 - 255，0为完全透明，255为不透明）
+    uint8_t m_nAlpha;
+
+    //控件为Hot状态时的透明度（0 - 255，0为完全透明，255为不透明）
+    uint8_t m_nHotAlpha;
+
+    //控件四边边框的线条类型
+    int8_t m_borderDashStyle;
 
     //鼠标焦点是否在控件上
     bool m_bMouseFocused;
@@ -1394,9 +1343,6 @@ private:
 
     //是否显示焦点状态(一个虚线构成的矩形)
     bool m_bShowFocusRect;
-
-    //焦点状态虚线矩形的颜色
-    UiString m_focusRectColor;
 
     //绘制顺序: 0 表示常规绘制，非0表示指定绘制顺序，值越大表示绘制越晚绘制
     uint8_t m_nPaintOrder;

@@ -3,6 +3,7 @@
 
 #include "duilib/Core/UiSize.h"
 #include "duilib/Core/UiSize64.h"
+#include "duilib/Core/UiSize16.h"
 #include "duilib/Core/UiPoint.h"
 #include "duilib/Core/UiPointF.h"
 #include "duilib/Core/UiRect.h"
@@ -51,10 +52,6 @@ namespace ui
     class UILIB_API UiEstResult
     {
     public:
-        /** 是否需要重新评估大小
-        */
-        bool m_bReEstimateSize = true;
-
         /** 本次估算时的可用矩形大小(这个参数影响会估算结果)
         */
         UiSize m_szAvailable;
@@ -217,6 +214,13 @@ namespace ui
         else {
             return -std::ceil(-fValue);
         }        
+    }
+
+    /** 判断两个浮点数是否相同
+    */
+    inline bool IsFloatEqual(float x, float y)
+    {
+        return std::fabs(x - y) < 0.00001f;
     }
 
 }//namespace ui

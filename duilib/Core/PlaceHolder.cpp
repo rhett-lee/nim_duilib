@@ -17,11 +17,17 @@ PlaceHolder::PlaceHolder(Window* pWindow) :
     m_verAlignType(kVerAlignTop),
     m_bFloat(false),
     m_bVisible(true),
+    m_bEnabled(true),
+    m_bMouseEnabled(true),
+    m_bKeyboardEnabled(true),
     m_bIsArranged(true),
     m_bUseCache(false),
     m_bCacheDirty(true),
+    m_bClip(true),
     m_bEnableControlPadding(true),
-    m_bInited(false)
+    m_bInited(false),
+    m_bReEstimateSize(true),
+    m_pEstResult(nullptr)
 {
     //控件的高度和宽度值，默认设置为拉伸
     m_cxyFixed.cx.SetStretch();
@@ -30,6 +36,10 @@ PlaceHolder::PlaceHolder(Window* pWindow) :
 
 PlaceHolder::~PlaceHolder()
 {
+    if (m_pEstResult != nullptr) {
+        delete m_pEstResult;
+        m_pEstResult = nullptr;
+    }
 }
 
 DString PlaceHolder::GetType() const { return _T("PlaceHolder"); }
@@ -101,6 +111,21 @@ void PlaceHolder::OnInit()
 void PlaceHolder::SetVisible(bool bVisible)
 {
     m_bVisible = bVisible;
+}
+
+void PlaceHolder::SetEnabled(bool bEnable)
+{
+    m_bEnabled = bEnable;
+}
+
+void PlaceHolder::SetMouseEnabled(bool bEnabled)
+{
+    m_bMouseEnabled = bEnabled;
+}
+
+void PlaceHolder::SetKeyboardEnabled(bool bEnabled)
+{
+    m_bKeyboardEnabled = bEnabled;
 }
 
 void PlaceHolder::SetFloat(bool bFloat)
@@ -184,8 +209,7 @@ void PlaceHolder::SetFixedHeight64(int64_t cy64)
 
 bool PlaceHolder::IsReEstimateSize(const UiSize& szAvailable) const
 { 
-    if (!m_estResult.m_bReEstimateSize &&
-        szAvailable.Equals(m_estResult.m_szAvailable)) {
+    if (!m_bReEstimateSize && (m_pEstResult != nullptr) && szAvailable.Equals(m_pEstResult->m_szAvailable)) {
         return false;
     }
     return true;
@@ -193,18 +217,24 @@ bool PlaceHolder::IsReEstimateSize(const UiSize& szAvailable) const
 
 void PlaceHolder::SetReEstimateSize(bool bReEstimateSize)
 {
-    m_estResult.m_bReEstimateSize = bReEstimateSize;
+    m_bReEstimateSize = bReEstimateSize;
 }
 
-const UiEstSize& PlaceHolder::GetEstimateSize() const
-{ 
-    return m_estResult.m_szEstimateSize;
+UiEstSize PlaceHolder::GetEstimateSize() const
+{
+    if (m_pEstResult != nullptr) {
+        return m_pEstResult->m_szEstimateSize;
+    }
+    return UiEstSize();
 }
 
 void PlaceHolder::SetEstimateSize(const UiEstSize& szEstimateSize, const UiSize& szAvailable)
 {
-    m_estResult.m_szAvailable = szAvailable;
-    m_estResult.m_szEstimateSize = szEstimateSize;
+    if (m_pEstResult == nullptr) {
+        m_pEstResult = new UiEstResult;
+    }
+    m_pEstResult->m_szAvailable = szAvailable;
+    m_pEstResult->m_szEstimateSize = szEstimateSize;
 }
 
 int32_t PlaceHolder::GetMinWidth() const
@@ -319,7 +349,7 @@ void PlaceHolder::SetMaxHeight(int32_t cy, bool bNeedDpiScale)
 void PlaceHolder::SetHorAlignType(HorAlignType horAlignType)
 {
     if (m_horAlignType != horAlignType) {
-        m_horAlignType = TruncateToInt8(horAlignType);
+        m_horAlignType = horAlignType;
         if (!m_bFloat) {
             ArrangeAncestor();
         }
@@ -337,7 +367,7 @@ HorAlignType PlaceHolder::GetHorAlignType() const
 void PlaceHolder::SetVerAlignType(VerAlignType verAlignType)
 {
     if (m_verAlignType != verAlignType) {
-        m_verAlignType = TruncateToInt8(verAlignType);
+        m_verAlignType = verAlignType;
         if (!m_bFloat) {
             ArrangeAncestor();
         }
@@ -478,14 +508,14 @@ void PlaceHolder::ArrangeSelf()
     }
 }
 
-void PlaceHolder::SetUseCache(bool cache)
+void PlaceHolder::SetUseCache(bool bUseCache)
 {
-    m_bUseCache = cache;
+    m_bUseCache = bUseCache;
 }
 
-void PlaceHolder::SetCacheDirty(bool dirty)
+void PlaceHolder::SetCacheDirty(bool bCacheDirty)
 {
-    m_bCacheDirty = dirty;
+    m_bCacheDirty = bCacheDirty;
 }
 
 void PlaceHolder::SetPos(UiRect rc)
