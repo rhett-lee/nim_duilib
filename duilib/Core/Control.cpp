@@ -30,10 +30,8 @@ Control::Control(Window* pWindow) :
     m_nAlpha(255),
     m_nHotAlpha(0),
     m_sUserDataID(),
-    m_pBoxShadow(nullptr),
     m_isBoxShadowPainted(false),
     m_uUserDataID((size_t)-1),
-    m_pLoading(nullptr),
     m_bShowFocusRect(false),
     m_nPaintOrder(0)
 {
@@ -50,16 +48,6 @@ Control::~Control()
     Window* pWindow = GetWindow();
     if (pWindow) {
         pWindow->ReapObjects(this);
-    }
-
-    if (m_pLoading != nullptr) {
-        delete m_pLoading;
-        m_pLoading = nullptr;
-    }
-
-    if (m_pBoxShadow != nullptr) {
-        delete m_pBoxShadow;
-        m_pBoxShadow = nullptr;
     }
 }
 
@@ -802,7 +790,7 @@ void Control::SetLoadingImage(const DString& strImage)
 {
     if (!strImage.empty()) {
         if (m_pLoading == nullptr) {
-            m_pLoading = new ControlLoading(this);
+            m_pLoading = std::make_unique<ControlLoading>(this);
         }
     }
     if (m_pLoading != nullptr) {
@@ -1297,7 +1285,7 @@ void Control::SetBoxShadow(const DString& strShadow)
         return;
     }
     if (m_pBoxShadow == nullptr) {
-        m_pBoxShadow = new BoxShadow(this);
+        m_pBoxShadow = std::make_unique<BoxShadow>(this);
     }
     m_pBoxShadow->SetBoxShadowString(strShadow);
 }
