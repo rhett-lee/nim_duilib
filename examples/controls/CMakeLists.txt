@@ -31,7 +31,11 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR} SRC_FILES)
 
 include_directories(${DUILIB_SRC_ROOT_DIR})
 link_directories("${DUILIB_SRC_ROOT_DIR}/libs/")
-link_directories("${SKIA_SRC_ROOT_DIR}/out/LLVM.x64.Release/")
+if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "arm|aarch64")
+    link_directories("${SKIA_SRC_ROOT_DIR}/out/LLVM.arm64.Release/")
+elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
+    link_directories("${SKIA_SRC_ROOT_DIR}/out/LLVM.x64.Release/")
+endif()
 link_directories("${SDL_SRC_ROOT_DIR}/lib64/")
 link_directories("${SDL_SRC_ROOT_DIR}/lib/")
 
@@ -39,4 +43,30 @@ link_directories("${SDL_SRC_ROOT_DIR}/lib/")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/bin/")
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
-target_link_libraries(${PROJECT_NAME} duilib SDL3 skia duilib-cximage duilib-webp duilib-png duilib-zlib freetype fontconfig pthread dl)
+if(UNIX AND NOT APPLE)
+    target_link_libraries(${PROJECT_NAME} duilib SDL3 skia duilib-cximage duilib-webp duilib-png duilib-zlib freetype fontconfig pthread dl)
+endif()
+
+# macOS 特殊配置
+if(APPLE)
+    # 查找必需框架
+    find_library(ACCELERATE Accelerate)
+    find_library(COREFOUNDATION CoreFoundation)
+    find_library(CORETEXT CoreText)
+    find_library(COREGRAPHICS CoreGraphics)
+    # 字体配置
+    find_package(Fontconfig REQUIRED)
+    find_package(Freetype REQUIRED)
+endif()
+
+if(APPLE)
+    # 链接库（注意顺序！）
+  target_link_libraries(${PROJECT_NAME}
+  # 第三方库（按依赖顺序）
+  duilib duilib-cximage duilib-webp duilib-png duilib-zlib SDL3 skia Freetype::Freetype Fontconfig::Fontconfig
+  # 系统库
+  ${ACCELERATE} ${COREFOUNDATION} ${CORETEXT} ${COREGRAPHICS} pthread dl
+  # 显式框架声明（必须放在最后）
+  "-framework AppKit" "-framework Foundation" "-framework Metal"
+  )
+endif()

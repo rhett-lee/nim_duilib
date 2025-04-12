@@ -1452,6 +1452,15 @@ int ListBox::ItemComareFuncLinux(const void *item1, const void *item2, void* pvl
     return pThis->ItemComareFunc(item1, item2);
 }
 
+int ListBox::ItemComareFuncMacOS(void* context, const void* item1, const void* item2)
+{
+    ListBox* pThis = (ListBox*)context;
+    if (!pThis || !item1 || !item2) {
+        return 0;
+    }
+    return pThis->ItemComareFunc(item1, item2);
+}
+
 int ListBox::ItemComareFunc(const void *item1, const void *item2)
 {
     if (!item1 || !item2) {

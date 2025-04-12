@@ -9,8 +9,14 @@
 #include "include/core/SkFont.h"
 #include "include/core/SkData.h"
 
+#include "include/core/SkRefCnt.h"  // 包含sk_sp的完整定义
+#include "include/ports/SkFontMgr_mac_ct.h"  // macOS专用API
+#include "include/core/SkTypeface.h" // 确保SkFontMgr完整定义
+
 #if defined(SK_BUILD_FOR_WIN)
     #include "include/ports/SkTypeface_win.h"
+#elif defined(SK_BUILD_FOR_MAC)
+    #include "include/ports/SkTypeface_mac.h"
 #else
     #include "include/ports/SkFontMgr_fontconfig.h"
 #endif
@@ -188,6 +194,10 @@ FontMgr_Skia::FontMgr_Skia()
 #if defined(SK_BUILD_FOR_WIN)
     //Windows系统
     m_impl->m_pSkFontMgr = SkFontMgr_New_DirectWrite();
+#elif defined(SK_BUILD_FOR_MAC) 
+    // macOS/iOS系统
+    m_impl->m_pSkFontMgr = SkFontMgr_New_CoreText(nullptr);  // 使用nullptr表示系统默认字体集
+
 #else
     //Linux系统
     m_impl->m_pSkFontMgr = SkFontMgr_New_FontConfig(nullptr);
