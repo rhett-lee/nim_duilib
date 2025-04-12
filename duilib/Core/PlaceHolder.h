@@ -41,7 +41,7 @@ public:
     void SetName(const DString& strName);
 
     /** 设置控件名称，内存中设置不会写入 xml 中（UTF8 编码）
-     * @param[in] strName 要设置的名称
+     * @param [in] strName 要设置的名称
      */
     void SetUTF8Name(const std::string& strName);
 
@@ -89,12 +89,42 @@ public:
      */
     virtual bool IsVisible() const { return m_bVisible; }
 
-    /**@brief 判断控件是否浮动状态，对应 xml 中 float 属性
+    /** 检查控件是否可用
+     * @return 控件可用状态，返回 true 控件可用，否则为 false
+     */
+    virtual bool IsEnabled() const { return m_bEnabled; }
+
+    /** 设置控件可用状态
+     * @param [in] bEnable 为 true 时控件可用，为 false 时控件为禁用状态则不可用
+     */
+    virtual void SetEnabled(bool bEnable);
+
+    /** 检查控件是否响应鼠标事件
+     * @return 返回控件是否响应鼠标事件，返回 true 响应鼠标事件，false 为不响应
+     */
+    virtual bool IsMouseEnabled() const { return m_bMouseEnabled; }
+
+    /** 设置控件是否响应鼠标事件
+     * @param [in] bEnable 为 true 响应鼠标事件，为 false 时不响应鼠标事件
+     */
+    virtual void SetMouseEnabled(bool bEnable);
+
+    /** 检查控件是否响应键盘事件
+     * @return 返回控件是否响应键盘事件，返回 true 响应键盘事件，false 不响应键盘事件
+     */
+    virtual bool IsKeyboardEnabled() const { return m_bKeyboardEnabled; }
+
+    /** 设置控件是否响应键盘事件
+     * @param [in] bEnable 为 true 响应键盘事件，为 false 时不响应键盘事件
+     */
+    virtual void SetKeyboardEnabled(bool bEnable);
+
+    /** 判断控件是否浮动状态，对应 xml 中 float 属性
      */
     bool IsFloat() const { return m_bFloat; }
 
-    /**@brief 设置控件是否浮动
-     * @param[in] bFloat 设置为 true 为浮动，false 为不浮动
+    /** 设置控件是否浮动
+     * @param [in] bFloat 设置为 true 为浮动，false 为不浮动
      */
     void SetFloat(bool bFloat);
 
@@ -111,10 +141,10 @@ public:
      */
     const UiFixedInt& GetFixedHeight() const;
 
-    /**@brief 设置控件的宽度
-     * @param[in] cx 要设置的宽度（包含内边距，不包含外边距）
-     * @param[in] bArrange 是否重新排列，默认为 true
-     * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
+    /** 设置控件的宽度
+     * @param [in] cx 要设置的宽度（包含内边距，不包含外边距）
+     * @param [in] bArrange 是否重新排列，默认为 true
+     * @param [in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
      */
     void SetFixedWidth(UiFixedInt cx, bool bArrange, bool bNeedDpiScale);
 
@@ -122,10 +152,10 @@ public:
     */
     void SetFixedWidth64(int64_t cx64);
 
-    /**@brief 设置控件的高度
-     * @param[in] cy 要设置的固定高度（包含内边距，不包含外边距）
-     * @param[in] bArrange 是否重新排列，默认为 true
-     * @param[in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
+    /** 设置控件的高度
+     * @param [in] cy 要设置的固定高度（包含内边距，不包含外边距）
+     * @param [in] bArrange 是否重新排列，默认为 true
+     * @param [in] bNeedDpiScale 兼容 DPI 缩放，默认为 true
      */
     void SetFixedHeight(UiFixedInt cy, bool bArrange, bool bNeedDpiScale);
 
@@ -146,9 +176,9 @@ public:
 
     /** 获取控件的已估算大小（长度和宽度），相当于EstimateSize函数估算后的缓存值
     */
-    const UiEstSize& GetEstimateSize() const;
+    UiEstSize GetEstimateSize() const;
 
-    /**@brief 设置控件的已估算大小（长度和宽度），相当于EstimateSize函数估算后的缓存值
+    /** 设置控件的已估算大小（长度和宽度），相当于EstimateSize函数估算后的缓存值
     *@param [in] szEstimateSize 估算的结果，作为缓存保存下来
     *@param [in] szAvailable szAvailable 估算时，区域矩形大小
     */
@@ -207,21 +237,21 @@ public:
      */
     int32_t GetHeight() const { return m_uiRect.Height(); }
 
-    /**@brief 获取水平对齐方式， 参考 HorAlignType 枚举
+    /** 获取水平对齐方式， 参考 HorAlignType 枚举
      */
     HorAlignType GetHorAlignType() const;
 
-    /**@brief 设置水平对齐方式
-     * @param[in] horAlignType 要设置的对齐方式，参考 HorAlignType 枚举
+    /** 设置水平对齐方式
+     * @param [in] horAlignType 要设置的对齐方式，参考 HorAlignType 枚举
      */
     void SetHorAlignType(HorAlignType horAlignType);
 
-    /**@brief 获取垂直对齐方式，参见 VerAlignType 枚举
+    /** 获取垂直对齐方式，参见 VerAlignType 枚举
      */
     VerAlignType GetVerAlignType() const;
 
-    /**@brief 设置垂直对齐方式
-     * @param[in] vorAlignType 要设置的对齐方式，参考 VerAlignType 枚举
+    /** 设置垂直对齐方式
+     * @param [in] vorAlignType 要设置的对齐方式，参考 VerAlignType 枚举
      */
     void SetVerAlignType(VerAlignType verAlignType);
 
@@ -230,8 +260,8 @@ public:
     UiMargin GetMargin() const;
 
     /** 设置控件的外边距
-     * @param[in] rcMargin 控件的外边距信息
-     * @param[in] bNeedDpiScale 是否让外边距根据 DPI 适配，false 不适配 DPI
+     * @param [in] rcMargin 控件的外边距信息
+     * @param [in] bNeedDpiScale 是否让外边距根据 DPI 适配，false 不适配 DPI
      */
     void SetMargin(UiMargin rcMargin, bool bNeedDpiScale);
 
@@ -241,8 +271,8 @@ public:
     UiPadding GetPadding() const;
 
     /** 设置内边距
-     * @param[in] rcPadding 内边距数据
-     * @param[in] bNeedDpiScale 是否根据 DPI 自适应
+     * @param [in] rcPadding 内边距数据
+     * @param [in] bNeedDpiScale 是否根据 DPI 自适应
      */
     void SetPadding(UiPadding rcPadding, bool bNeedDpiScale);
 
@@ -266,7 +296,7 @@ public:
     /** 获取控件位置（子类可改变行为）
     * @return 返回控件的矩形区域，包含内边距，不包含外边距
      */
-    virtual    UiRect GetPos() const { return m_uiRect; }
+    virtual UiRect GetPos() const { return m_uiRect; }
 
     /** 设置控件位置（子类可改变行为）
      * @param [in] rc 要设置的矩形区域信息，包含内边距，不包含外边距
@@ -312,7 +342,7 @@ public:
 
     /** 设置是否使用缓存
      */
-    void SetUseCache(bool cache);
+    void SetUseCache(bool bUseCache);
 
     /** 判断是否使用缓存
      */
@@ -320,11 +350,21 @@ public:
 
     /** 设置缓存脏标志位
      */
-    void SetCacheDirty(bool dirty);
+    void SetCacheDirty(bool bCacheDirty);
 
     /** 判断缓存脏标志位值
      */
     bool IsCacheDirty() { return m_bCacheDirty; }
+
+    /** 设置是否对绘制范围做剪裁限制
+    * @param [in] clip 设置 true 为需要，否则为不需要，见绘制函数
+    */
+    void SetClip(bool bClip) { m_bClip = bClip; }
+
+    /** 判断是否对绘制范围做剪裁限制
+    * @return 返回 true 为需要，false 为不需要
+    */
+    bool IsClip() const { return m_bClip; }
 
     /** 获取外层滚动偏移
      */
@@ -364,8 +404,8 @@ private:
     //外部设置的控件大小
     UiFixedSize m_cxyFixed;
 
-    //估算控件大小的结果
-    UiEstResult m_estResult;
+    //估算控件大小的结果(仅当控件的宽度或者高度为auto时，才会用到此值)
+    UiEstResult* m_pEstResult;
 
     //控件大小最小值
     UiSize m_cxyMin;
@@ -373,17 +413,20 @@ private:
     //控件大小最大值
     UiSize m_cxyMax;
 
+    //控件的外边距属性（上，下，左，右边距），外边距是m_uiRect以外的空间，不包含在m_uiRect以内
+    UiMargin16 m_rcMargin;
+
+    //内边距四边的大小（上，下，左，右边距），内边距是控件矩形以内的空间，是包含在控件矩形以内的
+    UiPadding16 m_rcPadding;
+
     //控件水平对齐方式(HorAlignType)
     int8_t m_horAlignType;
 
     //控件垂直对齐方式(VerAlignType)
     int8_t m_verAlignType;
 
-    //控件的外边距属性（上，下，左，右边距），外边距是m_uiRect以外的空间，不包含在m_uiRect以内
-    UiMargin16 m_rcMargin;
-
-    //内边距四边的大小（上，下，左，右边距），内边距是控件矩形以内的空间，是包含在控件矩形以内的
-    UiPadding16 m_rcPadding;
+    //是否需要重新评估大小
+    bool m_bReEstimateSize;
 
     //是否允许控件本身设置内边距
     //(原来的逻辑：Control自身无内边距，Box的Layout有内边距，所以Box自身的背景图片等是不应用内边距的，只有子控件应用内边距)
@@ -405,8 +448,20 @@ private:
     //缓存是否存在脏标志值
     bool m_bCacheDirty;
 
+    //是否对绘制范围做剪裁限制
+    bool m_bClip;
+
     //是否可见
     bool m_bVisible;
+
+    //控件的Enable状态（当为false的时候，不响应鼠标、键盘等输入消息）
+    bool m_bEnabled;
+
+    //鼠标消息的Enable状态（当为false的时候，不响应鼠标消息）
+    bool m_bMouseEnabled;
+
+    //键盘消息的Enable状态（当为false的时候，不响应键盘消息）
+    bool m_bKeyboardEnabled;
 
     //是否已经完成初始化
     bool m_bInited;

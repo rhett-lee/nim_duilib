@@ -20,12 +20,12 @@ public:
     };
 
     //数值类型
-    Type type;
+    Type type : 2;
 
     //具体数值:
     // 当 type 为 Int32 时, 代表为固定数值
     // 当 type 为 Stretch, 取值范围是 (0,100]，代表由父容器按所占百分比分配
-    int32_t value;
+    int32_t value : 30;
 
 public:
     /** 构造一个拉伸类型的值

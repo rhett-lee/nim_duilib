@@ -1,29 +1,29 @@
-#ifndef UI_CORE_UISIZE_H_
-#define UI_CORE_UISIZE_H_
+#ifndef UI_CORE_UISIZE16_H_
+#define UI_CORE_UISIZE16_H_
 
-#include "duilib/Core/UiSize64.h"
-#include "duilib/Core/UiSize16.h"
+#include "duilib/duilib_defs.h"
+#include <cstdint>
 
 namespace ui 
 {
 
 /** Size的封装
 */
-class UILIB_API UiSize
+class UILIB_API UiSize16
 {
 public:
-    UiSize()
+    UiSize16()
     {
         cx = cy = 0;
     }
 
-    UiSize(const UiSize& src)
+    UiSize16(const UiSize16& src)
     {
         cx = src.cx;
         cy = src.cy;
     }
 
-    UiSize(int32_t cxValue, int32_t cyValue)
+    UiSize16(int16_t cxValue, int16_t cyValue)
     {
         cx = cxValue;
         cy = cyValue;
@@ -31,7 +31,7 @@ public:
 
     /** 设置新的宽度和高度
     */
-    void SetWidthHeight(int32_t cxValue, int32_t cyValue)
+    void SetWidthHeight(int16_t cxValue, int16_t cyValue)
     {
         cx = cxValue;
         cy = cyValue;
@@ -39,19 +39,19 @@ public:
 
     /** 设置新的宽度
     */
-    void SetWidth(int32_t cxValue) { cx = cxValue; }
+    void SetWidth(int16_t cxValue) { cx = cxValue; }
 
     /** 设置新的高度
     */
-    void SetHeight(int32_t cyValue) { cy = cyValue; }
+    void SetHeight(int16_t cyValue) { cy = cyValue; }
 
     /** 返回宽度
     */
-    constexpr int32_t Width() const { return cx; }
+    constexpr int16_t Width() const { return cx; }
 
     /** 返回高度
     */
-    constexpr int32_t Height() const { return cy; }
+    constexpr int16_t Height() const { return cy; }
 
     /** 检查宽度和高度值是否为有效值，并修正
     */
@@ -83,28 +83,28 @@ public:
 
     /** 判断是否与另外一个Size相同
     */
-    bool Equals(int32_t cxValue, int32_t cyValue) const
+    bool Equals(int16_t cxValue, int16_t cyValue) const
     {
         return cx == cxValue && cy == cyValue;
     }
 
     /** 判断是否与另外一个Size相同
     */
-    bool Equals(const UiSize& dst) const
+    bool Equals(const UiSize16& dst) const
     {
         return cx == dst.cx && cy == dst.cy;
     }
 
     /** 判断两个值是否相等
     */
-    friend bool operator == (const UiSize& a, const UiSize& b)
+    friend bool operator == (const UiSize16& a, const UiSize16& b)
     {
         return a.Equals(b);
     }
 
     /** 判断两个值是否不相等
     */
-    friend bool operator != (const UiSize& a, const UiSize& b)
+    friend bool operator != (const UiSize16& a, const UiSize16& b)
     {
         return !a.Equals(b);
     }
@@ -112,13 +112,13 @@ public:
 public:
     /** 宽度
     */
-    int32_t cx;
+    int16_t cx;
 
     /** 高度
     */
-    int32_t cy;
+    int16_t cy;
 };
 
 } // namespace ui
 
-#endif // UI_CORE_UISIZE_H_
+#endif // UI_CORE_UISIZE16_H_

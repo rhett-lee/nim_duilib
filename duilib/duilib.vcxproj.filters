@@ -1370,6 +1370,9 @@
     <ClInclude Include="third_party\libudis86\udis86.h">
       <Filter>third_party\libudis86</Filter>
     </ClInclude>
+    <ClInclude Include="Core\UiSize16.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />

@@ -176,19 +176,19 @@ namespace ui
     #define  EVENTSTR_WINDOWCLOSE        (_T("windowclose"))
 
     //水平对齐方式
-    enum HorAlignType
+    enum HorAlignType: int8_t
     {
-        kHorAlignLeft,      // 靠左对齐
-        kHorAlignCenter,    // 水平居中
-        kHorAlignRight,     // 靠右对齐
+        kHorAlignLeft   = 0,    // 靠左对齐
+        kHorAlignCenter = 1,    // 水平居中
+        kHorAlignRight  = 2     // 靠右对齐
     };
 
     //垂直对齐方式
-    enum VerAlignType
+    enum VerAlignType: int8_t
     {
-        kVerAlignTop,       // 顶端对齐
-        kVerAlignCenter,    // 垂直居中
-        kVerAlignBottom,    // 底部对齐
+        kVerAlignTop    = 0,    // 顶端对齐
+        kVerAlignCenter = 1,    // 垂直居中
+        kVerAlignBottom = 2     // 底部对齐
     };
 
     //控件图片类型
