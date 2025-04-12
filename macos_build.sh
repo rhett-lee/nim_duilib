@@ -48,35 +48,33 @@ make
 cp "$SRC_ROOT_DIR/build_temp/libcef_dll_wrapper/libcef_dll_wrapper/libcef_dll_wrapper.a" "$SRC_ROOT_DIR/libs/libcef_dll_wrapper.a"
 cd "$SRC_ROOT_DIR/"
 
-# #编译duilib
+# # #编译duilib
 rm -f "$SRC_ROOT_DIR/libs/libduilib.a"
 cmake -S "$SRC_ROOT_DIR/duilib/" -B "$SRC_ROOT_DIR/build_temp/duilib" -DCMAKE_BUILD_TYPE=Debug
 cd "$SRC_ROOT_DIR/build_temp/duilib"
 make -j 4
 cd "$SRC_ROOT_DIR/"
 
-
-
 # 编译examples下的各个程序
-# cmake -S "$SRC_ROOT_DIR/examples/basic/" -B "$SRC_ROOT_DIR/build_temp/basic" -DCMAKE_BUILD_TYPE=Debug
-# cd "$SRC_ROOT_DIR/build_temp/basic"
-# make clean; make
-# cd "$SRC_ROOT_DIR/"
+cmake -S "$SRC_ROOT_DIR/examples/basic/" -B "$SRC_ROOT_DIR/build_temp/basic" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/basic"
+make clean; make
+cd "$SRC_ROOT_DIR/"
 
-# cmake -S "$SRC_ROOT_DIR/examples/ColorPicker/" -B "$SRC_ROOT_DIR/build_temp/ColorPicker" -DCMAKE_BUILD_TYPE=Debug
-# cd "$SRC_ROOT_DIR/build_temp/ColorPicker"
-# make clean; make
-# cd "$SRC_ROOT_DIR/"
+cmake -S "$SRC_ROOT_DIR/examples/ColorPicker/" -B "$SRC_ROOT_DIR/build_temp/ColorPicker" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/ColorPicker"
+make clean; make
+cd "$SRC_ROOT_DIR/"
 
-# cmake -S "$SRC_ROOT_DIR/examples/controls/" -B "$SRC_ROOT_DIR/build_temp/controls" -DCMAKE_BUILD_TYPE=Debug
-# cd "$SRC_ROOT_DIR/build_temp/controls"
-# make clean; make
-# cd "$SRC_ROOT_DIR/"
+cmake -S "$SRC_ROOT_DIR/examples/controls/" -B "$SRC_ROOT_DIR/build_temp/controls" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/controls"
+make clean; make
+cd "$SRC_ROOT_DIR/"
 
-# cmake -S "$SRC_ROOT_DIR/examples/DpiAware/" -B "$SRC_ROOT_DIR/build_temp/DpiAware" -DCMAKE_BUILD_TYPE=Debug
-# cd "$SRC_ROOT_DIR/build_temp/DpiAware"
-# make clean; make
-# cd "$SRC_ROOT_DIR/"
+cmake -S "$SRC_ROOT_DIR/examples/DpiAware/" -B "$SRC_ROOT_DIR/build_temp/DpiAware" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/DpiAware"
+make clean; make
+cd "$SRC_ROOT_DIR/"
 
 # cmake -S "$SRC_ROOT_DIR/examples/layouts/" -B "$SRC_ROOT_DIR/build_temp/layouts" -DCMAKE_BUILD_TYPE=Debug
 # cd "$SRC_ROOT_DIR/build_temp/layouts"
