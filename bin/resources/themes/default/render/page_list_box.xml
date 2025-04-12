@@ -26,7 +26,7 @@
  
     <HBox width="auto">
 
-        <VBox width="auto" height="220">
+        <VBox width="auto" height="240">
             <Label text=" VListBox测试"/>
             <VListBox class="page_list_box" width="auto" height="200">
                 <ListBoxItem class="page_list_box_item" text="VListBox测试01" text_align="left,vcenter" halign="left" valign="center"/>
