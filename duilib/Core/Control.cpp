@@ -1084,15 +1084,21 @@ void Control::SetBorderColor(ControlStateType stateType, const DString& strBorde
 
 void Control::SetFocusBorderColor(const DString& strBorderColor)
 {
-    if (m_focusBorderColor != strBorderColor) {
-        m_focusBorderColor = strBorderColor;
+    if (m_pBorderData == nullptr) {
+        m_pBorderData = std::make_unique<TBorderData>();
+    }
+    if (m_pBorderData->m_focusBorderColor != strBorderColor) {
+        m_pBorderData->m_focusBorderColor = strBorderColor;
         Invalidate();
     }
 }
 
 DString Control::GetFocusBorderColor() const
 {
-    return m_focusBorderColor.c_str();
+    if (m_pBorderData != nullptr) {
+        return m_pBorderData->m_focusBorderColor.c_str();
+    }
+    return DString();
 }
 
 void Control::SetBorderSize(UiRectF rc, bool bNeedDpiScale)
