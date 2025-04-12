@@ -1297,15 +1297,14 @@ private:
 
         //边框颜色, 每个状态可以指定不同的边框颜色
         std::unique_ptr <StateColorMap> m_pBorderColorMap;
+
+        //焦点状态下的边框颜色
+        UiString m_focusBorderColor;
     };
 
 private:
     //控件阴影，其圆角大小通过m_cxyBorderRound变量控制
     BoxShadow* m_pBoxShadow;
-
-    /** 焦点状态下的边框颜色
-    */
-    UiString m_focusBorderColor;
 
     //焦点状态虚线矩形的颜色
     UiString m_focusRectColor;
