@@ -1282,9 +1282,21 @@ private:
         //ToolTip的文本ID
         UiString m_sToolTipTextId;
 
-        /** ToolTip的宽度
-        */
+        //ToolTip的宽度
         int32_t m_nTooltipWidth = 300;
+    };
+
+    //边框相关数据
+    struct TBorderData
+    {
+        //控件四边的边框大小（可分别设置top/bottom/left/right四个边的值）
+        UiRectF m_rcBorderSize;
+
+        //控件四边边框的线条类型
+        int8_t m_borderDashStyle = 0;
+
+        //边框颜色, 每个状态可以指定不同的边框颜色
+        std::unique_ptr <StateColorMap> m_pBorderColorMap;
     };
 
 private:
@@ -1297,13 +1309,6 @@ private:
 
     //焦点状态虚线矩形的颜色
     UiString m_focusRectColor;
-
-    /** 边框颜色, 每个状态可以指定不同的边框颜色
-    */
-    std::unique_ptr<StateColorMap> m_pBorderColorMap;
-
-    //控件四边的边框大小（可分别设置top/bottom/left/right四个边的值）
-    std::unique_ptr<UiRectF> m_rcBorderSize;
 
 private:
     //控件的背景颜色
@@ -1350,6 +1355,10 @@ private:
     //用户数据ID(整型值)
     size_t m_uUserDataID;
 
+    /** 边框数据
+    */
+    std::unique_ptr<TBorderData> m_pBorderData;
+
     /** 回调事件管理器
     */
     std::unique_ptr<TEventMapData> m_pEventMapData;
@@ -1379,9 +1388,6 @@ private:
 
     //控件为Hot状态时的透明度（0 - 255，0为完全透明，255为不透明）
     uint8_t m_nHotAlpha;
-
-    //控件四边边框的线条类型
-    int8_t m_borderDashStyle;
 
     //鼠标焦点是否在控件上
     bool m_bMouseFocused;
