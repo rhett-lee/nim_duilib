@@ -29,11 +29,8 @@ Control::Control(Window* pWindow) :
     m_borderDashStyle((int8_t)IPen::DashStyle::kDashStyleSolid),
     m_cursorType(CursorType::kCursorArrow),
     m_controlState(kControlStateNormal),
-    m_nTooltipWidth(300),
     m_nAlpha(255),
     m_nHotAlpha(0),
-    m_sToolTipText(),
-    m_sToolTipTextId(),
     m_sUserDataID(),
     m_strBkColor(),
     m_pBoxShadow(nullptr),
@@ -1289,9 +1286,12 @@ void Control::SetCursorType(CursorType cursorType)
 
 DString Control::GetToolTipText() const
 {
-    DString strText = m_sToolTipText.c_str();
-    if (strText.empty() && !m_sToolTipTextId.empty()) {
-        strText = GlobalManager::Instance().Lang().GetStringViaID(m_sToolTipTextId.c_str());
+    DString strText;
+    if (m_pTooltip != nullptr) {
+        strText = m_pTooltip->m_sToolTipText.c_str();
+        if (strText.empty() && !m_pTooltip->m_sToolTipTextId.empty()) {
+            strText = GlobalManager::Instance().Lang().GetStringViaID(m_pTooltip->m_sToolTipTextId.c_str());
+        }
     }
     return strText;
 }
@@ -1304,10 +1304,16 @@ std::string Control::GetUTF8ToolTipText() const
 
 void Control::SetToolTipText(const DString& strText)
 {
-    if (strText != m_sToolTipText) {
+    if (strText.empty() && (m_pTooltip == nullptr)) {
+        return;
+    }
+    if (m_pTooltip == nullptr) {
+        m_pTooltip = std::make_unique<TTooltipData>();
+    }
+    if (strText != m_pTooltip->m_sToolTipText) {
         DString strTemp(strText);
         StringUtil::ReplaceAll(_T("<n>"), _T("\r\n"), strTemp);
-        m_sToolTipText = strTemp;
+        m_pTooltip->m_sToolTipText = strTemp;
         Invalidate();
 
         if (GetWindow() != nullptr) {
@@ -1316,31 +1322,37 @@ void Control::SetToolTipText(const DString& strText)
                 //更新ToolTip的显示
                 GetWindow()->UpdateToolTip();
             }
-        }        
+        }
     }    
 }
 
 void Control::SetUTF8ToolTipText(const std::string& strText)
 {
     DString strOut = StringConvert::UTF8ToT(strText);
-    if (strOut.empty()) {
-        m_sToolTipText.clear();
-        Invalidate();
-        return ;
-    }
-
-    if (m_sToolTipText != strOut) {
-        SetToolTipText(strOut);
-    }
+    SetToolTipText(strOut);
 }
 
 void Control::SetToolTipTextId(const DString& strTextId)
 {
-    if (m_sToolTipTextId == strTextId) {
+    if (strTextId.empty() && (m_pTooltip == nullptr)) {
         return;
     }
-    m_sToolTipTextId = strTextId;
-    Invalidate();
+    if (m_pTooltip == nullptr) {
+        m_pTooltip = std::make_unique<TTooltipData>();
+    }
+
+    if (m_pTooltip->m_sToolTipTextId != strTextId) {
+        m_pTooltip->m_sToolTipTextId = strTextId;
+        Invalidate();
+
+        if (GetWindow() != nullptr) {
+            Control* pHover = GetWindow()->GetHoverControl();
+            if (pHover == this) {
+                //更新ToolTip的显示
+                GetWindow()->UpdateToolTip();
+            }
+        }
+    }
 }
 
 void Control::SetUTF8ToolTipTextId(const std::string& strTextId)
@@ -1349,7 +1361,7 @@ void Control::SetUTF8ToolTipTextId(const std::string& strTextId)
     SetToolTipTextId(strOut);
 }
 
-void Control::SetToolTipWidth( int32_t nWidth, bool bNeedDpiScale)
+void Control::SetToolTipWidth(int32_t nWidth, bool bNeedDpiScale)
 {
     if (nWidth < 0) {
         nWidth = 0;
@@ -1357,12 +1369,19 @@ void Control::SetToolTipWidth( int32_t nWidth, bool bNeedDpiScale)
     if (bNeedDpiScale) {
         Dpi().ScaleInt(nWidth);
     }
-    m_nTooltipWidth = TruncateToUInt16(nWidth);
+    if (m_pTooltip == nullptr) {
+        m_pTooltip = std::make_unique<TTooltipData>();
+    }
+    m_pTooltip->m_nTooltipWidth = nWidth;
 }
 
 int32_t Control::GetToolTipWidth(void) const
 {
-    return m_nTooltipWidth;
+    int32_t nTooltipWidth = 0;
+    if (m_pTooltip != nullptr) {
+        nTooltipWidth = m_pTooltip->m_nTooltipWidth;
+    }
+    return nTooltipWidth;
 }
 
 void Control::SetContextMenuUsed(bool bMenuUsed)
