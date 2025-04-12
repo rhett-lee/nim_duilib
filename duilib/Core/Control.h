@@ -1273,6 +1273,20 @@ private:
         EventMap* m_pXmlBubbledEvent;
     };
 
+    //Tootip数据
+    struct TTooltipData
+    {
+        //ToolTip的文本内容
+        UiString m_sToolTipText;
+
+        //ToolTip的文本ID
+        UiString m_sToolTipTextId;
+
+        /** ToolTip的宽度
+        */
+        int32_t m_nTooltipWidth = 300;
+    };
+
 private:
     //控件阴影，其圆角大小通过m_cxyBorderRound变量控制
     BoxShadow* m_pBoxShadow;
@@ -1329,13 +1343,6 @@ private:
     std::unique_ptr<IRender> m_render;
 
 private:
-    //ToolTip的文本内容
-    UiString m_sToolTipText;
-
-    //ToolTip的文本ID
-    UiString m_sToolTipTextId;
-
-private:
     
     //用户数据ID(字符串)
     UiString m_sUserDataID;
@@ -1347,15 +1354,14 @@ private:
     */
     std::unique_ptr<TEventMapData> m_pEventMapData;
 
+    //Tooltip数据
+    std::unique_ptr<TTooltipData> m_pTooltip;
+
 private:
     /** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
         仅当 m_rcBorderSize 四个边框值都有效, 并且都相同时
     */
     UiSize16 m_cxyBorderRound;
-
-    /** ToolTip的宽度
-    */
-    uint16_t m_nTooltipWidth;
 
     //控件的第二背景色方向：："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
     int8_t m_nBkColor2Direction;
