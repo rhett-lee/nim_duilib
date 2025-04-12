@@ -192,41 +192,41 @@ namespace ui
     };
 
     //控件图片类型
-    enum StateImageType
+    enum StateImageType: int8_t
     {
-        kStateImageBk,                  //背景图片（Control在用）
-        kStateImageFore,                //前景图片（Control在用）
-        kStateImageSelectedBk,          //选择时的背景图片（CheckBox在用）
-        kStateImageSelectedFore,        //选择时的前景图片（CheckBox在用）
-        kStateImagePartSelectedBk,      //部分选择时的背景图片（CheckBox在用）
-        kStateImagePartSelectedFore,    //部分选择时的前景图片（CheckBox在用）
+        kStateImageBk               = 0,    //背景图片（Control在用）
+        kStateImageFore             = 1,    //前景图片（Control在用）
+        kStateImageSelectedBk       = 2,    //选择时的背景图片（CheckBox在用）
+        kStateImageSelectedFore     = 3,    //选择时的前景图片（CheckBox在用）
+        kStateImagePartSelectedBk   = 4,    //部分选择时的背景图片（CheckBox在用）
+        kStateImagePartSelectedFore = 5,    //部分选择时的前景图片（CheckBox在用）
     };
 
     //控件状态
-    enum ControlStateType
+    enum ControlStateType: int8_t
     {
-        kControlStateNormal,    // 普通状态
-        kControlStateHot,       // 悬停状态
-        kControlStatePushed,    // 按下状态
-        kControlStateDisabled   // 禁用状态
+        kControlStateNormal     = 0,    // 普通状态
+        kControlStateHot        = 1,    // 悬停状态
+        kControlStatePushed     = 2,    // 按下状态
+        kControlStateDisabled   = 3     // 禁用状态
     };
 
     //控件动画类型
-    enum class AnimationType
+    enum class AnimationType: int8_t
     {
-        kAnimationNone,                 //无动画
-        kAnimationAlpha,                //透明度渐变动画
-        kAnimationHeight,               //控件高度变化动画
-        kAnimationWidth,                //控件宽度变化动画
-        kAnimationHot,                  //鼠标悬停状态的动画
-        kAnimationInoutXFromLeft,       //控件的X坐标变化动画，从左侧
-        kAnimationInoutXFromRight,      //控件的X坐标变化动画，从右侧
-        kAnimationInoutYFromTop,        //控件的Y坐标变化动画，从上侧
-        kAnimationInoutYFromBottom,     //控件的Y坐标变化动画，从下侧
+        kAnimationNone              = 0,    //无动画
+        kAnimationAlpha             = 1,    //透明度渐变动画
+        kAnimationHeight            = 2,    //控件高度变化动画
+        kAnimationWidth             = 3,    //控件宽度变化动画
+        kAnimationHot               = 4,    //鼠标悬停状态的动画
+        kAnimationInoutXFromLeft    = 5,    //控件的X坐标变化动画，从左侧
+        kAnimationInoutXFromRight   = 6,    //控件的X坐标变化动画，从右侧
+        kAnimationInoutYFromTop     = 7,    //控件的Y坐标变化动画，从上侧
+        kAnimationInoutYFromBottom  = 8,    //控件的Y坐标变化动画，从下侧
     };
 
     //GIF图片帧类型
-    enum GifFrameType
+    enum GifFrameType: int8_t
     {
         kGifFrameFirst   = 0,   // 第一帧    
         kGifFrameCurrent = 1,   // 当前帧        
@@ -236,17 +236,17 @@ namespace ui
     //光标: Windows平台可参考：https://learn.microsoft.com/zh-cn/windows/win32/menurc/about-cursors
     enum class CursorType : uint8_t
     {
-        kCursorArrow,       // 箭头, 正常选择, XML文件中的名字："arrow"
-        kCursorIBeam,       // “I”形状, 文本选择, XML文件中的名字："ibeam"
-        kCursorHand,        // 手型, 链接选择, XML文件中的名字："hand"
-        kCursorWait,        // 忙碌, XML文件中的名字："wait"
-        kCursorCross,       // 精度选择, XML文件中的名字："cross"
-        kCursorSizeWE,      // 水平调整大小, XML文件中的名字："size_we"
-        kCursorSizeNS,      // 垂直调整大小, XML文件中的名字："size_ns"
-        kCursorSizeNWSE,    // 对角线调整大小 1, XML文件中的名字："size_nwse"
-        kCursorSizeNESW,    // 对角线调整大小 2, XML文件中的名字： "size_nesw"
-        kCursorSizeAll,     // 移动, XML文件中的名字："size_all"
-        kCursorNo           // 不可用, XML文件中的名字："no"
+        kCursorArrow    = 0,    // 箭头, 正常选择, XML文件中的名字："arrow"
+        kCursorIBeam    = 1,    // “I”形状, 文本选择, XML文件中的名字："ibeam"
+        kCursorHand     = 2,    // 手型, 链接选择, XML文件中的名字："hand"
+        kCursorWait     = 3,    // 忙碌, XML文件中的名字："wait"
+        kCursorCross    = 4,    // 精度选择, XML文件中的名字："cross"
+        kCursorSizeWE   = 5,    // 水平调整大小, XML文件中的名字："size_we"
+        kCursorSizeNS   = 6,    // 垂直调整大小, XML文件中的名字："size_ns"
+        kCursorSizeNWSE = 7,    // 对角线调整大小 1, XML文件中的名字："size_nwse"
+        kCursorSizeNESW = 8,    // 对角线调整大小 2, XML文件中的名字： "size_nesw"
+        kCursorSizeAll  = 9,    // 移动, XML文件中的名字："size_all"
+        kCursorNo       = 10    // 不可用, XML文件中的名字："no"
     };
 
     //窗口退出参数

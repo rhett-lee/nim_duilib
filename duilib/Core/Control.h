@@ -1291,7 +1291,7 @@ private:
         int8_t m_borderDashStyle = 0;
 
         //边框颜色, 每个状态可以指定不同的边框颜色
-        std::unique_ptr <StateColorMap> m_pBorderColorMap;
+        std::unique_ptr<StateColorMap> m_pBorderColorMap;
 
         //焦点状态下的边框颜色
         UiString m_focusBorderColor;
@@ -1311,20 +1311,22 @@ private:
     };
 
 private:
-    //控件阴影，其圆角大小通过m_cxyBorderRound变量控制
-    BoxShadow* m_pBoxShadow;
+    /** 控件阴影，其圆角大小通过m_cxyBorderRound变量控制
+    */
+    std::unique_ptr<BoxShadow> m_pBoxShadow;
 
-    //焦点状态虚线矩形的颜色
-    UiString m_focusRectColor;
+    /** 边框数据
+    */
+    std::unique_ptr<TBorderData> m_pBorderData;
 
-private:
-    //背景色
+    /** 背景色
+    */
     std::unique_ptr<TBkColorData> m_pBkColorData;
 
-    //控件的背景图片
+    /** 背景图片
+    */
     std::unique_ptr<Image> m_pBkImage;
 
-private:
     /** 状态与颜色值MAP，每个状态可以指定不同的颜色
     */
     std::unique_ptr<StateColorMap> m_pColorMap;
@@ -1333,42 +1335,45 @@ private:
     */
     std::unique_ptr<StateImageMap> m_pImageMap;
 
-private:
     /** 控件"加载中"逻辑的实现接口
     */
-    ControlLoading* m_pLoading;
+    std::unique_ptr<ControlLoading> m_pLoading;
 
-private:
-    //控件动画播放管理器
+    /** 控件动画播放管理器
+    */
     std::unique_ptr<AnimationManager> m_animationManager;
 
-    //控件播放动画时的渲染偏移(X坐标偏移和Y坐标偏移)
-    UiPoint m_renderOffset;
-    
-    //控件的绘制区域
-    UiRect m_rcPaint;
-
-    //绘制渲染引擎接口
-    std::unique_ptr<IRender> m_render;
-
-private:
-    
-    //用户数据ID(字符串)
-    UiString m_sUserDataID;
-
-    //用户数据ID(整型值)
-    size_t m_uUserDataID;
-
-    /** 边框数据
+    /** 绘制渲染引擎接口(控件自身)
     */
-    std::unique_ptr<TBorderData> m_pBorderData;
+    std::unique_ptr<IRender> m_render;
 
     /** 回调事件管理器
     */
     std::unique_ptr<TEventMapData> m_pEventMapData;
 
-    //Tooltip数据
+    /** Tooltip数据
+    */
     std::unique_ptr<TTooltipData> m_pTooltip;
+
+    /** 控件播放动画时的渲染偏移(X坐标偏移和Y坐标偏移)
+    */
+    UiPoint m_renderOffset;
+    
+    /** 控件的绘制区域
+    */
+    UiRect m_rcPaint;
+
+    /** 焦点状态虚线矩形的颜色
+    */
+    UiString m_focusRectColor;
+   
+    /** 用户数据ID(字符串)
+    */
+    UiString m_sUserDataID;
+
+    /** 用户数据ID(整型值)
+    */
+    size_t m_uUserDataID;
 
 private:
     /** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
