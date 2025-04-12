@@ -40,7 +40,7 @@ public:
     /**@brief 获取背景颜色
      * @return 返回背景颜色的字符串，该值在 global.xml 中定义
      */
-    DString GetBkColor() const { return m_strBkColor.c_str(); }
+    DString GetBkColor() const;
 
     /** 设置背景颜色
      * @param [in] strColor 要设置的背景颜色值，该值必须在 global.xml 中存在
@@ -1238,12 +1238,19 @@ private:
     //回调事件管理
     struct TEventMapData
     {
-        TEventMapData():
-            m_pXmlEvent(nullptr),
-            m_pBubbledEvent(nullptr),
-            m_pXmlBubbledEvent(nullptr)
-        {
-        }
+        //通过AttachXXX接口，添加的监听事件
+        EventMap m_attachEvent;
+
+        //通过XML中，配置<Event标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
+        EventMap* m_pXmlEvent = nullptr;
+
+        //通过AttachBubbledEvent接口添加的事件
+        EventMap* m_pBubbledEvent = nullptr;
+
+        //通过XML中，配置<BubbledEvent标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
+        EventMap* m_pXmlBubbledEvent = nullptr;
+
+        //析构函数中释放资源
         ~TEventMapData()
         {
             if (m_pXmlEvent != nullptr) {
@@ -1259,18 +1266,6 @@ private:
                 m_pXmlBubbledEvent = nullptr;
             }
         }
-
-        //通过AttachXXX接口，添加的监听事件
-        EventMap m_attachEvent;
-
-        //通过XML中，配置<Event标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
-        EventMap* m_pXmlEvent;
-
-        //通过AttachBubbledEvent接口添加的事件
-        EventMap* m_pBubbledEvent;
-
-        //通过XML中，配置<BubbledEvent标签添加的响应事件，最终由Control::OnApplyAttributeList函数响应具体操作
-        EventMap* m_pXmlBubbledEvent;
     };
 
     //Tootip数据
@@ -1302,6 +1297,19 @@ private:
         UiString m_focusBorderColor;
     };
 
+    //背景色相关数据
+    struct TBkColorData
+    {
+        //控件的背景颜色
+        UiString m_strBkColor;
+
+        //控件的第二背景色(实现渐变背景色)
+        UiString m_strBkColor2;
+
+        //控件的第二背景色方向：："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
+        int8_t m_nBkColor2Direction = 1;
+    };
+
 private:
     //控件阴影，其圆角大小通过m_cxyBorderRound变量控制
     BoxShadow* m_pBoxShadow;
@@ -1310,11 +1318,8 @@ private:
     UiString m_focusRectColor;
 
 private:
-    //控件的背景颜色
-    UiString m_strBkColor;
-
-    //控件的第二背景色(实现渐变背景色)
-    UiString m_strBkColor2;
+    //背景色
+    std::unique_ptr<TBkColorData> m_pBkColorData;
 
     //控件的背景图片
     std::unique_ptr<Image> m_pBkImage;
@@ -1370,9 +1375,6 @@ private:
         仅当 m_rcBorderSize 四个边框值都有效, 并且都相同时
     */
     UiSize16 m_cxyBorderRound;
-
-    //控件的第二背景色方向：："1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
-    int8_t m_nBkColor2Direction;
 
     /** box - shadow是否已经绘制（由于box - shadow绘制会超过GetRect()范围，所以需要特殊处理）
     */
