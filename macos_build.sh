@@ -44,7 +44,7 @@ cd "$SRC_ROOT_DIR/"
 rm -f "$SRC_ROOT_DIR/libs/libcef_dll_wrapper.a"
 cmake -S "$SRC_ROOT_DIR/duilib/third_party/libcef_macos/" -B "$SRC_ROOT_DIR/build_temp/libcef_dll_wrapper" -DCMAKE_BUILD_TYPE=Debug
 cd "$SRC_ROOT_DIR/build_temp/libcef_dll_wrapper"
-make 
+make -j 6
 cp "$SRC_ROOT_DIR/build_temp/libcef_dll_wrapper/libcef_dll_wrapper/libcef_dll_wrapper.a" "$SRC_ROOT_DIR/libs/libcef_dll_wrapper.a"
 cd "$SRC_ROOT_DIR/"
 
@@ -52,7 +52,7 @@ cd "$SRC_ROOT_DIR/"
 rm -f "$SRC_ROOT_DIR/libs/libduilib.a"
 cmake -S "$SRC_ROOT_DIR/duilib/" -B "$SRC_ROOT_DIR/build_temp/duilib" -DCMAKE_BUILD_TYPE=Debug
 cd "$SRC_ROOT_DIR/build_temp/duilib"
-make -j 4
+make -j 6
 cd "$SRC_ROOT_DIR/"
 
 # 编译examples下的各个程序
@@ -76,45 +76,50 @@ cd "$SRC_ROOT_DIR/build_temp/DpiAware"
 make clean; make
 cd "$SRC_ROOT_DIR/"
 
-# cmake -S "$SRC_ROOT_DIR/examples/layouts/" -B "$SRC_ROOT_DIR/build_temp/layouts" -DCMAKE_BUILD_TYPE=Debug
-# cd "$SRC_ROOT_DIR/build_temp/layouts"
-# make clean; make
-# cd "$SRC_ROOT_DIR/"
+cmake -S "$SRC_ROOT_DIR/examples/layouts/" -B "$SRC_ROOT_DIR/build_temp/layouts" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/layouts"
+make clean; make
+cd "$SRC_ROOT_DIR/"
 
-# cmake -S "$SRC_ROOT_DIR/examples/ListBox/" -B "$SRC_ROOT_DIR/build_temp/ListBox" -DCMAKE_BUILD_TYPE=Debug
-# cd "$SRC_ROOT_DIR/build_temp/ListBox"
-# make clean; make
-# cd "$SRC_ROOT_DIR/"
+cmake -S "$SRC_ROOT_DIR/examples/ListBox/" -B "$SRC_ROOT_DIR/build_temp/ListBox" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/ListBox"
+make clean; make
+cd "$SRC_ROOT_DIR/"
 
-# cmake -S "$SRC_ROOT_DIR/examples/ListCtrl/" -B "$SRC_ROOT_DIR/build_temp/ListCtrl" -DCMAKE_BUILD_TYPE=Debug
-# cd "$SRC_ROOT_DIR/build_temp/ListCtrl"
-# make clean; make
-# cd "$SRC_ROOT_DIR/"
+cmake -S "$SRC_ROOT_DIR/examples/ListCtrl/" -B "$SRC_ROOT_DIR/build_temp/ListCtrl" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/ListCtrl"
+make clean; make
+cd "$SRC_ROOT_DIR/"
 
-# cmake -S "$SRC_ROOT_DIR/examples/move_control/" -B "$SRC_ROOT_DIR/build_temp/move_control" -DCMAKE_BUILD_TYPE=Debug
-# cd "$SRC_ROOT_DIR/build_temp/move_control"
-# make clean; make
-# cd "$SRC_ROOT_DIR/"
+cmake -S "$SRC_ROOT_DIR/examples/MoveControl/" -B "$SRC_ROOT_DIR/build_temp/MoveControl" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/MoveControl"
+make clean; make
+cd "$SRC_ROOT_DIR/"
 
-# cmake -S "$SRC_ROOT_DIR/examples/MultiLang/" -B "$SRC_ROOT_DIR/build_temp/MultiLang" -DCMAKE_BUILD_TYPE=Debug
-# cd "$SRC_ROOT_DIR/build_temp/MultiLang"
-# make clean; make
-# cd "$SRC_ROOT_DIR/"
+cmake -S "$SRC_ROOT_DIR/examples/MultiLang/" -B "$SRC_ROOT_DIR/build_temp/MultiLang" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/MultiLang"
+make clean; make
+cd "$SRC_ROOT_DIR/"
 
-# cmake -S "$SRC_ROOT_DIR/examples/render/" -B "$SRC_ROOT_DIR/build_temp/render" -DCMAKE_BUILD_TYPE=Debug
-# cd "$SRC_ROOT_DIR/build_temp/render"
-# make clean; make
-# cd "$SRC_ROOT_DIR/"
+cmake -S "$SRC_ROOT_DIR/examples/render/" -B "$SRC_ROOT_DIR/build_temp/render" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/render"
+make clean; make
+cd "$SRC_ROOT_DIR/"
 
-# cmake -S "$SRC_ROOT_DIR/examples/RichEdit/" -B "$SRC_ROOT_DIR/build_temp/RichEdit" -DCMAKE_BUILD_TYPE=Debug
-# cd "$SRC_ROOT_DIR/build_temp/RichEdit"
-# make clean; make
-# cd "$SRC_ROOT_DIR/"
+cmake -S "$SRC_ROOT_DIR/examples/RichEdit/" -B "$SRC_ROOT_DIR/build_temp/RichEdit" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/RichEdit"
+make clean; make
+cd "$SRC_ROOT_DIR/"
 
-# cmake -S "$SRC_ROOT_DIR/examples/VirtualListBox/" -B "$SRC_ROOT_DIR/build_temp/VirtualListBox" -DCMAKE_BUILD_TYPE=Debug
-# cd "$SRC_ROOT_DIR/build_temp/VirtualListBox"
-# make clean; make
-# cd "$SRC_ROOT_DIR/"
+cmake -S "$SRC_ROOT_DIR/examples/VirtualListBox/" -B "$SRC_ROOT_DIR/build_temp/VirtualListBox" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/VirtualListBox"
+make clean; make
+cd "$SRC_ROOT_DIR/"
+
+cmake -S "$SRC_ROOT_DIR/examples/threads/" -B "$SRC_ROOT_DIR/build_temp/threads" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/threads"
+make clean; make
+cd "$SRC_ROOT_DIR/"
 
 # cmake -S "$SRC_ROOT_DIR/examples/cef/" -B "$SRC_ROOT_DIR/build_temp/cef" -DCMAKE_BUILD_TYPE=Debug
 # cd "$SRC_ROOT_DIR/build_temp/cef"
