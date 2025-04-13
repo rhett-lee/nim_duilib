@@ -10,7 +10,6 @@ namespace ui
 {
 class ImageInfo;
 class ImageLoadAttribute;
-class DpiManager;
 
 /** 图片格式解码类
 */
@@ -22,13 +21,14 @@ public:
     * @param [in] imageLoadAttribute 图片加载属性, 包括图片路径等
     * @param [in] bEnableDpiScale 是否允许按照DPI对图片大小进行缩放（此为功能开关）
     * @param [in] nImageDpiScale 图片数据对应的DPI缩放百分比（比如：i.jpg为100，i@150.jpg为150）
-    * @param [in] dpi DPI缩放管理接口
+    * @param [in] nWindowDpiScale 显示目标窗口的DPI缩放百分比
+    * @param [in] bLoadAllFrames 当遇到多帧图片时：true表示加载全部图片帧，false表示仅加载第一帧
+    * @param [out] nFrameCount 返回图片共有多少帧
     */
-    std::unique_ptr<ImageInfo> LoadImageData(std::vector<uint8_t>& fileData,                                             
-                                             const ImageLoadAttribute& imageLoadAttribute,
-                                             bool bEnableDpiScale,
-                                             uint32_t nImageDpiScale,
-                                             const DpiManager& dpi);
+    std::unique_ptr<ImageInfo> LoadImageData(std::vector<uint8_t>& fileData,
+                                             const ImageLoadAttribute& imageLoadAttribute,                                             
+                                             bool bEnableDpiScale, uint32_t nImageDpiScale, uint32_t nWindowDpiScale,
+                                             bool bLoadAllFrames, uint32_t& nFrameCount);
 
 public:
     /** 加载后的图片数据
@@ -61,19 +61,23 @@ private:
     /** 对图片数据进行解码，生成位图数据
     * @param [in] fileData 原始图片数据
     * @param [in] imageLoadAttribute 图片的加载属性信息
+    * @param [in] bLoadAllFrames 对于多帧图片，是否加载全部帧（true加载全部帧，false仅加载第1帧）
     * @param [in] bEnableDpiScale 是否允许按照DPI对图片大小进行缩放（此为功能开关）
     * @param [in] nImageDpiScale 图片数据对应的DPI缩放百分比（比如：i.jpg为100，i@150.jpg为150）
-    * @param [in] dpi DPI缩放管理接口
+    * @param [in] nWindowDpiScale 显示目标窗口的DPI缩放百分比
     * @param [out] imageData 加载成功的图片数据，每个图片帧一个元素
-    * @param [out] playCount 动画播放的循环次数(-1表示无效值；大于等于0时表示值有效，如果等于0，表示动画是循环播放的, APNG格式支持设置循环播放次数)
+    * @param [out] nFrameCount 返回图片总的帧数
+    * @param [out] playCount 动画播放的循环次数(-1表示无效值；大于等于0时表示值有效，如果等于0，表示动画是循环播放的, APNG格式支持设置循环播放次数)    
     * @param [out] bDpiScaled 图片加载的时候，图片大小是否进行了DPI自适应操作
     */
     bool DecodeImageData(std::vector<uint8_t>& fileData, 
                          const ImageLoadAttribute& imageLoadAttribute,
+                         bool bLoadAllFrames,
                          bool bEnableDpiScale,
                          uint32_t nImageDpiScale,
-                         const DpiManager& dpi,
+                         uint32_t nWindowDpiScale,
                          std::vector<ImageData>& imageData,
+                         uint32_t& nFrameCount,
                          int32_t& playCount,
                          bool& bDpiScaled);
 

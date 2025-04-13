@@ -1,7 +1,6 @@
 #include "ImageDecoder.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Core/GlobalManager.h"
-#include "duilib/Core/DpiManager.h"
 #include "duilib/Utils/StringUtil.h"
 
 #include "duilib/third_party/apng/decoder-apng.h"
@@ -53,7 +52,7 @@ namespace ImageLoader
     * @param [in] imageLoadAttribute 图片的加载属性信息
     * @param [in] bEnableDpiScale 是否允许按照DPI对图片大小进行缩放（此为功能开关）
     * @param [in] nImageDpiScale 图片数据对应的DPI缩放百分比
-    * @param [in] dpi DPI缩放管理接口
+    * @param [in] nWindowDpiScale 显示目标窗口的DPI缩放百分比
     * @param [out] bDpiScaled 图片加载的时候，图片大小是否进行了DPI自适应操作
     * @param [in,out] nImageWidth 原始图片的宽度，返回计算后的宽度
     * @param [in,out] nImageHeight 原始图片的高度，返回计算后的高度
@@ -61,7 +60,7 @@ namespace ImageLoader
     static void CalcImageLoadSize(const ImageLoadAttribute& imageLoadAttribute,
                                   bool bEnableDpiScale,
                                   uint32_t nImageDpiScale,
-                                  const DpiManager& dpi,
+                                  uint32_t nWindowDpiScale,
                                   bool& bDpiScaled,
                                   uint32_t& nImageWidth, uint32_t& nImageHeight)
     {
@@ -94,10 +93,10 @@ namespace ImageLoader
             needDpiScale = imageLoadAttribute.NeedDpiScale();
         }
         if (needDpiScale) {
-            uint32_t dpiScale = dpi.GetScale();
-            ASSERT(dpiScale > 0);
-            if ((dpiScale != nImageDpiScale) && (dpiScale != 0)) {
-                float scaleRatio = (float)dpiScale / (float)nImageDpiScale;
+            ASSERT(nImageDpiScale > 0);
+            ASSERT(nWindowDpiScale > 0);
+            if ((nWindowDpiScale != nImageDpiScale) && (nWindowDpiScale != 0) && (nImageDpiScale != 0)) {
+                float scaleRatio = (float)nWindowDpiScale / (float)nImageDpiScale;
                 nImageWidth = static_cast<int>(nImageWidth * scaleRatio);
                 nImageHeight = static_cast<int>(nImageHeight * scaleRatio);
                 bDpiScaled = true;
@@ -236,18 +235,19 @@ namespace APNGImageLoader
         return true;
     }
 
-    bool LoadImageFromMemory(const std::vector<uint8_t>& fileData, std::vector<ImageDecoder::ImageData>& imageData, int32_t& playCount)
+    bool LoadImageFromMemory(const std::vector<uint8_t>& fileData, std::vector<ImageDecoder::ImageData>& imageData,
+                             bool bLoadAllFrames, uint32_t& nOutFrameCount, int32_t& playCount)
     {
         ASSERT(!fileData.empty());
         if (fileData.empty()) {
             return false;
         }
         bool isLoaded = false;
-        APNGDATA* apngData = LoadAPNG_from_memory((const char*)fileData.data(), fileData.size());
+        APNGDATA* apngData = LoadAPNG_from_memory((const char*)fileData.data(), fileData.size(), bLoadAllFrames, nOutFrameCount);
         if (apngData != nullptr) {
             isLoaded = DecodeAPNG(apngData, imageData, playCount);
             APNG_Destroy(apngData);
-        }        
+        }
         return isLoaded;
     }
 }//APNGImageLoader
@@ -273,13 +273,13 @@ namespace SVGImageLoader
     * @param [in] imageLoadAttribute 图片加载属性, 包括图片路径等
     * @param [in] bEnableDpiScale 是否允许按照DPI对图片大小进行缩放（此为功能开关）
     * @param [in] nImageDpiScale 图片数据对应的DPI缩放百分比（比如：i.jpg为100，i@150.jpg为150）
-    * @param [in] dpi DPI缩放管理接口
+    * @param [in] nWindowDpiScale 显示目标窗口的DPI缩放百分比
     */
     bool LoadImageFromMemory(std::vector<uint8_t>& fileData, 
                              const ImageLoadAttribute& imageLoadAttribute, 
                              bool bEnableDpiScale,
                              uint32_t nImageDpiScale,
-                             const DpiManager& dpi,                             
+                             uint32_t nWindowDpiScale,
                              ImageDecoder::ImageData& imageData,
                              bool& bDpiScaled)
     {
@@ -311,7 +311,7 @@ namespace SVGImageLoader
         uint32_t nImageWidth = (uint32_t)width;
         uint32_t nImageHeight = (uint32_t)height;
         ImageLoader::CalcImageLoadSize(imageLoadAttribute,
-                                       bEnableDpiScale, nImageDpiScale, dpi, bDpiScaled,
+                                       bEnableDpiScale, nImageDpiScale, nWindowDpiScale, bDpiScaled,
                                        nImageWidth, nImageHeight);
 
         //svg的缩放，只能按比例，锁定纵横比的方式缩放
@@ -359,15 +359,19 @@ namespace SVGImageLoader
 } //SVGImageLoader
 
 /** 使用cximage加载图片（只支持GIF和ICO）两种格式
-@param [in] isIconFile 如果为true表示是ICO文件，否则为GIF文件
-@param [in] iconSize 需要加载ICO图标的大小，因ICO文件中包含了各种大小的图标，加载的时候，只加载其中一个图标
+* @param [in] isIconFile 如果为true表示是ICO文件，否则为GIF文件
+* @param [in] iconSize 需要加载ICO图标的大小，因ICO文件中包含了各种大小的图标，加载的时候，只加载其中一个图标
+* @param [in] bLoadAllFrames 对于多帧图片，是否加载全部帧（true加载全部帧，false仅加载第1帧）
+* @param [out] nFrameCount 返回图片总的帧数
 */
 namespace CxImageLoader
 {
     bool LoadImageFromMemory(std::vector<uint8_t>& fileData, 
                              std::vector<ImageDecoder::ImageData>& imageData, 
                              bool isIconFile,
-                             uint32_t iconSize)
+                             uint32_t iconSize,
+                             bool bLoadAllFrames,
+                             uint32_t& nOutFrameCount)
     {
         ASSERT(!fileData.empty());
         if (fileData.empty()) {
@@ -378,10 +382,20 @@ namespace CxImageLoader
         CxImage cxImage(imagetype);
         cxImage.SetRetreiveAllFrames(true);        
         bool isLoaded = cxImage.Decode(&stream, imagetype);
-        const int32_t frameCount = cxImage.GetNumFrames();
+        int32_t frameCount = cxImage.GetNumFrames();
         ASSERT(isLoaded && cxImage.IsValid() && (frameCount > 0));
         if (!isLoaded || !cxImage.IsValid() || (frameCount < 1)) {
             return false;
+        }
+
+        nOutFrameCount = (uint32_t)frameCount;
+        if (!isIconFile && !bLoadAllFrames) {
+            //GIF文件，只加载第1帧，不加载全部帧            
+            frameCount = 1;
+        }
+        if (isIconFile) {
+            //目前ICO文件，只加载1帧，未按多帧处理
+            nOutFrameCount = 1;
         }
 
         //ICO
@@ -528,7 +542,8 @@ namespace CxImageLoader
 */
 namespace WebPImageLoader
 {
-    bool LoadImageFromMemory(std::vector<uint8_t>& fileData, std::vector<ImageDecoder::ImageData>& imageData, int32_t& playCount)
+    bool LoadImageFromMemory(std::vector<uint8_t>& fileData, std::vector<ImageDecoder::ImageData>& imageData,
+                             bool bLoadAllFrames, uint32_t& nOutFrameCount, int32_t& playCount)
     {
         ASSERT(!fileData.empty());
         if (fileData.empty()) {
@@ -548,6 +563,11 @@ namespace WebPImageLoader
         uint32_t frameCount = WebPDemuxGetI(demuxer, WEBP_FF_FRAME_COUNT);
         if (frameCount == 0) {
             return false;
+        }
+        nOutFrameCount = frameCount;
+        if (!bLoadAllFrames) {
+            //只加载第1帧，不加载全部帧
+            frameCount = 1;
         }
 
         imageData.resize(frameCount);
@@ -634,10 +654,9 @@ ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const DString& path)
 }
 
 std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fileData,                                                       
-                                                       const ImageLoadAttribute& imageLoadAttribute,
-                                                       bool bEnableDpiScale,
-                                                       uint32_t nImageDpiScale,
-                                                       const DpiManager& dpi)
+                                                       const ImageLoadAttribute& imageLoadAttribute,                                                       
+                                                       bool bEnableDpiScale, uint32_t nImageDpiScale, uint32_t nWindowDpiScale,
+                                                       bool bLoadAllFrames, uint32_t& nFrameCount)
 {
     ASSERT(!fileData.empty() && imageLoadAttribute.HasImageFullPath());
     if (fileData.empty() || !imageLoadAttribute.HasImageFullPath()) {
@@ -655,8 +674,8 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
 
     PerformanceUtil::Instance().BeginStat(_T("DecodeImageData"));
     bool isLoaded = DecodeImageData(fileData, imageLoadAttribute, 
-                                    bEnableDpiScale, nImageDpiScale, dpi, 
-                                    imageData, playCount, bDpiScaled);
+                                    bLoadAllFrames, bEnableDpiScale, nImageDpiScale, nWindowDpiScale,
+                                    imageData, nFrameCount, playCount, bDpiScaled);
     PerformanceUtil::Instance().EndStat(_T("DecodeImageData"));
     if (!isLoaded || imageData.empty()) {
         return nullptr;
@@ -671,7 +690,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
         uint32_t nImageWidth = image.m_imageWidth;
         uint32_t nImageHeight = image.m_imageHeight;
         ImageLoader::CalcImageLoadSize(imageLoadAttribute,
-                                       bEnableDpiScale, nImageDpiScale, dpi, bDpiScaled,
+                                       bEnableDpiScale, nImageDpiScale, nWindowDpiScale, bDpiScaled,
                                        nImageWidth, nImageHeight);
         if ((nImageWidth != image.m_imageWidth) ||
             (nImageHeight != image.m_imageHeight)) {
@@ -776,10 +795,12 @@ bool ImageDecoder::ResizeImageData(std::vector<ImageData>& imageData,
 
 bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
                                    const ImageLoadAttribute& imageLoadAttribute,
+                                   bool bLoadAllFrames,
                                    bool bEnableDpiScale,
                                    uint32_t nImageDpiScale,
-                                   const DpiManager& dpi,
+                                   uint32_t nWindowDpiScale,
                                    std::vector<ImageData>& imageData,
+                                   uint32_t& nFrameCount,
                                    int32_t& playCount,
                                    bool& bDpiScaled)
 {
@@ -789,20 +810,21 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
     }
 
     imageData.clear();
-    playCount = -1;
+    nFrameCount = 1;
+    playCount = -1;    
     bDpiScaled = false;
 
     bool isLoaded = false;
     ImageFormat imageFormat = GetImageFormat(imageLoadAttribute.GetImageFullPath());
     switch (imageFormat) {
     case ImageFormat::kPNG:
-        isLoaded = APNGImageLoader::LoadImageFromMemory(fileData, imageData, playCount);
+        isLoaded = APNGImageLoader::LoadImageFromMemory(fileData, imageData, bLoadAllFrames, nFrameCount, playCount);
         break;
     case ImageFormat::kSVG:
         //SVG是矢量图，所以需要在加载过程中处理图片缩放，确保图片的质量是最高的
         imageData.resize(1);
         isLoaded = SVGImageLoader::LoadImageFromMemory(fileData, imageLoadAttribute, 
-                                                       bEnableDpiScale, nImageDpiScale, dpi, 
+                                                       bEnableDpiScale, nImageDpiScale, nWindowDpiScale,
                                                        imageData[0], bDpiScaled);
         break;
     case ImageFormat::kJPEG:
@@ -811,19 +833,22 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
         isLoaded = STBImageLoader::LoadImageFromMemory(fileData, imageData[0]);
         break;    
     case ImageFormat::kGIF:
-        isLoaded = CxImageLoader::LoadImageFromMemory(fileData, imageData, false, 0);
+        isLoaded = CxImageLoader::LoadImageFromMemory(fileData, imageData, false, 0, bLoadAllFrames, nFrameCount);
         break;
     case ImageFormat::kICO:
         //加载的时候，可用指定加载的ICO图片大小（因一个ICO文件中，可包含各种大小的图片）
         isLoaded = CxImageLoader::LoadImageFromMemory(fileData, imageData, 
-                                                      true, imageLoadAttribute.GetIconSize());
+                                                      true, imageLoadAttribute.GetIconSize(), bLoadAllFrames, nFrameCount);
         break;
     case ImageFormat::kWEBP:
-        isLoaded = WebPImageLoader::LoadImageFromMemory(fileData, imageData, playCount);
+        isLoaded = WebPImageLoader::LoadImageFromMemory(fileData, imageData, bLoadAllFrames, nFrameCount, playCount);
         break;
     
     default:
         break;
+    }
+    if (!isLoaded) {
+        nFrameCount = 0;
     }
     return isLoaded;
 }

@@ -3275,7 +3275,12 @@ bool Control::LoadImageData(Image& duiImage) const
     if ((imageCache == nullptr) || 
         (imageCache->GetLoadKey() != imageLoadAttr.GetCacheKey(Dpi().GetScale()))) {
         //如果图片没有加载则执行加载图片；如果图片发生变化，则重新加载该图片
-        imageCache = GlobalManager::Instance().Image().GetImage(GetWindow(), imageLoadAttr);
+        Control* pThis = const_cast<Control*>(this);
+        StdClosure asyncLoadCallback = pThis->ToWeakCallback([pThis]() {
+                //重绘该控件
+                pThis->Invalidate();
+            });
+        imageCache = GlobalManager::Instance().Image().GetImage(GetWindow(), imageLoadAttr, asyncLoadCallback);
         duiImage.SetImageCache(imageCache);
     }
     return imageCache ? true : false;

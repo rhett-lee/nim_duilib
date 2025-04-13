@@ -31,6 +31,42 @@ ImageInfo::~ImageInfo()
     }
 }
 
+bool ImageInfo::SwapImageData(ImageInfo& r)
+{
+    //校验属性，确保属性一致才交换数据
+    ASSERT(r.GetWidth() == GetWidth());
+    if (r.GetWidth() != GetWidth()) {
+        return false;
+    }
+    ASSERT(r.GetHeight() == GetHeight());
+    if (r.GetHeight() != GetHeight()) {
+        return false;
+    }
+    ASSERT(r.IsBitmapSizeDpiScaled() == IsBitmapSizeDpiScaled());
+    if (r.IsBitmapSizeDpiScaled() != IsBitmapSizeDpiScaled()) {
+        return false;
+    }
+    ASSERT(r.GetLoadDpiScale() == GetLoadDpiScale());
+    if (r.GetLoadDpiScale() != GetLoadDpiScale()) {
+        return false;
+    }
+    ASSERT(r.GetLoadKey() == GetLoadKey());
+    if (r.GetLoadKey() != GetLoadKey()) {
+        return false;
+    }
+    ASSERT(r.GetImageKey() == GetImageKey());
+    if (r.GetImageKey() != GetImageKey()) {
+        return false;
+    }
+
+    //交换数据
+    std::swap(m_nPlayCount, r.m_nPlayCount);
+    std::swap(m_nFrameCount, r.m_nFrameCount);
+    std::swap(m_pFrameIntervals, r.m_pFrameIntervals);
+    std::swap(m_pFrameBitmaps, r.m_pFrameBitmaps);
+    return true;
+}
+
 void ImageInfo::SetFrameInterval(const std::vector<int32_t>& frameIntervals)
 {
     if (m_pFrameIntervals == nullptr) {

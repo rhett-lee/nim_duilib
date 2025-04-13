@@ -246,7 +246,7 @@ bool FrameworkThread::NotifyExecTask(size_t nTaskId)
         //后台工作线程
         std::lock_guard<std::mutex> threadGuard(m_penddingTaskMutex);
         m_penddingTaskIds.push_back(nTaskId);
-        m_cv.notify_one();
+        m_cv.notify_all();
         return true;
     }    
 }
@@ -301,10 +301,12 @@ void FrameworkThread::WorkerThreadProc()
 {
     m_nThisThreadId = std::this_thread::get_id();
     OnInit();
-    while (m_bRunning) {
+    while (m_bRunning) {        
         std::unique_lock lk(m_penddingTaskMutex);
-        m_cv.wait(lk);
         std::vector<size_t> penddingTaskIds;
+        if (m_penddingTaskIds.empty()) {
+            m_cv.wait(lk);
+        }              
         if (!m_penddingTaskIds.empty()) {
             penddingTaskIds.swap(m_penddingTaskIds);
         }

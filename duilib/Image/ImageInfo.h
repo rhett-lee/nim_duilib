@@ -103,6 +103,11 @@ public:
     */
     DString GetImageKey() const;
 
+public:
+    /** 与另外一个图片数据交换数据
+    */
+    bool SwapImageData(ImageInfo& r);
+
 private:
     //该图片的大小是否已经做过适应DPI处理（这个属性值影响：图片的"source"和"corner"属性的DPI缩放操作）
     bool m_bDpiScaled;

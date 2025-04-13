@@ -78,7 +78,7 @@ void on_png_error(png_structp /*png*/, png_const_charp message)
 #endif
 }
 
-APNGDATA* loadPng(IPngReader* pSrc)
+APNGDATA* loadPng(IPngReader* pSrc, bool bLoadAllFrames, unsigned int& nFrameCount)
 {
     png_bytep  dataFrame;
     png_uint_32 bytesPerRow;
@@ -147,10 +147,19 @@ APNGDATA* loadPng(IPngReader* pSrc)
 
         apng->pdata = dataFrame;
         apng->nFrames = 1;
+        nFrameCount = (unsigned int)apng->nFrames;
     }
     else
     {//load apng
         apng->nFrames = png_get_num_frames(png_ptr_read, info_ptr_read);//获取总帧数
+        if (apng->nFrames < 1) {
+            apng->nFrames = 1;
+        }
+        nFrameCount = (unsigned int)apng->nFrames;
+        if (!bLoadAllFrames) {
+            //只加载第1帧，不加载全部帧
+            apng->nFrames = 1;
+        }
 
         png_bytep data = (png_bytep)malloc(bytesPerFrame * apng->nFrames);//为每一帧分配内存
         png_bytep curFrame = (png_bytep)malloc(bytesPerFrame);
@@ -275,10 +284,10 @@ APNGDATA* loadPng(IPngReader* pSrc)
     return apng;
 }
 
-APNGDATA* LoadAPNG_from_memory(const char* pBuf, size_t nLen)
+APNGDATA* LoadAPNG_from_memory(const char* pBuf, size_t nLen, bool bLoadAllFrames, unsigned int& nFrameCount)
 {
     IPngReader_Mem mem(pBuf, nLen);
-    return loadPng(&mem);
+    return loadPng(&mem, bLoadAllFrames, nFrameCount);
 }
 
 void APNG_Destroy(APNGDATA* apng)

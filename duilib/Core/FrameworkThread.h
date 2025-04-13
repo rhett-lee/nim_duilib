@@ -17,7 +17,7 @@ enum ThreadIdentifier
 {
     kThreadNone     = -1,   //无线程标识ID
     kThreadUI       = 0,    //UI线程
-    kThreadWorker   = 1,    //工作线程
+    kThreadWorker   = 1,    //工作线程(duilib库内部用该线程加载多帧图片)
     kThreadMisc     = 2,    //杂事线程
     kThreadUser     = 3     //用户自定义线程的起始ID，如果创建更多线程时，可在此ID后递增ID
 };

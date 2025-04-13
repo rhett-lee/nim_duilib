@@ -10,6 +10,28 @@
 namespace ui 
 {
 
+/** 加载多帧图片所需的参数(多线程加载多帧图片时复用这些参数)
+*/
+struct LoadImageParam
+{
+    explicit LoadImageParam(const ImageLoadAttribute& loadAtrribute):
+        m_nThreadIdentifier(-1),
+        m_nFrameCount(0),
+        m_imageLoadAtrribute(loadAtrribute),
+        m_bEnableImageDpiScale(false),
+        m_nImageDpiScale(0),
+        m_nWindowDpiScale(0)
+    {
+    }
+    int32_t m_nThreadIdentifier;
+    uint32_t m_nFrameCount;
+    std::vector<uint8_t> m_fileData;
+    ImageLoadAttribute m_imageLoadAtrribute;
+    bool m_bEnableImageDpiScale;
+    uint32_t m_nImageDpiScale;
+    uint32_t m_nWindowDpiScale;
+};
+
 ImageManager::ImageManager():
     m_bDpiScaleAllImages(true),
     m_bAutoMatchScaleImage(true)
@@ -21,7 +43,8 @@ ImageManager::~ImageManager()
 }
 
 std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
-                                                  const ImageLoadAttribute& loadAtrribute)
+                                                  const ImageLoadAttribute& loadAtrribute,
+                                                  StdClosure asyncLoadCallback)
 {
     const DpiManager& dpi = (pWindow != nullptr) ? pWindow->Dpi() : GlobalManager::Instance().Dpi();
     //查找对应关系：LoadKey ->(多对一) ImageKey ->(一对一) SharedImage
@@ -50,7 +73,9 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
     }
 #endif
 
-    bool isDpiScaledImageFile = false;
+    //加载多帧图片所需的参数(多线程加载多帧图片时复用这些参数)
+    std::shared_ptr<LoadImageParam> spLoadImageParam;
+    bool isDpiScaledImageFile = false; //该图片是否为DPI自适应的图片（不是DPI为96的原始图片）
     if (!isIcon) {
         DString imageFullPath = loadAtrribute.GetImageFullPath();
         bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();
@@ -58,8 +83,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
         uint32_t nImageDpiScale = 0;
         //仅在DPI缩放图片功能开启的情况下，查找对应DPI的图片是否存在
         const bool bEnableImageDpiScale = IsDpiScaleAllImages();
-        if (bEnableImageDpiScale && GetDpiScaleImageFullPath(dpi.GetScale(), isUseZip, imageFullPath,
-                                     dpiImageFullPath, nImageDpiScale)) {
+        if (bEnableImageDpiScale && GetDpiScaleImageFullPath(dpi.GetScale(), isUseZip, imageFullPath, dpiImageFullPath, nImageDpiScale)) {
             //标记DPI自适应图片属性，如果路径不同，说明已经选择了对应DPI下的文件
             isDpiScaledImageFile = true;
             imageFullPath = dpiImageFullPath;
@@ -111,39 +135,143 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
             ImageLoadAttribute imageLoadAtrribute(loadAtrribute);
             if (isDpiScaledImageFile) {
                 imageLoadAtrribute.SetNeedDpiScale(false);
-            }            
+            }
+            const int32_t nThreadIdentifier = ThreadIdentifier::kThreadWorker;
+            bool bLoadAllFrames = true;
+            bool bHasWorkerThread = GlobalManager::Instance().Thread().HasThread(nThreadIdentifier);
+            if (bHasWorkerThread) {
+                //如果存在Worker线程，则采用多线程异步加载多帧图片（如GIF图片等）
+                bLoadAllFrames = false;
+            }
+            uint32_t nFrameCount = 0;
+            const uint32_t nWindowDpiScale = dpi.GetScale();
             imageInfo = imageDecoder.LoadImageData(fileData, 
                                                    imageLoadAtrribute, 
-                                                   bEnableImageDpiScale, nImageDpiScale, dpi);
+                                                   bEnableImageDpiScale, nImageDpiScale, nWindowDpiScale,
+                                                   bLoadAllFrames, nFrameCount);
             if (imageInfo != nullptr) {
                 imageInfo->SetImageKey(imageKey);
-            }
+                if (!bLoadAllFrames && (nFrameCount > 1)) {
+                    //启动多线程加载多帧图片时，设置参数
+                    spLoadImageParam = std::make_shared<LoadImageParam>(imageLoadAtrribute);
+                    spLoadImageParam->m_nThreadIdentifier = nThreadIdentifier;
+                    spLoadImageParam->m_nFrameCount = nFrameCount;
+                    spLoadImageParam->m_fileData.swap(fileData);
+                    spLoadImageParam->m_bEnableImageDpiScale = bEnableImageDpiScale;
+                    spLoadImageParam->m_nImageDpiScale = nImageDpiScale;
+                    spLoadImageParam->m_nWindowDpiScale = nWindowDpiScale;
+                }
+            }            
         }
     }    
     std::shared_ptr<ImageInfo> sharedImage;
     if (imageInfo != nullptr) {
         DString imageKey = imageInfo->GetImageKey();
-        sharedImage.reset(imageInfo.release(), &OnImageInfoDestroy);
-        sharedImage->SetLoadKey(loadKey);
-        sharedImage->SetLoadDpiScale(dpi.GetScale());
-        if (isDpiScaledImageFile) {
-            //使用了DPI自适应的图片，做标记（必须位true时才能修改这个值）
-            sharedImage->SetBitmapSizeDpiScaled(isDpiScaledImageFile);
-        }
-        if (imageKey.empty()) {
-            imageKey = loadKey;
-        }
+        uint32_t nWindowDpiScale = dpi.GetScale();
+        sharedImage = SaveImageInfo(imageInfo.release(), loadKey, nWindowDpiScale, isDpiScaledImageFile);
+        if ((spLoadImageParam != nullptr) && (spLoadImageParam->m_nThreadIdentifier >= 0)) {
+            //启动多线程加载多帧图片, 在子线程中加载完成后，更新图片数据
+            auto loadImageTask = [this, spLoadImageParam, loadKey, imageKey, nWindowDpiScale, isDpiScaledImageFile, asyncLoadCallback]() {
+                    //该函数的代码在子线程中执行
+                    uint32_t nFrameCount = 0;
+                    ImageDecoder imageDecoder;
+                    std::unique_ptr<ImageInfo> pNewImageInfo = nullptr;
+                    pNewImageInfo = imageDecoder.LoadImageData(spLoadImageParam->m_fileData,
+                                                               spLoadImageParam->m_imageLoadAtrribute,
+                                                               spLoadImageParam->m_bEnableImageDpiScale,
+                                                               spLoadImageParam->m_nImageDpiScale,
+                                                               spLoadImageParam->m_nWindowDpiScale,
+                                                               true, nFrameCount);
+                    if ((pNewImageInfo != nullptr) && (&GlobalManager::Instance().Image() == this)) {
+                        //发送到UI线程，更新图片数据，然后刷新界面显示
+                        std::shared_ptr<ImageInfo> spNewSharedImage;
+                        spNewSharedImage.reset(pNewImageInfo.release());
+                        auto updateUiTask = [this, spNewSharedImage, loadKey, imageKey, nWindowDpiScale, isDpiScaledImageFile, asyncLoadCallback]() {
+                                //该函数的代码在UI线程中执行                                
+                                if (&GlobalManager::Instance().Image() == this) {
+                                    bool bUpdated = UpdateImageInfo(spNewSharedImage, loadKey, imageKey, nWindowDpiScale, isDpiScaledImageFile);
+                                    ASSERT_UNUSED_VARIABLE(bUpdated);
+                                    if (bUpdated && (asyncLoadCallback != nullptr)) {
+                                        //加载成功后，回调函数
+                                        asyncLoadCallback();
+                                    }
+                                }
+                            };
 
-        //保存对应关系：LoadKey ->(多对一) ImageKey ->(一对一) SharedImage
-        m_loadKeyMap[loadKey] = imageKey;
-        m_imageMap[imageKey] = sharedImage;
-
-#ifdef _DEBUG
-        //DString log = _T("Loaded Image: ") + imageKey + _T("\n");
-        //::OutputDebugString(log.c_str());
-#endif
+                        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, updateUiTask);
+                    }
+                };
+            GlobalManager::Instance().Thread().PostTask(spLoadImageParam->m_nThreadIdentifier, loadImageTask);
+        }
     }
     return sharedImage;
+}
+
+std::shared_ptr<ImageInfo> ImageManager::SaveImageInfo(ImageInfo* pImageInfo, const DString& loadKey, uint32_t nWindowDpiScale, bool isDpiScaledImageFile)
+{
+    if (pImageInfo == nullptr) {
+        return nullptr;
+    }
+    std::shared_ptr<ImageInfo> sharedImage;
+    DString imageKey = pImageInfo->GetImageKey();
+    sharedImage.reset(pImageInfo, &OnImageInfoDestroy);
+    sharedImage->SetLoadKey(loadKey);
+    sharedImage->SetLoadDpiScale(nWindowDpiScale);
+    if (isDpiScaledImageFile) {
+        //使用了DPI自适应的图片，做标记（必须为true时才能修改这个值）
+        sharedImage->SetBitmapSizeDpiScaled(isDpiScaledImageFile);
+    }
+    if (imageKey.empty()) {
+        imageKey = loadKey;
+    }
+
+    //保存对应关系：LoadKey ->(多对一) ImageKey ->(一对一) SharedImage
+    m_loadKeyMap[loadKey] = imageKey;
+    m_imageMap[imageKey] = sharedImage;
+
+#ifdef _DEBUG
+    //DString log = _T("Loaded Image: ") + imageKey + _T("\n");
+    //::OutputDebugString(log.c_str());
+#endif
+    return sharedImage;
+}
+
+bool ImageManager::UpdateImageInfo(std::shared_ptr<ImageInfo> spNewSharedImage, const DString& loadKey, const DString& imageKey,
+                                   uint32_t nWindowDpiScale, bool isDpiScaledImageFile)
+{
+    GlobalManager::Instance().AssertUIThread();
+    //校验
+    if (spNewSharedImage->GetFrameCount() <= 1) {
+        return false;
+    }
+    auto iter = m_loadKeyMap.find(loadKey);
+    if ((iter == m_loadKeyMap.end()) || (iter->second != imageKey)) {
+        //KEY发生变化了，不更新
+        return false;
+    }
+
+    auto iterShared = m_imageMap.find(imageKey);
+    if (iterShared == m_imageMap.end()) {
+        //KEY发生变化了，不更新
+        return false;
+    }
+    std::shared_ptr<ImageInfo> spOldSharedImage = iterShared->second.lock();
+    if (spOldSharedImage == nullptr) {
+        //无数据，不更新
+        return false;
+    }
+
+    spNewSharedImage->SetLoadKey(loadKey);
+    spNewSharedImage->SetImageKey(imageKey);
+    spNewSharedImage->SetLoadDpiScale(nWindowDpiScale);
+    if (isDpiScaledImageFile) {
+        //使用了DPI自适应的图片，做标记（必须为true时才能修改这个值）
+        spNewSharedImage->SetBitmapSizeDpiScaled(isDpiScaledImageFile);
+    }
+    //校验通过后，更新数据    
+    bool bUpdated = spOldSharedImage->SwapImageData(*spNewSharedImage);
+    spOldSharedImage.reset();
+    return bUpdated;
 }
 
 #ifdef DUILIB_BUILD_FOR_WIN

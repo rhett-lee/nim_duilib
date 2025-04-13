@@ -31,6 +31,13 @@ bool ThreadManager::RegisterThread(int32_t nThreadIdentifier, FrameworkThread* p
     return true;
 }
 
+bool ThreadManager::HasThread(int32_t nThreadIdentifier) const
+{
+    std::lock_guard<std::mutex> threadGuard(m_threadMutex);
+    auto iter = m_threadsMap.find(nThreadIdentifier);
+    return iter != m_threadsMap.end();
+}
+
 bool ThreadManager::UnregisterThread(int32_t nThreadIdentifier)
 {
     std::lock_guard<std::mutex> threadGuard(m_threadMutex);

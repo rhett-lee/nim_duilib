@@ -1,7 +1,7 @@
 #ifndef UI_CORE_IMAGEMANAGER_H_
 #define UI_CORE_IMAGEMANAGER_H_
 
-#include "duilib/duilib_defs.h"
+#include "duilib/Core/Callback.h"
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -27,11 +27,13 @@ public:
 public:
     /** 加载图片 ImageInfo 对象
      * @param [in] pWindow 图片关联的窗口（用于DPI缩放、HICON绘制等）
-     * @param [in] loadAtrribute 图片的加载属性，包含图片路径等信息     
+     * @param [in] loadAtrribute 图片的加载属性，包含图片路径等信息
+     * @param [in] asyncLoadCallback 多帧图片异步加载完成后的回调函数（用来更新界面，显示动画图片）
      * @return 返回图片 ImageInfo 对象的智能指针
      */
     std::shared_ptr<ImageInfo> GetImage(const Window* pWindow,
-                                        const ImageLoadAttribute& loadAtrribute);
+                                        const ImageLoadAttribute& loadAtrribute,
+                                        StdClosure asyncLoadCallback);
 
     /** 从缓存中删除所有图片
      */
@@ -57,6 +59,20 @@ public:
     bool IsAutoMatchScaleImage() const;
 
 private:
+    /** 保存图片数据到缓存
+    * @param [in] pImageInfo 图片数据指针
+    * @param [in] loadKey 图片的加载KEY
+    * @param [in] nWindowDpiScale 对应窗口的DPI缩放百分比
+    * @param [in] isDpiScaledImageFile 该图片是否为DPI自适应的图片（不是DPI为96的原始图片）
+    * @return 返回生成该图片数据的智能指针
+    */
+    std::shared_ptr<ImageInfo> SaveImageInfo(ImageInfo* pImageInfo, const DString& loadKey, uint32_t nWindowDpiScale, bool isDpiScaledImageFile);
+
+    /** 更新图片数据到缓存（异步加载的多帧图片数据）
+    */
+    bool UpdateImageInfo(std::shared_ptr<ImageInfo> spNewSharedImage, const DString& loadKey, const DString& imageKey,
+                         uint32_t nWindowDpiScale, bool isDpiScaledImageFile);
+
     /** 图片被销毁的回调函数，用于释放图片资源
      * @param[in] pImageInfo 图片对应的 ImageInfo 对象
      */

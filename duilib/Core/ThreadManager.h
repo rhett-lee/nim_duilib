@@ -23,6 +23,11 @@ public:
     */
     bool RegisterThread(int32_t nThreadIdentifier, FrameworkThread* pThread);
 
+    /** 判断是否包含指定标识符的线程
+    * @param [in] nThreadIdentifier 线程标识ID
+    */
+    bool HasThread(int32_t nThreadIdentifier) const;
+
     /** 从管理器中取消注册一个线程
     * @param [in] nThreadIdentifier 线程标识ID
     */
