@@ -660,6 +660,9 @@
     <ClCompile Include="third_party\libudis86\udis86.c">
       <Filter>third_party\libudis86</Filter>
     </ClCompile>
+    <ClCompile Include="Utils\DiskUtils_Windows.cpp">
+      <Filter>Utils\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1372,6 +1375,9 @@
     </ClInclude>
     <ClInclude Include="Core\UiSize16.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\DiskUtils_Windows.h">
+      <Filter>Utils\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

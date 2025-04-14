@@ -1,13 +1,15 @@
-#ifndef EXAMPLES_DISK_UTILS_H_
-#define EXAMPLES_DISK_UTILS_H_
+#ifndef EXAMPLES_DISK_UTILS_WINDOWS_H_
+#define EXAMPLES_DISK_UTILS_WINDOWS_H_
 
 #include "duilib/duilib_config.h"
+
+#ifdef DUILIB_BUILD_FOR_WIN
 #include <string>
 #include <vector>
 
 /** 磁盘分区信息辅助类（字符串编码类型：UTF-16或者UTF-8）
 */
-class DiskUtils
+class UILIB_API DiskUtils
 {
 public:
 
@@ -77,4 +79,6 @@ public:
     static uint64_t GetFreeDiskSpace(const DString& fullDirectory);
 };
 
-#endif //EXAMPLES_DISK_UTILS_H_
+#endif //DUILIB_BUILD_FOR_WIN
+
+#endif //EXAMPLES_DISK_UTILS_WINDOWS_H_
