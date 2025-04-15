@@ -465,8 +465,14 @@ void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
         AdjustIconPadding();
         return;
     }
-    GlobalManager::Instance().Icon().AddIcon(hIcon);
-    DString iconString = GlobalManager::Instance().Icon().GetIconString(hIcon);
+    uint32_t nIconID = GlobalManager::Instance().Icon().AddIcon(hIcon);
+    SetBkIconID(nIconID, nIconSize, bNeedDpiScale);
+}
+#endif //DUILIB_BUILD_FOR_WIN
+
+void TreeNode::SetBkIconID(uint32_t nIconID, uint32_t nIconSize, bool bNeedDpiScale)
+{
+    DString iconString = GlobalManager::Instance().Icon().GetIconString(nIconID);
     if (iconString.empty()) {
         SetBkImage(_T(""));
         AdjustIconPadding();
@@ -476,16 +482,16 @@ void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
     if (nIconSize > 0) {
         if (bNeedDpiScale) {
             iconString = StringUtil::Printf(_T("file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='true'"),
-                                              iconString.c_str(), nIconSize, nIconSize);
+                                            iconString.c_str(), nIconSize, nIconSize);
         }
         else {
             iconString = StringUtil::Printf(_T("file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='false'"),
-                                              iconString.c_str(), nIconSize, nIconSize);
+                                            iconString.c_str(), nIconSize, nIconSize);
         }
     }
     else {
         iconString = StringUtil::Printf(_T("file='%s' halign='left' valign='center'"),
-                                           iconString.c_str());
+                                        iconString.c_str());
     }
     DString oldIconString = GetBkImage();
     if (iconString == oldIconString) {
@@ -506,8 +512,6 @@ void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
         SetEnableIcon(m_pTreeView->IsEnableIcon());
     }
 }
-
-#endif //DUILIB_BUILD_FOR_WIN
 
 void TreeNode::SetExpandImageClass(const DString& expandClass)
 {
@@ -1064,7 +1068,7 @@ void TreeView::SetAttribute(const DString& strName, const DString& strValue)
         SetEnableIcon(strValue == _T("true"));
     }
     else {
-        ListBox::SetAttribute(strName, strValue);
+        BaseClass::SetAttribute(strName, strValue);
     }
 }
 

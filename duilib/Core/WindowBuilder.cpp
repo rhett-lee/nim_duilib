@@ -8,6 +8,7 @@
 #include "duilib/Core/WindowCreateAttributes.h"
 
 #include "duilib/Control/TreeView.h"
+#include "duilib/Control/DirectoryTree.h"
 #include "duilib/Control/Combo.h"
 #include "duilib/Control/ComboButton.h"
 #include "duilib/Control/FilterCombo.h"
@@ -106,6 +107,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_CHECKBOX, [](Window* pWindow) { return new CheckBox(pWindow); }},
         {DUI_CTR_CHECKBOXBOX, [](Window* pWindow) { return new CheckBoxBox(pWindow); }},
         {DUI_CTR_TREEVIEW, [](Window* pWindow) { return new TreeView(pWindow); }},
+        {DUI_CTR_DIRECTORY_TREE, [](Window* pWindow) { return new DirectoryTree(pWindow); }},
         {DUI_CTR_TREENODE, [](Window* pWindow) { return new TreeNode(pWindow); }},
         {DUI_CTR_COMBO, [](Window* pWindow) { return new Combo(pWindow); }},
         {DUI_CTR_COMBO_BUTTON, [](Window* pWindow) { return new ComboButton(pWindow); }},

@@ -78,7 +78,6 @@ void FileInfoList::SetFileList(ui::TreeNode* pTreeNode, const std::vector<FileIn
     m_pathList.reserve(m_pathList.size() + pathList.size());
     for (const FileInfo& fileInfo : pathList) {
         m_pathList.emplace_back(fileInfo);
-        ui::GlobalManager::Instance().Icon().AddIcon(fileInfo.m_hIcon);
     }
     // 通知ListBox数据总数变动
     EmitCountChanged();
@@ -90,10 +89,7 @@ void FileInfoList::SetFileList(ui::TreeNode* pTreeNode, const std::vector<FileIn
 void FileInfoList::ClearFileList(std::vector<FileInfo>& pathList) const
 {
     for (const FileInfo& fileInfo : pathList) {
-        if (fileInfo.m_hIcon != nullptr) {
-            ui::GlobalManager::Instance().Icon().RemoveIcon(fileInfo.m_hIcon);
-            ::DestroyIcon(fileInfo.m_hIcon);
-        }
+        ui::GlobalManager::Instance().Icon().RemoveIcon(fileInfo.m_nIconID);
     }
     pathList.clear();
 }

@@ -81,6 +81,7 @@
 #include "Control/FilterCombo.h"
 #include "Control/CheckCombo.h"
 #include "Control/TreeView.h"
+#include "Control/DirectoryTree.h"
 
 #include "Control/Label.h"
 #include "Control/Button.h"

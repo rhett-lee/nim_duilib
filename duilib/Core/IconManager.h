@@ -5,15 +5,34 @@
 #include <map>
 #include <string>
 #include <vector>
-
-#ifdef DUILIB_BUILD_FOR_WIN
+#include <mutex>
 
 namespace ui 
 {
-/** HICON句柄管理器
- */
 class Window;
 class ImageLoadAttribute;
+
+/** 图标位图数据
+*/
+class UILIB_API IconBitmapData
+{
+public:
+    /** 图标位图数据
+    */
+    std::vector<uint8_t> m_bitmapData;
+
+    /** 位图数据宽度
+    */
+    int32_t m_nBitmapWidth = 0;
+
+    /** 位图数据宽度高度
+    */
+    int32_t m_nBitmapHeight = 0;
+};
+
+/** 图标资源管理器（线程安全，适合图标类的小图片资源）
+ *  说明：支持Windows的HICON句柄资源，但内部不使用HICON，因为HICON是内核GDI资源，每个进程有上限，约1万个左右，耗尽后该进程就挂了。
+ */
 class UILIB_API IconManager
 {
 public:
@@ -26,11 +45,6 @@ public:
     /** 获取ICON的资源字符串（可用作为图片文件路径使用）
     * @return 返回资源字符串，例如："icon:1"
     */
-    DString GetIconString(HICON hIcon) const;
-
-    /** 获取ICON的资源字符串（可用作为图片文件路径使用）
-    * @return 返回资源字符串，例如："icon:1"
-    */
     DString GetIconString(uint32_t id) const;
 
     /** 判断是否为ICON的资源字符串
@@ -38,10 +52,10 @@ public:
     */
     bool IsIconString(const DString& str) const;
 
-    /** 获取资源字符串对应的ICON的图标句柄，如果没有该资源，则返回nullptr
+    /** 从ICON资源字符串中解析图标ID
     *@param [in] str 资源字符串，正确形式例如："icon:1"
     */
-    HICON GetIcon(const DString& str) const;
+    uint32_t GetIconID(const DString& str) const;
 
     /** 获取ICON资源字符串对应图标的大小
     *@param [in] str 资源字符串，正确形式例如："icon:1"
@@ -69,42 +83,48 @@ public:
                       bool& bDpiScaled) const;
 
 public:
+
+#ifdef DUILIB_BUILD_FOR_WIN
     /** 添加一个HICON句柄
     * @param [in] hIcon 需要加入的ICON句柄, 加入后句柄资源生命周期由该类管理
     * @return 返回该句柄对应的ID，如果失败则返回0
     */
     uint32_t AddIcon(HICON hIcon);
+#endif
 
-    /** 获取句柄对应的ID
-    * @param [in] hIcon ICON句柄
-    * @return 返回该句柄对应的ID，如果找不到则返回0
+    /** 添加一个图标（适合小图标）
+    * @param [in] pBitmapData 位图数据的起始地址
+    * @param [in] nBitmapDataSize 位图数据的大小
+    * @param [in] nBitmapWidth 位图宽度
+    * @param [in] nBitmapHeight 位图高度
+    * @return 返回该句柄对应的ID，如果失败则返回0
     */
-    uint32_t GetIconID(HICON hIcon) const;
+    uint32_t AddIcon(const uint8_t* pBitmapData, int32_t nBitmapDataSize, int32_t nBitmapWidth, int32_t nBitmapHeight);
 
-    /** 根据ID获取句柄
-    * @param [in] id ICON句柄ID
+    /** 获取图标位图数据
+    * @param [in] id 需要删除的图标ID（即AddIcon返回的那个ID）
+    * @param [out] bitmapData 成功时返回位图数据
     */
-    HICON GetIcon(uint32_t id) const;
+    bool GetIconBitmapData(uint32_t id, IconBitmapData& bitmapData) const;
 
-    /** 删除一个ICON句柄
-    * @param [in] hIcon 需要删除的ICON句柄，从容器删除后，该句柄的生命周期由调用方管理
-    */
-    void RemoveIcon(HICON hIcon);
-
-    /** 根据ID删除一个ICON句柄
-    * @param [in] id 需要删除的ICON句柄ID，从容器删除后，该句柄的生命周期由调用方管理
+    /** 根据ID删除一个图标资源
+    * @param [in] id 需要删除的图标ID（即AddIcon返回的那个ID）
     */
     void RemoveIcon(uint32_t id);
 
-    /** 获取ICON的大小（宽度和高度）
-    * @param [in] hIcon ICON句柄
+private:
+    /** 添加一个图标
     */
-    UiSize GetIconSize(HICON hIcon) const;
+    uint32_t AddIconBitmapData(IconBitmapData& bitmapData);
 
 private:
     /** ICON句柄资源映射表
     */
-    std::map<uint32_t, HICON> m_iconMap;
+    std::map<uint32_t, IconBitmapData> m_iconMap;
+
+    /** 数据多线程同步锁
+    */
+    mutable std::mutex m_iconMutex;
 
     /** 下一个ID
     */
@@ -112,11 +132,9 @@ private:
 
     /** ICON资源字符串前缀
     */
-    DString m_prefix;
+    const DString m_prefix;
 };
 
 } //namespace ui 
-
-#endif //DUILIB_BUILD_FOR_WIN
 
 #endif //UI_CORE_ICONMANAGER_H_

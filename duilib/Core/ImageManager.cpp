@@ -190,7 +190,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
                                 //该函数的代码在UI线程中执行                                
                                 if (&GlobalManager::Instance().Image() == this) {
                                     bool bUpdated = UpdateImageInfo(spNewSharedImage, loadKey, imageKey, nWindowDpiScale, isDpiScaledImageFile);
-                                    ASSERT_UNUSED_VARIABLE(bUpdated);
+                                    //ASSERT_UNUSED_VARIABLE(bUpdated);
                                     if (bUpdated && (asyncLoadCallback != nullptr)) {
                                         //加载成功后，回调函数
                                         asyncLoadCallback();

@@ -12,10 +12,7 @@
 #include "duilib/Core/ThreadManager.h"
 #include "duilib/Core/ResourceParam.h"
 #include "duilib/Core/CursorManager.h"
-
-#ifdef DUILIB_BUILD_FOR_WIN
-    #include "duilib/Core/IconManager_Windows.h"
-#endif
+#include "duilib/Core/IconManager.h"
 
 #include <string>
 #include <vector>
@@ -184,12 +181,9 @@ public:
     */
     ImageManager& Image();
 
-#ifdef DUILIB_BUILD_FOR_WIN
     /** 获取ICON资源管理器
     */
     IconManager& Icon();
-
-#endif
 
     /** 获取Zip管理器
     */

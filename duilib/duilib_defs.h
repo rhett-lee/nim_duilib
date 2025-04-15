@@ -91,6 +91,7 @@ namespace ui
 
     #define  DUI_CTR_TREENODE                        (_T("TreeNode"))
     #define  DUI_CTR_TREEVIEW                        (_T("TreeView"))
+    #define  DUI_CTR_DIRECTORY_TREE                  (_T("DirectoryTree"))
 
     #define  DUI_CTR_RICHEDIT                        (_T("RichEdit"))
     #define  DUI_CTR_COMBO                           (_T("Combo"))

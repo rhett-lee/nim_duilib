@@ -1,8 +1,6 @@
 #ifndef EXAMPLES_MAIN_FORM_H_
 #define EXAMPLES_MAIN_FORM_H_
 
-#include "Resource.h"
-
 // duilib
 #include "duilib/duilib.h"
 
@@ -34,10 +32,10 @@ private:
     //目录列表数据结构
     struct FolderStatus
     {
-        ui::FilePath path;
-        bool bShow = false;
-        HICON hIcon = nullptr;
-        ui::TreeNode* pTreeNode = nullptr;
+        ui::FilePath m_path;
+        bool m_bShow = false;
+        uint32_t m_nIconID = 0;
+        ui::TreeNode* m_pTreeNode = nullptr;
     };
 
     //显示虚拟目录节点（比如桌面、我的文档等）
@@ -54,7 +52,7 @@ private:
                                  const DString& displayName,
                                  const ui::FilePath& path,
                                  bool isFolder,
-                                 HICON hIcon);
+                                 uint32_t nIconID);
 
     //批量在树中插入一个节点
     void InsertTreeNodes(ui::TreeNode* pTreeNode, 
