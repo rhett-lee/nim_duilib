@@ -138,8 +138,8 @@ public:
 #ifdef DUILIB_BUILD_FOR_WIN
 
     /** 设置背景图片(HICON句柄)
-     * @param [in] hIcon 要设置的图标句柄，设置后，由ui::GlobalManager::Instance().Icon()管理资源的生命周期
-     *             如果hIcon为nullptr, 则删除节点的图标，但不会从ui::GlobalManager::Instance().Icon()移除原来关联的图标句柄
+     * @param [in] hIcon 要设置的图标句柄，内部不保存HICON句柄，HICON句柄的生命周期由外部管理
+     *             如果hIcon为nullptr, 则删除节点的图标
      * @param [in] nIconSize 图标的大小（宽度和高度值）；
                    如果设置为0，表示以实际图标的大小作为图标的大小，但这样设置会导致无法实现DPI感知功能，所以建议设置一个合理值。
      * @param [in] bNeedDpiScale 是否需要做DPI自适应
@@ -147,6 +147,15 @@ public:
     void SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale);
 
 #endif
+
+    /** 设置背景图片(图标ID)
+     * @param [in] nIconID 要设置的图标ID，该ID由ui::GlobalManager::Instance().Icon().AddIcon函数返回
+     *             如果nIconID为0, 则删除节点的图标
+     * @param [in] nIconSize 图标的大小（宽度和高度值）；
+                   如果设置为0，表示以实际图标的大小作为图标的大小，但这样设置会导致无法实现DPI感知功能，所以建议设置一个合理值。
+     * @param [in] bNeedDpiScale 是否需要做DPI自适应
+     */
+    void SetBkIconID(uint32_t nIconID, uint32_t nIconSize, bool bNeedDpiScale);
 
     /** 设置是否显示图标
     */

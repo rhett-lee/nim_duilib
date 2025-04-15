@@ -404,6 +404,7 @@
     <ClCompile Include="Control\DateTime.cpp" />
     <ClCompile Include="Control\DateTimeWnd_SDL.cpp" />
     <ClCompile Include="Control\DateTimeWnd_Windows.cpp" />
+    <ClCompile Include="Control\DirectoryTree.cpp" />
     <ClCompile Include="Control\FilterCombo.cpp" />
     <ClCompile Include="Control\HotKey.cpp" />
     <ClCompile Include="Control\IconControl.cpp" />
@@ -445,7 +446,7 @@
     <ClCompile Include="Core\FontManager.cpp" />
     <ClCompile Include="Core\FrameworkThread.cpp" />
     <ClCompile Include="Core\GlobalManager.cpp" />
-    <ClCompile Include="Core\IconManager_Windows.cpp" />
+    <ClCompile Include="Core\IconManager.cpp" />
     <ClCompile Include="Core\ImageList.cpp" />
     <ClCompile Include="Core\ImageManager.cpp" />
     <ClCompile Include="Core\Keyboard_SDL.cpp" />
@@ -640,6 +641,7 @@
     <ClInclude Include="Control\DateTime.h" />
     <ClInclude Include="Control\DateTimeWnd_SDL.h" />
     <ClInclude Include="Control\DateTimeWnd_Windows.h" />
+    <ClInclude Include="Control\DirectoryTree.h" />
     <ClInclude Include="Control\FilterCombo.h" />
     <ClInclude Include="Control\GroupBox.h" />
     <ClInclude Include="Control\HotKey.h" />
@@ -689,7 +691,7 @@
     <ClInclude Include="Core\FontManager.h" />
     <ClInclude Include="Core\FrameworkThread.h" />
     <ClInclude Include="Core\GlobalManager.h" />
-    <ClInclude Include="Core\IconManager_Windows.h" />
+    <ClInclude Include="Core\IconManager.h" />
     <ClInclude Include="Core\ImageList.h" />
     <ClInclude Include="Core\ImageManager.h" />
     <ClInclude Include="Core\INativeWindow.h" />

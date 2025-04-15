@@ -14,8 +14,7 @@ MainForm::MainForm():
 MainForm::~MainForm()
 {
     for (auto p : m_folderList) {
-        ui::GlobalManager::Instance().Icon().RemoveIcon(p->hIcon);
-        ::DestroyIcon(p->hIcon);
+        ui::GlobalManager::Instance().Icon().RemoveIcon(p->m_nIconID);
         delete p;
     }
     if (m_hShell32Dll != nullptr) {
@@ -43,12 +42,6 @@ void MainForm::OnInitWindow()
     if (m_pListBox != nullptr) {
         m_pListBox->SetDataProvider(&m_fileList);
     }
-    //设置开启树节点的CheckBox功能
-    m_pTree->SetCheckBoxClass(_T("tree_node_checkbox"));
-    //设置开启数节点的[展开/收起]图标功能
-    m_pTree->SetExpandImageClass(_T("tree_node_expand"));
-    //设置是否支持多选
-    m_pTree->SetMultiSelect(true);
     
     //显示虚拟路径
     ShowVirtualDirectoryNode(CSIDL_DESKTOP, FOLDERID_Desktop, _T("桌面"));
@@ -89,8 +82,8 @@ void MainForm::InsertTreeNodes(ui::TreeNode* pTreeNode,
     
     ui::FilePath folderPath;
     for (const FolderStatus& folder : fileList) {
-        folderPath = ui::FilePathUtil::JoinFilePath(path, folder.path);
-        InsertTreeNode(pTreeNode, folder.path.ToString(), folderPath, isFolder, folder.hIcon);
+        folderPath = ui::FilePathUtil::JoinFilePath(path, folder.m_path);
+        InsertTreeNode(pTreeNode, folder.m_path.ToString(), folderPath, isFolder, folder.m_nIconID);
     }
 }
 
@@ -98,7 +91,7 @@ ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
                                        const DString& displayName,
                                        const ui::FilePath& path,
                                        bool isFolder,
-                                       HICON hIcon)
+                                       uint32_t nIconID)
 {
     if (m_pTree == nullptr) {
         return nullptr;
@@ -109,24 +102,23 @@ ui::TreeNode* MainForm::InsertTreeNode(ui::TreeNode* pTreeNode,
     node->SetText(displayName);
         
     FolderStatus* pFolder = new FolderStatus;
-    pFolder->path = path;
-    pFolder->hIcon = hIcon;
-    pFolder->pTreeNode = node;
+    pFolder->m_path = path;
+    pFolder->m_nIconID = nIconID;
+    pFolder->m_pTreeNode = node;
     m_folderList.push_back(pFolder);
-    ui::GlobalManager::Instance().Icon().AddIcon(hIcon);
     node->SetUserDataID((size_t)pFolder);
 
-    node->SetBkIcon(hIcon, 16, true);//设置树节点的关联图标(图标大小与CheckBox的原图大小相同，都是16*16)
+    node->SetBkIconID(nIconID, 16, true);//设置树节点的关联图标(图标大小与CheckBox的原图大小相同，都是16*16)
     node->AttachExpand(UiBind(&MainForm::OnTreeNodeExpand, this, std::placeholders::_1));
     node->AttachClick(UiBind(&MainForm::OnTreeNodeClick, this, std::placeholders::_1));
     node->AttachSelect(UiBind(&MainForm::OnTreeNodeSelect, this, std::placeholders::_1));
 
     if (isFolder) {
-        pFolder->bShow = false;
+        pFolder->m_bShow = false;
         node->SetExpand(false, false);
     }
     else {
-        pFolder->bShow = true;
+        pFolder->m_bShow = true;
         node->SetExpand(true, false);
     }
 
@@ -194,16 +186,21 @@ void MainForm::ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const 
 
     SHFILEINFO shFileInfo = { 0 };
     if (::SHGetFileInfo((LPCTSTR)lpPidl,
-        0,
-        &shFileInfo,
-        sizeof(SHFILEINFO),
-        SHGFI_PIDL | SHGFI_DISPLAYNAME | SHGFI_ICON | SHGFI_SMALLICON)) {
+                        0,
+                        &shFileInfo,
+                        sizeof(SHFILEINFO),
+                        SHGFI_PIDL | SHGFI_DISPLAYNAME | SHGFI_ICON | SHGFI_SMALLICON)) {
         DString displayName = ui::StringConvert::LocalToT(shFileInfo.szDisplayName);
         if (displayName.empty()) {
             displayName = name;
         }
         ui::FilePath folderName(folder);
-        InsertTreeNode(nullptr, displayName, folderName, true, shFileInfo.hIcon);
+        uint32_t nIconID = ui::GlobalManager::Instance().Icon().AddIcon(shFileInfo.hIcon);
+        InsertTreeNode(nullptr, displayName, folderName, true, nIconID);
+        if (shFileInfo.hIcon != nullptr) {
+            ::DestroyIcon(shFileInfo.hIcon);
+            shFileInfo.hIcon = nullptr;
+        }
     }
 
     if (lpPidl != nullptr) {
@@ -236,10 +233,15 @@ ui::TreeNode* MainForm::ShowAllDiskNode()
 
         SHFILEINFO shFileInfo;
         ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
-        if (::SHGetFileInfo(driverName.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_SMALLICON | SHGFI_DISPLAYNAME)) {      
-            ui::TreeNode* pNewNode = InsertTreeNode(nullptr, shFileInfo.szDisplayName, driverPath, true, shFileInfo.hIcon);
+        if (::SHGetFileInfo(driverName.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_SMALLICON | SHGFI_DISPLAYNAME)) {
+            uint32_t nIconID = ui::GlobalManager::Instance().Icon().AddIcon(shFileInfo.hIcon);
+            ui::TreeNode* pNewNode = InsertTreeNode(nullptr, shFileInfo.szDisplayName, driverPath, true, nIconID);
             if (pFirstNode == nullptr) {
                 pFirstNode = pNewNode;
+            }
+            if (shFileInfo.hIcon != nullptr) {
+                ::DestroyIcon(shFileInfo.hIcon);
+                shFileInfo.hIcon = nullptr;
             }
         }
     }
@@ -255,9 +257,9 @@ bool MainForm::OnTreeNodeExpand(const ui::EventArgs& args)
         auto iter = std::find(m_folderList.begin(), m_folderList.end(), pFolder);
         if (iter != m_folderList.end()) {
             //加载子目录列表
-            if (!pFolder->bShow) {
-                pFolder->bShow = true;
-                ShowSubFolders(pTreeNode, pFolder->path);                
+            if (!pFolder->m_bShow) {
+                pFolder->m_bShow = true;
+                ShowSubFolders(pTreeNode, pFolder->m_path);                
             }
         }
     }
@@ -275,10 +277,10 @@ void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const ui::FilePath& 
         return;
     }
 
-    if (!pFolder->bShow) {
+    if (!pFolder->m_bShow) {
         //加载子目录列表
-        pFolder->bShow = true;
-        ShowSubFolders(pTreeNode, pFolder->path);
+        pFolder->m_bShow = true;
+        ShowSubFolders(pTreeNode, pFolder->m_path);
     }
     else {
         //展开子目录
@@ -295,8 +297,8 @@ void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const ui::FilePath& 
         ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, pTreeNode, filePath]() {
             //这段代码在UI线程中执行
             for (const FolderStatus* folder : m_folderList) {
-                if (folder->path == filePath) {
-                    ui::TreeNode* pSubTreeNode = folder->pTreeNode;
+                if (folder->m_path == filePath) {
+                    ui::TreeNode* pSubTreeNode = folder->m_pTreeNode;
                     if (pSubTreeNode != nullptr) {
                         pSubTreeNode->Activate(nullptr);
                     }
@@ -336,31 +338,19 @@ void MainForm::ShowSubFolders(ui::TreeNode* pTreeNode, const ui::FilePath& path)
             SHFILEINFOW shFileInfo;
             ZeroMemory(&shFileInfo, sizeof(SHFILEINFOW));
             if (::SHGetFileInfoW(folderPath.ToStringW().c_str(), 0, &shFileInfo, sizeof(SHFILEINFOW), SHGFI_ICON | SHGFI_SMALLICON)) {
-#ifdef _DEBUG
-                //发现有hIcon句柄无效的情况，原因未知，暂时过滤掉                
+                uint32_t nIconID = ui::GlobalManager::Instance().Icon().AddIcon(shFileInfo.hIcon);
                 if (shFileInfo.hIcon != nullptr) {
-                    ICONINFO iconInfo = { 0, };
-                    if (!::GetIconInfo(shFileInfo.hIcon, &iconInfo)) {
-                        ::DestroyIcon(shFileInfo.hIcon);
-                        shFileInfo.hIcon = nullptr;
-                    }
-                    else {
-                        if (iconInfo.hbmColor != nullptr) {
-                            ::DeleteObject(iconInfo.hbmColor);
-                        }
-                        if (iconInfo.hbmMask != nullptr) {
-                            ::DeleteObject(iconInfo.hbmMask);
-                        }
-                    }
+                    ::DestroyIcon(shFileInfo.hIcon);
+                    shFileInfo.hIcon = nullptr;
                 }
-#endif
+
                 if (folderPath.IsExistsDirectory()) {
                     //目录
-                    folderList.push_back({ ui::FilePath(findData.cFileName), false, shFileInfo.hIcon });
+                    folderList.push_back({ ui::FilePath(findData.cFileName), false, nIconID });
                 }
                 else {
                     //文件
-                    fileList.push_back({ ui::FilePath(findData.cFileName), false, shFileInfo.hIcon });
+                    fileList.push_back({ ui::FilePath(findData.cFileName), false, nIconID });
                 }
             }
         } while (::FindNextFileW(hFile, &findData));
@@ -386,7 +376,7 @@ bool MainForm::OnTreeNodeClick(const ui::EventArgs& args)
         auto iter = std::find(m_folderList.begin(), m_folderList.end(), pFolder);
         if (iter != m_folderList.end()) {
             //加载子目录列表到右侧区域
-            ShowFolderContents(pTreeNode, pFolder->path);
+            ShowFolderContents(pTreeNode, pFolder->m_path);
         }
     }
     return true;
@@ -431,13 +421,18 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& p
             SHFILEINFOW shFileInfo;
             ZeroMemory(&shFileInfo, sizeof(SHFILEINFOW));
             if (::SHGetFileInfoW(folderPath.ToStringW().c_str(), 0, &shFileInfo, sizeof(SHFILEINFOW), SHGFI_ICON | SHGFI_LARGEICON)) {
+                uint32_t nIconID = ui::GlobalManager::Instance().Icon().AddIcon(shFileInfo.hIcon);
                 if (folderPath.IsExistsDirectory()) {
                     //目录
-                    folderList.push_back({ ui::FilePath(findData.cFileName), false, shFileInfo.hIcon });
+                    folderList.push_back({ ui::FilePath(findData.cFileName), false, nIconID });
                 }
                 else {
                     //文件
-                    fileList.push_back({ ui::FilePath(findData.cFileName), false, shFileInfo.hIcon });
+                    fileList.push_back({ ui::FilePath(findData.cFileName), false, nIconID });
+                }
+                if (shFileInfo.hIcon != nullptr) {
+                    ::DestroyIcon(shFileInfo.hIcon);
+                    shFileInfo.hIcon = nullptr;
                 }
             }
         } while (::FindNextFileW(hFile, &findData));
@@ -447,12 +442,12 @@ void MainForm::ShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& p
         std::vector<FileInfo> pathList;
         ui::FilePath folderPath;
         for (const FolderStatus& folder : folderList) {
-            folderPath = ui::FilePathUtil::JoinFilePath(path, folder.path);
-            pathList.push_back({ folder.path, folderPath, true, folder.hIcon });
+            folderPath = ui::FilePathUtil::JoinFilePath(path, folder.m_path);
+            pathList.push_back({ folder.m_path, folderPath, true, folder.m_nIconID });
         }
         for (const FolderStatus& folder : fileList) {
-            folderPath = ui::FilePathUtil::JoinFilePath(path, folder.path);
-            pathList.push_back({ folder.path, folderPath, false, folder.hIcon });
+            folderPath = ui::FilePathUtil::JoinFilePath(path, folder.m_path);
+            pathList.push_back({ folder.m_path, folderPath, false, folder.m_nIconID });
         }
 
         //发给UI线程

@@ -15,7 +15,7 @@ struct FileInfo
     //是否为文件夹
     bool m_isFolder = false;
     //关联的图标(资源的生命周期该类内部管理)
-    HICON m_hIcon = nullptr;
+    uint32_t m_nIconID = 0;
 };
 
 class MainForm;

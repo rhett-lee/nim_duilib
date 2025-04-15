@@ -456,9 +456,6 @@
     <ClCompile Include="Core\DpiAwareness_Windows.cpp">
       <Filter>Core\Windows</Filter>
     </ClCompile>
-    <ClCompile Include="Core\IconManager_Windows.cpp">
-      <Filter>Core\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="Core\MessageLoop_Windows.cpp">
       <Filter>Core\Windows</Filter>
     </ClCompile>
@@ -662,6 +659,12 @@
     </ClCompile>
     <ClCompile Include="Utils\DiskUtils_Windows.cpp">
       <Filter>Utils\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Control\DirectoryTree.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\IconManager.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1187,9 +1190,6 @@
     <ClInclude Include="Core\WindowCreateAttributes.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Core\IconManager_Windows.h">
-      <Filter>Core\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="Core\MessageLoop_Windows.h">
       <Filter>Core\Windows</Filter>
     </ClInclude>
@@ -1378,6 +1378,12 @@
     </ClInclude>
     <ClInclude Include="Utils\DiskUtils_Windows.h">
       <Filter>Utils\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\DirectoryTree.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\IconManager.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

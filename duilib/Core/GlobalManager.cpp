@@ -515,12 +515,10 @@ ImageManager& GlobalManager::Image()
     return m_imageManager;
 }
 
-#ifdef DUILIB_BUILD_FOR_WIN
 IconManager& GlobalManager::Icon()
 {
     return m_iconManager;
 }
-#endif
 
 ZipManager& GlobalManager::Zip()
 {
