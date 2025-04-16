@@ -43,6 +43,10 @@ private:
     */
     ui::DirectoryTree* m_pTree;
 
+    /** 当前路径显示
+    */
+    ui::RichEdit* m_pAddressBar;
+
     /** 文件列表（右侧虚表显示的数据）
     */
     FileInfoList m_fileList;

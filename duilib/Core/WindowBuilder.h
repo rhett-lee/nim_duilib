@@ -113,8 +113,8 @@ private:
 
     /** 创建XML事件（XML节点为<Event>或者<BubbledEvent>）
     *   举例子：
-    *   <Option text="单项选择" margin="8,0,0,0" borderround="2,2" valign="center">
-    *       <Event type="buttonup" receiver="tree" applyattribute="multi_select={false}" />
+    *   <Option text="单项选择" margin="8,0,0,0" border_round="2,2" valign="center">
+    *       <Event type="buttonup" receiver="tree" apply_attribute="multi_select={false}" />
     *   </Option>
     */
     void AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Control* pParent);

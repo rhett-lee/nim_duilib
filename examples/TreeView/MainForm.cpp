@@ -4,6 +4,7 @@
 MainForm::MainForm():
     m_fileList(this),
     m_pTree(nullptr),
+    m_pAddressBar(nullptr),
     m_pListBox(nullptr)
 {
 }
@@ -29,6 +30,7 @@ void MainForm::OnInitWindow()
     if (m_pTree == nullptr) {
         return;
     }
+    m_pAddressBar = dynamic_cast<ui::RichEdit*>(FindControl(_T("file_path")));
     m_pListBox = dynamic_cast<ui::VirtualListBox*>(FindControl(_T("list")));
     ASSERT(m_pListBox != nullptr);
     if (m_pListBox != nullptr) {
@@ -59,6 +61,9 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
                                     const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList)
 {
     ui::GlobalManager::Instance().AssertUIThread();
+    if (m_pAddressBar != nullptr) {
+        m_pAddressBar->SetText(path.ToString());
+    }
     std::vector<ui::DirectoryTree::PathInfo> pathList;
     if (folderList != nullptr) {
         pathList = *folderList;
