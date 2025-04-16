@@ -405,6 +405,7 @@
     <ClCompile Include="Control\DateTimeWnd_SDL.cpp" />
     <ClCompile Include="Control\DateTimeWnd_Windows.cpp" />
     <ClCompile Include="Control\DirectoryTree.cpp" />
+    <ClCompile Include="Control\DirectoryTreeImpl_Windows.cpp" />
     <ClCompile Include="Control\FilterCombo.cpp" />
     <ClCompile Include="Control\HotKey.cpp" />
     <ClCompile Include="Control\IconControl.cpp" />
@@ -642,6 +643,7 @@
     <ClInclude Include="Control\DateTimeWnd_SDL.h" />
     <ClInclude Include="Control\DateTimeWnd_Windows.h" />
     <ClInclude Include="Control\DirectoryTree.h" />
+    <ClInclude Include="Control\DirectoryTreeImpl.h" />
     <ClInclude Include="Control\FilterCombo.h" />
     <ClInclude Include="Control\GroupBox.h" />
     <ClInclude Include="Control\HotKey.h" />

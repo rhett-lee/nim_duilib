@@ -76,11 +76,11 @@ void MainThread::OnInit()
 
 void MainThread::OnCleanup()
 {
-    ui::GlobalManager::Instance().Shutdown();
     if (m_workerThread != nullptr) {
         m_workerThread->Stop();
         m_workerThread.reset(nullptr);
     }
+    ui::GlobalManager::Instance().Shutdown();
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleUninitialize();
 #endif

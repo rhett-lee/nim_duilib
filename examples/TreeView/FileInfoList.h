@@ -6,17 +6,7 @@
 
 /** 文件信息
 */
-struct FileInfo
-{
-    //文件名, 不含路径
-    ui::FilePath m_fileName;
-    //文件完整路径名
-    ui::FilePath m_filePath;
-    //是否为文件夹
-    bool m_isFolder = false;
-    //关联的图标(资源的生命周期该类内部管理)
-    uint32_t m_nIconID = 0;
-};
+typedef ui::DirectoryTree::PathInfo PathInfo;
 
 class MainForm;
 class FileInfoList: public ui::VirtualListBoxElement
@@ -71,11 +61,11 @@ public:
 public:
     /** 用新的文件列表，替换原来的列表
     */
-    void SetFileList(ui::TreeNode* pTreeNode, const std::vector<FileInfo>& pathList);
+    void SetFileList(ui::TreeNode* pTreeNode, const std::vector<PathInfo>& pathList);
 
     /** 清空文件列表
     */
-    void ClearFileList(std::vector<FileInfo>& pathList) const;
+    void ClearFileList(std::vector<PathInfo>& pathList) const;
 
 private:
     /** 子项被双击时触发
@@ -94,7 +84,7 @@ private:
     ui::TreeNode* m_pTreeNode;
 
     //文件列表
-    std::vector<FileInfo> m_pathList;
+    std::vector<PathInfo> m_pathList;
 };
 
 #endif //EXAMPLES_FILEINFO_LIST_H_

@@ -55,7 +55,7 @@
             <Split bkcolor="splitline_level1" height="2"/>
             <HBox minheight="60">
                 <HBox width="300" minwidth="60" bkcolor="SeaShell" border_size="1,1,0,1" border_color="blue">
-                    <DirectoryTree class="tree_view" name="tree" multi_select="true" check_box_class="tree_node_checkbox" expand_image_class="tree_node_expand" padding="5,3,5,3" indent="20"/>
+                    <DirectoryTree class="tree_view" name="tree" multi_select="false" check_box_class="tree_node_checkbox" expand_image_class="tree_node_expand" padding="5,3,5,3" indent="20"/>
                 </HBox>
                 <!-- 纵向分割条，用于调整左右区域大小 -->
                 <Split bkcolor="splitline_level1" width="2"/>

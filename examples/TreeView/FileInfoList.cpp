@@ -35,7 +35,7 @@ bool FileInfoList::FillElement(ui::Control* pControl, size_t nElementIndex)
     if ((pItem == nullptr) || (nElementIndex >= m_pathList.size())) {
         return false;
     }
-    const FileInfo& fileInfo = m_pathList[nElementIndex];
+    const PathInfo& fileInfo = m_pathList[nElementIndex];
     pItem->InitSubControls(fileInfo, nElementIndex);
     pItem->SetUserDataID(nElementIndex);
     return true;
@@ -69,14 +69,14 @@ void FileInfoList::SetMultiSelect(bool /*bMultiSelect*/)
 {
 }
 
-void FileInfoList::SetFileList(ui::TreeNode* pTreeNode, const std::vector<FileInfo>& pathList)
+void FileInfoList::SetFileList(ui::TreeNode* pTreeNode, const std::vector<PathInfo>& pathList)
 {
-    std::vector<FileInfo> oldPathList;
+    std::vector<PathInfo> oldPathList;
     oldPathList.swap(m_pathList);
     
     m_pTreeNode = pTreeNode;
     m_pathList.reserve(m_pathList.size() + pathList.size());
-    for (const FileInfo& fileInfo : pathList) {
+    for (const PathInfo& fileInfo : pathList) {
         m_pathList.emplace_back(fileInfo);
     }
     // 通知ListBox数据总数变动
@@ -86,10 +86,12 @@ void FileInfoList::SetFileList(ui::TreeNode* pTreeNode, const std::vector<FileIn
     ClearFileList(oldPathList);
 }
 
-void FileInfoList::ClearFileList(std::vector<FileInfo>& pathList) const
+void FileInfoList::ClearFileList(std::vector<PathInfo>& pathList) const
 {
-    for (const FileInfo& fileInfo : pathList) {
-        ui::GlobalManager::Instance().Icon().RemoveIcon(fileInfo.m_nIconID);
+    for (const PathInfo& fileInfo : pathList) {
+        if (!fileInfo.m_bIconShared) {
+            ui::GlobalManager::Instance().Icon().RemoveIcon(fileInfo.m_nIconID);
+        }        
     }
     pathList.clear();
 }
@@ -100,8 +102,8 @@ bool FileInfoList::OnDoubleClickItem(const ui::EventArgs& args)
     if (pItem != nullptr) {
         size_t nElementIndex = pItem->GetUserDataID();
         if (nElementIndex < m_pathList.size()) {
-            const FileInfo& fileInfo = m_pathList[nElementIndex];
-            if (fileInfo.m_isFolder && (m_pMainForm != nullptr)) {
+            const PathInfo& fileInfo = m_pathList[nElementIndex];
+            if (fileInfo.m_bFolder && (m_pMainForm != nullptr)) {
                 //双击在一个目录上
                 m_pMainForm->CheckExpandTreeNode(m_pTreeNode, fileInfo.m_filePath);
             }
