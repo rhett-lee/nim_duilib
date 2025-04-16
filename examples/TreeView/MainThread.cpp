@@ -12,12 +12,16 @@ WorkerThread::~WorkerThread()
 
 void WorkerThread::OnInit()
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::CoInitialize(nullptr);
+#endif
 }
 
 void WorkerThread::OnCleanup()
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::CoUninitialize();
+#endif
 }
 
 MainThread::MainThread() :
@@ -31,7 +35,9 @@ MainThread::~MainThread()
 
 void MainThread::OnInit()
 {
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::CoInitialize(nullptr);
+#endif
 
     //启动工作线程
     m_workerThread.reset(new WorkerThread);
@@ -51,10 +57,12 @@ void MainThread::OnInit()
 
 void MainThread::OnCleanup()
 {
-    ui::GlobalManager::Instance().Shutdown();
     if (m_workerThread != nullptr) {
         m_workerThread->Stop();
         m_workerThread.reset(nullptr);
     }
-    ::CoUninitialize();
+    ui::GlobalManager::Instance().Shutdown();
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+    ::OleUninitialize();
+#endif
 }

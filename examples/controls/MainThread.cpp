@@ -47,8 +47,7 @@ void MainThread::OnInit()
 
 void MainThread::OnCleanup()
 {
-    ui::GlobalManager::Instance().Shutdown();
-
     m_misc_thread->Stop();
     m_misc_thread.reset(nullptr);
+    ui::GlobalManager::Instance().Shutdown();
 }

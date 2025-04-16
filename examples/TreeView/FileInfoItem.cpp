@@ -13,7 +13,7 @@ FileInfoItem::~FileInfoItem()
 {
 }
 
-void FileInfoItem::InitSubControls(const FileInfo& fileInfo, size_t nElementIndex)
+void FileInfoItem::InitSubControls(const ui::DirectoryTree::PathInfo& fileInfo, size_t nElementIndex)
 {
     m_nElementIndex = nElementIndex;
     if (m_pIconControl == nullptr) {
@@ -24,10 +24,10 @@ void FileInfoItem::InitSubControls(const FileInfo& fileInfo, size_t nElementInde
     }
     if (m_pTextControl != nullptr) {
         m_pTextControl->SetAutoToolTip(true);
-        m_pTextControl->SetText(fileInfo.m_fileName.ToString());        
+        m_pTextControl->SetText(fileInfo.m_displayName);        
     }
     if (m_pIconControl != nullptr) {
-        if (!fileInfo.m_isFolder && IsImageFile(fileInfo.m_fileName.ToString())) {
+        if (!fileInfo.m_bFolder && IsImageFile(fileInfo.m_displayName)) {
             //图片文件，直接显示图片（屏蔽了，运行速度太慢，待优化）
             int32_t itemWidth = 32;// this->GetWidth();
             DString imageString = fileInfo.m_filePath.ToString();

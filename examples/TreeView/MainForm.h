@@ -5,7 +5,6 @@
 #include "duilib/duilib.h"
 
 #include "FileInfoList.h"
-#include <Shlobj.h>
 
 class MainForm : public ui::WindowImplBase
 {
@@ -29,75 +28,28 @@ public:
     void CheckExpandTreeNode(ui::TreeNode* pTreeNode, const ui::FilePath& filePath);
 
 private:
-    //目录列表数据结构
-    struct FolderStatus
-    {
-        ui::FilePath m_path;
-        bool m_bShow = false;
-        uint32_t m_nIconID = 0;
-        ui::TreeNode* m_pTreeNode = nullptr;
-    };
-
-    //显示虚拟目录节点（比如桌面、我的文档等）
-    void ShowVirtualDirectoryNode(int csidl, REFKNOWNFOLDERID rfid, const DString& name);
-
-    //显示磁盘节点, 返回第一个新节点接口
-    ui::TreeNode* ShowAllDiskNode();
-
-    //显示指定目录的子目录
-    void ShowSubFolders(ui::TreeNode* pTreeNode, const ui::FilePath& path);
-
-    //在树中添加一个节点, 返回新添加的节点接口
-    ui::TreeNode* InsertTreeNode(ui::TreeNode* pTreeNode,
-                                 const DString& displayName,
-                                 const ui::FilePath& path,
-                                 bool isFolder,
-                                 uint32_t nIconID);
-
-    //批量在树中插入一个节点
-    void InsertTreeNodes(ui::TreeNode* pTreeNode, 
-                        const ui::FilePath& path,
-                        const std::vector<FolderStatus>& fileList,
-                        bool isFolder);
-
-    //显示指定目录的内容
-    void ShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& path);
-
-    /** 树节点展开事件
-     * @param[in] args 消息体
-     * @return 始终返回 true
-     */
-    bool OnTreeNodeExpand(const ui::EventArgs& args);
-
-    /** 树节点点击事件
-     * @param[in] args 消息体
-     * @return 始终返回 true
-     */
-    bool OnTreeNodeClick(const ui::EventArgs& args);
-
-    /** 树节点选择事件
-     * @param[in] args 消息体
-     * @return 始终返回 true
-     */
-    bool OnTreeNodeSelect(const ui::EventArgs& args);
+    /** 已获取指定目录的内容
+    * @param [in] pTreeNode 当前的节点
+    * @param [in] path 路径
+    * @param [in] folderList 返回path目录中的所有子目录列表
+    * @param [in] fileList 返回path目录中的所有文件列表
+    */
+    void OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& path,
+                              const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& folderList,
+                              const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList);
 
 private:
-    //树节点的接口
-    ui::TreeView* m_pTree;
+    /** 左侧树节点的接口
+    */
+    ui::DirectoryTree* m_pTree;
 
-    //目录列表（左侧树显示）
-    std::vector<FolderStatus*> m_folderList;
-
-    /** 文件列表（右侧虚表显示）
+    /** 文件列表（右侧虚表显示的数据）
     */
     FileInfoList m_fileList;
 
-    //文件列表的接口
-    ui::VirtualListBox* m_pListBox;
-
-    /** _T("Shell32.dll") 句柄
+    /** 文件列表的接口（右侧虚表显示的界面）
     */
-    HMODULE m_hShell32Dll;
+    ui::VirtualListBox* m_pListBox;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

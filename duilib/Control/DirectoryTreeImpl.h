@@ -1,0 +1,64 @@
+#ifndef UI_CONTROL_DIRECTORYTREE_IMPL_H_
+#define UI_CONTROL_DIRECTORYTREE_IMPL_H_
+
+#include "DirectoryTree.h"
+
+namespace ui
+{
+class DirectoryTree;
+
+/** 文件系统的目录树结构枚举的实现接口
+*/
+class DirectoryTreeImpl
+{   
+public:
+    explicit DirectoryTreeImpl(DirectoryTree* pTree);
+    DirectoryTreeImpl(const DirectoryTreeImpl& r) = delete;
+    DirectoryTreeImpl& operator=(const DirectoryTreeImpl& r) = delete;
+    ~DirectoryTreeImpl();
+
+public:
+    /** 获取虚拟目录的真实路径/显示名称/图标
+    * @param [in] type 虚拟目录的类型
+    * @param [out] filePath 虚拟目录的真实路径
+    * @param [out] displayName 虚拟目录的显示名称    
+    * @param [out] nIconID 虚拟目录的关联图标（GlobalManager::Instance().Icon().AddIcon的返回值，图标需要实现类添加到管理器）
+    * @return 成功返回true，失败返回false
+    */
+    bool GetVirtualDirectoryInfo(VirtualDirectoryType type, FilePath& filePath, DString& displayName, uint32_t& nIconID);
+
+    /** 显示所有根目录下的路径节点列表（Windows下返回的是所有磁盘节点数据）
+    * @param [out] pathInfoList 返回的是所有磁盘节点数据
+    */
+    void GetRootPathInfoList(std::vector<DirectoryTree::PathInfo>& pathInfoList);
+
+    /** 获取指定路径下的子目录和文件列表
+    * @param [in] path 目录
+    * @param [in] weakFlag 取消标记，关联的控件已经失效则表示操作已经取消
+    * @param [out] folderList 返回path目录中的所有子目录列表
+    * @param [out] fileList 返回path目录中的所有文件列表
+    */
+    void GetFolderContents(const ui::FilePath& path,
+                           const std::weak_ptr<WeakFlag>& weakFlag,
+                           std::vector<DirectoryTree::PathInfo>& folderList,
+                           std::vector<DirectoryTree::PathInfo>* fileList);
+
+
+
+private:
+    /** 目录树UI接口
+    */
+    DirectoryTree* m_pTree;
+
+    /** _T("Shell32.dll") 句柄
+    */
+    HMODULE m_hShell32Dll;
+
+    /** 共享的文件夹图标
+    */
+    uint32_t m_nSharedIconID;
+};
+
+}
+
+#endif // UI_CONTROL_DIRECTORYTREE_IMPL_H_

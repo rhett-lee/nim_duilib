@@ -4,13 +4,12 @@
 // duilib
 #include "duilib/duilib.h"
 
-struct FileInfo;
 class FileInfoItem : public ui::ListBoxItem
 {
 public:
     explicit FileInfoItem(ui::Window* pWindow);
     virtual ~FileInfoItem() override;
-    void InitSubControls(const FileInfo& fileInfo, size_t nElementIndex);
+    void InitSubControls(const ui::DirectoryTree::PathInfo& fileInfo, size_t nElementIndex);
 
 private:
     /** 是否为图片文件

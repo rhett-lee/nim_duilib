@@ -666,6 +666,9 @@
     <ClCompile Include="Core\IconManager.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Control\DirectoryTreeImpl_Windows.cpp">
+      <Filter>Control\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1384,6 +1387,9 @@
     </ClInclude>
     <ClInclude Include="Core\IconManager.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\DirectoryTreeImpl.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
