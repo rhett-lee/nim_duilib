@@ -117,7 +117,11 @@ static size_t CalculateHookLengthWithUdis86(void* target_addr, size_t min_hook_b
 
     ud_t ud_ctx;
     ud_init(&ud_ctx);
+#if defined(_M_X64) || defined(_M_AMD64) || defined(_WIN64) || defined(__x86_64__) 
     ud_set_mode(&ud_ctx, 64);
+#else
+    ud_set_mode(&ud_ctx, 32);
+#endif
     ud_set_syntax(&ud_ctx, UD_SYN_INTEL);
     ud_set_input_buffer(&ud_ctx, (uint8_t*)target_addr, 64); // 扫描前64字节
 

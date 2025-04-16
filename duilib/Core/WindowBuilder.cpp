@@ -1124,15 +1124,15 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
         strValue = attr.value();
         ASSERT(i != 0 || strName == _T("type"));
         ASSERT(i != 1 || strName == _T("receiver"));
-        ASSERT(i != 2 || strName == _T("applyattribute"));
+        ASSERT(i != 2 || ((strName == _T("applyattribute")) || (strName == _T("apply_attribute"))));
         ++i;
-        if( strName == _T("type") ) {
+        if (strName == _T("type") ) {
             strType = strValue;
         }
-        else if( strName == _T("receiver") ) {
+        else if (strName == _T("receiver") ) {
             strReceiver = strValue;
         }
-        else if( strName == _T("applyattribute") ) {
+        else if ((strName == _T("apply_attribute")) || (strName == _T("applyattribute"))) {
             strApplyAttribute = strValue;
         }
     }
