@@ -39,6 +39,18 @@ void MainForm::OnInitWindow()
     if (m_pListBox != nullptr) {
         m_pListBox->SetDataProvider(&m_fileList);
     }
+
+    //刷新按钮
+    ui::Button* pRefreshBtn = dynamic_cast<ui::Button*>(FindControl(_T("tree_refresh")));
+    if (pRefreshBtn != nullptr) {
+        pRefreshBtn->AttachClick([this](const ui::EventArgs&) {
+                if (m_pTree != nullptr) {
+                    m_pTree->Refresh();
+                }
+                return true;
+            });
+    }
+
     //挂载事件
     m_pTree->AttachShowFolderContents(ui::UiBind(&MainForm::OnShowFolderContents, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
     
@@ -94,7 +106,7 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
 void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const ui::FilePath& filePath)
 {
     if (m_pTree != nullptr) {
-        m_pTree->CheckExpandTreeNode(pTreeNode, filePath);
+        m_pTree->ExpandTreeNode(pTreeNode, filePath);
     }    
 }
 
