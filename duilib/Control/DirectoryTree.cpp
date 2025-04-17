@@ -533,9 +533,22 @@ bool DirectoryTree::SelectPath(FilePath filePath)
     return true;
 }
 
+TreeNode* DirectoryTree::FindPathTreeNode(FilePath filePath) const
+{
+    TreeNode* pTreeNode = nullptr;
+    filePath.NormalizeDirectoryPath();
+    for (FolderStatus* pFolderStatus : m_folderList) {
+        if (IsSamePath(pFolderStatus->m_filePath, filePath.ToString())) {
+            pTreeNode = pFolderStatus->m_pTreeNode;
+            break;
+        }
+    }
+    return pTreeNode;
+}
+
 bool DirectoryTree::IsSamePath(const UiString& p1, const UiString& p2) const
 {
-#if defined (DUILIB_BUILD_FOR_WIN) || defined (DUILIB_BUILD_FOR_MACOS)
+#if !defined (DUILIB_BUILD_FOR_LINUX)
     //Windows文件名不区分大小写
     return StringUtil::IsEqualNoCase(p1.c_str(), p2.c_str());
 #else
@@ -569,7 +582,7 @@ bool DirectoryTree::IsPathInDirectory(TreeNode* pTreeNode, const FilePath& path)
     FilePath pathNormal(path);
     pathNormal.NormalizeFilePath();
     DString childPathStr = pathNormal.ToString();
-#if defined (DUILIB_BUILD_FOR_WIN) || defined (DUILIB_BUILD_FOR_MACOS)
+#if !defined (DUILIB_BUILD_FOR_LINUX)
     //Windows文件名不区分大小写
     dirPathStr = StringUtil::MakeLowerString(dirPathStr);
     childPathStr = StringUtil::MakeLowerString(childPathStr);

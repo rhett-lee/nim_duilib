@@ -106,6 +106,11 @@ public:
     */
     bool SelectPath(FilePath filePath);
 
+    /** 获取一个路径对应的树节点
+    * @param [in] filePath 需要查找的路径
+    */
+    TreeNode* FindPathTreeNode(FilePath filePath) const;
+
     /** 设置用于显示关联的数据的回调函数
     * @param [in] callback 回调函数
     */

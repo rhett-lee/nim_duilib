@@ -1540,11 +1540,70 @@ bool TreeView::SelectTreeNode(TreeNode* pTreeNode)
 bool TreeView::ExpandTreeNode(TreeNode* pTreeNode)
 {
     size_t itemIndex = GetItemIndex(pTreeNode);
-    if (Box::IsValidItemIndex(itemIndex)) {
-        pTreeNode->SetExpand(true, true);
-        return true;
+    if (!Box::IsValidItemIndex(itemIndex)) {
+        return false;
     }
-    return false;
+    if (!pTreeNode->IsVisible()) {
+        //展开父目录
+        std::vector<TreeNode*> parents;
+        TreeNode* pNode = pTreeNode->GetParentNode();
+        while ((pNode != nullptr) && (pNode != GetRootNode())) {
+            parents.push_back(pNode);
+            pNode = pNode->GetParentNode();
+        }
+        if (!parents.empty()) {
+            for (auto iter = parents.rbegin(); iter != parents.rend(); ++iter) {
+                pNode = *iter;
+                if (!pNode->IsExpand()) {
+                    pNode->SetExpand(true, false);
+                }
+            }
+        }
+    }
+
+    //更新滚动条位置
+    SetPos(GetPos());
+
+    //确保可见
+    EnsureVisible(itemIndex);
+
+    //展开节点
+    if (!pTreeNode->IsExpand()) {
+        pTreeNode->SetExpand(true, true);
+    }
+    return true;
+}
+
+bool TreeView::EnsureTreeNodeVisible(TreeNode* pTreeNode)
+{
+    size_t itemIndex = GetItemIndex(pTreeNode);
+    if (!Box::IsValidItemIndex(itemIndex)) {
+        return false;
+    }
+    if (!pTreeNode->IsVisible()) {
+        //展开父目录
+        std::vector<TreeNode*> parents;
+        TreeNode* pNode = pTreeNode->GetParentNode();
+        while ((pNode != nullptr) && (pNode != GetRootNode())) {
+            parents.push_back(pNode);
+            pNode = pNode->GetParentNode();
+        }
+        if (!parents.empty()) {
+            for (auto iter = parents.rbegin(); iter != parents.rend(); ++iter) {
+                pNode = *iter;
+                if (!pNode->IsExpand()) {
+                    pNode->SetExpand(true, false);
+                }
+            }
+        }
+    }
+
+    //更新滚动条位置
+    SetPos(GetPos());
+
+    //确保可见
+    EnsureVisible(itemIndex);
+    return true;
 }
 
 }
