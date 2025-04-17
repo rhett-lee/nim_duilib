@@ -96,11 +96,11 @@ public:
                              uint32_t nIconID,
                              bool bIconShared);
 
-    /** 检查并展开树的节点
+    /** 展开树的节点并选择其子目录
     * @param [in] pTreeNode 树的节点
-    * @param [in] filePath 路径，该路径是pTreeNode对应路径的子目录
+    * @param [in] subPath 子目录，该路径是pTreeNode对应路径的子目录，可以为空路径
     */
-    void CheckExpandTreeNode(TreeNode* pTreeNode, FilePath filePath);
+    void ExpandTreeNode(TreeNode* pTreeNode, FilePath subPath);
 
     /** 选择一个路径(逐级展开目录，并选择最终的目录，确保可见)
     */
@@ -110,6 +110,15 @@ public:
     * @param [in] filePath 需要查找的路径
     */
     TreeNode* FindPathTreeNode(FilePath filePath) const;
+
+    /** 获取一个树节点对应的路径
+    * @param [in] pTreeNode 树的节点
+    */
+    FilePath FindTreeNodePath(TreeNode* pTreeNode);
+
+    /** 刷新，保持树结构与文件系统同步
+    */
+    void Refresh();
 
     /** 设置用于显示关联的数据的回调函数
     * @param [in] callback 回调函数

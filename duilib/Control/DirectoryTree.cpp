@@ -209,9 +209,9 @@ bool DirectoryTree::OnTreeNodeSelect(const EventArgs& args)
     return OnTreeNodeClick(args);
 }
 
-void DirectoryTree::CheckExpandTreeNode(TreeNode* pTreeNode, FilePath filePath)
+void DirectoryTree::ExpandTreeNode(TreeNode* pTreeNode, FilePath subPath)
 {
-    if ((pTreeNode == nullptr) || filePath.IsEmpty()) {
+    if (pTreeNode == nullptr) {
         return;
     }
     size_t itemIndex = GetItemIndex(pTreeNode);
@@ -219,11 +219,13 @@ void DirectoryTree::CheckExpandTreeNode(TreeNode* pTreeNode, FilePath filePath)
         return;
     }
     //校验是否在目录中
-    if (!IsPathInDirectory(pTreeNode, filePath)) {
-        ASSERT(0);
-        return;
+    if (!subPath.IsEmpty()) {
+        if (!IsPathInDirectory(pTreeNode, subPath)) {
+            ASSERT(0);
+            return;
+        }
+        subPath.NormalizeDirectoryPath();
     }
-    filePath.NormalizeDirectoryPath();
 
     FolderStatus* pFolder = (FolderStatus*)pTreeNode->GetUserDataID();
     auto iter = std::find(m_folderList.begin(), m_folderList.end(), pFolder);
@@ -242,17 +244,21 @@ void DirectoryTree::CheckExpandTreeNode(TreeNode* pTreeNode, FilePath filePath)
             pTreeNode->SetExpand(true, true);
         }
     }
+
+    if (subPath.IsEmpty()) {
+        return;
+    }
     
     //由于ShowSubFolders是在子线程中执行的，所以这里也要先发给子线程，再转给UI线程，保证时序正确
     int32_t nThreadIdentifier = ui::kThreadUI;
     if (GlobalManager::Instance().Thread().HasThread(m_nThreadIdentifier)) {
         nThreadIdentifier = m_nThreadIdentifier;
     }
-    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, pTreeNode, filePath]() {
+    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, pTreeNode, subPath]() {
         //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
-        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, pTreeNode, filePath]() {
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, pTreeNode, subPath]() {
             //这段代码在UI线程中执行
-            const UiString filePathString = filePath.ToString();
+            const UiString filePathString = subPath.ToString();
             for (const FolderStatus* folder : m_folderList) {
                 if (IsSamePath(folder->m_filePath, filePathString)) {
                     TreeNode* pSubTreeNode = folder->m_pTreeNode;
@@ -546,6 +552,18 @@ TreeNode* DirectoryTree::FindPathTreeNode(FilePath filePath) const
     return pTreeNode;
 }
 
+FilePath DirectoryTree::FindTreeNodePath(TreeNode* pTreeNode)
+{
+    FilePath filePath;
+    for (FolderStatus* pFolderStatus : m_folderList) {
+        if (pFolderStatus->m_pTreeNode == pTreeNode) {
+            filePath = FilePath(pFolderStatus->m_filePath.c_str());
+            break;
+        }
+    }
+    return filePath;
+}
+
 bool DirectoryTree::IsSamePath(const UiString& p1, const UiString& p2) const
 {
 #if !defined (DUILIB_BUILD_FOR_LINUX)
@@ -616,6 +634,11 @@ bool DirectoryTree::IsPathSame(TreeNode* pTreeNode, FilePath path) const
     dirPath.NormalizeDirectoryPath();
     path.NormalizeDirectoryPath();
     return path == dirPath;
+}
+
+void DirectoryTree::Refresh()
+{
+
 }
 
 }//namespace ui
