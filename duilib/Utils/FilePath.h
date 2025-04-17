@@ -66,10 +66,13 @@ public:
     */
     bool IsExistsDirectory() const noexcept;
 
-    /** 获取路径分隔符
+    /** 获取路径分隔符（字符）
     */
-    DString::value_type GetPathSeparator() const;
-    DString GetPathSeparatorStr() const;
+    static DString::value_type GetPathSeparator();
+
+    /** 获取路径分隔符（字符串）
+    */
+    static DString GetPathSeparatorStr();
 
     /** 以字符串形式获取本机的路径
     * @return 如果DString是Unicode版，则返回UTF16格式的字符串

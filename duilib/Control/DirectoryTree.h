@@ -100,7 +100,11 @@ public:
     * @param [in] pTreeNode 树的节点
     * @param [in] filePath 路径，该路径是pTreeNode对应路径的子目录
     */
-    void CheckExpandTreeNode(TreeNode* pTreeNode, const FilePath& filePath);
+    void CheckExpandTreeNode(TreeNode* pTreeNode, FilePath filePath);
+
+    /** 选择一个路径(逐级展开目录，并选择最终的目录，确保可见)
+    */
+    bool SelectPath(FilePath filePath);
 
     /** 设置用于显示关联的数据的回调函数
     * @param [in] callback 回调函数
@@ -138,13 +142,33 @@ private:
     */
     void ShowFolderContents(TreeNode* pTreeNode, const FilePath& path);
 
+    /** 判断一个路径是否在指定节点对应的目录中
+    * @param [in] pTreeNode 当前的节点
+    * @param [in] path 路径
+    */
+    bool IsPathInDirectory(TreeNode* pTreeNode, const FilePath& path) const;
+
+    /** 判断一个路径是否与指定节点对应的目录相同
+    * @param [in] pTreeNode 当前的节点
+    * @param [in] path 路径
+    */
+    bool IsPathSame(TreeNode* pTreeNode, FilePath path) const;
+
 private:
     /** 显示指定目录的子目录
     * @param [in] pTreeNode 当前的节点
     * @param [in] path 路径
     * @param [in] folderList 返回path目录中的所有子目录列表
     */
-    void OnShowSubFolders(TreeNode* pTreeNode, const FilePath& path, const std::shared_ptr<std::vector<DirectoryTree::PathInfo>>& folderList);
+    typedef std::shared_ptr<std::vector<DirectoryTree::PathInfo>> PathInfoListPtr;
+    void OnShowSubFolders(TreeNode* pTreeNode, const FilePath& path, const PathInfoListPtr& folderList);
+
+    /** 显示指定目录的子目录（多级子目录）
+    * @param [in] pTreeNode 当前的节点
+    * @param [in] filePathList 路径列表
+    * @param [in] folderList 返回每个目录中的所有子目录列表
+    */
+    void OnShowSubFoldersEx(TreeNode* pTreeNode, const std::vector<FilePath>& filePathList, const std::vector<PathInfoListPtr>& folderListArray);
 
     /** 已获取指定目录的内容
     * @param [in] pTreeNode 当前的节点
@@ -153,8 +177,12 @@ private:
     * @param [in] fileList 返回path目录中的所有文件列表
     */
     void OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& path,
-                              const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& folderList,
-                              const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList);
+                              const PathInfoListPtr& folderList,
+                              const PathInfoListPtr& fileList);
+
+    /** 比较两个路径是否相同
+    */
+    bool IsSamePath(const UiString& p1, const UiString& p2) const;
 
 private:
 
@@ -162,11 +190,12 @@ private:
     */
     struct FolderStatus
     {
-        FilePath m_path;
-        TreeNode* m_pTreeNode = nullptr;
-        bool m_bShow = false;
-        uint32_t m_nIconID = 0;
-        bool m_bIconShared = false; //该图标ID关联的图标是否为共享图标（共享图标不允许释放）        
+        UiString m_filePath;                //规则的文件路径
+        TreeNode* m_pTreeNode = nullptr;    //关联的树节点指针
+        uint32_t m_nIconID = 0;             //关联的图标ID
+        bool m_bContentLoaded = false;      //当前目录的子目录是否已经加载过
+        bool m_bFolder = true;              //是否为文件夹
+        bool m_bIconShared = false;         //该图标ID关联的图标是否为共享图标（共享图标不允许释放）        
     };
 
 private:

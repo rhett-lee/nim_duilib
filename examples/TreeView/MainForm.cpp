@@ -31,6 +31,9 @@ void MainForm::OnInitWindow()
         return;
     }
     m_pAddressBar = dynamic_cast<ui::RichEdit*>(FindControl(_T("file_path")));
+    if (m_pAddressBar != nullptr) {
+        m_pAddressBar->AttachReturn(UiBind(&MainForm::OnAddressBarReturn, this, std::placeholders::_1));
+    }
     m_pListBox = dynamic_cast<ui::VirtualListBox*>(FindControl(_T("list")));
     ASSERT(m_pListBox != nullptr);
     if (m_pListBox != nullptr) {
@@ -42,7 +45,7 @@ void MainForm::OnInitWindow()
     //显示虚拟路径
     m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kUserHome, _T("主文件夹"));
     m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kDesktop, _T("桌面"));
-    m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kDocuments, _T("文档"));
+    ui::TreeNode* pDocumentsNode = m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kDocuments, _T("文档"));
     m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kPictures, _T("图片"));
     m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kMusic, _T("音乐"));
     m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kVideos, _T("视频"));
@@ -53,6 +56,11 @@ void MainForm::OnInitWindow()
     if (pFirstDiskNode != nullptr) {
         //在磁盘前面，放一个横线分隔符
         m_pTree->InsertLineBeforeNode(pFirstDiskNode);
+    }
+
+    //初始启动时，默认选择文档
+    if (pDocumentsNode != nullptr) {
+        m_pTree->SelectTreeNode(pDocumentsNode);
     }
 }
 
@@ -85,6 +93,26 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
 
 void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const ui::FilePath& filePath)
 {
-    m_pTree->CheckExpandTreeNode(pTreeNode, filePath);
+    if (m_pTree != nullptr) {
+        m_pTree->CheckExpandTreeNode(pTreeNode, filePath);
+    }    
+}
+
+bool MainForm::OnAddressBarReturn(const ui::EventArgs& msg)
+{
+    DString text;
+    if (m_pAddressBar != nullptr) {
+        text = m_pAddressBar->GetText();
+    }
+    if (!text.empty()) {
+        ui::FilePath filePath(text);
+        if (filePath.IsExistsDirectory()) {
+            //地址栏上面的是有效路径，让左树展开对应的路径，并选择
+            if (m_pTree != nullptr) {
+                m_pTree->SelectPath(filePath);
+            }
+        }
+    }
+    return true;
 }
 

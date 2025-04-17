@@ -38,6 +38,10 @@ private:
                               const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& folderList,
                               const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList);
 
+    /** 在地址栏中输入回车
+    */
+    bool OnAddressBarReturn(const ui::EventArgs& msg);
+
 private:
     /** 左侧树节点的接口
     */

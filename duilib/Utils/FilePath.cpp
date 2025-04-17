@@ -90,7 +90,7 @@ bool FilePath::IsExistsDirectory() const noexcept
     return std::filesystem::is_directory(fileStatus);
 }
 
-DString::value_type FilePath::GetPathSeparator() const
+DString::value_type FilePath::GetPathSeparator()
 {
 #ifdef DUILIB_BUILD_FOR_WIN
     return _T('\\');
@@ -99,7 +99,7 @@ DString::value_type FilePath::GetPathSeparator() const
 #endif
 }
 
-DString FilePath::GetPathSeparatorStr() const
+DString FilePath::GetPathSeparatorStr()
 {
 #ifdef DUILIB_BUILD_FOR_WIN
     return _T("\\");
