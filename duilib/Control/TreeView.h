@@ -418,15 +418,20 @@ public:
     */
     bool RemoveControl(Control* pControl);
 
-    /** 选择一个树节点
+    /** 选择一个树节点（如果父节点未展开，则级联展开）
     * @param [in] pTreeNode 树的节点
     */
     bool SelectTreeNode(TreeNode* pTreeNode);
 
-    /** 展开一个树节点
+    /** 展开一个树节点（如果父节点未展开，则级联展开）
     * @param [in] pTreeNode 树的节点
     */
     bool ExpandTreeNode(TreeNode* pTreeNode);
+
+    /** 确保树的节点可见（如果父节点未展开，则级联展开）
+    * @param [in] pTreeNode 树的节点
+    */
+    bool EnsureTreeNodeVisible(TreeNode* pTreeNode);
 
 public:
     /** 是否允许多选

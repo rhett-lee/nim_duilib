@@ -437,6 +437,10 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //是否允许拖放操作
         SetEnableDragDrop(strValue == _T("true"));
     }
+    else if (strName == _T("select_all_on_focus")) {
+        //获取焦点的时候，是否全选
+        SetSelAllOnFocus(strValue == _T("true"));
+    }
 #else
     else if (strName == _T("zoom")) {
         //缩放比例：

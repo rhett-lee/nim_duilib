@@ -62,7 +62,7 @@
                 <VBox bkcolor="Pink" border_size="1" border_color="blue" min_width="60">
                     <HBox width="stretch" height="32" bkcolor="white">
                         <Label text="当前路径：" valign="center" margin="10,0,0,0"/>
-                        <RichEdit class="simple input" name="file_path" width="stretch" height="28" valign="center" margin="8,0,10,0" text_padding="5,5,5,5" default_context_menu="true"/>
+                        <RichEdit class="simple input" name="file_path" width="stretch" height="28" valign="center" margin="8,0,10,0" text_padding="5,5,5,5" default_context_menu="true" select_all_on_focus="true"/>
                     </HBox>                    
                     <VirtualVTileListBox class="list" name="list" columns="auto" item_size="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" border_size="1" border_color="splitline_level2" padding="1,1,1,1"/>
                 </VBox>
