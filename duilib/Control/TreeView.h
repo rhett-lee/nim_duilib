@@ -418,6 +418,17 @@ public:
     */
     bool RemoveControl(Control* pControl);
 
+    /** 选择一个树节点
+    * @param [in] pTreeNode 树的节点
+    */
+    bool SelectTreeNode(TreeNode* pTreeNode);
+
+    /** 展开一个树节点
+    * @param [in] pTreeNode 树的节点
+    */
+    bool ExpandTreeNode(TreeNode* pTreeNode);
+
+public:
     /** 是否允许多选
     */
     virtual bool IsMultiSelect() const override;

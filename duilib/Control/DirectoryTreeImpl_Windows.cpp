@@ -162,8 +162,8 @@ void DirectoryTreeImpl::GetRootPathInfoList(std::vector<DirectoryTree::PathInfo>
     for (auto iter = driveList.begin(); iter != driveList.end(); ++iter) {
         DString driverName = *iter;
         // 过滤A:盘和B:盘
-        if (ui::StringUtil::IsEqualNoCase(driverName, _T("A:\\")) ||
-            ui::StringUtil::IsEqualNoCase(driverName, _T("B:\\"))) {
+        if (StringUtil::IsEqualNoCase(driverName, _T("A:\\")) ||
+            StringUtil::IsEqualNoCase(driverName, _T("B:\\"))) {
             continue;
         }
 
@@ -172,7 +172,7 @@ void DirectoryTreeImpl::GetRootPathInfoList(std::vector<DirectoryTree::PathInfo>
             continue;
         }
 
-        ui::FilePath driverPath(driverName);
+        FilePath driverPath(driverName);
         if (!driverPath.IsExistsPath()) {
             continue;
         }
@@ -196,13 +196,13 @@ void DirectoryTreeImpl::GetRootPathInfoList(std::vector<DirectoryTree::PathInfo>
     }
 }
 
-void DirectoryTreeImpl::GetFolderContents(const ui::FilePath& path,
+void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
                                           const std::weak_ptr<WeakFlag>& weakFlag,
                                           std::vector<DirectoryTree::PathInfo>& folderList,
                                           std::vector<DirectoryTree::PathInfo>* fileList)
 {
     folderList.clear();
-    FilePath findPath = ui::FilePathUtil::JoinFilePath(path, ui::FilePath(_T("*.*")));
+    FilePath findPath = FilePathUtil::JoinFilePath(path, FilePath(_T("*.*")));
     WIN32_FIND_DATAW findData;
     HANDLE hFile = ::FindFirstFileW(findPath.ToStringW().c_str(), &findData);
     if (hFile == INVALID_HANDLE_VALUE) {

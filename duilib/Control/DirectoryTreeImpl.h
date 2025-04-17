@@ -38,7 +38,7 @@ public:
     * @param [out] folderList 返回path目录中的所有子目录列表
     * @param [out] fileList 返回path目录中的所有文件列表
     */
-    void GetFolderContents(const ui::FilePath& path,
+    void GetFolderContents(const FilePath& path,
                            const std::weak_ptr<WeakFlag>& weakFlag,
                            std::vector<DirectoryTree::PathInfo>& folderList,
                            std::vector<DirectoryTree::PathInfo>* fileList);
