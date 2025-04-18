@@ -115,6 +115,11 @@ public:
      */
     size_t GetChildNodeIndex(TreeNode* pTreeNode) const;
 
+    /** 获取子节点列表
+    * @param [out] childNodes 返回当前树节点的所有子节点列表
+    */
+    void GetChildNodes(std::vector<TreeNode*>& childNodes) const;
+
     /** 判断是否展开状态
      * @return 返回 true 为展开状态，否则为 false
      */
@@ -364,7 +369,7 @@ public:
     /** 获取根节点
      * @return 返回根节点指针
      */
-    TreeNode* GetRootNode()    const{ return m_rootNode.get(); }
+    TreeNode* GetRootNode() const{ return m_rootNode.get(); }
 
     /** 获取子节点缩进值
      * @return 返回子节点缩进值
@@ -417,6 +422,15 @@ public:
     * @param [in] pControl 需要删除的普通控件接口，不允许为空
     */
     bool RemoveControl(Control* pControl);
+
+    /** 从树上移除一个节点
+    * @param [in] pTreeNode 树的节点接口，不允许为空
+    */
+    bool RemoveTreeNode(TreeNode* pTreeNode);
+
+    /** 移除所有节点
+     */
+    void RemoveAllNodes();
 
     /** 选择一个树节点（如果父节点未展开，则级联展开）
     * @param [in] pTreeNode 树的节点

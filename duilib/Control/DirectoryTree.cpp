@@ -1,6 +1,7 @@
 #include "DirectoryTree.h"
 #include "DirectoryTreeImpl.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include <set>
 
 namespace ui
 {
@@ -16,15 +17,26 @@ DirectoryTree::DirectoryTree(Window* pWindow):
 DirectoryTree::~DirectoryTree()
 {
     for (auto iter : m_folderMap) {
-        if (!iter.second->m_bIconShared) {
-            GlobalManager::Instance().Icon().RemoveIcon(iter.second->m_nIconID);
-        }        
-        delete iter.second;
+        DeleteFolderStatus(iter.second);
     }
     m_folderMap.clear();
+
+    //移除所有的树节点，避免产生Destroy事件
+    RemoveAllNodes();
+
     if (m_impl != nullptr) {
         delete m_impl;
         m_impl = nullptr;
+    }    
+}
+
+void DirectoryTree::DeleteFolderStatus(FolderStatus* pFolderStatus)
+{
+    if (pFolderStatus != nullptr) {
+        if (!pFolderStatus->m_bIconShared) {
+            GlobalManager::Instance().Icon().RemoveIcon(pFolderStatus->m_nIconID);
+        }
+        delete pFolderStatus;
     }
 }
 
@@ -167,6 +179,7 @@ TreeNode* DirectoryTree::InsertTreeNode(TreeNode* pParentTreeNode,
     node->AttachExpand(UiBind(&DirectoryTree::OnTreeNodeExpand, this, std::placeholders::_1));
     node->AttachClick(UiBind(&DirectoryTree::OnTreeNodeClick, this, std::placeholders::_1));
     node->AttachSelect(UiBind(&DirectoryTree::OnTreeNodeSelect, this, std::placeholders::_1));
+    node->AttachDestroy(UiBind(&DirectoryTree::OnTreeNodeDestroy, this, std::placeholders::_1));
     return node;
 }
 
@@ -204,6 +217,23 @@ bool DirectoryTree::OnTreeNodeSelect(const EventArgs& args)
         return true;
     }
     return OnTreeNodeClick(args);
+}
+
+bool DirectoryTree::OnTreeNodeDestroy(const EventArgs& args)
+{
+    if (m_folderMap.empty()) {
+        return true;
+    }
+    TreeNode* pTreeNode = dynamic_cast<TreeNode*>(args.GetSender());
+    if (pTreeNode != nullptr) {
+        size_t folderKey = pTreeNode->GetUserDataID();
+        auto iter = m_folderMap.find(folderKey);
+        if (iter != m_folderMap.end()) {
+            DeleteFolderStatus(iter->second);
+            m_folderMap.erase(iter);
+        }
+    }
+    return true;
 }
 
 void DirectoryTree::ExpandTreeNode(TreeNode* pTreeNode, FilePath subPath)
@@ -508,26 +538,26 @@ bool DirectoryTree::SelectPath(FilePath filePath)
     }
     std::weak_ptr<WeakFlag> treeNodeFlag = pTreeNode->GetWeakFlag();
     GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, treeNodeFlag, pTreeNode, filePathList]() {
-        //在子线程中读取子目录数据        
-        std::vector<PathInfoListPtr> folderListArray;
-        if (!treeNodeFlag.expired()) {
-            for (const FilePath& filePath : filePathList) {
-                PathInfoListPtr folderList = std::make_shared<std::vector<DirectoryTree::PathInfo>>();
-                m_impl->GetFolderContents(filePath, treeNodeFlag, *folderList, nullptr);
-                folderListArray.push_back(folderList);
-                if (treeNodeFlag.expired()) {
-                    break;
+            //在子线程中读取子目录数据        
+            std::vector<PathInfoListPtr> folderListArray;
+            if (!treeNodeFlag.expired()) {
+                for (const FilePath& filePath : filePathList) {
+                    PathInfoListPtr folderList = std::make_shared<std::vector<DirectoryTree::PathInfo>>();
+                    m_impl->GetFolderContents(filePath, treeNodeFlag, *folderList, nullptr);
+                    folderListArray.push_back(folderList);
+                    if (treeNodeFlag.expired()) {
+                        break;
+                    }
                 }
+            }        
+            if (!treeNodeFlag.expired()) {
+                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, filePathList, treeNodeFlag, pTreeNode, folderListArray]() {
+                    //这段代码在UI线程中执行
+                    if (!treeNodeFlag.expired()) {
+                        OnShowSubFoldersEx(pTreeNode, filePathList, folderListArray);
+                    }
+                    }));
             }
-        }        
-        if (!treeNodeFlag.expired()) {
-            GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, filePathList, treeNodeFlag, pTreeNode, folderListArray]() {
-                //这段代码在UI线程中执行
-                if (!treeNodeFlag.expired()) {
-                    OnShowSubFoldersEx(pTreeNode, filePathList, folderListArray);
-                }
-                }));
-        }
         }));
     return true;
 }
@@ -654,12 +684,192 @@ DirectoryTree::FolderStatus* DirectoryTree::GetFolderData(FilePath filePath) con
 
 void DirectoryTree::RefreshTree()
 {
-
+    std::vector<TreeNode*> childNodes;
+    TreeNode* pTreeNode = GetRootNode();
+    if (pTreeNode != nullptr) {
+        pTreeNode->GetChildNodes(childNodes);
+    }
+    RefreshTreeNodes(childNodes);    
 }
 
 void DirectoryTree::RefreshTreeNode(TreeNode* pTreeNode)
 {
+    std::vector<TreeNode*> childNodes;
+    childNodes.push_back(pTreeNode);
+}
 
+void DirectoryTree::RefreshTreeNodes(const std::vector<TreeNode*>& treeNodes)
+{
+    std::vector<std::shared_ptr<RefreshNodeData>> refreshData;
+    for (TreeNode* pTreeNode : treeNodes) {
+        GetTreeNodeData((size_t)-1, pTreeNode, refreshData);
+    }
+
+    if (refreshData.empty()) {
+        return;
+    }
+
+    int32_t nThreadIdentifier = ui::kThreadUI;
+    if (GlobalManager::Instance().Thread().HasThread(m_nThreadIdentifier)) {
+        nThreadIdentifier = m_nThreadIdentifier;
+    }
+    std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
+    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, weakFlag, refreshData]() {
+            //在子线程中读取子目录数据的最新状态
+            std::vector<std::shared_ptr<RefreshNodeData>> updatedRefreshData(refreshData);
+            ReadPathInfo(updatedRefreshData);
+
+            //在UI线程中，更新界面
+            if (!weakFlag.expired()) {
+                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, updatedRefreshData]() {
+                        UpdateTreeNodeData(updatedRefreshData);
+                    }));
+            }
+        }));
+}
+
+void DirectoryTree::ReadPathInfo(std::vector<std::shared_ptr<RefreshNodeData>>& refreshData)
+{
+    const size_t nNodeCount = refreshData.size();
+    for (std::shared_ptr<RefreshNodeData>& pNodeData : refreshData) {
+        if (pNodeData->m_weakFlag.expired() || (pNodeData->m_pTreeNode == nullptr)) {
+            //该节点已经被删除，无需同步
+            continue;
+        }
+        if (pNodeData->m_nParentIndex < nNodeCount) {
+            if (refreshData[pNodeData->m_nParentIndex]->m_bDeleted) {
+                //父节点已经删除, 标记字节为删除，不需要再处理
+                pNodeData->m_bDeleted = true;
+            }
+        }
+
+        if (pNodeData->m_bDeleted) {
+            continue;
+        }
+
+        if (!pNodeData->m_dirPath.IsExistsPath()) {
+            //标记为删除
+            pNodeData->m_bDeleted = true;
+            continue;
+        }
+
+        if (!pNodeData->m_bContentLoaded) {
+            //该节点未展开，不需要同步子目录信息
+            ASSERT(pNodeData->m_childPaths.empty());
+            continue;
+        }
+
+        //读取最新的子目录信息
+        std::vector<DirectoryTree::PathInfo> folderList;
+        m_impl->GetFolderContents(pNodeData->m_dirPath, pNodeData->m_weakFlag, folderList, nullptr);
+        if (!folderList.empty()) {
+            std::set<DString> dirSet;
+            for (const FilePath& dirPath : pNodeData->m_childPaths) {
+                DString dirPathString = dirPath.ToString();
+#if !defined (DUILIB_BUILD_FOR_LINUX)
+                dirPathString = StringUtil::MakeLowerString(dirPathString);
+#endif
+                if (!dirPathString.empty()) {
+                    if (dirPathString[dirPathString.size() - 1] == FilePath::GetPathSeparator()) {
+                        //移除目录分隔符
+                        dirPathString.pop_back();
+                    }
+                }
+                dirSet.insert(dirPathString);
+            }
+
+            for (const DirectoryTree::PathInfo& pathInfo : folderList) {
+                DString filePath = pathInfo.m_filePath.ToString();
+#if !defined (DUILIB_BUILD_FOR_LINUX)
+                filePath = StringUtil::MakeLowerString(filePath);
+#endif
+                if (!filePath.empty()) {
+                    if (filePath[filePath.size() - 1] == FilePath::GetPathSeparator()) {
+                        //移除目录分隔符
+                        filePath.pop_back();
+                    }
+                }
+                if (dirSet.find(filePath) == dirSet.end()) {
+                    //新增的目录项
+                    pNodeData->m_newFolderList.push_back(pathInfo);
+                }
+            }
+        }
+    }
+}
+
+void DirectoryTree::UpdateTreeNodeData(const std::vector<std::shared_ptr<RefreshNodeData>>& refreshData)
+{
+    GlobalManager::Instance().AssertUIThread();
+    for (const std::shared_ptr<RefreshNodeData>& pNodeData : refreshData) {
+        if (pNodeData == nullptr) {
+            continue;
+        }
+        if (pNodeData->m_weakFlag.expired() || (pNodeData->m_pTreeNode == nullptr)) {
+            //树的节点已经无效
+            continue;
+        }
+        if (pNodeData->m_bDeleted) {
+            //该节点已经被删除, 从树上移除该节点
+            RemoveTreeNode(pNodeData->m_pTreeNode);
+        }
+    }
+
+    for (const std::shared_ptr<RefreshNodeData>& pNodeData : refreshData) {
+        if (pNodeData == nullptr) {
+            continue;
+        }
+        if (pNodeData->m_bDeleted || pNodeData->m_weakFlag.expired() || (pNodeData->m_pTreeNode == nullptr)) {
+            //树的节点已经无效(或已经删除)
+            continue;
+        }
+        if (!pNodeData->m_newFolderList.empty()) {
+            //该节点下，有新的目录建立，添加到树节点
+            for (const DirectoryTree::PathInfo& pathInfo : pNodeData->m_newFolderList) {
+                if (!pathInfo.m_filePath.IsEmpty()) {
+                    InsertTreeNode(pNodeData->m_pTreeNode, pathInfo.m_displayName, false, pathInfo.m_filePath, pathInfo.m_bFolder, pathInfo.m_nIconID, pathInfo.m_bIconShared);
+                }
+            }            
+        }
+    }
+}
+
+void DirectoryTree::GetTreeNodeData(size_t nParentIndex, TreeNode* pTreeNode, std::vector<std::shared_ptr<RefreshNodeData>>& refreshData) const
+{
+    GlobalManager::Instance().AssertUIThread();
+    DirectoryTree::FolderStatus* pFolder = GetFolderData(pTreeNode);
+    if (pFolder == nullptr) {
+        return;
+    }
+    //当前节点对应的路径
+    FilePath dirPath(pFolder->m_filePath.c_str());
+
+    std::shared_ptr<RefreshNodeData> nodeData = std::make_shared<RefreshNodeData>();
+    refreshData.push_back(nodeData);
+
+    nodeData->m_pTreeNode = pTreeNode;
+    nodeData->m_weakFlag = pTreeNode->GetWeakFlag();
+    nodeData->m_bContentLoaded = pFolder->m_bContentLoaded;
+    nodeData->m_dirPath.Swap(dirPath);
+    nodeData->m_nParentIndex = nParentIndex;
+
+    std::vector<TreeNode*> childNodes;
+    pTreeNode->GetChildNodes(childNodes);
+    for (TreeNode* pChildTreeNode : childNodes) {
+        FolderStatus* pSubFolder = GetFolderData(pChildTreeNode);
+        if (pSubFolder == nullptr) {
+            continue;
+        }
+        //当前子节点对应的路径
+        FilePath subDirPath(pSubFolder->m_filePath.c_str());
+        nodeData->m_childPaths.emplace_back(std::move(subDirPath));
+    }
+
+    //递归子节点(展开后，为非递归的结构)
+    size_t nCurrentParentIndex = refreshData.size() - 1;
+    for (TreeNode* pChildTreeNode : childNodes) {
+        GetTreeNodeData(nCurrentParentIndex, pChildTreeNode, refreshData);
+    }
 }
 
 }//namespace ui

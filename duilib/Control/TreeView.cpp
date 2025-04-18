@@ -998,6 +998,18 @@ size_t TreeNode::GetChildNodeIndex(TreeNode* pTreeNode) const
     return it - m_aTreeNodes.begin();
 }
 
+void TreeNode::GetChildNodes(std::vector<TreeNode*>& childNodes) const
+{
+    childNodes.clear();
+    const size_t nCount = m_aTreeNodes.size();
+    for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
+        TreeNode* pChildNode = m_aTreeNodes[nIndex];
+        if (pChildNode != nullptr) {
+            childNodes.push_back(pChildNode);
+        }
+    }
+}
+
 bool TreeNode::IsExpand() const
 {
     return m_bExpand;
@@ -1443,6 +1455,24 @@ bool TreeView::RemoveControl(Control* pControl)
     }
     bRemoved = ListBox::RemoveItem(pControl);
     return bRemoved;
+}
+
+bool TreeView::RemoveTreeNode(TreeNode* pTreeNode)
+{
+    if (m_rootNode.get() == pTreeNode) {
+        //根节点不允许删除
+        return false;
+    }
+    TreeNode* pParentTreeNode = pTreeNode->GetParentNode();
+    if (pParentTreeNode == nullptr) {
+        return false;
+    }
+    return pParentTreeNode->RemoveChildNode(pTreeNode);
+}
+
+void TreeView::RemoveAllNodes()
+{
+    m_rootNode->RemoveAllChildNodes();
 }
 
 bool TreeView::AddItem(Control* /*pControl*/)

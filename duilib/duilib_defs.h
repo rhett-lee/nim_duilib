@@ -262,8 +262,8 @@ namespace ui
     enum EventType: int8_t
     {
         kEventNone,
-        kEventFirst,                //第一个消息（暂时没用到）
         kEventAll,                  //代表所有消息（无参数关联数据）
+        kEventDestroy,              //控件销毁（最后一个消息）
 
         //键盘消息
         kEventKeyBegin,

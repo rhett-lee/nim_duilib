@@ -50,7 +50,7 @@
                 <Option class="btn_global_blue_80x30" group="multi_select" selected="false" width="auto" height="32" text="单项选择" margin="8,0,0,0" border_round="2,2" valign="center">
                     <Event type="buttonup" receiver="tree" apply_attribute="multi_select={false}" />
                 </Option>
-                <Button class="btn_global_blue_80x30" height="32" valign="center" margin="8,0,0,0" name="tree_refresh" text="刷新左树" tooltip_text="刷新左侧的目录树"/>
+                <Button class="btn_global_blue_80x30" height="32" valign="center" margin="8,0,0,0" name="tree_refresh" text="刷新" tooltip_text="刷新左侧的目录树和文件显示区"/>
             </HBox>
             <!-- 横向分割条，用于调整上下区域大小 -->
             <Split bkcolor="splitline_level1" height="2"/>

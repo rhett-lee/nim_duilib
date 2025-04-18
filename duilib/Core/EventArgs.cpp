@@ -152,10 +152,10 @@ DString EventTypeToString(EventType eventType)
     switch (eventType) {
     case kEventNone:
         return _T("kEventNone");
-    case kEventFirst:
-        return _T("kEventFirst");
     case kEventAll:
         return _T("kEventAll");
+    case kEventDestroy:
+        return _T("kEventDestroy");
     case kEventKeyBegin:
         return _T("kEventKeyBegin");
     case kEventKeyDown:

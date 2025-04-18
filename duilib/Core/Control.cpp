@@ -3623,6 +3623,15 @@ IFont* Control::GetIFontById(const DString& strFontId) const
     return GlobalManager::Instance().Font().GetIFont(strFontId, this->Dpi());
 }
 
+bool Control::HasDestroyEventCallback() const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    const EventMap& eventMap = m_pEventMapData->m_attachEvent;
+    return eventMap.find(kEventDestroy) != eventMap.end();
+}
+
 EventMap& Control::GetAttachEventMap()
 {
     if (m_pEventMapData == nullptr) {
