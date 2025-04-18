@@ -45,6 +45,12 @@ FilePath::FilePath(const std::wstring& filePath, bool bLexicallyNormal) :
 {
 }
 
+void FilePath::Swap(FilePath& r)
+{
+    m_filePath.swap(r.m_filePath);
+    std::swap(m_bLexicallyNormal, r.m_bLexicallyNormal);
+}
+
 bool FilePath::IsEmpty() const noexcept
 {
     return m_filePath.empty();

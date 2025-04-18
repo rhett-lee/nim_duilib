@@ -850,6 +850,12 @@ public:
     */
     void AttachStateChange(const EventCallback& callback) { AttachEvent(kEventStateChange, callback); }
 
+    /** 监听控件销毁事件
+    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    */
+    void AttachDestroy(const EventCallback& callback) { AttachEvent(kEventDestroy, callback); }
+    bool HasDestroyEventCallback() const;
+
 public:
     /** 判断颜色定义是否有效
     * @param [in] colorName 颜色的名称，有效的颜色名称可以是以下定义（按获取优先级顺序）：

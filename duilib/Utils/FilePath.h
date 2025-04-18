@@ -41,6 +41,10 @@ public:
     */
     FilePath(const std::wstring& filePath, bool bLexicallyNormal);
 
+    /** 与另外一个对象交换数据
+    */
+    void Swap(FilePath& r);
+
 public:
     /** 是否为空
     */

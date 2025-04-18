@@ -121,8 +121,14 @@ public:
     void RefreshTree();
 
     /** 刷新树节点，保持树结构与文件系统同步
+    * @param [in] pTreeNode 树的节点
     */
     void RefreshTreeNode(TreeNode* pTreeNode);
+
+    /** 刷新树节点，保持树结构与文件系统同步
+    * @param [in] treeNodes 树的节点列表
+    */
+    void RefreshTreeNodes(const std::vector<TreeNode*>& treeNodes);
 
     /** 设置用于显示关联的数据的回调函数
     * @param [in] callback 回调函数
@@ -147,6 +153,12 @@ private:
      * @return 始终返回 true
      */
     bool OnTreeNodeSelect(const EventArgs& args);
+
+    /** 树节点销毁事件
+     * @param[in] args 消息体
+     * @return 始终返回 true
+     */
+    bool OnTreeNodeDestroy(const EventArgs& args);
 
     /** 显示指定目录的子目录
     * @param [in] pTreeNode 当前的节点
@@ -215,6 +227,9 @@ private:
         bool m_bFolder = true;              //是否为文件夹
         bool m_bIconShared = false;         //该图标ID关联的图标是否为共享图标（共享图标不允许释放）        
     };
+    /** 删除目录列表数据
+    */
+    void DeleteFolderStatus(FolderStatus* pFolderStatus);
 
     /** 根据Key获取目录结构数据
     */
@@ -223,6 +238,37 @@ private:
     /** 根据路径查找目录结构数据
     */
     FolderStatus* GetFolderData(FilePath filePath) const;
+
+private:
+    /** 刷新树节点的数据结构
+    */
+    struct RefreshNodeData
+    {
+        TreeNode* m_pTreeNode = nullptr;            //树节点
+        std::weak_ptr<WeakFlag> m_weakFlag;         //树节点生命周期
+        bool m_bContentLoaded = false;              //当前目录的子目录是否已经加载过
+        FilePath m_dirPath;                         //树节点对应的目录
+        size_t m_nParentIndex = 0;                  //父节点在容器中的索引号
+        std::vector<FilePath> m_childPaths;         //子节点和子目录数据，用于比较是否有增加的目录
+
+        //当前路径是否被删除
+        bool m_bDeleted = false;
+
+        //当前目录中新增加的路径列表
+        std::vector<DirectoryTree::PathInfo> m_newFolderList;
+    };
+
+    /** 从界面中递归获取树节点数据，形成一个列表
+    */
+    void GetTreeNodeData(size_t nParentIndex, TreeNode* pTreeNode, std::vector<std::shared_ptr<RefreshNodeData>>& refreshData) const;
+
+    /** 根据目录树读取文件系统的最新状态(标记已经删除的目录，添加新增的目录)
+    */
+    void ReadPathInfo(std::vector<std::shared_ptr<RefreshNodeData>>& refreshData);
+
+    /** 根据最新的状态，更新树的结构
+    */
+    void UpdateTreeNodeData(const std::vector<std::shared_ptr<RefreshNodeData>>& refreshData);
 
 private:
     /** 枚举目录的内部实现（不同平台不同实现）

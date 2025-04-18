@@ -500,7 +500,12 @@ bool Box::DoRemoveItem(Control* pControl)
         if (*it == pControl) {
             m_items.erase(it);
             if (m_bAutoDestroyChild) {
-                delete pControl;
+                if (pControl) {
+                    if (pControl->HasDestroyEventCallback()) {
+                        pControl->SendEvent(kEventDestroy);
+                    }
+                    delete pControl;
+                }                
             }
             Arrange();
             return true;
