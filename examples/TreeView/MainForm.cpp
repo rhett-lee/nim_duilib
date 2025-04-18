@@ -45,7 +45,7 @@ void MainForm::OnInitWindow()
     if (pRefreshBtn != nullptr) {
         pRefreshBtn->AttachClick([this](const ui::EventArgs&) {
                 if (m_pTree != nullptr) {
-                    m_pTree->Refresh();
+                    m_pTree->RefreshTree();
                 }
                 return true;
             });
