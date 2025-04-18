@@ -7,20 +7,21 @@ namespace ui
 DirectoryTree::DirectoryTree(Window* pWindow):
     TreeView(pWindow),
     m_nThreadIdentifier(ui::kThreadWorker),
-    m_nIconSize(16)
+    m_nIconSize(16),
+    m_folderKey(0)
 {
     m_impl = new DirectoryTreeImpl(this);
 }
 
 DirectoryTree::~DirectoryTree()
 {
-    for (auto p : m_folderList) {
-        if (!p->m_bIconShared) {
-            GlobalManager::Instance().Icon().RemoveIcon(p->m_nIconID);
+    for (auto iter : m_folderMap) {
+        if (!iter.second->m_bIconShared) {
+            GlobalManager::Instance().Icon().RemoveIcon(iter.second->m_nIconID);
         }        
-        delete p;
+        delete iter.second;
     }
-    m_folderList.clear();
+    m_folderMap.clear();
     if (m_impl != nullptr) {
         delete m_impl;
         m_impl = nullptr;
@@ -132,8 +133,10 @@ TreeNode* DirectoryTree::InsertTreeNode(TreeNode* pParentTreeNode,
     pFolder->m_nIconID = nIconID;
     pFolder->m_bIconShared = bIconShared;
     pFolder->m_pTreeNode = node;
-    m_folderList.push_back(pFolder);
-    node->SetUserDataID((size_t)pFolder);
+
+    size_t folderKey = ++m_folderKey;
+    m_folderMap[folderKey] = pFolder;
+    node->SetUserDataID(folderKey);
 
     node->SetBkIconID(nIconID, m_nIconSize, true);//设置树节点的关联图标(图标大小与CheckBox的原图大小相同，都是16*16)
     
@@ -171,15 +174,12 @@ bool DirectoryTree::OnTreeNodeExpand(const EventArgs& args)
 {
     TreeNode* pTreeNode = dynamic_cast<TreeNode*>(args.GetSender());
     ASSERT(pTreeNode != nullptr);
-    if (pTreeNode != nullptr) {
-        FolderStatus* pFolder = (FolderStatus*)pTreeNode->GetUserDataID();
-        auto iter = std::find(m_folderList.begin(), m_folderList.end(), pFolder);
-        if (iter != m_folderList.end()) {
-            //加载子目录列表
-            if (!pFolder->m_bContentLoaded) {
-                pFolder->m_bContentLoaded = true;
-                ShowSubFolders(pTreeNode, FilePath(pFolder->m_filePath.c_str()));
-            }
+    FolderStatus* pFolder = GetFolderData(pTreeNode);
+    if (pFolder != nullptr) {
+        //加载子目录列表
+        if (!pFolder->m_bContentLoaded) {
+            pFolder->m_bContentLoaded = true;
+            ShowSubFolders(pTreeNode, FilePath(pFolder->m_filePath.c_str()));
         }
     }
     return true;
@@ -189,13 +189,10 @@ bool DirectoryTree::OnTreeNodeClick(const EventArgs& args)
 {
     TreeNode* pTreeNode = dynamic_cast<TreeNode*>(args.GetSender());
     ASSERT(pTreeNode != nullptr);
-    if (pTreeNode != nullptr) {
-        FolderStatus* pFolder = (FolderStatus*)pTreeNode->GetUserDataID();
-        auto iter = std::find(m_folderList.begin(), m_folderList.end(), pFolder);
-        if (iter != m_folderList.end()) {
-            //加载子目录列表到右侧区域
-            ShowFolderContents(pTreeNode, FilePath(pFolder->m_filePath.c_str()));
-        }
+    FolderStatus* pFolder = GetFolderData(pTreeNode);
+    if (pFolder != nullptr) {
+        //加载子目录列表到右侧区域
+        ShowFolderContents(pTreeNode, FilePath(pFolder->m_filePath.c_str()));
     }
     return true;
 }
@@ -227,9 +224,9 @@ void DirectoryTree::ExpandTreeNode(TreeNode* pTreeNode, FilePath subPath)
         subPath.NormalizeDirectoryPath();
     }
 
-    FolderStatus* pFolder = (FolderStatus*)pTreeNode->GetUserDataID();
-    auto iter = std::find(m_folderList.begin(), m_folderList.end(), pFolder);
-    if (iter == m_folderList.end()) {
+    FolderStatus* pFolder = GetFolderData(pTreeNode);
+    ASSERT(pFolder != nullptr);
+    if (pFolder == nullptr) {
         return;
     }
 
@@ -255,19 +252,17 @@ void DirectoryTree::ExpandTreeNode(TreeNode* pTreeNode, FilePath subPath)
         nThreadIdentifier = m_nThreadIdentifier;
     }
     GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, pTreeNode, subPath]() {
-        //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
-        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, pTreeNode, subPath]() {
-            //这段代码在UI线程中执行
-            const UiString filePathString = subPath.ToString();
-            for (const FolderStatus* folder : m_folderList) {
-                if (IsSamePath(folder->m_filePath, filePathString)) {
-                    TreeNode* pSubTreeNode = folder->m_pTreeNode;
-                    if ((pSubTreeNode != nullptr) && pSubTreeNode->IsVisible()) {
-                        pSubTreeNode->Activate(nullptr);
+            //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
+            GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, pTreeNode, subPath]() {
+                    //这段代码在UI线程中执行
+                    FolderStatus* pFolder = GetFolderData(subPath);
+                    if (pFolder != nullptr) {
+                        TreeNode* pSubTreeNode = pFolder->m_pTreeNode;
+                        if ((pSubTreeNode != nullptr) && pSubTreeNode->IsVisible()) {
+                            pSubTreeNode->Activate(nullptr);
+                        }
                     }
-                }
-            }
-            }));
+                }));
         }));
 }
 
@@ -316,14 +311,11 @@ void DirectoryTree::OnShowSubFolders(TreeNode* pTreeNode, const FilePath& /*path
             }
         }
     }
-    for (FolderStatus* pFolderStatus : m_folderList) {
-        if (pFolderStatus->m_pTreeNode == pTreeNode) {
-            //标记为已经展开，避免再重复展开
-            pFolderStatus->m_bContentLoaded = true;
-            break;
-        }
+    FolderStatus* pFolder = GetFolderData(pTreeNode);
+    if (pFolder != nullptr) {
+        //标记为已经展开，避免再重复展开
+        pFolder->m_bContentLoaded = true;
     }
-
     if (!pTreeNode->IsExpand()) {
         pTreeNode->SetExpand(true, true);
     }
@@ -383,11 +375,12 @@ void DirectoryTree::OnShowSubFoldersEx(TreeNode* pTreeNode, const std::vector<Fi
         }
     }
 
-    for (FolderStatus* pFolderStatus : m_folderList) {
+    for (auto iter : m_folderMap) {
+        FolderStatus* pFolder = iter.second;
         for (size_t index = 0; index < treeNodes.size(); ++index) {
-            if (pFolderStatus->m_pTreeNode == treeNodes[index]) {
+            if (pFolder->m_pTreeNode == treeNodes[index]) {
                 //标记为已经展开，避免再重复展开
-                pFolderStatus->m_bContentLoaded = true;
+                pFolder->m_bContentLoaded = true;
                 break;
             }
         }
@@ -442,19 +435,18 @@ bool DirectoryTree::SelectPath(FilePath filePath)
         return false;
     }
 
-    const UiString filePathString = filePath.ToString();
-    for (const FolderStatus* folder : m_folderList) {
-        if (IsSamePath(folder->m_filePath, filePathString)) {
-            //该目录已经存在于树的节点中
-            TreeNode* pSubTreeNode = folder->m_pTreeNode;
-            if (pSubTreeNode != nullptr) {
-                SelectTreeNode(pSubTreeNode);
-            }
-            return true;
+    FolderStatus* pFolderStatus = GetFolderData(filePath);
+    if (pFolderStatus != nullptr) {
+        //该目录已经存在于树的节点中
+        TreeNode* pSubTreeNode = pFolderStatus->m_pTreeNode;
+        if (pSubTreeNode != nullptr) {
+            SelectTreeNode(pSubTreeNode);
         }
+        return true;
     }
 
     //如果不存在，则逐级展开
+    const UiString filePathString = filePath.ToString();
     std::vector<std::filesystem::path> path_list;
     std::filesystem::path path = filePathString.c_str();
     auto p = path.parent_path();
@@ -479,14 +471,15 @@ bool DirectoryTree::SelectPath(FilePath filePath)
     }
 
     TreeNode* pTreeNode = nullptr;
-    for (const FolderStatus* folder : m_folderList) {
+    for (auto pos : m_folderMap) {
+        FolderStatus* pFolder = pos.second;
         auto iter = filePathList.begin();
         while (iter != filePathList.end()) {
             const FilePath& checkPath = *iter;
-            if (IsSamePath(folder->m_filePath, checkPath.ToString())) {
+            if (IsSamePath(pFolder->m_filePath, checkPath.ToString())) {
                 //存在的
-                pTreeNode = folder->m_pTreeNode;
-                if (folder->m_bContentLoaded) {
+                pTreeNode = pFolder->m_pTreeNode;
+                if (pFolder->m_bContentLoaded) {
                     //存在的，已经加载的，移除
                     iter = filePathList.erase(iter);
                 }
@@ -542,12 +535,9 @@ bool DirectoryTree::SelectPath(FilePath filePath)
 TreeNode* DirectoryTree::FindPathTreeNode(FilePath filePath) const
 {
     TreeNode* pTreeNode = nullptr;
-    filePath.NormalizeDirectoryPath();
-    for (FolderStatus* pFolderStatus : m_folderList) {
-        if (IsSamePath(pFolderStatus->m_filePath, filePath.ToString())) {
-            pTreeNode = pFolderStatus->m_pTreeNode;
-            break;
-        }
+    FolderStatus* pFolder = GetFolderData(filePath);
+    if (pFolder != nullptr) {
+        pTreeNode = pFolder->m_pTreeNode;
     }
     return pTreeNode;
 }
@@ -555,11 +545,9 @@ TreeNode* DirectoryTree::FindPathTreeNode(FilePath filePath) const
 FilePath DirectoryTree::FindTreeNodePath(TreeNode* pTreeNode)
 {
     FilePath filePath;
-    for (FolderStatus* pFolderStatus : m_folderList) {
-        if (pFolderStatus->m_pTreeNode == pTreeNode) {
-            filePath = FilePath(pFolderStatus->m_filePath.c_str());
-            break;
-        }
+    FolderStatus* pFolder = GetFolderData(pTreeNode);
+    if (pFolder != nullptr) {
+        filePath = FilePath(pFolder->m_filePath.c_str());
     }
     return filePath;
 }
@@ -585,11 +573,9 @@ bool DirectoryTree::IsPathInDirectory(TreeNode* pTreeNode, const FilePath& path)
     }
 
     FilePath dirPath;
-    for (FolderStatus* pFolderStatus : m_folderList) {
-        if (pFolderStatus->m_pTreeNode == pTreeNode) {
-            dirPath = pFolderStatus->m_filePath.c_str();
-            break;
-        }
+    FolderStatus* pFolder = GetFolderData(pTreeNode);
+    if (pFolder != nullptr) {
+        dirPath = pFolder->m_filePath.c_str();
     }
     if (dirPath.IsEmpty()) {
         return false;
@@ -622,11 +608,9 @@ bool DirectoryTree::IsPathSame(TreeNode* pTreeNode, FilePath path) const
         return false;
     }
     FilePath dirPath;
-    for (FolderStatus* pFolderStatus : m_folderList) {
-        if (pFolderStatus->m_pTreeNode == pTreeNode) {
-            dirPath = pFolderStatus->m_filePath.c_str();
-            break;
-        }
+    FolderStatus* pFolder = GetFolderData(pTreeNode);
+    if (pFolder != nullptr) {
+        dirPath = pFolder->m_filePath.c_str();
     }
     if (dirPath.IsEmpty()) {
         return false;
@@ -636,7 +620,44 @@ bool DirectoryTree::IsPathSame(TreeNode* pTreeNode, FilePath path) const
     return path == dirPath;
 }
 
-void DirectoryTree::Refresh()
+DirectoryTree::FolderStatus* DirectoryTree::GetFolderData(TreeNode* pTreeNode) const
+{
+    FolderStatus* pFolder = nullptr;
+    if (pTreeNode != nullptr) {
+        size_t folderKey = pTreeNode->GetUserDataID();
+        auto iter = m_folderMap.find(folderKey);
+        if (iter != m_folderMap.end()) {
+            pFolder = iter->second;
+            ASSERT(pFolder != nullptr);
+            ASSERT(pFolder->m_pTreeNode == pTreeNode);
+        }
+    }
+    return pFolder;
+}
+
+DirectoryTree::FolderStatus* DirectoryTree::GetFolderData(FilePath filePath) const
+{
+    FolderStatus* pFolder = nullptr;
+    if (filePath.IsEmpty()) {
+        return pFolder;
+    }
+    filePath.NormalizeDirectoryPath();
+    const UiString filePathString = filePath.ToString();
+    for (auto iter : m_folderMap) {
+        if (IsSamePath(iter.second->m_filePath, filePathString)) {
+            pFolder = iter.second;
+            break;
+        }
+    }
+    return pFolder;
+}
+
+void DirectoryTree::RefreshTree()
+{
+
+}
+
+void DirectoryTree::RefreshTreeNode(TreeNode* pTreeNode)
 {
 
 }

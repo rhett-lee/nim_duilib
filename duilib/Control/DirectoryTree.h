@@ -118,7 +118,11 @@ public:
 
     /** 刷新，保持树结构与文件系统同步
     */
-    void Refresh();
+    void RefreshTree();
+
+    /** 刷新树节点，保持树结构与文件系统同步
+    */
+    void RefreshTreeNode(TreeNode* pTreeNode);
 
     /** 设置用于显示关联的数据的回调函数
     * @param [in] callback 回调函数
@@ -190,7 +194,7 @@ private:
     * @param [in] folderList 返回path目录中的所有子目录列表
     * @param [in] fileList 返回path目录中的所有文件列表
     */
-    void OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& path,
+    void OnShowFolderContents(TreeNode* pTreeNode, const ui::FilePath& path,
                               const PathInfoListPtr& folderList,
                               const PathInfoListPtr& fileList);
 
@@ -212,6 +216,14 @@ private:
         bool m_bIconShared = false;         //该图标ID关联的图标是否为共享图标（共享图标不允许释放）        
     };
 
+    /** 根据Key获取目录结构数据
+    */
+    FolderStatus* GetFolderData(TreeNode* pTreeNode) const;
+
+    /** 根据路径查找目录结构数据
+    */
+    FolderStatus* GetFolderData(FilePath filePath) const;
+
 private:
     /** 枚举目录的内部实现（不同平台不同实现）
     */
@@ -225,9 +237,13 @@ private:
     */
     const int32_t m_nIconSize;
 
-    /** 目录列表（左侧树显示）
+    /** 目录树的KEY值
     */
-    std::vector<FolderStatus*> m_folderList;
+    size_t m_folderKey;
+
+    /** 目录树（左侧树显示）
+    */
+    std::map<size_t, FolderStatus*> m_folderMap;
 
     /** 用于显示关联的数据的回调函数
     */
