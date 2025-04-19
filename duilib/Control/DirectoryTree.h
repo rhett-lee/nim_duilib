@@ -62,24 +62,24 @@ public:
     */
     void SetThreadIdentifier(int32_t nThreadIdentifier);
 
-    /** 显示虚拟目录
+    /** 显示虚拟目录(同步完成)
     * @param [in] type 虚拟目录的类型
     * @param [in] displayName 虚拟目录的显示名称
     * @param [in] bDisplayNameIsID 虚拟目录的显示名称是否为语言ID，以支持多语言
     */
     TreeNode* ShowVirtualDirectoryNode(VirtualDirectoryType type, const DString& displayName, bool bDisplayNameIsID = false);
 
-    /** 显示所有磁盘节点, 返回第一个新节点接口
+    /** 显示所有磁盘节点, 返回第一个新节点接口(同步完成)
     */
     TreeNode* ShowAllDiskNodes();
 
-    /** 在指定的节点前插入一个横向分割线
+    /** 在指定的节点前插入一个横向分割线(同步完成)
     * @param [in] pNode 节点接口
     * @param [in] lineClassName 横向分割线的Class名称（可选）
     */
     bool InsertLineBeforeNode(TreeNode* pNode, const DString& lineClassName = _T(""));
 
-    /** 在树中添加一个节点, 返回新添加的节点接口
+    /** 在树中添加一个节点, 返回新添加的节点接口(同步完成)
     * @param [in] pParentTreeNode 父节点的接口，如果为nullptr则在根节点下添加新的节点
     * @param [in] displayName 虚拟目录的显示名称
     * @param [in] bDisplayNameIsID 虚拟目录的显示名称是否为语言ID，以支持多语言
@@ -96,44 +96,39 @@ public:
                              uint32_t nIconID,
                              bool bIconShared);
 
-    /** 展开树的节点并选择其子目录
-    * @param [in] pTreeNode 树的节点
-    * @param [in] subPath 子目录，该路径是pTreeNode对应路径的子目录，可以为空路径
-    */
-    void ExpandTreeNode(TreeNode* pTreeNode, FilePath subPath);
-
-    /** 选择一个路径(逐级展开目录，并选择最终的目录，确保可见)
-    */
-    bool SelectPath(FilePath filePath);
-
-    /** 获取一个路径对应的树节点
+    /** 获取一个路径对应的树节点(同步完成)
     * @param [in] filePath 需要查找的路径
     */
     TreeNode* FindPathTreeNode(FilePath filePath) const;
 
-    /** 获取一个树节点对应的路径
+    /** 获取一个树节点对应的路径(同步完成)
     * @param [in] pTreeNode 树的节点
     */
     FilePath FindTreeNodePath(TreeNode* pTreeNode);
 
-    /** 刷新，保持树结构与文件系统同步
-    */
-    void RefreshTree();
-
-    /** 刷新树节点，保持树结构与文件系统同步
-    * @param [in] pTreeNode 树的节点
-    */
-    void RefreshTreeNode(TreeNode* pTreeNode);
-
-    /** 刷新树节点，保持树结构与文件系统同步
-    * @param [in] treeNodes 树的节点列表
-    */
-    void RefreshTreeNodes(const std::vector<TreeNode*>& treeNodes);
-
-    /** 设置用于显示关联的数据的回调函数
+    /** 设置用于显示关联的数据的回调函数(同步完成)
     * @param [in] callback 回调函数
     */
     void AttachShowFolderContents(ShowFolderContentsEvent callback);
+
+public:
+    /** 选择一个路径(逐级展开目录，并选择最终的目录，确保可见)(异步完成)
+    */
+    bool SelectPath(FilePath filePath, StdClosure finishCallback);
+
+    /** 刷新，保持树结构与文件系统同步(异步完成)
+    */
+    bool RefreshTree(StdClosure finishCallback);
+
+    /** 刷新树节点，保持树结构与文件系统同步(异步完成)
+    * @param [in] pTreeNode 树的节点
+    */
+    bool RefreshTreeNode(TreeNode* pTreeNode, StdClosure finishCallback);
+
+    /** 刷新树节点，保持树结构与文件系统同步(异步完成)
+    * @param [in] treeNodes 树的节点列表
+    */
+    bool RefreshTreeNodes(const std::vector<TreeNode*>& treeNodes, StdClosure finishCallback);
 
 private:
     /** 树节点展开事件
@@ -141,12 +136,6 @@ private:
      * @return 始终返回 true
      */
     bool OnTreeNodeExpand(const EventArgs& args);
-
-    /** 树节点点击事件
-     * @param[in] args 消息体
-     * @return 始终返回 true
-     */
-    bool OnTreeNodeClick(const EventArgs& args);
 
     /** 树节点选择事件
      * @param[in] args 消息体
@@ -160,17 +149,17 @@ private:
      */
     bool OnTreeNodeDestroy(const EventArgs& args);
 
-    /** 显示指定目录的子目录
+    /** 显示指定目录的子目录(异步完成)
     * @param [in] pTreeNode 当前的节点
     * @param [in] path 路径
     */
-    void ShowSubFolders(TreeNode* pTreeNode, const FilePath& path);
+    void ShowSubFolders(TreeNode* pTreeNode, const FilePath& path, StdClosure finishCallback);
 
-    /** 显示指定目录的内容
+    /** 显示指定目录的内容(异步完成)
     * @param [in] pTreeNode 当前的节点
     * @param [in] path 路径
     */
-    void ShowFolderContents(TreeNode* pTreeNode, const FilePath& path);
+    void ShowFolderContents(TreeNode* pTreeNode, const FilePath& path, StdClosure finishCallback);
 
     /** 判断一个路径是否在指定节点对应的目录中
     * @param [in] pTreeNode 当前的节点
@@ -198,7 +187,9 @@ private:
     * @param [in] filePathList 路径列表
     * @param [in] folderList 返回每个目录中的所有子目录列表
     */
-    void OnShowSubFoldersEx(TreeNode* pTreeNode, const std::vector<FilePath>& filePathList, const std::vector<PathInfoListPtr>& folderListArray);
+    void OnShowSubFoldersEx(TreeNode* pTreeNode,
+                            const std::vector<FilePath>& filePathList,
+                            const std::vector<PathInfoListPtr>& folderListArray);
 
     /** 已获取指定目录的内容
     * @param [in] pTreeNode 当前的节点

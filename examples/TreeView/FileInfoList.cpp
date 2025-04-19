@@ -111,3 +111,8 @@ bool FileInfoList::OnDoubleClickItem(const ui::EventArgs& args)
     }
     return true;
 }
+
+ui::TreeNode* FileInfoList::GetTreeNode() const
+{
+    return m_pTreeNode;
+}

@@ -67,6 +67,10 @@ public:
     */
     void ClearFileList(std::vector<PathInfo>& pathList) const;
 
+    /** 获取当前关联的树节点
+    */
+    ui::TreeNode* GetTreeNode() const;
+
 private:
     /** 子项被双击时触发
      * @param[in] args 消息体
