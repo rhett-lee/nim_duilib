@@ -42,6 +42,10 @@ private:
     */
     bool OnAddressBarReturn(const ui::EventArgs& msg);
 
+    /** 刷新
+    */
+    void Refresh();
+
 private:
     /** 左侧树节点的接口
     */

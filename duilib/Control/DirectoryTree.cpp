@@ -177,7 +177,6 @@ TreeNode* DirectoryTree::InsertTreeNode(TreeNode* pParentTreeNode,
     }
 
     node->AttachExpand(UiBind(&DirectoryTree::OnTreeNodeExpand, this, std::placeholders::_1));
-    node->AttachClick(UiBind(&DirectoryTree::OnTreeNodeClick, this, std::placeholders::_1));
     node->AttachSelect(UiBind(&DirectoryTree::OnTreeNodeSelect, this, std::placeholders::_1));
     node->AttachDestroy(UiBind(&DirectoryTree::OnTreeNodeDestroy, this, std::placeholders::_1));
     return node;
@@ -192,31 +191,22 @@ bool DirectoryTree::OnTreeNodeExpand(const EventArgs& args)
         //加载子目录列表
         if (!pFolder->m_bContentLoaded) {
             pFolder->m_bContentLoaded = true;
-            ShowSubFolders(pTreeNode, FilePath(pFolder->m_filePath.c_str()));
+            ShowSubFolders(pTreeNode, FilePath(pFolder->m_filePath.c_str()), nullptr);
         }
-    }
-    return true;
-}
-
-bool DirectoryTree::OnTreeNodeClick(const EventArgs& args)
-{
-    TreeNode* pTreeNode = dynamic_cast<TreeNode*>(args.GetSender());
-    ASSERT(pTreeNode != nullptr);
-    FolderStatus* pFolder = GetFolderData(pTreeNode);
-    if (pFolder != nullptr) {
-        //加载子目录列表到右侧区域
-        ShowFolderContents(pTreeNode, FilePath(pFolder->m_filePath.c_str()));
     }
     return true;
 }
 
 bool DirectoryTree::OnTreeNodeSelect(const EventArgs& args)
 {
-    if (IsMultiSelect()) {
-        //多选的时候，不响应选择事件
-        return true;
+    TreeNode* pTreeNode = dynamic_cast<TreeNode*>(args.GetSender());
+    ASSERT(pTreeNode != nullptr);
+    FolderStatus* pFolder = GetFolderData(pTreeNode);
+    if (pFolder != nullptr) {
+        //加载子目录列表到右侧区域
+        ShowFolderContents(pTreeNode, FilePath(pFolder->m_filePath.c_str()), nullptr);
     }
-    return OnTreeNodeClick(args);
+    return true;
 }
 
 bool DirectoryTree::OnTreeNodeDestroy(const EventArgs& args)
@@ -236,67 +226,7 @@ bool DirectoryTree::OnTreeNodeDestroy(const EventArgs& args)
     return true;
 }
 
-void DirectoryTree::ExpandTreeNode(TreeNode* pTreeNode, FilePath subPath)
-{
-    if (pTreeNode == nullptr) {
-        return;
-    }
-    size_t itemIndex = GetItemIndex(pTreeNode);
-    if (!Box::IsValidItemIndex(itemIndex)) {
-        return;
-    }
-    //校验是否在目录中
-    if (!subPath.IsEmpty()) {
-        if (!IsPathInDirectory(pTreeNode, subPath)) {
-            ASSERT(0);
-            return;
-        }
-        subPath.NormalizeDirectoryPath();
-    }
-
-    FolderStatus* pFolder = GetFolderData(pTreeNode);
-    ASSERT(pFolder != nullptr);
-    if (pFolder == nullptr) {
-        return;
-    }
-
-    if (!pFolder->m_bContentLoaded) {
-        //加载子目录列表
-        pFolder->m_bContentLoaded = true;
-        ShowSubFolders(pTreeNode, FilePath(pFolder->m_filePath.c_str()));
-    }
-    else {
-        //展开子目录
-        if (!pTreeNode->IsExpand()) {
-            pTreeNode->SetExpand(true, true);
-        }
-    }
-
-    if (subPath.IsEmpty()) {
-        return;
-    }
-    
-    //由于ShowSubFolders是在子线程中执行的，所以这里也要先发给子线程，再转给UI线程，保证时序正确
-    int32_t nThreadIdentifier = ui::kThreadUI;
-    if (GlobalManager::Instance().Thread().HasThread(m_nThreadIdentifier)) {
-        nThreadIdentifier = m_nThreadIdentifier;
-    }
-    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, pTreeNode, subPath]() {
-            //这段代码在工作线程中执行，枚举目录内容完成后，然后发给UI线程添加到树节点上
-            GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, pTreeNode, subPath]() {
-                    //这段代码在UI线程中执行
-                    FolderStatus* pFolder = GetFolderData(subPath);
-                    if (pFolder != nullptr) {
-                        TreeNode* pSubTreeNode = pFolder->m_pTreeNode;
-                        if ((pSubTreeNode != nullptr) && pSubTreeNode->IsVisible()) {
-                            pSubTreeNode->Activate(nullptr);
-                        }
-                    }
-                }));
-        }));
-}
-
-void DirectoryTree::ShowSubFolders(TreeNode* pTreeNode, const FilePath& path)
+void DirectoryTree::ShowSubFolders(TreeNode* pTreeNode, const FilePath& path, StdClosure finishCallback)
 {
     //校验是否相同
     if (!IsPathSame(pTreeNode, path)) {
@@ -422,7 +352,7 @@ void DirectoryTree::OnShowSubFoldersEx(TreeNode* pTreeNode, const std::vector<Fi
     }
 }
 
-void DirectoryTree::ShowFolderContents(TreeNode* pTreeNode, const FilePath& path)
+void DirectoryTree::ShowFolderContents(TreeNode* pTreeNode, const FilePath& path, StdClosure finishCallback)
 {
     int32_t nThreadIdentifier = ui::kThreadUI;
     if (GlobalManager::Instance().Thread().HasThread(m_nThreadIdentifier)) {
@@ -455,7 +385,7 @@ void DirectoryTree::OnShowFolderContents(TreeNode* pTreeNode, const FilePath& pa
     }
 }
 
-bool DirectoryTree::SelectPath(FilePath filePath)
+bool DirectoryTree::SelectPath(FilePath filePath, StdClosure finishCallback)
 {
     if (filePath.IsEmpty()) {
         return false;
@@ -471,6 +401,9 @@ bool DirectoryTree::SelectPath(FilePath filePath)
         TreeNode* pSubTreeNode = pFolderStatus->m_pTreeNode;
         if (pSubTreeNode != nullptr) {
             SelectTreeNode(pSubTreeNode);
+        }
+        if (finishCallback) {
+            finishCallback();
         }
         return true;
     }
@@ -537,7 +470,7 @@ bool DirectoryTree::SelectPath(FilePath filePath)
         nThreadIdentifier = m_nThreadIdentifier;
     }
     std::weak_ptr<WeakFlag> treeNodeFlag = pTreeNode->GetWeakFlag();
-    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, treeNodeFlag, pTreeNode, filePathList]() {
+    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, treeNodeFlag, pTreeNode, filePathList, finishCallback]() {
             //在子线程中读取子目录数据        
             std::vector<PathInfoListPtr> folderListArray;
             if (!treeNodeFlag.expired()) {
@@ -551,11 +484,14 @@ bool DirectoryTree::SelectPath(FilePath filePath)
                 }
             }        
             if (!treeNodeFlag.expired()) {
-                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, filePathList, treeNodeFlag, pTreeNode, folderListArray]() {
-                    //这段代码在UI线程中执行
-                    if (!treeNodeFlag.expired()) {
-                        OnShowSubFoldersEx(pTreeNode, filePathList, folderListArray);
-                    }
+                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, filePathList, treeNodeFlag, pTreeNode, folderListArray, finishCallback]() {
+                        //这段代码在UI线程中执行
+                        if (!treeNodeFlag.expired()) {
+                            OnShowSubFoldersEx(pTreeNode, filePathList, folderListArray);
+                        }
+                        if (finishCallback) {
+                            finishCallback();
+                        }
                     }));
             }
         }));
@@ -682,23 +618,24 @@ DirectoryTree::FolderStatus* DirectoryTree::GetFolderData(FilePath filePath) con
     return pFolder;
 }
 
-void DirectoryTree::RefreshTree()
+bool DirectoryTree::RefreshTree(StdClosure finishCallback)
 {
     std::vector<TreeNode*> childNodes;
     TreeNode* pTreeNode = GetRootNode();
     if (pTreeNode != nullptr) {
         pTreeNode->GetChildNodes(childNodes);
     }
-    RefreshTreeNodes(childNodes);    
+    return RefreshTreeNodes(childNodes, finishCallback);
 }
 
-void DirectoryTree::RefreshTreeNode(TreeNode* pTreeNode)
+bool DirectoryTree::RefreshTreeNode(TreeNode* pTreeNode, StdClosure finishCallback)
 {
     std::vector<TreeNode*> childNodes;
     childNodes.push_back(pTreeNode);
+    return RefreshTreeNodes(childNodes, finishCallback);
 }
 
-void DirectoryTree::RefreshTreeNodes(const std::vector<TreeNode*>& treeNodes)
+bool DirectoryTree::RefreshTreeNodes(const std::vector<TreeNode*>& treeNodes, StdClosure finishCallback)
 {
     std::vector<std::shared_ptr<RefreshNodeData>> refreshData;
     for (TreeNode* pTreeNode : treeNodes) {
@@ -706,7 +643,7 @@ void DirectoryTree::RefreshTreeNodes(const std::vector<TreeNode*>& treeNodes)
     }
 
     if (refreshData.empty()) {
-        return;
+        return false;
     }
 
     int32_t nThreadIdentifier = ui::kThreadUI;
@@ -714,18 +651,22 @@ void DirectoryTree::RefreshTreeNodes(const std::vector<TreeNode*>& treeNodes)
         nThreadIdentifier = m_nThreadIdentifier;
     }
     std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
-    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, weakFlag, refreshData]() {
+    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, weakFlag, refreshData, finishCallback]() {
             //在子线程中读取子目录数据的最新状态
             std::vector<std::shared_ptr<RefreshNodeData>> updatedRefreshData(refreshData);
             ReadPathInfo(updatedRefreshData);
 
             //在UI线程中，更新界面
             if (!weakFlag.expired()) {
-                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, updatedRefreshData]() {
+                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, updatedRefreshData, finishCallback]() {
                         UpdateTreeNodeData(updatedRefreshData);
+                        if (finishCallback) {
+                            finishCallback();
+                        }
                     }));
             }
         }));
+    return true;
 }
 
 void DirectoryTree::ReadPathInfo(std::vector<std::shared_ptr<RefreshNodeData>>& refreshData)

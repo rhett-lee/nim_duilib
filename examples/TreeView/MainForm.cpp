@@ -44,9 +44,7 @@ void MainForm::OnInitWindow()
     ui::Button* pRefreshBtn = dynamic_cast<ui::Button*>(FindControl(_T("tree_refresh")));
     if (pRefreshBtn != nullptr) {
         pRefreshBtn->AttachClick([this](const ui::EventArgs&) {
-                if (m_pTree != nullptr) {
-                    m_pTree->RefreshTree();
-                }
+                Refresh();
                 return true;
             });
     }
@@ -103,10 +101,10 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
     }
 }
 
-void MainForm::CheckExpandTreeNode(ui::TreeNode* pTreeNode, const ui::FilePath& filePath)
+void MainForm::CheckExpandTreeNode(ui::TreeNode* /*pTreeNode*/, const ui::FilePath& filePath)
 {
     if (m_pTree != nullptr) {
-        m_pTree->ExpandTreeNode(pTreeNode, filePath);
+        m_pTree->SelectPath(filePath, nullptr);
     }    
 }
 
@@ -121,10 +119,32 @@ bool MainForm::OnAddressBarReturn(const ui::EventArgs& msg)
         if (filePath.IsExistsDirectory()) {
             //地址栏上面的是有效路径，让左树展开对应的路径，并选择
             if (m_pTree != nullptr) {
-                m_pTree->SelectPath(filePath);
+                m_pTree->SelectPath(filePath, nullptr);
             }
         }
     }
     return true;
+}
+
+void MainForm::Refresh()
+{
+    ui::FilePath filePath;
+    ui::TreeNode* pTreeNode = m_fileList.GetTreeNode();
+    if (pTreeNode != nullptr) {
+        filePath = m_pTree->FindTreeNodePath(pTreeNode);
+    }
+    filePath.NormalizeDirectoryPath();
+    if (!filePath.IsExistsDirectory()) {
+        filePath.Clear();
+    }
+
+    if (m_pTree != nullptr) {
+        ui::StdClosure finishCallback = [this, filePath]() {
+                if (!filePath.IsEmpty() && (m_pTree != nullptr)) {
+                    m_pTree->SelectPath(filePath, nullptr);
+                }
+            };
+        m_pTree->RefreshTree(finishCallback);
+    }
 }
 

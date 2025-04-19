@@ -1558,12 +1558,16 @@ bool TreeView::SelectTreeNode(TreeNode* pTreeNode)
             }
         }
     }
-    //设置选择项
-    SelectItem(itemIndex);
     //更新滚动条位置
     SetPos(GetPos());
+
     //确保可见
     EnsureVisible(itemIndex);
+
+    //设置选择项（先取消再选择：避免多选情况下由选择变成非选择；避免已经选择时不触发选择事件）
+    UnSelectItem(itemIndex, false);
+    SelectItem(itemIndex, true, true);
+
     return true;
 }
 
