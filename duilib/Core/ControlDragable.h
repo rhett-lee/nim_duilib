@@ -14,6 +14,9 @@
     #include "duilib/Core/DragWindowFilter_SDL.h"
 #endif
 
+//拖动操作，最短的像素距离
+#define DRAG_OPERATION_MIN_PT 5
+
 namespace ui
 {
 /** 主要功能：支持相同Box内的子控件通过拖动来调整顺序
@@ -450,16 +453,21 @@ void ControlDragableT<T>::GetValidPointInItemRects(UiPoint& pt) const
         return;
     }
 
-    UiRect boxRect = pParent->GetRect();
-    UiRect rcItemRects = boxRect;
+    UiRect boxRect = pParent->GetRect();//父容器所在的区域
+    UiPoint offsetParent = pParent->GetScrollOffsetInScrollBox();
+    boxRect.Offset(-offsetParent.x, -offsetParent.y);//转换为窗口的客户区坐标
+    UiRect rcItemRects = boxRect;//子项所占的总区域
     for (size_t nIndex = 0; nIndex < m_rcItemList.size(); ++nIndex) {
         const ItemStatus& itemStatus = m_rcItemList[nIndex];
         if ((itemStatus.m_pItem != nullptr) && !itemStatus.m_pItem->IsFloat()) {
-            if (itemStatus.m_rcPos.left > rcItemRects.left) {
-                rcItemRects.left = itemStatus.m_rcPos.left;
+            UiRect rcPos = itemStatus.m_rcPos;
+            UiPoint offsetItem = itemStatus.m_pItem->GetScrollOffsetInScrollBox();
+            rcPos.Offset(-offsetItem.x, -offsetItem.y);//转换为窗口的客户区坐标
+            if (rcPos.left > rcItemRects.left) {
+                rcItemRects.left = rcPos.left;
             }
-            if (itemStatus.m_rcPos.top > rcItemRects.top) {
-                rcItemRects.top = itemStatus.m_rcPos.top;
+            if (rcPos.top > rcItemRects.top) {
+                rcItemRects.top = rcPos.top;
             }
             break;
         }
@@ -467,15 +475,21 @@ void ControlDragableT<T>::GetValidPointInItemRects(UiPoint& pt) const
     for (int32_t nIndex = (int32_t)m_rcItemList.size() - 1; nIndex >= 0; --nIndex) {
         const ItemStatus& itemStatus = m_rcItemList[nIndex];
         if ((itemStatus.m_pItem != nullptr) && !itemStatus.m_pItem->IsFloat()) {
-            if (itemStatus.m_rcPos.right < rcItemRects.right) {
-                rcItemRects.right = itemStatus.m_rcPos.right;
+            UiRect rcPos = itemStatus.m_rcPos;
+            UiPoint offsetItem = itemStatus.m_pItem->GetScrollOffsetInScrollBox();
+            rcPos.Offset(-offsetItem.x, -offsetItem.y);//转换为窗口的客户区坐标
+            if (rcPos.right < rcItemRects.right) {
+                rcItemRects.right = rcPos.right;
             }
-            if (itemStatus.m_rcPos.bottom < rcItemRects.bottom) {
-                rcItemRects.bottom = itemStatus.m_rcPos.bottom;
+            if (rcPos.bottom < rcItemRects.bottom) {
+                rcItemRects.bottom = rcPos.bottom;
             }
             break;
         }
     }
+
+    UiPoint offset = this->GetScrollOffsetInScrollBox();
+    rcItemRects.Offset(offset);//转换为控件位置坐标
     if (pt.x < rcItemRects.left) {
         pt.x = rcItemRects.left;
     }
@@ -1041,7 +1055,7 @@ bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
     GetValidPointInItemRects(pt);
     if (pLayout->IsHLayout()) {
         int32_t xOffset = pt.x - m_ptMouseDown.x;
-        if (std::abs(xOffset) < this->Dpi().GetScaleInt(3)) {
+        if (std::abs(xOffset) < this->Dpi().GetScaleInt(DRAG_OPERATION_MIN_PT)) {
             return bRet;
         }
         //调整其他控件的位置
@@ -1055,7 +1069,7 @@ bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
     }
     else {
         int32_t yOffset = pt.y - m_ptMouseDown.y;
-        if (std::abs(yOffset) < this->Dpi().GetScaleInt(3)) {
+        if (std::abs(yOffset) < this->Dpi().GetScaleInt(DRAG_OPERATION_MIN_PT)) {
             return bRet;
         }
         //调整其他控件的位置
@@ -1103,7 +1117,7 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
     if (!IsInDraggingOut()) {
         int32_t xOffset = pt.x - m_ptMouseDown.x;
         int32_t yOffset = pt.y - m_ptMouseDown.y;
-        int32_t nMinOffset = this->Dpi().GetScaleInt(5);
+        int32_t nMinOffset = this->Dpi().GetScaleInt(DRAG_OPERATION_MIN_PT);
         if ((std::abs(xOffset) < nMinOffset) && (std::abs(yOffset) < nMinOffset)) {
             return bRet;
         }
