@@ -1616,6 +1616,8 @@ void Control::SetPos(UiRect rc)
     while (pParent != nullptr) {
         rcTemp = invalidateRc;
         rcParent = pParent->GetPos();
+        UiPoint offsetParent = pParent->GetScrollOffsetInScrollBox();
+        rcParent.Offset(-offsetParent.x, -offsetParent.y);
         if (!UiRect::Intersect(invalidateRc, rcTemp, rcParent)) {
             needInvalidate = false;
             break;

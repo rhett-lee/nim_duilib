@@ -42,6 +42,23 @@
                     <TabCtrlItem class="tab_ctrl_item" drag_order="true" title="标签-4" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
                 </VListBox>
             </HBox>
+            <VBox>
+                <VScrollBox vscrollbar="true" hscrollbar="true" width="stretch" height="stretch" bkcolor="white" padding="20,20,20,20">
+                    <TabCtrl class="tab_ctrl" margin="10,10,10,10">
+                        <TabCtrlItem class="tab_ctrl_item" title="标签3-1" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                        <TabCtrlItem class="tab_ctrl_item" title="标签3-2" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                        <TabCtrlItem class="tab_ctrl_item" title="标签3-3" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                        <TabCtrlItem class="tab_ctrl_item" title="标签3-4" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    </TabCtrl>
+                    <Control height="300"/>                    
+                    <TabCtrl class="tab_ctrl" margin="10,10,10,10">
+                        <TabCtrlItem class="tab_ctrl_item" title="标签3-1" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                        <TabCtrlItem class="tab_ctrl_item" title="标签3-2" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                        <TabCtrlItem class="tab_ctrl_item" title="标签3-3" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                        <TabCtrlItem class="tab_ctrl_item" title="标签3-4" icon="file='../public/caption/logo_18x18.png' valign='center' halign='center'"/>
+                    </TabCtrl>                    
+                </VScrollBox>
+            </VBox>
             <HBox bkcolor="white" margin="4,4,4,0">
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="1" margin="0,0,4,0"/>
                 <Control bkcolor="blue" bkcolor2="red" bkcolor2_direction="2" margin="0,0,4,0"/>
