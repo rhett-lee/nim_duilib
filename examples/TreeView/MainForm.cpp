@@ -210,21 +210,18 @@ void MainForm::OnRefresh()
         //如果当前显示的节点被删除，那么查找父节点
         int32_t nCount = (int32_t)m_parentTreeNodes.size();
         for (int32_t nIndex = nCount - 1; nIndex >= 0; --nIndex) {
-            if (m_pTree->IsValidTreeNode(m_parentTreeNodes[nIndex])) {
-                pTreeNode = m_parentTreeNodes[nIndex];
-                break;
+            ui::TreeNode* pParentTreeNode = m_parentTreeNodes[nIndex];
+            if (m_pTree->IsValidTreeNode(pParentTreeNode)) {
+                ui::FilePath filePath = m_pTree->FindTreeNodePath(pParentTreeNode);
+                if (filePath.IsExistsDirectory()) {
+                    pTreeNode = pParentTreeNode;
+                    break;
+                }
             }
         }
     }
-    ui::FilePath filePath;
-    if (pTreeNode != nullptr) {
-        filePath = m_pTree->FindTreeNodePath(pTreeNode);
-    }
-    filePath.NormalizeDirectoryPath();
-    if (!filePath.IsExistsDirectory()) {
-        filePath.Clear();
-    }
-    if (!filePath.IsEmpty() && (m_pTree != nullptr)) {
-        m_pTree->SelectSubPath(pTreeNode, filePath, nullptr);
+    ASSERT(pTreeNode != nullptr);
+    if ((m_pTree != nullptr) && (pTreeNode != nullptr)) {
+        m_pTree->SelectTreeNode(pTreeNode);
     }
 }
