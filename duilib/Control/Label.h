@@ -197,7 +197,7 @@ inline DString LabelTemplate<Box>::GetType() const { return DUI_CTR_LABELBOX; }
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetAttribute(const DString& strName, const DString& strValue)
 {
-    if ((strName == _T("text_align")) || (strName == _T("align"))) {
+    if (strName == _T("text_align")) {
         if (strValue.find(_T("left")) != DString::npos) {
             m_uTextStyle &= ~(TEXT_CENTER | TEXT_RIGHT);
             m_uTextStyle |= TEXT_LEFT;

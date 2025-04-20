@@ -3,34 +3,34 @@
     <HBox>
         <VBox width="300" margin="4">
             <HBox height="60" bkcolor="blue">
-                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：上对齐)" align="left,top"/>
+                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：上对齐)" text_align="left,top"/>
             </HBox>
             <HBox height="60" bkcolor="dark_gray">
-                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：中对齐)" align="left,vcenter"/>
+                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：中对齐)" text_align="left,vcenter"/>
             </HBox>
             <HBox height="60" bkcolor="blue">
-                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：下对齐)" align="left,bottom"/>
+                <Label height="stretch" width="stretch" text="文字(横向：左对齐，纵向：下对齐)" text_align="left,bottom"/>
             </HBox>
             <HBox height="60" bkcolor="dark_gray">
-                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：上对齐)" align="center,top"/>
+                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：上对齐)" text_align="center,top"/>
             </HBox>
             <HBox height="60" bkcolor="blue">
-                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：中对齐)" align="center,vcenter"/>
+                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：中对齐)" text_align="center,vcenter"/>
             </HBox>
             <HBox height="60" bkcolor="dark_gray">
-                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：下对齐)" align="center,bottom"/>
+                <Label height="stretch" width="stretch" text="文字(横向：中对齐，纵向：下对齐)" text_align="center,bottom"/>
             </HBox>
             <HBox height="60" bkcolor="blue">
-                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：上对齐)" align="right,top"/>
+                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：上对齐)" text_align="right,top"/>
             </HBox>
             <HBox height="60" bkcolor="dark_gray">
-                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：中对齐)" align="right,vcenter"/>
+                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：中对齐)" text_align="right,vcenter"/>
             </HBox>
             <HBox height="60" bkcolor="blue">
-                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：下对齐)" align="right,bottom"/>
+                <Label height="stretch" width="stretch" text="文字(横向：右对齐，纵向：下对齐)" text_align="right,bottom"/>
             </HBox>
             <HBox height="60" bkcolor="dark_gray">
-                <Label height="auto" width="auto" maxwidth="stretch" text="MeasureString结果测试1，MeasureString结果测试2，MeasureString结果测试3，" singleline="false" bkcolor="red" align="center,vcenter"/>
+                <Label height="auto" width="auto" maxwidth="stretch" text="MeasureString结果测试1，MeasureString结果测试2，MeasureString结果测试3，" singleline="false" bkcolor="red" text_align="center,vcenter"/>
             </HBox>
         </VBox>
         <VBox width="300" margin="4">                            
