@@ -385,6 +385,86 @@ void DirectoryTree::OnShowFolderContents(TreeNode* pTreeNode, const FilePath& pa
     }
 }
 
+bool DirectoryTree::SelectSubPath(TreeNode* pTreeNode, FilePath subPath, StdClosure finishCallback)
+{
+    if (!IsValidTreeNode(pTreeNode)) {
+        return false;
+    }
+    subPath.NormalizeDirectoryPath();
+    if (subPath.IsEmpty() || !subPath.IsExistsDirectory()) {
+        return false;
+    }
+    //校验是否在目录中
+    FolderStatus* pFolderStatus = GetFolderData(pTreeNode);
+    ASSERT(pFolderStatus != nullptr);
+    if (pFolderStatus == nullptr) {
+        return false;
+    }
+    if (!subPath.IsSubDirectory(FilePath(pFolderStatus->m_filePath.c_str()))) {
+        //路径与树节点不是父子目录关系
+        return false;
+    }
+
+    pFolderStatus = nullptr;
+    const UiString filePathString = subPath.ToString();
+    for (auto iter : m_folderMap) {
+        if ((iter.second->m_pTreeNode != pTreeNode) && !IsChildTreeNode(pTreeNode, iter.second->m_pTreeNode)) {
+            //跳过非关联树节点
+            continue;
+        }
+        if (IsSamePath(iter.second->m_filePath, filePathString)) {
+            pFolderStatus = iter.second;
+            break;
+        }
+    }
+    if (pFolderStatus != nullptr) {
+        //该目录已经存在于树的节点中
+        TreeNode* pSubTreeNode = pFolderStatus->m_pTreeNode;
+        if (pSubTreeNode != nullptr) {
+            SelectTreeNode(pSubTreeNode);
+        }
+        if (finishCallback) {
+            finishCallback();
+        }
+        return true;
+    }
+
+    //如果不存在，则逐级展开    
+    std::vector<FilePath> filePathList;
+    subPath.GetParentPathList(filePathList);
+    for (FilePath& normalPath : filePathList) {
+        normalPath.FormatPathAsDirectory();
+    }
+
+    TreeNode* pDestTreeNode = nullptr; //需要挂载的树节点
+    for (auto pos : m_folderMap) {
+        FolderStatus* pFolder = pos.second;
+        if ((pFolder->m_pTreeNode != pTreeNode) && !IsChildTreeNode(pTreeNode, pFolder->m_pTreeNode)) {
+            //跳过非关联树节点
+            continue;
+        }
+        auto iter = filePathList.begin();
+        while (iter != filePathList.end()) {
+            const FilePath& checkPath = *iter;
+            if (IsSamePath(pFolder->m_filePath, checkPath.ToString())) {
+                //存在的
+                pDestTreeNode = pFolder->m_pTreeNode;
+                if (pFolder->m_bContentLoaded) {
+                    //存在的，已经加载的，移除
+                    iter = filePathList.erase(iter);
+                }
+                else {
+                    ++iter;
+                }
+            }
+            else {
+                ++iter;
+            }
+        }
+    }
+    return OnSelectSubPath(pDestTreeNode, filePathList, finishCallback);
+}
+
 bool DirectoryTree::SelectPath(FilePath filePath, StdClosure finishCallback)
 {
     if (filePath.IsEmpty()) {
@@ -408,29 +488,11 @@ bool DirectoryTree::SelectPath(FilePath filePath, StdClosure finishCallback)
         return true;
     }
 
-    //如果不存在，则逐级展开
-    const UiString filePathString = filePath.ToString();
-    std::vector<std::filesystem::path> path_list;
-    std::filesystem::path path = filePathString.c_str();
-    auto p = path.parent_path();
-    auto rootPath = path.root_path();
-    while (!p.empty()) {
-        path_list.push_back(p);
-        if (p == rootPath) {
-            break;
-        }
-        p = p.parent_path();
-        if (p == path_list.back()) {
-            break;
-        }
-    }
-    std::reverse(path_list.begin(), path_list.end());
-
+    //如果不存在，则逐级展开    
     std::vector<FilePath> filePathList;
-    for (const std::filesystem::path& s : path_list) {
-        FilePath normalPath(s.native());
+    filePath.GetParentPathList(filePathList);
+    for (FilePath& normalPath : filePathList) {
         normalPath.FormatPathAsDirectory();
-        filePathList.push_back(normalPath);
     }
 
     TreeNode* pTreeNode = nullptr;
@@ -455,13 +517,47 @@ bool DirectoryTree::SelectPath(FilePath filePath, StdClosure finishCallback)
             }
         }
     }
-    ASSERT(!filePathList.empty());
-    if (filePathList.empty()) {
-        return false;
-    }
+    return OnSelectSubPath(pTreeNode, filePathList, finishCallback);
+}
 
+bool DirectoryTree::OnSelectSubPath(TreeNode* pTreeNode, std::vector<FilePath> filePathList, StdClosure finishCallback)
+{
     ASSERT(pTreeNode != nullptr);
     if (pTreeNode == nullptr) {
+        return false;
+    }
+    //移除冗余目录(过滤掉，不是树节点子目录的路径)
+    FolderStatus* pFolder = GetFolderData(pTreeNode);
+    ASSERT(pFolder != nullptr);
+    if (pFolder == nullptr) {
+        return false;
+    }
+    FilePath destFilePath(pFolder->m_filePath.c_str());
+    destFilePath.NormalizeDirectoryPath();
+    std::vector<FilePath>::iterator iter = filePathList.begin();
+    while (iter != filePathList.end()) {
+        const FilePath& checkPath = *iter;
+        if (IsSamePath(checkPath.ToString().c_str(), destFilePath.ToString().c_str())) {
+            if (pFolder->m_bContentLoaded) {
+                //如果已经展开，则移除
+                iter = filePathList.erase(iter);
+            }
+            else {
+                ++iter;
+            }
+        }
+        else {
+            if (!checkPath.IsSubDirectory(destFilePath)) {
+                //如果不是子目录，移除
+                iter = filePathList.erase(iter);
+            }
+            else {
+                ++iter;
+            }
+        }
+    }
+    ASSERT(!filePathList.empty());
+    if (filePathList.empty()) {
         return false;
     }
 
@@ -518,6 +614,26 @@ FilePath DirectoryTree::FindTreeNodePath(TreeNode* pTreeNode)
     return filePath;
 }
 
+bool DirectoryTree::IsChildTreeNode(TreeNode* pTreeNode, TreeNode* pChildTreeNode) const
+{
+    if ((pTreeNode == nullptr) || (pChildTreeNode == nullptr)) {
+        return false;
+    }
+    if (!IsValidTreeNode(pTreeNode) || !IsValidTreeNode(pChildTreeNode)) {
+        return false;
+    }
+    bool bRet = false;
+    TreeNode* p = pChildTreeNode->GetParentNode();
+    while (p != nullptr) {
+        if (p == pTreeNode) {
+            bRet = true;
+            break;
+        }
+        p = p->GetParentNode();
+    }
+    return bRet;
+}
+
 bool DirectoryTree::IsSamePath(const UiString& p1, const UiString& p2) const
 {
 #if !defined (DUILIB_BUILD_FOR_LINUX)
@@ -526,46 +642,6 @@ bool DirectoryTree::IsSamePath(const UiString& p1, const UiString& p2) const
 #else
     return p1 == p2;
 #endif
-}
-
-bool DirectoryTree::IsPathInDirectory(TreeNode* pTreeNode, const FilePath& path) const
-{
-    if ((pTreeNode == nullptr) || path.IsEmpty()) {
-        return false;
-    }
-    if (!path.IsExistsDirectory()) {
-        //不是目录，返回
-        return false;
-    }
-
-    FilePath dirPath;
-    FolderStatus* pFolder = GetFolderData(pTreeNode);
-    if (pFolder != nullptr) {
-        dirPath = pFolder->m_filePath.c_str();
-    }
-    if (dirPath.IsEmpty()) {
-        return false;
-    }
-    dirPath.NormalizeDirectoryPath();
-    DString dirPathStr = dirPath.ToString();
-
-    FilePath pathNormal(path);
-    pathNormal.NormalizeFilePath();
-    DString childPathStr = pathNormal.ToString();
-#if !defined (DUILIB_BUILD_FOR_LINUX)
-    //Windows文件名不区分大小写
-    dirPathStr = StringUtil::MakeLowerString(dirPathStr);
-    childPathStr = StringUtil::MakeLowerString(childPathStr);
-#endif
-    if (childPathStr.size() <= dirPathStr.size()) {
-        return false;
-    }
-    size_t nPos = childPathStr.find(dirPathStr);
-    if (nPos != 0) {
-        return false;
-    }
-    DString fileName = childPathStr.substr(dirPathStr.size());
-    return fileName.find(FilePath::GetPathSeparatorStr()) == DString::npos;
 }
 
 bool DirectoryTree::IsPathSame(TreeNode* pTreeNode, FilePath path) const

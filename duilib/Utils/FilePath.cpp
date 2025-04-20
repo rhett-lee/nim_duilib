@@ -208,6 +208,17 @@ DString FilePath::GetFileName() const
 #endif
 }
 
+FilePath FilePath::GetParentPath() const
+{
+    FilePath filePath;
+    if (m_filePath.empty()) {
+        return filePath;
+    }
+    filePath.m_filePath = m_filePath.parent_path();
+    filePath.m_bLexicallyNormal = m_bLexicallyNormal;
+    return filePath;
+}
+
 void FilePath::FormatPathAsDirectory()
 {
     //确保路径最后字符是分割字符
@@ -216,8 +227,20 @@ void FilePath::FormatPathAsDirectory()
         if (filePath.back() != GetPathSeparator()) {
             //结尾不是路径分隔符的话，追加路径分隔符
             m_filePath += GetPathSeparatorStr();
-        }        
+        }
     }    
+}
+
+void FilePath::TrimRightPathSeparator()
+{
+    if (m_filePath.empty()) {
+        return;
+    }
+    const std::filesystem::path::string_type& str = m_filePath.native();
+    if (!str.empty() && str[str.size() - 1] == FilePath::GetPathSeparator()) {
+        std::filesystem::path::string_type filePath = m_filePath.native();
+        m_filePath = filePath.substr(0, str.size() - 1);
+    }
 }
 
 void FilePath::NormalizeDirectoryPath()
@@ -259,6 +282,58 @@ void FilePath::RemoveFileName() noexcept
     m_filePath.remove_filename();
 }
 
+bool FilePath::IsSubDirectory(const FilePath& parentPath) const
+{
+    if (IsEmpty() || parentPath.IsEmpty()) {
+        return false;
+    }
+    FilePath parent(parentPath);
+    parent.NormalizeDirectoryPath();
+
+    FilePath child(*this);
+    child.NormalizeDirectoryPath();
+
+    std::filesystem::path::string_type parentStr = parent.m_filePath.native();
+    std::filesystem::path::string_type childStr = child.m_filePath.native();
+    if (childStr.size() <= parentStr.size()) {
+        return false;
+    }
+#if !defined (DUILIB_BUILD_FOR_LINUX)
+    //Windows下，不区分大小写
+    parentStr = StringUtil::MakeLowerString(parentStr);
+    childStr = StringUtil::MakeLowerString(childStr);
+#endif
+    return childStr.find(parentStr) == 0;
+}
+
+void FilePath::GetParentPathList(std::vector<FilePath>& parentPathList) const
+{
+    const std::filesystem::path& path = m_filePath;
+    if (path.empty()) {
+        return;
+    }
+    std::vector<std::filesystem::path> path_list;
+    auto p = path.parent_path();
+    auto rootPath = path.root_path();
+    while (!p.empty()) {
+        path_list.push_back(p);
+        if (p == rootPath) {
+            break;
+        }
+        p = p.parent_path();
+        if (p == path_list.back()) {
+            break;
+        }
+    }
+    std::reverse(path_list.begin(), path_list.end());
+    for (const auto& pathP : path_list) {
+        FilePath parentPath;
+        parentPath.m_filePath = pathP;
+        parentPath.m_bLexicallyNormal = m_bLexicallyNormal;
+        parentPathList.emplace_back(std::move(parentPath));
+    }
+}
+
 FilePath& FilePath::operator = (const DString& rightPath)
 {
 #ifdef DUILIB_UNICODE
@@ -276,6 +351,16 @@ FilePath& FilePath::operator = (const DString& rightPath)
 }
 
 FilePath& FilePath::JoinFilePath(const FilePath& rightPath)
+{
+    if (&rightPath == this) {
+        return *this;
+    }
+    m_filePath /= rightPath.m_filePath;
+    m_bLexicallyNormal = false;
+    return *this;
+}
+
+FilePath& FilePath::operator /= (const FilePath& rightPath)
 {
     if (&rightPath == this) {
         return *this;

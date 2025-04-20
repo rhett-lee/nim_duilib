@@ -112,6 +112,12 @@ public:
     void AttachShowFolderContents(ShowFolderContentsEvent callback);
 
 public:
+    /** 展开树的节点并选择其子目录(异步完成)
+    * @param [in] pTreeNode 树的节点
+    * @param [in] subPath 子目录或者多级子目录，该路径是pTreeNode对应路径的子目录
+    */
+    bool SelectSubPath(TreeNode* pTreeNode, FilePath subPath, StdClosure finishCallback);
+
     /** 选择一个路径(逐级展开目录，并选择最终的目录，确保可见)(异步完成)
     */
     bool SelectPath(FilePath filePath, StdClosure finishCallback);
@@ -161,11 +167,11 @@ private:
     */
     void ShowFolderContents(TreeNode* pTreeNode, const FilePath& path, StdClosure finishCallback);
 
-    /** 判断一个路径是否在指定节点对应的目录中
-    * @param [in] pTreeNode 当前的节点
-    * @param [in] path 路径
+    /** 判断两个树节点是否为父子关系
+    * @param [in] pTreeNode 父节点
+    * @param [in] pChildTreeNode 子节点
     */
-    bool IsPathInDirectory(TreeNode* pTreeNode, const FilePath& path) const;
+    bool IsChildTreeNode(TreeNode* pTreeNode, TreeNode* pChildTreeNode) const;
 
     /** 判断一个路径是否与指定节点对应的目录相同
     * @param [in] pTreeNode 当前的节点
@@ -200,6 +206,13 @@ private:
     void OnShowFolderContents(TreeNode* pTreeNode, const ui::FilePath& path,
                               const PathInfoListPtr& folderList,
                               const PathInfoListPtr& fileList);
+
+    /** 在某个树节点下展开子目录，并选择最后一级目录
+    * @param [in] pTreeNode 当前的节点
+    * @param [in] filePathList 需要展开的目录（这些目录尚未添加到树节点）
+    * @param [in] finishCallback 完成回调函数
+    */
+    bool OnSelectSubPath(TreeNode* pTreeNode, std::vector<FilePath> filePathList, StdClosure finishCallback);
 
     /** 比较两个路径是否相同
     */

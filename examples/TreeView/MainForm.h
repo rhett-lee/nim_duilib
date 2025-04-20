@@ -23,9 +23,9 @@ public:
     */
     virtual void OnInitWindow() override;
 
-    /** 触发树节点点击事件
+    /** 触发树节点点击事件, 选择对应的目录
      */
-    void CheckExpandTreeNode(ui::TreeNode* pTreeNode, const ui::FilePath& filePath);
+    void SelectSubPath(const ui::FilePath& filePath);
 
 private:
     /** 已获取指定目录的内容
@@ -46,6 +46,15 @@ private:
     */
     void Refresh();
 
+    /** 刷新左树完成后，更新文件显示区域
+    */
+    void OnRefresh();
+
+private:
+    /** 设置当前选择的树节点
+    */
+    void SetShowTreeNode(ui::TreeNode* pTreeNode);
+
 private:
     /** 左侧树节点的接口
     */
@@ -62,6 +71,15 @@ private:
     /** 文件列表的接口（右侧虚表显示的界面）
     */
     ui::VirtualListBox* m_pListBox;
+
+private:
+    /** 当前显示的树节点
+    */
+    ui::TreeNode* m_pTreeNode;
+
+    /** 当前选择树节点的父节点列表（用于刷新机制）
+    */
+    std::vector<ui::TreeNode*> m_parentTreeNodes;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_
