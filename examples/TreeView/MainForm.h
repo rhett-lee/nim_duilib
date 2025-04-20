@@ -5,6 +5,7 @@
 #include "duilib/duilib.h"
 
 #include "FileInfoList.h"
+#include <stack>
 
 class MainForm : public ui::WindowImplBase
 {
@@ -50,6 +51,22 @@ private:
     */
     void OnRefresh();
 
+    /** 向上
+    */
+    void ShowUp();
+
+    /** 向后
+    */
+    void ShowBack();
+
+    /** 向前
+    */
+    void ShowForward();
+
+    /** 更新界面状态
+    */
+    void UpdateCommandUI();
+
 private:
     /** 设置当前选择的树节点
     */
@@ -80,6 +97,31 @@ private:
     /** 当前选择树节点的父节点列表（用于刷新机制）
     */
     std::vector<ui::TreeNode*> m_parentTreeNodes;
+
+private:
+    /** 向上按钮
+    */
+    ui::Button* m_pBtnUp;
+
+    /** 后退按钮
+    */
+    ui::Button* m_pBtnBack;
+
+    /** 前进按钮
+    */
+    ui::Button* m_pBtnForward;
+
+    /** 后退列表
+    */
+    std::stack<ui::TreeNode*> m_backStack;
+
+    /** 前进列表
+    */
+    std::stack<ui::TreeNode*> m_forwardStack;
+
+    /** 是否可以添加到前进后退列表
+    */
+    bool m_bCanAddBackForward;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

@@ -5,7 +5,11 @@ MainForm::MainForm():
     m_fileList(this),
     m_pTree(nullptr),
     m_pAddressBar(nullptr),
-    m_pListBox(nullptr)
+    m_pListBox(nullptr),
+    m_pBtnUp(nullptr),
+    m_pBtnForward(nullptr),
+    m_pBtnBack(nullptr),
+    m_bCanAddBackForward(true)
 {
 }
 
@@ -41,13 +45,41 @@ void MainForm::OnInitWindow()
     }
 
     //刷新按钮
-    ui::Button* pRefreshBtn = dynamic_cast<ui::Button*>(FindControl(_T("tree_refresh")));
+    ui::Button* pRefreshBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_view_refresh")));
     if (pRefreshBtn != nullptr) {
         pRefreshBtn->AttachClick([this](const ui::EventArgs&) {
-                Refresh();
-                return true;
+            Refresh();
+            return true;
             });
     }
+
+    //向上按钮
+    m_pBtnUp = dynamic_cast<ui::Button*>(FindControl(_T("btn_view_up")));
+    if (m_pBtnUp != nullptr) {
+        m_pBtnUp->AttachClick([this](const ui::EventArgs&) {
+            ShowUp();
+            return true;
+            });
+    }
+
+    //后退按钮
+    m_pBtnBack = dynamic_cast<ui::Button*>(FindControl(_T("btn_view_left")));
+    if (m_pBtnBack != nullptr) {
+        m_pBtnBack->AttachClick([this](const ui::EventArgs&) {
+            ShowBack();
+            return true;
+            });
+    }
+
+    //前进按钮
+    m_pBtnForward = dynamic_cast<ui::Button*>(FindControl(_T("btn_view_right")));
+    if (m_pBtnForward != nullptr) {
+        m_pBtnForward->AttachClick([this](const ui::EventArgs&) {
+            ShowForward();
+            return true;
+            });
+    }
+    UpdateCommandUI();
 
     //挂载事件
     m_pTree->AttachShowFolderContents(ui::UiBind(&MainForm::OnShowFolderContents, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
@@ -87,6 +119,10 @@ void MainForm::Refresh()
 
 void MainForm::SetShowTreeNode(ui::TreeNode* pTreeNode)
 {
+    if (m_bCanAddBackForward && m_pTree->IsValidTreeNode(m_pTreeNode)) {
+        m_backStack.push(m_pTreeNode);
+        m_forwardStack = std::stack<ui::TreeNode*>();
+    }
     m_pTreeNode = pTreeNode;
     m_parentTreeNodes.clear();
     if (pTreeNode != nullptr) {
@@ -96,6 +132,7 @@ void MainForm::SetShowTreeNode(ui::TreeNode* pTreeNode)
             p = p->GetParentNode();
         }
     }
+    m_bCanAddBackForward = true;
 }
 
 void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& path,
@@ -131,6 +168,8 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
         SetShowTreeNode(pTreeNode);
         m_fileList.SetFileList(pathList);
     }
+    //更新界面状态
+    UpdateCommandUI();
 }
 
 void MainForm::SelectSubPath(const ui::FilePath& filePath)
@@ -222,6 +261,81 @@ void MainForm::OnRefresh()
     }
     ASSERT(pTreeNode != nullptr);
     if ((m_pTree != nullptr) && (pTreeNode != nullptr)) {
+        m_bCanAddBackForward = false;
         m_pTree->SelectTreeNode(pTreeNode);
+    }
+}
+
+void MainForm::ShowUp()
+{
+    if (m_pTreeNode != nullptr) {
+        ui::TreeNode* pTreeNode = m_pTreeNode->GetParentNode();
+        if ((m_pTree != nullptr) && (pTreeNode != nullptr)) {
+            m_bCanAddBackForward = true;
+            m_pTree->SelectTreeNode(pTreeNode);
+        }
+    }
+}
+
+void MainForm::ShowBack()
+{
+    //后退
+    if (m_pTree == nullptr) {
+        return;
+    }
+    if (m_pTree->IsValidTreeNode(m_pTreeNode)) {
+        m_forwardStack.push(m_pTreeNode);
+    }
+
+    while (!m_backStack.empty()) {
+        ui::TreeNode* pTreeNode = m_backStack.top();
+        m_backStack.pop();
+        if (m_pTree->IsValidTreeNode(pTreeNode)) {
+            m_bCanAddBackForward = false;
+            m_pTree->SelectTreeNode(pTreeNode);
+            break;
+        }
+    }
+}
+
+void MainForm::ShowForward()
+{
+    if (m_pTree == nullptr) {
+        return;
+    }
+    if (m_pTree->IsValidTreeNode(m_pTreeNode)) {
+        m_backStack.push(m_pTreeNode);
+    }
+
+    while (!m_forwardStack.empty()) {
+        ui::TreeNode* pTreeNode = m_forwardStack.top();
+        m_forwardStack.pop();
+        if (m_pTree->IsValidTreeNode(pTreeNode)) {
+            m_bCanAddBackForward = false;
+            m_pTree->SelectTreeNode(pTreeNode);
+            break;
+        }
+    }
+}
+
+void MainForm::UpdateCommandUI()
+{
+    bool bEnableUp = false;
+    bool bEnableBack = !m_backStack.empty();
+    bool bEnableForward = !m_forwardStack.empty();
+    if ((m_pTreeNode != nullptr) && (m_pTree != nullptr)) {
+        ui::TreeNode* pParentNode = m_pTreeNode->GetParentNode();
+        if ((pParentNode != nullptr) && (pParentNode != m_pTree->GetRootNode())) {
+            bEnableUp = true;
+        }
+    }
+    if (m_pBtnUp != nullptr) {
+        m_pBtnUp->SetEnabled(bEnableUp);
+    }
+    if (m_pBtnBack != nullptr) {
+        m_pBtnBack->SetEnabled(bEnableBack);
+    }
+    if (m_pBtnForward != nullptr) {
+        m_pBtnForward->SetEnabled(bEnableForward);
     }
 }
