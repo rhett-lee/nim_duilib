@@ -447,6 +447,10 @@ public:
     */
     bool EnsureTreeNodeVisible(TreeNode* pTreeNode);
 
+    /** 判断一个树节点是否有效
+    */
+    bool IsValidTreeNode(TreeNode* pTreeNode) const;
+
 public:
     /** 是否允许多选
     */

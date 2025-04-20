@@ -1640,4 +1640,10 @@ bool TreeView::EnsureTreeNodeVisible(TreeNode* pTreeNode)
     return true;
 }
 
+bool TreeView::IsValidTreeNode(TreeNode* pTreeNode) const
+{
+    size_t itemIndex = GetItemIndex(pTreeNode);
+    return Box::IsValidItemIndex(itemIndex);
+}
+
 }

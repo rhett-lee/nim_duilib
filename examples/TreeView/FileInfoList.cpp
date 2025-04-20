@@ -4,8 +4,7 @@
 #include "MainThread.h"
 
 FileInfoList::FileInfoList(MainForm* pMainForm):
-    m_pMainForm(pMainForm),
-    m_pTreeNode(nullptr)
+    m_pMainForm(pMainForm)
 {
 }
 
@@ -69,12 +68,11 @@ void FileInfoList::SetMultiSelect(bool /*bMultiSelect*/)
 {
 }
 
-void FileInfoList::SetFileList(ui::TreeNode* pTreeNode, const std::vector<PathInfo>& pathList)
+void FileInfoList::SetFileList(const std::vector<PathInfo>& pathList)
 {
     std::vector<PathInfo> oldPathList;
     oldPathList.swap(m_pathList);
-    
-    m_pTreeNode = pTreeNode;
+
     m_pathList.reserve(m_pathList.size() + pathList.size());
     for (const PathInfo& fileInfo : pathList) {
         m_pathList.emplace_back(fileInfo);
@@ -98,21 +96,20 @@ void FileInfoList::ClearFileList(std::vector<PathInfo>& pathList) const
 
 bool FileInfoList::OnDoubleClickItem(const ui::EventArgs& args)
 {
+    if (m_pMainForm == nullptr) {
+        return true;
+    }
+
     FileInfoItem* pItem = dynamic_cast<FileInfoItem*>(args.GetSender());
     if (pItem != nullptr) {
         size_t nElementIndex = pItem->GetUserDataID();
         if (nElementIndex < m_pathList.size()) {
             const PathInfo& fileInfo = m_pathList[nElementIndex];
-            if (fileInfo.m_bFolder && (m_pMainForm != nullptr)) {
+            if (fileInfo.m_bFolder) {
                 //双击在一个目录上
-                m_pMainForm->CheckExpandTreeNode(m_pTreeNode, fileInfo.m_filePath);
+                m_pMainForm->SelectSubPath(fileInfo.m_filePath);
             }
         }
     }
     return true;
-}
-
-ui::TreeNode* FileInfoList::GetTreeNode() const
-{
-    return m_pTreeNode;
 }

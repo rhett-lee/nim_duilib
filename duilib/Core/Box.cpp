@@ -405,6 +405,9 @@ Control* Box::GetItemAt(size_t iIndex) const
 
 size_t Box::GetItemIndex(Control* pControl) const
 {
+    if (pControl == nullptr) {
+        return Box::InvalidIndex;
+    }
     auto it = std::find(m_items.begin(), m_items.end(), pControl);
     if (it == m_items.end()) {
         return Box::InvalidIndex;
@@ -414,6 +417,9 @@ size_t Box::GetItemIndex(Control* pControl) const
 
 bool Box::SetItemIndex(Control* pControl, size_t iIndex)
 {
+    if (pControl == nullptr) {
+        return false;
+    }
     if (iIndex >= m_items.size()) {
         return false;
     }

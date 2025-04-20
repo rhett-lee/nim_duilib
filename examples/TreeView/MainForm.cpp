@@ -74,11 +74,41 @@ void MainForm::OnInitWindow()
     }
 }
 
+void MainForm::Refresh()
+{
+    if (m_pTree == nullptr) {
+        return;
+    }
+    ui::StdClosure finishCallback = ToWeakCallback([this]() {
+            OnRefresh();
+        });
+    m_pTree->RefreshTree(finishCallback);
+}
+
+void MainForm::SetShowTreeNode(ui::TreeNode* pTreeNode)
+{
+    m_pTreeNode = pTreeNode;
+    m_parentTreeNodes.clear();
+    if (pTreeNode != nullptr) {
+        ui::TreeNode* p = pTreeNode->GetParentNode();
+        while (p != nullptr) {
+            m_parentTreeNodes.push_back(p);
+            p = p->GetParentNode();
+        }
+    }
+}
+
 void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& path,
                                     const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& folderList,
                                     const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList)
 {
     ui::GlobalManager::Instance().AssertUIThread();
+    if ((pTreeNode == nullptr) || (m_pTree == nullptr)) {
+        return;
+    }
+    if (!m_pTree->IsValidTreeNode(pTreeNode)) {
+        return;
+    }
     if (m_pAddressBar != nullptr) {
         m_pAddressBar->SetText(path.ToString());
     }
@@ -92,20 +122,30 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
     if (!m_pTree->IsMultiSelect()) {
         //单选，进行校验
         if (pTreeNode->IsSelected()) {
-            m_fileList.SetFileList(pTreeNode, pathList);
+            SetShowTreeNode(pTreeNode);
+            m_fileList.SetFileList(pathList);
         }
     }
     else {
         //多选，不校验
-        m_fileList.SetFileList(pTreeNode, pathList);
+        SetShowTreeNode(pTreeNode);
+        m_fileList.SetFileList(pathList);
     }
 }
 
-void MainForm::CheckExpandTreeNode(ui::TreeNode* /*pTreeNode*/, const ui::FilePath& filePath)
+void MainForm::SelectSubPath(const ui::FilePath& filePath)
 {
+    if (!filePath.IsExistsDirectory()) {
+        //如果文件夹不存在，报错
+        DString errMsg = _T("路径不存在：");
+        errMsg += filePath.ToString();
+        ui::SystemUtil::ShowMessageBox(this, errMsg.c_str(), _T("错误信息"));
+        return;
+    }
+
     if (m_pTree != nullptr) {
-        m_pTree->SelectPath(filePath, nullptr);
-    }    
+        m_pTree->SelectSubPath(m_pTreeNode, filePath, nullptr);
+    }
 }
 
 bool MainForm::OnAddressBarReturn(const ui::EventArgs& msg)
@@ -113,23 +153,70 @@ bool MainForm::OnAddressBarReturn(const ui::EventArgs& msg)
     DString text;
     if (m_pAddressBar != nullptr) {
         text = m_pAddressBar->GetText();
+        ui::StringUtil::Trim(text);
     }
-    if (!text.empty()) {
-        ui::FilePath filePath(text);
-        if (filePath.IsExistsDirectory()) {
-            //地址栏上面的是有效路径，让左树展开对应的路径，并选择
-            if (m_pTree != nullptr) {
-                m_pTree->SelectPath(filePath, nullptr);
+    if (text.empty()) {
+        return true;
+    }
+    ui::FilePath curFilePath;//当前树节点对应的目录
+    ui::TreeNode* pTreeNode = m_pTreeNode;
+    if (pTreeNode != nullptr) {
+        curFilePath = m_pTree->FindTreeNodePath(pTreeNode);
+    }
+    ui::FilePath inputFilePath(text); //当前输入的目录
+    ui::TreeNode* pParentTreeNode = nullptr;
+    if (!inputFilePath.IsAbsolutePath()) {
+        //如果是相对路径，与当前树节点的路径拼接
+        if (!curFilePath.IsEmpty()) {
+            inputFilePath = curFilePath.JoinFilePath(inputFilePath);
+            pParentTreeNode = m_pTreeNode;
+        }
+    }
+    else if(!curFilePath.IsEmpty() && inputFilePath.IsSubDirectory(curFilePath)) {
+        //新输入的目录，在当前树节点目录下
+        pParentTreeNode = m_pTreeNode;
+    }
+    if (inputFilePath.IsAbsolutePath() && inputFilePath.IsExistsDirectory()) {
+        //地址栏上面的是有效路径，让左树展开对应的路径，并选择
+        if (m_pTree != nullptr) {
+            if (pParentTreeNode != nullptr) {
+                m_pTree->SelectSubPath(pParentTreeNode, inputFilePath, nullptr);
+            }
+            else {
+                m_pTree->SelectPath(inputFilePath, nullptr);
             }
         }
+    }
+    else {
+        //如果文件夹不存在，报错
+        DString errMsg = _T("输入的路径不存在：");
+        errMsg += text;
+        ui::SystemUtil::ShowMessageBox(this, errMsg.c_str(), _T("错误信息"));
     }
     return true;
 }
 
-void MainForm::Refresh()
+void MainForm::OnRefresh()
 {
+    if (m_pTree == nullptr) {
+        return;
+    }
+    ui::TreeNode* pTreeNode = m_pTreeNode;
+    if (!m_pTree->IsValidTreeNode(pTreeNode)) {
+        //树节点已经被删除
+        pTreeNode = nullptr;
+    }
+    if (pTreeNode == nullptr) {
+        //如果当前显示的节点被删除，那么查找父节点
+        int32_t nCount = (int32_t)m_parentTreeNodes.size();
+        for (int32_t nIndex = nCount - 1; nIndex >= 0; --nIndex) {
+            if (m_pTree->IsValidTreeNode(m_parentTreeNodes[nIndex])) {
+                pTreeNode = m_parentTreeNodes[nIndex];
+                break;
+            }
+        }
+    }
     ui::FilePath filePath;
-    ui::TreeNode* pTreeNode = m_fileList.GetTreeNode();
     if (pTreeNode != nullptr) {
         filePath = m_pTree->FindTreeNodePath(pTreeNode);
     }
@@ -137,14 +224,7 @@ void MainForm::Refresh()
     if (!filePath.IsExistsDirectory()) {
         filePath.Clear();
     }
-
-    if (m_pTree != nullptr) {
-        ui::StdClosure finishCallback = [this, filePath]() {
-                if (!filePath.IsEmpty() && (m_pTree != nullptr)) {
-                    m_pTree->SelectPath(filePath, nullptr);
-                }
-            };
-        m_pTree->RefreshTree(finishCallback);
+    if (!filePath.IsEmpty() && (m_pTree != nullptr)) {
+        m_pTree->SelectSubPath(pTreeNode, filePath, nullptr);
     }
 }
-

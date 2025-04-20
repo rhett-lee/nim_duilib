@@ -117,22 +117,47 @@ public:
     */
     DString GetFileName() const;
 
+    /** 获取父路径
+    */
+    FilePath GetParentPath() const;
+
 public:
-    /** 规范目录，确保以分隔符结束
+    /** 确保以分隔符（Windows平台，以反斜杠"\\"结尾，其他平台以正斜杠"/"结尾）结尾
+    *   比如Windows: "C:\\abc" 变成 "C:\\abc\\"
     */
     void FormatPathAsDirectory();
 
-    /** 对路径中的分隔符 / 点（"/\\."）字符进行规范化处理, 确保目录以分隔符结束(适用于目录, 仅限绝对路径)
+    /** 去除结尾的路径分隔符
+    *   比如Windows: "C:\\abc\\" 变成 "C:\\abc"
     */
+    void TrimRightPathSeparator();
+
+    /** 规范路径，对路径中的分隔符（"/\\."）字符进行规范化处理, 确保目录以分隔符结尾(适用于目录, 仅限绝对路径)
+     *  Windows平台，以反斜杠"\\"结尾，其他平台以正斜杠"/"结尾
+     *  Windows平台下，将正斜杠"/"替换为反斜杠"\\"，其他平台下，将反斜杠"\\"替换为正斜杠"/"
+     *  同时对路径中的相对路径（"." 和 ".."）进行规范化处理，去除相对路径，形成绝对路径
+     */
     void NormalizeDirectoryPath();
 
-    /** 对路径中的分隔符/点（"/\\."）字符进行规范化处理（适用于文件, 仅限绝对路径）
-    */
+    /** 对路径中的分隔符（"/\\."）字符进行规范化处理（适用于文件、目录, 仅限绝对路径）
+     *  Windows平台下，将正斜杠"/"替换为反斜杠"\\"，其他平台下，将反斜杠"\\"替换为正斜杠"/"
+     *  同时对路径中的相对路径（"." 和 ".."）进行规范化处理，去除相对路径，形成绝对路径
+     */
     void NormalizeFilePath();
 
     /** 删除文件名，只保留文件所在的目录
     */
     void RemoveFileName() noexcept;
+
+    /** 当前目录是否为另外一个目录的子目录
+    * @param [in] parentPath 父目录
+    */
+    bool IsSubDirectory(const FilePath& parentPath) const;
+
+    /** 获取父目录列表
+    * @param [in] parentPathList 返回该目录的父目录列表（完整路径）
+    */
+    void GetParentPathList(std::vector<FilePath>& parentPathList) const;
 
     /** 路径赋值
     * @param [in] rightPath 跟随DString的编码：路径为UTF8编码或者UTF16编码
@@ -142,6 +167,10 @@ public:
     /** 路径连接: 将当前路径与右侧的路径连接后生成一个新的路径
     */
     FilePath& JoinFilePath(const FilePath& rightPath);
+
+    /** 路径连接: 将当前路径与右侧的路径连接后生成一个新的路径（与JoinFilePath相同）
+    */
+    FilePath& operator /= (const FilePath& rightPath);
 
     /** 将两个路径拼接成一个路径（按字符串形式拼接，不会在两个路径之间主动添加路径分隔符）
     * @param [in] rightPath 右侧路径
