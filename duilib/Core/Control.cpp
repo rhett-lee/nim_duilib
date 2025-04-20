@@ -2847,11 +2847,17 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
 bool Control::ShouldBeRoundRectFill() const
 {
     bool isRoundRect = false;
-    if ((m_pBorderData != nullptr) && (m_pBorderData->m_rcBorderSize.left > 0.001f) &&
+    if ((m_pBorderData != nullptr) &&
+        (IsFloatEqual(m_pBorderData->m_rcBorderSize.left, 0.0f) || (m_pBorderData->m_rcBorderSize.left > 0.001f)) &&
         IsFloatEqual(m_pBorderData->m_rcBorderSize.left, m_pBorderData->m_rcBorderSize.right)      &&
         IsFloatEqual(m_pBorderData->m_rcBorderSize.left, m_pBorderData->m_rcBorderSize.top)        &&
         IsFloatEqual(m_pBorderData->m_rcBorderSize.left, m_pBorderData->m_rcBorderSize.bottom)) {
         //四个边大小相同(无论是零还是大于零)，支持圆角矩形
+        if (m_cxyBorderRound.cx > 0 && m_cxyBorderRound.cy > 0) {
+            isRoundRect = true;
+        }
+    }
+    else {
         if (m_cxyBorderRound.cx > 0 && m_cxyBorderRound.cy > 0) {
             isRoundRect = true;
         }
