@@ -9,8 +9,8 @@
     </HBox>
     <Box>
       <VBox margin="0,0,0,0" valign="center" halign="center" width="100%" height="auto">
-        <Label name="tooltip" text="nim_duilib controls example." width="stretch" align="center"/>
-        <Label name="link" width="stretch" text="https://github.com/rhett-lee/nim_duilib" normal_text_color="blue" align="center" cursor_type="hand" margin="0,8"/>
+        <Label name="tooltip" text="nim_duilib controls example." width="stretch" text_align="center"/>
+        <Label name="link" width="stretch" text="https://github.com/rhett-lee/nim_duilib" normal_text_color="blue" text_align="center" cursor_type="hand" margin="0,8"/>
       </VBox>
     </Box>
   </VBox>
