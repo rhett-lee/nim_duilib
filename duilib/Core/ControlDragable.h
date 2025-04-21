@@ -7,6 +7,7 @@
 #include "duilib/Core/DragWindow.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Box/HBox.h"
+#include "duilib/Box/ScrollBox.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Core/WindowCreateParam.h"
 
@@ -120,9 +121,9 @@ protected:
     */
     virtual void ClearDragStatus();
 
-    /** 将当前鼠标位置，转换到子项所在区域有效的范围内
+    /** 获取子项所在区域的有效的范围
     */
-    virtual void GetValidPointInItemRects(UiPoint& pt) const;
+    virtual bool GetItemsValidRect(UiRect& itemsValidRect) const;
 
     /** @} */
 
@@ -446,11 +447,12 @@ void ControlDragableT<T>::HandleEvent(const EventArgs& msg)
 }
 
 template<typename T>
-void ControlDragableT<T>::GetValidPointInItemRects(UiPoint& pt) const
+bool ControlDragableT<T>::GetItemsValidRect(UiRect& itemsValidRect) const
 {
     const Box* pParent = this->GetParent();
+    ASSERT(pParent != nullptr);
     if (pParent == nullptr) {
-        return;
+        return false;
     }
 
     UiRect boxRect = pParent->GetRect();//父容器所在的区域
@@ -490,18 +492,8 @@ void ControlDragableT<T>::GetValidPointInItemRects(UiPoint& pt) const
 
     UiPoint offset = this->GetScrollOffsetInScrollBox();
     rcItemRects.Offset(offset);//转换为控件位置坐标
-    if (pt.x < rcItemRects.left) {
-        pt.x = rcItemRects.left;
-    }
-    if (pt.x >= rcItemRects.right) {
-        pt.x = rcItemRects.right - 1;
-    }
-    if (pt.y < rcItemRects.top) {
-        pt.y = rcItemRects.top;
-    }
-    if (pt.y >= rcItemRects.bottom) {
-        pt.y = rcItemRects.bottom - 1;
-    }
+    itemsValidRect = rcItemRects;
+    return true;
 }
 
 template<typename T>
@@ -778,7 +770,21 @@ void ControlDragableT<T>::DragOrderMouseUp(const EventArgs& msg)
     //控件内：拖动改变顺序
     UiPoint pt(msg.ptMouse);
     pt.Offset(this->GetScrollOffsetInScrollBox());
-    GetValidPointInItemRects(pt);
+    UiRect itemsValidRect;
+    if (GetItemsValidRect(itemsValidRect)) {
+        if (pt.x < itemsValidRect.left) {
+            pt.x = itemsValidRect.left;
+        }
+        if (pt.x >= itemsValidRect.right) {
+            pt.x = itemsValidRect.right - 1;
+        }
+        if (pt.y < itemsValidRect.top) {
+            pt.y = itemsValidRect.top;
+        }
+        if (pt.y >= itemsValidRect.bottom) {
+            pt.y = itemsValidRect.bottom - 1;
+        }
+    }
     size_t nOldItemIndex = Box::InvalidIndex;
     size_t nNewItemIndex = Box::InvalidIndex;
     bool bOrderChanged = AdjustItemOrders(pt, m_rcItemList, nOldItemIndex, nNewItemIndex);
@@ -1052,7 +1058,22 @@ bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
     }
     UiPoint pt(msg.ptMouse);
     pt.Offset(this->GetScrollOffsetInScrollBox());
-    GetValidPointInItemRects(pt);
+    UiPoint ptNow = pt;
+    UiRect itemsValidRect;
+    if (GetItemsValidRect(itemsValidRect)) {
+        if (pt.x < itemsValidRect.left) {
+            pt.x = itemsValidRect.left;
+        }
+        if (pt.x >= itemsValidRect.right) {
+            pt.x = itemsValidRect.right - 1;
+        }
+        if (pt.y < itemsValidRect.top) {
+            pt.y = itemsValidRect.top;
+        }
+        if (pt.y >= itemsValidRect.bottom) {
+            pt.y = itemsValidRect.bottom - 1;
+        }
+    }
     if (pLayout->IsHLayout()) {
         int32_t xOffset = pt.x - m_ptMouseDown.x;
         if (std::abs(xOffset) < this->Dpi().GetScaleInt(DRAG_OPERATION_MIN_PT)) {
@@ -1066,6 +1087,18 @@ bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
         rect.right += xOffset;
 
         this->SetPos(rect);
+
+        ScrollBox* pScrollBox = dynamic_cast<ScrollBox*>(this->GetParent());
+        if ((pScrollBox != nullptr) && (pScrollBox->GetScrollRange().cx > 0)) {
+            if (ptNow.x <= itemsValidRect.left) {
+                //向左滚动
+                pScrollBox->LineLeft();
+            }
+            else if (ptNow.x >= itemsValidRect.right) {
+                //向右滚动
+                pScrollBox->LineRight();
+            }
+        }
     }
     else {
         int32_t yOffset = pt.y - m_ptMouseDown.y;
@@ -1079,6 +1112,18 @@ bool ControlDragableT<T>::DragOrderMouseMove(const EventArgs& msg)
         rect.top += yOffset;
         rect.bottom += yOffset;
         this->SetPos(rect);
+
+        ScrollBox* pScrollBox = dynamic_cast<ScrollBox*>(this->GetParent());
+        if ((pScrollBox != nullptr) && (pScrollBox->GetScrollRange().cy > 0)) {
+            if (ptNow.y <= itemsValidRect.top) {
+                //向上滚动
+                pScrollBox->LineUp();
+            }
+            else if (ptNow.y >= itemsValidRect.bottom) {
+                //向下滚动
+                pScrollBox->LineDown();
+            }
+        }
     }
 
     if (!m_bInDraggingOrder) {
