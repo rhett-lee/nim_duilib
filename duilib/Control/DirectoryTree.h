@@ -112,6 +112,11 @@ public:
     void AttachShowFolderContents(ShowFolderContentsEvent callback);
 
 public:
+    /** 选择一个树节点（如果父节点未展开，则级联展开）
+    * @param [in] pTreeNode 树的节点
+    */
+    virtual bool SelectTreeNode(TreeNode* pTreeNode) override;
+
     /** 展开树的节点并选择其子目录(异步完成)
     * @param [in] pTreeNode 树的节点
     * @param [in] subPath 子目录或者多级子目录，该路径是pTreeNode对应路径的子目录
@@ -143,11 +148,11 @@ private:
      */
     bool OnTreeNodeExpand(const EventArgs& args);
 
-    /** 树节点选择事件
+    /** 树节点的点击事件
      * @param[in] args 消息体
      * @return 始终返回 true
      */
-    bool OnTreeNodeSelect(const EventArgs& args);
+    bool OnTreeNodeClick(const EventArgs& args);
 
     /** 树节点销毁事件
      * @param[in] args 消息体
