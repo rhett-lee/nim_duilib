@@ -122,6 +122,11 @@ cd "$SRC_ROOT_DIR/build_temp/threads"
 make clean; $MAKE
 cd "$SRC_ROOT_DIR/"
 
+cmake -S "$SRC_ROOT_DIR/examples/TreeView/" -B "$SRC_ROOT_DIR/build_temp/TreeView" -DCMAKE_BUILD_TYPE=Debug
+cd "$SRC_ROOT_DIR/build_temp/TreeView"
+make clean; $MAKE
+cd "$SRC_ROOT_DIR/"
+
 cmake -S "$SRC_ROOT_DIR/examples/cef/" -B "$SRC_ROOT_DIR/build_temp/cef" -DCMAKE_BUILD_TYPE=Debug
 cd "$SRC_ROOT_DIR/build_temp/cef"
 make clean; $MAKE
