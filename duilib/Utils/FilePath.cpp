@@ -1,6 +1,7 @@
 #include "FilePath.h"
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/StringUtil.h"
+#include <algorithm>
 
 namespace ui
 {

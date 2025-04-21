@@ -3,6 +3,7 @@
 #include "duilib/Core/GlobalManager.h"
 #include <unordered_map>
 #include <set>
+#include <algorithm>
 
 namespace ui
 {

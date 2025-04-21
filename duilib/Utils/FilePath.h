@@ -4,6 +4,7 @@
 #include "duilib/duilib_defs.h"
 #include <filesystem>
 #include <string>
+#include <vector>
 
 namespace ui
 {
