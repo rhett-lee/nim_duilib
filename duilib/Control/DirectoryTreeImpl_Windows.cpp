@@ -13,19 +13,29 @@
 
 namespace ui
 {
+
+struct DirectoryTreeImpl::TImpl
+{
+    /** _T("Shell32.dll") 句柄
+    */
+    HMODULE m_hShell32Dll = nullptr;
+};
+
 DirectoryTreeImpl::DirectoryTreeImpl(DirectoryTree* pTree):
     m_pTree(pTree),
-    m_hShell32Dll(nullptr),
     m_nSharedIconID(0)
 {
+    m_impl = new TImpl;
 }
 
 DirectoryTreeImpl::~DirectoryTreeImpl()
 {
-    if (m_hShell32Dll != nullptr) {
-        ::FreeLibrary(m_hShell32Dll);
-        m_hShell32Dll = nullptr;
+    if (m_impl->m_hShell32Dll != nullptr) {
+        ::FreeLibrary(m_impl->m_hShell32Dll);
+        m_impl->m_hShell32Dll = nullptr;
     }
+    delete m_impl;
+    m_impl = nullptr;
 }
 
 bool DirectoryTreeImpl::GetVirtualDirectoryInfo(VirtualDirectoryType type, FilePath& filePath, DString& displayName, uint32_t& nIconID)
@@ -34,10 +44,10 @@ bool DirectoryTreeImpl::GetVirtualDirectoryInfo(VirtualDirectoryType type, FileP
     displayName.clear();
     nIconID = 0;
 
-    if (m_hShell32Dll == nullptr) {
-        m_hShell32Dll = ::LoadLibrary(_T("Shell32.dll"));
+    if (m_impl->m_hShell32Dll == nullptr) {
+        m_impl->m_hShell32Dll = ::LoadLibrary(_T("Shell32.dll"));
     }
-    if (m_hShell32Dll == nullptr) {
+    if (m_impl->m_hShell32Dll == nullptr) {
         return false;
     }
     int csidl = CSIDL_DESKTOP;
@@ -84,8 +94,8 @@ bool DirectoryTreeImpl::GetVirtualDirectoryInfo(VirtualDirectoryType type, FileP
                                                    HANDLE           hToken,
                                                    PIDLIST_ABSOLUTE * ppidl );
 
-    PFN_SHGetKnownFolderPath pfnSHGetKnownFolderPath = (PFN_SHGetKnownFolderPath)::GetProcAddress(m_hShell32Dll, "SHGetKnownFolderPath");
-    PFN_SHGetKnownFolderIDList pfnSHGetKnownFolderIDList = (PFN_SHGetKnownFolderIDList)::GetProcAddress(m_hShell32Dll, "SHGetKnownFolderIDList");
+    PFN_SHGetKnownFolderPath pfnSHGetKnownFolderPath = (PFN_SHGetKnownFolderPath)::GetProcAddress(m_impl->m_hShell32Dll, "SHGetKnownFolderPath");
+    PFN_SHGetKnownFolderIDList pfnSHGetKnownFolderIDList = (PFN_SHGetKnownFolderIDList)::GetProcAddress(m_impl->m_hShell32Dll, "SHGetKnownFolderIDList");
 
     WCHAR folder[MAX_PATH] = { 0 };
     LPITEMIDLIST lpPidl = nullptr;
@@ -202,6 +212,9 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
                                           std::vector<DirectoryTree::PathInfo>* fileList)
 {
     folderList.clear();
+    if (fileList != nullptr) {
+        fileList->clear();
+    }
     FilePath findPath = FilePathUtil::JoinFilePath(path, FilePath(_T("*.*")));
     WIN32_FIND_DATAW findData;
     HANDLE hFile = ::FindFirstFileW(findPath.ToStringW().c_str(), &findData);
@@ -212,7 +225,6 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
     do {
         if (weakFlag.expired()) {
             //已经取消，终止
-            folderList.clear();
             break;
         }
         bool bFolder = findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ? true : false;

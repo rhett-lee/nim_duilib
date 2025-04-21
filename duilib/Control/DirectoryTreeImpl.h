@@ -50,13 +50,15 @@ private:
     */
     DirectoryTree* m_pTree;
 
-    /** _T("Shell32.dll") 句柄
-    */
-    HMODULE m_hShell32Dll;
-
     /** 共享的文件夹图标
     */
     uint32_t m_nSharedIconID;
+
+private:
+    /** 私有实现数据
+    */
+    struct TImpl;
+    TImpl* m_impl;
 };
 
 }
