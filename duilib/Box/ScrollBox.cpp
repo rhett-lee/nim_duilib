@@ -588,7 +588,7 @@ void ScrollBox::SetScrollPosX(int64_t x)
     SetScrollPos(scrollPos);
 }
 
-void ScrollBox::LineUp(int deltaValue, bool withAnimation)
+void ScrollBox::LineUp(int32_t deltaValue, bool withAnimation)
 {
     UiSize64 scrollPos = GetScrollPos();
     if (scrollPos.cy <= 0) {
@@ -641,7 +641,7 @@ void ScrollBox::LineUp(int deltaValue, bool withAnimation)
     }
 }
 
-void ScrollBox::LineDown(int deltaValue, bool withAnimation)
+void ScrollBox::LineDown(int32_t deltaValue, bool withAnimation)
 {
     UiSize64 scrollPos = GetScrollPos();
     if (scrollPos.cy >= GetScrollRange().cy) {
@@ -693,7 +693,7 @@ void ScrollBox::LineDown(int deltaValue, bool withAnimation)
         pScrollAnimation->Start();
     }
 }
-void ScrollBox::LineLeft(int deltaValue)
+void ScrollBox::LineLeft(int32_t deltaValue)
 {
     UiSize64 scrollPos = GetScrollPos();
     if (scrollPos.cx <= 0) {
@@ -733,7 +733,7 @@ void ScrollBox::LineLeft(int deltaValue)
 
 }
 
-void ScrollBox::LineRight(int deltaValue)
+void ScrollBox::LineRight(int32_t deltaValue)
 {
     UiSize64 scrollPos = GetScrollPos();
     if (scrollPos.cx >= GetScrollRange().cx) {
@@ -858,7 +858,7 @@ void ScrollBox::EndRight()
     SetScrollPos(sz);
 }
 
-void ScrollBox::TouchUp(int deltaValue)
+void ScrollBox::TouchUp(int32_t deltaValue)
 {
     UiSize64 scrollPos = GetScrollPos();
     if (scrollPos.cy <= 0) {
@@ -869,7 +869,7 @@ void ScrollBox::TouchUp(int deltaValue)
     SetScrollPos(scrollPos);
 }
 
-void ScrollBox::TouchDown(int deltaValue)
+void ScrollBox::TouchDown(int32_t deltaValue)
 {
     UiSize64 scrollPos = GetScrollPos();
     if (scrollPos.cy >= GetScrollRange().cy) {

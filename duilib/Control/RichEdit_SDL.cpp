@@ -1551,12 +1551,12 @@ void RichEdit::SetWindow(Window* pWindow)
     }
 }
 
-void RichEdit::LineUp(int deltaValue, bool withAnimation)
+void RichEdit::LineUp(int32_t deltaValue, bool withAnimation)
 {
     BaseClass::LineUp(deltaValue, withAnimation);
 }
 
-void RichEdit::LineDown(int deltaValue, bool withAnimation)
+void RichEdit::LineDown(int32_t deltaValue, bool withAnimation)
 {
     BaseClass::LineDown(deltaValue, withAnimation);
 }
@@ -1587,12 +1587,12 @@ void RichEdit::EndDown(bool arrange, bool withAnimation)
     BaseClass::EndDown(arrange, withAnimation);
 }
 
-void RichEdit::LineLeft(int deltaValue)
+void RichEdit::LineLeft(int32_t deltaValue)
 {
     BaseClass::LineLeft(deltaValue);
 }
 
-void RichEdit::LineRight(int deltaValue)
+void RichEdit::LineRight(int32_t deltaValue)
 {
     BaseClass::LineRight(deltaValue);
 }

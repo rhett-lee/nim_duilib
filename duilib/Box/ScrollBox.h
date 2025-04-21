@@ -85,23 +85,23 @@ public:
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
      * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
-    virtual void LineUp(int deltaValue = DUI_NOSET_VALUE, bool withAnimation = true);
+    virtual void LineUp(int32_t deltaValue = DUI_NOSET_VALUE, bool withAnimation = true);
     
     /** 向下滚动滚动条
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
      * @param[in] withAnimation 是否附带动画效果，默认为 true
      */
-    virtual void LineDown(int deltaValue = DUI_NOSET_VALUE, bool withAnimation = true);
+    virtual void LineDown(int32_t deltaValue = DUI_NOSET_VALUE, bool withAnimation = true);
     
     /** 向左滚动滚动条
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
      */
-    virtual void LineLeft(int deltaValue = DUI_NOSET_VALUE);
+    virtual void LineLeft(int32_t deltaValue = DUI_NOSET_VALUE);
     
     /** 向右滚动滚动条
      * @param[in] deltaValue 滚动距离，默认为 DUI_NOSET_VALUE
      */
-    virtual void LineRight(int deltaValue = DUI_NOSET_VALUE);
+    virtual void LineRight(int32_t deltaValue = DUI_NOSET_VALUE);
     
     /** 向上滚动一个页面大小的距离
      */
@@ -140,12 +140,12 @@ public:
     /** 触摸向上滚动（响应 WM_TOUCH 消息）
      * @param[in] deltaValue 滚动距离
      */
-    virtual void TouchUp(int deltaValue);
+    virtual void TouchUp(int32_t deltaValue);
 
     /** 触摸向下滚动（响应 WM_TOUCH 消息）
      * @param[in] deltaValue 滚动距离
      */
-    virtual void TouchDown(int deltaValue);
+    virtual void TouchDown(int32_t deltaValue);
 
     /** 启用滚动条
      * @param[in] bEnableVertical 是否启用垂直滚动条，默认为 true
