@@ -2,7 +2,7 @@
 //
 
 #include "MainThread.h"
-#include "main_form.h"
+#include "MainForm.h"
 
 MainThread::MainThread() :
     FrameworkThread(_T("MainThread"), ui::kThreadUI)

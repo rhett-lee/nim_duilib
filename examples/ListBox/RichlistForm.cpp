@@ -1,5 +1,5 @@
-#include "richlist_form.h"
-#include "item.h"
+#include "RichlistForm.h"
+#include "Item.h"
 
 RichlistForm::RichlistForm():
     m_pListBox(nullptr)

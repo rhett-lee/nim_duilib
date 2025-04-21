@@ -1,20 +1,20 @@
-#include "provider.h"
-#include "item.h"
+#include "DataProvider.h"
+#include "Item.h"
 
 
 int g_index = 1;
 
-Provider::Provider():
+DataProvider::DataProvider():
     m_nTotal(0),
     m_bMultiSelect(true)
 {
 }
 
 
-Provider::~Provider()
+DataProvider::~DataProvider()
 = default;
 
-ui::Control* Provider::CreateElement(ui::VirtualListBox* pVirtualListBox)
+ui::Control* DataProvider::CreateElement(ui::VirtualListBox* pVirtualListBox)
 {
     ASSERT(pVirtualListBox != nullptr);
     if (pVirtualListBox == nullptr) {
@@ -26,7 +26,7 @@ ui::Control* Provider::CreateElement(ui::VirtualListBox* pVirtualListBox)
     return item;
 }
 
-bool Provider::FillElement(ui::Control* pControl, size_t nElementIndex)
+bool DataProvider::FillElement(ui::Control* pControl, size_t nElementIndex)
 {
     std::lock_guard<std::mutex> guard(m_lock);
     Item* pItem = dynamic_cast<Item*>(pControl);
@@ -42,14 +42,14 @@ bool Provider::FillElement(ui::Control* pControl, size_t nElementIndex)
     return true;
 }
 
-size_t Provider::GetElementCount() const
+size_t DataProvider::GetElementCount() const
 {
     // 加锁
     std::lock_guard<std::mutex> guard(m_lock);
     return m_vTasks.size();
 }
 
-void Provider::SetElementSelected(size_t nElementIndex, bool bSelected)
+void DataProvider::SetElementSelected(size_t nElementIndex, bool bSelected)
 {
     std::lock_guard<std::mutex> guard(m_lock);
     const size_t nCount = m_vTasks.size();
@@ -65,7 +65,7 @@ void Provider::SetElementSelected(size_t nElementIndex, bool bSelected)
     }
 }
 
-bool Provider::IsElementSelected(size_t nElementIndex) const
+bool DataProvider::IsElementSelected(size_t nElementIndex) const
 {
     std::lock_guard<std::mutex> guard(m_lock);
     bool bSelected = false;
@@ -75,7 +75,7 @@ bool Provider::IsElementSelected(size_t nElementIndex) const
     return bSelected;
 }
 
-void Provider::GetSelectedElements(std::vector<size_t>& selectedIndexs) const
+void DataProvider::GetSelectedElements(std::vector<size_t>& selectedIndexs) const
 {
     selectedIndexs.clear();
     std::lock_guard<std::mutex> guard(m_lock);
@@ -87,17 +87,17 @@ void Provider::GetSelectedElements(std::vector<size_t>& selectedIndexs) const
     }
 }
 
-bool Provider::IsMultiSelect() const
+bool DataProvider::IsMultiSelect() const
 {
     return m_bMultiSelect;
 }
 
-void Provider::SetMultiSelect(bool bMultiSelect)
+void DataProvider::SetMultiSelect(bool bMultiSelect)
 {
     m_bMultiSelect = bMultiSelect;
 }
 
-void Provider::SetTotal(int nTotal)
+void DataProvider::SetTotal(int nTotal)
 {
     if (nTotal == m_nTotal) return;
     if (nTotal <= 0) return;
@@ -126,7 +126,7 @@ void Provider::SetTotal(int nTotal)
     EmitCountChanged();
 }
 
-void Provider::RemoveTask(size_t nIndex)
+void DataProvider::RemoveTask(size_t nIndex)
 {    
     m_lock.lock();
     bool bUpdated = false;
@@ -143,7 +143,7 @@ void Provider::RemoveTask(size_t nIndex)
     }    
 }
 
-void Provider::ChangeTaskName(size_t nIndex, const DString& sName)
+void DataProvider::ChangeTaskName(size_t nIndex, const DString& sName)
 {
     m_lock.lock();
     bool bUpdated = false;

@@ -188,19 +188,19 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="item.h" />
+    <ClInclude Include="DataProvider.h" />
+    <ClInclude Include="Item.h" />
+    <ClInclude Include="MainForm.h" />
     <ClInclude Include="MainThread.h" />
-    <ClInclude Include="main_form.h" />
-    <ClInclude Include="provider.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="item.cpp" />
+    <ClCompile Include="DataProvider.cpp" />
+    <ClCompile Include="Item.cpp" />
+    <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
-    <ClCompile Include="main_form.cpp" />
     <ClCompile Include="main_windows.cpp" />
-    <ClCompile Include="provider.cpp" />
     <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -4,7 +4,7 @@
 // duilib
 #include "duilib/duilib.h"
 
-#include "provider.h"
+#include "DataProvider.h"
 
 class MainForm : public ui::WindowImplBase
 {
@@ -27,8 +27,8 @@ private:
     bool OnClicked(const ui::EventArgs& args);
 
 private:
-    ui::VirtualListBox*    m_pTileList;
-    Provider* m_DataProvider;
+    ui::VirtualListBox* m_pTileList;
+    DataProvider* m_DataProvider;
 
 private:
     ui::RichEdit* m_EditColumn;

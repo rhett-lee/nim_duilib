@@ -1,5 +1,5 @@
-#ifndef EXAMPLES_PROVIDER_H_
-#define EXAMPLES_PROVIDER_H_
+#ifndef EXAMPLES_DATA_PROVIDER_H_
+#define EXAMPLES_DATA_PROVIDER_H_
 
 // duilib
 #include "duilib/duilib.h"
@@ -14,11 +14,11 @@ struct DownloadTask
     DString::value_type* sName = nullptr;//名称
 };
 
-class Provider : public ui::VirtualListBoxElement
+class DataProvider : public ui::VirtualListBoxElement
 {
 public:
-    Provider();
-    virtual ~Provider() override;
+    DataProvider();
+    virtual ~DataProvider() override;
 
     /** 创建一个数据项
     * @param [in] pVirtualListBox 关联的虚表的接口
@@ -76,4 +76,4 @@ private:
     mutable std::mutex m_lock;
 };
 
-#endif //EXAMPLES_PROVIDER_H_
+#endif //EXAMPLES_DATA_PROVIDER_H_

@@ -1,5 +1,5 @@
 #include "MainThread.h"
-#include "richlist_form.h"
+#include "RichlistForm.h"
 
 MainThread::MainThread() :
     FrameworkThread(_T("MainThread"), ui::kThreadUI)

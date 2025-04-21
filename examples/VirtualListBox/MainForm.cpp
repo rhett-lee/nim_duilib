@@ -1,5 +1,5 @@
-#include "main_form.h"
-#include "provider.h"
+#include "MainForm.h"
+#include "DataProvider.h"
 
 MainForm::MainForm():
     m_pTileList(nullptr),
@@ -47,7 +47,7 @@ void MainForm::OnInitWindow()
     GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&MainForm::OnClicked, this, std::placeholders::_1));
 
     // 设置提供者
-    m_DataProvider = new Provider;
+    m_DataProvider = new DataProvider;
     m_pTileList->SetDataProvider(m_DataProvider);
 
     ui::LayoutType layoutType = m_pTileList->GetLayout()->GetLayoutType();

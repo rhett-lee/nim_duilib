@@ -202,17 +202,17 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="item.h" />
+    <ClInclude Include="Item.h" />
     <ClInclude Include="MainThread.h" />
-    <ClInclude Include="richlist_form.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="RichlistForm.h" />
     <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="item.cpp" />
+    <ClCompile Include="Item.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
-    <ClCompile Include="richlist_form.cpp" />
+    <ClCompile Include="RichlistForm.cpp" />
     <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
