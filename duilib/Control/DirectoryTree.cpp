@@ -177,7 +177,7 @@ TreeNode* DirectoryTree::InsertTreeNode(TreeNode* pParentTreeNode,
     }
 
     node->AttachExpand(UiBind(&DirectoryTree::OnTreeNodeExpand, this, std::placeholders::_1));
-    node->AttachSelect(UiBind(&DirectoryTree::OnTreeNodeSelect, this, std::placeholders::_1));
+    node->AttachClick(UiBind(&DirectoryTree::OnTreeNodeClick, this, std::placeholders::_1));
     node->AttachDestroy(UiBind(&DirectoryTree::OnTreeNodeDestroy, this, std::placeholders::_1));
     return node;
 }
@@ -197,7 +197,7 @@ bool DirectoryTree::OnTreeNodeExpand(const EventArgs& args)
     return true;
 }
 
-bool DirectoryTree::OnTreeNodeSelect(const EventArgs& args)
+bool DirectoryTree::OnTreeNodeClick(const EventArgs& args)
 {
     TreeNode* pTreeNode = dynamic_cast<TreeNode*>(args.GetSender());
     ASSERT(pTreeNode != nullptr);
@@ -887,6 +887,19 @@ void DirectoryTree::GetTreeNodeData(size_t nParentIndex, TreeNode* pTreeNode, st
     for (TreeNode* pChildTreeNode : childNodes) {
         GetTreeNodeData(nCurrentParentIndex, pChildTreeNode, refreshData);
     }
+}
+
+bool DirectoryTree::SelectTreeNode(TreeNode* pTreeNode)
+{
+    if (pTreeNode == nullptr) {
+        return false;
+    }
+    bool bRet = BaseClass::SelectTreeNode(pTreeNode);
+    if (bRet) {
+        //主动选择时，激活该节点
+        pTreeNode->Activate(nullptr);
+    }
+    return bRet;
 }
 
 }//namespace ui

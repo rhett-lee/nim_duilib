@@ -268,7 +268,7 @@ size_t ListBox::SelectItemHome(bool bTakeFocus, bool bTriggerEvent)
     }
     size_t itemIndex = FindSelectable(iIndex, true);
     if (Box::IsValidItemIndex(itemIndex)) {        
-        SelectItem(itemIndex, false, false);
+        SelectItem(itemIndex, false, bTriggerEvent);
         itemIndex = SelectEnsureVisible(itemIndex, bTakeFocus);
         if (bTriggerEvent) {
             SendEvent(kEventSelect, itemIndex, Box::InvalidIndex);
@@ -289,7 +289,7 @@ size_t ListBox::SelectItemEnd(bool bTakeFocus, bool bTriggerEvent)
     }
     size_t itemIndex = FindSelectable(iIndex, false);
     if (Box::IsValidItemIndex(itemIndex)) {
-        SelectItem(itemIndex, false, false);
+        SelectItem(itemIndex, false, bTriggerEvent);
         itemIndex = SelectEnsureVisible(itemIndex, bTakeFocus);
         if (bTriggerEvent) {
             SendEvent(kEventSelect, itemIndex, Box::InvalidIndex);
@@ -442,7 +442,7 @@ size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForw
         //目标子项存在，直接返回
         size_t itemIndex = iIndex;
         if (itemIndex < GetItemCount()) {
-            SelectItem(itemIndex, false, false);
+            SelectItem(itemIndex, false, bTriggerEvent);
             itemIndex = SelectEnsureVisible(itemIndex, bTakeFocus);
             if (bTriggerEvent) {
                 SendEvent(kEventSelect, itemIndex, Box::InvalidIndex);
@@ -472,7 +472,7 @@ size_t ListBox::SelectItemCountN(bool bTakeFocus, bool bTriggerEvent, bool bForw
     }    
     size_t itemIndex = FindSelectable(iIndex, bForward);
     if (itemIndex < itemCount) {        
-        SelectItem(itemIndex, false, false);
+        SelectItem(itemIndex, false, bTriggerEvent);
         itemIndex = SelectEnsureVisible(itemIndex, bTakeFocus);
         if (bTriggerEvent) {
             SendEvent(kEventSelect, itemIndex, Box::InvalidIndex);

@@ -313,16 +313,31 @@ bool TreeNode::OnDoubleClickItem(const EventArgs& args)
 {
     TreeNode* pItem = dynamic_cast<TreeNode*>(args.GetSender());
     ASSERT(pItem != nullptr);
+    ASSERT(pItem == this);
     if (pItem != nullptr) {
         pItem->SetExpand(!pItem->IsExpand(), true);
     }
     return true;
 }
 
-bool TreeNode::OnNodeCheckStatusChanged(const EventArgs& args)
+bool TreeNode::OnReturnKeyDown(const EventArgs& msg)
 {
-    TreeNode* pItem = dynamic_cast<TreeNode*>(args.GetSender());
+    TreeNode* pItem = dynamic_cast<TreeNode*>(msg.GetSender());
     ASSERT(pItem != nullptr);
+    ASSERT(pItem == this);
+    if ((msg.eventType == kEventReturn) && !IsKeyDown(msg, ModifierKey::kControl)) {
+        if (IsActivatable()) {
+            Activate(nullptr);
+        }
+    }
+    return true;
+}
+
+bool TreeNode::OnNodeCheckStatusChanged(const EventArgs& msg)
+{
+    TreeNode* pItem = dynamic_cast<TreeNode*>(msg.GetSender());
+    ASSERT(pItem != nullptr);
+    ASSERT(pItem == this);
     if ((pItem != nullptr) && (m_pTreeView != nullptr)) {
         m_pTreeView->OnNodeCheckStatusChanged(pItem);
     }
@@ -399,11 +414,14 @@ bool TreeNode::AddChildNodeAt(TreeNode* pTreeNode, const size_t iIndex)
     pTreeNode->SetWindow(GetWindow());
 
     //监听双击事件：用于展开子节点
-    pTreeNode->AttachEvent(kEventMouseDoubleClick, UiBind(&TreeNode::OnDoubleClickItem, this, std::placeholders::_1));
+    pTreeNode->AttachEvent(kEventMouseDoubleClick, UiBind(&TreeNode::OnDoubleClickItem, pTreeNode, std::placeholders::_1));
+
+    //监听回车事件：用于激活子节点
+    pTreeNode->AttachReturn(UiBind(&TreeNode::OnReturnKeyDown, pTreeNode, std::placeholders::_1));
     
     //监听勾选事件：用于多选时同步勾选子节点和同步父节点的三态选择状态
-    pTreeNode->AttachChecked(UiBind(&TreeNode::OnNodeCheckStatusChanged, this, std::placeholders::_1));
-    pTreeNode->AttachUnCheck(UiBind(&TreeNode::OnNodeCheckStatusChanged, this, std::placeholders::_1));
+    pTreeNode->AttachChecked(UiBind(&TreeNode::OnNodeCheckStatusChanged, pTreeNode, std::placeholders::_1));
+    pTreeNode->AttachUnCheck(UiBind(&TreeNode::OnNodeCheckStatusChanged, pTreeNode, std::placeholders::_1));
 
     UiPadding padding = GetPadding();
     
@@ -1643,7 +1661,31 @@ bool TreeView::EnsureTreeNodeVisible(TreeNode* pTreeNode)
 bool TreeView::IsValidTreeNode(TreeNode* pTreeNode) const
 {
     size_t itemIndex = GetItemIndex(pTreeNode);
-    return Box::IsValidItemIndex(itemIndex);
+    return BaseClass::IsValidItemIndex(itemIndex);
+}
+
+size_t TreeView::GetDisplayItemCount(bool bIsHorizontal, size_t& nColumns, size_t& nRows) const
+{
+    size_t nCount = 0;
+    nRows = 0;
+    nColumns = 1;
+    if (bIsHorizontal) {
+        //目前没有这种情况: 已经固定纵向布局
+        nCount = BaseClass::GetDisplayItemCount(bIsHorizontal, nColumns, nRows);
+        ASSERT(0);
+    }
+    else {
+        const size_t nItemCount = GetItemCount();
+        for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+            Control* pControl = GetItemAt(nItemIndex);
+            if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
+                continue;
+            }
+            ++nCount;
+        }
+    }
+    nRows = nCount;
+    return nCount;
 }
 
 }

@@ -42,7 +42,8 @@ public:
 private:
     virtual void PaintStateImages(IRender* pRender) override;
     virtual bool ButtonDown(const EventArgs& msg) override;
-    virtual bool OnDoubleClickItem(const EventArgs& args);
+    virtual bool OnDoubleClickItem(const EventArgs& msg);
+    virtual bool OnReturnKeyDown(const EventArgs& msg);
 
 public:
     /** 设置子项所属的树容器
@@ -435,7 +436,7 @@ public:
     /** 选择一个树节点（如果父节点未展开，则级联展开）
     * @param [in] pTreeNode 树的节点
     */
-    bool SelectTreeNode(TreeNode* pTreeNode);
+    virtual bool SelectTreeNode(TreeNode* pTreeNode);
 
     /** 展开一个树节点（如果父节点未展开，则级联展开）
     * @param [in] pTreeNode 树的节点
@@ -466,6 +467,15 @@ public:
             使用的是Check逻辑（即IsChecked()相关逻辑），Check逻辑是可以多勾选的。
     */
     bool IsMultiCheckMode() const;
+
+protected:
+    /** 计算本页里面显示几个子项
+    * @param [in] bIsHorizontal 当前布局是否为水平布局
+    * @param [out] nColumns 返回列数
+    * @param [out] nRows 返回行数
+    * @return 返回可视区域显示的记录数
+    */
+    virtual size_t GetDisplayItemCount(bool bIsHorizontal, size_t& nColumns, size_t& nRows) const override;
 
 private:
     /** 树节点勾选状态变化
