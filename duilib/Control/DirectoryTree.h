@@ -35,7 +35,7 @@ public:
     {
         FilePath m_filePath;        //文件路径        
         DString m_displayName;      //显示名称
-        uint32_t m_nIconID;         //关联图标ID（GlobalManager::Instance().Icon().AddIcon的返回值，图标需要实现类添加到管理器）
+        uint32_t m_nIconID = 0;     //关联图标ID（GlobalManager::Instance().Icon().AddIcon的返回值，图标需要实现类添加到管理器）
         bool m_bFolder = true;      //是否为目录
         bool m_bIconShared = false; //该图标ID关联的图标是否为共享图标（共享图标不允许释放）
     };
@@ -191,14 +191,14 @@ private:
     * @param [in] folderList 返回path目录中的所有子目录列表
     */
     typedef std::shared_ptr<std::vector<DirectoryTree::PathInfo>> PathInfoListPtr;
-    void OnShowSubFolders(TreeNode* pTreeNode, const FilePath& path, const PathInfoListPtr& folderList);
+    bool OnShowSubFolders(TreeNode* pTreeNode, const FilePath& path, const PathInfoListPtr& folderList);
 
     /** 显示指定目录的子目录（多级子目录）
     * @param [in] pTreeNode 当前的节点
     * @param [in] filePathList 路径列表
     * @param [in] folderList 返回每个目录中的所有子目录列表
     */
-    void OnShowSubFoldersEx(TreeNode* pTreeNode,
+    bool OnShowSubFoldersEx(TreeNode* pTreeNode,
                             const std::vector<FilePath>& filePathList,
                             const std::vector<PathInfoListPtr>& folderListArray);
 
@@ -208,7 +208,7 @@ private:
     * @param [in] folderList 返回path目录中的所有子目录列表
     * @param [in] fileList 返回path目录中的所有文件列表
     */
-    void OnShowFolderContents(TreeNode* pTreeNode, const ui::FilePath& path,
+    bool OnShowFolderContents(TreeNode* pTreeNode, const ui::FilePath& path,
                               const PathInfoListPtr& folderList,
                               const PathInfoListPtr& fileList);
 
@@ -278,6 +278,10 @@ private:
     /** 根据最新的状态，更新树的结构
     */
     void UpdateTreeNodeData(const std::vector<std::shared_ptr<RefreshNodeData>>& refreshData);
+
+    /** 释放资源
+    */
+    void ClearPathInfoList(std::vector<DirectoryTree::PathInfo>& folderList);
 
 private:
     /** 枚举目录的内部实现（不同平台不同实现）
