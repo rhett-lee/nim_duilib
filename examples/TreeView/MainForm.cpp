@@ -9,7 +9,8 @@ MainForm::MainForm():
     m_pBtnUp(nullptr),
     m_pBtnForward(nullptr),
     m_pBtnBack(nullptr),
-    m_bCanAddBackForward(true)
+    m_bCanAddBackForward(true),
+    m_pTreeNode(nullptr)
 {
 }
 
