@@ -366,11 +366,9 @@ private:
     */
     LangManager m_langManager;
 
-#ifdef DUILIB_BUILD_FOR_WIN
     /** ICON资源管理器
     */
     IconManager m_iconManager;
-#endif
 
     /** 光标管理器
     */

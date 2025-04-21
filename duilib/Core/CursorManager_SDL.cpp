@@ -136,8 +136,9 @@ static SDL_Cursor* LoadCursorFromData(const Window* pWindow, std::vector<uint8_t
     
     ImageLoadAttribute loadAttr = ImageLoadAttribute(DString(), DString(), false, false, 0);
     loadAttr.SetImageFullPath(imagePath);
+    uint32_t nFrameCount = 0;
     ImageDecoder imageDecoder;
-    std::unique_ptr<ImageInfo> imageInfo = imageDecoder.LoadImageData(fileData, loadAttr, true, 100, pWindow->Dpi());
+    std::unique_ptr<ImageInfo> imageInfo = imageDecoder.LoadImageData(fileData, loadAttr, true, 100, pWindow->Dpi().GetScale(), true, nFrameCount);
     ASSERT(imageInfo != nullptr);
     if (imageInfo == nullptr) {
         return nullptr;

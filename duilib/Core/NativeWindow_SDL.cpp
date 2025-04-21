@@ -2490,9 +2490,10 @@ bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData, c
     }
     ImageLoadAttribute loadAttr = ImageLoadAttribute(DString(), DString(), false, false, 0);
     loadAttr.SetImageFullPath(iconFileName);
+    uint32_t nFrameCount = 0;
     ImageDecoder imageDecoder;
     std::vector<uint8_t> fileData(iconFileData);
-    std::unique_ptr<ImageInfo> imageInfo = imageDecoder.LoadImageData(fileData, loadAttr, true, 100, m_pOwner->OnNativeGetDpi());
+    std::unique_ptr<ImageInfo> imageInfo = imageDecoder.LoadImageData(fileData, loadAttr, true, 100, m_pOwner->OnNativeGetDpi().GetScale(), true, nFrameCount);
     ASSERT(imageInfo != nullptr);
     if (imageInfo == nullptr) {
         return false;

@@ -2,7 +2,6 @@
 #define UI_UTILS_FILEUTIL_H_
 
 #include "duilib/Utils/FilePath.h"
-#include <vector>
 
 namespace ui
 {
