@@ -1,7 +1,9 @@
 #include "IconManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Image/ImageLoadAttribute.h"
+#include "duilib/Image/Image.h"
 
 #define STBIR_DEFAULT_FILTER_UPSAMPLE STBIR_FILTER_TRIANGLE
 #pragma warning (push)
@@ -22,6 +24,7 @@ IconManager::~IconManager()
 {
     std::lock_guard<std::mutex> threadGuard(m_iconMutex);
     m_iconMap.clear();
+    m_imageStringMap.clear();
 }
 
 DString IconManager::GetIconString(uint32_t id) const
@@ -82,6 +85,7 @@ bool IconManager::LoadIconData(const DString& str,
     uint32_t id = GetIconID(str);
     IconBitmapData iconBitmapData;
     if (!GetIconBitmapData(id, iconBitmapData)) {
+        ASSERT(!IsImageString(id));
         return false;
     }
     if ((iconBitmapData.m_nBitmapHeight < 1) || (iconBitmapData.m_nBitmapWidth < 1) ||
@@ -164,6 +168,7 @@ void IconManager::RemoveIcon(uint32_t id)
 {
     std::lock_guard<std::mutex> threadGuard(m_iconMutex);
     m_iconMap.erase(id);
+    m_imageStringMap.erase(id);
 }
 
 bool IconManager::GetIconBitmapData(uint32_t id, IconBitmapData& bitmapData) const
@@ -197,12 +202,40 @@ uint32_t IconManager::AddIcon(const uint8_t* pBitmapData, int32_t nBitmapDataSiz
 uint32_t IconManager::AddIconBitmapData(IconBitmapData& bitmapData)
 {
     std::lock_guard<std::mutex> threadGuard(m_iconMutex);
-    uint32_t id = ++m_nNextID;
-    IconBitmapData& data = m_iconMap[id];
+    uint32_t nIconID = ++m_nNextID;
+    IconBitmapData& data = m_iconMap[nIconID];
     data.m_nBitmapWidth = bitmapData.m_nBitmapWidth;
     data.m_nBitmapHeight = bitmapData.m_nBitmapHeight;
     data.m_bitmapData.swap(bitmapData.m_bitmapData);
-    return id;
+    return nIconID;
+}
+
+uint32_t IconManager::AddIcon(const DString& imageString)
+{
+    ASSERT(!imageString.empty());
+    if (imageString.empty()) {
+        return 0;
+    }
+    std::lock_guard<std::mutex> threadGuard(m_iconMutex);
+    uint32_t nIconID = ++m_nNextID;
+    m_imageStringMap[nIconID] = imageString;
+    return nIconID;
+}
+
+bool IconManager::IsImageString(uint32_t id) const
+{
+    std::lock_guard<std::mutex> threadGuard(m_iconMutex);
+    return m_imageStringMap.find(id) != m_imageStringMap.end();
+}
+
+DString IconManager::GetImageString(uint32_t id) const
+{
+    std::lock_guard<std::mutex> threadGuard(m_iconMutex);
+    auto iter = m_imageStringMap.find(id);
+    if (iter != m_imageStringMap.end()) {
+        return iter->second.c_str();
+    }
+    return DString();
 }
 
 #ifdef DUILIB_BUILD_FOR_WIN

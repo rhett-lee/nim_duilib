@@ -242,7 +242,7 @@ void DirectoryTree::ShowSubFolders(TreeNode* pTreeNode, const FilePath& path, St
     GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, treeNodeFlag, pTreeNode, path]() {
             //在子线程中读取子目录数据
             PathInfoListPtr folderList = std::make_shared<std::vector<DirectoryTree::PathInfo>>();
-            m_impl->GetFolderContents(path, treeNodeFlag, *folderList, nullptr);
+            m_impl->GetFolderContents(path, treeNodeFlag, false, *folderList, nullptr);
             if (!treeNodeFlag.expired()) {
                 GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, path, treeNodeFlag, pTreeNode, folderList]() {
                         //这段代码在UI线程中执行
@@ -372,7 +372,7 @@ void DirectoryTree::ShowFolderContents(TreeNode* pTreeNode, const FilePath& path
             //在子线程中读取子目录数据
             PathInfoListPtr folderList = std::make_shared<std::vector<DirectoryTree::PathInfo>>();
             PathInfoListPtr fileList = std::make_shared<std::vector<DirectoryTree::PathInfo>>();
-            m_impl->GetFolderContents(path, treeNodeFlag, *folderList, fileList.get());
+            m_impl->GetFolderContents(path, treeNodeFlag, true, *folderList, fileList.get());
             if (!treeNodeFlag.expired()) {
                 GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, path, treeNodeFlag, pTreeNode, folderList, fileList]() {
                         //这段代码在UI线程中执行
@@ -595,7 +595,7 @@ bool DirectoryTree::OnSelectSubPath(TreeNode* pTreeNode, std::vector<FilePath> f
             if (!treeNodeFlag.expired()) {
                 for (const FilePath& filePath : filePathList) {
                     PathInfoListPtr folderList = std::make_shared<std::vector<DirectoryTree::PathInfo>>();
-                    m_impl->GetFolderContents(filePath, treeNodeFlag, *folderList, nullptr);
+                    m_impl->GetFolderContents(filePath, treeNodeFlag, false, *folderList, nullptr);
                     folderListArray.push_back(folderList);
                     if (treeNodeFlag.expired()) {
                         break;
@@ -823,7 +823,7 @@ void DirectoryTree::ReadPathInfo(std::vector<std::shared_ptr<RefreshNodeData>>& 
 
         //读取最新的子目录信息
         std::vector<DirectoryTree::PathInfo> folderList;
-        m_impl->GetFolderContents(pNodeData->m_dirPath, pNodeData->m_weakFlag, folderList, nullptr);
+        m_impl->GetFolderContents(pNodeData->m_dirPath, pNodeData->m_weakFlag, false, folderList, nullptr);
         if (!folderList.empty()) {
             std::set<DString> dirSet;
             for (const FilePath& dirPath : pNodeData->m_childPaths) {

@@ -97,12 +97,12 @@ public:
     * @param [in] nBitmapDataSize 位图数据的大小
     * @param [in] nBitmapWidth 位图宽度
     * @param [in] nBitmapHeight 位图高度
-    * @return 返回该句柄对应的ID，如果失败则返回0
+    * @return 返回该图标对应的ID，如果失败则返回0
     */
     uint32_t AddIcon(const uint8_t* pBitmapData, int32_t nBitmapDataSize, int32_t nBitmapWidth, int32_t nBitmapHeight);
 
     /** 获取图标位图数据
-    * @param [in] id 需要删除的图标ID（即AddIcon返回的那个ID）
+    * @param [in] id 图标ID（即AddIcon返回的那个ID）
     * @param [out] bitmapData 成功时返回位图数据
     */
     bool GetIconBitmapData(uint32_t id, IconBitmapData& bitmapData) const;
@@ -112,15 +112,37 @@ public:
     */
     void RemoveIcon(uint32_t id);
 
+public:
+    /** 添加一个图标资源（本地资源路径的相对，例如："public/shadow/bk_shadow.png"）
+    * @param [in] imageString 图片资源字符串, 格式与XML中设置图片的格式相同
+    * @return 返回该图标对应的ID，如果失败则返回0
+    */
+    uint32_t AddIcon(const DString& imageString);
+
+    /** 判断是否为ImageString格式的资源字符串
+    *@param [in] id 图标ID（即AddIcon返回的那个ID）
+    */
+    bool IsImageString(uint32_t id) const;
+
+    /** 获取ICON的图片资源字符串
+    * @param [in] id 图标ID（即AddIcon返回的那个ID）
+    * @return 返回资源字符串，例如："public/shadow/bk_shadow.png"
+    */
+    DString GetImageString(uint32_t id) const;
+
 private:
     /** 添加一个图标
     */
     uint32_t AddIconBitmapData(IconBitmapData& bitmapData);
 
 private:
-    /** ICON句柄资源映射表
+    /** ICON位图资源映射表
     */
     std::map<uint32_t, IconBitmapData> m_iconMap;
+
+    /** ImageString资源映射表
+    */
+    std::map<uint32_t, UiString> m_imageStringMap;
 
     /** 数据多线程同步锁
     */

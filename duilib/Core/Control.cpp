@@ -3263,9 +3263,25 @@ bool Control::LoadImageData(Image& duiImage) const
     FilePath imageFullPath;
 
 #ifdef DUILIB_BUILD_FOR_WIN
-    if (GlobalManager::Instance().Icon().IsIconString(sImagePath)) {
-        //ICON句柄
-        imageFullPath = sImagePath;
+    IconManager& iconManager = GlobalManager::Instance().Icon();
+    if (iconManager.IsIconString(sImagePath)) {
+        uint32_t nIconID = iconManager.GetIconID(sImagePath);
+        if (iconManager.IsImageString(nIconID)) {
+            //资源图片路径
+            DString iconImageString = iconManager.GetImageString(nIconID);
+            ASSERT(!iconImageString.empty());
+            DString oldImageString = duiImage.GetImageString();
+            duiImage.SetImageString(iconImageString, pWindow->Dpi());
+            duiImage.UpdateImageAttribute(oldImageString, pWindow->Dpi());
+            sImagePath = duiImage.GetImagePath();
+            if (sImagePath.empty()) {
+                return false;
+            }
+        }
+        else {
+            //ICON图标数据
+            imageFullPath = sImagePath;
+        }
     }
 #endif
 
