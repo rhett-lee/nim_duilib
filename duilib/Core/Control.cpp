@@ -3261,8 +3261,6 @@ bool Control::LoadImageData(Image& duiImage) const
         return false;
     }
     FilePath imageFullPath;
-
-#ifdef DUILIB_BUILD_FOR_WIN
     IconManager& iconManager = GlobalManager::Instance().Icon();
     if (iconManager.IsIconString(sImagePath)) {
         uint32_t nIconID = iconManager.GetIconID(sImagePath);
@@ -3283,7 +3281,6 @@ bool Control::LoadImageData(Image& duiImage) const
             imageFullPath = sImagePath;
         }
     }
-#endif
 
     if(imageFullPath.IsEmpty()) {
         imageFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), FilePath(sImagePath));
