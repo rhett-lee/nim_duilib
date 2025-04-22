@@ -112,13 +112,11 @@ private:
     */
     DString GetDpiScaledPath(uint32_t dpiScale, const DString& imageFullPath) const;
 
-#ifdef DUILIB_BUILD_FOR_WIN
-    /** 从HICON句柄加载一个图片
+    /** 从ICON数据加载一个图片
     */
     void LoadIconData(const Window* pWindow,
                       const ImageLoadAttribute& loadAtrribute,
                       std::unique_ptr<ImageInfo>& imageInfo) const;
-#endif
 
 private:
     /** 是否默认对所有图片在加载时根据DPI进行缩放，这个是全局属性，默认为true，应用于所有图片

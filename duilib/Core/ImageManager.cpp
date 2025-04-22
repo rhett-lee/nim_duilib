@@ -65,13 +65,11 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
     //重新加载资源    
     std::unique_ptr<ImageInfo> imageInfo;
     bool isIcon = false;
-#ifdef DUILIB_BUILD_FOR_WIN
     if (GlobalManager::Instance().Icon().IsIconString(loadAtrribute.GetImageFullPath())) {
         //加载ICON
         isIcon = true;
         LoadIconData(pWindow, loadAtrribute, imageInfo);
     }
-#endif
 
     //加载多帧图片所需的参数(多线程加载多帧图片时复用这些参数)
     std::shared_ptr<LoadImageParam> spLoadImageParam;
@@ -274,7 +272,6 @@ bool ImageManager::UpdateImageInfo(std::shared_ptr<ImageInfo> spNewSharedImage, 
     return bUpdated;
 }
 
-#ifdef DUILIB_BUILD_FOR_WIN
 void ImageManager::LoadIconData(const Window* pWindow, 
                                 const ImageLoadAttribute& loadAtrribute,
                                 std::unique_ptr<ImageInfo>& imageInfo) const
@@ -296,7 +293,7 @@ void ImageManager::LoadIconData(const Window* pWindow,
         IRenderFactory* pRenderFactroy = GlobalManager::Instance().GetRenderFactory();
         ASSERT(pRenderFactroy != nullptr);
         if (pRenderFactroy != nullptr) {
-            pBitmap = pRenderFactroy->CreateBitmap();        
+            pBitmap = pRenderFactroy->CreateBitmap();
         }
         ASSERT(pBitmap != nullptr);
         if (pBitmap != nullptr) {
@@ -312,7 +309,6 @@ void ImageManager::LoadIconData(const Window* pWindow,
     }
     ASSERT(imageInfo != nullptr);
 }
-#endif
 
 void ImageManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
 {
