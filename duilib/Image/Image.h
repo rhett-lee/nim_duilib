@@ -38,6 +38,12 @@ public:
     */
     void SetImageString(const DString& strImageString, const DpiManager& dpi);
 
+    /** 更新图片属性
+    * @param [in] strImageString 图片属性字符串
+    * @param [in] dpi DPI缩放接口
+    */
+    void UpdateImageAttribute(const DString& strImageString, const DpiManager& dpi);
+
     /** 获取图片属性（含文件名，和图片设置属性等）
     */
     DString GetImageString() const;

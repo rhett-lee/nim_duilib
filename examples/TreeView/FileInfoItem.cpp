@@ -43,10 +43,10 @@ void FileInfoItem::InitSubControls(const ui::DirectoryTree::PathInfo& fileInfo, 
             //非图片文件或者文件夹，显示图标
             DString iconString = ui::GlobalManager::Instance().Icon().GetIconString(fileInfo.m_nIconID);
             if (!iconString.empty()) {
-                iconString = ui::StringUtil::Printf(_T("file='%s' halign='center' valign='center'"), iconString.c_str());
+                iconString = ui::StringUtil::Printf(_T("file='%s' width='64' height='64' halign='center' valign='center'"), iconString.c_str());
                 m_pIconControl->SetBkImage(iconString);
             }
-        }             
+        }
     }
 }
 

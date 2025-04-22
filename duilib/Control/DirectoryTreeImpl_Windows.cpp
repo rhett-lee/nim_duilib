@@ -19,17 +19,32 @@ struct DirectoryTreeImpl::TImpl
     /** _T("Shell32.dll") 句柄
     */
     HMODULE m_hShell32Dll = nullptr;
+
+    /** 共享的文件夹图标(大图标)
+    */
+    uint32_t m_nLargeIconID = 0;
+
+    /** 共享的文件夹图标(小图标)
+    */
+    uint32_t m_nSmallIconID = 0;
 };
 
 DirectoryTreeImpl::DirectoryTreeImpl(DirectoryTree* pTree):
-    m_pTree(pTree),
-    m_nSharedIconID(0)
+    m_pTree(pTree)
 {
     m_impl = new TImpl;
 }
 
 DirectoryTreeImpl::~DirectoryTreeImpl()
 {
+    if (m_impl->m_nLargeIconID != 0) {
+        GlobalManager::Instance().Icon().RemoveIcon(m_impl->m_nLargeIconID);
+        m_impl->m_nLargeIconID = 0;
+    }
+    if (m_impl->m_nSmallIconID != 0) {
+        GlobalManager::Instance().Icon().RemoveIcon(m_impl->m_nSmallIconID);
+        m_impl->m_nSmallIconID = 0;
+    }
     if (m_impl->m_hShell32Dll != nullptr) {
         ::FreeLibrary(m_impl->m_hShell32Dll);
         m_impl->m_hShell32Dll = nullptr;
@@ -208,6 +223,7 @@ void DirectoryTreeImpl::GetRootPathInfoList(std::vector<DirectoryTree::PathInfo>
 
 void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
                                           const std::weak_ptr<WeakFlag>& weakFlag,
+                                          bool bLargeIcon,
                                           std::vector<DirectoryTree::PathInfo>& folderList,
                                           std::vector<DirectoryTree::PathInfo>* fileList)
 {
@@ -250,16 +266,28 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
         pathInfo.m_filePath = folderPath;
         pathInfo.m_bFolder = bFolder;
         pathInfo.m_displayName = StringConvert::WStringToT(findData.cFileName);
-        pathInfo.m_nIconID = m_nSharedIconID;
+        pathInfo.m_nIconID = bLargeIcon ? m_impl->m_nLargeIconID : m_impl->m_nSmallIconID;
         pathInfo.m_bIconShared = pathInfo.m_nIconID != 0 ? true : false;
-        if (!bFolder || (m_nSharedIconID == 0)) {
+        if (!bFolder || (pathInfo.m_nIconID == 0)) {
             SHFILEINFOW shFileInfo;
             ZeroMemory(&shFileInfo, sizeof(SHFILEINFOW));
-            if (::SHGetFileInfoW(folderPath.ToStringW().c_str(), 0, &shFileInfo, sizeof(SHFILEINFOW), SHGFI_ICON | SHGFI_SMALLICON)) {
+            UINT uFlags = SHGFI_ICON;
+            if (bLargeIcon) {
+                uFlags |= SHGFI_LARGEICON;
+            }
+            else {
+                uFlags |= SHGFI_SMALLICON;
+            }
+            if (::SHGetFileInfoW(folderPath.ToStringW().c_str(), 0, &shFileInfo, sizeof(SHFILEINFOW), uFlags)) {
                 pathInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(shFileInfo.hIcon);
                 pathInfo.m_bIconShared = bFolder ? true : false;//文件夹的图标共享，只取一次
                 if (pathInfo.m_bIconShared) {
-                    m_nSharedIconID = pathInfo.m_nIconID;
+                    if (bLargeIcon) {
+                        m_impl->m_nLargeIconID = pathInfo.m_nIconID;
+                    }
+                    else {
+                        m_impl->m_nSmallIconID = pathInfo.m_nIconID;
+                    }
                 }
                 if (shFileInfo.hIcon != nullptr) {
                     ::DestroyIcon(shFileInfo.hIcon);

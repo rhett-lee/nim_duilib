@@ -490,27 +490,44 @@ void TreeNode::SetBkIcon(HICON hIcon, uint32_t nIconSize, bool bNeedDpiScale)
 
 void TreeNode::SetBkIconID(uint32_t nIconID, uint32_t nIconSize, bool bNeedDpiScale)
 {
-    DString iconString = GlobalManager::Instance().Icon().GetIconString(nIconID);
+    IconManager& iconManager = GlobalManager::Instance().Icon();
+    DString iconString = iconManager.GetIconString(nIconID);
     if (iconString.empty()) {
         SetBkImage(_T(""));
         AdjustIconPadding();
         return;
     }
 
-    if (nIconSize > 0) {
-        if (bNeedDpiScale) {
-            iconString = StringUtil::Printf(_T("file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='true'"),
-                                            iconString.c_str(), nIconSize, nIconSize);
+    Image iconImage;
+    DString iconImagePath;
+    if (iconManager.IsImageString(nIconID)) {
+        //图片资源（使用图片资源路径和资源属性）
+        DString iconImageString = iconManager.GetImageString(nIconID);        
+        iconImage.SetImageString(iconImageString, GetWindow() != nullptr ? GetWindow()->Dpi() : GlobalManager::Instance().Dpi());
+        iconImagePath = iconImage.GetImagePath();
+        if (!iconImagePath.empty()) {
+            //替换为资源图片的资源路径
+            iconString = iconImagePath;
         }
-        else {
-            iconString = StringUtil::Printf(_T("file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='false'"),
-                                            iconString.c_str(), nIconSize, nIconSize);
-        }
+    }
+
+    if (nIconSize > 0) {        
+        DString dpiScale = bNeedDpiScale ? _T("true") : _T("false");
+        iconString = StringUtil::Printf(_T("file='%s' width='%d' height='%d' halign='left' valign='center' dpi_scale='%s'"),
+                                        iconString.c_str(), nIconSize, nIconSize, dpiScale.c_str());
+
     }
     else {
-        iconString = StringUtil::Printf(_T("file='%s' halign='left' valign='center'"),
-                                        iconString.c_str());
+        if (!iconImagePath.empty()) {
+            //图片资源：优先使用指定的属性
+            iconString = iconImage.GetImageString();
+        }
+        else {
+            //图片数据：使用原始图片大小
+            iconString = StringUtil::Printf(_T("file='%s' halign='left' valign='center'"), iconString.c_str());
+        }
     }
+
     DString oldIconString = GetBkImage();
     if (iconString == oldIconString) {
         //没有变化，直接返回

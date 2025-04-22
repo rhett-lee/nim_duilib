@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="96px" height="96px" viewBox="0 0 96 96" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>text_96</title>
+    <defs>
+        <filter x="-11.8%" y="-9.5%" width="123.5%" height="119.0%" filterUnits="objectBoundingBox" id="filter-1">
+            <feOffset dx="0" dy="1" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="1.5" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.304021662 0" type="matrix" in="shadowBlurOuter1" result="shadowMatrixOuter1"></feColorMatrix>
+            <feMerge>
+                <feMergeNode in="shadowMatrixOuter1"></feMergeNode>
+                <feMergeNode in="SourceGraphic"></feMergeNode>
+            </feMerge>
+        </filter>
+        <linearGradient x1="43.606752%" y1="0%" x2="43.606752%" y2="100%" id="linearGradient-2">
+            <stop stop-color="#D5D8DF" offset="0%"></stop>
+            <stop stop-color="#F5F5F5" offset="100%"></stop>
+        </linearGradient>
+        <path d="M8,0 L60,0 C64.418278,-8.11624501e-16 68,3.581722 68,8 L68,58 L68,58 L42,84 L8,84 C3.581722,84 5.41083001e-16,80.418278 0,76 L0,8 C-5.41083001e-16,3.581722 3.581722,8.11624501e-16 8,0 Z" id="path-3"></path>
+        <filter x="-34.6%" y="-34.6%" width="169.2%" height="169.2%" filterUnits="objectBoundingBox" id="filter-5">
+            <feGaussianBlur stdDeviation="3" in="SourceGraphic"></feGaussianBlur>
+        </filter>
+        <linearGradient x1="50%" y1="50%" x2="19.0068225%" y2="11.0952234%" id="linearGradient-6">
+            <stop stop-color="#ECEDEF" offset="0%"></stop>
+            <stop stop-color="#F6F7FF" offset="100%"></stop>
+        </linearGradient>
+    </defs>
+    <g id="text_96" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="text" filter="url(#filter-1)" transform="translate(14.000000, 6.000000)">
+            <g id="路径-11备份" transform="translate(34.000000, 42.000000) scale(1, -1) translate(-34.000000, -42.000000) ">
+                <mask id="mask-4" fill="white">
+                    <use xlink:href="#path-3"></use>
+                </mask>
+                <use id="蒙版" fill="url(#linearGradient-2)" fill-rule="nonzero" xlink:href="#path-3"></use>
+                <rect id="矩形" fill="#A4A8B4" mask="url(#mask-4)" x="12" y="15" width="44" height="4" rx="2"></rect>
+                <rect id="矩形备份-26" fill="#A4A8B4" mask="url(#mask-4)" x="12" y="26" width="44" height="4" rx="2"></rect>
+                <rect id="矩形备份-27" fill="#A4A8B4" mask="url(#mask-4)" x="12" y="37" width="44" height="4" rx="2"></rect>
+                <rect id="矩形备份-28" fill="#A4A8B4" mask="url(#mask-4)" x="12" y="48" width="44" height="4" rx="2"></rect>
+                <rect id="矩形备份-29" fill="#A4A8B4" mask="url(#mask-4)" x="12" y="59" width="23" height="4" rx="2"></rect>
+                <path d="M42,84 L42,66 C42,61.581722 45.581722,58 50,58 L68,58 L68,58 L42,84 Z" id="路径-11" fill="#BABBC1" opacity="0.699999988" filter="url(#filter-5)" mask="url(#mask-4)"></path>
+            </g>
+            <path d="M42,26 L42,8 C42,3.581722 45.581722,2.281853e-13 50,2.27373675e-13 L68,2.27373675e-13 L68,2.27373675e-13 L42,26 Z" id="路径-11备份-2" fill="url(#linearGradient-6)" transform="translate(55.000000, 13.000000) scale(1, -1) translate(-55.000000, -13.000000) "></path>
+        </g>
+    </g>
+</svg>

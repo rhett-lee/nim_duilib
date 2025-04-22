@@ -29,6 +29,14 @@ void Image::SetImageString(const DString& strImageString, const DpiManager& dpi)
     m_imageAttribute.InitByImageString(strImageString, dpi);
 }
 
+void Image::UpdateImageAttribute(const DString& strImageString, const DpiManager& dpi)
+{
+    //只修改属性，不修改图片资源路径
+    DString sImagePath = m_imageAttribute.sImagePath.c_str();
+    m_imageAttribute.ModifyAttribute(strImageString, dpi);
+    m_imageAttribute.sImagePath = sImagePath;
+}
+
 DString Image::GetImageString() const
 {
     return m_imageAttribute.sImageString.c_str();
