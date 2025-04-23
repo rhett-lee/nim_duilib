@@ -444,8 +444,8 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
     if ((m_pComputerListCtrl == nullptr) || diskInfoList.empty()){
         return;
     }
-#ifdef DUILIB_BUILD_FOR_WIN
     m_pComputerListCtrl->DeleteAllDataItems();
+#ifdef DUILIB_BUILD_FOR_WIN    
     for (const ui::DirectoryTree::DiskInfo& diskInfo : diskInfoList) {
         ui::ListCtrlSubItemData itemData;
         itemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
@@ -472,7 +472,35 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
         }
     }
 #else
+    for (const ui::DirectoryTree::DiskInfo& diskInfo : diskInfoList) {
+        ui::ListCtrlSubItemData itemData;
+        itemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
+        itemData.text = diskInfo.m_displayName;
+        size_t nItemIndex = m_pComputerListCtrl->AddDataItem(itemData);
+        if (ui::Box::IsValidItemIndex(nItemIndex)) {
+            ui::ListCtrlSubItemData subItemData;
+            subItemData.nTextFormat = ui::DrawStringFormat::TEXT_CENTER | ui::DrawStringFormat::TEXT_VCENTER;
 
+            subItemData.text = diskInfo.m_volumeType;
+            m_pComputerListCtrl->SetSubItemData(nItemIndex, 1, subItemData); //磁盘类型
+
+            subItemData.text = diskInfo.m_fileSystem;
+            m_pComputerListCtrl->SetSubItemData(nItemIndex, 2, subItemData); //分区类型
+
+            subItemData.text = FormatDiskSpace(diskInfo.m_totalBytes);
+            m_pComputerListCtrl->SetSubItemData(nItemIndex, 3, subItemData); //总大小
+
+            subItemData.text = FormatDiskSpace(diskInfo.m_freeBytes);
+            m_pComputerListCtrl->SetSubItemData(nItemIndex, 4, subItemData); //可用空间
+
+            subItemData.text = FormatUsedPercent(diskInfo.m_totalBytes, diskInfo.m_freeBytes);
+            m_pComputerListCtrl->SetSubItemData(nItemIndex, 5, subItemData); //已用百分比
+
+            subItemData.text = diskInfo.m_mountOn;
+            itemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
+            m_pComputerListCtrl->SetSubItemData(nItemIndex, 6, subItemData); //挂载点
+        }
+    }
 #endif
 }
 
@@ -493,6 +521,9 @@ DString MainForm::FormatDiskSpace(uint64_t nSpace) const
         //KB
         double total_kb = static_cast<double>(nSpace) / (1024);
         value = ui::StringUtil::Printf(_T("%.01lf KB"), total_kb);
+    }
+    else if (nSpace == 0) {
+        value = _T("0");
     }
     else {
         //B

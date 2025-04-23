@@ -7,6 +7,9 @@
 #include "duilib/Utils/FilePath.h"
 #include "duilib/Utils/FilePathUtil.h"
 
+#include <sys/statvfs.h>
+#include <stdio.h>
+
 namespace ui
 {
 struct DirectoryTreeImpl::TImpl
@@ -217,10 +220,12 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
                 break;
             }
             if ((m_pTree != nullptr) && !m_pTree->IsShowHidenFiles()) {
-                const std::filesystem::path::string_type& s = entry.path().native();
-                if (!s.empty() && (s[0] == '.')) {
-                    //不显示隐藏文件
-                    continue;
+                if (entry.path().has_filename()) {
+                    const std::filesystem::path::string_type s = entry.path().filename().native();
+                    if (!s.empty() && (s[0] == '.')) {
+                        //不显示隐藏文件
+                        continue;
+                    }
                 }
             }
 
@@ -314,7 +319,62 @@ void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& weakFlag,
                                         bool bLargeIcon,
                                         std::vector<DirectoryTree::DiskInfo>& diskInfoList)
 {
+    FILE* fp = ::fopen("/proc/mounts", "r");
+    if (fp == nullptr) {
+        return;
+    }
 
+    char line[2048] = { 0 };
+    while (::fgets(line, sizeof(line) - 8, fp)) {
+        char device[256] = { 0, };
+        char mount_point[256] = { 0, };
+        char fs_type[256] = { 0, };
+        ::sscanf(line, "%255s %255s %255s", device, mount_point, fs_type);
+
+        // 跳过虚拟文件系统（如proc、sysfs）
+        if (::strcmp(fs_type, "proc") == 0 || ::strcmp(fs_type, "sysfs") == 0 ||
+            ::strcmp(fs_type, "tmpfs") == 0 || ::strcmp(fs_type, "devtmpfs") == 0) {
+            continue;
+        }
+
+        struct statvfs vfs = { 0, };
+        if (::statvfs(mount_point, &vfs) != 0) {
+            continue; // 跳过无法访问的挂载点
+        }
+
+        // 计算磁盘使用情况
+        unsigned long total = vfs.f_blocks * vfs.f_frsize;
+        unsigned long avail = vfs.f_bavail * vfs.f_frsize;
+
+        if (total == 0) {
+            continue;
+        }
+
+        DString volumeType = _T("[Local Disk]");
+        if (strstr(device, "/dev/sr") || strstr(device, "/dev/cdrom")) {
+            volumeType = _T("[CD/DVD]");
+        }
+        else if (strstr(device, "/dev/mapper") || strstr(device, "/dev/dm-")) {
+            volumeType = _T("[Virtual]");
+        }
+
+        DirectoryTree::DiskInfo diskInfo;
+        diskInfo.m_displayName = StringConvert::UTF8ToT(device);
+        diskInfo.m_bIconShared = true;
+        diskInfo.m_nIconID = 0;
+        diskInfo.m_filePath = FilePath(StringConvert::UTF8ToT(mount_point));
+
+        diskInfo.m_volumeName = diskInfo.m_displayName;
+        diskInfo.m_volumeType = volumeType;   //分区类型，如"本地磁盘"
+        diskInfo.m_mountOn = StringConvert::UTF8ToT(mount_point);
+        diskInfo.m_fileSystem = StringConvert::UTF8ToT(fs_type);
+        diskInfo.m_totalBytes = total;
+        diskInfo.m_freeBytes = avail;
+
+        diskInfoList.emplace_back(std::move(diskInfo));
+    }
+
+    ::fclose(fp);
 }
 
 } //namespace ui

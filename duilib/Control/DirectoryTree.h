@@ -72,9 +72,10 @@ public:
         bool m_bIconShared = false; //该图标ID关联的图标是否为共享图标（共享图标不允许释放）
         FilePath m_filePath;        //对应的路径
 
-        DString m_volumeName; //文件系统，如"/dev/sda2"
-        DString m_fileSystem; //文件系统类型，如"ext3"
-        DString m_mountOn;    //挂载点，如"/"
+        DString m_volumeName;   //文件系统，如"/dev/sda2"
+        DString m_volumeType;   //分区类型，如"本地磁盘"
+        DString m_fileSystem;   //文件系统类型，如"ext3"
+        DString m_mountOn;      //挂载点，如"/"
 
         uint64_t m_totalBytes = 0; //总空间大小（字节）
         uint64_t m_freeBytes = 0;  //可用空间大小（字节）
