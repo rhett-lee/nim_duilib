@@ -519,6 +519,15 @@ TreeView 控件继承了 `ListBox` 属性，更多可用属性请参考`ListBox`
 
 TreeNode 控件继承了 `ListBoxItem` 属性，更多可用属性请参考`ListBoxItem`的属性
 
+## DirectoryTree的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| icon_size | 16 | int | 树节点的图标大小，默认行高是20，所以最大可设置为20 |
+| show_hiden_files | false | bool | 是否显示隐藏文件 |
+| show_system_files | false | bool | 是否显示系统文件 |
+
+DirectoryTree 控件继承了 `TreeView` 属性，更多可用属性请参考`TreeView`的属性
+
 ## ListCtrl的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |

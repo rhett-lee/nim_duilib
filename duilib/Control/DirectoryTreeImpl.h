@@ -45,7 +45,9 @@ public:
                            std::vector<DirectoryTree::PathInfo>& folderList,
                            std::vector<DirectoryTree::PathInfo>* fileList);
 
-
+    /** 是否需要显示此目录（根据属性设置判断）
+    */
+    bool NeedShowDirPath(const FilePath& path) const;
 
 private:
     /** 目录树UI接口

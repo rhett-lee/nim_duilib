@@ -30,10 +30,10 @@
                 </VBox>
                 <!-- Checkbox -->
                 <VBox width="120">
-                    <CheckBox class="checkbox_font12" text="checkbox1" margin="0,5,0,10" selected="true" tooltip_text="ui::Checkbox"/>
-                    <CheckBox class="checkbox_font12" text="checkbox2" margin="0,5,0,10"/>
-                    <CheckBox class="checkbox_font12" text="checkbox3" margin="0,5,0,10"/>
-                    <Button class="btn_global_color_gray" name="domodal2" text="模态对话框" width="130" height="30" border_round="3,3" margin="0,2,0,0"/>
+                    <CheckBox class="checkbox_font12" font="system_14" text="checkbox1" margin="0,2,0,2" selected="true" tooltip_text="ui::Checkbox"/>
+                    <CheckBox class="checkbox_font14" text="checkbox2" margin="0,2,0,2"/>
+                    <CheckBox class="checkbox_svg_font14"  text="checkbox3" margin="0,2,0,2"/>
+                    <Button class="btn_global_color_gray" name="domodal2" text="模态对话框" width="130" height="30" border_round="3,3" margin="0,12,0,0"/>
                     <Button class="btn_global_color_gray" name="show_color_picker2" text="拾色器(模态)" width="130" height="30" border_round="3,3" margin="0,2,0,0"/>
                 </VBox>
                 <!-- Option -->

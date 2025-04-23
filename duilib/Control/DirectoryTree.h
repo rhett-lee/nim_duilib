@@ -120,26 +120,62 @@ public:
     /** 展开树的节点并选择其子目录(异步完成)
     * @param [in] pTreeNode 树的节点
     * @param [in] subPath 子目录或者多级子目录，该路径是pTreeNode对应路径的子目录
+    * @param [in] finishCallback 刷新完成后的回调函数
     */
     bool SelectSubPath(TreeNode* pTreeNode, FilePath subPath, StdClosure finishCallback);
 
     /** 选择一个路径(逐级展开目录，并选择最终的目录，确保可见)(异步完成)
+    * @param [in] filePath 需要选择的路径
+    * @param [in] finishCallback 刷新完成后的回调函数
     */
     bool SelectPath(FilePath filePath, StdClosure finishCallback);
 
     /** 刷新，保持树结构与文件系统同步(异步完成)
+    * @param [in] finishCallback 刷新完成后的回调函数
     */
     bool RefreshTree(StdClosure finishCallback);
 
     /** 刷新树节点，保持树结构与文件系统同步(异步完成)
     * @param [in] pTreeNode 树的节点
+    * @param [in] finishCallback 刷新完成后的回调函数
     */
     bool RefreshTreeNode(TreeNode* pTreeNode, StdClosure finishCallback);
 
     /** 刷新树节点，保持树结构与文件系统同步(异步完成)
     * @param [in] treeNodes 树的节点列表
+    * @param [in] finishCallback 刷新完成后的回调函数
     */
     bool RefreshTreeNodes(const std::vector<TreeNode*>& treeNodes, StdClosure finishCallback);
+
+    /** 设置默认的刷新完成事件回调函数
+    * @param [in] finishCallback 刷新完成后的回调函数
+    */
+    void SetRefreshFinishCallback(StdClosure finishCallback);
+
+public:
+    /** 设置图标大小（图标大小默认16*16，最大值为20，因为树节点的高度默认设置的是20），仅对新添加的节点有效
+    */
+    void SetIconSize(int32_t nIconSize);
+
+    /** 获取图标大小(宽度和高度相同)
+    */
+    int32_t GetIconSize() const;
+
+    /** 设置是否显示隐藏文件
+    */
+    void SetShowHidenFiles(bool bShowHidenFiles);
+
+    /** 获取是否显示隐藏文件
+    */
+    bool IsShowHidenFiles() const;
+
+    /** 设置是否显示系统文件
+    */
+    void SetShowSystemFiles(bool bShowSystemFiles);
+
+    /** 获取是否显示系统文件
+    */
+    bool IsShowSystemFiles() const;
 
 private:
     /** 树节点展开事件
@@ -273,7 +309,7 @@ private:
 
     /** 根据目录树读取文件系统的最新状态(标记已经删除的目录，添加新增的目录)
     */
-    void ReadPathInfo(std::vector<std::shared_ptr<RefreshNodeData>>& refreshData);
+    void RefreshPathInfo(std::vector<std::shared_ptr<RefreshNodeData>>& refreshData);
 
     /** 根据最新的状态，更新树的结构
     */
@@ -294,7 +330,15 @@ private:
 
     /** 图标大小
     */
-    const int32_t m_nIconSize;
+    int32_t m_nIconSize;
+
+    /** 是否显示隐藏文件
+    */
+    bool m_bShowHidenFiles;
+
+    /** 是否显示系统文件
+    */
+    bool m_bShowSystemFiles;
 
     /** 目录树的KEY值
     */
@@ -307,6 +351,10 @@ private:
     /** 用于显示关联的数据的回调函数
     */
     std::vector<ShowFolderContentsEvent> m_callbackList;
+
+    /** 默认的刷新完成后的回调函数
+    */
+    StdClosure m_defaultRefreshFinishCallback;
 };
 
 }

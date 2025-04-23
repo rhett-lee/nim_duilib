@@ -208,6 +208,14 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
                 //取消
                 break;
             }
+            if ((m_pTree != nullptr) && !m_pTree->IsShowHidenFiles()) {
+                const std::filesystem::path::string_type& s = entry.path().native();
+                if (!s.empty() && (s[0] == '.')) {
+                    //不显示隐藏文件
+                    continue;
+                }
+            }
+
             std::error_code errorCode;
             bool bSymlink = entry.is_symlink(errorCode);
             if (bSymlink) {
@@ -268,6 +276,25 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
     catch (const std::filesystem::filesystem_error& /*e*/) {
         ASSERT(0);
     }
+}
+
+bool DirectoryTreeImpl::NeedShowDirPath(const FilePath& path) const
+{
+    if ((m_pTree == nullptr) || path.IsEmpty()) {
+        return false;
+    }
+    if (!path.IsExistsDirectory()) {
+        return false;
+    }
+
+    if (!m_pTree->IsShowHidenFiles()) {
+        DString s = path.NativePath();
+        if (!s.empty() && (s[0] == '.')) {
+            //不显示隐藏文件
+            return false;
+        }
+    }
+    return true;
 }
 
 } //namespace ui

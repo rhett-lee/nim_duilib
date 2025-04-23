@@ -669,6 +669,9 @@
     <ClCompile Include="Control\DirectoryTreeImpl_Windows.cpp">
       <Filter>Control\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="Control\DirectoryTreeImpl_Linux.cpp">
+      <Filter>Control\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
