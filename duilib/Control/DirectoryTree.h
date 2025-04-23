@@ -40,11 +40,51 @@ public:
         bool m_bIconShared = false; //该图标ID关联的图标是否为共享图标（共享图标不允许释放）
     };
 
-    /** 回调函数的原型: 用于显示关联的数据
+    /** 回调函数的原型: 用于显示文件夹内容关联的数据
     */
     typedef std::function<void (ui::TreeNode* pTreeNode, const ui::FilePath& path,
                                 const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& folderList,
                                 const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList)> ShowFolderContentsEvent;
+
+#ifdef DUILIB_BUILD_FOR_WIN
+    /** 磁盘属性信息
+    */
+    struct DiskInfo
+    {
+        DString m_displayName;  //显示名称
+        uint32_t m_nIconID = 0; //关联图标ID（GlobalManager::Instance().Icon().AddIcon的返回值，图标需要实现类添加到管理器）
+        bool m_bIconShared = false; //该图标ID关联的图标是否为共享图标（共享图标不允许释放）
+        FilePath m_filePath;        //对应的路径
+
+        DString m_volumeName;   //分区卷标
+        DString m_volumeType;   //分区类型，如"本地磁盘"
+        DString m_fileSystem;   //文件系统类型，如"NTFS"
+
+        uint64_t m_totalBytes = 0; //总空间大小（字节）
+        uint64_t m_freeBytes = 0;  //可用空间大小（字节）
+    };
+#else
+    //其他平台
+    struct DiskInfo
+    {
+        DString m_displayName;      //显示名称
+        uint32_t m_nIconID = 0;     //关联图标ID（GlobalManager::Instance().Icon().AddIcon的返回值，图标需要实现类添加到管理器）
+        bool m_bIconShared = false; //该图标ID关联的图标是否为共享图标（共享图标不允许释放）
+        FilePath m_filePath;        //对应的路径
+
+        DString m_volumeName; //文件系统，如"/dev/sda2"
+        DString m_fileSystem; //文件系统类型，如"ext3"
+        DString m_mountOn;    //挂载点，如"/"
+
+        uint64_t m_totalBytes = 0; //总空间大小（字节）
+        uint64_t m_freeBytes = 0;  //可用空间大小（字节）
+    };
+#endif
+
+    /** 回调函数的原型: 用于显示计算机视图的数据
+    */
+    typedef std::function<void (ui::TreeNode* pTreeNode, 
+                                const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList)> ShowMyComputerContentsEvent;
 
 public:
     explicit DirectoryTree(Window* pWindow);
@@ -70,8 +110,9 @@ public:
     TreeNode* ShowVirtualDirectoryNode(VirtualDirectoryType type, const DString& displayName, bool bDisplayNameIsID = false);
 
     /** 显示所有磁盘节点, 返回第一个新节点接口(同步完成)
+    * @param [in] computerName 计算机节点的显示名称
     */
-    TreeNode* ShowAllDiskNodes();
+    TreeNode* ShowAllDiskNodes(const DString& computerName);
 
     /** 在指定的节点前插入一个横向分割线(同步完成)
     * @param [in] pNode 节点接口
@@ -87,12 +128,14 @@ public:
     * @param [in] isFolder true表示为文件夹，否则为普通文件
     * @param [in] nIconID 图标ID(在GlobalManager::Instance().Icon()中管理)，如果为0，表示无关联图标
     * @param [in] bIconShared 该图标ID关联的图标是否为共享图标（共享图标不允许释放）
+    * @param [in] bVirtualNode true表示该节点是虚拟节点，否则为普通路径节点
     */
     TreeNode* InsertTreeNode(TreeNode* pParentTreeNode,
                              const DString& displayName,
                              bool bDisplayNameIsID,
                              const ui::FilePath& path,
                              bool isFolder,
+                             bool bVirtualNode,
                              uint32_t nIconID,
                              bool bIconShared);
 
@@ -106,10 +149,20 @@ public:
     */
     FilePath FindTreeNodePath(TreeNode* pTreeNode);
 
-    /** 设置用于显示关联的数据的回调函数(同步完成)
+    /** 判断一个树节点是不是"计算机"节点，这个节点需要特殊处理
+    * @param [in] pTreeNode 当前的节点
+    */
+    bool IsMyComputerNode(TreeNode* pTreeNode) const;
+
+public:
+    /** 设置用于显示关联的数据的回调函数
     * @param [in] callback 回调函数
     */
     void AttachShowFolderContents(ShowFolderContentsEvent callback);
+
+    /** 设置用于显示"计算机"节点信息视图的回调函数
+    */
+    void AttachShowMyComputerContents(ShowMyComputerContentsEvent callback);
 
 public:
     /** 选择一个树节点（如果父节点未展开，则级联展开）
@@ -208,6 +261,10 @@ private:
     */
     void ShowFolderContents(TreeNode* pTreeNode, const FilePath& path, StdClosure finishCallback);
 
+    /** 显示"计算机"节点的内容
+    */
+    void ShowMyComputerContents(TreeNode* pTreeNode, StdClosure finishCallback);
+
     /** 判断两个树节点是否为父子关系
     * @param [in] pTreeNode 父节点
     * @param [in] pChildTreeNode 子节点
@@ -241,12 +298,19 @@ private:
     /** 已获取指定目录的内容
     * @param [in] pTreeNode 当前的节点
     * @param [in] path 路径
-    * @param [in] folderList 返回path目录中的所有子目录列表
-    * @param [in] fileList 返回path目录中的所有文件列表
+    * @param [in] folderList path目录中的所有子目录列表
+    * @param [in] fileList path目录中的所有文件列表
     */
-    bool OnShowFolderContents(TreeNode* pTreeNode, const ui::FilePath& path,
+    bool OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath& path,
                               const PathInfoListPtr& folderList,
                               const PathInfoListPtr& fileList);
+
+    /** 显示"计算机"节点的内容
+    * @param [in] pTreeNode 当前的节点
+    * @param [in] diskInfoList 所有磁盘的信息列表
+    */
+    bool OnShowMyComputerContents(ui::TreeNode* pTreeNode,
+                                  const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList);
 
     /** 在某个树节点下展开子目录，并选择最后一级目录
     * @param [in] pTreeNode 当前的节点
@@ -319,6 +383,10 @@ private:
     */
     void ClearPathInfoList(std::vector<DirectoryTree::PathInfo>& folderList);
 
+    /** 释放资源
+    */
+    void ClearDiskInfoList(std::vector<DirectoryTree::DiskInfo>& diskList);
+
 private:
     /** 枚举目录的内部实现（不同平台不同实现）
     */
@@ -348,9 +416,13 @@ private:
     */
     std::map<size_t, FolderStatus*> m_folderMap;
 
-    /** 用于显示关联的数据的回调函数
+    /** 用于显示关联的文件夹数据的回调函数
     */
     std::vector<ShowFolderContentsEvent> m_callbackList;
+
+    /** 用于显示关联的"计算机"数据的回调函数
+    */
+    std::vector<ShowMyComputerContentsEvent> m_myComputerCallbackList;
 
     /** 默认的刷新完成后的回调函数
     */

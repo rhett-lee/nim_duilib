@@ -118,8 +118,8 @@ bool DirectoryTreeImpl::GetVirtualDirectoryInfo(VirtualDirectoryType type, FileP
     if (pfnSHGetKnownFolderPath != nullptr) {
         PWSTR ppszPath = nullptr;
         pfnSHGetKnownFolderPath(fid, 0, nullptr, &ppszPath);
-        wcscpy_s(folder, ppszPath);
         if (ppszPath != nullptr) {
+            wcscpy_s(folder, ppszPath);
             ::CoTaskMemFree(ppszPath);
         }
     }
@@ -179,7 +179,7 @@ bool DirectoryTreeImpl::GetVirtualDirectoryInfo(VirtualDirectoryType type, FileP
     return bRet;
 }
 
-void DirectoryTreeImpl::GetRootPathInfoList(std::vector<DirectoryTree::PathInfo>& pathInfoList)
+void DirectoryTreeImpl::GetRootPathInfoList(bool bLargeIcon, std::vector<DirectoryTree::PathInfo>& pathInfoList)
 {
     pathInfoList.clear();
     std::vector<DString> driveList;
@@ -204,7 +204,14 @@ void DirectoryTreeImpl::GetRootPathInfoList(std::vector<DirectoryTree::PathInfo>
 
         SHFILEINFO shFileInfo;
         ZeroMemory(&shFileInfo, sizeof(SHFILEINFO));
-        if (::SHGetFileInfo(driverName.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), SHGFI_ICON | SHGFI_SMALLICON | SHGFI_DISPLAYNAME)) {
+        UINT uFlags = SHGFI_ICON | SHGFI_DISPLAYNAME;
+        if (bLargeIcon) {
+            uFlags |= SHGFI_LARGEICON;
+        }
+        else {
+            uFlags |= SHGFI_SMALLICON;
+        }
+        if (::SHGetFileInfo(driverName.c_str(), 0, &shFileInfo, sizeof(SHFILEINFO), uFlags)) {
             DirectoryTree::PathInfo pathInfo;
             pathInfo.m_filePath = driverPath;
             pathInfo.m_bFolder = true;
@@ -360,6 +367,76 @@ bool DirectoryTreeImpl::NeedShowDirPath(const FilePath& path) const
         }
     }
     return true;
+}
+
+/** 获取我的电脑图标
+*/
+static HICON GetMyComputerIcon_Windows()
+{
+    HICON hMyComputerIcon = nullptr;
+    LPITEMIDLIST pidl;
+    if (SUCCEEDED(::SHGetFolderLocation(NULL, CSIDL_DRIVES, NULL, 0, &pidl))) {
+        // 成功获取PIDL
+        SHFILEINFO sfi = { 0 };
+        if (::SHGetFileInfo((LPCTSTR)pidl, 0, &sfi, sizeof(sfi),
+            SHGFI_PIDL | SHGFI_ICON | SHGFI_LARGEICON)) {
+            // 成功获取图标句柄
+            hMyComputerIcon = sfi.hIcon;
+        }
+    }
+    ILFree(pidl);
+    if (hMyComputerIcon == nullptr) {
+        SHFILEINFO sfi = { 0 };
+        if (::SHGetFileInfo(_T("::{20D04FE0-3AEA-1069-A2D8-08002B30309D}"),
+            FILE_ATTRIBUTE_DIRECTORY, &sfi, sizeof(sfi),
+            SHGFI_ICON | SHGFI_USEFILEATTRIBUTES | SHGFI_LARGEICON)) {
+            hMyComputerIcon = sfi.hIcon;
+        }
+    }
+    return hMyComputerIcon;
+}
+
+uint32_t DirectoryTreeImpl::GetMyComputerIconID() const
+{
+    HICON hIcon = GetMyComputerIcon_Windows();
+    return GlobalManager::Instance().Icon().AddIcon(hIcon);
+}
+
+void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& weakFlag,
+                                        bool bLargeIcon,
+                                        std::vector<DirectoryTree::DiskInfo>& diskInfoList)
+{
+    std::vector<DirectoryTree::PathInfo> pathInfoList;
+    GetRootPathInfoList(bLargeIcon, pathInfoList);
+    for (const DirectoryTree::PathInfo& pathInfo : pathInfoList) {
+        if (weakFlag.expired()) {
+            break;
+        }
+        DiskUtils::DiskInfo winDiskInfo;
+        if (DiskUtils::GetLogicalDriveInfo(pathInfo.m_filePath.ToString(), winDiskInfo)) {
+            DirectoryTree::DiskInfo diskInfo;
+            diskInfo.m_displayName = pathInfo.m_displayName;
+            diskInfo.m_bIconShared = pathInfo.m_bIconShared;
+            diskInfo.m_nIconID = pathInfo.m_nIconID;
+            diskInfo.m_filePath = pathInfo.m_filePath;
+
+            diskInfo.m_volumeName = winDiskInfo.m_volumeName;
+            diskInfo.m_volumeType = winDiskInfo.m_volumeType;
+            diskInfo.m_fileSystem = winDiskInfo.m_fileSystem;
+            diskInfo.m_totalBytes = winDiskInfo.m_totalBytes;
+            diskInfo.m_freeBytes = winDiskInfo.m_freeBytes;
+
+            diskInfoList.emplace_back(std::move(diskInfo));
+        }
+    }
+    if (weakFlag.expired()) {
+        diskInfoList.clear();
+        for (const DirectoryTree::PathInfo& pathInfo : pathInfoList) {
+            if (!pathInfo.m_bIconShared) {
+                GlobalManager::Instance().Icon().RemoveIcon(pathInfo.m_nIconID);
+            }
+        }
+    }
 }
 
 } //namespace ui

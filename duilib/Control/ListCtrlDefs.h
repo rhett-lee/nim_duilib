@@ -22,7 +22,7 @@ enum class ListCtrlType
 */
 struct ListCtrlColumn
 {
-    DString text;              //表头的文本
+    DString text;                   //表头的文本
     int32_t nColumnWidth = 100;     //列宽，如果bNeedDpiScale为true，则执行DPI自适应处理
     int32_t nColumnWidthMin = 0;    //列宽最小值，0表示用默认设置，如果bNeedDpiScale为true，则执行DPI自适应处理
     int32_t nColumnWidthMax = 0;    //列宽最大值，0表示用默认设置，如果bNeedDpiScale为true，则执行DPI自适应处理
@@ -30,7 +30,7 @@ struct ListCtrlColumn
     int32_t nImageId = -1;          //图标资源Id，如果为-1表示不显示图标，图标显示在文本前面
     bool bSortable = true;          //是否支持排序
     bool bResizeable = true;        //是否支持通过拖动调整列宽
-    bool bShowCheckBox = true;      //是否显示CheckBox（支持在表头和数据列显示CheckBox）
+    bool bShowCheckBox = false;     //是否显示CheckBox（支持在表头和数据列显示CheckBox）
     bool bNeedDpiScale = true;      //是否对数值做DPI自适应
 };
 
@@ -51,12 +51,12 @@ struct ListCtrlItemData
 */
 struct ListCtrlSubItemData
 {
-    DString text;              //文本内容
+    DString text;                   //文本内容
     int32_t nTextFormat = -1;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
     int32_t nImageId = -1;          //图标资源Id，如果为-1表示不显示图标
     UiColor textColor;              //文本颜色
     UiColor bkColor;                //背景颜色
-    bool bShowCheckBox = true;      //是否显示CheckBox
+    bool bShowCheckBox = false;     //是否显示CheckBox
     bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
     bool bEditable = false;         //是否可编辑
 };
@@ -70,7 +70,7 @@ struct ListCtrlSubItemData2
     int32_t nImageId = -1;          //图标资源Id，如果为-1表示不显示图标
     UiColor textColor;              //文本颜色
     UiColor bkColor;                //背景颜色
-    bool bShowCheckBox = true;      //是否显示CheckBox  
+    bool bShowCheckBox = false;     //是否显示CheckBox  
     bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
     bool bEditable = false;         //是否可编辑
 };

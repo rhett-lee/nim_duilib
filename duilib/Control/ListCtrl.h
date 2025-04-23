@@ -331,14 +331,14 @@ public:
     /** 设置指定数据项的文本属性（文本对齐方式等）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
-    * @param [in] nTextFormat 需要设置的文本属性
+    * @param [in] nTextFormat 需要设置的文本属性, 参见枚举类型：IRender.h中的enum DrawStringFormat
     */
     bool SetSubItemTextFormat(size_t itemIndex, size_t columnIndex, int32_t nTextFormat);
 
     /** 获取指定数据项的文本属性（文本对齐方式等）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
-    * @return 数据项关联的文本属性
+    * @return 数据项关联的文本属性, 参见枚举类型：IRender.h中的enum DrawStringFormat
     */
     int32_t GetSubItemTextFormat(size_t itemIndex, size_t columnIndex) const;
 

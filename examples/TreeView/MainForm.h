@@ -39,6 +39,13 @@ private:
                               const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& folderList,
                               const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList);
 
+    /** 显示"计算机"节点的内容
+    * @param [in] pTreeNode 当前的节点
+    * @param [in] diskInfoList 所有磁盘的信息列表
+    */
+    void OnShowMyComputerContents(ui::TreeNode* pTreeNode,
+                                  const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList);
+
     /** 在地址栏中输入回车
     */
     bool OnAddressBarReturn(const ui::EventArgs& msg);
@@ -72,6 +79,33 @@ private:
     */
     void SetShowTreeNode(ui::TreeNode* pTreeNode);
 
+    /** 初始化计算机视图的表头
+    */
+    void InitializeComputerViewHeader();
+
+    /** 显示"计算机"节点的内容
+    * @param [in] diskInfoList 所有磁盘的信息列表
+    */
+    void FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList);
+
+    /** 磁盘空间大小转换为显示字符串
+    */
+    DString FormatDiskSpace(uint64_t nSpace) const;
+
+    /** 获取已用百分比显示字符串
+    */
+    DString FormatUsedPercent(uint64_t nTotalSpace, uint64_t nFreeSpace) const;
+
+private:
+    /** 视图类型
+    */
+    enum FormViewType
+    {
+        kFileView       = 0,    //文件列表视图
+        kComputerView   = 1,    //计算机视图
+        kErrorView      = 2     //出错视图
+    };
+
 private:
     /** 左侧树节点的接口
     */
@@ -81,6 +115,16 @@ private:
     */
     ui::RichEdit* m_pAddressBar;
 
+    /** TabBox容器
+    */
+    ui::TabBox* m_pTabBox;
+
+private:
+    /** 计算机视图的接口
+    */
+    ui::ListCtrl* m_pComputerListCtrl;
+
+private:
     /** 文件列表（右侧虚表显示的数据）
     */
     FileInfoList m_fileList;

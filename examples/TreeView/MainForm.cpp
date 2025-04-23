@@ -10,7 +10,9 @@ MainForm::MainForm():
     m_pBtnForward(nullptr),
     m_pBtnBack(nullptr),
     m_bCanAddBackForward(true),
-    m_pTreeNode(nullptr)
+    m_pTreeNode(nullptr),
+    m_pTabBox(nullptr),
+    m_pComputerListCtrl(nullptr)
 {
 }
 
@@ -39,7 +41,10 @@ void MainForm::OnInitWindow()
     if (m_pAddressBar != nullptr) {
         m_pAddressBar->AttachReturn(UiBind(&MainForm::OnAddressBarReturn, this, std::placeholders::_1));
     }
-    m_pListBox = dynamic_cast<ui::VirtualListBox*>(FindControl(_T("list")));
+    m_pTabBox = dynamic_cast<ui::TabBox*>(FindControl(_T("main_view_tab_box")));
+    m_pComputerListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("computer_view")));
+    InitializeComputerViewHeader();    
+    m_pListBox = dynamic_cast<ui::VirtualListBox*>(FindControl(_T("file_view")));
     ASSERT(m_pListBox != nullptr);
     if (m_pListBox != nullptr) {
         m_pListBox->SetDataProvider(&m_fileList);
@@ -83,6 +88,7 @@ void MainForm::OnInitWindow()
     UpdateCommandUI();
 
     //挂载事件
+    m_pTree->AttachShowMyComputerContents(ui::UiBind(&MainForm::OnShowMyComputerContents, this, std::placeholders::_1, std::placeholders::_2));
     m_pTree->AttachShowFolderContents(ui::UiBind(&MainForm::OnShowFolderContents, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
     ui::StdClosure finishCallback = ToWeakCallback([this]() {
         OnRefresh();
@@ -99,7 +105,7 @@ void MainForm::OnInitWindow()
     m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kDownloads, _T("下载"));
 
     //显示磁盘
-    ui::TreeNode* pFirstDiskNode = m_pTree->ShowAllDiskNodes();
+    ui::TreeNode* pFirstDiskNode = m_pTree->ShowAllDiskNodes(_T("计算机"));
     if (pFirstDiskNode != nullptr) {
         //在磁盘前面，放一个横线分隔符
         m_pTree->InsertLineBeforeNode(pFirstDiskNode);
@@ -145,6 +151,9 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
                                     const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList)
 {
     ui::GlobalManager::Instance().AssertUIThread();
+    if (m_pTabBox != nullptr) {
+        m_pTabBox->SelectItem((size_t)FormViewType::kFileView);
+    }
     if ((pTreeNode == nullptr) || (m_pTree == nullptr)) {
         return;
     }
@@ -173,6 +182,29 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
         SetShowTreeNode(pTreeNode);
         m_fileList.SetFileList(pathList);
     }
+    //更新界面状态
+    UpdateCommandUI();
+}
+
+void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
+                                        const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList)
+{
+    ui::GlobalManager::Instance().AssertUIThread();
+    if (m_pTabBox != nullptr) {
+        m_pTabBox->SelectItem((size_t)FormViewType::kComputerView);
+    }
+    if ((pTreeNode == nullptr) || (m_pTree == nullptr)) {
+        return;
+    }
+    if (!m_pTree->IsValidTreeNode(pTreeNode)) {
+        return;
+    }
+    if (m_pAddressBar != nullptr) {
+        m_pAddressBar->SetText(_T(""));
+    }
+    SetShowTreeNode(pTreeNode);
+    FillMyComputerContents(diskInfoList);
+
     //更新界面状态
     UpdateCommandUI();
 }
@@ -343,4 +375,138 @@ void MainForm::UpdateCommandUI()
     if (m_pBtnForward != nullptr) {
         m_pBtnForward->SetEnabled(bEnableForward);
     }
+}
+
+void MainForm::InitializeComputerViewHeader()
+{
+    if (m_pComputerListCtrl == nullptr) {
+        return;
+    }
+#ifdef DUILIB_BUILD_FOR_WIN
+    ui::ListCtrlColumn columnInfo;
+    columnInfo.text = _T("名称");
+    columnInfo.nColumnWidth = 200;
+    m_pComputerListCtrl->InsertColumn(-1, columnInfo);
+
+    columnInfo.text = _T("磁盘类型");
+    columnInfo.nColumnWidth = 120;
+    m_pComputerListCtrl->InsertColumn(-1, columnInfo);
+
+    columnInfo.text = _T("分区类型");
+    columnInfo.nColumnWidth = 120;
+    m_pComputerListCtrl->InsertColumn(-1, columnInfo);
+
+    columnInfo.text = _T("总大小");
+    columnInfo.nColumnWidth = 120;
+    m_pComputerListCtrl->InsertColumn(-1, columnInfo);
+
+    columnInfo.text = _T("可用空间");
+    columnInfo.nColumnWidth = 120;
+    m_pComputerListCtrl->InsertColumn(-1, columnInfo);
+
+    columnInfo.text = _T("已用");
+    columnInfo.nColumnWidth = 80;
+    m_pComputerListCtrl->InsertColumn(-1, columnInfo);
+#else
+    ui::ListCtrlColumn columnInfo;
+    columnInfo.text = _T("文件系统");
+    columnInfo.nColumnWidth = 200;
+    m_pComputerListCtrl->InsertColumn(-1, columnInfo);
+
+    columnInfo.text = _T("磁盘类型");
+    columnInfo.nColumnWidth = 120;
+    m_pComputerListCtrl->InsertColumn(-1, columnInfo);
+
+    columnInfo.text = _T("分区类型");
+    columnInfo.nColumnWidth = 120;
+    m_pComputerListCtrl->InsertColumn(-1, columnInfo);
+
+    columnInfo.text = _T("总大小");
+    columnInfo.nColumnWidth = 120;
+    m_pComputerListCtrl->InsertColumn(-1, columnInfo);
+
+    columnInfo.text = _T("可用空间");
+    columnInfo.nColumnWidth = 120;
+    m_pComputerListCtrl->InsertColumn(-1, columnInfo);
+
+    columnInfo.text = _T("已用");
+    columnInfo.nColumnWidth = 80;
+    m_pComputerListCtrl->InsertColumn(-1, columnInfo);
+
+    columnInfo.text = _T("挂载点");
+    columnInfo.nColumnWidth = 200;
+    m_pComputerListCtrl->InsertColumn(-1, columnInfo);
+#endif
+}
+
+void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList)
+{
+    if ((m_pComputerListCtrl == nullptr) || diskInfoList.empty()){
+        return;
+    }
+#ifdef DUILIB_BUILD_FOR_WIN
+    m_pComputerListCtrl->DeleteAllDataItems();
+    for (const ui::DirectoryTree::DiskInfo& diskInfo : diskInfoList) {
+        ui::ListCtrlSubItemData itemData;
+        itemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
+        itemData.text = diskInfo.m_displayName;
+        size_t nItemIndex = m_pComputerListCtrl->AddDataItem(itemData);
+        if (ui::Box::IsValidItemIndex(nItemIndex)) {
+            ui::ListCtrlSubItemData subItemData;
+            subItemData.nTextFormat = ui::DrawStringFormat::TEXT_CENTER | ui::DrawStringFormat::TEXT_VCENTER;
+
+            subItemData.text = diskInfo.m_volumeType;            
+            m_pComputerListCtrl->SetSubItemData(nItemIndex, 1, subItemData); //磁盘类型
+
+            subItemData.text = diskInfo.m_fileSystem;
+            m_pComputerListCtrl->SetSubItemData(nItemIndex, 2, subItemData); //分区类型
+
+            subItemData.text = FormatDiskSpace(diskInfo.m_totalBytes);
+            m_pComputerListCtrl->SetSubItemData(nItemIndex, 3, subItemData); //总大小
+
+            subItemData.text = FormatDiskSpace(diskInfo.m_freeBytes);
+            m_pComputerListCtrl->SetSubItemData(nItemIndex, 4, subItemData); //可用空间
+
+            subItemData.text = FormatUsedPercent(diskInfo.m_totalBytes, diskInfo.m_freeBytes);
+            m_pComputerListCtrl->SetSubItemData(nItemIndex, 5, subItemData); //已用百分比
+        }
+    }
+#else
+
+#endif
+}
+
+DString MainForm::FormatDiskSpace(uint64_t nSpace) const
+{
+    DString value;
+    if (nSpace > 1 * 1024 * 1024 * 1024) {
+        //GB
+        double total_gb = static_cast<double>(nSpace) / (1024 * 1024 * 1024);
+        value = ui::StringUtil::Printf(_T("%.01lf GB"), total_gb);
+    }
+    else if (nSpace > 1 * 1024 * 1024) {
+        //MB
+        double total_mb = static_cast<double>(nSpace) / (1024 * 1024);
+        value = ui::StringUtil::Printf(_T("%.01lf MB"), total_mb);
+    }
+    else if (nSpace > 1 * 1024) {
+        //KB
+        double total_kb = static_cast<double>(nSpace) / (1024);
+        value = ui::StringUtil::Printf(_T("%.01lf KB"), total_kb);
+    }
+    else {
+        //B
+        value = ui::StringUtil::Printf(_T("%d B"), (int32_t)nSpace);
+    }
+    return value;
+}
+
+DString MainForm::FormatUsedPercent(uint64_t nTotalSpace, uint64_t nFreeSpace) const
+{
+    DString value;
+    if ((nFreeSpace <= nTotalSpace) && (nTotalSpace != 0)) {
+        double fPercent = static_cast<double>(nTotalSpace - nFreeSpace) / nTotalSpace;
+        value = ui::StringUtil::Printf(_T("%.01lf%%"), fPercent * 100);
+    }
+    return value;
 }

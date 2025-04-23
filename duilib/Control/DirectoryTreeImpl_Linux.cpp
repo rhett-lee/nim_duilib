@@ -160,7 +160,7 @@ bool DirectoryTreeImpl::GetVirtualDirectoryInfo(VirtualDirectoryType type, FileP
     return true;
 }
 
-void DirectoryTreeImpl::GetRootPathInfoList(std::vector<DirectoryTree::PathInfo>& pathInfoList)
+void DirectoryTreeImpl::GetRootPathInfoList(bool bLargeIcon, std::vector<DirectoryTree::PathInfo>& pathInfoList)
 {
     pathInfoList.clear();
     try {
@@ -175,11 +175,19 @@ void DirectoryTreeImpl::GetRootPathInfoList(std::vector<DirectoryTree::PathInfo>
             pathInfo.m_bFolder = true;
             pathInfo.m_filePath = FilePath(entry.path().native());
             pathInfo.m_displayName = pathInfo.m_filePath.GetFileName();
-            if (m_impl->m_nSmallFolderIconID == 0) {
-                m_impl->m_nSmallFolderIconID = GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/folder.svg' width='16' height='16' valign='center'"));
-            }
-            pathInfo.m_nIconID = m_impl->m_nSmallFolderIconID;
             pathInfo.m_bIconShared = true;
+            if (bLargeIcon) {
+                if (m_impl->m_nLargeFolderIconID == 0) {
+                    m_impl->m_nLargeFolderIconID = GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/folder.svg' width='32' height='32' valign='center'"));
+                }
+                pathInfo.m_nIconID = m_impl->m_nLargeFolderIconID;
+            }
+            else {
+                if (m_impl->m_nSmallFolderIconID == 0) {
+                    m_impl->m_nSmallFolderIconID = GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/folder.svg' width='16' height='16' valign='center'"));
+                }
+                pathInfo.m_nIconID = m_impl->m_nSmallFolderIconID;
+            }
             pathInfoList.push_back(pathInfo);
         }
     }
@@ -295,6 +303,18 @@ bool DirectoryTreeImpl::NeedShowDirPath(const FilePath& path) const
         }
     }
     return true;
+}
+
+uint32_t DirectoryTreeImpl::GetMyComputerIconID() const
+{
+    return GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/computer.svg' width='16' height='16' valign='center'"));
+}
+
+void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& weakFlag,
+                                        bool bLargeIcon,
+                                        std::vector<DirectoryTree::DiskInfo>& diskInfoList)
+{
+
 }
 
 } //namespace ui
