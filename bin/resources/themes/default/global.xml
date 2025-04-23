@@ -147,26 +147,26 @@
                                   selected_normal_image="file='../public/option/radio-checked.svg' valign='center'"/>
     <!--复选框-->
     <Class name="checkbox_font12" height="16" text_padding="20,0,0,0" font="system_12" normal_text_color="darkcolor" 
-                                  normal_image="file='../public/CheckBox/check_no.png' dest='0,0,16,16'" 
-                                  disabled_image="file='../public/CheckBox/check_no.png' dest='0,0,16,16' fade='80'" 
-                                  selected_normal_image="file='../public/CheckBox/check_yes.png' dest='0,0,16,16'" 
-                                  selected_disabled_image="file='../public/CheckBox/check_yes.png' dest='0,0,16,16' fade='80'"/>
+                                  normal_image="file='../public/checkbox/check_no.png' dest='0,0,16,16'" 
+                                  disabled_image="file='../public/checkbox/check_no.png' dest='0,0,16,16' fade='80'" 
+                                  selected_normal_image="file='../public/checkbox/check_yes.png' dest='0,0,16,16'" 
+                                  selected_disabled_image="file='../public/checkbox/check_yes.png' dest='0,0,16,16' fade='80'"/>
     <Class name="checkbox_font14" height="20" text_padding="20,0,0,0" font="system_14" 
                                   normal_text_color="darkcolor" 
-                                  normal_image="file='../public/CheckBox/check_no.png' dest='0,2,16,18'" 
-                                  disabled_image="file='../public/CheckBox/check_no.png' dest='0,2,16,18' fade='80'" 
-                                  selected_normal_image="file='../public/CheckBox/check_yes.png' dest='0,2,16,18'" 
-                                  selected_disabled_image="file='../public/CheckBox/check_yes.png' dest='0,2,16,18' fade='80'"/>
+                                  normal_image="file='../public/checkbox/check_no.png' dest='0,2,16,18'" 
+                                  disabled_image="file='../public/checkbox/check_no.png' dest='0,2,16,18' fade='80'" 
+                                  selected_normal_image="file='../public/checkbox/check_yes.png' dest='0,2,16,18'" 
+                                  selected_disabled_image="file='../public/checkbox/check_yes.png' dest='0,2,16,18' fade='80'"/>
     <Class name="checkbox_svg_font14" height="20" text_padding="20,0,0,0" font="system_14" 
                                       normal_text_color="darkcolor" 
-                                      normal_image="file='../public/CheckBox/checkbox.svg' dest='0,2,16,18'" 
-                                      disabled_image="file='../public/CheckBox/checkbox.svg' dest='0,2,16,18' fade='80'" 
-                                      selected_normal_image="file='../public/CheckBox/checkbox-checked.svg' dest='0,2,16,18'" 
-                                      selected_disabled_image="file='../public/CheckBox/checkbox-checked.svg' dest='0,2,16,18' fade='80'"/>
-    <Class name="checkbox_green" normal_image="file='../public/CheckBox/check_green_no.png'" 
-                                 disabled_image="file='../public/CheckBox/check_green_no.png' fade='80'" 
-                                 selected_normal_image="file='../public/CheckBox/check_green_yes.png'" 
-                                 selected_disabled_image="file='../public/CheckBox/check_green_yes.png' fade='80'"/>
+                                      normal_image="file='../public/checkbox/checkbox.svg' dest='0,2,16,18'" 
+                                      disabled_image="file='../public/checkbox/checkbox.svg' dest='0,2,16,18' fade='80'" 
+                                      selected_normal_image="file='../public/checkbox/checkbox-checked.svg' dest='0,2,16,18'" 
+                                      selected_disabled_image="file='../public/checkbox/checkbox-checked.svg' dest='0,2,16,18' fade='80'"/>
+    <Class name="checkbox_green" normal_image="file='../public/checkbox/check_green_no.png'" 
+                                 disabled_image="file='../public/checkbox/check_green_no.png' fade='80'" 
+                                 selected_normal_image="file='../public/checkbox/check_green_yes.png'" 
+                                 selected_disabled_image="file='../public/checkbox/check_green_yes.png' fade='80'"/>
     <!--下拉框-->
     <Class name="combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
                         combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
@@ -330,12 +330,12 @@
                                         selected_normal_color="bk_listitem_selected" 
                                         icon_image_right_space="4" 
                                         fadehot="false"/>
-    <Class name="tree_node_checkbox" normal_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center'" 
-                                     disabled_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" 
-                                     selected_normal_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center'" 
-                                     selected_disabled_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'" 
-                                     part_selected_normal_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center'" 
-                                     part_selected_disabled_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"
+    <Class name="tree_node_checkbox" normal_image="file='../public/checkbox/check_no.png' padding='2,0,0,0' valign='center'" 
+                                     disabled_image="file='../public/checkbox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" 
+                                     selected_normal_image="file='../public/checkbox/check_yes.png' padding='2,0,0,0' valign='center'" 
+                                     selected_disabled_image="file='../public/checkbox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'" 
+                                     part_selected_normal_image="file='../public/checkbox/part_check.png' padding='2,0,0,0' valign='center'" 
+                                     part_selected_disabled_image="file='../public/checkbox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"
                                      check_box_image_right_space="6"/>
     <Class name="tree_node_expand" expand_normal_image="file='../public/tree/expand_normal.svg' padding='2,0,0,0' valign='center'" 
                                    expand_hot_image="file='../public/tree/expand_hot.svg' padding='2,0,0,0' valign='center'" 
@@ -366,8 +366,8 @@
                                 normal_text_color="darkcolor" 
                                 normal_image="" 
                                 disabled_image="" 
-                                selected_normal_image="file='../public/CheckBox/check_yes.png' dest='0,2,16,18'" 
-                                selected_disabled_image="file='../public/CheckBox/check_yes.png' dest='0,2,16,18' 
+                                selected_normal_image="file='../public/checkbox/check_yes.png' dest='0,2,16,18'" 
+                                selected_disabled_image="file='../public/checkbox/check_yes.png' dest='0,2,16,18' 
                                 fade='80'"/>
     <!--分割线通用样式-->
     <Class name="splitline_hor_level1" bkcolor="splitline_level1" height="1"/>
@@ -471,12 +471,12 @@
     <Class name="list_ctrl_header_split_box" width="3" height="100%" enable_split_single="true"/>
     <Class name="list_ctrl_header_split_control" width="1" height="100%" margin="2,4,0,2" bkcolor="splitline_level1"/>
     <Class name="list_ctrl_checkbox" valign="center" halign="left"
-                                     normal_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center'" 
-                                     disabled_image="file='../public/CheckBox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" 
-                                     selected_normal_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center'" 
-                                     selected_disabled_image="file='../public/CheckBox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'" 
-                                     part_selected_normal_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center'" 
-                                     part_selected_disabled_image="file='../public/CheckBox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"/>
+                                     normal_image="file='../public/checkbox/check_no.png' padding='2,0,0,0' valign='center'" 
+                                     disabled_image="file='../public/checkbox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" 
+                                     selected_normal_image="file='../public/checkbox/check_yes.png' padding='2,0,0,0' valign='center'" 
+                                     selected_disabled_image="file='../public/checkbox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'" 
+                                     part_selected_normal_image="file='../public/checkbox/part_check.png' padding='2,0,0,0' valign='center'" 
+                                     part_selected_disabled_image="file='../public/checkbox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"/>
     <Class name="list_ctrl_report_view" bkcolor="white" vscrollbar="true" hscrollbar="true" width="100%" padding="0,0,0,0"
                                       child_margin_y="0" paint_selected_colors="true"
                                       enable_frame_selection="true" 
