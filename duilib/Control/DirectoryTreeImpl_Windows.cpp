@@ -249,10 +249,18 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
             continue;
         }
 
-        if ((findData.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM) &&
-            (findData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)) {
-            //不包含系统和隐藏的
-            continue;
+        if ((m_pTree != nullptr) && !m_pTree->IsShowHidenFiles()) {
+            if (findData.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM) {
+                //不包含隐藏的
+                continue;
+            }
+        }
+
+        if ((m_pTree != nullptr) && !m_pTree->IsShowSystemFiles()) {
+            if (findData.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN) {
+                //不包含系统的
+                continue;
+            }
         }
 
         if (StringUtil::IsEqualNoCase(findData.cFileName, L".") ||
@@ -315,6 +323,44 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
     hFile = INVALID_HANDLE_VALUE;
 }
 
+bool DirectoryTreeImpl::NeedShowDirPath(const FilePath& path) const
+{
+    if ((m_pTree == nullptr) || path.IsEmpty()) {
+        return false;
+    }
+    DWORD dwAttributes = ::GetFileAttributesW(path.ToStringW().c_str());
+    if (dwAttributes == INVALID_FILE_ATTRIBUTES) {
+        return false;
+    }
+
+    if (!(dwAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
+        //不是目录
+        return false;
+    }
+
+    if (path.NativePath().size() == 3) {
+        DString s = path.NativePath();
+        if (( (s[0] >= _T('C')) || (s[0] <= _T('Z'))) && (s[1] == _T(':')) && (s[2]) == _T('\\')) {
+            //根目录，始终显示，因为后续判断逻辑不正确
+            return true;
+        }
+    }
+
+    if (!m_pTree->IsShowHidenFiles()) {
+        if (dwAttributes & FILE_ATTRIBUTE_HIDDEN) {
+            //不包含隐藏的
+            return false;
+        }
+    }
+
+    if (!m_pTree->IsShowSystemFiles()) {
+        if (dwAttributes & FILE_ATTRIBUTE_SYSTEM) {
+            //不包含系统的
+            return false;
+        }
+    }
+    return true;
+}
 
 } //namespace ui
 

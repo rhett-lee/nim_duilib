@@ -204,6 +204,7 @@
 | TabCtrl | ListBox| [duilib/Control/TabCtrl.h](../duilib/Control/TabCtrl.h) | 多标签控件（类似浏览器的多标签） |
 | TreeView | ListBox| [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | 树控件 |
 | TreeNode | ListBoxItem| [duilib/Control/TreeView.h](../duilib/Control/TreeView.h) | 树控件的节点 |
+| DirectoryTree | TreeView| [duilib/Control/DirectoryTree.h](../duilib/Control/DirectoryTree.h) | 目录树控件，用于显示文件系统的目录结构 |
 | ListCtrl | VBox| [duilib/Control/ListCtrl.h](../duilib/Control/ListCtrl.h) | 列表控件 |
 | ListCtrl实现类 | | [duilib/Control/ListCtrlDefs.h](../duilib/Control/ListCtrlDefs.h) | 列表控件的基本类型定义 |
 | ListCtrl实现类 | | [duilib/Control/ListCtrlHeader.h](../duilib/Control/ListCtrlHeader.h) | 列表控件的表头 |

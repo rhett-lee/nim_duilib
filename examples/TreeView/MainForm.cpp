@@ -84,7 +84,11 @@ void MainForm::OnInitWindow()
 
     //挂载事件
     m_pTree->AttachShowFolderContents(ui::UiBind(&MainForm::OnShowFolderContents, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    
+    ui::StdClosure finishCallback = ToWeakCallback([this]() {
+        OnRefresh();
+        });
+    m_pTree->SetRefreshFinishCallback(finishCallback);
+
     //显示虚拟路径
     m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kUserHome, _T("主文件夹"));
     m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kDesktop, _T("桌面"));

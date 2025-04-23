@@ -405,6 +405,7 @@
     <ClCompile Include="Control\DateTimeWnd_SDL.cpp" />
     <ClCompile Include="Control\DateTimeWnd_Windows.cpp" />
     <ClCompile Include="Control\DirectoryTree.cpp" />
+    <ClCompile Include="Control\DirectoryTreeImpl_Linux.cpp" />
     <ClCompile Include="Control\DirectoryTreeImpl_Windows.cpp" />
     <ClCompile Include="Control\FilterCombo.cpp" />
     <ClCompile Include="Control\HotKey.cpp" />

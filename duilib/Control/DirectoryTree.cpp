@@ -9,7 +9,10 @@ DirectoryTree::DirectoryTree(Window* pWindow):
     TreeView(pWindow),
     m_nThreadIdentifier(ui::kThreadWorker),
     m_nIconSize(16),
-    m_folderKey(0)
+    m_folderKey(0),
+    m_bShowHidenFiles(false),
+    m_bShowSystemFiles(false),
+    m_defaultRefreshFinishCallback(nullptr)
 {
     m_impl = new DirectoryTreeImpl(this);
 }
@@ -45,12 +48,61 @@ DString DirectoryTree::GetType() const { return DUI_CTR_DIRECTORY_TREE; }
 void DirectoryTree::SetAttribute(const DString& strName, const DString& strValue)
 {
     //支持的属性列表: 基类实现的直接转发
-    if (strName == _T("")) {
-        
+    if (strName == _T("icon_size")) {
+        SetIconSize(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("show_hiden_files")) {
+        SetShowHidenFiles(strValue == _T("true"));
+    }
+    else if (strName == _T("show_system_files")) {
+        SetShowSystemFiles(strValue == _T("true"));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
+}
+
+void DirectoryTree::SetIconSize(int32_t nIconSize)
+{
+    if (nIconSize < 1) {
+        nIconSize = 16;
+    }
+    m_nIconSize = nIconSize;
+}
+
+int32_t DirectoryTree::GetIconSize() const
+{
+    return m_nIconSize;
+}
+
+void DirectoryTree::SetShowHidenFiles(bool bShowHidenFiles)
+{
+    if(m_bShowHidenFiles != bShowHidenFiles) {
+        m_bShowHidenFiles = bShowHidenFiles;
+        if (IsInited()) {
+            RefreshTree(nullptr);
+        }
+    }
+}
+
+bool DirectoryTree::IsShowHidenFiles() const
+{
+    return m_bShowHidenFiles;
+}
+
+void DirectoryTree::SetShowSystemFiles(bool bShowSystemFiles)
+{
+    if (m_bShowSystemFiles != bShowSystemFiles) {
+        m_bShowSystemFiles = bShowSystemFiles;
+        if (IsInited()) {
+            RefreshTree(nullptr);
+        }
+    }
+}
+
+bool DirectoryTree::IsShowSystemFiles() const
+{
+    return m_bShowSystemFiles;
 }
 
 void DirectoryTree::SetThreadIdentifier(int32_t nThreadIdentifier)
@@ -751,6 +803,9 @@ bool DirectoryTree::RefreshTreeNode(TreeNode* pTreeNode, StdClosure finishCallba
 
 bool DirectoryTree::RefreshTreeNodes(const std::vector<TreeNode*>& treeNodes, StdClosure finishCallback)
 {
+    if (finishCallback == nullptr) {
+        finishCallback = m_defaultRefreshFinishCallback;
+    }
     std::vector<std::shared_ptr<RefreshNodeData>> refreshData;
     for (TreeNode* pTreeNode : treeNodes) {
         GetTreeNodeData((size_t)-1, pTreeNode, refreshData);
@@ -768,7 +823,7 @@ bool DirectoryTree::RefreshTreeNodes(const std::vector<TreeNode*>& treeNodes, St
     GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, weakFlag, refreshData, finishCallback]() {
             //在子线程中读取子目录数据的最新状态
             std::vector<std::shared_ptr<RefreshNodeData>> updatedRefreshData(refreshData);
-            ReadPathInfo(updatedRefreshData);
+            RefreshPathInfo(updatedRefreshData);
 
             //在UI线程中，更新界面
             if (!weakFlag.expired()) {
@@ -790,7 +845,7 @@ bool DirectoryTree::RefreshTreeNodes(const std::vector<TreeNode*>& treeNodes, St
     return true;
 }
 
-void DirectoryTree::ReadPathInfo(std::vector<std::shared_ptr<RefreshNodeData>>& refreshData)
+void DirectoryTree::RefreshPathInfo(std::vector<std::shared_ptr<RefreshNodeData>>& refreshData)
 {
     const size_t nNodeCount = refreshData.size();
     for (std::shared_ptr<RefreshNodeData>& pNodeData : refreshData) {
@@ -809,7 +864,7 @@ void DirectoryTree::ReadPathInfo(std::vector<std::shared_ptr<RefreshNodeData>>& 
             continue;
         }
 
-        if (!pNodeData->m_dirPath.IsExistsPath()) {
+        if (!m_impl->NeedShowDirPath(pNodeData->m_dirPath)) {
             //标记为删除
             pNodeData->m_bDeleted = true;
             continue;
@@ -957,6 +1012,11 @@ void DirectoryTree::ClearPathInfoList(std::vector<DirectoryTree::PathInfo>& fold
         }
     }
     folderList.clear();
+}
+
+void DirectoryTree::SetRefreshFinishCallback(StdClosure finishCallback)
+{
+    m_defaultRefreshFinishCallback = finishCallback;
 }
 
 }//namespace ui

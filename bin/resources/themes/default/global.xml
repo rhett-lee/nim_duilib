@@ -157,6 +157,12 @@
                                   disabled_image="file='../public/CheckBox/check_no.png' dest='0,2,16,18' fade='80'" 
                                   selected_normal_image="file='../public/CheckBox/check_yes.png' dest='0,2,16,18'" 
                                   selected_disabled_image="file='../public/CheckBox/check_yes.png' dest='0,2,16,18' fade='80'"/>
+    <Class name="checkbox_svg_font14" height="20" text_padding="20,0,0,0" font="system_14" 
+                                      normal_text_color="darkcolor" 
+                                      normal_image="file='../public/CheckBox/checkbox.svg' dest='0,2,16,18'" 
+                                      disabled_image="file='../public/CheckBox/checkbox.svg' dest='0,2,16,18' fade='80'" 
+                                      selected_normal_image="file='../public/CheckBox/checkbox-checked.svg' dest='0,2,16,18'" 
+                                      selected_disabled_image="file='../public/CheckBox/checkbox-checked.svg' dest='0,2,16,18' fade='80'"/>
     <Class name="checkbox_green" normal_image="file='../public/CheckBox/check_green_no.png'" 
                                  disabled_image="file='../public/CheckBox/check_green_no.png' fade='80'" 
                                  selected_normal_image="file='../public/CheckBox/check_green_yes.png'" 
