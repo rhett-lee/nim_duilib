@@ -7,10 +7,9 @@
 #include "duilib/Utils/FilePath.h"
 #include "duilib/Utils/FilePathUtil.h"
 
-#ifndef DUILIB_BUILD_FOR_WIN
-    #include <sys/statvfs.h>
-    #include <stdio.h>
-#endif
+#include <fstream>
+#include <sys/statvfs.h>
+#include <stdio.h>
 
 namespace ui
 {
@@ -75,10 +74,6 @@ bool DirectoryTreeImpl::GetVirtualDirectoryInfo(VirtualDirectoryType type, FileP
     }
     else {
         userHomeDir = _T("/");
-#ifdef DUILIB_BUILD_FOR_WIN
-        //测试用
-        userHomeDir = _T("D:\\temp\\");
-#endif
     }
 
     userHomeDir.NormalizeDirectoryPath();
@@ -233,11 +228,7 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
         fileList->clear();
     }
     try {
-#ifdef DUILIB_BUILD_FOR_WIN
-        std::filesystem::path stdPath(path.ToStringW());
-#else
         std::filesystem::path stdPath(path.NativePathA());
-#endif
         for (const auto& entry : std::filesystem::directory_iterator(stdPath)) {
             if (weakFlag.expired()) {
                 //取消
@@ -339,11 +330,95 @@ uint32_t DirectoryTreeImpl::GetMyComputerIconID() const
     return GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/computer.svg' width='16' height='16' valign='center'"));
 }
 
+// 从设备路径提取基础设备名（如 /dev/sda1 -> sda）
+static std::string get_base_device(const std::string& dev_path)
+{
+    if (dev_path.find("/dev/") != 0) {
+        if (dev_path.find(":/") != std::string::npos) {
+            return "nfs";
+        }
+        return dev_path;
+    }
+
+    std::string dev_name = dev_path.substr(5); // 去掉"/dev/"
+    
+    // 处理分区号（如sda1->sda, nvme0n1p1->nvme0n1）
+    size_t pos = dev_name.find_first_of("0123456789", 0);
+    while ((pos != std::string::npos) && ((pos + 1) < dev_name.size()) && ::isdigit(dev_name[pos + 1])) {
+        ++pos;
+    }
+    if (pos != std::string::npos) {
+        dev_name = dev_name.substr(0, pos);
+    }
+    return dev_name;
+}
+
+// 检测设备物理类型
+static DirectoryTree::DeviceType detect_device_type(const std::string& base_dev)
+{
+    // 网络文件系统
+    if (base_dev == "nfs") {
+        return DirectoryTree::DeviceType::NFS;
+    }
+    
+    // 虚拟设备
+    if (base_dev.find("loop") == 0) {
+        return DirectoryTree::DeviceType::LOOP;
+    }
+    if ((base_dev.find("mapper") == 0) || (base_dev.find("dm-") == 0)){
+        return DirectoryTree::DeviceType::VIRT_DISK;
+    }
+    
+    // 检查/sys/block下是否存在该设备
+    std::filesystem::path sys_block = "/sys/block/" + base_dev;
+    if (!std::filesystem::exists(sys_block)) {
+        return DirectoryTree::DeviceType::UNKNOWN;
+    }
+
+    // NVMe设备
+    if (base_dev.find("nvme") == 0) {
+        return DirectoryTree::DeviceType::NVME;
+    }
+
+    // SD卡
+    if (base_dev.find("mmcblk") == 0) {
+        return DirectoryTree::DeviceType::SD_CARD;
+    }
+
+    // 光驱
+    std::ifstream type_file("/sys/block/" + base_dev + "/device/type");
+    if (type_file) {
+        int type = 0;
+        type_file >> type;
+        if (type == 5) {
+            return DirectoryTree::DeviceType::CDROM;
+        }
+    }
+
+    // USB设备（检查driver链接）
+    std::filesystem::path driver_link = "/sys/block/" + base_dev + "/device/../driver";
+    if (std::filesystem::exists(driver_link)) {
+        std::string driver = std::filesystem::read_symlink(driver_link).filename();
+        if (driver.find("usb") != std::string::npos) {
+            return DirectoryTree::DeviceType::USB;
+        }
+    }
+
+    // 机械硬盘/SSD检测
+    std::ifstream rotational_file("/sys/block/" + base_dev + "/queue/rotational");
+    if (rotational_file) {
+        int rotational;
+        rotational_file >> rotational;
+        return rotational ? DirectoryTree::DeviceType::HDD : DirectoryTree::DeviceType::SSD;
+    }
+
+    return DirectoryTree::DeviceType::UNKNOWN;
+}
+
 void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& /*weakFlag*/,
                                         bool bLargeIcon,
                                         std::vector<DirectoryTree::DiskInfo>& diskInfoList)
 {
-#ifndef DUILIB_BUILD_FOR_WIN
     FILE* fp = ::fopen("/proc/mounts", "r");
     if (fp == nullptr) {
         return;
@@ -375,12 +450,15 @@ void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& /*weakFla
             continue;
         }
 
-        DirectoryTree::DeviceType deviceType = DirectoryTree::DeviceType::UNKNOWN;
-        if (strstr(device, "/dev/sr") || strstr(device, "/dev/cdrom")) {
-            deviceType = DirectoryTree::DeviceType::CDROM;
-        }
-        else if (strstr(device, "/dev/mapper") || strstr(device, "/dev/dm-")) {
-            deviceType = DirectoryTree::DeviceType::VIRT_DISK;
+        std::string base_dev = get_base_device(device);
+        DirectoryTree::DeviceType deviceType = detect_device_type(base_dev);
+        if (deviceType == DirectoryTree::DeviceType::UNKNOWN) {
+            if (strstr(device, "/dev/sr") || strstr(device, "/dev/cdrom")) {
+                deviceType = DirectoryTree::DeviceType::CDROM;
+            }
+            else if (std::string(device) == "vmhgfs-fuse") {
+                deviceType = DirectoryTree::DeviceType::SHARE;
+            }
         }
 
         DirectoryTree::DiskInfo diskInfo;
@@ -400,7 +478,6 @@ void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& /*weakFla
     }
 
     ::fclose(fp);
-#endif
 }
 
 } //namespace ui

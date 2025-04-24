@@ -542,7 +542,7 @@ DString MainForm::GetDeviceTypeString(ui::DirectoryTree::DeviceType deviceType) 
         deviceTypeString = _T("SD卡");
         break;
     case ui::DirectoryTree::DeviceType::CDROM:
-        deviceTypeString = _T("CDROM/DVDROM");
+        deviceTypeString = _T("CD/DVD");
         break;
     case ui::DirectoryTree::DeviceType::LOOP:
         deviceTypeString = _T("LOOP虚拟存储");
@@ -555,6 +555,9 @@ DString MainForm::GetDeviceTypeString(ui::DirectoryTree::DeviceType deviceType) 
         break;
     case ui::DirectoryTree::DeviceType::NFS:
         deviceTypeString = _T("NFS");
+        break;
+    case ui::DirectoryTree::DeviceType::SHARE:
+        deviceTypeString = _T("共享文件夹");
         break;
     default:
         break;

@@ -79,7 +79,8 @@ public:
         LOOP,       // LOOP 虚拟设备
         VIRT_DISK,  // 虚拟设备
         RAMDISK,    // 内存盘 (如/dev/ramX)
-        NFS
+        NFS,        // NFS
+        SHARE       //共享文件夹
     };
 
     /** 磁盘属性信息
