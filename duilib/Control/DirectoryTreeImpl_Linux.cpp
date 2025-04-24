@@ -7,8 +7,10 @@
 #include "duilib/Utils/FilePath.h"
 #include "duilib/Utils/FilePathUtil.h"
 
-#include <sys/statvfs.h>
-#include <stdio.h>
+#ifndef DUILIB_BUILD_FOR_WIN
+    #include <sys/statvfs.h>
+    #include <stdio.h>
+#endif
 
 namespace ui
 {
@@ -166,35 +168,57 @@ bool DirectoryTreeImpl::GetVirtualDirectoryInfo(VirtualDirectoryType type, FileP
 void DirectoryTreeImpl::GetRootPathInfoList(bool bLargeIcon, std::vector<DirectoryTree::PathInfo>& pathInfoList)
 {
     pathInfoList.clear();
-    try {
-        std::filesystem::path path("/");
-        for (const auto& entry : std::filesystem::directory_iterator(path)) {
-            std::error_code errorCode;
-            bool bDirectory = entry.is_directory(errorCode);
-            if (!bDirectory) {
-                continue;
-            }
-            DirectoryTree::PathInfo pathInfo;
-            pathInfo.m_bFolder = true;
-            pathInfo.m_filePath = FilePath(entry.path().native());
-            pathInfo.m_displayName = pathInfo.m_filePath.GetFileName();
-            pathInfo.m_bIconShared = true;
+    const std::filesystem::path rootPath("/");
+    DirectoryTree::PathInfo pathInfo;
+    pathInfo.m_bFolder = true;
+    pathInfo.m_filePath = FilePath(rootPath.native());
+    pathInfo.m_displayName = pathInfo.m_filePath.ToString();
+    pathInfo.m_bIconShared = false;
+    if (bLargeIcon) {
+        pathInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/drive-harddisk.svg' width='32' height='32' valign='center'"));
+    }
+    else {
+        pathInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/drive-harddisk.svg' width='16' height='16' valign='center'"));
+    }
+    //文件系统根目录
+    pathInfoList.push_back(pathInfo);
+
+    std::weak_ptr<WeakFlag> weakFlag;
+    std::vector<DirectoryTree::DiskInfo> diskInfoList;
+    GetDiskInfoList(weakFlag, bLargeIcon, diskInfoList);
+    for (const DirectoryTree::DiskInfo& diskInfo : diskInfoList) {
+        if (diskInfo.m_filePath == FilePath(rootPath.native())) {
+            continue;
+        }
+
+        pathInfo.m_filePath = diskInfo.m_filePath;
+        pathInfo.m_displayName = diskInfo.m_volumeName;
+        pathInfo.m_bIconShared = false;
+        if (diskInfo.m_deviceType == DirectoryTree::DeviceType::CDROM) {
             if (bLargeIcon) {
-                if (m_impl->m_nLargeFolderIconID == 0) {
-                    m_impl->m_nLargeFolderIconID = GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/folder.svg' width='32' height='32' valign='center'"));
-                }
-                pathInfo.m_nIconID = m_impl->m_nLargeFolderIconID;
+                pathInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/drive-cdrom.svg' width='32' height='32' valign='center'"));
             }
             else {
-                if (m_impl->m_nSmallFolderIconID == 0) {
-                    m_impl->m_nSmallFolderIconID = GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/folder.svg' width='16' height='16' valign='center'"));
-                }
-                pathInfo.m_nIconID = m_impl->m_nSmallFolderIconID;
+                pathInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/drive-cdrom.svg' width='16' height='16' valign='center'"));
             }
-            pathInfoList.push_back(pathInfo);
         }
-    }
-    catch (const std::filesystem::filesystem_error& /*e*/) {
+        else if (diskInfo.m_deviceType == DirectoryTree::DeviceType::USB) {
+            if (bLargeIcon) {
+                pathInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/drive-harddisk-usb.svg' width='32' height='32' valign='center'"));
+            }
+            else {
+                pathInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/drive-harddisk-usb.svg' width='16' height='16' valign='center'"));
+            }
+        }
+        else {
+            if (bLargeIcon) {
+                pathInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/drive-harddisk.svg' width='32' height='32' valign='center'"));
+            }
+            else {
+                pathInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/drive-harddisk.svg' width='16' height='16' valign='center'"));
+            }
+        }
+        pathInfoList.push_back(pathInfo);
     }
 }
 
@@ -315,10 +339,11 @@ uint32_t DirectoryTreeImpl::GetMyComputerIconID() const
     return GlobalManager::Instance().Icon().AddIcon(_T("file='public/filesystem/computer.svg' width='16' height='16' valign='center'"));
 }
 
-void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& weakFlag,
+void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& /*weakFlag*/,
                                         bool bLargeIcon,
                                         std::vector<DirectoryTree::DiskInfo>& diskInfoList)
 {
+#ifndef DUILIB_BUILD_FOR_WIN
     FILE* fp = ::fopen("/proc/mounts", "r");
     if (fp == nullptr) {
         return;
@@ -350,12 +375,12 @@ void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& weakFlag,
             continue;
         }
 
-        DString volumeType = _T("[Local Disk]");
+        DirectoryTree::DeviceType deviceType = DirectoryTree::DeviceType::UNKNOWN;
         if (strstr(device, "/dev/sr") || strstr(device, "/dev/cdrom")) {
-            volumeType = _T("[CD/DVD]");
+            deviceType = DirectoryTree::DeviceType::CDROM;
         }
         else if (strstr(device, "/dev/mapper") || strstr(device, "/dev/dm-")) {
-            volumeType = _T("[Virtual]");
+            deviceType = DirectoryTree::DeviceType::VIRT_DISK;
         }
 
         DirectoryTree::DiskInfo diskInfo;
@@ -365,7 +390,7 @@ void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& weakFlag,
         diskInfo.m_filePath = FilePath(StringConvert::UTF8ToT(mount_point));
 
         diskInfo.m_volumeName = diskInfo.m_displayName;
-        diskInfo.m_volumeType = volumeType;   //分区类型，如"本地磁盘"
+        diskInfo.m_deviceType = deviceType;
         diskInfo.m_mountOn = StringConvert::UTF8ToT(mount_point);
         diskInfo.m_fileSystem = StringConvert::UTF8ToT(fs_type);
         diskInfo.m_totalBytes = total;
@@ -375,6 +400,7 @@ void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& weakFlag,
     }
 
     ::fclose(fp);
+#endif
 }
 
 } //namespace ui

@@ -145,7 +145,7 @@ TreeNode* DirectoryTree::ShowVirtualDirectoryNode(VirtualDirectoryType type, con
     return InsertTreeNode(nullptr, folderName, bDisplayNameIsID, filePath, true, false, nIconID, false);
 }
 
-TreeNode* DirectoryTree::ShowAllDiskNodes(const DString& computerName)
+TreeNode* DirectoryTree::ShowAllDiskNodes(const DString& computerName, const DString& fileSystemName)
 {
     //基本结构:
     //  -计算机
@@ -157,14 +157,24 @@ TreeNode* DirectoryTree::ShowAllDiskNodes(const DString& computerName)
     TreeNode* pFirstNode = pMyComputerNode; //返回计算机节点
     std::vector<DirectoryTree::PathInfo> pathInfoList;
     m_impl->GetRootPathInfoList(false, pathInfoList);
+    bool bFirstNode = true;
     for (const DirectoryTree::PathInfo& pathInfo : pathInfoList) {
-        if (!pathInfo.m_filePath.IsEmpty()) {
-            TreeNode* pNewNode = InsertTreeNode(pMyComputerNode, pathInfo.m_displayName, false,
-                                                pathInfo.m_filePath, pathInfo.m_bFolder, false,
-                                                pathInfo.m_nIconID, pathInfo.m_bIconShared);
-            if (pFirstNode == nullptr) {
-                pFirstNode = pNewNode;
-            }
+        if (pathInfo.m_filePath.IsEmpty()) {
+            continue;
+        }
+        DString displayName = pathInfo.m_displayName;
+#ifndef DUILIB_BUILD_FOR_WIN
+        if (bFirstNode && (displayName == _T("/")) && !fileSystemName.empty()) {
+            //替换为文件系统
+            bFirstNode = false;
+            displayName = fileSystemName;
+        }
+#endif
+        TreeNode* pNewNode = InsertTreeNode(pMyComputerNode, displayName, false,
+                                            pathInfo.m_filePath, pathInfo.m_bFolder, false,
+                                            pathInfo.m_nIconID, pathInfo.m_bIconShared);
+        if (pFirstNode == nullptr) {
+            pFirstNode = pNewNode;
         }
     }
     return pFirstNode;

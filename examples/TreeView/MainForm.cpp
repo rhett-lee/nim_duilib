@@ -110,15 +110,15 @@ void MainForm::OnInitWindow()
     m_pTree->ShowVirtualDirectoryNode(ui::VirtualDirectoryType::kDownloads, _T("下载"));
 
     //显示磁盘
-    ui::TreeNode* pFirstDiskNode = m_pTree->ShowAllDiskNodes(_T("计算机"));
-    if (pFirstDiskNode != nullptr) {
+    ui::TreeNode* pComputerNode = m_pTree->ShowAllDiskNodes(_T("计算机"), _T("文件系统"));
+    if (pComputerNode != nullptr) {
         //在磁盘前面，放一个横线分隔符
-        m_pTree->InsertLineBeforeNode(pFirstDiskNode);
+        m_pTree->InsertLineBeforeNode(pComputerNode);
     }
 
-    //初始启动时，默认选择文档
-    if (pDocumentsNode != nullptr) {
-        m_pTree->SelectTreeNode(pDocumentsNode);
+    //初始启动时，默认"计算机"视图
+    if (pComputerNode != nullptr) {
+        m_pTree->SelectTreeNode(pComputerNode);
     }
 }
 
@@ -420,7 +420,7 @@ void MainForm::InitializeComputerViewHeader()
     columnInfo.nColumnWidth = 200;
     m_pComputerListCtrl->InsertColumn(-1, columnInfo);
 
-    columnInfo.text = _T("磁盘类型");
+    columnInfo.text = _T("设备类型");
     columnInfo.nColumnWidth = 120;
     m_pComputerListCtrl->InsertColumn(-1, columnInfo);
 
@@ -498,8 +498,8 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
             ui::ListCtrlSubItemData subItemData;
             subItemData.nTextFormat = ui::DrawStringFormat::TEXT_CENTER | ui::DrawStringFormat::TEXT_VCENTER;
 
-            subItemData.text = diskInfo.m_volumeType;
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, 1, subItemData); //磁盘类型
+            subItemData.text = GetDeviceTypeString(diskInfo.m_deviceType);
+            m_pComputerListCtrl->SetSubItemData(nItemIndex, 1, subItemData); //设备类型
 
             subItemData.text = diskInfo.m_fileSystem;
             m_pComputerListCtrl->SetSubItemData(nItemIndex, 2, subItemData); //分区类型
@@ -520,6 +520,48 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
     }
 #endif
 }
+
+#ifndef DUILIB_BUILD_FOR_WIN
+DString MainForm::GetDeviceTypeString(ui::DirectoryTree::DeviceType deviceType) const
+{
+    DString deviceTypeString = _T("未知");
+    switch (deviceType) {
+    case ui::DirectoryTree::DeviceType::HDD:
+        deviceTypeString = _T("机械硬盘");
+        break;
+    case ui::DirectoryTree::DeviceType::SSD:
+        deviceTypeString = _T("SATA固态硬盘");
+        break;
+    case ui::DirectoryTree::DeviceType::NVME:
+        deviceTypeString = _T("NVMe固态硬盘");
+        break;
+    case ui::DirectoryTree::DeviceType::USB:
+        deviceTypeString = _T("USB存储");
+        break;
+    case ui::DirectoryTree::DeviceType::SD_CARD:
+        deviceTypeString = _T("SD卡");
+        break;
+    case ui::DirectoryTree::DeviceType::CDROM:
+        deviceTypeString = _T("CDROM/DVDROM");
+        break;
+    case ui::DirectoryTree::DeviceType::LOOP:
+        deviceTypeString = _T("LOOP虚拟存储");
+        break;
+    case ui::DirectoryTree::DeviceType::VIRT_DISK:
+        deviceTypeString = _T("虚拟存储");
+        break;
+    case ui::DirectoryTree::DeviceType::RAMDISK:
+        deviceTypeString = _T("内存盘");
+        break;
+    case ui::DirectoryTree::DeviceType::NFS:
+        deviceTypeString = _T("NFS");
+        break;
+    default:
+        break;
+    }
+    return deviceTypeString;
+}
+#endif
 
 DString MainForm::FormatDiskSpace(uint64_t nSpace) const
 {

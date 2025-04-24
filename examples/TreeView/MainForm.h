@@ -104,6 +104,12 @@ private:
     */
     void ClearDiskInfoList(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList) const;
 
+#ifndef DUILIB_BUILD_FOR_WIN
+    /** 设备类型转换为字符串
+    */
+    DString GetDeviceTypeString(ui::DirectoryTree::DeviceType deviceType) const;
+#endif
+
 private:
     /** 视图类型
     */

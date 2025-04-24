@@ -65,6 +65,25 @@ public:
     };
 #else
     //其他平台
+    /** 设备类型枚举
+    */
+    enum class DeviceType
+    {
+        UNKNOWN,    // 未知设备
+        HDD,        // 机械硬盘 (如/dev/sdX)
+        SSD,        // SATA固态硬盘
+        NVME,       // NVMe协议固态硬盘 (如/dev/nvmeXn1)
+        USB,        // USB存储设备
+        SD_CARD,    // SD卡
+        CDROM,      // CDROM DVDROM
+        LOOP,       // LOOP 虚拟设备
+        VIRT_DISK,  // 虚拟设备
+        RAMDISK,    // 内存盘 (如/dev/ramX)
+        NFS
+    };
+
+    /** 磁盘属性信息
+    */
     struct DiskInfo
     {
         DString m_displayName;      //显示名称
@@ -73,7 +92,7 @@ public:
         FilePath m_filePath;        //对应的路径
 
         DString m_volumeName;   //文件系统，如"/dev/sda2"
-        DString m_volumeType;   //分区类型，如"本地磁盘"
+        DeviceType m_deviceType = DeviceType::UNKNOWN;   //设备类型，参见枚举值
         DString m_fileSystem;   //文件系统类型，如"ext3"
         DString m_mountOn;      //挂载点，如"/"
 
@@ -112,8 +131,9 @@ public:
 
     /** 显示所有磁盘节点, 返回第一个新节点接口(同步完成)
     * @param [in] computerName 计算机节点的显示名称
+    * @param [in] fileSystemName 文件系统的显示名称
     */
-    TreeNode* ShowAllDiskNodes(const DString& computerName);
+    TreeNode* ShowAllDiskNodes(const DString& computerName, const DString& fileSystemName);
 
     /** 在指定的节点前插入一个横向分割线(同步完成)
     * @param [in] pNode 节点接口
