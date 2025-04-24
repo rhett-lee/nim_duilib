@@ -522,7 +522,8 @@ TreeNode 控件继承了 `ListBoxItem` 属性，更多可用属性请参考`List
 ## DirectoryTree的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
 | :--- | :--- | :--- | :--- |
-| icon_size | 16 | int | 树节点的图标大小，默认行高是20，所以最大可设置为20 |
+| small_icon_size | 16 | int | 树节点的图标大小 |
+| large_icon_size | 32 | int | 大图标大小，用于展示目录里面的内容，树节点本身未使用该属性 |
 | show_hiden_files | false | bool | 是否显示隐藏文件 |
 | show_system_files | false | bool | 是否显示系统文件 |
 

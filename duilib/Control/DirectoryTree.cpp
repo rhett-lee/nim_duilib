@@ -12,7 +12,12 @@ namespace ui
 DirectoryTree::DirectoryTree(Window* pWindow):
     TreeView(pWindow),
     m_nThreadIdentifier(ui::kThreadWorker),
-    m_nIconSize(16),
+#ifdef DUILIB_BUILD_FOR_WIN
+    m_nSmallIconSize(16),
+#else
+    m_nSmallIconSize(20),
+#endif
+    m_nLargeIconSize(32),
     m_folderKey(0),
     m_bShowHidenFiles(false),
     m_bShowSystemFiles(false),
@@ -52,8 +57,11 @@ DString DirectoryTree::GetType() const { return DUI_CTR_DIRECTORY_TREE; }
 void DirectoryTree::SetAttribute(const DString& strName, const DString& strValue)
 {
     //支持的属性列表: 基类实现的直接转发
-    if (strName == _T("icon_size")) {
-        SetIconSize(StringUtil::StringToInt32(strValue));
+    if (strName == _T("small_icon_size")) {
+        SetSmallIconSize(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("large_icon_size")) {
+        SetLargeIconSize(StringUtil::StringToInt32(strValue));
     }
     else if (strName == _T("show_hiden_files")) {
         SetShowHidenFiles(strValue == _T("true"));
@@ -66,17 +74,34 @@ void DirectoryTree::SetAttribute(const DString& strName, const DString& strValue
     }
 }
 
-void DirectoryTree::SetIconSize(int32_t nIconSize)
+void DirectoryTree::SetSmallIconSize(int32_t nIconSize)
 {
     if (nIconSize < 1) {
+#ifdef DUILIB_BUILD_FOR_WIN
         nIconSize = 16;
+#else
+        nIconSize = 20;
+#endif
     }
-    m_nIconSize = nIconSize;
+    m_nSmallIconSize = nIconSize;
 }
 
-int32_t DirectoryTree::GetIconSize() const
+int32_t DirectoryTree::GetSmallIconSize() const
 {
-    return m_nIconSize;
+    return m_nSmallIconSize;
+}
+
+void DirectoryTree::SetLargeIconSize(int32_t nIconSize)
+{
+    if (nIconSize < 1) {
+        nIconSize = 32;
+    }
+    m_nLargeIconSize = nIconSize;
+}
+
+int32_t DirectoryTree::GetLargeIconSize() const
+{
+    return m_nLargeIconSize;
 }
 
 void DirectoryTree::SetShowHidenFiles(bool bShowHidenFiles)
@@ -240,7 +265,7 @@ TreeNode* DirectoryTree::InsertTreeNode(TreeNode* pParentTreeNode,
         node->SetDataID(TREE_NODE_MYCOMPUTER);
     }
 
-    node->SetBkIconID(nIconID, m_nIconSize, true);//设置树节点的关联图标(图标大小与CheckBox的原图大小相同，都是16*16)
+    node->SetBkIconID(nIconID, GetSmallIconSize(), true);//设置树节点的关联图标(图标大小与CheckBox的原图大小相同)
     
 
     if (isFolder) {

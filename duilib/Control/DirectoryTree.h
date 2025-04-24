@@ -228,13 +228,21 @@ public:
     void SetRefreshFinishCallback(StdClosure finishCallback);
 
 public:
-    /** 设置图标大小（图标大小默认16*16，最大值为20，因为树节点的高度默认设置的是20），仅对新添加的节点有效
+    /** 设置小图标大小，仅对新添加的节点有效
     */
-    void SetIconSize(int32_t nIconSize);
+    void SetSmallIconSize(int32_t nIconSize);
 
-    /** 获取图标大小(宽度和高度相同)
+    /** 获取小图标大小(宽度和高度相同)
     */
-    int32_t GetIconSize() const;
+    int32_t GetSmallIconSize() const;
+
+    /** 设置大图标大小，仅对新添加的节点有效
+    */
+    void SetLargeIconSize(int32_t nIconSize);
+
+    /** 获取大图标大小(宽度和高度相同)
+    */
+    int32_t GetLargeIconSize() const;
 
     /** 设置是否显示隐藏文件
     */
@@ -418,9 +426,13 @@ private:
     */
     int32_t m_nThreadIdentifier;
 
-    /** 图标大小
+    /** 小图标的大小
     */
-    int32_t m_nIconSize;
+    int32_t m_nSmallIconSize;
+
+    /** 大图标的大小
+    */
+    int32_t m_nLargeIconSize;
 
     /** 是否显示隐藏文件
     */

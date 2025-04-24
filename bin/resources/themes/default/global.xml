@@ -325,7 +325,7 @@
                                fadehot="false"/>
     <!--TreeView通用样式-->
     <Class name="tree_view" bkcolor="bk_wnd_lightcolor" vscrollbar="true"/>
-    <Class name="tree_node" height="20" hot_color="bk_listitem_hovered" 
+    <Class name="tree_node" height="28" hot_color="bk_listitem_hovered" 
                                         pushed_color="bk_listitem_selected" 
                                         selected_normal_color="bk_listitem_selected" 
                                         icon_image_right_space="4" 
