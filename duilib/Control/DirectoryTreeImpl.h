@@ -46,7 +46,7 @@ public:
                            std::vector<DirectoryTree::PathInfo>& folderList,
                            std::vector<DirectoryTree::PathInfo>* fileList);
 
-    /** 获取指定路径下的子目录和文件列表
+    /** 获取"计算机"中的磁盘列表（Windows平台获取驱动器列表，其他平台获取Mount的节点列表）
     * @param [in] weakFlag 取消标记，关联的控件已经失效则表示操作已经取消
     * @param [in] bLargeIcon 是否为大图标，大图标为32*32，小图标为16*16
     * @param [out] diskInfoList 返回磁盘列表

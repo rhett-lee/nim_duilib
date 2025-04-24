@@ -135,6 +135,9 @@ void MainForm::Refresh()
 
 void MainForm::SetShowTreeNode(ui::TreeNode* pTreeNode)
 {
+    if (!m_pTree->IsValidTreeNode(pTreeNode)) {
+        return;
+    }
     if (m_bCanAddBackForward && m_pTree->IsValidTreeNode(m_pTreeNode)) {
         m_backStack.push(m_pTreeNode);
         m_forwardStack = std::stack<ui::TreeNode*>();
@@ -146,8 +149,14 @@ void MainForm::SetShowTreeNode(ui::TreeNode* pTreeNode)
         while (p != nullptr) {
             m_parentTreeNodes.push_back(p);
             p = p->GetParentNode();
+            if (p == m_pTree->GetRootNode()) {
+                break;
+            }
         }
     }
+    if (!m_parentTreeNodes.empty()) {
+        std::reverse(m_parentTreeNodes.begin(), m_parentTreeNodes.end());
+    }    
     m_bCanAddBackForward = true;
 }
 
@@ -295,10 +304,16 @@ void MainForm::OnRefresh()
         for (int32_t nIndex = nCount - 1; nIndex >= 0; --nIndex) {
             ui::TreeNode* pParentTreeNode = m_parentTreeNodes[nIndex];
             if (m_pTree->IsValidTreeNode(pParentTreeNode)) {
-                ui::FilePath filePath = m_pTree->FindTreeNodePath(pParentTreeNode);
-                if (filePath.IsExistsDirectory()) {
+                if (m_pTree->IsMyComputerNode(pParentTreeNode)) {
                     pTreeNode = pParentTreeNode;
                     break;
+                }
+                else {
+                    ui::FilePath filePath = m_pTree->FindTreeNodePath(pParentTreeNode);
+                    if (filePath.IsExistsDirectory()) {
+                        pTreeNode = pParentTreeNode;
+                        break;
+                    }
                 }
             }
         }

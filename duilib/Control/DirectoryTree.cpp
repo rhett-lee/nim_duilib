@@ -157,7 +157,10 @@ TreeNode* DirectoryTree::ShowAllDiskNodes(const DString& computerName, const DSt
     TreeNode* pFirstNode = pMyComputerNode; //返回计算机节点
     std::vector<DirectoryTree::PathInfo> pathInfoList;
     m_impl->GetRootPathInfoList(false, pathInfoList);
+    UNUSED_VARIABLE(fileSystemName);
+#ifndef DUILIB_BUILD_FOR_WIN
     bool bFirstNode = true;
+#endif
     for (const DirectoryTree::PathInfo& pathInfo : pathInfoList) {
         if (pathInfo.m_filePath.IsEmpty()) {
             continue;
@@ -980,7 +983,40 @@ void DirectoryTree::RefreshPathInfo(std::vector<std::shared_ptr<RefreshNodeData>
         }
 
         if (IsMyComputerNode(pNodeData->m_pTreeNode)) {
-            //"计算机"节点，不检查
+            //"计算机"节点，检查磁盘列表是否有变化（仅需要检测新增）
+            std::vector<DirectoryTree::PathInfo> pathInfoList;
+            m_impl->GetRootPathInfoList(false, pathInfoList);
+
+            std::vector<DString> oldPathList;
+            std::vector<TreeNode*> childNodes;
+            pNodeData->m_pTreeNode->GetChildNodes(childNodes);
+            for (TreeNode* pChildNode : childNodes) {
+                FolderStatus* pChildFolder = GetFolderData(pChildNode);
+                if (pChildFolder != nullptr) {
+                    oldPathList.push_back(pChildFolder->m_filePath.c_str());
+                }
+            }
+            
+            auto iter = pathInfoList.begin();
+            while (iter != pathInfoList.end()) {
+                bool bFound = false;
+                for (const DString& oldPath : oldPathList) {
+                    if (IsSamePath(oldPath.c_str(), iter->m_filePath.ToString().c_str())) {
+                        bFound = true;
+                        break;
+                    }
+                }
+                if (bFound) {
+                    //找到，不是新增
+                    ++iter;
+                }
+                else {
+                    //未找到，是新增
+                    pNodeData->m_newFolderList.push_back(*iter);
+                    iter = pathInfoList.erase(iter);
+                }
+            }
+            ClearPathInfoList(pathInfoList);
             continue;
         }
 
