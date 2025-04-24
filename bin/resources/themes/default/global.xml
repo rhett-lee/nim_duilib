@@ -463,13 +463,15 @@
                              pushed_text_color="mouse_down_link_font_color"/>
     
     <!--ListCtrl控件列表项通用样式-->
+    <!--ListCtrlHeader的样式-->
     <Class name="list_ctrl_header" icon_spacing="4" bkcolor="Cornsilk" width="100%"/>
-    <Class name="list_ctrl_header_item" height="100%" text_align="vcenter,hcenter" hot_color="#FFE5F3FF" pushed_color="#FFD9EEFF"            
+    <Class name="list_ctrl_header_item" height="100%" text_align="vcenter,hcenter" text_padding="2,0,2,0" hot_color="#FFE5F3FF" pushed_color="#FFD9EEFF"            
                                         show_icon_at_top="true" icon_spacing="6"
                                         sorted_up_image="file='../public/listctrl/arrow-sorted-up.svg' width='10' height='10' valign='center' halign='left'" 
                                         sorted_down_image="file='../public/listctrl/arrow-sorted-down.svg' width='10' height='10' valign='center' halign='left'"/>
     <Class name="list_ctrl_header_split_box" width="3" height="100%" enable_split_single="true"/>
     <Class name="list_ctrl_header_split_control" width="1" height="100%" margin="2,4,0,2" bkcolor="splitline_level1"/>
+    <!--ListCtrl中的CheckBox样式，应用于Header和ListCtrl数据-->
     <Class name="list_ctrl_checkbox" valign="center" halign="left"
                                      normal_image="file='../public/checkbox/check_no.png' padding='2,0,0,0' valign='center'" 
                                      disabled_image="file='../public/checkbox/check_no.png' padding='2,0,0,0' valign='center' fade='80'" 
@@ -477,13 +479,15 @@
                                      selected_disabled_image="file='../public/checkbox/check_yes.png' padding='2,0,0,0' valign='center' fade='80'" 
                                      part_selected_normal_image="file='../public/checkbox/part_check.png' padding='2,0,0,0' valign='center'" 
                                      part_selected_disabled_image="file='../public/checkbox/part_check.png' padding='2,0,0,0' valign='center' fade='80'"/>
+    <!--ListCtrl中的ReportView的样式-->
     <Class name="list_ctrl_report_view" bkcolor="white" vscrollbar="true" hscrollbar="true" width="100%" padding="0,0,0,0"
                                       child_margin_y="0" paint_selected_colors="true"
                                       enable_frame_selection="true" 
                                       frame_selection_color="#FFAACCEE" frame_selection_alpha="128" 
                                       frame_selection_border="1" frame_selection_border_color="#FF0078D7"/>
     <Class name="list_ctrl_item" icon_spacing="4" hot_color="Wheat" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
-    <Class name="list_ctrl_sub_item" icon_spacing="2" auto_tooltip="true" single_line="true"/>    
+    <Class name="list_ctrl_sub_item" icon_spacing="2" text_align="vcenter,left" text_padding="2,0,2,0" auto_tooltip="true" single_line="true"/>    
+    <!--ListCtrl中的IconView的样式-->
     <Class name="list_ctrl_icon_view" bkcolor="white" vscrollbar="true" hscrollbar="true" width="100%" padding="0,0,0,0" paint_selected_colors="true"
                                       horizontal_layout="false" item_size="100,120" columns="auto" child_margin_x="8" child_margin_y="8"
                                       enable_frame_selection="true" 
@@ -492,6 +496,7 @@
     <Class name="list_ctrl_icon_view_item" hot_color="Wheat" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
     <Class name="list_ctrl_icon_view_item_image" halign="center" margin="2,4,2,2"/>
     <Class name="list_ctrl_icon_view_item_label" width="100%" height="100%" text_align="hcenter,vcenter" single_line="false" auto_tooltip="true"/>
+    <!--ListCtrl中的ListView的样式-->
     <Class name="list_ctrl_list_view" bkcolor="white" vscrollbar="true" hscrollbar="true" height="100%" padding="0,0,0,0" paint_selected_colors="true"
                                       horizontal_layout="true" item_size="240,36" rows="auto" child_margin_x="8" child_margin_y="8"
                                       enable_frame_selection="true" 
@@ -500,6 +505,7 @@
     <Class name="list_ctrl_list_view_item" hot_color="Wheat" pushed_color="#FFD9EEFF" selected_normal_color="#FFCCE8FF"/>
     <Class name="list_ctrl_list_view_item_image" valign="center" margin="8,2,2,2"/>
     <Class name="list_ctrl_list_view_item_label" width="100%" height="100%" text_align="vcenter,left" single_line="true" auto_tooltip="true"/>
+    <!--ListCtrl中的Item编辑框的样式-->
     <Class name="list_ctrl_richedit" text_align="left,vcenter" min_height="28" multi_line="false" word_wrap="true" auto_hscroll="true" 
                                      want_return="true" want_tab="false" rich_text="false" 
                                      text_padding="2,2,2,2" padding="1,1,1,1" border_size="1" 

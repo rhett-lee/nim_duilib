@@ -497,7 +497,7 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
             m_pComputerListCtrl->SetSubItemData(nItemIndex, 5, subItemData); //已用百分比
 
             subItemData.text = diskInfo.m_mountOn;
-            itemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
+            subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
             m_pComputerListCtrl->SetSubItemData(nItemIndex, 6, subItemData); //挂载点
         }
     }
