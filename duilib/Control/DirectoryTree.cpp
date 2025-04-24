@@ -1001,7 +1001,9 @@ void DirectoryTree::RefreshPathInfo(std::vector<std::shared_ptr<RefreshNodeData>
             while (iter != pathInfoList.end()) {
                 bool bFound = false;
                 for (const DString& oldPath : oldPathList) {
-                    if (IsSamePath(oldPath.c_str(), iter->m_filePath.ToString().c_str())) {
+                    FilePath checkPath = iter->m_filePath;
+                    checkPath.NormalizeDirectoryPath();
+                    if (IsSamePath(oldPath.c_str(), checkPath.ToString().c_str())) {
                         bFound = true;
                         break;
                     }
