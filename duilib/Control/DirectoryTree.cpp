@@ -578,9 +578,11 @@ bool DirectoryTree::SelectSubPath(TreeNode* pTreeNode, FilePath subPath, StdClos
     if (pFolderStatus == nullptr) {
         return false;
     }
-    if (!subPath.IsSubDirectory(FilePath(pFolderStatus->m_filePath.c_str()))) {
-        //路径与树节点不是父子目录关系
-        return false;
+    if (!IsMyComputerNode(pTreeNode)) {
+        if (!subPath.IsSubDirectory(FilePath(pFolderStatus->m_filePath.c_str()))) {
+            //路径与树节点不是父子目录关系
+            return false;
+        }
     }
 
     pFolderStatus = nullptr;

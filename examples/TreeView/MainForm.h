@@ -96,6 +96,14 @@ private:
     */
     DString FormatUsedPercent(uint64_t nTotalSpace, uint64_t nFreeSpace) const;
 
+    /** 在"计算机"视图中双击
+    */
+    bool OnComuterViewDoubleClick(const ui::EventArgs& msg);
+
+    /** 清空列表，释放资源
+    */
+    void ClearDiskInfoList(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList) const;
+
 private:
     /** 视图类型
     */
@@ -120,6 +128,10 @@ private:
     ui::TabBox* m_pTabBox;
 
 private:
+    /** 计算机视图的数据
+    */
+    std::vector<ui::DirectoryTree::DiskInfo> m_diskInfoList;
+
     /** 计算机视图的接口
     */
     ui::ListCtrl* m_pComputerListCtrl;

@@ -18,6 +18,8 @@ MainForm::MainForm():
 
 MainForm::~MainForm()
 {
+    ClearDiskInfoList(m_diskInfoList);
+    m_diskInfoList.clear();
 }
 
 DString MainForm::GetSkinFolder()
@@ -43,7 +45,10 @@ void MainForm::OnInitWindow()
     }
     m_pTabBox = dynamic_cast<ui::TabBox*>(FindControl(_T("main_view_tab_box")));
     m_pComputerListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("computer_view")));
-    InitializeComputerViewHeader();    
+    InitializeComputerViewHeader();
+    if (m_pComputerListCtrl != nullptr) {
+        m_pComputerListCtrl->AttachDoubleClick(UiBind(&MainForm::OnComuterViewDoubleClick, this, std::placeholders::_1));
+    }
     m_pListBox = dynamic_cast<ui::VirtualListBox*>(FindControl(_T("file_view")));
     ASSERT(m_pListBox != nullptr);
     if (m_pListBox != nullptr) {
@@ -194,9 +199,11 @@ void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
         m_pTabBox->SelectItem((size_t)FormViewType::kComputerView);
     }
     if ((pTreeNode == nullptr) || (m_pTree == nullptr)) {
+        ClearDiskInfoList(diskInfoList);
         return;
     }
     if (!m_pTree->IsValidTreeNode(pTreeNode)) {
+        ClearDiskInfoList(diskInfoList);
         return;
     }
     if (m_pAddressBar != nullptr) {
@@ -441,17 +448,23 @@ void MainForm::InitializeComputerViewHeader()
 
 void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList)
 {
-    if ((m_pComputerListCtrl == nullptr) || diskInfoList.empty()){
+    ClearDiskInfoList(m_diskInfoList);
+    m_diskInfoList = diskInfoList;
+    if ((m_pComputerListCtrl == nullptr)){
         return;
     }
     m_pComputerListCtrl->DeleteAllDataItems();
-#ifdef DUILIB_BUILD_FOR_WIN    
-    for (const ui::DirectoryTree::DiskInfo& diskInfo : diskInfoList) {
+#ifdef DUILIB_BUILD_FOR_WIN
+    for (size_t nIndex = 0; nIndex < diskInfoList.size(); ++nIndex) {
+        const ui::DirectoryTree::DiskInfo& diskInfo = diskInfoList[nIndex];
         ui::ListCtrlSubItemData itemData;
         itemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
         itemData.text = diskInfo.m_displayName;
         size_t nItemIndex = m_pComputerListCtrl->AddDataItem(itemData);
         if (ui::Box::IsValidItemIndex(nItemIndex)) {
+            //记录关联关系
+            m_pComputerListCtrl->SetDataItemUserData(nItemIndex, nIndex);
+
             ui::ListCtrlSubItemData subItemData;
             subItemData.nTextFormat = ui::DrawStringFormat::TEXT_CENTER | ui::DrawStringFormat::TEXT_VCENTER;
 
@@ -472,12 +485,16 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
         }
     }
 #else
-    for (const ui::DirectoryTree::DiskInfo& diskInfo : diskInfoList) {
+    for (size_t nIndex = 0; nIndex < diskInfoList.size(); ++nIndex) {
+        const ui::DirectoryTree::DiskInfo& diskInfo = diskInfoList[nIndex];
         ui::ListCtrlSubItemData itemData;
         itemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
         itemData.text = diskInfo.m_displayName;
         size_t nItemIndex = m_pComputerListCtrl->AddDataItem(itemData);
         if (ui::Box::IsValidItemIndex(nItemIndex)) {
+            //记录关联关系
+            m_pComputerListCtrl->SetDataItemUserData(nItemIndex, nIndex);
+
             ui::ListCtrlSubItemData subItemData;
             subItemData.nTextFormat = ui::DrawStringFormat::TEXT_CENTER | ui::DrawStringFormat::TEXT_VCENTER;
 
@@ -540,4 +557,29 @@ DString MainForm::FormatUsedPercent(uint64_t nTotalSpace, uint64_t nFreeSpace) c
         value = ui::StringUtil::Printf(_T("%.01lf%%"), fPercent * 100);
     }
     return value;
+}
+
+bool MainForm::OnComuterViewDoubleClick(const ui::EventArgs& msg)
+{
+    if ((m_pComputerListCtrl != nullptr) && (msg.wParam != 0) && (m_pTree != nullptr) && (m_pTreeNode != nullptr)) {
+        size_t nItemIndex = msg.lParam;
+        size_t nIndex = m_pComputerListCtrl->GetDataItemUserData(nItemIndex);
+        if (nIndex < m_diskInfoList.size()) {
+            const ui::DirectoryTree::DiskInfo& diskInfo = m_diskInfoList[nIndex];
+            if (!diskInfo.m_filePath.IsEmpty() && diskInfo.m_filePath.IsExistsDirectory() && m_pTree->IsMyComputerNode(m_pTreeNode)) {
+                //进入所选的目录
+                m_pTree->SelectSubPath(m_pTreeNode, diskInfo.m_filePath, nullptr);
+            }
+        }
+    }
+    return true;
+}
+
+void MainForm::ClearDiskInfoList(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList) const
+{
+    for (const ui::DirectoryTree::DiskInfo& diskInfo : diskInfoList) {
+        if (!diskInfo.m_bIconShared) {
+            ui::GlobalManager::Instance().Icon().RemoveIcon(diskInfo.m_nIconID);
+        }
+    }
 }
