@@ -633,6 +633,13 @@ public:
     void SetEnableColumnWidthAuto(bool bEnable);
     bool IsEnableColumnWidthAuto() const;
 
+    /** 获取当前排序列的ID和排序方式
+    * @param [out] nSortColumnId 排序列的ID
+    * @param [out] bSortUp 当前排序是否为升序排列，true表示升序，false表示降序
+    * @return true表示有排序列，false表示无排序列
+    */
+    bool GetSortColumn(size_t& nSortColumnId, bool& bSortUp) const;
+
 public:
     /** 监听选择子项的事件
      * @param[in] callback 选择子项时的回调函数
@@ -901,10 +908,6 @@ private:
     void ClearEditEvents();
 
 private:
-    /** 表格类型（默认为Report类型）
-    */
-    ListCtrlType m_listCtrlType;
-
     /** 表头控件
     */
     ListCtrlHeader* m_pHeaderCtrl;
@@ -944,10 +947,6 @@ private:
     /** CheckBox的Class
     */
     UiString m_checkBoxClass;
-
-    /** 是否支持拖动改变列的顺序
-    */
-    bool m_bEnableHeaderDragOrder;
 
     /** ListCtrlItem的Class属性
     */
@@ -997,17 +996,41 @@ private:
     */
     UiString m_listCtrlRichEditClass;
 
+    /** 图片列表
+    */
+    ImageList* m_imageList[3];
+
+    /** 编辑框控件
+    */
+    RichEdit* m_pRichEdit;
+
     /** 表头的高度
     */
     int32_t m_nHeaderHeight;
 
-    /** 是否显示表头控件
-    */
-    bool m_bShowHeaderCtrl;
-
     /** 数据项的高度
     */
     int32_t m_nItemHeight;
+
+    /** 当前排序列的ID
+    */
+    size_t m_nSortedColumnId;
+
+    /** 当前排序是否为升序排列
+    */
+    bool m_bSortedUp;
+
+    /** 表格类型（默认为Report类型）
+    */
+    ListCtrlType m_listCtrlType;
+
+    /** 是否支持拖动改变列的顺序
+    */
+    bool m_bEnableHeaderDragOrder;
+
+    /** 是否显示表头控件
+    */
+    bool m_bShowHeaderCtrl;
 
     /** 是否允许刷新界面
     */
@@ -1032,14 +1055,6 @@ private:
     /** 是否显示数据项的CheckBox（行级）
     */
     bool m_bDataItemShowCheckBox;
-
-    /** 图片列表
-    */
-    ImageList* m_imageList[3];
-
-    /** 编辑框控件
-    */
-    RichEdit* m_pRichEdit;
 
     /** 是否支持子项编辑
     */

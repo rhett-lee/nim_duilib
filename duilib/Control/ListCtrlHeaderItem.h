@@ -71,6 +71,15 @@ public:
     */
     void SetSortedUpImage(const DString& sImageString);
 
+    /** 设置是否显示排序图标（所有HeaderItem中，只有排序的那列显示，其他列不显示）
+    * @param [in] bShowSortImage 是否显示排序图标
+    */
+    void SetShowSortImage(bool bShowSortImage);
+
+    /** 获取是否显示排序图标
+    */
+    bool IsShowSortImage() const;
+
     /** 获取唯一ID
     */
     size_t GetColomnId() const;
@@ -243,13 +252,13 @@ private:
     */
     int32_t m_nColumnWidth;
 
-    /** 文字与图标之间的间隔(图标显示在文字的右侧或者左侧时)
-    */
-    int32_t m_nIconSpacing;
-
     /** 关联图标Id, 如果为-1表示不显示图标，图标显示在文本前面
     */
     int32_t m_imageId;
+
+    /** 文字与图标之间的间隔(图标显示在文字的右侧或者左侧时)
+    */
+    int16_t m_nIconSpacing;
 
     /** 排序方式
     */
@@ -266,6 +275,10 @@ private:
     /** 显示/隐藏该列
     */
     bool m_bColumnVisible;
+
+    /** 是否显示排序图标（所有HeaderItem中，只有排序的那列显示，其他列不显示）
+    */
+    bool m_bShowSortImage;
 };
 
 }//namespace ui

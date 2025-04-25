@@ -17,7 +17,8 @@ ListCtrlHeaderItem::ListCtrlHeaderItem(Window* pWindow) :
     m_bColumnVisible(true),
     m_imageId(-1),
     m_pHeaderCtrl(nullptr),
-    m_nIconSpacing(0)
+    m_nIconSpacing(0),
+    m_bShowSortImage(false)
 {
     SetIconSpacing(6, true);
 }
@@ -112,13 +113,15 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
 
     //排序图标
     Image* pSortImage = nullptr;
-    if (m_sortMode == SortMode::kUp) {
-        //升序
-        pSortImage = m_pSortedUpImage;
-    }
-    else if (m_sortMode == SortMode::kDown) {
-        //降序
-        pSortImage = m_pSortedDownImage;
+    if (IsShowSortImage()) {
+        if (m_sortMode == SortMode::kUp) {
+            //升序
+            pSortImage = m_pSortedUpImage;
+        }
+        else if (m_sortMode == SortMode::kDown) {
+            //降序
+            pSortImage = m_pSortedDownImage;
+        }
     }
 
     std::shared_ptr<ImageInfo> pSortImageCache;
@@ -404,6 +407,19 @@ void ListCtrlHeaderItem::SetSortedUpImage(const DString& sImageString)
     Invalidate();
 }
 
+void ListCtrlHeaderItem::SetShowSortImage(bool bShowSortImage)
+{
+    if (m_bShowSortImage != bShowSortImage) {
+        m_bShowSortImage = bShowSortImage;
+        Invalidate();
+    }
+}
+
+bool ListCtrlHeaderItem::IsShowSortImage() const
+{
+    return m_bShowSortImage;
+}
+
 size_t ListCtrlHeaderItem::GetColomnId() const
 {
     return (size_t)this;
@@ -479,7 +495,7 @@ void ListCtrlHeaderItem::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale
         Dpi().ScaleInt(nIconSpacing);
     }
     if (m_nIconSpacing != nIconSpacing) {
-        m_nIconSpacing = nIconSpacing;
+        m_nIconSpacing = ui::TruncateToInt16(nIconSpacing);
         if (m_nIconSpacing < 0) {
             m_nIconSpacing = 0;
         }
