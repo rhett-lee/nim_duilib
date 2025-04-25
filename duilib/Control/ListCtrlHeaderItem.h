@@ -82,7 +82,7 @@ public:
 
     /** 获取唯一ID
     */
-    size_t GetColomnId() const;
+    size_t GetColumnId() const;
 
     /** 设置关联的Split控件接口
     */

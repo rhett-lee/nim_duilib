@@ -966,7 +966,7 @@ size_t ListCtrl::GetColumnId(size_t columnIndex) const
 {
     ListCtrlHeaderItem* pHeaderItem = GetColumn(columnIndex);
     if (pHeaderItem != nullptr) {
-        return pHeaderItem->GetColomnId();
+        return pHeaderItem->GetColumnId();
     }
     return Box::InvalidIndex;
 }
@@ -1307,7 +1307,7 @@ void ListCtrl::OnHeaderColumnSplitDoubleClick(ListCtrlHeaderItem* pHeaderItem)
     }
     //自动调整该列的宽度
     if (pHeaderItem != nullptr) {
-        size_t nColumnId = pHeaderItem->GetColomnId();
+        size_t nColumnId = pHeaderItem->GetColumnId();
         size_t nColumIndex = GetColumnIndex(nColumnId);
         if (nColumIndex < GetColumnCount()) {
             SetColumnWidthAuto(nColumIndex);
@@ -1327,7 +1327,7 @@ void ListCtrl::UpdateHeaderColumnCheckBox(size_t nColumnId)
         for (size_t columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
             ListCtrlHeaderItem* pHeaderItem = m_pHeaderCtrl->GetColumn(columnIndex);
             if ((pHeaderItem != nullptr) && (pHeaderItem->IsCheckBoxVisible())) {
-                columnIdList.push_back(pHeaderItem->GetColomnId());
+                columnIdList.push_back(pHeaderItem->GetColumnId());
             }
         }
     }

@@ -78,24 +78,24 @@ public:
     ListCtrlHeaderItem* GetColumn(size_t columnIndex) const;
 
     /** 获取列表头的控件接口
-    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColomnId()函数获取
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
     */
     ListCtrlHeaderItem* GetColumnById(size_t columnId) const;
 
     /** 获取列宽度和列索引序号
-    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColomnId()函数获取
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
     * @param [out] columnIndex 列的序号：[0, GetColumnCount())，代表第几列
     * @param [out] nColumnWidth 列的宽度值
     */
     bool GetColumnInfo(size_t columnId, size_t& columnIndex, int32_t& nColumnWidth) const;
 
     /** 判断列的ID是否有效
-    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColomnId()函数获取
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
     */
     bool IsValidColumnId(size_t columnId) const;
 
     /** 获取列的索引序号
-    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColomnId()函数获取
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
     * @return 列的序号：[0, GetColumnCount())，代表第几列
     */
     size_t GetColumnIndex(size_t columnId) const;

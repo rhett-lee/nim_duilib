@@ -109,7 +109,7 @@ void MainForm::OnInitWindow()
                 size_t nItem = pColumnCombo->AddTextItem(pHeaderItem->GetText());
                 ASSERT(nItem != ui::Box::InvalidIndex);
                 //保持列的ID
-                pColumnCombo->SetItemData(nItem, pHeaderItem->GetColomnId());
+                pColumnCombo->SetItemData(nItem, pHeaderItem->GetColumnId());
             }
         }
         //挂载事件
