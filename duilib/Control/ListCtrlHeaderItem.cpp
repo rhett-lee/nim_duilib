@@ -420,7 +420,7 @@ bool ListCtrlHeaderItem::IsShowSortImage() const
     return m_bShowSortImage;
 }
 
-size_t ListCtrlHeaderItem::GetColomnId() const
+size_t ListCtrlHeaderItem::GetColumnId() const
 {
     return (size_t)this;
 }
@@ -620,7 +620,7 @@ bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)
         pCheckBox->DetachEvent(kEventUnSelect);
         //同步数据
         if (pListCtrl != nullptr) {
-            pListCtrl->UpdateHeaderColumnCheckBox(GetColomnId());
+            pListCtrl->UpdateHeaderColumnCheckBox(GetColumnId());
         }
         pCheckBox = dynamic_cast<ListCtrlCheckBox*>(GetItemAt(0));
         if (pCheckBox != nullptr) {

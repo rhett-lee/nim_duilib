@@ -210,7 +210,7 @@ ListCtrlHeaderItem* ListCtrlHeader::InsertColumn(int32_t columnIndex, const List
         return true;
         });
 
-    m_pListCtrl->OnHeaderColumnAdded(pHeaderItem->GetColomnId());
+    m_pListCtrl->OnHeaderColumnAdded(pHeaderItem->GetColumnId());
     return pHeaderItem;
 }
 
@@ -284,7 +284,7 @@ ListCtrlHeaderItem* ListCtrlHeader::GetColumnById(size_t columnId) const
         ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(index * 2));
         ASSERT(pHeaderItem != nullptr);
         if (pHeaderItem != nullptr) {
-            if (pHeaderItem->GetColomnId() == columnId) {
+            if (pHeaderItem->GetColumnId() == columnId) {
                 pFoundHeaderItem = pHeaderItem;
                 break;
             }
@@ -303,7 +303,7 @@ bool ListCtrlHeader::GetColumnInfo(size_t columnId, size_t& columnIndex, int32_t
         ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(index * 2));
         ASSERT(pHeaderItem != nullptr);
         if (pHeaderItem != nullptr) {
-            if (pHeaderItem->GetColomnId() == columnId) {
+            if (pHeaderItem->GetColumnId() == columnId) {
                 nColumnWidth = pHeaderItem->GetColumnWidth();
                 columnIndex = index;
                 bRet = true;
@@ -337,7 +337,7 @@ size_t ListCtrlHeader::GetColumnId(size_t columnIndex) const
     size_t columnId = Box::InvalidIndex;
     ListCtrlHeaderItem* pHeaderItem = GetColumn(columnIndex);
     if (pHeaderItem != nullptr) {
-        columnId = pHeaderItem->GetColomnId();
+        columnId = pHeaderItem->GetColumnId();
     }
     return columnId;
 }
@@ -351,7 +351,7 @@ bool ListCtrlHeader::DeleteColumn(size_t columnIndex)
         ListCtrlHeaderItem* pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(columnIndex * 2));
         ASSERT(pHeaderItem != nullptr);
         if (pHeaderItem != nullptr) {
-            columnId = pHeaderItem->GetColomnId();
+            columnId = pHeaderItem->GetColumnId();
             if (pHeaderItem->GetSplitBox() != nullptr) {
                 ASSERT(dynamic_cast<SplitBox*>(GetItemAt(columnIndex * 2 + 1)) == pHeaderItem->GetSplitBox());
                 RemoveItem(pHeaderItem->GetSplitBox());
@@ -398,7 +398,7 @@ void ListCtrlHeader::OnHeaderColumnResized(Control* pLeftHeaderItem, Control* pR
         int32_t nItemWidth = pHeaderItem->GetFixedWidth().GetInt32();
         int32_t nColumnWidth = nItemWidth + nSplitWidth;
         pHeaderItem->SetColumnWidth(nColumnWidth, false);
-        nColumnId1 = pHeaderItem->GetColomnId();
+        nColumnId1 = pHeaderItem->GetColumnId();
     }
     pHeaderItem = dynamic_cast<ListCtrlHeaderItem*>(pRightHeaderItem);
     if (pHeaderItem != nullptr) {
@@ -409,7 +409,7 @@ void ListCtrlHeader::OnHeaderColumnResized(Control* pLeftHeaderItem, Control* pR
         int32_t nItemWidth = pHeaderItem->GetFixedWidth().GetInt32();
         int32_t nColumnWidth = nItemWidth + nSplitWidth;
         pHeaderItem->SetColumnWidth(nColumnWidth, false);
-        nColumnId2 = pHeaderItem->GetColomnId();
+        nColumnId2 = pHeaderItem->GetColumnId();
     } 
 
     if ((nColumnId1 != Box::InvalidIndex) || (nColumnId2 != Box::InvalidIndex)) {
@@ -424,7 +424,7 @@ void ListCtrlHeader::OnHeaderColumnSorted(ListCtrlHeaderItem* pHeaderItem)
     if (pHeaderItem == nullptr) {
         return;
     }
-    size_t nColumnId = pHeaderItem->GetColomnId();
+    size_t nColumnId = pHeaderItem->GetColumnId();
     ListCtrlHeaderItem::SortMode sortMode = pHeaderItem->GetSortMode();
     ASSERT(sortMode != ListCtrlHeaderItem::SortMode::kNone);
     if (sortMode == ListCtrlHeaderItem::SortMode::kNone) {
@@ -460,7 +460,7 @@ void ListCtrlHeader::OnHeaderColumnCheckStateChanged(ListCtrlHeaderItem* pHeader
     if (pHeaderItem == nullptr) {
         return;
     }
-    size_t nColumnId = pHeaderItem->GetColomnId();
+    size_t nColumnId = pHeaderItem->GetColumnId();
     if (m_pListCtrl != nullptr) {
         m_pListCtrl->OnHeaderColumnCheckStateChanged(nColumnId, bChecked);
     }
@@ -586,7 +586,7 @@ void ListCtrlHeader::SetSortColumnId(size_t columnId, bool bSortUp, bool bTrigge
     for (size_t nColumn = 0; nColumn < nColumnCount; ++nColumn) {
         ListCtrlHeaderItem* pHeaderItem = GetColumn(nColumn);
         if (pHeaderItem != nullptr) {
-            if (pHeaderItem->GetColomnId() == columnId) {
+            if (pHeaderItem->GetColumnId() == columnId) {
                 pHeaderItem->SetShowSortImage(true);
                 pHeaderItem->SetSortMode(bSortUp ? ListCtrlHeaderItem::SortMode::kUp : ListCtrlHeaderItem::SortMode::kDown, bTriggerEvent);
             }
