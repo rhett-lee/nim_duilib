@@ -46,7 +46,7 @@ public:
 public:
     /** 排序方式
     */
-    enum class SortMode
+    enum class SortMode: int8_t
     {
         kNone, //不支持排序
         kUp,   //升序
@@ -223,6 +223,10 @@ protected:
     virtual void SetVisible(bool bVisible) override;
 
 private:
+    /** 关联的Header接口
+    */
+    ListCtrlHeader* m_pHeaderCtrl;
+
     /** 排序图标：降序
     */
     Image* m_pSortedDownImage;
@@ -235,21 +239,25 @@ private:
     */
     SplitBox* m_pSplitBox;
 
-    /** 排序方式
-    */
-    SortMode m_sortMode;
-
     /** 列宽
     */
     int32_t m_nColumnWidth;
 
-    /** 是否允许改变列宽
-    */
-    bool m_bColumnResizeable;
-
     /** 文字与图标之间的间隔(图标显示在文字的右侧或者左侧时)
     */
     int32_t m_nIconSpacing;
+
+    /** 关联图标Id, 如果为-1表示不显示图标，图标显示在文本前面
+    */
+    int32_t m_imageId;
+
+    /** 排序方式
+    */
+    SortMode m_sortMode;
+
+    /** 是否允许改变列宽
+    */
+    bool m_bColumnResizeable;
 
     /** 图标显示在文字上方，居中显示
     */
@@ -258,14 +266,6 @@ private:
     /** 显示/隐藏该列
     */
     bool m_bColumnVisible;
-
-    /** 关联图标Id, 如果为-1表示不显示图标，图标显示在文本前面
-    */
-    int32_t m_imageId;
-
-    /** 关联的Header接口
-    */
-    ListCtrlHeader* m_pHeaderCtrl;
 };
 
 }//namespace ui

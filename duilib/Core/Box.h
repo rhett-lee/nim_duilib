@@ -230,12 +230,11 @@ protected:
     std::vector<Control*> m_items;
 
 private:
+    //布局管理接口
+    Layout* m_pLayout;
 
     //是否自动删除item的对象（如果为true：在从m_items移除元素时，会delete掉这个对象；如果为false，不delete）
     bool m_bAutoDestroyChild;
-    
-    //布局管理接口
-    Layout* m_pLayout;
 
     //是否允许响应子控件的鼠标消息
     bool m_bMouseChildEnabled;
