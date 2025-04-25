@@ -230,10 +230,6 @@ private:
     /** @name 在相同窗口内不同的Box内拖动相关的成员变量
     * @{ */
 
-    /** 是否支持拖出操作(功能开关)
-    */
-    bool m_bEnableDragOut;
-
     /** 目标Box
     */
     Box* m_pTargetBox;
@@ -255,6 +251,10 @@ private:
     /** 该拖出控件的位图
     */
     std::shared_ptr<IBitmap> m_pDragImage;
+
+    /** 是否支持拖出操作(功能开关)
+    */
+    bool m_bEnableDragOut;
 
     /** 当前是否正在执行拖出操作
     */
