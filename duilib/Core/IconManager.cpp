@@ -16,6 +16,7 @@ namespace ui
 
 IconManager::IconManager():
     m_nNextID(0),
+    m_nNextCallbackID(0),
     m_prefix(_T("icon:"))
 {
 }
@@ -164,13 +165,6 @@ bool IconManager::LoadIconData(const DString& str,
     return bRet;
 }
 
-void IconManager::RemoveIcon(uint32_t id)
-{
-    std::lock_guard<std::mutex> threadGuard(m_iconMutex);
-    m_iconMap.erase(id);
-    m_imageStringMap.erase(id);
-}
-
 bool IconManager::GetIconBitmapData(uint32_t id, IconBitmapData& bitmapData) const
 {
     std::lock_guard<std::mutex> threadGuard(m_iconMutex);
@@ -236,6 +230,57 @@ DString IconManager::GetImageString(uint32_t id) const
         return iter->second.c_str();
     }
     return DString();
+}
+
+void IconManager::RemoveIcon(uint32_t id)
+{
+    bool bDeleted = false;
+    std::vector<RemoveIconEvent> callbackList;
+    {
+        std::lock_guard<std::mutex> threadGuard(m_iconMutex);
+        auto iconIter = m_iconMap.find(id);
+        if (iconIter != m_iconMap.end()) {
+            m_iconMap.erase(iconIter);
+            bDeleted = true;
+        }
+        auto iterImage = m_imageStringMap.find(id);
+        if (iterImage != m_imageStringMap.end()) {
+            m_imageStringMap.erase(iterImage);
+            bDeleted = true;
+        }
+        if (bDeleted) {
+            for (auto iter : m_callbackMap) {
+                callbackList.push_back(iter.second);
+            }
+        }
+    }
+    if (!callbackList.empty()) {
+        for (RemoveIconEvent callback : callbackList) {
+            if (callback) {
+                callback(id);
+            }
+        }
+    }    
+}
+
+uint32_t IconManager::AttachRemoveIconEvent(RemoveIconEvent callback)
+{
+    std::lock_guard<std::mutex> threadGuard(m_iconMutex);
+    uint32_t callbackId = 0;
+    if (callback != nullptr) {
+        callbackId = ++m_nNextCallbackID;
+        m_callbackMap[callbackId] = callback;
+    }
+    return callbackId;
+}
+
+void IconManager::DetachRemoveIconEvent(uint32_t callbackID)
+{
+    std::lock_guard<std::mutex> threadGuard(m_iconMutex);
+    auto iter = m_callbackMap.find(callbackID);
+    if (iter != m_callbackMap.end()) {
+        m_callbackMap.erase(callbackID);
+    }
 }
 
 #ifdef DUILIB_BUILD_FOR_WIN

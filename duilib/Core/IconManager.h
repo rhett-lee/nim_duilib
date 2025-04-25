@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <mutex>
+#include <functional>
 
 namespace ui 
 {
@@ -29,6 +30,10 @@ public:
     */
     int32_t m_nBitmapHeight = 0;
 };
+
+/** 回调函数的原型: 用于接收删除图标事件（该函数需要保证线程安全，因为可能在子线程中调用）
+*/
+typedef std::function<void (uint32_t nIconId)> RemoveIconEvent;
 
 /** 图标资源管理器（线程安全，适合图标类的小图片资源）
  *  说明：支持Windows的HICON句柄资源，但内部不使用HICON，因为HICON是内核GDI资源，每个进程有上限，约1万个左右，耗尽后该进程就挂了。
@@ -130,6 +135,17 @@ public:
     */
     DString GetImageString(uint32_t id) const;
 
+    /** 设置用于接收删除图标事件的回调函数
+    * @param [in] callback 回调函数
+    * @return 返回回调对应的ID，可用于移除回调
+    */
+    uint32_t AttachRemoveIconEvent(RemoveIconEvent callback);
+
+    /** 删除用于接收删除图标事件的回调函数
+    * @param [in] callbackID 回调函数的ID，由AttachRemoveIconEvent返回
+    */
+    void DetachRemoveIconEvent(uint32_t callbackID);
+
 private:
     /** 添加一个图标
     */
@@ -155,6 +171,14 @@ private:
     /** ICON资源字符串前缀
     */
     const DString m_prefix;
+
+    /** 用于接收删除图标事件的回调函数
+    */
+    std::map<uint32_t, RemoveIconEvent> m_callbackMap;
+
+    /** 下一个回调函数ID
+    */
+    uint32_t m_nNextCallbackID;
 };
 
 } //namespace ui 

@@ -323,7 +323,18 @@ int32_t ListCtrlItem::GetItemPaddingLeft()
     }
     ImagePtr pItemImage = LoadItemImage();
     if (pItemImage != nullptr) {
-        nPaddingLeft += pItemImage->GetImageCache()->GetWidth();
+        UiSize imageSize;
+        ListCtrl* pListCtrl = GetListCtrl();
+        if (pListCtrl != nullptr) {
+            ImageList* pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
+            if (pImageList != nullptr) {
+                imageSize = pImageList->GetImageSize();
+            }
+        }
+        if (imageSize.cx <= 0) {
+            imageSize.cx = pItemImage->GetImageCache()->GetWidth();
+        }
+        nPaddingLeft += imageSize.cx;
         nPaddingLeft += GetIconSpacing();
     }
     return nPaddingLeft;

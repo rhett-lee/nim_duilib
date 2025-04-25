@@ -111,6 +111,11 @@ private:
     DString GetDeviceTypeString(ui::DirectoryTree::DeviceType deviceType) const;
 #endif
 
+    /** 图标被移除时，同步Image List中也要移除（不移除的话，会存在加载不到图标的情况）
+    * @param [in] nIconId 图标ID（在IconManager中）
+    */
+    void OnRemoveIcon(uint32_t nIconId);
+
 private:
     /** 视图类型
     */
@@ -158,11 +163,19 @@ private:
 
     /** 计算机视图的接口
     */
-    ui::ListCtrl* m_pComputerListCtrl;
+    ui::ControlPtr<ui::ListCtrl> m_pComputerListCtrl;
 
     /** 计算机视图中每列的初始序号与列ID映射表（因为调整列顺序后，每列的序号发生变化，已经不能通过列序号添加数据）
     */
     std::map<ComputerViewColumn, size_t> m_columnIdMap;
+
+    /** IconID 到 ImageID的映射表
+    */
+    std::map<uint32_t, int32_t> m_iconToImageMap;
+
+    /** 图标删除回调函数的ID
+    */
+    uint32_t m_nRemoveIconCallbackId;
 
 private:
     /** 文件列表（右侧虚表显示的数据）

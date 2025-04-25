@@ -12,12 +12,14 @@ MainForm::MainForm():
     m_bCanAddBackForward(true),
     m_pTreeNode(nullptr),
     m_pTabBox(nullptr),
-    m_pComputerListCtrl(nullptr)
+    m_pComputerListCtrl(nullptr),
+    m_nRemoveIconCallbackId(0)
 {
 }
 
 MainForm::~MainForm()
 {
+    ui::GlobalManager::Instance().Icon().DetachRemoveIconEvent(m_nRemoveIconCallbackId);
     ClearDiskInfoList(m_diskInfoList);
     m_diskInfoList.clear();
 }
@@ -34,6 +36,9 @@ DString MainForm::GetSkinFile()
 
 void MainForm::OnInitWindow()
 {
+    //挂载图标删除事件
+    m_nRemoveIconCallbackId = ui::GlobalManager::Instance().Icon().AttachRemoveIconEvent(ui::UiBind(&MainForm::OnRemoveIcon, this, std::placeholders::_1));
+
     m_pTree = dynamic_cast<ui::DirectoryTree*>(FindControl(_T("tree")));
     ASSERT(m_pTree != nullptr);
     if (m_pTree == nullptr) {
@@ -47,6 +52,12 @@ void MainForm::OnInitWindow()
     m_pComputerListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("computer_view")));
     InitializeComputerViewHeader();
     if (m_pComputerListCtrl != nullptr) {
+        //关联图片列表
+        ui::ImageList* pImageList = new ui::ImageList;
+        pImageList->SetImageSize(ui::UiSize(16, 16), Dpi(), true);
+        m_pComputerListCtrl->SetImageList(ui::ListCtrlType::Report, pImageList);//该指针的资源生命周期由ListCtrl内部管理
+        
+        //挂载列表项鼠标双击事件
         m_pComputerListCtrl->AttachDoubleClick(UiBind(&MainForm::OnComuterViewDoubleClick, this, std::placeholders::_1));
     }
     m_pListBox = dynamic_cast<ui::VirtualListBox*>(FindControl(_T("file_view")));
@@ -490,12 +501,21 @@ void MainForm::InitializeComputerViewHeader()
 
 void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList)
 {
+    ui::GlobalManager::Instance().AssertUIThread();
     ClearDiskInfoList(m_diskInfoList);
     m_diskInfoList = diskInfoList;
     if ((m_pComputerListCtrl == nullptr)){
         return;
     }
     m_pComputerListCtrl->DeleteAllDataItems();
+    ui::ImageList* pImageList = nullptr;
+    if (m_pComputerListCtrl != nullptr) {
+        pImageList = m_pComputerListCtrl->GetImageList(ui::ListCtrlType::Report);
+    }
+    if (pImageList != nullptr) {
+        pImageList->Clear();
+    }
+
     ui::ListCtrlSubItemData itemData;
     size_t nItemIndex = 0;
     size_t nSubItemIndex = 0;
@@ -506,9 +526,18 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
         if (ui::Box::IsValidItemIndex(nItemIndex)) {
             //记录关联关系
             m_pComputerListCtrl->SetDataItemUserData(nItemIndex, nIndex);
+            //设置图标
+            if (pImageList != nullptr) {
+                DString iconString = ui::GlobalManager::Instance().Icon().GetIconString(diskInfo.m_nIconID);
+                if (!iconString.empty()) {
+                    int32_t nImageId = pImageList->AddImageString(iconString, Dpi());
+                    m_iconToImageMap[diskInfo.m_nIconID] = nImageId;
+                    m_pComputerListCtrl->SetDataItemImageId(nItemIndex, nImageId);
+                }
+            }
 
             ui::ListCtrlSubItemData subItemData;
-            subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;            
+            subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
 
             subItemData.text = diskInfo.m_displayName;
             nSubItemIndex = GetColumnIndex(ComputerViewColumn::kName);
@@ -544,6 +573,16 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
         if (ui::Box::IsValidItemIndex(nItemIndex)) {
             //记录关联关系
             m_pComputerListCtrl->SetDataItemUserData(nItemIndex, nIndex);
+
+            //设置图标
+            if (pImageList != nullptr) {
+                DString iconString = ui::GlobalManager::Instance().Icon().GetIconString(diskInfo.m_nIconID);
+                if (!iconString.empty()) {
+                    int32_t nImageId = pImageList->AddImageString(iconString, Dpi());
+                    m_iconToImageMap[diskInfo.m_nIconID] = nImageId;
+                    m_pComputerListCtrl->SetDataItemImageId(nItemIndex, nImageId);
+                }
+            }
 
             ui::ListCtrlSubItemData subItemData;
             subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
@@ -684,7 +723,7 @@ bool MainForm::OnComuterViewDoubleClick(const ui::EventArgs& msg)
 void MainForm::ClearDiskInfoList(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList) const
 {
     for (const ui::DirectoryTree::DiskInfo& diskInfo : diskInfoList) {
-        if (!diskInfo.m_bIconShared) {
+        if (!diskInfo.m_bIconShared) {            
             ui::GlobalManager::Instance().Icon().RemoveIcon(diskInfo.m_nIconID);
         }
     }
@@ -701,4 +740,31 @@ size_t MainForm::GetColumnIndex(ComputerViewColumn nOriginIndex) const
         }
     }
     return nColumnIndex;
+}
+
+void MainForm::OnRemoveIcon(uint32_t nIconId)
+{
+    if (!ui::GlobalManager::Instance().IsInUIThread()) {
+        //如果不是在主线程中执行，则转到主线程去执行
+        ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, this->ToWeakCallback([this, nIconId]() {
+                OnRemoveIcon(nIconId);
+            }));
+        return;
+    }
+
+    //在主线程中执行
+    ui::GlobalManager::Instance().AssertUIThread();
+    auto iter = m_iconToImageMap.find(nIconId);
+    if (iter != m_iconToImageMap.end()) {
+        int32_t nImageId = iter->second;
+        m_iconToImageMap.erase(iter);
+
+        ui::ImageList* pImageList = nullptr;
+        if (m_pComputerListCtrl != nullptr) {
+            pImageList = m_pComputerListCtrl->GetImageList(ui::ListCtrlType::Report);
+        }
+        if (pImageList != nullptr) {
+            pImageList->RemoveImageString(nImageId);
+        }
+    }
 }
