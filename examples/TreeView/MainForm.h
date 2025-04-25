@@ -6,6 +6,7 @@
 
 #include "FileInfoList.h"
 #include <stack>
+#include <map>
 
 class MainForm : public ui::WindowImplBase
 {
@@ -120,6 +121,23 @@ private:
         kErrorView      = 2     //出错视图
     };
 
+    /** 计算机视图的表头
+    */
+    enum class ComputerViewColumn
+    {
+        kName,         //名称
+        kType,         //类型
+        kPartitionType,//分区类型
+        kTotalSpace,   //总大小
+        kFreeSpace,    //可用空间
+        kUsedPercent,  //已用百分比
+        kMountOn       //挂载点
+    };
+
+    /** 获取真实的列索引号
+    */
+    size_t GetColumnIndex(ComputerViewColumn nOriginIndex) const;
+
 private:
     /** 左侧树节点的接口
     */
@@ -141,6 +159,10 @@ private:
     /** 计算机视图的接口
     */
     ui::ListCtrl* m_pComputerListCtrl;
+
+    /** 计算机视图中每列的初始序号与列ID映射表（因为调整列顺序后，每列的序号发生变化，已经不能通过列序号添加数据）
+    */
+    std::map<ComputerViewColumn, size_t> m_columnIdMap;
 
 private:
     /** 文件列表（右侧虚表显示的数据）
