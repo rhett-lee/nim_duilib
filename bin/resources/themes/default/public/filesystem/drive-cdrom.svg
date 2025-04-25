@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg3303" width="16" height="16" version="1.0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <defs id="defs3305">
+  <linearGradient id="linearGradient3341" x1="28.703" x2="17.743" y1="31.495" y2="18.367" gradientUnits="userSpaceOnUse">
+   <stop id="stop6030" style="stop-color:#fff" offset="0"/>
+   <stop id="stop6032" style="stop-color:#fff;stop-opacity:0" offset="1"/>
+  </linearGradient>
+  <linearGradient id="linearGradient3339" x1="10.502" x2="48.799" y1="3.61" y2="54.698" gradientTransform="matrix(.32832 0 0 .32832 4.0068 4.7915)" gradientUnits="userSpaceOnUse">
+   <stop id="stop6038" style="stop-color:#fff" offset="0"/>
+   <stop id="stop6040" style="stop-color:#fff;stop-opacity:0" offset="1"/>
+  </linearGradient>
+  <linearGradient id="linearGradient3337" x1="25.986" x2="15.889" y1="24.92" y2="11.67" gradientTransform="matrix(.33838 0 0 .33838 3.9445 4.8474)" gradientUnits="userSpaceOnUse">
+   <stop id="stop10999" style="stop-color:#fff" offset="0"/>
+   <stop id="stop11001" style="stop-color:#fff;stop-opacity:0" offset="1"/>
+  </linearGradient>
+  <linearGradient id="linearGradient3335" x1="12.274" x2="35.391" y1="32.416" y2="14.203" gradientTransform="matrix(.42857 0 0 .42857 1.7147 3.0996)" gradientUnits="userSpaceOnUse">
+   <stop id="stop3043" style="stop-color:#fbfbfb" offset="0"/>
+   <stop id="stop3045" style="stop-color:#b6b6b6" offset=".5"/>
+   <stop id="stop3047" style="stop-color:#e4e4e4" offset="1"/>
+  </linearGradient>
+  <linearGradient id="linearGradient3333" x1="14.997" x2="32.511" y1="11.188" y2="34.307" gradientTransform="matrix(.39999 0 0 .39999 2.3977 3.7628)" gradientUnits="userSpaceOnUse">
+   <stop id="stop3034" style="stop-color:#ebebeb" offset="0"/>
+   <stop id="stop3036" style="stop-color:#fff" offset=".5"/>
+   <stop id="stop3038" style="stop-color:#ebebeb" offset="1"/>
+  </linearGradient>
+ </defs>
+ <g id="layer1">
+  <g id="g3325" transform="translate(-4.0004 -4.9996)">
+   <path id="path3040" d="m11.997 6.0027c-3.8799 0-6.9998 3.1199-6.9998 6.9998 0 3.8799 3.1199 6.9998 6.9998 6.9998 3.8799 0 6.9998-3.1199 6.9998-6.9998 0-3.8799-3.1199-6.9998-6.9998-6.9998zm0 8.6798c-0.91998 0-1.68-0.75998-1.68-1.68 0-0.91998 0.75998-1.68 1.68-1.68s1.68 0.75998 1.68 1.68c0 0.91998-0.75998 1.68-1.68 1.68z" style="fill:url(#linearGradient3333)"/>
+   <path id="path3049" d="m12 5.4996c-4.1571 0-7.5 3.3429-7.5 7.5 0 4.1571 3.3429 7.5 7.5 7.5 4.1571 0 7.5-3.3429 7.5-7.5 0-4.1571-3.3429-7.5-7.5-7.5zm0 9.3c-0.98572 0-1.8-0.81429-1.8-1.8 0-0.98571 0.81428-1.8 1.8-1.8 0.98571 0 1.8 0.81429 1.8 1.8 0 0.98572-0.81428 1.8-1.8 1.8z" style="fill:url(#linearGradient3335);stroke:gray"/>
+   <path id="path3531" d="m11.697 6.1374c-3.6415 0.13735-6.5306 3.1189-6.5306 6.7954 0 1.6667 0.59119 3.1816 1.5792 4.3605l3.6183-3.0694c-0.24408-0.28537-0.38374-0.80619-0.38374-1.2065 0-1.1472 0.92326-2.0848 2.0274-2.0848 0.50213 0 1.235 0.28529 1.5353 0.64832l3.6455-2.9984c-1.2436-1.497-3.1281-2.4451-5.2367-2.4451-0.08824 0-0.16731-0.0033-0.2547 0z" style="fill:url(#linearGradient3337)"/>
+   <path id="path3051" d="m12.001 9.0844c-2.1863 0-3.915 1.7795-3.915 3.915 0 2.1863 1.7795 3.915 3.915 3.915 2.1863 0 3.915-1.7795 3.915-3.915 0-2.1863-1.7795-3.915-3.915-3.915zm0 6.0504c-1.1694 0-2.1354-0.96603-2.1354-2.1354 0-1.1694 0.96603-2.1354 2.1354-2.1354 1.1694 0 2.1354 0.96603 2.1354 2.1354 0 1.1694-0.96603 2.1354-2.1354 2.1354z" style="fill:#eeeeec;opacity:.51099"/>
+   <path id="path5264" d="m12 6.4995c-3.6029 0-6.5 2.8971-6.5 6.5 0 3.6029 2.8971 6.5 6.5 6.5 3.6029 0 6.5-2.8971 6.5-6.5 0-3.6029-2.8971-6.5-6.5-6.5z" style="fill:none;opacity:.54645;stroke:url(#linearGradient3339)"/>
+   <path id="path6026" transform="matrix(.40604 0 0 .40604 2.1478 2.8832)" d="m30.406 24.931c0 3.3683-2.7305 6.0988-6.0988 6.0988s-6.0988-2.7305-6.0988-6.0988 2.7305-6.0988 6.0988-6.0988 6.0988 2.7305 6.0988 6.0988z" style="fill:none;opacity:.67213;stroke-width:2.2918;stroke:url(#linearGradient3341)"/>
+  </g>
+ </g>
+</svg>

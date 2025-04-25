@@ -238,6 +238,9 @@ void FilePath::TrimRightPathSeparator()
         return;
     }
     const std::filesystem::path::string_type& str = m_filePath.native();
+    if (str == _T("/")) {
+        return;
+    }
     if (!str.empty() && str[str.size() - 1] == FilePath::GetPathSeparator()) {
         std::filesystem::path::string_type filePath = m_filePath.native();
         m_filePath = filePath.substr(0, str.size() - 1);

@@ -1746,11 +1746,16 @@ void ListCtrlReportLayout::LazyArrangeChildNormal(UiRect rc) const
 
     //元素的宽度：所有元素宽度都相同
     const int32_t cx = GetItemWidth();
-    ASSERT(cx > 0);
+    if (cx <= 0) {
+        return;
+    }
 
     //元素的高度：所有元素高度都相同
     const int32_t cy = GetItemHeight();
     ASSERT(cy > 0);
+    if (cy <= 0) {
+        return;
+    }
 
     //记录可见的元素索引号列表
     std::vector<size_t> diplayItemIndexList;

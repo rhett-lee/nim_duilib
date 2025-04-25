@@ -594,7 +594,7 @@ bool ListCtrlHeaderItem::SetCheckBoxVisible(bool bVisible)
         UiPadding textPadding = GetTextPadding();
         int32_t nCheckBoxWidth = pCheckBox->GetCheckBoxWidth();
         if ((nCheckBoxWidth > 0) && (textPadding.left < nCheckBoxWidth)) {
-            textPadding.left = nCheckBoxWidth;
+            textPadding.left += nCheckBoxWidth;
             SetTextPadding(textPadding, false);
         }
         pCheckBox->SetVisible(true);
