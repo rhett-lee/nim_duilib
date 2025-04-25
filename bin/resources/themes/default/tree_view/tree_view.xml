@@ -76,7 +76,7 @@
                     <DirectoryTree class="tree_view" name="tree" multi_select="false" check_box_class="tree_node_checkbox" expand_image_class="tree_node_expand" padding="5,3,5,3" indent="20"/>
                 </HBox>
                 <!-- 纵向分割条，用于调整左右区域大小 -->
-                <Split bkcolor="splitline_level1" width="2"/>
+                <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
                 <VBox bkcolor="Pink" border_size="1" border_color="blue" min_width="60">
                     <HBox width="stretch" height="32" bkcolor="white">
                         <Button class="btn_view_common btn_view_up" name="btn_view_up" margin="4,0,0,0" tooltip_text="上移到父目录"/>
@@ -87,8 +87,8 @@
                         <RichEdit class="simple input" name="file_path" width="stretch" height="28" valign="center" margin="8,0,10,0" text_padding="5,5,5,5" default_context_menu="true" select_all_on_focus="true"/>
                     </HBox>
                     <TabBox name="main_view_tab_box" bkcolor="white" selected_id="0">
-                        <VirtualVTileListBox class="list" name="file_view" columns="auto" item_size="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" border_size="1" border_color="splitline_level2" padding="1,1,1,1"/>
-                        <ListCtrl name="computer_view" bkcolor="YellowGreen"
+                        <VirtualVTileListBox class="list" name="file_view" columns="auto" item_size="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" border_size="0,1,0,0" border_color="splitline_level2" padding="1,1,1,1"/>
+                        <ListCtrl name="computer_view" bkcolor="YellowGreen" border_size="0,1,0,0" border_color="splitline_level2" padding="0,1,0,0"
                                                       type="report"
                                                       show_header="true"
                                                       header_class="list_ctrl_header" 
