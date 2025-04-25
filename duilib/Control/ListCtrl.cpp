@@ -27,7 +27,9 @@ ListCtrl::ListCtrl(Window* pWindow):
     m_bEnableItemEdit(true),
     m_nItemHeight(0),
     m_nHeaderHeight(0),
-    m_pData(nullptr)
+    m_pData(nullptr),
+    m_nSortedColumnId(Box::InvalidIndex),
+    m_bSortedUp(false)
 {
     size_t nCount = sizeof(m_imageList) / sizeof(m_imageList[0]);
     for (size_t i = 0; i < nCount; ++i) {
@@ -1235,8 +1237,44 @@ void ListCtrl::OnHeaderColumnRemoved(size_t nColumnId)
 void ListCtrl::OnColumnSorted(size_t nColumnId, bool bSortedUp)
 {
     //对数据排序，然后刷新界面显示
+    m_nSortedColumnId = nColumnId;
+    m_bSortedUp = bSortedUp;
     m_pData->SortDataItems(nColumnId, GetColumnIndex(nColumnId), bSortedUp, nullptr, nullptr);
     Refresh();
+}
+
+bool ListCtrl::GetSortColumn(size_t& nSortColumnId, bool& bSortUp) const
+{
+    nSortColumnId = Box::InvalidIndex;
+    if (Box::IsValidItemIndex(GetColumnIndex(m_nSortedColumnId))) {
+        nSortColumnId = m_nSortedColumnId;
+        bSortUp = false;
+        return true;
+    }
+    return false;
+}
+
+bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp, 
+                             ListCtrlDataCompareFunc pfnCompareFunc,
+                             void* pUserData)
+{
+    size_t nColumnId = GetColumnId(columnIndex);
+    ASSERT(nColumnId != Box::InvalidIndex);
+    if (nColumnId == Box::InvalidIndex) {
+        return false;
+    }
+    m_nSortedColumnId = nColumnId;
+    m_bSortedUp = bSortedUp;
+    if (m_pHeaderCtrl != nullptr) {
+        //更新UI排序显示
+        m_pHeaderCtrl->SetSortColumnId(nColumnId, bSortedUp, false);
+    }
+    return m_pData->SortDataItems(nColumnId, columnIndex, bSortedUp, pfnCompareFunc, pUserData);
+}
+
+void ListCtrl::SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
+{
+    m_pData->SetSortCompareFunction(pfnCompareFunc, pUserData);
 }
 
 void ListCtrl::OnHeaderColumnOrderChanged()
@@ -1611,23 +1649,6 @@ bool ListCtrl::SetSubItemEditable(size_t itemIndex, size_t columnIndex, bool bEd
 bool ListCtrl::IsSubItemEditable(size_t itemIndex, size_t columnIndex) const
 {
     return m_pData->IsSubItemEditable(itemIndex, GetColumnId(columnIndex));
-}
-
-bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp, 
-                             ListCtrlDataCompareFunc pfnCompareFunc,
-                             void* pUserData)
-{
-    size_t nColumnId = GetColumnId(columnIndex);
-    ASSERT(nColumnId != Box::InvalidIndex);
-    if (nColumnId == Box::InvalidIndex) {
-        return false;
-    }
-    return m_pData->SortDataItems(nColumnId, columnIndex, bSortedUp, pfnCompareFunc, pUserData);
-}
-
-void ListCtrl::SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
-{
-    m_pData->SetSortCompareFunction(pfnCompareFunc, pUserData);
 }
 
 bool ListCtrl::IsMultiSelect() const

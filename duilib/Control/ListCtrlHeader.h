@@ -89,11 +89,21 @@ public:
     */
     bool GetColumnInfo(size_t columnId, size_t& columnIndex, int32_t& nColumnWidth) const;
 
+    /** 判断列的ID是否有效
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColomnId()函数获取
+    */
+    bool IsValidColumnId(size_t columnId) const;
+
     /** 获取列的索引序号
     * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColomnId()函数获取
     * @return 列的序号：[0, GetColumnCount())，代表第几列
     */
     size_t GetColumnIndex(size_t columnId) const;
+
+    /** 判断列的索引号是否有效
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    */
+    bool IsValidColumnIndex(size_t columnIndex) const;
 
     /** 获取列的索引序号
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
@@ -131,6 +141,20 @@ public:
     /** 获取文字与图标之间的间隔（像素）
     */
     int32_t GetIconSpacing() const;
+
+    /** 设置当前排序列(根据索引号设置)
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] bSortUp true表示升序，false表示降序
+    * @param [in] bTriggerEvent true表示触发排序变化事件，对数据重新排序，否则不触发事件
+    */
+    void SetSortColumnIndex(size_t columnIndex, bool bSortUp, bool bTriggerEvent = false);
+
+    /** 设置当前排序列(根据列ID设置)
+    * @param [in] columnId 列的ID值
+    * @param [in] bSortUp true表示升序，false表示降序
+    * @param [in] bTriggerEvent true表示触发排序变化事件，对数据重新排序，否则不触发事件
+    */
+    void SetSortColumnId(size_t columnId, bool bSortUp, bool bTriggerEvent = false);
 
 public:
 
@@ -214,13 +238,13 @@ private:
     */
     int32_t m_nPaddingLeftValue;
 
+    /** 文字与图标之间的间隔(图标显示在文字的右侧或者左侧时)
+    */
+    int16_t m_nIconSpacing;
+
     /** 是否允许CheckBox勾选项变化事件
     */
     bool m_bEnableCheckChangeEvent;
-
-    /** 文字与图标之间的间隔(图标显示在文字的右侧或者左侧时)
-    */
-    int32_t m_nIconSpacing;
 };
 
 }//namespace ui

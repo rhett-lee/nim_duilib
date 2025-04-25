@@ -11,7 +11,7 @@ namespace ui
 {
 /** 表格类型
 */
-enum class ListCtrlType
+enum class ListCtrlType: int8_t
 {
     Report = 0, //Report类型
     Icon   = 1, //Icon类型

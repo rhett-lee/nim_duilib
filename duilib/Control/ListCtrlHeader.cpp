@@ -52,7 +52,7 @@ void ListCtrlHeader::SetIconSpacing(int32_t nIconSpacing, bool bNeedDpiScale)
         Dpi().ScaleInt(nIconSpacing);
     }
     if (m_nIconSpacing != nIconSpacing) {
-        m_nIconSpacing = nIconSpacing;
+        m_nIconSpacing = ui::TruncateToInt16(nIconSpacing);
         if (m_nIconSpacing < 0) {
             m_nIconSpacing = 0;
         }
@@ -314,12 +314,22 @@ bool ListCtrlHeader::GetColumnInfo(size_t columnId, size_t& columnIndex, int32_t
     return bRet;
 }
 
+bool ListCtrlHeader::IsValidColumnId(size_t columnId) const
+{
+    return GetColumnIndex(columnId) != Box::InvalidIndex;
+}
+
 size_t ListCtrlHeader::GetColumnIndex(size_t columnId) const
 {
     size_t columnIndex = Box::InvalidIndex;
     int32_t nColumnWidth = -1;
     GetColumnInfo(columnId, columnIndex, nColumnWidth);
     return columnIndex;
+}
+
+bool ListCtrlHeader::IsValidColumnIndex(size_t columnIndex) const
+{
+    return GetColumnId(columnIndex) != Box::InvalidIndex;
 }
 
 size_t ListCtrlHeader::GetColumnId(size_t columnIndex) const
@@ -420,6 +430,18 @@ void ListCtrlHeader::OnHeaderColumnSorted(ListCtrlHeaderItem* pHeaderItem)
     if (sortMode == ListCtrlHeaderItem::SortMode::kNone) {
         return;
     }
+    //控制排序图标的显示：只有排序这一列显示，其他列不显示排序图标
+    size_t nColumnCount = GetColumnCount();
+    for (size_t columnIndex = 0; columnIndex < nColumnCount; ++columnIndex) {
+        ListCtrlHeaderItem* pItem = GetColumn(columnIndex);
+        if (pItem == pHeaderItem) {
+            pItem->SetShowSortImage(true);
+        }
+        else {
+            pItem->SetShowSortImage(false);
+        }
+    }
+
     if (m_pListCtrl != nullptr) {
         bool bSortedUp = (sortMode == ListCtrlHeaderItem::SortMode::kUp) ? true : false;
         m_pListCtrl->OnColumnSorted(nColumnId, bSortedUp);
@@ -551,6 +573,28 @@ bool ListCtrlHeader::SetEnableCheckChangeEvent(bool bEnable)
     bool bOldValue = m_bEnableCheckChangeEvent;
     m_bEnableCheckChangeEvent = bEnable;
     return bOldValue;
+}
+
+void ListCtrlHeader::SetSortColumnIndex(size_t columnIndex, bool bSortUp, bool bTriggerEvent)
+{
+    SetSortColumnId(GetColumnId(columnIndex), bSortUp, bTriggerEvent);
+}
+
+void ListCtrlHeader::SetSortColumnId(size_t columnId, bool bSortUp, bool bTriggerEvent)
+{
+    size_t nColumnCount = GetColumnCount();
+    for (size_t nColumn = 0; nColumn < nColumnCount; ++nColumn) {
+        ListCtrlHeaderItem* pHeaderItem = GetColumn(nColumn);
+        if (pHeaderItem != nullptr) {
+            if (pHeaderItem->GetColomnId() == columnId) {
+                pHeaderItem->SetShowSortImage(true);
+                pHeaderItem->SetSortMode(bSortUp ? ListCtrlHeaderItem::SortMode::kUp : ListCtrlHeaderItem::SortMode::kDown, bTriggerEvent);
+            }
+            else {
+                pHeaderItem->SetShowSortImage(false);
+            }
+        }
+    }
 }
 
 }//namespace ui
