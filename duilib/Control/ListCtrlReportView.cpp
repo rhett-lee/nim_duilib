@@ -825,10 +825,11 @@ Control* ListCtrlReportView::CreateDataItem()
 }
 
 bool ListCtrlReportView::FillDataItem(Control* pControl,
-                                    size_t nElementIndex,
-                                    const ListCtrlItemData& itemData,
-                                    const std::vector<ListCtrlSubItemData2Pair>& subItemList)
+                                     size_t nElementIndex,
+                                     const ListCtrlItemData& itemData,
+                                     const std::vector<ListCtrlSubItemData2Pair>& subItemList)
 {
+    //该函数中控制数据元素数据与UI的展示，控制每列的显示宽度
     ASSERT(m_pListCtrl != nullptr);
     if (m_pListCtrl == nullptr) {
         return false;
@@ -860,16 +861,15 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
     pItem->SetImageId(nImageId);
 
     //设置左侧内边距，避免CheckBox显示与文字显示重叠
-    int32_t nPaddingLeft = pItem->GetItemPaddingLeft();
-    pHeaderCtrl->SetPaddingLeftValue(nPaddingLeft);
-
-    //Header控件的内边距, 需要同步给每个列表项控件，保持左侧对齐一致
-    const UiPadding rcHeaderPadding = pHeaderCtrl->GetPadding();
+    const int32_t nPaddingLeft = pItem->GetItemPaddingLeft();
     UiPadding rcPadding = pItem->GetPadding();
-    if (rcHeaderPadding.left != rcPadding.left) {
-        rcPadding.left = rcHeaderPadding.left;
+    if (nPaddingLeft != rcPadding.left) {
+        rcPadding.left = nPaddingLeft;
         pItem->SetPadding(rcPadding, false);
     }
+
+    //Header控件的内边距
+    const UiPadding rcHeaderPadding = pHeaderCtrl->GetPadding();
 
     // 基本结构: <ListCtrlItem> <ListCtrlSubItem/> ... <ListCtrlSubItem/>  </ListCtrlItem>
     // 附加说明: 1. ListCtrlItem 是 HBox的子类;   
@@ -900,9 +900,19 @@ bool ListCtrlReportView::FillDataItem(Control* pControl,
             nColumnWidth = 0;
         }
         ElementData data;
-        data.nColumnId = pHeaderCtrl->GetColumnId(nColumnIndex);
-        data.nColumnWidth = nColumnWidth;
+        data.nColumnId = pHeaderCtrl->GetColumnId(nColumnIndex);        
         data.pStorage = subItemDataMap[data.nColumnId];
+        if (nColumnIndex == 0) {
+            //第1列：确保表头与数据项右侧对齐
+            data.nColumnWidth = nColumnWidth + rcHeaderPadding.left - nPaddingLeft;
+            if (data.nColumnWidth < 0) {
+                data.nColumnWidth = 0;
+            }
+        }
+        else {
+            //第2列开始的其他列
+            data.nColumnWidth = nColumnWidth;
+        }
         elementDataList.push_back(data);
     }
     
