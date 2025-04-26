@@ -564,7 +564,7 @@ void DirectoryTree::ShowMyComputerContents(TreeNode* pTreeNode, StdClosure finis
         //在子线程中读取子目录数据
         std::shared_ptr<std::vector<ui::DirectoryTree::DiskInfo>> spDiskInfoList = std::make_shared<std::vector<ui::DirectoryTree::DiskInfo>>();
         if (!treeNodeFlag.expired()) {
-            m_impl->GetDiskInfoList(treeNodeFlag, true, *spDiskInfoList);
+            m_impl->GetDiskInfoList(treeNodeFlag, false, *spDiskInfoList);
         }        
         if (!treeNodeFlag.expired()) {
             GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, treeNodeFlag, pTreeNode, spDiskInfoList]() {

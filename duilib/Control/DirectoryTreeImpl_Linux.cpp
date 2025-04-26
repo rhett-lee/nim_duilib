@@ -208,16 +208,9 @@ void DirectoryTreeImpl::GetRootPathInfoList(bool bLargeIcon, std::vector<Directo
 
         pathInfo.m_filePath = diskInfo.m_filePath;
         pathInfo.m_displayName = diskInfo.m_volumeName;
-        pathInfo.m_bIconShared = false;
-        if (diskInfo.m_deviceType == DirectoryTree::DeviceType::CDROM) {
-            pathInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(DirectoryTreeImplGetImageString(m_pTree, bLargeIcon, _T("drive-cdrom.svg")));
-        }
-        else if (diskInfo.m_deviceType == DirectoryTree::DeviceType::USB) {
-            pathInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(DirectoryTreeImplGetImageString(m_pTree, bLargeIcon, _T("drive-harddisk-usb.svg")));
-        }
-        else {
-            pathInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(DirectoryTreeImplGetImageString(m_pTree, bLargeIcon, _T("drive-harddisk.svg")));
-        }
+        pathInfo.m_bIconShared = diskInfo.m_bIconShared;
+        pathInfo.m_nIconID = diskInfo.m_nIconID;
+
         pathInfoList.push_back(pathInfo);
     }
 }
@@ -467,9 +460,7 @@ void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& /*weakFla
         }
 
         DirectoryTree::DiskInfo diskInfo;
-        diskInfo.m_displayName = StringConvert::UTF8ToT(device);
-        diskInfo.m_bIconShared = true;
-        diskInfo.m_nIconID = 0;
+        diskInfo.m_displayName = StringConvert::UTF8ToT(device);        
         diskInfo.m_filePath = FilePath(StringConvert::UTF8ToT(mount_point));
 
         diskInfo.m_volumeName = diskInfo.m_displayName;
@@ -478,6 +469,18 @@ void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& /*weakFla
         diskInfo.m_fileSystem = StringConvert::UTF8ToT(fs_type);
         diskInfo.m_totalBytes = total;
         diskInfo.m_freeBytes = avail;
+
+        diskInfo.m_bIconShared = false;
+        diskInfo.m_nIconID = 0;
+        if (diskInfo.m_deviceType == DirectoryTree::DeviceType::CDROM) {
+            diskInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(DirectoryTreeImplGetImageString(m_pTree, bLargeIcon, _T("drive-cdrom.svg")));
+        }
+        else if (diskInfo.m_deviceType == DirectoryTree::DeviceType::USB) {
+            diskInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(DirectoryTreeImplGetImageString(m_pTree, bLargeIcon, _T("drive-harddisk-usb.svg")));
+        }
+        else {
+            diskInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(DirectoryTreeImplGetImageString(m_pTree, bLargeIcon, _T("drive-harddisk.svg")));
+        }
 
         diskInfoList.emplace_back(std::move(diskInfo));
     }
