@@ -64,17 +64,13 @@ public:
 
     /** 设置图片列表，每个视图有一个独立的图片列表
     * @param [in] type 视图类型
-    * @param [in] pImageList 图片资源接口，设置后由内部管理对象的生命周期
+    * @param [in] spImageList 图片资源接口, 智能指针
     */
-    void SetImageList(ListCtrlType type, ImageList* pImageList);
+    void SetImageList(ListCtrlType type, const ImageListPtr& spImageList);
 
     /** 获取图片列表，可以添加图片资源，用于在列表中显示图标资源
     */
-    ImageList* GetImageList(ListCtrlType type);
-
-    /** 获取图片列表，用于在列表中显示图标资源
-    */
-    const ImageList* GetImageList(ListCtrlType type) const;
+    ImageListPtr GetImageList(ListCtrlType type) const;
 
 public:
     /** 获取列的个数
@@ -998,7 +994,7 @@ private:
 
     /** 图片列表
     */
-    ImageList* m_imageList[3];
+    ImageListPtr m_imageList[3];
 
     /** 编辑框控件
     */

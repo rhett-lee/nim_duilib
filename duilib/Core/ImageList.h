@@ -112,6 +112,8 @@ private:
     std::map<int32_t, ImagePtr> m_imageMap;
 };
 
+typedef std::shared_ptr<ImageList> ImageListPtr;
+
 } //namespace ui 
 
 #endif //UI_CORE_IMAGE_LIST_H_

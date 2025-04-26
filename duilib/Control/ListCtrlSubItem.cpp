@@ -192,7 +192,7 @@ ImagePtr ListCtrlSubItem::LoadItemImage() const
     if ((m_imageId >= 0) && (m_pItem != nullptr)) {
         ListCtrl* pListCtrl = m_pItem->GetListCtrl();
         if (pListCtrl != nullptr) {
-            ImageList* pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
+            ImageListPtr pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
             if (pImageList != nullptr) {
                 pItemImage = pImageList->GetImageData(m_imageId);
                 ASSERT(pItemImage != nullptr);
@@ -246,7 +246,7 @@ void ListCtrlSubItem::PaintText(IRender* pRender)
         pListCtrl = m_pItem->GetListCtrl();
     }
     if (pListCtrl != nullptr) {
-        ImageList* pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
+        ImageListPtr pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
         if (pImageList != nullptr) {
             imageSize = pImageList->GetImageSize();
         }

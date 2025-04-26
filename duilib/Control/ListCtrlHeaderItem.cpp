@@ -86,7 +86,7 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     if ((m_imageId >= 0) && (m_pHeaderCtrl != nullptr)) {
         ListCtrl* pListCtrl = m_pHeaderCtrl->GetListCtrl();
         if (pListCtrl != nullptr) {
-            ImageList* pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
+            ImageListPtr pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
             if (pImageList != nullptr) {
                 itemImageSize = pImageList->GetImageSize();
                 pItemImage = pImageList->GetImageData(m_imageId);

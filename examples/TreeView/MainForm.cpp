@@ -53,7 +53,7 @@ void MainForm::OnInitWindow()
     InitializeComputerViewHeader();
     if (m_pComputerListCtrl != nullptr) {
         //关联图片列表
-        ui::ImageList* pImageList = new ui::ImageList;
+        ui::ImageListPtr pImageList = std::make_shared<ui::ImageList>();
         pImageList->SetImageSize(ui::UiSize(16, 16), Dpi(), true);
         m_pComputerListCtrl->SetImageList(ui::ListCtrlType::Report, pImageList);//该指针的资源生命周期由ListCtrl内部管理
         
@@ -508,7 +508,7 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
         return;
     }
     m_pComputerListCtrl->DeleteAllDataItems();
-    ui::ImageList* pImageList = nullptr;
+    ui::ImageListPtr pImageList;
     if (m_pComputerListCtrl != nullptr) {
         pImageList = m_pComputerListCtrl->GetImageList(ui::ListCtrlType::Report);
     }
@@ -759,7 +759,7 @@ void MainForm::OnRemoveIcon(uint32_t nIconId)
         int32_t nImageId = iter->second;
         m_iconToImageMap.erase(iter);
 
-        ui::ImageList* pImageList = nullptr;
+        ui::ImageListPtr pImageList;
         if (m_pComputerListCtrl != nullptr) {
             pImageList = m_pComputerListCtrl->GetImageList(ui::ListCtrlType::Report);
         }

@@ -218,7 +218,7 @@ void ListCtrlItem::Paint(IRender* pRender, const UiRect& rcPaint)
         UiSize imageSize;
         ListCtrl* pListCtrl = GetListCtrl();
         if (pListCtrl != nullptr) {
-            ImageList* pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
+            ImageListPtr pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
             if (pImageList != nullptr) {
                 imageSize = pImageList->GetImageSize();
             }
@@ -252,7 +252,7 @@ ImagePtr ListCtrlItem::LoadItemImage() const
     if (m_imageId >= 0) {
         ListCtrl* pListCtrl = GetListCtrl();
         if (pListCtrl != nullptr) {
-            ImageList* pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
+            ImageListPtr pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
             if (pImageList != nullptr) {
                 pItemImage = pImageList->GetImageData(m_imageId);
                 ASSERT(pItemImage != nullptr);
@@ -326,7 +326,7 @@ int32_t ListCtrlItem::GetItemPaddingLeft()
         UiSize imageSize;
         ListCtrl* pListCtrl = GetListCtrl();
         if (pListCtrl != nullptr) {
-            ImageList* pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
+            ImageListPtr pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
             if (pImageList != nullptr) {
                 imageSize = pImageList->GetImageSize();
             }

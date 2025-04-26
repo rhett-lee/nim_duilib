@@ -69,65 +69,27 @@ ListCtrl::~ListCtrl()
         delete m_pRichEdit;
         m_pRichEdit = nullptr;
     }
-    std::set<ImageList*> pImageSet;
-    for (ImageList* pImage : m_imageList) {
-        pImageSet.insert(pImage);        
-    }
-    for (ImageList* pImage : pImageSet) {
-        if (pImage != nullptr) {
-            delete pImage;
-            pImage = nullptr;
-        }
-    }
 }
 
 DString ListCtrl::GetType() const { return DUI_CTR_LISTCTRL; }
 
-void ListCtrl::SetImageList(ListCtrlType type, ImageList* pImageList)
+void ListCtrl::SetImageList(ListCtrlType type, const ImageListPtr& spImageList)
 {
-    ImageList* pOldImageList = nullptr;
     if (type == ListCtrlType::Report) {
-        pOldImageList = m_imageList[0];
-        m_imageList[0] = pImageList;
+        m_imageList[0] = spImageList;
     }
     else if (type == ListCtrlType::Icon) {
-        pOldImageList = m_imageList[1];
-        m_imageList[1] = pImageList;
+        m_imageList[1] = spImageList;
     }
     else if (type == ListCtrlType::List) {
-        pOldImageList = m_imageList[2];
-        m_imageList[2] = pImageList;
+        m_imageList[2] = spImageList;
     }
     else {
         ASSERT(0);
     }
-    std::set<ImageList*> pImageSet;
-    for (ImageList* pImage : m_imageList) {
-        pImageSet.insert(pImage);
-    }
-    if ((pOldImageList != nullptr) && (pImageSet.find(pOldImageList) == pImageSet.end())) {
-        delete pOldImageList;
-        pOldImageList = nullptr;
-    }
 }
 
-ImageList* ListCtrl::GetImageList(ListCtrlType type)
-{
-    if (type == ListCtrlType::Report) {
-        return m_imageList[0];
-    }
-    else if (type == ListCtrlType::Icon) {
-        return m_imageList[1];
-    }
-    else if (type == ListCtrlType::List) {
-        return m_imageList[2];
-    }
-    else {
-        return nullptr;
-    }
-}
-
-const ImageList* ListCtrl::GetImageList(ListCtrlType type) const
+ImageListPtr ListCtrl::GetImageList(ListCtrlType type) const
 {
     if (type == ListCtrlType::Report) {
         return m_imageList[0];

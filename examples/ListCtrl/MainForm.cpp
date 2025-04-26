@@ -26,9 +26,9 @@ void MainForm::OnInitWindow()
     if (pListCtrl == nullptr) {
         return;
     }
-    ui::ImageList* pReportImageList = new ui::ImageList;
-    ui::ImageList* pIconImageList = new ui::ImageList;
-    ui::ImageList* pListImageList = new ui::ImageList;
+    ui::ImageListPtr pReportImageList = std::make_shared<ui::ImageList>();
+    ui::ImageListPtr pIconImageList = std::make_shared<ui::ImageList>();
+    ui::ImageListPtr pListImageList = std::make_shared<ui::ImageList>();
     pListCtrl->SetImageList(ui::ListCtrlType::Report, pReportImageList);
     pListCtrl->SetImageList(ui::ListCtrlType::Icon, pIconImageList);
     pListCtrl->SetImageList(ui::ListCtrlType::List, pListImageList);

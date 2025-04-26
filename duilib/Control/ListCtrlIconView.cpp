@@ -225,7 +225,7 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
     DString imageString;
     UiSize imageSize;
     if (nImageId >= 0) {
-        ImageList* pImageList = nullptr;
+        ImageListPtr pImageList = nullptr;
         if (m_bListMode) {
             pImageList = m_pListCtrl->GetImageList(ListCtrlType::List);
         }
