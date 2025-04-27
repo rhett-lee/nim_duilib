@@ -518,7 +518,7 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
 
     ui::ListCtrlSubItemData itemData;
     size_t nItemIndex = 0;
-    size_t nSubItemIndex = 0;
+    size_t nColumnId = 0;
 #ifdef DUILIB_BUILD_FOR_WIN
     for (size_t nIndex = 0; nIndex < diskInfoList.size(); ++nIndex) {
         const ui::DirectoryTree::DiskInfo& diskInfo = diskInfoList[nIndex];   
@@ -540,34 +540,34 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
             subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
 
             subItemData.text = diskInfo.m_displayName;
-            nSubItemIndex = GetColumnIndex(ComputerViewColumn::kName);
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //名称
+            nColumnId = GetColumnId(ComputerViewColumn::kName);
+            m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //名称
             //设置"名称"列的排序方式
-            m_pComputerListCtrl->SetSubItemUserDataN(nItemIndex, nSubItemIndex, nIndex);
-            m_pComputerListCtrl->SetSubItemUserDataS(nItemIndex, nSubItemIndex, diskInfo.m_filePath.ToString());
-            m_pComputerListCtrl->SetColumnSortFlag(nSubItemIndex, ui::ListCtrlSubItemSortFlag::kSortByUserDataN);
+            m_pComputerListCtrl->SetSubItemUserDataNById(nItemIndex, nColumnId, nIndex);
+            m_pComputerListCtrl->SetSubItemUserDataSById(nItemIndex, nColumnId, diskInfo.m_filePath.ToString());
+            m_pComputerListCtrl->SetColumnSortFlagById(nColumnId, ui::ListCtrlSubItemSortFlag::kSortByUserDataN);
 
             subItemData.nTextFormat = ui::DrawStringFormat::TEXT_CENTER | ui::DrawStringFormat::TEXT_VCENTER;
 
             subItemData.text = diskInfo.m_volumeType;
-            nSubItemIndex = GetColumnIndex(ComputerViewColumn::kType);
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //磁盘类型
+            nColumnId = GetColumnId(ComputerViewColumn::kType);
+            m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //磁盘类型
 
             subItemData.text = diskInfo.m_fileSystem;
-            nSubItemIndex = GetColumnIndex(ComputerViewColumn::kPartitionType);
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //分区类型
+            nColumnId = GetColumnId(ComputerViewColumn::kPartitionType);
+            m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //分区类型
 
             subItemData.text = FormatDiskSpace(diskInfo.m_totalBytes);
-            nSubItemIndex = GetColumnIndex(ComputerViewColumn::kTotalSpace);
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //总大小
+            nColumnId = GetColumnId(ComputerViewColumn::kTotalSpace);
+            m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //总大小
 
             subItemData.text = FormatDiskSpace(diskInfo.m_freeBytes);
-            nSubItemIndex = GetColumnIndex(ComputerViewColumn::kFreeSpace);
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //可用空间
+            nColumnId = GetColumnId(ComputerViewColumn::kFreeSpace);
+            m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //可用空间
 
             subItemData.text = FormatUsedPercent(diskInfo.m_totalBytes, diskInfo.m_freeBytes);
-            nSubItemIndex = GetColumnIndex(ComputerViewColumn::kUsedPercent);
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //已用百分比
+            nColumnId = GetColumnId(ComputerViewColumn::kUsedPercent);
+            m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //已用百分比
         }
     }
 #else
@@ -591,35 +591,35 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
             ui::ListCtrlSubItemData subItemData;
             subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
             subItemData.text = diskInfo.m_displayName;
-            nSubItemIndex = GetColumnIndex(ComputerViewColumn::kName);
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //文件系统
+            nColumnId = GetColumnId(ComputerViewColumn::kName);
+            m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //文件系统
 
             subItemData.nTextFormat = ui::DrawStringFormat::TEXT_CENTER | ui::DrawStringFormat::TEXT_VCENTER;
 
             subItemData.text = GetDeviceTypeString(diskInfo.m_deviceType);
-            nSubItemIndex = GetColumnIndex(ComputerViewColumn::kType);
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //设备类型
+            nColumnId = GetColumnId(ComputerViewColumn::kType);
+            m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //设备类型
 
             subItemData.text = diskInfo.m_fileSystem;
-            nSubItemIndex = GetColumnIndex(ComputerViewColumn::kPartitionType);
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //分区类型
+            nColumnId = GetColumnId(ComputerViewColumn::kPartitionType);
+            m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //分区类型
 
             subItemData.text = FormatDiskSpace(diskInfo.m_totalBytes);
-            nSubItemIndex = GetColumnIndex(ComputerViewColumn::kTotalSpace);
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //总大小
+            nColumnId = GetColumnId(ComputerViewColumn::kTotalSpace);
+            m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //总大小
 
             subItemData.text = FormatDiskSpace(diskInfo.m_freeBytes);
-            nSubItemIndex = GetColumnIndex(ComputerViewColumn::kFreeSpace);
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //可用空间
+            nColumnId = GetColumnId(ComputerViewColumn::kFreeSpace);
+            m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //可用空间
 
             subItemData.text = FormatUsedPercent(diskInfo.m_totalBytes, diskInfo.m_freeBytes);
-            nSubItemIndex = GetColumnIndex(ComputerViewColumn::kUsedPercent);
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //已用百分比
+            nColumnId = GetColumnId(ComputerViewColumn::kUsedPercent);
+            m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //已用百分比
 
             subItemData.text = diskInfo.m_mountOn;
             subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
-            nSubItemIndex = GetColumnIndex(ComputerViewColumn::kMountOn);
-            m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //挂载点
+            nColumnId = GetColumnId(ComputerViewColumn::kMountOn);
+            m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //挂载点
         }
     }
 #endif
@@ -733,15 +733,12 @@ void MainForm::ClearDiskInfoList(const std::vector<ui::DirectoryTree::DiskInfo>&
     }
 }
 
-size_t MainForm::GetColumnIndex(ComputerViewColumn nOriginIndex) const
+size_t MainForm::GetColumnId(ComputerViewColumn nOriginIndex) const
 {
     size_t nColumnIndex = ui::Box::InvalidIndex;
     auto iter = m_columnIdMap.find(nOriginIndex);
     if (iter != m_columnIdMap.end()) {
-        size_t nColumnId = iter->second;
-        if (m_pComputerListCtrl != nullptr) {
-            nColumnIndex = m_pComputerListCtrl->GetColumnIndex(nColumnId);
-        }
+        return iter->second;
     }
     return nColumnIndex;
 }

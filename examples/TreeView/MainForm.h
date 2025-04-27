@@ -141,7 +141,7 @@ private:
 
     /** 获取真实的列索引号
     */
-    size_t GetColumnIndex(ComputerViewColumn nOriginIndex) const;
+    size_t GetColumnId(ComputerViewColumn nOriginIndex) const;
 
 private:
     /** 左侧树节点的接口
