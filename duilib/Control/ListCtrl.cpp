@@ -1271,14 +1271,25 @@ bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp, uint8_t nSortFl
     if (nColumnId == Box::InvalidIndex) {
         return false;
     }
-    m_nSortedColumnId = nColumnId;
+    return SortDataItemsById(nColumnId, bSortedUp, nSortFlag, pfnCompareFunc, pUserData);
+}
+
+bool ListCtrl::SortDataItemsById(size_t columnId, bool bSortedUp, uint8_t nSortFlag,
+                                 ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
+{
+    size_t columnIndex = GetColumnIndex(columnId);
+    ASSERT(columnIndex != Box::InvalidIndex);
+    if (columnIndex == Box::InvalidIndex) {
+        return false;
+    }
+    m_nSortedColumnId = columnId;
     m_bSortedUp = bSortedUp;
-    SetColumnSortFlagById(nColumnId, nSortFlag);
+    SetColumnSortFlagById(columnId, nSortFlag);
     if (m_pHeaderCtrl != nullptr) {
         //更新UI排序显示
-        m_pHeaderCtrl->SetSortColumnId(nColumnId, bSortedUp, false);
-    }
-    return m_pData->SortDataItems(nColumnId, columnIndex, bSortedUp, nSortFlag, pfnCompareFunc, pUserData);
+        m_pHeaderCtrl->SetSortColumnId(columnId, bSortedUp, false);
+    }    
+    return m_pData->SortDataItems(columnId, columnIndex, bSortedUp, nSortFlag, pfnCompareFunc, pUserData);
 }
 
 void ListCtrl::SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
@@ -1456,17 +1467,27 @@ bool ListCtrl::InsertDataItem(size_t itemIndex, const ListCtrlSubItemData& dataI
 
 bool ListCtrl::SetSubItemData(size_t itemIndex, size_t columnIndex, const ListCtrlSubItemData& subItemData)
 {
+    return SetSubItemDataById(itemIndex, GetColumnId(columnIndex), subItemData);
+}
+
+bool ListCtrl::SetSubItemDataById(size_t itemIndex, size_t columnId, const ListCtrlSubItemData& subItemData)
+{
     bool bCheckChanged = false;
-    bool bRet = m_pData->SetSubItemData(itemIndex, GetColumnId(columnIndex), subItemData, bCheckChanged);
+    bool bRet = m_pData->SetSubItemData(itemIndex, columnId, subItemData, bCheckChanged);
     if (bCheckChanged) {
         UpdateHeaderColumnCheckBox(GetColumnId(itemIndex));
-    }    
+    }
     return bRet;
 }
 
 bool ListCtrl::GetSubItemData(size_t itemIndex, size_t columnIndex, ListCtrlSubItemData& subItemData) const
 {
-    return m_pData->GetSubItemData(itemIndex, GetColumnId(columnIndex), subItemData);
+    return GetSubItemDataById(itemIndex, GetColumnId(columnIndex), subItemData);
+}
+
+bool ListCtrl::GetSubItemDataById(size_t itemIndex, size_t columnId, ListCtrlSubItemData& subItemData) const
+{
+    return m_pData->GetSubItemData(itemIndex, columnId, subItemData);
 }
 
 bool ListCtrl::DeleteDataItem(size_t itemIndex)
@@ -1602,108 +1623,208 @@ int32_t ListCtrl::GetDataItemHeight(size_t itemIndex) const
 
 bool ListCtrl::SetSubItemText(size_t itemIndex, size_t columnIndex, const DString& text)
 {
-    return m_pData->SetSubItemText(itemIndex, GetColumnId(columnIndex), text);
+    return SetSubItemTextById(itemIndex, GetColumnId(columnIndex), text);
+}
+
+bool ListCtrl::SetSubItemTextById(size_t itemIndex, size_t columnId, const DString& text)
+{
+    return m_pData->SetSubItemText(itemIndex, columnId, text);
 }
 
 DString ListCtrl::GetSubItemText(size_t itemIndex, size_t columnIndex) const
 {
-    return m_pData->GetSubItemText(itemIndex, GetColumnId(columnIndex));
+    return GetSubItemTextById(itemIndex, GetColumnId(columnIndex));
+}
+
+DString ListCtrl::GetSubItemTextById(size_t itemIndex, size_t columnId) const
+{
+    return m_pData->GetSubItemText(itemIndex, columnId);
 }
 
 bool ListCtrl::SetSubItemUserDataN(size_t itemIndex, size_t columnIndex, size_t userDataN)
 {
-    return m_pData->SetSubItemUserDataN(itemIndex, GetColumnId(columnIndex), userDataN);
+    return SetSubItemUserDataNById(itemIndex, GetColumnId(columnIndex), userDataN);
+}
+
+bool ListCtrl::SetSubItemUserDataNById(size_t itemIndex, size_t columnId, size_t userDataN)
+{
+    return m_pData->SetSubItemUserDataN(itemIndex, columnId, userDataN);
 }
 
 size_t ListCtrl::GetSubItemUserDataN(size_t itemIndex, size_t columnIndex) const
 {
-    return m_pData->GetSubItemUserDataN(itemIndex, GetColumnId(columnIndex));
+    return GetSubItemUserDataNById(itemIndex, GetColumnId(columnIndex));
+}
+
+size_t ListCtrl::GetSubItemUserDataNById(size_t itemIndex, size_t columnId) const
+{
+    return m_pData->GetSubItemUserDataN(itemIndex, columnId);
 }
 
 bool ListCtrl::SetSubItemUserDataS(size_t itemIndex, size_t columnIndex, const DString& userDataS)
 {
-    return m_pData->SetSubItemUserDataS(itemIndex, GetColumnId(columnIndex), userDataS);
+    return SetSubItemUserDataSById(itemIndex, GetColumnId(columnIndex), userDataS);
+}
+
+bool ListCtrl::SetSubItemUserDataSById(size_t itemIndex, size_t columnId, const DString& userDataS)
+{
+    return m_pData->SetSubItemUserDataS(itemIndex, columnId, userDataS);
 }
 
 DString ListCtrl::GetSubItemUserDataS(size_t itemIndex, size_t columnIndex) const
 {
-    return m_pData->GetSubItemUserDataS(itemIndex, GetColumnId(columnIndex));
+    return GetSubItemUserDataSById(itemIndex, GetColumnId(columnIndex));
+}
+
+DString ListCtrl::GetSubItemUserDataSById(size_t itemIndex, size_t columnId) const
+{
+    return m_pData->GetSubItemUserDataS(itemIndex, columnId);
 }
 
 bool ListCtrl::SetSubItemTextColor(size_t itemIndex, size_t columnIndex, const UiColor& textColor)
 {
-    return m_pData->SetSubItemTextColor(itemIndex, GetColumnId(columnIndex), textColor);
+    return SetSubItemTextColorById(itemIndex, GetColumnId(columnIndex), textColor);
+}
+
+bool ListCtrl::SetSubItemTextColorById(size_t itemIndex, size_t columnId, const UiColor& textColor)
+{
+    return m_pData->SetSubItemTextColor(itemIndex, columnId, textColor);
 }
 
 UiColor ListCtrl::GetSubItemTextColor(size_t itemIndex, size_t columnIndex) const
 {
+    return GetSubItemTextColorById(itemIndex, GetColumnId(columnIndex));
+}
+
+UiColor ListCtrl::GetSubItemTextColorById(size_t itemIndex, size_t columnId) const
+{
     UiColor textColor;
-    m_pData->GetSubItemTextColor(itemIndex, GetColumnId(columnIndex), textColor);
+    m_pData->GetSubItemTextColor(itemIndex, columnId, textColor);
     return textColor;
 }
 
 bool ListCtrl::SetSubItemTextFormat(size_t itemIndex, size_t columnIndex, int32_t nTextFormat)
 {
-    return m_pData->SetSubItemTextFormat(itemIndex, GetColumnId(columnIndex), nTextFormat);
+    return SetSubItemTextFormatById(itemIndex, GetColumnId(columnIndex), nTextFormat);
+}
+
+bool ListCtrl::SetSubItemTextFormatById(size_t itemIndex, size_t columnId, int32_t nTextFormat)
+{
+    return m_pData->SetSubItemTextFormat(itemIndex, columnId, nTextFormat);
 }
 
 int32_t ListCtrl::GetSubItemTextFormat(size_t itemIndex, size_t columnIndex) const
 {
-    return m_pData->GetSubItemTextFormat(itemIndex, GetColumnId(columnIndex));
+    return GetSubItemTextFormatById(itemIndex, GetColumnId(columnIndex));
+}
+
+int32_t ListCtrl::GetSubItemTextFormatById(size_t itemIndex, size_t columnId) const
+{
+    return m_pData->GetSubItemTextFormat(itemIndex, columnId);
 }
 
 bool ListCtrl::SetSubItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& bkColor)
 {
-    return m_pData->SetSubItemBkColor(itemIndex, GetColumnId(columnIndex), bkColor);
+    return SetSubItemBkColorById(itemIndex, GetColumnId(columnIndex), bkColor);
+}
+
+bool ListCtrl::SetSubItemBkColorById(size_t itemIndex, size_t columnId, const UiColor& bkColor)
+{
+    return m_pData->SetSubItemBkColor(itemIndex, columnId, bkColor);
 }
 
 UiColor ListCtrl::GetSubItemBkColor(size_t itemIndex, size_t columnIndex) const
 {
+    return GetSubItemBkColorById(itemIndex, GetColumnId(columnIndex));
+}
+
+UiColor ListCtrl::GetSubItemBkColorById(size_t itemIndex, size_t columnId) const
+{
     UiColor bkColor;
-    m_pData->GetSubItemBkColor(itemIndex, GetColumnId(columnIndex), bkColor);
+    m_pData->GetSubItemBkColor(itemIndex, columnId, bkColor);
     return bkColor;
 }
 
 bool ListCtrl::IsSubItemShowCheckBox(size_t itemIndex, size_t columnIndex) const
 {
-    return m_pData->IsSubItemShowCheckBox(itemIndex, GetColumnId(columnIndex));
+    return IsSubItemShowCheckBoxById(itemIndex, GetColumnId(columnIndex));
+}
+
+bool ListCtrl::IsSubItemShowCheckBoxById(size_t itemIndex, size_t columnId) const
+{
+    return m_pData->IsSubItemShowCheckBox(itemIndex, columnId);
 }
 
 bool ListCtrl::SetSubItemShowCheckBox(size_t itemIndex, size_t columnIndex, bool bShowCheckBox)
 {
-    return m_pData->SetSubItemShowCheckBox(itemIndex, GetColumnId(columnIndex), bShowCheckBox);
+    return SetSubItemShowCheckBoxById(itemIndex, GetColumnId(columnIndex), bShowCheckBox);
+}
+
+bool ListCtrl::SetSubItemShowCheckBoxById(size_t itemIndex, size_t columnId, bool bShowCheckBox)
+{
+    return m_pData->SetSubItemShowCheckBox(itemIndex, columnId, bShowCheckBox);
 }
 
 bool ListCtrl::SetSubItemCheck(size_t itemIndex, size_t columnIndex, bool bChecked)
 {
-    return m_pData->SetSubItemCheck(itemIndex, GetColumnId(columnIndex), bChecked, true);
+    return SetSubItemCheckById(itemIndex, GetColumnId(columnIndex), bChecked);
+}
+
+bool ListCtrl::SetSubItemCheckById(size_t itemIndex, size_t columnId, bool bChecked)
+{
+    return m_pData->SetSubItemCheck(itemIndex, columnId, bChecked, true);
 }
 
 bool ListCtrl::IsSubItemChecked(size_t itemIndex, size_t columnIndex) const
 {
+    return IsSubItemCheckedById(itemIndex, GetColumnId(columnIndex));
+}
+
+bool ListCtrl::IsSubItemCheckedById(size_t itemIndex, size_t columnId) const
+{
     bool bChecked = false;
-    m_pData->GetSubItemCheck(itemIndex, GetColumnId(columnIndex), bChecked);
+    m_pData->GetSubItemCheck(itemIndex, columnId, bChecked);
     return bChecked;
 }
 
 bool ListCtrl::SetSubItemImageId(size_t itemIndex, size_t columnIndex, int32_t imageId)
 {
-    return m_pData->SetSubItemImageId(itemIndex, GetColumnId(columnIndex), imageId);
+    return SetSubItemImageIdById(itemIndex, GetColumnId(columnIndex), imageId);
+}
+
+bool ListCtrl::SetSubItemImageIdById(size_t itemIndex, size_t columnId, int32_t imageId)
+{
+    return m_pData->SetSubItemImageId(itemIndex, columnId, imageId);
 }
 
 int32_t ListCtrl::GetSubItemImageId(size_t itemIndex, size_t columnIndex) const
 {
-    return m_pData->GetSubItemImageId(itemIndex, GetColumnId(columnIndex));
+    return GetSubItemImageIdById(itemIndex, GetColumnId(columnIndex));
+}
+
+int32_t ListCtrl::GetSubItemImageIdById(size_t itemIndex, size_t columnId) const
+{
+    return m_pData->GetSubItemImageId(itemIndex, columnId);
 }
 
 bool ListCtrl::SetSubItemEditable(size_t itemIndex, size_t columnIndex, bool bEditable)
 {
-    return m_pData->SetSubItemEditable(itemIndex, GetColumnId(columnIndex), bEditable);
+    return SetSubItemEditableById(itemIndex, GetColumnId(columnIndex), bEditable);
+}
+
+bool ListCtrl::SetSubItemEditableById(size_t itemIndex, size_t columnId, bool bEditable)
+{
+    return m_pData->SetSubItemEditable(itemIndex, columnId, bEditable);
 }
 
 bool ListCtrl::IsSubItemEditable(size_t itemIndex, size_t columnIndex) const
 {
-    return m_pData->IsSubItemEditable(itemIndex, GetColumnId(columnIndex));
+    return IsSubItemEditableById(itemIndex, GetColumnId(columnIndex));
+}
+
+bool ListCtrl::IsSubItemEditableById(size_t itemIndex, size_t columnId) const
+{
+    return m_pData->IsSubItemEditable(itemIndex, columnId);
 }
 
 bool ListCtrl::IsMultiSelect() const
