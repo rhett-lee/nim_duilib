@@ -542,6 +542,10 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
             subItemData.text = diskInfo.m_displayName;
             nSubItemIndex = GetColumnIndex(ComputerViewColumn::kName);
             m_pComputerListCtrl->SetSubItemData(nItemIndex, nSubItemIndex, subItemData); //名称
+            //设置"名称"列的排序方式
+            m_pComputerListCtrl->SetSubItemUserDataN(nItemIndex, nSubItemIndex, nIndex);
+            m_pComputerListCtrl->SetSubItemUserDataS(nItemIndex, nSubItemIndex, diskInfo.m_filePath.ToString());
+            m_pComputerListCtrl->SetColumnSortFlag(nSubItemIndex, ui::ListCtrlSubItemSortFlag::kSortByUserDataN);
 
             subItemData.nTextFormat = ui::DrawStringFormat::TEXT_CENTER | ui::DrawStringFormat::TEXT_VCENTER;
 

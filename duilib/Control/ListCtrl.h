@@ -122,6 +122,11 @@ public:
     */
     size_t GetColumnId(size_t columnIndex) const;
 
+    /** 判断一个列的ID是否有效
+    * @param [in] columnId 列的ID值
+    */
+    bool IsValidColumnId(size_t columnId) const;
+
     /** 删除一列
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
     */
@@ -155,6 +160,30 @@ public:
     /** 获取表头控件的高度
     */
     int32_t GetHeaderHeight() const;
+
+    /** 设置某列数据的排序方式（通过列序号）
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] nSortFlag 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
+    */
+    void SetColumnSortFlag(size_t columnIndex, uint8_t nSortFlag);
+
+    /** 获取某列数据的排序方式（通过列序号）
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * return 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
+    */
+    uint8_t GetColumnSortFlag(size_t columnIndex);
+
+    /** 设置某列数据的排序方式（通过列ID）
+    * @param [in] columnId 列的ID值
+    * @param [in] nSortFlag 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
+    */
+    void SetColumnSortFlagById(size_t columnId, uint8_t nSortFlag);
+
+    /** 获取某列数据的排序方式（通过列ID）
+    * @param [in] columnId 列的ID值
+    * return 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
+    */
+    uint8_t GetColumnSortFlagById(size_t columnId);
 
 public:
     /** 获取数据项总个数
@@ -297,6 +326,7 @@ public:
     */
     bool GetSubItemData(size_t itemIndex, size_t columnIndex, ListCtrlSubItemData& subItemData) const;
 
+public:
     /** 设置指定数据项的文本
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
@@ -311,6 +341,35 @@ public:
     */
     DString GetSubItemText(size_t itemIndex, size_t columnIndex) const;
 
+    /** 设置指定数据项的关联用户数据（整型）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] userDataN 需要设置的数据项关联的整型数据
+    */
+    bool SetSubItemUserDataN(size_t itemIndex, size_t columnIndex, size_t userDataN);
+
+    /** 获取指定数据项的关联用户数据（整型）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @return 数据项关联的整型数据
+    */
+    size_t GetSubItemUserDataN(size_t itemIndex, size_t columnIndex) const;
+
+    /** 设置指定数据项的关联用户数据（整型）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] userDataS 需要设置的数据项关联的字符串数据
+    */
+    bool SetSubItemUserDataS(size_t itemIndex, size_t columnIndex, const DString& userDataS);
+
+    /** 获取指定数据项的关联用户数据（字符串）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @return 数据项关联的字符串数据
+    */
+    DString GetSubItemUserDataS(size_t itemIndex, size_t columnIndex) const;
+
+public:
     /** 设置指定数据项的文本颜色
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
@@ -407,10 +466,11 @@ public:
     /** 对数据排序
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
     * @param [in] bSortedUp true表示升序，false表示降序
+    * @param [in] nSortFlag 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
     * @param [in] pfnCompareFunc 自定义的比较函数，如果为nullptr, 则使用默认的比较函数
     * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
     */
-    bool SortDataItems(size_t columnIndex, bool bSortedUp, 
+    bool SortDataItems(size_t columnIndex, bool bSortedUp, uint8_t nSortFlag = ListCtrlSubItemSortFlag::kDefault,
                        ListCtrlDataCompareFunc pfnCompareFunc = nullptr,
                        void* pUserData = nullptr);
 
@@ -1011,6 +1071,10 @@ private:
     /** 当前排序列的ID
     */
     size_t m_nSortedColumnId;
+
+    /** 每列的排序方式标志位映射表(列ID -> 排序方式)
+    */
+    std::map<size_t, uint8_t> m_columnSortFlagMap;
 
     /** 当前排序是否为升序排列
     */
