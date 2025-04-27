@@ -8,6 +8,8 @@
 #include <stack>
 #include <map>
 
+class ComputerView;
+
 class MainForm : public ui::WindowImplBase
 {
 public:
@@ -80,42 +82,6 @@ private:
     */
     void SetShowTreeNode(ui::TreeNode* pTreeNode);
 
-    /** 初始化计算机视图的表头
-    */
-    void InitializeComputerViewHeader();
-
-    /** 显示"计算机"节点的内容
-    * @param [in] diskInfoList 所有磁盘的信息列表
-    */
-    void FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList);
-
-    /** 磁盘空间大小转换为显示字符串
-    */
-    DString FormatDiskSpace(uint64_t nSpace) const;
-
-    /** 获取已用百分比显示字符串
-    */
-    DString FormatUsedPercent(uint64_t nTotalSpace, uint64_t nFreeSpace) const;
-
-    /** 在"计算机"视图中双击
-    */
-    bool OnComuterViewDoubleClick(const ui::EventArgs& msg);
-
-    /** 清空列表，释放资源
-    */
-    void ClearDiskInfoList(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList) const;
-
-#ifndef DUILIB_BUILD_FOR_WIN
-    /** 设备类型转换为字符串
-    */
-    DString GetDeviceTypeString(ui::DirectoryTree::DeviceType deviceType) const;
-#endif
-
-    /** 图标被移除时，同步Image List中也要移除（不移除的话，会存在加载不到图标的情况）
-    * @param [in] nIconId 图标ID（在IconManager中）
-    */
-    void OnRemoveIcon(uint32_t nIconId);
-
 private:
     /** 视图类型
     */
@@ -125,23 +91,6 @@ private:
         kComputerView   = 1,    //计算机视图
         kErrorView      = 2     //出错视图
     };
-
-    /** 计算机视图的表头
-    */
-    enum class ComputerViewColumn
-    {
-        kName,         //名称
-        kType,         //类型
-        kPartitionType,//分区类型
-        kTotalSpace,   //总大小
-        kFreeSpace,    //可用空间
-        kUsedPercent,  //已用百分比
-        kMountOn       //挂载点
-    };
-
-    /** 获取真实的列索引号
-    */
-    size_t GetColumnId(ComputerViewColumn nOriginIndex) const;
 
 private:
     /** 左侧树节点的接口
@@ -157,27 +106,10 @@ private:
     ui::TabBox* m_pTabBox;
 
 private:
-    /** 计算机视图的数据
+    /** 计算机视图
     */
-    std::vector<ui::DirectoryTree::DiskInfo> m_diskInfoList;
+    std::unique_ptr<ComputerView> m_pComputerView;
 
-    /** 计算机视图的接口
-    */
-    ui::ControlPtr<ui::ListCtrl> m_pComputerListCtrl;
-
-    /** 计算机视图中每列的初始序号与列ID映射表（因为调整列顺序后，每列的序号发生变化，已经不能通过列序号添加数据）
-    */
-    std::map<ComputerViewColumn, size_t> m_columnIdMap;
-
-    /** IconID 到 ImageID的映射表
-    */
-    std::map<uint32_t, int32_t> m_iconToImageMap;
-
-    /** 图标删除回调函数的ID
-    */
-    uint32_t m_nRemoveIconCallbackId;
-
-private:
     /** 文件列表（右侧虚表显示的数据）
     */
     FileInfoList m_fileList;

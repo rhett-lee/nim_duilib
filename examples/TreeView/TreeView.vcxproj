@@ -178,6 +178,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ComputerView.h" />
     <ClInclude Include="FileInfoItem.h" />
     <ClInclude Include="FileInfoList.h" />
     <ClInclude Include="MainForm.h" />
@@ -192,6 +193,7 @@
     <Image Include="TreeView.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ComputerView.cpp" />
     <ClCompile Include="FileInfoItem.cpp" />
     <ClCompile Include="FileInfoList.cpp" />
     <ClCompile Include="MainForm.cpp" />

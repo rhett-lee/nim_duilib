@@ -33,6 +33,9 @@
     <ClInclude Include="TestApplication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ComputerView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="TreeView.rc">
@@ -61,6 +64,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TestApplication.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ComputerView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
