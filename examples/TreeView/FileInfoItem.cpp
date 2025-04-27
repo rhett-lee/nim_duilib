@@ -61,7 +61,7 @@ bool FileInfoItem::IsImageFile(const DString& filePath) const
     if (fileExt == _T(".svg")) {
         return true;
     }
-    if ((fileExt == _T(".svg")) || 
+    /*if ((fileExt == _T(".svg")) || 
         (fileExt == _T(".jpg")) || 
         (fileExt == _T(".jpeg")) || 
         (fileExt == _T(".gif")) || 
@@ -70,6 +70,6 @@ bool FileInfoItem::IsImageFile(const DString& filePath) const
         (fileExt == _T(".webp")) || 
         (fileExt == _T(".ico"))) {
         return true;
-    }
+    }*/
     return false;
 }
