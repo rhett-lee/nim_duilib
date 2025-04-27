@@ -113,8 +113,10 @@ public:
 
     /** 删除一列
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] columnId 列ID
     */
     bool DeleteColumn(size_t columnIndex);
+    bool DeleteColumnById(size_t columnId);
 
     /** 设置是否在Header显示CheckBox
     * @param [in] bShow true表示在表头显示CheckBox，false表示不显示

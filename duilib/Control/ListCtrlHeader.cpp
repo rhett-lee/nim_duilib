@@ -366,6 +366,15 @@ bool ListCtrlHeader::DeleteColumn(size_t columnIndex)
     return bRet;
 }
 
+bool ListCtrlHeader::DeleteColumnById(size_t columnId)
+{
+    size_t columnIndex = GetColumnIndex(columnId);
+    if (Box::IsValidItemIndex(columnIndex)) {
+        return DeleteColumn(columnIndex);
+    }
+    return false;
+}
+
 void ListCtrlHeader::SetListCtrl(ListCtrl* pListCtrl)
 {
     m_pListCtrl = pListCtrl;

@@ -863,6 +863,15 @@ int32_t ListCtrl::GetColumnWidth(size_t columnIndex) const
     }
 }
 
+int32_t ListCtrl::GetColumnWidthById(size_t columnId) const
+{
+    size_t columnIndex = GetColumnIndex(columnId);
+    if (Box::IsValidItemIndex(columnIndex)) {
+        return GetColumnWidth(columnIndex);
+    }
+    return 0;
+}
+
 bool ListCtrl::SetColumnWidth(size_t columnIndex, int32_t nWidth, bool bNeedDpiScale)
 {
     bool bRet = false;
@@ -874,6 +883,15 @@ bool ListCtrl::SetColumnWidth(size_t columnIndex, int32_t nWidth, bool bNeedDpiS
         OnColumnWidthChanged(GetColumnId(columnIndex), Box::InvalidIndex);
     }
     return true;
+}
+
+bool ListCtrl::SetColumnWidthById(size_t columnId, int32_t nWidth, bool bNeedDpiScale)
+{
+    size_t columnIndex = GetColumnIndex(columnId);
+    if (Box::IsValidItemIndex(columnIndex)) {
+        return SetColumnWidth(columnIndex, nWidth, bNeedDpiScale);
+    }
+    return false;
 }
 
 bool ListCtrl::SetColumnWidthAuto(size_t columnIndex)
@@ -889,6 +907,15 @@ bool ListCtrl::SetColumnWidthAuto(size_t columnIndex)
         bRet = SetColumnWidth(columnIndex, nMaxWidth, false);
     }
     return bRet;
+}
+
+bool ListCtrl::SetColumnWidthAutoById(size_t columnId)
+{
+    size_t columnIndex = GetColumnIndex(columnId);
+    if (Box::IsValidItemIndex(columnIndex)) {
+        return SetColumnWidthAuto(columnIndex);
+    }
+    return false;
 }
 
 ListCtrlHeaderItem* ListCtrl::GetColumn(size_t columnIndex) const
@@ -947,6 +974,17 @@ bool ListCtrl::DeleteColumn(size_t columnIndex)
     }
     else {
         return m_pHeaderCtrl->DeleteColumn(columnIndex);
+    }
+}
+
+bool ListCtrl::DeleteColumnById(size_t columnId)
+{
+    ASSERT(m_pHeaderCtrl != nullptr);
+    if (m_pHeaderCtrl == nullptr) {
+        return false;
+    }
+    else {
+        return m_pHeaderCtrl->DeleteColumnById(columnId);
     }
 }
 
