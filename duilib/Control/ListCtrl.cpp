@@ -933,6 +933,12 @@ size_t ListCtrl::GetColumnId(size_t columnIndex) const
     return Box::InvalidIndex;
 }
 
+bool ListCtrl::IsValidColumnId(size_t columnId) const
+{
+    size_t nColumnIndex = GetColumnIndex(columnId);
+    return nColumnIndex != Box::InvalidIndex;
+}
+
 bool ListCtrl::DeleteColumn(size_t columnIndex)
 {
     ASSERT(m_pHeaderCtrl != nullptr);
@@ -1193,6 +1199,7 @@ void ListCtrl::OnHeaderColumnAdded(size_t nColumnId)
 
 void ListCtrl::OnHeaderColumnRemoved(size_t nColumnId)
 {
+    m_columnSortFlagMap.erase(nColumnId);
     m_pData->RemoveColumn(nColumnId);
 }
 
@@ -1201,7 +1208,8 @@ void ListCtrl::OnColumnSorted(size_t nColumnId, bool bSortedUp)
     //对数据排序，然后刷新界面显示
     m_nSortedColumnId = nColumnId;
     m_bSortedUp = bSortedUp;
-    m_pData->SortDataItems(nColumnId, GetColumnIndex(nColumnId), bSortedUp, nullptr, nullptr);
+    uint8_t nSortFlag = GetColumnSortFlagById(m_nSortedColumnId);
+    m_pData->SortDataItems(nColumnId, GetColumnIndex(nColumnId), bSortedUp, nSortFlag, nullptr, nullptr);
     Refresh();
 }
 
@@ -1210,13 +1218,13 @@ bool ListCtrl::GetSortColumn(size_t& nSortColumnId, bool& bSortUp) const
     nSortColumnId = Box::InvalidIndex;
     if (Box::IsValidItemIndex(GetColumnIndex(m_nSortedColumnId))) {
         nSortColumnId = m_nSortedColumnId;
-        bSortUp = false;
+        bSortUp = m_bSortedUp;
         return true;
     }
     return false;
 }
 
-bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp, 
+bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp, uint8_t nSortFlag,
                              ListCtrlDataCompareFunc pfnCompareFunc,
                              void* pUserData)
 {
@@ -1227,16 +1235,43 @@ bool ListCtrl::SortDataItems(size_t columnIndex, bool bSortedUp,
     }
     m_nSortedColumnId = nColumnId;
     m_bSortedUp = bSortedUp;
+    SetColumnSortFlagById(nColumnId, nSortFlag);
     if (m_pHeaderCtrl != nullptr) {
         //更新UI排序显示
         m_pHeaderCtrl->SetSortColumnId(nColumnId, bSortedUp, false);
     }
-    return m_pData->SortDataItems(nColumnId, columnIndex, bSortedUp, pfnCompareFunc, pUserData);
+    return m_pData->SortDataItems(nColumnId, columnIndex, bSortedUp, nSortFlag, pfnCompareFunc, pUserData);
 }
 
 void ListCtrl::SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
 {
     m_pData->SetSortCompareFunction(pfnCompareFunc, pUserData);
+}
+
+void ListCtrl::SetColumnSortFlag(size_t columnIndex, uint8_t nSortFlag)
+{
+    SetColumnSortFlagById(GetColumnId(columnIndex), nSortFlag);
+}
+
+uint8_t ListCtrl::GetColumnSortFlag(size_t columnIndex)
+{
+    return GetColumnSortFlagById(GetColumnId(columnIndex));
+}
+
+void ListCtrl::SetColumnSortFlagById(size_t columnId, uint8_t nSortFlag)
+{
+    if (IsValidColumnId(columnId)) {
+        m_columnSortFlagMap[columnId] = nSortFlag;
+    }
+}
+
+uint8_t ListCtrl::GetColumnSortFlagById(size_t columnId)
+{
+    auto iter = m_columnSortFlagMap.find(columnId);
+    if (iter != m_columnSortFlagMap.end()) {
+        return iter->second;
+    }
+    return ListCtrlSubItemSortFlag::kDefault;
 }
 
 void ListCtrl::OnHeaderColumnOrderChanged()
@@ -1535,6 +1570,26 @@ bool ListCtrl::SetSubItemText(size_t itemIndex, size_t columnIndex, const DStrin
 DString ListCtrl::GetSubItemText(size_t itemIndex, size_t columnIndex) const
 {
     return m_pData->GetSubItemText(itemIndex, GetColumnId(columnIndex));
+}
+
+bool ListCtrl::SetSubItemUserDataN(size_t itemIndex, size_t columnIndex, size_t userDataN)
+{
+    return m_pData->SetSubItemUserDataN(itemIndex, GetColumnId(columnIndex), userDataN);
+}
+
+size_t ListCtrl::GetSubItemUserDataN(size_t itemIndex, size_t columnIndex) const
+{
+    return m_pData->GetSubItemUserDataN(itemIndex, GetColumnId(columnIndex));
+}
+
+bool ListCtrl::SetSubItemUserDataS(size_t itemIndex, size_t columnIndex, const DString& userDataS)
+{
+    return m_pData->SetSubItemUserDataS(itemIndex, GetColumnId(columnIndex), userDataS);
+}
+
+DString ListCtrl::GetSubItemUserDataS(size_t itemIndex, size_t columnIndex) const
+{
+    return m_pData->GetSubItemUserDataS(itemIndex, GetColumnId(columnIndex));
 }
 
 bool ListCtrl::SetSubItemTextColor(size_t itemIndex, size_t columnIndex, const UiColor& textColor)

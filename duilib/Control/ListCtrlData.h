@@ -301,6 +301,7 @@ public:
     */
     bool GetSubItemData(size_t itemIndex, size_t columnId, ListCtrlSubItemData& subItemData) const;
 
+public:
     /** 设置指定数据项的文本，并刷新界面显示
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnId 列的ID
@@ -315,6 +316,35 @@ public:
     */
     DString GetSubItemText(size_t itemIndex, size_t columnId) const;
 
+    /** 设置指定数据项的关联用户数据（整型）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    * @param [in] userDataN 需要设置的数据项关联的整型数据
+    */
+    bool SetSubItemUserDataN(size_t itemIndex, size_t columnId, size_t userDataN);
+
+    /** 获取指定数据项的关联用户数据（整型）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    * @return 数据项关联的整型数据
+    */
+    size_t GetSubItemUserDataN(size_t itemIndex, size_t columnId) const;
+
+    /** 设置指定数据项的关联用户数据（整型）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    * @param [in] userDataS 需要设置的数据项关联的字符串数据
+    */
+    bool SetSubItemUserDataS(size_t itemIndex, size_t columnId, const DString& userDataS);
+
+    /** 获取指定数据项的关联用户数据（字符串）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    * @return 数据项关联的字符串数据
+    */
+    DString GetSubItemUserDataS(size_t itemIndex, size_t columnId) const;
+
+public:
     /** 设置指定数据项的文本颜色，并刷新界面显示
     * @param [in] itemIndex 数据项的索引号
     * @param [in] columnId 列的ID
@@ -422,10 +452,12 @@ public:
     * @param [in] columnId 列的ID
     * @param [in] nColumnIndex 列的序号
     * @param [in] bSortedUp true表示升序，false表示降序
+    * @param [in] nSortFlag 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
     * @param [in] pfnCompareFunc 数据比较函数
     * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
     */
-    bool SortDataItems(size_t nColumnId, size_t nColumnIndex, bool bSortedUp,
+    bool SortDataItems(size_t nColumnId, size_t nColumnIndex,
+                       bool bSortedUp, uint8_t nSortFlag,
                        ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
 
     /** 设置外部自定义的排序函数, 替换默认的排序函数
@@ -532,20 +564,21 @@ private:
     * @param [in] nColumnId 列的ID
     * @param [in] nColumnIndex 列的序号
     * @param [in] bSortedUp true表示升序，false表示降序
+    * @param [in] nSortFlag 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
     * @param [in] pfnCompareFunc 数据比较函数
     * @param [in] pUserData 用户自定义数据，调用比较函数的时候，通过参数传回给比较函数
     */
-    bool SortStorageData(std::vector<StorageData>& dataList,
-                         size_t nColumnId, size_t nColumnIndex, bool bSortedUp,
-                         ListCtrlDataCompareFunc pfnCompareFunc,
-                         void* pUserData);
+    bool SortStorageData(std::vector<StorageData>& dataList, size_t nColumnId, size_t nColumnIndex,
+                         bool bSortedUp, uint8_t nSortFlag,
+                         ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData);
 
     /** 默认的数据比较函数
     * @param [in] a 第一个比较数据
     * @param [in] b 第二个比较数据
+    * @param [in] nSortFlag 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
     * @return 如果 (a < b)，返回true，否则返回false
     */
-    bool SortDataCompareFunc(const ListCtrlSubItemData2& a, const ListCtrlSubItemData2& b) const;
+    bool SortDataCompareFunc(const ListCtrlSubItemData2& a, const ListCtrlSubItemData2& b, uint8_t nSortFlag) const;
 
     /** 更新个性化数据（隐藏行、行高、置顶等）
     */

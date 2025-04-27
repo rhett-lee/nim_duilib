@@ -34,20 +34,20 @@ struct ListCtrlColumn
     bool bNeedDpiScale = true;      //是否对数值做DPI自适应
 };
 
-/** 行的属性数据结构(行数据，每行1条数据)
+/** 行的属性数据结构(行数据，每行1条数据，数据存储)
 */
 struct ListCtrlItemData
 {
     bool bVisible = true;           //是否可见
     bool bSelected = false;         //是否处于选择状态（是指本行是否被选中）
     bool bChecked = false;          //是否处于勾选状态（是指本行前面的CheckBox是否被打勾）
-    int32_t nImageId = -1;          //图标资源Id，如果为-1表示行首不显示图标
     int8_t nAlwaysAtTop = -1;       //是否置顶显示, -1表示不置顶, 0 或者 正数表示置顶，数值越大优先级越高，优先显示在最上面
     int16_t nItemHeight = -1;       //行的高度, -1表示使用ListCtrl设置的默认行高，为DPI自适应处理后的值
+    int32_t nImageId = -1;          //图标资源Id，如果为-1表示行首不显示图标
     size_t nUserData = 0;           //用户自定义数据
 };
 
-/** 列表数据项的基本信息（列数据，用于添加数据）
+/** 列表数据项的基本信息（列数据，用于添加数据，传递参数）
 */
 struct ListCtrlSubItemData
 {
@@ -61,22 +61,35 @@ struct ListCtrlSubItemData
     bool bEditable = false;         //是否可编辑
 };
 
-/** 列表数据项用于内部存储的数据结构(列数据，每<行,列>1条数据)
+/** 列表数据项用于内部存储的数据结构(列数据，每<行,列>1条数据，数据存储)
 */
 struct ListCtrlSubItemData2
 {
     UiString text;                  //文本内容
-    uint16_t nTextFormat = 0;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
     int32_t nImageId = -1;          //图标资源Id，如果为-1表示不显示图标
     UiColor textColor;              //文本颜色
     UiColor bkColor;                //背景颜色
+    uint16_t nTextFormat = 0;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
     bool bShowCheckBox = false;     //是否显示CheckBox  
     bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
+    size_t userDataN = 0;           //用户自定义数据(整型)
+    UiString userDataS;             //用户自定义数据(字符串类型)
     bool bEditable = false;         //是否可编辑
 };
 
 //列数据的智能指针
 typedef std::shared_ptr<ListCtrlSubItemData2> ListCtrlSubItemData2Ptr;
+
+/** 列表中数据排序标志（按位与操作）
+*/
+enum ListCtrlSubItemSortFlag : uint8_t
+{
+    kDefault            = 0,    //空的值
+    kSortNoCase         = 1,    //当排序目标是字符串时，比较字符串不区分大小写
+    kSortByText         = 2,    //按照ListCtrlSubItemData2.text字段排序（默认）
+    kSortByUserDataN    = 4,    //按照ListCtrlSubItemData2.userDataN字段排序
+    kSortByUserDataS    = 8,    //按照ListCtrlSubItemData2.kSortByUserDataS字段排序
+};
 
 struct ListCtrlSubItemData2Pair
 {
@@ -90,6 +103,7 @@ struct ListCtrlCompareParam
 {
     size_t nColumnIndex = 0;   //数据关联第几列，有效范围：[0, GetColumnCount())
     size_t nColumnId = 0;      //数据关联列的ID
+    uint8_t nSortFlag = ListCtrlSubItemSortFlag::kDefault; //排序标志位，参见ListCtrlSubItemSortFlag的枚举值
     void* pUserData = nullptr; //用户自定义数据，设置比较函数的时候一同传入
 };
 

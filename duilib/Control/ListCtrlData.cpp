@@ -1178,6 +1178,58 @@ DString ListCtrlData::GetSubItemText(size_t itemIndex, size_t columnId) const
     return pStorage->text.c_str();
 }
 
+bool ListCtrlData::SetSubItemUserDataN(size_t itemIndex, size_t columnId, size_t userDataN)
+{
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return false;
+    }
+    if (pStorage->userDataN != userDataN) {
+        pStorage->userDataN = userDataN;
+        EmitDataChanged(itemIndex, itemIndex);
+    }
+    return true;
+}
+
+size_t ListCtrlData::GetSubItemUserDataN(size_t itemIndex, size_t columnId) const
+{
+    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return 0;
+    }
+    return pStorage->userDataN;
+}
+
+bool ListCtrlData::SetSubItemUserDataS(size_t itemIndex, size_t columnId, const DString& userDataS)
+{
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return false;
+    }
+    if (pStorage->userDataS != userDataS) {
+        pStorage->userDataS = userDataS;
+        EmitDataChanged(itemIndex, itemIndex);
+    }
+    return true;
+}
+
+DString ListCtrlData::GetSubItemUserDataS(size_t itemIndex, size_t columnId) const
+{
+    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return DString();
+    }
+    return pStorage->userDataS.c_str();
+}
+
 bool ListCtrlData::SetSubItemTextColor(size_t itemIndex, size_t columnId, const UiColor& textColor)
 {
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
@@ -1416,7 +1468,8 @@ bool ListCtrlData::IsSubItemEditable(size_t itemIndex, size_t columnId) const
     return bEditable;
 }
 
-bool ListCtrlData::SortDataItems(size_t nColumnId, size_t nColumnIndex, bool bSortedUp,
+bool ListCtrlData::SortDataItems(size_t nColumnId, size_t nColumnIndex,
+                                 bool bSortedUp, uint8_t nSortFlag,
                                  ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
 {
     StorageMap::iterator iter = m_dataMap.find(nColumnId);
@@ -1433,7 +1486,7 @@ bool ListCtrlData::SortDataItems(size_t nColumnId, size_t nColumnIndex, bool bSo
     for (size_t index = 0; index < dataCount; ++index) {
         sortedDataList.push_back({index, sortStorageList[index] });
     }    
-    SortStorageData(sortedDataList, nColumnId, nColumnIndex, bSortedUp, pfnCompareFunc, pUserData);
+    SortStorageData(sortedDataList, nColumnId, nColumnIndex, bSortedUp, nSortFlag, pfnCompareFunc, pUserData);
 
     //对原数据进行顺序调整
     const size_t sortedDataCount = sortedDataList.size();
@@ -1468,8 +1521,8 @@ bool ListCtrlData::SortDataItems(size_t nColumnId, size_t nColumnIndex, bool bSo
     return true;
 }
 
-bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList,                                            
-                                   size_t nColumnId, size_t nColumnIndex, bool bSortedUp,
+bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList, size_t nColumnId, size_t nColumnIndex,
+                                   bool bSortedUp, uint8_t nSortFlag,
                                    ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
 {
     if (dataList.empty()) {
@@ -1487,6 +1540,7 @@ bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList,
         ListCtrlCompareParam param;
         param.nColumnId = nColumnId;
         param.nColumnIndex = nColumnIndex;
+        param.nSortFlag = nSortFlag;
         param.pUserData = pUserData;
         std::sort(dataList.begin(), dataList.end(), [this, pfnCompareFunc, &param](const StorageData& a, const StorageData& b) {
                 //实现(a < b)的比较逻辑
@@ -1503,7 +1557,7 @@ bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList,
     }
     else {
         //排序：升序，使用默认的排序函数
-        std::sort(dataList.begin(), dataList.end(), [this](const StorageData& a, const StorageData& b) {
+        std::sort(dataList.begin(), dataList.end(), [this, nSortFlag](const StorageData& a, const StorageData& b) {
                 //实现(a < b)的比较逻辑
                 if (b.pStorage == nullptr) {
                     return false;
@@ -1513,7 +1567,7 @@ bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList,
                 }
                 const Storage& storageA = *a.pStorage;
                 const Storage& storageB = *b.pStorage;
-                return SortDataCompareFunc(storageA, storageB);
+                return SortDataCompareFunc(storageA, storageB, nSortFlag);
             });
     }
     if (!bSortedUp) {
@@ -1523,10 +1577,34 @@ bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList,
     return true;
 }
 
-bool ListCtrlData::SortDataCompareFunc(const ListCtrlSubItemData2& a, const ListCtrlSubItemData2& b) const
+bool ListCtrlData::SortDataCompareFunc(const ListCtrlSubItemData2& a, const ListCtrlSubItemData2& b, uint8_t nSortFlag) const
 {
-    //默认按字符串比较, 区分大小写
-    return StringUtil::StringCompare(a.text.c_str(), b.text.c_str()) < 0;
+    if (nSortFlag & ListCtrlSubItemSortFlag::kSortByUserDataN) {
+        //按 .userDataN 字段排序(整型值)
+        return a.userDataN < b.userDataN;
+    }
+    else if (nSortFlag & ListCtrlSubItemSortFlag::kSortByUserDataS) {
+        //按 .userDataS 字段排序(字符串值)
+        if (nSortFlag & ListCtrlSubItemSortFlag::kSortNoCase) {
+            //不区分大小写
+            return StringUtil::StringICompare(a.userDataS.c_str(), b.userDataS.c_str()) < 0;
+        }
+        else {
+            //区分大小写
+            return StringUtil::StringCompare(a.userDataS.c_str(), b.userDataS.c_str()) < 0;
+        }
+    }
+    else {
+        //按 .text 字段排序(字符串值)
+        if (nSortFlag & ListCtrlSubItemSortFlag::kSortNoCase) {
+            //不区分大小写
+            return StringUtil::StringICompare(a.text.c_str(), b.text.c_str()) < 0;
+        }
+        else {
+            //区分大小写
+            return StringUtil::StringCompare(a.text.c_str(), b.text.c_str()) < 0;
+        }
+    }
 }
 
 void ListCtrlData::SetSortCompareFunction(ListCtrlDataCompareFunc pfnCompareFunc, void* pUserData)
