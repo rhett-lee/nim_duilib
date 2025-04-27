@@ -184,7 +184,7 @@ public:
     ListCtrlHeader* GetHeaderCtrl() const;
 
 public:
-    /** 获取数据项总个数
+    /** 获取数据项总个数（数据行数）
     */
     size_t GetDataItemCount() const;
 
@@ -313,156 +313,201 @@ public:
     /** 设置指定<行,列>的数据项
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @param [in] subItemData 指定数据项的内容，列序号在dataItem.nColumnIndex中指定
     */
     bool SetSubItemData(size_t itemIndex, size_t columnIndex, const ListCtrlSubItemData& subItemData);
+    bool SetSubItemDataById(size_t itemIndex, size_t columnId, const ListCtrlSubItemData& subItemData);
 
     /** 获取指定<行,列>的数据项
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @param [out] subItemData 指定数据项的内容
     */
     bool GetSubItemData(size_t itemIndex, size_t columnIndex, ListCtrlSubItemData& subItemData) const;
+    bool GetSubItemDataById(size_t itemIndex, size_t columnId, ListCtrlSubItemData& subItemData) const;
 
 public:
     /** 设置指定数据项的文本
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @param [in] text 需要设置的文本内容
     */
     bool SetSubItemText(size_t itemIndex, size_t columnIndex, const DString& text);
+    bool SetSubItemTextById(size_t itemIndex, size_t columnId, const DString& text);
 
     /** 获取指定数据项的文本
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @return 数据项关联的文本内容
     */
     DString GetSubItemText(size_t itemIndex, size_t columnIndex) const;
+    DString GetSubItemTextById(size_t itemIndex, size_t columnId) const;
 
     /** 设置指定数据项的关联用户数据（整型）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @param [in] userDataN 需要设置的数据项关联的整型数据
     */
     bool SetSubItemUserDataN(size_t itemIndex, size_t columnIndex, size_t userDataN);
+    bool SetSubItemUserDataNById(size_t itemIndex, size_t columnId, size_t userDataN);
 
     /** 获取指定数据项的关联用户数据（整型）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @return 数据项关联的整型数据
     */
     size_t GetSubItemUserDataN(size_t itemIndex, size_t columnIndex) const;
+    size_t GetSubItemUserDataNById(size_t itemIndex, size_t columnId) const;
 
     /** 设置指定数据项的关联用户数据（整型）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @param [in] userDataS 需要设置的数据项关联的字符串数据
     */
     bool SetSubItemUserDataS(size_t itemIndex, size_t columnIndex, const DString& userDataS);
+    bool SetSubItemUserDataSById(size_t itemIndex, size_t columnId, const DString& userDataS);
 
     /** 获取指定数据项的关联用户数据（字符串）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @return 数据项关联的字符串数据
     */
     DString GetSubItemUserDataS(size_t itemIndex, size_t columnIndex) const;
+    DString GetSubItemUserDataSById(size_t itemIndex, size_t columnId) const;
 
 public:
     /** 设置指定数据项的文本颜色
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @param [in] textColor 需要设置的文本颜色
     */
     bool SetSubItemTextColor(size_t itemIndex, size_t columnIndex, const UiColor& textColor);
+    bool SetSubItemTextColorById(size_t itemIndex, size_t columnId, const UiColor& textColor);
 
     /** 获取指定数据项的文本颜色
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     */
     UiColor GetSubItemTextColor(size_t itemIndex, size_t columnIndex) const;
+    UiColor GetSubItemTextColorById(size_t itemIndex, size_t columnId) const;
 
     /** 设置指定数据项的文本属性（文本对齐方式等）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @param [in] nTextFormat 需要设置的文本属性, 参见枚举类型：IRender.h中的enum DrawStringFormat
     */
     bool SetSubItemTextFormat(size_t itemIndex, size_t columnIndex, int32_t nTextFormat);
+    bool SetSubItemTextFormatById(size_t itemIndex, size_t columnId, int32_t nTextFormat);
 
     /** 获取指定数据项的文本属性（文本对齐方式等）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @return 数据项关联的文本属性, 参见枚举类型：IRender.h中的enum DrawStringFormat
     */
     int32_t GetSubItemTextFormat(size_t itemIndex, size_t columnIndex) const;
+    int32_t GetSubItemTextFormatById(size_t itemIndex, size_t columnId) const;
 
     /** 设置指定数据项的背景颜色
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @param [in] bkColor 需要设置的背景颜色
     */
     bool SetSubItemBkColor(size_t itemIndex, size_t columnIndex, const UiColor& bkColor);
+    bool SetSubItemBkColorById(size_t itemIndex, size_t columnId, const UiColor& bkColor);
 
     /** 获取指定数据项的背景颜色
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     */
     UiColor GetSubItemBkColor(size_t itemIndex, size_t columnIndex) const;
+    UiColor GetSubItemBkColorById(size_t itemIndex, size_t columnId) const;
 
     /** 是否显示CheckBox
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     */
     bool IsSubItemShowCheckBox(size_t itemIndex, size_t columnIndex) const;
+    bool IsSubItemShowCheckBoxById(size_t itemIndex, size_t columnId) const;
 
     /** 设置是否显示CheckBox
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @param [in] bShowCheckBox true表示显示，false表示不显示
     */
     bool SetSubItemShowCheckBox(size_t itemIndex, size_t columnIndex, bool bShowCheckBox);
+    bool SetSubItemShowCheckBoxById(size_t itemIndex, size_t columnId, bool bShowCheckBox);
 
     /** 设置CheckBox的勾选状态
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @param [in] bChecked true表示勾选，false表示不勾选
     */
     bool SetSubItemCheck(size_t itemIndex, size_t columnIndex, bool bChecked);
+    bool SetSubItemCheckById(size_t itemIndex, size_t columnId, bool bChecked);
 
     /** 获取CheckBox的勾选状态
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     */
     bool IsSubItemChecked(size_t itemIndex, size_t columnIndex) const;
+    bool IsSubItemCheckedById(size_t itemIndex, size_t columnId) const;
 
     /** 设置该列的图标
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @param [in] imageId 图标资源Id，如果为-1表示行首不显示图标, 该ID由ImageList生成
     */
     bool SetSubItemImageId(size_t itemIndex, size_t columnIndex, int32_t imageId);
+    bool SetSubItemImageIdById(size_t itemIndex, size_t columnId, int32_t imageId);
 
     /** 获取该列的图标
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     */
     int32_t GetSubItemImageId(size_t itemIndex, size_t columnIndex) const;
+    int32_t GetSubItemImageIdById(size_t itemIndex, size_t columnId) const;
 
     /** 设置该列的文本是否可编辑
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @param [in] bEditable true表示可编辑，false表示不可编辑
     */
     bool SetSubItemEditable(size_t itemIndex, size_t columnIndex, bool bEditable);
+    bool SetSubItemEditableById(size_t itemIndex, size_t columnId, bool bEditable);
 
     /** 获取该列的文本是否可编辑
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     */
     bool IsSubItemEditable(size_t itemIndex, size_t columnIndex) const;
+    bool IsSubItemEditableById(size_t itemIndex, size_t columnId) const;
 
 public:
     /** 对数据排序
     * @param [in] columnIndex 列的索引号，有效范围：[0, GetColumnCount())
+    * @param [in] columnId 列的ID
     * @param [in] bSortedUp true表示升序，false表示降序
     * @param [in] nSortFlag 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
     * @param [in] pfnCompareFunc 自定义的比较函数，如果为nullptr, 则使用默认的比较函数
@@ -471,6 +516,9 @@ public:
     bool SortDataItems(size_t columnIndex, bool bSortedUp, uint8_t nSortFlag = ListCtrlSubItemSortFlag::kDefault,
                        ListCtrlDataCompareFunc pfnCompareFunc = nullptr,
                        void* pUserData = nullptr);
+    bool SortDataItemsById(size_t columnId, bool bSortedUp, uint8_t nSortFlag = ListCtrlSubItemSortFlag::kDefault,
+                           ListCtrlDataCompareFunc pfnCompareFunc = nullptr,
+                           void* pUserData = nullptr);
 
     /** 设置外部自定义的排序函数, 替换默认的排序函数
     * @param [in] pfnCompareFunc 数据比较函数
