@@ -174,7 +174,7 @@ void ComputerView::ShowMyComputerContents(const std::vector<ui::DirectoryTree::D
 #if defined (DUILIB_BUILD_FOR_WIN)
     ShowMyComputerContents_Win(pImageList, diskInfoList);
 #elif defined (DUILIB_BUILD_FOR_LINUX)
-    ShowMyComputerContents_Linux();
+    ShowMyComputerContents_Linux(pImageList, diskInfoList);
 #endif
 }
 
@@ -368,7 +368,7 @@ void ComputerView::ShowMyComputerContents_Linux(ui::ImageListPtr pImageList, con
         if (pImageList != nullptr) {
             DString iconString = ui::GlobalManager::Instance().Icon().GetIconString(diskInfo.m_nIconID);
             if (!iconString.empty()) {
-                int32_t nImageId = pImageList->AddImageString(iconString, Dpi());
+                int32_t nImageId = pImageList->AddImageString(iconString, m_pMainForm->Dpi());
                 m_iconToImageMap[diskInfo.m_nIconID] = nImageId;
                 m_pComputerListCtrl->SetDataItemImageId(nItemIndex, nImageId);
             }
