@@ -62,7 +62,7 @@ public:
     */
     ListCtrlType GetListCtrlType() const;
 
-    /** 设置图片列表，每个视图有一个独立的图片列表
+    /** 设置图片列表，每个视图有一个独立的图片列表，也可以共享同一个图片列表
     * @param [in] type 视图类型
     * @param [in] spImageList 图片资源接口, 智能指针
     */
@@ -80,45 +80,13 @@ public:
     /** 在指定位置添加一列
     * @param [in] columnIndex 在第几列以后插入该列，如果是-1，表示在最后追加一列
     * @param [in] columnInfo 列的基本属性
-    * @return 返回这一列的表头控件接口
+    * @return 返回这一列的表头控件接口，使用ListCtrlHeaderItem::GetColumnId()函数可以获取列ID
     */
     ListCtrlHeaderItem* InsertColumn(int32_t columnIndex, const ListCtrlColumn& columnInfo);
 
-    /** 获取列宽度
-    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
-    */
-    int32_t GetColumnWidth(size_t columnIndex) const;
-
-    /** 调整列的宽度(根据该列内容的实际宽度自适应)
-    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
-    * @param [in] nWidth 列宽值
-    * @param [in] bNeedDpiScale 是否需要对列宽值进行DPI自适应
-    */
-    bool SetColumnWidth(size_t columnIndex, int32_t nWidth, bool bNeedDpiScale);
-
-    /** 自动调整列的宽度(根据该列内容的实际宽度自适应)
-    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
-    */
-    bool SetColumnWidthAuto(size_t columnIndex);
-
-    /** 获取列表头的控件接口
-    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
-    */
-    ListCtrlHeaderItem* GetColumn(size_t columnIndex) const;
-
-    /** 获取列表头的控件接口
-    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
-    */
-    ListCtrlHeaderItem* GetColumnById(size_t columnId) const;
-
-    /** 获取列的索引序号
-    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
-    * @return 列的序号：[0, GetColumnCount())，代表第几列
-    */
-    size_t GetColumnIndex(size_t columnId) const;
-
     /** 获取列的ID
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @return 返回该列索引序号对应列的ID，即使用ListCtrlHeaderItem::GetColumnId()函数获取的列ID
     */
     size_t GetColumnId(size_t columnIndex) const;
 
@@ -127,14 +95,48 @@ public:
     */
     bool IsValidColumnId(size_t columnId) const;
 
+    /** 获取列的索引序号
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
+    * @return 列的序号：[0, GetColumnCount())，代表第几列
+    */
+    size_t GetColumnIndex(size_t columnId) const;
+
+    /** 获取列表头的控件接口
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
+    */
+    ListCtrlHeaderItem* GetColumn(size_t columnIndex) const;
+    ListCtrlHeaderItem* GetColumnById(size_t columnId) const;
+
     /** 删除一列
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
     */
     bool DeleteColumn(size_t columnIndex);
+    bool DeleteColumnById(size_t columnId);
 
-    /** 获取表头控件接口, 在控件初始化以后才有值
+    /** 获取列宽度
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
     */
-    ListCtrlHeader* GetHeaderCtrl() const;
+    int32_t GetColumnWidth(size_t columnIndex) const;
+    int32_t GetColumnWidthById(size_t columnId) const;
+
+    /** 调整列的宽度(根据该列内容的实际宽度自适应)
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
+    * @param [in] nWidth 列宽值
+    * @param [in] bNeedDpiScale 是否需要对列宽值进行DPI自适应
+    */
+    bool SetColumnWidth(size_t columnIndex, int32_t nWidth, bool bNeedDpiScale);
+    bool SetColumnWidthById(size_t columnId, int32_t nWidth, bool bNeedDpiScale);
+
+    /** 自动调整列的宽度(根据该列内容的实际宽度自适应)
+    * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] columnId 列的ID值，通过ListCtrlHeaderItem::GetColumnId()函数获取
+    */
+    bool SetColumnWidthAuto(size_t columnIndex);
+    bool SetColumnWidthAutoById(size_t columnId);
 
     /** 设置是否支持列表头拖动改变列的顺序
     */
@@ -163,27 +165,23 @@ public:
 
     /** 设置某列数据的排序方式（通过列序号）
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] columnId 列的ID值
     * @param [in] nSortFlag 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
     */
     void SetColumnSortFlag(size_t columnIndex, uint8_t nSortFlag);
+    void SetColumnSortFlagById(size_t columnId, uint8_t nSortFlag);
 
     /** 获取某列数据的排序方式（通过列序号）
     * @param [in] columnIndex 列索引序号：[0, GetColumnCount())
+    * @param [in] columnId 列的ID值
     * return 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
     */
     uint8_t GetColumnSortFlag(size_t columnIndex);
-
-    /** 设置某列数据的排序方式（通过列ID）
-    * @param [in] columnId 列的ID值
-    * @param [in] nSortFlag 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
-    */
-    void SetColumnSortFlagById(size_t columnId, uint8_t nSortFlag);
-
-    /** 获取某列数据的排序方式（通过列ID）
-    * @param [in] columnId 列的ID值
-    * return 排序方法标志位，参见 ListCtrlSubItemSortFlag 的枚举值
-    */
     uint8_t GetColumnSortFlagById(size_t columnId);
+
+    /** 获取表头控件接口, 在控件初始化以后才有值
+    */
+    ListCtrlHeader* GetHeaderCtrl() const;
 
 public:
     /** 获取数据项总个数
