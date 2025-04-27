@@ -1,5 +1,5 @@
-#ifndef EXAMPLES_FILEINFO_LIST_H_
-#define EXAMPLES_FILEINFO_LIST_H_
+#ifndef EXAMPLES_SIMPLE_FILE_VIEW_H_
+#define EXAMPLES_SIMPLE_FILE_VIEW_H_
 
 // duilib
 #include "duilib/duilib.h"
@@ -9,11 +9,11 @@
 typedef ui::DirectoryTree::PathInfo PathInfo;
 
 class MainForm;
-class FileInfoList: public ui::VirtualListBoxElement
+class SimpleFileView : public ui::VirtualListBoxElement
 {
 public:
-    explicit FileInfoList(MainForm* pMainForm);
-    virtual ~FileInfoList() override;
+    SimpleFileView(MainForm* pMainForm, ui::VirtualListBox* pListBox);
+    virtual ~SimpleFileView() override;
 
     /** 创建一个数据项
     * @param [in] pVirtualListBox 关联的虚表的接口
@@ -79,8 +79,12 @@ private:
     */
     MainForm* m_pMainForm;
 
+    /** 文件列表的接口（右侧虚表显示的界面）
+    */
+    ui::ControlPtr<ui::VirtualListBox> m_pListBox;
+
     //文件列表
     std::vector<PathInfo> m_pathList;
 };
 
-#endif //EXAMPLES_FILEINFO_LIST_H_
+#endif //EXAMPLES_SIMPLE_FILE_VIEW_H_

@@ -4,11 +4,11 @@
 // duilib
 #include "duilib/duilib.h"
 
-#include "FileInfoList.h"
 #include <stack>
 #include <map>
 
 class ComputerView;
+class SimpleFileView;
 
 class MainForm : public ui::WindowImplBase
 {
@@ -110,13 +110,9 @@ private:
     */
     std::unique_ptr<ComputerView> m_pComputerView;
 
-    /** 文件列表（右侧虚表显示的数据）
+    /** 右侧文件列表视图：简单视图
     */
-    FileInfoList m_fileList;
-
-    /** 文件列表的接口（右侧虚表显示的界面）
-    */
-    ui::VirtualListBox* m_pListBox;
+    std::unique_ptr<SimpleFileView> m_pSimpleFileView;
 
 private:
     /** 当前显示的树节点

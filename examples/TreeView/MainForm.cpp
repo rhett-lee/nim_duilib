@@ -1,12 +1,11 @@
 #include "MainForm.h"
 #include "MainThread.h"
 #include "ComputerView.h"
+#include "SimpleFileView.h"
 
 MainForm::MainForm():
-    m_fileList(this),
     m_pTree(nullptr),
     m_pAddressBar(nullptr),
-    m_pListBox(nullptr),
     m_pBtnUp(nullptr),
     m_pBtnForward(nullptr),
     m_pBtnBack(nullptr),
@@ -44,11 +43,8 @@ void MainForm::OnInitWindow()
     m_pTabBox = dynamic_cast<ui::TabBox*>(FindControl(_T("main_view_tab_box")));
     ui::ListCtrl* pComputerListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("computer_view")));
     m_pComputerView = std::make_unique<ComputerView>(this, pComputerListCtrl);
-    m_pListBox = dynamic_cast<ui::VirtualListBox*>(FindControl(_T("file_view")));
-    ASSERT(m_pListBox != nullptr);
-    if (m_pListBox != nullptr) {
-        m_pListBox->SetDataProvider(&m_fileList);
-    }
+    ui::VirtualListBox* pListBox = dynamic_cast<ui::VirtualListBox*>(FindControl(_T("file_view")));
+    m_pSimpleFileView = std::make_unique<SimpleFileView>(this, pListBox);
 
     //刷新按钮
     ui::Button* pRefreshBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_view_refresh")));
@@ -160,14 +156,19 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
                                     const std::shared_ptr<std::vector<ui::DirectoryTree::PathInfo>>& fileList)
 {
     ui::GlobalManager::Instance().AssertUIThread();
+    if ((pTreeNode == nullptr) || (m_pTree == nullptr) || !m_pTree->IsValidTreeNode(pTreeNode)) {
+        if (m_pSimpleFileView != nullptr) {
+            if (folderList != nullptr) {
+                m_pSimpleFileView->ClearFileList(*fileList);
+            }
+            if (folderList != nullptr) {
+                m_pSimpleFileView->ClearFileList(*fileList);
+            }
+        }
+        return;
+    }
     if (m_pTabBox != nullptr) {
         m_pTabBox->SelectItem((size_t)FormViewType::kFileView);
-    }
-    if ((pTreeNode == nullptr) || (m_pTree == nullptr)) {
-        return;
-    }
-    if (!m_pTree->IsValidTreeNode(pTreeNode)) {
-        return;
     }
     if (m_pAddressBar != nullptr) {
         m_pAddressBar->SetText(path.ToString());
@@ -183,14 +184,17 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
         //单选，进行校验
         if (pTreeNode->IsSelected()) {
             SetShowTreeNode(pTreeNode);
-            m_fileList.SetFileList(pathList);
         }
     }
     else {
         //多选，不校验
         SetShowTreeNode(pTreeNode);
-        m_fileList.SetFileList(pathList);
     }
+    //显示目录/文件内容
+    if (m_pSimpleFileView != nullptr) {
+        m_pSimpleFileView->SetFileList(pathList);
+    }
+
     //更新界面状态
     UpdateCommandUI();
 }

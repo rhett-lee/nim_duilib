@@ -179,11 +179,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ComputerView.h" />
-    <ClInclude Include="FileInfoItem.h" />
-    <ClInclude Include="FileInfoList.h" />
     <ClInclude Include="MainForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="SimpleFileView.h" />
     <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
@@ -194,11 +193,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComputerView.cpp" />
-    <ClCompile Include="FileInfoItem.cpp" />
-    <ClCompile Include="FileInfoList.cpp" />
     <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
+    <ClCompile Include="SimpleFileView.cpp" />
     <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
