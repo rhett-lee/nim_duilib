@@ -561,13 +561,29 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
             nColumnId = GetColumnId(ComputerViewColumn::kTotalSpace);
             m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //总大小
 
+            //设置"总大小"列的排序方式
+            m_pComputerListCtrl->SetSubItemUserDataNById(nItemIndex, nColumnId, diskInfo.m_totalBytes);
+            m_pComputerListCtrl->SetColumnSortFlagById(nColumnId, ui::ListCtrlSubItemSortFlag::kSortByUserDataN);
+
             subItemData.text = FormatDiskSpace(diskInfo.m_freeBytes);
             nColumnId = GetColumnId(ComputerViewColumn::kFreeSpace);
             m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //可用空间
 
+            //设置"可用空间"列的排序方式
+            m_pComputerListCtrl->SetSubItemUserDataNById(nItemIndex, nColumnId, diskInfo.m_freeBytes);
+            m_pComputerListCtrl->SetColumnSortFlagById(nColumnId, ui::ListCtrlSubItemSortFlag::kSortByUserDataN);
+
             subItemData.text = FormatUsedPercent(diskInfo.m_totalBytes, diskInfo.m_freeBytes);
             nColumnId = GetColumnId(ComputerViewColumn::kUsedPercent);
             m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //已用百分比
+
+            //设置"已用百分比"列的排序方式
+            uint64_t nUsedPercent = 100 * 1000;
+            if (diskInfo.m_totalBytes != 0) {
+                nUsedPercent = (diskInfo.m_totalBytes - diskInfo.m_freeBytes) * 1000 / diskInfo.m_totalBytes;
+            }
+            m_pComputerListCtrl->SetSubItemUserDataNById(nItemIndex, nColumnId, (size_t)nUsedPercent);
+            m_pComputerListCtrl->SetColumnSortFlagById(nColumnId, ui::ListCtrlSubItemSortFlag::kSortByUserDataN);
         }
     }
 #else
@@ -608,13 +624,29 @@ void MainForm::FillMyComputerContents(const std::vector<ui::DirectoryTree::DiskI
             nColumnId = GetColumnId(ComputerViewColumn::kTotalSpace);
             m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //总大小
 
+            //设置"总大小"列的排序方式
+            m_pComputerListCtrl->SetSubItemUserDataNById(nItemIndex, nColumnId, diskInfo.m_totalBytes);
+            m_pComputerListCtrl->SetColumnSortFlagById(nColumnId, ui::ListCtrlSubItemSortFlag::kSortByUserDataN);
+
             subItemData.text = FormatDiskSpace(diskInfo.m_freeBytes);
             nColumnId = GetColumnId(ComputerViewColumn::kFreeSpace);
             m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //可用空间
 
+            //设置"可用空间"列的排序方式
+            m_pComputerListCtrl->SetSubItemUserDataNById(nItemIndex, nColumnId, diskInfo.m_freeBytes);
+            m_pComputerListCtrl->SetColumnSortFlagById(nColumnId, ui::ListCtrlSubItemSortFlag::kSortByUserDataN);
+
             subItemData.text = FormatUsedPercent(diskInfo.m_totalBytes, diskInfo.m_freeBytes);
             nColumnId = GetColumnId(ComputerViewColumn::kUsedPercent);
             m_pComputerListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //已用百分比
+
+            //设置"已用百分比"列的排序方式
+            uint64_t nUsedPercent = 100 * 1000;
+            if (diskInfo.m_totalBytes != 0) {
+                nUsedPercent = (diskInfo.m_totalBytes - diskInfo.m_freeBytes) * 1000 / diskInfo.m_totalBytes;
+            }
+            m_pComputerListCtrl->SetSubItemUserDataNById(nItemIndex, nColumnId, (size_t)nUsedPercent);
+            m_pComputerListCtrl->SetColumnSortFlagById(nColumnId, ui::ListCtrlSubItemSortFlag::kSortByUserDataN);
 
             subItemData.text = diskInfo.m_mountOn;
             subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
