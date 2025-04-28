@@ -37,7 +37,7 @@ public:
         FilePath m_filePath;        //文件路径        
         DString m_displayName;      //显示名称
         DString m_typeName;         //文件类型
-        uint64_t m_fileSize;        //文件大小
+        uint64_t m_fileSize = 0;    //文件大小
         FileTime m_lastWriteTime;   //修改时间
         uint32_t m_nIconID = 0;     //关联图标ID（GlobalManager::Instance().Icon().AddIcon的返回值，图标需要实现类添加到管理器）
         bool m_bIconShared = false; //该图标ID关联的图标是否为共享图标（共享图标不允许释放）

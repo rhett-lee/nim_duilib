@@ -12,6 +12,11 @@
 #include <sys/statvfs.h>
 #include <stdio.h>
 
+#ifdef DUILIB_BIT_64
+    #define __USE_FILE_OFFSET64
+#endif
+#include <sys/stat.h>
+
 namespace ui
 {
 struct DirectoryTreeImpl::TImpl
@@ -270,7 +275,13 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
                     pathInfo.m_nIconID = m_impl->m_nSmallFolderIconID;
                 }                
                 pathInfo.m_bIconShared = true;
-                folderList.push_back(pathInfo);
+                struct stat buf{0, };
+                int result = ::stat(entry.path().native().c_str(), &buf);
+                if (result == 0) {
+                    //目录的最后修改时间
+                    pathInfo.m_lastWriteTime.FromSecondsSinceEpoch(buf.st_mtime);
+                }
+                folderList.emplace_back(std::move(pathInfo));
             }
             else if (fileList != nullptr) {
                 bool bRegularFile = entry.is_regular_file(errorCode);
@@ -294,7 +305,15 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
                         pathInfo.m_nIconID = m_impl->m_nSmallFileIconID;
                     }
                     pathInfo.m_bIconShared = true;
-                    fileList->push_back(pathInfo);
+
+                    //文件的最后修改时间和文件大小
+                    struct stat buf{0, };
+                    int result = ::stat(entry.path().native().c_str(), &buf);
+                    if (result == 0) {
+                        pathInfo.m_fileSize = buf.st_size;
+                        pathInfo.m_lastWriteTime.FromSecondsSinceEpoch(buf.st_mtime);
+                    }
+                    fileList->emplace_back(std::move(pathInfo));
                 }
             }
         }
