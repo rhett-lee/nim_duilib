@@ -179,6 +179,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="ComputerView.h" />
+    <ClInclude Include="ExplorerView.h" />
     <ClInclude Include="MainForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
@@ -193,6 +194,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComputerView.cpp" />
+    <ClCompile Include="ExplorerView.cpp" />
     <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />

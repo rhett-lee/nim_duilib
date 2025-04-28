@@ -2,6 +2,7 @@
 #define UI_CONTROL_DIRECTORYTREE_H_
 
 #include "duilib/Control/TreeView.h"
+#include "duilib/Utils/FileTime.h"
 #include <vector>
 #include <atomic>
 
@@ -35,9 +36,12 @@ public:
     {
         FilePath m_filePath;        //文件路径        
         DString m_displayName;      //显示名称
+        DString m_typeName;         //文件类型
+        uint64_t m_fileSize;        //文件大小
+        FileTime m_lastWriteTime;   //修改时间
         uint32_t m_nIconID = 0;     //关联图标ID（GlobalManager::Instance().Icon().AddIcon的返回值，图标需要实现类添加到管理器）
-        bool m_bFolder = true;      //是否为目录
         bool m_bIconShared = false; //该图标ID关联的图标是否为共享图标（共享图标不允许释放）
+        bool m_bFolder = true;      //是否为目录
     };
 
     /** 回调函数的原型: 用于显示文件夹内容关联的数据
@@ -116,6 +120,16 @@ public:
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
+
+    /** 清空路径列表, 并按需释放图标资源
+    * @param [in,out] pathList 输入文件列表，输出时清空
+    */
+    static void ClearPathInfoList(std::vector<PathInfo>& pathList);
+
+    /** 清空磁盘信息列表, 并按需释放图标资源
+    * @param [in,out] pathList 输入文件列表，输出时清空
+    */
+    static void ClearDiskInfoList(std::vector<DirectoryTree::DiskInfo>& diskList);
 
 public:
     /** 设置工作子线程的线程标识符（枚举目录是在子线程中完成，避免导致界面无响应）
@@ -408,14 +422,6 @@ private:
     /** 根据最新的状态，更新树的结构
     */
     void UpdateTreeNodeData(const std::vector<std::shared_ptr<RefreshNodeData>>& refreshData);
-
-    /** 释放资源
-    */
-    void ClearPathInfoList(std::vector<DirectoryTree::PathInfo>& folderList);
-
-    /** 释放资源
-    */
-    void ClearDiskInfoList(std::vector<DirectoryTree::DiskInfo>& diskList);
 
 private:
     /** 枚举目录的内部实现（不同平台不同实现）

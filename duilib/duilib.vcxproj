@@ -563,6 +563,7 @@
     <ClCompile Include="Utils\FileDialog_Windows.cpp" />
     <ClCompile Include="Utils\FilePath.cpp" />
     <ClCompile Include="Utils\FilePathUtil.cpp" />
+    <ClCompile Include="Utils\FileTime.cpp" />
     <ClCompile Include="Utils\FileUtil.cpp" />
     <ClCompile Include="Utils\InlineHook_Windows.cpp" />
     <ClCompile Include="Utils\LogUtil.cpp" />
@@ -801,6 +802,7 @@
     <ClInclude Include="Utils\FileDialog.h" />
     <ClInclude Include="Utils\FilePath.h" />
     <ClInclude Include="Utils\FilePathUtil.h" />
+    <ClInclude Include="Utils\FileTime.h" />
     <ClInclude Include="Utils\FileUtil.h" />
     <ClInclude Include="Utils\InlineHook_Windows.h" />
     <ClInclude Include="Utils\LogUtil.h" />

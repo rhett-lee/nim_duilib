@@ -12,7 +12,7 @@ ComputerView::ComputerView(MainForm* pMainForm, ui::ListCtrl* pListCtrl):
 ComputerView::~ComputerView()
 {
     ui::GlobalManager::Instance().Icon().DetachRemoveIconEvent(m_nRemoveIconCallbackId);
-    ClearDiskInfoList(m_diskInfoList);
+    ui::DirectoryTree::ClearDiskInfoList(m_diskInfoList);
     m_diskInfoList.clear();
 }
 
@@ -33,13 +33,12 @@ void ComputerView::Initialize()
     if (m_pComputerListCtrl != nullptr) {
         //关联图片列表
         ui::ImageListPtr pImageList = std::make_shared<ui::ImageList>();
-        pImageList->SetImageSize(ui::UiSize(16, 16), m_pMainForm->Dpi(), true);
+        pImageList->SetImageSize(ui::UiSize(20, 20), m_pMainForm->Dpi(), true);
         m_pComputerListCtrl->SetImageList(ui::ListCtrlType::Report, pImageList);//该指针的资源生命周期由ListCtrl内部管理
 
         //挂载列表项鼠标双击事件
         m_pComputerListCtrl->AttachDoubleClick(UiBind(&ComputerView::OnComuterViewDoubleClick, this, std::placeholders::_1));
     }
-
 }
 
 bool ComputerView::OnComuterViewDoubleClick(const ui::EventArgs& msg)
@@ -56,15 +55,6 @@ bool ComputerView::OnComuterViewDoubleClick(const ui::EventArgs& msg)
         }
     }
     return true;
-}
-
-void ComputerView::ClearDiskInfoList(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList) const
-{
-    for (const ui::DirectoryTree::DiskInfo& diskInfo : diskInfoList) {
-        if (!diskInfo.m_bIconShared) {
-            ui::GlobalManager::Instance().Icon().RemoveIcon(diskInfo.m_nIconID);
-        }
-    }
 }
 
 void ComputerView::OnRemoveIcon(uint32_t nIconId)
@@ -158,7 +148,7 @@ void ComputerView::ShowMyComputerContents(const std::vector<ui::DirectoryTree::D
         return;
     }
     ui::GlobalManager::Instance().AssertUIThread();
-    ClearDiskInfoList(m_diskInfoList);
+    ui::DirectoryTree::ClearDiskInfoList(m_diskInfoList);
     m_diskInfoList = diskInfoList;
     if ((m_pComputerListCtrl == nullptr)) {
         return;

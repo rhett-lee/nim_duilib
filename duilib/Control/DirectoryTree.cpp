@@ -74,6 +74,26 @@ void DirectoryTree::SetAttribute(const DString& strName, const DString& strValue
     }
 }
 
+void DirectoryTree::ClearPathInfoList(std::vector<PathInfo>& pathList)
+{
+    for (const PathInfo& fileInfo : pathList) {
+        if (!fileInfo.m_bIconShared) {
+            ui::GlobalManager::Instance().Icon().RemoveIcon(fileInfo.m_nIconID);
+        }
+    }
+    pathList.clear();
+}
+
+void DirectoryTree::ClearDiskInfoList(std::vector<DirectoryTree::DiskInfo>& diskList)
+{
+    for (const DirectoryTree::DiskInfo& diskInfo : diskList) {
+        if (!diskInfo.m_bIconShared) {
+            GlobalManager::Instance().Icon().RemoveIcon(diskInfo.m_nIconID);
+        }
+    }
+    diskList.clear();
+}
+
 void DirectoryTree::SetSmallIconSize(int32_t nIconSize)
 {
     if (nIconSize < 1) {
@@ -1187,26 +1207,6 @@ bool DirectoryTree::SelectTreeNode(TreeNode* pTreeNode)
         pTreeNode->Activate(nullptr);
     }
     return bRet;
-}
-
-void DirectoryTree::ClearPathInfoList(std::vector<DirectoryTree::PathInfo>& folderList)
-{
-    for (const DirectoryTree::PathInfo& pathInfo : folderList) {
-        if (!pathInfo.m_bIconShared) {
-            GlobalManager::Instance().Icon().RemoveIcon(pathInfo.m_nIconID);
-        }
-    }
-    folderList.clear();
-}
-
-void DirectoryTree::ClearDiskInfoList(std::vector<DirectoryTree::DiskInfo>& diskList)
-{
-    for (const DirectoryTree::DiskInfo& diskInfo : diskList) {
-        if (!diskInfo.m_bIconShared) {
-            GlobalManager::Instance().Icon().RemoveIcon(diskInfo.m_nIconID);
-        }
-    }
-    diskList.clear();
 }
 
 void DirectoryTree::SetRefreshFinishCallback(StdClosure finishCallback)

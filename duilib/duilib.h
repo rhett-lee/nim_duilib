@@ -39,6 +39,7 @@
 #include "Utils/WinImplBase.h"
 #include "Utils/ShadowWnd.h"
 #include "Utils/Clipboard.h"
+#include "Utils/FileTime.h"
 
 #include "Image/Image.h"
 #include "Animation/AnimationPlayer.h"
