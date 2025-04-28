@@ -1,6 +1,9 @@
 #include "FileTime.h"
 #include "duilib/Utils/StringUtil.h"
 
+#include <iomanip>
+#include <sstream>
+
 namespace ui
 {
 FileTime::FileTime():
@@ -58,13 +61,29 @@ DString FileTime::ToString() const
 
 #else
 
+void FileTime::FromSecondsSinceEpoch(uint64_t secondsSinceEpoch)
+{
+    m_uFileTime = secondsSinceEpoch;
+}
+
+uint64_t FileTime::ToSecondsSinceEpoch() const
+{
+    return m_uFileTime;
+}
+
 DString FileTime::ToString() const
 {
-    return DString();
+    uint64_t secondsSinceEpoch = ToSecondsSinceEpoch();
+    
+    std::tm tm;
+    std::time_t time = (std::time_t)secondsSinceEpoch;
+    localtime_r(&time, &tm);
+
+    std::stringstream ss;
+    ss << std::put_time(&tm, "%Y-%m-%d %H:%M:%S");
+    return ss.str();
 }
 
 #endif
-
-
 
 } //namespace ui
