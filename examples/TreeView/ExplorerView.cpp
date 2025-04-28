@@ -1,6 +1,5 @@
 #include "ExplorerView.h"
 #include "MainForm.h"
-#include <format>
 
 ExplorerView::ExplorerView(MainForm* pMainForm, ui::ListCtrl* pListCtrl):
     m_pMainForm(pMainForm),
