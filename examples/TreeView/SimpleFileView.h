@@ -9,6 +9,9 @@
 typedef ui::DirectoryTree::PathInfo PathInfo;
 
 class MainForm;
+
+/** 简单的文件视图：显示文件夹和文件列表
+*/
 class SimpleFileView : public ui::VirtualListBoxElement
 {
 public:
@@ -62,10 +65,6 @@ public:
     /** 用新的文件列表，替换原来的列表
     */
     void SetFileList(const std::vector<PathInfo>& pathList);
-
-    /** 清空文件列表
-    */
-    void ClearFileList(std::vector<PathInfo>& pathList) const;
 
 private:
     /** 子项被双击时触发

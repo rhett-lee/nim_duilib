@@ -9,6 +9,7 @@
 
 class ComputerView;
 class SimpleFileView;
+class ExplorerView;
 
 class MainForm : public ui::WindowImplBase
 {
@@ -83,13 +84,14 @@ private:
     void SetShowTreeNode(ui::TreeNode* pTreeNode);
 
 private:
-    /** 视图类型
+    /** 视图类型(枚举值与XML中定义的顺序相同)
     */
     enum FormViewType
     {
         kFileView       = 0,    //文件列表视图
-        kComputerView   = 1,    //计算机视图
-        kErrorView      = 2     //出错视图
+        kExplorerView   = 1,    //文件浏览器视图
+        kComputerView   = 2,    //计算机视图
+        kErrorView      = 3     //出错视图
     };
 
 private:
@@ -113,6 +115,10 @@ private:
     /** 右侧文件列表视图：简单视图
     */
     std::unique_ptr<SimpleFileView> m_pSimpleFileView;
+
+    /** 右侧文件列表视图：文件浏览器视图
+    */
+    std::unique_ptr<ExplorerView> m_pExplorerView;
 
 private:
     /** 当前显示的树节点

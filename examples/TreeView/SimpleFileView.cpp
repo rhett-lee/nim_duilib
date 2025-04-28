@@ -102,7 +102,7 @@ SimpleFileView::SimpleFileView(MainForm* pMainForm, ui::VirtualListBox* pListBox
 
 SimpleFileView::~SimpleFileView()
 {
-    ClearFileList(m_pathList);
+    ui::DirectoryTree::ClearPathInfoList(m_pathList);
     if (m_pListBox != nullptr) {
         m_pListBox->SetDataProvider(nullptr);
     }
@@ -176,17 +176,7 @@ void SimpleFileView::SetFileList(const std::vector<PathInfo>& pathList)
     EmitCountChanged();
 
     //清理原来的图标资源
-    ClearFileList(oldPathList);
-}
-
-void SimpleFileView::ClearFileList(std::vector<PathInfo>& pathList) const
-{
-    for (const PathInfo& fileInfo : pathList) {
-        if (!fileInfo.m_bIconShared) {
-            ui::GlobalManager::Instance().Icon().RemoveIcon(fileInfo.m_nIconID);
-        }        
-    }
-    pathList.clear();
+    ui::DirectoryTree::ClearPathInfoList(oldPathList);
 }
 
 bool SimpleFileView::OnDoubleClickItem(const ui::EventArgs& args)

@@ -2,6 +2,7 @@
 #include "MainThread.h"
 #include "ComputerView.h"
 #include "SimpleFileView.h"
+#include "ExplorerView.h"
 
 MainForm::MainForm():
     m_pTree(nullptr),
@@ -43,8 +44,10 @@ void MainForm::OnInitWindow()
     m_pTabBox = dynamic_cast<ui::TabBox*>(FindControl(_T("main_view_tab_box")));
     ui::ListCtrl* pComputerListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("computer_view")));
     m_pComputerView = std::make_unique<ComputerView>(this, pComputerListCtrl);
-    ui::VirtualListBox* pListBox = dynamic_cast<ui::VirtualListBox*>(FindControl(_T("file_view")));
+    ui::VirtualListBox* pListBox = dynamic_cast<ui::VirtualListBox*>(FindControl(_T("simple_file_view")));
     m_pSimpleFileView = std::make_unique<SimpleFileView>(this, pListBox);
+    ui::ListCtrl* pExplorerListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("explorer_view")));
+    m_pExplorerView = std::make_unique<ExplorerView>(this, pExplorerListCtrl);
 
     //刷新按钮
     ui::Button* pRefreshBtn = dynamic_cast<ui::Button*>(FindControl(_T("btn_view_refresh")));
@@ -157,18 +160,13 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
 {
     ui::GlobalManager::Instance().AssertUIThread();
     if ((pTreeNode == nullptr) || (m_pTree == nullptr) || !m_pTree->IsValidTreeNode(pTreeNode)) {
-        if (m_pSimpleFileView != nullptr) {
-            if (folderList != nullptr) {
-                m_pSimpleFileView->ClearFileList(*fileList);
-            }
-            if (folderList != nullptr) {
-                m_pSimpleFileView->ClearFileList(*fileList);
-            }
+        if (folderList != nullptr) {
+            ui::DirectoryTree::ClearPathInfoList(*fileList);
+        }
+        if (folderList != nullptr) {
+            ui::DirectoryTree::ClearPathInfoList(*fileList);
         }
         return;
-    }
-    if (m_pTabBox != nullptr) {
-        m_pTabBox->SelectItem((size_t)FormViewType::kFileView);
     }
     if (m_pAddressBar != nullptr) {
         m_pAddressBar->SetText(path.ToString());
@@ -190,10 +188,24 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
         //多选，不校验
         SetShowTreeNode(pTreeNode);
     }
-    //显示目录/文件内容
+
+#if 0
+    //简单的文件视图：显示文件夹和文件列表
+    if (m_pTabBox != nullptr) {
+        m_pTabBox->SelectItem((size_t)FormViewType::kFileView);
+    }
     if (m_pSimpleFileView != nullptr) {
         m_pSimpleFileView->SetFileList(pathList);
     }
+#else
+    //文件浏览器视图：显示文件夹和文件列表
+    if (m_pTabBox != nullptr) {
+        m_pTabBox->SelectItem((size_t)FormViewType::kExplorerView);
+    }
+    if (m_pExplorerView != nullptr) {
+        m_pExplorerView->SetFileList(pathList);
+    }
+#endif
 
     //更新界面状态
     UpdateCommandUI();
@@ -204,9 +216,8 @@ void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
 {
     ui::GlobalManager::Instance().AssertUIThread();
     if ((pTreeNode == nullptr) || (m_pTree == nullptr) || !m_pTree->IsValidTreeNode(pTreeNode)) {
-        if (m_pComputerView != nullptr) {
-            m_pComputerView->ClearDiskInfoList(diskInfoList);
-        }
+        std::vector<ui::DirectoryTree::DiskInfo> tempDiskInfoList(diskInfoList);
+        ui::DirectoryTree::ClearDiskInfoList(tempDiskInfoList);
         return;
     }
     if (m_pTabBox != nullptr) {

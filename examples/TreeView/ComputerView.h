@@ -20,17 +20,13 @@ public:
 
     /** 析构函数
     */
-    ~ComputerView();
+    virtual ~ComputerView() override;
 
 public:
     /** 显示"计算机"节点的内容
     * @param [in] diskInfoList 所有磁盘的信息列表
     */
     void ShowMyComputerContents(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList);
-
-    /** 清空列表，释放资源
-    */
-    void ClearDiskInfoList(const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList) const;
 
 private:
     /** 初始化
@@ -112,7 +108,7 @@ private:
     */
     std::vector<ui::DirectoryTree::DiskInfo> m_diskInfoList;
 
-    /** 计算机视图的接口
+    /** 计算机视图的列表接口
     */
     ui::ControlPtr<ui::ListCtrl> m_pComputerListCtrl;
 

@@ -228,6 +228,51 @@ void DirectoryTreeImpl::GetRootPathInfoList(bool bLargeIcon, std::vector<Directo
     }
 }
 
+/** 获取一个路径的图标和文件类型信息
+*/
+static bool GetFileInfo_Windows(const DStringW& filePath, uint32_t* pIconId, bool bLargeIcon, DString* szTypeName)
+{
+    if (pIconId != nullptr) {
+        *pIconId = 0;
+    }
+    if (szTypeName) {
+        szTypeName->clear();
+    }
+    if ((pIconId == nullptr) && (szTypeName == nullptr)) {
+        return false;
+    }
+    SHFILEINFOW shFileInfo;
+    ZeroMemory(&shFileInfo, sizeof(SHFILEINFOW));
+    UINT uFlags = (pIconId != nullptr) ? SHGFI_ICON : 0;
+    if (uFlags & SHGFI_ICON) {
+        if (bLargeIcon) {
+            uFlags |= SHGFI_LARGEICON;
+        }
+        else {
+            uFlags |= SHGFI_SMALLICON;
+        }
+    }
+    if (szTypeName) {
+        uFlags |= SHGFI_TYPENAME;
+    }
+
+    bool bRet = false;
+    if (::SHGetFileInfoW(filePath.c_str(), 0, &shFileInfo, sizeof(SHFILEINFOW), uFlags)) {
+        if (shFileInfo.hIcon != nullptr) {
+            if (pIconId != nullptr) {
+                *pIconId = GlobalManager::Instance().Icon().AddIcon(shFileInfo.hIcon);
+            }
+            ::DestroyIcon(shFileInfo.hIcon);
+            shFileInfo.hIcon = nullptr;
+        }
+        if (szTypeName) {
+            *szTypeName = shFileInfo.szTypeName;
+        }
+        bRet = true;
+    }
+    return bRet;
+}
+
 void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
                                           const std::weak_ptr<WeakFlag>& weakFlag,
                                           bool bLargeIcon,
@@ -252,7 +297,7 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
         }
         bool bFolder = findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY ? true : false;
         if (!bFolder && (fileList == nullptr)) {
-            //如果不是目录，则跳过
+            //如果不是目录，且不需要获取文件时，跳过
             continue;
         }
 
@@ -270,8 +315,8 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
             }
         }
 
-        if (StringUtil::IsEqualNoCase(findData.cFileName, L".") ||
-            StringUtil::IsEqualNoCase(findData.cFileName, L"..")) {
+        if ((StringUtil::StringCompare(findData.cFileName, L".") == 0) ||
+            (StringUtil::StringCompare(findData.cFileName, L"..") == 0)) {
             continue;
         }
 
@@ -281,48 +326,51 @@ void DirectoryTreeImpl::GetFolderContents(const FilePath& path,
         pathInfo.m_filePath = folderPath;
         pathInfo.m_bFolder = bFolder;
         pathInfo.m_displayName = StringConvert::WStringToT(findData.cFileName);
-        pathInfo.m_nIconID = bLargeIcon ? m_impl->m_nLargeIconID : m_impl->m_nSmallIconID;
-        pathInfo.m_bIconShared = pathInfo.m_nIconID != 0 ? true : false;
-        if (!bFolder || (pathInfo.m_nIconID == 0)) {
-            SHFILEINFOW shFileInfo;
-            ZeroMemory(&shFileInfo, sizeof(SHFILEINFOW));
-            UINT uFlags = SHGFI_ICON;
-            if (bLargeIcon) {
-                uFlags |= SHGFI_LARGEICON;
+        pathInfo.m_lastWriteTime.FromFileTime(findData.ftLastWriteTime);
+
+        ULARGE_INTEGER li;
+        li.LowPart = findData.nFileSizeLow;
+        li.HighPart = findData.nFileSizeHigh;
+        pathInfo.m_fileSize = li.QuadPart;
+
+        if (bFolder) {
+            //文件夹(图标共享，只获取一次)
+            pathInfo.m_bIconShared = true;
+            pathInfo.m_nIconID = bLargeIcon ? m_impl->m_nLargeIconID : m_impl->m_nSmallIconID;
+            uint32_t* pIconId = nullptr;
+            if (pathInfo.m_nIconID == 0) {
+                pIconId = &pathInfo.m_nIconID;
             }
-            else {
-                uFlags |= SHGFI_SMALLICON;
-            }
-            if (::SHGetFileInfoW(folderPath.ToStringW().c_str(), 0, &shFileInfo, sizeof(SHFILEINFOW), uFlags)) {
-                pathInfo.m_nIconID = GlobalManager::Instance().Icon().AddIcon(shFileInfo.hIcon);
-                pathInfo.m_bIconShared = bFolder ? true : false;//文件夹的图标共享，只取一次
-                if (pathInfo.m_bIconShared) {
+            if (GetFileInfo_Windows(folderPath.ToStringW(), pIconId, bLargeIcon, &pathInfo.m_typeName)) {
+                if (pIconId != nullptr) {
                     if (bLargeIcon) {
-                        m_impl->m_nLargeIconID = pathInfo.m_nIconID;
+                        m_impl->m_nLargeIconID = *pIconId;
                     }
                     else {
-                        m_impl->m_nSmallIconID = pathInfo.m_nIconID;
+                        m_impl->m_nSmallIconID = *pIconId;
                     }
-                }
-                if (shFileInfo.hIcon != nullptr) {
-                    ::DestroyIcon(shFileInfo.hIcon);
-                    shFileInfo.hIcon = nullptr;
                 }
             }
             else {
-                pathInfo.m_nIconID = 0;
-                pathInfo.m_bIconShared = false;
+                ASSERT(0);
+            }
+        }
+        else {
+            //文件(图标不共享，每个文件获取一次)
+            pathInfo.m_bIconShared = true;
+            if (!GetFileInfo_Windows(folderPath.ToStringW(), &pathInfo.m_nIconID, bLargeIcon, &pathInfo.m_typeName)) {
+                ASSERT(0);
             }
         }
         if (bFolder) {
             //文件夹
-            folderList.push_back(pathInfo);
+            folderList.emplace_back(std::move(pathInfo));
         }
         else {
             //普通文件
             ASSERT(fileList != nullptr);
             if (fileList != nullptr) {
-                fileList->push_back(pathInfo);
+                fileList->emplace_back(std::move(pathInfo));
             }            
         }
     } while (::FindNextFileW(hFile, &findData));
