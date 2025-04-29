@@ -160,7 +160,7 @@ void ExplorerView::SetFileList(const std::vector<PathInfo>& pathList)
         if (pImageList != nullptr) {
             DString iconString = ui::GlobalManager::Instance().Icon().GetIconString(pathInfo.m_nIconID);
             if (!iconString.empty()) {
-                int32_t nImageId = pImageList->AddImageString(iconString, m_pMainForm->Dpi());
+                int32_t nImageId = pImageList->AddImageStringWithSize(iconString, m_pMainForm->Dpi());
                 m_iconToImageMap[pathInfo.m_nIconID] = nImageId;
                 m_pListCtrl->SetDataItemImageId(nItemIndex, nImageId);
             }

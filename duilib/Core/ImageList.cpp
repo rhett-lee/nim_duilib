@@ -6,8 +6,7 @@ namespace ui
 {
 
 ImageList::ImageList():
-    m_nNextID(0),
-    m_bEnableChangeImageSizeDpi(true)
+    m_nNextID(0)
 {
 }
 
@@ -22,6 +21,7 @@ void ImageList::SetImageSize(UiSize imageSize, const DpiManager& dpi, bool bNeed
         return;
     }
     m_imageSize = imageSize;
+    m_imageSizeNoDpi = imageSize;
     if (bNeedDpiScale) {
         dpi.ScaleSize(m_imageSize);
     }    
@@ -30,16 +30,6 @@ void ImageList::SetImageSize(UiSize imageSize, const DpiManager& dpi, bool bNeed
 UiSize ImageList::GetImageSize() const
 {
     return m_imageSize;
-}
-
-void ImageList::EnableChangeImageSizeDpi(bool bEnableChangeImageSizeDpi)
-{
-    m_bEnableChangeImageSizeDpi = bEnableChangeImageSizeDpi;
-}
-
-bool ImageList::IsEnableChangeImageSizeDpi() const
-{
-    return m_bEnableChangeImageSizeDpi;
 }
 
 void ImageList::ChangeDpiScale(const DpiManager& dpi, uint32_t nOldDpiScale)
@@ -64,6 +54,18 @@ int32_t ImageList::AddImageString(const DString& imageString, const DpiManager& 
         }
     }    
     return imageId;
+}
+
+int32_t ImageList::AddImageStringWithSize(const DString& imageString, const DpiManager& dpi)
+{
+    ASSERT(imageString.find(_T("width=")) == DString::npos);
+    ASSERT(imageString.find(_T("height=")) == DString::npos);
+    DString newImageString = imageString;
+    UiSize szImage = m_imageSizeNoDpi;
+    if ((szImage.cx > 0) && (szImage.cy > 0)) {
+        newImageString = StringUtil::Printf(_T("file='%s' width='%d' height='%d'"), imageString.c_str(), szImage.cx, szImage.cy);
+    }
+    return AddImageString(newImageString, dpi);
 }
 
 DString ImageList::GetImageString(int32_t imageId) const

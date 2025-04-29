@@ -36,28 +36,19 @@ public:
     */
     UiSize GetImageSize() const;
 
-    /** 设置当DPI变化时，图片大小是否需要DPI缩放，默认开启
-    * @param [in] bEnableChangeImageSizeDpi true表示开启功能，false表示关闭功能
-    */
-    void EnableChangeImageSizeDpi(bool bEnableChangeImageSizeDpi);
-
-    /** 当DPI变化时，图片大小是否需要DPI缩放，默认开启
-    * @param [in] bEnableChangeImageSizeDpi true表示开启功能，false表示关闭功能
-    */
-    bool IsEnableChangeImageSizeDpi() const;
-
-    /** DPI发生变化，更新图片大小
-    * @param [in] nOldDpiScale 旧的DPI缩放百分比
-    * @param [in] dpi DPI缩放管理器
-    */
-    void ChangeDpiScale(const DpiManager& dpi, uint32_t nOldDpiScale);
-
     /** 添加一个图片资源
     * @param [in] imageString 图片资源字符串，格式同：Image::SetImageString函数
     * @param [in] dpi DPI缩放管理接口
     * @return 返回图片资源的ID，如果失败返回-1，否则返回大于等于0的ID
     */
     int32_t AddImageString(const DString& imageString, const DpiManager& dpi);
+
+    /** 添加一个图片资源，并附加图片大小信息
+    * @param [in] imageString 图片资源字符串，格式同：Image::SetImageString函数
+    * @param [in] dpi DPI缩放管理接口
+    * @return 返回图片资源的ID，如果失败返回-1，否则返回大于等于0的ID
+    */
+    int32_t AddImageStringWithSize(const DString& imageString, const DpiManager& dpi);
 
     /** 获取图片资源字符串
     * @param [in] imageId 图片资源的ID，由AddImage函数返回的值
@@ -93,6 +84,12 @@ public:
     /** 清空所有图片资源
     */
     void Clear();
+
+    /** DPI发生变化，更新图片大小
+    * @param [in] nOldDpiScale 旧的DPI缩放百分比
+    * @param [in] dpi DPI缩放管理器
+    */
+    void ChangeDpiScale(const DpiManager& dpi, uint32_t nOldDpiScale);
  
 private:
     /** 下一个ID
@@ -103,9 +100,9 @@ private:
     */
     UiSize m_imageSize;
 
-    /** 当DPI变化时，图片大小是否需要DPI缩放，默认开启
+    /** 图片大小原值（可选设置，如果不设置，则从每个图片获取）
     */
-    bool m_bEnableChangeImageSizeDpi;
+    UiSize m_imageSizeNoDpi;
 
     /** 图片资源映射表
     */
