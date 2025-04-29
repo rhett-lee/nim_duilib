@@ -71,6 +71,14 @@ private:
     */
     size_t GetColumnId(ExplorerViewColumn nOriginIndex) const;
 
+    /** 列表项排序分组
+    */
+    enum SortGroup
+    {
+        kFolder = 0, //文件夹
+        kFile   = 1, //文件
+    };
+
 private:
     /** 关联的MainForm
     */

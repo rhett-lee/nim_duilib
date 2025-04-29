@@ -56,6 +56,9 @@ struct ListCtrlSubItemData
     int32_t nImageId = -1;          //图标资源Id，如果为-1表示不显示图标
     UiColor textColor;              //文本颜色
     UiColor bkColor;                //背景颜色
+    size_t userDataN = 0;           //用户自定义数据(整型)
+    UiString userDataS;             //用户自定义数据(字符串类型)
+    int32_t nSortGroup = 0;         //所属分组（比如文件夹和文件可分为两组，排序后，文件夹和文件是分开的）
     bool bShowCheckBox = false;     //是否显示CheckBox
     bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
     bool bEditable = false;         //是否可编辑
@@ -74,6 +77,7 @@ struct ListCtrlSubItemData2
     bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
     size_t userDataN = 0;           //用户自定义数据(整型)
     UiString userDataS;             //用户自定义数据(字符串类型)
+    int32_t nSortGroup = 0;         //所属分组（比如文件夹和文件可分为两组，排序后，文件夹和文件是分开的）
     bool bEditable = false;         //是否可编辑
 };
 
@@ -85,10 +89,11 @@ typedef std::shared_ptr<ListCtrlSubItemData2> ListCtrlSubItemData2Ptr;
 enum ListCtrlSubItemSortFlag : uint8_t
 {
     kDefault            = 0,    //空的值
-    kSortNoCase         = 1,    //当排序目标是字符串时，比较字符串不区分大小写
-    kSortByText         = 2,    //按照ListCtrlSubItemData2.text字段排序（默认）
-    kSortByUserDataN    = 4,    //按照ListCtrlSubItemData2.userDataN字段排序
-    kSortByUserDataS    = 8,    //按照ListCtrlSubItemData2.kSortByUserDataS字段排序
+    kSortByGroup        = 1,    //当排序时，使用分组排序，按照ListCtrlSubItemData2.nSortGroup字段分组
+    kSortNoCase         = 2,    //当排序目标是字符串时，比较字符串不区分大小写
+    kSortByText         = 4,    //按照ListCtrlSubItemData2.text字段排序（默认）
+    kSortByUserDataN    = 8,    //按照ListCtrlSubItemData2.userDataN字段排序
+    kSortByUserDataS    = 16,    //按照ListCtrlSubItemData2.kSortByUserDataS字段排序
 };
 
 struct ListCtrlSubItemData2Pair

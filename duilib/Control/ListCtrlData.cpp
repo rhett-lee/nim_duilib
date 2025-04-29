@@ -231,6 +231,10 @@ void ListCtrlData::SubItemToStorage(const ListCtrlSubItemData& item, Storage& st
     storage.bShowCheckBox = item.bShowCheckBox;
     storage.bChecked = item.bChecked;
     storage.bEditable = item.bEditable;
+
+    storage.userDataN = item.userDataN;
+    storage.userDataS = item.userDataS;
+    storage.nSortGroup = item.nSortGroup;
 }
 
 void ListCtrlData::StorageToSubItem(const Storage& storage, ListCtrlSubItemData& item) const
@@ -248,6 +252,10 @@ void ListCtrlData::StorageToSubItem(const Storage& storage, ListCtrlSubItemData&
     item.bShowCheckBox = storage.bShowCheckBox;
     item.bChecked = storage.bChecked;
     item.bEditable = storage.bEditable;
+
+    item.userDataN = storage.userDataN;
+    item.userDataS = storage.userDataS;
+    item.nSortGroup = storage.nSortGroup;
 }
 
 bool ListCtrlData::IsValidDataItemIndex(size_t itemIndex) const
@@ -1178,6 +1186,32 @@ DString ListCtrlData::GetSubItemText(size_t itemIndex, size_t columnId) const
     return pStorage->text.c_str();
 }
 
+bool ListCtrlData::SetSubItemSortGroup(size_t itemIndex, size_t columnId, int32_t nSortGroup)
+{
+    StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return false;
+    }
+    if (pStorage->nSortGroup != nSortGroup) {
+        pStorage->nSortGroup = nSortGroup;
+        EmitDataChanged(itemIndex, itemIndex);
+    }
+    return true;
+}
+
+int32_t ListCtrlData::GetSubItemSortGroup(size_t itemIndex, size_t columnId) const
+{
+    StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
+    ASSERT(pStorage != nullptr);
+    if (pStorage == nullptr) {
+        //索引号无效
+        return 0;
+    }
+    return pStorage->nSortGroup;
+}
+
 bool ListCtrlData::SetSubItemUserDataN(size_t itemIndex, size_t columnId, size_t userDataN)
 {
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
@@ -1579,6 +1613,12 @@ bool ListCtrlData::SortStorageData(std::vector<StorageData>& dataList, size_t nC
 
 bool ListCtrlData::SortDataCompareFunc(const ListCtrlSubItemData2& a, const ListCtrlSubItemData2& b, uint8_t nSortFlag) const
 {
+    if (nSortFlag & ListCtrlSubItemSortFlag::kSortByGroup) {
+        //支持分组排序
+        if (a.nSortGroup != b.nSortGroup) {
+            return a.nSortGroup < b.nSortGroup;
+        }
+    }
     if (nSortFlag & ListCtrlSubItemSortFlag::kSortByUserDataN) {
         //按 .userDataN 字段排序(整型值)
         return a.userDataN < b.userDataN;

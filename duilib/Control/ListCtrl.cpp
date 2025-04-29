@@ -1641,6 +1641,26 @@ DString ListCtrl::GetSubItemTextById(size_t itemIndex, size_t columnId) const
     return m_pData->GetSubItemText(itemIndex, columnId);
 }
 
+bool ListCtrl::SetSubItemSortGroup(size_t itemIndex, size_t columnIndex, int32_t nSortGroup)
+{
+    return SetSubItemSortGroupById(itemIndex, GetColumnId(columnIndex), nSortGroup);
+}
+
+bool ListCtrl::SetSubItemSortGroupById(size_t itemIndex, size_t columnId, int32_t nSortGroup)
+{
+    return m_pData->SetSubItemSortGroup(itemIndex, columnId, nSortGroup);
+}
+
+int32_t ListCtrl::GetSubItemGroup(size_t itemIndex, size_t columnIndex) const
+{
+    return GetSubItemGroupById(itemIndex, GetColumnId(columnIndex));
+}
+
+int32_t ListCtrl::GetSubItemGroupById(size_t itemIndex, size_t columnId) const
+{
+    return m_pData->GetSubItemSortGroup(itemIndex, columnId);
+}
+
 bool ListCtrl::SetSubItemUserDataN(size_t itemIndex, size_t columnIndex, size_t userDataN)
 {
     return SetSubItemUserDataNById(itemIndex, GetColumnId(columnIndex), userDataN);
