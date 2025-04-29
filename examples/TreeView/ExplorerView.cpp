@@ -167,24 +167,34 @@ void ExplorerView::SetFileList(const std::vector<PathInfo>& pathList)
         }
 
         ui::ListCtrlSubItemData subItemData;
+        subItemData.nSortGroup = pathInfo.m_bFolder ? SortGroup::kFolder : SortGroup::kFile; //排序分组
         subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
         subItemData.text = pathInfo.m_displayName;
         nColumnId = GetColumnId(ExplorerViewColumn::kName);
         m_pListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //文件名称
+
+        //设置"文件名称"列的排序方式
+        uint8_t nSortFlag = ui::kSortByGroup;
+#ifdef DUILIB_BUILD_FOR_WIN
+        //Windows下，文件名排序不区分大小写
+        nSortFlag |= ui::kSortNoCase;
+#endif
+        m_pListCtrl->SetColumnSortFlagById(nColumnId, nSortFlag);
 
         subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
         subItemData.text = FormatFileTime(pathInfo.m_lastWriteTime);
         nColumnId = GetColumnId(ExplorerViewColumn::kModifyDateTime);
         m_pListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //修改日期
 
-        //设置"文件大小"列的排序方式
+        //设置"修改日期"列的排序方式
         m_pListCtrl->SetSubItemUserDataNById(nItemIndex, nColumnId, pathInfo.m_lastWriteTime.GetValue());
-        m_pListCtrl->SetColumnSortFlagById(nColumnId, ui::ListCtrlSubItemSortFlag::kSortByUserDataN);
+        m_pListCtrl->SetColumnSortFlagById(nColumnId, ui::kSortByUserDataN | ui::kSortByGroup);
 
         subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
         subItemData.text = pathInfo.m_typeName;
         nColumnId = GetColumnId(ExplorerViewColumn::kType);
         m_pListCtrl->SetSubItemDataById(nItemIndex, nColumnId, subItemData); //文件类型
+        m_pListCtrl->SetColumnSortFlagById(nColumnId, ui::kSortByGroup);
 
         subItemData.nTextFormat = ui::DrawStringFormat::TEXT_RIGHT | ui::DrawStringFormat::TEXT_VCENTER;
         subItemData.text = FormatFileSize(pathInfo.m_bFolder, pathInfo.m_fileSize);
@@ -193,7 +203,7 @@ void ExplorerView::SetFileList(const std::vector<PathInfo>& pathList)
 
         //设置"文件大小"列的排序方式
         m_pListCtrl->SetSubItemUserDataNById(nItemIndex, nColumnId, pathInfo.m_fileSize);
-        m_pListCtrl->SetColumnSortFlagById(nColumnId, ui::ListCtrlSubItemSortFlag::kSortByUserDataN);
+        m_pListCtrl->SetColumnSortFlagById(nColumnId, ui::kSortByUserDataN | ui::kSortByGroup);
     }
 }
 

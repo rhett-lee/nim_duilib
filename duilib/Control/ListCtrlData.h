@@ -316,6 +316,20 @@ public:
     */
     DString GetSubItemText(size_t itemIndex, size_t columnId) const;
 
+    /** 设置指定数据项的排序分组（整型）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    * @param [in] nSortGroup 需要设置的排序分组的整型数据
+    */
+    bool SetSubItemSortGroup(size_t itemIndex, size_t columnId, int32_t nSortGroup);
+
+    /** 获取指定数据项的排序分组（整型）
+    * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
+    * @param [in] columnId 列的ID
+    * @return 排序分组的整型数据
+    */
+    int32_t GetSubItemSortGroup(size_t itemIndex, size_t columnId) const;
+
     /** 设置指定数据项的关联用户数据（整型）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnId 列的ID
