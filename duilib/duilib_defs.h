@@ -48,9 +48,21 @@ namespace ui
     #define  DUI_CTR_SPLIT                           (_T("Split"))
 
     #define  DUI_CTR_LABELBOX                        (_T("LabelBox"))
+    #define  DUI_CTR_LABELHBOX                       (_T("LabelHBox"))
+    #define  DUI_CTR_LABELVBOX                       (_T("LabelVBox"))
+
     #define  DUI_CTR_BUTTONBOX                       (_T("ButtonBox"))
-    #define  DUI_CTR_OPTIONBOX                       (_T("OptionBox"))
+    #define  DUI_CTR_BUTTONHBOX                      (_T("ButtonHBox"))
+    #define  DUI_CTR_BUTTONVBOX                      (_T("ButtonVBox"))
+
     #define  DUI_CTR_CHECKBOXBOX                     (_T("CheckBoxBox"))
+    #define  DUI_CTR_CHECKBOXHBOX                    (_T("CheckBoxHBox"))
+    #define  DUI_CTR_CHECKBOXVBOX                    (_T("CheckBoxVBox"))
+
+    #define  DUI_CTR_OPTIONBOX                       (_T("OptionBox"))
+    #define  DUI_CTR_OPTIONHBOX                      (_T("OptionHBox"))
+    #define  DUI_CTR_OPTIONVBOX                      (_T("OptionVBox"))
+
     #define  DUI_CTR_SPLITBOX                        (_T("SplitBox"))
 
     #define  DUI_CTR_BOX                             (_T("Box"))

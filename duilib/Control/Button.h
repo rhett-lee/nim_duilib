@@ -3,6 +3,8 @@
 
 #include "duilib/Control/Label.h"
 #include "duilib/Core/Keyboard.h"
+#include "duilib/Box/HBox.h"
+#include "duilib/Box/VBox.h"
 
 namespace ui {
 
@@ -37,6 +39,12 @@ inline DString ButtonTemplate<InheritType>::GetType() const { return DUI_CTR_BUT
 
 template<>
 inline DString ButtonTemplate<Box>::GetType() const { return DUI_CTR_BUTTONBOX; }
+
+template<>
+inline DString ButtonTemplate<HBox>::GetType() const { return DUI_CTR_BUTTONHBOX; }
+
+template<>
+inline DString ButtonTemplate<VBox>::GetType() const { return DUI_CTR_BUTTONVBOX; }
 
 template<typename InheritType>
 uint32_t ui::ButtonTemplate<InheritType>::GetControlFlags() const
@@ -84,6 +92,8 @@ bool ButtonTemplate<InheritType>::CanPlaceCaptionBar() const
 
 typedef ButtonTemplate<Control> Button;
 typedef ButtonTemplate<Box> ButtonBox;
+typedef ButtonTemplate<HBox> ButtonHBox;
+typedef ButtonTemplate<VBox> ButtonVBox;
 
 }    // namespace ui
 

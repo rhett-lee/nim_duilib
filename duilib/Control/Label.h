@@ -4,6 +4,8 @@
 #include "duilib/Core/Control.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Box.h"
+#include "duilib/Box/HBox.h"
+#include "duilib/Box/VBox.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/StateColorMap.h"
 #include "duilib/Image/Image.h"
@@ -193,6 +195,12 @@ inline DString LabelTemplate<InheritType>::GetType() const { return DUI_CTR_LABE
 
 template<>
 inline DString LabelTemplate<Box>::GetType() const { return DUI_CTR_LABELBOX; }
+
+template<>
+inline DString LabelTemplate<HBox>::GetType() const { return DUI_CTR_LABELHBOX; }
+
+template<>
+inline DString LabelTemplate<VBox>::GetType() const { return DUI_CTR_LABELVBOX; }
 
 template<typename InheritType>
 void LabelTemplate<InheritType>::SetAttribute(const DString& strName, const DString& strValue)
@@ -683,6 +691,8 @@ void LabelTemplate<InheritType>::SetSingleLine(bool bSingleLine)
 
 typedef LabelTemplate<Control> Label;
 typedef LabelTemplate<Box> LabelBox;
+typedef LabelTemplate<HBox> LabelHBox;
+typedef LabelTemplate<VBox> LabelVBox;
 
 }
 

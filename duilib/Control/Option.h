@@ -63,6 +63,12 @@ inline DString OptionTemplate<InheritType>::GetType() const { return DUI_CTR_OPT
 template<>
 inline DString OptionTemplate<Box>::GetType() const { return DUI_CTR_OPTIONBOX; }
 
+template<>
+inline DString OptionTemplate<HBox>::GetType() const { return DUI_CTR_OPTIONHBOX; }
+
+template<>
+inline DString OptionTemplate<VBox>::GetType() const { return DUI_CTR_OPTIONVBOX; }
+
 template<typename InheritType>
 void OptionTemplate<InheritType>::SetWindow(Window* pWindow)
 {
@@ -166,6 +172,8 @@ void OptionTemplate<InheritType>::SetGroup(const DString& strGroupName)
 
 typedef OptionTemplate<Control> Option;
 typedef OptionTemplate<Box> OptionBox;
+typedef OptionTemplate<HBox> OptionHBox;
+typedef OptionTemplate<VBox> OptionVBox;
 
 }
 

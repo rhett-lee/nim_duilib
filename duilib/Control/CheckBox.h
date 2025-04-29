@@ -297,6 +297,12 @@ inline DString CheckBoxTemplate<InheritType>::GetType() const { return DUI_CTR_C
 template<>
 inline DString CheckBoxTemplate<Box>::GetType() const { return DUI_CTR_CHECKBOXBOX; }
 
+template<>
+inline DString CheckBoxTemplate<HBox>::GetType() const { return DUI_CTR_CHECKBOXHBOX; }
+
+template<>
+inline DString CheckBoxTemplate<VBox>::GetType() const { return DUI_CTR_CHECKBOXVBOX; }
+
 template<typename InheritType>
 void CheckBoxTemplate<InheritType>::SetAttribute(const DString& strName, const DString& strValue)
 {
@@ -821,6 +827,8 @@ void CheckBoxTemplate<InheritType>::SetSelectedStateColor(ControlStateType state
 
 typedef CheckBoxTemplate<Control> CheckBox;
 typedef CheckBoxTemplate<Box> CheckBoxBox;
+typedef CheckBoxTemplate<HBox> CheckBoxHBox;
+typedef CheckBoxTemplate<VBox> CheckBoxVBox;
 
 } // namespace ui
 
