@@ -74,6 +74,14 @@ private:
     */
     void ShowForward();
 
+    /** 切换视图模式
+    */
+    void SwithListType(const ui::UiPoint& point, ui::Control* pRelatedControl);
+
+    /** 切换排序方式
+    */
+    void SwithSortMode(const ui::UiPoint& point, ui::Control* pRelatedControl);
+
     /** 更新界面状态
     */
     void UpdateCommandUI();
@@ -153,6 +161,14 @@ private:
     /** 是否可以添加到前进后退列表
     */
     bool m_bCanAddBackForward;
+
+    /** 切换列表类型
+    */
+    ui::ButtonHBox* m_pBtnViewListType;
+
+    /** 切换排序模式
+    */
+    ui::ButtonHBox* m_pBtnViewSort;
 };
 
 #endif //EXAMPLES_MAIN_FORM_H_

@@ -30,6 +30,31 @@ public:
     */
     void SetFileList(const std::vector<PathInfo>& pathList);
 
+    /** 获取视图的列表接口
+    */
+    ui::ListCtrl* GetListCtrl() const;
+
+public:
+    /** 视图的表头
+    */
+    enum class ExplorerViewColumn
+    {
+        kName,           //文件名称
+        kModifyDateTime, //修改日期
+        kType,           //文件类型
+        kSize            //文件大小
+    };
+
+    /** 获取排序列
+    * @param [out] viewColumn 当前排序的列
+    * @param [out] bSortUp true表示升序，false表示降序
+    */
+    bool GetSortColumnInfo(ExplorerViewColumn& viewColumn, bool& bSortUp) const;
+
+    /** 排序
+    */
+    void SortByColumn(ExplorerViewColumn viewColumn, bool bSortUp);
+
 private:
     /** 初始化
     */
@@ -57,16 +82,6 @@ private:
     DString FormatFileTime(const ui::FileTime& fileTime) const;
 
 private:
-    /** 视图的表头
-    */
-    enum class ExplorerViewColumn
-    {
-        kName,           //文件名称
-        kModifyDateTime, //修改日期
-        kType,           //文件类型
-        kSize            //文件大小
-    };
-
     /** 获取真实的列索引号
     */
     size_t GetColumnId(ExplorerViewColumn nOriginIndex) const;

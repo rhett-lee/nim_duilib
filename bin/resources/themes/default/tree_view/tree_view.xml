@@ -61,86 +61,92 @@
                     <Event type="unselect" receiver="tree" apply_attribute="show_system_files={false}" />
                 </CheckBox>
             </HBox>
-            <!-- 横向分割条，用于调整上下区域大小 -->
-            <Split bkcolor="splitline_level1" height="2"/>
-            <HBox minheight="60">
-                <HBox width="300" minwidth="60" bkcolor="SeaShell" border_size="1,1,0,1" border_color="blue">
-                    <DirectoryTree class="tree_view" name="tree" multi_select="false" check_box_class="tree_node_checkbox" expand_image_class="tree_node_expand" padding="5,3,5,3" indent="20"/>
-                </HBox>
-                <!-- 纵向分割条，用于调整左右区域大小 -->
-                <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>
-                <VBox bkcolor="Pink" border_size="1" border_color="blue" min_width="60">
-                    <HBox width="stretch" height="32" bkcolor="white">
+            <HBox width="stretch" height="32" bkcolor="white">
                         <Button class="btn_view_common btn_view_up" name="btn_view_up" margin="4,0,0,0" tooltip_text="上移到父目录"/>
                         <Button class="btn_view_common btn_view_left" name="btn_view_left" tooltip_text="返回"/>
                         <Button class="btn_view_common btn_view_right" name="btn_view_right" tooltip_text="前进"/>
                         <Button class="btn_view_common btn_view_refresh" name="btn_view_refresh" tooltip_text="刷新左侧的目录树和文件显示区"/>
+                        <ButtonHBox name="btn_view_sort" width="auto" height="26" border_round="5,5" padding="6,0,6,0" valign="center" halign="center" tooltip_text="排序方式" hot_color="#AAB2B4B8" pushed_color="#FFB2B4B8">
+                            <Control width="auto" bkimage="file='../tree_view/view-sort.svg' width='16' height='16' valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
+                            <Label text="排序" width="auto" height="28" margin="4,0,4,0" font="system_12" text_align="hcenter,vcenter" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                            <Control width="auto" bkimage="file='../tree_view/chevron-bottom.svg' width='8' height='8' valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
+                        </ButtonHBox>
+                        <ButtonHBox name="btn_view_list_type" width="auto" height="26" border_round="5,5" padding="6,0,6,0" valign="center" halign="center" tooltip_text="切换视图模式" hot_color="#AAB2B4B8" pushed_color="#FFB2B4B8">
+                            <Control width="auto" bkimage="file='../tree_view/view-list-symbolic.svg' width='16' height='16' valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
+                            <Label text="查看" width="auto" height="28" margin="4,0,4,0" font="system_12" text_align="hcenter,vcenter" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+                            <Control width="auto" bkimage="file='../tree_view/chevron-bottom.svg' width='8' height='8' valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
+                        </ButtonHBox>
                         <Label text="当前路径：" valign="center" margin="10,0,0,0"/>
                         <RichEdit class="simple input" name="file_path" width="stretch" height="28" valign="center" margin="8,0,10,0" text_padding="5,5,5,5" default_context_menu="true" select_all_on_focus="true"/>
-                    </HBox>
-                    <TabBox name="main_view_tab_box" bkcolor="white" selected_id="0">
-                        <VirtualVTileListBox class="list" name="simple_file_view" columns="auto" item_size="200,120" multi_select="false" vscrollbar="true" hscrollbar="true" border_size="0,1,0,0" border_color="splitline_level2" padding="1,1,1,1"/>
-                        <ListCtrl name="explorer_view" bkcolor="YellowGreen" border_size="0,1,0,0" border_color="splitline_level2" padding="0,1,0,0"
-                                                      type="report"
-                                                      show_header="true"
-                                                      header_class="list_ctrl_header" 
-                                                      header_item_class="list_ctrl_header_item"
-                                                      header_split_box_class="list_ctrl_header_split_box"
-                                                      header_split_control_class="list_ctrl_header_split_control"
-                                                      header_height="32"                          
-                                                      enable_header_drag_order="true" 
-                                                      check_box_class="list_ctrl_checkbox"
-                                                      data_item_class="list_ctrl_item"
-                                                      data_sub_item_class="list_ctrl_sub_item"
-                                                      report_view_class="list_ctrl_report_view"
-                                                      data_item_height="46"
-                                                      row_grid_line_width="0"
-                                                      row_grid_line_color="lightgray"
-                                                      column_grid_line_width="0"
-                                                      column_grid_line_color="lightgray"
-                                                      multi_select="true"
-                                                      auto_check_select="false" show_header_checkbox="false" show_data_item_checkbox="false"
-                                                      icon_view_class="list_ctrl_icon_view"
-                                                      icon_view_item_class="list_ctrl_icon_view_item"
-                                                      icon_view_item_image_class="list_ctrl_icon_view_item_image"
-                                                      icon_view_item_label_class="list_ctrl_icon_view_item_label"
-                                                      list_view_class="list_ctrl_list_view"
-                                                      list_view_item_class="list_ctrl_list_view_item"
-                                                      list_view_item_image_class="list_ctrl_list_view_item_image"
-                                                      list_view_item_label_class="list_ctrl_list_view_item_label"
-                                                      enable_item_edit="true" list_ctrl_richedit_class="list_ctrl_richedit"/>
-                    <ListCtrl name="computer_view" bkcolor="YellowGreen" border_size="0,1,0,0" border_color="splitline_level2" padding="0,1,0,0"
-                                                      type="report"
-                                                      show_header="true"
-                                                      header_class="list_ctrl_header" 
-                                                      header_item_class="list_ctrl_header_item"
-                                                      header_split_box_class="list_ctrl_header_split_box"
-                                                      header_split_control_class="list_ctrl_header_split_control"
-                                                      header_height="32"                          
-                                                      enable_header_drag_order="true" 
-                                                      check_box_class="list_ctrl_checkbox"
-                                                      data_item_class="list_ctrl_item"
-                                                      data_sub_item_class="list_ctrl_sub_item"
-                                                      report_view_class="list_ctrl_report_view"
-                                                      data_item_height="46"
-                                                      row_grid_line_width="0"
-                                                      row_grid_line_color="lightgray"
-                                                      column_grid_line_width="0"
-                                                      column_grid_line_color="lightgray"
-                                                      multi_select="true"
-                                                      auto_check_select="false" show_header_checkbox="false" show_data_item_checkbox="false"
-                                                      icon_view_class="list_ctrl_icon_view"
-                                                      icon_view_item_class="list_ctrl_icon_view_item"
-                                                      icon_view_item_image_class="list_ctrl_icon_view_item_image"
-                                                      icon_view_item_label_class="list_ctrl_icon_view_item_label"
-                                                      list_view_class="list_ctrl_list_view"
-                                                      list_view_item_class="list_ctrl_list_view_item"
-                                                      list_view_item_image_class="list_ctrl_list_view_item_image"
-                                                      list_view_item_label_class="list_ctrl_list_view_item_label"
-                                                      enable_item_edit="true" list_ctrl_richedit_class="list_ctrl_richedit"/>
-                        <Box name="error_view" bkcolor="red"/>
-                    </TabBox>
-                </VBox>
+            </HBox>
+            <HBox minheight="60" bkcolor="white" border_size="0,2,0,0" border_color="splitline_level2" padding="0,4,0,0">
+                <HBox width="300" minwidth="60">
+                    <DirectoryTree class="tree_view" name="tree" multi_select="false" check_box_class="tree_node_checkbox" expand_image_class="tree_node_expand" padding="5,3,5,3" indent="20"/>
+                </HBox>
+                <!-- 纵向分割条，用于调整左右区域大小 -->
+                <Split bkcolor="splitline_level1" width="5" border_color="white" border_size="2,0,2,0"/>                
+                <TabBox name="main_view_tab_box" bkcolor="white" selected_id="0">
+                    <VirtualVTileListBox class="list" name="simple_file_view" columns="auto" item_size="200,120" multi_select="false" vscrollbar="true" hscrollbar="true"/>
+                    <ListCtrl name="explorer_view" bkcolor="YellowGreen"
+                                                  type="report"
+                                                  show_header="true"
+                                                  header_class="list_ctrl_header" 
+                                                  header_item_class="list_ctrl_header_item"
+                                                  header_split_box_class="list_ctrl_header_split_box"
+                                                  header_split_control_class="list_ctrl_header_split_control"
+                                                  header_height="32"                          
+                                                  enable_header_drag_order="true" 
+                                                  check_box_class="list_ctrl_checkbox"
+                                                  data_item_class="list_ctrl_item"
+                                                  data_sub_item_class="list_ctrl_sub_item"
+                                                  report_view_class="list_ctrl_report_view"
+                                                  data_item_height="46"
+                                                  row_grid_line_width="0"
+                                                  row_grid_line_color="lightgray"
+                                                  column_grid_line_width="0"
+                                                  column_grid_line_color="lightgray"
+                                                  multi_select="true"
+                                                  auto_check_select="false" show_header_checkbox="false" show_data_item_checkbox="false"
+                                                  icon_view_class="list_ctrl_icon_view"
+                                                  icon_view_item_class="list_ctrl_icon_view_item"
+                                                  icon_view_item_image_class="list_ctrl_icon_view_item_image"
+                                                  icon_view_item_label_class="list_ctrl_icon_view_item_label"
+                                                  list_view_class="list_ctrl_list_view"
+                                                  list_view_item_class="list_ctrl_list_view_item"
+                                                  list_view_item_image_class="list_ctrl_list_view_item_image"
+                                                  list_view_item_label_class="list_ctrl_list_view_item_label"
+                                                  enable_item_edit="true" list_ctrl_richedit_class="list_ctrl_richedit"/>
+                <ListCtrl name="computer_view" bkcolor="YellowGreen"
+                                                  type="report"
+                                                  show_header="true"
+                                                  header_class="list_ctrl_header" 
+                                                  header_item_class="list_ctrl_header_item"
+                                                  header_split_box_class="list_ctrl_header_split_box"
+                                                  header_split_control_class="list_ctrl_header_split_control"
+                                                  header_height="32"                          
+                                                  enable_header_drag_order="true" 
+                                                  check_box_class="list_ctrl_checkbox"
+                                                  data_item_class="list_ctrl_item"
+                                                  data_sub_item_class="list_ctrl_sub_item"
+                                                  report_view_class="list_ctrl_report_view"
+                                                  data_item_height="46"
+                                                  row_grid_line_width="0"
+                                                  row_grid_line_color="lightgray"
+                                                  column_grid_line_width="0"
+                                                  column_grid_line_color="lightgray"
+                                                  multi_select="true"
+                                                  auto_check_select="false" show_header_checkbox="false" show_data_item_checkbox="false"
+                                                  icon_view_class="list_ctrl_icon_view"
+                                                  icon_view_item_class="list_ctrl_icon_view_item"
+                                                  icon_view_item_image_class="list_ctrl_icon_view_item_image"
+                                                  icon_view_item_label_class="list_ctrl_icon_view_item_label"
+                                                  list_view_class="list_ctrl_list_view"
+                                                  list_view_item_class="list_ctrl_list_view_item"
+                                                  list_view_item_image_class="list_ctrl_list_view_item_image"
+                                                  list_view_item_label_class="list_ctrl_list_view_item_label"
+                                                  enable_item_edit="true" list_ctrl_richedit_class="list_ctrl_richedit"/>
+                    <Box name="error_view" bkcolor="red"/>
+                </TabBox>
             </HBox>
         </VBox>
     </VBox>

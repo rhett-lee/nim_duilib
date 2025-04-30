@@ -118,6 +118,7 @@ namespace ui
     #define  DUI_CTR_MENU                            (_T("Menu"))
     #define  DUI_CTR_SUB_MENU                        (_T("SubMenu"))
     #define  DUI_CTR_MENU_ITEM                       (_T("MenuItem"))
+    #define  DUI_CTR_MENU_LISTBOX                    (_T("MenuListBox"))
 
     #define  DUI_CTR_DATETIME                        (_T("DateTime"))
     #define  DUI_CTR_CEF                             (_T("CefControl"))

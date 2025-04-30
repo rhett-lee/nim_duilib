@@ -1,4 +1,5 @@
 #include "Menu.h"
+#include "MenuListBox.h"
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Core/WindowCreateParam.h"
@@ -29,6 +30,9 @@ ui::Control* Menu::CreateControl(const DString& pstrClass)
     }
     else if (pstrClass == DUI_CTR_SUB_MENU) {
         return new SubMenu(this);
+    }
+    else if (pstrClass == DUI_CTR_MENU_LISTBOX) {
+        return new MenuListBox(this);
     }
     return nullptr;
 }
@@ -151,7 +155,7 @@ void Menu::ShowMenu(const DString& xml, const UiPoint& point, MenuPopupPosType p
                     pMenuItem->SetFixedWidth(UiFixedInt(nMaxWidth), true, false);
                 }
             }
-        }
+        }        
     }
 }
 
@@ -225,7 +229,7 @@ LRESULT Menu::OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativ
     return lResult;
 }
 
-LRESULT Menu::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t /*modifierKey*/, const NativeMsg& /*nativeMsg*/, bool& bHandled)
+LRESULT Menu::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = true;
     if (vkCode == kVK_ESCAPE || vkCode == kVK_LEFT) {
@@ -252,10 +256,31 @@ LRESULT Menu::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t /*modifierKey*/, cons
                     ContextMenuParam param;
                     param.pWindow = this;
                     param.wParam = MenuCloseType::eMenuCloseAll;
+                    //回车时，激活当前选择的菜单项
+                    pItem->Activate(nullptr);
                     Menu::GetMenuObserver().RBroadcast(param);
                 }
             }
         }
+    }
+    else if (vkCode == kVK_DOWN || vkCode == kVK_UP) {
+        //支持键盘上下键切换当前菜单项
+        ListBox* pLayoutListBox = Menu::GetLayoutListBox();
+        if (pLayoutListBox != nullptr) {
+            //默认选中当前处于hot状态的菜单项，以支持键盘操作            
+            if (!Box::IsValidItemIndex(pLayoutListBox->GetCurSel())) {
+                for (size_t nIndex = 0; nIndex < pLayoutListBox->GetItemCount(); ++nIndex) {
+                    MenuItem* pItem = dynamic_cast<MenuItem*>(pLayoutListBox->GetItemAt(nIndex));
+                    if (pItem != nullptr) {
+                        if (pItem->GetState() == ControlStateType::kControlStateHot) {
+                            pLayoutListBox->SetCurSel(nIndex);
+                            break;
+                        }
+                    }
+                }                
+            }            
+        }
+        BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
     }
     return 0;
 }
@@ -524,6 +549,49 @@ void Menu::PostInitWindow()
 ListBox* Menu::GetLayoutListBox() const
 {
     return m_pListBox.get();
+}
+
+void Menu::OnMenuItemActivated(const DString& menuName, int32_t nMenuLevel,
+                               const DString& itemName, size_t nItemIndex)
+{
+    Menu* pParentMenu = nullptr;
+    if (GetParentWindow() != nullptr) {
+        pParentMenu = dynamic_cast<Menu*>(GetParentWindow());
+    }
+    if (pParentMenu != nullptr) {
+        pParentMenu->OnMenuItemActivated(menuName, nMenuLevel + 1, itemName, nItemIndex);
+    }
+    else {
+        //已经是顶级菜单
+        m_pActiveMenuItem = std::make_unique<ActiveMenuItem>();
+        m_pActiveMenuItem->m_itemIndex = nItemIndex;
+        m_pActiveMenuItem->m_itemName = itemName;
+        m_pActiveMenuItem->m_menuLevel = nMenuLevel;
+        m_pActiveMenuItem->m_menuName = menuName;
+    }
+}
+
+void Menu::AttachMenuItemActivated(MenuItemActivatedEvent callback)
+{
+    if (callback != nullptr) {
+        m_callbackList.push_back(callback);
+    }
+}
+
+void Menu::OnFinalMessage()
+{
+    //发送回调，通知已经选择的事件
+    if ((m_pActiveMenuItem != nullptr) && !m_callbackList.empty()) {
+        ActiveMenuItem activeData = *m_pActiveMenuItem;
+        std::vector<MenuItemActivatedEvent> callbackList(m_callbackList);
+        for (MenuItemActivatedEvent callback : callbackList) {
+            if (callback) {
+                callback(activeData.m_menuName, activeData.m_menuLevel,
+                         activeData.m_itemName, activeData.m_itemIndex);
+            }
+        }
+    }
+    BaseClass::OnFinalMessage();
 }
 
 void Menu::OnCloseWindow()
@@ -1035,6 +1103,21 @@ void MenuItem::CreateMenuWnd()
             subMenuPt.y = rc.top - rcCorner.top;
         }
         m_pSubWindow->ShowMenu(subXmlFile.ToString(), subMenuPt, MenuPopupPosType::RIGHT_BOTTOM, false, this);
+    }
+}
+
+void MenuItem::Activate(const EventArgs* pMsg)
+{
+    BaseClass::Activate(pMsg);
+    DString itemName = GetName();
+    size_t nItemIndex = GetListBoxIndex();
+    Menu* pMenu = dynamic_cast<Menu*>(GetWindow());
+    if (pMenu != nullptr) {
+        DString menuName;
+        if (pMenu->GetLayoutListBox() != nullptr) {
+            menuName = pMenu->GetLayoutListBox()->GetName();
+        }
+        pMenu->OnMenuItemActivated(menuName, 0, itemName, nItemIndex);
     }
 }
 

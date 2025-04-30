@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window>
+    <MenuListBox class="menu" name="main_menu">
+        <!-- 一级菜单 -->
+        <MenuItem class="menu_element" name="menu_item_file_name" width="180">
+          <Button name="btn_file_name" width="auto" height="auto" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+          <Label class="menu_text" text="文件名称" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+    
+        <MenuItem class="menu_element" name="menu_item_file_modify_time" width="180">
+          <Button name="btn_file_modify_time" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
+          <Label class="menu_text" text="修改日期" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        
+        <MenuItem class="menu_element" name="menu_item_file_type" width="180">
+          <Button name="btn_file_type" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
+          <Label class="menu_text" text="文件类型" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        
+        <MenuItem class="menu_element" name="menu_item_file_size" width="180">
+          <Button name="btn_file_size" width="auto" height="auto" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+          <Label class="menu_text" text="文件大小" margin="30,0,0,0" mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+               
+        <!-- 菜单项之间的分割线 -->
+        <Box class="menu_split_box" margin="0,4,0,4">
+            <Control class="menu_split_line" mouse_enabled="false" keyboard_enabled="false"/>
+        </Box>
+
+        <MenuItem class="menu_element" name="menu_item_sort_ascending" width="180">
+          <Button name="btn_sort_ascending" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
+          <Label class="menu_text" text="递增排序" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        
+        <MenuItem class="menu_element" name="menu_item_sort_descending" width="180">
+          <Button name="btn_sort_descending" width="auto" height="auto" valign="center"  mouse_enabled="false" keyboard_enabled="false"/>
+          <Label class="menu_text" text="递减排序" margin="30,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>        
+  </MenuListBox>
+</Window>

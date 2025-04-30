@@ -664,6 +664,7 @@
     <ClInclude Include="Control\ListCtrlSubItem.h" />
     <ClInclude Include="Control\ListCtrlView.h" />
     <ClInclude Include="Control\Menu.h" />
+    <ClInclude Include="Control\MenuListBox.h" />
     <ClInclude Include="Control\observer_impl_base.hpp" />
     <ClInclude Include="Control\PropertyGrid.h" />
     <ClInclude Include="Control\RichEdit.h" />

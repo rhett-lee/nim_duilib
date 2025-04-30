@@ -53,6 +53,16 @@ typedef class ReceiverImpl<bool, ContextMenuParam> ContextMenuReceiver;
 /////////////////////////////////////////////////////////////////////////////////////
 //
 
+
+/** 选择菜单项的回调函数原型: 在菜单消失后，用于获取用户点击了哪个菜单项(鼠标点击或者键盘回车激活)
+* @param [in] menuName 菜单名称(即XML里面的的name属性，这代表菜单项的ID)
+* @param [in] nMenuLevel 菜单层级（0表示一级菜单，1表示二级菜单，...）
+* @param [in] itemName 菜单项的名称(即XML里面的的name属性，这代表菜单项的ID)
+* @param [in] nItemIndex 菜单项的索引序号（从0开始的序号）
+*/
+typedef std::function<void (const DString& menuName, int32_t nMenuLevel,
+                            const DString& itemName, size_t nItemIndex)> MenuItemActivatedEvent;
+
 /** 菜单类
 */
 class MenuItem;
@@ -95,6 +105,11 @@ public:
     */
     void CloseMenu();
 
+    /** 注册菜单项激活的回调函数, 在菜单消失后，用于获取用户点击了哪个菜单项(鼠标点击或者键盘回车激活)
+    * @param [in] callback 回调函数
+    */
+    void AttachMenuItemActivated(MenuItemActivatedEvent callback);
+
 public:
     //添加子菜单项
     bool AddMenuItem(MenuItem* pMenuItem);
@@ -131,6 +146,15 @@ private:
     */
     ListBox* GetLayoutListBox() const;
 
+    /** 菜单项激活(鼠标点击或者键盘回车激活)
+    * @param [in] menuName 菜单名称(即XML里面的的name属性，这代表菜单项的ID)
+    * @param [in] nMenuLevel 菜单层级（0表示一级菜单，1表示二级菜单，...）
+    * @param [in] itemName 菜单项的名称(即XML里面的的name属性，这代表菜单项的ID)
+    * @param [in] nItemIndex 菜单项的索引序号（从0开始的序号）
+    */
+    void OnMenuItemActivated(const DString& menuName, int32_t nMenuLevel,
+                             const DString& itemName, size_t nItemIndex);
+
 private:
 
     virtual bool Receive(ContextMenuParam param) override;
@@ -140,6 +164,10 @@ private:
     virtual DString GetSkinFile() override;
     virtual void PostInitWindow() override;
     virtual void OnCloseWindow() override;
+
+    /** 在窗口销毁时会被调用，这是该窗口的最后一个消息（该类默认实现是清理资源，并销毁该窗口对象）
+    */
+    virtual void OnFinalMessage() override;
 
     /** 窗口失去焦点(WM_KILLFOCUS)
     * @param [in] pSetFocusWindow 接收键盘焦点的窗口（可以为nullptr）
@@ -197,6 +225,20 @@ private:
 
     //关联的控件
     ControlPtr<Control> m_pRelatedControl;
+
+private:
+    //菜单项激活回调函数
+    std::vector<MenuItemActivatedEvent> m_callbackList;
+
+    //激活的菜单项信息
+    struct ActiveMenuItem
+    {
+        DString m_menuName;
+        int32_t m_menuLevel = 0;
+        DString m_itemName;
+        size_t m_itemIndex = Box::InvalidIndex;
+    };
+    std::unique_ptr<ActiveMenuItem> m_pActiveMenuItem;
 };
 
 /** 菜单项
@@ -223,6 +265,8 @@ public:
     MenuItem* GetSubMenuItemAt(size_t iIndex) const;
     MenuItem* GetSubMenuItemByName(const DString& name) const;
 
+    //菜单项激活（被点击获取通过回车激活）
+    virtual void Activate(const EventArgs* pMsg) override;
 
 private:
     //获取一个菜单项下所有子菜单项的接口(仅包含菜单子项元素)

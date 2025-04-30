@@ -1400,6 +1400,9 @@
     <ClInclude Include="Utils\FileTime.h">
       <Filter>Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Control\MenuListBox.h">
+      <Filter>Control</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />

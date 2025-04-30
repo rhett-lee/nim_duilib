@@ -12,7 +12,9 @@ MainForm::MainForm():
     m_pBtnBack(nullptr),
     m_bCanAddBackForward(true),
     m_pTreeNode(nullptr),
-    m_pTabBox(nullptr)
+    m_pTabBox(nullptr),
+    m_pBtnViewListType(nullptr),
+    m_pBtnViewSort(nullptr)
 {
 }
 
@@ -84,6 +86,37 @@ void MainForm::OnInitWindow()
             return true;
             });
     }
+
+    //切换视图模式
+    m_pBtnViewListType = dynamic_cast<ui::ButtonHBox*>(FindControl(_T("btn_view_list_type")));
+    if (m_pBtnViewListType != nullptr) {
+        m_pBtnViewListType->AttachClick([this](const ui::EventArgs& args) {
+            ui::UiRect rect = args.GetSender()->GetPos();
+            ui::UiPoint point;
+            point.x = rect.left;
+            point.y = rect.bottom;
+            ClientToScreen(point);
+            point.y += Dpi().GetScaleInt(4);
+            SwithListType(point, m_pBtnViewListType);
+            return true;
+            });
+    }
+
+    //切换排序模式
+    m_pBtnViewSort = dynamic_cast<ui::ButtonHBox*>(FindControl(_T("btn_view_sort")));
+    if (m_pBtnViewSort != nullptr) {
+        m_pBtnViewSort->AttachClick([this](const ui::EventArgs& args) {
+            ui::UiRect rect = args.GetSender()->GetPos();
+            ui::UiPoint point;
+            point.x = rect.left;
+            point.y = rect.bottom;
+            ClientToScreen(point);
+            point.y += Dpi().GetScaleInt(4);
+            SwithSortMode(point, m_pBtnViewSort);
+            return true;
+            });
+    }
+
     UpdateCommandUI();
 
     //挂载事件
@@ -391,6 +424,111 @@ void MainForm::ShowForward()
     }
 }
 
+void MainForm::SwithListType(const ui::UiPoint& point, ui::Control* pRelatedControl)
+{
+    ui::Menu* menu = new ui::Menu(this, pRelatedControl);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+    menu->SetSkinFolder(GetResourcePath().ToString());
+    DString xml(_T("menu/sort_mode_menu.xml"));
+    menu->ShowMenu(xml, point);
+}
+
+void MainForm::SwithSortMode(const ui::UiPoint& point, ui::Control* pRelatedControl)
+{
+    if (m_pExplorerView == nullptr) {
+        return;
+    }
+    ui::Menu* menu = new ui::Menu(this, pRelatedControl);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
+    menu->SetSkinFolder(GetResourcePath().ToString());
+    DString xml(_T("menu/sort_mode_menu.xml"));
+    menu->ShowMenu(xml, point);
+
+    //获取排序方式
+    ExplorerView::ExplorerViewColumn sortColumn;
+    bool bSortUp = false;
+    bool bSorted = m_pExplorerView->GetSortColumnInfo(sortColumn, bSortUp);
+    if (bSorted) {
+        ui::Button* pSortColumnBtn = nullptr;
+        if (sortColumn == ExplorerView::ExplorerViewColumn::kName) {
+            pSortColumnBtn = dynamic_cast<ui::Button*>(menu->FindControl(_T("btn_file_name")));
+        }
+        else if (sortColumn == ExplorerView::ExplorerViewColumn::kModifyDateTime) {
+            pSortColumnBtn = dynamic_cast<ui::Button*>(menu->FindControl(_T("btn_file_modify_time")));
+        }
+        else if (sortColumn == ExplorerView::ExplorerViewColumn::kType) {
+            pSortColumnBtn = dynamic_cast<ui::Button*>(menu->FindControl(_T("btn_file_type")));
+        }
+        else if (sortColumn == ExplorerView::ExplorerViewColumn::kSize) {
+            pSortColumnBtn = dynamic_cast<ui::Button*>(menu->FindControl(_T("btn_file_size")));
+        }
+
+        ui::Button* pSortBtn = nullptr;
+        if (bSortUp) {
+            //升序
+            pSortBtn = dynamic_cast<ui::Button*>(menu->FindControl(_T("btn_sort_ascending")));
+        }
+        else {
+            //降序
+            pSortBtn = dynamic_cast<ui::Button*>(menu->FindControl(_T("btn_sort_descending")));
+        }
+        if (pSortBtn != nullptr) {
+            pSortBtn->SetBkImage(_T("ui-item-symbolic.svg"));
+        }
+        if (pSortColumnBtn != nullptr) {
+            pSortColumnBtn->SetBkImage(_T("ui-item-symbolic.svg"));
+        }
+    }
+    else {
+        sortColumn = ExplorerView::ExplorerViewColumn::kName;
+        bSortUp = false;
+    }
+
+    //挂载选择菜单项事件
+    menu->AttachMenuItemActivated([this, bSorted, bSortUp, sortColumn](const DString& menuName, int32_t nMenuLevel,
+                                                                       const DString& itemName, size_t nItemIndex) {
+            //与XML中的菜单项名字匹配
+            if (itemName == _T("menu_item_file_name")) {
+                //文件名称
+                if (m_pExplorerView != nullptr) {
+                    m_pExplorerView->SortByColumn(ExplorerView::ExplorerViewColumn::kName, bSortUp);
+                }
+            }
+            else if (itemName == _T("menu_item_file_modify_time")) {
+                //修改日期
+                if (m_pExplorerView != nullptr) {
+                    m_pExplorerView->SortByColumn(ExplorerView::ExplorerViewColumn::kModifyDateTime, bSortUp);
+                }
+            }
+            else if (itemName == _T("menu_item_file_type")) {
+                //文件类型
+                if (m_pExplorerView != nullptr) {
+                    m_pExplorerView->SortByColumn(ExplorerView::ExplorerViewColumn::kType, bSortUp);
+                }
+            }
+            else if (itemName == _T("menu_item_file_size")) {
+                //文件大小
+                if (m_pExplorerView != nullptr) {
+                    m_pExplorerView->SortByColumn(ExplorerView::ExplorerViewColumn::kSize, bSortUp);
+                }
+            }
+            else if (itemName == _T("menu_item_sort_ascending")) {
+                //递增排序
+                if (!bSorted || !bSortUp) {
+                    if (m_pExplorerView != nullptr) {
+                        m_pExplorerView->SortByColumn(sortColumn, true);
+                    }
+                }
+            }
+            else if (itemName == _T("menu_item_sort_descending")) {
+                //递减排序
+                if (!bSorted || bSortUp) {
+                    if (m_pExplorerView != nullptr) {
+                        m_pExplorerView->SortByColumn(sortColumn, false);
+                    }
+                }
+            }
+        });
+}
+
 void MainForm::UpdateCommandUI()
 {
     bool bEnableUp = false;
@@ -410,5 +548,19 @@ void MainForm::UpdateCommandUI()
     }
     if (m_pBtnForward != nullptr) {
         m_pBtnForward->SetEnabled(bEnableForward);
+    }
+
+    bool bIsComputerView = false;
+    if (m_pTree != nullptr) {
+        bIsComputerView = m_pTree->IsMyComputerNode(m_pTreeNode);
+    }
+    //切换列表类型
+    if (m_pBtnViewListType != nullptr) {
+        m_pBtnViewListType->SetEnabled(!bIsComputerView);
+    }
+
+    //切换排序模式
+    if (m_pBtnViewSort != nullptr) {
+        m_pBtnViewSort->SetEnabled(!bIsComputerView);
     }
 }

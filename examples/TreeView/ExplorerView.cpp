@@ -16,6 +16,49 @@ ExplorerView::~ExplorerView()
     m_pathInfoList.clear();
 }
 
+ui::ListCtrl* ExplorerView::GetListCtrl() const
+{
+    return m_pListCtrl.get();
+}
+
+bool ExplorerView::GetSortColumnInfo(ExplorerViewColumn& viewColumn, bool& bSortUp) const
+{
+    if (m_pListCtrl == nullptr) {
+        return false;
+    }
+    bool bRet = false;
+    size_t nSortColumnId = ui::Box::InvalidIndex;
+    if (m_pListCtrl->GetSortColumn(nSortColumnId, bSortUp)) {
+        bRet = true;
+        size_t nColumnIndex = m_pListCtrl->GetColumnIndex(nSortColumnId);
+        if (nColumnIndex == (size_t)ExplorerViewColumn::kName) {
+            viewColumn = ExplorerViewColumn::kName;
+        }
+        else if (nColumnIndex == (size_t)ExplorerViewColumn::kModifyDateTime) {
+            viewColumn = ExplorerViewColumn::kModifyDateTime;
+        }
+        else if (nColumnIndex == (size_t)ExplorerViewColumn::kType) {
+            viewColumn = ExplorerViewColumn::kType;
+        }
+        else if (nColumnIndex == (size_t)ExplorerViewColumn::kSize) {
+            viewColumn = ExplorerViewColumn::kSize;
+        }
+        else {
+            bRet = false;
+        }
+    }
+    return bRet;
+}
+
+void ExplorerView::SortByColumn(ExplorerViewColumn viewColumn, bool bSortUp)
+{
+    if (m_pListCtrl != nullptr) {
+        size_t nColumnId = GetColumnId(viewColumn);
+        uint8_t nSortFlag = m_pListCtrl->GetColumnSortFlagById(nColumnId);
+        m_pListCtrl->SortDataItemsById(nColumnId, bSortUp, nSortFlag);
+    }
+}
+
 void ExplorerView::Initialize()
 {
     ASSERT(m_pMainForm != nullptr);
@@ -242,4 +285,3 @@ DString ExplorerView::FormatFileTime(const ui::FileTime& fileTime) const
 {
     return fileTime.ToString();
 }
-
