@@ -92,15 +92,40 @@ private:
     void SetShowTreeNode(ui::TreeNode* pTreeNode);
 
 private:
-    /** 视图类型(枚举值与XML中定义的顺序相同)
+    /** TabBox的视图类型(枚举值与XML中定义的顺序相同)
     */
-    enum FormViewType
+    enum TabBoxViewType
     {
         kFileView       = 0,    //文件列表视图
         kExplorerView   = 1,    //文件浏览器视图
         kComputerView   = 2,    //计算机视图
         kErrorView      = 3     //出错视图
     };
+
+    //数据视图类型
+    enum DataViewType
+    {
+        kIconViewBig    = 0,    //图标视图(大图标)
+        kIconViewMedium = 1,    //图标视图(中图标)
+        kIconViewSmall  = 2,    //图标视图(小图标)
+        kListViewBig    = 3,    //列表视图(大图标)
+        kListViewMedium = 4,    //列表视图(中图标)
+        kListViewSmall  = 5,    //列表视图(小图标)
+        kReprortView    = 6,    //详细信息视图
+        kPictureView    = 7     //图片列表视图
+    };
+
+    /** 切换TabBox的视图
+    */
+    void SwitchToTabBoxViewType(TabBoxViewType tabBoxViewType);
+
+    /** 切换
+    */
+    void SwitchToDataViewType(DataViewType dataViewType);
+
+    /** 获取当前的数据视图类型
+    */
+    DataViewType GetDataViewType() const;
 
 private:
     /** 左侧树节点的接口
@@ -127,6 +152,14 @@ private:
     /** 右侧文件列表视图：文件浏览器视图
     */
     std::unique_ptr<ExplorerView> m_pExplorerView;
+
+    /** TabBox的视图类型(枚举值与XML中定义的顺序相同)
+    */
+    TabBoxViewType m_tabBoxViewType;
+
+    /** 当前的数据视图类型
+    */
+    DataViewType m_dataViewType;
 
 private:
     /** 当前显示的树节点

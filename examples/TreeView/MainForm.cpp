@@ -14,7 +14,9 @@ MainForm::MainForm():
     m_pTreeNode(nullptr),
     m_pTabBox(nullptr),
     m_pBtnViewListType(nullptr),
-    m_pBtnViewSort(nullptr)
+    m_pBtnViewSort(nullptr),
+    m_dataViewType(DataViewType::kReprortView),
+    m_tabBoxViewType(TabBoxViewType::kComputerView)
 {
 }
 
@@ -222,24 +224,18 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
         SetShowTreeNode(pTreeNode);
     }
 
-#if 0
-    //简单的文件视图：显示文件夹和文件列表
-    if (m_pTabBox != nullptr) {
-        m_pTabBox->SelectItem((size_t)FormViewType::kFileView);
+    if (m_dataViewType == kPictureView) {
+        SwitchToTabBoxViewType(TabBoxViewType::kFileView);
+        if (m_pSimpleFileView != nullptr) {
+            m_pSimpleFileView->SetFileList(pathList);
+        }
     }
-    if (m_pSimpleFileView != nullptr) {
-        m_pSimpleFileView->SetFileList(pathList);
+    else {
+        SwitchToTabBoxViewType(TabBoxViewType::kExplorerView);
+        if (m_pExplorerView != nullptr) {
+            m_pExplorerView->SetFileList(pathList);
+        }
     }
-#else
-    //文件浏览器视图：显示文件夹和文件列表
-    if (m_pTabBox != nullptr) {
-        m_pTabBox->SelectItem((size_t)FormViewType::kExplorerView);
-    }
-    if (m_pExplorerView != nullptr) {
-        m_pExplorerView->SetFileList(pathList);
-    }
-#endif
-
     //更新界面状态
     UpdateCommandUI();
 }
@@ -253,9 +249,7 @@ void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
         ui::DirectoryTree::ClearDiskInfoList(tempDiskInfoList);
         return;
     }
-    if (m_pTabBox != nullptr) {
-        m_pTabBox->SelectItem((size_t)FormViewType::kComputerView);
-    }
+    SwitchToTabBoxViewType(TabBoxViewType::kComputerView);
     if (m_pAddressBar != nullptr) {
         m_pAddressBar->SetText(_T(""));
     }
@@ -428,8 +422,46 @@ void MainForm::SwithListType(const ui::UiPoint& point, ui::Control* pRelatedCont
 {
     ui::Menu* menu = new ui::Menu(this, pRelatedControl);//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
     menu->SetSkinFolder(GetResourcePath().ToString());
-    DString xml(_T("menu/sort_mode_menu.xml"));
+    DString xml(_T("menu/list_type_menu.xml"));
     menu->ShowMenu(xml, point);
+
+    std::map<DataViewType, DString> btnNameMap;
+    btnNameMap[DataViewType::kIconViewBig] = _T("btn_menu_item_icon_big");
+    btnNameMap[DataViewType::kIconViewMedium] = _T("btn_menu_item_icon_medium");
+    btnNameMap[DataViewType::kIconViewSmall] = _T("btn_menu_item_icon_small");
+    btnNameMap[DataViewType::kListViewBig] = _T("btn_menu_item_list_big");
+    btnNameMap[DataViewType::kListViewMedium] = _T("btn_menu_item_list_medium");
+    btnNameMap[DataViewType::kListViewSmall] = _T("btn_menu_item_list_small");
+    btnNameMap[DataViewType::kReprortView] = _T("btn_menu_item_report");
+    btnNameMap[DataViewType::kPictureView] = _T("btn_menu_item_picture");
+
+    DString selectBtnName = btnNameMap[GetDataViewType()];
+    ui::Button* pSelectBtn = dynamic_cast<ui::Button*>(menu->FindControl(selectBtnName));
+    if (pSelectBtn != nullptr) {
+        pSelectBtn->SetBkImage(_T("ui-item-symbolic.svg"));
+    }
+
+    //挂载选择菜单项事件
+    menu->AttachMenuItemActivated([this](const DString& /*menuName*/, int32_t /*nMenuLevel*/,
+                                         const DString& itemName, size_t /*nItemIndex*/) {
+            //与XML中的菜单项名字匹配
+            std::map<DataViewType, DString> itemNameMap;
+            itemNameMap[DataViewType::kIconViewBig] = _T("menu_item_icon_big");
+            itemNameMap[DataViewType::kIconViewMedium] = _T("menu_item_icon_medium");
+            itemNameMap[DataViewType::kIconViewSmall] = _T("menu_item_icon_small");
+            itemNameMap[DataViewType::kListViewBig] = _T("menu_item_list_big");
+            itemNameMap[DataViewType::kListViewMedium] = _T("menu_item_list_medium");
+            itemNameMap[DataViewType::kListViewSmall] = _T("menu_item_list_small");
+            itemNameMap[DataViewType::kReprortView] = _T("menu_item_report");
+            itemNameMap[DataViewType::kPictureView] = _T("menu_item_picture");
+            for (auto iter : itemNameMap) {
+                if (iter.second == itemName) {
+                    DataViewType dataViewType = iter.first;
+                    SwitchToDataViewType(dataViewType);
+                    break;
+                }
+            }
+        });
 }
 
 void MainForm::SwithSortMode(const ui::UiPoint& point, ui::Control* pRelatedControl)
@@ -563,4 +595,88 @@ void MainForm::UpdateCommandUI()
     if (m_pBtnViewSort != nullptr) {
         m_pBtnViewSort->SetEnabled(!bIsComputerView);
     }
+}
+
+void MainForm::SwitchToTabBoxViewType(TabBoxViewType tabBoxViewType)
+{
+    m_tabBoxViewType = tabBoxViewType;
+    if (m_pTabBox != nullptr) {
+        m_pTabBox->SelectItem((size_t)tabBoxViewType);
+    }
+}
+
+void MainForm::SwitchToDataViewType(DataViewType dataViewType)
+{
+    if (m_dataViewType != dataViewType) {
+        m_dataViewType = dataViewType;
+        //更新图片列表和视图样式
+        ui::ImageListPtr spImageList;
+        ui::ListCtrl* pListCtrl = nullptr;
+        if (m_pExplorerView != nullptr) {
+            pListCtrl = m_pExplorerView->GetListCtrl();
+        }
+        if (pListCtrl != nullptr) {
+            switch (m_dataViewType) {
+            case DataViewType::kIconViewBig:
+                pListCtrl->SetListCtrlType(ui::ListCtrlType::Icon);
+                spImageList = pListCtrl->GetImageList(ui::ListCtrlType::Icon);
+                if (spImageList != nullptr) {
+                    spImageList->SetImageSize(ui::UiSize(64, 64), Dpi(), true);
+                }
+                break;
+            case DataViewType::kIconViewMedium:
+                pListCtrl->SetListCtrlType(ui::ListCtrlType::Icon);
+                spImageList = pListCtrl->GetImageList(ui::ListCtrlType::Icon);
+                if (spImageList != nullptr) {
+                    spImageList->SetImageSize(ui::UiSize(32, 32), Dpi(), true);
+                }
+                break;
+            case DataViewType::kIconViewSmall:
+                pListCtrl->SetListCtrlType(ui::ListCtrlType::Icon);
+                spImageList = pListCtrl->GetImageList(ui::ListCtrlType::Icon);
+                if (spImageList != nullptr) {
+                    spImageList->SetImageSize(ui::UiSize(20, 20), Dpi(), true);
+                }
+                break;
+            case DataViewType::kListViewBig:
+                pListCtrl->SetListCtrlType(ui::ListCtrlType::List);
+                spImageList = pListCtrl->GetImageList(ui::ListCtrlType::List);
+                if (spImageList != nullptr) {
+                    spImageList->SetImageSize(ui::UiSize(64, 64), Dpi(), true);
+                }
+                break;
+            case DataViewType::kListViewMedium:
+                pListCtrl->SetListCtrlType(ui::ListCtrlType::List);
+                spImageList = pListCtrl->GetImageList(ui::ListCtrlType::List);
+                if (spImageList != nullptr) {
+                    spImageList->SetImageSize(ui::UiSize(32, 32), Dpi(), true);
+                }
+                break;
+            case DataViewType::kListViewSmall:
+                pListCtrl->SetListCtrlType(ui::ListCtrlType::List);
+                spImageList = pListCtrl->GetImageList(ui::ListCtrlType::List);
+                if (spImageList != nullptr) {
+                    spImageList->SetImageSize(ui::UiSize(20, 20), Dpi(), true);
+                }
+                break;
+            case DataViewType::kReprortView:
+                pListCtrl->SetListCtrlType(ui::ListCtrlType::Report);
+                break;
+            case DataViewType::kPictureView:
+                break;
+            default:
+                break;
+            }
+        }
+
+        //刷新当前显示内容
+        if ((m_pTree != nullptr) && (m_pTreeNode != nullptr)) {
+            m_pTree->RefreshFolderContents(m_pTreeNode, nullptr);
+        }
+    }
+}
+
+MainForm::DataViewType MainForm::GetDataViewType() const
+{
+    return m_dataViewType;
 }

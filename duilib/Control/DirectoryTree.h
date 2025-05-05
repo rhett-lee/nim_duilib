@@ -236,6 +236,12 @@ public:
     */
     bool RefreshTreeNodes(const std::vector<TreeNode*>& treeNodes, StdClosure finishCallback);
 
+    /** 刷新指定节点对应目录的内容(异步完成)
+    * @param [in] pTreeNode 树的节点
+    * @param [in] finishCallback 刷新完成后的回调函数
+    */
+    bool RefreshFolderContents(TreeNode* pTreeNode, StdClosure finishCallback);
+
     /** 设置默认的刷新完成事件回调函数
     * @param [in] finishCallback 刷新完成后的回调函数
     */

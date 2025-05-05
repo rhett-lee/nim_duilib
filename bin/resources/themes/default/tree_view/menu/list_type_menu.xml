@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window>
+    <MenuListBox class="menu" name="main_menu">
+        <!-- 一级菜单 -->
+        <MenuItem class="menu_element" name="menu_item_icon_big" width="220">
+            <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
+                <Button name="btn_menu_item_icon_big" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="data_icons_display-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+            </HBox>
+            <Label class="menu_text" text="图标视图(大图标)" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        <MenuItem class="menu_element" name="menu_item_icon_medium" width="220">
+            <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
+                <Button name="btn_menu_item_icon_medium" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="data_icons_display-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+            </HBox>
+            <Label class="menu_text" text="图标视图(中图标)" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        <MenuItem class="menu_element" name="menu_item_icon_small" width="220">
+            <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
+                <Button name="btn_menu_item_icon_small" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="data_icons_display-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+            </HBox>
+            <Label class="menu_text" text="图标视图(小图标)" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        <!-- 菜单项之间的分割线 -->
+        <Box class="menu_split_box" margin="0,4,0,4">
+            <Control class="menu_split_line" mouse_enabled="false" keyboard_enabled="false"/>
+        </Box>
+        
+        <MenuItem class="menu_element" name="menu_item_list_big" width="220">
+            <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
+                <Button name="btn_menu_item_list_big" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="view-list-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+            </HBox>
+            <Label class="menu_text" text="列表视图(大图标)" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        <MenuItem class="menu_element" name="menu_item_list_medium" width="220">
+            <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
+                <Button name="btn_menu_item_list_medium" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="view-list-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+            </HBox>
+            <Label class="menu_text" text="列表视图(中图标)" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        <MenuItem class="menu_element" name="menu_item_list_small" width="220">
+            <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
+                <Button name="btn_menu_item_list_small" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="view-list-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+            </HBox>
+            <Label class="menu_text" text="列表视图(小图标)" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        
+        <!-- 菜单项之间的分割线 -->
+        <Box class="menu_split_box" margin="0,4,0,4">
+            <Control class="menu_split_line" mouse_enabled="false" keyboard_enabled="false"/>
+        </Box>
+
+        <MenuItem class="menu_element" name="menu_item_report" width="220">
+            <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
+                <Button name="btn_menu_item_report" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="view-list-compact-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+            </HBox>
+            <Label class="menu_text" text="详细信息视图" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+        <MenuItem class="menu_element" name="menu_item_picture" width="220">
+            <HBox width="44" mouse_enabled="false" keyboard_enabled="false">
+                <Button name="btn_menu_item_picture" width="16" height="16" valign="center" margin="0,0,8,0" mouse_enabled="false" keyboard_enabled="false"/>
+                <Button bkimage="view-list-images-symbolic.svg" width="16" height="16" valign="center" mouse_enabled="false" keyboard_enabled="false"/>
+            </HBox>
+            <Label class="menu_text" text="图片列表视图" margin="50,0,0,0"  mouse_enabled="false" keyboard_enabled="false"/>
+        </MenuItem>
+    </MenuListBox>
+</Window>

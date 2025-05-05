@@ -73,10 +73,12 @@ void ExplorerView::Initialize()
     InitViewHeader();
 
     if (m_pListCtrl != nullptr) {
-        //关联图片列表
+        //关联图片列表: 三个视图共享一个图片列表
         ui::ImageListPtr pImageList = std::make_shared<ui::ImageList>();
         pImageList->SetImageSize(ui::UiSize(20, 20), m_pMainForm->Dpi(), true);
-        m_pListCtrl->SetImageList(ui::ListCtrlType::Report, pImageList);//该指针的资源生命周期由ListCtrl内部管理
+        m_pListCtrl->SetImageList(ui::ListCtrlType::Report, pImageList);
+        m_pListCtrl->SetImageList(ui::ListCtrlType::Icon, pImageList);
+        m_pListCtrl->SetImageList(ui::ListCtrlType::List, pImageList);
 
         //挂载列表项鼠标双击事件
         m_pListCtrl->AttachDoubleClick(UiBind(&ExplorerView::OnExplorerViewDoubleClick, this, std::placeholders::_1));

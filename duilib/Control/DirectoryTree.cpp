@@ -363,6 +363,29 @@ bool DirectoryTree::OnTreeNodeClick(const EventArgs& args)
     return true;
 }
 
+bool DirectoryTree::RefreshFolderContents(TreeNode* pTreeNode, StdClosure finishCallback)
+{
+    if (!IsValidTreeNode(pTreeNode)) {
+        return false;
+    }
+    bool bRet = false;
+    if (IsMyComputerNode(pTreeNode)) {
+        //"计算机" 节点
+        ShowMyComputerContents(pTreeNode, finishCallback);
+        bRet = true;
+    }
+    else {
+        //普通的文件夹节点
+        FolderStatus* pFolder = GetFolderData(pTreeNode);
+        if (pFolder != nullptr) {
+            //加载子目录列表到右侧区域
+            ShowFolderContents(pTreeNode, FilePath(pFolder->m_filePath.c_str()), finishCallback);
+            bRet = true;
+        }
+    }
+    return bRet;
+}
+
 bool DirectoryTree::OnTreeNodeDestroy(const EventArgs& args)
 {
     if (m_folderMap.empty()) {
