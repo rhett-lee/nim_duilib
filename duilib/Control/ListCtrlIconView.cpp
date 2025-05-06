@@ -7,7 +7,9 @@ namespace ui
 ListCtrlIconView::ListCtrlIconView(Window* pWindow):
     ListCtrlView(pWindow, new VirtualVTileLayout),
     m_pListCtrl(nullptr),
-    m_pData(nullptr)
+    m_pData(nullptr),
+    m_bSingleLine(false),
+    m_bSingleLineFlag(false)
 {
     VirtualVTileLayout* pDataLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
     ASSERT(pDataLayout != nullptr);
@@ -137,6 +139,20 @@ void ListCtrlIconView::SetItemSize(const UiSize& szItem)
     }
 }
 
+void ListCtrlIconView::SetTextSingleLine(bool bSingleLine)
+{
+    m_bSingleLine = bSingleLine;
+    m_bSingleLineFlag = true;
+}
+
+bool ListCtrlIconView::IsTextSingleLine(bool& bSingleLine) const
+{
+    if (m_bSingleLineFlag) {
+        bSingleLine = m_bSingleLine;
+    }
+    return m_bSingleLineFlag;
+}
+
 void ListCtrlIconView::SetListCtrl(ListCtrl* pListCtrl)
 {
     m_pListCtrl = pListCtrl;
@@ -228,6 +244,9 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
     }
     if (imageSize.cy > 0) {
         pItemImage->SetFixedHeight(UiFixedInt(imageSize.cy), false, false);
+    }
+    if (m_bSingleLineFlag) {
+        pItemLabel->SetSingleLine(m_bSingleLine);
     }
     if (pSubItemData != nullptr) {
         pItemLabel->SetText(pSubItemData->text.c_str());

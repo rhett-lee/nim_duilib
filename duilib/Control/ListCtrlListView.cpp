@@ -4,10 +4,12 @@
 
 namespace ui
 {
-    ListCtrlListView::ListCtrlListView(Window* pWindow):
+ListCtrlListView::ListCtrlListView(Window* pWindow):
     ListCtrlView(pWindow, new VirtualVTileLayout),
     m_pListCtrl(nullptr),
-    m_pData(nullptr)
+    m_pData(nullptr),
+    m_bSingleLine(false),
+    m_bSingleLineFlag(false)
 {
     VirtualVTileLayout* pDataLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
     ASSERT(pDataLayout != nullptr);
@@ -15,7 +17,7 @@ namespace ui
     SetVirtualLayout(pVirtualLayout);
 }
 
-    ListCtrlListView::~ListCtrlListView()
+ListCtrlListView::~ListCtrlListView()
 {
 }
 
@@ -137,6 +139,20 @@ void ListCtrlListView::SetItemSize(const UiSize& szItem)
     }
 }
 
+void ListCtrlListView::SetTextSingleLine(bool bSingleLine)
+{
+    m_bSingleLine = bSingleLine;
+    m_bSingleLineFlag = true;
+}
+
+bool ListCtrlListView::IsTextSingleLine(bool& bSingleLine) const
+{
+    if (m_bSingleLineFlag) {
+        bSingleLine = m_bSingleLine;
+    }
+    return m_bSingleLineFlag;
+}
+
 void ListCtrlListView::SetListCtrl(ListCtrl* pListCtrl)
 {
     m_pListCtrl = pListCtrl;
@@ -227,6 +243,9 @@ bool ListCtrlListView::FillDataItem(Control* pControl,
     }
     if (imageSize.cy > 0) {
         pItemImage->SetFixedHeight(UiFixedInt(imageSize.cy), false, false);
+    }
+    if (m_bSingleLineFlag) {
+        pItemLabel->SetSingleLine(m_bSingleLine);
     }
     if (pSubItemData != nullptr) {
         pItemLabel->SetText(pSubItemData->text.c_str());

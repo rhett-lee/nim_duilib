@@ -49,6 +49,14 @@ public:
      */
     void SetItemSize(const UiSize& szItem);
 
+    /** 设置是否使用单行文本
+    */
+    void SetTextSingleLine(bool bSingleLine);
+
+    /** 获取是否使用单行文本
+    */
+    bool IsTextSingleLine(bool& bSingleLine) const;
+
 protected:
     /** 创建一个数据项
     * @return 返回创建后的数据项指针
@@ -81,6 +89,11 @@ private:
     /** 数据接口
     */
     ListCtrlData* m_pData;
+
+    /** 是否使用单行文本
+    */
+    bool m_bSingleLine;
+    bool m_bSingleLineFlag;
 };
 
 }//namespace ui
