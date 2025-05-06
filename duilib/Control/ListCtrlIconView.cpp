@@ -10,18 +10,10 @@ ListCtrlIconView::ListCtrlIconView(Window* pWindow, bool bListMode):
     m_pData(nullptr),
     m_bListMode(bListMode)
 {
-    if (bListMode) {
-        VirtualHTileLayout* pNewLayout = new VirtualHTileLayout;
-        Layout* pLayout = ResetLayout(pNewLayout);
-        SetVirtualLayout(pNewLayout);
-        FreeLayout(pLayout);
-    }
-    else {
-        VirtualVTileLayout* pDataLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
-        ASSERT(pDataLayout != nullptr);
-        VirtualLayout* pVirtualLayout = pDataLayout;
-        SetVirtualLayout(pVirtualLayout);
-    }    
+    VirtualVTileLayout* pDataLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
+    ASSERT(pDataLayout != nullptr);
+    VirtualLayout* pVirtualLayout = pDataLayout;
+    SetVirtualLayout(pVirtualLayout);
 }
 
 ListCtrlIconView::~ListCtrlIconView()
