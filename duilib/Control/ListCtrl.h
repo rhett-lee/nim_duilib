@@ -16,6 +16,7 @@ class RichEdit;
 class ListCtrlData;
 class ListCtrlReportView;
 class ListCtrlIconView;
+class ListCtrlListView;
 class ListCtrlHeader;
 class ListCtrlHeaderItem;
 class ListCtrlItem;
@@ -31,6 +32,7 @@ class ListCtrl: public VBox
     friend class ListCtrlData;          //列表数据管理容器
     friend class ListCtrlReportView;    //列表数据显示UI控件
     friend class ListCtrlIconView;      //列表数据显示UI控件
+    friend class ListCtrlListView;      //列表数据显示UI控件
     friend class ListCtrlHeader;
     friend class ListCtrlHeaderItem;
     friend class ListCtrlItem;
@@ -614,6 +616,19 @@ public:
     bool IsEnableRefresh() const;
 
 public:
+    /** 获取列表数据展示接口(Report视图)
+    */
+    ListCtrlReportView* GetReportView() const;
+
+    /** 获取列表数据展示接口(Icon视图)
+    */
+    ListCtrlIconView* GetIconView() const;
+
+    /** 获取列表数据展示接口(List视图)
+    */
+    ListCtrlListView* GetListView() const;
+
+public:
     /** 获取第一个数据项的界面控件接口（Report视图）
     * @return 返回界面控件接口
               注意事项：界面刷新后，界面控件与数据元素之间的关系会动态变化
@@ -641,6 +656,7 @@ public:
     */
     ListCtrlIconViewItem* GetNextDisplayIconItem(ListCtrlIconViewItem* pItem) const;
 
+public:
     /** 获取第一个数据项的界面控件接口（Icon视图）
     * @return 返回界面控件接口
               注意事项：界面刷新后，界面控件与数据元素之间的关系会动态变化
@@ -654,6 +670,7 @@ public:
     */
     ListCtrlListViewItem* GetNextDisplayListItem(ListCtrlListViewItem* pItem) const;
 
+public:
     /** 设置是否支持子项编辑
     */
     void SetEnableItemEdit(bool bEnableItemEdit);
@@ -1042,7 +1059,7 @@ private:
 
     /** 列表数据展示(List视图)
     */
-    ListCtrlIconView* m_pListView;
+    ListCtrlListView* m_pListView;
 
     /** 列表数据管理
     */

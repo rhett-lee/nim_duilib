@@ -1,10 +1,10 @@
-#include "ListCtrlIconView.h" 
+#include "ListCtrlListView.h" 
 #include "duilib/Control/ListCtrl.h"
 #include "duilib/Control/ListCtrlData.h"
 
 namespace ui
 {
-ListCtrlIconView::ListCtrlIconView(Window* pWindow):
+    ListCtrlListView::ListCtrlListView(Window* pWindow):
     ListCtrlView(pWindow, new VirtualVTileLayout),
     m_pListCtrl(nullptr),
     m_pData(nullptr)
@@ -15,11 +15,11 @@ ListCtrlIconView::ListCtrlIconView(Window* pWindow):
     SetVirtualLayout(pVirtualLayout);
 }
 
-ListCtrlIconView::~ListCtrlIconView()
+    ListCtrlListView::~ListCtrlListView()
 {
 }
 
-void ListCtrlIconView::SetAttribute(const DString& strName, const DString& strValue)
+void ListCtrlListView::SetAttribute(const DString& strName, const DString& strValue)
 {
     if (strName == _T("horizontal_layout")) {
         SetHorizontalLayout(strValue == _T("true"));
@@ -29,7 +29,7 @@ void ListCtrlIconView::SetAttribute(const DString& strName, const DString& strVa
     }
 }
 
-void ListCtrlIconViewItem::HandleEvent(const EventArgs& msg)
+void ListCtrlListViewItem::HandleEvent(const EventArgs& msg)
 {
     BaseClass::HandleEvent(msg);
     if (m_pListCtrl != nullptr) {
@@ -42,7 +42,7 @@ void ListCtrlIconViewItem::HandleEvent(const EventArgs& msg)
     }
 }
 
-void ListCtrlIconView::HandleEvent(const EventArgs& msg)
+void ListCtrlListView::HandleEvent(const EventArgs& msg)
 {
     BaseClass::HandleEvent(msg);
     if (m_pListCtrl != nullptr) {
@@ -55,7 +55,7 @@ void ListCtrlIconView::HandleEvent(const EventArgs& msg)
     }
 }
 
-void ListCtrlIconView::SetHorizontalLayout(bool bHorizontal)
+void ListCtrlListView::SetHorizontalLayout(bool bHorizontal)
 {
     if (bHorizontal) {
         //横向布局        
@@ -99,13 +99,13 @@ void ListCtrlIconView::SetHorizontalLayout(bool bHorizontal)
     }
 }
 
-bool ListCtrlIconView::IsHorizontalLayout() const
+bool ListCtrlListView::IsHorizontalLayout() const
 {
     VirtualHTileLayout* pDataLayout = dynamic_cast<VirtualHTileLayout*>(GetLayout());
     return pDataLayout != nullptr;
 }
 
-UiSize ListCtrlIconView::GetItemSize() const
+UiSize ListCtrlListView::GetItemSize() const
 {
     UiSize szItem;
     Layout* pLayout = GetLayout();
@@ -122,7 +122,7 @@ UiSize ListCtrlIconView::GetItemSize() const
     return szItem;
 }
 
-void ListCtrlIconView::SetItemSize(const UiSize& szItem)
+void ListCtrlListView::SetItemSize(const UiSize& szItem)
 {
     Layout* pLayout = GetLayout();
     VirtualVTileLayout* pVTileLayout = dynamic_cast<VirtualVTileLayout*>(pLayout);
@@ -137,37 +137,36 @@ void ListCtrlIconView::SetItemSize(const UiSize& szItem)
     }
 }
 
-void ListCtrlIconView::SetListCtrl(ListCtrl* pListCtrl)
+void ListCtrlListView::SetListCtrl(ListCtrl* pListCtrl)
 {
     m_pListCtrl = pListCtrl;
 }
 
-void ListCtrlIconView::SetDataProvider(VirtualListBoxElement* pProvider)
+void ListCtrlListView::SetDataProvider(VirtualListBoxElement* pProvider)
 {
     BaseClass::SetDataProvider(pProvider);
     m_pData = dynamic_cast<ListCtrlData*>(GetDataProvider());
 }
 
-Control* ListCtrlIconView::CreateDataItem()
+Control* ListCtrlListView::CreateDataItem()
 {
     ASSERT(m_pListCtrl != nullptr);
     if (m_pListCtrl == nullptr) {
         return nullptr;
     }
-    //图标视图
-    ListCtrlIconViewItem* pItem = new ListCtrlIconViewItem(GetWindow());
+    //列表视图
+    ListCtrlListViewItem* pItem = new ListCtrlListViewItem(GetWindow());
     pItem->SetListCtrl(m_pListCtrl);
-    pItem->SetClass(m_pListCtrl->GetIconViewItemClass());
+    pItem->SetClass(m_pListCtrl->GetListViewItemClass());
     Control* pItemImage = new Control(GetWindow());
     ListCtrlLabel* pItemLabel = new ListCtrlLabel(GetWindow());
     pItem->AddItem(pItemImage);
     pItem->AddItem(pItemLabel);
-
     AttachMouseEvents(pItem);
     return pItem;
 }
 
-bool ListCtrlIconView::FillDataItem(Control* pControl,
+bool ListCtrlListView::FillDataItem(Control* pControl,
                                     size_t nElementIndex,
                                     const ListCtrlItemData& itemData,
                                     const std::vector<ListCtrlSubItemData2Pair>& subItemList)
@@ -206,14 +205,14 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
     }
 
     //图标的属性
-    pItemImage->SetClass(m_pListCtrl->GetIconViewItemImageClass());
+    pItemImage->SetClass(m_pListCtrl->GetListViewItemImageClass());
     //文本的属性
-    pItemLabel->SetClass(m_pListCtrl->GetIconViewItemLabelClass());
+    pItemLabel->SetClass(m_pListCtrl->GetListViewItemLabelClass());
 
     DString imageString;
     UiSize imageSize;
     if (nImageId >= 0) {
-        ImageListPtr pImageList = m_pListCtrl->GetImageList(ListCtrlType::Icon);
+        ImageListPtr pImageList = m_pListCtrl->GetImageList(ListCtrlType::List);
         if (pImageList == nullptr) {
             pImageList = m_pListCtrl->GetImageList(ListCtrlType::Report);
         }
@@ -266,7 +265,7 @@ bool ListCtrlIconView::FillDataItem(Control* pControl,
     return true;
 }
 
-int32_t ListCtrlIconView::GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& /*subItemList*/)
+int32_t ListCtrlListView::GetMaxDataItemWidth(const std::vector<ListCtrlSubItemData2Ptr>& /*subItemList*/)
 {
     //不需要实现
     return -1;

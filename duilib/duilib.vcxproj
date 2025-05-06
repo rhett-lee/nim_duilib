@@ -418,6 +418,7 @@
     <ClCompile Include="Control\ListCtrlHeaderItem.cpp" />
     <ClCompile Include="Control\ListCtrlIconView.cpp" />
     <ClCompile Include="Control\ListCtrlItem.cpp" />
+    <ClCompile Include="Control\ListCtrlListView.cpp" />
     <ClCompile Include="Control\ListCtrlReportView.cpp" />
     <ClCompile Include="Control\ListCtrlSubItem.cpp" />
     <ClCompile Include="Control\ListCtrlView.cpp" />
@@ -660,6 +661,7 @@
     <ClInclude Include="Control\ListCtrlHeaderItem.h" />
     <ClInclude Include="Control\ListCtrlIconView.h" />
     <ClInclude Include="Control\ListCtrlItem.h" />
+    <ClInclude Include="Control\ListCtrlListView.h" />
     <ClInclude Include="Control\ListCtrlReportView.h" />
     <ClInclude Include="Control\ListCtrlSubItem.h" />
     <ClInclude Include="Control\ListCtrlView.h" />

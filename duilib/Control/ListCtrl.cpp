@@ -1,6 +1,7 @@
 #include "ListCtrl.h"
 #include "duilib/Control/ListCtrlReportView.h"
 #include "duilib/Control/ListCtrlIconView.h"
+#include "duilib/Control/ListCtrlListView.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Keyboard.h"
 #include <set>
@@ -526,7 +527,7 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
     else if (m_listCtrlType == ListCtrlType::Icon) {
         //切换为Icon视图
         if (m_pIconView == nullptr) {
-            m_pIconView = new ListCtrlIconView(GetWindow(), false);
+            m_pIconView = new ListCtrlIconView(GetWindow());
             m_pIconView->SetListCtrl(this);
             AddItem(m_pIconView);
             m_pIconView->SetClass(GetIconViewClass());
@@ -550,7 +551,7 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
     else if (m_listCtrlType == ListCtrlType::List) {
         //切换为List视图
         if (m_pListView == nullptr) {
-            m_pListView = new ListCtrlIconView(GetWindow(), true);
+            m_pListView = new ListCtrlListView(GetWindow());
             m_pListView->SetListCtrl(this);
             AddItem(m_pListView);
             m_pListView->SetClass(GetListViewClass());
@@ -576,6 +577,21 @@ void ListCtrl::SetListCtrlType(ListCtrlType type)
 ListCtrlType ListCtrl::GetListCtrlType() const
 {
     return m_listCtrlType;
+}
+
+ListCtrlReportView* ListCtrl::GetReportView() const
+{
+    return m_pReportView;
+}
+
+ListCtrlIconView* ListCtrl::GetIconView() const
+{
+    return m_pIconView;
+}
+
+ListCtrlListView* ListCtrl::GetListView() const
+{
+    return m_pListView;
 }
 
 void ListCtrl::SetHeaderClass(const DString& className)

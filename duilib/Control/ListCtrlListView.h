@@ -1,5 +1,5 @@
-#ifndef UI_CONTROL_LIST_CTRL_ICON_VIEW_H_
-#define UI_CONTROL_LIST_CTRL_ICON_VIEW_H_
+#ifndef UI_CONTROL_LIST_CTRL_LIST_VIEW_H_
+#define UI_CONTROL_LIST_CTRL_LIST_VIEW_H_
 
 #include "duilib/Control/ListCtrlDefs.h"
 
@@ -9,14 +9,14 @@ namespace ui
 */
 class ListCtrl;
 class ListCtrlData;
-class ListCtrlIconView : public ListCtrlView, public IListCtrlView
+class ListCtrlListView : public ListCtrlView, public IListCtrlView
 {
     typedef ListCtrlView BaseClass;
 public:
-    explicit ListCtrlIconView(Window* pWindow);
-    virtual ~ListCtrlIconView() override;
+    explicit ListCtrlListView(Window* pWindow);
+    virtual ~ListCtrlListView() override;
 
-    virtual DString GetType() const override { return _T("ListCtrlIconView"); }
+    virtual DString GetType() const override { return _T("ListCtrlListView"); }
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void HandleEvent(const EventArgs& msg) override;
 
@@ -31,7 +31,7 @@ public:
     virtual void SetDataProvider(VirtualListBoxElement* pProvider) override;
 
 public:
-    /** 设置布局方向（默认情况下，Icon视图是纵向布局）
+    /** 设置布局方向（默认情况下，List视图是纵向布局）
     * @param [in] bHorizontal true表示横向布局，false表示纵向布局
     */
     void SetHorizontalLayout(bool bHorizontal);
@@ -41,7 +41,7 @@ public:
     bool IsHorizontalLayout() const;
 
     /** 获取子项大小，该宽度和高度，是包含了控件的外边距和内边距的
-     */
+    */
     UiSize GetItemSize() const;
 
     /** 设置子项大小
@@ -85,4 +85,4 @@ private:
 
 }//namespace ui
 
-#endif //UI_CONTROL_LIST_CTRL_ICON_VIEW_H_
+#endif //UI_CONTROL_LIST_CTRL_LIST_VIEW_H_

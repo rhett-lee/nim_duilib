@@ -675,6 +675,9 @@
     <ClCompile Include="Utils\FileTime.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Control\ListCtrlListView.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1401,6 +1404,9 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Control\MenuListBox.h">
+      <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\ListCtrlListView.h">
       <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
