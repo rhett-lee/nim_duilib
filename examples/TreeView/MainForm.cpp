@@ -607,94 +607,95 @@ void MainForm::SwitchToTabBoxViewType(TabBoxViewType tabBoxViewType)
 
 void MainForm::SwitchToDataViewType(DataViewType dataViewType)
 {
-    if (m_dataViewType != dataViewType) {
-        m_dataViewType = dataViewType;
-        //更新图片列表和视图样式
-        ui::ImageListPtr spImageList;
-        ui::ListCtrl* pListCtrl = nullptr;
-        if (m_pExplorerView != nullptr) {
-            pListCtrl = m_pExplorerView->GetListCtrl();
-        }
-        ui::UiSize szItemSize;
-        if (pListCtrl != nullptr) {
-            switch (m_dataViewType) {
-            case DataViewType::kIconViewBig:
-                pListCtrl->SetListCtrlType(ui::ListCtrlType::Icon);
-                spImageList = pListCtrl->GetImageList(ui::ListCtrlType::Icon);
-                if (spImageList != nullptr) {
-                    spImageList->SetImageSize(ui::UiSize(64, 64), Dpi(), true);
-                }
-                szItemSize = pListCtrl->GetIconView()->GetItemSize();
-                szItemSize.cy = Dpi().GetScaleInt(40 + 4 + 4 + 64);
-                pListCtrl->GetIconView()->SetItemSize(szItemSize);
-                break;
-            case DataViewType::kIconViewMedium:
-                pListCtrl->SetListCtrlType(ui::ListCtrlType::Icon);
-                spImageList = pListCtrl->GetImageList(ui::ListCtrlType::Icon);
-                if (spImageList != nullptr) {
-                    spImageList->SetImageSize(ui::UiSize(32, 32), Dpi(), true);
-                }
-                szItemSize = pListCtrl->GetIconView()->GetItemSize();
-                szItemSize.cy = Dpi().GetScaleInt(40 + 4 + 4 + 32);
-                pListCtrl->GetIconView()->SetItemSize(szItemSize);
-                break;
-            case DataViewType::kIconViewSmall:
-                pListCtrl->SetListCtrlType(ui::ListCtrlType::Icon);
-                spImageList = pListCtrl->GetImageList(ui::ListCtrlType::Icon);
-                if (spImageList != nullptr) {
-                    spImageList->SetImageSize(ui::UiSize(20, 20), Dpi(), true);
-                }
-                szItemSize = pListCtrl->GetIconView()->GetItemSize();
-                szItemSize.cy = Dpi().GetScaleInt(40 + 4 + 4 + 20);
-                pListCtrl->GetIconView()->SetItemSize(szItemSize);
-                break;
-            case DataViewType::kListViewBig:
-                pListCtrl->SetListCtrlType(ui::ListCtrlType::List);
-                spImageList = pListCtrl->GetImageList(ui::ListCtrlType::List);
-                if (spImageList != nullptr) {
-                    spImageList->SetImageSize(ui::UiSize(64, 64), Dpi(), true);
-                }
-                szItemSize.cx = Dpi().GetScaleInt(300);
-                szItemSize.cy = Dpi().GetScaleInt(8 + 64);
-                pListCtrl->GetListView()->SetItemSize(szItemSize);
-                pListCtrl->GetListView()->SetTextSingleLine(false);
-                break;
-            case DataViewType::kListViewMedium:
-                pListCtrl->SetListCtrlType(ui::ListCtrlType::List);
-                spImageList = pListCtrl->GetImageList(ui::ListCtrlType::List);
-                if (spImageList != nullptr) {
-                    spImageList->SetImageSize(ui::UiSize(32, 32), Dpi(), true);
-                }
-                szItemSize.cx = Dpi().GetScaleInt(280);
-                szItemSize.cy = Dpi().GetScaleInt(8 + 32);
-                pListCtrl->GetListView()->SetItemSize(szItemSize);
-                pListCtrl->GetListView()->SetTextSingleLine(false);
-                break;
-            case DataViewType::kListViewSmall:
-                pListCtrl->SetListCtrlType(ui::ListCtrlType::List);
-                spImageList = pListCtrl->GetImageList(ui::ListCtrlType::List);
-                if (spImageList != nullptr) {
-                    spImageList->SetImageSize(ui::UiSize(20, 20), Dpi(), true);
-                }
-                szItemSize.cx = Dpi().GetScaleInt(260);
-                szItemSize.cy = Dpi().GetScaleInt(36);
-                pListCtrl->GetListView()->SetItemSize(szItemSize);
-                pListCtrl->GetListView()->SetTextSingleLine(true);
-                break;
-            case DataViewType::kReprortView:
-                pListCtrl->SetListCtrlType(ui::ListCtrlType::Report);
-                break;
-            case DataViewType::kPictureView:
-                break;
-            default:
-                break;
+    if (m_dataViewType == dataViewType) {
+        return;
+    }
+    m_dataViewType = dataViewType;
+    //更新图片列表和视图样式
+    ui::ImageListPtr spImageList;
+    ui::ListCtrl* pListCtrl = nullptr;
+    if (m_pExplorerView != nullptr) {
+        pListCtrl = m_pExplorerView->GetListCtrl();
+    }
+    ui::UiSize szItemSize;
+    if (pListCtrl != nullptr) {
+        switch (m_dataViewType) {
+        case DataViewType::kIconViewBig:
+            pListCtrl->SetListCtrlType(ui::ListCtrlType::Icon);
+            spImageList = pListCtrl->GetImageList(ui::ListCtrlType::Icon);
+            if (spImageList != nullptr) {
+                spImageList->SetImageSize(ui::UiSize(64, 64), Dpi(), true);
             }
+            szItemSize = pListCtrl->GetIconView()->GetItemSize();
+            szItemSize.cy = Dpi().GetScaleInt(40 + 4 + 4 + 64);
+            pListCtrl->GetIconView()->SetItemSize(szItemSize);
+            break;
+        case DataViewType::kIconViewMedium:
+            pListCtrl->SetListCtrlType(ui::ListCtrlType::Icon);
+            spImageList = pListCtrl->GetImageList(ui::ListCtrlType::Icon);
+            if (spImageList != nullptr) {
+                spImageList->SetImageSize(ui::UiSize(32, 32), Dpi(), true);
+            }
+            szItemSize = pListCtrl->GetIconView()->GetItemSize();
+            szItemSize.cy = Dpi().GetScaleInt(40 + 4 + 4 + 32);
+            pListCtrl->GetIconView()->SetItemSize(szItemSize);
+            break;
+        case DataViewType::kIconViewSmall:
+            pListCtrl->SetListCtrlType(ui::ListCtrlType::Icon);
+            spImageList = pListCtrl->GetImageList(ui::ListCtrlType::Icon);
+            if (spImageList != nullptr) {
+                spImageList->SetImageSize(ui::UiSize(20, 20), Dpi(), true);
+            }
+            szItemSize = pListCtrl->GetIconView()->GetItemSize();
+            szItemSize.cy = Dpi().GetScaleInt(40 + 4 + 4 + 20);
+            pListCtrl->GetIconView()->SetItemSize(szItemSize);
+            break;
+        case DataViewType::kListViewBig:
+            pListCtrl->SetListCtrlType(ui::ListCtrlType::List);
+            spImageList = pListCtrl->GetImageList(ui::ListCtrlType::List);
+            if (spImageList != nullptr) {
+                spImageList->SetImageSize(ui::UiSize(64, 64), Dpi(), true);
+            }
+            szItemSize.cx = Dpi().GetScaleInt(300);
+            szItemSize.cy = Dpi().GetScaleInt(8 + 64);
+            pListCtrl->GetListView()->SetItemSize(szItemSize);
+            pListCtrl->GetListView()->SetTextSingleLine(false);
+            break;
+        case DataViewType::kListViewMedium:
+            pListCtrl->SetListCtrlType(ui::ListCtrlType::List);
+            spImageList = pListCtrl->GetImageList(ui::ListCtrlType::List);
+            if (spImageList != nullptr) {
+                spImageList->SetImageSize(ui::UiSize(32, 32), Dpi(), true);
+            }
+            szItemSize.cx = Dpi().GetScaleInt(280);
+            szItemSize.cy = Dpi().GetScaleInt(8 + 32);
+            pListCtrl->GetListView()->SetItemSize(szItemSize);
+            pListCtrl->GetListView()->SetTextSingleLine(false);
+            break;
+        case DataViewType::kListViewSmall:
+            pListCtrl->SetListCtrlType(ui::ListCtrlType::List);
+            spImageList = pListCtrl->GetImageList(ui::ListCtrlType::List);
+            if (spImageList != nullptr) {
+                spImageList->SetImageSize(ui::UiSize(20, 20), Dpi(), true);
+            }
+            szItemSize.cx = Dpi().GetScaleInt(260);
+            szItemSize.cy = Dpi().GetScaleInt(36);
+            pListCtrl->GetListView()->SetItemSize(szItemSize);
+            pListCtrl->GetListView()->SetTextSingleLine(true);
+            break;
+        case DataViewType::kReprortView:
+            pListCtrl->SetListCtrlType(ui::ListCtrlType::Report);
+            break;
+        case DataViewType::kPictureView:
+            break;
+        default:
+            break;
         }
+    }
 
-        //刷新当前显示内容
-        if ((m_pTree != nullptr) && (m_pTreeNode != nullptr)) {
-            m_pTree->RefreshFolderContents(m_pTreeNode, nullptr);
-        }
+    //刷新当前显示内容
+    if ((m_pTree != nullptr) && (m_pTreeNode != nullptr)) {
+        m_pTree->RefreshFolderContents(m_pTreeNode, nullptr);
     }
 }
 

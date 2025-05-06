@@ -181,10 +181,12 @@ void ExplorerView::SetFileList(const std::vector<PathInfo>& pathList)
     if ((m_pMainForm == nullptr) || (m_pListCtrl == nullptr)) {
         return;
     }
+    //首先禁止刷新（避免每条数据更新均刷新，导致文件多的时候速度很慢）
+    bool bOldEnableRefresh = m_pListCtrl->SetEnableRefresh(false);
     m_pListCtrl->DeleteAllDataItems();
     ui::ImageListPtr pImageList;
     if (m_pListCtrl != nullptr) {
-        pImageList = m_pListCtrl->GetImageList(ui::ListCtrlType::Report);
+        pImageList = m_pListCtrl->GetImageList(m_pListCtrl->GetListCtrlType());
     }
     if (pImageList != nullptr) {
         pImageList->Clear();
@@ -201,6 +203,7 @@ void ExplorerView::SetFileList(const std::vector<PathInfo>& pathList)
         }
         //记录关联关系
         m_pListCtrl->SetDataItemUserData(nItemIndex, nIndex);
+
         //设置图标
         if (pImageList != nullptr) {
             DString iconString = ui::GlobalManager::Instance().Icon().GetIconString(pathInfo.m_nIconID);
@@ -210,7 +213,6 @@ void ExplorerView::SetFileList(const std::vector<PathInfo>& pathList)
                 m_pListCtrl->SetDataItemImageId(nItemIndex, nImageId);
             }
         }
-
         ui::ListCtrlSubItemData subItemData;
         subItemData.nSortGroup = pathInfo.m_bFolder ? SortGroup::kFolder : SortGroup::kFile; //排序分组
         subItemData.nTextFormat = ui::DrawStringFormat::TEXT_LEFT | ui::DrawStringFormat::TEXT_VCENTER;
@@ -250,6 +252,8 @@ void ExplorerView::SetFileList(const std::vector<PathInfo>& pathList)
         m_pListCtrl->SetSubItemUserDataNById(nItemIndex, nColumnId, pathInfo.m_fileSize);
         m_pListCtrl->SetColumnSortFlagById(nColumnId, ui::kSortByUserDataN | ui::kSortByGroup);
     }
+    m_pListCtrl->SetEnableRefresh(bOldEnableRefresh);
+    m_pListCtrl->Refresh();
 }
 
 DString ExplorerView::FormatFileSize(bool bFolder, uint64_t nFileSize) const

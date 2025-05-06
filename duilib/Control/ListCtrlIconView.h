@@ -30,6 +30,10 @@ public:
     */
     virtual void SetDataProvider(VirtualListBoxElement* pProvider) override;
 
+    /** 刷新列表
+    */
+    virtual void Refresh() override;
+
 public:
     /** 设置布局方向（默认情况下，Icon视图是纵向布局）
     * @param [in] bHorizontal true表示横向布局，false表示纵向布局

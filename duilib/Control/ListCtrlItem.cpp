@@ -255,7 +255,7 @@ ImagePtr ListCtrlItem::LoadItemImage() const
             ImageListPtr pImageList = pListCtrl->GetImageList(ListCtrlType::Report);
             if (pImageList != nullptr) {
                 pItemImage = pImageList->GetImageData(m_imageId);
-                ASSERT(pItemImage != nullptr);
+                //ASSERT(pItemImage != nullptr);
             }
         }
     }
