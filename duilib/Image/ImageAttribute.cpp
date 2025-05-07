@@ -5,19 +5,19 @@
 namespace ui 
 {
 ImageAttribute::ImageAttribute():
-    rcDest(nullptr),
-    rcPadding(nullptr),
-    rcSource(nullptr),
-    rcCorner(nullptr)
+    m_rcDest(nullptr),
+    m_rcPadding(nullptr),
+    m_rcSource(nullptr),
+    m_rcCorner(nullptr)
 {
     Init();
 }
 
 ImageAttribute::ImageAttribute(const ImageAttribute& r) :
-    rcDest(nullptr),
-    rcPadding(nullptr),
-    rcSource(nullptr),
-    rcCorner(nullptr)
+    m_rcDest(nullptr),
+    m_rcPadding(nullptr),
+    m_rcSource(nullptr),
+    m_rcCorner(nullptr)
 {
     Init();
     *this = r;
@@ -29,79 +29,79 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
         return *this;
     }
 
-    sImageString = r.sImageString;
-    sImagePath = r.sImagePath;
-    srcWidth = r.srcWidth;
-    srcHeight = r.srcHeight;
+    m_sImageString = r.m_sImageString;
+    m_sImagePath = r.m_sImagePath;
+    m_srcWidth = r.m_srcWidth;
+    m_srcHeight = r.m_srcHeight;
 
-    srcDpiScale = r.srcDpiScale;
-    bHasSrcDpiScale = r.bHasSrcDpiScale;
-    destDpiScale = r.destDpiScale;
-    bHasDestDpiScale = r.bHasDestDpiScale;
-    rcPaddingScale = r.rcPaddingScale;
+    m_srcDpiScale = r.m_srcDpiScale;
+    m_bHasSrcDpiScale = r.m_bHasSrcDpiScale;
+    m_destDpiScale = r.m_destDpiScale;
+    m_bHasDestDpiScale = r.m_bHasDestDpiScale;
+    m_rcPaddingScale = r.m_rcPaddingScale;
 
-    hAlign = r.hAlign;
-    vAlign = r.vAlign;
+    m_hAlign = r.m_hAlign;
+    m_vAlign = r.m_vAlign;
 
-    bFade = r.bFade;
-    bTiledX = r.bTiledX;
-    bFullTiledX = r.bFullTiledX;
-    bTiledY = r.bTiledY;
-    bFullTiledY = r.bFullTiledY;
-    nTiledMargin = r.nTiledMargin;
-    nPlayCount = r.nPlayCount;
-    iconSize = r.iconSize;
-    bPaintEnabled = r.bPaintEnabled;
+    m_bFade = r.m_bFade;
+    m_bTiledX = r.m_bTiledX;
+    m_bFullTiledX = r.m_bFullTiledX;
+    m_bTiledY = r.m_bTiledY;
+    m_bFullTiledY = r.m_bFullTiledY;
+    m_nTiledMargin = r.m_nTiledMargin;
+    m_nPlayCount = r.m_nPlayCount;
+    m_iconSize = r.m_iconSize;
+    m_bPaintEnabled = r.m_bPaintEnabled;
 
-    if (r.rcDest != nullptr) {
-        if (rcDest == nullptr) {
-            rcDest = new UiRect;
+    if (r.m_rcDest != nullptr) {
+        if (m_rcDest == nullptr) {
+            m_rcDest = new UiRect;
         }
-        *rcDest = *r.rcDest;
+        *m_rcDest = *r.m_rcDest;
     }
     else {
-        if (rcDest != nullptr) {
-            delete rcDest;
-            rcDest = nullptr;
+        if (m_rcDest != nullptr) {
+            delete m_rcDest;
+            m_rcDest = nullptr;
         }
     }
 
-    if (r.rcPadding != nullptr) {
-        if (rcPadding == nullptr) {
-            rcPadding = new UiPadding16;
+    if (r.m_rcPadding != nullptr) {
+        if (m_rcPadding == nullptr) {
+            m_rcPadding = new UiPadding16;
         }
-        *rcPadding = *r.rcPadding;
+        *m_rcPadding = *r.m_rcPadding;
     }
     else {
-        if (rcPadding != nullptr) {
-            delete rcPadding;
-            rcPadding = nullptr;
+        if (m_rcPadding != nullptr) {
+            delete m_rcPadding;
+            m_rcPadding = nullptr;
         }
     }
 
-    if (r.rcSource != nullptr) {
-        if (rcSource == nullptr) {
-            rcSource = new UiRect;
+    if (r.m_rcSource != nullptr) {
+        if (m_rcSource == nullptr) {
+            m_rcSource = new UiRect;
         }
-        *rcSource = *r.rcSource;
+        *m_rcSource = *r.m_rcSource;
     }
     else {
-        if (rcSource != nullptr) {
-            delete rcSource;
-            rcSource = nullptr;
+        if (m_rcSource != nullptr) {
+            delete m_rcSource;
+            m_rcSource = nullptr;
         }
     }
 
-    if (r.rcCorner != nullptr) {
-        if (rcCorner == nullptr) {
-            rcCorner = new UiRect;
+    if (r.m_rcCorner != nullptr) {
+        if (m_rcCorner == nullptr) {
+            m_rcCorner = new UiRect;
         }
-        *rcCorner = *r.rcCorner;
+        *m_rcCorner = *r.m_rcCorner;
     }
     else {
-        if (rcCorner != nullptr) {
-            delete rcCorner;
-            rcCorner = nullptr;
+        if (m_rcCorner != nullptr) {
+            delete m_rcCorner;
+            m_rcCorner = nullptr;
         }
     }
 
@@ -110,74 +110,74 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
 
 void ImageAttribute::Init()
 {
-    sImageString.clear();
-    sImagePath.clear(); 
-    srcWidth.clear();
-    srcHeight.clear();
+    m_sImageString.clear();
+    m_sImagePath.clear();
+    m_srcWidth.clear();
+    m_srcHeight.clear();
 
-    srcDpiScale = false;
-    bHasSrcDpiScale = false;
-    destDpiScale = false;
-    bHasDestDpiScale = false;
-    rcPaddingScale = 0;
+    m_srcDpiScale = false;
+    m_bHasSrcDpiScale = false;
+    m_destDpiScale = false;
+    m_bHasDestDpiScale = false;
+    m_rcPaddingScale = 0;
 
-    hAlign.clear();
-    vAlign.clear();
+    m_hAlign.clear();
+    m_vAlign.clear();
 
-    bFade = 0xFF;
-    bTiledX = false;
-    bFullTiledX = true;
-    bTiledY = false;
-    bFullTiledY = true;
-    nTiledMargin = 0;
-    nPlayCount = -1;
-    iconSize = 0;
-    bPaintEnabled = true;
+    m_bFade = 0xFF;
+    m_bTiledX = false;
+    m_bFullTiledX = true;
+    m_bTiledY = false;
+    m_bFullTiledY = true;
+    m_nTiledMargin = 0;
+    m_nPlayCount = -1;
+    m_iconSize = 0;
+    m_bPaintEnabled = true;
 
-    if (rcDest != nullptr) {
-        delete rcDest;
-        rcDest = nullptr;
+    if (m_rcDest != nullptr) {
+        delete m_rcDest;
+        m_rcDest = nullptr;
     }
-    if (rcSource != nullptr) {
-        delete rcSource;
-        rcSource = nullptr;
+    if (m_rcSource != nullptr) {
+        delete m_rcSource;
+        m_rcSource = nullptr;
     }
-    if (rcPadding != nullptr) {
-        delete rcPadding;
-        rcPadding = nullptr;
+    if (m_rcPadding != nullptr) {
+        delete m_rcPadding;
+        m_rcPadding = nullptr;
     }
-    if (rcCorner != nullptr) {
-        delete rcCorner;
-        rcCorner = nullptr;
+    if (m_rcCorner != nullptr) {
+        delete m_rcCorner;
+        m_rcCorner = nullptr;
     }
-    rcPaddingScale = 0;
+    m_rcPaddingScale = 0;
 }
 
 ImageAttribute::~ImageAttribute()
 {
-    if (rcDest != nullptr) {
-        delete rcDest;
-        rcDest = nullptr;
+    if (m_rcDest != nullptr) {
+        delete m_rcDest;
+        m_rcDest = nullptr;
     }
-    if (rcSource != nullptr) {
-        delete rcSource;
-        rcSource = nullptr;
+    if (m_rcSource != nullptr) {
+        delete m_rcSource;
+        m_rcSource = nullptr;
     }
-    if (rcPadding != nullptr) {
-        delete rcPadding;
-        rcPadding = nullptr;
+    if (m_rcPadding != nullptr) {
+        delete m_rcPadding;
+        m_rcPadding = nullptr;
     }
-    if (rcCorner != nullptr) {
-        delete rcCorner;
-        rcCorner = nullptr;
+    if (m_rcCorner != nullptr) {
+        delete m_rcCorner;
+        m_rcCorner = nullptr;
     }
 }
 
 void ImageAttribute::InitByImageString(const DString& strImageString, const DpiManager& dpi)
 {
     Init();
-    sImageString = strImageString;
-    sImagePath = strImageString;
+    m_sImageString = strImageString;
+    m_sImagePath = strImageString;
     ModifyAttribute(strImageString, dpi);
 }
 
@@ -191,8 +191,8 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
     AttributeUtil::ParseAttributeList(strImageString, _T('\''), attributeList);
 
     ImageAttribute& imageAttribute = *this;
-    imageAttribute.bHasSrcDpiScale = false;
-    imageAttribute.bHasDestDpiScale = false;
+    imageAttribute.m_bHasSrcDpiScale = false;
+    imageAttribute.m_bHasDestDpiScale = false;
     for (const auto& attribute : attributeList) {
         const DString& name = attribute.first;
         const DString& value = attribute.second;
@@ -201,43 +201,43 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         }
         if (name == _T("file") || name == _T("res")) {
             //图片资源文件名，根据此设置去加载图片资源
-            imageAttribute.sImagePath = value;
+            imageAttribute.m_sImagePath = value;
         }
         else if (name == _T("width")) {
             //设置图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
-            imageAttribute.srcWidth = value;
+            imageAttribute.m_srcWidth = value;
         }
         else if (name == _T("height")) {
             //设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
-            imageAttribute.srcHeight = value;
+            imageAttribute.m_srcHeight = value;
         }
         else if ((name == _T("src")) || (name == _T("source"))) {
             //图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源）
-            if (imageAttribute.rcSource == nullptr) {
-                imageAttribute.rcSource = new UiRect;
+            if (imageAttribute.m_rcSource == nullptr) {
+                imageAttribute.m_rcSource = new UiRect;
             }
-            AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcSource);
+            AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.m_rcSource);
         }
         else if (name == _T("corner")) {
             //图片的圆角属性，如果设置此属性，绘制图片的时候，采用九宫格绘制方式绘制图片：
             //    四个角不拉伸图片，四个边部分拉伸，中间部分可以拉伸或者根据xtiled、ytiled属性来平铺绘制
-            if (imageAttribute.rcCorner == nullptr) {
-                imageAttribute.rcCorner = new UiRect;
+            if (imageAttribute.m_rcCorner == nullptr) {
+                imageAttribute.m_rcCorner = new UiRect;
             }
-            AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcCorner);
+            AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.m_rcCorner);
         }
         else if ((name == _T("dpi_scale")) || (name == _T("dpiscale"))) {
             //加载图片时，按照DPI缩放图片大小（会影响width属性、height属性、sources属性、corner属性）
-            imageAttribute.srcDpiScale = (value == _T("true"));
-            imageAttribute.bHasSrcDpiScale = true;
+            imageAttribute.m_srcDpiScale = (value == _T("true"));
+            imageAttribute.m_bHasSrcDpiScale = true;
         }
         else if (name == _T("dest")) {
             //设置目标区域，该区域是指相对于所属控件的Rect区域
             if (!value.empty()) {
-                if (imageAttribute.rcDest == nullptr) {
-                    imageAttribute.rcDest = new UiRect;
+                if (imageAttribute.m_rcDest == nullptr) {
+                    imageAttribute.m_rcDest = new UiRect;
                 }
-                UiRect& rect = *imageAttribute.rcDest;
+                UiRect& rect = *imageAttribute.m_rcDest;
                 DString::value_type* pstr = nullptr;
                 rect.left = StringUtil::StringToInt32(value.c_str(), &pstr, 10); ASSERT(pstr);
                 AttributeUtil::SkipSepChar(pstr);
@@ -257,8 +257,8 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         else if ((name == _T("dest_scale")) || (name == _T("destscale"))) {
             //加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）
             //绘制时（内部使用），控制是否对dest属性进行DPI缩放
-            imageAttribute.destDpiScale = (value == _T("true"));
-            imageAttribute.bHasDestDpiScale = true;
+            imageAttribute.m_destDpiScale = (value == _T("true"));
+            imageAttribute.m_bHasDestDpiScale = true;
         }
         else if (name == _T("padding")) {
             //在目标区域中设置内边距
@@ -270,49 +270,49 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             //在目标区域中设置横向对齐方式            
             ASSERT((value == _T("left")) || (value == _T("center")) || (value == _T("right")));
             if ((value == _T("left")) || (value == _T("center")) || (value == _T("right"))) {
-                imageAttribute.hAlign = value;
+                imageAttribute.m_hAlign = value;
             }
         }
         else if (name == _T("valign")) {
             //在目标区域中设置纵向对齐方式
             ASSERT((value == _T("top")) || (value == _T("center")) || (value == _T("bottom")));
             if ((value == _T("top")) || (value == _T("center")) || (value == _T("bottom"))) {
-                imageAttribute.vAlign = value;
+                imageAttribute.m_vAlign = value;
             }
         }
         else if (name == _T("fade")) {
             //图片的透明度
-            imageAttribute.bFade = (uint8_t)StringUtil::StringToInt32(value);
+            imageAttribute.m_bFade = (uint8_t)StringUtil::StringToInt32(value);
         }
         else if (name == _T("xtiled")) {
             //横向平铺
-            imageAttribute.bTiledX = (value == _T("true"));
+            imageAttribute.m_bTiledX = (value == _T("true"));
         }
         else if ((name == _T("full_xtiled")) || (name == _T("fullxtiled"))) {
             //横向平铺时，保证整张图片绘制
-            imageAttribute.bFullTiledX = (value == _T("true"));
+            imageAttribute.m_bFullTiledX = (value == _T("true"));
         }
         else if (name == _T("ytiled")) {
             //纵向平铺
-            imageAttribute.bTiledY = (value == _T("true"));
+            imageAttribute.m_bTiledY = (value == _T("true"));
         }
         else if ((name == _T("full_ytiled")) || (name == _T("fullytiled"))) {
             //纵向平铺时，保证整张图片绘制
-            imageAttribute.bFullTiledY = (value == _T("true"));
+            imageAttribute.m_bFullTiledY = (value == _T("true"));
         }
         else if ((name == _T("tiled_margin")) || (name == _T("tiledmargin"))) {
             //平铺绘制时，各平铺图片之间的间隔，包括横向平铺和纵向平铺
-            imageAttribute.nTiledMargin = StringUtil::StringToInt32(value);
+            imageAttribute.m_nTiledMargin = StringUtil::StringToInt32(value);
         }
         else if ((name == _T("icon_size")) || (name == _T("iconsize"))) {
             //指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)
-            imageAttribute.iconSize = (uint32_t)StringUtil::StringToInt32(value);
+            imageAttribute.m_iconSize = (uint32_t)StringUtil::StringToInt32(value);
         }
         else if ((name == _T("play_count")) || (name == _T("playcount"))) {
             //如果是GIF、APNG、WEBP等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
-            imageAttribute.nPlayCount = StringUtil::StringToInt32(value);
-            if (imageAttribute.nPlayCount < 0) {
-                imageAttribute.nPlayCount = -1;
+            imageAttribute.m_nPlayCount = StringUtil::StringToInt32(value);
+            if (imageAttribute.m_nPlayCount < 0) {
+                imageAttribute.m_nPlayCount = -1;
             }
         }
         else {
@@ -387,8 +387,8 @@ void ImageAttribute::ScaleImageRect(uint32_t imageWidth, uint32_t imageHeight,
 UiRect ImageAttribute::GetImageSourceRect() const
 {
     UiRect rc;
-    if (rcSource != nullptr) {
-        rc = *rcSource;
+    if (m_rcSource != nullptr) {
+        rc = *m_rcSource;
     }
     return rc;
 }
@@ -396,9 +396,9 @@ UiRect ImageAttribute::GetImageSourceRect() const
 UiRect ImageAttribute::GetImageDestRect(int32_t imageWidth, int32_t imageHeight, const DpiManager& dpi) const
 {
     UiRect rc;
-    if (rcDest != nullptr) {
-        rc = *rcDest;
-        if (bHasDestDpiScale && !destDpiScale) {
+    if (m_rcDest != nullptr) {
+        rc = *m_rcDest;
+        if (m_bHasDestDpiScale && !m_destDpiScale) {
             //禁止DPI缩放
         }
         else {
@@ -423,10 +423,10 @@ UiRect ImageAttribute::GetImageDestRect(int32_t imageWidth, int32_t imageHeight,
 UiPadding ImageAttribute::GetImagePadding(const DpiManager& dpi) const
 {
     UiPadding rc;
-    if (rcPadding != nullptr) {
-        rc = UiPadding(rcPadding->left, rcPadding->top, rcPadding->right, rcPadding->bottom);
-        if (rcPaddingScale != dpi.GetScale()) {
-            rc = dpi.GetScalePadding(rc, rcPaddingScale);
+    if (m_rcPadding != nullptr) {
+        rc = UiPadding(m_rcPadding->left, m_rcPadding->top, m_rcPadding->right, m_rcPadding->bottom);
+        if (m_rcPaddingScale != dpi.GetScale()) {
+            rc = dpi.GetScalePadding(rc, m_rcPaddingScale);
         }
     }
     return rc;
@@ -438,21 +438,21 @@ void ImageAttribute::SetImagePadding(const UiPadding& newPadding, bool bNeedDpiS
     if (bNeedDpiScale) {
         dpi.ScalePadding(rcPaddingDpi);
     }
-    if (rcPadding == nullptr) {
-        rcPadding = new UiPadding16;
+    if (m_rcPadding == nullptr) {
+        m_rcPadding = new UiPadding16;
     }
-    rcPadding->left = TruncateToUInt16(newPadding.left);
-    rcPadding->top = TruncateToUInt16(newPadding.top);
-    rcPadding->right = TruncateToUInt16(newPadding.right);
-    rcPadding->bottom = TruncateToUInt16(newPadding.bottom);
-    rcPaddingScale = TruncateToUInt16(dpi.GetScale());
+    m_rcPadding->left = TruncateToUInt16(newPadding.left);
+    m_rcPadding->top = TruncateToUInt16(newPadding.top);
+    m_rcPadding->right = TruncateToUInt16(newPadding.right);
+    m_rcPadding->bottom = TruncateToUInt16(newPadding.bottom);
+    m_rcPaddingScale = TruncateToUInt16(dpi.GetScale());
 }
 
 UiRect ImageAttribute::GetImageCorner() const
 {
     UiRect rc;
-    if (rcCorner != nullptr) {
-        rc = *rcCorner;
+    if (m_rcCorner != nullptr) {
+        rc = *m_rcCorner;
     }
     return rc;
 }

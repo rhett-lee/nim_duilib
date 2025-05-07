@@ -32,24 +32,24 @@ void Image::SetImageString(const DString& strImageString, const DpiManager& dpi)
 void Image::UpdateImageAttribute(const DString& strImageString, const DpiManager& dpi)
 {
     //只修改属性，不修改图片资源路径
-    DString sImagePath = m_imageAttribute.sImagePath.c_str();
+    DString sImagePath = m_imageAttribute.m_sImagePath.c_str();
     m_imageAttribute.ModifyAttribute(strImageString, dpi);
-    m_imageAttribute.sImagePath = sImagePath;
+    m_imageAttribute.m_sImagePath = sImagePath;
 }
 
 DString Image::GetImageString() const
 {
-    return m_imageAttribute.sImageString.c_str();
+    return m_imageAttribute.m_sImageString.c_str();
 }
 
 bool Image::EqualToImageString(const DString& imageString) const
 {
-    return m_imageAttribute.sImageString == imageString;
+    return m_imageAttribute.m_sImageString == imageString;
 }
 
 DString Image::GetImagePath() const
 {
-    return m_imageAttribute.sImagePath.c_str();
+    return m_imageAttribute.m_sImagePath.c_str();
 }
 
 void Image::SetImagePadding(const UiPadding& newPadding, bool bNeedDpiScale, const DpiManager& dpi)
@@ -64,22 +64,22 @@ UiPadding Image::GetImagePadding(const DpiManager& dpi) const
 
 bool Image::IsImagePaintEnabled() const
 {
-    return m_imageAttribute.bPaintEnabled;
+    return m_imageAttribute.m_bPaintEnabled;
 }
 
 void Image::SetImagePaintEnabled(bool bEnable)
 {
-    m_imageAttribute.bPaintEnabled = bEnable;
+    m_imageAttribute.m_bPaintEnabled = bEnable;
 }
 
 void Image::SetImagePlayCount(int32_t nPlayCount)
 {
-    m_imageAttribute.nPlayCount = nPlayCount;
+    m_imageAttribute.m_nPlayCount = nPlayCount;
 }
 
 void Image::SetImageFade(uint8_t nFade)
 {
-    m_imageAttribute.bFade = nFade;
+    m_imageAttribute.m_bFade = nFade;
 }
 
 const ImageAttribute& Image::GetImageAttribute() const
@@ -89,11 +89,11 @@ const ImageAttribute& Image::GetImageAttribute() const
 
 ImageLoadAttribute Image::GetImageLoadAttribute() const
 {
-    return ImageLoadAttribute(m_imageAttribute.srcWidth.c_str(),
-                              m_imageAttribute.srcHeight.c_str(),
-                              m_imageAttribute.srcDpiScale,
-                              m_imageAttribute.bHasSrcDpiScale,
-                              m_imageAttribute.iconSize);
+    return ImageLoadAttribute(m_imageAttribute.m_srcWidth.c_str(),
+                              m_imageAttribute.m_srcHeight.c_str(),
+                              m_imageAttribute.m_srcDpiScale,
+                              m_imageAttribute.m_bHasSrcDpiScale,
+                              m_imageAttribute.m_iconSize);
 }
 
 const std::shared_ptr<ImageInfo>& Image::GetImageCache() const

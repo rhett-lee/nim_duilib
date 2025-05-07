@@ -2326,7 +2326,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         return false;
     }
 
-    if (!duiImage.GetImageAttribute().bPaintEnabled) {
+    if (!duiImage.GetImageAttribute().m_bPaintEnabled) {
         //该图片禁止绘制，返回
         return false;
     }
@@ -2381,41 +2381,41 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         const int32_t imageHeight = rcSource.Height();
 
         //应用对齐方式后，图片将不再拉伸，而是按原大小展示
-        if (!newImageAttribute.hAlign.empty()) {
-            if (newImageAttribute.hAlign == _T("left")) {
+        if (!newImageAttribute.m_hAlign.empty()) {
+            if (newImageAttribute.m_hAlign == _T("left")) {
                 rcDest.right = rcDest.left + imageWidth;
             }
-            else if (newImageAttribute.hAlign == _T("center")) {
+            else if (newImageAttribute.m_hAlign == _T("center")) {
                 rcDest.left = rcDest.CenterX() - imageWidth / 2;
                 rcDest.right = rcDest.left + imageWidth;
             }
-            else if (newImageAttribute.hAlign == _T("right")) {
+            else if (newImageAttribute.m_hAlign == _T("right")) {
                 rcDest.left = rcDest.right - imageWidth;
             }
             else {
                 rcDest.right = rcDest.left + imageWidth;
             }
 
-            if (newImageAttribute.vAlign.empty()) {
+            if (newImageAttribute.m_vAlign.empty()) {
                 rcDest.bottom = rcDest.top + imageHeight;
             }                
         }
-        if (!newImageAttribute.vAlign.empty()) {
-            if (newImageAttribute.vAlign == _T("top")) {
+        if (!newImageAttribute.m_vAlign.empty()) {
+            if (newImageAttribute.m_vAlign == _T("top")) {
                 rcDest.bottom = rcDest.top + imageHeight;
             }
-            else if (newImageAttribute.vAlign == _T("center")) {
+            else if (newImageAttribute.m_vAlign == _T("center")) {
                 rcDest.top = rcDest.CenterY() - imageHeight / 2;
                 rcDest.bottom = rcDest.top + imageHeight;
             }
-            else if (newImageAttribute.vAlign == _T("bottom")) {
+            else if (newImageAttribute.m_vAlign == _T("bottom")) {
                 rcDest.top = rcDest.bottom - imageHeight;
             }
             else {
                 rcDest.bottom = rcDest.top + imageHeight;
             }
 
-            if (newImageAttribute.hAlign.empty()) {
+            if (newImageAttribute.m_hAlign.empty()) {
                 rcDest.right = rcDest.left + imageWidth;
             }
         }
@@ -2427,19 +2427,19 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
     }
 
     //图片透明度属性
-    uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.bFade : static_cast<uint8_t>(nFade);
+    uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.m_bFade : static_cast<uint8_t>(nFade);
     if (pMatrix != nullptr) {
         //矩阵绘制: 对不支持的属性，增加断言，避免出错
         ASSERT(newImageAttribute.GetImageCorner().IsEmpty());
-        ASSERT(!newImageAttribute.bTiledX);
-        ASSERT(!newImageAttribute.bTiledY);
+        ASSERT(!newImageAttribute.m_bTiledX);
+        ASSERT(!newImageAttribute.m_bTiledY);
         pRender->DrawImageRect(m_rcPaint, pBitmap, rcDest, rcSource, iFade, pMatrix);
     }
     else{
         pRender->DrawImage(m_rcPaint, pBitmap, rcDest, rcDestCorners, rcSource, rcSourceCorners,
-                           iFade, newImageAttribute.bTiledX, newImageAttribute.bTiledY, 
-                           newImageAttribute.bFullTiledX, newImageAttribute.bFullTiledY,
-                           newImageAttribute.nTiledMargin);
+                           iFade, newImageAttribute.m_bTiledX, newImageAttribute.m_bTiledY,
+                           newImageAttribute.m_bFullTiledX, newImageAttribute.m_bFullTiledY,
+                           newImageAttribute.m_nTiledMargin);
     }
     //按需启动动画
     duiImage.CheckStartGifPlay(rcDest);

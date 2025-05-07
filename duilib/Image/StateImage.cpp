@@ -95,7 +95,7 @@ int32_t StateImage::GetImageFade(ControlStateType stateType) const
     int32_t nFade = 0xFF;
     auto iter = m_stateImageMap.find(stateType);
     if (iter != m_stateImageMap.end()) {
-        nFade = iter->second->GetImageAttribute().bFade;
+        nFade = iter->second->GetImageAttribute().m_bFade;
     }
     return nFade;
 }
