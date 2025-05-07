@@ -52,6 +52,7 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
     m_nPlayCount = r.m_nPlayCount;
     m_iconSize = r.m_iconSize;
     m_bPaintEnabled = r.m_bPaintEnabled;
+    m_bAdaptiveDestRect = r.m_bAdaptiveDestRect;
 
     if (r.m_rcDest != nullptr) {
         if (m_rcDest == nullptr) {
@@ -133,6 +134,7 @@ void ImageAttribute::Init()
     m_nPlayCount = -1;
     m_iconSize = 0;
     m_bPaintEnabled = true;
+    m_bAdaptiveDestRect = false;
 
     if (m_rcDest != nullptr) {
         delete m_rcDest;
@@ -315,6 +317,10 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
                 imageAttribute.m_nPlayCount = -1;
             }
         }
+        else if (name == _T("adaptive_dest_rect")) {
+            //自动适应目标区域（等比例缩放图片）
+            imageAttribute.m_bAdaptiveDestRect = (value == _T("true"));
+        }
         else {
             ASSERT(!"ImageAttribute::ModifyAttribute: fount unknown attribute!");
         }
@@ -455,6 +461,72 @@ UiRect ImageAttribute::GetImageCorner() const
         rc = *m_rcCorner;
     }
     return rc;
+}
+
+/** 计算保持比例的自适应目标区域大小
+ * @param nImageWidth 原始图片宽度
+ * @param nImageHeight 原始图片高度
+ * @param targetSize 目标区域大小(width, height)
+ * @return 自适应后的新大小(width, height)
+ */
+static UiSize CalculateAdaptiveSize(int32_t nImageWidth, int32_t nImageHeight, const UiSize& targetSize)
+{
+    if ((nImageWidth <= 0) || (nImageHeight <= 0) ||
+        (targetSize.cx <= 0) || (targetSize.cy <= 0)) {
+        return UiSize();
+    }
+
+    float imageRatio = static_cast<float>(nImageWidth) / nImageHeight;
+    float targetRatio = static_cast<float>(targetSize.cx) / targetSize.cy;
+
+    int32_t newWidth = targetSize.cx;
+    int32_t newHeight = targetSize.cy;
+
+    if (imageRatio > targetRatio) {
+        // 以宽度为准，高度按比例缩放
+        newHeight = static_cast<int32_t>(targetSize.cx / imageRatio);
+    }
+    else {
+        // 以高度为准，宽度按比例缩放
+        newWidth = static_cast<int32_t>(targetSize.cy * imageRatio);
+    }
+
+    return UiSize(newWidth, newHeight);
+}
+
+UiRect ImageAttribute::CalculateAdaptiveRect(int32_t nImageWidth, int32_t nImageHeight,
+                                             const UiRect& targetRect,
+                                             const DString& hAlign,
+                                             const DString& vAlign)
+{
+    int32_t targetWidth = targetRect.Width();
+    int32_t targetHeight = targetRect.Height();
+
+    UiSize newSize = CalculateAdaptiveSize(nImageWidth, nImageHeight, UiSize(targetWidth, targetHeight));
+
+    // 计算横向位置
+    int32_t newLeft = targetRect.left;
+    if (hAlign == _T("center")) {
+        newLeft = targetRect.left + (targetWidth - newSize.cx) / 2;
+    }
+    else if (hAlign == _T("right")) {
+        newLeft = targetRect.left + targetWidth - newSize.cx;
+    }
+    // LEFT对齐不需要调整
+
+    // 计算纵向位置
+    int32_t newTop = targetRect.top;
+    if (vAlign == _T("center")) {
+        newTop = targetRect.top + (targetHeight - newSize.cy) / 2;
+    }
+    else if (vAlign == _T("bottom")) {
+        newTop = targetRect.top + targetHeight - newSize.cy;
+    }
+    // TOP对齐不需要调整
+
+    int32_t newRight = newLeft + newSize.cx;
+    int32_t newBottom = newTop + newSize.cy;
+    return UiRect(newLeft, newTop, newRight, newBottom);
 }
 
 }

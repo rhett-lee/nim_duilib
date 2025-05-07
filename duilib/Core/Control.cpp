@@ -2372,51 +2372,57 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
                                    rcSource,
                                    rcSourceCorners);
     
-    if (!hasDestAttr) {
-        //运用rcPadding、hAlign、vAlign 三个图片属性
-        rcDest.Deflate(newImageAttribute.GetImagePadding(Dpi()));
-        rcDest.Validate();
-        rcSource.Validate();
-        const int32_t imageWidth = rcSource.Width();
-        const int32_t imageHeight = rcSource.Height();
-
+    //运用rcPadding、hAlign、vAlign 三个图片属性
+    rcDest.Deflate(newImageAttribute.GetImagePadding(Dpi()));
+    rcDest.Validate();
+    rcSource.Validate();
+    const int32_t nImageWidth = rcSource.Width();
+    const int32_t nImageHeight = rcSource.Height();
+    if (newImageAttribute.m_bAdaptiveDestRect) {
+        //自动适应目标区域（等比例缩放图片）：根据图片大小，调整绘制区域
+        rcDest = ImageAttribute::CalculateAdaptiveRect(nImageWidth, nImageHeight,
+                                                       rcDest,
+                                                       newImageAttribute.m_hAlign.c_str(),
+                                                       newImageAttribute.m_vAlign.c_str());
+    }
+    else {
         //应用对齐方式后，图片将不再拉伸，而是按原大小展示
         if (!newImageAttribute.m_hAlign.empty()) {
             if (newImageAttribute.m_hAlign == _T("left")) {
-                rcDest.right = rcDest.left + imageWidth;
+                rcDest.right = rcDest.left + nImageWidth;
             }
             else if (newImageAttribute.m_hAlign == _T("center")) {
-                rcDest.left = rcDest.CenterX() - imageWidth / 2;
-                rcDest.right = rcDest.left + imageWidth;
+                rcDest.left = rcDest.CenterX() - nImageWidth / 2;
+                rcDest.right = rcDest.left + nImageWidth;
             }
             else if (newImageAttribute.m_hAlign == _T("right")) {
-                rcDest.left = rcDest.right - imageWidth;
+                rcDest.left = rcDest.right - nImageWidth;
             }
             else {
-                rcDest.right = rcDest.left + imageWidth;
+                rcDest.right = rcDest.left + nImageWidth;
             }
 
             if (newImageAttribute.m_vAlign.empty()) {
-                rcDest.bottom = rcDest.top + imageHeight;
-            }                
+                rcDest.bottom = rcDest.top + nImageHeight;
+            }
         }
         if (!newImageAttribute.m_vAlign.empty()) {
             if (newImageAttribute.m_vAlign == _T("top")) {
-                rcDest.bottom = rcDest.top + imageHeight;
+                rcDest.bottom = rcDest.top + nImageHeight;
             }
             else if (newImageAttribute.m_vAlign == _T("center")) {
-                rcDest.top = rcDest.CenterY() - imageHeight / 2;
-                rcDest.bottom = rcDest.top + imageHeight;
+                rcDest.top = rcDest.CenterY() - nImageHeight / 2;
+                rcDest.bottom = rcDest.top + nImageHeight;
             }
             else if (newImageAttribute.m_vAlign == _T("bottom")) {
-                rcDest.top = rcDest.bottom - imageHeight;
+                rcDest.top = rcDest.bottom - nImageHeight;
             }
             else {
-                rcDest.bottom = rcDest.top + imageHeight;
+                rcDest.bottom = rcDest.top + nImageHeight;
             }
 
             if (newImageAttribute.m_hAlign.empty()) {
-                rcDest.right = rcDest.left + imageWidth;
+                rcDest.right = rcDest.left + nImageWidth;
             }
         }
     }
@@ -2435,7 +2441,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         ASSERT(!newImageAttribute.m_bTiledY);
         pRender->DrawImageRect(m_rcPaint, pBitmap, rcDest, rcSource, iFade, pMatrix);
     }
-    else{
+    else {
         pRender->DrawImage(m_rcPaint, pBitmap, rcDest, rcDestCorners, rcSource, rcSourceCorners,
                            iFade, newImageAttribute.m_bTiledX, newImageAttribute.m_bTiledY,
                            newImageAttribute.m_bFullTiledX, newImageAttribute.m_bFullTiledY,
