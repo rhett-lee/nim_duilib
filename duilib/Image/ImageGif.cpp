@@ -47,7 +47,7 @@ bool ImageGif::StartGifPlay()
             return true;
         }
         else {
-            int32_t nPlayCount = m_pImage->GetImageAttribute().nPlayCount;
+            int32_t nPlayCount = m_pImage->GetImageAttribute().m_nPlayCount;
             return StartGifPlay(kGifFrameCurrent, nPlayCount);
         }
     }
