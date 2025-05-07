@@ -63,8 +63,11 @@ public:
     UiRect GetImageCorner() const;
 
     /** 获取rcDest(按配置决定是否进行DPI缩放)
+    * @param [in] imageWidth 图像的宽度
+    * @param [in] imageHeight 图像的高度
+    * @param [in] dpi DPI缩放接口
     */
-    UiRect GetImageDestRect(const DpiManager& dpi) const;
+    UiRect GetImageDestRect(int32_t imageWidth, int32_t imageHeight, const DpiManager& dpi) const;
 
     /** 获取图片属性的内边距
     * @param [in] dpi DPI缩放管理器

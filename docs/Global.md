@@ -128,20 +128,20 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | file | | string | 图片资源文件名，根据此设置去加载图片资源 |
 | width | | string | 图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%，如果不设置则使用图片的实际宽度 |
 | height | | string | 图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%，如果不设置则使用图片的实际高度 |
-| source | | rect | 图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源） |
+| src | | rect | 图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源） |
 | corner | | rect | 图片的圆角属性，如果设置此属性，绘制图片的时候，采用九宫格绘制方式绘制图片：四个角不拉伸图片，四个边部分拉伸，中间部分可以拉伸或者根据xtiled、ytiled属性来平铺绘制，比如'8,8,8,8' |
-| dpi_scale | | bool | 加载图片时，按照DPI缩放图片大小（会影响width属性、height属性、sources属性、corner属性） |
-| dest | | rect | 设置目标区域，该区域是指相对于所属控件的Rect区域 |
+| dpi_scale | | bool | 加载图片时，按照DPI缩放图片大小（会影响width属性、height属性、src属性、corner属性） |
+| dest | | rect | 设置目标区域，该区域是指相对于所属控件的矩形区域（允许只设置顶点坐标，此时矩形区域大小与图片大小一致） |
 | dest_scale | | bool | 加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）; 绘制时（内部使用），控制是否对dest属性进行DPI缩放 |
 | padding | | rect | 在目标区域中设置内边距 |
 | halign | | string | 横向对齐方式，可取值："left"、"center"、"right" |
 | valign | | string | 纵向对齐方式，可取值："top"、"center"、"bottom" |
-| fade | | int | 图片的透明度，取值范围：0 - 255 |
-| xtiled | | bool | 横向平铺绘制 |
-| full_xtiled | | bool | 横向平铺绘制时，保证整张图片绘制 |
-| ytiled | | bool | 纵向平铺绘制 |
-| full_ytiled | | bool | 纵向平铺绘制时，保证整张图片绘制 |
-| tiled_margin | | int | 平铺绘制时，各平铺图片之间的间隔，包括横向平铺和纵向平铺 |
+| fade | 255 | int | 图片的透明度，取值范围：0 - 255 |
+| xtiled | false | bool | 横向平铺绘制 |
+| full_xtiled | true | bool | 横向平铺绘制时，保证整张图片绘制, 仅当xtiled为true时有效 |
+| ytiled | false| bool | 纵向平铺绘制 |
+| full_ytiled | true | bool | 纵向平铺绘制时，保证整张图片绘制, 仅当ytiled为true时有效 |
+| tiled_margin | 0 | int | 平铺绘制时，各平铺图片之间的间隔，包括横向平铺和纵向平铺仅当xtiled为true时或者ytiled为true时有效 |
 | icon_size | | int | 指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效) |
 | play_count | -1 | int | 如果是GIF、APNG、WEBP等动画图片，可以指定播放次数。 如果是-1表示一直播放，此为缺省值。 |
 
