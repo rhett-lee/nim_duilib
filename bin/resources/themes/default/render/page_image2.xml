@@ -1,6 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window>
-    <HBox width="auto" height="auto">
-        <Control width="240" height="240" bkimage="file='svg_test.svg' source='12,10,36,34'" valign="center" border_size='1' border_color='green' margin="8"/>
+    <HBox>
+        <VBox width="auto">
+            <HBox width="auto" height="auto">
+                <Control width="120" height="120" bkimage="file='svg_test.svg' src='12,10,36,34'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' padding='10,10,10,10'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' padding='10,0,0,0'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' padding='0,10,0,0'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' padding='0,0,10,0'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' padding='0,0,0,10'" border_size="1" border_color="green" margin="8"/>
+            </HBox>
+            <HBox width="auto" height="auto" margin="0,8,0,0">
+                <Control width="120" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' " border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' halign='left' valign='top'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' halign='center' valign='center'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' halign='right' valign='bottom'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' dest='12,12,48,48'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' dest='12,12'" border_size="1" border_color="green" margin="8"/>
+            </HBox>
+            <HBox width="auto" height="auto" margin="0,8,0,0">
+                <Control width="120" height="120" bkimage="file='svg_test.svg'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' width='128'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' height='128'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' width='500%'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='svg_test.svg' height='500%'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='autumn.png' fade='64'" border_size="1" border_color="green" margin="8"/>
+            </HBox>
+            <HBox width="auto" height="auto" margin="0,8,0,0">
+                <Control width="220" height="220" bkimage="file='libre-gui-frame.svg' width='20'" border_size="1" border_color="green" margin="8"/>
+                <Control width="220" height="220" bkimage="file='libre-gui-frame.svg' width='20' corner='8,8,8,8'" border_size="1" border_color="green" margin="8"/>                
+            </HBox>
+        </VBox>
+        <VBox>
+            <Control bkimage="file='jpg_test.jpg' width='60' tiled_margin='0' xtiled='true' fullxtiled='false' ytiled='true' fullytiled='false' tiled_margin='1'" border_size="1" border_color="green" margin="8"/>
+        </VBox>    
     </HBox>
 </Window>

@@ -79,7 +79,7 @@ void ControlLoading::PaintLoading(IRender* pRender)
     rcFill.top = rect.top + (rect.Height() - imageHeight) / 2;
     rcFill.bottom = rcFill.top + imageHeight;
 
-    ui::UiRect rcDest = m_pLoadingImage->GetImageAttribute().GetImageDestRect(pControl->Dpi());
+    ui::UiRect rcDest = m_pLoadingImage->GetImageAttribute().GetImageDestRect(imageWidth, imageHeight, pControl->Dpi());
     if (ImageAttribute::HasValidImageRect(rcDest)) {
         rcFill = rcDest;
         rcFill.Offset(rect.left, rect.top);

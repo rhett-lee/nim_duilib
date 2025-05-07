@@ -211,7 +211,7 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             //设置图片高度，可以放大或缩小图像：pixels或者百分比%，比如200，或者30%
             imageAttribute.srcHeight = value;
         }
-        else if (name == _T("source")) {
+        else if ((name == _T("src")) || (name == _T("source"))) {
             //图片源区域设置：可以用于仅包含源图片的部分图片内容（比如通过此机制，将按钮的各个状态图片整合到一张大图片上，方便管理图片资源）
             if (imageAttribute.rcSource == nullptr) {
                 imageAttribute.rcSource = new UiRect;
@@ -233,10 +233,26 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         }
         else if (name == _T("dest")) {
             //设置目标区域，该区域是指相对于所属控件的Rect区域
-            if (imageAttribute.rcDest == nullptr) {
-                imageAttribute.rcDest = new UiRect;
+            if (!value.empty()) {
+                if (imageAttribute.rcDest == nullptr) {
+                    imageAttribute.rcDest = new UiRect;
+                }
+                UiRect& rect = *imageAttribute.rcDest;
+                DString::value_type* pstr = nullptr;
+                rect.left = StringUtil::StringToInt32(value.c_str(), &pstr, 10); ASSERT(pstr);
+                AttributeUtil::SkipSepChar(pstr);
+                if (*pstr != _T('\0')) {
+                    rect.top = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
+                    AttributeUtil::SkipSepChar(pstr);
+                }
+                if (*pstr != _T('\0')) {
+                    rect.right = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
+                    AttributeUtil::SkipSepChar(pstr);
+                }
+                if (*pstr != _T('\0')) {
+                    rect.bottom = StringUtil::StringToInt32(pstr, &pstr, 10); ASSERT(pstr);
+                }
             }
-            AttributeUtil::ParseRectValue(value.c_str(), *imageAttribute.rcDest);
         }
         else if ((name == _T("dest_scale")) || (name == _T("destscale"))) {
             //加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）
@@ -310,8 +326,7 @@ bool ImageAttribute::HasValidImageRect(const UiRect& rcDest)
     if (rcDest.IsZero() || rcDest.IsEmpty()) {
         return false;
     }
-    if ((rcDest.left >= 0) && (rcDest.top >= 0) && 
-        (rcDest.Width() > 0) && (rcDest.Height() > 0)){
+    if ((rcDest.Width() > 0) && (rcDest.Height() > 0)) {
         return true;
     }
     return false;
@@ -378,7 +393,7 @@ UiRect ImageAttribute::GetImageSourceRect() const
     return rc;
 }
 
-UiRect ImageAttribute::GetImageDestRect(const DpiManager& dpi) const
+UiRect ImageAttribute::GetImageDestRect(int32_t imageWidth, int32_t imageHeight, const DpiManager& dpi) const
 {
     UiRect rc;
     if (rcDest != nullptr) {
@@ -389,6 +404,17 @@ UiRect ImageAttribute::GetImageDestRect(const DpiManager& dpi) const
         else {
             //应进行DPI缩放
             dpi.ScaleRect(rc);
+        }
+        //如果未指定完整的区域，则自动计算该区域(允许只设置left,top，不设置right和bottom)
+        if (rc.right <= rc.left) {
+            if (imageWidth > 0) {
+                rc.right = rc.left + imageWidth;
+            }
+        }
+        if (rc.bottom <= rc.top) {
+            if (imageHeight > 0) {
+                rc.bottom = rc.top + imageHeight;
+            }
         }
     }
     return rc;

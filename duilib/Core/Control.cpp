@@ -1695,10 +1695,16 @@ UiSize Control::EstimateImage(UiSize /*szAvailable*/)
         ImageAttribute imageAttribute = image->GetImageAttribute();
         UiRect rcDest;
         bool hasDestAttr = false;
-        UiRect rcImageDestRect = imageAttribute.GetImageDestRect(Dpi());
+        UiRect rcImageDestRect = imageAttribute.GetImageDestRect(imageCache->GetWidth(), imageCache->GetHeight(), Dpi());
         if (ImageAttribute::HasValidImageRect(rcImageDestRect)) {
             //使用配置中指定的目标区域
             rcDest = rcImageDestRect;
+            if (rcDest.left < 0) {
+                rcDest.left = 0;
+            }
+            if (rcDest.top < 0) {
+                rcDest.top = 0;
+            }
             hasDestAttr = true;
         }
         UiRect rcDestCorners;
@@ -2301,7 +2307,7 @@ bool Control::OnImeEndComposition(const EventArgs& /*msg*/)
 
 bool Control::PaintImage(IRender* pRender, Image* pImage,
                         const DString& strModify, int32_t nFade, 
-                        IMatrix* pMatrix, UiRect* pInRect, UiRect* pPaintedRect) const
+                        IMatrix* pMatrix, UiRect* pDestRect, UiRect* pPaintedRect) const
 {
     //注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
     //                   也有一个类传入了：_T(" corner='%d,%d,%d,%d'")。
@@ -2345,19 +2351,16 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
     bool hasDestAttr = false; // 外部是否设置了rcDest属性
     UiRect rcDest = GetRect();
     rcDest.Deflate(GetControlPadding());//去掉内边距
-    if (pInRect != nullptr) {
+    if (pDestRect != nullptr) {
         //使用外部传入的矩形区域绘制图片
-        rcDest = *pInRect;
+        rcDest = *pDestRect;
     }
-    UiRect rcImageDestRect = newImageAttribute.GetImageDestRect(Dpi());
+    UiRect rcImageDestRect = newImageAttribute.GetImageDestRect(pBitmap->GetWidth(), pBitmap->GetHeight(), Dpi());
     if (ImageAttribute::HasValidImageRect(rcImageDestRect)) {
         //使用配置中指定的目标区域
-        if ((rcImageDestRect.Width() <= rcDest.Width()) &&
-            (rcImageDestRect.Height() <= rcDest.Height())) {
-            rcDest = rcImageDestRect;
-            rcDest.Offset(GetRect().left, GetRect().top);
-            hasDestAttr = true;
-        }
+        rcDest = rcImageDestRect;
+        rcDest.Offset(GetRect().left, GetRect().top);
+        hasDestAttr = true;
     }
 
     UiRect rcDestCorners;
@@ -2405,7 +2408,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
                 rcDest.top = rcDest.CenterY() - imageHeight / 2;
                 rcDest.bottom = rcDest.top + imageHeight;
             }
-            else if (newImageAttribute.vAlign == _T("right")) {
+            else if (newImageAttribute.vAlign == _T("bottom")) {
                 rcDest.top = rcDest.bottom - imageHeight;
             }
             else {
