@@ -1,7 +1,7 @@
 #include "render_form.h"
 #include "RenderTest1.h"
 #include "RenderTest2.h"
-#include "RenderTest3.h"
+#include "RenderTest2.h"
 
 RenderForm::RenderForm()
 {
@@ -40,9 +40,6 @@ ui::Control* RenderForm::CreateControl(const DString& strClass)
     }
     else if (strClass == _T("RenderTest2")) {
         return new ui::RenderTest2(this);
-    }
-    if (strClass == _T("RenderTest3")) {
-        return new ui::RenderTest3(this);
     }
     return nullptr;
 }

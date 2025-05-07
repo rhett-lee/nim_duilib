@@ -24,9 +24,6 @@
     <ClInclude Include="RenderTest2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RenderTest3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MainThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -45,9 +42,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RenderTest2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderTest3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main_windows.cpp">

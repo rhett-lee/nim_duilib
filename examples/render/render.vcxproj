@@ -182,7 +182,6 @@
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="RenderTest1.h" />
     <ClInclude Include="RenderTest2.h" />
-    <ClInclude Include="RenderTest3.h" />
     <ClInclude Include="render_form.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="TestApplication.h" />
@@ -192,7 +191,6 @@
     <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="RenderTest1.cpp" />
     <ClCompile Include="RenderTest2.cpp" />
-    <ClCompile Include="RenderTest3.cpp" />
     <ClCompile Include="render_form.cpp" />
     <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
