@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <HBox width="auto" height="auto">
+        <Control width="240" height="240" bkimage="file='svg_test.svg' source='12,10,36,34'" valign="center" border_size='1' border_color='green' margin="8"/>
+    </HBox>
+</Window>
