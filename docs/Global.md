@@ -133,6 +133,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | dpi_scale | | bool | 加载图片时，按照DPI缩放图片大小（会影响width属性、height属性、src属性、corner属性） |
 | dest | | rect | 设置目标区域，该区域是指相对于所属控件的矩形区域（允许只设置顶点坐标，此时矩形区域大小与图片大小一致） |
 | dest_scale | | bool | 加载时，对dest属性按照DPI缩放图片，仅当设置了dest属性时有效（会影响dest属性）; 绘制时（内部使用），控制是否对dest属性进行DPI缩放 |
+| adaptive_dest_rect | false | bool | 自动适应目标区域（等比例缩放图片） |
 | padding | | rect | 在目标区域中设置内边距 |
 | halign | | string | 横向对齐方式，可取值："left"、"center"、"right" |
 | valign | | string | 纵向对齐方式，可取值："top"、"center"、"bottom" |

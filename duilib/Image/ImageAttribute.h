@@ -53,6 +53,19 @@ public:
                                UiRect& rcDestCorners,
                                UiRect& rcSource, UiRect& rcSourceCorners);
 
+    /** 计算保持比例的自适应绘制区域
+     * @param nImageWidth 原始图片宽度
+     * @param nImageHeight 原始图片高度
+     * @param targetRect 目标矩形区域(left, top, right, bottom)
+     * @param hAlign 横向对齐方式 (left, center, right)
+     * @param vAlign 纵向对齐方式 (top, center, bottom)
+     * @return 自适应后的绘制区域(left, top, right, bottom)
+     */
+    static UiRect CalculateAdaptiveRect(int32_t nImageWidth, int32_t nImageHeight,
+                                        const UiRect& targetRect,
+                                        const DString& hAlign,
+                                        const DString& vAlign);
+
 public:
     /** 获取rcSource(未进行DPI缩放)
     */
@@ -141,6 +154,9 @@ public:
 
     //可绘制标志：true表示允许绘制，false表示禁止绘制
     bool m_bPaintEnabled;
+
+    //是否自动适应目标区域（等比例缩放图片）
+    bool m_bAdaptiveDestRect;
 
     //rcPadding对应的DPI缩放百分比
     uint16_t m_rcPaddingScale;

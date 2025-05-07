@@ -27,8 +27,21 @@
                 <Control width="120" height="120" bkimage="file='autumn.png' fade='64'" border_size="1" border_color="green" margin="8"/>
             </HBox>
             <HBox width="auto" height="auto" margin="0,8,0,0">
-                <Control width="220" height="220" bkimage="file='libre-gui-frame.svg' width='20'" border_size="1" border_color="green" margin="8"/>
-                <Control width="220" height="220" bkimage="file='libre-gui-frame.svg' width='20' corner='8,8,8,8'" border_size="1" border_color="green" margin="8"/>                
+                <Control width="120" height="120" bkimage="file='libre-gui-frame.svg' width='20'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="120" bkimage="file='libre-gui-frame.svg' width='20' corner='8,8,8,8'" border_size="1" border_color="green" margin="8"/>
+                <Control width="80" height="120" bkimage="file='svg_test.svg' src='12,10,36,34'" border_size="1" border_color="green" margin="8"/>
+                <Control width="80" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true'" border_size="1" border_color="green" margin="8"/>
+                <Control width="80" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true' valign='center'" border_size="1" border_color="green" margin="8"/>
+                <Control width="80" height="120" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true' valign='bottom'" border_size="1" border_color="green" margin="8"/>    
+            </HBox>
+            <HBox width="auto" height="auto" margin="0,8,0,0">
+                <Control width="120" height="60" bkimage="file='svg_test.svg' src='12,10,36,34'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="60" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="60" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true' halign='center'" border_size="1" border_color="green" margin="8"/>
+                <Control width="120" height="60" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true' halign='right'" border_size="1" border_color="green" margin="8"/>
+                <Control width="20" height="10" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true' halign='left'" border_size="1" border_color="green" margin="8"/>
+                <Control width="20" height="10" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true' halign='center'" border_size="1" border_color="green" margin="8"/>
+                <Control width="20" height="10" bkimage="file='svg_test.svg' src='12,10,36,34' adaptive_dest_rect='true' halign='right'" border_size="1" border_color="green" margin="8"/>    
             </HBox>
         </VBox>
         <VBox>
