@@ -75,7 +75,7 @@ UiSize VirtualHTileLayout::EstimateSizeByChild(const std::vector<Control*>& item
         return BaseClass::EstimateSizeByChild(items, szAvailable);
     }
     UiSize szItem = GetItemSize();
-    ASSERT((szItem.cx > 0) || (szItem.cy > 0));
+    ASSERT((szItem.cx > 0) && (szItem.cy > 0));
     if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
         return UiSize();
     }
@@ -102,7 +102,7 @@ UiSize VirtualHTileLayout::EstimateSizeByChild(const std::vector<Control*>& item
 int64_t VirtualHTileLayout::GetElementsWidth(const UiRect& rc, size_t nCount) const
 {
     UiSize szItem = GetItemSize();
-    ASSERT((szItem.cx > 0) || (szItem.cy > 0));
+    ASSERT((szItem.cx > 0) && (szItem.cy > 0));
     if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
         return 0;
     }
@@ -147,7 +147,7 @@ int64_t VirtualHTileLayout::GetElementsWidth(const UiRect& rc, size_t nCount) co
 void VirtualHTileLayout::LazyArrangeChild(UiRect rc) const
 {
     UiSize szItem = GetItemSize();
-    ASSERT((szItem.cx > 0) || (szItem.cy > 0));
+    ASSERT((szItem.cx > 0) && (szItem.cy > 0));
     if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
         return;
     }
@@ -230,7 +230,7 @@ void VirtualHTileLayout::LazyArrangeChild(UiRect rc) const
 size_t VirtualHTileLayout::AjustMaxItem(UiRect rc) const
 {
     UiSize szItem = GetItemSize();
-    ASSERT((szItem.cx > 0) || (szItem.cy > 0));
+    ASSERT((szItem.cx > 0) && (szItem.cy > 0));
     if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
         return 0;
     }

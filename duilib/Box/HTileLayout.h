@@ -123,7 +123,7 @@ private:
 
     /** 估算浮动控件的大小
     */
-    static UiSize64 EstimateFloatSize(Control* pControl, UiRect rc);
+    static UiSize64 EstimateFloatSize(Control* pControl, const UiRect& rc);
 
     /** 处理浮动子控件，并返回未处理的子控件列表
     * @param [in] items 子控件列表
@@ -193,12 +193,11 @@ private:
                                     bool isCalcOnly) const;
 
 private:
+    //子项大小, 该宽度和高度，是包含了控件的外边距和内边距的
+    UiSize m_szItem;
 
     //显示几行数据
     int32_t m_nRows;
-
-    //子项大小, 该宽度和高度，是包含了控件的外边距和内边距的
-    UiSize m_szItem;
 
     //自动计算行数
     bool m_bAutoCalcRows;

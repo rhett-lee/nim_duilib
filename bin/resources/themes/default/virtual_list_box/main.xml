@@ -43,7 +43,7 @@
             <HBox height="30" child_margin="10">
                 <Label font="system_bold_14" text="子项间隙Y:"  width="auto" height="auto" valign="center" />
                 <Box border_size="1" border_color="splitline_level1" width="90"  height="26">
-                    <RichEdit name="edit_child_margin_y" margin="10,0,10,0"  font="system_14" width="stretch" height="auto" valign="center" normal_text_color="black" multiline="false" prompt_mode="true" prompt_text="子项间隙X" text_align="vcenter,hcenter" text="" prompt_color="splitline_level1" auto_hscroll="true" />                  
+                    <RichEdit name="edit_child_margin_y" margin="10,0,10,0"  font="system_14" width="stretch" height="auto" valign="center" normal_text_color="black" multiline="false" prompt_mode="true" prompt_text="子项间隙Y" text_align="vcenter,hcenter" text="" prompt_color="splitline_level1" auto_hscroll="true" />                  
                 </Box>           
             </HBox> 
         </VBox>

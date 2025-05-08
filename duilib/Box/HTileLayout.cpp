@@ -1,7 +1,7 @@
 #include "HTileLayout.h"
 #include "duilib/Core/Box.h"
-#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/AttributeUtil.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
 #include <numeric>
 
@@ -99,7 +99,7 @@ void HTileLayout::CalcTileRows(const std::vector<ItemSizeInfo>& normalItems, con
     }
 }
 
-UiSize64 HTileLayout::EstimateFloatSize(Control* pControl, UiRect rc)
+UiSize64 HTileLayout::EstimateFloatSize(Control* pControl, const UiRect& rc)
 {
     ASSERT(pControl != nullptr);
     if ((pControl == nullptr) || !pControl->IsVisible()) {

@@ -193,12 +193,11 @@ private:
                                     bool isCalcOnly) const;
 
 private:
+    //子项大小, 该宽度和高度，是包含了控件的外边距和内边距的
+    UiSize m_szItem;
 
     //显示几列数据
     int32_t m_nColumns;
-
-    //子项大小, 该宽度和高度，是包含了控件的外边距和内边距的
-    UiSize m_szItem;
 
     //自动计算列数
     bool m_bAutoCalcColumns;
