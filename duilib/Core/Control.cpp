@@ -1681,7 +1681,7 @@ UiSize Control::EstimateText(UiSize /*szAvailable*/)
     return UiSize(0, 0);
 }
 
-UiSize Control::EstimateImage(UiSize /*szAvailable*/)
+UiSize Control::EstimateImage(UiSize szAvailable)
 {
     UiSize imageSize;
     std::shared_ptr<ImageInfo> imageCache;
@@ -1739,6 +1739,20 @@ UiSize Control::EstimateImage(UiSize /*szAvailable*/)
             UiPadding rcPadding = imageAttribute.GetImagePadding(Dpi());
             imageSize.cx += (rcPadding.left + rcPadding.right);
             imageSize.cy += (rcPadding.top + rcPadding.bottom);
+        }
+        if (imageAttribute.m_bAdaptiveDestRect) {
+            //自动适应目标区域（等比例缩放图片）：根据图片大小，调整绘制区域
+            const int32_t nImageWidth = rcSource.Width();
+            const int32_t nImageHeight = rcSource.Height();
+            UiRect rcControlDest = UiRect(0, 0, szAvailable.cx, szAvailable.cy);
+            if (rcControlDest.Width() > 0 && rcControlDest.Height() > 0) {
+                rcControlDest = ImageAttribute::CalculateAdaptiveRect(nImageWidth, nImageHeight,
+                                                                      rcControlDest,
+                                                                      imageAttribute.m_hAlign.c_str(),
+                                                                      imageAttribute.m_vAlign.c_str());
+                imageSize.cx = rcControlDest.Width();
+                imageSize.cy = rcControlDest.Height();
+            }
         }
     }
     imageCache.reset();
