@@ -94,6 +94,25 @@ public:
     */
     virtual void EnsureVisible(UiRect rc, size_t iIndex, bool bToTop) const override;
 
+public:
+    /** 设置子项大小
+     * @param [in] szItem 子项大小数据，该宽度和高度，是包含了控件的外边距和内边距的
+     * @param [in] bArrange 当变化的时候，是否需要重排
+     */
+    void SetItemSize(UiSize szItem, bool bArrange = true);
+
+    /** 获取子项大小，该宽度和高度，是包含了控件的外边距和内边距的
+     */
+    const UiSize& GetItemSize() const;
+
+    /** 设置是否自动计算子项的高度（仅当设置为固定行时有效）
+    */
+    void SetAutoCalcItemHeight(bool bAutoCalcItemHeight);
+
+    /** 是否自动计算子项的高度
+    */
+    bool IsAutoCalcItemHeight() const;
+
 private:
     /** 获取数据项的宽度
     * @param [in] nCount 数据项个数，如果为Box::InvalidIndex，则获取所有数据项的高度总和
@@ -107,18 +126,12 @@ private:
     */
     VirtualListBox* GetOwnerBox() const;
 
-    /** 设置子项大小
-     * @param [in] szItem 子项大小数据，该宽度和高度，是包含了控件的外边距和内边距的
-     */
-    void SetItemSize(UiSize szItem);
-
-    /** 获取子项大小，该宽度和高度，是包含了控件的外边距和内边距的
-     */
-    const UiSize& GetItemSize() const;
-
 private:
     //子项大小, 该宽度和高度，是包含了控件的外边距和内边距的
     UiSize m_szItem;
+
+    //是否自动计算子项的高度（根据父控件总体高度自动适应，仅当设置为固定行时有效）
+    bool m_bAutoCalcItemHeight;
 };
 } // namespace ui
 

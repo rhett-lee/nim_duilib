@@ -5,7 +5,8 @@
 namespace ui 
 {
 
-VirtualVLayout::VirtualVLayout()
+VirtualVLayout::VirtualVLayout():
+    m_bAutoCalcItemWidth(false)
 {
 }
 
@@ -24,6 +25,12 @@ UiSize64 VirtualVLayout::ArrangeChild(const std::vector<ui::Control*>& items, ui
         return BaseClass::ArrangeChild(items, rc);
     }
     DeflatePadding(rc);
+    if (IsAutoCalcItemWidth()) {
+        //设置了固定列，并且设置了自动计算子项宽度
+        UiSize szNewItemSize = GetItemSize();
+        szNewItemSize.cx = rc.Width();
+        SetItemSize(szNewItemSize, false);
+    }
     int64_t nTotalHeight = GetElementsHeight(rc, Box::InvalidIndex);
     UiSize64 sz(rc.Width(), rc.Height());
     sz.cy = std::max(nTotalHeight, sz.cy);
@@ -39,22 +46,36 @@ UiSize VirtualVLayout::EstimateSizeByChild(const std::vector<Control*>& items, u
         return BaseClass::EstimateSizeByChild(items, szAvailable);
     }
     szAvailable.Validate();
+    UiPadding rcPadding;
+    if (GetOwner() != nullptr) {
+        rcPadding = GetOwner()->GetPadding();
+    }
+    UiSize szAvailableLocal = szAvailable;
+    szAvailableLocal.cx -= (rcPadding.left + rcPadding.right);
+    szAvailableLocal.cy -= (rcPadding.top + rcPadding.bottom);
+    szAvailableLocal.Validate();
+
+    if (IsAutoCalcItemWidth()) {
+        //设置了固定列，并且设置了自动计算子项宽度
+        UiSize szNewItemSize = GetItemSize();
+        szNewItemSize.cx = szAvailableLocal.cx;
+        SetItemSize(szNewItemSize, false);
+    }
+
     UiEstSize estSize;
     if (GetOwner() != nullptr) {
         estSize = GetOwner()->Control::EstimateSize(szAvailable);
     }
     UiSize size(estSize.cx.GetInt32(), estSize.cy.GetInt32());
     if (estSize.cx.IsStretch()) {
-        size.cx = CalcStretchValue(estSize.cx, szAvailable.cx);
+        size.cx = CalcStretchValue(estSize.cx, szAvailableLocal.cx);
+        size.cx += (rcPadding.left + rcPadding.right);
     }
     if (estSize.cy.IsStretch()) {
-        size.cy = CalcStretchValue(estSize.cy, szAvailable.cy);
+        size.cy = CalcStretchValue(estSize.cy, szAvailableLocal.cy);
+        size.cy += (rcPadding.top + rcPadding.bottom);
     }
     if ((size.cx == 0) || (size.cy == 0)) {
-        UiPadding rcPadding;
-        if (GetOwner() != nullptr) {
-            rcPadding = GetOwner()->GetPadding();
-        }
         UiSize szItem = GetItemSize();
         szItem.cx += (rcPadding.left + rcPadding.right);
         szItem.cy += (rcPadding.top + rcPadding.bottom);
@@ -79,6 +100,9 @@ bool VirtualVLayout::SetAttribute(const DString& strName, const DString& strValu
         dpiManager.ScaleSize(szItem);
         SetItemSize(szItem);
     }
+    else if (strName == _T("auto_calc_item_size")) {
+        SetAutoCalcItemWidth(strValue == _T("true"));
+    }
     else {
         hasAttribute = VLayout::SetAttribute(strName, strValue, dpiManager);
     }
@@ -93,14 +117,14 @@ void VirtualVLayout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldD
     BaseClass::ChangeDpiScale(dpiManager, nOldDpiScale);
 }
 
-void VirtualVLayout::SetItemSize(UiSize szItem)
+void VirtualVLayout::SetItemSize(UiSize szItem, bool bArrange)
 {
     szItem.cx = std::max(szItem.cx, 0);
     szItem.cy = std::max(szItem.cy, 0);
     ASSERT((szItem.cx > 0) && (szItem.cy > 0));
     if ((m_szItem.cx != szItem.cx) || (m_szItem.cy != szItem.cy)) {
         m_szItem = szItem;
-        if (GetOwner() != nullptr) {
+        if (bArrange && (GetOwner() != nullptr)) {
             GetOwner()->Arrange();
         }       
     }
@@ -109,6 +133,21 @@ void VirtualVLayout::SetItemSize(UiSize szItem)
 const UiSize& VirtualVLayout::GetItemSize() const
 {
     return m_szItem;
+}
+
+void VirtualVLayout::SetAutoCalcItemWidth(bool bAutoCalcItemWidth)
+{
+    if (m_bAutoCalcItemWidth != bAutoCalcItemWidth) {
+        m_bAutoCalcItemWidth = bAutoCalcItemWidth;
+        if (GetOwner() != nullptr) {
+            GetOwner()->Arrange();
+        }
+    }
+}
+
+bool VirtualVLayout::IsAutoCalcItemWidth() const
+{
+    return m_bAutoCalcItemWidth;
 }
 
 int64_t VirtualVLayout::GetElementsHeight(UiRect /*rc*/, size_t nCount) const

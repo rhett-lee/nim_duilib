@@ -60,6 +60,15 @@ UiSize64 VirtualVTileLayout::ArrangeChild(const std::vector<ui::Control*>& items
         return BaseClass::ArrangeChild(items, rc);
     }
     DeflatePadding(rc);
+    if ((GetColumns() > 0) && IsAutoCalcItemWidth()) {
+        //设置了固定列，并且设置了自动计算子项宽度
+        int32_t nNewItemWidth = 0;
+        if (AutoCalcItemWidth(GetColumns(), GetChildMarginX(), rc.Width(), nNewItemWidth)) {
+            UiSize szNewItemSize = GetItemSize();
+            szNewItemSize.cx = nNewItemWidth;
+            SetItemSize(szNewItemSize, false);
+        }
+    }
     int64_t nTotalHeight = GetElementsHeight(rc, Box::InvalidIndex);
     UiSize64 sz(rc.Width(), rc.Height());
     sz.cy = std::max(nTotalHeight, sz.cy);
@@ -74,26 +83,47 @@ UiSize VirtualVTileLayout::EstimateSizeByChild(const std::vector<Control*>& item
         //如果未设置数据接口，则兼容基类的功能
         return BaseClass::EstimateSizeByChild(items, szAvailable);
     }
+    szAvailable.Validate();
+    UiPadding rcPadding;
+    if (GetOwner() != nullptr) {
+        rcPadding = GetOwner()->GetPadding();
+    }
+    UiSize szAvailableLocal = szAvailable;
+    szAvailableLocal.cx -= (rcPadding.left + rcPadding.right);
+    szAvailableLocal.cy -= (rcPadding.top + rcPadding.bottom);
+    szAvailableLocal.Validate();
+
+    if ((GetColumns() > 0) && IsAutoCalcItemWidth()) {
+        //设置了固定列，并且设置了自动计算子项宽度
+        int32_t nNewItemWidth = 0;
+        if (AutoCalcItemWidth(GetColumns(), GetChildMarginX(), szAvailableLocal.cx, nNewItemWidth)) {
+            UiSize szNewItemSize = GetItemSize();
+            szNewItemSize.cx = nNewItemWidth;
+            SetItemSize(szNewItemSize, false);
+        }
+    }
     UiSize szItem = GetItemSize();
     ASSERT((szItem.cx > 0) && (szItem.cy > 0));
     if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
         return UiSize();
-    }
-    szAvailable.Validate();
-    int32_t nColumns = CalcTileColumns(szAvailable.cx);
+    }    
+    int32_t nColumns = CalcTileColumns(szAvailableLocal.cx);
     UiEstSize estSize;
     if (GetOwner() != nullptr) {
         estSize = GetOwner()->Control::EstimateSize(szAvailable);
     }
     UiSize size(estSize.cx.GetInt32(), estSize.cy.GetInt32());
     if (estSize.cx.IsStretch()) {
-        size.cx = CalcStretchValue(estSize.cx, szAvailable.cx);
+        size.cx = CalcStretchValue(estSize.cx, szAvailableLocal.cx);
+        size.cx += (rcPadding.left + rcPadding.right);
     }
     if (estSize.cy.IsStretch()) {
-        size.cy = CalcStretchValue(estSize.cy, szAvailable.cy);
+        size.cy = CalcStretchValue(estSize.cy, szAvailableLocal.cy);
+        size.cy += (rcPadding.top + rcPadding.bottom);
     }
     if (size.cx == 0) {
         size.cx = szItem.cx * nColumns + GetChildMarginX() * (nColumns - 1);
+        size.cx += (rcPadding.left + rcPadding.right);
     }
     size.Validate();
     return size;

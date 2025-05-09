@@ -203,16 +203,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Item.h" />
+    <ClInclude Include="ListBoxForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="RichlistForm.h" />
     <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Item.cpp" />
+    <ClCompile Include="ListBoxForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
-    <ClCompile Include="RichlistForm.cpp" />
     <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
