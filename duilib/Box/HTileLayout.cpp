@@ -11,11 +11,12 @@ HTileLayout::HTileLayout():
     m_nRows(0), 
     m_szItem(0, 0),
     m_bAutoCalcRows(false),
-    m_bScaleDown(true)
+    m_bScaleDown(true),
+    m_bAutoCalcItemHeight(false)
 {
 }
 
-UiSize HTileLayout::CalcEstimateSize(Control* pControl, const UiSize& szItem, UiRect rc)
+UiSize HTileLayout::CalcEstimateSize(Control* pControl, const UiSize& szItem, const UiRect& rc)
 {
     if ((pControl == nullptr) || !pControl->IsVisible()) {
         return UiSize();
@@ -117,7 +118,7 @@ UiSize64 HTileLayout::EstimateFloatSize(Control* pControl, const UiRect& rc)
 }
 
 UiSize64 HTileLayout::ArrangeFloatChild(const std::vector<Control*>& items,
-                                       UiRect rc,
+                                       const UiRect& rc,
                                        const UiSize& szItem,
                                        bool isCalcOnly,
                                        std::vector<ItemSizeInfo>& normalItems)
@@ -327,6 +328,17 @@ UiSize64 HTileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc
         return ArrangeChildFreeLayout(items, rc, false);
     }
     else {
+        if ((GetRows() > 0) && IsAutoCalcItemHeight()) {
+            //设置了固定行，并且设置了自动计算子项高度
+            UiRect rect = rc;
+            DeflatePadding(rect); //剪去内边距，剩下的是可用区域
+            int32_t nNewItemHeight = 0;
+            if (AutoCalcItemHeight(GetRows(), GetChildMarginY(), rect.Height(), nNewItemHeight)) {
+                UiSize szNewItemSize = GetItemSize();
+                szNewItemSize.cy = nNewItemHeight;
+                SetItemSize(szNewItemSize, false);
+            }
+        }
         std::vector<int32_t> inRowHeights;
         std::vector<int32_t> outRowHeights;
         ArrangeChildNormal(items, rc, true, inRowHeights, outRowHeights);
@@ -580,6 +592,17 @@ UiSize HTileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSi
         requiredSize = ArrangeChildFreeLayout(items, rc, true);
     }
     else {
+        if ((GetRows() > 0) && IsAutoCalcItemHeight()) {
+            //设置了固定行，并且设置了自动计算子项高度
+            UiRect rect = rc;
+            DeflatePadding(rect); //剪去内边距，剩下的是可用区域
+            int32_t nNewItemHeight = 0;
+            if (AutoCalcItemHeight(GetRows(), GetChildMarginY(), rect.Height(), nNewItemHeight)) {
+                UiSize szNewItemSize = GetItemSize();
+                szNewItemSize.cy = nNewItemHeight;
+                SetItemSize(szNewItemSize, false);
+            }
+        }
         std::vector<int32_t> inRowHeights;
         std::vector<int32_t> outRowHeights;
         requiredSize = ArrangeChildNormal(items, rc, true, inRowHeights, outRowHeights);
@@ -595,7 +618,7 @@ bool HTileLayout::SetAttribute(const DString& strName, const DString& strValue, 
         UiSize szItem;
         AttributeUtil::ParseSizeValue(strValue.c_str(), szItem);
         dpiManager.ScaleSize(szItem);
-        SetItemSize(szItem);
+        SetItemSize(szItem, true);
     }
     else if ((strName == _T("columns")) || (strName == _T("rows"))) {
         if (strValue == _T("auto")) {
@@ -606,6 +629,9 @@ bool HTileLayout::SetAttribute(const DString& strName, const DString& strValue, 
             SetAutoCalcRows(false);
             SetRows(StringUtil::StringToInt32(strValue));
         }
+    }
+    else if (strName == _T("auto_calc_item_size")) {
+        SetAutoCalcItemHeight(strValue == _T("true"));
     }
     else if ((strName == _T("scale_down")) || (strName == _T("scaledown"))) {
         SetScaleDown(strValue == _T("true"));
@@ -620,7 +646,7 @@ void HTileLayout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiS
 {
     UiSize szItem = GetItemSize();
     szItem = dpiManager.GetScaleSize(szItem, nOldDpiScale);
-    SetItemSize(szItem);
+    SetItemSize(szItem, true);
     BaseClass::ChangeDpiScale(dpiManager, nOldDpiScale);
 }
 
@@ -629,13 +655,13 @@ const UiSize& HTileLayout::GetItemSize() const
     return m_szItem;
 }
 
-void HTileLayout::SetItemSize(UiSize szItem)
+void HTileLayout::SetItemSize(UiSize szItem, bool bArrange)
 {
     szItem.cx = std::max(szItem.cx, 0);
     szItem.cy = std::max(szItem.cy, 0);
     if( (m_szItem.cx != szItem.cx) || (m_szItem.cy != szItem.cy) ) {
         m_szItem = szItem;
-        if (GetOwner() != nullptr) {
+        if (bArrange && (GetOwner() != nullptr)) {
             GetOwner()->Arrange();
         }        
     }
@@ -685,6 +711,33 @@ void HTileLayout::SetScaleDown(bool bScaleDown)
 bool HTileLayout::IsScaleDown() const
 {
     return m_bScaleDown;
+}
+
+void HTileLayout::SetAutoCalcItemHeight(bool bAutoCalcItemHeight)
+{
+    if (m_bAutoCalcItemHeight != bAutoCalcItemHeight) {
+        m_bAutoCalcItemHeight = bAutoCalcItemHeight;
+        if (GetOwner() != nullptr) {
+            GetOwner()->Arrange();
+        }
+    }
+}
+
+bool HTileLayout::IsAutoCalcItemHeight() const
+{
+    return m_bAutoCalcItemHeight;
+}
+
+bool HTileLayout::AutoCalcItemHeight(int32_t nRows, int32_t nMarginY, int32_t szAvailable, int32_t& nItemHeight) const
+{
+    if ((nRows < 1) || (szAvailable < 1)) {
+        return false;
+    }
+    if (nMarginY < 0) {
+        nMarginY = 0;
+    }
+    nItemHeight = (szAvailable - (nRows - 1) * nMarginY) / nRows;
+    return nItemHeight > 0;
 }
 
 } // namespace ui

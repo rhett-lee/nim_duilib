@@ -6,7 +6,7 @@
 namespace ui 
 {
 
-/** 瓦片布局
+/** 瓦片布局(纵向)
 */
 class UILIB_API VTileLayout : public Layout
 {
@@ -59,8 +59,9 @@ public:
 
     /** 设置子项大小
      * @param[in] szItem 子项大小数据，该宽度和高度，是包含了控件的外边距和内边距的
+     * @param [in] bArrange 当变化的时候，是否需要重排
      */
-    void SetItemSize(UiSize szItem);
+    void SetItemSize(UiSize szItem, bool bArrange = true);
 
     /** 获取列数量
      */
@@ -87,9 +88,21 @@ public:
     */
     bool IsScaleDown() const;
 
+    /** 设置是否自动计算子项的宽度（仅当设置为固定列时有效）
+    */
+    void SetAutoCalcItemWidth(bool bAutoCalcItemWidth);
+
+    /** 是否自动计算子项的宽度
+    */
+    bool IsAutoCalcItemWidth() const;
+
     /** 当前是否为自由布局
     */
     bool IsFreeLayout() const;
+
+    /** 计算子项的宽度
+    */
+    bool AutoCalcItemWidth(int32_t nColumns, int32_t nMarginX, int32_t szAvailable, int32_t& nItemWidth) const;
 
 private:
     /** 未处理的子控件接口和其宽高信息
@@ -97,8 +110,8 @@ private:
     struct ItemSizeInfo
     {
         Control* pControl = nullptr; //子控件接口
-        int32_t cx = 0;                 //子控件的宽度
-        int32_t cy = 0;                 //子控件的高度
+        int32_t cx = 0;              //子控件的宽度
+        int32_t cy = 0;              //子控件的高度
     };
 
     /** 获取估算大小时的可用宽高
@@ -204,6 +217,9 @@ private:
 
     //当控件内容超出边界时，按比例缩小，以使控件内容完全显示在瓦片区域内
     bool m_bScaleDown;
+
+    //是否自动计算子项的宽度（根据父控件总体宽度自动适应，仅当设置为固定列时有效）
+    bool m_bAutoCalcItemWidth;
 };
 
 } // namespace ui

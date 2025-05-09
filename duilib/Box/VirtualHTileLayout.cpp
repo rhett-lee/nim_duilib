@@ -60,6 +60,15 @@ UiSize64 VirtualHTileLayout::ArrangeChild(const std::vector<ui::Control*>& items
         return BaseClass::ArrangeChild(items, rc);
     }
     DeflatePadding(rc);
+    if ((GetRows() > 0) && IsAutoCalcItemHeight()) {
+        //设置了固定行，并且设置了自动计算子项高度
+        int32_t nNewItemHeight = 0;
+        if (AutoCalcItemHeight(GetRows(), GetChildMarginY(), rc.Height(), nNewItemHeight)) {
+            UiSize szNewItemSize = GetItemSize();
+            szNewItemSize.cy = nNewItemHeight;
+            SetItemSize(szNewItemSize, false);
+        }
+    }
     int64_t nTotalWidth = GetElementsWidth(rc, Box::InvalidIndex);
     UiSize64 sz(rc.Width(), rc.Height());
     sz.cx = std::max(nTotalWidth, sz.cx);
@@ -74,12 +83,30 @@ UiSize VirtualHTileLayout::EstimateSizeByChild(const std::vector<Control*>& item
         //如果未设置数据接口，则兼容基类的功能
         return BaseClass::EstimateSizeByChild(items, szAvailable);
     }
+    szAvailable.Validate();
+    UiPadding rcPadding;
+    if (GetOwner() != nullptr) {
+        rcPadding = GetOwner()->GetPadding();
+    }
+    UiSize szAvailableLocal = szAvailable;
+    szAvailableLocal.cx -= (rcPadding.left + rcPadding.right);
+    szAvailableLocal.cy -= (rcPadding.top + rcPadding.bottom);
+    szAvailableLocal.Validate();
+
+    if ((GetRows() > 0) && IsAutoCalcItemHeight()) {
+        //设置了固定行，并且设置了自动计算子项高度
+        int32_t nNewItemHeight = 0;
+        if (AutoCalcItemHeight(GetRows(), GetChildMarginY(), szAvailableLocal.cy, nNewItemHeight)) {
+            UiSize szNewItemSize = GetItemSize();
+            szNewItemSize.cy = nNewItemHeight;
+            SetItemSize(szNewItemSize, false);
+        }
+    }
     UiSize szItem = GetItemSize();
     ASSERT((szItem.cx > 0) && (szItem.cy > 0));
     if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
         return UiSize();
-    }
-    szAvailable.Validate();
+    }    
     int32_t nRows = CalcTileRows(szAvailable.cy);
     UiEstSize estSize;
     if (GetOwner() != nullptr) {
@@ -87,13 +114,16 @@ UiSize VirtualHTileLayout::EstimateSizeByChild(const std::vector<Control*>& item
     }
     UiSize size(estSize.cx.GetInt32(), estSize.cy.GetInt32());
     if (estSize.cx.IsStretch()) {
-        size.cx = CalcStretchValue(estSize.cx, szAvailable.cx);
+        size.cx = CalcStretchValue(estSize.cx, szAvailableLocal.cx);
+        size.cx += (rcPadding.left + rcPadding.right);
     }
     if (estSize.cy.IsStretch()) {
-        size.cy = CalcStretchValue(estSize.cy, szAvailable.cy);
+        size.cy = CalcStretchValue(estSize.cy, szAvailableLocal.cy);
+        size.cy += (rcPadding.top + rcPadding.bottom);
     }
     if (size.cy == 0) {
         size.cy = szItem.cy * nRows + GetChildMarginY() * (nRows - 1);
+        size.cy += (rcPadding.top + rcPadding.bottom);
     }
     size.Validate();
     return size;

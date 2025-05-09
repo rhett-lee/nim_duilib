@@ -11,7 +11,8 @@ VTileLayout::VTileLayout():
     m_nColumns(0), 
     m_szItem(0, 0),
     m_bAutoCalcColumns(false),
-    m_bScaleDown(true)
+    m_bScaleDown(true),
+    m_bAutoCalcItemWidth(false)
 {
 }
 
@@ -327,6 +328,17 @@ UiSize64 VTileLayout::ArrangeChild(const std::vector<Control*>& items, UiRect rc
         return ArrangeChildFreeLayout(items, rc, false);
     }
     else {
+        if ((GetColumns() > 0) && IsAutoCalcItemWidth()) {
+            //设置了固定列，并且设置了自动计算子项宽度
+            UiRect rect = rc;
+            DeflatePadding(rect); //剪去内边距，剩下的是可用区域
+            int32_t nNewItemWidth = 0;
+            if (AutoCalcItemWidth(GetColumns(), GetChildMarginX(), rect.Width(), nNewItemWidth)) {
+                UiSize szNewItemSize = GetItemSize();
+                szNewItemSize.cx = nNewItemWidth;
+                SetItemSize(szNewItemSize, false);
+            }
+        }
         std::vector<int32_t> inColumnWidths;
         std::vector<int32_t> outColumnWidths;
         ArrangeChildNormal(items, rc, true, inColumnWidths, outColumnWidths);
@@ -580,6 +592,17 @@ UiSize VTileLayout::EstimateSizeByChild(const std::vector<Control*>& items, UiSi
         requiredSize = ArrangeChildFreeLayout(items, rc, true);
     }
     else {
+        if ((GetColumns() > 0) && IsAutoCalcItemWidth()) {
+            //设置了固定列，并且设置了自动计算子项宽度
+            UiRect rect = rc;
+            DeflatePadding(rect); //剪去内边距，剩下的是可用区域
+            int32_t nNewItemWidth = 0;
+            if (AutoCalcItemWidth(GetColumns(), GetChildMarginX(), rect.Width(), nNewItemWidth)) {
+                UiSize szNewItemSize = GetItemSize();
+                szNewItemSize.cx = nNewItemWidth;
+                SetItemSize(szNewItemSize, false);
+            }
+        }
         std::vector<int32_t> inColumnWidths;
         std::vector<int32_t> outColumnWidths;
         requiredSize = ArrangeChildNormal(items, rc, true, inColumnWidths, outColumnWidths);
@@ -595,7 +618,7 @@ bool VTileLayout::SetAttribute(const DString& strName, const DString& strValue, 
         UiSize szItem;
         AttributeUtil::ParseSizeValue(strValue.c_str(), szItem);
         dpiManager.ScaleSize(szItem);
-        SetItemSize(szItem);
+        SetItemSize(szItem, true);
     }
     else if( (strName == _T("columns")) || (strName == _T("rows"))) {
         if (strValue == _T("auto")) {
@@ -606,6 +629,9 @@ bool VTileLayout::SetAttribute(const DString& strName, const DString& strValue, 
             SetAutoCalcColumns(false);
             SetColumns(StringUtil::StringToInt32(strValue));
         }
+    }
+    else if (strName == _T("auto_calc_item_size")) {
+        SetAutoCalcItemWidth(strValue == _T("true"));
     }
     else if ((strName == _T("scale_down")) || (strName == _T("scaledown"))) {
         SetScaleDown(strValue == _T("true"));
@@ -620,7 +646,7 @@ void VTileLayout::ChangeDpiScale(const DpiManager& dpiManager, uint32_t nOldDpiS
 {
     UiSize szItem = GetItemSize();
     szItem = dpiManager.GetScaleSize(szItem, nOldDpiScale);
-    SetItemSize(szItem);
+    SetItemSize(szItem, true);
     BaseClass::ChangeDpiScale(dpiManager, nOldDpiScale);
 }
 
@@ -629,13 +655,13 @@ const UiSize& VTileLayout::GetItemSize() const
     return m_szItem;
 }
 
-void VTileLayout::SetItemSize(UiSize szItem)
+void VTileLayout::SetItemSize(UiSize szItem, bool bArrange)
 {
     szItem.cx = std::max(szItem.cx, 0);
     szItem.cy = std::max(szItem.cy, 0);
     if( (m_szItem.cx != szItem.cx) || (m_szItem.cy != szItem.cy) ) {
         m_szItem = szItem;
-        if (GetOwner() != nullptr) {
+        if (bArrange && (GetOwner() != nullptr)) {
             GetOwner()->Arrange();
         }        
     }
@@ -685,6 +711,33 @@ void VTileLayout::SetScaleDown(bool bScaleDown)
 bool VTileLayout::IsScaleDown() const
 {
     return m_bScaleDown;
+}
+
+void VTileLayout::SetAutoCalcItemWidth(bool bAutoCalcItemWidth)
+{
+    if (m_bAutoCalcItemWidth != bAutoCalcItemWidth) {
+        m_bAutoCalcItemWidth = bAutoCalcItemWidth;
+        if (GetOwner() != nullptr) {
+            GetOwner()->Arrange();
+        }
+    }
+}
+
+bool VTileLayout::IsAutoCalcItemWidth() const
+{
+    return m_bAutoCalcItemWidth;
+}
+
+bool VTileLayout::AutoCalcItemWidth(int32_t nColumns, int32_t nMarginX, int32_t szAvailable, int32_t& nItemWidth) const
+{
+    if ((nColumns < 1) || (szAvailable < 1)) {
+        return false;
+    }
+    if (nMarginX < 0) {
+        nMarginX = 0;
+    }
+    nItemWidth  = (szAvailable - (nColumns - 1) * nMarginX) / nColumns;
+    return nItemWidth > 0;
 }
 
 } // namespace ui

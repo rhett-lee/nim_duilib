@@ -1,14 +1,14 @@
-#ifndef EXAMPLES_RICHLIST_FORM_H_
-#define EXAMPLES_RICHLIST_FORM_H_
+#ifndef EXAMPLES_LISTBOX_FORM_H_
+#define EXAMPLES_LISTBOX_FORM_H_
 
 // duilib
 #include "duilib/duilib.h"
 
-class RichlistForm : public ui::WindowImplBase
+class ListBoxForm : public ui::WindowImplBase
 {
 public:
-    RichlistForm();
-    virtual ~RichlistForm() override;
+    ListBoxForm();
+    virtual ~ListBoxForm() override;
 
     /** 资源相关接口
      * GetSkinFolder 接口设置你要绘制的窗口皮肤资源路径
@@ -28,4 +28,4 @@ private:
     ui::ListBox* m_pListBox;
 };
 
-#endif //EXAMPLES_RICHLIST_FORM_H_
+#endif //EXAMPLES_LISTBOX_FORM_H_
