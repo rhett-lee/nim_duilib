@@ -20,25 +20,34 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #define STBIR_DEFAULT_FILTER_UPSAMPLE STBIR_FILTER_TRIANGLE
 #pragma warning (disable: 4505)
-#include "duilib/third_party/stb_image/stb_image_resize2.h"
+    #include "duilib/third_party/stb_image/stb_image_resize2.h"
 #pragma warning (pop)
 
 #pragma warning (push)
 #pragma warning (disable: 4456 4244 4702)
 #define NANOSVG_IMPLEMENTATION
 #define NANOSVG_ALL_COLOR_KEYWORDS
-#include "duilib/third_party/svg/nanosvg.h"
+    #include "duilib/third_party/svg/nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
-#include "duilib/third_party/svg/nanosvgrast.h"
+    #include "duilib/third_party/svg/nanosvgrast.h"
 #pragma warning (pop)
 
 #pragma warning (push)
 #pragma warning (disable: 4996)
-#include "duilib/third_party/cximage/ximage.h"
+    #include "duilib/third_party/cximage/ximage.h"
 #pragma warning (pop)
 
 #include "duilib/third_party/libwebp/src/webp/decode.h"
 #include "duilib/third_party/libwebp/src/webp/demux.h"
+
+#pragma warning (push)
+#pragma warning (disable: 4244 4267)
+    #include "modules/svg/include/SkSVGDOM.h"
+    #include "modules/svg/include/SkSVGRenderContext.h"
+    #include "include/core/SkStream.h"
+    #include "include/core/SkBitmap.h"
+    #include "include/core/SkCanvas.h"
+#pragma warning (pop)
 
 #include "duilib/Utils/PerformanceUtil.h"
 
@@ -252,9 +261,9 @@ namespace APNGImageLoader
     }
 }//APNGImageLoader
 
-/** 加载SVG图片
+/** 加载SVG图片(NanoSvg)
 */
-namespace SVGImageLoader
+namespace NanoSvgImageLoader
 {
     class SvgDeleter
     {
@@ -267,6 +276,37 @@ namespace SVGImageLoader
     public:
         inline void operator()(NSVGrasterizer* x) const { nsvgDeleteRasterizer(x); }
     };
+
+    /** 获取Svg图片的宽度和高度(仅解析xml，无渲染，速度快)
+    */
+    bool ImageSizeFromMemory(std::vector<uint8_t>& fileData, int32_t& nSvgImageWidth, int32_t& nSvgImageHeight)
+    {
+        ASSERT(!fileData.empty());
+        if (fileData.empty()) {
+            return false;
+        }
+        bool hasAppended = false;
+        if (fileData.back() != '\0') {
+            //确保是含尾0的字符串，避免越界访问内存
+            fileData.push_back('\0');
+            hasAppended = true;
+        }
+        char* pData = (char*)fileData.data();
+        NSVGimage* svgData = nsvgParse(pData, "px", 96.0f);//传入"px"时，第三个参数dpi是不起作用的。
+        if (hasAppended) {
+            fileData.pop_back();
+        }
+
+        std::unique_ptr<NSVGimage, SvgDeleter> svg((NSVGimage*)svgData);
+        int width = (int)(svg->width + 0.5f);
+        int height = (int)(svg->height + 0.5f);
+        if (width <= 0 || height <= 0) {
+            return false;
+        }
+        nSvgImageWidth = width;
+        nSvgImageHeight = height;
+        return true;
+    }
 
     /** 从内存数据加载svg图片
     * @param [in] fileData 图片文件的数据，部分格式加载过程中内部有增加尾0的写操作
@@ -301,8 +341,8 @@ namespace SVGImageLoader
         }
 
         std::unique_ptr<NSVGimage, SvgDeleter> svg((NSVGimage*)svgData);
-        int width = (int)svg->width;
-        int height = (int)svg->height;
+        int width = (int)(svg->width + 0.5f);
+        int height = (int)(svg->height + 0.5f);
         if (width <= 0 || height <= 0) {
             return false;
         }
@@ -356,7 +396,98 @@ namespace SVGImageLoader
         imageData.m_imageHeight = height;
         return true;
     }
-} //SVGImageLoader
+} //NanoSvgImageLoader
+
+/** 加载SVG图片(Skia库的svg引擎，兼容性更好，功能更丰富)
+*/
+namespace SkiaSvgImageLoader
+{
+    /** 从内存数据加载svg图片
+    * @param [in] fileData 图片文件的数据，部分格式加载过程中内部有增加尾0的写操作
+    * @param [in] imageLoadAttribute 图片加载属性, 包括图片路径等
+    * @param [in] bEnableDpiScale 是否允许按照DPI对图片大小进行缩放（此为功能开关）
+    * @param [in] nImageDpiScale 图片数据对应的DPI缩放百分比（比如：i.jpg为100，i@150.jpg为150）
+    * @param [in] nWindowDpiScale 显示目标窗口的DPI缩放百分比
+    */
+    bool LoadImageFromMemory(std::vector<uint8_t>& fileData,
+                             const ImageLoadAttribute& imageLoadAttribute,
+                             bool bEnableDpiScale,
+                             uint32_t nImageDpiScale,
+                             uint32_t nWindowDpiScale,
+                             ImageDecoder::ImageData& imageData,
+                             bool& bDpiScaled)
+    {
+        ASSERT(!fileData.empty());
+        if (fileData.empty()) {
+            return false;
+        }
+
+        bDpiScaled = false;
+        std::unique_ptr<SkMemoryStream> spMemStream = SkMemoryStream::MakeDirect(fileData.data(), fileData.size());
+        ASSERT(spMemStream != nullptr);
+        if (spMemStream == nullptr) {
+            return false;
+        }
+        sk_sp<SkSVGDOM> svgDom = SkSVGDOM::MakeFromStream(*spMemStream);
+        ASSERT(svgDom != nullptr);
+        if (svgDom == nullptr) {
+            return false;
+        }
+        ASSERT(svgDom->getRoot() != nullptr);
+        if (svgDom->getRoot() == nullptr) {
+            return false;
+        }
+        spMemStream.reset();
+
+        SkSize svgSize = svgDom->getRoot()->intrinsicSize(SkSVGLengthContext(SkSize::Make(0, 0)));
+
+        //使用NanoSvg计算图片的宽度和高度（Skia的Svg封装没有提供相关功能）
+        int32_t nSvgImageWidth = int32_t(svgSize.width() + 0.5f);
+        int32_t nSvgImageHeight = int32_t(svgSize.height() + 0.5f);
+        if ((nSvgImageWidth < 1) || (nSvgImageHeight < 1)) {
+            //如果图片中没有直接定义宽和高，利用NanoSvg库获取
+            if (!NanoSvgImageLoader::ImageSizeFromMemory(fileData, nSvgImageWidth, nSvgImageHeight)) {
+                return false;
+            }
+        }
+
+        if ((nSvgImageWidth < 1) || (nSvgImageHeight < 1)) {
+            return false;
+        }
+
+        //计算缩放后的大小
+        uint32_t nImageWidth = (uint32_t)nSvgImageWidth;
+        uint32_t nImageHeight = (uint32_t)nSvgImageHeight;
+        ImageLoader::CalcImageLoadSize(imageLoadAttribute,
+                                       bEnableDpiScale, nImageDpiScale, nWindowDpiScale, bDpiScaled,
+                                       nImageWidth, nImageHeight);
+        if ((nImageWidth < 1) || (nImageHeight < 1)) {
+            return false;
+        }
+
+        //设置容器大小与图片大小一致(图片大小为DPI缩放后的大小)
+        svgDom->getRoot()->setWidth(SkSVGLength((SkScalar)nImageWidth, SkSVGLength::Unit::kPX));
+        svgDom->getRoot()->setHeight(SkSVGLength((SkScalar)nImageHeight, SkSVGLength::Unit::kPX));
+        svgDom->setContainerSize(SkSize::Make(SkISize((int32_t)nImageWidth, (int32_t)nImageHeight)));
+
+        SkBitmap skBitmap;
+        SkImageInfo info = SkImageInfo::MakeN32Premul((int32_t)nImageWidth, (int32_t)nImageHeight);
+        skBitmap.allocPixels(info);
+        SkCanvas canvas(skBitmap);
+        svgDom->render(&canvas);
+
+        constexpr const int dataSize = 4;
+        std::vector<uint8_t>& bitmapData = imageData.m_bitmapData;
+        bitmapData.resize((size_t)nImageHeight * nImageWidth * dataSize);
+        ::memcpy(bitmapData.data(), skBitmap.getPixels(), (size_t)nImageHeight * nImageWidth * dataSize);
+        
+        imageData.m_frameInterval = 0;
+        imageData.bFlipHeight = true;
+        imageData.m_imageWidth = nImageWidth;
+        imageData.m_imageHeight = nImageHeight;
+        return true;
+    }
+} //SkiaSvgImageLoader
 
 /** 使用cximage加载图片（只支持GIF和ICO）两种格式
 * @param [in] isIconFile 如果为true表示是ICO文件，否则为GIF文件
@@ -823,9 +954,9 @@ bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
     case ImageFormat::kSVG:
         //SVG是矢量图，所以需要在加载过程中处理图片缩放，确保图片的质量是最高的
         imageData.resize(1);
-        isLoaded = SVGImageLoader::LoadImageFromMemory(fileData, imageLoadAttribute, 
-                                                       bEnableDpiScale, nImageDpiScale, nWindowDpiScale,
-                                                       imageData[0], bDpiScaled);
+        isLoaded = SkiaSvgImageLoader::LoadImageFromMemory(fileData, imageLoadAttribute,
+                                                           bEnableDpiScale, nImageDpiScale, nWindowDpiScale,
+                                                           imageData[0], bDpiScaled);
         break;
     case ImageFormat::kJPEG:
     case ImageFormat::kBMP:
