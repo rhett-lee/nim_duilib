@@ -45,7 +45,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/bin/")
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 if(UNIX AND NOT APPLE)
-    target_link_libraries(${PROJECT_NAME} duilib SDL3 skia duilib-cximage duilib-webp duilib-png duilib-zlib freetype fontconfig pthread dl)
+    target_link_libraries(${PROJECT_NAME} duilib SDL3 svg skia skshaper duilib-cximage duilib-webp duilib-png duilib-zlib freetype fontconfig pthread dl)
 endif()
 
 # macOS 特殊配置
@@ -64,7 +64,7 @@ if(APPLE)
     # 链接库（注意顺序！）
   target_link_libraries(${PROJECT_NAME}
   # 第三方库（按依赖顺序）
-  duilib duilib-cximage duilib-webp duilib-png duilib-zlib SDL3 skia Freetype::Freetype Fontconfig::Fontconfig
+  duilib duilib-cximage duilib-webp duilib-png duilib-zlib SDL3 svg skia skshaper Freetype::Freetype Fontconfig::Fontconfig
   # 系统库
   ${ACCELERATE} ${COREFOUNDATION} ${CORETEXT} ${COREGRAPHICS} pthread dl
   # 显式框架声明（必须放在最后）

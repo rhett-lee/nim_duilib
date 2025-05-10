@@ -47,4 +47,4 @@ link_directories("${SDL_SRC_ROOT_DIR}/lib/")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/bin/")
 
 add_executable(${PROJECT_NAME} ${SRC_FILES} ${SRC_BROWSER_FILES} ${SRC_CONTROL_FILES})
-target_link_libraries(${PROJECT_NAME} duilib SDL3 skia duilib-cximage duilib-webp duilib-png duilib-zlib cef_dll_wrapper freetype fontconfig pthread dl libcef.so X11)
+target_link_libraries(${PROJECT_NAME} duilib SDL3 svg skia skshaper duilib-cximage duilib-webp duilib-png duilib-zlib cef_dll_wrapper freetype fontconfig pthread dl libcef.so X11)
