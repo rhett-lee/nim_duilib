@@ -440,10 +440,16 @@ namespace SkiaSvgImageLoader
         spMemStream.reset();
 
         SkSize svgSize = svgDom->getRoot()->intrinsicSize(SkSVGLengthContext(SkSize::Make(0, 0)));
-
         //使用NanoSvg计算图片的宽度和高度（Skia的Svg封装没有提供相关功能）
         int32_t nSvgImageWidth = int32_t(svgSize.width() + 0.5f);
         int32_t nSvgImageHeight = int32_t(svgSize.height() + 0.5f);
+        if ((nSvgImageWidth < 1) || (nSvgImageHeight < 1)) {
+            auto viewBox = svgDom->getRoot()->getViewBox();
+            if (viewBox.isValid()) {
+                nSvgImageWidth = int32_t(viewBox->width() + 0.5f);
+                nSvgImageHeight = int32_t(viewBox->height() + 0.5f);
+            }
+        }
         if ((nSvgImageWidth < 1) || (nSvgImageHeight < 1)) {
             //如果图片中没有直接定义宽和高，利用NanoSvg库获取
             if (!NanoSvgImageLoader::ImageSizeFromMemory(fileData, nSvgImageWidth, nSvgImageHeight)) {
