@@ -450,6 +450,13 @@ namespace SkiaSvgImageLoader
                 nSvgImageHeight = int32_t(viewBox->height() + 0.5f);
             }
         }
+        else {
+            //如果viewBox不存在，则设置一个，否则图片缩放时存在异常（此处逻辑保持与NanoSvg保持一致）
+            auto viewBox = svgDom->getRoot()->getViewBox();
+            if (!viewBox.isValid()) {
+                svgDom->getRoot()->setViewBox(SkRect::MakeIWH(nSvgImageWidth, nSvgImageHeight));
+            }
+        }
         if ((nSvgImageWidth < 1) || (nSvgImageHeight < 1)) {
             //如果图片中没有直接定义宽和高，利用NanoSvg库获取
             if (!NanoSvgImageLoader::ImageSizeFromMemory(fileData, nSvgImageWidth, nSvgImageHeight)) {
