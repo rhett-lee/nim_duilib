@@ -484,7 +484,11 @@ namespace SkiaSvgImageLoader
         svgDom->setContainerSize(SkSize::Make(SkISize((int32_t)nImageWidth, (int32_t)nImageHeight)));
 
         SkBitmap skBitmap;
-        SkImageInfo info = SkImageInfo::MakeN32Premul((int32_t)nImageWidth, (int32_t)nImageHeight);
+#ifdef DUILIB_BUILD_FOR_WIN
+        SkImageInfo info = SkImageInfo::Make((int32_t)nImageWidth, (int32_t)nImageHeight, SkColorType::kN32_SkColorType, SkAlphaType::kPremul_SkAlphaType);
+#else
+        SkImageInfo info = SkImageInfo::Make((int32_t)nImageWidth, (int32_t)nImageHeight, SkColorType::kRGBA_8888_SkColorType, SkAlphaType::kPremul_SkAlphaType);
+#endif
         skBitmap.allocPixels(info);
         SkCanvas canvas(skBitmap);
         svgDom->render(&canvas);
