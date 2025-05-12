@@ -535,7 +535,32 @@ void PlaceHolder::SetRect(const UiRect& rc)
         //区域变化，标注绘制缓存脏标记位
         SetCacheDirty(true);
     }
-    m_uiRect = rc;    
+    m_uiRect = rc;
+    if ((GetParent() != nullptr) && IsFloat()) {
+        //浮动控件，则需要记录和父控件相对位置和大小
+        UiRect rcParent = GetParent()->GetRect();
+        UiPadding rcPadding = GetParent()->GetPadding();
+        UiMargin rcMargin = GetMargin();
+        m_uiRelativePos.cx = rc.left - rcParent.left;
+        m_uiRelativePos.cy = rc.top - rcParent.top;
+
+        m_uiRelativePos.cx -= (rcPadding.left + rcPadding.right);
+        m_uiRelativePos.cx -= (rcMargin.left + rcMargin.right);
+
+        m_uiRelativePos.cy -= (rcPadding.top + rcPadding.bottom);
+        m_uiRelativePos.cy -= (rcMargin.top + rcMargin.bottom);
+    }
+    else {
+        m_uiRelativePos.Clear();
+    }
+}
+
+UiSize PlaceHolder::GetRelativePos() const
+{
+    if (IsFloat()) {
+        return m_uiRelativePos;
+    }
+    return UiSize();
 }
 
 void PlaceHolder::Invalidate()
