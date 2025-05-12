@@ -128,6 +128,10 @@ public:
      */
     void SetFloat(bool bFloat);
 
+    /** 获取与父控件的相对位置(仅当控件为浮动控件时有效)
+    */
+    UiSize GetRelativePos() const;
+
 public:
     /** 获取控件设置的宽度和高度，宽高均包含内边距，但均不包含外边距
     */
@@ -400,6 +404,9 @@ private:
 
     //控件位置与大小
     UiRect m_uiRect;
+
+    //获取与父控件的相对位置(仅当控件为浮动控件时有效)
+    UiSize m_uiRelativePos;
 
     //外部设置的控件大小
     UiFixedSize m_cxyFixed;

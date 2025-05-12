@@ -100,7 +100,7 @@ void Box::SetPos(UiRect rc)
     Control::SetPos(rc);
     if (m_pLayout != nullptr) {
         m_pLayout->ArrangeChild(m_items, rc);    
-    }    
+    }
 }
 
 UiRect Box::GetPosWithoutPadding() const
