@@ -1212,7 +1212,7 @@ int32_t ListCtrlData::GetSubItemSortGroup(size_t itemIndex, size_t columnId) con
     return pStorage->nSortGroup;
 }
 
-bool ListCtrlData::SetSubItemUserDataN(size_t itemIndex, size_t columnId, size_t userDataN)
+bool ListCtrlData::SetSubItemUserDataN(size_t itemIndex, size_t columnId, uint64_t userDataN)
 {
     StoragePtr pStorage = GetSubItemStorageForWrite(itemIndex, columnId);
     ASSERT(pStorage != nullptr);
@@ -1227,7 +1227,7 @@ bool ListCtrlData::SetSubItemUserDataN(size_t itemIndex, size_t columnId, size_t
     return true;
 }
 
-size_t ListCtrlData::GetSubItemUserDataN(size_t itemIndex, size_t columnId) const
+uint64_t ListCtrlData::GetSubItemUserDataN(size_t itemIndex, size_t columnId) const
 {
     StoragePtr pStorage = GetSubItemStorage(itemIndex, columnId);
     ASSERT(pStorage != nullptr);

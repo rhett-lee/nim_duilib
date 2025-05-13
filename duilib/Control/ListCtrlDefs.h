@@ -56,7 +56,7 @@ struct ListCtrlSubItemData
     int32_t nImageId = -1;          //图标资源Id，如果为-1表示不显示图标
     UiColor textColor;              //文本颜色
     UiColor bkColor;                //背景颜色
-    size_t userDataN = 0;           //用户自定义数据(整型)
+    uint64_t userDataN = 0;         //用户自定义数据(整型)
     UiString userDataS;             //用户自定义数据(字符串类型)
     int32_t nSortGroup = 0;         //所属分组（比如文件夹和文件可分为两组，排序后，文件夹和文件是分开的）
     bool bShowCheckBox = false;     //是否显示CheckBox
@@ -75,7 +75,7 @@ struct ListCtrlSubItemData2
     uint16_t nTextFormat = 0;       //文本对齐方式等属性, 该属性仅应用于Header, 取值可参考：IRender.h中的DrawStringFormat，如果为-1，表示按默认配置的对齐方式
     bool bShowCheckBox = false;     //是否显示CheckBox  
     bool bChecked = false;          //是否处于勾选状态（CheckBox勾选状态）
-    size_t userDataN = 0;           //用户自定义数据(整型)
+    uint64_t userDataN = 0;         //用户自定义数据(整型)
     UiString userDataS;             //用户自定义数据(字符串类型)
     int32_t nSortGroup = 0;         //所属分组（比如文件夹和文件可分为两组，排序后，文件夹和文件是分开的）
     bool bEditable = false;         //是否可编辑

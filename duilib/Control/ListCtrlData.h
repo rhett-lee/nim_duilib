@@ -335,14 +335,14 @@ public:
     * @param [in] columnId 列的ID
     * @param [in] userDataN 需要设置的数据项关联的整型数据
     */
-    bool SetSubItemUserDataN(size_t itemIndex, size_t columnId, size_t userDataN);
+    bool SetSubItemUserDataN(size_t itemIndex, size_t columnId, uint64_t userDataN);
 
     /** 获取指定数据项的关联用户数据（整型）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())
     * @param [in] columnId 列的ID
     * @return 数据项关联的整型数据
     */
-    size_t GetSubItemUserDataN(size_t itemIndex, size_t columnId) const;
+    uint64_t GetSubItemUserDataN(size_t itemIndex, size_t columnId) const;
 
     /** 设置指定数据项的关联用户数据（整型）
     * @param [in] itemIndex 数据项的索引号, 有效范围：[0, GetDataItemCount())

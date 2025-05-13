@@ -1677,22 +1677,22 @@ int32_t ListCtrl::GetSubItemGroupById(size_t itemIndex, size_t columnId) const
     return m_pData->GetSubItemSortGroup(itemIndex, columnId);
 }
 
-bool ListCtrl::SetSubItemUserDataN(size_t itemIndex, size_t columnIndex, size_t userDataN)
+bool ListCtrl::SetSubItemUserDataN(size_t itemIndex, size_t columnIndex, uint64_t userDataN)
 {
     return SetSubItemUserDataNById(itemIndex, GetColumnId(columnIndex), userDataN);
 }
 
-bool ListCtrl::SetSubItemUserDataNById(size_t itemIndex, size_t columnId, size_t userDataN)
+bool ListCtrl::SetSubItemUserDataNById(size_t itemIndex, size_t columnId, uint64_t userDataN)
 {
     return m_pData->SetSubItemUserDataN(itemIndex, columnId, userDataN);
 }
 
-size_t ListCtrl::GetSubItemUserDataN(size_t itemIndex, size_t columnIndex) const
+uint64_t ListCtrl::GetSubItemUserDataN(size_t itemIndex, size_t columnIndex) const
 {
     return GetSubItemUserDataNById(itemIndex, GetColumnId(columnIndex));
 }
 
-size_t ListCtrl::GetSubItemUserDataNById(size_t itemIndex, size_t columnId) const
+uint64_t ListCtrl::GetSubItemUserDataNById(size_t itemIndex, size_t columnId) const
 {
     return m_pData->GetSubItemUserDataN(itemIndex, columnId);
 }
