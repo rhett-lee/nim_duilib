@@ -91,12 +91,16 @@ UiSize64 Layout::SetFloatPos(Control* pControl, const UiRect& rcContainer)
     }
 
     UiRect childPos = GetFloatPos(pControl, rcContainer, childSize);
-    if (pControl->IsFloat() && pControl->GetParent() != nullptr) {
+    if (pControl->IsFloat() && pControl->IsKeepFloatPos() && (pControl->GetParent() != nullptr)) {
         //浮动控件：如果外部调整了其位置，则保持原位置
-        UiSize relativePos = pControl->GetRelativePos();
-        if (!relativePos.IsEmpty()) {
-            childPos.Offset(relativePos.cx, relativePos.cy);
-        }
+        UiSize oldFloatPos = pControl->GetFloatPos();
+        if ((oldFloatPos.cx != INT32_MIN) && (oldFloatPos.cy != INT32_MIN)) {
+            UiRect rcParent = pControl->GetParent()->GetRect();
+            UiSize newFloatPos;
+            newFloatPos.cx = childPos.left - rcParent.left;
+            newFloatPos.cy = childPos.top - rcParent.top;
+            childPos.Offset(oldFloatPos.cx - newFloatPos.cx, oldFloatPos.cy - newFloatPos.cy);
+        }        
     }
     pControl->SetPos(childPos);
     return UiSize64(childPos.Width(), childPos.Height());

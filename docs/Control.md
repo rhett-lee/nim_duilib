@@ -24,6 +24,7 @@
 | halign | left | string | SetHorAlignType|控件的横向位置,如(center),支持left、center、right三种位置 |
 | valign | top | string | SetVerAlignType|控件的纵向位置,如(center),支持top、center、bottom三种位置 |
 | float | false | bool | SetFloat|是否使用绝对定位,如“true”|
+| keep_float_pos | false | bool | SetKeepFloatPos|设置当父控件位置和大小调整时，是否保持浮动控件相对父控件的位置不变,如“true”|
 | bkcolor |  | string | SetBkColor|背景颜色字符串常量,如(white) |
 | bkcolor2 |  | string | SetBkColor2|第二背景颜色字符串常量,如果设置了第二背景色，则支持背景颜色渐变,如(blue) |
 | bkcolor2_direction | "1" | string | SetBkColor2Direction|第二背景色方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下|

@@ -129,8 +129,17 @@ public:
     void SetFloat(bool bFloat);
 
     /** 获取与父控件的相对位置(仅当控件为浮动控件时有效)
+    * @return 如果返回的cx和cy都是INT32_MIN，表示无效值，其他值表示有效值
     */
-    UiSize GetRelativePos() const;
+    UiSize GetFloatPos() const;
+
+    /** 设置当父控件位置和大小调整时，是否保持浮动控件相对父控件的位置不变
+    */
+    void SetKeepFloatPos(bool bKeepFloatPos);
+
+    /** 获取当父控件位置和大小调整时，是否保持浮动控件相对父控件的位置不变
+    */
+    bool IsKeepFloatPos() const;
 
 public:
     /** 获取控件设置的宽度和高度，宽高均包含内边距，但均不包含外边距
@@ -406,7 +415,7 @@ private:
     UiRect m_uiRect;
 
     //获取与父控件的相对位置(仅当控件为浮动控件时有效)
-    UiSize m_uiRelativePos;
+    UiSize m_uiFloatPos;
 
     //外部设置的控件大小
     UiFixedSize m_cxyFixed;
@@ -442,6 +451,9 @@ private:
 
     //控件是否为浮动属性
     bool m_bFloat;
+
+    //当父控件位置和大小调整时，保持浮动控件相对父控件的位置不变
+    bool m_bKeepFloatPos;
 
     //是否需要布局重排
     bool m_bIsArranged;
