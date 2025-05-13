@@ -754,11 +754,11 @@ public:
 
     /** 设置圆角矩形剪辑区域，并保存当前设备上下文的状态
     * @param [in] rcItem 剪辑区域，与当前剪辑区取交集作为新的剪辑区域
-    * @param [in] width 圆角的宽度
-    * @param [in] height 圆角的的度
+    * @param [in] rx 圆角的宽度
+    * @param [in] ry 圆角的的高度
     * @param [in] bIntersect ClipOp操作标志，true表示kIntersect操作，false表示kDifference操作
     */
-    virtual void SetRoundClip(const UiRect& rcItem, int32_t width, int32_t height, bool bIntersect = true) = 0;
+    virtual void SetRoundClip(const UiRect& rcItem, float rx, float ry, bool bIntersect = true) = 0;
 
     /** 清除矩形剪辑区域，并恢复设备上下文到最近一次保存的状态
     */
@@ -930,44 +930,49 @@ public:
 
     /** 绘制圆角矩形
     * @param [in] rc 矩形区域
-    * @param [in] roundSize 圆角的宽和高
+    * @param [in] rx 圆角的宽度
+    * @param [in] ry 圆角的高度
     * @param [in] penColor 画笔的颜色值
     * @param [in] nWidth 画笔的宽度
     */
-    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int32_t nWidth) = 0;
+    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, int32_t nWidth) = 0;
 
     /** 绘制圆角矩形
     * @param [in] rc 矩形区域
-    * @param [in] roundSize 圆角的宽和高
+    * @param [in] rx 圆角的宽度
+    * @param [in] ry 圆角的高度
     * @param [in] penColor 画笔的颜色值
     * @param [in] fWidth 画笔的宽度
     */
-    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, float fWidth) = 0;
+    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, float fWidth) = 0;
 
     /** 绘制圆角矩形，支持各种线形
     * @param [in] rc 矩形区域
-    * @param [in] roundSize 圆角的宽和高
+    * @param [in] rx 圆角的宽度
+    * @param [in] ry 圆角的高度
     * @param [in] pen 画笔的接口
     */
-    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, IPen* pen) = 0;
+    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, IPen* pen) = 0;
 
     /** 用颜色填充圆角矩形
     * @param [in] rc 矩形区域
-    * @param [in] roundSize 圆角的宽和高
+    * @param [in] rx 圆角的宽度
+    * @param [in] ry 圆角的高度
     * @param [in] dwColor 颜色值
     * @param [in] uFade 透明度（0 - 255）
     */
-    virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) = 0;
+    virtual void FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, uint8_t uFade = 255) = 0;
 
     /** 用颜色填充圆角矩形(支持渐变颜色)
     * @param [in] rc 矩形区域
-    * @param [in] roundSize 圆角的宽和高
+    * @param [in] rx 圆角的宽度
+    * @param [in] ry 圆角的高度
     * @param [in] dwColor 颜色值
     * @param [in] dwColor2 第二颜色值
     * @param [in] nColor2Direction 渐变颜色的渐变方向，"1": 左->右，"2": 上->下，"3": 左上->右下，"4": 右上->左下
     * @param [in] uFade 透明度（0 - 255）
     */
-    virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
+    virtual void FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
 
     /** 绘制曲线（椭圆的一部分）
     * @param [in] rc 包含圆弧的椭圆的矩形边界区域

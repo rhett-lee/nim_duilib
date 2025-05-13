@@ -90,7 +90,7 @@ bool IconManager::LoadIconData(const DString& str,
         return false;
     }
     if ((iconBitmapData.m_nBitmapHeight < 1) || (iconBitmapData.m_nBitmapWidth < 1) ||
-        iconBitmapData.m_bitmapData.empty() || (iconBitmapData.m_bitmapData.size() != iconBitmapData.m_nBitmapHeight * iconBitmapData.m_nBitmapWidth * 4)){
+        iconBitmapData.m_bitmapData.empty() || ((int32_t)iconBitmapData.m_bitmapData.size() != iconBitmapData.m_nBitmapHeight * iconBitmapData.m_nBitmapWidth * 4)){
         ASSERT(0);
         return false;
     }
@@ -416,7 +416,7 @@ static bool IconToBitmap(HICON hIcon, IconBitmapData& bitmapData)
 
     bitmapData.m_nBitmapWidth = nWidth;
     bitmapData.m_nBitmapHeight = nHeight;
-    ASSERT(bitmapData.m_bitmapData.size() == bitmapData.m_nBitmapHeight * bitmapData.m_nBitmapWidth * 4);
+    ASSERT((int32_t)bitmapData.m_bitmapData.size() == bitmapData.m_nBitmapHeight * bitmapData.m_nBitmapWidth * 4);
     return true;
 }
 

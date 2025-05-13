@@ -266,10 +266,10 @@ void GroupBoxTemplate<InheritType>::PaintText(IRender* pRender)
             UiColor fadeColor = GetFadeColor(lineColor, 24);
             UiRect fadeRect = rc;
             fadeRect.Inflate(nShadowOffset, nShadowOffset);
-            pRender->DrawRoundRect(fadeRect, cornerSize, fadeColor, nLineWidth);
+            pRender->DrawRoundRect(fadeRect, (float)cornerSize.cx, (float)cornerSize.cy, fadeColor, nLineWidth);
         }
         //绘制圆角矩形边框
-        pRender->DrawRoundRect(rc, cornerSize, lineColor, nLineWidth);
+        pRender->DrawRoundRect(rc, (float)cornerSize.cx, (float)cornerSize.cy, lineColor, nLineWidth);
     }
     else {
         //先绘制个阴影效果
