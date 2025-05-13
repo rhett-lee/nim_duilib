@@ -20,6 +20,7 @@ namespace ui
     class IRender;
     class IPath;
     class IFont;
+    class AutoClip;
 
     typedef Control* (CALLBACK* FINDCONTROLPROC)(Control*, void*);
 
@@ -276,14 +277,20 @@ public:
     int8_t GetBorderDashStyle() const;
 
     /** 获取圆角大小
+     * @param [out] fRoundWidth 圆角宽度，DPI缩放之后的结果
+     * @param [out] fRoundHeight 圆角高度，DPI缩放之后的结果
+     * @return 如果未设置圆角，返回false，如果设置了圆角，返回true
      */
-    UiSize GetBorderRound() const;
+    bool GetBorderRound(float& fRoundWidth, float& fRoundHeight) const;
 
-    /** 设置边框大小
-     * @param [in] cxyRound 一个 UiSize 结构表示圆角大小
-     * @param [in] bNeedDpiScale 是否需要做DPI自适应
+    /** 是否设置了圆角大小
      */
-    void SetBorderRound(UiSize cxyRound, bool bNeedDpiScale);
+    bool HasBorderRound() const;
+
+    /** 设置边框大小（未经DPI缩放的原始值）
+     * @param [in] borderRound 一个 UiSize 结构表示圆角大小
+     */
+    void SetBorderRound(UiSize borderRound);
 
     /** 设置边框阴影
      * @param[in] 要设置的阴影属性
@@ -586,8 +593,7 @@ public:
     bool OnApplyAttributeList(const DString& strReceiver, const DString& strList, const EventArgs& eventArgs);
 
     /// 绘制操作
-    /**
-     * @brief 绘制图片
+    /** 绘制图片
      * @param [in] pRender 绘制上下文
      * @param [in] pImage 图片对象的接口
      * @param [in] isLoadingImage true表示Loading Image，绘制时会旋转该图片;false表示正常图片
@@ -605,45 +611,35 @@ public:
                     UiRect* pDestRect = nullptr,
                     UiRect* pPaintedRect = nullptr) const;
 
-    /**
-    * @brief 获取绘制上下文对象
+    /** 获取绘制上下文对象
     * @return 返回绘制上下文对象
     */
     IRender* GetRender();
 
-    /**
-    * @brief 清理绘制上下文对象
-    * @return 无
+    /** 清理绘制上下文对象
     */
     void ClearRender();
 
-    /**
-     * @brief 待补充
-     * @param[in] 待补充
-     * @return 待补充
+    /** 绘制控件自身及子控件
+     * @param[in] pRender 渲染接口
+     * @param[in] rcPaint 指定绘制区域
      */
     virtual void AlphaPaint(IRender* pRender, const UiRect& rcPaint);
     
-    /**
-    * @brief 绘制控件的入口函数
-    * @param[in] pRender 指定绘制区域
-    * @param[in] rcPaint 指定绘制坐标
-    * @return 无
+    /** 绘制控件自身
+    * @param[in] pRender 渲染接口
+    * @param[in] rcPaint 指定绘制区域
     */
     virtual void Paint(IRender* pRender, const UiRect& rcPaint);
 
-    /**
-    * @brief 绘制控件子项入口函数
-    * @param[in] pRender 指定绘制区域
-    * @param[in] rcPaint 指定绘制坐标
-    * @return 无
+    /** 绘制控件的子控件
+    * @param[in] pRender 渲染接口
+    * @param[in] rcPaint 指定绘制区域
     */
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) { (void)pRender; (void)rcPaint; };
 
-    /**
-     * @brief 设置控件透明度
+    /** 设置控件透明度
      * @param[in] alpha 0 ~ 255 的透明度值，255 为不透明
-     * @return 无
      */
     void SetAlpha(int64_t alpha);
 
@@ -1147,17 +1143,17 @@ private:
 
     /** 绘制圆角矩形
     */
-    void DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize,
+    void DrawRoundRect(IRender* pRender, const UiRect& rc, float rx, float ry,
                        UiColor dwBorderColor, float fBorderSize,
                        int8_t borderDashStyle) const;
 
     /** 填充圆角矩形
     */
-    void FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize, UiColor dwColor) const;
+    void FillRoundRect(IRender* pRender, const UiRect& rc, float rx, float ry, UiColor dwColor) const;
   
     /** 填充路径, 形成圆角矩形
     */
-    void AddRoundRectPath(IPath* path, const UiRect& rc, UiSize roundSize) const;
+    void AddRoundRectPath(IPath* path, const UiRect& rc, float rx, float ry) const;
 
     /** 当前控件是否为窗口的Root节点
     */
@@ -1170,6 +1166,10 @@ private:
     /** 判断是否需要采用圆角矩形绘制边框
     */
     bool ShouldBeRoundRectBorders() const;
+
+    /** 设置圆角的剪辑区域
+    */
+    std::unique_ptr<AutoClip> CreateRoundClip(IRender* pRender, const UiRect& rc, bool bRoundClip) const;
 
 public:
     /** 判断是否需要采用圆角矩形填充背景色
@@ -1384,8 +1384,9 @@ private:
 private:
     /** 边框圆角大小(与m_rcBorderSize联合应用)或者阴影的圆角大小(与m_boxShadow联合应用)
         仅当 m_rcBorderSize 四个边框值都有效, 并且都相同时
+        其值为原始值，未经DPI缩放
     */
-    UiSize16 m_cxyBorderRound;
+    UiSize16 m_borderRound;
 
     /** box - shadow是否已经绘制（由于box - shadow绘制会超过GetRect()范围，所以需要特殊处理）
     */

@@ -1085,8 +1085,7 @@ bool Window::Paint(const UiRect& rcPaint)
         PerformanceStat statPerformance(_T("PaintWindow, Window::Paint Paint/PaintChild"));
         AutoClip rectClip(pRender, rcPaint, true);
         UiPoint ptOldWindOrg = pRender->OffsetWindowOrg(m_renderOffset);
-        m_pRoot->Paint(pRender, rcPaint);
-        m_pRoot->PaintChild(pRender, rcPaint);
+        m_pRoot->AlphaPaint(pRender, rcPaint);
         pRender->SetWindowOrg(ptOldWindOrg);
     }
     else {

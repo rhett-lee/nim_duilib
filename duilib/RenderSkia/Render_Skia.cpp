@@ -246,13 +246,13 @@ void Render_Skia::SetClip(const UiRect& rc, bool bIntersect)
     }
 }
 
-void Render_Skia::SetRoundClip(const UiRect& rc, int32_t width, int32_t height, bool bIntersect)
+void Render_Skia::SetRoundClip(const UiRect& rc, float rx, float ry, bool bIntersect)
 {
     SkIRect rcSkI = { rc.left, rc.top, rc.right, rc.bottom };
     SkRect rcSk = SkRect::Make(rcSkI);
 
     SkPath skPath;
-    skPath.addRoundRect(rcSk, SkScalar(width), SkScalar(height));
+    skPath.addRoundRect(rcSk, rx, ry);
     SkRegion clip;
     clip.setRect(rcSkI);
     SkRegion rgn;
@@ -1044,12 +1044,12 @@ void Render_Skia::DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect)
     }
 }
 
-void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int32_t nWidth)
+void Render_Skia::DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, int32_t nWidth)
 {
-    DrawRoundRect(rc, roundSize, penColor, (float)nWidth);
+    DrawRoundRect(rc, rx, ry, penColor, (float)nWidth);
 }
 
-void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, float fWidth)
+void Render_Skia::DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, float fWidth)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     SkPaint skPaint = *m_pSkPaint;
@@ -1064,11 +1064,11 @@ void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiCol
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
-        skCanvas->drawRoundRect(rcSkDest, SkIntToScalar(roundSize.cx), SkIntToScalar(roundSize.cy), skPaint);
+        skCanvas->drawRoundRect(rcSkDest, rx, ry, skPaint);
     }
 }
 
-void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, IPen* pen)
+void Render_Skia::DrawRoundRect(const UiRect& rc, float rx, float ry, IPen* pen)
 {
     ASSERT(pen != nullptr);
     if (pen == nullptr) {
@@ -1085,11 +1085,11 @@ void Render_Skia::DrawRoundRect(const UiRect& rc, const UiSize& roundSize, IPen*
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
-        skCanvas->drawRoundRect(rcSkDest, SkIntToScalar(roundSize.cx), SkIntToScalar(roundSize.cy), skPaint);
+        skCanvas->drawRoundRect(rcSkDest, rx, ry, skPaint);
     }
 }
 
-void Render_Skia::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade)
+void Render_Skia::FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, uint8_t uFade)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     SkPaint skPaint = *m_pSkPaint;
@@ -1106,15 +1106,15 @@ void Render_Skia::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiCol
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
-        skCanvas->drawRoundRect(rcSkDest, SkIntToScalar(roundSize.cx), SkIntToScalar(roundSize.cy), skPaint);
+        skCanvas->drawRoundRect(rcSkDest, rx, ry, skPaint);
     }
 }
 
-void Render_Skia::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade)
+void Render_Skia::FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     if (dwColor2.IsEmpty()) {
-        return FillRoundRect(rc, roundSize, dwColor, uFade);
+        return FillRoundRect(rc, rx, ry, dwColor, uFade);
     }
 
     SkPaint skPaint = *m_pSkPaint;
@@ -1132,7 +1132,7 @@ void Render_Skia::FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiCol
     SkCanvas* skCanvas = GetSkCanvas();
     ASSERT(skCanvas != nullptr);
     if (skCanvas != nullptr) {
-        skCanvas->drawRoundRect(rcSkDest, SkIntToScalar(roundSize.cx), SkIntToScalar(roundSize.cy), skPaint);
+        skCanvas->drawRoundRect(rcSkDest, rx, ry, skPaint);
     }
 }
 

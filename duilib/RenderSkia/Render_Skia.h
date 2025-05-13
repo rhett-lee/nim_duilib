@@ -45,7 +45,7 @@ public:
     virtual void SaveClip(int32_t& nState) override;
     virtual void RestoreClip(int32_t nState) override;
     virtual void SetClip(const UiRect& rc, bool bIntersect = true) override;
-    virtual void SetRoundClip(const UiRect& rc, int32_t width, int32_t height, bool bIntersect = true) override;
+    virtual void SetRoundClip(const UiRect& rc, float rx, float ry, bool bIntersect = true) override;
     virtual void ClearClip() override;
 
     virtual bool BitBlt(int32_t x, int32_t y, int32_t cx, int32_t cy, IRender* pSrcRender, int32_t xSrc, int32_t ySrc, RopMode rop) override;
@@ -77,11 +77,11 @@ public:
     virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) override;
     virtual void FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
-    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, int32_t nWidth) override;
-    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor penColor, float fWidth) override;
-    virtual void DrawRoundRect(const UiRect& rc, const UiSize& roundSize, IPen* pen) override;
-    virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, uint8_t uFade = 255) override;
-    virtual void FillRoundRect(const UiRect& rc, const UiSize& roundSize, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
+    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, int32_t nWidth) override;
+    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, float fWidth) override;
+    virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, IPen* pen) override;
+    virtual void FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, uint8_t uFade = 255) override;
+    virtual void FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) override;
 
     virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, int32_t nWidth) override;
     virtual void DrawCircle(const UiPoint& centerPt, int32_t radius, UiColor penColor, float fWidth) override;

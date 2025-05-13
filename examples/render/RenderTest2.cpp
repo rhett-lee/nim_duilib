@@ -59,7 +59,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("DrawLine"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawLine"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER | TEXT_VCENTER);
 
     //画各种线形的线
     rect.Offset(UiPoint(rect.Width() + 10, 0));
@@ -120,7 +120,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("DrawRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER | TEXT_VCENTER);
 
     //画各种线形的矩形
     for (size_t style = 0; style < 5; ++style) {
@@ -154,7 +154,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("FillRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER | TEXT_VCENTER);
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
@@ -162,7 +162,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("FillRect Alpha"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillRect Alpha"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER | TEXT_VCENTER);
 
     //换行
     currentBottom = textRect.bottom;//记录当前的bottom值
@@ -182,11 +182,11 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     roundSize.cx = (roundSize.cx / 2) * 2;
     roundSize.cy = (roundSize.cy / 2) * 2;
 
-    pRender->DrawRoundRect(rect, roundSize, UiColor(0xffC63535), DpiScaledFloat(2));
+    pRender->DrawRoundRect(rect, (float)roundSize.cx, (float)roundSize.cy, UiColor(0xffC63535), DpiScaledFloat(2));
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("DrawRoundRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_12")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawRoundRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_12")), TEXT_CENTER | TEXT_VCENTER);
 
     //画各种线形的圆角矩形
     for (size_t style = 0; style < 5; ++style) {
@@ -209,25 +209,25 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
         else if (style == 4) {
             pen->SetDashStyle(ui::IPen::DashStyle::kDashStyleDashDotDot);
         }
-        pRender->DrawRoundRect(rect, roundSize, pen.get());
+        pRender->DrawRoundRect(rect, (float)roundSize.cx, (float)roundSize.cy, pen.get());
     }
 
     //填充圆角矩形
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->FillRoundRect(rect, roundSize, UiColor(UiColors::Blue));
+    pRender->FillRoundRect(rect, (float)roundSize.cx, (float)roundSize.cy, UiColor(UiColors::Blue));
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("FillRoundRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillRoundRect"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER | TEXT_VCENTER);
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
-    pRender->FillRoundRect(rect, roundSize, UiColor(UiColors::Blue), 128);
+    pRender->FillRoundRect(rect, (float)roundSize.cx, (float)roundSize.cy, UiColor(UiColors::Blue), 128);
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("FillRoundRect Alpha"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillRoundRect Alpha"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER | TEXT_VCENTER);
 
     //换行
     currentBottom = textRect.bottom;//记录当前的bottom值
@@ -245,7 +245,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("DrawCircle"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawCircle"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER | TEXT_VCENTER);
 
     //画各种线形的圆形
     for (size_t style = 0; style < 5; ++style) {
@@ -277,7 +277,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("FillCircle"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillCircle"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER | TEXT_VCENTER);
 
     rect.left = rect.right + marginLeft;
     rect.right = rect.left + nSize;
@@ -285,7 +285,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("FillCircle Alpha"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillCircle Alpha"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER | TEXT_VCENTER);
     
     //换行
     currentBottom = textRect.bottom;//记录当前的bottom值
@@ -320,7 +320,7 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("DrawPath"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawPath"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER | TEXT_VCENTER);
 
     //用FillPath画圆角四边形
     rect.left = rect.right + marginLeft;
@@ -351,19 +351,24 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("FillPath"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("FillPath"), UiColor(UiColors::Blue), GetIFontById(_T("system_14")), TEXT_CENTER | TEXT_VCENTER);
 
     //DrawBoxShadow
     rect.left = rect.right + marginLeft * 2;
     rect.right = rect.left + nSize;
     int nBlurRadius = DpiScaledInt(6);
     int nSpreadRadius = DpiScaledInt(2);
-    pRender->DrawBoxShadow(rect, roundSize, UiPoint(0, 0), nBlurRadius, nSpreadRadius, UiColor(0xffC63535));
+
+    UiSize roundSize2(6, 6);
+    Dpi().ScaleSize(roundSize2);
+    roundSize2.cx = (roundSize2.cx / 2) * 2;
+    roundSize2.cy = (roundSize2.cy / 2) * 2;
+    pRender->DrawBoxShadow(rect, roundSize2, UiPoint(0, 0), nBlurRadius, nSpreadRadius, UiColor(0xffC63535));
 
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("DrawBoxShadow"), UiColor(UiColors::Blue), GetIFontById(_T("system_12")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawBoxShadow"), UiColor(UiColors::Blue), GetIFontById(_T("system_12")), TEXT_CENTER | TEXT_VCENTER);
 
     //DrawBoxShadow
     rect.left = rect.right + marginLeft * 2 + 40;
@@ -375,19 +380,22 @@ void RenderTest2::Paint(IRender* pRender, const UiRect& rcPaint)
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("DrawBoxShadow"), UiColor(UiColors::Blue), GetIFontById(_T("system_12")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawBoxShadow"), UiColor(UiColors::Blue), GetIFontById(_T("system_12")), TEXT_CENTER | TEXT_VCENTER);
 
     //DrawBoxShadow
     rect.left = rect.right + marginLeft * 2 + 40;
     rect.right = rect.left + nSize;
     nBlurRadius = DpiScaledInt(4);
     nSpreadRadius = DpiScaledInt(4);
-    pRender->DrawBoxShadow(rect, UiSize(0, 0), UiPoint(8, 8), nBlurRadius, nSpreadRadius, UiColor(0xffC63535));
+    UiPoint cpOffset;
+    cpOffset.x = DpiScaledInt(2);
+    cpOffset.y = DpiScaledInt(3);
+    pRender->DrawBoxShadow(rect, UiSize(0, 0), cpOffset, nBlurRadius, nSpreadRadius, UiColor(0xffC63535));
 
     textRect = rect;
     textRect.top = rect.bottom;
     textRect.bottom = textRect.top + nTextLineHeight;
-    pRender->DrawString(textRect, _T("DrawBoxShadow"), UiColor(UiColors::Blue), GetIFontById(_T("system_12")), TEXT_CENTER);
+    pRender->DrawString(textRect, _T("DrawBoxShadow"), UiColor(UiColors::Blue), GetIFontById(_T("system_12")), TEXT_CENTER | TEXT_VCENTER);
 }
 
 void RenderTest2::PaintChild(IRender* pRender, const UiRect& rcPaint)

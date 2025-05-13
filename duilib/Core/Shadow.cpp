@@ -51,7 +51,13 @@ public:
             //如果不是圆角的，或者不可见的，就需要不填充
             return;
         }
-        UiSize borderRound = pChildBox->GetBorderRound();
+        UiSize borderRound;
+        float fRoundWidth = 0;
+        float fRoundHeight = 0;
+        if (pChildBox->GetBorderRound(fRoundWidth, fRoundHeight)) {
+            borderRound.cx = (int32_t)(fRoundWidth + 0.5f);
+            borderRound.cy = (int32_t)(fRoundHeight + 0.5f);
+        }
         const int nRectSize = std::max(borderRound.cx, borderRound.cy);
         if (nRectSize <= 0) {
             return;
@@ -162,7 +168,7 @@ void Shadow::DoAttachShadow(Box* pNewRoot, Box* pOrgRoot, bool bNewAttach, bool 
     }
 
     if (bUseDefaultImage) {
-        pOrgRoot->SetBorderRound(bNewAttach ? Shadow::GetChildBoxBorderRound(pOrgRoot) : UiSize(), false);
+        pOrgRoot->SetBorderRound(bNewAttach ? Shadow::GetChildBoxBorderRound(pOrgRoot) : UiSize());
     }
     pNewRoot->SetBkImage(bNewAttach ? m_strImage : DString());
 }

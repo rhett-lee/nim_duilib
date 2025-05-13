@@ -22,14 +22,10 @@ Control::Control(Window* pWindow) :
     m_bMouseFocused(false),
     m_bNoFocus(false),
     m_bAllowTabstop(true),
-    m_renderOffset(),
-    m_cxyBorderRound(),
-    m_rcPaint(),
     m_cursorType(CursorType::kCursorArrow),
     m_controlState(kControlStateNormal),
     m_nAlpha(255),
     m_nHotAlpha(0),
-    m_sUserDataID(),
     m_isBoxShadowPainted(false),
     m_uUserDataID((size_t)-1),
     m_bShowFocusRect(false),
@@ -153,7 +149,7 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if ((strName == _T("border_round")) || (strName == _T("borderround"))) {
         UiSize cxyRound;
         AttributeUtil::ParseSizeValue(strValue.c_str(), cxyRound);
-        SetBorderRound(cxyRound, true);
+        SetBorderRound(cxyRound);
     }
     else if ((strName == _T("box_shadow")) || (strName == _T("boxshadow"))) {
         SetBoxShadow(strValue);
@@ -480,11 +476,7 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     rcBorder.right = Dpi().GetScaleFloat(rcBorder.right, nOldDpiScale);
     rcBorder.bottom = Dpi().GetScaleFloat(rcBorder.bottom, nOldDpiScale);
     SetBorderSize(rcBorder, false);
-
-    UiSize cxyRound = GetBorderRound();
-    cxyRound = Dpi().GetScaleSize(cxyRound, nOldDpiScale);
-    SetBorderRound(cxyRound, false);
-    
+   
     UiPoint renderOffset = GetRenderOffset();
     renderOffset = Dpi().GetScalePoint(renderOffset, nOldDpiScale);
     SetRenderOffset(renderOffset, false);
@@ -521,10 +513,6 @@ void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 
     UiPadding rcBkImagePadding = GetBkImagePadding();
     SetBkImagePadding(rcBkImagePadding, false);//这个值不需要做DPI缩放，直接转存为当前DPI的值
-
-    UiSize cxyBorderRound = GetBorderRound();
-    cxyBorderRound = Dpi().GetScaleSize(cxyBorderRound, nOldDpiScale);
-    SetBorderRound(cxyBorderRound, false);
 
     UiFixedInt fixedWidth = GetFixedWidth();
     if (fixedWidth.IsInt32()) {
@@ -1246,15 +1234,27 @@ int8_t Control::GetBorderDashStyle() const
     return 0;
 }
 
-UiSize Control::GetBorderRound() const
+bool Control::GetBorderRound(float& fRoundWidth, float& fRoundHeight) const
 {
-    return UiSize(m_cxyBorderRound.cx, m_cxyBorderRound.cy);
+    fRoundWidth = 0.0f;
+    fRoundHeight = 0.0f;
+    if (HasBorderRound()) {
+        fRoundWidth = Dpi().GetScaleFloat(m_borderRound.cx);
+        fRoundHeight = Dpi().GetScaleFloat(m_borderRound.cy);
+        return true;
+    }
+    return false;
 }
 
-void Control::SetBorderRound(UiSize cxyRound, bool bNeedDpiScale)
+bool Control::HasBorderRound() const
 {
-    int32_t cx = cxyRound.cx;
-    int32_t cy = cxyRound.cy;
+    return (m_borderRound.cx > 0) && (m_borderRound.cy > 0);
+}
+
+void Control::SetBorderRound(UiSize borderRound)
+{
+    int32_t cx = borderRound.cx;
+    int32_t cy = borderRound.cy;
     ASSERT(cx >= 0);
     ASSERT(cy >= 0);
     if ((cx < 0) || (cy < 0)) {
@@ -1272,12 +1272,9 @@ void Control::SetBorderRound(UiSize cxyRound, bool bNeedDpiScale)
             return;
         }
     }
-    if (bNeedDpiScale) {
-        Dpi().ScaleSize(cxyRound);
-    }
-    if ((m_cxyBorderRound.cx != cxyRound.cx) || (m_cxyBorderRound.cy != cxyRound.cy)) {
-        m_cxyBorderRound.cx = ui::TruncateToInt16(cxyRound.cx);
-        m_cxyBorderRound.cy = ui::TruncateToInt16(cxyRound.cy);
+    if ((m_borderRound.cx != borderRound.cx) || (m_borderRound.cy != borderRound.cy)) {
+        m_borderRound.cx = ui::TruncateToInt16(borderRound.cx);
+        m_borderRound.cy = ui::TruncateToInt16(borderRound.cy);
         Invalidate();
     }    
 }
@@ -2560,7 +2557,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             UiRect rcClip = { 0, 0, size.cx,size.cy};
             rcClip.Offset((GetRect().left + m_renderOffset.x), (GetRect().top + m_renderOffset.y));
             AutoClip alphaClip(pCacheRender, rcClip, IsClip());
-            AutoClip roundAlphaClip(pCacheRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);        
+            std::unique_ptr<AutoClip> roundAlphaClip = CreateRoundClip(pCacheRender, rcClip, bRoundClip);
 
             //首先绘制自己
             Paint(pCacheRender, rcUnionRect);
@@ -2606,7 +2603,7 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
         }
         UiRect rcClip = GetRect();
         AutoClip clip(pRender, rcClip, IsClip());
-        AutoClip roundClip(pRender, rcClip, m_cxyBorderRound.cx, m_cxyBorderRound.cy, bRoundClip);        
+        std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, rcClip, bRoundClip);
         Paint(pRender, rcPaint);
         if (hasBoxShadowPainted) {
             //Paint绘制后，立即复位标志，避免影响其他绘制逻辑
@@ -2615,6 +2612,16 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
         PaintChild(pRender, rcPaint);
         pRender->SetWindowOrg(ptOldOrg);
     }
+}
+
+std::unique_ptr<AutoClip> Control::CreateRoundClip(IRender* pRender, const UiRect& rc, bool bRoundClip) const
+{
+    float fRoundWidth = 0;
+    float fRoundHeight = 0;
+    if (!bRoundClip || !GetBorderRound(fRoundWidth, fRoundHeight)) {
+        return nullptr;
+    }
+    return std::make_unique<AutoClip>(pRender, rc, fRoundWidth, fRoundHeight, bRoundClip);
 }
 
 void Control::SetPaintRect(const UiRect& rect)
@@ -2655,8 +2662,15 @@ void Control::PaintShadow(IRender* pRender)
 
     ASSERT(pRender != nullptr);
     if (pRender != nullptr) {
+        UiSize borderRound;
+        float fRoundWidth = 0;
+        float fRoundHeight = 0;
+        if (GetBorderRound(fRoundWidth, fRoundHeight)) {
+            borderRound.cx = (int32_t)(fRoundWidth + 0.5f);
+            borderRound.cy = (int32_t)(fRoundHeight + 0.5f);
+        }
         pRender->DrawBoxShadow(m_rcPaint,
-                               GetBorderRound(),
+                               borderRound,
                                boxShadow.m_cpOffset,
                                boxShadow.m_nBlurRadius,
                                boxShadow.m_nSpreadRadius,
@@ -2695,7 +2709,10 @@ void Control::PaintBkColor(IRender* pRender)
         }
         if (ShouldBeRoundRectFill()) {
             //需要绘制圆角矩形，填充也需要填充圆角矩形
-            FillRoundRect(pRender, fillRect, GetBorderRound(), dwBackColor);
+            float fRoundWidth = 0;
+            float fRoundHeight = 0;
+            GetBorderRound(fRoundWidth, fRoundHeight);
+            FillRoundRect(pRender, fillRect, fRoundWidth, fRoundHeight, dwBackColor);
         }
         else {            
             UiColor dwBackColor2;
@@ -2850,7 +2867,10 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
         rcDraw.right -= 1;
     }
     if (ShouldBeRoundRectBorders()) {
-        DrawRoundRect(pRender, rcDraw, GetBorderRound(), dwBorderColor, fBorderSize, GetBorderDashStyle());
+        float fRoundWidth = 0;
+        float fRoundHeight = 0;
+        GetBorderRound(fRoundWidth, fRoundHeight);
+        DrawRoundRect(pRender, rcDraw, fRoundWidth, fRoundHeight, dwBorderColor, fBorderSize, GetBorderDashStyle());
     }
     else {
         if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {
@@ -2881,12 +2901,12 @@ bool Control::ShouldBeRoundRectFill() const
         IsFloatEqual(m_pBorderData->m_rcBorderSize.left, m_pBorderData->m_rcBorderSize.top)        &&
         IsFloatEqual(m_pBorderData->m_rcBorderSize.left, m_pBorderData->m_rcBorderSize.bottom)) {
         //四个边大小相同(无论是零还是大于零)，支持圆角矩形
-        if (m_cxyBorderRound.cx > 0 && m_cxyBorderRound.cy > 0) {
+        if (HasBorderRound()) {
             isRoundRect = true;
         }
     }
     else {
-        if (m_cxyBorderRound.cx > 0 && m_cxyBorderRound.cy > 0) {
+        if (HasBorderRound()) {
             isRoundRect = true;
         }
     }
@@ -3000,13 +3020,17 @@ bool Control::IsWindowRoundRect() const
     return isWindowRoundRect;
 }
 
-void Control::AddRoundRectPath(IPath* path, const UiRect& rc, UiSize roundSize) const
+void Control::AddRoundRectPath(IPath* path, const UiRect& rc, float rx, float ry) const
 {
     ASSERT(path != nullptr);
     if (path == nullptr) {
         return;
     }
     //确保圆角宽度和高度都是偶数
+    UiSize roundSize;
+    roundSize.cx = (int32_t)(rx + 0.5f);
+    roundSize.cy = (int32_t)(ry + 0.5f);
+    
     if ((roundSize.cx % 2) != 0) {
         roundSize.cx += 1;
     }
@@ -3025,7 +3049,7 @@ void Control::AddRoundRectPath(IPath* path, const UiRect& rc, UiSize roundSize) 
     path->Close();
 }
 
-void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize,
+void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, float rx, float ry,
                             UiColor dwBorderColor, float fBorderSize,
                             int8_t borderDashStyle) const
 {
@@ -3035,7 +3059,7 @@ void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
     }
     if (pRender->GetRenderType() != RenderType::kRenderType_Skia) {
         ASSERT(0);//目前没有其他类型的绘制引擎，代码走不到这里了。
-        pRender->DrawRoundRect(rc, roundSize, dwBorderColor, fBorderSize);
+        pRender->DrawRoundRect(rc, rx, ry, dwBorderColor, fBorderSize);
         return;
     }
     bool isDrawOk = false;
@@ -3051,7 +3075,7 @@ void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
                     pen->SetDashStyle((IPen::DashStyle)borderDashStyle);
                 }
                 //这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
-                AddRoundRectPath(path.get(), rc, roundSize);
+                AddRoundRectPath(path.get(), rc, rx, ry);
                 pRender->DrawPath(path.get(), pen.get());
                 isDrawOk = true;
             }
@@ -3060,7 +3084,7 @@ void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
     if(!isDrawOk) {
         if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {
             //普通实线
-            pRender->DrawRoundRect(rc, roundSize, dwBorderColor, fBorderSize);
+            pRender->DrawRoundRect(rc, rx, ry, dwBorderColor, fBorderSize);
         }
         else {
             //其他线形
@@ -3068,16 +3092,16 @@ void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
             if (pRenderFactory != nullptr) {
                 std::unique_ptr<IPen> pen(pRenderFactory->CreatePen(dwBorderColor, fBorderSize));
                 pen->SetDashStyle((IPen::DashStyle)borderDashStyle);
-                pRender->DrawRoundRect(rc, roundSize, pen.get());
+                pRender->DrawRoundRect(rc, rx, ry, pen.get());
             }
             else {
-                pRender->DrawRoundRect(rc, roundSize, dwBorderColor, fBorderSize);
+                pRender->DrawRoundRect(rc, rx, ry, dwBorderColor, fBorderSize);
             }
         }
     }
 }
 
-void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& roundSize, UiColor dwColor) const
+void Control::FillRoundRect(IRender* pRender, const UiRect& rc, float rx, float ry, UiColor dwColor) const
 {
     ASSERT(pRender != nullptr);
     if (pRender == nullptr) {
@@ -3085,7 +3109,7 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
     }
     if (pRender->GetRenderType() != RenderType::kRenderType_Skia) {
         //非Skia引擎
-        pRender->FillRoundRect(rc, roundSize, dwColor);
+        pRender->FillRoundRect(rc, rx, ry, dwColor);
         return;
     }
 
@@ -3099,7 +3123,7 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
             std::unique_ptr<IPath> path(pRenderFactory->CreatePath());
             if (brush && path) {
                 //这种画法的圆角形状，与CreateRoundRectRgn产生的圆角形状，基本一致的
-                AddRoundRectPath(path.get(), rc, roundSize);
+                AddRoundRectPath(path.get(), rc, rx, ry);
                 UiColor dwBackColor2;
                 if ((m_pBkColorData != nullptr) && !m_pBkColorData->m_strBkColor2.empty()) {
                     dwBackColor2 = GetUiColor(m_pBkColorData->m_strBkColor2.c_str());
@@ -3130,10 +3154,10 @@ void Control::FillRoundRect(IRender* pRender, const UiRect& rc, const UiSize& ro
             if (m_pBkColorData != nullptr) {
                 nColor2Direction = m_pBkColorData->m_nBkColor2Direction;
             }
-            pRender->FillRoundRect(rc, roundSize, dwColor, dwBackColor2, nColor2Direction);
+            pRender->FillRoundRect(rc, rx, ry, dwColor, dwBackColor2, nColor2Direction);
         }
         else {
-            pRender->FillRoundRect(rc, roundSize, dwColor);
+            pRender->FillRoundRect(rc, rx, ry, dwColor);
         }
     }    
 }

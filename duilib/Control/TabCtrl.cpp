@@ -790,7 +790,7 @@ void TabCtrlItem::PaintTabItemHot(IRender* pRender)
         return;
     }
     UiColor dwColor = GetUiColor(color);
-    pRender->FillRoundRect(rc, roundSize, dwColor);
+    pRender->FillRoundRect(rc, (float)roundSize.cx, (float)roundSize.cy, dwColor);
 }
 
 void TabCtrlItem::SetIcon(const DString& iconImageString)

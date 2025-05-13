@@ -18,7 +18,7 @@ AutoClip::AutoClip(IRender* pRender, const UiRect& rc, bool bClip)
     }
 }
 
-AutoClip::AutoClip(IRender* pRender, const UiRect& rcRound, int width, int height, bool bClip)
+AutoClip::AutoClip(IRender* pRender, const UiRect& rcRound, float fRoundWidth, float fRoundHeight, bool bClip)
 {
     m_pRender = nullptr;
     m_bClip = false;
@@ -27,7 +27,7 @@ AutoClip::AutoClip(IRender* pRender, const UiRect& rcRound, int width, int heigh
         ASSERT(pRender != nullptr);
         m_pRender = pRender;
         if (m_pRender != nullptr) {
-            m_pRender->SetRoundClip(rcRound, width, height);
+            m_pRender->SetRoundClip(rcRound, fRoundWidth, fRoundHeight);
         }
     }
 }
