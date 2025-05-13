@@ -368,6 +368,9 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("float")) {
         SetFloat(strValue == _T("true"));
     }
+    else if (strName == _T("keep_float_pos")) {
+        SetKeepFloatPos(strValue == _T("true"));
+    }
     else if (strName == _T("cache")) {
         SetUseCache(strValue == _T("true"));
     }

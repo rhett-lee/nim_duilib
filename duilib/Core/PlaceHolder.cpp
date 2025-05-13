@@ -27,7 +27,9 @@ PlaceHolder::PlaceHolder(Window* pWindow) :
     m_bEnableControlPadding(true),
     m_bInited(false),
     m_bReEstimateSize(true),
-    m_pEstResult(nullptr)
+    m_pEstResult(nullptr),
+    m_uiFloatPos(INT32_MIN, INT32_MIN),
+    m_bKeepFloatPos(false)
 {
     //控件的高度和宽度值，默认设置为拉伸
     m_cxyFixed.cx.SetStretch();
@@ -539,28 +541,30 @@ void PlaceHolder::SetRect(const UiRect& rc)
     if ((GetParent() != nullptr) && IsFloat()) {
         //浮动控件，则需要记录和父控件相对位置和大小
         UiRect rcParent = GetParent()->GetRect();
-        UiPadding rcPadding = GetParent()->GetPadding();
-        UiMargin rcMargin = GetMargin();
-        m_uiRelativePos.cx = rc.left - rcParent.left;
-        m_uiRelativePos.cy = rc.top - rcParent.top;
-
-        m_uiRelativePos.cx -= (rcPadding.left + rcPadding.right);
-        m_uiRelativePos.cx -= (rcMargin.left + rcMargin.right);
-
-        m_uiRelativePos.cy -= (rcPadding.top + rcPadding.bottom);
-        m_uiRelativePos.cy -= (rcMargin.top + rcMargin.bottom);
+        m_uiFloatPos.cx = rc.left - rcParent.left;
+        m_uiFloatPos.cy = rc.top - rcParent.top;
     }
     else {
-        m_uiRelativePos.Clear();
+        m_uiFloatPos = UiSize(INT32_MIN, INT32_MIN);
     }
 }
 
-UiSize PlaceHolder::GetRelativePos() const
+UiSize PlaceHolder::GetFloatPos() const
 {
-    if (IsFloat()) {
-        return m_uiRelativePos;
+    if (IsFloat() && IsKeepFloatPos()) {
+        return m_uiFloatPos;
     }
-    return UiSize();
+    return UiSize(INT32_MIN, INT32_MIN);
+}
+
+void PlaceHolder::SetKeepFloatPos(bool bKeepFloatPos)
+{
+    m_bKeepFloatPos = bKeepFloatPos;
+}
+
+bool PlaceHolder::IsKeepFloatPos() const
+{
+    return m_bKeepFloatPos;
 }
 
 void PlaceHolder::Invalidate()
