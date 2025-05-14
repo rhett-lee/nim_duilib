@@ -282,7 +282,7 @@ int RichEditHost::TxReleaseDC(HDC /*hdc*/)
 
 BOOL RichEditHost::TxShowScrollBar(INT /*fnBar*/, BOOL /*fShow*/)
 {
-    ASSERT(FALSE);
+    //ASSERT(FALSE);
     return TRUE;
 }
 
