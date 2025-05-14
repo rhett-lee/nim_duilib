@@ -55,9 +55,18 @@ public:
     static std::tuple<int32_t, float> ParseString(const char* strValue, char** pEndPtr);
 
     /** 获取配置中的窗口大小
+    * @param [in] pWindow 关联的窗口，可以为nullptr
+    * @param [in] strValue 需要解析的窗口大小字符串
+    * @param [out] size 解析出的窗口大小值（像素）
+    * @param [out] pScaledCX 返回窗口宽度size.cx值是否执行过DPI缩放
+    * @param [out] pScaledCY 返回窗口高度size.cy值是否执行过DPI缩放
+    * @param [out] pPercentCX 返回窗口宽度size.cx值的配置是否为屏幕百分比
+    * @param [out] pPercentCY 返回窗口高度size.cy值的配置是否为屏幕百分比
     */
     static void ParseWindowSize(const Window* pWindow, const DString::value_type* strValue,
-                                UiSize& size, bool* pScaledCX = nullptr, bool* pScaledCY = nullptr);
+                                UiSize& size,
+                                bool* pScaledCX, bool* pScaledCY,
+                                bool* pPercentCX, bool* pPercentCY);
 };
 
 } //namespace ui

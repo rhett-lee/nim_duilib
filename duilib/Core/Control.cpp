@@ -591,16 +591,24 @@ bool Control::OnApplyAttributeList(const DString& strReceiver, const DString& st
         pReceiverControl = this;
     }
 
-    if (pReceiverControl != nullptr) {
-        DString strValueList = strList;
-        //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
-        StringUtil::ReplaceAll(_T("{"), _T("\""), strValueList);
-        StringUtil::ReplaceAll(_T("}"), _T("\""), strValueList);
+    DString strValueList = strList;
+    //这个是手工写入的属性，以花括号{}代替双引号，编写的时候就不需要转义字符了；
+    StringUtil::ReplaceAll(_T("{"), _T("\""), strValueList);
+    StringUtil::ReplaceAll(_T("}"), _T("\""), strValueList);
+
+    if (pReceiverControl != nullptr) {        
         pReceiverControl->ApplyAttributeList(strValueList);
         return true;
     }
     else {
-        ASSERT(!"Control::OnApplyAttributeList error!");
+        if (strReceiver == _T("#window#")) {
+            //一个特殊的Receiver，代表关联窗口
+            if (GetWindow() != nullptr) {
+                GetWindow()->ApplyAttributeList(strValueList);
+                return true;
+            }
+        }
+        ASSERT(!"Control::OnApplyAttributeList error：Receiver Control not found!");
         return false;
     }
 }

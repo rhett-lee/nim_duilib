@@ -36,7 +36,8 @@
                 <Event type="mouseenter" receiver="" applyattribute="start_gif_play={-1}" />
                 <Event type="mouseleave" receiver="" applyattribute="stop_gif_play={1}" />
             </Control>
-            <Control width="256" height="256" bkimage="file='public/shadow/shadow.svg' width='256' height='256' valign='center' halign='center'"/>
+            <Control width="256" height="256" bkimage="file='public/shadow/shadow_big_round.svg' width='256' height='256' valign='center' halign='center'"/>
+            <Control width="256" height="256" bkimage="file='public/shadow/shadow_menu_round.svg' width='256' height='256' valign='center' halign='center'"/>
         </HBox>
     </HBox>
 </Window>

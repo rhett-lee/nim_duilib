@@ -10,8 +10,10 @@
 | text              | 标题栏  |         | string | SetText                 |窗体标题字符串|
 | textid            | 标题栏  |         | string | SetTextId               |窗体标题字符串的ID, ID在多语言文件中指定, 如(STRID_MIANWINDOW_TITLE) |
 | shadow_attached   | 窗口阴影| true    | bool   | SetShadowAttached       |窗口是否附加阴影效果,如(true) |
-| shadow_image      | 窗口阴影|         | string | SetShadowImage          |使用自定义的阴影素材去代替默认的阴影效果，设置的路径要注意相对路径以及九宫格属性，如(file='../public/bk/bk_shadow.png' corner='30,30,30,30') |
+| shadow_type       | 窗口阴影|         | string | SetShadowType           |设置窗口的阴影类型：<br> "default", 默认阴影 <br> "big", 大阴影，直角（适合普通窗口）<br> "big_round", 大阴影，圆角（适合普通窗口）<br> "small", 小阴影，直角（适合普通窗口）<br> "small_round", 小阴影，圆角（适合普通窗口）<br> "menu", 小阴影，直角（适合弹出式窗口，比如菜单等）<br> "menu_round", 小阴影，圆角（适合弹出式窗口，比如菜单等）<br> "none", 无阴影|
+| shadow_image      | 窗口阴影|         | string | SetShadowImage          |使用自定义的阴影素材去代替默认的阴影效果，设置的路径要注意相对路径以及九宫格属性，如(file='../public/shadow/shadow_big.svg' corner='64,64,68,70') |
 | shadow_corner     | 窗口阴影| 0,0,0,0 | rect   | SetShadowCorner         |设置了shadowimage属性后，设置此属性来指定阴影素材的九宫格描述 |
+| shadow_border_round| 窗口阴影| 0,0    | size   | SetShadowBorderRound    |设置了shadowimage属性后，设置此属性来指定阴影的圆角属性 |
 | size              | 窗口大小| 0,0     | size   | SetInitSize             |窗口的初始化大小, 支持的格式：size="1200,800", 或者size="50%,50%", 或者size="1200,50%", size="50%,800"，百分比是指屏幕宽度或者高度的百分比 |
 | mininfo           | 窗口大小| 0,0     | size   | SetMinInfo              |窗口最小大小, 如(320,240) |
 | maxinfo           | 窗口大小| 0,0     | size   | SetMaxInfo              |窗口最大大小, 如(1600,1200) |

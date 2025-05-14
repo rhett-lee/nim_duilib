@@ -10,6 +10,7 @@
 #include "duilib/Render/AutoClip.h"
 #include "duilib/Utils/PerformanceUtil.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include "duilib/Utils/AttributeUtil.h"
 
 namespace ui
 {
@@ -34,6 +35,54 @@ Window::~Window()
 {
     ASSERT(!IsWindow());
     ClearWindow(false);
+}
+
+void Window::SetAttribute(const DString& strName, const DString& strValue)
+{
+    if (strName == _T("shadow_type")) {
+        //设置窗口的阴影类型
+        Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowCount;
+        if (Shadow::GetShadowType(strValue, nShadowType)) {
+            SetShadowType(nShadowType);
+        }
+    }
+}
+
+void Window::SetClass(const DString& strClass)
+{
+    if (strClass.empty()) {
+        return;
+    }
+    std::list<DString> splitList = StringUtil::Split(strClass, _T(" "));
+    for (auto it = splitList.begin(); it != splitList.end(); it++) {
+        DString pDefaultAttributes = GlobalManager::Instance().GetClassAttributes((*it));
+        if (pDefaultAttributes.empty()) {
+            pDefaultAttributes = GetClassAttributes(*it);
+        }
+
+        ASSERT(!pDefaultAttributes.empty());
+        if (!pDefaultAttributes.empty()) {
+            ApplyAttributeList(pDefaultAttributes);
+        }
+    }
+}
+
+void Window::ApplyAttributeList(const DString& strList)
+{
+    //属性列表，先解析，然后再应用
+    if (strList.empty()) {
+        return;
+    }
+    std::vector<std::pair<DString, DString>> attributeList;
+    if (strList.find(_T('\"')) != DString::npos) {
+        AttributeUtil::ParseAttributeList(strList, _T('\"'), attributeList);
+    }
+    else if (strList.find(_T('\'')) != DString::npos) {
+        AttributeUtil::ParseAttributeList(strList, _T('\''), attributeList);
+    }
+    for (const auto& attribute : attributeList) {
+        SetAttribute(attribute.first, attribute.second);
+    }
 }
 
 Window* Window::GetParentWindow() const
@@ -707,11 +756,11 @@ void Window::OnWindowDpiChanged(uint32_t /*nOldDPI*/, uint32_t /*nNewDPI*/)
 {
 }
 
-void Window::GetShadowCorner(UiPadding& rcShadow) const
+void Window::GetCurrentShadowCorner(UiPadding& rcShadow) const
 {
     rcShadow.Clear();
     if (m_shadow != nullptr) {
-        rcShadow = m_shadow->GetShadowCorner();
+        rcShadow = m_shadow->GetCurrentShadowCorner();
     }
 }
 
@@ -772,6 +821,26 @@ void Window::SetShadowAttached(bool bShadowAttached)
     }
 }
 
+void Window::SetShadowType(Shadow::ShadowType nShadowType)
+{
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        m_shadow->SetShadowType(nShadowType);
+        //重绘窗口，否则会有绘制异常
+        InvalidateAll();
+    }
+}
+
+Shadow::ShadowType Window::GetShadowType() const
+{
+    Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowNone;
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        nShadowType = m_shadow->GetShadowType();
+    }
+    return nShadowType;
+}
+
 DString Window::GetShadowImage() const
 {
     ASSERT(m_shadow != nullptr);
@@ -783,19 +852,19 @@ DString Window::GetShadowImage() const
     }
 }
 
-void Window::SetShadowImage(const DString& strImage)
+void Window::SetShadowImage(const DString& shadowImage)
 {
     ASSERT(m_shadow != nullptr);
     if (m_shadow != nullptr) {
-        m_shadow->SetShadowImage(strImage);
+        m_shadow->SetShadowImage(shadowImage);
     }
 }
 
-UiPadding Window::GetShadowCorner() const
+UiPadding Window::GetCurrentShadowCorner() const
 {
     ASSERT(m_shadow != nullptr);
     if (m_shadow != nullptr) {
-        return m_shadow->GetShadowCorner();
+        return m_shadow->GetCurrentShadowCorner();
     }
     else {
         return UiPadding();
@@ -824,20 +893,48 @@ bool Window::IsUseDefaultShadowAttached() const
     }    
 }
 
-void Window::SetUseDefaultShadowAttached(bool isDefault)
+void Window::SetUseDefaultShadowAttached(bool bDefault)
 {
     ASSERT(m_shadow != nullptr);
     if (m_shadow != nullptr) {
-        m_shadow->SetUseDefaultShadowAttached(isDefault);
+        m_shadow->SetUseDefaultShadowAttached(bDefault);
     }
 }
 
-void Window::SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale)
+UiPadding Window::GetShadowCorner() const
+{
+    UiPadding rcShadowCorner;
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        rcShadowCorner = m_shadow->GetShadowCorner();
+    }
+    return rcShadowCorner;
+}
+
+void Window::SetShadowCorner(const UiPadding& rcShadowCorner)
 {
     ASSERT(m_shadow != nullptr);
     if (m_shadow != nullptr) {
-        m_shadow->SetShadowCorner(padding, bNeedDpiScale);
+        m_shadow->SetShadowCorner(rcShadowCorner);
     }
+}
+
+void Window::SetShadowBorderRound(UiSize szBorderRound)
+{
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        m_shadow->SetShadowBorderRound(szBorderRound);
+    }
+}
+
+UiSize Window::GetShadowBorderRound() const
+{
+    UiSize szBorderRound;
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        szBorderRound = m_shadow->GetShadowBorderRound();
+    }
+    return szBorderRound;
 }
 
 void Window::SetInitSize(int cx, int cy)

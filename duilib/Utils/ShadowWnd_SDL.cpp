@@ -116,7 +116,7 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM /*wParam*/, LPARAM /*lPar
             UiRect rc;
             m_pWindow->GetWindowRect(rc);
             UiPadding rcShadow;
-            GetShadowCorner(rcShadow);
+            GetCurrentShadowCorner(rcShadow);
             rc.Inflate(rcShadow);
             //TODO: 由于SDL没有调整窗口Z-Order的功能，所以阴影窗口的位置不对，经常在其他窗口的后面，导致看不到阴影。
             SetWindowPos(InsertAfterWnd(m_pWindow), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_SHOWWINDOW | kSWP_NOACTIVATE);
@@ -157,9 +157,10 @@ Box* ShadowWnd::AttachShadow(Box* pRoot)
         AddMessageFilter(m_pShadowWnd);
 
         //外置的阴影窗口需要将原窗口设置为圆角，避免圆角处出现黑色背景
-        UiSize borderRound = Shadow::GetChildBoxBorderRound(pRoot);
-        SetRoundCorner(borderRound.cx, borderRound.cy, false);
-        pRoot->SetBorderRound(borderRound, false);
+        ASSERT(pRoot->GetWindow() == this);
+        UiSize borderRound = GetShadowBorderRound();
+        SetRoundCorner(borderRound.cx, borderRound.cy, true);
+        pRoot->SetBorderRound(borderRound);
         InitShadow();
         return pRoot;
     }

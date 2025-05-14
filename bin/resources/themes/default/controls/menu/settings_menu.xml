@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Window>
+<Window shadow_type="menu_round" shadow_attached="true" layered_window="true" >
     <MenuListBox class="menu" name="main_menu">
         <!-- 一级菜单 -->
         <MenuItem class="menu_element" name="first" width="180">

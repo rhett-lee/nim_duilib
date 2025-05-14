@@ -23,7 +23,7 @@
         
         <!-- 显示区域 --> 
         <VBox>
-            <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab" selected_id="16">
+            <TabCtrl class="tab_ctrl" tab_box_name="main_view_tab" selected_id="17">
                 <TabCtrlItem class="tab_ctrl_item" title="绘制" close_button_class="" tab_box_item_index="0"/>
                 <TabCtrlItem class="tab_ctrl_item" title="画图" close_button_class="" tab_box_item_index="1"/>
                 <TabCtrlItem class="tab_ctrl_item" title="图片1" close_button_class="" tab_box_item_index="2"/>
@@ -43,7 +43,7 @@
                 <TabCtrlItem class="tab_ctrl_item" title="PropertyGrid" close_button_class="" tab_box_item_index="16"/>
                 <TabCtrlItem class="tab_ctrl_item" title="TabBox" close_button_class="" tab_box_item_index="17"/>
             </TabCtrl>
-            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="16">
+            <TabBox name="main_view_tab" bkcolor="white" fadeswitch="true" selected_id="17">
                 <VBox name="main_view_page_01">
                     <Label text="页面1：IRender接口的图片绘制相关接口测试（DrawImage，BitBlt，StretchBlt，AlphaBlend）"/>
                     <RenderTest1 />

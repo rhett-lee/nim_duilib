@@ -4,7 +4,7 @@
     <Box width="130" height="130" margin="0,10,0,0" halign="center">
       <Control width="auto" height="auto" halign="center" valign="center" bkimage="head_shadow.png" mouse="false"/>
     </Box>
-    <Box height="auto" margin="0,50,0,0" padding="14,14,14,14" bkimage="file='../public/shadow/bk_shadow.png' corner='30,30,30,30'">
+    <Box height="auto" margin="0,50,0,0" padding="14,14,14,14" bkimage="file='bk_shadow.png' corner='30,30,30,30'">
       <VBox height="auto" bkcolor="bk_wnd_lightcolor" borderround="3,3,3,3">
         <VBox height="auto">
           <HBox height="20" margin="0,6,5,40">

@@ -325,6 +325,14 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
     UiSize szMaxSize;
     bool bScaledCX = false;
     bool bScaledCY = false;
+    bool bPercentCX = false;
+    bool bPercentCY = false;
+
+    //阴影相关参数
+    bool bShadowAttached = false;
+    bool bHasShadowAttached = false;
+    Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowDefault;
+    UiPadding rcShadowCorner;
 
     RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
     DString strName;
@@ -379,7 +387,7 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             }
         }
         else if (strName == _T("size")) {
-            AttributeUtil::ParseWindowSize(nullptr, strValue.c_str(), createAttributes.m_szInitSize, &bScaledCX, &bScaledCY);
+            AttributeUtil::ParseWindowSize(nullptr, strValue.c_str(), createAttributes.m_szInitSize, &bScaledCX, &bScaledCY, &bPercentCX, &bPercentCY);
             createAttributes.m_bInitSizeDefined = true;
         }
         else if (strName == _T("mininfo")) {
@@ -392,7 +400,34 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             //期望的SDL Render的名称
             createAttributes.m_sdlRenderName = strValue;
         }
+        else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
+            //设置是否支持窗口阴影（阴影实现有两种：分层窗口和普通窗口）
+            bShadowAttached = (strValue == _T("true"));
+            bHasShadowAttached = true;
+        }
+        else if (strName == _T("shadow_type")) {
+            //设置阴影类型
+            Shadow::GetShadowType(strValue, nShadowType);
+        }
+        else if ((strName == _T("shadow_corner")) || (strName == _T("shadowcorner"))) {
+            //设置窗口阴影的九宫格属性            
+            AttributeUtil::ParsePaddingValue(strValue.c_str(), rcShadowCorner);
+        }
     }
+
+    //评估阴影的九宫格属性
+    if (nShadowType == Shadow::ShadowType::kShadowNone) {
+        bShadowAttached = false;
+    }
+    if (bHasShadowAttached && !bShadowAttached) {
+        rcShadowCorner.Clear();
+    }
+    else if (rcShadowCorner.IsEmpty()){
+        UiSize szBorderRound;
+        DString shadowImage;
+        Shadow::GetShadowParam(nShadowType, szBorderRound, rcShadowCorner, shadowImage);
+    }
+
     if (createAttributes.m_bInitSizeDefined) {
         int32_t cx = createAttributes.m_szInitSize.cx;
         int32_t cy = createAttributes.m_szInitSize.cy;
@@ -424,8 +459,14 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
         if (!bScaledCY) {
             GlobalManager::Instance().Dpi().ScaleInt(cy);
         }
+        if (!bPercentCX) {
+            cx += rcShadowCorner.left + rcShadowCorner.right;
+        }
+        if (!bPercentCY) {
+            cy += rcShadowCorner.top + rcShadowCorner.bottom;
+        }
         createAttributes.m_szInitSize.cx = cx;
-        createAttributes.m_szInitSize.cy = cy;        
+        createAttributes.m_szInitSize.cy = cy;
     }
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     if (backendType == RenderBackendType::kNativeGL_BackendType) {
@@ -495,6 +536,11 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         }
     }
 
+    //窗口阴影是否开启
+    bool bShadowAttached = false;
+    bool bHasShadowAttached = false;
+    Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowCount;
+
     //注：如果use_system_caption为true，则层窗口关闭（因为这两个属性互斥的）
     for (pugi::xml_attribute attr : root.attributes()) {
         strName = attr.name();
@@ -544,7 +590,16 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         }
         else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
             //设置是否支持窗口阴影（阴影实现有两种：分层窗口和普通窗口）
-            pWindow->SetShadowAttached(strValue == _T("true"));
+            bShadowAttached = (strValue == _T("true"));
+            bHasShadowAttached = true;            
+        }
+        else if (strName == _T("shadow_type")) {
+            //设置阴影类型
+            Shadow::GetShadowType(strValue, nShadowType);
+            if ((nShadowType >= Shadow::ShadowType::kShadowNone) &&
+                (nShadowType < Shadow::ShadowType::kShadowCount)) {
+                pWindow->SetShadowType((Shadow::ShadowType)nShadowType);
+            }
         }
         else if ((strName == _T("shadow_image")) || (strName == _T("shadowimage"))) {
             //设置阴影图片
@@ -554,7 +609,13 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             //设置窗口阴影的九宫格属性
             UiPadding padding;
             AttributeUtil::ParsePaddingValue(strValue.c_str(), padding);
-            pWindow->SetShadowCorner(padding, true);
+            pWindow->SetShadowCorner(padding);
+        }
+        else if (strName == _T("shadow_border_round")) {
+            //设置窗口阴影的圆角大小
+            UiSize szBorderRound;
+            AttributeUtil::ParseSizeValue(strValue.c_str(), szBorderRound);
+            pWindow->SetShadowBorderRound(szBorderRound);
         }
         else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
             //设置是否设置分层窗口属性（分层窗口还是普通窗口）
@@ -572,6 +633,20 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         }
     }
 
+    if (nShadowType == Shadow::ShadowType::kShadowNone) {
+        bShadowAttached = false;
+    }
+
+    if (bHasShadowAttached) {
+        //后设置，避免受到"shadow_type"的影响
+        pWindow->SetShadowAttached(bShadowAttached);
+    }
+
+    bool bScaledCX = false;
+    bool bScaledCY = false;
+    bool bPercentCX = false;
+    bool bPercentCY = false;
+
     //最后设置窗口的初始化大小，因为初始化大小与是否阴影等相关
     bool bLayeredWindowOpacityDefined = false;
     for (pugi::xml_attribute attr : root.attributes()) {
@@ -579,7 +654,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         strValue = attr.value();
         if (strName == _T("size")) {
             UiSize windowSize;
-            AttributeUtil::ParseWindowSize(pWindow, strValue.c_str(), windowSize);
+            AttributeUtil::ParseWindowSize(pWindow, strValue.c_str(), windowSize, &bScaledCX, &bScaledCY, &bPercentCX, &bPercentCY);
             int32_t cx = windowSize.cx;
             int32_t cy = windowSize.cy;
             UiSize minSize = pWindow->GetWindowMinimumSize();
@@ -596,6 +671,16 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             if ((maxSize.cy > 0) && (cy > maxSize.cy)) {
                 cy = maxSize.cy;
             }
+
+            //XML配置中指定的窗口大小，如果设置的是固定值，则不包含阴影部分
+            UiPadding rcShadowCorner = pWindow->GetShadowCorner();
+            pWindow->Dpi().ScalePadding(rcShadowCorner);
+            if (!bPercentCX && pWindow->IsShadowAttached() && !pWindow->IsWindowMaximized()) {
+                cx += rcShadowCorner.left + rcShadowCorner.right;
+            }
+            if (!bPercentCY && pWindow->IsShadowAttached() && !pWindow->IsWindowMaximized()) {
+                cy += rcShadowCorner.top + rcShadowCorner.bottom;
+            }            
             pWindow->SetInitSize(cx, cy);
         }
         else if (strName == _T("opacity")) {

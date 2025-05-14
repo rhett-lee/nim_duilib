@@ -129,7 +129,7 @@ void DragWindow::SetDragImage(const std::shared_ptr<IBitmap>& pBitmap)
 
 void DragWindow::AdjustPos()
 {
-    UiPadding rcCorner = GetShadowCorner();
+    UiPadding rcCorner = GetCurrentShadowCorner();
     UiPoint ptCursor;
     GetCursorPos(ptCursor);
     ptCursor.x -= rcCorner.left;

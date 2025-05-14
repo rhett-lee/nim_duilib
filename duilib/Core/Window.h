@@ -2,6 +2,7 @@
 #define UI_CORE_WINDOW_H_
 
 #include "duilib/Core/WindowBase.h"
+#include "duilib/Core/Shadow.h"
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/ColorManager.h"
 #include "duilib/Render/IRender.h"
@@ -13,7 +14,6 @@ namespace ui
 
 class Box;
 class Control;
-class Shadow;
 class ToolTip;
 class WindowBuilder;
 
@@ -148,26 +148,49 @@ public:
 
     /** 设置当前阴影效果值，是否为默认值
     */
-    void SetUseDefaultShadowAttached(bool isDefault);
+    void SetUseDefaultShadowAttached(bool bDefault);
+
+    /** 设置阴影类型
+    */
+    void SetShadowType(Shadow::ShadowType nShadowType);
+
+    /** 获取阴影类型
+    */
+    Shadow::ShadowType GetShadowType() const;
 
     /** 获取阴影图片
     */
     DString GetShadowImage() const;
 
     /** 设置窗口阴影图片
-    * @param [in] strImage 图片位置
+    * @param [in] shadowImage 图片位置
     */
-    void SetShadowImage(const DString& strImage);
+    void SetShadowImage(const DString& shadowImage);
 
-    /** 获取阴影的九宫格描述信息
-    */
+    /** 获取当前的阴影九宫格属性（已经做过DPI缩放）
+     *@return 如果阴影未Attached或者窗口最大化，返回UiPadding(0, 0, 0, 0)，否则返回设置的九宫格属性（已经做过DPI缩放）
+     */
+    UiPadding GetCurrentShadowCorner() const;
+
+    /** 获取已经设置的阴影九宫格属性
+     *@return 返回通过SetShadowCorner函数设置的九宫格属性，未经DPI缩放的值
+     */
     UiPadding GetShadowCorner() const;
 
-    /** 指定阴影素材的九宫格描述
-    * @param [in] padding 九宫格描述信息
-    * @param [in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
+    /** 设置阴影素材的九宫格描述
+    * @param [in] rcShadowCorner 阴影图片的九宫格属性，未经DPI缩放的值
     */
-    void SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale);
+    void SetShadowCorner(const UiPadding& rcShadowCorner);
+
+    /** 获取阴影的圆角大小
+    * @return 返回阴影的圆角大小，未经DPI缩放的值
+    */
+    UiSize GetShadowBorderRound() const;
+
+    /** 设置阴影的圆角大小
+    * @param [in] szBorderRound 阴影的圆角大小，未经DPI缩放的值
+    */
+    void SetShadowBorderRound(UiSize szBorderRound);
 
     /** @}*/
 
@@ -402,6 +425,24 @@ public:
     */
     virtual Control* CreateControl(const DString& strClass);
 
+public:
+    // 窗口的属性设置
+    /** 设置窗口指定属性
+     * @param[in] strName 要设置的属性名称（如 width）
+     * @param[in] strValue 要设置的属性值（如 100）
+     */
+    virtual void SetAttribute(const DString& strName, const DString& strValue);
+
+    /** 设置控件的 class 全局属性
+     * @param[in] strClass 要设置的 class 名称，该名称必须在 global.xml 中存在
+     */
+    void SetClass(const DString& strClass);
+
+    /** 应用一套属性列表
+     * @param[in] strList 属性列表的字符串表示，如 `width="800" height="600"`
+     */
+    void ApplyAttributeList(const DString& strList);
+
 protected:
     /** 正在初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
     */
@@ -459,10 +500,10 @@ protected:
     */
     virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) override;
 
-    /** 获取窗口阴影的大小
-    * @param [out] rcShadow 获取圆角的大小
-    */
-    virtual void GetShadowCorner(UiPadding& rcShadow) const override;
+    /** 获取当前的阴影九宫格属性（已经做过DPI缩放）
+     *@param [out] rcShadow 如果阴影未Attached或者窗口最大化，返回UiPadding(0, 0, 0, 0)，否则返回设置的九宫格属性（已经做过DPI缩放）
+     */
+    virtual void GetCurrentShadowCorner(UiPadding& rcShadow) const override;
 
     /** 判断一个点是否在放置在标题栏上的控件上
     */

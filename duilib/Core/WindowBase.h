@@ -623,7 +623,7 @@ protected:
     /** 获取窗口阴影的大小
     * @param [out] rcShadow 获取圆角的大小 
     */
-    virtual void GetShadowCorner(UiPadding& rcShadow) const = 0;
+    virtual void GetCurrentShadowCorner(UiPadding& rcShadow) const = 0;
 
     /** 判断一个点是否在放置在标题栏上的控件上
     */
