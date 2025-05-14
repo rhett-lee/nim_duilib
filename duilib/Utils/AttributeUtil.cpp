@@ -283,8 +283,10 @@ std::tuple<int32_t, float> AttributeUtil::ParseString(const char* strValue, char
     return std::tuple<int32_t, float>(xValue, xPercent);
 }
 
-void AttributeUtil::ParseWindowSize(const Window* pWindow, const DString::value_type* strValue, UiSize& size,
-                                    bool* pScaledCX, bool* pScaledCY)
+void AttributeUtil::ParseWindowSize(const Window* pWindow, const DString::value_type* strValue,
+                                    UiSize& size,
+                                    bool* pScaledCX, bool* pScaledCY,
+                                    bool* pPercentCX, bool* pPercentCY)
 {
     //支持的格式：size="1200,800",或者size="50%,50%",或者size="1200,50%",size="50%,800"
     //百分比是指屏幕宽度或者高度的百分比
@@ -312,6 +314,12 @@ void AttributeUtil::ParseWindowSize(const Window* pWindow, const DString::value_
         }
         return fPercent;
     };
+    if (pPercentCX) {
+        *pPercentCX = false;
+    }
+    if (pPercentCY) {
+        *pPercentCY = false;
+    }
 
     bool needScaleCX = true;
     bool needScaleCY = true;
@@ -320,12 +328,18 @@ void AttributeUtil::ParseWindowSize(const Window* pWindow, const DString::value_
         float fPercent = GetValidPercent(x);
         cx = (int)(rcWork.Width() * fPercent);
         needScaleCX = false;
+        if (pPercentCX) {
+            *pPercentCX = true;
+        }
     }
     int cy = std::get<0>(y);
     if (cy <= 0) {
         float fPercent = GetValidPercent(y);
         cy = (int)(rcWork.Height() * fPercent);
         needScaleCY = false;
+        if (pPercentCY) {
+            *pPercentCY = true;
+        }
     }
 
     ASSERT((cx > 0) && (cy > 0));

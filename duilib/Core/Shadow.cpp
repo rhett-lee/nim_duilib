@@ -1,8 +1,9 @@
 #include "Shadow.h"
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Window.h"
-#include "duilib/Render/IRender.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Render/IRender.h"
+#include "duilib/Render/AutoClip.h"
 
 namespace ui 
 {
@@ -11,100 +12,99 @@ class ShadowBox : public Box
 {
     typedef Box BaseClass;
 public:
-    explicit ShadowBox(Window* pWindow):
-        Box(pWindow)
+    ShadowBox(Window* pWindow, Shadow* pShadow):
+        Box(pWindow),
+        m_pShadow(pShadow)
     {
         //关闭控件自身的内边距，否则阴影绘制不出来
         SetEnableControlPadding(false);
     }
     virtual DString GetType() const override { return _T("ShadowBox"); }
 
-    virtual void Paint(IRender* pRender, const UiRect& rcPaint) override
+    //绘制容器内的子控件
+    virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override
     {
-        if (pRender == nullptr) {
-            return;
-        }        
-        UiRect rcPos = GetPosWithoutPadding();
-        if (rcPaint.left >= rcPos.left && rcPaint.top >= rcPos.top && rcPaint.right <= rcPos.right && rcPaint.bottom <= rcPos.bottom) {
-            //作为阴影，中间部分是空的，不需要处理重绘, 只填充圆角空隙
-            FillRoundRect(pRender, rcPos);
+        UiRect rcTemp;
+        if (!UiRect::Intersect(rcTemp, rcPaint, GetRect())) {
             return;
         }
-        else {
-            BaseClass::Paint(pRender, rcPaint);
-            FillRoundRect(pRender, rcPos);
+        UiPadding rcPadding;
+        if (m_pShadow != nullptr) {
+            rcPadding = m_pShadow->GetCurrentShadowCorner();
         }
-    };
+        UiRect rcRect = GetRect();
+        rcRect.Deflate(rcPadding);
+        //设置客户区剪辑区域，避免覆盖阴影
+        AutoClip rectClip(pRender, rcRect, true);
 
-    /** 当Box有圆角的时候，四个角采用填充色绘制背景，避免出现黑色背景
-    */
-    void FillRoundRect(IRender* pRender, const UiRect& rcPos)
+        UiSize borderRound = m_pShadow->GetShadowBorderRound();
+        if (GetWindow() != nullptr) {
+            GetWindow()->Dpi().ScaleSize(borderRound);
+        }
+        float fRoundWidth = (float)borderRound.cx;
+        float fRoundHeight = (float)borderRound.cy;
+        bool bRoundClip = (borderRound.cx > 0) && (borderRound.cy > 0);
+        if (rcPadding.IsEmpty()) {
+            bRoundClip = false;
+        }
+        //设置圆角客户区剪辑区域，避免覆盖阴影
+        AutoClip roundClip(pRender, rcRect, fRoundWidth, fRoundHeight, bRoundClip);
+
+        //绘制子控件
+        BaseClass::PaintChild(pRender, rcPaint);
+    }
+
+    /** 计算控件大小(宽和高)
+        如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小
+     *  @param [in] szAvailable 可用大小，不包含内边距，不包含外边距
+     *  @return 控件的估算大小，包含内边距(Box)，不包含外边距
+     */
+    virtual UiEstSize EstimateSize(UiSize szAvailable) override
     {
-        if (pRender == nullptr) {
-            return;
+        UiFixedSize fixedSize = GetFixedSize();
+        if (!fixedSize.cx.IsAuto() && !fixedSize.cy.IsAuto()) {
+            //如果宽高都不是auto属性，则直接返回
+            return MakeEstSize(fixedSize);
         }
-        Control* pChildBox = GetItemAt(0);
-        if (pChildBox == nullptr) {
-            return;
-        }
-        if (!pChildBox->IsVisible() || !pChildBox->ShouldBeRoundRectFill()) {
-            //如果不是圆角的，或者不可见的，就需要不填充
-            return;
-        }
-        UiSize borderRound;
-        float fRoundWidth = 0;
-        float fRoundHeight = 0;
-        if (pChildBox->GetBorderRound(fRoundWidth, fRoundHeight)) {
-            borderRound.cx = (int32_t)(fRoundWidth + 0.5f);
-            borderRound.cy = (int32_t)(fRoundHeight + 0.5f);
-        }
-        const int nRectSize = std::max(borderRound.cx, borderRound.cy);
-        if (nRectSize <= 0) {
-            return;
+        szAvailable.Validate();
+        if (!IsReEstimateSize(szAvailable)) {
+            //使用缓存中的估算结果
+            return GetEstimateSize();
         }
 
-        uint8_t uFade = 0xFF;
-        Window* pWindow = GetWindow();
-        if ((pWindow != nullptr) && (pWindow->IsLayeredWindow())) {
-            uFade = pWindow->GetLayeredWindowAlpha();
+        //子控件的大小，包含内边距，但不包含外边距; 包含了阴影本身的大小（即Box的内边距）
+        UiSize sizeByChild = GetLayout()->EstimateSizeByChild(m_items, szAvailable);
+
+        SetReEstimateSize(false);
+        for (auto pControl : m_items) {
+            ASSERT(pControl != nullptr);
+            if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
+                continue;
+            }
+            if ((pControl->GetFixedWidth().IsAuto()) ||
+                (pControl->GetFixedHeight().IsAuto())) {
+                if (pControl->IsReEstimateSize(szAvailable)) {
+                    SetReEstimateSize(true);
+                    break;
+                }
+            }
+        }
+        if (fixedSize.cx.IsAuto()) {
+            fixedSize.cx.SetInt32(sizeByChild.cx);
+        }
+        if (fixedSize.cy.IsAuto()) {
+            fixedSize.cy.SetInt32(sizeByChild.cy);
         }
 
-        if (pChildBox->GetAlpha() != 0xFF) {
-            uFade = static_cast<uint8_t>((int32_t)uFade * pChildBox->GetAlpha() / 0xFF);
-        }
-        
-        UiRect fillRect;
-        //左上角
-        fillRect = UiRect(rcPos.left, rcPos.top, rcPos.left + nRectSize, rcPos.top + nRectSize);
-        pRender->FillRect(fillRect, m_bkColor, uFade);
-
-        //右上角
-        fillRect = UiRect(rcPos.right - nRectSize, rcPos.top, rcPos.right, rcPos.top + nRectSize);
-        pRender->FillRect(fillRect, m_bkColor, uFade);
-
-        //左下角
-        fillRect = UiRect(rcPos.left, rcPos.bottom - nRectSize, rcPos.left + nRectSize, rcPos.bottom);
-        pRender->FillRect(fillRect, m_bkColor, uFade);
-
-        //右下角
-        fillRect = UiRect(rcPos.right - nRectSize, rcPos.bottom - nRectSize, rcPos.right, rcPos.bottom);
-        pRender->FillRect(fillRect, m_bkColor, uFade);
+        UiEstSize estSize = MakeEstSize(fixedSize);
+        SetEstimateSize(estSize, szAvailable);
+        return estSize;
     }
 
 private:
-    /** 背景色
-    */
-    UiColor m_bkColor = UiColor(UiColors::LightGray);
+    //关联的阴影控件
+    Shadow* m_pShadow;
 };
-
-UiSize Shadow::GetChildBoxBorderRound(const Box* pBox)
-{
-    UiSize rcSize{ 3, 3 };
-    if (pBox != nullptr) {
-        pBox->Dpi().ScaleSize(rcSize);
-    }
-    return rcSize;
-}
 
 Shadow::Shadow(Window* pWindow):
     m_bShadowAttached(true),
@@ -113,9 +113,18 @@ Shadow::Shadow(Window* pWindow):
     m_pRoot(nullptr),
     m_pWindow(pWindow)
 {
-    ResetDefaultShadow();
+    SetShadowType(Shadow::ShadowType::kShadowDefault);
 }
 
+bool Shadow::IsUseDefaultShadowAttached() const
+{
+    return m_bUseDefaultShadowAttached;
+}
+
+void Shadow::SetUseDefaultShadowAttached(bool bDefault)
+{
+    m_bUseDefaultShadowAttached = bDefault;
+}
 
 Box* Shadow::AttachShadow(Box* pRoot)
 {
@@ -131,27 +140,34 @@ Box* Shadow::AttachShadow(Box* pRoot)
         return nullptr;
     }
 
-    m_pRoot = new ShadowBox(pRoot->GetWindow());
+    m_pRoot = new ShadowBox(pRoot->GetWindow(), this);
     m_pRoot->AddItem(pRoot);
-    DoAttachShadow(m_pRoot, pRoot, true, m_bUseDefaultImage, m_isMaximized);
+    DoAttachShadow(m_pRoot, pRoot, true, m_isMaximized);
     return m_pRoot;
 }
 
-void Shadow::DoAttachShadow(Box* pNewRoot, Box* pOrgRoot, bool bNewAttach, bool bUseDefaultImage, bool isMaximized) const
+void Shadow::DoAttachShadow(Box* pNewRoot, Box* pOrgRoot, bool bNewAttach, bool isMaximized) const
 {
+    //实现逻辑：按需更新
     ASSERT((pNewRoot != nullptr) && (pOrgRoot != nullptr));
     if ((pNewRoot == nullptr) || (pOrgRoot == nullptr)) {
         return;
     }
-
-    pNewRoot->SetPadding((bNewAttach && !isMaximized) ? m_rcShadowCorner : UiPadding(0, 0, 0, 0), false);
-    UiPadding rcShadowCorner = !isMaximized ? m_rcShadowCorner : m_rcShadowCornerBackup;
+    const UiPadding rcShadowCorner = GetCurrentShadowCorner();
+    if (bNewAttach && !isMaximized) {
+        //Attach并且不是窗口最大化状态
+        pNewRoot->SetPadding(rcShadowCorner, false);
+    }
+    else {
+        //Detach或者窗口为最大化状态时
+        pNewRoot->SetPadding(UiPadding(0, 0, 0, 0), false);
+    }
     if (pOrgRoot->GetFixedWidth().IsInt32()) {
         int32_t rootWidth = pOrgRoot->GetFixedWidth().GetInt32();
         if (bNewAttach) {
             rootWidth += (rcShadowCorner.left + rcShadowCorner.right);
         }
-        pNewRoot->SetFixedWidth(UiFixedInt(rootWidth), true, false);
+        pNewRoot->SetFixedWidth(UiFixedInt(rootWidth), true, false);        
     }
     else {
         pNewRoot->SetFixedWidth(pOrgRoot->GetFixedWidth(), true, false);
@@ -166,28 +182,21 @@ void Shadow::DoAttachShadow(Box* pNewRoot, Box* pOrgRoot, bool bNewAttach, bool 
     else {
         pNewRoot->SetFixedHeight(pOrgRoot->GetFixedHeight(), true, false);
     }
-
-    if (bUseDefaultImage) {
-        pOrgRoot->SetBorderRound(bNewAttach ? Shadow::GetChildBoxBorderRound(pOrgRoot) : UiSize());
-    }
-    pNewRoot->SetBkImage(bNewAttach ? m_strImage : DString());
+    pNewRoot->SetBkImage(bNewAttach ? m_shadowImage : DString());
 }
 
 void Shadow::SetShadowAttached(bool bShadowAttached)
 {
     m_bShadowAttached = bShadowAttached;
-
     //外部设置后，即更新为非默认值
     m_bUseDefaultShadowAttached = false;
 
-    //如果已经调用了AttachShadow，需要进行些处理
-    if (m_pRoot != nullptr) {
-        Box* pOrgRoot = nullptr;
-        if (m_pRoot->GetItemCount() > 0) {
-            pOrgRoot = dynamic_cast<Box*>(m_pRoot->GetItemAt(0));
+    if (bShadowAttached) {
+        if (GetShadowType() == Shadow::ShadowType::kShadowNone) {
+            m_nShadowType = Shadow::ShadowType::kShadowDefault;
         }
-        DoAttachShadow(m_pRoot, pOrgRoot, bShadowAttached, m_bUseDefaultImage, m_isMaximized);
     }
+    OnShadowAttached(GetShadowType());
 }
 
 bool Shadow::IsShadowAttached() const
@@ -195,63 +204,235 @@ bool Shadow::IsShadowAttached() const
     return m_bShadowAttached;
 }
 
-bool Shadow::IsUseDefaultShadowAttached() const
+void Shadow::SetShadowType(Shadow::ShadowType nShadowType)
 {
-    return m_bUseDefaultShadowAttached;
+    ASSERT(nShadowType >= Shadow::ShadowType::kShadowNone);
+    ASSERT(nShadowType < Shadow::ShadowType::kShadowCount);
+    if ((nShadowType >= Shadow::ShadowType::kShadowNone) &&
+        (nShadowType < Shadow::ShadowType::kShadowCount)) {
+        m_nShadowType = nShadowType;
+    }
+    else {
+        return;
+    }
+
+    if (GetShadowType() != Shadow::ShadowType::kShadowNone) {
+        m_bShadowAttached = true;
+    }
+    else {
+        m_bShadowAttached = false;
+    }
+
+    //外部设置后，即更新为非默认值
+    m_bUseDefaultShadowAttached = false;
+
+    OnShadowAttached(GetShadowType());
 }
 
-void Shadow::SetUseDefaultShadowAttached(bool isDefault)
+Shadow::ShadowType Shadow::GetShadowType() const
 {
-    m_bUseDefaultShadowAttached = isDefault;
+    return m_nShadowType;
 }
 
-void Shadow::SetShadowImage(const DString &image)
+bool Shadow::GetShadowType(const DString& typeString, ShadowType& nShadowType)
 {
-    m_strImage = image;
-    m_bUseDefaultImage = false;
+    if (typeString == _T("big")) {
+        nShadowType = Shadow::ShadowType::kShadowBig;
+    }
+    else if (typeString == _T("big_round")) {
+        nShadowType = Shadow::ShadowType::kShadowBigRound;
+    }
+    else if (typeString == _T("small")) {
+        nShadowType = Shadow::ShadowType::kShadowSmall;
+    }
+    else if (typeString == _T("small_round")) {
+        nShadowType = Shadow::ShadowType::kShadowSmallRound;
+    }
+    else if (typeString == _T("menu")) {
+        nShadowType = Shadow::ShadowType::kShadowMenu;
+    }
+    else if (typeString == _T("menu_round")) {
+        nShadowType = Shadow::ShadowType::kShadowMenuRound;
+    }
+    else if (typeString == _T("custom")) {
+        nShadowType = Shadow::ShadowType::kShadowCustom;
+    }
+    else if (typeString == _T("default")) {
+        nShadowType = Shadow::ShadowType::kShadowDefault;
+    }
+    else if (typeString == _T("none")) {
+        nShadowType = Shadow::ShadowType::kShadowNone;
+    }
+    else {
+        ASSERT(0);
+        return false;
+    }
+    return true;
+}
+
+bool Shadow::GetShadowParam(ShadowType nShadowType,
+                            UiSize& szBorderRound,
+                            UiPadding& rcShadowCorner,
+                            DString& shadowImage)
+{
+    bool bRet = false;
+    if (nShadowType == Shadow::ShadowType::kShadowBig) {
+        bRet = true;
+        szBorderRound = UiSize(0, 0);
+        rcShadowCorner = UiPadding(58, 58, 62, 64);
+        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_big.svg' corner='%d,%d,%d,%d'"),
+                                             rcShadowCorner.left + szBorderRound.cx,
+                                             rcShadowCorner.top + szBorderRound.cx,
+                                             rcShadowCorner.right + szBorderRound.cx,
+                                             rcShadowCorner.bottom + szBorderRound.cx);
+    }
+    else if (nShadowType == Shadow::ShadowType::kShadowBigRound) {
+        bRet = true;
+        szBorderRound = UiSize(6, 6);
+        rcShadowCorner = UiPadding(58, 58, 62, 64);
+        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_big_round.svg' corner='%d,%d,%d,%d'"),
+                                         rcShadowCorner.left + szBorderRound.cx,
+                                         rcShadowCorner.top + szBorderRound.cx,
+                                         rcShadowCorner.right + szBorderRound.cx,
+                                         rcShadowCorner.bottom + szBorderRound.cx);
+    }
+    else if (nShadowType == Shadow::ShadowType::kShadowSmall) {
+        bRet = true;
+        szBorderRound = UiSize(0, 0);
+        rcShadowCorner = UiPadding(52, 52, 56, 58);
+        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_small.svg' corner='%d,%d,%d,%d'"),
+                                             rcShadowCorner.left + szBorderRound.cx,
+                                             rcShadowCorner.top + szBorderRound.cx,
+                                             rcShadowCorner.right + szBorderRound.cx,
+                                             rcShadowCorner.bottom + szBorderRound.cx);
+    }
+    else if (nShadowType == Shadow::ShadowType::kShadowSmallRound) {
+        bRet = true;
+        szBorderRound = UiSize(6, 6);
+        rcShadowCorner = UiPadding(52, 52, 56, 58);
+        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_small_round.svg' corner='%d,%d,%d,%d'"),
+                                         rcShadowCorner.left + szBorderRound.cx,
+                                         rcShadowCorner.top + szBorderRound.cx,
+                                         rcShadowCorner.right + szBorderRound.cx,
+                                         rcShadowCorner.bottom + szBorderRound.cx);
+    }
+    else if (nShadowType == Shadow::ShadowType::kShadowMenu) {
+        bRet = true;
+        szBorderRound = UiSize(0, 0);
+        rcShadowCorner = UiPadding(52, 52, 56, 58);
+        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_menu.svg' corner='%d,%d,%d,%d'"),
+                                             rcShadowCorner.left + szBorderRound.cx,
+                                             rcShadowCorner.top + szBorderRound.cx,
+                                             rcShadowCorner.right + szBorderRound.cx,
+                                             rcShadowCorner.bottom + szBorderRound.cx);
+    }
+    else if (nShadowType == Shadow::ShadowType::kShadowMenuRound) {
+        bRet = true;
+        szBorderRound = UiSize(6, 6);
+        rcShadowCorner = UiPadding(52, 52, 56, 58);
+        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_menu_round.svg' corner='%d,%d,%d,%d'"),
+                                         rcShadowCorner.left + szBorderRound.cx,
+                                         rcShadowCorner.top + szBorderRound.cx,
+                                         rcShadowCorner.right + szBorderRound.cx,
+                                         rcShadowCorner.bottom + szBorderRound.cx);
+    }
+    else if (nShadowType == Shadow::ShadowType::kShadowCustom) {
+        bRet = true;
+        szBorderRound = UiSize(0, 0);
+        rcShadowCorner = UiPadding(0, 0, 0, 0);
+        shadowImage.clear();
+    }
+    else {
+        szBorderRound = UiSize(0, 0);
+        rcShadowCorner = UiPadding(0, 0, 0, 0);
+        shadowImage.clear();
+    }
+    return bRet;
+}
+
+void Shadow::OnShadowAttached(Shadow::ShadowType nShadowType)
+{
+    UiSize szBorderRound;
+    UiPadding rcShadowCorner;
+    DString shadowImage;
+    if (GetShadowParam(nShadowType, szBorderRound, rcShadowCorner, shadowImage)) {
+        SetShadowCorner(rcShadowCorner);
+        SetShadowBorderRound(szBorderRound);
+        SetShadowImage(shadowImage);
+    }
+    UpdateShadow();
+}
+
+void Shadow::UpdateShadow()
+{
+    //如果已经调用了AttachShadow，需要进行些处理
+    if (m_pRoot != nullptr) {
+        Box* pOrgRoot = nullptr;
+        if (m_pRoot->GetItemCount() > 0) {
+            pOrgRoot = dynamic_cast<Box*>(m_pRoot->GetItemAt(0));
+        }
+        DoAttachShadow(m_pRoot, pOrgRoot, m_bShadowAttached, m_isMaximized);
+
+        //刷新，重绘
+        m_pRoot->ArrangeAncestor();
+        m_pRoot->SetPos(m_pRoot->GetPos());
+    }
+}
+
+void Shadow::SetShadowImage(const DString& shadowImage)
+{
+    if (shadowImage != m_shadowImage) {
+        //阴影图片发生变化
+        m_shadowImage = shadowImage;
+        UpdateShadow();
+    }
 }
 
 const DString& Shadow::GetShadowImage() const
 {
-    return m_strImage;
+    return m_shadowImage;
 }
 
-void Shadow::SetShadowCorner(const UiPadding& padding, bool bNeedDpiScale)
+void Shadow::SetShadowCorner(const UiPadding& rcShadowCorner)
 {
-    ASSERT((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0));
-    if ((padding.left >= 0) && (padding.top >= 0) && (padding.right >= 0) && (padding.bottom >= 0)) {
-        m_rcShadowCorner = padding;
-        if (bNeedDpiScale) {
-            ASSERT(m_pWindow != nullptr);
-            if (m_pWindow != nullptr) {
-                m_pWindow->Dpi().ScalePadding(m_rcShadowCorner);
-            }
-        }
-        m_rcShadowCornerBackup = m_rcShadowCorner;
+    ASSERT((rcShadowCorner.left >= 0) && (rcShadowCorner.top >= 0) && (rcShadowCorner.right >= 0) && (rcShadowCorner.bottom >= 0));
+    if ((rcShadowCorner.left >= 0) && (rcShadowCorner.top >= 0) && (rcShadowCorner.right >= 0) && (rcShadowCorner.bottom >= 0)) {
+        m_rcShadowCorner = rcShadowCorner;
+        UpdateShadow();
     }    
 }
 
 UiPadding Shadow::GetShadowCorner() const
 {
-    if (m_bShadowAttached) {
-        return m_rcShadowCorner;
+    return m_rcShadowCorner;
+}
+
+UiPadding Shadow::GetCurrentShadowCorner() const
+{
+    if (m_bShadowAttached && !m_isMaximized) {
+        UiPadding rcShadowCorner = m_rcShadowCorner;
+        ASSERT(m_pWindow != nullptr);
+        if (m_pWindow != nullptr) {
+            m_pWindow->Dpi().ScalePadding(rcShadowCorner);
+        }
+        return rcShadowCorner;
     }
     else {
         return UiPadding(0, 0, 0, 0);
     }
 }
 
-void Shadow::ResetDefaultShadow()
+void Shadow::SetShadowBorderRound(UiSize szBorderRound)
 {
-    m_bUseDefaultImage = true;
-    m_strImage = _T("file='public/shadow/bk_shadow.png' corner='30,30,30,30'");
-
-    m_rcShadowCorner = { 14, 14, 14, 14 };
-    ASSERT(m_pWindow != nullptr);
-    if (m_pWindow != nullptr) {
-        m_pWindow->Dpi().ScalePadding(m_rcShadowCorner);
+    m_szBorderRound = szBorderRound;
+    if (m_pRoot != nullptr) {
+        m_pRoot->Invalidate();
     }
-    m_rcShadowCornerBackup = m_rcShadowCorner;
+}
+
+UiSize Shadow::GetShadowBorderRound() const
+{
+    return m_szBorderRound;
 }
 
 void Shadow::MaximizedOrRestored(bool isMaximized)
@@ -260,14 +441,13 @@ void Shadow::MaximizedOrRestored(bool isMaximized)
     if (!m_bShadowAttached) {
         return;
     }
-
-    if (isMaximized && m_pRoot) {
-        m_rcShadowCorner = UiPadding(0, 0, 0, 0);
-        m_pRoot->SetPadding(m_rcShadowCorner, false);
-    }
-    else if (!isMaximized && m_pRoot) {
-        m_rcShadowCorner = m_rcShadowCornerBackup;
-        m_pRoot->SetPadding(m_rcShadowCorner, false);
+    if (m_pRoot != nullptr) {
+        if (isMaximized) {
+            m_pRoot->SetPadding(UiPadding(0, 0, 0, 0), false);
+        }
+        else {
+            m_pRoot->SetPadding(m_rcShadowCorner, true);
+        }
     }
 }
 
@@ -283,14 +463,18 @@ void Shadow::ClearImageCache()
     }    
 }
 
-void Shadow::ChangeDpiScale(const DpiManager& dpi, uint32_t nOldDpiScale, uint32_t nNewDpiScale)
+void Shadow::ChangeDpiScale(const DpiManager& dpi, uint32_t /*nOldDpiScale*/, uint32_t nNewDpiScale)
 {
     ASSERT(nNewDpiScale == dpi.GetScale());
     if (nNewDpiScale != dpi.GetScale()) {
         return;
     }
-    m_rcShadowCorner = dpi.GetScalePadding(m_rcShadowCorner, nOldDpiScale);
-    m_rcShadowCornerBackup = dpi.GetScalePadding(m_rcShadowCornerBackup, nOldDpiScale);
+    //更新阴影图片(触发图片重新加载，根据DPI适应响应DPI值的图片)
+    DString shadowImage = GetShadowImage();
+    if (!shadowImage.empty()) {
+        SetShadowImage(_T(""));
+        SetShadowImage(shadowImage);
+    }
 }
 
-}
+} //namespace ui

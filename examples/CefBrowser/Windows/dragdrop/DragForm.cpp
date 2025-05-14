@@ -21,7 +21,7 @@ LRESULT CALLBACK DragForm::LowLevelMouseProc(int nCode, WPARAM wParam, LPARAM lP
                     //WS_EX_TOPMOST--WS_EX_TRANSPARENT--WS_EX_PALETTEWINDOW--WS_EX_LAYERED--WS_EX_TOOLWINDOW
                     ui::UiRect rc(pMouseStruct->pt.x - s_point_offset.x, pMouseStruct->pt.y - s_point_offset.y, 0, 0);
                     UiPadding rcShadow;
-                    s_drag_form->GetShadowCorner(rcShadow);
+                    s_drag_form->GetCurrentShadowCorner(rcShadow);
                     rc.Inflate(rcShadow);
                     s_drag_form->SetWindowPos(InsertAfterWnd(), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_NOSIZE);
                 }
@@ -77,7 +77,7 @@ DragForm* DragForm::CreateDragForm(HBITMAP bitmap, POINT pt_offset)
     rect.bottom = rect.top + bitmap_info.bmHeight;
 
     UiPadding rcShadow;
-    drag_form->GetShadowCorner(rcShadow);
+    drag_form->GetCurrentShadowCorner(rcShadow);
     rect.Inflate(rcShadow);
     drag_form->SetWindowPos(InsertAfterWnd(), rect.left, rect.top, rect.Width(), rect.Height(), kSWP_SHOWWINDOW);
     return drag_form;

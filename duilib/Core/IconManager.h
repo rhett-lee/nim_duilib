@@ -118,7 +118,7 @@ public:
     void RemoveIcon(uint32_t id);
 
 public:
-    /** 添加一个图标资源（本地资源路径的相对，例如："public/shadow/bk_shadow.png"）
+    /** 添加一个图标资源（本地资源路径的相对，例如："public/shadow/test.png"）
     * @param [in] imageString 图片资源字符串, 格式与XML中设置图片的格式相同
     * @return 返回该图标对应的ID，如果失败则返回0
     */
@@ -131,7 +131,7 @@ public:
 
     /** 获取ICON的图片资源字符串
     * @param [in] id 图标ID（即AddIcon返回的那个ID）
-    * @return 返回资源字符串，例如："public/shadow/bk_shadow.png"
+    * @return 返回资源字符串，例如："public/shadow/test.png"
     */
     DString GetImageString(uint32_t id) const;
 

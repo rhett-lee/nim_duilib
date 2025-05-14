@@ -422,7 +422,7 @@ UiRect WindowBase::GetWindowPos(bool bContainShadow) const
     GetWindowRect(rcPos);
     if (!bContainShadow) {
         UiPadding rcShadow;
-        GetShadowCorner(rcShadow);
+        GetCurrentShadowCorner(rcShadow);
         rcPos.Deflate(rcShadow);
     }
     return rcPos;
@@ -444,7 +444,7 @@ void WindowBase::Resize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 
     if (!bContainShadow) {
         UiPadding rcShadow;
-        GetShadowCorner(rcShadow);
+        GetCurrentShadowCorner(rcShadow);
         cx += rcShadow.left + rcShadow.right;
         cy += rcShadow.top + rcShadow.bottom;
     }
@@ -826,7 +826,7 @@ UiRect WindowBase::OnNativeGetSizeBox() const
 
 void WindowBase::OnNativeGetShadowCorner(UiPadding& rcShadow) const
 {
-    GetShadowCorner(rcShadow);
+    GetCurrentShadowCorner(rcShadow);
 }
 
 const DpiManager& WindowBase::OnNativeGetDpi() const

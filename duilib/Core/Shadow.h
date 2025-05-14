@@ -18,10 +18,37 @@ class DpiManager;
 class UILIB_API Shadow
 {
 public:
-    /** Attach的Box圆角属性（Attach后，需要修改原来Box的圆角属性）
-    * @param [in] pBox 关联的容器，用于处理DPI缩放
+    /** 阴影类型
     */
-    static UiSize GetChildBoxBorderRound(const Box* pBox);
+    enum ShadowType
+    {
+        kShadowNone         = -1,           //无阴影，关闭阴影
+        kShadowBig          = 0,            //大阴影，直角（适合普通窗口）
+        kShadowBigRound     = 1,            //大阴影，圆角（适合普通窗口）
+        kShadowSmall        = 2,            //小阴影，直角（适合普通窗口）
+        kShadowSmallRound   = 3,            //小阴影，圆角（适合普通窗口）
+        kShadowMenu         = 4,            //小阴影，直角（适合弹出式窗口，比如菜单等）
+        kShadowMenuRound    = 5,            //小阴影，圆角（适合弹出式窗口，比如菜单等）
+        kShadowCustom       = 6,            //用户自定义阴影（设置时会清除默认的阴影属性，后续需要调用SetShadowImage,SetShadowCorner,SetShadowBorderRound设置阴影属性）
+        kShadowCount,                       //有效值总数
+
+        kShadowDefault      = kShadowBigRound //默认阴影（未设置时，默认使用此值）
+    };
+
+    /** 根据字符串获取对应的阴影类型
+    */
+    static bool GetShadowType(const DString& typeString, ShadowType& nShadowType);
+
+    /** 获取默认的阴影类型对应的参数
+    * @param [in] nShadowType 阴影类型
+    * @param [out] szBorderRound 返回圆角大小，未经DPI缩放
+    * @param [out] rcShadowCorner 返回阴影素材的九宫格属性，未经DPI缩放
+    * @param [out] shadowImage 返回阴影图片的属性，包含阴影图片的九宫格属性
+    */
+    static bool GetShadowParam(ShadowType nShadowType,
+                               UiSize& szBorderRound,
+                               UiPadding& rcShadowCorner,
+                               DString& shadowImage);
 
 public:
     /** 构造函数
@@ -44,25 +71,44 @@ public:
 
     /** 设置当前阴影效果值，是否为默认值
     */
-    void SetUseDefaultShadowAttached(bool isDefault);
+    void SetUseDefaultShadowAttached(bool bDefault);
 
-    /** 设置阴影的九宫格属性
-     * @param[in] rc 要设置的九宫格属性
-     * @param[in] bNeedDpiScale 为 false 表示不需要把 rc 根据 DPI 自动调整
-     */
-    void SetShadowCorner(const UiPadding&rc, bool bNeedDpiScale);
+    /** 设置阴影类型
+    */
+    void SetShadowType(Shadow::ShadowType nShadowType);
 
-    /** 获取阴影的九宫格属性
+    /** 获取阴影类型
+    */
+    Shadow::ShadowType GetShadowType() const;
+
+    /** 设置阴影素材的九宫格描述
+    * @param [in] rcShadowCorner 阴影图片的九宫格属性，未经DPI缩放的值
+    */
+    void SetShadowCorner(const UiPadding& rcShadowCorner);
+
+    /** 获取已经设置的阴影九宫格属性
+     *@return 返回通过SetShadowCorner函数设置的九宫格属性，未经DPI缩放的值
      */
     UiPadding GetShadowCorner() const;
 
-    /** 重置为默认阴影效果
+    /** 获取当前的阴影九宫格属性（已经做过DPI缩放）
+     *@return 如果阴影未Attached或者窗口最大化，返回UiPadding(0, 0, 0, 0)，否则返回设置的九宫格属性（已经做过DPI缩放）
+     */
+    UiPadding GetCurrentShadowCorner() const;
+
+    /** 设置阴影的圆角大小
+    * @param [in] szBorderRound 阴影的圆角大小，未经DPI缩放的值
     */
-    void ResetDefaultShadow();
+    void SetShadowBorderRound(UiSize szBorderRound);
+
+    /** 获取阴影的圆角大小
+    * @return 返回阴影的圆角大小，未经DPI缩放的值
+    */
+    UiSize GetShadowBorderRound() const;
 
     /** 设置阴影图片属性
      */
-    void SetShadowImage(const DString& image);
+    void SetShadowImage(const DString& shadowImage);
 
     /** 获取阴影图片属性
      */
@@ -96,7 +142,15 @@ public:
 private:
     /** 将阴影附加到窗口
      */
-    void DoAttachShadow(Box* pNewRoot, Box* pOrgRoot, bool bNewAttach, bool bUseDefaultImage, bool isMaximized) const;
+    void DoAttachShadow(Box* pNewRoot, Box* pOrgRoot, bool bNewAttach, bool isMaximized) const;
+
+    /** 附加阴影事件
+    */
+    void OnShadowAttached(Shadow::ShadowType nShadowType);
+
+    /** 更新阴影属性
+    */
+    void UpdateShadow();
 
 private:
     //是否支持阴影效果
@@ -109,20 +163,22 @@ private:
     bool m_isMaximized;
 
     //阴影图片属性
-    DString m_strImage;
+    DString m_shadowImage;
 
-    //当前阴影图片属性，是否为默认值
-    bool m_bUseDefaultImage;
-
-    //阴影圆角属性
+    //阴影九宫格属性(未经DPI缩放)
     UiPadding m_rcShadowCorner;
-    UiPadding m_rcShadowCornerBackup;
+
+    //阴影的圆角大小(未经DPI缩放)
+    UiSize m_szBorderRound;
 
     //Root容器接口
     Box* m_pRoot;
 
     //关联的窗口
     Window* m_pWindow;
+
+    //阴影类型
+    Shadow::ShadowType m_nShadowType;
 };
 
 }

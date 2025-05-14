@@ -9,6 +9,31 @@
     <TabBox name="main_view_tab_test" bkcolor="white" selected_id="0">
         <VBox name="main_view_page_01" bkcolor="white">
             <Label text="页面1：这里是页面1"/>
+            <Label text="窗口阴影的功能测试：" valign="center" margin="12,30,10,0"/>
+            <Option class="checkbox_svg_font14" group="shadow_type" text="阴影类型：default, 默认阴影" selected="true" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={default}" />
+            </Option>
+            <Option class="checkbox_svg_font14" group="shadow_type" text="阴影类型：big, 大阴影，直角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={big}" />
+            </Option>
+            <Option class="checkbox_svg_font14" group="shadow_type" text="阴影类型：big_round, 大阴影，圆角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={big_round}" />
+            </Option>
+            <Option class="checkbox_svg_font14" group="shadow_type" text="阴影类型：small, 小阴影，直角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={small}" />
+            </Option>
+            <Option class="checkbox_svg_font14" group="shadow_type" text="阴影类型：small_round, 小阴影，圆角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={small_round}" />
+            </Option>
+            <Option class="checkbox_svg_font14" group="shadow_type" text="阴影类型：menu, 小阴影，直角（适合弹出式窗口，比如菜单等）" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={menu}" />
+            </Option>
+            <Option class="checkbox_svg_font14" group="shadow_type" text="阴影类型：menu_round, 小阴影，圆角（适合弹出式窗口，比如菜单等）" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={menu_round}" />
+            </Option>
+            <Option class="checkbox_svg_font14" group="shadow_type" text="阴影类型：none, 无阴影" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={none}" />
+            </Option>
         </VBox>
         <VBox name="main_view_page_02" bkcolor="blue">
             <Label text="页面2：这里是页面2"/>
@@ -17,7 +42,7 @@
             <Label text="页面3：这里是页面3"/>
             <TabBox name="sub_view_tab" selected_id="2" bkcolor="Cornsilk">
                 <VBox name="sub_view_tab_page1" height="200" bkcolor="LightBlue">
-                    <Label text="内嵌页面1：这里是内嵌页面1"/>
+                    <Label text="内嵌页面1：这里是内嵌页面1"/>                    
                 </VBox>
                 <VBox name="sub_view_tab_page2" height="400" bkcolor="LightCoral">
                     <Label text="内嵌页面2：这里是内嵌页面2"/>

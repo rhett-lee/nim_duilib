@@ -320,30 +320,30 @@ bool Menu::ResizeMenu()
     ui::UiRect rcWork;
     GetMonitorWorkRect(m_menuPoint, rcWork);
 
-    ui::UiSize szAvailable = { rcWork.Width(), rcWork.Height()};
-    UiEstSize estSize = pRoot->EstimateSize(szAvailable);   //这里带上了阴影窗口
+    ui::UiSize szMenuWindow = { rcWork.Width(), rcWork.Height()};
+    UiEstSize estSize = pRoot->EstimateSize(szMenuWindow);   //这里返回的大小包含了阴影的大小
     if (estSize.cx.IsInt32()) {
-        szAvailable.cx = estSize.cx.GetInt32();
+        szMenuWindow.cx = estSize.cx.GetInt32();
     }
     if (estSize.cy.IsInt32()) {
-        szAvailable.cy = estSize.cy.GetInt32();
-    }    
-    SetInitSize(szAvailable.cx, szAvailable.cy);
-    ui::UiPadding rcCorner = GetShadowCorner();
-    ui::UiSize szInit = szAvailable;
-    szInit.cx -= rcCorner.left + rcCorner.right;
-    szInit.cy -= rcCorner.top + rcCorner.bottom; //这里去掉阴影窗口，即用户的视觉有效面积 szInit<=szAvailable
-    
+        szMenuWindow.cy = estSize.cy.GetInt32();
+    }
+
+    UiPadding rcShadowCorner = pRoot->GetPadding(); //窗口阴影所占区域
+    ui::UiSize szMenuClient = szMenuWindow;
+    szMenuClient.cx -= rcShadowCorner.left + rcShadowCorner.right;
+    szMenuClient.cy -= rcShadowCorner.top + rcShadowCorner.bottom; //这里去掉阴影窗口，即用户的视觉有效面积
+
     ui::UiPoint point(m_menuPoint);  //这里有个bug，由于坐标点与包含在窗口内，会直接出发mouseenter导致出来子菜单，偏移1个像素
     if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Right)) {
-        point.x += -szAvailable.cx + rcCorner.right + rcCorner.left;
+        point.x += -szMenuWindow.cx + rcShadowCorner.right + rcShadowCorner.left;
         point.x -= 1;
     }
     else if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Left)) {
         point.x += 1;
     }
     if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Bottom))    {
-        point.y += -szAvailable.cy + rcCorner.bottom + rcCorner.top;
+        point.y += -szMenuWindow.cy + rcShadowCorner.bottom + rcShadowCorner.top;
         point.y += 1;
     }
     else if (static_cast<int>(m_popupPosType) & static_cast<int>(eMenuAlignment_Top)) {
@@ -353,20 +353,20 @@ bool Menu::ResizeMenu()
         if (point.x < rcWork.left) {
             point.x = rcWork.left;
         }
-        else if (point.x + szInit.cx> rcWork.right) {
-            point.x = rcWork.right - szInit.cx;
+        else if (point.x + szMenuClient.cx> rcWork.right) {
+            point.x = rcWork.right - szMenuClient.cx;
         }
         if (point.y < rcWork.top) {
             point.y = rcWork.top ;
         }
-        else if (point.y + szInit.cy > rcWork.bottom) {
-            point.y = rcWork.bottom - szInit.cy;
+        else if (point.y + szMenuClient.cy > rcWork.bottom) {
+            point.y = rcWork.bottom - szMenuClient.cy;
         }
     }
    
     SetWindowPos(InsertAfterWnd(InsertAfterFlag::kHWND_TOPMOST),
-                 point.x - rcCorner.left, point.y - rcCorner.top,
-                 szAvailable.cx, szAvailable.cy,
+                 point.x - rcShadowCorner.left, point.y - rcShadowCorner.top,
+                 szMenuWindow.cx, szMenuWindow.cy,
                  kSWP_SHOWWINDOW | (m_noFocus ? kSWP_NOACTIVATE : 0));
 
     if (!m_noFocus) {
@@ -389,7 +389,7 @@ bool Menu::ResizeSubMenu()
     UiRect rcOwner = m_pOwner->GetPos();
     UiRect rc = rcOwner;
    
-    UiPadding rcCorner = GetShadowCorner();
+    UiPadding rcCorner = GetCurrentShadowCorner();
     UiRect rcWindow;
     m_pOwner->GetWindow()->GetWindowRect(rcWindow);
 
@@ -1092,7 +1092,7 @@ void MenuItem::CreateMenuWnd()
         if (pWindow != nullptr) {
             UiRect rcOwner = GetPos();
             UiRect rc = rcOwner;
-            UiPadding rcCorner = pWindow->GetShadowCorner();
+            UiPadding rcCorner = pWindow->GetCurrentShadowCorner();
             UiRect rcWindow;
             GetWindow()->GetWindowRect(rcWindow);
             //去阴影

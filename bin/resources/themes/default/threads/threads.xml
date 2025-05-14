@@ -14,7 +14,7 @@
         </HBox>
         
         <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->
-        <VBox>
+        <VBox padding="6,6,6,6">
             <HBox margin="0,0,0,0" valign="center" halign="center" height="48">
                 <Button class="btn_global_blue_80x30" name="start_threads" text="启动子线程" margin="2,8,2,2"/>
                 <Button class="btn_global_blue_80x30" name="stop_threads" text="停止子线程" margin="2,8,2,2"/>

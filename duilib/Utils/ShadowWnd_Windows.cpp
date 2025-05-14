@@ -73,7 +73,7 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
                     UiRect rc;
                     m_pWindow->GetWindowRect(rc);
                     UiPadding rcShadow;
-                    GetShadowCorner(rcShadow);
+                    GetCurrentShadowCorner(rcShadow);
                     rc.Inflate(rcShadow);
                     SetWindowPos(InsertAfterWnd(m_pWindow), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_SHOWWINDOW | kSWP_NOACTIVATE);
                     if (uMsg == WM_PAINT) {
@@ -125,8 +125,9 @@ Box* ShadowWnd::AttachShadow(Box* pRoot)
         AddMessageFilter(m_pShadowWnd);
 
         //外置的阴影窗口需要将原窗口设置为圆角，避免圆角处出现黑色背景
-        UiSize borderRound = Shadow::GetChildBoxBorderRound(pRoot);
-        SetRoundCorner(borderRound.cx, borderRound.cy, false);
+        ASSERT(pRoot->GetWindow() == this);
+        UiSize borderRound = GetShadowBorderRound();
+        SetRoundCorner(borderRound.cx, borderRound.cy, true);
         pRoot->SetBorderRound(borderRound);
         InitShadow();
         return pRoot;
@@ -174,6 +175,7 @@ void ShadowWnd::InitShadow()
         ASSERT(m_pShadowWnd->IsWindow());
         //阴影窗口不接受鼠标和键盘消息
         m_pShadowWnd->EnableWindow(false);
+        m_pShadowWnd->SetShadowType(GetShadowType());
         if (IsWindowVisible()) {
             m_pShadowWnd->ShowWindow(kSW_SHOW_NA);
         }
