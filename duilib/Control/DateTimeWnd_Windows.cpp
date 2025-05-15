@@ -335,9 +335,9 @@ HFONT DateTimeWnd::CreateHFont() const
     return hFont;
 }
 
-std::tm DateTimeWnd::SystemTimeToStdTime(const SYSTEMTIME& sysTime) const
+struct tm DateTimeWnd::SystemTimeToStdTime(const SYSTEMTIME& sysTime) const
 {
-    std::tm tmTime = { 0, };
+    struct tm tmTime = { 0, };
     tmTime.tm_sec = sysTime.wSecond;
     tmTime.tm_min = sysTime.wMinute;
     tmTime.tm_hour = sysTime.wHour;
@@ -349,7 +349,7 @@ std::tm DateTimeWnd::SystemTimeToStdTime(const SYSTEMTIME& sysTime) const
 }
 
 
-SYSTEMTIME DateTimeWnd::StdTimeToSystemTime(const std::tm& tmTime) const
+SYSTEMTIME DateTimeWnd::StdTimeToSystemTime(const struct tm& tmTime) const
 {
     SYSTEMTIME st = { (WORD)(tmTime.tm_year + 1900),
                       (WORD)(tmTime.tm_mon + 1),

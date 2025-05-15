@@ -72,8 +72,8 @@ void DateTime::SetAttribute(const DString& strName, const DString& strValue)
 void DateTime::InitLocalTime()
 {
     time_t timeNow = std::time(nullptr);
-    std::tm dateTime = {0, };
-#ifdef _MSC_VER
+    struct tm dateTime = {0, };
+#if defined (_WIN32) || defined (_WIN64)
     ::localtime_s(&dateTime, &timeNow);
 #else
     ::localtime_r(&timeNow, &dateTime);
@@ -83,16 +83,16 @@ void DateTime::InitLocalTime()
 
 void DateTime::ClearTime()
 {
-    std::tm dateTime = { 0, };
+    struct tm dateTime = { 0, };
     SetDateTime(dateTime);
 }
 
-const std::tm& DateTime::GetDateTime() const
+const struct tm& DateTime::GetDateTime() const
 {
     return m_dateTime;
 }
 
-void DateTime::SetDateTime(const std::tm& dateTime)
+void DateTime::SetDateTime(const struct tm& dateTime)
 {
     if (!IsEqual(m_dateTime, dateTime)) {
         m_dateTime = dateTime;
@@ -108,7 +108,7 @@ DString DateTime::GetDateTimeString() const
 {
     DString dateTime;
     if (IsValidDateTime()) {
-        std::tm tmSystemDate = m_dateTime;
+        struct tm tmSystemDate = m_dateTime;
 #ifdef DUILIB_UNICODE
         std::wstringstream ss;
 #else
@@ -125,7 +125,7 @@ bool DateTime::SetDateTimeString(const DString& dateTime)
     bool bRet = false;
     DString sFormat = GetStringFormat();
     ASSERT(!sFormat.empty());
-    std::tm t = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
+    struct tm t = {-1, -1, -1, -1, -1, -1, -1, -1, -1};
 #ifdef DUILIB_UNICODE
     std::wistringstream ss(dateTime);
 #else
@@ -170,8 +170,8 @@ bool DateTime::SetDateTimeString(const DString& dateTime)
     if (bRet) {
         //如果不包含年月日，需要更新为当日值，否则编辑的时候认为是无效日期
         time_t timeNow = std::time(nullptr);
-        std::tm tmTime = { 0, };
-#ifdef _MSC_VER
+        struct tm tmTime = { 0, };
+#if defined (_WIN32) || defined (_WIN64)
         ::localtime_s(&tmTime, &timeNow);
 #else
         ::localtime_r(&timeNow, &tmTime);
@@ -197,7 +197,7 @@ bool DateTime::SetDateTimeString(const DString& dateTime)
         time_t timeValue = std::mktime(&m_dateTime);
         ASSERT(timeValue != 0);
         if (timeValue != 0) {
-#ifdef _MSC_VER
+#if defined (_WIN32) || defined (_WIN64)
             ::localtime_s(&m_dateTime, &timeValue);
 #else
             ::localtime_r(&timeValue, &m_dateTime);
@@ -208,7 +208,7 @@ bool DateTime::SetDateTimeString(const DString& dateTime)
     return bRet;
 }
 
-bool DateTime::IsEqual(const std::tm& a, const std::tm& b) const
+bool DateTime::IsEqual(const struct tm& a, const struct tm& b) const
 {
     if (a.tm_sec == b.tm_sec   &&
         a.tm_min == b.tm_min   &&
@@ -226,7 +226,7 @@ bool DateTime::IsEqual(const std::tm& a, const std::tm& b) const
 
 bool DateTime::IsValidDateTime() const
 {
-    const std::tm& a = m_dateTime;
+    const struct tm& a = m_dateTime;
     if (a.tm_sec == 0  &&
         a.tm_min == 0  &&
         a.tm_hour == 0 &&

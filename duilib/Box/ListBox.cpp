@@ -1411,11 +1411,14 @@ bool ListBox::SortItems(PFNCompareFunc pfnCompare, void* pCompareContext)
 
     m_pCompareFunc = pfnCompare;
     m_pCompareContext = pCompareContext;
-#ifdef _MSC_VER
+#if defined (_WIN32) || defined (_WIN64)
+    //Windows系统
     qsort_s(&(*m_items.begin()), m_items.size(), sizeof(Control*), ListBox::ItemComareFuncWindows, this);
-#elif defined(__APPLE__) // macOS
+#elif defined(__APPLE__)
+    // macOS
     qsort_r(&(*m_items.begin()), m_items.size(), sizeof(Control*), this, ListBox::ItemComareFuncMacOS);   
 #else
+    //Linux 系统
     qsort_r(&(*m_items.begin()), m_items.size(), sizeof(Control*), ListBox::ItemComareFuncLinux, this);
 #endif    
     IListBoxItem* pItem = nullptr;

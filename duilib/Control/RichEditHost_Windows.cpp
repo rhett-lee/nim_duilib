@@ -5,6 +5,8 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
+#include <TextServ.h>
+
 #define UI_ES_LEFT              0x0001L
 #define UI_ES_CENTER            0x0002L
 #define UI_ES_RIGHT             0x0004L
@@ -21,6 +23,12 @@
 #define UI_ES_DISABLENOSCROLL   0x2000L
 #define UI_WS_HSCROLL           0x4000L
 #define UI_WS_VSCROLL           0x8000L
+
+#if defined (DUILIB_COMPILER_MINGW)
+    typedef HRESULT(STDAPICALLTYPE* PShutdownTextServices)(IUnknown* pTextServices);
+    #define TXTBIT_SHOWPASSWORD		        0x800000	// Show password string
+    #define TXTBIT_FLASHLASTPASSWORDCHAR    0x10000000	// Show last password char momentarily
+#endif
 
 namespace ui
 {

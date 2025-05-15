@@ -12,7 +12,6 @@
 // Uncomment this line to manually enable ATL support.
 // #define CEF_USE_ATL 1
 #include "duilib/duilib_defs.h"
-#include <atlcomcli.h>
 #include <objidl.h>
 #include <stdio.h>
 
@@ -96,7 +95,7 @@ using DropTargetHandle = std::shared_ptr<client::DropTargetWin>;
 
 class DropSourceWin : public IDropSource {
  public:
-  static CComPtr<DropSourceWin> Create();
+  static DropSourceWin* Create();
 
   // IDropSource implementation:
   HRESULT __stdcall GiveFeedback(DWORD dwEffect) override;
@@ -147,9 +146,7 @@ class DragEnumFormatEtc : public IEnumFORMATETC {
 
 class DataObjectWin : public IDataObject {
  public:
-  static CComPtr<DataObjectWin> Create(FORMATETC* fmtetc,
-                                       STGMEDIUM* stgmed,
-                                       int count);
+  static DataObjectWin* Create(FORMATETC* fmtetc, STGMEDIUM* stgmed, int count);
 
   // IDataObject memberS
   HRESULT __stdcall GetDataHere(FORMATETC* pFormatEtc,

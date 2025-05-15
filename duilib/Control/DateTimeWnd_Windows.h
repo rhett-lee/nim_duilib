@@ -2,6 +2,7 @@
 #define _UI_CONTROL_DATETIME_WND_WINDOWS_H_
 
 #include "duilib/Core/UiTypes.h"
+#include <ctime>
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
@@ -46,8 +47,8 @@ private:
 
     UiRect CalPos();
     HFONT CreateHFont() const;
-    std::tm SystemTimeToStdTime(const SYSTEMTIME& sysTime) const;
-    SYSTEMTIME StdTimeToSystemTime(const std::tm& tmTime) const;
+    struct tm SystemTimeToStdTime(const SYSTEMTIME& sysTime) const;
+    SYSTEMTIME StdTimeToSystemTime(const struct tm& tmTime) const;
 
 private:
     HWND m_hDateTimeWnd;

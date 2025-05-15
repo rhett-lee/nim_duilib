@@ -23,6 +23,11 @@
     #pragma message("Unknown Platform!")
 #endif
 
+#if defined (__MINGW32__) || (__MINGW64__)
+    //MinGW-w64 编译器
+    #define DUILIB_COMPILER_MINGW 1
+#endif
+
 /** RichEdit控件绘制优化选项是否开启
 */
 #define DUILIB_RICH_EDIT_DRAW_OPT 1

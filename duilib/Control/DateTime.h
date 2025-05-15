@@ -3,6 +3,7 @@
 
 #include "duilib/Control/Label.h"
 #include "duilib/Box/HBox.h"
+#include <ctime>
 
 namespace ui
 {
@@ -30,11 +31,11 @@ public:
 
     /** 获取日期时间值
     */
-    const std::tm& GetDateTime() const;
+    const struct tm& GetDateTime() const;
 
     /** 设置日期时间值
     */
-    void SetDateTime(const std::tm& dateTime);
+    void SetDateTime(const struct tm& dateTime);
 
     /** 当前日期时间值是否为有效的日期时间
     */
@@ -150,7 +151,7 @@ public:
 private:
     /** 比较两个时间是否相同
     */
-    bool IsEqual(const std::tm& a, const std::tm& b) const;
+    bool IsEqual(const struct tm& a, const struct tm& b) const;
 
     /** 结束编辑
     */
@@ -159,7 +160,7 @@ private:
 private:
     /** 当前的日期时间值
     */
-    std::tm m_dateTime;
+    struct tm m_dateTime;
 
     /* 日期时间显示格式
     */

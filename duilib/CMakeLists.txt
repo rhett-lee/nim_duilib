@@ -17,7 +17,7 @@ endif()
 set(CMAKE_CXX_STANDARD 20) # C++20
 set(CMAKE_CXX_STANDARD_REQUIRED ON) # C++20
 
-if(MSVC)
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows
     add_definitions(-DUNICODE -D_UNICODE)
 endif()
 
@@ -29,7 +29,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")  # macOS
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")  # Linux
     set(CEF_LIB_DIR "libcef_linux")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows
-    set(CEF_LIB_DIR "libcef_windows")
+    set(CEF_LIB_DIR "libcef_win")
 else()
     message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
 endif()

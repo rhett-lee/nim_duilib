@@ -139,7 +139,7 @@ bool DateTimeWnd::Init(DateTime* pOwner)
     if (!pOwner->IsValidDateTime()) {
         pOwner->InitLocalTime();
     }
-    const std::tm& timeValue = pOwner->GetDateTime();
+    const struct tm& timeValue = pOwner->GetDateTime();
     if (m_editList[EditType::YEAR] != nullptr) {
         m_editList[EditType::YEAR]->SetText(StringUtil::Printf(_T("%d"), timeValue.tm_year + 1900));
     }
@@ -245,7 +245,7 @@ void DateTimeWnd::EndEditDateTime()
     bool bMin = false;
     bool bSec = false;
 
-    std::tm timeValue = m_pOwner->GetDateTime();
+    struct tm timeValue = m_pOwner->GetDateTime();
     switch (editFormat)
     {
     case DateTime::EditFormat::kDateTimeUpDown:

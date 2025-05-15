@@ -200,12 +200,16 @@ static BOOL WINAPI IsDialogMessageDuiLib(_In_ HWND hDlg, _In_ LPMSG lpMsg)
     }
     auto original = HookIsDialogMessage::Instance().GetTrampoline<PfnIsDialogMessage>();
     if (original) {
+#if defined (_MSC_VER)
         __try {
             bRet = original(hDlg, lpMsg);
         }
         __except (EXCEPTION_EXECUTE_HANDLER) {
             bRet = false;
         }
+#else
+        bRet = original(hDlg, lpMsg);
+#endif
     }
     return bRet;
 }
@@ -312,9 +316,9 @@ int32_t NativeWindow_Windows::DoModal(NativeWindow_Windows* pParentWindow,
 #endif
         }
         if (targetFunc != nullptr) {
-            HookIsDialogMessage::Instance().Install(targetFunc, IsDialogMessageDuiLib);
+            HookIsDialogMessage::Instance().Install((void*)targetFunc, (void*)IsDialogMessageDuiLib);
         }
-        HookIsDialogMessage::Instance().Install(::IsDialogMessage, IsDialogMessageDuiLib);
+        HookIsDialogMessage::Instance().Install((void*)::IsDialogMessage, (void*)IsDialogMessageDuiLib);
     }
 #endif //DUILIB_ENABLE_INLINE_HOOK
 

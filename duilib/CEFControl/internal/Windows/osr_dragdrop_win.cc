@@ -303,8 +303,10 @@ bool DragDataToDataObject(CefRefPtr<CefDragData> drag_data,
   }
   DCHECK_LT(curr_index, kMaxDataObjects);
 
-  CComPtr<DataObjectWin> objWin = DataObjectWin::Create(fmtetcs, stgmeds, curr_index);
-  objWin.QueryInterface(data_object);
+  DataObjectWin* objWin = DataObjectWin::Create(fmtetcs, stgmeds, curr_index);
+  objWin->AddRef();
+  objWin->QueryInterface(IID_IDataObject, (void**)data_object);
+  objWin->Release();
   return true;
 }
 
@@ -422,13 +424,15 @@ CefBrowserHost::DragOperationsMask DropTargetWin::StartDragging(
     CefRefPtr<CefDragData> drag_data,
     CefRenderHandler::DragOperationsMask allowed_ops,
     int /*x*/, int /*y*/) {
-  CComPtr<IDataObject> dataObject;
+
+  IDataObject* dataObject = nullptr;
   DWORD resEffect = DROPEFFECT_NONE;
   if (DragDataToDataObject(drag_data, &dataObject)) {
-        CComPtr<DropSourceWin> dropSourceWin = DropSourceWin::Create();
-        CComPtr<IDropSource> dropSource;
-        dropSourceWin.QueryInterface(&dropSource);
-        dropSourceWin.Release();
+        DropSourceWin* dropSourceWin = DropSourceWin::Create();
+        dropSourceWin->AddRef();
+        IDropSource* dropSource = nullptr;
+        dropSourceWin->QueryInterface(IID_IDropSource , (void**)&dropSource);
+        dropSourceWin->Release();
         DWORD effect = DragOperationToDropEffect(allowed_ops);
         current_drag_data_ = drag_data->Clone();
         current_drag_data_->ResetFileContents();
@@ -439,8 +443,17 @@ CefBrowserHost::DragOperationsMask DropTargetWin::StartDragging(
           resEffect = DROPEFFECT_NONE;
         }
         current_drag_data_ = nullptr;
+        if (dropSource != nullptr) {
+            dropSource->Release();
+            dropSource = nullptr;
+        }        
     }
-    return DropEffectToDragOperation(resEffect);
+    CefBrowserHost::DragOperationsMask operationsMask = DropEffectToDragOperation(resEffect);
+    if (dataObject != nullptr) {
+        dataObject->Release();
+        dataObject = nullptr;
+    }
+    return operationsMask;
 }
 
 HRESULT DropTargetWin::DragOver(DWORD key_state,
@@ -475,8 +488,9 @@ HRESULT DropTargetWin::Drop(IDataObject* /*data_object*/,
   return S_OK;
 }
 
-CComPtr<DropSourceWin> DropSourceWin::Create() {
-  return CComPtr<DropSourceWin>(new DropSourceWin());
+DropSourceWin* DropSourceWin::Create()
+{
+  return new DropSourceWin();
 }
 
 HRESULT DropSourceWin::GiveFeedback(DWORD /*dwEffect*/) {
@@ -588,10 +602,9 @@ void DragEnumFormatEtc::DeepCopyFormatEtc(FORMATETC* dest, FORMATETC* source) {
   }
 }
 
-CComPtr<DataObjectWin> DataObjectWin::Create(FORMATETC* fmtetc,
-                                             STGMEDIUM* stgmed,
-                                             int count) {
-  return CComPtr<DataObjectWin>(new DataObjectWin(fmtetc, stgmed, count));
+DataObjectWin* DataObjectWin::Create(FORMATETC* fmtetc, STGMEDIUM* stgmed, int count)
+{
+  return new DataObjectWin(fmtetc, stgmed, count);
 }
 
 HRESULT DataObjectWin::GetDataHere(FORMATETC* /*pFormatEtc*/, STGMEDIUM* /*pmedium*/) {

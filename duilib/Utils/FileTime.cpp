@@ -3,6 +3,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include <ctime>
 
 namespace ui
 {
@@ -75,7 +76,7 @@ DString FileTime::ToString() const
 {
     uint64_t secondsSinceEpoch = ToSecondsSinceEpoch();
     
-    std::tm tm;
+    struct tm tm;
     std::time_t time = (std::time_t)secondsSinceEpoch;
     localtime_r(&time, &tm);
 
