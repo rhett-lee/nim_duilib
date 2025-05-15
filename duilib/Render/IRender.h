@@ -826,18 +826,21 @@ public:
     * @param [in] fullxtiled 如果为true，横向平铺绘制时，确保是完整绘制图片，该参数仅当xtiled为true时有效
     * @param [in] fullytiled 如果为true，纵向平铺绘制时，确保是完整绘制图片，该参数仅当ytiled为true时有效
     * @param [in] nTiledMargin 平铺绘制时，图片的横向、纵向间隔，该参数仅当xtiled为true或者ytiled为true时有效
+    * @param [in] bWindowShadowMode 九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分）
     */
     virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
                            const UiRect& rcDest, const UiRect& rcDestCorners,
                            const UiRect& rcSource, const UiRect& rcSourceCorners,
                            uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
-                           bool fullxtiled = true, bool fullytiled = true, int32_t nTiledMargin = 0) = 0;
+                           bool fullxtiled = true, bool fullytiled = true, int32_t nTiledMargin = 0,
+                           bool bWindowShadowMode = false) = 0;
     /** 绘制图片（采用九宫格方式绘制图片）, 无圆角参数
     */
     virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
                            const UiRect& rcDest,  const UiRect& rcSource, 
                            uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
-                           bool fullxtiled = true, bool fullytiled = true, int32_t nTiledMargin = 0) = 0;
+                           bool fullxtiled = true, bool fullytiled = true, int32_t nTiledMargin = 0,
+                           bool bWindowShadowMode = false) = 0;
 
     /** 绘制图片
     * @param [in] rcPaint 当前全部可绘制区域（用于避免非可绘制区域的绘制，以提高绘制性能）

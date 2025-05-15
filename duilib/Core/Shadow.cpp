@@ -280,7 +280,7 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         bRet = true;
         szBorderRound = UiSize(0, 0);
         rcShadowCorner = UiPadding(58, 58, 62, 64);
-        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_big.svg' corner='%d,%d,%d,%d'"),
+        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_big.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
                                              rcShadowCorner.left + szBorderRound.cx,
                                              rcShadowCorner.top + szBorderRound.cx,
                                              rcShadowCorner.right + szBorderRound.cx,
@@ -290,7 +290,7 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         bRet = true;
         szBorderRound = UiSize(6, 6);
         rcShadowCorner = UiPadding(58, 58, 62, 64);
-        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_big_round.svg' corner='%d,%d,%d,%d'"),
+        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_big_round.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
                                          rcShadowCorner.left + szBorderRound.cx,
                                          rcShadowCorner.top + szBorderRound.cx,
                                          rcShadowCorner.right + szBorderRound.cx,
@@ -300,7 +300,7 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         bRet = true;
         szBorderRound = UiSize(0, 0);
         rcShadowCorner = UiPadding(52, 52, 56, 58);
-        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_small.svg' corner='%d,%d,%d,%d'"),
+        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_small.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
                                              rcShadowCorner.left + szBorderRound.cx,
                                              rcShadowCorner.top + szBorderRound.cx,
                                              rcShadowCorner.right + szBorderRound.cx,
@@ -310,7 +310,7 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         bRet = true;
         szBorderRound = UiSize(6, 6);
         rcShadowCorner = UiPadding(52, 52, 56, 58);
-        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_small_round.svg' corner='%d,%d,%d,%d'"),
+        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_small_round.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
                                          rcShadowCorner.left + szBorderRound.cx,
                                          rcShadowCorner.top + szBorderRound.cx,
                                          rcShadowCorner.right + szBorderRound.cx,
@@ -320,7 +320,7 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         bRet = true;
         szBorderRound = UiSize(0, 0);
         rcShadowCorner = UiPadding(52, 52, 56, 58);
-        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_menu.svg' corner='%d,%d,%d,%d'"),
+        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_menu.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
                                              rcShadowCorner.left + szBorderRound.cx,
                                              rcShadowCorner.top + szBorderRound.cx,
                                              rcShadowCorner.right + szBorderRound.cx,
@@ -330,7 +330,7 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
         bRet = true;
         szBorderRound = UiSize(6, 6);
         rcShadowCorner = UiPadding(52, 52, 56, 58);
-        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_menu_round.svg' corner='%d,%d,%d,%d'"),
+        shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_menu_round.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
                                          rcShadowCorner.left + szBorderRound.cx,
                                          rcShadowCorner.top + szBorderRound.cx,
                                          rcShadowCorner.right + szBorderRound.cx,

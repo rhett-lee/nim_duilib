@@ -48,6 +48,7 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
     m_bFullTiledX = r.m_bFullTiledX;
     m_bTiledY = r.m_bTiledY;
     m_bFullTiledY = r.m_bFullTiledY;
+    m_bWindowShadowMode = r.m_bWindowShadowMode;
     m_nTiledMargin = r.m_nTiledMargin;
     m_nPlayCount = r.m_nPlayCount;
     m_iconSize = r.m_iconSize;
@@ -130,6 +131,7 @@ void ImageAttribute::Init()
     m_bFullTiledX = true;
     m_bTiledY = false;
     m_bFullTiledY = true;
+    m_bWindowShadowMode = false;
     m_nTiledMargin = 0;
     m_nPlayCount = -1;
     m_iconSize = 0;
@@ -301,6 +303,10 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         else if ((name == _T("full_ytiled")) || (name == _T("fullytiled"))) {
             //纵向平铺时，保证整张图片绘制
             imageAttribute.m_bFullTiledY = (value == _T("true"));
+        }
+        else if (name == _T("window_shadow_mode")) {
+            //九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分）
+            imageAttribute.m_bWindowShadowMode = (value == _T("true"));
         }
         else if ((name == _T("tiled_margin")) || (name == _T("tiledmargin"))) {
             //平铺绘制时，各平铺图片之间的间隔，包括横向平铺和纵向平铺

@@ -56,11 +56,13 @@ public:
                            const UiRect& rcDest, const UiRect& rcDestCorners,
                            const UiRect& rcSource, const UiRect& rcSourceCorners,
                            uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
-                           bool fullxtiled = true,  bool fullytiled = true, int32_t nTiledMargin = 0) override;
+                           bool fullxtiled = true,  bool fullytiled = true, int32_t nTiledMargin = 0,
+                           bool bWindowShadowMode = false) override;
     virtual void DrawImage(const UiRect& rcPaint, IBitmap* pBitmap, 
                            const UiRect& rcDest,  const UiRect& rcSource, 
                            uint8_t uFade = 255, bool xtiled = false, bool ytiled = false, 
-                           bool fullxtiled = true, bool fullytiled = true, int32_t nTiledMargin = 0) override;
+                           bool fullxtiled = true, bool fullytiled = true, int32_t nTiledMargin = 0,
+                           bool bWindowShadowMode = false) override;
     virtual void DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
                                const UiRect& rcDest, const UiRect& rcSource,
                                uint8_t uFade = 255, IMatrix* pMatrix = nullptr) override;

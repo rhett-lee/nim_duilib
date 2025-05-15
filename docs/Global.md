@@ -143,6 +143,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | ytiled | false| bool | 纵向平铺绘制 |
 | full_ytiled | true | bool | 纵向平铺绘制时，保证整张图片绘制, 仅当ytiled为true时有效 |
 | tiled_margin | 0 | int | 平铺绘制时，各平铺图片之间的间隔，包括横向平铺和纵向平铺仅当xtiled为true时或者ytiled为true时有效 |
+| window_shadow_mode | false | bool | 九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分，以避免不必要的绘制动作） |
 | icon_size | | int | 指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效) |
 | play_count | -1 | int | 如果是GIF、APNG、WEBP等动画图片，可以指定播放次数。 如果是-1表示一直播放，此为缺省值。 |
 

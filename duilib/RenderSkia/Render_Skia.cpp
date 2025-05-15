@@ -431,7 +431,8 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
                             const UiRect& rcDest, const UiRect& rcDestCorners,
                             const UiRect& rcSource, const UiRect& rcSourceCorners,
                             uint8_t uFade, bool xtiled, bool ytiled,
-                            bool fullxtiled, bool fullytiled, int32_t nTiledMargin)
+                            bool fullxtiled, bool fullytiled, int32_t nTiledMargin,
+                            bool bWindowShadowMode)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     UiRect rcTestTemp;
@@ -487,7 +488,8 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     rcDrawSource.top = rcSource.top + rcSourceCorners.top;
     rcDrawSource.right = rcSource.right - rcSourceCorners.right;
     rcDrawSource.bottom = rcSource.bottom - rcSourceCorners.bottom;
-    if (UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
+    if (!bWindowShadowMode && UiRect::Intersect(rcTemp, rcPaint, rcDrawDest)) {
+        //绘制中间部分
         if (!xtiled && !ytiled) {
             DrawSkiaImage::DrawImage(skCanvas, rcDrawDest, *m_pSkPointOrg, skImage, rcDrawSource, skPaint);
         }
@@ -607,6 +609,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 
     // left-top
     if (rcSourceCorners.left > 0 && rcSourceCorners.top > 0) {
+        //左上角
         rcDrawDest.left = rcDest.left;
         rcDrawDest.top = rcDest.top;
         rcDrawDest.right = rcDest.left + rcDestCorners.left;
@@ -622,6 +625,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     }
     // top
     if (rcSourceCorners.top > 0) {
+        //边框：上
         rcDrawDest.left = rcDest.left + rcDestCorners.left;
         rcDrawDest.top = rcDest.top;
         rcDrawDest.right = rcDest.right - rcDestCorners.right;
@@ -637,6 +641,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     }
     // right-top
     if (rcSourceCorners.right > 0 && rcSourceCorners.top > 0) {
+        //右上角
         rcDrawDest.left = rcDest.right - rcDestCorners.right;
         rcDrawDest.top = rcDest.top;
         rcDrawDest.right = rcDest.right;
@@ -652,6 +657,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     }
     // left
     if (rcSourceCorners.left > 0) {
+        //边框：左
         rcDrawDest.left = rcDest.left;
         rcDrawDest.top = rcDest.top + rcDestCorners.top;
         rcDrawDest.right = rcDest.left + rcDestCorners.left;
@@ -667,6 +673,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     }
     // right
     if (rcSourceCorners.right > 0) {
+        //边框：右
         rcDrawDest.left = rcDest.right - rcDestCorners.right;
         rcDrawDest.top = rcDest.top + rcDestCorners.top;
         rcDrawDest.right = rcDest.right;
@@ -682,6 +689,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     }
     // left-bottom
     if (rcSourceCorners.left > 0 && rcSourceCorners.bottom > 0) {
+        //左下角
         rcDrawDest.left = rcDest.left;
         rcDrawDest.top = rcDest.bottom - rcDestCorners.bottom;
         rcDrawDest.right = rcDest.left + rcDestCorners.left;
@@ -697,6 +705,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     }
     // bottom
     if (rcSourceCorners.bottom > 0) {
+        //边框：下
         rcDrawDest.left = rcDest.left + rcDestCorners.left;
         rcDrawDest.top = rcDest.bottom - rcDestCorners.bottom;
         rcDrawDest.right = rcDest.right - rcDestCorners.right;
@@ -712,6 +721,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
     }
     // right-bottom
     if (rcSourceCorners.right > 0 && rcSourceCorners.bottom > 0) {
+        //右下角
         rcDrawDest.left = rcDest.right - rcDestCorners.right;
         rcDrawDest.top = rcDest.bottom - rcDestCorners.bottom;
         rcDrawDest.right = rcDest.right;
@@ -730,7 +740,8 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
 void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
                             const UiRect& rcDest, const UiRect& rcSource,
                             uint8_t uFade, bool xtiled, bool ytiled,
-                            bool fullxtiled, bool fullytiled, int32_t nTiledMargin)
+                            bool fullxtiled, bool fullytiled, int32_t nTiledMargin,
+                            bool bWindowShadowMode)
 {
     UiRect rcDestCorners;
     UiRect rcSourceCorners;
@@ -738,7 +749,7 @@ void Render_Skia::DrawImage(const UiRect& rcPaint, IBitmap* pBitmap,
                      rcDest, rcDestCorners,
                      rcSource, rcSourceCorners,
                      uFade, xtiled, ytiled,
-                     fullxtiled, fullytiled, nTiledMargin);
+                     fullxtiled, fullytiled, nTiledMargin, bWindowShadowMode);
 }
 
 void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,

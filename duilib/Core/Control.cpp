@@ -2467,7 +2467,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         pRender->DrawImage(m_rcPaint, pBitmap, rcDest, rcDestCorners, rcSource, rcSourceCorners,
                            iFade, newImageAttribute.m_bTiledX, newImageAttribute.m_bTiledY,
                            newImageAttribute.m_bFullTiledX, newImageAttribute.m_bFullTiledY,
-                           newImageAttribute.m_nTiledMargin);
+                           newImageAttribute.m_nTiledMargin, newImageAttribute.m_bWindowShadowMode);
     }
     //按需启动动画
     duiImage.CheckStartGifPlay(rcDest);

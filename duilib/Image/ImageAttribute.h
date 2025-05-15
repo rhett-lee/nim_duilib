@@ -141,6 +141,9 @@ public:
     //纵向完全平铺，仅当bTiledY为true时有效
     bool m_bFullTiledY;
 
+    //九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分，以避免不必要的绘制动作）
+    bool m_bWindowShadowMode;
+
     //平铺时的边距（仅当bTiledX为true或者bTiledY为true时有效）
     int32_t m_nTiledMargin;
 
