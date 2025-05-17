@@ -26,24 +26,24 @@
         #ifdef _DEBUG
             //Debug版本
             #ifdef  _WIN64
-                #pragma comment (lib, "../../../skia/out/LLVM.x64.Debug/skia.lib")
-                #pragma comment (lib, "../../../skia/out/LLVM.x64.Debug/svg.lib")
-                #pragma comment (lib, "../../../skia/out/LLVM.x64.Debug/skshaper.lib")
+                #pragma comment (lib, "../../../skia/out/llvm.x64.debug/skia.lib")
+                #pragma comment (lib, "../../../skia/out/llvm.x64.debug/svg.lib")
+                #pragma comment (lib, "../../../skia/out/llvm.x64.debug/skshaper.lib")
             #else
-                #pragma comment (lib, "../../../skia/out/LLVM.x86.Debug/skia.lib")
-                #pragma comment (lib, "../../../skia/out/LLVM.x86.Debug/svg.lib")
-                #pragma comment (lib, "../../../skia/out/LLVM.x86.Debug/skshaper.lib")
+                #pragma comment (lib, "../../../skia/out/llvm.x86.debug/skia.lib")
+                #pragma comment (lib, "../../../skia/out/llvm.x86.debug/svg.lib")
+                #pragma comment (lib, "../../../skia/out/llvm.x86.debug/skshaper.lib")
             #endif //_WIN64    
         #else
             //Release版本
             #ifdef  _WIN64
-                #pragma comment (lib, "../../../skia/out/LLVM.x64.Release/skia.lib")
-                #pragma comment (lib, "../../../skia/out/LLVM.x64.Release/svg.lib")
-                #pragma comment (lib, "../../../skia/out/LLVM.x64.Release/skshaper.lib")
+                #pragma comment (lib, "../../../skia/out/llvm.x64.release/skia.lib")
+                #pragma comment (lib, "../../../skia/out/llvm.x64.release/svg.lib")
+                #pragma comment (lib, "../../../skia/out/llvm.x64.release/skshaper.lib")
             #else
-                #pragma comment (lib, "../../../skia/out/LLVM.x86.Release/skia.lib")
-                #pragma comment (lib, "../../../skia/out/LLVM.x86.Release/svg.lib")
-                #pragma comment (lib, "../../../skia/out/LLVM.x86.Release/skshaper.lib")
+                #pragma comment (lib, "../../../skia/out/llvm.x86.release/skia.lib")
+                #pragma comment (lib, "../../../skia/out/llvm.x86.release/svg.lib")
+                #pragma comment (lib, "../../../skia/out/llvm.x86.release/skshaper.lib")
             #endif //_WIN64    
         #endif //_DEBUG
     #else
@@ -51,24 +51,24 @@
         #ifdef _DEBUG
             //Debug版本
             #ifdef  _WIN64
-                #pragma comment (lib, "../../../skia/out/vs2022.x64.Debug/skia.lib")
-                #pragma comment (lib, "../../../skia/out/vs2022.x64.Debug/svg.lib")
-                #pragma comment (lib, "../../../skia/out/vs2022.x64.Debug/skshaper.lib")
+                #pragma comment (lib, "../../../skia/out/msvc.x64.debug/skia.lib")
+                #pragma comment (lib, "../../../skia/out/msvc.x64.debug/svg.lib")
+                #pragma comment (lib, "../../../skia/out/msvc.x64.debug/skshaper.lib")
             #else
-                #pragma comment (lib, "../../../skia/out/vs2022.x86.Debug/skia.lib")
-                #pragma comment (lib, "../../../skia/out/vs2022.x86.Debug/svg.lib")
-                #pragma comment (lib, "../../../skia/out/vs2022.x86.Debug/skshaper.lib")
+                #pragma comment (lib, "../../../skia/out/msvc.x86.debug/skia.lib")
+                #pragma comment (lib, "../../../skia/out/msvc.x86.debug/svg.lib")
+                #pragma comment (lib, "../../../skia/out/msvc.x86.debug/skshaper.lib")
             #endif //_WIN64    
         #else
             //Release版本
             #ifdef  _WIN64
-                #pragma comment (lib, "../../../skia/out/vs2022.x64.Release/skia.lib")
-                #pragma comment (lib, "../../../skia/out/vs2022.x64.Release/svg.lib")
-                #pragma comment (lib, "../../../skia/out/vs2022.x64.Release/skshaper.lib")
+                #pragma comment (lib, "../../../skia/out/msvc.x64.release/skia.lib")
+                #pragma comment (lib, "../../../skia/out/msvc.x64.release/svg.lib")
+                #pragma comment (lib, "../../../skia/out/msvc.x64.release/skshaper.lib")
             #else
-                #pragma comment (lib, "../../../skia/out/vs2022.x86.Release/skia.lib")
-                #pragma comment (lib, "../../../skia/out/vs2022.x86.Release/svg.lib")
-                #pragma comment (lib, "../../../skia/out/vs2022.x86.Release/skshaper.lib")
+                #pragma comment (lib, "../../../skia/out/msvc.x86.release/skia.lib")
+                #pragma comment (lib, "../../../skia/out/msvc.x86.release/svg.lib")
+                #pragma comment (lib, "../../../skia/out/msvc.x86.release/skshaper.lib")
             #endif //_WIN64    
         #endif //_DEBUG
     #endif //DUILIB_RENDER_SKIA_BY_LLVM

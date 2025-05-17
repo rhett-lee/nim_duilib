@@ -36,7 +36,7 @@ include_directories(${CEF_INCLUDE_ROOT_DIR})
 link_directories("${DUILIB_SRC_ROOT_DIR}/libs/")
 link_directories("${DUILIB_SRC_ROOT_DIR}/bin/libcef_linux/")
 
-link_directories("${SKIA_SRC_ROOT_DIR}/out/LLVM.x64.Release/")
+link_directories("${SKIA_SRC_ROOT_DIR}/out/llvm.x64.release/")
 link_directories("${SDL_SRC_ROOT_DIR}/lib64/")
 link_directories("${SDL_SRC_ROOT_DIR}/lib/")
 
