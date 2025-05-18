@@ -56,6 +56,10 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MoveControl", "examples\MoveControl\MoveControl.vcxproj", "{D31E3A5D-7AD3-41FF-B8CF-D02FB1D0412F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CefBrowser", "examples\CefBrowser\CefBrowser.vcxproj", "{FDB5539F-1060-4975-B603-B66454C8C897}"
+	ProjectSection(ProjectDependencies) = postProject
+		{34C50672-6115-3723-B8FD-09568AA8527E} = {34C50672-6115-3723-B8FD-09568AA8527E}
+		{BA5C702F-BB68-37F9-A109-74F215FE14C5} = {BA5C702F-BB68-37F9-A109-74F215FE14C5}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "threads", "examples\threads\threads.vcxproj", "{F1A9371F-9A34-45A0-98EB-83FF371F066A}"
 EndProject
