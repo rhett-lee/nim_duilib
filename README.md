@@ -1,6 +1,6 @@
 # nim duilib
 
-[nim_duilib](https://github.com/rhett-lee/nim_duilib) 是一个界面库，包含了一整套桌面软件的开发部件，使用C++语言开发。nim_duilib是在[NIM_Duilib_Framework](https://github.com/netease-im/NIM_Duilib_Framework)库的基础上进行了代码功能完善和扩展，但由于代码结构和资源XML文件的格式均有调整，所以不能直接兼容基于NIM_Duilib_Framework开发的程序，但代码和资源XML迁移的难度不大。您可以直接使用nim_duilib界面库来开发常用的桌面应用，以简化应用程序的UI开发工作。
+[nim_duilib](https://github.com/rhett-lee/nim_duilib) 是一个界面库，包含了一整套桌面软件的开发部件，使用C++语言开发。nim duilib是在NIM_Duilib_Framework库的基础上进行了代码功能完善和扩展，但由于代码结构和资源XML文件的格式均有调整，所以不能直接兼容基于NIM_Duilib_Framework开发的程序，但代码和资源XML迁移的难度不大。您可以直接使用nim_duilib界面库来开发常用的桌面应用，以简化应用程序的UI开发工作。
 
 ![GitHub](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -238,4 +238,4 @@
  - [快速上手](docs/Getting-Started.md)
  - [参考文档](docs/Summary.md)
  - [示例程序](docs/Examples.md)
- - 跨平台（Windows/Linux系统）的窗口引擎（基于[SDL3.0](https://www.libsdl.org/)），相关的进展参见文档：[跨平台开发相关事项.md](跨平台开发相关事项.md)
+ - 跨平台（Windows/Linux系统）的窗口引擎（基于[SDL3.0](https://www.libsdl.org/)），相关的内容参见文档：[跨平台开发相关事项.md](docs/跨平台开发相关事项.md)
