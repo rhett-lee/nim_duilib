@@ -1,0 +1,6 @@
+CommonSettings.props：Visual Studio 工程（*.vcxproj）的公共配置，适用于基于nim_duilib库的exe/dll工程。
+使用的基本流程：
+（1）用文本编辑器打开工程文件（*.vcxproj）
+（2）找到"<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />"这一行的位置，在这行的后面插入一行，添加一下内容：
+         "<Import Project="$(SolutionDir)\MSVC\PropertySheets\CommonSettings.props" />"
+（3）保持该工程文件，如果已经在VS中打开，需要重新加载。
