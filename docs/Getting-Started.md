@@ -1,6 +1,6 @@
 ﻿# 快速上手（Windows系统，VS 2022）
 
-此示例将引导你快速部署一个基于 nim_duilib 的基本应用，此示例与 `samples` 中的 `MyDuilibApp` 项目一致，如果你更喜欢查看代码可以参考示例代码而无需多花费时间。
+此示例将引导你快速部署一个基于 nim_duilib 的基本应用，此示例与 `examples` 中的 `MyDuilibApp` 项目一致，如果你更喜欢查看代码，可以打开`examples.sln`工程，参考示例代码而无需多花费时间。
 
 ## 获取项目代码并编译
 
@@ -10,7 +10,7 @@
 git clone https://github.com/rhett-lee/nim_duilib
 ```
 
-2. 获取skia代码的编译方法和修改的代码（nim_duilib默认使用skia作为绘制引擎，所以先要编译skia）
+2. 获取skia代码的编译方法和修改的代码（nim_duilib使用skia作为绘制引擎，所以先要编译skia）
 
 ```bash
 git clone https://github.com/rhett-lee/skia_compile
@@ -18,17 +18,24 @@ git clone https://github.com/rhett-lee/skia_compile
 
 3. 编译skia源码：按照skia_compile目录中的[Windows下编译skia.md文档](../../skia_compile/Windows下编译skia.md)中的方法，编译出skia相关的lib文件    
    注意事项：skia源码应该与nim_duilib源码位于相同的目录下。    
-   注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅；如果使用VS编译，运行速度很满，界面比较卡。    
-   检查方法：编译成功以后，在skia/out的子目录下，有生成skia.lib等lib文件
+   注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅；如果使用VS编译，运行速度很慢，界面比较卡。    
+   检查方法：编译成功以后，在skia/out的子目录下，有生成skia.lib等lib文件。
+4. 在工作目录内，几个项目的源码目录的基本结构如下    
 
-4. 编译nim_duilib：进入 `nim_duilib/examples` 目录，使用 Visual Studio 2022版本的 IDE 打开 `examples.sln`，选择编译选项为Debug|x64或者Release|x64，按下 F7 即可编译所有示例程序（编译完成的示例程序位于bin目录中）。
+<img src="./Images/vs00.png"/>
+
+5. 编译nim_duilib：进入 `nim_duilib` 目录，使用 Visual Studio 2022版本的 IDE 打开 `examples.sln`，选择编译选项为Debug|x64或者Release|x64，按下 F7 即可编译所有示例程序（编译完成的示例程序位于bin目录中）。
 
 ## 创建基础工程
 
-使用 Visual Studio 打开项目目录中 `samples\\samples.sln` 解决方案，
+使用 Visual Studio 打开项目目录中 `duilib.sln` 解决方案，
 解决方案中包含了一些简单示例作为参考，你可以参考示例或新建一个 Windows 桌面应用，来一步一步完成第一个 duilib 窗口。
 
-1. 在`samples\\samples.sln` 解决方案中新建一个 Windows 桌面程序（VS2022，程序类型为：Windows Desktop Application），假定程序名为：MyDuilibApp
+1. 在`duilib.sln` 解决方案中新建一个 Windows 桌面程序（VS2022，程序类型为：Windows Desktop Application）。
+假定程序名为：`MyDuilibApp`，源码放在`examples2`子目录中。    
+
+<img src="./Images/vs01.png"/>
+
 2. 将生成的代码清理一下，只保留关键的 wWinMain 函数：
 ```cpp
 #include "MainThread.h"
@@ -48,50 +55,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 ```
 
 ## 配置项目属性
-
-- 项目属性->常规，修改输出目录为克隆后项目的 bin 目录下
-1. `Output Directory` 改为：`..\..\bin\`
-2. `Intermediate Directory` 改为：`$(ProjectDir)..\..\tmp\$(PlatformName)\$(ProjectName)\$(Configuration)\`
-
-- 项目属性->常规，修改平台工具集和C++/C语言选项与你编译的 duilib 保持一致
-1. `Platform Toolset` 改为：`Visual Studio 2022 (v143)`
-2. `C++ Language Standard` 改为：`ISO C++20 Standard (/std:c++20)`
-3. `C Language Standard` 改为：`ISO C17 (2018) Standard (/std:c17)`
-
-- 项目属性->常规，修改目标名称（最终的exe名称）
-1. Target Name: Debug|x64的改为$(ProjectName)64_d，Release|x64的改为$(ProjectName)64
-2. Target Name: Debug|Win32的改为$(ProjectName)_d，Release|x32的改为$(ProjectName)（可选，如果不编译32位程序，可以不设置）
-
-<img src="./Images/vs01.png"/>
-
-- 项目属性->C/C++->常规->包含目录中，添加 `nim_duilib` 根目录到包含目录中：
-1. `Additional Include Directories` 改为：`../../`
-2. 如果需要使用 CEF 模块，`Additional Include Directories` 改为：`..\..\;..\..\duilib\third_party\libcef_win\`
+- 使用nim_duilib提供的通用配置（`MSVC\PropertySheets\CommonSettings.props`）    
+（1）用文本编辑器打开刚刚创建的工程文件（`examples2\MyDuilibApp\MyDuilibApp.vcxproj`）    
+（2）找到`<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />`这一行的位置，在这行的后面插入一行，添加一下内容：    
+         `<Import Project="$(SolutionDir)\MSVC\PropertySheets\CommonSettings.props" />`    
+（3）保存该工程文件的修改，如果已经在VS中打开，需要重新加载。    
 
 <img src="./Images/vs02.png"/>
 
-- 项目属性->C/C++->代码生成，将 Debug 模式的运行库修改为 `/MTd`，将 Release 模式的运行库修改为 `/MT`
+- 项目右键->添加->引用，将 duilib、cximage、libpng、libwebp、zlib 作为引用项目，这样就不需要手动引入静态库文件了。
 
 <img src="./Images/vs03.png"/>
 
-- 项目右键->添加->引用，将 base、duilib、cximage、libpng、libwebp、zlib 作为引用项目（如果使用CEF，需要添加ui_components作为引用项目），这样就不需要手动引入静态库文件了。
-
-<img src="./Images/vs04.png"/>
-
 添加成功后，可以看到引用成功的项目：    
-<img src="./Images/vs05.png"/>  
-
-设置应用程序清单，以使代码兼容Win7/8/10/11等（Win32和x64需要分开设置）：    
-x64设置内容：`../../manifest/duilib.x64.manifest`
-<img src="./Images/vs06.png"/>
-Win32设置内容：`../../manifest/duilib.x86.manifest`
-<img src="./Images/vs07.png"/>
-源文件的编码格式，设置为UTF-8格式：
-<img src="./Images/vs08.png"/>
+<img src="./Images/vs04.png"/>  
 
 ## 引入线程库
 
-在创建的项目中增加自定义的线程类（主线程和一个工作线程）    
+在创建的项目中增加自定义的线程类MainThread（主线程和一个工作线程）    
 创建两个文件（`MainThread.h` 和 `MainThread.cpp`），并添加到VS工程中，两个文件的内容分别如下：
 
 ```cpp
@@ -207,11 +188,11 @@ void MainThread::OnInit()
 
 void MainThread::OnCleanup()
 {
-    ui::GlobalManager::Instance().Shutdown();
     if (m_workerThread != nullptr) {
         m_workerThread->Stop();
         m_workerThread.reset(nullptr);
     }
+    ui::GlobalManager::Instance().Shutdown();
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     ::OleUninitialize();
 #endif
@@ -247,7 +228,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
 ## 创建一个简单窗口
 
-创建一个窗口类，继承 `ui::WindowImplBase` 类，并覆写 `GetSkinFolder` `GetSkinFile` `GetWindowClassName` 三个方法。
+创建一个窗口类MainForm，继承 `ui::WindowImplBase` 类，并覆写 `GetSkinFolder` `GetSkinFile` 等方法。
 
 ```cpp
 //MainForm.h
@@ -319,11 +300,14 @@ void MainForm::OnInitWindow()
 ## 创建窗口描述 XML 文件
 
 在我们创建的窗口类中，指定了窗口描述文件目录是 `my_duilib_app`，指定窗口的描述文件为 `MyDuilibForm.xml`。
-接下来在 `resources\\themes\\default` 目录下创建 `my_duilib_app` 文件夹并新建一个 `MyDuilibForm.xml` 文件，写下如下内容。    
+接下来在 `bin\resources\themes\default` 目录下创建 `my_duilib_app` 文件夹并新建一个 `MyDuilibForm.xml` 文件，写下如下内容。    
 注意事项：XML文件的编码格式是UTF-8。  
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="60%,80%" mininfo="80,50" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" shadow_attached="true" layered_window="true" sizebox="4,4,4,4">
+<Window size="800,600" mininfo="80,60" 
+        caption="0,0,0,36" use_system_caption="false" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" 
+        shadow_type="default" shadow_attached="true" layered_window="true" 
+        alpha="255" sizebox="4,4,4,4" icon="../public/caption/logo.ico">
     <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
         <!-- 标题栏区域 -->
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
