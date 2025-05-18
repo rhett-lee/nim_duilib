@@ -22,7 +22,8 @@
 namespace ui {
 
 CefControlNative::CefControlNative(ui::Window* pWindow):
-    CefControl(pWindow)
+    CefControl(pWindow),
+    m_bWindowFirstShown(false)
 {
 }
 
@@ -83,13 +84,16 @@ void CefControlNative::ReCreateBrowser()
 
     //如果窗口没有完成首次显示，则等首次显示时再创建，避免出现闪黑屏现象
     if (!pWindow->IsWindowFirstShown()) {
-        std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
-        pWindow->AttachWindowFirstShown([weakFlag, this](const EventArgs& /*args*/) {
-            if (!weakFlag.expired()) {
-                ReCreateBrowser();
-            }            
-            return true;
-            });
+        if (!m_bWindowFirstShown) {
+            std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
+            pWindow->AttachWindowFirstShown([weakFlag, this](const EventArgs& /*args*/) {
+                if (!weakFlag.expired()) {
+                    ReCreateBrowser();
+                }
+                return true;
+                });
+            m_bWindowFirstShown = true;
+        }
         return;
     }
 
@@ -127,7 +131,7 @@ public:
             //窗口隐藏的时候，不需要设置；如果设置的话，会导致程序崩溃
             return;
         }
-        CefWindowHandle handle = m_pCefControl->GetCefHandle();
+        CefWindowHandle handle = m_pCefControl->GetCefWindowHandle();
         ui::UiRect rc = m_pCefControl->GetPos();
         if (handle != 0) {
             Display* display = XOpenDisplay(nullptr);
@@ -149,7 +153,7 @@ void CefControlNative::SetPos(ui::UiRect rc)
     GlobalManager::Instance().AssertUIThread();
     BaseClass::SetPos(rc);
 #ifdef DUILIB_BUILD_FOR_WIN
-    HWND hwnd = GetCefHandle();
+    HWND hwnd = GetCefWindowHandle();
     if (::IsWindow(hwnd)) {
         ::SetWindowPos(hwnd, HWND_TOP, rc.left, rc.top, rc.Width(), rc.Height(), SWP_NOZORDER);
     }
@@ -193,7 +197,7 @@ public:
         if (m_pCefControlFlag.expired()) {
             return;
         }
-        CefWindowHandle handle = m_pCefControl->GetCefHandle();
+        CefWindowHandle handle = m_pCefControl->GetCefWindowHandle();
         if (handle != 0) {
             Display* display = XOpenDisplay(nullptr);
             if ((display != nullptr) && IsX11WindowValid(display, handle)){
@@ -219,7 +223,7 @@ void CefControlNative::SetVisible(bool bVisible)
     GlobalManager::Instance().AssertUIThread();
     BaseClass::SetVisible(bVisible);
 #ifdef DUILIB_BUILD_FOR_WIN
-    HWND hwnd = GetCefHandle();
+    HWND hwnd = GetCefWindowHandle();
     if (hwnd) {
         if (bVisible) {
             ShowWindow(hwnd, SW_SHOW);
@@ -233,9 +237,18 @@ void CefControlNative::SetVisible(bool bVisible)
 #endif
 }
 
-void CefControlNative::UpdateWindowPos()
+void CefControlNative::UpdateCefWindowPos()
 {
-    BaseClass::UpdateWindowPos();
+#ifdef DUILIB_BUILD_FOR_WIN
+    HWND hwnd = GetCefWindowHandle();
+    ASSERT(::IsWindow(hwnd));
+    if (!::IsWindow(hwnd)) {
+        //CEF页面的窗口还没完成创建
+        return;
+    }
+#endif
+
+    BaseClass::UpdateCefWindowPos();
     //在Browser控件创建完成后，更新窗口位置和可见性
     SetPos(GetPos());
     SetVisible(IsVisible());
@@ -245,7 +258,7 @@ void CefControlNative::CloseAllBrowsers()
 {
 #ifdef DUILIB_BUILD_FOR_WIN
     //关闭窗口时，取消父子关系，避免导致退出时的崩溃问题
-    HWND hWnd = GetCefHandle();
+    HWND hWnd = GetCefWindowHandle();
     if (::IsWindow(hWnd)) {
         ::SetParent(hWnd, nullptr);
     }
@@ -275,7 +288,7 @@ public:
         if (pWindow != nullptr) {
             hParentHandle = pWindow->NativeWnd()->GetX11WindowNumber();
         }
-        CefWindowHandle handle = m_pCefControl->GetCefHandle();
+        CefWindowHandle handle = m_pCefControl->GetCefWindowHandle();
         if ((handle != 0) && (hParentHandle != 0)) {
             Display* display = XOpenDisplay(nullptr);
             if ((display != nullptr) && IsX11WindowValid(display, handle) && IsX11WindowValid(display, hParentHandle)) {
@@ -305,7 +318,7 @@ void CefControlNative::SetWindow(ui::Window* pWindow)
     }
 #ifdef DUILIB_BUILD_FOR_WIN
     // 设置Cef窗口句柄为新的主窗口的子窗口
-    auto hwnd = GetCefHandle();
+    auto hwnd = GetCefWindowHandle();
     if (hwnd) {
         ::SetParent(hwnd, pWindow->NativeWnd()->GetHWND());
     }

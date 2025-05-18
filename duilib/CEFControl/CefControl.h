@@ -72,7 +72,7 @@ public:
     /** 获取浏览器对象所属的窗体句柄
     * @return 窗口句柄
     */
-    CefWindowHandle GetCefHandle() const;
+    CefWindowHandle GetCefWindowHandle() const;
 
     /** 获取页面 URL
     * @return 返回 URL 地址
@@ -512,9 +512,9 @@ protected:
     */
     virtual void ClientToControl(UiPoint& pt) override;
 
-    /** 更新控件的位置(在Browser控件创建成功后调用)
+    /** 更新CEF控件窗口的位置（子窗口模式）
     */
-    virtual void UpdateWindowPos() override;
+    virtual void UpdateCefWindowPos() override;
 
     /** 执行C++函数（JS 与 C++ 交互的功能）
     */

@@ -31,9 +31,9 @@ protected:
     */
     virtual void ReCreateBrowser() override;
 
-    /** 更新控件的位置(在Browser控件创建成功后调用)
+    /** 更新CEF控件窗口的位置（子窗口模式）
     */
-    virtual void UpdateWindowPos() override;
+    virtual void UpdateCefWindowPos() override;
 
     /** 关闭所有的Browser对象
     */
@@ -47,6 +47,11 @@ protected:
                                       bool bText,
                                       bool bEditable,
                                       const CefRect& nodeRect) override;
+
+private:
+    /** 首次绘制的事件是否关联
+    */
+    bool m_bWindowFirstShown;
 };
 }
 
