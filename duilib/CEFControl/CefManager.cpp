@@ -47,17 +47,17 @@
         //64位操作系统
         #pragma comment (lib, "duilib/third_party/libcef_win/lib/x64/libcef.lib")
         #ifdef _DEBUG
-            #pragma comment (lib, "Libs/x64/libcef_dll_wrapper_d.lib")
+            #pragma comment (lib, "libs/x64/libcef_dll_wrapper_d.lib")
         #else
-            #pragma comment (lib, "Libs/x64/libcef_dll_wrapper.lib")
+            #pragma comment (lib, "libs/x64/libcef_dll_wrapper.lib")
         #endif
     #else
         //32位操作系统
         #pragma comment (lib, "duilib/third_party/libcef_win/lib/Win32/libcef.lib")
         #ifdef _DEBUG
-            #pragma comment (lib, "Libs/libcef_dll_wrapper_d.lib")
+            #pragma comment (lib, "libs/Win32/libcef_dll_wrapper_d.lib")
         #else
-            #pragma comment (lib, "Libs/libcef_dll_wrapper.lib")
+            #pragma comment (lib, "libs/Win32/libcef_dll_wrapper.lib")
         #endif
     #endif
 #endif
@@ -211,7 +211,7 @@ bool CefManager::Initialize(const DString& app_data_dir, CefSettings& settings, 
         }
     }
 #endif
-
+    UNUSED_VARIABLE(appName);
     m_bEnableOffScreenRendering = bEnableOffScreenRendering;
     CefMainArgs main_args(::GetModuleHandle(nullptr));
 
