@@ -50,7 +50,7 @@ void RenderForm::TestPropertyGrid()
     if (pPropertyGrid == nullptr) {
         return;
     }
-    pPropertyGrid->SetEnableHeaderCtrl(true, _T("Property"), _T("Value"));
+    pPropertyGrid->SetEnableHeaderCtrl(true, _T("属性"), _T("值"));
     pPropertyGrid->SetEnableDescriptionArea(true);
 
     ui::PropertyGridGroup* pGroup = nullptr;
