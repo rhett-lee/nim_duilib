@@ -176,7 +176,7 @@ void ScrollBar::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 
 void ScrollBar::SetEnabled(bool bEnable)
 {
-    Control::SetEnabled(bEnable);
+    BaseClass::SetEnabled(bEnable);
     if( bEnable ) {
         m_uButton1State = kControlStateNormal;
         m_uButton2State = kControlStateNormal;
@@ -201,10 +201,7 @@ void ScrollBar::SetFocus()
 
 void ScrollBar::SetVisible(bool bVisible)
 {
-    if (IsVisible() == bVisible) {
-        return;
-    }
-    bool v = IsVisible();
+    bool v = BaseClass::IsVisible();
     BaseClass::SetVisible(bVisible);
     if( IsVisible() != v) {
         ArrangeSelf();

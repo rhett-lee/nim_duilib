@@ -165,11 +165,11 @@ void Box::PaintFocusRect(IRender* /*pRender*/)
 
 void Box::SetEnabled(bool bEnabled)
 {
-    if (IsEnabled() == bEnabled) {
+    if (BaseClass::IsEnabled() == bEnabled) {
         return;
     }
 
-    Control::SetEnabled(bEnabled);
+    BaseClass::SetEnabled(bEnabled);
 
     //子控件的Enable状态，与父控件是同步的(如果支持不同步，相关业务逻辑需要做调整)
     for (auto pControl : m_items) {
@@ -184,12 +184,12 @@ void Box::SetEnabled(bool bEnabled)
 
 void Box::SetVisible(bool bVisible)
 {
-    if (IsVisible() == bVisible) {
+    if (BaseClass::IsVisible() == bVisible) {
         return;
     }
-    bool v = IsVisible();
+    bool v = BaseClass::IsVisible();
     BaseClass::SetVisible(bVisible);
-    if (IsVisible() != v) {
+    if (BaseClass::IsVisible() != v) {
         //子控件的Visible控件是同步的(如果支持不同步，相关业务逻辑需要做调整，除了判断控件自身是否可见，还要判断父控件是否可见)
         for (auto pControl : m_items){
             ASSERT(pControl != nullptr);
@@ -466,12 +466,12 @@ bool Box::DoAddItemAt(Control* pControl, size_t iIndex)
     }
     pControl->SetParent(this);
 
-    //同步Enable属性和Visible属性
-    if (!IsEnabled()) {
-        pControl->SetEnabled(IsEnabled());
+    //同步Enable属性和Visible属性(只同步基类的值)
+    if (!BaseClass::IsEnabled()) {
+        pControl->SetEnabled(BaseClass::IsEnabled());
     }
-    if (!IsVisible()) {
-        pControl->SetVisible(IsVisible());
+    if (!Control::IsVisible()) {
+        pControl->SetVisible(BaseClass::IsVisible());
     }
 
     //在添加到父容器以后，调用初始化函数
