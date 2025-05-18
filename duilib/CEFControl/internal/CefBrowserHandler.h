@@ -71,6 +71,7 @@ public:
     CefRefPtr<CefBrowser> GetBrowser(){ return m_browser; }
 
     CefRefPtr<CefBrowserHost> GetBrowserHost();
+    CefWindowHandle GetCefWindowHandle();
 
     // 添加一个任务到队列中，当Browser对象创建成功后，会依次触发任务
     // 比如创建Browser后调用LoadUrl加载网页，但是这时Browser很可能还没有创建成功，就把LoadUrl任务添加到队列
@@ -418,6 +419,7 @@ private:
     std::mutex m_rectMutex;
 
     CefRefPtr<CefBrowser> m_browser;
+    CefWindowHandle m_hCefWindowHandle;
     std::vector<CefRefPtr<CefBrowser>> m_browserList;
     ui::Window* m_pWindow;
     std::weak_ptr<ui::WeakFlag> m_windowFlag;    

@@ -151,9 +151,9 @@ public:
     */
     virtual void ClientToControl(UiPoint& pt) = 0;
 
-    /** 更新控件的位置
+    /** 更新CEF控件窗口的位置（子窗口模式）
     */
-    virtual void UpdateWindowPos() = 0;
+    virtual void UpdateCefWindowPos() = 0;
 
     /** 执行C++函数（JS 与 C++ 交互的功能）
     */

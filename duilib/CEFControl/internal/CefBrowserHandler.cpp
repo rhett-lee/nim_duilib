@@ -21,7 +21,8 @@ namespace ui
 {
 CefBrowserHandler::CefBrowserHandler():
     m_pWindow(nullptr),
-    m_pHandlerDelegate(nullptr)
+    m_pHandlerDelegate(nullptr),
+    m_hCefWindowHandle(nullptr)
 {
 }
 
@@ -61,6 +62,18 @@ CefRefPtr<CefBrowserHost> CefBrowserHandler::GetBrowserHost()
         return m_browser->GetHost();
     }
     return nullptr;
+}
+
+CefWindowHandle CefBrowserHandler::GetCefWindowHandle()
+{
+    CefWindowHandle hWindowHandle = 0;
+    if (m_browser.get() && m_browser->GetHost().get()) {
+        hWindowHandle = m_browser->GetHost()->GetWindowHandle();
+        if (hWindowHandle == 0) {
+            hWindowHandle = m_hCefWindowHandle;
+        }
+    }
+    return hWindowHandle;
 }
 
 CefUnregisterCallback CefBrowserHandler::AddAfterCreateTask(const ui::StdClosure& cb)
@@ -229,17 +242,21 @@ void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
     if (browser == nullptr) {
         return;
     }
-    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser](){
+    //这个窗口句柄在TID_UI线程可以第一时间获取到，但转到主线程调用时，就获取不到了（有延迟）。
+    auto hWndowHandle = browser->GetHost()->GetWindowHandle();
+    ASSERT(hWndowHandle != nullptr);
+    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser, hWndowHandle](){
         m_browserList.emplace_back(browser);
         if ((m_browser != nullptr) && (m_browser->GetHost() != nullptr)) {
             m_browser->GetHost()->WasHidden(true);
         }
+        m_hCefWindowHandle = hWndowHandle;
         m_browser = browser;
         CefManager::GetInstance()->AddBrowserCount();
         
         if (m_pHandlerDelegate != nullptr) {
             // 有窗模式下，浏览器创建完毕后，让上层更新一下自己的位置；因为在异步状态下，上层更新位置时可能Cef窗口还没有创建出来
-            m_pHandlerDelegate->UpdateWindowPos();
+            m_pHandlerDelegate->UpdateCefWindowPos();
         }
 
         m_taskListAfterCreated();
@@ -287,6 +304,7 @@ void CefBrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
             m_browserList.erase(it);
             if (closed_browser->IsSame(m_browser)) {
                 m_browser = m_browserList.size() > 0 ? *m_browserList.rbegin() : nullptr;
+                m_hCefWindowHandle = nullptr;
                 if (m_browser != nullptr)  {
                     if (m_browser->GetHost() != nullptr) {
                         m_browser->GetHost()->WasHidden(false);

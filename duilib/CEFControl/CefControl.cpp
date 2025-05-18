@@ -146,10 +146,10 @@ void CefControl::SetZoomLevel(float zoom_level)
     }
 }
 
-CefWindowHandle CefControl::GetCefHandle() const
+CefWindowHandle CefControl::GetCefWindowHandle() const
 {
-    if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowserHost().get()) {
-        return m_pBrowserHandler->GetBrowserHost()->GetWindowHandle();
+    if (m_pBrowserHandler.get()) {
+        return m_pBrowserHandler->GetCefWindowHandle();
     }
     return 0;
 }
@@ -520,7 +520,7 @@ void CefControl::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> /*browser*/,
 {
 }
 
-void CefControl::UpdateWindowPos()
+void CefControl::UpdateCefWindowPos()
 {
     GlobalManager::Instance().AssertUIThread();
 }

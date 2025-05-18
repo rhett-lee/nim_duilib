@@ -394,7 +394,7 @@ ui::IBitmap* BrowserForm_Windows::GenerateBoxWindowBitmap()
         return nullptr;
     }
 
-    HWND cef_window = m_pActiveBrowserBox->GetCefControl()->GetCefHandle();
+    HWND cef_window = m_pActiveBrowserBox->GetCefControl()->GetCefWindowHandle();
     RECT src_rect = { 0, };
     ::GetClientRect(cef_window, &src_rect);
 
