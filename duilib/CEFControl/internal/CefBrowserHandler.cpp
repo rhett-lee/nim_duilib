@@ -243,8 +243,7 @@ void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
         return;
     }
     //这个窗口句柄在TID_UI线程可以第一时间获取到，但转到主线程调用时，就获取不到了（有延迟）。
-    auto hWndowHandle = browser->GetHost()->GetWindowHandle();
-    ASSERT(hWndowHandle != nullptr);
+    auto hWndowHandle = browser->GetHost()->GetWindowHandle();//当browser为dev tools 时，此处返回nullptr，其他情况为非nullptr值
     GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser, hWndowHandle](){
         m_browserList.emplace_back(browser);
         if ((m_browser != nullptr) && (m_browser->GetHost() != nullptr)) {

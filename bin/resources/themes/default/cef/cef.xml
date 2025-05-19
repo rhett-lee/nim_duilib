@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="800,600" caption="0,0,0,36" shadow_type="big" shadow_attached="true" layered_window="false" sizebox="4,4,4,4">
+<Window size="700,500" caption="0,0,0,36" shadow_type="big" shadow_attached="true" layered_window="false" sizebox="4,4,4,4">
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
@@ -24,7 +24,9 @@
             <Button class="btn_global_blue_80x30" name="btn_navigate" text="转到" width="60" margin="5"/>
             <Button class="btn_global_blue_80x30" name="btn_refresh" text="刷新" width="60" margin="5"/>
         </HBox>
-        <CefControl name="cef_control" bkcolor="white" url_is_local_file="true" url="resources/themes/default/cef/cef.html"/>
-        <CefControl name="cef_control_dev" bkcolor="white"/>
+        <VBox bkcolor="white">
+            <CefControl name="cef_control" url_is_local_file="true" url="resources/themes/default/cef/cef.html" margin="2,0,2,2"/>
+            <CefControl name="cef_control_dev" margin="2,0,2,2"/>
+        </VBox>
     </VBox>
 </Window>
