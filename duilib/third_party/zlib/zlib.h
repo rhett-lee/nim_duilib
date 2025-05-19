@@ -31,7 +31,12 @@
 #ifndef ZLIB_H
 #define ZLIB_H
 
-#include "zconf.h"
+//duilib适配VC和cmake编译
+#ifdef _MSC_VER
+    #include "zconf_msvc.h"
+#else
+    #include "zconf.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
