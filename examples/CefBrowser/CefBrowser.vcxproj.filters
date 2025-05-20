@@ -69,6 +69,9 @@
     <ClInclude Include="Windows\BrowserBox_Windows.h">
       <Filter>Windows</Filter>
     </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainThread.cpp">

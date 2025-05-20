@@ -1,8 +1,6 @@
 #ifndef EXAMPLES_MAIN_FORM_H_
 #define EXAMPLES_MAIN_FORM_H_
 
-#include "Resource.h"
-
 // duilib
 #include "duilib/duilib.h"
 

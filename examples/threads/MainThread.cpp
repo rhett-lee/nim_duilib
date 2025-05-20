@@ -2,10 +2,6 @@
 #include "WorkerThread.h"
 #include "MainForm.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
-    #include "Resource.h"
-#endif
-
 MainThread::MainThread() :
     FrameworkThread(_T("MainThread"), ui::kThreadUI),
     m_pMainForm(nullptr)

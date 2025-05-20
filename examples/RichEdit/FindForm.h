@@ -1,8 +1,6 @@
 #ifndef EXAMPLES_FIND_FORM_H_
 #define EXAMPLES_FIND_FORM_H_
 
-#include "Resource.h"
-
 // duilib
 #include "duilib/duilib.h"
 

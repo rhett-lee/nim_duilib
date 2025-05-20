@@ -176,6 +176,7 @@
     <ClInclude Include="ListBoxForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="targetver.h" />
     <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
@@ -184,12 +185,6 @@
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="TestApplication.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="richlist.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="richlist.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">
@@ -207,6 +202,12 @@
     <ProjectReference Include="..\..\duilib\third_party\libwebp\libwebp.vcxproj">
       <Project>{9ce07309-2808-45fa-b1af-ef49510e83ab}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="ListBox.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ListBox.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

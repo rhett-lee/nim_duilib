@@ -30,6 +30,9 @@
     <ClInclude Include="WorkerThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainThread.cpp">
@@ -57,5 +60,8 @@
     <ResourceCompile Include="threads.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\bin\resources.zip" />
   </ItemGroup>
 </Project>
