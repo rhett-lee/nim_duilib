@@ -41,7 +41,7 @@ public:
     ObserverImpl() = default;
     virtual ~ObserverImpl() override = default;
 
-    virtual void AddReceiver(ReceiverImplBase<ReturnT, ParamT>* receiver)
+    virtual void AddReceiver(ReceiverImplBase<ReturnT, ParamT>* receiver) override
     {
         if (receiver == nullptr) {
             return;
@@ -55,7 +55,7 @@ public:
         receiver->AddObserver(this);
     }
 
-    virtual void RemoveReceiver(ReceiverImplBase<ReturnT, ParamT>* receiver)
+    virtual void RemoveReceiver(ReceiverImplBase<ReturnT, ParamT>* receiver) override
     {
         if (receiver == nullptr) {
             return;

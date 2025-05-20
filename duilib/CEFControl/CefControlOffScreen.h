@@ -81,8 +81,8 @@ protected:
     virtual bool MButtonDoubleClick(const EventArgs& msg) override;
 
     //焦点相关消息处理
-    virtual bool OnSetFocus(const EventArgs& msg);
-    virtual bool OnKillFocus(const EventArgs& msg);
+    virtual bool OnSetFocus(const EventArgs& msg) override;
+    virtual bool OnKillFocus(const EventArgs& msg) override;
 
     //键盘消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
     virtual bool OnChar(const EventArgs& msg) override;

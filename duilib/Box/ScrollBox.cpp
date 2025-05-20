@@ -240,6 +240,8 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
             case kVK_END:
                 EndDown();
                 return;
+            default:
+                break;
             }
         }
         else if(msg.eventType == kEventMouseWheel ) {
@@ -286,6 +288,8 @@ void ScrollBox::HandleEvent(const EventArgs& msg)
             case kVK_END:
                 EndRight();
                 return;
+            default:
+                break;
             }
         }
         else if(msg.eventType == kEventMouseWheel )    {

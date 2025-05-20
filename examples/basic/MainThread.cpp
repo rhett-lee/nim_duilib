@@ -2,7 +2,7 @@
 #include "BasicForm.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
-    #include "Resource.h"
+    #include "resource.h"
 #endif
 
 MainThread::MainThread() :

@@ -95,7 +95,7 @@ public:
     virtual CefRefPtr<CefRenderHandler>  GetRenderHandler() override { return this; }
     virtual CefRefPtr<CefDisplayHandler> GetDisplayHandler() override{ return this; }
     virtual CefRefPtr<CefDragHandler> GetDragHandler() override{ return this; }
-    virtual CefRefPtr<CefJSDialogHandler> GetJSDialogHandler() { return this; }
+    virtual CefRefPtr<CefJSDialogHandler> GetJSDialogHandler() override { return this; }
     virtual CefRefPtr<CefKeyboardHandler> GetKeyboardHandler() override{ return this; }
     virtual CefRefPtr<CefLifeSpanHandler> GetLifeSpanHandler() override{ return this; }
     virtual CefRefPtr<CefLoadHandler> GetLoadHandler() override{ return this; }

@@ -58,26 +58,26 @@ class DropTargetWin : public IDropTarget {
       int x, int y);
 
   // IDropTarget implementation:
-  HRESULT __stdcall DragEnter(IDataObject* data_object,
-                              DWORD key_state,
-                              POINTL cursor_position,
-                              DWORD* effect) override;
+  virtual HRESULT __stdcall DragEnter(IDataObject* data_object,
+                                      DWORD key_state,
+                                      POINTL cursor_position,
+                                      DWORD* effect) override;
 
-  HRESULT __stdcall DragOver(DWORD key_state,
-                             POINTL cursor_position,
-                             DWORD* effect) override;
+  virtual HRESULT __stdcall DragOver(DWORD key_state,
+                                     POINTL cursor_position,
+                                     DWORD* effect) override;
 
-  HRESULT __stdcall DragLeave() override;
+  virtual HRESULT __stdcall DragLeave() override;
 
-  HRESULT __stdcall Drop(IDataObject* data_object,
-                         DWORD key_state,
-                         POINTL cursor_position,
-                         DWORD* effect) override;
+  virtual HRESULT __stdcall Drop(IDataObject* data_object,
+                                 DWORD key_state,
+                                 POINTL cursor_position,
+                                 DWORD* effect) override;
 
   // 用shared_ptr管理生命周期，不用ComPtr
   DEFAULT_QUERY_INTERFACE(IDropTarget)
-  ULONG __stdcall AddRef() { return 1; }
-  ULONG __stdcall Release() { return 1; }
+  virtual ULONG __stdcall AddRef() override { return 1; }
+  virtual ULONG __stdcall Release() override { return 1; }
 
  public:
   HWND GetHWND() { return hWnd_; };

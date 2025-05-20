@@ -406,7 +406,7 @@ public:
 
 public:
     /** @name 窗口消息相关的接口
-    * @{
+    * @{ */
 
     /** 添加一个消息过滤器，此时消息已经派发，该接口的消息处理优先级高于Window类的消息处理函数
     * @param [in] pFilter 一个继承了 IUIMessageFilter 的对象实例，需要实现接口中的方法
