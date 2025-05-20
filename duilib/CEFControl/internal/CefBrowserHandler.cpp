@@ -303,7 +303,7 @@ void CefBrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
             m_browserList.erase(it);
             if (closed_browser->IsSame(m_browser)) {
                 m_browser = m_browserList.size() > 0 ? *m_browserList.rbegin() : nullptr;
-                m_hCefWindowHandle = nullptr;
+                m_hCefWindowHandle = 0;
                 if (m_browser != nullptr)  {
                     if (m_browser->GetHost() != nullptr) {
                         m_browser->GetHost()->WasHidden(false);
