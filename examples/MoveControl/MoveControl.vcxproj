@@ -99,9 +99,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Manifest />
-    <Manifest>
-      <AdditionalManifestFiles />
-    </Manifest>
+    <Manifest />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -117,9 +115,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Manifest />
-    <Manifest>
-      <AdditionalManifestFiles />
-    </Manifest>
+    <Manifest />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -139,9 +135,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Manifest />
-    <Manifest>
-      <AdditionalManifestFiles />
-    </Manifest>
+    <Manifest />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -161,9 +155,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Manifest />
-    <Manifest>
-      <AdditionalManifestFiles />
-    </Manifest>
+    <Manifest />
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AppDb.h" />
