@@ -42,26 +42,10 @@ void MainThread::OnInit()
     m_workerThread.reset(new WorkerThread);
     m_workerThread->Start();
 
-    //初始化全局资源
-    constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
-    if (resType == ui::ResourceType::kLocalFiles) {
-        //使用本地文件夹作为资源
-        ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-        resourcePath += _T("resources\\");
-        ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
-    }
-    else if (resType == ui::ResourceType::kZipFile) {
-        //使用本地zip压缩包作为资源（压缩包位于exe相同目录）
-        ui::ZipFileResParam resParam;
-        resParam.resourcePath = _T("resources\\");
-        resParam.zipFilePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-        resParam.zipFilePath += _T("resources.zip");
-        resParam.zipPassword = _T("");
-        ui::GlobalManager::Instance().Startup(resParam);
-    }
-    else {
-        return;
-    }
+    //初始化全局资源, 使用本地文件夹作为资源
+    ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
+    resourcePath += _T("resources\\");
+    ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
 
     ui::ColorPicker* pColorPicker = new ui::ColorPicker;
     pColorPicker->CreateWnd(nullptr, ui::WindowCreateParam(_T("ColorPicker"), true));
