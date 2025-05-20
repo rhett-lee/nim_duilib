@@ -91,6 +91,35 @@ set(SKIA_SRCS
     ${SKIA_SRC_ROOT_DIR}/tools/window/GLWindowContext.cpp
 )
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    # Windows平台，单独依赖的几个Skia源码文件
+    set(SKIA_WGL_SRCS
+        ${SKIA_SRC_ROOT_DIR}/tools/gpu/gl/win/SkWGL.h
+        ${SKIA_SRC_ROOT_DIR}/tools/gpu/gl/win/SkWGL_win.cpp
+    )
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    # Windows平台，单独依赖的源码文件
+    set(UDIS_HDRS 
+        ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/decode.h
+        ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/extern.h
+        ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/itab.h
+        ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/syn.h
+        ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/types.h
+        ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/udint.h
+        ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/udis86.h
+    )
+    set(UDIS_SRCS 
+        ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/udis86.c
+        ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/syn-att.c
+        ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/syn-intel.c
+        ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/syn.c
+        ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/itab.c
+        ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/decode.c
+    )
+endif()
+
 add_library(duilib
     	    ${DIR_LIB_SRC}
     	    ${ANIMATION_SRC}
@@ -112,6 +141,9 @@ add_library(duilib
     	    ${UNZIP_SRCS}
     	    ${SKIA_HDRS}
     	    ${SKIA_SRCS}
+    	    ${SKIA_WGL_SRCS}
+    	    ${UDIS_HDRS}
+    	    ${UDIS_SRCS}
            )
 
 # macOS 特有链接库
