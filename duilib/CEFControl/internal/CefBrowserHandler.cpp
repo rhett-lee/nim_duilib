@@ -92,7 +92,7 @@ void CefBrowserHandler::CloseAllBrowsers()
             m_browserList.assign(browser_list.begin(), browser_list.end());
         }
     public:
-        void Execute()
+        virtual void Execute() override
         {
             for (auto it : m_browserList) {
                 if ((it != nullptr) && (it->GetHost() != nullptr)) {

@@ -87,6 +87,7 @@ std::string StringConvert::WStringToUTF8(const std::wstring& wstr)
 #endif
 }
 
+#ifdef DUILIB_UTF32_SUPPORT
 std::basic_string<DUTF32Char> StringConvert::UTF8ToUTF32(const DUTF8Char* utf8, size_t length)
 {
     std::vector<DUTF32Char> data;
@@ -228,6 +229,7 @@ DStringW StringConvert::UTF32ToWString(const std::basic_string<DUTF32Char>& utf3
 {
     return UTF32ToWString(utf32.c_str(), utf32.length());
 }
+#endif // DUILIB_UTF32_SUPPORT
 
 std::string StringConvert::TToUTF8(const std::wstring& str)
 {
@@ -279,6 +281,7 @@ DString StringConvert::WStringToT(const std::wstring& wstr)
 }
 #endif
 
+#ifdef DUILIB_UTF32_SUPPORT
 std::basic_string<DUTF32Char> StringConvert::UTF8ToUTF32(const std::string& utf8)
 {
     return UTF8ToUTF32(utf8.c_str(), utf8.length());
@@ -288,6 +291,7 @@ std::string StringConvert::UTF32ToUTF8(const std::basic_string<DUTF32Char>& utf3
 {
     return UTF32ToUTF8(utf32.c_str(), utf32.length());
 }
+#endif // DUILIB_UTF32_SUPPORT
 
 #ifdef DUILIB_BUILD_FOR_WIN
 std::wstring StringConvert::MBCSToUnicode(const std::string& input, int32_t code_page)
