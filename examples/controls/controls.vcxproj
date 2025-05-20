@@ -212,9 +212,6 @@
   <ItemGroup>
     <Xml Include="..\..\bin\resources\themes\default\controls\controls.xml" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\bin\resources.zip" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

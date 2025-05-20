@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
-// Microsoft Visual C++ 生成的包含文件。
-// 供 controls.rc 使用
+// Microsoft Visual C++ generated include file.
+// Used by controls.rc
 //
 #define IDC_MYICON                      2
 #define IDD_CONTROLS_DIALOG             102
@@ -11,7 +11,6 @@
 #define IDI_CONTROLS                    107
 #define IDC_CONTROLS                    109
 #define IDR_MAINFRAME                   128
-#define IDR_THEME                       129
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
