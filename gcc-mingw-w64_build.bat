@@ -32,7 +32,7 @@ for %%i in (%DUILIB_THIRD_PARTY_LIBS%) do (
 
 @REM #编译duilib
 %DUILIB_CMAKE% -S "%DUILIB_SRC_ROOT_DIR%duilib" -B "%DUILIB_BUILD_DIR%\duilib" -DCMAKE_BUILD_TYPE=Release
-%DUILIB_MAKE% "%DUILIB_BUILD_DIR%/duilib" %DUILIB_MAKE_THREADS%
+%DUILIB_MAKE% "%DUILIB_BUILD_DIR%\duilib" %DUILIB_MAKE_THREADS%
 
 @REM #编译examples下的各个程序
 SET DUILIB_PROGRAMS=basic,controls,ColorPicker,DpiAware,layouts,ListBox,ListCtrl,MoveControl,MultiLang,render,RichEdit,VirtualListBox,threads,TreeView
