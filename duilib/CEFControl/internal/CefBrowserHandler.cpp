@@ -22,7 +22,7 @@ namespace ui
 CefBrowserHandler::CefBrowserHandler():
     m_pWindow(nullptr),
     m_pHandlerDelegate(nullptr),
-    m_hCefWindowHandle(nullptr)
+    m_hCefWindowHandle(0)
 {
 }
 
