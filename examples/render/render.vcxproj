@@ -150,6 +150,7 @@
     <ClInclude Include="RenderTest2.h" />
     <ClInclude Include="render_form.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="targetver.h" />
     <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>

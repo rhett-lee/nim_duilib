@@ -1,7 +1,10 @@
 //MainThread.cpp
 #include "MainThread.h"
 #include "MainForm.h"
-#include "Resource.h"
+
+#if defined (DUILIB_BUILD_FOR_WIN)
+    #include "resource.h"
+#endif
 
 WorkerThread::WorkerThread()
     : FrameworkThread(_T("WorkerThread"), ui::kThreadWorker)

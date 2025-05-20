@@ -179,6 +179,7 @@
     <ClInclude Include="BasicForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="targetver.h" />
     <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>

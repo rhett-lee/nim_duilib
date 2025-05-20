@@ -150,6 +150,7 @@
     <ClInclude Include="ReplaceForm.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="RichEditFindReplace.h" />
+    <ClInclude Include="targetver.h" />
     <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>

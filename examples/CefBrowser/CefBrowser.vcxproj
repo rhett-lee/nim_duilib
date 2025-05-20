@@ -167,6 +167,7 @@
     <ClInclude Include="browser\BrowserManager.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="targetver.h" />
     <ClInclude Include="TestApplication.h" />
     <ClInclude Include="Windows\BrowserBox_Windows.h" />
     <ClInclude Include="Windows\BrowserForm_Windows.h" />

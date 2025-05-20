@@ -163,6 +163,7 @@
     <ClInclude Include="MainForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="targetver.h" />
     <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
@@ -172,12 +173,6 @@
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="TestApplication.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="VirtualBox.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="VirtualBox.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">
@@ -195,6 +190,12 @@
     <ProjectReference Include="..\..\duilib\third_party\libwebp\libwebp.vcxproj">
       <Project>{9ce07309-2808-45fa-b1af-ef49510e83ab}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="VirtualListBox.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="VirtualListBox.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

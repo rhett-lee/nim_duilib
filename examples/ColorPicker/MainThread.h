@@ -4,8 +4,6 @@
 // duilib
 #include "duilib/duilib.h"
 
-#include "Resource.h"
-
 /** 工作线程
 */
 class WorkerThread : public ui::FrameworkThread

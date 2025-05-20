@@ -39,6 +39,9 @@
     <ClInclude Include="Item.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Resource Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -52,12 +55,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="VirtualBox.ico">
+    <Image Include="VirtualListBox.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="VirtualBox.rc">
+    <ResourceCompile Include="VirtualListBox.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
