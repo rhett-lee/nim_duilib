@@ -18,4 +18,15 @@ set(DUILIB_ENABLE_CEF ON)
 
 # 包含公共实现代码
 include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_common.cmake")
+
+# 定义源代码文件需要枚举的子目录
+if(DUILIB_OS_WINDOWS)
+    # Windows平台
+    set(DUILIB_SRC_SUB_DIRS "browser" "Windows" "Windows/taskbar" "Windows/dragdrop")
+else()
+    # 其他平台
+    set(DUILIB_SRC_SUB_DIRS "browser")
+endif()
+
+# 包含公共实现代码
 include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_bin.cmake")
