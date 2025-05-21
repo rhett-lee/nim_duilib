@@ -28,17 +28,17 @@
         //64位操作系统
         #pragma comment (lib, "duilib/third_party/libcef_win_109/lib/x64/libcef.lib")
         #ifdef _DEBUG
-            #pragma comment (lib, "Libs/x64/libcef_dll_wrapper_109_d.lib")
+            #pragma comment (lib, "lib/x64/libcef_dll_wrapper_109_d.lib")
         #else
-            #pragma comment (lib, "Libs/x64/libcef_dll_wrapper_109.lib")
+            #pragma comment (lib, "lib/x64/libcef_dll_wrapper_109.lib")
         #endif
     #else
         //32位操作系统
         #pragma comment (lib, "duilib/third_party/libcef_win_109/lib/Win32/libcef.lib")
         #ifdef _DEBUG
-            #pragma comment (lib, "Libs/libcef_dll_wrapper_109_d.lib")
+            #pragma comment (lib, "lib/Win32/libcef_dll_wrapper_109_d.lib")
         #else
-            #pragma comment (lib, "Libs/libcef_dll_wrapper_109.lib")
+            #pragma comment (lib, "lib/Win32/libcef_dll_wrapper_109.lib")
         #endif
     #endif
 #else
@@ -47,17 +47,17 @@
         //64位操作系统
         #pragma comment (lib, "duilib/third_party/libcef_win/lib/x64/libcef.lib")
         #ifdef _DEBUG
-            #pragma comment (lib, "libs/x64/libcef_dll_wrapper_d.lib")
+            #pragma comment (lib, "lib/x64/libcef_dll_wrapper_d.lib")
         #else
-            #pragma comment (lib, "libs/x64/libcef_dll_wrapper.lib")
+            #pragma comment (lib, "lib/x64/libcef_dll_wrapper.lib")
         #endif
     #else
         //32位操作系统
         #pragma comment (lib, "duilib/third_party/libcef_win/lib/Win32/libcef.lib")
         #ifdef _DEBUG
-            #pragma comment (lib, "libs/Win32/libcef_dll_wrapper_d.lib")
+            #pragma comment (lib, "lib/Win32/libcef_dll_wrapper_d.lib")
         #else
-            #pragma comment (lib, "libs/Win32/libcef_dll_wrapper.lib")
+            #pragma comment (lib, "lib/Win32/libcef_dll_wrapper.lib")
         #endif
     #endif
 #endif

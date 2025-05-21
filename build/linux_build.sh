@@ -16,7 +16,7 @@ DUILIB_MAKE_THREADS="-j 6"
 DUILIB_SKIA_LIB_SUBPATH=llvm.x64.release
 
 # lib目录
-DUILIB_LIB_DIR="$DUILIB_SRC_ROOT_DIR/libs/"
+DUILIB_LIB_DIR="$DUILIB_SRC_ROOT_DIR/lib/"
 target_dir="$DUILIB_BUILD_DIR"
 if [[ ! -d "$target_dir" ]]; then
     mkdir -p "$target_dir"
