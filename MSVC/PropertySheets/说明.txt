@@ -2,5 +2,6 @@ CommonSettings.props：Visual Studio 工程（*.vcxproj）的公共配置，适�
 使用的基本流程：
 （1）用文本编辑器打开工程文件（*.vcxproj）
 （2）找到"<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />"这一行的位置，在这行的后面插入一行，添加一下内容：
-         "<Import Project="$(SolutionDir)\MSVC\PropertySheets\CommonSettings.props" />"
+         "<Import Project="..\..\MSVC\PropertySheets\CommonSettings.props" />"
+    这里的"..\..\" 需要根据VS工程（*.vcxproj）的相对目录灵活调整。
 （3）保存该工程文件的修改，如果已经在VS中打开，需要重新加载。

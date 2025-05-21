@@ -1,7 +1,8 @@
 #!/bin/bash
 
-DUILIB_SRC_ROOT_DIR=$(realpath $(dirname "$0"))
-cd "$DUILIB_SRC_ROOT_DIR"
+DUILIB_SRC_ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+echo "DUILIB_SRC_ROOT_DIR: $DUILIB_SRC_ROOT_DIR"
+ 
 
 # 设置编译器为gcc/g++
 DUILIB_CMAKE="cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++"

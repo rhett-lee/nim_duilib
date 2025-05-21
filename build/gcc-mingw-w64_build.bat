@@ -1,21 +1,21 @@
 @echo OFF
 @REM Windows 平台编译脚本，编译器：MinGW-w64
 @REM 使用时确保，MinGW-w64的编译环境已经添加到PATH环境变量，示例：
-@REM 假设MinGW-w64的二进制文件所在目录为： C:\mingw64\llvm-mingw-20250430-ucrt-x86_64\bin
+@REM 假设MinGW-w64的二进制文件所在目录为： C:\mingw64\x86_64-15.1.0-release-win32-seh-ucrt-rt_v12-rev0\mingw64\bin\
 @REM 使用如下命令将MinGW-w64编译环境添加到PATH变量：
-@REM #SET PATH=%PATH%;C:\mingw64\llvm-mingw-20250430-ucrt-x86_64\bin
+@REM #SET PATH=%PATH%;C:\mingw64\x86_64-15.1.0-release-win32-seh-ucrt-rt_v12-rev0\mingw64\bin\
 @REM 可使用g++ -v 查看版本信息
 
 @REM 确保本机已经安装了camke(最低版本号: v3.21)
 @REM 可使用 cmake --version 查看版本信息（本机: cmake version 4.0.2）
 
-SET DUILIB_SRC_ROOT_DIR=%~dp0
-cd /d "%DUILIB_SRC_ROOT_DIR%
+@for %%i in ("%~dp0..\") do set "bat_parent_dir=%%~fi"
+SET DUILIB_SRC_ROOT_DIR=%bat_parent_dir%
 
 @REM 设置编译器
-SET DUILIB_CC=clang
-SET DUILIB_CXX=clang++
-SET DUILIB_COMPILER_ID=llvm
+SET DUILIB_CC=gcc
+SET DUILIB_CXX=g++
+SET DUILIB_COMPILER_ID=gcc
 
 SET DUILIB_CMAKE=cmake -G"MinGW Makefiles" -DCMAKE_C_COMPILER=%DUILIB_CC% -DCMAKE_CXX_COMPILER=%DUILIB_CXX%
 SET DUILIB_MAKE=cmake --build
