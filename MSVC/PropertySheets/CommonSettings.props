@@ -4,25 +4,25 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)\..\bin\</OutDir>
-    <IntDir>$(SolutionDir)\..\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)</TargetName>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)\..\bin\</OutDir>
-    <IntDir>$(SolutionDir)\..\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)\..\bin\</OutDir>
-    <IntDir>$(SolutionDir)\..\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)32</TargetName>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)\..\bin\</OutDir>
-    <IntDir>$(SolutionDir)\..\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
+    <IntDir>$(SolutionDir)\build_temp\$(PlatformName)\$(ProjectName)\$(Configuration)\</IntDir>
     <TargetName>$(ProjectName)32_d</TargetName>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>

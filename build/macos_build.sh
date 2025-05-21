@@ -23,7 +23,7 @@ if [[ ! -d "$target_dir" ]]; then
 fi
 
 # 编译临时目录
-DUILIB_BUILD_DIR="$DUILIB_SRC_ROOT_DIR/build_temp/$DUILIB_COMPILER_ID_build"
+DUILIB_BUILD_DIR="$DUILIB_SRC_ROOT_DIR/build/build_temp/$DUILIB_COMPILER_ID_build"
 
 target_dir="$DUILIB_BUILD_DIR"
 if [[ ! -d "$target_dir" ]]; then

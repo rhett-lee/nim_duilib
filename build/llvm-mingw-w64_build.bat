@@ -28,8 +28,8 @@ if not exist "%target_dir%" (
 )
 
 @REM # 编译临时目录
-SET DUILIB_BUILD_DIR=%DUILIB_SRC_ROOT_DIR%\build_temp\%DUILIB_COMPILER_ID%-mingw-w64
-SET target_dir=%DUILIB_SRC_ROOT_DIR%\build_temp\
+SET DUILIB_BUILD_DIR=%DUILIB_SRC_ROOT_DIR%\build\build_temp\%DUILIB_COMPILER_ID%-mingw-w64
+SET target_dir=%DUILIB_SRC_ROOT_DIR%\build\build_temp\
 if not exist "%target_dir%" (
     @mkdir "%target_dir%"
 )
