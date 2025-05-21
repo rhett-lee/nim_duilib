@@ -28,10 +28,13 @@ if(DUILIB_ENABLE_CEF)
 endif()
 
 #设置项目的link路径
-link_directories("${DUILIB_LIB_PATH}")  #duilib库所在路径(已经包含了CEF模块的库)
+link_directories("${DUILIB_LIB_PATH}")  #duilib库所在路径(已经包含了cef_dll_wrapper这个CEF模块的库)
 link_directories("${SKIA_LIB_PATH}")    #skia库所在路径
 if(DUILIB_ENABLE_SDL)
     link_directories("${SDL_LIB_PATH}") #SDL库所在路径
+endif()
+if(DUILIB_ENABLE_CEF)
+    link_directories("${CEF_LIB_PATH}") #cef库所在路径（.dll/.so对应的动态库）
 endif()
 
 #设置可执行文件的输出目录
