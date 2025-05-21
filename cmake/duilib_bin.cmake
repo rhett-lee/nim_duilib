@@ -79,12 +79,12 @@ if(DUILIB_OS_WINDOWS)
     else()
         set(DUILIB_WINDOWS_LIBS Comctl32 Imm32 Opengl32 User32 shlwapi)
     endif()
-    target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${SDL_LIBS} ${SKIA_LIBS} ${DUILIB_WINDOWS_LIBS})
+    target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${SDL_LIBS} ${SKIA_LIBS} ${CEF_LIBS} ${DUILIB_WINDOWS_LIBS})
 endif()
 
 if(DUILIB_OS_LINUX)
     # Linux平台
-    target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${SDL_LIBS} ${SKIA_LIBS} freetype fontconfig pthread dl)
+    target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${SDL_LIBS} ${SKIA_LIBS} ${CEF_LIBS} freetype fontconfig pthread dl)
 endif()
 
 if(DUILIB_OS_MACOS)
