@@ -5,21 +5,19 @@ VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "third_party", "third_party", "{1DA0A8E2-5832-42FC-83F7-2CDCAD379C90}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "duilib", "duilib\duilib.vcxproj", "{E106ACD7-4E53-4AEE-942B-D0DD426DB34E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "duilib", "..\duilib\duilib.vcxproj", "{E106ACD7-4E53-4AEE-942B-D0DD426DB34E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpng", "duilib\third_party\libpng\projects\vstudio\libpng\libpng.vcxproj", "{D6973076-9317-4EF2-A0B8-B7A18AC0713E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpng", "..\duilib\third_party\libpng\projects\vstudio\libpng\libpng.vcxproj", "{D6973076-9317-4EF2-A0B8-B7A18AC0713E}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "duilib\third_party\libpng\projects\vstudio\zlib\zlib.vcxproj", "{60F89955-91C6-3A36-8000-13C592FEC2DF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "..\duilib\third_party\libpng\projects\vstudio\zlib\zlib.vcxproj", "{60F89955-91C6-3A36-8000-13C592FEC2DF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cximage", "duilib\third_party\cximage\cximage.vcxproj", "{B8C41401-6A2B-488D-B198-B0564C2B7404}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cximage", "..\duilib\third_party\cximage\cximage.vcxproj", "{B8C41401-6A2B-488D-B198-B0564C2B7404}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libwebp", "duilib\third_party\libwebp\libwebp.vcxproj", "{9CE07309-2808-45FA-B1AF-EF49510E83AB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libwebp", "..\duilib\third_party\libwebp\libwebp.vcxproj", "{9CE07309-2808-45FA-B1AF-EF49510E83AB}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper", "duilib\third_party\libcef_win\libcef_dll_wrapper.vcxproj", "{BA5C702F-BB68-37F9-A109-74F215FE14C5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper", "..\duilib\third_party\libcef_win\libcef_dll_wrapper.vcxproj", "{BA5C702F-BB68-37F9-A109-74F215FE14C5}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper_109", "duilib\third_party\libcef_win_109\libcef_dll_wrapper_109.vcxproj", "{34C50672-6115-3723-B8FD-09568AA8527E}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MyDuilibApp", "examples2\MyDuilibApp\MyDuilibApp.vcxproj", "{AFFFFA0D-01FF-49E2-A283-7D9A6BC19FC7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcef_dll_wrapper_109", "..\duilib\third_party\libcef_win_109\libcef_dll_wrapper_109.vcxproj", "{34C50672-6115-3723-B8FD-09568AA8527E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -85,14 +83,6 @@ Global
 		{34C50672-6115-3723-B8FD-09568AA8527E}.Release|Win32.Build.0 = Release|Win32
 		{34C50672-6115-3723-B8FD-09568AA8527E}.Release|x64.ActiveCfg = Release|x64
 		{34C50672-6115-3723-B8FD-09568AA8527E}.Release|x64.Build.0 = Release|x64
-		{AFFFFA0D-01FF-49E2-A283-7D9A6BC19FC7}.Debug|Win32.ActiveCfg = Debug|Win32
-		{AFFFFA0D-01FF-49E2-A283-7D9A6BC19FC7}.Debug|Win32.Build.0 = Debug|Win32
-		{AFFFFA0D-01FF-49E2-A283-7D9A6BC19FC7}.Debug|x64.ActiveCfg = Debug|x64
-		{AFFFFA0D-01FF-49E2-A283-7D9A6BC19FC7}.Debug|x64.Build.0 = Debug|x64
-		{AFFFFA0D-01FF-49E2-A283-7D9A6BC19FC7}.Release|Win32.ActiveCfg = Release|Win32
-		{AFFFFA0D-01FF-49E2-A283-7D9A6BC19FC7}.Release|Win32.Build.0 = Release|Win32
-		{AFFFFA0D-01FF-49E2-A283-7D9A6BC19FC7}.Release|x64.ActiveCfg = Release|x64
-		{AFFFFA0D-01FF-49E2-A283-7D9A6BC19FC7}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

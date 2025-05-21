@@ -25,7 +25,7 @@
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <Import Project="$(SolutionDir)\MSVC\PropertySheets\CommonSettings.props" />
+  <Import Project="..\..\MSVC\PropertySheets\CommonSettings.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -83,13 +83,13 @@
       </ForcedIncludeFiles>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeaderFile />
-      <AdditionalIncludeDirectories>$(SolutionDir);$(ProjectDir);..\..\duilib\third_party\libcef_win\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\..\;..\..\duilib\third_party\libcef_win\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..;$(SolutionDir)\..\libs\$(Platform)\</AdditionalLibraryDirectories>
     </Link>
     <Manifest />
     <Manifest />
@@ -107,7 +107,7 @@
       </ForcedIncludeFiles>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeaderFile />
-      <AdditionalIncludeDirectories>$(SolutionDir);$(ProjectDir);..\..\duilib\third_party\libcef_win\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\..\;..\..\duilib\third_party\libcef_win\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -115,7 +115,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..;$(SolutionDir)\..\libs\$(Platform)\</AdditionalLibraryDirectories>
     </Link>
     <Manifest />
     <Manifest />
@@ -128,11 +128,11 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile />
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(SolutionDir);$(ProjectDir);..\..\duilib\third_party\libcef_win\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\..\;..\..\duilib\third_party\libcef_win\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..;$(SolutionDir)\..\libs\$(Platform)\</AdditionalLibraryDirectories>
     </Link>
     <Manifest />
     <Manifest />
@@ -144,11 +144,11 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile />
-      <AdditionalIncludeDirectories>$(SolutionDir);$(ProjectDir);..\..\duilib\third_party\libcef_win\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir);..\..\;..\..\duilib\third_party\libcef_win\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>../../</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..;$(SolutionDir)\..\libs\$(Platform)\</AdditionalLibraryDirectories>
     </Link>
     <Manifest />
     <Manifest />
