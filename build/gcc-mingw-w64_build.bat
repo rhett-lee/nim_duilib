@@ -12,7 +12,7 @@
 @for %%i in ("%~dp0..\") do set "bat_parent_dir=%%~fi"
 SET DUILIB_SRC_ROOT_DIR=%bat_parent_dir%
 
-@REM 设置编译器
+@REM # 设置编译器
 SET DUILIB_CC=gcc
 SET DUILIB_CXX=g++
 SET DUILIB_COMPILER_ID=gcc

@@ -22,6 +22,9 @@ endif()
 # 定义开关变量（修改后，需要清除camke生成目录才能生效，如果未清除则会从缓存中读取旧值）
 option(DULIB_LOG "Print duilib debug log" OFF)
 
+# Skia的lib子目录名开关（默认情况下，Windows按规则拼接路径；其他平台则可以固定目录，比如llvm编译）
+option(DUILIB_SKIA_LIB_SUBPATH "Skia lib sub path" OFF)
+
 # SDL功能：Windows平台默认不开启，其他平台默认开启
 if(DUILIB_OS_WINDOWS)
     option(DUILIB_ENABLE_SDL "Enable SDL" OFF)
@@ -50,7 +53,9 @@ else()
     message(WARNING "Unknown CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
 endif() 
 
-#CPU类型
+# CPU类型
+# Linux, MacOS: 只支持64位，没必要支持32位
+# Windows：需要支持64位和32位，因32位系统仍有部分用户
 string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" lower_processor)
 if(lower_processor MATCHES "armv7|arm")
     set(DUILIB_SYSTEM_PROCESSOR "arm32")
@@ -71,7 +76,11 @@ if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 endif()
 
 #编译类型：Debug还是Release
-set(DUILIB_BUILD_TYPE "release")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(DUILIB_BUILD_TYPE "debug")
+else()
+    set(DUILIB_BUILD_TYPE "release")
+endif()
 
 #dulib源码根目录，lib文件目录，bin文件目录
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
@@ -79,7 +88,7 @@ set(DUILIB_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/libs")
 set(DUILIB_BIN_PATH "${DUILIB_SRC_ROOT_DIR}/bin")
 set(DUILIB_LIBS duilib duilib-cximage duilib-webp duilib-png duilib-zlib)
 
-#CEF模块的源码根目录
+#CEF模块的源码根目录（CEF模块为可选项）
 if(DUILIB_OS_WINDOWS AND DUILIB_ENABLE_CEF)
     if (DUILIB_CEF_109)
         #使用CEF 109版本
@@ -97,13 +106,22 @@ elseif(DUILIB_OS_MACOS)
     set(CEF_SRC_ROOT_DIR "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_macos")
     set(CEF_WRAPPER_LIB_NAME cef_dll_wrapper)
 endif()
+if(DUILIB_ENABLE_CEF)
+    set(CEF_LIBS cef ${CEF_WRAPPER_LIB_NAME})
+endif()
 
-#Skia源码根目录，lib文件目录
+#Skia源码根目录，lib文件目录（Skia必选项）
 get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
-set(SKIA_LIB_PATH "${SKIA_SRC_ROOT_DIR}/out/${DUILIB_COMPILER_NAME}.${DUILIB_SYSTEM_PROCESSOR}.${DUILIB_BUILD_TYPE}")
+if(DUILIB_SKIA_LIB_SUBPATH STREQUAL "")
+    # 根据规则拼接
+    set(SKIA_LIB_PATH "${SKIA_SRC_ROOT_DIR}/out/${DUILIB_COMPILER_NAME}.${DUILIB_SYSTEM_PROCESSOR}.${DUILIB_BUILD_TYPE}")
+else()
+    # 外部指定的子目录名
+    set(SKIA_LIB_PATH "${SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}")
+endif()
 set(SKIA_LIBS svg skia skshaper)
 
-#SDL库根目录
+#SDL库根目录（Windows系统不用SDL，其他系统都必须用SDL）
 if(DUILIB_ENABLE_SDL)
     get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
     if(EXISTS "${SDL_SRC_ROOT_DIR}/lib64/")
@@ -114,6 +132,11 @@ if(DUILIB_ENABLE_SDL)
     set(SDL_LIBS SDL3)
 endif()
 
+#定义两个变量接收编译器变量，避免报警告
+set(DUILIB_CMAKE_C_COMPILER ${CMAKE_C_COMPILER})
+set(DUILIB_CMAKE_CXX_COMPILER ${CMAKE_CXX_COMPILER})
+
+#输出日志：打印变量数据
 if(DULIB_LOG)
     message(STATUS "DUILIB_PROJECT_SRC_DIR: ${DUILIB_PROJECT_SRC_DIR}")
     message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
@@ -158,15 +181,16 @@ if(DULIB_LOG)
     message(STATUS "") 
     
     message(STATUS "SKIA_SRC_ROOT_DIR: ${SKIA_SRC_ROOT_DIR}")
+    message(STATUS "DUILIB_SKIA_LIB_SUBPATH: ${DUILIB_SKIA_LIB_SUBPATH}")
     message(STATUS "SKIA_LIB_PATH: ${SKIA_LIB_PATH}")
     message(STATUS "SKIA_LIBS: ${SKIA_LIBS}")
     message(STATUS "") 
     
     message(STATUS "DUILIB_ENABLE_CEF: ${DUILIB_ENABLE_CEF}") 
-    if (DUILIB_ENABLE_CEF)        
+    if (DUILIB_ENABLE_CEF) 
         message(STATUS "CEF_SRC_ROOT_DIR: ${CEF_SRC_ROOT_DIR}") 
         message(STATUS "DUILIB_CEF_109: ${DUILIB_CEF_109}") 
-        message(STATUS "CEF_WRAPPER_LIB_NAME: ${CEF_WRAPPER_LIB_NAME}")
+        message(STATUS "CEF_LIBS: ${CEF_LIBS}")
     endif()
     message(STATUS "") 
     
