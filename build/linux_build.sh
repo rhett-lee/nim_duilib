@@ -38,5 +38,5 @@ $DUILIB_MAKE "$DUILIB_BUILD_DIR/duilib" $DUILIB_MAKE_THREADS
 DUILIB_PROGRAMS=("basic" "controls" "ColorPicker" "DpiAware" "layouts" "ListBox" "ListCtrl" "MoveControl" "MultiLang" "render" "RichEdit" "VirtualListBox" "threads" "TreeView" "cef" "CefBrowser")
 for duilib_bin in "${DUILIB_PROGRAMS[@]}"; do
     $DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/examples/$duilib_bin" -B "$DUILIB_BUILD_DIR/$duilib_bin" -DCMAKE_BUILD_TYPE=Release
-    $DUILIB_MAKE "$DUILIB_BUILD_DIR%/$duilib_bin" $DUILIB_MAKE_THREADS
+    $DUILIB_MAKE "$DUILIB_BUILD_DIR/$duilib_bin" $DUILIB_MAKE_THREADS
 done
