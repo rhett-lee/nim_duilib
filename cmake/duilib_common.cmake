@@ -84,7 +84,7 @@ endif()
 
 #dulib源码根目录，lib文件目录，bin文件目录
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
-set(DUILIB_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/libs")
+set(DUILIB_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/lib")
 set(DUILIB_BIN_PATH "${DUILIB_SRC_ROOT_DIR}/bin")
 set(DUILIB_LIBS duilib duilib-cximage duilib-webp duilib-png duilib-zlib)
 

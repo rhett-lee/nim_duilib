@@ -57,20 +57,20 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\libs\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\libs\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\lib\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\libs\x64\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\lib\x64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(IncludePath)</IncludePath>
-    <LibraryPath>..\..\libs\x64\;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\..\lib\x64\;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -89,7 +89,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>$(SolutionDir)\..;$(SolutionDir)\..\libs\$(Platform)\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..;$(SolutionDir)\..\lib\$(Platform)\</AdditionalLibraryDirectories>
     </Link>
     <Manifest />
     <Manifest />
@@ -115,7 +115,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>$(SolutionDir)\..;$(SolutionDir)\..\libs\$(Platform)\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..;$(SolutionDir)\..\lib\$(Platform)\</AdditionalLibraryDirectories>
     </Link>
     <Manifest />
     <Manifest />
@@ -132,7 +132,7 @@
     </ClCompile>
     <Link>
       <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>$(SolutionDir)\..;$(SolutionDir)\..\libs\$(Platform)\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..;$(SolutionDir)\..\lib\$(Platform)\</AdditionalLibraryDirectories>
     </Link>
     <Manifest />
     <Manifest />
@@ -148,7 +148,7 @@
     </ClCompile>
     <Link>
       <DelayLoadDLLs>libcef.dll</DelayLoadDLLs>
-      <AdditionalLibraryDirectories>$(SolutionDir)\..;$(SolutionDir)\..\libs\$(Platform)\</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..;$(SolutionDir)\..\lib\$(Platform)\</AdditionalLibraryDirectories>
     </Link>
     <Manifest />
     <Manifest />
