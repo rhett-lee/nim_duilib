@@ -114,7 +114,7 @@ if(DUILIB_ENABLE_CEF)
         set(CEF_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/bin/libcef_macos")
         set(CEF_WRAPPER_LIB_NAME cef_dll_wrapper)
     endif()
-    set(CEF_LIBS cef ${CEF_WRAPPER_LIB_NAME})
+    set(CEF_LIBS libcef.so ${CEF_WRAPPER_LIB_NAME} X11)
 endif()
 
 #Skia源码根目录，lib文件目录（Skia必选项）

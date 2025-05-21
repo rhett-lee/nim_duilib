@@ -16,7 +16,8 @@ DUILIB_MAKE_THREADS="-j 6"
 DUILIB_SKIA_LIB_SUBPATH=llvm.x64.release
 
 # lib目录
-target_dir="$DUILIB_SRC_ROOT_DIR/libs/"
+DUILIB_LIB_DIR="$DUILIB_SRC_ROOT_DIR/libs/"
+target_dir="$DUILIB_BUILD_DIR"
 if [[ ! -d "$target_dir" ]]; then
     mkdir -p "$target_dir"
 fi
@@ -30,17 +31,22 @@ if [[ ! -d "$target_dir" ]]; then
 fi
 
 # 编译第三方库   
-DUILIB_THIRD_PARTY_LIBS=("zlib" "libpng" "cximage" "libwebp" "libcef_linux")
+DUILIB_THIRD_PARTY_LIBS=("zlib" "libpng" "cximage" "libwebp")
 for third_party_lib in "${DUILIB_THIRD_PARTY_LIBS[@]}"; do
     $DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/duilib/third_party/$third_party_lib" -B "$DUILIB_BUILD_DIR/$third_party_lib" -DCMAKE_BUILD_TYPE=Release
     $DUILIB_MAKE "$DUILIB_BUILD_DIR/$third_party_lib" $DUILIB_MAKE_THREADS
 done
 
-#编译duilib
+# 编译libcef的cef_dll_wrapper
+DUILIB_THIRD_PARTY_CEF="libcef_linux"
+$DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/duilib/third_party/$DUILIB_THIRD_PARTY_CEF" -B "$DUILIB_BUILD_DIR/$DUILIB_THIRD_PARTY_CEF" -DCMAKE_BUILD_TYPE=Release -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY="$DUILIB_LIB_DIR"
+$DUILIB_MAKE "$DUILIB_BUILD_DIR/$DUILIB_THIRD_PARTY_CEF" $DUILIB_MAKE_THREADS
+
+# 编译duilib
 $DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/duilib" -B "$DUILIB_BUILD_DIR/duilib" -DCMAKE_BUILD_TYPE=Release
 $DUILIB_MAKE "$DUILIB_BUILD_DIR/duilib" $DUILIB_MAKE_THREADS
 
-#编译examples下的各个程序
+# 编译examples下的各个程序
 DUILIB_PROGRAMS=("basic" "controls" "ColorPicker" "DpiAware" "layouts" "ListBox" "ListCtrl" "MoveControl" "MultiLang" "render" "RichEdit" "VirtualListBox" "threads" "TreeView" "cef" "CefBrowser")
 for duilib_bin in "${DUILIB_PROGRAMS[@]}"; do
     $DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/examples/$duilib_bin" -B "$DUILIB_BUILD_DIR/$duilib_bin" -DCMAKE_BUILD_TYPE=Release -DDUILIB_SKIA_LIB_SUBPATH="$DUILIB_SKIA_LIB_SUBPATH"

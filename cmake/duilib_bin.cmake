@@ -6,6 +6,11 @@ endif()
 set(CMAKE_CXX_STANDARD 20) # C++20
 set(CMAKE_CXX_STANDARD_REQUIRED ON) # C++20
 
+#输出基本信息
+message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
+message(STATUS "C compiler  : ${CMAKE_C_COMPILER} ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
+message(STATUS "CXX compiler: ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+
 if(DUILIB_OS_WINDOWS)  # Windows平台
     if(MSVC)
         # MSVC 编译器
@@ -16,11 +21,11 @@ if(DUILIB_OS_WINDOWS)  # Windows平台
     add_definitions(-DUNICODE -D_UNICODE) # Windows 系统中使用Unicode编码
 endif()
 
-#添加源码，保存在变量SRC_FILES中
-aux_source_directory(${DUILIB_PROJECT_SRC_DIR} SRC_FILES)
-
 #设置项目的include路径（duilib）
 include_directories(${DUILIB_SRC_ROOT_DIR})
+
+#设置该程序的根目录到include路径
+include_directories(${DUILIB_PROJECT_SRC_DIR})
 
 if(DUILIB_ENABLE_CEF)
     #使用CEF模块：需要添加CEF源码根目录到include路径
@@ -49,6 +54,18 @@ if(DUILIB_MINGW AND DUILIB_OS_WINDOWS)
         # 使用静态链接
         set(CMAKE_EXE_LINKER_FLAGS "-static ${CMAKE_EXE_LINKER_FLAGS}")
     endif()
+endif()
+
+#添加源码，保存在变量SRC_FILES中
+aux_source_directory(${DUILIB_PROJECT_SRC_DIR} SRC_FILES)
+
+#追加子目录的源代码文件
+if(DUILIB_SRC_SUB_DIRS)
+    foreach(ITEM IN LISTS DUILIB_SRC_SUB_DIRS)
+        # 逐个子目录添加
+        aux_source_directory("${DUILIB_PROJECT_SRC_DIR}/${ITEM}" SUB_DIR_SRC_FILES)
+        list(APPEND SRC_FILES ${SUB_DIR_SRC_FILES})  # 合并列表
+    endforeach()
 endif()
 
 #设置编译可执行程序依赖的源码
