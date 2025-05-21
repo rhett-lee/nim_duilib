@@ -20,7 +20,7 @@ if(MINGW)
 endif()
 
 # 定义开关变量（修改后，需要清除camke生成目录才能生效，如果未清除则会从缓存中读取旧值）
-option(DULIB_LOG "Print duilib debug log" OFF)
+option(DUILIB_LOG "Print duilib debug log" OFF)
 
 # Skia的lib子目录名开关（默认情况下，Windows按规则拼接路径；其他平台则可以固定目录，比如llvm编译）
 option(DUILIB_SKIA_LIB_SUBPATH "Skia lib sub path" OFF)
@@ -89,30 +89,37 @@ set(DUILIB_BIN_PATH "${DUILIB_SRC_ROOT_DIR}/bin")
 set(DUILIB_LIBS duilib duilib-cximage duilib-webp duilib-png duilib-zlib)
 
 #CEF模块的源码根目录（CEF模块为可选项）
-if(DUILIB_OS_WINDOWS AND DUILIB_ENABLE_CEF)
-    if (DUILIB_CEF_109)
-        #使用CEF 109版本
-        set(CEF_SRC_ROOT_DIR "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_win")
-        set(CEF_WRAPPER_LIB_NAME cef_dll_wrapper_109)
-    else()
-        #使用CEF最新版本
-        set(CEF_SRC_ROOT_DIR "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_win")
+if(DUILIB_ENABLE_CEF)
+    if(DUILIB_OS_WINDOWS)
+        # Winows平台
+        if (DUILIB_CEF_109)
+            #使用CEF 109版本
+            set(CEF_SRC_ROOT_DIR "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_win")
+            set(CEF_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/bin/libcef_win_109")
+            set(CEF_WRAPPER_LIB_NAME cef_dll_wrapper_109)
+        else()
+            #使用CEF最新版本
+            set(CEF_SRC_ROOT_DIR "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_win")
+            set(CEF_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/bin/libcef_win")
+            set(CEF_WRAPPER_LIB_NAME cef_dll_wrapper)
+        endif()
+    elseif(DUILIB_OS_LINUX)
+        # Linux平台
+        set(CEF_SRC_ROOT_DIR "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_linux")
+        set(CEF_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/bin/libcef_linux")
+        set(CEF_WRAPPER_LIB_NAME cef_dll_wrapper)
+    elseif(DUILIB_OS_MACOS)
+        # MacOS平台
+        set(CEF_SRC_ROOT_DIR "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_macos")
+        set(CEF_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/bin/libcef_macos")
         set(CEF_WRAPPER_LIB_NAME cef_dll_wrapper)
     endif()
-elseif(DUILIB_OS_LINUX)
-    set(CEF_SRC_ROOT_DIR "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_linux")
-    set(CEF_WRAPPER_LIB_NAME cef_dll_wrapper)
-elseif(DUILIB_OS_MACOS)
-    set(CEF_SRC_ROOT_DIR "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_macos")
-    set(CEF_WRAPPER_LIB_NAME cef_dll_wrapper)
-endif()
-if(DUILIB_ENABLE_CEF)
     set(CEF_LIBS cef ${CEF_WRAPPER_LIB_NAME})
 endif()
 
 #Skia源码根目录，lib文件目录（Skia必选项）
 get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
-if(DUILIB_SKIA_LIB_SUBPATH STREQUAL "")
+if(DUILIB_SKIA_LIB_SUBPATH STREQUAL "" OR DUILIB_SKIA_LIB_SUBPATH STREQUAL "OFF")
     # 根据规则拼接
     set(SKIA_LIB_PATH "${SKIA_SRC_ROOT_DIR}/out/${DUILIB_COMPILER_NAME}.${DUILIB_SYSTEM_PROCESSOR}.${DUILIB_BUILD_TYPE}")
 else()
@@ -132,12 +139,8 @@ if(DUILIB_ENABLE_SDL)
     set(SDL_LIBS SDL3)
 endif()
 
-#定义两个变量接收编译器变量，避免报警告
-set(DUILIB_CMAKE_C_COMPILER ${CMAKE_C_COMPILER})
-set(DUILIB_CMAKE_CXX_COMPILER ${CMAKE_CXX_COMPILER})
-
 #输出日志：打印变量数据
-if(DULIB_LOG)
+if(DUILIB_LOG)
     message(STATUS "DUILIB_PROJECT_SRC_DIR: ${DUILIB_PROJECT_SRC_DIR}")
     message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
     if(DUILIB_OS_WINDOWS)
@@ -189,6 +192,7 @@ if(DULIB_LOG)
     message(STATUS "DUILIB_ENABLE_CEF: ${DUILIB_ENABLE_CEF}") 
     if (DUILIB_ENABLE_CEF) 
         message(STATUS "CEF_SRC_ROOT_DIR: ${CEF_SRC_ROOT_DIR}") 
+        message(STATUS "CEF_LIB_PATH: ${CEF_LIB_PATH}") 
         message(STATUS "DUILIB_CEF_109: ${DUILIB_CEF_109}") 
         message(STATUS "CEF_LIBS: ${CEF_LIBS}")
     endif()
