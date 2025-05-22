@@ -19,17 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="$(ZLibSrcDir)\adler32.c" />
-    <ClCompile Include="$(ZLibSrcDir)\compress.c" />
-    <ClCompile Include="$(ZLibSrcDir)\crc32.c" />
-    <ClCompile Include="$(ZLibSrcDir)\deflate.c" />
-    <ClCompile Include="$(ZLibSrcDir)\infback.c" />
-    <ClCompile Include="$(ZLibSrcDir)\inffast.c" />
-    <ClCompile Include="$(ZLibSrcDir)\inflate.c" />
-    <ClCompile Include="$(ZLibSrcDir)\inftrees.c" />
-    <ClCompile Include="$(ZLibSrcDir)\trees.c" />
-    <ClCompile Include="$(ZLibSrcDir)\uncompr.c" />
-    <ClCompile Include="$(ZLibSrcDir)\zutil.c" />
+    <ClCompile Include="..\adler32.c" />
+    <ClCompile Include="..\compress.c" />
+    <ClCompile Include="..\crc32.c" />
+    <ClCompile Include="..\deflate.c" />
+    <ClCompile Include="..\infback.c" />
+    <ClCompile Include="..\inffast.c" />
+    <ClCompile Include="..\inflate.c" />
+    <ClCompile Include="..\inftrees.c" />
+    <ClCompile Include="..\trees.c" />
+    <ClCompile Include="..\uncompr.c" />
+    <ClCompile Include="..\zutil.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{60F89955-91C6-3A36-8000-13C592FEC2DF}</ProjectGuid>
@@ -37,7 +37,6 @@
     <RootNamespace>zlib</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
-  <Import Project="..\zlib.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
