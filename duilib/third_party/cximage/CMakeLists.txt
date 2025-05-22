@@ -4,24 +4,29 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
   message(FATAL_ERROR "Prevented in-tree build. Please create a build directory outside of the source code and run \"cmake -S ${CMAKE_SOURCE_DIR} -B .\" from there")
 endif()
 
+# duilib
 # MSVC runtime library flags are selected by an abstraction.
 set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
+if("${DUILIB_MD}" STREQUAL "ON")
+    # MD/MDd
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Debug>:Debug>")
+else()
+    # MT/MTd
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+# duilib end
 
 project(cximage CXX)
 
 if(MSVC)
     add_compile_options("/utf-8")
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    add_definitions(-DUNICODE -D_UNICODE)
 endif()
 
 set(CMAKE_CXX_STANDARD 17) # C++17
 set(CMAKE_CXX_STANDARD_REQUIRED ON) # C++17
 
-if(MSVC)
-    add_definitions(-DUNICODE -D_UNICODE)
-endif()
-
-#设置库文件的输出目录
+# duilib
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")

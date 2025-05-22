@@ -22,46 +22,6 @@
     #include "include/base/cef_callback.h"
 #pragma warning (pop)
 
-#if CEF_VERSION_MAJOR <= 109
-    //CEF 109版本
-    #ifdef _WIN64
-        //64位操作系统
-        #pragma comment (lib, "duilib/third_party/libcef_win_109/lib/x64/libcef.lib")
-        #ifdef _DEBUG
-            #pragma comment (lib, "lib/x64/libcef_dll_wrapper_109_d.lib")
-        #else
-            #pragma comment (lib, "lib/x64/libcef_dll_wrapper_109.lib")
-        #endif
-    #else
-        //32位操作系统
-        #pragma comment (lib, "duilib/third_party/libcef_win_109/lib/Win32/libcef.lib")
-        #ifdef _DEBUG
-            #pragma comment (lib, "lib/Win32/libcef_dll_wrapper_109_d.lib")
-        #else
-            #pragma comment (lib, "lib/Win32/libcef_dll_wrapper_109.lib")
-        #endif
-    #endif
-#else
-    //CEF 高版本
-    #ifdef _WIN64
-        //64位操作系统
-        #pragma comment (lib, "duilib/third_party/libcef_win/lib/x64/libcef.lib")
-        #ifdef _DEBUG
-            #pragma comment (lib, "lib/x64/libcef_dll_wrapper_d.lib")
-        #else
-            #pragma comment (lib, "lib/x64/libcef_dll_wrapper.lib")
-        #endif
-    #else
-        //32位操作系统
-        #pragma comment (lib, "duilib/third_party/libcef_win/lib/Win32/libcef.lib")
-        #ifdef _DEBUG
-            #pragma comment (lib, "lib/Win32/libcef_dll_wrapper_d.lib")
-        #else
-            #pragma comment (lib, "lib/Win32/libcef_dll_wrapper.lib")
-        #endif
-    #endif
-#endif
-
 namespace ui
 {
 

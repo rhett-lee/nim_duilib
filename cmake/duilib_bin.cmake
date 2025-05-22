@@ -13,9 +13,16 @@ message(STATUS "CXX compiler: ${CMAKE_CXX_COMPILER} ${CMAKE_CXX_COMPILER_ID} ${C
 
 if(DUILIB_OS_WINDOWS)  # Windows平台
     if(MSVC)
-        # MSVC 编译器
-        set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)        
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>") # 对应/MT或/MTd
+        # MSVC 编译器：设置代码的运行库
+        if("${DUILIB_MD}" STREQUAL "ON")
+            # MD/MDd
+            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Debug>:Debug>")
+        else()
+            # MT/MTd
+            set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+        endif()
+        
+        # 源码文件使用UTF8编码
         add_compile_options("/utf-8")
     endif()
     add_definitions(-DUNICODE -D_UNICODE) # Windows 系统中使用Unicode编码
@@ -39,11 +46,16 @@ if(DUILIB_ENABLE_SDL)
     link_directories("${SDL_LIB_PATH}") #SDL库所在路径
 endif()
 if(DUILIB_ENABLE_CEF)
-    link_directories("${CEF_LIB_PATH}") #cef库所在路径（.dll/.so对应的动态库）
+    link_directories("${CEF_LIB_PATH}") #cef库所在路径（.lib/.so对应的动态库）
 endif()
 
 #设置可执行文件的输出目录
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${DUILIB_BIN_PATH}")
+if(MSVC)
+    # MSVC需要单独设置Debug还是Release，否则它会自动创建子目录Debug/Release
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+endif()
 
 #MingGW-w64编译时的属性设置
 if(DUILIB_MINGW AND DUILIB_OS_WINDOWS)
@@ -73,21 +85,40 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 #设置链接可执行程序所依赖的库
 if(DUILIB_OS_WINDOWS)
+    # 需要嵌入manifest文件路径
+    if(DUILIB_BITS_64)
+        set(DUILIB_WIN_MANIFEST "${DUILIB_SRC_ROOT_DIR}/MSVC/manifest/duilib.x64.manifest")
+    else()
+        set(DUILIB_WIN_MANIFEST "${DUILIB_SRC_ROOT_DIR}/MSVC/manifest/duilib.x86.manifest")
+    endif()
+         
     if(DUILIB_MINGW)
         # MingGW-w64编译时的属性设置: 添加*.rc文件，并配置manifest文件
-        if(DUILIB_BITS_64)
-            set(DUILIB_WIN_MANIFEST "${DUILIB_SRC_ROOT_DIR}/MSVC/manifest/duilib.x64.manifest")
-        else()
-            set(DUILIB_WIN_MANIFEST "${DUILIB_SRC_ROOT_DIR}/MSVC/manifest/duilib.x86.manifest")
-        endif()
-        
         # 创建manifest.rc文件
         file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${PROJECT_NAME}.dir/${PROJECT_NAME}_manifest.rc" "1 24 \"${DUILIB_WIN_MANIFEST}\"")
         target_sources(${PROJECT_NAME} PRIVATE "${DUILIB_WINRES_FILE_NAME}" "${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/${PROJECT_NAME}.dir/${PROJECT_NAME}_manifest.rc")
-    elseif()
-        if(DUILIB_WINRES_FILE_NAME)
-            target_sources(${PROJECT_NAME} PRIVATE "${DUILIB_WINRES_FILE_NAME}")
-        endif()    
+    elseif(DUILIB_WINRES_FILE_NAME)
+        # 添加程序的rc文件
+        target_sources(${PROJECT_NAME} PRIVATE "${DUILIB_WINRES_FILE_NAME}")
+    endif()
+    
+    if(MSVC)
+        # 配置manifest文件
+        target_sources(${PROJECT_NAME} PRIVATE 
+            ${DUILIB_WIN_MANIFEST}
+        )
+        
+        # 使用MSVC编译时，需要设置子系统属性
+        set_target_properties(${PROJECT_NAME} PROPERTIES
+            LINK_FLAGS "/SUBSYSTEM:WINDOWS /ENTRY:wWinMainCRTStartup"
+        )
+        
+        if(DUILIB_ENABLE_CEF)
+            #设置libcef.dll延迟加载
+            target_link_options(${PROJECT_NAME} PRIVATE
+                "/DELAYLOAD:libcef.dll"  # 指定延迟加载的DLL文件名
+            )
+        endif()
     endif()
     
     # Windows平台所依赖的库

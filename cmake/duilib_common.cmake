@@ -94,14 +94,22 @@ if(DUILIB_ENABLE_CEF)
         # Winows平台
         if (DUILIB_CEF_109)
             #使用CEF 109版本
-            set(CEF_SRC_ROOT_DIR "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_win")
-            set(CEF_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/bin/libcef_win_109")
-            set(CEF_WRAPPER_LIB_NAME cef_dll_wrapper_109)
+            set(CEF_SRC_ROOT_DIR "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_win_109")
+            if(DUILIB_BITS_64)
+                set(CEF_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_win_109/lib/x64")
+            else()
+                set(CEF_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_win_109/lib/Win32")
+            endif()
+            set(CEF_WRAPPER_LIB_NAME libcef_dll_wrapper_109)
         else()
             #使用CEF最新版本
             set(CEF_SRC_ROOT_DIR "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_win")
-            set(CEF_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/bin/libcef_win")
-            set(CEF_WRAPPER_LIB_NAME cef_dll_wrapper)
+            if(DUILIB_BITS_64)
+                set(CEF_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_win/lib/x64")
+            else()
+                set(CEF_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libcef_win/lib/Win32")
+            endif()
+            set(CEF_WRAPPER_LIB_NAME libcef_dll_wrapper)
         endif()
     elseif(DUILIB_OS_LINUX)
         # Linux平台
@@ -114,7 +122,13 @@ if(DUILIB_ENABLE_CEF)
         set(CEF_LIB_PATH "${DUILIB_SRC_ROOT_DIR}/bin/libcef_macos")
         set(CEF_WRAPPER_LIB_NAME cef_dll_wrapper)
     endif()
-    set(CEF_LIBS libcef.so ${CEF_WRAPPER_LIB_NAME} X11)
+    if(DUILIB_OS_WINDOWS)
+        set(CEF_LIBS libcef ${CEF_WRAPPER_LIB_NAME})
+    elseif(DUILIB_OS_MACOS)
+        set(CEF_LIBS libcef.so ${CEF_WRAPPER_LIB_NAME})
+    else()
+        set(CEF_LIBS libcef.so ${CEF_WRAPPER_LIB_NAME} X11)
+    endif()
 endif()
 
 #Skia源码根目录，lib文件目录（Skia必选项）
@@ -175,6 +189,12 @@ if(DUILIB_LOG)
     endif()
 
     message(STATUS "DUILIB_BUILD_TYPE: ${DUILIB_BUILD_TYPE}")
+    
+    if(MSVC)
+        # MSVC 编译器：打印代码的运行库
+        message(STATUS "CMAKE_MSVC_RUNTIME_LIBRARY: ${CMAKE_MSVC_RUNTIME_LIBRARY}") 
+    endif()
+    
     message(STATUS "") 
     
     message(STATUS "DUILIB_SRC_ROOT_DIR: ${DUILIB_SRC_ROOT_DIR}")
