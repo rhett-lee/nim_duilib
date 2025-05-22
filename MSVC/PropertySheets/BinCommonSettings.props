@@ -35,7 +35,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Manifest>
-      <AdditionalManifestFiles>$(SolutionDir)\..\MSVC\manifest\duilib.x86.manifest</AdditionalManifestFiles>
+      <AdditionalManifestFiles>$(SolutionDir)\..\msvc\manifest\duilib.x86.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -47,7 +47,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Manifest>
-      <AdditionalManifestFiles>$(SolutionDir)\..\MSVC\manifest\duilib.x86.manifest</AdditionalManifestFiles>
+      <AdditionalManifestFiles>$(SolutionDir)\..\msvc\manifest\duilib.x86.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -59,7 +59,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Manifest>
-      <AdditionalManifestFiles>$(SolutionDir)\..\MSVC\manifest\duilib.x64.manifest</AdditionalManifestFiles>
+      <AdditionalManifestFiles>$(SolutionDir)\..\msvc\manifest\duilib.x64.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -71,7 +71,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Manifest>
-      <AdditionalManifestFiles>$(SolutionDir)\..\MSVC\manifest\duilib.x64.manifest</AdditionalManifestFiles>
+      <AdditionalManifestFiles>$(SolutionDir)\..\msvc\manifest\duilib.x64.manifest</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup />

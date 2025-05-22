@@ -55,10 +55,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 ```
 
 ## 配置项目属性
-- 使用nim_duilib提供的通用配置（`MSVC\PropertySheets\CommonSettings.props`）    
+- 使用nim_duilib提供的通用配置（`msvc\PropertySheets\BinCommonSettings.props`）    
 （1）用文本编辑器打开刚刚创建的工程文件（`examples2\MyDuilibApp\MyDuilibApp.vcxproj`）    
 （2）找到`<Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />`这一行的位置，在这行的后面插入一行，添加一下内容：    
-         `<Import Project="$(SolutionDir)\MSVC\PropertySheets\CommonSettings.props" />`    
+         `<Import Project="$(SolutionDir)\msvc\PropertySheets\BinCommonSettings.props" />`    
 （3）保存该工程文件的修改，如果已经在VS中打开，需要重新加载。    
 
 <img src="./Images/vs02.png"/>
