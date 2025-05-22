@@ -87,9 +87,9 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 if(DUILIB_OS_WINDOWS)
     # 需要嵌入manifest文件路径
     if(DUILIB_BITS_64)
-        set(DUILIB_WIN_MANIFEST "${DUILIB_SRC_ROOT_DIR}/MSVC/manifest/duilib.x64.manifest")
+        set(DUILIB_WIN_MANIFEST "${DUILIB_SRC_ROOT_DIR}/msvc/manifest/duilib.x64.manifest")
     else()
-        set(DUILIB_WIN_MANIFEST "${DUILIB_SRC_ROOT_DIR}/MSVC/manifest/duilib.x86.manifest")
+        set(DUILIB_WIN_MANIFEST "${DUILIB_SRC_ROOT_DIR}/msvc/manifest/duilib.x86.manifest")
     endif()
          
     if(DUILIB_MINGW)
