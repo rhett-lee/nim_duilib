@@ -148,6 +148,11 @@
     <Image Include="ColorPicker.ico" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MainThread.cpp" />
+    <ClCompile Include="main_windows.cpp" />
+    <ClCompile Include="TestApplication.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">
       <Project>{e106acd7-4e53-4aee-942b-d0dd426db34e}</Project>
     </ProjectReference>
@@ -157,17 +162,12 @@
     <ProjectReference Include="..\..\duilib\third_party\libpng\projects\vstudio\libpng\libpng.vcxproj">
       <Project>{d6973076-9317-4ef2-a0b8-b7a18ac0713e}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\duilib\third_party\libpng\projects\vstudio\zlib\zlib.vcxproj">
-      <Project>{60f89955-91c6-3a36-8000-13c592fec2df}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\duilib\third_party\libwebp\libwebp.vcxproj">
       <Project>{9ce07309-2808-45fa-b1af-ef49510e83ab}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="MainThread.cpp" />
-    <ClCompile Include="main_windows.cpp" />
-    <ClCompile Include="TestApplication.cpp" />
+    <ProjectReference Include="..\..\duilib\third_party\zlib\win32\zlib.vcxproj">
+      <Project>{60f89955-91c6-3a36-8000-13c592fec2df}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
