@@ -14,7 +14,19 @@
 #
 # SPDX-License-Identifier: libpng-2.0
 
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.18)
+
+# duilib
+# MSVC runtime library flags are selected by an abstraction.
+set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
+if("${DUILIB_MD}" STREQUAL "ON")
+    # MD/MDd
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Debug>:Debug>")
+else()
+    # MT/MTd
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+# duilib end
 
 set(PNGLIB_MAJOR 1)
 set(PNGLIB_MINOR 6)
@@ -28,7 +40,7 @@ set(PNGLIB_SHARED_VERSION ${PNGLIB_ABI_VERSION}.${PNGLIB_REVISION}.${PNGLIB_SUBR
 project(libpng
         VERSION ${PNGLIB_VERSION}
         LANGUAGES C ASM)
-
+        
 include(CheckCSourceCompiles)
 include(GNUInstallDirs)
 
@@ -105,6 +117,7 @@ set(ZLIB_ROOT "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/")
 set(ZLIB_LIBRARY "${DUILIB_SRC_ROOT_DIR}/duilib/lib/libduilib-zlib.a")
 message(STATUS "ZLIB_ROOT: ${ZLIB_ROOT}")
 message(STATUS "ZLIB_LIBRARY: ${ZLIB_LIBRARY}")
+# duilib end
 
 # Allow the users to specify a custom location of zlib.
 # With CMake 3.12 and newer, this option is no longer necessary.

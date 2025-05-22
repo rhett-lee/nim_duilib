@@ -4,14 +4,29 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
   message(FATAL_ERROR "Prevented in-tree build. Please create a build directory outside of the source code and run \"cmake -S ${CMAKE_SOURCE_DIR} -B .\" from there")
 endif()
 
+# duilib
 # MSVC runtime library flags are selected by an abstraction.
 set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
+if("${DUILIB_MD}" STREQUAL "ON")
+    # MD/MDd
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Debug>:Debug>")
+else()
+    # MT/MTd
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+# duilib end
 
 project(duilib CXX C)
 
 if(MSVC)
+    # 源文件为UTF8编码
     add_compile_options("/utf-8")
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    
+    # 获取系统逻辑核心数
+    cmake_host_system_information(RESULT CPU_CORES QUERY NUMBER_OF_LOGICAL_CORES)
+    # 设置C/C++编译选项（开启多线程编译）
+    add_compile_options($<$<COMPILE_LANGUAGE:C>:/MP${CPU_CORES}>)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/MP${CPU_CORES}>)
 endif()
 
 set(CMAKE_CXX_STANDARD 20) # C++20
@@ -21,6 +36,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows
     add_definitions(-DUNICODE -D_UNICODE)
 endif()
 
+#Skia的编译选项
 add_definitions(-DSK_GANESH -DSK_GL -DSK_RELEASE)
 
 #设置libcef目录路径
@@ -62,6 +78,10 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Utils UTILS_SRC)
 
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl CEF_CONTROL_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl/internal CEF_CONTROL_INTERNAL_SRC)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows
+    aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl/internal/Windows CEF_CONTROL_INTERNAL_WINDOWS_SRC)
+endif()
 
 aux_source_directory(${DUILIB_SRC_ROOT_DIR}/duilib/third_party/apng APNG_SRC)
 aux_source_directory(${DUILIB_SRC_ROOT_DIR}/duilib/third_party/stb_image STB_SRC)
@@ -132,6 +152,7 @@ add_library(duilib
     	    ${UTILS_SRC}
     	    ${CEF_CONTROL_SRC}
     	    ${CEF_CONTROL_INTERNAL_SRC}
+    	    ${CEF_CONTROL_INTERNAL_WINDOWS_SRC}
     	    ${APNG_SRC}
     	    ${STB_SRC}
     	    ${SVG_SRC}

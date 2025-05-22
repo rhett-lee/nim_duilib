@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.18)
 
+# MSVC runtime library flags are selected by an abstraction.
+set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
+
 # 定义项目名称和开发语言
 project(ListBox CXX)
 
