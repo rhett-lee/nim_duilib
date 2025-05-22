@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <!-- 该文件中设置 libCEF 的 配置选项，主要用于选择使用libCEF 109 版本还是libCEF最新版本 -->
+    <!-- libCEF 109 版本 支持Win7及新版本操作系统-->
+    <!-- libCEF 最新 版本 支持Win10及新版本操作系统，但不支持低于Win10的操作系统-->    
+    <PropertyGroup Label="Globals">
+    
+        <!-- libCEF 最新 版本的源码子目录，位于duilib\third_party中 -->
+        <LibCefSrcDirNew>libcef_win</LibCefSrcDirNew>
+        
+        <!-- libCEF 109 版本的源码子目录，位于duilib\third_party中 -->
+        <LibCefSrcDir109>libcef_win_109</LibCefSrcDir109>
+           
+        <!-- libCEF 封装库libcef_dll_wrapper的名称：最新版 -->
+        <LibCefDllWrapperNameNew>libcef_dll_wrapper</LibCefDllWrapperNameNew>
+        
+        <!-- libCEF 封装库libcef_dll_wrapper的名称：109版 -->
+        <LibCefDllWrapperName109>libcef_dll_wrapper</LibCefDllWrapperName109>
+        
+        <LibCefLibsDebugNew>libcef.lib;$(LibCefDllWrapperNameNew)_d.lib</LibCefLibsDebugNew>
+        <LibCefLibsReleaseNew>libcef.lib;$(LibCefDllWrapperNameNew).lib</LibCefLibsReleaseNew>
+        
+        <LibCefLibsDebug109>libcef.lib;$(LibCefDllWrapperName109)_d.lib</LibCefLibsDebug109>
+        <LibCefLibsRelease109>libcef.lib;$(LibCefDllWrapperName109).lib</LibCefLibsRelease109>
+        
+        <LibCefDllName>libcef.dll</LibCefDllName>
+        <!-- 分界线：上面的值不需要调整，下面的三个值，需要根据用libCEF 109版本还是最新版进行修改 -->
+        
+        <!-- libCEF的源码子目录: 设置的当前值，可选项： $(LibCefSrcDirNew) 或者 $(LibCefSrcDir109) -->
+        <LibCefSrcDir>$(LibCefSrcDirNew)</LibCefSrcDir>
+        
+        <!-- libCEF的Debug库的lib名称: 设置的当前值，可选项： $(LibCefLibsDebugNew) 或者 $(LibCefLibsDebug109) -->
+        <LibCefLibsDebug>$(LibCefLibsDebugNew)</LibCefLibsDebug>
+        
+        <!-- libCEF的Release库的lib名称: 设置的当前值，可选项： $(LibCefLibsReleaseNew) 或者 $(LibCefLibsRelease109) -->
+        <LibCefLibsRelease>$(LibCefLibsReleaseNew)</LibCefLibsRelease>
+        
+    </PropertyGroup>
+</Project>
