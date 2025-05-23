@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <!-- 该文件中设置 Skia 的 配置选项（必选项） -->
+    <PropertyGroup Label="Globals">
+
+        <!-- Skia的宏定义：Release版 -->
+        <SkiaReleaseDefinitions>SK_GANESH;SK_GL;SK_RELEASE</SkiaReleaseDefinitions>
+
+        <!-- Skia的宏定义：Debug版（目前编译选项与Release相同(SK_RELEASE 或 SK_DEBUG)，以改进性能） -->
+        <SkiaDebugDefinitions>SK_GANESH;SK_GL;SK_RELEASE</SkiaDebugDefinitions>
+
+        <!-- Skia的include目录 -->
+        <SkiaIncludeDir>$(SolutionDir)\..\..\skia</SkiaIncludeDir>
+
+        <!-- Skia的lib目录: 目前固定使用 llvm 编译 -->
+        <SkiaLibDirX64Release>$(SolutionDir)\..\..\skia\out\llvm.x64.release</SkiaLibDirX64Release>
+        <SkiaLibDirX64Debug>$(SolutionDir)\..\..\skia\out\llvm.x64.debug</SkiaLibDirX64Debug>
+        <SkiaLibDirX86Release>$(SolutionDir)\..\..\skia\out\llvm.x86.release</SkiaLibDirX86Release>
+        <SkiaLibDirX86Debug>$(SolutionDir)\..\..\skia\out\llvm.x86.debug</SkiaLibDirX86Debug>
+
+        <!-- Skia的lib列表 -->
+        <SkiaLibs>skia.lib;svg.lib;skshaper.lib</SkiaLibs>
+
+    </PropertyGroup>
+</Project>
