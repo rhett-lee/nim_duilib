@@ -7,7 +7,6 @@
 
 //渲染引擎
 #include "duilib/RenderSkia/RenderFactory_Skia.h"
-#include "duilib/Render/RenderConfig.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     //ToolTip/日期时间等标准控件，需要初始化commctrl

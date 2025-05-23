@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <!-- 该文件中设置 SDL 的 配置选项（可选项） -->
+    <PropertyGroup Label="Globals">
+
+        <!-- SDL的include目录 -->
+        <SDLIncludeDir>$(SolutionDir)\..\..\SDL3\include</SDLIncludeDir>
+
+        <!-- SDL的lib目录 -->
+        <SDLLibDirX64Release>$(SolutionDir)\..\..\SDL3\lib</SDLLibDirX64Release>
+        <SDLLibDirX64Debug>$(SolutionDir)\..\..\SDL3\lib</SDLLibDirX64Debug>
+        <SDLLibDirX86Release>$(SolutionDir)\..\..\SDL3\lib</SDLLibDirX86Release>
+        <SDLLibDirX86Debug>$(SolutionDir)\..\..\SDL3\lib</SDLLibDirX86Debug>
+
+        <!-- 是否支持SDL的宏定义： 0表示不支持；1 表示支持，同时设置SDLLibs的值 -->
+        <SDLEnabled>0</SDLEnabled>
+
+        <!-- SDL的lib列表：不支持SDL时，需要设置为空 -->
+        <!-- SDL3-static.lib Version.lib Winmm.lib Setupapi.lib -->
+        <SDLLibs></SDLLibs>
+
+    </PropertyGroup>
+
+</Project>
