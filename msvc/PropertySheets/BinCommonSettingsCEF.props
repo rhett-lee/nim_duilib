@@ -15,7 +15,7 @@
         </ClCompile>
         <Link>
             <AdditionalLibraryDirectories>$(LibCefLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(LibCefLibsRelease);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalDependencies>$(LibCefLibs);%(AdditionalDependencies)</AdditionalDependencies>
             <DelayLoadDLLs>$(LibCefDllName)</DelayLoadDLLs>
         </Link>
     </ItemDefinitionGroup>
@@ -25,7 +25,7 @@
         </ClCompile>
         <Link>
             <AdditionalLibraryDirectories>$(LibCefLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(LibCefLibsDebug);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalDependencies>$(LibCefLibs);%(AdditionalDependencies)</AdditionalDependencies>
             <DelayLoadDLLs>$(LibCefDllName)</DelayLoadDLLs>
         </Link>
     </ItemDefinitionGroup>
@@ -35,7 +35,7 @@
         </ClCompile>
         <Link>
             <AdditionalLibraryDirectories>$(LibCefLibDir);%(AdditionalLibraryDirectories);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(LibCefLibsRelease);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalDependencies>$(LibCefLibs);%(AdditionalDependencies)</AdditionalDependencies>
             <DelayLoadDLLs>$(LibCefDllName)</DelayLoadDLLs>
         </Link>
     </ItemDefinitionGroup>
@@ -45,7 +45,7 @@
         </ClCompile>
         <Link>
             <AdditionalLibraryDirectories>$(LibCefLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(LibCefLibsDebug);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalDependencies>$(LibCefLibs);%(AdditionalDependencies)</AdditionalDependencies>
             <DelayLoadDLLs>$(LibCefDllName)</DelayLoadDLLs>
         </Link>
     </ItemDefinitionGroup>

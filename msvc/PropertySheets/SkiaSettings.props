@@ -13,10 +13,10 @@
         <SkiaIncludeDir>$(SolutionDir)\..\..\skia</SkiaIncludeDir>
 
         <!-- Skia的lib目录: 目前固定使用 llvm 编译 -->
-        <SkiaLibDirX64Release>$(SolutionDir)\..\..\skia\out\llvm.x64.release</SkiaLibDirX64Release>
-        <SkiaLibDirX64Debug>$(SolutionDir)\..\..\skia\out\llvm.x64.debug</SkiaLibDirX64Debug>
-        <SkiaLibDirX86Release>$(SolutionDir)\..\..\skia\out\llvm.x86.release</SkiaLibDirX86Release>
-        <SkiaLibDirX86Debug>$(SolutionDir)\..\..\skia\out\llvm.x86.debug</SkiaLibDirX86Debug>
+        <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\..\..\skia\out\llvm.x64.release</SkiaLibDir>
+        <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\..\..\skia\out\llvm.x64.debug</SkiaLibDir>
+        <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\..\..\skia\out\llvm.x86.release</SkiaLibDir>
+        <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\..\skia\out\llvm.x86.debug</SkiaLibDir>
 
         <!-- Skia的lib列表 -->
         <SkiaLibs>skia.lib;svg.lib;skshaper.lib</SkiaLibs>

@@ -22,7 +22,7 @@
             <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SkiaLibDirX86Release);$(SDLLibDirX86Release);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;%(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
         </Link>
     </ItemDefinitionGroup>
@@ -32,7 +32,7 @@
             <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SkiaLibDirX86Debug);$(SDLLibDirX86Debug);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
         </Link>
     </ItemDefinitionGroup>
@@ -42,7 +42,7 @@
             <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SkiaLibDirX64Release);$(SDLLibDirX64Release);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
         </Link>
     </ItemDefinitionGroup>
@@ -52,7 +52,7 @@
             <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SkiaLibDirX64Debug);$(SDLLibDirX64Debug);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
             <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
         </Link>
     </ItemDefinitionGroup>

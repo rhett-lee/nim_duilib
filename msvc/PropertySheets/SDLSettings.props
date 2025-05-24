@@ -7,17 +7,17 @@
         <SDLIncludeDir>$(SolutionDir)\..\..\SDL3\include</SDLIncludeDir>
 
         <!-- SDL的lib目录 -->
-        <SDLLibDirX64Release>$(SolutionDir)\..\..\SDL3\lib</SDLLibDirX64Release>
-        <SDLLibDirX64Debug>$(SolutionDir)\..\..\SDL3\lib</SDLLibDirX64Debug>
-        <SDLLibDirX86Release>$(SolutionDir)\..\..\SDL3\lib</SDLLibDirX86Release>
-        <SDLLibDirX86Debug>$(SolutionDir)\..\..\SDL3\lib</SDLLibDirX86Debug>
+        <SDLLibDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
+        <SDLLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
+        <SDLLibDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
+        <SDLLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\..\SDL3\lib</SDLLibDir>
 
         <!-- 是否支持SDL的宏定义： 0表示不支持；1 表示支持，同时设置SDLLibs的值 -->
         <SDLEnabled>0</SDLEnabled>
 
-        <!-- SDL的lib列表：不支持SDL时，需要设置为空 -->
-        <!-- SDL3-static.lib Version.lib Winmm.lib Setupapi.lib -->
-        <SDLLibs></SDLLibs>
+        <!-- SDL的lib列表 -->
+        <SDLLibs Condition="'$(SDLEnabled)' != '0'">SDL3-static.lib Version.lib Winmm.lib Setupapi.lib</SDLLibs>
+        <SDLLibs Condition="'$(SDLEnabled)' == '0'"></SDLLibs>
 
     </PropertyGroup>
 
