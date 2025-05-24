@@ -22,11 +22,9 @@
         <LibCefIncludeDir>$(SolutionDir)\..\duilib\third_party\$(LibCefSrcDir)</LibCefIncludeDir>
         <LibCefLibDir>$(SolutionDir)\..\duilib\third_party\$(LibCefSrcDir)\lib\$(Platform)</LibCefLibDir>
 
-        <!-- libCEF的Debug库的lib名称 -->
-        <LibCefLibsDebug>libcef.lib;$(LibCefDllWrapperName)_d.lib</LibCefLibsDebug>
-
-        <!-- libCEF的Release库的lib名称 -->
-        <LibCefLibsRelease>libcef.lib;$(LibCefDllWrapperName).lib</LibCefLibsRelease>
+        <!-- libCEF的库的lib名称 -->
+        <LibCefLibs Condition="'$(Configuration)' == 'Debug'">libcef.lib;$(LibCefDllWrapperName)_d.lib</LibCefLibs>
+        <LibCefLibs Condition="'$(Configuration)' == 'Release'">libcef.lib;$(LibCefDllWrapperName).lib</LibCefLibs>
 
     </PropertyGroup>
 </Project>
