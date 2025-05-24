@@ -16,7 +16,7 @@ git clone https://github.com/rhett-lee/nim_duilib
 git clone https://github.com/rhett-lee/skia_compile
 ```
 
-3. 编译skia源码：按照skia_compile目录中的[Windows下编译skia.md文档](../../skia_compile/Windows下编译skia.md)中的方法，编译出skia相关的lib文件    
+3. 编译skia源码：按照skia_compile项目文档[Windows下编译skia.md](../../skia_compile/Windows下编译skia.md)中的方法，编译出skia相关的lib文件    
    注意事项：skia源码应该与nim_duilib源码位于相同的目录下。    
    注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅；如果使用VS编译，运行速度很慢，界面比较卡。    
    检查方法：编译成功以后，在skia/out的子目录下，有生成skia.lib等lib文件。
@@ -28,8 +28,7 @@ git clone https://github.com/rhett-lee/skia_compile
 
 ## 创建基础工程
 
-使用 Visual Studio 打开项目目录中 `duilib.sln` 解决方案，
-解决方案中包含了一些简单示例作为参考，你可以参考示例或新建一个 Windows 桌面应用，来一步一步完成第一个 duilib 窗口。
+使用 Visual Studio 打开项目目录中 `duilib.sln` 解决方案，新建一个 Windows 桌面应用，来一步一步完成第一个基于 duilib 界面库的程序。
 
 1. 在`duilib.sln` 解决方案中新建一个 Windows 桌面程序（VS2022，程序类型为：Windows Desktop Application）。
 假定程序名为：`MyDuilibApp`，源码放在`examples2`子目录中。    
@@ -365,6 +364,12 @@ void MainThread::OnInit()
 这样一个简单的带有最小化、最大化、还原和关闭按钮、全屏按钮，具有阴影效果和一行文字提示的窗口就创建出来了，你可以编译运行以下代码看一看窗口效果。
 
 <img src="./Images/MyDuilibApp.png"/>
+    
+## 在程序中使用libCEF
+可以参考相关的文档[CEF.md](CEF.md)
+
+## 关于Visual Studio的工程配置
+项目中关于Visual Studio的工程配置是使用属性文件，保存在以下目录：`nim_duilib\msvc\PropertySheets`
     
 ## 如何设置项目中使用的源代码文件编码为UTF-8格式
 1. 在项目根目录创建一个格式配置文件，文件名为：.editorconfig
