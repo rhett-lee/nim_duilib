@@ -11,22 +11,25 @@
  - 事件驱动：基于消息机制的事件处理，使得UI交互逻辑清晰
  - 皮肤支持：通过XML文件定义皮肤结构，可以轻松改变界面风格
  - 性能优异：界面资源的内存占有率低，使用Skia引擎绘制，后台绘制配置使用CPU绘制或者GPU绘制
- - 多种图片格式，支持的图片文件格式有：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
- - 动画图片，支持GIF动画文件、APNG动画文件、WebP动画文件
- - 使用Skia作为界面渲染引擎，性能较好，功能丰富，控件的功能扩展较容易
- - 支持DPI感知（Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式），支持独立设置DPI，支持高清DPI的适配
- - 多国语言支持，支持动态多种语言切换，易于实现国际化
- - CEF 控件支持（支持libcef 109 版本，以兼容Win7系统；支持libcef 133 版本，支持Win10及以上操作系统）
+ - 多种图片格式：支持的图片文件格式有：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
+ - 支持动画图片：支持GIF动画文件、APNG动画文件、WebP动画文件
+ - 窗口阴影：支持窗口的圆角阴影、直角阴影，并可选择阴影大小，可实时更新
+ - Skia引擎：使用Skia作为界面渲染引擎，性能较好，功能丰富，控件的功能扩展较容易
+ - 支持DPI感知：有Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配
+ - 支持多国语言：支持动态多种语言切换，易于实现国际化
+ - 支持CEF控件：支持libcef 109 版本，以兼容Win7系统；支持libcef 133 版本，支持Win10及以上操作系统
  - 支持SDL3：可使用SDL3作为窗口管理和输入输出等基本功能提供者，从而支持跨平台（目前已经适配了Linux平台）
 
-## 目录
+## 目录结构
 | 目录          | 说明 |
 | :---          | :--- |
 | duilib        | 项目的核心代码|
 | docs          | 项目的说明文档|
 | bin           | 各个示例程序输出目录，包含预设的皮肤和语言文件以及 CEF 依赖|
-| manifest      | 应用程序清单文件（仅Windows平台）|
 | licenses      | 引用的其他开源代码对应的licenses文件|
+| cmake         | cmake编译时依赖的公共设置|
+| build         | 各个平台的编译脚本和编译工程（包括VC编译工程）|
+| msvc          | Windows平台的应用程序清单文件和VC工程公共配置|
 | examples      | 项目的示例程序源代码|
 | duilib/third_party| 项目代码依赖的第三方库，详细内容见后续文档|
 
@@ -109,6 +112,7 @@
         <td align="left">1. README.md和docs子目录的文档重新进行了梳理，使得阅读者更容易理解界面库的功能、用法，更易上手</td>
     </tr>
     <tr><td align="left">2. 各个控件的接口没有单独整理成文档，因为可以直接阅读接口文件中的注释来达到目的，目前各个接口的注释是比较完善的</td></tr>
+    <tr><td align="left">3. 各个平台的编译文档和依赖的编译脚本</td></tr>
 </table>
 
 ## 使用的第三方库说明
@@ -131,24 +135,73 @@
 |libcef    |third_party/libcef_win<br>third_party/libcef_win_109<br>third_party/libcef_linux| 用于加载CEF模块|[libcef.LICENSE.txt](licenses/libcef.LICENSE.txt)|
 |udis86    |third_party/libudis86| 反汇编计算完整性指令最短长度|[udis86.LICENSE.txt](licenses/udis86.LICENSE.txt)|
 
-备注：    
-1. 本项目最早是基于duilib开发的，项目地址：[duilib](https://github.com/duilib/duilib)
-2. 本项目是直接在NIM_Duilib_Framework项目的基础上继续开发的，项目地址：[NIM_Duilib_Framework](https://github.com/netease-im/NIM_Duilib_Framework/)
+## 界面效果预览
+使用该界面库编写的示例程序，该文档可以见到各个控件的展示效果：[docs/Examples.md](docs/Examples.md) 
+
+## 编程语言
+- C/C++: 编译器需要支持C++20
+
+## 支持的操作系统
+- Windows：Windows 7.0 版本及以上
+- Linux：OpenEuler、OpenKylin（开放麒麟）、UbuntuKylin（优麒麟）、中科方德、统信UOS、Ubuntu、Debian、Fedora、OpenSuse等
+
+## 支持的编译器
+- Visual Studio 2022（Windows）
+- LLVM（Windows）
+- MinGW-W64：gcc/g++、clang/clang++（Windows）
+- gcc/g++（Linux）
+- clang/clang++（Linux）
 
 ## 获取代码和编译（Windows平台）
-1. 设置工作目录：`D:\develop\skia\`    
-2. 获取并编译Skia库（nim_duilib内部使用Skia作为界面绘制引擎，所以先要编译skia）：    
-（1）注意事项：skia源码应该与nim_duilib源码位于相同的目录下，目录结构：`D:\develop\skia\`  
-（2）获取skia代码的编译方法和修改的代码：`git clone https://github.com/rhett-lee/skia_compile`    
-（3）编译skia源码：按照skia_compile目录中的[Windows下编译skia.md文档](https://github.com/rhett-lee/skia_compile/blob/main/Windows%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)中的方法，编译出skia相关的.lib文件    
-　　　注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅；如果使用VS编译，运行速度很慢，界面比较卡    
-　　　检查方法：编译成功以后，在`skia/out`的子目录下，有生成`skia.lib`等lib文件    
-3. 获取项目代码：`git clone https://github.com/rhett-lee/nim_duilib`
-4. 编译nim_duilib：进入 `nim_duilib/examples` 目录，使用 Visual Studio 2022版本的 IDE 打开 `examples.sln`，选择编译选项为Debug|x64或者Release|x64，按下 F7 即可编译所有示例程序（编译完成的示例程序位于bin目录中）
-5. 编译附件说明：    
-（1）项目中工程的编译环境为Visual Studio 2022版本，如果使用其他版本的Visual Studio编译器，需要手动更新编译工程的属性。    
-（2）项目中的工程默认配置是x64的，如果需要编译Win32的程序，在编译skia的时候，也需要启动32位的命令行（x86 Native Tools Command Prompt for VS 2022）   
-（3）nim_duilib的代码兼容性默认是支持Win7以上系统，未支持Windows XP；Windows SDK的兼容性配置可在[duilib\duilib_config.h](duilib/duilib_config.h)文件中修改。     
+### 一、准备工作：安装必备的软件
+1. 安装python3（python的主版本需要是3，需要添加到Path环境变量）    
+（1）首先安装python3    
+（2）在Windows的设置里面，关闭python.exe和python3.exe的"应用执行别名"，否则编译skia的脚本执行有问题。Windows设置入口：设置 -> 应用 -> 高级应用设置 -> 应用执行别名    
+（3）到python.exe所在目录中，复制一份python.exe，改名为python3.exe: 确保命令行参数中可以访问到python3.exe   
+（4）在命令行验证：`> python3.exe --version` 可以查看python的版本号     
+2. 安装Git For Windows: 2.44版本，git需要添加到Path环境变量，确保命令行参数中可以访问到git.exe    
+3. 安装Visual Studio 2022社区版    
+4. 安装LLVM：20.1.0 Win64 版本    
+（1）安装目录：`C:\LLVM`    
+（2）注意事项：如果安装在其他目录，安装目录中不能有空格，否则编译会遇到问题。
+
+### 二、一键编译（推荐）
+选定一个工作目录，创建一个脚本`build.bat`，将下面已经整理好脚本复制进去，保存文件。    
+脚本文件内容如下：    
+```
+echo OFF
+set retry_delay=10
+
+:retry_clone_duilib
+if not exist ".\nim_duilib" (
+    git clone https://github.com/rhett-lee/nim_duilib
+) else (  
+    git -C ./nim_duilib pull
+)
+if %errorlevel% neq 0 (
+    timeout /t %retry_delay% >nul
+    goto retry_clone_duilib
+)
+
+copy .\nim_duilib\build\build_duilib_all_in_one.bat .\
+.\build_duilib_all_in_one.bat
+```
+进入命令行控制台，运行该脚本： 
+```
+.\build.bat
+```
+编译完成的示例程序位于bin目录中。
+
+### 三、手工编译过程
+1. 设置工作目录：`D:\develop\skia`    
+2. 获取相关代码    
+（1）`git clone https://github.com/rhett-lee/nim_duilib`    
+（2）`git clone https://github.com/rhett-lee/skia`    
+（3）`git clone https://github.com/rhett-lee/skia_compile`    
+2. 编译Skia源码    
+（1）说明：nim_duilib内部使用Skia作为界面绘制引擎，所以先要编译skia，优先用LLVM编译，运行流畅    
+（2）按照skia_compile目录中的[Windows下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Windows%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)文档中的方法，编译出skia相关的.lib文件      
+3. 编译nim_duilib：进入 `build` 目录，打开 `examples.sln`，可执行编译，编译完成的示例程序位于bin目录中。
 
 ## 获取代码和编译（Linux平台）
 1. 设置工作目录：`/home/develop/`    
@@ -238,4 +291,8 @@
  - [快速上手](docs/Getting-Started.md)
  - [参考文档](docs/Summary.md)
  - [示例程序](docs/Examples.md)
- - 跨平台（Windows/Linux系统）的窗口引擎（基于[SDL3.0](https://www.libsdl.org/)），相关的内容参见文档：[跨平台开发相关事项.md](docs/跨平台开发相关事项.md)
+
+## 相关链接
+1. Skia的编译文档库，点击访问：[skia compile](https://github.com/rhett-lee/skia_compile) ：    
+2. 本项目最早是基于duilib开发的，项目地址：[duilib](https://github.com/duilib/duilib)
+3. 本项目是直接在NIM_Duilib_Framework项目的基础上继续开发的，项目地址：[NIM_Duilib_Framework](https://github.com/netease-im/NIM_Duilib_Framework/)
