@@ -21,9 +21,11 @@ Box::Box(Window* pWindow, Layout* pLayout) :
 
 Box::~Box()
 {
-    for (Control* pControl : m_items) {
-        if (pControl != nullptr) {
-            delete pControl;
+    if (m_bAutoDestroyChild) {
+        for (Control* pControl : m_items) {
+            if (pControl != nullptr) {
+                delete pControl;
+            }
         }
     }
     m_items.clear();

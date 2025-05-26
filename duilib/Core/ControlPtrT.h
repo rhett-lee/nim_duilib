@@ -23,13 +23,31 @@ public:
     {
     }
     
-    ControlPtrT(const ControlPtrT& r) = delete;
-    ControlPtrT& operator=(const ControlPtrT& r) = delete;
+    ControlPtrT(const ControlPtrT& r):
+        m_pControl(r.get())
+    {
+        if (m_pControl != nullptr) {
+            m_weak_flag = m_pControl->GetWeakFlag();
+        }
+    }
+
+    ControlPtrT& operator=(const ControlPtrT& r)
+    {
+        m_pControl = r.get();
+        if (m_pControl != nullptr) {
+            m_weak_flag = m_pControl->GetWeakFlag();
+        }
+        else {
+            m_weak_flag.reset();
+        }
+        return *this;
+    }
+
     ~ControlPtrT() = default;
 
     /** 赋值运算符
     */
-    const ControlPtrT& operator = (T* pControl)
+    ControlPtrT& operator = (T* pControl)
     {
         m_pControl = pControl;
         if (pControl != nullptr) {
@@ -87,20 +105,34 @@ public:
 
     /** 比较操作符
     */
+    bool operator == (const ControlPtrT& r) const
+    {
+        return get() == r.get();
+    }
+
+    /** 比较操作符
+    */
     bool operator != (T* pControl) const
     {
         return get() != pControl;
     }
 
+    /** 比较操作符
+    */
+    bool operator != (const ControlPtrT& r) const
+    {
+        return get() != r.get();
+    }
+
     /** 比较操作符(全局)
     */
-    friend bool operator == (T* pControl, const ControlPtrT& r) {
+    friend static inline bool operator == (T* pControl, const ControlPtrT<T>& r) {
         return r.get() == pControl;
     }
 
     /** 比较操作符(全局)
     */
-    friend bool operator != (T* pControl, const ControlPtrT& r) {
+    friend static inline bool operator != (T* pControl, const ControlPtrT<T>& r) {
         return r.get() != pControl;
     }
     
@@ -117,12 +149,13 @@ private:
 /** 控件的智能指针
 */
 class Control;
-typedef ControlPtrT<Control*> ControlPtr;
+typedef ControlPtrT<Control> ControlPtr;
 
 /** 容器的智能指针
 */
 class Box;
-typedef ControlPtrT<Box*> BoxPtr;
+typedef ControlPtrT<Box> BoxPtr;
+
 
 } // namespace ui
 

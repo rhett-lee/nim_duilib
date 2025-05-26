@@ -351,15 +351,15 @@ private:
 private:
     /** 图标控件
     */
-    Control* m_pIconControl;
+    ControlPtr m_pIconControl;
 
     /** 编辑框控件
     */
-    RichEdit* m_pEditControl;
+    ControlPtrT<RichEdit> m_pEditControl;
 
     /** 按钮控件
     */
-    Button* m_pButtonControl;
+    ControlPtrT<Button> m_pButtonControl;
 
     /** 当前选择项索引号
     */

@@ -43,7 +43,7 @@ private:
 
 private:
     //关联的Combo接口
-    Combo* m_pOwner = nullptr;
+    ControlPtrT<Combo> m_pOwner;
 
     //原来的选择项索引
     size_t m_iOldSel = Box::InvalidIndex;
@@ -100,7 +100,7 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
 
 UiRect CComboWnd::GetComboWndRect() const
 {
-    Combo* pOwner = m_pOwner;
+    ControlPtrT<Combo> pOwner = m_pOwner;
     if (pOwner == nullptr) {
         return UiRect();
     }
@@ -186,7 +186,7 @@ void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
         pRootBox->RemoveAllItems();
     }
     //先将前端窗口切换为父窗口，避免前端窗口关闭后，切换到其他窗口
-    Combo* pOwner = m_pOwner;
+    ControlPtrT<Combo> pOwner = m_pOwner;
     if ((pOwner != nullptr) && (pOwner->GetWindow() != nullptr)) {
         if (IsWindowForeground()) {
             pOwner->GetWindow()->SetWindowForeground();
@@ -276,15 +276,15 @@ Combo::~Combo()
 {
     if (!IsInited()) {
         if (m_pIconControl != nullptr) {
-            delete m_pIconControl;
+            delete m_pIconControl.get();
             m_pIconControl = nullptr;
         }
         if (m_pEditControl != nullptr) {
-            delete m_pEditControl;
+            delete m_pEditControl.get();
             m_pEditControl = nullptr;
         }
         if (m_pButtonControl != nullptr) {
-            delete m_pButtonControl;
+            delete m_pButtonControl.get();
             m_pButtonControl = nullptr;
         }
     }
@@ -368,9 +368,9 @@ void Combo::SetComboTreeNodeClass(const DString& classValue)
 void Combo::SetIconControlClass(const DString& classValue)
 {
     if (classValue.empty()) {
-        RemoveControl(m_pIconControl);
+        RemoveControl(m_pIconControl.get());
         if (m_pIconControl != nullptr) {
-            delete m_pIconControl;
+            delete m_pIconControl.get();
             m_pIconControl = nullptr;
         }
     }
@@ -378,16 +378,16 @@ void Combo::SetIconControlClass(const DString& classValue)
         if (m_pIconControl == nullptr) {
             m_pIconControl = new Control(GetWindow());
         }
-        SetAttributeList(m_pIconControl, classValue);
+        SetAttributeList(m_pIconControl.get(), classValue);
     }
 }
 
 void Combo::SetEditControlClass(const DString& classValue)
 {
     if (classValue.empty()) {
-        RemoveControl(m_pEditControl);
+        RemoveControl(m_pEditControl.get());
         if (m_pEditControl != nullptr) {
-            delete m_pEditControl;
+            delete m_pEditControl.get();
             m_pEditControl = nullptr;
         }
     }
@@ -395,16 +395,16 @@ void Combo::SetEditControlClass(const DString& classValue)
         if (m_pEditControl == nullptr) {
             m_pEditControl = new RichEdit(GetWindow());
         }
-        SetAttributeList(m_pEditControl, classValue);
+        SetAttributeList(m_pEditControl.get(), classValue);
     }    
 }
 
 void Combo::SetButtonControlClass(const DString& classValue)
 {
     if (classValue.empty()) {
-        RemoveControl(m_pButtonControl);
+        RemoveControl(m_pButtonControl.get());
         if (m_pButtonControl != nullptr) {
-            delete m_pButtonControl;
+            delete m_pButtonControl.get();
             m_pButtonControl = nullptr;
         }
     }
@@ -412,7 +412,7 @@ void Combo::SetButtonControlClass(const DString& classValue)
         if (m_pButtonControl == nullptr) {
             m_pButtonControl = new Button(GetWindow());
         }
-        SetAttributeList(m_pButtonControl, classValue);
+        SetAttributeList(m_pButtonControl.get(), classValue);
     }
 }
 
@@ -509,15 +509,15 @@ void Combo::OnInit()
     AttachMouseEvents(pBox);
 
     if (m_pIconControl != nullptr) {        
-        pBox->AddItem(m_pIconControl);
-        AttachMouseEvents(m_pIconControl);
+        pBox->AddItem(m_pIconControl.get());
+        AttachMouseEvents(m_pIconControl.get());
     }
     if (m_pEditControl != nullptr) {
-        pBox->AddItem(m_pEditControl);
+        pBox->AddItem(m_pEditControl.get());
     }
     if (m_pButtonControl != nullptr) {
-        pBox->AddItem(m_pButtonControl);
-        AttachMouseEvents(m_pButtonControl);
+        pBox->AddItem(m_pButtonControl.get());
+        AttachMouseEvents(m_pButtonControl.get());
     }
 
     if (m_pIconControl != nullptr) {
@@ -550,17 +550,17 @@ TreeView* Combo::GetTreeView()
 
 Control* Combo::GetIconControl() const
 {
-    return m_pIconControl;
+    return m_pIconControl.get();
 }
 
 RichEdit* Combo::GetEditControl() const
 {
-    return m_pEditControl;
+    return m_pEditControl.get();
 }
 
 Button* Combo::GetButtonContrl() const
 {
-    return m_pButtonControl;
+    return m_pButtonControl.get();
 }
 
 void Combo::SetComboType(ComboType comboType)

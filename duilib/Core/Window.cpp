@@ -414,9 +414,11 @@ void Window::ClearWindow(bool bSendClose)
     GlobalManager::Instance().RemoveWindow(this);
     ReapObjects(GetRoot());
 
-    if (m_pRoot != nullptr) {
-        delete m_pRoot;
-        m_pRoot = nullptr;
+    Box* pRoot = m_pRoot.get();
+    m_pRoot.reset();
+    if (pRoot != nullptr) {
+        delete pRoot;
+        pRoot = nullptr;
     }
 
     RemoveAllClass();
@@ -439,8 +441,12 @@ bool Window::AttachBox(Box* pRoot)
     // a result of an event fired or similar, so we cannot just delete the objects and
     // pull the internal memory of the calling code. We'll delay the cleanup.
     if ((m_pRoot != nullptr) && (pRoot != m_pRoot)) {
-        delete m_pRoot;
-        m_pRoot = nullptr;
+        Box* pOldRoot = m_pRoot.get();
+        m_pRoot.reset();
+        if (pOldRoot != nullptr) {
+            delete pOldRoot;
+            pOldRoot = nullptr;
+        }
     }
     // Set the dialog root element
     m_pRoot = pRoot;
@@ -449,7 +455,7 @@ bool Window::AttachBox(Box* pRoot)
     m_bIsArranged = true;
     m_bFirstLayout = true;
     // Initiate all control
-    return InitControls(m_pRoot);
+    return InitControls(m_pRoot.get());
 }
 
 bool Window::InitControls(Control* pControl)
@@ -1236,7 +1242,7 @@ LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg&
     bHandled = false;
     //获得焦点时，如果无焦点控件，则关闭输入法
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-    Control* pFocus = m_pFocus;
+    ControlPtr pFocus = m_pFocus;
     if (pFocus != nullptr) {
         pFocus->SendEvent(kEventWindowSetFocus);
 
@@ -1271,7 +1277,7 @@ LRESULT Window::OnSetFocusMsg(WindowBase* /*pLostFocusWindow*/, const NativeMsg&
 LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg& nativeMsg, bool& bHandled)
 {
     bHandled = false;
-    Control* pEventClick = m_pEventClick;
+    ControlPtr pEventClick = m_pEventClick;
     m_pEventClick = nullptr;
     ReleaseCapture();
 
@@ -1282,7 +1288,7 @@ LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg&
             return 0;
         }
     }
-    Control* pFocus = m_pFocus;
+    ControlPtr pFocus = m_pFocus;
     if ((pFocus != nullptr) && (pFocus != pEventClick)) {
         pFocus->SendEvent(kEventWindowKillFocus);
         if (windowFlag.expired()) {
@@ -1301,7 +1307,7 @@ LRESULT Window::OnImeSetContextMsg(const NativeMsg& nativeMsg, bool& bHandled)
     bHandled = false;
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventImeSetContext, nativeMsg.wParam, nativeMsg.lParam);
-        if (m_pFocus && m_pFocus->IsCefOsrImeMode()) {
+        if ((m_pFocus != nullptr) && m_pFocus->IsCefOsrImeMode()) {
             bHandled = true;
         }
     }
@@ -1313,7 +1319,7 @@ LRESULT Window::OnImeStartCompositionMsg(const NativeMsg& /*nativeMsg*/, bool& b
     bHandled = false;
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventImeStartComposition);
-        if (m_pFocus && m_pFocus->IsCefOsrImeMode()) {
+        if ((m_pFocus != nullptr) && m_pFocus->IsCefOsrImeMode()) {
             bHandled = true;
         }
     }
@@ -1325,7 +1331,7 @@ LRESULT Window::OnImeCompositionMsg(const NativeMsg& nativeMsg, bool& bHandled)
     bHandled = false;
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventImeComposition, nativeMsg.wParam, nativeMsg.lParam);
-        if (m_pFocus && m_pFocus->IsCefOsrImeMode()) {
+        if ((m_pFocus != nullptr) && m_pFocus->IsCefOsrImeMode()) {
             bHandled = true;
         }
     }
@@ -1337,7 +1343,7 @@ LRESULT Window::OnImeEndCompositionMsg(const NativeMsg& /*nativeMsg*/, bool& bHa
     bHandled = false;
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventImeEndComposition);
-        if (m_pFocus && m_pFocus->IsCefOsrImeMode()) {
+        if ((m_pFocus != nullptr) && m_pFocus->IsCefOsrImeMode()) {
             bHandled = true;
         }
     }
@@ -1526,7 +1532,7 @@ LRESULT Window::OnCharMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const Nat
 
     bHandled = false;
     LRESULT lResult = 0;
-    Control* pFocusControl = (m_pEventKey != nullptr) ? m_pEventKey : m_pFocus;
+    ControlPtr pFocusControl = (m_pEventKey != nullptr) ? m_pEventKey : m_pFocus;
     if (pFocusControl != nullptr) {
         EventArgs msgData;
         msgData.vkCode = vkCode;
@@ -1638,9 +1644,9 @@ LRESULT Window::OnMouseMoveMsg(const UiPoint& pt, uint32_t modifierKey, bool bFr
 
 bool Window::HandleMouseEnterLeave(const UiPoint& pt, uint32_t modifierKey, bool bHideToolTip)
 {
-    Control* pNewHover = FindControl(pt);
+    ControlPtr pNewHover = ControlPtr(FindControl(pt));
     //设置为新的Hover控件
-    Control* pOldHover = m_pEventHover;
+    ControlPtr pOldHover = m_pEventHover;
     m_pEventHover = pNewHover;
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
 
@@ -1915,7 +1921,7 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
         if (m_pEventClick != nullptr) {
             clickFlag = m_pEventClick->GetWeakFlag();
         }
-        Control* pOldEventClick = m_pEventClick;
+        ControlPtr pOldEventClick = m_pEventClick;
         m_pEventClick = pControl;
         pControl->SetFocus();
         SetCapture();
@@ -1991,12 +1997,12 @@ void Window::ClearStatus()
 
 Control* Window::GetFocusControl() const
 {
-    return m_pFocus;
+    return m_pFocus.get();
 }
 
 Control* Window::GetEventClick() const
 {
-    return m_pEventClick;
+    return m_pEventClick.get();
 }
 
 void Window::SetFocusControl(Control* pControl)
@@ -2009,7 +2015,7 @@ void Window::SetFocusControl(Control* pControl)
         return;
     }
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-    Control* pOldFocus = m_pFocus;
+    ControlPtr pOldFocus = m_pFocus;
     if (m_pFocus != nullptr) {
         //WPARAM 是新的焦点控件接口
         std::weak_ptr<WeakFlag> controlFlag;
@@ -2080,7 +2086,7 @@ void Window::UpdateToolTip()
 
 Control* Window::GetHoverControl() const
 {
-    return m_pEventHover;
+    return m_pEventHover.get();
 }
 
 bool Window::SetNextTabControl(bool bForward)
@@ -2090,7 +2096,7 @@ bool Window::SetNextTabControl(bool bForward)
     }
     // Find next/previous tabbable control
     FINDTABINFO info1 = { 0 };
-    info1.pFocus = m_pFocus;
+    info1.pFocus = m_pFocus.get();
     info1.bForward = bForward;
     Control* pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromTab, &info1, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_ME_FIRST);
     if (pControl == nullptr) {
@@ -2113,7 +2119,7 @@ bool Window::SetNextTabControl(bool bForward)
 
 Box* Window::GetRoot() const
 {
-    return m_pRoot;
+    return m_pRoot.get();
 }
 
 void Window::SetArrange(bool bArrange)
@@ -2361,7 +2367,7 @@ Box* Window::FindDroppableBox(const UiPoint& pt, uint8_t nDropInId) const
 
 Control* Window::FindControl(const DString& strName) const
 {
-    return m_controlFinder.FindSubControlByName(m_pRoot, strName);
+    return m_controlFinder.FindSubControlByName(m_pRoot.get(), strName);
 }
 
 Control* Window::FindSubControlByPoint(Control* pParent, const UiPoint& pt) const

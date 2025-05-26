@@ -5,6 +5,7 @@
 #include "duilib/Core/Shadow.h"
 #include "duilib/Core/ControlFinder.h"
 #include "duilib/Core/ColorManager.h"
+#include "duilib/Core/ControlPtrT.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Utils/Delegate.h"
 #include "duilib/Utils/FilePath.h"
@@ -914,22 +915,22 @@ private:
     EventMap m_OnEvent;
 
     //焦点控件
-    Control* m_pFocus;
+    ControlPtr m_pFocus;
 
     //鼠标在悬停控件
-    Control* m_pEventHover;
+    ControlPtr m_pEventHover;
 
     /** 点击的控件：
         在 WM_LBUTTONDOWN/WM_RBUTTONDOWN/WM_LBUTTONDBLCLK 赋值
         在 WM_LBUTTONUP中/WM_KILLFOCUS 清空
     */
-    Control* m_pEventClick;
+    ControlPtr m_pEventClick;
 
     /** 键盘按下的控件
     *   在 WM_KEYDOWN / WM_SYSKEYDOWN 赋值
     *   在 WM_KEYUP / WM_SYSKEYUP清空
     */
-    Control* m_pEventKey;
+    ControlPtr m_pEventKey;
 
     /** 控件查找辅助类
     */
@@ -937,7 +938,7 @@ private:
 
     /** 窗口关联的容器，根节点
     */
-    Box* m_pRoot;
+    BoxPtr m_pRoot;
 
     //窗口阴影
     std::unique_ptr<Shadow> m_shadow;
