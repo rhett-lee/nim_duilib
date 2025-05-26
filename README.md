@@ -192,93 +192,105 @@ copy .\nim_duilib\build\build_duilib_all_in_one.bat .\
 ```
 编译完成的示例程序位于bin目录中。
 
-### 三、手工编译过程
-1. 设置工作目录：`D:\develop\skia`    
+### 三、手动编译过程
+1. 设置工作目录：`D:\develop`    
 2. 获取相关代码    
-（1）`git clone https://github.com/rhett-lee/nim_duilib`    
-（2）`git clone https://github.com/rhett-lee/skia`    
-（3）`git clone https://github.com/rhett-lee/skia_compile`    
+（1）`git clone https://github.com/rhett-lee/nim_duilib`      
+（2）`git clone https://github.com/rhett-lee/skia_compile`    
+（3）`git clone https://github.com/google/skia.git`  
 2. 编译Skia源码    
-（1）说明：nim_duilib内部使用Skia作为界面绘制引擎，所以先要编译skia，优先用LLVM编译，运行流畅    
+（1）nim_duilib内部使用Skia作为界面绘制引擎，所以先要编译skia，优先用LLVM编译，运行流畅    
 （2）按照skia_compile目录中的[Windows下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Windows%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)文档中的方法，编译出skia相关的.lib文件      
 3. 编译nim_duilib：进入 `build` 目录，打开 `examples.sln`，可执行编译，编译完成的示例程序位于bin目录中。
 
 ## 获取代码和编译（Linux平台）
-1. 设置工作目录：`/home/develop/`    
-2. 获取并编译Skia库（nim_duilib内部使用Skia作为界面绘制引擎，所以先要编译skia）：    
-（1）注意事项：skia源码应该与nim_duilib源码位于相同的目录下，目录结构：`/home/develop/skia/`  
-（2）获取skia代码的编译方法和修改的代码：`git clone https://github.com/rhett-lee/skia_compile`    
-（3）编译skia源码：按照skia_compile目录中的说明文档中的方法，编译出skia相关的.a文件    
-　　　注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅    
-　　　检查方法：编译成功以后，在`skia/out`的子目录下，有生成`libskia.a`等.a文件    
-
-| 操作系统平台            |参考文档    |  备注 |
-| :---                    | :---       |:---   |
-|OpenEuler                |[OpenEuler下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenEuler%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|     |
-|OpenKylin（开放麒麟）    |[OpenKylin下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenKylin%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|     |
-|UbuntuKylin（优麒麟）    |[UbuntuKylin下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/UbuntuKylin%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |     |
-|中科方德                 |[中科方德下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/%E4%B8%AD%E7%A7%91%E6%96%B9%E5%BE%B7%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |     |
-|统信UOS                  |[统信UOS下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/%E7%BB%9F%E4%BF%A1UOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|python/gcc/g++/llvm/clang/clang++/gn等开发工具链，全部需要从源码编译安装|
-|Ubuntu                   |[Ubuntu下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Ubuntu%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |    |
-|Debian                   |[Debian下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Debian%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |     |
-|Fedora                   |[Fedora下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Fedora%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |     |
-|OpenSuse                 |[OpenSuse下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenSuse%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |     |
-
-3. 获取并编译SDL库（nim_duilib内部使用SDL作为Linux平台的界面绘制引擎，所以先要编译SDL）：  
-（0）准备工作    
-
-| 操作系统平台            |桌面类型        |需要安装的模块及安装命令 | 
+### 一、准备工作：安装必备的软件
+不同的操作系统平台，可以按照以下列表安装必备的软件。
+| 操作系统平台            |桌面类型        |需要安装的模块及安装命令（必选） | 
 | :---                    | :---           | :---                    |
-|OpenEuler                |UKUI/DDE（X11） |`sudo dnf install libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-devel ibus-devel`| 
-|OpenKylin（开放麒麟）    | Wayland        |`sudo apt install libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev`| 
-|UbuntuKylin（优麒麟）    | X11            |`sudo apt install libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev`| 
-|中科方德                 | X11            |`sudo apt install libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev`| 
-|统信UOS                  | X11            |`sudo apt install libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev`| 
-|Ubuntu                   |GNOME（Wayland）|`sudo apt install libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev`| 
-|Debian                   |GNOME（Wayland）|`sudo apt install libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev`| 
-|Fedora                   |GNOME（Wayland）|`sudo dnf install libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-devel ibus-devel wayland-devel libxkbcommon-devel`|
-|OpenSuse                 |KDE（X11）      |`sudo zypper install libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-1-devel ibus-devel`|
+|OpenEuler                |UKUI/DDE（X11） |`sudo dnf install -y gcc g++ gdb make git ninja-build gn python cmake llvm clang unzip fontconfig-devel mesa-libGL-devel mesa-libGLU-devel mesa-libGLES-devel mesa-libEGL-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-devel ibus-devel`| 
+|OpenKylin（开放麒麟）    | Wayland        |`sudo apt install -y gcc g++ gdb make git ninja-build generate-ninja python3 cmake llvm clang unzip libfontconfig-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libvulkan-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev`| 
+|UbuntuKylin（优麒麟）    | X11            |`sudo apt install -y gcc g++ gdb make git ninja-build generate-ninja python3 cmake llvm clang unzip libfontconfig-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libvulkan-devlibxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev`| 
+|中科方德                 | X11            |`sudo apt install -y gcc g++ gdb make git ninja-build generate-ninja python3 cmake llvm clang unzip libfontconfig-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libvulkan-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev`| 
+|统信UOS                  | X11            |`sudo apt install -y gcc g++ gdb make git cmake python3 ninja-build wget unzip libfontconfig1-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libvulkan-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev`| 
+|Ubuntu                   |GNOME（Wayland）|`sudo apt install -y gcc g++ gdb make git ninja-build generate-ninja python3 cmake llvm clang unzip libfontconfig-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libvulkan-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev`| 
+|Debian                   |GNOME（Wayland）|`sudo apt install -y gcc g++ gdb make git ninja-build generate-ninja python3 cmake llvm clang unzip libfontconfig-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libvulkan-dev libxext-dev libxcursor-dev libxi-dev libxrandr-dev libdbus-1-dev libibus-1.0-dev libwayland-dev libxkbcommon-dev`| 
+|Fedora                   |GNOME（Wayland）|`sudo dnf install -y gcc g++ gdb make git ninja-build gn python cmake llvm clang unzip fontconfig-devel mesa-libGL-devel mesa-libGLU-devel mesa-libGLES-devel mesa-libEGL-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-devel ibus-devel wayland-devel libxkbcommon-devel`|
+|OpenSuse                 |KDE（X11）      |`sudo zypper install -y gcc gcc-c++ gdb make git ninja gn python cmake llvm clang unzip fontconfig-devel Mesa-libGL-devel Mesa-libEGL-devel Mesa-libGLESv3-devel glu-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-1-devel ibus-devel`|
 
-　（1）进入工作目录：`cd /home/develop/`    
-　（2）获取源码：`git clone https://github.com/libsdl-org/SDL.git`   
-　（3）使用cmake设置：`cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="/home/develop/SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF`    
-　（4）进入SDL编译目录：`cd /home/develop/SDL.build`    
-　（5）编译SDL：`make`    
-　（6）安装SDL：`make install`    
-　（7）SDL3的安装目录为：`/home/develop/SDL3/`，子目录里面包含了.a文件和.h文件等；    
-　（8）编译完成后，`SDL`目录和`SDL.build`可以删除，仅保留`SDL3`目录即可。    
-4. 获取项目代码并编译：    
-　（1）回到工作目录：`cd /home/develop/`    
-　（2）获取项目代码：`git clone https://github.com/rhett-lee/nim_duilib`    
-　（3）进入代码目录：`cd /home/develop/nim_duilib/`    
-　（4）设置编译脚本可执行：`chmod +x linux_build.sh`    
-　（5）执行脚本编译：`./linux_build.sh`    
-　（6）编译完成后，编译成功后，在libs目录生成了.a文件（libz.a、libpng.a、libwebp.a、libcximage.a、libduilib.a），在bin目录中生成了可执行文件。    
-5. 备注：如果希望编译debug版本的.a文件，可在cmake的参数中追加：` -DCMAKE_BUILD_TYPE=Debug`    
-6. 如果想自己编译最新版的gcc/g++（比如系统自带的gcc/g++版本较低时，由于不支持C++20，所以无法成功编译nim_duilib源码）    
-　　可以参照如下流程编译（以gcc-14.2.0为例）：    
-　（1）创建源码目录：`cd /home/develop; mkdir src; cd src`    
-　（2）进入工作目录：`/home/develop/src`    
-　（3）下载：`wget https://ftp.gnu.org/gnu/gcc/gcc-14.2.0/gcc-14.2.0.tar.gz`    
-　（4）解压：`tar -xzf gcc-14.2.0.tar.gz`    
-　（5）下载gcc依赖的第三方库：进入gcc-14.2.0目录，然后下载依赖的第三方库    
-　　`cd /home/develop/src/gcc-14.2.0`    
-　　`./contrib/download_prerequisites`    
-　（6）配置：    
-　　`mkdir -p /home/develop/src/gcc-14.2.0.build`    
-　　`cd /home/develop/src/gcc-14.2.0.build`    
-　　`../gcc-14.2.0/configure --prefix=/home/develop/install/gcc-14.2.0 --disable-multilib --enable-ld --enable-bootstrap`    
-　（7）编译：`make -j 4` 多进程编译，编译参数可参考电脑实际有几个核心。    
-　（8）安装：`make install`    
-　（9）设置环境变量，以使新版gcc/g++可用：    
-　　`export PATH=/home/develop/install/gcc-14.2.0/bin/:$PATH`    
-　　`export LD_LIBRARY_PATH=/home/develop/install/gcc-14.2.0/lib64/:$LD_LIBRARY_PATH`    
-　　`export C_INCLUDE_PATH=/home/develop/install/gcc-14.2.0/include/c++/14.2.0/:/home/develop/install/gcc-14.2.0/include/c++/14.2.0/x86_64-pc-linux-gnu/:$C_INCLUDE_PATH`    
-　　`export CPLUS_INCLUDE_PATH=/home/develop/install/gcc-14.2.0/include/c++/14.2.0/:/home/develop/install/gcc-14.2.0/include/c++/14.2.0/x86_64-pc-linux-gnu/:$CPLUS_INCLUDE_PATH`    
-　（10）进入项目目录并编译源码：  
-　　`cd /home/develop/nim_duilib`    
-　　`chmod +x linux_build.sh`    
-　　`./linux_build.sh`    
+## 二、一键编译（推荐）
+选定一个工作目录，创建一个脚本`build.sh`，将下面已经整理好脚本复制进去，保存文件。    
+然后在控制台，为脚本文件添加可执行权限，最后运行该脚本： 
+```
+chmod +x build.sh
+./build.sh
+```
+
+脚本文件内容如下：    
+```
+#!/bin/bash
+
+# Retry clone nim_duilib
+while true; do
+    if [ ! -d "./nim_duilib/.git" ]; then
+        git clone https://github.com/rhett-lee/nim_duilib
+    else
+        git -C ./nim_duilib pull
+    fi
+    if [ $? -ne 0 ]; then
+        sleep 10
+        continue
+    fi
+    break
+done
+
+copy .\nim_duilib\build\build_duilib_all_in_one.sh .\
+chmod +x build_duilib_all_in_one.sh
+.\build_duilib_all_in_one.sh
+```
+编译完成的示例程序位于bin目录中。    
+备注：UOS系统，需要先安装所需的开发环境，然后再安装，可参考文档：[统信UOS下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/%E7%BB%9F%E4%BF%A1UOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)。
+
+## 三、手动编译过程
+1. 设置工作目录：`/home/develop`    
+2. 获取相关代码    
+（1）`git clone https://github.com/rhett-lee/nim_duilib`      
+（2）`git clone https://github.com/rhett-lee/skia_compile`    
+（3）`git clone https://github.com/google/skia.git`  
+（4）`git clone https://github.com/libsdl-org/SDL.git`  
+3. 编译Skia库    
+| 操作系统平台            |参考文档（网络链接）    |  参考文档（本地文件） |
+| :---                    | :---       |:---   |
+|OpenEuler                |[OpenEuler下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenEuler%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|[OpenEuler下编译skia.md](../skia_compile/OpenEuler%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|
+|OpenKylin（开放麒麟）    |[OpenKylin下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenKylin%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|[OpenKylin下编译skia.md](../skia_compile/OpenKylin%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|
+|UbuntuKylin（优麒麟）    |[UbuntuKylin下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/UbuntuKylin%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |[UbuntuKylin下编译skia.md](../skia_compile/UbuntuKylin%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|
+|中科方德                 |[中科方德下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/%E4%B8%AD%E7%A7%91%E6%96%B9%E5%BE%B7%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |[中科方德下编译skia.md](../skia_compile/%E4%B8%AD%E7%A7%91%E6%96%B9%E5%BE%B7%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |
+|统信UOS                  |[统信UOS下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/%E7%BB%9F%E4%BF%A1UOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|[统信UOS下编译skia.md](../skia_compile/%E7%BB%9F%E4%BF%A1UOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|
+|Ubuntu                   |[Ubuntu下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Ubuntu%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) | [Ubuntu下编译skia.md](../skia_compile/Ubuntu%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |
+|Debian                   |[Debian下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Debian%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |[Debian下编译skia.md](../skia_compile/Debian%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |
+|Fedora                   |[Fedora下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Fedora%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)  |[Fedora下编译skia.md](../skia_compile/Fedora%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)|
+|OpenSuse                 |[OpenSuse下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/OpenSuse%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) | [OpenSuse下编译skia.md](../skia_compile/OpenSuse%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |
+
+    注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅。
+4. 编译SDL库 
+```
+#!/bin/bash
+cd /home/develop
+cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="/home/develop/SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release
+cd ./SDL.build
+make
+make install
+cd /home/develop
+```
+5. 编译nim_duilib
+```
+#!/bin/bash
+cd /home/develop/nim_duilib/
+chmod +x linux_build.sh
+./linux_build.sh
+```
+编译完成后，在bin目录中生成了可执行文件。    
+如果希望支持CEF，可以参考相关文档[docs/CEF.md](docs/CEF.md)。
 
 ## 开发计划
  - 跨平台（Windows/Linux系统）的窗口引擎（基于[SDL3.0](https://www.libsdl.org/)）不断测试与完善（X11和Wayland）
