@@ -191,9 +191,14 @@ else
     fi
 fi
 
+# build SDL
+cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release 
+cmake --build ./SDL.build
+cmake --install ./SDL.build
+
 # build nim_duilib
-chmod +x ./nim_duilib/linux_build.sh
-./nim_duilib/linux_build.sh
+chmod +x ./nim_duilib/build/linux_build.sh
+./nim_duilib/build/linux_build.sh
 
 echo
 
