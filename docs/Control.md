@@ -249,6 +249,7 @@ FilterCombo 控件继承了 `Combo` 属性，更多可用属性请参考`Combo`�
 | left_button_top_label_bkcolor | | string | 左侧按钮上侧的Label控件的背景色|
 | left_button_bottom_label_bkcolor | | string | 左侧按钮下侧的Label控件的背景色|
 | right_button_class | | string | 右侧按钮控件的Class属性，定义方法请参考`global.xml` 中的对应内容|
+| shadow_type        | "menu" | string | 设置下拉窗口的阴影类型：<br> "default", 默认阴影 <br> "big", 大阴影，直角（适合普通窗口）<br> "big_round", 大阴影，圆角（适合普通窗口）<br> "small", 小阴影，直角（适合普通窗口）<br> "small_round", 小阴影，圆角（适合普通窗口）<br> "menu", 小阴影，直角（适合弹出式窗口，比如菜单等）<br> "menu_round", 小阴影，圆角（适合弹出式窗口，比如菜单等）<br> "none", 无阴影|
 
 ComboButton 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 

@@ -18,6 +18,7 @@ public:
     virtual void OnInitWindow() override;
     virtual void OnCloseWindow() override;
     virtual void OnFinalMessage() override;
+    virtual void OnWindowShadowTypeChanged() override;
 
     virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
@@ -45,6 +46,7 @@ void ComboButtonWnd::InitComboWnd(ComboButton* pOwner, bool bActivated)
     m_bIsClosed = false;
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
+    createWndParam.m_dwExStyle = kWS_EX_LAYERED;
     CreateWnd(pOwner->GetWindow(), createWndParam);
     UpdateComboWnd();
     if (bActivated) {
@@ -55,6 +57,9 @@ void ComboButtonWnd::InitComboWnd(ComboButton* pOwner, bool bActivated)
     else {
         ShowWindow(ui::kSW_SHOW_NA);
     }
+
+    //发送一个事件
+    pOwner->SendEvent(kEventWindowCreate);
 }
 
 void ComboButtonWnd::UpdateComboWnd()
@@ -67,6 +72,12 @@ void ComboButtonWnd::UpdateComboWnd()
     if (pComboBox == nullptr) {
         return;
     }
+    //阴影的大小
+    ui::UiPadding rcPadding;
+    if (IsWindow()) {
+        rcPadding = GetCurrentShadowCorner();
+    }
+
     // Position the popup window in absolute space
     UiSize szDrop = pOwner->GetDropBoxSize();
     UiRect rcOwner = pOwner->GetPos();
@@ -113,6 +124,7 @@ void ComboButtonWnd::UpdateComboWnd()
     }
     rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
 
+    rc.Inflate(rcPadding);
     pOwner->GetWindow()->ClientToScreen(rc);
 
     UiRect rcWork;
@@ -146,6 +158,13 @@ void ComboButtonWnd::OnFinalMessage()
     BaseClass::OnFinalMessage();
 }
 
+void ComboButtonWnd::OnWindowShadowTypeChanged()
+{
+    if (IsWindow() && (GetRoot() != nullptr)) {
+        UpdateComboWnd();
+    }
+}
+
 void ComboButtonWnd::CloseComboWnd(bool bCanceled)
 {
     if (m_bIsClosed) {
@@ -174,13 +193,16 @@ void ComboButtonWnd::CloseComboWnd(bool bCanceled)
 void ComboButtonWnd::OnInitWindow()
 {
     BaseClass::OnInitWindow();
+    SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
+    SetShadowType(m_pOwner->GetComboWndShadowType());
 
     Box* pRoot = new Box(this);
     pRoot->SetAutoDestroyChild(false);
     pRoot->AddItem(m_pOwner->GetComboBox());
-    AttachBox(pRoot);
-    SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
-    SetShadowAttached(false);
+    AttachBox(AttachShadow(pRoot));
+
+    //更新窗口位置
+    UpdateComboWnd();
 }
 
 void ComboButtonWnd::OnCloseWindow()
@@ -231,7 +253,8 @@ ComboButton::ComboButton(Window* pWindow) :
     m_pLabelTop(nullptr),
     m_pLabelBottom(nullptr),
     m_pRightButton(nullptr),
-    m_bDropListShown(false)
+    m_bDropListShown(false),
+    m_nShadowType(Shadow::ShadowType::kShadowMenu)
 {
     m_pComboBox = new Box(pWindow);
     SetDropBoxSize({0, 150}, true);
@@ -312,9 +335,29 @@ void ComboButton::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("right_button_class")) {
         SetRightButtonClass(strValue);
     }
+    else if (strName == _T("shadow_type")) {
+        //设置下拉窗口的阴影类型
+        Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowCount;
+        if (Shadow::GetShadowType(strValue, nShadowType)) {
+            SetComboWndShadowType(nShadowType);
+        }
+    }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
+}
+
+void ComboButton::SetComboWndShadowType(Shadow::ShadowType nShadowType)
+{
+    m_nShadowType = nShadowType;
+    if (m_pWindow != nullptr) {
+        m_pWindow->SetShadowType(nShadowType);
+    }
+}
+
+Shadow::ShadowType ComboButton::GetComboWndShadowType() const
+{
+    return m_nShadowType;
 }
 
 void ComboButton::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)

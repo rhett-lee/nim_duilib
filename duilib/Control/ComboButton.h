@@ -102,11 +102,24 @@ public:
     */
     void UpdateComboWndPos();
 
+    /** 设置下拉窗口的阴影类型
+    */
+    void SetComboWndShadowType(Shadow::ShadowType nShadowType);
+
+    /** 获取下拉窗口的阴影类型
+    */
+    Shadow::ShadowType GetComboWndShadowType() const;
+
 public:
     /** 监听子项按钮点击事件（左侧的按钮被点击）
      * @param[in] callback 触发的回调函数
      */
     void AttachClick(const EventCallback& callback) { AttachEvent(kEventClick, callback);}
+
+    /** 监听下拉窗创建事件
+     * @param[in] callback 下拉窗关闭后触发的回调函数
+     */
+    void AttachWindowCreate(const EventCallback& callback) { AttachEvent(kEventWindowCreate, callback); }
 
     /** 监听下拉窗关闭事件
      * @param[in] callback 下拉窗关闭后触发的回调函数，wParam 为1表示取消，为0表示正常关闭
@@ -190,6 +203,10 @@ private:
     /** 下拉列表的窗口接口
     */
     ComboButtonWnd* m_pWindow;
+
+    /** 阴影类型
+    */
+    Shadow::ShadowType m_nShadowType;
 
     /** 下拉列表的大小（宽度和高度）
     */

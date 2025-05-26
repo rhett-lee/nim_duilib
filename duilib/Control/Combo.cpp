@@ -98,6 +98,9 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
         UiRect rc = pOwner->GetTreeView()->GetPos();
         pOwner->GetTreeView()->EnsureVisible(m_iOldSel, ListBoxVerVisible::kVisibleAtCenter);
     }
+
+    //发送一个事件
+    pOwner->SendEvent(kEventWindowCreate);
 }
 
 UiRect CComboWnd::GetComboWndRect() const
@@ -1099,9 +1102,7 @@ void Combo::ShowComboList()
         }
         else {
             m_pWindow->InitComboWnd(this, false);
-        }
-        //发送一个事件
-        SendEvent(kEventWindowCreate);
+        }        
     }
 }
 
