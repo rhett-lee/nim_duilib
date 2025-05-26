@@ -3,7 +3,7 @@
 
 #include "duilib/Utils/WinImplBase.h"
 #include "duilib/Box/ListBox.h"
-#include "duilib/Core/ControlPtr.h"
+#include "duilib/Core/ControlPtrT.h"
 
 namespace ui {
 
@@ -221,10 +221,10 @@ private:
     MenuItem* m_pOwner;
 
     //菜单的布局接口
-    ControlPtr<ListBox> m_pListBox;
+    ControlPtrT<ListBox> m_pListBox;
 
     //关联的控件
-    ControlPtr<Control> m_pRelatedControl;
+    ControlPtrT<Control> m_pRelatedControl;
 
 private:
     //菜单项激活回调函数

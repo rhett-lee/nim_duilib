@@ -1358,9 +1358,6 @@
     <ClInclude Include="Control\IconControl.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Core\ControlPtr.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\InlineHook_Windows.h">
       <Filter>Utils\Windows</Filter>
     </ClInclude>
@@ -1408,6 +1405,9 @@
     </ClInclude>
     <ClInclude Include="Control\ListCtrlListView.h">
       <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ControlPtrT.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

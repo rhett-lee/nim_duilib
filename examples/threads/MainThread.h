@@ -45,7 +45,7 @@ private:
 private:
     /** 主界面的接口
     */
-    ui::ControlPtr<MainForm> m_pMainForm;
+    ui::ControlPtrT<MainForm> m_pMainForm;
 
     /** 工作线程: 线程标识符为 ui::kThreadWorker
     */

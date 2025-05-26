@@ -80,7 +80,7 @@ private:
 
     /** 文件列表的接口（右侧虚表显示的界面）
     */
-    ui::ControlPtr<ui::VirtualListBox> m_pListBox;
+    ui::ControlPtrT<ui::VirtualListBox> m_pListBox;
 
     //文件列表
     std::vector<PathInfo> m_pathList;

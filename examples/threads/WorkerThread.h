@@ -39,7 +39,7 @@ private:
 private:
     /** 主界面的接口
     */
-    ui::ControlPtr<MainForm> m_pMainForm;
+    ui::ControlPtrT<MainForm> m_pMainForm;
 
 };
 

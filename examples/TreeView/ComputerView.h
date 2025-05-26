@@ -110,7 +110,7 @@ private:
 
     /** 计算机视图的列表接口
     */
-    ui::ControlPtr<ui::ListCtrl> m_pComputerListCtrl;
+    ui::ControlPtrT<ui::ListCtrl> m_pComputerListCtrl;
 
     /** 计算机视图中每列的初始序号与列ID映射表（因为调整列顺序后，每列的序号发生变化，已经不能通过列序号添加数据）
     */
