@@ -227,6 +227,7 @@ GroupHBox 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的�
 | combo_icon_class | | string | 显示图标的Class属性，定义方法请参考`global.xml` 中的对应内容|
 | combo_edit_class | | string | 编辑控件的Class属性，定义方法请参考`global.xml` 中的对应内容|
 | combo_button_class | | string | 按钮控件的Class属性，定义方法请参考`global.xml` 中的对应内容|
+| shadow_type        | "menu" | string | 设置下拉窗口的阴影类型：<br> "default", 默认阴影 <br> "big", 大阴影，直角（适合普通窗口）<br> "big_round", 大阴影，圆角（适合普通窗口）<br> "small", 小阴影，直角（适合普通窗口）<br> "small_round", 小阴影，圆角（适合普通窗口）<br> "menu", 小阴影，直角（适合弹出式窗口，比如菜单等）<br> "menu_round", 小阴影，圆角（适合弹出式窗口，比如菜单等）<br> "none", 无阴影|
 
 Combo 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 
@@ -259,6 +260,7 @@ ComboButton 控件继承了 `Box` 属性，更多可用属性请参考`Box`的�
 | popup_top | false | bool | 下拉列表是否向上弹出 |
 | dropbox_item_class | | string | 下拉列表中每一个列表项的属性，具体设置方法可参照示例程序|
 | selected_item_class | | string | 选择项中每一个子项的属性，具体设置方法可参照示例程序|
+| shadow_type        | "menu" | string | 设置下拉窗口的阴影类型：<br> "default", 默认阴影 <br> "big", 大阴影，直角（适合普通窗口）<br> "big_round", 大阴影，圆角（适合普通窗口）<br> "small", 小阴影，直角（适合普通窗口）<br> "small_round", 小阴影，圆角（适合普通窗口）<br> "menu", 小阴影，直角（适合弹出式窗口，比如菜单等）<br> "menu_round", 小阴影，圆角（适合弹出式窗口，比如菜单等）<br> "none", 无阴影|
 
 CheckCombo 控件继承了 `Box` 属性，更多可用属性请参考`Box`的属性
 

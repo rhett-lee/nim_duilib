@@ -2,6 +2,7 @@
 #define UI_CONTROL_CHECKCOMBO_H_
 
 #include "duilib/Box/ScrollBox.h"
+#include "duilib/Core/Window.h"
 
 namespace ui
 {
@@ -19,8 +20,9 @@ public:
 
 public:
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual void Activate(const EventArgs* pMsg) override;
+    virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
+    virtual void Activate(const EventArgs* pMsg) override;
 
     /** DPI发生变化，更新控件大小和布局
     * @param [in] nOldDpiScale 旧的DPI缩放百分比
@@ -30,7 +32,6 @@ public:
 
 public:
     /// 重写父类方法，提供个性化功能，请参考父类声明
-    virtual DString GetType() const override;
     virtual bool AddItem(Control* pControl) override;
     virtual bool AddItemAt(Control* pControl, size_t iIndex) override;
     virtual bool RemoveItem(Control* pControl) override;
@@ -94,6 +95,24 @@ public:
     */
     void UpdateComboWndPos();
 
+    /** 下拉框的窗口接口(只有在显示时能获取到，隐藏时即失效)
+    */
+    Window* GetCheckComboWnd() const;
+
+    /** 设置下拉窗口的阴影类型
+    */
+    void SetComboWndShadowType(Shadow::ShadowType nShadowType);
+
+    /** 获取下拉窗口的阴影类型
+    */
+    Shadow::ShadowType GetComboWndShadowType() const;
+
+public:
+    /** 监听下拉窗创建事件
+     * @param[in] callback 下拉窗关闭后触发的回调函数
+     */
+    void AttachWindowCreate(const EventCallback& callback) { AttachEvent(kEventWindowCreate, callback); }
+
     /** 监听下拉窗关闭事件
     * @param[in] callback 下拉窗关闭后触发的回调函数
     */
@@ -126,6 +145,10 @@ private:
     /** 下拉框的窗口接口
     */
     CCheckComboWnd* m_pCheckComboWnd;
+
+    /** 阴影类型
+    */
+    Shadow::ShadowType m_nShadowType;
 
     /** 下拉列表容器
     */

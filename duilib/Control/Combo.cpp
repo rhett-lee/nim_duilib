@@ -26,6 +26,7 @@ public:
     virtual void OnInitWindow() override;
     virtual void OnCloseWindow() override;
     virtual void OnFinalMessage() override;
+    virtual void OnWindowShadowTypeChanged() override;
 
     virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
@@ -70,8 +71,9 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     UiRect rcWnd = GetComboWndRect();
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
+    createWndParam.m_dwExStyle = kWS_EX_LAYERED;
 #ifdef DUILIB_BUILD_FOR_SDL
-    createWndParam.m_dwExStyle = kWS_EX_NOACTIVATE;
+    createWndParam.m_dwExStyle |= kWS_EX_NOACTIVATE;
 #endif
     createWndParam.m_nX = rcWnd.left;
     createWndParam.m_nY = rcWnd.top;
@@ -104,6 +106,12 @@ UiRect CComboWnd::GetComboWndRect() const
     if (pOwner == nullptr) {
         return UiRect();
     }
+    //阴影的大小
+    ui::UiPadding rcPadding;
+    if (IsWindow()) {
+        rcPadding = GetCurrentShadowCorner();
+    }
+
     // Position the popup window in absolute space
     UiSize szDrop = pOwner->GetDropBoxSize();
     UiRect rcOwner = pOwner->GetPos();
@@ -111,10 +119,10 @@ UiRect CComboWnd::GetComboWndRect() const
     rcOwner.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
 
     UiRect rc = rcOwner;
-    rc.top = rc.bottom + 1;            // 父窗口left、bottom位置作为弹出窗口起点
-    rc.bottom = rc.top + szDrop.cy;    // 计算弹出窗口高度
+    rc.top = rc.bottom + Dpi().GetScaleInt(1);  // 父窗口left、bottom位置作为弹出窗口起点
+    rc.bottom = rc.top + szDrop.cy;             // 计算弹出窗口高度
     if (szDrop.cx > 0) {
-        rc.right = rc.left + szDrop.cx;    // 计算弹出窗口宽度
+        rc.right = rc.left + szDrop.cx;         // 计算弹出窗口宽度
     }
 
     int32_t cyFixed = 0;
@@ -131,6 +139,7 @@ UiRect CComboWnd::GetComboWndRect() const
     }
     rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
 
+    rc.Inflate(rcPadding);
     pOwner->GetWindow()->ClientToScreen(rc);
 
     UiRect rcWork;
@@ -173,6 +182,13 @@ void CComboWnd::OnFinalMessage()
     BaseClass::OnFinalMessage();
 }
 
+void CComboWnd::OnWindowShadowTypeChanged()
+{
+    if (IsWindow() && (GetRoot() != nullptr)) {
+        UpdateComboWnd();
+    }
+}
+
 void CComboWnd::CloseComboWnd(bool bCanceled, bool needUpdateSelItem)
 {
     if (m_bIsClosed) {
@@ -206,12 +222,16 @@ void CComboWnd::OnInitWindow()
 {
     BaseClass::OnInitWindow();
 
+    SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
+    SetShadowType(m_pOwner->GetComboWndShadowType());
+
     Box* pRoot = new Box(this);
     pRoot->SetAutoDestroyChild(false);
     pRoot->AddItem(m_pOwner->GetTreeView());
-    AttachBox(pRoot);
-    SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
-    SetShadowAttached(false);
+    AttachBox(AttachShadow(pRoot));
+
+    //更新窗口位置
+    UpdateComboWnd();
 }
 
 void CComboWnd::OnCloseWindow()
@@ -265,7 +285,8 @@ Combo::Combo(Window* pWindow) :
     m_pEditControl(nullptr),
     m_pButtonControl(nullptr),
     m_comboType(kCombo_DropDown),
-    m_bDropListShown(false)
+    m_bDropListShown(false),
+    m_nShadowType(Shadow::ShadowType::kShadowMenu)
 {
     SetDropBoxSize({0, 150}, true);
     m_treeView.SetSelectNextWhenActiveRemoved(false);
@@ -302,6 +323,13 @@ void Combo::SetAttribute(const DString& strName, const DString& strValue)
             SetComboType(kCombo_DropDown);
         }
     }
+    else if (strName == _T("shadow_type")) {
+        //设置下拉窗口的阴影类型
+        Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowCount;
+        if (Shadow::GetShadowType(strValue, nShadowType)) {
+            SetComboWndShadowType(nShadowType);
+        }
+    }
     else if ((strName == _T("dropbox_size")) || (strName == _T("dropboxsize")) ) {
         //设置下拉列表的大小（宽度和高度）
         UiSize szDropBoxSize;
@@ -330,6 +358,19 @@ void Combo::SetAttribute(const DString& strName, const DString& strValue)
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
+}
+
+void Combo::SetComboWndShadowType(Shadow::ShadowType nShadowType)
+{
+    m_nShadowType = nShadowType;
+    if (m_pWindow != nullptr) {
+        m_pWindow->SetShadowType(nShadowType);
+    }
+}
+
+Shadow::ShadowType Combo::GetComboWndShadowType() const
+{
+    return m_nShadowType;
 }
 
 void Combo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
@@ -1039,7 +1080,9 @@ void Combo::ShowComboList()
         }
         else {
             m_pWindow->InitComboWnd(this, false);
-        }        
+        }
+        //发送一个事件
+        SendEvent(kEventWindowCreate);
     }
 }
 
@@ -1062,6 +1105,11 @@ void Combo::UpdateComboWndPos()
     if (m_pWindow != nullptr) {
         m_pWindow->UpdateComboWnd();
     }
+}
+
+Window* Combo::GetComboWnd() const
+{
+    return m_pWindow;
 }
 
 void Combo::AttachMouseEvents(Control* pControl)

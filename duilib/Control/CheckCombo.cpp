@@ -1,5 +1,4 @@
 #include "CheckCombo.h"
-#include "duilib/Core/Window.h"
 #include "duilib/Core/Keyboard.h"
 #include "duilib/Core/WindowCreateParam.h"
 #include "duilib/Box/VBox.h"
@@ -29,6 +28,7 @@ public:
     virtual void OnInitWindow() override;
     virtual void OnCloseWindow() override;
     virtual void OnFinalMessage() override;
+    virtual void OnWindowShadowTypeChanged() override;
 
     virtual LRESULT OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, const NativeMsg& nativeMsg, bool& bHandled) override;
     virtual LRESULT OnKillFocusMsg(WindowBase* pSetFocusWindow, const NativeMsg& nativeMsg, bool& bHandled) override;
@@ -57,6 +57,7 @@ void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
     UiRect rcWnd = GetComboWndRect();
     WindowCreateParam createWndParam;
     createWndParam.m_dwStyle = kWS_POPUP;
+    createWndParam.m_dwExStyle = kWS_EX_LAYERED;
     createWndParam.m_nX = rcWnd.left;
     createWndParam.m_nY = rcWnd.top;
     createWndParam.m_nWidth = rcWnd.Width();
@@ -66,6 +67,9 @@ void CCheckComboWnd::InitComboWnd(CheckCombo* pOwner)
 
     ShowWindow(ui::kSW_SHOW_NORMAL);
     KeepParentActive();
+
+    //发送一个事件
+    pOwner->SendEvent(kEventWindowCreate);
 }
 
 UiRect CCheckComboWnd::GetComboWndRect() const
@@ -74,6 +78,12 @@ UiRect CCheckComboWnd::GetComboWndRect() const
     if (pOwner == nullptr) {
         return UiRect();
     }
+    //阴影的大小
+    ui::UiPadding rcPadding;
+    if (IsWindow()) {
+        rcPadding = GetCurrentShadowCorner();
+    }
+
     // Position the popup window in absolute space
     UiSize szDrop = pOwner->GetDropBoxSize();
     UiRect rcOwner = pOwner->GetPos();
@@ -81,10 +91,10 @@ UiRect CCheckComboWnd::GetComboWndRect() const
     rcOwner.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
 
     UiRect rc = rcOwner;
-    rc.top = rc.bottom + 1;            // 父窗口left、bottom位置作为弹出窗口起点
-    rc.bottom = rc.top + szDrop.cy;    // 计算弹出窗口高度
+    rc.top = rc.bottom + Dpi().GetScaleInt(1);  // 父窗口left、bottom位置作为弹出窗口起点
+    rc.bottom = rc.top + szDrop.cy;             // 计算弹出窗口高度
     if (szDrop.cx > 0) {
-        rc.right = rc.left + szDrop.cx;    // 计算弹出窗口宽度
+        rc.right = rc.left + szDrop.cx;         // 计算弹出窗口宽度
     }
     int32_t cyFixed = 0;
     if (pOwner->GetListBox()->GetItemCount() > 0) {
@@ -99,7 +109,7 @@ UiRect CCheckComboWnd::GetComboWndRect() const
         cyFixed = szDrop.cy;
     }
     rc.bottom = rc.top + std::min(cyFixed, szDrop.cy);
-
+    rc.Inflate(rcPadding);
     pOwner->GetWindow()->ClientToScreen(rc);
 
     UiRect rcWork;
@@ -164,15 +174,26 @@ void CCheckComboWnd::OnFinalMessage()
     BaseClass::OnFinalMessage();
 }
 
+void CCheckComboWnd::OnWindowShadowTypeChanged()
+{
+    if (IsWindow() && (GetRoot() != nullptr)) {
+        UpdateComboWnd();
+    }
+}
+
 void CCheckComboWnd::OnInitWindow()
 {
     BaseClass::OnInitWindow();
+    SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
+    SetShadowType(m_pOwner->GetComboWndShadowType());
+
     Box* pRoot = new Box(this);
     pRoot->SetAutoDestroyChild(false);
     pRoot->AddItem(m_pOwner->GetListBox());
-    AttachBox(pRoot);
-    SetResourcePath(m_pOwner->GetWindow()->GetResourcePath());
-    SetShadowAttached(false);
+    AttachBox(AttachShadow(pRoot));
+
+    //更新窗口位置
+    UpdateComboWnd();
 }
 
 void CCheckComboWnd::OnCloseWindow()
@@ -217,7 +238,8 @@ CheckCombo::CheckCombo(Window* pWindow) :
     m_pCheckComboWnd(nullptr),
     m_szDropBox(0, 0),
     m_bPopupTop(false),
-    m_iOrgHeight(CHECK_COMBO_DEFAULT_HEIGHT)
+    m_iOrgHeight(CHECK_COMBO_DEFAULT_HEIGHT),
+    m_nShadowType(Shadow::ShadowType::kShadowMenu)
 {
     SetDropBoxSize({0, 150}, true);
     SetMaxHeight(m_iOrgHeight * 3, true);
@@ -244,6 +266,48 @@ CheckCombo::~CheckCombo()
 }
 
 DString CheckCombo::GetType() const { return DUI_CTR_CHECK_COMBO; }
+
+void CheckCombo::SetAttribute(const DString& strName, const DString& strValue)
+{
+    if (strName == _T("dropbox")) {
+        SetDropBoxAttributeList(strValue);
+    }
+    else if (strName == _T("dropbox_item_class")) {
+        SetDropboxItemClass(strValue);
+    }
+    else if (strName == _T("selected_item_class")) {
+        SetSelectedItemClass(strValue);
+    }
+    else if (strName == _T("vscrollbar")) {
+    }
+    else if ((strName == _T("dropbox_size")) || (strName == _T("dropboxsize"))) {
+        UiSize szDropBoxSize;
+        AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
+        SetDropBoxSize(szDropBoxSize, true);
+    }
+    else if ((strName == _T("popup_top")) || (strName == _T("popuptop"))) {
+        SetPopupTop(strValue == _T("true"));
+    }
+    else if (strName == _T("height")) {
+        BaseClass::SetAttribute(strName, strValue);
+        if (strValue != _T("stretch") && strValue != _T("auto")) {
+            m_iOrgHeight = StringUtil::StringToInt32(strValue);
+            ASSERT(m_iOrgHeight >= 0);
+            SetMaxHeight(m_iOrgHeight * 3, true);
+            SetMinHeight(m_iOrgHeight, true);
+        }
+    }
+    else if (strName == _T("shadow_type")) {
+        //设置下拉窗口的阴影类型
+        Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowCount;
+        if (Shadow::GetShadowType(strValue, nShadowType)) {
+            SetComboWndShadowType(nShadowType);
+        }
+    }
+    else {
+        BaseClass::SetAttribute(strName, strValue);
+    }
+}
 
 bool CheckCombo::AddItem(Control* pControl)
 {
@@ -354,47 +418,16 @@ void CheckCombo::Activate(const EventArgs* /*pMsg*/)
     }
 
     m_pCheckComboWnd = new CCheckComboWnd();
+    m_pCheckComboWnd->AttachWindowCreate(ToWeakCallback([this](const ui::EventArgs& msg) {
+        FireAllEvents(msg);
+        return true;
+        }));
     m_pCheckComboWnd->InitComboWnd(this);
     m_pCheckComboWnd->AttachWindowClose(ToWeakCallback([this](const ui::EventArgs& msg) {
         FireAllEvents(msg);
         return true;
     }));
     Invalidate();
-}
-
-void CheckCombo::SetAttribute(const DString& strName, const DString& strValue)
-{
-    if (strName == _T("dropbox")) {
-        SetDropBoxAttributeList(strValue);
-    }
-    else if (strName == _T("dropbox_item_class")) {        
-        SetDropboxItemClass(strValue);
-    }
-    else if (strName == _T("selected_item_class")) {
-        SetSelectedItemClass(strValue);
-    }
-    else if (strName == _T("vscrollbar")) {
-    }
-    else if ((strName == _T("dropbox_size")) || (strName == _T("dropboxsize"))) {
-        UiSize szDropBoxSize;
-        AttributeUtil::ParseSizeValue(strValue.c_str(), szDropBoxSize);
-        SetDropBoxSize(szDropBoxSize, true);
-    }
-    else if ((strName == _T("popup_top")) || (strName == _T("popuptop"))) {
-        SetPopupTop(strValue == _T("true"));
-    }
-    else if (strName == _T("height")) {
-        BaseClass::SetAttribute(strName, strValue);
-        if (strValue != _T("stretch") && strValue != _T("auto")) {
-            m_iOrgHeight = StringUtil::StringToInt32(strValue);
-            ASSERT(m_iOrgHeight >= 0);
-            SetMaxHeight(m_iOrgHeight * 3, true);
-            SetMinHeight(m_iOrgHeight, true);
-        }
-    }
-    else {
-        BaseClass::SetAttribute(strName, strValue);
-    }
 }
 
 void CheckCombo::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
@@ -440,6 +473,24 @@ void CheckCombo::UpdateComboWndPos()
     if (m_pCheckComboWnd != nullptr) {
         m_pCheckComboWnd->UpdateComboWnd();
     }
+}
+
+Window* CheckCombo::GetCheckComboWnd() const
+{
+    return m_pCheckComboWnd;
+}
+
+void CheckCombo::SetComboWndShadowType(Shadow::ShadowType nShadowType)
+{
+    m_nShadowType = nShadowType;
+    if (m_pCheckComboWnd != nullptr) {
+        m_pCheckComboWnd->SetShadowType(nShadowType);
+    }
+}
+
+Shadow::ShadowType CheckCombo::GetComboWndShadowType() const
+{
+    return m_nShadowType;
 }
 
 void CheckCombo::ParseAttributeList(const DString& strList,

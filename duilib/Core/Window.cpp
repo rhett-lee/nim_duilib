@@ -824,6 +824,7 @@ void Window::SetShadowAttached(bool bShadowAttached)
     ASSERT(m_shadow != nullptr);
     if (m_shadow != nullptr) {
         m_shadow->SetShadowAttached(bShadowAttached);
+        OnWindowShadowTypeChanged();
     }
 }
 
@@ -834,6 +835,7 @@ void Window::SetShadowType(Shadow::ShadowType nShadowType)
         m_shadow->SetShadowType(nShadowType);
         //重绘窗口，否则会有绘制异常
         InvalidateAll();
+        OnWindowShadowTypeChanged();
     }
 }
 

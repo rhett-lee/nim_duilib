@@ -469,6 +469,10 @@ protected:
     */
     virtual void OnFinalMessage();
 
+    /** 窗口的阴影类型发生了变化
+    */
+    virtual void OnWindowShadowTypeChanged() {};
+
 protected:
     /** 切换系统标题栏与自绘标题栏
     */
