@@ -2267,9 +2267,9 @@ void RichEdit::PaintRichEdit(IRender* pRender, const UiRect& rcPaint)
     }
 
     if (!clipRects.empty()) {
-        bool bHasIntersect = false;
-        UiRect rcCheck = rcUpdate;
+        bool bHasIntersect = false;        
         for (const UiRect& clipRect : clipRects) {
+            UiRect rcCheck = rcUpdate;
             if (rcCheck.Intersect(clipRect)) {
                 bHasIntersect = true;
                 break;
