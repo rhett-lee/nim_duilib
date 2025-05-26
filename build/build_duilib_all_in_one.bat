@@ -49,7 +49,7 @@ if not exist %MSVC_PATH% (
 set retry_delay=10
 
 :retry_clone_duilib
-if not exist ".\nim_duilib" (
+if not exist ".\nim_duilib\.git" (
     git clone https://github.com/rhett-lee/nim_duilib
 ) else (
     git -C ./nim_duilib pull
@@ -59,13 +59,13 @@ if %errorlevel% neq 0 (
     goto retry_clone_duilib
 )
 
-if not exist ".\nim_duilib" (
+if not exist ".\nim_duilib\.git" (
     echo clone retry_clone_skia_compile failed!
     exit /b 1
 )
 
 :retry_clone_skia_compile
-if not exist ".\skia_compile" (
+if not exist ".\skia_compile\.git" (
     git clone https://github.com/rhett-lee/skia_compile
 ) else (    
     git -C ./skia_compile pull
@@ -75,13 +75,13 @@ if %errorlevel% neq 0 (
     goto retry_clone_skia_compile
 )
 
-if not exist ".\skia_compile" (
+if not exist ".\skia_compile\.git" (
     echo clone retry_clone_skia_compile failed!
     exit /b 1
 )
 
 :retry_clone_skia
-if not exist ".\skia" (
+if not exist ".\skia\.git" (
     git clone https://github.com/google/skia.git
 ) else (
     git -C ./skia stash
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 (
     goto retry_clone_skia
 )
 
-if not exist ".\skia" (
+if not exist ".\skia\.git" (
     echo clone skia failed!
     exit /b 1
 )
