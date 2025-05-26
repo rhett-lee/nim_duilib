@@ -125,8 +125,27 @@ UiRect CComboWnd::GetComboWndRect() const
         rc.right = rc.left + szDrop.cx;         // 计算弹出窗口宽度
     }
 
+    //如果子容器里面的都是拉伸类型，就不需要估算大小（会报错，无法估算），而是按照下拉框的设置大小来显示
+    bool bCanEstimateSize = true;
+    if (pOwner->GetTreeView()->GetFixedHeight().IsStretch() && pOwner->GetTreeView()->GetFixedWidth().IsStretch()) {
+        size_t nItemCount = pOwner->GetTreeView()->GetItemCount();
+        if (nItemCount > 0) {
+            bCanEstimateSize = false;
+            for (size_t nItemIndex = 0; nItemIndex < nItemCount; nItemIndex++) {
+                Control* pControl = pOwner->GetTreeView()->GetItemAt(nItemIndex);
+                if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
+                    continue;
+                }
+                if (!pControl->GetFixedHeight().IsStretch() || !pControl->GetFixedWidth().IsStretch()) {
+                    bCanEstimateSize = true;
+                    break;
+                }
+            }
+        }
+    }
+
     int32_t cyFixed = 0;
-    if (pOwner->GetTreeView()->GetItemCount() > 0) {
+    if (bCanEstimateSize && pOwner->GetTreeView()->GetItemCount() > 0) {
         UiSize szAvailable(rc.Width(), rc.Height());
         UiFixedInt oldFixedHeight = pOwner->GetTreeView()->GetFixedHeight();
         pOwner->GetTreeView()->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);

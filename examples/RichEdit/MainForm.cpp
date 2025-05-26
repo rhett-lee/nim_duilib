@@ -570,14 +570,6 @@ void MainForm::InitColorCombo()
     }
     pComboBox->SetWindow(this);
     ui::GlobalManager::Instance().FillBoxWithCache(pComboBox, ui::FilePath(_T("rich_edit/color_combox.xml")));
-    pComboBox->SetFixedHeight(ui::UiFixedInt(boxSize.cy), false, false);
-    pComboBox->SetFixedWidth(ui::UiFixedInt(boxSize.cx), false, false);
-
-    if (pComboBox->GetItemAt(0) != nullptr) {
-        pComboBox->GetItemAt(0)->SetFixedHeight(ui::UiFixedInt(boxSize.cy), false, false);
-        pComboBox->GetItemAt(0)->SetFixedWidth(ui::UiFixedInt(boxSize.cx), false, false);
-    }
-
     ui::ColorPickerRegular* pColorPicker = dynamic_cast<ui::ColorPickerRegular*>(pComboBox->FindSubControl(_T("color_combo_picker")));
     if (pColorPicker != nullptr) {
         //响应选择颜色事件

@@ -96,6 +96,26 @@ UiRect CCheckComboWnd::GetComboWndRect() const
     if (szDrop.cx > 0) {
         rc.right = rc.left + szDrop.cx;         // 计算弹出窗口宽度
     }
+
+    //如果子容器里面的都是拉伸类型，就不需要估算大小（会报错，无法估算），而是按照下拉框的设置大小来显示
+    bool bCanEstimateSize = true;
+    if (pOwner->GetListBox()->GetFixedHeight().IsStretch() && pOwner->GetListBox()->GetFixedWidth().IsStretch()) {
+        size_t nItemCount = pOwner->GetListBox()->GetItemCount();
+        if (nItemCount > 0) {
+            bCanEstimateSize = false;
+            for (size_t nItemIndex = 0; nItemIndex < nItemCount; nItemIndex++) {
+                Control* pControl = pOwner->GetListBox()->GetItemAt(nItemIndex);
+                if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
+                    continue;
+                }
+                if (!pControl->GetFixedHeight().IsStretch() || !pControl->GetFixedWidth().IsStretch()) {
+                    bCanEstimateSize = true;
+                    break;
+                }
+            }
+        }
+    }
+
     int32_t cyFixed = 0;
     if (pOwner->GetListBox()->GetItemCount() > 0) {
         UiSize szAvailable(rc.Width(), rc.Height());

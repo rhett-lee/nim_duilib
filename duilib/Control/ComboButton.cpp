@@ -63,6 +63,10 @@ void ComboButtonWnd::UpdateComboWnd()
     if (pOwner == nullptr) {
         return;
     }
+    ui::Box* pComboBox = pOwner->GetComboBox();
+    if (pComboBox == nullptr) {
+        return;
+    }
     // Position the popup window in absolute space
     UiSize szDrop = pOwner->GetDropBoxSize();
     UiRect rcOwner = pOwner->GetPos();
@@ -70,19 +74,38 @@ void ComboButtonWnd::UpdateComboWnd()
     rcOwner.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
 
     UiRect rc = rcOwner;
-    rc.top = rc.bottom + 1;            // 父窗口left、bottom位置作为弹出窗口起点
-    rc.bottom = rc.top + szDrop.cy;    // 计算弹出窗口高度
+    rc.top = rc.bottom + Dpi().GetScaleInt(1);  // 父窗口left、bottom位置作为弹出窗口起点
+    rc.bottom = rc.top + szDrop.cy;             // 计算弹出窗口高度
     if (szDrop.cx > 0) {
-        rc.right = rc.left + szDrop.cx;    // 计算弹出窗口宽度
+        rc.right = rc.left + szDrop.cx;         // 计算弹出窗口宽度
+    }
+
+    //如果子容器里面的都是拉伸类型，就不需要估算大小（会报错，无法估算），而是按照下拉框的设置大小来显示
+    bool bCanEstimateSize = true;
+    if (pComboBox->GetFixedHeight().IsStretch() && pComboBox->GetFixedWidth().IsStretch()) {
+        size_t nItemCount = pComboBox->GetItemCount();
+        if (nItemCount > 0) {
+            bCanEstimateSize = false;
+            for (size_t nItemIndex = 0; nItemIndex < nItemCount; nItemIndex++) {
+                Control* pControl = pComboBox->GetItemAt(nItemIndex);
+                if ((pControl == nullptr) || !pControl->IsVisible() || pControl->IsFloat()) {
+                    continue;
+                }
+                if (!pControl->GetFixedHeight().IsStretch() || !pControl->GetFixedWidth().IsStretch()) {
+                    bCanEstimateSize = true;
+                    break;
+                }
+            }
+        }
     }
 
     int32_t cyFixed = 0;
-    if (pOwner->GetComboBox()->GetItemCount() > 0) {
+    if (bCanEstimateSize && pComboBox->GetItemCount() > 0) {
         UiSize szAvailable(rc.Width(), rc.Height());
-        UiFixedInt oldFixedHeight = pOwner->GetComboBox()->GetFixedHeight();
-        pOwner->GetComboBox()->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
-        UiEstSize estSize = pOwner->GetComboBox()->EstimateSize(szAvailable);
-        pOwner->GetComboBox()->SetFixedHeight(oldFixedHeight, false, false);
+        UiFixedInt oldFixedHeight = pComboBox->GetFixedHeight();
+        pComboBox->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);
+        UiEstSize estSize = pComboBox->EstimateSize(szAvailable);
+        pComboBox->SetFixedHeight(oldFixedHeight, false, false);
         cyFixed = estSize.cy.GetInt32();
     }
     if (cyFixed == 0) {
