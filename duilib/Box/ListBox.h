@@ -33,7 +33,6 @@ public:
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void HandleEvent(const EventArgs& msg) override;
-    virtual bool ButtonDown(const EventArgs& msg) override;
     virtual void SendEventMsg(const EventArgs& msg) override;
 
     //IListBoxOwner 接口的实现
@@ -381,19 +380,11 @@ protected:
     */
     int32_t CalcVTileRows(VTileLayout* pVTileLayout) const;
 
+protected:
+    //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
+    virtual bool ButtonDown(const EventArgs& msg) override;
+
 private:
-    //是否随滚动改变选中项
-    bool m_bScrollSelect;
-
-    //在移除一个子项后自动选择下一项
-    bool m_bSelectNextWhenActiveRemoved;
-
-    //是否允许多选（默认为单选）
-    bool m_bMultiSelect;
-
-    //多选的时候，是否显示选择背景色: 0 - 默认规则; 1 - 显示背景色; 2: 不显示背景色
-    uint8_t m_uPaintSelectedColors;
-
     //当前选择的子项ID, 如果是多选，指向最后一个选择项
     size_t m_iCurSel;
 
@@ -402,6 +393,18 @@ private:
 
     //用户自定义的排序比较函数中的上下文数据
     void* m_pCompareContext;
+
+    //多选的时候，是否显示选择背景色: 0 - 默认规则; 1 - 显示背景色; 2: 不显示背景色
+    uint8_t m_uPaintSelectedColors;
+
+    //是否随滚动改变选中项
+    bool m_bScrollSelect;
+
+    //在移除一个子项后自动选择下一项
+    bool m_bSelectNextWhenActiveRemoved;
+
+    //是否允许多选（默认为单选）
+    bool m_bMultiSelect;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////
