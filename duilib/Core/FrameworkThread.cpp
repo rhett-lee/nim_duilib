@@ -23,8 +23,7 @@ FrameworkThread::FrameworkThread(const DString& threadName, int32_t nThreadIdent
     m_bThreadUI(false),
     m_bRunning(false),
     m_threadName(threadName),
-    m_nThreadIdentifier(nThreadIdentifier),
-    m_nNextTaskId(1)
+    m_nThreadIdentifier(nThreadIdentifier)
 {
 }
 
@@ -145,6 +144,12 @@ const DString& FrameworkThread::GetThreadName() const
     return m_threadName;
 }
 
+size_t FrameworkThread::GetNextTaskId() const
+{
+    //使用全局任务ID，确保在进程中，此任务ID是唯一的
+    return GlobalManager::Instance().Thread().GetNextTaskId();
+}
+
 size_t FrameworkThread::PostTask(const StdClosure& task)
 {
     ASSERT(task != nullptr);
@@ -152,7 +157,7 @@ size_t FrameworkThread::PostTask(const StdClosure& task)
         return false;
     }
     std::lock_guard<std::mutex> threadGuard(m_taskMutex);
-    size_t nTaskId = m_nNextTaskId++;
+    size_t nTaskId = GetNextTaskId();
     TaskInfo& taskInfo = m_taskMap[nTaskId];
     taskInfo.m_taskType = TaskType::kTask;
     taskInfo.m_task = task;
@@ -174,7 +179,7 @@ size_t FrameworkThread::PostDelayedTask(const StdClosure& task, int32_t nDelayMs
         return 0;
     }
     std::lock_guard<std::mutex> threadGuard(m_taskMutex);
-    size_t nTaskId = m_nNextTaskId++;
+    size_t nTaskId = GetNextTaskId();
     TaskInfo& taskInfo = m_taskMap[nTaskId];
     taskInfo.m_taskType = TaskType::kDelayedTask;
     taskInfo.m_task = task;
@@ -204,7 +209,7 @@ size_t FrameworkThread::PostRepeatedTask(const StdClosure& task, int32_t nInterv
         return 0;
     }
     std::lock_guard<std::mutex> threadGuard(m_taskMutex);
-    size_t nTaskId = m_nNextTaskId++;
+    size_t nTaskId = GetNextTaskId();
     TaskInfo& taskInfo = m_taskMap[nTaskId];
     taskInfo.m_taskType = TaskType::kRepeatedTask;
     taskInfo.m_task = task;
@@ -228,10 +233,12 @@ bool FrameworkThread::CancelTask(size_t nTaskId)
 {
     bool bDeleted = false;
     std::lock_guard<std::mutex> threadGuard(m_taskMutex);
-    auto iter = m_taskMap.find(nTaskId);
-    if (iter != m_taskMap.end()) {
-        m_taskMap.erase(nTaskId);
-        bDeleted = true;
+    if (!m_taskMap.empty()) {
+        auto iter = m_taskMap.find(nTaskId);
+        if (iter != m_taskMap.end()) {
+            m_taskMap.erase(nTaskId);
+            bDeleted = true;
+        }
     }
     return bDeleted;
 }
@@ -285,6 +292,7 @@ void FrameworkThread::ExecTask(size_t nTaskId)
         }
     }
     if (task != nullptr) {
+        //执行该任务，在不加锁的状态执行，避免死锁
         task();
     }
 }
@@ -343,7 +351,5 @@ void FrameworkThread::OnRunMessageLoop()
 void FrameworkThread::OnCleanup()
 {
 }
-
-
 
 }//namespace ui 
