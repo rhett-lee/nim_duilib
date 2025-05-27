@@ -1124,16 +1124,6 @@ bool ListBox::CanPaintSelectedColors(bool bHasStateImages) const
     return true;
 }
 
-bool ListBox::ButtonDown(const EventArgs& msg)
-{
-    bool ret = BaseClass::ButtonDown(msg);
-    if (msg.IsSenderExpired()) {
-        return false;
-    }
-    StopScroll();
-    return ret;
-}
-
 bool ListBox::IsHorizontalLayout() const
 {
     LayoutType type = GetLayout()->GetLayoutType();
@@ -1546,5 +1536,16 @@ bool ListBox::UpdateCurSelItemSelectStatus()
     }
     return bChanged;
 }
+
+bool ListBox::ButtonDown(const EventArgs& msg)
+{
+    bool ret = BaseClass::ButtonDown(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    StopScroll();
+    return ret;
+}
+
 
 } // namespace ui

@@ -294,6 +294,15 @@ private:
     UiSize64 m_scrollVirtualOffset;
 
 private:
+    //滚动条动画效果支持
+    AnimationPlayer* m_pScrollAnimation;
+
+    //滚动条动画效果支持
+    AnimationPlayer* m_pRenderOffsetYAnimation;
+
+    //滚动条的外边距
+    UiPadding m_rcScrollBarPadding;
+
     //垂直滚动条滚动步长
     int32_t m_nVScrollUnitPixels;
 
@@ -311,15 +320,6 @@ private:
 
     //容器的滚动条是否在左侧显示
     bool m_bVScrollBarAtLeft;
-
-    //滚动条的外边距
-    UiPadding m_rcScrollBarPadding;
-
-    //滚动条动画效果支持
-    AnimationPlayer* m_pScrollAnimation;
-
-    //滚动条动画效果支持
-    AnimationPlayer* m_pRenderOffsetYAnimation;
 };
 
 /** 横向布局的ScrollBox
