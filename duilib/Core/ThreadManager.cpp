@@ -2,7 +2,8 @@
 
 namespace ui 
 {
-ThreadManager::ThreadManager()
+ThreadManager::ThreadManager():
+    m_nNextTaskId(1)
 {
 }
 
@@ -25,9 +26,7 @@ bool ThreadManager::RegisterThread(int32_t nThreadIdentifier, FrameworkThread* p
     if (iter != m_threadsMap.end()) {
         return false;
     }
-    ThreadInfo& threadInfo = m_threadsMap[nThreadIdentifier];
-    threadInfo.m_pThread = pThread;
-    threadInfo.m_threadFlag = pThread->GetWeakFlag();
+    m_threadsMap[nThreadIdentifier] = pThread;
     return true;
 }
 
@@ -57,8 +56,11 @@ int32_t ThreadManager::GetCurrentThreadIdentifier() const
     std::thread::id currentThreadId = std::this_thread::get_id();
     std::lock_guard<std::mutex> threadGuard(m_threadMutex);
     for (auto iter = m_threadsMap.begin(); iter != m_threadsMap.end(); ++iter) {
-        const ThreadInfo& threadInfo = iter->second;
-        if (currentThreadId == threadInfo.m_pThread->GetThreadId()) {
+        FrameworkThreadPtr spFrameworkThread = iter->second;
+        if (spFrameworkThread == nullptr) {
+            continue;
+        }
+        if (currentThreadId == spFrameworkThread->GetThreadId()) {
             nThreadIdentifier = iter->first;
             break;
         }
@@ -66,67 +68,91 @@ int32_t ThreadManager::GetCurrentThreadIdentifier() const
     return nThreadIdentifier;
 }
 
-bool ThreadManager::GetThreadInfo(int32_t nThreadIdentifier, ThreadInfo& threadInfo) const
+size_t ThreadManager::PostTask(int32_t nThreadIdentifier, const StdClosure& task)
 {
+    ASSERT(task != nullptr);
+    if (task == nullptr) {
+        return 0;
+    }
+    size_t nTaskId = 0;
     std::lock_guard<std::mutex> threadGuard(m_threadMutex);
     auto iter = m_threadsMap.find(nThreadIdentifier);
     if (iter != m_threadsMap.end()) {
-        threadInfo = iter->second;
+        FrameworkThreadPtr spFrameworkThread = iter->second;
+        if (spFrameworkThread != nullptr) {
+            nTaskId = spFrameworkThread->PostTask(task);
+        }
     }
-    else {
-        threadInfo.m_pThread = nullptr;
-        threadInfo.m_threadFlag.reset();
-    }
-    return !threadInfo.m_threadFlag.expired() && (threadInfo.m_pThread != nullptr);
+    ASSERT(nTaskId != 0);
+    return nTaskId;
 }
 
-bool ThreadManager::PostTask(int32_t nThreadIdentifier, const StdClosure& task)
+size_t ThreadManager::PostDelayedTask(int32_t nThreadIdentifier, const StdClosure& task, int32_t nDelayMs)
 {
     ASSERT(task != nullptr);
     if (task == nullptr) {
-        return false;
+        return 0;
     }
-    ThreadInfo threadInfo;
-    if (!GetThreadInfo(nThreadIdentifier, threadInfo)) {
-        ASSERT(!"ThreadManager::PostTask failed!");
-        return false;
+    size_t nTaskId = 0;
+    std::lock_guard<std::mutex> threadGuard(m_threadMutex);
+    auto iter = m_threadsMap.find(nThreadIdentifier);
+    if (iter != m_threadsMap.end()) {
+        FrameworkThreadPtr spFrameworkThread = iter->second;
+        if (spFrameworkThread != nullptr) {
+            nTaskId = spFrameworkThread->PostDelayedTask(task, nDelayMs);
+        }
     }
-    return threadInfo.m_pThread->PostTask(task);
+    ASSERT(nTaskId != 0);
+    return nTaskId;
 }
 
-bool ThreadManager::PostDelayedTask(int32_t nThreadIdentifier, const StdClosure& task, int32_t nDelayMs)
+size_t ThreadManager::PostRepeatedTask(int32_t nThreadIdentifier, const StdClosure& task,
+                                       int32_t nIntervalMs, int32_t nTimes)
 {
     ASSERT(task != nullptr);
     if (task == nullptr) {
-        return false;
+        return 0;
     }
-    ThreadInfo threadInfo;
-    if (!GetThreadInfo(nThreadIdentifier, threadInfo)) {
-        ASSERT(!"ThreadManager::PostDelayedTask failed!");
-        return false;
+    size_t nTaskId = 0;
+    std::lock_guard<std::mutex> threadGuard(m_threadMutex);
+    auto iter = m_threadsMap.find(nThreadIdentifier);
+    if (iter != m_threadsMap.end()) {
+        FrameworkThreadPtr spFrameworkThread = iter->second;
+        if (spFrameworkThread != nullptr) {
+            nTaskId = spFrameworkThread->PostRepeatedTask(task, nIntervalMs, nTimes);
+        }
     }
-    return threadInfo.m_pThread->PostDelayedTask(task, nDelayMs);
+    ASSERT(nTaskId != 0);
+    return nTaskId;
 }
 
-bool ThreadManager::PostRepeatedTask(int32_t nThreadIdentifier, const StdClosure& task,
-                                     int32_t nIntervalMs, int32_t nTimes)
+bool ThreadManager::CancelTask(size_t nTaskId)
 {
-    ASSERT(task != nullptr);
-    if (task == nullptr) {
-        return false;
+    bool bCancelTask = false;
+    std::lock_guard<std::mutex> threadGuard(m_threadMutex);
+    for (auto iter = m_threadsMap.begin(); iter != m_threadsMap.end(); ++iter) {
+        FrameworkThreadPtr spFrameworkThread = iter->second;
+        if (spFrameworkThread == nullptr) {
+            continue;
+        }
+        if (spFrameworkThread->CancelTask(nTaskId)) {
+            bCancelTask = true;
+            break;
+        }
     }
-    ThreadInfo threadInfo;
-    if (!GetThreadInfo(nThreadIdentifier, threadInfo)) {
-        ASSERT(!"ThreadManager::PostRepeatedTask failed!");
-        return false;
-    }
-    return threadInfo.m_pThread->PostRepeatedTask(task, nIntervalMs, nTimes);
+    return bCancelTask;
 }
 
 void ThreadManager::Clear()
 {
     std::lock_guard<std::mutex> threadGuard(m_threadMutex);
     m_threadsMap.clear();
+}
+
+size_t ThreadManager::GetNextTaskId()
+{
+    size_t nNextTaskId = m_nNextTaskId++;
+    return nNextTaskId;
 }
 
 }//namespace ui 

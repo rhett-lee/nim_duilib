@@ -98,6 +98,7 @@ public:
 
     /** 取消一个任务
     * @param [in] nTaskId 任务ID，即上面的PostXXX函数的返回值
+    * @return 取消成功返回true，否则返回false
     */
     bool CancelTask(size_t nTaskId);
 
@@ -130,6 +131,10 @@ private:
     /** 消息函数
     */
     void OnTaskMessage(uint32_t msgId, WPARAM wParam, LPARAM lParam);
+
+    /** 获取下一个任务ID
+    */
+    size_t GetNextTaskId() const;
 
 private:
     /** 任务类型
@@ -164,10 +169,6 @@ private:
     /** 任务数据多线程同步锁
     */
     mutable std::mutex m_taskMutex;
-
-    /** 下一个任务ID
-    */
-    size_t m_nNextTaskId;
 
 private:
     /** 线程名称
