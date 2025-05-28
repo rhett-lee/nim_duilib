@@ -128,9 +128,6 @@ void ListCtrlReportView::AjustItemCount()
             ASSERT(pControl != nullptr);
             if (pControl != nullptr) {
                 AddItem(pControl);
-
-                //挂载鼠标事件
-                AttachMouseEvents(pControl);
             }
         }
     }

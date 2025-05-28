@@ -847,4 +847,208 @@ bool VirtualListBox::SortItems(PFNCompareFunc /*pfnCompare*/, void* /*pCompareCo
     return false;
 }
 
+void VirtualListBox::CalcTileElementRectV(size_t nElemenetIndex, const UiSize& szItem,
+                                          int32_t nColumns, int32_t childMarginX, int32_t childMarginY,
+                                          int64_t& iLeft, int64_t& iTop,
+                                          int64_t& iRight, int64_t& iBottom) const
+{
+    iLeft = 0;
+    iRight = 0;
+    iTop = 0;
+    iBottom = 0;
+    ASSERT(nColumns > 0);
+    if (nColumns <= 0) {
+        return;
+    }
+    if (childMarginX < 0) {
+        childMarginX = 0;
+    }
+    if (childMarginY < 0) {
+        childMarginY = 0;
+    }
+    ASSERT((szItem.cx > 0) || (szItem.cy > 0));
+    if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
+        return;
+    }
+
+    size_t nRowIndex = nElemenetIndex / nColumns;
+    size_t nColumnIndex = nElemenetIndex % nColumns;
+
+    iBottom = (nRowIndex + 1) * szItem.cy + nRowIndex * childMarginY;
+    iTop = iBottom - szItem.cy;
+
+    iRight = (nColumnIndex + 1) * szItem.cx + nColumnIndex * childMarginX;
+    iLeft = iRight - szItem.cx;
 }
+
+void VirtualListBox::CalcTileElementRectH(size_t nElemenetIndex, const UiSize& szItem,
+                                          int32_t nRows, int32_t childMarginX, int32_t childMarginY,
+                                          int64_t& iLeft, int64_t& iTop,
+                                          int64_t& iRight, int64_t& iBottom) const
+{
+    iLeft = 0;
+    iRight = 0;
+    iTop = 0;
+    iBottom = 0;
+    ASSERT(nRows > 0);
+    if (nRows <= 0) {
+        return;
+    }
+    if (childMarginX < 0) {
+        childMarginX = 0;
+    }
+    if (childMarginY < 0) {
+        childMarginY = 0;
+    }
+    ASSERT((szItem.cx > 0) || (szItem.cy > 0));
+    if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
+        return;
+    }
+
+    size_t nColumnIndex = nElemenetIndex / nRows;
+    size_t nRowIndex = nElemenetIndex % nRows;
+
+    iRight = (nColumnIndex + 1) * szItem.cx + nColumnIndex * childMarginX;
+    iLeft = iRight - szItem.cx;
+
+    iBottom = (nRowIndex + 1) * szItem.cy + nRowIndex * childMarginY;
+    iTop = iBottom - szItem.cy;
+}
+
+bool VirtualListBox::OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom)
+{
+    ASSERT((top <= bottom) && (left <= right));
+    if ((top > bottom) && (left > right)) {
+        return false;
+    }
+    VirtualListBoxElement* pDataProvider = GetDataProvider();
+    ASSERT(pDataProvider != nullptr);
+    if (pDataProvider == nullptr) {
+        return false;
+    }
+    const size_t dataItemCount = pDataProvider->GetElementCount();
+    if (dataItemCount == 0) {
+        return false;
+    }
+    Layout* pLayout = GetLayout();
+    ASSERT(pLayout != nullptr);
+    if (pLayout == nullptr) {
+        return false;
+    }
+    VirtualHTileLayout* pHTileLayout = dynamic_cast<VirtualHTileLayout*>(pLayout);
+    VirtualVTileLayout* pVTileLayout = dynamic_cast<VirtualVTileLayout*>(pLayout);
+
+    VirtualHLayout* pHLayout = dynamic_cast<VirtualHLayout*>(pLayout);
+    VirtualVLayout* pVLayout = dynamic_cast<VirtualVLayout*>(pLayout);
+
+    bool bHLayout = (pHTileLayout != nullptr) || (pHLayout != nullptr);
+    bool bVLayout = (pVTileLayout != nullptr) || (pVLayout != nullptr);
+    ASSERT(bHLayout || bVLayout);
+    if (!bHLayout && !bVLayout) {
+        return false;
+    }
+
+    UiSize szItem;
+    if (pHTileLayout != nullptr) {
+        szItem = pHTileLayout->GetItemSize();
+    }
+    else if (pVTileLayout != nullptr) {
+        szItem = pVTileLayout->GetItemSize();
+    }
+    else if (pHLayout != nullptr) {
+        szItem = pHLayout->GetItemSize();
+    }
+    else if (pVLayout != nullptr) {
+        szItem = pVLayout->GetItemSize();
+    }
+
+    ASSERT((szItem.cx > 0) && (szItem.cy > 0));
+    if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
+        return false;
+    }
+
+    int64_t iLeft = 0;
+    int64_t iTop = 0;
+    int64_t iRight = 0;
+    int64_t iBottom = 0;
+
+    int64_t cLeft = 0;
+    int64_t cTop = 0;
+    int64_t cRight = 0;
+    int64_t cBottom = 0;
+
+    bool bRet = false;
+    if (bHLayout) {
+        //横向布局
+        int32_t childMarginY = pLayout->GetChildMarginY();
+        if (childMarginY < 0) {
+            childMarginY = 0;
+        }
+        int32_t nRows = 1;//VirtualVLayout只有1行
+        if (pHTileLayout != nullptr) {
+            nRows = CalcHTileRows(pHTileLayout);
+        }
+
+        //不支持隐藏
+        std::vector<size_t> itemIndexList;
+        int32_t childMarginX = pLayout->GetChildMarginX();
+        if (childMarginX < 0) {
+            childMarginX = 0;
+        }
+        int64_t nStartIndex = ((int64_t)left / ((int64_t)szItem.cx + childMarginX)) * nRows;
+        const size_t nCount = GetElementCount();
+        for (size_t nElemenetIndex = (size_t)nStartIndex; nElemenetIndex < nCount; ++nElemenetIndex) {
+            CalcTileElementRectH(nElemenetIndex, szItem, nRows, childMarginX, childMarginY,
+                                 iLeft, iTop, iRight, iBottom);
+            cLeft = std::max(left, iLeft);
+            cTop = std::max(top, iTop);
+            cRight = std::min(right, iRight);
+            cBottom = std::min(bottom, iBottom);
+            if ((cRight > cLeft) && (cBottom > cTop)) {
+                itemIndexList.push_back(nElemenetIndex);
+            }
+            if (iLeft > right) {
+                break;
+            }
+        }
+        bRet = SetSelectedElements(itemIndexList, true);
+    }
+    else if (bVLayout) {
+        //纵向布局
+        int32_t childMarginX = pLayout->GetChildMarginX();
+        if (childMarginX < 0) {
+            childMarginX = 0;
+        }
+        int32_t nColumns = 1;//VirtualHLayout只有1列
+        if (pVTileLayout != nullptr) {
+            nColumns = CalcVTileColumns(pVTileLayout);
+        }
+
+        //不支持隐藏
+        std::vector<size_t> itemIndexList;
+        int32_t childMarginY = pLayout->GetChildMarginY();
+        if (childMarginY < 0) {
+            childMarginY = 0;
+        }
+        int64_t nStartIndex = ((int64_t)top / ((int64_t)szItem.cy + childMarginY)) * nColumns;
+        const size_t nCount = GetElementCount();
+        for (size_t nElemenetIndex = (size_t)nStartIndex; nElemenetIndex < nCount; ++nElemenetIndex) {
+            CalcTileElementRectV(nElemenetIndex, szItem, nColumns, childMarginX, childMarginY,
+                                 iLeft, iTop, iRight, iBottom);
+            cLeft = std::max(left, iLeft);
+            cTop = std::max(top, iTop);
+            cRight = std::min(right, iRight);
+            cBottom = std::min(bottom, iBottom);
+            if ((cRight > cLeft) && (cBottom > cTop)) {
+                itemIndexList.push_back(nElemenetIndex);
+            }
+            if (iTop > bottom) {
+                break;
+            }
+        }
+        bRet = SetSelectedElements(itemIndexList, true);
+    }
+    return bRet;
+}
+
+} //namespace ui
