@@ -150,7 +150,7 @@ bool VirtualHLayout::IsAutoCalcItemHeight() const
 int64_t VirtualHLayout::GetElementsWidth(UiRect /*rc*/, size_t nCount) const
 {
     UiSize szItem = GetItemSize();
-    ASSERT((szItem.cx > 0) || (szItem.cy > 0));
+    ASSERT((szItem.cx > 0) && (szItem.cy > 0));
     if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
         return 0;
     }

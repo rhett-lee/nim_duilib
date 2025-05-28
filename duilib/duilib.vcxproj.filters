@@ -678,6 +678,9 @@
     <ClCompile Include="Control\ListCtrlListView.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Box\ListBoxHelper.cpp">
+      <Filter>Box</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1408,6 +1411,9 @@
     </ClInclude>
     <ClInclude Include="Core\ControlPtrT.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Box\ListBoxHelper.h">
+      <Filter>Box</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

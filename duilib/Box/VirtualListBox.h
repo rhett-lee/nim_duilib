@@ -173,12 +173,12 @@ public:
     /** 选择全部, 同时按需更新界面显示
     * @return 如果有数据变化返回true，否则返回false
     */
-    bool SetSelectAll();
+    virtual bool SetSelectAll() override;
 
     /** 取消所有选择, 同时按需更新界面显示
     * @return 如果有数据变化返回true，否则返回false
     */
-    bool SetSelectNone();
+    virtual bool SetSelectNone() override;
 
     /** 取消所有选择, 不更新界面显示，可以由外部刷新界面显示
     * @param [out] refreshIndexs 返回需要刷新显示的元素索引号
@@ -347,6 +347,15 @@ protected:
     */
     virtual void OnItemSelectedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
 
+    /** 执行了鼠标框选操作
+    * @param [in] left 框选的X坐标left值
+    * @param [in] right 框选的X坐标right值
+    * @param [in] top 框选的Y坐标top值
+    * @param [in] bottom 框选的Y坐标bottom值
+    * @return 如果有选择变化返回true，否则返回false
+    */
+    virtual bool OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom) override;
+
 protected:
 
     /** 设置虚表布局接口
@@ -404,6 +413,18 @@ protected:
     * @param [in] bFromItem true表示来自子控件，false表示来自自身
     */
     void VSendEvent(const EventArgs& msg, bool bFromItem);
+
+    /** 计算一个元素的矩形区域
+    */
+    void CalcTileElementRectV(size_t nElemenetIndex, const UiSize& szItem,
+                             int32_t nColumns, int32_t childMarginX, int32_t childMarginY,
+                             int64_t& iLeft, int64_t& iTop, int64_t& iRight, int64_t& iBottom) const;
+
+    /** 计算一个元素的矩形区域
+    */
+    void CalcTileElementRectH(size_t nElemenetIndex, const UiSize& szItem,
+                             int32_t nRows, int32_t childMarginX, int32_t childMarginY,
+                             int64_t& iLeft, int64_t& iTop, int64_t& iRight, int64_t& iBottom) const;
 
 private:
     /** 数据代理对象接口，提供展示数据

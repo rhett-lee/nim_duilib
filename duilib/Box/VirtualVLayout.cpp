@@ -184,7 +184,7 @@ int64_t VirtualVLayout::GetElementsHeight(UiRect /*rc*/, size_t nCount) const
 void VirtualVLayout::LazyArrangeChild(UiRect rc) const
 {
     UiSize szItem = GetItemSize();
-    ASSERT((szItem.cx > 0) || (szItem.cy > 0));
+    ASSERT((szItem.cx > 0) && (szItem.cy > 0));
     if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
         return;
     }

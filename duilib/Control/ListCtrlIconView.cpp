@@ -193,8 +193,6 @@ Control* ListCtrlIconView::CreateDataItem()
     ListCtrlLabel* pItemLabel = new ListCtrlLabel(GetWindow());
     pItem->AddItem(pItemImage);
     pItem->AddItem(pItemLabel);
-
-    AttachMouseEvents(pItem);
     return pItem;
 }
 

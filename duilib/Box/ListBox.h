@@ -18,6 +18,10 @@ namespace ui
 */
 typedef int (CALLBACK *PFNCompareFunc)(Control* pControl1, Control* pControl2, void* pCompareContext);
 
+/** 鼠标键盘操作的辅助类
+*/
+class ListBoxHelper;
+
 /** 列表容器，用于展示一组数据使用
 *   通过修改布局，形成 HListBox和VListBox和TileListBox三个子类
 */
@@ -26,6 +30,8 @@ class UILIB_API ListBox : public ScrollBox, public IListBoxOwner
     typedef ScrollBox BaseClass;
 public:
     ListBox(Window* pWindow, Layout* pLayout);
+    virtual ~ListBox() override;
+
     ListBox(const ListBox& r) = delete;
     ListBox& operator=(const ListBox& r) = delete;
 
@@ -202,6 +208,71 @@ public:
     /** 移除所有子项
      */
     virtual void RemoveAllItems() override;
+
+public:
+    /** 设置是否支持鼠标框选功能
+    */
+    void SetEnableFrameSelection(bool bEnable);
+
+    /** 获取是否支持鼠标框选功能
+    */
+    bool IsEnableFrameSelection() const;
+
+    /** 设置鼠标框选填充颜色
+    */
+    void SetFrameSelectionColor(const DString& frameSelectionColor);
+
+    /** 获取鼠标框选填充颜色
+    */
+    DString GetFrameSelectionColor() const;
+
+    /** 设置鼠标框选填充颜色的Alpha值
+    */
+    void SetframeSelectionAlpha(uint8_t frameSelectionAlpha);
+
+    /** 获取鼠标框选填充颜色的Alpha值
+    */
+    uint8_t GetFrameSelectionAlpha() const;
+
+    /** 设置鼠标框选边框颜色
+    */
+    void SetFrameSelectionBorderColor(const DString& frameSelectionBorderColor);
+
+    /** 获取鼠标框选边框颜色
+    */
+    DString GetFrameSelectionBorderColor() const;
+
+    /** 设置鼠标框选边框的大小
+    * @param [in] nBorderSize 边框大小（未经DPI缩放）
+    */
+    void SetFrameSelectionBorderSize(int32_t nBorderSize);
+
+    /** 获取鼠标框选边框的大小（未经DPI缩放）
+    */
+    int32_t GetFrameSelectionBorderSize() const;
+
+    /** 设置普通列表项（非Header、非置顶）的top坐标(目前ListCtrl在用此功能)
+    */
+    void SetNormalItemTop(int32_t nNormalItemTop);
+
+    /** 获取普通列表项（非Header、非置顶）的top坐标(目前ListCtrl在用此功能)
+    */
+    int32_t GetNormalItemTop() const;
+
+public:
+    /** 选择全部, 同时按需更新界面显示
+    * @return 如果有数据变化返回true，否则返回false
+    */
+    virtual bool SetSelectAll();
+
+    /** 取消所有选择, 同时按需更新界面显示
+    * @return 如果有数据变化返回true，否则返回false
+    */
+    virtual bool SetSelectNone();
+
+    /** 选择状态发生变化(全选，全不选触发)
+    */
+    virtual void OnSelectStatusChanged();
 
 public:
     /** 对子项排序
@@ -383,8 +454,63 @@ protected:
 protected:
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
     virtual bool ButtonDown(const EventArgs& msg) override;
+    virtual bool ButtonUp(const EventArgs& msg) override;
+    virtual bool RButtonDown(const EventArgs& msg) override;
+    virtual bool RButtonUp(const EventArgs& msg) override;
+    virtual bool MouseMove(const EventArgs& msg) override;
+    virtual bool OnWindowKillFocus(const EventArgs& msg) override;//控件所属的窗口失去焦点
+
+    /** 绘制子控件
+    */
+    virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
+
+    /** 绘制鼠标框选的边框和填充颜色
+    */
+    virtual void PaintFrameSelection(IRender* pRender);
+
+    /** 列表项的子项收到鼠标事件
+    * @return true表示截获该消息，子项不再处理该消息；返回false表示子项继续处理该消息
+    */
+    virtual bool OnListBoxItemMouseEvent(const EventArgs& msg) override;
+
+    /** 列表项的子项收到窗口失去焦点事件
+    */
+    virtual void OnListBoxItemWindowKillFocus() override;
+
+    /** 获取滚动视图的滚动幅度(鼠标框选功能)
+    */
+    virtual void GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const;
+
+    /** 执行了鼠标框选操作(鼠标框选功能，该坐标值是相对于ListBox的左上角坐标值)
+    * @param [in] left 框选的X坐标left值
+    * @param [in] right 框选的X坐标right值
+    * @param [in] top 框选的Y坐标top值
+    * @param [in] bottom 框选的Y坐标bottom值
+    * @return 如果有选择变化返回true，否则返回false
+    */
+    virtual bool OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom);
+
+    /** 在视图空白处点击了鼠标左键(鼠标框选功能)
+    * @return 如果选择项有变化返回true，此时会触发kEventSelChange事件，否则返回false
+    */
+    virtual bool OnLButtonClickedBlank();
+
+    /** 在视图空白处点击了鼠标右键(鼠标框选功能)
+    * @return 如果选择项有变化返回true，此时会触发kEventSelChange事件，否则返回false
+    */
+    virtual bool OnRButtonClickedBlank();
+
+    /** 响应KeyDown消息（用于处理快捷键）
+    * @param [in] msg 鼠标消息内容
+    * @param [in] bItemKeydown true表示当前焦点在子项上面，false表示当前焦点在ListBox本身
+    * @return bHandled 返回true表示成功处理，不需要再继续处理; 返回false表示未处理此消息
+    */
+    virtual void OnListBoxKeyDown(const EventArgs& msg, bool bItemKeydown,  bool& bHandled);
 
 private:
+    //Helper类型，可以访问所有数据
+    friend class ListBoxHelper;
+
     //当前选择的子项ID, 如果是多选，指向最后一个选择项
     size_t m_iCurSel;
 
@@ -393,6 +519,9 @@ private:
 
     //用户自定义的排序比较函数中的上下文数据
     void* m_pCompareContext;
+
+    //鼠标键盘操作辅助类
+    std::unique_ptr<ListBoxHelper> m_pHelper;
 
     //多选的时候，是否显示选择背景色: 0 - 默认规则; 1 - 显示背景色; 2: 不显示背景色
     uint8_t m_uPaintSelectedColors;

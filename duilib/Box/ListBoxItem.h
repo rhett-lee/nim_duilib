@@ -39,6 +39,15 @@ public:
     */
     virtual void SendEventMsg(const EventArgs& msg) = 0;
 
+    /** 列表项的子项收到鼠标事件
+    * @return true表示截获该消息，子项不再处理该消息；返回false表示子项继续处理该消息
+    */
+    virtual bool OnListBoxItemMouseEvent(const EventArgs& msg) = 0;
+
+    /** 列表项的子项收到窗口失去焦点事件
+    */
+    virtual void OnListBoxItemWindowKillFocus() = 0;
+
     /** 获取当前选择的索引，(如果无有效索引，则返回Box::InvalidIndex)
     */
     virtual size_t GetCurSel() const = 0;
@@ -383,6 +392,18 @@ void ListBoxItemTemplate<InheritType>::HandleEvent(const EventArgs& msg)
         }
         return;
     }
+    if ((msg.eventType > kEventMouseBegin) && (msg.eventType < kEventMouseEnd)) {
+        //将鼠标相关消息转发给父容器优先处理
+        if ((m_pOwner != nullptr) && m_pOwner->OnListBoxItemMouseEvent(msg)) {
+            return;
+        }
+    }
+    else if (msg.eventType == kEventWindowKillFocus) {
+        if (m_pOwner != nullptr) {
+            m_pOwner->OnListBoxItemWindowKillFocus();
+        }
+    }
+
     if (msg.eventType == kEventMouseDoubleClick) {
         if (!this->IsActivatable()) {
             return;

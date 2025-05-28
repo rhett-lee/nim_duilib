@@ -1,6 +1,9 @@
 #include "ListBox.h"
+#include "ListBoxHelper.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Core/Keyboard.h"
+#include "duilib/Box/VirtualHTileLayout.h"
+#include "duilib/Box/VirtualVTileLayout.h"
 
 namespace ui 
 {
@@ -25,6 +28,10 @@ ListBox::ListBox(Window* pWindow, Layout* pLayout) :
 {
 }
 
+ListBox::~ListBox()
+{
+}
+
 DString ListBox::GetType() const { return _T("ListBox"); }
 
 void ListBox::SetAttribute(const DString& strName, const DString& strValue)
@@ -46,9 +53,120 @@ void ListBox::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("select_next_when_active_removed")) {
         SetSelectNextWhenActiveRemoved(strValue == _T("true"));
     }
+    else if (strName == _T("frame_selection")) {
+        SetEnableFrameSelection(strValue == _T("true"));
+    }
+    else if (strName == _T("frame_selection_color")) {
+        SetFrameSelectionColor(strValue);
+    }
+    else if (strName == _T("frame_selection_alpha")) {
+        SetframeSelectionAlpha((uint8_t)StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("frame_selection_border_size")) {
+        SetFrameSelectionBorderSize(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("frame_selection_border_color")) {
+        SetFrameSelectionBorderColor(strValue);
+    }
     else {
         ScrollBox::SetAttribute(strName, strValue);
     }
+}
+
+void ListBox::SetEnableFrameSelection(bool bEnable)
+{
+    if (m_pHelper == nullptr) {
+        m_pHelper = std::make_unique<ListBoxHelper>(this);
+    }
+    m_pHelper->SetEnableFrameSelection(bEnable);
+}
+
+bool ListBox::IsEnableFrameSelection() const
+{
+    if (m_pHelper != nullptr) {
+        return m_pHelper->IsEnableFrameSelection();
+    }
+    return false;
+}
+
+void ListBox::SetFrameSelectionColor(const DString& frameSelectionColor)
+{
+    if (m_pHelper == nullptr) {
+        m_pHelper = std::make_unique<ListBoxHelper>(this);
+    }
+    m_pHelper->SetFrameSelectionColor(frameSelectionColor);
+}
+
+DString ListBox::GetFrameSelectionColor() const
+{
+    if (m_pHelper != nullptr) {
+        return m_pHelper->GetFrameSelectionColor();
+    }
+    return DString();
+}
+
+void ListBox::SetframeSelectionAlpha(uint8_t frameSelectionAlpha)
+{
+    if (m_pHelper == nullptr) {
+        m_pHelper = std::make_unique<ListBoxHelper>(this);
+    }
+    m_pHelper->SetframeSelectionAlpha(frameSelectionAlpha);
+}
+
+uint8_t ListBox::GetFrameSelectionAlpha() const
+{
+    if (m_pHelper != nullptr) {
+        return m_pHelper->GetFrameSelectionAlpha();
+    }
+    return 255;
+}
+
+void ListBox::SetFrameSelectionBorderColor(const DString& frameSelectionBorderColor)
+{
+    if (m_pHelper == nullptr) {
+        m_pHelper = std::make_unique<ListBoxHelper>(this);
+    }
+    m_pHelper->SetFrameSelectionBorderColor(frameSelectionBorderColor);
+}
+
+DString ListBox::GetFrameSelectionBorderColor() const
+{
+    if (m_pHelper != nullptr) {
+        return m_pHelper->GetFrameSelectionBorderColor();
+    }
+    return DString();
+}
+
+void ListBox::SetFrameSelectionBorderSize(int32_t nBorderSize)
+{
+    if (m_pHelper == nullptr) {
+        m_pHelper = std::make_unique<ListBoxHelper>(this);
+    }
+    m_pHelper->SetFrameSelectionBorderSize(nBorderSize);
+}
+
+int32_t ListBox::GetFrameSelectionBorderSize() const
+{
+    if (m_pHelper != nullptr) {
+        return m_pHelper->GetFrameSelectionBorderSize();
+    }
+    return 0;
+}
+
+void ListBox::SetNormalItemTop(int32_t nNormalItemTop)
+{
+    if (m_pHelper == nullptr) {
+        m_pHelper = std::make_unique<ListBoxHelper>(this);
+    }
+    m_pHelper->SetNormalItemTop(nNormalItemTop);
+}
+
+int32_t ListBox::GetNormalItemTop() const
+{
+    if (m_pHelper != nullptr) {
+        return m_pHelper->GetNormalItemTop();
+    }
+    return -1;
 }
 
 void ListBox::HandleEvent(const EventArgs& msg)
@@ -1279,10 +1397,6 @@ size_t ListBox::EnsureVisible(size_t iIndex, ListBoxVerVisible vVisibleType, Lis
 
 bool ListBox::AddItem(Control* pControl)
 {
-    // Override the AddItem() method so we can add items specifically to
-    // the intended widgets. Headers are assumed to be
-    // answer the correct interface so we can add multiple list headers.
-    // The list items should know about us
     IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
     if( pListItem != nullptr) {
         pListItem->SetOwner(this);
@@ -1296,15 +1410,10 @@ bool ListBox::AddItem(Control* pControl)
 
 bool ListBox::AddItemAt(Control* pControl, size_t iIndex)
 {
-    // Override the AddItemAt() method so we can add items specifically to
-    // the intended widgets. Headers and are assumed to be
-    // answer the correct interface so we can add multiple list headers.
-
     if (!ScrollBox::AddItemAt(pControl, iIndex)) {
         return false;
     }
 
-    // The list items should know about us
     IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
     if( pListItem != nullptr ) {
         pListItem->SetOwner(this);
@@ -1543,9 +1652,290 @@ bool ListBox::ButtonDown(const EventArgs& msg)
     if (msg.IsSenderExpired()) {
         return false;
     }
+    //停止滚动
     StopScroll();
+    if (m_pHelper != nullptr) {
+        m_pHelper->OnButtonDown(msg.ptMouse, msg.GetSender());
+    }    
     return ret;
 }
 
+bool ListBox::ButtonUp(const EventArgs& msg)
+{
+    bool bRet = BaseClass::ButtonUp(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    Control* pSender = msg.GetSender();
+    if (IsEnableFrameSelection()) {
+        //按住Ctrl或者Shift的时候，不触发清空选择操作，避免误操作
+        if (IsKeyDown(msg, ModifierKey::kControl)) {
+            pSender = nullptr;
+        }
+        else if (this->IsKeyDown(msg, ModifierKey::kShift)) {
+            pSender = nullptr;
+        }
+    }
+    if (m_pHelper != nullptr) {
+        m_pHelper->OnButtonUp(msg.ptMouse, pSender);
+    }
+    return bRet;
+}
+
+bool ListBox::RButtonDown(const EventArgs& msg)
+{
+    bool bRet = BaseClass::RButtonDown(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    if (m_pHelper != nullptr) {
+        m_pHelper->OnRButtonDown(msg.ptMouse, msg.GetSender());
+    }
+    return bRet;
+}
+
+bool ListBox::RButtonUp(const EventArgs& msg)
+{
+    bool bRet = BaseClass::RButtonUp(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    if (m_pHelper != nullptr) {
+        m_pHelper->OnRButtonUp(msg.ptMouse, msg.GetSender());
+    }
+    return bRet;
+}
+
+bool ListBox::MouseMove(const EventArgs& msg)
+{
+    bool bRet = BaseClass::MouseMove(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    if (m_pHelper != nullptr) {
+        m_pHelper->OnMouseMove(msg.ptMouse, msg.GetSender());
+    }
+    return bRet;
+}
+
+bool ListBox::OnWindowKillFocus(const EventArgs& msg)
+{
+    bool bRet = BaseClass::OnWindowKillFocus(msg);
+    if (msg.IsSenderExpired()) {
+        return false;
+    }
+    if (m_pHelper != nullptr) {
+        m_pHelper->OnWindowKillFocus();
+    }
+    return bRet;
+}
+
+bool ListBox::OnListBoxItemMouseEvent(const EventArgs& msg)
+{
+    if (m_pHelper != nullptr) {
+        if (msg.eventType == kEventMouseButtonDown) {
+            m_pHelper->OnButtonDown(msg.ptMouse, msg.GetSender());
+        }
+        else if (msg.eventType == kEventMouseButtonUp) {
+            m_pHelper->OnButtonUp(msg.ptMouse, msg.GetSender());
+        }
+        else if (msg.eventType == kEventMouseRButtonDown) {
+            m_pHelper->OnRButtonDown(msg.ptMouse, msg.GetSender());
+        }
+        else if (msg.eventType == kEventMouseRButtonUp) {
+            m_pHelper->OnButtonUp(msg.ptMouse, msg.GetSender());
+        }
+        else if (msg.eventType == kEventMouseMove) {
+            m_pHelper->OnMouseMove(msg.ptMouse, msg.GetSender());
+        }
+    }
+    //必须返回false, 否则会截获该消息，影响正常功能
+    return false;
+}
+
+void ListBox::OnListBoxItemWindowKillFocus()
+{
+    if (m_pHelper != nullptr) {
+        m_pHelper->OnWindowKillFocus();
+    }
+}
+
+void ListBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
+{
+    BaseClass::PaintChild(pRender, rcPaint);
+    PaintFrameSelection(pRender);
+}
+
+void ListBox::PaintFrameSelection(IRender* pRender)
+{
+    if (m_pHelper != nullptr) {
+        m_pHelper->PaintFrameSelection(pRender);
+    }
+}
+
+void ListBox::GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue) const
+{
+    nHScrollValue = DUI_NOSET_VALUE;
+    nVScrollValue = DUI_NOSET_VALUE;
+    if (IsHorizontalLayout()) {
+        //横向布局
+        int32_t deltaValue = 0;
+        VirtualHTileLayout* pVirtualHTileLayout = dynamic_cast<VirtualHTileLayout*>(GetLayout());
+        if (pVirtualHTileLayout != nullptr) {
+            deltaValue = pVirtualHTileLayout->GetItemSize().cx * 2;
+        }
+        HTileLayout* pHTileLayout = dynamic_cast<HTileLayout*>(GetLayout());
+        if (pHTileLayout != nullptr) {
+            deltaValue = pHTileLayout->GetItemSize().cx * 2;
+        }
+        if (deltaValue > 0) {
+            deltaValue = std::max(GetRect().Width() / 3, deltaValue);
+            nHScrollValue = deltaValue;
+        }
+    }
+    else {
+        //纵向布局
+        int32_t deltaValue = 0;
+        VirtualVTileLayout* pVirtualVTileLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
+        if (pVirtualVTileLayout != nullptr) {
+            deltaValue = pVirtualVTileLayout->GetItemSize().cy * 2;            
+        }
+        VTileLayout* pVTileLayout = dynamic_cast<VirtualVTileLayout*>(GetLayout());
+        if (pVTileLayout != nullptr) {
+            deltaValue = pVTileLayout->GetItemSize().cy * 2;
+        }
+        if (deltaValue > 0) {
+            deltaValue = std::max(GetRect().Height() / 3, deltaValue);
+            nHScrollValue = deltaValue;
+        }
+    }
+}
+
+bool ListBox::OnLButtonClickedBlank()
+{
+    if (IsEnableFrameSelection()) {
+        //在空白处点击鼠标左键，取消全部选择
+        bool bRet = SetSelectNone();
+        OnSelectStatusChanged();
+        return bRet;
+    }
+    return false;
+}
+
+bool ListBox::OnRButtonClickedBlank()
+{
+    if (IsEnableFrameSelection()) {
+        //在空白处点击鼠标右键，取消全部选择
+        bool bRet = SetSelectNone();
+        OnSelectStatusChanged();
+        return bRet;
+    }
+    return false;
+}
+
+bool ListBox::SetSelectAll()
+{
+    bool bChanged = false;
+    if (IsMultiSelect()) {
+        size_t nItemCount = GetItemCount();
+        for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+            Control* pControl = GetItemAt(nItemIndex);
+            if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()) {
+                continue;
+            }
+            IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
+            if (pListItem == nullptr) {
+                continue;
+            }
+            if (!pListItem->IsSelected()) {
+                //如果原来是非选择状态，更新为选择状态
+                pListItem->OptionSelected(true, false);
+                bChanged = true;
+            }
+        }
+    }
+    if (bChanged) {
+        Invalidate();
+    }
+    return bChanged;
+}
+
+bool ListBox::SetSelectNone()
+{
+    bool bChanged = false;
+    if (IsMultiSelect()) {
+        size_t nItemCount = GetItemCount();
+        for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+            Control* pControl = GetItemAt(nItemIndex);
+            if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()) {
+                continue;
+            }
+            IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
+            if (pListItem == nullptr) {
+                continue;
+            }
+            if (pListItem->IsSelected()) {
+                //如果原来是选择状态，更新为非选择状态
+                pListItem->OptionSelected(false, false);
+                bChanged = true;
+            }
+        }
+    }
+    if (bChanged) {
+        SetCurSel(Box::InvalidIndex);
+        Invalidate();
+    }
+    return bChanged;
+}
+
+void ListBox::OnSelectStatusChanged()
+{
+}
+
+bool ListBox::OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom)
+{
+    bool bChanged = false;
+    if (IsEnableFrameSelection() && IsMultiSelect()) {
+        UiRect rcListBox = GetRect();
+        size_t nItemCount = GetItemCount();
+        for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+            Control* pControl = GetItemAt(nItemIndex);
+            if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()) {
+                continue;
+            }
+            IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
+            if (pListItem == nullptr) {
+                continue;
+            }
+            UiRect rc = pControl->GetRect();
+            rc.Offset(-rcListBox.left, -rcListBox.top);
+            int64_t nNewLeft = (std::max)(left, (int64_t)rc.left);
+            int64_t nNewTop = (std::max)(top, (int64_t)rc.top);
+            int64_t nNewRight = (std::min)(right, (int64_t)rc.right);
+            int64_t nNewBottom = (std::min)(bottom, (int64_t)rc.bottom);
+            bool bContains = (nNewBottom > nNewTop) && (nNewRight > nNewLeft);
+            if (bContains) {
+                //如果原来是非选择状态，更新为选择状态
+                if (!pListItem->IsSelected()) {
+                    pListItem->OptionSelected(true, false);
+                    bChanged = true;
+                }
+            }
+            else {
+                //如果原来是选择状态，更新为非选择状态
+                if (pListItem->IsSelected()) {
+                    pListItem->OptionSelected(false, false);
+                    bChanged = true;
+                }
+            }
+        }
+    }
+    return bChanged;
+}
+
+void ListBox::OnListBoxKeyDown(const EventArgs& msg, bool bItemKeydown, bool& bHandled)
+{
+
+}
 
 } // namespace ui
