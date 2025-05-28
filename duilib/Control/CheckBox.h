@@ -56,8 +56,9 @@ public:
     /** 设置控件是否选择状态
      * @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态
      * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
+     * @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
      */
-    virtual void Selected(bool bSelected, bool bTriggerEvent = false);
+    virtual void Selected(bool bSelected, bool bTriggerEvent = false, uint64_t vkFlag = 0);
 
     /** 获取被选择时的图片
      * @param [in] stateType 要获取何种状态下的图片，参考 ControlStateType 枚举
@@ -494,7 +495,7 @@ void CheckBoxTemplate<InheritType>::SetSelected(bool bSelected)
 }
 
 template<typename InheritType>
-void CheckBoxTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
+void CheckBoxTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent, uint64_t /*vkFlag*/)
 {
     if (m_bSelected == bSelected) {
         return;

@@ -76,11 +76,6 @@ private:
     * @return 返回true表示成功处理，返回false表示未处理此消息
     */
     bool OnListCtrlKeyDown(const EventArgs& msg);
-
-private:
-    /** 没按Shift键时的最后一次选中项，有效范围：[0, GetElementCount())
-    */
-    size_t m_nLastNoShiftIndex;
 };
 
 /** ListCtrl各个视图中数据项的基类模板
@@ -99,11 +94,12 @@ public:
     /** 设置控件是否选择状态
   * @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态
   * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。默认为 false
+  * @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
   */
-    virtual void Selected(bool bSelect, bool bTriggerEvent) override
+    virtual void Selected(bool bSelect, bool bTriggerEvent, uint64_t vkFlag) override
     {
         if (BaseClass::IsSelected() != bSelect) {
-            BaseClass::Selected(bSelect, bTriggerEvent);
+            BaseClass::Selected(bSelect, bTriggerEvent, vkFlag);
         }
     }
 

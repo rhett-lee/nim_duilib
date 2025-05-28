@@ -139,11 +139,13 @@ HTileScrollBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`
 | paint_selected_colors | 默认规则 | bool | 多选的时候，是否显示选择背景色<br>默认规则：如果有CheckBox，多选的时候，默认不显示选择背景色；其他情况下显示背景色 |
 | scroll_select | false | bool | 是否随鼠标滚轮的滚动改变选中项设置(此选项仅单选有效) |
 | select_next_when_active_removed | | bool | 在移除一个子项后, 如果被移除项是选择项，是否自动选择下一项(此选项仅单选有效) |
-| frame_selection | false | bool | 是否支持鼠标框选功能 |
+| frame_selection | false | bool | 是否支持鼠标框选功能，仅多选模式下生效 |
 | frame_selection_color |"#FFAACCEE"| string | 鼠标框选填充颜色 |
 | frame_selection_border_size | 1 | int | 鼠标框选边框的大小 |
 | frame_selection_border_color | "#FF0078D7" | string | 鼠标框选边框颜色 |
 | frame_selection_alpha | 128 | int | 鼠标框选填充颜色的Alpha值 |
+| select_none_when_click_blank | true | bool | 设置当鼠标点击空白部分时，是否取消选择(仅当开启鼠标框选功能时有效) |
+| select_like_list_ctrl | false | bool | 设置选择模式：与ListCtrl类似（即Windows资源管理器中，对文件操作类似的方式），仅多选模式有效 |
 
 ListBox 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
 

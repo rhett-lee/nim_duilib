@@ -146,7 +146,7 @@ void ListBoxHelper::OnButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
     m_bMouseDownInView = false;
     m_bMouseDown = false;
     m_pMouseSender = nullptr;
-    if (bClickedBlank && IsEnableFrameSelection()) {
+    if (bClickedBlank) {
         if (m_pListBox->OnLButtonClickedBlank()) {
             m_pListBox->SendEvent(kEventSelChange);
         }
@@ -180,7 +180,7 @@ void ListBoxHelper::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* pSender)
     m_bMouseDownInView = false;
     m_bRMouseDown = false;
     m_pMouseSender = nullptr;
-    if (bClickedBlank && IsEnableFrameSelection()) {
+    if (bClickedBlank) {
         if (m_pListBox->OnRButtonClickedBlank()) {
             m_pListBox->SendEvent(kEventSelChange);
         }
