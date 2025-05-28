@@ -6,8 +6,7 @@
 namespace ui
 {
 ListCtrlView::ListCtrlView(Window* pWindow, Layout* pLayout):
-    VirtualListBox(pWindow, pLayout),
-    m_nLastNoShiftIndex(0)
+    VirtualListBox(pWindow, pLayout)
 {
 }
 
@@ -413,7 +412,7 @@ bool ListCtrlView::OnListCtrlKeyDown(const EventArgs& msg)
     std::vector<size_t> selectedIndexs; //需要选择的列表
     if (bShiftDown) {
         //按住Shift键：选择范围内的所有数据
-        size_t nLastNoShiftIndex = m_nLastNoShiftIndex;//起始的元素索引号
+        size_t nLastNoShiftIndex = GetLastNoShiftIndex();//起始的元素索引号
         if (nLastNoShiftIndex >= nElementCount) {
             nLastNoShiftIndex = 0;
         }
@@ -494,7 +493,7 @@ bool ListCtrlView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
             }
             else {
                 std::vector<size_t> refreshDataIndexs;
-                m_nLastNoShiftIndex = nElementIndex;
+                SetLastNoShiftIndex(nElementIndex);
                 if (nElementIndex == Box::InvalidIndex) {
                     SetSelectNone(refreshDataIndexs);
                 }
@@ -515,7 +514,7 @@ bool ListCtrlView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
         else {
             if (bShift) {
                 //按左键: 同时按下了Shift键
-                size_t nIndexStart = m_nLastNoShiftIndex;
+                size_t nIndexStart = GetLastNoShiftIndex();
                 if (nIndexStart >= GetElementCount()) {
                     nIndexStart = 0;
                 }
@@ -548,7 +547,7 @@ bool ListCtrlView::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent
                 //按左键: 同时按下了Control键，保持多选
                 bRet = SelectItemMulti(iIndex, bTakeFocus, false);
                 if (bRet) {
-                    m_nLastNoShiftIndex = GetDisplayItemElementIndex(iIndex);
+                    SetLastNoShiftIndex(GetDisplayItemElementIndex(iIndex));
                 }
             }
         }

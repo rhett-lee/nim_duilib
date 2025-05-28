@@ -99,17 +99,19 @@ public:
     virtual void GetSelectedItems(std::vector<size_t>& selectedIndexs) const;
 
     /** 选择子项
-    *  @param [in] iIndex 子项目的ID
-    *  @param [in] bTakeFocus 是否让子项控件成为焦点控件
-    *  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
-    *  @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
+    * @param [in] iIndex 子项目的ID
+    * @param [in] bTakeFocus 是否让子项控件成为焦点控件
+    * @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+    * @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
+    * @return 返回true代表内部选择状态发生变化，返回false代表内部状态无变化
     */
     virtual bool SelectItem(size_t iIndex, bool bTakeFocus, 
                             bool bTriggerEvent, uint64_t vkFlag = 0) override;
 
     /** 取消选择子项
-    *  @param [in] iIndex 子项目的ID
-    *  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventUnSelect事件
+    * @param [in] iIndex 子项目的ID
+    * @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventUnSelect事件
+    * @return 返回true代表内部选择状态发生变化，返回false代表内部状态无变化
     */
     virtual bool UnSelectItem(size_t iIndex, bool bTriggerEvent) override;
 
@@ -259,6 +261,24 @@ public:
     */
     int32_t GetNormalItemTop() const;
 
+    /** 设置当鼠标点击空白部分时，是否取消选择(仅当开启鼠标框选功能时有效)
+    */
+    void SetSelectNoneWhenClickBlank(bool bSelectNoneWhenClickBlank);
+
+    /** 获取当鼠标点击空白部分时，是否取消选择
+    */
+    bool IsSelectNoneWhenClickBlank() const;
+
+    /** 设置选择模式：是否按ListCtrl风格（仅多选模式有效，即Windows资源管理器中，对文件操作类似的方式）
+        按Ctrl: 只选择点击的子项, 再次点击则取消选择
+        按Shift：选择两次点击之间的所有子项
+    */
+    void SetSelectLikeListCtrl(bool bSelectLikeListCtrl);
+
+    /** 获取设置选择模式：是否按ListCtrl风格
+    */
+    bool IsSelectLikeListCtrl() const;
+
 public:
     /** 选择全部, 同时按需更新界面显示
     * @return 如果有数据变化返回true，否则返回false
@@ -378,6 +398,7 @@ protected:
     *  @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
     *  @param [in] bTakeFocus 是否让子项控件成为焦点控件
     *  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+    *  @return 返回true代表内部选择状态发生变化，返回false代表内部状态无变化
     */
     bool SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEvent);
 
@@ -385,12 +406,14 @@ protected:
     *  @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
     *  @param [in] bTakeFocus 是否让子项控件成为焦点控件
     *  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+    *  @return 返回true代表内部选择状态发生变化，返回false代表内部状态无变化
     */
     bool SelectItemMulti(size_t iIndex, bool bTakeFocus, bool bTriggerEvent);
 
     /** 选择子项，选中后让子项控件成为焦点控件，并触发一个kEventSelect事件
     *   为二次封装函数，相当于：SelectItem(iIndex, true, true);
     *  @param [in] iIndex 子项目的ID，范围是：[0, GetItemCount())
+    *  @return 返回true代表内部选择状态发生变化，返回false代表内部状态无变化
     */
     bool SelectItem(size_t iIndex);
 
@@ -451,6 +474,14 @@ protected:
     */
     int32_t CalcVTileRows(VTileLayout* pVTileLayout) const;
 
+    /** 设置没按Shift键时的最后一次选中项的索引号（用于按Shift键选择的逻辑）
+    */
+    void SetLastNoShiftIndex(size_t nLastNoShiftIndex);
+
+    /** 设置没按Shift键时的最后一次选中项的索引号（用于按Shift键选择的逻辑）
+    */
+    size_t GetLastNoShiftIndex() const;
+
 protected:
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
     virtual bool ButtonDown(const EventArgs& msg) override;
@@ -500,19 +531,15 @@ protected:
     */
     virtual bool OnRButtonClickedBlank();
 
-    /** 响应KeyDown消息（用于处理快捷键）
-    * @param [in] msg 鼠标消息内容
-    * @param [in] bItemKeydown true表示当前焦点在子项上面，false表示当前焦点在ListBox本身
-    * @return bHandled 返回true表示成功处理，不需要再继续处理; 返回false表示未处理此消息
-    */
-    virtual void OnListBoxKeyDown(const EventArgs& msg, bool bItemKeydown,  bool& bHandled);
-
 private:
     //Helper类型，可以访问所有数据
     friend class ListBoxHelper;
 
     //当前选择的子项ID, 如果是多选，指向最后一个选择项
     size_t m_iCurSel;
+
+    //没按Shift键时的最后一次选中项的索引号（用于按Shift键选择的逻辑）
+    size_t m_nLastNoShiftIndex;
 
     //用户自定义的排序比较函数
     PFNCompareFunc m_pCompareFunc;
@@ -534,6 +561,14 @@ private:
 
     //是否允许多选（默认为单选）
     bool m_bMultiSelect;
+
+    //选择模式：ListCtrl风格（仅多选模式有效）
+    //按Ctrl: 只选择点击的子项, 再次点击则取消选择
+    //按Shift：选择两次点击之间的所有子项
+    bool m_bSelectLikeListCtrl;
+
+    //当鼠标点击空白部分时，是否取消选择(仅当开启鼠标框选功能时有效)
+    bool m_bSelectNoneWhenClickBlank;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////

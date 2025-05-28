@@ -58,17 +58,19 @@ public:
     virtual void SetCurSel(size_t iIndex) = 0;
 
     /** 选择子项
-    *  @param [in] iIndex 子项目的ID
-    *  @param [in] bTakeFocus 是否让子项控件成为焦点控件
-    *  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
-    *  @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
+    * @param [in] iIndex 子项目的ID
+    * @param [in] bTakeFocus 是否让子项控件成为焦点控件
+    * @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+    * @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
+    * @return 返回true代表内部选择状态发生变化，返回false代表内部状态无变化
     */
     virtual bool SelectItem(size_t iIndex, bool bTakeFocus,
                             bool bTriggerEvent, uint64_t vkFlag = 0) = 0;
 
     /** 取消选择子项
-    *  @param [in] iIndex 子项目的ID
-    *  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventUnSelect事件
+    * @param [in] iIndex 子项目的ID
+    * @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventUnSelect事件
+    * @return 返回true代表内部选择状态发生变化，返回false代表内部状态无变化
     */
     virtual bool UnSelectItem(size_t iIndex, bool bTriggerEvent) = 0;
 
@@ -188,9 +190,10 @@ public:
 
     /** 设置控件是否选择状态
      * @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态
-     * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false。
+     * @param [in] bTriggerEvent 是否发送状态改变事件，true 为发送，否则为 false
+     * @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
      */
-    virtual void Selected(bool bSelect, bool bTriggerEvent) override;
+    virtual void Selected(bool bSelect, bool bTriggerEvent, uint64_t vkFlag) override;
 
     /** 调用Option类的选择函数, 只更新界面的选择状态
     * @param [in] bSelected 为 true 时为选择状态，false 时为取消选择状态
@@ -331,7 +334,7 @@ void ListBoxItemTemplate<InheritType>::OptionSelected(bool bSelect, bool bTrigge
 }
 
 template<typename InheritType>
-void ListBoxItemTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
+void ListBoxItemTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent, uint64_t vkFlag)
 {
     //界面点击等操作触发选择操作
     if (!this->IsEnabled()) {
@@ -339,7 +342,7 @@ void ListBoxItemTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEve
     }
     if (m_pOwner != nullptr) {
         if (bSelected) {
-            m_pOwner->SelectItem(m_iListBoxIndex, false, bTriggerEvent);
+            m_pOwner->SelectItem(m_iListBoxIndex, false, bTriggerEvent, vkFlag);
         }
         else {
             m_pOwner->UnSelectItem(m_iListBoxIndex, bTriggerEvent);

@@ -2,6 +2,7 @@
 #define UI_CONTROL_OPTION_H_
 
 #include "duilib/Control/CheckBox.h"
+#include "duilib/duilib_defs.h"
 
 namespace ui
 {
@@ -20,7 +21,7 @@ public:
     virtual DString GetType() const override;
     virtual void SetWindow(Window* pWindow) override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
-    virtual void Selected(bool bSelected, bool bTriggerEvent = false) override;
+    virtual void Selected(bool bSelected, bool bTriggerEvent = false, uint64_t vkFlag = 0) override;
     virtual void Activate(const EventArgs* pMsg) override;
 
     /**
@@ -92,7 +93,7 @@ void OptionTemplate<InheritType>::SetAttribute(const DString& strName, const DSt
 }
 
 template<typename InheritType>
-void OptionTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent)
+void OptionTemplate<InheritType>::Selected(bool bSelected, bool bTriggerEvent, uint64_t /*vkFlag*/)
 {
     bool isChanged = this->IsSelected() != bSelected;
     this->SetSelected(bSelected);
@@ -132,7 +133,22 @@ void OptionTemplate<InheritType>::Activate(const EventArgs* pMsg)
     if (!this->IsActivatable()) {
         return;
     }
-    Selected(true, true);
+    uint64_t vkFlag = 0;
+    if (pMsg != nullptr) {
+        if ((pMsg->eventType == kEventMouseButtonDown) || (pMsg->eventType == kEventMouseButtonUp)) {
+            vkFlag |= kVkLButton;
+        }
+        if ((pMsg->eventType == kEventMouseRButtonDown) || (pMsg->eventType == kEventMouseRButtonUp)) {
+            vkFlag |= kVkRButton;
+        }
+        if (this->IsKeyDown(*pMsg, ModifierKey::kControl)) {
+            vkFlag |= kVkControl;
+        }
+        if (this->IsKeyDown(*pMsg, ModifierKey::kShift)) {
+            vkFlag |= kVkShift;
+        }
+    }    
+    Selected(true, true, vkFlag);
     ButtonTemplate<InheritType>::Activate(pMsg);
 }
 

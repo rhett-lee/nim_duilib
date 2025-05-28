@@ -24,7 +24,10 @@ ListBox::ListBox(Window* pWindow, Layout* pLayout) :
     m_bSelectNextWhenActiveRemoved(false),
     m_iCurSel(Box::InvalidIndex),
     m_pCompareFunc(nullptr),
-    m_pCompareContext(nullptr)
+    m_pCompareContext(nullptr),
+    m_nLastNoShiftIndex(0),
+    m_bSelectLikeListCtrl(false),
+    m_bSelectNoneWhenClickBlank(true)
 {
 }
 
@@ -67,6 +70,12 @@ void ListBox::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("frame_selection_border_color")) {
         SetFrameSelectionBorderColor(strValue);
+    }
+    else if (strName == _T("select_none_when_click_blank")) {
+        SetSelectNoneWhenClickBlank(strValue == _T("true"));
+    }
+    else if (strName == _T("select_like_list_ctrl")) {
+        SetSelectLikeListCtrl(strValue == _T("true"));
     }
     else {
         ScrollBox::SetAttribute(strName, strValue);
@@ -167,6 +176,26 @@ int32_t ListBox::GetNormalItemTop() const
         return m_pHelper->GetNormalItemTop();
     }
     return -1;
+}
+
+void ListBox::SetSelectNoneWhenClickBlank(bool bSelectNoneWhenClickBlank)
+{
+    m_bSelectNoneWhenClickBlank = bSelectNoneWhenClickBlank;
+}
+
+bool ListBox::IsSelectNoneWhenClickBlank() const
+{
+    return m_bSelectNoneWhenClickBlank;
+}
+
+void ListBox::SetSelectLikeListCtrl(bool bSelectLikeListCtrl)
+{
+    m_bSelectLikeListCtrl = bSelectLikeListCtrl;
+}
+
+bool ListBox::IsSelectLikeListCtrl() const
+{
+    return m_bSelectLikeListCtrl;
 }
 
 void ListBox::HandleEvent(const EventArgs& msg)
@@ -939,14 +968,19 @@ size_t ListBox::GetItemCountAfter(size_t nCurSel)
 
 bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t /*vkFlag*/)
 {
+    bool bRet = false;
     if (IsMultiSelect()) {
         //多选
-        return SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
+        bRet = SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
     }
     else {
         //单选
-        return SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
+        bRet = SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
     }
+    if (bRet) {
+        OnSelectStatusChanged();
+    }
+    return bRet;
 }
 
 bool ListBox::UnSelectItem(size_t iIndex, bool bTriggerEvent)
@@ -969,7 +1003,7 @@ bool ListBox::UnSelectItem(size_t iIndex, bool bTriggerEvent)
         //事件触发，需要放在函数返回之前，不能放在代码中间
         SendEvent(kEventUnSelect, iIndex, Box::InvalidIndex);
     }
-    return true;
+    return bHasEvent;
 }
 
 void ListBox::OnItemSelectedChanged(size_t /*iIndex*/, IListBoxItem* /*pListBoxItem*/)
@@ -1003,7 +1037,7 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
         if (bChanged && bTriggerEvent) {
             SendEvent(kEventSelect, m_iCurSel, Box::InvalidIndex);
         }
-        return true;
+        return bChanged;
     }
     bool hasUnSelectEvent = false;
     const size_t iOldSel = m_iCurSel;
@@ -1024,7 +1058,7 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
         if (hasUnSelectEvent && bTriggerEvent) {
             SendEvent(kEventUnSelect, iOldSel, Box::InvalidIndex);
         }
-        return false;
+        return hasUnSelectEvent;
     }
 
     Control* pControl = GetItemAt(iIndex);
@@ -1033,7 +1067,7 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
         if (hasUnSelectEvent && bTriggerEvent) {
             SendEvent(kEventUnSelect, iOldSel, Box::InvalidIndex);
         }
-        return false;
+        return hasUnSelectEvent;
     }
     IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
     if (pListItem == nullptr) {
@@ -1041,7 +1075,7 @@ bool ListBox::SelectItemSingle(size_t iIndex, bool bTakeFocus, bool bTriggerEven
         if (hasUnSelectEvent && bTriggerEvent) {
             SendEvent(kEventUnSelect, iOldSel, Box::InvalidIndex);
         }
-        return false;
+        return hasUnSelectEvent;
     }
     m_iCurSel = iIndex;
     //设置选择状态
@@ -1813,7 +1847,7 @@ void ListBox::GetScrollDeltaValue(int32_t& nHScrollValue, int32_t& nVScrollValue
 
 bool ListBox::OnLButtonClickedBlank()
 {
-    if (IsEnableFrameSelection()) {
+    if (IsEnableFrameSelection() && IsSelectNoneWhenClickBlank()) {
         //在空白处点击鼠标左键，取消全部选择
         bool bRet = SetSelectNone();
         OnSelectStatusChanged();
@@ -1824,7 +1858,7 @@ bool ListBox::OnLButtonClickedBlank()
 
 bool ListBox::OnRButtonClickedBlank()
 {
-    if (IsEnableFrameSelection()) {
+    if (IsEnableFrameSelection() && IsSelectNoneWhenClickBlank()) {
         //在空白处点击鼠标右键，取消全部选择
         bool bRet = SetSelectNone();
         OnSelectStatusChanged();
@@ -1933,9 +1967,14 @@ bool ListBox::OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t
     return bChanged;
 }
 
-void ListBox::OnListBoxKeyDown(const EventArgs& msg, bool bItemKeydown, bool& bHandled)
+void ListBox::SetLastNoShiftIndex(size_t nLastNoShiftIndex)
 {
+    m_nLastNoShiftIndex = nLastNoShiftIndex;
+}
 
+size_t ListBox::GetLastNoShiftIndex() const
+{
+    return m_nLastNoShiftIndex;
 }
 
 } // namespace ui

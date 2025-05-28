@@ -679,7 +679,14 @@ bool TabCtrlItem::ButtonDown(const EventArgs& msg)
     }
     if (!IsSelected() && IsActivatable()) {
         //按鼠标左键的时候，选择
-        Selected(true, true);
+        uint64_t vkFlag = kVkLButton;
+        if (this->IsKeyDown(msg, ModifierKey::kControl)) {
+            vkFlag |= kVkControl;
+        }
+        if (this->IsKeyDown(msg, ModifierKey::kShift)) {
+            vkFlag |= kVkShift;
+        }
+        Selected(true, true, vkFlag);
     }
     return bRet;
 }
