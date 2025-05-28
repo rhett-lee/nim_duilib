@@ -213,7 +213,13 @@ void ListBox::HandleEvent(const EventArgs& msg)
     }
     bool bHandled = false;
     if (msg.eventType == kEventKeyDown) {
-        bHandled = OnListBoxKeyDown(msg);
+        if (IsSelectLikeListCtrl()) {
+            //优先使用ListCtrl风格的快捷逻辑
+            bHandled = OnListCtrlKeyDown(msg);
+        }        
+        if (!bHandled) {
+            bHandled = OnListBoxKeyDown(msg);
+        }        
     }
     else if (msg.eventType == kEventMouseWheel) {
         bHandled = OnListBoxMouseWheel(msg);
@@ -360,7 +366,16 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
         bHandled = false;
         break;
     }
+    if (!IsKeyDown(msg, ModifierKey::kShift)) {
+        SetLastNoShiftItem(GetCurSel());
+    }
     return bHandled;
+}
+
+bool ListBox::OnListCtrlKeyDown(const EventArgs& msg)
+{
+    //暂未实现
+    return false;
 }
 
 bool ListBox::OnListBoxMouseWheel(const EventArgs& msg)
@@ -2112,9 +2127,9 @@ bool ListBox::OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t
     return bChanged;
 }
 
-void ListBox::SetLastNoShiftItem(size_t nLastNoShiftIndex)
+void ListBox::SetLastNoShiftItem(size_t nLastNoShiftItem)
 {
-    m_nLastNoShiftItem = nLastNoShiftIndex;
+    m_nLastNoShiftItem = nLastNoShiftItem;
 }
 
 size_t ListBox::GetLastNoShiftItem() const

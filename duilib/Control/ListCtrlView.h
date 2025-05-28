@@ -62,20 +62,6 @@ protected:
     /** 控件初始化
     */
     virtual void OnInit() override;
-
-private:
-    /** 横向布局，计算行数
-    */
-    int32_t CalcRows() const;
-
-    /** 纵向布局，计算列数
-    */
-    int32_t CalcColumns() const;
-
-    /** 响应KeyDown消息
-    * @return 返回true表示成功处理，返回false表示未处理此消息
-    */
-    bool OnListCtrlKeyDown(const EventArgs& msg);
 };
 
 /** ListCtrl各个视图中数据项的基类模板
