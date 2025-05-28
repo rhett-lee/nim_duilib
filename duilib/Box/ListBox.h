@@ -370,10 +370,15 @@ protected:
     */
     virtual void OnItemCheckedChanged(size_t iIndex, IListBoxItem* pListBoxItem) override;
 
-    /** 响应KeyDown消息
+    /** 响应KeyDown消息（实现ListBox标准模式的快捷键处理）
     * @return 返回true表示成功处理，返回false表示未处理此消息
     */
     virtual bool OnListBoxKeyDown(const EventArgs& msg);
+
+    /** 响应KeyDown消息（实现ListCtrl类似的快捷键逻辑）
+    * @return 返回true表示成功处理，返回false表示未处理此消息
+    */
+    virtual bool OnListCtrlKeyDown(const EventArgs& msg);
 
     /** 响应MouseWheel消息
     @return 返回true表示成功处理，返回false表示未处理此消息
@@ -480,9 +485,9 @@ protected:
     */
     int32_t CalcVTileRows(VTileLayout* pVTileLayout) const;
 
-    /** 设置没按Shift键时的最后一次选中项的索引号（用于按Shift键选择的逻辑）
+    /** 设置没按Shift键时的最后一次选中项的索引号，界面控件的索引号（用于按Shift键选择的逻辑）
     */
-    void SetLastNoShiftItem(size_t nLastNoShiftIndex);
+    virtual void SetLastNoShiftItem(size_t nLastNoShiftItem);
 
     /** 设置没按Shift键时的最后一次选中项的索引号（用于按Shift键选择的逻辑）
     */

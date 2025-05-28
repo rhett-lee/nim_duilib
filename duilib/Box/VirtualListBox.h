@@ -375,6 +375,11 @@ protected:
     virtual bool ListCtrlSelectItem(size_t iIndex, bool bTakeFocus,
                                     bool bTriggerEvent, uint64_t vkFlag) override;
 
+    /** 响应KeyDown消息（实现ListCtrl类似的快捷键逻辑）
+    * @return 返回true表示成功处理，返回false表示未处理此消息
+    */
+    virtual bool OnListCtrlKeyDown(const EventArgs& msg) override;
+
 protected:
 
     /** 设置虚表布局接口
@@ -445,6 +450,10 @@ protected:
                              int32_t nRows, int32_t childMarginX, int32_t childMarginY,
                              int64_t& iLeft, int64_t& iTop, int64_t& iRight, int64_t& iBottom) const;
 
+    /** 设置没按Shift键时的最后一次选中项的索引号，界面控件的索引号（用于按Shift键选择的逻辑）
+    */
+    virtual void SetLastNoShiftItem(size_t nLastNoShiftItem) override;
+
     /** 设置没按Shift键时的最后一次选中项的数据索引号（用于按Shift键选择的逻辑）
     */
     void SetLastNoShiftIndex(size_t nLastNoShiftIndex);
@@ -452,6 +461,14 @@ protected:
     /** 设置没按Shift键时的最后一次选中项的数据索引号（用于按Shift键选择的逻辑）
     */
     size_t GetLastNoShiftIndex() const;
+
+    /** 横向布局，计算行数
+    */
+    int32_t CalcRows() const;
+
+    /** 纵向布局，计算列数
+    */
+    int32_t CalcColumns() const;
 
 private:
     /** 数据代理对象接口，提供展示数据
