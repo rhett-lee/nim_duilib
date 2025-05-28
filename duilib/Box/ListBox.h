@@ -446,6 +446,12 @@ protected:
     */
     bool IsSelectableItem(size_t itemIndex) const;
 
+    /** 判断一个列表项是否处于选择状态（界面控件）
+    * @param [in] nIndex 界面控件的子项索引号
+    * @return 返回true表示处于选择状态，返回false表示非选择状态
+    */
+    bool IsItemSelected(size_t nIndex) const;
+
     /** 计算本页里面显示几个子项
     * @param [in] bIsHorizontal 当前布局是否为水平布局
     * @param [out] nColumns 返回列数
@@ -476,11 +482,11 @@ protected:
 
     /** 设置没按Shift键时的最后一次选中项的索引号（用于按Shift键选择的逻辑）
     */
-    void SetLastNoShiftIndex(size_t nLastNoShiftIndex);
+    void SetLastNoShiftItem(size_t nLastNoShiftIndex);
 
     /** 设置没按Shift键时的最后一次选中项的索引号（用于按Shift键选择的逻辑）
     */
-    size_t GetLastNoShiftIndex() const;
+    size_t GetLastNoShiftItem() const;
 
 protected:
     //鼠标消息（返回true：表示消息已处理；返回false：则表示消息未处理，需转发给父控件）
@@ -521,6 +527,16 @@ protected:
     */
     virtual bool OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom);
 
+    /** 选择子项(ListCtrl风格)
+    *  @param [in] iIndex 子项目的ID
+    *  @param [in] bTakeFocus 是否让子项控件成为焦点控件
+    *  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+    *  @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
+    *  @return 返回true代表内部选择状态发生变化，返回false代表内部状态无变化
+    */
+    virtual bool ListCtrlSelectItem(size_t iIndex, bool bTakeFocus,
+                                    bool bTriggerEvent, uint64_t vkFlag);
+
     /** 在视图空白处点击了鼠标左键(鼠标框选功能)
     * @return 如果选择项有变化返回true，此时会触发kEventSelChange事件，否则返回false
     */
@@ -538,8 +554,8 @@ private:
     //当前选择的子项ID, 如果是多选，指向最后一个选择项
     size_t m_iCurSel;
 
-    //没按Shift键时的最后一次选中项的索引号（用于按Shift键选择的逻辑）
-    size_t m_nLastNoShiftIndex;
+    //没按Shift键时的最后一次选中项的界面控件索引号（用于按Shift键选择的逻辑）
+    size_t m_nLastNoShiftItem;
 
     //用户自定义的排序比较函数
     PFNCompareFunc m_pCompareFunc;

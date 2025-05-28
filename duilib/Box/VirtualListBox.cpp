@@ -37,6 +37,7 @@ VirtualListBox::VirtualListBox(Window* pWindow, Layout* pLayout)
     : ListBox(pWindow, pLayout)
     , m_pDataProvider(nullptr)
     , m_pVirtualLayout(nullptr)
+    , m_nLastNoShiftIndex(0)
     , m_bEnableUpdateProvider(true)
 {
     ASSERT(pLayout != nullptr);
@@ -847,6 +848,16 @@ bool VirtualListBox::SortItems(PFNCompareFunc /*pfnCompare*/, void* /*pCompareCo
     return false;
 }
 
+void VirtualListBox::SetLastNoShiftIndex(size_t nLastNoShiftIndex)
+{
+    m_nLastNoShiftIndex = nLastNoShiftIndex;
+}
+
+size_t VirtualListBox::GetLastNoShiftIndex() const
+{
+    return m_nLastNoShiftIndex;
+}
+
 void VirtualListBox::CalcTileElementRectV(size_t nElemenetIndex, const UiSize& szItem,
                                           int32_t nColumns, int32_t childMarginX, int32_t childMarginY,
                                           int64_t& iLeft, int64_t& iTop,
@@ -1057,6 +1068,12 @@ bool VirtualListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEve
         //未开启该功能
         return BaseClass::SelectItem(iIndex, bTakeFocus, bTriggerEvent, vkFlag);
     }
+    return ListCtrlSelectItem(iIndex, bTakeFocus, bTriggerEvent, vkFlag);
+}
+
+bool VirtualListBox::ListCtrlSelectItem(size_t iIndex, bool bTakeFocus,
+                                        bool bTriggerEvent, uint64_t vkFlag)
+{
     //事件触发，需要放在函数返回之前，不能放在代码中间
     bool bSelectStatusChanged = false;
     bool bRet = false;
@@ -1070,14 +1087,14 @@ bool VirtualListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEve
         }
 
         bool bRbuttonDown = vkFlag & kVkRButton;
-        bool bShift = vkFlag & kVkShift;
-        bool bControl = vkFlag & kVkControl;
-        if (bShift && bControl) {
+        bool bShiftDown = vkFlag & kVkShift;
+        bool bControlDown = vkFlag & kVkControl;
+        if (bShiftDown && bControlDown) {
             //同时按下Shift和Ctrl键，忽略
-            bShift = false;
-            bControl = false;
+            bShiftDown = false;
+            bControlDown = false;
         }
-        if (bRbuttonDown || (!bShift && !bControl)) {
+        if (bRbuttonDown || (!bShiftDown && !bControlDown)) {
             //按右键的时候：如果当前项没选择，按单选逻辑实现，只保留一个选项；
             //            如果已经选择，则保持原选择，所有项选择状态不变（以提供右键菜单，对所选项操作的机会）
             //在没有按下Control键也没有按Shift键：按单选逻辑实现，只保留一个选项            
@@ -1106,7 +1123,7 @@ bool VirtualListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEve
             }
         }
         else {
-            if (bShift) {
+            if (bShiftDown) {
                 //按左键: 同时按下了Shift键
                 size_t nIndexStart = GetLastNoShiftIndex();
                 if (nIndexStart >= GetElementCount()) {

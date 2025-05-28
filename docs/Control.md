@@ -568,7 +568,8 @@ DirectoryTree 控件继承了 `TreeView` 属性，更多可用属性请参考`Tr
 | enable_item_edit | true | bool | 是否支持子项编辑|
 | list_ctrl_richedit_class | | string | 编辑框的Class属性，定义方法请参考`global.xml` 中的对应内容和示例程序|
 
-ListCtrl 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性
+ListCtrl 控件继承了 `VBox` 属性，更多可用属性请参考`VBox`的属性    
+ListCtrl 控件的各个视图继承了 `ListBox` 属性，更多可用属性请参考`ListBox`的属性设置:[Box.md](Box.md)，视图的属性需要在`global.xml` 中设置。
 
 ## PropertyGrid的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |

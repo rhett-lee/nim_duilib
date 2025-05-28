@@ -365,6 +365,16 @@ protected:
     */
     virtual bool OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t bottom) override;
 
+    /** 选择子项(ListCtrl风格)
+    *  @param [in] iIndex 子项目的ID
+    *  @param [in] bTakeFocus 是否让子项控件成为焦点控件
+    *  @param [in] bTriggerEvent 是否触发选择事件, 如果为true，会触发一个kEventSelect事件
+    *  @param [in] vkFlag 按键标志, 取值范围参见 enum VKFlag 的定义
+    *  @return 返回true代表内部选择状态发生变化，返回false代表内部状态无变化
+    */
+    virtual bool ListCtrlSelectItem(size_t iIndex, bool bTakeFocus,
+                                    bool bTriggerEvent, uint64_t vkFlag) override;
+
 protected:
 
     /** 设置虚表布局接口
@@ -435,6 +445,14 @@ protected:
                              int32_t nRows, int32_t childMarginX, int32_t childMarginY,
                              int64_t& iLeft, int64_t& iTop, int64_t& iRight, int64_t& iBottom) const;
 
+    /** 设置没按Shift键时的最后一次选中项的数据索引号（用于按Shift键选择的逻辑）
+    */
+    void SetLastNoShiftIndex(size_t nLastNoShiftIndex);
+
+    /** 设置没按Shift键时的最后一次选中项的数据索引号（用于按Shift键选择的逻辑）
+    */
+    size_t GetLastNoShiftIndex() const;
+
 private:
     /** 数据代理对象接口，提供展示数据
     */
@@ -443,6 +461,10 @@ private:
     /** 虚表布局接口
     */
     VirtualLayout* m_pVirtualLayout;
+
+    /** 没按Shift键时的最后一次选中项的数据索引号（不是界面控件的索引号，用于按Shift键选择的逻辑）
+    */
+    size_t m_nLastNoShiftIndex;
 
     /** 是否允许从界面状态同步到存储状态
     */

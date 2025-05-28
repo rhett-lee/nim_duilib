@@ -25,7 +25,7 @@ ListBox::ListBox(Window* pWindow, Layout* pLayout) :
     m_iCurSel(Box::InvalidIndex),
     m_pCompareFunc(nullptr),
     m_pCompareContext(nullptr),
-    m_nLastNoShiftIndex(0),
+    m_nLastNoShiftItem(0),
     m_bSelectLikeListCtrl(false),
     m_bSelectNoneWhenClickBlank(true)
 {
@@ -656,6 +656,19 @@ bool ListBox::IsSelectableItem(size_t itemIndex) const
     return bSelectable;
 }
 
+bool ListBox::IsItemSelected(size_t nIndex) const
+{
+    bool bSelected = false;
+    Control* pControl = GetItemAt(nIndex);
+    if (pControl != nullptr) {
+        IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
+        if ((pListItem != nullptr) && pListItem->IsSelected()) {
+            bSelected = true;
+        }
+    }    
+    return bSelected;
+}
+
 size_t ListBox::GetDisplayItemCount(bool bIsHorizontal, size_t& nColumns, size_t& nRows) const
 {
     nColumns = 1;
@@ -966,19 +979,151 @@ size_t ListBox::GetItemCountAfter(size_t nCurSel)
     return nCount;
 }
 
-bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t /*vkFlag*/)
+bool ListBox::SelectItem(size_t iIndex, bool bTakeFocus, bool bTriggerEvent, uint64_t vkFlag)
 {
     bool bRet = false;
+    if (!IsSelectLikeListCtrl()) {
+        //未开启该功能
+        if (IsMultiSelect()) {
+            //多选
+            bRet = SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
+        }
+        else {
+            //单选
+            bRet = SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
+        }
+        if (bRet) {
+            OnSelectStatusChanged();
+        }
+    }
+    else {
+        return ListCtrlSelectItem(iIndex, bTakeFocus, bTriggerEvent, vkFlag);
+    }
+    return bRet;
+}
+
+bool ListBox::ListCtrlSelectItem(size_t iIndex, bool bTakeFocus,
+                                 bool bTriggerEvent, uint64_t vkFlag)
+{
+    if (!IsSelectableItem(iIndex)) {
+        //iIndex的值无效，或者当前子项不可选择
+        return false;
+    }
+
+    //事件触发，需要放在函数返回之前，不能放在代码中间
+    bool bSelectStatusChanged = false;
+    bool bRet = false;
     if (IsMultiSelect()) {
-        //多选
-        bRet = SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
+        //多选模式        
+        bool bRbuttonDown = vkFlag & kVkRButton;
+        bool bShiftDown = vkFlag & kVkShift;
+        bool bControlDown = vkFlag & kVkControl;
+        if (bShiftDown && bControlDown) {
+            //同时按下Shift和Ctrl键，忽略
+            bShiftDown = false;
+            bControlDown = false;
+        }
+        if (bRbuttonDown || (!bShiftDown && !bControlDown)) {
+            //按右键的时候：如果当前项没选择，按单选逻辑实现，只保留一个选项；
+            //            如果已经选择，则保持原选择，所有项选择状态不变（以提供右键菜单，对所选项操作的机会）
+            //在没有按下Control键也没有按Shift键：按单选逻辑实现，只保留一个选项            
+            if (bRbuttonDown && IsItemSelected(iIndex)) {
+                bRet = true;
+            }
+            else {                             
+                //取消其他选择项
+                size_t nItemCount = GetItemCount();
+                for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+                    if (nItemIndex == iIndex) {
+                        continue;
+                    }
+                    Control* pControl = GetItemAt(nItemIndex);
+                    if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()) {
+                        continue;
+                    }
+                    IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
+                    if (pListItem == nullptr) {
+                        continue;
+                    }
+                    if (pListItem->IsSelected()) {
+                        //如果原来是选择状态，更新为非选择状态
+                        pListItem->OptionSelected(false, false);
+                    }
+                }
+                SetLastNoShiftItem(iIndex);
+                SetCurSel(iIndex);
+                bRet = SelectItemSingle(iIndex, bTakeFocus, false);
+                bSelectStatusChanged = true;
+            }
+        }
+        else {
+            if (bShiftDown) {
+                //按左键: 同时按下了Shift键
+                size_t nIndexStart = GetLastNoShiftItem();
+                if (nIndexStart >= GetItemCount()) {
+                    nIndexStart = 0;
+                }
+                if (iIndex < GetItemCount()) {
+                    std::set<size_t> selectedIndexs;
+                    size_t iStart = std::min(nIndexStart, iIndex);
+                    size_t iEnd = std::max(nIndexStart, iIndex);
+                    for (size_t i = iStart; i <= iEnd; ++i) {
+                        if (IsSelectableItem(i)) {
+                            selectedIndexs.insert(i);
+                        }
+                    }
+                    size_t nItemCount = GetItemCount();
+                    for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+                        Control* pControl = GetItemAt(nItemIndex);
+                        if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()) {
+                            continue;
+                        }
+                        IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
+                        if (pListItem == nullptr) {
+                            continue;
+                        }
+                        if (selectedIndexs.find(nItemIndex) != selectedIndexs.end()) {
+                            //选中集合
+                            if (!pListItem->IsSelected()) {
+                                //如果原来是非选择状态，更新为选择状态
+                                pListItem->OptionSelected(true, false);
+                            }
+                        }
+                        else {
+                            //取消其他
+                            if (pListItem->IsSelected()) {
+                                //如果原来是选择状态，更新为非选择状态
+                                pListItem->OptionSelected(false, false);
+                            }
+                        }
+                    }
+                    SetCurSel(iIndex);
+                    bRet = SelectItemSingle(iIndex, bTakeFocus, false);
+                    bSelectStatusChanged = true;
+                }
+                else {
+                    //未知情况，正常无法走到这里
+                    bRet = SelectItemMulti(iIndex, bTakeFocus, false);
+                }
+            }
+            else {
+                //按左键: 同时按下了Control键，保持多选
+                bRet = SelectItemMulti(iIndex, bTakeFocus, false);
+                if (bRet) {
+                    SetLastNoShiftItem(iIndex);
+                }
+            }
+        }
     }
     else {
         //单选
-        bRet = SelectItemSingle(iIndex, bTakeFocus, bTriggerEvent);
+        bRet = SelectItemSingle(iIndex, bTakeFocus, false);
     }
-    if (bRet) {
+    if (bSelectStatusChanged) {
         OnSelectStatusChanged();
+    }
+    if (bTriggerEvent && bRet) {
+        SendEvent(kEventSelect, iIndex, Box::InvalidIndex);
     }
     return bRet;
 }
@@ -1967,14 +2112,14 @@ bool ListBox::OnFrameSelection(int64_t left, int64_t right, int64_t top, int64_t
     return bChanged;
 }
 
-void ListBox::SetLastNoShiftIndex(size_t nLastNoShiftIndex)
+void ListBox::SetLastNoShiftItem(size_t nLastNoShiftIndex)
 {
-    m_nLastNoShiftIndex = nLastNoShiftIndex;
+    m_nLastNoShiftItem = nLastNoShiftIndex;
 }
 
-size_t ListBox::GetLastNoShiftIndex() const
+size_t ListBox::GetLastNoShiftItem() const
 {
-    return m_nLastNoShiftIndex;
+    return m_nLastNoShiftItem;
 }
 
 } // namespace ui
