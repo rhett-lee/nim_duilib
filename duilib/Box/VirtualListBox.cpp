@@ -1299,7 +1299,7 @@ bool VirtualListBox::OnListCtrlKeyDown(const EventArgs& msg)
         nIndexCurSel = GetDisplayItemElementIndex(nCurSel);
     }
     const bool bForward = (msg.vkCode == kVK_DOWN) || (msg.vkCode == kVK_RIGHT) || 
-                          (msg.vkCode == kVK_NEXT) || (msg.vkCode == kVK_HOME);
+                          (msg.vkCode == kVK_NEXT) || (msg.vkCode == kVK_END);
     if (nIndexCurSel < nElementCount) {
         //匹配可选择项
         nIndexCurSel = FindSelectableElement(nIndexCurSel, bForward);
