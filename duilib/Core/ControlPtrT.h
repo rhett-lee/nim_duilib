@@ -126,13 +126,13 @@ public:
 
     /** 比较操作符(全局)
     */
-    friend static inline bool operator == (T* pControl, const ControlPtrT<T>& r) {
+    friend inline bool operator == (T* pControl, const ControlPtrT<T>& r) {
         return r.get() == pControl;
     }
 
     /** 比较操作符(全局)
     */
-    friend static inline bool operator != (T* pControl, const ControlPtrT<T>& r) {
+    friend inline bool operator != (T* pControl, const ControlPtrT<T>& r) {
         return r.get() != pControl;
     }
     
