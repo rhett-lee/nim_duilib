@@ -16,7 +16,7 @@ git clone https://github.com/rhett-lee/nim_duilib
 git clone https://github.com/rhett-lee/skia_compile
 ```
 
-3. 编译skia源码：按照skia_compile项目文档[Windows下编译skia.md](../../skia_compile/Windows下编译skia.md)中的方法，编译出skia相关的lib文件    
+3. 编译skia源码：按照skia_compile项目文档[Windows下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/Windows%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)中的方法，编译出skia相关的lib文件    
    注意事项：skia源码应该与nim_duilib源码位于相同的目录下。    
    注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅；如果使用VS编译，运行速度很慢，界面比较卡。    
    检查方法：编译成功以后，在skia/out的子目录下，有生成skia.lib等lib文件。
