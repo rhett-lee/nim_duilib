@@ -462,6 +462,7 @@ protected:
     */
     size_t GetLastNoShiftIndex() const;
 
+private:
     /** 横向布局，计算行数
     */
     int32_t CalcRows() const;

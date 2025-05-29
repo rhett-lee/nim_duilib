@@ -372,10 +372,393 @@ bool ListBox::OnListBoxKeyDown(const EventArgs& msg)
     return bHandled;
 }
 
+int32_t ListBox::CalcRows() const
+{
+    HLayout* pHLayout = dynamic_cast<HLayout*>(GetLayout());
+    if (pHLayout != nullptr) {
+        //此布局固定1行
+        return 1;
+    }
+    HTileLayout* pHTileLayout = dynamic_cast<HTileLayout*>(GetLayout());
+    return CalcHTileRows(pHTileLayout);
+}
+
+int32_t ListBox::CalcColumns() const
+{
+    VLayout* pVLayout = dynamic_cast<VLayout*>(GetLayout());
+    if (pVLayout != nullptr) {
+        //此布局固定1列
+        return 1;
+    }
+    VTileLayout* pVTileLayout = dynamic_cast<VTileLayout*>(GetLayout());
+    return CalcVTileColumns(pVTileLayout);
+}
+
 bool ListBox::OnListCtrlKeyDown(const EventArgs& msg)
 {
-    //暂未实现
-    return false;
+    //该函数只实现非虚表情况下的快捷键逻辑，虚表模式下的相应逻辑在子类中实现
+    ASSERT(msg.eventType == kEventKeyDown);
+    bool bHandled = false;
+    bool bCtrlADown = (msg.eventType == kEventKeyDown) && ((msg.vkCode == _T('A')) || (msg.vkCode == _T('a')));
+    if (bCtrlADown) {
+        //Ctrl + A 全选操作
+        bHandled = true;
+        bool bRet = SetSelectAll();
+        if (bRet) {
+            OnSelectStatusChanged();
+            SendEvent(kEventSelChange);
+        }
+        return bHandled;
+    }
+
+    //方向键操作
+    bool bArrowKeyDown = (msg.eventType == kEventKeyDown) &&
+                         ((msg.vkCode == kVK_UP) || (msg.vkCode == kVK_DOWN) ||
+                          (msg.vkCode == kVK_LEFT) || (msg.vkCode == kVK_RIGHT) ||
+                          (msg.vkCode == kVK_PRIOR) || (msg.vkCode == kVK_NEXT) ||
+                          (msg.vkCode == kVK_HOME) || (msg.vkCode == kVK_END));
+    const size_t nItemCount = GetItemCount();
+    if (!bArrowKeyDown || !IsMultiSelect() || (nItemCount == 0)) {
+        //在方向键按下消息、无数据、不支持多选的情况下，走默认处理流程
+        return bHandled;
+    }
+
+    bool bShiftDown = Keyboard::IsKeyDown(kVK_SHIFT);
+    bool bControlDown = Keyboard::IsKeyDown(kVK_CONTROL);
+    bool bAltDown = Keyboard::IsKeyDown(kVK_MENU);
+
+    if (bAltDown || bControlDown) {
+        //如果按住Ctrl键 或者 Alt键走默认流程
+        return bHandled;
+    }
+
+    // 以下流程处理方向键操作
+    // 处理多选情况下的方向键操作，基本与单选流程相似，多选的情况下GetCurSel()值不一定正确，需要校准
+   // size_t nCurSel = GetCurSel();
+    const bool bForward = (msg.vkCode == kVK_DOWN) || (msg.vkCode == kVK_RIGHT) ||
+                          (msg.vkCode == kVK_NEXT) || (msg.vkCode == kVK_END);
+    size_t nIndexCurSel = Box::InvalidIndex;
+    if (bForward) {
+        //查找当前视图内选择区域内的最后一个可选择的项目，作为起始点
+        for (int32_t index = (int32_t)nItemCount - 1; index >= 0; --index) {
+            Control* pControl = GetItemAt(index);
+            if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsSelectableType()) {
+                continue;
+            }
+            IListBoxItem* pItem = dynamic_cast<IListBoxItem*>(pControl);
+            if ((pItem != nullptr) && pItem->IsSelected()) {
+                nIndexCurSel = index;
+                break;
+            }
+        }
+    }
+    else {
+        //查找当前视图内选择区域内的第一个可选择的项目，作为起始点
+        for (size_t index = 0; index < nItemCount; ++index) {
+            Control* pControl = GetItemAt(index);
+            if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsSelectableType()) {
+                continue;
+            }
+            IListBoxItem* pItem = dynamic_cast<IListBoxItem*>(pControl);
+            if ((pItem != nullptr) && pItem->IsSelected()) {
+                nIndexCurSel = index;
+                break;
+            }
+        }
+    }
+    if (nIndexCurSel >= nItemCount) {
+        if (bForward) {
+            nIndexCurSel = 0;
+        }
+        else {
+            nIndexCurSel = nItemCount - 1;
+        }
+    }
+    
+    if (nIndexCurSel < nItemCount) {
+        //匹配可选择项
+        nIndexCurSel = FindSelectable(nIndexCurSel, bForward);
+    }
+    if (nIndexCurSel >= nItemCount) {
+        //没有有效的数据选择项
+        return bHandled;
+    }
+
+    const int32_t nRows = CalcRows();
+    const int32_t nColumns = CalcColumns();
+
+    size_t nIndexEnsureVisible = Box::InvalidIndex; //需要保证可见的元素
+    size_t nIndexEnd = Box::InvalidIndex;
+    //实现Shift键 + 方向键的选择逻辑
+    switch (msg.vkCode) {
+    case kVK_UP:
+        if (IsHorizontalLayout()) {
+            //横向布局
+            if (nIndexCurSel >= 1) {
+                nIndexEnd = nIndexCurSel - 1;
+            }
+            else {
+                nIndexEnsureVisible = 0;
+            }
+        }
+        else {
+            //纵向布局
+            if ((int32_t)nIndexCurSel >= nColumns) {
+                nIndexEnd = nIndexCurSel - nColumns;
+            }
+            else {
+                nIndexEnsureVisible = 0;
+            }
+        }
+        break;
+    case kVK_DOWN:
+        if (IsHorizontalLayout()) {
+            //横向布局
+            if ((nIndexCurSel + 1) < nItemCount) {
+                nIndexEnd = nIndexCurSel + 1;
+            }
+            else {
+                nIndexEnsureVisible = nItemCount - 1;
+            }
+        }
+        else {
+            //纵向布局
+            if ((nIndexCurSel + nColumns) < nItemCount) {
+                nIndexEnd = nIndexCurSel + nColumns;
+            }
+            else {
+                nIndexEnsureVisible = nItemCount - 1;
+            }
+        }
+        break;
+    case kVK_LEFT:
+        if (IsHorizontalLayout()) {
+            //横向布局
+            if ((int32_t)nIndexCurSel >= nRows) {
+                nIndexEnd = nIndexCurSel - nRows;
+            }
+            else {
+                nIndexEnsureVisible = 0;
+            }
+        }
+        else {
+            //纵向布局
+            if (nColumns <= 1) {
+                //只有1列的时候，按滚动处理
+                LineLeft();
+                bHandled = true;
+            }
+            else {
+                if (nIndexCurSel >= 1) {
+                    nIndexEnd = nIndexCurSel - 1;
+                }
+                else {
+                    nIndexEnsureVisible = 0;
+                }
+            }
+        }
+        break;
+    case kVK_RIGHT:
+        if (IsHorizontalLayout()) {
+            //横向布局
+            if ((nIndexCurSel + nRows) < nItemCount) {
+                nIndexEnd = nIndexCurSel + nRows;
+            }
+            else {
+                nIndexEnsureVisible = nItemCount - 1;
+            }
+        }
+        else {
+            if (nColumns <= 1) {
+                //只有1列的时候，按滚动处理
+                LineRight();
+                bHandled = true;
+            }
+            else {
+                //纵向布局
+                if ((nIndexCurSel + 1) < nItemCount) {
+                    nIndexEnd = nIndexCurSel + 1;
+                }
+                else {
+                    nIndexEnsureVisible = nItemCount - 1;
+                }
+            }
+        }
+        break;
+    case kVK_PRIOR:
+    {
+        size_t nShowColumns = 0;
+        size_t nShowRows = 0;
+        if (IsHorizontalLayout()) {
+            //横向布局
+            GetDisplayItemCount(true, nShowColumns, nShowRows);
+        }
+        else {
+            //纵向布局            
+            GetDisplayItemCount(false, nShowColumns, nShowRows);
+        }
+        size_t nScrollCount = nShowColumns * nShowRows;
+        if (nIndexCurSel >= nScrollCount) {
+            nIndexEnd = nIndexCurSel - nScrollCount;
+        }
+        else {
+            if (IsHorizontalLayout()) {
+                for (int32_t nColumn = (int32_t)nShowColumns - 1; nColumn >= 0; --nColumn) {
+                    nScrollCount = (size_t)nColumn * nShowRows;
+                    if (nIndexCurSel >= nScrollCount) {
+                        //跳转到第一列，同行的位置
+                        nIndexEnd = nIndexCurSel - nScrollCount;
+                        break;
+                    }
+                }
+            }
+            else {
+                for (int32_t nRow = (int32_t)nShowRows - 1; nRow >= 0; --nRow) {
+                    nScrollCount = nShowColumns * (size_t)nRow;
+                    if (nIndexCurSel >= nScrollCount) {
+                        //跳转到第一行，同列的位置
+                        nIndexEnd = nIndexCurSel - nScrollCount;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    break;
+    case kVK_NEXT:
+    {
+        size_t nShowColumns = 0;
+        size_t nShowRows = 0;
+        if (IsHorizontalLayout()) {
+            //横向布局
+            GetDisplayItemCount(true, nShowColumns, nShowRows);
+        }
+        else {
+            //纵向布局            
+            GetDisplayItemCount(false, nShowColumns, nShowRows);
+        }
+        size_t nScrollCount = nShowColumns * nShowRows;
+        if ((nIndexCurSel + nScrollCount) < nItemCount) {
+            nIndexEnd = nIndexCurSel + nScrollCount;
+        }
+        else {
+            if (IsHorizontalLayout()) {
+                for (int32_t nColumn = (int32_t)nShowColumns - 1; nColumn >= 0; --nColumn) {
+                    nScrollCount = (size_t)nColumn * nShowRows;
+                    if ((nIndexCurSel + nScrollCount) < nItemCount) {
+                        //跳转到最后一列，同行的位置
+                        nIndexEnd = nIndexCurSel + nScrollCount;
+                        nIndexEnsureVisible = nItemCount - 1;
+                        break;
+                    }
+                }
+            }
+            else {
+                for (int32_t nRow = (int32_t)nShowRows - 1; nRow >= 0; --nRow) {
+                    nScrollCount = nShowColumns * (size_t)nRow;
+                    if ((nIndexCurSel + nScrollCount) < nItemCount) {
+                        //跳转到最后一行，同列的位置
+                        nIndexEnd = nIndexCurSel + nScrollCount;
+                        nIndexEnsureVisible = nItemCount - 1;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    break;
+    case kVK_HOME:
+        nIndexEnd = 0;
+        break;
+    case kVK_END:
+        nIndexEnd = nItemCount - 1;
+        break;
+    default:
+        break;
+    }
+
+    if (nIndexEnd >= nItemCount) {
+        if (nIndexEnsureVisible != Box::InvalidIndex) {
+            EnsureVisible(nIndexEnsureVisible);
+        }
+        return bHandled;
+    }
+
+    //匹配可选择项
+    nIndexEnd = FindSelectable(nIndexEnd, bForward);
+    if (nIndexEnd >= nItemCount) {
+        return bHandled;
+    }
+
+    bHandled = true;
+    std::set<size_t> selectedIndexs; //需要选择的列表
+    if (bShiftDown) {
+        //按住Shift键：选择范围内的所有数据
+        size_t nLastNoShiftItem = GetLastNoShiftItem();//起始的元素索引号
+        if (nLastNoShiftItem >= nItemCount) {
+            nLastNoShiftItem = 0;
+        }
+        size_t nStartItemIndex = std::min(nLastNoShiftItem, nIndexEnd);
+        size_t nEndItemIndex = std::max(nLastNoShiftItem, nIndexEnd);
+        for (size_t i = nStartItemIndex; i <= nEndItemIndex; ++i) {
+            if (IsSelectableItem(i)) {
+                selectedIndexs.insert(i);
+            }
+        }
+    }
+    else {
+        //没有按住Shift键：只选择最后一个数据
+        selectedIndexs.insert(nIndexEnd);
+    }
+
+    //选择这个范围内的所有元素
+    for (size_t nItemIndex = 0; nItemIndex < nItemCount; ++nItemIndex) {
+        Control* pControl = GetItemAt(nItemIndex);
+        if ((pControl == nullptr) || !pControl->IsVisible() || !pControl->IsEnabled()) {
+            continue;
+        }
+        IListBoxItem* pListItem = dynamic_cast<IListBoxItem*>(pControl);
+        if (pListItem == nullptr) {
+            continue;
+        }
+        if (selectedIndexs.find(nItemIndex) != selectedIndexs.end()) {
+            //选中集合
+            if (!pListItem->IsSelected()) {
+                //如果原来是非选择状态，更新为选择状态
+                pListItem->OptionSelected(true, false);
+            }
+        }
+        else {
+            //取消其他
+            if (pListItem->IsSelected()) {
+                //如果原来是选择状态，更新为非选择状态
+                pListItem->OptionSelected(false, false);
+            }
+        }
+    }
+    if (nIndexEnsureVisible != Box::InvalidIndex) {
+        EnsureVisible(nIndexEnsureVisible);
+    }
+    else {
+        EnsureVisible(nIndexEnd);
+    }
+    size_t nCurSel = nIndexEnd;
+    ASSERT(nCurSel < GetItemCount());
+    bool bTriggerEvent = false;
+    if (nCurSel < GetItemCount()) {
+        SetCurSel(nCurSel);
+        SelectItemSingle(nCurSel, true, false);
+        if (!bShiftDown) {
+            SetLastNoShiftItem(nCurSel);
+        }
+        bTriggerEvent = true;
+        ASSERT(GetItemAt(nCurSel)->IsFocused());
+    }
+    OnSelectStatusChanged();
+    if (bTriggerEvent) {
+        SendEvent(kEventSelect, nCurSel, Box::InvalidIndex);
+    }
+    return bHandled;
 }
 
 bool ListBox::OnListBoxMouseWheel(const EventArgs& msg)
@@ -766,20 +1149,21 @@ int32_t ListBox::CalcHTileRows(HTileLayout* pHTileLayout) const
     if (pHTileLayout == nullptr) {
         return nRows;
     }
-    UiSize szItem = pHTileLayout->GetItemSize();
-    if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
-        return nRows;
-    }
-    int32_t childMarginY = pHTileLayout->GetChildMarginY();
-    if (childMarginY < 0) {
-        childMarginY = 0;
-    }
     nRows = pHTileLayout->GetRows();
     bool bAutoRows = pHTileLayout->IsAutoCalcRows();
     if (bAutoRows) {
         nRows = 0;
     }
     if (nRows <= 0) {
+        UiSize szItem = pHTileLayout->GetItemSize();
+        if (szItem.cy <= 0) {
+            return nRows;
+        }
+        int32_t childMarginY = pHTileLayout->GetChildMarginY();
+        if (childMarginY < 0) {
+            childMarginY = 0;
+        }
+
         UiRect rc = GetRect();
         rc.Deflate(GetControlPadding());
         int32_t totalHeight = rc.Height();
@@ -806,7 +1190,7 @@ int32_t ListBox::CalcHTileColumns(HTileLayout* pHTileLayout) const
         return nColumns;
     }
     UiSize szItem = pHTileLayout->GetItemSize();
-    if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
+    if (szItem.cx <= 0) {
         return nColumns;
     }
     int32_t childMarginX = pHTileLayout->GetChildMarginX();
@@ -838,21 +1222,22 @@ int32_t ListBox::CalcVTileColumns(VTileLayout* pVTileLayout) const
     if (pVTileLayout == nullptr) {
         return nColumns;
     }
-    UiSize szItem = pVTileLayout->GetItemSize();
-    if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
-        return nColumns;
-    }
-    int32_t childMarginX = pVTileLayout->GetChildMarginX();
-    if (childMarginX < 0) {
-        childMarginX = 0;
-    }
-
+    
     nColumns = pVTileLayout->GetColumns();
     bool bAutoColumns = pVTileLayout->IsAutoCalcColumns();
     if (bAutoColumns) {
         nColumns = 0;
     }
     if (nColumns <= 0) {
+        UiSize szItem = pVTileLayout->GetItemSize();
+        if (szItem.cx <= 0) {
+            return nColumns;
+        }
+        int32_t childMarginX = pVTileLayout->GetChildMarginX();
+        if (childMarginX < 0) {
+            childMarginX = 0;
+        }
+
         UiRect rc = GetRect();
         rc.Deflate(GetControlPadding());
         int32_t totalWidth = rc.Width();
@@ -879,7 +1264,7 @@ int32_t ListBox::CalcVTileRows(VTileLayout* pVTileLayout) const
         return nRows;
     }
     UiSize szItem = pVTileLayout->GetItemSize();
-    if ((szItem.cx <= 0) || (szItem.cy <= 0)) {
+    if (szItem.cy <= 0) {
         return nRows;
     }
     int32_t childMarginY = pVTileLayout->GetChildMarginY();

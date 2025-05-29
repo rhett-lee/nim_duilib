@@ -375,7 +375,7 @@ protected:
     */
     virtual bool OnListBoxKeyDown(const EventArgs& msg);
 
-    /** 响应KeyDown消息（实现ListCtrl类似的快捷键逻辑）
+    /** 响应KeyDown消息（实现ListCtrl类似的快捷键逻辑: Shift + 方向键）
     * @return 返回true表示成功处理，返回false表示未处理此消息
     */
     virtual bool OnListCtrlKeyDown(const EventArgs& msg);
@@ -551,6 +551,15 @@ protected:
     * @return 如果选择项有变化返回true，此时会触发kEventSelChange事件，否则返回false
     */
     virtual bool OnRButtonClickedBlank();
+
+private:
+    /** 横向布局，计算行数
+    */
+    int32_t CalcRows() const;
+
+    /** 纵向布局，计算列数
+    */
+    int32_t CalcColumns() const;
 
 private:
     //Helper类型，可以访问所有数据

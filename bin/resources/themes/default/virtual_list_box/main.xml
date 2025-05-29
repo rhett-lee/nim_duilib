@@ -87,7 +87,7 @@
             </VBox>
             <!--column="3" width="auto" halign="center" child_margin="10" -->
             <Box>
-                <VirtualVTileListBox class="list" name="list" multi_select="false" scroll_select="false" item_size="240,64" auto_calc_item_size="false" vscrollbar="true" hscrollbar="true" border_size="1" border_color="splitline_level2" padding="1,1,1,1"/>     
+                <VirtualVTileListBox class="list" name="list" frame_selection="true" select_none_when_click_blank="true" select_like_list_ctrl="true" multi_select="true" scroll_select="false" item_size="240,64" auto_calc_item_size="false" vscrollbar="true" hscrollbar="true" border_size="1" border_color="splitline_level2" padding="1,1,1,1"/>     
             </Box>
         </HBox>
     </VBox>
