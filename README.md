@@ -151,6 +151,7 @@
 - MinGW-W64：gcc/g++、clang/clang++（Windows）
 - gcc/g++（Linux）
 - clang/clang++（Linux）
+- clang/clang++（macOS）
 
 ## 获取代码和编译（Windows平台）
 ### 一、准备工作：安装必备的软件
@@ -192,7 +193,7 @@ copy /Y .\nim_duilib\build\build_duilib_all_in_one.bat .\
 ```
 编译完成的示例程序位于bin目录中。
 
-### 三、手动编译过程
+### 三、手动编译过程（Windows平台）
 1. 设置工作目录：`D:\develop`    
 2. 获取相关代码    
 （1）`git clone https://github.com/rhett-lee/nim_duilib`      
@@ -251,8 +252,8 @@ chmod +x build_duilib_all_in_one.sh
 编译完成的示例程序位于bin目录中。    
 备注：UOS系统，需要先安装所需的开发环境，然后再安装，可参考文档：[统信UOS下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/%E7%BB%9F%E4%BF%A1UOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)。
 
-## 三、手动编译过程
-1. 设置工作目录：`/home/develop`    
+## 三、手动编译过程（Linux平台）
+1. 设置工作目录：`~/develop`    
 2. 获取相关代码    
 （1）`git clone https://github.com/rhett-lee/nim_duilib`      
 （2）`git clone https://github.com/rhett-lee/skia_compile`    
@@ -275,7 +276,7 @@ chmod +x build_duilib_all_in_one.sh
 4. 编译SDL库 
 ```
 #!/bin/bash
-cd /home/develop
+cd ~/develop
 cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release
 cmake --build ./SDL.build
 cmake --install ./SDL.build
@@ -283,15 +284,121 @@ cmake --install ./SDL.build
 5. 编译nim_duilib
 ```
 #!/bin/bash
-cd /home/develop/nim_duilib/
+cd ~/develop/nim_duilib/
 chmod +x linux_build.sh
 ./linux_build.sh
 ```
 编译完成后，在bin目录中生成了可执行文件。    
 如果希望支持CEF，可以参考相关文档[docs/CEF.md](docs/CEF.md)。
 
+## 获取代码和编译（macOS平台）
+### 一、准备工作：安装必备的软件
+安装完成系统后，需要做的工作：    
+#### 安装Xcode命令行工具
+```
+xcode-select --install
+```
+验证安装：
+```
+clang++ --version
+```
+#### 安装Homebrew
+```
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+如果失败，可以查找其他源来安装。    
+更新Homebrew：    
+```
+brew update
+```
+#### 系统已经自带，无需安装的软件
+`git make unzip python3`
+
+#### 安装cmake
+```
+brew install cmake
+```
+#### 安装ninja
+```
+brew install ninja
+```
+#### 安装gn（需要从源码编译gn）
+```
+mkdir ~/develop
+cd ~/develop
+git clone https://github.com/timniederhausen/gn
+cd gn
+python3 build/gen.py
+ninja -C out
+sudo cp out/gn /usr/local/bin/
+gn --version
+```
+
+## 二、一键编译（推荐）
+选定一个工作目录，创建一个脚本`build.sh`，将下面已经整理好脚本复制进去，保存文件。    
+然后在控制台，为脚本文件添加可执行权限，最后运行该脚本： 
+```
+chmod +x build.sh
+./build.sh
+```
+
+脚本文件内容如下：    
+```
+#!/bin/bash
+
+# Retry clone nim_duilib
+while true; do
+    if [ ! -d "./nim_duilib/.git" ]; then
+        git clone https://github.com/rhett-lee/nim_duilib
+    else
+        git -C ./nim_duilib pull
+    fi
+    if [ $? -ne 0 ]; then
+        sleep 10
+        continue
+    fi
+    break
+done
+
+cp -f ./nim_duilib/build/build_duilib_all_in_one.sh ./
+chmod +x build_duilib_all_in_one.sh
+./build_duilib_all_in_one.sh
+```
+编译完成的示例程序位于bin目录中。    
+
+## 三、手动编译过程（macOS平台）
+1. 设置工作目录：`~/develop`    
+2. 获取相关代码    
+（1）`git clone https://github.com/rhett-lee/nim_duilib`      
+（2）`git clone https://github.com/rhett-lee/skia_compile`    
+（3）`git clone https://github.com/google/skia.git`  
+（4）`git clone https://github.com/libsdl-org/SDL.git`  
+3. 编译Skia库    
+| 操作系统平台            |参考文档（网络链接）    |  参考文档（本地文件） |
+| :---                    | :---       |:---   |
+|macOS                 |[macOS下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/macOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) | [macOS下编译skia.md](../skia_compile/macOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |
+
+    注意事项：skia源码编译的时候，应使用LLVM编译，程序运行比较流畅。
+4. 编译SDL库 
+```
+#!/bin/bash
+cd ~/develop
+cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build ./SDL.build
+cmake --install ./SDL.build
+```
+5. 编译nim_duilib
+```
+#!/bin/bash
+cd ~/develop/nim_duilib/
+chmod +x macos_build.sh
+./macos_build.sh
+```
+编译完成后，在bin目录中生成了可执行文件。    
+如果希望支持CEF，可以参考相关文档[docs/CEF.md](docs/CEF.md)。
+
 ## 开发计划
- - 跨平台（Windows/Linux系统）的窗口引擎（基于[SDL3.0](https://www.libsdl.org/)）不断测试与完善（X11和Wayland）
+ - 跨平台（Windows/Linux/macOS）的窗口引擎（基于[SDL3.0](https://www.libsdl.org/)）不断测试与完善（X11和Wayland）
  - 动画功能的加强
  - 不断测试发现缺陷并修复，不断完善代码
  - 其他待补充
