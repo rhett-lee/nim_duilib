@@ -53,7 +53,7 @@ void BrowserBox::InitBrowserBox(const DString& url)
     m_pCefControl->AttachLoadingProgressChange(ui::UiBind(&BrowserBox::OnLoadingProgressChange, this, std::placeholders::_1, std::placeholders::_2));
     m_pCefControl->AttachMediaAccessChange(ui::UiBind(&BrowserBox::OnMediaAccessChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-    m_pCefControl->AttachBeforePopup(ui::UiBind(&BrowserBox::OnBeforePopup, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8, std::placeholders::_9, std::placeholders::_10, std::placeholders::_11, std::placeholders::_12, std::placeholders::_13));
+    m_pCefControl->AttachBeforePopup(ui::UiBind(&BrowserBox::OnBeforePopup, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8, std::placeholders::_9, std::placeholders::_10));
     m_pCefControl->AttachBeforePopupAborted(ui::UiBind(&BrowserBox::OnBeforePopupAborted, this, std::placeholders::_1, std::placeholders::_2));
     m_pCefControl->AttachBeforeBrowse(ui::UiBind(&BrowserBox::OnBeforeBrowse, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
 
@@ -241,10 +241,7 @@ bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                CefRefPtr<CefFrame> frame,
                                int popup_id,
                                const CefString& target_url,
-                               const CefString& target_frame_name,
-                               CefLifeSpanHandler::WindowOpenDisposition target_disposition,
-                               bool user_gesture,
-                               const CefPopupFeatures& popupFeatures,
+                               const ui::BeforePopupEventParam& param,
                                CefWindowInfo& windowInfo,
                                CefRefPtr<CefClient>& client,
                                CefBrowserSettings& settings,

@@ -145,14 +145,19 @@ namespace ui
                                 bool has_audio_access)> OnMediaAccessChangeEvent;
 
     //点击了超级链接，即将弹出新窗口（回调函数的调用线程：CEF的UI线程）
+    //由于部分编译器的std::placeholders最多支持10个占位符，所以参数要控制在最多10个
+    struct BeforePopupEventParam
+    {
+        CefString target_frame_name;
+        CefLifeSpanHandler::WindowOpenDisposition target_disposition;
+        bool user_gesture;
+        CefPopupFeatures popupFeatures;
+    };
     typedef std::function<bool (CefRefPtr<CefBrowser> browser,
                                 CefRefPtr<CefFrame> frame,
                                 int popup_id,
                                 const CefString& target_url,
-                                const CefString& target_frame_name,
-                                CefLifeSpanHandler::WindowOpenDisposition target_disposition,
-                                bool user_gesture,
-                                const CefPopupFeatures& popupFeatures,
+                                const BeforePopupEventParam& param,
                                 CefWindowInfo& windowInfo,
                                 CefRefPtr<CefClient>& client,
                                 CefBrowserSettings& settings,
