@@ -37,47 +37,47 @@ void BrowserBox::InitBrowserBox(const DString& url)
         return;
     }
 
-    m_pCefControl->AttachAfterCreated(UiBind(&BrowserBox::OnAfterCreated, this, std::placeholders::_1));
-    m_pCefControl->AttachBeforeClose(UiBind(&BrowserBox::OnBeforeClose, this, std::placeholders::_1));
+    m_pCefControl->AttachAfterCreated(ui::UiBind(&BrowserBox::OnAfterCreated, this, std::placeholders::_1));
+    m_pCefControl->AttachBeforeClose(ui::UiBind(&BrowserBox::OnBeforeClose, this, std::placeholders::_1));
 
-    m_pCefControl->AttachBeforeContextMenu(UiBind(&BrowserBox::OnBeforeContextMenu, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    m_pCefControl->AttachContextMenuCommand(UiBind(&BrowserBox::OnContextMenuCommand, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
-    m_pCefControl->AttachContextMenuDismissed(UiBind(&BrowserBox::OnContextMenuDismissed, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachBeforeContextMenu(ui::UiBind(&BrowserBox::OnBeforeContextMenu, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    m_pCefControl->AttachContextMenuCommand(ui::UiBind(&BrowserBox::OnContextMenuCommand, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+    m_pCefControl->AttachContextMenuDismissed(ui::UiBind(&BrowserBox::OnContextMenuDismissed, this, std::placeholders::_1, std::placeholders::_2));
 
-    m_pCefControl->AttachTitleChange(UiBind(&BrowserBox::OnTitleChange, this, std::placeholders::_1, std::placeholders::_2));
-    m_pCefControl->AttachUrlChange(UiBind(&BrowserBox::OnUrlChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    m_pCefControl->AttachMainUrlChange(UiBind(&BrowserBox::OnMainUrlChange, this, std::placeholders::_1, std::placeholders::_2));
-    m_pCefControl->AttachFaviconURLChange(UiBind(&BrowserBox::OnFaviconURLChange, this, std::placeholders::_1, std::placeholders::_2));
-    m_pCefControl->AttachFullscreenModeChange(UiBind(&BrowserBox::OnFullscreenModeChange, this, std::placeholders::_1, std::placeholders::_2));
-    m_pCefControl->AttachStatusMessage(UiBind(&BrowserBox::OnStatusMessage, this, std::placeholders::_1, std::placeholders::_2));
-    m_pCefControl->AttachLoadingProgressChange(UiBind(&BrowserBox::OnLoadingProgressChange, this, std::placeholders::_1, std::placeholders::_2));
-    m_pCefControl->AttachMediaAccessChange(UiBind(&BrowserBox::OnMediaAccessChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachTitleChange(ui::UiBind(&BrowserBox::OnTitleChange, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachUrlChange(ui::UiBind(&BrowserBox::OnUrlChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachMainUrlChange(ui::UiBind(&BrowserBox::OnMainUrlChange, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachFaviconURLChange(ui::UiBind(&BrowserBox::OnFaviconURLChange, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachFullscreenModeChange(ui::UiBind(&BrowserBox::OnFullscreenModeChange, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachStatusMessage(ui::UiBind(&BrowserBox::OnStatusMessage, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachLoadingProgressChange(ui::UiBind(&BrowserBox::OnLoadingProgressChange, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachMediaAccessChange(ui::UiBind(&BrowserBox::OnMediaAccessChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-    m_pCefControl->AttachBeforePopup(UiBind(&BrowserBox::OnBeforePopup, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8, std::placeholders::_9, std::placeholders::_10, std::placeholders::_11, std::placeholders::_12, std::placeholders::_13));
-    m_pCefControl->AttachBeforePopupAborted(UiBind(&BrowserBox::OnBeforePopupAborted, this, std::placeholders::_1, std::placeholders::_2));
-    m_pCefControl->AttachBeforeBrowse(UiBind(&BrowserBox::OnBeforeBrowse, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+    m_pCefControl->AttachBeforePopup(ui::UiBind(&BrowserBox::OnBeforePopup, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8, std::placeholders::_9, std::placeholders::_10, std::placeholders::_11, std::placeholders::_12, std::placeholders::_13));
+    m_pCefControl->AttachBeforePopupAborted(ui::UiBind(&BrowserBox::OnBeforePopupAborted, this, std::placeholders::_1, std::placeholders::_2));
+    m_pCefControl->AttachBeforeBrowse(ui::UiBind(&BrowserBox::OnBeforeBrowse, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
 
-    m_pCefControl->AttachBeforeResourceLoad(UiBind(&BrowserBox::OnBeforeResourceLoad, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    m_pCefControl->AttachResourceRedirect(UiBind(&BrowserBox::OnResourceRedirect, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
-    m_pCefControl->AttachResourceResponse(UiBind(&BrowserBox::OnResourceResponse, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    m_pCefControl->AttachResourceLoadComplete(UiBind(&BrowserBox::OnResourceLoadComplete, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
-    m_pCefControl->AttachProtocolExecution(UiBind(&BrowserBox::OnProtocolExecution, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachBeforeResourceLoad(ui::UiBind(&BrowserBox::OnBeforeResourceLoad, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    m_pCefControl->AttachResourceRedirect(ui::UiBind(&BrowserBox::OnResourceRedirect, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+    m_pCefControl->AttachResourceResponse(ui::UiBind(&BrowserBox::OnResourceResponse, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    m_pCefControl->AttachResourceLoadComplete(ui::UiBind(&BrowserBox::OnResourceLoadComplete, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
+    m_pCefControl->AttachProtocolExecution(ui::UiBind(&BrowserBox::OnProtocolExecution, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-    m_pCefControl->AttachLoadingStateChange(UiBind(&BrowserBox::OnLoadingStateChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    m_pCefControl->AttachLoadStart(UiBind(&BrowserBox::OnLoadStart, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    m_pCefControl->AttachLoadEnd(UiBind(&BrowserBox::OnLoadEnd, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    m_pCefControl->AttachLoadError(UiBind(&BrowserBox::OnLoadError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
+    m_pCefControl->AttachLoadingStateChange(ui::UiBind(&BrowserBox::OnLoadingStateChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    m_pCefControl->AttachLoadStart(ui::UiBind(&BrowserBox::OnLoadStart, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachLoadEnd(ui::UiBind(&BrowserBox::OnLoadEnd, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachLoadError(ui::UiBind(&BrowserBox::OnLoadError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
 
-    m_pCefControl->AttachDevToolAttachedStateChange(UiBind(&BrowserBox::OnDevToolAttachedStateChange, this, std::placeholders::_1));
+    m_pCefControl->AttachDevToolAttachedStateChange(ui::UiBind(&BrowserBox::OnDevToolAttachedStateChange, this, std::placeholders::_1));
 
-    m_pCefControl->AttachCanDownload(UiBind(&BrowserBox::OnCanDownload, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    m_pCefControl->AttachBeforeDownload(UiBind(&BrowserBox::OnBeforeDownload, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
-    m_pCefControl->AttachDownloadUpdated(UiBind(&BrowserBox::OnDownloadUpdated, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachCanDownload(ui::UiBind(&BrowserBox::OnCanDownload, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachBeforeDownload(ui::UiBind(&BrowserBox::OnBeforeDownload, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    m_pCefControl->AttachDownloadUpdated(ui::UiBind(&BrowserBox::OnDownloadUpdated, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
-    m_pCefControl->AttachFileDialog(UiBind(&BrowserBox::OnFileDialog, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8));
+    m_pCefControl->AttachFileDialog(ui::UiBind(&BrowserBox::OnFileDialog, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8));
 
-    m_pCefControl->AttachDocumentAvailableInMainFrame(UiBind(&BrowserBox::OnDocumentAvailableInMainFrame, this, std::placeholders::_1));
-    m_pCefControl->AttachDownloadFavIconFinished(UiBind(&BrowserBox::OnDownloadFavIconFinished, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
+    m_pCefControl->AttachDocumentAvailableInMainFrame(ui::UiBind(&BrowserBox::OnDocumentAvailableInMainFrame, this, std::placeholders::_1));
+    m_pCefControl->AttachDownloadFavIconFinished(ui::UiBind(&BrowserBox::OnDownloadFavIconFinished, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 
     // 加载默认网页
     DString html_path = url;

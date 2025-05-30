@@ -363,7 +363,7 @@ BrowserBox* BrowserForm::CreateBox(const std::string &browser_id, DString url)
     GlobalManager::Instance().FillBoxWithCache(tab_item, ui::FilePath(_T("cef_browser/tab_item.xml")));
     m_pTabCtrl->AddItemAt(tab_item, GetBoxCount());
     tab_item->SetUTF8Name(browser_id);
-    Button* btn_item_close = tab_item->GetCloseButton();
+    ui::Button* btn_item_close = tab_item->GetCloseButton();
     ASSERT(btn_item_close != nullptr);
     if (btn_item_close != nullptr) {
         btn_item_close->AttachClick(UiBind(&BrowserForm::OnTabItemClose, this, std::placeholders::_1, browser_id));
@@ -381,7 +381,7 @@ BrowserBox* BrowserForm::CreateBox(const std::string &browser_id, DString url)
 
     // 切换到新的浏览器盒子
     // 如果tab_item处于隐藏状态，则无法顺利触发选择事件，所以这里直接切换到目标浏览器盒子
-    tab_item->Selected(true, false);
+    tab_item->Selected(true, false, 0);
     ChangeToBox(id);
 
     OnCreateNewTabPage(tab_item, browser_box);
@@ -457,7 +457,7 @@ bool BrowserForm::AttachBox(BrowserBox* browser_box)
     m_pTabCtrl->AddItemAt(tab_item, GetBoxCount());
     tab_item->SetUTF8Name(browser_box->GetId());
     tab_item->SetTitle(browser_box->GetTitle());
-    Button* btn_item_close = tab_item->GetCloseButton();
+    ui::Button* btn_item_close = tab_item->GetCloseButton();
     ASSERT(btn_item_close != nullptr);
     if (btn_item_close != nullptr) {
         btn_item_close->AttachClick(UiBind(&BrowserForm::OnTabItemClose, this, std::placeholders::_1, browser_box->GetId()));
@@ -473,7 +473,7 @@ bool BrowserForm::AttachBox(BrowserBox* browser_box)
 
     // 切换到新的浏览器盒子
     // 如果tab_item处于隐藏状态，则无法顺利触发选择事件，所以这里直接切换到目标浏览器盒子
-    tab_item->Selected(true, false);
+    tab_item->Selected(true, false, 0);
     ChangeToBox(id);
 
     //重新下载网站图标
@@ -550,7 +550,7 @@ void BrowserForm::SetActiveBox(const std::string &browser_id)
     }
 
     // 如果tab_item处于隐藏状态，则无法顺利触发选择事件，所以这里直接切换到目标浏览器盒子
-    tab_item->Selected(true, false);
+    tab_item->Selected(true, false, 0);
     ChangeToBox(id);
 }
 

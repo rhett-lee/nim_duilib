@@ -142,7 +142,7 @@ void BrowserForm_Windows::OnBeforeDragBoxCallback(const DString &browser_id)
         }
         TabCtrlItem* new_tab_item = static_cast<TabCtrlItem*>(m_pTabCtrl->GetItemAt(index));
         if (new_tab_item != nullptr) {
-            new_tab_item->Selected(true, false);
+            new_tab_item->Selected(true, false, 0);
             ChangeToBox(new_tab_item->GetName());
         }
 
@@ -184,7 +184,7 @@ void BrowserForm_Windows::OnAfterDragBoxCallback(bool drop_succeed)
             TabCtrlItem* tab_item = FindTabItem(m_dragingBrowserId);
             if (nullptr != tab_item) {
                 tab_item->SetFadeVisible(true);
-                tab_item->Selected(true, false);
+                tab_item->Selected(true, false, 0);
                 ChangeToBox(m_dragingBrowserId);
             }
             m_dragingBrowserId.clear();
