@@ -13,7 +13,7 @@ template<typename T>
 class UILIB_API UiStringT
 {
     using string_type = std::basic_string<T, std::char_traits<T>, std::allocator<T>>;
-    using value_type = string_type::value_type;
+    using value_type = typename string_type::value_type;
 public:
     UiStringT(): m_pData(nullptr) {}
     UiStringT(const UiStringT& str) : m_pData(nullptr)
