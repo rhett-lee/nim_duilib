@@ -772,8 +772,12 @@ bool CefControl::OnBeforePopup(CefRefPtr<CefBrowser> browser,
 {
     ASSERT(CefCurrentlyOn(TID_UI));
     if (m_pfnBeforePopup) {
-        return m_pfnBeforePopup(browser, frame, popup_id, target_url, target_frame_name,
-                                target_disposition, user_gesture, popupFeatures, windowInfo,
+        BeforePopupEventParam param;
+        param.target_frame_name = target_frame_name;
+        param.target_disposition = target_disposition;
+        param.user_gesture = user_gesture;
+        param.popupFeatures = popupFeatures;
+        return m_pfnBeforePopup(browser, frame, popup_id, target_url, param, windowInfo,
                                 client, settings, extra_info, no_javascript_access);
     }
     else if (m_pCefControlEventHandler) {
