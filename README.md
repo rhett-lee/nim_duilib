@@ -258,7 +258,8 @@ chmod +x build_duilib_all_in_one.sh
 （1）`git clone https://github.com/rhett-lee/nim_duilib`      
 （2）`git clone https://github.com/rhett-lee/skia_compile`    
 （3）`git clone https://github.com/google/skia.git`  
-（4）`git clone https://github.com/libsdl-org/SDL.git`  
+（4）`git clone https://github.com/libsdl-org/SDL.git`    
+
 3. 编译Skia库
 | 操作系统平台            |参考文档（网络链接）    |  参考文档（本地文件） |
 | :---                    | :---       |:---   |
@@ -374,7 +375,8 @@ chmod +x build_duilib_all_in_one.sh
 （3）`git clone https://github.com/google/skia.git`  
 （4）`git clone https://github.com/libsdl-org/SDL.git`  
 
-3. 编译Skia库
+3. 编译Skia库    
+
 | 操作系统平台 |参考文档（网络链接） |  参考文档（本地文件） |
 | :---         | :---                |:---                   |
 |macOS         |[macOS下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/macOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) | [macOS下编译skia.md](../skia_compile/macOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md) |
