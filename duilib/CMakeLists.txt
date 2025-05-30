@@ -169,11 +169,9 @@ add_library(duilib
 
 # macOS 特有链接库
 if(APPLE)
-    find_package(Freetype REQUIRED)
     find_library(CORETEXT_LIBRARY CoreText)
     target_link_libraries(duilib
         PRIVATE
-        Freetype::Freetype
         ${CORETEXT_LIBRARY}
         "-framework Cocoa"
         "-framework OpenGL"

@@ -481,7 +481,7 @@ namespace SkiaSvgImageLoader
         //设置容器大小与图片大小一致(图片大小为DPI缩放后的大小)
         svgDom->getRoot()->setWidth(SkSVGLength((SkScalar)nImageWidth, SkSVGLength::Unit::kPX));
         svgDom->getRoot()->setHeight(SkSVGLength((SkScalar)nImageHeight, SkSVGLength::Unit::kPX));
-        svgDom->setContainerSize(SkSize::Make(SkISize((int32_t)nImageWidth, (int32_t)nImageHeight)));
+        svgDom->setContainerSize(SkSize::Make(SkISize::Make((int32_t)nImageWidth, (int32_t)nImageHeight)));
 
         SkBitmap skBitmap;
 #ifdef DUILIB_BUILD_FOR_WIN

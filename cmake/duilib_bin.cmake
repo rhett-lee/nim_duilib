@@ -141,16 +141,13 @@ if(DUILIB_OS_MACOS)
     find_library(COREFOUNDATION CoreFoundation)
     find_library(CORETEXT CoreText)
     find_library(COREGRAPHICS CoreGraphics)
-    # 字体配置
-    find_package(Fontconfig REQUIRED)
-    find_package(Freetype REQUIRED)
 endif()
 
 if(DUILIB_OS_MACOS)
     # MacOS平台：设置链接库（注意顺序！）
     target_link_libraries(${PROJECT_NAME}
                             # 第三方库（按依赖顺序）
-                            ${DUILIB_LIBS} ${SDL_LIBS} ${SKIA_LIBS} Freetype::Freetype Fontconfig::Fontconfig
+                            ${DUILIB_LIBS} ${SDL_LIBS} ${SKIA_LIBS}
                             # 系统库
                             ${ACCELERATE} ${COREFOUNDATION} ${CORETEXT} ${COREGRAPHICS} pthread dl
                             # 显式框架声明（必须放在最后）
