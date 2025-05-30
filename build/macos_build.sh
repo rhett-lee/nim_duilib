@@ -38,16 +38,16 @@ for third_party_lib in "${DUILIB_THIRD_PARTY_LIBS[@]}"; do
 done
 
 # 编译libcef的cef_dll_wrapper
-# DUILIB_THIRD_PARTY_CEF="libcef_macos"
-# $DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/duilib/third_party/$DUILIB_THIRD_PARTY_CEF" -B "$DUILIB_BUILD_DIR/$DUILIB_THIRD_PARTY_CEF" -DCMAKE_BUILD_TYPE=Release -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY="$DUILIB_LIB_DIR"
-# $DUILIB_MAKE "$DUILIB_BUILD_DIR/$DUILIB_THIRD_PARTY_CEF" $DUILIB_MAKE_THREADS
+DUILIB_THIRD_PARTY_CEF="libcef_macos"
+$DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/duilib/third_party/$DUILIB_THIRD_PARTY_CEF" -B "$DUILIB_BUILD_DIR/$DUILIB_THIRD_PARTY_CEF" -DCMAKE_BUILD_TYPE=Release -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY="$DUILIB_LIB_DIR"
+$DUILIB_MAKE "$DUILIB_BUILD_DIR/$DUILIB_THIRD_PARTY_CEF" $DUILIB_MAKE_THREADS
 
 # 编译duilib
 $DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/duilib" -B "$DUILIB_BUILD_DIR/duilib" -DCMAKE_BUILD_TYPE=Release
 $DUILIB_MAKE "$DUILIB_BUILD_DIR/duilib" $DUILIB_MAKE_THREADS
 
 # 编译examples下的各个程序
-DUILIB_PROGRAMS=("basic" "controls" "ColorPicker" "DpiAware" "layouts" "ListBox" "ListCtrl" "MoveControl" "MultiLang" "render" "RichEdit" "VirtualListBox" "threads" "TreeView")
+DUILIB_PROGRAMS=("basic" "controls" "ColorPicker" "DpiAware" "layouts" "ListBox" "ListCtrl" "MoveControl" "MultiLang" "render" "RichEdit" "VirtualListBox" "threads" "TreeView" "cef" "CefBrowser")
 for duilib_bin in "${DUILIB_PROGRAMS[@]}"; do
     $DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/examples/$duilib_bin" -B "$DUILIB_BUILD_DIR/$duilib_bin" -DCMAKE_BUILD_TYPE=Release -DDUILIB_SKIA_LIB_SUBPATH="$DUILIB_SKIA_LIB_SUBPATH"
     $DUILIB_MAKE "$DUILIB_BUILD_DIR/$duilib_bin" $DUILIB_MAKE_THREADS
