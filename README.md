@@ -219,7 +219,7 @@ copy /Y .\nim_duilib\build\build_duilib_all_in_one.bat .\
 |Fedora                   |GNOME（Wayland）|`sudo dnf install -y gcc g++ gdb make git ninja-build gn python cmake llvm clang unzip fontconfig-devel mesa-libGL-devel mesa-libGLU-devel mesa-libGLES-devel mesa-libEGL-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-devel ibus-devel wayland-devel libxkbcommon-devel`|
 |OpenSuse                 |KDE（X11）      |`sudo zypper install -y gcc gcc-c++ gdb make git ninja gn python cmake llvm clang unzip fontconfig-devel Mesa-libGL-devel Mesa-libEGL-devel Mesa-libGLESv3-devel glu-devel vulkan-devel libXext-devel libXcursor-devel libXi-devel libXrandr-devel dbus-1-devel ibus-devel`|
 
-## 二、一键编译（推荐）
+### 二、一键编译（推荐）
 选定一个工作目录，创建一个脚本`build.sh`，将下面已经整理好脚本复制进去，保存文件。    
 然后在控制台，为脚本文件添加可执行权限，最后运行该脚本： 
 ```
@@ -252,7 +252,7 @@ chmod +x build_duilib_all_in_one.sh
 编译完成的示例程序位于bin目录中。    
 备注：UOS系统，需要先安装所需的开发环境，然后再安装，可参考文档：[统信UOS下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/%E7%BB%9F%E4%BF%A1UOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)。
 
-## 三、手动编译过程（Linux平台）
+### 三、手动编译过程（Linux平台）
 1. 设置工作目录：`~/develop`    
 2. 获取相关代码    
 （1）`git clone https://github.com/rhett-lee/nim_duilib`      
@@ -334,7 +334,7 @@ sudo cp out/gn /usr/local/bin/
 gn --version
 ```
 
-## 二、一键编译（推荐）
+### 二、一键编译（推荐）
 选定一个工作目录，创建一个脚本`build.sh`，将下面已经整理好脚本复制进去，保存文件。    
 然后在控制台，为脚本文件添加可执行权限，最后运行该脚本： 
 ```
@@ -366,7 +366,7 @@ chmod +x build_duilib_all_in_one.sh
 ```
 编译完成的示例程序位于bin目录中。    
 
-## 三、手动编译过程（macOS平台）
+### 三、手动编译过程（macOS平台）
 1. 设置工作目录：`~/develop`    
 2. 获取相关代码    
 （1）`git clone https://github.com/rhett-lee/nim_duilib`      
