@@ -147,7 +147,7 @@ if(DUILIB_OS_MACOS)
     # MacOS平台：设置链接库（注意顺序！）
     target_link_libraries(${PROJECT_NAME}
                             # 第三方库（按依赖顺序）
-                            ${DUILIB_LIBS} ${SDL_LIBS} ${SKIA_LIBS}
+                            ${DUILIB_LIBS} ${SDL_LIBS} ${SKIA_LIBS} ${CEF_LIBS}
                             # 系统库
                             ${ACCELERATE} ${COREFOUNDATION} ${CORETEXT} ${COREGRAPHICS} pthread dl
                             # 显式框架声明（必须放在最后）
