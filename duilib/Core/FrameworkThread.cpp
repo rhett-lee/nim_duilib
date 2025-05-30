@@ -9,6 +9,8 @@
     #include "duilib/Core/MessageLoop_Windows.h"
 #endif
 
+#include <sstream>
+
 /** 用户自定义消息
 */
 #if defined (DUILIB_BUILD_FOR_SDL)

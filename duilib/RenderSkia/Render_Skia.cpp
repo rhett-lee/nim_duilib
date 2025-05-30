@@ -36,6 +36,7 @@
 #pragma warning (pop)
 
 #include <unordered_set>
+#include <unordered_map>
 
 namespace ui {
 

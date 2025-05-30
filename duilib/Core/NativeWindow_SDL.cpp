@@ -493,7 +493,7 @@ static bool SDLCALL OnNativeWindowExposedEvent(void* userdata, SDL_Event* event)
     //窗口绘制事件：同步绘制，避免黑屏现象
     if ((userdata != nullptr) && (event != nullptr)) {
         SDL_EventType eventType = (SDL_EventType)event->type;
-        if ((eventType == SDL_EVENT_WINDOW_EXPOSED)) {
+        if (eventType == SDL_EVENT_WINDOW_EXPOSED) {
             NativeWindow_SDL* pNativeWindow = (NativeWindow_SDL*)userdata;
             if ((SDL_Window*)pNativeWindow->GetWindowHandle() == SDL_GetWindowFromEvent(event)) {
                 pNativeWindow->PaintWindow(true);
