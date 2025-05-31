@@ -125,7 +125,7 @@ public:
         m_pCefControlFlag = pCefControl->GetWeakFlag();
     }
 public:
-    void Execute()
+    virtual void Execute() override
     {
         if (m_pCefControlFlag.expired() || !m_pCefControl->IsVisible()) {
             //窗口隐藏的时候，不需要设置；如果设置的话，会导致程序崩溃
@@ -192,7 +192,7 @@ public:
         m_pCefControlFlag = pCefControl->GetWeakFlag();
     }
 public:
-    void Execute()
+    virtual void Execute() override
     {
         if (m_pCefControlFlag.expired()) {
             return;
@@ -278,7 +278,7 @@ public:
         m_pCefControlFlag = pCefControl->GetWeakFlag();
     }
 public:
-    void Execute()
+    virtual void Execute() override
     {
         if (m_pCefControlFlag.expired()) {
             return;
