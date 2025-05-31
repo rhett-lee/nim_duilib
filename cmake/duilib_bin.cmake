@@ -29,24 +29,24 @@ if(DUILIB_OS_WINDOWS)  # Windows平台
 endif()
 
 #设置项目的include路径（duilib）
-include_directories(${DUILIB_SRC_ROOT_DIR})
+include_directories(${DUILIB_ROOT})
 
 #设置该程序的根目录到include路径
 include_directories(${DUILIB_PROJECT_SRC_DIR})
 
 if(DUILIB_ENABLE_CEF)
     #使用CEF模块：需要添加CEF源码根目录到include路径
-    include_directories(${CEF_SRC_ROOT_DIR})
+    include_directories(${DUILIB_CEF_SRC_ROOT_DIR})
 endif()
 
 #设置项目的link路径
-link_directories("${DUILIB_LIB_PATH}")  #duilib库所在路径(已经包含了cef_dll_wrapper这个CEF模块的库)
-link_directories("${SKIA_LIB_PATH}")    #skia库所在路径
+link_directories("${DUILIB_LIB_PATH}")      #duilib库所在路径(已经包含了cef_dll_wrapper这个CEF模块的库)
+link_directories("${DUILIB_SKIA_LIB_PATH}") #skia库所在路径
 if(DUILIB_ENABLE_SDL)
-    link_directories("${SDL_LIB_PATH}") #SDL库所在路径
+    link_directories("${DUILIB_SDL_LIB_PATH}") #SDL库所在路径
 endif()
 if(DUILIB_ENABLE_CEF)
-    link_directories("${CEF_LIB_PATH}") #cef库所在路径（.lib/.so对应的动态库）
+    link_directories("${DUILIB_CEF_LIB_PATH}") #cef库所在路径（.lib/.so对应的动态库）
 endif()
 
 #设置可执行文件的输出目录
@@ -87,9 +87,9 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 if(DUILIB_OS_WINDOWS)
     # 需要嵌入manifest文件路径
     if(DUILIB_BITS_64)
-        set(DUILIB_WIN_MANIFEST "${DUILIB_SRC_ROOT_DIR}/msvc/manifest/duilib.x64.manifest")
+        set(DUILIB_WIN_MANIFEST "${DUILIB_ROOT}/msvc/manifest/duilib.x64.manifest")
     else()
-        set(DUILIB_WIN_MANIFEST "${DUILIB_SRC_ROOT_DIR}/msvc/manifest/duilib.x86.manifest")
+        set(DUILIB_WIN_MANIFEST "${DUILIB_ROOT}/msvc/manifest/duilib.x86.manifest")
     endif()
          
     if(DUILIB_MINGW)
@@ -127,12 +127,12 @@ if(DUILIB_OS_WINDOWS)
     else()
         set(DUILIB_WINDOWS_LIBS Comctl32 Imm32 Opengl32 User32 shlwapi)
     endif()
-    target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${SDL_LIBS} ${SKIA_LIBS} ${CEF_LIBS} ${DUILIB_WINDOWS_LIBS})
+    target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_CEF_LIBS} ${DUILIB_WINDOWS_LIBS})
 endif()
 
 if(DUILIB_OS_LINUX)
     # Linux平台
-    target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${SDL_LIBS} ${SKIA_LIBS} ${CEF_LIBS} freetype fontconfig pthread dl)
+    target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_CEF_LIBS} freetype fontconfig pthread dl)
 endif()
 
 if(DUILIB_OS_MACOS)
@@ -147,7 +147,7 @@ if(DUILIB_OS_MACOS)
     # MacOS平台：设置链接库（注意顺序！）
     target_link_libraries(${PROJECT_NAME}
                             # 第三方库（按依赖顺序）
-                            ${DUILIB_LIBS} ${SDL_LIBS} ${SKIA_LIBS} ${CEF_LIBS}
+                            ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_CEF_LIBS}
                             # 系统库
                             ${ACCELERATE} ${COREFOUNDATION} ${CORETEXT} ${COREGRAPHICS} pthread dl
                             # 显式框架声明（必须放在最后）
