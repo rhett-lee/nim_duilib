@@ -55,4 +55,4 @@ for %%i in (%DUILIB_PROGRAMS%) do (
     %DUILIB_MAKE% "%DUILIB_BUILD_DIR%\%%i" %DUILIB_MAKE_THREADS%
 )
 
-@REM # 目前支持CEF，所以不包含以下程序：cef,CefBrowser
+@REM # 目前不支持CEF，所以不包含以下程序：cef,CefBrowser
