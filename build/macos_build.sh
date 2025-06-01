@@ -12,15 +12,25 @@ DUILIB_CMAKE="cmake -DCMAKE_C_COMPILER=$DUILIB_CC -DCMAKE_CXX_COMPILER=$DUILIB_C
 DUILIB_MAKE="cmake --build"
 DUILIB_MAKE_THREADS="-j 6"
 
-# Skia库的子目录，固定使用LLVM编译的，如果想使用默认规则，可注释掉这行
-DUILIB_SKIA_LIB_SUBPATH=llvm.x64.release
+# Skia库的子目录，固定使用LLVM编译的，如果想使用默认规则，可注释掉这部分代码
+# 获取CPU架构
+CPU_ARCH_STR=$(uname -m)
 
-# lib目录
-DUILIB_LIB_DIR="$DUILIB_SRC_ROOT_DIR/lib/"
-target_dir="$DUILIB_LIB_DIR"
-if [[ ! -d "$target_dir" ]]; then
-    mkdir -p "$target_dir"
+# 转换为标准架构标识
+if [ "$CPU_ARCH_STR" = "x86_64" ]; then
+    CPU_ARCH=x64
+elif [ "$CPU_ARCH_STR" = "aarch64" ] || [ "$CPU_ARCH_STR" = "arm64" ]; then
+    CPU_ARCH=arm64
+elif [ "$CPU_ARCH_STR" = "armv7l" ]; then
+    CPU_ARCH=arm
+elif [ "$CPU_ARCH_STR" = "i386" ] || [ "$CPU_ARCH_STR" = "i686" ]; then
+    CPU_ARCH=x86
+else
+    CPU_ARCH=arm64
 fi
+
+DUILIB_SKIA_LIB_SUBPATH=llvm.${CPU_ARCH}.release
+echo "DUILIB_SKIA_LIB_SUBPATH:${DUILIB_SKIA_LIB_SUBPATH}"
 
 # 编译临时目录
 DUILIB_BUILD_DIR="$DUILIB_SRC_ROOT_DIR/build/build_temp/${DUILIB_COMPILER_ID}_build"
@@ -31,16 +41,11 @@ if [[ ! -d "$target_dir" ]]; then
 fi
 
 # 编译第三方库   
-DUILIB_THIRD_PARTY_LIBS=("zlib" "libpng" "cximage" "libwebp")
+DUILIB_THIRD_PARTY_LIBS=("zlib" "libpng" "cximage" "libwebp" "libcef_macos")
 for third_party_lib in "${DUILIB_THIRD_PARTY_LIBS[@]}"; do
     $DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/duilib/third_party/$third_party_lib" -B "$DUILIB_BUILD_DIR/$third_party_lib" -DCMAKE_BUILD_TYPE=Release
     $DUILIB_MAKE "$DUILIB_BUILD_DIR/$third_party_lib" $DUILIB_MAKE_THREADS
 done
-
-# 编译libcef的cef_dll_wrapper
-DUILIB_THIRD_PARTY_CEF="libcef_macos"
-$DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/duilib/third_party/$DUILIB_THIRD_PARTY_CEF" -B "$DUILIB_BUILD_DIR/$DUILIB_THIRD_PARTY_CEF" -DCMAKE_BUILD_TYPE=Release -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY="$DUILIB_LIB_DIR"
-$DUILIB_MAKE "$DUILIB_BUILD_DIR/$DUILIB_THIRD_PARTY_CEF" $DUILIB_MAKE_THREADS
 
 # 编译duilib
 $DUILIB_CMAKE -S "$DUILIB_SRC_ROOT_DIR/duilib" -B "$DUILIB_BUILD_DIR/duilib" -DCMAKE_BUILD_TYPE=Release
