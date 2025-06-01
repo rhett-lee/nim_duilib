@@ -35,17 +35,17 @@ int RunMain(int argc, char* argv[]) {
   CefMainArgs main_args(argc, argv);
 
   // Parse command-line arguments.
-  CefRefPtr<CefCommandLine> command_line = CefCommandLine::CreateCommandLine();
-  command_line->InitFromArgv(argc, argv);
+  //CefRefPtr<CefCommandLine> command_line = CefCommandLine::CreateCommandLine();
+  //command_line->InitFromArgv(argc, argv);
 
   // Create a ClientApp of the correct type.
   CefRefPtr<CefApp> app;
-  ClientApp::ProcessType process_type = ClientApp::GetProcessType(command_line);
-  if (process_type == ClientApp::RendererProcess) {
-    app = new ClientAppRenderer();
-  } else if (process_type == ClientApp::OtherProcess) {
-    app = new ClientAppOther();
-  }
+  //ClientApp::ProcessType process_type = ClientApp::GetProcessType(command_line);
+  //if (process_type == ClientApp::RendererProcess) {
+  //  app = new ClientAppRenderer();
+  //} else if (process_type == ClientApp::OtherProcess) {
+  //  app = new ClientAppOther();
+  //}
 
   // Execute the secondary process.
   return CefExecuteProcess(main_args, app, nullptr);

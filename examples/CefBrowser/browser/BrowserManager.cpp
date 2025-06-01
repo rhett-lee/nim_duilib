@@ -207,7 +207,7 @@ void BrowserManager::SetEnableMerge(bool enable)
                 }
                 else {
                     rect_old_form.left += sort_form->Dpi().GetScaleInt(kSplitFormXOffset);
-                    rect_old_form.top += sort_form->Dpi().GetScaleInt(kSplitFormXOffset);
+                    rect_old_form.top += sort_form->Dpi().GetScaleInt(kSplitFormYOffset);
                     sort_form->SetWindowPos(ui::InsertAfterWnd(), rect_old_form.left, rect_old_form.top, rect_old_form.Width(), rect_old_form.Height(), ui::kSWP_NOSIZE);
                 }
             }

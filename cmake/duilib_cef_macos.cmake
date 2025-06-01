@@ -100,6 +100,7 @@ if(OS_MAC)
         -Wno-narrowing                  # Don't warn about type narrowing
         -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
     )
+    unset(CMAKE_OSX_DEPLOYMENT_TARGET)
     
     SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_TARGET})
     target_link_libraries(${CEF_TARGET} ${CEF_STANDARD_LIBS})
