@@ -74,7 +74,14 @@ if(OS_MAC)
     # Main app bundle target.
     add_executable(${CEF_TARGET} MACOSX_BUNDLE ${CEF_PROJECT_RESOURCES_SRCS} ${CEF_PROJECT_SRCS})
     SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_TARGET})
-    target_link_libraries(${CEF_TARGET} ${DUILIB_CEF_LIBS} ${CEF_STANDARD_LIBS})
+    target_link_libraries(${CEF_TARGET} ${CEF_STANDARD_LIBS})
+    
+    target_link_libraries(${CEF_TARGET}
+                            ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_CEF_LIBS}
+                            ${ACCELERATE} ${COREFOUNDATION} ${CORETEXT} ${COREGRAPHICS} ${DUILIB_MACOS_LIBS}
+                            "-framework AppKit" "-framework Foundation" "-framework Metal"
+                          )
+    
     set_target_properties(${CEF_TARGET} PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/mac/Info.plist.in)
 
     # Copy the CEF framework into the Frameworks directory.
