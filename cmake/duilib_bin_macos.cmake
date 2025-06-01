@@ -14,7 +14,7 @@ set(DUILIB_MACOS_LIBS pthread dl)
 
 if(DUILIB_ENABLE_CEF)
     # CEF在MACOS的实现比较复杂，相关的代码单独放一个文件中
-    include("duilib_cef_macos.cmake") 
+    include("${CMAKE_CURRENT_LIST_DIR}/duilib_cef_macos.cmake") 
 else()
     #设置编译可执行程序依赖的源码
     add_executable(${PROJECT_NAME} ${SRC_FILES})
