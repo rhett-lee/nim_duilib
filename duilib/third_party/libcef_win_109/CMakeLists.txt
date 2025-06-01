@@ -209,6 +209,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CEF_ROOT}/cmake")
 # Execute FindCEF.cmake which must exist in CMAKE_MODULE_PATH.
 find_package(CEF REQUIRED)
 
+# duilib
+get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
+# duilib end
 
 #
 # Define CEF-based targets.
@@ -240,16 +244,18 @@ PRINT_CEF_CONFIG()
 # Define the API documentation target.
 #
 
-find_package(Doxygen)
-if(DOXYGEN_FOUND)
-  add_custom_target(apidocs ALL
-    # Generate documentation in the docs/html directory.
-    COMMAND "${DOXYGEN_EXECUTABLE}" Doxyfile
-    # Write a docs/index.html file.
-    COMMAND ${CMAKE_COMMAND} -E echo "<html><head><meta http-equiv=\"refresh\" content=\"0;URL='html/index.html'\"/></head></html>" > docs/index.html
-    WORKING_DIRECTORY "${CEF_ROOT}"
-    COMMENT "Generating API documentation with Doxygen..."
-    VERBATIM )
-else()
-  message(WARNING "Doxygen must be installed to generate API documentation.")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile")
+  find_package(Doxygen)
+  if(DOXYGEN_FOUND)
+    add_custom_target(apidocs ALL
+      # Generate documentation in the docs/html directory.
+      COMMAND "${DOXYGEN_EXECUTABLE}" Doxyfile
+      # Write a docs/index.html file.
+      COMMAND ${CMAKE_COMMAND} -E echo "<html><head><meta http-equiv=\"refresh\" content=\"0;URL='html/index.html'\"/></head></html>" > docs/index.html
+      WORKING_DIRECTORY "${CEF_ROOT}"
+      COMMENT "Generating API documentation with Doxygen..."
+      VERBATIM )
+  else()
+    message(WARNING "Doxygen must be installed to generate API documentation.")
+  endif()
 endif()
