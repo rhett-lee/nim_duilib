@@ -479,7 +479,7 @@ bool SplitTemplate<InheritType>::MouseMove(const EventArgs& msg)
         }
     }
 
-    if (bAdjusted && (pControl1 != nullptr) || (pControl2 != nullptr)) {
+    if (bAdjusted && ((pControl1 != nullptr) || (pControl2 != nullptr))) {
         this->SendEvent(kEventSplitDraged, (WPARAM)pControl1, (LPARAM)pControl2);
     }
     return bRet;

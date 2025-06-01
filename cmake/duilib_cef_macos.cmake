@@ -6,8 +6,11 @@
 # CEF_ROOT setup.
 # This variable must be set to locate the binary distribution.
 #
-set(CEF_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/../../CEF_BINARY/")
+get_filename_component(CEF_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../CEF_BINARY" ABSOLUTE) 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CEF_ROOT}/cmake")
+
+message(STATUS "CEF_ROOT: ${CEF_ROOT}")
+message(STATUS "DUILIB_PROJECT_SRC_DIR: ${DUILIB_PROJECT_SRC_DIR}")
 
 #
 # Load the CEF configuration.
@@ -21,13 +24,13 @@ set(CEF_PROJECT_SRCS ${SRC_FILES})
 
 # cefsimple helper sources.
 set(CEF_PROJECT_HELPER_SRCS
-        ${DUILIB_SRC_ROOT_DIR}/mac/process_helper_mac.cc
+        ${DUILIB_PROJECT_SRC_DIR}/mac/process_helper_mac.cc
    )
 
 # cef project resources.
 set(CEF_PROJECT_RESOURCES_SRCS
-        ${DUILIB_SRC_ROOT_DIR}/mac/Info.plist.in
-        ${DUILIB_SRC_ROOT_DIR}/mac/default_icon.icns
+        ${DUILIB_PROJECT_SRC_DIR}/mac/Info.plist.in
+        ${DUILIB_PROJECT_SRC_DIR}/mac/default_icon.icns
    )
 
 # cef project icon file name
@@ -73,6 +76,31 @@ if(OS_MAC)
 
     # Main app bundle target.
     add_executable(${CEF_TARGET} MACOSX_BUNDLE ${CEF_PROJECT_RESOURCES_SRCS} ${CEF_PROJECT_SRCS})
+    
+    # duilib
+    set(CEF_COMPILER_FLAGS
+        -fno-strict-aliasing            # Avoid assumptions regarding non-aliasing of objects of different types
+        -fstack-protector               # Protect some vulnerable functions from stack-smashing (security feature)
+        -funwind-tables                 # Support stack unwinding for backtrace()
+        -fvisibility=hidden             # Give hidden visibility to declarations that are not explicitly marked as visible
+        -Wall                           # Enable all warnings
+        -Werror                         # Treat warnings as errors
+        -Wno-unknown-pragmas
+        -Wextra                         # Enable additional warnings
+        -Wendif-labels                  # Warn whenever an #else or an #endif is followed by text
+        -Wnewline-eof                   # Warn about no newline at end of file
+        -Wno-missing-field-initializers # Don't warn about missing field initializers
+        -Wno-unused-parameter           # Don't warn about unused parameters
+    )
+        
+    set(CEF_CXX_COMPILER_FLAGS
+        -fno-threadsafe-statics         # Don't generate thread-safe statics
+        -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
+        -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
+        -Wno-narrowing                  # Don't warn about type narrowing
+        -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
+    )
+    
     SET_EXECUTABLE_TARGET_PROPERTIES(${CEF_TARGET})
     target_link_libraries(${CEF_TARGET} ${CEF_STANDARD_LIBS})
     
@@ -153,5 +181,5 @@ if(OS_MAC)
     # directive but that doesn't properly handle nested resource directories.
     # Remove these prefixes from input file paths.
     set(PREFIXES "mac/")
-    COPY_MAC_RESOURCES("${CEF_PROJECT_RESOURCES_SRCS}" "${PREFIXES}" "${CEF_TARGET}" "${DUILIB_SRC_ROOT_DIR}" "${CEF_APP}")
+    COPY_MAC_RESOURCES("${CEF_PROJECT_RESOURCES_SRCS}" "${PREFIXES}" "${CEF_TARGET}" "${DUILIB_PROJECT_SRC_DIR}" "${CEF_APP}")
 endif()
