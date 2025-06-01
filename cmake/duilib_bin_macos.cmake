@@ -10,7 +10,7 @@ find_library(CORETEXT CoreText)
 find_library(COREGRAPHICS CoreGraphics)
 
 # 平台的标准库
-DUILIB_MACOS_LIBS="pthread dl"
+set(DUILIB_MACOS_LIBS "pthread dl")
 
 # MacOS平台：设置链接库（注意顺序！）
 target_link_libraries(${PROJECT_NAME}
