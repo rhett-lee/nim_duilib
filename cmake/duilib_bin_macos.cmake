@@ -32,14 +32,28 @@ else()
     )
     set(DUILIB_CXX_COMPILER_FLAGS
         -fno-threadsafe-statics         # Don't generate thread-safe statics
-        -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
         -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
+        -frtti
         -Wno-narrowing                  # Don't warn about type narrowing
         -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
         -Wno-unused-variable
-        -Wno-reorder-ctor
-        -Wno-unused-lambda-capture
     )
+    
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        list(APPEND DUILIB_CXX_COMPILER_FLAGS
+            -Wno-reorder
+          )
+    endif()
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        list(APPEND DUILIB_COMPILER_FLAGS
+            -Wnewline-eof                   # Warn about no newline at end of file
+          )
+        list(APPEND DUILIB_CXX_COMPILER_FLAGS
+            -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
+            -Wno-reorder-ctor
+            -Wno-unused-lambda-capture
+          )
+    endif()
     
     #设置编译可执行程序依赖的源码
     add_executable(${PROJECT_NAME} ${SRC_FILES})

@@ -2,9 +2,7 @@
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/PerformanceUtil.h"
 
-#pragma warning (push)
-#pragma warning (disable: 4244)
-
+#include "SkiaHeaderBegin.h"
 #include "include/core/SkFontMgr.h"
 #include "include/core/SkFont.h"
 #include "include/core/SkData.h"
@@ -24,7 +22,7 @@
     #include "include/ports/SkFontMgr_fontconfig.h"
 #endif
 
-#pragma warning (pop)
+#include "SkiaHeaderEnd.h"
 
 #include <map>
 

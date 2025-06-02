@@ -171,7 +171,8 @@ LabelTemplate<InheritType>::LabelTemplate(Window* pWindow) :
     m_sTextId(),
     m_pTextColorMap(nullptr)
 {
-    if (dynamic_cast<Box*>(this)) {
+    Box* pBox = dynamic_cast<Box*>(this);
+    if (pBox != nullptr) {
         this->SetFixedWidth(UiFixedInt::MakeStretch(), false, false);
         this->SetFixedHeight(UiFixedInt::MakeStretch(), false, false);
     }

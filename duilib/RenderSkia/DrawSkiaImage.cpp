@@ -8,12 +8,11 @@
     #include "duilib/third_party/stb_image/stb_image_resize2.h"
 #pragma warning (pop)
 
-#pragma warning (push)
-#pragma warning (disable: 4244 4201 4100 4267)
-    #include "include/core/SkBitmap.h"
-    #include "include/core/SkImageInfo.h"
-    #include "include/core/SkData.h"
-#pragma warning (pop)
+#include "SkiaHeaderBegin.h"
+#include "include/core/SkBitmap.h"
+#include "include/core/SkImageInfo.h"
+#include "include/core/SkData.h"
+#include "SkiaHeaderEnd.h"
 
 //定义DUILIB_HAVE_OPENCV这个宏，表示启用OpenCV，使用OpenCV对图片进行缩放，速度是最快的
 //如果启用，需要做如下处理：

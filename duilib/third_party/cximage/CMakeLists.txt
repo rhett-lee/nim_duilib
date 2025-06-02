@@ -62,3 +62,10 @@ set(CXIMAGE_SRCS
 )
 
 add_library(duilib-cximage STATIC ${CXIMAGE_SRCS} ${CXIMAGE_HDRS})
+
+if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+    set(CXIMAGE_CXX_COMPILER_FLAGS
+        -frtti
+    )
+    target_compile_options(duilib-cximage PRIVATE $<$<COMPILE_LANGUAGE:CXX>: ${CXIMAGE_CXX_COMPILER_FLAGS}>)
+endif()

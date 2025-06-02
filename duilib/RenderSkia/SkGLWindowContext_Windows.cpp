@@ -3,8 +3,7 @@
 
 #ifdef DUILIB_BUILD_FOR_WIN
 
-#pragma warning (push)
-#pragma warning (disable: 4244 4201 4100)
+#include "SkiaHeaderBegin.h"
 
 #include "include/gpu/ganesh/GrDirectContext.h"
 #include "include/gpu/ganesh/gl/GrGLInterface.h"
@@ -13,7 +12,7 @@
 
 #include <GL/gl.h>
 
-#pragma warning (pop)
+#include "SkiaHeaderEnd.h"
 
 namespace ui {
 

@@ -5,9 +5,12 @@
  * found in the LICENSE file.
  */
 #include "SkUtils.h"
+
+#include "SkiaHeaderBegin.h"
 #include "include/private/base/SkTFitsIn.h"
 #include "include/private/base/SkMath.h"
 #include "include/private/base/SkAlign.h"
+#include "SkiaHeaderEnd.h"
 
 //该文件原始文件的出处：skia/chrome_67/src/core/SkUtils.cpp
 //基于原始文件，有修改，以兼容最新版本的skia代码（2023-06-25）

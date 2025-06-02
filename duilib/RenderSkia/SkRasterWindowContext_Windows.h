@@ -6,19 +6,16 @@
 #ifdef DUILIB_BUILD_FOR_WIN
 #include "duilib/duilib_config_windows.h"
 
-#pragma warning (push)
-#pragma warning (disable: 4244 4201 4100)
-
+#include "SkiaHeaderBegin.h"
 #include "include/core/SkSurface.h"
 #include "tools/window/RasterWindowContext.h"
+#include "SkiaHeaderEnd.h"
 
 // DisplayParams.fGrContextOptions 类型为GrContextOptions:
 // 在GR_TEST_UTILS宏定义和不定义的情况下，结构体大小会不同，如果不一致会导致程序崩溃，注意检查该宏定义的一致性
 #ifndef SK_GL
     #error 请检查宏定义：SK_GL与Skia库的编译选项保持一致
 #endif
-
-#pragma warning (pop)
 
 namespace ui 
 {

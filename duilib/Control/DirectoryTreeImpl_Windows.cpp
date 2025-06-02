@@ -395,9 +395,11 @@ bool DirectoryTreeImpl::NeedShowDirPath(const FilePath& path) const
 
     if (path.NativePath().size() == 3) {
         DString s = path.NativePath();
-        if (( (s[0] >= _T('C')) || (s[0] <= _T('Z'))) && (s[1] == _T(':')) && (s[2]) == _T('\\')) {
-            //根目录，始终显示，因为后续判断逻辑不正确
-            return true;
+        if (s.size() == 3) {
+            if (((s[0] >= _T('C')) || (s[0] <= _T('Z'))) && (s[1] == _T(':')) && (s[2]) == _T('\\')) {
+                //根目录，始终显示，因为后续判断逻辑不正确
+                return true;
+            }
         }
     }
 

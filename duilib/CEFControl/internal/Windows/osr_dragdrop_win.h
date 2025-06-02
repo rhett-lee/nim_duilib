@@ -47,7 +47,7 @@ namespace client {
   }                                    \
                                        \
  protected:                            \
-  ULONG ref_count_;
+  ULONG ref_count_ = 0;
 
 class DropTargetWin : public IDropTarget {
  public:

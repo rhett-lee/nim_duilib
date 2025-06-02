@@ -1,13 +1,9 @@
 #include "Path_Skia.h"
-
-#pragma warning (push)
-#pragma warning (disable: 4244 4201)
-
-#include "include/core/SkPath.h"
-
-#pragma warning (pop)
-
 #include "duilib/RenderSkia/Matrix_Skia.h"
+
+#include "SkiaHeaderBegin.h"
+#include "include/core/SkPath.h"
+#include "SkiaHeaderEnd.h"
 
 namespace ui {
 

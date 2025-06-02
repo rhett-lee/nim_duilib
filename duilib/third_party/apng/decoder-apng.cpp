@@ -214,10 +214,17 @@ APNGDATA* loadPng(IPngReader* pSrc, bool bLoadAllFrames, unsigned int& nFrameCou
                         for (unsigned int x = 0; x < info_ptr_read->next_frame_width; x++)
                         {
                             png_byte alpha = lineSour1[3];
-                            *lineDst1++ = ((*lineDst1) * (255 - alpha) + (*lineSour1++) * alpha) >> 8;
-                            *lineDst1++ = ((*lineDst1) * (255 - alpha) + (*lineSour1++) * alpha) >> 8;
-                            *lineDst1++ = ((*lineDst1) * (255 - alpha) + (*lineSour1++) * alpha) >> 8;
-                            *lineDst1++ = ((*lineDst1) * (255 - alpha) + (*lineSour1++) * alpha) >> 8;
+                            png_byte temp = ((*lineDst1) * (255 - alpha) + (*lineSour1++) * alpha) >> 8;
+                            *lineDst1++ = temp;
+
+                            temp = ((*lineDst1) * (255 - alpha) + (*lineSour1++) * alpha) >> 8;
+                            *lineDst1++ = temp;
+
+                            temp = ((*lineDst1) * (255 - alpha) + (*lineSour1++) * alpha) >> 8;
+                            *lineDst1++ = temp;
+
+                            temp = ((*lineDst1) * (255 - alpha) + (*lineSour1++) * alpha) >> 8;
+                            *lineDst1++ = temp;
                         }
                         lineDst += bytesPerRow;
                         lineSour += bytesPerRow;

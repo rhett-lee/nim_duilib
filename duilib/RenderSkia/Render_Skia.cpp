@@ -12,8 +12,7 @@
 #include "duilib/Utils/PerformanceUtil.h"
 #include "duilib/Core/SharePtr.h"
 
-#pragma warning (push)
-#pragma warning (disable: 4244 4201 4100)
+#include "SkiaHeaderBegin.h"
 
 #include "include/core/SkMatrix.h"
 #include "include/core/SkBitmap.h"
@@ -33,7 +32,7 @@
 #include "include/effects/SkGradientShader.h"
 #include "include/effects/SkImageFilters.h"
 
-#pragma warning (pop)
+#include "SkiaHeaderEnd.h"
 
 #include <unordered_set>
 #include <unordered_map>
@@ -2437,10 +2436,12 @@ void Render_Skia::InternalDrawRichText(const UiRect& rcTextRect,
                         nDrawLength = textCount * sizeof(DStringW::value_type);
                         if (glyphs.empty()) {
                             glyphs.resize(1);
-                            glyphChars.resize(1, 1);
+                            glyphChars.resize(1);
+                            glyphChars[0] = 1;
                             glyphWidths.resize(1, textMeasuredWidth);
                         }
-                        pGlyphCharList->resize(1, 1);
+                        pGlyphCharList->resize(1);
+                        (*pGlyphCharList)[0] = 1;
                         pGlyphWidthList->resize(1);
                         (*pGlyphWidthList)[0] = textMeasuredWidth;
                     }

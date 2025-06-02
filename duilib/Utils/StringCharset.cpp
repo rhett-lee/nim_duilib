@@ -180,7 +180,7 @@ bool StringCharset::IsValidateASCIIStream(const char* stream, uint32_t length)
     // 遍历流
     for (uint32_t i = 0; i < length; i++) {
         // 检查当前字节是否为ASCII字符
-        if (stream[i] >= 0 && stream[i] <= 127) {
+        if (stream[i] >= 0) {
             // 如果是，继续遍历
             continue;
         }

@@ -346,7 +346,6 @@ void Progress::PaintMarquee(IRender* pRender)
     if (!m_sProgressColor.empty()) {
         UiColor dwProgressColor = GlobalManager::Instance().Color().GetColor(m_sProgressColor.c_str());
         if (dwProgressColor.GetARGB() != 0) {
-            UiRect rcProgressColor = GetRect();
             ui::UiRect rc = GetRect();
             if (m_bHorizontal) {
                 rc.left = std::max(m_nMarqueePos, 0) + rc.left;

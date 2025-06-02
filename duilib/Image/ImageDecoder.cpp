@@ -2,6 +2,7 @@
 #include "duilib/Image/Image.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
+#include "duilib/Utils/PerformanceUtil.h"
 
 #include "duilib/third_party/apng/decoder-apng.h"
 
@@ -23,14 +24,23 @@
     #include "duilib/third_party/stb_image/stb_image_resize2.h"
 #pragma warning (pop)
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 #pragma warning (push)
 #pragma warning (disable: 4456 4244 4702)
+
 #define NANOSVG_IMPLEMENTATION
 #define NANOSVG_ALL_COLOR_KEYWORDS
-    #include "duilib/third_party/svg/nanosvg.h"
+#include "duilib/third_party/svg/nanosvg.h"
 #define NANOSVGRAST_IMPLEMENTATION
-    #include "duilib/third_party/svg/nanosvgrast.h"
+#include "duilib/third_party/svg/nanosvgrast.h"
+
 #pragma warning (pop)
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 #pragma warning (push)
 #pragma warning (disable: 4996)
@@ -40,16 +50,13 @@
 #include "duilib/third_party/libwebp/src/webp/decode.h"
 #include "duilib/third_party/libwebp/src/webp/demux.h"
 
-#pragma warning (push)
-#pragma warning (disable: 4244 4267)
-    #include "modules/svg/include/SkSVGDOM.h"
-    #include "modules/svg/include/SkSVGRenderContext.h"
-    #include "include/core/SkStream.h"
-    #include "include/core/SkBitmap.h"
-    #include "include/core/SkCanvas.h"
-#pragma warning (pop)
-
-#include "duilib/Utils/PerformanceUtil.h"
+#include "duilib/RenderSkia/SkiaHeaderBegin.h"
+#include "modules/svg/include/SkSVGDOM.h"
+#include "modules/svg/include/SkSVGRenderContext.h"
+#include "include/core/SkStream.h"
+#include "include/core/SkBitmap.h"
+#include "include/core/SkCanvas.h"
+#include "duilib/RenderSkia/SkiaHeaderEnd.h"
 
 namespace ui 
 {

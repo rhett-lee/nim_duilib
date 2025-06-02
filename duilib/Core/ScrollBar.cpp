@@ -348,7 +348,7 @@ void ScrollBar::SetPos(UiRect rc)
                 m_rcButton2.bottom = m_rcButton2.top;
             }
 
-            ::memset(&m_rcThumb, 0, sizeof(m_rcThumb));
+            m_rcThumb.Clear();
         }
     }
     else {
@@ -428,7 +428,7 @@ void ScrollBar::SetPos(UiRect rc)
                 m_rcButton2.right = m_rcButton2.left;
             }
 
-            ::memset(&m_rcThumb, 0, sizeof(m_rcThumb));
+            m_rcThumb.Clear();
         }
     }
 }

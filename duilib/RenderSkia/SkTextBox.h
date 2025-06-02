@@ -8,10 +8,9 @@
 #ifndef UI_RENDER_SKIA_SK_TEXT_BOX_H_
 #define UI_RENDER_SKIA_SK_TEXT_BOX_H_
 
-#pragma warning (push)
-#pragma warning (disable: 4244 4267)
+#include "SkiaHeaderBegin.h"
 #include "include/core/SkCanvas.h"
-#pragma warning (pop)
+#include "SkiaHeaderEnd.h"
 
 #include <vector>
 

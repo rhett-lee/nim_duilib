@@ -7,9 +7,12 @@
 
 #include "SkTextBox.h"
 #include "SkUtils.h"
+
+#include "SkiaHeaderBegin.h"
 #include "include/core/SkFont.h"
 #include "include/core/SkFontMetrics.h"
 #include "include/core/SkTextBlob.h"
+#include "SkiaHeaderEnd.h"
 
 //该文件原始文件的出处：skia/chrome_67/src/utils/SkTextBox.cpp
 //基于原始文件，有修改，以兼容最新版本的skia代码（2023-06-25）

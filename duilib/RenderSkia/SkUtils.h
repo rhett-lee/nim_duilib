@@ -8,7 +8,9 @@
 #ifndef UI_RENDER_SKIA_SK_UTILS_H_
 #define UI_RENDER_SKIA_SK_UTILS_H_
 
+#include "SkiaHeaderBegin.h"
 #include "include/core/SkTypes.h"
+#include "SkiaHeaderEnd.h"
 
 //该文件原始文件的出处：skia/chrome_67/src/core/SkUtils.h
 //基于原始文件，有修改，以兼容最新版本的skia代码（2023-06-25）

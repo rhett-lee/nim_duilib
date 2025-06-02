@@ -639,6 +639,8 @@
     <ClInclude Include="RenderSkia\Render_Skia_SDL.h" />
     <ClInclude Include="RenderSkia\Render_Skia_Windows.h" />
     <ClInclude Include="RenderSkia\SkGLWindowContext_Windows.h" />
+    <ClInclude Include="RenderSkia\SkiaHeaderBegin.h" />
+    <ClInclude Include="RenderSkia\SkiaHeaderEnd.h" />
     <ClInclude Include="RenderSkia\SkRasterWindowContext_SDL.h" />
     <ClInclude Include="RenderSkia\SkRasterWindowContext_Windows.h" />
     <ClInclude Include="RenderSkia\SkTextBox.h" />

@@ -1415,6 +1415,12 @@
     <ClInclude Include="Box\ListBoxHelper.h">
       <Filter>Box</Filter>
     </ClInclude>
+    <ClInclude Include="RenderSkia\SkiaHeaderBegin.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSkia\SkiaHeaderEnd.h">
+      <Filter>RenderSkia</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />

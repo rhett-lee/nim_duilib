@@ -1,9 +1,8 @@
 #include "Matrix_Skia.h"
 
-#pragma warning (push)
-#pragma warning (disable: 4244)
+#include "SkiaHeaderBegin.h"
 #include "include/core/SkMatrix.h"
-#pragma warning (pop)
+#include "SkiaHeaderEnd.h"
 
 namespace ui {
 

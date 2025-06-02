@@ -95,7 +95,6 @@ void CComboWnd::InitComboWnd(Combo* pOwner, bool bActivated)
     if (Box::IsValidItemIndex(m_iOldSel)) {
         //展开的时候，确保选择可见
         UpdateWindow();
-        UiRect rc = pOwner->GetTreeView()->GetPos();
         pOwner->GetTreeView()->EnsureVisible(m_iOldSel, ListBoxVerVisible::kVisibleAtCenter);
     }
 

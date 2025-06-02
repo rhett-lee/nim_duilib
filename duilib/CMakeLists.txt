@@ -167,7 +167,10 @@ add_library(${PROJECT_NAME}
     	    ${UDIS_SRCS}
            )
 
-if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    # 由于Skia内部会自动开启AVX/AVX2等编译参数，duilib内部直接引用了部分源码，需要保持编译选项一致
+    include(${DUILIB_SRC_ROOT_DIR}/cmake/duilib_compiles.cmake)
+
     # 编译器的参数
     set(DUILIB_COMPILER_FLAGS
         -fno-strict-aliasing            # Avoid assumptions regarding non-aliasing of objects of different types
@@ -184,14 +187,36 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Cla
     )
     set(DUILIB_CXX_COMPILER_FLAGS
         -fno-threadsafe-statics         # Don't generate thread-safe statics
-        -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
         -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
+        -frtti
         -Wno-narrowing                  # Don't warn about type narrowing
         -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
         -Wno-unused-variable
-        -Wno-reorder-ctor
-        -Wno-unused-lambda-capture
     )
+    if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+        list(APPEND DUILIB_CXX_COMPILER_FLAGS
+            -Wno-reorder
+            -Wno-cast-function-type
+          )
+          set_source_files_properties("${DUILIB_SRC_ROOT_DIR}/duilib/third_party/libudis86/decode.c" PROPERTIES COMPILE_OPTIONS "-Wno-implicit-fallthrough")
+          if(DUILIB_HAVE_AVX2)
+            set_source_files_properties("${SKIA_SRC_ROOT_DIR}/tools/window/GLWindowContext.cpp" PROPERTIES COMPILE_OPTIONS "-mavx2")
+          elseif(DUILIB_HAVE_AVX)
+            set_source_files_properties("${SKIA_SRC_ROOT_DIR}/tools/window/GLWindowContext.cpp" PROPERTIES COMPILE_OPTIONS "-mavx")
+          endif()
+    endif()
+    
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        list(APPEND DUILIB_COMPILER_FLAGS
+            -Wnewline-eof                   # Warn about no newline at end of file
+          )
+        list(APPEND DUILIB_CXX_COMPILER_FLAGS
+            -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
+            -Wno-reorder-ctor
+            -Wno-unused-lambda-capture
+          )
+    endif()
+    
     target_compile_options(${PROJECT_NAME} PRIVATE ${DUILIB_COMPILER_FLAGS})
     target_compile_options(${PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>: ${DUILIB_CXX_COMPILER_FLAGS}>)
 endif()

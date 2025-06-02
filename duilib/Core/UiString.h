@@ -54,7 +54,7 @@ public:
     ~UiStringT()
     { 
         if (m_pData != nullptr) {
-            delete m_pData;
+            delete[] m_pData;
             m_pData = nullptr;
         }
     }
@@ -66,7 +66,7 @@ public:
     void clear() 
     {
         if (m_pData != nullptr) {
-            delete m_pData;
+            delete[] m_pData;
             m_pData = nullptr;
         }
     }
@@ -77,7 +77,7 @@ public:
             return *this;
         }
         if (m_pData != nullptr) {
-            delete m_pData;
+            delete[] m_pData;
             m_pData = nullptr;
         }
         if (!str.empty()) {
@@ -91,7 +91,7 @@ public:
     UiStringT& operator=(const string_type& str)
     {
         if (m_pData != nullptr) {
-            delete m_pData;
+            delete[] m_pData;
             m_pData = nullptr;
         }
         if (!str.empty()) {
@@ -105,7 +105,7 @@ public:
     UiStringT& operator=(const std::basic_string_view<value_type>& str)
     {
         if (m_pData != nullptr) {
-            delete m_pData;
+            delete[] m_pData;;
             m_pData = nullptr;
         }
         if (!str.empty()) {
@@ -119,7 +119,7 @@ public:
     UiStringT& operator=(const value_type* pstr)
     {
         if (m_pData != nullptr) {
-            delete m_pData;
+            delete[] m_pData;;
             m_pData = nullptr;
         }
         if (pstr != nullptr) {

@@ -6,8 +6,7 @@
 #ifdef DUILIB_BUILD_FOR_WIN
 #include "duilib/duilib_config_windows.h"
 
-#pragma warning (push)
-#pragma warning (disable: 4244 4201 4100)
+#include "SkiaHeaderBegin.h"
 
 #include "include/core/SkSurface.h"
 #include "tools/window/GLWindowContext.h"
@@ -18,7 +17,7 @@
     #error 请检查宏定义：SK_GL与Skia库的编译选项保持一致
 #endif
 
-#pragma warning (pop)
+#include "SkiaHeaderEnd.h"
 
 namespace ui 
 {

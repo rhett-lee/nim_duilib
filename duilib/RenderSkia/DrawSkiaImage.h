@@ -3,12 +3,11 @@
 
 #include "duilib/Core/UiRect.h"
 
-#pragma warning (push)
-#pragma warning (disable: 4244 4201 4100 4267)
-    #include "include/core/SkImage.h"
-    #include "include/core/SkCanvas.h"
-    #include "include/core/SkPaint.h"
-#pragma warning (pop)
+#include "SkiaHeaderBegin.h"
+#include "include/core/SkImage.h"
+#include "include/core/SkCanvas.h"
+#include "include/core/SkPaint.h"
+#include "SkiaHeaderEnd.h"
 
 namespace ui 
 {
