@@ -158,7 +158,6 @@ RichEditHost::~RichEditHost()
 void RichEditHost::Init()
 {
     IUnknown* pUnk = nullptr;
-    HRESULT hr = E_FAIL;
 
     //默认为单行文本
     m_dwStyle = 0;
@@ -188,7 +187,7 @@ void RichEditHost::Init()
 
     ASSERT(m_pTextServices == nullptr);
     if (pUnk != nullptr) {
-        hr = pUnk->QueryInterface(IID_ITextServices, (void**)&m_pTextServices);
+        pUnk->QueryInterface(IID_ITextServices, (void**)&m_pTextServices);
         pUnk->Release();
     }
 

@@ -9,7 +9,6 @@ namespace ui
 {
 VTileLayout::VTileLayout(): 
     m_nColumns(0), 
-    m_szItem(0, 0),
     m_bAutoCalcColumns(false),
     m_bScaleDown(true),
     m_bAutoCalcItemWidth(false)

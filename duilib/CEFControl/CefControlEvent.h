@@ -60,7 +60,8 @@ namespace ui
 
     //资源执行协议回调函数（回调函数的调用线程：CEF的IO线程）
     typedef std::function<void (CefRefPtr<CefBrowser> browser,
-                                const CefString& url,
+                                CefRefPtr<CefFrame> frame,
+                                CefRefPtr<CefRequest> request,
                                 bool& allow_os_execution)> OnProtocolExecutionEvent;
 
 
@@ -335,7 +336,10 @@ public:
 
     /** 资源执行协议回调函数（回调函数的调用线程：CEF的IO线程）
     */
-    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution) {}
+    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser,
+                                     CefRefPtr<CefFrame> frame,
+                                     CefRefPtr<CefRequest> request,
+                                     bool& allow_os_execution) {}
 
     /** 页面加载状态发生变化的回调函数（回调函数的调用线程：主进程的UI线程）
     */

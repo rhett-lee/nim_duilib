@@ -18,14 +18,14 @@ enum ePaintSelectedColors
 
 ListBox::ListBox(Window* pWindow, Layout* pLayout) :
     ScrollBox(pWindow, pLayout),
-    m_bScrollSelect(false),
-    m_bMultiSelect(false),
-    m_uPaintSelectedColors(PAINT_SELECTED_COLORS_DEFAULT),
-    m_bSelectNextWhenActiveRemoved(false),
     m_iCurSel(Box::InvalidIndex),
+    m_nLastNoShiftItem(0),
     m_pCompareFunc(nullptr),
     m_pCompareContext(nullptr),
-    m_nLastNoShiftItem(0),
+    m_uPaintSelectedColors(PAINT_SELECTED_COLORS_DEFAULT),
+    m_bScrollSelect(false),
+    m_bSelectNextWhenActiveRemoved(false),
+    m_bMultiSelect(false),
     m_bSelectLikeListCtrl(false),
     m_bSelectNoneWhenClickBlank(true)
 {

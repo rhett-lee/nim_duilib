@@ -296,7 +296,7 @@ Control* WindowBuilder::CreateControls(CreateControlCallback pCallback, Window* 
                 for (pugi::xml_attribute attr : node.attributes()) {
                     if (StringUtil::StringCompare(attr.name(), _T("class")) == 0) {
                         //class必须是第一个属性
-                        ASSERT(i == 0);
+                        ASSERT_UNUSED_VARIABLE(i == 0);
                     }
                     ++i;
                     pUserDefinedBox->SetAttribute(attr.name(), attr.value());
@@ -1033,7 +1033,7 @@ Control* WindowBuilder::ParseXmlNodeChildren(const pugi::xml_node& xmlNode, Cont
             //读取节点的属性，设置控件的属性
             int i = 0;
             for (pugi::xml_attribute attr : node.attributes()) {
-                ASSERT(i == 0 || StringUtil::StringCompare(attr.name(), _T("class")) != 0);    //class必须是第一个属性
+                ASSERT_UNUSED_VARIABLE(i == 0 || StringUtil::StringCompare(attr.name(), _T("class")) != 0);    //class必须是第一个属性
                 ++i;
                 pControl->SetAttribute(attr.name(), attr.value());
             }
@@ -1213,9 +1213,9 @@ void WindowBuilder::AttachXmlEvent(bool bBubbled, const pugi::xml_node& node, Co
     for (pugi::xml_attribute attr : node.attributes()) {
         strName = attr.name();
         strValue = attr.value();
-        ASSERT(i != 0 || strName == _T("type"));
-        ASSERT(i != 1 || strName == _T("receiver"));
-        ASSERT(i != 2 || ((strName == _T("applyattribute")) || (strName == _T("apply_attribute"))));
+        ASSERT_UNUSED_VARIABLE(i != 0 || strName == _T("type"));
+        ASSERT_UNUSED_VARIABLE(i != 1 || strName == _T("receiver"));
+        ASSERT_UNUSED_VARIABLE(i != 2 || ((strName == _T("applyattribute")) || (strName == _T("apply_attribute"))));
         ++i;
         if (strName == _T("type") ) {
             strType = strValue;

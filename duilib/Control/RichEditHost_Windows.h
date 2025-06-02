@@ -261,7 +261,6 @@ private:
     bool m_fEnableAutoWordSel;  // enable Word style auto word selection?
     bool m_fWordWrap;           // Whether control should word wrap
     bool m_fAllowBeep;          // Whether beep is allowed
-    bool m_fRichText;           // Whether control is rich text
     bool m_fSaveSelection;      // Whether to save the selection when inactive
     bool m_fInplaceActive;      // Whether control is inplace active
     bool m_fTransparent;        // Whether control is transparent

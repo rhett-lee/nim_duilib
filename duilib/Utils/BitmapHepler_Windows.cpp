@@ -131,7 +131,7 @@ namespace BitmapHelper {
             return nullptr;
         }
 
-        BITMAPINFO bmi = { 0 };
+        BITMAPINFO bmi;
         ::ZeroMemory(&bmi, sizeof(BITMAPINFO));
         bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
         bmi.bmiHeader.biWidth = nWidth;

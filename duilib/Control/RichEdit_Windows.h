@@ -605,13 +605,17 @@ public:
     uint32_t SetUndoLimit(uint32_t nLimit);
 
 public:
-    /** 向上一行
+    /** 向上滚动滚动条
+     * @param[in] deltaValue 未使用
+     * @param[in] withAnimation 未使用
      */
-    virtual void LineUp();
+    virtual void LineUp(int32_t deltaValue = DUI_NOSET_VALUE, bool withAnimation = true) override;
 
-    /** 向下一行
+    /** 向下滚动滚动条
+     * @param[in] deltaValue 未使用
+     * @param[in] withAnimation 未使用
      */
-    virtual void LineDown();
+    virtual void LineDown(int32_t deltaValue = DUI_NOSET_VALUE, bool withAnimation = true) override;
 
     /** 向上翻页
      */
@@ -625,17 +629,21 @@ public:
      */
     virtual void HomeUp() override;
 
-    /** 返回到底部
+    /** 滚动到最下方位置
+     * @param[in] arrange 未使用
+     * @param[in] withAnimation 未使用
      */
-    virtual void EndDown();
+    virtual void EndDown(bool arrange = true, bool withAnimation = true) override;
 
-    /** 水平向左滚动
+    /** 向左滚动滚动条
+     * @param[in] deltaValue 未使用
      */
-    virtual void LineLeft();
+    virtual void LineLeft(int32_t deltaValue = DUI_NOSET_VALUE) override;
 
-    /** 水平向右滚动
+    /** 向右滚动滚动条
+     * @param[in] deltaValue 未使用
      */
-    virtual void LineRight();
+    virtual void LineRight(int32_t deltaValue = DUI_NOSET_VALUE) override;
 
     /** 水平向左翻页
      */

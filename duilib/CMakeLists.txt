@@ -140,7 +140,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     )
 endif()
 
-add_library(duilib
+add_library(${PROJECT_NAME}
     	    ${DIR_LIB_SRC}
     	    ${ANIMATION_SRC}
     	    ${BOX_SRC}
@@ -167,16 +167,31 @@ add_library(duilib
     	    ${UDIS_SRCS}
            )
 
-# macOS 特有链接库
-if(APPLE)
-    find_library(CORETEXT_LIBRARY CoreText)
-    target_link_libraries(duilib
-        PRIVATE
-        ${CORETEXT_LIBRARY}
-        "-framework Cocoa"
-        "-framework OpenGL"
-        "-framework IOKit"
-        "-framework CoreFoundation"
-        "-framework CoreGraphics"
+if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
+    # 编译器的参数
+    set(DUILIB_COMPILER_FLAGS
+        -fno-strict-aliasing            # Avoid assumptions regarding non-aliasing of objects of different types
+        -fstack-protector               # Protect some vulnerable functions from stack-smashing (security feature)
+        -funwind-tables                 # Support stack unwinding for backtrace()
+        -fvisibility=hidden             # Give hidden visibility to declarations that are not explicitly marked as visible
+        -Wall                           # Enable all warnings
+        -Werror                         # Treat warnings as errors
+        -Wno-unknown-pragmas
+        -Wextra                         # Enable additional warnings
+        -Wendif-labels                  # Warn whenever an #else or an #endif is followed by text
+        -Wno-missing-field-initializers # Don't warn about missing field initializers
+        -Wno-unused-parameter           # Don't warn about unused parameters
     )
+    set(DUILIB_CXX_COMPILER_FLAGS
+        -fno-threadsafe-statics         # Don't generate thread-safe statics
+        -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
+        -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
+        -Wno-narrowing                  # Don't warn about type narrowing
+        -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
+        -Wno-unused-variable
+        -Wno-reorder-ctor
+        -Wno-unused-lambda-capture
+    )
+    target_compile_options(${PROJECT_NAME} PRIVATE ${DUILIB_COMPILER_FLAGS})
+    target_compile_options(${PROJECT_NAME} PRIVATE $<$<COMPILE_LANGUAGE:CXX>: ${DUILIB_CXX_COMPILER_FLAGS}>)
 endif()

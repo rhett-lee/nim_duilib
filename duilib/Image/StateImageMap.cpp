@@ -145,4 +145,4 @@ void StateImageMap::StopGifPlay()
     }
 }
 
-}
+}//namespace ui 

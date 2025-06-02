@@ -61,7 +61,7 @@ void BrowserBox::InitBrowserBox(const DString& url)
     m_pCefControl->AttachResourceRedirect(ui::UiBind(&BrowserBox::OnResourceRedirect, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
     m_pCefControl->AttachResourceResponse(ui::UiBind(&BrowserBox::OnResourceResponse, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
     m_pCefControl->AttachResourceLoadComplete(ui::UiBind(&BrowserBox::OnResourceLoadComplete, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6));
-    m_pCefControl->AttachProtocolExecution(ui::UiBind(&BrowserBox::OnProtocolExecution, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachProtocolExecution(ui::UiBind(&BrowserBox::OnProtocolExecution, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
 
     m_pCefControl->AttachLoadingStateChange(ui::UiBind(&BrowserBox::OnLoadingStateChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4));
     m_pCefControl->AttachLoadStart(ui::UiBind(&BrowserBox::OnLoadStart, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
@@ -309,7 +309,10 @@ void BrowserBox::OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
     ASSERT(CefCurrentlyOn(TID_IO));
 }
 
-void BrowserBox::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution)
+void BrowserBox::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
+                                     CefRefPtr<CefFrame> frame,
+                                     CefRefPtr<CefRequest> request,
+                                     bool& allow_os_execution)
 {
     ASSERT(CefCurrentlyOn(TID_IO));
 }

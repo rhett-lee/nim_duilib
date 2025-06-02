@@ -1040,10 +1040,13 @@ void CefBrowserHandler::OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
     }
 }
 
-void CefBrowserHandler::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution)
+void CefBrowserHandler::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
+                                            CefRefPtr<CefFrame> frame,
+                                            CefRefPtr<CefRequest> request,
+                                            bool& allow_os_execution)
 {
     if (m_pHandlerDelegate) {
-        m_pHandlerDelegate->OnProtocolExecution(browser, url, allow_os_execution);
+        m_pHandlerDelegate->OnProtocolExecution(browser, frame, request, allow_os_execution);
     }
 }
 

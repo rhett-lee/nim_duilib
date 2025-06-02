@@ -845,7 +845,7 @@ void Render_Skia::InitGradientColor(SkPaint& skPaint, const UiRect& rc, UiColor 
     SkRect rcSkDest = SkRect::Make(rcSkDestI);
     rcSkDest.offset(*m_pSkPointOrg);
 
-    SkPoint pts[2] = {0, };
+    SkPoint pts[2] = { {0, 0}, {0, 0} };
     pts[0].set(rcSkDest.fLeft, rcSkDest.fTop);
     if (nColor2Direction == 2) {
         //上->下
@@ -1228,7 +1228,7 @@ void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, 
     ovalRect.offset(*m_pSkPointOrg);
 
     if((gradientColor != nullptr) && (gradientRect != nullptr)) {        
-        SkColor colors[2] = {0, };
+        SkColor colors[2] = {0};
         colors[0] = pen->GetColor().GetARGB();
         colors[1] = gradientColor->GetARGB();
         
@@ -1236,7 +1236,7 @@ void Render_Skia::DrawArc(const UiRect& rc, float startAngle, float sweepAngle, 
         SkRect rcGradientDest = SkRect::Make(rcGradientDestI);
         rcGradientDest.offset(*m_pSkPointOrg);
 
-        SkPoint pts[2] = {0, };
+        SkPoint pts[2] = { {0, 0}, {0, 0} };
         pts[0].set(rcGradientDest.fLeft, rcGradientDest.fTop);
         pts[1].set(rcGradientDest.fRight, rcGradientDest.fBottom);
         
@@ -2736,7 +2736,7 @@ void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<uint
     }
     if (lineSeprators.empty()) {
         //没有换行分隔符，单行
-        lineTextViewList.emplace_back(std::move(std::wstring_view(lineText.data(), lineText.size())));
+        lineTextViewList.emplace_back(std::wstring_view(lineText.data(), lineText.size()));
     }
     else {
         //有换行分隔符，切分为多行, 并保留换行符
@@ -2753,9 +2753,9 @@ void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<uint
                 ASSERT(nCurrentIndex < lineText.size());
                 nCharCount = nCurrentIndex - nLastIndex;
                 if (nCharCount > 0) {
-                    lineTextViewList.emplace_back(std::move(std::wstring_view(lineText.data(), nCharCount)));
+                    lineTextViewList.emplace_back(std::wstring_view(lineText.data(), nCharCount));
                 }
-                lineTextViewList.emplace_back(std::move(std::wstring_view(lineText.data() + nCurrentIndex, 1)));
+                lineTextViewList.emplace_back(std::wstring_view(lineText.data() + nCurrentIndex, 1));
             }
             else {
                 //中间行
@@ -2765,9 +2765,9 @@ void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<uint
                 ASSERT(nCurrentIndex < lineText.size());
                 nCharCount = nCurrentIndex - nLastIndex - 1;
                 if (nCharCount > 0) {
-                    lineTextViewList.emplace_back(std::move(std::wstring_view(lineText.data() + nLastIndex + 1, nCharCount)));
+                    lineTextViewList.emplace_back(std::wstring_view(lineText.data() + nLastIndex + 1, nCharCount));
                 }
-                lineTextViewList.emplace_back(std::move(std::wstring_view(lineText.data() + nCurrentIndex, 1)));
+                lineTextViewList.emplace_back(std::wstring_view(lineText.data() + nCurrentIndex, 1));
             }
 
             if (nLine == (nLineSepCount - 1)) {
@@ -2777,7 +2777,7 @@ void Render_Skia::SplitLines(const std::wstring_view& lineText, std::vector<uint
                 ASSERT(nCurrentIndex > nLastIndex);
                 nCharCount = nCurrentIndex - nLastIndex - 1;
                 if (nCharCount > 0) {
-                    lineTextViewList.emplace_back(std::move(std::wstring_view(lineText.data() + nLastIndex + 1, nCharCount)));
+                    lineTextViewList.emplace_back(std::wstring_view(lineText.data() + nLastIndex + 1, nCharCount));
                 }
             }
         }

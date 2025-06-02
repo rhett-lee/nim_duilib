@@ -14,7 +14,7 @@ static HBITMAP CreateBitmap(const Window* pWindow, int32_t nWidth, int32_t nHeig
         return nullptr;
     }
 
-    BITMAPINFO bmi = { 0 };
+    BITMAPINFO bmi;
     ::ZeroMemory(&bmi, sizeof(BITMAPINFO));
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = nWidth;

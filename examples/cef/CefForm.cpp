@@ -322,7 +322,10 @@ void CefForm::OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
     ASSERT(CefCurrentlyOn(TID_IO));
 }
 
-void CefForm::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution)
+void CefForm::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
+                                  CefRefPtr<CefFrame> frame,
+                                  CefRefPtr<CefRequest> request,
+                                  bool& allow_os_execution)
 {
     ASSERT(CefCurrentlyOn(TID_IO));
 }

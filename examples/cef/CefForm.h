@@ -174,7 +174,10 @@ private:
 
     /** 资源执行协议回调函数（回调函数的调用线程：CEF的IO线程）
     */
-    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution) override;
+    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser,
+                                     CefRefPtr<CefFrame> frame,
+                                     CefRefPtr<CefRequest> request,
+                                     bool& allow_os_execution) override;
 
     /** 页面加载状态发生变化的回调函数（回调函数的调用线程：主进程的UI线程）
     */

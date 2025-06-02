@@ -2188,7 +2188,9 @@ LRESULT NativeWindow_Windows::OnWindowPosChangingMsg(UINT uMsg, WPARAM /*wParam*
             }
             if (hMonitorTo != hMontorPrimary) {
                 // 解决无边框窗口在双屏下面（副屏分辨率大于主屏）时，最大化不正确的问题
-                MONITORINFO  miTo = { sizeof(miTo), 0 };
+                MONITORINFO  miTo;
+                ZeroMemory(&miTo, sizeof(miTo));
+                miTo.cbSize = sizeof(MONITORINFO);
                 ::GetMonitorInfo(hMonitorTo, &miTo);
 
                 lpPos->x = miTo.rcWork.left;

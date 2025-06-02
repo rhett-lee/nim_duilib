@@ -2064,7 +2064,7 @@ void Window::KillFocusControl()
 
 void Window::OnFocusControlChanged()
 {
-    if (IsWindowFocused() & (m_pFocus == nullptr)) {
+    if (IsWindowFocused() && (m_pFocus == nullptr)) {
         //无焦点控件时，关闭输入法
         NativeWnd()->SetImeOpenStatus(false);
     }

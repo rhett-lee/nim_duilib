@@ -8,9 +8,9 @@
 namespace ui 
 {
 Layout::Layout() :
+    m_pOwner(nullptr),
     m_iChildMarginX(0),
-    m_iChildMarginY(0),
-    m_pOwner(nullptr)
+    m_iChildMarginY(0)
 {
 }
 

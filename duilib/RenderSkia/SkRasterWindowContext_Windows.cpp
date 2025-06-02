@@ -168,7 +168,7 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRende
         //标记绘制区域为有效区域
         ::ValidateRect(hWnd, &rectUpdate);
     }
-    return false;
+    return bRet;
 }
 
 bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect& rcPaint, IRender* pRender, uint8_t nLayeredWindowAlpha) const
@@ -258,7 +258,7 @@ HBITMAP SkRasterWindowContext_Windows::CreateHBitmap(int32_t nWidth, int32_t nHe
         return nullptr;
     }
 
-    BITMAPINFO bmi = { 0 };
+    BITMAPINFO bmi;
     ::ZeroMemory(&bmi, sizeof(BITMAPINFO));
     bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
     bmi.bmiHeader.biWidth = nWidth;

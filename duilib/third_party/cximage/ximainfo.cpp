@@ -948,7 +948,7 @@ uint32_t CxImage::UnDump(const uint8_t * src)
  *  - CCC = minor revision (letter)
  *  - DDDD = experimental revision
  */
-const float CxImage::GetVersionNumber()
+float CxImage::GetVersionNumber()
 {
     return 7.000020000f;
 }

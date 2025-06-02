@@ -891,14 +891,17 @@ void CefControl::OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
     }
 }
 
-void CefControl::OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution)
+void CefControl::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
+                                     CefRefPtr<CefFrame> frame,
+                                     CefRefPtr<CefRequest> request,
+                                     bool& allow_os_execution)
 {
     ASSERT(CefCurrentlyOn(TID_IO));
     if (m_pfnProtocolExecution) {
-        m_pfnProtocolExecution(browser, url, allow_os_execution);
+        m_pfnProtocolExecution(browser, frame, request, allow_os_execution);
     }
     else if (m_pCefControlEventHandler) {
-        m_pCefControlEventHandler->OnProtocolExecution(browser, url, allow_os_execution);
+        m_pCefControlEventHandler->OnProtocolExecution(browser, frame, request, allow_os_execution);
     }
 }
 

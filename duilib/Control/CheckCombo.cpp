@@ -117,7 +117,7 @@ UiRect CCheckComboWnd::GetComboWndRect() const
     }
 
     int32_t cyFixed = 0;
-    if (pOwner->GetListBox()->GetItemCount() > 0) {
+    if (bCanEstimateSize && (pOwner->GetListBox()->GetItemCount() > 0)) {
         UiSize szAvailable(rc.Width(), rc.Height());
         UiFixedInt oldFixedHeight = pOwner->GetListBox()->GetFixedHeight();
         pOwner->GetListBox()->SetFixedHeight(UiFixedInt::MakeAuto(), false, false);

@@ -467,7 +467,10 @@ protected:
                                         CefRefPtr<CefResponse> response,
                                         cef_urlrequest_status_t status,
                                         int64_t received_content_length) override;
-    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution) override;
+    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser,
+                                     CefRefPtr<CefFrame> frame,
+                                     CefRefPtr<CefRequest> request,
+                                     bool& allow_os_execution) override;
 
     //CefRequestHandler接口
     virtual void OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,

@@ -27,7 +27,6 @@ else()
         -Wno-unknown-pragmas
         -Wextra                         # Enable additional warnings
         -Wendif-labels                  # Warn whenever an #else or an #endif is followed by text
-        -Wnewline-eof                   # Warn about no newline at end of file
         -Wno-missing-field-initializers # Don't warn about missing field initializers
         -Wno-unused-parameter           # Don't warn about unused parameters
     )
@@ -38,6 +37,8 @@ else()
         -Wno-narrowing                  # Don't warn about type narrowing
         -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
         -Wno-unused-variable
+        -Wno-reorder-ctor
+        -Wno-unused-lambda-capture
     )
     
     #设置编译可执行程序依赖的源码

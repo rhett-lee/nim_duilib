@@ -9,7 +9,6 @@ namespace ui
 {
 HTileLayout::HTileLayout():
     m_nRows(0), 
-    m_szItem(0, 0),
     m_bAutoCalcRows(false),
     m_bScaleDown(true),
     m_bAutoCalcItemHeight(false)

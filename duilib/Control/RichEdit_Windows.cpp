@@ -746,7 +746,7 @@ void RichEdit::SetFontId(const DString& strFontId)
 
 UiFont RichEdit::GetFontInfo() const
 {
-    CHARFORMAT2W cf = {0, };
+    CHARFORMAT2W cf = { {0} };
     cf.cbSize = sizeof(CHARFORMAT2W);
     if (IsRichText()) {
         GetSelectionCharFormat(cf);
@@ -799,7 +799,7 @@ bool RichEdit::SetFontInfo(const UiFont& fontInfo)
         return false;
     }
 
-    CHARFORMAT2W charFormat = { 0, };
+    CHARFORMAT2W charFormat = { {0} };
     charFormat.cbSize = sizeof(CHARFORMAT2W);
     if (IsRichText()) {
         GetSelectionCharFormat(charFormat);
@@ -1092,7 +1092,7 @@ void RichEdit::SetSelNone()
 
 DString RichEdit::GetTextRange(int32_t nStartChar, int32_t nEndChar) const
 {
-    TEXTRANGEW tr = { 0 };
+    TEXTRANGEW tr = { {0, 0}, nullptr };
     tr.chrg.cpMin = nStartChar;
     tr.chrg.cpMax = nEndChar;
     LPWSTR lpText = nullptr;
@@ -1447,12 +1447,12 @@ void RichEdit::SetScrollPos(UiSize64 szPos)
     }
 }
 
-void RichEdit::LineUp()
+void RichEdit::LineUp(int32_t /*deltaValue*/, bool /*withAnimation*/)
 {
     m_richCtrl.TxSendMessage(WM_VSCROLL, SB_LINEUP, 0L);
 }
 
-void RichEdit::LineDown()
+void RichEdit::LineDown(int32_t /*deltaValue*/, bool /*withAnimation*/)
 {
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     bool bRichText = IsRichText();
@@ -1488,17 +1488,17 @@ void RichEdit::HomeUp()
     m_richCtrl.TxSendMessage(WM_VSCROLL, SB_TOP, 0L);
 }
 
-void RichEdit::EndDown()
+void RichEdit::EndDown(bool /*arrange*/, bool /*withAnimation*/)
 {
     m_richCtrl.TxSendMessage(WM_VSCROLL, SB_BOTTOM, 0L);
 }
 
-void RichEdit::LineLeft()
+void RichEdit::LineLeft(int32_t /*deltaValue*/)
 {
     m_richCtrl.TxSendMessage(WM_HSCROLL, SB_LINELEFT, 0L);
 }
 
-void RichEdit::LineRight()
+void RichEdit::LineRight(int32_t /*deltaValue*/)
 {
     m_richCtrl.TxSendMessage(WM_HSCROLL, SB_LINERIGHT, 0L);
 }
@@ -3378,7 +3378,8 @@ bool RichEdit::FindRichText(const FindTextParam& findParam, TextCharRange& chrgT
     DWORD dwFlags = findParam.bMatchCase ? FR_MATCHCASE : 0;
     dwFlags |= findParam.bMatchWholeWord ? FR_WHOLEWORD : 0;
     dwFlags |= findParam.bFindDown ? FR_DOWN : 0;
-    FINDTEXTEXW ft = { 0, };
+    FINDTEXTEXW ft;
+    ZeroMemory(&ft, sizeof(ft));
     ft.chrg.cpMin = findParam.chrg.cpMin;
     ft.chrg.cpMax = findParam.chrg.cpMax;
     DStringW findText = StringConvert::TToWString(findParam.findText);

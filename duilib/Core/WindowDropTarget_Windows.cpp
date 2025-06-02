@@ -21,7 +21,7 @@ public:
     {
     }
 
-    ~WindowDropTargetImpl()
+    virtual ~WindowDropTargetImpl()
     {
         if (m_pDataObj != nullptr) {
             m_pDataObj->Release();

@@ -343,7 +343,10 @@ public:
                                         CefRefPtr<CefResponse> response,
                                         URLRequestStatus status,
                                         int64_t received_content_length) override;
-    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser, const CefString& url, bool& allow_os_execution);
+    virtual void OnProtocolExecution(CefRefPtr<CefBrowser> browser,
+                                     CefRefPtr<CefFrame> frame,
+                                     CefRefPtr<CefRequest> request,
+                                     bool& allow_os_execution) override;
 
     //CefCookieAccessFilter接口的实现
     virtual bool CanSendCookie(CefRefPtr<CefBrowser> browser,

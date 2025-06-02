@@ -10,9 +10,9 @@ static bool IsZeroValue(double value) {
     return std::abs(value - 0) < 0.00001;
 }
 
-AnimationPlayerBase::AnimationPlayerBase(): 
-    m_bFirstRun(true),
+AnimationPlayerBase::AnimationPlayerBase():
     m_animationType(AnimationType::kAnimationNone),
+    m_bFirstRun(true),
     m_playCallback(nullptr),
     m_completeCallback(nullptr)
 {

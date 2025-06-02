@@ -2423,7 +2423,7 @@ void ListCtrl::OnItemEditMode(ListCtrlEditParam editParam)
     enterEditParam.sNewText.clear();
     enterEditParam.bCancelled = false;
     SendEvent(kEventEnterEdit, (WPARAM)&enterEditParam);
-    if (enterEditParam.bCancelled || !IsValidItemEditState(editParam) && !IsValidItemEditParam(editParam)) {
+    if (enterEditParam.bCancelled || !IsValidItemEditState(editParam) || !IsValidItemEditParam(editParam)) {
         //状态已经失效, 或者用户取消编辑
         ClearEditEvents();
         RestoreItemFocus();

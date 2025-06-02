@@ -2370,7 +2370,6 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
     if (!strModify.empty()) {
         newImageAttribute.ModifyAttribute(strModify, Dpi());
     }
-    bool hasDestAttr = false; // 外部是否设置了rcDest属性
     UiRect rcDest = GetRect();
     rcDest.Deflate(GetControlPadding());//去掉内边距
     if (pDestRect != nullptr) {
@@ -2382,7 +2381,6 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         //使用配置中指定的目标区域
         rcDest = rcImageDestRect;
         rcDest.Offset(GetRect().left, GetRect().top);
-        hasDestAttr = true;
     }
 
     UiRect rcDestCorners;
