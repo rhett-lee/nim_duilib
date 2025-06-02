@@ -4,7 +4,6 @@
 
 Item::Item(ui::Window* pWindow):
     ui::ListBoxItem(pWindow),
-    m_pListBox(nullptr),
     m_pImageControl(nullptr),
     m_pTitleLabel(nullptr),
     m_pProgressControl(nullptr),

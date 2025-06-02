@@ -16,8 +16,35 @@ if(DUILIB_ENABLE_CEF)
     # CEF在MACOS的实现比较复杂，相关的代码单独放一个文件中
     include("${CMAKE_CURRENT_LIST_DIR}/duilib_cef_macos.cmake") 
 else()
+    # 保持编译器的参数与CEF内部设置一致
+    set(DUILIB_COMPILER_FLAGS
+        -fno-strict-aliasing            # Avoid assumptions regarding non-aliasing of objects of different types
+        -fstack-protector               # Protect some vulnerable functions from stack-smashing (security feature)
+        -funwind-tables                 # Support stack unwinding for backtrace()
+        -fvisibility=hidden             # Give hidden visibility to declarations that are not explicitly marked as visible
+        -Wall                           # Enable all warnings
+        -Werror                         # Treat warnings as errors
+        -Wno-unknown-pragmas
+        -Wextra                         # Enable additional warnings
+        -Wendif-labels                  # Warn whenever an #else or an #endif is followed by text
+        -Wnewline-eof                   # Warn about no newline at end of file
+        -Wno-missing-field-initializers # Don't warn about missing field initializers
+        -Wno-unused-parameter           # Don't warn about unused parameters
+    )
+    set(DUILIB_CXX_COMPILER_FLAGS
+        -fno-threadsafe-statics         # Don't generate thread-safe statics
+        -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
+        -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
+        -Wno-narrowing                  # Don't warn about type narrowing
+        -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
+        -Wno-unused-variable
+    )
+    
     #设置编译可执行程序依赖的源码
     add_executable(${PROJECT_NAME} ${SRC_FILES})
+    
+    #设置编译器的参数
+    target_compile_options(${PROJECT_NAME} PRIVATE ${DUILIB_COMPILER_FLAGS} ${DUILIB_CXX_COMPILER_FLAGS})
     
     # MacOS平台：设置链接库（注意顺序！）
     target_link_libraries(${PROJECT_NAME}

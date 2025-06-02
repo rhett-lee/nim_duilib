@@ -99,6 +99,7 @@ if(OS_MAC)
         -fvisibility-inlines-hidden     # Give hidden visibility to inlined class member functions
         -Wno-narrowing                  # Don't warn about type narrowing
         -Wsign-compare                  # Warn about mixed signed/unsigned type comparisons
+        -Wno-unused-variable
     )
     unset(CMAKE_OSX_DEPLOYMENT_TARGET)
     

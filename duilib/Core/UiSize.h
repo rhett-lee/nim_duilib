@@ -29,6 +29,13 @@ public:
         cy = cyValue;
     }
 
+    UiSize& operator=(const UiSize& src)
+    {
+        cx = src.cx;
+        cy = src.cy;
+        return *this;
+    }
+
     /** 设置新的宽度和高度
     */
     void SetWidthHeight(int32_t cxValue, int32_t cyValue)

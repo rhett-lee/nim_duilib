@@ -22,10 +22,6 @@ private:
     bool OnRemove(const ui::EventArgs& args);
 
 private:
-    /** 列表容器
-    */
-    ui::ListBox* m_pListBox;
-
     /** 图片
     */
     ui::Control* m_pImageControl;
