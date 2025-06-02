@@ -27,7 +27,7 @@
     #pragma message("Unknown Platform!")
 #endif
 
-#if defined (__MINGW32__) || (__MINGW64__)
+#if defined (__MINGW32__) || defined (__MINGW64__)
     //MinGW-w64 编译器
     #define DUILIB_COMPILER_MINGW 1
 #endif

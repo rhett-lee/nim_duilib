@@ -4,7 +4,7 @@
 #include "TestApplication.h"
 
 //定义应用程序的入口点
-#if defined (__MINGW32__) || (__MINGW64__)
+#if defined (__MINGW32__) || defined (__MINGW64__)
 //使用MinGW-w64编译
 int APIENTRY WinMain(_In_ HINSTANCE /*hInstance*/,
                      _In_opt_ HINSTANCE /*hPrevInstance*/,
