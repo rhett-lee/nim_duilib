@@ -69,6 +69,6 @@ else()
                             # 系统库
                             ${ACCELERATE} ${COREFOUNDATION} ${CORETEXT} ${COREGRAPHICS} ${DUILIB_MACOS_LIBS}
                             # 显式框架声明（必须放在最后）
-                            "-framework AppKit" "-framework Foundation" "-framework Metal"
+                            "-framework AppKit" "-framework Foundation" "-framework Metal" "-framework Cocoa"
                           )
 endif()
