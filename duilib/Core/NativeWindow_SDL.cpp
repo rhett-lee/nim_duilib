@@ -52,7 +52,7 @@ void NativeWindow_SDL::ClearWindowFromID(SDL_WindowID id, NativeWindow_SDL* pNat
         s_windowIDMap.erase(iter);
     }
     if (pNativeWindow != nullptr) {
-        ASSERT(pNativeWindow == pOldNativeWindow);
+        ASSERT_UNUSED_VARIABLE(pNativeWindow == pOldNativeWindow);
     }
 }
 
@@ -485,6 +485,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
     default:
         break;
     }
+    UNUSED_VARIABLE(lResult);
     return true;
 }
 
@@ -1965,9 +1966,9 @@ bool NativeWindow_SDL::MoveWindow(int32_t X, int32_t Y, int32_t nWidth, int32_t 
 {
     ASSERT(IsWindow());
     bool bRet = SDL_SetWindowPosition(m_sdlWindow, X, Y);
-    ASSERT(bRet);
+    ASSERT_UNUSED_VARIABLE(bRet);
     bool nRet = SDL_SetWindowSize(m_sdlWindow, nWidth, nHeight);
-    ASSERT(nRet);
+    ASSERT_UNUSED_VARIABLE(nRet);
     if (!nRet) {
         bRet = false;
     }    
