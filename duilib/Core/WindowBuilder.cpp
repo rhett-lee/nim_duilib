@@ -477,6 +477,8 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             }
         }
     }
+#else
+    UNUSED_VARIABLE(backendType);
 #endif
     return true;
 }
@@ -705,6 +707,8 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             pWindow->SetUseSystemCaption(true);
         }
     }
+#else
+    UNUSED_VARIABLE(bLayeredWindowOpacityDefined);
 #endif
 }
 
