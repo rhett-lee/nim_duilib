@@ -52,6 +52,7 @@ else()
             -fobjc-call-cxx-cdtors          # Call the constructor/destructor of C++ instance variables in ObjC objects
             -Wno-reorder-ctor
             -Wno-unused-lambda-capture
+            -Wno-unused-private-field
           )
     endif()
     
