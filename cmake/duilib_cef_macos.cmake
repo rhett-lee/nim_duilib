@@ -84,7 +84,7 @@ if(OS_MAC)
         -funwind-tables                 # Support stack unwinding for backtrace()
         -fvisibility=hidden             # Give hidden visibility to declarations that are not explicitly marked as visible
         -Wall                           # Enable all warnings
-        -Werror                         # Treat warnings as errors
+#        -Werror                         # Treat warnings as errors
         -Wno-unknown-pragmas
         -Wextra                         # Enable additional warnings
         -Wendif-labels                  # Warn whenever an #else or an #endif is followed by text
@@ -171,7 +171,7 @@ if(OS_MAC)
         # Create Helper executable target.
         add_executable(${_helper_target} MACOSX_BUNDLE ${CEF_PROJECT_HELPER_SRCS})
         SET_EXECUTABLE_TARGET_PROPERTIES(${_helper_target})
-        target_link_libraries(${_helper_target} ${DUILIB_LIBS} ${DUILIB_CEF_LIBS} ${CEF_STANDARD_LIBS})
+        target_link_libraries(${_helper_target} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_CEF_LIBS} ${CEF_STANDARD_LIBS})
         set_target_properties(${_helper_target} PROPERTIES
                               MACOSX_BUNDLE_INFO_PLIST ${_helper_info_plist}
                               OUTPUT_NAME ${_helper_output_name})
