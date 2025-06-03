@@ -171,7 +171,7 @@ if(OS_MAC)
         # Create Helper executable target.
         add_executable(${_helper_target} MACOSX_BUNDLE ${CEF_PROJECT_HELPER_SRCS})
         SET_EXECUTABLE_TARGET_PROPERTIES(${_helper_target})
-        target_link_libraries(${_helper_target} ${DUILIB_CEF_LIBS} ${CEF_STANDARD_LIBS})
+        target_link_libraries(${_helper_target} ${DUILIB_LIBS} ${DUILIB_CEF_LIBS} ${CEF_STANDARD_LIBS})
         set_target_properties(${_helper_target} PROPERTIES
                               MACOSX_BUNDLE_INFO_PLIST ${_helper_info_plist}
                               OUTPUT_NAME ${_helper_output_name})
