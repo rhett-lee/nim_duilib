@@ -165,7 +165,9 @@ FilePath FilePathUtil::GetBundleResourcesPath()
             CFRelease(resourcesURL);
         }
     }
-    return dirPath;
+    FilePath filePath(dirPath);
+    filePath.NormalizeDirectoryPath();
+    return filePath;
 }
 #endif
 
