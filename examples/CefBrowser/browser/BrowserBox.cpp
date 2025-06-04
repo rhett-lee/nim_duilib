@@ -84,7 +84,7 @@ void BrowserBox::InitBrowserBox(const DString& url)
     if (html_path.empty()) {
         ui::FilePath resourcePath = ui::GlobalManager::GetDefaultResourcePath(true);
         resourcePath.NormalizeDirectoryPath();
-        resourcePath += _T("themes/default/cef/cef.html");
+        resourcePath += _T("themes/default/cef_browser/cef.html");
         html_path = resourcePath.ToString();
         html_path = _T("file:///") + html_path;
     }
