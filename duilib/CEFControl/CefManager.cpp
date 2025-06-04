@@ -1,5 +1,4 @@
 #include "CefManager.h"
-#include "CefManager_Windows.h"
 #include "duilib/CEFControl/CefControlNative.h"
 #include "duilib/CEFControl/CefControlOffScreen.h"
 
@@ -7,6 +6,14 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
+
+#if defined (DUILIB_BUILD_FOR_WIN)
+    #include "CefManager_Windows.h"
+#elif defined (DUILIB_BUILD_FOR_LINUX)
+    #include "CefManager_Linux.h"
+#elif defined (DUILIB_BUILD_FOR_MACOS)
+    #include "CefManager_MacOS.h"
+#endif
 
 namespace ui
 {
