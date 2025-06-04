@@ -348,3 +348,4 @@ healthchecksdb
 /bin/libcef_win_109
 /lib
 /Frameworks
+/bin/cef_cache

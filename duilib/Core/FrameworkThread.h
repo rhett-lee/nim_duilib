@@ -117,6 +117,14 @@ protected:
     virtual void OnCleanup();
 
 private:
+    /** 主线程完成初始化
+    */
+    void OnMainThreadInited();
+
+    /** 主线程消息循环退出
+    */
+    void OnMainThreadExit();
+
     /** 后台线程的线程函数
     */
     void WorkerThreadProc();

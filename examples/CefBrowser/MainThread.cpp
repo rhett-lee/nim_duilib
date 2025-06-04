@@ -19,11 +19,6 @@ const ui::DpiInitParam& MainThread::GetDpiInitParam() const
 
 void MainThread::OnInit()
 {   
-    //初始化全局资源, 使用本地文件夹作为资源
-    ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-    resourcePath += _T("resources\\");
-    ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), GetDpiInitParam());
-
     //设置控制主进程单例的回调函数
     ui::CefManager::GetInstance()->SetAlreadyRunningAppRelaunch(UiBind(&MainThread::OnAlreadyRunningAppRelaunch, this, std::placeholders::_1));
 

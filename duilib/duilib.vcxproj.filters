@@ -681,6 +681,9 @@
     <ClCompile Include="Box\ListBoxHelper.cpp">
       <Filter>Box</Filter>
     </ClCompile>
+    <ClCompile Include="CEFControl\CefManager_Windows.cpp">
+      <Filter>CEFControl\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1420,6 +1423,9 @@
     </ClInclude>
     <ClInclude Include="RenderSkia\SkiaHeaderEnd.h">
       <Filter>RenderSkia</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\CefManager_Windows.h">
+      <Filter>CEFControl\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

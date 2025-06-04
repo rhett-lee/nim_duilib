@@ -40,7 +40,7 @@ CefControlOffScreen::~CefControlOffScreen(void)
     }
 }
 
-void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> browser, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const void* buffer, int width, int height)
+void CefControlOffScreen::OnPaint(CefRefPtr<CefBrowser> /*browser*/, CefRenderHandler::PaintElementType type, const CefRenderHandler::RectList& dirtyRects, const void* buffer, int width, int height)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
     //只有离屏渲染才会走这个绘制接口
@@ -91,7 +91,7 @@ void CefControlOffScreen::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
     }
 }
 
-void CefControlOffScreen::OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect)
+void CefControlOffScreen::OnPopupSize(CefRefPtr<CefBrowser> /*browser*/, const CefRect& rect)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
     if ((rect.width <= 0) || (rect.height <= 0)) {

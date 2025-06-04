@@ -1,48 +1,17 @@
 #include "CefManager.h"
-#include "duilib/CEFControl/internal/CefClientApp.h"
-#include "duilib/CEFControl/internal/CefBrowserHandler.h"
+#include "CefManager_Windows.h"
 #include "duilib/CEFControl/CefControlNative.h"
 #include "duilib/CEFControl/CefControlOffScreen.h"
 
-#ifdef DUILIB_BUILD_FOR_WIN
-    #include "CefDragDrop_Windows.h"
-    #include "duilib/Utils/ProcessSingleton.h"
-#endif
-
-#include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/Box.h"
 
-#pragma warning (push)
-#pragma warning (disable:4100)
-    #include "include/wrapper/cef_closure_task.h"
-    #include "include/base/cef_bind.h"
-    #include "include/base/cef_callback.h"
-#pragma warning (pop)
-
 namespace ui
 {
-
-#ifdef DUILIB_BUILD_FOR_WIN
-// 发现一个非常奇葩的bug，离屏渲染+多线程消息循环模式下，在浏览器对象上右击弹出菜单，是无法正常关闭的
-// 翻cef源码后发现菜单是用TrackPopupMenu函数创建的，在MSDN资料上查看后发现调用TrackPopupMenu前
-// 需要给其父窗口调用SetForegroundWindow。但是在cef源码中没有调用
-// 最终翻cef源码后得到的解决方法是在cef的UI线程创建一个窗口，这个窗体的父窗口必须是在主程序UI线程创建的
-// 这样操作之后就不会出现菜单无法关闭的bug了，虽然不知道为什么但是bug解决了
-
-// 另外还有个问题：如果不采取这个方法，离屏渲染的页面中，拖拽操作有异常，当拖出数据时，会卡死
-//
-static void FixContextMenuBug(HWND hwnd)
-{
-    ::CreateWindowW(L"Static", L"", WS_CHILD, 0, 0, 0, 0, hwnd, nullptr, nullptr, nullptr);
-    ::PostMessage(hwnd, WM_CLOSE, 0, 0);
-}
-#endif
-
 //创建CEF控件的回调函数
-Control* DuilibCreateCefControl(const DString& className)
+static Control* DuilibCreateCefControl(const DString& className)
 {
     Control* pControl = nullptr;
     if (className == _T("CefControl")) {
@@ -56,11 +25,17 @@ Control* DuilibCreateCefControl(const DString& className)
     return pControl;
 }
 
+//单位：毫秒
+#define CEF_DO_MESSAGE_LOOP_WORK_DELAY_MS 60
+
 ///////////////////////////////////////////////////////////////////////////////////
 CefManager::CefManager():
-    m_bEnableOffScreenRendering(true),
+    m_logSeverity(LOGSEVERITY_DEFAULT),
     m_browserCount(0),
-    m_pfnAlreadyRunningAppRelaunch(nullptr)
+    m_nCefDoMessageLoopWorkDelayMs(CEF_DO_MESSAGE_LOOP_WORK_DELAY_MS),
+    m_bHasCefCachePath(false),
+    m_bEnableOffScreenRendering(true),
+    m_bCefInit(false)
 {
 }
 
@@ -70,193 +45,117 @@ CefManager::~CefManager()
 
 CefManager* CefManager::GetInstance()
 {
-    static CefManager self;
+#if defined (DUILIB_BUILD_FOR_WIN)
+    static CefManager_Windows self;
     return &self;
-}
-
-#ifdef DUILIB_BUILD_FOR_WIN
-//Windows系统
-void CefManager::AddCefDllToPath()
-{
-    TCHAR path_envirom[4096] = { 0 };
-    ::GetEnvironmentVariable(_T("path"), path_envirom, 4096);
-    
-    ui::FilePath cef_path = ui::FilePathUtil::GetCurrentModuleDirectory();
-
-#if CEF_VERSION_MAJOR <= 109
-    //CEF 109版本
-    #ifdef _WIN64
-        cef_path += _T("libcef_win_109\\x64");
-    #else
-        cef_path += _T("libcef_win_109\\Win32");
-    #endif
+#elif defined (DUILIB_BUILD_FOR_LINUX)
+    static CefManager_Linux self;
+    return &self;
+#elif defined (DUILIB_BUILD_FOR_MACOS)
+    static CefManager_MacOS self;
+    return &self;
 #else
-    //CEF 高版本
-    #ifdef _WIN64
-        cef_path += _T("libcef_win\\x64");
-    #else
-        cef_path += _T("libcef_win\\Win32");
-    #endif
+    ASSERT(0);
+    return nullptr;
 #endif
-
-    ui::FilePath cefDllPath = cef_path;
-    cefDllPath.NormalizeDirectoryPath();
-    cefDllPath += ui::FilePath(L"libcef.dll");
-
-    if (!cef_path.IsExistsDirectory() || !cefDllPath.IsExistsFile()) {
-        DStringW errMsg = L"无法加载libcef.dll文件！\n请将libcef.dll等相关的CEF二进制文件和资源文件释放到以下目录：\n";
-        errMsg += cef_path.ToStringW();
-        ::MessageBoxW(nullptr, errMsg.c_str(), L"错误提示", MB_OK);
-        exit(0);
-    }
-    DString new_envirom(cef_path.NativePath());
-    new_envirom.append(_T(";")).append(path_envirom);
-    ::SetEnvironmentVariable(_T("path"), new_envirom.c_str());
 }
 
-#else
-//Linux系统
-void CefManager::AddCefDllToPath()
+void CefManager::SetCefCachePath(const DString& cefCachePath)
 {
+    ASSERT(!m_bCefInit);
+    m_cefCachePath = cefCachePath;
+    m_bHasCefCachePath = true;
 }
 
-#endif
-
-// Cef的初始化接口，同时备注了使用各个版本的Cef时遇到的各种坑
-// Cef1916版本较稳定，各个功能使用正常，但是某些在debug模式网页打开时会出中断警告（但并不是错误），可能是因为对新html标准支持不够，但是在release模式下正常使用
-// Cef2357版本无法使用，当程序处理重定向信息并且重新加载页面后，渲染进程会崩掉
-// Cef2526、2623版本对各种新页面都支持，唯一的坑就是debug模式在多线程消息循环开启下，程序退出时会中断，但是release模式正常。
-//        (PS:如果开发者不使用负责Cef功能的开发，可以切换到release模式的cef dll文件，这样即使在deubg下也不会报错，修改AddCefDllToPath代码可以切换到release目录)
-#ifdef DUILIB_BUILD_FOR_WIN
-
-#if CEF_VERSION_MAJOR <= 109
-/** 浏览器单例控制回调函数
-*/
-void CefManager::OnBrowserAlreadyRunningAppRelaunch(const std::vector<DString>& argumentList)
+DString CefManager::GetCefCachePath() const
 {
-    OnAlreadyRunningAppRelaunchEvent pfnAlreadyRunningAppRelaunch = CefManager::GetInstance()->GetAlreadyRunningAppRelaunch();
-    if (pfnAlreadyRunningAppRelaunch != nullptr) {
-        pfnAlreadyRunningAppRelaunch(argumentList);
+    if (m_bHasCefCachePath) {
+        return m_cefCachePath;
     }
+    DString defaultCachePath = _T("cef_cache");
+    defaultCachePath += FilePath::GetPathSeparatorStr();
+    defaultCachePath += m_appName;
+    defaultCachePath += FilePath::GetPathSeparatorStr();
+    return defaultCachePath;
 }
 
-#endif
-
-bool CefManager::Initialize(const DString& app_data_dir, CefSettings& settings, bool bEnableOffScreenRendering, const DString& appName)
+void CefManager::SetCefMoudlePath(const DString& cefMoudlePath)
 {
-#if CEF_VERSION_MAJOR <= 109
-    //CEF 109版本，控制进程单例
-    // 解析命令行参数，识别是否为Browser进程
-    if (!appName.empty()) {
-        CefRefPtr<CefCommandLine> command_line = CefCommandLine::CreateCommandLine();
-        command_line->InitFromString(::GetCommandLineW());
-        if (!command_line->HasSwitch("type")) {
-            // Browser进程逻辑
-            m_pProcessSingleton = ProcessSingleton::Create(appName);
-            if ((m_pProcessSingleton != nullptr) && m_pProcessSingleton->IsAnotherInstanceRunning()) {
-                //已经有其他Browser进程在运行, 发送启动参数后，退出
-                std::vector<CefString> argv;
-                command_line->GetArgv(argv);
-                std::vector<std::string> argumentList;
-                std::string arg;
-                for (size_t i = 1; i < argv.size(); ++i) {
-                    arg = StringConvert::WStringToUTF8(argv[i]);
-                    if (!arg.empty()) {
-                        argumentList.push_back(arg);
-                    }
-                }
-                m_pProcessSingleton->SendArgumentsToExistingInstance(argumentList);
-                return false;
-            }
-        }
+    ASSERT(!m_bCefInit);
+    m_cefMoudlePath = cefMoudlePath;
+}
+
+DString CefManager::GetCefMoudlePath() const
+{
+    return m_cefMoudlePath;
+}
+
+void CefManager::SetCefLanguage(const DString& lang)
+{
+    ASSERT(!m_bCefInit);
+    m_lang = lang;
+}
+
+DString CefManager::GetCefLanguage() const
+{
+    if (!m_lang.empty()) {
+        return m_lang;
     }
-#endif
-    UNUSED_VARIABLE(appName);
+    return _T("zh-CN");
+}
+
+void CefManager::SetLogSeverity(cef_log_severity_t log_severity)
+{
+    ASSERT(!m_bCefInit);
+    m_logSeverity = log_severity;
+}
+
+cef_log_severity_t CefManager::GetLogSeverity() const
+{
+    return m_logSeverity;
+}
+
+bool CefManager::Initialize(bool bEnableOffScreenRendering,
+                            const DString& appName,
+                            int /*argc*/,
+                            char** /*argv*/,
+                            OnCefSettingsEvent callback)
+{
+    ASSERT(!appName.empty());
+    ASSERT(!m_bCefInit);
+    if (m_bCefInit || appName.empty()) {
+        return false;
+    }
+    m_appName = appName;
+    m_cefSettingCallback = callback;
     m_bEnableOffScreenRendering = bEnableOffScreenRendering;
-    CefMainArgs main_args(::GetModuleHandle(nullptr));
 
-    CefRefPtr<CefClientApp> app(new CefClientApp);
-    
-    // 如果是在子进程中调用，会堵塞直到子进程退出，并且exit_code返回大于等于0
-    // 如果在Browser进程中调用，则立即返回-1
-    int exit_code = CefExecuteProcess(main_args, app.get(), nullptr);
-    if (exit_code >= 0) {
-        return false;
-    }
-
-    GetCefSetting(app_data_dir, settings);
-
-    bool bRet = CefInitialize(main_args, settings, app.get(), nullptr);
-    if (!bRet) {
-        return false;
-    }
-
-    if (IsEnableOffScreenRendering()) {
-        HWND hwnd = ::CreateWindowW(L"Static", L"", WS_POPUP, 0, 0, 0, 0, nullptr, nullptr, nullptr, nullptr);
-        CefPostTask(TID_UI, base::BindOnce(&FixContextMenuBug, hwnd));
-    }
-    
     //添加窗口CEF控件的回调函数
     GlobalManager::Instance().AddCreateControlCallback(DuilibCreateCefControl);
-
-#if CEF_VERSION_MAJOR <= 109
-    //启动单例进程监控
-    if (m_pProcessSingleton != nullptr) {
-        m_pProcessSingleton->StartListener(OnBrowserAlreadyRunningAppRelaunch);
-    }
-#endif
+    m_bCefInit = true;
     return true;
-}
-#else
-//Linux系统
-bool CefManager::Initialize(const DString& app_data_dir, CefSettings& settings, bool bEnableOffScreenRendering, int argc, char** argv)
-{
-    m_bEnableOffScreenRendering = bEnableOffScreenRendering;
-    CefMainArgs main_args(argc, argv);
-
-    CefRefPtr<CefClientApp> app(new CefClientApp);
-
-    // 如果是在子进程中调用，会堵塞直到子进程退出，并且exit_code返回大于等于0
-    // 如果在Browser进程中调用，则立即返回-1
-    int exit_code = CefExecuteProcess(main_args, app.get(), nullptr);
-    if (exit_code >= 0) {
-        return false;
-    }
-
-    GetCefSetting(app_data_dir, settings);
-
-    bool bRet = CefInitialize(main_args, settings, app.get(), nullptr);
-
-    //添加窗口CEF控件的回调函数
-    GlobalManager::Instance().AddCreateControlCallback(DuilibCreateCefControl);
-    return bRet;
-}
-#endif
-
-void CefManager::SetAlreadyRunningAppRelaunch(const OnAlreadyRunningAppRelaunchEvent& callback)
-{
-    m_pfnAlreadyRunningAppRelaunch = callback;
-}
-
-OnAlreadyRunningAppRelaunchEvent CefManager::GetAlreadyRunningAppRelaunch() const
-{
-    return m_pfnAlreadyRunningAppRelaunch;
 }
 
 void CefManager::UnInitialize()
 {
-#ifdef DUILIB_BUILD_FOR_WIN
-    CefDragDrop::GetInstance().Clear();
-#endif
-
-#if CEF_VERSION_MAJOR <= 109
-    //启动单例进程监控
-    if (m_pProcessSingleton != nullptr) {
-        m_pProcessSingleton.reset();
+    if (m_bCefInit) {
+        m_bCefInit = false;
+        CefShutdown();
     }
-#endif
+}
 
-    CefShutdown();
+bool CefManager::IsCefInited() const
+{
+    return m_bCefInit;
+}
+
+void CefManager::SetAlreadyRunningAppRelaunch(const OnAlreadyRunningAppRelaunchEvent& /*callback*/)
+{
+}
+
+OnAlreadyRunningAppRelaunchEvent CefManager::GetAlreadyRunningAppRelaunch() const
+{
+    return nullptr;
 }
 
 bool CefManager::IsEnableOffScreenRendering() const
@@ -275,7 +174,7 @@ void CefManager::SubBrowserCount()
     ASSERT(m_browserCount >= 0);
 }
 
-int CefManager::GetBrowserCount()
+int32_t CefManager::GetBrowserCount()
 {
     return m_browserCount;
 }
@@ -340,47 +239,99 @@ void CefManager::PostQuitMessage(int32_t nExitCode)
     }
 }
 
-void CefManager::GetCefSetting(const DString& app_data_dir, CefSettings& settings)
+bool CefManager::IsMultiThreadedMessageLoop() const
 {
-    DString appDataRootDir = app_data_dir;
-    if (!appDataRootDir.empty()) {
-#ifdef DUILIB_BUILD_FOR_WIN
-        if (appDataRootDir[appDataRootDir.size() - 1] == _T('/')) {
-            appDataRootDir[appDataRootDir.size() - 1] = _T('\\');
-        }
-#else
-        if (appDataRootDir[appDataRootDir.size() - 1] == _T('\\')) {
-            appDataRootDir[appDataRootDir.size() - 1] = _T('/');
-        }
-        //替换路径分隔符
-        StringUtil::ReplaceAll(_T("\\"), _T("/"), appDataRootDir);
-#endif
-    }
+    return true;
+}
 
-    if (!ui::FilePath(appDataRootDir).IsExistsDirectory()) {
-        ui::FilePathUtil::CreateDirectories(appDataRootDir);
+void CefManager::GetCefSetting(CefSettings& settings)
+{
+    DString appDataRootDir = GetCefCachePath();
+    if (!appDataRootDir.empty()) {
+        FilePath filePath(appDataRootDir);
+        filePath.NormalizeDirectoryPath();
+        if(!filePath.IsAbsolutePath()) {
+            FilePath runPath = FilePathUtil::GetCurrentModuleDirectory();
+            runPath /= filePath;
+            filePath.Swap(runPath);
+            filePath.NormalizeDirectoryPath();
+        }
+        appDataRootDir = filePath.NativePath();
+        if (!appDataRootDir.empty() && !filePath.IsExistsDirectory()) {
+            FilePathUtil::CreateDirectories(appDataRootDir);
+        }
     }
     settings.no_sandbox = true;
 
-    // 设置localstorage，不要在路径末尾加"\\"，否则运行时会报错
-    CefString(&settings.cache_path) = appDataRootDir + _T("CefLocalStorage");
-
-    // 设置debug log文件位置
-    CefString(&settings.log_file) = appDataRootDir + _T("cef.log");
+    //设置localstorage，不要在路径末尾加"\\"，否则运行时会报错
+    if (!appDataRootDir.empty()) {
+        const DString cachePath = appDataRootDir + _T("CefLocalStorage");
+        CefString(&settings.cache_path) = cachePath;
+        CefString(&settings.root_cache_path) = cachePath;
+    }
 
     //设置日志级别
-    //settings.log_severity = LOGSEVERITY_VERBOSE;
+    settings.log_severity = GetLogSeverity();
+
+    // 设置debug log文件位置
+    if (settings.log_severity != cef_log_severity_t::LOGSEVERITY_DISABLE) {
+        CefString(&settings.log_file) = appDataRootDir + _T("cef.log");
+    }
 
     // cef2623、2526版本debug模式:在使用multi_threaded_message_loop时退出程序会触发中断
     // 加入disable-extensions参数可以修复这个问题，但是会导致一些页面打开时报错
     // 开启Cef多线程消息循环，兼容nbase库消息循环
-    settings.multi_threaded_message_loop = true;
+    settings.multi_threaded_message_loop = IsMultiThreadedMessageLoop();
 
     // 开启离屏渲染
     settings.windowless_rendering_enabled = IsEnableOffScreenRendering();
 
     //设置默认语言为简体中文
-    CefString(&settings.locale) = _T("zh-CN");
+    CefString(&settings.locale) = GetCefLanguage();
+
+    //给应用层回调，提供修改的机会
+    if (m_cefSettingCallback) {
+        bool bMultiThreadedMessageLoop = settings.multi_threaded_message_loop;
+        m_cefSettingCallback(settings);
+
+        //恢复不允许修改的值
+        settings.multi_threaded_message_loop = bMultiThreadedMessageLoop;
+    }
+
+    if (!settings.multi_threaded_message_loop) {
+        //需要启用外部调用CEF消息循环模式
+        settings.external_message_pump = true;
+    }
+    else {
+        settings.external_message_pump = false;
+    }
 }
 
+void CefManager::ScheduleCefDoMessageLoopWork()
+{
+    ASSERT(!IsMultiThreadedMessageLoop());
+    if (!IsMultiThreadedMessageLoop()) {
+        int32_t delayMs = GetCefDoMessageLoopWorkDelayMs();
+        GlobalManager::Instance().Thread().PostRepeatedTask(ui::kThreadUI, []() {
+                // 执行单次 CEF 消息处理
+                if (ui::CefManager::GetInstance()->IsCefInited()) {
+                    CefDoMessageLoopWork();
+                }
+            }, delayMs);
+    }
 }
+
+void CefManager::SetCefDoMessageLoopWorkDelayMs(int32_t nCefDoMessageLoopWorkDelayMs)
+{
+    m_nCefDoMessageLoopWorkDelayMs = nCefDoMessageLoopWorkDelayMs;
+    if (m_nCefDoMessageLoopWorkDelayMs < 1) {
+        m_nCefDoMessageLoopWorkDelayMs = CEF_DO_MESSAGE_LOOP_WORK_DELAY_MS;
+    }
+}
+
+int32_t CefManager::GetCefDoMessageLoopWorkDelayMs() const
+{
+    return m_nCefDoMessageLoopWorkDelayMs;
+}
+
+} //namespace ui

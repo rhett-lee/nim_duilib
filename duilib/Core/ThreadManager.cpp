@@ -3,7 +3,8 @@
 namespace ui 
 {
 ThreadManager::ThreadManager():
-    m_nNextTaskId(1)
+    m_nNextTaskId(1),
+    m_bMainThreadExit(false)
 {
 }
 
@@ -153,6 +154,16 @@ size_t ThreadManager::GetNextTaskId()
 {
     size_t nNextTaskId = m_nNextTaskId++;
     return nNextTaskId;
+}
+
+bool ThreadManager::IsMainThreadExit() const
+{
+    return m_bMainThreadExit;
+}
+
+void ThreadManager::SetMainThreadExit()
+{
+    m_bMainThreadExit = true;
 }
 
 }//namespace ui 

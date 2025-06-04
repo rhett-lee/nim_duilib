@@ -80,6 +80,15 @@ public:
     */
     void Clear();
 
+public:
+    /** 主线程是否已经退出
+    */
+    bool IsMainThreadExit() const;
+
+    /** 当主线程退出时，调用该函数设置主线程退出标志
+    */
+    void SetMainThreadExit();
+
 private:
     /** 线程对象的智能指针
     */
@@ -96,6 +105,10 @@ private:
     /** 下一个任务ID
     */
     std::atomic<size_t> m_nNextTaskId;
+
+    /** 主线程是否已经退出
+    */
+    std::atomic<bool> m_bMainThreadExit;
 };
 
 }

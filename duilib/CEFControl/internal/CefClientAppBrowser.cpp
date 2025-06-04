@@ -1,5 +1,6 @@
 #include "CefClientApp.h" 
 #include "duilib/CEFControl/CefManager.h"
+#include "duilib/Core/GlobalManager.h"
 
 namespace ui
 {
@@ -39,8 +40,37 @@ bool CefClientApp::OnAlreadyRunningAppRelaunch(CefRefPtr<CefCommandLine> command
 }
 #endif
 
-void CefClientApp::OnScheduleMessagePumpWork(int64_t /*delay_ms*/)
+void CefClientApp::OnScheduleMessagePumpWork(int64_t delay_ms)
 {
+    if (CefManager::GetInstance()->IsMultiThreadedMessageLoop()) {
+        return;
+    }
+
+    if (GlobalManager::Instance().Thread().IsMainThreadExit()) {
+        //主线程已经退出，正在退出
+        CefDoMessageLoopWork();
+    }
+    else {
+        // delay_ms 表示下次处理的建议延迟（毫秒）
+        if (delay_ms <= 0) {
+            // 立即触发消息处理
+            GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, []() {
+                    // 执行单次 CEF 消息处理
+                    if (CefManager::GetInstance()->IsCefInited()) {
+                        CefDoMessageLoopWork();
+                    }
+                });
+        }
+        else {
+            // 设置延迟触发
+            GlobalManager::Instance().Thread().PostDelayedTask(ui::kThreadUI, []() {
+                    // 执行单次 CEF 消息处理
+                    if (CefManager::GetInstance()->IsCefInited()) {
+                        CefDoMessageLoopWork();
+                    }
+                }, (int32_t)delay_ms);
+        }
+    }
 }
 
 CefRefPtr<CefClient> CefClientApp::GetDefaultClient()

@@ -27,6 +27,19 @@ FrameworkThread::FrameworkThread(const DString& threadName, int32_t nThreadIdent
     m_threadName(threadName),
     m_nThreadIdentifier(nThreadIdentifier)
 {
+    if (m_nThreadIdentifier == kThreadUI) {
+        //主线程在构造时，完成必要的初始化
+        GlobalManager::Instance().Thread().RegisterThread(m_nThreadIdentifier, this);
+        m_nThisThreadId = std::this_thread::get_id();
+        m_bThreadUI = true;
+
+#ifdef DUILIB_BUILD_FOR_SDL
+        MessageLoop_SDL::CheckInitSDL();
+#endif
+        //初始化与主线程通信的机制
+        m_threadMsg.Initialize(GlobalManager::Instance().GetPlatformData());
+        m_threadMsg.SetMessageCallback(WM_USER_DEFINED_MSG, UiBind(&FrameworkThread::OnTaskMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    }
 }
 
 FrameworkThread::~FrameworkThread()
@@ -43,31 +56,32 @@ FrameworkThread::~FrameworkThread()
 
 bool FrameworkThread::RunOnCurrentThreadWithLoop()
 {
+    ASSERT(m_nThreadIdentifier == kThreadUI);
     ASSERT(!m_bRunning);
     if (m_bRunning) {
         return false;
     }
     m_bRunning = true;
-    if (m_nThreadIdentifier != kThreadNone) {
-        GlobalManager::Instance().Thread().RegisterThread(m_nThreadIdentifier, this);
-    }
-    m_nThisThreadId = std::this_thread::get_id();    
-    m_bThreadUI = true;
-
-    //初始化与主线程通信的机制
-    m_threadMsg.Initialize(GlobalManager::Instance().GetPlatformData());
-    m_threadMsg.SetMessageCallback(WM_USER_DEFINED_MSG, UiBind(&FrameworkThread::OnTaskMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-
     OnInit();
     OnRunMessageLoop();
     OnCleanup();
     if (m_nThreadIdentifier != kThreadNone) {
         GlobalManager::Instance().Thread().UnregisterThread(m_nThreadIdentifier);
+        m_nThreadIdentifier = kThreadNone;
     }
-    m_bThreadUI = false;    
+    m_bThreadUI = false;
     m_threadMsg.Clear();
     m_bRunning = false;
     return true;
+}
+
+void FrameworkThread::OnMainThreadInited()
+{
+}
+
+void FrameworkThread::OnMainThreadExit()
+{
+    GlobalManager::Instance().Thread().SetMainThreadExit();
 }
 
 bool FrameworkThread::Start()
@@ -341,10 +355,15 @@ void FrameworkThread::OnRunMessageLoop()
 {
 #if defined (DUILIB_BUILD_FOR_SDL)
     MessageLoop_SDL msgLoop;
+    MessageLoop_SDL::CheckInitSDL();
+    OnMainThreadInited();    
     msgLoop.Run();
+    OnMainThreadExit();
 #elif defined (DUILIB_BUILD_FOR_WIN)
     MessageLoop_Windows msgLoop;
+    OnMainThreadInited();
     msgLoop.Run();
+    OnMainThreadExit();
 #else
     ASSERT(0);
 #endif

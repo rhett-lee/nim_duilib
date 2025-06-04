@@ -49,14 +49,14 @@ void CefClientApp::OnWebKitInitialized()
      CefRegisterExtension("v8/extern", extensionCode, handler);
 }
 
-void CefClientApp::OnBrowserCreated(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDictionaryValue> extra_info)
+void CefClientApp::OnBrowserCreated(CefRefPtr<CefBrowser> /*browser*/, CefRefPtr<CefDictionaryValue> /*extra_info*/)
 {
     if (!m_renderJsBridge.get()) {
         m_renderJsBridge.reset(new CefJSBridge);
     }
 }
 
-void CefClientApp::OnBrowserDestroyed(CefRefPtr<CefBrowser> browser) 
+void CefClientApp::OnBrowserDestroyed(CefRefPtr<CefBrowser> /*browser*/) 
 {
 }
 
@@ -86,7 +86,7 @@ void CefClientApp::OnUncaughtException(CefRefPtr<CefBrowser> /*browser*/,
 {
 }
 
-void CefClientApp::OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
+void CefClientApp::OnFocusedNodeChanged(CefRefPtr<CefBrowser> /*browser*/,
                                         CefRefPtr<CefFrame> frame,
                                         CefRefPtr<CefDOMNode> node) 
 {
