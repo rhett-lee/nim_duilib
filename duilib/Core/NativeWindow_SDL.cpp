@@ -1367,6 +1367,22 @@ uint64_t NativeWindow_SDL::GetX11WindowNumber() const
 
 #endif
 
+#if defined DUILIB_BUILD_FOR_MACOS
+/** 获取NSView*指针
+*/
+void* NativeWindow_SDL::GetNSView() const
+{
+    if (!IsWindow()) {
+        return nullptr;
+    }
+    SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
+    void* pNSView = (void*)SDL_GetNumberProperty(propID, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, 0);
+    ASSERT(pNSView != nullptr);
+    return pNSView;
+}
+
+#endif 
+
 void NativeWindow_SDL::CloseWnd(int32_t nRet)
 {
     m_closeParam = nRet;

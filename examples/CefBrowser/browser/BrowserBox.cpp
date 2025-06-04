@@ -82,10 +82,10 @@ void BrowserBox::InitBrowserBox(const DString& url)
     // 加载默认网页
     DString html_path = url;
     if (html_path.empty()) {
-        ui::FilePath localPath = ui::FilePathUtil::GetCurrentModuleDirectory();
-        localPath.NormalizeDirectoryPath();
-        localPath += _T("resources/themes/default/cef/cef.html");
-        html_path = localPath.ToString();
+        ui::FilePath resourcePath = ui::GlobalManager::GetDefaultResourcePath(true);
+        resourcePath.NormalizeDirectoryPath();
+        resourcePath += _T("themes/default/cef/cef.html");
+        html_path = resourcePath.ToString();
         html_path = _T("file:///") + html_path;
     }
     m_pCefControl->LoadURL(html_path);

@@ -34,6 +34,30 @@ GlobalManager& GlobalManager::Instance()
     return self;
 }
 
+FilePath GlobalManager::GetDefaultResourcePath(bool bMacOsAppBundle)
+{
+    ui::FilePath resourcePath;
+#ifdef DUILIB_BUILD_FOR_MACOS
+    //MacOS平台，优先使用bundle的资源目录
+    if (bMacOsAppBundle) {
+        resourcePath = ui::FilePathUtil::GetBundleResourcesPath();
+        if (!resourcePath.IsEmpty()) {
+            resourcePath.NormalizeDirectoryPath();
+            resourcePath += _T("duilib/");
+            if (!resourcePath.IsExistsDirectory()) {
+                resourcePath.Clear();
+            }
+        }
+    }
+#endif
+    if (resourcePath.IsEmpty()) {
+        resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
+        resourcePath += _T("resources/");
+    }
+    resourcePath.NormalizeDirectoryPath();
+    return resourcePath;
+}
+
 bool GlobalManager::Startup(const ResourceParam& resParam,
                             DpiInitParam dpiInitParam,
                             const CreateControlCallback& callback)

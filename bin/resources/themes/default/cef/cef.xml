@@ -25,7 +25,7 @@
             <Button class="btn_global_blue_80x30" name="btn_refresh" text="刷新" width="60" margin="5"/>
         </HBox>
         <VBox bkcolor="white">
-            <CefControl name="cef_control" url_is_local_file="true" url="resources/themes/default/cef/cef.html" margin="2,0,2,2"/>
+            <CefControl name="cef_control" url_is_local_file="true" url="themes/default/cef/cef.html" margin="2,0,2,2"/>
             <CefControl name="cef_control_dev" margin="2,0,2,2"/>
         </VBox>
     </VBox>

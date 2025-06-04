@@ -148,6 +148,8 @@ void CefControlOffScreen::ReCreateBrowser()
     }
 #elif defined DUILIB_BUILD_FOR_LINUX
     window_info.SetAsWindowless(pWindow->NativeWnd()->GetX11WindowNumber());
+#elif defined DUILIB_BUILD_FOR_MACOS
+    window_info.SetAsWindowless(pWindow->NativeWnd()->GetNSView());
 #endif
     CefBrowserSettings browser_settings;
     //背景色：设置为白色（如果不设置的话，是透明的，网页如果不设置背景色，则背景会被显示为黑色）

@@ -343,7 +343,7 @@ DString CefControl::GetInitURL() const
         DString url = StringUtil::MakeLowerString(initUrl);
         if ((url.find(_T("http://")) != 0) && (url.find(_T("https://")) != 0) && (url.find(_T("file:///")) != 0)) {
             //有明确的协议前缀时，不做任何转换，否则按照本地exe所在路径的资源文件加载
-            FilePath cefHtml = FilePathUtil::GetCurrentModuleDirectory();
+            FilePath cefHtml = GlobalManager::GetDefaultResourcePath(true);
             cefHtml.NormalizeDirectoryPath();
             cefHtml += initUrl;            
             cefHtml.NormalizeFilePath();

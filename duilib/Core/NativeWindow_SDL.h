@@ -108,6 +108,12 @@ public:
     uint64_t GetX11WindowNumber() const;
 #endif
 
+#if defined DUILIB_BUILD_FOR_MACOS
+    /** 获取NSView*指针
+    */
+    void* GetNSView() const;
+#endif 
+
 public:
     /** 关闭窗口, 异步关闭，当函数返回后，IsClosing() 状态为true
     * @param [in] nRet 关闭的参数，参见：enum WindowCloseParam
@@ -689,4 +695,3 @@ typedef NativeWindow_SDL NativeWindow;
 #endif //DUILIB_BUILD_FOR_SDL
 
 #endif // UI_CORE_NATIVE_WINDOW_SDL_H_
-

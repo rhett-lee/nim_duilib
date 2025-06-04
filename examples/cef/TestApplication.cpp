@@ -28,26 +28,7 @@ int TestApplication::Run(int argc, char** argv)
 
     //必须在CefManager::Initialize前调用，设置DPI自适应属性，否则会导致显示不正常
     //初始化全局资源, 使用本地文件夹作为资源
-    ui::FilePath resourcePath;
-#ifdef DUILIB_BUILD_FOR_MACOS
-    //MacOS平台，优先使用bundle的资源目录
-    resourcePath = ui::FilePathUtil::GetBundleResourcesPath();
-    if (!resourcePath.IsEmpty()) {
-        resourcePath.NormalizeDirectoryPath();
-        resourcePath += _T("duilib/");
-        if (!resourcePath.IsExistsDirectory()) {
-            resourcePath.Clear();
-        }
-    }
-    if (resourcePath.IsEmpty()) {
-        resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-        resourcePath += _T("resources/");
-    }
-#else
-    resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-    resourcePath += _T("resources\\");
-#endif
-
+    ui::FilePath resourcePath = ui::GlobalManager::GetDefaultResourcePath(true);
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath), thread.GetDpiInitParam());
 
     //初始化CEF: 必须在GlobalManager初始化完成之后，因为初始化CEF过程中，会用到GlobalManager

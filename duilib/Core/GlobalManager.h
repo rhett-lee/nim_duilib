@@ -41,6 +41,11 @@ public:
     */
     static GlobalManager& Instance();
 
+    /** 获取默认的资源目录
+    * @param [in] bMacOsAppBundle MacOS平台是否使用App Bundle 
+    */
+    static FilePath GetDefaultResourcePath(bool bMacOsAppBundle);
+
 public:
     /** 初始化全局设置函数
      * @param [in] resParam 资源相关的参数，根据资源类型不同，有以下可选项
