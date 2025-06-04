@@ -34,14 +34,14 @@ int TestApplication::Run(int argc, char** argv)
     resourcePath = ui::FilePathUtil::GetBundleResourcesPath();
     if (!resourcePath.IsEmpty()) {
         resourcePath.NormalizeDirectoryPath();
-        resourcePath += _T("duilib\\");
+        resourcePath += _T("duilib/");
         if (!resourcePath.IsExistsDirectory()) {
             resourcePath.Clear();
         }
     }
     if (resourcePath.IsEmpty()) {
         resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
-        resourcePath += _T("resources\\");
+        resourcePath += _T("resources/");
     }
 #else
     resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
