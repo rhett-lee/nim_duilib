@@ -195,6 +195,22 @@ if(OS_MAC)
     # restore target out directory
     set(CEF_TARGET_OUT_DIR ${CEF_OLD_TARGET_OUT_DIR})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CEF_TARGET_OUT_DIR}")
+
+    # Copy duilib resources into the Resources directory.
+    if("${DUILIB_THEME_DIR_NAME}" STREQUAL "")
+        message(FATAL_ERROR "NOT DEFINED DUILIB_THEME_DIR_NAME!")
+    endif()
+    
+    set(DUILIB_RES_FROM "${DUILIB_ROOT}/bin/resources")
+    set(DUILIB_RES_TO "${CEF_APP}/Contents/Resources/duilib")
+    add_custom_command(TARGET ${CEF_TARGET} 
+                       POST_BUILD
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/themes/default/public" "${DUILIB_RES_TO}/themes/default/public/"
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/themes/default/${DUILIB_THEME_DIR_NAME}" "${DUILIB_RES_TO}/themes/default/${DUILIB_THEME_DIR_NAME}"
+                       COMMAND ${CMAKE_COMMAND} -E copy "${DUILIB_RES_FROM}/themes/default/global.xml" "${DUILIB_RES_TO}/themes/default/"
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/lang/" "${DUILIB_RES_TO}/lang/"
+                       COMMAND ${CMAKE_COMMAND} -E copy_directory "${DUILIB_RES_FROM}/fonts/" "${DUILIB_RES_TO}/fonts/"
+                       VERBATIM)
     
     # Manually process and copy over resource files.
     # The Xcode generator can support this via the set_target_properties RESOURCE

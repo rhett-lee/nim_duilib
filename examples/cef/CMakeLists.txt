@@ -19,6 +19,9 @@ set(DUILIB_WINRES_FILE_NAME "${PROJECT_NAME}.rc")
 # 使用CEF模块
 set(DUILIB_ENABLE_CEF ON)
 
+# 定义资源的子目录名称（位于resources/themes/default的子目录名称，MacOS复制资源时使用）
+set(DUILIB_THEME_DIR_NAME "cef")
+
 # 包含公共实现代码
 include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_common.cmake")
 include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_bin.cmake")

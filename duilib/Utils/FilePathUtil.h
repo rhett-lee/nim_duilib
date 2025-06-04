@@ -39,6 +39,13 @@ public:
     * @return 返回获取的目录
     */
     static FilePath GetCurrentModuleDirectory();
+
+#ifdef DUILIB_BUILD_FOR_MACOS
+    /** 获取当前进程的程序app bundle资源所在目录
+    * @return 返回获取的目录
+    */
+    static FilePath GetBundleResourcesPath();
+#endif
 };
 
 } // namespace ui

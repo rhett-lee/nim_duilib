@@ -7,6 +7,11 @@
     #include <limits.h>
 #endif
 
+#ifdef DUILIB_BUILD_FOR_MACOS
+    #include <mach-o/dyld.h>
+    #include <CoreFoundation/CoreFoundation.h>
+#endif
+
 namespace ui
 {
 
@@ -113,30 +118,55 @@ FilePath FilePathUtil::GetCurrentModuleDirectory()
     currentDir.RemoveFileName();
     return currentDir;
 #elif defined (DUILIB_BUILD_FOR_LINUX)
-    DString dirPath;
-    char exe_path[PATH_MAX];
-    ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
-    if (len != -1) {
-        exe_path[len] = '\0'; // 确保字符串终止
-        dirPath = exe_path;
-        size_t pos = dirPath.rfind("/");
-        if (pos != DString::npos) {
-            dirPath = dirPath.substr(0, pos);
-        }
-    }
+    std::error_code ec;
+    std::filesystem::path exeFullPath = std::filesystem::canonical("/proc/self/exe", ec);
+    DString dirPath = exeFullPath.parent_path().native();
     if (dirPath.empty()) {
         dirPath = std::filesystem::current_path().native();
     }
     FilePath filePath(dirPath);
     filePath.NormalizeDirectoryPath();
     return filePath;
-#else 
+#elif defined (DUILIB_BUILD_FOR_MACOS)
+    std::filesystem::path exeFullPath;
+    char path[PATH_MAX];
+    uint32_t size = sizeof(path);
+    if (_NSGetExecutablePath(path, &size) == 0) {
+        std::error_code ec;
+        exeFullPath = std::filesystem::canonical(path, ec);
+    }
+    DString dirPath = exeFullPath.parent_path().native();
+    if (dirPath.empty()) {
+        dirPath = std::filesystem::current_path().native();
+    }
+    FilePath filePath(dirPath);
+    filePath.NormalizeDirectoryPath();
+    return filePath;
+#else
     DString dirPath = std::filesystem::current_path().native(); 
     FilePath filePath(dirPath);
     filePath.NormalizeDirectoryPath();
     return filePath;
 #endif
-
 }
+
+#ifdef DUILIB_BUILD_FOR_MACOS
+FilePath FilePathUtil::GetBundleResourcesPath()
+{
+    DString dirPath;
+    CFBundleRef mainBundle = CFBundleGetMainBundle();
+    if (mainBundle) {
+        CFURLRef resourcesURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
+        if (resourcesURL) {
+            char path[PATH_MAX];
+            if (CFURLGetFileSystemRepresentation(resourcesURL, true, (UInt8*)path, PATH_MAX)) {
+                dirPath = std::string(path);
+            }
+            CFRelease(resourcesURL);
+        }
+    }
+    return dirPath;
+}
+#endif
 
 } // namespace ui
