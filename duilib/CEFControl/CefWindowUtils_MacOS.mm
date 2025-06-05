@@ -9,7 +9,7 @@ namespace ui
 void ReparentNSView(NSView* targetView, NSView* newParent) 
 {
     @autoreleasepool {
-        // 确保操作在主线程执行
+        // 纭繚鎿嶄綔鍦ㄤ富绾跨▼鎵ц
         if (![NSThread isMainThread]) {
             dispatch_sync(dispatch_get_main_queue(), ^{
                 [targetView removeFromSuperview];
@@ -42,7 +42,7 @@ void SetNSViewFrame(NSView* view, CGFloat x, CGFloat y, CGFloat w, CGFloat h)
         if (![NSThread isMainThread]) {
             dispatch_sync(dispatch_get_main_queue(), ^{
                 [view setFrame:newFrame];
-                [view.superview setNeedsDisplay:YES]; // 触发重绘
+                [view.superview setNeedsDisplay:YES]; // 瑙﹀彂閲嶇粯
             });
         } else {
             [view setFrame:newFrame];
@@ -110,7 +110,7 @@ void SetCefWindowParent(CefWindowHandle cefWindow, CefControl* pCefControl)
     if (!IsValidNSView(pCefNSView)) {
         return;
     }
-    NSView* pParentNSView = pWindow->NativeWnd()->GetNSView();
+    NSView* pParentNSView = (NSView*)pWindow->NativeWnd()->GetNSView();
     
     ReparentNSView(pCefNSView, pParentNSView);
 }

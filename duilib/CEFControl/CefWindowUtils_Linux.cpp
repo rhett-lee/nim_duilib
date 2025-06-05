@@ -7,16 +7,16 @@
 
 namespace ui
 {
-//ÅĞ¶Ï´°¿ÚÊÇ·ñÓĞĞ§
+//åˆ¤æ–­çª—å£æ˜¯å¦æœ‰æ•ˆ
 static bool IsX11WindowValid(Display* display, ::Window window)
 {
-    // ³¢ÊÔ»ñÈ¡´°¿ÚÊôĞÔ
+    // å°è¯•è·å–çª—å£å±æ€§
     XWindowAttributes attrs;        
     Status status = XGetWindowAttributes(display, window, &attrs);
-    return (status != 0);  // ·µ»Ø1ÓĞĞ§£¬0ÎŞĞ§
+    return (status != 0);  // è¿”å›1æœ‰æ•ˆï¼Œ0æ— æ•ˆ
 }
 
-//ÉèÖÃX´°¿ÚµÄ¸¸´°¿Ú
+//è®¾ç½®Xçª—å£çš„çˆ¶çª—å£
 class SetX11WindowParentWindowTask : public CefTask
 {
     IMPLEMENT_REFCOUNTING(SetX11WindowParentWindowTask);
@@ -53,7 +53,7 @@ private:
     std::weak_ptr<WeakFlag> m_pCefControlFlag;
 };
 
-//ÉèÖÃX11´°¿ÚµÄÏÔÊ¾»òÕßÒş²Ø
+//è®¾ç½®X11çª—å£çš„æ˜¾ç¤ºæˆ–è€…éšè—
 class SetX11WindowVisibleTask : public CefTask
 {
     IMPLEMENT_REFCOUNTING(SetX11WindowVisibleTask);
@@ -89,7 +89,7 @@ private:
     std::weak_ptr<WeakFlag> m_pCefControlFlag;
 };
 
-//ÉèÖÃX11´°¿ÚµÄÎ»ÖÃºÍ´óĞ¡
+//è®¾ç½®X11çª—å£çš„ä½ç½®å’Œå¤§å°
 class SetX11WindowPosTask : public CefTask
 {
     IMPLEMENT_REFCOUNTING(SetX11WindowPosTask);
@@ -103,7 +103,7 @@ public:
     virtual void Execute() override
     {
         if (m_pCefControlFlag.expired() || !m_pCefControl->IsVisible()) {
-            //´°¿ÚÒş²ØµÄÊ±ºò£¬²»ĞèÒªÉèÖÃ£»Èç¹ûÉèÖÃµÄ»°£¬»áµ¼ÖÂ³ÌĞò±ÀÀ£
+            //çª—å£éšè—çš„æ—¶å€™ï¼Œä¸éœ€è¦è®¾ç½®ï¼›å¦‚æœè®¾ç½®çš„è¯ï¼Œä¼šå¯¼è‡´ç¨‹åºå´©æºƒ
             return;
         }
         CefWindowHandle handle = m_pCefControl->GetCefWindowHandle();
@@ -143,7 +143,7 @@ void SetCefWindowVisible(CefWindowHandle cefWindow, CefControl* pCefControl)
     if (pWindow == nullptr) {
         return;
     }
-    //ĞèÒªÔÚCEFµÄUIÏß³Ìµ÷Õû
+    //éœ€è¦åœ¨CEFçš„UIçº¿ç¨‹è°ƒæ•´
     CefPostTask(TID_UI, new SetX11WindowVisibleTask(pCefControl));
 }
 
@@ -156,7 +156,7 @@ void SetCefWindowParent(CefWindowHandle cefWindow, CefControl* pCefControl)
     if (pWindow == nullptr) {
         return;
     }
-    //ĞèÒªÔÚCEFµÄUIÏß³Ìµ÷Õû
+    //éœ€è¦åœ¨CEFçš„UIçº¿ç¨‹è°ƒæ•´
     CefPostTask(TID_UI, new SetX11WindowParentWindowTask(pCefControl));
 }
 
