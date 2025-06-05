@@ -42,6 +42,7 @@ add_definitions(-DSK_GANESH -DSK_GL -DSK_RELEASE)
 #设置libcef目录路径
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")  # macOS
     set(CEF_LIB_DIR "libcef_macos")
+    set(DUILIB_SRC_MACOS 1)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")  # Linux
     set(CEF_LIB_DIR "libcef_linux")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows
@@ -78,6 +79,14 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Utils UTILS_SRC)
 
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl CEF_CONTROL_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl/internal CEF_CONTROL_INTERNAL_SRC)
+
+# 非MacOS平台，删除mm文件，避免出现编译错误
+if(NOT DUILIB_SRC_MACOS)
+    list(REMOVE_ITEM CORE_SRC ${CMAKE_CURRENT_LIST_DIR}/Core/SDL_MacOS.mm)
+    list(REMOVE_ITEM CORE_SRC ${CMAKE_CURRENT_LIST_DIR}/Core/SDL_MacOS.h)
+    
+    list(REMOVE_ITEM CEF_CONTROL_SRC ${CMAKE_CURRENT_LIST_DIR}/Core/CefWindowUtils_MacOS.mm)
+endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows
     aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl/internal/Windows CEF_CONTROL_INTERNAL_WINDOWS_SRC)
