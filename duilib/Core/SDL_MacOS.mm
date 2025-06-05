@@ -1,4 +1,7 @@
 #import "SDL_MacOS.h"
+
+#if defined(__APPLE__) && defined(__MACH__)
+
 #import <SDL3/SDL.h>
 #import <Cocoa/Cocoa.h>
 
@@ -20,3 +23,5 @@ void* GetSDLWindowContentView(SDL_Window* sdlWindow)
 }
 
 }
+
+#endif

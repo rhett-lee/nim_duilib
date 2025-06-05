@@ -1,8 +1,8 @@
 #include "CefWindowUtils.h"
 #include "duilib/Core/Window.h"
-#include <Cocoa/Cocoa.h>
 
 #ifdef DUILIB_BUILD_FOR_MACOS
+#include <Cocoa/Cocoa.h>
 
 namespace ui
 {
