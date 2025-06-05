@@ -3,6 +3,8 @@
 
 #ifdef DUILIB_BUILD_FOR_LINUX
 //Linux OS
+
+#include "include/cef_task.h"
 #include <X11/Xlib.h>
 
 namespace ui
