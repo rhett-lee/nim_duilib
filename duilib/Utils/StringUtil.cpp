@@ -1062,7 +1062,7 @@ int32_t StringUtil::StringNCopy(wchar_t* dest, size_t destSize, const wchar_t* s
 #endif
 }
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wstringop-truncation"
 #endif
@@ -1082,7 +1082,7 @@ int32_t StringUtil::StringCopy(char* dest, size_t destSize, const char* src)
 #endif
 }
 
-#if defined(__GNUC__)
+#if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic pop
 #endif
 
