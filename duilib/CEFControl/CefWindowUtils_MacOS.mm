@@ -74,13 +74,19 @@ void SetCefWindowPos(CefWindowHandle cefWindow, CefControl* pCefControl)
     if ((cefWindow == 0) || (pCefControl == nullptr)) {
         return;
     }
+    Window* pWindow = pCefControl->GetWindow();
+    if (pWindow == nullptr) {
+        return;
+    }
     NSView* pCefNSView = (NSView*)cefWindow;
     if (!IsValidNSView(pCefNSView)) {
         return;
     }
     UiRect rc = pCefControl->GetPos();
-    
-    SetNSViewFrame(pCefNSView, (CGFloat)rc.left, (CGFloat)rc.top, (CGFloat)rc.Width(), (CGFloat)rc.Height());
+    UiRect rcWindow;
+    pWindow->GetWindowRect(rcWindow);
+    //macOS的窗口顶点坐标是左下角（Windows是左上角）
+    SetNSViewFrame(pCefNSView, (CGFloat)rc.left, (CGFloat)(rcWindow.Height() - rc.bottom), (CGFloat)rc.Width(), (CGFloat)rc.Height());
 }
 
 void SetCefWindowVisible(CefWindowHandle cefWindow, CefControl* pCefControl)
