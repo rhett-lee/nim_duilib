@@ -247,6 +247,7 @@
     <ClCompile Include="CEFControl\CefDragDrop_Windows.cpp" />
     <ClCompile Include="CEFControl\CefManager.cpp" />
     <ClCompile Include="CEFControl\CefManager_Windows.cpp" />
+    <ClCompile Include="CEFControl\CefWindowUtils_Windows.cpp" />
     <ClCompile Include="CEFControl\internal\CefBrowserHandler.cpp" />
     <ClCompile Include="CEFControl\internal\CefClientApp.cpp" />
     <ClCompile Include="CEFControl\internal\CefClientAppBrowser.cpp" />
@@ -489,6 +490,7 @@
     <ClInclude Include="CEFControl\CefDragDrop_Windows.h" />
     <ClInclude Include="CEFControl\CefManager.h" />
     <ClInclude Include="CEFControl\CefManager_Windows.h" />
+    <ClInclude Include="CEFControl\CefWindowUtils.h" />
     <ClInclude Include="CEFControl\internal\CefAutoUnregister.h" />
     <ClInclude Include="CEFControl\internal\CefBrowserHandler.h" />
     <ClInclude Include="CEFControl\internal\CefBrowserHandlerDelegate.h" />
