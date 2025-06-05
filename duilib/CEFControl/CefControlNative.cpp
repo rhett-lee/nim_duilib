@@ -242,14 +242,10 @@ void CefControlNative::SetVisible(bool bVisible)
 
 void CefControlNative::UpdateCefWindowPos()
 {
-#ifdef DUILIB_BUILD_FOR_WIN
-    HWND hwnd = GetCefWindowHandle();
-    ASSERT(::IsWindow(hwnd));
-    if (!::IsWindow(hwnd)) {
+    if (GetCefWindowHandle() == 0) {
         //CEF页面的窗口还没完成创建
         return;
     }
-#endif
 
     BaseClass::UpdateCefWindowPos();
     //在Browser控件创建完成后，更新窗口位置和可见性
