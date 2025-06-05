@@ -12,6 +12,10 @@
 
 #include <SDL3/SDL.h>
 
+#if defined DUILIB_BUILD_FOR_MACOS
+    #include "SDL_MacOS.h"
+#endif
+
 /** 主动绘制
 */
 #define WM_USER_PAINT_MSG (SDL_EVENT_USER + 3)
@@ -1375,10 +1379,7 @@ void* NativeWindow_SDL::GetNSView() const
     if (!IsWindow()) {
         return nullptr;
     }
-    SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
-    void* pNSView = (void*)SDL_GetNumberProperty(propID, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, 0);
-    ASSERT(pNSView != nullptr);
-    return pNSView;
+    return GetSDLWindowContentView(m_sdlWindow);
 }
 
 #endif 
