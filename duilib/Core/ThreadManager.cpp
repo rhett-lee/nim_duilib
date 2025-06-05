@@ -1,4 +1,5 @@
 #include "ThreadManager.h"
+#include "duilib/Core/ScopedLock.h"
 
 namespace ui 
 {
@@ -21,7 +22,7 @@ bool ThreadManager::RegisterThread(int32_t nThreadIdentifier, FrameworkThread* p
         return false;
     }
 
-    std::lock_guard<std::mutex> threadGuard(m_threadMutex);
+    ScopedLock threadGuard(m_threadMutex);
     auto iter = m_threadsMap.find(nThreadIdentifier);
     ASSERT(iter == m_threadsMap.end());
     if (iter != m_threadsMap.end()) {
@@ -33,14 +34,14 @@ bool ThreadManager::RegisterThread(int32_t nThreadIdentifier, FrameworkThread* p
 
 bool ThreadManager::HasThread(int32_t nThreadIdentifier) const
 {
-    std::lock_guard<std::mutex> threadGuard(m_threadMutex);
+    ScopedLock threadGuard(m_threadMutex);
     auto iter = m_threadsMap.find(nThreadIdentifier);
     return iter != m_threadsMap.end();
 }
 
 bool ThreadManager::UnregisterThread(int32_t nThreadIdentifier)
 {
-    std::lock_guard<std::mutex> threadGuard(m_threadMutex);
+    ScopedLock threadGuard(m_threadMutex);
     auto iter = m_threadsMap.find(nThreadIdentifier);
     if (iter == m_threadsMap.end()) {
         return false;
@@ -55,7 +56,7 @@ int32_t ThreadManager::GetCurrentThreadIdentifier() const
 {
     int32_t nThreadIdentifier = kThreadNone;
     std::thread::id currentThreadId = std::this_thread::get_id();
-    std::lock_guard<std::mutex> threadGuard(m_threadMutex);
+    ScopedLock threadGuard(m_threadMutex);
     for (auto iter = m_threadsMap.begin(); iter != m_threadsMap.end(); ++iter) {
         FrameworkThreadPtr spFrameworkThread = iter->second;
         if (spFrameworkThread == nullptr) {
@@ -76,12 +77,15 @@ size_t ThreadManager::PostTask(int32_t nThreadIdentifier, const StdClosure& task
         return 0;
     }
     size_t nTaskId = 0;
-    std::lock_guard<std::mutex> threadGuard(m_threadMutex);
+    ScopedLock threadGuard(m_threadMutex);
     auto iter = m_threadsMap.find(nThreadIdentifier);
     if (iter != m_threadsMap.end()) {
         FrameworkThreadPtr spFrameworkThread = iter->second;
         if (spFrameworkThread != nullptr) {
-            nTaskId = spFrameworkThread->PostTask(task);
+            StdClosure unlockClosure = [&threadGuard]() {
+                    threadGuard.Unlock();
+                };
+            nTaskId = spFrameworkThread->PostTask(task, unlockClosure);
         }
     }
     ASSERT(nTaskId != 0);
@@ -95,7 +99,7 @@ size_t ThreadManager::PostDelayedTask(int32_t nThreadIdentifier, const StdClosur
         return 0;
     }
     size_t nTaskId = 0;
-    std::lock_guard<std::mutex> threadGuard(m_threadMutex);
+    ScopedLock threadGuard(m_threadMutex);
     auto iter = m_threadsMap.find(nThreadIdentifier);
     if (iter != m_threadsMap.end()) {
         FrameworkThreadPtr spFrameworkThread = iter->second;
@@ -115,7 +119,7 @@ size_t ThreadManager::PostRepeatedTask(int32_t nThreadIdentifier, const StdClosu
         return 0;
     }
     size_t nTaskId = 0;
-    std::lock_guard<std::mutex> threadGuard(m_threadMutex);
+    ScopedLock threadGuard(m_threadMutex);
     auto iter = m_threadsMap.find(nThreadIdentifier);
     if (iter != m_threadsMap.end()) {
         FrameworkThreadPtr spFrameworkThread = iter->second;
@@ -130,7 +134,7 @@ size_t ThreadManager::PostRepeatedTask(int32_t nThreadIdentifier, const StdClosu
 bool ThreadManager::CancelTask(size_t nTaskId)
 {
     bool bCancelTask = false;
-    std::lock_guard<std::mutex> threadGuard(m_threadMutex);
+    ScopedLock threadGuard(m_threadMutex);
     for (auto iter = m_threadsMap.begin(); iter != m_threadsMap.end(); ++iter) {
         FrameworkThreadPtr spFrameworkThread = iter->second;
         if (spFrameworkThread == nullptr) {
@@ -146,7 +150,7 @@ bool ThreadManager::CancelTask(size_t nTaskId)
 
 void ThreadManager::Clear()
 {
-    std::lock_guard<std::mutex> threadGuard(m_threadMutex);
+    ScopedLock threadGuard(m_threadMutex);
     m_threadsMap.clear();
 }
 

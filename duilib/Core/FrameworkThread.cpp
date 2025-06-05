@@ -1,6 +1,7 @@
 #include "FrameworkThread.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/WindowMessage.h"
+#include "duilib/Core/ScopedLock.h"
 
 #if defined (DUILIB_BUILD_FOR_SDL)
     #include "duilib/Core/MessageLoop_SDL.h"
@@ -166,13 +167,13 @@ size_t FrameworkThread::GetNextTaskId() const
     return GlobalManager::Instance().Thread().GetNextTaskId();
 }
 
-size_t FrameworkThread::PostTask(const StdClosure& task)
+size_t FrameworkThread::PostTask(const StdClosure& task, const StdClosure& unlockClosure)
 {
     ASSERT(task != nullptr);
     if (task == nullptr) {
         return false;
     }
-    std::lock_guard<std::mutex> threadGuard(m_taskMutex);
+    ScopedLock threadGuard(m_taskMutex);
     size_t nTaskId = GetNextTaskId();
     TaskInfo& taskInfo = m_taskMap[nTaskId];
     taskInfo.m_taskType = TaskType::kTask;
@@ -183,7 +184,10 @@ size_t FrameworkThread::PostTask(const StdClosure& task)
     taskInfo.m_startTime = std::chrono::steady_clock::now();
     taskInfo.m_nTotalExecTimes = 0;
 
-    bool bAdded = NotifyExecTask(nTaskId);
+    StdClosure unlockClosure1 = [&threadGuard]() {
+            threadGuard.Unlock();
+        };
+    bool bAdded = NotifyExecTask(nTaskId, unlockClosure1, unlockClosure);
     ASSERT_UNUSED_VARIABLE(bAdded);
     return nTaskId;
 }
@@ -194,7 +198,7 @@ size_t FrameworkThread::PostDelayedTask(const StdClosure& task, int32_t nDelayMs
     if (task == nullptr) {
         return 0;
     }
-    std::lock_guard<std::mutex> threadGuard(m_taskMutex);
+    ScopedLock threadGuard(m_taskMutex);
     size_t nTaskId = GetNextTaskId();
     TaskInfo& taskInfo = m_taskMap[nTaskId];
     taskInfo.m_taskType = TaskType::kDelayedTask;
@@ -205,15 +209,12 @@ size_t FrameworkThread::PostDelayedTask(const StdClosure& task, int32_t nDelayMs
     taskInfo.m_startTime = std::chrono::steady_clock::now();
     taskInfo.m_nTotalExecTimes = 0;
 
-    bool bAdded = false;
-    if (nDelayMs > 0) {
-        //生成一个定时器，用来触发任务执行(只执行1次)
-        auto timerCallback = UiBind(&FrameworkThread::NotifyExecTask, this, nTaskId);
-        bAdded = GlobalManager::Instance().Timer().AddTimer(GetWeakFlag(), timerCallback, nDelayMs, 1);
+    if (nDelayMs < 1) {
+        nDelayMs = 1;
     }
-    else {
-        bAdded = NotifyExecTask(nTaskId);
-    }
+    //生成一个定时器，用来触发任务执行(只执行1次)
+    auto timerCallback = UiBind(&FrameworkThread::NotifyExecTask, this, nTaskId, nullptr, nullptr);
+    bool bAdded = GlobalManager::Instance().Timer().AddTimer(GetWeakFlag(), timerCallback, nDelayMs, 1);
     ASSERT_UNUSED_VARIABLE(bAdded);
     return nTaskId;
 }
@@ -224,7 +225,7 @@ size_t FrameworkThread::PostRepeatedTask(const StdClosure& task, int32_t nInterv
     if ((task == nullptr) || (nIntervalMs <= 0) || (nTimes == 0)) {
         return 0;
     }
-    std::lock_guard<std::mutex> threadGuard(m_taskMutex);
+    ScopedLock threadGuard(m_taskMutex);
     size_t nTaskId = GetNextTaskId();
     TaskInfo& taskInfo = m_taskMap[nTaskId];
     taskInfo.m_taskType = TaskType::kRepeatedTask;
@@ -239,7 +240,7 @@ size_t FrameworkThread::PostRepeatedTask(const StdClosure& task, int32_t nInterv
         nTimes = -1;
     }
     //生成一个定时器，用来触发任务执行(只执行1次)
-    auto timerCallback = UiBind(&FrameworkThread::NotifyExecTask, this, nTaskId);
+    auto timerCallback = UiBind(&FrameworkThread::NotifyExecTask, this, nTaskId, nullptr, nullptr);
     size_t nTimerId = GlobalManager::Instance().Timer().AddTimer(GetWeakFlag(), timerCallback, nIntervalMs, nTimes);
     ASSERT_UNUSED_VARIABLE(nTimerId > 0);
     return nTaskId;
@@ -248,7 +249,7 @@ size_t FrameworkThread::PostRepeatedTask(const StdClosure& task, int32_t nInterv
 bool FrameworkThread::CancelTask(size_t nTaskId)
 {
     bool bDeleted = false;
-    std::lock_guard<std::mutex> threadGuard(m_taskMutex);
+    ScopedLock threadGuard(m_taskMutex);
     if (!m_taskMap.empty()) {
         auto iter = m_taskMap.find(nTaskId);
         if (iter != m_taskMap.end()) {
@@ -259,15 +260,26 @@ bool FrameworkThread::CancelTask(size_t nTaskId)
     return bDeleted;
 }
 
-bool FrameworkThread::NotifyExecTask(size_t nTaskId)
+bool FrameworkThread::NotifyExecTask(size_t nTaskId,
+                                     const StdClosure& unlockClosure1,
+                                     const StdClosure& unlockClosure2)
 {
     if (IsUIThread()) {
         //UI线程: 异步执行
+#ifdef DUILIB_BUILD_FOR_SDL
+        //将外层的锁释放，避免SDL底层的锁反向调用产生死锁
+        if (unlockClosure1) {
+            unlockClosure1();
+        }
+        if (unlockClosure2) {            
+            unlockClosure2();
+        }        
+#endif
         return m_threadMsg.PostMsg(WM_USER_DEFINED_MSG, nTaskId, 0);
     }
     else {
         //后台工作线程
-        std::lock_guard<std::mutex> threadGuard(m_penddingTaskMutex);
+        ScopedLock threadGuard(m_penddingTaskMutex);
         m_penddingTaskIds.push_back(nTaskId);
         m_cv.notify_all();
         return true;
@@ -279,7 +291,7 @@ void FrameworkThread::ExecTask(size_t nTaskId)
     ASSERT(std::this_thread::get_id() == m_nThisThreadId);
     StdClosure task;
     {
-        std::lock_guard<std::mutex> threadGuard(m_taskMutex);
+        ScopedLock threadGuard(m_taskMutex);
         auto iter = m_taskMap.find(nTaskId);
         if (iter != m_taskMap.end()) {
             TaskInfo& taskInfo = iter->second;

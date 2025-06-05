@@ -1433,6 +1433,9 @@
     <ClInclude Include="CEFControl\CefWindowUtils.h">
       <Filter>CEFControl</Filter>
     </ClInclude>
+    <ClInclude Include="Core\ScopedLock.h">
+      <Filter>Core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />

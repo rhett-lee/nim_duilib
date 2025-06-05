@@ -583,6 +583,7 @@
     <ClInclude Include="Core\NativeWindow_Windows.h" />
     <ClInclude Include="Core\PlaceHolder.h" />
     <ClInclude Include="Core\ResourceParam.h" />
+    <ClInclude Include="Core\ScopedLock.h" />
     <ClInclude Include="Core\ScrollBar.h" />
     <ClInclude Include="Core\Shadow.h" />
     <ClInclude Include="Core\SharePtr.h" />

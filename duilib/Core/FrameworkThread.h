@@ -78,9 +78,10 @@ public:
 public:
     /** 向线程发送一个任务，立即执行
     * @param [in] task 任务回调函数
+    * @param [in] unlockClosure 用于释放外层锁的函数（用于避免死锁）
     * @return 成功返回任务ID(大于0)，如果失败则返回0
     */
-    size_t PostTask(const StdClosure& task);
+    size_t PostTask(const StdClosure& task, const StdClosure& unlockClosure = nullptr);
 
     /** 向线程发送一个任务，延迟执行
     * @param [in] task 任务回调函数
@@ -131,7 +132,9 @@ private:
 
     /** 通知执行一个任务
     */
-    bool NotifyExecTask(size_t nTaskId);
+    bool NotifyExecTask(size_t nTaskId,
+                        const StdClosure& unlockClosure1 = nullptr,
+                        const StdClosure& unlockClosure2 = nullptr);
 
     /** 执行任务
     */
