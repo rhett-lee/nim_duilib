@@ -11,7 +11,7 @@ void* GetSDLWindowContentView(SDL_Window* sdlWindow)
     NSWindow* pNSWindow = (NSWindow*)SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, nullptr);
     NSView* pNSView = nullptr;
     if (pNSWindow != nullptr) {
-        pNSView = [nsWindow contentView] ;
+        pNSView = [pNSWindow contentView] ;
     }
     return (void*)pNSView;
 }
