@@ -2284,28 +2284,34 @@ void Window::AutoResizeWindow(bool bRepaint)
 
 void Window::ArrangeRoot()
 {
+    UiRect rcClient;
+    GetClientRect(rcClient);
+    if (rcClient.IsEmpty()) {
+        return;
+    }
     if (m_bIsArranged && (m_pRoot != nullptr)) {
         m_bIsArranged = false;
-        UiRect rcClient;
-        GetClientRect(rcClient);
-        if (!rcClient.IsEmpty()) {
-            if (m_pRoot->IsArranged()) {
-                m_pRoot->SetPos(rcClient);
-            }
-            else {
-                Control* pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
-                while (pControl != nullptr) {
-                    pControl->SetPos(pControl->GetPos());
-                    //ASSERT(!pControl->IsArranged());
-                    pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
-                }
-            }
-
-            if (m_bFirstLayout) {
-                m_bFirstLayout = false;
-                OnInitLayout();
+        if (m_pRoot->IsArranged() || (m_pRoot->GetPos() != rcClient)) {
+            //所有控件的布局全部重排
+            m_pRoot->SetPos(rcClient);
+        }
+        else {
+            //仅对有更新的控件的布局全部重排
+            Control* pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
+            while (pControl != nullptr) {
+                pControl->SetPos(pControl->GetPos());
+                //ASSERT(!pControl->IsArranged());
+                pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
             }
         }
+        if (m_bFirstLayout) {
+            m_bFirstLayout = false;
+            OnInitLayout();
+        }
+    }
+    else if (m_pRoot->GetPos() != rcClient) {
+        //所有控件的布局全部重排
+        m_pRoot->SetPos(rcClient);
     }
 }
 
