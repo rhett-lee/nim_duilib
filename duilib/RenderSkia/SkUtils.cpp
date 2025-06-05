@@ -249,7 +249,7 @@ size_t SkUTF8_FromUnichar(SkUnichar uni, char utf8[]) {
         return 1;
     }
 
-    char    tmp[4];
+    char    tmp[4] = { 0, 0, 0, 0 };
     char*   p = tmp;
     size_t  count = 1;
 
@@ -266,6 +266,10 @@ size_t SkUTF8_FromUnichar(SkUnichar uni, char utf8[]) {
         utf8 += count;
         while (p < tmp + count - 1) {
             *--utf8 = *p++;
+            if (p >= (tmp + 4)) {
+                //避免越界访问，解决g++编译警告问题
+                break;
+            }
         }
         *--utf8 = (char)(~(0xFF >> count) | uni);
     }

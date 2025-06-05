@@ -1062,6 +1062,11 @@ int32_t StringUtil::StringNCopy(wchar_t* dest, size_t destSize, const wchar_t* s
 #endif
 }
 
+#if defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-truncation"
+#endif
+
 int32_t StringUtil::StringCopy(char* dest, size_t destSize, const char* src)
 {
     if ((dest == nullptr) || (destSize == 0) || (src == nullptr)) {
@@ -1076,6 +1081,10 @@ int32_t StringUtil::StringCopy(char* dest, size_t destSize, const char* src)
     return 0;
 #endif
 }
+
+#if defined(__GNUC__)
+#pragma GCC diagnostic pop
+#endif
 
 int32_t StringUtil::StringNCopy(char* dest, size_t destSize, const char* src, size_t srcSize)
 {

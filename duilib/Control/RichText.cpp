@@ -576,10 +576,12 @@ void RichText::SetTextPadding(UiPadding padding, bool bNeedDpiScale)
 const DString& RichText::TrimText(DString& text)
 {
     //回车/换行TAB键：替换为1个空格
-    size_t nCount = text.size();
+    DString tempText;
+    tempText.swap(text);
+    size_t nCount = tempText.size();
     for (size_t nIndex = 0; nIndex < nCount; ++nIndex) {
-        if ((text[nIndex] == _T('\r')) || (text[nIndex] == _T('\n')) || (text[nIndex] == _T('\t'))) {
-            text[nIndex] = _T(' ');
+        if ((tempText[nIndex] == _T('\r')) || (tempText[nIndex] == _T('\n')) || (tempText[nIndex] == _T('\t'))) {
+            tempText[nIndex] = _T(' ');
         }
     }
 
@@ -588,27 +590,28 @@ const DString& RichText::TrimText(DString& text)
     }
     else if (m_trimPolicy == TrimPolicy::kKeepOne) {
         //只保留一个空格
-        if (!text.empty()) {
-            bool bFirst = (text.front() == _T(' '));
-            bool bLast = text[text.size() - 1] == _T(' ');
-            StringUtil::Trim(text);
-            if (text.empty()) {
-                text = _T(" ");
+        if (!tempText.empty()) {
+            bool bFirst = (tempText.front() == _T(' '));
+            bool bLast = tempText[tempText.size() - 1] == _T(' ');
+            StringUtil::Trim(tempText);
+            if (tempText.empty()) {
+                tempText = DString(_T(" "));
             }
             else {
                 if (bFirst) {
-                    text = _T(" ") + text;
+                    tempText = DString(_T(" ")) + tempText;
                 }
                 else if (bLast) {
-                    text += _T(" ");
+                    tempText += DString(_T(" "));
                 }
             }
         }
     }
     else {
         //去掉左右两侧的空格
-        StringUtil::Trim(text);
-    }    
+        StringUtil::Trim(tempText);
+    }
+    tempText.swap(text);
     return text;
 }
 
