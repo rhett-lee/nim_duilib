@@ -144,7 +144,7 @@ locales（目录，里面包含zh-CN.pak、en-US.pak等语言包）
 * x64位版本的下载链接：[03/08/2025 - 133.4.8+g99a2ab1+chromium-133.0.6943.142 / Chromium 133.0.6943.142](https://cef-builds.spotifycdn.com/cef_binary_133.4.8%2Bg99a2ab1%2Bchromium-133.0.6943.142_macosx64.tar.bz2)    
 * ARM64位版本的下载链接：[03/08/2025 - 133.4.8+g99a2ab1+chromium-133.0.6943.142 / Chromium 133.0.6943.142](https://cef-builds.spotifycdn.com/cef_binary_133.4.8%2Bg99a2ab1%2Bchromium-133.0.6943.142_macosarm64.tar.bz2)    
   下载压缩包后，解压。    
-  然后将目录里的内容完整复制到`${NIM_DUILIB_ROOT}/../CEF_BINARY`目录即可（CEF_BINARY这个文件夹需要新建，与nim_duilib目录是平级目录）。    
+  然后将目录里的内容完整复制到`${NIM_DUILIB_ROOT}/../cef_binary`目录即可（cef_binary这个文件夹需要新建，与nim_duilib目录是平级目录）。    
 ### 2. CEF_BINARY里面内容列表
 ```
 BUILD.bazel

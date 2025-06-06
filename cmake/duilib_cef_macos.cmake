@@ -6,7 +6,7 @@
 # CEF_ROOT setup.
 # This variable must be set to locate the binary distribution.
 #
-get_filename_component(CEF_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../CEF_BINARY" ABSOLUTE) 
+get_filename_component(CEF_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../cef_binary" ABSOLUTE) 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CEF_ROOT}/cmake")
 
 message(STATUS "CEF_ROOT: ${CEF_ROOT}")
