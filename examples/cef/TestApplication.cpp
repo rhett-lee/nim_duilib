@@ -42,7 +42,7 @@ int TestApplication::Run(int argc, char** argv)
     }
 
     // 执行主线程循环
-    thread.RunOnCurrentThreadWithLoop();
+    thread.RunMessageLoop();
 
     // 清理 CEF
     ui::CefManager::GetInstance()->UnInitialize();
