@@ -1,5 +1,5 @@
-#include "controls_form.h"
-#include "about_form.h"
+#include "ControlForm.h"
+#include "AboutForm.h"
 #include "duilib/Utils/StringUtil.h"
 
 #include <fstream>

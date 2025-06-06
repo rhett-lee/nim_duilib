@@ -1,5 +1,5 @@
 #include "MainThread.h"
-#include "controls_form.h"
+#include "ControlForm.h"
 
 MiscThread::MiscThread() :
     FrameworkThread(_T("MiscThread"), ui::kThreadMisc)

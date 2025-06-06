@@ -164,16 +164,16 @@
     <Manifest />
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="about_form.h" />
-    <ClInclude Include="controls_form.h" />
+    <ClInclude Include="AboutForm.h" />
+    <ClInclude Include="ControlForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestApplication.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="about_form.cpp" />
-    <ClCompile Include="controls_form.cpp" />
+    <ClCompile Include="AboutForm.cpp" />
+    <ClCompile Include="ControlForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="TestApplication.cpp" />
