@@ -273,7 +273,10 @@ bool FrameworkThread::NotifyExecTask(size_t nTaskId,
         }
         if (unlockClosure2) {            
             unlockClosure2();
-        }        
+        }
+#else
+        UNUSED_VARIABLE(unlockClosure1);
+        UNUSED_VARIABLE(unlockClosure2);
 #endif
         return m_threadMsg.PostMsg(WM_USER_DEFINED_MSG, nTaskId, 0);
     }

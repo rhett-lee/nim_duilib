@@ -416,14 +416,14 @@ void DirectoryTree::ShowSubFolders(TreeNode* pTreeNode, const FilePath& path, St
         nThreadIdentifier = m_nThreadIdentifier;
     }
     std::weak_ptr<WeakFlag> treeNodeFlag = pTreeNode->GetWeakFlag();
-    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, treeNodeFlag, pTreeNode, path]() {
+    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, treeNodeFlag, pTreeNode, path, finishCallback]() {
             //在子线程中读取子目录数据
             PathInfoListPtr folderList = std::make_shared<std::vector<DirectoryTree::PathInfo>>();
             if (!treeNodeFlag.expired()) {
                 m_impl->GetFolderContents(path, treeNodeFlag, false, *folderList, nullptr);
             }
             if (!treeNodeFlag.expired()) {
-                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, path, treeNodeFlag, pTreeNode, folderList]() {
+                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, path, treeNodeFlag, pTreeNode, folderList, finishCallback]() {
                         //这段代码在UI线程中执行
                         bool bAdded = false;
                         if (!treeNodeFlag.expired()) {
@@ -431,6 +431,9 @@ void DirectoryTree::ShowSubFolders(TreeNode* pTreeNode, const FilePath& path, St
                         }
                         if ((folderList != nullptr) && !bAdded){
                             ClearPathInfoList(*folderList);
+                        }
+                        if (finishCallback) {
+                            finishCallback();
                         }
                     }));
             }
@@ -551,7 +554,7 @@ void DirectoryTree::ShowFolderContents(TreeNode* pTreeNode, const FilePath& path
         nThreadIdentifier = m_nThreadIdentifier;
     }
     std::weak_ptr<WeakFlag> treeNodeFlag = pTreeNode->GetWeakFlag();
-    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, treeNodeFlag, pTreeNode, path]() {
+    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, treeNodeFlag, pTreeNode, path, finishCallback]() {
             //在子线程中读取子目录数据
             PathInfoListPtr folderList = std::make_shared<std::vector<DirectoryTree::PathInfo>>();
             PathInfoListPtr fileList = std::make_shared<std::vector<DirectoryTree::PathInfo>>();
@@ -559,7 +562,7 @@ void DirectoryTree::ShowFolderContents(TreeNode* pTreeNode, const FilePath& path
                 m_impl->GetFolderContents(path, treeNodeFlag, true, *folderList, fileList.get());
             }
             if (!treeNodeFlag.expired()) {
-                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, path, treeNodeFlag, pTreeNode, folderList, fileList]() {
+                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, path, treeNodeFlag, pTreeNode, folderList, fileList, finishCallback]() {
                         //这段代码在UI线程中执行
                         bool bAdded = false;
                         if (!treeNodeFlag.expired()) {
@@ -568,6 +571,9 @@ void DirectoryTree::ShowFolderContents(TreeNode* pTreeNode, const FilePath& path
                         if (!bAdded) {
                             ClearPathInfoList(*folderList);
                             ClearPathInfoList(*fileList);
+                        }
+                        if (finishCallback) {
+                            finishCallback();
                         }
                     }));
             }
@@ -603,22 +609,25 @@ void DirectoryTree::ShowMyComputerContents(TreeNode* pTreeNode, StdClosure finis
         nThreadIdentifier = m_nThreadIdentifier;
     }
     std::weak_ptr<WeakFlag> treeNodeFlag = pTreeNode->GetWeakFlag();
-    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, treeNodeFlag, pTreeNode]() {
+    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, ToWeakCallback([this, treeNodeFlag, pTreeNode, finishCallback]() {
         //在子线程中读取子目录数据
         std::shared_ptr<std::vector<ui::DirectoryTree::DiskInfo>> spDiskInfoList = std::make_shared<std::vector<ui::DirectoryTree::DiskInfo>>();
         if (!treeNodeFlag.expired()) {
             m_impl->GetDiskInfoList(treeNodeFlag, false, *spDiskInfoList);
         }        
         if (!treeNodeFlag.expired()) {
-            GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, treeNodeFlag, pTreeNode, spDiskInfoList]() {
-                //这段代码在UI线程中执行
-                bool bAdded = false;
-                if (!treeNodeFlag.expired()) {
-                    bAdded = OnShowMyComputerContents(pTreeNode, *spDiskInfoList);
-                }
-                if (!bAdded) {
-                    ClearDiskInfoList(*spDiskInfoList);
-                }
+            GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, treeNodeFlag, pTreeNode, spDiskInfoList, finishCallback]() {
+                    //这段代码在UI线程中执行
+                    bool bAdded = false;
+                    if (!treeNodeFlag.expired()) {
+                        bAdded = OnShowMyComputerContents(pTreeNode, *spDiskInfoList);
+                    }
+                    if (!bAdded) {
+                        ClearDiskInfoList(*spDiskInfoList);
+                    }
+                    if (finishCallback) {
+                        finishCallback();
+                    }
                 }));
         }
         else {
