@@ -144,32 +144,25 @@ locales（目录，里面包含zh-CN.pak、en-US.pak等语言包）
 * x64位版本的下载链接：[03/08/2025 - 133.4.8+g99a2ab1+chromium-133.0.6943.142 / Chromium 133.0.6943.142](https://cef-builds.spotifycdn.com/cef_binary_133.4.8%2Bg99a2ab1%2Bchromium-133.0.6943.142_macosx64.tar.bz2)    
 * ARM64位版本的下载链接：[03/08/2025 - 133.4.8+g99a2ab1+chromium-133.0.6943.142 / Chromium 133.0.6943.142](https://cef-builds.spotifycdn.com/cef_binary_133.4.8%2Bg99a2ab1%2Bchromium-133.0.6943.142_macosarm64.tar.bz2)    
   下载压缩包后，解压。    
-  然后将Release目录里的文件目录复制到`${NIM_DUILIB_ROOT}/Frameworks/`目录即可（Frameworks这个文件夹需要新建）。    
-### 2. libcef二进制文件和资源文件的组织结构说明
+  然后将目录里的内容完整复制到`${NIM_DUILIB_ROOT}/../CEF_BINARY`目录即可（CEF_BINARY这个文件夹需要新建，与nim_duilib目录是平级目录）。    
+### 2. CEF_BINARY里面内容列表
 ```
-cef_sandbox.a
-Chromium Embedded Framework.framework（目录）
---Chromium Embedded Framework（库文件，使用CEF模块的其他二进制程序需要链接这个库文件）
---Libraries（目录）
-----libEGL.dylib
-----libGLESv2.dylib
-----libvk_swiftshader.dylib
-----vk_swiftshader_icd.json
---Resources（目录）
-----chrome_100_percent.pak
-----chrome_200_percent.pak
-----resources.pak
-----gpu_shader_cache.bin
-----v8_context_snapshot.x86_64.bin
-----icudtl.dat
-----Info.plist
-----en.lproj（目录）
---------locale.pak
-----zh_CN.lproj（目录）
---------locale.pak
-----...
-```
-### 3. 程序的Makefile或者CMakeLists.txt里面需要添加的内容
-* 头文件包含路径中，添加`duilib/third_party/libcef_macos`    
-* 设置链接依赖的库，添加`"${NIM_DUILIB_ROOT}/Frameworks/Chromium Embedded Framework.framework/Chromium Embedded Framework" cef_dll_wrapper`    
-* 将libcef的库文件和资源文件放在`Frameworks`目录中，这个`Frameworks`目录是与二进制文件所在目录在相同的父目录下，即程序是通过`../Frameworks/`目录来查找libcef的库文件的。    
+BUILD.bazel
+LICENSE.txt
+README.md
+bazel
+cef_paths2.gypi
+CMakeLists.txt
+Doxyfile
+MODULE.bazel
+README.txt
+WORKSPACE
+cef_paths.gypi
+cmake
+libcef_dll
+include
+Debug
+Release
+tests
+```  
+编译后，cmake脚本会将依赖的文件复制到目标`*.app/Contents/Frameworks/Chromium Embedded Framework.framework/`路径中。    
