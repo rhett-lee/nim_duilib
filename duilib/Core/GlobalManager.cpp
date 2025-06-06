@@ -49,6 +49,8 @@ FilePath GlobalManager::GetDefaultResourcePath(bool bMacOsAppBundle)
             }
         }
     }
+#else
+    UNUSED_VARIABLE(bMacOsAppBundle);
 #endif
     if (resourcePath.IsEmpty()) {
         resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();

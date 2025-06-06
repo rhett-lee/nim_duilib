@@ -765,7 +765,7 @@ static CefRect LogicalToDevice(const CefRect& value, float device_scale_factor)
 }
 #endif
 
-void CefControlOffScreen::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> browser, const CefRange& selected_range, const std::vector<CefRect>& character_bounds)
+void CefControlOffScreen::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> /*browser*/, const CefRange& selected_range, const std::vector<CefRect>& character_bounds)
 {
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
     CefCurrentlyOn(TID_UI);
@@ -782,8 +782,7 @@ void CefControlOffScreen::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> bro
         }
         m_imeHandler->ChangeCompositionRange(selected_range, device_bounds);
     }
-#else
-    UNUSED_VARIABLE(browser);
+#else    
     UNUSED_VARIABLE(selected_range);
     UNUSED_VARIABLE(character_bounds);
 #endif
