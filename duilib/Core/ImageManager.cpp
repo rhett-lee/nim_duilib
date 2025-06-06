@@ -324,7 +324,7 @@ void ImageManager::OnImageInfoDestroy(ImageInfo* pImageInfo)
                 imageKey = iter->second;
                 imageManager.m_loadKeyMap.erase(iter);
             }
-            if (imageKey.empty()) {
+            if (!imageKey.empty()) {
                 auto it = imageManager.m_imageMap.find(imageKey);
                 if (it != imageManager.m_imageMap.end()) {
                     imageManager.m_imageMap.erase(it);
