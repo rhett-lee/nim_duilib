@@ -15,12 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="controls_form.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="about_form.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MainThread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -33,14 +27,14 @@
     <ClInclude Include="targetver.h">
       <Filter>Resource Files</Filter>
     </ClInclude>
+    <ClInclude Include="AboutForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ControlForm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="controls_form.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="about_form.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main_windows.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -48,6 +42,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TestApplication.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AboutForm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ControlForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

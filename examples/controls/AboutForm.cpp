@@ -1,4 +1,4 @@
-#include "about_form.h"
+#include "AboutForm.h"
 
 AboutForm::AboutForm()
 {
