@@ -119,11 +119,12 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const Window* pWindow,
 
         //从内存数据加载文件
         std::vector<uint8_t> fileData;
-        if (isUseZip) {
-            GlobalManager::Instance().Zip().GetZipData(FilePath(imageFullPath), fileData);
+        FilePath imageFilePath(imageFullPath);
+        if (isUseZip && !imageFilePath.IsAbsolutePath()) {
+            GlobalManager::Instance().Zip().GetZipData(imageFilePath, fileData);
         }
         else {
-            FileUtil::ReadFileData(FilePath(imageFullPath), fileData);
+            FileUtil::ReadFileData(imageFilePath, fileData);
         }
         ASSERT(!fileData.empty());
 

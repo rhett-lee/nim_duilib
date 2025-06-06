@@ -274,6 +274,8 @@ void FilePath::NormalizeFilePath()
             m_bLexicallyNormal = true;
         }
         else {
+            //将"/"替换成"\\"
+            m_filePath.make_preferred();
             m_bLexicallyNormal = false;
         }
     }
