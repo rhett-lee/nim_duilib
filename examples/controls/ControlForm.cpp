@@ -1,5 +1,6 @@
 #include "ControlForm.h"
 #include "AboutForm.h"
+#include "TestForm.h"
 #include "duilib/Utils/StringUtil.h"
 
 #include <fstream>
@@ -280,6 +281,15 @@ void ControlForm::OnInitWindow()
             return true;
         });
     }
+
+    //测试页面，打开新窗口
+    ui::Button* pTestBtn = dynamic_cast<ui::Button*>(FindControl(_T("test_btn")));
+    if (pTestBtn != nullptr) {
+        pTestBtn->AttachClick([this](const ui::EventArgs&) {
+            ShowTestWindow();
+            return true;
+            });
+    }
 }
 
 void ControlForm::ShowColorPicker(bool bDoModal)
@@ -351,6 +361,18 @@ void ControlForm::ShowDoModalDlg()
     createParam.m_windowTitle = _T("AboutForm");
     createParam.m_bCenterWindow = true;
     simpleWnd.DoModal(this, createParam);
+}
+
+void ControlForm::ShowTestWindow()
+{
+    TestForm* testForm = new TestForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("TestWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
 }
 
 void ControlForm::ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedControl)
