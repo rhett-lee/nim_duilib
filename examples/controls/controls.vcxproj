@@ -170,6 +170,7 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="TestApplication.h" />
+    <ClInclude Include="TestForm.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AboutForm.cpp" />
@@ -177,6 +178,7 @@
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="TestApplication.cpp" />
+    <ClCompile Include="TestForm.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="controls.rc" />
