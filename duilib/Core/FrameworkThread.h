@@ -38,15 +38,15 @@ public:
     FrameworkThread& operator = (const FrameworkThread&) = delete;
 
 public:
-    /** 在当前调用线程进入消息循环
+    /** 执行UI主线程的消息循环（阻塞直到消息循环退出）
     */
-    bool RunOnCurrentThreadWithLoop();
+    bool RunMessageLoop();
 
-    /** 启动线程
+    /** 启动子线程
     */
     bool Start();
 
-    /** 停止线程（异步停止）
+    /** 停止子线程（异步停止）
     */
     bool Stop();
 
@@ -54,7 +54,7 @@ public:
     */
     bool IsRunning() const;
 
-    /** 是否为UI线程(即使用RunOnCurrentThreadWithLoop函数运行的线程, 内部有消息循环)
+    /** 是否为UI线程(即使用RunMessageLoop函数运行的线程, 内部有消息循环)
     */
     bool IsUIThread() const;
 

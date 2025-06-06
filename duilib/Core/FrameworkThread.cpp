@@ -55,7 +55,7 @@ FrameworkThread::~FrameworkThread()
     }
 }
 
-bool FrameworkThread::RunOnCurrentThreadWithLoop()
+bool FrameworkThread::RunMessageLoop()
 {
     ASSERT(m_nThreadIdentifier == kThreadUI);
     ASSERT(!m_bRunning);

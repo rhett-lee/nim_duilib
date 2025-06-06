@@ -19,5 +19,5 @@ void TestApplication::Run()
     MainThread thread;
 
     // 执行主线程循环
-    thread.RunOnCurrentThreadWithLoop();
+    thread.RunMessageLoop();
 }
