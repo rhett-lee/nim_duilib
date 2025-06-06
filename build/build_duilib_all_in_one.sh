@@ -156,14 +156,14 @@ if [ ! -d "./SDL/.git" ]; then
     exit 1
 fi
 
-SKIA_PATCH_SRC_ZIP=skia.2025-05-17.src.zip
+SKIA_PATCH_SRC_ZIP=skia.2025-06-06.src.zip
 if [ ! -f "./skia_compile/$SKIA_PATCH_SRC_ZIP" ]; then
     echo "./skia_compile/$SKIA_PATCH_SRC_ZIP not found!"
     exit 1
 fi
 
 cd skia
-git checkout 22d94029d2ac36dfac8d631fa0d1b467f0ab45a7
+git checkout 290495056ba5b737330ae7f2e6e722eeda9526f8
 if [ $? -ne 0 ]; then
     echo "git checkout skia failed!"
     exit 1
