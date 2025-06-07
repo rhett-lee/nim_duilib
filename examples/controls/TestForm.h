@@ -20,6 +20,16 @@ public:
     /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
     */
     virtual void OnInitWindow() override;
+
+private:
+    /** 定时器函数
+    */
+    void OnTimer();
+
+private:
+    /** 进度值
+    */
+    double m_nProgressValue;
 };
 
 #endif //EXAMPLES_TEST_FORM_H_

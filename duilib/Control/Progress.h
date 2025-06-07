@@ -64,9 +64,9 @@ public:
     double GetValue() const;
 
     /** 设置当前进度百分比
-     * @param[in] nValue 要设置的百分比数值
+     * @param[in] fValue 要设置的百分比数值
      */
-    void SetValue(double nValue);
+    void SetValue(double fValue);
 
     /** 进度条前景图片是否缩放显示
      * @return 返回 true 为缩放显示，false 为不缩放显示
@@ -99,7 +99,8 @@ public:
     void SetProgressColor(const DString& strProgressColor);
 
     /** 获取进度条位置
-     */
+    * @return 返回进度条区域坐标（以GetRect()为整个区域的相对坐标，左上角为<0,0>）
+    */
     virtual UiRect GetProgressPos();
 
     /** 播放Marquee
@@ -142,11 +143,16 @@ public:
      */
     void SetMarqueeElapsed(int32_t nMarqueeElapsed);
 
+public:
     /** 设置是否反向填充进度条
     */
     void SetReverse(bool bReverse);
 
-protected:
+    /** 是否反向填充进度条
+    */
+    bool IsReverse() const;
+
+private:
     //进度条是水平或垂直: true为水平，false为垂直
     bool m_bHorizontal;
 
@@ -154,13 +160,13 @@ protected:
     bool m_bStretchForeImage;
 
     //进度最大值（默认为100）
-    int32_t m_nMax;
+    int32_t m_nMaxValue;
 
     //进度最小值（默认为0）
-    int32_t m_nMin;
+    int32_t m_nMinValue;
 
     //当前进度值
-    double m_nValue;
+    double m_fCurrentValue;
 
     //进度条前景图片
     Image* m_pProgressImage;
@@ -178,6 +184,7 @@ protected:
     int32_t m_nMarqueeElapsed;
     int32_t m_nMarqueePos;
 
+private:
     //是否倒数（进度从100 到 0）
     bool m_bReverse;
 
