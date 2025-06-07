@@ -1699,6 +1699,9 @@ UiSize Control::EstimateImage(UiSize szAvailable)
         LoadImageData(*image);
         imageCache = image->GetImageCache();
     }
+    //控件自身的内边距
+    const UiPadding rcControlPadding = GetControlPadding();
+
     if ((imageCache != nullptr) && (image != nullptr)) {
         ImageAttribute imageAttribute = image->GetImageAttribute();
         UiRect rcDest;
@@ -1743,16 +1746,19 @@ UiSize Control::EstimateImage(UiSize szAvailable)
             imageSize.cy = imageCache->GetHeight();
         }
         if (!hasDestAttr) {
-            //如果没有rcDest属性，则需要增加图片的内边距
-            UiPadding rcPadding = imageAttribute.GetImagePadding(Dpi());
-            imageSize.cx += (rcPadding.left + rcPadding.right);
-            imageSize.cy += (rcPadding.top + rcPadding.bottom);
+            //如果没有rcDest属性，则需要增加图片的内边距（图片自身的内边距属性）
+            UiPadding rcImagePadding = imageAttribute.GetImagePadding(Dpi());
+            imageSize.cx += (rcImagePadding.left + rcImagePadding.right);
+            imageSize.cy += (rcImagePadding.top + rcImagePadding.bottom);
         }
         if (imageAttribute.m_bAdaptiveDestRect) {
             //自动适应目标区域（等比例缩放图片）：根据图片大小，调整绘制区域
             const int32_t nImageWidth = rcSource.Width();
             const int32_t nImageHeight = rcSource.Height();
-            UiRect rcControlDest = UiRect(0, 0, szAvailable.cx, szAvailable.cy);
+            UiRect rcControlDest = UiRect(0, 0,
+                                          szAvailable.cx - rcControlPadding.left - rcControlPadding.right,
+                                          szAvailable.cy - rcControlPadding.top - rcControlPadding.bottom);
+            rcControlDest.Validate();
             if (rcControlDest.Width() > 0 && rcControlDest.Height() > 0) {
                 rcControlDest = ImageAttribute::CalculateAdaptiveRect(nImageWidth, nImageHeight,
                                                                       rcControlDest,
@@ -1766,12 +1772,11 @@ UiSize Control::EstimateImage(UiSize szAvailable)
     imageCache.reset();
 
     //图片大小，需要附加控件的内边距
-    UiPadding rcPadding = GetControlPadding();
     if (imageSize.cx > 0) {
-        imageSize.cx += (rcPadding.left + rcPadding.right);
+        imageSize.cx += (rcControlPadding.left + rcControlPadding.right);
     }
     if (imageSize.cy > 0) {
-        imageSize.cy += (rcPadding.top + rcPadding.bottom);
+        imageSize.cy += (rcControlPadding.top + rcControlPadding.bottom);
     }
     return imageSize;
 }
