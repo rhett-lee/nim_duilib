@@ -653,7 +653,6 @@
     <ClInclude Include="Render\AutoClip.h" />
     <ClInclude Include="Render\BitmapAlpha.h" />
     <ClInclude Include="Render\IRender.h" />
-    <ClInclude Include="Render\RenderConfig.h" />
     <ClInclude Include="third_party\apng\decoder-apng.h" />
     <ClInclude Include="third_party\convert_utf\ConvertUTF.h" />
     <ClInclude Include="third_party\libudis86\decode.h" />

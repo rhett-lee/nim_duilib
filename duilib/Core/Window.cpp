@@ -2100,14 +2100,14 @@ bool Window::SetNextTabControl(bool bForward)
     FINDTABINFO info1 = { 0 };
     info1.pFocus = m_pFocus.get();
     info1.bForward = bForward;
-    Control* pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromTab, &info1, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_ME_FIRST);
+    Control* pControl = m_pRoot->FindControl(ControlFinder::FindControlFromTab, &info1, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_ME_FIRST);
     if (pControl == nullptr) {
         if (bForward) {
             // Wrap around
             FINDTABINFO info2 = { 0 };
             info2.pFocus = bForward ? nullptr : info1.pLast;
             info2.bForward = bForward;
-            pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromTab, &info2, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_ME_FIRST);
+            pControl = m_pRoot->FindControl(ControlFinder::FindControlFromTab, &info2, UIFIND_VISIBLE | UIFIND_ENABLED | UIFIND_ME_FIRST);
         }
         else {
             pControl = info1.pLast;
@@ -2297,11 +2297,11 @@ void Window::ArrangeRoot()
         }
         else {
             //仅对有更新的控件的布局全部重排
-            Control* pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
+            Control* pControl = m_pRoot->FindControl(ControlFinder::FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
             while (pControl != nullptr) {
                 pControl->SetPos(pControl->GetPos());
                 //ASSERT(!pControl->IsArranged());
-                pControl = m_pRoot->FindControl(ControlFinder::__FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
+                pControl = m_pRoot->FindControl(ControlFinder::FindControlFromUpdate, nullptr, UIFIND_VISIBLE | UIFIND_ME_FIRST);
             }
         }
         if (m_bFirstLayout) {

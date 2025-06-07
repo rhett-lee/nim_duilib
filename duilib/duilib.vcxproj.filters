@@ -842,9 +842,6 @@
     <ClInclude Include="RenderSkia\Path_Skia.h">
       <Filter>RenderSkia</Filter>
     </ClInclude>
-    <ClInclude Include="Render\RenderConfig.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="RenderSkia\Matrix_Skia.h">
       <Filter>RenderSkia</Filter>
     </ClInclude>

@@ -1,8 +1,9 @@
 #include "Render_Skia_Windows.h"
-#include "SkRasterWindowContext_Windows.h"
-#include "SkGLWindowContext_Windows.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
+
+#include "SkRasterWindowContext_Windows.h"
+#include "SkGLWindowContext_Windows.h"
 
 #include "SkiaHeaderBegin.h"
 
