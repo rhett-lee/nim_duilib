@@ -77,6 +77,24 @@ void CircleProgress::PaintStateImages(IRender* pRender)
         return;
     }
 
+    int32_t nMax = GetMaxValue();
+    int32_t nMin = GetMinValue();
+    double fValue = GetValue();
+
+    if (nMax <= nMin) {
+        nMax = nMin + 1;
+    }
+    if (fValue > nMax) {
+        fValue = nMax;
+    }
+    if (fValue < nMin) {
+        fValue = nMin;
+    }
+    if (IsReverse()) {
+        //逆向滚动条
+        fValue = (nMax - nMin) - fValue;
+    }
+
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
     if (pRenderFactory == nullptr) {
@@ -137,21 +155,21 @@ void CircleProgress::PaintStateImages(IRender* pRender)
         //不使用渐变色，直接用前景色铺满
         pRender->DrawArc(outer, 270, 360, false, bgPen);
 
-        float sweepAngle = static_cast<float>(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin));
+        float sweepAngle = static_cast<float>(direction * 360 * (fValue - nMin) / (nMax - nMin));
         pRender->DrawArc(outer, 270, sweepAngle, false, fgPen);
     }
     else {
         //不使用渐变色，直接用前景色铺满
         pRender->DrawArc(outer, 270, 360, false, bgPen);
 
-        float sweepAngle = static_cast<float>(direction * 360 * (m_nValue - m_nMin) / (m_nMax - m_nMin));
+        float sweepAngle = static_cast<float>(direction * 360 * (fValue - nMin) / (nMax - nMin));
         pRender->DrawArc(outer, 270, sweepAngle, false, fgPen, &m_dwGradientColor, &rcBorder);
     }
     
     if (pIndicatorImageInfo != nullptr) {
         std::unique_ptr<IMatrix> spMatrix(pRenderFactory->CreateMatrix());
-        if ((spMatrix != nullptr) && ((m_nMax - m_nMin) != 0)){
-            float angle = direction * 360 * ((float)m_nValue - m_nMin) / (m_nMax - m_nMin);
+        if ((spMatrix != nullptr) && ((nMax - nMin) != 0)){
+            float angle = direction * 360 * ((float)fValue - nMin) / (nMax - nMin);
             spMatrix->RotateAt(angle, UiPoint(center.x, center.y));
         }
 

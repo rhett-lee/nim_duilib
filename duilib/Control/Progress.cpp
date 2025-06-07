@@ -7,9 +7,9 @@ Progress::Progress(Window* pWindow) :
     LabelTemplate<Control>(pWindow),
     m_bHorizontal(true),
     m_bStretchForeImage(true),
-    m_nMax(100),
-    m_nMin(0),
-    m_nValue(0),
+    m_nMaxValue(100),
+    m_nMinValue(0),
+    m_fCurrentValue(0),
     m_sProgressColor(),
     m_pProgressImage(nullptr),
     m_sProgressImageModify(),
@@ -43,51 +43,54 @@ bool Progress::IsHorizontal() const
 
 void Progress::SetHorizontal(bool bHorizontal)
 {
-    if (m_bHorizontal == bHorizontal) {
-        return;
-    }
-    m_bHorizontal = bHorizontal;
-    Invalidate();
+    if (m_bHorizontal != bHorizontal) {
+        m_bHorizontal = bHorizontal;
+        Invalidate();
+    }    
 }
 
 int32_t Progress::GetMinValue() const
 {
-    return m_nMin;
+    return m_nMinValue;
 }
 
 void Progress::SetMinValue(int32_t nMin)
 {
-    m_nMin = nMin;
-    Invalidate();
+    if (m_nMinValue != nMin) {
+        m_nMinValue = nMin;
+        Invalidate();
+    }
 }
 
 int32_t Progress::GetMaxValue() const
 {
-    return m_nMax;
+    return m_nMaxValue;
 }
 
 void Progress::SetMaxValue(int32_t nMax)
 {
-    m_nMax = nMax;
-    Invalidate();
+    if (m_nMaxValue != nMax) {
+        m_nMaxValue = nMax;
+        Invalidate();
+    }    
 }
 
 double Progress::GetValue() const
 {
-    return m_nValue;
+    return m_fCurrentValue;
 }
 
-void Progress::SetValue(double nValue)
+void Progress::SetValue(double fValue)
 {
-    if (nValue == m_nValue) {
+    if (fValue == m_fCurrentValue) {
         return;
     }
-    m_nValue = nValue;
-    if (m_nValue > m_nMax) {
-        m_nValue = m_nMax;
+    m_fCurrentValue = fValue;
+    if (m_fCurrentValue > m_nMaxValue) {
+        m_fCurrentValue = m_nMaxValue;
     }
-    if (m_nValue < m_nMin) {
-        m_nValue = m_nMin;
+    if (m_fCurrentValue < m_nMinValue) {
+        m_fCurrentValue = m_nMinValue;
     }
     Invalidate();
 }
@@ -201,21 +204,17 @@ void Progress::PaintStateImages(IRender* pRender)
     if (pRender == nullptr) {
         return;
     }
-    if (m_bMarquee) {
+    if (m_bMarquee && !m_sProgressColor.empty()) {
         PaintMarquee(pRender);
         return;
     }
-
-    if (m_nMax <= m_nMin) m_nMax = m_nMin + 1;
-    if (m_nValue > m_nMax) m_nValue = m_nMax;
-    if (m_nValue < m_nMin) m_nValue = m_nMin;
 
     UiRect rc = GetProgressPos();
     if (!m_sProgressColor.empty()) {
         UiColor dwProgressColor = this->GetUiColor(m_sProgressColor.c_str());
         if (dwProgressColor.GetARGB() != 0) {
             UiRect rcProgressColor = GetRect();
-            if (m_bHorizontal) {
+            if (IsHorizontal()) {
                 rcProgressColor.right = rcProgressColor.left + rc.right;
             }
             else {
@@ -224,7 +223,7 @@ void Progress::PaintStateImages(IRender* pRender)
             pRender->FillRect(rcProgressColor, dwProgressColor);
         }
     }
-    if ((m_pProgressImage == nullptr) || (m_pProgressImage->GetImageString().empty())) {
+    if (rc.IsEmpty() || (m_pProgressImage == nullptr) || (m_pProgressImage->GetImageString().empty())) {
         return;
     }
     //加载图片资源
@@ -279,30 +278,34 @@ void Progress::PaintStateImages(IRender* pRender)
 
 UiRect Progress::GetProgressPos()
 {
-    UiRect rc;
-    if (m_bHorizontal) {
-        if (m_bReverse) {
-            rc.right = GetRect().Width();
-            rc.left = rc.right - static_cast<int>(std::floor(static_cast<double>((m_nValue - m_nMin) * (GetRect().right - GetRect().left)) / static_cast<double>(m_nMax - m_nMin)));
-        }
-        else {
-            rc.right = static_cast<int>(std::ceil(static_cast<double>((m_nValue - m_nMin) * (GetRect().right - GetRect().left)) / static_cast<double>(m_nMax - m_nMin)));
-        }
+    int32_t nMax = GetMaxValue();
+    int32_t nMin = GetMinValue();
+    double fValue = GetValue();
 
+    if (nMax <= nMin) {
+        nMax = nMin + 1;
+    }
+    if (fValue > nMax) {
+        fValue = nMax;
+    }
+    if (fValue < nMin) {
+        fValue = nMin;
+    }
+    if (IsReverse()) {
+        //逆向滚动条
+        fValue = (nMax - nMin) - fValue;
+    }
+
+    UiRect rc;
+    if (IsHorizontal()) {
+        rc.right = static_cast<int>(std::ceil(static_cast<double>((fValue - nMin) * (GetRect().right - GetRect().left)) / static_cast<double>(nMax - nMin)));
         rc.bottom = GetRect().bottom - GetRect().top;
     }
     else {
-        if (m_bReverse) {
-            rc.bottom = static_cast<int>(std::floor(static_cast<double>((m_nMax - m_nValue) * (GetRect().bottom - GetRect().top)) / static_cast<double>(m_nMax - m_nMin)));
-        }
-        else {
-            rc.top = static_cast<int>(std::ceil(static_cast<double>((m_nMax - m_nValue) * (GetRect().bottom - GetRect().top)) / static_cast<double>(m_nMax - m_nMin)));
-            rc.bottom = GetRect().bottom - GetRect().top;
-        }
-
+        rc.top = static_cast<int>(std::ceil(static_cast<double>((nMax - fValue) * (GetRect().bottom - GetRect().top)) / static_cast<double>(nMax - nMin)));
+        rc.bottom = GetRect().bottom - GetRect().top;
         rc.right = GetRect().right - GetRect().left;
     }
-
     return rc;
 }
 
@@ -323,7 +326,7 @@ void Progress::Play()
     m_nMarqueePos = m_nMarqueePos + GetMarqueeStep();
 
     ui::UiRect rc = GetRect();
-    if (m_bHorizontal) {
+    if (IsHorizontal()) {
         if (m_nMarqueePos > rc.right - rc.left) {
             m_nMarqueePos = (m_nMarqueePos - (rc.right - rc.left)) - GetMarqueeWidth();
         }
@@ -347,7 +350,7 @@ void Progress::PaintMarquee(IRender* pRender)
         UiColor dwProgressColor = GlobalManager::Instance().Color().GetColor(m_sProgressColor.c_str());
         if (dwProgressColor.GetARGB() != 0) {
             ui::UiRect rc = GetRect();
-            if (m_bHorizontal) {
+            if (IsHorizontal()) {
                 rc.left = std::max(m_nMarqueePos, 0) + rc.left;
                 rc.right = rc.left + (m_nMarqueePos >= 0 ? GetMarqueeWidth() : (GetMarqueeWidth() + m_nMarqueePos));
             }
@@ -445,6 +448,11 @@ void Progress::SetMarqueeElapsed(int32_t nMarqueeElapsed)
 void Progress::SetReverse(bool bReverse)
 {
     m_bReverse = bReverse;
+}
+
+bool Progress::IsReverse() const
+{
+    return m_bReverse;
 }
 
 }
