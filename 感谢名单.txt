@@ -1,0 +1,5 @@
+1. https://github.com/netease-im/NIM_Duilib_Framework 研发团队
+2. https://github.com/duilib/duilib 研发团队
+3. Bjarke Viksoe (bjarke@viksoe.dk)
+4. 为本项目提交Issue、PR，提供建议和支持，关心此项目的所有人。
+
