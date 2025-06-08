@@ -19,15 +19,10 @@ message(STATUS "DUILIB_PROJECT_SRC_DIR: ${DUILIB_PROJECT_SRC_DIR}")
 # Execute FindCEF.cmake which must exist in CMAKE_MODULE_PATH.
 find_package(CEF REQUIRED)
 
-# Remove *.mm
-if(NOT OS_MAC)
-    list(REMOVE_ITEM SRC_FILES ${DUILIB_PROJECT_SRC_DIR}/main_macos.mm)
-endif()
-
-# cefsimple sources.
+# cef project sources.
 set(CEF_PROJECT_SRCS ${SRC_FILES})
 
-# cefsimple helper sources.
+# cef project helper sources.
 set(CEF_PROJECT_HELPER_SRCS
         ${DUILIB_PROJECT_SRC_DIR}/mac/process_helper_mac.cc
    )

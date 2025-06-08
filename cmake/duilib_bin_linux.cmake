@@ -11,6 +11,9 @@ if(DUILIB_ENABLE_CEF)
     link_directories("${DUILIB_CEF_LIB_PATH}") 
 endif()
 
+# Remove *.mm
+list(REMOVE_ITEM SRC_FILES ${DUILIB_PROJECT_SRC_DIR}/main_macos.mm)
+
 #设置编译可执行程序依赖的源码
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
