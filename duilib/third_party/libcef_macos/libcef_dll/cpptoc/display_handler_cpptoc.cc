@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=948df7eab517a7b46e6b755535c6bf50fb633e5f$
+// $hash=3dee3de0ee989b208b7d3aa573bb54ef677d8062$
 //
 
 #include "libcef_dll/cpptoc/display_handler_cpptoc.h"
@@ -336,6 +336,83 @@ display_handler_on_media_access_change(struct _cef_display_handler_t* self,
       has_audio_access ? true : false);
 }
 
+#if CEF_API_ADDED(13700)
+int CEF_CALLBACK
+display_handler_on_contents_bounds_change(struct _cef_display_handler_t* self,
+                                          struct _cef_browser_t* browser,
+                                          const cef_rect_t* new_bounds) {
+  shutdown_checker::AssertNotShutdown();
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self) {
+    return 0;
+  }
+  // Verify param: browser; type: refptr_diff
+  DCHECK(browser);
+  if (!browser) {
+    return 0;
+  }
+  // Verify param: new_bounds; type: simple_byref_const
+  DCHECK(new_bounds);
+  if (!new_bounds) {
+    return 0;
+  }
+
+  // Translate param: new_bounds; type: simple_byref_const
+  CefRect new_boundsVal = new_bounds ? *new_bounds : CefRect();
+
+  // Execute
+  bool _retval = CefDisplayHandlerCppToC::Get(self)->OnContentsBoundsChange(
+      CefBrowserCToCpp_Wrap(browser), new_boundsVal);
+
+  // Return type: bool
+  return _retval;
+}
+#endif  // CEF_API_ADDED(13700)
+
+#if CEF_API_ADDED(13700)
+int CEF_CALLBACK
+display_handler_get_root_window_screen_rect(struct _cef_display_handler_t* self,
+                                            struct _cef_browser_t* browser,
+                                            cef_rect_t* rect) {
+  shutdown_checker::AssertNotShutdown();
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self) {
+    return 0;
+  }
+  // Verify param: browser; type: refptr_diff
+  DCHECK(browser);
+  if (!browser) {
+    return 0;
+  }
+  // Verify param: rect; type: simple_byref
+  DCHECK(rect);
+  if (!rect) {
+    return 0;
+  }
+
+  // Translate param: rect; type: simple_byref
+  CefRect rectVal = rect ? *rect : CefRect();
+
+  // Execute
+  bool _retval = CefDisplayHandlerCppToC::Get(self)->GetRootWindowScreenRect(
+      CefBrowserCToCpp_Wrap(browser), rectVal);
+
+  // Restore param: rect; type: simple_byref
+  if (rect) {
+    *rect = rectVal;
+  }
+
+  // Return type: bool
+  return _retval;
+}
+#endif  // CEF_API_ADDED(13700)
+
 }  // namespace
 
 // CONSTRUCTOR - Do not edit by hand.
@@ -354,6 +431,14 @@ CefDisplayHandlerCppToC::CefDisplayHandlerCppToC() {
       display_handler_on_loading_progress_change;
   GetStruct()->on_cursor_change = display_handler_on_cursor_change;
   GetStruct()->on_media_access_change = display_handler_on_media_access_change;
+#if CEF_API_ADDED(13700)
+  GetStruct()->on_contents_bounds_change =
+      display_handler_on_contents_bounds_change;
+#endif
+#if CEF_API_ADDED(13700)
+  GetStruct()->get_root_window_screen_rect =
+      display_handler_get_root_window_screen_rect;
+#endif
 }
 
 // DESTRUCTOR - Do not edit by hand.

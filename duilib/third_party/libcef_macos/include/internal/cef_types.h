@@ -1271,7 +1271,11 @@ typedef enum {
   PDE_TYPE_BYTES,
   PDE_TYPE_FILE,
 
+#if CEF_API_ADDED(13601)
+  PDE_TYPE_NUM_VALUES,
+#else
   PDF_TYPE_NUM_VALUES,
+#endif
 } cef_postdataelement_type_t;
 
 ///
@@ -3622,6 +3626,9 @@ typedef enum {
 #if CEF_API_ADDED(13304)
   CEF_CPAIT_COLLABORATION_MESSAGING,
 #endif
+#if CEF_API_ADDED(13400)
+  CEF_CPAIT_CHANGE_PASSWORD,
+#endif
   CEF_CPAIT_NUM_VALUES,
 } cef_chrome_page_action_icon_type_t;
 
@@ -3631,8 +3638,13 @@ typedef enum {
 ///
 typedef enum {
   CEF_CTBT_CAST,
+#if CEF_API_REMOVED(13600)
   CEF_CTBT_DOWNLOAD,
   CEF_CTBT_SEND_TAB_TO_SELF,
+#else
+  CEF_CTBT_DOWNLOAD_DEPRECATED,
+  CEF_CTBT_SEND_TAB_TO_SELF_DEPRECATED,
+#endif
   CEF_CTBT_SIDE_PANEL,
   CEF_CTBT_NUM_VALUES,
 } cef_chrome_toolbar_button_type_t;
@@ -3785,6 +3797,9 @@ typedef enum {
   CEF_PERMISSION_TYPE_WEB_APP_INSTALLATION = 1 << 22,
   CEF_PERMISSION_TYPE_WINDOW_MANAGEMENT = 1 << 23,
   CEF_PERMISSION_TYPE_FILE_SYSTEM_ACCESS = 1 << 24,
+#if CEF_API_ADDED(13600)
+  CEF_PERMISSION_TYPE_LOCAL_NETWORK_ACCESS = 1 << 25,
+#endif
 } cef_permission_request_types_t;
 
 ///

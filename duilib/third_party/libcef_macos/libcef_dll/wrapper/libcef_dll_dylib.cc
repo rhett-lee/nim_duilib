@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=c2949ee9d0e4ff8487075290f5039521ffe02e3a$
+// $hash=684879a6c5e44abac8f05bdccacb12558aedde79$
 //
 
 
@@ -156,6 +156,12 @@ decltype(&cef_drag_data_create) cef_drag_data_create;
 decltype(&cef_image_create) cef_image_create;
 decltype(&cef_media_router_get_global) cef_media_router_get_global;
 decltype(&cef_menu_model_create) cef_menu_model_create;
+#if CEF_API_ADDED(13401)
+decltype(&cef_preference_manager_get_chrome_variations_as_switches) cef_preference_manager_get_chrome_variations_as_switches;
+#endif
+#if CEF_API_ADDED(13401)
+decltype(&cef_preference_manager_get_chrome_variations_as_strings) cef_preference_manager_get_chrome_variations_as_strings;
+#endif
 decltype(&cef_preference_manager_get_global) cef_preference_manager_get_global;
 decltype(&cef_print_settings_create) cef_print_settings_create;
 decltype(&cef_process_message_create) cef_process_message_create;
@@ -422,6 +428,12 @@ INIT_ENTRY(cef_drag_data_create);
 INIT_ENTRY(cef_image_create);
 INIT_ENTRY(cef_media_router_get_global);
 INIT_ENTRY(cef_menu_model_create);
+#if CEF_API_ADDED(13401)
+INIT_ENTRY(cef_preference_manager_get_chrome_variations_as_switches);
+#endif
+#if CEF_API_ADDED(13401)
+INIT_ENTRY(cef_preference_manager_get_chrome_variations_as_strings);
+#endif
 INIT_ENTRY(cef_preference_manager_get_global);
 INIT_ENTRY(cef_print_settings_create);
 INIT_ENTRY(cef_process_message_create);
@@ -897,6 +909,18 @@ NO_SANITIZE("cfi-icall") struct _cef_media_router_t* cef_media_router_get_global
 NO_SANITIZE("cfi-icall") struct _cef_menu_model_t* cef_menu_model_create(struct _cef_menu_model_delegate_t* delegate) {
   return g_libcef_pointers.cef_menu_model_create(delegate);
 }
+
+#if CEF_API_ADDED(13401)
+NO_SANITIZE("cfi-icall") void cef_preference_manager_get_chrome_variations_as_switches(cef_string_list_t switches) {
+  g_libcef_pointers.cef_preference_manager_get_chrome_variations_as_switches(switches);
+}
+#endif
+
+#if CEF_API_ADDED(13401)
+NO_SANITIZE("cfi-icall") void cef_preference_manager_get_chrome_variations_as_strings(cef_string_list_t strings) {
+  g_libcef_pointers.cef_preference_manager_get_chrome_variations_as_strings(strings);
+}
+#endif
 
 NO_SANITIZE("cfi-icall") struct _cef_preference_manager_t* cef_preference_manager_get_global() {
   return g_libcef_pointers.cef_preference_manager_get_global();
