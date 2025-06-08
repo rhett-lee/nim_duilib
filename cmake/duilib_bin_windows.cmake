@@ -15,6 +15,12 @@ if(MSVC)
     
     # 源码文件使用UTF8编码
     add_compile_options("/utf-8")
+    
+    # 获取系统逻辑核心数
+    cmake_host_system_information(RESULT CPU_CORES QUERY NUMBER_OF_LOGICAL_CORES)
+    # 设置C/C++编译选项（开启多线程编译）
+    add_compile_options($<$<COMPILE_LANGUAGE:C>:/MP${CPU_CORES}>)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/MP${CPU_CORES}>)
 endif()
 
 # Windows 系统中使用Unicode编码
