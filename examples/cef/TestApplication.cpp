@@ -3,7 +3,6 @@
 #include "CefForm.h"
 
 // duilib
-#include "duilib/duilib.h"
 #include "duilib/duilib_cef.h"
 
 TestApplication::TestApplication()
@@ -12,6 +11,12 @@ TestApplication::TestApplication()
 
 TestApplication::~TestApplication()
 {
+}
+
+TestApplication& TestApplication::Instance()
+{
+    static TestApplication self;
+    return self;
 }
 
 int TestApplication::Run(int argc, char** argv)
@@ -52,4 +57,23 @@ int TestApplication::Run(int argc, char** argv)
 #endif
 
     return 0;
+}
+
+void TestApplication::SetMainWindow(ui::Window* pWindow)
+{
+    m_pMainWindow = pWindow;
+}
+
+void TestApplication::ActiveMainWindow()
+{
+    if (m_pMainWindow != nullptr) {
+        m_pMainWindow->ShowWindow(ui::ShowWindowCommands::kSW_SHOW_NORMAL);
+    }
+}
+
+void TestApplication::CloseMainWindow()
+{
+    if ((m_pMainWindow != nullptr) && !m_pMainWindow->IsClosingWnd()) {
+        m_pMainWindow->CloseWnd();
+    }
 }

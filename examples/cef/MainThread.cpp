@@ -1,5 +1,6 @@
 #include "MainThread.h"
 #include "CefForm.h"
+#include "TestApplication.h"
 
 MainThread::MainThread() :
     FrameworkThread(_T("MainThread"), ui::kThreadUI)
@@ -29,6 +30,7 @@ void MainThread::OnInit()
     createWndParam.m_dwExStyle = dwExStyle;
     createWndParam.m_bCenterWindow = true;
     window->CreateWnd(nullptr, createWndParam);
+    TestApplication::Instance().SetMainWindow(window);
     window->ShowWindow(ui::kSW_SHOW_NORMAL);
 }
 

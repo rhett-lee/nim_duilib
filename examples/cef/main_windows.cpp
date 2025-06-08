@@ -1,6 +1,5 @@
 #if defined (_WIN32) || defined (_WIN64)
 
-#include "duilib/duilib_config_windows.h"
 #include "TestApplication.h"
 
 //定义应用程序的入口点
@@ -17,8 +16,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE /*hInstance*/,
                       _In_ int       /*nCmdShow*/)
 #endif
 {
-    TestApplication app;
-    app.Run(0, nullptr);
+    TestApplication::Instance().Run(0, nullptr);
     return 0;
 }
 
