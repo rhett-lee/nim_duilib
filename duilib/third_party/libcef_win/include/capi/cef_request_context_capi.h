@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=f0bcdaefbb9494a159f238679f0a2d25b0fd07fd$
+// $hash=f2001cd5df8882c3f3a796dbf224b094c0d681f0$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_REQUEST_CONTEXT_CAPI_H_
@@ -48,6 +48,7 @@
 #include "include/capi/cef_cookie_capi.h"
 #include "include/capi/cef_media_router_capi.h"
 #include "include/capi/cef_preference_capi.h"
+#include "include/capi/cef_registration_capi.h"
 #include "include/capi/cef_values_capi.h"
 
 #ifdef __cplusplus
@@ -77,6 +78,35 @@ typedef struct _cef_resolve_callback_t {
                                            cef_errorcode_t result,
                                            cef_string_list_t resolved_ips);
 } cef_resolve_callback_t;
+
+#if CEF_API_ADDED(13401)
+
+///
+/// Implemented by the client to observe content and website setting changes and
+/// registered via cef_request_context_t::AddSettingObserver. The functions of
+/// this structure will be called on the browser process UI thread.
+///
+/// NOTE: This struct is allocated client-side.
+///
+typedef struct _cef_setting_observer_t {
+  ///
+  /// Base structure.
+  ///
+  cef_base_ref_counted_t base;
+
+  ///
+  /// Called when a content or website setting has changed. The new value can be
+  /// retrieved using cef_request_context_t::GetContentSetting or
+  /// cef_request_context_t::GetWebsiteSetting.
+  ///
+  void(CEF_CALLBACK* on_setting_changed)(
+      struct _cef_setting_observer_t* self,
+      const cef_string_t* requesting_url,
+      const cef_string_t* top_level_url,
+      cef_content_setting_types_t content_type);
+} cef_setting_observer_t;
+
+#endif  // CEF_API_ADDED(13401)
 
 ///
 /// A request context provides request handling for a set of related browser or
@@ -318,6 +348,17 @@ typedef struct _cef_request_context_t {
   ///
   cef_color_variant_t(CEF_CALLBACK* get_chrome_color_scheme_variant)(
       struct _cef_request_context_t* self);
+
+#if CEF_API_ADDED(13401)
+  ///
+  /// Add an observer for content and website setting changes. The observer will
+  /// remain registered until the returned Registration object is destroyed.
+  /// This function must be called on the browser process UI thread.
+  ///
+  struct _cef_registration_t*(CEF_CALLBACK* add_setting_observer)(
+      struct _cef_request_context_t* self,
+      struct _cef_setting_observer_t* observer);
+#endif
 } cef_request_context_t;
 
 ///

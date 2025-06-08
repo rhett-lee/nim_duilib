@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=3a273e62b64a7847aa3df1fb1f6cb9d43a19a897$
+// $hash=0a3dae00f9cb4824eea61dca1884cf74a6009c23$
 //
 
 #include "include/capi/cef_app_capi.h"
@@ -60,7 +60,7 @@
 
 // GLOBAL METHODS - Body may be edited by hand.
 
-NO_SANITIZE("cfi-icall") CEF_GLOBAL int CefExecuteProcess(const CefMainArgs& args, CefRefPtr<CefApp> application, void* windows_sandbox_info) {
+NO_SANITIZE("cfi-icall") NO_STACK_PROTECTOR CEF_GLOBAL int CefExecuteProcess(const CefMainArgs& args, CefRefPtr<CefApp> application, void* windows_sandbox_info) {
   const char* api_hash = cef_api_hash(CEF_API_VERSION, 0);
   CHECK(!strcmp(api_hash, CEF_API_HASH_PLATFORM)) <<
       "API hashes for libcef and libcef_dll_wrapper do not match.";

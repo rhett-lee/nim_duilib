@@ -9,16 +9,69 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=a489f82c1012929cbf68febb46a72921a62dcd47$
+// $hash=c36ecde486c5a65d509aafb803f5e9d67e029431$
 //
 
 #include "libcef_dll/ctocpp/preference_manager_ctocpp.h"
 
+#include "libcef_dll/cpptoc/preference_observer_cpptoc.h"
 #include "libcef_dll/ctocpp/dictionary_value_ctocpp.h"
+#include "libcef_dll/ctocpp/registration_ctocpp.h"
 #include "libcef_dll/ctocpp/request_context_ctocpp.h"
 #include "libcef_dll/ctocpp/value_ctocpp.h"
+#include "libcef_dll/transfer_util.h"
 
 // STATIC METHODS - Body may be edited by hand.
+
+#if CEF_API_ADDED(13401)
+NO_SANITIZE("cfi-icall")
+void CefPreferenceManager::GetChromeVariationsAsSwitches(
+    std::vector<CefString>& switches) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Translate param: switches; type: string_vec_byref
+  cef_string_list_t switchesList = cef_string_list_alloc();
+  DCHECK(switchesList);
+  if (switchesList) {
+    transfer_string_list_contents(switches, switchesList);
+  }
+
+  // Execute
+  cef_preference_manager_get_chrome_variations_as_switches(switchesList);
+
+  // Restore param:switches; type: string_vec_byref
+  if (switchesList) {
+    switches.clear();
+    transfer_string_list_contents(switchesList, switches);
+    cef_string_list_free(switchesList);
+  }
+}
+#endif  // CEF_API_ADDED(13401)
+
+#if CEF_API_ADDED(13401)
+NO_SANITIZE("cfi-icall")
+void CefPreferenceManager::GetChromeVariationsAsStrings(
+    std::vector<CefString>& strings) {
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Translate param: strings; type: string_vec_byref
+  cef_string_list_t stringsList = cef_string_list_alloc();
+  DCHECK(stringsList);
+  if (stringsList) {
+    transfer_string_list_contents(strings, stringsList);
+  }
+
+  // Execute
+  cef_preference_manager_get_chrome_variations_as_strings(stringsList);
+
+  // Restore param:strings; type: string_vec_byref
+  if (stringsList) {
+    strings.clear();
+    transfer_string_list_contents(stringsList, strings);
+    cef_string_list_free(stringsList);
+  }
+}
+#endif  // CEF_API_ADDED(13401)
 
 NO_SANITIZE("cfi-icall")
 CefRefPtr<
@@ -144,6 +197,34 @@ bool CefPreferenceManagerCToCpp::SetPreference(const CefString& name,
   // Return type: bool
   return _retval ? true : false;
 }
+
+#if CEF_API_ADDED(13401)
+NO_SANITIZE("cfi-icall")
+CefRefPtr<CefRegistration> CefPreferenceManagerCToCpp::AddPreferenceObserver(
+    const CefString& name,
+    CefRefPtr<CefPreferenceObserver> observer) {
+  auto* _struct = GetStruct();
+  if (!_struct->add_preference_observer) {
+    return nullptr;
+  }
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Verify param: observer; type: refptr_diff
+  DCHECK(observer.get());
+  if (!observer.get()) {
+    return nullptr;
+  }
+  // Unverified params: name
+
+  // Execute
+  auto* _retval = _struct->add_preference_observer(
+      _struct, name.GetStruct(), CefPreferenceObserverCppToC_Wrap(observer));
+
+  // Return type: refptr_same
+  return CefRegistrationCToCpp_Wrap(_retval);
+}
+#endif  // CEF_API_ADDED(13401)
 
 // CONSTRUCTOR - Do not edit by hand.
 

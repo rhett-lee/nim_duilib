@@ -613,6 +613,12 @@
     <ClCompile Include=".\libcef_dll\wrapper\libcef_dll_wrapper2.cc">
       <Filter>libcef_dll\wrapper</Filter>
     </ClCompile>
+    <ClCompile Include="libcef_dll\cpptoc\preference_observer_cpptoc.cc">
+      <Filter>libcef_dll\cpptoc</Filter>
+    </ClCompile>
+    <ClCompile Include="libcef_dll\cpptoc\setting_observer_cpptoc.cc">
+      <Filter>libcef_dll\cpptoc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include=".\libcef_dll\shutdown_checker.h">
@@ -2006,6 +2012,12 @@
     </ClInclude>
     <ClInclude Include=".\libcef_dll\wrapper\cef_message_router_utils.h">
       <Filter>libcef_dll\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="libcef_dll\cpptoc\preference_observer_cpptoc.h">
+      <Filter>libcef_dll\cpptoc</Filter>
+    </ClInclude>
+    <ClInclude Include="libcef_dll\cpptoc\setting_observer_cpptoc.h">
+      <Filter>libcef_dll\cpptoc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

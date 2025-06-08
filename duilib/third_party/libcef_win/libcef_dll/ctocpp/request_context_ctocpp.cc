@@ -9,18 +9,21 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=19479f88b525f3af8d43006ed31d453ce1d449bd$
+// $hash=cb87401efbd4ebe813beeb3c023776c506e74efc$
 //
 
 #include "libcef_dll/ctocpp/request_context_ctocpp.h"
 
 #include "libcef_dll/cpptoc/completion_callback_cpptoc.h"
+#include "libcef_dll/cpptoc/preference_observer_cpptoc.h"
 #include "libcef_dll/cpptoc/request_context_handler_cpptoc.h"
 #include "libcef_dll/cpptoc/resolve_callback_cpptoc.h"
 #include "libcef_dll/cpptoc/scheme_handler_factory_cpptoc.h"
+#include "libcef_dll/cpptoc/setting_observer_cpptoc.h"
 #include "libcef_dll/ctocpp/cookie_manager_ctocpp.h"
 #include "libcef_dll/ctocpp/dictionary_value_ctocpp.h"
 #include "libcef_dll/ctocpp/media_router_ctocpp.h"
+#include "libcef_dll/ctocpp/registration_ctocpp.h"
 #include "libcef_dll/ctocpp/value_ctocpp.h"
 
 // STATIC METHODS - Body may be edited by hand.
@@ -420,6 +423,32 @@ void CefRequestContextCToCpp::SetContentSetting(
                                top_level_url.GetStruct(), content_type, value);
 }
 
+#if CEF_API_ADDED(13401)
+NO_SANITIZE("cfi-icall")
+CefRefPtr<CefRegistration> CefRequestContextCToCpp::AddSettingObserver(
+    CefRefPtr<CefSettingObserver> observer) {
+  auto* _struct = GetStruct();
+  if (!_struct->add_setting_observer) {
+    return nullptr;
+  }
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Verify param: observer; type: refptr_diff
+  DCHECK(observer.get());
+  if (!observer.get()) {
+    return nullptr;
+  }
+
+  // Execute
+  auto* _retval = _struct->add_setting_observer(
+      _struct, CefSettingObserverCppToC_Wrap(observer));
+
+  // Return type: refptr_same
+  return CefRegistrationCToCpp_Wrap(_retval);
+}
+#endif  // CEF_API_ADDED(13401)
+
 NO_SANITIZE("cfi-icall")
 void CefRequestContextCToCpp::SetChromeColorScheme(cef_color_variant_t variant,
                                                    cef_color_t user_color) {
@@ -593,6 +622,34 @@ bool CefRequestContextCToCpp::SetPreference(const CefString& name,
   // Return type: bool
   return _retval ? true : false;
 }
+
+#if CEF_API_ADDED(13401)
+NO_SANITIZE("cfi-icall")
+CefRefPtr<CefRegistration> CefRequestContextCToCpp::AddPreferenceObserver(
+    const CefString& name,
+    CefRefPtr<CefPreferenceObserver> observer) {
+  auto* _struct = reinterpret_cast<cef_preference_manager_t*>(GetStruct());
+  if (!_struct->add_preference_observer) {
+    return nullptr;
+  }
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  // Verify param: observer; type: refptr_diff
+  DCHECK(observer.get());
+  if (!observer.get()) {
+    return nullptr;
+  }
+  // Unverified params: name
+
+  // Execute
+  auto* _retval = _struct->add_preference_observer(
+      _struct, name.GetStruct(), CefPreferenceObserverCppToC_Wrap(observer));
+
+  // Return type: refptr_same
+  return CefRegistrationCToCpp_Wrap(_retval);
+}
+#endif  // CEF_API_ADDED(13401)
 
 // CONSTRUCTOR - Do not edit by hand.
 
