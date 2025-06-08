@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=20b951c8294260d1da5b0a03b6cb468c625eabba$
+// $hash=624529a008566fe513fa8689a49981fee9b67947$
 //
 
 #ifndef CEF_INCLUDE_CAPI_VIEWS_CEF_BROWSER_VIEW_DELEGATE_CAPI_H_
@@ -46,6 +46,7 @@
 
 #include "include/capi/cef_client_capi.h"
 #include "include/capi/views/cef_view_delegate_capi.h"
+#include "include/cef_api_hash.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -154,6 +155,17 @@ typedef struct _cef_browser_view_delegate_t {
   ///
   cef_runtime_style_t(CEF_CALLBACK* get_browser_runtime_style)(
       struct _cef_browser_view_delegate_t* self);
+
+#if CEF_API_ADDED(13601)
+  ///
+  /// Return true (1) to allow the use of JavaScript moveTo/By() and
+  /// resizeTo/By() (without user activation) with Document picture-in-picture
+  /// popups.
+  ///
+  int(CEF_CALLBACK* allow_move_for_picture_in_picture)(
+      struct _cef_browser_view_delegate_t* self,
+      struct _cef_browser_view_t* browser_view);
+#endif
 } cef_browser_view_delegate_t;
 
 #ifdef __cplusplus

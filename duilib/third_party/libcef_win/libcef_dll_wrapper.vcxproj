@@ -214,6 +214,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include=".\libcef_dll\shutdown_checker.cc" />
+    <ClCompile Include="libcef_dll\cpptoc\preference_observer_cpptoc.cc" />
+    <ClCompile Include="libcef_dll\cpptoc\setting_observer_cpptoc.cc" />
     <ClInclude Include=".\libcef_dll\shutdown_checker.h" />
     <ClInclude Include=".\libcef_dll\template_util.h" />
     <ClCompile Include=".\libcef_dll\transfer_util.cc" />
@@ -702,6 +704,8 @@
     <ClInclude Include=".\include\base\cef_weak_ptr.h" />
     <ClInclude Include=".\include\base\internal\cef_bind_internal.h" />
     <ClInclude Include=".\include\base\internal\cef_callback_internal.h" />
+    <ClInclude Include="libcef_dll\cpptoc\preference_observer_cpptoc.h" />
+    <ClInclude Include="libcef_dll\cpptoc\setting_observer_cpptoc.h" />
     <None Include=".\include\base\internal\cef_color_id_macros.inc">
     </None>
     <ClInclude Include=".\include\base\internal\cef_lock_impl.h" />
