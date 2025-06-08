@@ -48,7 +48,9 @@ void CefClientApp::OnScheduleMessagePumpWork(int64_t delay_ms)
 
     if (GlobalManager::Instance().Thread().IsMainThreadExit()) {
         //主线程已经退出，正在退出
-        CefDoMessageLoopWork();
+        if (CefManager::GetInstance()->IsCefInited()) {
+            CefDoMessageLoopWork();
+        }
     }
     else {
         // delay_ms 表示下次处理的建议延迟（毫秒）
