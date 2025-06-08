@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=83ae17f5d49cc77367288a2e26dc0918f3c52ff3$
+// $hash=69ffdc620f4a2b35d6b6826b53e5329979f1890a$
 //
 
 #include "libcef_dll/cpptoc/pdf_print_callback_cpptoc.h"
@@ -32,11 +32,7 @@ pdf_print_callback_on_pdf_print_finished(struct _cef_pdf_print_callback_t* self,
   if (!self) {
     return;
   }
-  // Verify param: path; type: string_byref_const
-  DCHECK(path);
-  if (!path) {
-    return;
-  }
+  // Unverified params: path
 
   // Execute
   CefPdfPrintCallbackCppToC::Get(self)->OnPdfPrintFinished(CefString(path),

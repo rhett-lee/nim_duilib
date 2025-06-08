@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=cb0e27cfac0ea57d4b3feac494f68965551b667d$
+// $hash=d897bb2cf6469de3868812a2fb26ed9e36e33c5a$
 //
 
 #ifndef CEF_LIBCEF_DLL_CTOCPP_REQUEST_CONTEXT_CTOCPP_H_
@@ -76,6 +76,10 @@ class CefRequestContextCToCpp
                          const CefString& top_level_url,
                          cef_content_setting_types_t content_type,
                          cef_content_setting_values_t value) override;
+#if CEF_API_ADDED(13401)
+  CefRefPtr<CefRegistration> AddSettingObserver(
+      CefRefPtr<CefSettingObserver> observer) override;
+#endif
   void SetChromeColorScheme(cef_color_variant_t variant,
                             cef_color_t user_color) override;
   cef_color_variant_t GetChromeColorSchemeMode() override;
@@ -91,6 +95,11 @@ class CefRequestContextCToCpp
   bool SetPreference(const CefString& name,
                      CefRefPtr<CefValue> value,
                      CefString& error) override;
+#if CEF_API_ADDED(13401)
+  CefRefPtr<CefRegistration> AddPreferenceObserver(
+      const CefString& name,
+      CefRefPtr<CefPreferenceObserver> observer) override;
+#endif
 };
 
 constexpr auto CefRequestContextCToCpp_Wrap = CefRequestContextCToCpp::Wrap;
