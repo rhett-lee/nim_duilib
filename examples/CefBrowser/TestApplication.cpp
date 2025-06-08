@@ -20,13 +20,6 @@ TestApplication& TestApplication::Instance()
 
 int TestApplication::Run(int argc, char** argv)
 {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    HRESULT hr = ::OleInitialize(nullptr);
-    if (FAILED(hr)) {
-        return 1;
-    }
-#endif
-
     // 创建主线程
     MainThread thread;
 
@@ -50,11 +43,6 @@ int TestApplication::Run(int argc, char** argv)
 
     // 清理 CEF
     ui::CefManager::GetInstance()->UnInitialize();
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    ::OleUninitialize();
-#endif
-
     return 0;
 }
 

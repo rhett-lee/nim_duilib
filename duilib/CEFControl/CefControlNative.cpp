@@ -85,6 +85,8 @@ void CefControlNative::ReCreateBrowser()
 
     // 使用有窗模式
     CefWindowInfo window_info;
+    //该参数必须显示初始化，不能使用默认值
+    window_info.runtime_style = CEF_RUNTIME_STYLE_ALLOY;
     CefRect rect = { GetRect().left, GetRect().top, GetRect().right, GetRect().bottom};
 #ifdef DUILIB_BUILD_FOR_WIN
     //Windows
