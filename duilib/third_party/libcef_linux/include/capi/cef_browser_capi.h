@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=526025c4c24dfa2cf678f3b265ff70e8ee6adc5c$
+// $hash=2df4a6c4c6e7d5b5088b8c69f7370ce791870253$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_BROWSER_CAPI_H_
@@ -682,12 +682,26 @@ typedef struct _cef_browser_host_t {
   void(CEF_CALLBACK* was_hidden)(struct _cef_browser_host_t* self, int hidden);
 
   ///
-  /// Send a notification to the browser that the screen info has changed. The
-  /// browser will then call cef_render_handler_t::GetScreenInfo to update the
-  /// screen information with the new values. This simulates moving the webview
-  /// window from one display to another, or changing the properties of the
-  /// current display. This function is only used when window rendering is
-  /// disabled.
+  /// Notify the browser that screen information has changed. Updated
+  /// information will be sent to the renderer process to configure screen size
+  /// and position values used by CSS and JavaScript (window.deviceScaleFactor,
+  /// window.screenX/Y, window.outerWidth/Height, etc.). For background see
+  /// https://bitbucket.org/chromiumembedded/cef/wiki/GeneralUsage.md#markdown-
+  /// header-coordinate-systems
+  ///
+  /// This function is used with (a) windowless rendering and (b) windowed
+  /// rendering with external (client-provided) root window.
+  ///
+  /// With windowless rendering the browser will call
+  /// cef_render_handler_t::GetScreenInfo,
+  /// cef_render_handler_t::GetRootScreenRect and
+  /// cef_render_handler_t::GetViewRect. This simulates moving or resizing the
+  /// root window in the current display, moving the root window from one
+  /// display to another, or changing the properties of the current display.
+  ///
+  /// With windowed rendering the browser will call
+  /// cef_display_handler_t::GetRootWindowScreenRect and use the associated
+  /// display properties.
   ///
   void(CEF_CALLBACK* notify_screen_info_changed)(
       struct _cef_browser_host_t* self);

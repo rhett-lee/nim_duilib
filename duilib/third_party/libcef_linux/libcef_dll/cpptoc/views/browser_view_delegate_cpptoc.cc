@@ -9,7 +9,7 @@
 // implementations. See the translator.README.txt file in the tools directory
 // for more information.
 //
-// $hash=75a46e7f3cfcfbb7b3b0bf28632d6a5e8e42d87e$
+// $hash=2acd77330cac5c9dc0f6512543b511160c9563f0$
 //
 
 #include "libcef_dll/cpptoc/views/browser_view_delegate_cpptoc.h"
@@ -216,6 +216,34 @@ browser_view_delegate_use_frameless_window_for_picture_in_picture(
   // Return type: bool
   return _retval;
 }
+
+#if CEF_API_ADDED(13601)
+int CEF_CALLBACK browser_view_delegate_allow_move_for_picture_in_picture(
+    struct _cef_browser_view_delegate_t* self,
+    struct _cef_browser_view_t* browser_view) {
+  shutdown_checker::AssertNotShutdown();
+
+  // AUTO-GENERATED CONTENT - DELETE THIS COMMENT BEFORE MODIFYING
+
+  DCHECK(self);
+  if (!self) {
+    return 0;
+  }
+  // Verify param: browser_view; type: refptr_diff
+  DCHECK(browser_view);
+  if (!browser_view) {
+    return 0;
+  }
+
+  // Execute
+  bool _retval =
+      CefBrowserViewDelegateCppToC::Get(self)->AllowMoveForPictureInPicture(
+          CefBrowserViewCToCpp_Wrap(browser_view));
+
+  // Return type: bool
+  return _retval;
+}
+#endif  // CEF_API_ADDED(13601)
 
 int CEF_CALLBACK browser_view_delegate_on_gesture_command(
     struct _cef_browser_view_delegate_t* self,
@@ -574,6 +602,10 @@ CefBrowserViewDelegateCppToC::CefBrowserViewDelegateCppToC() {
   GetStruct()->on_gesture_command = browser_view_delegate_on_gesture_command;
   GetStruct()->get_browser_runtime_style =
       browser_view_delegate_get_browser_runtime_style;
+#if CEF_API_ADDED(13601)
+  GetStruct()->allow_move_for_picture_in_picture =
+      browser_view_delegate_allow_move_for_picture_in_picture;
+#endif
   GetStruct()->base.get_preferred_size =
       browser_view_delegate_get_preferred_size;
   GetStruct()->base.get_minimum_size = browser_view_delegate_get_minimum_size;

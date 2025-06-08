@@ -114,6 +114,8 @@ set(LIBCEF_CPPTOC_SRCS
   cpptoc/pdf_print_callback_cpptoc.h
   cpptoc/permission_handler_cpptoc.cc
   cpptoc/permission_handler_cpptoc.h
+  cpptoc/preference_observer_cpptoc.cc
+  cpptoc/preference_observer_cpptoc.h
   cpptoc/print_handler_cpptoc.cc
   cpptoc/print_handler_cpptoc.h
   cpptoc/read_handler_cpptoc.cc
@@ -144,6 +146,8 @@ set(LIBCEF_CPPTOC_SRCS
   cpptoc/server_handler_cpptoc.h
   cpptoc/set_cookie_callback_cpptoc.cc
   cpptoc/set_cookie_callback_cpptoc.h
+  cpptoc/setting_observer_cpptoc.cc
+  cpptoc/setting_observer_cpptoc.h
   cpptoc/string_visitor_cpptoc.cc
   cpptoc/string_visitor_cpptoc.h
   cpptoc/task_cpptoc.cc

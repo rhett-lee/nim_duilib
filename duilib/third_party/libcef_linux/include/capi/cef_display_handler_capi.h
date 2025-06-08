@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=343360189cbcf3b3e3beb6f48bc05168ca2266a3$
+// $hash=27540cd0fcf6e7aa7543b832e4c68bae12c732b7$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_DISPLAY_HANDLER_CAPI_H_
@@ -47,6 +47,7 @@
 #include "include/capi/cef_base_capi.h"
 #include "include/capi/cef_browser_capi.h"
 #include "include/capi/cef_frame_capi.h"
+#include "include/cef_api_hash.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -136,7 +137,7 @@ typedef struct _cef_display_handler_t {
   ///
   /// Called when auto-resize is enabled via
   /// cef_browser_host_t::SetAutoResizeEnabled and the contents have auto-
-  /// resized. |new_size| will be the desired size in view coordinates. Return
+  /// resized. |new_size| will be the desired size in DIP coordinates. Return
   /// true (1) if the resize was handled or false (0) for default handling.
   ///
   int(CEF_CALLBACK* on_auto_resize)(struct _cef_display_handler_t* self,
@@ -174,6 +175,47 @@ typedef struct _cef_display_handler_t {
       struct _cef_browser_t* browser,
       int has_video_access,
       int has_audio_access);
+
+#if CEF_API_ADDED(13700)
+  ///
+  /// Called when JavaScript is requesting new bounds via window.moveTo/By() or
+  /// window.resizeTo/By(). |new_bounds| are in DIP screen coordinates.
+  ///
+  /// With Views-hosted browsers |new_bounds| are the desired bounds for the
+  /// containing cef_window_t and may be passed directly to
+  /// cef_window_t::SetBounds. With external (client-provided) parent on macOS
+  /// and Windows |new_bounds| are the desired frame bounds for the containing
+  /// root window. With other non-Views browsers |new_bounds| are the desired
+  /// bounds for the browser content only unless the client implements either
+  /// cef_display_handler_t::GetRootWindowScreenRect for windowed browsers or
+  /// cef_render_handler_t::GetWindowScreenRect for windowless browsers. Clients
+  /// may expand browser content bounds to window bounds using OS-specific or
+  /// cef_display_t functions.
+  ///
+  /// Return true (1) if this function was handled or false (0) for default
+  /// handling. Default move/resize behavior is only provided with Views-hosted
+  /// Chrome style browsers.
+  ///
+  int(CEF_CALLBACK* on_contents_bounds_change)(
+      struct _cef_display_handler_t* self,
+      struct _cef_browser_t* browser,
+      const cef_rect_t* new_bounds);
+#endif
+
+#if CEF_API_ADDED(13700)
+  ///
+  /// Called to retrieve the external (client-provided) root window rectangle in
+  /// screen DIP coordinates. Only called for windowed browsers on Windows and
+  /// Linux. Return true (1) if the rectangle was provided. Return false (0) to
+  /// use the root window bounds on Windows or the browser content bounds on
+  /// Linux. For additional usage details see
+  /// cef_browser_host_t::NotifyScreenInfoChanged.
+  ///
+  int(CEF_CALLBACK* get_root_window_screen_rect)(
+      struct _cef_display_handler_t* self,
+      struct _cef_browser_t* browser,
+      cef_rect_t* rect);
+#endif
 } cef_display_handler_t;
 
 #ifdef __cplusplus
