@@ -22,7 +22,7 @@ namespace ui
     class IFont;
     class AutoClip;
 
-    typedef Control* (CALLBACK* FINDCONTROLPROC)(Control*, void*);
+    typedef Control* (* FINDCONTROLPROC)(Control*, void*);
 
 class UILIB_API Control: public PlaceHolder
 {

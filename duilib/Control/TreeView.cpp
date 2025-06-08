@@ -324,7 +324,7 @@ bool TreeNode::OnReturnKeyDown(const EventArgs& msg)
 {
     TreeNode* pItem = dynamic_cast<TreeNode*>(msg.GetSender());
     ASSERT(pItem != nullptr);
-    ASSERT(pItem == this);
+    ASSERT_UNUSED_VARIABLE(pItem == this);
     if ((msg.eventType == kEventReturn) && !IsKeyDown(msg, ModifierKey::kControl)) {
         if (IsActivatable()) {
             Activate(nullptr);
