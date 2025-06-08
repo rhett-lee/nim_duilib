@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=3e0a6d0e76c1a53167df0a29211a00bda9d6a4c9$
+// $hash=2adcd54540e4dd2e4488e5325e1c93c9fcab7084$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_APP_CAPI_H_
@@ -142,7 +142,7 @@ CEF_EXPORT int cef_execute_process(const cef_main_args_t* args,
 /// fails or if early exit is desired (for example, due to process singleton
 /// relaunch behavior). If this function returns false (0) then the application
 /// should exit immediately without calling any other CEF functions except,
-/// optionally, CefGetErrorCode. The |windows_sandbox_info| parameter is only
+/// optionally, CefGetExitCode. The |windows_sandbox_info| parameter is only
 /// used on Windows and may be NULL (see cef_sandbox_win.h for details).
 ///
 CEF_EXPORT int cef_initialize(const cef_main_args_t* args,

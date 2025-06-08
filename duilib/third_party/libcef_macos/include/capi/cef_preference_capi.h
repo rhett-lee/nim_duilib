@@ -33,7 +33,7 @@
 // by hand. See the translator.README.txt file in the tools directory for
 // more information.
 //
-// $hash=07a91f8d964e1a4bd64c3817a66ed9969347954d$
+// $hash=fb4ae87f82c143a82ddc5e4855624f9555c0d617$
 //
 
 #ifndef CEF_INCLUDE_CAPI_CEF_PREFERENCE_CAPI_H_
@@ -45,6 +45,7 @@
 #endif
 
 #include "include/capi/cef_base_capi.h"
+#include "include/capi/cef_registration_capi.h"
 #include "include/capi/cef_values_capi.h"
 
 #ifdef __cplusplus
@@ -77,6 +78,32 @@ typedef struct _cef_preference_registrar_t {
                                     const cef_string_t* name,
                                     struct _cef_value_t* default_value);
 } cef_preference_registrar_t;
+
+#if CEF_API_ADDED(13401)
+
+///
+/// Implemented by the client to observe preference changes and registered via
+/// cef_preference_manager_t::AddPreferenceObserver. The functions of this
+/// structure will be called on the browser process UI thread.
+///
+/// NOTE: This struct is allocated client-side.
+///
+typedef struct _cef_preference_observer_t {
+  ///
+  /// Base structure.
+  ///
+  cef_base_ref_counted_t base;
+
+  ///
+  /// Called when a preference has changed. The new value can be retrieved using
+  /// cef_preference_manager_t::GetPreference.
+  ///
+  void(CEF_CALLBACK* on_preference_changed)(
+      struct _cef_preference_observer_t* self,
+      const cef_string_t* name);
+} cef_preference_observer_t;
+
+#endif  // CEF_API_ADDED(13401)
 
 ///
 /// Manage access to preferences. Many built-in preferences are registered by
@@ -142,7 +169,51 @@ typedef struct _cef_preference_manager_t {
                                     const cef_string_t* name,
                                     struct _cef_value_t* value,
                                     cef_string_t* error);
+
+#if CEF_API_ADDED(13401)
+  ///
+  /// Add an observer for preference changes. |name| is the name of the
+  /// preference to observe. If |name| is NULL then all preferences will be
+  /// observed. Observing all preferences has performance consequences and is
+  /// not recommended outside of testing scenarios. The observer will remain
+  /// registered until the returned Registration object is destroyed. This
+  /// function must be called on the browser process UI thread.
+  ///
+  struct _cef_registration_t*(CEF_CALLBACK* add_preference_observer)(
+      struct _cef_preference_manager_t* self,
+      const cef_string_t* name,
+      struct _cef_preference_observer_t* observer);
+#endif
 } cef_preference_manager_t;
+
+#if CEF_API_ADDED(13401)
+///
+/// Returns the current Chrome Variations configuration (combination of field
+/// trials and chrome://flags) as equivalent command-line switches
+/// (`--[enable|disable]-features=XXXX`, etc). These switches can be used to
+/// apply the same configuration when launching a CEF-based application. See
+/// https://developer.chrome.com/docs/web-platform/chrome-variations for
+/// background and details. Note that field trial tests are disabled by default
+/// in Official CEF builds (via the `disable_fieldtrial_testing_config=true (1)`
+/// GN flag). This function must be called on the browser process UI thread.
+///
+CEF_EXPORT void cef_preference_manager_get_chrome_variations_as_switches(
+    cef_string_list_t switches);
+#endif
+
+#if CEF_API_ADDED(13401)
+///
+/// Returns the current Chrome Variations configuration (combination of field
+/// trials and chrome://flags) as human-readable strings. This is the human-
+/// readable equivalent of the "Active Variations" section of chrome://version.
+/// See https://developer.chrome.com/docs/web-platform/chrome-variations for
+/// background and details. Note that field trial tests are disabled by default
+/// in Official CEF builds (via the `disable_fieldtrial_testing_config=true (1)`
+/// GN flag). This function must be called on the browser process UI thread.
+///
+CEF_EXPORT void cef_preference_manager_get_chrome_variations_as_strings(
+    cef_string_list_t strings);
+#endif
 
 ///
 /// Returns the global preference manager object.

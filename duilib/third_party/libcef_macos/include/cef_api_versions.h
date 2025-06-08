@@ -89,30 +89,90 @@
 #define CEF_API_HASH_13304 "f1ababb4ff51ecbf77c481cee3721ef0eca9c8ca"
 #endif
 
-// Next version last updated March 09, 2025.
-#define CEF_API_VERSION_999998 999998
+// Added February 21, 2025.
+#define CEF_API_VERSION_13400 13400
 #if defined(OS_WIN)
-#define CEF_API_HASH_999998 "19c014af0082aa901398e006381b6980e4f806e9"
+#define CEF_API_HASH_13400 "6ab74b90e88b7397aab9911baac5484f12466eef"
 #elif defined(OS_MAC)
-#define CEF_API_HASH_999998 "98964c37b8917d83da4b173e22905503d38ad08f"
+#define CEF_API_HASH_13400 "ba5ab71db4f9447f19eb7b1943024981c88064dd"
 #elif defined(OS_LINUX)
-#define CEF_API_HASH_999998 "f1ababb4ff51ecbf77c481cee3721ef0eca9c8ca"
+#define CEF_API_HASH_13400 "ea2106b5bc012c25d735521e0c7fb719d433ea4a"
 #endif
 
-// Experimental version last updated March 09, 2025.
+// Added March 10, 2025.
+#define CEF_API_VERSION_13401 13401
+#if defined(OS_WIN)
+#define CEF_API_HASH_13401 "751255204f006b8b883a8baf552a2da792f8aa44"
+#elif defined(OS_MAC)
+#define CEF_API_HASH_13401 "b54732b528bc2669481ec0cf17c7b97b033720b9"
+#elif defined(OS_LINUX)
+#define CEF_API_HASH_13401 "b14bee2c0fd250da67faea421f620b58e5dea9a2"
+#endif
+
+// Added March 12, 2025.
+#define CEF_API_VERSION_13500 13500
+#if defined(OS_WIN)
+#define CEF_API_HASH_13500 "3e78b6fe5fd31d69049499450849ada17a720a53"
+#elif defined(OS_MAC)
+#define CEF_API_HASH_13500 "9862177631e8059a497d6086058168dd47477ab7"
+#elif defined(OS_LINUX)
+#define CEF_API_HASH_13500 "5b7c2284ed2542cf6212981d62ca9122fb2a4e88"
+#endif
+
+// Added April 07, 2025.
+#define CEF_API_VERSION_13600 13600
+#if defined(OS_WIN)
+#define CEF_API_HASH_13600 "a8832519b4eb058567d68b65be1e1c9e80aae566"
+#elif defined(OS_MAC)
+#define CEF_API_HASH_13600 "22c77d1f2305de8a6147f14e52f074b4a4e5222c"
+#elif defined(OS_LINUX)
+#define CEF_API_HASH_13600 "eb353ba7b8b9bcbef890217971cd8ec41efeaa75"
+#endif
+
+// Added April 22, 2025.
+#define CEF_API_VERSION_13601 13601
+#if defined(OS_WIN)
+#define CEF_API_HASH_13601 "116a4153047ee1ee67f17fc938f084ee72b24e54"
+#elif defined(OS_MAC)
+#define CEF_API_HASH_13601 "ff885fe921f9eae1a5ce6a71b30b0c37b306bf56"
+#elif defined(OS_LINUX)
+#define CEF_API_HASH_13601 "40b224f295a20694241c5db49721bc90a3796f30"
+#endif
+
+// Added May 07, 2025.
+#define CEF_API_VERSION_13700 13700
+#if defined(OS_WIN)
+#define CEF_API_HASH_13700 "65c7157dd3e8eba9bcc38db2bd7f26508c717f3e"
+#elif defined(OS_MAC)
+#define CEF_API_HASH_13700 "9e84009c92c25aa80935727b5e4526b23439a575"
+#elif defined(OS_LINUX)
+#define CEF_API_HASH_13700 "e5ac12b1bd88b9ece6ceaa57848aaba61ab85242"
+#endif
+
+// Next version last updated June 04, 2025.
+#define CEF_API_VERSION_999998 999998
+#if defined(OS_WIN)
+#define CEF_API_HASH_999998 "65c7157dd3e8eba9bcc38db2bd7f26508c717f3e"
+#elif defined(OS_MAC)
+#define CEF_API_HASH_999998 "9e84009c92c25aa80935727b5e4526b23439a575"
+#elif defined(OS_LINUX)
+#define CEF_API_HASH_999998 "e5ac12b1bd88b9ece6ceaa57848aaba61ab85242"
+#endif
+
+// Experimental version last updated June 04, 2025.
 #define CEF_API_VERSION_999999 999999
 #if defined(OS_WIN)
-#define CEF_API_HASH_999999 "a9dbeff8d358f02b58576becf2cede342bd2a4b5"
+#define CEF_API_HASH_999999 "770549a2b4f2e039c3257ca2159df80167c521c7"
 #elif defined(OS_MAC)
-#define CEF_API_HASH_999999 "81b7392d0b6962e8ae63dcdcaee689809fddf1cf"
+#define CEF_API_HASH_999999 "cae3110e6a9754ea5927ea7fc9bb57e48a671f37"
 #elif defined(OS_LINUX)
-#define CEF_API_HASH_999999 "8c15abf29bd50c124bc1d19a9c7948755634965e"
+#define CEF_API_HASH_999999 "4f9fac397d9db5edf96273f4a7f4d7ab6484e191"
 #endif
 
 // Oldest supported CEF version.
 #define CEF_API_VERSION_MIN CEF_API_VERSION_13300
 
 // Newest supported CEF version.
-#define CEF_API_VERSION_LAST CEF_API_VERSION_13304
+#define CEF_API_VERSION_LAST CEF_API_VERSION_13700
 
 #endif  // CEF_INCLUDE_CEF_API_VERSIONS_H_
