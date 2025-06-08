@@ -27,13 +27,6 @@ bool CefManager_MacOS::Initialize(bool bEnableOffScreenRendering,
         return false;
     }
 
-    // Load the CEF framework library at runtime instead of linking directly
-    // as required by the macOS sandbox implementation.
-    CefScopedLibraryLoader library_loader;
-    if (!library_loader.LoadInMain()) {
-        return false;
-    }
-
     CefMainArgs main_args(argc, argv);
     CefRefPtr<CefClientApp> app(new CefClientApp);
 

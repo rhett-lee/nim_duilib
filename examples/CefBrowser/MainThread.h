@@ -4,11 +4,7 @@
 // duilib
 #include "duilib/duilib.h"
 
-/** @class MainThread
-* @brief 主线程（UI线程）类
-* @copyright (c) 2015, NetEase Inc. All rights reserved
-* @author towik
-* @date 2015/1/1
+/** 主线程
 */
 class MainThread : public ui::FrameworkThread
 {

@@ -1,4 +1,5 @@
 #include "BrowserForm.h"
+#include "TestApplication.h"
 #include "browser/BrowserBox.h"
 #include "browser/BrowserManager.h"
 #include <chrono>
@@ -145,6 +146,12 @@ public:
 
 void BrowserForm::OnInitWindow()
 {
+    TestApplication::Instance().AddMainWindow(this);
+    AttachWindowSetFocus([this](const ui::EventArgs&) {
+        TestApplication::Instance().SetActiveMainWindow(this);
+        return true;
+        });
+
     GetRoot()->AttachBubbledEvent(ui::kEventClick, UiBind(&BrowserForm::OnClicked, this, std::placeholders::_1));
 
     m_pEditUrl = static_cast<RichEdit*>(FindControl(_T("edit_url")));
@@ -195,13 +202,14 @@ void BrowserForm::OnInitWindow()
 
 void BrowserForm::OnCloseWindow()
 {
+    TestApplication::Instance().RemoveMainWindow(this);
     // 使用m_pTabCtrl来判断浏览器盒子总数，browser_box_tab_获取的总数不准确
     int browser_box_count = GetBoxCount();
     for (int i = 0; i < browser_box_count; i++) {
         Control* box_item = m_pBorwserBoxTab->GetItemAt(i);
         ASSERT(nullptr != box_item);
         if (nullptr == box_item) {
-            continue;;
+            continue;
         }
 
         BrowserBox* browser_box = dynamic_cast<BrowserBox*>(box_item);
