@@ -292,7 +292,7 @@ bool CefControlOffScreen::MouseMove(const EventArgs& msg)
         UiPoint pt = msg.ptMouse;
         pt.Offset(GetScrollOffsetInScrollBox());
         if (!GetRect().ContainsPt(pt) && !pWindow->IsCaptured()) {
-            return 0;
+            return false;
         }
 
         CefMouseEvent mouse_event;

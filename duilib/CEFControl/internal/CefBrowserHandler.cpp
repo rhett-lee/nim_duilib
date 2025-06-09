@@ -432,12 +432,19 @@ bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX,
     }
     screen_pt.x = screen_pt.x + rect_cef_control.left;
     screen_pt.y = screen_pt.y + rect_cef_control.top;
-#if defined (DUILIB_BUILD_FOR_WIN)
-    //Windows平台：需要转换为屏幕坐标；Linux平台则不需要
+#if defined (DUILIB_BUILD_FOR_WIN)  || defined (DUILIB_BUILD_FOR_MACOS) 
+    //Windows/MacOS：需要转换为屏幕坐标；Linux平台则不需要
     m_pWindow->ClientToScreen(screen_pt);
 #endif
     screenX = screen_pt.x;
     screenY = screen_pt.y;
+
+#if defined (DUILIB_BUILD_FOR_MACOS)
+    //MacOS: 屏幕坐标是以屏幕左下角为原点的，需要进行转换
+    UiRect rcMonitor;
+    m_pWindow->GetMonitorRect(rcMonitor);
+    screenY = rcMonitor.Height() - screenY;
+#endif
     return true;
 }
 
