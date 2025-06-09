@@ -50,6 +50,7 @@
 #include "duilib/Utils/FilePathUtil.h"
 
 #include "duilib/third_party/xml/pugixml.hpp"
+#include <set>
 
 namespace ui 
 {
@@ -328,6 +329,9 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
     bool bPercentCX = false;
     bool bPercentCY = false;
 
+    //窗口配置的size是否包含阴影
+    bool bSizeContainShadow = false;
+
     //阴影相关参数
     bool bShadowAttached = false;
     bool bHasShadowAttached = false;
@@ -352,7 +356,7 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             createAttributes.m_bUseSystemCaption = (strValue == _T("true"));
             createAttributes.m_bUseSystemCaptionDefined = true;
         }
-        else if (strName == _T("sizebox")) {
+        else if ((strName == _T("size_box")) || (strName == _T("sizebox"))) {
             AttributeUtil::ParseRectValue(strValue.c_str(), createAttributes.m_rcSizeBox);
             createAttributes.m_bSizeBoxDefined = true;
         }
@@ -390,10 +394,14 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
             AttributeUtil::ParseWindowSize(nullptr, strValue.c_str(), createAttributes.m_szInitSize, &bScaledCX, &bScaledCY, &bPercentCX, &bPercentCY);
             createAttributes.m_bInitSizeDefined = true;
         }
-        else if (strName == _T("mininfo")) {
+        else if (strName == _T("size_contain_shadow")) {
+            //窗口配置的size是否包含阴影
+            bSizeContainShadow = (strValue == _T("true"));
+        }
+        else if ((strName == _T("min_size")) || (strName == _T("mininfo"))) {
             AttributeUtil::ParseSizeValue(strValue.c_str(), szMinSize);
         }
-        else if (strName == _T("maxinfo")) {
+        else if ((strName == _T("max_size")) || (strName == _T("maxinfo"))) {
             AttributeUtil::ParseSizeValue(strValue.c_str(), szMaxSize);
         }
         else if (strName == _T("sdl_render_name")) {
@@ -459,11 +467,13 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
         if (!bScaledCY) {
             GlobalManager::Instance().Dpi().ScaleInt(cy);
         }
-        if (!bPercentCX) {
-            cx += rcShadowCorner.left + rcShadowCorner.right;
-        }
-        if (!bPercentCY) {
-            cy += rcShadowCorner.top + rcShadowCorner.bottom;
+        if (!bSizeContainShadow) {
+            if (!bPercentCX) {
+                cx += rcShadowCorner.left + rcShadowCorner.right;
+            }
+            if (!bPercentCY) {
+                cy += rcShadowCorner.top + rcShadowCorner.bottom;
+            }
         }
         createAttributes.m_szInitSize.cx = cx;
         createAttributes.m_szInitSize.cy = cy;
@@ -490,6 +500,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         return;
     }
 
+    std::set<DString> knownNames;//支持的属性名称
     DString strName;
     DString strValue;
 
@@ -499,6 +510,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         strName = attr.name();
         strValue = attr.value();
         if (strName == _T("render_backend_type")) {
+            knownNames.insert(strName);
             RenderBackendType backendType = RenderBackendType::kRaster_BackendType;
             if (StringUtil::IsEqualNoCase(strValue, _T("GL")) || StringUtil::IsEqualNoCase(strValue, _T("GPU"))) {
                 backendType = RenderBackendType::kNativeGL_BackendType;
@@ -519,24 +531,29 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         pWindow->SetRenderBackendType(RenderBackendType::kRaster_BackendType);
     }
      
-    //首先处理mininfo/maxinfo/use_system_caption，因为其他属性有用到这些个属性的
+    //首先处理min_size/max_size/use_system_caption，因为其他属性有用到这些个属性的
     for (pugi::xml_attribute attr : root.attributes()) {
         strName = attr.name();
         strValue = attr.value();
-        if (strName == _T("mininfo")) {
+        if ((strName == _T("min_size")) || (strName == _T("mininfo"))) {
+            knownNames.insert(strName);
             UiSize size;
             AttributeUtil::ParseSizeValue(strValue.c_str(), size);
             pWindow->SetWindowMinimumSize(size, true);
         }
-        else if (strName == _T("maxinfo")) {
+        else if ((strName == _T("max_size")) || (strName == _T("maxinfo"))) {
+            knownNames.insert(strName);
             UiSize size;
             AttributeUtil::ParseSizeValue(strValue.c_str(), size);
             pWindow->SetWindowMaximumSize(size, true);
         }
         else if (strName == _T("use_system_caption")) {
+            knownNames.insert(strName);
             pWindow->SetUseSystemCaption(strValue == _T("true"));
         }
     }
+    //窗口配置的size是否包含阴影
+    bool bSizeContainShadow = false;
 
     //窗口阴影是否开启
     bool bShadowAttached = false;
@@ -547,55 +564,72 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
     for (pugi::xml_attribute attr : root.attributes()) {
         strName = attr.name();
         strValue = attr.value();
-        if (strName == _T("sizebox")) {
+        if ((strName == _T("size_box")) || (strName == _T("sizebox"))) {
+            knownNames.insert(strName);
             UiRect rcSizeBox;
             AttributeUtil::ParseRectValue(strValue.c_str(), rcSizeBox);
             pWindow->SetSizeBox(rcSizeBox, true);
         }
         else if (strName == _T("caption")) {
+            knownNames.insert(strName);
             UiRect rcCaption;
             AttributeUtil::ParseRectValue(strValue.c_str(), rcCaption);
             pWindow->SetCaptionRect(rcCaption, true);
         }
         else if (strName == _T("snap_layout_menu")) {
+            knownNames.insert(strName);
             pWindow->SetEnableSnapLayoutMenu(strValue == _T("true"));
         }
         else if (strName == _T("sys_menu")) {
+            knownNames.insert(strName);
             pWindow->SetEnableSysMenu(strValue == _T("true"));
         }
         else if (strName == _T("sys_menu_rect")) {
+            knownNames.insert(strName);
             UiRect rcSysMenuRect;
             AttributeUtil::ParseRectValue(strValue.c_str(), rcSysMenuRect);
             pWindow->SetSysMenuRect(rcSysMenuRect, true);
         }
         else if (strName == _T("icon")) {
+            knownNames.insert(strName);
             if (!strValue.empty()) {
                 //设置窗口图标
                 pWindow->SetWindowIcon(strValue);
             }
         }
         else if (strName == _T("text")) {
+            knownNames.insert(strName);
             pWindow->SetText(strValue);
         }
         else if ((strName == _T("text_id")) || (strName == _T("textid"))) {
+            knownNames.insert(strName);
             pWindow->SetTextId(strValue);
         }
         else if (strName == _T("round_corner") || strName == _T("roundcorner")) {
+            knownNames.insert(strName);
             UiSize size;
             AttributeUtil::ParseSizeValue(strValue.c_str(), size);
             pWindow->SetRoundCorner(size.cx, size.cy, true);
         }
         else if (strName == _T("alpha_fix_corner") || strName == _T("alphafixcorner")) {
+            knownNames.insert(strName);
             UiRect rc;
             AttributeUtil::ParseRectValue(strValue.c_str(), rc);
             pWindow->SetAlphaFixCorner(rc, true);
         }
+        else if (strName == _T("size_contain_shadow")) {
+            knownNames.insert(strName);
+            //窗口配置的size是否包含阴影
+            bSizeContainShadow = (strValue == _T("true"));
+        }
         else if ((strName == _T("shadow_attached")) || (strName == _T("shadowattached"))) {
+            knownNames.insert(strName);
             //设置是否支持窗口阴影（阴影实现有两种：分层窗口和普通窗口）
             bShadowAttached = (strValue == _T("true"));
             bHasShadowAttached = true;            
         }
         else if (strName == _T("shadow_type")) {
+            knownNames.insert(strName);
             //设置阴影类型
             Shadow::GetShadowType(strValue, nShadowType);
             if ((nShadowType >= Shadow::ShadowType::kShadowNone) &&
@@ -604,28 +638,33 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             }
         }
         else if ((strName == _T("shadow_image")) || (strName == _T("shadowimage"))) {
+            knownNames.insert(strName);
             //设置阴影图片
             pWindow->SetShadowImage(strValue);
         }
         else if ((strName == _T("shadow_corner")) || (strName == _T("shadowcorner"))) {
+            knownNames.insert(strName);
             //设置窗口阴影的九宫格属性
             UiPadding padding;
             AttributeUtil::ParsePaddingValue(strValue.c_str(), padding);
             pWindow->SetShadowCorner(padding);
         }
         else if (strName == _T("shadow_border_round")) {
+            knownNames.insert(strName);
             //设置窗口阴影的圆角大小
             UiSize szBorderRound;
             AttributeUtil::ParseSizeValue(strValue.c_str(), szBorderRound);
             pWindow->SetShadowBorderRound(szBorderRound);
         }
         else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
+            knownNames.insert(strName);
             //设置是否设置分层窗口属性（分层窗口还是普通窗口）
             if (!pWindow->IsUseSystemCaption()) {
                 pWindow->SetLayeredWindow(strValue == _T("true"), false);
             }
         }
         else if (strName == _T("alpha")) {
+            knownNames.insert(strName);
             //设置窗口的透明度（0 - 255），仅当使用层窗口时有效，在在UpdateLayeredWindow函数中作为参数使用
             int32_t nAlpha = StringUtil::StringToInt32(strValue);
             ASSERT(nAlpha >= 0 && nAlpha <= 255);
@@ -655,6 +694,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
         strName = attr.name();
         strValue = attr.value();
         if (strName == _T("size")) {
+            knownNames.insert(strName);
             UiSize windowSize;
             AttributeUtil::ParseWindowSize(pWindow, strValue.c_str(), windowSize, &bScaledCX, &bScaledCY, &bPercentCX, &bPercentCY);
             int32_t cx = windowSize.cx;
@@ -674,18 +714,21 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
                 cy = maxSize.cy;
             }
 
-            //XML配置中指定的窗口大小，如果设置的是固定值，则不包含阴影部分
-            UiPadding rcShadowCorner = pWindow->GetShadowCorner();
-            pWindow->Dpi().ScalePadding(rcShadowCorner);
-            if (!bPercentCX && pWindow->IsShadowAttached() && !pWindow->IsWindowMaximized()) {
-                cx += rcShadowCorner.left + rcShadowCorner.right;
+            if (!bSizeContainShadow) {
+                //XML配置中指定的窗口大小，如果设置的是固定值，则不包含阴影部分
+                UiPadding rcShadowCorner = pWindow->GetShadowCorner();
+                pWindow->Dpi().ScalePadding(rcShadowCorner);
+                if (!bPercentCX && pWindow->IsShadowAttached() && !pWindow->IsWindowMaximized()) {
+                    cx += rcShadowCorner.left + rcShadowCorner.right;
+                }
+                if (!bPercentCY && pWindow->IsShadowAttached() && !pWindow->IsWindowMaximized()) {
+                    cy += rcShadowCorner.top + rcShadowCorner.bottom;
+                }
             }
-            if (!bPercentCY && pWindow->IsShadowAttached() && !pWindow->IsWindowMaximized()) {
-                cy += rcShadowCorner.top + rcShadowCorner.bottom;
-            }            
             pWindow->SetInitSize(cx, cy);
         }
         else if (strName == _T("opacity")) {
+            knownNames.insert(strName);
             //设置窗口的不透明度（0 - 255），该值在SetLayeredWindowAttributes函数中作为参数使用(bAlpha)
             const int32_t nAlpha = StringUtil::StringToInt32(strValue);
             ASSERT(nAlpha >= 0 && nAlpha <= 255);
@@ -709,6 +752,18 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
     }
 #else
     UNUSED_VARIABLE(bLayeredWindowOpacityDefined);
+#endif
+
+#ifdef _DEBUG
+    //检查是否有不支持的属性，然后预警，减少配置错误问题
+    std::vector<DString> unknownNames;
+    for (pugi::xml_attribute attr : root.attributes()) {
+        strName = attr.name();
+        if (knownNames.find(strName) == knownNames.end()) {
+            unknownNames.push_back(strName);
+        }
+    }
+    ASSERT_UNUSED_VARIABLE(unknownNames.empty() && "Found unknown window attributes in xml!");
 #endif
 }
 
