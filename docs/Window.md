@@ -15,9 +15,10 @@
 | shadow_corner     | 窗口阴影| 0,0,0,0 | rect   | SetShadowCorner         |设置了shadowimage属性后，设置此属性来指定阴影素材的九宫格描述 |
 | shadow_border_round| 窗口阴影| 0,0    | size   | SetShadowBorderRound    |设置了shadowimage属性后，设置此属性来指定阴影的圆角属性 |
 | size              | 窗口大小| 0,0     | size   | SetInitSize             |窗口的初始化大小, 支持的格式：size="1200,800", 或者size="50%,50%", 或者size="1200,50%", size="50%,800"，百分比是指屏幕宽度或者高度的百分比 |
-| mininfo           | 窗口大小| 0,0     | size   | SetMinInfo              |窗口最小大小, 如(320,240) |
-| maxinfo           | 窗口大小| 0,0     | size   | SetMaxInfo              |窗口最大大小, 如(1600,1200) |
-| sizebox           | 窗口大小| 0,0,0,0 | rect   | SetSizeBox              |窗口可拖动改变窗口大小的边距, 如(4,4,6,6) |
+| size_contain_shadow| 窗口大小| false  | size   |                         |窗口的初始化大小(size属性)，是否包含窗口的阴影，默认不包含，窗口的实际大小是配置的size值 + 阴影大小 |
+| min_size          | 窗口大小| 0,0     | size   | SetWindowMinimumSize    |窗口最小大小, 如(320,240) |
+| max_size          | 窗口大小| 0,0     | size   | SetWindowMaximumSize    |窗口最大大小, 如(1600,1200) |
+| size_box          | 窗口大小| 0,0,0,0 | rect   | SetSizeBox              |窗口可拖动改变窗口大小的边距, 如(4,4,6,6) |
 | round_corner      | 窗口形状| 0,0     | size   | SetRoundCorner          |窗口圆角大小, 如(4,4) |
 | alpha_fix_corner  | 窗口形状|14,14,14,14| rect | SetAlphaFixCorner       |窗口圆角的透明通道修补范围 |
 | layered_window    | 窗口绘制| false   | bool   | SetLayeredWindow        |设置是否为层窗口 |
@@ -29,7 +30,7 @@
 备注：窗口在XML中的标签名称是："Window"     
 使用示例：    
 ```xml
-<Window size="75%,90%" mininfo="80,50" use_system_caption="false" caption="0,0,0,36"
-        shadow_attached="true" layered_window="true" alpha="255" sizebox="4,4,4,4">
+<Window size="75%,90%" min_size="80,50" use_system_caption="false" caption="0,0,0,36"
+        shadow_attached="true" layered_window="true" alpha="255" size_box="4,4,4,4">
 </Window>
 ```
