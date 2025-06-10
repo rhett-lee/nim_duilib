@@ -112,7 +112,7 @@ if %errorlevel% neq 0 (
 )
 cd ..
 
-powershell -command "Expand-Archive -Path 'skia_compile\%SKIA_PATCH_SRC_ZIP%' -DestinationPath .\skia\ -Force"
+.\skia_compile\windows\bin\miniunz.exe -o skia_compile/%SKIA_PATCH_SRC_ZIP% -d ./skia/
 if %errorlevel% neq 0 (
     echo ".\skia_compile\%SKIA_PATCH_SRC_ZIP%" Expand-Archive failed!
     exit /b 1
