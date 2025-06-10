@@ -221,6 +221,10 @@ if [ "$(uname -s)" == "Darwin" ]; then
     echo "macOS"
     chmod +x ./nim_duilib/build/macos_build.sh
     ./nim_duilib/build/macos_build.sh
+elif [ "$(uname -s)" == "FreeBSD" ]; then
+    echo "FreeBSD"
+    chmod +x ./nim_duilib/build/freebsd_build.sh
+    ./nim_duilib/build/freebsd_build.sh
 else
     echo "Linux"
     chmod +x ./nim_duilib/build/linux_build.sh
