@@ -203,15 +203,14 @@ else()
     message(STATUS "CEF support disabled (FreeBSD is not supported)")
 endif()
 
-# Create the library with the filtered sources
-add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
-
 if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     find_package(Freetype REQUIRED)
     find_package(Fontconfig REQUIRED)
-    target_link_libraries(${PROJECT_NAME}
-            ${FREETYPE_LIB}
-            ${FONTCONFIG_LIB})
+    add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
+    target_link_libraries(${PROJECT_NAME} Freetype::Freetype Fontconfig::Fontconfig)
+else()
+    # Create the library with the filtered sources
+    add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
 endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
