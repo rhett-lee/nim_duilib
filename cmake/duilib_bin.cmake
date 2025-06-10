@@ -50,6 +50,9 @@ elseif(DUILIB_OS_LINUX)
 elseif(DUILIB_OS_MACOS)
     # MacOS平台
     include("${CMAKE_CURRENT_LIST_DIR}/duilib_bin_macos.cmake") 
+elseif(DUILIB_OS_FREEBSD)
+    # FreeBSD平台
+    include("${CMAKE_CURRENT_LIST_DIR}/duilib_bin_freebsd.cmake") 
 else()
     message(FATAL_ERROR "Unknown OS!")
 endif()
