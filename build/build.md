@@ -1,16 +1,18 @@
 # 项目编译相关文档和脚本
 该目录中主要包含了项目编译的相关文档和依赖的脚本文件，假设项目的根目录为变量${DUILIB_ROOT}。
 ## 该目录中的文件列表
-| 文件名                    | 适用环境                      |  备注 |
-| :---                      | :---                          |:---   |
-| build_duilib_all_in_one.bat| Windows/Visual Studio 2022    |一键编译脚本，该脚本以脚本所在目录为工作目录<br>脚本完成所有源码下载（含skia等依赖项）和编译<br>默认编译内容：<br>skia: llvm.x64.debug/llvm.x64.release/llvm.x86.release/llvm.x86.debug <br>duilib: 64位Release版本|
-| duilib.sln                | Windows/Visual Studio 2022    |duilib的Visual Studio的解决方案文件，只包含lib，不包含示例程序|
-| examples.sln              | Windows/Visual Studio 2022    |示例程序的Visual Studio的解决方案文件，包含lib，包含示例程序|
-| msvc_build.bat            | Windows/MSVC                  |命令行编译脚本，使用cmake编译，编译器为MSVC|
-| gcc-mingw-w64_build.bat   | Windows/MinGW-w64             |MinGW-w64的编译脚本，编译器为gcc/g++|
-| llvm-mingw-w64_build.bat  | Windows/MinGW-w64             |MinGW-w64的编译脚本，编译器为clang/clang++|
-| `linux_build.sh`          | Linux/gcc,llvm                |Linux系统下的编译脚本，编译器为gcc/g++ 或者 clang/clang++|
-| `macos_build.sh`          | MacOS/llvm                    |MacOS系统下的编译脚本，编译器为clang/clang++|
+| FileName/文件名               | OS/操作系统   | Compiler/编译器        |  Comment/备注   |
+| :---                          | :---          |:---                    |:---             |
+| `build_duilib_all_in_one.bat` | Windows       |Visual Studio 2022      |一键编译脚本，该脚本以脚本所在目录为工作目录<br>脚本完成所有源码下载（含skia等依赖项）和编译<br>默认编译内容：<br>skia: llvm.x64.debug/llvm.x64.release/llvm.x86.release/llvm.x86.debug <br>duilib: 64位Release版本|
+| `duilib.sln`                  | Windows       |Visual Studio 2022      |duilib的Visual Studio的解决方案文件，只包含lib，不包含示例程序|
+| `examples.sln`                | Windows       |Visual Studio 2022      |示例程序的Visual Studio的解决方案文件，包含lib，包含示例程序|
+| `msvc_build.bat`              | Windows       |cmake/MSVC              |命令行编译脚本，使用cmake编译，编译器为MSVC|
+| `gcc-mingw-w64_build.bat`     | Windows       |MinGW-w64 gcc/g++       |MinGW-w64的编译脚本，编译器为gcc/g++|
+| `llvm-mingw-w64_build.bat`    | Windows       |MinGW-w64 clang/clang++ |MinGW-w64的编译脚本，编译器为clang/clang++|
+| `build_duilib_all_in_one.sh`  | Linux         |gcc/g++ or clang/clang++|Linux系统下的一键编译脚本，该脚本以脚本所在目录为工作目录<br>脚本完成所有源码下载（含skia等依赖项）和编译，编译器为gcc/g++ 或者 clang/clang++|
+| `linux_build.sh`              | Linux         |gcc/g++ or clang/clang++|Linux系统下的编译脚本，编译器为gcc/g++ 或者 clang/clang++|
+| `build_duilib_all_in_one.sh`  | MacOS         |clang/clang++           |MacOS系统下的一键编译脚本，该脚本以脚本所在目录为工作目录<br>脚本完成所有源码下载（含skia等依赖项）和编译，编译器为gcc/g++ 或者 clang/clang++|
+| `macos_build.sh`              | MacOS         |clang/clang++           |MacOS系统下的编译脚本，编译器为clang/clang++|
 
 ## 编译的目标文件
 1. lib文件：`${DUILIB_ROOT}/lib`
