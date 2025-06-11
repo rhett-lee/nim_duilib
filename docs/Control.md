@@ -611,3 +611,20 @@ CefControl 控件继承了 `Control` 属性，更多可用属性请参考`Contro
 
 ## IconControl的属性
 IconControl 控件继承了 `Control` 属性，更多可用属性请参考`Control`的属性
+
+## AddressBar的属性
+| 属性名称 | 默认值 | 参数类型 | 用途 |
+| :--- | :--- | :--- | :--- |
+| path_tooltip | true | bool | 设置是否显示路径的tooltip |
+| return_update_ui | true | bool | 设置按回车时自动更新显示控件 |
+| esc_update_ui | true | bool | 设置按ESC时自动更新显示控件 |
+| kill_focus_update_ui | true | bool | 设置失去焦点时自动更新显示控件 |
+| rich_edit_class | "address_bar_edit" | string | 设置编辑框的Class |
+| rich_edit_clear_btn_class | "rich_edit_clear_btn" | string | 设置编辑框的清除按钮Class |
+| sub_path_hbox_class | "address_bar_sub_path_hbox"| string | 设置地址栏路径的容器（HBox）Class，每个子路径一个HBox容器 |
+| sub_path_button_class | "address_bar_sub_path_button"| string | 设置地址栏子路径按钮的Class |
+| sub_path_root_class | "address_bar_sub_path_root" | string | 设置地址栏根路径的Class（"/"路径） |
+| path_separator_class | "address_bar_path_separator" | string | 设置地址栏路径分隔符的Class |
+
+AddressBar 控件继承了 `HBox` 属性，更多可用属性请参考`HBox`的属性
+

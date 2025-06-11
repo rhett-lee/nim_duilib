@@ -687,6 +687,9 @@
     <ClCompile Include="CEFControl\CefWindowUtils_Windows.cpp">
       <Filter>CEFControl\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="Control\AddressBar.cpp">
+      <Filter>Control</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1432,6 +1435,9 @@
     </ClInclude>
     <ClInclude Include="Core\ScopedLock.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Control\AddressBar.h">
+      <Filter>Control</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

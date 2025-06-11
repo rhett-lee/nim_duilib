@@ -61,7 +61,7 @@
                     <Event type="unselect" receiver="tree" apply_attribute="show_system_files={false}" />
                 </CheckBox>
             </HBox>
-            <HBox width="stretch" height="32" bkcolor="white">
+            <HBox width="stretch" height="32" bkcolor="#FFF8F8F8">
                         <Button class="btn_view_common btn_view_up" name="btn_view_up" margin="4,0,0,0" tooltip_text="上移到父目录"/>
                         <Button class="btn_view_common btn_view_left" name="btn_view_left" tooltip_text="返回"/>
                         <Button class="btn_view_common btn_view_right" name="btn_view_right" tooltip_text="前进"/>
@@ -77,7 +77,8 @@
                             <Control width="auto" bkimage="file='../tree_view/chevron-bottom.svg' width='8' height='8' valign='center' halign='center'" mouse_enabled="false" keyboard_enabled="false"/>
                         </ButtonHBox>
                         <Label text="当前路径：" valign="center" margin="10,0,0,0"/>
-                        <RichEdit class="simple input" name="file_path" width="stretch" height="28" valign="center" margin="8,0,10,0" text_padding="5,5,5,5" default_context_menu="true" select_all_on_focus="true"/>
+                        <AddressBar class="address_bar" name="file_path" width="stretch" height="28" valign="center" margin="8,0,10,0" 
+                                                        kill_focus_update_ui="false"/>
             </HBox>
             <HBox minheight="60" bkcolor="white" border_size="0,2,0,0" border_color="splitline_level2" padding="0,4,0,0">
                 <HBox width="300" minwidth="60">

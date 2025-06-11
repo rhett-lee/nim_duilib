@@ -50,9 +50,13 @@ private:
     void OnShowMyComputerContents(ui::TreeNode* pTreeNode,
                                   const std::vector<ui::DirectoryTree::DiskInfo>& diskInfoList);
 
-    /** 在地址栏中输入回车
+    /** 地址栏中的路径发生变化
     */
-    bool OnAddressBarReturn(const ui::EventArgs& msg);
+    bool OnAddressBarPathChanged(const ui::EventArgs& msg);
+
+    /** 地址栏中的点击了子路径按钮
+    */
+    bool OnAddressBarPathClick(const ui::EventArgs& msg);
 
     /** 刷新
     */
@@ -90,6 +94,10 @@ private:
     /** 设置当前选择的树节点
     */
     void SetShowTreeNode(ui::TreeNode* pTreeNode);
+
+    /** 显示地址栏上的地址
+    */
+    bool OnShowAddressPath(const DString& newFilePath);
 
 private:
     /** TabBox的视图类型(枚举值与XML中定义的顺序相同)
@@ -134,7 +142,7 @@ private:
 
     /** 当前路径显示
     */
-    ui::RichEdit* m_pAddressBar;
+    ui::AddressBar* m_pAddressBar;
 
     /** TabBox容器
     */

@@ -107,7 +107,8 @@ namespace ui
     #define  DUI_CTR_HOTKEY                          (_T("HotKey"))
     #define  DUI_CTR_TAB_CTRL                        (_T("TabCtrl"))
     #define  DUI_CTR_TAB_CTRL_ITEM                   (_T("TabCtrlItem"))
-    #define  DUI_CTR_ICON_CONTROL                    (_T("IconControl"))    
+    #define  DUI_CTR_ICON_CONTROL                    (_T("IconControl"))
+    #define  DUI_CTR_ADDRESS_BAR                     (_T("AddressBar"))
 
     // 窗口标题栏按钮：最大化、最小化、关闭、还原、全屏窗口的名字，代码中写死的
     #define  DUI_CTR_CAPTION_BAR                     (_T("window_caption_bar"))
@@ -319,7 +320,8 @@ namespace ui
         kEventZoom,                 //RichEdit类：当缩放比例发生变化时，wParam表示缩放百分比，比如200表示200%
         kEventTextChange,           //RichEdit类：当文本内容发生变化时触发
         kEventSelChange,            //ListCtrl类：选择项发生变化，RichEdit类：当文本选择内容发生变化时触发
-        kEventReturn,               //ListCtrl、VirtualListBox、ListBoxItem、RichEdit类：当收到回车键时触发
+        kEventReturn,               //ListCtrl、VirtualListBox、ListBoxItem、RichEdit、AddressBar类：当收到回车键时触发
+        kEventEsc,                  //RichEdit类、AddressBar类：当收到ESC键时触发
         kEventTab,                  //RichEdit类：在WantTab为false时，当收到TAB键时触发
         kEventLinkClick,            //RichEdit类、RichText类：当点击到超级链接的数据上时触发, 可以通过WPARAM获取点击的URL，类型为const DStringW::value_type*
 
@@ -334,6 +336,9 @@ namespace ui
 
         kEventEnterEdit,            //ListCtrl类：进入编辑状态, wParam 是接口：ListCtrlEditParam*
         kEventLeaveEdit,            //ListCtrl类：退出编辑状态, wParam 是接口：ListCtrlEditParam*
+
+        kEventPathChanged,          //AddressBar类：当路径方式变化时触发
+        kEventPathClick,            //AddressBar类：当用户点击路径按钮时触发
 
         kEventLast                  //无使用者
     };

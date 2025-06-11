@@ -532,4 +532,31 @@
                 normal_image="file='../public/button/btn_close.svg' height='16' width='16' halign='center' valign='center'"
                 hot_color="#FFDCDCDD" pushed_color="#FFC2C2C3" border_round="4,4" alpha="192"/>
     <Class name="tab_ctrl_item_line" bkcolor="#FFA8C7FA" width="1" height="22" float="true" halign="right" valign="center" mouse="false"/>
+    
+    <!--AddressBar控件通用样式-->
+    <Class name="address_bar" width="stretch" height="36" border_round="4,4" bkcolor="white"
+                              path_tooltip="true" return_update_ui="true" esc_update_ui="true" kill_focus_update_ui="true"
+                              rich_edit_class="address_bar_edit" 
+                              rich_edit_clear_btn_class="rich_edit_clear_btn"
+                              sub_path_hbox_class="address_bar_sub_path_hbox"
+                              sub_path_button_class="address_bar_sub_path_button"
+                              sub_path_root_class="address_bar_sub_path_root"
+                              path_separator_class="address_bar_path_separator"/>
+    <Class name="address_bar_edit" multi_line="false" auto_hscroll="true" rich_text="false" 
+                                   default_context_menu="true" select_all_on_focus="true"
+                                   want_return="false" want_ctrl_return="false" want_tab="false"
+                                   normal_text_color="default_font_color" 
+                                   disabled_text_color="disabled_font_color"
+                                   text_align="left,vcenter" text_padding="4,2,4,2"/>
+    <Class name="address_bar_sub_path_hbox" width="auto" height="100%"/>
+    <Class name="address_bar_sub_path_button" width="auto" height="100%" 
+                                              text_align="hcenter,vcenter" text_padding="4,2,4,2"
+                                              normal_text_color="default_font_color" 
+                                              disabled_text_color="disabled_font_color"
+                                              hot_color="#FFD7DCE0" 
+                                              pushed_color="#FFB0B4B8"/>
+    <Class name="address_bar_sub_path_root" padding="2,0,2,0" 
+                                            bkimage="file='public/address_bar/folder-root.svg' width='22' height='22' halign='center' valign='center'"/>
+    <Class name="address_bar_path_separator" width="auto" height="100%" margin="0,0,0,0"
+                                             bkimage="file='public/address_bar/filename-slash.svg' width='22' height='22' halign='center' valign='center'"/>
 </Global>

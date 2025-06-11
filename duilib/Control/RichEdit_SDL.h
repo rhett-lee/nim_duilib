@@ -489,6 +489,11 @@ public:
      */
     void AttachReturn(const EventCallback& callback) { AttachEvent(kEventReturn, callback); }
 
+    /** 监听ESC按键按下事件
+     * @param[in] callback 回车被按下的自定义回调函数
+     */
+    void AttachEsc(const EventCallback& callback) { AttachEvent(kEventEsc, callback); }
+
     /** 监听 TAB 按键按下事件
      * @param[in] callback TAB 被按下的自定义回调函数
      */
@@ -1044,6 +1049,10 @@ private:
     /** 更新滚动条的范围
     */
     void UpdateScrollRange();
+
+    /** 获得焦点时，全选
+    */
+    void CheckSelAllOnFocus();
 
 private:
     bool m_bWantTab;            //是否接收TAB键，如果为true的时候，TAB键会当作文本输入，否则过滤掉TAB键

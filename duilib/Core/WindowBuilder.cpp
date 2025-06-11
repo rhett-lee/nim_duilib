@@ -36,6 +36,7 @@
 #include "duilib/Control/PropertyGrid.h"
 #include "duilib/Control/TabCtrl.h"
 #include "duilib/Control/IconControl.h"
+#include "duilib/Control/AddressBar.h"
 
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
@@ -139,6 +140,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_TAB_CTRL, [](Window* pWindow) { return new TabCtrl(pWindow); }},
         {DUI_CTR_TAB_CTRL_ITEM, [](Window* pWindow) { return new TabCtrlItem(pWindow); }},
         {DUI_CTR_ICON_CONTROL, [](Window* pWindow) { return new IconControl(pWindow); }},
+        {DUI_CTR_ADDRESS_BAR, [](Window* pWindow) { return new AddressBar(pWindow); }},
 
         {DUI_CTR_SPLIT, [](Window* pWindow) { return new Split(pWindow); }},
         {DUI_CTR_SPLITBOX, [](Window* pWindow) { return new SplitBox(pWindow); }},

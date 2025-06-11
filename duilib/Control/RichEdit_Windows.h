@@ -416,6 +416,11 @@ public:
      */
     void AttachReturn(const EventCallback& callback) { AttachEvent(kEventReturn, callback); }
 
+    /** 监听ESC按键按下事件
+     * @param[in] callback 回车被按下的自定义回调函数
+     */
+    void AttachEsc(const EventCallback& callback) { AttachEvent(kEventEsc, callback); }
+
     /** 监听 TAB 按键按下事件
      * @param[in] callback TAB 被按下的自定义回调函数
      */
@@ -1061,6 +1066,10 @@ private:
      * @return 成功返回 true，否则返回 false
      */
     bool SetZoomOff();
+
+    /** 获得焦点时，全选
+    */
+    void CheckSelAllOnFocus();
 
 private:
     //RichEdit控制辅助工具类

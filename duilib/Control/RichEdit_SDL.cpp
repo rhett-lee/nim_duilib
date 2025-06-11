@@ -3241,6 +3241,8 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
     if (GetState() == kControlStateNormal) {
         SetState(kControlStateHot);
     }
+
+    CheckSelAllOnFocus();
     Invalidate();
     return true;
 }
@@ -3266,6 +3268,22 @@ bool RichEdit::OnKillFocus(const EventArgs& msg)
         m_pShowPasswordButton->SetFadeVisible(false);
     }
     return BaseClass::OnKillFocus(msg);
+}
+
+void RichEdit::CheckSelAllOnFocus()
+{
+    if (IsEnabled() && !m_bSelAllEver) {
+        m_bSelAllEver = true;
+        if (m_bSelAllOnFocus) {
+            SetSelAll();
+            if (IsMultiLine()) {
+                HomeUp();
+            }
+            else {
+                HomeLeft();
+            }
+        }
+    }
 }
 
 bool RichEdit::OnImeStartComposition(const EventArgs& /*msg*/)
@@ -3371,6 +3389,10 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
     }
     else if ((msg.vkCode == kVK_RETURN) || (msg.vkCode == kVK_TAB)) {
         OnInputChar(msg);
+    }
+    else if (msg.vkCode == kVK_ESCAPE) {
+        //ESC键
+        SendEvent(kEventEsc);
     }
     else if (msg.vkCode == kVK_DELETE) {
         //删除键：删除后一个字符
@@ -4031,19 +4053,7 @@ void RichEdit::OnLButtonUp(const UiPoint& /*ptMouse*/, Control* /*pSender*/)
     m_bMouseDown = false;
     m_pMouseSender = nullptr;
 
-    if (IsEnabled() && !m_bSelAllEver) {
-        m_bSelAllEver = true;
-        if (m_bSelAllOnFocus) {
-            SetSelAll();
-            if (IsMultiLine()) {
-                //多行模式
-                HomeUp();
-            }
-            else {
-                HomeLeft();
-            }
-        }
-    }
+    CheckSelAllOnFocus();
 }
 
 void RichEdit::OnLButtonDoubleClick(const UiPoint& ptMouse, Control* /*pSender*/)

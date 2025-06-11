@@ -41,9 +41,10 @@ void MainForm::OnInitWindow()
     if (m_pTree == nullptr) {
         return;
     }
-    m_pAddressBar = dynamic_cast<ui::RichEdit*>(FindControl(_T("file_path")));
+    m_pAddressBar = dynamic_cast<ui::AddressBar*>(FindControl(_T("file_path")));
     if (m_pAddressBar != nullptr) {
-        m_pAddressBar->AttachReturn(UiBind(&MainForm::OnAddressBarReturn, this, std::placeholders::_1));
+        m_pAddressBar->AttachPathChanged(UiBind(&MainForm::OnAddressBarPathChanged, this, std::placeholders::_1));
+        m_pAddressBar->AttachPathClick(UiBind(&MainForm::OnAddressBarPathClick, this, std::placeholders::_1));
     }
     m_pTabBox = dynamic_cast<ui::TabBox*>(FindControl(_T("main_view_tab_box")));
     ui::ListCtrl* pComputerListCtrl = dynamic_cast<ui::ListCtrl*>(FindControl(_T("computer_view")));
@@ -204,7 +205,7 @@ void MainForm::OnShowFolderContents(ui::TreeNode* pTreeNode, const ui::FilePath&
         return;
     }
     if (m_pAddressBar != nullptr) {
-        m_pAddressBar->SetText(path.ToString());
+        m_pAddressBar->SetAddressPath(path.ToString());
     }
     std::vector<ui::DirectoryTree::PathInfo> pathList;
     if (folderList != nullptr) {
@@ -251,7 +252,7 @@ void MainForm::OnShowMyComputerContents(ui::TreeNode* pTreeNode,
     }
     SwitchToTabBoxViewType(TabBoxViewType::kComputerView);
     if (m_pAddressBar != nullptr) {
-        m_pAddressBar->SetText(_T(""));
+        m_pAddressBar->SetAddressPath(_T(""));
     }
 
     //显示计算机视图的内容
@@ -281,15 +282,32 @@ void MainForm::SelectSubPath(const ui::FilePath& filePath)
     }
 }
 
-bool MainForm::OnAddressBarReturn(const ui::EventArgs& msg)
+bool MainForm::OnAddressBarPathChanged(const ui::EventArgs& msg)
 {
-    DString text;
     if (m_pAddressBar != nullptr) {
-        text = m_pAddressBar->GetText();
-        ui::StringUtil::Trim(text);
+        DString text = m_pAddressBar->GetAddressPath();
+        if (!OnShowAddressPath(text)) {
+            m_pAddressBar->SetAddressPath(m_pAddressBar->GetPreviousAddressPath());
+        }
     }
+    return true;
+}
+
+bool MainForm::OnAddressBarPathClick(const ui::EventArgs& msg)
+{
+    if (m_pAddressBar != nullptr) {
+        DString text = m_pAddressBar->GetClickedAddressPath();
+        OnShowAddressPath(text);
+    }
+    return true;
+}
+
+bool MainForm::OnShowAddressPath(const DString& newFilePath)
+{
+    DString text = newFilePath;
+    ui::StringUtil::Trim(text);
     if (text.empty()) {
-        return true;
+        return false;
     }
     ui::FilePath curFilePath;//当前树节点对应的目录
     ui::TreeNode* pTreeNode = m_pTreeNode;
@@ -319,14 +337,15 @@ bool MainForm::OnAddressBarReturn(const ui::EventArgs& msg)
                 m_pTree->SelectPath(inputFilePath, nullptr);
             }
         }
+        return true;
     }
     else {
         //如果文件夹不存在，报错
         DString errMsg = _T("输入的路径不存在：");
         errMsg += text;
         ui::SystemUtil::ShowMessageBox(this, errMsg.c_str(), _T("错误信息"));
+        return false;
     }
-    return true;
 }
 
 void MainForm::OnRefresh()
