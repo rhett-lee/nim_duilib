@@ -229,6 +229,8 @@
 | BoxDragable | Box | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 | HBoxDragable | HBox | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
 | VBoxDragable | VBoxDragable | [duilib/Control/ControlDragable.h](../duilib/Control/ControlDragable.h) | 支持相同Box内的子控件通过拖动来调整顺序 |
+| IconControl | Control | [duilib/Control/IconControl.h](../duilib/Control/IconControl.h) | 用于显示图标的控件，如果不设置图标数据，则兼容基类Control的所有功能|
+| AddressBar | HBox | [duilib/Control/AddressBar.h](../duilib/Control/AddressBar.h) | 地址栏控件，用于显示本地文件系统的路径 |
 
 * 全局资源
 

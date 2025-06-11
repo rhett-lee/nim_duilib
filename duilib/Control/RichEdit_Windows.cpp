@@ -1742,19 +1742,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
         return;
     }
     if (msg.eventType == kEventMouseButtonUp) {
-        if (IsEnabled() && !m_bSelAllEver) {
-            m_bSelAllEver = true;
-            if (m_bSelAllOnFocus) {
-                SetSelAll();
-                if (IsMultiLine()) {
-                    HomeUp();
-                }
-                else {
-                    HomeLeft();
-                }
-            }
-        }
-
+        CheckSelAllOnFocus();
         OnMouseMessage(WM_LBUTTONUP, msg);
         return;
     }
@@ -1824,6 +1812,8 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
     if (GetState() == kControlStateNormal) {
         SetState(kControlStateHot);
     }
+
+    CheckSelAllOnFocus();
     Invalidate();
     return true;
 }
@@ -1852,6 +1842,22 @@ bool RichEdit::OnKillFocus(const EventArgs& msg)
     }
 
     return BaseClass::OnKillFocus(msg);
+}
+
+void RichEdit::CheckSelAllOnFocus()
+{
+    if (IsEnabled() && !m_bSelAllEver) {
+        m_bSelAllEver = true;
+        if (m_bSelAllOnFocus) {
+            SetSelAll();
+            if (IsMultiLine()) {
+                HomeUp();
+            }
+            else {
+                HomeLeft();
+            }
+        }
+    }
 }
 
 bool RichEdit::OnChar(const EventArgs& msg)
@@ -2023,6 +2029,10 @@ bool RichEdit::OnKeyDown(const EventArgs& msg)
     WPARAM wParam = msg.wParam;
     LPARAM lParam = msg.lParam;
     m_richCtrl.TxSendMessage(WM_KEYDOWN, wParam, lParam);
+    if (msg.vkCode == kVK_ESCAPE) {
+        //按了ESC键
+        SendEvent(kEventEsc);
+    }
     return true;
 }
 
