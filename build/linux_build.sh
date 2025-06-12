@@ -1,12 +1,40 @@
 #!/bin/bash
 
 DUILIB_SRC_ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+SKIA_SRC_ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../skia" && pwd)
 echo "DUILIB_SRC_ROOT_DIR: $DUILIB_SRC_ROOT_DIR"
+echo "SKIA_SRC_ROOT_DIR: $SKIA_SRC_ROOT_DIR"
+
+# compiler flag
+has_gcc=0
+has_clang=0
+
+# gcc/g++
+if command -v gcc &> /dev/null && command -v g++ &> /dev/null; then
+    has_gcc=1
+fi
+
+# clang/clang++
+if command -v clang &> /dev/null && command -v clang++ &> /dev/null; then
+    has_clang=1
+fi
+
+if [ "$has_gcc$has_clang" == "00" ]; then
+    echo "- GCC/G++ not found in PATH"
+    echo "- Clang/Clang++ not found in PATH"
+    exit 1
+fi
 
 # 设置编译器
-DUILIB_CC=gcc
-DUILIB_CXX=g++
-DUILIB_COMPILER_ID=gcc
+if [ "$has_clang" -eq 1 ]; then
+    DUILIB_CC=clang
+    DUILIB_CXX=clang++
+    DUILIB_COMPILER_ID=llvm
+else
+    DUILIB_CC=gcc
+    DUILIB_CXX=g++
+    DUILIB_COMPILER_ID=gcc
+fi
 
 DUILIB_CMAKE="cmake -DCMAKE_C_COMPILER=$DUILIB_CC -DCMAKE_CXX_COMPILER=$DUILIB_CXX"
 DUILIB_MAKE="cmake --build"
@@ -32,7 +60,20 @@ else
     CPU_ARCH=x64
 fi
 
-DUILIB_SKIA_LIB_SUBPATH=llvm.${CPU_ARCH}.release
+# 检测skia的可用lib
+if [[ -d "${SKIA_SRC_ROOT_DIR}/out/llvm.${CPU_ARCH}.release" ]]; then
+    DUILIB_SKIA_LIB_SUBPATH=llvm.${CPU_ARCH}.release
+elif [[ -d "${SKIA_SRC_ROOT_DIR}/out/gcc.${CPU_ARCH}.release" ]]; then
+    DUILIB_SKIA_LIB_SUBPATH=gcc.${CPU_ARCH}.release
+else
+    DUILIB_SKIA_LIB_SUBPATH=llvm.${CPU_ARCH}.release
+fi
+
+if [[ ! -d "${SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}" ]]; then
+    echo "Please compile the skia first or run build_duilib_all_in_one.sh."
+    exit 1
+fi
+
 echo "DUILIB_SKIA_LIB_SUBPATH:${DUILIB_SKIA_LIB_SUBPATH}"
 
 # 编译临时目录

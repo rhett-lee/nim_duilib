@@ -1,7 +1,9 @@
 #!/bin/bash
 
 DUILIB_SRC_ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+SKIA_SRC_ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../skia" && pwd)
 echo "DUILIB_SRC_ROOT_DIR: $DUILIB_SRC_ROOT_DIR"
+echo "SKIA_SRC_ROOT_DIR: $SKIA_SRC_ROOT_DIR"
 
 # 设置编译器
 DUILIB_CC=clang
@@ -34,6 +36,10 @@ fi
 
 DUILIB_SKIA_LIB_SUBPATH=llvm.${CPU_ARCH}.release
 echo "DUILIB_SKIA_LIB_SUBPATH:${DUILIB_SKIA_LIB_SUBPATH}"
+if [[ ! -d "${SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}" ]]; then
+    echo "Please compile the skia first or run build_duilib_all_in_one.sh."
+    exit 1
+fi
 
 # 编译临时目录
 DUILIB_BUILD_DIR="$DUILIB_SRC_ROOT_DIR/build/build_temp/${DUILIB_COMPILER_ID}_build"
