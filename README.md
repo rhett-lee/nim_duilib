@@ -183,9 +183,7 @@ if %errorlevel% neq 0 (
     timeout /t %retry_delay% >nul
     goto retry_clone_duilib
 )
-
-copy /Y .\nim_duilib\build\build_duilib_all_in_one.bat .\
-.\build_duilib_all_in_one.bat
+.\nim_duilib\build\build_duilib_all_in_one.bat
 ```
 进入命令行控制台，运行该脚本： 
 ```
@@ -245,9 +243,8 @@ while true; do
     break
 done
 
-cp -f ./nim_duilib/build/build_duilib_all_in_one.sh ./
-chmod +x build_duilib_all_in_one.sh
-./build_duilib_all_in_one.sh
+chmod +x ./nim_duilib/build/build_duilib_all_in_one.sh
+./nim_duilib/build/build_duilib_all_in_one.sh
 ```
 编译完成的示例程序位于bin目录中。    
 备注：UOS系统，需要先安装所需的开发环境，然后再安装，可参考文档：[统信UOS下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/%E7%BB%9F%E4%BF%A1UOS%E4%B8%8B%E7%BC%96%E8%AF%91skia.md)。
@@ -361,9 +358,8 @@ while true; do
     break
 done
 
-cp -f ./nim_duilib/build/build_duilib_all_in_one.sh ./
-chmod +x build_duilib_all_in_one.sh
-./build_duilib_all_in_one.sh
+chmod +x ./nim_duilib/build/build_duilib_all_in_one.sh
+./nim_duilib/build/build_duilib_all_in_one.sh
 ```
 编译完成的示例程序位于bin目录中。    
 
@@ -430,9 +426,8 @@ while true; do
     break
 done
 
-cp -f ./nim_duilib/build/build_duilib_all_in_one.sh ./
-chmod +x build_duilib_all_in_one.sh
-./build_duilib_all_in_one.sh
+chmod +x ./nim_duilib/build/build_duilib_all_in_one.sh
+./nim_duilib/build/build_duilib_all_in_one.sh
 ```
 编译完成的示例程序位于bin目录中。
 
