@@ -47,20 +47,30 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")  # Linux
     set(CEF_LIB_DIR "libcef_linux")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows
     set(CEF_LIB_DIR "libcef_win")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")  # FreeBSD
+    message(WARNING "CEF is not supported on FreeBSD - building without CEF support")
+    set(CEF_LIB_DIR "")  # Empty or set to a dummy value
 else()
     message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
 endif()
 
-#设置include目录
+# Set include directories
 get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../" ABSOLUTE)
-get_filename_component(CEF_INCLUDE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/${CEF_LIB_DIR}/" ABSOLUTE)
 get_filename_component(SKIA_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../skia/" ABSOLUTE)
 get_filename_component(SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
 
+# Always include these directories
 include_directories(${DUILIB_SRC_ROOT_DIR})
-include_directories(${CEF_INCLUDE_ROOT_DIR})
 include_directories(${SKIA_SRC_ROOT_DIR})
 include_directories("${SDL_SRC_ROOT_DIR}/include")
+
+# Conditionally include CEF directory
+if(CEF_LIB_DIR AND NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    get_filename_component(CEF_INCLUDE_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/third_party/${CEF_LIB_DIR}/" ABSOLUTE)
+    include_directories(${CEF_INCLUDE_ROOT_DIR})
+else()
+    message(STATUS "CEF includes disabled - not supported on this platform")
+endif()
 
 #设置库文件的输出目录
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
@@ -77,8 +87,15 @@ aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Render RENDER_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/RenderSkia RENDER_SKIA_SRC)
 aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/Utils UTILS_SRC)
 
-aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl CEF_CONTROL_SRC)
-aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl/internal CEF_CONTROL_INTERNAL_SRC)
+# Only include CEF sources on supported platforms (Windows, Linux, macOS)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl CEF_CONTROL_SRC)
+    aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/CEFControl/internal CEF_CONTROL_INTERNAL_SRC)
+    list(APPEND PROJECT_SOURCES ${CEF_CONTROL_SRC} ${CEF_CONTROL_INTERNAL_SRC})
+    message(STATUS "CEF support enabled (${CMAKE_SYSTEM_NAME})")
+else()
+    message(STATUS "CEF support disabled (FreeBSD is not supported)")
+endif()
 
 # 非MacOS平台，删除mm文件，避免出现编译错误
 if(NOT DUILIB_SRC_MACOS)
@@ -149,32 +166,52 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     )
 endif()
 
-add_library(${PROJECT_NAME}
-    	    ${DIR_LIB_SRC}
-    	    ${ANIMATION_SRC}
-    	    ${BOX_SRC}
-    	    ${CONTROL_SRC}
-    	    ${CORE_SRC}
-            ${IMAGE_SRC}
-    	    ${RENDER_SRC}
-    	    ${RENDER_SKIA_SRC}
-    	    ${UTILS_SRC}
-    	    ${CEF_CONTROL_SRC}
-    	    ${CEF_CONTROL_INTERNAL_SRC}
-    	    ${CEF_CONTROL_INTERNAL_WINDOWS_SRC}
-    	    ${APNG_SRC}
-    	    ${STB_SRC}
-    	    ${SVG_SRC}
-    	    ${UTF_SRC}
-    	    ${XML_SRC}
-    	    ${UNZIP_HDRS}
-    	    ${UNZIP_SRCS}
-    	    ${SKIA_HDRS}
-    	    ${SKIA_SRCS}
-    	    ${SKIA_WGL_SRCS}
-    	    ${UDIS_HDRS}
-    	    ${UDIS_SRCS}
-           )
+# Define the base sources (always included)
+set(LIBRARY_SOURCES
+    ${DIR_LIB_SRC}
+    ${ANIMATION_SRC}
+    ${BOX_SRC}
+    ${CONTROL_SRC}
+    ${CORE_SRC}
+    ${IMAGE_SRC}
+    ${RENDER_SRC}
+    ${RENDER_SKIA_SRC}
+    ${UTILS_SRC}
+    ${APNG_SRC}
+    ${STB_SRC}
+    ${SVG_SRC}
+    ${UTF_SRC}
+    ${XML_SRC}
+    ${UNZIP_HDRS}
+    ${UNZIP_SRCS}
+    ${SKIA_HDRS}
+    ${SKIA_SRCS}
+    ${SKIA_WGL_SRCS}
+    ${UDIS_HDRS}
+    ${UDIS_SRCS}
+)
+
+# Only include CEF sources on supported platforms (Windows, Linux, macOS)
+if(NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    list(APPEND LIBRARY_SOURCES
+        ${CEF_CONTROL_SRC}
+        ${CEF_CONTROL_INTERNAL_SRC}
+        ${CEF_CONTROL_INTERNAL_WINDOWS_SRC}
+    )
+    message(STATUS "CEF support enabled (${CMAKE_SYSTEM_NAME})")
+else()
+    message(STATUS "CEF support disabled (FreeBSD is not supported)")
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+    find_package(Freetype REQUIRED)
+    find_package(Fontconfig REQUIRED)
+    add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
+    target_link_libraries(${PROJECT_NAME} Freetype::Freetype Fontconfig::Fontconfig)
+else()
+    # Create the library with the filtered sources
+    add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
+endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     # 由于Skia内部会自动开启AVX/AVX2等编译参数，duilib内部直接引用了部分源码，需要保持编译选项一致

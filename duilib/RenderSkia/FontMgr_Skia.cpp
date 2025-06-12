@@ -198,9 +198,8 @@ FontMgr_Skia::FontMgr_Skia()
 #elif defined(SK_BUILD_FOR_MAC) 
     // macOS/iOS系统
     m_impl->m_pSkFontMgr = SkFontMgr_New_CoreText(nullptr);  // 使用nullptr表示系统默认字体集
-
 #else
-    //Linux系统
+    //Linux系统, FreeBSD系统
     m_impl->m_pSkFontMgr = SkFontMgr_New_FontConfig(nullptr);
 #endif
 

@@ -24,7 +24,7 @@
 #if defined(DUILIB_BUILD_FOR_WIN)
     //Windows平台：wchar_t是2字节(UTF-16)
     #define WCHAR_T_IS_UTF16
-#elif defined(DUILIB_BUILD_FOR_LINUX) || defined(DUILIB_BUILD_FOR_MACOS)
+#elif defined(DUILIB_BUILD_FOR_LINUX) || defined(DUILIB_BUILD_FOR_MACOS) || defined(DUILIB_BUILD_FOR_FREEBSD)
     #if defined(__GNUC__)
         #if defined(__WCHAR_MAX__)
             #if (__WCHAR_MAX__ == 0x7fffffff || __WCHAR_MAX__ == 0xffffffff)

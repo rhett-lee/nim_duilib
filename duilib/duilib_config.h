@@ -22,6 +22,10 @@
         //是否使用SDL的窗口和鼠标键盘事件（目前只支持SDL3）
         #define DUILIB_BUILD_FOR_SDL    1
     #endif
+#elif defined(__FreeBSD__)
+    #define DUILIB_BUILD_FOR_FREEBSD  1
+    //是否使用SDL的窗口和鼠标键盘事件（目前只支持SDL3）
+    #define DUILIB_BUILD_FOR_SDL  1
 #else
     //不支持的系统
     #pragma message("Unknown Platform!")
@@ -80,6 +84,16 @@
 
 #elif defined DUILIB_BUILD_FOR_MACOS
     #include "duilib_config_macos.h"
+    #include <cassert>
+
+    #ifdef _DEBUG
+        #define ASSERT(expr)  assert(expr)
+    #else
+        #define ASSERT(expr)  ((void)(0))
+    #endif
+
+#elif defined DUILIB_BUILD_FOR_FREEBSD
+    #include "duilib_config_freebsd.h"
     #include <cassert>
 
     #ifdef _DEBUG
