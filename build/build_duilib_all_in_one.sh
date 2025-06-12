@@ -4,7 +4,6 @@
 
 CURRENT_DIR=$(pwd)
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-cd "$SCRIPT_DIR"
 
 CPU_ARCH_STR=$(uname -m)
 if [ "$CPU_ARCH_STR" = "x86_64" ] || [ "$CPU_ARCH_STR" = "amd64" ]; then
@@ -101,6 +100,7 @@ is_windows() {
     esac
 }
 
+cd "$SCRIPT_DIR"
 pwd
 if [ ! -d "./nim_duilib/.git" ]; then
     if [ -d "../../nim_duilib/.git" ]; then
@@ -127,6 +127,7 @@ clone_nim_duilib() {
 clone_nim_duilib
 if [ ! -d "./nim_duilib/.git" ]; then
     echo "clone nim_duilib failed!"
+    cd "$CURRENT_DIR"
     exit 1
 fi
 
@@ -147,6 +148,7 @@ clone_skia() {
 clone_skia
 if [ ! -d "./skia/.git" ]; then
     echo "clone skia failed!"
+    cd "$CURRENT_DIR"
     exit 1
 fi
 
@@ -165,6 +167,7 @@ clone_skia_compile() {
 clone_skia_compile
 if [ ! -d "./skia_compile/.git" ]; then
     echo "clone skia_compile failed!"
+    cd "$CURRENT_DIR"
     exit 1
 fi
 
@@ -186,6 +189,7 @@ if ! is_windows; then
     clone_SDL
     if [ ! -d "./SDL/.git" ]; then
         echo "clone SDL failed!"
+        cd "$CURRENT_DIR"
         exit 1
     fi
 fi
@@ -193,6 +197,7 @@ fi
 SKIA_PATCH_SRC_ZIP=skia.2025-06-06.src.zip
 if [ ! -f "./skia_compile/$SKIA_PATCH_SRC_ZIP" ]; then
     echo "./skia_compile/$SKIA_PATCH_SRC_ZIP not found!"
+    cd "$CURRENT_DIR"
     exit 1
 fi
 
@@ -200,6 +205,7 @@ cd skia
 git checkout 290495056ba5b737330ae7f2e6e722eeda9526f8
 if [ $? -ne 0 ]; then
     echo "git checkout skia failed!"
+    cd "$CURRENT_DIR"
     exit 1
 fi
 cd ..

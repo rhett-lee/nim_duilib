@@ -6,6 +6,11 @@
 
 @for %%i in ("%~dp0..\") do set "bat_parent_dir=%%~fi"
 SET DUILIB_SRC_ROOT_DIR=%bat_parent_dir%
+echo DUILIB_SRC_ROOT_DIR: "%DUILIB_SRC_ROOT_DIR%"
+
+@for %%i in ("%~dp0..\..\skia") do set "bat_parent_dir=%%~fi"
+SET SKIA_SRC_ROOT_DIR=%bat_parent_dir%
+echo SKIA_SRC_ROOT_DIR: "%SKIA_SRC_ROOT_DIR%"
 
 @REM # 设置编译器
 SET DUILIB_COMPILER_ID=msvc
@@ -22,6 +27,11 @@ if "%CPU_ARCH%"=="" (
 )
 SET DUILIB_SKIA_LIB_SUBPATH=llvm.%CPU_ARCH%.release
 echo "DUILIB_SKIA_LIB_SUBPATH:%DUILIB_SKIA_LIB_SUBPATH%"
+
+if not exist "%SKIA_SRC_ROOT_DIR%\out\%DUILIB_SKIA_LIB_SUBPATH%" (
+    echo "Please compile the skia first or run build_duilib_all_in_one.bat."
+    exit /b 1
+)
 
 if "%CPU_ARCH%"=="x86" (
     SET DUILIB_CMAKE=%DUILIB_CMAKE% -A Win32
