@@ -579,13 +579,9 @@ std::vector<int32_t> AddressBar::AdjustControlsWidth(const std::vector<int32_t>&
 
     // 找出需要调整的控件(大于平均宽度的)
     std::vector<size_t> adjustIndices;
-    int32_t fixedSum = 0;
     for (size_t i = 0; i < originalWidths.size(); ++i) {
         if (originalWidths[i] > avgWidth) {
             adjustIndices.push_back(i);
-        }
-        else {
-            fixedSum += originalWidths[i];
         }
     }
 
@@ -599,6 +595,9 @@ std::vector<int32_t> AddressBar::AdjustControlsWidth(const std::vector<int32_t>&
     int32_t largeSum = 0;
     for (auto idx : adjustIndices) {
         largeSum += originalWidths[idx];
+    }
+    if (largeSum <= 0) {
+        return originalWidths;  // 不需要缩减
     }
 
     // 按比例缩减大控件
