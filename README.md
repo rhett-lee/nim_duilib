@@ -402,7 +402,7 @@ chmod +x macos_build.sh
 ## 获取代码和编译（FreeBSD平台）
 ### 一、准备工作：安装必备的软件
 ```
-sudo pkg install git unzip python3 cmake ninja gn llvm
+sudo pkg install git unzip python3 cmake ninja gn llvm fontconfig freetype2
 ```
 ### 二、一键编译（推荐）
 选定一个工作目录，创建一个脚本`build.sh`，将下面已经整理好脚本复制进去，保存文件。    
