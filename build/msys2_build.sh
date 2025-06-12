@@ -70,7 +70,7 @@ else
 fi
 
 if [[ ! -d "${SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}" ]]; then
-    echo "Please compile the skia first or run build_ruilib_all_in_one.sh."
+    echo "Please compile the skia first or run build_duilib_all_in_one.sh."
     exit 1
 fi
 

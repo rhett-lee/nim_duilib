@@ -102,7 +102,7 @@ is_windows() {
 }
 
 pwd
-f [ ! -d "./nim_duilib/.git" ]; then
+if [ ! -d "./nim_duilib/.git" ]; then
     if [ -d "../../nim_duilib/.git" ]; then
         cd ../../
     fi
