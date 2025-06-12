@@ -261,7 +261,7 @@ elif [ "$(uname -s)" == "FreeBSD" ]; then
     echo "FreeBSD"
     chmod +x ./nim_duilib/build/freebsd_build.sh
     ./nim_duilib/build/freebsd_build.sh
-else if is_windows; then
+elif is_windows; then
     echo "Windows"
     ./nim_duilib/build/msys2_build.sh
 else
