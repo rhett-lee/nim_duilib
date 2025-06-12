@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+# Linux / MacOS / FreeBSD / MSYS2(Windows)
+
+CURRENT_DIR=$(pwd)
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+cd "$SCRIPT_DIR"
+
 CPU_ARCH_STR=$(uname -m)
 if [ "$CPU_ARCH_STR" = "x86_64" ] || [ "$CPU_ARCH_STR" = "amd64" ]; then
     CPU_ARCH=x64
@@ -10,7 +16,11 @@ elif [ "$CPU_ARCH_STR" = "armv7l" ]; then
 elif [ "$CPU_ARCH_STR" = "i386" ] || [ "$CPU_ARCH_STR" = "i686" ]; then
     CPU_ARCH=x86
 else
-    CPU_ARCH=arm64
+    if [ "$(uname -s)" == "Darwin" ]; then
+        CPU_ARCH=arm64
+    else
+        CPU_ARCH=x64
+    fi
 fi
 
 # Checking the necessary software
@@ -78,6 +88,26 @@ if [ "$has_gcc$has_clang" == "00" ]; then
     echo "- Clang/Clang++ not found in PATH"
     exit 1
 fi
+
+# check windows
+is_windows() {
+    case "$(uname -s)" in
+        CYGWIN*|MINGW32*|MSYS*|MINGW*)
+            return 0  # Windows
+            ;;
+        *)
+            return 1  # Not Windows
+            ;;
+    esac
+}
+
+pwd
+f [ ! -d "./nim_duilib/.git" ]; then
+    if [ -d "../../nim_duilib/.git" ]; then
+        cd ../../
+    fi
+fi
+pwd
 
 start_time=$(date +%s)
 retry_delay=10
@@ -150,10 +180,14 @@ clone_SDL() {
         clone_SDL
     fi
 }
-clone_SDL
-if [ ! -d "./SDL/.git" ]; then
-    echo "clone SDL failed!"
-    exit 1
+
+if ! is_windows; then
+    # clone SDL
+    clone_SDL
+    if [ ! -d "./SDL/.git" ]; then
+        echo "clone SDL failed!"
+        exit 1
+    fi
 fi
 
 SKIA_PATCH_SRC_ZIP=skia.2025-06-06.src.zip
@@ -211,10 +245,12 @@ else
     fi
 fi
 
-# build SDL
-cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release 
-cmake --build ./SDL.build
-cmake --install ./SDL.build
+if ! is_windows; then
+    # build SDL on Linux/MacOS
+    cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release 
+    cmake --build ./SDL.build
+    cmake --install ./SDL.build
+fi
 
 # build nim_duilib
 if [ "$(uname -s)" == "Darwin" ]; then
@@ -225,12 +261,16 @@ elif [ "$(uname -s)" == "FreeBSD" ]; then
     echo "FreeBSD"
     chmod +x ./nim_duilib/build/freebsd_build.sh
     ./nim_duilib/build/freebsd_build.sh
+else if is_windows; then
+    echo "Windows"
+    ./nim_duilib/build/msys2_build.sh
 else
     echo "Linux"
     chmod +x ./nim_duilib/build/linux_build.sh
     ./nim_duilib/build/linux_build.sh
 fi
 
+cd "$CURRENT_DIR"
 echo
 
 end_time=$(date +%s)

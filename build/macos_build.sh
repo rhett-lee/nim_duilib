@@ -20,7 +20,7 @@ DUILIB_BUILD_TYPE=Release
 CPU_ARCH_STR=$(uname -m)
 
 # 转换为标准架构标识
-if [ "$CPU_ARCH_STR" = "x86_64" ]; then
+if [ "$CPU_ARCH_STR" = "x86_64" ] || [ "$CPU_ARCH_STR" = "amd64" ]; then
     CPU_ARCH=x64
 elif [ "$CPU_ARCH_STR" = "aarch64" ] || [ "$CPU_ARCH_STR" = "arm64" ]; then
     CPU_ARCH=arm64
