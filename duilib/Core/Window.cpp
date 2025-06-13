@@ -167,21 +167,19 @@ bool Window::SetWindowIcon(const DString& iconFilePath)
         return false;
     }
     bool bRet = false;
-    const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), GetResourcePath());
-    FilePath iconFullPath = FilePathUtil::JoinFilePath(windowResFullPath, FilePath(iconFilePath));
-    iconFullPath.NormalizeFilePath();
-    if (GlobalManager::Instance().Zip().IsUseZip()) {
+    FilePath iconFullPath = GlobalManager::Instance().GetExistsResFullPath(GetResourcePath(), GetXmlPath(), FilePath(iconFilePath));
+    ASSERT(!iconFullPath.IsEmpty());
+    if (iconFullPath.IsEmpty()) {
+        return false;
+    }
+    if (GlobalManager::Instance().Zip().IsUseZip() &&
+        GlobalManager::Instance().Zip().IsZipResExist(iconFullPath)) {
         //使用压缩包
-        if (GlobalManager::Instance().Zip().IsZipResExist(iconFullPath)) {
-            std::vector<uint8_t> fileData;
-            GlobalManager::Instance().Zip().GetZipData(iconFullPath, fileData);
-            ASSERT(!fileData.empty());
-            if (!fileData.empty()) {
-                bRet = WindowBase::SetWindowIcon(fileData, iconFilePath);
-            }
-        }
-        else {
-            ASSERT(false);
+        std::vector<uint8_t> fileData;
+        GlobalManager::Instance().Zip().GetZipData(iconFullPath, fileData);
+        ASSERT(!fileData.empty());
+        if (!fileData.empty()) {
+            bRet = WindowBase::SetWindowIcon(fileData, iconFilePath);
         }
     }
     else {

@@ -5,7 +5,7 @@
   <TextColor name="color_picker_box_bkcolor" value="#FFF9F9F9"/>
   <Class name="color_picker_tab_option" width="48" height="32" font="system_14" normal_text_color="black" text_align="hcenter,vcenter" normal_color="#FFE6E6E6" hot_color="#FFE3E3E3" selected_normal_color="color_picker_box_bkcolor"/>
   <Class name="color_picker_color_edit" text_padding="4,0,4,0" width="36" margin="2,0,0,0" default_context_menu="true" number_only="true" limit_text="3" valign="center" text_align="vcenter" bkcolor="white" border_size="1" border_color="light_gray"/>
-  <Class name="color_picker_slider_horizontal" horizontal="true" width="stretch" height="21" margin="4,0,4,0" bkcolor="white" value="0" valign="center" thumbsize="20,20" min="0" max="255" progress_bar_padding="0,2,0,2" thumb_normal_image="file='../public/color/slider_thumb.svg' valign='center'"/>
+  <Class name="color_picker_slider_horizontal" horizontal="true" width="stretch" height="21" margin="4,0,4,0" bkcolor="white" value="0" valign="center" thumbsize="20,20" min="0" max="255" progress_bar_padding="0,2,0,2" thumb_normal_image="file='public/color/slider_thumb.svg' valign='center'"/>
     
   <VBox bkcolor="bk_wnd_darkcolor" bordersize="1" bordercolor="lightcolor" visible="true">
     
@@ -130,7 +130,7 @@
                     <VBox margin="2,2,2,2" height="150">
                         <Button class="btn_global_color_gray" name="color_picker_ok" width="80" height="30" text="确定" halign="center" margin="2,6,2,2"/>
                         <Button class="btn_global_color_gray" name="color_picker_cancel" width="80" height="30" text="取消" halign="center" margin="2,2,2,2"/>
-                        <Button class="btn_global_color_gray" name="color_picker_choose" width="80" height="30" text="选择" halign="center" margin="2,2,2,2" bkimage="file='../public/color/dropper.png' halign='left' valign='center' width='20' height='20' padding='4,0,0,0'"/>
+                        <Button class="btn_global_color_gray" name="color_picker_choose" width="80" height="30" text="选择" halign="center" margin="2,2,2,2" bkimage="file='public/color/dropper.png' halign='left' valign='center' width='20' height='20' padding='4,0,0,0'"/>
                         <CheckBox class="checkbox_font14" name="color_picker_choose_hide" height="20" text="隐藏本窗口" halign="center" margin="2,2,2,2" selected="true"/>
                     </VBox>
                     <VBox margin="2,6,2,2">                        

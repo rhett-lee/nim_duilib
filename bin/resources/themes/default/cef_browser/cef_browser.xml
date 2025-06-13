@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Window size="75%,90%" min_size="800,500" caption="0,0,0,36" size_box="4,4,4,4" textid="STRID_CEF_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="true" icon="../public/caption/logo.ico">
+<Window size="75%,90%" min_size="800,500" caption="0,0,0,36" size_box="4,4,4,4" textid="STRID_CEF_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="true" icon="public/caption/logo.ico">
 <!--新建标签按钮：纯色按钮-->
 <Class name="tab_item_new_add_btn" font="system_18" text_align="hcenter,vcenter" valign="center" 
                                    normal_text_color="black" 
@@ -12,7 +12,7 @@
 <VBox bkcolor="bk_wnd_lightcolor">
     <HBox name="title_bar" width="stretch" height="36" bkcolor="#FFD3E3FD">
         <!-- 图标区域 -->
-        <Control width="36" height="36" bkimage="file='../public/caption/logo.ico' width='22' height='22' halign='center' valign='center'"/>
+        <Control width="36" height="36" bkimage="file='public/caption/logo.ico' width='22' height='22' halign='center' valign='center'"/>
         
         <!-- 竖线区域 -->
         <Control class="tab_ctrl_left_line" padding="0,6,0,6" margin="0,0,2,0"/>
