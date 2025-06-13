@@ -6,7 +6,7 @@
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
             <!-- 标题栏：窗口左上角显示区域 -->  
             <HBox margin="0,0,30,0" valign="center" width="auto" height="auto">
-                <Control width="auto" height="auto" bkimage="logo_18x18.png" valign="center" margin="8,0,0,0"/>
+                <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0"/>
                 <Label text="渲染引擎测试" valign="center" margin="8,0,0,0"/>
             </HBox>
             <Control />            
