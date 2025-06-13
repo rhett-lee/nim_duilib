@@ -13,7 +13,7 @@
                 <Slider class="slider_green"    name="progress13" reverse="false" height="14" width="stretch" min="0" max="100" value="0" progress_bar_padding="0,4,0,4" margin="20,20,20,20"  tooltip_text="ui::Slider"/>
                 <CircleProgress                 name="progress14" reverse="false" circular="true" height="80" width="80"
                                 circle_width="10" bgcolor="gray" fgcolor="green" gradient_color="red" clockwise="true"  min="0" max="100" value="0" margin="20,20,20,20"
-                                text_padding="10,32,10,10" normal_text_color="darkcolor" indicator="file='logo_18x18.png' width='70%'" tooltip_text="ui::CircleProgress"/>
+                                text_padding="10,32,10,10" normal_text_color="darkcolor" indicator="file='public/progress/indicator.svg' width='14' height='14'" tooltip_text="ui::CircleProgress"/>
             </VBox>
             <HBox valign="center" halign="center" width="50%" height="100%">
                 <!-- 垂直进度条 -->
@@ -22,7 +22,7 @@
                 <Slider class="slider_green"    name="progress23" reverse="false" height="stretch" width="14" min="0" max="100" value="0" progress_bar_padding="4,0,4,0" margin="20,20,20,20" horizontal="false" tooltip_text="ui::Slider"/>
                 <CircleProgress                 name="progress24" reverse="false" circular="true" height="80" width="80" horizontal="false" 
                                 circle_width="10" bgcolor="gray" fgcolor="green" gradient_color="red" clockwise="true" min="0" max="100" value="0" margin="20,20,20,20"
-                                text_padding="10,32,10,10" normal_text_color="darkcolor" indicator="file='logo_18x18.png' width='70%'" tooltip_text="ui::CircleProgress"/>
+                                text_padding="10,32,10,10" normal_text_color="darkcolor" indicator="file='public/progress/indicator.svg' width='14' height='14'" tooltip_text="ui::CircleProgress"/>
             </HBox>            
         </HBox>
         <Control />

@@ -118,8 +118,6 @@
     <TextColor name="grid_sel_fore" value="#ff20b0fb"/>
     <!--字体大小-->
     <Class name="font_title" font="system_14"/>
-    <!--标题栏-->
-    <Class name="caption" height="34" bkimage="file='public/caption/caption_public.png' corner='0,0,0,1'" padding="10,0,5,0" />
     <!--滚动条-->
     <Class name="vscrollbar" width="14" fadealpha="true" 
            thumb_normal_image="file='public/vscrollbar/thumb_normal.png' corner='0,8,0,8'" 
@@ -170,7 +168,7 @@
     <Class name="combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
                         combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                         combo_tree_node_class="tree_node" 
-                        combo_icon_class="bkimage='public/caption/logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
+                        combo_icon_class="bkimage='public/caption/logo.svg' width='18' height='18' valign='center' margin='2,0,2,0'" 
                         combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"
                         combo_button_class="height={stretch} width={auto} margin={1,0,0,0} padding={1,0,0,0} border_size={1,0,0,0} valign={center} 
                                             hot_border_color={blue} 
@@ -182,7 +180,7 @@
     <Class name="filter_combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
                                combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
                                combo_tree_node_class="tree_node" 
-                               combo_icon_class="bkimage='public/caption/logo_18x18.png' width='auto' height='auto' valign='center' margin='2,0,2,0'" 
+                               combo_icon_class="bkimage='public/caption/logo.svg' width='18' height='18' valign='center' margin='2,0,2,0'" 
                                combo_edit_class="bkcolor='white' text_align='vcenter' text_padding='2,0,2,0' single_line='true' word_wrap='false' auto_hscroll='true'"/>
     <Class name="check_combo" bordersize="1" bordercolor="splitline_level1" 
                               dropbox="padding='1,1,1,1' bkcolor='bk_wnd_lightcolor' border_color='splitline_level1' border_size='1,1,1,1' vscrollbar='true'"

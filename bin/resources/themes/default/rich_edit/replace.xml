@@ -2,7 +2,7 @@
 <Window size="500,248" caption="0,0,0,35" text="替换" use_system_caption="false" shadow_attached="true" layered_window="true">
     <VBox bkcolor="bk_wnd_darkcolor">
         <HBox name="window_caption_bar" width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
-            <Control width="auto" height="auto" bkimage="logo_18x18.png" valign="center" margin="8"/>
+            <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
             <Label text="替换" valign="center" margin="8"/>
             <Control />
             <Button class="btn_wnd_close" name="closebtn" margin="4,6,8,0"/>
