@@ -20,8 +20,8 @@
                 </HBox>
             </GroupVBox>
             <HBox height="auto">
-                <CheckBox class="checkbox_font12" name="check_box_case_sensitive" text="区分大小写" valign="center" margin="8,8,8,0" selected="true"/>
-                <CheckBox class="checkbox_font12" name="check_box_match_whole_word" text="全字匹配" valign="center" margin="8,8,8,0" selected="false"/>
+                <CheckBox class="checkbox_1" name="check_box_case_sensitive" text="区分大小写" valign="center" margin="8,8,8,0" selected="true"/>
+                <CheckBox class="checkbox_1" name="check_box_match_whole_word" text="全字匹配" valign="center" margin="8,8,8,0" selected="false"/>
                 <Control />
                 <Button class="btn_global_white_80x30" name="btn_cancel" text="取消" width="80" height="28" margin="4,8,8,0"/>
             </HBox>

@@ -22,7 +22,7 @@
                     <TreeNode class="tree_node" padding="4" text="Icon" user_dataid="1"/>
                     <TreeNode class="tree_node" padding="4" text="List" user_dataid="2"/>
                 </Combo>
-                <CheckBox class="checkbox_font14" name="checkbox_multi_select" text="支持多选" margin="4,0,0,0" valign="center">
+                <CheckBox class="checkbox_1" name="checkbox_multi_select" text="支持多选" margin="4,0,0,0" valign="center">
                     <Event type="select" receiver="list_ctrl" applyattribute="multi_select={true}" />
                     <Event type="unselect" receiver="list_ctrl" applyattribute="multi_select={false}" />
                 </CheckBox>
@@ -54,23 +54,23 @@
                         <Label text="列的控制：" valign="center" margin="2,0,2,0"/>                
                         <Combo class="combo" name="column_combo" combo_type="drop_list" dropbox_size="0,300" combo_icon_class="" height="26" width="80" margin="0,0,0,1" valign="center"/>              
                         <Line vertical="true" margin="8,4,4,4" width="2"/>
-                        <CheckBox class="checkbox_font14" name="checkbox_column_show" text="显示该列" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_font14" name="checkbox_column_width" text="可调整列宽" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_font14" name="checkbox_column_sort" text="可排序" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_font14" name="checkbox_column_icon_at_top" text="排序图标在上方" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_font14" name="checkbox_column_drag_order" text="可拖动调序" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_font14" name="checkbox_column_editable" text="可编辑文本" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_1" name="checkbox_column_show" text="显示该列" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_1" name="checkbox_column_width" text="可调整列宽" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_1" name="checkbox_column_sort" text="可排序" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_1" name="checkbox_column_icon_at_top" text="排序图标在上方" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_1" name="checkbox_column_drag_order" text="可拖动调序" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_1" name="checkbox_column_editable" text="可编辑文本" margin="4,0,0,0" valign="center"/>
                     </HBox>
                     <HBox minheight="18" bkcolor="bk_wnd_darkcolor" height="auto" margin="4,0,4,0">
                         <Control width="153"/>
                         <Line vertical="true" margin="8,2,4,2" width="2"/>
                         <Label text="列级CheckBox：" valign="center" margin="2,0,2,0" tooltip_text="每一列的表头和表格可以显示CheckBox"/>
-                        <CheckBox class="checkbox_font14" name="checkbox_column_show_header_checkbox" text="在表头显示" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_font14" name="checkbox_column_show_checkbox" text="在每列显示" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_1" name="checkbox_column_show_header_checkbox" text="在表头显示" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_1" name="checkbox_column_show_checkbox" text="在每列显示" margin="4,0,0,0" valign="center"/>
                         <Line vertical="true" margin="8,2,4,2" width="2"/>
                         <Label text="列级图标：" valign="center" margin="2,0,2,0" tooltip_text="每一列的表头和表格可以显示图标"/>
-                        <CheckBox class="checkbox_font14" name="checkbox_column_show_header_icon" text="在表头显示" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_font14" name="checkbox_column_show_icon" text="在每列显示" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_1" name="checkbox_column_show_header_icon" text="在表头显示" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_1" name="checkbox_column_show_icon" text="在每列显示" margin="4,0,0,0" valign="center"/>
                     </HBox>
                     <HBox minheight="18" bkcolor="bk_wnd_darkcolor" height="auto" margin="4,0,4,0">
                         <Control width="153"/>
@@ -111,11 +111,11 @@
                         <Control width="153"/>
                         <Line vertical="true" margin="8,2,4,2" width="2"/>
                         <Label text="行级CheckBox：" valign="center" margin="2,0,2,0" tooltip_text="每一行（行首）的表头和表格可以显示CheckBox"/>
-                        <CheckBox class="checkbox_font14" name="checkbox_show_header_checkbox" text="在表头显示" margin="4,0,0,0" valign="center"/>
-                        <CheckBox class="checkbox_font14" name="checkbox_show_checkbox" text="在行首显示" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_1" name="checkbox_show_header_checkbox" text="在表头显示" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_1" name="checkbox_show_checkbox" text="在行首显示" margin="4,0,0,0" valign="center"/>
                         <Line vertical="true" margin="8,2,4,2" width="2"/>
                         <Label text="行级图标：" valign="center" margin="2,0,2,0" tooltip_text="每一行（行首）的表头和表格可以显示图标"/>
-                        <CheckBox class="checkbox_font14" name="checkbox_show_icon" text="在行首显示" margin="4,0,0,0" valign="center"/>
+                        <CheckBox class="checkbox_1" name="checkbox_show_icon" text="在行首显示" margin="4,0,0,0" valign="center"/>
                     </HBox>
                 </GroupVBox>
                 <VBox>

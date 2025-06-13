@@ -29,7 +29,7 @@
                     <Box border_size="1" border_color="splitline_level1" width="80"  height="26">
                         <RichEdit name="edit_column" margin="10,0,10,0"  font="system_14" width="stretch" height="auto" valign="center" normal_text_color="black" multiline="false" prompt_mode="true" prompt_text="列数" text_align="vcenter,hcenter" text="3" prompt_color="splitline_level1" auto_hscroll="true" />                  
                     </Box>
-                    <CheckBox class="checkbox_font12" name="checkbox_item_center" text="列表居中" margin="0,5,0,10" selected="true" />            
+                    <CheckBox class="checkbox_1" name="checkbox_item_center" text="列表居中" margin="0,5,0,10" selected="true" />            
                 </HBox>     
                 <Control height="1" bkcolor="splitline_level2" />
                 <VBox height="auto">

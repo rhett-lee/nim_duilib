@@ -132,38 +132,27 @@
            show_button1="false" 
            show_button2="false"/>
     <!--单选框-->
-    <Class name="option_1" height="20" text_padding="22,0,0,0" valign="center"
+    <Class name="option_1" height="20" text_padding="22,0,0,0" text_align="vcenter" valign="center"
                            normal_image="file='public/option/radio-circle-unchecked.svg' width='20' height='20' valign='center'" 
                            selected_normal_image="file='public/option/radio-circle-checked.svg' width='20' height='20' valign='center'"/>
-    <Class name="option_2" height="18" text_padding="20,0,0,0" valign="center"
+    <Class name="option_2" height="18" text_padding="20,0,0,0" text_align="vcenter" valign="center"
                            normal_image="file='public/option/radio-unchecked.svg' width='16' height='16' valign='center'" 
                            selected_normal_image="file='public/option/radio-checked.svg' width='16' height='16' valign='center'"/>
     <!--复选框-->
-    <Class name="checkbox_toggle_1" height="36" valign="center"
-                                    normal_image="file='public/checkbox/checkbox_toggle_left.svg' width='36' height='36' valign='center'" 
-                                    selected_normal_image="file='public/checkbox/checkbox_toggle_right.svg' width='36' height='36' valign='center'"/>
+    <Class name="checkbox_toggle_1" height="28" valign="center"
+                                    normal_image="file='public/checkbox/checkbox-toggle-off.svg' width='26' height='26' valign='center'" 
+                                    selected_normal_image="file='public/checkbox/checkbox-toggle-on.svg' width='26' height='26' valign='center'"/>
                            
-    <Class name="checkbox_font12" height="16" text_padding="20,0,0,0" font="system_12" normal_text_color="darkcolor" 
-                                  normal_image="file='public/checkbox/check_no.png' dest='0,0,16,16'" 
-                                  disabled_image="file='public/checkbox/check_no.png' dest='0,0,16,16' fade='80'" 
-                                  selected_normal_image="file='public/checkbox/check_yes.png' dest='0,0,16,16'" 
-                                  selected_disabled_image="file='public/checkbox/check_yes.png' dest='0,0,16,16' fade='80'"/>
-    <Class name="checkbox_font14" height="20" text_padding="20,0,0,0" font="system_14" 
-                                  normal_text_color="darkcolor" 
-                                  normal_image="file='public/checkbox/check_no.png' dest='0,2,16,18'" 
-                                  disabled_image="file='public/checkbox/check_no.png' dest='0,2,16,18' fade='80'" 
-                                  selected_normal_image="file='public/checkbox/check_yes.png' dest='0,2,16,18'" 
-                                  selected_disabled_image="file='public/checkbox/check_yes.png' dest='0,2,16,18' fade='80'"/>
-    <Class name="checkbox_svg_font14" height="20" text_padding="20,0,0,0" font="system_14" 
-                                      normal_text_color="darkcolor" 
-                                      normal_image="file='public/checkbox/checkbox.svg' dest='0,2,16,18'" 
-                                      disabled_image="file='public/checkbox/checkbox.svg' dest='0,2,16,18' fade='80'" 
-                                      selected_normal_image="file='public/checkbox/checkbox-checked.svg' dest='0,2,16,18'" 
-                                      selected_disabled_image="file='public/checkbox/checkbox-checked.svg' dest='0,2,16,18' fade='80'"/>
-    <Class name="checkbox_green" normal_image="file='public/checkbox/check_green_no.png'" 
-                                 disabled_image="file='public/checkbox/check_green_no.png' fade='80'" 
-                                 selected_normal_image="file='public/checkbox/check_green_yes.png'" 
-                                 selected_disabled_image="file='public/checkbox/check_green_yes.png' fade='80'"/>
+    <Class name="checkbox_1" height="20" text_padding="20,0,0,0" text_align="vcenter" valign="center"
+                             normal_image="file='public/checkbox/checkbox-fill-unchecked.svg' width='16' height='16' valign='center'" 
+                             disabled_image="file='public/checkbox/checkbox-fill-unchecked.svg' width='16' height='16' valign='center' fade='80'" 
+                             selected_normal_image="file='public/checkbox/checkbox-fill-checked.svg' width='16' height='16' valign='center'" 
+                             selected_disabled_image="file='public/checkbox/checkbox-fill-checked.svg' width='16' height='16' valign='center' fade='80'"/>
+    <Class name="checkbox_2" height="20" text_padding="20,0,0,0"  text_align="vcenter" valign="center"
+                             normal_image="file='public/checkbox/checkbox-unchecked.svg' width='18' height='18' valign='center'" 
+                             disabled_image="file='public/checkbox/checkbox-unchecked.svg' width='18' height='18' valign='center' fade='80'" 
+                             selected_normal_image="file='public/checkbox/checkbox-checked.svg' width='18' height='18' valign='center'" 
+                             selected_disabled_image="file='public/checkbox/checkbox-checked.svg' width='18' height='18' valign='center' fade='80'"/>
     <!--下拉框-->
     <Class name="combo" bkcolor="white" padding="1,1,1,1" border_size="1" border_color="light_gray" hot_border_color="blue" 
                         combo_tree_view_class="padding='1,1,1,1' border_size='1,1,1,1' bkcolor='white' border_color='gray' indent='20' class='tree_view'"
