@@ -1,38 +1,38 @@
-# ��Ŀ��������ĵ��ͽű�
-��Ŀ¼����Ҫ��������Ŀ���������ĵ��������Ľű��ļ���������Ŀ�ĸ�Ŀ¼Ϊ����${DUILIB_ROOT}��
-## ��Ŀ¼�е��ļ��б�
-| FileName/�ļ���               | OS/����ϵͳ   | Compiler/������        |  Comment/��ע   |
+# 项目编译相关文档和脚本
+该目录中主要包含了项目编译的相关文档和依赖的脚本文件，假设项目的根目录为变量${DUILIB_ROOT}。
+## 该目录中的文件列表
+| FileName/文件名               | OS/操作系统   | Compiler/编译器        |  Comment/备注   |
 | :---                          | :---          |:---                    |:---             |
-| `build_duilib_all_in_one.bat` | Windows       |Visual Studio 2022      |һ������ű����ű��������Դ�����أ���skia��������ͱ���<br>Ĭ�ϱ������ݣ�<br>skia: llvm.x64.debug/llvm.x64.release/llvm.x86.release/llvm.x86.debug|
-| `duilib.sln`                  | Windows       |Visual Studio 2022      |duilib��Visual Studio�Ľ�������ļ���ֻ����lib��������ʾ������|
-| `examples.sln`                | Windows       |Visual Studio 2022      |ʾ�������Visual Studio�Ľ�������ļ�������lib������ʾ������|
-| `msvc_build.bat`              | Windows       |cmake/MSVC              |�����б���ű���ʹ��cmake���룬������ΪMSVC|
-| `gcc-mingw-w64_build.bat`     | Windows       |MinGW-w64 gcc/g++       |MinGW-w64�ı���ű���������Ϊgcc/g++|
-| `llvm-mingw-w64_build.bat`    | Windows       |MinGW-w64 clang/clang++ |MinGW-w64�ı���ű���������Ϊclang/clang++|
-| `build_duilib_all_in_one.sh`  | Windows       |MSYS2 gcc/g++ or clang/clang++|һ������ű����ű��������Դ�����أ���skia��������ͱ��룬������Ϊgcc/g++ ���� clang/clang++|
-| `msys2_build.sh`              | Windows       |MSYS2 gcc/g++ or clang/clang++|MSYS2ϵͳ�µı���ű���������Ϊgcc/g++ ���� clang/clang++|
-| `build_duilib_all_in_one.sh`  | Linux         |gcc/g++ or clang/clang++|һ������ű����ű��������Դ�����أ���skia��������ͱ��룬������Ϊgcc/g++ ���� clang/clang++|
-| `linux_build.sh`              | Linux         |gcc/g++ or clang/clang++|Linuxϵͳ�µı���ű���������Ϊgcc/g++ ���� clang/clang++|
-| `build_duilib_all_in_one.sh`  | MacOS         |clang/clang++           |һ������ű����ű��������Դ�����أ���skia��������ͱ��룬������Ϊgcc/g++ ���� clang/clang++|
-| `macos_build.sh`              | MacOS         |clang/clang++           |MacOSϵͳ�µı���ű���������Ϊclang/clang++|
-| `build_duilib_all_in_one.sh`  | FreeBSD       |gcc/g++ or clang/clang++|һ������ű����ű��������Դ�����أ���skia��������ͱ��룬������Ϊgcc/g++ ���� clang/clang++|
-| `freebsd_build.sh`            | FreeBSD       |gcc/g++ or clang/clang++|FreeBSDϵͳ�µı���ű���������Ϊgcc/g++ ���� clang/clang++|
+| `build_duilib_all_in_one.bat` | Windows       |Visual Studio 2022      |一键编译脚本，脚本完成所有源码下载（含skia等依赖项）和编译<br>默认编译内容：<br>skia: llvm.x64.debug/llvm.x64.release/llvm.x86.release/llvm.x86.debug|
+| `duilib.sln`                  | Windows       |Visual Studio 2022      |duilib的Visual Studio的解决方案文件，只包含lib，不包含示例程序|
+| `examples.sln`                | Windows       |Visual Studio 2022      |示例程序的Visual Studio的解决方案文件，包含lib，包含示例程序|
+| `msvc_build.bat`              | Windows       |cmake/MSVC              |命令行编译脚本，使用cmake编译，编译器为MSVC|
+| `gcc-mingw-w64_build.bat`     | Windows       |MinGW-w64 gcc/g++       |MinGW-w64的编译脚本，编译器为gcc/g++|
+| `llvm-mingw-w64_build.bat`    | Windows       |MinGW-w64 clang/clang++ |MinGW-w64的编译脚本，编译器为clang/clang++|
+| `build_duilib_all_in_one.sh`  | Windows       |MSYS2 gcc/g++ or clang/clang++|一键编译脚本，脚本完成所有源码下载（含skia等依赖项）和编译，编译器为gcc/g++ 或者 clang/clang++|
+| `msys2_build.sh`              | Windows       |MSYS2 gcc/g++ or clang/clang++|MSYS2系统下的编译脚本，编译器为gcc/g++ 或者 clang/clang++|
+| `build_duilib_all_in_one.sh`  | Linux         |gcc/g++ or clang/clang++|一键编译脚本，脚本完成所有源码下载（含skia等依赖项）和编译，编译器为gcc/g++ 或者 clang/clang++|
+| `linux_build.sh`              | Linux         |gcc/g++ or clang/clang++|Linux系统下的编译脚本，编译器为gcc/g++ 或者 clang/clang++|
+| `build_duilib_all_in_one.sh`  | MacOS         |clang/clang++           |一键编译脚本，脚本完成所有源码下载（含skia等依赖项）和编译，编译器为gcc/g++ 或者 clang/clang++|
+| `macos_build.sh`              | MacOS         |clang/clang++           |MacOS系统下的编译脚本，编译器为clang/clang++|
+| `build_duilib_all_in_one.sh`  | FreeBSD       |clang/clang++|一键编译脚本，脚本完成所有源码下载（含skia等依赖项）和编译，编译器为clang/clang++|
+| `freebsd_build.sh`            | FreeBSD       |clang/clang++|FreeBSD系统下的编译脚本，编译器为clang/clang++|
 
-## �����Ŀ���ļ�
-1. lib�ļ���`${DUILIB_ROOT}/lib`
-2. bin�ļ���`${DUILIB_ROOT}/bin`
-3. ��ʱ�ļ�����������    
-��1��`${DUILIB_ROOT}/build/build_temp`: �������ʱĿ¼��������    
-��2��`${DUILIB_ROOT}/build/.vs`: ���ص�Ŀ¼��Visual Studio ���ɵĻ���Ŀ¼��ռ�пռ�ܴ���Խ��Խ�󣬿ɶ���������    
-��3��`${DUILIB_ROOT}/cef_temp`: libCEFģ������ʱ�����绺��Ŀ¼����ɾ����
+## 编译的目标文件
+1. lib文件：`${DUILIB_ROOT}/lib`
+2. bin文件：`${DUILIB_ROOT}/bin`
+3. 临时文件（可清理）    
+（1）`${DUILIB_ROOT}/build/build_temp`: 编译的临时目录，可清理    
+（2）`${DUILIB_ROOT}/build/.vs`: 隐藏的目录，Visual Studio 生成的缓存目录，占有空间很大，且越来越大，可定期清理。    
+（3）`${DUILIB_ROOT}/cef_temp`: libCEF模块运行时的网络缓存目录，可删除。
     
-## ���򷢲�ʱ���������ļ�
-1. `${DUILIB_ROOT}/bin/resources`Ŀ¼���������Դ�ļ���XML�ļ���ͼƬ��Դ�ȣ�    
-��1��`${DUILIB_ROOT}/bin/resources/fonts`������Ŀ¼�����δʹ���Զ������壬��Ŀ¼��ɾ����    
-��2��`${DUILIB_ROOT}/bin/resources/lang`�������԰�������ļ������δʹ�ö���������ݣ���Ŀ¼��ɾ����    
-��3��`${DUILIB_ROOT}/bin/resources/themes/default`�������������ԴĿ¼��ֻ����`public`Ŀ¼��`global.xml`�ļ�������Ŀ¼����ɾ����    
-2. Windowsƽ̨�������Ҫ����Դ�����zip������exe����Դ�У�    
-   ���Խ���1�������õ�`bin/resources`Ŀ¼�����Ϊ`resources.zip`�ļ����滻����`bin/resources.zip`�ļ��������±���exe���ɡ�    
-   ����ʹ��`resources.zip`�ķ��������Բο�`examples/basic`ʾ������Ĺ��̴��롣    
-3. ���ʹ����CEFģ�飺��Ҫ��CEF��ReleaseĿ¼��ResourcesĿ¼������ļ��ŵ�`bin\libcef_win`����`bin\libcef_win_109`Ŀ¼��    
-   ��ϸ���ݿɲο�CEF��ʹ��˵���ĵ���[docs/CEF.md](../docs/CEF.md)��
+## 程序发布时所依赖的文件
+1. `${DUILIB_ROOT}/bin/resources`目录：保存的资源文件（XML文件、图片资源等）    
+（1）`${DUILIB_ROOT}/bin/resources/fonts`：字体目录，如果未使用自定义字体，此目录可删除。    
+（2）`${DUILIB_ROOT}/bin/resources/lang`：多语言版的文字文件，如果未使用多语相关内容，此目录可删除。    
+（3）`${DUILIB_ROOT}/bin/resources/themes/default`：这个是主题资源目录，只保留`public`目录和`global.xml`文件，其他目录均可删除。    
+2. Windows平台，如果需要将资源打包成zip，放在exe的资源中：    
+   可以将第1步整理好的`bin/resources`目录，打包为`resources.zip`文件，替换现在`bin/resources.zip`文件，再重新编译exe即可。    
+   关于使用`resources.zip`的方法，可以参考`examples/basic`示例程序的工程代码。    
+3. 如果使用了CEF模块：需要将CEF的Release目录和Resources目录里面的文件放到`bin\libcef_win`或者`bin\libcef_win_109`目录。    
+   详细内容可参考CEF的使用说明文档：[docs/CEF.md](../docs/CEF.md)。
