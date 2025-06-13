@@ -409,11 +409,26 @@ FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath, cons
 
     //首先在窗口的资源目录中查找（命中率高）
     const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);
-    FilePath imageFullPath = FilePathUtil::JoinFilePath(windowResFullPath, resPath);
-    imageFullPath.NormalizeFilePath();
-    if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
-        //如果文件不存在，返回空
-        imageFullPath.Clear();
+    FilePath imageFullPath;
+    DString resPathString = resPath.ToString();
+    if ((resPathString.find(_T("public/")) == 0) || ((resPathString.find(_T("/public/")) == 0))) {
+        //优先从公共目录匹配
+        imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
+        imageFullPath.NormalizeFilePath();
+        if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
+            //如果文件不存在，返回空
+            imageFullPath.Clear();
+        }
+    }
+
+    if (imageFullPath.IsEmpty()) {
+        //在窗口指定的目录中查找
+        imageFullPath = FilePathUtil::JoinFilePath(windowResFullPath, resPath);
+        imageFullPath.NormalizeFilePath();
+        if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
+            //如果文件不存在，返回空
+            imageFullPath.Clear();
+        }
     }
 
     if (imageFullPath.IsEmpty()) {

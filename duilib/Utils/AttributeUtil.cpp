@@ -176,7 +176,7 @@ void AttributeUtil::ParseAttributeList(const DString& strList,
                                        DString::value_type seperateChar,
                                        std::vector<std::pair<DString, DString>>& attributeList)
 {
-    //示例：normal_image="file='../public/button/window-minimize.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"
+    //示例：normal_image="file='public/button/window-minimize.svg' width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"
     DString sName;
     DString sValue;
     const DString::value_type* pstrList = strList.c_str();

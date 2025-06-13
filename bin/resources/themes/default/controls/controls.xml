@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="1000,760" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" use_system_caption="false" shadow_attached="true" layered_window="true" size_box="2,2,2,2" min_size="400,320" icon="../public/caption/logo.ico">
+<Window size="1000,760" snap_layout_menu="true" sys_menu="true" sys_menu_rect="0,0,36,36" caption="0,0,0,36" use_system_caption="false" shadow_attached="true" layered_window="true" size_box="2,2,2,2" min_size="400,320" icon="public/caption/logo.ico">
     <!-- 整个布局放在一个VBox容器中 -->
     <!-- 布局属性：margin="left,top,right,bottom"; padding="left,top,right,bottom" -->
     <VBox bkcolor="bk_wnd_darkcolor">
@@ -87,7 +87,7 @@
                         <!-- Progress/Slider -->
                         <VBox width="200">
                             <HBox margin="0,10" height="32">
-                                <Control width="auto" height="auto" bkimage="../public/animation/ani_loading.gif" valign="center"/>
+                                <Control width="auto" height="auto" bkimage="public/animation/ani_loading.gif" valign="center"/>
                                 <Progress class="progress_blue" name="progress" value="0" margin="10" tooltip_text="ui::Progress"/>
                             </HBox>
                             <HBox margin="0,0,0,10" height="32">
