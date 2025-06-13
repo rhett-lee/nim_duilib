@@ -134,18 +134,17 @@
            show_button1="false" 
            show_button2="false"/>
     <!--单选框-->
-    <Class name="option" selected_normal_image="public/option/selected.png" 
-                         selected_hot_image="public/option/selectedhover.png" 
-                         selected_pushed_image="public/option/selectedhover.png"/>
-    <Class name="circle_option" normal_image="public/option/circle_unselected.png" 
-                                disabled_image="public/option/circle_unselected_disabled.png"/>
-    <Class name="circle_option_2" height="18" text_padding="20,0,0,0" font="system_14" 
-                                  normal_image="file='public/option/circle_unselected.png' width='16' height='16' valign='center'" 
-                                  selected_normal_image="file='public/option/circle_selected.png' width='16' height='16' valign='center'"/>
-    <Class name="circle_option_3" height="18" text_padding="20,0,0,0" font="system_14" 
-                                  normal_image="file='public/option/radio-unchecked.svg' valign='center'" 
-                                  selected_normal_image="file='public/option/radio-checked.svg' valign='center'"/>
+    <Class name="option_1" height="20" text_padding="22,0,0,0" valign="center"
+                           normal_image="file='public/option/radio-circle-unchecked.svg' width='20' height='20' valign='center'" 
+                           selected_normal_image="file='public/option/radio-circle-checked.svg' width='20' height='20' valign='center'"/>
+    <Class name="option_2" height="18" text_padding="20,0,0,0" valign="center"
+                           normal_image="file='public/option/radio-unchecked.svg' width='16' height='16' valign='center'" 
+                           selected_normal_image="file='public/option/radio-checked.svg' width='16' height='16' valign='center'"/>
     <!--复选框-->
+    <Class name="checkbox_toggle_1" height="36" valign="center"
+                                    normal_image="file='public/checkbox/checkbox_toggle_left.svg' width='36' height='36' valign='center'" 
+                                    selected_normal_image="file='public/checkbox/checkbox_toggle_right.svg' width='36' height='36' valign='center'"/>
+                           
     <Class name="checkbox_font12" height="16" text_padding="20,0,0,0" font="system_12" normal_text_color="darkcolor" 
                                   normal_image="file='public/checkbox/check_no.png' dest='0,0,16,16'" 
                                   disabled_image="file='public/checkbox/check_no.png' dest='0,0,16,16' fade='80'" 

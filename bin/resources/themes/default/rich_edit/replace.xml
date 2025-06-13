@@ -21,8 +21,8 @@
             </HBox>
             <GroupVBox margin="10,6,10,6" text=" 搜索方向 " height="auto" corner_size="4,4">
                 <HBox height="40" margin="8,16,8,0" padding="12,0,0,0">
-                    <Option class="circle_option_2" group="option_direction_group" text="向上搜索" margin="0,6,0,0"/>
-                    <Option class="circle_option_2" group="option_direction_group" text="向下搜索" name="option_direction_down" margin="16,6,0,0" selected="true"/>
+                    <Option class="option_1" group="option_direction_group" text="向上搜索" margin="0,6,0,0"/>
+                    <Option class="option_1" group="option_direction_group" text="向下搜索" name="option_direction_down" margin="16,6,0,0" selected="true"/>
                 </HBox>
             </GroupVBox>
             <HBox height="auto">

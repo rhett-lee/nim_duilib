@@ -18,8 +18,8 @@
             <VBox width="300" border_size="1" border_color="splitline_level2" padding="5,10,5,10" child_margin="10">
                 <HBox height="30" child_margin="10">
                     <Label font="system_bold_14" text="行/列设置:"  width="auto" height="auto" valign="center" />
-                    <Option class="circle_option_2" name="option_column_auto" group="option_group" text="自动计算" margin="0,5,0,10" selected="true"/>
-                    <Option class="circle_option_2" name="option_column_fix"  group="option_group" text="固定列数" margin="0,5,0,10">
+                    <Option class="option_1" name="option_column_auto" group="option_group" text="自动计算" margin="0,5,0,10" selected="true"/>
+                    <Option class="option_1" name="option_column_fix"  group="option_group" text="固定列数" margin="0,5,0,10">
                         <Event type="select" receiver="box_column_op" applyattribute="visible=&quot;true&quot;" />
                         <Event type="unselect" receiver="box_column_op" applyattribute="visible=&quot;false&quot;" />
                     </Option>

@@ -31,18 +31,18 @@
                 <GroupVBox height="auto" width="760" text="Report类型">
                     <HBox minheight="18" bkcolor="bk_wnd_darkcolor" height="auto" margin="4,18,4,0">
                         <Label text="表头控制：" valign="center" margin="2,0,2,0"/>
-                        <Option class="circle_option_3" group="show" selected="false" width="64" height="32" text="隐藏" padding="2,2,2,2" borderround="2,2" valign="center">
+                        <Option class="option_2" group="show" selected="false" width="64" height="32" text="隐藏" padding="2,2,2,2" borderround="2,2" valign="center">
                             <Event type="buttonup" receiver="list_ctrl" applyattribute="show_header={false}" />
                         </Option>
-                        <Option class="circle_option_3" group="show" selected="true" width="64" height="32" text="显示" padding="2,2,2,2" borderround="2,2" valign="center">
+                        <Option class="option_2" group="show" selected="true" width="64" height="32" text="显示" padding="2,2,2,2" borderround="2,2" valign="center">
                             <Event type="buttonup" receiver="list_ctrl" applyattribute="show_header={true}" />
                         </Option>
                         <Line vertical="true" margin="0,8,4,8" width="2"/>
                         <Label text="拖动表头调序：" valign="center" margin="2,0,2,0"/>
-                        <Option class="circle_option_3" group="drag_order" selected="false" width="64" height="32" text="禁止" padding="2,2,2,2" borderround="2,2" valign="center">
+                        <Option class="option_2" group="drag_order" selected="false" width="64" height="32" text="禁止" padding="2,2,2,2" borderround="2,2" valign="center">
                             <Event type="buttonup" receiver="list_ctrl" applyattribute="enable_header_drag_order={false}" />
                         </Option>
-                        <Option class="circle_option_3" group="drag_order" selected="true" width="64" height="32" text="允许" padding="2,2,2,2" borderround="2,2" valign="center">
+                        <Option class="option_2" group="drag_order" selected="true" width="64" height="32" text="允许" padding="2,2,2,2" borderround="2,2" valign="center">
                             <Event type="buttonup" receiver="list_ctrl" applyattribute="enable_header_drag_order={true}" />
                         </Option>
                         <Line vertical="true" margin="0,8,4,8" width="2"/>
@@ -76,31 +76,31 @@
                         <Control width="153"/>
                         <Line vertical="true" margin="8,8,4,8" width="2"/>
                         <Label text="表头文本：" valign="center" margin="6,0,2,0"/>
-                        <Option class="circle_option_3" name="header_text_align_left" group="header_text_align" selected="false" width="64" height="32" text="靠左" padding="2,2,2,2" borderround="2,2" valign="center"/>
-                        <Option class="circle_option_3" name="header_text_align_center" group="header_text_align" selected="true" width="64" height="32" text="居中" padding="2,2,2,2" borderround="2,2" valign="center"/>
-                        <Option class="circle_option_3" name="header_text_align_right" group="header_text_align" selected="false" width="64" height="32" text="靠右" padding="2,2,2,2" borderround="2,2" valign="center"/>
+                        <Option class="option_2" name="header_text_align_left" group="header_text_align" selected="false" width="64" height="32" text="靠左" padding="2,2,2,2" borderround="2,2" valign="center"/>
+                        <Option class="option_2" name="header_text_align_center" group="header_text_align" selected="true" width="64" height="32" text="居中" padding="2,2,2,2" borderround="2,2" valign="center"/>
+                        <Option class="option_2" name="header_text_align_right" group="header_text_align" selected="false" width="64" height="32" text="靠右" padding="2,2,2,2" borderround="2,2" valign="center"/>
                         <Line vertical="true" margin="8,8,4,8" width="2"/>
                         <Label text="表格文本：" valign="center" margin="6,0,2,0"/>
-                        <Option class="circle_option_3" name="column_text_align_left" group="column_text_align" selected="true" width="64" height="32" text="靠左" padding="2,2,2,2" borderround="2,2" valign="center"/>
-                        <Option class="circle_option_3" name="column_text_align_center" group="column_text_align" selected="false" width="64" height="32" text="居中" padding="2,2,2,2" borderround="2,2" valign="center"/>
-                        <Option class="circle_option_3" name="column_text_align_right" group="column_text_align" selected="false" width="64" height="32" text="靠右" padding="2,2,2,2" borderround="2,2" valign="center"/>
+                        <Option class="option_2" name="column_text_align_left" group="column_text_align" selected="true" width="64" height="32" text="靠左" padding="2,2,2,2" borderround="2,2" valign="center"/>
+                        <Option class="option_2" name="column_text_align_center" group="column_text_align" selected="false" width="64" height="32" text="居中" padding="2,2,2,2" borderround="2,2" valign="center"/>
+                        <Option class="option_2" name="column_text_align_right" group="column_text_align" selected="false" width="64" height="32" text="靠右" padding="2,2,2,2" borderround="2,2" valign="center"/>
                     </HBox>
                                 
                     <HBox minheight="18" bkcolor="bk_wnd_darkcolor" height="auto" margin="4,0,4,0">
                         <Label text="表格属性：" valign="center" margin="2,0,2,0"/>
                         <Label text="横向网格：" valign="center" margin="2,0,2,0"/>
-                        <Option class="circle_option_3" group="grid_line_row" selected="false" width="64" height="32" text="隐藏" padding="2,2,2,2" borderround="2,2" valign="center">
+                        <Option class="option_2" group="grid_line_row" selected="false" width="64" height="32" text="隐藏" padding="2,2,2,2" borderround="2,2" valign="center">
                             <Event type="buttonup" receiver="list_ctrl" applyattribute="row_grid_line_width={0}" />
                         </Option>
-                        <Option class="circle_option_3" group="grid_line_row" selected="true" width="64" height="32" text="显示" padding="2,2,2,2" borderround="2,2" valign="center">
+                        <Option class="option_2" group="grid_line_row" selected="true" width="64" height="32" text="显示" padding="2,2,2,2" borderround="2,2" valign="center">
                             <Event type="buttonup" receiver="list_ctrl" applyattribute="row_grid_line_width={1}" />
                         </Option>
                         <Line vertical="true" margin="0,8,4,8" width="2"/>
                         <Label text="纵向网格：" valign="center" margin="2,0,2,0"/>
-                        <Option class="circle_option_3" group="grid_line_column" selected="false" width="64" height="32" text="隐藏" padding="2,2,2,2" borderround="2,2" valign="center">
+                        <Option class="option_2" group="grid_line_column" selected="false" width="64" height="32" text="隐藏" padding="2,2,2,2" borderround="2,2" valign="center">
                             <Event type="buttonup" receiver="list_ctrl" applyattribute="column_grid_line_width={0}" />
                         </Option>
-                        <Option class="circle_option_3" group="grid_line_column" selected="true" width="64" height="32" text="显示" padding="2,2,2,2" borderround="2,2" valign="center">
+                        <Option class="option_2" group="grid_line_column" selected="true" width="64" height="32" text="显示" padding="2,2,2,2" borderround="2,2" valign="center">
                             <Event type="buttonup" receiver="list_ctrl" applyattribute="column_grid_line_width={1}" />
                         </Option>
                         <Line vertical="true" margin="0,8,4,8" width="2"/>
