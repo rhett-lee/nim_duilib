@@ -36,27 +36,27 @@
         <VBox>            
             <HBox minheight="18" bkcolor="#FFCCD5F0" height="auto">
                 <Label text="功能控制：" valign="center" margin="12,0,10,0"/>
-                <CheckBox class="checkbox_svg_font14" text="显示展开标志" selected="true" valign="center" margin="10,4,0,2">
+                <CheckBox class="checkbox_2" text="显示展开标志" selected="true" valign="center" margin="10,4,0,2">
                     <Event type="select" receiver="tree" apply_attribute="expand_image_class={tree_node_expand}" />
                     <Event type="unselect" receiver="tree" apply_attribute="expand_image_class={}" />
                 </CheckBox>
-                <CheckBox class="checkbox_svg_font14" text="显示CheckBox" selected="true" valign="center" margin="10,4,0,2">
+                <CheckBox class="checkbox_2" text="显示CheckBox" selected="true" valign="center" margin="10,4,0,2">
                     <Event type="select" receiver="tree" apply_attribute="check_box_class={tree_node_checkbox}" />
                     <Event type="unselect" receiver="tree" apply_attribute="check_box_class={}" />
                 </CheckBox>
-                <CheckBox class="checkbox_svg_font14" text="显示图标" selected="true" valign="center" margin="10,4,0,2">
+                <CheckBox class="checkbox_2" text="显示图标" selected="true" valign="center" margin="10,4,0,2">
                     <Event type="select" receiver="tree" apply_attribute="show_icon={true}" />
                     <Event type="unselect" receiver="tree" apply_attribute="show_icon={false}" />
                 </CheckBox>
-                <CheckBox class="checkbox_svg_font14" text="支持多选" selected="false" valign="center" margin="10,4,0,2">
+                <CheckBox class="checkbox_2" text="支持多选" selected="false" valign="center" margin="10,4,0,2">
                     <Event type="select" receiver="tree" apply_attribute="multi_select={true}" />
                     <Event type="unselect" receiver="tree" apply_attribute="multi_select={false}" />
                 </CheckBox>
-                <CheckBox class="checkbox_svg_font14" text="显示隐藏文件" selected="false" valign="center" margin="10,4,0,2">
+                <CheckBox class="checkbox_2" text="显示隐藏文件" selected="false" valign="center" margin="10,4,0,2">
                     <Event type="select" receiver="tree" apply_attribute="show_hiden_files={true}" />
                     <Event type="unselect" receiver="tree" apply_attribute="show_hiden_files={false}" />
                 </CheckBox>
-                <CheckBox class="checkbox_svg_font14" text="显示系统文件" selected="false" valign="center" margin="10,4,0,2">
+                <CheckBox class="checkbox_2" text="显示系统文件" selected="false" valign="center" margin="10,4,0,2">
                     <Event type="select" receiver="tree" apply_attribute="show_system_files={true}" />
                     <Event type="unselect" receiver="tree" apply_attribute="show_system_files={false}" />
                 </CheckBox>

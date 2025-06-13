@@ -131,7 +131,7 @@
                         <Button class="btn_global_color_gray" name="color_picker_ok" width="80" height="30" text="确定" halign="center" margin="2,6,2,2"/>
                         <Button class="btn_global_color_gray" name="color_picker_cancel" width="80" height="30" text="取消" halign="center" margin="2,2,2,2"/>
                         <Button class="btn_global_color_gray" name="color_picker_choose" width="80" height="30" text="选择" halign="center" margin="2,2,2,2" bkimage="file='public/color/dropper.png' halign='left' valign='center' width='20' height='20' padding='4,0,0,0'"/>
-                        <CheckBox class="checkbox_font14" name="color_picker_choose_hide" height="20" text="隐藏本窗口" halign="center" margin="2,2,2,2" selected="true"/>
+                        <CheckBox class="checkbox_1" name="color_picker_choose_hide" height="20" text="隐藏本窗口" halign="center" margin="2,2,2,2" selected="true"/>
                     </VBox>
                     <VBox margin="2,6,2,2">                        
                         <Label text="所选颜色" width="120" height="28" text_align="hcenter"/>

@@ -180,8 +180,8 @@
                    </HBox>
                    <HBox height="auto" margin="0,2,2,2">
                         <Label text="其他：" valign="center" margin="8,0,8,0"/>
-                        <CheckBox class="checkbox_font14" name="btn_word_wrap" text="自动换行" margin="4,0,0,0" selected="true" tooltiptext="是否自动换行"/>
-                        <CheckBox class="checkbox_font14" name="btn_rich_text" text="富文本模式" margin="12,0,0,0" selected="true" tooltiptext="是否支持富文本格式"/>
+                        <CheckBox class="checkbox_1" name="btn_word_wrap" text="自动换行" margin="4,0,0,0" selected="true" tooltiptext="是否自动换行"/>
+                        <CheckBox class="checkbox_1" name="btn_rich_text" text="富文本模式" margin="12,0,0,0" selected="true" tooltiptext="是否支持富文本格式"/>
                    </HBox>
                 </VBox>
                 <!-- 横向分割条，用于调整上下区域大小 -->
