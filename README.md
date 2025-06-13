@@ -432,6 +432,36 @@ chmod +x ./nim_duilib/build/build_duilib_all_in_one.sh
 编译完成的示例程序位于bin目录中。
 
 ​​注意：FreeBSD 平台不支持 CEF（Chromium Embedded Framework）。
+### 三、手动编译过程（FreeBSD平台）
+1. 设置工作目录：`~/develop`    
+2. 获取相关代码    
+（1）`git clone https://github.com/rhett-lee/nim_duilib`      
+（2）`git clone https://github.com/rhett-lee/skia_compile`    
+（3）`git clone https://github.com/google/skia.git`  
+（4）`git clone https://github.com/libsdl-org/SDL.git`  
+3. 编译Skia库    
+
+| 操作系统平台 |参考文档（网络链接） |  参考文档（本地文件） |
+| :---         | :---                |:---                   |
+|FreeBSD         |[FreeBSD下编译skia.md](https://github.com/rhett-lee/skia_compile/blob/main/FreeBSD下编译skia.md) | [FreeBSD下编译skia.md](../skia_compile/FreeBSD下编译skia.md) |
+
+    注意事项：skia源码编译的时候，只支持使用LLVM编译。
+4. 编译SDL库 
+```
+#!/usr/bin/env bash
+cd ~/develop
+cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release
+cmake --build ./SDL.build
+cmake --install ./SDL.build
+```
+5. 编译nim_duilib
+```
+#!/usr/bin/env bash
+cd ~/develop/nim_duilib/
+chmod +x ./build/freebsd_build.sh
+./build/freebsd_build.sh
+```
+编译完成后，在bin目录中生成了可执行文件。    
 
 ## 开发计划
  - 跨平台（Windows/Linux/macOS）的窗口引擎（基于[SDL3.0](https://www.libsdl.org/)）不断测试与完善（X11和Wayland）
