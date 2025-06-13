@@ -30,17 +30,21 @@
                 </VBox>
                 <!-- Checkbox -->
                 <VBox width="120">
-                    <CheckBox class="checkbox_font12" font="system_14" text="checkbox1" margin="0,2,0,2" selected="true" tooltip_text="ui::Checkbox"/>
-                    <CheckBox class="checkbox_font14" text="checkbox2" margin="0,2,0,2"/>
-                    <CheckBox class="checkbox_svg_font14"  text="checkbox3" margin="0,2,0,2"/>
+                    <CheckBox class="checkbox_font12" font="system_14" text="多选框1" margin="0,3,0,3" selected="true" tooltip_text="ui::Checkbox"/>
+                    <CheckBox class="checkbox_font14" text="多选框2" margin="0,3,0,3"/>
+                    <CheckBox class="checkbox_svg_font14"  text="多选框3" margin="0,3,0,3"/>
                     <Button class="btn_global_color_gray" name="domodal2" text="模态对话框" width="130" height="30" border_round="3,3" margin="0,12,0,0"/>
                     <Button class="btn_global_color_gray" name="show_color_picker2" text="拾色器(模态)" width="130" height="30" border_round="3,3" margin="0,2,0,0"/>
                 </VBox>
                 <!-- Option -->
-                <VBox width="120">
-                    <Option class="circle_option_2" group="option_group" text="option1" margin="0,3,0,10" selected="true" tooltip_text="ui::Option"/>
-                    <Option class="circle_option_2" group="option_group" text="option2" margin="0,3,0,10"/>
-                    <Option class="circle_option_2" group="option_group" text="option3" margin="0,3,0,10"/>
+                <VBox width="120" margin="20,0,0,0">
+                    <Option class="option_1" group="option_group" text="单选1" margin="0,3,0,3" selected="true" tooltip_text="ui::Option"/>
+                    <Option class="option_1" group="option_group" text="单选2" margin="0,3,0,3"/>
+                    <Option class="option_1" group="option_group" text="单选3" margin="0,3,0,3"/>
+                    <HBox height="36">
+                        <Label text="开关" height="36" valign="center"/>
+                        <CheckBox class="checkbox_toggle_1" margin="4,3,0,3"/>
+                    </HBox>
                 </VBox>
                 <!-- List -->
                 <VListBox class="list" name="list" padding="5,3,5,3" tooltip_text="ui::VListBox">
