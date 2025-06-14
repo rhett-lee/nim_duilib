@@ -594,6 +594,24 @@ public:
     */
     bool IsHideSelection() const;
 
+    /** 设置焦点状态时，底部边框的大小
+    * @param [in] nBottomBorderSize 底部边框的大小(未经DPI缩放)
+    * @param [in] bNeedDpiScale 是否支持DPI缩放
+    */
+    void SetFocusBottomBorderSize(int32_t nBottomBorderSize);
+
+    /** 获取焦点状态时，底部边框的大小(未经DPI缩放)
+    */
+    int32_t GetFocusBottomBorderSize() const;
+
+    /** 设置焦点状态时，底部边框的颜色
+    */
+    void SetFocusBottomBorderColor(const DString& bottomBorderColor);
+
+    /** 获取焦点状态时，底部边框的颜色
+    */
+    DString GetFocusBottomBorderColor() const;
+
     /** 是否可以Redo
     */
     bool CanRedo() const;
@@ -805,6 +823,7 @@ protected:
     //绘制相关函数
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
+    virtual void PaintBorder(IRender* pRender) override;
 
     /** 将文本生成可绘制的格式
     * @param [in] textView 按行组织切分后的文本视图，每行一条数据（以'\n'切分的行）
@@ -1098,26 +1117,23 @@ private:
     UiString m_sFontId;                 //字体ID
     UiString m_sTextColor;              //正常文本颜色
     UiString m_sDisabledTextColor;      //Disabled状态的文本颜色
+    UiPadding16 m_rcTextPadding;        //文本内边距
+
+    UiString m_sFocusBottomBorderColor; //焦点状态时，底部边框的颜色
 
     UiString m_sCurrentRowBkColor;         //当前行的背景颜色（光标所在行，焦点状态）
     UiString m_sInactiveCurrentRowBkColor; //当前行的背景颜色（光标所在行, 非焦点状态）
     UiString m_sSelectionBkColor;          //选择文本的背景颜色（焦点状态）
     UiString m_sInactiveSelectionBkColor;  //选择文本的背景颜色（非焦点状态）
 
-    bool m_bAllowPrompt;                //是否支持提示文字
     UiString m_sPromptColor;            //提示文字颜色
     UiString m_sPromptText;             //提示文本内容（只有编辑框为空的时候显示）
     UiString m_sPromptTextId;           //提示文字ID
+    bool m_bAllowPrompt;                //是否支持提示文字
+
+    uint8_t m_nFocusBottomBorderSize;    //焦点状态时，底部边框的大小
 
 private:
-    /** 获取焦点时，显示的图片
-    */
-    Image* m_pFocusedImage;
-
-    /** 文本内边距
-    */
-    UiPadding16 m_rcTextPadding;
-
     /** 是否使用Control设置的光标
     */
     bool m_bUseControlCursor;
@@ -1134,10 +1150,6 @@ private:
     */
     bool m_bEnableDefaultContextMenu;
 
-    /** 允许输入的字符列表
-    */
-    std::unique_ptr<DStringW::value_type[]> m_pLimitChars;
-
     /** 是否禁止触发文本变化事件
     */
     bool m_bDisableTextChangeEvent;
@@ -1150,6 +1162,10 @@ private:
     */
     int32_t m_minNumber;
 
+    /** 允许输入的字符列表
+    */
+    std::unique_ptr<DStringW::value_type[]> m_pLimitChars;
+
     /** 数字的格式
     */
     UiString m_numberFormat;
@@ -1161,6 +1177,10 @@ private:
     /** 自动调整文本数字值的定时器生命周期管理
     */
     WeakCallbackFlag m_flagAdjustTextNumber;
+
+    /** 获取焦点时，显示的图片
+    */
+    Image* m_pFocusedImage;
 
     /** 清除功能的按钮(仅当非只读模式有效)
     */

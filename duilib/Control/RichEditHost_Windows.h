@@ -88,6 +88,7 @@ public:
     bool IsAllowBeep() const;
     bool SetSaveSelection(bool fSaveSelection);
     void SetHideSelection(bool fHideSelection);
+    bool IsHideSelection() const;
     bool SetCursor(const UiRect* prc, const UiPoint* pt);
     void SetTransparent(bool fTransparent);    
     void SetSelBarWidth(LONG lSelBarWidth);

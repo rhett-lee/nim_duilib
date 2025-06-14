@@ -77,7 +77,9 @@
                 <VBox width="300" margin="0,0,10">
                     <Combo class="combo" name="combo" combo_type="drop_list" dropbox_size="0,150" height="30" margin="0,12,0,0" tooltip_text="ui::Combo"/>
                     <FilterCombo class="filter_combo" name="filter_combo" dropbox_size="0,150" height="30" margin="0,12,0,0" tooltip_text="ui::FilterCombo"/>
-                    <RichEdit class="simple input" height="30" margin="0,3" font="system_14" text_align="vcenter" text_padding="8,4,8,4" promptmode="true" prompttext="ui::RichEdit: Single line text control" promptcolor="lightcolor"/>
+                    <RichEdit class="simple prompt simple_border_bottom" height="30" margin="0,3" font="system_14" 
+                              text_align="vcenter" text_padding="8,4,8,4" 
+                              prompt_text="ui::RichEdit: Single line text control" />
                     <CheckCombo class="check_combo" name="check_combo" height="30" margin="0,3" tooltip_text="nim_comp::CheckCombo"/>
                 </VBox>
                 
@@ -178,7 +180,9 @@
             <!-- RichEdit -->
             <RichEdit class="prompt" name="edit" bkcolor="bk_wnd_lightcolor" width="stretch" height="stretch"
                         hide_selection="false" multiline="true" vscrollbar="true" hscrollbar="true" auto_vscroll="true"
-                        normal_text_color="darkcolor" want_return_msg="true" rich="false" loading_image="file='autumn.png'" loading_bkcolor="blue"/>
+                        normal_text_color="darkcolor" want_return_msg="true" rich="false" 
+                        loading_image="file='autumn.png'" 
+                        loading_bkcolor="blue"/>
         </VBox>
     </VBox>
 </Window>

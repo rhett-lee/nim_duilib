@@ -64,7 +64,7 @@
                         <HBox>
                             <HBox valign="center">                        
                                 <Label text="调整窗口DPI值：" height="32" valign="center" text_align="left,vcenter" margin="4,0,0,0"/>
-                                <RichEdit class="simple" name="DPI" text="" number="true" height="32" width="60" max_char="4" min_number="0" max_number="300" valign="center" text_align="hcenter,vcenter" bkcolor="white" margin="1,0,4,0"/>
+                                <RichEdit class="simple simple_border" name="DPI" text="" number="true" height="32" width="60" max_char="4" min_number="0" max_number="300" valign="center" text_align="hcenter,vcenter" bkcolor="white" margin="1,0,4,0"/>
                                 <Button class="btn_global_blue_80x30" height="32" width="auto" valign="center" name="SetDPI" text="修改DPI" text_padding="10,0,10,0" />
                             </HBox>                        
                         </HBox>

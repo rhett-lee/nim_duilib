@@ -701,6 +701,28 @@ public:
      */
     void SetHideSelection(bool fHideSelection);
 
+    /** 是否隐藏选择的文本（当控件处于非激活状态时，是否隐藏选择内容）
+    */
+    bool IsHideSelection() const;
+
+    /** 设置焦点状态时，底部边框的大小
+    * @param [in] nBottomBorderSize 底部边框的大小(未经DPI缩放)
+    * @param [in] bNeedDpiScale 是否支持DPI缩放
+    */
+    void SetFocusBottomBorderSize(int32_t nBottomBorderSize);
+
+    /** 获取焦点状态时，底部边框的大小(未经DPI缩放)
+    */
+    int32_t GetFocusBottomBorderSize() const;
+
+    /** 设置焦点状态时，底部边框的颜色
+    */
+    void SetFocusBottomBorderColor(const DString& bottomBorderColor);
+
+    /** 获取焦点状态时，底部边框的颜色
+    */
+    DString GetFocusBottomBorderColor() const;
+
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
 public:
     /** 是否是富文本模式
@@ -915,6 +937,7 @@ protected:
     virtual bool OnImeEndComposition(const EventArgs& msg) override;
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
+    virtual void PaintBorder(IRender* pRender) override;
 
     /** 调整内部所有子控件的位置信息
      * @param[in] items 控件列表
@@ -1100,27 +1123,24 @@ private:
     UiString m_sCaretColor;     //光标颜色
 
     WeakCallbackFlag m_drawCaretFlag;   //绘制光标的定时器生命周期
-    std::map<UINT, WeakCallbackFlag> m_timeFlagMap; //内部定时器
+    std::map<UINT, WeakCallbackFlag> m_timerFlagMap; //内部定时器
 
 private:
     UiString m_sFontId;                 //字体ID
     UiString m_sTextColor;              //正常文本颜色
     UiString m_sDisabledTextColor;      //Disabled状态的文本颜色
+    UiPadding16 m_rcTextPadding;        //文本内边距
 
-    bool m_bAllowPrompt;                //是否支持提示文字
+    UiString m_sFocusBottomBorderColor; //焦点状态时，底部边框的颜色
+    
     UiString m_sPromptColor;            //提示文字颜色
     UiString m_sPromptText;             //提示文本内容（只有编辑框为空的时候显示）
     UiString m_sPromptTextId;           //提示文字ID
+    bool m_bAllowPrompt;                //是否支持提示文字
+
+    uint8_t m_nFocusBottomBorderSize;    //焦点状态时，底部边框的大小
 
 private:
-    /** 获取焦点时，显示的图片
-    */
-    Image* m_pFocusedImage;
-
-    /** 文本内边距
-    */
-    UiPadding16 m_rcTextPadding;
-
     /** 是否使用Control设置的光标
     */
     bool m_bUseControlCursor;
@@ -1132,10 +1152,6 @@ private:
     /** 是否允许使用默认的右键菜单
     */
     bool m_bEnableDefaultContextMenu;
-
-    /** 允许输入的字符列表
-    */
-    std::unique_ptr<DStringW::value_type[]> m_pLimitChars;
 
     /** 是否禁止触发文本变化事件
     */
@@ -1153,6 +1169,10 @@ private:
     */
     UiString m_numberFormat;
 
+    /** 允许输入的字符列表
+    */
+    std::unique_ptr<DStringW::value_type[]> m_pLimitChars;
+
     /** Spin功能的容器
     */
     VBox* m_pSpinBox;
@@ -1160,6 +1180,10 @@ private:
     /** 自动调整文本数字值的定时器生命周期管理
     */
     WeakCallbackFlag m_flagAdjustTextNumber;
+
+    /** 获取焦点时，显示的图片
+    */
+    Image* m_pFocusedImage;
 
     /** 清除功能的按钮(仅当非只读模式有效)
     */

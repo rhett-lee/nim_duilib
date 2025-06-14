@@ -179,7 +179,8 @@ RichEdit::RichEdit(Window* pWindow) :
     m_minNumber(INT_MIN),
     m_pSpinBox(nullptr),
     m_pClearButton(nullptr),
-    m_pShowPasswordButton(nullptr)
+    m_pShowPasswordButton(nullptr),
+    m_nFocusBottomBorderSize(0)
 {
     //这个标记必须为false，否则绘制有问题
     SetUseCache(false);
@@ -388,6 +389,14 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("hide_selection")) {
         //是否隐藏选择内容
         SetHideSelection(strValue == _T("true"));
+    }
+    else if (strName == _T("focus_bottom_border_size")) {
+        //焦点状态时，底部边框的大小
+        SetFocusBottomBorderSize(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("focus_bottom_border_color")) {
+        //焦点状态时，底部边框的颜色
+        SetFocusBottomBorderColor(strValue);
     }
 
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
@@ -1355,23 +1364,23 @@ UiSize RichEdit::GetNaturalSize(LONG width, LONG height)
 
 void RichEdit::SetTimer(UINT idTimer, UINT uTimeout)
 {
-    auto timeFlag = m_timeFlagMap.find(idTimer);
-    if (timeFlag != m_timeFlagMap.end()) {
+    auto timeFlag = m_timerFlagMap.find(idTimer);
+    if (timeFlag != m_timerFlagMap.end()) {
         timeFlag->second.Cancel();
     }
 
     auto callback = [this, idTimer]() {
         m_richCtrl.TxSendMessage(WM_TIMER, idTimer, 0);
     };
-    GlobalManager::Instance().Timer().AddTimer(m_timeFlagMap[idTimer].GetWeakFlag(), callback, uTimeout);
+    GlobalManager::Instance().Timer().AddTimer(m_timerFlagMap[idTimer].GetWeakFlag(), callback, uTimeout);
 }
 
 void RichEdit::KillTimer(UINT idTimer)
 {
-    auto timeFlag = m_timeFlagMap.find(idTimer);
-    if (timeFlag != m_timeFlagMap.end()) {
+    auto timeFlag = m_timerFlagMap.find(idTimer);
+    if (timeFlag != m_timerFlagMap.end()) {
         timeFlag->second.Cancel();
-        m_timeFlagMap.erase(timeFlag);
+        m_timerFlagMap.erase(timeFlag);
     }
 }
 
@@ -2496,6 +2505,31 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
     }
 }
 
+void RichEdit::PaintBorder(IRender* pRender)
+{
+    BaseClass::PaintBorder(pRender);
+    if (!IsFocused() || IsReadOnly() || !IsEnabled()) {
+        return;
+    }
+    //绘制下边线
+    DString borderColor = GetFocusBottomBorderColor();
+    int32_t borderSize = GetFocusBottomBorderSize();
+    if ((borderSize > 0) && !borderColor.empty()) {
+        UiColor dwBorderColor = GetUiColor(borderColor);
+        UiRect rcBorder = GetRect();
+        float fRoundWidth = 0;
+        float fRoundHeight = 0;
+        GetBorderRound(fRoundWidth, fRoundHeight);
+
+        float fBottomBorderWidth = Dpi().GetScaleFloat(borderSize);
+        rcBorder.right -= int32_t(fRoundWidth + 0.5f);
+        rcBorder.left -= int32_t(fRoundWidth + 0.5f);
+        UiPointF pt1((float)rcBorder.left, (float)rcBorder.bottom - fBottomBorderWidth / 2);
+        UiPointF pt2((float)rcBorder.right, (float)rcBorder.bottom - fBottomBorderWidth / 2);
+        DrawBorderLine(pRender, pt1, pt2, fBottomBorderWidth, dwBorderColor, GetBorderDashStyle());
+    }
+}
+
 void RichEdit::CreateCaret(int32_t xWidth, int32_t yHeight)
 {
     m_iCaretWidth = xWidth;
@@ -3409,6 +3443,39 @@ void RichEdit::SetHideSelection(bool fHideSelection)
     if (m_pRichHost != nullptr) {
         m_pRichHost->SetHideSelection(fHideSelection);
     }
+}
+
+bool RichEdit::IsHideSelection() const
+{
+    bool bRet = false;
+    if (m_pRichHost != nullptr) {
+        bRet = m_pRichHost->IsHideSelection();
+    }
+    return bRet;
+}
+
+void RichEdit::SetFocusBottomBorderSize(int32_t nBottomBorderSize)
+{
+    ASSERT(nBottomBorderSize > 0);
+    if (nBottomBorderSize < 0) {
+        nBottomBorderSize = 0;
+    }
+    m_nFocusBottomBorderSize = ui::TruncateToUInt8(nBottomBorderSize);
+}
+
+int32_t RichEdit::GetFocusBottomBorderSize() const
+{
+    return (int32_t)(uint32_t)m_nFocusBottomBorderSize;
+}
+
+void RichEdit::SetFocusBottomBorderColor(const DString& bottomBorderColor)
+{
+    m_sFocusBottomBorderColor = bottomBorderColor;
+}
+
+DString RichEdit::GetFocusBottomBorderColor() const
+{
+    return m_sFocusBottomBorderColor.c_str();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
