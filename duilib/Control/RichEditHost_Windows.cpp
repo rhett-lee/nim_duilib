@@ -1036,6 +1036,11 @@ void RichEditHost::SetHideSelection(bool fHideSelection)
     OnTxPropertyBitsChange(TXTBIT_HIDESELECTION, fHideSelection ? TXTBIT_HIDESELECTION : 0);
 }
 
+bool RichEditHost::IsHideSelection() const
+{
+    return !(m_dwStyle & UI_ES_NOHIDESEL);
+}
+
 HRESULT RichEditHost::OnTxInPlaceDeactivate()
 {
     HRESULT hr = S_OK;

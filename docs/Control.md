@@ -406,6 +406,8 @@ CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`P
 | current_row_bkcolor | "" | string | 当前行的背景色（焦点状态），如果设置为空，则在焦点状态不显示当前行的背景色|
 | inactive_current_row_bkcolor | "" | string |当前行的背景色（非焦点状态），如果设置为空，则在非焦点状态不显示当前行的背景色  |
 | select_all_on_focus |false| bool | 获取焦点的时候，是否全选 |
+| focus_bottom_border_size |0| int | 焦点状态时，底部边框的大小 |
+| focus_bottom_border_color || string | 焦点状态时，底部边框的颜色 |
 
 RichEdit 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
 

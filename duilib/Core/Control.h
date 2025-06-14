@@ -1129,17 +1129,16 @@ protected:
      */
     UiSize EstimateControlSize(UiSize szAvailable);
 
+    /** 画边框线
+    */
+    void DrawBorderLine(IRender* pRender, const UiPointF& pt1, const UiPointF& pt2,
+                        float fBorderSize, UiColor dwBorderColor, int8_t borderDashStyle);
 private:
     /** 绘制边框：根据条件判断绘制圆角矩形边框还是普通矩形边框
     */
     void PaintBorders(IRender* pRender, UiRect rcDraw, 
                       float fBorderSize, UiColor dwBorderColor,
                       int8_t borderDashStyle) const;
-
-    /** 画边框线
-    */
-    void DrawBorderLine(IRender* pRender, const UiPointF& pt1, const UiPointF& pt2,
-                        float fBorderSize, UiColor dwBorderColor, int8_t borderDashStyle);
 
     /** 绘制圆角矩形
     */

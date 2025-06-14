@@ -91,7 +91,8 @@ RichEdit::RichEdit(Window* pWindow) :
     m_sSelectionBkColor(_T("CornflowerBlue")),
     m_sInactiveSelectionBkColor(_T("DarkGray")),
     m_sCurrentRowBkColor(_T("")),
-    m_sInactiveCurrentRowBkColor(_T(""))
+    m_sInactiveCurrentRowBkColor(_T("")),
+    m_nFocusBottomBorderSize(0)
 {
     m_pTextData = new RichEditData(this);
 }
@@ -261,6 +262,14 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("hide_selection")) {
         //当控件处于非激活状态时，是否隐藏选择内容
         SetHideSelection(strValue == _T("true"));
+    }
+    else if (strName == _T("focus_bottom_border_size")) {
+        //焦点状态时，底部边框的大小
+        SetFocusBottomBorderSize(StringUtil::StringToInt32(strValue));
+    }
+    else if (strName == _T("focus_bottom_border_color")) {
+        //焦点状态时，底部边框的颜色
+        SetFocusBottomBorderColor(strValue);
     }
     else if (strName == _T("zoom")) {
         //缩放比例：格式有两种，一种如"2,1" 放大到200%； 表示另外一种如："200%"，代表放大到200%。
@@ -1305,6 +1314,30 @@ bool RichEdit::IsHideSelection() const
     return m_bHideSelection;
 }
 
+void RichEdit::SetFocusBottomBorderSize(int32_t nBottomBorderSize)
+{
+    ASSERT(nBottomBorderSize > 0);
+    if (nBottomBorderSize < 0) {
+        nBottomBorderSize = 0;
+    }
+    m_nFocusBottomBorderSize = ui::TruncateToUInt8(nBottomBorderSize);
+}
+
+int32_t RichEdit::GetFocusBottomBorderSize() const
+{
+    return (int32_t)(uint32_t)m_nFocusBottomBorderSize;
+}
+
+void RichEdit::SetFocusBottomBorderColor(const DString& bottomBorderColor)
+{
+    m_sFocusBottomBorderColor = bottomBorderColor;
+}
+
+DString RichEdit::GetFocusBottomBorderColor() const
+{
+    return m_sFocusBottomBorderColor.c_str();
+}
+
 bool RichEdit::CanRedo() const
 {
     if (IsReadOnly() || !IsEnabled()) {
@@ -1894,6 +1927,31 @@ void RichEdit::PaintChild(IRender* pRender, const UiRect& rcPaint)
         if (UiRect::Intersect(rcTemp, rcPaint, horBarPos)) {
             pHScrollBar->AlphaPaint(pRender, rcPaint);
         }
+    }
+}
+
+void RichEdit::PaintBorder(IRender* pRender)
+{
+    BaseClass::PaintBorder(pRender);
+    if (!IsFocused() || IsReadOnly() || !IsEnabled()) {
+        return;
+    }
+    //绘制下边线
+    DString borderColor = GetFocusBottomBorderColor();
+    int32_t borderSize = GetFocusBottomBorderSize();
+    if ((borderSize > 0) && !borderColor.empty()) {
+        UiColor dwBorderColor = GetUiColor(borderColor);
+        UiRect rcBorder = GetRect();
+        float fRoundWidth = 0;
+        float fRoundHeight = 0;
+        GetBorderRound(fRoundWidth, fRoundHeight);
+
+        float fBottomBorderWidth = Dpi().GetScaleFloat(borderSize);
+        rcBorder.right -= int32_t(fRoundWidth + 0.5f);
+        rcBorder.left -= int32_t(fRoundWidth + 0.5f);
+        UiPointF pt1((float)rcBorder.left, (float)rcBorder.bottom - fBottomBorderWidth / 2);
+        UiPointF pt2((float)rcBorder.right, (float)rcBorder.bottom - fBottomBorderWidth / 2);
+        DrawBorderLine(pRender, pt1, pt2, fBottomBorderWidth, dwBorderColor, GetBorderDashStyle());
     }
 }
 

@@ -2754,9 +2754,6 @@ void Control::PaintBorder(IRender* pRender)
     UiColor dwBorderColor;
     DString borderColor;
     if (IsFocused()) {
-        if (IsHotState()) {
-            borderColor = GetBorderColor(GetState());
-        }
         if (borderColor.empty()) {
             borderColor = GetFocusBorderColor();
         }

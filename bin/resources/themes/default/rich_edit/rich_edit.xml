@@ -55,7 +55,7 @@
                     </HBox>
                     <HBox height="44" margin="8,0,8,0">
                         <Label text="单行编辑:  " valign="center"/>
-                        <RichEdit class="edit" text="RichEdit: edit" valign="center" text_align="vcenter" text_padding="4,4,4,4" margin="4,6,4,4"/>
+                        <RichEdit class="simple simple_border" text="RichEdit: edit" valign="center" text_align="vcenter" text_padding="4,4,4,4" margin="4,6,4,4"/>
                     </HBox>
                     <HBox height="36" margin="8,0,8,0">
                         <Label text="提示模式:  " valign="center"/>
