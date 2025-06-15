@@ -8,21 +8,21 @@
         <HBox margin="0,10,0,0">
             <VBox valign="center" halign="center" width="50%" height="100%">
                 <!-- 水平进度条 -->
-                <Progress class="progress_blue" name="progress11" reverse="false" height="6" width="stretch" min="0" max="100" value="0" margin="20,20,20,20" tooltip_text="ui::Progress"/>
-                <Progress progress_color="blue" name="progress12" reverse="false" height="6" width="stretch" min="0" max="100" value="0" marquee="false" margin="20,20,20,20" tooltip_text="ui::Progress"/>
-                <Slider class="slider_green"    name="progress13" reverse="false" height="14" width="stretch" min="0" max="100" value="0" progress_bar_padding="0,4,0,4" margin="20,20,20,20"  tooltip_text="ui::Slider"/>
-                <CircleProgress                 name="progress14" reverse="false" circular="true" height="80" width="80"
-                                circle_width="10" bgcolor="gray" fgcolor="green" gradient_color="red" clockwise="true"  min="0" max="100" value="0" margin="20,20,20,20"
-                                text_padding="10,32,10,10" normal_text_color="darkcolor" indicator="file='public/progress/indicator.svg' width='14' height='14'" tooltip_text="ui::CircleProgress"/>
+                <Progress class="progress_horizontal_blue" name="progress11" reverse="false" height="6" width="stretch" min="0" max="100" value="0" margin="20,20,20,20" tooltip_text="ui::Progress"/>
+                <Progress progress_color="blue"            name="progress12" reverse="false" height="6" width="stretch" min="0" max="100" value="0" marquee="false" margin="20,20,20,20" bkcolor="LightGray" tooltip_text="ui::Progress"/>
+                <Slider class="slider_horizontal_green"    name="progress13" reverse="false" height="14" width="stretch" min="0" max="100" value="0" progress_bar_padding="0,4,0,4" margin="20,20,20,20"  tooltip_text="ui::Slider"/>
+                <CircleProgress                            name="progress14" reverse="false" circular="true" height="80" width="80"
+                                circle_width="12" bgcolor="gray" fgcolor="green" gradient_color="red" clockwise="true"  min="0" max="100" value="0" margin="20,20,20,20"
+                                text_padding="10,32,10,10" normal_text_color="darkcolor" indicator="file='public/progress/indicator.svg' width='12' height='12'" tooltip_text="ui::CircleProgress"/>
             </VBox>
             <HBox valign="center" halign="center" width="50%" height="100%">
                 <!-- 垂直进度条 -->
-                <Progress class="progress_blue" name="progress21" reverse="false" height="stretch" width="6" min="0" max="100" value="0" horizontal="false" margin="20,20,20,20" tooltip_text="ui::Progress"/>
-                <Progress progress_color="blue" name="progress22" reverse="false" height="stretch" width="6" min="0" max="100" value="0" horizontal="false" margin="20,20,20,20" tooltip_text="ui::Progress"/>
-                <Slider class="slider_green"    name="progress23" reverse="false" height="stretch" width="14" min="0" max="100" value="0" progress_bar_padding="4,0,4,0" margin="20,20,20,20" horizontal="false" tooltip_text="ui::Slider"/>
-                <CircleProgress                 name="progress24" reverse="false" circular="true" height="80" width="80" horizontal="false" 
-                                circle_width="10" bgcolor="gray" fgcolor="green" gradient_color="red" clockwise="true" min="0" max="100" value="0" margin="20,20,20,20"
-                                text_padding="10,32,10,10" normal_text_color="darkcolor" indicator="file='public/progress/indicator.svg' width='14' height='14'" tooltip_text="ui::CircleProgress"/>
+                <Progress class="progress_vertical_blue" name="progress21" reverse="false" height="stretch" width="6" min="0" max="100" value="0" horizontal="false" margin="20,20,20,20" tooltip_text="ui::Progress"/>
+                <Progress progress_color="blue"          name="progress22" reverse="false" height="stretch" width="6" min="0" max="100" value="0" horizontal="false" margin="20,20,20,20" bkcolor="LightGray" tooltip_text="ui::Progress"/>
+                <Slider class="slider_vertical_green"    name="progress23" reverse="false" height="stretch" width="14" min="0" max="100" value="0" progress_bar_padding="4,0,4,0" margin="20,20,20,20" horizontal="false" tooltip_text="ui::Slider"/>
+                <CircleProgress                          name="progress24" reverse="false" circular="true" height="80" width="80" horizontal="false" 
+                                circle_width="12" bgcolor="gray" fgcolor="green" gradient_color="red" clockwise="true" min="0" max="100" value="0" margin="20,20,20,20"
+                                text_padding="10,32,10,10" normal_text_color="darkcolor" indicator="file='public/progress/indicator.svg' width='12' height='12'" tooltip_text="ui::CircleProgress"/>
             </HBox>            
         </HBox>
         <Control />
