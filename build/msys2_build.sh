@@ -86,12 +86,10 @@ else
 fi
 
 # 检测skia的可用lib
-if [[ -d "${SKIA_SRC_ROOT_DIR}/out/llvm.${CPU_ARCH}.release" ]]; then
+if [ "$has_clang" -eq 1 ]; then
     DUILIB_SKIA_LIB_SUBPATH=llvm.${CPU_ARCH}.release
-elif [[ -d "${SKIA_SRC_ROOT_DIR}/out/gcc.${CPU_ARCH}.release" ]]; then
-    DUILIB_SKIA_LIB_SUBPATH=gcc.${CPU_ARCH}.release
 else
-    DUILIB_SKIA_LIB_SUBPATH=llvm.${CPU_ARCH}.release
+    DUILIB_SKIA_LIB_SUBPATH=gcc.${CPU_ARCH}.release
 fi
 
 if [[ ! -d "${SKIA_SRC_ROOT_DIR}/out/${DUILIB_SKIA_LIB_SUBPATH}" ]]; then
