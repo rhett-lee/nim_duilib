@@ -170,22 +170,10 @@ bool CursorManager::SetImageCursor(const Window* pWindow, const FilePath& curIma
     }
 
     //设置窗口图标
-    const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), pWindow->GetResourcePath());
-    FilePath cursorFullPath = FilePathUtil::JoinFilePath(windowResFullPath, curImagePath);
-    cursorFullPath.NormalizeFilePath();
-    if (GlobalManager::Instance().Zip().IsUseZip()) {
-        //使用压缩包
-        if (!GlobalManager::Instance().Zip().IsZipResExist(cursorFullPath)) {
-            ASSERT(false);
-            return false;
-        }
-    }
-    else {
-        //使用本地文件
-        if (!cursorFullPath.IsExistsPath()) {
-            ASSERT(false);
-            return false;
-        }
+    FilePath cursorFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), curImagePath);
+    ASSERT(!cursorFullPath.IsEmpty());
+    if (cursorFullPath.IsEmpty()) {
+        return false;
     }
 
     HCURSOR hCursor = nullptr;
@@ -195,23 +183,18 @@ bool CursorManager::SetImageCursor(const Window* pWindow, const FilePath& curIma
     }
     else {
         //加载光标
-        if (GlobalManager::Instance().Zip().IsUseZip()) {
+        if (GlobalManager::Instance().Zip().IsUseZip() && GlobalManager::Instance().Zip().IsZipResExist(cursorFullPath)) {
             //使用压缩包
-            if (GlobalManager::Instance().Zip().IsZipResExist(cursorFullPath)) {
-                std::vector<uint8_t> fileData;
-                GlobalManager::Instance().Zip().GetZipData(cursorFullPath, fileData);
-                ASSERT(!fileData.empty());
-                if (!fileData.empty()) {
-                    //从内存中加载光标
-                    hCursor = LoadCursorFromData(pWindow, fileData);
-                    ASSERT(hCursor != nullptr);
-                    if (hCursor != nullptr) {
-                        m_impl->m_cursorMap[cursorFullPath] = hCursor;
-                    }
+            std::vector<uint8_t> fileData;
+            GlobalManager::Instance().Zip().GetZipData(cursorFullPath, fileData);
+            ASSERT(!fileData.empty());
+            if (!fileData.empty()) {
+                //从内存中加载光标
+                hCursor = LoadCursorFromData(pWindow, fileData);
+                ASSERT(hCursor != nullptr);
+                if (hCursor != nullptr) {
+                    m_impl->m_cursorMap[cursorFullPath] = hCursor;
                 }
-            }
-            else {
-                ASSERT(false);
             }
         }
         else {
