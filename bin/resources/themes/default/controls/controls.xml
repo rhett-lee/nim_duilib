@@ -90,18 +90,18 @@
                         <VBox width="200">
                             <HBox margin="0,10" height="32">
                                 <Control width="auto" height="auto" bkimage="public/animation/ani_loading.gif" valign="center"/>
-                                <Progress class="progress_blue" name="progress" value="0" margin="10" tooltip_text="ui::Progress"/>
+                                <Progress class="progress_horizontal_blue" name="progress" value="0" margin="10" tooltip_text="ui::Progress"/>
                             </HBox>
                             <HBox margin="0,0,0,10" height="32">
                                 <Control width="auto" height="auto" bkimage="set_speaker.png" valign="center"/>
-                                <Slider class="slider_green" value="70" margin="10" tooltip_text="ui::Slider"/>
+                                <Slider class="slider_horizontal_green" value="70" margin="10" tooltip_text="ui::Slider"/>
                             </HBox>
                         </VBox>
                         <!-- CircleProgress -->
                         <VBox width="90" margin="10,0">
                             <CircleProgress name="circleprogress" circular="true" height="80" width="80"
-                            circle_width="10" bgcolor="gray" fgcolor="green" gradient_color="red" clockwise="true"  min="0" max="100" value="75" margin="10"
-                            text_padding="10,32,10,10" normal_text_color="darkcolor" indicator="file='public/progress/indicator.svg' width='14' height='14'" tooltip_text="ui::CircleProgress"/>
+                            circle_width="12" bgcolor="gray" fgcolor="green" gradient_color="red" clockwise="true"  min="0" max="100" value="75" margin="10"
+                            text_padding="10,32,10,10" normal_text_color="darkcolor" indicator="file='public/progress/indicator.svg' width='12' height='12'" tooltip_text="ui::CircleProgress"/>
                         </VBox>
                         <!-- DateTime -->
                         <VBox margin="4,8,0,0">
