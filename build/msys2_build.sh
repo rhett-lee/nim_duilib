@@ -1,5 +1,22 @@
 #!/bin/bash
 
+# check windows
+is_windows() {
+    case "$(uname -s)" in
+        CYGWIN*|MINGW32*|MSYS*|MINGW*)
+            return 0  # Windows
+            ;;
+        *)
+            return 1  # Not Windows
+            ;;
+    esac
+}
+
+if ! is_windows; then
+    echo "Please run this script on Windows/MSYS2 system."
+    exit 1
+fi
+
 if [ "$1" == "-sdl" ]; then    
     SDL_PARAM="-DDUILIB_ENABLE_SDL=ON"
 else
