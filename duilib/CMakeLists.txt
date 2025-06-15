@@ -213,6 +213,13 @@ else()
     add_library(${PROJECT_NAME} ${LIBRARY_SOURCES})
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    if(DUILIB_ENABLE_SDL)
+        # Enable SDL support for windows
+        target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_SDL=1)
+    endif()
+endif()
+
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     # 由于Skia内部会自动开启AVX/AVX2等编译参数，duilib内部直接引用了部分源码，需要保持编译选项一致
     include(${DUILIB_SRC_ROOT_DIR}/cmake/duilib_compiles.cmake)

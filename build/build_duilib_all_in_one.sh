@@ -2,6 +2,12 @@
 
 # Linux / MacOS / FreeBSD / MSYS2(Windows)
 
+# Force enable SDL (MSYS2-Windows only)
+ENABLE_SDL=0
+if [ "$1" == "-sdl" ]; then
+    ENABLE_SDL=1
+fi
+
 CURRENT_DIR=$(pwd)
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
@@ -184,7 +190,11 @@ clone_SDL() {
     fi
 }
 
-if ! is_windows; then
+if is_windows; then
+    echo "ENABLE_SDL: $ENABLE_SDL"
+fi
+
+if ! is_windows || [ "$ENABLE_SDL" == "1" ]; then
     # clone SDL
     clone_SDL
     if [ ! -d "./SDL/.git" ]; then
@@ -256,6 +266,11 @@ if ! is_windows; then
     cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release 
     cmake --build ./SDL.build
     cmake --install ./SDL.build
+elif [ "$ENABLE_SDL" == "1" ]; then
+    # build SDL on Windows
+    cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release 
+    cmake --build ./SDL.build
+    cmake --install ./SDL.build
 fi
 
 # build nim_duilib
@@ -269,7 +284,7 @@ elif [ "$(uname -s)" == "FreeBSD" ]; then
     ./nim_duilib/build/freebsd_build.sh
 elif is_windows; then
     echo "Windows"
-    ./nim_duilib/build/msys2_build.sh
+    ./nim_duilib/build/msys2_build.sh $1
 else
     echo "Linux"
     chmod +x ./nim_duilib/build/linux_build.sh

@@ -145,7 +145,7 @@ else()
 endif()
 set(DUILIB_SKIA_LIBS svg skia skshaper)
 
-#SDL库根目录（Windows系统不用SDL，其他系统都必须用SDL）
+#SDL库根目录，lib文件目录（Windows系统可选，其他平台必选）
 if(DUILIB_ENABLE_SDL)
     get_filename_component(DUILIB_SDL_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../SDL3/" ABSOLUTE)
     if(EXISTS "${DUILIB_SDL_SRC_ROOT_DIR}/lib64/")
@@ -153,7 +153,11 @@ if(DUILIB_ENABLE_SDL)
     else()
         set(DUILIB_SDL_LIB_PATH "${DUILIB_SDL_SRC_ROOT_DIR}/lib")
     endif()
-    set(DUILIB_SDL_LIBS SDL3)
+    if(DUILIB_OS_WINDOWS AND NOT MINGW)
+        set(DUILIB_SDL_LIBS SDL3-static.lib)
+    else()
+        set(DUILIB_SDL_LIBS SDL3)
+    endif()
 endif()
 
 #输出日志：打印变量数据
