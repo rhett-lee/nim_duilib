@@ -1,5 +1,12 @@
 echo OFF
 
+:: Force enable SDL
+set ENABLE_SDL=0
+if "%1" == "-sdl" (
+    set ENABLE_SDL=1
+)
+echo ENABLE_SDL: %ENABLE_SDL%
+
 :: build duilib: MinGW-w64 gcc/g++ or clang/clang++
 set CURRENT_DIR=%cd%
 set SCRIPT_DIR=%~dp0
@@ -21,6 +28,16 @@ if %errorlevel% equ 0 (
     where python3.exe
 ) else (
     echo python3.exe not found in PATH
+    cd /d %CURRENT_DIR%
+    exit /b 1
+)
+
+where cmake.exe >nul 2>&1
+if %errorlevel% equ 0 (
+    echo cmake.exe found at:  
+    where cmake.exe
+) else (
+    echo cmake.exe not found in PATH
     cd /d %CURRENT_DIR%
     exit /b 1
 )
@@ -60,6 +77,7 @@ echo %cd%
 
 set retry_delay=10
 
+echo - Cloning nim_duilib ...
 :retry_clone_duilib
 if not exist ".\nim_duilib\.git" (
     git clone https://github.com/rhett-lee/nim_duilib
@@ -77,6 +95,7 @@ if not exist ".\nim_duilib\.git" (
     exit /b 1
 )
 
+echo - Cloning skia_compile ...
 :retry_clone_skia_compile
 if not exist ".\skia_compile\.git" (
     git clone https://github.com/rhett-lee/skia_compile
@@ -94,6 +113,7 @@ if not exist ".\skia_compile\.git" (
     exit /b 1
 )
 
+echo - Cloning skia ...
 :retry_clone_skia
 if not exist ".\skia\.git" (
     git clone https://github.com/google/skia.git
@@ -111,6 +131,20 @@ if not exist ".\skia\.git" (
     echo clone skia failed!
     cd /d %CURRENT_DIR%
     exit /b 1
+)
+
+if %ENABLE_SDL% equ 1 (
+echo - Cloning SDL ...
+:retry_clone_SDL
+    if not exist ".\SDL\.git" (
+        git clone https://github.com/libsdl-org/SDL.git
+    ) else (    
+        git -C ./SDL pull
+    )
+    if %errorlevel% neq 0 (
+        timeout /t %retry_delay% >nul
+        goto retry_clone_SDL
+    )
 )
 
 set SKIA_PATCH_SRC_ZIP=skia.2025-06-06.src.zip
@@ -136,7 +170,7 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-@REM build skia
+echo - Building skia ...
 cd skia
 
 if %has_clang% equ 1 (
@@ -146,12 +180,29 @@ if %has_clang% equ 1 (
 )
 cd ..
 
-@REM build nim_duilib
+if %ENABLE_SDL% equ 1 (
+    echo - Building SDL ...
+    if %has_clang% equ 1 (
+        SET DUILIB_CC=clang
+        SET DUILIB_CXX=clang++
+        SET DUILIB_SDL_DIR=SDL.build.mingw.llvm
+    ) else (
+        SET DUILIB_CC=gcc
+        SET DUILIB_CXX=g++
+        SET DUILIB_SDL_DIR=SDL.build.mingw.gcc
+    )
+
+    cmake --fresh -S "./SDL/" -B "./%DUILIB_SDL_DIR%" -DCMAKE_INSTALL_PREFIX="./SDL3/" -G"MinGW Makefiles" -DCMAKE_C_COMPILER=%DUILIB_CC% -DCMAKE_CXX_COMPILER=%DUILIB_CXX% -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release 
+    cmake --build ./%DUILIB_SDL_DIR% -j 6
+    cmake --install ./%DUILIB_SDL_DIR%
+)
+
+echo - Building nim_duilib ...
 cd /d %SCRIPT_DIR%
 if %has_clang% equ 1 (
-    call .\llvm-mingw-w64_build.bat
+    call .\llvm-mingw-w64_build.bat %1
 ) else (
-    call .\gcc-mingw-w64_build.bat
+    call .\gcc-mingw-w64_build.bat %1
 )
 
 cd /d %CURRENT_DIR%

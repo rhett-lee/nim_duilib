@@ -74,6 +74,15 @@ else
     which unzip
 fi
 
+if ! command -v cmake &> /dev/null
+then
+    echo "- cmake not found!"
+    exit 1
+else
+    echo "cmake found at:"
+    which cmake
+fi
+
 # flag
 has_gcc=0
 has_clang=0
@@ -263,14 +272,19 @@ fi
 
 if ! is_windows; then
     # build SDL on Linux/MacOS
-    cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release 
+    cmake --fresh -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release 
     cmake --build ./SDL.build
     cmake --install ./SDL.build
 elif [ "$ENABLE_SDL" == "1" ]; then
     # build SDL on Windows
-    cmake -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release 
-    cmake --build ./SDL.build
-    cmake --install ./SDL.build
+    if [ "$has_clang" -eq 1 ]; then
+        DUILIB_SDL_DIR=SDL.build.msys2.llvm
+    else
+        DUILIB_SDL_DIR=SDL.build.msys2.gcc
+    fi
+    cmake --fresh -S "./SDL/" -B "./${DUILIB_SDL_DIR}" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=OFF -DSDL_STATIC=ON -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release 
+    cmake --build ./${DUILIB_SDL_DIR} -j 6
+    cmake --install ./${DUILIB_SDL_DIR}
 fi
 
 # build nim_duilib

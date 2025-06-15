@@ -95,6 +95,11 @@ endif()
 
 # Windows平台所依赖的库
 if(DUILIB_ENABLE_SDL)
+    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+        # Enable SDL support for windows
+        target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_SDL=1)
+    endif()
+
     set(DUILIB_WINDOWS_LIBS Comctl32 Imm32 Opengl32 User32 shlwapi Version.lib Winmm.lib Setupapi.lib)
 else()
     set(DUILIB_WINDOWS_LIBS Comctl32 Imm32 Opengl32 User32 shlwapi)
