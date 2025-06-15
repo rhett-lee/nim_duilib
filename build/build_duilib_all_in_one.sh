@@ -128,6 +128,7 @@ start_time=$(date +%s)
 retry_delay=10
 
 # Retry clone nim_duilib
+echo "- Cloning nim_duilib ..."
 clone_nim_duilib() {
     if [ ! -d "./nim_duilib/.git" ]; then
         git clone https://github.com/rhett-lee/nim_duilib.git
@@ -147,6 +148,7 @@ if [ ! -d "./nim_duilib/.git" ]; then
 fi
 
 # Retry clone skia
+echo "- Cloning skia ..."
 clone_skia() {
     if [ ! -d "./skia/.git" ]; then
         git clone https://github.com/google/skia.git
@@ -168,6 +170,7 @@ if [ ! -d "./skia/.git" ]; then
 fi
 
 # Retry clone skia_compile
+echo "- Cloning skia_compile ..."
 clone_skia_compile() {
     if [ ! -d "./skia_compile/.git" ]; then
         git clone https://github.com/rhett-lee/skia_compile.git
@@ -187,6 +190,7 @@ if [ ! -d "./skia_compile/.git" ]; then
 fi
 
 # Retry clone SDL
+echo "- Cloning SDL ..."
 clone_SDL() {
     if [ ! -d "./SDL/.git" ]; then
         git clone https://github.com/libsdl-org/SDL.git
@@ -235,6 +239,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+echo "- Building skia ..."
 if [ "$has_clang" -eq 1 ]; then
     # clang/clang++
     echo "clang++ found at:"
@@ -272,11 +277,13 @@ fi
 
 if ! is_windows; then
     # build SDL on Linux/MacOS
+    echo "- Building SDL ..."
     cmake --fresh -S "./SDL/" -B "./SDL.build" -DCMAKE_INSTALL_PREFIX="./SDL3/" -DSDL_SHARED=ON -DSDL_STATIC=OFF -DSDL_TEST_LIBRARY=OFF -DCMAKE_BUILD_TYPE=Release 
     cmake --build ./SDL.build
     cmake --install ./SDL.build
 elif [ "$ENABLE_SDL" == "1" ]; then
     # build SDL on Windows
+    echo "- Building SDL ..."
     if [ "$has_clang" -eq 1 ]; then
         DUILIB_SDL_DIR=SDL.build.msys2.llvm
     else
@@ -288,6 +295,7 @@ elif [ "$ENABLE_SDL" == "1" ]; then
 fi
 
 # build nim_duilib
+echo "- Building nim_duilib ..."
 if [ "$(uname -s)" == "Darwin" ]; then
     echo "macOS"
     chmod +x ./nim_duilib/build/macos_build.sh
