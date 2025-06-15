@@ -183,22 +183,10 @@ bool CursorManager::SetImageCursor(const Window* pWindow, const FilePath& curIma
     }
 
     //设置窗口图标
-    const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::Instance().GetResourcePath(), pWindow->GetResourcePath());
-    FilePath cursorFullPath = FilePathUtil::JoinFilePath(windowResFullPath, curImagePath);
-    cursorFullPath.NormalizeFilePath();
-    if (GlobalManager::Instance().Zip().IsUseZip()) {
-        //使用压缩包
-        if (!GlobalManager::Instance().Zip().IsZipResExist(cursorFullPath)) {
-            ASSERT(false);
-            return false;
-        }
-    }
-    else {
-        //使用本地文件
-        if (!cursorFullPath.IsExistsPath()) {
-            ASSERT(false);
-            return false;
-        }
+    FilePath cursorFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), curImagePath);
+    ASSERT(!cursorFullPath.IsEmpty());
+    if (cursorFullPath.IsEmpty()) {
+        return false;
     }
 
     SDL_Cursor* sdlCursor = nullptr;
@@ -209,15 +197,10 @@ bool CursorManager::SetImageCursor(const Window* pWindow, const FilePath& curIma
     else {
         //加载光标
         std::vector<uint8_t> fileData;
-        if (GlobalManager::Instance().Zip().IsUseZip()) {
-            //使用压缩包
-            if (GlobalManager::Instance().Zip().IsZipResExist(cursorFullPath)) {                
-                bool bRet = GlobalManager::Instance().Zip().GetZipData(cursorFullPath, fileData);
-                ASSERT_UNUSED_VARIABLE(bRet);                
-            }
-            else {
-                ASSERT(false);
-            }
+        if (GlobalManager::Instance().Zip().IsUseZip() && GlobalManager::Instance().Zip().IsZipResExist(cursorFullPath)) {
+            //使用压缩包               
+            bool bRet = GlobalManager::Instance().Zip().GetZipData(cursorFullPath, fileData);
+            ASSERT_UNUSED_VARIABLE(bRet);
         }
         else {
             //使用本地文件
