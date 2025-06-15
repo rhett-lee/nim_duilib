@@ -1,5 +1,30 @@
 #!/bin/bash
 
+# check windows
+is_windows() {
+    case "$(uname -s)" in
+        CYGWIN*|MINGW32*|MSYS*|MINGW*)
+            return 0  # Windows
+            ;;
+        *)
+            return 1  # Not Windows
+            ;;
+    esac
+}
+
+if [ "$(uname -s)" == "Darwin" ]; then
+    echo "Please run this script on Linux system."
+    exit 1
+elif [ "$(uname -s)" == "FreeBSD" ]; then
+    echo "Please run this script on Linux system."
+    exit 1
+elif is_windows; then
+    echo "Please run this script on Linux system."
+    exit 1
+else
+    echo "Linux"
+fi
+
 DUILIB_SRC_ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 SKIA_SRC_ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../skia" && pwd)
 echo "DUILIB_SRC_ROOT_DIR: $DUILIB_SRC_ROOT_DIR"

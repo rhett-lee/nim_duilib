@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [ "$(uname -s)" != "FreeBSD" ]; then
+    echo "Please run this script on FreeBSD system."
+    exit 1
+fi
+
 DUILIB_SRC_ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 SKIA_SRC_ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/../../skia" && pwd)
 echo "DUILIB_SRC_ROOT_DIR: $DUILIB_SRC_ROOT_DIR"
