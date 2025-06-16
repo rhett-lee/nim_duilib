@@ -7,10 +7,10 @@
     <Box height="auto" margin="0,50,0,0" padding="14,14,14,14" bkimage="file='bk_shadow.png' corner='30,30,30,30'">
       <VBox height="auto" bkcolor="bk_wnd_lightcolor" borderround="3,3,3,3">
         <VBox height="auto">
-          <HBox height="20" margin="0,6,5,40">
+          <HBox height="40" margin="0,6,5,40">
             <Control />
-            <Button class="btn_wnd_min" name="minbtn" margin="4,0,4,0"/>
-            <Button class="btn_wnd_close" name="closebtn"/>
+            <Button class="btn_wnd_min_11" name="minbtn" height="32" width="32" margin="4,0,4,0"/>
+            <Button class="btn_wnd_close_11" height="32" width="32" name="closebtn"/>
           </HBox>
           <HBox height="auto">
             <Control />

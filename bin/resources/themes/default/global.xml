@@ -226,7 +226,7 @@
                                         hot_color="#FFFAFCFF" 
                                         pushed_color="#FFB0B4B8"/>
     
-    <!--窗口右上角按钮 灰色版 -->
+    <!--窗口右上角按钮 -->
     <Class name="btn_wnd_min_11" normal_image="file='public/button/window-minimize.svg' 
                                  width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
     <Class name="btn_wnd_close_11" normal_image="file='public/button/window-close.svg' 
@@ -239,73 +239,13 @@
                                  width='24' height='24' valign='center' halign='center' padding='0,4,0,0'" hot_color="AliceBlue" pushed_color="Lavender"/>
     <Class name="btn_wnd_settings_11" normal_image="file='public/button/btn_setting.svg' 
                                  width='24' height='24' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
-
-    <!--窗口右上角按钮 灰色版 -->
-    <Class name="btn_wnd_min" width="auto" height="auto" 
-                fore_normal_image="file='public/button/btn_wnd_gray_min.png' dest='4,4,16,16'" 
-                normal_image="" 
-                hot_image="public/button/btn_wnd_gray_min_hovered.png" 
-                pushed_image="public/button/btn_wnd_gray_min_pushed.png"/>
-    <Class name="btn_wnd_close" width="20" height="20" 
-                normal_image="file='public/button/btn_wnd_gray_close.png' dest='4,4,16,16'" 
-                hot_image="public/button/btn_wnd_white_close_hovered.png" 
-                pushed_image="public/button/btn_wnd_white_close_pushed.png" 
-                fadehot="false"/>
-    <Class name="btn_wnd_max" width="auto" height="auto" 
-                fore_normal_image="file='public/button/btn_wnd_gray_max.png' dest='4,4,16,16'" 
-                normal_image="" hot_image="public/button/btn_wnd_gray_max_hovered.png" 
-                pushed_image="public/button/btn_wnd_gray_max_pushed.png"/>
-    <Class name="btn_wnd_restore" width="auto" height="auto" 
-                fore_normal_image="file='public/button/btn_wnd_gray_restore.png' dest='4,4,16,16'" 
-                normal_image="" hot_image="public/button/btn_wnd_gray_restore_hovered.png" 
-                pushed_image="public/button/btn_wnd_gray_restore_pushed.png"/>
-    <Class name="btn_wnd_settings" width="auto" height="auto" 
-                fore_normal_image="file='public/button/btn_wnd_settings.png' source='1,1,21,21'" 
-                hot_image="public/button/btn_wnd_bk_hovered.png" 
-                pushed_image="public/button/btn_wnd_bk_pushed.png"/>
-    
-    <!--窗口右上角按钮 白色版 -->
-    <Class name="btn_wnd_white_min" width="auto" height="auto" 
-                fore_normal_image="file='public/button/btn_wnd_white_min.png'" 
-                normal_image="" 
-                hot_image="public/button/btn_wnd_white_min_hovered.png" 
-                pushed_image="public/button/btn_wnd_white_min_pushed.png"/>
-    <Class name="btn_wnd_white_close" width="auto" height="auto" 
-                fore_normal_image="file='public/button/btn_wnd_white_close.png'" 
-                normal_image="" 
-                hot_image="public/button/btn_wnd_white_close_hovered.png" 
-                pushed_image="public/button/btn_wnd_white_close_pushed.png"/>
-    <Class name="btn_wnd_white_max" width="auto" height="auto" 
-                fore_normal_image="file='public/button/btn_wnd_white_max.png' dest='4,4,16,16'" 
-                normal_image="" 
-                hot_image="public/button/btn_wnd_white_max_hovered.png" 
-                pushed_image="public/button/btn_wnd_white_max_pushed.png"/>
-    <Class name="btn_wnd_white_menu" width="auto" height="auto" 
-                fore_normal_image="file='public/button/btn_wnd_white_menu.png' dest='4,5,16,15'" 
-                normal_image="" 
-                hot_image="public/button/btn_wnd_white_menu_hovered.png" 
-                pushed_image="public/button/btn_wnd_white_menu_pushed.png"/>
-    
+     
     <!--删除按钮通用样式-->
-    <Class name="btn_delete" 
-                normal_image="file='public/button/funcicon.png' source='0,0,26,26'" 
-                hot_image="file='public/button/funcicon.png' source='31,0,57,26'" 
-                pushed_image="file='public/button/funcicon.png' source='62,0,88,26'" 
-                disabled_image="file='public/button/funcicon.png' source='93,0,119,26'"/>
     <Class name="btn_recycle" width="auto" height="auto" 
-                normal_image="file='public/button/btn_recycle_normal.png'" 
-                hot_image="file='public/button/btn_recycle_hovered.png'" 
-                pushed_image="file='public/button/btn_recycle_pushed.png'" 
-                disabled_image="file='public/button/btn_recycle_normal.png' fade='80'"/>
-    <Class name="btn_refresh" width="auto" height="auto" 
-                normal_image="file='public/button/btn_refresh_normal.png'" 
-                hot_image="file='public/button/btn_refresh_hovered.png'" 
-                pushed_image="file='public/button/btn_refresh_pushed.png'" 
-                disabled_image="file='public/button/btn_refresh_normal.png' fade='80'"/>
-    <Class name="btn_del_search" 
-                normal_image="public/button/btn_del_search_normal_gray.png" 
-                hot_image="public/button/btn_del_search_hover_gray.png" 
-                pushed_image="public/button/btn_del_search_pushed_gray.png"/>
+                normal_image="file='public/button/btn_recycle_normal.svg'" 
+                hot_image="file='public/button/btn_recycle_hovered.svg'" 
+                pushed_image="file='public/button/btn_recycle_pushed.svg'" 
+                disabled_image="file='public/button/btn_recycle_normal.svg' fade='80'"/>
     <!--列表通用样式-->
     <Class name="list" bkcolor="bk_wnd_lightcolor" vscrollbar="true"/>
     <Class name="listitem" hot_color="bk_listitem_hovered" 
