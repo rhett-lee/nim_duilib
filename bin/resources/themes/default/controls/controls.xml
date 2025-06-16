@@ -42,8 +42,12 @@
                     <Option class="option_1" group="option_group" text="单选2" margin="0,3,0,3"/>
                     <Option class="option_1" group="option_group" text="单选3" margin="0,3,0,3"/>
                     <HBox height="36">
-                        <Label text="开关" height="36" valign="center"/>
+                        <Label text="开关1" height="36" valign="center"/>
                         <CheckBox class="checkbox_toggle_1" margin="4,3,0,3"/>
+                    </HBox>
+                    <HBox height="36">
+                        <Label text="开关2" height="36" valign="center"/>
+                        <CheckBox class="checkbox_toggle_2" margin="4,3,0,3"/>
                     </HBox>
                 </VBox>
                 <!-- List -->
