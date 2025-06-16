@@ -125,16 +125,16 @@
     <!--字体大小-->
     <Class name="font_title" font="system_14"/>
     <!--滚动条-->
-    <Class name="vscrollbar" width="14" fadealpha="true" 
-           thumb_normal_image="file='public/vscrollbar/thumb_normal.png' corner='0,8,0,8'" 
-           thumb_hot_image="file='public/vscrollbar/thumb_hovered.png' corner='0,8,0,8'" 
-           bk_hot_image="file='public/vscrollbar/bk_hovered.png' corner='0,4,0,4'" 
+    <Class name="vscrollbar" width="12" fadealpha="true" 
+           thumb_normal_image="file='public/vscrollbar/thumb_normal.svg' corner='0,8,0,8'" 
+           thumb_hot_image="file='public/vscrollbar/thumb_hovered.svg' corner='0,8,0,8'" 
+           bk_hot_image="file='public/vscrollbar/bk_hovered.svg' corner='0,8,0,8'" 
            show_button1="false" 
            show_button2="false" />
-    <Class name="hscrollbar" height="14" fadealpha="true" 
-           thumb_normal_image="file='public/hscrollbar/thumb_normal.png' corner='8,0,8,0'" 
-           thumb_hot_image="file='public/hscrollbar/thumb_hovered.png' corner='8,0,8,0'" 
-           bk_hot_image="file='public/hscrollbar/bk_hovered.png' corner='4,0,4,0'" 
+    <Class name="hscrollbar" height="12" fadealpha="true" 
+           thumb_normal_image="file='public/hscrollbar/thumb_normal.svg' corner='8,0,8,0'" 
+           thumb_hot_image="file='public/hscrollbar/thumb_hovered.svg' corner='8,0,8,0'" 
+           bk_hot_image="file='public/hscrollbar/bk_hovered.svg' corner='8,0,8,0'" 
            show_button1="false" 
            show_button2="false"/>
     <!--单选框-->
