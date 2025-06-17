@@ -1686,8 +1686,15 @@ void RichEdit::SetPos(UiRect rc)
         }
     }
 
-    if ((pVScrollBar != nullptr) && pVScrollBar->IsValid()) {
+    if ((pVScrollBar != nullptr) && pVScrollBar->IsValid()) {        
+        int32_t nHScrollbarHeight = 0; //横向滚动条的高度
         UiRect rcScrollBarPos(rc.right, rc.top, rc.right + pVScrollBar->GetFixedWidth().GetInt32(), rc.bottom);
+        if ((pHScrollBar != nullptr) && pHScrollBar->IsValid()) {
+            //纵向滚动条的底部，需要到容器的底部
+            nHScrollbarHeight = pHScrollBar->GetFixedHeight().GetInt32();
+            rcScrollBarPos.bottom += nHScrollbarHeight;
+        }
+        pVScrollBar->SetHScrollbarHeight(nHScrollbarHeight);
         pVScrollBar->SetPos(rcScrollBarPos);
     }
     if (pHScrollBar != nullptr && pHScrollBar->IsValid()) {

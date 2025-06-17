@@ -138,7 +138,7 @@
                              show_button1="false" 
                              show_button2="false"/>
     <!--滚动条: 标准风格-->
-    <Class name="vscrollbar2" width="12" fade_alpha="true" 
+    <Class name="vscrollbar2" width="12" fade_alpha="true"
                              thumb_normal_image="file='public/scrollbar02/vscrollbar/thumb_normal.svg' width='12' corner='0,8,0,8'" 
                              thumb_hot_image="file='public/scrollbar02/vscrollbar/thumb_hovered.svg' width='12' corner='0,8,0,8'" 
                              bk_normal_image="file='public/scrollbar02/vscrollbar/bk_normal.svg' width='12' corner='0,8,0,8'" 
@@ -273,10 +273,10 @@
      
     <!--删除按钮通用样式-->
     <Class name="btn_recycle" width="auto" height="auto" 
-                normal_image="file='public/button/btn_recycle_normal.svg'" 
-                hot_image="file='public/button/btn_recycle_hovered.svg'" 
-                pushed_image="file='public/button/btn_recycle_pushed.svg'" 
-                disabled_image="file='public/button/btn_recycle_normal.svg' fade='80'"/>
+                              normal_image="file='public/button/btn_recycle_normal.svg'" 
+                              hot_image="file='public/button/btn_recycle_hovered.svg'" 
+                              pushed_image="file='public/button/btn_recycle_pushed.svg'" 
+                              disabled_image="file='public/button/btn_recycle_normal.svg' fade='80'"/>
     <!--列表通用样式-->
     <Class name="list" bkcolor="bk_wnd_lightcolor" vscrollbar="true"/>
     <Class name="listitem" hot_color="bk_listitem_hovered" 

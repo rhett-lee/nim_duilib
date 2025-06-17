@@ -232,6 +232,10 @@ public:
      */
     ControlStateType GetThumbState() { return m_uThumbState; }
 
+    /** 设置关联横向滚动条的高度
+    */
+    void SetHScrollbarHeight(int32_t nHScrollbarHeight);
+
 private:
     void ScrollTimeHandle();
 
@@ -247,8 +251,7 @@ private:
     int64_t CalcFastScrollOffset(int32_t posOffset) const;
 
 private:
-    enum
-    { 
+    enum { 
         DEFAULT_SCROLLBAR_SIZE = 12,
     };
 
@@ -271,10 +274,10 @@ private:
     int64_t m_nScrollPos;
 
     //滚动一行的大小
-    int m_nLineSize;
+    int32_t m_nLineSize;
 
     //滚动条滑块的最小长度
-    int m_nThumbMinLength;
+    int32_t m_nThumbMinLength;
 
     //上次的滚动条位置
     int64_t m_nLastScrollPos;
@@ -283,7 +286,11 @@ private:
     int64_t m_nLastScrollOffset;
 
     //延迟滚动重复次数
-    int m_nScrollRepeatDelay;
+    int32_t m_nScrollRepeatDelay;
+
+    /** 纵向滚动条：关联横向滚动条的高度
+    */
+    int32_t m_nHScrollbarHeight;
     
     //上次鼠标所在位置
     UiPoint m_ptLastMouse;

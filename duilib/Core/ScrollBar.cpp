@@ -21,6 +21,7 @@ ScrollBar::ScrollBar(Window* pWindow) :
     m_nLastScrollPos(0),
     m_nLastScrollOffset(0),
     m_nScrollRepeatDelay(0),
+    m_nHScrollbarHeight(0),
     m_pOwner(nullptr),
     m_ptLastMouse({ 0, 0 }),
     m_rcButton1(0, 0, 0, 0),
@@ -270,6 +271,7 @@ void ScrollBar::SetPos(UiRect rc)
     rc = GetRect();
 
     if (m_bHorizontal) {
+        //水平滚动条
         ASSERT(GetFixedHeight().GetInt32() > 0);
         int cx = rc.Width();
         if (m_bShowButton1) {            
@@ -352,6 +354,7 @@ void ScrollBar::SetPos(UiRect rc)
         }
     }
     else {
+        //垂直滚动条
         ASSERT(GetFixedWidth().GetInt32() > 0);
         int cy = rc.Height();
         if (m_bShowButton1) {
@@ -360,6 +363,8 @@ void ScrollBar::SetPos(UiRect rc)
         if (m_bShowButton2) {
             cy -= GetFixedWidth().GetInt32();
         }
+        cy -= m_nHScrollbarHeight;//留出水平滚动条的高度，避免可以滑动到控件底部
+
         if (cy > GetFixedWidth().GetInt32()) {
             m_rcButton1.left = rc.left;
             m_rcButton1.top = rc.top;
@@ -431,6 +436,19 @@ void ScrollBar::SetPos(UiRect rc)
             m_rcThumb.Clear();
         }
     }
+
+    if (!m_bHorizontal && m_bShowButton2 && (m_nHScrollbarHeight > 0)) {
+        //垂直滚动条：为水平滚动条留出位置，避免底部按钮与容器底部对齐
+        m_rcButton2.Offset(0, -m_nHScrollbarHeight);
+    }
+}
+
+void ScrollBar::SetHScrollbarHeight(int32_t nHScrollbarHeight)
+{
+    if (nHScrollbarHeight < 0) {
+        nHScrollbarHeight = 0;
+    }
+    m_nHScrollbarHeight = nHScrollbarHeight;
 }
 
 void ScrollBar::HandleEvent(const EventArgs& msg)
