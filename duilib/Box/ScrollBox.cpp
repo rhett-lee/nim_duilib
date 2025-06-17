@@ -52,6 +52,12 @@ void ScrollBox::SetAttribute(const DString& pstrName, const DString& pstrValue)
             GetVScrollBar()->ApplyAttributeList(pstrValue);
         }
     }
+    else if (pstrName == _T("vscrollbar_class")) {
+        EnableScrollBar(true, GetHScrollBar() != nullptr);
+        if (GetVScrollBar() != nullptr) {
+            GetVScrollBar()->SetClass(pstrValue);
+        }
+    }
     else if (pstrName == _T("hscrollbar")) {
         EnableScrollBar(GetVScrollBar() != nullptr, pstrValue == _T("true"));
     }
@@ -59,6 +65,12 @@ void ScrollBox::SetAttribute(const DString& pstrName, const DString& pstrValue)
         EnableScrollBar(GetVScrollBar() != nullptr, true);
         if (GetHScrollBar() != nullptr) {
             GetHScrollBar()->ApplyAttributeList(pstrValue);
+        }
+    }
+    else if (pstrName == _T("hscrollbar_class")) {
+        EnableScrollBar(GetVScrollBar() != nullptr, true);
+        if (GetHScrollBar() != nullptr) {
+            GetHScrollBar()->SetClass(pstrValue);
         }
     }
     else if ((pstrName == _T("scrollbar_padding")) || (pstrName == _T("scrollbarpadding"))) {

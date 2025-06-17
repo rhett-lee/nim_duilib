@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 40" width="12" height="40"> 
+  <!-- 滑块 -->
+  <rect x="2" y="0" width="8" height="40" rx="4" fill="#C0C0C0" />
+</svg>

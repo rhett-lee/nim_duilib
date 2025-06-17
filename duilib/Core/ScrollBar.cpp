@@ -507,6 +507,10 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
             m_nLastScrollPos = m_nScrollPos;
         }
         else {
+            m_uButton1State = kControlStateNormal;
+            m_uButton2State = kControlStateNormal;
+            m_uThumbState = kControlStateNormal;
+
             //鼠标位置：滚动条非按钮区域
             if (!m_bHorizontal) {
                 //垂直滚动条
@@ -565,15 +569,30 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
                 m_uThumbState = kControlStateNormal;
             }
         }
-        else if (m_uButton1State == kControlStatePushed) {
-            m_uButton1State = kControlStateNormal;
-            Invalidate();
+        if (m_rcButton1.ContainsPt(pt)) {
+            if (m_uButton1State != kControlStateHot) {
+                m_uButton1State = kControlStateHot;
+                Invalidate();
+            }
         }
-        else if (m_uButton2State == kControlStatePushed) {
-            m_uButton2State = kControlStateNormal;
-            Invalidate();
+        else {
+            if (m_uButton1State != kControlStateNormal) {
+                m_uButton1State = kControlStateNormal;
+                Invalidate();
+            }
         }
-
+        if (m_rcButton2.ContainsPt(pt)) {
+            if (m_uButton2State != kControlStateHot) {
+                m_uButton2State = kControlStateHot;
+                Invalidate();
+            }
+        }
+        else {
+            if (m_uButton2State != kControlStateNormal) {
+                m_uButton2State = kControlStateNormal;
+                Invalidate();
+            }
+        }
         ButtonUp(msg);//这里的msg.eventType不对
         return;
     }

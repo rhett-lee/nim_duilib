@@ -249,7 +249,7 @@ private:
 private:
     enum
     { 
-        DEFAULT_SCROLLBAR_SIZE = 16,
+        DEFAULT_SCROLLBAR_SIZE = 12,
     };
 
     //是否为水平滚动条：true表示水平滚动条，false表示垂直滚动条

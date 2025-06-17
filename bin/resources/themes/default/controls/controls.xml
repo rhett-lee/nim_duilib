@@ -180,13 +180,23 @@
             </HBox>
             
             <!-- 分割线 -->
-            <Control class="splitline_hor_level1"/>
+            <Control class="splitline_hor_level1" margin="0,8,0,4"/>
             <!-- RichEdit -->
-            <RichEdit class="prompt" name="edit" bkcolor="bk_wnd_lightcolor" width="stretch" height="stretch"
-                        hide_selection="false" multiline="true" vscrollbar="true" hscrollbar="true" auto_vscroll="true"
-                        normal_text_color="darkcolor" want_return_msg="true" rich="false" 
-                        loading_image="file='autumn.png'" 
-                        loading_bkcolor="blue"/>
+            <HBox>
+                <RichEdit class="prompt" name="edit" bkcolor="white" width="stretch" height="stretch"
+                            hide_selection="false" multiline="true" auto_vscroll="true"
+                            vscrollbar="true" hscrollbar="true" 
+                            want_return_msg="true" rich="false" 
+                            loading_image="file='autumn.png'" 
+                            loading_bkcolor="blue"/>
+                <RichEdit class="prompt" name="edit2" bkcolor="white" width="stretch" height="stretch"
+                            hide_selection="false" multiline="true" auto_vscroll="true"
+                            vscrollbar="true" hscrollbar="true" scrollbar_float="true"
+                            vscrollbar_class="vscrollbar2" hscrollbar_class="hscrollbar2"
+                            vscrollbar_style="auto_hide_scroll='false'" hscrollbar_style="auto_hide_scroll='false'"
+                            want_return_msg="true" rich="false" 
+                            margin="4,0,0,0"/>
+            </HBox>
         </VBox>
     </VBox>
 </Window>

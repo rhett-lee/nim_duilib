@@ -124,19 +124,50 @@
 
     <!--字体大小-->
     <Class name="font_title" font="system_14"/>
-    <!--滚动条-->
-    <Class name="vscrollbar" width="12" fadealpha="true" 
-           thumb_normal_image="file='public/vscrollbar/thumb_normal.svg' corner='0,8,0,8'" 
-           thumb_hot_image="file='public/vscrollbar/thumb_hovered.svg' corner='0,8,0,8'" 
-           bk_hot_image="file='public/vscrollbar/bk_hovered.svg' corner='0,8,0,8'" 
-           show_button1="false" 
-           show_button2="false" />
-    <Class name="hscrollbar" height="12" fadealpha="true" 
-           thumb_normal_image="file='public/hscrollbar/thumb_normal.svg' corner='8,0,8,0'" 
-           thumb_hot_image="file='public/hscrollbar/thumb_hovered.svg' corner='8,0,8,0'" 
-           bk_hot_image="file='public/hscrollbar/bk_hovered.svg' corner='8,0,8,0'" 
-           show_button1="false" 
-           show_button2="false"/>
+    <!--滚动条: 简约风格，为默认滚动条样式，不可删除-->
+    <Class name="vscrollbar" width="12" fade_alpha="true" 
+                             thumb_normal_image="file='public/scrollbar01/vscrollbar/thumb_normal.svg' width='12' corner='0,8,0,8'" 
+                             thumb_hot_image="file='public/scrollbar01/vscrollbar/thumb_hovered.svg' width='12' corner='0,8,0,8'" 
+                             bk_hot_image="file='public/scrollbar01/vscrollbar/bk_hovered.svg' width='12' corner='0,8,0,8'" 
+                             show_button1="false" 
+                             show_button2="false" />
+    <Class name="hscrollbar" height="12" fade_alpha="true" 
+                             thumb_normal_image="file='public/scrollbar01/hscrollbar/thumb_normal.svg' height='12' corner='8,0,8,0'" 
+                             thumb_hot_image="file='public/scrollbar01/hscrollbar/thumb_hovered.svg' height='12' corner='8,0,8,0'" 
+                             bk_hot_image="file='public/scrollbar01/hscrollbar/bk_hovered.svg' height='12' corner='8,0,8,0'" 
+                             show_button1="false" 
+                             show_button2="false"/>
+    <!--滚动条: 标准风格-->
+    <Class name="vscrollbar2" width="12" fade_alpha="true" 
+                             thumb_normal_image="file='public/scrollbar02/vscrollbar/thumb_normal.svg' width='12' corner='0,8,0,8'" 
+                             thumb_hot_image="file='public/scrollbar02/vscrollbar/thumb_hovered.svg' width='12' corner='0,8,0,8'" 
+                             bk_normal_image="file='public/scrollbar02/vscrollbar/bk_normal.svg' width='12' corner='0,8,0,8'" 
+                             bk_hot_image="file='public/scrollbar02/vscrollbar/bk_hovered.svg' width='12' corner='0,8,0,8'"                              
+                             show_button1="true" 
+                             button1_normal_image="file='public/scrollbar02/vscrollbar/btn_top_normal.svg' width='12' "
+                             button1_hot_image="file='public/scrollbar02/vscrollbar/btn_top_hover.svg' width='12' "
+                             button1_pushed_image="file='public/scrollbar02/vscrollbar/btn_top_pushed.svg' width='12' "
+                             button1_disabled_image="file='public/scrollbar02/vscrollbar/btn_top_disabled.svg' width='12' "
+                             show_button2="true"
+                             button2_normal_image="file='public/scrollbar02/vscrollbar/btn_bottom_normal.svg' width='12' "
+                             button2_hot_image="file='public/scrollbar02/vscrollbar/btn_bottom_hover.svg' width='12' "
+                             button2_pushed_image="file='public/scrollbar02/vscrollbar/btn_bottom_pushed.svg' width='12' "
+                             button2_disabled_image="file='public/scrollbar02/vscrollbar/btn_bottom_disabled.svg' width='12' " />
+    <Class name="hscrollbar2" height="12" fade_alpha="true" 
+                             thumb_normal_image="file='public/scrollbar02/hscrollbar/thumb_normal.svg' height='12' corner='8,0,8,0'" 
+                             thumb_hot_image="file='public/scrollbar02/hscrollbar/thumb_hovered.svg' height='12' corner='8,0,8,0'" 
+                             bk_normal_image="file='public/scrollbar02/hscrollbar/bk_normal.svg' height='12' corner='8,0,8,0'" 
+                             bk_hot_image="file='public/scrollbar02/hscrollbar/bk_hovered.svg' height='12' corner='8,0,8,0'" 
+                             show_button1="true" 
+                             button1_normal_image="file='public/scrollbar02/hscrollbar/btn_left_normal.svg' height='12' "
+                             button1_hot_image="file='public/scrollbar02/hscrollbar/btn_left_hover.svg' height='12' "
+                             button1_pushed_image="file='public/scrollbar02/hscrollbar/btn_left_pushed.svg' height='12' "
+                             button1_disabled_image="file='public/scrollbar02/hscrollbar/btn_left_disabled.svg' height='12' "
+                             show_button2="true"
+                             button2_normal_image="file='public/scrollbar02/hscrollbar/btn_right_normal.svg' height='12' "
+                             button2_hot_image="file='public/scrollbar02/hscrollbar/btn_right_hover.svg' height='12' "
+                             button2_pushed_image="file='public/scrollbar02/hscrollbar/btn_right_pushed.svg' height='12' "
+                             button2_disabled_image="file='public/scrollbar02/hscrollbar/btn_right_disabled.svg' height='12' " />
     <!--单选框-->
     <Class name="option_1" height="20" text_padding="22,0,0,0" text_align="vcenter" valign="center"
                            normal_image="file='public/option/radio-circle-unchecked.svg' width='20' height='20' valign='center'" 
