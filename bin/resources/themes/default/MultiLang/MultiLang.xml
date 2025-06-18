@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Window text_id="MULTI_LANG_WINDOW_TEXT" size="600,400" min_size="80,50" use_system_caption="false" caption="0,0,0,36" shadow_attached="true" layered_window="true" size_box="4,4,4,4">
-    <Class name="btn_language" normal_image="file='language.svg' width='14' height='14' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
+    <Class name="btn_language" normal_image="file='language.svg' width='18' height='18' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender"/>
     <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
         <!-- 标题栏区域 -->
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
