@@ -13,7 +13,6 @@ ScrollBox::ScrollBox(Window* pWindow, Layout* pLayout) :
     Box(pWindow, pLayout),
     m_pVScrollBar(),
     m_pHScrollBar(),
-    m_bScrollProcess(false),
     m_bScrollBarFloat(true),
     m_bVScrollBarAtLeft(false),
     m_bHoldEnd(false),
@@ -52,6 +51,12 @@ void ScrollBox::SetAttribute(const DString& pstrName, const DString& pstrValue)
             GetVScrollBar()->ApplyAttributeList(pstrValue);
         }
     }
+    else if (pstrName == _T("vscrollbar_class")) {
+        EnableScrollBar(true, GetHScrollBar() != nullptr);
+        if (GetVScrollBar() != nullptr) {
+            GetVScrollBar()->SetClass(pstrValue);
+        }
+    }
     else if (pstrName == _T("hscrollbar")) {
         EnableScrollBar(GetVScrollBar() != nullptr, pstrValue == _T("true"));
     }
@@ -59,6 +64,12 @@ void ScrollBox::SetAttribute(const DString& pstrName, const DString& pstrValue)
         EnableScrollBar(GetVScrollBar() != nullptr, true);
         if (GetHScrollBar() != nullptr) {
             GetHScrollBar()->ApplyAttributeList(pstrValue);
+        }
+    }
+    else if (pstrName == _T("hscrollbar_class")) {
+        EnableScrollBar(GetVScrollBar() != nullptr, true);
+        if (GetHScrollBar() != nullptr) {
+            GetHScrollBar()->SetClass(pstrValue);
         }
     }
     else if ((pstrName == _T("scrollbar_padding")) || (pstrName == _T("scrollbarpadding"))) {
@@ -117,12 +128,17 @@ void ScrollBox::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
 
 void ScrollBox::SetPos(UiRect rc)
 {
+    DoSetPos(rc, false);
+}
+
+void ScrollBox::DoSetPos(UiRect rc, bool bScrollProcess)
+{
     UiSize oldScrollOffset = GetScrollOffset();
     bool bEndDown = false;
     if (IsHoldEnd() && IsVScrollBarValid() && GetScrollRange().cy - GetScrollPos().cy == 0) {
         bEndDown = true;
     }
-    SetPosInternally(rc);
+    SetPosInternally(rc, bScrollProcess);
     if (bEndDown && IsVScrollBarValid()) {
         EndDown(false, false);
     }
@@ -133,7 +149,7 @@ void ScrollBox::SetPos(UiRect rc)
     }
 }
 
-void ScrollBox::SetPosInternally(const UiRect& rc)
+void ScrollBox::SetPosInternally(const UiRect& rc, bool bScrollProcess)
 {
     Control::SetPos(rc);
     UiSize64 requiredSize = CalcRequiredSize(rc);
@@ -176,8 +192,73 @@ void ScrollBox::SetPosInternally(const UiRect& rc)
     UiPadding rcPadding = GetPadding();
     requiredSize.cy -= ((int64_t)rcPadding.top + rcPadding.bottom);
     requiredSize.cx -= ((int64_t)rcPadding.left + rcPadding.right);
-    ProcessVScrollBar(rc, requiredSize.cy);
-    ProcessHScrollBar(rc, requiredSize.cx);
+
+    UiRect rcScrollBarPosY;
+    int64_t nScrollRangeY = 0;
+    bool bShowVScrollBar = NeedShowVScrollBar(rc, requiredSize.cy, rcScrollBarPosY, nScrollRangeY);
+
+    UiRect rcScrollBarPosX;
+    int64_t nScrollRangeX = 0;
+    bool bShowHScrollBar = NeedShowHScrollBar(rc, requiredSize.cx, rcScrollBarPosX, nScrollRangeX);
+
+    //判断是否需要重新设置控件位置（当滚动条的状态发生变化时，需要重新设置）
+    bool bNeedResetPos = false;
+    if (m_pVScrollBar != nullptr) {
+        if (m_pVScrollBar->IsValid()) {
+            if (!bShowVScrollBar) {
+                //滚动条变化：从显示到隐藏
+                m_pVScrollBar->SetScrollPos(0);
+                m_pVScrollBar->SetScrollRange(0);
+                bNeedResetPos = true;
+            }
+        }
+        else {
+            if (bShowVScrollBar) {
+                //滚动条变化：从隐藏到显示
+                ASSERT(nScrollRangeY > 0);
+                m_pVScrollBar->SetScrollRange(nScrollRangeY);
+                m_pVScrollBar->SetScrollPos(0);
+                bNeedResetPos = true;
+            }
+        }
+    }
+    if (m_pHScrollBar != nullptr) {
+        if (m_pHScrollBar->IsValid()) {
+            if (!bShowHScrollBar) {
+                //滚动条变化：从显示到隐藏
+                m_pHScrollBar->SetScrollPos(0);
+                m_pHScrollBar->SetScrollRange(0);
+                bNeedResetPos = true;
+            }
+        }
+        else {
+            if (bShowHScrollBar) {
+                //滚动条变化：从隐藏到显示
+                ASSERT(nScrollRangeX > 0);
+                m_pHScrollBar->SetScrollRange(nScrollRangeX);
+                m_pHScrollBar->SetScrollPos(0);
+                bNeedResetPos = true;
+            }
+        }
+    }
+    if (bNeedResetPos) {
+        ASSERT(!bScrollProcess);
+    }
+    if (bNeedResetPos && !bScrollProcess) {
+        //需要重新设置位置和大小（因滚动条的隐藏/显示属性变化，实际的内容区域发生了变化）
+        DoSetPos(rc, true);
+    }
+    else {
+        bNeedResetPos = false;
+        ProcessVScrollBar(rcScrollBarPosY, nScrollRangeY, bShowHScrollBar, bNeedResetPos);
+        ProcessHScrollBar(rcScrollBarPosX, nScrollRangeX, bShowVScrollBar, bNeedResetPos);
+        if (bNeedResetPos) {
+            ASSERT(!bScrollProcess);
+        }
+        if (bNeedResetPos && !bScrollProcess) {
+            DoSetPos(rc, true);
+        }
+    }
 }
 
 UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
@@ -187,7 +268,7 @@ UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
         return requiredSize;
     }
     UiRect childSize = rc;
-    if (!m_bScrollBarFloat && m_pVScrollBar && m_pVScrollBar->IsValid()) {
+    if (!m_bScrollBarFloat && (m_pVScrollBar != nullptr) && m_pVScrollBar->IsValid()) {
         if (m_bVScrollBarAtLeft) {
             ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
             childSize.left += m_pVScrollBar->GetFixedWidth().GetInt32();
@@ -197,13 +278,140 @@ UiSize64 ScrollBox::CalcRequiredSize(const UiRect& rc)
             childSize.right -= m_pVScrollBar->GetFixedWidth().GetInt32();
         }
     }
-    if (!m_bScrollBarFloat && m_pHScrollBar && m_pHScrollBar->IsValid()) {
+    if (!m_bScrollBarFloat && (m_pHScrollBar != nullptr) && m_pHScrollBar->IsValid()) {
         ASSERT(m_pHScrollBar->GetFixedHeight().GetInt32() > 0);
         childSize.bottom -= m_pHScrollBar->GetFixedHeight().GetInt32();
     }
     childSize.Validate();
     requiredSize = GetLayout()->ArrangeChild(m_items, childSize);
     return requiredSize;
+}
+
+bool ScrollBox::NeedShowVScrollBar(UiRect rcBox, int64_t cyRequired,
+                                   UiRect& rcScrollBarPos, int64_t& nScrollRange) const
+{
+    rcScrollBarPos.Clear();
+    nScrollRange = 0;
+    if (m_pVScrollBar == nullptr) {
+        return false;
+    }
+
+    rcScrollBarPos = rcBox;
+    rcScrollBarPos.Deflate(m_rcScrollBarPadding);
+    rcBox.Deflate(GetPadding());
+
+    int32_t nHeight = rcBox.Height();
+    const int64_t cyScroll = std::max(cyRequired - nHeight, (int64_t)0);
+    if (cyScroll > 0) {
+        nScrollRange = cyScroll;
+    }
+    return nScrollRange > 0;
+}
+
+void ScrollBox::ProcessVScrollBar(UiRect rcScrollBarPos, int64_t nScrollRange, bool bShowHScrollBar, bool& bNeedResetPos)
+{
+    if ((m_pVScrollBar == nullptr) || !m_pVScrollBar->IsValid() || (nScrollRange <= 0)) {
+        return;
+    }
+
+    int32_t nHScrollbarHeight = 0; //横向滚动条的高度
+    if ((m_pHScrollBar != nullptr) && bShowHScrollBar) {
+        //纵向滚动条的底部，需要到容器的底部
+        nHScrollbarHeight = m_pHScrollBar->GetFixedHeight().GetInt32();
+    }
+    if (m_pVScrollBar != nullptr) {
+        m_pVScrollBar->SetHScrollbarHeight(nHScrollbarHeight);
+    }
+
+    if (m_bVScrollBarAtLeft) {
+        ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
+        UiRect rcVerScrollBarPos(rcScrollBarPos.left, 
+                                 rcScrollBarPos.top, 
+                                 rcScrollBarPos.left + m_pVScrollBar->GetFixedWidth().GetInt32(),
+                                 rcScrollBarPos.bottom);
+        m_pVScrollBar->SetPos(rcVerScrollBarPos);
+    }
+    else {
+        ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
+        UiRect rcVerScrollBarPos(rcScrollBarPos.right - m_pVScrollBar->GetFixedWidth().GetInt32(),
+                                    rcScrollBarPos.top, 
+                                    rcScrollBarPos.right, 
+                                    rcScrollBarPos.bottom);
+        m_pVScrollBar->SetPos(rcVerScrollBarPos);
+    }
+
+    if( m_pVScrollBar->GetScrollRange() != nScrollRange) {
+        int64_t iScrollPos = m_pVScrollBar->GetScrollPos();
+        m_pVScrollBar->SetScrollRange(nScrollRange);
+        if( !m_pVScrollBar->IsValid() ) {
+            m_pVScrollBar->SetScrollPos(0);
+        }
+
+        if( iScrollPos > m_pVScrollBar->GetScrollPos() ) {
+            bNeedResetPos = true;
+        }
+    }
+}
+
+bool ScrollBox::NeedShowHScrollBar(UiRect rcBox, int64_t cxRequired,
+                                   UiRect& rcScrollBarPos, int64_t& nScrollRange) const
+{
+    rcScrollBarPos.Clear();
+    nScrollRange = 0;
+    if (m_pHScrollBar == nullptr) {
+        return false;
+    }
+    rcScrollBarPos = rcBox;
+    rcScrollBarPos.Deflate(m_rcScrollBarPadding);
+    rcBox.Deflate(GetPadding());
+    rcBox.Validate();
+
+    int32_t nWidth = rcBox.Width();
+    const int64_t cxScroll = std::max(cxRequired - nWidth, (int64_t)0);
+    if (cxScroll > 0) {
+        nScrollRange = cxScroll;
+    }
+    return nScrollRange > 0;
+}
+
+void ScrollBox::ProcessHScrollBar(UiRect rcScrollBarPos, int64_t nScrollRange, bool bShowVScrollBar, bool& bNeedResetPos)
+{
+    if ((m_pHScrollBar == nullptr) || !m_pHScrollBar->IsValid() || (nScrollRange <= 0)) {
+        return;
+    }
+
+    //垂直滚动条的位置: 横向滚动条的位置不能覆盖纵向滚动条的位置
+    if ((m_pVScrollBar != nullptr) && bShowVScrollBar) {
+        int32_t nVScrollBarWidth = m_pVScrollBar->GetFixedWidth().GetInt32();
+        if (nVScrollBarWidth > 0) {
+            if (m_bVScrollBarAtLeft) {
+                rcScrollBarPos.left += nVScrollBarWidth;
+            }
+            else {
+                rcScrollBarPos.right -= nVScrollBarWidth;
+            }
+            rcScrollBarPos.Validate();
+        }
+    }
+    
+    ASSERT(m_pHScrollBar->GetFixedHeight().GetInt32() > 0);
+    UiRect rcVerScrollBarPos(rcScrollBarPos.left, 
+                             rcScrollBarPos.bottom - m_pHScrollBar->GetFixedHeight().GetInt32(),
+                             rcScrollBarPos.right, 
+                             rcScrollBarPos.bottom);
+    m_pHScrollBar->SetPos(rcVerScrollBarPos);
+
+    if (m_pHScrollBar->GetScrollRange() != nScrollRange) {
+        int64_t iScrollPos = m_pHScrollBar->GetScrollPos();
+        m_pHScrollBar->SetScrollRange(nScrollRange);
+        if (!m_pHScrollBar->IsValid()) {
+            m_pHScrollBar->SetScrollPos(0);
+        }
+
+        if (iScrollPos > m_pHScrollBar->GetScrollPos()) {
+            bNeedResetPos = true;
+        }
+    }
 }
 
 void ScrollBox::HandleEvent(const EventArgs& msg)
@@ -812,7 +1020,7 @@ void ScrollBox::HomeUp()
 void ScrollBox::EndDown(bool arrange, bool withAnimation)
 {
     if (arrange) {
-        SetPosInternally(GetPos());
+        SetPosInternally(GetPos(), false);
     }
     int64_t endValue = 0;
     if (m_pRenderOffsetYAnimation != nullptr) {
@@ -920,121 +1128,6 @@ ScrollBar* ScrollBox::GetVScrollBar() const
 ScrollBar* ScrollBox::GetHScrollBar() const
 {
     return m_pHScrollBar.get();
-}
-
-void ScrollBox::ProcessVScrollBar(UiRect rc, int64_t cyRequired)
-{
-    UiRect rcScrollBarPos = rc;
-    rcScrollBarPos.Deflate(m_rcScrollBarPadding);
-
-    if (m_pVScrollBar == nullptr) {
-        return;
-    }
-    rc.Deflate(GetPadding());
-
-    int32_t nHeight = rc.Height();
-    const int64_t cyScroll = std::max(cyRequired - nHeight, (int64_t)0);
-    if (cyRequired > nHeight && !m_pVScrollBar->IsValid()) {
-        m_pVScrollBar->SetScrollRange(cyScroll);
-        m_pVScrollBar->SetScrollPos(0);
-        m_bScrollProcess = true;
-        SetPos(GetRect());
-        m_bScrollProcess = false;
-        return;
-    }
-    // No scrollbar required
-    if (!m_pVScrollBar->IsValid()) {
-        return;
-    }
-
-    // Scroll not needed anymore?    
-    if( cyScroll <= 0 && !m_bScrollProcess) {
-        m_pVScrollBar->SetScrollPos(0);
-        m_pVScrollBar->SetScrollRange(0);
-        SetPos(GetRect());
-    }
-    else {
-        if (m_bVScrollBarAtLeft) {
-            ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
-            UiRect rcVerScrollBarPos(rcScrollBarPos.left, 
-                                     rcScrollBarPos.top, 
-                                     rcScrollBarPos.left + m_pVScrollBar->GetFixedWidth().GetInt32(),
-                                     rcScrollBarPos.bottom);
-            m_pVScrollBar->SetPos(rcVerScrollBarPos);
-        }
-        else {
-            ASSERT(m_pVScrollBar->GetFixedWidth().GetInt32() > 0);
-            UiRect rcVerScrollBarPos(rcScrollBarPos.right - m_pVScrollBar->GetFixedWidth().GetInt32(),
-                                     rcScrollBarPos.top, 
-                                     rcScrollBarPos.right, 
-                                     rcScrollBarPos.bottom);
-            m_pVScrollBar->SetPos(rcVerScrollBarPos);
-        }
-
-        if( m_pVScrollBar->GetScrollRange() != cyScroll ) {
-            int64_t iScrollPos = m_pVScrollBar->GetScrollPos();
-            m_pVScrollBar->SetScrollRange(cyScroll);
-            if( !m_pVScrollBar->IsValid() ) {
-                m_pVScrollBar->SetScrollPos(0);
-            }
-
-            if( iScrollPos > m_pVScrollBar->GetScrollPos() ) {
-                SetPos(GetRect());
-            }
-        }
-    }
-}
-
-void ScrollBox::ProcessHScrollBar(UiRect rc, int64_t cxRequired)
-{
-    UiRect rcScrollBarPos = rc;
-    rcScrollBarPos.Deflate(m_rcScrollBarPadding);
-    if (m_pHScrollBar == nullptr) {
-        return;
-    }
-    rc.Deflate(GetPadding());
-
-    int32_t nWidth = rc.Width();
-    const int64_t cxScroll = std::max(cxRequired - nWidth, (int64_t)0);
-    if (cxRequired > nWidth && !m_pHScrollBar->IsValid()) {
-        m_pHScrollBar->SetScrollRange(cxScroll);
-        m_pHScrollBar->SetScrollPos(0);
-        m_bScrollProcess = true;
-        SetPos(GetRect());
-        m_bScrollProcess = false;
-        return;
-    }
-    // No scrollbar required
-    if (!m_pHScrollBar->IsValid()) {
-        return;
-    }
-
-    // Scroll not needed anymore?    
-    if (cxScroll <= 0 && !m_bScrollProcess) {
-        m_pHScrollBar->SetScrollPos(0);
-        m_pHScrollBar->SetScrollRange(0);
-        SetPos(GetRect());
-    }
-    else {
-        ASSERT(m_pHScrollBar->GetFixedHeight().GetInt32() > 0);
-        UiRect rcVerScrollBarPos(rcScrollBarPos.left, 
-                                 rcScrollBarPos.bottom - m_pHScrollBar->GetFixedHeight().GetInt32(),
-                                 rcScrollBarPos.right, 
-                                 rcScrollBarPos.bottom);
-        m_pHScrollBar->SetPos(rcVerScrollBarPos);
-
-        if (m_pHScrollBar->GetScrollRange() != cxScroll) {
-            int64_t iScrollPos = m_pHScrollBar->GetScrollPos();
-            m_pHScrollBar->SetScrollRange(cxScroll);
-            if (!m_pHScrollBar->IsValid()) {
-                m_pHScrollBar->SetScrollPos(0);
-            }
-
-            if (iScrollPos > m_pHScrollBar->GetScrollPos()) {
-                SetPos(GetRect());
-            }
-        }
-    }
 }
 
 bool ScrollBox::IsVScrollBarValid() const

@@ -25,6 +25,7 @@
                                 text_padding="10,32,10,10" normal_text_color="darkcolor" indicator="file='public/progress/indicator.svg' width='12' height='12'" tooltip_text="ui::CircleProgress"/>
             </HBox>            
         </HBox>
+        <Button class=""/>            
         <Control />
     </VBox>
 </Window>

@@ -155,19 +155,11 @@ public:
 
     /** 获取垂直滚动条对象指针
      */
-    virtual ScrollBar* GetVScrollBar() const;
+    ScrollBar* GetVScrollBar() const;
 
     /** 获取水平滚动条对象指针
      */
-    virtual ScrollBar* GetHScrollBar() const;
-
-    /** 设置纵向滚动条的位置
-     */
-    virtual void ProcessVScrollBar(UiRect rc, int64_t cyRequired);
-
-    /** 设置横向滚动条的位置
-     */
-    virtual void ProcessHScrollBar(UiRect rc, int64_t cxRequired);
+    ScrollBar* GetHScrollBar() const;
 
     /** 判断垂直滚动条是否有效
      */
@@ -279,9 +271,35 @@ protected:
     virtual UiSize64 CalcRequiredSize(const UiRect& rc);
 
 private:
-    /**@brief 设置位置大小
+    /** 设置位置大小
+    * @param [in] rc外部传入的矩形范围
+    * @param [in] bScrollProcess true表示内部递归调用，false表示外部调用
+    */
+    void DoSetPos(UiRect rc, bool bScrollProcess);
+
+    /** 设置位置大小(内部逻辑实现)
+    * @param [in] rc外部传入的矩形范围
+    * @param [in] bScrollProcess true表示内部递归调用，false表示外部调用
+    */
+    void SetPosInternally(const UiRect& rc, bool bScrollProcess);
+
+    /** 设置纵向滚动条的位置
+    */
+    void ProcessVScrollBar(UiRect rcScrollBarPos, int64_t nScrollRange, bool bShowHScrollBar, bool& bNeedResetPos);
+
+    /** 设置横向滚动条的位置
      */
-    void SetPosInternally(const UiRect& rc);
+    void ProcessHScrollBar(UiRect rcScrollBarPos, int64_t nScrollRange, bool bShowVScrollBar, bool& bNeedResetPos);
+
+    /** 判断是否显示水平滚动条
+    */
+    bool NeedShowHScrollBar(UiRect rcBox, int64_t cxRequired,
+                            UiRect& rcScrollBarPos, int64_t& nScrollRange) const;
+
+    /** 判断是否显示垂直滚动条
+    */
+    bool NeedShowVScrollBar(UiRect rcBox, int64_t cyRequired,
+                            UiRect& rcScrollBarPos, int64_t& nScrollRange) const;
 
 private:
     //垂直滚动条接口
@@ -308,9 +326,6 @@ private:
 
     //水平滚动条滚动步长
     int32_t m_nHScrollUnitPixels;
-
-    // 防止SetPos循环调用
-    bool m_bScrollProcess; 
 
     //是否锁定到底部
     bool m_bHoldEnd;

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="50" height="12" viewBox="0 0 50 12" xmlns="http://www.w3.org/2000/svg"> 
+  <!-- 主体（灰色半透明条） -->
+  <rect width="50" height="12" fill="rgba(120,120,120,0.15)"/>
+</svg>

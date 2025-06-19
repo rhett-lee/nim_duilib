@@ -5,7 +5,7 @@
             <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
             <Label text="替换" valign="center" margin="8"/>
             <Control />
-            <Button class="btn_wnd_close" name="closebtn" margin="4,6,8,0"/>
+            <Button class="btn_wnd_close_11" name="closebtn" width="40" height="32" margin="4,0,0,0"/>
         </HBox>
         <VBox>
             <HBox height="auto">

@@ -21,6 +21,7 @@ ScrollBar::ScrollBar(Window* pWindow) :
     m_nLastScrollPos(0),
     m_nLastScrollOffset(0),
     m_nScrollRepeatDelay(0),
+    m_nHScrollbarHeight(0),
     m_pOwner(nullptr),
     m_ptLastMouse({ 0, 0 }),
     m_rcButton1(0, 0, 0, 0),
@@ -270,6 +271,7 @@ void ScrollBar::SetPos(UiRect rc)
     rc = GetRect();
 
     if (m_bHorizontal) {
+        //水平滚动条
         ASSERT(GetFixedHeight().GetInt32() > 0);
         int cx = rc.Width();
         if (m_bShowButton1) {            
@@ -352,6 +354,7 @@ void ScrollBar::SetPos(UiRect rc)
         }
     }
     else {
+        //垂直滚动条
         ASSERT(GetFixedWidth().GetInt32() > 0);
         int cy = rc.Height();
         if (m_bShowButton1) {
@@ -360,6 +363,8 @@ void ScrollBar::SetPos(UiRect rc)
         if (m_bShowButton2) {
             cy -= GetFixedWidth().GetInt32();
         }
+        cy -= m_nHScrollbarHeight;//留出水平滚动条的高度，避免可以滑动到控件底部
+
         if (cy > GetFixedWidth().GetInt32()) {
             m_rcButton1.left = rc.left;
             m_rcButton1.top = rc.top;
@@ -431,6 +436,19 @@ void ScrollBar::SetPos(UiRect rc)
             m_rcThumb.Clear();
         }
     }
+
+    if (!m_bHorizontal && m_bShowButton2 && (m_nHScrollbarHeight > 0)) {
+        //垂直滚动条：为水平滚动条留出位置，避免底部按钮与容器底部对齐
+        m_rcButton2.Offset(0, -m_nHScrollbarHeight);
+    }
+}
+
+void ScrollBar::SetHScrollbarHeight(int32_t nHScrollbarHeight)
+{
+    if (nHScrollbarHeight < 0) {
+        nHScrollbarHeight = 0;
+    }
+    m_nHScrollbarHeight = nHScrollbarHeight;
 }
 
 void ScrollBar::HandleEvent(const EventArgs& msg)
@@ -507,6 +525,10 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
             m_nLastScrollPos = m_nScrollPos;
         }
         else {
+            m_uButton1State = kControlStateNormal;
+            m_uButton2State = kControlStateNormal;
+            m_uThumbState = kControlStateNormal;
+
             //鼠标位置：滚动条非按钮区域
             if (!m_bHorizontal) {
                 //垂直滚动条
@@ -565,15 +587,30 @@ void ScrollBar::HandleEvent(const EventArgs& msg)
                 m_uThumbState = kControlStateNormal;
             }
         }
-        else if (m_uButton1State == kControlStatePushed) {
-            m_uButton1State = kControlStateNormal;
-            Invalidate();
+        if (m_rcButton1.ContainsPt(pt)) {
+            if (m_uButton1State != kControlStateHot) {
+                m_uButton1State = kControlStateHot;
+                Invalidate();
+            }
         }
-        else if (m_uButton2State == kControlStatePushed) {
-            m_uButton2State = kControlStateNormal;
-            Invalidate();
+        else {
+            if (m_uButton1State != kControlStateNormal) {
+                m_uButton1State = kControlStateNormal;
+                Invalidate();
+            }
         }
-
+        if (m_rcButton2.ContainsPt(pt)) {
+            if (m_uButton2State != kControlStateHot) {
+                m_uButton2State = kControlStateHot;
+                Invalidate();
+            }
+        }
+        else {
+            if (m_uButton2State != kControlStateNormal) {
+                m_uButton2State = kControlStateNormal;
+                Invalidate();
+            }
+        }
         ButtonUp(msg);//这里的msg.eventType不对
         return;
     }

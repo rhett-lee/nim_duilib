@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 12" width="12" height="12">
+  <!-- 背景色（禁用半透明） -->
+  <rect x="0" y="0" width="12" height="12" fill="rgba(220,220,220,0.1)" />
+  
+  <!-- 等腰三角形（右箭头：底边8px，腰长5.656px） -->
+  <polygon points="5,2 5,10 9,6" fill="rgba(120,120,120,0.4)" />
+</svg>

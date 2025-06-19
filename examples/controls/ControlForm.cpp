@@ -476,20 +476,23 @@ void ControlForm::LoadRichEditData()
 
 void ControlForm::OnResourceFileLoaded(const DString& xml)
 {
-    if (xml.empty())
+    if (xml.empty()) {
         return;
-
-    auto control_edit = static_cast<ui::RichEdit*>(FindControl(_T("edit")));
-    if (control_edit)
-    {
-        control_edit->SetText(xml);
-        control_edit->SetFocus();
-        control_edit->HomeUp();
     }
-
+    ui::RichEdit* pRichEdit = static_cast<ui::RichEdit*>(FindControl(_T("edit2")));
+    if (pRichEdit) {
+        pRichEdit->SetText(xml);
+        pRichEdit->HomeUp();
+    }
+    pRichEdit = static_cast<ui::RichEdit*>(FindControl(_T("edit")));
+    if (pRichEdit) {
+        pRichEdit->SetText(xml);
+        pRichEdit->SetFocus();
+        pRichEdit->HomeUp();
+    }
     //启动加载动画
-    //control_edit->StartLoading();
-    //control_edit->StartGifPlay();
+    //pRichEdit->StartLoading();
+    //pRichEdit->StartGifPlay();
 }
 
 void ControlForm::OnProgressValueChagned(float value)
