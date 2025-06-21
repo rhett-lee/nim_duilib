@@ -112,6 +112,10 @@ public:
     /** 获取NSView*指针
     */
     void* GetNSView() const;
+
+    /** 获取NSWindow*指针
+    */
+    void* GetNSWindow() const;
 #endif 
 
 public:
