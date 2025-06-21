@@ -1382,7 +1382,17 @@ void* NativeWindow_SDL::GetNSView() const
     return GetSDLWindowContentView(m_sdlWindow);
 }
 
-#endif 
+/** 获取GetNSWindow*指针
+*/
+void* NativeWindow_SDL::GetNSWindow() const
+{
+    if (!IsWindow()) {
+        return nullptr;
+    }
+    SDL_PropertiesID propID = ::SDL_GetWindowProperties(m_sdlWindow);
+    return ::SDL_GetPointerProperty(propID, SDL_PROP_WINDOW_COCOA_WINDOW_POINTER, nullptr);
+}
+#endif
 
 void NativeWindow_SDL::CloseWnd(int32_t nRet)
 {
