@@ -690,6 +690,9 @@
     <ClCompile Include="Control\AddressBar.cpp">
       <Filter>Control</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ClickThrough_Windows.cpp">
+      <Filter>Core\Windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1438,6 +1441,9 @@
     </ClInclude>
     <ClInclude Include="Control\AddressBar.h">
       <Filter>Control</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ClickThrough.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

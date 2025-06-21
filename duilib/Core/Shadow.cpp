@@ -2,6 +2,7 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/ClickThrough.h"
 #include "duilib/Render/IRender.h"
 #include "duilib/Render/AutoClip.h"
 
@@ -99,6 +100,57 @@ public:
         UiEstSize estSize = MakeEstSize(fixedSize);
         SetEstimateSize(estSize, szAvailable);
         return estSize;
+    }
+
+    virtual bool ButtonDown(const EventArgs& msg) override
+    {
+        OnMouseDown(msg.ptMouse);
+        return true;
+    }
+
+    virtual bool RButtonDown(const EventArgs& msg) override
+    {
+        OnMouseDown(msg.ptMouse);
+        return true;
+    }
+
+private:
+    /** 鼠标点击事件
+    */
+    void OnMouseDown(UiPoint ptMouse)
+    {
+        UiPoint pt = ptMouse;
+        //判断是否在阴影上
+        if ((m_pShadow == nullptr) || !m_pShadow->IsShadowAttached()) {
+            return;
+        }
+        Box* pShadowRoot = dynamic_cast<Box*>(m_pShadow->GetRoot());
+        if (pShadowRoot == nullptr) {
+            return;
+        }
+        Box* pRoot = nullptr;
+        if (pShadowRoot->GetItemCount() > 0) {
+            pRoot = dynamic_cast<Box*>(pShadowRoot->GetItemAt(0));
+        }
+        if (pRoot == nullptr) {
+            return;
+        }
+        UiRect rcRoot = pRoot->GetPos();
+        if (rcRoot.ContainsPt(pt)) {
+            return;
+        }
+
+        ClientToScreen(pt);
+        OnMouseClickShadow(pt);
+    }
+
+    /** 鼠标点击在阴影上
+    * @param [in] ptMouse 鼠标点击的点（屏幕坐标）
+    */
+    void OnMouseClickShadow(UiPoint ptMouse) const
+    {
+        ClickThrough shadowClick;
+        shadowClick.ClickThroughWindow(GetWindow(), ptMouse);
     }
 
 private:
