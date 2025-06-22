@@ -595,6 +595,10 @@ private:
     */
     bool CalculateCenterWindowPos(SDL_Window* pCenterWindow, int32_t& xPos, int32_t& yPos) const;
 
+    /** 检查窗口贴边操作，并给应用层回调
+    */
+    void CheckWindowSnap(SDL_Window* window);
+
 private:
     /** 设置窗口ID与窗口指针的关系
     */

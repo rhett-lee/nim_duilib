@@ -139,6 +139,18 @@ public:
     */
     void ChangeDpiScale(const DpiManager& dpi, uint32_t nOldDpiScale, uint32_t nNewDpiScale);
 
+    /** 设置窗口贴边属性
+    */
+    void SetWindowPosSnap(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap);
+
+    /** 设置阴影是否支持窗口贴边操作
+    */
+    void SetEnableShadowSnap(bool bEnable);
+
+    /** 获取阴影是否支持窗口贴边操作
+    */
+    bool IsEnableShadowSnap() const;
+
 private:
     /** 将阴影附加到窗口
      */
@@ -152,6 +164,10 @@ private:
     */
     void UpdateShadow();
 
+    /** 更新窗口的贴边属性
+    */
+    void UpdateWindowPosSnap();
+
 private:
     //是否支持阴影效果
     bool m_bShadowAttached;
@@ -161,6 +177,17 @@ private:
 
     //当前是否为最大化状态
     bool m_isMaximized;
+
+    /** 阴影是否支持窗口贴边操作
+    */
+    bool m_bEnableShadowSnap;
+
+    /** 窗口贴边属性(左侧，上侧，右侧，下侧)
+    */
+    bool m_bLeftSnap;
+    bool m_bTopSnap;
+    bool m_bRightSnap;
+    bool m_bBottomSnap;
 
     //阴影图片属性
     DString m_shadowImage;

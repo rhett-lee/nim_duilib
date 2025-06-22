@@ -605,6 +605,10 @@ private:
     */
     void EnableIME(HWND hwnd, bool bEnable);
 
+    /** 检查窗口贴边操作，并给应用层回调
+    */
+    void CheckWindowSnap(HWND hWnd);
+
 private:
     /** 接收窗口事件的接口
     */
@@ -638,9 +642,6 @@ private:
     */
     bool m_bCloseByEnter;
 
-    //绘制DC
-    HDC m_hDcPaint;
-
     //是否为层窗口
     bool m_bIsLayeredWindow;
 
@@ -665,9 +666,6 @@ private:
     //当前窗口是否显示为模态对话框
     bool m_bFakeModal;
 
-    //鼠标所在位置
-    UiPoint m_ptLastMousePos;
-
     //是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。）
     //参考：https://learn.microsoft.com/zh-cn/windows/apps/desktop/modernize/apply-snap-layout-menu
     bool m_bSnapLayoutMenu;
@@ -677,6 +675,12 @@ private:
 
     //系统菜单延迟显示的定时器ID
     UINT_PTR m_nSysMenuTimerId;
+
+    //鼠标所在位置
+    UiPoint m_ptLastMousePos;
+
+    //绘制DC
+    HDC m_hDcPaint;
 
 private:
     /**@name 全屏相关状态

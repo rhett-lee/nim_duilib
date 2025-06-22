@@ -34,7 +34,7 @@ bool GetDpiForWindowWrapper(HWND hwnd, UINT& dpi)
 {
     typedef UINT(WINAPI* GetDpiForWindowPtr)(HWND hwnd);
     static GetDpiForWindowPtr get_dpi_for_window_func = reinterpret_cast<GetDpiForWindowPtr>(GetProcAddress(GetModuleHandleA("user32.dll"), "GetDpiForWindow"));
-    dpi = 0;
+    dpi = 96;
     if (get_dpi_for_window_func) {
         dpi = get_dpi_for_window_func(hwnd);
         return true;

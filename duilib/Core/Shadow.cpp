@@ -102,6 +102,38 @@ public:
         return estSize;
     }
 
+    virtual void PaintBkImage(IRender* pRender) override
+    {
+        if (!m_pShadow->IsEnableShadowSnap() || !m_pShadow->IsShadowAttached()) {
+            BaseClass::PaintBkImage(pRender);
+        }
+        else {
+            Image* pBkImage = GetBkImagePtr();
+            Window* pWindow = GetWindow();
+            if ((pBkImage != nullptr) && (pWindow != nullptr)) {
+                UiRect destRect = GetRect();
+                UiPadding rcShadowCorner = pWindow->GetCurrentShadowCorner();
+                UiPadding rcRealCorner = m_pShadow->GetShadowCorner();
+                pWindow->Dpi().ScalePadding(rcRealCorner);
+
+                //窗口贴边时，阴影需要拉伸到窗口边缘
+                if (rcShadowCorner.top == 0) {
+                    destRect.top -= rcRealCorner.top;
+                }
+                if (rcShadowCorner.left == 0) {
+                    destRect.left -= rcRealCorner.left;
+                }
+                if (rcShadowCorner.right == 0) {
+                    destRect.right += rcRealCorner.right;
+                }
+                if (rcShadowCorner.bottom == 0) {
+                    destRect.bottom += rcRealCorner.bottom;
+                }
+                PaintImage(pRender, pBkImage, _T(""), DUI_NOSET_VALUE, nullptr, &destRect);
+            }
+        }
+    }
+
     virtual bool ButtonDown(const EventArgs& msg) override
     {
         OnMouseDown(msg.ptMouse);
@@ -163,7 +195,12 @@ Shadow::Shadow(Window* pWindow):
     m_bUseDefaultShadowAttached(true),
     m_isMaximized(false),
     m_pRoot(nullptr),
-    m_pWindow(pWindow)
+    m_pWindow(pWindow),
+    m_bEnableShadowSnap(true),
+    m_bLeftSnap(false),
+    m_bTopSnap(false),
+    m_bRightSnap(false),
+    m_bBottomSnap(false)
 {
     SetShadowType(Shadow::ShadowType::kShadowDefault);
 }
@@ -467,6 +504,19 @@ UiPadding Shadow::GetCurrentShadowCorner() const
         if (m_pWindow != nullptr) {
             m_pWindow->Dpi().ScalePadding(rcShadowCorner);
         }
+
+        if (m_bLeftSnap) {
+            rcShadowCorner.left = 0;
+        }
+        if (m_bTopSnap) {
+            rcShadowCorner.top = 0;
+        }
+        if (m_bRightSnap) {
+            rcShadowCorner.right = 0;
+        }
+        if (m_bBottomSnap) {
+            rcShadowCorner.bottom = 0;
+        }
         return rcShadowCorner;
     }
     else {
@@ -494,12 +544,8 @@ void Shadow::MaximizedOrRestored(bool isMaximized)
         return;
     }
     if (m_pRoot != nullptr) {
-        if (isMaximized) {
-            m_pRoot->SetPadding(UiPadding(0, 0, 0, 0), false);
-        }
-        else {
-            m_pRoot->SetPadding(m_rcShadowCorner, true);
-        }
+        UiPadding rcShadowCorner = GetCurrentShadowCorner();
+        m_pRoot->SetPadding(rcShadowCorner, false);
     }
 }
 
@@ -526,6 +572,57 @@ void Shadow::ChangeDpiScale(const DpiManager& dpi, uint32_t /*nOldDpiScale*/, ui
     if (!shadowImage.empty()) {
         SetShadowImage(_T(""));
         SetShadowImage(shadowImage);
+    }
+}
+
+void Shadow::SetWindowPosSnap(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap)
+{
+    if (IsEnableShadowSnap() && IsShadowAttached()) {
+        if ((m_bLeftSnap != bLeftSnap) || (m_bTopSnap != bTopSnap) ||
+            (m_bRightSnap != bRightSnap) || (m_bBottomSnap != bBottomSnap)) {
+            m_bLeftSnap = bLeftSnap;
+            m_bTopSnap = bTopSnap;
+            m_bRightSnap = bRightSnap;
+            m_bBottomSnap = bBottomSnap;
+
+            //更新属性
+            UpdateWindowPosSnap();
+        }
+    }
+    else {
+        if ((m_bLeftSnap != 0) || (m_bTopSnap != 0) ||
+            (m_bRightSnap != 0) || (m_bBottomSnap != 0)) {
+            m_bLeftSnap = 0;
+            m_bTopSnap = 0;
+            m_bRightSnap = 0;
+            m_bBottomSnap = 0;
+
+            //更新属性
+            UpdateWindowPosSnap();
+        }
+    }
+}
+
+void Shadow::SetEnableShadowSnap(bool bEnable)
+{
+    m_bEnableShadowSnap = bEnable;
+}
+
+bool Shadow::IsEnableShadowSnap() const
+{
+    return m_bEnableShadowSnap;
+}
+
+void Shadow::UpdateWindowPosSnap()
+{
+    if (m_pRoot != nullptr) {
+        UiPadding rcShadowCorner = GetCurrentShadowCorner();
+        if(!rcShadowCorner.Equals(m_pRoot->GetPadding())) {
+            m_pRoot->SetPadding(rcShadowCorner, false);
+            if (m_pWindow != nullptr) {
+                m_pWindow->InvalidateAll();
+            }
+        }        
     }
 }
 

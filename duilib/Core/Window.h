@@ -193,6 +193,14 @@ public:
     */
     void SetShadowBorderRound(UiSize szBorderRound);
 
+    /** 设置阴影是否支持窗口贴边操作
+    */
+    void SetEnableShadowSnap(bool bEnable);
+
+    /** 获取阴影是否支持窗口贴边操作
+    */
+    bool IsEnableShadowSnap() const;
+
     /** @}*/
 
 public:
@@ -809,6 +817,14 @@ protected:
     * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
     */
     virtual void OnCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 窗口位置的贴边操作
+    * @param [in] bLeftSnap 窗口左侧贴边
+    * @param [in] bRightSnap 窗口右侧贴边
+    * @param [in] bTopSnap 窗口上侧贴边
+    * @param [in] bBottomSnap 窗口下侧贴边
+    */
+    virtual void OnWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap) override;
 
     /** @}*/
 
