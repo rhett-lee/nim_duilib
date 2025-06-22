@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- 定义图片的宽度和高度：添加preserveAspectRatio确保缩放时比例正确  -->
 <svg xmlns="http://www.w3.org/2000/svg"
-     viewBox="0 0 320 322" width="320px" height="322px" preserveAspectRatio="xMidYMid meet">
+     viewBox="0 0 264 266" width="264" height="266" preserveAspectRatio="xMidYMid meet">
   <!-- 定义阴影滤镜（更自然的参数） -->
   <defs>
     <filter id="naturalShadow" x="-14%" y="-14%" width="128%" height="128%">
@@ -16,11 +16,11 @@
   </defs>
 
   <!-- 带阴影的主体矩形（使用x/y定位更直观），rx代表圆角半径，ry可以省略，默认与rx相同 -->
-  <rect x="58" y="58" width="200" height="200" rx="6"
+  <rect x="30" y="30" width="200" height="200" rx="6"
         fill="#FFFF00" filter="url(#naturalShadow)"/>
   
   <!-- 描边层（与主体分离，避免阴影干扰描边） -->
-  <rect x="58" y="58" width="200" height="200" rx="6"
+  <rect x="30" y="30" width="200" height="200" rx="6"
         fill="white" stroke="gray" stroke-width="1.6"/>
 </svg>
 
@@ -31,11 +31,13 @@
 <!-- 水平阴影扩展 = 左侧扩展 + 右侧扩展 -->
 <!-- 垂直阴影扩展 = 上方扩展 + 下方扩展 -->
 
-<!-- 左侧扩展：200 * 14% = 28 (滤镜) + [3 * stdDeviation = 30 (模糊)] = 58px -->
-<!-- 右侧扩展：200 * 14% = 28 (滤镜) + [3 * stdDeviation = 30 (模糊)]  + 4 (偏移) = 62px -->
+<!-- 左侧扩展：[3 * stdDeviation = 30 (模糊)] = 30px -->
+<!-- 右侧扩展：[3 * stdDeviation = 30 (模糊)]  + 4 (偏移) = 34px -->
 
-<!-- 上方扩展：200 * 14% = 28 (滤镜) + [3 * stdDeviation = 30 (模糊)] = 58px -->
-<!-- 下方扩展：200 * 14% = 28 (滤镜) + [3 * stdDeviation = 30 (模糊)] + 6 (偏移) = 64px -->
+<!-- 上方扩展：[3 * stdDeviation = 30 (模糊)] = 30px -->
+<!-- 下方扩展：[3 * stdDeviation = 30 (模糊)] + 6 (偏移) = 36px -->
 
-<!-- 总宽度 = 200 + 58 + 62 = 320 -->
-<!-- 总高度 = 200 + 58 + 64 = 322 -->
+<!-- 总宽度 = 200 + 30 + 34 = 264 -->
+<!-- 总高度 = 200 + 30 + 36 = 266 -->
+
+<!-- corner='30,30,34,36' -->

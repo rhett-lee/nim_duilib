@@ -368,7 +368,7 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
     if (nShadowType == Shadow::ShadowType::kShadowBig) {
         bRet = true;
         szBorderRound = UiSize(0, 0);
-        rcShadowCorner = UiPadding(58, 58, 62, 64);
+        rcShadowCorner = UiPadding(30, 30, 34, 36);
         shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_big.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
                                              rcShadowCorner.left + szBorderRound.cx,
                                              rcShadowCorner.top + szBorderRound.cx,
@@ -378,7 +378,7 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
     else if (nShadowType == Shadow::ShadowType::kShadowBigRound) {
         bRet = true;
         szBorderRound = UiSize(6, 6);
-        rcShadowCorner = UiPadding(58, 58, 62, 64);
+        rcShadowCorner = UiPadding(30, 30, 34, 36);
         shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_big_round.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
                                          rcShadowCorner.left + szBorderRound.cx,
                                          rcShadowCorner.top + szBorderRound.cx,
@@ -388,7 +388,7 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
     else if (nShadowType == Shadow::ShadowType::kShadowSmall) {
         bRet = true;
         szBorderRound = UiSize(0, 0);
-        rcShadowCorner = UiPadding(52, 52, 56, 58);
+        rcShadowCorner = UiPadding(24, 24, 28, 30);
         shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_small.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
                                              rcShadowCorner.left + szBorderRound.cx,
                                              rcShadowCorner.top + szBorderRound.cx,
@@ -398,7 +398,7 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
     else if (nShadowType == Shadow::ShadowType::kShadowSmallRound) {
         bRet = true;
         szBorderRound = UiSize(6, 6);
-        rcShadowCorner = UiPadding(52, 52, 56, 58);
+        rcShadowCorner = UiPadding(24, 24, 28, 30);
         shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_small_round.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
                                          rcShadowCorner.left + szBorderRound.cx,
                                          rcShadowCorner.top + szBorderRound.cx,
@@ -408,7 +408,7 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
     else if (nShadowType == Shadow::ShadowType::kShadowMenu) {
         bRet = true;
         szBorderRound = UiSize(0, 0);
-        rcShadowCorner = UiPadding(52, 52, 56, 58);
+        rcShadowCorner = UiPadding(24, 24, 28, 30);
         shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_menu.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
                                              rcShadowCorner.left + szBorderRound.cx,
                                              rcShadowCorner.top + szBorderRound.cx,
@@ -418,7 +418,7 @@ bool Shadow::GetShadowParam(ShadowType nShadowType,
     else if (nShadowType == Shadow::ShadowType::kShadowMenuRound) {
         bRet = true;
         szBorderRound = UiSize(6, 6);
-        rcShadowCorner = UiPadding(52, 52, 56, 58);
+        rcShadowCorner = UiPadding(24, 24, 28, 30);
         shadowImage = StringUtil::Printf(_T("file='public/shadow/shadow_menu_round.svg' window_shadow_mode='true' corner='%d,%d,%d,%d'"),
                                          rcShadowCorner.left + szBorderRound.cx,
                                          rcShadowCorner.top + szBorderRound.cx,
