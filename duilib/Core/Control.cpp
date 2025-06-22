@@ -3177,6 +3177,11 @@ void Control::PaintBkImage(IRender* pRender)
     }    
 }
 
+Image* Control::GetBkImagePtr() const
+{
+    return m_pBkImage.get();
+}
+
 void Control::PaintStateColor(IRender* pRender, const UiRect& rcPaint, ControlStateType stateType) const
 {
     if (m_pColorMap != nullptr) {

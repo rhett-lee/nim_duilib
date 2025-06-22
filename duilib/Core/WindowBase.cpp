@@ -1082,4 +1082,9 @@ LRESULT WindowBase::OnNativeWindowCloseMsg(uint32_t wParam, const NativeMsg& nat
     return OnWindowCloseMsg(wParam, nativeMsg, bHandled);
 }
 
+void WindowBase::OnNativeWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap)
+{
+    OnWindowPosSnapped(bLeftSnap, bRightSnap, bTopSnap, bBottomSnap);
+}
+
 } // namespace ui

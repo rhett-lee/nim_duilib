@@ -658,6 +658,11 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             AttributeUtil::ParseSizeValue(strValue.c_str(), szBorderRound);
             pWindow->SetShadowBorderRound(szBorderRound);
         }
+        else if (strName == _T("shadow_snap")) {
+            knownNames.insert(strName);
+            //设置阴影是否支持窗口贴边操作
+            pWindow->SetEnableShadowSnap(strValue == _T("true"));
+        }
         else if ((strName == _T("layered_window")) || (strName == _T("layeredwindow"))) {
             knownNames.insert(strName);
             //设置是否设置分层窗口属性（分层窗口还是普通窗口）

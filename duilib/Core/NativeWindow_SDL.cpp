@@ -182,6 +182,49 @@ public:
     }
 };
 
+void NativeWindow_SDL::CheckWindowSnap(SDL_Window* window)
+{
+    // 检查窗口是否最大化或最小化
+    if (window == nullptr) {
+        return;
+    }
+    SDL_WindowFlags flags = SDL_GetWindowFlags(window);
+    if ((flags & SDL_WINDOW_MAXIMIZED) || (flags & SDL_WINDOW_MINIMIZED)) {
+        return;
+    }
+
+    // 获取窗口所在显示器信息
+    SDL_DisplayID displayID = SDL_GetDisplayForWindow(window);
+    SDL_Rect displayBounds;
+    SDL_GetDisplayUsableBounds(displayID, &displayBounds);
+
+    // 获取DPI信息
+    float fDisplayContentScale = SDL_GetDisplayContentScale(displayID);
+    if (fDisplayContentScale < 1.0f) {
+        fDisplayContentScale = 1.0f;
+    }
+    const int snapThreshold = static_cast<int>(3 * fDisplayContentScale + 0.5f);
+
+    // 获取窗口位置和大小
+    int x = 0;
+    int y = 0;
+    int w = 0;
+    int h = 0;
+    SDL_GetWindowPosition(window, &x, &y);
+    SDL_GetWindowSize(window, &w, &h);
+
+    // 贴边检测逻辑
+    bool bLeftSnap = (std::abs(x - displayBounds.x) < snapThreshold);
+    bool bRightSnap = (std::abs((x + w) - (displayBounds.x + displayBounds.w)) < snapThreshold);
+    bool bTopSnap = (std::abs(y - displayBounds.y) < snapThreshold);
+    bool bBottomSnap = (std::abs((y + h) - (displayBounds.y + displayBounds.h)) < snapThreshold);
+
+    // 调用回调函数通知贴边状态
+    if (m_pOwner != nullptr) {
+        m_pOwner->OnNativeWindowPosSnapped(bLeftSnap, bRightSnap, bTopSnap, bBottomSnap);
+    }
+}
+
 bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
 {
     INativeWindow* pOwner = m_pOwner;
@@ -233,6 +276,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             newWindowSize.cx = sdlEvent.window.data1;
             newWindowSize.cy = sdlEvent.window.data2;
             lResult = pOwner->OnNativeSizeMsg(sizeType, newWindowSize, NativeMsg(SDL_EVENT_WINDOW_RESIZED, 0, 0), bHandled);
+            CheckWindowSnap(m_sdlWindow);
         }
         break;
     case SDL_EVENT_WINDOW_MINIMIZED:
@@ -269,6 +313,7 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             ptTopLeft.x = sdlEvent.window.data1;
             ptTopLeft.y = sdlEvent.window.data2;
             lResult = pOwner->OnNativeMoveMsg(ptTopLeft, NativeMsg(SDL_EVENT_WINDOW_MOVED, 0, 0), bHandled);
+            CheckWindowSnap(m_sdlWindow);
         }
         break;
     case SDL_EVENT_WINDOW_EXPOSED:

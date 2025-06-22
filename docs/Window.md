@@ -14,6 +14,7 @@
 | shadow_image      | 窗口阴影|         | string | SetShadowImage          |使用自定义的阴影素材去代替默认的阴影效果，设置的路径要注意相对路径以及九宫格属性，如(file='../public/shadow/shadow_big.svg' corner='64,64,68,70') |
 | shadow_corner     | 窗口阴影| 0,0,0,0 | rect   | SetShadowCorner         |设置了shadowimage属性后，设置此属性来指定阴影素材的九宫格描述 |
 | shadow_border_round| 窗口阴影| 0,0    | size   | SetShadowBorderRound    |设置了shadowimage属性后，设置此属性来指定阴影的圆角属性 |
+| shadow_snap| 窗口阴影| true    | bool   | SetEnableShadowSnap    |设置阴影是否支持窗口贴边操作，如果为true，则在窗口贴近屏幕边缘时，这一侧的阴影自动隐藏，以增大视图内的有效空间 |
 | size              | 窗口大小| 0,0     | size   | SetInitSize             |窗口的初始化大小, 支持的格式：size="1200,800", 或者size="50%,50%", 或者size="1200,50%", size="50%,800"，百分比是指屏幕宽度或者高度的百分比 |
 | size_contain_shadow| 窗口大小| false  | size   |                         |窗口的初始化大小(size属性)，是否包含窗口的阴影，默认不包含，窗口的实际大小是配置的size值 + 阴影大小 |
 | min_size          | 窗口大小| 0,0     | size   | SetWindowMinimumSize    |窗口最小大小, 如(320,240) |

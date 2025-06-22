@@ -2342,14 +2342,47 @@ LRESULT NativeWindow_Windows::OnPointerMsgs(UINT uMsg, WPARAM wParam, LPARAM lPa
     return 0;
 }
 
+void NativeWindow_Windows::CheckWindowSnap(HWND hWnd)
+{
+    if (::IsZoomed(hWnd) || ::IsIconic(hWnd)) {
+        //最大化或者最小化时，不处理
+        return;
+    }
+    // 获取窗口所在显示器信息
+    HMONITOR hMonitor = ::MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
+    MONITORINFO mi = { 0, };
+    mi.cbSize = sizeof(MONITORINFO);
+    ::GetMonitorInfo(hMonitor, &mi);
+
+    // DPI适配
+    UINT dpi = 96;
+    GetDpiForWindowWrapper(hWnd, dpi);
+    const int32_t snapThreshold = MulDiv(3, dpi, 96);
+
+    // 获取窗口实际坐标
+    RECT rcWindow = { 0 };
+    ::GetWindowRect(hWnd, &rcWindow);
+
+    // 贴边检测逻辑
+    bool bLeftSnap = (std::abs(rcWindow.left - mi.rcWork.left) < snapThreshold);
+    bool bRightSnap = (std::abs(rcWindow.right - mi.rcWork.right) < snapThreshold);
+    bool bTopSnap = (std::abs(rcWindow.top - mi.rcWork.top) < snapThreshold);
+    bool bBottomSnap = (std::abs(rcWindow.bottom - mi.rcWork.bottom) < snapThreshold);
+
+    m_pOwner->OnNativeWindowPosSnapped(bLeftSnap, bRightSnap, bTopSnap, bBottomSnap);
+}
+
 LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
 {
     LRESULT lResult = 0;
     bHandled = false;
     switch (uMsg)
     {
+    case WM_WINDOWPOSCHANGED:
+        CheckWindowSnap(m_hWnd);
+        break;
     case WM_SIZE:
-    {
+    {        
         WindowSizeType sizeType = static_cast<WindowSizeType>(wParam);
         UiSize newWindowSize;
         newWindowSize.cx = (int)(short)LOWORD(lParam);

@@ -933,6 +933,24 @@ void Window::SetShadowBorderRound(UiSize szBorderRound)
     }
 }
 
+void Window::SetEnableShadowSnap(bool bEnable)
+{
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        m_shadow->SetEnableShadowSnap(bEnable);
+    }
+}
+
+bool Window::IsEnableShadowSnap() const
+{
+    bool bRet = false;
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        bRet = m_shadow->IsEnableShadowSnap();
+    }
+    return bRet;
+}
+
 UiSize Window::GetShadowBorderRound() const
 {
     UiSize szBorderRound;
@@ -1901,6 +1919,13 @@ void Window::OnCreateWndMsg(bool bDoModal, const NativeMsg& /*nativeMsg*/, bool&
     bHandled = false;
     //给应用层发一个事件
     SendNotify(kEventWindowCreate, bDoModal ? 1 : 0);
+}
+
+void Window::OnWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap)
+{
+    if (m_shadow != nullptr) {
+        m_shadow->SetWindowPosSnap(bLeftSnap, bRightSnap, bTopSnap, bBottomSnap);
+    }
 }
 
 void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey)

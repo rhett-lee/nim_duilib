@@ -1101,6 +1101,10 @@ protected:
     */
     UiSize GetBkImageSize() const;
 
+    /** 背景图片的接口
+    */
+    Image* GetBkImagePtr() const;
+
 protected:
     /** 绘制指定状态的颜色
     */

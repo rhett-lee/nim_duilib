@@ -386,6 +386,14 @@ public:
     */
     virtual LRESULT OnNativeWindowCloseMsg(uint32_t wParam, const NativeMsg& nativeMsg, bool& bHandled) = 0;
 
+    /** 窗口位置的贴边操作
+    * @param [in] bLeftSnap 窗口左侧贴边
+    * @param [in] bRightSnap 窗口右侧贴边
+    * @param [in] bTopSnap 窗口上侧贴边
+    * @param [in] bBottomSnap 窗口下侧贴边
+    */
+    virtual void OnNativeWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap) = 0;
+
     /** @}*/
 
 };
