@@ -18,7 +18,7 @@ list(REMOVE_ITEM SRC_FILES ${DUILIB_PROJECT_SRC_DIR}/main_macos.mm)
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 # 平台的标准库
-set(DUILIB_LINUX_LIBS freetype fontconfig pthread dl)
+set(DUILIB_LINUX_LIBS X11 freetype fontconfig pthread dl)
 
 # Linux平台所依赖的库
 target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_CEF_LIBS} ${DUILIB_LINUX_LIBS})
