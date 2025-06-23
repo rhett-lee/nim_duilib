@@ -61,6 +61,14 @@ else
     DUILIB_COMPILER_ID=gcc
 fi
 
+# UOS 固定使用gcc编译，因为用clang++的时候，有链接错误
+if grep -q "ID=uos" /etc/os-release; then
+    echo "UOS"
+    DUILIB_CC=gcc
+    DUILIB_CXX=g++
+    DUILIB_COMPILER_ID=gcc
+fi
+
 cmake_version=$(cmake --version | grep -oE '[0-9]+\.[0-9]+')
 required_version=3.24
 if [ $(echo "$cmake_version >= $required_version" | bc) -eq 1 ]; then
