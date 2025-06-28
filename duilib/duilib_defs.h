@@ -93,6 +93,7 @@ namespace ui
 
     #define  DUI_CTR_DATETIME                        (_T("DateTime"))
     #define  DUI_CTR_CEF                             (_T("CefControl"))
+    #define  DUI_CTR_WEBVIEW2                        (_T("WebView2Control"))
 
     //颜色相关的部分控件
     #define  DUI_CTR_COLOR_CONTROL                   (_T("ColorControl"))

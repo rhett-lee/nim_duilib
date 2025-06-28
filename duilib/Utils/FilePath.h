@@ -118,6 +118,10 @@ public:
     */
     DString GetFileName() const;
 
+    /** 获取当前路径中的文件名的后缀部分(UTF16编码/UTF8编码)
+    */
+    DString GetFileExtension() const;
+
     /** 获取父路径
     */
     FilePath GetParentPath() const;

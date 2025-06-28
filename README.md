@@ -73,7 +73,7 @@
     <tr><td align="left">16. 移除了ui_components工程，CEF组件代码重新梳理，继承到duilib工程中，其他内容删除</td></tr>
     <tr><td align="left">17. 优化窗口的阴影功能，窗口的阴影使用svg图片，增加了阴影类型属性（shadow_type），可选值为：<br> "default", 默认阴影 <br> "big", 大阴影，直角（适合普通窗口）<br> "big_round", 大阴影，圆角（适合普通窗口）<br> "small", 小阴影，直角（适合普通窗口）<br> "small_round", 小阴影，圆角（适合普通窗口）<br> "menu", 小阴影，直角（适合弹出式窗口，比如菜单等）<br> "menu_round", 小阴影，圆角（适合弹出式窗口，比如菜单等）<br> "none", 无阴影</td></tr>
     <tr>
-        <td rowspan="16">新增控件</td>
+        <td rowspan="17">新增控件</td>
         <td align="left">1. GroupBox：分组容器</td>
     </tr>
     <tr><td align="left">2. HotKey：热键控件</td></tr>
@@ -91,6 +91,7 @@
     <tr><td align="left">14. ControlDragableT：支持相同Box内的子控件通过拖动来调整顺序</td></tr>
     <tr><td align="left">15. DirectoryTree：目录树控件，用于显示文件系统中的目录</td></tr>
     <tr><td align="left">16. AddressBar：地址栏控件，用于显示本地文件系统的路径</td></tr>
+    <tr><td align="left">17. WebView2Control：封装了WebView2控件的基本功能</td></tr>
     <tr>
         <td rowspan="3">性能优化</td>
         <td align="left">1. 优化了Control及子控件的内存占用，在界面元素较多的时候，内存占有率有大幅降低</td>
@@ -98,7 +99,7 @@
     <tr><td align="left">2. 优化了动画绘制流程，合并定时器的触发事件，避免播放控件动画或者播放动画图片的过程中导致界面很卡的现象</td></tr>
     <tr><td align="left">3. 基于虚表的ListBox控件及关联控件：通过优化实现机制，使得可用性和性能有较大改善</td></tr>
     <tr>
-        <td rowspan="8">示例程序完善</td>
+        <td rowspan="10">示例程序完善</td>
         <td align="left">1. examples/ColorPicker: 新增加了拾色器示例程序</td>
     </tr>
     <tr><td align="left">2. examples/ListCtrl：新增加了列表的示例程序，演示列表的个性功能</td></tr>
@@ -107,7 +108,9 @@
     <tr><td align="left">5. examples/RichEdit：新增加了富文本编辑控件的示例程序，演示了富文本编辑控件的各种功能</td></tr>
     <tr><td align="left">6. examples/MultiLang：提供多语言的动态切换功能演示</td></tr>
     <tr><td align="left">7. examples/DpiAware：提供了DPI感知功能的功能演示</td></tr>
-    <tr><td align="left">8. 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用</td></tr>
+    <tr><td align="left">8. examples/threads：提供了多线程的功能演示</td></tr>
+    <tr><td align="left">9. examples/WebView2：提供了WebView2控件的功能演示</td></tr>
+    <tr><td align="left">10. 其他的示例程序：大部分进行了代码兼容性修改和优化，使得示例程序也可以当作测试程序使用</td></tr>
     <tr>
         <td rowspan="8">完善文档</td>
         <td align="left">1. README.md和docs子目录的文档重新进行了梳理，使得阅读者更容易理解界面库的功能、用法，更易上手</td>
@@ -119,22 +122,23 @@
 ## 使用的第三方库说明
 | 名称     |代码子目录| 用途 | license文件|
 | :---     | :---     |:---  |:---        |
-|apng      |third_party/libpng| 支持APNG图片格式|zlib/libpng License|
-|libpng    |third_party/libpng| 支持PNG图片格式|[libpng.LICENSE.txt](licenses/libpng.LICENSE.txt)|
-|zlib      |third_party/zlib| 支持PNG/APNG图片格式、Zip文件解压|[zlib.LICENSE.txt](licenses/zlib.LICENSE.txt)|
-|cximage   |third_party/cximage| 支持GIF/ICO图片格式|[cximage.LICENSE.txt](licenses/cximage.LICENSE.txt)|
-|libwebp   |third_party/libwebp| 支持WebP图片格式|[libWebP.LICENSE.txt](licenses/libwebp.LICENSE.txt)|
-|stb_image |third_party/stb_image| 支持JPEG/BMP图片格式，调整图片大小|[stb_image.LICENSE.txt](licenses/stb_image.LICENSE.txt)|
-|nanosvg   |third_party/svg| 支持SVG图片格式|[nanosvg.LICENSE.txt](licenses/nanosvg.LICENSE.txt)|
-|pugixml   |third_party/xml| 支持资源描述XML的解析|[pugixml.LICENSE.txt](licenses/pugixml.LICENSE.txt)|
-|ConvertUTF|third_party/convert_utf| 用于UTF-8/UTF-16编码的相互转换|[llvm.LICENSE.txt](licenses/llvm.LICENSE.txt)|
+|apng      |duilib/third_party/libpng| 支持APNG图片格式|zlib/libpng License|
+|libpng    |duilib/third_party/libpng| 支持PNG图片格式|[libpng.LICENSE.txt](licenses/libpng.LICENSE.txt)|
+|zlib      |duilib/third_party/zlib| 支持PNG/APNG图片格式、Zip文件解压|[zlib.LICENSE.txt](licenses/zlib.LICENSE.txt)|
+|cximage   |duilib/third_party/cximage| 支持GIF/ICO图片格式|[cximage.LICENSE.txt](licenses/cximage.LICENSE.txt)|
+|libwebp   |duilib/third_party/libwebp| 支持WebP图片格式|[libWebP.LICENSE.txt](licenses/libwebp.LICENSE.txt)|
+|stb_image |duilib/third_party/stb_image| 支持JPEG/BMP图片格式，调整图片大小|[stb_image.LICENSE.txt](licenses/stb_image.LICENSE.txt)|
+|nanosvg   |duilib/third_party/svg| 支持SVG图片格式|[nanosvg.LICENSE.txt](licenses/nanosvg.LICENSE.txt)|
+|pugixml   |duilib/third_party/xml| 支持资源描述XML的解析|[pugixml.LICENSE.txt](licenses/pugixml.LICENSE.txt)|
+|ConvertUTF|duilib/third_party/convert_utf| 用于UTF-8/UTF-16编码的相互转换|[llvm.LICENSE.txt](licenses/llvm.LICENSE.txt)|
 |skia      |项目未包含skia源码     | 界面库渲染引擎|[skia.LICENSE.txt](licenses/skia.LICENSE.txt)|
 |SDL       |项目未包含SDL源码      | 跨平台窗口管理|[SDL.LICENSE.txt](licenses/SDL.LICENSE.txt)|
 |duilib    |                       | 最早基于duilib开发|[duilib.LICENSE.txt](licenses/duilib.LICENSE.txt)|
 |NIM_Duilib Framework|             | 基于NIM_Duilib_Framework开发|[NIM_Duilib_Framework.LICENSE.txt](licenses/NIM_Duilib_Framework.LICENSE.txt)|
-|libcef    |third_party/libcef_win<br>third_party/libcef_win_109<br>third_party/libcef_linux| 用于加载CEF模块|[libcef.LICENSE.txt](licenses/libcef.LICENSE.txt)|
-|udis86    |third_party/libudis86| 反汇编计算完整性指令最短长度|[udis86.LICENSE.txt](licenses/udis86.LICENSE.txt)|
-
+|libcef    |duilib/third_party/libcef_win<br>duilib/third_party/libcef_win_109<br>duilib/third_party/libcef_linux| 用于加载CEF模块|[libcef.LICENSE.txt](licenses/libcef.LICENSE.txt)|
+|udis86    |duilib/third_party/libudis86| 反汇编计算完整性指令最短长度|[udis86.LICENSE.txt](licenses/udis86.LICENSE.txt)|
+|WebView2    |duilib/third_party/Microsoft.Web.WebView2| 支持WebView2控件|[Microsoft.Web.WebView2.LICENSE.txt](licenses/Microsoft.Web.WebView2.LICENSE.txt)|
+|ImplementationLibrary|duilib/third_party/Microsoft.Windows.ImplementationLibrary| 支持WebView2控件|[Microsoft.Windows.ImplementationLibrary.LICENSE.txt](licenses/Microsoft.Windows.ImplementationLibrary.LICENSE.txt)|
 ## 界面效果预览
 使用该界面库编写的示例程序，该文档可以见到各个控件的展示效果：[docs/Examples.md](docs/Examples.md) 
 

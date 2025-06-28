@@ -201,11 +201,27 @@ DString FilePath::GetFileName() const
 #ifdef DUILIB_UNICODE
     return m_filePath.filename().native();
 #else
-#ifdef DUILIB_BUILD_FOR_WIN
-    return StringConvert::WStringToUTF8(m_filePath.filename().native());
-#else
-    return m_filePath.filename().native();
+    #ifdef DUILIB_BUILD_FOR_WIN
+        return StringConvert::WStringToUTF8(m_filePath.filename().native());
+    #else
+        return m_filePath.filename().native();
+    #endif
 #endif
+}
+
+DString FilePath::GetFileExtension() const
+{
+    if (m_filePath.empty()) {
+        return DString();
+    }
+#ifdef DUILIB_UNICODE
+    return m_filePath.extension().native();
+#else
+    #ifdef DUILIB_BUILD_FOR_WIN
+        return StringConvert::WStringToUTF8(m_filePath.extension().native());
+    #else
+        return m_filePath.extension().native();
+    #endif
 #endif
 }
 

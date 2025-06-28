@@ -91,6 +91,9 @@
     <Filter Include="third_party\libudis86">
       <UniqueIdentifier>{b0c15824-2ae6-4a01-b939-f84256133f8d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="WebView2">
+      <UniqueIdentifier>{27c3f2eb-b279-490b-b0cc-ff9c309d4884}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -692,6 +695,15 @@
     </ClCompile>
     <ClCompile Include="Core\ClickThrough_Windows.cpp">
       <Filter>Core\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="WebView2\WebView2Control.cpp">
+      <Filter>WebView2</Filter>
+    </ClCompile>
+    <ClCompile Include="WebView2\WebView2ControlImpl.cpp">
+      <Filter>WebView2</Filter>
+    </ClCompile>
+    <ClCompile Include="WebView2\WebView2Manager.cpp">
+      <Filter>WebView2</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1444,6 +1456,18 @@
     </ClInclude>
     <ClInclude Include="Core\ClickThrough.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="WebView2\WebView2Control.h">
+      <Filter>WebView2</Filter>
+    </ClInclude>
+    <ClInclude Include="WebView2\WebView2ControlImpl.h">
+      <Filter>WebView2</Filter>
+    </ClInclude>
+    <ClInclude Include="WebView2\WebView2Manager.h">
+      <Filter>WebView2</Filter>
+    </ClInclude>
+    <ClInclude Include="duilib_webview2.h">
+      <Filter>duilib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

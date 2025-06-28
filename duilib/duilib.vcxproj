@@ -457,6 +457,9 @@
     <ClCompile Include="Utils\SystemUtil_SDL.cpp" />
     <ClCompile Include="Utils\SystemUtil_Windows.cpp" />
     <ClCompile Include="Utils\WinImplBase.cpp" />
+    <ClCompile Include="WebView2\WebView2Control.cpp" />
+    <ClCompile Include="WebView2\WebView2ControlImpl.cpp" />
+    <ClCompile Include="WebView2\WebView2Manager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\skia\tools\gpu\gl\win\SkWGL.h" />
@@ -627,6 +630,7 @@
     <ClInclude Include="duilib_config_windows.h" />
     <ClInclude Include="duilib_defs.h" />
     <ClInclude Include="duilib_string.h" />
+    <ClInclude Include="duilib_webview2.h" />
     <ClInclude Include="Image\Image.h" />
     <ClInclude Include="Image\ImageAttribute.h" />
     <ClInclude Include="Image\ImageDecoder.h" />
@@ -709,6 +713,9 @@
     <ClInclude Include="Control\Progress.h" />
     <ClInclude Include="Control\Slider.h" />
     <ClInclude Include="Control\TreeView.h" />
+    <ClInclude Include="WebView2\WebView2Control.h" />
+    <ClInclude Include="WebView2\WebView2ControlImpl.h" />
+    <ClInclude Include="WebView2\WebView2Manager.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />

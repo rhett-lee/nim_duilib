@@ -23,6 +23,8 @@
 | libcef_linux  |2025-06-09|cef_binary_137.0.10+g7e14fe1<br>chromium-137.0.7151.69|有 |ARM64版本：https://cef-builds.spotifycdn.com/index.html#linuxarm64:137| ARM64版本：https://cef-builds.spotifycdn.com/cef_binary_137.0.10%2Bg7e14fe1%2Bchromium-137.0.7151.69_linuxarm64.tar.bz2|
 | libcef_macos  |2025-06-09|cef_binary_137.0.8+gaaaa0bf<br>chromium-137.0.7151.56|有 |x64版本：https://cef-builds.spotifycdn.com/index.html#macosx64:137| x64版本：https://cef-builds.spotifycdn.com/cef_binary_137.0.8%2Bgaaaa0bf%2Bchromium-137.0.7151.56_macosx64.tar.bz2|
 | libcef_macos  |2025-06-09|cef_binary_137.0.10+g7e14fe1<br>chromium-137.0.7151.69|有 |ARM64版本：https://cef-builds.spotifycdn.com/index.html#macosarm64:137| ARM64版本：https://cef-builds.spotifycdn.com/cef_binary_137.0.10%2Bg7e14fe1%2Bchromium-137.0.7151.69_macosarm64.tar.bz2|
+| WebView2      |2025-06-28|1.0.3296.44 |无 | 通过 NuGet 安装 WebView2 SDK: <br>Microsoft.Web.WebView2| |
+| ImplementationLibrary|2025-06-28|1.0.250325.1 |无 | 通过 NuGet 安装 ImplementationLibrary SDK: <br>Microsoft.Windows.ImplementationLibrary| |
 ## libpng 库更新说明
 1. 下载最新版本的压缩包：https://sourceforge.net/projects/libpng/
 2. 下载压缩包后，解压，进入解压后的目录，按照INSTALL的说明，使用VS的命令行模式，运行：`nmake -f scripts\makefile.vcwin32`，会生成`pnglibconf.h`文件

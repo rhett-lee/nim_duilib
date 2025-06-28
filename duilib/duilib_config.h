@@ -10,6 +10,11 @@
     //可以将msvc\PropertySheets\SDLSettings.props文件中的SDLEnabled改为1，以开启SDL功能
     #define DUILIB_BUILD_FOR_SDL    1
 #endif
+
+#if (DUILIB_WEBVIEW2)
+    //可以将msvc\PropertySheets\WebView2Settings.props文件中的WebView2Enabled改为1，以开启WebView2功能
+    #define DUILIB_BUILD_FOR_WEBVIEW2   1
+#endif
     
 #elif defined(linux) || defined(__linux) || defined(__linux__)
     #define DUILIB_BUILD_FOR_LINUX  1

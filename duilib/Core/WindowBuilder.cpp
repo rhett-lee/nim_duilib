@@ -38,6 +38,8 @@
 #include "duilib/Control/IconControl.h"
 #include "duilib/Control/AddressBar.h"
 
+#include "duilib/WebView2/WebView2Control.h"
+
 #include "duilib/Box/HBox.h"
 #include "duilib/Box/VBox.h"
 #include "duilib/Box/TabBox.h"
@@ -141,6 +143,7 @@ Control* WindowBuilder::CreateControlByClass(const DString& strControlClass, Win
         {DUI_CTR_TAB_CTRL_ITEM, [](Window* pWindow) { return new TabCtrlItem(pWindow); }},
         {DUI_CTR_ICON_CONTROL, [](Window* pWindow) { return new IconControl(pWindow); }},
         {DUI_CTR_ADDRESS_BAR, [](Window* pWindow) { return new AddressBar(pWindow); }},
+        {DUI_CTR_WEBVIEW2, [](Window* pWindow) { return new WebView2Control(pWindow); }},
 
         {DUI_CTR_SPLIT, [](Window* pWindow) { return new Split(pWindow); }},
         {DUI_CTR_SPLITBOX, [](Window* pWindow) { return new SplitBox(pWindow); }},

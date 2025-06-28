@@ -71,6 +71,9 @@ void CefForm::OnInitWindow()
             //m_pCefControl的开发者工具，显示在m_pCefControlDev这个控件中
             m_pCefControl->SetDevToolsView(m_pCefControlDev);
         }
+
+        //URL变化事件
+        m_pCefControl->AttachMainUrlChange(UiBind(&CefForm::OnMainUrlChange, this, std::placeholders::_1, std::placeholders::_2));
     }
 
     if (m_pCefControl != nullptr) {
@@ -211,6 +214,10 @@ void CefForm::OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRefPtr<Ce
 void CefForm::OnTitleChange(CefRefPtr<CefBrowser> browser, const DString& title)
 {
     ui::GlobalManager::Instance().AssertUIThread();
+    ui::Label* pLabelTitle = dynamic_cast<ui::Label*>(FindControl(_T("page_title")));
+    if (pLabelTitle != nullptr) {
+        pLabelTitle->SetText(title);
+    }
 }
     
 void CefForm::OnUrlChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const DString& url)
@@ -221,6 +228,10 @@ void CefForm::OnUrlChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> fra
 void CefForm::OnMainUrlChange(const DString& oldUrl, const DString& newUrl)
 {
     ui::GlobalManager::Instance().AssertUIThread();
+    ui::RichEdit* pEditUrl = dynamic_cast<ui::RichEdit*>(FindControl(_T("edit_url")));
+    if (pEditUrl != nullptr) {
+        pEditUrl->SetText(newUrl);
+    }
 }
     
 void CefForm::OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls)

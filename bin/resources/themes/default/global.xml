@@ -349,7 +349,7 @@
     <!--RichEdit富文本控件通用样式-->
     <Class name="simple" bkcolor="white" multi_line="false" auto_hscroll="true" rich_text="false"
                          want_return="false" want_ctrl_return="false" want_tab="false" 
-                         disabled_text_color="disabled_font_color"/>
+                         text_align="left,vcenter" disabled_text_color="disabled_font_color"/>
     <Class name="simple_border" padding="1,1,1,1" border_size="1" 
                                 border_color="richedit_border_color" 
                                 hot_border_color="richedit_hot_border_color" 
