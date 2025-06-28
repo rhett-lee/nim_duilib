@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{5c19133b-684c-4909-9729-ef2408acf68a}</ProjectGuid>
-    <RootNamespace>WebView2</RootNamespace>
+    <ProjectGuid>{34272a88-ef1f-4ad2-8101-512a9a316757}</ProjectGuid>
+    <RootNamespace>WebView2Browser</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -128,18 +128,19 @@
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="WebView2Browser.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
-    <ClCompile Include="WebView2.cpp" />
+    <ClCompile Include="WebView2Browser.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="WebView2.rc" />
+    <ResourceCompile Include="WebView2Browser.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico" />
-    <Image Include="WebView2.ico" />
+    <Image Include="WebView2Browser.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\duilib\duilib.vcxproj">

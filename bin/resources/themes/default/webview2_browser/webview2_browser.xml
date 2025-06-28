@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window size="700,500" caption="0,0,0,36" shadow_type="default" shadow_attached="true" layered_window="true" size_box="4,4,4,4">
+    <VBox bkcolor="bk_wnd_darkcolor">
+        <!-- 标题栏区域 -->
+        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
+            <Label name="page_title" width="stretch" height="32" text_align="left,vcenter" text_padding="8,2,5,0"/>
+            <Button name="btn_dev_tool" height="32" width="40" margin="0,2,4,2" valign="center" 
+                          tooltip_text="开发者工具" bkimage="file='dev_tool.svg' height='20' width='20' halign='center' valign='center'"
+                          hot_color="AliceBlue" pushed_color="Lavender"/>
+            <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+            <Box height="stretch" width="40" margin="0,2,0,2">
+                <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
+                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+            </Box>
+            <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+        </HBox>
+        
+        <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->   
+        <HBox height="auto">
+            <Button class="btn_global_blue_80x30" name="btn_back" text="后退" width="60"/>
+            <Button class="btn_global_blue_80x30" name="btn_forward" text="前进" width="60" margin="5,0,5"/>
+            <RichEdit class="simple simple_border prompt" name="edit_url" 
+                                                  width="stretch" height="28" valign="center" text_padding="5,0,5,0" 
+                                                  prompt_text="请输入网址"
+                                                  default_context_menu="true"/>
+            <Button class="btn_global_blue_80x30" name="btn_navigate" text="转到" width="60" margin="5"/>
+            <Button class="btn_global_blue_80x30" name="btn_refresh" text="刷新" width="60" margin="5"/>
+        </HBox>
+        <VBox bkcolor="white">
+            <WebView2Control name="webview2_control" url="https://www.baidu.com" margin="2,0,2,2"/>
+        </VBox>
+    </VBox>
+</Window>
