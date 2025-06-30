@@ -178,7 +178,7 @@ LRESULT WindowBase::PostMsg(UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void WindowBase::PostQuitMsg(int32_t nExitCode)
 {
-    return m_pNativeWindow->PostQuitMsg(nExitCode);
+    return NativeWindow::PostQuitMsg(nExitCode);
 }
 
 WindowBase* WindowBase::WindowBaseFromPoint(const UiPoint& pt)

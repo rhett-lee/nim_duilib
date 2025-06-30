@@ -1,5 +1,5 @@
 #include "MainThread.h"
-#include "MainForm.h"
+#include "BrowserManager.h"
 #include "duilib/WebView2/WebView2Manager.h"
 
 WorkerThread::WorkerThread()
@@ -47,13 +47,8 @@ void MainThread::OnInit()
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
     ui::WebView2Manager::GetInstance().Initialize();
 
-    //在下面加入启动窗口代码
-    //
-    //创建一个默认带有阴影的居中窗口
-    MainForm* window = new MainForm();
-    window->CreateWnd(nullptr, ui::WindowCreateParam(_T("WebView2"), true));
-    window->PostQuitMsgWhenClosed(true);
-    window->ShowWindow(ui::kSW_SHOW_NORMAL);
+    //创建窗口, 显示默认页面
+    BrowserManager::GetInstance()->CreateBorwserBox(nullptr, "", _T("www.baidu.com"));
 }
 
 void MainThread::OnCleanup()

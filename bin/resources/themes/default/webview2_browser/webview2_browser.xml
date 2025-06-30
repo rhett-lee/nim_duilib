@@ -1,33 +1,68 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Window size="700,500" caption="0,0,0,36" shadow_type="default" shadow_attached="true" layered_window="true" size_box="4,4,4,4">
-    <VBox bkcolor="bk_wnd_darkcolor">
-        <!-- 标题栏区域 -->
-        <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
-            <Label name="page_title" width="stretch" height="32" text_align="left,vcenter" text_padding="8,2,5,0"/>
-            <Button name="btn_dev_tool" height="32" width="40" margin="0,2,4,2" valign="center" 
-                          tooltip_text="开发者工具" bkimage="file='dev_tool.svg' height='20' width='20' halign='center' valign='center'"
-                          hot_color="AliceBlue" pushed_color="Lavender"/>
-            <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
-            <Box height="stretch" width="40" margin="0,2,0,2">
-                <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
-                <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+<Window size="75%,90%" min_size="800,500" caption="0,0,0,36" size_box="4,4,4,4" textid="STRID_CEF_BROWSER_MULTI_TAB" shadow_attached="true" layered_window="true" icon="public/caption/logo.ico">
+    <!--新建标签按钮：纯色按钮-->
+    <Class name="tab_item_new_add_btn" font="system_18" text_align="hcenter,vcenter" valign="center" 
+                                       normal_text_color="black" 
+                                       disabled_text_color="gray" 
+                                       normal_color="#FFD3E3FD" 
+                                       hot_color="#FFA8C7FA" 
+                                       pushed_color="#FF9DB9E8"/>
+    <Class name="tab_ctrl_left_line" bkcolor="#FFA8C7FA" width="1" height="22" halign="center" valign="center" mouse="false"/>
+
+    <VBox bkcolor="bk_wnd_lightcolor">
+        <HBox name="title_bar" width="stretch" height="36" bkcolor="#FFD3E3FD">
+            <!-- 图标区域 -->
+            <Control width="36" height="36" bkimage="file='public/caption/logo.ico' width='22' height='22' halign='center' valign='center'"/>
+            
+            <!-- 竖线区域 -->
+            <Control class="tab_ctrl_left_line" padding="0,6,0,6" margin="0,0,2,0"/>
+            
+            <!-- 顶部标签列表 -->
+            <TabCtrl class="tab_ctrl" name="tab_ctrl"/>
+            
+            <!-- 顶部标签列表后面放一个新建标签按钮 -->
+            <Button class="tab_item_new_add_btn" name="btn_add" text="+" tooltip_text="新建标签页" width="24" height="24" border_round="8,8" text_padding="0,0,0,2"/>
+    		
+            <!-- 标题栏区域 -->
+            <HBox name="window_caption_bar" width="auto" height="36" bkcolor="">
+                <Control />
+                <Control width="36"/>
+                <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
+                <Box height="stretch" width="40" margin="0,2,0,2">
+                    <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
+                    <Button class="btn_wnd_restore_11" height="32" width="stretch" name="restorebtn" visible="false" tooltip_text="还原"/>
+                </Box>
+                <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+            </HBox>
+        </HBox>
+        <!-- 后退/前进/刷新按钮，地址栏，标签栏区域 -->
+        <HBox height="30" margin="10,2,10,2" child_margin="3">
+            <Button class="btn_global_blue_80x30" name="btn_back" width="50" height="30" textid="STRID_CEF_BROWSER_BACKWARD" valign="center" font="system_12" />
+            <Button class="btn_global_blue_80x30" name="btn_forward" width="50" height="30" textid="STRID_CEF_BROWSER_FORWARD" valign="center" font="system_12" />
+            <Box width="50" height="30" valign="center">
+                <Button class="btn_global_blue_80x30" name="btn_refresh" width="50" height="30" textid="STRID_CEF_BROWSER_REFRESH" valign="center" font="system_12" />
+                <Button class="btn_global_blue_80x30" name="btn_stop" width="50" height="30" textid="STRID_CEF_BROWSER_STOP" valign="center" font="system_12" />
             </Box>
-            <Button class="btn_wnd_close_11" height="stretch" width="40" name="closebtn" margin="0,0,0,2" tooltip_text="关闭"/>
+            <!-- 地址栏 -->
+            <RichEdit class="simple prompt" name="edit_url" width="stretch" height="30" 
+                                            text_padding="5,2,5,0" 
+                                            text_align="vcenter" 
+                                            valign="center" 
+                                            border_color="gray" 
+                                            border_size="1" 
+                                            font="system_14"
+                                            prompt_textid="STRID_CEF_BROWSER_INPUT_ADDRESS" 
+                                            default_context_menu="true" 
+                                            vscrollbar="false" 
+                                            auto_vscroll="false" 
+                                            hscrollbar="false" 
+                                            auto_hscroll="true"/>		
         </HBox>
         
-        <!-- 工作区域，除了标题栏外的内容都放在这个大的Box区域 -->   
-        <HBox height="auto">
-            <Button class="btn_global_blue_80x30" name="btn_back" text="后退" width="60"/>
-            <Button class="btn_global_blue_80x30" name="btn_forward" text="前进" width="60" margin="5,0,5"/>
-            <RichEdit class="simple simple_border prompt" name="edit_url" 
-                                                  width="stretch" height="28" valign="center" text_padding="5,0,5,0" 
-                                                  prompt_text="请输入网址"
-                                                  default_context_menu="true"/>
-            <Button class="btn_global_blue_80x30" name="btn_navigate" text="转到" width="60" margin="5"/>
-            <Button class="btn_global_blue_80x30" name="btn_refresh" text="刷新" width="60" margin="5"/>
-        </HBox>
-        <VBox bkcolor="white">
-            <WebView2Control name="webview2_control" url="https://www.baidu.com" margin="2,0,2,2"/>
-        </VBox>
+        <!-- 一条分割线 -->
+        <Control class="splitline_hor_level1" margin="0,0,0,0" />
+        
+    	<!-- 网页显示区域：浏览器盒子列表 -->
+    	<TabBox name="browser_box_tab" bkcolor="white" padding="2,2,2,2"/>
     </VBox>
 </Window>

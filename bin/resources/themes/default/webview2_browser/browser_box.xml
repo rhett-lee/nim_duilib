@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <VBox >
+        <WebView2Control name="webview2_control" bkcolor="white" download_favicon_image="true"/>
+    </VBox>
+</Window>

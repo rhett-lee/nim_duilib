@@ -124,16 +124,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="MainForm.h" />
+    <ClInclude Include="BrowserBox.h" />
+    <ClInclude Include="BrowserForm.h" />
+    <ClInclude Include="BrowserManager.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="TestApplication.h" />
     <ClInclude Include="WebView2Browser.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="MainForm.cpp" />
+    <ClCompile Include="BrowserBox.cpp" />
+    <ClCompile Include="BrowserForm.cpp" />
+    <ClCompile Include="BrowserManager.cpp" />
     <ClCompile Include="MainThread.cpp" />
-    <ClCompile Include="WebView2Browser.cpp" />
+    <ClCompile Include="main_windows.cpp" />
+    <ClCompile Include="TestApplication.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="WebView2Browser.rc" />

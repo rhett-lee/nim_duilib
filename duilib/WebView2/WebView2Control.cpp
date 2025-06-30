@@ -23,6 +23,9 @@ void WebView2Control::SetAttribute(const DString& strName, const DString& strVal
     if (strName == _T("url")) {        
         Navigate(strValue);
     }
+    else if (strName == _T("download_favicon_image")) {
+
+    }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
@@ -235,9 +238,9 @@ bool WebView2Control::SetWebMessageReceivedCallback(WebMessageReceivedCallback c
     return SUCCEEDED(hr);
 }
 
-bool WebView2Control::SetNavigationCompletedCallback(NavigationCompletedCallback callback)
+bool WebView2Control::SetNavigationStateChangedCallback(NavigationStateChangedCallback callback)
 {
-    HRESULT hr = m_pImpl->SetNavigationCompletedCallback(callback);
+    HRESULT hr = m_pImpl->SetNavigationStateChangedCallback(callback);
     m_pImpl->SetLastErrorCode(hr);
     return SUCCEEDED(hr);
 }
@@ -317,6 +320,11 @@ DString WebView2Control::GetUrl() const
 DString WebView2Control::GetTitle() const
 {
     return m_pImpl->GetTitle();
+}
+
+bool WebView2Control::IsNavigating() const
+{
+    return m_pImpl->IsNavigating();
 }
 
 bool WebView2Control::CanGoBack() const

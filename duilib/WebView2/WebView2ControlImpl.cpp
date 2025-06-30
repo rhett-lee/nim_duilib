@@ -14,14 +14,13 @@
 #include <shlwapi.h>
 #include <sstream>
 
-#pragma comment(lib, "D:/rhett-lee.github.com/nim_duilib/duilib/third_party/Microsoft.Web.WebView2/build/native/x64/WebView2LoaderStatic.lib")
-
 namespace ui {
 
 WebView2Control::Impl::Impl(Control* pControl)
     : m_pControl(pControl)
     , m_bInitializing(false)
     , m_bInitialized(false)
+    , m_bNavigating(false)
     , m_lastError(S_OK)
     , m_bAreDevToolsEnabled(true)
     , m_bAreDevToolsEnabledSet(false)
@@ -194,6 +193,7 @@ void WebView2Control::Impl::OnInitializationCompleted(HRESULT result)
     if (!SUCCEEDED(result)) {
         m_bInitialized = false;
         m_bInitializing = false;
+        m_bNavigating = false;
         auto callback = std::move(m_initializeCompletedCallback);
         if (callback) {
             callback(result);
@@ -203,6 +203,7 @@ void WebView2Control::Impl::OnInitializationCompleted(HRESULT result)
 
     //注册事件回调函数
     AddNewWindowRequestedCallback();
+    AddNavigationStateChangedCallback();
 
     if (m_historyChangedCallback != nullptr) {
         SetHistoryChangedCallback(m_historyChangedCallback);
@@ -210,10 +211,6 @@ void WebView2Control::Impl::OnInitializationCompleted(HRESULT result)
 
     if (m_sourceChangedCallback != nullptr) {
         SetSourceChangedCallback(m_sourceChangedCallback);
-    }
-
-    if (m_navigationCompletedCallback != nullptr) {
-        SetNavigationCompletedCallback(m_navigationCompletedCallback);
     }
 
     if (m_contentLoadingCallback != nullptr) {
@@ -267,6 +264,7 @@ void WebView2Control::Impl::OnInitializationCompleted(HRESULT result)
 
     m_bInitialized = true;
     m_bInitializing = false;
+    m_bNavigating = false;
     // 调用初始化完成回调
     auto callback = std::move(m_initializeCompletedCallback);
     if (callback) {
@@ -688,34 +686,62 @@ HRESULT WebView2Control::Impl::SetWebMessageReceivedCallback(WebMessageReceivedC
     return S_OK;
 }
 
-HRESULT WebView2Control::Impl::SetNavigationCompletedCallback(NavigationCompletedCallback callback)
+HRESULT WebView2Control::Impl::SetNavigationStateChangedCallback(NavigationStateChangedCallback callback)
 {
-    if ((m_navigationCompletedToken.value != 0) && (m_spWebView != nullptr)) {
+    m_navigationStateChangedCallback = callback;
+    return S_OK;
+}
+
+void WebView2Control::Impl::AddNavigationStateChangedCallback()
+{
+    if (m_spWebView == nullptr) {
+        return;
+    }
+
+    if (m_navigationStartingToken.value != 0) {
+        m_spWebView->remove_NavigationStarting(m_navigationStartingToken);
+        m_navigationStartingToken.value = 0;
+    }
+    if (m_navigationCompletedToken.value != 0) {
         m_spWebView->remove_NavigationCompleted(m_navigationCompletedToken);
         m_navigationCompletedToken.value = 0;
     }
-    m_navigationCompletedCallback = callback;
-    // 注册导航完成事件
-    if (callback && m_spWebView) {
-        HRESULT hr = m_spWebView->add_NavigationCompleted(
-            Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
-                [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
-                    BOOL isSuccess;
-                    args->get_IsSuccess(&isSuccess);
+    //注册导航开始事件
+    HRESULT hr = m_spWebView->add_NavigationStarting(
+        Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
+                ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
+                ASSERT(GlobalManager::Instance().IsInUIThread());
 
-                    COREWEBVIEW2_WEB_ERROR_STATUS errorCode = COREWEBVIEW2_WEB_ERROR_STATUS_UNKNOWN;
-                    args->get_WebErrorStatus(&errorCode);
+                m_bNavigating = true;
+                if (m_navigationStateChangedCallback) {
+                    m_navigationStateChangedCallback(NavigationState::Started, S_OK);
+                }
+                return S_OK;
+            }).Get(), &m_navigationStartingToken);
+    ASSERT(SUCCEEDED(hr));
+    
+    //注册导航完成事件
+    hr = m_spWebView->add_NavigationCompleted(
+        Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
+            [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
+                ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
+                ASSERT(GlobalManager::Instance().IsInUIThread());
 
-                    if (m_navigationCompletedCallback) {
-                        m_navigationCompletedCallback(isSuccess ? NavigationState::Completed : NavigationState::Failed,
-                                                         static_cast<HRESULT>(errorCode));
-                    }
-                    return S_OK;
-                }).Get(), &m_navigationCompletedToken);
-        ASSERT(SUCCEEDED(hr));
-        return hr;
-    }
-    return S_OK;
+                BOOL isSuccess = TRUE;
+                args->get_IsSuccess(&isSuccess);
+
+                COREWEBVIEW2_WEB_ERROR_STATUS errorCode = COREWEBVIEW2_WEB_ERROR_STATUS_UNKNOWN;
+                args->get_WebErrorStatus(&errorCode);
+
+                m_bNavigating = false;
+                if (m_navigationStateChangedCallback) {
+                    m_navigationStateChangedCallback(isSuccess ? NavigationState::Completed : NavigationState::Failed,
+                                                     static_cast<HRESULT>(errorCode));
+                }
+                return S_OK;
+            }).Get(), &m_navigationCompletedToken);
+    ASSERT(SUCCEEDED(hr));
 }
 
 HRESULT WebView2Control::Impl::SetDocumentTitleChangedCallback(DocumentTitleChangedCallback callback)
@@ -729,6 +755,9 @@ HRESULT WebView2Control::Impl::SetDocumentTitleChangedCallback(DocumentTitleChan
         HRESULT hr = m_spWebView->add_DocumentTitleChanged(
             Microsoft::WRL::Callback<ICoreWebView2DocumentTitleChangedEventHandler>(
                 [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
+                    ASSERT(GlobalManager::Instance().IsInUIThread());
+
                     wil::unique_cotaskmem_string title;
                     sender->get_DocumentTitle(&title);
                     DString titleStr;
@@ -757,6 +786,9 @@ HRESULT WebView2Control::Impl::SetSourceChangedCallback(SourceChangedCallback ca
         HRESULT hr = m_spWebView->add_SourceChanged(
             Microsoft::WRL::Callback<ICoreWebView2SourceChangedEventHandler>(
                 [this](ICoreWebView2* sender, ICoreWebView2SourceChangedEventArgs* args) -> HRESULT {
+                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
+                    ASSERT(GlobalManager::Instance().IsInUIThread());
+
                     wil::unique_cotaskmem_string uri;
                     sender->get_Source(&uri);
 
@@ -783,6 +815,9 @@ HRESULT WebView2Control::Impl::SetContentLoadingCallback(ContentLoadingCallback 
         HRESULT hr = m_spWebView->add_ContentLoading(
             Microsoft::WRL::Callback<ICoreWebView2ContentLoadingEventHandler>(
                 [this](ICoreWebView2* sender, ICoreWebView2ContentLoadingEventArgs* args) -> HRESULT {
+                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
+                    ASSERT(GlobalManager::Instance().IsInUIThread());
+
                     BOOL isErrorPage = FALSE;
                     args->get_IsErrorPage(&isErrorPage);
                     if (m_contentLoadingCallback) {
@@ -806,6 +841,9 @@ void WebView2Control::Impl::AddNewWindowRequestedCallback()
         HRESULT hr = m_spWebView->add_NewWindowRequested(
             Microsoft::WRL::Callback<ICoreWebView2NewWindowRequestedEventHandler>(
                 [this](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {
+                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
+                    ASSERT(GlobalManager::Instance().IsInUIThread());
+
                     wil::unique_cotaskmem_string uri;
                     args->get_Uri(&uri);
                     DString targetUrl;
@@ -895,6 +933,9 @@ HRESULT WebView2Control::Impl::SetHistoryChangedCallback(HistoryChangedCallback 
         HRESULT hr = m_spWebView->add_HistoryChanged(
             Microsoft::WRL::Callback<ICoreWebView2HistoryChangedEventHandler>(
                 [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
+                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
+                    ASSERT(GlobalManager::Instance().IsInUIThread());
+
                     if (m_historyChangedCallback) {
                         m_historyChangedCallback();
                     }
@@ -918,6 +959,9 @@ HRESULT WebView2Control::Impl::SetZoomFactorChangedCallback(ZoomFactorChangedCal
         HRESULT hr = m_spWebViewController->add_ZoomFactorChanged(
             Microsoft::WRL::Callback<ICoreWebView2ZoomFactorChangedEventHandler>(
                 [this](ICoreWebView2Controller* sender, IUnknown* args) -> HRESULT {
+                    ASSERT_UNUSED_VARIABLE(sender == m_spWebViewController);
+                    ASSERT(GlobalManager::Instance().IsInUIThread());
+
                     if (m_zoomFactorChangedCallback && m_spWebViewController) {
                         double zoomFactor = 1.0;
                         m_spWebViewController->get_ZoomFactor(&zoomFactor);
@@ -1035,6 +1079,11 @@ DString WebView2Control::Impl::GetTitle() const
     return StringConvert::WStringToT(title.get() ? title.get() : _T(""));
 }
 
+bool WebView2Control::Impl::IsNavigating() const
+{
+    return m_bNavigating;
+}
+
 bool WebView2Control::Impl::CanGoBack() const
 {
     if (m_spWebView == nullptr) {
@@ -1080,6 +1129,11 @@ void WebView2Control::Impl::Cleanup()
             m_spWebView->remove_ContentLoading(m_contentLoadingToken);
             m_contentLoadingToken.value = 0;
         }
+
+        if (m_navigationStartingToken.value != 0) {
+            m_spWebView->remove_NavigationStarting(m_navigationStartingToken);
+            m_navigationStartingToken.value = 0;
+        }
             
         if (m_navigationCompletedToken.value) {
             m_spWebView->remove_NavigationCompleted(m_navigationCompletedToken);
@@ -1124,6 +1178,7 @@ void WebView2Control::Impl::Cleanup()
     m_spWebViewEnvironment = nullptr;
     m_bInitialized = false;
     m_bInitializing = false;
+    m_bNavigating = false;
     m_lastError = S_OK;
 }
 

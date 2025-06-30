@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Window>
+    <TabCtrlItem class="tab_ctrl_item" min_width="20" max_width="240" valign="center" halign="center"/>
+</Window>

@@ -75,7 +75,7 @@ public:
 
     // 事件注册
     HRESULT SetWebMessageReceivedCallback(WebMessageReceivedCallback callback);
-    HRESULT SetNavigationCompletedCallback(NavigationCompletedCallback callback);
+    HRESULT SetNavigationStateChangedCallback(NavigationStateChangedCallback callback);
     HRESULT SetDocumentTitleChangedCallback(DocumentTitleChangedCallback callback);
     HRESULT SetSourceChangedCallback(SourceChangedCallback callback);
     HRESULT SetContentLoadingCallback(ContentLoadingCallback callback);
@@ -93,6 +93,7 @@ public:
     bool IsInitialized() const;
     DString GetUrl() const;
     DString GetTitle() const;
+    bool IsNavigating() const;
     bool CanGoBack() const;
     bool CanGoForward() const;
 
@@ -136,6 +137,9 @@ private:
     //添加新窗口回调函数
     void AddNewWindowRequestedCallback();
 
+    //添加导航状态变化事件
+    void AddNavigationStateChangedCallback();
+
 private:
     // COM对象
     wil::com_ptr<ICoreWebView2Environment> m_spWebViewEnvironment;
@@ -146,6 +150,7 @@ private:
     EventRegistrationToken m_webMessageReceivedToken = {0};
     EventRegistrationToken m_documentTitleChangedToken = {0};
     EventRegistrationToken m_contentLoadingToken = {0};
+    EventRegistrationToken m_navigationStartingToken = { 0 };
     EventRegistrationToken m_navigationCompletedToken = {0};
     EventRegistrationToken m_sourceChangedToken = {0};
     EventRegistrationToken m_newWindowRequestedToken = {0};
@@ -155,7 +160,7 @@ private:
     // 回调函数
     InitializeCompletedCallback m_initializeCompletedCallback = nullptr;
     WebMessageReceivedCallback m_webMessageReceivedCallback = nullptr;
-    NavigationCompletedCallback m_navigationCompletedCallback = nullptr;
+    NavigationStateChangedCallback m_navigationStateChangedCallback = nullptr;
     DocumentTitleChangedCallback m_documentTitleChangedCallback = nullptr;
     SourceChangedCallback m_sourceChangedCallback = nullptr;
     ContentLoadingCallback m_contentLoadingCallback = nullptr;
@@ -178,6 +183,7 @@ private:
     HRESULT m_lastError;
     bool m_bInitializing;
     bool m_bInitialized;
+    bool m_bNavigating;
 
     //是否启用开发者工具
     bool m_bAreDevToolsEnabled;

@@ -41,7 +41,7 @@ public:
      * @param state 新的导航状态
      * @param errorCode 错误码（如果导航失败）
      */
-    using NavigationCompletedCallback = std::function<void(NavigationState state, HRESULT errorCode)>;
+    using NavigationStateChangedCallback = std::function<void(NavigationState state, HRESULT errorCode)>;
 
     /** 文档标题变化回调函数类型
      * @param title 新的文档标题
@@ -193,7 +193,7 @@ public:
     /** 设置导航状态变化回调函数
      * @param callback 回调函数
      */
-    bool SetNavigationCompletedCallback(NavigationCompletedCallback callback);
+    bool SetNavigationStateChangedCallback(NavigationStateChangedCallback callback);
     
     /** 设置文档标题变化回调函数
      * @param callback 回调函数
@@ -245,6 +245,10 @@ public:
      * @return 当前文档标题
      */
     DString GetTitle() const;
+
+    /** 是否正在导航中
+    */
+    bool IsNavigating() const;
     
     /** 检查是否可以导航到上一页
      * @return 是否可以导航到上一页
