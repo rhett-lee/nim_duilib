@@ -79,7 +79,7 @@ HRESULT WebView2Control::Impl::InitializeAsync(const DString& userDataFolder, In
 
 HRESULT WebView2Control::Impl::CreateEnvironmentAsync()
 {
-    if (m_spWebViewEnvironment != nullptr) {
+    if (m_spWebView2Environment != nullptr) {
         return CreateControllerAsync();
     }
     DString userDataFolder = m_userDataFolder;
@@ -110,9 +110,9 @@ HRESULT WebView2Control::Impl::CreateEnvironmentAsync()
         spEnvironmentOptions.Get(),
         Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler>(
             [this](HRESULT result, ICoreWebView2Environment* env) -> HRESULT {
-                ASSERT(m_spWebViewEnvironment == nullptr);
+                ASSERT(m_spWebView2Environment == nullptr);
                 if (SUCCEEDED(result) && (env != nullptr)) {
-                    m_spWebViewEnvironment = env;
+                    m_spWebView2Environment = env;
                     HRESULT hr = CreateControllerAsync();
                     return hr;
                 }
@@ -129,7 +129,7 @@ HRESULT WebView2Control::Impl::CreateEnvironmentAsync()
 
 HRESULT WebView2Control::Impl::CreateControllerAsync()
 {
-    if ((m_spWebViewEnvironment == nullptr) || (m_pControl == nullptr)) {
+    if ((m_spWebView2Environment == nullptr) || (m_pControl == nullptr)) {
         HRESULT hr = E_FAIL;
         OnInitializationCompleted(hr);
         return hr;
@@ -147,27 +147,27 @@ HRESULT WebView2Control::Impl::CreateControllerAsync()
         return hr;
     }
 
-    if ((m_spWebViewController != nullptr) && (m_spWebView != nullptr)) {
+    if ((m_spWebView2Controller != nullptr) && (m_spWebView2 != nullptr)) {
         HRESULT hr = S_OK;
         OnInitializationCompleted(hr);
         return hr;
     }
 
     // 创建WebView2控制器
-    return m_spWebViewEnvironment->CreateCoreWebView2Controller(
+    return m_spWebView2Environment->CreateCoreWebView2Controller(
         hWnd,
         Microsoft::WRL::Callback<ICoreWebView2CreateCoreWebView2ControllerCompletedHandler>(
             [this](HRESULT result, ICoreWebView2Controller* controller) -> HRESULT {
-                ASSERT(m_spWebViewController == nullptr);
-                ASSERT(m_spWebView == nullptr);
+                ASSERT(m_spWebView2Controller == nullptr);
+                ASSERT(m_spWebView2 == nullptr);
                 bool bInitWebView = false;
                 if (SUCCEEDED(result) && (controller != nullptr)) {
-                    m_spWebViewController = controller;
+                    m_spWebView2Controller = controller;
                     // 获取WebView实例 - 使用同步调用
                     wil::com_ptr<ICoreWebView2> webview;
                     HRESULT hr = controller->get_CoreWebView2(webview.put());
                     if (SUCCEEDED(hr) && (webview != nullptr)) {
-                        m_spWebView = webview;
+                        m_spWebView2 = webview;
                         bInitWebView = true;                     
                     }
                 }
@@ -183,10 +183,10 @@ HRESULT WebView2Control::Impl::CreateControllerAsync()
 void WebView2Control::Impl::OnInitializationCompleted(HRESULT result)
 {
     if (SUCCEEDED(result)) {
-        ASSERT(m_spWebViewEnvironment != nullptr);
-        ASSERT(m_spWebViewController != nullptr);
-        ASSERT(m_spWebView != nullptr);
-        if ((m_spWebViewEnvironment == nullptr) || (m_spWebViewController == nullptr) || (m_spWebView == nullptr)) {
+        ASSERT(m_spWebView2Environment != nullptr);
+        ASSERT(m_spWebView2Controller != nullptr);
+        ASSERT(m_spWebView2 != nullptr);
+        if ((m_spWebView2Environment == nullptr) || (m_spWebView2Controller == nullptr) || (m_spWebView2 == nullptr)) {
             result = E_FAIL;
         }
     }
@@ -213,10 +213,6 @@ void WebView2Control::Impl::OnInitializationCompleted(HRESULT result)
         SetSourceChangedCallback(m_sourceChangedCallback);
     }
 
-    if (m_contentLoadingCallback != nullptr) {
-        SetContentLoadingCallback(m_contentLoadingCallback);
-    }
-
     if (m_documentTitleChangedCallback != nullptr) {
         SetDocumentTitleChangedCallback(m_documentTitleChangedCallback);
     }
@@ -232,13 +228,8 @@ void WebView2Control::Impl::OnInitializationCompleted(HRESULT result)
     //初始化各个选项
     InitializeSettings();
 
-    //脚本注入
-    if (!m_scriptToExecuteOnDocumentCreated.empty()) {
-        AddScriptToExecuteOnDocumentCreated(m_scriptToExecuteOnDocumentCreated);
-    }
-
     //初始化控件的位置
-    if ((m_pControl != nullptr) && (m_spWebViewController != nullptr)) {
+    if ((m_pControl != nullptr) && (m_spWebView2Controller != nullptr)) {
         UiRect rc = m_pControl->GetRect();
         UiPadding rcPadding = m_pControl->GetPadding();
         rc.Deflate(rcPadding);
@@ -247,18 +238,18 @@ void WebView2Control::Impl::OnInitializationCompleted(HRESULT result)
         rect.top = rc.top;
         rect.right = rc.right;
         rect.bottom = rc.bottom;
-        m_spWebViewController->put_Bounds(rect);
+        m_spWebView2Controller->put_Bounds(rect);
 
         bool bVisible = m_pControl->IsVisible();
-        m_spWebViewController->put_IsVisible(bVisible ? TRUE : FALSE);
+        m_spWebView2Controller->put_IsVisible(bVisible ? TRUE : FALSE);
     }
 
     //初始化的URL，导航到该网址
     if (!m_navigateUrl.empty()) {
         std::wstring url = StringConvert::TToWString(m_navigateUrl);
         m_navigateUrl.clear();
-        if (m_spWebView != nullptr) {
-            m_spWebView->Navigate(url.c_str());
+        if (m_spWebView2 != nullptr) {
+            m_spWebView2->Navigate(url.c_str());
         }
     }
 
@@ -274,13 +265,13 @@ void WebView2Control::Impl::OnInitializationCompleted(HRESULT result)
 
 void WebView2Control::Impl::InitializeSettings()
 {
-    ASSERT(m_spWebView != nullptr);
-    if (m_spWebView == nullptr) {
+    ASSERT(m_spWebView2 != nullptr);
+    if (m_spWebView2 == nullptr) {
         return;
     }
 
     wil::com_ptr<ICoreWebView2Settings> settings;
-    HRESULT hr = m_spWebView->get_Settings(&settings);
+    HRESULT hr = m_spWebView2->get_Settings(&settings);
     ASSERT(SUCCEEDED(hr) && (settings != nullptr));
     if (FAILED(hr) || (settings == nullptr)) {
         return;
@@ -350,9 +341,9 @@ void WebView2Control::Impl::InitializeSettings()
 
 HRESULT WebView2Control::Impl::Navigate(const DString& url)
 {
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         m_navigateUrl.clear();
-        return m_spWebView->Navigate(StringConvert::TToWString(url).c_str());
+        return m_spWebView2->Navigate(StringConvert::TToWString(url).c_str());
     }
     else {
         m_navigateUrl = url;
@@ -362,34 +353,34 @@ HRESULT WebView2Control::Impl::Navigate(const DString& url)
 
 HRESULT WebView2Control::Impl::NavigateBack()
 {
-    if (m_spWebView == nullptr) {
+    if (m_spWebView2 == nullptr) {
         return E_FAIL;
     }
-    return m_spWebView->GoBack();
+    return m_spWebView2->GoBack();
 }
 
 HRESULT WebView2Control::Impl::NavigateForward()
 {
-    if (m_spWebView == nullptr) {
+    if (m_spWebView2 == nullptr) {
         return E_FAIL;
     }
-    return m_spWebView->GoForward();
+    return m_spWebView2->GoForward();
 }
 
 HRESULT WebView2Control::Impl::Refresh()
 {
-    if (m_spWebView == nullptr) {
+    if (m_spWebView2 == nullptr) {
         return E_FAIL;
     }
-    return m_spWebView->Reload();
+    return m_spWebView2->Reload();
 }
 
 HRESULT WebView2Control::Impl::Stop()
 {
-    if (m_spWebView == nullptr) {
+    if (m_spWebView2 == nullptr) {
         return E_FAIL;
     }
-    return m_spWebView->Stop();
+    return m_spWebView2->Stop();
 }
 
 HRESULT WebView2Control::Impl::ExecuteScript(const DString& script,
@@ -399,12 +390,12 @@ HRESULT WebView2Control::Impl::ExecuteScript(const DString& script,
     if (!script.empty()) {
         return E_INVALIDARG;
     }
-    if (m_spWebView == nullptr) {
+    if (m_spWebView2 == nullptr) {
         return E_FAIL;
     }
 
     DStringW scriptW = StringConvert::TToWString(script);
-    return m_spWebView->ExecuteScript(
+    return m_spWebView2->ExecuteScript(
         scriptW.c_str(),
         Microsoft::WRL::Callback<ICoreWebView2ExecuteScriptCompletedHandler>(
             [callback](HRESULT errorCode, PCWSTR resultObjectAsJson) -> HRESULT {
@@ -423,11 +414,11 @@ HRESULT WebView2Control::Impl::PostWebMessageAsJson(const DString& json)
     if (!json.empty()) {
         return E_INVALIDARG;
     }
-    if (m_spWebView == nullptr) {
+    if (m_spWebView2 == nullptr) {
         return E_FAIL;
     }
     DStringW jsonW = StringConvert::TToWString(json);
-    return m_spWebView->PostWebMessageAsJson(jsonW.c_str());
+    return m_spWebView2->PostWebMessageAsJson(jsonW.c_str());
 }
 
 HRESULT WebView2Control::Impl::PostWebMessageAsString(const DString& message)
@@ -436,19 +427,19 @@ HRESULT WebView2Control::Impl::PostWebMessageAsString(const DString& message)
     if (!message.empty()) {
         return E_INVALIDARG;
     }
-    if (m_spWebView == nullptr) {
+    if (m_spWebView2 == nullptr) {
         return E_FAIL;
     }
     DStringW messageW = StringConvert::TToWString(message);
-    return m_spWebView->PostWebMessageAsString(messageW.c_str());
+    return m_spWebView2->PostWebMessageAsString(messageW.c_str());
 }
 
 HRESULT WebView2Control::Impl::SetUserAgent(const DString& userAgent)
 {
     m_userAgent = userAgent;
-    if ((m_spWebView != nullptr) && !userAgent.empty()) {
+    if ((m_spWebView2 != nullptr) && !userAgent.empty()) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        HRESULT hr = m_spWebView->get_Settings(&settings);
+        HRESULT hr = m_spWebView2->get_Settings(&settings);
         if (FAILED(hr) || (settings == nullptr)) {
             return hr;
         }
@@ -466,9 +457,9 @@ HRESULT WebView2Control::Impl::SetUserAgent(const DString& userAgent)
 DString WebView2Control::Impl::GetUserAgent() const
 {
     DString userAgent = m_userAgent;
-    if ((m_spWebView != nullptr) && !userAgent.empty()) {
+    if ((m_spWebView2 != nullptr) && !userAgent.empty()) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        HRESULT hr = m_spWebView->get_Settings(&settings);
+        HRESULT hr = m_spWebView2->get_Settings(&settings);
         if (FAILED(hr) || (settings == nullptr)) {
             return userAgent;
         }
@@ -488,19 +479,19 @@ DString WebView2Control::Impl::GetUserAgent() const
 
 HRESULT WebView2Control::Impl::SetZoomFactor(double zoomFactor)
 {
-    if (m_spWebViewController == nullptr) {
+    if (m_spWebView2Controller == nullptr) {
         return E_FAIL;
     }
-    return m_spWebViewController->put_ZoomFactor(zoomFactor);
+    return m_spWebView2Controller->put_ZoomFactor(zoomFactor);
 }
 
 double WebView2Control::Impl::GetZoomFactor() const
 {
-    if (m_spWebViewController == nullptr) {
+    if (m_spWebView2Controller == nullptr) {
         return 1.0;
     }
     double zoomFactor = 1.0;
-    m_spWebViewController->get_ZoomFactor(&zoomFactor);
+    m_spWebView2Controller->get_ZoomFactor(&zoomFactor);
     return zoomFactor;
 }
 
@@ -508,9 +499,9 @@ HRESULT WebView2Control::Impl::SetScriptEnabled(bool enabled)
 {
     m_bScriptEnabled = enabled;
     m_bScriptEnabledSet = true;
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        HRESULT hr = m_spWebView->get_Settings(&settings);
+        HRESULT hr = m_spWebView2->get_Settings(&settings);
         if (FAILED(hr) || (settings == nullptr)) {
             return hr;
         }
@@ -521,9 +512,9 @@ HRESULT WebView2Control::Impl::SetScriptEnabled(bool enabled)
 
 bool WebView2Control::Impl::IsScriptEnabled() const
 {
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        HRESULT hr = m_spWebView->get_Settings(&settings);
+        HRESULT hr = m_spWebView2->get_Settings(&settings);
         if (SUCCEEDED(hr) && (settings != nullptr)) {
             BOOL bEnabled = TRUE;
             if (SUCCEEDED(settings->get_IsScriptEnabled(&bEnabled))) {
@@ -538,9 +529,9 @@ HRESULT WebView2Control::Impl::SetWebMessageEnabled(bool enabled)
 {
     m_bWebMessageEnabled = enabled;
     m_bWebMessageEnabledSet = true;
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        HRESULT hr = m_spWebView->get_Settings(&settings);
+        HRESULT hr = m_spWebView2->get_Settings(&settings);
         if (FAILED(hr) || (settings == nullptr)) {
             return hr;
         }
@@ -551,9 +542,9 @@ HRESULT WebView2Control::Impl::SetWebMessageEnabled(bool enabled)
 
 bool WebView2Control::Impl::IsWebMessageEnabled() const
 {
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        HRESULT hr = m_spWebView->get_Settings(&settings);
+        HRESULT hr = m_spWebView2->get_Settings(&settings);
         if (SUCCEEDED(hr) && (settings != nullptr)) {
             BOOL bEnabled = TRUE;
             if (SUCCEEDED(settings->get_IsWebMessageEnabled(&bEnabled))) {
@@ -568,9 +559,9 @@ HRESULT WebView2Control::Impl::SetAreDefaultScriptDialogsEnabled(bool enabled)
 {
     m_bAreDefaultScriptDialogsEnabled = enabled;
     m_bAreDefaultScriptDialogsEnabledSet = true;
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        HRESULT hr = m_spWebView->get_Settings(&settings);
+        HRESULT hr = m_spWebView2->get_Settings(&settings);
         if (FAILED(hr) || (settings == nullptr)) {
             return hr;
         }
@@ -581,9 +572,9 @@ HRESULT WebView2Control::Impl::SetAreDefaultScriptDialogsEnabled(bool enabled)
 
 bool WebView2Control::Impl::AreDefaultScriptDialogsEnabled() const
 {
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        HRESULT hr = m_spWebView->get_Settings(&settings);
+        HRESULT hr = m_spWebView2->get_Settings(&settings);
         if (SUCCEEDED(hr) && (settings != nullptr)) {
             BOOL bEnabled = TRUE;
             if (SUCCEEDED(settings->get_AreDefaultScriptDialogsEnabled(&bEnabled))) {
@@ -598,9 +589,9 @@ HRESULT WebView2Control::Impl::SetAreDefaultContextMenusEnabled(bool enabled)
 {
     m_bAreDefaultContextMenusEnabled = enabled;
     m_bAreDefaultContextMenusEnabledSet = true;
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        HRESULT hr = m_spWebView->get_Settings(&settings);
+        HRESULT hr = m_spWebView2->get_Settings(&settings);
         if (FAILED(hr) || (settings == nullptr)) {
             return hr;
         }
@@ -611,9 +602,9 @@ HRESULT WebView2Control::Impl::SetAreDefaultContextMenusEnabled(bool enabled)
 
 bool WebView2Control::Impl::AreDefaultContextMenusEnabled() const
 {
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        HRESULT hr = m_spWebView->get_Settings(&settings);
+        HRESULT hr = m_spWebView2->get_Settings(&settings);
         if (SUCCEEDED(hr) && (settings != nullptr)) {
             BOOL bEnabled = TRUE;
             if (SUCCEEDED(settings->get_AreDefaultContextMenusEnabled(&bEnabled))) {
@@ -628,9 +619,9 @@ HRESULT WebView2Control::Impl::SetZoomControlEnabled(bool enabled)
 {
     m_bZoomControlEnabled = enabled;
     m_bZoomControlEnabledSet = true;
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        HRESULT hr = m_spWebView->get_Settings(&settings);
+        HRESULT hr = m_spWebView2->get_Settings(&settings);
         if (FAILED(hr) || (settings == nullptr)) {
             return hr;
         }
@@ -641,9 +632,9 @@ HRESULT WebView2Control::Impl::SetZoomControlEnabled(bool enabled)
 
 bool WebView2Control::Impl::IsZoomControlEnabled() const
 {
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        HRESULT hr = m_spWebView->get_Settings(&settings);
+        HRESULT hr = m_spWebView2->get_Settings(&settings);
         if (SUCCEEDED(hr) && (settings != nullptr)) {
             BOOL bEnabled = TRUE;
             if (SUCCEEDED(settings->get_IsZoomControlEnabled(&bEnabled))) {
@@ -656,27 +647,41 @@ bool WebView2Control::Impl::IsZoomControlEnabled() const
 
 HRESULT WebView2Control::Impl::SetWebMessageReceivedCallback(WebMessageReceivedCallback callback)
 {
-    if ((m_webMessageReceivedToken.value != 0) && (m_spWebView != nullptr)) {
-        m_spWebView->remove_WebMessageReceived(m_webMessageReceivedToken);
+    if ((m_webMessageReceivedToken.value != 0) && (m_spWebView2 != nullptr)) {
+        m_spWebView2->remove_WebMessageReceived(m_webMessageReceivedToken);
         m_webMessageReceivedToken.value = 0;
     }
     m_webMessageReceivedCallback = callback;
-    if (callback && m_spWebView) {
-        HRESULT hr = m_spWebView->add_WebMessageReceived(
+    if (callback && m_spWebView2) {
+        HRESULT hr = m_spWebView2->add_WebMessageReceived(
             Microsoft::WRL::Callback<ICoreWebView2WebMessageReceivedEventHandler>(
                 [this](ICoreWebView2* sender, ICoreWebView2WebMessageReceivedEventArgs* args) -> HRESULT {
+                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView2);
+                    ASSERT(GlobalManager::Instance().IsInUIThread());
+
                     wil::unique_cotaskmem_string uri;
                     args->get_Source(&uri);
-
-                    wil::unique_cotaskmem_string message;
-                    args->TryGetWebMessageAsString(&message);
-
-                    DString webMsg;
-                    if (message.get()) {
-                        webMsg = StringConvert::WStringToT(std::wstring(message.get()));
+                    DString url;
+                    if (uri.get()) {
+                        url = StringConvert::WStringToT(std::wstring(uri.get()));
                     }
+
+                    wil::unique_cotaskmem_string messageString;
+                    args->TryGetWebMessageAsString(&messageString);
+                    DString webMessageAsString;
+                    if (messageString.get()) {
+                        webMessageAsString = StringConvert::WStringToT(std::wstring(messageString.get()));
+                    }
+
+                    wil::unique_cotaskmem_string messageJson;
+                    args->get_WebMessageAsJson(&messageJson);
+                    DString webMessageAsJson;
+                    if (messageJson.get()) {
+                        webMessageAsJson = StringConvert::WStringToT(std::wstring(messageJson.get()));
+                    }
+
                     if (m_webMessageReceivedCallback) {
-                        m_webMessageReceivedCallback(webMsg);
+                        m_webMessageReceivedCallback(url, webMessageAsJson, webMessageAsString);
                     }
                     return S_OK;
                 }).Get(), &m_webMessageReceivedToken);
@@ -694,23 +699,23 @@ HRESULT WebView2Control::Impl::SetNavigationStateChangedCallback(NavigationState
 
 void WebView2Control::Impl::AddNavigationStateChangedCallback()
 {
-    if (m_spWebView == nullptr) {
+    if (m_spWebView2 == nullptr) {
         return;
     }
 
     if (m_navigationStartingToken.value != 0) {
-        m_spWebView->remove_NavigationStarting(m_navigationStartingToken);
+        m_spWebView2->remove_NavigationStarting(m_navigationStartingToken);
         m_navigationStartingToken.value = 0;
     }
     if (m_navigationCompletedToken.value != 0) {
-        m_spWebView->remove_NavigationCompleted(m_navigationCompletedToken);
+        m_spWebView2->remove_NavigationCompleted(m_navigationCompletedToken);
         m_navigationCompletedToken.value = 0;
     }
     //注册导航开始事件
-    HRESULT hr = m_spWebView->add_NavigationStarting(
+    HRESULT hr = m_spWebView2->add_NavigationStarting(
         Microsoft::WRL::Callback<ICoreWebView2NavigationStartingEventHandler>(
-            [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* args) -> HRESULT {
-                ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
+            [this](ICoreWebView2* sender, ICoreWebView2NavigationStartingEventArgs* /*args*/) -> HRESULT {
+                ASSERT_UNUSED_VARIABLE(sender == m_spWebView2);
                 ASSERT(GlobalManager::Instance().IsInUIThread());
 
                 m_bNavigating = true;
@@ -722,10 +727,10 @@ void WebView2Control::Impl::AddNavigationStateChangedCallback()
     ASSERT(SUCCEEDED(hr));
     
     //注册导航完成事件
-    hr = m_spWebView->add_NavigationCompleted(
+    hr = m_spWebView2->add_NavigationCompleted(
         Microsoft::WRL::Callback<ICoreWebView2NavigationCompletedEventHandler>(
             [this](ICoreWebView2* sender, ICoreWebView2NavigationCompletedEventArgs* args) -> HRESULT {
-                ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
+                ASSERT_UNUSED_VARIABLE(sender == m_spWebView2);
                 ASSERT(GlobalManager::Instance().IsInUIThread());
 
                 BOOL isSuccess = TRUE;
@@ -746,16 +751,16 @@ void WebView2Control::Impl::AddNavigationStateChangedCallback()
 
 HRESULT WebView2Control::Impl::SetDocumentTitleChangedCallback(DocumentTitleChangedCallback callback)
 {
-    if ((m_documentTitleChangedToken.value != 0) && (m_spWebView != nullptr)) {
-        m_spWebView->remove_DocumentTitleChanged(m_documentTitleChangedToken);
+    if ((m_documentTitleChangedToken.value != 0) && (m_spWebView2 != nullptr)) {
+        m_spWebView2->remove_DocumentTitleChanged(m_documentTitleChangedToken);
         m_documentTitleChangedToken.value = 0;
     }
     m_documentTitleChangedCallback = callback;
-    if (callback && m_spWebView) {
-        HRESULT hr = m_spWebView->add_DocumentTitleChanged(
+    if (callback && m_spWebView2) {
+        HRESULT hr = m_spWebView2->add_DocumentTitleChanged(
             Microsoft::WRL::Callback<ICoreWebView2DocumentTitleChangedEventHandler>(
-                [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
-                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
+                [this](ICoreWebView2* sender, IUnknown* /*args*/) -> HRESULT {
+                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView2);
                     ASSERT(GlobalManager::Instance().IsInUIThread());
 
                     wil::unique_cotaskmem_string title;
@@ -777,25 +782,27 @@ HRESULT WebView2Control::Impl::SetDocumentTitleChangedCallback(DocumentTitleChan
 
 HRESULT WebView2Control::Impl::SetSourceChangedCallback(SourceChangedCallback callback)
 {
-    if ((m_sourceChangedToken.value != 0) && (m_spWebView != nullptr)) {
-        m_spWebView->remove_SourceChanged(m_sourceChangedToken);
+    if ((m_sourceChangedToken.value != 0) && (m_spWebView2 != nullptr)) {
+        m_spWebView2->remove_SourceChanged(m_sourceChangedToken);
         m_sourceChangedToken.value = 0;
     }
     m_sourceChangedCallback = callback;
-    if (callback && m_spWebView) {
-        HRESULT hr = m_spWebView->add_SourceChanged(
+    if (callback && m_spWebView2) {
+        HRESULT hr = m_spWebView2->add_SourceChanged(
             Microsoft::WRL::Callback<ICoreWebView2SourceChangedEventHandler>(
-                [this](ICoreWebView2* sender, ICoreWebView2SourceChangedEventArgs* args) -> HRESULT {
-                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
+                [this](ICoreWebView2* sender, ICoreWebView2SourceChangedEventArgs* /*args*/) -> HRESULT {
+                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView2);
                     ASSERT(GlobalManager::Instance().IsInUIThread());
 
                     wil::unique_cotaskmem_string uri;
                     sender->get_Source(&uri);
-
-                    if (m_sourceChangedCallback && uri.get()) {
-                        m_sourceChangedCallback(StringConvert::WStringToT(std::wstring(uri.get())));
+                    DString url;
+                    if (uri.get()) {
+                        url = StringConvert::WStringToT(std::wstring(uri.get()));
                     }
-
+                    if (m_sourceChangedCallback) {
+                        m_sourceChangedCallback(url);
+                    }
                     return S_OK;
                 }).Get(), &m_sourceChangedToken);
         ASSERT(SUCCEEDED(hr));
@@ -804,44 +811,17 @@ HRESULT WebView2Control::Impl::SetSourceChangedCallback(SourceChangedCallback ca
     return S_OK;
 }
 
-HRESULT WebView2Control::Impl::SetContentLoadingCallback(ContentLoadingCallback callback)
-{
-    if ((m_contentLoadingToken.value != 0) && (m_spWebView != nullptr)) {
-        m_spWebView->remove_ContentLoading(m_contentLoadingToken);
-        m_contentLoadingToken.value = 0;
-    }
-    m_contentLoadingCallback = callback;
-    if (callback && m_spWebView) {
-        HRESULT hr = m_spWebView->add_ContentLoading(
-            Microsoft::WRL::Callback<ICoreWebView2ContentLoadingEventHandler>(
-                [this](ICoreWebView2* sender, ICoreWebView2ContentLoadingEventArgs* args) -> HRESULT {
-                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
-                    ASSERT(GlobalManager::Instance().IsInUIThread());
-
-                    BOOL isErrorPage = FALSE;
-                    args->get_IsErrorPage(&isErrorPage);
-                    if (m_contentLoadingCallback) {
-                        m_contentLoadingCallback(!!isErrorPage);
-                    }
-                    return S_OK;
-                }).Get(), &m_contentLoadingToken);
-        ASSERT(SUCCEEDED(hr));
-        return hr;
-    }
-    return S_OK;
-}
-
 void WebView2Control::Impl::AddNewWindowRequestedCallback()
 {
-    if ((m_newWindowRequestedToken.value != 0) && (m_spWebView != nullptr)) {
-        m_spWebView->remove_NewWindowRequested(m_newWindowRequestedToken);
+    if ((m_newWindowRequestedToken.value != 0) && (m_spWebView2 != nullptr)) {
+        m_spWebView2->remove_NewWindowRequested(m_newWindowRequestedToken);
         m_newWindowRequestedToken.value = 0;
     }
-    if (m_spWebView != nullptr) {
-        HRESULT hr = m_spWebView->add_NewWindowRequested(
+    if (m_spWebView2 != nullptr) {
+        HRESULT hr = m_spWebView2->add_NewWindowRequested(
             Microsoft::WRL::Callback<ICoreWebView2NewWindowRequestedEventHandler>(
                 [this](ICoreWebView2* sender, ICoreWebView2NewWindowRequestedEventArgs* args) -> HRESULT {
-                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
+                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView2);
                     ASSERT(GlobalManager::Instance().IsInUIThread());
 
                     wil::unique_cotaskmem_string uri;
@@ -904,7 +884,7 @@ void WebView2Control::Impl::AddNewWindowRequestedCallback()
 
                     if (bAllow) {
                         //覆盖当前页面(暂时不支持弹出新窗口或者创建新标签)
-                        args->put_NewWindow(m_spWebView.get());
+                        args->put_NewWindow(m_spWebView2.get());
                     }
 
                     // 默认取消新窗口，由应用程序处理
@@ -923,17 +903,17 @@ HRESULT WebView2Control::Impl::SetNewWindowRequestedCallback(NewWindowRequestedC
 
 HRESULT WebView2Control::Impl::SetHistoryChangedCallback(HistoryChangedCallback callback)
 {
-    if ((m_historyChangedToken.value != 0) && (m_spWebView != nullptr)) {
-        m_spWebView->remove_HistoryChanged(m_historyChangedToken);
+    if ((m_historyChangedToken.value != 0) && (m_spWebView2 != nullptr)) {
+        m_spWebView2->remove_HistoryChanged(m_historyChangedToken);
         m_historyChangedToken.value = 0;
     }
     m_historyChangedCallback = callback;    
     // 如果已经初始化且有回调，则注册事件
-    if (callback && m_spWebView) {
-        HRESULT hr = m_spWebView->add_HistoryChanged(
+    if (callback && m_spWebView2) {
+        HRESULT hr = m_spWebView2->add_HistoryChanged(
             Microsoft::WRL::Callback<ICoreWebView2HistoryChangedEventHandler>(
-                [this](ICoreWebView2* sender, IUnknown* args) -> HRESULT {
-                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView);
+                [this](ICoreWebView2* sender, IUnknown* /*args*/) -> HRESULT {
+                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView2);
                     ASSERT(GlobalManager::Instance().IsInUIThread());
 
                     if (m_historyChangedCallback) {
@@ -949,22 +929,22 @@ HRESULT WebView2Control::Impl::SetHistoryChangedCallback(HistoryChangedCallback 
 
 HRESULT WebView2Control::Impl::SetZoomFactorChangedCallback(ZoomFactorChangedCallback callback)
 {
-    if ((m_zoomFactorChangedToken.value != 0) && (m_spWebView != nullptr)) {
-        m_spWebView->remove_HistoryChanged(m_zoomFactorChangedToken);
+    if ((m_zoomFactorChangedToken.value != 0) && (m_spWebView2 != nullptr)) {
+        m_spWebView2->remove_HistoryChanged(m_zoomFactorChangedToken);
         m_zoomFactorChangedToken.value = 0;
     }
     m_zoomFactorChangedCallback = callback;
     // 如果已经初始化且有回调，则注册事件
-    if (callback && m_spWebViewController) {
-        HRESULT hr = m_spWebViewController->add_ZoomFactorChanged(
+    if (callback && m_spWebView2Controller) {
+        HRESULT hr = m_spWebView2Controller->add_ZoomFactorChanged(
             Microsoft::WRL::Callback<ICoreWebView2ZoomFactorChangedEventHandler>(
-                [this](ICoreWebView2Controller* sender, IUnknown* args) -> HRESULT {
-                    ASSERT_UNUSED_VARIABLE(sender == m_spWebViewController);
+                [this](ICoreWebView2Controller* sender, IUnknown* /*args*/) -> HRESULT {
+                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView2Controller);
                     ASSERT(GlobalManager::Instance().IsInUIThread());
 
-                    if (m_zoomFactorChangedCallback && m_spWebViewController) {
+                    if (m_zoomFactorChangedCallback && m_spWebView2Controller) {
                         double zoomFactor = 1.0;
-                        m_spWebViewController->get_ZoomFactor(&zoomFactor);
+                        m_spWebView2Controller->get_ZoomFactor(&zoomFactor);
                         m_zoomFactorChangedCallback(zoomFactor);
                     }
                     return S_OK;
@@ -975,37 +955,10 @@ HRESULT WebView2Control::Impl::SetZoomFactorChangedCallback(ZoomFactorChangedCal
     return S_OK;
 }
 
-HRESULT WebView2Control::Impl::AddScriptToExecuteOnDocumentCreated(const DString& script)
-{
-    m_scriptToExecuteOnDocumentCreated = script;
-    if (m_scriptToExecuteOnDocumentCreated.empty()) {
-        return E_FAIL;
-    }
-    if (m_spWebView != nullptr) {
-        if (!m_scriptIdToExecuteOnDocumentCreated.empty()) {
-            m_spWebView->RemoveScriptToExecuteOnDocumentCreated(m_scriptIdToExecuteOnDocumentCreated.c_str());
-            m_scriptIdToExecuteOnDocumentCreated.clear();
-        }
-        std::wstring scriptW = StringConvert::TToWString(script);
-        return m_spWebView->AddScriptToExecuteOnDocumentCreated(
-            scriptW.c_str(),
-            Microsoft::WRL::Callback<ICoreWebView2AddScriptToExecuteOnDocumentCreatedCompletedHandler>(
-                [this](HRESULT errorCode, PCWSTR id) -> HRESULT {
-                    ASSERT(GlobalManager::Instance().IsInUIThread());
-                    ASSERT(m_scriptIdToExecuteOnDocumentCreated.empty());
-                    if (SUCCEEDED(errorCode) && (id != nullptr)) {
-                        m_scriptIdToExecuteOnDocumentCreated = id;
-                    }
-                    return S_OK;
-                }).Get());
-    }
-    return S_OK;
-}
-
 HRESULT WebView2Control::Impl::CapturePreview(const DString& filePath,
                                               std::function<void(const DString& filePath, HRESULT hr)> callback)
 {
-    if (m_spWebView == nullptr) {
+    if (m_spWebView2 == nullptr) {
         return E_FAIL;
     }
     ASSERT(!filePath.empty());
@@ -1038,7 +991,7 @@ HRESULT WebView2Control::Impl::CapturePreview(const DString& filePath,
     else {
         imageFormat = COREWEBVIEW2_CAPTURE_PREVIEW_IMAGE_FORMAT_JPEG;
     }
-    return m_spWebView->CapturePreview(imageFormat,
+    return m_spWebView2->CapturePreview(imageFormat,
                                        stream.get(),
                                        Microsoft::WRL::Callback<ICoreWebView2CapturePreviewCompletedHandler>(
                                             [filePath, callback](HRESULT errorCode) -> HRESULT {
@@ -1061,21 +1014,21 @@ bool WebView2Control::Impl::IsInitialized() const
 
 DString WebView2Control::Impl::GetUrl() const
 {
-    if (m_spWebView == nullptr) {
+    if (m_spWebView2 == nullptr) {
         return _T("");
     }
     wil::unique_cotaskmem_string url;
-    m_spWebView->get_Source(&url);
+    m_spWebView2->get_Source(&url);
     return StringConvert::WStringToT(url.get() ? url.get() : _T(""));
 }
 
 DString WebView2Control::Impl::GetTitle() const
 {
-    if (m_spWebView == nullptr) {
+    if (m_spWebView2 == nullptr) {
         return _T("");
     }
     wil::unique_cotaskmem_string title;
-    m_spWebView->get_DocumentTitle(&title);
+    m_spWebView2->get_DocumentTitle(&title);
     return StringConvert::WStringToT(title.get() ? title.get() : _T(""));
 }
 
@@ -1086,96 +1039,86 @@ bool WebView2Control::Impl::IsNavigating() const
 
 bool WebView2Control::Impl::CanGoBack() const
 {
-    if (m_spWebView == nullptr) {
+    if (m_spWebView2 == nullptr) {
         return false;
     }
     BOOL canGoBack = FALSE;
-    m_spWebView->get_CanGoBack(&canGoBack);
+    m_spWebView2->get_CanGoBack(&canGoBack);
     return !!canGoBack;
 }
 
 bool WebView2Control::Impl::CanGoForward() const
 {
-    if (m_spWebView == nullptr) {
+    if (m_spWebView2 == nullptr) {
         return false;
     }
     BOOL canGoForward = FALSE;
-    m_spWebView->get_CanGoForward(&canGoForward);
+    m_spWebView2->get_CanGoForward(&canGoForward);
     return !!canGoForward;
 }
 
 void WebView2Control::Impl::Resize(RECT rect)
 {
-    if (m_spWebViewController) {
-        m_spWebViewController->put_Bounds(rect);
+    if (m_spWebView2Controller) {
+        m_spWebView2Controller->put_Bounds(rect);
     }
 }
 
 void WebView2Control::Impl::Cleanup()
 {
     // 取消注册事件
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         if (m_webMessageReceivedToken.value) {
-            m_spWebView->remove_WebMessageReceived(m_webMessageReceivedToken);
+            m_spWebView2->remove_WebMessageReceived(m_webMessageReceivedToken);
             m_webMessageReceivedToken.value = 0;
         }
             
         if (m_documentTitleChangedToken.value) {
-            m_spWebView->remove_DocumentTitleChanged(m_documentTitleChangedToken);
+            m_spWebView2->remove_DocumentTitleChanged(m_documentTitleChangedToken);
             m_documentTitleChangedToken.value = 0;
-        }
-            
-        if (m_contentLoadingToken.value) {
-            m_spWebView->remove_ContentLoading(m_contentLoadingToken);
-            m_contentLoadingToken.value = 0;
         }
 
         if (m_navigationStartingToken.value != 0) {
-            m_spWebView->remove_NavigationStarting(m_navigationStartingToken);
+            m_spWebView2->remove_NavigationStarting(m_navigationStartingToken);
             m_navigationStartingToken.value = 0;
         }
             
         if (m_navigationCompletedToken.value) {
-            m_spWebView->remove_NavigationCompleted(m_navigationCompletedToken);
+            m_spWebView2->remove_NavigationCompleted(m_navigationCompletedToken);
             m_navigationCompletedToken.value = 0;
         }
             
         if (m_sourceChangedToken.value) {
-            m_spWebView->remove_SourceChanged(m_sourceChangedToken);
+            m_spWebView2->remove_SourceChanged(m_sourceChangedToken);
             m_sourceChangedToken.value = 0;
         }
             
         if (m_newWindowRequestedToken.value) {
-            m_spWebView->remove_NewWindowRequested(m_newWindowRequestedToken);
+            m_spWebView2->remove_NewWindowRequested(m_newWindowRequestedToken);
             m_newWindowRequestedToken.value = 0;
         }
 
         if (m_historyChangedToken.value) {
-            m_spWebView->remove_HistoryChanged(m_historyChangedToken);
+            m_spWebView2->remove_HistoryChanged(m_historyChangedToken);
             m_historyChangedToken.value = 0;
-        }
-
-        if (!m_scriptIdToExecuteOnDocumentCreated.empty()) {
-            m_spWebView->RemoveScriptToExecuteOnDocumentCreated(m_scriptIdToExecuteOnDocumentCreated.c_str());
-            m_scriptIdToExecuteOnDocumentCreated.clear();
         }
     }
 
-    if (m_spWebViewController != nullptr) {
+    if (m_spWebView2Controller != nullptr) {
         if (m_zoomFactorChangedToken.value) {
-            m_spWebViewController->remove_ZoomFactorChanged(m_zoomFactorChangedToken);
+            m_spWebView2Controller->remove_ZoomFactorChanged(m_zoomFactorChangedToken);
             m_zoomFactorChangedToken.value = 0;
         }
     }
 
-    if (m_spWebViewController != nullptr) {
-        m_spWebViewController->Close();
+    if (m_spWebView2Controller != nullptr) {
+        m_spWebView2Controller->Close();
     }
 
     // 释放COM对象
-    m_spWebView = nullptr;
-    m_spWebViewController = nullptr;
-    m_spWebViewEnvironment = nullptr;
+    m_spWebView2 = nullptr;
+    m_spWebView2Controller = nullptr;
+    m_spWebView2Environment = nullptr;
     m_bInitialized = false;
     m_bInitializing = false;
     m_bNavigating = false;
@@ -1203,15 +1146,15 @@ void WebView2Control::Impl::SetWindow(Window* pWindow)
         return;
     }
     ASSERT(::IsWindow(pWindow->NativeWnd()->GetHWND()));
-    if (m_spWebViewController != nullptr) {
-        m_spWebViewController->put_ParentWindow(pWindow->NativeWnd()->GetHWND());
+    if (m_spWebView2Controller != nullptr) {
+        m_spWebView2Controller->put_ParentWindow(pWindow->NativeWnd()->GetHWND());
     }
 }
 
 void WebView2Control::Impl::SetVisible(bool bVisible)
 {
-    if (m_spWebViewController != nullptr) {
-        m_spWebViewController->put_IsVisible(bVisible ? TRUE : FALSE);
+    if (m_spWebView2Controller != nullptr) {
+        m_spWebView2Controller->put_IsVisible(bVisible ? TRUE : FALSE);
     }
 }
 
@@ -1219,9 +1162,9 @@ void WebView2Control::Impl::SetAreDevToolsEnabled(bool bAreDevToolsEnabled)
 {
     m_bAreDevToolsEnabled = bAreDevToolsEnabled;
     m_bAreDevToolsEnabledSet = true;
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        if (SUCCEEDED(m_spWebView->get_Settings(&settings)) && (settings != nullptr)) {
+        if (SUCCEEDED(m_spWebView2->get_Settings(&settings)) && (settings != nullptr)) {
             HRESULT hr = settings->put_AreDevToolsEnabled(bAreDevToolsEnabled ? TRUE : FALSE);
             ASSERT_UNUSED_VARIABLE(SUCCEEDED(hr));
         }
@@ -1231,9 +1174,9 @@ void WebView2Control::Impl::SetAreDevToolsEnabled(bool bAreDevToolsEnabled)
 bool WebView2Control::Impl::AreDevToolsEnabled() const
 {
     bool bDevToolsEnabled = false;
-    if (m_spWebView != nullptr) {
+    if (m_spWebView2 != nullptr) {
         wil::com_ptr<ICoreWebView2Settings> settings;
-        if (SUCCEEDED(m_spWebView->get_Settings(&settings)) && (settings != nullptr)) {
+        if (SUCCEEDED(m_spWebView2->get_Settings(&settings)) && (settings != nullptr)) {
             BOOL areDevToolsEnabled = FALSE;
             if (SUCCEEDED(settings->get_AreDevToolsEnabled(&areDevToolsEnabled)) && areDevToolsEnabled) {
                 bDevToolsEnabled = true;
@@ -1249,8 +1192,8 @@ bool WebView2Control::Impl::OpenDevToolsWindow()
         return false;
     }
     HRESULT hr = E_FAIL;
-    if (m_spWebView != nullptr) {
-        hr = m_spWebView->OpenDevToolsWindow();
+    if (m_spWebView2 != nullptr) {
+        hr = m_spWebView2->OpenDevToolsWindow();
     }
     return SUCCEEDED(hr);
 }

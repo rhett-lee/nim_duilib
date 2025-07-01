@@ -77,11 +77,6 @@ void MainForm::OnInitWindow()
             }
             });
     }
-
-    if (m_pWebView2Control != nullptr) {
-        //测试脚本注入功能
-        m_pWebView2Control->AddScriptToExecuteOnDocumentCreated(_T("window.__MY_APP_INIT = true;"));
-    }
 }
 
 bool MainForm::OnClicked(const ui::EventArgs& msg)

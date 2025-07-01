@@ -5,6 +5,11 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_WEBVIEW2)
 
+#include <combaseapi.h>
+#include <wrl.h>
+#include "duilib/third_party/Microsoft.Web.WebView2/build/native/include/WebView2.h"
+#include "duilib/third_party/Microsoft.Windows.ImplementationLibrary/include/wil/com.h"
+
 #include <functional>
 #include <memory>
 
@@ -35,7 +40,9 @@ public:
     /** Web消息接收回调函数类型
      * @param message 接收到的消息内容
      */
-    using WebMessageReceivedCallback = std::function<void(const DString& message)>;
+    using WebMessageReceivedCallback = std::function<void(const DString& url,
+                                                          const DString& webMessageAsJson, 
+                                                          const DString& webMessageAsString)>;
 
     /** 导航状态变化回调函数类型
      * @param state 新的导航状态
@@ -52,11 +59,6 @@ public:
      * @param uri 新的源URL
      */
     using SourceChangedCallback = std::function<void(const DString& uri)>;
-
-    /** 内容加载回调函数类型
-     * @param isErrorPage 是否为错误页面
-     */
-    using ContentLoadingCallback = std::function<void(bool isErrorPage)>;
 
     /** 新窗口请求回调函数类型
      * @param sourceUrl 源的URL
@@ -203,13 +205,8 @@ public:
     /** 设置源URL变化回调函数
      * @param callback 回调函数
      */
-    bool SetSourceChangedCallback(SourceChangedCallback callback);
-    
-    /** 设置内容加载回调函数
-     * @param callback 回调函数
-     */
-    bool SetContentLoadingCallback(ContentLoadingCallback callback);
-    
+    bool SetSourceChangedCallback(SourceChangedCallback callback);   
+  
     /** 设置新窗口请求回调函数
      * @param callback 回调函数
      */
@@ -223,12 +220,7 @@ public:
     /** 设置页面缩放比变化事件回调函数
      */
     bool SetZoomFactorChangedCallback(ZoomFactorChangedCallback callback);
-    
-    /** 添加文档创建时执行的脚本
-     * @param script 要执行的JavaScript脚本
-     */
-    bool AddScriptToExecuteOnDocumentCreated(const DString& script);
-    
+       
     /** 捕获当前页面的预览图(异步完成)，保存为PNG或者JPG格式
      * @param filePath 保存预览图的文件路径，根据保存的图片文件名后缀自动判断保存的格式
      * @param callback 操作完成回调函数（可选）
@@ -276,6 +268,19 @@ public:
     /** 打开开发者工具
     */
     bool OpenDevToolsWindow();
+
+public:
+    /** 获取ICoreWebView2Environment接口
+    */
+    wil::com_ptr<ICoreWebView2Environment> GetWebView2Environment() const;
+
+    /** 获取ICoreWebView2Controller接口
+    */
+    wil::com_ptr<ICoreWebView2Controller> GetWebView2Controller() const;
+
+    /** 获取ICoreWebView2接口
+    */
+    wil::com_ptr<ICoreWebView2> GetWebView2() const;
 
 public:
     // 控件类型相关的属性

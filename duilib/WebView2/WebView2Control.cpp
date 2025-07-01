@@ -259,13 +259,6 @@ bool WebView2Control::SetSourceChangedCallback(SourceChangedCallback callback)
     return SUCCEEDED(hr);
 }
 
-bool WebView2Control::SetContentLoadingCallback(ContentLoadingCallback callback)
-{
-    HRESULT hr = m_pImpl->SetContentLoadingCallback(callback);
-    m_pImpl->SetLastErrorCode(hr);
-    return SUCCEEDED(hr);
-}
-
 bool WebView2Control::SetNewWindowRequestedCallback(NewWindowRequestedCallback callback)
 {
     HRESULT hr = m_pImpl->SetNewWindowRequestedCallback(callback);
@@ -283,13 +276,6 @@ bool WebView2Control::SetHistoryChangedCallback(HistoryChangedCallback callback)
 bool WebView2Control::SetZoomFactorChangedCallback(ZoomFactorChangedCallback callback)
 {
     HRESULT hr = m_pImpl->SetZoomFactorChangedCallback(callback);
-    m_pImpl->SetLastErrorCode(hr);
-    return SUCCEEDED(hr);
-}
-
-bool WebView2Control::AddScriptToExecuteOnDocumentCreated(const DString& script)
-{
-    HRESULT hr = m_pImpl->AddScriptToExecuteOnDocumentCreated(script);
     m_pImpl->SetLastErrorCode(hr);
     return SUCCEEDED(hr);
 }
@@ -355,6 +341,23 @@ bool WebView2Control::AreDevToolsEnabled() const
 bool WebView2Control::OpenDevToolsWindow()
 {
     return m_pImpl->OpenDevToolsWindow();
+}
+
+wil::com_ptr<ICoreWebView2Environment> WebView2Control::GetWebView2Environment() const
+{
+    return m_pImpl->GetWebView2Environment();
+}
+
+wil::com_ptr<ICoreWebView2Controller> WebView2Control::GetWebView2Controller() const
+{
+    return m_pImpl->GetWebView2Controller();
+}
+
+/** 获取ICoreWebView2接口
+*/
+wil::com_ptr<ICoreWebView2> WebView2Control::GetWebView2() const
+{
+    return m_pImpl->GetWebView2();
 }
 
 } //namespace ui

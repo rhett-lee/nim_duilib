@@ -5,13 +5,6 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_WEBVIEW2)
 
-#include <combaseapi.h>
-#include <wrl.h>
-#include "duilib/third_party/Microsoft.Web.WebView2/build/native/include/WebView2.h"
-#include "duilib/third_party/Microsoft.Windows.ImplementationLibrary/include/wil/com.h"
-
-#include <atomic>
-
 namespace ui {
 
 class Control;
@@ -78,13 +71,11 @@ public:
     HRESULT SetNavigationStateChangedCallback(NavigationStateChangedCallback callback);
     HRESULT SetDocumentTitleChangedCallback(DocumentTitleChangedCallback callback);
     HRESULT SetSourceChangedCallback(SourceChangedCallback callback);
-    HRESULT SetContentLoadingCallback(ContentLoadingCallback callback);
     HRESULT SetNewWindowRequestedCallback(NewWindowRequestedCallback callback);
     HRESULT SetHistoryChangedCallback(HistoryChangedCallback callback);
     HRESULT SetZoomFactorChangedCallback(ZoomFactorChangedCallback callback);
 
     // 内容管理
-    HRESULT AddScriptToExecuteOnDocumentCreated(const DString& script);
     HRESULT CapturePreview(const DString& filePath,
                            std::function<void(const DString& filePath, HRESULT hr)> callback);
 
@@ -126,6 +117,19 @@ public:
     */
     bool OpenDevToolsWindow();
 
+public:
+    /** 获取ICoreWebView2Environment接口
+    */
+    wil::com_ptr<ICoreWebView2Environment> GetWebView2Environment() const { return m_spWebView2Environment; }
+
+    /** 获取ICoreWebView2Controller接口
+    */
+    wil::com_ptr<ICoreWebView2Controller> GetWebView2Controller() const { return m_spWebView2Controller; }
+
+    /** 获取ICoreWebView2接口
+    */
+    wil::com_ptr<ICoreWebView2> GetWebView2() const { return m_spWebView2; }
+
 private:
 
     //初始化流程
@@ -142,14 +146,13 @@ private:
 
 private:
     // COM对象
-    wil::com_ptr<ICoreWebView2Environment> m_spWebViewEnvironment;
-    wil::com_ptr<ICoreWebView2Controller> m_spWebViewController;
-    wil::com_ptr<ICoreWebView2> m_spWebView;
+    wil::com_ptr<ICoreWebView2Environment> m_spWebView2Environment;
+    wil::com_ptr<ICoreWebView2Controller> m_spWebView2Controller;
+    wil::com_ptr<ICoreWebView2> m_spWebView2;
 
     // 事件令牌
     EventRegistrationToken m_webMessageReceivedToken = {0};
     EventRegistrationToken m_documentTitleChangedToken = {0};
-    EventRegistrationToken m_contentLoadingToken = {0};
     EventRegistrationToken m_navigationStartingToken = { 0 };
     EventRegistrationToken m_navigationCompletedToken = {0};
     EventRegistrationToken m_sourceChangedToken = {0};
@@ -163,7 +166,6 @@ private:
     NavigationStateChangedCallback m_navigationStateChangedCallback = nullptr;
     DocumentTitleChangedCallback m_documentTitleChangedCallback = nullptr;
     SourceChangedCallback m_sourceChangedCallback = nullptr;
-    ContentLoadingCallback m_contentLoadingCallback = nullptr;
     NewWindowRequestedCallback m_newWindowRequestedCallback = nullptr;
     HistoryChangedCallback m_historyChangedCallback = nullptr;
     ZoomFactorChangedCallback m_zoomFactorChangedCallback = nullptr;
@@ -175,10 +177,6 @@ private:
     Control* m_pControl;
     DString m_userDataFolder;
     DString m_userAgent;
-
-    //文档完成时执行的脚本
-    DString m_scriptToExecuteOnDocumentCreated;
-    std::wstring m_scriptIdToExecuteOnDocumentCreated;
 
     HRESULT m_lastError;
     bool m_bInitializing;
