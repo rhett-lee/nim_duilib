@@ -1137,16 +1137,16 @@ HRESULT WebView2Control::Impl::GetLastErrorCode() const
 
 void WebView2Control::Impl::SetWindow(Window* pWindow)
 {
-    ASSERT(pWindow != nullptr);
-    if (pWindow == nullptr) {
-        return;
-    }
-    ASSERT(pWindow->NativeWnd()->GetHWND() != nullptr);
-    if (pWindow->NativeWnd()->GetHWND() == nullptr) {
-        return;
-    }
-    ASSERT(::IsWindow(pWindow->NativeWnd()->GetHWND()));
     if (m_spWebView2Controller != nullptr) {
+        ASSERT(pWindow != nullptr);
+        if (pWindow == nullptr) {
+            return;
+        }
+        ASSERT(pWindow->NativeWnd()->GetHWND() != nullptr);
+        if (pWindow->NativeWnd()->GetHWND() == nullptr) {
+            return;
+        }
+        ASSERT(::IsWindow(pWindow->NativeWnd()->GetHWND()));    
         m_spWebView2Controller->put_ParentWindow(pWindow->NativeWnd()->GetHWND());
     }
 }

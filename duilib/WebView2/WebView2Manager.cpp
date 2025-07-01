@@ -2,9 +2,21 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_WEBVIEW2)
 
+#include "duilib/WebView2/WebView2Control.h"
+#include "duilib/Core/GlobalManager.h"
 #include <objbase.h>
 
 namespace ui {
+
+//创建WebView控件的回调函数
+static Control* DuilibCreateWebView2Control(const DString& className)
+{
+    Control* pControl = nullptr;
+    if (className == _T("WebView2Control")) {
+        pControl = new WebView2Control(nullptr);
+    }
+    return pControl;
+}
 
 WebView2Manager::WebView2Manager():
     m_bScriptEnabled(true),
@@ -37,6 +49,9 @@ bool WebView2Manager::Initialize(const DString& userDataFolder,
     m_userAgent = userAgent;
     m_additionalBrowserArguments = additionalBrowserArguments;
     m_browserExecutableFolder = browserExecutableFolder;
+
+    //添加窗口WebView2控件的回调函数
+    GlobalManager::Instance().AddCreateControlCallback(DuilibCreateWebView2Control);
 
 #if defined (DUILIB_BUILD_FOR_WIN)
     ::CoInitialize(nullptr);
