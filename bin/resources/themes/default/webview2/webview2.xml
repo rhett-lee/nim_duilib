@@ -27,7 +27,7 @@
             <Button class="btn_global_blue_80x30" name="btn_refresh" text="刷新" width="60" margin="5"/>
         </HBox>
         <VBox bkcolor="white">
-            <WebView2Control name="webview2_control" url="https://www.baidu.com" margin="2,0,2,2"/>
+            <WebView2Control name="webview2_control" url="https://www.baidu.com" F12="true" margin="2,0,2,2"/>
         </VBox>
     </VBox>
 </Window>

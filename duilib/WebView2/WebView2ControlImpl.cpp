@@ -8,6 +8,9 @@
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FilePath.h"
+#include "duilib/Image/ImageDecoder.h"
+#include "duilib/Image/ImageLoadAttribute.h"
+#include "duilib/Image/ImageInfo.h"
 
 #include "duilib/third_party/Microsoft.Web.WebView2/build/native/include/WebView2EnvironmentOptions.h"
 
@@ -244,6 +247,10 @@ void WebView2Control::Impl::OnInitializationCompleted(HRESULT result)
         m_spWebView2Controller->put_IsVisible(bVisible ? TRUE : FALSE);
     }
 
+    if (m_favIconChangedCallback != nullptr) {
+        SetFavIconChangedCallback(m_favIconChangedCallback);
+    }
+
     //初始化的URL，导航到该网址
     if (!m_navigateUrl.empty()) {
         std::wstring url = StringConvert::TToWString(m_navigateUrl);
@@ -256,6 +263,7 @@ void WebView2Control::Impl::OnInitializationCompleted(HRESULT result)
     m_bInitialized = true;
     m_bInitializing = false;
     m_bNavigating = false;
+
     // 调用初始化完成回调
     auto callback = std::move(m_initializeCompletedCallback);
     if (callback) {
@@ -1102,6 +1110,15 @@ void WebView2Control::Impl::Cleanup()
             m_spWebView2->remove_HistoryChanged(m_historyChangedToken);
             m_historyChangedToken.value = 0;
         }
+
+        if (m_faviconChangedToken.value != 0) {
+            wil::com_ptr<ICoreWebView2_15> spWebView2_15;
+            HRESULT hr = m_spWebView2->QueryInterface(&spWebView2_15);
+            if (SUCCEEDED(hr) && (spWebView2_15 != nullptr)) {
+                spWebView2_15->remove_FaviconChanged(m_faviconChangedToken);
+            }
+            m_faviconChangedToken.value = 0;
+        }
     }
 
     if (m_spWebView2Controller != nullptr) {
@@ -1196,6 +1213,160 @@ bool WebView2Control::Impl::OpenDevToolsWindow()
         hr = m_spWebView2->OpenDevToolsWindow();
     }
     return SUCCEEDED(hr);
+}
+
+void WebView2Control::Impl::SetFavIconChangedCallback(FavIconChangedCallback callback)
+{
+    m_favIconChangedCallback = callback;
+    if ((m_faviconChangedToken.value != 0) && (m_spWebView2 != nullptr)) {
+        wil::com_ptr<ICoreWebView2_15> spWebView2_15;
+        HRESULT hr = m_spWebView2->QueryInterface(&spWebView2_15);
+        if (SUCCEEDED(hr) && (spWebView2_15 != nullptr)) {
+            spWebView2_15->remove_FaviconChanged(m_faviconChangedToken);
+        }
+        m_faviconChangedToken.value = 0;
+    }
+    if ((m_favIconChangedCallback != nullptr) && (m_spWebView2 != nullptr)) {
+        wil::com_ptr<ICoreWebView2_15> spWebView2_15;
+        HRESULT hr = m_spWebView2->QueryInterface(&spWebView2_15);
+        if (SUCCEEDED(hr) && (spWebView2_15 != nullptr)) {
+            hr = spWebView2_15->add_FaviconChanged(
+                Microsoft::WRL::Callback<ICoreWebView2FaviconChangedEventHandler>(
+                    [this](ICoreWebView2* sender, IUnknown* /*args*/) -> HRESULT
+                    {
+                        ASSERT_UNUSED_VARIABLE(sender == m_spWebView2);
+                        ASSERT(GlobalManager::Instance().IsInUIThread());
+
+                        wil::unique_cotaskmem_string url;
+                        wil::com_ptr<ICoreWebView2_15> webview2;
+                        HRESULT hr = sender->QueryInterface(&webview2);
+                        ASSERT(SUCCEEDED(hr));
+
+                        if (SUCCEEDED(hr) && (webview2 != nullptr)) {
+                            hr = webview2->get_FaviconUri(&url);
+                            ASSERT(SUCCEEDED(hr));
+                            std::wstring strUrl;
+                            if (url.get()) {
+                                strUrl = url.get();
+                            }
+                            m_favIconImageUrl = strUrl;
+                            DownloadFavIconImage();                            
+                        }
+                        return S_OK;
+                    }).Get(), &m_faviconChangedToken);
+                ASSERT(SUCCEEDED(hr));
+        }
+    }
+}
+
+static HRESULT IStreamToVector(IStream* pStream, std::vector<uint8_t>& output)
+{
+    if (!pStream) {
+        return E_INVALIDARG;
+    }
+
+    // 获取流大小
+    STATSTG stat = { 0 };
+    HRESULT hr = pStream->Stat(&stat, STATFLAG_NONAME);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    // 重置流指针到起始位置
+    LARGE_INTEGER li = { 0 };
+    hr = pStream->Seek(li, STREAM_SEEK_SET, nullptr);
+    if (FAILED(hr)) {
+        return hr;
+    }
+
+    // 准备接收缓冲区
+    output.resize(static_cast<size_t>(stat.cbSize.QuadPart));
+    if (output.size() == 0) {
+        return E_FAIL;
+    }
+
+    // 读取数据到vector
+    ULONG bytesRead = 0;
+    hr = pStream->Read(output.data(), static_cast<ULONG>(output.size()), &bytesRead);
+    if (SUCCEEDED(hr) && (bytesRead == output.size())) {
+        return S_OK;
+    }
+    return E_FAIL;
+}
+
+static bool ConvertFavIconImageData(std::vector<uint8_t>& pngImageData, uint32_t nWindowDpi,
+                                    int32_t& nWidth, int32_t& nHeight, std::vector<uint8_t>& imageData)
+{
+    ui::ImageLoadAttribute imageLoadAttribute(_T(""), _T(""), false, false, 0);
+    imageLoadAttribute.SetImageFullPath(_T("temp.png"));
+    uint32_t nFrameCount = 0;
+    ui::ImageDecoder decoder;
+    auto imageInfo = decoder.LoadImageData(pngImageData, imageLoadAttribute, true, 100, nWindowDpi, true, nFrameCount);
+    if (imageInfo == nullptr) {
+        return false;
+    }
+    ui::IBitmap* pBitmap = imageInfo->GetBitmap(0);
+    if (pBitmap == nullptr) {
+        return false;
+    }
+    nWidth = pBitmap->GetWidth();
+    nHeight = pBitmap->GetHeight();
+    if ((nWidth < 1) || (nHeight < 1)) {
+        return false;
+    }
+    void* pBits = pBitmap->LockPixelBits();
+    if (pBits == nullptr) {
+        return false;
+    }
+    size_t nDataSize = nHeight * nWidth * 4;
+    imageData.resize(nDataSize);
+    memcpy(imageData.data(), pBits, nDataSize);
+    pBitmap->UnLockPixelBits();
+    pBits = 0;
+    return true;
+}
+
+bool WebView2Control::Impl::DownloadFavIconImage()
+{
+    ASSERT(GlobalManager::Instance().IsInUIThread());
+    std::wstring strUrl = m_favIconImageUrl;
+    if (strUrl.empty()) {
+        return false;
+    }
+    wil::com_ptr<ICoreWebView2_15> spWebView2_15;
+    HRESULT hr = m_spWebView2->QueryInterface(&spWebView2_15);
+    if (SUCCEEDED(hr) && (spWebView2_15 != nullptr) && (m_favIconChangedCallback != nullptr)) {
+        hr = spWebView2_15->GetFavicon(
+            COREWEBVIEW2_FAVICON_IMAGE_FORMAT_PNG,
+            Microsoft::WRL::Callback<ICoreWebView2GetFaviconCompletedHandler>(
+                [this, strUrl](HRESULT errorCode, IStream* iconStream) -> HRESULT
+                {
+                    ASSERT(GlobalManager::Instance().IsInUIThread());
+                    ASSERT(SUCCEEDED(errorCode));
+
+                    if (SUCCEEDED(errorCode)) {
+                        std::vector<uint8_t> pngImageData;
+                        if (SUCCEEDED(IStreamToVector(iconStream, pngImageData))) {
+                            uint32_t nWindowDpi = 100;
+                            if (m_pControl != nullptr) {
+                                nWindowDpi = m_pControl->Dpi().GetScale();
+                            }
+                            int32_t nWidth = 0;
+                            int32_t nHeight = 0;
+                            std::vector<uint8_t> imageData;
+                            if (ConvertFavIconImageData(pngImageData, nWindowDpi, nWidth, nHeight, imageData)) {
+                                if (m_favIconChangedCallback) {
+                                    m_favIconChangedCallback(nWidth, nHeight, imageData);
+                                }
+                            }                            
+                        }
+                    }
+                    return S_OK;
+                })
+            .Get());
+        return SUCCEEDED(hr);
+    }
+    return false;
 }
 
 } //namespace ui

@@ -672,40 +672,23 @@ bool BrowserForm::ChangeToBox(const DString& browser_id)
     OnLoadingStateChange(m_pActiveBrowserBox);
     return true;
 }
-//
-//void BrowserForm::NotifyFavicon(const BrowserBox* browser_box, CefRefPtr<CefImage> image)
-//{
-//    if ((browser_box == nullptr) || (image == nullptr)) {
-//        return;
-//    }
-//
-//    DString id = ui::StringConvert::UTF8ToT(browser_box->GetId());
-//    TabCtrlItem* tab_item = FindTabItem(id);
-//    if (tab_item == nullptr) {
-//        return;
-//    }
-//
-//    int32_t nWidth = 0;
-//    int32_t nHeight = 0;    
-//    CefRefPtr<CefBinaryValue> cefImageData = image->GetAsBitmap(Dpi().GetScale() / 100.0f, CEF_COLOR_TYPE_BGRA_8888, CEF_ALPHA_TYPE_PREMULTIPLIED, nWidth, nHeight);
-//    if (cefImageData == nullptr) {
-//        return;
-//    }
-//    size_t nDataSize = cefImageData->GetSize();
-//    if (nDataSize == 0) {
-//        return;
-//    }
-//    ASSERT((int32_t)nDataSize == nHeight * nWidth * sizeof(uint32_t));
-//    if ((int32_t)nDataSize != nHeight * nWidth * sizeof(uint32_t)) {
-//        return;
-//    }
-//    std::vector<uint8_t> imageData;
-//    imageData.resize(nDataSize);
-//    nDataSize = cefImageData->GetData(imageData.data(), imageData.size(), 0);
-//    ASSERT(nDataSize == imageData.size());
-//    if (nDataSize != imageData.size()) {
-//        return;
-//    }
-//
-//    tab_item->SetIconData(nWidth, nHeight, imageData.data(), (int32_t)imageData.size());
-//}
+
+void BrowserForm::NotifyFavicon(const BrowserBox* browser_box, int32_t nWidth, int32_t nHeight, const std::vector<uint8_t>& imageData)
+{
+    if ((browser_box == nullptr) || imageData.empty()) {
+        return;
+    }
+    if ((nWidth < 1) || (nHeight < 1)) {
+        return;
+    }
+    if (imageData.size() != nHeight * nWidth * 4) {
+        return;
+    }
+
+    DString id = ui::StringConvert::UTF8ToT(browser_box->GetId());
+    TabCtrlItem* tab_item = FindTabItem(id);
+    if (tab_item == nullptr) {
+        return;
+    }    
+    tab_item->SetIconData(nWidth, nHeight, imageData.data(), (int32_t)imageData.size());
+}

@@ -63,6 +63,13 @@ void BrowserBox::InitBrowserBox(const DString& url)
         }
         });
 
+    m_pWebView2Control->SetFavIconChangedCallback([this](int32_t nWidth, int32_t nHeight, const std::vector<uint8_t>& imageData) {
+        ui::GlobalManager::Instance().AssertUIThread();
+        if (m_pBrowserForm != nullptr) {
+            m_pBrowserForm->NotifyFavicon(this, nWidth, nHeight, imageData);
+        }
+        });
+
     //导航到该网址
     m_pWebView2Control->Navigate(url);
 }

@@ -3,12 +3,15 @@
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_WEBVIEW2)
 
 #include "WebView2ControlImpl.h"
+#include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/FilePathUtil.h"
 
 namespace ui {
 
 WebView2Control::WebView2Control(Window* pWindow):
     Control(pWindow),
-    m_pImpl(std::make_unique<Impl>(this))
+    m_pImpl(std::make_unique<Impl>(this)),
+    m_bUrlIsLocalFile(false)
 {
 }
 
@@ -20,15 +23,73 @@ DString WebView2Control::GetType() const { return DUI_CTR_WEBVIEW2; }
 
 void WebView2Control::SetAttribute(const DString& strName, const DString& strValue)
 {
-    if (strName == _T("url")) {        
-        Navigate(strValue);
+    if (strName == _T("url")) {
+        //初始化加载的URL
+        SetInitURL(strValue);
     }
-    else if (strName == _T("download_favicon_image")) {
-
+    else if (strName == _T("url_is_local_file")) {
+        //初始化加载的URL是否为本地文件
+        SetInitUrlIsLocalFile(strValue == _T("true"));
+    }
+    else if (strName == _T("F12")) {
+        //是否允许按F12打开开发者工具
+        SetAreDevToolsEnabled(strValue == _T("true"));
     }
     else {
         BaseClass::SetAttribute(strName, strValue);
     }
+}
+
+void WebView2Control::OnInit()
+{
+    if (IsInited()) {
+        return;
+    }
+    BaseClass::OnInit();
+    DString initUrl = GetInitURL();
+    if (!initUrl.empty()) {
+        Navigate(initUrl);
+    }
+}
+
+void WebView2Control::SetInitURL(const DString& url)
+{
+    m_initUrl = url;
+}
+
+DString WebView2Control::GetInitURL() const
+{
+    DString initUrl = m_initUrl.c_str();
+    if (IsInitUrlIsLocalFile() && !initUrl.empty()) {
+        //该URL是本地路径
+        DString url = StringUtil::MakeLowerString(initUrl);
+        if ((url.find(_T("http://")) != 0) && (url.find(_T("https://")) != 0) && (url.find(_T("file:///")) != 0)) {
+            //有明确的协议前缀时，不做任何转换，否则按照本地exe所在路径的资源文件加载
+            FilePath webViewHtml = GlobalManager::GetDefaultResourcePath(true);
+            webViewHtml.NormalizeDirectoryPath();
+            webViewHtml += initUrl;
+            webViewHtml.NormalizeFilePath();
+            initUrl = _T("file:///");
+            initUrl += webViewHtml.ToString();
+            StringUtil::ReplaceAll(_T("\\"), _T("/"), initUrl);
+        }
+    }
+    return initUrl;
+}
+
+void WebView2Control::SetInitUrlIsLocalFile(bool bUrlIsLocalFile)
+{
+    m_bUrlIsLocalFile = bUrlIsLocalFile;
+}
+
+bool WebView2Control::IsInitUrlIsLocalFile() const
+{
+    return m_bUrlIsLocalFile;
+}
+
+bool WebView2Control::DownloadFavIconImage()
+{
+    return m_pImpl->DownloadFavIconImage();
 }
 
 void WebView2Control::SetPos(UiRect rc)
@@ -278,6 +339,11 @@ bool WebView2Control::SetZoomFactorChangedCallback(ZoomFactorChangedCallback cal
     HRESULT hr = m_pImpl->SetZoomFactorChangedCallback(callback);
     m_pImpl->SetLastErrorCode(hr);
     return SUCCEEDED(hr);
+}
+
+void WebView2Control::SetFavIconChangedCallback(FavIconChangedCallback callback)
+{
+    m_pImpl->SetFavIconChangedCallback(callback);
 }
 
 bool WebView2Control::CapturePreview(const DString& filePath,

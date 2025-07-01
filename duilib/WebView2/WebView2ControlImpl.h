@@ -74,6 +74,7 @@ public:
     HRESULT SetNewWindowRequestedCallback(NewWindowRequestedCallback callback);
     HRESULT SetHistoryChangedCallback(HistoryChangedCallback callback);
     HRESULT SetZoomFactorChangedCallback(ZoomFactorChangedCallback callback);
+    void SetFavIconChangedCallback(FavIconChangedCallback callback);
 
     // 内容管理
     HRESULT CapturePreview(const DString& filePath,
@@ -117,6 +118,10 @@ public:
     */
     bool OpenDevToolsWindow();
 
+    /** 下载网站图标
+    */
+    bool DownloadFavIconImage();
+
 public:
     /** 获取ICoreWebView2Environment接口
     */
@@ -159,6 +164,7 @@ private:
     EventRegistrationToken m_newWindowRequestedToken = {0};
     EventRegistrationToken m_historyChangedToken = {0};
     EventRegistrationToken m_zoomFactorChangedToken = { 0 };
+    EventRegistrationToken m_faviconChangedToken = { 0 };
 
     // 回调函数
     InitializeCompletedCallback m_initializeCompletedCallback = nullptr;
@@ -169,9 +175,13 @@ private:
     NewWindowRequestedCallback m_newWindowRequestedCallback = nullptr;
     HistoryChangedCallback m_historyChangedCallback = nullptr;
     ZoomFactorChangedCallback m_zoomFactorChangedCallback = nullptr;
+    FavIconChangedCallback m_favIconChangedCallback = nullptr;
 
     //初始化URL
     DString m_navigateUrl;
+
+    //网站图标的URL
+    DStringW m_favIconImageUrl;
 
     // 状态变量
     Control* m_pControl;

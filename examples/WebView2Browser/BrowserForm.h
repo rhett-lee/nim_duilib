@@ -115,7 +115,7 @@ public:
 
     /** 网站的FavIcon图标下载完成
     */
-    //void NotifyFavicon(const BrowserBox* browser_box, CefRefPtr<CefImage> image);
+    void NotifyFavicon(const BrowserBox* browser_box, int32_t nWidth, int32_t nHeight, const std::vector<uint8_t>& imageData);
 
     /** 设置某个浏览器对应的标签控件的标题
     * @param[in] browser_id 浏览器id

@@ -77,8 +77,16 @@ public:
     using HistoryChangedCallback = std::function<void()>;
 
     /** 页面缩放比变化事件回调函数类型
-     */
+    * @param [in] zoomFactor 当前的缩放比例
+    */
     using ZoomFactorChangedCallback = std::function<void(double zoomFactor)>;
+
+    /** 网站图标变化事件回调函数类型
+    * @param [in] nWidth 图片宽度
+    * @param [in] nHeight 图片高度
+    * @param [in] imageData 网站图标的图片数据
+    */
+    using FavIconChangedCallback = std::function<void(int32_t nWidth, int32_t nHeight, const std::vector<uint8_t>& imageData)>;
 
 public:
     /** 构造函数
@@ -220,6 +228,10 @@ public:
     /** 设置页面缩放比变化事件回调函数
      */
     bool SetZoomFactorChangedCallback(ZoomFactorChangedCallback callback);
+
+    /** 设置网站图标变化事件回调函数类型
+    */
+    void SetFavIconChangedCallback(FavIconChangedCallback callback);
        
     /** 捕获当前页面的预览图(异步完成)，保存为PNG或者JPG格式
      * @param filePath 保存预览图的文件路径，根据保存的图片文件名后缀自动判断保存的格式
@@ -286,16 +298,53 @@ public:
     // 控件类型相关的属性
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
+    virtual void OnInit() override;
     virtual void SetPos(UiRect rc) override;
     virtual bool OnSetFocus(const EventArgs& msg) override;
     virtual bool OnKillFocus(const EventArgs& msg) override;
     virtual void SetVisible(bool bVisible) override;
     virtual void SetWindow(Window* pWindow) override;
 
+    /** 设置是否允许F12快捷键(开发者工具)
+    */
+    void SetEnableF12(bool bEnableF12);
+
+    /** 是否允许F12快捷键(开发者工具)
+    */
+    bool IsEnableF12() const;
+
+    /** 设置初始加载的URL(仅在控件初始化前调用有效)
+    */
+    void SetInitURL(const DString& url);
+
+    /** 获取初始加载的URL
+    */
+    DString GetInitURL() const;
+
+    /** 设置初始加载的URL是否为本地文件
+    */
+    void SetInitUrlIsLocalFile(bool bUrlIsLocalFile);
+
+    /** 获取初始加载的URL是否为本地文件
+    */
+    bool IsInitUrlIsLocalFile() const;
+
+    /** 下载网站图标(前提条件：已经调用过SetFavIconChangedCallback设置了回调)
+    */
+    bool DownloadFavIconImage();
+
 private:
     // PIMPL实现
     class Impl;
     std::unique_ptr<Impl> m_pImpl;
+
+    /** 初始化加载的网址
+    */
+    UiString m_initUrl;
+
+    /** 设置初始加载的URL是否为本地文件
+    */
+    bool m_bUrlIsLocalFile;
 };
 
 } //namespace ui
