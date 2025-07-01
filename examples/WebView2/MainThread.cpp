@@ -45,10 +45,11 @@ void MainThread::OnInit()
     ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
     resourcePath += _T("resources\\");
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
-    ui::WebView2Manager::GetInstance().Initialize();
 
-    //在下面加入启动窗口代码
-    //
+    //初始化WebView2的基本配置
+    DString userDataFolder = ui::WebView2Manager::GetInstance().GetDefaultUserDataFolder(_T("WebView2"));
+    ui::WebView2Manager::GetInstance().Initialize(userDataFolder);
+
     //创建一个默认带有阴影的居中窗口
     MainForm* window = new MainForm();
     window->CreateWnd(nullptr, ui::WindowCreateParam(_T("WebView2"), true));

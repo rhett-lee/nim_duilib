@@ -45,7 +45,10 @@ void MainThread::OnInit()
     ui::FilePath resourcePath = ui::FilePathUtil::GetCurrentModuleDirectory();
     resourcePath += _T("resources\\");
     ui::GlobalManager::Instance().Startup(ui::LocalFilesResParam(resourcePath));
-    ui::WebView2Manager::GetInstance().Initialize();
+
+    //初始化WebView2的基本配置
+    DString userDataFolder = ui::WebView2Manager::GetInstance().GetDefaultUserDataFolder(_T("Webview2Browser"));
+    ui::WebView2Manager::GetInstance().Initialize(userDataFolder);
 
     //创建窗口, 显示默认页面
     BrowserManager::GetInstance()->CreateBorwserBox(nullptr, "", _T("www.baidu.com"));

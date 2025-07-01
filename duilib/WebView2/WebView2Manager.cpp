@@ -4,6 +4,7 @@
 
 #include "duilib/WebView2/WebView2Control.h"
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Utils/FilePathUtil.h"
 #include <objbase.h>
 
 namespace ui {
@@ -64,6 +65,19 @@ void WebView2Manager::UnInitialize()
 #if defined (DUILIB_BUILD_FOR_WIN)
     ::CoUninitialize();
 #endif
+}
+
+DString WebView2Manager::GetDefaultUserDataFolder(const DString& appName) const
+{
+    DString defaultCachePath = _T("webview2_cache");
+    defaultCachePath += ui::FilePath::GetPathSeparatorStr();
+    defaultCachePath += appName;
+    defaultCachePath += ui::FilePath::GetPathSeparatorStr();
+
+    FilePath runPath = FilePathUtil::GetCurrentModuleDirectory();
+    runPath /= FilePath(defaultCachePath);
+    runPath.FormatPathAsDirectory();
+    return runPath.ToString();
 }
 
 void WebView2Manager::SetBrowserExecutableFolder(const DString& browserExecutableFolder)

@@ -39,6 +39,11 @@ public:
     */
     void UnInitialize();
 
+    /** 获取默认的网页缓存目录
+    * @param [in] appName 应用程序名称
+    */
+    DString GetDefaultUserDataFolder(const DString& appName) const;
+
 public:
     /** WebView2模块所在目录
     */
