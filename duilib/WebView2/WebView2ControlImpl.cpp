@@ -234,6 +234,22 @@ void WebView2Control::Impl::OnInitializationCompleted(HRESULT result)
     //初始化各个选项
     InitializeSettings();
 
+    //初始化焦点事件
+    if (m_spWebView2Controller != nullptr) {
+        HRESULT hr = m_spWebView2Controller->add_GotFocus(
+            Microsoft::WRL::Callback<ICoreWebView2FocusChangedEventHandler >(
+                [this](ICoreWebView2Controller* sender, IUnknown* /*args*/) -> HRESULT {
+                    ASSERT_UNUSED_VARIABLE(sender == m_spWebView2Controller);
+                    ASSERT(GlobalManager::Instance().IsInUIThread());
+                    //页面获取焦点时，同步设置关联控件的焦点
+                    if (m_pControl != nullptr) {
+                        m_pControl->SetFocus();
+                    }
+                    return S_OK;
+                }).Get(), &m_gotFocusToken);
+        ASSERT_UNUSED_VARIABLE(SUCCEEDED(hr));
+    }
+
     //初始化控件的位置
     if ((m_pControl != nullptr) && (m_spWebView2Controller != nullptr)) {
         UiRect rc = m_pControl->GetRect();
@@ -1128,6 +1144,11 @@ void WebView2Control::Impl::Cleanup()
         if (m_zoomFactorChangedToken.value) {
             m_spWebView2Controller->remove_ZoomFactorChanged(m_zoomFactorChangedToken);
             m_zoomFactorChangedToken.value = 0;
+        }
+
+        if (m_gotFocusToken.value) {
+            m_spWebView2Controller->remove_GotFocus(m_gotFocusToken);
+            m_gotFocusToken.value = 0;
         }
     }
 

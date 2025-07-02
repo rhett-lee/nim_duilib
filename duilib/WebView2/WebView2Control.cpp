@@ -107,14 +107,12 @@ void WebView2Control::SetPos(UiRect rc)
 
 bool WebView2Control::OnSetFocus(const EventArgs& msg)
 {
-    //TODO:
     bool bRet = BaseClass::OnSetFocus(msg);
     return bRet;
 }
 
 bool WebView2Control::OnKillFocus(const EventArgs& msg)
 {
-    //TODO:
     bool bRet = BaseClass::OnKillFocus(msg);
     return bRet;
 }

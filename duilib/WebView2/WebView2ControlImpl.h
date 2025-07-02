@@ -165,6 +165,7 @@ private:
     EventRegistrationToken m_historyChangedToken = {0};
     EventRegistrationToken m_zoomFactorChangedToken = { 0 };
     EventRegistrationToken m_faviconChangedToken = { 0 };
+    EventRegistrationToken m_gotFocusToken = { 0 };
 
     // 回调函数
     InitializeCompletedCallback m_initializeCompletedCallback = nullptr;
