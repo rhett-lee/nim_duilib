@@ -1755,10 +1755,10 @@ void RichEdit::HandleEvent(const EventArgs& msg)
 
     if (msg.eventType == kEventMouseButtonDown) {
         OnMouseMessage(WM_LBUTTONDOWN, msg);
+        CheckSelAllOnFocus();
         return;
     }
-    if (msg.eventType == kEventMouseButtonUp) {
-        CheckSelAllOnFocus();
+    if (msg.eventType == kEventMouseButtonUp) {        
         OnMouseMessage(WM_LBUTTONUP, msg);
         return;
     }
@@ -1773,6 +1773,7 @@ void RichEdit::HandleEvent(const EventArgs& msg)
     }
     if (msg.eventType == kEventMouseRButtonDown) {
         OnMouseMessage(WM_RBUTTONDOWN, msg);
+        CheckSelAllOnFocus();
         return;
     }
     if (msg.eventType == kEventMouseRButtonUp) {
@@ -1828,8 +1829,6 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
     if (GetState() == kControlStateNormal) {
         SetState(kControlStateHot);
     }
-
-    CheckSelAllOnFocus();
     Invalidate();
     return true;
 }
@@ -1837,7 +1836,7 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
 bool RichEdit::OnKillFocus(const EventArgs& msg)
 {
     if (m_pRichHost) {
-        m_pRichHost->OnTxInPlaceActivate(nullptr);
+        m_pRichHost->OnTxInPlaceDeactivate();
         m_richCtrl.TxSendMessage(WM_KILLFOCUS, 0, 0);
         ShowCaret(false);
     }

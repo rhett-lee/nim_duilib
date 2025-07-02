@@ -3300,7 +3300,6 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
         SetState(kControlStateHot);
     }
 
-    CheckSelAllOnFocus();
     Invalidate();
     return true;
 }
@@ -4099,6 +4098,8 @@ void RichEdit::OnLButtonDown(const UiPoint& ptMouse, Control* pSender, bool bShi
         m_bSelForward = true;
     }
     m_nSelXPos = -1;
+
+    CheckSelAllOnFocus();
 }
 
 void RichEdit::OnLButtonUp(const UiPoint& /*ptMouse*/, Control* /*pSender*/)
@@ -4110,8 +4111,6 @@ void RichEdit::OnLButtonUp(const UiPoint& /*ptMouse*/, Control* /*pSender*/)
     m_bMouseDownInView = false;
     m_bMouseDown = false;
     m_pMouseSender = nullptr;
-
-    CheckSelAllOnFocus();
 }
 
 void RichEdit::OnLButtonDoubleClick(const UiPoint& ptMouse, Control* /*pSender*/)
@@ -4150,7 +4149,9 @@ void RichEdit::OnRButtonDown(const UiPoint& ptMouse, Control* pSender)
         int32_t nCharPosIndex = CharFromPos(ptMouse);
         InternalSetSel(nCharPosIndex, nCharPosIndex);
         m_nSelXPos = -1;
-    }    
+    }
+
+    CheckSelAllOnFocus();
 }
 
 void RichEdit::OnRButtonUp(const UiPoint& /*ptMouse*/, Control* /*pSender*/)

@@ -197,7 +197,7 @@ void RichEditHost::Init()
         SetTransparent(TRUE);
         LRESULT lResult = 0;
         m_pTextServices->TxSendMessage(EM_SETLANGOPTIONS, 0, 0, &lResult);
-        m_pTextServices->TxSendMessage(EM_SETEVENTMASK, 0, ENM_CHANGE | ENM_LINK, &lResult);
+        m_pTextServices->TxSendMessage(EM_SETEVENTMASK, 0, ENM_CHANGE | ENM_SELCHANGE | ENM_LINK, &lResult);
         m_pTextServices->OnTxInPlaceActivate(nullptr);
     }
 }
