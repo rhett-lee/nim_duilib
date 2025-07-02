@@ -51,7 +51,7 @@ void MainThread::OnInit()
     ui::WebView2Manager::GetInstance().Initialize(userDataFolder);
 
     //创建窗口, 显示默认页面
-    BrowserManager::GetInstance()->CreateBorwserBox(nullptr, "", _T("www.baidu.com"));
+    BrowserManager::GetInstance()->CreateBorwserBox(nullptr, "", _T(""));
 }
 
 void MainThread::OnCleanup()

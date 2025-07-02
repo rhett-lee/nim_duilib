@@ -324,10 +324,17 @@ bool BrowserForm::OnClicked(const ui::EventArgs& arg )
 bool BrowserForm::OnReturn(const ui::EventArgs& arg)
 {
     if (m_pEditUrl != nullptr) {
-        //新建标签页
         DString url = m_pEditUrl->GetText();         
         if (!url.empty()) {
-            OpenLinkUrl(url, false);
+            if (m_pEditUrl != nullptr) {
+                DString url = m_pEditUrl->GetText();
+                if (!url.empty()) {
+                    if ((m_pActiveBrowserBox != nullptr) && (m_pActiveBrowserBox->GetCefControl())) {
+                        m_pActiveBrowserBox->GetCefControl()->LoadURL(url);
+                    }
+                }
+            }
+            return true;
         }        
     }
     return true;

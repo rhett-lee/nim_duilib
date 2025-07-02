@@ -71,7 +71,11 @@ void BrowserBox::InitBrowserBox(const DString& url)
         });
 
     //导航到该网址
-    m_pWebView2Control->Navigate(url);
+    DString navigateUrl = url;
+    if (navigateUrl.empty()) {
+        navigateUrl = _T("www.baidu.com");
+    }
+    m_pWebView2Control->Navigate(navigateUrl);
 }
 
 void BrowserBox::UninitBrowserBox()
