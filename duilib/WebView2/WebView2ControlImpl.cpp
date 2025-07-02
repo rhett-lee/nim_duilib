@@ -17,6 +17,9 @@
 #include <shlwapi.h>
 #include <sstream>
 
+#include <wininet.h>
+#pragma comment(lib, "wininet.lib")
+
 namespace ui {
 
 WebView2Control::Impl::Impl(Control* pControl)
@@ -1294,11 +1297,11 @@ static HRESULT IStreamToVector(IStream* pStream, std::vector<uint8_t>& output)
     return E_FAIL;
 }
 
-static bool ConvertFavIconImageData(std::vector<uint8_t>& pngImageData, uint32_t nWindowDpi,
+static bool ConvertFavIconImageData(std::vector<uint8_t>& pngImageData, uint32_t nWindowDpi, const DString& fileName,
                                     int32_t& nWidth, int32_t& nHeight, std::vector<uint8_t>& imageData)
 {
-    ui::ImageLoadAttribute imageLoadAttribute(_T(""), _T(""), false, false, 0);
-    imageLoadAttribute.SetImageFullPath(_T("temp.png"));
+    ui::ImageLoadAttribute imageLoadAttribute(_T(""), _T(""), false, false, 32);
+    imageLoadAttribute.SetImageFullPath(fileName);
     uint32_t nFrameCount = 0;
     ui::ImageDecoder decoder;
     auto imageInfo = decoder.LoadImageData(pngImageData, imageLoadAttribute, true, 100, nWindowDpi, true, nFrameCount);
@@ -1326,6 +1329,33 @@ static bool ConvertFavIconImageData(std::vector<uint8_t>& pngImageData, uint32_t
     return true;
 }
 
+//下载网站图标
+static bool DownloadFaviconToVector(const wchar_t* url, std::vector<uint8_t>& outData)
+{
+    HINTERNET hInternet = ::InternetOpen(L"FaviconDL", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+    if (!hInternet) {
+        return false;
+    }
+
+    HINTERNET hUrl = ::InternetOpenUrl(hInternet, url, NULL, 0, INTERNET_FLAG_RELOAD | INTERNET_FLAG_SECURE, 0);
+    if (!hUrl) {
+        ::InternetCloseHandle(hInternet);
+        return false;
+    }
+
+    outData.clear();
+    uint8_t buffer[4096];
+    DWORD bytesRead = 0;
+
+    while (::InternetReadFile(hUrl, buffer, sizeof(buffer), &bytesRead) && bytesRead > 0) {
+        outData.insert(outData.end(), buffer, buffer + bytesRead);
+    }
+
+    ::InternetCloseHandle(hUrl);
+    ::InternetCloseHandle(hInternet);
+    return !outData.empty();
+}
+
 bool WebView2Control::Impl::DownloadFavIconImage()
 {
     ASSERT(GlobalManager::Instance().IsInUIThread());
@@ -1333,40 +1363,48 @@ bool WebView2Control::Impl::DownloadFavIconImage()
     if (strUrl.empty()) {
         return false;
     }
-    wil::com_ptr<ICoreWebView2_15> spWebView2_15;
-    HRESULT hr = m_spWebView2->QueryInterface(&spWebView2_15);
-    if (SUCCEEDED(hr) && (spWebView2_15 != nullptr) && (m_favIconChangedCallback != nullptr)) {
-        hr = spWebView2_15->GetFavicon(
-            COREWEBVIEW2_FAVICON_IMAGE_FORMAT_PNG,
-            Microsoft::WRL::Callback<ICoreWebView2GetFaviconCompletedHandler>(
-                [this, strUrl](HRESULT errorCode, IStream* iconStream) -> HRESULT
-                {
-                    ASSERT(GlobalManager::Instance().IsInUIThread());
-                    ASSERT(SUCCEEDED(errorCode));
+    if ((m_pControl == nullptr) || (m_favIconChangedCallback == nullptr)) {
+        return false;
+    }
 
-                    if (SUCCEEDED(errorCode)) {
-                        std::vector<uint8_t> pngImageData;
-                        if (SUCCEEDED(IStreamToVector(iconStream, pngImageData))) {
-                            uint32_t nWindowDpi = 100;
-                            if (m_pControl != nullptr) {
-                                nWindowDpi = m_pControl->Dpi().GetScale();
-                            }
-                            int32_t nWidth = 0;
-                            int32_t nHeight = 0;
-                            std::vector<uint8_t> imageData;
-                            if (ConvertFavIconImageData(pngImageData, nWindowDpi, nWidth, nHeight, imageData)) {
+    int32_t nThreadIdentifier = ui::kThreadUI;
+    if (GlobalManager::Instance().Thread().HasThread(ui::kThreadWorker)) {
+        nThreadIdentifier = ui::kThreadWorker;
+    }
+    else if (GlobalManager::Instance().Thread().HasThread(ui::kThreadMisc)) {
+        nThreadIdentifier = ui::kThreadMisc;
+    }
+    GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, m_pControl->ToWeakCallback([this, strUrl]() {
+            //转到子线程中，下载图标
+            std::vector<uint8_t> iconData;
+            if (DownloadFaviconToVector(strUrl.c_str(), iconData)) {
+                uint32_t nWindowDpi = 100;
+                if (m_pControl != nullptr) {
+                    nWindowDpi = m_pControl->Dpi().GetScale();
+                }
+                DString fileName = strUrl;
+                size_t pos = fileName.rfind(_T("/"));
+                if (pos != DString::npos) {
+                    fileName = fileName.substr(pos + 1);
+                }
+
+                int32_t nWidth = 0;
+                int32_t nHeight = 0;
+                std::vector<uint8_t> imageData;
+                if (ConvertFavIconImageData(iconData, nWindowDpi, fileName, nWidth, nHeight, imageData)) {
+                    if ((m_pControl != nullptr) && (m_favIconChangedCallback != nullptr)) {
+                        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI,
+                                                                    m_pControl->ToWeakCallback([this, nWidth, nHeight, imageData]() {
+                                //转到UI线程执行回调函数
                                 if (m_favIconChangedCallback) {
                                     m_favIconChangedCallback(nWidth, nHeight, imageData);
                                 }
-                            }                            
-                        }
-                    }
-                    return S_OK;
-                })
-            .Get());
-        return SUCCEEDED(hr);
-    }
-    return false;
+                            }));
+                    }                    
+                }
+            }
+        }));
+    return true;
 }
 
 } //namespace ui
