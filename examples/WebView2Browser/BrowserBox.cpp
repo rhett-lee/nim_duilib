@@ -49,10 +49,17 @@ void BrowserBox::InitBrowserBox(const DString& url)
         m_pBrowserForm->SetTabItemName(ui::StringConvert::UTF8ToT(m_browserId), title);
         });
 
-    m_pWebView2Control->SetNavigationStateChangedCallback([this](WebView2Control::NavigationState /*state*/, HRESULT /*errorCode*/) {
+    m_pWebView2Control->SetNavigationStateChangedCallback([this](WebView2Control::NavigationState state, HRESULT /*errorCode*/) {
         ui::GlobalManager::Instance().AssertUIThread();
         if (m_pBrowserForm != nullptr) {
             m_pBrowserForm->OnLoadingStateChange(this);
+        }
+        if (m_pWebView2Control != nullptr)
+        {
+            //测试代码
+            if (state == WebView2Control::NavigationState::Completed) {
+               // m_pWebView2Control->PostWebMessageAsString(_T("hello world!"));               
+            }
         }
         });
 
@@ -69,11 +76,37 @@ void BrowserBox::InitBrowserBox(const DString& url)
             m_pBrowserForm->NotifyFavicon(this, nWidth, nHeight, imageData);
         }
         });
+    m_pWebView2Control->SetZoomFactorChangedCallback([this](double zoomFactor) {
+        //测试代码
+        ui::GlobalManager::Instance().AssertUIThread();
+        });
+    m_pWebView2Control->SetWebMessageReceivedCallback([this](const DString& url,
+                                                             const DString& webMessageAsJson,
+                                                             const DString& webMessageAsString) {
+        //测试代码
+        ui::GlobalManager::Instance().AssertUIThread();
+        //发送回复给HTML页面
+        m_pWebView2Control->PostWebMessageAsString(_T("Hello from C++!"));
+        });
+
+    m_pWebView2Control->InitializeAsync(_T(""), [this](HRESULT result) {
+        //测试代码
+        ui::GlobalManager::Instance().AssertUIThread();
+        });
 
     //导航到该网址
     DString navigateUrl = url;
     if (navigateUrl.empty()) {
         navigateUrl = _T("www.baidu.com");
+
+        ////测试JS与C++通信
+        //ui::FilePath webViewHtml = GlobalManager::GetDefaultResourcePath(true);
+        //webViewHtml.NormalizeDirectoryPath();
+        //webViewHtml += _T("themes/default/webview2_browser/WebView2Demo.html");
+        //webViewHtml.NormalizeFilePath();
+        //navigateUrl = _T("file:///");
+        //navigateUrl += webViewHtml.ToString();
+        //StringUtil::ReplaceAll(_T("\\"), _T("/"), navigateUrl);
     }
     m_pWebView2Control->Navigate(navigateUrl);
 }

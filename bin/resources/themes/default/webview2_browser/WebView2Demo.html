@@ -1,0 +1,32 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebView2 JS-C++通信</title>
+    <script>
+        // 确保DOM加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            // 接收C++消息
+            window.chrome.webview.addEventListener('message', event => {
+                document.getElementById('output').innerText = 
+                    "收到C++消息: " + event.data;
+            });
+
+            // 绑定按钮点击事件
+            document.getElementById('sendBtn').addEventListener('click', function() {
+                const msg = document.getElementById('input').value;
+                if(msg) {
+                    window.chrome.webview.postMessage(msg);
+                    document.getElementById('input').value = ''; // 清空输入框
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <h1>WebView2 JS-C++通信演示</h1>
+    <input id="input" type="text" placeholder="输入消息"/>
+    <button id="sendBtn">发送到C++</button>
+    <div id="output"></div>
+</body>
+</html>

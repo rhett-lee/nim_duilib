@@ -414,7 +414,7 @@ HRESULT WebView2Control::Impl::ExecuteScript(const DString& script,
                                              std::function<void(const DString& result, HRESULT hr)> callback)
 {
     ASSERT(!script.empty());
-    if (!script.empty()) {
+    if (script.empty()) {
         return E_INVALIDARG;
     }
     if (m_spWebView2 == nullptr) {
@@ -438,7 +438,7 @@ HRESULT WebView2Control::Impl::ExecuteScript(const DString& script,
 HRESULT WebView2Control::Impl::PostWebMessageAsJson(const DString& json)
 {
     ASSERT(!json.empty());
-    if (!json.empty()) {
+    if (json.empty()) {
         return E_INVALIDARG;
     }
     if (m_spWebView2 == nullptr) {
@@ -451,7 +451,7 @@ HRESULT WebView2Control::Impl::PostWebMessageAsJson(const DString& json)
 HRESULT WebView2Control::Impl::PostWebMessageAsString(const DString& message)
 {
     ASSERT(!message.empty());
-    if (!message.empty()) {
+    if (message.empty()) {
         return E_INVALIDARG;
     }
     if (m_spWebView2 == nullptr) {
