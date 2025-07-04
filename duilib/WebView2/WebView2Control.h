@@ -5,10 +5,18 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_WEBVIEW2)
 
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-value"
+#endif
+
 #include <combaseapi.h>
 #include <wrl.h>
 #include "duilib/third_party/Microsoft.Web.WebView2/build/native/include/WebView2.h"
-#include "duilib/third_party/Microsoft.Windows.ImplementationLibrary/include/wil/com.h"
+
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
 
 #include <functional>
 #include <memory>
@@ -284,15 +292,15 @@ public:
 public:
     /** 获取ICoreWebView2Environment接口
     */
-    wil::com_ptr<ICoreWebView2Environment> GetWebView2Environment() const;
+    Microsoft::WRL::ComPtr<ICoreWebView2Environment> GetWebView2Environment() const;
 
     /** 获取ICoreWebView2Controller接口
     */
-    wil::com_ptr<ICoreWebView2Controller> GetWebView2Controller() const;
+    Microsoft::WRL::ComPtr<ICoreWebView2Controller> GetWebView2Controller() const;
 
     /** 获取ICoreWebView2接口
     */
-    wil::com_ptr<ICoreWebView2> GetWebView2() const;
+    Microsoft::WRL::ComPtr<ICoreWebView2> GetWebView2() const;
 
 public:
     // 控件类型相关的属性
@@ -351,4 +359,4 @@ private:
 
 #endif //DUILIB_BUILD_FOR_WEBVIEW2
 
-#endif UI_WEBVIEW2_WEBVIEW2_CONTROL_H_
+#endif //UI_WEBVIEW2_WEBVIEW2_CONTROL_H_

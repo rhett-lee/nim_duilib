@@ -139,7 +139,6 @@
 |libcef    |duilib/third_party/libcef_win<br>duilib/third_party/libcef_win_109<br>duilib/third_party/libcef_linux| 用于加载CEF模块|[libcef.LICENSE.txt](licenses/libcef.LICENSE.txt)|
 |udis86    |duilib/third_party/libudis86| 反汇编计算完整性指令最短长度|[udis86.LICENSE.txt](licenses/udis86.LICENSE.txt)|
 |WebView2    |duilib/third_party/Microsoft.Web.WebView2| 支持WebView2控件|[Microsoft.Web.WebView2.LICENSE.txt](licenses/Microsoft.Web.WebView2.LICENSE.txt)|
-|ImplementationLibrary|duilib/third_party/Microsoft.Windows.ImplementationLibrary| 支持WebView2控件|[Microsoft.Windows.ImplementationLibrary.LICENSE.txt](licenses/Microsoft.Windows.ImplementationLibrary.LICENSE.txt)|
 ## 界面效果预览
 使用该界面库编写的示例程序，该文档可以见到各个控件的展示效果：[docs/Examples.md](docs/Examples.md) 
 

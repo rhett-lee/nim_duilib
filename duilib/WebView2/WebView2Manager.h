@@ -148,6 +148,6 @@ public:
 
 } //namespace ui
 
-#endif UI_WEBVIEW2_WEBVIEW2_MANAGER_H_
-
 #endif //DUILIB_BUILD_FOR_WEBVIEW2
+
+#endif //UI_WEBVIEW2_WEBVIEW2_MANAGER_H_

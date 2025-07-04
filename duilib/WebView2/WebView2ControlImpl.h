@@ -5,6 +5,11 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_WEBVIEW2)
 
+#ifdef DUILIB_COMPILER_MINGW
+    //使用"WebView2Loader.dll"
+    #define DUILIB_USE_WEBVIEW2_LOADER_DLL 1
+#endif
+
 namespace ui {
 
 class Control;
@@ -125,19 +130,24 @@ public:
 public:
     /** 获取ICoreWebView2Environment接口
     */
-    wil::com_ptr<ICoreWebView2Environment> GetWebView2Environment() const { return m_spWebView2Environment; }
+    Microsoft::WRL::ComPtr<ICoreWebView2Environment> GetWebView2Environment() const { return m_spWebView2Environment; }
 
     /** 获取ICoreWebView2Controller接口
     */
-    wil::com_ptr<ICoreWebView2Controller> GetWebView2Controller() const { return m_spWebView2Controller; }
+    Microsoft::WRL::ComPtr<ICoreWebView2Controller> GetWebView2Controller() const { return m_spWebView2Controller; }
 
     /** 获取ICoreWebView2接口
     */
-    wil::com_ptr<ICoreWebView2> GetWebView2() const { return m_spWebView2; }
+    Microsoft::WRL::ComPtr<ICoreWebView2> GetWebView2() const { return m_spWebView2; }
 
 private:
 
     //初始化流程
+    HRESULT CallCreateCoreWebView2EnvironmentWithOptions(PCWSTR browserExecutableFolder,
+                                                         PCWSTR userDataFolder,
+                                                         ICoreWebView2EnvironmentOptions* environmentOptions,
+                                                         ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler* environmentCreatedHandler);
+
     HRESULT CreateEnvironmentAsync();
     HRESULT CreateControllerAsync();
     void InitializeSettings();
@@ -151,9 +161,9 @@ private:
 
 private:
     // COM对象
-    wil::com_ptr<ICoreWebView2Environment> m_spWebView2Environment;
-    wil::com_ptr<ICoreWebView2Controller> m_spWebView2Controller;
-    wil::com_ptr<ICoreWebView2> m_spWebView2;
+    Microsoft::WRL::ComPtr<ICoreWebView2Environment> m_spWebView2Environment;
+    Microsoft::WRL::ComPtr<ICoreWebView2Controller> m_spWebView2Controller;
+    Microsoft::WRL::ComPtr<ICoreWebView2> m_spWebView2;
 
     // 事件令牌
     EventRegistrationToken m_webMessageReceivedToken = {0};
@@ -217,6 +227,13 @@ private:
     //是否允许页面缩放
     bool m_bZoomControlEnabled;
     bool m_bZoomControlEnabledSet;
+
+#ifdef DUILIB_USE_WEBVIEW2_LOADER_DLL
+private:
+    /** WebView2Loader.dll 的句柄
+    */
+    HMODULE m_hWebView2Loader = nullptr;
+#endif
 };
 
 } //namespace ui
