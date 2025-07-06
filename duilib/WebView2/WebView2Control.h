@@ -6,18 +6,8 @@
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_WEBVIEW2)
 #include "ComPtr.h"
 
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wunused-value"
-#endif
-
 #include <combaseapi.h>
-#include <wrl.h>
 #include "duilib/third_party/Microsoft.Web.WebView2/build/native/include/WebView2.h"
-
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
 
 #include <functional>
 #include <memory>

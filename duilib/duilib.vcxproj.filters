@@ -705,6 +705,9 @@
     <ClCompile Include="WebView2\WebView2Manager.cpp">
       <Filter>WebView2</Filter>
     </ClCompile>
+    <ClCompile Include="WebView2\WebView2EnvironmentOptions.cpp">
+      <Filter>WebView2</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1473,6 +1476,9 @@
       <Filter>WebView2</Filter>
     </ClInclude>
     <ClInclude Include="WebView2\ComCallback.h">
+      <Filter>WebView2</Filter>
+    </ClInclude>
+    <ClInclude Include="WebView2\WebView2EnvironmentOptions.h">
       <Filter>WebView2</Filter>
     </ClInclude>
   </ItemGroup>

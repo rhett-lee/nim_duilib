@@ -3,6 +3,7 @@
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_WEBVIEW2)
 
 #include "WebView2Manager.h"
+#include "WebView2EnvironmentOptions.h"
 #include "ComCallback.h"
 
 #include "duilib/Core/Window.h"
@@ -14,10 +15,6 @@
 #include "duilib/Image/ImageDecoder.h"
 #include "duilib/Image/ImageLoadAttribute.h"
 #include "duilib/Image/ImageInfo.h"
-
-#ifndef DUILIB_COMPILER_MINGW
-    #include "duilib/third_party/Microsoft.Web.WebView2/build/native/include/WebView2EnvironmentOptions.h"
-#endif
 
 #include <shlwapi.h>
 #include <sstream>
@@ -128,12 +125,8 @@ HRESULT WebView2Control::Impl::CallCreateCoreWebView2EnvironmentWithOptions(PCWS
 ui::ComPtr<ICoreWebView2EnvironmentOptions> WebView2Control::Impl::CreateCoreWebView2EnvironmentOptionsObj()
 {
     ui::ComPtr<ICoreWebView2EnvironmentOptions> spEnvironmentOptions;
-#ifndef DUILIB_COMPILER_MINGW
-    spEnvironmentOptions = Microsoft::WRL::Make<CoreWebView2EnvironmentOptions>().Detach();
-#else
-    //暂时不支持(MinGW不支持Microsoft::WRL的全部功能，有编译错误)
-    
-#endif
+    WebView2EnvironmentOptions::CreateInstance(&spEnvironmentOptions);
+    ASSERT(spEnvironmentOptions != nullptr);
     return spEnvironmentOptions;
 }
 
