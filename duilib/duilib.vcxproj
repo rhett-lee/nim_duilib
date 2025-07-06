@@ -713,6 +713,8 @@
     <ClInclude Include="Control\Progress.h" />
     <ClInclude Include="Control\Slider.h" />
     <ClInclude Include="Control\TreeView.h" />
+    <ClInclude Include="WebView2\ComCallback.h" />
+    <ClInclude Include="WebView2\ComPtr.h" />
     <ClInclude Include="WebView2\WebView2Control.h" />
     <ClInclude Include="WebView2\WebView2ControlImpl.h" />
     <ClInclude Include="WebView2\WebView2Manager.h" />

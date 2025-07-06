@@ -4,6 +4,7 @@
 #include "duilib/Core/Control.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && defined (DUILIB_BUILD_FOR_WEBVIEW2)
+#include "ComPtr.h"
 
 #if defined(__GNUC__) && !defined(__clang__)
 #pragma GCC diagnostic push
@@ -292,15 +293,15 @@ public:
 public:
     /** 获取ICoreWebView2Environment接口
     */
-    Microsoft::WRL::ComPtr<ICoreWebView2Environment> GetWebView2Environment() const;
+    ui::ComPtr<ICoreWebView2Environment> GetWebView2Environment() const;
 
     /** 获取ICoreWebView2Controller接口
     */
-    Microsoft::WRL::ComPtr<ICoreWebView2Controller> GetWebView2Controller() const;
+    ui::ComPtr<ICoreWebView2Controller> GetWebView2Controller() const;
 
     /** 获取ICoreWebView2接口
     */
-    Microsoft::WRL::ComPtr<ICoreWebView2> GetWebView2() const;
+    ui::ComPtr<ICoreWebView2> GetWebView2() const;
 
 public:
     // 控件类型相关的属性

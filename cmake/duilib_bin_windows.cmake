@@ -51,6 +51,11 @@ if(DUILIB_ENABLE_CEF)
     link_directories("${DUILIB_CEF_LIB_PATH}") 
 endif()
 
+if(DUILIB_WEBVIEW2_EXE)    
+    #WEBVIEW2库所在路径（.lib对应的路径）
+    link_directories("${DUILIB_ROOT}/duilib/third_party/Microsoft.Web.WebView2/build/native/${DUILIB_SYSTEM_PROCESSOR}") 
+endif()
+
 # Remove *.mm
 list(REMOVE_ITEM SRC_FILES ${DUILIB_PROJECT_SRC_DIR}/main_macos.mm)
 
@@ -94,15 +99,32 @@ if(MSVC)
 endif()
 
 # Windows平台所依赖的库
+set(DUILIB_WINDOWS_LIBS Comctl32 Imm32 Opengl32 User32 shlwapi)
+
 if(DUILIB_ENABLE_SDL)
     if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         # Enable SDL support for windows
         target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_SDL=1)
     endif()
+    
+    # 添加SDL依赖的lib
+    list(APPEND DUILIB_WINDOWS_LIBS Version.lib Winmm.lib Setupapi.lib)
+endif()
 
-    set(DUILIB_WINDOWS_LIBS Comctl32 Imm32 Opengl32 User32 shlwapi Version.lib Winmm.lib Setupapi.lib)
-else()
-    set(DUILIB_WINDOWS_LIBS Comctl32 Imm32 Opengl32 User32 shlwapi)
+if(DUILIB_WEBVIEW2_EXE)
+    # 定义宏，开启WebView2功能
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_WEBVIEW2=1)
+    
+    # 复制WebView2Loader.dll到bin目录
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD  # 在目标构建后执行
+                       COMMAND ${CMAKE_COMMAND} -E copy
+                               "${DUILIB_ROOT}/duilib/third_party/Microsoft.Web.WebView2/build/native/${DUILIB_SYSTEM_PROCESSOR}/WebView2Loader.dll"
+                               "$<TARGET_FILE_DIR:${PROJECT_NAME}>/WebView2Loader.dll"
+                       COMMENT "Copying WebView2Loader.dll to runtime directory"
+                      )
+    
+    # 添加WEBVIEW2依赖的lib
+    list(APPEND DUILIB_WINDOWS_LIBS WinInet.lib WebView2Loader.dll.lib)
 endif()
 
 target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS} ${DUILIB_CEF_LIBS} ${DUILIB_WINDOWS_LIBS})

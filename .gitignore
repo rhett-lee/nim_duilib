@@ -350,3 +350,4 @@ healthchecksdb
 /Frameworks
 /bin/cef_cache
 /bin/webview2_cache
+/bin/WebView2Loader.dll

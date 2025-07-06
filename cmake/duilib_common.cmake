@@ -41,6 +41,11 @@ option(DUILIB_ENABLE_CEF "Enable CEF" OFF)
 # CEF 109版本是否开启，默认不开启（CEF109版本兼容Win7系统，其他CEF版本只能运行在Win10及高版本操作系统）
 option(DUILIB_CEF_109 "Enable CEF 109" OFF)
 
+# WebView2控件的二进制
+if(DUILIB_OS_WINDOWS)
+    option(DUILIB_WEBVIEW2_EXE "Is Windows WebView2 exe" OFF)
+endif()
+
 #编译器类型: msvc,gcc,llvm
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     set(DUILIB_COMPILER_MSVC 1)
@@ -227,6 +232,11 @@ if(DUILIB_LOG)
         message(STATUS "DUILIB_CEF_LIBS: ${DUILIB_CEF_LIBS}")
     endif()
     message(STATUS "") 
+    
+    if(DUILIB_OS_WINDOWS)
+        message(STATUS "DUILIB_WEBVIEW2_EXE: ${DUILIB_WEBVIEW2_EXE}") 
+        message(STATUS "") 
+    endif()
     
     message(STATUS "DUILIB_ENABLE_SDL: ${DUILIB_ENABLE_SDL}")
     if(DUILIB_ENABLE_SDL)        

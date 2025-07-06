@@ -130,15 +130,15 @@ public:
 public:
     /** 获取ICoreWebView2Environment接口
     */
-    Microsoft::WRL::ComPtr<ICoreWebView2Environment> GetWebView2Environment() const { return m_spWebView2Environment; }
+    ui::ComPtr<ICoreWebView2Environment> GetWebView2Environment() const { return m_spWebView2Environment; }
 
     /** 获取ICoreWebView2Controller接口
     */
-    Microsoft::WRL::ComPtr<ICoreWebView2Controller> GetWebView2Controller() const { return m_spWebView2Controller; }
+    ui::ComPtr<ICoreWebView2Controller> GetWebView2Controller() const { return m_spWebView2Controller; }
 
     /** 获取ICoreWebView2接口
     */
-    Microsoft::WRL::ComPtr<ICoreWebView2> GetWebView2() const { return m_spWebView2; }
+    ui::ComPtr<ICoreWebView2> GetWebView2() const { return m_spWebView2; }
 
 private:
 
@@ -147,6 +147,8 @@ private:
                                                          PCWSTR userDataFolder,
                                                          ICoreWebView2EnvironmentOptions* environmentOptions,
                                                          ICoreWebView2CreateCoreWebView2EnvironmentCompletedHandler* environmentCreatedHandler);
+
+    ui::ComPtr<ICoreWebView2EnvironmentOptions> CreateCoreWebView2EnvironmentOptionsObj();
 
     HRESULT CreateEnvironmentAsync();
     HRESULT CreateControllerAsync();
@@ -161,9 +163,9 @@ private:
 
 private:
     // COM对象
-    Microsoft::WRL::ComPtr<ICoreWebView2Environment> m_spWebView2Environment;
-    Microsoft::WRL::ComPtr<ICoreWebView2Controller> m_spWebView2Controller;
-    Microsoft::WRL::ComPtr<ICoreWebView2> m_spWebView2;
+    ui::ComPtr<ICoreWebView2Environment> m_spWebView2Environment;
+    ui::ComPtr<ICoreWebView2Controller> m_spWebView2Controller;
+    ui::ComPtr<ICoreWebView2> m_spWebView2;
 
     // 事件令牌
     EventRegistrationToken m_webMessageReceivedToken = {0};

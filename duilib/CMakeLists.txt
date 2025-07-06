@@ -193,6 +193,13 @@ set(LIBRARY_SOURCES
     ${UDIS_SRCS}
 )
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows, WebView2
+    aux_source_directory(${CMAKE_CURRENT_LIST_DIR}/WebView2 WEBVIEW2_CONTROL_SRC)
+    list(APPEND LIBRARY_SOURCES
+        ${WEBVIEW2_CONTROL_SRC}
+    )
+endif()
+
 # Only include CEF sources on supported platforms (Windows, Linux, macOS)
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
     list(APPEND LIBRARY_SOURCES
@@ -220,6 +227,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         # Enable SDL support for windows
         target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_SDL=1)
     endif()
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")  # Windows, WebView2
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_WEBVIEW2=1)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DUILIB_USE_WEBVIEW2_LOADER_DLL=1)
 endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")

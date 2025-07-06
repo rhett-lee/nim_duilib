@@ -1469,6 +1469,12 @@
     <ClInclude Include="duilib_webview2.h">
       <Filter>duilib</Filter>
     </ClInclude>
+    <ClInclude Include="WebView2\ComPtr.h">
+      <Filter>WebView2</Filter>
+    </ClInclude>
+    <ClInclude Include="WebView2\ComCallback.h">
+      <Filter>WebView2</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />

@@ -407,19 +407,19 @@ bool WebView2Control::OpenDevToolsWindow()
     return m_pImpl->OpenDevToolsWindow();
 }
 
-Microsoft::WRL::ComPtr<ICoreWebView2Environment> WebView2Control::GetWebView2Environment() const
+ui::ComPtr<ICoreWebView2Environment> WebView2Control::GetWebView2Environment() const
 {
     return m_pImpl->GetWebView2Environment();
 }
 
-Microsoft::WRL::ComPtr<ICoreWebView2Controller> WebView2Control::GetWebView2Controller() const
+ui::ComPtr<ICoreWebView2Controller> WebView2Control::GetWebView2Controller() const
 {
     return m_pImpl->GetWebView2Controller();
 }
 
 /** 获取ICoreWebView2接口
 */
-Microsoft::WRL::ComPtr<ICoreWebView2> WebView2Control::GetWebView2() const
+ui::ComPtr<ICoreWebView2> WebView2Control::GetWebView2() const
 {
     return m_pImpl->GetWebView2();
 }
