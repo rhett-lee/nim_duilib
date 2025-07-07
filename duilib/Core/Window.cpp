@@ -2041,17 +2041,17 @@ void Window::SetFocusControl(Control* pControl)
     }
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     ControlPtr pOldFocus = m_pFocus;
-    if (m_pFocus != nullptr) {
+    if (pOldFocus != nullptr) {
+        m_pFocus = nullptr;
         //WPARAM 是新的焦点控件接口
         std::weak_ptr<WeakFlag> controlFlag;
         if (pControl != nullptr) {
             controlFlag = pControl->GetWeakFlag();
         }        
-        m_pFocus->SendEvent(kEventKillFocus, (WPARAM)pControl);
+        pOldFocus->SendEvent(kEventKillFocus, (WPARAM)pControl);
         if (windowFlag.expired()) {
             return;
-        }
-        m_pFocus = nullptr;
+        }        
         if ((pControl != nullptr) && controlFlag.expired()){
             //该控件已经销毁
             OnFocusControlChanged();
