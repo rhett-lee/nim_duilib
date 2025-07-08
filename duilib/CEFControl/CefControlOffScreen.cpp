@@ -139,8 +139,10 @@ void CefControlOffScreen::ReCreateBrowser()
 
     // 使用无窗模式，离屏渲染
     CefWindowInfo window_info;
+#if CEF_VERSION_MAJOR > 109
     //该参数必须显示初始化，不能使用默认值
     window_info.runtime_style = CEF_RUNTIME_STYLE_ALLOY;
+#endif
 
 #ifdef DUILIB_BUILD_FOR_WIN
     HWND hWnd = pWindow->NativeWnd()->GetHWND();
