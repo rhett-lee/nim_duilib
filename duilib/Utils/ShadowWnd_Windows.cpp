@@ -84,6 +84,8 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
             break;
         case WM_CLOSE:
             ShowWindow(kSW_HIDE);
+            //关联窗口关闭时，销毁阴影
+            CloseWnd();
             break;
         case WM_SHOWWINDOW:
             if (wParam == 0) {
@@ -101,6 +103,10 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
 
 ShadowWnd::ShadowWnd():
     m_pShadowWnd(nullptr)
+{
+}
+
+ShadowWnd::~ShadowWnd()
 {
 }
 
