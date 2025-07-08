@@ -136,6 +136,10 @@ ShadowWnd::ShadowWnd():
 {
 }
 
+ShadowWnd::~ShadowWnd()
+{
+}
+
 Box* ShadowWnd::AttachShadow(Box* pRoot)
 {
     if (pRoot == nullptr) {

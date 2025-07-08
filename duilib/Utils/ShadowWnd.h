@@ -21,6 +21,7 @@ class ShadowWnd: public WindowImplBase
     typedef WindowImplBase BaseClass;
 public:
     ShadowWnd();
+    virtual ~ShadowWnd() override;
 
 protected:
     /** 附加窗口阴影
