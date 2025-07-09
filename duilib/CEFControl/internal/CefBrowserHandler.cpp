@@ -763,11 +763,18 @@ bool CefBrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
                                        const CefCursorInfo& custom_cursor_info)
 {
 #ifdef DUILIB_BUILD_FOR_WIN
-    if ((m_pWindow != nullptr) && !m_windowFlag.expired()) {
-        SetClassLongPtr(m_pWindow->NativeWnd()->GetHWND(), GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
+    if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
+        //离屏渲染模式：需要设置光标
+        if ((m_pWindow != nullptr) && !m_windowFlag.expired()) {
+            SetClassLongPtr(m_pWindow->NativeWnd()->GetHWND(), GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
+        }
+        ::SetCursor(cursor);
+        return true;
     }
-    ::SetCursor(cursor);
-    return true;
+    else {
+        //非离屏渲染模式：使用默认行为，不需要设置，否则光标异常
+        return false;
+    }
 #else
     return false;
 #endif
