@@ -1612,28 +1612,6 @@ bool NativeWindow_Windows::GetModifiers(UINT message, WPARAM wParam, LPARAM lPar
     return bRet;
 }
 
-INativeWindow* NativeWindow_Windows::WindowBaseFromPoint(const UiPoint& pt)
-{
-    NativeWindow_Windows* pWindow = nullptr;
-    HWND hWnd = ::WindowFromPoint({ pt.x, pt.y });
-    if (::IsWindow(hWnd)) {
-        if (hWnd == m_hWnd) {
-            pWindow = this;
-        }
-        else {
-            pWindow = reinterpret_cast<NativeWindow_Windows*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
-            if ((pWindow != nullptr) && (pWindow->m_hWnd != hWnd)) {
-                pWindow = nullptr;
-            }
-        }
-    }
-    INativeWindow* pNativeWindow = nullptr;
-    if (pWindow != nullptr) {
-        pNativeWindow = pWindow->m_pOwner;
-    }
-    return pNativeWindow;
-}
-
 
 int32_t NativeWindow_Windows::SetWindowHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
 {
@@ -1948,6 +1926,34 @@ LRESULT NativeWindow_Windows::ProcessInternalMessage(UINT uMsg, WPARAM wParam, L
         lResult = CallDefaultWindowProc(uMsg, wParam, lParam);
     }
     return lResult;
+}
+
+INativeWindow* NativeWindow_Windows::WindowBaseFromPoint(const UiPoint& pt)
+{
+    NativeWindow_Windows* pWindow = nullptr;
+    HWND hWnd = ::WindowFromPoint({ pt.x, pt.y });
+    if (::IsWindow(hWnd)) {
+        if (hWnd == m_hWnd) {
+            pWindow = this;
+        }
+        else {
+            pWindow = reinterpret_cast<NativeWindow_Windows*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
+            if (pWindow != nullptr) {
+                if ((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) != pWindow) {
+                    //校验失败：不是duilib的窗口
+                    pWindow = nullptr;
+                }
+                else if (pWindow->m_hWnd != hWnd) {
+                    pWindow = nullptr;
+                }
+            }
+        }
+    }
+    INativeWindow* pNativeWindow = nullptr;
+    if (pWindow != nullptr) {
+        pNativeWindow = pWindow->m_pOwner;
+    }
+    return pNativeWindow;
 }
 
 LRESULT NativeWindow_Windows::OnNcActivateMsg(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/, bool& bHandled)
