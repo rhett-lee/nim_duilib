@@ -12,6 +12,7 @@
 #include "include/core/SkFont.h"
 #include "include/core/SkFontMetrics.h"
 #include "include/core/SkTextBlob.h"
+#include "include/core/SkSpan.h"
 #include "SkiaHeaderEnd.h"
 
 //该文件原始文件的出处：skia/chrome_67/src/utils/SkTextBox.cpp
@@ -801,7 +802,9 @@ public:
                     bool /*hasMoreText*/, bool /*isLastLine*/) override {
         const int count = font.countText(text, length, textEncoding);
         SkTextBlobBuilder::RunBuffer runBuffer = fBuilder.allocRun(font, count, x, y);
-        font.textToGlyphs(text, length, textEncoding, runBuffer.glyphs, count);
+
+        SkSpan<SkGlyphID> glyphsSpan(runBuffer.glyphs, count);
+        font.textToGlyphs(text, length, textEncoding, glyphsSpan);
     }
 };
 
@@ -822,7 +825,8 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
 {
     glyphs.clear();
     glyphs.resize(byteLength, { 0, });
-    int glyphsCount = font.textToGlyphs(text, byteLength, textEncoding, glyphs.data(), (int)glyphs.size());
+    SkSpan<SkGlyphID> glyphsSpan(glyphs.data(), glyphs.size());
+    int glyphsCount = font.textToGlyphs(text, byteLength, textEncoding, glyphsSpan);
     if (glyphsCount <= 0) {
         return false;
     }
@@ -960,7 +964,9 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
 
     std::vector<SkScalar> glyphWidths;
     glyphWidths.resize(glyphs.size(), 0);
-    font.getWidthsBounds(glyphs.data(), (int)glyphs.size(), glyphWidths.data(), nullptr, &paint);
+    font.getWidthsBounds(SkSpan<const SkGlyphID>(glyphs.data(), glyphs.size()),
+                         SkSpan<SkScalar>(glyphWidths.data(), glyphWidths.size()),
+                         SkSpan<SkRect>(), &paint);
 
     size_t breakByteLength = 0;//单位是字节
     SkScalar totalWidth = 0;
@@ -1029,7 +1035,9 @@ size_t SkTextBox::breakText(const void* text, size_t byteLength, SkTextEncoding 
 
     glyphWidths.clear(); //保存每个glyphs字符的宽度
     glyphWidths.resize(glyphs.size(), 0);
-    font.getWidthsBounds(glyphs.data(), (int)glyphs.size(), glyphWidths.data(), nullptr, &paint);
+    font.getWidthsBounds(SkSpan<const SkGlyphID>(glyphs.data(), glyphs.size()),
+                         SkSpan<SkScalar>(glyphWidths.data(), glyphWidths.size()),
+                         SkSpan<SkRect>(), &paint);
 
     if (bWantGlyphData && (width <= maxWidth)) {
         if (glyphCharList != nullptr) {

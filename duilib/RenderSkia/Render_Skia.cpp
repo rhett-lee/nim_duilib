@@ -1300,14 +1300,14 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
     {
         float fValue = GetScaleFloat(1.0f) * fRatio;
         SkScalar intervals[] = { fValue * 1.0f, 0.0f };
-        skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
+        skPathEffect = SkDashPathEffect::Make(SkSpan<const SkScalar>(intervals, 2), 0.0f);
         break;
     }
     case IPen::kDashStyleDash:
     {
         float fValue = GetScaleFloat(5.0f) * fRatio;
         SkScalar intervals[] = { fValue * 1.0f, fValue * 1.0f };
-        skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
+        skPathEffect = SkDashPathEffect::Make(SkSpan<const SkScalar>(intervals, 2), 0.0f);
         break;
     }
     case IPen::kDashStyleDot:
@@ -1315,7 +1315,7 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
         float fValue1 = GetScaleFloat(1.0f) * fRatio;
         float fValue4 = GetScaleFloat(4.0f) * fRatio;
         SkScalar intervals[] = { fValue1 * 1.0f, fValue4 * 1.0f };
-        skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
+        skPathEffect = SkDashPathEffect::Make(SkSpan<const SkScalar>(intervals, 2), 0.0f);
         break;
     }
     case IPen::kDashStyleDashDot:
@@ -1323,7 +1323,7 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
         float fValue1 = GetScaleFloat(1.0f) * fRatio;
         float fValue4 = GetScaleFloat(4.0f) * fRatio;
         SkScalar intervals[] = { fValue4 * 1.0f, fValue1 * 1.0f, fValue1 * 1.0f, fValue1 * 1.0f };
-        skPathEffect = SkDashPathEffect::Make(intervals, 4, 0.0f);
+        skPathEffect = SkDashPathEffect::Make(SkSpan<const SkScalar>(intervals, 4), 0.0f);
         break;
     }
     case IPen::kDashStyleDashDotDot:
@@ -1331,13 +1331,13 @@ void Render_Skia::SetPaintByPen(SkPaint& skPaint, const IPen* pen)
         float fValue1 = GetScaleFloat(1.0f) * fRatio;
         float fValue4 = GetScaleFloat(4.0f) * fRatio;
         SkScalar intervals[] = { fValue4 * 1.0f, fValue1 * 1.0f, fValue1 * 1.0f, fValue1 * 1.0f, fValue1 * 1.0f, fValue1 * 1.0f };
-        skPathEffect = SkDashPathEffect::Make(intervals, 6, 0.0f);
+        skPathEffect = SkDashPathEffect::Make(SkSpan<const SkScalar>(intervals, 6), 0.0f);
         break;
     }
     default:
     {
         SkScalar intervals[] = { 1.0f, 0.0f };
-        skPathEffect = SkDashPathEffect::Make(intervals, 2, 0.0f);
+        skPathEffect = SkDashPathEffect::Make(SkSpan<const SkScalar>(intervals, 2), 0.0f);
         break;
     }
     }

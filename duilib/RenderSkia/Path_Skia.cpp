@@ -165,7 +165,7 @@ void Path_Skia::AddPolygon(const UiPoint* points, int count)
         skPts[i].fX = (float)points[i].x;
         skPts[i].fY = (float)points[i].y;
     }
-    m_skPath->addPoly(skPts, count, false);
+    m_skPath->addPoly(SkSpan<const SkPoint>(skPts, count), false);
     delete[] skPts;
 }
 
@@ -181,7 +181,7 @@ void Path_Skia::AddPolygon(const UiPointF* points, int count)
         skPts[i].fX = points[i].x;
         skPts[i].fY = points[i].y;
     }
-    m_skPath->addPoly(skPts, count, false);
+    m_skPath->addPoly(SkSpan<const SkPoint>(skPts, count), false);
     delete[] skPts;
 }
 
