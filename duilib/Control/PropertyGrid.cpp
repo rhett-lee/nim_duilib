@@ -1154,6 +1154,11 @@ void PropertyGridTextProperty::EnableEditControl(bool bEnable)
         SetPropertyFocus();
         return true;
         });
+    m_pRichEdit->AttachEsc([this](const EventArgs&) {
+        m_pRichEdit->SetText(GetPropertyText());
+        SetPropertyFocus();
+        return true;
+        });
     m_pRichEdit->AttachKillFocus([this](const EventArgs&) {
         ShowEditControl(false);
         return true;
@@ -1225,6 +1230,22 @@ DString PropertyGridTextProperty::GetPropertyNewValue() const
         propertyValue = m_pRichEdit->GetText();
     }
     return propertyValue;
+}
+
+void PropertyGridTextProperty::SetNewTextValue(const DString& newText)
+{
+    if (!IsReadOnly() && (m_pRichEdit != nullptr)) {
+        m_pRichEdit->SetText(newText);
+        bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+        if (IsPasswordMode()) {
+            DString showText;
+            showText.resize(newText.size(), _T('*'));
+            SetPropertyText(showText, bChanged);
+        }
+        else {
+            SetPropertyText(newText, bChanged);
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1865,6 +1886,17 @@ Control* PropertyGridIPAddressProperty::ShowEditControl(bool bShow)
         m_pIPAddress->SetVisible(false);
     }
     return m_pIPAddress;
+}
+
+void PropertyGridIPAddressProperty::SetNewIPAddressValue(const DString& newIP)
+{
+    if (IsReadOnly() || (m_pIPAddress == nullptr)) {
+        return;
+    }
+    m_pIPAddress->SetIPAddress(newIP);
+    DString newText = m_pIPAddress->GetIPAddress();
+    bool bChanged = newText != GetPropertyValue(); //相对原值，是否有修改
+    SetPropertyText(newText, bChanged);
 }
 
 ////////////////////////////////////////////////////////////////////////////

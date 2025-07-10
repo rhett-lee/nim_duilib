@@ -741,6 +741,11 @@ public:
     */
     RichEdit* GetRichEdit() const { return m_pRichEdit; }
 
+    /** 设置新的文本
+    * @param [in] newText 新的文本内容
+    */
+    void SetNewTextValue(const DString& newText);
+
     /** 设置密码模式（显示 ***）
      * @param[in] bPasswordMode 设置为 true 让控件显示内容为 ***，false 为显示正常内容
      */
@@ -1132,6 +1137,11 @@ public:
     /** 获取IP地址控件接口
     */
     IPAddress* GetIPAddress() const { return m_pIPAddress; }
+
+    /** 设置新的IP地址
+    * @param [in] newIP 新的IP地址
+    */
+    void SetNewIPAddressValue(const DString& newIP);
 
 protected:
     /** 设置是否允许存在编辑框控件
