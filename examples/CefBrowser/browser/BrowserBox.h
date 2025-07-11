@@ -136,6 +136,14 @@ protected:
     */
     void OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_video_access, bool has_audio_access);
 
+    /** CefDragHandler接口的事件：开始拖动（回调函数的调用线程：CEF的UI线程）
+    */
+    bool OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask);
+
+    /** CefDragHandler接口的事件：可拖动区域发生变化（回调函数的调用线程：主进程的UI线程）
+    */
+    void OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions);
+
     /** 点击了超级链接，即将弹出新窗口（回调函数的调用线程：CEF的UI线程）
     */
     bool OnBeforePopup(CefRefPtr<CefBrowser> browser,

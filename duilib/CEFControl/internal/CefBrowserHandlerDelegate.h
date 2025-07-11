@@ -149,6 +149,10 @@ public:
                             const CefKeyEvent& event,
                             CefEventHandle os_event) = 0 ;
 
+    //CefDragHandler接口
+    virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask) = 0;
+    virtual void OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions) = 0;
+
 public:
     /** 客户区坐标转换为控件坐标
     */
@@ -220,6 +224,8 @@ enum class CefCallbackID
     OnFileDialog,
     OnPreKeyEvent,
     OnKeyEvent,
+    OnDragEnter,
+    OnDraggableRegionsChanged
 };
 
 }//namespace ui

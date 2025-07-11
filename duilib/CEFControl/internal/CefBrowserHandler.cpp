@@ -791,11 +791,17 @@ void CefBrowserHandler::OnMediaAccessChange(CefRefPtr<CefBrowser> browser,
 
 bool CefBrowserHandler::OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask)
 {
+    if (m_pHandlerDelegate) {
+        return m_pHandlerDelegate->OnDragEnter(browser, dragData, mask);
+    }
     return false;
 }
 
 void CefBrowserHandler::OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions)
 {
+    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnDraggableRegionsChanged)) {
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnDraggableRegionsChanged, m_pHandlerDelegate, browser, frame, regions));
+    }
 }
 
 // CefLoadHandler methods
