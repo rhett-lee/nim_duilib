@@ -712,6 +712,29 @@ void CefControl::OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_vid
     }
 }
 
+bool CefControl::OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask)
+{
+    bool bRet = false;
+    if (m_pfnDragEnter) {
+        bRet = m_pfnDragEnter(browser, dragData, mask);
+    }
+    else if (m_pCefControlEventHandler) {
+        bRet = m_pCefControlEventHandler->OnDragEnter(browser, dragData, mask);
+    }
+    return bRet;
+}
+
+void CefControl::OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions)
+{
+    GlobalManager::Instance().AssertUIThread();
+    if (m_pfnDraggableRegionsChanged) {
+        m_pfnDraggableRegionsChanged(browser, frame, regions);
+    }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnDraggableRegionsChanged(browser, frame, regions);
+    }
+}
+
 void CefControl::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
 {
     GlobalManager::Instance().AssertUIThread();
@@ -1073,6 +1096,8 @@ bool CefControl::IsCallbackExists(CefCallbackID nCallbackID)
     case CefCallbackID::OnDownloadUpdated:          return m_pfnDownloadUpdated != nullptr;
     case CefCallbackID::OnFileDialog:               return m_pfnFileDialog != nullptr;
     case CefCallbackID::OnDocumentAvailableInMainFrame: return m_pfnDocumentAvailableInMainFrame != nullptr;
+    case CefCallbackID::OnDragEnter:                    return m_pfnDragEnter != nullptr;
+    case CefCallbackID::OnDraggableRegionsChanged:      return m_pfnDraggableRegionsChanged != nullptr;
     default:
         break;
     }

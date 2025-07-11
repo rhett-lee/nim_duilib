@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件拖放示例</title>
+    <script>
+        //JS/C++通信的函数
+        const SendDropFilesToBrowser = (files) => {
+            // 调用一个 C++ 已经注册过的方法，将拖放的文件名传给主进程（json格式，网页无法获取到完整路径）
+            NimCefWebInstance.call('OnDropFilesToBrowser', files, (error, result) => {
+                console.log(result)
+            })
+        }
+    </script>
+    <style>
+        .drop-zone {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            width: 400px;
+            margin: 20px auto;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .drop-zone.active {
+            background-color: #e9f5ff;
+            border-color: #2196F3;
+        }
+        
+        .file-list {
+            margin-top: 20px;
+            text-align: left;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: flex-start;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            border-left: 3px solid #2196F3;
+            transition: transform 0.2s;
+        }
+        
+        .file-item:hover {
+            transform: translateX(2px);
+        }
+        
+        .file-icon {
+            margin-right: 10px;
+            color: #2196F3;
+            font-size: 1.5em;
+        }
+        
+        .file-details {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: bold;
+        }
+        
+        .file-path {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+        
+        .file-meta {
+            display: flex;
+            gap: 15px;
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-top: 2px;
+        }
+        
+        .file-content-preview {
+            margin-top: 8px;
+            padding: 8px;
+            background-color: #e9ecef;
+            border-radius: 3px;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            overflow: hidden;
+            max-height: 200px;
+            transition: max-height 0.3s;
+            position: relative;
+        }
+        
+        .file-content-preview.expanded {
+            max-height: none;
+        }
+        
+        .expand-button {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: rgba(233, 236, 239, 0.8);
+            color: #2196F3;
+            border: none;
+            padding: 2px 5px;
+            font-size: 0.8em;
+            cursor: pointer;
+            display: none;
+        }
+        
+        .file-content-preview:hover .expand-button {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>拖放文件到下方区域</h3>
+        
+        <div id="dropZone" class="drop-zone">
+            <i class="file-icon">📁</i>
+            <p>拖放文件到这里</p>
+            <p>或者</p>
+            <button id="browseBtn">选择文件</button>
+            <input type="file" id="fileInput" multiple style="display: none;">
+        </div>
+        
+        <div class="file-list" id="fileList"></div>
+        <button onclick="showFilesInfo()">查看文件信息列表</button>
+        <pre id="filesInfoOutput"></pre>
+    </div>
+
+    <script>
+        // 存储当前拖放的文件信息
+        let droppedFiles = [];
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const browseBtn = document.getElementById('browseBtn');
+        const fileList = document.getElementById('fileList');
+        const filesInfoOutput = document.getElementById('filesInfoOutput');
+
+        // 阻止默认拖放行为
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // 高亮拖放区域
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            dropZone.classList.add('active');
+        }
+
+        function unhighlight() {
+            dropZone.classList.remove('active');
+        }
+
+        // 处理文件拖放
+        dropZone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        // 处理文件选择
+        browseBtn.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', () => {
+            handleFiles(fileInput.files);
+        });
+
+        // 处理文件列表
+        function handleFiles(files) {
+            if (files.length > 0) {
+                // 清空之前的文件信息
+                droppedFiles = [];
+                fileList.innerHTML = '';
+                
+                // 遍历文件并显示
+                Array.from(files).forEach(file => {
+                    const fileId = createUniqueId();
+                    // 存储文件信息
+                    droppedFiles.push({
+                        name: file.name,
+                        size: file.size,
+                        sizeFormatted: formatFileSize(file.size),
+                        type: file.type || '未知',
+                        path: getFileInfo(file)
+                    });
+                    
+                    displayFile(file, fileId);
+                    processFile(file, fileId);
+                });
+                
+                // 显示文件信息已更新
+                console.log('文件信息列表已更新:', getDroppedFilesInfo());
+            }
+            
+            //发送给C++端
+            SendDropFilesToBrowser(getDroppedFilesInfo())
+        }
+
+        // 创建唯一ID
+        function createUniqueId() {
+            return `file-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+        }
+
+        // 获取文件路径信息
+        function getFileInfo(file) {
+            // 尝试获取webkitRelativePath（用于目录选择）
+            let pathInfo = file.webkitRelativePath || '';
+            
+            // 如果没有相对路径，使用文件名
+            if (!pathInfo) {
+                pathInfo = file.name;
+            }
+            
+            return pathInfo;
+        }
+
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const units = ['Bytes', 'KB', 'MB', 'GB'];
+            const unitIndex = Math.floor(Math.log(bytes) / Math.log(1024));
+            const size = parseFloat((bytes / Math.pow(1024, unitIndex)).toFixed(2));
+            
+            return `${size} ${units[unitIndex]}`;
+        }
+
+        // HTML安全转义
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        // 显示文件信息
+        function displayFile(file, fileId) {
+            const fileInfo = getFileInfo(file);
+            
+            const fileItem = document.createElement('div');
+            fileItem.className = 'file-item';
+            fileItem.id = fileId;
+            fileItem.innerHTML = `
+                <i class="file-icon">📄</i>
+                <div class="file-details">
+                    <div class="file-name">${escapeHTML(file.name)}</div>
+                    <div class="file-path">路径: ${escapeHTML(fileInfo)}</div>
+                    <div class="file-meta">
+                        <span>大小: ${formatFileSize(file.size)}</span>
+                        <span>类型: ${escapeHTML(file.type || '未知')}</span>
+                    </div>
+                    <div class="file-content-preview" id="preview-${fileId}">
+                        <i>读取文件内容中...</i>
+                    </div>
+                </div>
+            `;
+            fileList.appendChild(fileItem);
+        }
+
+        // 处理文件（读取内容并显示预览）
+        function processFile(file, fileId) {
+            console.log('处理文件:', file.name);
+            
+            // 对于文本类型文件，读取内容并显示预览
+            const isTextFile = 
+                file.type.startsWith('text/') || 
+                file.name.endsWith('.txt') || 
+                file.name.endsWith('.json') || 
+                file.name.endsWith('.html') || 
+                file.name.endsWith('.js') || 
+                file.name.endsWith('.css') ||
+                file.name.endsWith('.xml') ||
+                file.name.endsWith('.md');
+            
+            const previewElement = document.getElementById(`preview-${fileId}`);
+            
+            if (isTextFile) {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    const content = e.target.result;
+                    
+                    // 为长内容添加展开/折叠功能
+                    const truncatedContent = content.length > 1000 
+                        ? content.substring(0, 1000) + '... [点击展开]' 
+                        : content;
+                    
+                    // 在控制台打印完整内容
+                    console.log('文件完整内容:', content);
+                    
+                    // 在页面上显示预览
+                    if (previewElement) {
+                        previewElement.textContent = truncatedContent;
+                        
+                        // 如果内容被截断，添加展开功能
+                        if (content.length > 1000) {
+                            previewElement.innerHTML += `
+                                <button class="expand-button" onclick="toggleContent('${fileId}')">
+                                    展开
+                                </button>
+                            `;
+                        }
+                    }
+                };
+                
+                reader.onerror = function() {
+                    if (previewElement) {
+                        previewElement.innerHTML = '<span style="color: red;">无法读取文件内容</span>';
+                    }
+                };
+                
+                // 尝试检测文件编码
+                try {
+                    reader.readAsText(file);
+                } catch (e) {
+                    // 默认使用UTF-8
+                    reader.readAsText(file, 'UTF-8');
+                }
+            } else {
+                // 非文本文件显示类型信息
+                if (previewElement) {
+                    previewElement.innerHTML = `
+                        <div style="color: #6c757d;">
+                            <i class="file-icon">📎</i>
+                            非文本文件 (${escapeHTML(file.type || '未知类型')})
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // 展开/折叠内容
+        function toggleContent(fileId) {
+            const previewElement = document.getElementById(`preview-${fileId}`);
+            const button = previewElement.querySelector('.expand-button');
+            
+            if (previewElement.classList.contains('expanded')) {
+                // 折叠内容
+                previewElement.classList.remove('expanded');
+                button.textContent = '展开';
+            } else {
+                // 展开内容
+                previewElement.classList.add('expanded');
+                button.textContent = '折叠';
+            }
+        }
+
+        // 获取拖放的文件信息列表
+        function getDroppedFilesInfo() {
+            return droppedFiles.map(file => ({
+                name: file.name,
+                size: file.size
+            }));
+        }
+
+        // 显示文件信息列表（用于测试）
+        function showFilesInfo() {
+            const filesInfo = getDroppedFilesInfo();
+            filesInfoOutput.textContent = JSON.stringify(filesInfo, null, 2);
+        }
+    </script>
+</body>
+</html>

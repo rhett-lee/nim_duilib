@@ -243,6 +243,16 @@ public:
     */
     void AttachMediaAccessChange(OnMediaAccessChangeEvent callback) { m_pfnMediaAccessChange = callback; }
 
+    /** 绑定一个回调函数用于监听页面的拖动操作（回调函数的调用线程：CEF的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnDragEnterEvent 声明
+    */
+    void AttachDragEnter(OnDragEnterEvent callback) { m_pfnDragEnter = callback; }
+
+    /** 绑定一个回调函数用于监听页面的可拖动区域变化（回调函数的调用线程：主线程的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnDraggableRegionsChangedEvent 声明
+    */
+    void AttachDraggableRegionsChanged(OnDraggableRegionsChangedEvent callback) { m_pfnDraggableRegionsChanged = callback; }
+
     /** 绑定一个回调函数用于监听一个弹出窗口弹出的通知（回调函数的调用线程：CEF的UI线程）
     * @param [in] callback 一个回调函数，参考 OnBeforePopupEvent 声明
     */
@@ -416,6 +426,10 @@ protected:
     virtual void OnStatusMessage(CefRefPtr<CefBrowser> browser, const DString& value) override;
     virtual void OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress) override;
     virtual void OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_video_access, bool has_audio_access) override;
+
+    //CefDragHandler接口的实现
+    virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask) override;
+    virtual void OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions) override;
 
     //CefLoadHandler接口
     virtual void OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward) override;
@@ -621,6 +635,8 @@ private:
     OnDevToolAttachedStateChangeEvent   m_pfnDevToolVisibleChange = nullptr;
     OnDocumentAvailableInMainFrameEvent m_pfnDocumentAvailableInMainFrame = nullptr;
     OnDownloadFavIconFinishedEvent      m_pfnDownloadFavIconFinished = nullptr;
+    OnDragEnterEvent                    m_pfnDragEnter = nullptr;
+    OnDraggableRegionsChangedEvent      m_pfnDraggableRegionsChanged = nullptr;
 
     /** CEF控件的事件回调接口
     */
