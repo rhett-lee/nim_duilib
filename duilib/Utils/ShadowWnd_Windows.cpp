@@ -62,10 +62,12 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
         case WM_ERASEBKGND:
         case WM_PAINT:
         case WM_MOVE:
+        case WM_MOVING:
         case WM_SIZE:
         case WM_SIZING:
         case WM_WINDOWPOSCHANGING:
         case WM_WINDOWPOSCHANGED:
+        case WM_CAPTURECHANGED:
         case WM_ACTIVATE:
         case WM_NCACTIVATE:
             if ((uMsg != WM_PAINT) || ((uMsg == WM_PAINT) && !m_isFirstPainted)) {
@@ -96,6 +98,16 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
             }
             break;
         default:
+            if (m_pWindow->IsWindowVisible()) {
+                if (::GetWindow(m_pWindow->NativeWnd()->GetHWND(), GW_HWNDNEXT) != NativeWnd()->GetHWND()) {
+                    UiRect rc;
+                    m_pWindow->GetWindowRect(rc);
+                    UiPadding rcShadow;
+                    GetCurrentShadowCorner(rcShadow);
+                    rc.Inflate(rcShadow);
+                    SetWindowPos(InsertAfterWnd(m_pWindow), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_SHOWWINDOW | kSWP_NOACTIVATE);
+                }                
+            }            
             break;
     }
     return 0;
