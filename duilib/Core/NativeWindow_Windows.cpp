@@ -36,6 +36,7 @@ static bool UiIsWindows11OrGreater()
 NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_pOwner(pOwner),
     m_hWnd(nullptr),
+    m_hParentWnd(nullptr),
     m_hResModule(nullptr),
     m_hDcPaint(nullptr),
     m_bIsLayeredWindow(false),
@@ -141,7 +142,8 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
     }
 
     //父窗口句柄
-    HWND hParentWnd = pParentWindow != nullptr ? pParentWindow->GetHWND() : nullptr;
+    m_hParentWnd = pParentWindow != nullptr ? pParentWindow->GetHWND() : nullptr;
+
     //窗口标题
     DString windowTitle = StringConvert::TToLocal(m_createParam.m_windowTitle);
     HWND hWnd = ::CreateWindowEx(m_createParam.m_dwExStyle,
@@ -149,7 +151,7 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
                                  windowTitle.c_str(),
                                  m_createParam.m_dwStyle,
                                  m_createParam.m_nX, m_createParam.m_nY, m_createParam.m_nWidth, m_createParam.m_nHeight,
-                                 hParentWnd, nullptr, GetResModuleHandle(), this);
+                                 m_hParentWnd, nullptr, GetResModuleHandle(), this);
     ASSERT(::IsWindow(hWnd));
     ASSERT(hWnd == m_hWnd);
     if (hWnd != m_hWnd) {
@@ -157,6 +159,7 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
     }
     ASSERT(m_hWnd != nullptr);
     if (m_hWnd == nullptr) {
+        m_hParentWnd = nullptr;
         return false;
     }
     return (m_hWnd != nullptr);
@@ -800,6 +803,11 @@ void NativeWindow_Windows::CenterWindow()
     }
     ASSERT((::GetWindowLong(m_hWnd, GWL_STYLE) & WS_CHILD) == 0);
     HWND hCenterWindow = ::GetParent(m_hWnd);
+    if (hCenterWindow == nullptr) {
+        if ((m_hParentWnd != nullptr) && ::IsWindow(m_hParentWnd)) {
+            hCenterWindow = m_hParentWnd;
+        }
+    }
     int32_t xPos = 0;
     int32_t yPos = 0;
     if (CalculateCenterWindowPos(hCenterWindow, xPos, yPos)) {
@@ -809,6 +817,9 @@ void NativeWindow_Windows::CenterWindow()
 
 bool NativeWindow_Windows::CalculateCenterWindowPos(HWND hCenterWindow, int32_t& xPos, int32_t& yPos) const
 {
+    if (!::IsWindow(hCenterWindow)) {
+        hCenterWindow = nullptr;
+    }
     //当前窗口的宽度和高度
     int32_t nWindowWidth = 0;
     int32_t nWindowHeight = 0;
