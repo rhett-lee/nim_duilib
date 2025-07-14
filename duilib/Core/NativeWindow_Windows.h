@@ -618,6 +618,10 @@ private:
     */
     HWND m_hWnd;
 
+    /** 创建时指定的父窗口
+    */
+    HWND m_hParentWnd;
+
     /** 资源模块句柄
     */
     HMODULE m_hResModule;
