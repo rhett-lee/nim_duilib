@@ -11,6 +11,8 @@ SkRasterWindowContext_Windows::SkRasterWindowContext_Windows(HWND hWnd, std::uni
     m_hWnd(hWnd),
     m_hBitmap(nullptr)
 {
+    fWidth = 0;
+    fHeight = 0;
     if (m_hWnd != nullptr) {
         SkASSERT(::IsWindow(m_hWnd));
         if (!::IsWindow(m_hWnd)) {
@@ -21,10 +23,6 @@ SkRasterWindowContext_Windows::SkRasterWindowContext_Windows(HWND hWnd, std::uni
         RECT rect{ 0, };
         ::GetClientRect(m_hWnd, &rect);
         this->resize(rect.right - rect.left, rect.bottom - rect.top);
-    }
-    else {
-        fWidth = 0;
-        fHeight = 0;
     }
 }
 
@@ -53,6 +51,10 @@ void SkRasterWindowContext_Windows::resize(int nWidth, int nHeight)
         nHeight = 0;
     }
     if ((fWidth == nWidth) && (fHeight == nHeight)) {
+        if ((fWidth > 0) && (fHeight > 0)){
+            ASSERT(m_fBackbufferSurface != nullptr);
+            ASSERT(m_hBitmap != nullptr);
+        }
         return;
     }
     const skwindow::DisplayParams* pDisplayParams = getDisplayParams();
@@ -78,16 +80,30 @@ void SkRasterWindowContext_Windows::resize(int nWidth, int nHeight)
     HBITMAP hBitmap = CreateHBitmap(nWidth, nHeight, true, &pixels);
     ASSERT(hBitmap != nullptr);
     if (hBitmap == nullptr) {
+        fWidth = 0;
+        fHeight = 0;
         return;
     }
     ASSERT(pixels != nullptr);
     if (pixels == nullptr) {
         ::DeleteObject(hBitmap);
+        fWidth = 0;
+        fHeight = 0;
         return;
     }
     m_hBitmap = hBitmap;
     SkImageInfo info = SkImageInfo::Make(nWidth, nHeight, pDisplayParams->colorType(), SkAlphaType::kPremul_SkAlphaType, pDisplayParams->colorSpace());
     m_fBackbufferSurface = SkSurfaces::WrapPixels(info, pixels, sizeof(uint32_t) * nWidth);
+    ASSERT(m_fBackbufferSurface != nullptr);
+    if (m_fBackbufferSurface == nullptr) {
+        if (m_hBitmap != nullptr) {
+            ::DeleteObject(m_hBitmap);
+            m_hBitmap = nullptr;
+        }
+        fWidth = 0;
+        fHeight = 0;
+        return;
+    }
 }
 
 sk_sp<SkSurface> SkRasterWindowContext_Windows::getBackbufferSurface()

@@ -48,10 +48,14 @@ void SkRasterWindowContext_SDL::resize(int nWidth, int nHeight)
         nHeight = 0;
     }
     if ((fWidth == nWidth) && (fHeight == nHeight)) {
+        if ((fWidth > 0) && (fHeight > 0)) {
+            SkASSERT(m_fSurfaceMemory != nullptr);
+            SkASSERT(m_fBackbufferSurface != nullptr);
+        }
         return;
     }
     const skwindow::DisplayParams* pDisplayParams = getDisplayParams();
-    ASSERT(pDisplayParams != nullptr);
+    SkASSERT(pDisplayParams != nullptr);
     if (pDisplayParams == nullptr) {
         return;
     }
@@ -69,8 +73,11 @@ void SkRasterWindowContext_SDL::resize(int nWidth, int nHeight)
 
     m_fSurfaceMemory.reset(nWidth * nHeight * sizeof(uint32_t));
     void* pixels = m_fSurfaceMemory.get();
-    ASSERT(pixels != nullptr);
+    SkASSERT(pixels != nullptr);
     if (pixels == nullptr) {
+        m_fSurfaceMemory.reset();
+        fWidth = 0;
+        fHeight = 0;
         return;
     }
 
@@ -80,6 +87,13 @@ void SkRasterWindowContext_SDL::resize(int nWidth, int nHeight)
     if (m_sdlTextrue != nullptr) {
         SDL_DestroyTexture(m_sdlTextrue);
         m_sdlTextrue = nullptr;
+    }
+
+    if (m_fBackbufferSurface == nullptr) {
+        m_fSurfaceMemory.reset();
+        fWidth = 0;
+        fHeight = 0;
+        return;
     }
 }
 
