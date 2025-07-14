@@ -27,8 +27,9 @@ set(DUILIB_SKIA_LIBS libsvg.a libskia.a libskshaper.a)
 
 find_package(Freetype REQUIRED)
 find_package(Fontconfig REQUIRED)
+find_package(X11 REQUIRED)
 
 # FreeBSD平台所依赖的库
-target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS}  ${DUILIB_FREEBSD_LIBS} Freetype::Freetype Fontconfig::Fontconfig)
+target_link_libraries(${PROJECT_NAME} ${DUILIB_LIBS} ${DUILIB_SDL_LIBS} ${DUILIB_SKIA_LIBS}  ${DUILIB_FREEBSD_LIBS} ${X11_LIBRARIES} Freetype::Freetype Fontconfig::Fontconfig)
 
 

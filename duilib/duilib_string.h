@@ -54,6 +54,9 @@ typedef char DUTF8Char;
 #if defined(WCHAR_T_IS_UTF16)
     typedef wchar_t DUTF16Char;
     typedef int32_t DUTF32Char;
+#elif defined(__FreeBSD__) && defined(__aarch64__)
+    typedef char16_t DUTF16Char;
+    typedef wchar_t DUTF32Char;
 #else
     typedef int16_t DUTF16Char;
     typedef wchar_t DUTF32Char;
