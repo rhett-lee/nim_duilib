@@ -20,6 +20,7 @@ public:
 
     virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) override;
     bool Create(Window* window);
+    bool UpdateShadowPos(bool bCheckZOrder);
 private:
     Window* m_pWindow;
     //标记被跟随的窗口是否完成首次绘制
@@ -46,7 +47,7 @@ bool ShadowWndBase::Create(Window* window)
 {
     m_pWindow = window;
     WindowCreateParam createParam;
-    createParam.m_dwExStyle = kWS_EX_TRANSPARENT | kWS_EX_LAYERED | kWS_EX_TOOLWINDOW;
+    createParam.m_dwExStyle = kWS_EX_TRANSPARENT | kWS_EX_LAYERED | kWS_EX_TOOLWINDOW | kWS_EX_NOACTIVATE;
     createParam.m_className = _T("ShadowWnd");
     return Window::CreateWnd(nullptr, createParam);
 }
@@ -59,8 +60,7 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
     }
     switch (uMsg)
     {
-        case WM_ERASEBKGND:
-        case WM_PAINT:
+        case WM_ERASEBKGND:        
         case WM_MOVE:
         case WM_MOVING:
         case WM_SIZE:
@@ -70,19 +70,17 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
         case WM_CAPTURECHANGED:
         case WM_ACTIVATE:
         case WM_NCACTIVATE:
-            if ((uMsg != WM_PAINT) || ((uMsg == WM_PAINT) && !m_isFirstPainted)) {
-                if (m_pWindow->IsWindowVisible()) {
-                    UiRect rc;
-                    m_pWindow->GetWindowRect(rc);
-                    UiPadding rcShadow;
-                    GetCurrentShadowCorner(rcShadow);
-                    rc.Inflate(rcShadow);
-                    SetWindowPos(InsertAfterWnd(m_pWindow), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_SHOWWINDOW | kSWP_NOACTIVATE);
-                    if (uMsg == WM_PAINT) {
-                        m_isFirstPainted = true;
-                    }
+            UpdateShadowPos(false);
+            break;
+        case WM_PAINT:
+            if (!m_isFirstPainted) {
+                if (UpdateShadowPos(false)) {
+                    m_isFirstPainted = true;
                 }
-            }            
+            }
+            else {
+                UpdateShadowPos(true);
+            }
             break;
         case WM_CLOSE:
             ShowWindow(kSW_HIDE);
@@ -95,22 +93,38 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
             }
             else {
                 ShowWindow(kSW_SHOW_NA);
+                UpdateShadowPos(false);
             }
             break;
         default:
-            if (m_pWindow->IsWindowVisible()) {
-                if (::GetWindow(m_pWindow->NativeWnd()->GetHWND(), GW_HWNDNEXT) != NativeWnd()->GetHWND()) {
-                    UiRect rc;
-                    m_pWindow->GetWindowRect(rc);
-                    UiPadding rcShadow;
-                    GetCurrentShadowCorner(rcShadow);
-                    rc.Inflate(rcShadow);
-                    SetWindowPos(InsertAfterWnd(m_pWindow), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_SHOWWINDOW | kSWP_NOACTIVATE);
-                }                
-            }            
+            UpdateShadowPos(true);
             break;
     }
     return 0;
+}
+
+bool ShadowWndBase::UpdateShadowPos(bool bCheckZOrder)
+{
+    if ((m_pWindow == nullptr) || !m_pWindow->IsWindow() || !m_pWindow->IsWindowVisible()) {
+        return false;
+    }
+    if (bCheckZOrder) {
+        if (::GetWindow(m_pWindow->NativeWnd()->GetHWND(), GW_HWNDNEXT) == NativeWnd()->GetHWND()) {
+            return true;
+        }
+    }
+
+    UiRect rc;
+    m_pWindow->GetWindowRect(rc);
+    UiPadding rcShadow;
+    GetCurrentShadowCorner(rcShadow);
+    rc.Inflate(rcShadow);
+    uint32_t uFlags = kSWP_NOACTIVATE;
+    if (!IsWindowVisible()) {
+        uFlags |= kSWP_SHOWWINDOW;
+    }
+    SetWindowPos(InsertAfterWnd(m_pWindow), rc.left, rc.top, rc.Width(), rc.Height(), uFlags);
+    return true;
 }
 
 ShadowWnd::ShadowWnd():
