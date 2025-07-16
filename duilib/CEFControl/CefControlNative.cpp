@@ -177,6 +177,7 @@ void CefControlNative::SetWindow(ui::Window* pWindow)
 
     if (m_pBrowserHandler) {
         m_pBrowserHandler->SetHostWindow(pWindow);
+        m_pBrowserHandler->SetHandlerDelegate(this);
     }
 
     //更新页面子窗口的父窗口

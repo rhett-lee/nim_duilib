@@ -612,9 +612,6 @@
     <ClCompile Include="CEFControl\internal\CefMemoryBlock.cpp">
       <Filter>CEFControl\internal</Filter>
     </ClCompile>
-    <ClCompile Include="CEFControl\CefDragDrop_Windows.cpp">
-      <Filter>CEFControl\Windows</Filter>
-    </ClCompile>
     <ClCompile Include="CEFControl\internal\Windows\bytes_write_handler.cc">
       <Filter>CEFControl\internal\Windows</Filter>
     </ClCompile>
@@ -707,6 +704,9 @@
     </ClCompile>
     <ClCompile Include="WebView2\WebView2EnvironmentOptions.cpp">
       <Filter>WebView2</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\Windows\CefOsrDropTarget.cpp">
+      <Filter>CEFControl\internal\Windows</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1346,9 +1346,6 @@
     <ClInclude Include="CEFControl\internal\CefMemoryBlock.h">
       <Filter>CEFControl\internal</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\CefDragDrop_Windows.h">
-      <Filter>CEFControl\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="CEFControl\internal\Windows\bytes_write_handler.h">
       <Filter>CEFControl\internal\Windows</Filter>
     </ClInclude>
@@ -1480,6 +1477,9 @@
     </ClInclude>
     <ClInclude Include="WebView2\WebView2EnvironmentOptions.h">
       <Filter>WebView2</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\Windows\CefOsrDropTarget.h">
+      <Filter>CEFControl\internal\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

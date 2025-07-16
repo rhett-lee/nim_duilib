@@ -23,7 +23,10 @@ void ControlDropTarget::SetControl(Control* pControl)
 
 Control* ControlDropTarget::GetControl() const
 {
-    return m_pControl;
+    if (m_pControl != nullptr) {
+        return m_pControl.get();
+    }
+    return nullptr;
 }
 
 bool ControlDropTarget::ContainsPt(const UiPoint& screenPt) const

@@ -244,7 +244,6 @@
     <ClCompile Include="CEFControl\CefControl.cpp" />
     <ClCompile Include="CEFControl\CefControlNative.cpp" />
     <ClCompile Include="CEFControl\CefControlOffScreen.cpp" />
-    <ClCompile Include="CEFControl\CefDragDrop_Windows.cpp" />
     <ClCompile Include="CEFControl\CefManager.cpp" />
     <ClCompile Include="CEFControl\CefManager_Windows.cpp" />
     <ClCompile Include="CEFControl\CefWindowUtils_Windows.cpp" />
@@ -256,6 +255,7 @@
     <ClCompile Include="CEFControl\internal\CefJsHandler.cpp" />
     <ClCompile Include="CEFControl\internal\CefMemoryBlock.cpp" />
     <ClCompile Include="CEFControl\internal\Windows\bytes_write_handler.cc" />
+    <ClCompile Include="CEFControl\internal\Windows\CefOsrDropTarget.cpp" />
     <ClCompile Include="CEFControl\internal\Windows\osr_dragdrop_win.cc" />
     <ClCompile Include="CEFControl\internal\Windows\osr_ime_handler_win.cc" />
     <ClCompile Include="CEFControl\internal\Windows\util_win.cc" />
@@ -493,7 +493,6 @@
     <ClInclude Include="CEFControl\CefControlEvent.h" />
     <ClInclude Include="CEFControl\CefControlNative.h" />
     <ClInclude Include="CEFControl\CefControlOffScreen.h" />
-    <ClInclude Include="CEFControl\CefDragDrop_Windows.h" />
     <ClInclude Include="CEFControl\CefManager.h" />
     <ClInclude Include="CEFControl\CefManager_Windows.h" />
     <ClInclude Include="CEFControl\CefWindowUtils.h" />
@@ -507,6 +506,7 @@
     <ClInclude Include="CEFControl\internal\CefMemoryBlock.h" />
     <ClInclude Include="CEFControl\internal\osr_dragdrop_events.h" />
     <ClInclude Include="CEFControl\internal\Windows\bytes_write_handler.h" />
+    <ClInclude Include="CEFControl\internal\Windows\CefOsrDropTarget.h" />
     <ClInclude Include="CEFControl\internal\Windows\osr_dragdrop_win.h" />
     <ClInclude Include="CEFControl\internal\Windows\osr_ime_handler_win.h" />
     <ClInclude Include="CEFControl\internal\Windows\util_win.h" />

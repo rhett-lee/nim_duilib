@@ -214,6 +214,7 @@ void CefControlOffScreen::SetWindow(Window* pWindow)
     BaseClass::SetWindow(pWindow);
     if (m_pBrowserHandler) {
         m_pBrowserHandler->SetHostWindow(pWindow);
+        m_pBrowserHandler->SetHandlerDelegate(this);
     }    
 }
 

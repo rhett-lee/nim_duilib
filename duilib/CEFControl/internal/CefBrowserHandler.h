@@ -21,18 +21,16 @@
 #include "duilib/Core/Window.h"
 #include <mutex>
 
-#ifdef DUILIB_BUILD_FOR_WIN
-
-//Windows平台的DropTarget实现
-namespace client {
-    class DropTargetWin;
-}
-
-#endif
-
 namespace ui
 {
 class CefBrowserHandlerDelegate;
+
+#ifdef DUILIB_BUILD_FOR_WIN
+
+//Windows平台的DropTarget实现
+class CefOsrDropTarget;
+
+#endif
 
 //实现CefClient接口，处理Cef浏览器对象发出的各个事件和消息，并与上层控件进行数据交互
 class CefBrowserHandler : public virtual ui::SupportWeakCallback,
@@ -63,7 +61,7 @@ public:
 
     // 设置委托类指针，浏览器对象的一些事件会交给此指针对象来处理
     // 当指针所指的对象不需要处理事件时，应该给参数传入nullptr
-    void SetHandlerDelegate(CefBrowserHandlerDelegate* handler){ m_pHandlerDelegate = handler; }
+    void SetHandlerDelegate(CefBrowserHandlerDelegate* handler);
 
     // 设置Cef渲染内容的大小
     void SetViewRect(const UiRect& rc);
@@ -416,6 +414,16 @@ private:
                          CefRefPtr<CefDictionaryValue>& extra_info,
                          bool* no_javascript_access);
 
+    void DoDragDrop(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y);
+
+    /** 注册DragDrop接口
+    */
+    void RegisterDropTarget();
+
+    /** 注销DragDrop接口
+    */
+    void UnregisterDropTarget();
+
 private:
     /** 数据多线程同步锁
     */
@@ -433,7 +441,7 @@ private:
     CefRenderHandler::DragOperation m_currentDragOperation;
 
 #ifdef DUILIB_BUILD_FOR_WIN
-    std::shared_ptr<client::DropTargetWin> m_dropTarget;
+    std::shared_ptr<CefOsrDropTarget> m_pDropTarget;
 #endif
 
     IMPLEMENT_REFCOUNTING(CefBrowserHandler);

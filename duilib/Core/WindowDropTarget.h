@@ -2,6 +2,7 @@
 #define UI_CORE_WINDOW_DROP_TARGET_H_
 
 #include "duilib/Core/UiTypes.h"
+#include "duilib/Core/ControlPtrT.h"
 
 namespace ui 
 {
@@ -45,7 +46,7 @@ private:
 
     /** 注册的控件列表
     */
-    std::vector<ControlDropTarget*> m_dropTargets;
+    std::vector<ControlPtrT<ControlDropTarget>> m_dropTargets;
 
     /** DropTarget 的实现接口
     */

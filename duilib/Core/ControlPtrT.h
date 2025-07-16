@@ -11,7 +11,11 @@ template<typename T>
 class UILIB_API ControlPtrT
 {
 public:
-    explicit ControlPtrT(T* pControl):
+    explicit ControlPtrT(std::nullptr_t):
+        m_pControl(nullptr)
+    {
+    }
+    explicit ControlPtrT(T* pControl) :
         m_pControl(pControl)
     {
         if (pControl != nullptr) {
@@ -47,6 +51,13 @@ public:
 
     /** 赋值运算符
     */
+    ControlPtrT& operator = (std::nullptr_t)
+    {
+        m_pControl = nullptr;
+        m_weak_flag.reset();
+        return *this;
+    }
+
     ControlPtrT& operator = (T* pControl)
     {
         m_pControl = pControl;
@@ -98,6 +109,11 @@ public:
 
     /** 比较操作符
     */
+    bool operator == (std::nullptr_t) const
+    {
+        return get() == nullptr;
+    }
+
     bool operator == (T* pControl) const
     {
         return get() == pControl;
@@ -112,6 +128,11 @@ public:
 
     /** 比较操作符
     */
+    bool operator != (std::nullptr_t) const
+    {
+        return get() != nullptr;
+    }
+
     bool operator != (T* pControl) const
     {
         return get() != pControl;
@@ -126,12 +147,20 @@ public:
 
     /** 比较操作符(全局)
     */
+    friend inline bool operator == (std::nullptr_t, const ControlPtrT<T>& r) {
+        return r.get() == nullptr;
+    }
+
     friend inline bool operator == (T* pControl, const ControlPtrT<T>& r) {
         return r.get() == pControl;
     }
 
     /** 比较操作符(全局)
     */
+    friend inline bool operator != (std::nullptr_t, const ControlPtrT<T>& r) {
+        return r.get() != nullptr;
+    }
+
     friend inline bool operator != (T* pControl, const ControlPtrT<T>& r) {
         return r.get() != pControl;
     }

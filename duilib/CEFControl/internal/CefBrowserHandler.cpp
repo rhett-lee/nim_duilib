@@ -5,11 +5,13 @@
 #include "duilib/CEFControl/internal/CefBrowserHandlerDelegate.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
-    #include "duilib/CEFControl/CefDragDrop_Windows.h"
     #include "duilib/CEFControl/internal/Windows/osr_dragdrop_win.h"
+    #include "duilib/CEFControl/internal/Windows/CefOsrDropTarget.h"
 #endif
 
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Control.h"
+#include "duilib/Core/Window.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100 4324)
@@ -33,6 +35,57 @@ void CefBrowserHandler::SetHostWindow(ui::Window* window)
     if (window != nullptr) {
         m_windowFlag = window->GetWeakFlag();
     }
+}
+
+void CefBrowserHandler::SetHandlerDelegate(CefBrowserHandlerDelegate* handler)
+{
+    if (m_pHandlerDelegate != nullptr) {
+        //注销DragDrop接口
+        UnregisterDropTarget();
+    }
+    m_pHandlerDelegate = handler;
+    if (m_pHandlerDelegate != nullptr) {
+        //注册DragDrop接口
+        RegisterDropTarget();
+    }
+}
+
+void CefBrowserHandler::RegisterDropTarget()
+{
+#ifdef DUILIB_BUILD_FOR_WIN
+    if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
+        //离屏渲染模式
+        if ((m_pHandlerDelegate != nullptr) && (m_pDropTarget == nullptr)) {
+            HWND hWnd = nullptr;
+            Control* pCefControl = m_pHandlerDelegate->GetCefControl();
+            if ((pCefControl != nullptr) && (pCefControl->GetWindow() != nullptr)) {
+                hWnd = pCefControl->GetWindow()->NativeWnd()->GetHWND();
+                ASSERT(::IsWindow(hWnd));
+                if (::IsWindow(hWnd)) {
+                    std::shared_ptr<client::DropTargetWin> pDropTargetWin = std::make_shared<client::DropTargetWin>(hWnd, this);
+                    m_pDropTarget = std::make_shared<CefOsrDropTarget>(pDropTargetWin, pCefControl);
+                    pCefControl->GetWindow()->RegisterDragDrop(m_pDropTarget.get());
+                }
+            }
+        }
+    }
+#endif
+}
+
+void CefBrowserHandler::UnregisterDropTarget()
+{
+#ifdef DUILIB_BUILD_FOR_WIN
+    if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
+        //离屏渲染模式
+        if ((m_pHandlerDelegate != nullptr) && (m_pDropTarget != nullptr)) {
+            Control* pCefControl = m_pHandlerDelegate->GetCefControl();
+            if ((pCefControl != nullptr) && (pCefControl->GetWindow() != nullptr)) {
+                pCefControl->GetWindow()->UnregisterDragDrop(m_pDropTarget.get());
+            }
+        }
+        m_pDropTarget.reset();
+    }
+#endif
 }
 
 void CefBrowserHandler::SetViewRect(const UiRect& rc)
@@ -265,24 +318,6 @@ void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
             m_pHandlerDelegate->OnAfterCreated(browser);
         }
     }));
-
-    // 必须在cef ui线程调用RegisterDragDrop
-    // 执行::DoDragDrop时，会在调用RegisterDragDrop的线程触发的DragOver、DragLeave、Drop、Drop回调
-    // 进而调用browser_->GetHost()->DragTargetDragEnter、DragTargetDragOver、DragTargetDragLeave、DragTargetDrop
-    // 这几个cef接口内部发现不在cef ui线程触发，则会转发到cef ui线程
-    // 导致DragSourceEndedAt接口被调用时有部分DragTarget*方法没有被调用
-    // 最终拖拽效果就会有问题，详见DragSourceEndedAt接口描述
-    // 所以在cef ui线程调用RegisterDragDrop，让后面一系列操作都在cef ui线程里同步执行，则没问题
-    //
-    // RegisterDragDrop内部会在调用这个API的线程里创建一个窗口，用过这个窗口来做消息循环模拟阻塞的过程
-    // 所以哪个线程调用RegisterDragDrop，就会在哪个线程阻塞并触发IDragTarget回调
-    // 见https://docs.microsoft.com/zh-cn/windows/win32/api/ole2/nf-ole2-registerdragdrop
-
-#ifdef DUILIB_BUILD_FOR_WIN
-    if ((m_pWindow != nullptr) && !m_windowFlag.expired()) {
-        m_dropTarget = CefDragDrop::GetInstance().GetDropTarget(m_pWindow->NativeWnd()->GetHWND());
-    }
-#endif
 }
 
 bool CefBrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
@@ -535,36 +570,61 @@ void CefBrowserHandler::OnVirtualKeyboardRequested(CefRefPtr<CefBrowser> browser
 {
 }
 
-bool CefBrowserHandler::StartDragging(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y)
+bool CefBrowserHandler::StartDragging(CefRefPtr<CefBrowser> browser,
+                                      CefRefPtr<CefDragData> drag_data,
+                                      CefRenderHandler::DragOperationsMask allowed_ops,
+                                      int x,
+                                      int y)
 {
-#ifdef DUILIB_BUILD_FOR_WIN
     ASSERT(CefCurrentlyOn(TID_UI));
+    //函数功能：网页内部的拖拽开始（只有离屏渲染模式才会调用该接口）
+    if (!CefManager::GetInstance()->IsEnableOffScreenRendering()) {
+        return false;
+    }
+#ifdef DUILIB_BUILD_FOR_WIN
     if (!m_pHandlerDelegate) {
         return false;
     }
 
-    if (!m_dropTarget) {
-        return false;
-    }
     if ((browser == nullptr) || (browser->GetHost() == nullptr)) {
         return false;
     }
+    
+    //转到UI线程，执行DoDragDrop操作
+    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandler::DoDragDrop, this, browser, drag_data, allowed_ops, x, y));
+    return true;
+#else
+    return false;
+#endif
+}
 
-    m_currentDragOperation = DRAG_OPERATION_NONE;
-    CefBrowserHost::DragOperationsMask result = m_dropTarget->StartDragging(this, drag_data, allowed_ops, x, y);
-    m_currentDragOperation = DRAG_OPERATION_NONE;
+void CefBrowserHandler::DoDragDrop(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y)
+{
+    if (!m_pHandlerDelegate) {
+        return;
+    }
+
+    if ((browser == nullptr) || (browser->GetHost() == nullptr)) {
+        return;
+    }
+
+    if ((m_pWindow == nullptr) || m_windowFlag.expired()) {
+        return;
+    }
+
+    CefBrowserHost::DragOperationsMask result = client::OsrStartDragging(drag_data, allowed_ops, x, y);
     UiPoint pt = {};
     if ((m_pWindow != nullptr) && !m_windowFlag.expired()) {
         m_pWindow->GetCursorPos(pt);
         m_pWindow->ScreenToClient(pt);
     }
-    m_pHandlerDelegate->ClientToControl(pt);
-    browser->GetHost()->DragSourceEndedAt(pt.x, pt.y, result);
-    browser->GetHost()->DragSourceSystemDragEnded();
-    return true;
-#else
-    return false;
-#endif
+    if (m_pHandlerDelegate != nullptr) {
+        m_pHandlerDelegate->ClientToControl(pt);
+    }
+    if (browser->GetHost() != nullptr) {
+        browser->GetHost()->DragSourceEndedAt(pt.x, pt.y, result);
+        browser->GetHost()->DragSourceSystemDragEnded();
+    }
 }
 
 void CefBrowserHandler::UpdateDragCursor(CefRefPtr<CefBrowser> browser, CefRenderHandler::DragOperation operation)
@@ -575,7 +635,6 @@ void CefBrowserHandler::UpdateDragCursor(CefRefPtr<CefBrowser> browser, CefRende
 
 CefBrowserHost::DragOperationsMask CefBrowserHandler::OnDragEnter(CefRefPtr<CefDragData> drag_data, CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect)
 {
-    ASSERT(CefCurrentlyOn(TID_UI));
     if ((m_browser != nullptr) && (m_browser->GetHost() != nullptr)) {
         UiPoint pt = { ev.x, ev.y };
         if (m_pHandlerDelegate) {
@@ -591,7 +650,6 @@ CefBrowserHost::DragOperationsMask CefBrowserHandler::OnDragEnter(CefRefPtr<CefD
 
 CefBrowserHost::DragOperationsMask CefBrowserHandler::OnDragOver(CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect)
 {
-    ASSERT(CefCurrentlyOn(TID_UI));
     if ((m_browser != nullptr) && (m_browser->GetHost() != nullptr)) {
         UiPoint pt = { ev.x, ev.y };
         if (m_pHandlerDelegate) {
@@ -606,7 +664,6 @@ CefBrowserHost::DragOperationsMask CefBrowserHandler::OnDragOver(CefMouseEvent e
 
 void CefBrowserHandler::OnDragLeave()
 {
-    ASSERT(CefCurrentlyOn(TID_UI));
     if ((m_browser != nullptr) && (m_browser->GetHost() != nullptr)) {
         m_browser->GetHost()->DragTargetDragLeave();
     }

@@ -1113,4 +1113,9 @@ void CefControl::OnFocusedNodeChanged(CefRefPtr<CefBrowser> /*browser*/,
 {
 }
 
+Control* CefControl::GetCefControl()
+{
+    return this;
+}
+
 } //namespace ui

@@ -183,6 +183,10 @@ public:
                                       bool bText,
                                       bool bEditable,
                                       const CefRect& nodeRect) = 0;
+
+    /** 获取关联的CEF控件接口
+    */
+    virtual Control* GetCefControl() = 0;
 };
 
 /** 回调函数的ID

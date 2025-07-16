@@ -555,6 +555,10 @@ protected:
                                       bool bEditable,
                                       const CefRect& nodeRect) override;
 
+    /** 获取关联的CEF控件接口
+    */
+    virtual Control* GetCefControl() override;
+
     /// Method that will be executed when the image download has completed.
     /// |image_url| is the URL that was downloaded and |http_status_code| is the
     /// resulting HTTP status code. |image| is the resulting image, possibly at

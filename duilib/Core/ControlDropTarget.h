@@ -2,6 +2,8 @@
 #define UI_CORE_CONTROL_DROP_TARGET_H_
 
 #include "duilib/Core/UiTypes.h"
+#include "duilib/Core/ControlPtrT.h"
+#include "duilib/Core/Callback.h"
 
 namespace ui 
 {
@@ -9,7 +11,7 @@ class Control;
 
 /** 控件的拖放支持
 */
-class ControlDropTarget
+class ControlDropTarget : public virtual SupportWeakCallback
 {
 public:
     ControlDropTarget();
@@ -49,7 +51,7 @@ public:
 private:
     /** 关联的控件接口
     */
-    Control* m_pControl;
+    ControlPtr m_pControl;
 };
 
 } // namespace ui

@@ -93,7 +93,7 @@ public:
         if (!IsValidControlDropTarget(m_pHoverDropTarget)) {
             m_pHoverDropTarget = nullptr;
         }
-        ControlDropTarget* pHoverDropTarget = GetControlDropTarget(UiPoint(pt.x, pt.y));
+        ControlPtrT<ControlDropTarget> pHoverDropTarget = GetControlDropTarget(UiPoint(pt.x, pt.y));
         if (pHoverDropTarget == nullptr) {
             m_pHoverDropTarget = nullptr;
             return hr;
@@ -168,15 +168,15 @@ public:
     /** 找到某个点坐标对应的控件接口
     * @param [in] screenPt 屏幕坐标点
     */
-    ControlDropTarget* GetControlDropTarget(const UiPoint& screenPt) const
+    ControlPtrT<ControlDropTarget> GetControlDropTarget(const UiPoint& screenPt) const
     {
         ASSERT(m_pWindowDropTarget != nullptr);
         if (m_pWindowDropTarget == nullptr) {
-            return nullptr;
+            return ControlPtrT<ControlDropTarget>();
         }
         int32_t itemCount = (int32_t)m_pWindowDropTarget->m_dropTargets.size();
         for (int32_t index = itemCount - 1; index >= 0; --index) {
-            ControlDropTarget* pControlDropTarget = m_pWindowDropTarget->m_dropTargets[index];
+            ControlPtrT<ControlDropTarget> pControlDropTarget = m_pWindowDropTarget->m_dropTargets[index];
             if (pControlDropTarget == nullptr) {
                 continue;
             }
@@ -184,12 +184,12 @@ public:
                 return pControlDropTarget;
             }
         }
-        return nullptr;
+        return ControlPtrT<ControlDropTarget>();
     }
 
     /** 判断一个控件是否还在容器中
     */
-    bool IsValidControlDropTarget(ControlDropTarget* pControlDropTarget) const
+    bool IsValidControlDropTarget(ControlPtrT<ControlDropTarget> pControlDropTarget) const
     {
         if (pControlDropTarget == nullptr) {
             return false;
@@ -215,7 +215,7 @@ protected:
 
     /** 当前Hover状态的控件接口
     */
-    ControlDropTarget* m_pHoverDropTarget;
+    ControlPtrT<ControlDropTarget> m_pHoverDropTarget;
 };
 
 WindowDropTarget::WindowDropTarget():
@@ -247,7 +247,7 @@ bool WindowDropTarget::RegisterDragDrop(ControlDropTarget* pDropTarget)
     if (iter != m_dropTargets.end()) {
         m_dropTargets.erase(iter);
     }
-    m_dropTargets.push_back(pDropTarget);
+    m_dropTargets.push_back(ControlPtrT<ControlDropTarget>(pDropTarget));
     if (m_pDropTargetImpl == nullptr) {
         ASSERT(m_pWindow != nullptr);
         if (m_pWindow != nullptr) {
@@ -276,13 +276,25 @@ bool WindowDropTarget::UnregisterDragDrop(ControlDropTarget* pDropTarget)
         m_dropTargets.erase(iter);
         bRemoved = true;
     }
+    //移除无效的
+    iter = m_dropTargets.begin();
+    while (iter != m_dropTargets.end()) {
+        if (*iter == nullptr) {
+            iter = m_dropTargets.erase(iter);
+        }
+        else {
+            ++iter;
+        }
+    }
     if (m_dropTargets.empty()) {
         if (m_pDropTargetImpl != nullptr) {
             ASSERT(m_pWindow != nullptr);
             if (m_pWindow != nullptr) {
                 ASSERT(::IsWindow(m_pWindow->NativeWnd()->GetHWND()));
                 HRESULT hr = ::RevokeDragDrop(m_pWindow->NativeWnd()->GetHWND());
-                ASSERT_UNUSED_VARIABLE(hr == S_OK);
+                if (!m_pWindow->IsClosingWnd()) {
+                    ASSERT_UNUSED_VARIABLE(hr == S_OK);
+                }                
             }
             m_pDropTargetImpl->Release();
             m_pDropTargetImpl = nullptr;
@@ -297,7 +309,9 @@ void WindowDropTarget::Clear()
         if (m_pWindow != nullptr) {
             ASSERT(::IsWindow(m_pWindow->NativeWnd()->GetHWND()));
             HRESULT hr = ::RevokeDragDrop(m_pWindow->NativeWnd()->GetHWND());
-            ASSERT_UNUSED_VARIABLE(hr == S_OK);
+            if (!m_pWindow->IsClosingWnd()) {
+                ASSERT_UNUSED_VARIABLE(hr == S_OK);
+            }
         }
     }
     m_dropTargets.clear();
