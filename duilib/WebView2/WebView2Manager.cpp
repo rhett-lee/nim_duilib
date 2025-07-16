@@ -53,18 +53,11 @@ bool WebView2Manager::Initialize(const DString& userDataFolder,
 
     //添加窗口WebView2控件的回调函数
     GlobalManager::Instance().AddCreateControlCallback(DuilibCreateWebView2Control);
-
-#if defined (DUILIB_BUILD_FOR_WIN)
-    ::CoInitialize(nullptr);
-#endif
     return true;
 }
 
 void WebView2Manager::UnInitialize()
 {
-#if defined (DUILIB_BUILD_FOR_WIN)
-    ::CoUninitialize();
-#endif
 }
 
 DString WebView2Manager::GetDefaultUserDataFolder(const DString& appName) const

@@ -15,10 +15,11 @@
  - 支持动画图片：支持GIF动画文件、APNG动画文件、WebP动画文件
  - 窗口阴影：支持窗口的圆角阴影、直角阴影，并可选择阴影大小，可实时更新
  - Skia引擎：使用Skia作为界面渲染引擎，性能较好，功能丰富，控件的功能扩展较容易
- - 支持DPI感知：有Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配
+ - 支持DPI感知：有Unaware、SystemAware、PerMonitorAware、PerMonitorAware_V2四种模式，支持独立设置DPI，支持高清DPI的适配（仅限Windows平台）
  - 支持多国语言：支持动态多种语言切换，易于实现国际化
  - 支持CEF控件：支持libcef 109 版本，以兼容Win7系统；支持libcef 133 版本，支持Win10及以上操作系统
- - 支持SDL3：可使用SDL3作为窗口管理和输入输出等基本功能提供者，从而支持跨平台（目前已经适配了Linux平台）
+ - 支持WebView2控件：支持使用WebView2控件用于显示网页，其接口封装简单，更易于使用（仅支持Windows平台）
+ - 支持SDL3：可使用SDL3作为窗口管理和输入输出等基本功能提供者，从而支持跨平台（目前已经适配了Windows/Linux/MacOS/FreeBSD平台）
 
 ## 目录结构
 | 目录          | 说明 |

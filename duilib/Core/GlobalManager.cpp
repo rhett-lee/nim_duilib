@@ -8,9 +8,10 @@
 //渲染引擎
 #include "duilib/RenderSkia/RenderFactory_Skia.h"
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#if defined (DUILIB_BUILD_FOR_WIN)
     //ToolTip/日期时间等标准控件，需要初始化commctrl
     #include <commctrl.h>
+    #include <Objbase.h>
 #endif
 
 #include <filesystem>
@@ -68,6 +69,18 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     if (m_renderFactory != nullptr) {
         return false;
     }
+    //初始化COM/OLE
+#if defined (DUILIB_BUILD_FOR_WIN)
+    HRESULT hr = ::CoInitialize(nullptr);
+    ASSERT_UNUSED_VARIABLE(hr == S_OK);
+
+    hr = ::OleInitialize(nullptr);
+    ASSERT_UNUSED_VARIABLE(hr == S_OK);
+
+    //Init Windows Common Controls (for the ToolTip control)
+    ::InitCommonControls();
+#endif
+
     //记录当前线程ID
     m_dwUiThreadId = std::this_thread::get_id();
 
@@ -83,11 +96,6 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
 
     //Skia渲染引擎实现
     m_renderFactory = std::make_unique<RenderFactory_Skia>();    
-
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    //Init Windows Common Controls (for the ToolTip control)
-    ::InitCommonControls();
-#endif
 
     ASSERT(m_renderFactory != nullptr);
     if (m_renderFactory == nullptr) {
@@ -137,6 +145,11 @@ void GlobalManager::Shutdown()
         }
     }
     m_atExitFunctions.clear();
+
+#if defined (DUILIB_BUILD_FOR_WIN)
+    ::CoUninitialize();
+    ::OleUninitialize();
+#endif
 }
 
 const FilePath& GlobalManager::GetResourcePath() const

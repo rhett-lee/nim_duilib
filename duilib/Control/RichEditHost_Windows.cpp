@@ -60,8 +60,7 @@ class RichEditModule
 {
 private:
     RichEditModule():
-        m_hRichEditModule(nullptr),
-        m_bInitCOM(false)
+        m_hRichEditModule(nullptr)
     {
     }
 
@@ -86,12 +85,7 @@ public:
     */
     HMODULE GetRichEditModule()
     {
-        if (m_hRichEditModule == nullptr) {
-            //初始化COM环境（必须，否则退出时会崩溃）
-            if (!m_bInitCOM) {
-                m_bInitCOM = true;
-                ::OleInitialize(nullptr);
-            }            
+        if (m_hRichEditModule == nullptr) {         
             m_hRichEditModule = ::LoadLibrary(RichEditCtrl::GetLibraryName());
             ASSERT(m_hRichEditModule != nullptr);
 
@@ -113,20 +107,12 @@ public:
             ::FreeLibrary(m_hRichEditModule);
             m_hRichEditModule = nullptr;
         }
-        if (m_bInitCOM) {
-            m_bInitCOM = false;
-            ::OleUninitialize();
-        }
     }
 
 private:
     /** RichEdit依赖的DLL, 加载并返回句柄
     */
     HMODULE m_hRichEditModule;
-
-    /** COM是否已经初始化
-    */
-    bool m_bInitCOM;
 };
 
 RichEditHost::RichEditHost(RichEdit* pRichEdit) :
