@@ -24,7 +24,7 @@
                 <Label text="00:00:00" name="running_time" height="100%" width="100%" text_align="hcenter,vcenter" margin="8,0,0,0"/>
             </HBox>
             <Line height="1"/>
-            <RichEdit class="simple simple_border" name="log_view" bkcolor="white" width="stretch" height="stretch"
+            <RichEdit class="simple simple_border" name="log_view" text_align="left,top" bkcolor="white" width="stretch" height="stretch"
                         hide_selection="true" multi_line="true" vscrollbar="true" auto_vscroll="true" hscrollbar="false"
                         normal_text_color="darkcolor" want_return_msg="true" rich_text="false" default_context_menu="true"/>
         </VBox>
