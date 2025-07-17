@@ -658,9 +658,6 @@ private:
     //是否使用系统的标题栏
     bool m_bUseSystemCaption;
 
-    //鼠标事件的捕获状态
-    bool m_bMouseCapture;
-
     //窗口已经延迟关闭
     bool m_bCloseing;
 

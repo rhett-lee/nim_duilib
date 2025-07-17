@@ -760,6 +760,14 @@ void Window::OnWindowDpiChanged(uint32_t /*nOldDPI*/, uint32_t /*nNewDPI*/)
 {
 }
 
+void Window::GetShadowCorner(UiPadding& rcShadow) const
+{
+    rcShadow.Clear();
+    if (m_shadow != nullptr) {
+        rcShadow = m_shadow->GetShadowCorner();
+    }
+}
+
 void Window::GetCurrentShadowCorner(UiPadding& rcShadow) const
 {
     rcShadow.Clear();
@@ -1297,7 +1305,6 @@ LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg&
     bHandled = false;
     ControlPtr pEventClick = m_pEventClick;
     m_pEventClick = nullptr;
-    ReleaseCapture();
 
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     if (pEventClick != nullptr) {
@@ -1900,8 +1907,6 @@ LRESULT Window::OnMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey
 LRESULT Window::OnCaptureChangedMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
-    ReleaseCapture();
-
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventCaptureChanged);
     }
@@ -1930,18 +1935,23 @@ void Window::OnWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, 
 
 void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey)
 {
-    ASSERT(eventType == kEventMouseButtonDown   || 
-           eventType == kEventMouseRButtonDown  ||
-           eventType == kEventMouseMButtonDown  || 
-           eventType == kEventMouseDoubleClick  ||
-           eventType == kEventMouseRDoubleClick ||
-           eventType == kEventMouseMDoubleClick);
+    ASSERT(eventType == kEventMouseButtonDown ||
+        eventType == kEventMouseRButtonDown ||
+        eventType == kEventMouseMButtonDown ||
+        eventType == kEventMouseDoubleClick ||
+        eventType == kEventMouseRDoubleClick ||
+        eventType == kEventMouseMDoubleClick);
+
+    if ((eventType == kEventMouseButtonDown) || (eventType == kEventMouseButtonDown) || (eventType == kEventMouseButtonDown)) {
+        SetCapture();
+    }
+
     CheckSetWindowFocus();
     SetLastMousePos(pt);
     Control* pControl = FindControl(pt);
     if (pControl != nullptr) {
-        std::weak_ptr<WeakFlag> controlFlag = pControl->GetWeakFlag();
         std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+        std::weak_ptr<WeakFlag> controlFlag = pControl->GetWeakFlag();        
         std::weak_ptr<WeakFlag> clickFlag;
         if (m_pEventClick != nullptr) {
             clickFlag = m_pEventClick->GetWeakFlag();
@@ -1949,11 +1959,11 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
         ControlPtr pOldEventClick = m_pEventClick;
         m_pEventClick = pControl;
         pControl->SetFocus();
-        SetCapture();
+
         if (windowFlag.expired()) {
             return;
         }
-        if (!controlFlag.expired()) {            
+        if (!controlFlag.expired()) {
             EventArgs msgData;
             msgData.modifierKey = modifierKey;
             msgData.ptMouse = pt;
@@ -1976,10 +1986,16 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
 void Window::OnButtonUp(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey)
 {
     ASSERT(eventType == kEventMouseButtonUp || eventType == kEventMouseRButtonUp || eventType == kEventMouseMButtonUp);
-    SetLastMousePos(pt);
-    ReleaseCapture();
-    if (m_pEventClick != nullptr) {
-        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    if ((eventType == kEventMouseButtonUp) || (eventType == kEventMouseRButtonUp) || (eventType == kEventMouseMButtonUp)) {
+        ReleaseCapture();
+    }
+    if (windowFlag.expired()) {
+        return;
+    }
+    SetLastMousePos(pt);    
+    if (m_pEventClick != nullptr) {        
         EventArgs msgData;
         msgData.modifierKey = modifierKey;
         msgData.ptMouse = pt;

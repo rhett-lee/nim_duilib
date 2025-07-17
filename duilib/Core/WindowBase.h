@@ -620,8 +620,13 @@ protected:
     */
     virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) = 0;
 
-    /** 获取窗口阴影的大小
-    * @param [out] rcShadow 获取圆角的大小 
+    /** 获取设置的窗口阴影的大小
+    * @param [out] rcShadow 返回设置窗口阴影的大小，未经过DPI缩放
+    */
+    virtual void GetShadowCorner(UiPadding& rcShadow) const = 0;
+
+    /** 获取当前窗口阴影的大小
+    * @param [out] rcShadow 返回当前窗口阴影的大小，已经过DPI缩放
     */
     virtual void GetCurrentShadowCorner(UiPadding& rcShadow) const = 0;
 

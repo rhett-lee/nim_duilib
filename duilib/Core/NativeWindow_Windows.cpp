@@ -43,7 +43,6 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_nLayeredWindowAlpha(255),
     m_nLayeredWindowOpacity(255),
     m_bUseSystemCaption(false),
-    m_bMouseCapture(false),
     m_bCloseing(false),
     m_closeParam(kWindowCloseNormal),
     m_bFakeModal(false),
@@ -1244,20 +1243,18 @@ const UiSize& NativeWindow_Windows::GetWindowMinimumSize() const
 void NativeWindow_Windows::SetCapture()
 {
     ::SetCapture(m_hWnd);
-    m_bMouseCapture = true;
 }
 
 void NativeWindow_Windows::ReleaseCapture()
 {
-    if (m_bMouseCapture) {
+    if (::GetCapture() == m_hWnd) {
         ::ReleaseCapture();
-        m_bMouseCapture = false;
     }
 }
 
 bool NativeWindow_Windows::IsCaptured() const
 {
-    return m_bMouseCapture;
+    return ::GetCapture() == m_hWnd;
 }
 
 bool NativeWindow_Windows::SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoundCorner, bool bRedraw)

@@ -513,6 +513,11 @@ protected:
     */
     virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) override;
 
+    /** 获取设置的窗口阴影的大小
+    * @param [out] rcShadow 返回设置窗口阴影的大小，未经过DPI缩放
+    */
+    virtual void GetShadowCorner(UiPadding& rcShadow) const override;
+
     /** 获取当前的阴影九宫格属性（已经做过DPI缩放）
      *@param [out] rcShadow 如果阴影未Attached或者窗口最大化，返回UiPadding(0, 0, 0, 0)，否则返回设置的九宫格属性（已经做过DPI缩放）
      */

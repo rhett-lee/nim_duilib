@@ -444,7 +444,8 @@ void WindowBase::Resize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 
     if (!bContainShadow) {
         UiPadding rcShadow;
-        GetCurrentShadowCorner(rcShadow);
+        GetShadowCorner(rcShadow);
+        Dpi().ScalePadding(rcShadow);
         cx += rcShadow.left + rcShadow.right;
         cy += rcShadow.top + rcShadow.bottom;
     }
