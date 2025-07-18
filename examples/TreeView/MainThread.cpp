@@ -1,6 +1,10 @@
 #include "MainThread.h"
 #include "MainForm.h"
 
+#if defined (DUILIB_BUILD_FOR_WIN)
+    #include <objbase.h>
+#endif
+
 WorkerThread::WorkerThread()
     : FrameworkThread(_T("WorkerThread"), ui::kThreadWorker)
 {
@@ -14,7 +18,7 @@ void WorkerThread::OnInit()
 {
 #if defined (DUILIB_BUILD_FOR_WIN)
     HRESULT hr = ::CoInitialize(nullptr);
-    ASSERT_UNUSED_VARIABLE(hr == S_OK);
+    ASSERT_UNUSED_VARIABLE((hr == S_OK) || (hr == S_FALSE));
 #endif
 }
 

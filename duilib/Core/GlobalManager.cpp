@@ -72,10 +72,10 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     //初始化COM/OLE
 #if defined (DUILIB_BUILD_FOR_WIN)
     HRESULT hr = ::CoInitialize(nullptr);
-    ASSERT_UNUSED_VARIABLE(hr == S_OK);
+    ASSERT_UNUSED_VARIABLE((hr == S_OK) || (hr == S_FALSE));
 
     hr = ::OleInitialize(nullptr);
-    ASSERT_UNUSED_VARIABLE(hr == S_OK);
+    ASSERT_UNUSED_VARIABLE((hr == S_OK) || (hr == S_FALSE));
 
     //Init Windows Common Controls (for the ToolTip control)
     ::InitCommonControls();

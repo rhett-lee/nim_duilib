@@ -2,8 +2,6 @@
 #include "browser/BrowserForm.h"
 #include "browser/BrowserManager.h"
 
-using namespace ui;
-
 BrowserBox::BrowserBox(ui::Window* pWindow, std::string id):
     ui::VBox(pWindow)
 {
@@ -99,7 +97,7 @@ void BrowserBox::UninitBrowserBox()
     BrowserManager::GetInstance()->RemoveBorwserBox(m_browserId, this);
 }
 
-void BrowserBox::SetWindow(Window* pWindow)
+void BrowserBox::SetWindow(ui::Window* pWindow)
 {
     m_pBrowserForm = dynamic_cast<BrowserForm*>(pWindow);
     ASSERT(nullptr != m_pBrowserForm);
@@ -115,8 +113,8 @@ bool BrowserBox::OnSetFocus(const ui::EventArgs& msg)
     }
 
     //不再调用基类的方法，避免覆盖输入法管理的逻辑（基类会关闭输入法）
-    if (GetState() == kControlStateNormal) {
-        SetState(kControlStateHot);
+    if (GetState() == ui::kControlStateNormal) {
+        SetState(ui::kControlStateHot);
         Invalidate();
     }
     return true;

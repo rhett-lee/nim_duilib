@@ -832,7 +832,11 @@ bool BrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
     {
     case kEventMouseMove:
     {
-        if (!m_bButtonDown || m_bDragState || (m_pActiveBrowserBox == nullptr) || !ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_LBUTTON)) {
+        if (!m_bButtonDown || m_bDragState || (m_pActiveBrowserBox == nullptr)) {
+            break;
+        }
+
+        if (!ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_LBUTTON)) {
             break;
         }
 
@@ -843,7 +847,7 @@ bool BrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
         }
 
         //当鼠标纵向滑动的距离超过标签宽度的时候，开始拖出操作
-        LONG cy = abs(param.ptMouse.y - m_oldDragPoint.y);
+        int32_t cy = std::abs(param.ptMouse.y - m_oldDragPoint.y);
         if (cy > tab_item->GetPos().Height()) {
 
             m_bDragState = true;

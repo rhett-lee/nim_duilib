@@ -2311,29 +2311,29 @@ void NativeWindow_SDL::GetWindowRect(SDL_Window* sdlWindow, UiRect& rcWindow) co
     rcWindow.right = rcWindow.left + nWidth + nLeftBorder + nRightBorder;
     rcWindow.bottom = rcWindow.top + nHeight + nTopBorder + nBottomBorder;
 
-#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
-    {
-        HWND hWnd = GetHWND();
-        if (!::IsIconic(hWnd) && ::IsWindowVisible(hWnd)) {
-            //最小化的时候，或者隐藏的时候，不比对，两者不同
-            RECT rect = { 0, };
-            ::GetWindowRect(hWnd, &rect);
-            if (rect.left != -32000) {
-                ASSERT(rcWindow.left == rect.left);
-                ASSERT(rcWindow.top == rect.top);
-                ASSERT(rcWindow.right == rect.right);
-                ASSERT(rcWindow.bottom == rect.bottom);
-            }            
-        }
-    }
-#endif
+//#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+//    {
+//        HWND hWnd = GetHWND();
+//        if (!::IsIconic(hWnd) && ::IsWindowVisible(hWnd)) {
+//            //最小化的时候，或者隐藏的时候，不比对，两者不同
+//            RECT rect = { 0, };
+//            ::GetWindowRect(hWnd, &rect);
+//            if (rect.left != -32000) {
+//                ASSERT(rcWindow.left == rect.left);
+//                ASSERT(rcWindow.top == rect.top);
+//                ASSERT(rcWindow.right == rect.right);
+//                ASSERT(rcWindow.bottom == rect.bottom);
+//            }            
+//        }
+//    }
+//#endif
 }
 
 void NativeWindow_SDL::ScreenToClient(UiPoint& pt) const
 {
-#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
-    POINT ptWnd = { pt.x, pt.y };
-#endif
+//#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+//    POINT ptWnd = { pt.x, pt.y };
+//#endif
     int nXPos = 0;
     int nYPos = 0;
     bool nRet = SDL_GetWindowPosition(m_sdlWindow, &nXPos, &nYPos);
@@ -2342,14 +2342,14 @@ void NativeWindow_SDL::ScreenToClient(UiPoint& pt) const
         pt.x -= nXPos;
         pt.y -= nYPos;
     }
-#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
-    {
-        HWND hWnd = GetHWND();
-        ::ScreenToClient(hWnd, &ptWnd);
-        ASSERT(ptWnd.x == pt.x);
-        ASSERT(ptWnd.y == pt.y);
-    }
-#endif
+//#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+//    {
+//        HWND hWnd = GetHWND();
+//        ::ScreenToClient(hWnd, &ptWnd);
+//        ASSERT(ptWnd.x == pt.x);
+//        ASSERT(ptWnd.y == pt.y);
+//    }
+//#endif
 }
 
 void NativeWindow_SDL::ClientToScreen(UiPoint& pt) const

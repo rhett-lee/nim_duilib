@@ -3,8 +3,6 @@
 
 #include "browser/BrowserBox.h"
 
-#if defined (DUILIB_BUILD_FOR_WIN) 
-
 class DragForm;
 
 /** 多标签浏览器管理类，用于统一管理多标签拖拽功能
@@ -54,7 +52,5 @@ private:
     */
     DragForm* m_pDragForm;
 };
-
-#endif //defined (DUILIB_BUILD_FOR_WIN)
 
 #endif //EXAMPLES_DRAGDROP_MANAGER_H_
