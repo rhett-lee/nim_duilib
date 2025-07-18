@@ -1054,18 +1054,33 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
                 if (rcWindow.bottom > rcWork.bottom) {
                     rcFullscreenMargin.bottom = rcWindow.bottom - rcWork.bottom;
                 }
+                bool bHasShadowBox = false;
                 Box* pRoot = GetRoot();
                 if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() && (pRoot->GetItemCount() > 0)) {
                     pRoot = dynamic_cast<Box*>(pRoot->GetItemAt(0));
+                    bHasShadowBox = true;
                 }
                 if (pRoot != nullptr) {
-                    UiMargin rcMargin = pRoot->GetMargin();
-                    rcMargin.left += (rcFullscreenMargin.left - m_rcFullscreenMargin.left);
-                    rcMargin.top += (rcFullscreenMargin.top - m_rcFullscreenMargin.top);
-                    rcMargin.right += (rcFullscreenMargin.right - m_rcFullscreenMargin.right);
-                    rcMargin.bottom += (rcFullscreenMargin.bottom - m_rcFullscreenMargin.bottom);
-                    m_rcFullscreenMargin = rcFullscreenMargin;
-                    pRoot->SetMargin(rcMargin, false);
+                    if (bHasShadowBox) {
+                        //有阴影Box
+                        UiMargin rcMargin = pRoot->GetMargin();
+                        rcMargin.left += (rcFullscreenMargin.left - m_rcFullscreenMargin.left);
+                        rcMargin.top += (rcFullscreenMargin.top - m_rcFullscreenMargin.top);
+                        rcMargin.right += (rcFullscreenMargin.right - m_rcFullscreenMargin.right);
+                        rcMargin.bottom += (rcFullscreenMargin.bottom - m_rcFullscreenMargin.bottom);
+                        m_rcFullscreenMargin = rcFullscreenMargin;
+                        pRoot->SetMargin(rcMargin, false);
+                    }
+                    else {
+                        //无阴影Box
+                        UiPadding rcPadding = pRoot->GetPadding();
+                        rcPadding.left += (rcFullscreenMargin.left - m_rcFullscreenMargin.left);
+                        rcPadding.top += (rcFullscreenMargin.top - m_rcFullscreenMargin.top);
+                        rcPadding.right += (rcFullscreenMargin.right - m_rcFullscreenMargin.right);
+                        rcPadding.bottom += (rcFullscreenMargin.bottom - m_rcFullscreenMargin.bottom);
+                        m_rcFullscreenMargin = rcFullscreenMargin;
+                        pRoot->SetPadding(rcPadding, false);
+                    }                    
                 }
             }
         }
@@ -1080,18 +1095,32 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
         }
         //还原时，恢复外边距
         if (!m_rcFullscreenMargin.IsEmpty()) {
+            bool bHasShadowBox = false;
             Box* pRoot = GetRoot();
             if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() && (pRoot->GetItemCount() > 0)) {
                 pRoot = dynamic_cast<Box*>(pRoot->GetItemAt(0));
+                bHasShadowBox = true;
             }
             if (pRoot != nullptr) {
-                UiMargin rcMargin = pRoot->GetMargin();
-                rcMargin.left -= m_rcFullscreenMargin.left;
-                rcMargin.top -= m_rcFullscreenMargin.top;
-                rcMargin.right -= m_rcFullscreenMargin.right;
-                rcMargin.bottom -= m_rcFullscreenMargin.right;
+                if (bHasShadowBox) {
+                    //有阴影Box
+                    UiMargin rcMargin = pRoot->GetMargin();
+                    rcMargin.left -= m_rcFullscreenMargin.left;
+                    rcMargin.top -= m_rcFullscreenMargin.top;
+                    rcMargin.right -= m_rcFullscreenMargin.right;
+                    rcMargin.bottom -= m_rcFullscreenMargin.right;
+                    pRoot->SetMargin(rcMargin, false);
+                }
+                else {
+                    //无阴影Box
+                    UiPadding rcPadding = pRoot->GetPadding();
+                    rcPadding.left -= m_rcFullscreenMargin.left;
+                    rcPadding.top -= m_rcFullscreenMargin.top;
+                    rcPadding.right -= m_rcFullscreenMargin.right;
+                    rcPadding.bottom -= m_rcFullscreenMargin.right;
+                    pRoot->SetPadding(rcPadding, false);
+                }
                 m_rcFullscreenMargin.Clear();
-                pRoot->SetMargin(rcMargin, false);                
             }
         }
     }
