@@ -18,38 +18,24 @@ namespace
     UINT WM_TASKBARBUTTONCREATED = ::RegisterWindowMessage(TEXT("TaskbarButtonCreated"));
 
     // 拖拽图片的宽度和高度
-    const int kDragImageWidth = 300;
+    const int kDragImageWidth = 400;
     const int kDragImageHeight = 300;
 }
 
 BrowserForm_Windows::BrowserForm_Windows()
 {
     m_bButtonDown = false;
-    m_pDropHelper = nullptr;
     m_bDragState = false;
     m_oldDragPoint = {0, 0};
 }
 
 BrowserForm_Windows::~BrowserForm_Windows()
 {
-    m_pDropHelper = nullptr;
 }
 
 BrowserBox* BrowserForm_Windows::CreateBrowserBox(ui::Window* pWindow, std::string id)
 {
     return new BrowserBox_Windows(pWindow, id);
-}
-
-void BrowserForm_Windows::OnInitWindow()
-{
-    BaseClass::OnInitWindow();
-    InitDragDrop();
-}
-
-void BrowserForm_Windows::OnCloseWindow()
-{
-    BaseClass::OnCloseWindow();
-    UnInitDragDrop();
 }
 
 LRESULT BrowserForm_Windows::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled)
@@ -82,6 +68,27 @@ LRESULT BrowserForm_Windows::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lP
     return BaseClass::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
+LRESULT BrowserForm_Windows::OnMouseMoveMsg(const ui::UiPoint& pt, uint32_t modifierKey, bool bFromNC, const ui::NativeMsg& nativeMsg, bool& bHandled)
+{
+    LRESULT lResult = BaseClass::OnMouseMoveMsg(pt, modifierKey, bFromNC, nativeMsg, bHandled);
+    DragDropManager::GetInstance()->UpdateDragFormPos();
+    return lResult;
+}
+
+LRESULT BrowserForm_Windows::OnMouseLButtonUpMsg(const ui::UiPoint& pt, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
+{
+    LRESULT lResult = BaseClass::OnMouseLButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
+    DragDropManager::GetInstance()->EndDragBorwserBox();
+    return lResult;
+}
+
+LRESULT BrowserForm_Windows::OnCaptureChangedMsg(const ui::NativeMsg& nativeMsg, bool& bHandled)
+{
+    LRESULT lResult = BaseClass::OnCaptureChangedMsg(nativeMsg, bHandled);
+    DragDropManager::GetInstance()->EndDragBorwserBox();
+    return lResult;
+}
+
 void BrowserForm_Windows::OnCreateNewTabPage(ui::TabCtrlItem* tab_item, BrowserBox* browser_box)
 {
     if (tab_item != nullptr) {
@@ -108,195 +115,70 @@ void BrowserForm_Windows::OnCloseTabPage(BrowserBox* browser_box)
     }
 }
 
-void BrowserForm_Windows::OnBeforeDragBoxCallback(const DString &browser_id)
-{
-    // 如果当前被拖拽的浏览器盒子所属的浏览器窗口只有一个浏览器盒子，则在拖拽时隐藏浏览器窗口
-    int box_count = this->GetBoxCount();
-    if (1 == box_count) {
-        this->ShowWindow(kSW_HIDE);
+void BrowserForm_Windows::OnBeforeDragBoxCallback(const DString& browserId)
+{      
+    BrowserBox* browser_box = FindBox(browserId);
+    if (browser_box != nullptr) {
+        browser_box->SetVisible(false);
     }
-    // 否则隐藏被拖拽的浏览器盒子和标签
-    else {        
-        BrowserBox* browser_box = FindBox(browser_id);
+    else {
+        return;
+    }
+    m_dragingBrowserId = browserId;
+
+    TabCtrlItem* tab_item = FindTabItem(browserId);
+    if (tab_item != nullptr) {
+        tab_item->CancelDragOperation();
+        tab_item->SetVisible(false);
+    }
+
+    // 找到新的被显示的浏览器盒子
+    size_t index = tab_item->GetListBoxIndex();
+    if (index > 0) {
+        index--;
+    }
+    else {
+        index++;
+    }
+    TabCtrlItem* new_tab_item = static_cast<TabCtrlItem*>(m_pTabCtrl->GetItemAt(index));
+    if (new_tab_item != nullptr) {
+        new_tab_item->Selected(true, false, 0);
+        ChangeToBox(new_tab_item->GetName());
+    }
+
+    //由于标签隐藏，通知标签的父控件重新计算位置
+    if (m_pTabCtrl != nullptr) {
+        m_pTabCtrl->ArrangeAncestor();
+    }
+}
+
+void BrowserForm_Windows::OnAfterDragBoxCallback(bool bDropSucceed)
+{
+    DString dragingBrowserId;
+    dragingBrowserId.swap(m_dragingBrowserId);
+    m_bDragState = false;
+    if (!bDropSucceed && !dragingBrowserId.empty()){
+        BrowserBox* browser_box = FindBox(dragingBrowserId);
         if (browser_box != nullptr) {
-            browser_box->SetVisible(false);
+            browser_box->SetFadeVisible(true);
         }
-        else {
-            return;
-        }
-        m_dragingBrowserId = browser_id;
 
-        TabCtrlItem* tab_item = FindTabItem(browser_id);
+        TabCtrlItem* tab_item = FindTabItem(dragingBrowserId);
         if (tab_item != nullptr) {
-            tab_item->CancelDragOperation();
-            tab_item->SetVisible(false);
-        }
-
-        // 找到新的被显示的浏览器盒子
-        size_t index = tab_item->GetListBoxIndex();
-        if (index > 0) {
-            index--;
-        }
-        else {
-            index++;
-        }
-        TabCtrlItem* new_tab_item = static_cast<TabCtrlItem*>(m_pTabCtrl->GetItemAt(index));
-        if (new_tab_item != nullptr) {
-            new_tab_item->Selected(true, false, 0);
-            ChangeToBox(new_tab_item->GetName());
+            tab_item->SetFadeVisible(true);
+            tab_item->Selected(true, false, 0);
+            ChangeToBox(dragingBrowserId);
         }
 
         //由于标签隐藏，通知标签的父控件重新计算位置
         if (m_pTabCtrl != nullptr) {
             m_pTabCtrl->ArrangeAncestor();
         }
-    }
-}
-
-void BrowserForm_Windows::OnAfterDragBoxCallback(bool drop_succeed)
-{
-    m_bDragState = false;
-
-    if (drop_succeed) {
-        int box_count = this->GetBoxCount();
-        // 如果当前被拖拽的浏览器盒子所属的浏览器窗口只有一个浏览器盒子，并且拖拽到新的浏览器窗口里，这个浏览器窗口就会关闭
-        if (1 == box_count) {
-
-        }
-        else {
-        }
-    }
-    else {
-        int box_count = this->GetBoxCount();
-        // 如果当前被拖拽的浏览器盒子所属的浏览器窗口只有一个浏览器盒子，并且没有拖拽到新的浏览器窗口里
-        // 就显示浏览器窗口
-        if (1 == box_count) {
-            this->ShowWindow(kSW_SHOW_NORMAL);
-        }
-        // 如果当前被拖拽的浏览器盒子所属的浏览器窗口有多个浏览器盒子，并且没有拖拽到新的浏览器窗口里
-        // 就显示之前被隐藏的浏览器盒子和标签
-        else {
-            BrowserBox *browser_box = FindBox(m_dragingBrowserId);
-            if (nullptr != browser_box) {
-                browser_box->SetFadeVisible(true);
-            }
-
-            TabCtrlItem* tab_item = FindTabItem(m_dragingBrowserId);
-            if (nullptr != tab_item) {
-                tab_item->SetFadeVisible(true);
-                tab_item->Selected(true, false, 0);
-                ChangeToBox(m_dragingBrowserId);
-            }
-            m_dragingBrowserId.clear();
-        }
-    }
-}
-
-bool BrowserForm_Windows::InitDragDrop()
-{
-    if (nullptr != m_pDropHelper) {
-        return false;
-    }
-
-    if (FAILED(::CoCreateInstance(CLSID_DragDropHelper, nullptr,
-        CLSCTX_INPROC_SERVER,
-        IID_IDropTargetHelper,
-        (void**)&m_pDropHelper))) {
-        return false;
-    }
-
-    if (FAILED(::RegisterDragDrop(this->NativeWnd()->GetHWND(), this))) {
-        return false;
-    }
-    return true;
-}
-
-void BrowserForm_Windows::UnInitDragDrop()
-{
-    if (nullptr != m_pDropHelper) {
-        m_pDropHelper->Release();
-    }
-    ::RevokeDragDrop(this->NativeWnd()->GetHWND());
-}
-
-HRESULT BrowserForm_Windows::QueryInterface(REFIID iid, void** ppvObject)
-{
-    if (nullptr == m_pDropHelper) {
-        return E_NOINTERFACE;
-    }
-    return m_pDropHelper->QueryInterface(iid, ppvObject);
-}
-
-ULONG BrowserForm_Windows::AddRef(void)
-{
-    if (nullptr == m_pDropHelper) {
-        return 0;
-    }
-    return m_pDropHelper->AddRef();
-}
-
-ULONG BrowserForm_Windows::Release(void)
-{
-    if (nullptr == m_pDropHelper) {
-        return 0;
-    }
-    return m_pDropHelper->Release();
-}
-
-HRESULT BrowserForm_Windows::DragEnter(IDataObject* pDataObject, DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
-{
-    if (m_pDropHelper == nullptr) {
-        return S_OK;
-    }
-    if (pdwEffect != nullptr) {
-        *pdwEffect = DROPEFFECT_MOVE;
-    }
-    if (IsWindowMinimized()) {
-        ShowWindow(kSW_RESTORE);
-    }
-    else {
-        ShowWindow(kSW_SHOW);
-    }
-    return m_pDropHelper->DragEnter(this->NativeWnd()->GetHWND(), pDataObject, (LPPOINT)&pt, *pdwEffect);
-}
-
-HRESULT BrowserForm_Windows::DragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
-{
-    if (m_pDropHelper == nullptr) {
-        return S_OK;
-    }
-    if (pdwEffect != nullptr) {
-        *pdwEffect = DROPEFFECT_MOVE;
-    }
-    return m_pDropHelper->DragOver((LPPOINT)&pt, *pdwEffect);
-}
-
-HRESULT BrowserForm_Windows::DragLeave(void)
-{
-    if (m_pDropHelper == nullptr) {
-        return S_OK;
-    }
-    return m_pDropHelper->DragLeave();
-}
-
-HRESULT BrowserForm_Windows::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL pt, DWORD __RPC_FAR* pdwEffect)
-{
-    if (m_pDropHelper == nullptr) {
-        return S_OK;
-    }
-    if (pdwEffect != nullptr) {
-        *pdwEffect = DROPEFFECT_MOVE;
-    }
-    DragDropManager::GetInstance()->SetDropForm(this);
-    return m_pDropHelper->Drop(pDataObj, (LPPOINT)&pt, *pdwEffect);
+    }    
 }
 
 bool BrowserForm_Windows::OnProcessTabItemDrag(const ui::EventArgs& param)
 {
-    if (!BrowserManager::GetInstance()->IsEnableMerge()) {
-        return true;
-    }
-
     switch (param.eventType)
     {
     case kEventMouseMove:
@@ -325,19 +207,11 @@ bool BrowserForm_Windows::OnProcessTabItemDrag(const ui::EventArgs& param)
                 else {
                     pBitmap = GenerateBoxWindowBitmap();
                 }
-                HBITMAP hBitmap = ui::BitmapHelper::CreateGDIBitmap(pBitmap);
-                if (pBitmap != nullptr) {
-                    delete pBitmap;
-                    pBitmap = nullptr;
-                }
                 // pt应该指定相对bitmap位图的左上角(0,0)的坐标,这里设置为bitmap的中上点
-                POINT pt = { kDragImageWidth / 2, 0 };
+                ui::UiPoint pt = { kDragImageWidth / 2, 0 };
 
-                StdClosure cb = [=] {
-                        DragDropManager::GetInstance()->DoDragBorwserBox(m_pActiveBrowserBox, hBitmap, pt);
-                        ::DeleteObject(hBitmap);
-                    };
-                ui::GlobalManager::Instance().Thread().PostTask(kThreadUI, cb);
+                std::shared_ptr<ui::IBitmap> spIBitmap(pBitmap);
+                DragDropManager::GetInstance()->StartDragBorwserBox(m_pActiveBrowserBox, spIBitmap, pt);
             }
         }
         break;

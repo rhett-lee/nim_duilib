@@ -8,14 +8,12 @@
 
 #include "Browser/BrowserForm.h"
 #include "Windows/taskbar/TaskbarManager.h"
-#include "ShObjidl.h"
 
-interface IDropTargetHelper;
 class BrowserBox;
 
 /** 离屏模式Cef多标签浏览器窗口(Windows实现部分)
 */
-class BrowserForm_Windows: public BrowserForm, public IDropTarget, public TaskbarManager::ITaskbarDelegate
+class BrowserForm_Windows: public BrowserForm, public TaskbarManager::ITaskbarDelegate
 {
     typedef BrowserForm BaseClass;
 public:
@@ -28,14 +26,6 @@ public:
     */
     virtual BrowserBox* CreateBrowserBox(ui::Window* pWindow, std::string id) override;
 
-    /** 当窗口创建完成以后调用此函数，供子类中做一些初始化的工作
-    */
-    virtual void OnInitWindow() override;
-
-    /** 当窗口已经被关闭时调用此函数，供子类中做一些收尾工作
-    */
-    virtual void OnCloseWindow() override;
-
     /** 拦截并处理底层窗体消息
     * @param[in] uMsg 消息类型
     * @param[in] wParam 附加参数
@@ -47,16 +37,14 @@ public:
 
 public:
     /** 在执行拖拽操作前，如果被拖拽的浏览器盒子属于本窗口，则通知本窗口
-    * @param[in] browser_id 浏览器id
-    * @return void    无返回值
+    * @param [in] browserId 浏览器id
     */
-    void OnBeforeDragBoxCallback(const DString &browser_id);
+    void OnBeforeDragBoxCallback(const DString& browserId);
 
     /** 在执行拖拽操作后，如果被拖拽的浏览器盒子属于本窗口，则通知本窗口操作结果
-    * @param[in] drop_succeed 浏览器盒子是否被拖拽到了外部
-    * @return void    无返回值
+    * @param [in] bDropSucceed 浏览器盒子是否被拖拽到了外部
     */
-    void OnAfterDragBoxCallback(bool drop_succeed);
+    void OnAfterDragBoxCallback(bool bDropSucceed);
 
 public:
     /** 获取窗体句柄
@@ -80,27 +68,6 @@ public:
     * @return void 无返回值
     */
     virtual void SetActiveTaskbarItem(const std::string &id) override { SetActiveBox(id); }
-
-public:
-    /**
-    * 初始化窗口拖放功能
-    * @return void    无返回值
-    */
-    bool InitDragDrop();
-
-    /**
-    * 反初始化窗口拖放功能
-    * @return void    无返回值
-    */
-    void UnInitDragDrop();
-
-    HRESULT STDMETHODCALLTYPE QueryInterface(REFIID iid, void ** ppvObject);
-    ULONG STDMETHODCALLTYPE AddRef(void);
-    ULONG STDMETHODCALLTYPE Release(void);
-    HRESULT STDMETHODCALLTYPE DragEnter(IDataObject * pDataObject, DWORD grfKeyState, POINTL pt, DWORD * pdwEffect);
-    HRESULT STDMETHODCALLTYPE DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
-    HRESULT STDMETHODCALLTYPE DragLeave(void);
-    HRESULT STDMETHODCALLTYPE Drop(IDataObject *pDataObj, DWORD grfKeyState, POINTL pt, DWORD __RPC_FAR *pdwEffect);
 
 private:
     /**
@@ -135,10 +102,33 @@ private:
     */
     virtual void OnCloseTabPage(BrowserBox* browser_box) override;
 
-private:
-    // 处理浏览器盒子拖放事件
-    IDropTargetHelper* m_pDropHelper;
+    /** 鼠标移动消息（WM_MOUSEMOVE）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] bFromNC true表示这是NC消息（WM_NCMOUSEMOVE）, false 表示是WM_MOUSEMOVE消息
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseMoveMsg(const ui::UiPoint& pt, uint32_t modifierKey, bool bFromNC, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
 
+    /** 鼠标左键弹起消息（WM_LBUTTONUP）
+    * @param [in] pt 鼠标所在位置，客户区坐标
+    * @param [in] modifierKey 按键标志位，有效值：ModifierKey::kControl, ModifierKey::kShift
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnMouseLButtonUpMsg(const ui::UiPoint& pt, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled) override;
+
+    /** 窗口丢失鼠标捕获（WM_CAPTURECHANGED）
+    * @param [in] nativeMsg 从系统接收到的原始消息内容
+    * @param [out] bHandled 消息是否已经处理，返回 true 表明已经成功处理消息，不需要再传递给窗口过程；返回 false 表示将消息继续传递给窗口过程处理
+    * @return 返回消息的处理结果，如果应用程序处理此消息，应返回零
+    */
+    virtual LRESULT OnCaptureChangedMsg(const ui::NativeMsg& nativeMsg, bool& bHandled) override;
+
+private:
     // 处理浏览器盒子拖拽事件
     bool m_bButtonDown;
     bool m_bDragState;

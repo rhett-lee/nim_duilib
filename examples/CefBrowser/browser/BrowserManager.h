@@ -58,23 +58,7 @@ public:
     */
     std::string CreateBrowserID() const;
 
-public:
-    /** 设置是否开启多标签功能
-    * @param[in] enable true:开启多标签功能,自动合并当前所有浏览器盒子（一个窗口中显示多个网页，多标签模式）
-    *                   false:关闭多标签功能,自动拆分当前所有浏览器盒子（一个窗口只显示一个网页，单窗口模式）
-    */
-    void SetEnableMerge(bool enable);
-
-    /** 是否开启多标签功能
-    * @return bool true 是，false 否
-    */
-    bool IsEnableMerge() const;
-
 private:
-    /** 是否开启多标签功能
-    */
-    bool m_bEnableMerge;
-
     /** 所有的浏览器盒子按ID保持到该容器
     */
     std::map<std::string, BrowserBox*> m_boxMap;

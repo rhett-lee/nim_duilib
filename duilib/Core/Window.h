@@ -291,6 +291,7 @@ public:
 
 public:
     /** 获取一个点对应的窗口接口
+    * @param [in] pt 屏幕坐标点
     */
     Window* WindowFromPoint(const UiPoint& pt);
 

@@ -386,6 +386,7 @@ public:
     void SetLastMousePos(const UiPoint& pt);
 
     /** 获取一个点对应的窗口接口
+    * @param [in] pt 屏幕坐标点
     */
     INativeWindow* WindowBaseFromPoint(const UiPoint& pt);
 

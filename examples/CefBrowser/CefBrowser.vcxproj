@@ -153,10 +153,8 @@
     <ClInclude Include="TestApplication.h" />
     <ClInclude Include="Windows\BrowserBox_Windows.h" />
     <ClInclude Include="Windows\BrowserForm_Windows.h" />
-    <ClInclude Include="Windows\dragdrop\DragDrop.h" />
     <ClInclude Include="Windows\dragdrop\DragDropManager.h" />
     <ClInclude Include="Windows\dragdrop\DragForm.h" />
-    <ClInclude Include="Windows\dragdrop\HBitmapControl.h" />
     <ClInclude Include="Windows\taskbar\DwmUtil.h" />
     <ClInclude Include="Windows\taskbar\TaskbarManager.h" />
   </ItemGroup>
@@ -170,10 +168,8 @@
     <ClCompile Include="TestApplication.cpp" />
     <ClCompile Include="Windows\BrowserBox_Windows.cpp" />
     <ClCompile Include="Windows\BrowserForm_Windows.cpp" />
-    <ClCompile Include="Windows\dragdrop\DragDrop.cpp" />
     <ClCompile Include="Windows\dragdrop\DragDropManager.cpp" />
     <ClCompile Include="Windows\dragdrop\DragForm.cpp" />
-    <ClCompile Include="Windows\dragdrop\HBitmapControl.cpp" />
     <ClCompile Include="Windows\taskbar\DwmUtil.cpp" />
     <ClCompile Include="Windows\taskbar\TaskbarManager.cpp" />
   </ItemGroup>

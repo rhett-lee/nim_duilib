@@ -1222,7 +1222,7 @@ bool ControlDragableT<T>::DragOutMouseMove(const EventArgs& msg)
 
             WindowCreateParam createWndParam;
             createWndParam.m_dwStyle = kWS_POPUP;
-            createWndParam.m_dwExStyle = kWS_EX_LAYERED | kWS_EX_NOACTIVATE;
+            createWndParam.m_dwExStyle = kWS_EX_LAYERED | kWS_EX_NOACTIVATE | kWS_EX_TRANSPARENT;
             m_pDragWindow->CreateWnd(this->GetWindow(), createWndParam);
             ASSERT(m_pDragWindow->IsWindow());
             if (m_pDragWindow->IsWindow()) {

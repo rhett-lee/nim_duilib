@@ -83,7 +83,7 @@ DString DragWindow::GetSkinFolder()
 DString DragWindow::GetSkinFile()
 {
     return _T("<?xml version = \"1.0\" encoding=\"utf-8\"?>")
-           _T("<Window size=\"90,90\" >")
+           _T("<Window size=\"90,90\" shadow_snap=\"false\">")
            _T("    <VBox width=\"stretch\" height=\"stretch\" visible=\"true\" bkcolor=\"white\"/>")
            _T("</Window>");
 }
@@ -142,7 +142,7 @@ void DragWindow::AdjustPos()
     rc.top = ptCursor.y;
     rc.right = rc.left;
     rc.bottom = rc.top;
-    SetWindowPos(InsertAfterWnd(), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_NOSIZE | kSWP_NOZORDER | kSWP_SHOWWINDOW | kSWP_NOACTIVATE);
+    SetWindowPos(InsertAfterWnd(), rc.left, rc.top, rc.Width(), rc.Height(), kSWP_NOSIZE | kSWP_SHOWWINDOW | kSWP_NOACTIVATE);
 }
 
 }

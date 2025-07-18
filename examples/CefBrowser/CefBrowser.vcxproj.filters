@@ -45,13 +45,7 @@
     <ClInclude Include="browser\BrowserManager.h">
       <Filter>browser</Filter>
     </ClInclude>
-    <ClInclude Include="Windows\dragdrop\DragDrop.h">
-      <Filter>Windows\dragdrop</Filter>
-    </ClInclude>
     <ClInclude Include="Windows\dragdrop\DragForm.h">
-      <Filter>Windows\dragdrop</Filter>
-    </ClInclude>
-    <ClInclude Include="Windows\dragdrop\HBitmapControl.h">
       <Filter>Windows\dragdrop</Filter>
     </ClInclude>
     <ClInclude Include="Windows\taskbar\DwmUtil.h">
@@ -95,13 +89,7 @@
     <ClCompile Include="browser\BrowserManager.cpp">
       <Filter>browser</Filter>
     </ClCompile>
-    <ClCompile Include="Windows\dragdrop\DragDrop.cpp">
-      <Filter>Windows\dragdrop</Filter>
-    </ClCompile>
     <ClCompile Include="Windows\dragdrop\DragForm.cpp">
-      <Filter>Windows\dragdrop</Filter>
-    </ClCompile>
-    <ClCompile Include="Windows\dragdrop\HBitmapControl.cpp">
       <Filter>Windows\dragdrop</Filter>
     </ClCompile>
     <ClCompile Include="Windows\taskbar\DwmUtil.cpp">
