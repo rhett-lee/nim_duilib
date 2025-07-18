@@ -19,9 +19,6 @@
     <Filter Include="Windows">
       <UniqueIdentifier>{b4868d12-d24a-412f-9ea7-5df9199289e7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Windows\dragdrop">
-      <UniqueIdentifier>{194f02f1-60c2-4035-b10a-7cb3b88ad59a}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Windows\taskbar">
       <UniqueIdentifier>{fc56ebad-17ad-4679-829f-87c9ea31a6a2}</UniqueIdentifier>
     </Filter>
@@ -45,17 +42,11 @@
     <ClInclude Include="browser\BrowserManager.h">
       <Filter>browser</Filter>
     </ClInclude>
-    <ClInclude Include="Windows\dragdrop\DragForm.h">
-      <Filter>Windows\dragdrop</Filter>
-    </ClInclude>
     <ClInclude Include="Windows\taskbar\DwmUtil.h">
       <Filter>Windows\taskbar</Filter>
     </ClInclude>
     <ClInclude Include="Windows\taskbar\TaskbarManager.h">
       <Filter>Windows\taskbar</Filter>
-    </ClInclude>
-    <ClInclude Include="Windows\dragdrop\DragDropManager.h">
-      <Filter>Windows\dragdrop</Filter>
     </ClInclude>
     <ClInclude Include="Windows\BrowserForm_Windows.h">
       <Filter>Windows</Filter>
@@ -65,6 +56,12 @@
     </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>Resource Files</Filter>
+    </ClInclude>
+    <ClInclude Include="browser\DragDropManager.h">
+      <Filter>browser</Filter>
+    </ClInclude>
+    <ClInclude Include="browser\DragForm.h">
+      <Filter>browser</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -89,23 +86,23 @@
     <ClCompile Include="browser\BrowserManager.cpp">
       <Filter>browser</Filter>
     </ClCompile>
-    <ClCompile Include="Windows\dragdrop\DragForm.cpp">
-      <Filter>Windows\dragdrop</Filter>
-    </ClCompile>
     <ClCompile Include="Windows\taskbar\DwmUtil.cpp">
       <Filter>Windows\taskbar</Filter>
     </ClCompile>
     <ClCompile Include="Windows\taskbar\TaskbarManager.cpp">
       <Filter>Windows\taskbar</Filter>
     </ClCompile>
-    <ClCompile Include="Windows\dragdrop\DragDropManager.cpp">
-      <Filter>Windows\dragdrop</Filter>
-    </ClCompile>
     <ClCompile Include="Windows\BrowserForm_Windows.cpp">
       <Filter>Windows</Filter>
     </ClCompile>
     <ClCompile Include="Windows\BrowserBox_Windows.cpp">
       <Filter>Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="browser\DragDropManager.cpp">
+      <Filter>browser</Filter>
+    </ClCompile>
+    <ClCompile Include="browser\DragForm.cpp">
+      <Filter>browser</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,6 +1,6 @@
 #include "DragDropManager.h"
 
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#if defined (DUILIB_BUILD_FOR_WIN)
 
 #include "DragForm.h"
 #include "Windows/BrowserForm_Windows.h"
@@ -188,5 +188,4 @@ void DragDropManager::UpdateDragFormPos()
     }
 }
 
-#endif //defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-
+#endif //defined (DUILIB_BUILD_FOR_WIN)

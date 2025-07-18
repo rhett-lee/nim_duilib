@@ -3,12 +3,13 @@
 
 #include "browser/BrowserBox.h"
 
-/** 多标签浏览器管理类，用于统一管理多标签拖拽功能
-  */
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#if defined (DUILIB_BUILD_FOR_WIN) 
 
 class BrowserForm_Windows;
 class DragForm;
+
+/** 多标签浏览器管理类，用于统一管理多标签拖拽功能
+*/
 class DragDropManager : public virtual ui::SupportWeakCallback
 {
 public:
@@ -45,10 +46,15 @@ public:
     void UpdateDragFormPos();
 
 private:
-    BrowserBox* m_pDragingBox;    // 当下正在被拖拽的浏览器盒子
+    /** 当下正在被拖拽的浏览器盒子
+    */
+    BrowserBox* m_pDragingBox;
+
+    /** 拖动过程中的小窗口
+    */
     DragForm* m_pDragForm;
 };
 
-#endif //defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
+#endif //defined (DUILIB_BUILD_FOR_WIN)
 
 #endif //EXAMPLES_DRAGDROP_MANAGER_H_

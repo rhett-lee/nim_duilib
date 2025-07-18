@@ -2,9 +2,9 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 #include "duilib/Utils/BitmapHelper_Windows.h"
-#include "Windows/dragdrop/DragDropManager.h"
 #include "Windows/BrowserBox_Windows.h"
 #include "browser/BrowserManager.h"
+#include "browser/DragDropManager.h"
 
 #include <OleIdl.h>
 #include <ShObjIdl.h>
