@@ -105,8 +105,12 @@ LRESULT ShadowWndBase::FilterMessage(UINT uMsg, WPARAM wParam, LPARAM /*lParam*/
 
 bool ShadowWndBase::UpdateShadowPos(bool bCheckZOrder)
 {
-    if ((m_pWindow == nullptr) || !m_pWindow->IsWindow() || !m_pWindow->IsWindowVisible()) {
+    if ((m_pWindow == nullptr) || !m_pWindow->IsWindow()) {
         return false;
+    }
+    if (!m_pWindow->IsWindowVisible()) {
+        ShowWindow(kSW_HIDE);
+        return true;
     }
     if (bCheckZOrder) {
         if (::GetWindow(m_pWindow->NativeWnd()->GetHWND(), GW_HWNDNEXT) == NativeWnd()->GetHWND()) {
