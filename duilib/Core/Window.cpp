@@ -2130,6 +2130,10 @@ void Window::OnFocusControlChanged()
 Window* Window::WindowFromPoint(const UiPoint& pt)
 {
     WindowBase* pWindow = WindowBaseFromPoint(pt);
+    if (!GlobalManager::Instance().HasWindowBase(pWindow)) {
+        //不是本进程窗口时，不使用，避免跨进程的窗口时导致崩溃
+        pWindow = nullptr;
+    }
     if (pWindow != nullptr) {
         return dynamic_cast<Window*>(pWindow);
     }

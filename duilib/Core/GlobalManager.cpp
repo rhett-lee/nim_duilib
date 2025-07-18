@@ -507,6 +507,19 @@ bool GlobalManager::HasWindow(Window* pWindow) const
     return false;
 }
 
+bool GlobalManager::HasWindowBase(WindowBase* pWindowBase) const
+{
+    AssertUIThread();
+    if (pWindowBase != nullptr) {
+        for (auto iter = m_windowList.begin(); iter != m_windowList.end(); ++iter) {
+            if (iter->m_pWindow == pWindowBase) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void GlobalManager::RemoveAllImages()
 {
     AssertUIThread();
