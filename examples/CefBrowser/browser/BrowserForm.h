@@ -194,7 +194,7 @@ protected:
     /** 在执行拖拽操作前，如果被拖拽的浏览器盒子属于本窗口，则通知本窗口
     * @param [in] browserId 浏览器id
     */
-    void OnBeforeDragBoxCallback(const DString& browserId);
+    bool OnBeforeDragBoxCallback(const DString& browserId);
 
     /** 在执行拖拽操作后，如果被拖拽的浏览器盒子属于本窗口，则通知本窗口操作结果
     * @param [in] bDropSucceed 浏览器盒子是否被拖拽到了外部
@@ -207,17 +207,9 @@ protected:
     */
     bool OnProcessTabItemDrag(const ui::EventArgs& param);
 
-    /** 生成当前窗体中某个区域对应的位图，用于离屏渲染模式
-    * @param[in] src_rect 目标位图的位置
-    * @return HBITMAP 生成的位图
+    /** 将页面生成位图
     */
-    ui::IBitmap* GenerateBoxOffsetRenderBitmap(const ui::UiRect& src_rect);
-
-    /** 生成当前激活的浏览器盒子的位图，用于有窗模式
-    * @param[in] src_rect 目标位图的位置
-    * @return HBITMAP 生成的位图
-    */
-    ui::IBitmap* GenerateBoxWindowBitmap();
+    std::shared_ptr<ui::IBitmap> GenerateWebPageBitmap(ui::CefControl* pCefControl);
 
     /** 鼠标移动消息（WM_MOUSEMOVE）
     * @param [in] pt 鼠标所在位置，客户区坐标

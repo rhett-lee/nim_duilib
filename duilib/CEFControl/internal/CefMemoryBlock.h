@@ -30,6 +30,10 @@ public:
     */
     bool IsValid() const;
 
+    /** 将网页数据绘制到Render，大小和网页保持一致
+    */
+    bool MakeImageSnapshot(IRender* pRender);
+
 private:
     /** 删除位图数据并初始化变量
     */

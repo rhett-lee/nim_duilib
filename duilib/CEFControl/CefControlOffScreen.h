@@ -44,6 +44,10 @@ public:
     */
     virtual bool IsCefOsrImeMode() const override;
 
+    /** 将网页保存为一张图片, 图片大小与控件大小相同
+    */
+    virtual std::shared_ptr<IBitmap> MakeImageSnapshot() override;
+
 protected:
     /** 重新创建Browser控件
     */

@@ -29,6 +29,7 @@ CefControlOffScreen::CefControlOffScreen(Window* pWindow) :
 
 CefControlOffScreen::~CefControlOffScreen(void)
 {
+    CefControlOffScreen::CloseAllBrowsers();
     if (m_pBrowserHandler.get()) {
         m_pBrowserHandler->SetHostWindow(nullptr);
         m_pBrowserHandler->SetHandlerDelegate(nullptr);
@@ -837,6 +838,23 @@ void CefControlOffScreen::OnFocusedNodeChanged(bool bEditable, const CefRect& no
     else {
         pWindow->NativeWnd()->SetTextInputArea(nullptr, 0);
     }
+}
+
+std::shared_ptr<IBitmap> CefControlOffScreen::MakeImageSnapshot()
+{
+    if ((m_pCefMemData == nullptr) || (GetWindow() == nullptr)){
+        return nullptr;
+    }
+    std::unique_ptr<IRender> render;
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory != nullptr) {
+        render.reset(pRenderFactory->CreateRender(GetWindow()->GetRenderDpi()));
+    }
+    if ((render != nullptr) && m_pCefMemData->MakeImageSnapshot(render.get())) {
+        return std::shared_ptr<IBitmap>(render->MakeImageSnapshot());
+    }
+    return nullptr;
 }
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)

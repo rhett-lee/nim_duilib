@@ -15,13 +15,14 @@ CefControlNative::CefControlNative(ui::Window* pWindow):
 
 CefControlNative::~CefControlNative(void)
 {
+    CefControlNative::CloseAllBrowsers();
     if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get()) {
+        m_pBrowserHandler->SetHostWindow(nullptr);
+        m_pBrowserHandler->SetHandlerDelegate(nullptr);
         // Request that the main browser close.
         if (m_pBrowserHandler->GetBrowserHost() != nullptr) {
             m_pBrowserHandler->GetBrowserHost()->CloseBrowser(true);
-        }
-        m_pBrowserHandler->SetHostWindow(nullptr);
-        m_pBrowserHandler->SetHandlerDelegate(nullptr);
+        }        
     }
 }
 
@@ -199,5 +200,126 @@ void CefControlNative::OnFocusedNodeChanged(CefRefPtr<CefBrowser> /*browser*/,
         SetFocus();
     }
 }
+
+std::shared_ptr<IBitmap> CefControlNative::MakeImageSnapshot()
+{
+    std::vector<uint8_t> bitmap;
+    int32_t width = 0;
+    int32_t height = 0;
+    bool bRet = false;
+#ifdef DUILIB_BUILD_FOR_WIN
+    bRet = CaptureWindowBitmap_Win32(bitmap, width, height);
+#elif defined (DUILIB_BUILD_FOR_MACOS)
+    bRet = CaptureWindowBitmap_Mac(bitmap, width, height);
+#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    bRet = CaptureWindowBitmap_X11(bitmap, width, height);
+#endif
+    if (bRet && (width > 0) && (height > 0) && ((int32_t)bitmap.size() == (width * height * 4))) {
+        std::shared_ptr<IBitmap> spBitmap;
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+        ASSERT(pRenderFactory != nullptr);
+        if (pRenderFactory != nullptr) {
+            spBitmap.reset(pRenderFactory->CreateBitmap());
+            if (spBitmap != nullptr) {
+                if (!spBitmap->Init(width, height, true, bitmap.data())) {
+                    spBitmap.reset();
+                }
+            }
+        }
+        return spBitmap;
+    }
+    return nullptr;
+}
+
+#if defined (DUILIB_BUILD_FOR_WIN)
+bool CefControlNative::CaptureWindowBitmap_Win32(std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
+{
+    HWND hwnd = GetCefWindowHandle();
+    if (!::IsWindow(hwnd)) {
+        return false;
+    }
+    // 获取窗口尺寸
+    RECT rect = { 0, 0, 0, 0 };
+    if (!GetClientRect(hwnd, &rect)) {
+        return false;
+    }
+
+    width = rect.right - rect.left;
+    height = rect.bottom - rect.top;
+
+    if (width <= 0 || height <= 0) {
+        return false;
+    }
+
+    // 创建设备上下文
+    HDC hdcScreen = ::GetDC(nullptr);
+    if (hdcScreen == nullptr) {
+        return false;
+    }
+    HDC hdcWindow = ::GetDC(hwnd);
+    if (hdcWindow == nullptr) {
+        ::ReleaseDC(nullptr, hdcScreen);
+        return false;
+    }
+
+    HDC hdcMemDC = ::CreateCompatibleDC(hdcWindow);
+    if (hdcMemDC == nullptr) {
+        ::ReleaseDC(nullptr, hdcScreen);
+        ::ReleaseDC(hwnd, hdcWindow);
+        return false;
+    }
+
+    // 创建位图
+    HBITMAP hBitmap = ::CreateCompatibleBitmap(hdcWindow, width, height);
+    if (hBitmap == nullptr) {
+        ::DeleteDC(hdcMemDC);
+        ::ReleaseDC(nullptr, hdcScreen);
+        ::ReleaseDC(hwnd, hdcWindow);
+        return false;
+    }
+
+    HGDIOBJ hOldObj = ::SelectObject(hdcMemDC, hBitmap);
+
+    // 拷贝屏幕内容到位图
+    ::BitBlt(hdcMemDC, 0, 0, width, height, hdcWindow, 0, 0, SRCCOPY);
+
+    // 获取位图信息
+    BITMAPINFOHEADER bi;
+    bi.biSize = sizeof(BITMAPINFOHEADER);
+    bi.biWidth = width;
+    bi.biHeight = -height;  // 正数表示从下到上，负数表示从上到下
+    bi.biPlanes = 1;
+    bi.biBitCount = 32;
+    bi.biCompression = BI_RGB;
+    bi.biSizeImage = 0;
+    bi.biXPelsPerMeter = 0;
+    bi.biYPelsPerMeter = 0;
+    bi.biClrUsed = 0;
+    bi.biClrImportant = 0;
+
+    // 分配内存并获取位图数据
+    bitmap.resize(width * height * 4);
+    ::GetDIBits(hdcMemDC, hBitmap, 0, height, bitmap.data(), (BITMAPINFO*)&bi, DIB_RGB_COLORS);
+
+    // 清理资源
+    ::SelectObject(hdcMemDC, hOldObj);
+    ::DeleteObject(hBitmap);
+    ::DeleteDC(hdcMemDC);
+    ::ReleaseDC(nullptr, hdcScreen);
+    ::ReleaseDC(hwnd, hdcWindow);
+
+    return true;
+}
+#elif defined (DUILIB_BUILD_FOR_MACOS)
+bool CefControlNative::CaptureWindowBitmap_Mac(std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
+{
+    return false;
+}
+#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+bool CefControlNative::CaptureWindowBitmap_X11(std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
+{
+    return false;
+}
+#endif
 
 }

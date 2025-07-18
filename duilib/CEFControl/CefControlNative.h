@@ -48,6 +48,21 @@ protected:
                                       bool bEditable,
                                       const CefRect& nodeRect) override;
 
+    /** 将网页保存为一张图片, 图片大小与控件大小相同
+    */
+    virtual std::shared_ptr<IBitmap> MakeImageSnapshot() override;
+
+private:
+    /** 将页面保存为成一张位图数据
+    */
+#if defined (DUILIB_BUILD_FOR_WIN)
+    bool CaptureWindowBitmap_Win32(std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height);
+#elif defined (DUILIB_BUILD_FOR_MACOS)
+    bool CaptureWindowBitmap_Mac(std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height);
+#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    bool CaptureWindowBitmap_X11(std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height);
+#endif
+
 private:
     /** 首次绘制的事件是否关联
     */

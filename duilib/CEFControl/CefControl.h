@@ -4,11 +4,13 @@
 #include "duilib/Core/Control.h"
 #include "duilib/CEFControl/CefControlEvent.h"
 #include "duilib/CEFControl/internal/CefBrowserHandlerDelegate.h"
+#include <memory>
 
 namespace ui {
 
 class CefJSBridge;
 class CefBrowserHandler;
+class IBitmap;
 
 /**@brief 封装Cef浏览器对象为duilib控件基类
  * @copyright (c) 2016, NetEase Inc. All rights reserved
@@ -128,6 +130,10 @@ public:
     /** 关闭所有的Browser对象
     */
     virtual void CloseAllBrowsers();
+
+    /** 将网页保存为一张图片, 图片大小与控件大小相同
+    */
+    virtual std::shared_ptr<IBitmap> MakeImageSnapshot();
 
 public:
 
@@ -392,9 +398,9 @@ public:
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
 protected:
-        /** 重新创建Browser对象
-        */
-        virtual void ReCreateBrowser() = 0;
+    /** 重新创建Browser对象
+    */
+    virtual void ReCreateBrowser() = 0;
 
 protected:
     /** CefRenderHandler接口, 在非UI线程中被调用

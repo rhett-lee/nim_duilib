@@ -27,25 +27,28 @@ bool DragDropManager::IsDragingBorwserBox() const
     return (m_pDragingBox != nullptr);
 }
 
-void DragDropManager::StartDragBorwserBox(BrowserBox* browserBox, std::shared_ptr<ui::IBitmap> spIBitmap, const ui::UiPoint& ptOffset)
+bool DragDropManager::StartDragBorwserBox(BrowserBox* browserBox, std::shared_ptr<ui::IBitmap> spIBitmap, const ui::UiPoint& ptOffset)
 {
     ASSERT(browserBox != nullptr);
     if (browserBox == nullptr) {
-        return;
+        return false;
     }
     m_pDragingBox = browserBox;
     BrowserForm* dragBrowserForm = dynamic_cast<BrowserForm*>(m_pDragingBox->GetBrowserForm());
     ASSERT(dragBrowserForm != nullptr);
     if (dragBrowserForm == nullptr) {
         m_pDragingBox = nullptr;
-        return;
+        return false;
     }
 
     // 获取被拖拽浏览器窗口中浏览器盒子的数量
     int box_count = dragBrowserForm->GetBoxCount();
     ASSERT(box_count > 0);
 
-    dragBrowserForm->OnBeforeDragBoxCallback(ui::StringConvert::UTF8ToT(m_pDragingBox->GetId()));
+    if (!dragBrowserForm->OnBeforeDragBoxCallback(ui::StringConvert::UTF8ToT(m_pDragingBox->GetId()))) {
+        m_pDragingBox = nullptr;
+        return false;
+    }
 
     if ((m_pDragForm != nullptr) && m_pDragForm->IsClosingWnd()) {
         m_pDragForm->Release();
@@ -67,6 +70,7 @@ void DragDropManager::StartDragBorwserBox(BrowserBox* browserBox, std::shared_pt
         m_pDragForm->ShowWindow(ui::kSW_SHOW_NA);
         m_pDragForm->AdjustPos();
     }
+    return true;
 }
 
 void DragDropManager::EndDragBorwserBox()

@@ -1304,7 +1304,12 @@ LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg&
 {
     bHandled = false;
     ControlPtr pEventClick = m_pEventClick;
-    m_pEventClick = nullptr;
+    if (!Keyboard::IsKeyDown(VirtualKeyCode::kVK_LBUTTON) &&
+        !Keyboard::IsKeyDown(VirtualKeyCode::kVK_RBUTTON) &&
+        !Keyboard::IsKeyDown(VirtualKeyCode::kVK_MBUTTON)) {
+        //只有鼠标按键未按下时清空，否则应该在鼠标弹起时清楚，避免影响非焦点状态时的点击功能
+        m_pEventClick = nullptr;
+    }
 
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     if (pEventClick != nullptr) {
@@ -1936,43 +1941,53 @@ void Window::OnWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, 
 void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey)
 {
     ASSERT(eventType == kEventMouseButtonDown ||
-        eventType == kEventMouseRButtonDown ||
-        eventType == kEventMouseMButtonDown ||
-        eventType == kEventMouseDoubleClick ||
-        eventType == kEventMouseRDoubleClick ||
-        eventType == kEventMouseMDoubleClick);
+           eventType == kEventMouseRButtonDown ||
+           eventType == kEventMouseMButtonDown ||
+           eventType == kEventMouseDoubleClick ||
+           eventType == kEventMouseRDoubleClick ||
+           eventType == kEventMouseMDoubleClick);
 
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();    
     if ((eventType == kEventMouseButtonDown) || (eventType == kEventMouseButtonDown) || (eventType == kEventMouseButtonDown)) {
         SetCapture();
+        if (windowFlag.expired()) {
+            return;
+        }
     }
 
     CheckSetWindowFocus();
+    if (windowFlag.expired()) {
+        return;
+    }
+
     SetLastMousePos(pt);
     Control* pControl = FindControl(pt);
     if (pControl != nullptr) {
-        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-        std::weak_ptr<WeakFlag> controlFlag = pControl->GetWeakFlag();        
+        std::weak_ptr<WeakFlag> controlFlag = pControl->GetWeakFlag();
         std::weak_ptr<WeakFlag> clickFlag;
         if (m_pEventClick != nullptr) {
             clickFlag = m_pEventClick->GetWeakFlag();
         }
         ControlPtr pOldEventClick = m_pEventClick;
         m_pEventClick = pControl;
-        pControl->SetFocus();
-
+        pControl->SetFocus();        
         if (windowFlag.expired()) {
             return;
         }
-        if (!controlFlag.expired()) {
-            EventArgs msgData;
-            msgData.modifierKey = modifierKey;
-            msgData.ptMouse = pt;
-            msgData.wParam = nativeMsg.wParam;
-            msgData.lParam = nativeMsg.lParam;
-            pControl->SendEvent(eventType, msgData);
-            if (windowFlag.expired()) {
-                return;
+        if (controlFlag.expired()) {
+            if (m_pEventClick.get() == pControl) {
+                m_pEventClick = nullptr;
             }
+            return;
+        }
+        EventArgs msgData;
+        msgData.modifierKey = modifierKey;
+        msgData.ptMouse = pt;
+        msgData.wParam = nativeMsg.wParam;
+        msgData.lParam = nativeMsg.lParam;
+        pControl->SendEvent(eventType, msgData);
+        if (windowFlag.expired()) {
+            return;
         }
         if ((pOldEventClick != nullptr) && (pOldEventClick != pControl) && !clickFlag.expired()) {
             pOldEventClick->SendEvent(kEventMouseClickChanged);
@@ -1995,7 +2010,7 @@ void Window::OnButtonUp(EventType eventType, const UiPoint& pt, const NativeMsg&
         return;
     }
     SetLastMousePos(pt);    
-    if (m_pEventClick != nullptr) {        
+    if (m_pEventClick != nullptr) {
         EventArgs msgData;
         msgData.modifierKey = modifierKey;
         msgData.ptMouse = pt;
@@ -2048,14 +2063,17 @@ Control* Window::GetEventClick() const
 
 void Window::SetFocusControl(Control* pControl)
 {
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     if (pControl != nullptr) {
         //确保窗口有焦点
         CheckSetWindowFocus();
+        if (windowFlag.expired()) {
+            return;
+        }
     }
     if (pControl == m_pFocus) {
         return;
-    }
-    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    }    
     ControlPtr pOldFocus = m_pFocus;
     if (pOldFocus != nullptr) {
         m_pFocus = nullptr;

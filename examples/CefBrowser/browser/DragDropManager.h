@@ -34,7 +34,7 @@ public:
     * @param [in] ptOffset 拖拽图像相对于鼠标的偏移
     * @return bool true 成功，false 失败
     */
-    void StartDragBorwserBox(BrowserBox* browserBox, std::shared_ptr<ui::IBitmap> spIBitmap, const ui::UiPoint& ptOffset);
+    bool StartDragBorwserBox(BrowserBox* browserBox, std::shared_ptr<ui::IBitmap> spIBitmap, const ui::UiPoint& ptOffset);
 
     /** 结束执行拖拽浏览器盒子的操作
     */

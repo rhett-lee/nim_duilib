@@ -734,14 +734,14 @@ void BrowserForm::OnCloseTabPage(BrowserBox* browser_box)
 {
 }
 
-void BrowserForm::OnBeforeDragBoxCallback(const DString& browserId)
+bool BrowserForm::OnBeforeDragBoxCallback(const DString& browserId)
 {
     BrowserBox* browser_box = FindBox(browserId);
     if (browser_box != nullptr) {
         browser_box->SetVisible(false);
     }
     else {
-        return;
+        return false;
     }
     m_dragingBrowserId = browserId;
 
@@ -769,6 +769,7 @@ void BrowserForm::OnBeforeDragBoxCallback(const DString& browserId)
     if (m_pTabCtrl != nullptr) {
         m_pTabCtrl->ArrangeAncestor();
     }
+    return true;
 }
 
 void BrowserForm::OnAfterDragBoxCallback(bool bDropSucceed)
@@ -824,7 +825,7 @@ bool BrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
     {
     case kEventMouseMove:
     {
-        if (!m_bButtonDown || (m_pActiveBrowserBox == nullptr) || (::GetKeyState(VK_LBUTTON) >= 0)) {
+        if (!m_bButtonDown || m_bDragState || (m_pActiveBrowserBox == nullptr) || !ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_LBUTTON)) {
             break;
         }
 
@@ -836,23 +837,19 @@ bool BrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
 
         //当鼠标纵向滑动的距离超过标签宽度的时候，开始拖出操作
         LONG cy = abs(param.ptMouse.y - m_oldDragPoint.y);
-        if (!m_bDragState && (cy > tab_item->GetPos().Height())) {
+        if (cy > tab_item->GetPos().Height()) {
 
             m_bDragState = true;
 
-            // 把被拖拽的浏览器盒子生成一个宽度300的位图
-            IBitmap* pBitmap = nullptr;
-            if (ui::CefManager::GetInstance()->IsEnableOffScreenRendering()) {
-                pBitmap = GenerateBoxOffsetRenderBitmap(m_pBorwserBoxTab->GetPos());
-            }
-            else {
-                pBitmap = GenerateBoxWindowBitmap();
-            }
+            // 把被拖拽的浏览器盒子生成一个位图
+            std::shared_ptr<ui::IBitmap> spIBitmap = GenerateWebPageBitmap(m_pActiveBrowserBox->GetCefControl());
+
             // pt应该指定相对bitmap位图的左上角(0,0)的坐标,这里设置为bitmap的中上点
             ui::UiPoint pt = { kDragImageWidth / 2, 0 };
 
-            std::shared_ptr<ui::IBitmap> spIBitmap(pBitmap);
-            DragDropManager::GetInstance()->StartDragBorwserBox(m_pActiveBrowserBox, spIBitmap, pt);
+            if (!DragDropManager::GetInstance()->StartDragBorwserBox(m_pActiveBrowserBox, spIBitmap, pt)) {
+                m_bDragState = false;
+            }
         }
     }
     break;
@@ -868,11 +865,18 @@ bool BrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
     return true;
 }
 
-ui::IBitmap* BrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_rect)
+std::shared_ptr<ui::IBitmap> BrowserForm::GenerateWebPageBitmap(ui::CefControl* pCefControl)
 {
-    ASSERT(!src_rect.IsEmpty());
-    int src_width = src_rect.right - src_rect.left;
-    int src_height = src_rect.bottom - src_rect.top;
+    std::shared_ptr<IBitmap> spBitmap;
+    if (pCefControl != nullptr) {
+        spBitmap = pCefControl->MakeImageSnapshot();
+    }
+    if (spBitmap == nullptr) {
+        return nullptr;
+    }
+    if ((spBitmap->GetWidth() < 1) || (spBitmap->GetHeight() < 1)) {
+        return nullptr;
+    }
 
     std::unique_ptr<IRender> render;
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
@@ -882,43 +886,38 @@ ui::IBitmap* BrowserForm::GenerateBoxOffsetRenderBitmap(const UiRect& src_rect)
     }
     ASSERT(render != nullptr);
     if (render->Resize(kDragImageWidth, kDragImageHeight)) {
-        int dest_width = 0;
-        int dest_height = 0;
-        float scale = (float)src_width / (float)src_height;
+        int32_t dest_width = 0;
+        int32_t dest_height = 0;
+        float scale = (float)spBitmap->GetWidth() / (float)spBitmap->GetHeight();
         if (scale >= 1.0) {
             dest_width = kDragImageWidth;
-            dest_height = (int)(kDragImageWidth * (float)src_height / (float)src_width);
+            dest_height = (int32_t)(kDragImageWidth * (float)spBitmap->GetHeight() / (float)spBitmap->GetWidth());
         }
         else {
             dest_height = kDragImageHeight;
-            dest_width = (int)(kDragImageHeight * (float)src_width / (float)src_height);
+            dest_width = (int32_t)(kDragImageHeight * (float)spBitmap->GetWidth() / (float)spBitmap->GetHeight());
         }
 
-        render->AlphaBlend((kDragImageWidth - dest_width) / 2, 0, dest_width, dest_height,
-                            this->GetRender(),
-                            src_rect.left, src_rect.top, src_rect.right - src_rect.left, src_rect.bottom - src_rect.top);
+        UiRect rcPaint;
+        rcPaint.left = 0;
+        rcPaint.top = 0;
+        rcPaint.right = rcPaint.left + kDragImageWidth;
+        rcPaint.bottom = rcPaint.top + kDragImageHeight;
+
+        UiRect rcDest;
+        rcDest.left = (kDragImageWidth - dest_width) / 2;
+        rcDest.top = 0;
+        rcDest.right = rcDest.left + dest_width;
+        rcDest.bottom = rcDest.top + dest_height;
+
+        UiRect rcSource;
+        rcSource.left = 0;
+        rcSource.top = 0;
+        rcSource.right = rcSource.left + spBitmap->GetWidth();
+        rcSource.bottom = rcSource.top + spBitmap->GetHeight();
+
+        render->DrawImageRect(rcPaint, spBitmap.get(), rcDest, rcSource);
+        return std::shared_ptr<ui::IBitmap>(render->MakeImageSnapshot());
     }
-
-    return render->MakeImageSnapshot();
-}
-
-ui::IBitmap* BrowserForm::GenerateBoxWindowBitmap()
-{
-    return 0;
-    //if (!m_pActiveBrowserBox) {
-    //    return nullptr;
-    //}
-
-    //HWND cef_window = m_pActiveBrowserBox->GetCefControl()->GetCefWindowHandle();
-    //RECT src_rect = { 0, };
-    //::GetClientRect(cef_window, &src_rect);
-
-    //int src_width = src_rect.right - src_rect.left;
-    //int src_height = src_rect.bottom - src_rect.top;
-
-    ////创建一个内存DC
-    //HDC cef_window_dc = ::GetDC(cef_window);
-    //ui::IBitmap* pBitmap = ui::BitmapHelper::CreateBitmapObject(kDragImageWidth, kDragImageHeight, cef_window_dc, src_width, src_height);
-    //::ReleaseDC(cef_window, cef_window_dc);
-    //return pBitmap;
+    return nullptr;
 }

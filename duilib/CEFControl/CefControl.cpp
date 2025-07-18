@@ -1118,4 +1118,9 @@ Control* CefControl::GetCefControl()
     return this;
 }
 
+std::shared_ptr<IBitmap> CefControl::MakeImageSnapshot()
+{
+    return nullptr;
+}
+
 } //namespace ui
