@@ -266,6 +266,12 @@ LRESULT BrowserForm::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, c
         m_pTabCtrl->SelectItem(nNextItem, true, true);
         return 0;
     }
+    else if ((vkCode == VirtualKeyCode::kVK_ESCAPE) && ui::Keyboard::IsKeyDown(VirtualKeyCode::kVK_LBUTTON)) {
+        //按ESC键时，取消标签拖出
+        if (DragDropManager::GetInstance()->IsDragingBorwserBox()) {
+            DragDropManager::GetInstance()->EndDragBorwserBox(false);
+        }
+    }
     return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
 }
 
@@ -777,6 +783,7 @@ void BrowserForm::OnAfterDragBoxCallback(bool bDropSucceed)
     DString dragingBrowserId;
     dragingBrowserId.swap(m_dragingBrowserId);
     m_bDragState = false;
+    m_bButtonDown = false;
     if (!bDropSucceed && !dragingBrowserId.empty()) {
         BrowserBox* browser_box = FindBox(dragingBrowserId);
         if (browser_box != nullptr) {
@@ -807,14 +814,14 @@ LRESULT BrowserForm::OnMouseMoveMsg(const ui::UiPoint& pt, uint32_t modifierKey,
 LRESULT BrowserForm::OnMouseLButtonUpMsg(const ui::UiPoint& pt, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
     LRESULT lResult = BaseClass::OnMouseLButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
-    DragDropManager::GetInstance()->EndDragBorwserBox();
+    DragDropManager::GetInstance()->EndDragBorwserBox(true);
     return lResult;
 }
 
 LRESULT BrowserForm::OnCaptureChangedMsg(const ui::NativeMsg& nativeMsg, bool& bHandled)
 {
     LRESULT lResult = BaseClass::OnCaptureChangedMsg(nativeMsg, bHandled);
-    DragDropManager::GetInstance()->EndDragBorwserBox();
+    DragDropManager::GetInstance()->EndDragBorwserBox(true);
     return lResult;
 }
 

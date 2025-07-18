@@ -37,8 +37,9 @@ public:
     bool StartDragBorwserBox(BrowserBox* browserBox, std::shared_ptr<ui::IBitmap> spIBitmap, const ui::UiPoint& ptOffset);
 
     /** 结束执行拖拽浏览器盒子的操作
+    * @param [in] bSuccess true表示按成功操作，false表示取消拖动操作
     */
-    void EndDragBorwserBox();
+    void EndDragBorwserBox(bool bSuccess);
 
     /** 更新拖拽窗口的位置
     */

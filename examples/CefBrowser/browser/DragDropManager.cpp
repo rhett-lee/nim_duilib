@@ -84,7 +84,7 @@ bool DragDropManager::StartDragBorwserBox(BrowserBox* browserBox, std::shared_pt
     return true;
 }
 
-void DragDropManager::EndDragBorwserBox()
+void DragDropManager::EndDragBorwserBox(bool bSuccess)
 {
     if (m_pDragForm != nullptr) {
         if (!m_pDragForm->IsClosingWnd()) {
@@ -103,6 +103,14 @@ void DragDropManager::EndDragBorwserBox()
     BrowserForm* dragBrowserForm = dynamic_cast<BrowserForm*>(m_pDragingBox->GetBrowserForm());
     ASSERT(dragBrowserForm != nullptr);
     if (dragBrowserForm == nullptr) {
+        m_pDragingBox = nullptr;
+        return;
+    }
+
+    if (!bSuccess) {
+        //操作失败
+        dragBrowserForm->OnAfterDragBoxCallback(false);
+        m_pDragingBox = nullptr;
         return;
     }
 
