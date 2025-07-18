@@ -2,8 +2,8 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN)
 
-#include "DragForm.h"
-#include "Windows/BrowserForm_Windows.h"
+#include "browser/DragForm.h"
+#include "browser/BrowserForm.h"
 #include "browser/BrowserManager.h"
 
 DragDropManager::DragDropManager():
@@ -34,7 +34,7 @@ void DragDropManager::StartDragBorwserBox(BrowserBox* browserBox, std::shared_pt
         return;
     }
     m_pDragingBox = browserBox;
-    BrowserForm_Windows* dragBrowserForm = dynamic_cast<BrowserForm_Windows*>(m_pDragingBox->GetBrowserForm());
+    BrowserForm* dragBrowserForm = dynamic_cast<BrowserForm*>(m_pDragingBox->GetBrowserForm());
     ASSERT(dragBrowserForm != nullptr);
     if (dragBrowserForm == nullptr) {
         m_pDragingBox = nullptr;
@@ -85,19 +85,19 @@ void DragDropManager::EndDragBorwserBox()
     }
 
     // 获取当前被拖拽的浏览器盒子所属的浏览器窗口
-    BrowserForm_Windows* dragBrowserForm = dynamic_cast<BrowserForm_Windows*>(m_pDragingBox->GetBrowserForm());
+    BrowserForm* dragBrowserForm = dynamic_cast<BrowserForm*>(m_pDragingBox->GetBrowserForm());
     ASSERT(dragBrowserForm != nullptr);
     if (dragBrowserForm == nullptr) {
         return;
     }
 
     //确定目标窗口
-    BrowserForm_Windows* dropBrowserForm = nullptr;
+    BrowserForm* dropBrowserForm = nullptr;
     ui::UiPoint screenPt;
     dragBrowserForm->GetCursorPos(screenPt);
     ui::Window* pWindow = dragBrowserForm->WindowFromPoint(screenPt);
     if (pWindow != nullptr) {
-        dropBrowserForm = dynamic_cast<BrowserForm_Windows*>(pWindow);
+        dropBrowserForm = dynamic_cast<BrowserForm*>(pWindow);
     }
 
     // 获取被拖拽浏览器窗口中浏览器盒子的数量
@@ -150,15 +150,15 @@ void DragDropManager::UpdateDragFormPos()
 {
     if (m_pDragingBox != nullptr) {
         //将目标窗口，置为前端窗口
-        BrowserForm_Windows* dragBrowserForm = dynamic_cast<BrowserForm_Windows*>(m_pDragingBox->GetBrowserForm());
+        BrowserForm* dragBrowserForm = dynamic_cast<BrowserForm*>(m_pDragingBox->GetBrowserForm());
         ASSERT(dragBrowserForm != nullptr);
         if (dragBrowserForm != nullptr) {
-            BrowserForm_Windows* dropBrowserForm = nullptr;
+            BrowserForm* dropBrowserForm = nullptr;
             ui::UiPoint screenPt;
             dragBrowserForm->GetCursorPos(screenPt);
             ui::Window* pWindow = dragBrowserForm->WindowFromPoint(screenPt);
             if (pWindow != nullptr) {
-                dropBrowserForm = dynamic_cast<BrowserForm_Windows*>(pWindow);
+                dropBrowserForm = dynamic_cast<BrowserForm*>(pWindow);
             }
             if (dropBrowserForm != nullptr) {
                 ui::InsertAfterWnd insertAfterWnd;

@@ -5,7 +5,6 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) 
 
-class BrowserForm_Windows;
 class DragForm;
 
 /** 多标签浏览器管理类，用于统一管理多标签拖拽功能
