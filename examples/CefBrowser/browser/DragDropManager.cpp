@@ -66,6 +66,17 @@ bool DragDropManager::StartDragBorwserBox(BrowserBox* browserBox, std::shared_pt
         if (m_pDragForm->IsWindow()) {
             m_pDragForm->AddRef();
         }
+
+        DString title = m_pDragingBox->GetTitle();
+        ui::Box* pRootBox = m_pDragForm->GetRootBox();
+        if (pRootBox != nullptr) {
+            if (pRootBox->GetItemCount() > 0) {
+                ui::Label* pTitle = dynamic_cast<ui::Label*>(pRootBox->GetItemAt(0));
+                if (pTitle != nullptr) {
+                    pTitle->SetText(title);
+                }
+            }
+        }
         m_pDragForm->SetDragImage(spIBitmap);
         m_pDragForm->ShowWindow(ui::kSW_SHOW_NA);
         m_pDragForm->AdjustPos();

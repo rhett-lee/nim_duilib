@@ -10,10 +10,10 @@ DragForm::~DragForm()
 
 DString DragForm::GetSkinFolder()
 {
-    return BaseClass::GetSkinFolder();
+    return _T("cef_browser");
 }
 
 DString DragForm::GetSkinFile()
 {
-    return BaseClass::GetSkinFile();
+    return _T("drag_form.xml");
 }

@@ -47,6 +47,10 @@ public:
     */
     virtual void AdjustPos();
 
+    /** 获取容器
+    */
+    Box* GetRootBox() const;
+
 public:
     /** 增加引用计数
     */

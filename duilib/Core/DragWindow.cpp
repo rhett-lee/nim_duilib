@@ -93,18 +93,33 @@ void DragWindow::OnFinalMessage()
     Release();
 }
 
-/** 设置显示的图片
-* @param [in] pBitmap 图片资源的接口
-*/
-void DragWindow::SetDragImage(const std::shared_ptr<IBitmap>& pBitmap)
+Box* DragWindow::GetRootBox() const
 {
     Box* pBox = GetRoot();
+    if (IsShadowAttached() && (pBox != nullptr)) {
+        //如果使用了阴影，则获取实际的Box容器
+        size_t nCount = pBox->GetItemCount();
+        if (nCount == 1) {
+            Box* pRealBox = dynamic_cast<Box*>(pBox->GetItemAt(0));
+            if (pRealBox != nullptr) {
+                pBox = pRealBox;
+            }
+        }
+    }
+    return pBox;
+}
+
+void DragWindow::SetDragImage(const std::shared_ptr<IBitmap>& pBitmap)
+{
+    Box* pBox = GetRootBox();
     ASSERT(pBox != nullptr);
     if (pBox == nullptr) {
         return;
     }
+
+    int32_t nExtraHeight = 0;
     if (pBitmap == nullptr) {
-        size_t nCount = pBox->GetItemCount();
+        const size_t nCount = pBox->GetItemCount();
         if (nCount > 0) {
             DragWindowBitmap* pBitmapControl = dynamic_cast<DragWindowBitmap*>(pBox->GetItemAt(nCount - 1));
             if (pBitmapControl != nullptr) {
@@ -112,6 +127,22 @@ void DragWindow::SetDragImage(const std::shared_ptr<IBitmap>& pBitmap)
             }
         }
         return;
+    }
+    else {
+        const size_t nCount = pBox->GetItemCount();
+        for (size_t nItem = 0; nItem < nCount; ++nItem) {
+            Control* pControl = pBox->GetItemAt(nItem);
+            if (pControl != nullptr) {
+                if (pControl->GetFixedHeight().IsAuto()) {
+                    UiRect rcClient;
+                    GetClientRect(rcClient);
+                    nExtraHeight = pControl->EstimateSize(UiSize(rcClient.Width(), rcClient.Height())).cy.GetInt32();
+                }
+                else {
+                    nExtraHeight = pControl->GetFixedHeight().GetInt32();
+                }
+            }
+        }
     }
     const int32_t nImageWidth = pBitmap->GetWidth();
     const int32_t nImageHeight = pBitmap->GetHeight();
@@ -124,7 +155,7 @@ void DragWindow::SetDragImage(const std::shared_ptr<IBitmap>& pBitmap)
     pBox->AddItem(pBitmapControl);
 
     //根据位图的大小，调整窗口大小
-    Resize(nImageWidth, nImageHeight, false, false);
+    Resize(nImageWidth, nImageHeight + nExtraHeight, false, false);
 }
 
 void DragWindow::AdjustPos()
