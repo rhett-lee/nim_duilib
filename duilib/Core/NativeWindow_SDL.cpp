@@ -1987,8 +1987,8 @@ bool NativeWindow_SDL::IsWindowVisible() const
     return (windowFlags & SDL_WINDOW_HIDDEN) ? false : true;
 }
 
-bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* /*pInsertAfterWindow*/,
-                                   InsertAfterFlag /*insertAfterFlag*/,
+bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* pInsertAfterWindow,
+                                   InsertAfterFlag insertAfterFlag,
                                    int32_t X, int32_t Y, int32_t cx, int32_t cy,
                                    uint32_t uFlags)
 {
@@ -2042,6 +2042,24 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* /*pInsertAfterWindow
         }
         else {
             bModified = true;
+        }
+    }
+    if (!(uFlags & kSWP_NOZORDER) && (pInsertAfterWindow == nullptr)) {
+        //仅支持pInsertAfterWindow为nullptr的情况
+        if (insertAfterFlag == InsertAfterFlag::kHWND_TOPMOST) {
+            SDL_SetWindowAlwaysOnTop(m_sdlWindow, true);
+        }
+        else if (insertAfterFlag == InsertAfterFlag::kHWND_NOTOPMOST) {
+            SDL_SetWindowAlwaysOnTop(m_sdlWindow, false);
+        }
+        else if (insertAfterFlag == InsertAfterFlag::kHWND_TOP) {
+            bool bForce = SDL_GetHintBoolean(SDL_HINT_FORCE_RAISEWINDOW, false);
+            bool bActivate = SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_RAISED, true);
+            SDL_SetHint(SDL_HINT_FORCE_RAISEWINDOW, "false");
+            SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_RAISED, "false");
+            SDL_RaiseWindow(m_sdlWindow);
+            SDL_SetHint(SDL_HINT_FORCE_RAISEWINDOW, bForce ? "true" : "false");
+            SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_RAISED, bActivate ? "true" : "false");
         }
     }
     if (bRet) {
@@ -2503,7 +2521,7 @@ INativeWindow* NativeWindow_SDL::WindowBaseFromPoint(const UiPoint& pt, bool /*b
         GetWindowRect(sdlWindow, rcWindow);
         if (rcWindow.ContainsPt(pt)) {
             NativeWindow_SDL* pWindow = GetWindowFromID(SDL_GetWindowID(sdlWindow));
-            if (pWindow != nullptr) {
+            if ((pWindow != nullptr) && !pWindow->IsClosingWnd()) {
                 return pWindow->m_pOwner;
             }
         }
@@ -2515,7 +2533,7 @@ INativeWindow* NativeWindow_SDL::WindowBaseFromPoint(const UiPoint& pt, bool /*b
         GetWindowRect(sdlWindow, rcWindow);
         if (rcWindow.ContainsPt(pt)) {
             NativeWindow_SDL* pWindow = GetWindowFromID(SDL_GetWindowID(sdlWindow));
-            if (pWindow != nullptr) {
+            if ((pWindow != nullptr) && !pWindow->IsClosingWnd()) {
                 return pWindow->m_pOwner;
             }
         }
@@ -2534,7 +2552,7 @@ INativeWindow* NativeWindow_SDL::WindowBaseFromPoint(const UiPoint& pt, bool /*b
             GetWindowRect(sdlWindow, rcWindow);
             if (rcWindow.ContainsPt(pt)) {
                 NativeWindow_SDL* pWindow = GetWindowFromID(SDL_GetWindowID(sdlWindow));
-                if (pWindow != nullptr) {
+                if ((pWindow != nullptr) && !pWindow->IsClosingWnd()) {
                     return pWindow->m_pOwner;
                 }
             }

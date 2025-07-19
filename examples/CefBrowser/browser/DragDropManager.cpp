@@ -185,8 +185,7 @@ void DragDropManager::UpdateDragFormPos()
                 if ((m_pDragForm != nullptr) && !m_pDragForm->IsClosingWnd()) {
                     insertAfterWnd.m_pWindow = m_pDragForm;
                 }
-                dropBrowserForm->SetWindowPos(insertAfterWnd, 0, 0, 0, 0,
-                                              ui::kSWP_NOSIZE | ui::kSWP_NOMOVE | ui::kSWP_NOACTIVATE | ui::kSWP_SHOWWINDOW);
+                dropBrowserForm->SetWindowPos(insertAfterWnd, 0, 0, 0, 0, ui::kSWP_NOSIZE | ui::kSWP_NOMOVE | ui::kSWP_NOACTIVATE);
             }
         }
     }
