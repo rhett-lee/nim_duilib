@@ -456,10 +456,17 @@ bool BrowserForm::CloseBox(const std::string& browser_id)
             m_pActiveBrowserBox = nullptr;
         }
     }
-
-    // 当浏览器盒子清空时，关闭浏览器窗口
+    
     if (GetBoxCount() == 0) {
+        // 当浏览器盒子清空时，关闭浏览器窗口
         this->CloseWnd(kBrowserBoxClose);
+    }
+    else {
+        if (m_pActiveBrowserBox != nullptr) {
+            //选中新标签
+            std::string newId = m_pActiveBrowserBox->GetId();
+            SetActiveBox(newId);
+        }
     }
     return bRet;
 }
