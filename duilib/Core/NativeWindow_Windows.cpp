@@ -1697,7 +1697,7 @@ LRESULT CALLBACK NativeWindow_Windows::__WndProc(HWND hWnd, UINT uMsg, WPARAM wP
         }
         ::SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(pThis));
         ::SetPropW(hWnd, sPropName, (HANDLE)pThis);
-        ::SetPropW(hWnd, sPropName2, (HANDLE)::GetCurrentProcessId());
+        ::SetPropW(hWnd, sPropName2, (HANDLE)(size_t)::GetCurrentProcessId());
     }
     else {
         pThis = reinterpret_cast<NativeWindow_Windows*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
@@ -1705,7 +1705,7 @@ LRESULT CALLBACK NativeWindow_Windows::__WndProc(HWND hWnd, UINT uMsg, WPARAM wP
         //校验是否一致
         ASSERT((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) == pThis);
         if (pThis != nullptr) {
-            ASSERT(::GetPropW(hWnd, sPropName2) == (HANDLE)::GetCurrentProcessId());
+            ASSERT(::GetPropW(hWnd, sPropName2) == (HANDLE)(size_t)::GetCurrentProcessId());
         }        
 #endif
         if (uMsg == WM_NCDESTROY && pThis != nullptr) {            
@@ -1740,7 +1740,7 @@ INT_PTR CALLBACK NativeWindow_Windows::__DialogProc(HWND hWnd, UINT uMsg, WPARAM
             pThis->m_hWnd = hWnd;            
             ::SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(pThis));
             ::SetPropW(hWnd, sPropName, (HANDLE)pThis);
-            ::SetPropW(hWnd, sPropName2, (HANDLE)::GetCurrentProcessId());
+            ::SetPropW(hWnd, sPropName2, (HANDLE)(size_t)::GetCurrentProcessId());
 
             ASSERT(pThis->m_pfnOldWndProc == nullptr);
 
@@ -1761,7 +1761,7 @@ INT_PTR CALLBACK NativeWindow_Windows::__DialogProc(HWND hWnd, UINT uMsg, WPARAM
             //校验是否一致
             ASSERT((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) == pThis);
             if (pThis != nullptr) {
-                ASSERT(::GetPropW(hWnd, sPropName2) == (HANDLE)::GetCurrentProcessId());
+                ASSERT(::GetPropW(hWnd, sPropName2) == (HANDLE)(size_t)::GetCurrentProcessId());
             }
 #endif
             ASSERT(pThis != nullptr);
@@ -1786,7 +1786,7 @@ LRESULT CALLBACK NativeWindow_Windows::__DialogWndProc(HWND hWnd, UINT uMsg, WPA
     //校验是否一致
     ASSERT((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) == pThis);
     if (pThis != nullptr) {
-        ASSERT(::GetPropW(hWnd, sPropName2) == (HANDLE)::GetCurrentProcessId());
+        ASSERT(::GetPropW(hWnd, sPropName2) == (HANDLE)(size_t)::GetCurrentProcessId());
     }
 #endif
     ASSERT(pThis != nullptr);
@@ -1977,7 +1977,7 @@ INativeWindow* NativeWindow_Windows::WindowBaseFromPoint(const UiPoint& pt, bool
         else {
             pWindow = reinterpret_cast<NativeWindow_Windows*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
             if (pWindow != nullptr) {
-                if ((DWORD)::GetPropW(hWnd, sPropName2) != ::GetCurrentProcessId()) {
+                if (::GetPropW(hWnd, sPropName2) != (HANDLE)(size_t)::GetCurrentProcessId()) {
                     //校验失败：不是duilib的窗口
                     pWindow = nullptr;
                 }
