@@ -954,8 +954,9 @@ protected:
 protected:
     /** 获取一个点对应的窗口接口
     * @param [in] pt 屏幕坐标点
+    * @param [in] bIgnoreChildWindow true表示忽略子窗口，false表示不忽略子窗口
     */
-    WindowBase* WindowBaseFromPoint(const UiPoint& pt);
+    WindowBase* WindowBaseFromPoint(const UiPoint& pt, bool bIgnoreChildWindow = false);
 
     /** 处理DPI变化的系统通知消息
     * @param [in] nNewDPI 新的DPI值

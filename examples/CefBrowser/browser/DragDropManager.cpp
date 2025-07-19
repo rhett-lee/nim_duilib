@@ -115,7 +115,7 @@ void DragDropManager::EndDragBorwserBox(bool bSuccess)
     BrowserForm* dropBrowserForm = nullptr;
     ui::UiPoint screenPt;
     dragBrowserForm->GetCursorPos(screenPt);
-    ui::Window* pWindow = dragBrowserForm->WindowFromPoint(screenPt);
+    ui::Window* pWindow = dragBrowserForm->WindowFromPoint(screenPt, true);
     if (pWindow != nullptr) {
         dropBrowserForm = dynamic_cast<BrowserForm*>(pWindow);
     }
@@ -176,7 +176,7 @@ void DragDropManager::UpdateDragFormPos()
             BrowserForm* dropBrowserForm = nullptr;
             ui::UiPoint screenPt;
             dragBrowserForm->GetCursorPos(screenPt);
-            ui::Window* pWindow = dragBrowserForm->WindowFromPoint(screenPt);
+            ui::Window* pWindow = dragBrowserForm->WindowFromPoint(screenPt, true);
             if (pWindow != nullptr) {
                 dropBrowserForm = dynamic_cast<BrowserForm*>(pWindow);
             }

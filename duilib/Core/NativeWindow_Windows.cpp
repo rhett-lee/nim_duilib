@@ -1683,7 +1683,8 @@ bool NativeWindow_Windows::UnregisterHotKey(int32_t id)
 
 /** 窗口句柄的属性名称
 */
-static const DStringW::value_type* sPropName = L"DuiLibWindow"; // 属性名称
+static const DStringW::value_type* sPropName  = L"DuiLibWindow";     // 属性名称(校验指针)
+static const DStringW::value_type* sPropName2 = L"DuiLibWindow2";    // 属性名称(进程ID)
 
 LRESULT CALLBACK NativeWindow_Windows::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -1696,17 +1697,22 @@ LRESULT CALLBACK NativeWindow_Windows::__WndProc(HWND hWnd, UINT uMsg, WPARAM wP
         }
         ::SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(pThis));
         ::SetPropW(hWnd, sPropName, (HANDLE)pThis);
+        ::SetPropW(hWnd, sPropName2, (HANDLE)::GetCurrentProcessId());
     }
     else {
         pThis = reinterpret_cast<NativeWindow_Windows*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
 #ifdef _DEBUG
         //校验是否一致
         ASSERT((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) == pThis);
+        if (pThis != nullptr) {
+            ASSERT(::GetPropW(hWnd, sPropName2) == (HANDLE)::GetCurrentProcessId());
+        }        
 #endif
         if (uMsg == WM_NCDESTROY && pThis != nullptr) {            
             LRESULT lRes = ::DefWindowProc(hWnd, uMsg, wParam, lParam);
             ::SetWindowLongPtr(pThis->m_hWnd, GWLP_USERDATA, 0L);
             ::SetPropW(hWnd, sPropName, nullptr);
+            ::SetPropW(hWnd, sPropName2, nullptr);
             ASSERT(hWnd == pThis->GetHWND());
             pThis->OnFinalMessage();
             return lRes;
@@ -1734,6 +1740,7 @@ INT_PTR CALLBACK NativeWindow_Windows::__DialogProc(HWND hWnd, UINT uMsg, WPARAM
             pThis->m_hWnd = hWnd;            
             ::SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(pThis));
             ::SetPropW(hWnd, sPropName, (HANDLE)pThis);
+            ::SetPropW(hWnd, sPropName2, (HANDLE)::GetCurrentProcessId());
 
             ASSERT(pThis->m_pfnOldWndProc == nullptr);
 
@@ -1753,6 +1760,9 @@ INT_PTR CALLBACK NativeWindow_Windows::__DialogProc(HWND hWnd, UINT uMsg, WPARAM
 #ifdef _DEBUG
             //校验是否一致
             ASSERT((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) == pThis);
+            if (pThis != nullptr) {
+                ASSERT(::GetPropW(hWnd, sPropName2) == (HANDLE)::GetCurrentProcessId());
+            }
 #endif
             ASSERT(pThis != nullptr);
             if (pThis != nullptr) {
@@ -1775,6 +1785,9 @@ LRESULT CALLBACK NativeWindow_Windows::__DialogWndProc(HWND hWnd, UINT uMsg, WPA
 #ifdef _DEBUG
     //校验是否一致
     ASSERT((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) == pThis);
+    if (pThis != nullptr) {
+        ASSERT(::GetPropW(hWnd, sPropName2) == (HANDLE)::GetCurrentProcessId());
+    }
 #endif
     ASSERT(pThis != nullptr);
     if (uMsg == WM_NCDESTROY && pThis != nullptr) {
@@ -1785,6 +1798,7 @@ LRESULT CALLBACK NativeWindow_Windows::__DialogWndProc(HWND hWnd, UINT uMsg, WPA
         LRESULT lRes = ::DefWindowProc(hWnd, uMsg, wParam, lParam);
         ::SetWindowLongPtr(pThis->m_hWnd, GWLP_USERDATA, 0L);
         ::SetPropW(hWnd, sPropName, nullptr);
+        ::SetPropW(hWnd, sPropName2, nullptr);
         ASSERT(hWnd == pThis->GetHWND());
         pThis->OnFinalMessage();
         return lRes;
@@ -1939,18 +1953,35 @@ LRESULT NativeWindow_Windows::ProcessInternalMessage(UINT uMsg, WPARAM wParam, L
     return lResult;
 }
 
-INativeWindow* NativeWindow_Windows::WindowBaseFromPoint(const UiPoint& pt)
+INativeWindow* NativeWindow_Windows::WindowBaseFromPoint(const UiPoint& pt, bool bIgnoreChildWindow)
 {
     NativeWindow_Windows* pWindow = nullptr;
-    HWND hWnd = ::WindowFromPoint({ pt.x, pt.y });
-    if (::IsWindow(hWnd)) {
+    HWND hWndPt = ::WindowFromPoint({ pt.x, pt.y });
+    std::vector<HWND> hwndList;
+    if (::IsWindow(hWndPt)) {
+        hwndList.push_back(hWndPt);
+        if (bIgnoreChildWindow) {
+            //获取父窗口列表
+            HWND hParent = ::GetParent(hWndPt);
+            while ((hParent != nullptr) && ::IsWindow(hParent)) {
+                hwndList.push_back(hParent);
+                hParent = ::GetParent(hParent);
+            }
+        }
+    }
+
+    for (HWND hWnd : hwndList) {
         if (hWnd == m_hWnd) {
             pWindow = this;
         }
         else {
             pWindow = reinterpret_cast<NativeWindow_Windows*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
             if (pWindow != nullptr) {
-                if ((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) != pWindow) {
+                if ((DWORD)::GetPropW(hWnd, sPropName2) != ::GetCurrentProcessId()) {
+                    //校验失败：不是duilib的窗口
+                    pWindow = nullptr;
+                }
+                else if ((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) != pWindow) {
                     //校验失败：不是duilib的窗口
                     pWindow = nullptr;
                 }
@@ -1958,6 +1989,9 @@ INativeWindow* NativeWindow_Windows::WindowBaseFromPoint(const UiPoint& pt)
                     pWindow = nullptr;
                 }
             }
+        }
+        if (pWindow != nullptr) {
+            break;
         }
     }
     INativeWindow* pNativeWindow = nullptr;

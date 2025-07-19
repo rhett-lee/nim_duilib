@@ -2494,7 +2494,7 @@ void NativeWindow_SDL::SetLastMousePos(const UiPoint& pt)
     m_ptLastMousePos = pt;
 }
 
-INativeWindow* NativeWindow_SDL::WindowBaseFromPoint(const UiPoint& pt)
+INativeWindow* NativeWindow_SDL::WindowBaseFromPoint(const UiPoint& pt, bool /*bIgnoreChildWindow*/)
 {
     SDL_Window* pKeyboardFocus = SDL_GetKeyboardFocus();
     if (pKeyboardFocus != nullptr) {

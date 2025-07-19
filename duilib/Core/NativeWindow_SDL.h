@@ -445,8 +445,9 @@ public:
 
     /** 获取一个点对应的窗口接口
     * @param [in] pt 屏幕坐标点
+    * @param [in] bIgnoreChildWindow true表示忽略子窗口，false表示不忽略子窗口
     */
-    INativeWindow* WindowBaseFromPoint(const UiPoint& pt);
+    INativeWindow* WindowBaseFromPoint(const UiPoint& pt, bool bIgnoreChildWindow = false);
 
     /** 设置是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。）
     *   该功能默认是开启的。

@@ -292,8 +292,9 @@ public:
 public:
     /** 获取一个点对应的窗口接口
     * @param [in] pt 屏幕坐标点
+    * @param [in] bIgnoreChildWindow true表示忽略子窗口，false表示不忽略子窗口
     */
-    Window* WindowFromPoint(const UiPoint& pt);
+    Window* WindowFromPoint(const UiPoint& pt, bool bIgnoreChildWindow = false);
 
     /** 更新ToolTip信息（此时ToolTip的信息已经发生变化）
     */

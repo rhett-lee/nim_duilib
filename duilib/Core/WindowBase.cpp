@@ -181,10 +181,10 @@ void WindowBase::PostQuitMsg(int32_t nExitCode)
     return NativeWindow::PostQuitMsg(nExitCode);
 }
 
-WindowBase* WindowBase::WindowBaseFromPoint(const UiPoint& pt)
+WindowBase* WindowBase::WindowBaseFromPoint(const UiPoint& pt, bool bIgnoreChildWindow)
 {
     WindowBase* pWindowBase = nullptr;
-    INativeWindow* pNativeWindow = m_pNativeWindow->WindowBaseFromPoint(pt);
+    INativeWindow* pNativeWindow = m_pNativeWindow->WindowBaseFromPoint(pt, bIgnoreChildWindow);
     if (pNativeWindow != nullptr) {
         pWindowBase = dynamic_cast<WindowBase*>(pNativeWindow);
     }
