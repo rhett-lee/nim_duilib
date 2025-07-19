@@ -879,6 +879,8 @@ bool BrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
     case kEventMouseButtonUp:
         m_bButtonDown = false;
         break;
+    default:
+        break;
     }
     return true;
 }
