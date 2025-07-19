@@ -598,6 +598,8 @@ bool CefBrowserHandler::StartDragging(CefRefPtr<CefBrowser> browser,
 #endif
 }
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
 void CefBrowserHandler::DoDragDrop(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y)
 {
     if (!m_pHandlerDelegate) {
@@ -626,6 +628,8 @@ void CefBrowserHandler::DoDragDrop(CefRefPtr<CefBrowser> browser, CefRefPtr<CefD
         browser->GetHost()->DragSourceSystemDragEnded();
     }
 }
+
+#endif
 
 void CefBrowserHandler::UpdateDragCursor(CefRefPtr<CefBrowser> browser, CefRenderHandler::DragOperation operation)
 {

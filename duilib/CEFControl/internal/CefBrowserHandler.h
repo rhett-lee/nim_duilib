@@ -414,7 +414,9 @@ private:
                          CefRefPtr<CefDictionaryValue>& extra_info,
                          bool* no_javascript_access);
 
+#ifdef DUILIB_BUILD_FOR_WIN
     void DoDragDrop(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y);
+#endif
 
     /** 注册DragDrop接口
     */
