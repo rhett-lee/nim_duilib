@@ -675,6 +675,9 @@ private:
     //在右键点击标题栏时，是否显示系统的窗口菜单（可进行调整窗口状态，关闭窗口等操作）
     bool m_bEnableSysMenu;
 
+    //鼠标是否点击在最大按钮上
+    bool m_bNCLButtonDownOnMaxButton;
+
     //系统菜单延迟显示的定时器ID
     UINT_PTR m_nSysMenuTimerId;
 

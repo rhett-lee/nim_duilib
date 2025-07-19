@@ -55,6 +55,7 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_bCloseByEnter(false),
     m_bSnapLayoutMenu(false),
     m_bEnableSysMenu(true),
+    m_bNCLButtonDownOnMaxButton(false),
     m_nSysMenuTimerId(0),
     m_hImc(nullptr)
 {
@@ -1242,7 +1243,9 @@ const UiSize& NativeWindow_Windows::GetWindowMinimumSize() const
 
 void NativeWindow_Windows::SetCapture()
 {
-    ::SetCapture(m_hWnd);
+    if (::GetCapture() != m_hWnd) {
+        ::SetCapture(m_hWnd);
+    }
 }
 
 void NativeWindow_Windows::ReleaseCapture()
@@ -2567,6 +2570,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     }
     case WM_LBUTTONDOWN:
     {
+        m_bNCLButtonDownOnMaxButton = false;
         UiPoint pt;
         pt.x = GET_X_LPARAM(lParam);
         pt.y = GET_Y_LPARAM(lParam);
@@ -2597,6 +2601,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     }
     case WM_RBUTTONDOWN:
     {
+        m_bNCLButtonDownOnMaxButton = false;
         UiPoint pt;
         pt.x = GET_X_LPARAM(lParam);
         pt.y = GET_Y_LPARAM(lParam);
@@ -2657,7 +2662,15 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     }
     case WM_CAPTURECHANGED:
     {
+        HWND hWnd = m_hWnd;
         lResult = m_pOwner->OnNativeCaptureChangedMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
+        if (::IsWindow(hWnd) && m_bNCLButtonDownOnMaxButton && !IsUseSystemCaption()) {
+            //需要释放捕获鼠标，否则点击最大按钮时无法正常响应
+            if (::GetCapture() == m_hWnd) {
+                m_bNCLButtonDownOnMaxButton = false;
+                ::ReleaseCapture();
+            }
+        }
         break;
     }
     case WM_CLOSE:
@@ -2681,6 +2694,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     {
         if (!IsUseSystemCaption() && (wParam == HTMAXBUTTON)) {
             //如果鼠标点击在最大化按钮上，截获此消息，避免Windows也触发最大化/还原命令
+            m_bNCLButtonDownOnMaxButton = true;
             bHandled = true; 
             UiPoint pt;
             pt.x = GET_X_LPARAM(lParam);
@@ -2698,6 +2712,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     }
     case WM_NCLBUTTONUP:
     {
+        m_bNCLButtonDownOnMaxButton = false;
         if (!IsUseSystemCaption() && (wParam == HTMAXBUTTON)) {
             //如果鼠标点击在最大化按钮上，截获此消息，避免Windows也触发最大化/还原命令
             bHandled = true;
@@ -2713,6 +2728,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     }
     case WM_NCRBUTTONUP:
     {
+        m_bNCLButtonDownOnMaxButton = false;
         bool bEnable = (wParam == HTCAPTION) || (wParam == HTMAXBUTTON) || (wParam == HTSYSMENU);
         if (bEnable && IsEnableSysMenu() && !IsUseSystemCaption()) {
             // 显示系统菜单
