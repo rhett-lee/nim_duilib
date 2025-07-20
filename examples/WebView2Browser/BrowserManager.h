@@ -25,12 +25,12 @@ public:
     BrowserForm* CreateBrowserForm();
 
     /** 创建一个浏览器盒子
-    * @param[in] browser_form 浏览器窗口，如果为nullptr则创建一个新的窗口，否则在这个窗口里新建浏览器盒子
+    * @param[in] pBrowserForm 浏览器窗口，如果为nullptr则创建一个新的窗口，否则在这个窗口里新建浏览器盒子
     * @param[in] browserId 某个浏览器盒子的唯一标识(可以为空)
     * @param[in] url 初始化URL
     * @return BorwserBox*  浏览器盒子指针
     */
-    BrowserBox* CreateBorwserBox(BrowserForm* browser_form, std::string browserId, const DString& url);
+    BrowserBox* CreateBorwserBox(BrowserForm* pBrowserForm, std::string browserId, const DString& url);
 
     /** 判断某个浏览器盒子是否处于激活状态
     * @param[in] browserId 某个浏览器盒子的唯一标识
@@ -45,7 +45,7 @@ public:
     BrowserBox* FindBorwserBox(const std::string& browserId);
 
     /** 根据会话id，移除本类中浏览器盒子信息
-    * @param [in] id 某个浏览器盒子的唯一标识
+    * @param [in] browserId 某个浏览器盒子的唯一标识
     * @param [in] box id对应的浏览器盒子指针
     */
     void RemoveBorwserBox(const std::string& browserId, const BrowserBox* box = nullptr);

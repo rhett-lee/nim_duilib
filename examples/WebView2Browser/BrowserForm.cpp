@@ -2,6 +2,7 @@
 #include "TestApplication.h"
 #include "BrowserBox.h"
 #include "BrowserManager.h"
+#include "DragDropManager.h"
 #include <chrono>
 
 using namespace ui;
@@ -14,6 +15,10 @@ namespace
         kDefaultClose    = 10,  // 在任务栏右击关闭窗口，按Alt+F4等常规原因
         kBrowserBoxClose = 11   // 关闭了最后一个浏览器盒子导致窗口关闭
     };
+
+    // 拖拽图片的宽度和高度
+    const int kDragImageWidth = 400;
+    const int kDragImageHeight = 300;
 }
 
 BrowserForm::BrowserForm()
@@ -22,6 +27,8 @@ BrowserForm::BrowserForm()
     m_pTabCtrl = nullptr;
     m_pBorwserBoxTab = nullptr;
     m_pActiveBrowserBox = nullptr;
+    m_bButtonDown = false;
+    m_bDragState = false;
 }
 
 BrowserForm::~BrowserForm()
@@ -259,6 +266,12 @@ LRESULT BrowserForm::OnKeyDownMsg(VirtualKeyCode vkCode, uint32_t modifierKey, c
         m_pTabCtrl->SelectItem(nNextItem, true, true);
         return 0;
     }
+    else if ((vkCode == VirtualKeyCode::kVK_ESCAPE) && ui::Keyboard::IsKeyDown(VirtualKeyCode::kVK_LBUTTON)) {
+        //按ESC键时，取消标签拖出
+        if (DragDropManager::GetInstance()->IsDragingBorwserBox()) {
+            DragDropManager::GetInstance()->EndDragBorwserBox(false);
+        }
+    }
     return BaseClass::OnKeyDownMsg(vkCode, modifierKey, nativeMsg, bHandled);
 }
 
@@ -294,9 +307,7 @@ bool BrowserForm::OnClicked(const ui::EventArgs& arg )
         }
     }
     else if (name == _T("btn_add")) {
-        uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
-        std::string timeStamp = ui::StringUtil::UInt64ToStringA(nTimeMS);
-        BrowserManager::GetInstance()->CreateBorwserBox(this, timeStamp, _T(""));
+        BrowserManager::GetInstance()->CreateBorwserBox(this, "", _T(""));
     }
     else if (m_pActiveBrowserBox) {
         WebView2Control* pWebView2Control = m_pActiveBrowserBox->GetWebView2Control();
@@ -702,4 +713,211 @@ void BrowserForm::NotifyFavicon(const BrowserBox* pBrowserBox, int32_t nWidth, i
         return;
     }    
     pTabItem->SetIconData(nWidth, nHeight, imageData.data(), (int32_t)imageData.size());
+}
+
+
+void BrowserForm::OnCreateNewTabPage(ui::TabCtrlItem* pTabItem, BrowserBox* pBrowserBox)
+{
+    if (pTabItem != nullptr) {
+        pTabItem->AttachAllEvents(UiBind(&BrowserForm::OnProcessTabItemDrag, this, std::placeholders::_1));
+    }
+}
+
+void BrowserForm::OnCloseTabPage(BrowserBox* pBrowserBox)
+{
+}
+
+bool BrowserForm::OnBeforeDragBoxCallback(const DString& browserId)
+{
+    BrowserBox* pBrowserBox = FindBox(browserId);
+    if (pBrowserBox != nullptr) {
+        pBrowserBox->SetVisible(false);
+    }
+    else {
+        return false;
+    }
+    m_dragingBrowserId = browserId;
+
+    TabCtrlItem* pTabItem = FindTabItem(browserId);
+    if (pTabItem != nullptr) {
+        pTabItem->CancelDragOperation();
+        pTabItem->SetVisible(false);
+    }
+
+    // 找到新的被显示的浏览器盒子
+    size_t index = pTabItem->GetListBoxIndex();
+    if (index > 0) {
+        index--;
+    }
+    else {
+        index++;
+    }
+    TabCtrlItem* new_tab_item = static_cast<TabCtrlItem*>(m_pTabCtrl->GetItemAt(index));
+    if (new_tab_item != nullptr) {
+        new_tab_item->Selected(true, false, 0);
+        ChangeToBox(new_tab_item->GetName());
+    }
+
+    //由于标签隐藏，通知标签的父控件重新计算位置
+    if (m_pTabCtrl != nullptr) {
+        m_pTabCtrl->ArrangeAncestor();
+    }
+    return true;
+}
+
+void BrowserForm::OnAfterDragBoxCallback(bool bDropSucceed)
+{
+    DString dragingBrowserId;
+    dragingBrowserId.swap(m_dragingBrowserId);
+    m_bDragState = false;
+    m_bButtonDown = false;
+    if (!bDropSucceed && !dragingBrowserId.empty()) {
+        BrowserBox* pBrowserBox = FindBox(dragingBrowserId);
+        if (pBrowserBox != nullptr) {
+            pBrowserBox->SetFadeVisible(true);
+        }
+
+        TabCtrlItem* pTabItem = FindTabItem(dragingBrowserId);
+        if (pTabItem != nullptr) {
+            pTabItem->SetFadeVisible(true);
+            pTabItem->Selected(true, false, 0);
+            ChangeToBox(dragingBrowserId);
+        }
+
+        //由于标签隐藏，通知标签的父控件重新计算位置
+        if (m_pTabCtrl != nullptr) {
+            m_pTabCtrl->ArrangeAncestor();
+        }
+    }
+}
+
+LRESULT BrowserForm::OnMouseMoveMsg(const ui::UiPoint& pt, uint32_t modifierKey, bool bFromNC, const ui::NativeMsg& nativeMsg, bool& bHandled)
+{
+    LRESULT lResult = BaseClass::OnMouseMoveMsg(pt, modifierKey, bFromNC, nativeMsg, bHandled);
+    DragDropManager::GetInstance()->UpdateDragFormPos();
+    return lResult;
+}
+
+LRESULT BrowserForm::OnMouseLButtonUpMsg(const ui::UiPoint& pt, uint32_t modifierKey, const ui::NativeMsg& nativeMsg, bool& bHandled)
+{
+    LRESULT lResult = BaseClass::OnMouseLButtonUpMsg(pt, modifierKey, nativeMsg, bHandled);
+    DragDropManager::GetInstance()->EndDragBorwserBox(true);
+    return lResult;
+}
+
+LRESULT BrowserForm::OnCaptureChangedMsg(const ui::NativeMsg& nativeMsg, bool& bHandled)
+{
+    LRESULT lResult = BaseClass::OnCaptureChangedMsg(nativeMsg, bHandled);
+    DragDropManager::GetInstance()->EndDragBorwserBox(true);
+    return lResult;
+}
+
+
+bool BrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
+{
+    switch (param.eventType)
+    {
+    case kEventMouseMove:
+    {
+        if (!m_bButtonDown || m_bDragState || (m_pActiveBrowserBox == nullptr)) {
+            break;
+        }
+
+        if (!ui::Keyboard::IsKeyDown(ui::VirtualKeyCode::kVK_LBUTTON)) {
+            break;
+        }
+
+        DString id = ui::StringConvert::UTF8ToT(m_pActiveBrowserBox->GetBrowserId());
+        TabCtrlItem* pTabItem = FindTabItem(id);
+        if (pTabItem == nullptr) {
+            break;
+        }
+
+        //当鼠标纵向滑动的距离超过标签宽度的时候，开始拖出操作
+        int32_t cy = std::abs(param.ptMouse.y - m_oldDragPoint.y);
+        if (cy > pTabItem->GetPos().Height()) {
+
+            m_bDragState = true;
+
+            // 把被拖拽的浏览器盒子生成一个位图
+            std::shared_ptr<ui::IBitmap> spIBitmap = GenerateWebPageBitmap(m_pActiveBrowserBox->GetWebView2Control());
+
+            // pt应该指定相对bitmap位图的左上角(0,0)的坐标,这里设置为bitmap的中上点
+            ui::UiPoint pt = { kDragImageWidth / 2, 0 };
+
+            if (!DragDropManager::GetInstance()->StartDragBorwserBox(m_pActiveBrowserBox, spIBitmap, pt)) {
+                m_bDragState = false;
+            }
+        }
+    }
+    break;
+    case kEventMouseButtonDown:
+        m_oldDragPoint = { param.ptMouse.x, param.ptMouse.y };
+        m_bDragState = false;
+        m_bButtonDown = true;
+        break;
+    case kEventMouseButtonUp:
+        m_bButtonDown = false;
+        break;
+    default:
+        break;
+    }
+    return true;
+}
+
+std::shared_ptr<ui::IBitmap> BrowserForm::GenerateWebPageBitmap(ui::WebView2Control* pWebViewControl)
+{
+    std::shared_ptr<IBitmap> spBitmap;
+    if (pWebViewControl != nullptr) {
+        //spBitmap = pWebViewControl->MakeImageSnapshot();
+    }
+    if (spBitmap == nullptr) {
+        return nullptr;
+    }
+    if ((spBitmap->GetWidth() < 1) || (spBitmap->GetHeight() < 1)) {
+        return nullptr;
+    }
+
+    std::unique_ptr<IRender> render;
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory != nullptr) {
+        render.reset(pRenderFactory->CreateRender(GetRenderDpi()));
+    }
+    ASSERT(render != nullptr);
+    if (render->Resize(kDragImageWidth, kDragImageHeight)) {
+        int32_t dest_width = 0;
+        int32_t dest_height = 0;
+        float scale = (float)spBitmap->GetWidth() / (float)spBitmap->GetHeight();
+        if (scale >= 1.0) {
+            dest_width = kDragImageWidth;
+            dest_height = (int32_t)(kDragImageWidth * (float)spBitmap->GetHeight() / (float)spBitmap->GetWidth());
+        }
+        else {
+            dest_height = kDragImageHeight;
+            dest_width = (int32_t)(kDragImageHeight * (float)spBitmap->GetWidth() / (float)spBitmap->GetHeight());
+        }
+
+        UiRect rcPaint;
+        rcPaint.left = 0;
+        rcPaint.top = 0;
+        rcPaint.right = rcPaint.left + kDragImageWidth;
+        rcPaint.bottom = rcPaint.top + kDragImageHeight;
+
+        UiRect rcDest;
+        rcDest.left = (kDragImageWidth - dest_width) / 2;
+        rcDest.top = 0;
+        rcDest.right = rcDest.left + dest_width;
+        rcDest.bottom = rcDest.top + dest_height;
+
+        UiRect rcSource;
+        rcSource.left = 0;
+        rcSource.top = 0;
+        rcSource.right = rcSource.left + spBitmap->GetWidth();
+        rcSource.bottom = rcSource.top + spBitmap->GetHeight();
+
+        render->DrawImageRect(rcPaint, spBitmap.get(), rcDest, rcSource);
+        return std::shared_ptr<ui::IBitmap>(render->MakeImageSnapshot());
+    }
+    return nullptr;
 }

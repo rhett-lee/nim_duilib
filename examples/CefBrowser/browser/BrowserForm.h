@@ -110,7 +110,7 @@ public:
     bool IsActiveBox(const DString& browserId);
 
     /** 获取本窗口内浏览器盒子的总量
-    * @return int    总量
+    * @return 浏览器盒子个数
     */
     int32_t GetBoxCount() const;
 
