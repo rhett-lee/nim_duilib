@@ -869,7 +869,7 @@ std::shared_ptr<ui::IBitmap> BrowserForm::GenerateWebPageBitmap(ui::WebView2Cont
 {
     std::shared_ptr<IBitmap> spBitmap;
     if (pWebViewControl != nullptr) {
-        //spBitmap = pWebViewControl->MakeImageSnapshot();
+        spBitmap = pWebViewControl->MakeImageSnapshot();
     }
     if (spBitmap == nullptr) {
         return nullptr;

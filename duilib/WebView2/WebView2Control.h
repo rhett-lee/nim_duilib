@@ -15,6 +15,7 @@
 namespace ui {
 
 class Window;
+class IBitmap;
 
 /** WebView2控件的C++封装类
  */
@@ -331,6 +332,10 @@ public:
     /** 下载网站图标(前提条件：已经调用过SetFavIconChangedCallback设置了回调)
     */
     bool DownloadFavIconImage();
+
+    /** 将网页保存为一张图片, 图片大小与控件大小相同
+    */
+    std::shared_ptr<IBitmap> MakeImageSnapshot();
 
 private:
     // PIMPL实现
