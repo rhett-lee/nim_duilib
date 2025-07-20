@@ -21,16 +21,16 @@ public:
 
     /** 构造函数
     * @param [in] pWindow 关联的窗口
-    * @param [in] id 浏览器盒子的唯一标识，用于区分不同的标签页
+    * @param [in] browserId 浏览器盒子的唯一标识，用于区分不同的标签页
     */
-    BrowserBox(ui::Window* pWindow, std::string id);
+    BrowserBox(ui::Window* pWindow, std::string browserId);
     virtual ~BrowserBox() override {};
 
     /**
     * 获取id
     * @return string 标识id
     */
-    std::string GetId() const { return m_browserId; }
+    std::string GetBrowserId() const { return m_browserId; }
 
     /**
     * 获取本浏览器盒子所属的浏览器窗口指针

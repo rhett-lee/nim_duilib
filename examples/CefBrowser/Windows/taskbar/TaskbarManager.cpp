@@ -11,10 +11,10 @@
 
 using namespace ui;
 
-TaskbarTabItem::TaskbarTabItem(ui::Control *bind_control)
+TaskbarTabItem::TaskbarTabItem(ui::Control* pBindControl)
 {
-    ASSERT(nullptr != bind_control);
-    m_pBindControl = bind_control;
+    ASSERT(nullptr != pBindControl);
+    m_pBindControl = pBindControl;
     m_bWin7orGreater = ::IsWindows7OrGreater();
     m_taskbarManager = nullptr;
 }
@@ -29,7 +29,7 @@ std::string& TaskbarTabItem::GetId()
     return m_id;
 }
 
-void TaskbarTabItem::Init(const DString &taskbar_title, const std::string &id)
+void TaskbarTabItem::Init(const DString& /*taskbarTitle*/, const std::string& id)
 {
     m_id = id;
     if (!m_bWin7orGreater) {
@@ -72,9 +72,9 @@ void TaskbarTabItem::SetTaskbarIcon(HICON hIcon)
     }
 }
 
-void TaskbarTabItem::SetTaskbarManager(TaskbarManager *taskbar_manager)
+void TaskbarTabItem::SetTaskbarManager(TaskbarManager* pTaskbarManager)
 {
-    m_taskbarManager = taskbar_manager;
+    m_taskbarManager = pTaskbarManager;
 }
 
 TaskbarManager* TaskbarTabItem::GetTaskbarManager()
@@ -184,12 +184,12 @@ void TaskbarManager::Init(ITaskbarDelegate *taskbar_delegate)
         
 }
 
-bool TaskbarManager::RegisterTab(TaskbarTabItem &tab_item)
+bool TaskbarManager::RegisterTab(TaskbarTabItem &pTabItem)
 {
-    if (m_pTaskbarList && (nullptr == tab_item.GetTaskbarManager())) {
-        if (S_OK == m_pTaskbarList->RegisterTab(tab_item.NativeWnd()->GetHWND(), m_pTaskbarDelegate->GetHandle())) {
-            if (S_OK == m_pTaskbarList->SetTabOrder(tab_item.NativeWnd()->GetHWND(), nullptr)) {
-                tab_item.SetTaskbarManager(this);
+    if (m_pTaskbarList && (nullptr == pTabItem.GetTaskbarManager())) {
+        if (S_OK == m_pTaskbarList->RegisterTab(pTabItem.NativeWnd()->GetHWND(), m_pTaskbarDelegate->GetHandle())) {
+            if (S_OK == m_pTaskbarList->SetTabOrder(pTabItem.NativeWnd()->GetHWND(), nullptr)) {
+                pTabItem.SetTaskbarManager(this);
                 return true;
             }            
         }
@@ -197,27 +197,27 @@ bool TaskbarManager::RegisterTab(TaskbarTabItem &tab_item)
     return false;
 }
 
-bool TaskbarManager::UnregisterTab(TaskbarTabItem &tab_item)
+bool TaskbarManager::UnregisterTab(TaskbarTabItem &pTabItem)
 {
     if (m_pTaskbarList) {
-        tab_item.SetTaskbarManager(nullptr);
-        return (S_OK == m_pTaskbarList->UnregisterTab(tab_item.NativeWnd()->GetHWND()));
+        pTabItem.SetTaskbarManager(nullptr);
+        return (S_OK == m_pTaskbarList->UnregisterTab(pTabItem.NativeWnd()->GetHWND()));
     }
     return false;
 }
 
-bool TaskbarManager::SetTabOrder(const TaskbarTabItem &tab_item, const TaskbarTabItem &tab_item_insert_before)
+bool TaskbarManager::SetTabOrder(const TaskbarTabItem &pTabItem, const TaskbarTabItem &tab_item_insert_before)
 {
     if (m_pTaskbarList) {
-        return (S_OK == m_pTaskbarList->SetTabOrder(tab_item.NativeWnd()->GetHWND(), tab_item_insert_before.NativeWnd()->GetHWND()));
+        return (S_OK == m_pTaskbarList->SetTabOrder(pTabItem.NativeWnd()->GetHWND(), tab_item_insert_before.NativeWnd()->GetHWND()));
     }
     return false;
 }
 
-bool TaskbarManager::SetTabActive(const TaskbarTabItem &tab_item)
+bool TaskbarManager::SetTabActive(const TaskbarTabItem &pTabItem)
 {
     if (m_pTaskbarList) {
-        return (S_OK == m_pTaskbarList->SetTabActive(tab_item.NativeWnd()->GetHWND(), m_pTaskbarDelegate->GetHandle(), 0));
+        return (S_OK == m_pTaskbarList->SetTabActive(pTabItem.NativeWnd()->GetHWND(), m_pTaskbarDelegate->GetHandle(), 0));
     }
     return false;
 }
@@ -393,14 +393,14 @@ ui::IBitmap* TaskbarManager::ResizeBitmap(int dest_width, int dest_height, ui::I
     return render->MakeImageSnapshot();
 }
 
-void TaskbarManager::OnTabItemClose(TaskbarTabItem &tab_item)
+void TaskbarManager::OnTabItemClose(TaskbarTabItem &pTabItem)
 {
-    m_pTaskbarDelegate->CloseTaskbarItem(tab_item.GetId());
+    m_pTaskbarDelegate->CloseTaskbarItem(pTabItem.GetId());
 }
 
-void TaskbarManager::OnTabItemClicked(TaskbarTabItem &tab_item)
+void TaskbarManager::OnTabItemClicked(TaskbarTabItem &pTabItem)
 {
-    m_pTaskbarDelegate->SetActiveTaskbarItem(tab_item.GetId());
+    m_pTaskbarDelegate->SetActiveTaskbarItem(pTabItem.GetId());
 }
 
 #endif //(DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)

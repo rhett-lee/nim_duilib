@@ -22,7 +22,7 @@ void BrowserBox_Windows::InitBrowserBox(const DString& url)
     }
     m_pTaskBarItem = new TaskbarTabItem(pCefControl);
     if (m_pTaskBarItem) {
-        m_pTaskBarItem->Init(url, GetId());
+        m_pTaskBarItem->Init(url, GetBrowserId());
     }
 }
 

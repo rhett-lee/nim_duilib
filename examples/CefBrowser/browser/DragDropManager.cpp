@@ -39,10 +39,10 @@ bool DragDropManager::StartDragBorwserBox(BrowserBox* browserBox, std::shared_pt
     }
 
     // 获取被拖拽浏览器窗口中浏览器盒子的数量
-    int box_count = dragBrowserForm->GetBoxCount();
+    int32_t box_count = dragBrowserForm->GetBoxCount();
     ASSERT(box_count > 0);
 
-    if (!dragBrowserForm->OnBeforeDragBoxCallback(ui::StringConvert::UTF8ToT(m_pDragingBox->GetId()))) {
+    if (!dragBrowserForm->OnBeforeDragBoxCallback(ui::StringConvert::UTF8ToT(m_pDragingBox->GetBrowserId()))) {
         m_pDragingBox = nullptr;
         return false;
     }
