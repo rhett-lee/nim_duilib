@@ -58,33 +58,33 @@ public:
 public:
     /** 创建BrowserBox对象
     * @param [in] pWindow 关联的窗口
-    * @param [in] id 浏览器盒子的唯一标识，用于区分不同的标签页
+    * @param [in] browserId 浏览器盒子的唯一标识，用于区分不同的标签页
     */
-    virtual BrowserBox* CreateBrowserBox(ui::Window* pWindow, std::string id);
+    virtual BrowserBox* CreateBrowserBox(ui::Window* pWindow, std::string browserId);
 
     /** 在本窗口内创建一个新浏览器盒子
-    * @param[in] browser_id 浏览器id
+    * @param[in] browserId 浏览器id
     * @param[in] url 初始化URL
     * @return BrowserBox* 浏览器盒子
     */
-    BrowserBox* CreateBox(const std::string& browser_id, DString url);
+    BrowserBox* CreateBox(const std::string& browserId, DString url);
 
     /** 关闭本窗口内的一个浏览器盒子
-     * @param[in] browser_id 浏览器id
+     * @param[in] browserId 浏览器id
      */
-    bool CloseBox(const std::string& browser_id);
+    bool CloseBox(const std::string& browserId);
 
     /** 把一个其他窗口内的浏览器盒子附加到本窗口内
-    * @param[in] browser_box 浏览器盒子
+    * @param[in] pBrowserBox 浏览器盒子
     * @return bool true 成功，false 失败
     */
-    bool AttachBox(BrowserBox* browser_box);
+    bool AttachBox(BrowserBox* pBrowserBox);
 
     /** 把本窗口内的一个浏览器盒子脱离窗口
-    * @param[in] browser_box 浏览器盒子
+    * @param[in] pBrowserBox 浏览器盒子
     * @return bool true 成功，false 失败
     */
-    bool DetachBox(BrowserBox* browser_box);
+    bool DetachBox(BrowserBox* pBrowserBox);
 
     /** 获取当前显示的浏览器盒子
     * @return BrowserBox* 浏览器盒子
@@ -92,43 +92,43 @@ public:
     BrowserBox* GetSelectedBox();
 
     /** 激活并切换到某个浏览器盒子(同时让浏览器窗口激活)
-    * @param[in] browser_id 浏览器id
+    * @param[in] browserId 浏览器id
     * @return void 无返回值
     */
-    void SetActiveBox(const std::string& browser_id);
+    void SetActiveBox(const std::string& browserId);
 
     /** 判断浏览器盒子是否处于激活状态(同时判断浏览器窗口是否被激活)
-    * @param[in] browser_box 浏览器盒子
+    * @param[in] pBrowserBox 浏览器盒子
     * @return bool true 是，false 否
     */
-    bool IsActiveBox(const BrowserBox* browser_box);
+    bool IsActiveBox(const BrowserBox* pBrowserBox);
 
     /** 判断浏览器盒子是否处于激活状态(同时判断浏览器窗口是否被激活)
-    * @param[in] browser_id 浏览器id
+    * @param[in] browserId 浏览器id
     * @return bool true 是，false 否
     */
-    bool IsActiveBox(const DString& browser_id);
+    bool IsActiveBox(const DString& browserId);
 
     /** 获取本窗口内浏览器盒子的总量
     * @return int    总量
     */
-    int GetBoxCount() const;
+    int32_t GetBoxCount() const;
 
     /** 网站的FavIcon图标下载完成
     */
-    void NotifyFavicon(const BrowserBox* browser_box, CefRefPtr<CefImage> image);
+    void NotifyFavicon(const BrowserBox* pBrowserBox, CefRefPtr<CefImage> image);
 
     /** 设置某个浏览器对应的标签控件的标题
-    * @param[in] browser_id 浏览器id
+    * @param[in] browserId 浏览器id
     * @param[in] name 标题
     */
-    void SetTabItemName(const DString& browser_id, const DString& name);
+    void SetTabItemName(const DString& browserId, const DString& name);
 
     /** 设置某个浏览器对应的标签控件的URL
-    * @param [in] browser_id 浏览器id
+    * @param [in] browserId 浏览器id
     * @param [in] url URL
     */
-    void SetURL(const std::string& browser_id, const DString& url);
+    void SetURL(const std::string& browserId, const DString& url);
 
     /** Browser的加载状态发生变化，更新界面
     */
@@ -156,39 +156,39 @@ protected:
 
     /** 处理标签控件的关闭按钮的单击消息
     * @param [in] param 消息的相关信息
-    * @param [in] browser_id 列表项对应的浏览器id
+    * @param [in] browserId 列表项对应的浏览器id
     * @return bool true 继续传递控件消息，false 停止传递控件消息
     */
-    bool OnTabItemClose(const ui::EventArgs& param, const std::string& browser_id);
+    bool OnTabItemClose(const ui::EventArgs& param, const std::string& browserId);
 
     /** 在本窗口内查找浏览器盒子
-    * @param [in] browser_id 浏览器id
+    * @param [in] browserId 浏览器id
     * @return BrowserBox* 浏览器盒子
     */
-    BrowserBox* FindBox(const DString& browser_id);
+    BrowserBox* FindBox(const DString& browserId);
 
     /** 在本窗口内查找标签控件
-    * @param [in] browser_id 浏览器id
+    * @param [in] browserId 浏览器id
     * @return BrowserBox* 浏览器盒子
     */
-    ui::TabCtrlItem* FindTabItem(const DString& browser_id);
+    ui::TabCtrlItem* FindTabItem(const DString& browserId);
 
     /** 切换某个浏览器盒子为显示状态
-    * @param [in] browser_id 浏览器id
+    * @param [in] browserId 浏览器id
     * @return bool true 成功，false 失败
     */
-    bool ChangeToBox(const DString& browser_id);
+    bool ChangeToBox(const DString& browserId);
 
     /** 新建了一个标签
-    * @param [in] tab_item 标签页的接口
-    * @param [in] browser_box 网页盒子的接口
+    * @param [in] pTabItem 标签页的接口
+    * @param [in] pBrowserBox 网页盒子的接口
     */
-    virtual void OnCreateNewTabPage(ui::TabCtrlItem* tab_item, BrowserBox* browser_box);
+    virtual void OnCreateNewTabPage(ui::TabCtrlItem* pTabItem, BrowserBox* pBrowserBox);
 
     /** 关闭了一个标签
-    * @param [in] browser_box 网页盒子的接口
+    * @param [in] pBrowserBox 网页盒子的接口
     */
-    virtual void OnCloseTabPage(BrowserBox* browser_box);
+    virtual void OnCloseTabPage(BrowserBox* pBrowserBox);
 
 protected:
     /** 在执行拖拽操作前，如果被拖拽的浏览器盒子属于本窗口，则通知本窗口

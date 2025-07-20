@@ -4,12 +4,12 @@
 
 using namespace ui;
 
-BrowserBox::BrowserBox(ui::Window* pWindow, std::string id):
+BrowserBox::BrowserBox(ui::Window* pWindow, std::string browserId):
     ui::VBox(pWindow)
 {
     m_pBrowserForm = nullptr;
     m_pWebView2Control = nullptr;
-    m_browserId = id;
+    m_browserId = browserId;
 }
 
 BrowserForm* BrowserBox::GetBrowserForm() const

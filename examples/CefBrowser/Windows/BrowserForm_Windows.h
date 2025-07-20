@@ -60,15 +60,15 @@ public:
 
 private:
     /** 新建了一个标签
-    * @param [in] tab_item 标签页的接口
-    * @param [in] browser_box 网页盒子的接口
+    * @param [in] pTabItem 标签页的接口
+    * @param [in] pBrowserBox 网页盒子的接口
     */
-    virtual void OnCreateNewTabPage(ui::TabCtrlItem* tab_item, BrowserBox* browser_box) override;
+    virtual void OnCreateNewTabPage(ui::TabCtrlItem* pTabItem, BrowserBox* pBrowserBox) override;
 
     /** 关闭了一个标签
-    * @param [in] browser_box 网页盒子的接口
+    * @param [in] pBrowserBox 网页盒子的接口
     */
-    virtual void OnCloseTabPage(BrowserBox* browser_box) override;
+    virtual void OnCloseTabPage(BrowserBox* pBrowserBox) override;
 
 private:
     // 任务栏缩略图管理器

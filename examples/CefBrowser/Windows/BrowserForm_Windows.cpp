@@ -31,20 +31,20 @@ LRESULT BrowserForm_Windows::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lP
 
         // 因为窗口刚创建时，浏览器盒子已经创建但是那时还没有收到WM_TASKBARBUTTONCREATED消息，导致RegisterTab函数没有被调用，所以收到消息后重新遍历一下没有被注册的Tab
         for (size_t i = 0; i < m_pBorwserBoxTab->GetItemCount(); ++i) {
-            ui::Control *box_item = m_pBorwserBoxTab->GetItemAt(i);
-            ASSERT(box_item != nullptr);
-            if (box_item == nullptr) {
+            ui::Control *pBoxItem = m_pBorwserBoxTab->GetItemAt(i);
+            ASSERT(pBoxItem != nullptr);
+            if (pBoxItem == nullptr) {
                 continue;
             }
 
-            BrowserBox_Windows* pBrowserBox = dynamic_cast<BrowserBox_Windows*>(box_item);
+            BrowserBox_Windows* pBrowserBox = dynamic_cast<BrowserBox_Windows*>(pBoxItem);
             if (pBrowserBox == nullptr) {
                 continue;
             }
 
-            TaskbarTabItem* taskbar_item = pBrowserBox->GetTaskbarItem();
-            if (taskbar_item != nullptr) {
-                m_taskbarManager.RegisterTab(*taskbar_item);
+            TaskbarTabItem* pTaskbarItem = pBrowserBox->GetTaskbarItem();
+            if (pTaskbarItem != nullptr) {
+                m_taskbarManager.RegisterTab(*pTaskbarItem);
             }
         }
 
@@ -53,28 +53,28 @@ LRESULT BrowserForm_Windows::OnWindowMessage(UINT uMsg, WPARAM wParam, LPARAM lP
     return BaseClass::OnWindowMessage(uMsg, wParam, lParam, bHandled);
 }
 
-void BrowserForm_Windows::OnCreateNewTabPage(ui::TabCtrlItem* tab_item, BrowserBox* browser_box)
+void BrowserForm_Windows::OnCreateNewTabPage(ui::TabCtrlItem* pTabItem, BrowserBox* pBrowserBox)
 {
-    BaseClass::OnCreateNewTabPage(tab_item, browser_box);
+    BaseClass::OnCreateNewTabPage(pTabItem, pBrowserBox);
 
-    BrowserBox_Windows* pBrowserBox = dynamic_cast<BrowserBox_Windows*>(browser_box);
-    if (pBrowserBox != nullptr) {
-        auto taskbar_item = pBrowserBox->GetTaskbarItem();
-        if (taskbar_item) {
-            m_taskbarManager.RegisterTab(*taskbar_item);
+    BrowserBox_Windows* pBrowserBoxWindows = dynamic_cast<BrowserBox_Windows*>(pBrowserBox);
+    if (pBrowserBoxWindows != nullptr) {
+        auto pTaskbarItem = pBrowserBoxWindows->GetTaskbarItem();
+        if (pTaskbarItem) {
+            m_taskbarManager.RegisterTab(*pTaskbarItem);
         }
     }
 }
 
-void BrowserForm_Windows::OnCloseTabPage(BrowserBox* browser_box)
+void BrowserForm_Windows::OnCloseTabPage(BrowserBox* pBrowserBox)
 {
-    BaseClass::OnCloseTabPage(browser_box);
+    BaseClass::OnCloseTabPage(pBrowserBox);
 
-    BrowserBox_Windows* pBrowserBox = dynamic_cast<BrowserBox_Windows*>(browser_box);
-    if (pBrowserBox != nullptr) {
-        auto taskbar_item = pBrowserBox->GetTaskbarItem();
-        if (taskbar_item) {
-            m_taskbarManager.UnregisterTab(*taskbar_item);
+    BrowserBox_Windows* pBrowserBoxWindows = dynamic_cast<BrowserBox_Windows*>(pBrowserBox);
+    if (pBrowserBoxWindows != nullptr) {
+        auto pTaskbarItem = pBrowserBoxWindows->GetTaskbarItem();
+        if (pTaskbarItem) {
+            m_taskbarManager.UnregisterTab(*pTaskbarItem);
         }
     }
 }

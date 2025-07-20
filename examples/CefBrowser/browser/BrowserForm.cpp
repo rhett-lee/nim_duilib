@@ -213,15 +213,15 @@ void BrowserForm::OnCloseWindow()
     // 使用m_pTabCtrl来判断浏览器盒子总数，browser_box_tab_获取的总数不准确
     int browser_box_count = GetBoxCount();
     for (int i = 0; i < browser_box_count; i++) {
-        Control* box_item = m_pBorwserBoxTab->GetItemAt(i);
-        ASSERT(nullptr != box_item);
-        if (nullptr == box_item) {
+        Control* pBoxItem = m_pBorwserBoxTab->GetItemAt(i);
+        ASSERT(nullptr != pBoxItem);
+        if (nullptr == pBoxItem) {
             continue;
         }
 
-        BrowserBox* browser_box = dynamic_cast<BrowserBox*>(box_item);
-        if (nullptr != browser_box) {
-            browser_box->UninitBrowserBox();
+        BrowserBox* pBrowserBox = dynamic_cast<BrowserBox*>(pBoxItem);
+        if (nullptr != pBrowserBox) {
+            pBrowserBox->UninitBrowserBox();
         }
     }
 }
@@ -281,17 +281,17 @@ LRESULT BrowserForm::OnWindowCloseMsg(uint32_t wParam, const ui::NativeMsg& nati
     if (browser_count > 0 && nullptr != m_pActiveBrowserBox) {
         // 如果只有一个浏览器盒子，就直接关闭
         if (1 == browser_count) {
-            CloseBox(m_pActiveBrowserBox->GetId());
+            CloseBox(m_pActiveBrowserBox->GetBrowserId());
         }        
         else {
             // 如果包含多个浏览器盒子
             while (GetBoxCount() > 0) {
-                Control* tab_item = m_pTabCtrl->GetItemAt(0);
-                ASSERT(nullptr != tab_item);
-                if (nullptr == tab_item) {
+                Control* pTabItem = m_pTabCtrl->GetItemAt(0);
+                ASSERT(nullptr != pTabItem);
+                if (nullptr == pTabItem) {
                     break;
                 }
-                CloseBox(tab_item->GetUTF8Name());
+                CloseBox(pTabItem->GetUTF8Name());
             }
         }
     }
@@ -303,7 +303,7 @@ bool BrowserForm::OnClicked(const ui::EventArgs& arg )
     DString name = arg.GetSender()->GetName();
     if (name == _T("btn_close")) {
         if (m_pActiveBrowserBox != nullptr) {
-            CloseBox(m_pActiveBrowserBox->GetId());
+            CloseBox(m_pActiveBrowserBox->GetBrowserId());
         }
     }
     else if (name == _T("btn_add")) {
@@ -370,14 +370,14 @@ void BrowserForm::OpenLinkUrl(const DString& url, bool bInNewWindow)
     }
 }
 
-BrowserBox* BrowserForm::CreateBrowserBox(ui::Window* pWindow, std::string id)
+BrowserBox* BrowserForm::CreateBrowserBox(ui::Window* pWindow, std::string browserId)
 {
-    return new BrowserBox(pWindow, id);
+    return new BrowserBox(pWindow, browserId);
 }
 
-BrowserBox* BrowserForm::CreateBox(const std::string &browser_id, DString url)
+BrowserBox* BrowserForm::CreateBox(const std::string& browserId, DString url)
 {
-    DString id = ui::StringConvert::UTF8ToT(browser_id);
+    DString id = ui::StringConvert::UTF8ToT(browserId);
     if (nullptr != FindTabItem(id)) {
         ASSERT(0);
         return nullptr;
@@ -387,64 +387,64 @@ BrowserBox* BrowserForm::CreateBox(const std::string &browser_id, DString url)
         return nullptr;
     }
 
-    TabCtrlItem* tab_item = new TabCtrlItem(m_pTabCtrl->GetWindow());
-    GlobalManager::Instance().FillBoxWithCache(tab_item, ui::FilePath(_T("cef_browser/tab_item.xml")));
-    m_pTabCtrl->AddItemAt(tab_item, GetBoxCount());
-    tab_item->SetUTF8Name(browser_id);
-    ui::Button* btn_item_close = tab_item->GetCloseButton();
+    TabCtrlItem* pTabItem = new TabCtrlItem(m_pTabCtrl->GetWindow());
+    GlobalManager::Instance().FillBoxWithCache(pTabItem, ui::FilePath(_T("cef_browser/tab_item.xml")));
+    m_pTabCtrl->AddItemAt(pTabItem, GetBoxCount());
+    pTabItem->SetUTF8Name(browserId);
+    ui::Button* btn_item_close = pTabItem->GetCloseButton();
     ASSERT(btn_item_close != nullptr);
     if (btn_item_close != nullptr) {
-        btn_item_close->AttachClick(UiBind(&BrowserForm::OnTabItemClose, this, std::placeholders::_1, browser_id));
+        btn_item_close->AttachClick(UiBind(&BrowserForm::OnTabItemClose, this, std::placeholders::_1, browserId));
     }
 
-    BrowserBox* browser_box = CreateBrowserBox(m_pBorwserBoxTab->GetWindow(), browser_id);
-    m_pBorwserBoxTab->AddItem(browser_box);
-    GlobalManager::Instance().FillBoxWithCache(browser_box, ui::FilePath(_T("cef_browser/browser_box.xml")), nullptr);
-    browser_box->SetName(id);
-    browser_box->InitBrowserBox(url);
+    BrowserBox* pBrowserBox = CreateBrowserBox(m_pBorwserBoxTab->GetWindow(), browserId);
+    m_pBorwserBoxTab->AddItem(pBrowserBox);
+    GlobalManager::Instance().FillBoxWithCache(pBrowserBox, ui::FilePath(_T("cef_browser/browser_box.xml")), nullptr);
+    pBrowserBox->SetName(id);
+    pBrowserBox->InitBrowserBox(url);
 
     if (GetBoxCount() <= 1) {
-        m_pActiveBrowserBox = browser_box;
+        m_pActiveBrowserBox = pBrowserBox;
     }
 
     // 切换到新的浏览器盒子
-    // 如果tab_item处于隐藏状态，则无法顺利触发选择事件，所以这里直接切换到目标浏览器盒子
-    tab_item->Selected(true, false, 0);
+    // 如果pTabItem处于隐藏状态，则无法顺利触发选择事件，所以这里直接切换到目标浏览器盒子
+    pTabItem->Selected(true, false, 0);
     ChangeToBox(id);
 
-    OnCreateNewTabPage(tab_item, browser_box);
-    return browser_box;
+    OnCreateNewTabPage(pTabItem, pBrowserBox);
+    return pBrowserBox;
 }
 
-bool BrowserForm::CloseBox(const std::string& browser_id)
+bool BrowserForm::CloseBox(const std::string& browserId)
 {
-    if (browser_id.empty()) {
+    if (browserId.empty()) {
         return false;
     }
 
-    DString id = ui::StringConvert::UTF8ToT(browser_id);
+    DString id = ui::StringConvert::UTF8ToT(browserId);
 
     bool bRet = false;
     // 从左侧会话列表项移除对应item
-    TabCtrlItem* tab_item = FindTabItem(id);
-    if (nullptr != tab_item) {
-        m_pTabCtrl->RemoveItem(tab_item);
+    TabCtrlItem* pTabItem = FindTabItem(id);
+    if (nullptr != pTabItem) {
+        m_pTabCtrl->RemoveItem(pTabItem);
         m_pTabCtrl->ArrangeAncestor();
         bRet = true;
     }
 
     // 在浏览器列表中找到浏览器盒子并且移除盒子
-    BrowserBox* browser_box = FindBox(id);
-    ASSERT(browser_box != nullptr);
-    if (browser_box != nullptr) {
-        OnCloseTabPage(browser_box);
-        browser_box->UninitBrowserBox();
+    BrowserBox* pBrowserBox = FindBox(id);
+    ASSERT(pBrowserBox != nullptr);
+    if (pBrowserBox != nullptr) {
+        OnCloseTabPage(pBrowserBox);
+        pBrowserBox->UninitBrowserBox();
         // 如果浏览器盒子的数量大于1就立马移除盒子，否则不移除
         // 如果最后一个浏览器盒子在这里立马移除，在窗口关闭时界面会因为没有控件而变成黑色
         // 窗口关闭时，会自动的移除这个浏览器盒子
         if (m_pBorwserBoxTab->GetItemCount() > 1) {
-            m_pBorwserBoxTab->RemoveItem(browser_box);
-            if (m_pActiveBrowserBox == browser_box) {
+            m_pBorwserBoxTab->RemoveItem(pBrowserBox);
+            if (m_pActiveBrowserBox == pBrowserBox) {
                 m_pActiveBrowserBox = nullptr;
                 size_t nSelItem = m_pBorwserBoxTab->GetCurSel();
                 if (nSelItem != Box::InvalidIndex) {
@@ -464,20 +464,20 @@ bool BrowserForm::CloseBox(const std::string& browser_id)
     else {
         if (m_pActiveBrowserBox != nullptr) {
             //选中新标签
-            std::string newId = m_pActiveBrowserBox->GetId();
+            std::string newId = m_pActiveBrowserBox->GetBrowserId();
             SetActiveBox(newId);
         }
     }
     return bRet;
 }
 
-bool BrowserForm::AttachBox(BrowserBox* browser_box)
+bool BrowserForm::AttachBox(BrowserBox* pBrowserBox)
 {
-    if (nullptr == browser_box) {
+    if (nullptr == pBrowserBox) {
         return false;
     }
 
-    DString id = ui::StringConvert::UTF8ToT(browser_box->GetId());
+    DString id = ui::StringConvert::UTF8ToT(pBrowserBox->GetBrowserId());
     if (nullptr != FindTabItem(id)) {
         ASSERT(0);
         return false;
@@ -487,68 +487,68 @@ bool BrowserForm::AttachBox(BrowserBox* browser_box)
         return false;
     }
 
-    TabCtrlItem* tab_item = new TabCtrlItem(m_pTabCtrl->GetWindow());
-    GlobalManager::Instance().FillBoxWithCache(tab_item, ui::FilePath(_T("cef_browser/tab_item.xml")));
-    m_pTabCtrl->AddItemAt(tab_item, GetBoxCount());
-    tab_item->SetUTF8Name(browser_box->GetId());
-    tab_item->SetTitle(browser_box->GetTitle());
-    ui::Button* btn_item_close = tab_item->GetCloseButton();
+    TabCtrlItem* pTabItem = new TabCtrlItem(m_pTabCtrl->GetWindow());
+    GlobalManager::Instance().FillBoxWithCache(pTabItem, ui::FilePath(_T("cef_browser/tab_item.xml")));
+    m_pTabCtrl->AddItemAt(pTabItem, GetBoxCount());
+    pTabItem->SetUTF8Name(pBrowserBox->GetBrowserId());
+    pTabItem->SetTitle(pBrowserBox->GetTitle());
+    ui::Button* btn_item_close = pTabItem->GetCloseButton();
     ASSERT(btn_item_close != nullptr);
     if (btn_item_close != nullptr) {
-        btn_item_close->AttachClick(UiBind(&BrowserForm::OnTabItemClose, this, std::placeholders::_1, browser_box->GetId()));
+        btn_item_close->AttachClick(UiBind(&BrowserForm::OnTabItemClose, this, std::placeholders::_1, pBrowserBox->GetBrowserId()));
     }
 
-    // 当另一个窗体创建的browser_box浏览器盒子控件添加到另一个窗体内的容器控件时
-    // AddItem函数会重新的修改browser_box内所有子控件的m_pWindow为新的窗体指针
-    m_pBorwserBoxTab->AddItem(browser_box);
+    // 当另一个窗体创建的pBrowserBox浏览器盒子控件添加到另一个窗体内的容器控件时
+    // AddItem函数会重新的修改pBrowserBox内所有子控件的m_pWindow为新的窗体指针
+    m_pBorwserBoxTab->AddItem(pBrowserBox);
 
     if (GetBoxCount() <= 1) {
-        m_pActiveBrowserBox = browser_box;
+        m_pActiveBrowserBox = pBrowserBox;
     }
 
     // 切换到新的浏览器盒子
-    // 如果tab_item处于隐藏状态，则无法顺利触发选择事件，所以这里直接切换到目标浏览器盒子
-    tab_item->Selected(true, false, 0);
+    // 如果pTabItem处于隐藏状态，则无法顺利触发选择事件，所以这里直接切换到目标浏览器盒子
+    pTabItem->Selected(true, false, 0);
     ChangeToBox(id);
 
     //重新下载网站图标
-    ui::CefControl* pCefControl = browser_box->GetCefControl();
+    ui::CefControl* pCefControl = pBrowserBox->GetCefControl();
     if (pCefControl != nullptr) {
         pCefControl->ReDownloadFavIcon();
     }
 
-    OnCreateNewTabPage(tab_item, browser_box);
+    OnCreateNewTabPage(pTabItem, pBrowserBox);
     return true;
 }
 
-bool BrowserForm::DetachBox(BrowserBox* browser_box)
+bool BrowserForm::DetachBox(BrowserBox* pBrowserBox)
 {
-    if (browser_box == nullptr) {
+    if (pBrowserBox == nullptr) {
         return false;
     }
 
-    DString id = ui::StringConvert::UTF8ToT(browser_box->GetId());
+    DString id = ui::StringConvert::UTF8ToT(pBrowserBox->GetBrowserId());
 
     // 从顶部标签页移除对应item
-    TabCtrlItem* tab_item = FindTabItem(id);
-    if (tab_item == nullptr) {
+    TabCtrlItem* pTabItem = FindTabItem(id);
+    if (pTabItem == nullptr) {
         return false;
     }
 
-    m_pTabCtrl->RemoveItem(tab_item);
+    m_pTabCtrl->RemoveItem(pTabItem);
     m_pTabCtrl->ArrangeAncestor();
-    OnCloseTabPage(browser_box);
+    OnCloseTabPage(pBrowserBox);
 
     // 在右侧Tab浏览器盒子列表中找到浏览器盒子并且移除盒子
-    // 在这里不能delete browser_box
+    // 在这里不能delete pBrowserBox
     bool auto_destroy = m_pBorwserBoxTab->IsAutoDestroyChild();
     m_pBorwserBoxTab->SetAutoDestroyChild(false);
-    if (!m_pBorwserBoxTab->RemoveItem(browser_box)) {
+    if (!m_pBorwserBoxTab->RemoveItem(pBrowserBox)) {
         m_pBorwserBoxTab->SetAutoDestroyChild(auto_destroy);
         return false;
     }
     m_pBorwserBoxTab->SetAutoDestroyChild(auto_destroy);
-    if (m_pActiveBrowserBox == browser_box) {
+    if (m_pActiveBrowserBox == pBrowserBox) {
         m_pActiveBrowserBox = nullptr;
     }
 
@@ -564,9 +564,9 @@ BrowserBox* BrowserForm::GetSelectedBox()
     return m_pActiveBrowserBox;
 }
 
-void BrowserForm::SetActiveBox(const std::string &browser_id)
+void BrowserForm::SetActiveBox(const std::string& browserId)
 {
-    if (browser_id.empty()) {
+    if (browserId.empty()) {
         return;
     }
 
@@ -578,32 +578,35 @@ void BrowserForm::SetActiveBox(const std::string &browser_id)
     }
 
     // 从窗口左侧会话列表找到要激活的浏览器盒子项
-    DString id = ui::StringConvert::UTF8ToT(browser_id);
-    TabCtrlItem* tab_item = FindTabItem(id);
-    if (nullptr == tab_item) {
+    DString id = ui::StringConvert::UTF8ToT(browserId);
+    TabCtrlItem* pTabItem = FindTabItem(id);
+    if (nullptr == pTabItem) {
         return;
     }
 
-    // 如果tab_item处于隐藏状态，则无法顺利触发选择事件，所以这里直接切换到目标浏览器盒子
-    tab_item->Selected(true, false, 0);
+    // 如果pTabItem处于隐藏状态，则无法顺利触发选择事件，所以这里直接切换到目标浏览器盒子
+    pTabItem->Selected(true, false, 0);
     ChangeToBox(id);
 }
 
-bool BrowserForm::IsActiveBox(const BrowserBox* browser_box)
+bool BrowserForm::IsActiveBox(const BrowserBox* pBrowserBox)
 {
-    ASSERT(nullptr != browser_box);
-    return (browser_box == m_pActiveBrowserBox && IsWindowForeground() && !IsWindowMinimized() && IsWindowVisible());
+    ASSERT(nullptr != pBrowserBox);
+    return (pBrowserBox == m_pActiveBrowserBox && IsWindowForeground() && !IsWindowMinimized() && IsWindowVisible());
 }
 
-bool BrowserForm::IsActiveBox(const DString& browser_id)
+bool BrowserForm::IsActiveBox(const DString& browserId)
 {
-    ASSERT(!browser_id.empty());
-    return (IsWindowForeground() && !IsWindowMinimized() && IsWindowVisible() && FindBox(browser_id) == m_pActiveBrowserBox);
+    ASSERT(!browserId.empty());
+    return (IsWindowForeground() && !IsWindowMinimized() && IsWindowVisible() && FindBox(browserId) == m_pActiveBrowserBox);
 }
 
-int BrowserForm::GetBoxCount() const
+int32_t BrowserForm::GetBoxCount() const
 {
-    int nBoxCount = (int)m_pTabCtrl->GetItemCount();
+    int32_t nBoxCount = 0;
+    if (m_pTabCtrl != nullptr) {
+        nBoxCount = (int32_t)m_pTabCtrl->GetItemCount();
+    }
     return nBoxCount;
 }
 
@@ -624,73 +627,73 @@ bool BrowserForm::OnTabItemSelected(const ui::EventArgs& param)
     return true;
 }
 
-bool BrowserForm::OnTabItemClose(const ui::EventArgs& param, const std::string& browser_id)
+bool BrowserForm::OnTabItemClose(const ui::EventArgs& param, const std::string& browserId)
 {
-    CloseBox(browser_id);
+    CloseBox(browserId);
     return true;
 }
 
-BrowserBox* BrowserForm::FindBox(const DString &browser_id)
+BrowserBox* BrowserForm::FindBox(const DString& browserId)
 {
     for (int i = 0; i < (int)m_pBorwserBoxTab->GetItemCount(); i++) {
-        Control *box_item = m_pBorwserBoxTab->GetItemAt(i);
-        ASSERT(nullptr != box_item);
-        if (nullptr == box_item) {
+        Control *pBoxItem = m_pBorwserBoxTab->GetItemAt(i);
+        ASSERT(nullptr != pBoxItem);
+        if (nullptr == pBoxItem) {
             return nullptr;
         }
 
-        if (box_item->GetName() == browser_id) {
-            return dynamic_cast<BrowserBox*>(box_item);
+        if (pBoxItem->GetName() == browserId) {
+            return dynamic_cast<BrowserBox*>(pBoxItem);
         }
     }
     return nullptr;
 }
 
-TabCtrlItem* BrowserForm::FindTabItem(const DString &browser_id)
+TabCtrlItem* BrowserForm::FindTabItem(const DString& browserId)
 {
     for (int i = 0; i < GetBoxCount(); i++) {
-        Control *tab_item = m_pTabCtrl->GetItemAt(i);
-        ASSERT(nullptr != tab_item);
-        if (nullptr == tab_item) {
+        Control *pTabItem = m_pTabCtrl->GetItemAt(i);
+        ASSERT(nullptr != pTabItem);
+        if (nullptr == pTabItem) {
             return nullptr;
         }
 
-        if (tab_item->GetName() == browser_id) {
-            return dynamic_cast<TabCtrlItem*>(tab_item);
+        if (pTabItem->GetName() == browserId) {
+            return dynamic_cast<TabCtrlItem*>(pTabItem);
         }
     }
     return nullptr;
 }
 
-void BrowserForm::SetTabItemName(const DString& browser_id, const DString& name)
+void BrowserForm::SetTabItemName(const DString& browserId, const DString& name)
 {
-    TabCtrlItem* tab_item = FindTabItem(browser_id);
-    if (nullptr != tab_item) {
-        tab_item->SetTitle(name);
+    TabCtrlItem* pTabItem = FindTabItem(browserId);
+    if (nullptr != pTabItem) {
+        pTabItem->SetTitle(name);
     }
 }
 
-void BrowserForm::SetURL(const std::string& browser_id, const DString& url)
+void BrowserForm::SetURL(const std::string& browserId, const DString& url)
 {
-    if ((m_pEditUrl != nullptr) && (m_pActiveBrowserBox != nullptr) && (m_pActiveBrowserBox->GetId() == browser_id)) {
+    if ((m_pEditUrl != nullptr) && (m_pActiveBrowserBox != nullptr) && (m_pActiveBrowserBox->GetBrowserId() == browserId)) {
         m_pEditUrl->SetText(url);
     }
 }
 
-bool BrowserForm::ChangeToBox(const DString& browser_id)
+bool BrowserForm::ChangeToBox(const DString& browserId)
 {
-    if (browser_id.empty()) {
+    if (browserId.empty()) {
         return false;
     }
 
-    BrowserBox* box_item = FindBox(browser_id);
-    if (nullptr == box_item) {
+    BrowserBox* pBoxItem = FindBox(browserId);
+    if (nullptr == pBoxItem) {
         return false;
     }
-    box_item->SetPos(box_item->GetPos());
-    m_pBorwserBoxTab->SelectItem(box_item);
-    box_item->SetFocus();
-    m_pActiveBrowserBox = box_item;
+    pBoxItem->SetPos(pBoxItem->GetPos());
+    m_pBorwserBoxTab->SelectItem(pBoxItem);
+    pBoxItem->SetFocus();
+    m_pActiveBrowserBox = pBoxItem;
 
     // 根据当前激活的浏览器盒子，更新任务栏的图标和标题
     DStringW urlW = m_pActiveBrowserBox->GetCefControl()->GetURL();
@@ -699,15 +702,15 @@ bool BrowserForm::ChangeToBox(const DString& browser_id)
     return true;
 }
 
-void BrowserForm::NotifyFavicon(const BrowserBox* browser_box, CefRefPtr<CefImage> image)
+void BrowserForm::NotifyFavicon(const BrowserBox* pBrowserBox, CefRefPtr<CefImage> image)
 {
-    if ((browser_box == nullptr) || (image == nullptr)) {
+    if ((pBrowserBox == nullptr) || (image == nullptr)) {
         return;
     }
 
-    DString id = ui::StringConvert::UTF8ToT(browser_box->GetId());
-    TabCtrlItem* tab_item = FindTabItem(id);
-    if (tab_item == nullptr) {
+    DString id = ui::StringConvert::UTF8ToT(pBrowserBox->GetBrowserId());
+    TabCtrlItem* pTabItem = FindTabItem(id);
+    if (pTabItem == nullptr) {
         return;
     }
 
@@ -733,39 +736,39 @@ void BrowserForm::NotifyFavicon(const BrowserBox* browser_box, CefRefPtr<CefImag
         return;
     }
 
-    tab_item->SetIconData(nWidth, nHeight, imageData.data(), (int32_t)imageData.size());
+    pTabItem->SetIconData(nWidth, nHeight, imageData.data(), (int32_t)imageData.size());
 }
 
-void BrowserForm::OnCreateNewTabPage(ui::TabCtrlItem* tab_item, BrowserBox* browser_box)
+void BrowserForm::OnCreateNewTabPage(ui::TabCtrlItem* pTabItem, BrowserBox* pBrowserBox)
 {
-    if (tab_item != nullptr) {
-        tab_item->AttachAllEvents(UiBind(&BrowserForm::OnProcessTabItemDrag, this, std::placeholders::_1));
+    if (pTabItem != nullptr) {
+        pTabItem->AttachAllEvents(UiBind(&BrowserForm::OnProcessTabItemDrag, this, std::placeholders::_1));
     }
 }
 
-void BrowserForm::OnCloseTabPage(BrowserBox* browser_box)
+void BrowserForm::OnCloseTabPage(BrowserBox* pBrowserBox)
 {
 }
 
 bool BrowserForm::OnBeforeDragBoxCallback(const DString& browserId)
 {
-    BrowserBox* browser_box = FindBox(browserId);
-    if (browser_box != nullptr) {
-        browser_box->SetVisible(false);
+    BrowserBox* pBrowserBox = FindBox(browserId);
+    if (pBrowserBox != nullptr) {
+        pBrowserBox->SetVisible(false);
     }
     else {
         return false;
     }
     m_dragingBrowserId = browserId;
 
-    TabCtrlItem* tab_item = FindTabItem(browserId);
-    if (tab_item != nullptr) {
-        tab_item->CancelDragOperation();
-        tab_item->SetVisible(false);
+    TabCtrlItem* pTabItem = FindTabItem(browserId);
+    if (pTabItem != nullptr) {
+        pTabItem->CancelDragOperation();
+        pTabItem->SetVisible(false);
     }
 
     // 找到新的被显示的浏览器盒子
-    size_t index = tab_item->GetListBoxIndex();
+    size_t index = pTabItem->GetListBoxIndex();
     if (index > 0) {
         index--;
     }
@@ -792,15 +795,15 @@ void BrowserForm::OnAfterDragBoxCallback(bool bDropSucceed)
     m_bDragState = false;
     m_bButtonDown = false;
     if (!bDropSucceed && !dragingBrowserId.empty()) {
-        BrowserBox* browser_box = FindBox(dragingBrowserId);
-        if (browser_box != nullptr) {
-            browser_box->SetFadeVisible(true);
+        BrowserBox* pBrowserBox = FindBox(dragingBrowserId);
+        if (pBrowserBox != nullptr) {
+            pBrowserBox->SetFadeVisible(true);
         }
 
-        TabCtrlItem* tab_item = FindTabItem(dragingBrowserId);
-        if (tab_item != nullptr) {
-            tab_item->SetFadeVisible(true);
-            tab_item->Selected(true, false, 0);
+        TabCtrlItem* pTabItem = FindTabItem(dragingBrowserId);
+        if (pTabItem != nullptr) {
+            pTabItem->SetFadeVisible(true);
+            pTabItem->Selected(true, false, 0);
             ChangeToBox(dragingBrowserId);
         }
 
@@ -847,15 +850,15 @@ bool BrowserForm::OnProcessTabItemDrag(const ui::EventArgs& param)
             break;
         }
 
-        DString id = ui::StringConvert::UTF8ToT(m_pActiveBrowserBox->GetId());
-        TabCtrlItem* tab_item = FindTabItem(id);
-        if (tab_item == nullptr) {
+        DString id = ui::StringConvert::UTF8ToT(m_pActiveBrowserBox->GetBrowserId());
+        TabCtrlItem* pTabItem = FindTabItem(id);
+        if (pTabItem == nullptr) {
             break;
         }
 
         //当鼠标纵向滑动的距离超过标签宽度的时候，开始拖出操作
         int32_t cy = std::abs(param.ptMouse.y - m_oldDragPoint.y);
-        if (cy > tab_item->GetPos().Height()) {
+        if (cy > pTabItem->GetPos().Height()) {
 
             m_bDragState = true;
 
