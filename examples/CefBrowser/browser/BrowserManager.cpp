@@ -29,9 +29,13 @@ BrowserForm* BrowserManager::CreateBrowserForm()
 #endif
 }
 
-BrowserBox* BrowserManager::CreateBorwserBox(BrowserForm* pBrowserForm, const std::string& browserId, const DString& url)
+BrowserBox* BrowserManager::CreateBorwserBox(BrowserForm* pBrowserForm, std::string browserId, const DString& url)
 {
-    BrowserBox* pBrowserBox = nullptr;
+    if (browserId.empty()) {
+        browserId = CreateBrowserID();
+    }
+    BrowserBox *pBrowserBox = nullptr;
+    //多标签模式：一个窗口内允许有多个标签
     if (pBrowserForm == nullptr) {
         pBrowserForm = BrowserManager::GetInstance()->CreateBrowserForm();
         if (!pBrowserForm->CreateWnd(nullptr, ui::WindowCreateParam(_T("CefBrowser"), true))) {
@@ -45,7 +49,6 @@ BrowserBox* BrowserManager::CreateBorwserBox(BrowserForm* pBrowserForm, const st
     if (pBrowserBox == nullptr) {
         return nullptr;
     }
-
     m_boxMap[browserId] = pBrowserBox;
     return pBrowserBox;
 }
@@ -117,4 +120,3 @@ std::string BrowserManager::CreateBrowserID() const
     std::string id = ui::StringUtil::UInt64ToStringA(nTimeMS);
     return id;
 }
-

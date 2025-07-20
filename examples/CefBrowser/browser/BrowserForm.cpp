@@ -307,9 +307,7 @@ bool BrowserForm::OnClicked(const ui::EventArgs& arg )
         }
     }
     else if (name == _T("btn_add")) {
-        uint64_t nTimeMS = std::chrono::steady_clock::now().time_since_epoch().count() / 1000;
-        std::string timeStamp = ui::StringUtil::UInt64ToStringA(nTimeMS);
-        BrowserManager::GetInstance()->CreateBorwserBox(this, timeStamp, _T(""));
+        BrowserManager::GetInstance()->CreateBorwserBox(this, "", _T(""));
     }
     else if (m_pActiveBrowserBox) {
         auto cef_control = m_pActiveBrowserBox->GetCefControl();
@@ -337,18 +335,14 @@ bool BrowserForm::OnClicked(const ui::EventArgs& arg )
 bool BrowserForm::OnReturn(const ui::EventArgs& arg)
 {
     if (m_pEditUrl != nullptr) {
-        DString url = m_pEditUrl->GetText();         
-        if (!url.empty()) {
-            if (m_pEditUrl != nullptr) {
-                DString url = m_pEditUrl->GetText();
-                if (!url.empty()) {
-                    if ((m_pActiveBrowserBox != nullptr) && (m_pActiveBrowserBox->GetCefControl())) {
-                        m_pActiveBrowserBox->GetCefControl()->LoadURL(url);
-                    }
+        if (m_pEditUrl != nullptr) {
+            DString url = m_pEditUrl->GetText();
+            if (!url.empty()) {
+                if ((m_pActiveBrowserBox != nullptr) && (m_pActiveBrowserBox->GetCefControl())) {
+                    m_pActiveBrowserBox->GetCefControl()->LoadURL(url);
                 }
             }
-            return true;
-        }        
+        }
     }
     return true;
 }

@@ -21,22 +21,22 @@ BrowserForm* BrowserManager::CreateBrowserForm()
     return new BrowserForm;
 }
 
-BrowserBox* BrowserManager::CreateBorwserBox(BrowserForm* browser_form, std::string browserId, const DString& url)
+BrowserBox* BrowserManager::CreateBorwserBox(BrowserForm* pBrowserForm, std::string browserId, const DString& url)
 {
     if (browserId.empty()) {
         browserId = CreateBrowserID();
     }
     BrowserBox *pBrowserBox = nullptr;
     //多标签模式：一个窗口内允许有多个标签
-    if (browser_form == nullptr) {
-        browser_form = BrowserManager::GetInstance()->CreateBrowserForm();
-        if (!browser_form->CreateWnd(nullptr, ui::WindowCreateParam(_T("WebView2Browser"), true))) {
-            browser_form = nullptr;
+    if (pBrowserForm == nullptr) {
+        pBrowserForm = BrowserManager::GetInstance()->CreateBrowserForm();
+        if (!pBrowserForm->CreateWnd(nullptr, ui::WindowCreateParam(_T("WebView2Browser"), true))) {
+            pBrowserForm = nullptr;
             return nullptr;
         }
-        browser_form->ShowWindow(ui::ShowWindowCommands::kSW_SHOW_NORMAL);          
+        pBrowserForm->ShowWindow(ui::ShowWindowCommands::kSW_SHOW_NORMAL);          
     }
-    pBrowserBox = browser_form->CreateBox(browserId, url);
+    pBrowserBox = pBrowserForm->CreateBox(browserId, url);
     ASSERT(pBrowserBox != nullptr);
     if (pBrowserBox == nullptr) {
         return nullptr;
