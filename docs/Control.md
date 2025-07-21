@@ -71,7 +71,7 @@
 | focus_rect_color | | string | SetFocusRectColor| 焦点状态矩形的颜色 |
 | alpha | 255 | int | SetAlpha|控件的整体透明度,如(128)，有效值为 0-255 |
 | state | normal | string | SetState|控件的当前状态: 支持normal、hot、pushed、disabled状态 |
-| cursor_type | arrow | string | SetCursorType|鼠标移动到控件上时的鼠标光标: arrow(箭头)、hand(手型)、ibeam(“I”形状)、sizewe(左右拖动)、sizens(上下拖动)|
+| cursor_type | arrow | string | SetCursorType|鼠标移动到控件上时的鼠标光标: <br>"arrow"：箭头<br>"hand"：手型<br>"wait"：忙碌<br>"cross"：精度选择<br>"ibeam"：“I”形状<br>"size_we"：左右拖动<br>"size_ns"：上下拖动<br>"size_nwse"：垂直调整大小<br>"size_nesw"：对角线调整大小<br>"size_all"：移动<br>"no"：不可用|
 | render_offset | 0,0 | size | SetRenderOffset|控件绘制时的偏移量,如(10,10),一般用于绘制动画 |
 | fade_alpha | false | bool | GetAnimationManager(). SetFadeAlpha|是否启用控件透明渐变动画,如“true”|
 | fade_hot | false | bool |GetAnimationManager(). SetFadeHot |是否启用控件悬浮状态下 的透明渐变动画,如“true”|
