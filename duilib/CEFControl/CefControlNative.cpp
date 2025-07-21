@@ -5,6 +5,11 @@
 #include "duilib/Core/Box.h"
 #include "duilib/Core/GlobalManager.h"
 
+#ifdef DUILIB_BUILD_FOR_LINUX
+    #include <X11/Xlib.h>
+    #include <X11/Xutil.h>
+#endif
+
 namespace ui {
 
 CefControlNative::CefControlNative(ui::Window* pWindow):
@@ -318,7 +323,87 @@ bool CefControlNative::CaptureWindowBitmap_Mac(std::vector<uint8_t>& bitmap, int
 #elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
 bool CefControlNative::CaptureWindowBitmap_X11(std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
 {
-    return false;
+    // 检查X11环境更加健壮
+    const char* sessionType = std::getenv("XDG_SESSION_TYPE");
+    if (!sessionType || (std::string(sessionType) != "x11" && std::string(sessionType) != "X11")) {
+        // 尝试使用DISPLAY环境变量进行二次检查
+        const char* displayEnv = std::getenv("DISPLAY");
+        if (!displayEnv || !*displayEnv) {
+            return false;
+        }
+    }
+
+    Display* display = ::XOpenDisplay(nullptr);
+    if (!display) {
+        return false;
+    }
+
+    // RAII资源管理
+    struct DisplayCloser {
+        Display* d;
+        ~DisplayCloser() { if(d) ::XCloseDisplay(d); }
+    } closer{display};
+
+    ::Window x11Window = GetCefWindowHandle();
+
+    // 获取窗口尺寸
+    ::XWindowAttributes gwa;
+    if (!::XGetWindowAttributes(display, x11Window, &gwa)) {
+        return false;
+    }
+    width = gwa.width;
+    height = gwa.height;
+    if (width <= 0 || height <= 0) {
+        return false;
+    }
+
+    // 获取窗口内容
+    XImage* image = XGetImage(display, x11Window, 0, 0, width, height, AllPlanes, ZPixmap);
+    if (!image) {
+        return false;
+    }
+
+    // RAII管理XImage资源
+    struct ImageDestroyer {
+        XImage* img;
+        ~ImageDestroyer() { if(img) XDestroyImage(img); }
+    } imgDestroyer{image};
+
+    // 分配内存并复制像素数据
+    bitmap.resize(width * height * 4);
+
+    // 使用更安全的像素格式转换
+    bool isRgbOrder = (image->red_mask == 0xFF0000);
+    bool isBgrOrder = (image->blue_mask == 0xFF0000);
+    
+    // 使用XGetPixel作为安全的像素获取方式
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            unsigned long pixel = XGetPixel(image, x, y);
+            unsigned char r, g, b;
+            
+            if (isRgbOrder) {
+                r = (pixel >> 16) & 0xFF;
+                g = (pixel >> 8) & 0xFF;
+                b = pixel & 0xFF;
+            } else if (isBgrOrder) {
+                r = pixel & 0xFF;
+                g = (pixel >> 8) & 0xFF;
+                b = (pixel >> 16) & 0xFF;
+            } else {
+                // 无法确定顺序，使用灰度
+                r = g = b = (pixel * 255) / ((1 << image->bits_per_pixel) - 1);
+            }
+            
+            int index = (y * width + x) * 4;
+            bitmap[index] = r;
+            bitmap[index + 1] = g;
+            bitmap[index + 2] = b;
+            bitmap[index + 3] = 255;
+        }
+    }
+
+    return true;
 }
 #endif
 
