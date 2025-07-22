@@ -28,6 +28,11 @@ CefBrowserHandler::CefBrowserHandler():
 {
 }
 
+CefBrowserHandler::~CefBrowserHandler()
+{
+    ASSERT(m_browserList.empty());
+}
+
 void CefBrowserHandler::SetHostWindow(ui::Window* window)
 { 
     m_pWindow = window;
@@ -305,8 +310,13 @@ void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
         else {
             ASSERT(browser->IsPopup());
         }
-        m_browserList.push_back(browser);
-        CefManager::GetInstance()->AddBrowserCount();
+        auto it = std::find_if(m_browserList.begin(), m_browserList.end(), [browser](const CefRefPtr<CefBrowser>& item) {
+            return item->IsSame(browser);
+            });
+        if (it == m_browserList.end()) {
+            m_browserList.push_back(browser);
+            CefManager::GetInstance()->AddBrowserCount();
+        }
         
         if (m_pHandlerDelegate != nullptr) {
             // 有窗模式下，浏览器创建完毕后，让上层更新一下自己的位置；因为在异步状态下，上层更新位置时可能Cef窗口还没有创建出来
