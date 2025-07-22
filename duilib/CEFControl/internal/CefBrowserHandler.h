@@ -52,6 +52,7 @@ class CefBrowserHandler : public virtual ui::SupportWeakCallback,
 {
 public:
     CefBrowserHandler();
+    virtual ~CefBrowserHandler() override;
 
 public:
 
