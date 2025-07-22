@@ -51,6 +51,10 @@ public:
     */
     virtual void OnInitWindow() override;
 
+    /** 当窗口即将被关闭时调用此函数，供子类中做一些收尾工作
+    */
+    virtual void OnPreCloseWindow() override;
+
     /** 当窗口已经被关闭时调用此函数，供子类中做一些收尾工作
     */
     virtual void OnCloseWindow() override;

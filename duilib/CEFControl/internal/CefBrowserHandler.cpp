@@ -298,12 +298,14 @@ void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
     //这个窗口句柄在TID_UI线程可以第一时间获取到，但转到主线程调用时，就获取不到了（有延迟）。
     auto hWndowHandle = browser->GetHost()->GetWindowHandle();//当browser为dev tools 时，此处返回nullptr，其他情况为非nullptr值
     GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser, hWndowHandle](){
-        m_browserList.emplace_back(browser);
-        if ((m_browser != nullptr) && (m_browser->GetHost() != nullptr)) {
-            m_browser->GetHost()->WasHidden(true);
+        if (m_browserList.empty()) {
+            m_hCefWindowHandle = hWndowHandle;
+            m_browser = browser;
         }
-        m_hCefWindowHandle = hWndowHandle;
-        m_browser = browser;
+        else {
+            ASSERT(browser->IsPopup());
+        }
+        m_browserList.push_back(browser);
         CefManager::GetInstance()->AddBrowserCount();
         
         if (m_pHandlerDelegate != nullptr) {
@@ -337,14 +339,9 @@ void CefBrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
             auto closed_browser = *it;
             m_browserList.erase(it);
             if (closed_browser->IsSame(m_browser)) {
-                m_browser = m_browserList.size() > 0 ? *m_browserList.rbegin() : nullptr;
+                ASSERT(m_browserList.empty());
+                m_browser = nullptr;
                 m_hCefWindowHandle = 0;
-                if (m_browser != nullptr)  {
-                    if (m_browser->GetHost() != nullptr) {
-                        m_browser->GetHost()->WasHidden(false);
-                    }
-                    m_browser->Reload();
-                }
             }
         }
 

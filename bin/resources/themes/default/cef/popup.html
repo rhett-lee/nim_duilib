@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEF弹出窗口测试页面</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#dc2626',
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .btn-pop {
+                @apply transform transition-all duration-200 hover:scale-105 active:scale-95;
+            }
+            .card {
+                @apply bg-white rounded-lg shadow-md p-6 mb-6;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen p-6 md:p-10">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-10 text-center">
+            <h1 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold text-gray-800 mb-3">
+                CEF弹出窗口测试工具
+            </h1>
+            <p class="text-gray-600">多种方式触发弹出窗口，用于测试CefLifeSpanHandler</p>
+        </header>
+
+        <main class="space-y-8">
+            <!-- 基本弹出窗口测试 -->
+            <section class="card">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fa fa-external-link-square text-primary mr-2"></i>
+                    基本弹出窗口测试
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-4">
+                    <!-- 1. 链接方式弹出 -->
+                    <a href="https://example.com" 
+                       target="_blank" 
+                       class="btn-pop inline-block bg-primary hover:bg-primary/90 text-white text-center py-3 px-4 rounded-lg">
+                        <i class="fa fa-link mr-1"></i> 链接方式弹出(blank)
+                    </a>
+                    
+                    <!-- 2. JavaScript window.open() -->
+                    <button onclick="openPopup('https://example.com', '测试弹出窗口', 'width=600,height=400')"
+                            class="btn-pop w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg">
+                        <i class="fa fa-window-maximize mr-1"></i> JS window.open()
+                    </button>
+                    
+                    <!-- 3. 带参数的弹出窗口 -->
+                    <button onclick="openCustomPopup()"
+                            class="btn-pop w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg">
+                        <i class="fa fa-sliders mr-1"></i> 自定义大小弹出窗口
+                    </button>
+                    
+                    <!-- 4. 无地址弹出窗口 -->
+                    <button onclick="openEmptyPopup()"
+                            class="btn-pop w-full bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg">
+                        <i class="fa fa-file-o mr-1"></i> 空白弹出窗口
+                    </button>
+                </div>
+            </section>
+
+            <!-- 特殊弹出窗口测试 -->
+            <section class="card">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <i class="fa fa-cogs text-primary mr-2"></i>
+                    特殊弹出场景测试
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-4">
+                    <!-- 1. 弹出后自动关闭 -->
+                    <button onclick="openAndClosePopup()"
+                            class="btn-pop w-full bg-secondary hover:bg-secondary/90 text-white py-3 px-4 rounded-lg">
+                        <i class="fa fa-times-circle mr-1"></i> 弹出后自动关闭
+                    </button>
+                    
+                    <!-- 2. 多窗口弹出 -->
+                    <button onclick="openMultiplePopups()"
+                            class="btn-pop w-full bg-secondary hover:bg-secondary/90 text-white py-3 px-4 rounded-lg">
+                        <i class="fa fa-clone mr-1"></i> 多窗口弹出(3个)
+                    </button>
+                    
+                    <!-- 3. 带功能的弹出窗口 -->
+                    <button onclick="openFunctionalPopup()"
+                            class="btn-pop w-full bg-secondary hover:bg-secondary/90 text-white py-3 px-4 rounded-lg">
+                        <i class="fa fa-cog mr-1"></i> 带交互功能的弹出窗
+                    </button>
+                    
+                    <!-- 4. 关闭所有弹出窗口 -->
+                    <button onclick="closeAllPopups()"
+                            class="btn-pop w-full bg-gray-700 hover:bg-gray-800 text-white py-3 px-4 rounded-lg">
+                        <i class="fa fa-window-close mr-1"></i> 关闭所有弹出窗口
+                    </button>
+                </div>
+            </section>
+
+            <!-- 弹出窗口状态 -->
+            <section class="card bg-blue-50 border border-blue-100">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">弹出窗口状态</h2>
+                <div id="popupStatus" class="text-gray-700 min-h-[60px] p-3 bg-white rounded border border-gray-200">
+                    尚未打开任何弹出窗口
+                </div>
+                <div id="popupList" class="mt-3 space-y-2 hidden">
+                    <h3 class="font-medium text-gray-700">已打开的弹出窗口:</h3>
+                    <ul id="popups" class="list-disc list-inside text-gray-600"></ul>
+                </div>
+            </section>
+        </main>
+
+        <footer class="mt-12 text-center text-gray-500 text-sm">
+            <p>CEF弹出窗口测试页面 &copy; 2023</p>
+        </footer>
+    </div>
+
+    <script>
+        // 存储所有弹出窗口的引用
+        const popups = [];
+        let popupCount = 0;
+
+        // 更新弹出窗口状态显示
+        function updatePopupStatus() {
+            const statusEl = document.getElementById('popupStatus');
+            const listEl = document.getElementById('popupList');
+            const popupsEl = document.getElementById('popups');
+            
+            if (popups.length === 0) {
+                statusEl.textContent = '尚未打开任何弹出窗口';
+                listEl.classList.add('hidden');
+                return;
+            }
+            
+            statusEl.textContent = `当前打开了 ${popups.length} 个弹出窗口`;
+            listEl.classList.remove('hidden');
+            
+            // 清空列表并重新添加
+            popupsEl.innerHTML = '';
+            popups.forEach((popup, index) => {
+                const li = document.createElement('li');
+                li.textContent = `弹出窗口 #${index + 1}: ${popup.url || '空白页面'}`;
+                popupsEl.appendChild(li);
+            });
+        }
+
+        // 基础弹出窗口
+        function openPopup(url, name, features) {
+            const popup = window.open(url, name, features);
+            if (popup) {
+                popupCount++;
+                popups.push(popup);
+                updatePopupStatus();
+                
+                // 监听弹出窗口关闭事件
+                const checkClosed = setInterval(() => {
+                    if (popup.closed) {
+                        clearInterval(checkClosed);
+                        const index = popups.indexOf(popup);
+                        if (index !== -1) {
+                            popups.splice(index, 1);
+                            updatePopupStatus();
+                        }
+                    }
+                }, 500);
+            } else {
+                alert('弹出窗口被浏览器阻止，请允许弹出窗口后重试');
+            }
+        }
+
+        // 自定义大小的弹出窗口
+        function openCustomPopup() {
+            const width = 800;
+            const height = 600;
+            // 计算屏幕居中位置
+            const left = (window.screen.width - width) / 2;
+            const top = (window.screen.height - height) / 2;
+            
+            const features = `width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`;
+            openPopup('https://example.com', `customPopup_${Date.now()}`, features);
+        }
+
+        // 空白弹出窗口
+        function openEmptyPopup() {
+            openPopup('about:blank', `emptyPopup_${Date.now()}`, 'width=400,height=300');
+        }
+
+        // 弹出后自动关闭
+        function openAndClosePopup() {
+            const popup = window.open('https://example.com', `autoClosePopup_${Date.now()}`, 'width=500,height=300');
+            if (popup) {
+                popups.push(popup);
+                updatePopupStatus();
+                
+                // 3秒后自动关闭
+                setTimeout(() => {
+                    if (!popup.closed) {
+                        popup.close();
+                        const index = popups.indexOf(popup);
+                        if (index !== -1) {
+                            popups.splice(index, 1);
+                            updatePopupStatus();
+                        }
+                    }
+                }, 3000);
+            } else {
+                alert('弹出窗口被浏览器阻止，请允许弹出窗口后重试');
+            }
+        }
+
+        // 打开多个弹出窗口
+        function openMultiplePopups() {
+            for (let i = 0; i < 3; i++) {
+                const width = 400;
+                const height = 300;
+                const left = 100 + (i * 100);
+                const top = 100 + (i * 100);
+                
+                const features = `width=${width},height=${height},left=${left},top=${top}`;
+                openPopup(`https://example.com?popup=${i+1}`, `multiPopup_${i}_${Date.now()}`, features);
+            }
+        }
+
+        // 带交互功能的弹出窗口
+        function openFunctionalPopup() {
+            const popup = window.open('about:blank', `functionalPopup_${Date.now()}`, 'width=600,height=400');
+            if (popup) {
+                popups.push(popup);
+                updatePopupStatus();
+                
+                // 向弹出窗口写入内容
+                popup.document.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>功能弹出窗口</title>
+                        <style>
+                            body { font-family: Arial, sans-serif; padding: 20px; }
+                            .container { text-align: center; }
+                            button { padding: 8px 16px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer; }
+                            button:hover { background: #1d4ed8; }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <h2>功能弹出窗口</h2>
+                            <p>这是一个带有交互功能的弹出窗口</p>
+                            <p id="counter">计数: 0</p>
+                            <button onclick="window.opener.incrementCounter(this)">增加计数</button>
+                            <br><br>
+                            <button onclick="window.close()">关闭窗口</button>
+                        </div>
+                    </body>
+                    </html>
+                `);
+                popup.document.close();
+            } else {
+                alert('弹出窗口被浏览器阻止，请允许弹出窗口后重试');
+            }
+        }
+
+        // 用于功能弹出窗口的计数函数
+        function incrementCounter(button) {
+            const popup = button.ownerDocument.defaultView;
+            const counterEl = popup.document.getElementById('counter');
+            let count = parseInt(counterEl.textContent.split(': ')[1]);
+            count++;
+            counterEl.textContent = `计数: ${count}`;
+        }
+
+        // 关闭所有弹出窗口
+        function closeAllPopups() {
+            if (popups.length === 0) {
+                alert('没有打开的弹出窗口');
+                return;
+            }
+            
+            popups.forEach(popup => {
+                if (!popup.closed) {
+                    popup.close();
+                }
+            });
+            popups.length = 0;
+            updatePopupStatus();
+        }
+
+        // 初始化
+        window.onload = updatePopupStatus;
+    </script>
+</body>
+</html>
+    
