@@ -102,13 +102,7 @@ public:
     HDC GetPaintDC() const;
 #endif
 
-#if defined DUILIB_BUILD_FOR_LINUX
-    /** 获取X11的窗口标识符
-    */
-    uint64_t GetX11WindowNumber() const;
-#endif
-
-#if defined DUILIB_BUILD_FOR_FREEBSD
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
     /** 获取X11的窗口标识符
     */
     uint64_t GetX11WindowNumber() const;

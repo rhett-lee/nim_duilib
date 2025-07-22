@@ -1400,23 +1400,7 @@ HDC NativeWindow_SDL::GetPaintDC() const
 
 #endif //DUILIB_BUILD_FOR_WIN
 
-#if defined DUILIB_BUILD_FOR_LINUX
-/** 获取X11的窗口标识符
-*/
-uint64_t NativeWindow_SDL::GetX11WindowNumber() const
-{
-    if (!IsWindow()) {
-        return 0;
-    }
-    SDL_PropertiesID propID = SDL_GetWindowProperties(m_sdlWindow);
-    uint64_t nWindowNumber = (uint64_t)SDL_GetNumberProperty(propID, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
-    ASSERT(nWindowNumber != 0);
-    return nWindowNumber;
-}
-
-#endif
-
-#if defined DUILIB_BUILD_FOR_FREEBSD
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
 /** 获取X11的窗口标识符
 */
 uint64_t NativeWindow_SDL::GetX11WindowNumber() const
