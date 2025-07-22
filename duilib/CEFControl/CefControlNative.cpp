@@ -99,7 +99,7 @@ void CefControlNative::ReCreateBrowser()
 #ifdef DUILIB_BUILD_FOR_WIN
     //Windows
     window_info.SetAsChild(pWindow->NativeWnd()->GetHWND(), rect);
-#elif defined DUILIB_BUILD_FOR_LINUX
+#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
     //Linux
     window_info.SetAsChild(pWindow->NativeWnd()->GetX11WindowNumber(), rect);
 #elif defined DUILIB_BUILD_FOR_MACOS

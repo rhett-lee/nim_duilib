@@ -9,6 +9,11 @@
     #include "duilib/CEFControl/internal/Windows/CefOsrDropTarget.h"
 #endif
 
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    #include <X11/Xlib.h>
+    #include <X11/Xutil.h>
+#endif
+
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Window.h"
@@ -830,19 +835,30 @@ bool CefBrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
                                        cef_cursor_type_t type,
                                        const CefCursorInfo& custom_cursor_info)
 {
-#ifdef DUILIB_BUILD_FOR_WIN
-    if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
-        //离屏渲染模式：需要设置光标
-        if ((m_pWindow != nullptr) && !m_windowFlag.expired()) {
-            SetClassLongPtr(m_pWindow->NativeWnd()->GetHWND(), GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
-        }
-        ::SetCursor(cursor);
-        return true;
-    }
-    else {
-        //非离屏渲染模式：使用默认行为，不需要设置，否则光标异常
+    if (!CefManager::GetInstance()->IsEnableOffScreenRendering()) {
+        //子窗口模式，不需要设置光标，否则光标异常
         return false;
     }
+    //离屏渲染模式：需要设置光标
+#if defined (DUILIB_BUILD_FOR_WIN)   
+    if ((m_pWindow != nullptr) && !m_windowFlag.expired()) {
+        SetClassLongPtr(m_pWindow->NativeWnd()->GetHWND(), GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
+    }
+    ::SetCursor(cursor);
+    return true;
+#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    Display* display = ::XOpenDisplay(nullptr);
+    if (display != nullptr) {
+        // RAII资源管理
+        struct DisplayCloser {
+            Display* d;
+            ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
+        } closer{ display };
+
+        ::Window x11Window = GetCefWindowHandle();
+        XDefineCursor(display, x11Window, cursor);
+    }
+    return true;
 #else
     return false;
 #endif
