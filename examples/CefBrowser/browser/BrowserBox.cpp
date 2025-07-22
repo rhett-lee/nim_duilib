@@ -260,10 +260,35 @@ bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                bool* no_javascript_access)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
-    //拦截弹窗，并导航到弹出网址
-    if ((browser != nullptr) && (browser->GetMainFrame() != nullptr) && !target_url.empty()) {
-        browser->GetMainFrame()->LoadURL(target_url);
+    if (!param.user_gesture) {
+        //自动弹窗，直接拦截
+        return true;
     }
+    if (param.target_disposition == CEF_WOD_NEW_POPUP) {
+        //打开新的弹出窗口（这会使browser->IsPopup()返回 true）
+        if (GetWindow() != nullptr) {
+            GetWindow()->Dpi().ScaleInt(windowInfo.bounds.height);
+            GetWindow()->Dpi().ScaleInt(windowInfo.bounds.width);
+        }
+        //不拦截
+        return false;
+    }
+    else if (!target_url.empty()) {
+        if ((param.target_disposition == CEF_WOD_NEW_FOREGROUND_TAB) || (param.target_disposition == CEF_WOD_NEW_BACKGROUND_TAB)) {
+            //新标签中打开（需要在UI线程中完成）
+            DString url = ui::StringConvert::WStringToT(target_url);
+            ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, this->ToWeakCallback([this, url]() {
+                BrowserManager::GetInstance()->CreateBorwserBox(GetBrowserForm(), "", url);
+                return true;
+                }
+            ));
+        }
+        else if ((browser != nullptr) && (browser->GetMainFrame() != nullptr)) {
+            //导航到弹出网址
+            browser->GetMainFrame()->LoadURL(target_url);
+        }
+    }
+    //拦截
     return true;
 }
 

@@ -289,8 +289,18 @@ bool CefForm::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                             bool* no_javascript_access)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
-    //拦截弹窗，并导航到弹出网址
-    if ((browser != nullptr) && (browser->GetMainFrame() != nullptr) && !target_url.empty()) {
+    if (!user_gesture) {
+        //自动弹窗，直接拦截
+        return true;
+    }
+    if (target_disposition == CEF_WOD_NEW_POPUP) {
+        //打开新的弹出窗口（这会使browser->IsPopup()返回 true）
+        Dpi().ScaleInt(windowInfo.bounds.height);
+        Dpi().ScaleInt(windowInfo.bounds.width);
+        return false;
+    }
+    else if ((browser != nullptr) && (browser->GetMainFrame() != nullptr) && !target_url.empty()) {
+        //导航到弹出网址
         browser->GetMainFrame()->LoadURL(target_url);
     }
     return true;

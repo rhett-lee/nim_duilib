@@ -207,6 +207,12 @@ void BrowserForm::OnInitWindow()
     }
 }
 
+void BrowserForm::OnPreCloseWindow()
+{
+    //关闭窗口时，先关闭该窗口关联的所有Browser对象
+    ui::CefManager::GetInstance()->ProcessWindowCloseEvent(this);
+}
+
 void BrowserForm::OnCloseWindow()
 {
     TestApplication::Instance().RemoveMainWindow(this);
@@ -371,6 +377,7 @@ BrowserBox* BrowserForm::CreateBrowserBox(ui::Window* pWindow, std::string brows
 
 BrowserBox* BrowserForm::CreateBox(const std::string& browserId, DString url)
 {
+    ASSERT(ui::GlobalManager::Instance().IsInUIThread());
     DString id = ui::StringConvert::UTF8ToT(browserId);
     if (nullptr != FindTabItem(id)) {
         ASSERT(0);

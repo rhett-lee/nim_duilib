@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>窗口关闭示例</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        // 配置Tailwind自定义颜色和字体
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .btn-effect {
+                @apply transform transition-transform duration-300 hover:scale-105 active:scale-95;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col items-center justify-center p-6 font-sans">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 border border-slate-100">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 text-primary mb-4">
+                <i class="fa fa-window-close text-2xl"></i>
+            </div>
+            <h1 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-slate-800 mb-2">窗口控制示例</h1>
+            <p class="text-slate-500">点击下方按钮关闭窗口，或尝试直接关闭浏览器标签页</p>
+        </div>
+        
+        <div class="flex flex-col space-y-4">
+            <button id="closeBtn" class="btn-effect bg-red-500 hover:bg-red-600 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors duration-300">
+                <i class="fa fa-times-circle"></i>
+                <span>关闭窗口</span>
+            </button>
+            
+            <button id="reloadBtn" class="btn-effect bg-primary hover:bg-primary/90 text-white font-medium py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors duration-300">
+                <i class="fa fa-refresh"></i>
+                <span>重新加载页面</span>
+            </button>
+        </div>
+        
+        <div class="mt-8 pt-6 border-t border-slate-100 text-sm text-slate-500 text-center">
+            <p>提示：关闭或刷新页面时会显示提示对话框</p>
+        </div>
+    </div>
+
+    <script>
+        // 关闭窗口按钮事件
+        document.getElementById('closeBtn').addEventListener('click', function() {
+            // 尝试关闭当前窗口
+            if (window.close) {
+                window.close();
+            } else {
+                alert('浏览器不允许关闭此窗口');
+            }
+        });
+        
+        // 重新加载按钮事件
+        document.getElementById('reloadBtn').addEventListener('click', function() {
+            location.reload();
+        });
+        
+        // 页面卸载时触发的事件
+        window.addEventListener('beforeunload', function(e) {
+            // 标准浏览器会显示默认提示信息，自定义信息可能不会显示
+            e.preventDefault();
+            // Chrome需要设置returnValue
+            e.returnValue = '';
+            // 返回的字符串在现代浏览器中可能不会显示，但需要保留
+            return '您确定要离开此页面吗？';
+        });
+    </script>
+</body>
+</html>

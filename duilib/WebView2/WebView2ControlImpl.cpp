@@ -997,7 +997,7 @@ void WebView2Control::Impl::AddNewWindowRequestedCallback()
                     args->put_Handled(!bAllow);
                     return S_OK;
                 }).Get(), &m_newWindowRequestedToken);
-        ASSERT(SUCCEEDED(hr));
+        ASSERT_UNUSED_VARIABLE(SUCCEEDED(hr));
     }
 }
 
