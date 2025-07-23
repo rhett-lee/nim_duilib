@@ -5,11 +5,11 @@
         <!-- 标题栏区域 -->  
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
             <!-- 标题栏：窗口左上角显示区域 -->  
-            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto">
+            <HBox margin="0,0,30,0" valign="center" width="auto" height="auto" mouse="false">
                 <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8,0,0,0"/>
-                <Label text="渲染引擎测试" valign="center" margin="8,0,0,0"/>
+                <Label text="渲染引擎测试" valign="center" margin="8,0,0,0" mouse="false"/>
             </HBox>
-            <Control />            
+            <Control mouse="false"/>            
             <!-- 标题栏：右侧窗口控制区域，窗口最小化、最大化、还原、关闭按钮 -->
             <HBox margin="0,0,0,0" valign="center" width="auto" height="36">
                 <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>

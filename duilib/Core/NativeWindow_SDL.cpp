@@ -1312,14 +1312,19 @@ void NativeWindow_SDL::InitNativeWindow()
 
 void NativeWindow_SDL::ClearNativeWindow()
 {
-    if (m_sdlWindow != nullptr) {    
-        SDL_SetWindowHitTest(m_sdlWindow, nullptr, nullptr);
-        SDL_DestroyWindow(m_sdlWindow);
-        m_sdlWindow = nullptr;
+    SDL_Renderer* sdlRenderer = m_sdlRenderer;
+    SDL_Window* sdlWindow = m_sdlWindow;
+    m_sdlRenderer = nullptr;
+    m_sdlWindow = nullptr;
+
+    if (sdlWindow != nullptr) {
+        SDL_SetWindowHitTest(sdlWindow, nullptr, nullptr);
+        SDL_DestroyWindow(sdlWindow);
+        sdlWindow = nullptr;
     }
-    if (m_sdlRenderer != nullptr) {
-        SDL_DestroyRenderer(m_sdlRenderer);
-        m_sdlRenderer = nullptr;
+    if (sdlRenderer != nullptr) {
+        SDL_DestroyRenderer(sdlRenderer);
+        sdlRenderer = nullptr;
     }
 }
 

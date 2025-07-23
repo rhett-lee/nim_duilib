@@ -230,6 +230,8 @@ Box* Shadow::AttachShadow(Box* pRoot)
     }
 
     m_pRoot = new ShadowBox(pRoot->GetWindow(), this);
+    m_pRoot->SetMouseEnabled(false);
+    m_pRoot->SetKeyboardEnabled(false);
     m_pRoot->AddItem(pRoot);
     DoAttachShadow(m_pRoot, pRoot, true, m_isMaximized);
     return m_pRoot;
