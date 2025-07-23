@@ -264,7 +264,11 @@ bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
         //自动弹窗，直接拦截
         return true;
     }
+#if CEF_VERSION_MAJOR > 109
     if (param.target_disposition == CEF_WOD_NEW_POPUP) {
+#else
+    if (param.target_disposition == WOD_NEW_POPUP) {
+#endif
         //打开新的弹出窗口（这会使browser->IsPopup()返回 true）
         if (GetWindow() != nullptr) {
             GetWindow()->Dpi().ScaleInt(windowInfo.bounds.height);
@@ -274,7 +278,11 @@ bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
         return false;
     }
     else if (!target_url.empty()) {
+#if CEF_VERSION_MAJOR > 109
         if ((param.target_disposition == CEF_WOD_NEW_FOREGROUND_TAB) || (param.target_disposition == CEF_WOD_NEW_BACKGROUND_TAB)) {
+#else
+        if ((param.target_disposition == WOD_NEW_FOREGROUND_TAB) || (param.target_disposition == WOD_NEW_BACKGROUND_TAB)) {
+#endif
             //新标签中打开（需要在UI线程中完成）
             DString url = ui::StringConvert::WStringToT(target_url);
             ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, this->ToWeakCallback([this, url]() {

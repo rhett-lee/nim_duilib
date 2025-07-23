@@ -293,7 +293,11 @@ bool CefForm::OnBeforePopup(CefRefPtr<CefBrowser> browser,
         //自动弹窗，直接拦截
         return true;
     }
+#if CEF_VERSION_MAJOR > 109
     if (target_disposition == CEF_WOD_NEW_POPUP) {
+#else
+    if (target_disposition == WOD_NEW_POPUP) {
+#endif
         //打开新的弹出窗口（这会使browser->IsPopup()返回 true）
         Dpi().ScaleInt(windowInfo.bounds.height);
         Dpi().ScaleInt(windowInfo.bounds.width);
