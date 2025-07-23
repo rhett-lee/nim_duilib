@@ -3470,6 +3470,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
     bool bRet = true;//当值为false时，就不再调用回调函数和处理函数
 
     if (msg.GetSender() == this) {
+        //备注：EventMap 和 XmlEventMap里面的回调函数，需要校验消息的发送者是否为控件自身
         if (bRet && HasAttachEventMap() && !GetAttachEventMap().empty()) {
             const EventMap& attachEventMap = GetAttachEventMap();
             auto callback = attachEventMap.find(msg.eventType);
@@ -3509,6 +3510,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
         }
     }
 
+    //备注：BubbledEventMap 和 XmlBubbledEventMap里面的回调函数，不需要校验消息的发送者是否为控件自身
     if (bRet && HasBubbledEventMap() && !GetBubbledEventMap().empty()) {
         const EventMap& bubbledEventMap = GetBubbledEventMap();
         auto callback = bubbledEventMap.find(msg.eventType);

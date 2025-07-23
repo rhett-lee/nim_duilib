@@ -123,6 +123,12 @@ private:
     */
     bool OnButtonClick(const EventArgs& param);
 
+    /** 标题栏被双击时调用
+    * @param [in] param 携带的参数
+    * @return 始终返回 true
+    */
+    bool OnTitleBarDoubleClick(const EventArgs& param);
+
     /** 处理最大化/还原按钮的状态
     */
     void ProcessMaxRestoreStatus();
