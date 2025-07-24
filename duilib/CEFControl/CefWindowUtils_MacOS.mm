@@ -121,6 +121,71 @@ void SetCefWindowParent(CefWindowHandle cefWindow, CefControl* pCefControl)
     ReparentNSView(pCefNSView, pParentNSView);
 }
 
+bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
+{
+    NSView* pCefNSView = (NSView*)cefWindow;
+    if (!pCefNSView) {
+        return false;
+    }
+    if (!IsValidNSView(pCefNSView)) {
+        return false;
+    }
+    // 获取视图的边界和尺寸
+    NSRect viewBounds = [pCefNSView bounds];
+    width = static_cast<int32_t>(NSWidth(viewBounds));
+    height = static_cast<int32_t>(NSHeight(viewBounds));
+    
+    if (width <= 0 || height <= 0) {
+        return false;
+    }
+    
+    // 创建位图图像表示
+    NSBitmapImageRep* bitmapRep = [[NSBitmapImageRep alloc] 
+        initWithBitmapDataPlanes:NULL
+                      pixelsWide:width
+                      pixelsHigh:height
+                   bitsPerSample:8
+                 samplesPerPixel:4
+                        hasAlpha:YES
+                        isPlanar:NO
+                  colorSpaceName:NSCalibratedRGBColorSpace
+                    bytesPerRow:width * 4
+                   bitsPerPixel:32];
+    
+    if (!bitmapRep) {
+        return false;
+    }
+    
+    // 创建图形上下文并绘制视图
+    NSGraphicsContext* context = [NSGraphicsContext graphicsContextWithBitmapImageRep:bitmapRep];
+    if (!context) {
+        [bitmapRep release];
+        return false;
+    }
+    
+    [NSGraphicsContext saveGraphicsState];
+    [NSGraphicsContext setCurrentContext:context];
+    
+    // 绘制视图内容（使用现代方法替代lockFocus/unlockFocus）
+    [pCefNSView displayRectIgnoringOpacity:viewBounds inContext:context];
+    
+    [NSGraphicsContext restoreGraphicsState];
+    
+    // 获取位图数据
+    unsigned char* bitmapData = [bitmapRep bitmapData];
+    if (bitmapData) {
+        size_t dataSize = width * height * 4;
+        bitmap.resize(dataSize);
+        memcpy(bitmap.data(), bitmapData, dataSize);
+    } else {
+        [bitmapRep release];
+        return false;
+    }
+    
+    [bitmapRep release];
+    return true;
+}
+
 } //namespace ui
 
 #endif //DUILIB_BUILD_FOR_MACOS
