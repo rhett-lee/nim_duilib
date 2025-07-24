@@ -2106,8 +2106,6 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
         return;
     }
 
-    const UiRect& rcTextRect = spDrawRichTextCache->m_textRect;
-
     const SkTextEncoding textEncoding = spDrawRichTextCache->m_textEncoding;
     const size_t textCharSize = spDrawRichTextCache->m_textCharSize;
 
@@ -2151,7 +2149,7 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
             textRects.push_back(rcDestRect);
         }
 
-        if (!UiRect::Intersect(rcTemp, rcDestRect, rcTextRect)) {
+        if (!UiRect::Intersect(rcTemp, rcDestRect, rcNewTextRect)) {
             continue;
         }
 
