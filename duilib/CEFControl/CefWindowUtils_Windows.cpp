@@ -148,7 +148,7 @@ void SetCefWindowCursor(CefWindowHandle cefWindow, CefCursorHandle cursor)
     if ((cefWindow == nullptr) || (cursor == nullptr)) {
         return;
     }
-    ::SetClassLongPtr((HWND)cefWindow, GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
+    ::SetClassLongPtr((HWND)cefWindow, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(cursor));
     ::SetCursor(cursor);
 }
 

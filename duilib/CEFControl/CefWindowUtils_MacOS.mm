@@ -191,19 +191,28 @@ void SetCefWindowCursor(CefWindowHandle cefWindow, CefCursorHandle cursor)
     if ((cefWindow == nullptr) || (cursor == nullptr)) {
         return;
     }
+    
     // 将 CEF 窗口句柄转换为 NSView*
     NSView* cefView = static_cast<NSView*>(cefWindow);
     // 将 CEF 光标句柄转换为 NSCursor*
     NSCursor* nsCursor = static_cast<NSCursor*>(cursor);
     
-    // 确保在主线程操作 UI 元素（Cocoa UI 操作需要在主线程执行）
+    // 获取视图所在的窗口
+    NSWindow* window = [cefView window];
+    if (!window) {
+        return;
+    }
+    
+    // 确保在主线程操作 UI 元素
+    auto setCursorBlock = ^{        
+        // 对于视图范围的光标，可以使用 NSCursor 的 set 方法
+         [nsCursor set];
+    };
+    
     if ([NSThread isMainThread]) {
-        [cefView setCursor:nsCursor];
+        setCursorBlock();
     } else {
-        // 如果不在主线程，调度到主线程执行
-        dispatch_sync(dispatch_get_main_queue(), ^{
-            [cefView setCursor:nsCursor];
-        });
+        dispatch_sync(dispatch_get_main_queue(), setCursorBlock);
     }
 }
 
