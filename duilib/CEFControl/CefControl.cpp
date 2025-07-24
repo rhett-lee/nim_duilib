@@ -6,6 +6,7 @@
 #include "duilib/CEFControl/internal/CefJSBridge.h"
 #include "duilib/CEFControl/internal/CefBrowserHandler.h"
 #include "duilib/CEFControl/CefManager.h"
+#include <thread>
 
 namespace ui {
 
@@ -278,9 +279,24 @@ void CefControl::RepairBrowser()
 
 void CefControl::CloseAllBrowsers()
 {
+    DoCloseAllBrowsers();
+}
+
+void CefControl::DoCloseAllBrowsers()
+{
     if (m_pBrowserHandler != nullptr) {
         m_pBrowserHandler->CloseAllBrowsers();
     }
+}
+
+void CefControl::OnHostWindowClosed()
+{
+    CloseAllBrowsers();
+    if (m_pBrowserHandler != nullptr) {
+        m_pBrowserHandler->SetHostWindowClosed(true);
+    }
+    //释放一次CPU时间片，让CEF UI线程执行
+    std::this_thread::sleep_for(std::chrono::microseconds(1));
 }
 
 void CefControl::ResetDevToolAttachedState()

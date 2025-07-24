@@ -204,6 +204,10 @@ private:
     */
     int32_t m_nCefDoMessageLoopWorkDelayMs;
 
+    /** 退出时的编码
+    */
+    int32_t m_nExitCode;
+
     /** 是否设置了CEF的网页缓存目录
     */
     bool m_bHasCefCachePath;
@@ -215,6 +219,10 @@ private:
     /** 是否已经初始化
     */
     bool m_bCefInit;
+
+    /** CEF消息队列是否为空
+    */
+    bool m_bCefMessageLoopEmpty;
 };
 
 } //namespace ui

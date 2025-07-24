@@ -135,6 +135,10 @@ public:
     */
     virtual std::shared_ptr<IBitmap> MakeImageSnapshot();
 
+    /** 关联窗口关闭事件
+    */
+    virtual void OnHostWindowClosed();
+
 public:
 
     /** 设置开发者工具关联的控件(设置后，开发者的内容就显示在这个控件中；如果为nullptr，则开发者工具显示为弹出式窗口)
@@ -401,6 +405,10 @@ protected:
     /** 重新创建Browser对象
     */
     virtual void ReCreateBrowser() = 0;
+
+    /** 关闭所有的Browser对象
+    */
+    void DoCloseAllBrowsers();
 
 protected:
     /** CefRenderHandler接口, 在非UI线程中被调用

@@ -78,16 +78,18 @@ void CefMemoryBlock::Clear()
     m_nHeight = 0;
 }
 
-void CefMemoryBlock::PaintData(IRender* pRender, const UiRect& rcPaint, int32_t left, int32_t top)
+void CefMemoryBlock::PaintData(IRender* pRender,const UiRect& rc)
 {
+    ASSERT(rc.Width() == GetWidth());
+    ASSERT(rc.Height() == GetHeight());
     std::lock_guard<std::mutex> threadGuard(m_memMutex);
     //通过直接写入数据的接口，性能最佳
     UiRect dcPaint;
-    dcPaint.left = left;
-    dcPaint.top = top;
+    dcPaint.left = rc.left;
+    dcPaint.top = rc.top;
     dcPaint.right = dcPaint.left + GetWidth();
     dcPaint.bottom = dcPaint.top + GetHeight();
-    if (!dcPaint.IsEmpty() && !rcPaint.IsEmpty() && IsValid()) {
+    if (!dcPaint.IsEmpty() && IsValid()) {
         bool bRet = pRender->WritePixels(GetBits(), GetWidth() * GetHeight() * sizeof(uint32_t), dcPaint);
         ASSERT_UNUSED_VARIABLE(bRet);
     }
