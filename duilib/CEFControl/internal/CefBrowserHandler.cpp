@@ -518,7 +518,7 @@ bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX,
 #if defined (DUILIB_BUILD_FOR_MACOS)
     //MacOS: 屏幕坐标是以屏幕左下角为原点的，需要进行转换
     UiRect rcMonitor;
-    m_pWindow->GetMonitorRect(rcMonitor);
+    spWindow->GetMonitorRect(rcMonitor);
     screenY = rcMonitor.Height() - screenY;
 #endif
     return true;
