@@ -53,16 +53,6 @@ protected:
     virtual std::shared_ptr<IBitmap> MakeImageSnapshot() override;
 
 private:
-    /** 将页面保存为成一张位图数据
-    */
-#if defined (DUILIB_BUILD_FOR_WIN)
-    bool CaptureWindowBitmap_Win32(std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height);
-#elif defined (DUILIB_BUILD_FOR_MACOS)
-    bool CaptureWindowBitmap_Mac(std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height);
-#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
-    bool CaptureWindowBitmap_X11(std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height);
-#endif
-
     /** 关闭所有的Browser对象
     */
     void DoCloseAllNativeBrowsers();
