@@ -19,7 +19,9 @@
 #pragma warning (pop)
 
 #include "duilib/Core/Window.h"
+#include "duilib/Core/ControlPtrT.h"
 #include <mutex>
+#include <atomic>
 
 namespace ui
 {
@@ -66,6 +68,7 @@ public:
 
     // 设置Cef渲染内容的大小
     void SetViewRect(const UiRect& rc);
+    UiRect GetViewRect();
 
     CefRefPtr<CefBrowser> GetBrowser(){ return m_browser; }
 
@@ -79,6 +82,11 @@ public:
      /** 关闭所有的Browser对象
      */
      void CloseAllBrowsers();
+
+     /** 设置关联窗口是否已经关闭
+     */
+     void SetHostWindowClosed(bool bHostWindowClosed);
+
 public:
     
     // CefClient的接口实现
@@ -430,18 +438,20 @@ private:
 private:
     /** 数据多线程同步锁
     */
-    std::mutex m_rectMutex;
+    std::mutex m_dataMutex;
 
     CefRefPtr<CefBrowser> m_browser;
     CefWindowHandle m_hCefWindowHandle;
     std::vector<CefRefPtr<CefBrowser>> m_browserList;
-    ui::Window* m_pWindow;
-    std::weak_ptr<ui::WeakFlag> m_windowFlag;    
+    ControlPtrT<ui::Window> m_spWindow; 
     CefBrowserHandlerDelegate* m_pHandlerDelegate;
     //控件的位置
     UiRect m_rcCefControl;
     CefUnregistedCallbackList<ui::StdClosure> m_taskListAfterCreated;
     CefRenderHandler::DragOperation m_currentDragOperation;
+
+    //关联窗口是否已经关闭
+    std::atomic<bool> m_bHostWindowClosed;
 
 #ifdef DUILIB_BUILD_FOR_WIN
     std::shared_ptr<CefOsrDropTarget> m_pDropTarget;

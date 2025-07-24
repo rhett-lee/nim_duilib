@@ -29,15 +29,10 @@ CefControlOffScreen::CefControlOffScreen(Window* pWindow) :
 
 CefControlOffScreen::~CefControlOffScreen(void)
 {
-    CefControlOffScreen::CloseAllBrowsers();
+    DoCloseAllBrowsers();
     if (m_pBrowserHandler.get()) {
         m_pBrowserHandler->SetHostWindow(nullptr);
         m_pBrowserHandler->SetHandlerDelegate(nullptr);
-
-        if (m_pBrowserHandler->GetBrowser().get()) {
-            // Request that the main browser close.
-            m_pBrowserHandler->CloseAllBrowsers();
-        }
     }
 }
 
@@ -195,8 +190,21 @@ void CefControlOffScreen::Paint(IRender* pRender, const UiRect& rcPaint)
 
     if (m_pCefMemData->IsValid()) {
         // 绘制cef PET_VIEW类型的位图
-        UiRect rect = GetRect();
-        m_pCefMemData->PaintData(pRender, rcPaint, rect.left, rect.top);
+        const UiRect rect = GetRect();
+        bool bRectValid = true;
+        if ((m_pCefMemData->GetWidth() != rect.Width()) || (m_pCefMemData->GetHeight() != rect.Height())) {            
+            bRectValid = false;
+        }
+
+        if (!rcPaint.IsEmpty()) {
+            if (bRectValid) {
+                m_pCefMemData->PaintData(pRender, rect);
+            }
+            else {
+                //如果区域不匹配，不绘制，再次触发一次绘制事件（避免绘制超出控件边界，覆盖其他控件）
+                m_pBrowserHandler->SetViewRect(rect);
+            }
+        }
 
         // 绘制cef PET_POPUP类型的位图
         if (!m_rectPopup.IsEmpty() && m_pCefPopupMemData->IsValid()) {
@@ -204,7 +212,11 @@ void CefControlOffScreen::Paint(IRender* pRender, const UiRect& rcPaint)
             UiRect dcPaint = GetRect();
             dcPaint.left += Dpi().GetScaleInt(m_rectPopup.x);
             dcPaint.top += Dpi().GetScaleInt(m_rectPopup.y);
-            m_pCefPopupMemData->PaintData(pRender, rcPaint, dcPaint.left, dcPaint.top);
+            dcPaint.right = dcPaint.left + m_pCefPopupMemData->GetWidth();
+            dcPaint.bottom = dcPaint.top + m_pCefPopupMemData->GetHeight();
+            if (!rcPaint.IsEmpty()) {
+                m_pCefPopupMemData->PaintData(pRender, dcPaint);
+            }
         }
     }
 }

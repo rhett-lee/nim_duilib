@@ -63,6 +63,10 @@ private:
     bool CaptureWindowBitmap_X11(std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height);
 #endif
 
+    /** 关闭所有的Browser对象
+    */
+    void DoCloseAllNativeBrowsers();
+
 private:
     /** 首次绘制的事件是否关联
     */
