@@ -250,6 +250,24 @@ bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bit
     return true;
 }
 
+void SetCefWindowCursor(CefWindowHandle cefWindow, CefCursorHandle cursor)
+{
+    if ((cefWindow == 0) || (cursor == 0)) {
+        return;
+    }
+    Display* display = ::XOpenDisplay(nullptr);
+    if (display != nullptr) {
+        // RAII资源管理
+        struct DisplayCloser {
+            Display* d;
+            ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
+        } closer{ display };
+
+        ::Window x11Window = cefWindow;
+        XDefineCursor(display, x11Window, cursor);
+    }
+}
+
 } //namespace ui
 
 #endif //defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)

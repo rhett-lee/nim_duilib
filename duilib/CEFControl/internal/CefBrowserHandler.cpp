@@ -1,5 +1,6 @@
 #include "CefBrowserHandler.h"
 #include "duilib/CEFControl/CefManager.h"
+#include "duilib/CEFControl/CefWindowUtils.h"
 #include "duilib/CEFControl/internal/CefIPCStringDefs.h"
 #include "duilib/CEFControl/internal/CefJSBridge.h"
 #include "duilib/CEFControl/internal/CefBrowserHandlerDelegate.h"
@@ -9,20 +10,12 @@
     #include "duilib/CEFControl/internal/Windows/CefOsrDropTarget.h"
 #endif
 
-#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
-    #include <X11/Xlib.h>
-    #include <X11/Xutil.h>
-#endif
-
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/Window.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100 4324)
-#include "include/base/cef_callback.h"
-#include "include/base/cef_bind.h"
-#include "include/wrapper/cef_closure_task.h"
 
 namespace ui
 {
@@ -899,33 +892,11 @@ bool CefBrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
         //子窗口模式，不需要设置光标，否则光标异常
         return false;
     }
-    //离屏渲染模式：需要设置光标
-#if defined (DUILIB_BUILD_FOR_WIN)
-    ControlPtrT<ui::Window> spWindow = m_spWindow;
-    if ((spWindow == nullptr) || !spWindow->IsWindow()) {
-        return false;
+    else {
+        //离屏渲染模式：需要设置光标
+        SetCefWindowCursor(GetCefWindowHandle(), cursor);
+        return true;
     }
-    if (spWindow != nullptr) {
-        SetClassLongPtr(spWindow->NativeWnd()->GetHWND(), GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
-    }
-    ::SetCursor(cursor);
-    return true;
-#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
-    Display* display = ::XOpenDisplay(nullptr);
-    if (display != nullptr) {
-        // RAII资源管理
-        struct DisplayCloser {
-            Display* d;
-            ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
-        } closer{ display };
-
-        ::Window x11Window = GetCefWindowHandle();
-        XDefineCursor(display, x11Window, cursor);
-    }
-    return true;
-#else
-    return false;
-#endif
 }
 
 void CefBrowserHandler::OnMediaAccessChange(CefRefPtr<CefBrowser> browser,

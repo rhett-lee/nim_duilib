@@ -186,6 +186,27 @@ bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bit
     return true;
 }
 
+void SetCefWindowCursor(CefWindowHandle cefWindow, CefCursorHandle cursor)
+{
+    if ((cefWindow == nullptr) || (cursor == nullptr)) {
+        return;
+    }
+    // 将 CEF 窗口句柄转换为 NSView*
+    NSView* cefView = static_cast<NSView*>(cefWindow);
+    // 将 CEF 光标句柄转换为 NSCursor*
+    NSCursor* nsCursor = static_cast<NSCursor*>(cursor);
+    
+    // 确保在主线程操作 UI 元素（Cocoa UI 操作需要在主线程执行）
+    if ([NSThread isMainThread]) {
+        [cefView setCursor:nsCursor];
+    } else {
+        // 如果不在主线程，调度到主线程执行
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            [cefView setCursor:nsCursor];
+        });
+    }
+}
+
 } //namespace ui
 
 #endif //DUILIB_BUILD_FOR_MACOS
