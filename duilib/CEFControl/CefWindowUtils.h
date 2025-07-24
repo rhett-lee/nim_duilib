@@ -22,6 +22,10 @@ void SetCefWindowParent(CefWindowHandle cefWindow, CefControl* pCefControl);
 */
 bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height);
 
+/** 设置光标
+*/
+void SetCefWindowCursor(CefWindowHandle cefWindow, CefCursorHandle cursor);
+
 } //namespace ui
 
 #endif //UI_CEF_CONTROL_CEF_WINDOW_UTILS_H_
