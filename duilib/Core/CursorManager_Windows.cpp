@@ -83,7 +83,10 @@ bool CursorManager::SetCursor(CursorType cursorType)
         break;    
     case CursorType::kCursorNo:
         ::SetCursor(::LoadCursor(nullptr, IDC_NO));
-        break;    
+        break;
+    case CursorType::kCursorProgress:
+        ::SetCursor(::LoadCursor(nullptr, IDC_APPSTARTING));
+        break;
     default:
         bRet = false;
         break;

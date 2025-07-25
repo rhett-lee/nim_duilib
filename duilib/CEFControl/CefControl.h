@@ -569,6 +569,10 @@ protected:
                                       bool bEditable,
                                       const CefRect& nodeRect) override;
 
+    /** 设置光标(仅离屏渲染模式有效)
+    */
+    virtual void OnCursorChange(cef_cursor_type_t type) override;
+
     /** 获取关联的CEF控件接口
     */
     virtual Control* GetCefControl() override;

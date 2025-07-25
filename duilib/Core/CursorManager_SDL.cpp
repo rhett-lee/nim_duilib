@@ -104,7 +104,10 @@ bool CursorManager::SetCursor(CursorType cursorType)
         break;    
     case CursorType::kCursorNo:
         sdlCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_NOT_ALLOWED);
-        break;    
+        break;
+    case CursorType::kCursorProgress:
+        sdlCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_PROGRESS);
+        break;
     default:
         break;
     }

@@ -246,10 +246,97 @@ void CefControlOffScreen::AdaptDpiScale(CefMouseEvent& mouse_event)
     }
 }
 
-bool CefControlOffScreen::OnSetCursor(const EventArgs& /*msg*/)
+#ifdef DUILIB_BUILD_FOR_SDL
+
+// 将 CEF 光标类型转换为 duilib 标准光标类型(指支持部分光标类型)
+static CursorType CefCursorTypeToUiCursor(cef_cursor_type_t cefCursor)
 {
+    switch (cefCursor) {
+    case CT_POINTER:           return CursorType::kCursorArrow;          // 指针 -> 标准箭头
+    case CT_CROSS:             return CursorType::kCursorCross;          // 十字光标 -> 十字线
+    case CT_HAND:              return CursorType::kCursorHand;           // 手型光标 -> 手型
+    case CT_IBEAM:             return CursorType::kCursorIBeam;          // 文本光标 -> I型光标
+    case CT_WAIT:              return CursorType::kCursorWait;           // 等待光标 -> 沙漏
+    //case CT_HELP:              return IDC_HELP;           // 帮助光标 -> 帮助箭头
+
+        // 方向调整光标
+    case CT_EASTRESIZE:        return CursorType::kCursorSizeWE;         // 东向调整 -> 水平调整
+    case CT_NORTHRESIZE:       return CursorType::kCursorSizeNS;         // 北向调整 -> 垂直调整
+    case CT_NORTHEASTRESIZE:   return CursorType::kCursorSizeNESW;       // 东北向调整
+    case CT_NORTHWESTRESIZE:   return CursorType::kCursorSizeNWSE;       // 西北向调整
+    case CT_SOUTHRESIZE:       return CursorType::kCursorSizeNS;         // 南向调整 -> 垂直调整
+    case CT_SOUTHEASTRESIZE:   return CursorType::kCursorSizeNWSE;       // 东南向调整
+    case CT_SOUTHWESTRESIZE:   return CursorType::kCursorSizeNESW;       // 西南向调整
+    case CT_WESTRESIZE:        return CursorType::kCursorSizeWE;         // 西向调整 -> 水平调整
+
+        // 双向调整光标
+    case CT_NORTHSOUTHRESIZE:  return CursorType::kCursorSizeNS;          // 南北调整 -> 垂直调整
+    case CT_EASTWESTRESIZE:    return CursorType::kCursorSizeWE;          // 东西调整 -> 水平调整
+    case CT_NORTHEASTSOUTHWESTRESIZE: return CursorType::kCursorSizeNESW; // 东北-西南调整
+    case CT_NORTHWESTSOUTHEASTRESIZE: return CursorType::kCursorSizeNWSE; // 西北-东南调整
+
+        // 其他可映射类型
+    case CT_COLUMNRESIZE:      return CursorType::kCursorSizeWE;         // 列调整 -> 水平调整
+    case CT_ROWRESIZE:         return CursorType::kCursorSizeNS;         // 行调整 -> 垂直调整
+    case CT_MOVE:              return CursorType::kCursorSizeAll;        // 移动 -> 四向调整
+    case CT_PROGRESS:          return CursorType::kCursorProgress;       // 进度 -> 应用启动光标
+    case CT_NODROP:            return CursorType::kCursorNo;             // 禁止放置 -> 禁止光标
+    case CT_NOTALLOWED:        return CursorType::kCursorNo;             // 不允许 -> 禁止光标
+    case CT_COPY:              return CursorType::kCursorArrow;          // 复制 -> 标准箭头（可自定义）
+
+        // 以下类型无直接对应Windows标准光标，返回空
+    case CT_MIDDLEPANNING:
+    case CT_EASTPANNING:
+    case CT_NORTHPANNING:
+    case CT_NORTHEASTPANNING:
+    case CT_NORTHWESTPANNING:
+    case CT_SOUTHPANNING:
+    case CT_SOUTHEASTPANNING:
+    case CT_SOUTHWESTPANNING:
+    case CT_WESTPANNING:
+    case CT_VERTICALTEXT:
+    case CT_CELL:
+    case CT_CONTEXTMENU:
+    case CT_ALIAS:
+    case CT_NONE:
+    case CT_ZOOMIN:
+    case CT_ZOOMOUT:
+    case CT_GRAB:
+    case CT_GRABBING:
+    case CT_MIDDLE_PANNING_VERTICAL:
+    case CT_MIDDLE_PANNING_HORIZONTAL:
+    case CT_CUSTOM:
+    case CT_DND_NONE:
+    case CT_DND_MOVE:
+    case CT_DND_COPY:
+    case CT_DND_LINK:
+    //case CT_NUM_VALUES:
+    default:
+        break;
+    }
+    return CursorType::kCursorArrow;
+}
+
+#endif //DUILIB_BUILD_FOR_SDL
+
+void CefControlOffScreen::OnCursorChange(cef_cursor_type_t type)
+{
+#ifdef DUILIB_BUILD_FOR_SDL
+    CursorType uiCursorType = CefCursorTypeToUiCursor(type);
+    SetCursorType(uiCursorType);
+#endif
+}
+
+bool CefControlOffScreen::OnSetCursor(const EventArgs& msg)
+{
+#ifdef DUILIB_BUILD_FOR_SDL
+    //使用SDL时，需要设置光标
+    return BaseClass::OnSetCursor(msg);
+#else
     //离屏渲染时，控件本身不处理光标，由CEF模块内部处理光标，否则会影响Cef中的鼠标光标
+    (void)msg;
     return true;
+#endif
 }
 
 bool CefControlOffScreen::OnCaptureChanged(const EventArgs& /*msg*/)
