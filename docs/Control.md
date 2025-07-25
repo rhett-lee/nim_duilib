@@ -39,7 +39,8 @@
 | disabled_border_color |  | string | SetBorderColor|禁止状态的边框颜色,如(blue) |
 | focus_border_color |  | string | SetFocusBorderColor|焦点状态的边框颜色,如(blue) |
 | border_size | 0 | int / rect | SetBorderSize|可以设置int或rect类型的值。当值为int时则左、上、右、下都用该值作为宽。值为rect类型时则分别设置左、上、右、下的边框 |
-| border_dash_style | | string | SetBorderDashStyle |线的形状，可选值："solid"：实线；"dash"：短划线构成的虚线；"dot"：点构成的虚线；"dash_dot"：交替短划线点线；"dash_dot_dot"：交替短划线点点线|
+| border_dash_style |"solid"| string | SetBorderDashStyle |线的形状，可选值：<br>"solid"：实线<br>"dash"：短划线构成的虚线<br>"dot"：点构成的虚线<br>"dash_dot"：交替短划线点线<br>"dash_dot_dot"：交替短划线点点线|
+| borders_on_top | true | bool | SetBordersOnTop|边框是否在顶层（即先绘制子控件，后绘制边框，避免边框被子控件覆盖）|
 | left_border_size | 0 | int | SetLeftBorderSize|左边边框大小,如(1),设置该值大于0,则将忽略border_size属性的设置 |
 | top_border_size | 0 | int | SetTopBorderSize|顶部边框大小,如(1),设置该值大于0,则将忽略border_size属性的设置 |
 | right_border_size | 0 | int | SetRightBorderSize|右边边框大小,如(1),设置该值大于0,则将忽略border_size属性的设置 |

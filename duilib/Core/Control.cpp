@@ -29,7 +29,8 @@ Control::Control(Window* pWindow) :
     m_isBoxShadowPainted(false),
     m_uUserDataID((size_t)-1),
     m_bShowFocusRect(false),
-    m_nPaintOrder(0)
+    m_nPaintOrder(0),
+    m_bBordersOnTop(true)
 {
 }
 
@@ -146,7 +147,12 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         }
         SetBorderDashStyle((int8_t)dashStyle);
     }
+    else if (strName == _T("borders_on_top")) {
+        //边框是否在顶层（即先绘制子控件，后绘制边框，避免边框被子控件覆盖）
+        SetBordersOnTop(strValue == _T("true"));
+    }
     else if ((strName == _T("border_round")) || (strName == _T("borderround"))) {
+        //圆角大小
         UiSize cxyRound;
         AttributeUtil::ParseSizeValue(strValue.c_str(), cxyRound);
         SetBorderRound(cxyRound);
@@ -1243,6 +1249,19 @@ int8_t Control::GetBorderDashStyle() const
         return m_pBorderData->m_borderDashStyle;
     }
     return 0;
+}
+
+void Control::SetBordersOnTop(bool bBordersOnTop)
+{
+    if (m_bBordersOnTop != bBordersOnTop) {
+        m_bBordersOnTop = bBordersOnTop;
+        Invalidate();
+    }
+}
+
+bool Control::IsBordersOnTop() const
+{
+    return m_bBordersOnTop;
 }
 
 bool Control::GetBorderRound(float& fRoundWidth, float& fRoundHeight) const
@@ -2582,11 +2601,17 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             if (isAlpha) {
                 //设置了透明度，需要先绘制子控件（绘制到pCacheRender上面），然后整体AlphaBlend到pRender
                 PaintChild(pCacheRender, rcUnionRect);
-            }        
+                if (IsBordersOnTop()) {
+                    PaintBorder(pCacheRender);     //绘制边框
+                }
+            }
             pCacheRender->SetWindowOrg(ptOldOrg);
             SetCacheDirty(false);
         }
 
+        UiRect rcClip = GetRect();
+        AutoClip clip(pRender, rcClip, IsClip());
+        std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, rcClip, bRoundClip);
         pRender->AlphaBlend(rcUnionRect.left,
                             rcUnionRect.top,
                             rcUnionRect.Width(),
@@ -2600,6 +2625,9 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
         if (!isAlpha) {
             //没有设置透明度，后绘制子控件（直接绘制到pRender上面）
             PaintChild(pRender, rcUnionRect);
+            if (IsBordersOnTop()) {
+                PaintBorder(pRender);     //绘制边框
+            }
         }
         if (isAlpha) {
             SetCacheDirty(true);
@@ -2624,6 +2652,9 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             m_isBoxShadowPainted = false;
         }
         PaintChild(pRender, rcPaint);
+        if (IsBordersOnTop()) {
+            PaintBorder(pRender);     //绘制边框
+        }
         pRender->SetWindowOrg(ptOldOrg);
     }
 }
@@ -2658,9 +2689,11 @@ void Control::Paint(IRender* pRender, const UiRect& rcPaint)
     PaintStateColors(pRender);    //控件指定状态的颜色：普通状态、焦点状态、按下状态、禁用状态(覆盖整个矩形)
     PaintBkImage(pRender);        //背景图片，无状态
     PaintStateImages(pRender);    //先绘制背景图片，然后绘制前景图片，每个图片有指定的状态：普通状态、焦点状态、按下状态、禁用状态
-    PaintText(pRender);            //绘制文本
-    PaintBorder(pRender);        //绘制边框
-    PaintFocusRect(pRender);    //绘制焦点状态
+    PaintText(pRender);           //绘制文本
+    if (!IsBordersOnTop()) {
+        PaintBorder(pRender);     //绘制边框
+    }    
+    PaintFocusRect(pRender);      //绘制焦点状态
     PaintLoading(pRender);        //绘制Loading图片，无状态
 }
 
@@ -2865,28 +2898,25 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
     if ((pRender == nullptr) || rcDraw.IsEmpty() || (fBorderSize < 0.1) || (dwBorderColor.GetARGB() == 0)) {
         return;
     }
-    int32_t nBorderSize = static_cast<int32_t>(fBorderSize + 0.5);//四舍五入
-    int32_t nDeltaValue = nBorderSize / 2;
-    rcDraw.top += nDeltaValue;
-    rcDraw.bottom -= nDeltaValue;
-    if (nBorderSize % 2 != 0) {
-        rcDraw.bottom -= 1;
-    }
-    rcDraw.left += nDeltaValue;
-    rcDraw.right -= nDeltaValue;
-    if (nBorderSize % 2 != 0) {
-        rcDraw.right -= 1;
-    }
+
+    //绘制边线：确保边线在矩形范围内
+    UiRectF rcDrawF((float)rcDraw.left, (float)rcDraw.top, (float)rcDraw.right, (float)rcDraw.bottom);
+    float fHalfBorderSize = fBorderSize / 2;
+    rcDrawF.left += fHalfBorderSize;
+    rcDrawF.top += fHalfBorderSize;
+    rcDrawF.right -= fHalfBorderSize;
+    rcDrawF.bottom -= fHalfBorderSize;
+
     if (ShouldBeRoundRectBorders()) {
         float fRoundWidth = 0;
         float fRoundHeight = 0;
-        GetBorderRound(fRoundWidth, fRoundHeight);
-        DrawRoundRect(pRender, rcDraw, fRoundWidth, fRoundHeight, dwBorderColor, fBorderSize, GetBorderDashStyle());
+        GetBorderRound(fRoundWidth, fRoundHeight);        
+        DrawRoundRect(pRender, rcDrawF, fRoundWidth, fRoundHeight, dwBorderColor, fBorderSize, GetBorderDashStyle());
     }
     else {
         if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {
             //普通实线
-            pRender->DrawRect(rcDraw, dwBorderColor, fBorderSize, false);
+            pRender->DrawRect(rcDrawF, dwBorderColor, fBorderSize, false);
         }
         else {
             //其他线形
@@ -2894,10 +2924,10 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
             if (pRenderFactory != nullptr) {
                 std::unique_ptr<IPen> pPen(pRenderFactory->CreatePen(dwBorderColor, fBorderSize));
                 pPen->SetDashStyle((IPen::DashStyle)borderDashStyle);
-                pRender->DrawRect(rcDraw, pPen.get(), false);
+                pRender->DrawRect(rcDrawF, pPen.get(), false);
             }
             else {
-                pRender->DrawRect(rcDraw, dwBorderColor, fBorderSize, false);
+                pRender->DrawRect(rcDrawF, dwBorderColor, fBorderSize, false);
             }
         }
     }
@@ -3031,6 +3061,12 @@ bool Control::IsWindowRoundRect() const
     return isWindowRoundRect;
 }
 
+void Control::AddRoundRectPath(IPath* path, const UiRectF& rc, float rx, float ry) const
+{
+    UiRect rcI((int32_t)(rc.left + 0.5f), (int32_t)(rc.top + 0.5f), (int32_t)(rc.right + 0.5f), (int32_t)(rc.bottom + 0.5f));
+    AddRoundRectPath(path, rcI, rx, ry);
+}
+
 void Control::AddRoundRectPath(IPath* path, const UiRect& rc, float rx, float ry) const
 {
     ASSERT(path != nullptr);
@@ -3061,6 +3097,14 @@ void Control::AddRoundRectPath(IPath* path, const UiRect& rc, float rx, float ry
 }
 
 void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, float rx, float ry,
+                            UiColor dwBorderColor, float fBorderSize,
+                            int8_t borderDashStyle) const
+{
+    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
+    DrawRoundRect(pRender, rcF, rx, ry, dwBorderColor, fBorderSize, borderDashStyle);
+}
+
+void Control::DrawRoundRect(IRender* pRender, const UiRectF& rc, float rx, float ry,
                             UiColor dwBorderColor, float fBorderSize,
                             int8_t borderDashStyle) const
 {

@@ -276,6 +276,15 @@ public:
     */
     int8_t GetBorderDashStyle() const;
 
+    /** 设置边框是否在顶层
+    * @param [in] bBordersOnTop true 表示边框在顶层，即先绘制子控件，后绘制边框，可以避免边框被子控件覆盖
+    */
+    void SetBordersOnTop(bool bBordersOnTop);
+
+    /** 获取边框是否在顶层, 默认值为true
+    */
+    bool IsBordersOnTop() const;
+
     /** 获取圆角大小
      * @param [out] fRoundWidth 圆角宽度，DPI缩放之后的结果
      * @param [out] fRoundHeight 圆角高度，DPI缩放之后的结果
@@ -1149,6 +1158,9 @@ private:
     void DrawRoundRect(IRender* pRender, const UiRect& rc, float rx, float ry,
                        UiColor dwBorderColor, float fBorderSize,
                        int8_t borderDashStyle) const;
+    void DrawRoundRect(IRender* pRender, const UiRectF& rc, float rx, float ry,
+                       UiColor dwBorderColor, float fBorderSize,
+                       int8_t borderDashStyle) const;
 
     /** 填充圆角矩形
     */
@@ -1157,6 +1169,7 @@ private:
     /** 填充路径, 形成圆角矩形
     */
     void AddRoundRectPath(IPath* path, const UiRect& rc, float rx, float ry) const;
+    void AddRoundRectPath(IPath* path, const UiRectF& rc, float rx, float ry) const;
 
     /** 当前控件是否为窗口的Root节点
     */
@@ -1425,6 +1438,9 @@ private:
 
     //绘制顺序: 0 表示常规绘制，非0表示指定绘制顺序，值越大表示绘制越晚绘制
     uint8_t m_nPaintOrder;
+
+    //边框是否在顶层（即先绘制子控件，后绘制边框，避免边框被子控件覆盖）
+    bool m_bBordersOnTop;
 };
 
 } // namespace ui

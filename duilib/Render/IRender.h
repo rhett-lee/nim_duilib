@@ -899,6 +899,7 @@ public:
     * @param [in] bLineInRect 如果为true，表示确保画出的线条严格限制在rc矩形内部，否则线的中心点是与rc边线对齐的，线条会有部分超出rc矩形范围
     */
     virtual void DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect = false) = 0;
+    virtual void DrawRect(const UiRectF& rc, UiColor penColor, int32_t nWidth, bool bLineInRect = false) = 0;
 
     /** 绘制矩形
     * @param [in] rc 矩形区域
@@ -907,6 +908,7 @@ public:
     * @param [in] bLineInRect 如果为true，表示确保画出的线条严格限制在rc矩形内部，否则线的中心点是与rc边线对齐的，线条会有部分超出rc矩形范围
     */
     virtual void DrawRect(const UiRect& rc, UiColor penColor, float fWidth, bool bLineInRect = false) = 0;
+    virtual void DrawRect(const UiRectF& rc, UiColor penColor, float fWidth, bool bLineInRect = false) = 0;
 
     /** 绘制矩形，支持各种线形
     * @param [in] rc 矩形区域
@@ -914,6 +916,7 @@ public:
     * @param [in] bLineInRect 如果为true，表示确保画出的线条严格限制在rc矩形内部，否则线的中心点是与rc边线对齐的，线条会有部分超出rc矩形范围
     */
     virtual void DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect = false) = 0;
+    virtual void DrawRect(const UiRectF& rc, IPen* pen, bool bLineInRect = false) = 0;
 
     /** 用颜色填充矩形
     * @param [in] rc 目标矩形区域
@@ -921,6 +924,7 @@ public:
     * @param [in] uFade 透明度（0 - 255）
     */
     virtual void FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade = 255) = 0;
+    virtual void FillRect(const UiRectF& rc, UiColor dwColor, uint8_t uFade = 255) = 0;
 
     /** 用渐变颜色填充矩形（支持渐变颜色）
     * @param [in] rc 目标矩形区域
@@ -930,6 +934,7 @@ public:
     * @param [in] uFade 透明度（0 - 255）
     */
     virtual void FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
+    virtual void FillRect(const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
 
     /** 绘制圆角矩形
     * @param [in] rc 矩形区域
@@ -939,6 +944,7 @@ public:
     * @param [in] nWidth 画笔的宽度
     */
     virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, int32_t nWidth) = 0;
+    virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, UiColor penColor, int32_t nWidth) = 0;
 
     /** 绘制圆角矩形
     * @param [in] rc 矩形区域
@@ -948,6 +954,7 @@ public:
     * @param [in] fWidth 画笔的宽度
     */
     virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, float fWidth) = 0;
+    virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, UiColor penColor, float fWidth) = 0;
 
     /** 绘制圆角矩形，支持各种线形
     * @param [in] rc 矩形区域
@@ -956,6 +963,7 @@ public:
     * @param [in] pen 画笔的接口
     */
     virtual void DrawRoundRect(const UiRect& rc, float rx, float ry, IPen* pen) = 0;
+    virtual void DrawRoundRect(const UiRectF& rc, float rx, float ry, IPen* pen) = 0;
 
     /** 用颜色填充圆角矩形
     * @param [in] rc 矩形区域
@@ -965,6 +973,7 @@ public:
     * @param [in] uFade 透明度（0 - 255）
     */
     virtual void FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, uint8_t uFade = 255) = 0;
+    virtual void FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, uint8_t uFade = 255) = 0;
 
     /** 用颜色填充圆角矩形(支持渐变颜色)
     * @param [in] rc 矩形区域
@@ -976,6 +985,7 @@ public:
     * @param [in] uFade 透明度（0 - 255）
     */
     virtual void FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
+    virtual void FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade = 255) = 0;
 
     /** 绘制曲线（椭圆的一部分）
     * @param [in] rc 包含圆弧的椭圆的矩形边界区域

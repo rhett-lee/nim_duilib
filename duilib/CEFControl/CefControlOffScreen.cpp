@@ -324,6 +324,8 @@ void CefControlOffScreen::OnCursorChange(cef_cursor_type_t type)
 #ifdef DUILIB_BUILD_FOR_SDL
     CursorType uiCursorType = CefCursorTypeToUiCursor(type);
     SetCursorType(uiCursorType);
+#else
+    (void)type;
 #endif
 }
 
