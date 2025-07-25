@@ -1129,6 +1129,10 @@ void CefControl::OnFocusedNodeChanged(CefRefPtr<CefBrowser> /*browser*/,
 {
 }
 
+void CefControl::OnCursorChange(cef_cursor_type_t /*type*/)
+{
+}
+
 Control* CefControl::GetCefControl()
 {
     return this;

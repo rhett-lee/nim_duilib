@@ -184,6 +184,10 @@ public:
                                       bool bEditable,
                                       const CefRect& nodeRect) = 0;
 
+    /** 设置光标(仅离屏渲染模式有效，仅使用SDL时有效)
+    */
+    virtual void OnCursorChange(cef_cursor_type_t type) = 0;
+
     /** 获取关联的CEF控件接口
     */
     virtual Control* GetCefControl() = 0;

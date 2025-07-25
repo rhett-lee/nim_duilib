@@ -261,6 +261,9 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         else if (strValue == _T("no")) {
             SetCursorType(CursorType::kCursorNo);
         }
+        else if (strValue == _T("progress")) {
+            SetCursorType(CursorType::kCursorProgress);
+        }
         else {
             ASSERT(0);
         }

@@ -227,13 +227,14 @@ namespace ui
         kCursorIBeam    = 1,    // “I”形状, 文本选择, XML文件中的名字："ibeam"
         kCursorHand     = 2,    // 手型, 链接选择, XML文件中的名字："hand"
         kCursorWait     = 3,    // 忙碌, XML文件中的名字："wait"
-        kCursorCross    = 4,    // 精度选择, XML文件中的名字："cross"
-        kCursorSizeWE   = 5,    // 水平调整大小, XML文件中的名字："size_we"
-        kCursorSizeNS   = 6,    // 垂直调整大小, XML文件中的名字："size_ns"
-        kCursorSizeNWSE = 7,    // 对角线调整大小 1, XML文件中的名字："size_nwse"
-        kCursorSizeNESW = 8,    // 对角线调整大小 2, XML文件中的名字： "size_nesw"
-        kCursorSizeAll  = 9,    // 移动, XML文件中的名字："size_all"
-        kCursorNo       = 10    // 不可用, XML文件中的名字："no"
+        kCursorCross    = 4,    // 十字线, XML文件中的名字："cross"
+        kCursorSizeWE   = 5,    // 水平调整, XML文件中的名字："size_we"
+        kCursorSizeNS   = 6,    // 垂直调整, XML文件中的名字："size_ns"
+        kCursorSizeNWSE = 7,    // 对角线调整，西北-东南调整 1, XML文件中的名字："size_nwse"
+        kCursorSizeNESW = 8,    // 对角线调整，东北-西南调整 2, XML文件中的名字： "size_nesw"
+        kCursorSizeAll  = 9,    // 移动，四向调整, XML文件中的名字："size_all"
+        kCursorNo       = 10,   // 禁止光标, XML文件中的名字："no"
+        kCursorProgress = 11    // 进度，应用启动光标, XML文件中的名字："progress"
     };
 
     //窗口退出参数
