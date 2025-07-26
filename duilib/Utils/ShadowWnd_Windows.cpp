@@ -178,11 +178,11 @@ bool ShadowWnd::NeedCreateShadowWnd() const
     }
     if (IsUseDefaultShadowAttached()) {
         //配置文件中，或者外部接口中，未设置ShadowAttached属性，创建
-        return true;
+        return !GetShadowImage().empty();
     }
     else {
         //配置文件中有设置，以配置文件中的属性为准
-        return IsShadowAttached();
+        return IsShadowAttached() && !GetShadowImage().empty();
     }    
 }
 

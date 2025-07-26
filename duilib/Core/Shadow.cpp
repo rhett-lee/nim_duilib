@@ -590,7 +590,7 @@ void Shadow::ChangeDpiScale(const DpiManager& dpi, uint32_t /*nOldDpiScale*/, ui
 
 void Shadow::SetWindowPosSnap(bool bLeftSnap, bool bRightSnap, bool bTopSnap, bool bBottomSnap)
 {
-    if (IsEnableShadowSnap() && IsShadowAttached()) {
+    if (IsEnableShadowSnap() && IsShadowAttached() && !GetShadowImage().empty()) {
         if ((m_bLeftSnap != bLeftSnap) || (m_bTopSnap != bTopSnap) ||
             (m_bRightSnap != bRightSnap) || (m_bBottomSnap != bBottomSnap)) {
             m_bLeftSnap = bLeftSnap;
