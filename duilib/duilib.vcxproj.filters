@@ -555,9 +555,6 @@
     <ClCompile Include="Utils\Clipboard_SDL.cpp">
       <Filter>Utils\SDL</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\ScreenCapture_SDL.cpp">
-      <Filter>Utils\SDL</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\StringCharset.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
