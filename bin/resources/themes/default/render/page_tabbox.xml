@@ -13,26 +13,32 @@
             <Option class="checkbox_2" group="shadow_type" text="阴影类型：default, 默认阴影" selected="true" valign="center" margin="30,4,0,2">
                 <Event type="select" receiver="#window#" apply_attribute="shadow_type={default}" />
             </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：big, 大阴影，直角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：big, 阴影(大)，直角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
                 <Event type="select" receiver="#window#" apply_attribute="shadow_type={big}" />
             </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：big_round, 大阴影，圆角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：big_round, 阴影(大)，圆角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
                 <Event type="select" receiver="#window#" apply_attribute="shadow_type={big_round}" />
             </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：small, 小阴影，直角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：small, 阴影(小)，直角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
                 <Event type="select" receiver="#window#" apply_attribute="shadow_type={small}" />
             </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：small_round, 小阴影，圆角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：small_round, 阴影(小)，圆角（适合普通窗口）" selected="false" valign="center" margin="30,4,0,2">
                 <Event type="select" receiver="#window#" apply_attribute="shadow_type={small_round}" />
             </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：menu, 小阴影，直角（适合弹出式窗口，比如菜单等）" selected="false" valign="center" margin="30,4,0,2">
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：menu, 阴影(小)，直角（适合弹出式窗口，比如菜单等）" selected="false" valign="center" margin="30,4,0,2">
                 <Event type="select" receiver="#window#" apply_attribute="shadow_type={menu}" />
             </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：menu_round, 小阴影，圆角（适合弹出式窗口，比如菜单等）" selected="false" valign="center" margin="30,4,0,2">
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：menu_round, 阴影(小)，圆角（适合弹出式窗口，比如菜单等）" selected="false" valign="center" margin="30,4,0,2">
                 <Event type="select" receiver="#window#" apply_attribute="shadow_type={menu_round}" />
             </Option>
-            <Option class="checkbox_2" group="shadow_type" text="阴影类型：none, 无阴影" selected="false" valign="center" margin="30,4,0,2">
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：none, 无阴影, 有边框, 直角" selected="false" valign="center" margin="30,4,0,2">
                 <Event type="select" receiver="#window#" apply_attribute="shadow_type={none}" />
+            </Option>
+            <Option class="checkbox_2" group="shadow_type" text="阴影类型：none_round, 无阴影, 有边框, 圆角" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_type={none_round}" />
+            </Option>
+            <Option class="checkbox_2" group="shadow_type" text="关闭阴影功能" selected="false" valign="center" margin="30,4,0,2">
+                <Event type="select" receiver="#window#" apply_attribute="shadow_attached={false}" />
             </Option>
         </VBox>
         <VBox name="main_view_page_02" bkcolor="blue">

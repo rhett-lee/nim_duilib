@@ -176,6 +176,22 @@ public:
     */
     void SetShadowImage(const DString& shadowImage);
 
+    /** 设置阴影的边框大小(未经DPI缩放)
+    */
+    void SetShadowBorderSize(int32_t nShadowBorderSize);
+
+    /** 获取阴影的边框大小(未经DPI缩放)
+    */
+    int32_t GetShadowBorderSize() const;
+
+    /** 设置阴影的边框颜色
+    */
+    void SetShadowBorderColor(const DString& shadowBorderColor);
+
+    /** 获取阴影的边框颜色
+    */
+    DString GetShadowBorderColor() const;
+
     /** 获取当前的阴影九宫格属性（已经做过DPI缩放）
      *@return 如果阴影未Attached或者窗口最大化，返回UiPadding(0, 0, 0, 0)，否则返回设置的九宫格属性（已经做过DPI缩放）
      */

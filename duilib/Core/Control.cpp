@@ -2911,7 +2911,7 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
         float fRoundWidth = 0;
         float fRoundHeight = 0;
         GetBorderRound(fRoundWidth, fRoundHeight);        
-        DrawRoundRect(pRender, rcDrawF, fRoundWidth, fRoundHeight, dwBorderColor, fBorderSize, GetBorderDashStyle());
+        DrawRoundRect(pRender, rcDrawF, fRoundWidth, fRoundHeight, dwBorderColor, fBorderSize, borderDashStyle);
     }
     else {
         if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {

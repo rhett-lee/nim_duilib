@@ -21,7 +21,7 @@
   
   <!-- 描边层（与主体分离，避免阴影干扰描边） -->
   <rect x="24" y="24" width="200" height="200" rx="6"
-        fill="white" stroke="gray" stroke-width="0.4"/>
+        fill="white" stroke="none" stroke-width="0.4"/>
 </svg>
 
 <!-- 图片尺寸的计算方法 -->

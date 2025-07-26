@@ -46,6 +46,10 @@ void Window::SetAttribute(const DString& strName, const DString& strValue)
             SetShadowType(nShadowType);
         }
     }
+    else if (strName == _T("shadow_attached")) {
+        //是否开启阴影
+        SetShadowAttached(strValue == _T("true"));
+    }
 }
 
 void Window::SetClass(const DString& strClass)
@@ -847,7 +851,7 @@ void Window::SetShadowType(Shadow::ShadowType nShadowType)
 
 Shadow::ShadowType Window::GetShadowType() const
 {
-    Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowNone;
+    Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowDefault;
     ASSERT(m_shadow != nullptr);
     if (m_shadow != nullptr) {
         nShadowType = m_shadow->GetShadowType();
@@ -872,6 +876,42 @@ void Window::SetShadowImage(const DString& shadowImage)
     if (m_shadow != nullptr) {
         m_shadow->SetShadowImage(shadowImage);
     }
+}
+
+void Window::SetShadowBorderSize(int32_t nShadowBorderSize)
+{
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        m_shadow->SetShadowBorderSize(nShadowBorderSize);
+    }
+}
+
+int32_t Window::GetShadowBorderSize() const
+{
+    ASSERT(m_shadow != nullptr);
+    int32_t nShadowBorderSize = 0;    
+    if (m_shadow != nullptr) {
+        nShadowBorderSize = m_shadow->GetShadowBorderSize();
+    }
+    return nShadowBorderSize;
+}
+
+void Window::SetShadowBorderColor(const DString& shadowBorderColor)
+{
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        m_shadow->SetShadowBorderColor(shadowBorderColor);
+    }
+}
+
+DString Window::GetShadowBorderColor() const
+{
+    ASSERT(m_shadow != nullptr);
+    DString shadowBorderColor;
+    if (m_shadow != nullptr) {
+        shadowBorderColor = m_shadow->GetShadowBorderColor();
+    }
+    return shadowBorderColor;
 }
 
 UiPadding Window::GetCurrentShadowCorner() const

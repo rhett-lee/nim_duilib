@@ -22,17 +22,20 @@ public:
     */
     enum ShadowType
     {
-        kShadowNone         = -1,           //无阴影，关闭阴影
+        kShadowFirst        = 0,            //有效值的起始值
+
         kShadowBig          = 0,            //大阴影，直角（适合普通窗口）
         kShadowBigRound     = 1,            //大阴影，圆角（适合普通窗口）
         kShadowSmall        = 2,            //小阴影，直角（适合普通窗口）
         kShadowSmallRound   = 3,            //小阴影，圆角（适合普通窗口）
         kShadowMenu         = 4,            //小阴影，直角（适合弹出式窗口，比如菜单等）
         kShadowMenuRound    = 5,            //小阴影，圆角（适合弹出式窗口，比如菜单等）
-        kShadowCustom       = 6,            //用户自定义阴影（设置时会清除默认的阴影属性，后续需要调用SetShadowImage,SetShadowCorner,SetShadowBorderRound设置阴影属性）
-        kShadowCount,                       //有效值总数
+        kShadowNone         = 6,            //无阴影，有边框，直角
+        kShadowNoneRound    = 7,            //无阴影，有边框，圆角
+        kShadowCustom       = 8,                //用户自定义阴影（设置时会清除默认的阴影属性，后续需要调用SetShadowImage,SetShadowCorner,SetShadowBorderRound设置阴影属性）
+        kShadowCount,                           //有效值的最大值
 
-        kShadowDefault      = kShadowBigRound //默认阴影（未设置时，默认使用此值）
+        kShadowDefault      = kShadowBigRound   //默认阴影（未设置时，默认使用此值）
     };
 
     /** 根据字符串获取对应的阴影类型
@@ -44,11 +47,13 @@ public:
     * @param [out] szBorderRound 返回圆角大小，未经DPI缩放
     * @param [out] rcShadowCorner 返回阴影素材的九宫格属性，未经DPI缩放
     * @param [out] shadowImage 返回阴影图片的属性，包含阴影图片的九宫格属性
+    * @param [in] pShadowObj 关联的阴影对象
     */
     static bool GetShadowParam(ShadowType nShadowType,
                                UiSize& szBorderRound,
                                UiPadding& rcShadowCorner,
-                               DString& shadowImage);
+                               DString& shadowImage,
+                               Shadow* pShadowObj = nullptr);
 
 public:
     /** 构造函数
@@ -114,6 +119,23 @@ public:
      */
     const DString& GetShadowImage() const;
 
+    /** 设置阴影的边框大小(未经DPI缩放)
+    */
+    void SetShadowBorderSize(int32_t nShadowBorderSize);
+
+    /** 获取阴影的边框大小(未经DPI缩放)
+    */
+    int32_t GetShadowBorderSize() const;
+
+    /** 设置阴影的边框颜色
+    */
+    void SetShadowBorderColor(const DString& shadowBorderColor);
+
+    /** 获取阴影的边框颜色
+    */
+    const DString& GetShadowBorderColor() const;
+
+public:
     /** 将阴影附加到窗口的顶层容器
      * @param[in] pXmlRoot 窗口的顶层容器，XML配置里面的顶层容器
      */
@@ -205,6 +227,14 @@ private:
 
     //阴影的圆角大小(未经DPI缩放)
     UiSize m_szBorderRound;
+
+    /** 阴影的边框大小(未经DPI缩放)
+    */
+    int32_t m_nShadowBorderSize;
+
+    /** 阴影的边框颜色
+    */
+    DString m_shadowBorderColor;
 
     //阴影容器接口
     Box* m_pShadowBox;
