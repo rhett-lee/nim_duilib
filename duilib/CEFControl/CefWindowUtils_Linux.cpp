@@ -43,11 +43,16 @@ public:
         CefWindowHandle handle = m_pCefControl->GetCefWindowHandle();
         if ((handle != 0) && (hParentHandle != 0)) {
             Display* display = XOpenDisplay(nullptr);
+            // RAII资源管理
+            struct DisplayCloser {
+                Display* d;
+                ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
+            } closer{ display };
+        
             if ((display != nullptr) && IsX11WindowValid(display, handle) && IsX11WindowValid(display, hParentHandle)) {
                 UiRect rc = m_pCefControl->GetPos();
                 XReparentWindow(display, handle, hParentHandle, rc.left, rc.top);
                 XFlush(display);
-                XCloseDisplay(display);
             }
         }
     }
@@ -75,6 +80,12 @@ public:
         CefWindowHandle handle = m_pCefControl->GetCefWindowHandle();
         if (handle != 0) {
             Display* display = XOpenDisplay(nullptr);
+            // RAII资源管理
+            struct DisplayCloser {
+                Display* d;
+                ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
+            } closer{ display };
+            
             if ((display != nullptr) && IsX11WindowValid(display, handle)){
                 if (m_pCefControl->IsVisible()) {
                     XMapWindow(display, handle);
@@ -83,7 +94,6 @@ public:
                     XUnmapWindow(display, handle);
                 }
                 XFlush(display);
-                XCloseDisplay(display);
             }
         }
     }
@@ -113,10 +123,15 @@ public:
         ui::UiRect rc = m_pCefControl->GetPos();
         if (handle != 0) {
             Display* display = XOpenDisplay(nullptr);
+            // RAII资源管理
+            struct DisplayCloser {
+                Display* d;
+                ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
+            } closer{ display };
+
             if ((display != nullptr) && IsX11WindowValid(display, handle)){
                 XMoveResizeWindow(display, handle, rc.left, rc.top, rc.Width(), rc.Height());
                 XFlush(display);
-                XCloseDisplay(display);
             }
         }
     }
