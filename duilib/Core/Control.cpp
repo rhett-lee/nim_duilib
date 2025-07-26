@@ -3035,13 +3035,10 @@ bool Control::IsRootBox() const
     bool isRootBox = false;
     Window* pWindow = GetWindow();
     if (pWindow != nullptr) {
-        Box* pRoot = pWindow->GetRoot();
-        if ((Control*)pRoot == this) {
-            //没有Attach到阴影的情况
+        if ((Control*)pWindow->GetRoot() == this) {
             isRootBox = true;
         }
-        else if ((pRoot != nullptr) && pWindow->IsShadowAttached() && (pRoot->GetItemAt(0) == this)) {
-            //已经Attach到阴影的情况
+        else if ((Control*)pWindow->GetXmlRoot() == this) {
             isRootBox = true;
         }
     }

@@ -56,13 +56,19 @@ public:
     const FilePath& GetXmlPath() const;
 
     /** 绑定窗口的顶层容器
-    * @param [in] pRoot 容器指针
+    * @param [in] pRoot 容器指针，一般是Xml里面配置的最外层的容器指针
     */
     bool AttachBox(Box* pRoot);
 
-    /** 获取窗口最外层的容器
+    /** 获取窗口顶层的容器
+    @return 返回窗口顶层的容器，可能是阴影的Box容器（当调用AttachBox时），也可能是Xml里面配置的Box容器
     */
     Box* GetRoot() const;
+
+    /** 获取Xml里面配置的顶层的容器
+    @return 返回Xml里面配置的Box容器
+    */
+    Box* GetXmlRoot() const;
 
     /** 获取父窗口
     */
@@ -131,8 +137,10 @@ public:
     * @{
     */
     /** 附加窗口阴影
+    * @param pXmlRoot XML文件中配置的顶层容器
+    * @return 如果IsShadowAttached()为true，返回阴影的容器指针；如果IsShadowAttached()为false，则返回pXmlRoot
     */
-    virtual Box* AttachShadow(Box* pRoot);
+    virtual Box* AttachShadow(Box* pXmlRoot);
 
     /** 设置窗口是否附加阴影效果
     * @param [in] bShadowAttached 为 true 时附加，false 时不附加

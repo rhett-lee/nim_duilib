@@ -65,7 +65,7 @@ bool DragDropManager::StartDragBorwserBox(BrowserBox* browserBox, std::shared_pt
         }
 
         DString title = m_pDragingBox->GetTitle();
-        ui::Box* pRootBox = m_pDragForm->GetRootBox();
+        ui::Box* pRootBox = m_pDragForm->GetXmlRoot();
         if (pRootBox != nullptr) {
             if (pRootBox->GetItemCount() > 0) {
                 ui::Label* pTitle = dynamic_cast<ui::Label*>(pRootBox->GetItemAt(0));

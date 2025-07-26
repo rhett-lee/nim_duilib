@@ -149,8 +149,12 @@ void CefBrowserHandler::CloseAllBrowsers()
         browserList = m_browserList;
     }
     for (auto pCefBrowser : browserList) {
-        if ((pCefBrowser != nullptr) && (pCefBrowser->GetHost() != nullptr)) {
-            pCefBrowser->GetHost()->CloseBrowser(true);
+        CefRefPtr<CefBrowserHost> spCefBrowserHost;
+        if (pCefBrowser != nullptr) {
+            spCefBrowserHost = pCefBrowser->GetHost();
+        }
+        if (spCefBrowserHost != nullptr) {
+            spCefBrowserHost->CloseBrowser(true);
         }
     }
 }

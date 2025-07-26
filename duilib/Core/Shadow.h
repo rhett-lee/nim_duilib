@@ -114,19 +114,27 @@ public:
      */
     const DString& GetShadowImage() const;
 
-    /** 将阴影附加到窗口
-     * @param[in] pRoot 窗口的顶层容器
+    /** 将阴影附加到窗口的顶层容器
+     * @param[in] pXmlRoot 窗口的顶层容器，XML配置里面的顶层容器
      */
-    Box* AttachShadow(Box* pRoot);
+    Box* AttachShadow(Box* pXmlRoot);
+
+    /** 获取附加阴影后的容器指针
+    */
+    Box* GetShadowBox() const;
+
+    /** 判断是否有附加的阴影Box
+    */
+    bool HasShadowBox() const;
+
+    /** 获取XML配置里面的顶层容器（即AttachShadow传入的Box）
+    */
+    Box* GetAttachedXmlRoot() const;
 
     /** 设置窗口最大化还是还原状态
      * @param[in] isMaximized 设置为 true 表示最大化，false 为还原初始状态
      */
     void MaximizedOrRestored(bool isMaximized);
-
-    /** 获取附加阴影后的容器指针
-     */
-    Control* GetRoot();
 
     /** 清理图片缓存
      */
@@ -198,8 +206,8 @@ private:
     //阴影的圆角大小(未经DPI缩放)
     UiSize m_szBorderRound;
 
-    //Root容器接口
-    Box* m_pRoot;
+    //阴影容器接口
+    Box* m_pShadowBox;
 
     //关联的窗口
     Window* m_pWindow;

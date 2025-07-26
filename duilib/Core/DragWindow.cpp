@@ -93,25 +93,9 @@ void DragWindow::OnFinalMessage()
     Release();
 }
 
-Box* DragWindow::GetRootBox() const
-{
-    Box* pBox = GetRoot();
-    if (IsShadowAttached() && (pBox != nullptr)) {
-        //如果使用了阴影，则获取实际的Box容器
-        size_t nCount = pBox->GetItemCount();
-        if (nCount == 1) {
-            Box* pRealBox = dynamic_cast<Box*>(pBox->GetItemAt(0));
-            if (pRealBox != nullptr) {
-                pBox = pRealBox;
-            }
-        }
-    }
-    return pBox;
-}
-
 void DragWindow::SetDragImage(const std::shared_ptr<IBitmap>& pBitmap)
 {
-    Box* pBox = GetRootBox();
+    Box* pBox = GetXmlRoot();
     ASSERT(pBox != nullptr);
     if (pBox == nullptr) {
         return;

@@ -133,7 +133,7 @@ bool SkRasterWindowContext_Windows::PaintAndSwapBuffers(IRender* pRender, IRende
 
     //获取需要绘制的区域
     RECT rectUpdate = { 0, };
-    if (!::GetUpdateRect(m_hWnd, &rectUpdate, FALSE)) {
+    if (!::GetUpdateRect(hWnd, &rectUpdate, FALSE)) {
         //无需绘制
         return false;
     }

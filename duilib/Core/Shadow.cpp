@@ -156,18 +156,11 @@ private:
         if ((m_pShadow == nullptr) || !m_pShadow->IsShadowAttached()) {
             return;
         }
-        Box* pShadowRoot = dynamic_cast<Box*>(m_pShadow->GetRoot());
-        if (pShadowRoot == nullptr) {
+        Box* pXmlRoot = m_pShadow->GetAttachedXmlRoot();
+        if (pXmlRoot == nullptr) {
             return;
         }
-        Box* pRoot = nullptr;
-        if (pShadowRoot->GetItemCount() > 0) {
-            pRoot = dynamic_cast<Box*>(pShadowRoot->GetItemAt(0));
-        }
-        if (pRoot == nullptr) {
-            return;
-        }
-        UiRect rcRoot = pRoot->GetPos();
+        UiRect rcRoot = pXmlRoot->GetPos();
         if (rcRoot.ContainsPt(pt)) {
             return;
         }
@@ -194,7 +187,7 @@ Shadow::Shadow(Window* pWindow):
     m_bShadowAttached(true),
     m_bUseDefaultShadowAttached(true),
     m_isMaximized(false),
-    m_pRoot(nullptr),
+    m_pShadowBox(nullptr),
     m_pWindow(pWindow),
     m_bEnableShadowSnap(true),
     m_bLeftSnap(false),
@@ -215,26 +208,49 @@ void Shadow::SetUseDefaultShadowAttached(bool bDefault)
     m_bUseDefaultShadowAttached = bDefault;
 }
 
-Box* Shadow::AttachShadow(Box* pRoot)
+Box* Shadow::AttachShadow(Box* pXmlRoot)
 {
     if (!m_bShadowAttached) {
-        return pRoot;
+        return pXmlRoot;
     }
-    ASSERT(m_pRoot == nullptr);
-    if (m_pRoot != nullptr) {
-        return pRoot;
+    ASSERT(m_pShadowBox == nullptr);
+    if (m_pShadowBox != nullptr) {
+        return pXmlRoot;
     }
 
-    if (pRoot == nullptr) {
+    if (pXmlRoot == nullptr) {
         return nullptr;
     }
 
-    m_pRoot = new ShadowBox(pRoot->GetWindow(), this);
-    m_pRoot->SetMouseEnabled(false);
-    m_pRoot->SetKeyboardEnabled(false);
-    m_pRoot->AddItem(pRoot);
-    DoAttachShadow(m_pRoot, pRoot, true, m_isMaximized);
-    return m_pRoot;
+    m_pShadowBox = new ShadowBox(pXmlRoot->GetWindow(), this);
+    m_pShadowBox->SetMouseEnabled(false);
+    m_pShadowBox->SetKeyboardEnabled(false);
+    m_pShadowBox->AddItem(pXmlRoot);
+    DoAttachShadow(m_pShadowBox, pXmlRoot, true, m_isMaximized);
+    return m_pShadowBox;
+}
+
+Box* Shadow::GetShadowBox() const
+{
+    return m_pShadowBox;
+}
+
+Box* Shadow::GetAttachedXmlRoot() const
+{
+    Box* pShadowRoot = GetShadowBox();
+    if (pShadowRoot == nullptr) {
+        return nullptr;
+    }
+    Box* pXmlRoot = nullptr;
+    if (pShadowRoot->GetItemCount() > 0) {
+        pXmlRoot = dynamic_cast<Box*>(pShadowRoot->GetItemAt(0));
+    }
+    return pXmlRoot;
+}
+
+bool Shadow::HasShadowBox() const
+{
+    return m_pShadowBox != nullptr;
 }
 
 void Shadow::DoAttachShadow(Box* pNewRoot, Box* pOrgRoot, bool bNewAttach, bool isMaximized) const
@@ -457,16 +473,16 @@ void Shadow::OnShadowAttached(Shadow::ShadowType nShadowType)
 void Shadow::UpdateShadow()
 {
     //如果已经调用了AttachShadow，需要进行些处理
-    if (m_pRoot != nullptr) {
+    if (m_pShadowBox != nullptr) {
         Box* pOrgRoot = nullptr;
-        if (m_pRoot->GetItemCount() > 0) {
-            pOrgRoot = dynamic_cast<Box*>(m_pRoot->GetItemAt(0));
+        if (m_pShadowBox->GetItemCount() > 0) {
+            pOrgRoot = dynamic_cast<Box*>(m_pShadowBox->GetItemAt(0));
         }
-        DoAttachShadow(m_pRoot, pOrgRoot, m_bShadowAttached, m_isMaximized);
+        DoAttachShadow(m_pShadowBox, pOrgRoot, m_bShadowAttached, m_isMaximized);
 
         //刷新，重绘
-        m_pRoot->ArrangeAncestor();
-        m_pRoot->SetPos(m_pRoot->GetPos());
+        m_pShadowBox->ArrangeAncestor();
+        m_pShadowBox->SetPos(m_pShadowBox->GetPos());
     }
 }
 
@@ -529,8 +545,8 @@ UiPadding Shadow::GetCurrentShadowCorner() const
 void Shadow::SetShadowBorderRound(UiSize szBorderRound)
 {
     m_szBorderRound = szBorderRound;
-    if (m_pRoot != nullptr) {
-        m_pRoot->Invalidate();
+    if (m_pShadowBox != nullptr) {
+        m_pShadowBox->Invalidate();
     }
 }
 
@@ -545,21 +561,16 @@ void Shadow::MaximizedOrRestored(bool isMaximized)
     if (!m_bShadowAttached) {
         return;
     }
-    if (m_pRoot != nullptr) {
+    if (m_pShadowBox != nullptr) {
         UiPadding rcShadowCorner = GetCurrentShadowCorner();
-        m_pRoot->SetPadding(rcShadowCorner, false);
+        m_pShadowBox->SetPadding(rcShadowCorner, false);
     }
-}
-
-ui::Control* Shadow::GetRoot()
-{
-    return m_pRoot;
 }
 
 void Shadow::ClearImageCache()
 {
-    if (m_pRoot) {
-        m_pRoot->ClearImageCache();
+    if (m_pShadowBox) {
+        m_pShadowBox->ClearImageCache();
     }    
 }
 
@@ -617,10 +628,10 @@ bool Shadow::IsEnableShadowSnap() const
 
 void Shadow::UpdateWindowPosSnap()
 {
-    if (m_pRoot != nullptr) {
+    if (m_pShadowBox != nullptr) {
         UiPadding rcShadowCorner = GetCurrentShadowCorner();
-        if(!rcShadowCorner.Equals(m_pRoot->GetPadding())) {
-            m_pRoot->SetPadding(rcShadowCorner, false);
+        if(!rcShadowCorner.Equals(m_pShadowBox->GetPadding())) {
+            m_pShadowBox->SetPadding(rcShadowCorner, false);
             if (m_pWindow != nullptr) {
                 m_pWindow->InvalidateAll();
             }

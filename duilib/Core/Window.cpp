@@ -708,7 +708,7 @@ void Window::ClearImageCache()
     Control* pRoot = nullptr;
     ASSERT(m_shadow != nullptr);
     if (m_shadow != nullptr) {
-        pRoot = m_shadow->GetRoot();
+        pRoot = m_shadow->GetShadowBox();
     }
     if (pRoot) {
         pRoot->ClearImageCache();
@@ -1055,10 +1055,9 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
                     rcFullscreenMargin.bottom = rcWindow.bottom - rcWork.bottom;
                 }
                 bool bHasShadowBox = false;
-                Box* pRoot = GetRoot();
-                if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() && (pRoot->GetItemCount() > 0)) {
-                    pRoot = dynamic_cast<Box*>(pRoot->GetItemAt(0));
-                    bHasShadowBox = true;
+                Box* pRoot = GetXmlRoot();
+                if ((m_shadow != nullptr) && m_shadow->HasShadowBox()) {
+                    bHasShadowBox = true;                    
                 }
                 if (pRoot != nullptr) {
                     if (bHasShadowBox) {
@@ -1096,9 +1095,8 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
         //还原时，恢复外边距
         if (!m_rcFullscreenMargin.IsEmpty()) {
             bool bHasShadowBox = false;
-            Box* pRoot = GetRoot();
-            if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() && (pRoot->GetItemCount() > 0)) {
-                pRoot = dynamic_cast<Box*>(pRoot->GetItemAt(0));
+            Box* pRoot = GetXmlRoot();
+            if ((m_shadow != nullptr) && m_shadow->HasShadowBox()) {
                 bHasShadowBox = true;
             }
             if (pRoot != nullptr) {
@@ -1254,6 +1252,7 @@ bool Window::Paint(const UiRect& rcPaint)
         pRender->FillRect(rcPaint, bkColor);
     }
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_RICH_EDIT_DRAW_OPT)
     //开始绘制前，进行alpha通道修复
     if (IsLayeredWindow()) {
         PerformanceStat statPerformance(_T("PaintWindow, Window::Paint RestoreAlpha"));
@@ -1269,9 +1268,7 @@ bool Window::Paint(const UiRect& rcPaint)
             rcRootPadding.top += 1;
             rcRootPadding.right += 1;
             rcRootPadding.bottom += 1;
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_RICH_EDIT_DRAW_OPT)
             pRender->RestoreAlpha(rcNewPaint, rcRootPadding);//目前只有Windows的RichEdit绘制导致窗体透明，所以才需要回复
-#endif
         }
         else {
             UiRect rcAlphaFixCorner = GetAlphaFixCorner();
@@ -1282,13 +1279,12 @@ bool Window::Paint(const UiRect& rcPaint)
                 rcRootPaddingPos.Deflate(rcAlphaFixCorner.left, rcAlphaFixCorner.top,
                                          rcAlphaFixCorner.right, rcAlphaFixCorner.bottom);
                 rcNewPaint.Intersect(rcRootPaddingPos);
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_RICH_EDIT_DRAW_OPT)
                 UiPadding rcRootPadding;
                 pRender->RestoreAlpha(rcNewPaint, rcRootPadding);//目前只有Windows的RichEdit绘制导致窗体透明，所以才需要回复
-#endif
             }
         }
     }
+#endif
     return true;
 }
 
@@ -2212,6 +2208,18 @@ bool Window::SetNextTabControl(bool bForward)
 Box* Window::GetRoot() const
 {
     return m_pRoot.get();
+}
+
+Box* Window::GetXmlRoot() const
+{
+    Box* pXmlRoot = nullptr;
+    if (m_shadow != nullptr) {
+        pXmlRoot = m_shadow->GetAttachedXmlRoot();
+    }
+    if (pXmlRoot == nullptr) {
+        pXmlRoot = m_pRoot.get();
+    }
+    return pXmlRoot;
 }
 
 void Window::SetArrange(bool bArrange)
