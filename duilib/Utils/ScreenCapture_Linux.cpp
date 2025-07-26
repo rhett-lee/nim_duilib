@@ -9,15 +9,6 @@
 
 namespace ui
 {
-//判断窗口是否有效
-static bool IsX11WindowValid(Display* display, ::Window window)
-{
-    // 尝试获取窗口属性
-    XWindowAttributes attrs;
-    Status status = XGetWindowAttributes(display, window, &attrs);
-    return (status != 0);  // 返回1有效，0无效
-}
-
 // 捕获指定窗口所在屏幕的图像
 // 参数:
 //   display      - 与X服务器的连接
@@ -27,32 +18,28 @@ static bool IsX11WindowValid(Display* display, ::Window window)
 //   height       - 输出图像的高度
 // 返回值:
 //   成功返回true，失败返回false
-static bool CaptureScreenBitmap(Display* display, Window targetWindow, std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
+static bool CaptureScreenBitmap(Display* display, ::Window targetWindow, std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
 {
     bitmap.clear();
     height = 0;
     height = 0;
-    if ((display == nullptr) || (targetWindow == nullptr)) {
+    if (display == nullptr) {
         return false;
     }
-    if (!IsX11WindowValid(display, targetWindow)) {
-        return false;
-    }
-
     // 获取目标窗口所在的屏幕
-    int screenNum = XScreenNumberOfWindow(display, targetWindow);
-    Screen* screen = XScreenOfDisplay(display, screenNum);
+    XWindowAttributes attr;
+    if (!XGetWindowAttributes(display, targetWindow, &attr)) {
+        return false;
+    }
+    Screen* screen = attr.screen;
     if (!screen) {
         return false;
     }
 
     // 获取屏幕的根窗口
-    Window rootWindow = RootWindow(display, screenNum);
-
-    // 获取屏幕尺寸
-    width = XDisplayWidth(display, screenNum);
-    height = XDisplayHeight(display, screenNum);
-
+    ::Window rootWindow = RootWindowOfScreen(screen);  // 从屏幕对象获取根窗口
+    width = screen->width;       // 屏幕宽度（直接从Screen结构体获取）
+    height = screen->height;     // 屏幕高度
     if ((width < 1) || (height < 1)) {
         return false;
     }
@@ -130,7 +117,7 @@ std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(const Window* pWindow)
     std::vector<uint8_t> bitmap;
     int32_t width = 0;
     int32_t height = 0;
-    if (!CaptureScreenBitmap(display, targetWindow, std::vector<uint8_t>&bitmap, int32_t & width, int32_t & height)) {
+    if (!CaptureScreenBitmap(display, targetWindow, bitmap, width, height)) {
         return nullptr;
     }
     if ((width > 0) && (height > 0) && ((int32_t)bitmap.size() == (width * height * 4))) {
