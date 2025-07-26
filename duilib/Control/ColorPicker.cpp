@@ -567,7 +567,13 @@ private:
                 ASSERT(colorXY < nWidth * nHeight);
                 uint32_t colorValue = pPixelBits[colorXY];
                 selColor = UiColor(colorValue);
+#ifdef DUILIB_BUILD_FOR_WIN
+                //SDL_PIXELFORMAT_BGRA32
                 selColor = UiColor(selColor.GetR(), selColor.GetG(), selColor.GetB());
+#else
+                //SDL_PIXELFORMAT_RGBA32
+                selColor = UiColor(selColor.GetB(), selColor.GetG(), selColor.GetR());
+#endif
             }
             m_spBitmap->UnLockPixelBits();
         }
