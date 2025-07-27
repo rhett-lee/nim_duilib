@@ -169,7 +169,29 @@ static SDL_Cursor* LoadCursorFromData(const Window* pWindow, std::vector<uint8_t
     if (cursorSurface == nullptr) {
         return nullptr;
     }
-    SDL_Cursor* sdlCursor = SDL_CreateColorCursor(cursorSurface, 0, 0);
+
+    int hot_x = 0;
+    int hot_y = 0;
+    size_t nDot = imagePath.rfind(_T('.'));
+    if ((nDot != DString::npos) && (fileData.size() > 16)) {
+        DString ext = imagePath.substr(nDot);
+        if (StringUtil::IsEqualNoCase(ext, _T(".cur"))) {
+            //hot_x位于 0x0A，2个字节
+            hot_x = (fileData[0x0B] << 8) | fileData[0x0A];
+            //hot_y位于 0x0C，2个字节
+            hot_y = (fileData[0x0D] << 8) | fileData[0x0C];
+            if ((hot_x >= (int)pBitmap->GetWidth()) || (hot_x < 0)) {
+                hot_x = 0;
+            }
+            if ((hot_y >= (int)pBitmap->GetHeight()) || (hot_y < 0)){
+                hot_y = 0;
+            }
+            pWindow->Dpi().ScaleInt(hot_x);
+            pWindow->Dpi().ScaleInt(hot_y);
+        }
+    }
+
+    SDL_Cursor* sdlCursor = SDL_CreateColorCursor(cursorSurface, hot_x, hot_y);
     SDL_DestroySurface(cursorSurface);
     cursorSurface = nullptr;
 
