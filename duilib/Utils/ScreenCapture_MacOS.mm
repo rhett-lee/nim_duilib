@@ -7,6 +7,7 @@
 
 namespace ui
 {
+
 // 捕获指定窗口所在屏幕的图像（返回RGBA格式带Alpha通道）
 // 参数:
 //   targetWindow - 目标窗口的NSWindow指针（若为nullptr则捕获当前屏幕）
@@ -18,80 +19,77 @@ namespace ui
 bool CaptureScreenBitmap_MacOS(void* targetWindow, std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height) 
 {
     @autoreleasepool {
-        // 确定目标窗口所在的屏幕
+        // 1. 检查屏幕录制权限
+        if (@available(macOS 10.15, *)) {
+            if (!CGPreflightScreenCaptureAccess()) {
+                NSLog(@"请在系统设置 > 安全性与隐私 > 屏幕录制中勾选本程序");
+                return false;
+            }
+        }
+
+        // 2. 确定目标窗口所在屏幕
         NSScreen* targetScreen = nil;
         NSWindow* window = static_cast<NSWindow*>(targetWindow);
-        
         if (window) {
-            // 从目标窗口获取所在屏幕
             targetScreen = [window screen];
         }
-        
         if (!targetScreen) {
-            // 若未指定窗口或获取失败，使用主屏幕
             targetScreen = [NSScreen mainScreen];
         }
-        
-        // 获取屏幕的可见区域（不含菜单栏等）
-        NSRect screenRect = [targetScreen visibleFrame];
-        width = static_cast<int32_t>(screenRect.size.width);
-        height = static_cast<int32_t>(screenRect.size.height);
-        
-        if (width <= 0 || height <= 0) {
+
+        // 3. 获取完整屏幕区域（替换visibleFrame为frame）
+        NSRect screenRect = targetScreen.frame;  // 完整屏幕区域（含菜单栏）
+        CGRect cgRect = NSRectToCGRect(screenRect);
+
+        // 4. 获取屏幕ID并捕获完整屏幕
+        CGDirectDisplayID displayID = [[targetScreen deviceDescription][@"NSScreenNumber"] unsignedIntValue];
+        CGImageRef screenImage = CGDisplayCreateImage(displayID);  // 捕获整个屏幕
+        if (!screenImage) {
+            NSLog(@"无法捕获屏幕图像，权限可能未生效");
             return false;
         }
-        
-        // 创建位图上下文（RGBA格式，8位通道，带Alpha）
+
+        // 5. 裁剪到目标区域（若需要）
+        CGImageRef croppedImage = CGImageCreateWithImageInRect(screenImage, cgRect);
+        CGImageRelease(screenImage);
+        if (!croppedImage) {
+            return false;
+        }
+
+        // 6. 获取图像尺寸
+        width = static_cast<int32_t>(CGImageGetWidth(croppedImage));
+        height = static_cast<int32_t>(CGImageGetHeight(croppedImage));
+        if (width <= 0 || height <= 0) {
+            CGImageRelease(croppedImage);
+            return false;
+        }
+
+        // 7. 创建RGBA上下文并绘制
         CGColorSpaceRef colorSpace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
         if (!colorSpace) {
+            CGImageRelease(croppedImage);
             return false;
         }
-        
-        // 每行字节数（32位对齐）
+
         size_t bytesPerRow = width * 4;
-        // 分配像素内存
-        void* pixels = malloc(bytesPerRow * height);
-        if (!pixels) {
-            CGColorSpaceRelease(colorSpace);
-            return false;
-        }
-        
-        // 创建Core Graphics上下文
+        std::vector<uint8_t> tempBuffer(width * height * 4);
         CGContextRef context = CGBitmapContextCreate(
-            pixels,
-            width,
-            height,
-            8,          // 每个通道8位
-            bytesPerRow,
-            colorSpace,
-            kCGImageAlphaPremultipliedLast  // RGBA格式（Alpha在最后）
+            tempBuffer.data(), width, height, 8, bytesPerRow,
+            colorSpace, kCGImageAlphaPremultipliedLast
         );
-        
         CGColorSpaceRelease(colorSpace);
+
         if (!context) {
-            free(pixels);
+            CGImageRelease(croppedImage);
             return false;
         }
-        
-        // 捕获屏幕内容到上下文
-        CGImageRef screenImage = [targetScreen CGImageForRect:screenRect];
-        if (!screenImage) {
-            CGContextRelease(context);
-            free(pixels);
-            return false;
-        }
-        
-        // 绘制图像到上下文（macOS的坐标原点在左下角，需翻转Y轴）
-        CGContextDrawImage(context, CGRectMake(0, 0, width, height), screenImage);
-        CGImageRelease(screenImage);
+
+        CGContextDrawImage(context, CGRectMake(0, 0, width, height), croppedImage);
         CGContextRelease(context);
-        
-        // 将像素数据复制到输出向量（已为RGBA格式）
-        bitmap.resize(width * height * 4);
-        memcpy(bitmap.data(), pixels, width * height * 4);
-        
-        // 清理内存
-        free(pixels);
+        CGImageRelease(croppedImage);
+
+        // 8. 输出结果
+        bitmap.swap(tempBuffer);
         return true;
     }
 }
@@ -109,7 +107,7 @@ std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(const Window* pWindow)
     std::vector<uint8_t> bitmap;
     int32_t width = 0;
     int32_t height = 0;
-    if (!CaptureScreenBitmap_MacOS(display, targetWindow, std::vector<uint8_t>&bitmap, int32_t & width, int32_t & height)) {
+    if (!CaptureScreenBitmap_MacOS(pNSWindow, bitmap, width, height)) {
         return nullptr;
     }
     if ((width > 0) && (height > 0) && ((int32_t)bitmap.size() == (width * height * 4))) {
@@ -127,6 +125,8 @@ std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(const Window* pWindow)
         return spBitmap;
     }
     return nullptr;
+}
+
 } // namespace ui
 
 #endif //DUILIB_BUILD_FOR_MACOS
