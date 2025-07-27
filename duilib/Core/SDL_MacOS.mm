@@ -22,11 +22,11 @@ void* GetSDLWindowContentView(SDL_Window* sdlWindow)
     return (void*)pNSView;
 }
 
-BOOL SetFocus_MacOS(void* pNSWindow)
+bool SetFocus_MacOS(void* pNSWindow)
 {
     NSWindow* window = (NSWindow*)pNSWindow;
     if (!window) {
-        return NO;
+        return false;
     }
     
     // 在主线程上执行UI操作
@@ -44,7 +44,7 @@ BOOL SetFocus_MacOS(void* pNSWindow)
         result = YES;
     });
     
-    return result;
+    return (result == YES) ? true : false;
 }
 
 }
