@@ -22,6 +22,31 @@ void* GetSDLWindowContentView(SDL_Window* sdlWindow)
     return (void*)pNSView;
 }
 
+BOOL SetFocus_MacOS(void* pNSWindow)
+{
+    NSWindow* window = (NSWindow*)pNSWindow;
+    if (!window) {
+        return NO;
+    }
+    
+    // 在主线程上执行UI操作
+    __block BOOL result = NO;
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        // 使窗口成为关键窗口并前置显示
+        [window makeKeyAndOrderFront:nil];
+        
+        // 确保窗口是可见的
+        [window setIsVisible:YES];
+        
+        // 激活应用程序
+        [[NSRunningApplication currentApplication] activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+        
+        result = YES;
+    });
+    
+    return result;
+}
+
 }
 
 #endif

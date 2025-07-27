@@ -1838,12 +1838,16 @@ void NativeWindow_SDL::CheckSetWindowFocus()
     if (!IsWindowFocused()) {
         SetWindowFocus();
     }
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN)
     //当存在子窗口时，SDL获取的焦点窗口存在问题，不正确，需要补充检查（影响RichEdit输入）
     HWND hWnd = GetHWND();
     if (::GetFocus() != hWnd) {
         ::SetFocus(hWnd);
     }
+#elif defined (DUILIB_BUILD_FOR_MACOS)
+    SetFocus_MacOS(GetNSWindow());
+#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+
 #endif
 }
 

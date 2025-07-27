@@ -11,6 +11,11 @@ namespace ui
 */
 void* GetSDLWindowContentView(SDL_Window* sdlWindow);
 
+// 封装MacOS的SetFocus函数，功能类似于Windows的SetFocus(HWND)
+// 参数: window - 要设置焦点的窗口指针
+// 返回值: 成功返回YES，失败返回NO
+BOOL SetFocus_MacOS(void* pNSWindow);
+
 }
 
 #endif
