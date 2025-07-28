@@ -39,18 +39,13 @@ protected:
     */
     virtual void CloseAllBrowsers() override;
 
-    /** 焦点元素发生变化（在主线程中调用）
-    */
-    virtual void OnFocusedNodeChanged(CefRefPtr<CefBrowser> browser,
-                                      CefRefPtr<CefFrame> frame,
-                                      CefDOMNode::Type type,
-                                      bool bText,
-                                      bool bEditable,
-                                      const CefRect& nodeRect) override;
-
     /** 将网页保存为一张图片, 图片大小与控件大小相同
     */
     virtual std::shared_ptr<IBitmap> MakeImageSnapshot() override;
+
+    /** 是否为CEF的子窗口模式控件
+    */
+    virtual bool IsCefNative() const override;
 
 private:
     /** 关闭所有的Browser对象

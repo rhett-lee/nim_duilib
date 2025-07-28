@@ -2130,11 +2130,13 @@ void Window::SetFocusControl(Control* pControl)
 {
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     if (pControl != nullptr) {
-        //确保窗口有焦点
-        CheckSetWindowFocus();
-        if (windowFlag.expired()) {
-            return;
-        }
+        //确保窗口有焦点(但CEF 子窗口模式的控件，不与子窗口争焦点)
+        if (!pControl->IsCefNative()) {
+            CheckSetWindowFocus();
+            if (windowFlag.expired()) {
+                return;
+            }
+        }        
     }
     if (pControl == m_pFocus) {
         return;

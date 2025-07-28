@@ -50,6 +50,7 @@ class CefBrowserHandler : public virtual ui::SupportWeakCallback,
     public CefCookieAccessFilter,
     public CefDownloadHandler,
     public CefDialogHandler,
+    public CefFocusHandler,
     public client::OsrDragEvents
 {
 public:
@@ -95,8 +96,7 @@ public:
     virtual CefRefPtr<CefFindHandler> GetFindHandler() override { return nullptr; }    
     virtual CefRefPtr<CefFrameHandler> GetFrameHandler() override { return nullptr; }
     virtual CefRefPtr<CefPermissionHandler> GetPermissionHandler() override { return nullptr; }
-    virtual CefRefPtr<CefPrintHandler> GetPrintHandler() override { return nullptr; }
-    virtual CefRefPtr<CefFocusHandler> GetFocusHandler() override { return nullptr; }
+    virtual CefRefPtr<CefPrintHandler> GetPrintHandler() override { return nullptr; }    
 
     virtual CefRefPtr<CefContextMenuHandler> GetContextMenuHandler() override {    return this; }
     virtual CefRefPtr<CefRenderHandler>  GetRenderHandler() override { return this; }
@@ -109,6 +109,8 @@ public:
     virtual CefRefPtr<CefRequestHandler> GetRequestHandler() override{ return this; }
     virtual CefRefPtr<CefDownloadHandler> GetDownloadHandler() override { return this; }
     virtual CefRefPtr<CefDialogHandler> GetDialogHandler() override { return this; }
+    virtual CefRefPtr<CefFocusHandler> GetFocusHandler() override { return this; }
+
     virtual bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
                                           CefRefPtr<CefFrame> frame,
                                           CefProcessId source_process,
@@ -407,6 +409,11 @@ public:
                               const std::vector<CefString>& accept_descriptions,
                               CefRefPtr<CefFileDialogCallback> callback) override;
 #endif
+
+    //CefFocusHandler 相关接口
+    virtual void OnTakeFocus(CefRefPtr<CefBrowser> browser, bool next) override;
+    virtual bool OnSetFocus(CefRefPtr<CefBrowser> browser, FocusSource source) override;
+    virtual void OnGotFocus(CefRefPtr<CefBrowser> browser) override;
 
 private:
     bool DoOnBeforePopup(CefRefPtr<CefBrowser> browser,

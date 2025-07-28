@@ -1295,6 +1295,23 @@ bool CefBrowserHandler::OnFileDialog(CefRefPtr<CefBrowser> browser,
 }
 #endif
 
+void CefBrowserHandler::OnTakeFocus(CefRefPtr<CefBrowser> browser, bool next)
+{
+}
+
+bool CefBrowserHandler::OnSetFocus(CefRefPtr<CefBrowser> browser, FocusSource source)
+{
+    return false;
+}
+
+void CefBrowserHandler::OnGotFocus(CefRefPtr<CefBrowser> browser)
+{
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && (browser != nullptr) && (m_browser != nullptr) && browser->IsSame(m_browser)) {
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnGotFocus, m_pHandlerDelegate));
+    }
+}
+
+
 } //namespace ui
 
 #pragma warning (pop)

@@ -1133,6 +1133,17 @@ void CefControl::OnCursorChange(cef_cursor_type_t /*type*/)
 {
 }
 
+void CefControl::OnGotFocus()
+{
+    if (!IsVisible() || !IsEnabled()) {
+        return;
+    }
+    if (!IsFocused()) {
+        //避免双焦点控件的出现
+        SetFocus();
+    }
+}
+
 Control* CefControl::GetCefControl()
 {
     return this;

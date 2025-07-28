@@ -188,6 +188,10 @@ public:
     */
     virtual void OnCursorChange(cef_cursor_type_t type) = 0;
 
+    /** 页面获得了焦点
+    */
+    virtual void OnGotFocus() = 0;
+
     /** 获取关联的CEF控件接口
     */
     virtual Control* GetCefControl() = 0;

@@ -914,6 +914,10 @@ public:
     */
     bool IsKeyDown(const EventArgs& msg, ModifierKey modifierKey) const;
 
+    /** 是否为CEF的子窗口模式控件
+    */
+    virtual bool IsCefNative() const { return false; }
+
     /** 是否为CEF的离屏渲染控件
     */
     virtual bool IsCefOSR() const { return false; }

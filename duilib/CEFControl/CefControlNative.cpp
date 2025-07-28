@@ -186,22 +186,6 @@ void CefControlNative::SetWindow(ui::Window* pWindow)
     SetCefWindowParent(GetCefWindowHandle(), this);
 }
 
-void CefControlNative::OnFocusedNodeChanged(CefRefPtr<CefBrowser> /*browser*/,
-                                            CefRefPtr<CefFrame> /*frame*/,
-                                            CefDOMNode::Type /*type*/,
-                                            bool /*bText*/,
-                                            bool /*bEditable*/,
-                                            const CefRect& /*nodeRect*/)
-{
-    if (!IsVisible() || !IsEnabled()) {
-        return;
-    }
-    if (!IsFocused()) {
-        //避免双焦点控件的出现
-        SetFocus();
-    }
-}
-
 std::shared_ptr<IBitmap> CefControlNative::MakeImageSnapshot()
 {
     std::vector<uint8_t> bitmap;
@@ -225,4 +209,9 @@ std::shared_ptr<IBitmap> CefControlNative::MakeImageSnapshot()
     return nullptr;
 }
 
+bool CefControlNative::IsCefNative() const
+{
+    return true;
 }
+
+} //namespace ui
