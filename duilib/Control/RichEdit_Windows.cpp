@@ -1845,9 +1845,6 @@ bool RichEdit::OnKillFocus(const EventArgs& msg)
     if (m_bNoSelOnKillFocus && IsReadOnly() && IsEnabled()) {
         SetSelNone();
     }
-    if (m_bSelAllOnFocus && IsEnabled()) {
-        SetSelNone();
-    }
 
     if (m_pClearButton != nullptr) {
         m_pClearButton->SetFadeVisible(false);
@@ -2898,6 +2895,20 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
     Menu* menu = new Menu(GetWindow());//需要设置父窗口，否在菜单弹出的时候，程序状态栏编程非激活状态
     menu->SetSkinFolder(skinFolder);
     DString xml(_T("rich_edit_menu.xml"));
+
+    //菜单显示过程中，不隐藏当前选择的文本
+    bool bOldHideSelection = IsHideSelection();
+    SetHideSelection(false);
+
+    //菜单关闭事件
+    std::weak_ptr<WeakFlag> richEditFlag = GetWeakFlag();
+    menu->AttachWindowClose([this, richEditFlag, bOldHideSelection](const ui::EventArgs&) {
+        if (!richEditFlag.expired()) {
+            //恢复HideSelection属性
+            SetHideSelection(bOldHideSelection);
+        }
+        return true;
+        });
 
     //菜单弹出位置的坐标应为屏幕坐标
     UiPoint pt = point;
