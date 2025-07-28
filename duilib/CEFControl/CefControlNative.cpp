@@ -214,4 +214,16 @@ bool CefControlNative::IsCefNative() const
     return true;
 }
 
+void CefControlNative::OnGotFocus()
+{
+    Window* pWindow = GetWindow();
+    if (pWindow != nullptr) {
+        //页面获取焦点时，禁止主界面输入文字
+        pWindow->NativeWnd()->SetImeOpenStatus(false);
+        pWindow->NativeWnd()->SetTextInputArea(nullptr, 0);
+    }
+
+    BaseClass::OnGotFocus();
+}
+
 } //namespace ui

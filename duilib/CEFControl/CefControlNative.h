@@ -47,6 +47,10 @@ protected:
     */
     virtual bool IsCefNative() const override;
 
+    /** 页面获得了焦点
+    */
+    virtual void OnGotFocus() override;
+
 private:
     /** 关闭所有的Browser对象
     */
