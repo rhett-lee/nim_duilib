@@ -218,7 +218,7 @@ void CefControlNative::OnGotFocus()
 {
     Window* pWindow = GetWindow();
     if (pWindow != nullptr) {
-        //页面获取焦点时，禁止主界面输入文字
+        //页面获取焦点时，禁止主界面输入文字（解决的问题：macOS下：在页面输入文字，按键一次，会触发多次输入，应该是SDL内部又触发了输入）
         pWindow->NativeWnd()->SetImeOpenStatus(false);
         pWindow->NativeWnd()->SetTextInputArea(nullptr, 0);
     }

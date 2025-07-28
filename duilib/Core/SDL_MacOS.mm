@@ -28,23 +28,31 @@ bool SetFocus_MacOS(void* pNSWindow)
     if (!window) {
         return false;
     }
+    NSView* targetView = nullptr;
+    if (window != nullptr) {
+        targetView = [window contentView] ;
+    }
+    if (!targetView) {
+        return false;
+    }
     
-    // 在主线程上执行UI操作
-    __block BOOL result = NO;
-    dispatch_sync(dispatch_get_main_queue(), ^{
-        // 使窗口成为关键窗口并前置显示
-        [window makeKeyAndOrderFront:nil];
-        
-        // 确保窗口是可见的
-        [window setIsVisible:YES];
-        
-        // 激活应用程序
-        [[NSRunningApplication currentApplication] activateWithOptions:NSApplicationActivateIgnoringOtherApps];
-        
-        result = YES;
-    });
+    // 1. 先清除当前焦点（避免CEF等视图拦截）
+    [window makeFirstResponder:nil];
     
-    return (result == YES) ? true : false;
+    // 2. 切换到目标视图
+    BOOL success = [window makeFirstResponder:targetView];
+    
+    // 3. 刷新窗口以更新焦点状态
+    [window update];
+
+    //if (success == YES) {
+    //    NSLog(@"目标视图接收焦点设置: YES");
+    //}
+    //else {
+    //    NSLog(@"目标视图接收焦点设置: NO");
+    //}
+
+    return success == YES;
 }
 
 }
