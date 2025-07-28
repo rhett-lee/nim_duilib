@@ -26,7 +26,8 @@ Window::Window() :
     m_bIsArranged(false),
     m_bPostQuitMsgWhenClosed(false),
     m_renderBackendType(RenderBackendType::kRaster_BackendType),
-    m_bWindowAttributesApplied(false)
+    m_bWindowAttributesApplied(false),
+    m_bCheckSetWindowFocus(false)
 {
     m_toolTip = std::make_unique<ToolTip>();
 }
@@ -2019,12 +2020,6 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
             return;
         }
     }
-
-    CheckSetWindowFocus();
-    if (windowFlag.expired()) {
-        return;
-    }
-
     SetLastMousePos(pt);
     Control* pControl = FindControl(pt);
     if (pControl != nullptr) {
@@ -2035,10 +2030,12 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
         }
         ControlPtr pOldEventClick = m_pEventClick;
         m_pEventClick = pControl;
-        pControl->SetFocus();        
+        bool bOldCheckSetWindowFocus = IsCheckSetWindowFocus();
+        pControl->SetFocus();
         if (windowFlag.expired()) {
             return;
         }
+        SetCheckSetWindowFocus(bOldCheckSetWindowFocus);
         if (controlFlag.expired()) {
             if (m_pEventClick.get() == pControl) {
                 m_pEventClick = nullptr;
@@ -2060,6 +2057,10 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
                 return;
             }
         }
+    }
+    if (!windowFlag.expired()) {
+        //确保被点击的窗口有输入焦点
+        CheckSetWindowFocus();
     }
 }
 
@@ -2128,27 +2129,19 @@ Control* Window::GetEventClick() const
 
 void Window::SetFocusControl(Control* pControl)
 {
-    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
-    if (pControl != nullptr) {
-        //确保窗口有焦点(但CEF 子窗口模式的控件，不与子窗口争焦点)
-        if (!pControl->IsCefNative()) {
-            CheckSetWindowFocus();
-            if (windowFlag.expired()) {
-                return;
-            }
-        }        
-    }
     if (pControl == m_pFocus) {
         return;
+    }
+
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    std::weak_ptr<WeakFlag> controlFlag;
+    if (pControl != nullptr) {
+        controlFlag = pControl->GetWeakFlag();
     }    
     ControlPtr pOldFocus = m_pFocus;
     if (pOldFocus != nullptr) {
         m_pFocus = nullptr;
-        //WPARAM 是新的焦点控件接口
-        std::weak_ptr<WeakFlag> controlFlag;
-        if (pControl != nullptr) {
-            controlFlag = pControl->GetWeakFlag();
-        }        
+        //WPARAM 是新的焦点控件接口        
         pOldFocus->SendEvent(kEventKillFocus, (WPARAM)pControl);
         if (windowFlag.expired()) {
             return;
@@ -2172,6 +2165,26 @@ void Window::SetFocusControl(Control* pControl)
     if (!windowFlag.expired() && (pOldFocus != m_pFocus)) {
         OnFocusControlChanged();
     }
+
+    if (!windowFlag.expired() && (pControl != nullptr) && !controlFlag.expired()) {
+        //确保窗口有焦点(但CEF 子窗口模式的控件，不与子窗口争焦点)
+        if (IsCheckSetWindowFocus() && !pControl->IsCefNative()) {
+            CheckSetWindowFocus();
+            if (windowFlag.expired()) {
+                return;
+            }
+        }
+    }
+}
+
+void Window::SetCheckSetWindowFocus(bool bCheckSetWindowFocus)
+{
+    m_bCheckSetWindowFocus = bCheckSetWindowFocus;
+}
+
+bool Window::IsCheckSetWindowFocus() const
+{
+    return m_bCheckSetWindowFocus;
 }
 
 void Window::KillFocusControl()

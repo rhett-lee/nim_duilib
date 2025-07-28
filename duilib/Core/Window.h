@@ -245,6 +245,14 @@ public:
     */
     void KillFocusControl();
 
+    /** 设置控件焦点时(即调用SetFocusControl函数时)，是否同时设置窗口焦点
+    */
+    void SetCheckSetWindowFocus(bool bCheckSetWindowFocus);
+
+    /** 控件焦点时(即调用SetFocusControl函数)，是否同时设置窗口焦点
+    */
+    bool IsCheckSetWindowFocus() const;
+
     /** 获取当前鼠标在哪个控件上
     */
     Control* GetHoverControl() const;
@@ -1006,6 +1014,9 @@ private:
 
     //界面是否完成首次显示
     bool m_bWindowFirstShown;
+
+    //设置控件焦点时，是否同时设置窗口焦点
+    bool m_bCheckSetWindowFocus;
 
     //绘制时的偏移量（动画用）
     UiPoint m_renderOffset;
