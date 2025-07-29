@@ -368,6 +368,18 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             UiPoint pt;
             pt.x = (int32_t)sdlEvent.button.x;
             pt.y = (int32_t)sdlEvent.button.y;
+
+#if defined (DUILIB_BUILD_FOR_MACOS)
+            //MacOS平台：当存在CEF子窗口时，先点击页面，然后再点击主界面，此时SDL给出的pt值不正确，所以进行修正
+            UiPoint mousePt;
+            GetCursorPos(mousePt);
+            ScreenToClient(mousePt);
+            if ((mousePt.x != pt.x) || (mousePt.y != pt.y)) {
+                pt.x = mousePt.x;
+                pt.y = mousePt.y;
+            }
+#endif
+
             uint32_t modifierKey = GetModifiers(SDL_GetModState());
             if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
                 //鼠标左键

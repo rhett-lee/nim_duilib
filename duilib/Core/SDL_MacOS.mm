@@ -24,35 +24,45 @@ void* GetSDLWindowContentView(SDL_Window* sdlWindow)
 
 bool SetFocus_MacOS(void* pNSWindow)
 {
-    NSWindow* window = (NSWindow*)pNSWindow;
+    // 检查窗口指针有效性
+    NSWindow* window = static_cast<NSWindow*>(pNSWindow);
     if (!window) {
+        //NSLog(@"SetFocus_MacOS: 无效的窗口指针");
         return false;
     }
-    NSView* targetView = nullptr;
-    if (window != nullptr) {
-        targetView = [window contentView] ;
-    }
+    
+    // 获取窗口的contentView
+    NSView* targetView = [window contentView];
     if (!targetView) {
+        //NSLog(@"SetFocus_MacOS: 窗口没有contentView");
         return false;
     }
     
-    // 1. 先清除当前焦点（避免CEF等视图拦截）
-    [window makeFirstResponder:nil];
+    // 确保在主线程执行UI操作
+    if (![NSThread isMainThread]) {
+        //NSLog(@"SetFocus_MacOS: 必须在主线程调用");
+        return false;
+    }
     
-    // 2. 切换到目标视图
+    // 确保目标视图可以接收焦点，如果不能则尝试开启
+    if (![targetView acceptsFirstResponder]) {
+        //NSLog(@"SetFocus_MacOS: 目标视图默认不接受焦点，尝试开启");
+               
+        //先清除当前焦点再尝试
+        [window makeFirstResponder:nil];
+    }
+    
+    // 切换到目标视图
     BOOL success = [window makeFirstResponder:targetView];
     
-    // 3. 刷新窗口以更新焦点状态
+    // 刷新窗口以更新焦点状态
     [window update];
-
-    //if (success == YES) {
-    //    NSLog(@"目标视图接收焦点设置: YES");
-    //}
-    //else {
-    //    NSLog(@"目标视图接收焦点设置: NO");
-    //}
-
-    return success == YES;
+    
+    if (!success) {
+        //NSLog(@"SetFocus_MacOS: 焦点切换失败");
+    }
+    
+    return success;
 }
 
 }
