@@ -29,7 +29,7 @@ CefControlOffScreen::CefControlOffScreen(Window* pWindow) :
 
 CefControlOffScreen::~CefControlOffScreen(void)
 {
-    DoCloseAllBrowsers();
+    DoCloseAllBrowsers(true);
     if (m_pBrowserHandler.get()) {
         m_pBrowserHandler->SetHostWindow(nullptr);
         m_pBrowserHandler->SetHandlerDelegate(nullptr);

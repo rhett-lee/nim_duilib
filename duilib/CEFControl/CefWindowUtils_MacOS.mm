@@ -216,6 +216,22 @@ void SetCefWindowCursor(CefWindowHandle cefWindow, CefCursorHandle cursor)
     }
 }
 
+void RemoveCefWindowFromParent(CefWindowHandle cefWindow)
+{
+    NSView* pCefNSView = (NSView*)cefWindow;
+    if (!pCefNSView) {
+        return;
+    }
+    if (!IsValidNSView(pCefNSView)) {
+        return;
+    }
+    // 关键：从父视图中移除CEF视图，释放引用
+    [pCefNSView removeFromSuperview];
+        
+    // 额外保险：清除视图的所有子视图（避免残留）
+    [pCefNSView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+}
+
 } //namespace ui
 
 #endif //DUILIB_BUILD_FOR_MACOS

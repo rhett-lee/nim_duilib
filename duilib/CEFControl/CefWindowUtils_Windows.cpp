@@ -152,6 +152,14 @@ void SetCefWindowCursor(CefWindowHandle cefWindow, CefCursorHandle cursor)
     ::SetCursor(cursor);
 }
 
+void RemoveCefWindowFromParent(CefWindowHandle cefWindow)
+{
+    HWND hWnd = (HWND)cefWindow;
+    if (::IsWindow(hWnd)) {
+        ::SetParent(hWnd, nullptr);
+    }
+}
+
 } //namespace ui
 
 #endif //DUILIB_BUILD_FOR_WIN

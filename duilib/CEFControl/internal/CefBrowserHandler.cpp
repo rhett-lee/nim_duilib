@@ -141,24 +141,6 @@ CefUnregisterCallback CefBrowserHandler::AddAfterCreateTask(const ui::StdClosure
     return m_taskListAfterCreated.AddCallback(cb);
 }
 
-void CefBrowserHandler::CloseAllBrowsers()
-{
-    std::vector<CefRefPtr<CefBrowser>> browserList;
-    {
-        std::lock_guard<std::mutex> threadGuard(m_dataMutex);
-        browserList = m_browserList;
-    }
-    for (auto pCefBrowser : browserList) {
-        CefRefPtr<CefBrowserHost> spCefBrowserHost;
-        if (pCefBrowser != nullptr) {
-            spCefBrowserHost = pCefBrowser->GetHost();
-        }
-        if (spCefBrowserHost != nullptr) {
-            spCefBrowserHost->CloseBrowser(true);
-        }
-    }
-}
-
 void CefBrowserHandler::SetHostWindowClosed(bool bHostWindowClosed)
 {
     m_bHostWindowClosed = bHostWindowClosed;
@@ -353,6 +335,32 @@ void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
             m_pHandlerDelegate->OnAfterCreated(browser);
         }
     }));
+}
+
+void CefBrowserHandler::CloseAllBrowsers(bool bForceClose)
+{
+    std::vector<CefRefPtr<CefBrowserHost>> cefBrowserHostList;
+    {
+        std::lock_guard<std::mutex> threadGuard(m_dataMutex);
+        for (auto pCefBrowser : m_browserList) {
+            CefRefPtr<CefBrowserHost> spCefBrowserHost;
+            if (pCefBrowser != nullptr) {
+                spCefBrowserHost = pCefBrowser->GetHost();
+            }
+            if (spCefBrowserHost != nullptr) {
+                cefBrowserHostList.push_back(spCefBrowserHost);
+            }
+        }
+        //当有多个Browser时，按倒序关闭
+        if (!cefBrowserHostList.empty()) {
+            std::reverse(cefBrowserHostList.begin(), cefBrowserHostList.end());
+        }
+    }
+    for (CefRefPtr<CefBrowserHost> spCefBrowserHost : cefBrowserHostList) {
+        if (spCefBrowserHost != nullptr) {
+            spCefBrowserHost->CloseBrowser(bForceClose);
+        }
+    }
 }
 
 bool CefBrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)

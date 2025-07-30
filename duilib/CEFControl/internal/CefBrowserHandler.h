@@ -82,7 +82,7 @@ public:
 
      /** 关闭所有的Browser对象
      */
-     void CloseAllBrowsers();
+     void CloseAllBrowsers(bool bForceClose);
 
      /** 设置关联窗口是否已经关闭
      */

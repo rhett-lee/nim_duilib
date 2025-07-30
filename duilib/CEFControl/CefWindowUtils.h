@@ -26,6 +26,10 @@ bool CaptureCefWindowBitmap(CefWindowHandle cefWindow, std::vector<uint8_t>& bit
 */
 void SetCefWindowCursor(CefWindowHandle cefWindow, CefCursorHandle cursor);
 
+/** 解除CEF子窗口与父窗口的父子关系
+*/
+void RemoveCefWindowFromParent(CefWindowHandle cefWindow);
+
 } //namespace ui
 
 #endif //UI_CEF_CONTROL_CEF_WINDOW_UTILS_H_

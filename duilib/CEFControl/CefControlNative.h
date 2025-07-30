@@ -54,12 +54,16 @@ protected:
 private:
     /** 关闭所有的Browser对象
     */
-    void DoCloseAllNativeBrowsers();
+    void DoCloseAllNativeBrowsers(bool bForceClose);
 
 private:
     /** 首次绘制的事件是否关联
     */
     bool m_bWindowFirstShown;
+
+    /** CEF窗口的父子关系是否已经解除
+    */
+    bool m_bSetCefWindowParentNull;
 };
 }
 

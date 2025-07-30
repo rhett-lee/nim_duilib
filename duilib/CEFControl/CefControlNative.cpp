@@ -9,13 +9,14 @@ namespace ui {
 
 CefControlNative::CefControlNative(ui::Window* pWindow):
     CefControl(pWindow),
-    m_bWindowFirstShown(false)
+    m_bWindowFirstShown(false),
+    m_bSetCefWindowParentNull(false)
 {
 }
 
 CefControlNative::~CefControlNative(void)
 {
-    DoCloseAllNativeBrowsers();
+    DoCloseAllNativeBrowsers(true);
     if (m_pBrowserHandler.get()) {
         m_pBrowserHandler->SetHostWindow(nullptr);
         m_pBrowserHandler->SetHandlerDelegate(nullptr);
@@ -152,21 +153,19 @@ void CefControlNative::UpdateCefWindowPos()
     SetVisible(IsVisible());
 }
 
-void CefControlNative::DoCloseAllNativeBrowsers()
+void CefControlNative::DoCloseAllNativeBrowsers(bool bForceClose)
 {
-#ifdef DUILIB_BUILD_FOR_WIN
-    //关闭窗口时，取消父子关系，避免导致退出时的崩溃问题
-    HWND hWnd = GetCefWindowHandle();
-    if (::IsWindow(hWnd)) {
-        ::SetParent(hWnd, nullptr);
+    //解除CEF子窗口与父窗口的父子关系（避免其关闭的时候，同时也关闭父窗口，导致程序退出）
+    if (!m_bSetCefWindowParentNull) {
+        m_bSetCefWindowParentNull = true;
+        RemoveCefWindowFromParent(GetCefWindowHandle());
     }
-#endif
-    BaseClass::CloseAllBrowsers();
+    DoCloseAllBrowsers(bForceClose);
 }
 
 void CefControlNative::CloseAllBrowsers()
 {
-    DoCloseAllNativeBrowsers();
+    DoCloseAllNativeBrowsers(false);
 }
 
 void CefControlNative::SetWindow(ui::Window* pWindow)

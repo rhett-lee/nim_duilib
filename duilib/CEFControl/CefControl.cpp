@@ -279,13 +279,13 @@ void CefControl::RepairBrowser()
 
 void CefControl::CloseAllBrowsers()
 {
-    DoCloseAllBrowsers();
+    DoCloseAllBrowsers(false);
 }
 
-void CefControl::DoCloseAllBrowsers()
+void CefControl::DoCloseAllBrowsers(bool bForceClose)
 {
     if (m_pBrowserHandler != nullptr) {
-        m_pBrowserHandler->CloseAllBrowsers();
+        m_pBrowserHandler->CloseAllBrowsers(bForceClose);
     }
 }
 

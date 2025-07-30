@@ -408,7 +408,7 @@ protected:
 
     /** 关闭所有的Browser对象
     */
-    void DoCloseAllBrowsers();
+    void DoCloseAllBrowsers(bool bForceClose);
 
 protected:
     /** CefRenderHandler接口, 在非UI线程中被调用
