@@ -165,7 +165,7 @@ void CefControlNative::DoCloseAllNativeBrowsers(bool bForceClose)
 
 void CefControlNative::CloseAllBrowsers()
 {
-    DoCloseAllNativeBrowsers(false);
+    DoCloseAllNativeBrowsers(true);
 }
 
 void CefControlNative::SetWindow(ui::Window* pWindow)
