@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <atomic>
+#include <chrono>
 
 namespace ui
 {
@@ -223,6 +224,16 @@ private:
     /** CEF消息队列是否为空
     */
     bool m_bCefMessageLoopEmpty;
+
+#ifdef DUILIB_BUILD_FOR_MACOS
+    /** 开始退出的时间戳
+    */
+    std::chrono::steady_clock::time_point m_exitTime;
+
+    /** 是否正在退出
+    */
+    bool m_bExiting;
+#endif
 };
 
 } //namespace ui

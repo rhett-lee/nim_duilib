@@ -53,6 +53,9 @@ CefManager::CefManager():
     m_bCefInit(false),
     m_bCefMessageLoopEmpty(false)
 {
+#ifdef DUILIB_BUILD_FOR_MACOS
+    m_bExiting = false;
+#endif
 }
 
 CefManager::~CefManager()
@@ -241,9 +244,25 @@ void CefManager::ProcessWindowCloseEvent(Window* pWindow)
 void CefManager::PostQuitMessage(int32_t nExitCode)
 {
     m_nExitCode = nExitCode;
+    bool bForceExit = false;
+#ifdef DUILIB_BUILD_FOR_MACOS
+    //解决MacOS下，子窗口模式退出时进程残留问题（未调用CefBrowserHandler::OnBeforeClose函数，原因未查明）
+    if (!m_bExiting) {
+        m_bExiting = true;
+        m_exitTime = std::chrono::steady_clock::now();
+    }
+    else {
+        auto waitSeconds = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - m_exitTime);
+        if (waitSeconds.count() > 15) {
+            //等待超过15秒，则强制退出
+            bForceExit = true;
+        }
+    }
+#endif
+
     // 当我们需要结束进程时，千万不要直接调用::PostQuitMessage，这是可能还有浏览器对象没有销毁
     // 应该等所有浏览器对象都销毁后再调用::PostQuitMessage
-    if (m_browserCount <= 0) {
+    if (bForceExit || (m_browserCount <= 0)) {
         if (IsMultiThreadedMessageLoop()) {
             if (m_bCefMessageLoopEmpty) {
                 //启用CEF消息循环：退出主线程的消息循环

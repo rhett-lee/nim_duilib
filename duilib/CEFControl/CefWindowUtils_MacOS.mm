@@ -216,17 +216,10 @@ void SetCefWindowCursor(CefWindowHandle cefWindow, CefCursorHandle cursor)
     }
 }
 
-void RemoveCefWindowFromParent(CefWindowHandle cefWindow)
+void RemoveCefWindowFromParent(CefWindowHandle /*cefWindow*/)
 {
-    NSView* pCefNSView = (NSView*)cefWindow;
-    if (!pCefNSView) {
-        return;
-    }
-    if (!IsValidNSView(pCefNSView)) {
-        return;
-    }
-    // 从父视图中移除CEF视图，释放引用
-    [pCefNSView removeFromSuperview];
+    //无需实现：如果用代码实现从父View中移除，则CEF在退出时有错误，导致进程无法正常退出
+    return false;
 }
 
 } //namespace ui
