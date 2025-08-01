@@ -1,6 +1,6 @@
 #include "DirectoryTreeImpl.h"
 
-#ifdef DUILIB_BUILD_FOR_LINUX
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
 
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringConvert.h"
