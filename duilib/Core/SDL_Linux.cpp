@@ -14,7 +14,7 @@ bool SetFocus_Linux(uint64_t x11WindowNumber)
     // 获取显示连接
     Display* display = XOpenDisplay(NULL);
     if (!display) {
-        return; // 无法打开显示
+        return false; // 无法打开显示
     }
     // RAII资源管理
     struct DisplayCloser {
@@ -25,7 +25,7 @@ bool SetFocus_Linux(uint64_t x11WindowNumber)
     // 获取当前窗口句柄
     ::Window hWnd = x11WindowNumber;
     if (hWnd == None) {
-        return;
+        return false;
     }
 
     // 获取当前焦点窗口
@@ -40,6 +40,7 @@ bool SetFocus_Linux(uint64_t x11WindowNumber)
         // 刷新显示以确保操作生效
         XFlush(display);
     }
+    return true;
 }
 
 }
