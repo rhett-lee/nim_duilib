@@ -140,57 +140,6 @@ private:
     std::weak_ptr<WeakFlag> m_pCefControlFlag;
 };
 
-//设置X窗口的父窗口为空
-class SetX11WindowParentEmptyTask : public CefTask
-{
-    IMPLEMENT_REFCOUNTING(SetX11WindowParentEmptyTask);
-public:
-    explicit SetX11WindowParentEmptyTask(CefWindowHandle cefWindow):
-        m_cefWindow(cefWindow)
-    {
-    }
-public:
-    virtual void Execute() override
-    {
-        if (m_cefWindow == 0) {
-            return;
-        }
-        Display* display = ::XOpenDisplay(nullptr);
-        if (display != nullptr) {
-            // RAII资源管理
-            struct DisplayCloser {
-                Display* d;
-                ~DisplayCloser() { if (d) ::XCloseDisplay(d); }
-            } closer{ display };
-
-            ::Window x11Window = m_cefWindow;
-            
-                // 验证窗口是否有效
-            XWindowAttributes attr;
-            if (XGetWindowAttributes(display, x11Window, &attr) == 0) {
-                return; // 无效窗口
-            }
-            
-             // 获取根窗口（相当于Windows中的桌面窗口）
-            Window rootWindow = DefaultRootWindow(display);
-
-            // 将CEF窗口的父窗口设置为根窗口
-            // 参数说明：
-            // 1. 显示连接
-            // 2. 要重设父窗口的窗口
-            // 3. 新的父窗口（根窗口）
-            // 4. 新位置的x坐标（相对于新父窗口）
-            // 5. 新位置的y坐标（相对于新父窗口）
-            XReparentWindow(display, x11Window, rootWindow, 0, 0);
-
-            // 刷新显示以确保更改生效
-            XFlush(display);
-        }
-    }
-private:
-    CefWindowHandle m_cefWindow;
-};
-
 void SetCefWindowPos(CefWindowHandle cefWindow, CefControl* pCefControl)
 {
     if ((cefWindow == 0) || (pCefControl == nullptr)) {
@@ -339,7 +288,7 @@ void RemoveCefWindowFromParent(CefWindowHandle cefWindow)
     if (cefWindow == 0) {
         return;
     }
-    CefPostTask(TID_UI, new SetX11WindowParentEmptyTask(cefWindow));
+    //不需要实现，对业务无影响
 }
 
 } //namespace ui
