@@ -14,6 +14,8 @@
 
 #if defined DUILIB_BUILD_FOR_MACOS
     #include "SDL_MacOS.h"
+#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    #include "SDL_Linux.h"
 #endif
 
 /** 主动绘制
@@ -1859,7 +1861,7 @@ void NativeWindow_SDL::CheckSetWindowFocus()
 #elif defined (DUILIB_BUILD_FOR_MACOS)
     SetFocus_MacOS(GetNSWindow());
 #elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
-
+    SetFocus_Linux(GetX11WindowNumber());
 #endif
 }
 
