@@ -2,12 +2,10 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN)
     #include "ProcessSingleton_Windows.h"
-#elif defined (DUILIB_BUILD_FOR_LINUX)
+#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
     #include "ProcessSingleton_Linux.h"
 #elif defined (DUILIB_BUILD_FOR_MACOS)
     #include "ProcessSingleton_MacOS.h"
-#elif defined (DUILIB_BUILD_FOR_FREEBSD)
-    #include "ProcessSingleton_FreeBSD.h"
 #endif
 
 #include "duilib/Utils/StringConvert.h"

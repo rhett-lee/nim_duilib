@@ -3,7 +3,7 @@
 
 #include "ProcessSingletonData.h"
 
-#ifdef DUILIB_BUILD_FOR_LINUX
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
 
 #include <sys/file.h>
 #include <sys/socket.h>
