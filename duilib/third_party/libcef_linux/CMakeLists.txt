@@ -132,7 +132,7 @@
 #
 
 # For VS2022 and Xcode 12+ support.
-cmake_minimum_required(VERSION 3.21)
+cmake_minimum_required(VERSION 3.18)
 
 # Only generate Debug and Release configuration types.
 set(CMAKE_CONFIGURATION_TYPES Debug Release)
