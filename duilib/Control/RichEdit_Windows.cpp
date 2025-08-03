@@ -66,20 +66,6 @@ public:
         IDropTarget* pDropTarget = nullptr;
         HRESULT txResult = m_pTextServices->TxGetDropTarget(&pDropTarget);
         if (SUCCEEDED(txResult) && (pDropTarget != nullptr)) {
-            //设置当前RichEdit控件的光标到鼠标所在位置，方便查看拖放目标位置
-            if (m_pRichEdit != nullptr) {
-                UiPoint clientPt = pt;
-                m_pRichEdit->ScreenToClient(clientPt);
-                if (m_pRichEdit->GetPos().ContainsPt(clientPt)) {                    
-                    int32_t pos = m_pRichEdit->CharFromPos(clientPt);
-                    if (pos >= 0) {
-                        UiPoint charPt = m_pRichEdit->PosFromChar(pos);
-                        m_pRichEdit->SetCaretPos(charPt.x, charPt.y);
-                        m_pRichEdit->ShowCaret(true);
-                    }
-                }
-            }
-
             //转接给文字服务
             DWORD dwEffect = DROPEFFECT_NONE;
             if (pdwEffect != nullptr) {
@@ -90,6 +76,22 @@ public:
                 *pdwEffect = dwEffect;
             }
             pDropTarget->Release();
+
+            if ((hr == S_OK) && (dwEffect != DROPEFFECT_NONE)) {
+                //在成功时，设置当前RichEdit控件的光标到鼠标所在位置，方便查看拖放目标位置
+                if (m_pRichEdit != nullptr) {
+                    UiPoint clientPt = pt;
+                    m_pRichEdit->ScreenToClient(clientPt);
+                    if (m_pRichEdit->GetPos().ContainsPt(clientPt)) {
+                        int32_t pos = m_pRichEdit->CharFromPos(clientPt);
+                        if (pos >= 0) {
+                            UiPoint charPt = m_pRichEdit->PosFromChar(pos);
+                            m_pRichEdit->SetCaretPos(charPt.x, charPt.y);
+                            m_pRichEdit->ShowCaret(true);
+                        }
+                    }
+                }
+            }
         }
         return hr;
     }
