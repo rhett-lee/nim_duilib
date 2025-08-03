@@ -7,6 +7,12 @@
     #include <limits.h>
 #endif
 
+#ifdef DUILIB_BUILD_FOR_FREEBSD
+    #include <sys/types.h>
+    #include <sys/sysctl.h>
+    #include <unistd.h>
+#endif
+
 #ifdef DUILIB_BUILD_FOR_MACOS
     #include <mach-o/dyld.h>
     #include <CoreFoundation/CoreFoundation.h>
@@ -124,6 +130,44 @@ FilePath FilePathUtil::GetCurrentModuleDirectory()
     if (dirPath.empty()) {
         dirPath = std::filesystem::current_path().native();
     }
+    FilePath filePath(dirPath);
+    filePath.NormalizeDirectoryPath();
+    return filePath;
+#elif defined (DUILIB_BUILD_FOR_FREEBSD)
+    int mib[4];
+    mib[0] = CTL_KERN;
+    mib[1] = KERN_PROC;
+    mib[2] = KERN_PROC_PATHNAME;
+    mib[3] = -1;  // -1表示当前进程
+
+    // 首先获取路径所需的缓冲区大小
+    size_t len = 0;
+    if ((sysctl(mib, 4, nullptr, &len, nullptr, 0) == -1) || (len == 0)) {
+        // 出错时使用当前工作目录
+        std::string dirPath = std::filesystem::current_path().native();
+        FilePath filePath(dirPath);
+        filePath.NormalizeDirectoryPath();
+        return filePath;
+    }
+    // 分配缓冲区并获取实际路径
+    char* path = new char[len];
+    if (sysctl(mib, 4, path, &len, nullptr, 0) == -1) {
+        delete[] path;
+        std::string dirPath = std::filesystem::current_path().native();
+        FilePath filePath(dirPath);
+        filePath.NormalizeDirectoryPath();
+        return filePath;
+    }
+
+    // 处理获取到的路径
+    std::filesystem::path exeFullPath(path);
+    delete[] path;
+
+    std::string dirPath = exeFullPath.parent_path().native();
+    if (dirPath.empty()) {
+        dirPath = std::filesystem::current_path().native();
+    }
+
     FilePath filePath(dirPath);
     filePath.NormalizeDirectoryPath();
     return filePath;
