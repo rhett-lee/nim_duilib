@@ -147,7 +147,7 @@ void CefControlOffScreen::ReCreateBrowser()
         // Don't activate the browser window on creation.
         window_info.ex_style |= WS_EX_NOACTIVATE;
     }
-#elif defined DUILIB_BUILD_FOR_LINUX
+#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
     window_info.SetAsWindowless(pWindow->NativeWnd()->GetX11WindowNumber());
 #elif defined DUILIB_BUILD_FOR_MACOS
     window_info.SetAsWindowless(pWindow->NativeWnd()->GetNSView());

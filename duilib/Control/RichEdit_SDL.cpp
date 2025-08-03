@@ -598,7 +598,7 @@ void RichEdit::SetNumberFormat64(const DString& numberFormat)
     DString format = numberFormat;
 #if defined (DUILIB_BUILD_FOR_WIN)
     StringUtil::ReplaceAll(_T("lld"), _T("I64d"), format);
-#elif defined (DUILIB_BUILD_FOR_LINUX)
+#else
     StringUtil::ReplaceAll(_T("I64d"), _T("lld"), format);
 #endif
     m_numberFormat = format;
