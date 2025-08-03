@@ -41,16 +41,6 @@ public:
     static DString WStringToT(const std::wstring& wstr);
 #endif
 
-#if defined(__llvm__) || defined(__clang__)
-    //LLVM 编译时，如果DUTF32Char是int32_t，会编译报错，无法匹配模板特化：struct char_traits<int>
-    #if !defined (WCHAR_T_IS_UTF16) && defined (WCHAR_T_IS_UTF32)
-        #define DUILIB_UTF32_SUPPORT 1
-    #endif
-#else
-    #define DUILIB_UTF32_SUPPORT 1
-#endif
-
-#ifdef DUILIB_UTF32_SUPPORT
     //UTF8转换为UTF32字符串
     static std::basic_string<DUTF32Char> UTF8ToUTF32(const DUTF8Char* utf8, size_t length);
     static std::basic_string<DUTF32Char> UTF8ToUTF32(const std::string& utf8);
@@ -68,7 +58,6 @@ public:
     //UTF32字符串转换为DStringW
     static DStringW UTF32ToWString(const DUTF32Char* utf32, size_t length);
     static DStringW UTF32ToWString(const std::basic_string<DUTF32Char>& utf32);
-#endif
 
 #ifdef DUILIB_BUILD_FOR_WIN
     //本地Ansi编码或者UTF8编码等转换成Unicode编码

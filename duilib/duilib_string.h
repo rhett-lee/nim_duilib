@@ -31,10 +31,10 @@
                 //Linux/macOS GCC: wchar_t通常是4字节(UTF-32)
                 #define WCHAR_T_IS_UTF32
             #elif (__WCHAR_MAX__ == 0x7fff || __WCHAR_MAX__ == 0xffff)
-    // On Posix, we'll detect short wchar_t, but projects aren't guaranteed to
-    // compile in this mode (in particular, Chrome doesn't). This is intended for
-    // other projects using base who manage their own dependencies and make sure
-    // short wchar works for them.
+                // On Posix, we'll detect short wchar_t, but projects aren't guaranteed to
+                // compile in this mode (in particular, Chrome doesn't). This is intended for
+                // other projects using base who manage their own dependencies and make sure
+                // short wchar works for them.
                 //某些特殊配置下可能是2字节
                 #define WCHAR_T_IS_UTF16
             #endif
@@ -43,7 +43,7 @@
     
     // 如果未检测到，默认处理
     #if !defined(WCHAR_T_IS_UTF16) && !defined(WCHAR_T_IS_UTF32)
-        // macOS默认情况下wchar_t是4字节
+        // 默认情况下（Linux/FreeBSD/MacOS平台）wchar_t是4字节
         #define WCHAR_T_IS_UTF32
     #endif
 #else
@@ -52,14 +52,11 @@
 
 typedef char DUTF8Char;
 #if defined(WCHAR_T_IS_UTF16)
-    typedef wchar_t DUTF16Char;
-    typedef int32_t DUTF32Char;
-#elif defined(__FreeBSD__) && defined(__aarch64__)
-    typedef char16_t DUTF16Char;
-    typedef wchar_t DUTF32Char;
+    typedef wchar_t  DUTF16Char;
+    typedef char32_t DUTF32Char;
 #else
-    typedef int16_t DUTF16Char;
-    typedef wchar_t DUTF32Char;
+    typedef char16_t DUTF16Char;
+    typedef wchar_t  DUTF32Char;
 #endif
 
 typedef std::basic_string<DUTF8Char> UTF8String;
