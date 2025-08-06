@@ -14,44 +14,17 @@ class Control;
 class ControlDropTarget : public virtual SupportWeakCallback
 {
 public:
-    ControlDropTarget();
-    ControlDropTarget(const ControlDropTarget& r) = delete;
-    ControlDropTarget& operator=(const ControlDropTarget& r) = delete;
-    virtual ~ControlDropTarget();
-
-public:
-    /** 设置关联的控件接口
-     * @param [in] pControl 控件接口
-     */
-    void SetControl(Control* pControl);
-
-    /** 获取控件接口
-    */
-    Control* GetControl() const;
-
-    /** 判断点坐标是否包含在该控件中
-    * @param [in] screenPt 屏幕坐标点
-    */
-    bool ContainsPt(const UiPoint& screenPt) const;
-
-public:
-
     //IDropTarget::DragEnter
-    virtual int32_t DragEnter(void* pDataObj, uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect);
+    virtual int32_t DragEnter(void* pDataObj, uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect) = 0;
 
     //IDropTarget::DragOver
-    virtual int32_t DragOver(uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect);
+    virtual int32_t DragOver(uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect) = 0;
 
     //IDropTarget::DragLeave
-    virtual int32_t DragLeave(void);
+    virtual int32_t DragLeave(void) = 0;
 
     //IDropTarget::Drop
-    virtual int32_t Drop(void* pDataObj, uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect);
-
-private:
-    /** 关联的控件接口
-    */
-    ControlPtr m_pControl;
+    virtual int32_t Drop(void* pDataObj, uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect) = 0;
 };
 
 } // namespace ui

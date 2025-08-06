@@ -12,6 +12,9 @@
 
 namespace ui {
 
+class WindowDropTarget;
+class Control;
+
 /** 窗口功能的Windows平台实现
 */
 class NativeWindow_Windows
@@ -467,6 +470,20 @@ public:
     */
     void SetTextInputArea(const UiRect* rect, int32_t nCursor);
 
+    /** 设置是否允许拖放操作
+    * @param [in] bEnable true表示允许拖放操作，false表示禁止拖放操作
+    */
+    void SetEnableDragDrop(bool bEnable);
+
+    /** 注销一个拖放接口
+    */
+    bool IsEnableDragDrop() const;
+
+    /** 获取指定坐标点的控件接口
+    * @param [in] pt 客户区坐标点
+    */
+    Control* FindControl(const UiPoint& pt) const;
+
 private:
     /** 窗口过程函数
     * @param [in] hWnd 窗口句柄
@@ -636,6 +653,10 @@ private:
     */
     WNDPROC m_pfnOldWndProc;
 
+    /** 是否支持拖放操作
+    */
+    bool m_bEnableDragDrop;
+
     /** 当前窗口是否显示为模态对话框
     */
     bool m_bDoModal;
@@ -721,6 +742,10 @@ private:
     /** 输入法的上下文
     */
     HIMC m_hImc;
+
+    /** 拖放功能的实现接口
+    */
+    WindowDropTarget* m_pWindowDropTarget;
 };
 
 /** 定义别名

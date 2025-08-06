@@ -51,7 +51,6 @@ public:
     virtual void SetAttribute(const DString& pstrName, const DString& pstrValue) override;
     virtual void SetEnabled(bool bEnable = true) override;
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
-    virtual void SetWindow(Window* pWindow) override;
     virtual void SetPos(UiRect rc) override;
     virtual void SetScrollPos(UiSize64 szPos) override;
     virtual void PaintStateImages(IRender* pRender) override;
@@ -723,6 +722,19 @@ public:
     */
     DString GetFocusBottomBorderColor() const;
 
+    /** 设置是否允许拖放功能
+    */
+    void SetEnableDragDrop(bool bEnable);
+
+    /** 判断是否已经允许拖放功能
+    */
+    bool IsEnableDragDrop() const;
+
+    /** 获取拖放接口
+    * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
+    */
+    virtual ControlDropTarget* GetControlDropTarget() override;
+
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
 public:
     /** 是否是富文本模式
@@ -739,14 +751,6 @@ public:
     /** 设置是否保存所选内容的边界
     */
     void SetSaveSelection(bool fSaveSelection);
-
-    /** 设置是否允许拖放功能
-    */
-    void SetEnableDragDrop(bool bEnable);
-
-    /** 判断是否已经允许拖放功能
-    */
-    bool IsEnableDragDrop() const;
 
     /** 获取控件的选择类型
      * @return 返回控件的选择类型，参考：https://docs.microsoft.com/en-us/windows/desktop/controls/em-selectiontype
@@ -1032,17 +1036,6 @@ private:
     */
     static void GetClipboardText(DStringW& out);
 
-#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
-private:
-    /** 注册拖放接口与窗口的关联关系
-    */
-    void RegisterDragDrop();
-
-    /** 注销拖放接口与窗口的关联关系
-    */
-    void UnregisterDragDrop();
-#endif //DUILIB_RICHEDIT_SUPPORT_RICHTEXT
-
 private:
     //一组供RichEditHost使用的函数
     friend class RichEditHost;
@@ -1247,13 +1240,9 @@ private:
     DWORD m_dwLastCharTime = 0;
 #endif
 
-
-#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     /** 拖放功能的实现接口, 如果不为空表示功能已经开启
     */
     ControlDropTarget* m_pControlDropTarget;
-
-#endif //DUILIB_RICHEDIT_SUPPORT_RICHTEXT
 };
 
 } // namespace ui

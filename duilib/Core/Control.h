@@ -21,6 +21,7 @@ namespace ui
     class IPath;
     class IFont;
     class AutoClip;
+    class ControlDropTarget;
 
     typedef Control* (* FINDCONTROLPROC)(Control*, void*);
 
@@ -925,6 +926,11 @@ public:
     /** 是否为CEF的离屏渲染控件，并自己处理输入法消息的模式
     */
     virtual bool IsCefOsrImeMode() const { return false; }
+
+    /** 获取拖放接口
+    * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
+    */
+    virtual ControlDropTarget* GetControlDropTarget() { return nullptr; }
 
 public:
     /**@name 事件监听相关接口

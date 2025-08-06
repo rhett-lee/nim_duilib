@@ -305,7 +305,6 @@
     <ClCompile Include="Core\ClickThrough_Windows.cpp" />
     <ClCompile Include="Core\ColorManager.cpp" />
     <ClCompile Include="Core\Control.cpp" />
-    <ClCompile Include="Core\ControlDropTarget.cpp" />
     <ClCompile Include="Core\ControlFinder.cpp" />
     <ClCompile Include="Core\ControlLoading.cpp" />
     <ClCompile Include="Core\CursorManager_SDL.cpp" />
@@ -620,7 +619,7 @@
     <ClInclude Include="Core\WindowBuilder.h" />
     <ClInclude Include="Core\WindowCreateAttributes.h" />
     <ClInclude Include="Core\WindowCreateParam.h" />
-    <ClInclude Include="Core\WindowDropTarget.h" />
+    <ClInclude Include="Core\WindowDropTarget_Windows.h" />
     <ClInclude Include="Core\WindowMessage.h" />
     <ClInclude Include="Core\ZipManager.h" />
     <ClInclude Include="Core\ZipStreamIO.h" />
