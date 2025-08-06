@@ -18,6 +18,8 @@ namespace ui
 //   成功返回true，失败返回false
 bool CaptureScreenBitmap_MacOS(void* targetWindow, std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height) 
 {
+    return false;
+    /** CGDisplayCreateImage在macOS 15.0 以后不可用, 报错提示需要使用ScreenCaptureKit. #239
     @autoreleasepool {
         // 1. 检查屏幕录制权限
         if (@available(macOS 10.15, *)) {
@@ -92,6 +94,7 @@ bool CaptureScreenBitmap_MacOS(void* targetWindow, std::vector<uint8_t>& bitmap,
         bitmap.swap(tempBuffer);
         return true;
     }
+    */
 }
 
 std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(const Window* pWindow)
