@@ -14,8 +14,6 @@
 
 namespace ui
 {
-class WindowDropTarget;
-class ControlDropTarget;
 class IRender;
 class WindowCreateParam;
 class WindowCreateAttributes;
@@ -532,14 +530,6 @@ public:
     * @param [in] id 命令ID，即注册时使用的命令ID
     */
     bool UnregisterHotKey(int32_t id);
-
-    /** 注册一个拖放接口
-    */
-    bool RegisterDragDrop(ControlDropTarget* pDropTarget);
-
-    /** 注销一个拖放接口
-    */
-    bool UnregisterDragDrop(ControlDropTarget* pDropTarget);
 
     /** 获取鼠标最后的坐标
     */
@@ -1065,10 +1055,6 @@ private:
     UiRect m_rcSysMenuRect;
 
 private:
-    /** 窗口的拖放操作管理接口
-    */
-    WindowDropTarget* m_pWindowDropTarget;
-
     /** 窗口的实现类
     */
     NativeWindow* m_pNativeWindow;

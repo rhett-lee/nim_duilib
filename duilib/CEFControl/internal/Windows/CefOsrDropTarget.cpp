@@ -7,12 +7,10 @@
 
 namespace ui {
 
-CefOsrDropTarget::CefOsrDropTarget(const std::shared_ptr<client::DropTargetWin>& pDropTargetWin, Control* pCefControl):
+CefOsrDropTarget::CefOsrDropTarget(const std::shared_ptr<client::DropTargetWin>& pDropTargetWin):
     m_pDropTargetWin(pDropTargetWin)
 {
     ASSERT(m_pDropTargetWin != nullptr);
-    ASSERT(pCefControl != nullptr);
-    SetControl(pCefControl);
 }
 
 CefOsrDropTarget::~CefOsrDropTarget()

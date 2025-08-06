@@ -410,6 +410,11 @@ protected:
     */
     void DoCloseAllBrowsers(bool bForceClose);
 
+    /** 获取拖放接口
+    * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
+    */
+    virtual ControlDropTarget* GetControlDropTarget() override;
+
 protected:
     /** CefRenderHandler接口, 在非UI线程中被调用
     *   当浏览器渲染数据变化时，会触发此接口，此时把渲染数据保存到内存dc

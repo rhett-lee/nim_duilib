@@ -486,6 +486,15 @@ public:
      */
     void ApplyAttributeList(const DString& strList);
 
+    /** 设置是否允许拖放操作
+    * @param [in] bEnable true表示允许拖放操作，false表示禁止拖放操作
+    */
+    void SetEnableDragDrop(bool bEnable);
+
+    /** 注销一个拖放接口
+    */
+    bool IsEnableDragDrop() const;
+
 protected:
     /** 正在初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
     */
@@ -575,6 +584,11 @@ protected:
     * @param [out] createAttributes 返回从XML文件的Window标签中读取的创建窗口的属性
     */
     virtual void GetCreateWindowAttributes(WindowCreateAttributes& createAttributes) override;
+
+    /** 获取指定坐标点的控件接口
+    * @param [in] pt 客户区坐标点
+    */
+    virtual Control* OnNativeFindControl(const UiPoint& pt) const override;
 
     /** @name 窗口消息处理相关
         * @{

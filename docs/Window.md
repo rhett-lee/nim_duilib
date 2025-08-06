@@ -9,6 +9,7 @@
 | icon              | 标题栏  |         | string | SetWindowIcon           |设置窗口的图标文件路径，支持ico格式 |
 | text              | 标题栏  |         | string | SetText                 |窗体标题字符串|
 | textid            | 标题栏  |         | string | SetTextId               |窗体标题字符串的ID, ID在多语言文件中指定, 如(STRID_MIANWINDOW_TITLE) |
+| drag_drop         | 拖放    | true    | bool   | SetEnableDragDrop       |设置是否允许拖放操作 |
 | shadow_attached   | 窗口阴影| true    | bool   | SetShadowAttached       |窗口是否附加阴影效果,如(true) |
 | shadow_type       | 窗口阴影|         | string | SetShadowType           |设置窗口的阴影类型：<br> "default"：默认阴影 <br> "big"：有阴影（大），直角，有边框（适合普通窗口）<br> "big_round"：有阴影（大），圆角，有边框（适合普通窗口）<br> "small"：有阴影（小），直角，有边框（适合普通窗口）<br> "small_round"：有阴影（小），圆角，有边框（适合普通窗口）<br> "menu"：有阴影（小），直角，有边框（适合弹出式窗口，比如菜单等）<br> "menu_round"：有阴影（小），圆角，有边框（适合弹出式窗口，比如菜单等）<br> "none"：无阴影，直角，有边框<br> "none_round"：无阴影，圆角，有边框|
 | shadow_image      | 窗口阴影|         | string | SetShadowImage          |使用自定义的阴影图片去代替默认的阴影效果，设置的路径要注意相对路径以及九宫格属性，如(file='../public/shadow/shadow_big.svg' corner='64,64,68,70') |

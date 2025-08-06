@@ -16,7 +16,7 @@ namespace ui {
 class CefOsrDropTarget : public ControlDropTarget
 {
 public:
-    CefOsrDropTarget(const std::shared_ptr<client::DropTargetWin>& pDropTargetWin, Control* pCefControl);
+    explicit CefOsrDropTarget(const std::shared_ptr<client::DropTargetWin>& pDropTargetWin);
     virtual ~CefOsrDropTarget() override;
 
 public:

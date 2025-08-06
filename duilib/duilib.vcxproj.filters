@@ -294,9 +294,6 @@
     <ClCompile Include="Control\CheckCombo.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Core\ControlDropTarget.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Control\ComboButton.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -1004,9 +1001,6 @@
     <ClInclude Include="Control\CheckCombo.h">
       <Filter>Control</Filter>
     </ClInclude>
-    <ClInclude Include="Core\WindowDropTarget.h">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="Core\ControlDropTarget.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -1477,6 +1471,9 @@
     </ClInclude>
     <ClInclude Include="CEFControl\internal\Windows\CefOsrDropTarget.h">
       <Filter>CEFControl\internal\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WindowDropTarget_Windows.h">
+      <Filter>Core\Windows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

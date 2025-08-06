@@ -194,7 +194,7 @@ bool SkRasterWindowContext_Windows::SwapPaintBuffers(HDC hPaintDC, const UiRect&
     if (hPaintDC == nullptr) {
         return false;
     }
-    ASSERT(!rcPaint.IsEmpty());
+    //ASSERT(!rcPaint.IsEmpty()); //当窗口部分在屏幕外时，会出现为空的情况
     if (rcPaint.IsEmpty()) {
         return false;
     }

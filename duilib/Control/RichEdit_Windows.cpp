@@ -3,7 +3,6 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/WindowMessage.h"
-#include "duilib/Core/WindowDropTarget.h"
 #include "duilib/Core/ControlDropTarget.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Utils/StringUtil.h"
@@ -197,7 +196,6 @@ RichEdit::~RichEdit()
 {
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     if (m_pControlDropTarget != nullptr) {
-        UnregisterDragDrop();
         delete m_pControlDropTarget;
         m_pControlDropTarget = nullptr;
     }
@@ -400,6 +398,14 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //焦点状态时，底部边框的颜色
         SetFocusBottomBorderColor(strValue);
     }
+    else if (strName == _T("enable_drag_drop")) {
+        //是否允许拖放操作
+        SetEnableDragDrop(strValue == _T("true"));
+    }
+    else if (strName == _T("select_all_on_focus")) {
+        //获取焦点的时候，是否全选
+        SetSelAllOnFocus(strValue == _T("true"));
+    }
 
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
     else if (strName == _T("zoom")) {
@@ -443,15 +449,7 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //如果 为 TRUE，则当控件处于非活动状态时，应保存所选内容的边界。
         //如果 为 FALSE，则当控件再次处于活动状态时，可以选择边界重置为 start = 0，length = 0。
         SetSaveSelection(strValue == _T("true"));
-    }
-    else if (strName == _T("enable_drag_drop")) {
-        //是否允许拖放操作
-        SetEnableDragDrop(strValue == _T("true"));
-    }
-    else if (strName == _T("select_all_on_focus")) {
-        //获取焦点的时候，是否全选
-        SetSelAllOnFocus(strValue == _T("true"));
-    }
+    }    
 #else
     else if (strName == _T("zoom")) {
         //缩放比例：
@@ -535,22 +533,6 @@ void RichEdit::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     m_richCtrl.SetDefaultCharFormat(cf);
 
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
-}
-
-void RichEdit::SetWindow(Window* pWindow)
-{
-#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
-    if (IsEnableDragDrop() && (pWindow != GetWindow())) {
-        UnregisterDragDrop();
-    }
-#endif
-    BaseClass::SetWindow(pWindow);
-
-#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
-    if (IsEnableDragDrop()) {
-        RegisterDragDrop();
-    }
-#endif
 }
 
 bool RichEdit::IsWantTab() const
@@ -3497,6 +3479,45 @@ DString RichEdit::GetFocusBottomBorderColor() const
     return m_sFocusBottomBorderColor.c_str();
 }
 
+void RichEdit::SetEnableDragDrop(bool bEnable)
+{
+    if (m_pRichHost == nullptr) {
+        return;
+    }
+    if (IsReadOnly() || IsPasswordMode() || !IsEnabled()) {
+        //只读模式、密码模式、不可用模式，关闭拖放功能
+        bEnable = false;
+    }
+
+    if (bEnable) {
+        m_pControlDropTarget = new RichEditDropTarget(this, m_pRichHost->GetTextServices());
+    }
+    else {
+        if (m_pControlDropTarget != nullptr) {
+            delete m_pControlDropTarget;
+            m_pControlDropTarget = nullptr;
+        }
+    }
+}
+
+bool RichEdit::IsEnableDragDrop() const
+{
+    if (IsReadOnly() || IsPasswordMode() || !IsEnabled()) {
+        //只读模式、密码模式、不可用模式，关闭拖放功能
+        return false;
+    }
+    return m_pControlDropTarget != nullptr;
+}
+
+ControlDropTarget* RichEdit::GetControlDropTarget()
+{
+    if (IsReadOnly() || IsPasswordMode() || !IsEnabled()) {
+        //只读模式、密码模式、不可用模式，关闭拖放功能
+        return nullptr;
+    }
+    return m_pControlDropTarget;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
@@ -3834,57 +3855,6 @@ void RichEdit::PasteSpecial(UINT uClipFormat, DWORD dwAspect/* = 0*/, HMETAFILE 
         return;
     }
     return m_richCtrl.PasteSpecial(uClipFormat, dwAspect, hMF);
-}
-
-void RichEdit::SetEnableDragDrop(bool bEnable)
-{
-    if (m_pRichHost == nullptr) {
-        return;
-    }
-    if (bEnable) {
-        //只读模式、密码模式、不可用模式，关闭拖放功能
-        if (IsReadOnly() || IsPasswordMode() || !IsEnabled()) {
-            bEnable = false;
-        }
-    }
-    if (bEnable) {
-        m_pControlDropTarget = new RichEditDropTarget(this, m_pRichHost->GetTextServices());
-        m_pControlDropTarget->SetControl(this);
-        RegisterDragDrop();
-    }
-    else {
-        UnregisterDragDrop();
-        if (m_pControlDropTarget != nullptr) {
-            delete m_pControlDropTarget;
-            m_pControlDropTarget = nullptr;
-        }
-    }
-}
-
-bool RichEdit::IsEnableDragDrop() const
-{
-    return m_pControlDropTarget != nullptr;
-}
-
-void RichEdit::RegisterDragDrop()
-{
-    ASSERT(m_pControlDropTarget != nullptr);
-    if (m_pControlDropTarget != nullptr) {
-        Window* pWindow = GetWindow();
-        if (pWindow != nullptr) {
-            pWindow->RegisterDragDrop(m_pControlDropTarget);
-        }
-    }
-}
-
-void RichEdit::UnregisterDragDrop()
-{
-    if (m_pControlDropTarget != nullptr) {
-        Window* pWindow = GetWindow();
-        if (pWindow != nullptr) {
-            pWindow->UnregisterDragDrop(m_pControlDropTarget);
-        }
-    }
 }
 
 #endif //DUILIB_RICHEDIT_SUPPORT_RICHTEXT

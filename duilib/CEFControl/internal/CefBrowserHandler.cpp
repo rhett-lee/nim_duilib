@@ -65,8 +65,7 @@ void CefBrowserHandler::RegisterDropTarget()
                 ASSERT(::IsWindow(hWnd));
                 if (::IsWindow(hWnd)) {
                     std::shared_ptr<client::DropTargetWin> pDropTargetWin = std::make_shared<client::DropTargetWin>(hWnd, this);
-                    m_pDropTarget = std::make_shared<CefOsrDropTarget>(pDropTargetWin, pCefControl);
-                    pCefControl->GetWindow()->RegisterDragDrop(m_pDropTarget.get());
+                    m_pDropTarget = std::make_shared<CefOsrDropTarget>(pDropTargetWin);
                 }
             }
         }
@@ -78,16 +77,17 @@ void CefBrowserHandler::UnregisterDropTarget()
 {
     GlobalManager::Instance().AssertUIThread();
 #ifdef DUILIB_BUILD_FOR_WIN
-    if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
-        //离屏渲染模式
-        if ((m_pHandlerDelegate != nullptr) && (m_pDropTarget != nullptr)) {
-            Control* pCefControl = m_pHandlerDelegate->GetCefControl();
-            if ((pCefControl != nullptr) && (pCefControl->GetWindow() != nullptr)) {
-                pCefControl->GetWindow()->UnregisterDragDrop(m_pDropTarget.get());
-            }
-        }
-        m_pDropTarget.reset();
-    }
+    m_pDropTarget.reset();
+#endif
+}
+
+ControlDropTarget* CefBrowserHandler::GetControlDropTarget()
+{
+    GlobalManager::Instance().AssertUIThread();
+#ifdef DUILIB_BUILD_FOR_WIN
+    return m_pDropTarget.get();
+#else
+    return nullptr;
 #endif
 }
 

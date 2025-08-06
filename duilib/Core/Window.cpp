@@ -51,6 +51,20 @@ void Window::SetAttribute(const DString& strName, const DString& strValue)
         //是否开启阴影
         SetShadowAttached(strValue == _T("true"));
     }
+    else if (strName == _T("drag_drop")) {
+        //是否开启阴影
+        SetEnableDragDrop(strValue == _T("true"));
+    }
+}
+
+void Window::SetEnableDragDrop(bool bEnable)
+{
+    NativeWnd()->SetEnableDragDrop(bEnable);
+}
+
+bool Window::IsEnableDragDrop() const
+{
+    return NativeWnd()->IsEnableDragDrop();
 }
 
 void Window::SetClass(const DString& strClass)
@@ -2491,6 +2505,11 @@ void Window::OnInitLayout()
     if ((m_pRoot != nullptr) && m_pRoot->IsVisible()) {
         m_pRoot->SetFadeVisible(true);
     }
+}
+
+Control* Window::OnNativeFindControl(const UiPoint& pt) const
+{
+    return FindControl(pt);
 }
 
 Control* Window::FindControl(const UiPoint& pt) const

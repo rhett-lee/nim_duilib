@@ -5,6 +5,7 @@
 
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include "duilib/Utils/InlineHook_Windows.h"
+#include "duilib/Core/WindowDropTarget_Windows.h"
 
 #include <CommCtrl.h>
 #include <Olectl.h>
@@ -50,6 +51,7 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_dwLastStyle(0),
     m_ptLastMousePos(-1, -1),
     m_pfnOldWndProc(nullptr),
+    m_bEnableDragDrop(true),
     m_bDoModal(false),
     m_bCloseByEsc(false),
     m_bCloseByEnter(false),
@@ -57,7 +59,8 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_bEnableSysMenu(true),
     m_bNCLButtonDownOnMaxButton(false),
     m_nSysMenuTimerId(0),
-    m_hImc(nullptr)
+    m_hImc(nullptr),
+    m_pWindowDropTarget(nullptr)
 {
     ASSERT(m_pOwner != nullptr);
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
@@ -461,6 +464,9 @@ void NativeWindow_Windows::InitNativeWindow()
         DString windowTitle = StringConvert::TToLocal(m_createParam.m_windowTitle);
         ::SetWindowText(hWnd, windowTitle.c_str());
     }
+
+    //关联拖放操作
+    SetEnableDragDrop(IsEnableDragDrop());
 }
 
 void NativeWindow_Windows::ClearNativeWindow()
@@ -482,6 +488,11 @@ void NativeWindow_Windows::ClearNativeWindow()
     if (m_hImc != nullptr) {
         ::ImmAssociateContext(m_hWnd, m_hImc);
         m_hImc = nullptr;
+    }
+    if (m_pWindowDropTarget != nullptr) {
+        m_pWindowDropTarget->UnregisterDragDrop();
+        m_pWindowDropTarget->Release();
+        m_pWindowDropTarget = nullptr;
     }
     m_hWnd = nullptr;
 }
@@ -2926,6 +2937,35 @@ void NativeWindow_Windows::EnableIME(HWND hwnd, bool bEnable)
 
 void NativeWindow_Windows::SetTextInputArea(const UiRect* /*rect*/, int32_t /*nCursor*/)
 {
+}
+
+void NativeWindow_Windows::SetEnableDragDrop(bool bEnable)
+{
+    m_bEnableDragDrop = bEnable;
+    if (bEnable && IsWindow()) {
+        if (m_pWindowDropTarget == nullptr) {
+            m_pWindowDropTarget = new WindowDropTarget(this);
+            m_pWindowDropTarget->AddRef();
+            m_pWindowDropTarget->RegisterDragDrop();
+        }
+    }
+    else {
+        if (m_pWindowDropTarget != nullptr) {
+            m_pWindowDropTarget->UnregisterDragDrop();
+            m_pWindowDropTarget->Release();
+            m_pWindowDropTarget = nullptr;
+        }
+    }
+}
+
+bool NativeWindow_Windows::IsEnableDragDrop() const
+{
+    return m_bEnableDragDrop;
+}
+
+Control* NativeWindow_Windows::FindControl(const UiPoint& pt) const
+{
+    return m_pOwner->OnNativeFindControl(pt);
 }
 
 } // namespace ui
