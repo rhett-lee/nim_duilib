@@ -619,6 +619,7 @@
     <ClInclude Include="Core\WindowBuilder.h" />
     <ClInclude Include="Core\WindowCreateAttributes.h" />
     <ClInclude Include="Core\WindowCreateParam.h" />
+    <ClInclude Include="Core\WindowDropTarget_SDL.h" />
     <ClInclude Include="Core\WindowDropTarget_Windows.h" />
     <ClInclude Include="Core\WindowMessage.h" />
     <ClInclude Include="Core\ZipManager.h" />

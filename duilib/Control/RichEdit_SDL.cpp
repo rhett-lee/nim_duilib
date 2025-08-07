@@ -2,13 +2,10 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/WindowMessage.h"
-#include "duilib/Core/WindowDropTarget.h"
-#include "duilib/Core/ControlDropTarget.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/AttributeUtil.h"
-#include "duilib/Utils/BitmapHelper_Windows.h"
 #include "duilib/Utils/PerformanceUtil.h"
 #include "duilib/Utils/Clipboard.h"
 #include "duilib/Render/IRender.h"
@@ -16,8 +13,8 @@
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Control/Menu.h"
-#include "duilib/Box/VBox.h"
 #include "duilib/Control/Button.h"
+#include "duilib/Box/VBox.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
 #include <SDL3/SDL.h>
@@ -262,6 +259,10 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("hide_selection")) {
         //当控件处于非激活状态时，是否隐藏选择内容
         SetHideSelection(strValue == _T("true"));
+    }
+    else if (strName == _T("enable_drag_drop")) {
+        //是否允许拖放操作
+        SetEnableDragDrop(strValue == _T("true"));
     }
     else if (strName == _T("focus_bottom_border_size")) {
         //焦点状态时，底部边框的大小
@@ -4643,6 +4644,17 @@ void RichEdit::OnInputChar(const EventArgs& msg)
     if (bTextChanged) {
         OnTextChanged();
     }
+}
+
+void RichEdit::SetEnableDragDrop(bool /*bEnable*/)
+{
+    //暂不支持
+}
+
+bool RichEdit::IsEnableDragDrop() const
+{
+    //暂不支持
+    return false;
 }
 
 } // namespace ui
