@@ -12,7 +12,7 @@ class Control;
 
 /** 控件的拖放支持接口（Windows）
 */
-class ControlDropTarget_Windows : public virtual SupportWeakCallback
+class ControlDropTarget : public virtual SupportWeakCallback
 {
 public:
     /** IDropTarget::DragEnter

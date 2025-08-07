@@ -81,7 +81,7 @@ void CefBrowserHandler::UnregisterDropTarget()
 #endif
 }
 
-ControlDropTarget* CefBrowserHandler::GetControlDropTarget()
+ControlDropTarget_Windows* CefBrowserHandler::GetControlDropTarget()
 {
     GlobalManager::Instance().AssertUIThread();
 #ifdef DUILIB_BUILD_FOR_WIN

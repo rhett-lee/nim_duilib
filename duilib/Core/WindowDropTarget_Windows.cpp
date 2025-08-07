@@ -130,7 +130,7 @@ HRESULT STDMETHODCALLTYPE WindowDropTarget::DragLeave(void)
 HRESULT WindowDropTarget::OnDragOver(DWORD grfKeyState, POINTL pt, DWORD* pdwEffect)
 {
     HRESULT hr = S_FALSE;
-    ControlPtrT<ControlDropTarget> pHoverDropTarget = GetControlDropTarget(UiPoint(pt.x, pt.y));
+    ControlPtrT<ControlDropTarget_Windows> pHoverDropTarget = GetControlDropTarget(UiPoint(pt.x, pt.y));
     if (pHoverDropTarget == nullptr) {
         if (m_pHoverDropTarget != nullptr) {
             m_pHoverDropTarget->DragLeave();
@@ -200,15 +200,15 @@ HRESULT WindowDropTarget::Drop(IDataObject* pDataObj, DWORD grfKeyState, POINTL 
     return hr;
 }
 
-ControlPtrT<ControlDropTarget> WindowDropTarget::GetControlDropTarget(const UiPoint& screenPt) const
+ControlPtrT<ControlDropTarget_Windows> WindowDropTarget::GetControlDropTarget(const UiPoint& screenPt) const
 {
     UiPoint pt = screenPt;
     m_pNativeWindow->ScreenToClient(pt);
     ControlPtr pNewHover = ControlPtr(m_pNativeWindow->FindControl(pt));
     if (pNewHover != nullptr) {
-        return ControlPtrT<ControlDropTarget>(pNewHover->GetControlDropTarget());
+        return ControlPtrT<ControlDropTarget_Windows>(pNewHover->GetControlDropTarget());
     }
-    return ControlPtrT<ControlDropTarget>();
+    return ControlPtrT<ControlDropTarget_Windows>();
 }
 
 } // namespace ui

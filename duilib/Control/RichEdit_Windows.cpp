@@ -23,7 +23,7 @@ namespace ui {
 
 /** 拖放操作接口的实现（仅是拖入操作）
 */
-class RichEditDropTarget : public ControlDropTarget
+class RichEditDropTarget : public ControlDropTarget_Windows
 {
 public:
     RichEditDropTarget(RichEdit* pRichEdit, ITextServices* pTextServices):
@@ -3509,7 +3509,7 @@ bool RichEdit::IsEnableDragDrop() const
     return m_pControlDropTarget != nullptr;
 }
 
-ControlDropTarget* RichEdit::GetControlDropTarget()
+ControlDropTarget_Windows* RichEdit::GetControlDropTarget()
 {
     if (IsReadOnly() || IsPasswordMode() || !IsEnabled()) {
         //只读模式、密码模式、不可用模式，关闭拖放功能
