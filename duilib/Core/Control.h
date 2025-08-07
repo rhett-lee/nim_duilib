@@ -22,6 +22,7 @@ namespace ui
     class IFont;
     class AutoClip;
     class ControlDropTarget;
+    class ControlDropTarget_SDL;
 
     typedef Control* (* FINDCONTROLPROC)(Control*, void*);
 
@@ -927,10 +928,15 @@ public:
     */
     virtual bool IsCefOsrImeMode() const { return false; }
 
-    /** 获取拖放接口
+    /** 获取拖放接口（Windows）
     * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
     */
     virtual ControlDropTarget* GetControlDropTarget() { return nullptr; }
+
+    /** 获取拖放接口（SDL）
+    * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
+    */
+    virtual ControlDropTarget_SDL* GetControlDropTarget_SDL() { return nullptr; }
 
 public:
     /**@name 事件监听相关接口

@@ -5,7 +5,6 @@
 
 #include "duilib/Core/NativeWindow_Windows.h"
 #include "duilib/Core/Control.h"
-#include <ole2.h>
 
 namespace ui 
 {
@@ -121,7 +120,10 @@ HRESULT STDMETHODCALLTYPE WindowDropTarget::DragLeave(void)
         m_pDataObj->Release();
         m_pDataObj = nullptr;
     }
-    m_pHoverDropTarget = nullptr;
+    if (m_pHoverDropTarget != nullptr) {
+        m_pHoverDropTarget->DragLeave();
+        m_pHoverDropTarget = nullptr;
+    }
     return S_OK;
 }
 

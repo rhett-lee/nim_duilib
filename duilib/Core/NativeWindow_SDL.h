@@ -23,6 +23,8 @@ union SDL_Event;
 
 namespace ui {
 
+class WindowDropTarget;
+
 /** 窗口功能的Windows平台实现
 */
 class NativeWindow_SDL
@@ -532,6 +534,20 @@ public:
     */
     void SetTextInputArea(const UiRect* rect, int32_t nCursor);
 
+    /** 设置是否允许拖放操作
+    * @param [in] bEnable true表示允许拖放操作，false表示禁止拖放操作
+    */
+    void SetEnableDragDrop(bool bEnable);
+
+    /** 注销一个拖放接口
+    */
+    bool IsEnableDragDrop() const;
+
+    /** 获取指定坐标点的控件接口
+    * @param [in] pt 客户区坐标点
+    */
+    Control* FindControl(const UiPoint& pt) const;
+
 private:
     /** 创建窗口和渲染接口
     */
@@ -675,6 +691,10 @@ private:
     */
     uint8_t m_nLayeredWindowOpacity;
 
+    /** 是否支持拖放操作
+    */
+    bool m_bEnableDragDrop;
+
     /** 当前窗口是否显示为模态对话框
     */
     bool m_bFakeModal;
@@ -694,6 +714,10 @@ private:
     /** 窗口更新的区域（需要绘制）
     */
     UiRect m_rcUpdateRect;
+
+    /** 拖放的支持
+    */
+    std::unique_ptr<WindowDropTarget> m_pWindowDropTarget;
 };
 
 /** 定义别名

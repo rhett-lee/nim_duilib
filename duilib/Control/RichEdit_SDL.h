@@ -612,6 +612,14 @@ public:
     */
     DString GetFocusBottomBorderColor() const;
 
+    /** 设置是否允许拖放功能
+    */
+    void SetEnableDragDrop(bool bEnable);
+
+    /** 判断是否已经允许拖放功能
+    */
+    bool IsEnableDragDrop() const;
+
     /** 是否可以Redo
     */
     bool CanRedo() const;

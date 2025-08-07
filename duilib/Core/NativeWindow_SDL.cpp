@@ -1,5 +1,6 @@
 #include "NativeWindow_SDL.h"
 #include "MessageLoop_SDL.h"
+#include "WindowDropTarget_SDL.h"
 #include "duilib/Image/ImageDecoder.h"
 #include "duilib/Image/ImageLoadAttribute.h"
 #include "duilib/Image/ImageInfo.h"
@@ -130,6 +131,14 @@ SDL_WindowID NativeWindow_SDL::GetWindowIdFromEvent(const SDL_Event& sdlEvent)
     case SDL_EVENT_MOUSE_WHEEL:
         //鼠标事件
         windowID = sdlEvent.wheel.windowID;
+        break;
+    case SDL_EVENT_DROP_BEGIN:
+    case SDL_EVENT_DROP_POSITION:
+    case SDL_EVENT_DROP_TEXT:
+    case SDL_EVENT_DROP_FILE:
+    case SDL_EVENT_DROP_COMPLETE:
+        //拖放事件
+        windowID = sdlEvent.drop.windowID;
         break;
     default:
         if ((sdlEvent.type > SDL_EVENT_USER) && (sdlEvent.type < SDL_EVENT_LAST)) {
@@ -545,6 +554,58 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             lResult = pOwner->OnNativeShowWindowMsg(false, NativeMsg(SDL_EVENT_WINDOW_HIDDEN, 0, 0), bHandled);
         }
         break;
+    case SDL_EVENT_DROP_BEGIN:
+        {
+            bHandled = true;
+            if (m_pWindowDropTarget != nullptr) {
+                m_pWindowDropTarget->OnDropBegin();
+            }
+        }
+        break;
+    case SDL_EVENT_DROP_POSITION:
+        {
+            bHandled = true;
+            if (m_pWindowDropTarget != nullptr) {
+                m_pWindowDropTarget->OnDropPosition(UiPoint((uint32_t)sdlEvent.drop.x, (uint32_t)sdlEvent.drop.y));
+            }
+        }
+        break;
+    case SDL_EVENT_DROP_TEXT:
+        {
+            bHandled = true;
+            if (m_pWindowDropTarget != nullptr) {
+                DStringA dropText;
+                if (sdlEvent.drop.data != nullptr) {
+                    dropText = sdlEvent.drop.data;
+                }
+                m_pWindowDropTarget->OnDropText(dropText);
+            }
+        }
+        break;
+    case SDL_EVENT_DROP_FILE:
+        {
+            bHandled = true;
+            if (m_pWindowDropTarget != nullptr) {
+                DStringA dropSource;
+                DStringA dropFile;
+                if (sdlEvent.drop.data != nullptr) {
+                    dropFile = sdlEvent.drop.data;
+                }
+                if (sdlEvent.drop.source != nullptr) {
+                    dropSource = sdlEvent.drop.source;
+                }
+                m_pWindowDropTarget->OnDropFile(dropSource, dropFile);
+            }
+        }
+        break;
+    case SDL_EVENT_DROP_COMPLETE:
+        {
+            bHandled = true;
+            if (m_pWindowDropTarget != nullptr) {
+                m_pWindowDropTarget->OnDropComplete();
+            }
+        }
+        break;
     default:
         break;
     }
@@ -578,6 +639,7 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_bMouseCapture(false),
     m_bCloseing(false),
     m_closeParam(kWindowCloseNormal),
+    m_bEnableDragDrop(true),
     m_bFakeModal(false),
     m_bDoModal(false),
     m_bFullScreen(false),
@@ -1322,6 +1384,9 @@ void NativeWindow_SDL::InitNativeWindow()
             CenterWindow();
         }
     }
+
+    //关联拖放操作
+    SetEnableDragDrop(IsEnableDragDrop());
 }
 
 void NativeWindow_SDL::ClearNativeWindow()
@@ -1340,6 +1405,8 @@ void NativeWindow_SDL::ClearNativeWindow()
         SDL_DestroyRenderer(sdlRenderer);
         sdlRenderer = nullptr;
     }
+
+    m_pWindowDropTarget.reset();
 }
 
 void* NativeWindow_SDL::GetWindowHandle() const
@@ -2640,6 +2707,27 @@ bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData, c
     SDL_DestroySurface(cursorSurface);
     ASSERT(nRet);
     return nRet;
+}
+
+void NativeWindow_SDL::SetEnableDragDrop(bool bEnable)
+{
+    m_bEnableDragDrop = bEnable;
+    if (bEnable) {
+        m_pWindowDropTarget = std::make_unique<WindowDropTarget>(this);
+    }
+    else {
+        m_pWindowDropTarget.reset();
+    }
+}
+
+bool NativeWindow_SDL::IsEnableDragDrop() const
+{
+    return m_bEnableDragDrop;
+}
+
+Control* NativeWindow_SDL::FindControl(const UiPoint& pt) const
+{
+    return m_pOwner->OnNativeFindControl(pt);
 }
 
 bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)

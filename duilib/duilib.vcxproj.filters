@@ -1475,6 +1475,9 @@
     <ClInclude Include="Core\WindowDropTarget_Windows.h">
       <Filter>Core\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="Core\WindowDropTarget_SDL.h">
+      <Filter>Core\SDL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="duilib.ruleset" />
