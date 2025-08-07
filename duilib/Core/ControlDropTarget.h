@@ -51,13 +51,13 @@ public:
     /** SDL_EVENT_DROP_COMPLETE + SDL_EVENT_DROP_TEXT, 后续不会再有OnDropLeave了
     *@param [in] textList 文本内容，容器中每个元素调用代表一行文本
     */
-    virtual void OnDropTexts(const std::vector<DString>& textList) = 0;
+    virtual void OnDropTexts(const std::vector<DString>& textList, const UiPoint& pt) = 0;
 
     /** SDL_EVENT_DROP_COMPLETE + SDL_EVENT_DROP_FILE, 后续不会再有OnDropLeave了
     *@param [in] source 拖放源
     *@param [in] fileList 文件路径，容器中每个元素调用代表一个文件
     */
-    virtual void OnDropFiles(const DString& source, const std::vector<DString>& fileList) = 0;
+    virtual void OnDropFiles(const DString& source, const std::vector<DString>& fileList, const UiPoint& pt) = 0;
 
     /** SDL_EVENT_DROP_COMPLETE 或者 其他导致离开的消息
     */
