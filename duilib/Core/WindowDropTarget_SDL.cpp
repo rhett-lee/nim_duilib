@@ -77,14 +77,14 @@ void WindowDropTarget::OnDropComplete()
         if (m_pHoverDropTarget != nullptr) {
             DString fileSource = m_fileSource;
             std::vector<DString> fileList = m_fileList;
-            m_pHoverDropTarget->OnDropFiles(fileSource, fileList);
+            m_pHoverDropTarget->OnDropFiles(fileSource, fileList, m_dropPt);
             m_pHoverDropTarget = nullptr;
         }
     }
     else if (!m_textList.empty()) {
         if (m_pHoverDropTarget != nullptr) {
             std::vector<DString> textList = m_textList;
-            m_pHoverDropTarget->OnDropTexts(textList);
+            m_pHoverDropTarget->OnDropTexts(textList, m_dropPt);
             m_pHoverDropTarget = nullptr;
         }
     }
