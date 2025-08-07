@@ -26,7 +26,7 @@
 namespace ui
 {
 class CefBrowserHandlerDelegate;
-class ControlDropTarget;
+class ControlDropTarget_Windows;
 
 #ifdef DUILIB_BUILD_FOR_WIN
 
@@ -92,7 +92,7 @@ public:
      /** 获取拖放接口
     * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
     */
-     ControlDropTarget* GetControlDropTarget();
+     ControlDropTarget_Windows* GetControlDropTarget();
 
 public:
     

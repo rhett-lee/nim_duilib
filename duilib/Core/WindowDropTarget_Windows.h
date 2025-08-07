@@ -63,7 +63,7 @@ protected:
     /** 找到某个点坐标对应的控件接口
     * @param [in] screenPt 屏幕坐标点
     */
-    ControlPtrT<ControlDropTarget> GetControlDropTarget(const UiPoint& screenPt) const;
+    ControlPtrT<ControlDropTarget_Windows> GetControlDropTarget(const UiPoint& screenPt) const;
 
 private:
     /** 引用计数
@@ -76,7 +76,7 @@ private:
 
     /** 当前Hover状态的控件接口
     */
-    ControlPtrT<ControlDropTarget> m_pHoverDropTarget;
+    ControlPtrT<ControlDropTarget_Windows> m_pHoverDropTarget;
 
     /** 关联的Native窗口实现
     */

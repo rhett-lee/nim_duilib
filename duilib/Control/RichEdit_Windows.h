@@ -35,7 +35,7 @@ struct FindTextParam
 };
 
 class RichEditHost;
-class ControlDropTarget;
+class ControlDropTarget_Windows;
 class VBox;
 class UILIB_API RichEdit : public ScrollBox
 {
@@ -733,7 +733,7 @@ public:
     /** 获取拖放接口
     * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
     */
-    virtual ControlDropTarget* GetControlDropTarget() override;
+    virtual ControlDropTarget_Windows* GetControlDropTarget() override;
 
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
 public:
@@ -1242,7 +1242,7 @@ private:
 
     /** 拖放功能的实现接口, 如果不为空表示功能已经开启
     */
-    ControlDropTarget* m_pControlDropTarget;
+    ControlDropTarget_Windows* m_pControlDropTarget;
 };
 
 } // namespace ui

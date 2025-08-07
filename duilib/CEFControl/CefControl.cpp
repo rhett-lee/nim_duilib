@@ -289,7 +289,7 @@ void CefControl::DoCloseAllBrowsers(bool bForceClose)
     }
 }
 
-ControlDropTarget* CefControl::GetControlDropTarget()
+ControlDropTarget_Windows* CefControl::GetControlDropTarget()
 {
     if (m_pBrowserHandler != nullptr) {
         return m_pBrowserHandler->GetControlDropTarget();

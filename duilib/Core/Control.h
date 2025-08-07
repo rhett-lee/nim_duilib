@@ -21,7 +21,7 @@ namespace ui
     class IPath;
     class IFont;
     class AutoClip;
-    class ControlDropTarget;
+    class ControlDropTarget_Windows;
     class ControlDropTarget_SDL;
 
     typedef Control* (* FINDCONTROLPROC)(Control*, void*);
@@ -931,7 +931,7 @@ public:
     /** 获取拖放接口（Windows）
     * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
     */
-    virtual ControlDropTarget* GetControlDropTarget() { return nullptr; }
+    virtual ControlDropTarget_Windows* GetControlDropTarget() { return nullptr; }
 
     /** 获取拖放接口（SDL）
     * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
