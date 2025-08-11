@@ -260,10 +260,6 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //当控件处于非激活状态时，是否隐藏选择内容
         SetHideSelection(strValue == _T("true"));
     }
-    else if (strName == _T("enable_drag_drop")) {
-        //是否允许拖放操作
-        SetEnableDragDrop(strValue == _T("true"));
-    }
     else if (strName == _T("focus_bottom_border_size")) {
         //焦点状态时，底部边框的大小
         SetFocusBottomBorderSize(StringUtil::StringToInt32(strValue));
@@ -321,9 +317,6 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("save_selection")) {
         //如果 为 TRUE，则当控件处于非活动状态时，应保存所选内容的边界。
         //如果 为 FALSE，则当控件再次处于活动状态时，可以选择边界重置为 start = 0，length = 0。
-    }
-    else if (strName == _T("enable_drag_drop")) {
-        //是否允许拖放操作
     }
     else if (strName == _T("select_all_on_focus")) {
         //获取焦点的时候，是否全选
@@ -4644,17 +4637,6 @@ void RichEdit::OnInputChar(const EventArgs& msg)
     if (bTextChanged) {
         OnTextChanged();
     }
-}
-
-void RichEdit::SetEnableDragDrop(bool /*bEnable*/)
-{
-    //暂不支持
-}
-
-bool RichEdit::IsEnableDragDrop() const
-{
-    //暂不支持
-    return false;
 }
 
 } // namespace ui

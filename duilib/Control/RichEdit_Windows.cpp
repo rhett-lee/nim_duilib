@@ -19,6 +19,9 @@
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
+#include "duilib/Core/ControlDropTargetImpl_Windows.h"
+#include "duilib/Core/ControlDropTargetUtils.h"
+
 namespace ui {
 
 /** 拖放操作接口的实现（仅是拖入操作）
@@ -39,6 +42,19 @@ public:
         if (m_pTextServices == nullptr) {
             return hr;
         }
+        m_dropTextList.clear();
+        m_dropFileList.clear();
+
+        ControlDropTargetImpl_Windows::ParseWindowsDataObject(pDataObj, m_dropTextList, m_dropFileList);
+        if ((m_pRichEdit != nullptr) && !m_dropFileList.empty()){
+            if (!m_pRichEdit->IsEnableDropFile()) {
+                //不支持文件拖放操作
+                return hr;
+            }
+            //支持文件拖放操作，直接返回
+            return S_OK;
+        }
+
         IDropTarget* pDropTarget = nullptr;
         HRESULT txResult = m_pTextServices->TxGetDropTarget(&pDropTarget);
         if (SUCCEEDED(txResult) && (pDropTarget != nullptr)) {
@@ -62,6 +78,75 @@ public:
         if (m_pTextServices == nullptr) {
             return hr;
         }
+
+        if ((m_pRichEdit != nullptr) && !m_dropFileList.empty()) {
+            if (!m_pRichEdit->IsEnableDropFile()) {
+                //不支持文件拖放操作
+                return hr;
+            }
+            //支持文件拖放操作，判断是否满足过滤条件
+            DString fileTypes = m_pRichEdit->GetDropFileTypes();
+            if (!ControlDropTargetUtils::IsFilteredFileTypes(fileTypes, m_dropFileList)) {
+                //文件类型不满足过滤条件
+                return hr;
+            }
+            //支持文件拖放操作，直接返回
+            return S_OK;
+        }
+        if ((m_pRichEdit != nullptr) && !m_dropTextList.empty()) {
+            //拖入文本操作：进行有效性判断
+            if (!m_pRichEdit->IsMultiLine()) {
+                if (m_dropTextList.size() > 1) {
+                    //拖入为多行文本，无效
+                    return hr;
+                }
+            }
+            if (m_pRichEdit->IsNumberOnly()) {
+                //数字模式
+                if (m_dropTextList.size() > 1) {
+                    //拖入为多行文本，无效
+                    return hr;
+                }
+
+                DString dropText = m_dropTextList.front();
+                if (!dropText.empty()) {
+                    size_t count = dropText.size();
+                    for (size_t index = 0; index < count; ++index) {
+                        if (dropText[index] == L'\0') {
+                            break;
+                        }
+                        if ((dropText[index] > L'9') || (dropText[index] < L'0')) {
+                            //有不是数字的字符，禁止拖入
+                            return hr;
+                        }
+                    }
+                }
+            }
+            DString limitChars = m_pRichEdit->GetLimitChars();
+            if (!limitChars.empty()) {
+                //有设置限制字符
+                for (const DString& dropText: m_dropTextList) {
+                    size_t count = dropText.size();
+                    for (size_t index = 0; index < count; ++index) {
+                        if (dropText[index] == L'\0') {
+                            break;
+                        }
+                        bool bMatch = false;
+                        for (const DString::value_type ch : limitChars) {
+                            if (ch == dropText[index]) {
+                                bMatch = true;
+                                break;
+                            }
+                        }
+                        if (!bMatch) {
+                            //有不是有效的字符，禁止拖入
+                            return hr;
+                        }
+                    }
+                }
+            }
+        }
+
         IDropTarget* pDropTarget = nullptr;
         HRESULT txResult = m_pTextServices->TxGetDropTarget(&pDropTarget);
         if (SUCCEEDED(txResult) && (pDropTarget != nullptr)) {
@@ -75,19 +160,22 @@ public:
                 *pdwEffect = dwEffect;
             }
             pDropTarget->Release();
+            pDropTarget = nullptr;
 
             if ((hr == S_OK) && (dwEffect != DROPEFFECT_NONE)) {
                 //在成功时，设置当前RichEdit控件的光标到鼠标所在位置，方便查看拖放目标位置
                 if (m_pRichEdit != nullptr) {
                     UiPoint clientPt = pt;
                     m_pRichEdit->ScreenToClient(clientPt);
-                    if (m_pRichEdit->GetPos().ContainsPt(clientPt)) {
-                        int32_t pos = m_pRichEdit->CharFromPos(clientPt);
-                        if (pos >= 0) {
-                            UiPoint charPt = m_pRichEdit->PosFromChar(pos);
-                            m_pRichEdit->SetCaretPos(charPt.x, charPt.y);
-                            m_pRichEdit->ShowCaret(true);
-                        }
+                    if (!m_pRichEdit->IsFocused()) {
+                        //必须设置为焦点控件，否则CharFromPos会失败
+                        m_pRichEdit->SetFocus();
+                    }                    
+                    int32_t pos = m_pRichEdit->CharFromPos(clientPt);
+                    if (pos >= 0) {
+                        UiPoint charPt = m_pRichEdit->PosFromChar(pos);
+                        m_pRichEdit->SetCaretPos(charPt.x, charPt.y);
+                        m_pRichEdit->ShowCaret(true);
                     }
                 }
             }
@@ -98,6 +186,9 @@ public:
     //IDropTarget::DragLeave
     virtual int32_t DragLeave(void) override
     {
+        m_dropTextList.clear();
+        m_dropFileList.clear();
+
         HRESULT hr = S_FALSE;
         if (m_pTextServices == nullptr) {
             return hr;
@@ -114,7 +205,63 @@ public:
     //IDropTarget::Drop
     virtual int32_t Drop(void* pDataObj, uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect) override
     {
+        m_dropTextList.clear();
+        m_dropFileList.clear();
+
         HRESULT hr = S_FALSE;
+
+        std::vector<DString> dropTextList;
+        std::vector<DString> dropFileList;
+        ControlDropTargetImpl_Windows::ParseWindowsDataObject(pDataObj, dropTextList, dropFileList);
+        if (m_pRichEdit != nullptr) {
+            if (!dropFileList.empty()) {
+                //拖入文件操作
+                if (!m_pRichEdit->IsEnableDropFile()) {
+                    //不支持文件拖放操作
+                    return hr;
+                }
+                //支持文件拖放操作，判断是否满足过滤条件
+                DString fileTypes = m_pRichEdit->GetDropFileTypes();
+                if (!ControlDropTargetUtils::IsFilteredFileTypes(fileTypes, dropFileList)) {
+                    //文件类型不满足过滤条件
+                    return hr;
+                }
+
+                //移除不支持的文件
+                ControlDropTargetUtils::RemoveUnsupportedFiles(dropFileList, fileTypes);
+                if (dropFileList.empty()) {
+                    return hr;
+                }
+
+                ControlDropData_Windows data;
+                data.m_pDataObj = pDataObj;
+                data.m_grfKeyState = grfKeyState;
+                data.m_screenX = pt.x;
+                data.m_screenY = pt.y;
+                data.m_dwEffect = (pdwEffect != nullptr) ? *pdwEffect : 0;
+                data.m_hResult = S_OK;
+
+                data.m_fileList = dropFileList;
+
+                EventArgs msg;
+                msg.SetSender(m_pRichEdit);
+                msg.eventType = EventType::kEventDropData;
+                msg.vkCode = VirtualKeyCode::kVK_None;
+                msg.wParam = kControlDropTypeWindows;
+                msg.lParam = (LPARAM)&data;
+                msg.ptMouse = pt;
+                m_pRichEdit->ScreenToClient(msg.ptMouse);
+                msg.modifierKey = 0;
+                msg.eventData = 0;
+
+                m_pRichEdit->SendEventMsg(msg);
+                if (pdwEffect != nullptr) {
+                    *pdwEffect = data.m_dwEffect;
+                }
+                return data.m_hResult;
+            }
+        }
+
         if (m_pTextServices == nullptr) {
             return hr;
         }
@@ -142,6 +289,14 @@ private:
     /** 文字服务接口
     */
     ITextServices* m_pTextServices;
+
+    /** 文本数据
+    */
+    std::vector<DString> m_dropTextList;
+
+    /** 文件路径数据
+    */
+    std::vector<DString> m_dropFileList;
 };
 
 RichEdit::RichEdit(Window* pWindow) :
@@ -398,10 +553,6 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //焦点状态时，底部边框的颜色
         SetFocusBottomBorderColor(strValue);
     }
-    else if (strName == _T("enable_drag_drop")) {
-        //是否允许拖放操作
-        SetEnableDragDrop(strValue == _T("true"));
-    }
     else if (strName == _T("select_all_on_focus")) {
         //获取焦点的时候，是否全选
         SetSelAllOnFocus(strValue == _T("true"));
@@ -493,10 +644,6 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //如果 为 FALSE，则当控件再次处于活动状态时，可以选择边界重置为 start = 0，length = 0。
         //SetSaveSelection(strValue == _T("true"));
     }
-    else if (strName == _T("enable_drag_drop")) {
-        //是否允许拖放操作
-        //SetEnableDragDrop(strValue == _T("true"));
-    }
 #endif
 
     //几个SDL版本支持但该版本不支持的属性，需要跳过
@@ -583,12 +730,6 @@ void RichEdit::SetReadOnly(bool bReadOnly)
     if (m_pRichHost != nullptr) {
         m_pRichHost->SetReadOnly(bReadOnly);
     }
-#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
-    if (bReadOnly) {
-        //只读模式关闭拖放功能
-        SetEnableDragDrop(false);
-    }
-#endif
 }
 
 bool RichEdit::IsPasswordMode() const
@@ -604,12 +745,6 @@ void RichEdit::SetPasswordMode(bool bPasswordMode)
     if (m_pRichHost != nullptr) {
         m_pRichHost->SetPassword(bPasswordMode);
     }
-#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
-    if (bPasswordMode) {
-        //密码模式关闭拖放功能
-        SetEnableDragDrop(false);
-    }
-#endif
 }
 
 void RichEdit::SetShowPassword(bool bShow)
@@ -1564,11 +1699,6 @@ void RichEdit::SetEnabled(bool bEnable /*= true*/)
         SetState(kControlStateDisabled);
         UiColor dwTextColor = GetUiColor(GetDisabledTextColor());
         SetTextColorInternal(dwTextColor);
-
-#ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
-        //不可用的状态关闭拖放功能
-        SetEnableDragDrop(false);
-#endif
     }
 }
 
@@ -3481,14 +3611,11 @@ DString RichEdit::GetFocusBottomBorderColor() const
 
 void RichEdit::SetEnableDragDrop(bool bEnable)
 {
+    BaseClass::SetEnableDragDrop(bEnable);
+    ASSERT(m_pRichHost != nullptr);
     if (m_pRichHost == nullptr) {
         return;
     }
-    if (IsReadOnly() || IsPasswordMode() || !IsEnabled()) {
-        //只读模式、密码模式、不可用模式，关闭拖放功能
-        bEnable = false;
-    }
-
     if (bEnable) {
         m_pControlDropTarget = new RichEditDropTarget(this, m_pRichHost->GetTextServices());
     }
@@ -3502,10 +3629,6 @@ void RichEdit::SetEnableDragDrop(bool bEnable)
 
 bool RichEdit::IsEnableDragDrop() const
 {
-    if (IsReadOnly() || IsPasswordMode() || !IsEnabled()) {
-        //只读模式、密码模式、不可用模式，关闭拖放功能
-        return false;
-    }
     return m_pControlDropTarget != nullptr;
 }
 
@@ -3516,6 +3639,11 @@ ControlDropTarget_Windows* RichEdit::GetControlDropTarget()
         return nullptr;
     }
     return m_pControlDropTarget;
+}
+
+ControlDropTarget_SDL* RichEdit::GetControlDropTarget_SDL()
+{
+    return nullptr;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////

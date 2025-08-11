@@ -724,16 +724,21 @@ public:
 
     /** 设置是否允许拖放功能
     */
-    void SetEnableDragDrop(bool bEnable);
+    virtual void SetEnableDragDrop(bool bEnable) override;
 
     /** 判断是否已经允许拖放功能
     */
-    bool IsEnableDragDrop() const;
+    virtual bool IsEnableDragDrop() const override;
 
     /** 获取拖放接口
     * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
     */
     virtual ControlDropTarget_Windows* GetControlDropTarget() override;
+
+    /** 获取拖放接口（SDL）
+    * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
+    */
+    virtual ControlDropTarget_SDL* GetControlDropTarget_SDL() override;
 
 #ifdef DUILIB_RICHEDIT_SUPPORT_RICHTEXT
 public:

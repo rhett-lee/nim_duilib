@@ -2,6 +2,7 @@
 #define DUILIB_DEFS_H_
 
 #include "duilib/duilib_config.h"
+#include <vector>
 
 #define DUI_NOSET_VALUE        -1
 
@@ -245,6 +246,36 @@ namespace ui
         kWindowCloseCancel  = 2     //表示点击 "取消" 按钮关闭本窗口
     };
 
+    //拖放类型
+    enum ControlDropType
+    {
+        kControlDropTypeWindows = 0, //表示来自ControlDropTarget_Windows接口的事件
+        kControlDropTypeSDL     = 1, //表示来自ControlDropTarget_SDL的事件
+    };
+
+    //Windows平台的拖放数据：相关的值，可以参考IDropTarget的接口声明
+    struct ControlDropData_Windows
+    {
+        void* m_pDataObj;       //IDataObject*
+        uint32_t m_grfKeyState; //键盘状态
+        int32_t m_screenX;      //鼠标所在点的X坐标，屏幕坐标
+        int32_t m_screenY;      //鼠标所在点的Y坐标，屏幕坐标
+        uint32_t m_dwEffect;    //参数返回值
+        int32_t m_hResult;      //函数返回值
+        std::vector<DString> m_textList;    // 在m_pDataObj中包含的文本内容，每个元素代表一行
+        std::vector<DString> m_fileList;    // 在m_pDataObj中包含的文本内容，每个元素代表一个文件路径
+    };
+
+    //SDL的拖放数据
+    struct ControlDropData_SDL
+    {
+        bool m_bTextData;                   //true表示m_textList为有效数据，false表示m_fileList为有效数据
+        std::vector<DString> m_textList;    // 在拖放操作中包含的文本内容，每个元素代表一行
+
+        DString m_source;                   // 当m_bTextData为false时有效
+        std::vector<DString> m_fileList;    // 在拖放操作中包含的文本内容，每个元素代表一个文件路径
+    };
+
     //定义所有消息类型
     enum EventType: int8_t
     {
@@ -341,6 +372,15 @@ namespace ui
 
         kEventPathChanged,          //AddressBar类：当路径方式变化时触发
         kEventPathClick,            //AddressBar类：当用户点击路径按钮时触发
+
+        kEventDropEnter,            //wParam 是ControlDropType，代表来源类型，
+                                    //lParam 代表关联数据：当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
+        kEventDropOver,             //wParam 是ControlDropType，代表来源类型，
+                                    //lParam 代表关联数据：当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
+        kEventDropLeave,            //无额外描述
+        kEventDropData,             //wParam 是ControlDropType，代表来源类型，
+                                    //lParam 代表关联数据：当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
+                                    //                   当wParam为kControlDropTypeSDL时，lParam是ControlDropData_SDL的指针
 
         kEventLast                  //无使用者
     };

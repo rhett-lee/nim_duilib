@@ -188,14 +188,16 @@
                             vscrollbar="true" hscrollbar="true" 
                             want_return_msg="true" rich="false" 
                             loading_image="file='autumn.png'" 
-                            loading_bkcolor="blue"/>
+                            loading_bkcolor="blue"
+                            enable_drag_drop="true" enable_drop_file="true" drop_file_types=".txt;.md"/>
                 <RichEdit class="prompt" name="edit2" bkcolor="white" width="stretch" height="stretch"
                             hide_selection="false" multiline="true" auto_vscroll="true"
                             vscrollbar="true" hscrollbar="true" scrollbar_float="true"
                             vscrollbar_class="vscrollbar2" hscrollbar_class="hscrollbar2"
                             vscrollbar_style="auto_hide_scroll='false'" hscrollbar_style="auto_hide_scroll='false'"
                             want_return_msg="true" rich="false" 
-                            margin="4,0,0,0"/>
+                            margin="4,0,0,0"
+                            enable_drag_drop="true" enable_drop_file="false"/>
             </HBox>
         </VBox>
     </VBox>

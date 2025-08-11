@@ -21,6 +21,9 @@ CefControl::CefControl(ui::Window* pWindow):
 {
     //这个标记必须为false，否则绘制有问题
     SetUseCache(false);
+
+    //默认开启拖放操作
+    BaseClass::SetEnableDragDrop(true);
 }
 
 CefControl::~CefControl(void)
@@ -291,7 +294,7 @@ void CefControl::DoCloseAllBrowsers(bool bForceClose)
 
 ControlDropTarget_Windows* CefControl::GetControlDropTarget()
 {
-    if (m_pBrowserHandler != nullptr) {
+    if (IsEnableDragDrop() && IsEnabled() && (m_pBrowserHandler != nullptr)) {
         return m_pBrowserHandler->GetControlDropTarget();
     }
     return nullptr;
