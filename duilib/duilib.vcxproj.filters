@@ -702,6 +702,15 @@
     <ClCompile Include="CEFControl\internal\Windows\CefOsrDropTarget.cpp">
       <Filter>CEFControl\internal\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="Core\ControlDropTargetImpl_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ControlDropTargetImpl_Windows.cpp">
+      <Filter>Core\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ControlDropTargetUtils.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1477,6 +1486,15 @@
     </ClInclude>
     <ClInclude Include="Core\WindowDropTarget_SDL.h">
       <Filter>Core\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ControlDropTargetImpl_SDL.h">
+      <Filter>Core\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ControlDropTargetImpl_Windows.h">
+      <Filter>Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ControlDropTargetUtils.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

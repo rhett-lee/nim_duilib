@@ -89,6 +89,9 @@
 | stop_gif_play | | int | StopGifPlay| 停止动画，参数表示停止在哪一帧 |
 | box_shadow | | string | SetBoxShadow|设置控件的阴影属性，举例：boxshadow="color='red' offset='0,0' blurradius='8' spreadradius='8' |
 | cache | false | bool |SetUseCache |是否启用控件绘制缓存,如“true”|
+| enable_drag_drop |false| bool | SetEnableDragDrop | 是否允许拖放操作|
+| enable_drop_file |false| bool | SetEnableDropFile | 是否允许拖放文件操作|
+| drop_file_types  || string | SetDropFileTypes  | 拖放文件操作支持的后缀名列表，比如:".txt;.csv"，表示仅支持txt和csv文件；如果为空，表示支持所有文件|
 
 ## ScrollBar的属性
 | 属性名称 | 默认值 | 参数类型 | 用途 |
@@ -398,7 +401,6 @@ CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`P
 | zoom | | size | 设置缩放比例：设 wParam：缩放比例的分子，lParam：缩放比例的分母。"wParam,lParam" 表示按缩放比例分子/分母显示的缩放，取值范围：1/64 < (wParam / lParam) < 64。举例：则："0,0"表示关闭缩放功能，"2,1"表示放大到200%，"1,2"表示缩小到50% |
 | wheel_zoom | | bool | 是否允许Ctrl + 滚轮来调整缩放比例 |
 | default_context_menu | false | bool | 是否使用默认的右键菜单 |
-| enable_drag_drop |false| bool | 是否允许拖放操作(当为SDL实现时，该选项无效) |
 | spin_class | | string | 设置Spin功能的Class名称，如果不为空则显示Spin按钮，详细用法参见示例程序|
 | clear_btn_class | | string | 设置清除按钮功能的Class名称，如果不为空则显示清楚按钮，详细用法参见示例程序 |
 | show_passowrd_btn_class | | string |设置显示密码按钮功能的Class名称，如果不为空则显示显示密码按钮 ，详细用法参见示例程序 |
@@ -409,6 +411,9 @@ CircleProgress 控件继承了 `Progress` 属性，更多可用属性请参考`P
 | select_all_on_focus |false| bool | 获取焦点的时候，是否全选 |
 | focus_bottom_border_size |0| int | 焦点状态时，底部边框的大小 |
 | focus_bottom_border_color || string | 焦点状态时，底部边框的颜色 |
+| enable_drag_drop |false| bool | SetEnableDragDrop | 是否允许拖放操作|
+| enable_drop_file |false| bool | SetEnableDropFile | 是否允许拖放文件操作|
+| drop_file_types  || string | SetDropFileTypes  | 拖放文件操作支持的后缀名列表，比如:".txt;.csv"，表示仅支持txt和csv文件；如果为空，表示支持所有文件|
 
 RichEdit 控件继承了 `ScrollBox` 属性，更多可用属性请参考`ScrollBox`的属性
 

@@ -402,7 +402,7 @@ BOOL RichEditHost::TxCreateCaret(HBITMAP /*hbmp*/, INT xWidth, INT yHeight)
 
 BOOL RichEditHost::TxShowCaret(BOOL /*fShow*/)
 {
-    return true;
+    return TRUE;
 }
 
 BOOL RichEditHost::TxSetCaretPos(INT x, INT y)

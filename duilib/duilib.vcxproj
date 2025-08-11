@@ -305,6 +305,9 @@
     <ClCompile Include="Core\ClickThrough_Windows.cpp" />
     <ClCompile Include="Core\ColorManager.cpp" />
     <ClCompile Include="Core\Control.cpp" />
+    <ClCompile Include="Core\ControlDropTargetImpl_SDL.cpp" />
+    <ClCompile Include="Core\ControlDropTargetImpl_Windows.cpp" />
+    <ClCompile Include="Core\ControlDropTargetUtils.cpp" />
     <ClCompile Include="Core\ControlFinder.cpp" />
     <ClCompile Include="Core\ControlLoading.cpp" />
     <ClCompile Include="Core\CursorManager_SDL.cpp" />
@@ -564,6 +567,9 @@
     <ClInclude Include="Core\Control.h" />
     <ClInclude Include="Core\ControlDragable.h" />
     <ClInclude Include="Core\ControlDropTarget.h" />
+    <ClInclude Include="Core\ControlDropTargetImpl_SDL.h" />
+    <ClInclude Include="Core\ControlDropTargetImpl_Windows.h" />
+    <ClInclude Include="Core\ControlDropTargetUtils.h" />
     <ClInclude Include="Core\ControlFinder.h" />
     <ClInclude Include="Core\ControlLoading.h" />
     <ClInclude Include="Core\ControlPtrT.h" />

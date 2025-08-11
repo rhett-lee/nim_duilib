@@ -34,7 +34,7 @@ void WindowDropTarget::OnDropPosition(const UiPoint& pt)
     ControlPtrT<ControlDropTarget_SDL> pHoverDropTarget = GetControlDropTarget(UiPoint(pt.x, pt.y));
     if (pHoverDropTarget == nullptr) {
         if (m_pHoverDropTarget != nullptr) {
-            m_pHoverDropTarget->OnDropBegin(pt);
+            m_pHoverDropTarget->OnDropLeave();
             m_pHoverDropTarget = nullptr;
         }
     }

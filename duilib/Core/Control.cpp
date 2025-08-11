@@ -14,6 +14,14 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+    #include "ControlDropTargetImpl_Windows.h"
+#endif
+
+#ifdef DUILIB_BUILD_FOR_SDL
+    #include "ControlDropTargetImpl_SDL.h"
+#endif
+
 namespace ui 
 {
 Control::Control(Window* pWindow) :
@@ -459,6 +467,18 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("stop_gif_play")) {
         GifFrameType nStopFrame = (GifFrameType)StringUtil::StringToInt32(strValue);
         StopGifPlay(false, nStopFrame);
+    }
+    else if (strName == _T("enable_drag_drop")) {
+        //是否允许拖放操作
+        SetEnableDragDrop(strValue == _T("true"));
+    }
+    else if (strName == _T("enable_drop_file")) {
+        //是否允许拖放文件操作
+        SetEnableDropFile(strValue == _T("true"));
+    }
+    else if (strName == _T("drop_file_types")) {
+        //拖放文件的扩展名列表
+        SetDropFileTypes(strValue);
     }
     else {
         ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
@@ -3821,6 +3841,88 @@ EventMap& Control::GetXmlBubbledEventMap()
 bool Control::HasXmlBubbledEventMap() const
 {
     return (m_pEventMapData != nullptr) && (m_pEventMapData->m_pXmlBubbledEvent != nullptr);
+}
+
+void Control::SetEnableDragDrop(bool bEnable)
+{
+    if (m_pDragDropData == nullptr) {
+        m_pDragDropData = std::make_unique<TDragDropData>();
+    }
+    m_pDragDropData->m_bDragDropEnabled = bEnable;
+}
+
+bool Control::IsEnableDragDrop() const
+{
+    return (m_pDragDropData != nullptr) && m_pDragDropData->m_bDragDropEnabled;
+}
+
+void Control::SetEnableDropFile(bool bEnable)
+{
+    if (m_pDragDropData == nullptr) {
+        m_pDragDropData = std::make_unique<TDragDropData>();
+    }
+    m_pDragDropData->m_bDropFileEnabled = bEnable;
+    m_pDragDropData->m_bDropFileEnabledDefined = true;
+}
+
+bool Control::IsEnableDropFile() const
+{
+    if (m_pDragDropData != nullptr) {
+        if (m_pDragDropData->m_bDropFileEnabledDefined) {
+            return m_pDragDropData->m_bDropFileEnabled;
+        }
+        else {
+            return m_pDragDropData->m_bDragDropEnabled;
+        }
+    }
+    return false;
+}
+
+void Control::SetDropFileTypes(const DString& fileTypes)
+{
+    if (m_pDragDropData == nullptr) {
+        m_pDragDropData = std::make_unique<TDragDropData>();
+    }
+    m_pDragDropData->m_dropFileTypes = fileTypes;
+}
+
+DString Control::GetDropFileTypes() const
+{
+    DString fileTypes;
+    if (m_pDragDropData != nullptr) {
+        fileTypes = m_pDragDropData->m_dropFileTypes.c_str();
+    }
+    return fileTypes;
+}
+
+ControlDropTarget_Windows* Control::GetControlDropTarget()
+{
+#ifdef DUILIB_BUILD_FOR_WIN
+    if (IsEnableDragDrop() && IsEnabled()) {
+        if (m_pDragDropData != nullptr) {
+            m_pDragDropData = std::make_unique<TDragDropData>();
+            m_pDragDropData->m_bDragDropEnabled = true;
+        }
+        m_pDragDropData->m_pDropTargetWindows = std::make_shared<ControlDropTargetImpl_Windows>(this);
+        return m_pDragDropData->m_pDropTargetWindows.get();
+    }
+#endif
+    return nullptr;
+}
+
+ControlDropTarget_SDL* Control::GetControlDropTarget_SDL()
+{
+#ifdef DUILIB_BUILD_FOR_SDL
+    if (IsEnableDragDrop() && IsEnabled()) {
+        if (m_pDragDropData == nullptr) {
+            m_pDragDropData = std::make_unique<TDragDropData>();
+            m_pDragDropData->m_bDragDropEnabled = true;
+        }
+        m_pDragDropData->m_pDropTargetSDL = std::make_shared<ControlDropTargetImpl_SDL>(this);
+        return m_pDragDropData->m_pDropTargetSDL.get();
+    }
+#endif
+    return nullptr;
 }
 
 } // namespace ui

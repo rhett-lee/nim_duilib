@@ -23,6 +23,8 @@ namespace ui
     class AutoClip;
     class ControlDropTarget_Windows;
     class ControlDropTarget_SDL;
+    class ControlDropTargetImpl_Windows;
+    class ControlDropTargetImpl_SDL;
 
     typedef Control* (* FINDCONTROLPROC)(Control*, void*);
 
@@ -857,6 +859,26 @@ public:
     */
     void AttachStateChange(const EventCallback& callback) { AttachEvent(kEventStateChange, callback); }
 
+    /** 监听控件拖放进入事件
+    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    */
+    void AttachDropEnter(const EventCallback& callback) { AttachEvent(kEventDropEnter, callback); }
+
+    /** 监听控件拖放移动事件
+    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    */
+    void AttachDropOver(const EventCallback& callback) { AttachEvent(kEventDropOver, callback); }
+
+    /** 监听控件拖放离开事件
+    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    */
+    void AttachDropLeave(const EventCallback& callback) { AttachEvent(kEventDropLeave, callback); }
+
+    /** 监听控件拖放数据事件
+    * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
+    */
+    void AttachDropData(const EventCallback& callback) { AttachEvent(kEventDropData, callback); }
+
     /** 监听控件销毁事件
     * @param[in] callback 事件处理的回调函数，请参考 EventCallback 声明
     */
@@ -928,15 +950,40 @@ public:
     */
     virtual bool IsCefOsrImeMode() const { return false; }
 
+    /** 设置是否允许拖放功能
+    */
+    virtual void SetEnableDragDrop(bool bEnable);
+
+    /** 判断是否已经允许拖放功能
+    */
+    virtual bool IsEnableDragDrop() const;
+
     /** 获取拖放接口（Windows）
     * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
     */
-    virtual ControlDropTarget_Windows* GetControlDropTarget() { return nullptr; }
+    virtual ControlDropTarget_Windows* GetControlDropTarget();
 
     /** 获取拖放接口（SDL）
     * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
     */
-    virtual ControlDropTarget_SDL* GetControlDropTarget_SDL() { return nullptr; }
+    virtual ControlDropTarget_SDL* GetControlDropTarget_SDL();
+
+    /** 设置是否允许拖放文件
+    */
+    void SetEnableDropFile(bool bEnable);
+
+    /** 判断是否已经允许拖放文件
+    */
+    bool IsEnableDropFile() const;
+
+    /** 设置文件拖放的文件后缀名列表
+    * @param [in] fileTypes 文件后缀名列表，比如:".txt;.csv"，表示仅支持txt和csv文件；如果为空，表示支持所有文件
+    */
+    void SetDropFileTypes(const DString& fileTypes);
+
+    /** 获取文件拖放的过滤器
+    */
+    DString GetDropFileTypes() const;
 
 public:
     /**@name 事件监听相关接口
@@ -1348,6 +1395,30 @@ private:
         int8_t m_nBkColor2Direction = 1;
     };
 
+    //拖放相关数据
+    struct TDragDropData
+    {
+        //是否开启拖放功能
+        bool m_bDragDropEnabled = false;
+
+        //是否开启文件拖放功能
+        bool m_bDropFileEnabled = false;
+        bool m_bDropFileEnabledDefined = false;
+
+        //文件拖放的过滤器（按文件后缀名，比如:".txt;.csv"，表示仅支持txt和csv文件）
+        UiString m_dropFileTypes;
+
+#ifdef DUILIB_BUILD_FOR_WIN
+        //拖放实现：Windows
+        std::shared_ptr<ControlDropTargetImpl_Windows> m_pDropTargetWindows;
+#endif
+
+#ifdef DUILIB_BUILD_FOR_SDL
+        //拖放实现：SDL
+        std::shared_ptr<ControlDropTargetImpl_SDL> m_pDropTargetSDL;
+#endif
+    };
+
 private:
     /** 控件阴影，其圆角大小通过m_cxyBorderRound变量控制
     */
@@ -1392,6 +1463,10 @@ private:
     /** Tooltip数据
     */
     std::unique_ptr<TTooltipData> m_pTooltip;
+
+    /** 拖放相关数据
+    */
+    std::unique_ptr<TDragDropData> m_pDragDropData;
 
     /** 控件播放动画时的渲染偏移(X坐标偏移和Y坐标偏移)
     */
