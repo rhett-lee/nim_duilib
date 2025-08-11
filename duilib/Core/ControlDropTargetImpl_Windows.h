@@ -38,6 +38,11 @@ public:
     static void ParseWindowsDataObject(void* pDataObj, std::vector<DString>& textList, std::vector<DString>& fileList);
 
 private:
+    /** 清理拖放状态
+    */
+    void ClearDragStatus();
+
+private:
     /** 关联的控件
     */
     ControlPtr m_pControl;

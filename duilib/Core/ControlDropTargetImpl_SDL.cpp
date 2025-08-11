@@ -3,6 +3,7 @@
 #ifdef DUILIB_BUILD_FOR_SDL
 
 #include "duilib/Core/Control.h"
+#include "duilib/Core/ControlDropTargetUtils.h"
 
 namespace ui 
 {
@@ -74,6 +75,20 @@ void ControlDropTargetImpl_SDL::OnDropTexts(const std::vector<DString>& textList
 void ControlDropTargetImpl_SDL::OnDropFiles(const DString& source, const std::vector<DString>& fileList, const UiPoint& pt)
 {
     if (m_pControl != nullptr) {
+        if (!fileList.empty()) {
+            //当前执行的是拖放文件操作
+            if (!m_pControl->IsEnableDropFile()) {
+                //不支持文件拖放
+                return;
+            }
+            //支持文件拖放操作，判断是否满足过滤条件
+            DString fileTypes = m_pControl->GetDropFileTypes();
+            if (!ControlDropTargetUtils::IsFilteredFileTypes(fileTypes, fileList)) {
+                //文件类型不满足过滤条件
+                return;
+            }
+        }
+
         ControlDropData_SDL data;
         data.m_bTextData = false;
         data.m_source = source;
