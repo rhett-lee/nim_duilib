@@ -3,6 +3,7 @@
 #ifdef DUILIB_BUILD_FOR_WIN
 
 #include "duilib/Core/Control.h"
+#include "duilib/Core/ControlDropTargetUtils.h"
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/StringCharset.h"
 #include "duilib/Utils/StringUtil.h"
@@ -138,19 +139,24 @@ void ControlDropTargetImpl_Windows::ParseWindowsDataObject(void* pDataObj, std::
     }
 }
 
+void ControlDropTargetImpl_Windows::ClearDragStatus()
+{
+    if (m_pDataObj != nullptr) {
+        ((IDataObject*)m_pDataObj)->Release();
+        m_pDataObj = nullptr;
+    }
+    m_textList.clear();
+    m_fileList.clear();
+}
+
 int32_t ControlDropTargetImpl_Windows::DragEnter(void* pDataObj, uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect)
 {
     IDataObject* pDataObject = (IDataObject*)pDataObj;
     if (pDataObject != nullptr) {
         pDataObject->AddRef();
     }
-    if (m_pDataObj != nullptr) {
-        ((IDataObject*)m_pDataObj)->Release();
-        m_pDataObj = nullptr;
-    }
+    ClearDragStatus();
     m_pDataObj = pDataObject;
-    m_textList.clear();
-    m_fileList.clear();
     if (pDataObj != nullptr) {
         ParseWindowsDataObject(pDataObj, m_textList, m_fileList);
     }
@@ -190,6 +196,20 @@ int32_t ControlDropTargetImpl_Windows::DragEnter(void* pDataObj, uint32_t grfKey
 int32_t ControlDropTargetImpl_Windows::DragOver(uint32_t grfKeyState, const UiPoint& pt, uint32_t* pdwEffect)
 {
     if (m_pControl != nullptr) {
+        if (!m_fileList.empty()) {
+            //当前执行的是拖放文件操作
+            if (!m_pControl->IsEnableDropFile()) {
+                //不支持文件拖放
+                return S_FALSE;
+            }
+            //支持文件拖放操作，判断是否满足过滤条件
+            DString fileTypes = m_pControl->GetDropFileTypes();
+            if (!ControlDropTargetUtils::IsFilteredFileTypes(fileTypes, m_fileList)) {
+                //文件类型不满足过滤条件
+                return S_FALSE;
+            }
+        }
+
         ControlDropData_Windows data;
         data.m_pDataObj = m_pDataObj;
         data.m_grfKeyState = grfKeyState;
@@ -200,13 +220,6 @@ int32_t ControlDropTargetImpl_Windows::DragOver(uint32_t grfKeyState, const UiPo
 
         data.m_textList = m_textList;        
         data.m_fileList = m_fileList;
-
-        if (!m_pControl->IsEnableDropFile()) {
-            //不支持文件拖放
-            if (!data.m_fileList.empty() && data.m_textList.empty()) {
-                data.m_hResult = S_FALSE;
-            }
-        }
 
         EventArgs msg;
         msg.SetSender(m_pControl.get());
@@ -230,13 +243,7 @@ int32_t ControlDropTargetImpl_Windows::DragOver(uint32_t grfKeyState, const UiPo
 
 int32_t ControlDropTargetImpl_Windows::DragLeave(void)
 {
-    if (m_pDataObj != nullptr) {
-        ((IDataObject*)m_pDataObj)->Release();
-        m_pDataObj = nullptr;
-    }
-    m_textList.clear();
-    m_fileList.clear();
-
+    ClearDragStatus();
     if (m_pControl != nullptr) {
         m_pControl->SendEvent(EventType::kEventDropLeave);
     }
@@ -251,6 +258,22 @@ int32_t ControlDropTargetImpl_Windows::Drop(void* pDataObj, uint32_t grfKeyState
     }
 
     if (m_pControl != nullptr) {
+        if (!m_fileList.empty()) {
+            //当前执行的是拖放文件操作
+            if (!m_pControl->IsEnableDropFile()) {
+                //不支持文件拖放
+                ClearDragStatus();
+                return S_FALSE;
+            }
+            //支持文件拖放操作，判断是否满足过滤条件
+            DString fileTypes = m_pControl->GetDropFileTypes();
+            if (!ControlDropTargetUtils::IsFilteredFileTypes(fileTypes, m_fileList)) {
+                //文件类型不满足过滤条件
+                ClearDragStatus();
+                return S_FALSE;
+            }
+        }
+
         ControlDropData_Windows data;
         data.m_pDataObj = m_pDataObj;
         data.m_grfKeyState = grfKeyState;
@@ -261,20 +284,6 @@ int32_t ControlDropTargetImpl_Windows::Drop(void* pDataObj, uint32_t grfKeyState
 
         data.m_textList = m_textList;
         data.m_fileList = m_fileList;
-
-        if (!m_pControl->IsEnableDropFile()) {
-            //不支持文件拖放
-            if (!data.m_fileList.empty() && data.m_textList.empty()) {
-                if (m_pDataObj != nullptr) {
-                    ((IDataObject*)m_pDataObj)->Release();
-                    m_pDataObj = nullptr;
-                }
-                m_textList.clear();
-                m_fileList.clear();
-                return S_FALSE;
-            }
-            data.m_fileList.clear();
-        }
 
         EventArgs msg;
         msg.SetSender(m_pControl.get());
@@ -292,21 +301,11 @@ int32_t ControlDropTargetImpl_Windows::Drop(void* pDataObj, uint32_t grfKeyState
             *pdwEffect = data.m_dwEffect;
         }
 
-        if (m_pDataObj != nullptr) {
-            ((IDataObject*)m_pDataObj)->Release();
-            m_pDataObj = nullptr;
-        }
-        m_textList.clear();
-        m_fileList.clear();
+        ClearDragStatus();
         return data.m_hResult;
     }
     else {
-        if (m_pDataObj != nullptr) {
-            ((IDataObject*)m_pDataObj)->Release();
-            m_pDataObj = nullptr;
-        }
-        m_textList.clear();
-        m_fileList.clear();
+        ClearDragStatus();
         return S_OK;
     }
 }
