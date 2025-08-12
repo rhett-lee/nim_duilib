@@ -215,15 +215,10 @@ void ColorPicker::OnInitWindow()
     //选择：屏幕取色
     pButton = dynamic_cast<Button*>(FindControl(_T("color_picker_choose")));
     if (pButton != nullptr) {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
         pButton->AttachClick([this](const ui::EventArgs& /*args*/) {
             OnPickColorFromScreen();
             return true;
             });
-#else
-        //其他平台不支持屏幕取词
-        pButton->SetEnabled(false);
-#endif
     }
 }
 
@@ -572,7 +567,13 @@ private:
                 ASSERT(colorXY < nWidth * nHeight);
                 uint32_t colorValue = pPixelBits[colorXY];
                 selColor = UiColor(colorValue);
+#ifdef DUILIB_BUILD_FOR_WIN
+                //SDL_PIXELFORMAT_BGRA32
                 selColor = UiColor(selColor.GetR(), selColor.GetG(), selColor.GetB());
+#else
+                //SDL_PIXELFORMAT_RGBA32
+                selColor = UiColor(selColor.GetB(), selColor.GetG(), selColor.GetR());
+#endif
             }
             m_spBitmap->UnLockPixelBits();
         }

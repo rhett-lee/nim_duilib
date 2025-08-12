@@ -244,7 +244,6 @@
     <ClCompile Include="CEFControl\CefControl.cpp" />
     <ClCompile Include="CEFControl\CefControlNative.cpp" />
     <ClCompile Include="CEFControl\CefControlOffScreen.cpp" />
-    <ClCompile Include="CEFControl\CefDragDrop_Windows.cpp" />
     <ClCompile Include="CEFControl\CefManager.cpp" />
     <ClCompile Include="CEFControl\CefManager_Windows.cpp" />
     <ClCompile Include="CEFControl\CefWindowUtils_Windows.cpp" />
@@ -256,6 +255,7 @@
     <ClCompile Include="CEFControl\internal\CefJsHandler.cpp" />
     <ClCompile Include="CEFControl\internal\CefMemoryBlock.cpp" />
     <ClCompile Include="CEFControl\internal\Windows\bytes_write_handler.cc" />
+    <ClCompile Include="CEFControl\internal\Windows\CefOsrDropTarget.cpp" />
     <ClCompile Include="CEFControl\internal\Windows\osr_dragdrop_win.cc" />
     <ClCompile Include="CEFControl\internal\Windows\osr_ime_handler_win.cc" />
     <ClCompile Include="CEFControl\internal\Windows\util_win.cc" />
@@ -305,7 +305,9 @@
     <ClCompile Include="Core\ClickThrough_Windows.cpp" />
     <ClCompile Include="Core\ColorManager.cpp" />
     <ClCompile Include="Core\Control.cpp" />
-    <ClCompile Include="Core\ControlDropTarget.cpp" />
+    <ClCompile Include="Core\ControlDropTargetImpl_SDL.cpp" />
+    <ClCompile Include="Core\ControlDropTargetImpl_Windows.cpp" />
+    <ClCompile Include="Core\ControlDropTargetUtils.cpp" />
     <ClCompile Include="Core\ControlFinder.cpp" />
     <ClCompile Include="Core\ControlLoading.cpp" />
     <ClCompile Include="Core\CursorManager_SDL.cpp" />
@@ -443,7 +445,6 @@
     <ClCompile Include="Utils\MonitorUtil_Windows.cpp" />
     <ClCompile Include="Utils\PerformanceUtil.cpp" />
     <ClCompile Include="Utils\ProcessSingleton.cpp" />
-    <ClCompile Include="Utils\ScreenCapture_SDL.cpp" />
     <ClCompile Include="Utils\ScreenCapture_Windows.cpp" />
     <ClCompile Include="Utils\ShadowWnd_SDL.cpp" />
     <ClCompile Include="Utils\ShadowWnd_Windows.cpp" />
@@ -493,7 +494,6 @@
     <ClInclude Include="CEFControl\CefControlEvent.h" />
     <ClInclude Include="CEFControl\CefControlNative.h" />
     <ClInclude Include="CEFControl\CefControlOffScreen.h" />
-    <ClInclude Include="CEFControl\CefDragDrop_Windows.h" />
     <ClInclude Include="CEFControl\CefManager.h" />
     <ClInclude Include="CEFControl\CefManager_Windows.h" />
     <ClInclude Include="CEFControl\CefWindowUtils.h" />
@@ -507,6 +507,7 @@
     <ClInclude Include="CEFControl\internal\CefMemoryBlock.h" />
     <ClInclude Include="CEFControl\internal\osr_dragdrop_events.h" />
     <ClInclude Include="CEFControl\internal\Windows\bytes_write_handler.h" />
+    <ClInclude Include="CEFControl\internal\Windows\CefOsrDropTarget.h" />
     <ClInclude Include="CEFControl\internal\Windows\osr_dragdrop_win.h" />
     <ClInclude Include="CEFControl\internal\Windows\osr_ime_handler_win.h" />
     <ClInclude Include="CEFControl\internal\Windows\util_win.h" />
@@ -566,6 +567,9 @@
     <ClInclude Include="Core\Control.h" />
     <ClInclude Include="Core\ControlDragable.h" />
     <ClInclude Include="Core\ControlDropTarget.h" />
+    <ClInclude Include="Core\ControlDropTargetImpl_SDL.h" />
+    <ClInclude Include="Core\ControlDropTargetImpl_Windows.h" />
+    <ClInclude Include="Core\ControlDropTargetUtils.h" />
     <ClInclude Include="Core\ControlFinder.h" />
     <ClInclude Include="Core\ControlLoading.h" />
     <ClInclude Include="Core\ControlPtrT.h" />
@@ -621,7 +625,8 @@
     <ClInclude Include="Core\WindowBuilder.h" />
     <ClInclude Include="Core\WindowCreateAttributes.h" />
     <ClInclude Include="Core\WindowCreateParam.h" />
-    <ClInclude Include="Core\WindowDropTarget.h" />
+    <ClInclude Include="Core\WindowDropTarget_SDL.h" />
+    <ClInclude Include="Core\WindowDropTarget_Windows.h" />
     <ClInclude Include="Core\WindowMessage.h" />
     <ClInclude Include="Core\ZipManager.h" />
     <ClInclude Include="Core\ZipStreamIO.h" />

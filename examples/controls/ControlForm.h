@@ -29,6 +29,10 @@ private:
     */
     void ShowPopupMenu(const ui::UiPoint& point, ui::Control* pRelatedControl);
 
+    /** 注册编辑框的事件
+    */
+    void AttachRichEditEvents(ui::RichEdit* edit);
+
     /**
      * 被投递到杂事线程读取 xml 数据的任务函数
      */

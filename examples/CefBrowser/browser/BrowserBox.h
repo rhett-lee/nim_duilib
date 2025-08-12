@@ -21,16 +21,16 @@ public:
 
     /** 构造函数
     * @param [in] pWindow 关联的窗口
-    * @param [in] id 浏览器盒子的唯一标识，用于区分不同的标签页
+    * @param [in] browserId 浏览器盒子的唯一标识，用于区分不同的标签页
     */
-    BrowserBox(ui::Window* pWindow, std::string id);
+    BrowserBox(ui::Window* pWindow, std::string browserId);
     virtual ~BrowserBox() override {};
 
     /**
     * 获取id
     * @return string 标识id
     */
-    std::string GetId() const { return m_browserId; }
+    std::string GetBrowserId() const { return m_browserId; }
 
     /**
     * 获取本浏览器盒子所属的浏览器窗口指针
@@ -135,6 +135,14 @@ protected:
     /** 多媒体访问情况变化（回调函数的调用线程：主进程的UI线程）
     */
     void OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_video_access, bool has_audio_access);
+
+    /** CefDragHandler接口的事件：开始拖动（回调函数的调用线程：CEF的UI线程）
+    */
+    bool OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask);
+
+    /** CefDragHandler接口的事件：可拖动区域发生变化（回调函数的调用线程：主进程的UI线程）
+    */
+    void OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions);
 
     /** 点击了超级链接，即将弹出新窗口（回调函数的调用线程：CEF的UI线程）
     */

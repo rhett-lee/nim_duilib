@@ -19,20 +19,21 @@
 #pragma warning (pop)
 
 #include "duilib/Core/Window.h"
+#include "duilib/Core/ControlPtrT.h"
 #include <mutex>
-
-#ifdef DUILIB_BUILD_FOR_WIN
-
-//Windows平台的DropTarget实现
-namespace client {
-    class DropTargetWin;
-}
-
-#endif
+#include <atomic>
 
 namespace ui
 {
 class CefBrowserHandlerDelegate;
+class ControlDropTarget_Windows;
+
+#ifdef DUILIB_BUILD_FOR_WIN
+
+//Windows平台的DropTarget实现
+class CefOsrDropTarget;
+
+#endif
 
 //实现CefClient接口，处理Cef浏览器对象发出的各个事件和消息，并与上层控件进行数据交互
 class CefBrowserHandler : public virtual ui::SupportWeakCallback,
@@ -50,10 +51,12 @@ class CefBrowserHandler : public virtual ui::SupportWeakCallback,
     public CefCookieAccessFilter,
     public CefDownloadHandler,
     public CefDialogHandler,
+    public CefFocusHandler,
     public client::OsrDragEvents
 {
 public:
     CefBrowserHandler();
+    virtual ~CefBrowserHandler() override;
 
 public:
 
@@ -63,10 +66,11 @@ public:
 
     // 设置委托类指针，浏览器对象的一些事件会交给此指针对象来处理
     // 当指针所指的对象不需要处理事件时，应该给参数传入nullptr
-    void SetHandlerDelegate(CefBrowserHandlerDelegate* handler){ m_pHandlerDelegate = handler; }
+    void SetHandlerDelegate(CefBrowserHandlerDelegate* handler);
 
     // 设置Cef渲染内容的大小
     void SetViewRect(const UiRect& rc);
+    UiRect GetViewRect();
 
     CefRefPtr<CefBrowser> GetBrowser(){ return m_browser; }
 
@@ -79,7 +83,17 @@ public:
 
      /** 关闭所有的Browser对象
      */
-     void CloseAllBrowsers();
+     void CloseAllBrowsers(bool bForceClose);
+
+     /** 设置关联窗口是否已经关闭
+     */
+     void SetHostWindowClosed(bool bHostWindowClosed);
+
+     /** 获取拖放接口
+    * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
+    */
+     ControlDropTarget_Windows* GetControlDropTarget();
+
 public:
     
     // CefClient的接口实现
@@ -88,8 +102,7 @@ public:
     virtual CefRefPtr<CefFindHandler> GetFindHandler() override { return nullptr; }    
     virtual CefRefPtr<CefFrameHandler> GetFrameHandler() override { return nullptr; }
     virtual CefRefPtr<CefPermissionHandler> GetPermissionHandler() override { return nullptr; }
-    virtual CefRefPtr<CefPrintHandler> GetPrintHandler() override { return nullptr; }
-    virtual CefRefPtr<CefFocusHandler> GetFocusHandler() override { return nullptr; }
+    virtual CefRefPtr<CefPrintHandler> GetPrintHandler() override { return nullptr; }    
 
     virtual CefRefPtr<CefContextMenuHandler> GetContextMenuHandler() override {    return this; }
     virtual CefRefPtr<CefRenderHandler>  GetRenderHandler() override { return this; }
@@ -102,6 +115,8 @@ public:
     virtual CefRefPtr<CefRequestHandler> GetRequestHandler() override{ return this; }
     virtual CefRefPtr<CefDownloadHandler> GetDownloadHandler() override { return this; }
     virtual CefRefPtr<CefDialogHandler> GetDialogHandler() override { return this; }
+    virtual CefRefPtr<CefFocusHandler> GetFocusHandler() override { return this; }
+
     virtual bool OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
                                           CefRefPtr<CefFrame> frame,
                                           CefProcessId source_process,
@@ -401,6 +416,11 @@ public:
                               CefRefPtr<CefFileDialogCallback> callback) override;
 #endif
 
+    //CefFocusHandler 相关接口
+    virtual void OnTakeFocus(CefRefPtr<CefBrowser> browser, bool next) override;
+    virtual bool OnSetFocus(CefRefPtr<CefBrowser> browser, FocusSource source) override;
+    virtual void OnGotFocus(CefRefPtr<CefBrowser> browser) override;
+
 private:
     bool DoOnBeforePopup(CefRefPtr<CefBrowser> browser,
                          CefRefPtr<CefFrame> frame,
@@ -416,24 +436,38 @@ private:
                          CefRefPtr<CefDictionaryValue>& extra_info,
                          bool* no_javascript_access);
 
+#ifdef DUILIB_BUILD_FOR_WIN
+    void DoDragDrop(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y);
+#endif
+
+    /** 注册DragDrop接口
+    */
+    void RegisterDropTarget();
+
+    /** 注销DragDrop接口
+    */
+    void UnregisterDropTarget();
+
 private:
     /** 数据多线程同步锁
     */
-    std::mutex m_rectMutex;
+    std::mutex m_dataMutex;
 
     CefRefPtr<CefBrowser> m_browser;
     CefWindowHandle m_hCefWindowHandle;
     std::vector<CefRefPtr<CefBrowser>> m_browserList;
-    ui::Window* m_pWindow;
-    std::weak_ptr<ui::WeakFlag> m_windowFlag;    
+    ControlPtrT<ui::Window> m_spWindow; 
     CefBrowserHandlerDelegate* m_pHandlerDelegate;
     //控件的位置
     UiRect m_rcCefControl;
     CefUnregistedCallbackList<ui::StdClosure> m_taskListAfterCreated;
     CefRenderHandler::DragOperation m_currentDragOperation;
 
+    //关联窗口是否已经关闭
+    std::atomic<bool> m_bHostWindowClosed;
+
 #ifdef DUILIB_BUILD_FOR_WIN
-    std::shared_ptr<client::DropTargetWin> m_dropTarget;
+    std::shared_ptr<CefOsrDropTarget> m_pDropTarget;
 #endif
 
     IMPLEMENT_REFCOUNTING(CefBrowserHandler);

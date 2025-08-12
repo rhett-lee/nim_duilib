@@ -6,6 +6,7 @@
 #include "duilib/CEFControl/internal/CefJSBridge.h"
 #include "duilib/CEFControl/internal/CefBrowserHandler.h"
 #include "duilib/CEFControl/CefManager.h"
+#include <thread>
 
 namespace ui {
 
@@ -20,6 +21,9 @@ CefControl::CefControl(ui::Window* pWindow):
 {
     //这个标记必须为false，否则绘制有问题
     SetUseCache(false);
+
+    //默认开启拖放操作
+    BaseClass::SetEnableDragDrop(true);
 }
 
 CefControl::~CefControl(void)
@@ -278,9 +282,32 @@ void CefControl::RepairBrowser()
 
 void CefControl::CloseAllBrowsers()
 {
+    DoCloseAllBrowsers(true);
+}
+
+void CefControl::DoCloseAllBrowsers(bool bForceClose)
+{
     if (m_pBrowserHandler != nullptr) {
-        m_pBrowserHandler->CloseAllBrowsers();
+        m_pBrowserHandler->CloseAllBrowsers(bForceClose);
     }
+}
+
+ControlDropTarget_Windows* CefControl::GetControlDropTarget()
+{
+    if (IsEnableDragDrop() && IsEnabled() && (m_pBrowserHandler != nullptr)) {
+        return m_pBrowserHandler->GetControlDropTarget();
+    }
+    return nullptr;
+}
+
+void CefControl::OnHostWindowClosed()
+{
+    CloseAllBrowsers();
+    if (m_pBrowserHandler != nullptr) {
+        m_pBrowserHandler->SetHostWindowClosed(true);
+    }
+    //释放一次CPU时间片，让CEF UI线程执行
+    std::this_thread::sleep_for(std::chrono::microseconds(1));
 }
 
 void CefControl::ResetDevToolAttachedState()
@@ -712,6 +739,29 @@ void CefControl::OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_vid
     }
 }
 
+bool CefControl::OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask)
+{
+    bool bRet = false;
+    if (m_pfnDragEnter) {
+        bRet = m_pfnDragEnter(browser, dragData, mask);
+    }
+    else if (m_pCefControlEventHandler) {
+        bRet = m_pCefControlEventHandler->OnDragEnter(browser, dragData, mask);
+    }
+    return bRet;
+}
+
+void CefControl::OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions)
+{
+    GlobalManager::Instance().AssertUIThread();
+    if (m_pfnDraggableRegionsChanged) {
+        m_pfnDraggableRegionsChanged(browser, frame, regions);
+    }
+    else if (m_pCefControlEventHandler) {
+        m_pCefControlEventHandler->OnDraggableRegionsChanged(browser, frame, regions);
+    }
+}
+
 void CefControl::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
 {
     GlobalManager::Instance().AssertUIThread();
@@ -1073,6 +1123,8 @@ bool CefControl::IsCallbackExists(CefCallbackID nCallbackID)
     case CefCallbackID::OnDownloadUpdated:          return m_pfnDownloadUpdated != nullptr;
     case CefCallbackID::OnFileDialog:               return m_pfnFileDialog != nullptr;
     case CefCallbackID::OnDocumentAvailableInMainFrame: return m_pfnDocumentAvailableInMainFrame != nullptr;
+    case CefCallbackID::OnDragEnter:                    return m_pfnDragEnter != nullptr;
+    case CefCallbackID::OnDraggableRegionsChanged:      return m_pfnDraggableRegionsChanged != nullptr;
     default:
         break;
     }
@@ -1086,6 +1138,31 @@ void CefControl::OnFocusedNodeChanged(CefRefPtr<CefBrowser> /*browser*/,
                                       bool /*bEditable*/,
                                       const CefRect& /*nodeRect*/)
 {
+}
+
+void CefControl::OnCursorChange(cef_cursor_type_t /*type*/)
+{
+}
+
+void CefControl::OnGotFocus()
+{
+    if (!IsVisible() || !IsEnabled()) {
+        return;
+    }
+    if (!IsFocused()) {
+        //避免双焦点控件的出现
+        SetFocus();
+    }
+}
+
+Control* CefControl::GetCefControl()
+{
+    return this;
+}
+
+std::shared_ptr<IBitmap> CefControl::MakeImageSnapshot()
+{
+    return nullptr;
 }
 
 } //namespace ui

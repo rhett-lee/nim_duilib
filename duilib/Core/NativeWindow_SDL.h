@@ -23,6 +23,8 @@ union SDL_Event;
 
 namespace ui {
 
+class WindowDropTarget;
+
 /** 窗口功能的Windows平台实现
 */
 class NativeWindow_SDL
@@ -102,7 +104,7 @@ public:
     HDC GetPaintDC() const;
 #endif
 
-#if defined DUILIB_BUILD_FOR_LINUX
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
     /** 获取X11的窗口标识符
     */
     uint64_t GetX11WindowNumber() const;
@@ -438,8 +440,10 @@ public:
     void SetLastMousePos(const UiPoint& pt);
 
     /** 获取一个点对应的窗口接口
+    * @param [in] pt 屏幕坐标点
+    * @param [in] bIgnoreChildWindow true表示忽略子窗口，false表示不忽略子窗口
     */
-    INativeWindow* WindowBaseFromPoint(const UiPoint& pt);
+    INativeWindow* WindowBaseFromPoint(const UiPoint& pt, bool bIgnoreChildWindow = false);
 
     /** 设置是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。）
     *   该功能默认是开启的。
@@ -529,6 +533,20 @@ public:
     * @param [in] nCursor 文本输入的位置(相对于rect.left的偏移)
     */
     void SetTextInputArea(const UiRect* rect, int32_t nCursor);
+
+    /** 设置是否允许拖放操作
+    * @param [in] bEnable true表示允许拖放操作，false表示禁止拖放操作
+    */
+    void SetEnableDragDrop(bool bEnable);
+
+    /** 注销一个拖放接口
+    */
+    bool IsEnableDragDrop() const;
+
+    /** 获取指定坐标点的控件接口
+    * @param [in] pt 客户区坐标点
+    */
+    Control* FindControl(const UiPoint& pt) const;
 
 private:
     /** 创建窗口和渲染接口
@@ -673,6 +691,10 @@ private:
     */
     uint8_t m_nLayeredWindowOpacity;
 
+    /** 是否支持拖放操作
+    */
+    bool m_bEnableDragDrop;
+
     /** 当前窗口是否显示为模态对话框
     */
     bool m_bFakeModal;
@@ -692,6 +714,10 @@ private:
     /** 窗口更新的区域（需要绘制）
     */
     UiRect m_rcUpdateRect;
+
+    /** 拖放的支持
+    */
+    std::unique_ptr<WindowDropTarget> m_pWindowDropTarget;
 };
 
 /** 定义别名

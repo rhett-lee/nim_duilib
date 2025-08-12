@@ -54,6 +54,36 @@ bool Keyboard::IsKeyDown(VirtualKeyCode nVirtKey)
     case kVK_CAPITAL:
         bKeyDown = (SDL_GetModState() & SDL_KMOD_CAPS) ? true : false;
         break;
+    case kVK_LBUTTON:
+        {
+            Uint32 mouse_state = SDL_GetMouseState(NULL, NULL);
+            bKeyDown = (mouse_state & SDL_BUTTON_LMASK) ? true : false;
+        }
+        break;
+    case kVK_MBUTTON:
+        {
+            Uint32 mouse_state = SDL_GetMouseState(NULL, NULL);
+            bKeyDown = (mouse_state & SDL_BUTTON_MMASK) ? true : false;
+        }
+        break;
+    case kVK_RBUTTON:
+        {
+            Uint32 mouse_state = SDL_GetMouseState(NULL, NULL);
+            bKeyDown = (mouse_state & SDL_BUTTON_RMASK) ? true : false;
+        }
+        break;
+    case kVK_XBUTTON1:
+        {
+            Uint32 mouse_state = SDL_GetMouseState(NULL, NULL);
+            bKeyDown = (mouse_state & SDL_BUTTON_X1MASK) ? true : false;
+        }
+        break;
+    case kVK_XBUTTON2:
+        {
+            Uint32 mouse_state = SDL_GetMouseState(NULL, NULL);
+            bKeyDown = (mouse_state & SDL_BUTTON_X2MASK) ? true : false;
+        }
+        break;
     default:
         {
             SDL_Keycode sdlKeycode = Keycode::GetSDLKeyCode(nVirtKey);
@@ -66,7 +96,7 @@ bool Keyboard::IsKeyDown(VirtualKeyCode nVirtKey)
                         bKeyDown = keyboardState[sdlScancode];
                     }
                 }
-            }            
+            }
         }
         break;
     }

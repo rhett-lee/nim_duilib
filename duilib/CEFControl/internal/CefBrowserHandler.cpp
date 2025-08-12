@@ -1,63 +1,122 @@
 #include "CefBrowserHandler.h"
 #include "duilib/CEFControl/CefManager.h"
+#include "duilib/CEFControl/CefWindowUtils.h"
 #include "duilib/CEFControl/internal/CefIPCStringDefs.h"
 #include "duilib/CEFControl/internal/CefJSBridge.h"
 #include "duilib/CEFControl/internal/CefBrowserHandlerDelegate.h"
 
 #ifdef DUILIB_BUILD_FOR_WIN
-    #include "duilib/CEFControl/CefDragDrop_Windows.h"
     #include "duilib/CEFControl/internal/Windows/osr_dragdrop_win.h"
+    #include "duilib/CEFControl/internal/Windows/CefOsrDropTarget.h"
 #endif
 
 #include "duilib/Core/GlobalManager.h"
+#include "duilib/Core/Control.h"
+#include "duilib/Core/Window.h"
 
 #pragma warning (push)
 #pragma warning (disable:4100 4324)
-#include "include/base/cef_callback.h"
-#include "include/base/cef_bind.h"
-#include "include/wrapper/cef_closure_task.h"
 
 namespace ui
 {
 CefBrowserHandler::CefBrowserHandler():
-    m_pWindow(nullptr),
     m_pHandlerDelegate(nullptr),
-    m_hCefWindowHandle(0)
+    m_hCefWindowHandle(0),
+    m_bHostWindowClosed(false)
 {
 }
 
+CefBrowserHandler::~CefBrowserHandler()
+{
+    ASSERT(m_browserList.empty());
+}
+
 void CefBrowserHandler::SetHostWindow(ui::Window* window)
-{ 
-    m_pWindow = window;
-    m_windowFlag.reset();
-    if (window != nullptr) {
-        m_windowFlag = window->GetWeakFlag();
+{
+    GlobalManager::Instance().AssertUIThread();
+    m_spWindow = window;
+}
+
+void CefBrowserHandler::SetHandlerDelegate(CefBrowserHandlerDelegate* handler)
+{
+    GlobalManager::Instance().AssertUIThread();
+    if (m_pHandlerDelegate != nullptr) {
+        //注销DragDrop接口
+        UnregisterDropTarget();
     }
+    m_pHandlerDelegate = handler;
+    if (m_pHandlerDelegate != nullptr) {
+        //注册DragDrop接口
+        RegisterDropTarget();
+    }
+}
+
+void CefBrowserHandler::RegisterDropTarget()
+{
+    GlobalManager::Instance().AssertUIThread();
+#ifdef DUILIB_BUILD_FOR_WIN
+    if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
+        //离屏渲染模式
+        if ((m_pHandlerDelegate != nullptr) && (m_pDropTarget == nullptr)) {
+            HWND hWnd = nullptr;
+            Control* pCefControl = m_pHandlerDelegate->GetCefControl();
+            if ((pCefControl != nullptr) && (pCefControl->GetWindow() != nullptr)) {
+                hWnd = pCefControl->GetWindow()->NativeWnd()->GetHWND();
+                ASSERT(::IsWindow(hWnd));
+                if (::IsWindow(hWnd)) {
+                    std::shared_ptr<client::DropTargetWin> pDropTargetWin = std::make_shared<client::DropTargetWin>(hWnd, this);
+                    m_pDropTarget = std::make_shared<CefOsrDropTarget>(pDropTargetWin);
+                }
+            }
+        }
+    }
+#endif
+}
+
+void CefBrowserHandler::UnregisterDropTarget()
+{
+    GlobalManager::Instance().AssertUIThread();
+#ifdef DUILIB_BUILD_FOR_WIN
+    m_pDropTarget.reset();
+#endif
+}
+
+ControlDropTarget_Windows* CefBrowserHandler::GetControlDropTarget()
+{
+    GlobalManager::Instance().AssertUIThread();
+#ifdef DUILIB_BUILD_FOR_WIN
+    return m_pDropTarget.get();
+#else
+    return nullptr;
+#endif
 }
 
 void CefBrowserHandler::SetViewRect(const UiRect& rc)
 {
-    if (!CefCurrentlyOn(TID_UI)) {
-        // 把操作跳转到Cef线程执行后续设置
-        {
-            std::lock_guard<std::mutex> threadGuard(m_rectMutex);
-            m_rcCefControl = rc;//此处需要设置，否则首次绑定时，CefPostTask还未执行时，m_rcCefControl就会被读取，0值会触发错误
-        }        
-        CefPostTask(TID_UI, base::BindOnce(&CefBrowserHandler::SetViewRect, this, rc));
+    if (m_bHostWindowClosed) {
         return;
     }
-    {
-        std::lock_guard<std::mutex> threadGuard(m_rectMutex);
+    else {
+        std::lock_guard<std::mutex> threadGuard(m_dataMutex);
         m_rcCefControl = rc;
     }
     // 调用WasResized接口，调用后，CefBrowserHandler会调用GetViewRect接口来获取浏览器对象新的位置
-    if (m_browser.get() && m_browser->GetHost().get()) {
-        m_browser->GetHost()->WasResized();
+    CefRefPtr<CefBrowserHost> pCefBrowserHost = GetBrowserHost();
+    if (pCefBrowserHost != nullptr) {
+        pCefBrowserHost->WasResized();
     }
+}
+
+UiRect CefBrowserHandler::GetViewRect()
+{
+    std::lock_guard<std::mutex> threadGuard(m_dataMutex);
+    UiRect rc = m_rcCefControl;
+    return rc;
 }
 
 CefRefPtr<CefBrowserHost> CefBrowserHandler::GetBrowserHost()
 {
+    std::lock_guard<std::mutex> threadGuard(m_dataMutex);
     if (m_browser.get()) {
         return m_browser->GetHost();
     }
@@ -66,6 +125,7 @@ CefRefPtr<CefBrowserHost> CefBrowserHandler::GetBrowserHost()
 
 CefWindowHandle CefBrowserHandler::GetCefWindowHandle()
 {
+    std::lock_guard<std::mutex> threadGuard(m_dataMutex);
     CefWindowHandle hWindowHandle = 0;
     if (m_browser.get() && m_browser->GetHost().get()) {
         hWindowHandle = m_browser->GetHost()->GetWindowHandle();
@@ -81,29 +141,9 @@ CefUnregisterCallback CefBrowserHandler::AddAfterCreateTask(const ui::StdClosure
     return m_taskListAfterCreated.AddCallback(cb);
 }
 
-void CefBrowserHandler::CloseAllBrowsers()
+void CefBrowserHandler::SetHostWindowClosed(bool bHostWindowClosed)
 {
-    class CloseAllBrowserTask : public CefTask
-    {
-        IMPLEMENT_REFCOUNTING(CloseAllBrowserTask);
-    public:
-        explicit CloseAllBrowserTask(const std::vector<CefRefPtr<CefBrowser>>& browser_list)
-        {
-            m_browserList.assign(browser_list.begin(), browser_list.end());
-        }
-    public:
-        virtual void Execute() override
-        {
-            for (auto it : m_browserList) {
-                if ((it != nullptr) && (it->GetHost() != nullptr)) {
-                    it->GetHost()->CloseBrowser(true);
-                }
-            }
-        }
-    private:
-        std::vector<CefRefPtr<CefBrowser>> m_browserList;
-    };
-    CefPostTask(TID_UI, new CloseAllBrowserTask(m_browserList));
+    m_bHostWindowClosed = bHostWindowClosed;
 }
 
 bool CefBrowserHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
@@ -111,8 +151,14 @@ bool CefBrowserHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
                                                  CefProcessId /*source_process*/,
                                                  CefRefPtr<CefProcessMessage> message)
 {
+    if (m_bHostWindowClosed) {
+        return false;
+    }
     // 处理render进程发来的消息
     std::string message_name = message->GetName();
+    if (message->GetArgumentList() == nullptr) {
+        return false;
+    }
     if (message_name == kFocusedNodeChangedMessage) {
         CefDOMNode::Type type = (CefDOMNode::Type)message->GetArgumentList()->GetInt(0);
         bool bText = message->GetArgumentList()->GetBool(1);
@@ -132,22 +178,27 @@ bool CefBrowserHandler::OnProcessMessageReceived(CefRefPtr<CefBrowser> browser,
         return true;
     }
     else if (message_name == kCallCppFunctionMessage) {
-        CefString fun_name    = message->GetArgumentList()->GetString(0);
-        CefString param        = message->GetArgumentList()->GetString(1);
-        int js_callback_id    = message->GetArgumentList()->GetInt(2);
+        CefString fun_name = message->GetArgumentList()->GetString(0);
+        CefString param = message->GetArgumentList()->GetString(1);
+        int js_callback_id = message->GetArgumentList()->GetInt(2);
 
-        if (m_pHandlerDelegate) {
-            m_pHandlerDelegate->OnExecuteCppFunc(fun_name, param, js_callback_id, browser, frame);
-        }
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, fun_name, param, js_callback_id, browser, frame]() {
+                if (m_pHandlerDelegate) {
+                    m_pHandlerDelegate->OnExecuteCppFunc(fun_name, param, js_callback_id, browser, frame);
+                }
+            }));
         return true;
     }
     else if (message_name == kExecuteCppCallbackMessage) {
         CefString param = message->GetArgumentList()->GetString(0);
         int callback_id = message->GetArgumentList()->GetInt(1);
 
-        if (m_pHandlerDelegate) {
-            m_pHandlerDelegate->OnExecuteCppCallbackFunc(callback_id, param);
-        }
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, callback_id, param]() {
+            if (m_pHandlerDelegate) {
+                m_pHandlerDelegate->OnExecuteCppCallbackFunc(callback_id, param);
+            }
+        }));
+        return true;
     }
     return false;
 }
@@ -167,7 +218,7 @@ bool CefBrowserHandler::DoOnBeforePopup(CefRefPtr<CefBrowser> browser,
                                         bool* no_javascript_access)
 {
     //让新的链接在原浏览器对象中打开
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         // 返回true则继续在控件内打开新链接，false则禁止访问
         return m_pHandlerDelegate->OnBeforePopup(browser, frame, popup_id, target_url, target_frame_name, target_disposition, user_gesture, popupFeatures, windowInfo, client, settings, extra_info, no_javascript_access);;
     }
@@ -192,6 +243,9 @@ bool CefBrowserHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                       CefRefPtr<CefDictionaryValue>& extra_info,
                                       bool* no_javascript_access)
 {
+    if (m_bHostWindowClosed) {
+        return true;
+    }
     return DoOnBeforePopup(browser, frame, popup_id,
                            target_url, target_frame_name, target_disposition,
                            user_gesture, popupFeatures, windowInfo,
@@ -201,7 +255,7 @@ bool CefBrowserHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
 
 void CefBrowserHandler::OnBeforePopupAborted(CefRefPtr<CefBrowser> browser, int popup_id)
 {
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnBeforePopupAborted)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnBeforePopupAborted)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnBeforePopupAborted, m_pHandlerDelegate, browser, popup_id));
     }
 }
@@ -228,6 +282,9 @@ bool CefBrowserHandler::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                       CefRefPtr<CefDictionaryValue>& extra_info,
                                       bool* no_javascript_access)
 {
+    if (m_bHostWindowClosed) {
+        return true;
+    }
     return DoOnBeforePopup(browser, frame, 0,
                            target_url, target_frame_name, target_disposition,
                            user_gesture, popupFeatures, windowInfo,
@@ -242,17 +299,30 @@ void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
     if (browser == nullptr) {
         return;
     }
-    //这个窗口句柄在TID_UI线程可以第一时间获取到，但转到主线程调用时，就获取不到了（有延迟）。
-    auto hWndowHandle = browser->GetHost()->GetWindowHandle();//当browser为dev tools 时，此处返回nullptr，其他情况为非nullptr值
-    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser, hWndowHandle](){
-        m_browserList.emplace_back(browser);
-        if ((m_browser != nullptr) && (m_browser->GetHost() != nullptr)) {
-            m_browser->GetHost()->WasHidden(true);
+    else {
+        std::lock_guard<std::mutex> threadGuard(m_dataMutex);
+        //这个窗口句柄在TID_UI线程可以第一时间获取到，但转到主线程调用时，就获取不到了（有延迟）。
+        auto hWndowHandle = browser->GetHost()->GetWindowHandle();//当browser为dev tools 时，此处返回nullptr，其他情况为非nullptr值
+        if (m_browserList.empty()) {
+            m_hCefWindowHandle = hWndowHandle;
+            m_browser = browser;
         }
-        m_hCefWindowHandle = hWndowHandle;
-        m_browser = browser;
-        CefManager::GetInstance()->AddBrowserCount();
-        
+        else {
+            ASSERT(browser->IsPopup());
+        }
+        auto it = std::find_if(m_browserList.begin(), m_browserList.end(), [browser](const CefRefPtr<CefBrowser>& item) {
+            return item->IsSame(browser);
+            });
+        if (it == m_browserList.end()) {
+            m_browserList.push_back(browser);
+            CefManager::GetInstance()->AddBrowserCount();
+        }
+    }
+
+    if (m_bHostWindowClosed) {
+        return;
+    }
+    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser](){
         if (m_pHandlerDelegate != nullptr) {
             // 有窗模式下，浏览器创建完毕后，让上层更新一下自己的位置；因为在异步状态下，上层更新位置时可能Cef窗口还没有创建出来
             m_pHandlerDelegate->UpdateCefWindowPos();
@@ -265,24 +335,32 @@ void CefBrowserHandler::OnAfterCreated(CefRefPtr<CefBrowser> browser)
             m_pHandlerDelegate->OnAfterCreated(browser);
         }
     }));
+}
 
-    // 必须在cef ui线程调用RegisterDragDrop
-    // 执行::DoDragDrop时，会在调用RegisterDragDrop的线程触发的DragOver、DragLeave、Drop、Drop回调
-    // 进而调用browser_->GetHost()->DragTargetDragEnter、DragTargetDragOver、DragTargetDragLeave、DragTargetDrop
-    // 这几个cef接口内部发现不在cef ui线程触发，则会转发到cef ui线程
-    // 导致DragSourceEndedAt接口被调用时有部分DragTarget*方法没有被调用
-    // 最终拖拽效果就会有问题，详见DragSourceEndedAt接口描述
-    // 所以在cef ui线程调用RegisterDragDrop，让后面一系列操作都在cef ui线程里同步执行，则没问题
-    //
-    // RegisterDragDrop内部会在调用这个API的线程里创建一个窗口，用过这个窗口来做消息循环模拟阻塞的过程
-    // 所以哪个线程调用RegisterDragDrop，就会在哪个线程阻塞并触发IDragTarget回调
-    // 见https://docs.microsoft.com/zh-cn/windows/win32/api/ole2/nf-ole2-registerdragdrop
-
-#ifdef DUILIB_BUILD_FOR_WIN
-    if ((m_pWindow != nullptr) && !m_windowFlag.expired()) {
-        m_dropTarget = CefDragDrop::GetInstance().GetDropTarget(m_pWindow->NativeWnd()->GetHWND());
+void CefBrowserHandler::CloseAllBrowsers(bool bForceClose)
+{
+    std::vector<CefRefPtr<CefBrowserHost>> cefBrowserHostList;
+    {
+        std::lock_guard<std::mutex> threadGuard(m_dataMutex);
+        for (auto pCefBrowser : m_browserList) {
+            CefRefPtr<CefBrowserHost> spCefBrowserHost;
+            if (pCefBrowser != nullptr) {
+                spCefBrowserHost = pCefBrowser->GetHost();
+            }
+            if (spCefBrowserHost != nullptr) {
+                cefBrowserHostList.push_back(spCefBrowserHost);
+            }
+        }
+        //当有多个Browser时，按倒序关闭
+        if (!cefBrowserHostList.empty()) {
+            std::reverse(cefBrowserHostList.begin(), cefBrowserHostList.end());
+        }
     }
-#endif
+    for (CefRefPtr<CefBrowserHost> spCefBrowserHost : cefBrowserHostList) {
+        if (spCefBrowserHost != nullptr) {
+            spCefBrowserHost->CloseBrowser(bForceClose);
+        }
+    }
 }
 
 bool CefBrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
@@ -293,26 +371,30 @@ bool CefBrowserHandler::DoClose(CefRefPtr<CefBrowser> browser)
 void CefBrowserHandler::OnBeforeClose(CefRefPtr<CefBrowser> browser)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
-    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser](){
-        CefManager::GetInstance()->SubBrowserCount();
-        auto it = std::find_if(m_browserList.begin(), m_browserList.end(), [&](const CefRefPtr<CefBrowser>& item){
+    if (browser == nullptr) {
+        return;
+    }
+    else {
+        std::lock_guard<std::mutex> threadGuard(m_dataMutex);
+        auto it = std::find_if(m_browserList.begin(), m_browserList.end(), [&](const CefRefPtr<CefBrowser>& item) {
             return item->IsSame(browser);
-        });
+            });
         if (it != m_browserList.end()) {
             auto closed_browser = *it;
             m_browserList.erase(it);
             if (closed_browser->IsSame(m_browser)) {
-                m_browser = m_browserList.size() > 0 ? *m_browserList.rbegin() : nullptr;
+                ASSERT(m_browserList.empty());
+                m_browser = nullptr;
                 m_hCefWindowHandle = 0;
-                if (m_browser != nullptr)  {
-                    if (m_browser->GetHost() != nullptr) {
-                        m_browser->GetHost()->WasHidden(false);
-                    }
-                    m_browser->Reload();
-                }
             }
+            CefManager::GetInstance()->SubBrowserCount();
         }
+    }
 
+    if (m_bHostWindowClosed) {
+        return;
+    }
+    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, ToWeakCallback([this, browser](){
         if (m_pHandlerDelegate) {
             m_pHandlerDelegate->OnBeforeClose(browser);
         }
@@ -328,89 +410,88 @@ CefRefPtr<CefAccessibilityHandler> CefBrowserHandler::GetAccessibilityHandler()
 
 bool CefBrowserHandler::GetRootScreenRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 {
-    if ((m_pWindow == nullptr) || m_windowFlag.expired()) {
+    ASSERT(CefCurrentlyOn(TID_UI));
+    rect = { 0, 0, 1, 1 }; //避免返回0，导致CEF内部触发DCHECK错误
+    if (m_bHostWindowClosed) {        
+        return false;
+    }
+    ControlPtrT<ui::Window> spWindow = m_spWindow;
+    if ((spWindow == nullptr) || !spWindow->IsWindow()) {
         return false;
     }
 #ifdef DUILIB_BUILD_FOR_WIN
     //Windows平台
     RECT window_rect = { 0 };
-    HWND root_window = GetAncestor(m_pWindow->NativeWnd()->GetHWND(), GA_ROOT);
+    HWND root_window = GetAncestor(spWindow->NativeWnd()->GetHWND(), GA_ROOT);
     if (::GetWindowRect(root_window, &window_rect)) {
         rect = CefRect(window_rect.left, window_rect.top, window_rect.right - window_rect.left, window_rect.bottom - window_rect.top);
-        return true;
     }
-#endif
+    else {
+        UiRect rcWindow;
+        spWindow->GetWindowRect(rcWindow);
+        rect = CefRect(rcWindow.left, rcWindow.top, rcWindow.Width(), rcWindow.Height());
+    }
+#else
     //其他平台
     UiRect rcWindow;
-    m_pWindow->GetWindowRect(rcWindow);
+    spWindow->GetWindowRect(rcWindow);
     rect = CefRect(rcWindow.left, rcWindow.top, rcWindow.Width(), rcWindow.Height());
+#endif
+    if (rect.width <= 0) {
+        rect.width = 1;
+    }
+    if (rect.height <= 0) {
+        rect.height = 1;
+    }
     return true;
 }
 
 void CefBrowserHandler::GetViewRect(CefRefPtr<CefBrowser> browser, CefRect& rect)
 {
-    if ((m_pWindow == nullptr) || m_windowFlag.expired()) {
+    ASSERT(CefCurrentlyOn(TID_UI));
+    rect = { 0, 0, 1, 1 }; //避免返回0，导致CEF内部触发DCHECK错误
+    if (m_bHostWindowClosed) {
+        return;
+    }
+    ControlPtrT<ui::Window> spWindow = m_spWindow;
+    if ((spWindow == nullptr) || !spWindow->IsWindow()) {
         return;
     }
     if (m_pHandlerDelegate) {
         UiRect rect_cef_control;
         {
-            std::lock_guard<std::mutex> threadGuard(m_rectMutex);
+            std::lock_guard<std::mutex> threadGuard(m_dataMutex);
             rect_cef_control = m_rcCefControl;
         }
         rect.x = 0;
         rect.y = 0;
         rect.width = rect_cef_control.right - rect_cef_control.left;
         rect.height = rect_cef_control.bottom - rect_cef_control.top;
-
-        //返回的区域大小不能为0，否则返回会导致程序崩溃
-        if (rect.width == 0)  {
-            ui::UiRect clientRect;
-            m_pWindow->GetClientRect(clientRect);
-            rect.width = clientRect.Width();
-        }
-        if (rect.width == 0) {
-            rect.width = 1;
-        }
-        if (rect.height == 0) {
-            ui::UiRect clientRect;
-            m_pWindow->GetClientRect(clientRect);
-            rect.height = clientRect.Height();
-        }
-        if (rect.height == 0) {
-            rect.height = 1;
-        }
-
         if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
             //离屏渲染模式，需要传给原始宽度和高度，因为CEF内部会进一步做DPI自适应
-            uint32_t dpiScale = m_pWindow->Dpi().GetScale();
+            uint32_t dpiScale = spWindow->Dpi().GetScale();
             if (dpiScale > 100) {
                 rect.width = rect.width * 100 / dpiScale;
                 rect.height = rect.height * 100 / dpiScale;
             }
         }
     }
-    else  {
-        ui::UiRect clientRect;
-        m_pWindow->GetClientRect(clientRect);
-        rect.x = rect.y = 0;
-        rect.width = clientRect.right;
-        rect.height = clientRect.bottom;
-        if (rect.width == 0) {
-            rect.width = 1;
-        }
-        if (rect.height == 0) {
-            rect.height = 1;
-        }
+    if (rect.width <= 0) {
+        rect.width = 1;
+    }
+    if (rect.height <= 0) {
+        rect.height = 1;
     }
 }
 
 bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX, int viewY, int& screenX, int& screenY)
 {
-    if ((m_pWindow == nullptr) || m_windowFlag.expired()) {
+    ASSERT(CefCurrentlyOn(TID_UI));
+    if (m_bHostWindowClosed) {
         return false;
     }
-    if (!m_pWindow->IsWindow()) {
+    ControlPtrT<ui::Window> spWindow = m_spWindow;
+    if ((spWindow == nullptr) || !spWindow->IsWindow()) {
         return false;
     }
 
@@ -418,7 +499,7 @@ bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX,
     ui::UiPoint screen_pt = { viewX, viewY};
     if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
         //离屏渲染模式下，给到的参数是原始坐标，未经DPI自适应，所以需要做DPI自适应处理，否则页面的右键菜单位置显示不对
-        uint32_t dpiScale = m_pWindow->Dpi().GetScale();
+        uint32_t dpiScale = spWindow->Dpi().GetScale();
         if (dpiScale > 100) {
             screen_pt.x = screen_pt.x * dpiScale / 100;
             screen_pt.y = screen_pt.y * dpiScale / 100;
@@ -427,14 +508,14 @@ bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX,
     //将页面坐标转换为窗口客户区坐标，否则页面弹出的右键菜单位置不正确
     UiRect rect_cef_control;
     {
-        std::lock_guard<std::mutex> threadGuard(m_rectMutex);
+        std::lock_guard<std::mutex> threadGuard(m_dataMutex);
         rect_cef_control = m_rcCefControl;
     }
     screen_pt.x = screen_pt.x + rect_cef_control.left;
     screen_pt.y = screen_pt.y + rect_cef_control.top;
 #if defined (DUILIB_BUILD_FOR_WIN)  || defined (DUILIB_BUILD_FOR_MACOS) 
     //Windows/MacOS：需要转换为屏幕坐标；Linux平台则不需要
-    m_pWindow->ClientToScreen(screen_pt);
+    spWindow->ClientToScreen(screen_pt);
 #endif
     screenX = screen_pt.x;
     screenY = screen_pt.y;
@@ -442,7 +523,7 @@ bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX,
 #if defined (DUILIB_BUILD_FOR_MACOS)
     //MacOS: 屏幕坐标是以屏幕左下角为原点的，需要进行转换
     UiRect rcMonitor;
-    m_pWindow->GetMonitorRect(rcMonitor);
+    spWindow->GetMonitorRect(rcMonitor);
     screenY = rcMonitor.Height() - screenY;
 #endif
     return true;
@@ -450,14 +531,19 @@ bool CefBrowserHandler::GetScreenPoint(CefRefPtr<CefBrowser> browser, int viewX,
 
 bool CefBrowserHandler::GetScreenInfo(CefRefPtr<CefBrowser> browser, CefScreenInfo& screen_info)
 {
+    ASSERT(CefCurrentlyOn(TID_UI));
     //只有离屏渲染模式下，才处理DPI缩放因子
     if (!CefManager::GetInstance()->IsEnableOffScreenRendering()) {
         return false;
     }
-    if ((m_pWindow == nullptr) || m_windowFlag.expired()) {
+    if (m_bHostWindowClosed) {
         return false;
     }
-    uint32_t dpiScale = m_pWindow->Dpi().GetScale();
+    ControlPtrT<ui::Window> spWindow = m_spWindow;
+    if ((spWindow == nullptr) || !spWindow->IsWindow()) {
+        return false;
+    }
+    uint32_t dpiScale = spWindow->Dpi().GetScale();
     if (dpiScale == 100) {
         return false;
     }
@@ -469,14 +555,14 @@ bool CefBrowserHandler::GetScreenInfo(CefRefPtr<CefBrowser> browser, CefScreenIn
 
 void CefBrowserHandler::OnPopupShow(CefRefPtr<CefBrowser> browser, bool show)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnPopupShow, m_pHandlerDelegate, browser, show));
     }
 }
 
 void CefBrowserHandler::OnPopupSize(CefRefPtr<CefBrowser> browser, const CefRect& rect)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnPopupSize, m_pHandlerDelegate, browser, rect));
     }
 }
@@ -488,7 +574,7 @@ void CefBrowserHandler::OnPaint(CefRefPtr<CefBrowser> browser,
                                 int width,
                                 int height)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         m_pHandlerDelegate->OnPaint(browser, type, dirtyRects, buffer, width, height);
     }
 }
@@ -505,8 +591,9 @@ void CefBrowserHandler::OnAcceleratedPaint(CefRefPtr<CefBrowser> browser, PaintE
 #endif
 
 void CefBrowserHandler::GetTouchHandleSize(CefRefPtr<CefBrowser> browser,
-                                        cef_horizontal_alignment_t orientation,
-                                        CefSize& size) {
+                                           cef_horizontal_alignment_t orientation,
+                                           CefSize& size)
+{
 }
 
 void CefBrowserHandler::OnTouchHandleStateChanged(CefRefPtr<CefBrowser> browser, const CefTouchHandleState& state)
@@ -522,7 +609,7 @@ void CefBrowserHandler::OnImeCompositionRangeChanged(CefRefPtr<CefBrowser> brows
                                                      const RectList& character_bounds)
 {
     //此函数只有OSR模式会有回调事件
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         m_pHandlerDelegate->OnImeCompositionRangeChanged(browser, selected_range, character_bounds);
     }
 }
@@ -535,47 +622,87 @@ void CefBrowserHandler::OnVirtualKeyboardRequested(CefRefPtr<CefBrowser> browser
 {
 }
 
-bool CefBrowserHandler::StartDragging(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y)
+bool CefBrowserHandler::StartDragging(CefRefPtr<CefBrowser> browser,
+                                      CefRefPtr<CefDragData> drag_data,
+                                      CefRenderHandler::DragOperationsMask allowed_ops,
+                                      int x,
+                                      int y)
 {
-#ifdef DUILIB_BUILD_FOR_WIN
+    if (m_bHostWindowClosed) {
+        return false;
+    }
     ASSERT(CefCurrentlyOn(TID_UI));
+    //函数功能：网页内部的拖拽开始（只有离屏渲染模式才会调用该接口）
+    if (!CefManager::GetInstance()->IsEnableOffScreenRendering()) {
+        return false;
+    }
+#ifdef DUILIB_BUILD_FOR_WIN
     if (!m_pHandlerDelegate) {
         return false;
     }
 
-    if (!m_dropTarget) {
-        return false;
-    }
     if ((browser == nullptr) || (browser->GetHost() == nullptr)) {
         return false;
     }
-
-    m_currentDragOperation = DRAG_OPERATION_NONE;
-    CefBrowserHost::DragOperationsMask result = m_dropTarget->StartDragging(this, drag_data, allowed_ops, x, y);
-    m_currentDragOperation = DRAG_OPERATION_NONE;
-    UiPoint pt = {};
-    if ((m_pWindow != nullptr) && !m_windowFlag.expired()) {
-        m_pWindow->GetCursorPos(pt);
-        m_pWindow->ScreenToClient(pt);
-    }
-    m_pHandlerDelegate->ClientToControl(pt);
-    browser->GetHost()->DragSourceEndedAt(pt.x, pt.y, result);
-    browser->GetHost()->DragSourceSystemDragEnded();
+    
+    //转到UI线程，执行DoDragDrop操作
+    GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandler::DoDragDrop, this, browser, drag_data, allowed_ops, x, y));
     return true;
 #else
     return false;
 #endif
 }
 
+#ifdef DUILIB_BUILD_FOR_WIN
+
+void CefBrowserHandler::DoDragDrop(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> drag_data, CefRenderHandler::DragOperationsMask allowed_ops, int x, int y)
+{
+    if (m_bHostWindowClosed) {
+        return;
+    }
+    if (!m_pHandlerDelegate) {
+        return;
+    }
+
+    if ((browser == nullptr) || (browser->GetHost() == nullptr)) {
+        return;
+    }
+    ControlPtrT<ui::Window> spWindow = m_spWindow;
+    if ((spWindow == nullptr) || !spWindow->IsWindow()) {
+        return;
+    }
+
+    CefBrowserHost::DragOperationsMask result = client::OsrStartDragging(drag_data, allowed_ops, x, y);
+    UiPoint pt = {};
+    if (spWindow != nullptr) {
+        spWindow->GetCursorPos(pt);
+        spWindow->ScreenToClient(pt);
+    }
+    if (m_pHandlerDelegate != nullptr) {
+        m_pHandlerDelegate->ClientToControl(pt);
+    }
+    if (browser->GetHost() != nullptr) {
+        browser->GetHost()->DragSourceEndedAt(pt.x, pt.y, result);
+        browser->GetHost()->DragSourceSystemDragEnded();
+    }
+}
+
+#endif
+
 void CefBrowserHandler::UpdateDragCursor(CefRefPtr<CefBrowser> browser, CefRenderHandler::DragOperation operation)
 {
+    if (m_bHostWindowClosed) {
+        return;
+    }
     ASSERT(CefCurrentlyOn(TID_UI));
     m_currentDragOperation = operation;
 }
 
 CefBrowserHost::DragOperationsMask CefBrowserHandler::OnDragEnter(CefRefPtr<CefDragData> drag_data, CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect)
 {
-    ASSERT(CefCurrentlyOn(TID_UI));
+    if (m_bHostWindowClosed) {
+        return DRAG_OPERATION_NONE;
+    }
     if ((m_browser != nullptr) && (m_browser->GetHost() != nullptr)) {
         UiPoint pt = { ev.x, ev.y };
         if (m_pHandlerDelegate) {
@@ -591,7 +718,9 @@ CefBrowserHost::DragOperationsMask CefBrowserHandler::OnDragEnter(CefRefPtr<CefD
 
 CefBrowserHost::DragOperationsMask CefBrowserHandler::OnDragOver(CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect)
 {
-    ASSERT(CefCurrentlyOn(TID_UI));
+    if (m_bHostWindowClosed) {
+        return DRAG_OPERATION_NONE;
+    }
     if ((m_browser != nullptr) && (m_browser->GetHost() != nullptr)) {
         UiPoint pt = { ev.x, ev.y };
         if (m_pHandlerDelegate) {
@@ -606,7 +735,9 @@ CefBrowserHost::DragOperationsMask CefBrowserHandler::OnDragOver(CefMouseEvent e
 
 void CefBrowserHandler::OnDragLeave()
 {
-    ASSERT(CefCurrentlyOn(TID_UI));
+    if (m_bHostWindowClosed) {
+        return;
+    }
     if ((m_browser != nullptr) && (m_browser->GetHost() != nullptr)) {
         m_browser->GetHost()->DragTargetDragLeave();
     }
@@ -614,6 +745,9 @@ void CefBrowserHandler::OnDragLeave()
 
 CefBrowserHost::DragOperationsMask CefBrowserHandler::OnDrop(CefMouseEvent ev, CefBrowserHost::DragOperationsMask effect)
 {
+    if (m_bHostWindowClosed) {
+        return DRAG_OPERATION_NONE;
+    }
     if ((m_browser != nullptr) && (m_browser->GetHost() != nullptr)) {
         UiPoint pt = { ev.x, ev.y };
         if (m_pHandlerDelegate != nullptr) {
@@ -633,6 +767,9 @@ void CefBrowserHandler::OnBeforeContextMenu(CefRefPtr<CefBrowser> browser,
                                             CefRefPtr<CefContextMenuParams> params,
                                             CefRefPtr<CefMenuModel> model)
 {
+    if (m_bHostWindowClosed) {
+        return;
+    }
     ASSERT(CefCurrentlyOn(TID_UI));
 
     if (m_pHandlerDelegate) {
@@ -656,7 +793,7 @@ bool CefBrowserHandler::RunContextMenu(CefRefPtr<CefBrowser> browser, CefRefPtr<
 
 bool CefBrowserHandler::OnContextMenuCommand(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, CefRefPtr<CefContextMenuParams> params, int command_id, EventFlags event_flags)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         return m_pHandlerDelegate->OnContextMenuCommand(browser, frame, params, command_id, event_flags);
     }
     return false;        
@@ -664,7 +801,7 @@ bool CefBrowserHandler::OnContextMenuCommand(CefRefPtr<CefBrowser> browser, CefR
 
 void CefBrowserHandler::OnContextMenuDismissed(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         return m_pHandlerDelegate->OnContextMenuDismissed(browser, frame);
     }
 }
@@ -695,30 +832,28 @@ void CefBrowserHandler::OnQuickMenuDismissed(CefRefPtr<CefBrowser> browser,
 // CefDisplayHandler methods
 void CefBrowserHandler::OnAddressChange(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const CefString& url)
 {
-    // Update the URL in the address bar...
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnAddressChange)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnAddressChange)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnAddressChange, m_pHandlerDelegate, browser, frame, url));
     }
 }
 
 void CefBrowserHandler::OnTitleChange(CefRefPtr<CefBrowser> browser, const CefString& title)
 {
-    // Update the browser window title...
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnTitleChange, m_pHandlerDelegate, browser, title));
     }
 }
 
 void CefBrowserHandler::OnFaviconURLChange(CefRefPtr<CefBrowser> browser, const std::vector<CefString>& icon_urls)
 {
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnFaviconURLChange)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnFaviconURLChange)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnFaviconURLChange, m_pHandlerDelegate, browser, icon_urls));
     }
 }
 
 void CefBrowserHandler::OnFullscreenModeChange(CefRefPtr<CefBrowser> browser, bool fullscreen)
 {
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnFullscreenModeChange)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnFullscreenModeChange)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnFullscreenModeChange, m_pHandlerDelegate, browser, fullscreen));
     }
 }
@@ -730,7 +865,7 @@ bool CefBrowserHandler::OnTooltip(CefRefPtr<CefBrowser> browser, CefString& text
 
 void CefBrowserHandler::OnStatusMessage(CefRefPtr<CefBrowser> browser, const CefString& value)
 {
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnStatusMessage)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnStatusMessage)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnStatusMessage, m_pHandlerDelegate, browser, value));
     }
 }
@@ -752,7 +887,7 @@ bool CefBrowserHandler::OnAutoResize(CefRefPtr<CefBrowser> browser, const CefSiz
 
 void CefBrowserHandler::OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress)
 {
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadingProgressChange)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadingProgressChange)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadingProgressChange, m_pHandlerDelegate, browser, progress));
     }
 }
@@ -762,47 +897,54 @@ bool CefBrowserHandler::OnCursorChange(CefRefPtr<CefBrowser> browser,
                                        cef_cursor_type_t type,
                                        const CefCursorInfo& custom_cursor_info)
 {
-#ifdef DUILIB_BUILD_FOR_WIN
-    if (CefManager::GetInstance()->IsEnableOffScreenRendering()) {
-        //离屏渲染模式：需要设置光标
-        if ((m_pWindow != nullptr) && !m_windowFlag.expired()) {
-            SetClassLongPtr(m_pWindow->NativeWnd()->GetHWND(), GCLP_HCURSOR, static_cast<LONG>(reinterpret_cast<LONG_PTR>(cursor)));
-        }
-        ::SetCursor(cursor);
-        return true;
-    }
-    else {
-        //非离屏渲染模式：使用默认行为，不需要设置，否则光标异常
+    if (m_bHostWindowClosed) {
         return false;
     }
-#else
-    return false;
+    if (!CefManager::GetInstance()->IsEnableOffScreenRendering()) {
+        //子窗口模式，不需要设置光标，否则光标异常
+        return false;
+    }
+    else {
+        //离屏渲染模式：需要设置光标
+        SetCefWindowCursor(GetCefWindowHandle(), cursor);
+#ifdef DUILIB_BUILD_FOR_SDL
+        //由于SDL内部，未开放设置光标事件，所以需要主动设置SDL的光标，才能保证光标正确（SDL内部会设置光标，覆盖此处的光标）
+        if (m_pHandlerDelegate && !m_bHostWindowClosed) {
+            GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnCursorChange, m_pHandlerDelegate, type));
+        }
 #endif
+        return true;
+    }
 }
 
 void CefBrowserHandler::OnMediaAccessChange(CefRefPtr<CefBrowser> browser,
                                             bool has_video_access,
                                             bool has_audio_access)
 {
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnMediaAccessChange)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnMediaAccessChange)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnMediaAccessChange, m_pHandlerDelegate, browser, has_video_access, has_audio_access));
     }
 }
 
 bool CefBrowserHandler::OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask)
 {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
+        return m_pHandlerDelegate->OnDragEnter(browser, dragData, mask);
+    }
     return false;
 }
 
 void CefBrowserHandler::OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions)
 {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnDraggableRegionsChanged)) {
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnDraggableRegionsChanged, m_pHandlerDelegate, browser, frame, regions));
+    }
 }
 
 // CefLoadHandler methods
 void CefBrowserHandler::OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward)
 {
-    // Update UI for browser state...
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadingStateChange)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadingStateChange)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadingStateChange, m_pHandlerDelegate, browser, isLoading, canGoBack, canGoForward));
     }
 }
@@ -811,24 +953,21 @@ void CefBrowserHandler::OnLoadStart(CefRefPtr<CefBrowser> browser,
                                     CefRefPtr<CefFrame> frame,
                                     TransitionType transition_type)
 {
-    // A frame has started loading content...
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadStart)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadStart)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadStart, m_pHandlerDelegate, browser, frame, transition_type));
     }
 }
 
 void CefBrowserHandler::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
-    // A frame has finished loading content...
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadEnd)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadEnd)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadEnd, m_pHandlerDelegate, browser, frame, httpStatusCode));
     }
 }
 
 void CefBrowserHandler::OnLoadError(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, ErrorCode errorCode, const CefString& errorText, const CefString& failedUrl)
 {
-    // A frame has failed to load content...
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadError)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnLoadError)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnLoadError, m_pHandlerDelegate, browser, frame, errorCode, errorText, failedUrl));
     }
 }
@@ -841,6 +980,10 @@ bool CefBrowserHandler::OnJSDialog(CefRefPtr<CefBrowser> /*browser*/,
                                    CefRefPtr<CefJSDialogCallback> callback,
                                    bool& suppress_message)
 {
+    if (m_bHostWindowClosed) {
+        suppress_message = true;
+        return false;
+    }
     // release时阻止弹出js对话框
     (void)suppress_message;
 #ifndef _DEBUG
@@ -868,7 +1011,7 @@ void CefBrowserHandler::OnDialogClosed(CefRefPtr<CefBrowser> browser)
 
 bool CefBrowserHandler::OnPreKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEvent& event, CefEventHandle os_event, bool* is_keyboard_shortcut)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         m_pHandlerDelegate->OnPreKeyEvent(browser, event, os_event, is_keyboard_shortcut);
     }
     return false;
@@ -876,7 +1019,7 @@ bool CefBrowserHandler::OnPreKeyEvent(CefRefPtr<CefBrowser> browser, const CefKe
 
 bool CefBrowserHandler::OnKeyEvent(CefRefPtr<CefBrowser> browser, const CefKeyEvent& event, CefEventHandle os_event)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         m_pHandlerDelegate->OnKeyEvent(browser, event, os_event);
     }
     return false;
@@ -889,7 +1032,7 @@ bool CefBrowserHandler::OnBeforeBrowse(CefRefPtr<CefBrowser> browser,
                                        bool user_gesture,
                                        bool is_redirect)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         return m_pHandlerDelegate->OnBeforeBrowse(browser, frame, request, user_gesture, is_redirect);
     }    
     return false;
@@ -967,14 +1110,14 @@ void CefBrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
                                                   int error_code,
                                                   const CefString& error_string)
 {
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnRenderProcessTerminated)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnRenderProcessTerminated)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnRenderProcessTerminated, m_pHandlerDelegate, browser, status, error_code, error_string));
     }
 }
 #else
 void CefBrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser, TerminationStatus status)
 {
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnRenderProcessTerminated)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnRenderProcessTerminated)) {
         ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnRenderProcessTerminated, m_pHandlerDelegate, browser, status, 0, ""));
     }
 }
@@ -982,7 +1125,7 @@ void CefBrowserHandler::OnRenderProcessTerminated(CefRefPtr<CefBrowser> browser,
 
 void CefBrowserHandler::OnDocumentAvailableInMainFrame(CefRefPtr<CefBrowser> browser)
 {
-    if (m_pHandlerDelegate && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnDocumentAvailableInMainFrame)) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && m_pHandlerDelegate->IsCallbackExists(CefCallbackID::OnDocumentAvailableInMainFrame)) {
         GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnDocumentAvailableInMainFrame, m_pHandlerDelegate, browser));
     }
 }
@@ -991,6 +1134,9 @@ CefRefPtr<CefCookieAccessFilter> CefBrowserHandler::GetCookieAccessFilter(CefRef
                                                                           CefRefPtr<CefFrame> frame,
                                                                           CefRefPtr<CefRequest> request)
 {
+    if (m_bHostWindowClosed) {
+        return nullptr;
+    }
     return this;
 }
 
@@ -999,7 +1145,7 @@ CefResourceRequestHandler::ReturnValue CefBrowserHandler::OnBeforeResourceLoad(C
                                                                                CefRefPtr<CefRequest> request,
                                                                                CefRefPtr<CefCallback> callback)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         return m_pHandlerDelegate->OnBeforeResourceLoad(browser, frame, request, callback);
     }
     return RV_CONTINUE;
@@ -1018,7 +1164,7 @@ void CefBrowserHandler::OnResourceRedirect(CefRefPtr<CefBrowser> browser,
                                            CefRefPtr<CefResponse> response,
                                            CefString& new_url)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         m_pHandlerDelegate->OnResourceRedirect(browser, frame, request, response, new_url);
     }
 }
@@ -1028,7 +1174,7 @@ bool CefBrowserHandler::OnResourceResponse(CefRefPtr<CefBrowser> browser,
                                            CefRefPtr<CefRequest> request,
                                            CefRefPtr<CefResponse> response)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         return m_pHandlerDelegate->OnResourceResponse(browser, frame, request, response);
     }
     return false;
@@ -1049,7 +1195,7 @@ void CefBrowserHandler::OnResourceLoadComplete(CefRefPtr<CefBrowser> browser,
                                                URLRequestStatus status,
                                                int64_t received_content_length)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         m_pHandlerDelegate->OnResourceLoadComplete(browser, frame, request, response, status, received_content_length);
     }
 }
@@ -1059,7 +1205,7 @@ void CefBrowserHandler::OnProtocolExecution(CefRefPtr<CefBrowser> browser,
                                             CefRefPtr<CefRequest> request,
                                             bool& allow_os_execution)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         m_pHandlerDelegate->OnProtocolExecution(browser, frame, request, allow_os_execution);
     }
 }
@@ -1085,7 +1231,7 @@ bool CefBrowserHandler::CanDownload(CefRefPtr<CefBrowser> browser,
                                     const CefString& url,
                                     const CefString& request_method)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         return m_pHandlerDelegate->OnCanDownload(browser, url, request_method);
     }
     return true;
@@ -1098,7 +1244,7 @@ void CefBrowserHandler::OnBeforeDownload(CefRefPtr<CefBrowser> browser,
                                          const CefString& suggested_name,
                                          CefRefPtr<CefBeforeDownloadCallback> callback)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         m_pHandlerDelegate->OnBeforeDownload(browser, download_item, suggested_name, callback);
     }
 }
@@ -1109,7 +1255,7 @@ bool CefBrowserHandler::OnBeforeDownload(CefRefPtr<CefBrowser> browser,
                                          const CefString& suggested_name,
                                          CefRefPtr<CefBeforeDownloadCallback> callback)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         return m_pHandlerDelegate->OnBeforeDownload(browser, download_item, suggested_name, callback);
     }
     return true;
@@ -1120,7 +1266,7 @@ void CefBrowserHandler::OnDownloadUpdated(CefRefPtr<CefBrowser> browser,
                                           CefRefPtr<CefDownloadItem> download_item,
                                           CefRefPtr<CefDownloadItemCallback> callback)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         m_pHandlerDelegate->OnDownloadUpdated(browser, download_item, callback);
     }
 }
@@ -1134,7 +1280,7 @@ bool CefBrowserHandler::OnFileDialog(CefRefPtr<CefBrowser> browser,
                                      const std::vector<CefString>& accept_filters,
                                      CefRefPtr<CefFileDialogCallback> callback)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         return m_pHandlerDelegate->OnFileDialog(browser, mode, title, default_file_path, accept_filters, std::vector<CefString>(), std::vector<CefString>(), callback);
     }
     return false;
@@ -1150,12 +1296,29 @@ bool CefBrowserHandler::OnFileDialog(CefRefPtr<CefBrowser> browser,
                                      const std::vector<CefString>& accept_descriptions,
                                      CefRefPtr<CefFileDialogCallback> callback)
 {
-    if (m_pHandlerDelegate) {
+    if (m_pHandlerDelegate && !m_bHostWindowClosed) {
         return m_pHandlerDelegate->OnFileDialog(browser, mode, title, default_file_path, accept_filters, accept_extensions, accept_descriptions, callback);
     }
     return false;
 }
 #endif
+
+void CefBrowserHandler::OnTakeFocus(CefRefPtr<CefBrowser> browser, bool next)
+{
+}
+
+bool CefBrowserHandler::OnSetFocus(CefRefPtr<CefBrowser> browser, FocusSource source)
+{
+    return false;
+}
+
+void CefBrowserHandler::OnGotFocus(CefRefPtr<CefBrowser> browser)
+{
+    if (m_pHandlerDelegate && !m_bHostWindowClosed && (browser != nullptr) && (m_browser != nullptr) && browser->IsSame(m_browser)) {
+        GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&CefBrowserHandlerDelegate::OnGotFocus, m_pHandlerDelegate));
+    }
+}
+
 
 } //namespace ui
 

@@ -3,8 +3,8 @@
   <VBox bkcolor="bk_wnd_darkcolor" width="100%" height="100%">
     <HBox name="window_caption_bar" width="stretch" height="35" bkcolor="bk_wnd_lightcolor">
       <Control width="18" height="18" bkimage="public/caption/logo.svg" valign="center" margin="8"/>
-      <Label text="Controls" valign="center" margin="8"/>
-      <Control />
+      <Label text="Controls" valign="center" margin="8" mouse="false"/>
+      <Control mouse="false"/>
       <Button class="btn_wnd_close_11" name="closebtn" width="40" height="32" margin="4,0,0,0"/>
     </HBox>
     <Box>

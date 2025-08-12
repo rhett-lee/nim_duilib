@@ -127,6 +127,8 @@
     <ClInclude Include="BrowserBox.h" />
     <ClInclude Include="BrowserForm.h" />
     <ClInclude Include="BrowserManager.h" />
+    <ClInclude Include="DragDropManager.h" />
+    <ClInclude Include="DragForm.h" />
     <ClInclude Include="MainThread.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
@@ -137,6 +139,8 @@
     <ClCompile Include="BrowserBox.cpp" />
     <ClCompile Include="BrowserForm.cpp" />
     <ClCompile Include="BrowserManager.cpp" />
+    <ClCompile Include="DragDropManager.cpp" />
+    <ClCompile Include="DragForm.cpp" />
     <ClCompile Include="MainThread.cpp" />
     <ClCompile Include="main_windows.cpp" />
     <ClCompile Include="TestApplication.cpp" />

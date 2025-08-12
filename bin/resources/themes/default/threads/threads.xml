@@ -3,8 +3,8 @@
     <VBox bkcolor="bk_wnd_darkcolor" visible="true">    
         <!-- 标题栏区域 -->
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
-            <Label text="duilib 多线程使用示例程序" height="32" text_align="vcenter" margin="10,0,0,0"/>
-            <Control />
+            <Label text="duilib 多线程使用示例程序" height="32" text_align="vcenter" margin="10,0,0,0" mouse="false"/>
+            <Control mouse="false"/>
             <Button class="btn_wnd_min_11" height="32" width="40" name="minbtn" margin="0,2,0,2" tooltip_text="最小化"/>
             <Box height="stretch" width="40" margin="0,2,0,2">
                 <Button class="btn_wnd_max_11" height="32" width="stretch" name="maxbtn" tooltip_text="最大化"/>
@@ -24,7 +24,7 @@
                 <Label text="00:00:00" name="running_time" height="100%" width="100%" text_align="hcenter,vcenter" margin="8,0,0,0"/>
             </HBox>
             <Line height="1"/>
-            <RichEdit class="simple simple_border" name="log_view" bkcolor="white" width="stretch" height="stretch"
+            <RichEdit class="simple simple_border" name="log_view" text_align="left,top" bkcolor="white" width="stretch" height="stretch"
                         hide_selection="true" multi_line="true" vscrollbar="true" auto_vscroll="true" hscrollbar="false"
                         normal_text_color="darkcolor" want_return_msg="true" rich_text="false" default_context_menu="true"/>
         </VBox>

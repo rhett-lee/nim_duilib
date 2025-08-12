@@ -206,6 +206,17 @@ namespace ui
                                 const CefString& image_url,
                                 int http_status_code,
                                 CefRefPtr<CefImage> image)> OnDownloadFavIconFinishedEvent;
+
+    //CefDragHandler接口
+    //拖动操作（回调函数的调用线程：CEF的UI线程）
+    typedef std::function<bool (CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefDragData> dragData,
+                                CefDragHandler::DragOperationsMask mask)> OnDragEnterEvent;
+    //可拖动区域发生变化（回调函数的调用线程：主进程的UI线程）
+    typedef std::function<void (CefRefPtr<CefBrowser> browser,
+                                CefRefPtr<CefFrame> frame,
+                                const std::vector<CefDraggableRegion>& regions)> OnDraggableRegionsChangedEvent;
+
 }
 
 namespace ui
@@ -405,6 +416,13 @@ public:
                                            const CefString& image_url,
                                            int http_status_code,
                                            CefRefPtr<CefImage> image) {}
+
+    //CefDragHandler接口
+    //拖动操作（回调函数的调用线程：CEF的UI线程）
+    virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask) { return false; };
+
+    //可拖动区域发生变化（回调函数的调用线程：主进程的UI线程）
+    virtual void OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions) {};
 
 public:
     virtual ~CefControlEvent() = default;

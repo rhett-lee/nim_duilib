@@ -294,9 +294,6 @@
     <ClCompile Include="Control\CheckCombo.cpp">
       <Filter>Control</Filter>
     </ClCompile>
-    <ClCompile Include="Core\ControlDropTarget.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
     <ClCompile Include="Control\ComboButton.cpp">
       <Filter>Control</Filter>
     </ClCompile>
@@ -555,9 +552,6 @@
     <ClCompile Include="Utils\Clipboard_SDL.cpp">
       <Filter>Utils\SDL</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\ScreenCapture_SDL.cpp">
-      <Filter>Utils\SDL</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\StringCharset.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -611,9 +605,6 @@
     </ClCompile>
     <ClCompile Include="CEFControl\internal\CefMemoryBlock.cpp">
       <Filter>CEFControl\internal</Filter>
-    </ClCompile>
-    <ClCompile Include="CEFControl\CefDragDrop_Windows.cpp">
-      <Filter>CEFControl\Windows</Filter>
     </ClCompile>
     <ClCompile Include="CEFControl\internal\Windows\bytes_write_handler.cc">
       <Filter>CEFControl\internal\Windows</Filter>
@@ -707,6 +698,18 @@
     </ClCompile>
     <ClCompile Include="WebView2\WebView2EnvironmentOptions.cpp">
       <Filter>WebView2</Filter>
+    </ClCompile>
+    <ClCompile Include="CEFControl\internal\Windows\CefOsrDropTarget.cpp">
+      <Filter>CEFControl\internal\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ControlDropTargetImpl_SDL.cpp">
+      <Filter>Core\SDL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ControlDropTargetImpl_Windows.cpp">
+      <Filter>Core\Windows</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ControlDropTargetUtils.cpp">
+      <Filter>Core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1006,9 +1009,6 @@
     </ClInclude>
     <ClInclude Include="Control\CheckCombo.h">
       <Filter>Control</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\WindowDropTarget.h">
-      <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\ControlDropTarget.h">
       <Filter>Core</Filter>
@@ -1346,9 +1346,6 @@
     <ClInclude Include="CEFControl\internal\CefMemoryBlock.h">
       <Filter>CEFControl\internal</Filter>
     </ClInclude>
-    <ClInclude Include="CEFControl\CefDragDrop_Windows.h">
-      <Filter>CEFControl\Windows</Filter>
-    </ClInclude>
     <ClInclude Include="CEFControl\internal\Windows\bytes_write_handler.h">
       <Filter>CEFControl\internal\Windows</Filter>
     </ClInclude>
@@ -1480,6 +1477,24 @@
     </ClInclude>
     <ClInclude Include="WebView2\WebView2EnvironmentOptions.h">
       <Filter>WebView2</Filter>
+    </ClInclude>
+    <ClInclude Include="CEFControl\internal\Windows\CefOsrDropTarget.h">
+      <Filter>CEFControl\internal\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WindowDropTarget_Windows.h">
+      <Filter>Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WindowDropTarget_SDL.h">
+      <Filter>Core\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ControlDropTargetImpl_SDL.h">
+      <Filter>Core\SDL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ControlDropTargetImpl_Windows.h">
+      <Filter>Core\Windows</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ControlDropTargetUtils.h">
+      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

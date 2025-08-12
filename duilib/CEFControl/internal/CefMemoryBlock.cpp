@@ -78,19 +78,42 @@ void CefMemoryBlock::Clear()
     m_nHeight = 0;
 }
 
-void  CefMemoryBlock::PaintData(IRender* pRender, const UiRect& rcPaint, int32_t left, int32_t top)
+void CefMemoryBlock::PaintData(IRender* pRender,const UiRect& rc)
 {
+    ASSERT(rc.Width() == GetWidth());
+    ASSERT(rc.Height() == GetHeight());
     std::lock_guard<std::mutex> threadGuard(m_memMutex);
     //通过直接写入数据的接口，性能最佳
     UiRect dcPaint;
-    dcPaint.left = left;
-    dcPaint.top = top;
+    dcPaint.left = rc.left;
+    dcPaint.top = rc.top;
     dcPaint.right = dcPaint.left + GetWidth();
     dcPaint.bottom = dcPaint.top + GetHeight();
-    if (!dcPaint.IsEmpty() && !rcPaint.IsEmpty() && IsValid()) {
+    if (!dcPaint.IsEmpty() && IsValid()) {
         bool bRet = pRender->WritePixels(GetBits(), GetWidth() * GetHeight() * sizeof(uint32_t), dcPaint);
         ASSERT_UNUSED_VARIABLE(bRet);
     }
+}
+
+bool CefMemoryBlock::MakeImageSnapshot(IRender* pRender)
+{
+    std::lock_guard<std::mutex> threadGuard(m_memMutex);
+    int32_t nWidth = GetWidth();
+    int32_t nHeight = GetHeight();
+    uint8_t* pBits = GetBits();
+    if ((nWidth < 1) || (nHeight < 1) || (pBits == nullptr) || (pRender == nullptr)) {
+        return false;
+    }
+    UiRect dcPaint;
+    dcPaint.left = 0;
+    dcPaint.top = 0;
+    dcPaint.right = dcPaint.left + nWidth;
+    dcPaint.bottom = dcPaint.top + nHeight;
+
+    if (pRender->Resize(nWidth, nHeight)) {
+        return pRender->WritePixels(pBits, nWidth * nHeight * sizeof(uint32_t), dcPaint);
+    }
+    return false;    
 }
 
 bool CefMemoryBlock::IsValid() const

@@ -320,8 +320,8 @@ bool FilePath::IsSubDirectory(const FilePath& parentPath) const
     if (childStr.size() <= parentStr.size()) {
         return false;
     }
-#if !defined (DUILIB_BUILD_FOR_LINUX)
-    //Windows下，不区分大小写
+#if !defined (DUILIB_BUILD_FOR_LINUX) && !defined (DUILIB_BUILD_FOR_FREEBSD)
+    //Windows/MacOS文件名不区分大小写，Linux/FreeBSD区分大小写
     parentStr = StringUtil::MakeLowerString(parentStr);
     childStr = StringUtil::MakeLowerString(childStr);
 #endif

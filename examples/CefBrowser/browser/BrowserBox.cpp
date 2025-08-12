@@ -2,14 +2,12 @@
 #include "browser/BrowserForm.h"
 #include "browser/BrowserManager.h"
 
-using namespace ui;
-
-BrowserBox::BrowserBox(ui::Window* pWindow, std::string id):
+BrowserBox::BrowserBox(ui::Window* pWindow, std::string browserId):
     ui::VBox(pWindow)
 {
     m_pBrowserForm = nullptr;
     m_pCefControl = nullptr;
-    m_browserId = id;
+    m_browserId = browserId;
 }
 
 BrowserForm* BrowserBox::GetBrowserForm() const
@@ -52,6 +50,9 @@ void BrowserBox::InitBrowserBox(const DString& url)
     m_pCefControl->AttachStatusMessage(ui::UiBind(&BrowserBox::OnStatusMessage, this, std::placeholders::_1, std::placeholders::_2));
     m_pCefControl->AttachLoadingProgressChange(ui::UiBind(&BrowserBox::OnLoadingProgressChange, this, std::placeholders::_1, std::placeholders::_2));
     m_pCefControl->AttachMediaAccessChange(ui::UiBind(&BrowserBox::OnMediaAccessChange, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+
+    m_pCefControl->AttachDragEnter(ui::UiBind(&BrowserBox::OnDragEnter, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+    m_pCefControl->AttachDraggableRegionsChanged(ui::UiBind(&BrowserBox::OnDraggableRegionsChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
     m_pCefControl->AttachBeforePopup(ui::UiBind(&BrowserBox::OnBeforePopup, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6, std::placeholders::_7, std::placeholders::_8, std::placeholders::_9, std::placeholders::_10));
     m_pCefControl->AttachBeforePopupAborted(ui::UiBind(&BrowserBox::OnBeforePopupAborted, this, std::placeholders::_1, std::placeholders::_2));
@@ -96,7 +97,7 @@ void BrowserBox::UninitBrowserBox()
     BrowserManager::GetInstance()->RemoveBorwserBox(m_browserId, this);
 }
 
-void BrowserBox::SetWindow(Window* pWindow)
+void BrowserBox::SetWindow(ui::Window* pWindow)
 {
     m_pBrowserForm = dynamic_cast<BrowserForm*>(pWindow);
     ASSERT(nullptr != m_pBrowserForm);
@@ -112,8 +113,8 @@ bool BrowserBox::OnSetFocus(const ui::EventArgs& msg)
     }
 
     //不再调用基类的方法，避免覆盖输入法管理的逻辑（基类会关闭输入法）
-    if (GetState() == kControlStateNormal) {
-        SetState(kControlStateHot);
+    if (GetState() == ui::kControlStateNormal) {
+        SetState(ui::kControlStateHot);
         Invalidate();
     }
     return true;
@@ -237,6 +238,16 @@ void BrowserBox::OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_vid
     ui::GlobalManager::Instance().AssertUIThread();
 }
 
+bool BrowserBox::OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask)
+{
+    return false;
+}
+
+void BrowserBox::OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions)
+{
+    ui::GlobalManager::Instance().AssertUIThread();
+}
+
 bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                CefRefPtr<CefFrame> frame,
                                int popup_id,
@@ -249,10 +260,43 @@ bool BrowserBox::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                                bool* no_javascript_access)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
-    //拦截弹窗，并导航到弹出网址
-    if ((browser != nullptr) && (browser->GetMainFrame() != nullptr) && !target_url.empty()) {
-        browser->GetMainFrame()->LoadURL(target_url);
+    if (!param.user_gesture) {
+        //自动弹窗，直接拦截
+        return true;
     }
+#if CEF_VERSION_MAJOR > 109
+    if (param.target_disposition == CEF_WOD_NEW_POPUP) {
+#else
+    if (param.target_disposition == WOD_NEW_POPUP) {
+#endif
+        //打开新的弹出窗口（这会使browser->IsPopup()返回 true）
+        if (GetWindow() != nullptr) {
+            GetWindow()->Dpi().ScaleInt(windowInfo.bounds.height);
+            GetWindow()->Dpi().ScaleInt(windowInfo.bounds.width);
+        }
+        //不拦截
+        return false;
+    }
+    else if (!target_url.empty()) {
+#if CEF_VERSION_MAJOR > 109
+        if ((param.target_disposition == CEF_WOD_NEW_FOREGROUND_TAB) || (param.target_disposition == CEF_WOD_NEW_BACKGROUND_TAB)) {
+#else
+        if ((param.target_disposition == WOD_NEW_FOREGROUND_TAB) || (param.target_disposition == WOD_NEW_BACKGROUND_TAB)) {
+#endif
+            //新标签中打开（需要在UI线程中完成）
+            DString url = ui::StringConvert::WStringToT(target_url);
+            ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, this->ToWeakCallback([this, url]() {
+                BrowserManager::GetInstance()->CreateBorwserBox(GetBrowserForm(), "", url);
+                return true;
+                }
+            ));
+        }
+        else if ((browser != nullptr) && (browser->GetMainFrame() != nullptr)) {
+            //导航到弹出网址
+            browser->GetMainFrame()->LoadURL(target_url);
+        }
+    }
+    //拦截
     return true;
 }
 

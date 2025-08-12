@@ -15,6 +15,13 @@
     #include "CefManager_MacOS.h"
 #endif
 
+#pragma warning (push)
+#pragma warning (disable:4100 4324)
+    #include "include/base/cef_callback.h"
+    #include "include/base/cef_bind.h"
+    #include "include/wrapper/cef_closure_task.h"
+#pragma warning (pop)
+
 namespace ui
 {
 //创建CEF控件的回调函数
@@ -40,10 +47,15 @@ CefManager::CefManager():
     m_logSeverity(LOGSEVERITY_DEFAULT),
     m_browserCount(0),
     m_nCefDoMessageLoopWorkDelayMs(CEF_DO_MESSAGE_LOOP_WORK_DELAY_MS),
+    m_nExitCode(0),
     m_bHasCefCachePath(false),
     m_bEnableOffScreenRendering(true),
-    m_bCefInit(false)
+    m_bCefInit(false),
+    m_bCefMessageLoopEmpty(false)
 {
+#ifdef DUILIB_BUILD_FOR_MACOS
+    m_bExiting = false;
+#endif
 }
 
 CefManager::~CefManager()
@@ -224,25 +236,61 @@ void CefManager::ProcessWindowCloseEvent(Window* pWindow)
     for (Control* pControl : cefControlList) {
         CefControl* pCefControl = dynamic_cast<CefControl*>(pControl);
         if (pCefControl != nullptr) {
-            pCefControl->CloseAllBrowsers();
+            pCefControl->OnHostWindowClosed();
         }
     }
 }
 
 void CefManager::PostQuitMessage(int32_t nExitCode)
 {
+    m_nExitCode = nExitCode;
+    bool bForceExit = false;
+#ifdef DUILIB_BUILD_FOR_MACOS
+    //解决MacOS下，子窗口模式退出时进程残留问题（未调用CefBrowserHandler::OnBeforeClose函数，原因未查明）
+    if (!m_bExiting) {
+        m_bExiting = true;
+        m_exitTime = std::chrono::steady_clock::now();
+    }
+    else {
+        auto waitSeconds = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - m_exitTime);
+        if (waitSeconds.count() > 15) {
+            //等待超过15秒，则强制退出
+            bForceExit = true;
+        }
+    }
+#endif
+
     // 当我们需要结束进程时，千万不要直接调用::PostQuitMessage，这是可能还有浏览器对象没有销毁
     // 应该等所有浏览器对象都销毁后再调用::PostQuitMessage
-    if (m_browserCount == 0) {
-        GlobalManager::Instance().Thread().PostTask(kThreadUI, [nExitCode]() {
-            NativeWindow::PostQuitMsg(0);
-        });
+    if (bForceExit || (m_browserCount <= 0)) {
+        if (IsMultiThreadedMessageLoop()) {
+            if (m_bCefMessageLoopEmpty) {
+                //启用CEF消息循环：退出主线程的消息循环
+                GlobalManager::Instance().Thread().PostTask(kThreadUI, [nExitCode]() {
+                        NativeWindow::PostQuitMsg(nExitCode);
+                    });
+            }
+            CefPostTask(TID_UI, base::BindOnce([]() {
+                //响应后，标记消息队列为空(当CEF消息循环中有待处理的事项时，直接退出主线程消息循环会有偶发崩溃问题)
+                CefManager::GetInstance()->m_bCefMessageLoopEmpty = true;
+                //未启用CEF消息循环：直接退出主线程的消息循环
+                GlobalManager::Instance().Thread().PostTask(kThreadUI, []() {
+                    NativeWindow::PostQuitMsg(CefManager::GetInstance()->m_nExitCode);
+                    });
+                }));
+        }
+        else {
+            //未启用CEF消息循环：直接退出主线程的消息循环
+            GlobalManager::Instance().Thread().PostTask(kThreadUI, [nExitCode]() {
+                    NativeWindow::PostQuitMsg(nExitCode);
+                });
+        }
     }
     else {
         auto cb = [nExitCode]()  {
             CefManager::GetInstance()->PostQuitMessage(nExitCode);
         };
-        GlobalManager::Instance().Thread().PostDelayedTask(kThreadUI, cb, 500);
+        GlobalManager::Instance().Thread().PostDelayedTask(kThreadUI, cb, 200);
     }
 }
 

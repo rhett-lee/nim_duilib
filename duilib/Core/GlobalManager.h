@@ -151,6 +151,7 @@ public:
     * @param [in] pWindow 窗口的接口
     */
     bool HasWindow(Window* pWindow) const;
+    bool HasWindowBase(WindowBase* pWindowBase) const;
 
     /** 添加一个全局 Class 属性
      * @param[in] strClassName 全局 Class 名称

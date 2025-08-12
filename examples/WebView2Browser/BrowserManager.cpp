@@ -21,43 +21,43 @@ BrowserForm* BrowserManager::CreateBrowserForm()
     return new BrowserForm;
 }
 
-BrowserBox* BrowserManager::CreateBorwserBox(BrowserForm* browser_form, std::string id, const DString& url)
+BrowserBox* BrowserManager::CreateBorwserBox(BrowserForm* pBrowserForm, std::string browserId, const DString& url)
 {
-    if (id.empty()) {
-        id = CreateBrowserID();
+    if (browserId.empty()) {
+        browserId = CreateBrowserID();
     }
-    BrowserBox *browser_box = nullptr;
+    BrowserBox *pBrowserBox = nullptr;
     //多标签模式：一个窗口内允许有多个标签
-    if (browser_form == nullptr) {
-        browser_form = BrowserManager::GetInstance()->CreateBrowserForm();
-        if (!browser_form->CreateWnd(nullptr, ui::WindowCreateParam(_T("WebView2Browser"), true))) {
-            browser_form = nullptr;
+    if (pBrowserForm == nullptr) {
+        pBrowserForm = BrowserManager::GetInstance()->CreateBrowserForm();
+        if (!pBrowserForm->CreateWnd(nullptr, ui::WindowCreateParam(_T("WebView2Browser"), true))) {
+            pBrowserForm = nullptr;
             return nullptr;
         }
-        browser_form->ShowWindow(ui::ShowWindowCommands::kSW_SHOW_NORMAL);          
+        pBrowserForm->ShowWindow(ui::ShowWindowCommands::kSW_SHOW_NORMAL);          
     }
-    browser_box = browser_form->CreateBox(id, url);
-    ASSERT(browser_box != nullptr);
-    if (browser_box == nullptr) {
+    pBrowserBox = pBrowserForm->CreateBox(browserId, url);
+    ASSERT(pBrowserBox != nullptr);
+    if (pBrowserBox == nullptr) {
         return nullptr;
     }
-    m_boxMap[id] = browser_box;
-    return browser_box;
+    m_boxMap[browserId] = pBrowserBox;
+    return pBrowserBox;
 }
 
-bool BrowserManager::IsBorwserBoxActive(const std::string& id)
+bool BrowserManager::IsBorwserBoxActive(const std::string& browserId)
 {
-    BrowserBox* browser_box = FindBorwserBox(id);
-    if (browser_box != nullptr) {
-        BrowserForm* parent_form = browser_box->GetBrowserForm();
-        return parent_form->IsActiveBox(browser_box);
+    BrowserBox* pBrowserBox = FindBorwserBox(browserId);
+    if (pBrowserBox != nullptr) {
+        BrowserForm* parent_form = pBrowserBox->GetBrowserForm();
+        return parent_form->IsActiveBox(pBrowserBox);
     }
     return false;
 }
 
-BrowserBox* BrowserManager::FindBorwserBox(const std::string& id)
+BrowserBox* BrowserManager::FindBorwserBox(const std::string& browserId)
 {
-    std::map<std::string, BrowserBox*>::const_iterator i = m_boxMap.find(id);
+    std::map<std::string, BrowserBox*>::const_iterator i = m_boxMap.find(browserId);
     if (i == m_boxMap.end()) {
         return nullptr;
     }
@@ -66,9 +66,9 @@ BrowserBox* BrowserManager::FindBorwserBox(const std::string& id)
     }
 }
 
-void BrowserManager::RemoveBorwserBox(const std::string& id, const BrowserBox* box)
+void BrowserManager::RemoveBorwserBox(const std::string& browserId, const BrowserBox* box)
 {
-    auto it_box = m_boxMap.find(id);
+    auto it_box = m_boxMap.find(browserId);
     if (it_box == m_boxMap.end()) {
         ASSERT(0);
     }

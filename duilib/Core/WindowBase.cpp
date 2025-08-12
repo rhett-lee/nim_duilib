@@ -1,13 +1,11 @@
 #include "WindowBase.h"
 #include "duilib/Core/GlobalManager.h"
-#include "duilib/Core/WindowDropTarget.h"
 #include "duilib/Core/WindowCreateAttributes.h"
 
 namespace ui
 {
 WindowBase::WindowBase():
     m_pParentWindow(nullptr), 
-    m_pWindowDropTarget(nullptr),
     m_pNativeWindow(nullptr)
 {
     m_pNativeWindow = new NativeWindow(this);
@@ -71,12 +69,6 @@ void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg,
 
 void WindowBase::ClearWindowBase()
 {
-    //注销拖放操作
-    if (m_pWindowDropTarget != nullptr) {
-        m_pWindowDropTarget->Clear();
-        delete m_pWindowDropTarget;
-        m_pWindowDropTarget = nullptr;
-    }
     m_pParentWindow = nullptr;
     m_parentFlag.reset();
     m_dpi.reset();
@@ -181,10 +173,10 @@ void WindowBase::PostQuitMsg(int32_t nExitCode)
     return NativeWindow::PostQuitMsg(nExitCode);
 }
 
-WindowBase* WindowBase::WindowBaseFromPoint(const UiPoint& pt)
+WindowBase* WindowBase::WindowBaseFromPoint(const UiPoint& pt, bool bIgnoreChildWindow)
 {
     WindowBase* pWindowBase = nullptr;
-    INativeWindow* pNativeWindow = m_pNativeWindow->WindowBaseFromPoint(pt);
+    INativeWindow* pNativeWindow = m_pNativeWindow->WindowBaseFromPoint(pt, bIgnoreChildWindow);
     if (pNativeWindow != nullptr) {
         pWindowBase = dynamic_cast<WindowBase*>(pNativeWindow);
     }
@@ -444,7 +436,8 @@ void WindowBase::Resize(int cx, int cy, bool bContainShadow, bool bNeedDpiScale)
 
     if (!bContainShadow) {
         UiPadding rcShadow;
-        GetCurrentShadowCorner(rcShadow);
+        GetShadowCorner(rcShadow);
+        Dpi().ScalePadding(rcShadow);
         cx += rcShadow.left + rcShadow.right;
         cy += rcShadow.top + rcShadow.bottom;
     }
@@ -744,23 +737,6 @@ bool WindowBase::RegisterHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers, int
 bool WindowBase::UnregisterHotKey(int32_t id)
 {
     return m_pNativeWindow->UnregisterHotKey(id);
-}
-
-bool WindowBase::RegisterDragDrop(ControlDropTarget* pDropTarget)
-{
-    if (m_pWindowDropTarget == nullptr) {
-        m_pWindowDropTarget = new WindowDropTarget;
-        m_pWindowDropTarget->SetWindow(this);
-    }
-    return m_pWindowDropTarget->RegisterDragDrop(pDropTarget);
-}
-
-bool WindowBase::UnregisterDragDrop(ControlDropTarget* pDropTarget)
-{
-    if (m_pWindowDropTarget == nullptr) {
-        return false;
-    }
-    return m_pWindowDropTarget->UnregisterDragDrop(pDropTarget);
 }
 
 const UiPoint& WindowBase::GetLastMousePos() const

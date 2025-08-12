@@ -14,6 +14,14 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/AttributeUtil.h"
 
+#ifdef DUILIB_BUILD_FOR_WIN
+    #include "ControlDropTargetImpl_Windows.h"
+#endif
+
+#ifdef DUILIB_BUILD_FOR_SDL
+    #include "ControlDropTargetImpl_SDL.h"
+#endif
+
 namespace ui 
 {
 Control::Control(Window* pWindow) :
@@ -29,7 +37,8 @@ Control::Control(Window* pWindow) :
     m_isBoxShadowPainted(false),
     m_uUserDataID((size_t)-1),
     m_bShowFocusRect(false),
-    m_nPaintOrder(0)
+    m_nPaintOrder(0),
+    m_bBordersOnTop(true)
 {
 }
 
@@ -146,7 +155,12 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         }
         SetBorderDashStyle((int8_t)dashStyle);
     }
+    else if (strName == _T("borders_on_top")) {
+        //边框是否在顶层（即先绘制子控件，后绘制边框，避免边框被子控件覆盖）
+        SetBordersOnTop(strValue == _T("true"));
+    }
     else if ((strName == _T("border_round")) || (strName == _T("borderround"))) {
+        //圆角大小
         UiSize cxyRound;
         AttributeUtil::ParseSizeValue(strValue.c_str(), cxyRound);
         SetBorderRound(cxyRound);
@@ -260,6 +274,9 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         }
         else if (strValue == _T("no")) {
             SetCursorType(CursorType::kCursorNo);
+        }
+        else if (strValue == _T("progress")) {
+            SetCursorType(CursorType::kCursorProgress);
         }
         else {
             ASSERT(0);
@@ -450,6 +467,18 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else if (strName == _T("stop_gif_play")) {
         GifFrameType nStopFrame = (GifFrameType)StringUtil::StringToInt32(strValue);
         StopGifPlay(false, nStopFrame);
+    }
+    else if (strName == _T("enable_drag_drop")) {
+        //是否允许拖放操作
+        SetEnableDragDrop(strValue == _T("true"));
+    }
+    else if (strName == _T("enable_drop_file")) {
+        //是否允许拖放文件操作
+        SetEnableDropFile(strValue == _T("true"));
+    }
+    else if (strName == _T("drop_file_types")) {
+        //拖放文件的扩展名列表
+        SetDropFileTypes(strValue);
     }
     else {
         ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
@@ -1240,6 +1269,19 @@ int8_t Control::GetBorderDashStyle() const
         return m_pBorderData->m_borderDashStyle;
     }
     return 0;
+}
+
+void Control::SetBordersOnTop(bool bBordersOnTop)
+{
+    if (m_bBordersOnTop != bBordersOnTop) {
+        m_bBordersOnTop = bBordersOnTop;
+        Invalidate();
+    }
+}
+
+bool Control::IsBordersOnTop() const
+{
+    return m_bBordersOnTop;
 }
 
 bool Control::GetBorderRound(float& fRoundWidth, float& fRoundHeight) const
@@ -2579,11 +2621,17 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             if (isAlpha) {
                 //设置了透明度，需要先绘制子控件（绘制到pCacheRender上面），然后整体AlphaBlend到pRender
                 PaintChild(pCacheRender, rcUnionRect);
-            }        
+                if (IsBordersOnTop()) {
+                    PaintBorder(pCacheRender);     //绘制边框
+                }
+            }
             pCacheRender->SetWindowOrg(ptOldOrg);
             SetCacheDirty(false);
         }
 
+        UiRect rcClip = GetRect();
+        AutoClip clip(pRender, rcClip, IsClip());
+        std::unique_ptr<AutoClip> roundClip = CreateRoundClip(pRender, rcClip, bRoundClip);
         pRender->AlphaBlend(rcUnionRect.left,
                             rcUnionRect.top,
                             rcUnionRect.Width(),
@@ -2597,6 +2645,9 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
         if (!isAlpha) {
             //没有设置透明度，后绘制子控件（直接绘制到pRender上面）
             PaintChild(pRender, rcUnionRect);
+            if (IsBordersOnTop()) {
+                PaintBorder(pRender);     //绘制边框
+            }
         }
         if (isAlpha) {
             SetCacheDirty(true);
@@ -2621,6 +2672,9 @@ void Control::AlphaPaint(IRender* pRender, const UiRect& rcPaint)
             m_isBoxShadowPainted = false;
         }
         PaintChild(pRender, rcPaint);
+        if (IsBordersOnTop()) {
+            PaintBorder(pRender);     //绘制边框
+        }
         pRender->SetWindowOrg(ptOldOrg);
     }
 }
@@ -2655,9 +2709,11 @@ void Control::Paint(IRender* pRender, const UiRect& rcPaint)
     PaintStateColors(pRender);    //控件指定状态的颜色：普通状态、焦点状态、按下状态、禁用状态(覆盖整个矩形)
     PaintBkImage(pRender);        //背景图片，无状态
     PaintStateImages(pRender);    //先绘制背景图片，然后绘制前景图片，每个图片有指定的状态：普通状态、焦点状态、按下状态、禁用状态
-    PaintText(pRender);            //绘制文本
-    PaintBorder(pRender);        //绘制边框
-    PaintFocusRect(pRender);    //绘制焦点状态
+    PaintText(pRender);           //绘制文本
+    if (!IsBordersOnTop()) {
+        PaintBorder(pRender);     //绘制边框
+    }    
+    PaintFocusRect(pRender);      //绘制焦点状态
     PaintLoading(pRender);        //绘制Loading图片，无状态
 }
 
@@ -2862,28 +2918,25 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
     if ((pRender == nullptr) || rcDraw.IsEmpty() || (fBorderSize < 0.1) || (dwBorderColor.GetARGB() == 0)) {
         return;
     }
-    int32_t nBorderSize = static_cast<int32_t>(fBorderSize + 0.5);//四舍五入
-    int32_t nDeltaValue = nBorderSize / 2;
-    rcDraw.top += nDeltaValue;
-    rcDraw.bottom -= nDeltaValue;
-    if (nBorderSize % 2 != 0) {
-        rcDraw.bottom -= 1;
-    }
-    rcDraw.left += nDeltaValue;
-    rcDraw.right -= nDeltaValue;
-    if (nBorderSize % 2 != 0) {
-        rcDraw.right -= 1;
-    }
+
+    //绘制边线：确保边线在矩形范围内
+    UiRectF rcDrawF((float)rcDraw.left, (float)rcDraw.top, (float)rcDraw.right, (float)rcDraw.bottom);
+    float fHalfBorderSize = fBorderSize / 2;
+    rcDrawF.left += fHalfBorderSize;
+    rcDrawF.top += fHalfBorderSize;
+    rcDrawF.right -= fHalfBorderSize;
+    rcDrawF.bottom -= fHalfBorderSize;
+
     if (ShouldBeRoundRectBorders()) {
         float fRoundWidth = 0;
         float fRoundHeight = 0;
-        GetBorderRound(fRoundWidth, fRoundHeight);
-        DrawRoundRect(pRender, rcDraw, fRoundWidth, fRoundHeight, dwBorderColor, fBorderSize, GetBorderDashStyle());
+        GetBorderRound(fRoundWidth, fRoundHeight);        
+        DrawRoundRect(pRender, rcDrawF, fRoundWidth, fRoundHeight, dwBorderColor, fBorderSize, borderDashStyle);
     }
     else {
         if (borderDashStyle == IPen::DashStyle::kDashStyleSolid) {
             //普通实线
-            pRender->DrawRect(rcDraw, dwBorderColor, fBorderSize, false);
+            pRender->DrawRect(rcDrawF, dwBorderColor, fBorderSize, false);
         }
         else {
             //其他线形
@@ -2891,10 +2944,10 @@ void Control::PaintBorders(IRender* pRender, UiRect rcDraw,
             if (pRenderFactory != nullptr) {
                 std::unique_ptr<IPen> pPen(pRenderFactory->CreatePen(dwBorderColor, fBorderSize));
                 pPen->SetDashStyle((IPen::DashStyle)borderDashStyle);
-                pRender->DrawRect(rcDraw, pPen.get(), false);
+                pRender->DrawRect(rcDrawF, pPen.get(), false);
             }
             else {
-                pRender->DrawRect(rcDraw, dwBorderColor, fBorderSize, false);
+                pRender->DrawRect(rcDrawF, dwBorderColor, fBorderSize, false);
             }
         }
     }
@@ -3002,13 +3055,10 @@ bool Control::IsRootBox() const
     bool isRootBox = false;
     Window* pWindow = GetWindow();
     if (pWindow != nullptr) {
-        Box* pRoot = pWindow->GetRoot();
-        if ((Control*)pRoot == this) {
-            //没有Attach到阴影的情况
+        if ((Control*)pWindow->GetRoot() == this) {
             isRootBox = true;
         }
-        else if ((pRoot != nullptr) && pWindow->IsShadowAttached() && (pRoot->GetItemAt(0) == this)) {
-            //已经Attach到阴影的情况
+        else if ((Control*)pWindow->GetXmlRoot() == this) {
             isRootBox = true;
         }
     }
@@ -3026,6 +3076,12 @@ bool Control::IsWindowRoundRect() const
         }
     }
     return isWindowRoundRect;
+}
+
+void Control::AddRoundRectPath(IPath* path, const UiRectF& rc, float rx, float ry) const
+{
+    UiRect rcI((int32_t)(rc.left + 0.5f), (int32_t)(rc.top + 0.5f), (int32_t)(rc.right + 0.5f), (int32_t)(rc.bottom + 0.5f));
+    AddRoundRectPath(path, rcI, rx, ry);
 }
 
 void Control::AddRoundRectPath(IPath* path, const UiRect& rc, float rx, float ry) const
@@ -3058,6 +3114,14 @@ void Control::AddRoundRectPath(IPath* path, const UiRect& rc, float rx, float ry
 }
 
 void Control::DrawRoundRect(IRender* pRender, const UiRect& rc, float rx, float ry,
+                            UiColor dwBorderColor, float fBorderSize,
+                            int8_t borderDashStyle) const
+{
+    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
+    DrawRoundRect(pRender, rcF, rx, ry, dwBorderColor, fBorderSize, borderDashStyle);
+}
+
+void Control::DrawRoundRect(IRender* pRender, const UiRectF& rc, float rx, float ry,
                             UiColor dwBorderColor, float fBorderSize,
                             int8_t borderDashStyle) const
 {
@@ -3470,6 +3534,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
     bool bRet = true;//当值为false时，就不再调用回调函数和处理函数
 
     if (msg.GetSender() == this) {
+        //备注：EventMap 和 XmlEventMap里面的回调函数，需要校验消息的发送者是否为控件自身
         if (bRet && HasAttachEventMap() && !GetAttachEventMap().empty()) {
             const EventMap& attachEventMap = GetAttachEventMap();
             auto callback = attachEventMap.find(msg.eventType);
@@ -3509,6 +3574,7 @@ bool Control::FireAllEvents(const EventArgs& msg)
         }
     }
 
+    //备注：BubbledEventMap 和 XmlBubbledEventMap里面的回调函数，不需要校验消息的发送者是否为控件自身
     if (bRet && HasBubbledEventMap() && !GetBubbledEventMap().empty()) {
         const EventMap& bubbledEventMap = GetBubbledEventMap();
         auto callback = bubbledEventMap.find(msg.eventType);
@@ -3775,6 +3841,88 @@ EventMap& Control::GetXmlBubbledEventMap()
 bool Control::HasXmlBubbledEventMap() const
 {
     return (m_pEventMapData != nullptr) && (m_pEventMapData->m_pXmlBubbledEvent != nullptr);
+}
+
+void Control::SetEnableDragDrop(bool bEnable)
+{
+    if (m_pDragDropData == nullptr) {
+        m_pDragDropData = std::make_unique<TDragDropData>();
+    }
+    m_pDragDropData->m_bDragDropEnabled = bEnable;
+}
+
+bool Control::IsEnableDragDrop() const
+{
+    return (m_pDragDropData != nullptr) && m_pDragDropData->m_bDragDropEnabled;
+}
+
+void Control::SetEnableDropFile(bool bEnable)
+{
+    if (m_pDragDropData == nullptr) {
+        m_pDragDropData = std::make_unique<TDragDropData>();
+    }
+    m_pDragDropData->m_bDropFileEnabled = bEnable;
+    m_pDragDropData->m_bDropFileEnabledDefined = true;
+}
+
+bool Control::IsEnableDropFile() const
+{
+    if (m_pDragDropData != nullptr) {
+        if (m_pDragDropData->m_bDropFileEnabledDefined) {
+            return m_pDragDropData->m_bDropFileEnabled;
+        }
+        else {
+            return m_pDragDropData->m_bDragDropEnabled;
+        }
+    }
+    return false;
+}
+
+void Control::SetDropFileTypes(const DString& fileTypes)
+{
+    if (m_pDragDropData == nullptr) {
+        m_pDragDropData = std::make_unique<TDragDropData>();
+    }
+    m_pDragDropData->m_dropFileTypes = fileTypes;
+}
+
+DString Control::GetDropFileTypes() const
+{
+    DString fileTypes;
+    if (m_pDragDropData != nullptr) {
+        fileTypes = m_pDragDropData->m_dropFileTypes.c_str();
+    }
+    return fileTypes;
+}
+
+ControlDropTarget_Windows* Control::GetControlDropTarget()
+{
+#ifdef DUILIB_BUILD_FOR_WIN
+    if (IsEnableDragDrop() && IsEnabled()) {
+        if (m_pDragDropData != nullptr) {
+            m_pDragDropData = std::make_unique<TDragDropData>();
+            m_pDragDropData->m_bDragDropEnabled = true;
+        }
+        m_pDragDropData->m_pDropTargetWindows = std::make_shared<ControlDropTargetImpl_Windows>(this);
+        return m_pDragDropData->m_pDropTargetWindows.get();
+    }
+#endif
+    return nullptr;
+}
+
+ControlDropTarget_SDL* Control::GetControlDropTarget_SDL()
+{
+#ifdef DUILIB_BUILD_FOR_SDL
+    if (IsEnableDragDrop() && IsEnabled()) {
+        if (m_pDragDropData == nullptr) {
+            m_pDragDropData = std::make_unique<TDragDropData>();
+            m_pDragDropData->m_bDragDropEnabled = true;
+        }
+        m_pDragDropData->m_pDropTargetSDL = std::make_shared<ControlDropTargetImpl_SDL>(this);
+        return m_pDragDropData->m_pDropTargetSDL.get();
+    }
+#endif
+    return nullptr;
 }
 
 } // namespace ui

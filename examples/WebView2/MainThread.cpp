@@ -13,16 +13,10 @@ WorkerThread::~WorkerThread()
 
 void WorkerThread::OnInit()
 {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    ::OleInitialize(nullptr);
-#endif
 }
 
 void WorkerThread::OnCleanup()
 {
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
-    ::OleUninitialize();
-#endif
 }
 
 MainThread::MainThread() :

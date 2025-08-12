@@ -14,8 +14,6 @@
 
 namespace ui
 {
-class WindowDropTarget;
-class ControlDropTarget;
 class IRender;
 class WindowCreateParam;
 class WindowCreateAttributes;
@@ -533,14 +531,6 @@ public:
     */
     bool UnregisterHotKey(int32_t id);
 
-    /** 注册一个拖放接口
-    */
-    bool RegisterDragDrop(ControlDropTarget* pDropTarget);
-
-    /** 注销一个拖放接口
-    */
-    bool UnregisterDragDrop(ControlDropTarget* pDropTarget);
-
     /** 获取鼠标最后的坐标
     */
     const UiPoint& GetLastMousePos() const;
@@ -620,8 +610,13 @@ protected:
     */
     virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) = 0;
 
-    /** 获取窗口阴影的大小
-    * @param [out] rcShadow 获取圆角的大小 
+    /** 获取设置的窗口阴影的大小
+    * @param [out] rcShadow 返回设置窗口阴影的大小，未经过DPI缩放
+    */
+    virtual void GetShadowCorner(UiPadding& rcShadow) const = 0;
+
+    /** 获取当前窗口阴影的大小
+    * @param [out] rcShadow 返回当前窗口阴影的大小，已经过DPI缩放
     */
     virtual void GetCurrentShadowCorner(UiPadding& rcShadow) const = 0;
 
@@ -948,8 +943,10 @@ protected:
 
 protected:
     /** 获取一个点对应的窗口接口
+    * @param [in] pt 屏幕坐标点
+    * @param [in] bIgnoreChildWindow true表示忽略子窗口，false表示不忽略子窗口
     */
-    WindowBase* WindowBaseFromPoint(const UiPoint& pt);
+    WindowBase* WindowBaseFromPoint(const UiPoint& pt, bool bIgnoreChildWindow = false);
 
     /** 处理DPI变化的系统通知消息
     * @param [in] nNewDPI 新的DPI值
@@ -1058,10 +1055,6 @@ private:
     UiRect m_rcSysMenuRect;
 
 private:
-    /** 窗口的拖放操作管理接口
-    */
-    WindowDropTarget* m_pWindowDropTarget;
-
     /** 窗口的实现类
     */
     NativeWindow* m_pNativeWindow;

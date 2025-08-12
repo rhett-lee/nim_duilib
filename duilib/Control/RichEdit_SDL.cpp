@@ -2,13 +2,10 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
 #include "duilib/Core/WindowMessage.h"
-#include "duilib/Core/WindowDropTarget.h"
-#include "duilib/Core/ControlDropTarget.h"
 #include "duilib/Core/ScrollBar.h"
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/StringConvert.h"
 #include "duilib/Utils/AttributeUtil.h"
-#include "duilib/Utils/BitmapHelper_Windows.h"
 #include "duilib/Utils/PerformanceUtil.h"
 #include "duilib/Utils/Clipboard.h"
 #include "duilib/Render/IRender.h"
@@ -16,8 +13,8 @@
 #include "duilib/Animation/AnimationManager.h"
 #include "duilib/Animation/AnimationPlayer.h"
 #include "duilib/Control/Menu.h"
-#include "duilib/Box/VBox.h"
 #include "duilib/Control/Button.h"
+#include "duilib/Box/VBox.h"
 
 #ifdef DUILIB_BUILD_FOR_SDL
 #include <SDL3/SDL.h>
@@ -321,9 +318,6 @@ void RichEdit::SetAttribute(const DString& strName, const DString& strValue)
         //如果 为 TRUE，则当控件处于非活动状态时，应保存所选内容的边界。
         //如果 为 FALSE，则当控件再次处于活动状态时，可以选择边界重置为 start = 0，length = 0。
     }
-    else if (strName == _T("enable_drag_drop")) {
-        //是否允许拖放操作
-    }
     else if (strName == _T("select_all_on_focus")) {
         //获取焦点的时候，是否全选
         SetSelAllOnFocus(strValue == _T("true"));
@@ -598,7 +592,7 @@ void RichEdit::SetNumberFormat64(const DString& numberFormat)
     DString format = numberFormat;
 #if defined (DUILIB_BUILD_FOR_WIN)
     StringUtil::ReplaceAll(_T("lld"), _T("I64d"), format);
-#elif defined (DUILIB_BUILD_FOR_LINUX)
+#else
     StringUtil::ReplaceAll(_T("I64d"), _T("lld"), format);
 #endif
     m_numberFormat = format;
@@ -2507,6 +2501,20 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
     menu->SetSkinFolder(skinFolder);
     DString xml(_T("rich_edit_menu.xml"));
 
+    //菜单显示过程中，不隐藏当前选择的文本
+    bool bOldHideSelection = IsHideSelection();
+    SetHideSelection(false);
+
+    //菜单关闭事件
+    std::weak_ptr<WeakFlag> richEditFlag = GetWeakFlag();
+    menu->AttachWindowClose([this, richEditFlag, bOldHideSelection](const ui::EventArgs&) {
+        if (!richEditFlag.expired()) {
+            //恢复HideSelection属性
+            SetHideSelection(bOldHideSelection);
+        }
+        return true;
+        });
+
     //菜单弹出位置的坐标应为屏幕坐标
     UiPoint pt = point;
     ClientToScreen(pt);
@@ -3312,10 +3320,6 @@ bool RichEdit::OnKillFocus(const EventArgs& msg)
     if (m_bNoSelOnKillFocus && IsReadOnly() && IsEnabled()) {
         SetSelNone();
     }
-    if (m_bSelAllOnFocus && IsEnabled()) {
-        SetSelNone();
-    }
-
     m_bTextInputMode = false;
 
     if (m_pClearButton != nullptr) {

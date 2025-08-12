@@ -42,6 +42,7 @@
 #include "Core/Keycode.h"
 #include "Core/Keyboard.h"
 #include "Core/CursorManager.h"
+#include "Core/DragWindow.h"
 
 #include "Box/VBox.h"
 #include "Box/HBox.h"

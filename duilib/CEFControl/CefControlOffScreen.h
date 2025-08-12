@@ -44,6 +44,10 @@ public:
     */
     virtual bool IsCefOsrImeMode() const override;
 
+    /** 将网页保存为一张图片, 图片大小与控件大小相同
+    */
+    virtual std::shared_ptr<IBitmap> MakeImageSnapshot() override;
+
 protected:
     /** 重新创建Browser控件
     */
@@ -58,6 +62,10 @@ protected:
                                       bool bText,
                                       bool bEditable,
                                       const CefRect& nodeRect) override;
+
+    /** 设置光标(仅离屏渲染模式有效)
+    */
+    virtual void OnCursorChange(cef_cursor_type_t type) override;
 
     //光标消息
     virtual bool OnSetCursor(const EventArgs& msg) override;

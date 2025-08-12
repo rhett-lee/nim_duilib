@@ -142,30 +142,8 @@ void ControlForm::OnInitWindow()
     }
 
     //注册一个Context Menu，演示功能（用这两种方法都可以注册上下文菜单功能）
-    //m_pRoot->AttachAllEvents([this](ui::EventArgs& args) {
-    //m_pRoot->AttachContextMenu([this](ui::EventArgs& args) {
-    ui::RichEdit* edit = static_cast<ui::RichEdit*>(FindControl(_T("edit")));
-    if (edit != nullptr) {
-        edit->AttachContextMenu([this](const ui::EventArgs& args) {
-            if (args.eventType == ui::kEventContextMenu) {
-                ui::UiPoint pt = args.ptMouse;
-                if ((pt.x != -1) && (pt.y != -1)) {
-                    ui::Control* pControl = (ui::Control*)args.lParam;//当前点击点所在的控件
-
-                    //鼠标消息产生的上下文菜单
-                    ClientToScreen(pt);
-                    ShowPopupMenu(pt, nullptr);
-                }
-                else {
-                    //按Shift + F10，由系统产生上下文菜单
-                    pt = { 100, 100 };
-                    ClientToScreen(pt);
-                    ShowPopupMenu(pt, nullptr);
-                }
-            }
-            return true;
-            });
-    }
+    AttachRichEditEvents(static_cast<ui::RichEdit*>(FindControl(_T("edit"))));
+    AttachRichEditEvents(static_cast<ui::RichEdit*>(FindControl(_T("edit2"))));
 
     //显示拾色器
     ui::Button* pShowColorPicker = dynamic_cast<ui::Button*>(FindControl(_T("show_color_picker")));
@@ -290,6 +268,65 @@ void ControlForm::OnInitWindow()
             return true;
             });
     }
+}
+
+void ControlForm::AttachRichEditEvents(ui::RichEdit* edit)
+{
+    if (edit == nullptr) {
+        return;
+    }
+    //右键菜单
+    edit->AttachContextMenu([this](const ui::EventArgs& args) {
+        if (args.eventType == ui::kEventContextMenu) {
+            ui::UiPoint pt = args.ptMouse;
+            if ((pt.x != -1) && (pt.y != -1)) {
+                ui::Control* pControl = (ui::Control*)args.lParam;//当前点击点所在的控件
+
+                //鼠标消息产生的上下文菜单
+                ClientToScreen(pt);
+                ShowPopupMenu(pt, nullptr);
+            }
+            else {
+                //按Shift + F10，由系统产生上下文菜单
+                pt = { 100, 100 };
+                ClientToScreen(pt);
+                ShowPopupMenu(pt, nullptr);
+            }
+        }
+        return true;
+        });
+
+    //文件拖入支持
+    edit->AttachDropData([this, edit](const ui::EventArgs& args) {
+        ui::FilePath filePath;
+        if (args.wParam == ui::kControlDropTypeWindows) {
+            const ui::ControlDropData_Windows* dropData = (const ui::ControlDropData_Windows*)args.lParam;
+            if ((dropData != nullptr) && !dropData->m_fileList.empty()) {
+                filePath = dropData->m_fileList[0];
+            }
+        }
+        else if (args.wParam == ui::kControlDropTypeSDL) {
+            const ui::ControlDropData_SDL* dropData = (const ui::ControlDropData_SDL*)args.lParam;
+            if ((dropData != nullptr) && !dropData->m_fileList.empty()) {
+                filePath = dropData->m_fileList[0];
+            }
+        }
+        if (!filePath.IsEmpty()) {
+            ui::FileUtil fileUtil;
+            std::vector<uint8_t> fileData;
+            fileUtil.ReadFileData(filePath, fileData);
+            if (!fileData.empty()) {
+                std::wstring result;
+                if (ui::StringCharset::GetDataAsString((const char*)fileData.data(), (uint32_t)fileData.size(), result)) {
+                    DString text = ui::StringConvert::WStringToT(result);
+                    if (edit != nullptr) {
+                        edit->SetText(text);
+                    }
+                }
+            }
+        }
+        return true;
+        });
 }
 
 void ControlForm::ShowColorPicker(bool bDoModal)

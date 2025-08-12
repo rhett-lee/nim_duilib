@@ -1,5 +1,6 @@
 #include "NativeWindow_SDL.h"
 #include "MessageLoop_SDL.h"
+#include "WindowDropTarget_SDL.h"
 #include "duilib/Image/ImageDecoder.h"
 #include "duilib/Image/ImageLoadAttribute.h"
 #include "duilib/Image/ImageInfo.h"
@@ -14,6 +15,8 @@
 
 #if defined DUILIB_BUILD_FOR_MACOS
     #include "SDL_MacOS.h"
+#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    #include "SDL_Linux.h"
 #endif
 
 /** 主动绘制
@@ -128,6 +131,14 @@ SDL_WindowID NativeWindow_SDL::GetWindowIdFromEvent(const SDL_Event& sdlEvent)
     case SDL_EVENT_MOUSE_WHEEL:
         //鼠标事件
         windowID = sdlEvent.wheel.windowID;
+        break;
+    case SDL_EVENT_DROP_BEGIN:
+    case SDL_EVENT_DROP_POSITION:
+    case SDL_EVENT_DROP_TEXT:
+    case SDL_EVENT_DROP_FILE:
+    case SDL_EVENT_DROP_COMPLETE:
+        //拖放事件
+        windowID = sdlEvent.drop.windowID;
         break;
     default:
         if ((sdlEvent.type > SDL_EVENT_USER) && (sdlEvent.type < SDL_EVENT_LAST)) {
@@ -368,6 +379,18 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             UiPoint pt;
             pt.x = (int32_t)sdlEvent.button.x;
             pt.y = (int32_t)sdlEvent.button.y;
+
+#if defined (DUILIB_BUILD_FOR_MACOS)
+            //MacOS平台：当存在CEF子窗口时，先点击页面，然后再点击主界面，此时SDL给出的pt值不正确，所以进行修正
+            UiPoint mousePt;
+            GetCursorPos(mousePt);
+            ScreenToClient(mousePt);
+            if ((mousePt.x != pt.x) || (mousePt.y != pt.y)) {
+                pt.x = mousePt.x;
+                pt.y = mousePt.y;
+            }
+#endif
+
             uint32_t modifierKey = GetModifiers(SDL_GetModState());
             if (sdlEvent.button.button == SDL_BUTTON_LEFT) {
                 //鼠标左键
@@ -531,6 +554,58 @@ bool NativeWindow_SDL::OnSDLWindowEvent(const SDL_Event& sdlEvent)
             lResult = pOwner->OnNativeShowWindowMsg(false, NativeMsg(SDL_EVENT_WINDOW_HIDDEN, 0, 0), bHandled);
         }
         break;
+    case SDL_EVENT_DROP_BEGIN:
+        {
+            bHandled = true;
+            if (m_pWindowDropTarget != nullptr) {
+                m_pWindowDropTarget->OnDropBegin();
+            }
+        }
+        break;
+    case SDL_EVENT_DROP_POSITION:
+        {
+            bHandled = true;
+            if (m_pWindowDropTarget != nullptr) {
+                m_pWindowDropTarget->OnDropPosition(UiPoint((uint32_t)sdlEvent.drop.x, (uint32_t)sdlEvent.drop.y));
+            }
+        }
+        break;
+    case SDL_EVENT_DROP_TEXT:
+        {
+            bHandled = true;
+            if (m_pWindowDropTarget != nullptr) {
+                DStringA dropText;
+                if (sdlEvent.drop.data != nullptr) {
+                    dropText = sdlEvent.drop.data;
+                }
+                m_pWindowDropTarget->OnDropText(dropText);
+            }
+        }
+        break;
+    case SDL_EVENT_DROP_FILE:
+        {
+            bHandled = true;
+            if (m_pWindowDropTarget != nullptr) {
+                DStringA dropSource;
+                DStringA dropFile;
+                if (sdlEvent.drop.data != nullptr) {
+                    dropFile = sdlEvent.drop.data;
+                }
+                if (sdlEvent.drop.source != nullptr) {
+                    dropSource = sdlEvent.drop.source;
+                }
+                m_pWindowDropTarget->OnDropFile(dropSource, dropFile);
+            }
+        }
+        break;
+    case SDL_EVENT_DROP_COMPLETE:
+        {
+            bHandled = true;
+            if (m_pWindowDropTarget != nullptr) {
+                m_pWindowDropTarget->OnDropComplete();
+            }
+        }
+        break;
     default:
         break;
     }
@@ -564,6 +639,7 @@ NativeWindow_SDL::NativeWindow_SDL(INativeWindow* pOwner):
     m_bMouseCapture(false),
     m_bCloseing(false),
     m_closeParam(kWindowCloseNormal),
+    m_bEnableDragDrop(true),
     m_bFakeModal(false),
     m_bDoModal(false),
     m_bFullScreen(false),
@@ -1308,19 +1384,29 @@ void NativeWindow_SDL::InitNativeWindow()
             CenterWindow();
         }
     }
+
+    //关联拖放操作
+    SetEnableDragDrop(IsEnableDragDrop());
 }
 
 void NativeWindow_SDL::ClearNativeWindow()
 {
-    if (m_sdlWindow != nullptr) {    
-        SDL_SetWindowHitTest(m_sdlWindow, nullptr, nullptr);
-        SDL_DestroyWindow(m_sdlWindow);
-        m_sdlWindow = nullptr;
+    SDL_Renderer* sdlRenderer = m_sdlRenderer;
+    SDL_Window* sdlWindow = m_sdlWindow;
+    m_sdlRenderer = nullptr;
+    m_sdlWindow = nullptr;
+
+    if (sdlWindow != nullptr) {
+        SDL_SetWindowHitTest(sdlWindow, nullptr, nullptr);
+        SDL_DestroyWindow(sdlWindow);
+        sdlWindow = nullptr;
     }
-    if (m_sdlRenderer != nullptr) {
-        SDL_DestroyRenderer(m_sdlRenderer);
-        m_sdlRenderer = nullptr;
+    if (sdlRenderer != nullptr) {
+        SDL_DestroyRenderer(sdlRenderer);
+        sdlRenderer = nullptr;
     }
+
+    m_pWindowDropTarget.reset();
 }
 
 void* NativeWindow_SDL::GetWindowHandle() const
@@ -1400,7 +1486,7 @@ HDC NativeWindow_SDL::GetPaintDC() const
 
 #endif //DUILIB_BUILD_FOR_WIN
 
-#if defined DUILIB_BUILD_FOR_LINUX
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
 /** 获取X11的窗口标识符
 */
 uint64_t NativeWindow_SDL::GetX11WindowNumber() const
@@ -1833,12 +1919,16 @@ void NativeWindow_SDL::CheckSetWindowFocus()
     if (!IsWindowFocused()) {
         SetWindowFocus();
     }
-#ifdef DUILIB_BUILD_FOR_WIN
+#if defined (DUILIB_BUILD_FOR_WIN)
     //当存在子窗口时，SDL获取的焦点窗口存在问题，不正确，需要补充检查（影响RichEdit输入）
     HWND hWnd = GetHWND();
     if (::GetFocus() != hWnd) {
         ::SetFocus(hWnd);
     }
+#elif defined (DUILIB_BUILD_FOR_MACOS)
+    SetFocus_MacOS(GetNSWindow());
+#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
+    SetFocus_Linux(GetX11WindowNumber());
 #endif
 }
 
@@ -1971,8 +2061,8 @@ bool NativeWindow_SDL::IsWindowVisible() const
     return (windowFlags & SDL_WINDOW_HIDDEN) ? false : true;
 }
 
-bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* /*pInsertAfterWindow*/,
-                                   InsertAfterFlag /*insertAfterFlag*/,
+bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* pInsertAfterWindow,
+                                   InsertAfterFlag insertAfterFlag,
                                    int32_t X, int32_t Y, int32_t cx, int32_t cy,
                                    uint32_t uFlags)
 {
@@ -2026,6 +2116,24 @@ bool NativeWindow_SDL::SetWindowPos(const NativeWindow_SDL* /*pInsertAfterWindow
         }
         else {
             bModified = true;
+        }
+    }
+    if (!(uFlags & kSWP_NOZORDER) && (pInsertAfterWindow == nullptr)) {
+        //仅支持pInsertAfterWindow为nullptr的情况
+        if (insertAfterFlag == InsertAfterFlag::kHWND_TOPMOST) {
+            SDL_SetWindowAlwaysOnTop(m_sdlWindow, true);
+        }
+        else if (insertAfterFlag == InsertAfterFlag::kHWND_NOTOPMOST) {
+            SDL_SetWindowAlwaysOnTop(m_sdlWindow, false);
+        }
+        else if (insertAfterFlag == InsertAfterFlag::kHWND_TOP) {
+            bool bForce = SDL_GetHintBoolean(SDL_HINT_FORCE_RAISEWINDOW, false);
+            bool bActivate = SDL_GetHintBoolean(SDL_HINT_WINDOW_ACTIVATE_WHEN_RAISED, true);
+            SDL_SetHint(SDL_HINT_FORCE_RAISEWINDOW, "false");
+            SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_RAISED, "false");
+            SDL_RaiseWindow(m_sdlWindow);
+            SDL_SetHint(SDL_HINT_FORCE_RAISEWINDOW, bForce ? "true" : "false");
+            SDL_SetHint(SDL_HINT_WINDOW_ACTIVATE_WHEN_RAISED, bActivate ? "true" : "false");
         }
     }
     if (bRet) {
@@ -2295,29 +2403,29 @@ void NativeWindow_SDL::GetWindowRect(SDL_Window* sdlWindow, UiRect& rcWindow) co
     rcWindow.right = rcWindow.left + nWidth + nLeftBorder + nRightBorder;
     rcWindow.bottom = rcWindow.top + nHeight + nTopBorder + nBottomBorder;
 
-#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
-    {
-        HWND hWnd = GetHWND();
-        if (!::IsIconic(hWnd) && ::IsWindowVisible(hWnd)) {
-            //最小化的时候，或者隐藏的时候，不比对，两者不同
-            RECT rect = { 0, };
-            ::GetWindowRect(hWnd, &rect);
-            if (rect.left != -32000) {
-                ASSERT(rcWindow.left == rect.left);
-                ASSERT(rcWindow.top == rect.top);
-                ASSERT(rcWindow.right == rect.right);
-                ASSERT(rcWindow.bottom == rect.bottom);
-            }            
-        }
-    }
-#endif
+//#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+//    {
+//        HWND hWnd = GetHWND();
+//        if (!::IsIconic(hWnd) && ::IsWindowVisible(hWnd)) {
+//            //最小化的时候，或者隐藏的时候，不比对，两者不同
+//            RECT rect = { 0, };
+//            ::GetWindowRect(hWnd, &rect);
+//            if (rect.left != -32000) {
+//                ASSERT(rcWindow.left == rect.left);
+//                ASSERT(rcWindow.top == rect.top);
+//                ASSERT(rcWindow.right == rect.right);
+//                ASSERT(rcWindow.bottom == rect.bottom);
+//            }            
+//        }
+//    }
+//#endif
 }
 
 void NativeWindow_SDL::ScreenToClient(UiPoint& pt) const
 {
-#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
-    POINT ptWnd = { pt.x, pt.y };
-#endif
+//#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+//    POINT ptWnd = { pt.x, pt.y };
+//#endif
     int nXPos = 0;
     int nYPos = 0;
     bool nRet = SDL_GetWindowPosition(m_sdlWindow, &nXPos, &nYPos);
@@ -2326,14 +2434,14 @@ void NativeWindow_SDL::ScreenToClient(UiPoint& pt) const
         pt.x -= nXPos;
         pt.y -= nYPos;
     }
-#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
-    {
-        HWND hWnd = GetHWND();
-        ::ScreenToClient(hWnd, &ptWnd);
-        ASSERT(ptWnd.x == pt.x);
-        ASSERT(ptWnd.y == pt.y);
-    }
-#endif
+//#if defined (DUILIB_BUILD_FOR_WIN) && defined (_DEBUG)
+//    {
+//        HWND hWnd = GetHWND();
+//        ::ScreenToClient(hWnd, &ptWnd);
+//        ASSERT(ptWnd.x == pt.x);
+//        ASSERT(ptWnd.y == pt.y);
+//    }
+//#endif
 }
 
 void NativeWindow_SDL::ClientToScreen(UiPoint& pt) const
@@ -2478,7 +2586,7 @@ void NativeWindow_SDL::SetLastMousePos(const UiPoint& pt)
     m_ptLastMousePos = pt;
 }
 
-INativeWindow* NativeWindow_SDL::WindowBaseFromPoint(const UiPoint& pt)
+INativeWindow* NativeWindow_SDL::WindowBaseFromPoint(const UiPoint& pt, bool /*bIgnoreChildWindow*/)
 {
     SDL_Window* pKeyboardFocus = SDL_GetKeyboardFocus();
     if (pKeyboardFocus != nullptr) {
@@ -2487,7 +2595,7 @@ INativeWindow* NativeWindow_SDL::WindowBaseFromPoint(const UiPoint& pt)
         GetWindowRect(sdlWindow, rcWindow);
         if (rcWindow.ContainsPt(pt)) {
             NativeWindow_SDL* pWindow = GetWindowFromID(SDL_GetWindowID(sdlWindow));
-            if (pWindow != nullptr) {
+            if ((pWindow != nullptr) && !pWindow->IsClosingWnd()) {
                 return pWindow->m_pOwner;
             }
         }
@@ -2499,7 +2607,7 @@ INativeWindow* NativeWindow_SDL::WindowBaseFromPoint(const UiPoint& pt)
         GetWindowRect(sdlWindow, rcWindow);
         if (rcWindow.ContainsPt(pt)) {
             NativeWindow_SDL* pWindow = GetWindowFromID(SDL_GetWindowID(sdlWindow));
-            if (pWindow != nullptr) {
+            if ((pWindow != nullptr) && !pWindow->IsClosingWnd()) {
                 return pWindow->m_pOwner;
             }
         }
@@ -2518,7 +2626,7 @@ INativeWindow* NativeWindow_SDL::WindowBaseFromPoint(const UiPoint& pt)
             GetWindowRect(sdlWindow, rcWindow);
             if (rcWindow.ContainsPt(pt)) {
                 NativeWindow_SDL* pWindow = GetWindowFromID(SDL_GetWindowID(sdlWindow));
-                if (pWindow != nullptr) {
+                if ((pWindow != nullptr) && !pWindow->IsClosingWnd()) {
                     return pWindow->m_pOwner;
                 }
             }
@@ -2599,6 +2707,27 @@ bool NativeWindow_SDL::SetWindowIcon(const std::vector<uint8_t>& iconFileData, c
     SDL_DestroySurface(cursorSurface);
     ASSERT(nRet);
     return nRet;
+}
+
+void NativeWindow_SDL::SetEnableDragDrop(bool bEnable)
+{
+    m_bEnableDragDrop = bEnable;
+    if (bEnable) {
+        m_pWindowDropTarget = std::make_unique<WindowDropTarget>(this);
+    }
+    else {
+        m_pWindowDropTarget.reset();
+    }
+}
+
+bool NativeWindow_SDL::IsEnableDragDrop() const
+{
+    return m_bEnableDragDrop;
+}
+
+Control* NativeWindow_SDL::FindControl(const UiPoint& pt) const
+{
+    return m_pOwner->OnNativeFindControl(pt);
 }
 
 bool NativeWindow_SDL::SetLayeredWindow(bool bIsLayeredWindow, bool /*bRedraw*/)

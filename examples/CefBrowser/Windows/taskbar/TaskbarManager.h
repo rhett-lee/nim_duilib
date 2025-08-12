@@ -22,10 +22,10 @@ class TaskbarTabItem final : public ui::Window
     typedef ui::Window BaseClass;
 public:
     /**
-    * @param[in] bind_control 与TaskbarTabItem绑定在一起的提供缩略图和预览图的控件的指针
+    * @param[in] pBindControl 与TaskbarTabItem绑定在一起的提供缩略图和预览图的控件的指针
     * 构造函数
     */
-    explicit TaskbarTabItem(ui::Control* bind_control);
+    explicit TaskbarTabItem(ui::Control* pBindControl);
 
     /**
     * 获取与TaskbarTabItem绑定在一起的控件指针
@@ -40,10 +40,10 @@ public:
     std::string& GetId();
 
     /** 初始化函数，TaskbarTabItem被new后立即调用
-    * @param [in] taskbar_title 在任务栏缩略图上显示的标题
+    * @param [in] taskbarTitle 在任务栏缩略图上显示的标题
     * @param [in] id 缩略图Tab的唯一id
     */
-    void Init(const DString& taskbar_title, const std::string& id);
+    void Init(const DString& taskbarTitle, const std::string& id);
 
     /** 反初始化函数
     */
@@ -52,7 +52,7 @@ public:
     /** 设置本Tab缩略图的标题
     * @param[in] title 标题
     */
-    void SetTaskbarTitle(const DString &title);
+    void SetTaskbarTitle(const DString& title);
 
     /** 设置本Tab缩略图的窗口图标
     * @param [in] title 标题
@@ -60,9 +60,9 @@ public:
     void SetTaskbarIcon(HICON hIcon);
 
     /** 设置本Tab所属的窗体对应的TaskbarManager
-    * @param[in] taskbar_manager TaskbarManager指针
+    * @param[in] pTaskbarManager TaskbarManager指针
     */
-    void SetTaskbarManager(TaskbarManager *taskbar_manager);
+    void SetTaskbarManager(TaskbarManager* pTaskbarManager);
 
     /** 获取本Tab所属的窗体对应的TaskbarManager
     * @return TaskbarManager* TaskbarManager指针
@@ -165,32 +165,32 @@ public:
 
     /**
     * 把一个TaskbarTabItem注册为主窗口的一个Tab页
-    * @param[in] tab_item TaskbarItem对象
+    * @param[in] pTabItem TaskbarItem对象
     * @return bool true 成功，false 失败
     */
-    bool RegisterTab(TaskbarTabItem &tab_item);
+    bool RegisterTab(TaskbarTabItem &pTabItem);
 
     /**
     * 把一个TaskbarTabItem从主窗口中反注册为
-    * @param[in] tab_item TaskbarItem对象
+    * @param[in] pTabItem TaskbarItem对象
     * @return bool true 成功，false 失败
     */
-    bool UnregisterTab(TaskbarTabItem &tab_item);
+    bool UnregisterTab(TaskbarTabItem &pTabItem);
 
     /**
     * 把一个TaskbarTabItem在主窗口的缩略图中的显示顺序设置到另一个TaskbarTabItem前面
-    * @param[in] tab_item 被设置顺序的TaskbarItem对象
+    * @param[in] pTabItem 被设置顺序的TaskbarItem对象
     * @param[in] tab_item_insert_before 被插入的TaskbarItem对象
     * @return bool true 成功，false 失败
     */
-    bool SetTabOrder(const TaskbarTabItem &tab_item, const TaskbarTabItem &tab_item_insert_before);
+    bool SetTabOrder(const TaskbarTabItem &pTabItem, const TaskbarTabItem &tab_item_insert_before);
 
     /**
     * 把一个TaskbarTabItem在任务栏设置为激活状态
-    * @param[in] tab_item TaskbarItem对象
+    * @param[in] pTabItem TaskbarItem对象
     * @return bool true 成功，false 失败
     */
-    bool SetTabActive(const TaskbarTabItem &tab_item);
+    bool SetTabActive(const TaskbarTabItem &pTabItem);
 
     /**
     * 生成某个控件对应的位图（返回位图包含窗口，且尺寸为窗口大小）
@@ -223,17 +223,17 @@ public:
 
     /**
     * 处理任务栏Tab的缩略图的WM_CLOSE消息
-    * @param[in] tab_item 触发消息的Tab
+    * @param[in] pTabItem 触发消息的Tab
     * @return void    无返回值
     */
-    void OnTabItemClose(TaskbarTabItem &tab_item);
+    void OnTabItemClose(TaskbarTabItem &pTabItem);
 
     /**
     * 处理任务栏Tab的缩略图的WM_ACTIVATE消息
-    * @param[in] tab_item 触发消息的Tab
+    * @param[in] pTabItem 触发消息的Tab
     * @return void    无返回值
     */
-    void OnTabItemClicked(TaskbarTabItem &tab_item);
+    void OnTabItemClicked(TaskbarTabItem &pTabItem);
 private:
     ITaskbarDelegate* m_pTaskbarDelegate;
     ITaskbarList4* m_pTaskbarList;

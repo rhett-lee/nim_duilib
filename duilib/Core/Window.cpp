@@ -26,7 +26,8 @@ Window::Window() :
     m_bIsArranged(false),
     m_bPostQuitMsgWhenClosed(false),
     m_renderBackendType(RenderBackendType::kRaster_BackendType),
-    m_bWindowAttributesApplied(false)
+    m_bWindowAttributesApplied(false),
+    m_bCheckSetWindowFocus(false)
 {
     m_toolTip = std::make_unique<ToolTip>();
 }
@@ -46,6 +47,24 @@ void Window::SetAttribute(const DString& strName, const DString& strValue)
             SetShadowType(nShadowType);
         }
     }
+    else if (strName == _T("shadow_attached")) {
+        //是否开启阴影
+        SetShadowAttached(strValue == _T("true"));
+    }
+    else if (strName == _T("drag_drop")) {
+        //是否开启阴影
+        SetEnableDragDrop(strValue == _T("true"));
+    }
+}
+
+void Window::SetEnableDragDrop(bool bEnable)
+{
+    NativeWnd()->SetEnableDragDrop(bEnable);
+}
+
+bool Window::IsEnableDragDrop() const
+{
+    return NativeWnd()->IsEnableDragDrop();
 }
 
 void Window::SetClass(const DString& strClass)
@@ -708,7 +727,7 @@ void Window::ClearImageCache()
     Control* pRoot = nullptr;
     ASSERT(m_shadow != nullptr);
     if (m_shadow != nullptr) {
-        pRoot = m_shadow->GetRoot();
+        pRoot = m_shadow->GetShadowBox();
     }
     if (pRoot) {
         pRoot->ClearImageCache();
@@ -758,6 +777,14 @@ void Window::OnWindowExitFullScreen()
 
 void Window::OnWindowDpiChanged(uint32_t /*nOldDPI*/, uint32_t /*nNewDPI*/)
 {
+}
+
+void Window::GetShadowCorner(UiPadding& rcShadow) const
+{
+    rcShadow.Clear();
+    if (m_shadow != nullptr) {
+        rcShadow = m_shadow->GetShadowCorner();
+    }
 }
 
 void Window::GetCurrentShadowCorner(UiPadding& rcShadow) const
@@ -839,7 +866,7 @@ void Window::SetShadowType(Shadow::ShadowType nShadowType)
 
 Shadow::ShadowType Window::GetShadowType() const
 {
-    Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowNone;
+    Shadow::ShadowType nShadowType = Shadow::ShadowType::kShadowDefault;
     ASSERT(m_shadow != nullptr);
     if (m_shadow != nullptr) {
         nShadowType = m_shadow->GetShadowType();
@@ -864,6 +891,42 @@ void Window::SetShadowImage(const DString& shadowImage)
     if (m_shadow != nullptr) {
         m_shadow->SetShadowImage(shadowImage);
     }
+}
+
+void Window::SetShadowBorderSize(int32_t nShadowBorderSize)
+{
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        m_shadow->SetShadowBorderSize(nShadowBorderSize);
+    }
+}
+
+int32_t Window::GetShadowBorderSize() const
+{
+    ASSERT(m_shadow != nullptr);
+    int32_t nShadowBorderSize = 0;    
+    if (m_shadow != nullptr) {
+        nShadowBorderSize = m_shadow->GetShadowBorderSize();
+    }
+    return nShadowBorderSize;
+}
+
+void Window::SetShadowBorderColor(const DString& shadowBorderColor)
+{
+    ASSERT(m_shadow != nullptr);
+    if (m_shadow != nullptr) {
+        m_shadow->SetShadowBorderColor(shadowBorderColor);
+    }
+}
+
+DString Window::GetShadowBorderColor() const
+{
+    ASSERT(m_shadow != nullptr);
+    DString shadowBorderColor;
+    if (m_shadow != nullptr) {
+        shadowBorderColor = m_shadow->GetShadowBorderColor();
+    }
+    return shadowBorderColor;
 }
 
 UiPadding Window::GetCurrentShadowCorner() const
@@ -1046,18 +1109,32 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
                 if (rcWindow.bottom > rcWork.bottom) {
                     rcFullscreenMargin.bottom = rcWindow.bottom - rcWork.bottom;
                 }
-                Box* pRoot = GetRoot();
-                if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() && (pRoot->GetItemCount() > 0)) {
-                    pRoot = dynamic_cast<Box*>(pRoot->GetItemAt(0));
+                bool bHasShadowBox = false;
+                Box* pRoot = GetXmlRoot();
+                if ((m_shadow != nullptr) && m_shadow->HasShadowBox()) {
+                    bHasShadowBox = true;                    
                 }
                 if (pRoot != nullptr) {
-                    UiMargin rcMargin = pRoot->GetMargin();
-                    rcMargin.left += (rcFullscreenMargin.left - m_rcFullscreenMargin.left);
-                    rcMargin.top += (rcFullscreenMargin.top - m_rcFullscreenMargin.top);
-                    rcMargin.right += (rcFullscreenMargin.right - m_rcFullscreenMargin.right);
-                    rcMargin.bottom += (rcFullscreenMargin.bottom - m_rcFullscreenMargin.bottom);
-                    m_rcFullscreenMargin = rcFullscreenMargin;
-                    pRoot->SetMargin(rcMargin, false);
+                    if (bHasShadowBox) {
+                        //有阴影Box
+                        UiMargin rcMargin = pRoot->GetMargin();
+                        rcMargin.left += (rcFullscreenMargin.left - m_rcFullscreenMargin.left);
+                        rcMargin.top += (rcFullscreenMargin.top - m_rcFullscreenMargin.top);
+                        rcMargin.right += (rcFullscreenMargin.right - m_rcFullscreenMargin.right);
+                        rcMargin.bottom += (rcFullscreenMargin.bottom - m_rcFullscreenMargin.bottom);
+                        m_rcFullscreenMargin = rcFullscreenMargin;
+                        pRoot->SetMargin(rcMargin, false);
+                    }
+                    else {
+                        //无阴影Box
+                        UiPadding rcPadding = pRoot->GetPadding();
+                        rcPadding.left += (rcFullscreenMargin.left - m_rcFullscreenMargin.left);
+                        rcPadding.top += (rcFullscreenMargin.top - m_rcFullscreenMargin.top);
+                        rcPadding.right += (rcFullscreenMargin.right - m_rcFullscreenMargin.right);
+                        rcPadding.bottom += (rcFullscreenMargin.bottom - m_rcFullscreenMargin.bottom);
+                        m_rcFullscreenMargin = rcFullscreenMargin;
+                        pRoot->SetPadding(rcPadding, false);
+                    }                    
                 }
             }
         }
@@ -1072,18 +1149,31 @@ LRESULT Window::OnSizeMsg(WindowSizeType sizeType, const UiSize& /*newWindowSize
         }
         //还原时，恢复外边距
         if (!m_rcFullscreenMargin.IsEmpty()) {
-            Box* pRoot = GetRoot();
-            if ((m_shadow != nullptr) && m_shadow->IsShadowAttached() && (pRoot->GetItemCount() > 0)) {
-                pRoot = dynamic_cast<Box*>(pRoot->GetItemAt(0));
+            bool bHasShadowBox = false;
+            Box* pRoot = GetXmlRoot();
+            if ((m_shadow != nullptr) && m_shadow->HasShadowBox()) {
+                bHasShadowBox = true;
             }
             if (pRoot != nullptr) {
-                UiMargin rcMargin = pRoot->GetMargin();
-                rcMargin.left -= m_rcFullscreenMargin.left;
-                rcMargin.top -= m_rcFullscreenMargin.top;
-                rcMargin.right -= m_rcFullscreenMargin.right;
-                rcMargin.bottom -= m_rcFullscreenMargin.right;
+                if (bHasShadowBox) {
+                    //有阴影Box
+                    UiMargin rcMargin = pRoot->GetMargin();
+                    rcMargin.left -= m_rcFullscreenMargin.left;
+                    rcMargin.top -= m_rcFullscreenMargin.top;
+                    rcMargin.right -= m_rcFullscreenMargin.right;
+                    rcMargin.bottom -= m_rcFullscreenMargin.right;
+                    pRoot->SetMargin(rcMargin, false);
+                }
+                else {
+                    //无阴影Box
+                    UiPadding rcPadding = pRoot->GetPadding();
+                    rcPadding.left -= m_rcFullscreenMargin.left;
+                    rcPadding.top -= m_rcFullscreenMargin.top;
+                    rcPadding.right -= m_rcFullscreenMargin.right;
+                    rcPadding.bottom -= m_rcFullscreenMargin.right;
+                    pRoot->SetPadding(rcPadding, false);
+                }
                 m_rcFullscreenMargin.Clear();
-                pRoot->SetMargin(rcMargin, false);                
             }
         }
     }
@@ -1217,6 +1307,7 @@ bool Window::Paint(const UiRect& rcPaint)
         pRender->FillRect(rcPaint, bkColor);
     }
 
+#if defined (DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_RICH_EDIT_DRAW_OPT)
     //开始绘制前，进行alpha通道修复
     if (IsLayeredWindow()) {
         PerformanceStat statPerformance(_T("PaintWindow, Window::Paint RestoreAlpha"));
@@ -1232,9 +1323,7 @@ bool Window::Paint(const UiRect& rcPaint)
             rcRootPadding.top += 1;
             rcRootPadding.right += 1;
             rcRootPadding.bottom += 1;
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_RICH_EDIT_DRAW_OPT)
             pRender->RestoreAlpha(rcNewPaint, rcRootPadding);//目前只有Windows的RichEdit绘制导致窗体透明，所以才需要回复
-#endif
         }
         else {
             UiRect rcAlphaFixCorner = GetAlphaFixCorner();
@@ -1245,13 +1334,12 @@ bool Window::Paint(const UiRect& rcPaint)
                 rcRootPaddingPos.Deflate(rcAlphaFixCorner.left, rcAlphaFixCorner.top,
                                          rcAlphaFixCorner.right, rcAlphaFixCorner.bottom);
                 rcNewPaint.Intersect(rcRootPaddingPos);
-#if defined (DUILIB_BUILD_FOR_WIN) && !defined(DUILIB_RICH_EDIT_DRAW_OPT)
                 UiPadding rcRootPadding;
                 pRender->RestoreAlpha(rcNewPaint, rcRootPadding);//目前只有Windows的RichEdit绘制导致窗体透明，所以才需要回复
-#endif
             }
         }
     }
+#endif
     return true;
 }
 
@@ -1296,8 +1384,12 @@ LRESULT Window::OnKillFocusMsg(WindowBase* /*pSetFocusWindow*/, const NativeMsg&
 {
     bHandled = false;
     ControlPtr pEventClick = m_pEventClick;
-    m_pEventClick = nullptr;
-    ReleaseCapture();
+    if (!Keyboard::IsKeyDown(VirtualKeyCode::kVK_LBUTTON) &&
+        !Keyboard::IsKeyDown(VirtualKeyCode::kVK_RBUTTON) &&
+        !Keyboard::IsKeyDown(VirtualKeyCode::kVK_MBUTTON)) {
+        //只有鼠标按键未按下时清空，否则应该在鼠标弹起时清楚，避免影响非焦点状态时的点击功能
+        m_pEventClick = nullptr;
+    }
 
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
     if (pEventClick != nullptr) {
@@ -1900,8 +1992,6 @@ LRESULT Window::OnMouseMButtonDbClickMsg(const UiPoint& pt, uint32_t modifierKey
 LRESULT Window::OnCaptureChangedMsg(const NativeMsg& /*nativeMsg*/, bool& bHandled)
 {
     bHandled = false;
-    ReleaseCapture();
-
     if (m_pFocus != nullptr) {
         m_pFocus->SendEvent(kEventCaptureChanged);
     }
@@ -1930,39 +2020,50 @@ void Window::OnWindowPosSnapped(bool bLeftSnap, bool bRightSnap, bool bTopSnap, 
 
 void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey)
 {
-    ASSERT(eventType == kEventMouseButtonDown   || 
-           eventType == kEventMouseRButtonDown  ||
-           eventType == kEventMouseMButtonDown  || 
-           eventType == kEventMouseDoubleClick  ||
+    ASSERT(eventType == kEventMouseButtonDown ||
+           eventType == kEventMouseRButtonDown ||
+           eventType == kEventMouseMButtonDown ||
+           eventType == kEventMouseDoubleClick ||
            eventType == kEventMouseRDoubleClick ||
            eventType == kEventMouseMDoubleClick);
-    CheckSetWindowFocus();
+
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();    
+    if ((eventType == kEventMouseButtonDown) || (eventType == kEventMouseButtonDown) || (eventType == kEventMouseButtonDown)) {
+        SetCapture();
+        if (windowFlag.expired()) {
+            return;
+        }
+    }
     SetLastMousePos(pt);
     Control* pControl = FindControl(pt);
     if (pControl != nullptr) {
         std::weak_ptr<WeakFlag> controlFlag = pControl->GetWeakFlag();
-        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         std::weak_ptr<WeakFlag> clickFlag;
         if (m_pEventClick != nullptr) {
             clickFlag = m_pEventClick->GetWeakFlag();
         }
         ControlPtr pOldEventClick = m_pEventClick;
         m_pEventClick = pControl;
+        bool bOldCheckSetWindowFocus = IsCheckSetWindowFocus();
         pControl->SetFocus();
-        SetCapture();
         if (windowFlag.expired()) {
             return;
         }
-        if (!controlFlag.expired()) {            
-            EventArgs msgData;
-            msgData.modifierKey = modifierKey;
-            msgData.ptMouse = pt;
-            msgData.wParam = nativeMsg.wParam;
-            msgData.lParam = nativeMsg.lParam;
-            pControl->SendEvent(eventType, msgData);
-            if (windowFlag.expired()) {
-                return;
+        SetCheckSetWindowFocus(bOldCheckSetWindowFocus);
+        if (controlFlag.expired()) {
+            if (m_pEventClick.get() == pControl) {
+                m_pEventClick = nullptr;
             }
+            return;
+        }
+        EventArgs msgData;
+        msgData.modifierKey = modifierKey;
+        msgData.ptMouse = pt;
+        msgData.wParam = nativeMsg.wParam;
+        msgData.lParam = nativeMsg.lParam;
+        pControl->SendEvent(eventType, msgData);
+        if (windowFlag.expired()) {
+            return;
         }
         if ((pOldEventClick != nullptr) && (pOldEventClick != pControl) && !clickFlag.expired()) {
             pOldEventClick->SendEvent(kEventMouseClickChanged);
@@ -1971,15 +2072,25 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
             }
         }
     }
+    if (!windowFlag.expired()) {
+        //确保被点击的窗口有输入焦点
+        CheckSetWindowFocus();
+    }
 }
 
 void Window::OnButtonUp(EventType eventType, const UiPoint& pt, const NativeMsg& nativeMsg, uint32_t modifierKey)
 {
     ASSERT(eventType == kEventMouseButtonUp || eventType == kEventMouseRButtonUp || eventType == kEventMouseMButtonUp);
-    SetLastMousePos(pt);
-    ReleaseCapture();
+
+    std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    if ((eventType == kEventMouseButtonUp) || (eventType == kEventMouseRButtonUp) || (eventType == kEventMouseMButtonUp)) {
+        ReleaseCapture();
+    }
+    if (windowFlag.expired()) {
+        return;
+    }
+    SetLastMousePos(pt);    
     if (m_pEventClick != nullptr) {
-        std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
         EventArgs msgData;
         msgData.modifierKey = modifierKey;
         msgData.ptMouse = pt;
@@ -2032,22 +2143,19 @@ Control* Window::GetEventClick() const
 
 void Window::SetFocusControl(Control* pControl)
 {
-    if (pControl != nullptr) {
-        //确保窗口有焦点
-        CheckSetWindowFocus();
-    }
     if (pControl == m_pFocus) {
         return;
     }
+
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();
+    std::weak_ptr<WeakFlag> controlFlag;
+    if (pControl != nullptr) {
+        controlFlag = pControl->GetWeakFlag();
+    }    
     ControlPtr pOldFocus = m_pFocus;
     if (pOldFocus != nullptr) {
         m_pFocus = nullptr;
-        //WPARAM 是新的焦点控件接口
-        std::weak_ptr<WeakFlag> controlFlag;
-        if (pControl != nullptr) {
-            controlFlag = pControl->GetWeakFlag();
-        }        
+        //WPARAM 是新的焦点控件接口        
         pOldFocus->SendEvent(kEventKillFocus, (WPARAM)pControl);
         if (windowFlag.expired()) {
             return;
@@ -2071,6 +2179,26 @@ void Window::SetFocusControl(Control* pControl)
     if (!windowFlag.expired() && (pOldFocus != m_pFocus)) {
         OnFocusControlChanged();
     }
+
+    if (!windowFlag.expired() && (pControl != nullptr) && !controlFlag.expired()) {
+        //确保窗口有焦点(但CEF 子窗口模式的控件，不与子窗口争焦点)
+        if (IsCheckSetWindowFocus() && !pControl->IsCefNative()) {
+            CheckSetWindowFocus();
+            if (windowFlag.expired()) {
+                return;
+            }
+        }
+    }
+}
+
+void Window::SetCheckSetWindowFocus(bool bCheckSetWindowFocus)
+{
+    m_bCheckSetWindowFocus = bCheckSetWindowFocus;
+}
+
+bool Window::IsCheckSetWindowFocus() const
+{
+    return m_bCheckSetWindowFocus;
 }
 
 void Window::KillFocusControl()
@@ -2093,9 +2221,13 @@ void Window::OnFocusControlChanged()
     }
 }
 
-Window* Window::WindowFromPoint(const UiPoint& pt)
+Window* Window::WindowFromPoint(const UiPoint& pt, bool bIgnoreChildWindow)
 {
-    WindowBase* pWindow = WindowBaseFromPoint(pt);
+    WindowBase* pWindow = WindowBaseFromPoint(pt, bIgnoreChildWindow);
+    if (!GlobalManager::Instance().HasWindowBase(pWindow)) {
+        //不是本进程窗口时，不使用，避免跨进程的窗口时导致崩溃
+        pWindow = nullptr;
+    }
     if (pWindow != nullptr) {
         return dynamic_cast<Window*>(pWindow);
     }
@@ -2145,6 +2277,18 @@ bool Window::SetNextTabControl(bool bForward)
 Box* Window::GetRoot() const
 {
     return m_pRoot.get();
+}
+
+Box* Window::GetXmlRoot() const
+{
+    Box* pXmlRoot = nullptr;
+    if (m_shadow != nullptr) {
+        pXmlRoot = m_shadow->GetAttachedXmlRoot();
+    }
+    if (pXmlRoot == nullptr) {
+        pXmlRoot = m_pRoot.get();
+    }
+    return pXmlRoot;
 }
 
 void Window::SetArrange(bool bArrange)
@@ -2361,6 +2505,11 @@ void Window::OnInitLayout()
     if ((m_pRoot != nullptr) && m_pRoot->IsVisible()) {
         m_pRoot->SetFadeVisible(true);
     }
+}
+
+Control* Window::OnNativeFindControl(const UiPoint& pt) const
+{
+    return FindControl(pt);
 }
 
 Control* Window::FindControl(const UiPoint& pt) const

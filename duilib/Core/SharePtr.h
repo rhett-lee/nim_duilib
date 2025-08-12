@@ -52,7 +52,9 @@ public:
     */
     void AddRef() const
     {
+#ifdef _DEBUG
         ASSERT(this->GetRefCount() > 0);
+#endif
         // No barrier required.
         (void)m_nRefCnt.fetch_add(+1, std::memory_order_relaxed);
     }
@@ -62,7 +64,9 @@ public:
         the object needs to have been allocated via new, and not on the stack.
     */
     void Release() const {
+#ifdef _DEBUG
         ASSERT(this->GetRefCount() > 0);
+#endif
         // A release here acts in place of all releases we "should" have been doing in ref().
         if (1 == m_nRefCnt.fetch_add(-1, std::memory_order_acq_rel)) {
             // Like unique(), the acquire is only needed on success, to make sure

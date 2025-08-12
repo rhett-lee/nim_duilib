@@ -9,17 +9,15 @@ namespace ui {
 
 CefControlNative::CefControlNative(ui::Window* pWindow):
     CefControl(pWindow),
-    m_bWindowFirstShown(false)
+    m_bWindowFirstShown(false),
+    m_bSetCefWindowParentNull(false)
 {
 }
 
 CefControlNative::~CefControlNative(void)
 {
-    if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowser().get()) {
-        // Request that the main browser close.
-        if (m_pBrowserHandler->GetBrowserHost() != nullptr) {
-            m_pBrowserHandler->GetBrowserHost()->CloseBrowser(true);
-        }
+    DoCloseAllNativeBrowsers(true);
+    if (m_pBrowserHandler.get()) {
         m_pBrowserHandler->SetHostWindow(nullptr);
         m_pBrowserHandler->SetHandlerDelegate(nullptr);
     }
@@ -93,7 +91,7 @@ void CefControlNative::ReCreateBrowser()
 #ifdef DUILIB_BUILD_FOR_WIN
     //Windows
     window_info.SetAsChild(pWindow->NativeWnd()->GetHWND(), rect);
-#elif defined DUILIB_BUILD_FOR_LINUX
+#elif defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
     //Linux
     window_info.SetAsChild(pWindow->NativeWnd()->GetX11WindowNumber(), rect);
 #elif defined DUILIB_BUILD_FOR_MACOS
@@ -155,16 +153,19 @@ void CefControlNative::UpdateCefWindowPos()
     SetVisible(IsVisible());
 }
 
+void CefControlNative::DoCloseAllNativeBrowsers(bool bForceClose)
+{
+    //解除CEF子窗口与父窗口的父子关系（避免其关闭的时候，同时也关闭父窗口，导致程序退出）
+    if (!m_bSetCefWindowParentNull) {
+        m_bSetCefWindowParentNull = true;
+        RemoveCefWindowFromParent(GetCefWindowHandle());
+    }
+    DoCloseAllBrowsers(bForceClose);
+}
+
 void CefControlNative::CloseAllBrowsers()
 {
-#ifdef DUILIB_BUILD_FOR_WIN
-    //关闭窗口时，取消父子关系，避免导致退出时的崩溃问题
-    HWND hWnd = GetCefWindowHandle();
-    if (::IsWindow(hWnd)) {
-        ::SetParent(hWnd, nullptr);
-    }
-#endif
-    BaseClass::CloseAllBrowsers();
+    DoCloseAllNativeBrowsers(true);
 }
 
 void CefControlNative::SetWindow(ui::Window* pWindow)
@@ -177,26 +178,51 @@ void CefControlNative::SetWindow(ui::Window* pWindow)
 
     if (m_pBrowserHandler) {
         m_pBrowserHandler->SetHostWindow(pWindow);
+        m_pBrowserHandler->SetHandlerDelegate(this);
     }
 
     //更新页面子窗口的父窗口
     SetCefWindowParent(GetCefWindowHandle(), this);
 }
 
-void CefControlNative::OnFocusedNodeChanged(CefRefPtr<CefBrowser> /*browser*/,
-                                            CefRefPtr<CefFrame> /*frame*/,
-                                            CefDOMNode::Type /*type*/,
-                                            bool /*bText*/,
-                                            bool /*bEditable*/,
-                                            const CefRect& /*nodeRect*/)
+std::shared_ptr<IBitmap> CefControlNative::MakeImageSnapshot()
 {
-    if (!IsVisible() || !IsEnabled()) {
-        return;
+    std::vector<uint8_t> bitmap;
+    int32_t width = 0;
+    int32_t height = 0;
+    bool bRet = CaptureCefWindowBitmap(GetCefWindowHandle(), bitmap, width, height);
+    if (bRet && (width > 0) && (height > 0) && ((int32_t)bitmap.size() == (width * height * 4))) {
+        std::shared_ptr<IBitmap> spBitmap;
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+        ASSERT(pRenderFactory != nullptr);
+        if (pRenderFactory != nullptr) {
+            spBitmap.reset(pRenderFactory->CreateBitmap());
+            if (spBitmap != nullptr) {
+                if (!spBitmap->Init(width, height, true, bitmap.data())) {
+                    spBitmap.reset();
+                }
+            }
+        }
+        return spBitmap;
     }
-    if (!IsFocused()) {
-        //避免双焦点控件的出现
-        SetFocus();
-    }
+    return nullptr;
 }
 
+bool CefControlNative::IsCefNative() const
+{
+    return true;
 }
+
+void CefControlNative::OnGotFocus()
+{
+    Window* pWindow = GetWindow();
+    if (pWindow != nullptr) {
+        //页面获取焦点时，禁止主界面输入文字（解决的问题：macOS下：在页面输入文字，按键一次，会触发多次输入，应该是SDL内部又触发了输入）
+        pWindow->NativeWnd()->SetImeOpenStatus(false);
+        pWindow->NativeWnd()->SetTextInputArea(nullptr, 0);
+    }
+
+    BaseClass::OnGotFocus();
+}
+
+} //namespace ui

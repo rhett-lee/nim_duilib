@@ -817,6 +817,12 @@ void Render_Skia::DrawImageRect(const UiRect& rcPaint, IBitmap* pBitmap,
 
 void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 {
+    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
+    FillRect(rcF, dwColor, uFade);
+}
+
+void Render_Skia::FillRect(const UiRectF& rc, UiColor dwColor, uint8_t uFade)
+{
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     SkPaint skPaint = *m_pSkPaint;
     skPaint.setARGB(dwColor.GetA(), dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
@@ -824,8 +830,7 @@ void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
         skPaint.setAlpha(uFade);
     }
     skPaint.setStyle(SkPaint::kFill_Style);
-    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
-    SkRect rcSkDest = SkRect::Make(rcSkDestI);
+    SkRect rcSkDest = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
     rcSkDest.offset(*m_pSkPointOrg);
 
     SkCanvas* skCanvas = GetSkCanvas();
@@ -837,11 +842,16 @@ void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, uint8_t uFade)
 
 void Render_Skia::InitGradientColor(SkPaint& skPaint, const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) const
 {
+    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
+    InitGradientColor(skPaint, rcF, dwColor, dwColor2, nColor2Direction);
+}
+
+void Render_Skia::InitGradientColor(SkPaint& skPaint, const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction) const
+{
     if ((nColor2Direction != 2) && (nColor2Direction != 3) && (nColor2Direction != 4)) {
         nColor2Direction = 1;
     }
-    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
-    SkRect rcSkDest = SkRect::Make(rcSkDestI);
+    SkRect rcSkDest = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
     rcSkDest.offset(*m_pSkPointOrg);
 
     SkPoint pts[2] = { {0, 0}, {0, 0} };
@@ -874,6 +884,12 @@ void Render_Skia::InitGradientColor(SkPaint& skPaint, const UiRect& rc, UiColor 
 
 void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade)
 {
+    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
+    FillRect(rcF, dwColor, dwColor2, nColor2Direction, uFade);
+}
+
+void Render_Skia::FillRect(const UiRectF& rc, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade)
+{
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     if (dwColor2.IsEmpty()) {
         return FillRect(rc, dwColor, uFade);
@@ -884,8 +900,7 @@ void Render_Skia::FillRect(const UiRect& rc, UiColor dwColor, UiColor dwColor2, 
         skPaint.setAlpha(uFade);
     }
     skPaint.setStyle(SkPaint::kFill_Style);
-    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
-    SkRect rcSkDest = SkRect::Make(rcSkDestI);
+    SkRect rcSkDest = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
     rcSkDest.offset(*m_pSkPointOrg);
 
     InitGradientColor(skPaint, rc, dwColor, dwColor2, nColor2Direction);
@@ -996,10 +1011,22 @@ void Render_Skia::DrawLine(const UiPoint& pt1, const UiPoint& pt2, IPen* pen)
 
 void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, int32_t nWidth, bool bLineInRect)
 {
+    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
+    DrawRect(rcF, penColor, nWidth, bLineInRect);
+}
+
+void Render_Skia::DrawRect(const UiRectF& rc, UiColor penColor, int32_t nWidth, bool bLineInRect)
+{
     DrawRect(rc, penColor, (float)nWidth, bLineInRect);
 }
 
 void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, float fWidth, bool bLineInRect)
+{
+    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
+    DrawRect(rcF, penColor, fWidth, bLineInRect);
+}
+
+void Render_Skia::DrawRect(const UiRectF& rc, UiColor penColor, float fWidth, bool bLineInRect)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     SkPaint skPaint = *m_pSkPaint;
@@ -1007,8 +1034,7 @@ void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, float fWidth, boo
     skPaint.setStrokeWidth(SkIntToScalar(fWidth));
     skPaint.setStyle(SkPaint::kStroke_Style);
 
-    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
-    SkRect rcSkDest = SkRect::Make(rcSkDestI);
+    SkRect rcSkDest = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
     if (bLineInRect) {
         //确保画的线，都在矩形范围内
         SkScalar fHalfStrokeWidth = skPaint.getStrokeWidth() / 2;
@@ -1028,6 +1054,12 @@ void Render_Skia::DrawRect(const UiRect& rc, UiColor penColor, float fWidth, boo
 
 void Render_Skia::DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect)
 {
+    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
+    DrawRect(rcF, pen, bLineInRect);
+}
+
+void Render_Skia::DrawRect(const UiRectF& rc, IPen* pen, bool bLineInRect)
+{
     ASSERT(pen != nullptr);
     if (pen == nullptr) {
         return;
@@ -1036,8 +1068,7 @@ void Render_Skia::DrawRect(const UiRect& rc, IPen* pen, bool bLineInRect)
     SkPaint skPaint = *m_pSkPaint;
     SetPaintByPen(skPaint, pen);
 
-    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
-    SkRect rcSkDest = SkRect::Make(rcSkDestI);
+    SkRect rcSkDest = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
     if (bLineInRect) {
         //确保画的线，都在矩形范围内
         SkScalar fHalfStrokeWidth = skPaint.getStrokeWidth() / 2;
@@ -1060,7 +1091,18 @@ void Render_Skia::DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor pe
     DrawRoundRect(rc, rx, ry, penColor, (float)nWidth);
 }
 
+void Render_Skia::DrawRoundRect(const UiRectF& rc, float rx, float ry, UiColor penColor, int32_t nWidth)
+{
+    DrawRoundRect(rc, rx, ry, penColor, (float)nWidth);
+}
+
 void Render_Skia::DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor penColor, float fWidth)
+{
+    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
+    DrawRoundRect(rcF, rx, ry, penColor, fWidth);
+}
+
+void Render_Skia::DrawRoundRect(const UiRectF& rc, float rx, float ry, UiColor penColor, float fWidth)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     SkPaint skPaint = *m_pSkPaint;
@@ -1068,8 +1110,7 @@ void Render_Skia::DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor pe
     skPaint.setStrokeWidth(SkIntToScalar(fWidth));
     skPaint.setStyle(SkPaint::kStroke_Style);
 
-    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
-    SkRect rcSkDest = SkRect::Make(rcSkDestI);
+    SkRect rcSkDest = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
     rcSkDest.offset(*m_pSkPointOrg);
 
     SkCanvas* skCanvas = GetSkCanvas();
@@ -1081,6 +1122,12 @@ void Render_Skia::DrawRoundRect(const UiRect& rc, float rx, float ry, UiColor pe
 
 void Render_Skia::DrawRoundRect(const UiRect& rc, float rx, float ry, IPen* pen)
 {
+    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
+    DrawRoundRect(rcF, rx, ry, pen);
+}
+
+void Render_Skia::DrawRoundRect(const UiRectF& rc, float rx, float ry, IPen* pen)
+{
     ASSERT(pen != nullptr);
     if (pen == nullptr) {
         return;
@@ -1089,8 +1136,7 @@ void Render_Skia::DrawRoundRect(const UiRect& rc, float rx, float ry, IPen* pen)
     SkPaint skPaint = *m_pSkPaint;
     SetPaintByPen(skPaint, pen);
 
-    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
-    SkRect rcSkDest = SkRect::Make(rcSkDestI);
+    SkRect rcSkDest = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
     rcSkDest.offset(*m_pSkPointOrg);
 
     SkCanvas* skCanvas = GetSkCanvas();
@@ -1102,6 +1148,12 @@ void Render_Skia::DrawRoundRect(const UiRect& rc, float rx, float ry, IPen* pen)
 
 void Render_Skia::FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, uint8_t uFade)
 {
+    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
+    FillRoundRect(rcF, rx, ry, dwColor, uFade);
+}
+
+void Render_Skia::FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, uint8_t uFade)
+{
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     SkPaint skPaint = *m_pSkPaint;
     skPaint.setARGB(dwColor.GetA(), dwColor.GetR(), dwColor.GetG(), dwColor.GetB());
@@ -1110,8 +1162,7 @@ void Render_Skia::FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dw
         skPaint.setAlpha(uFade);
     }
 
-    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
-    SkRect rcSkDest = SkRect::Make(rcSkDestI);
+    SkRect rcSkDest = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
     rcSkDest.offset(*m_pSkPointOrg);
 
     SkCanvas* skCanvas = GetSkCanvas();
@@ -1122,6 +1173,12 @@ void Render_Skia::FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dw
 }
 
 void Render_Skia::FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade)
+{
+    UiRectF rcF((float)rc.left, (float)rc.top, (float)rc.right, (float)rc.bottom);
+    FillRoundRect(rcF, rx, ry, dwColor, dwColor2, nColor2Direction, uFade);
+}
+
+void Render_Skia::FillRoundRect(const UiRectF& rc, float rx, float ry, UiColor dwColor, UiColor dwColor2, int8_t nColor2Direction, uint8_t uFade)
 {
     ASSERT((GetWidth() > 0) && (GetHeight() > 0));
     if (dwColor2.IsEmpty()) {
@@ -1134,8 +1191,7 @@ void Render_Skia::FillRoundRect(const UiRect& rc, float rx, float ry, UiColor dw
         skPaint.setAlpha(uFade);
     }
 
-    SkIRect rcSkDestI = { rc.left, rc.top, rc.right, rc.bottom };
-    SkRect rcSkDest = SkRect::Make(rcSkDestI);
+    SkRect rcSkDest = SkRect::MakeLTRB(rc.left, rc.top, rc.right, rc.bottom);
     rcSkDest.offset(*m_pSkPointOrg);
 
     InitGradientColor(skPaint, rc, dwColor, dwColor2, nColor2Direction);
@@ -2106,8 +2162,6 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
         return;
     }
 
-    const UiRect& rcTextRect = spDrawRichTextCache->m_textRect;
-
     const SkTextEncoding textEncoding = spDrawRichTextCache->m_textEncoding;
     const size_t textCharSize = spDrawRichTextCache->m_textCharSize;
 
@@ -2151,7 +2205,7 @@ void Render_Skia::DrawRichTextCacheData(const std::shared_ptr<DrawRichTextCache>
             textRects.push_back(rcDestRect);
         }
 
-        if (!UiRect::Intersect(rcTemp, rcDestRect, rcTextRect)) {
+        if (!UiRect::Intersect(rcTemp, rcDestRect, rcNewTextRect)) {
             continue;
         }
 

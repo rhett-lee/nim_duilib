@@ -25,7 +25,7 @@ include("${DUILIB_SRC_ROOT_DIR}/cmake/duilib_common.cmake")
 # 定义源代码文件需要枚举的子目录
 if(DUILIB_OS_WINDOWS)
     # Windows平台
-    set(DUILIB_SRC_SUB_DIRS "browser" "Windows" "Windows/taskbar" "Windows/dragdrop")
+    set(DUILIB_SRC_SUB_DIRS "browser" "Windows" "Windows/taskbar")
 else()
     # 其他平台
     set(DUILIB_SRC_SUB_DIRS "browser")

@@ -259,6 +259,21 @@ void CefForm::OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_video_
     ui::GlobalManager::Instance().AssertUIThread();
 }
 
+bool CefForm::OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask)
+{
+    m_dropFileList.clear();
+    if ((dragData != nullptr) && dragData->IsFile()){
+        //拖入文件操作        
+        dragData->GetFileNames(m_dropFileList);
+    }
+    return false;
+}
+
+void CefForm::OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions)
+{
+    ui::GlobalManager::Instance().AssertUIThread();
+}
+
 bool CefForm::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                             CefRefPtr<CefFrame> frame,
                             int popup_id,
@@ -274,8 +289,22 @@ bool CefForm::OnBeforePopup(CefRefPtr<CefBrowser> browser,
                             bool* no_javascript_access)
 {
     ASSERT(CefCurrentlyOn(TID_UI));
-    //拦截弹窗，并导航到弹出网址
-    if ((browser != nullptr) && (browser->GetMainFrame() != nullptr) && !target_url.empty()) {
+    if (!user_gesture) {
+        //自动弹窗，直接拦截
+        return true;
+    }
+#if CEF_VERSION_MAJOR > 109
+    if (target_disposition == CEF_WOD_NEW_POPUP) {
+#else
+    if (target_disposition == WOD_NEW_POPUP) {
+#endif
+        //打开新的弹出窗口（这会使browser->IsPopup()返回 true）
+        Dpi().ScaleInt(windowInfo.bounds.height);
+        Dpi().ScaleInt(windowInfo.bounds.width);
+        return false;
+    }
+    else if ((browser != nullptr) && (browser->GetMainFrame() != nullptr) && !target_url.empty()) {
+        //导航到弹出网址
         browser->GetMainFrame()->LoadURL(target_url);
     }
     return true;
@@ -362,14 +391,31 @@ void CefForm::OnLoadStart(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> fra
     
 void CefForm::OnLoadEnd(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, int httpStatusCode)
 {
-    // 注册一个方法提供前端调用
+    // 注册方法提供前端调用
     if (m_pCefControl != nullptr) {
+        //显示MessageBox
         m_pCefControl->RegisterCppFunc(_T("ShowMessageBox"), ToWeakCallback([this](const std::string& params, ui::ReportResultFunction callback) {
             DString value = ui::StringConvert::UTF8ToT(params);
             ui::SystemUtil::ShowMessageBox(this, value.c_str(), _T("C++ 接收到 JavaScript 发来的消息"));
             callback(false, R"({ "message": "Success." })");
             }));
+
+        //接收网页端的文件拖入操作
+        m_pCefControl->RegisterCppFunc(_T("OnDropFilesToBrowser"), ToWeakCallback([this](const std::string& params, ui::ReportResultFunction callback) {
+            DString jsonDropFileList = ui::StringConvert::UTF8ToT(params);            
+            callback(false, R"({ "message": "Success." })");
+            OnDropFiles(jsonDropFileList);
+            }));
     }
+}
+
+void CefForm::OnDropFiles(const DString& jsonDropFileList)
+{
+    ui::SystemUtil::ShowMessageBox(this, jsonDropFileList.c_str(), _T("CefForm::OnDropFiles: C++ 接收到 JavaScript 发来的消息"));
+    //业务处理
+    //1. 解析json，从jsonDropFileList中解析出文件名和文件大小（网页端无法获取到文件的本地路径）
+    //2. 比较两个文件列表（m_dropFileList, jsonDropFileList）中的文件是否一致（文件个数，文件名，文件大小）
+    //3. 按m_dropFileList列表中的文件路径，处理业务
 }
     
 void CefForm::OnLoadError(CefRefPtr<CefBrowser> browser,

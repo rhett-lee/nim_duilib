@@ -4,11 +4,13 @@
 #include "duilib/Core/Control.h"
 #include "duilib/CEFControl/CefControlEvent.h"
 #include "duilib/CEFControl/internal/CefBrowserHandlerDelegate.h"
+#include <memory>
 
 namespace ui {
 
 class CefJSBridge;
 class CefBrowserHandler;
+class IBitmap;
 
 /**@brief 封装Cef浏览器对象为duilib控件基类
  * @copyright (c) 2016, NetEase Inc. All rights reserved
@@ -129,6 +131,14 @@ public:
     */
     virtual void CloseAllBrowsers();
 
+    /** 将网页保存为一张图片, 图片大小与控件大小相同
+    */
+    virtual std::shared_ptr<IBitmap> MakeImageSnapshot();
+
+    /** 关联窗口关闭事件
+    */
+    virtual void OnHostWindowClosed();
+
 public:
 
     /** 设置开发者工具关联的控件(设置后，开发者的内容就显示在这个控件中；如果为nullptr，则开发者工具显示为弹出式窗口)
@@ -242,6 +252,16 @@ public:
     * @param [in] callback 一个回调函数，参考 OnMediaAccessChangeEvent 声明
     */
     void AttachMediaAccessChange(OnMediaAccessChangeEvent callback) { m_pfnMediaAccessChange = callback; }
+
+    /** 绑定一个回调函数用于监听页面的拖动操作（回调函数的调用线程：CEF的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnDragEnterEvent 声明
+    */
+    void AttachDragEnter(OnDragEnterEvent callback) { m_pfnDragEnter = callback; }
+
+    /** 绑定一个回调函数用于监听页面的可拖动区域变化（回调函数的调用线程：主线程的UI线程）
+    * @param [in] callback 一个回调函数，参考 OnDraggableRegionsChangedEvent 声明
+    */
+    void AttachDraggableRegionsChanged(OnDraggableRegionsChangedEvent callback) { m_pfnDraggableRegionsChanged = callback; }
 
     /** 绑定一个回调函数用于监听一个弹出窗口弹出的通知（回调函数的调用线程：CEF的UI线程）
     * @param [in] callback 一个回调函数，参考 OnBeforePopupEvent 声明
@@ -382,9 +402,18 @@ public:
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
 
 protected:
-        /** 重新创建Browser对象
-        */
-        virtual void ReCreateBrowser() = 0;
+    /** 重新创建Browser对象
+    */
+    virtual void ReCreateBrowser() = 0;
+
+    /** 关闭所有的Browser对象
+    */
+    void DoCloseAllBrowsers(bool bForceClose);
+
+    /** 获取拖放接口
+    * @return 返回拖放目标接口，如果返回nullptr表示不支持拖放操作
+    */
+    virtual ControlDropTarget_Windows* GetControlDropTarget() override;
 
 protected:
     /** CefRenderHandler接口, 在非UI线程中被调用
@@ -416,6 +445,10 @@ protected:
     virtual void OnStatusMessage(CefRefPtr<CefBrowser> browser, const DString& value) override;
     virtual void OnLoadingProgressChange(CefRefPtr<CefBrowser> browser, double progress) override;
     virtual void OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_video_access, bool has_audio_access) override;
+
+    //CefDragHandler接口的实现
+    virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask) override;
+    virtual void OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions) override;
 
     //CefLoadHandler接口
     virtual void OnLoadingStateChange(CefRefPtr<CefBrowser> browser, bool isLoading, bool canGoBack, bool canGoForward) override;
@@ -541,6 +574,18 @@ protected:
                                       bool bEditable,
                                       const CefRect& nodeRect) override;
 
+    /** 设置光标(仅离屏渲染模式有效)
+    */
+    virtual void OnCursorChange(cef_cursor_type_t type) override;
+
+    /** 页面获得了焦点
+    */
+    virtual void OnGotFocus() override;
+
+    /** 获取关联的CEF控件接口
+    */
+    virtual Control* GetCefControl() override;
+
     /// Method that will be executed when the image download has completed.
     /// |image_url| is the URL that was downloaded and |http_status_code| is the
     /// resulting HTTP status code. |image| is the resulting image, possibly at
@@ -621,6 +666,8 @@ private:
     OnDevToolAttachedStateChangeEvent   m_pfnDevToolVisibleChange = nullptr;
     OnDocumentAvailableInMainFrameEvent m_pfnDocumentAvailableInMainFrame = nullptr;
     OnDownloadFavIconFinishedEvent      m_pfnDownloadFavIconFinished = nullptr;
+    OnDragEnterEvent                    m_pfnDragEnter = nullptr;
+    OnDraggableRegionsChangedEvent      m_pfnDraggableRegionsChanged = nullptr;
 
     /** CEF控件的事件回调接口
     */

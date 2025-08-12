@@ -921,8 +921,8 @@ bool DirectoryTree::IsChildTreeNode(TreeNode* pTreeNode, TreeNode* pChildTreeNod
 
 bool DirectoryTree::IsSamePath(const UiString& p1, const UiString& p2) const
 {
-#if !defined (DUILIB_BUILD_FOR_LINUX)
-    //Windows文件名不区分大小写
+#if !defined (DUILIB_BUILD_FOR_LINUX) && !defined (DUILIB_BUILD_FOR_FREEBSD)
+    //Windows/MacOS文件名不区分大小写，Linux/FreeBSD区分大小写
     return StringUtil::IsEqualNoCase(p1.c_str(), p2.c_str());
 #else
     return p1 == p2;
@@ -1118,7 +1118,7 @@ void DirectoryTree::RefreshPathInfo(std::vector<std::shared_ptr<RefreshNodeData>
             std::set<DString> dirSet;
             for (const FilePath& dirPath : pNodeData->m_childPaths) {
                 DString dirPathString = dirPath.ToString();
-#if !defined (DUILIB_BUILD_FOR_LINUX)
+#if !defined (DUILIB_BUILD_FOR_LINUX) && !defined (DUILIB_BUILD_FOR_FREEBSD)
                 dirPathString = StringUtil::MakeLowerString(dirPathString);
 #endif
                 if (!dirPathString.empty()) {
@@ -1132,7 +1132,7 @@ void DirectoryTree::RefreshPathInfo(std::vector<std::shared_ptr<RefreshNodeData>
 
             for (const DirectoryTree::PathInfo& pathInfo : folderList) {
                 DString filePath = pathInfo.m_filePath.ToString();
-#if !defined (DUILIB_BUILD_FOR_LINUX)
+#if !defined (DUILIB_BUILD_FOR_LINUX) && !defined (DUILIB_BUILD_FOR_FREEBSD)
                 filePath = StringUtil::MakeLowerString(filePath);
 #endif
                 if (!filePath.empty()) {

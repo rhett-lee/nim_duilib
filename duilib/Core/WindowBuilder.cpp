@@ -426,9 +426,6 @@ bool WindowBuilder::ParseWindowCreateAttributes(WindowCreateAttributes& createAt
     }
 
     //评估阴影的九宫格属性
-    if (nShadowType == Shadow::ShadowType::kShadowNone) {
-        bShadowAttached = false;
-    }
     if (bHasShadowAttached && !bShadowAttached) {
         rcShadowCorner.Clear();
     }
@@ -634,7 +631,7 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             knownNames.insert(strName);
             //设置阴影类型
             Shadow::GetShadowType(strValue, nShadowType);
-            if ((nShadowType >= Shadow::ShadowType::kShadowNone) &&
+            if ((nShadowType >= Shadow::ShadowType::kShadowFirst) &&
                 (nShadowType < Shadow::ShadowType::kShadowCount)) {
                 pWindow->SetShadowType((Shadow::ShadowType)nShadowType);
             }
@@ -658,6 +655,16 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
             AttributeUtil::ParseSizeValue(strValue.c_str(), szBorderRound);
             pWindow->SetShadowBorderRound(szBorderRound);
         }
+        else if (strName == _T("shadow_border_size")) {
+            knownNames.insert(strName);
+            //设置窗口阴影的边框大小
+            pWindow->SetShadowBorderSize(StringUtil::StringToInt32(strValue));
+        }
+        else if (strName == _T("shadow_border_color")) {
+            knownNames.insert(strName);
+            //设置窗口阴影的边框颜色
+            pWindow->SetShadowBorderColor(strValue);
+        }
         else if (strName == _T("shadow_snap")) {
             knownNames.insert(strName);
             //设置阴影是否支持窗口贴边操作
@@ -679,10 +686,6 @@ void WindowBuilder::ParseWindowAttributes(Window* pWindow, const pugi::xml_node&
                 pWindow->SetLayeredWindowAlpha(nAlpha);
             }
         }
-    }
-
-    if (nShadowType == Shadow::ShadowType::kShadowNone) {
-        bShadowAttached = false;
     }
 
     if (bHasShadowAttached) {

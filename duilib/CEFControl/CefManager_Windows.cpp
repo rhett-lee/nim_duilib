@@ -2,7 +2,6 @@
 
 #ifdef DUILIB_BUILD_FOR_WIN
 
-#include "CefDragDrop_Windows.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/ProcessSingleton.h"
 #include "duilib/Utils/StringConvert.h"
@@ -140,7 +139,6 @@ bool CefManager_Windows::Initialize(bool bEnableOffScreenRendering,
 
 void CefManager_Windows::UnInitialize()
 {
-    CefDragDrop::GetInstance().Clear();
 #if CEF_VERSION_MAJOR <= 109
     //启动单例进程监控
     if (m_pProcessSingleton != nullptr) {

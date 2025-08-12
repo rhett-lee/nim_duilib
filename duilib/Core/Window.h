@@ -56,13 +56,19 @@ public:
     const FilePath& GetXmlPath() const;
 
     /** 绑定窗口的顶层容器
-    * @param [in] pRoot 容器指针
+    * @param [in] pRoot 容器指针，一般是Xml里面配置的最外层的容器指针
     */
     bool AttachBox(Box* pRoot);
 
-    /** 获取窗口最外层的容器
+    /** 获取窗口顶层的容器
+    @return 返回窗口顶层的容器，可能是阴影的Box容器（当调用AttachBox时），也可能是Xml里面配置的Box容器
     */
     Box* GetRoot() const;
+
+    /** 获取Xml里面配置的顶层的容器
+    @return 返回Xml里面配置的Box容器
+    */
+    Box* GetXmlRoot() const;
 
     /** 获取父窗口
     */
@@ -131,8 +137,10 @@ public:
     * @{
     */
     /** 附加窗口阴影
+    * @param pXmlRoot XML文件中配置的顶层容器
+    * @return 如果IsShadowAttached()为true，返回阴影的容器指针；如果IsShadowAttached()为false，则返回pXmlRoot
     */
-    virtual Box* AttachShadow(Box* pRoot);
+    virtual Box* AttachShadow(Box* pXmlRoot);
 
     /** 设置窗口是否附加阴影效果
     * @param [in] bShadowAttached 为 true 时附加，false 时不附加
@@ -167,6 +175,22 @@ public:
     * @param [in] shadowImage 图片位置
     */
     void SetShadowImage(const DString& shadowImage);
+
+    /** 设置阴影的边框大小(未经DPI缩放)
+    */
+    void SetShadowBorderSize(int32_t nShadowBorderSize);
+
+    /** 获取阴影的边框大小(未经DPI缩放)
+    */
+    int32_t GetShadowBorderSize() const;
+
+    /** 设置阴影的边框颜色
+    */
+    void SetShadowBorderColor(const DString& shadowBorderColor);
+
+    /** 获取阴影的边框颜色
+    */
+    DString GetShadowBorderColor() const;
 
     /** 获取当前的阴影九宫格属性（已经做过DPI缩放）
      *@return 如果阴影未Attached或者窗口最大化，返回UiPadding(0, 0, 0, 0)，否则返回设置的九宫格属性（已经做过DPI缩放）
@@ -220,6 +244,14 @@ public:
     /** 让控件失去焦点（不影响窗口焦点）
     */
     void KillFocusControl();
+
+    /** 设置控件焦点时(即调用SetFocusControl函数时)，是否同时设置窗口焦点
+    */
+    void SetCheckSetWindowFocus(bool bCheckSetWindowFocus);
+
+    /** 控件焦点时(即调用SetFocusControl函数)，是否同时设置窗口焦点
+    */
+    bool IsCheckSetWindowFocus() const;
 
     /** 获取当前鼠标在哪个控件上
     */
@@ -291,8 +323,10 @@ public:
 
 public:
     /** 获取一个点对应的窗口接口
+    * @param [in] pt 屏幕坐标点
+    * @param [in] bIgnoreChildWindow true表示忽略子窗口，false表示不忽略子窗口
     */
-    Window* WindowFromPoint(const UiPoint& pt);
+    Window* WindowFromPoint(const UiPoint& pt, bool bIgnoreChildWindow = false);
 
     /** 更新ToolTip信息（此时ToolTip的信息已经发生变化）
     */
@@ -452,6 +486,15 @@ public:
      */
     void ApplyAttributeList(const DString& strList);
 
+    /** 设置是否允许拖放操作
+    * @param [in] bEnable true表示允许拖放操作，false表示禁止拖放操作
+    */
+    void SetEnableDragDrop(bool bEnable);
+
+    /** 注销一个拖放接口
+    */
+    bool IsEnableDragDrop() const;
+
 protected:
     /** 正在初始化窗口数据(内部函数，子类重写后，必须调用基类函数，否则影响功能)
     */
@@ -513,6 +556,11 @@ protected:
     */
     virtual void OnWindowDpiChanged(uint32_t nOldDPI, uint32_t nNewDPI) override;
 
+    /** 获取设置的窗口阴影的大小
+    * @param [out] rcShadow 返回设置窗口阴影的大小，未经过DPI缩放
+    */
+    virtual void GetShadowCorner(UiPadding& rcShadow) const override;
+
     /** 获取当前的阴影九宫格属性（已经做过DPI缩放）
      *@param [out] rcShadow 如果阴影未Attached或者窗口最大化，返回UiPadding(0, 0, 0, 0)，否则返回设置的九宫格属性（已经做过DPI缩放）
      */
@@ -536,6 +584,11 @@ protected:
     * @param [out] createAttributes 返回从XML文件的Window标签中读取的创建窗口的属性
     */
     virtual void GetCreateWindowAttributes(WindowCreateAttributes& createAttributes) override;
+
+    /** 获取指定坐标点的控件接口
+    * @param [in] pt 客户区坐标点
+    */
+    virtual Control* OnNativeFindControl(const UiPoint& pt) const override;
 
     /** @name 窗口消息处理相关
         * @{
@@ -975,6 +1028,9 @@ private:
 
     //界面是否完成首次显示
     bool m_bWindowFirstShown;
+
+    //设置控件焦点时，是否同时设置窗口焦点
+    bool m_bCheckSetWindowFocus;
 
     //绘制时的偏移量（动画用）
     UiPoint m_renderOffset;

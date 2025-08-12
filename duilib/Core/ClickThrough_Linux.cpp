@@ -1,7 +1,7 @@
 #include "ClickThrough.h"
 #include "duilib/Core/Window.h"
 
-#ifdef DUILIB_BUILD_FOR_LINUX
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>

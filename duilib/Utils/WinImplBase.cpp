@@ -64,6 +64,14 @@ void WindowImplBase::PreInitWindow()
             ASSERT(pControl->GetType() == DUI_CTR_BUTTON);
             pControl->AttachClick(UiBind(&WindowImplBase::OnButtonClick, this, std::placeholders::_1));
         }
+
+#if defined (DUILIB_BUILD_FOR_SDL) && !defined (DUILIB_BUILD_FOR_WIN)
+        //标题栏: 由于使用SDL时，不支持双击标题栏最大化/还原窗口，所以自己实现此逻辑（非Windows平台）
+        pControl = FindControl(DUI_CTR_CAPTION_BAR);
+        if (pControl) {
+            pControl->AttachBubbledEvent(ui::kEventMouseDoubleClick, UiBind(&WindowImplBase::OnTitleBarDoubleClick, this, std::placeholders::_1));
+        }
+#endif
     }
 }
 
@@ -134,6 +142,27 @@ bool WindowImplBase::OnButtonClick(const EventArgs& msg)
         EnterFullScreen();
     }
 
+    return true;
+}
+
+bool WindowImplBase::OnTitleBarDoubleClick(const EventArgs& /*param*/)
+{
+    Control* pControl = FindControl(DUI_CTR_BUTTON_MAX);
+    if ((pControl != nullptr) && pControl->IsVisible()) {
+        //最大化按钮
+        if (!IsWindowMaximized()) {
+            ShowWindow(kSW_SHOW_MAXIMIZED);
+        }
+    }
+    else {
+        //还原按钮
+        pControl = FindControl(DUI_CTR_BUTTON_RESTORE);
+        if ((pControl != nullptr) && pControl->IsVisible()) {
+            if (IsWindowMaximized()) {
+                ShowWindow(kSW_RESTORE);
+            }            
+        }
+    }
     return true;
 }
 

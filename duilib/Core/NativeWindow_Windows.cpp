@@ -5,6 +5,7 @@
 
 #include "duilib/Utils/ApiWrapper_Windows.h"
 #include "duilib/Utils/InlineHook_Windows.h"
+#include "duilib/Core/WindowDropTarget_Windows.h"
 
 #include <CommCtrl.h>
 #include <Olectl.h>
@@ -36,13 +37,13 @@ static bool UiIsWindows11OrGreater()
 NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_pOwner(pOwner),
     m_hWnd(nullptr),
+    m_hParentWnd(nullptr),
     m_hResModule(nullptr),
     m_hDcPaint(nullptr),
     m_bIsLayeredWindow(false),
     m_nLayeredWindowAlpha(255),
     m_nLayeredWindowOpacity(255),
     m_bUseSystemCaption(false),
-    m_bMouseCapture(false),
     m_bCloseing(false),
     m_closeParam(kWindowCloseNormal),
     m_bFakeModal(false),
@@ -50,13 +51,16 @@ NativeWindow_Windows::NativeWindow_Windows(INativeWindow* pOwner):
     m_dwLastStyle(0),
     m_ptLastMousePos(-1, -1),
     m_pfnOldWndProc(nullptr),
+    m_bEnableDragDrop(true),
     m_bDoModal(false),
     m_bCloseByEsc(false),
     m_bCloseByEnter(false),
     m_bSnapLayoutMenu(false),
     m_bEnableSysMenu(true),
+    m_bNCLButtonDownOnMaxButton(false),
     m_nSysMenuTimerId(0),
-    m_hImc(nullptr)
+    m_hImc(nullptr),
+    m_pWindowDropTarget(nullptr)
 {
     ASSERT(m_pOwner != nullptr);
     m_rcLastWindowPlacement = { sizeof(WINDOWPLACEMENT), };
@@ -141,7 +145,8 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
     }
 
     //父窗口句柄
-    HWND hParentWnd = pParentWindow != nullptr ? pParentWindow->GetHWND() : nullptr;
+    m_hParentWnd = pParentWindow != nullptr ? pParentWindow->GetHWND() : nullptr;
+
     //窗口标题
     DString windowTitle = StringConvert::TToLocal(m_createParam.m_windowTitle);
     HWND hWnd = ::CreateWindowEx(m_createParam.m_dwExStyle,
@@ -149,7 +154,7 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
                                  windowTitle.c_str(),
                                  m_createParam.m_dwStyle,
                                  m_createParam.m_nX, m_createParam.m_nY, m_createParam.m_nWidth, m_createParam.m_nHeight,
-                                 hParentWnd, nullptr, GetResModuleHandle(), this);
+                                 m_hParentWnd, nullptr, GetResModuleHandle(), this);
     ASSERT(::IsWindow(hWnd));
     ASSERT(hWnd == m_hWnd);
     if (hWnd != m_hWnd) {
@@ -157,6 +162,7 @@ bool NativeWindow_Windows::CreateWnd(NativeWindow_Windows* pParentWindow,
     }
     ASSERT(m_hWnd != nullptr);
     if (m_hWnd == nullptr) {
+        m_hParentWnd = nullptr;
         return false;
     }
     return (m_hWnd != nullptr);
@@ -458,6 +464,9 @@ void NativeWindow_Windows::InitNativeWindow()
         DString windowTitle = StringConvert::TToLocal(m_createParam.m_windowTitle);
         ::SetWindowText(hWnd, windowTitle.c_str());
     }
+
+    //关联拖放操作
+    SetEnableDragDrop(IsEnableDragDrop());
 }
 
 void NativeWindow_Windows::ClearNativeWindow()
@@ -479,6 +488,11 @@ void NativeWindow_Windows::ClearNativeWindow()
     if (m_hImc != nullptr) {
         ::ImmAssociateContext(m_hWnd, m_hImc);
         m_hImc = nullptr;
+    }
+    if (m_pWindowDropTarget != nullptr) {
+        m_pWindowDropTarget->UnregisterDragDrop();
+        m_pWindowDropTarget->Release();
+        m_pWindowDropTarget = nullptr;
     }
     m_hWnd = nullptr;
 }
@@ -800,6 +814,11 @@ void NativeWindow_Windows::CenterWindow()
     }
     ASSERT((::GetWindowLong(m_hWnd, GWL_STYLE) & WS_CHILD) == 0);
     HWND hCenterWindow = ::GetParent(m_hWnd);
+    if (hCenterWindow == nullptr) {
+        if ((m_hParentWnd != nullptr) && ::IsWindow(m_hParentWnd)) {
+            hCenterWindow = m_hParentWnd;
+        }
+    }
     int32_t xPos = 0;
     int32_t yPos = 0;
     if (CalculateCenterWindowPos(hCenterWindow, xPos, yPos)) {
@@ -809,6 +828,9 @@ void NativeWindow_Windows::CenterWindow()
 
 bool NativeWindow_Windows::CalculateCenterWindowPos(HWND hCenterWindow, int32_t& xPos, int32_t& yPos) const
 {
+    if (!::IsWindow(hCenterWindow)) {
+        hCenterWindow = nullptr;
+    }
     //当前窗口的宽度和高度
     int32_t nWindowWidth = 0;
     int32_t nWindowHeight = 0;
@@ -1232,21 +1254,21 @@ const UiSize& NativeWindow_Windows::GetWindowMinimumSize() const
 
 void NativeWindow_Windows::SetCapture()
 {
-    ::SetCapture(m_hWnd);
-    m_bMouseCapture = true;
+    if (::GetCapture() != m_hWnd) {
+        ::SetCapture(m_hWnd);
+    }
 }
 
 void NativeWindow_Windows::ReleaseCapture()
 {
-    if (m_bMouseCapture) {
+    if (::GetCapture() == m_hWnd) {
         ::ReleaseCapture();
-        m_bMouseCapture = false;
     }
 }
 
 bool NativeWindow_Windows::IsCaptured() const
 {
-    return m_bMouseCapture;
+    return ::GetCapture() == m_hWnd;
 }
 
 bool NativeWindow_Windows::SetWindowRoundRectRgn(const UiRect& rcWnd, const UiSize& szRoundCorner, bool bRedraw)
@@ -1672,7 +1694,8 @@ bool NativeWindow_Windows::UnregisterHotKey(int32_t id)
 
 /** 窗口句柄的属性名称
 */
-static const DStringW::value_type* sPropName = L"DuiLibWindow"; // 属性名称
+static const DStringW::value_type* sPropName  = L"DuiLibWindow";     // 属性名称(校验指针)
+static const DStringW::value_type* sPropName2 = L"DuiLibWindow2";    // 属性名称(进程ID)
 
 LRESULT CALLBACK NativeWindow_Windows::__WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -1685,17 +1708,22 @@ LRESULT CALLBACK NativeWindow_Windows::__WndProc(HWND hWnd, UINT uMsg, WPARAM wP
         }
         ::SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(pThis));
         ::SetPropW(hWnd, sPropName, (HANDLE)pThis);
+        ::SetPropW(hWnd, sPropName2, (HANDLE)(size_t)::GetCurrentProcessId());
     }
     else {
         pThis = reinterpret_cast<NativeWindow_Windows*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
 #ifdef _DEBUG
         //校验是否一致
         ASSERT((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) == pThis);
+        if (pThis != nullptr) {
+            ASSERT(::GetPropW(hWnd, sPropName2) == (HANDLE)(size_t)::GetCurrentProcessId());
+        }        
 #endif
         if (uMsg == WM_NCDESTROY && pThis != nullptr) {            
             LRESULT lRes = ::DefWindowProc(hWnd, uMsg, wParam, lParam);
             ::SetWindowLongPtr(pThis->m_hWnd, GWLP_USERDATA, 0L);
             ::SetPropW(hWnd, sPropName, nullptr);
+            ::SetPropW(hWnd, sPropName2, nullptr);
             ASSERT(hWnd == pThis->GetHWND());
             pThis->OnFinalMessage();
             return lRes;
@@ -1723,6 +1751,7 @@ INT_PTR CALLBACK NativeWindow_Windows::__DialogProc(HWND hWnd, UINT uMsg, WPARAM
             pThis->m_hWnd = hWnd;            
             ::SetWindowLongPtr(hWnd, GWLP_USERDATA, reinterpret_cast<LPARAM>(pThis));
             ::SetPropW(hWnd, sPropName, (HANDLE)pThis);
+            ::SetPropW(hWnd, sPropName2, (HANDLE)(size_t)::GetCurrentProcessId());
 
             ASSERT(pThis->m_pfnOldWndProc == nullptr);
 
@@ -1742,6 +1771,9 @@ INT_PTR CALLBACK NativeWindow_Windows::__DialogProc(HWND hWnd, UINT uMsg, WPARAM
 #ifdef _DEBUG
             //校验是否一致
             ASSERT((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) == pThis);
+            if (pThis != nullptr) {
+                ASSERT(::GetPropW(hWnd, sPropName2) == (HANDLE)(size_t)::GetCurrentProcessId());
+            }
 #endif
             ASSERT(pThis != nullptr);
             if (pThis != nullptr) {
@@ -1764,6 +1796,9 @@ LRESULT CALLBACK NativeWindow_Windows::__DialogWndProc(HWND hWnd, UINT uMsg, WPA
 #ifdef _DEBUG
     //校验是否一致
     ASSERT((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) == pThis);
+    if (pThis != nullptr) {
+        ASSERT(::GetPropW(hWnd, sPropName2) == (HANDLE)(size_t)::GetCurrentProcessId());
+    }
 #endif
     ASSERT(pThis != nullptr);
     if (uMsg == WM_NCDESTROY && pThis != nullptr) {
@@ -1774,6 +1809,7 @@ LRESULT CALLBACK NativeWindow_Windows::__DialogWndProc(HWND hWnd, UINT uMsg, WPA
         LRESULT lRes = ::DefWindowProc(hWnd, uMsg, wParam, lParam);
         ::SetWindowLongPtr(pThis->m_hWnd, GWLP_USERDATA, 0L);
         ::SetPropW(hWnd, sPropName, nullptr);
+        ::SetPropW(hWnd, sPropName2, nullptr);
         ASSERT(hWnd == pThis->GetHWND());
         pThis->OnFinalMessage();
         return lRes;
@@ -1928,18 +1964,35 @@ LRESULT NativeWindow_Windows::ProcessInternalMessage(UINT uMsg, WPARAM wParam, L
     return lResult;
 }
 
-INativeWindow* NativeWindow_Windows::WindowBaseFromPoint(const UiPoint& pt)
+INativeWindow* NativeWindow_Windows::WindowBaseFromPoint(const UiPoint& pt, bool bIgnoreChildWindow)
 {
     NativeWindow_Windows* pWindow = nullptr;
-    HWND hWnd = ::WindowFromPoint({ pt.x, pt.y });
-    if (::IsWindow(hWnd)) {
+    HWND hWndPt = ::WindowFromPoint({ pt.x, pt.y });
+    std::vector<HWND> hwndList;
+    if (::IsWindow(hWndPt)) {
+        hwndList.push_back(hWndPt);
+        if (bIgnoreChildWindow) {
+            //获取父窗口列表
+            HWND hParent = ::GetParent(hWndPt);
+            while ((hParent != nullptr) && ::IsWindow(hParent)) {
+                hwndList.push_back(hParent);
+                hParent = ::GetParent(hParent);
+            }
+        }
+    }
+
+    for (HWND hWnd : hwndList) {
         if (hWnd == m_hWnd) {
             pWindow = this;
         }
         else {
             pWindow = reinterpret_cast<NativeWindow_Windows*>(::GetWindowLongPtr(hWnd, GWLP_USERDATA));
             if (pWindow != nullptr) {
-                if ((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) != pWindow) {
+                if (::GetPropW(hWnd, sPropName2) != (HANDLE)(size_t)::GetCurrentProcessId()) {
+                    //校验失败：不是duilib的窗口
+                    pWindow = nullptr;
+                }
+                else if ((NativeWindow_Windows*)::GetPropW(hWnd, sPropName) != pWindow) {
                     //校验失败：不是duilib的窗口
                     pWindow = nullptr;
                 }
@@ -1947,6 +2000,9 @@ INativeWindow* NativeWindow_Windows::WindowBaseFromPoint(const UiPoint& pt)
                     pWindow = nullptr;
                 }
             }
+        }
+        if (pWindow != nullptr) {
+            break;
         }
     }
     INativeWindow* pNativeWindow = nullptr;
@@ -2559,6 +2615,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     }
     case WM_LBUTTONDOWN:
     {
+        m_bNCLButtonDownOnMaxButton = false;
         UiPoint pt;
         pt.x = GET_X_LPARAM(lParam);
         pt.y = GET_Y_LPARAM(lParam);
@@ -2589,6 +2646,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     }
     case WM_RBUTTONDOWN:
     {
+        m_bNCLButtonDownOnMaxButton = false;
         UiPoint pt;
         pt.x = GET_X_LPARAM(lParam);
         pt.y = GET_Y_LPARAM(lParam);
@@ -2649,7 +2707,15 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     }
     case WM_CAPTURECHANGED:
     {
+        HWND hWnd = m_hWnd;
         lResult = m_pOwner->OnNativeCaptureChangedMsg(NativeMsg(uMsg, wParam, lParam), bHandled);
+        if (::IsWindow(hWnd) && m_bNCLButtonDownOnMaxButton && !IsUseSystemCaption()) {
+            //需要释放捕获鼠标，否则点击最大按钮时无法正常响应
+            if (::GetCapture() == m_hWnd) {
+                m_bNCLButtonDownOnMaxButton = false;
+                ::ReleaseCapture();
+            }
+        }
         break;
     }
     case WM_CLOSE:
@@ -2673,6 +2739,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     {
         if (!IsUseSystemCaption() && (wParam == HTMAXBUTTON)) {
             //如果鼠标点击在最大化按钮上，截获此消息，避免Windows也触发最大化/还原命令
+            m_bNCLButtonDownOnMaxButton = true;
             bHandled = true; 
             UiPoint pt;
             pt.x = GET_X_LPARAM(lParam);
@@ -2690,6 +2757,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     }
     case WM_NCLBUTTONUP:
     {
+        m_bNCLButtonDownOnMaxButton = false;
         if (!IsUseSystemCaption() && (wParam == HTMAXBUTTON)) {
             //如果鼠标点击在最大化按钮上，截获此消息，避免Windows也触发最大化/还原命令
             bHandled = true;
@@ -2705,6 +2773,7 @@ LRESULT NativeWindow_Windows::ProcessWindowMessage(UINT uMsg, WPARAM wParam, LPA
     }
     case WM_NCRBUTTONUP:
     {
+        m_bNCLButtonDownOnMaxButton = false;
         bool bEnable = (wParam == HTCAPTION) || (wParam == HTMAXBUTTON) || (wParam == HTSYSMENU);
         if (bEnable && IsEnableSysMenu() && !IsUseSystemCaption()) {
             // 显示系统菜单
@@ -2868,6 +2937,35 @@ void NativeWindow_Windows::EnableIME(HWND hwnd, bool bEnable)
 
 void NativeWindow_Windows::SetTextInputArea(const UiRect* /*rect*/, int32_t /*nCursor*/)
 {
+}
+
+void NativeWindow_Windows::SetEnableDragDrop(bool bEnable)
+{
+    m_bEnableDragDrop = bEnable;
+    if (bEnable && IsWindow()) {
+        if (m_pWindowDropTarget == nullptr) {
+            m_pWindowDropTarget = new WindowDropTarget(this);
+            m_pWindowDropTarget->AddRef();
+            m_pWindowDropTarget->RegisterDragDrop();
+        }
+    }
+    else {
+        if (m_pWindowDropTarget != nullptr) {
+            m_pWindowDropTarget->UnregisterDragDrop();
+            m_pWindowDropTarget->Release();
+            m_pWindowDropTarget = nullptr;
+        }
+    }
+}
+
+bool NativeWindow_Windows::IsEnableDragDrop() const
+{
+    return m_bEnableDragDrop;
+}
+
+Control* NativeWindow_Windows::FindControl(const UiPoint& pt) const
+{
+    return m_pOwner->OnNativeFindControl(pt);
 }
 
 } // namespace ui

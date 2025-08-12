@@ -5,6 +5,7 @@
 #include "WebView2ControlImpl.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/FilePathUtil.h"
+#include "duilib/Render/IRender.h"
 
 namespace ui {
 
@@ -345,7 +346,7 @@ void WebView2Control::SetFavIconChangedCallback(FavIconChangedCallback callback)
 }
 
 bool WebView2Control::CapturePreview(const DString& filePath,
-                                     std::function<void(const DString& filePath, HRESULT hr)> callback)
+    std::function<void(const DString& filePath, HRESULT hr)> callback)
 {
     HRESULT hr = m_pImpl->CapturePreview(filePath, callback);
     m_pImpl->SetLastErrorCode(hr);
@@ -417,13 +418,159 @@ ui::ComPtr<ICoreWebView2Controller> WebView2Control::GetWebView2Controller() con
     return m_pImpl->GetWebView2Controller();
 }
 
-/** 获取ICoreWebView2接口
-*/
 ui::ComPtr<ICoreWebView2> WebView2Control::GetWebView2() const
 {
     return m_pImpl->GetWebView2();
 }
 
+static bool CaptureWindowBitmap_Win32(HWND hwnd, RECT rect, std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
+{
+    if (!::IsWindow(hwnd)) {
+        return false;
+    }
+
+    width = rect.right - rect.left;
+    height = rect.bottom - rect.top;
+
+    if (width <= 0 || height <= 0) {
+        return false;
+    }
+
+    // 创建设备上下文
+    HDC hdcScreen = ::GetDC(nullptr);
+    if (hdcScreen == nullptr) {
+        return false;
+    }
+    HDC hdcWindow = ::GetDC(hwnd);
+    if (hdcWindow == nullptr) {
+        ::ReleaseDC(nullptr, hdcScreen);
+        return false;
+    }
+
+    HDC hdcMemDC = ::CreateCompatibleDC(hdcWindow);
+    if (hdcMemDC == nullptr) {
+        ::ReleaseDC(nullptr, hdcScreen);
+        ::ReleaseDC(hwnd, hdcWindow);
+        return false;
+    }
+
+    // 创建位图
+    HBITMAP hBitmap = ::CreateCompatibleBitmap(hdcWindow, width, height);
+    if (hBitmap == nullptr) {
+        ::DeleteDC(hdcMemDC);
+        ::ReleaseDC(nullptr, hdcScreen);
+        ::ReleaseDC(hwnd, hdcWindow);
+        return false;
+    }
+
+    HGDIOBJ hOldObj = ::SelectObject(hdcMemDC, hBitmap);
+
+    // 拷贝屏幕内容到位图
+    ::BitBlt(hdcMemDC, 0, 0, width, height, hdcWindow, rect.left, rect.top, SRCCOPY);
+    
+    // 获取位图信息
+    BITMAPINFOHEADER bi;
+    bi.biSize = sizeof(BITMAPINFOHEADER);
+    bi.biWidth = width;
+    bi.biHeight = -height;  // 正数表示从下到上，负数表示从上到下
+    bi.biPlanes = 1;
+    bi.biBitCount = 32;
+    bi.biCompression = BI_RGB;
+    bi.biSizeImage = 0;
+    bi.biXPelsPerMeter = 0;
+    bi.biYPelsPerMeter = 0;
+    bi.biClrUsed = 0;
+    bi.biClrImportant = 0;
+
+    // 分配内存并获取位图数据
+    bitmap.resize(width * height * 4);
+    ::GetDIBits(hdcMemDC, hBitmap, 0, height, bitmap.data(), (BITMAPINFO*)&bi, DIB_RGB_COLORS);
+
+    // 清理资源
+    ::SelectObject(hdcMemDC, hOldObj);
+    ::DeleteObject(hBitmap);
+    ::DeleteDC(hdcMemDC);
+    ::ReleaseDC(nullptr, hdcScreen);
+    ::ReleaseDC(hwnd, hdcWindow);
+
+    return true;
+}
+
+/** 抓取网页的预览图（仅控件显示区域，并不是整个网页）
+*/
+static bool CaptureWindowBitmap_Win32(WebView2Control* pWebView2Control, std::vector<uint8_t>& bitmap, int32_t& width, int32_t& height)
+{
+    if (pWebView2Control == nullptr) {
+        return false;
+    }
+    ui::ComPtr<ICoreWebView2Controller> spWebView2Controller = pWebView2Control->GetWebView2Controller();
+    if (spWebView2Controller == nullptr) {
+        return false;
+    }
+
+    HWND hParentWnd = nullptr;
+    if (FAILED(spWebView2Controller->get_ParentWindow(&hParentWnd)) || !::IsWindow(hParentWnd)) {
+        return false;
+    }
+    
+    UiRect rcControl = pWebView2Control->GetRect();
+    if (rcControl.IsEmpty()) {
+        return false;
+    }
+
+    UiPoint ptOffset = pWebView2Control->GetScrollOffsetInScrollBox();
+    rcControl.Offset(-ptOffset.x, -ptOffset.y);
+
+    UiPoint ptLeftTop = { rcControl.left, rcControl.top};
+    pWebView2Control->ClientToScreen(ptLeftTop);
+    RECT rcScreenWebView2Control;
+    rcScreenWebView2Control.left = ptLeftTop.x;
+    rcScreenWebView2Control.top = ptLeftTop.y;
+    rcScreenWebView2Control.right = rcScreenWebView2Control.left + rcControl.Width();
+    rcScreenWebView2Control.bottom = rcScreenWebView2Control.top + rcControl.Height();
+
+    RECT rcWindow = { 0, 0, 0, 0 };
+    ::GetWindowRect(hParentWnd, &rcWindow);
+
+    RECT rcValidWebView2Control = { 0, 0, 0, 0 };
+    ::IntersectRect(&rcValidWebView2Control, &rcScreenWebView2Control, &rcWindow);
+
+    HWND hDesktopWnd = ::GetDesktopWindow();
+    if (!::IsWindow(hDesktopWnd)) {
+        return false;
+    }
+    RECT rcDesktop = { 0 ,0 ,0 ,0 };
+    ::GetWindowRect(hDesktopWnd, &rcDesktop);
+
+    RECT rcWebView2Control = { 0, 0, 0, 0 };
+    ::IntersectRect(&rcWebView2Control, &rcScreenWebView2Control, &rcDesktop);
+
+    ::ScreenToClient(hDesktopWnd, (LPPOINT)&rcWebView2Control);
+    return CaptureWindowBitmap_Win32(hDesktopWnd, rcWebView2Control, bitmap, width, height);
+}
+
+std::shared_ptr<IBitmap> WebView2Control::MakeImageSnapshot()
+{
+    std::vector<uint8_t> bitmap;
+    int32_t width = 0;
+    int32_t height = 0;
+    bool bRet = CaptureWindowBitmap_Win32(this, bitmap, width, height);
+    if (bRet && (width > 0) && (height > 0) && ((int32_t)bitmap.size() == (width * height * 4))) {
+        std::shared_ptr<IBitmap> spBitmap;
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+        ASSERT(pRenderFactory != nullptr);
+        if (pRenderFactory != nullptr) {
+            spBitmap.reset(pRenderFactory->CreateBitmap());
+            if (spBitmap != nullptr) {
+                if (!spBitmap->Init(width, height, true, bitmap.data())) {
+                    spBitmap.reset();
+                }
+            }
+        }
+        return spBitmap;
+    }
+    return nullptr;
+}
 } //namespace ui
 
 #endif //DUILIB_BUILD_FOR_WEBVIEW2

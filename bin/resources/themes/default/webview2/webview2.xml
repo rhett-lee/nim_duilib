@@ -3,7 +3,7 @@
     <VBox bkcolor="bk_wnd_darkcolor">
         <!-- 标题栏区域 -->
         <HBox name="window_caption_bar" width="stretch" height="36" bkcolor="bk_wnd_lightcolor">
-            <Label name="page_title" width="stretch" height="32" text_align="left,vcenter" text_padding="8,2,5,0"/>
+            <Label name="page_title" width="stretch" height="32" text_align="left,vcenter" text_padding="8,2,5,0" mouse="false"/>
             <Button name="btn_dev_tool" height="32" width="40" margin="0,2,4,2" valign="center" 
                           tooltip_text="开发者工具" bkimage="file='dev_tool.svg' height='20' width='20' halign='center' valign='center'"
                           hot_color="AliceBlue" pushed_color="Lavender"/>

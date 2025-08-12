@@ -12,6 +12,9 @@
 
 namespace ui {
 
+class WindowDropTarget;
+class Control;
+
 /** 窗口功能的Windows平台实现
 */
 class NativeWindow_Windows
@@ -386,8 +389,10 @@ public:
     void SetLastMousePos(const UiPoint& pt);
 
     /** 获取一个点对应的窗口接口
+    * @param [in] pt 屏幕坐标点
+    * @param [in] bIgnoreChildWindow true表示忽略子窗口，false表示不忽略子窗口
     */
-    INativeWindow* WindowBaseFromPoint(const UiPoint& pt);
+    INativeWindow* WindowBaseFromPoint(const UiPoint& pt, bool bIgnoreChildWindow = false);
 
     /** 设置是否支持显示贴靠布局菜单（Windows 11新功能：通过将鼠标悬停在窗口的最大化按钮上或按 Win + Z，可以轻松访问对齐布局。）
     *   该功能默认是开启的。
@@ -464,6 +469,20 @@ public:
     * @param [in] nCursor 文本输入的位置(相对于rect.left的偏移)
     */
     void SetTextInputArea(const UiRect* rect, int32_t nCursor);
+
+    /** 设置是否允许拖放操作
+    * @param [in] bEnable true表示允许拖放操作，false表示禁止拖放操作
+    */
+    void SetEnableDragDrop(bool bEnable);
+
+    /** 注销一个拖放接口
+    */
+    bool IsEnableDragDrop() const;
+
+    /** 获取指定坐标点的控件接口
+    * @param [in] pt 客户区坐标点
+    */
+    Control* FindControl(const UiPoint& pt) const;
 
 private:
     /** 窗口过程函数
@@ -618,6 +637,10 @@ private:
     */
     HWND m_hWnd;
 
+    /** 创建时指定的父窗口
+    */
+    HWND m_hParentWnd;
+
     /** 资源模块句柄
     */
     HMODULE m_hResModule;
@@ -629,6 +652,10 @@ private:
     /** 原来的窗口函数(仅限模式对话框使用)
     */
     WNDPROC m_pfnOldWndProc;
+
+    /** 是否支持拖放操作
+    */
+    bool m_bEnableDragDrop;
 
     /** 当前窗口是否显示为模态对话框
     */
@@ -654,9 +681,6 @@ private:
     //是否使用系统的标题栏
     bool m_bUseSystemCaption;
 
-    //鼠标事件的捕获状态
-    bool m_bMouseCapture;
-
     //窗口已经延迟关闭
     bool m_bCloseing;
 
@@ -672,6 +696,9 @@ private:
 
     //在右键点击标题栏时，是否显示系统的窗口菜单（可进行调整窗口状态，关闭窗口等操作）
     bool m_bEnableSysMenu;
+
+    //鼠标是否点击在最大按钮上
+    bool m_bNCLButtonDownOnMaxButton;
 
     //系统菜单延迟显示的定时器ID
     UINT_PTR m_nSysMenuTimerId;
@@ -715,6 +742,10 @@ private:
     /** 输入法的上下文
     */
     HIMC m_hImc;
+
+    /** 拖放功能的实现接口
+    */
+    WindowDropTarget* m_pWindowDropTarget;
 };
 
 /** 定义别名

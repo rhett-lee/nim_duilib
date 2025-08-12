@@ -113,6 +113,15 @@ private:
     */
     virtual void OnMediaAccessChange(CefRefPtr<CefBrowser> browser, bool has_video_access, bool has_audio_access) override;
 
+    /** CefDragHandler接口的事件：开始拖动（回调函数的调用线程：CEF的UI线程）
+    */
+    virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask) override;
+
+    /** CefDragHandler接口的事件：可拖动区域发生变化（回调函数的调用线程：主进程的UI线程）
+    */
+    virtual void OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions) override;
+
+
     /** 点击了超级链接，即将弹出新窗口（回调函数的调用线程：CEF的UI线程）
     */
     virtual bool OnBeforePopup(CefRefPtr<CefBrowser> browser,
@@ -248,11 +257,19 @@ private:
     */
     void OnDevToolVisibleStateChanged(bool bVisible, bool bPopup);
 
+    /** 拖入文件操作业务处理
+    */
+    void OnDropFiles(const DString& jsonDropFileList);
+
 private:
     ui::CefControl* m_pCefControl;
     ui::CefControl* m_pCefControlDev;
     ui::Button* m_pDevToolBtn;
     ui::RichEdit* m_pEditUrl;
+
+    /** 拖入文件操作: 记录文件列表
+    */
+    std::vector<CefString> m_dropFileList;
 };
 
 #endif //EXAMPLES_CEF_FORM_H_

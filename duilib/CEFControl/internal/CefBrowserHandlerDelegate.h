@@ -149,6 +149,10 @@ public:
                             const CefKeyEvent& event,
                             CefEventHandle os_event) = 0 ;
 
+    //CefDragHandler接口
+    virtual bool OnDragEnter(CefRefPtr<CefBrowser> browser, CefRefPtr<CefDragData> dragData, CefDragHandler::DragOperationsMask mask) = 0;
+    virtual void OnDraggableRegionsChanged(CefRefPtr<CefBrowser> browser, CefRefPtr<CefFrame> frame, const std::vector<CefDraggableRegion>& regions) = 0;
+
 public:
     /** 客户区坐标转换为控件坐标
     */
@@ -179,6 +183,18 @@ public:
                                       bool bText,
                                       bool bEditable,
                                       const CefRect& nodeRect) = 0;
+
+    /** 设置光标(仅离屏渲染模式有效，仅使用SDL时有效)
+    */
+    virtual void OnCursorChange(cef_cursor_type_t type) = 0;
+
+    /** 页面获得了焦点
+    */
+    virtual void OnGotFocus() = 0;
+
+    /** 获取关联的CEF控件接口
+    */
+    virtual Control* GetCefControl() = 0;
 };
 
 /** 回调函数的ID
@@ -220,6 +236,8 @@ enum class CefCallbackID
     OnFileDialog,
     OnPreKeyEvent,
     OnKeyEvent,
+    OnDragEnter,
+    OnDraggableRegionsChanged
 };
 
 }//namespace ui

@@ -400,6 +400,37 @@ CefRefPtr<CefDragData> DataObjectToDragData(IDataObject* data_object) {
 
 }  // namespace
 
+CefBrowserHost::DragOperationsMask OsrStartDragging(CefRefPtr<CefDragData> drag_data,
+                                                    CefRenderHandler::DragOperationsMask allowed_ops,
+                                                    int /*x*/, int /*y*/)
+{
+
+    IDataObject* dataObject = nullptr;
+    DWORD resEffect = DROPEFFECT_NONE;
+    if (DragDataToDataObject(drag_data, &dataObject)) {
+        DropSourceWin* dropSourceWin = DropSourceWin::Create();
+        dropSourceWin->AddRef();
+        IDropSource* dropSource = nullptr;
+        dropSourceWin->QueryInterface(IID_IDropSource, (void**)&dropSource);
+        dropSourceWin->Release();
+        DWORD effect = DragOperationToDropEffect(allowed_ops);
+        HRESULT res = ::DoDragDrop(dataObject, dropSource, effect, &resEffect);
+        if (res != DRAGDROP_S_DROP) {
+            resEffect = DROPEFFECT_NONE;
+        }
+        if (dropSource != nullptr) {
+            dropSource->Release();
+            dropSource = nullptr;
+        }
+    }
+    CefBrowserHost::DragOperationsMask operationsMask = DropEffectToDragOperation(resEffect);
+    if (dataObject != nullptr) {
+        dataObject->Release();
+        dataObject = nullptr;
+    }
+    return operationsMask;
+}
+
 
 HRESULT DropTargetWin::DragEnter(IDataObject* data_object,
                                  DWORD key_state,
@@ -408,52 +439,12 @@ HRESULT DropTargetWin::DragEnter(IDataObject* data_object,
   if (!browser_handler_)
     return E_UNEXPECTED;
 
-  CefRefPtr<CefDragData> drag_data = current_drag_data_;
-  if (!drag_data) {
-    drag_data = DataObjectToDragData(data_object);
-  }
+  CefRefPtr<CefDragData> drag_data = DataObjectToDragData(data_object);
   CefMouseEvent ev = ToMouseEvent(cursor_position, key_state, hWnd_);
   CefBrowserHost::DragOperationsMask mask = DropEffectToDragOperation(*effect);
   mask = browser_handler_->OnDragEnter(drag_data, ev, mask);
   *effect = DragOperationToDropEffect(mask);
   return S_OK;
-}
-
-CefBrowserHost::DragOperationsMask DropTargetWin::StartDragging(
-    OsrDragEvents *browser_handler,
-    CefRefPtr<CefDragData> drag_data,
-    CefRenderHandler::DragOperationsMask allowed_ops,
-    int /*x*/, int /*y*/) {
-
-  IDataObject* dataObject = nullptr;
-  DWORD resEffect = DROPEFFECT_NONE;
-  if (DragDataToDataObject(drag_data, &dataObject)) {
-        DropSourceWin* dropSourceWin = DropSourceWin::Create();
-        dropSourceWin->AddRef();
-        IDropSource* dropSource = nullptr;
-        dropSourceWin->QueryInterface(IID_IDropSource , (void**)&dropSource);
-        dropSourceWin->Release();
-        DWORD effect = DragOperationToDropEffect(allowed_ops);
-        current_drag_data_ = drag_data->Clone();
-        current_drag_data_->ResetFileContents();
-        browser_handler_ = browser_handler;
-        HRESULT res = DoDragDrop(dataObject, dropSource, effect, &resEffect);
-        browser_handler_ = nullptr;
-        if (res != DRAGDROP_S_DROP) {
-          resEffect = DROPEFFECT_NONE;
-        }
-        current_drag_data_ = nullptr;
-        if (dropSource != nullptr) {
-            dropSource->Release();
-            dropSource = nullptr;
-        }        
-    }
-    CefBrowserHost::DragOperationsMask operationsMask = DropEffectToDragOperation(resEffect);
-    if (dataObject != nullptr) {
-        dataObject->Release();
-        dataObject = nullptr;
-    }
-    return operationsMask;
 }
 
 HRESULT DropTargetWin::DragOver(DWORD key_state,

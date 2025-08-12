@@ -22,6 +22,12 @@ void* GetSDLWindowContentView(SDL_Window* sdlWindow)
     return (void*)pNSView;
 }
 
+bool SetFocus_MacOS(void* /*pNSWindow*/)
+{
+    //无需实现：如果用代码实现激活主窗口，则CEF在退出时有错误，导致进程无法正常退出
+    return false;
+}
+
 }
 
 #endif

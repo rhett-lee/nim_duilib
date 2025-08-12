@@ -27,6 +27,8 @@ public:
     virtual LRESULT FilterMessage(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled) = 0;
 };
 
+class Control;
+
 class INativeWindow: public virtual SupportWeakCallback
 {
 public:
@@ -99,6 +101,11 @@ public:
     /** 获取绘制引擎对象
     */
     virtual IRender* OnNativeGetRender() const = 0;
+
+    /** 获取指定坐标点的控件接口
+    * @param [in] pt 客户区坐标点
+    */
+    virtual Control* OnNativeFindControl(const UiPoint& pt) const = 0;
 
 public:
     /** @name 窗口消息处理相关

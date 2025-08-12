@@ -1,6 +1,6 @@
 #include "DirectoryTreeImpl.h"
 
-#ifdef DUILIB_BUILD_FOR_LINUX
+#if defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)
 
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringConvert.h"
@@ -509,4 +509,4 @@ void DirectoryTreeImpl::GetDiskInfoList(const std::weak_ptr<WeakFlag>& /*weakFla
 
 } //namespace ui
 
-#endif //DUILIB_BUILD_FOR_LINUX
+#endif //defined (DUILIB_BUILD_FOR_LINUX) || defined (DUILIB_BUILD_FOR_FREEBSD)

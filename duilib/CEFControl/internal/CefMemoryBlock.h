@@ -24,11 +24,23 @@ public:
 
     /** 将位图数据绘制到Render
     */
-    void PaintData(IRender* pRender, const UiRect& rcPaint, int32_t left, int32_t top);
+    void PaintData(IRender* pRender, const UiRect& rc);
 
     /** 判断内存块是否可以使用
     */
     bool IsValid() const;
+
+    /** 将网页数据绘制到Render，大小和网页保持一致
+    */
+    bool MakeImageSnapshot(IRender* pRender);
+
+    /** 获取内存位图的宽度
+    */
+    int32_t GetWidth() const;
+
+    /** 获取内存位图的高度
+    */
+    int32_t GetHeight() const;
 
 private:
     /** 删除位图数据并初始化变量
@@ -38,14 +50,6 @@ private:
     /** 获取内存位图数据指针，可用于填充位图数据
     */
     uint8_t* GetBits() const;
-
-    /** 获取内存位图的宽度
-    */
-    int32_t GetWidth() const;
-
-    /** 获取内存位图的高度
-    */
-    int32_t GetHeight() const;
 
 private:
     /** 内存数据

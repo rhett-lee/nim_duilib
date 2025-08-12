@@ -51,12 +51,6 @@ namespace client {
 
 class DropTargetWin : public IDropTarget {
  public:
-  CefBrowserHost::DragOperationsMask StartDragging(
-      OsrDragEvents *browser_handler,
-      CefRefPtr<CefDragData> drag_data,
-      CefRenderHandler::DragOperationsMask allowed_ops,
-      int x, int y);
-
   // IDropTarget implementation:
   virtual HRESULT __stdcall DragEnter(IDataObject* data_object,
                                       DWORD key_state,
@@ -81,17 +75,22 @@ class DropTargetWin : public IDropTarget {
 
  public:
   HWND GetHWND() { return hWnd_; };
-  explicit DropTargetWin(HWND hWnd)
-      : hWnd_(hWnd) { }
+  DropTargetWin(HWND hWnd, OsrDragEvents* browser_handler)
+      : hWnd_(hWnd), browser_handler_(browser_handler){ }
   virtual ~DropTargetWin() = default;
+
+private:
+    DropTargetWin() = delete;
 
  private:
   HWND hWnd_ = nullptr;
-
-  CefRefPtr<CefDragData> current_drag_data_;
   OsrDragEvents *browser_handler_ = nullptr;
 };
 using DropTargetHandle = std::shared_ptr<client::DropTargetWin>;
+
+CefBrowserHost::DragOperationsMask OsrStartDragging(CefRefPtr<CefDragData> drag_data,
+                                                    CefRenderHandler::DragOperationsMask allowed_ops,
+                                                    int x, int y);
 
 class DropSourceWin : public IDropSource {
  public:

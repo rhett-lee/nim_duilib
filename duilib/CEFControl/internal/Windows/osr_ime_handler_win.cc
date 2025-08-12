@@ -10,6 +10,7 @@
 #include <windowsx.h>
 
 #include "include/base/cef_build.h"
+#include "include/cef_version.h"
 #include "util_win.h"
 
 #define ColorUNDERLINE \
@@ -83,8 +84,13 @@ void GetCompositionUnderlines(
       underline.thick = 0;
 
       // Use thick underline for the target clause.
+#if CEF_VERSION_MAJOR <= 109
+      if (underline.range.from >= (int)target_start &&
+          underline.range.to <= (int)target_end) {
+#else
       if (underline.range.from >= target_start &&
           underline.range.to <= target_end) {
+#endif
         underline.thick = 1;
       }
       underlines.push_back(underline);
@@ -163,9 +169,15 @@ void OsrImeHandlerWin::MoveImeWindow() {
   }
 
   // Offset location by the composition range start if required.
-  if (location >= composition_range_.from) {
+#if CEF_VERSION_MAJOR <= 109
+  if ((int)location >= composition_range_.from) {
     location -= composition_range_.from;
   }
+#else
+  if (location >= composition_range_.from) {
+      location -= composition_range_.from;
+  }
+#endif
 
   if (location < composition_bounds_.size()) {
     rc = composition_bounds_[location];
