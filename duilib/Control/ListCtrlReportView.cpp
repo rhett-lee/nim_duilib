@@ -576,7 +576,8 @@ void ListCtrlReportView::PaintChild(IRender* pRender, const UiRect& rcPaint)
         return;
     }
     ListCtrlHeader* pHeaderCtrl = dynamic_cast<ListCtrlHeader*>(GetItemAt(0));
-    if ((pHeaderCtrl == nullptr) || !pHeaderCtrl->IsVisible()) {
+    ASSERT(pHeaderCtrl != nullptr);
+    if (pHeaderCtrl == nullptr) {
         BaseClass::PaintChild(pRender, rcPaint);
         return;
     }
@@ -686,7 +687,19 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
                 ListCtrlHeader* pHeader = dynamic_cast<ListCtrlHeader*>(GetItemAt(index));
                 if (pHeader != nullptr) {
                     if (pHeader->IsVisible() && (pHeader->GetHeight() > 0)) {
-                        yTop = pHeader->GetRect().bottom;//从Header的低端开始画线
+                        //从Header的低端开始画线
+                        yTop = pHeader->GetRect().bottom;
+
+                        //以表头的拖动控件为纵向网格线的位置
+                        std::vector<UiRect> rcSplitControls;
+                        pHeader->GetHeaderSplitControlRect(rcSplitControls);
+                        if (!rcSplitControls.empty()) {
+                            for (const UiRect& rc : rcSplitControls) {
+                                //以每列的列表项表头拖动控件的右侧为画线的X轴起点坐标
+                                xPosList.push_back(rc.right);
+                            }
+                            break;
+                        }
                     }
                     continue;
                 }
@@ -704,16 +717,18 @@ void ListCtrlReportView::PaintGridLines(IRender* pRender)
                 UiPoint scrollBoxOffset = pSubItem->GetScrollOffsetInScrollBox();
                 UiRect subItemRect = pSubItem->GetRect();
                 subItemRect.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
+                //以每列的列表项最右侧为画线的X轴起点坐标
                 xPosList.push_back(subItemRect.right);
             }
             break;
         }
 
         for (int32_t xPos : xPosList) {
-            //横坐标位置放在每个子项控件的右侧部            
-            UiPoint pt1(xPos, yTop);
-            UiPoint pt2(xPos, viewRect.bottom);
-            pRender->DrawLine(pt1, pt2, columnLineColor, nColumnLineWidth);
+            //横坐标位置放在每个子项控件的右侧部
+            float fXPos = (float)xPos - (float)nColumnLineWidth/2;
+            UiPointF pt1(fXPos, (float)yTop);
+            UiPointF pt2(fXPos, (float)viewRect.bottom);
+            pRender->DrawLine(pt1, pt2, columnLineColor, (float)nColumnLineWidth);
         }
     }
     if ((nRowLineWidth > 0) && !rowLineColor.IsEmpty()) {

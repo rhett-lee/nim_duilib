@@ -158,6 +158,10 @@ public:
     */
     void SetSortColumnId(size_t columnId, bool bSortUp, bool bTriggerEvent = false);
 
+    /** 获取列分割控件，在客户区坐标内的矩形范围
+    */
+    void GetHeaderSplitControlRect(std::vector<UiRect>& rcSplitControls) const;
+
 public:
 
     /** 设置关联的ListCtrl接口
