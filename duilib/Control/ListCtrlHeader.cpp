@@ -606,4 +606,35 @@ void ListCtrlHeader::SetSortColumnId(size_t columnId, bool bSortUp, bool bTrigge
     }
 }
 
+void ListCtrlHeader::GetHeaderSplitControlRect(std::vector<UiRect>& rcSplitControls) const
+{
+    rcSplitControls.clear();
+    size_t nItemCount = GetItemCount();
+    if (nItemCount == 0) {
+        return;
+    }
+    ASSERT((nItemCount % 2) == 0);
+    if ((nItemCount % 2) != 0) {
+        return;
+    }
+    const size_t nColumnCount = nItemCount / 2;   
+    for (size_t index = 0; index < nColumnCount; ++index) {
+        ASSERT(dynamic_cast<ListCtrlHeaderItem*>(GetItemAt(index * 2)) != nullptr);
+        SplitBox* pSplitBox = dynamic_cast<SplitBox*>(GetItemAt(index * 2 + 1));
+        ASSERT(pSplitBox != nullptr);
+        if (pSplitBox != nullptr) {
+            ASSERT(pSplitBox->GetItemCount() == 1);
+            if (pSplitBox->GetItemCount() > 0) {
+                Control* pSplitControl = pSplitBox->GetItemAt(0);
+                if (pSplitControl != nullptr) {
+                    UiPoint scrollBoxOffset = pSplitControl->GetScrollOffsetInScrollBox();
+                    UiRect rcSplit = pSplitControl->GetRect();
+                    rcSplit.Offset(-scrollBoxOffset.x, -scrollBoxOffset.y);
+                    rcSplitControls.push_back(rcSplit);
+                }
+            }
+        }
+    }
+}
+
 }//namespace ui
