@@ -1108,7 +1108,12 @@ void MenuItem::CreateMenuWnd()
 
 void MenuItem::Activate(const EventArgs* pMsg)
 {
+    std::weak_ptr<WeakFlag> weakFlag = GetWeakFlag();
     BaseClass::Activate(pMsg);
+    if (weakFlag.expired()) {
+        //在响应事件过程中，控件已经失效
+        return;
+    }
     DString itemName = GetName();
     size_t nItemIndex = GetListBoxIndex();
     Menu* pMenu = dynamic_cast<Menu*>(GetWindow());
