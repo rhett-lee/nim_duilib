@@ -1815,7 +1815,7 @@ bool NativeWindow_SDL::CalculateCenterWindowPos(SDL_Window* pCenterWindow, int32
     UiRect rcArea;
     UiRect rcCenter;
     UiRect rcMonitor;
-    GetMonitorRect(m_sdlWindow != nullptr ? m_sdlWindow : pCenterWindow, rcMonitor, rcArea);
+    GetMonitorRect(pCenterWindow != nullptr ? pCenterWindow : m_sdlWindow, rcMonitor, rcArea);
     if (pCenterWindow == nullptr) {
         rcCenter = rcArea;
     }

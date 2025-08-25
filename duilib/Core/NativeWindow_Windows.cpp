@@ -852,7 +852,7 @@ bool NativeWindow_Windows::CalculateCenterWindowPos(HWND hCenterWindow, int32_t&
     UiRect rcArea;
     UiRect rcCenter;
     UiRect rcMonitor;
-    GetMonitorRect(GetHWND() != nullptr ? GetHWND() : hCenterWindow, rcMonitor, rcArea);
+    GetMonitorRect(hCenterWindow != nullptr ? hCenterWindow : GetHWND(), rcMonitor, rcArea);
     if (hCenterWindow == nullptr) {
         rcCenter = rcArea;
     }
@@ -863,22 +863,27 @@ bool NativeWindow_Windows::CalculateCenterWindowPos(HWND hCenterWindow, int32_t&
         GetWindowRect(hCenterWindow, rcCenter);
     }
 
+    //屏幕编译留出空隙，避免出现贴边操作
+    UINT dpi = 96;
+    GetDpiForWindowWrapper(hCenterWindow != nullptr ? hCenterWindow : GetHWND(), dpi);
+    const int32_t snapThreshold = MulDiv(3, dpi, 96);
+
     // Find dialog's upper left based on rcCenter
     int32_t xLeft = rcCenter.CenterX() - nWindowWidth / 2;
     int32_t yTop = rcCenter.CenterY() - nWindowHeight / 2;
 
     // The dialog is outside the screen, move it inside
     if (xLeft < rcArea.left) {
-        xLeft = rcArea.left;
+        xLeft = rcArea.left + snapThreshold;
     }
     else if (xLeft + nWindowWidth > rcArea.right) {
-        xLeft = rcArea.right - nWindowWidth;
+        xLeft = rcArea.right - nWindowWidth - snapThreshold;
     }
     if (yTop < rcArea.top) {
-        yTop = rcArea.top;
+        yTop = rcArea.top + snapThreshold;
     }
     else if (yTop + nWindowHeight > rcArea.bottom) {
-        yTop = rcArea.bottom - nWindowHeight;
+        yTop = rcArea.bottom - nWindowHeight - snapThreshold;
     }
     xPos = xLeft;
     yPos = yTop;
