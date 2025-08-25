@@ -716,7 +716,7 @@ void WindowBase::SetWindowMinimumSize(const UiSize& szMaxWindow, bool bNeedDpiSc
 
 const UiSize& WindowBase::GetWindowMinimumSize() const
 {
-    return NativeWnd()->GetWindowMaximumSize();
+    return NativeWnd()->GetWindowMinimumSize();
 }
 
 int32_t WindowBase::SetWindowHotKey(uint8_t wVirtualKeyCode, uint8_t wModifiers)
