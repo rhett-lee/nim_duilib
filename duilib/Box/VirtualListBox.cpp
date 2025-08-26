@@ -631,15 +631,15 @@ void VirtualListBox::VSendEvent(const EventArgs& msg, bool bFromItem)
         else {
             newMsg.wParam = Box::InvalidIndex;
             newMsg.lParam = Box::InvalidIndex;
-        }        
+        }
         BaseClass::SendEventMsg(newMsg);
     }
     else if ((msg.eventType == kEventMouseDoubleClick) ||
              (msg.eventType == kEventClick) ||
              (msg.eventType == kEventRClick)) {
         if (msg.GetSender() == this) {
-            ASSERT(msg.wParam == 0);
-            ASSERT(msg.lParam == 0);
+            //ASSERT(msg.wParam == 0);
+            //ASSERT(msg.lParam == 0);
             EventArgs newMsg = msg;
             newMsg.wParam = Box::InvalidIndex;
             newMsg.lParam = Box::InvalidIndex;
@@ -1087,67 +1087,53 @@ bool VirtualListBox::ListCtrlSelectItem(size_t iIndex, bool bTakeFocus,
     if (IsMultiSelect()) {
         //多选模式
         const size_t nCurElementIndex = GetDisplayItemElementIndex(iIndex);
-        if ((nCurElementIndex >= GetElementCount()) || !IsSelectableElement(nCurElementIndex)) {
-            //无有效选择，或者选择在置顶的数据项，按多选处理
+        if (nCurElementIndex >= GetElementCount()) {
+            //无有效选择，按多选处理（比如：ListCtrl的表头）
             bRet = SelectItemMulti(iIndex, bTakeFocus, bTriggerEvent);
             return bRet;
         }
-
-        bool bRbuttonDown = vkFlag & kVkRButton;
-        bool bShiftDown = vkFlag & kVkShift;
-        bool bControlDown = vkFlag & kVkControl;
-        if (bShiftDown && bControlDown) {
-            //同时按下Shift和Ctrl键，忽略
-            bShiftDown = false;
-            bControlDown = false;
-        }
-        if (bRbuttonDown || (!bShiftDown && !bControlDown)) {
-            //按右键的时候：如果当前项没选择，按单选逻辑实现，只保留一个选项；
-            //            如果已经选择，则保持原选择，所有项选择状态不变（以提供右键菜单，对所选项操作的机会）
-            //在没有按下Control键也没有按Shift键：按单选逻辑实现，只保留一个选项            
-            size_t nElementIndex = GetDisplayItemElementIndex(iIndex);
-            if (bRbuttonDown && IsElementSelected(nElementIndex)) {
-                bRet = true;
-            }
-            else {
-                std::vector<size_t> refreshDataIndexs;
-                SetLastNoShiftIndex(nElementIndex);
-                if (nElementIndex == Box::InvalidIndex) {
-                    SetSelectNone(refreshDataIndexs);
-                }
-                else {
-                    std::vector<size_t> excludeIndexs;
-                    excludeIndexs.push_back(nElementIndex);
-                    SetSelectNoneExclude(excludeIndexs, refreshDataIndexs);
-                }
-                SetCurSel(iIndex);
-                bRet = SelectItemSingle(iIndex, bTakeFocus, false);
-                RefreshElements(refreshDataIndexs);
-                ASSERT(IsElementSelected(nElementIndex));
-                ASSERT(nElementIndex == GetDisplayItemElementIndex(iIndex));
-                bSelectStatusChanged = true;
-                bRet = true;
-            }
+        else if (!IsSelectableElement(nCurElementIndex)) {
+            //选择在置顶的数据项，按单选处理
+            std::vector<size_t> refreshDataIndexs;
+            std::vector<size_t> excludeIndexs;
+            excludeIndexs.push_back(nCurElementIndex);
+            SetSelectNoneExclude(excludeIndexs, refreshDataIndexs);
+            SetCurSel(iIndex);
+            bRet = SelectItemSingle(iIndex, bTakeFocus, false);
+            RefreshElements(refreshDataIndexs);
+            ASSERT(IsElementSelected(nCurElementIndex));
+            ASSERT(nCurElementIndex == GetDisplayItemElementIndex(iIndex));
+            bSelectStatusChanged = true;
+            bRet = true;
         }
         else {
-            if (bShiftDown) {
-                //按左键: 同时按下了Shift键
-                size_t nIndexStart = GetLastNoShiftIndex();
-                if (nIndexStart >= GetElementCount()) {
-                    nIndexStart = 0;
-                }
+            bool bRbuttonDown = vkFlag & kVkRButton;
+            bool bShiftDown = vkFlag & kVkShift;
+            bool bControlDown = vkFlag & kVkControl;
+            if (bShiftDown && bControlDown) {
+                //同时按下Shift和Ctrl键，忽略
+                bShiftDown = false;
+                bControlDown = false;
+            }
+            if (bRbuttonDown || (!bShiftDown && !bControlDown)) {
+                //按右键的时候：如果当前项没选择，按单选逻辑实现，只保留一个选项；
+                //            如果已经选择，则保持原选择，所有项选择状态不变（以提供右键菜单，对所选项操作的机会）
+                //在没有按下Control键也没有按Shift键：按单选逻辑实现，只保留一个选项            
                 size_t nElementIndex = GetDisplayItemElementIndex(iIndex);
-                if (nElementIndex < GetElementCount()) {
-                    std::vector<size_t> selectedIndexs;
-                    size_t iStart = std::min(nIndexStart, nElementIndex);
-                    size_t iEnd = std::max(nIndexStart, nElementIndex);
-                    for (size_t i = iStart; i <= iEnd; ++i) {
-                        if (IsSelectableElement(i)) {
-                            selectedIndexs.push_back(i);
-                        }
-                    }
+                if (bRbuttonDown && IsElementSelected(nElementIndex)) {
+                    bRet = true;
+                }
+                else {
                     std::vector<size_t> refreshDataIndexs;
-                    SetSelectedElements(selectedIndexs, true, refreshDataIndexs);
+                    SetLastNoShiftIndex(nElementIndex);
+                    if (nElementIndex == Box::InvalidIndex) {
+                        SetSelectNone(refreshDataIndexs);
+                    }
+                    else {
+                        std::vector<size_t> excludeIndexs;
+                        excludeIndexs.push_back(nElementIndex);
+                        SetSelectNoneExclude(excludeIndexs, refreshDataIndexs);
+                    }
                     SetCurSel(iIndex);
                     bRet = SelectItemSingle(iIndex, bTakeFocus, false);
                     RefreshElements(refreshDataIndexs);
@@ -1156,16 +1142,45 @@ bool VirtualListBox::ListCtrlSelectItem(size_t iIndex, bool bTakeFocus,
                     bSelectStatusChanged = true;
                     bRet = true;
                 }
-                else {
-                    //未知情况，正常无法走到这里
-                    bRet = SelectItemMulti(iIndex, bTakeFocus, false);
-                }
             }
             else {
-                //按左键: 同时按下了Control键，保持多选
-                bRet = SelectItemMulti(iIndex, bTakeFocus, false);
-                if (bRet) {
-                    SetLastNoShiftIndex(GetDisplayItemElementIndex(iIndex));
+                if (bShiftDown) {
+                    //按左键: 同时按下了Shift键
+                    size_t nIndexStart = GetLastNoShiftIndex();
+                    if (nIndexStart >= GetElementCount()) {
+                        nIndexStart = 0;
+                    }
+                    size_t nElementIndex = GetDisplayItemElementIndex(iIndex);
+                    if (nElementIndex < GetElementCount()) {
+                        std::vector<size_t> selectedIndexs;
+                        size_t iStart = std::min(nIndexStart, nElementIndex);
+                        size_t iEnd = std::max(nIndexStart, nElementIndex);
+                        for (size_t i = iStart; i <= iEnd; ++i) {
+                            if (IsSelectableElement(i)) {
+                                selectedIndexs.push_back(i);
+                            }
+                        }
+                        std::vector<size_t> refreshDataIndexs;
+                        SetSelectedElements(selectedIndexs, true, refreshDataIndexs);
+                        SetCurSel(iIndex);
+                        bRet = SelectItemSingle(iIndex, bTakeFocus, false);
+                        RefreshElements(refreshDataIndexs);
+                        ASSERT(IsElementSelected(nElementIndex));
+                        ASSERT(nElementIndex == GetDisplayItemElementIndex(iIndex));
+                        bSelectStatusChanged = true;
+                        bRet = true;
+                    }
+                    else {
+                        //未知情况，正常无法走到这里
+                        bRet = SelectItemMulti(iIndex, bTakeFocus, false);
+                    }
+                }
+                else {
+                    //按左键: 同时按下了Control键，保持多选
+                    bRet = SelectItemMulti(iIndex, bTakeFocus, false);
+                    if (bRet) {
+                        SetLastNoShiftIndex(GetDisplayItemElementIndex(iIndex));
+                    }
                 }
             }
         }

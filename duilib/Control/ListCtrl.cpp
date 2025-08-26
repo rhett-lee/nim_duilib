@@ -2536,6 +2536,7 @@ void ListCtrl::UpdateRichEditSize(ListCtrlLabel* pSubItem)
         }
 
         UiMargin rcMargin(rcItem.left - rect.left, rcItem.top - rect.top, 0, 0);
+        rcMargin.Validate();
         m_pRichEdit->SetMargin(rcMargin, false);
 
         m_pRichEdit->SetMinWidth(rcItem.Width(), false);
