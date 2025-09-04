@@ -1,7 +1,8 @@
 #include "Image_PNG.h"
-#include "duilib/third_party/apng/decoder-apng.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Render/IRender.h"
+
+#include "duilib/third_party/apng/decoder-apng.h"
 
 namespace ui
 {

@@ -13,7 +13,10 @@ namespace ui
 
 bool ImageUtil::NeedResizeImage(float fImageSizeScale)
 {
-    if (std::fabs(fImageSizeScale - 1.0f) < 0.001f) {
+    if (fImageSizeScale < 0.001f) {
+        return false;
+    }
+    else if (std::fabs(fImageSizeScale - 1.0f) < 0.001f) {
         return false;
     }
     return true;

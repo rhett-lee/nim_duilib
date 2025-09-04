@@ -362,6 +362,7 @@
     <ClCompile Include="Image\ImageDecoder_Icon.cpp" />
     <ClCompile Include="Image\ImageDecoder_PNG.cpp" />
     <ClCompile Include="Image\ImageDecoder_SVG.cpp" />
+    <ClCompile Include="Image\ImageDecoder_WEBP.cpp" />
     <ClCompile Include="Image\ImageInfo.cpp" />
     <ClCompile Include="Image\ImageLoadParam.cpp" />
     <ClCompile Include="Image\ImagePlayer.cpp" />
@@ -371,6 +372,7 @@
     <ClCompile Include="Image\Image_GIF.cpp" />
     <ClCompile Include="Image\Image_PNG.cpp" />
     <ClCompile Include="Image\Image_Svg.cpp" />
+    <ClCompile Include="Image\Image_WEBP.cpp" />
     <ClCompile Include="Image\StateImage.cpp" />
     <ClCompile Include="Image\StateImageMap.cpp" />
     <ClCompile Include="RenderSkia\Bitmap_Skia.cpp" />
@@ -659,6 +661,7 @@
     <ClInclude Include="Image\ImageDecoder_Icon.h" />
     <ClInclude Include="Image\ImageDecoder_PNG.h" />
     <ClInclude Include="Image\ImageDecoder_SVG.h" />
+    <ClInclude Include="Image\ImageDecoder_WEBP.h" />
     <ClInclude Include="Image\ImageInfo.h" />
     <ClInclude Include="Image\ImageLoadParam.h" />
     <ClInclude Include="Image\ImagePlayer.h" />
@@ -668,6 +671,7 @@
     <ClInclude Include="Image\Image_GIF.h" />
     <ClInclude Include="Image\Image_PNG.h" />
     <ClInclude Include="Image\Image_Svg.h" />
+    <ClInclude Include="Image\Image_WEBP.h" />
     <ClInclude Include="Image\StateImage.h" />
     <ClInclude Include="Image\StateImageMap.h" />
     <ClInclude Include="RenderSkia\Bitmap_Skia.h" />

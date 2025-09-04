@@ -747,6 +747,12 @@
     <ClCompile Include="Image\ImagePlayer.cpp">
       <Filter>Image</Filter>
     </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_WEBP.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_WEBP.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1569,6 +1575,12 @@
       <Filter>Image</Filter>
     </ClInclude>
     <ClInclude Include="Image\ImagePlayer.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_WEBP.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_WEBP.h">
       <Filter>Image</Filter>
     </ClInclude>
   </ItemGroup>
