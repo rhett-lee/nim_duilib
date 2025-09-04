@@ -88,7 +88,7 @@ public:
     */
     UiPadding GetImagePadding(const DpiManager& dpi) const;
 
-    /** 设置图片属性的内边距(内部不做DPI自适应)
+    /** 设置图片属性的内边距
     * @param [in] newPadding 需要设置的内边距
     * @param [in] bNeedDpiScale 是否需要对newPadding进行DPI缩放
     * @param [in] dpi 与newPadding数据关联的DPI管理器
@@ -155,16 +155,23 @@ public:
     //目前ICO文件在加载时，只会选择一个大小的ICO图片进行加载，加载后为单张图片
     uint32_t m_iconSize;
 
+    //如果是PAG文件，用于指定动画的帧率，默认为30.0f
+    float m_fPagMaxFrameRate;
+
     //可绘制标志：true表示允许绘制，false表示禁止绘制
     bool m_bPaintEnabled;
 
     //是否自动适应目标区域（等比例缩放图片）
     bool m_bAdaptiveDestRect;
 
+    //是否含有m_nPlayCount值
+    bool m_bHasPlayCount;
+
+private:
+
     //rcPadding对应的DPI缩放百分比
     uint16_t m_rcPaddingScale;
 
-private:
     //绘制目标区域位置和大小(相对于控件区域的位置, 未进行DPI缩放)
     UiRect* m_rcDest;
 

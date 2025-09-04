@@ -3,7 +3,7 @@
 
 #include "duilib/Image/ImageInfo.h"
 #include "duilib/Image/ImageAttribute.h"
-#include "duilib/Image/ImageLoadAttribute.h"
+#include "duilib/Image/ImageLoadParam.h"
 #include "duilib/Image/StateImageMap.h"
 #include "duilib/Utils/Delegate.h"
 #include <memory>
@@ -91,7 +91,7 @@ public:
 
     /** 获取图片加载属性
     */
-    ImageLoadAttribute GetImageLoadAttribute() const;
+    ImageLoadParam GetImageLoadParam() const;
 
     /** @} */
 
@@ -111,25 +111,43 @@ public:
     */
     void ClearImageCache();
 
+public:
+    /** 是否位多帧图片(比如GIF等)
+    */
+    bool IsMultiFrameImage() const;
+
     /** 设置当前图片帧（仅当多帧图片时）
     */
-    void SetCurrentFrame(uint32_t nCurrentFrame);
+    void SetCurrentFrameIndex(uint32_t nCurrentFrame);
 
     /** 获取当前图片帧索引（仅当多帧图片时）
     */
-    uint32_t GetCurrentFrame() const;
+    uint32_t GetCurrentFrameIndex() const;
 
     /** 获取图片的帧数
     */
     uint32_t GetFrameCount() const;
 
-    /** 是否位多帧图片(比如GIF等)
+    /** 获取循环播放次数（TODO：未使用，需要修改播放的实现源码）
+    *@return 返回值：-1 表示动画是一致循环播放的
+    *              >= 0 表示动画循环播放的具体次数
     */
-    bool IsMultiFrameImage() const;
+    int32_t GetLoopCount() const;
 
-    /** 获取当前图片帧的图片数据
+    /** 获取当前图片帧的图片数据（多帧图片）
     */
-    IBitmap* GetCurrentBitmap() const;
+    std::shared_ptr<IAnimationImage::AnimationFrame> GetCurrentFrame() const;
+
+public:
+    /** 获取当前图片帧的图片数据（单帧图片）
+    */
+    std::shared_ptr<IBitmap> GetCurrentBitmap() const;
+
+    /** 获取图片数据(单帧图片，对于Svg等格式，支持矢量缩放图片)
+    * @param [in] rcDest 绘制目标区域
+    * @param [in,out] rcSource 图片源区域，如果缩放时，会同步修改此区域的相应大小
+    */
+    std::shared_ptr<IBitmap> GetCurrentBitmap(const UiRect& rcDest, UiRect& rcSource) const;
 
     /** @} */
 

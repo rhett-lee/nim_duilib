@@ -9,7 +9,7 @@
 namespace ui 
 {
 class ImageInfo;
-class ImageLoadAttribute;
+class ImageLoadParam;
 
 /** 图片格式解码类
 */
@@ -26,7 +26,7 @@ public:
     * @param [out] nFrameCount 返回图片共有多少帧
     */
     std::unique_ptr<ImageInfo> LoadImageData(std::vector<uint8_t>& fileData,
-                                             const ImageLoadAttribute& imageLoadAttribute,                                             
+                                             const ImageLoadParam& imageLoadAttribute,
                                              bool bEnableDpiScale, uint32_t nImageDpiScale, uint32_t nWindowDpiScale,
                                              bool bLoadAllFrames, uint32_t& nFrameCount);
 
@@ -71,7 +71,7 @@ private:
     * @param [out] bDpiScaled 图片加载的时候，图片大小是否进行了DPI自适应操作
     */
     bool DecodeImageData(std::vector<uint8_t>& fileData, 
-                         const ImageLoadAttribute& imageLoadAttribute,
+                         const ImageLoadParam& imageLoadAttribute,
                          bool bLoadAllFrames,
                          bool bEnableDpiScale,
                          uint32_t nImageDpiScale,
@@ -107,6 +107,22 @@ private:
     */
     static ImageFormat GetImageFormat(const DString& path);
 };
+
+/** 使用cximage加载图片（只支持GIF和ICO）两种格式
+* @param [in] isIconFile 如果为true表示是ICO文件，否则为GIF文件
+* @param [in] iconSize 需要加载ICO图标的大小，因ICO文件中包含了各种大小的图标，加载的时候，只加载其中一个图标
+* @param [in] bLoadAllFrames 对于多帧图片，是否加载全部帧（true加载全部帧，false仅加载第1帧）
+* @param [out] nFrameCount 返回图片总的帧数
+*/
+namespace CxImageLoader
+{
+    bool LoadImageFromMemory(std::vector<uint8_t>& fileData,
+                             std::vector<ImageDecoder::ImageData>& imageData,
+                             bool isIconFile,
+                             uint32_t iconSize,
+                             bool bLoadAllFrames,
+                             uint32_t& nOutFrameCount);
+}
 
 } // namespace ui
 

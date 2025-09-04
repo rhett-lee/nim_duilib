@@ -88,7 +88,7 @@ std::shared_ptr<IBitmap> ScreenCapture::CaptureBitmap(const Window* pWindow)
     ::ReleaseDC(hWnd, hdcSrc); // 释放句柄
     ::DeleteDC(hdcDst);
 
-    if (!spBitmap->Init(cxScreen, cyScreen, true, pBits)) {
+    if (!spBitmap->Init(cxScreen, cyScreen, pBits)) {
         spBitmap.reset();
     }
     ::DeleteObject(hBitmap);

@@ -2407,12 +2407,6 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         return false;
     }
 
-    IBitmap* pBitmap = duiImage.GetCurrentBitmap();
-    ASSERT(pBitmap != nullptr);
-    if (pBitmap == nullptr) {
-        return false;
-    }
-
     ImageAttribute newImageAttribute = duiImage.GetImageAttribute();
     if (!strModify.empty()) {
         newImageAttribute.ModifyAttribute(strModify, Dpi());
@@ -2423,7 +2417,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         //使用外部传入的矩形区域绘制图片
         rcDest = *pDestRect;
     }
-    UiRect rcImageDestRect = newImageAttribute.GetImageDestRect(pBitmap->GetWidth(), pBitmap->GetHeight(), Dpi());
+    UiRect rcImageDestRect = newImageAttribute.GetImageDestRect(imageInfo->GetWidth(), imageInfo->GetHeight(), Dpi());
     if (ImageAttribute::HasValidImageRect(rcImageDestRect)) {
         //使用配置中指定的目标区域
         rcDest = rcImageDestRect;
@@ -2433,7 +2427,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
     UiRect rcDestCorners;
     UiRect rcSource = newImageAttribute.GetImageSourceRect();
     UiRect rcSourceCorners = newImageAttribute.GetImageCorner();
-    ImageAttribute::ScaleImageRect(pBitmap->GetWidth(), pBitmap->GetHeight(), 
+    ImageAttribute::ScaleImageRect(imageInfo->GetWidth(), imageInfo->GetHeight(),
                                    Dpi(), imageInfo->IsBitmapSizeDpiScaled(),
                                    rcDestCorners,
                                    rcSource,
@@ -2499,24 +2493,94 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         *pPaintedRect = rcDest;
     }
 
-    //图片透明度属性
-    uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.m_bFade : static_cast<uint8_t>(nFade);
-    if (pMatrix != nullptr) {
-        //矩阵绘制: 对不支持的属性，增加断言，避免出错
-        ASSERT(newImageAttribute.GetImageCorner().IsEmpty());
-        ASSERT(!newImageAttribute.m_bTiledX);
-        ASSERT(!newImageAttribute.m_bTiledY);
-        pRender->DrawImageRect(m_rcPaint, pBitmap, rcDest, rcSource, iFade, pMatrix);
+    //获取需要绘制的位图图片
+    std::shared_ptr<IBitmap> pBitmap;
+    if (duiImage.IsMultiFrameImage()) {
+        std::shared_ptr<IAnimationImage::AnimationFrame> pAnimationFrame = duiImage.GetCurrentFrame();
+        ASSERT(pAnimationFrame != nullptr);
+        if (pAnimationFrame == nullptr) {
+            return false;
+        }
+        if (pAnimationFrame->m_bDataPending) {
+            //数据尚未准备好, 可忽略
+            ASSERT(pAnimationFrame->m_pBitmap == nullptr);
+        }
+        else {
+            pBitmap = pAnimationFrame->m_pBitmap;
+
+            //运用部分参数
+            if (pAnimationFrame->m_nOffsetX != 0) {
+                rcDest.Offset(pAnimationFrame->m_nOffsetX, 0);
+            }
+            if (pAnimationFrame->m_nOffsetY != 0) {
+                rcDest.Offset(0, pAnimationFrame->m_nOffsetY);
+            }
+            ASSERT(pAnimationFrame->m_pBitmap->GetWidth() <= (uint32_t)imageInfo->GetWidth());
+            if (pAnimationFrame->m_pBitmap->GetWidth() >= (uint32_t)imageInfo->GetWidth()) {
+                //容错
+
+            }
+            ASSERT(pAnimationFrame->m_pBitmap->GetHeight() <= (uint32_t)imageInfo->GetHeight());
+            if (pAnimationFrame->m_pBitmap->GetHeight() >= (uint32_t)imageInfo->GetHeight()) {
+                //容错
+
+            }
+        }
     }
     else {
-        pRender->DrawImage(m_rcPaint, pBitmap, rcDest, rcDestCorners, rcSource, rcSourceCorners,
-                           iFade, newImageAttribute.m_bTiledX, newImageAttribute.m_bTiledY,
-                           newImageAttribute.m_bFullTiledX, newImageAttribute.m_bFullTiledY,
-                           newImageAttribute.m_nTiledMargin, newImageAttribute.m_bWindowShadowMode);
+        //单帧图片
+        bool bImageStretch = true;//绘制图片时会不会被拉伸
+        if (newImageAttribute.m_bTiledX || newImageAttribute.m_bTiledY) {
+            //当设置平铺时，无需拉伸图片
+            bImageStretch = false;
+        }
+        else if (!rcSourceCorners.IsZero()) {
+            //如果设置了九宫格绘制，则按不拉伸处理(如果拉伸图片，四个角会变形)
+            bImageStretch = false;
+        }
+        else if (newImageAttribute.m_bWindowShadowMode) {
+            //阴影模式：不拉伸，避免四个角变形
+            bImageStretch = false;
+        }
+        else if ((rcDest.Width() == rcSource.Width()) && (rcDest.Height() == rcSource.Height())) {
+            //如果绘制目标区域和图片源区域大小一致，无需拉伸
+            bImageStretch = false;
+        }
+        if (bImageStretch) {
+            //绘制图片有拉伸时
+            pBitmap = duiImage.GetCurrentBitmap(rcDest, rcSource);
+        }
+        else {
+            //绘制图片无拉伸时
+            pBitmap = duiImage.GetCurrentBitmap();
+        }
+        ASSERT(pBitmap != nullptr);
+    }
+
+    bool bPainted = false;
+    if (pBitmap != nullptr) {
+        bPainted = true;
+        //图片透明度属性
+        uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.m_bFade : static_cast<uint8_t>(nFade);
+        if (pMatrix != nullptr) {
+            //矩阵绘制: 对不支持的属性，增加断言，避免出错
+            ASSERT(newImageAttribute.GetImageCorner().IsEmpty());
+            ASSERT(!newImageAttribute.m_bTiledX);
+            ASSERT(!newImageAttribute.m_bTiledY);
+            pRender->DrawImageRect(m_rcPaint, pBitmap.get(), rcDest, rcSource, iFade, pMatrix);
+        }
+        else {
+            pRender->DrawImage(m_rcPaint, pBitmap.get(), rcDest, rcDestCorners, rcSource, rcSourceCorners,
+                               iFade, newImageAttribute.m_bTiledX, newImageAttribute.m_bTiledY,
+                               newImageAttribute.m_bFullTiledX, newImageAttribute.m_bFullTiledY,
+                               newImageAttribute.m_nTiledMargin, newImageAttribute.m_bWindowShadowMode);
+        }
     }
     //按需启动动画
-    duiImage.CheckStartGifPlay(rcDest);
-    return true;
+    if (duiImage.IsMultiFrameImage()) {
+        duiImage.CheckStartGifPlay(rcDest);
+    }
+    return bPainted;
 }
 
 IRender* Control::GetRender()
@@ -3371,9 +3435,11 @@ void Control::AttachGifPlayStop(const EventCallback& callback)
 
 bool Control::LoadImageData(Image& duiImage) const
 {
+    //DPI缩放百分比
+    const uint32_t nLoadDpiScale = Dpi().GetScale();
     if (duiImage.GetImageCache() != nullptr) {
         //如果图片缓存存在，并且DPI缩放百分比没变化，则不再加载（当图片变化的时候，会清空这个缓存）
-        if (duiImage.GetImageCache()->GetLoadDpiScale() == Dpi().GetScale()) {
+        if (duiImage.GetImageCache()->GetLoadDpiScale() == nLoadDpiScale) {
             return true;
         }        
     }
@@ -3392,7 +3458,7 @@ bool Control::LoadImageData(Image& duiImage) const
     if (iconManager.IsIconString(sImagePath)) {
         uint32_t nIconID = iconManager.GetIconID(sImagePath);
         if (iconManager.IsImageString(nIconID)) {
-            //资源图片路径
+            //资源图片路径（一次性更新，更新后iconManager.IsIconString就是false了）
             DString iconImageString = iconManager.GetImageString(nIconID);
             ASSERT(!iconImageString.empty());
             DString oldImageString = duiImage.GetImageString();
@@ -3410,25 +3476,37 @@ bool Control::LoadImageData(Image& duiImage) const
     }
 
     if(imageFullPath.IsEmpty()) {
+        //非图标数据：获取图片资源的完整路径（磁盘绝对路径或者zip压缩包内的相对路径）
         imageFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), FilePath(sImagePath));
     }
+    ASSERT(!imageFullPath.IsEmpty());
     if (imageFullPath.IsEmpty()) {
-        //资源文件不存在
+        //图片资源文件不存在
         return false;
     }
 
-    ImageLoadAttribute imageLoadAttr = duiImage.GetImageLoadAttribute();
-    imageLoadAttr.SetImageFullPath(imageFullPath.ToString());
+    ImageLoadParam imageLoadParam = duiImage.GetImageLoadParam();
+    imageLoadParam.SetLoadDpiScale(nLoadDpiScale);//设置加载的DPI百分比
+    imageLoadParam.SetImageFullPath(imageFullPath.ToString());
+    if (imageLoadParam.GetDpiScaleOption() == ImageLoadParam::DpiScaleOption::kDefault) {
+        if (GlobalManager::Instance().Image().IsDpiScaleAllImages()) {
+            imageLoadParam.SetDpiScaleOption(ImageLoadParam::DpiScaleOption::kOn);
+        }
+        else {
+            imageLoadParam.SetDpiScaleOption(ImageLoadParam::DpiScaleOption::kOff);
+        }
+    }
     std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
     if ((imageCache == nullptr) || 
-        (imageCache->GetLoadKey() != imageLoadAttr.GetCacheKey(Dpi().GetScale()))) {
-        //如果图片没有加载则执行加载图片；如果图片发生变化，则重新加载该图片
+        (imageCache->GetLoadKey() != imageLoadParam.GetLoadKey(nLoadDpiScale))) {
+        //第1种情况：如果图片没有加载则执行加载图片；
+        //第2种情况：如果图片发生变化，则重新加载该图片
         Control* pThis = const_cast<Control*>(this);
         StdClosure asyncLoadCallback = pThis->ToWeakCallback([pThis]() {
-                //重绘该控件
+                //图片加载完成后，重绘该控件
                 pThis->Invalidate();
             });
-        imageCache = GlobalManager::Instance().Image().GetImage(GetWindow(), imageLoadAttr, asyncLoadCallback);
+        imageCache = GlobalManager::Instance().Image().GetImage(imageLoadParam, asyncLoadCallback);
         duiImage.SetImageCache(imageCache);
     }
     return imageCache ? true : false;

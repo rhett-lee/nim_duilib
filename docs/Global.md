@@ -146,6 +146,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | window_shadow_mode | false | bool | 九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分，以避免不必要的绘制动作） |
 | icon_size | | int | 指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效) |
 | play_count | -1 | int | 如果是GIF、APNG、WEBP等动画图片，可以指定播放次数。 如果是-1表示一直播放，此为缺省值。 |
+| pag_max_frame_rate | 30 | int | 用于指定动画的帧率(仅当图片文件是PAG文件时有效) |
 
 图片的使用示例：
 ```xml

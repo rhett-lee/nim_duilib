@@ -46,8 +46,9 @@ public:
     /** 播放 GIF/WebP/APNG 动画
      * @param [in] nStartFrame 从哪一帧开始播放，可设置第一帧、当前帧和最后一帧。请参考 GifFrameType 枚举
      * @param [in] nPlayCount 指定播放次数, 如果是-1表示一直播放
+     * @param [in] bHasPlayCount nPlayCount值是否有效
      */
-    bool StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount);
+    bool StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount, bool bHasPlayCount = true);
 
     /** 停止播放 GIF/WebP/APNG 动画
      * @param [in] bTriggerEvent 是否将停止事件通知给订阅者，参考 AttachGifPlayStop 方法
@@ -75,7 +76,7 @@ private:
 
     /** 定时器播放GIF的回调函数
     */
-    bool PlayGif();
+    void PlayGif();
 
     /** 重绘图片
     */

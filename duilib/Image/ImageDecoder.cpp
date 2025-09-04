@@ -31,10 +31,10 @@
 #pragma warning (push)
 #pragma warning (disable: 4456 4244 4702)
 
-#define NANOSVG_IMPLEMENTATION
+//#define NANOSVG_IMPLEMENTATION
 #define NANOSVG_ALL_COLOR_KEYWORDS
 #include "duilib/third_party/svg/nanosvg.h"
-#define NANOSVGRAST_IMPLEMENTATION
+//#define NANOSVGRAST_IMPLEMENTATION
 #include "duilib/third_party/svg/nanosvgrast.h"
 
 #pragma warning (pop)
@@ -58,6 +58,8 @@
 #include "include/core/SkCanvas.h"
 #include "duilib/RenderSkia/SkiaHeaderEnd.h"
 
+#include <set>
+
 namespace ui 
 {
 /** 图片的DPI缩放尺寸计算函数
@@ -73,7 +75,7 @@ namespace ImageLoader
     * @param [in,out] nImageWidth 原始图片的宽度，返回计算后的宽度
     * @param [in,out] nImageHeight 原始图片的高度，返回计算后的高度
     */
-    static void CalcImageLoadSize(const ImageLoadAttribute& imageLoadAttribute,
+    static void CalcImageLoadSize(const ImageLoadParam& imageLoadAttribute,
                                   bool bEnableDpiScale,
                                   uint32_t nImageDpiScale,
                                   uint32_t nWindowDpiScale,
@@ -97,17 +99,18 @@ namespace ImageLoader
         uint32_t nOldImageWidth = nImageWidth;
         uint32_t nOldImageHeight = nImageHeight;
         //此处：如果只设置了宽度或者高度，那么会按锁定纵横比的方式对整个图片进行缩放
-        if (!imageLoadAttribute.CalcImageLoadSize(nImageWidth, nImageHeight)) {
+        if (!imageLoadAttribute.CalcImageLoadSize(nImageWidth, nImageHeight, true)) {
             nImageWidth = nOldImageWidth;
             nImageHeight = nOldImageHeight;
         }
 
         //加载图片时，按需对图片大小进行DPI自适应
         bool needDpiScale = bEnableDpiScale;
-        if (imageLoadAttribute.HasSrcDpiScale()) {
-            //如果配置文件中有设置scaledpi属性，则以配置文件中的设置为准
-            needDpiScale = imageLoadAttribute.NeedDpiScale();
-        }
+        //TODO: 检查代码如何修改
+        //if (imageLoadAttribute.HasSrcDpiScale()) {
+        //    //如果配置文件中有设置scaledpi属性，则以配置文件中的设置为准
+        //    needDpiScale = imageLoadAttribute.NeedDpiScale();
+        //}
         if (needDpiScale) {
             ASSERT(nImageDpiScale > 0);
             ASSERT(nWindowDpiScale > 0);
@@ -323,7 +326,7 @@ namespace NanoSvgImageLoader
     * @param [in] nWindowDpiScale 显示目标窗口的DPI缩放百分比
     */
     bool LoadImageFromMemory(std::vector<uint8_t>& fileData, 
-                             const ImageLoadAttribute& imageLoadAttribute, 
+                             const ImageLoadParam& imageLoadAttribute,
                              bool bEnableDpiScale,
                              uint32_t nImageDpiScale,
                              uint32_t nWindowDpiScale,
@@ -417,7 +420,7 @@ namespace SkiaSvgImageLoader
     * @param [in] nWindowDpiScale 显示目标窗口的DPI缩放百分比
     */
     bool LoadImageFromMemory(std::vector<uint8_t>& fileData,
-                             const ImageLoadAttribute& imageLoadAttribute,
+                             const ImageLoadParam& imageLoadAttribute,
                              bool bEnableDpiScale,
                              uint32_t nImageDpiScale,
                              uint32_t nWindowDpiScale,
@@ -521,6 +524,46 @@ namespace SkiaSvgImageLoader
 */
 namespace CxImageLoader
 {
+    // 从widthList中找到与nIconSize最匹配的图标大小
+    uint32_t FindBestIconSize(const std::vector<uint32_t>& widthList, uint32_t nIconSize)
+    {
+        if (widthList.empty()) {
+            // 处理空容器情况，这里返回0作为默认值
+            return 0;
+        }
+
+        // 检查是否有完全匹配的值
+        auto exactMatch = std::find(widthList.begin(), widthList.end(), nIconSize);
+        if (exactMatch != widthList.end()) {
+            return *exactMatch;
+        }
+
+        // 找到第一个大于nIconSize的值
+        auto greaterIt = std::upper_bound(widthList.begin(), widthList.end(), nIconSize);
+
+        if (greaterIt != widthList.end()) {
+            // 如果存在大于目标值的元素，比较它与前一个元素哪个更接近
+            if (greaterIt == widthList.begin()) {
+                return *greaterIt;
+            }
+
+            uint32_t prev = *(greaterIt - 1);
+            uint32_t curr = *greaterIt;
+
+            // 优先选择较大的值，如果两者距离相等
+            if (nIconSize - prev < curr - nIconSize) {
+                return prev;
+            }
+            else {
+                return curr;
+            }
+        }
+        else {
+            // 所有元素都小于目标值，返回最大的元素
+            return widthList.back();
+        }
+    }
+
     bool LoadImageFromMemory(std::vector<uint8_t>& fileData, 
                              std::vector<ImageDecoder::ImageData>& imageData, 
                              bool isIconFile,
@@ -592,7 +635,7 @@ namespace CxImageLoader
             uint32_t nWidth = cxFrame->GetWidth();
             uint32_t nHeight = cxFrame->GetHeight();
             ASSERT((nWidth > 0) && (nHeight > 0));
-            if ((nWidth == 0) && (nHeight == 0)) {
+            if ((nWidth == 0) || (nHeight == 0)) {
                 imageData.clear();
                 return false;
             }
@@ -653,13 +696,26 @@ namespace CxImageLoader
             bitmapData.bFlipHeight = false;
         }
 
-        if (isIconFile) {
+        if (isIconFile && !imageData.empty()) {
             //目前只支持加载一个ICO文件，后续再根据实际应用场景扩展(优先选择32位真彩的图片，然后选择256色的，然再选择16色的)
-            bool isIconSizeValid = false;
+            std::set<uint32_t> widthSet;
             const size_t imageCount = imageData.size();
             for (size_t i = 0; i < imageCount; ++i) {
                 const ImageDecoder::ImageData& icoData = imageData[i];
-                if (icoData.m_imageWidth == iconSize) {
+                widthSet.insert(icoData.m_imageWidth);
+            }
+            std::vector<uint32_t> widthList;
+            for (auto v : widthSet) {
+                widthList.push_back(v);
+            }
+            uint32_t nBestIconSize = FindBestIconSize(widthList, iconSize);
+            if (nBestIconSize == 0) {
+                nBestIconSize = iconSize;
+            }
+            bool isIconSizeValid = false;
+            for (size_t i = 0; i < imageCount; ++i) {
+                const ImageDecoder::ImageData& icoData = imageData[i];
+                if (icoData.m_imageWidth == nBestIconSize) {
                     isIconSizeValid = true;
                     break;
                 }
@@ -671,7 +727,7 @@ namespace CxImageLoader
                 for (size_t i = 0; i < imageCount; ++i) {
                     const ImageDecoder::ImageData& icoData = imageData[i];
                     uint32_t numColors = frameNumColors[i];
-                    if ((!isIconSizeValid || (icoData.m_imageWidth == iconSize)) && (numColors == color)) {
+                    if ((!isIconSizeValid || (icoData.m_imageWidth == nBestIconSize)) && (numColors == color)) {
                         ImageDecoder::ImageData oneData = icoData;
                         imageData.resize(1);
                         imageData[0] = oneData;
@@ -809,7 +865,7 @@ ImageDecoder::ImageFormat ImageDecoder::GetImageFormat(const DString& path)
 }
 
 std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fileData,                                                       
-                                                       const ImageLoadAttribute& imageLoadAttribute,                                                       
+                                                       const ImageLoadParam& imageLoadAttribute,
                                                        bool bEnableDpiScale, uint32_t nImageDpiScale, uint32_t nWindowDpiScale,
                                                        bool bLoadAllFrames, uint32_t& nFrameCount)
 {
@@ -881,17 +937,17 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
         if (pBitmap == nullptr) {
             return nullptr;
         }
-        pBitmap->Init(bitmapData.m_imageWidth, bitmapData.m_imageHeight, bitmapData.bFlipHeight, bitmapData.m_bitmapData.data());
+        pBitmap->Init(bitmapData.m_imageWidth, bitmapData.m_imageHeight, bitmapData.m_bitmapData.data());
         frameBitmaps.push_back(pBitmap);
     }
-    imageInfo->SetFrameBitmap(frameBitmaps);
+    /*imageInfo->SetFrameBitmap(frameBitmaps);
     if (frameIntervals.size() > 1) {
         imageInfo->SetFrameInterval(frameIntervals);
-    }
+    }*/
     //多帧图片时，以第一帧图片作为图片的大小信息
-    imageInfo->SetImageSize(imageWidth, imageHeight);
-    imageInfo->SetPlayCount(playCount);
-    imageInfo->SetBitmapSizeDpiScaled(bDpiScaled);
+    //imageInfo->SetImageSize(imageWidth, imageHeight);
+    //imageInfo->SetPlayCount(playCount);
+    //imageInfo->SetBitmapSizeDpiScaled(bDpiScaled);
     return imageInfo;
 }
 
@@ -949,7 +1005,7 @@ bool ImageDecoder::ResizeImageData(std::vector<ImageData>& imageData,
 }
 
 bool ImageDecoder::DecodeImageData(std::vector<uint8_t>& fileData,
-                                   const ImageLoadAttribute& imageLoadAttribute,
+                                   const ImageLoadParam& imageLoadAttribute,
                                    bool bLoadAllFrames,
                                    bool bEnableDpiScale,
                                    uint32_t nImageDpiScale,

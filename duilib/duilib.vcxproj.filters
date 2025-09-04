@@ -378,9 +378,6 @@
     <ClCompile Include="Image\ImageAttribute.cpp">
       <Filter>Image</Filter>
     </ClCompile>
-    <ClCompile Include="Image\ImageLoadAttribute.cpp">
-      <Filter>Image</Filter>
-    </ClCompile>
     <ClCompile Include="Image\StateImageMap.cpp">
       <Filter>Image</Filter>
     </ClCompile>
@@ -710,6 +707,45 @@
     </ClCompile>
     <ClCompile Include="Core\ControlDropTargetUtils.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoderFactory.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_Icon.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_ICO.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_GIF.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_GIF.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageLoadParam.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageUtil.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_SVG.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_PNG.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_PNG.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_Svg.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_Animation.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_Bitmap.cpp">
+      <Filter>Image</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1115,9 +1151,6 @@
     <ClInclude Include="Image\ImageAttribute.h">
       <Filter>Image</Filter>
     </ClInclude>
-    <ClInclude Include="Image\ImageLoadAttribute.h">
-      <Filter>Image</Filter>
-    </ClInclude>
     <ClInclude Include="Image\StateImageMap.h">
       <Filter>Image</Filter>
     </ClInclude>
@@ -1495,6 +1528,48 @@
     </ClInclude>
     <ClInclude Include="Core\ControlDropTargetUtils.h">
       <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\IImageDecoder.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoderFactory.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_Icon.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_ICO.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_GIF.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_GIF.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageLoadParam.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageUtil.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_SVG.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_PNG.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_PNG.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_Svg.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_Animation.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_Bitmap.h">
+      <Filter>Image</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -173,26 +173,24 @@ APNGDATA* loadPng(IPngReader* pSrc, bool bLoadAllFrames, unsigned int& nFrameCou
             //读帧信息头
             png_read_frame_head(png_ptr_read, info_ptr_read);
 
-            //计算出帧延时信息
+            //计算出帧延时信息(APNG 规范中，delay_num/delay_den的单位是秒)
+            // 按照APNG规范计算帧延时（单位：毫秒）
             if (png_get_valid(png_ptr_read, info_ptr_read, PNG_INFO_fcTL))
             {
-                png_uint_16 delay_num = info_ptr_read->next_frame_delay_num,
-                    delay_den = info_ptr_read->next_frame_delay_den;
+                png_uint_16 delay_num = info_ptr_read->next_frame_delay_num;
+                png_uint_16 delay_den = info_ptr_read->next_frame_delay_den;
 
-                if (delay_den == 0 || delay_den == 100)
-                    apng->pDelay[iFrame] = delay_num;
-                else
-                    if (delay_den == 10)
-                        apng->pDelay[iFrame] = delay_num * 10;
-                    else
-                        if (delay_den == 1000)
-                            apng->pDelay[iFrame] = delay_num / 10;
-                        else
-                            apng->pDelay[iFrame] = delay_num * 100 / delay_den;
+                // 处理denominator为0的情况（规范要求视为100）
+                if (delay_den == 0) {
+                    delay_den = 100;
+                }
+
+                // 按照规范计算：(num/den)秒 转换为 毫秒
+                apng->pDelay[iFrame] = (png_uint_32)delay_num * 1000 / delay_den;
             }
             else
             {
-                apng->pDelay[iFrame] = 0;
+                apng->pDelay[iFrame] = 100;
             }
             //读取PNG帧到dataFrame中，不含偏移数据
             png_read_image(png_ptr_read, rowPointers);

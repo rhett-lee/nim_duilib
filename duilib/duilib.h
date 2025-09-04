@@ -16,6 +16,7 @@
 #include "Utils/FileTime.h"
 
 #include "Image/Image.h"
+#include "Image/ImageDecoderFactory.h"
 #include "Animation/AnimationPlayer.h"
 #include "Animation/AnimationManager.h"
 

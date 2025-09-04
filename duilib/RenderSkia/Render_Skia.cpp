@@ -148,7 +148,7 @@ IBitmap* Render_Skia::MakeImageSnapshot()
         return nullptr;
     }
     Bitmap_Skia* pBitmap = new Bitmap_Skia;
-    if (!pBitmap->Init(nWidth, nHeight, true, pPixelBits)) {
+    if (!pBitmap->Init(nWidth, nHeight, pPixelBits)) {
         delete pBitmap;
         pBitmap = nullptr;
     }

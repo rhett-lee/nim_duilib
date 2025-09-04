@@ -8,6 +8,13 @@
 //渲染引擎
 #include "duilib/RenderSkia/RenderFactory_Skia.h"
 
+//图片解码接口
+#include "duilib/Image/ImageDecoder_ICO.h"
+#include "duilib/Image/ImageDecoder_Icon.h"
+#include "duilib/Image/ImageDecoder_GIF.h"
+#include "duilib/Image/ImageDecoder_PNG.h"
+#include "duilib/Image/ImageDecoder_SVG.h"
+
 #if defined (DUILIB_BUILD_FOR_WIN)
     //ToolTip/日期时间等标准控件，需要初始化commctrl
     #include <commctrl.h>
@@ -90,6 +97,13 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     //初始化DPI感知模式，//初始化DPI值
     DpiManager& dpiManager = Dpi();
     dpiManager.InitDpiAwareness(dpiInitParam);
+
+    //初始化图片格式解码器
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_SVG>());
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_ICO>());    
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_GIF>());
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_PNG>());
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_Icon>());
 
     //初始化定时器
     m_timerManager.Initialize(m_platformData);
@@ -579,6 +593,11 @@ FontManager& GlobalManager::Font()
 ImageManager& GlobalManager::Image()
 {
     return m_imageManager;
+}
+
+ImageDecoderFactory& GlobalManager::ImageDecoders()
+{
+    return m_imageDecoderFactory;
 }
 
 IconManager& GlobalManager::Icon()

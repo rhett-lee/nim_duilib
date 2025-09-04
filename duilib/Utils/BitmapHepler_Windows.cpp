@@ -40,7 +40,7 @@ namespace BitmapHelper {
         //复制位图到内存DC
         ::BitBlt(hMemDC, 0, 0, srcDcWidth, srcDcHeight, hSrcDc, 0, 0, SRCCOPY);
 
-        bitmap->Init(srcDcWidth, srcDcHeight, true, pBits);
+        bitmap->Init(srcDcWidth, srcDcHeight, pBits);
 
         // 释放资源
         ::DeleteDC(hMemDC);

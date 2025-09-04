@@ -1,4 +1,5 @@
 #include "Image.h"
+#include "duilib/Image/ImageUtil.h"
 #include "duilib/Image/ImageGif.h"
 
 namespace ui 
@@ -75,6 +76,7 @@ void Image::SetImagePaintEnabled(bool bEnable)
 void Image::SetImagePlayCount(int32_t nPlayCount)
 {
     m_imageAttribute.m_nPlayCount = nPlayCount;
+    m_imageAttribute.m_bHasPlayCount = true;
 }
 
 void Image::SetImageFade(uint8_t nFade)
@@ -87,13 +89,26 @@ const ImageAttribute& Image::GetImageAttribute() const
     return m_imageAttribute;
 }
 
-ImageLoadAttribute Image::GetImageLoadAttribute() const
+ImageLoadParam Image::GetImageLoadParam() const
 {
-    return ImageLoadAttribute(m_imageAttribute.m_srcWidth.c_str(),
-                              m_imageAttribute.m_srcHeight.c_str(),
-                              m_imageAttribute.m_srcDpiScale,
-                              m_imageAttribute.m_bHasSrcDpiScale,
-                              m_imageAttribute.m_iconSize);
+    ImageLoadParam::DpiScaleOption nDpiScaleOption = ImageLoadParam::DpiScaleOption::kDefault;
+    if (m_imageAttribute.m_bHasSrcDpiScale) {
+        if (m_imageAttribute.m_srcDpiScale) {
+            nDpiScaleOption = ImageLoadParam::DpiScaleOption::kOn;
+        }
+        else {
+            nDpiScaleOption = ImageLoadParam::DpiScaleOption::kOff;
+        }
+    }
+    uint32_t nLoadDpiScale = 100;//此时未知，不需要设置
+    uint32_t nIconSize = m_imageAttribute.m_iconSize;
+    float fPagMaxFrameRate = m_imageAttribute.m_fPagMaxFrameRate;
+    return ImageLoadParam(m_imageAttribute.m_srcWidth.c_str(),
+                          m_imageAttribute.m_srcHeight.c_str(),
+                          nDpiScaleOption,
+                          nLoadDpiScale,
+                          nIconSize,
+                          fPagMaxFrameRate);
 }
 
 const std::shared_ptr<ImageInfo>& Image::GetImageCache() const
@@ -112,12 +127,12 @@ void Image::ClearImageCache()
     m_imageCache.reset();
 }
 
-void Image::SetCurrentFrame(uint32_t nCurrentFrame)
+void Image::SetCurrentFrameIndex(uint32_t nCurrentFrame)
 {
     m_nCurrentFrame = nCurrentFrame;
 }
 
-uint32_t Image::GetCurrentFrame() const
+uint32_t Image::GetCurrentFrameIndex() const
 {
     return m_nCurrentFrame;
 }
@@ -130,6 +145,14 @@ uint32_t Image::GetFrameCount() const
     return m_imageCache->GetFrameCount();
 }
 
+int32_t Image::GetLoopCount() const
+{
+    if (!m_imageCache) {
+        return -1;
+    }
+    return m_imageCache->GetLoopCount();
+}
+
 bool Image::IsMultiFrameImage() const
 {
     if (!m_imageCache) {
@@ -138,21 +161,86 @@ bool Image::IsMultiFrameImage() const
     return m_imageCache->IsMultiFrameImage();
 }
 
-IBitmap* Image::GetCurrentBitmap() const
+std::shared_ptr<IAnimationImage::AnimationFrame> Image::GetCurrentFrame() const
 {
-    if (!m_imageCache) {
+    ASSERT((m_imageCache != nullptr) && m_imageCache->IsMultiFrameImage());
+    if (!m_imageCache || !m_imageCache->IsMultiFrameImage()) {
         return nullptr;
     }
+    //多帧图片
     if (m_nCurrentFrame < m_imageCache->GetFrameCount()) {
-        return m_imageCache->GetBitmap(m_nCurrentFrame);
+        return m_imageCache->GetFrame(m_nCurrentFrame);
     }
     else {
         uint32_t nCurrentFrame = 0;
         if (m_imageCache->GetFrameCount() > 0) {
             nCurrentFrame = m_nCurrentFrame % m_imageCache->GetFrameCount();
         }
-        return m_imageCache->GetBitmap(nCurrentFrame);
-    }    
+        return m_imageCache->GetFrame(nCurrentFrame);
+    }
+}
+
+std::shared_ptr<IBitmap> Image::GetCurrentBitmap() const
+{
+    ASSERT((m_imageCache != nullptr) && !m_imageCache->IsMultiFrameImage());
+    if (!m_imageCache || m_imageCache->IsMultiFrameImage()) {
+        return nullptr;
+    }
+    //单帧图片
+    return m_imageCache->GetBitmap();
+}
+
+std::shared_ptr<IBitmap> Image::GetCurrentBitmap(const UiRect& rcDest, UiRect& rcSource) const
+{
+    ASSERT((m_imageCache != nullptr) && !m_imageCache->IsMultiFrameImage());
+    if (!m_imageCache || m_imageCache->IsMultiFrameImage()) {
+        return nullptr;
+    }
+
+    if (!m_imageCache->IsSvgImage()) {
+        //不是SVG图片，不支持矢量缩放
+        return GetCurrentBitmap();
+    }
+
+    if (rcDest.IsEmpty()   ||
+        rcSource.IsEmpty() ||
+        (rcDest.Width() == rcSource.Width()) ||
+        (rcDest.Height() == rcSource.Height())) {
+        //不满足条件
+        return GetCurrentBitmap();
+    }
+    const bool bFullImage = (rcSource.left == 0) &&
+                            (rcSource.top == 0)  &&
+                            (rcSource.right == m_imageCache->GetWidth()) &&
+                            (rcSource.bottom == m_imageCache->GetHeight());
+
+    float fSizeScaleX = static_cast<float>(rcDest.Width()) / rcSource.Width();
+    float fSizeScaleY = static_cast<float>(rcDest.Height()) / rcSource.Height();
+    float fImageSizeScale = fSizeScaleX < fSizeScaleY ? fSizeScaleX : fSizeScaleY;
+
+    std::shared_ptr<IBitmap> pBitmap = m_imageCache->GetSvgBitmap(fImageSizeScale);
+    if (pBitmap == nullptr) {
+        pBitmap = GetCurrentBitmap();
+    }
+    else if (bFullImage) {
+        //完整图片
+        rcSource.right = pBitmap->GetWidth();
+        rcSource.bottom = pBitmap->GetHeight();
+    }
+    else if (ImageUtil::NeedResizeImage(fImageSizeScale)) {
+        //缩放后，需要对rcSource修改
+        rcSource.left = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.left, fImageSizeScale);
+        rcSource.top = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.top, fImageSizeScale);
+        rcSource.right = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.right, fImageSizeScale);
+        rcSource.bottom = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)rcSource.bottom, fImageSizeScale);
+        ASSERT(rcSource.right > rcSource.left);
+        ASSERT(rcSource.bottom > rcSource.top);
+        ASSERT(rcSource.left >= 0);
+        ASSERT(rcSource.top >= 0);
+        ASSERT(rcSource.right <= (int32_t)pBitmap->GetWidth());
+        ASSERT(rcSource.bottom <= (int32_t)pBitmap->GetHeight());
+    }
+    return pBitmap;
 }
 
 void Image::SetControl(Control* pControl)
@@ -185,7 +273,7 @@ bool Image::CheckStartGifPlay(const UiRect& rcImageRect)
 void Image::CheckStopGifPlay()
 {
     if (m_pImageGif != nullptr) {
-        m_pImageGif->StopGifPlay();        
+        m_pImageGif->StopGifPlay();
     }
 }
 

@@ -30,6 +30,16 @@ void ImageGif::SetControl(Control* pControl)
 void ImageGif::SetImage(Image* pImage)
 {
     m_pImage = pImage;
+    if (m_pImage != nullptr) {
+        ASSERT(m_pImage->IsMultiFrameImage());
+        //初始化播放循环次数        
+        if (m_pImage->GetImageAttribute().m_bHasPlayCount) {
+            m_nMaxPlayCount = m_pImage->GetImageAttribute().m_nPlayCount;
+        }
+        else {
+            m_nMaxPlayCount = m_pImage->GetLoopCount();
+        }
+    }
 }
 
 void ImageGif::SetImageRect(const UiRect& rcImageRect)
@@ -48,7 +58,8 @@ bool ImageGif::StartGifPlay()
         }
         else {
             int32_t nPlayCount = m_pImage->GetImageAttribute().m_nPlayCount;
-            return StartGifPlay(kGifFrameCurrent, nPlayCount);
+            bool bHasPlayCount = m_pImage->GetImageAttribute().m_bHasPlayCount;
+            return StartGifPlay(kGifFrameCurrent, nPlayCount, bHasPlayCount);
         }
     }
     else {
@@ -58,23 +69,32 @@ bool ImageGif::StartGifPlay()
     }
 }
 
-bool ImageGif::StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount)
+bool ImageGif::StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount, bool bHasPlayCount)
 {
     m_gifWeakFlag.Cancel();
-    if ((nPlayCount == 0) || !IsMultiFrameImage()) {
+    if (!IsMultiFrameImage()) {
         m_bPlayingGif = false;
         return false;
     }
-    m_nMaxPlayCount = nPlayCount;
-    uint32_t nFrameIndex = GetGifFrameIndex(nStartFrame);
-    m_pImage->SetCurrentFrame(nFrameIndex);
-    nFrameIndex = m_pImage->GetCurrentFrame();
-    int32_t nTimerInterval = m_pImage->GetImageCache()->GetFrameInterval(nFrameIndex);
-    if (nTimerInterval <= 0) {
-        m_bPlayingGif = false;
-        return false;
+    if (bHasPlayCount) {
+        if (nPlayCount <= 0) {
+            nPlayCount = -1;//无限循环播放
+        }
+        m_nMaxPlayCount = nPlayCount;
     }
 
+    //确定从哪一帧开始播放
+    uint32_t nFrameIndex = GetGifFrameIndex(nStartFrame);
+    m_pImage->SetCurrentFrameIndex(nFrameIndex);
+    nFrameIndex = m_pImage->GetCurrentFrameIndex();
+
+    std::shared_ptr<IAnimationImage::AnimationFrame> pAnimationFrame = m_pImage->GetImageCache()->GetFrame(nFrameIndex);
+    ASSERT(pAnimationFrame != nullptr);
+    if (pAnimationFrame == nullptr) {
+        return false;
+    }
+    int32_t nTimerInterval = pAnimationFrame->GetDelayMs();
+    ASSERT(nTimerInterval > 0);
     m_nCycledCount = 0;
     m_bPlayingGif = true;
     RedrawImage();
@@ -85,17 +105,48 @@ bool ImageGif::StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount)
     return bRet;
 }
 
-bool ImageGif::PlayGif()
+void ImageGif::PlayGif()
 {
     //定时器触发，播放下一帧
     if (!IsPlayingGif() || !IsMultiFrameImage()) {
         m_gifWeakFlag.Cancel();
         m_bPlayingGif = false;
-        return false;
+        return;
     }
 
-    uint32_t nFrameIndex = m_pImage->GetCurrentFrame();
-    int32_t nPreTimerInterval = m_pImage->GetImageCache()->GetFrameInterval(nFrameIndex);
+    uint32_t nFrameIndex = m_pImage->GetCurrentFrameIndex();
+    std::shared_ptr<IAnimationImage::AnimationFrame> pAnimationFrame = m_pImage->GetImageCache()->GetFrame(nFrameIndex);
+    ASSERT(pAnimationFrame != nullptr);
+    if (pAnimationFrame == nullptr) {
+        StopGifPlay(true, kGifFrameCurrent);
+        return;
+    }
+
+    //检查当前帧和下一帧图片是否完成解码
+    if (pAnimationFrame->m_bDataPending) {
+        //该帧图片数据尚未完成解码
+        return;
+    }
+    else {
+        uint32_t nNextFrameIndex = nFrameIndex + 1;
+        if (nNextFrameIndex >= m_pImage->GetImageCache()->GetFrameCount()) {
+            nNextFrameIndex = 0;
+        }
+        std::shared_ptr<IAnimationImage::AnimationFrame> pNextAnimationFrame = m_pImage->GetImageCache()->GetFrame(nNextFrameIndex);
+        ASSERT(pAnimationFrame != nullptr);
+        if (pNextAnimationFrame == nullptr) {
+            StopGifPlay(true, kGifFrameCurrent);
+            return;
+        }
+        if (pNextAnimationFrame->m_bDataPending) {
+            //下一帧图片数据尚未完成解码
+            return;
+        }
+    }
+
+    //播放下一帧
+    int32_t nPreTimerInterval = pAnimationFrame->GetDelayMs();
+    ASSERT(nPreTimerInterval > 0);
     nFrameIndex++;
     if (nFrameIndex >= m_pImage->GetImageCache()->GetFrameCount()) {
         nFrameIndex = 0;
@@ -103,15 +154,17 @@ bool ImageGif::PlayGif()
         if ((m_nMaxPlayCount > 0) && (m_nCycledCount >= m_nMaxPlayCount)) {
             //达到最大播放次数，停止播放
             StopGifPlay(true, kGifFrameLast);
-            return false;
+            return;
         }
     }
-    int32_t nNowTimerInterval = m_pImage->GetImageCache()->GetFrameInterval(nFrameIndex);
-    if (nNowTimerInterval <= 0) {
-        //播放间隔无效，停止播放
+    pAnimationFrame = m_pImage->GetImageCache()->GetFrame(nFrameIndex);
+    ASSERT(pAnimationFrame != nullptr);
+    if (pAnimationFrame == nullptr) {
         StopGifPlay(true, kGifFrameCurrent);
-        return false;
+        return;
     }
+    int32_t nNowTimerInterval = pAnimationFrame->GetDelayMs();
+    ASSERT(nNowTimerInterval > 0);
     bool bRet = true;
     if (nPreTimerInterval != nNowTimerInterval) {
         m_gifWeakFlag.Cancel();
@@ -121,14 +174,13 @@ bool ImageGif::PlayGif()
                                                           nNowTimerInterval) != 0;
     }
     if (bRet) {
-        m_pImage->SetCurrentFrame(nFrameIndex);
+        m_pImage->SetCurrentFrameIndex(nFrameIndex);
         RedrawImage();
     }
     else {
         //启动定时器失败
         StopGifPlay(true, kGifFrameCurrent);
-    }    
-    return bRet;
+    }
 }
 
 void ImageGif::StopGifPlay()
@@ -143,7 +195,7 @@ void ImageGif::StopGifPlay(bool bTriggerEvent, GifFrameType nStopFrame)
     m_gifWeakFlag.Cancel();
     if (IsMultiFrameImage()) {        
         uint32_t index = GetGifFrameIndex(nStopFrame);
-        m_pImage->SetCurrentFrame(index);
+        m_pImage->SetCurrentFrameIndex(index);
         RedrawImage();
     }
     //标记为手动停止，不自动播放动画
@@ -177,7 +229,7 @@ uint32_t ImageGif::GetGifFrameIndex(GifFrameType frame) const
     switch (frame)
     {
     case kGifFrameCurrent:
-        ret = m_pImage->GetCurrentFrame();
+        ret = m_pImage->GetCurrentFrameIndex();
         break;
     case kGifFrameFirst:
         ret = 0;

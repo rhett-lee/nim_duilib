@@ -5,6 +5,23 @@
     #include "resource.h"
 #endif
 
+WorkerThread::WorkerThread()
+    : FrameworkThread(_T("WorkerThread"), ui::kThreadWorker)
+{
+}
+
+WorkerThread::~WorkerThread()
+{
+}
+
+void WorkerThread::OnInit()
+{
+}
+
+void WorkerThread::OnCleanup()
+{
+}
+
 MainThread::MainThread() :
     FrameworkThread(_T("MainThread"), ui::kThreadUI)
 {
@@ -16,6 +33,10 @@ MainThread::~MainThread()
 
 void MainThread::OnInit()
 {
+    //启动工作线程
+    m_workerThread.reset(new WorkerThread);
+    m_workerThread->Start();
+
     //初始化全局资源
     constexpr ui::ResourceType resType = ui::ResourceType::kLocalFiles;
     if (resType == ui::ResourceType::kLocalFiles) {
@@ -59,5 +80,9 @@ void MainThread::OnInit()
 
 void MainThread::OnCleanup()
 {
+    if (m_workerThread != nullptr) {
+        m_workerThread->Stop();
+        m_workerThread.reset(nullptr);
+    }
     ui::GlobalManager::Instance().Shutdown();
 }

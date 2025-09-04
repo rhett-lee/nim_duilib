@@ -13,6 +13,7 @@
 #include "duilib/Core/ResourceParam.h"
 #include "duilib/Core/CursorManager.h"
 #include "duilib/Core/IconManager.h"
+#include "duilib/Image/ImageDecoderFactory.h"
 
 #include <string>
 #include <vector>
@@ -187,6 +188,10 @@ public:
     */
     ImageManager& Image();
 
+    /** 图片格式解码器
+    */
+    ImageDecoderFactory& ImageDecoders();
+
     /** 获取ICON资源管理器
     */
     IconManager& Icon();
@@ -351,6 +356,10 @@ private:
     /** 图片管理器
     */
     ImageManager m_imageManager;
+
+    /** 图片格式解码器
+    */
+    ImageDecoderFactory m_imageDecoderFactory;
 
     /** ZIP压缩包管理器
     */

@@ -62,14 +62,8 @@ void ControlLoading::PaintLoading(IRender* pRender)
     if (!spImageInfo) {
         return;
     }
-
-    IBitmap* pBitmap = spImageInfo->GetBitmap(0);
-    ASSERT(pBitmap != nullptr);
-    if (pBitmap == nullptr) {
-        return;
-    }
-    int32_t imageWidth = pBitmap->GetWidth();
-    int32_t imageHeight = pBitmap->GetHeight();
+    int32_t imageWidth = spImageInfo->GetWidth();
+    int32_t imageHeight = spImageInfo->GetHeight();
 
     //居中
     UiRect rect = pControl->GetRect();

@@ -51,7 +51,9 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
     m_bWindowShadowMode = r.m_bWindowShadowMode;
     m_nTiledMargin = r.m_nTiledMargin;
     m_nPlayCount = r.m_nPlayCount;
+    m_bHasPlayCount = r.m_bHasPlayCount;
     m_iconSize = r.m_iconSize;
+    m_fPagMaxFrameRate = r.m_fPagMaxFrameRate;
     m_bPaintEnabled = r.m_bPaintEnabled;
     m_bAdaptiveDestRect = r.m_bAdaptiveDestRect;
 
@@ -134,7 +136,9 @@ void ImageAttribute::Init()
     m_bWindowShadowMode = false;
     m_nTiledMargin = 0;
     m_nPlayCount = -1;
+    m_bHasPlayCount = false;
     m_iconSize = 0;
+    m_fPagMaxFrameRate = 30.0f;
     m_bPaintEnabled = true;
     m_bAdaptiveDestRect = false;
 
@@ -316,12 +320,17 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             //指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)
             imageAttribute.m_iconSize = (uint32_t)StringUtil::StringToInt32(value);
         }
+        else if (name == _T("pag_max_frame_rate")) {
+            //如果是PAG文件，用于指定动画的帧率，默认为30.0f
+            imageAttribute.m_fPagMaxFrameRate = (float)StringUtil::StringToInt32(value);
+        }
         else if ((name == _T("play_count")) || (name == _T("playcount"))) {
             //如果是GIF、APNG、WEBP等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
             imageAttribute.m_nPlayCount = StringUtil::StringToInt32(value);
             if (imageAttribute.m_nPlayCount < 0) {
                 imageAttribute.m_nPlayCount = -1;
             }
+            imageAttribute.m_bHasPlayCount = true;
         }
         else if (name == _T("adaptive_dest_rect")) {
             //自动适应目标区域（等比例缩放图片）
@@ -453,10 +462,10 @@ void ImageAttribute::SetImagePadding(const UiPadding& newPadding, bool bNeedDpiS
     if (m_rcPadding == nullptr) {
         m_rcPadding = new UiPadding16;
     }
-    m_rcPadding->left = TruncateToUInt16(newPadding.left);
-    m_rcPadding->top = TruncateToUInt16(newPadding.top);
-    m_rcPadding->right = TruncateToUInt16(newPadding.right);
-    m_rcPadding->bottom = TruncateToUInt16(newPadding.bottom);
+    m_rcPadding->left = TruncateToUInt16(rcPaddingDpi.left);
+    m_rcPadding->top = TruncateToUInt16(rcPaddingDpi.top);
+    m_rcPadding->right = TruncateToUInt16(rcPaddingDpi.right);
+    m_rcPadding->bottom = TruncateToUInt16(rcPaddingDpi.bottom);
     m_rcPaddingScale = TruncateToUInt16(dpi.GetScale());
 }
 

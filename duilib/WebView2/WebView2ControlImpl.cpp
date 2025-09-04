@@ -13,7 +13,7 @@
 #include "duilib/Utils/FilePath.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Image/ImageDecoder.h"
-#include "duilib/Image/ImageLoadAttribute.h"
+#include "duilib/Image/ImageLoadParam.h"
 #include "duilib/Image/ImageInfo.h"
 
 #include <shlwapi.h>
@@ -1387,18 +1387,16 @@ void WebView2Control::Impl::SetFavIconChangedCallback(FavIconChangedCallback cal
     }
 }
 
-static bool ConvertFavIconImageData(std::vector<uint8_t>& pngImageData, uint32_t nWindowDpi, const DString& fileName,
+static bool ConvertFavIconImageData(std::vector<uint8_t>& imageFileData, uint32_t nWindowDpi, const DString& fileName,
                                     int32_t& nWidth, int32_t& nHeight, std::vector<uint8_t>& imageData)
 {
-    ui::ImageLoadAttribute imageLoadAttribute(_T(""), _T(""), false, false, 32);
-    imageLoadAttribute.SetImageFullPath(fileName);
-    uint32_t nFrameCount = 0;
-    ui::ImageDecoder decoder;
-    auto imageInfo = decoder.LoadImageData(pngImageData, imageLoadAttribute, true, 100, nWindowDpi, true, nFrameCount);
-    if (imageInfo == nullptr) {
-        return false;
+    ImageDecoderFactory& imageDecoders = GlobalManager::Instance().ImageDecoders();
+    float fImageSizeScale = 1.0f;
+    if (nWindowDpi > 0) {
+        //按DPI缩放图片尺寸
+        fImageSizeScale = static_cast<float>(nWindowDpi) / 100.0f;
     }
-    ui::IBitmap* pBitmap = imageInfo->GetBitmap(0);
+    std::shared_ptr<IBitmap> pBitmap = imageDecoders.DecodeImageData(fileName, imageFileData, fImageSizeScale);
     if (pBitmap == nullptr) {
         return false;
     }
