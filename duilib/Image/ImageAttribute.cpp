@@ -325,7 +325,7 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             imageAttribute.m_fPagMaxFrameRate = (float)StringUtil::StringToInt32(value);
         }
         else if ((name == _T("play_count")) || (name == _T("playcount"))) {
-            //如果是GIF、APNG、WEBP等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
+            //如果是动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
             imageAttribute.m_nPlayCount = StringUtil::StringToInt32(value);
             if (imageAttribute.m_nPlayCount < 0) {
                 imageAttribute.m_nPlayCount = -1;

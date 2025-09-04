@@ -529,7 +529,7 @@ void ControlForm::OnResourceFileLoaded(const DString& xml)
     }
     //启动加载动画
     //pRichEdit->StartLoading();
-    //pRichEdit->StartGifPlay();
+    //pRichEdit->StartImageAnimation();
 }
 
 void ControlForm::OnProgressValueChagned(float value)

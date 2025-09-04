@@ -43,9 +43,9 @@ public:
     bool StartLoading(int32_t fStartAngle = -1);
 
     /** 关闭loading状态
-    * @param[in] frame 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifFrameType 枚举
+    * @param[in] frame 播放完成停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举
     */
-    void StopLoading(GifFrameType frame = kGifFrameFirst);
+    void StopLoading(AnimationImagePos frame = AnimationImagePos::kFrameFirst);
 
     /** 是否正在loading
     * @return 在loading返回true, 反之返回false

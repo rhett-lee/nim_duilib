@@ -1,21 +1,21 @@
 #include "Image.h"
 #include "duilib/Image/ImageUtil.h"
-#include "duilib/Image/ImageGif.h"
+#include "duilib/Image/ImagePlayer.h"
 
 namespace ui 
 {
 Image::Image() :
     m_pControl(nullptr),
-    m_pImageGif(nullptr),
+    m_pImagePlayer(nullptr),
     m_nCurrentFrame(0)
 {
 }
 
 Image::~Image()
 {
-    if (m_pImageGif != nullptr) {
-        m_pImageGif->StopGifPlay();
-        delete m_pImageGif;
+    if (m_pImagePlayer != nullptr) {
+        m_pImagePlayer->StopImageAnimation();
+        delete m_pImagePlayer;
     }
 }
 
@@ -247,68 +247,68 @@ void Image::SetControl(Control* pControl)
 {
     if (m_pControl != pControl) {
         m_pControl = pControl;
-        if (m_pImageGif != nullptr) {
-            m_pImageGif->SetControl(pControl);
+        if (m_pImagePlayer != nullptr) {
+            m_pImagePlayer->SetControl(pControl);
         }
     }
 }
 
-bool Image::CheckStartGifPlay(const UiRect& rcImageRect)
+bool Image::CheckStartImageAnimation(const UiRect& rcImageRect)
 {
     if (!IsMultiFrameImage() || (m_pControl == nullptr)) {
         return false;
     }
-    if (m_pImageGif == nullptr) {
-        m_pImageGif = new ImageGif;
-        m_pImageGif->SetImage(this);
-        m_pImageGif->SetControl(m_pControl);
+    if (m_pImagePlayer == nullptr) {
+        m_pImagePlayer = new ImagePlayer;
+        m_pImagePlayer->SetImage(this);
+        m_pImagePlayer->SetControl(m_pControl);
     }
-    m_pImageGif->SetImageRect(rcImageRect);
-    if (m_pImageGif->IsPlayingGif()) {
+    m_pImagePlayer->SetImageRect(rcImageRect);
+    if (m_pImagePlayer->IsAnimationPlaying()) {
         return true;
     }
-    return m_pImageGif->StartGifPlay();
+    return m_pImagePlayer->StartImageAnimation();
 }
 
-void Image::CheckStopGifPlay()
+void Image::CheckStopImageAnimation()
 {
-    if (m_pImageGif != nullptr) {
-        m_pImageGif->StopGifPlay();
+    if (m_pImagePlayer != nullptr) {
+        m_pImagePlayer->StopImageAnimation();
     }
 }
 
-bool Image::StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount)
+bool Image::StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPlayCount)
 {
     if (!IsMultiFrameImage() || (m_pControl == nullptr)) {
         return false;
     }
-    if (m_pImageGif == nullptr) {
-        m_pImageGif = new ImageGif;
-        m_pImageGif->SetImage(this);
-        m_pImageGif->SetControl(m_pControl);
+    if (m_pImagePlayer == nullptr) {
+        m_pImagePlayer = new ImagePlayer;
+        m_pImagePlayer->SetImage(this);
+        m_pImagePlayer->SetControl(m_pControl);
     }
-    if (m_pImageGif->IsPlayingGif()) {
-        m_pImageGif->StopGifPlay();
+    if (m_pImagePlayer->IsAnimationPlaying()) {
+        m_pImagePlayer->StopImageAnimation();
     }
-    m_pImageGif->SetImageRect(UiRect());
-    return m_pImageGif->StartGifPlay(nStartFrame, nPlayCount);
+    m_pImagePlayer->SetImageRect(UiRect());
+    return m_pImagePlayer->StartImageAnimation(nStartFrame, nPlayCount);
 }
 
-void Image::StopGifPlay(bool bTriggerEvent, GifFrameType nStopFrame)
+void Image::StopImageAnimation(bool bTriggerEvent, AnimationImagePos nStopFrame)
 {
-    if (m_pImageGif != nullptr) {
-        m_pImageGif->StopGifPlay(bTriggerEvent, nStopFrame);
+    if (m_pImagePlayer != nullptr) {
+        m_pImagePlayer->StopImageAnimation(bTriggerEvent, nStopFrame);
     }
 }
 
-void Image::AttachGifPlayStop(const EventCallback& callback)
+void Image::AttachImageAnimationStop(const EventCallback& callback)
 {
-    if (m_pImageGif == nullptr) {
-        m_pImageGif = new ImageGif;
-        m_pImageGif->SetImage(this);
-        m_pImageGif->SetControl(m_pControl);
+    if (m_pImagePlayer == nullptr) {
+        m_pImagePlayer = new ImagePlayer;
+        m_pImagePlayer->SetImage(this);
+        m_pImagePlayer->SetControl(m_pControl);
     }
-    m_pImageGif->AttachGifPlayStop(callback);
+    m_pImagePlayer->AttachImageAnimationStop(callback);
 }
 
 }

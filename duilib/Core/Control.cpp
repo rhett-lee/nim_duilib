@@ -462,11 +462,11 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     }
     else if (strName == _T("start_gif_play")) {
         int32_t nPlayCount = StringUtil::StringToInt32(strValue);
-        StartGifPlay(kGifFrameCurrent, nPlayCount);
+        StartImageAnimation(AnimationImagePos::kFrameCurrent, nPlayCount);
     }
     else if (strName == _T("stop_gif_play")) {
-        GifFrameType nStopFrame = (GifFrameType)StringUtil::StringToInt32(strValue);
-        StopGifPlay(false, nStopFrame);
+        AnimationImagePos nStopFrame = (AnimationImagePos)StringUtil::StringToInt32(strValue);
+        StopImageAnimation(false, nStopFrame);
     }
     else if (strName == _T("enable_drag_drop")) {
         //是否允许拖放操作
@@ -795,7 +795,7 @@ std::string Control::GetUTF8BkImage() const
 
 void Control::SetBkImage(const DString& strImage)
 {
-    CheckStopGifPlay();
+    CheckStopImageAnimation();
     if (!strImage.empty()) {
         if (m_pBkImage == nullptr) {
             m_pBkImage = std::make_unique<Image>();
@@ -844,7 +844,7 @@ void Control::StartLoading(int32_t fStartAngle)
     }
 }
 
-void Control::StopLoading(GifFrameType frame)
+void Control::StopLoading(AnimationImagePos frame)
 {
     if (m_pLoading != nullptr) {
         m_pLoading->StopLoading(frame);
@@ -1513,7 +1513,7 @@ void Control::SetVisible(bool bVisible)
     }
 
     if (!IsVisible()) {
-        CheckStopGifPlay();
+        CheckStopImageAnimation();
     }
 
     SendEvent(kEventVisibleChange);
@@ -1537,7 +1537,7 @@ void Control::SetEnabled(bool bEnabled)
     }
 
     if (!IsEnabled()) {
-        CheckStopGifPlay();
+        CheckStopImageAnimation();
     }
     if (bChanged) {
         Invalidate();
@@ -2578,7 +2578,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
     }
     //按需启动动画
     if (duiImage.IsMultiFrameImage()) {
-        duiImage.CheckStartGifPlay(rcDest);
+        duiImage.CheckStartImageAnimation(rcDest);
     }
     return bPainted;
 }
@@ -3396,17 +3396,17 @@ void Control::SetRenderOffsetY(int64_t renderOffsetY)
     }
 }
 
-void Control::CheckStopGifPlay()
+void Control::CheckStopImageAnimation()
 {
     if (m_pBkImage != nullptr) {
-        m_pBkImage->CheckStopGifPlay();
+        m_pBkImage->CheckStopImageAnimation();
     }
     if (m_pImageMap != nullptr) {
-        m_pImageMap->StopGifPlay();
+        m_pImageMap->StopImageAnimation();
     }
 }
 
-bool Control::StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount)
+bool Control::StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPlayCount)
 {
     if (m_pBkImage == nullptr) {
         return false;
@@ -3414,23 +3414,23 @@ bool Control::StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount)
     if (!LoadImageData(*m_pBkImage)) {
         return false;
     }
-    return m_pBkImage->StartGifPlay(nStartFrame, nPlayCount);
+    return m_pBkImage->StartImageAnimation(nStartFrame, nPlayCount);
 }
 
-void Control::StopGifPlay(bool bTriggerEvent, GifFrameType stopType)
+void Control::StopImageAnimation(bool bTriggerEvent, AnimationImagePos stopType)
 {
     if (m_pBkImage != nullptr) {
-        m_pBkImage->StopGifPlay(bTriggerEvent, stopType);
+        m_pBkImage->StopImageAnimation(bTriggerEvent, stopType);
     }
 }
 
-void Control::AttachGifPlayStop(const EventCallback& callback)
+void Control::AttachImageAnimationStop(const EventCallback& callback)
 {
     if (m_pBkImage == nullptr) {
         m_pBkImage = std::make_unique<Image>();
         m_pBkImage->SetControl(this);
     }
-    m_pBkImage->AttachGifPlayStop(callback);
+    m_pBkImage->AttachImageAnimationStop(callback);
 }
 
 bool Control::LoadImageData(Image& duiImage) const

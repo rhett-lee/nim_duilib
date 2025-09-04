@@ -213,12 +213,12 @@ namespace ui
         kAnimationInoutYFromBottom  = 8,    //控件的Y坐标变化动画，从下侧
     };
 
-    //GIF图片帧类型
-    enum GifFrameType: int8_t
+    //图片动画帧类型
+    enum class AnimationImagePos: int8_t
     {
-        kGifFrameFirst   = 0,   // 第一帧    
-        kGifFrameCurrent = 1,   // 当前帧        
-        kGifFrameLast    = 2    // 最后一帧
+        kFrameFirst   = 0,   // 第一帧    
+        kFrameCurrent = 1,   // 当前帧        
+        kFrameLast    = 2    // 最后一帧
     };
 
     //光标: Windows平台可参考：https://learn.microsoft.com/zh-cn/windows/win32/menurc/about-cursors

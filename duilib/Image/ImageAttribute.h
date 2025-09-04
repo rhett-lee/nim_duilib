@@ -147,7 +147,7 @@ public:
     //平铺时的边距（仅当bTiledX为true或者bTiledY为true时有效）
     int32_t m_nTiledMargin;
 
-    //如果是GIF等动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
+    //如果是动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
     int32_t m_nPlayCount;
 
     //如果是ICO文件，用于指定需要加载的ICO图片的大小

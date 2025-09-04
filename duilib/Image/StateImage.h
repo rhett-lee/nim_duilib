@@ -91,7 +91,7 @@ public:
 
     /** 停止所有图片的动画
     */
-    void StopGifPlay();
+    void StopImageAnimation();
 
 private:
     //关联的控件接口

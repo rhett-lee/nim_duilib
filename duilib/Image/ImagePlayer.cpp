@@ -1,4 +1,4 @@
-#include "ImageGif.h"
+#include "ImagePlayer.h"
 #include "duilib/Core/Control.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Image/Image.h"
@@ -7,27 +7,27 @@
 
 namespace ui 
 {
-ImageGif::ImageGif():
+ImagePlayer::ImagePlayer():
     m_pControl(nullptr),
     m_pImage(nullptr),
-    m_bPlayingGif(false),
+    m_bAnimationPlaying(false),
     m_bAutoPlay(true),
     m_nCycledCount(0),
     m_nMaxPlayCount(-1),
-    m_nVirtualEventGifStop(1)
+    m_nVirtualEventStop(1)
 {
 }
 
-ImageGif::~ImageGif()
+ImagePlayer::~ImagePlayer()
 {
 }
 
-void ImageGif::SetControl(Control* pControl)
+void ImagePlayer::SetControl(Control* pControl)
 {
     m_pControl = pControl;
 }
 
-void ImageGif::SetImage(Image* pImage)
+void ImagePlayer::SetImage(Image* pImage)
 {
     m_pImage = pImage;
     if (m_pImage != nullptr) {
@@ -42,38 +42,38 @@ void ImageGif::SetImage(Image* pImage)
     }
 }
 
-void ImageGif::SetImageRect(const UiRect& rcImageRect)
+void ImagePlayer::SetImageRect(const UiRect& rcImageRect)
 {
     m_rcImageRect = rcImageRect;
 }
 
-bool ImageGif::StartGifPlay()
+bool ImagePlayer::StartImageAnimation()
 {
     if (!m_bAutoPlay) {
         return false;
     }
     if (IsMultiFrameImage()) {
-        if (IsPlayingGif()) {
+        if (IsAnimationPlaying()) {
             return true;
         }
         else {
             int32_t nPlayCount = m_pImage->GetImageAttribute().m_nPlayCount;
             bool bHasPlayCount = m_pImage->GetImageAttribute().m_bHasPlayCount;
-            return StartGifPlay(kGifFrameCurrent, nPlayCount, bHasPlayCount);
+            return StartImageAnimation(AnimationImagePos::kFrameCurrent, nPlayCount, bHasPlayCount);
         }
     }
     else {
-        m_bPlayingGif = false;
-        m_gifWeakFlag.Cancel();
+        m_bAnimationPlaying = false;
+        m_aniWeakFlag.Cancel();
         return false;
     }
 }
 
-bool ImageGif::StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount, bool bHasPlayCount)
+bool ImagePlayer::StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPlayCount, bool bHasPlayCount)
 {
-    m_gifWeakFlag.Cancel();
+    m_aniWeakFlag.Cancel();
     if (!IsMultiFrameImage()) {
-        m_bPlayingGif = false;
+        m_bAnimationPlaying = false;
         return false;
     }
     if (bHasPlayCount) {
@@ -84,7 +84,7 @@ bool ImageGif::StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount, bool b
     }
 
     //确定从哪一帧开始播放
-    uint32_t nFrameIndex = GetGifFrameIndex(nStartFrame);
+    uint32_t nFrameIndex = GetImageFrameIndex(nStartFrame);
     m_pImage->SetCurrentFrameIndex(nFrameIndex);
     nFrameIndex = m_pImage->GetCurrentFrameIndex();
 
@@ -96,21 +96,21 @@ bool ImageGif::StartGifPlay(GifFrameType nStartFrame, int32_t nPlayCount, bool b
     int32_t nTimerInterval = pAnimationFrame->GetDelayMs();
     ASSERT(nTimerInterval > 0);
     m_nCycledCount = 0;
-    m_bPlayingGif = true;
+    m_bAnimationPlaying = true;
     RedrawImage();
-    auto gifPlayCallback = UiBind(&ImageGif::PlayGif, this);
-    bool bRet = GlobalManager::Instance().Timer().AddTimer(m_gifWeakFlag.GetWeakFlag(),
-                                                           gifPlayCallback,
+    auto animationPlayCallback = UiBind(&ImagePlayer::PlayAnimation, this);
+    bool bRet = GlobalManager::Instance().Timer().AddTimer(m_aniWeakFlag.GetWeakFlag(),
+                                                           animationPlayCallback,
                                                            nTimerInterval) != 0;
     return bRet;
 }
 
-void ImageGif::PlayGif()
+void ImagePlayer::PlayAnimation()
 {
     //定时器触发，播放下一帧
-    if (!IsPlayingGif() || !IsMultiFrameImage()) {
-        m_gifWeakFlag.Cancel();
-        m_bPlayingGif = false;
+    if (!IsAnimationPlaying() || !IsMultiFrameImage()) {
+        m_aniWeakFlag.Cancel();
+        m_bAnimationPlaying = false;
         return;
     }
 
@@ -118,7 +118,7 @@ void ImageGif::PlayGif()
     std::shared_ptr<IAnimationImage::AnimationFrame> pAnimationFrame = m_pImage->GetImageCache()->GetFrame(nFrameIndex);
     ASSERT(pAnimationFrame != nullptr);
     if (pAnimationFrame == nullptr) {
-        StopGifPlay(true, kGifFrameCurrent);
+        StopImageAnimation(true, AnimationImagePos::kFrameCurrent);
         return;
     }
 
@@ -135,7 +135,7 @@ void ImageGif::PlayGif()
         std::shared_ptr<IAnimationImage::AnimationFrame> pNextAnimationFrame = m_pImage->GetImageCache()->GetFrame(nNextFrameIndex);
         ASSERT(pAnimationFrame != nullptr);
         if (pNextAnimationFrame == nullptr) {
-            StopGifPlay(true, kGifFrameCurrent);
+            StopImageAnimation(true, AnimationImagePos::kFrameCurrent);
             return;
         }
         if (pNextAnimationFrame->m_bDataPending) {
@@ -153,24 +153,24 @@ void ImageGif::PlayGif()
         m_nCycledCount += 1;
         if ((m_nMaxPlayCount > 0) && (m_nCycledCount >= m_nMaxPlayCount)) {
             //达到最大播放次数，停止播放
-            StopGifPlay(true, kGifFrameLast);
+            StopImageAnimation(true, AnimationImagePos::kFrameLast);
             return;
         }
     }
     pAnimationFrame = m_pImage->GetImageCache()->GetFrame(nFrameIndex);
     ASSERT(pAnimationFrame != nullptr);
     if (pAnimationFrame == nullptr) {
-        StopGifPlay(true, kGifFrameCurrent);
+        StopImageAnimation(true, AnimationImagePos::kFrameCurrent);
         return;
     }
     int32_t nNowTimerInterval = pAnimationFrame->GetDelayMs();
     ASSERT(nNowTimerInterval > 0);
     bool bRet = true;
     if (nPreTimerInterval != nNowTimerInterval) {
-        m_gifWeakFlag.Cancel();
-        auto gifPlayCallback = UiBind(&ImageGif::PlayGif, this);
-        bRet = GlobalManager::Instance().Timer().AddTimer(m_gifWeakFlag.GetWeakFlag(),
-                                                          gifPlayCallback,
+        m_aniWeakFlag.Cancel();
+        auto animationPlayCallback = UiBind(&ImagePlayer::PlayAnimation, this);
+        bRet = GlobalManager::Instance().Timer().AddTimer(m_aniWeakFlag.GetWeakFlag(),
+                                                          animationPlayCallback,
                                                           nNowTimerInterval) != 0;
     }
     if (bRet) {
@@ -179,72 +179,74 @@ void ImageGif::PlayGif()
     }
     else {
         //启动定时器失败
-        StopGifPlay(true, kGifFrameCurrent);
+        StopImageAnimation(true, AnimationImagePos::kFrameCurrent);
     }
 }
 
-void ImageGif::StopGifPlay()
+void ImagePlayer::StopImageAnimation()
 {
-    m_bPlayingGif = false;
-    m_gifWeakFlag.Cancel();
+    m_bAnimationPlaying = false;
+    m_aniWeakFlag.Cancel();
 }
 
-void ImageGif::StopGifPlay(bool bTriggerEvent, GifFrameType nStopFrame)
+void ImagePlayer::StopImageAnimation(bool bTriggerEvent, AnimationImagePos nStopFrame)
 {
-    m_bPlayingGif = false;
-    m_gifWeakFlag.Cancel();
+    m_bAnimationPlaying = false;
+    m_aniWeakFlag.Cancel();
     if (IsMultiFrameImage()) {        
-        uint32_t index = GetGifFrameIndex(nStopFrame);
+        uint32_t index = GetImageFrameIndex(nStopFrame);
         m_pImage->SetCurrentFrameIndex(index);
         RedrawImage();
     }
     //标记为手动停止，不自动播放动画
     m_bAutoPlay = false;
     if (bTriggerEvent) {
-        BroadcastGifEvent(m_nVirtualEventGifStop);
+        BroadcastAnimationEvent(m_nVirtualEventStop);
     }
 }
 
-bool ImageGif::IsPlayingGif() const
+bool ImagePlayer::IsAnimationPlaying() const
 {
-    return m_bPlayingGif;
+    return m_bAnimationPlaying;
 }
 
-void ImageGif::BroadcastGifEvent(int32_t nVirtualEvent) const
+void ImagePlayer::BroadcastAnimationEvent(int32_t nVirtualEvent) const
 {
-    auto callback = m_OnGifEvent.find(nVirtualEvent);
-    if (callback != m_OnGifEvent.end()) {
+    auto callback = m_OnAnimationEvent.find(nVirtualEvent);
+    if (callback != m_OnAnimationEvent.end()) {
         EventArgs param;
         param.SetSender(m_pControl);
         callback->second(param);
     }
 }
 
-uint32_t ImageGif::GetGifFrameIndex(GifFrameType frame) const
+uint32_t ImagePlayer::GetImageFrameIndex(AnimationImagePos frame) const
 {
     if (!IsMultiFrameImage()) {
         return 0;
     }
-    uint32_t ret = frame;
+    uint32_t ret = 0;
     switch (frame)
     {
-    case kGifFrameCurrent:
+    case AnimationImagePos::kFrameCurrent:
         ret = m_pImage->GetCurrentFrameIndex();
         break;
-    case kGifFrameFirst:
+    case AnimationImagePos::kFrameFirst:
         ret = 0;
         break;
-    case kGifFrameLast:
-    {
-        uint32_t nFrameCount = m_pImage->GetImageCache()->GetFrameCount();
-        ret = nFrameCount > 0 ? nFrameCount - 1 : 0;
-    }
-    break;
+    case AnimationImagePos::kFrameLast:
+        {
+            uint32_t nFrameCount = m_pImage->GetImageCache()->GetFrameCount();
+            ret = nFrameCount > 0 ? nFrameCount - 1 : 0;
+        }
+        break;
+    default:
+        break;
     }
     return ret;
 }
 
-void ImageGif::RedrawImage()
+void ImagePlayer::RedrawImage()
 {
     if (m_pControl != nullptr) {
         //重绘图片
@@ -252,7 +254,7 @@ void ImageGif::RedrawImage()
     }
 }
 
-bool ImageGif::IsMultiFrameImage() const
+bool ImagePlayer::IsMultiFrameImage() const
 {
     if ((m_pControl != nullptr) && 
         (m_pImage != nullptr) &&

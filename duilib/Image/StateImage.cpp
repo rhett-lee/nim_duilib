@@ -173,7 +173,7 @@ bool StateImage::PaintStateImage(IRender* pRender, ControlStateType stateType,
         ASSERT(iter->second != nullptr);
         if (iter->second != pImage) {
             //停止其他状态图片的动画
-            iter->second->StopGifPlay();
+            iter->second->StopImageAnimation();
         }
     }
     if (m_pControl != nullptr) {
@@ -234,11 +234,11 @@ void StateImage::ClearImageCache()
     }
 }
 
-void StateImage::StopGifPlay()
+void StateImage::StopImageAnimation()
 {
     for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
         ASSERT(iter->second != nullptr);
-        iter->second->StopGifPlay();
+        iter->second->StopImageAnimation();
     }
 }
 

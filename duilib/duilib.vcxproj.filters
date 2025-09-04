@@ -384,9 +384,6 @@
     <ClCompile Include="Image\StateImage.cpp">
       <Filter>Image</Filter>
     </ClCompile>
-    <ClCompile Include="Image\ImageGif.cpp">
-      <Filter>Image</Filter>
-    </ClCompile>
     <ClCompile Include="Core\FrameworkThread.cpp">
       <Filter>Core</Filter>
     </ClCompile>
@@ -745,6 +742,9 @@
       <Filter>Image</Filter>
     </ClCompile>
     <ClCompile Include="Image\Image_Bitmap.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\ImagePlayer.cpp">
       <Filter>Image</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1157,9 +1157,6 @@
     <ClInclude Include="Image\StateImage.h">
       <Filter>Image</Filter>
     </ClInclude>
-    <ClInclude Include="Image\ImageGif.h">
-      <Filter>Image</Filter>
-    </ClInclude>
     <ClInclude Include="Core\ResourceParam.h">
       <Filter>Core</Filter>
     </ClInclude>
@@ -1569,6 +1566,9 @@
       <Filter>Image</Filter>
     </ClInclude>
     <ClInclude Include="Image\Image_Bitmap.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImagePlayer.h">
       <Filter>Image</Filter>
     </ClInclude>
   </ItemGroup>

@@ -133,20 +133,23 @@ bool ControlLoading::StartLoading(int32_t fStartAngle)
     return true;
 }
 
-void ControlLoading::StopLoading(GifFrameType frame)
+void ControlLoading::StopLoading(AnimationImagePos frame)
 {
     if (!m_bIsLoading) {
         return;
     }
 
     switch (frame) {
-    case kGifFrameFirst:
+    case AnimationImagePos::kFrameFirst:
         m_fCurrrentAngele = 0;
         break;
-    case kGifFrameCurrent:
+    case AnimationImagePos::kFrameCurrent:
         break;
-    case  kGifFrameLast:
+    case AnimationImagePos::kFrameLast:
         m_fCurrrentAngele = 360;
+        break;
+    default:
+        break;
     }
     m_bIsLoading = false;
     m_loadingImageFlag.Cancel();

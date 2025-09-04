@@ -11,7 +11,7 @@
 namespace ui 
 {
 class Control;
-class ImageGif;
+class ImagePlayer;
 class DpiManager;
 
 /** 图片相关封装，支持的文件格式：SVG/PNG/GIF/JPG/BMP/APNG/WEBP/ICO
@@ -159,31 +159,31 @@ public:
     */
     void SetControl(Control* pControl);
 
-    /** 播放 GIF/WebP/APNG 动画
+    /** 播放动画
     * @param [in] rcImageRect 动画图片的显示区域
     */
-    bool CheckStartGifPlay(const UiRect& rcImageRect);
+    bool CheckStartImageAnimation(const UiRect& rcImageRect);
 
-    /** 停止播放 GIF/WebP/APNG 动画
+    /** 停止播放动画
      */
-    void CheckStopGifPlay();
+    void CheckStopImageAnimation();
 
-    /** 播放 GIF/WebP/APNG 动画
-     * @param [in] nStartFrame 从哪一帧开始播放，可设置第一帧、当前帧和最后一帧。请参考 GifFrameType 枚举
+    /** 播放动画
+     * @param [in] nStartFrame 从哪一帧开始播放，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举
      * @param [in] nPlayCount 指定播放次数, 如果是-1表示一直播放
      */
-    bool StartGifPlay(GifFrameType nStartFrame = kGifFrameFirst, int32_t nPlayCount = -1);
+    bool StartImageAnimation(AnimationImagePos nStartFrame = AnimationImagePos::kFrameFirst, int32_t nPlayCount = -1);
 
-    /** 停止播放 GIF/WebP/APNG 动画
-     * @param [in] bTriggerEvent 是否将停止事件通知给订阅者，参考 AttachGifPlayStop 方法
-     * @param [in] nStopFrame 播放结束停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 GifFrameType 枚举
+    /** 停止播放动画
+     * @param [in] bTriggerEvent 是否将停止事件通知给订阅者，参考 AttachImageAnimationStop 方法
+     * @param [in] nStopFrame 播放结束停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举
      */
-    void StopGifPlay(bool bTriggerEvent = false, GifFrameType nStopFrame = kGifFrameCurrent);
+    void StopImageAnimation(bool bTriggerEvent = false, AnimationImagePos nStopFrame = AnimationImagePos::kFrameCurrent);
 
-    /** 监听 GIF 播放完成通知
-     * @param[in] callback 要监听 GIF 停止播放的回调函数
+    /** 监听动画播放完成通知
+     * @param[in] callback 要监听动画停止播放的回调函数
      */
-    void AttachGifPlayStop(const EventCallback& callback);
+    void AttachImageAnimationStop(const EventCallback& callback);
 
     /** @} */
 
@@ -199,7 +199,7 @@ private:
 
     /** 多帧图片播放实现接口
     */
-    ImageGif* m_pImageGif;
+    ImagePlayer* m_pImagePlayer;
 
     /** 图片属性
     */

@@ -83,7 +83,7 @@ bool StateImageMap::PaintStateImage(IRender* pRender,
             if ((iter->first == kStateImageBk) || (iter->first == kStateImageFore)) {
                 continue;
             }
-            iter->second.StopGifPlay();
+            iter->second.StopImageAnimation();
         }
     }
     else if ((stateImageType == kStateImageSelectedBk) || (stateImageType == kStateImageSelectedFore)) {
@@ -91,7 +91,7 @@ bool StateImageMap::PaintStateImage(IRender* pRender,
             if ((iter->first == kStateImageSelectedBk) || (iter->first == kStateImageSelectedFore)) {
                 continue;
             }
-            iter->second.StopGifPlay();
+            iter->second.StopImageAnimation();
         }
     }
     else if ((stateImageType == kStateImagePartSelectedBk) || (stateImageType == kStateImagePartSelectedFore)) {
@@ -99,7 +99,7 @@ bool StateImageMap::PaintStateImage(IRender* pRender,
             if ((iter->first == kStateImagePartSelectedBk) || (iter->first == kStateImagePartSelectedFore)) {
                 continue;
             }
-            iter->second.StopGifPlay();
+            iter->second.StopImageAnimation();
         }
     }
     return bRet;
@@ -138,10 +138,10 @@ void StateImageMap::ClearImageCache()
     }
 }
 
-void StateImageMap::StopGifPlay()
+void StateImageMap::StopImageAnimation()
 {
     for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
-        iter->second.StopGifPlay();
+        iter->second.StopImageAnimation();
     }
 }
 
