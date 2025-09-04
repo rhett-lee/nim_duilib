@@ -8,14 +8,14 @@
 namespace ui
 {
 //解码WebP图片数据
-static bool DecodeImage_WEBP(WebPDemuxer* demuxer,
+static bool DecodeImage_WEBP(WebPAnimDecoder* pWebPAnimDecoder,
                              float fImageSizeScale,
                              bool bLoadAllFrames,
                              std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>>& frames,
                              volatile bool* pAbortFlag = nullptr)
 {
-    ASSERT(demuxer != nullptr);
-    if (demuxer == nullptr) {
+    ASSERT(pWebPAnimDecoder != nullptr);
+    if (pWebPAnimDecoder == nullptr) {
         return false;
     }
     ASSERT(fImageSizeScale > 0);
@@ -30,67 +30,53 @@ static bool DecodeImage_WEBP(WebPDemuxer* demuxer,
     }
     frames.clear();
 
-    int32_t frameCount = (int32_t)WebPDemuxGetI(demuxer, WEBP_FF_FRAME_COUNT);
-    if (frameCount <= 0) {
+    WebPAnimInfo anim_info;
+    if (!WebPAnimDecoderGetInfo(pWebPAnimDecoder, &anim_info)) {
         return false;
     }
-    if (!bLoadAllFrames) {
-        //只加载第1帧，不加载全部帧
-        frameCount = 1;
-    }
-    frames.resize(frameCount);
-    bool bLoaded = true;
-    // libwebp's index start with 1
-    for (int frame_idx = 1; frame_idx <= (int)frameCount; ++frame_idx) {
-        WebPIterator iter;
-        int ret = WebPDemuxGetFrame(demuxer, frame_idx, &iter);
-        ASSERT(ret != 0);
-        if (ret == 0) {
+
+    bool bLoaded = false;
+    int prev_timestamp = 0;
+    int32_t nFrameIndex = 0;
+    WebPAnimDecoderReset(pWebPAnimDecoder);
+    while (WebPAnimDecoderHasMoreFrames(pWebPAnimDecoder)) {
+        uint8_t* pImageData = nullptr;
+        int timestamp = 0;
+        if (WebPAnimDecoderGetNext(pWebPAnimDecoder, &pImageData, &timestamp)) {
+            bLoaded = true;
+
+            // 根据时间戳控制帧显示时长(毫秒)
+            int duration = timestamp - prev_timestamp;
+            std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
+            pFrameData->m_nFrameIndex = nFrameIndex;
+            pFrameData->SetDelayMs(duration);
+            pFrameData->m_nOffsetX = 0;//OffsetX和OffsetY均不需要处理
+            pFrameData->m_nOffsetY = 0;
+            pFrameData->m_bDataPending = false;
+            pFrameData->m_pBitmap.reset(pRenderFactroy->CreateBitmap());
+            ASSERT(pFrameData->m_pBitmap != nullptr);
+            if (pFrameData->m_pBitmap == nullptr) {
+                bLoaded = false;
+                break;
+            }
+            if (!pFrameData->m_pBitmap->Init(anim_info.canvas_width, anim_info.canvas_height, pImageData, fImageSizeScale)) {
+                bLoaded = false;
+                break;
+            }
+            frames.push_back(pFrameData);
+
+            ++nFrameIndex;
+            if (!bLoadAllFrames) {
+                //只加载1帧
+                break;
+            }
+            prev_timestamp = timestamp;
+        }
+        else {
+            //失败
             bLoaded = false;
-            WebPDemuxReleaseIterator(&iter);
             break;
         }
-        int width = 0;
-        int hight = 0;
-        uint8_t* decode_data = nullptr;
-#ifdef DUILIB_BUILD_FOR_WIN
-        //数据格式：Window平台BGRA，其他平台RGBA
-        decode_data = WebPDecodeBGRA(iter.fragment.bytes, iter.fragment.size, &width, &hight);
-#else
-        decode_data = WebPDecodeRGBA(iter.fragment.bytes, iter.fragment.size, &width, &hight);
-#endif
-
-        ASSERT((decode_data != nullptr) && (width > 0) && (hight > 0));
-        if ((decode_data == nullptr) || (width <= 0) || (hight <= 0)) {
-            bLoaded = false;
-            WebPDemuxReleaseIterator(&iter);
-            break;
-        }
-
-        std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
-        pFrameData->m_nFrameIndex = frame_idx - 1;
-        pFrameData->SetDelayMs(iter.duration);
-        pFrameData->m_nOffsetX = iter.x_offset;
-        pFrameData->m_nOffsetY = iter.y_offset;
-        pFrameData->m_bDataPending = false;
-        pFrameData->m_pBitmap.reset(pRenderFactroy->CreateBitmap());
-        ASSERT(pFrameData->m_pBitmap != nullptr);
-        if (pFrameData->m_pBitmap == nullptr) {
-            bLoaded = false;
-            WebPDemuxReleaseIterator(&iter);
-            break;
-        }
-        pFrameData->m_pBitmap->Init(width, hight, decode_data, fImageSizeScale);
-
-        if (pFrameData->m_nOffsetX < 0) {
-            pFrameData->m_nOffsetX = -(int32_t)ImageUtil::GetScaledImageSize((uint32_t)-pFrameData->m_nOffsetX, fImageSizeScale);
-        }
-        if (pFrameData->m_nOffsetY < 0) {
-            pFrameData->m_nOffsetY = -(int32_t)ImageUtil::GetScaledImageSize((uint32_t)-pFrameData->m_nOffsetY, fImageSizeScale);
-        }
-        frames[pFrameData->m_nFrameIndex] = pFrameData;
-
-        WebPDemuxReleaseIterator(&iter);
 
         if (pAbortFlag && *pAbortFlag) {
             //已经取消
@@ -98,6 +84,7 @@ static bool DecodeImage_WEBP(WebPDemuxer* demuxer,
             break;
         }
     }
+
     if (!bLoaded) {
         frames.clear();
     }
@@ -110,7 +97,7 @@ struct Image_WEBP::TImpl
     std::vector<uint8_t> m_fileData;
 
     //加载后的句柄
-    WebPDemuxer* m_demuxer = nullptr;
+    WebPAnimDecoder* m_pWebPAnimDecoder = nullptr;
 
     //图片宽度
     uint32_t m_nWidth = 0;
@@ -153,9 +140,9 @@ Image_WEBP::Image_WEBP()
 
 Image_WEBP::~Image_WEBP()
 {
-    if (m_impl->m_demuxer != nullptr) {
-        WebPDemuxDelete(m_impl->m_demuxer);
-        m_impl->m_demuxer = nullptr;
+    if (m_impl->m_pWebPAnimDecoder != nullptr) {
+        WebPAnimDecoderDelete(m_impl->m_pWebPAnimDecoder);
+        m_impl->m_pWebPAnimDecoder = nullptr;
     }
 }
 
@@ -173,20 +160,41 @@ bool Image_WEBP::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     m_impl->m_bLoadAllFrames = bLoadAllFrames;
 
     WebPData wd = { m_impl->m_fileData.data() , m_impl->m_fileData.size() };
-    WebPDemuxer* demuxer = WebPDemux(&wd);
-    if (demuxer == nullptr) {
+
+    WebPAnimDecoderOptions dec_options;
+    WebPAnimDecoderOptionsInit(&dec_options);
+#ifdef DUILIB_BUILD_FOR_WIN
+    //数据格式：Window平台BGRA(预乘)，其他平台RGBA(预乘)
+    dec_options.color_mode = MODE_bgrA;
+#else
+    dec_options.color_mode = MODE_rgbA;
+#endif
+
+    //开启多线程解码
+    dec_options.use_threads = 1;
+
+    WebPAnimDecoder* dec = WebPAnimDecoderNew(&wd, &dec_options);
+    if (dec == nullptr) {
         //加载失败时，需要恢复原文件数据
         m_impl->m_fileData.swap(fileData);
         return false;
     }
-
-    m_impl->m_nWidth = (int32_t)WebPDemuxGetI(demuxer, WEBP_FF_CANVAS_WIDTH);
-    m_impl->m_nHeight = (int32_t)WebPDemuxGetI(demuxer, WEBP_FF_CANVAS_HEIGHT);
-    m_impl->m_nFrameCount = (int32_t)WebPDemuxGetI(demuxer, WEBP_FF_FRAME_COUNT);
-
-    if ((m_impl->m_nFrameCount <= 0) || ((int32_t)m_impl->m_nWidth <= 0) || ((int32_t)m_impl->m_nHeight <= 0)) {
-        WebPDemuxDelete(demuxer);
+    WebPAnimInfo anim_info;
+    int nRet = WebPAnimDecoderGetInfo(dec, &anim_info);
+    if (nRet == 0) {
         //加载失败时，需要恢复原文件数据
+        WebPAnimDecoderDelete(dec);
+        m_impl->m_fileData.swap(fileData);
+        return false;
+    }
+
+    m_impl->m_nWidth = anim_info.canvas_width;
+    m_impl->m_nHeight = anim_info.canvas_height;
+    m_impl->m_nFrameCount = (int32_t)anim_info.frame_count;
+
+    if ((m_impl->m_nFrameCount <= 0) || ((int32_t)m_impl->m_nWidth <= 0) || ((int32_t)m_impl->m_nHeight <= 0)) {        
+        //加载失败时，需要恢复原文件数据
+        WebPAnimDecoderDelete(dec);
         m_impl->m_fileData.swap(fileData);
         return false;
     }
@@ -196,26 +204,26 @@ bool Image_WEBP::LoadImageFromMemory(std::vector<uint8_t>& fileData,
     ASSERT(m_impl->m_nWidth > 0);
     ASSERT(m_impl->m_nHeight > 0);
 
-    m_impl->m_nLoops = (int32_t)WebPDemuxGetI(demuxer, WEBP_FF_LOOP_COUNT);
-    if (m_impl->m_nLoops == 0) {
+    m_impl->m_nLoops = (int32_t)anim_info.loop_count;
+    if (m_impl->m_nLoops <= 0) {
         m_impl->m_nLoops = -1;
     }
 
     //加载第一帧
-    if (!DecodeImage_WEBP(demuxer, fImageSizeScale, false, m_impl->m_frames)) {
-        WebPDemuxDelete(demuxer);
+    if (!DecodeImage_WEBP(dec, fImageSizeScale, false, m_impl->m_frames)) {        
         //加载失败时，需要恢复原文件数据
+        WebPAnimDecoderDelete(dec);
         m_impl->m_fileData.swap(fileData);
         return false;
     }
-    m_impl->m_demuxer = demuxer;
+    m_impl->m_pWebPAnimDecoder = dec;
     return true;
 }
 
 bool Image_WEBP::IsDecodeImageDataEnabled() const
 {
     if (!m_impl->m_fileData.empty() &&
-        (m_impl->m_demuxer != nullptr) &&
+        (m_impl->m_pWebPAnimDecoder != nullptr) &&
         m_impl->m_bLoadAllFrames &&
         (m_impl->m_nFrameCount > 1) &&
         (m_impl->m_frames.size() == 1)) {
@@ -242,10 +250,7 @@ bool Image_WEBP::DecodeImageData()
     //加载所有帧
     bool bLoaded = false;
     std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> frames;
-    if (DecodeImage_WEBP(m_impl->m_demuxer, fImageSizeScale, true, frames)) {
-        WebPDemuxDelete(m_impl->m_demuxer);
-        m_impl->m_demuxer = nullptr;
-
+    if (DecodeImage_WEBP(m_impl->m_pWebPAnimDecoder, fImageSizeScale, true, frames)) {
         ASSERT(!m_impl->m_bDecodeImageDataFinished);
         ASSERT(m_impl->m_delayFrames.empty());
 
@@ -253,6 +258,9 @@ bool Image_WEBP::DecodeImageData()
         m_impl->m_bDecodeImageDataFinished = true;
         bLoaded = true;
     }
+    //不管是否成功，释放资源
+    WebPAnimDecoderDelete(m_impl->m_pWebPAnimDecoder);
+    m_impl->m_pWebPAnimDecoder = nullptr;
     return bLoaded;
 }
 
