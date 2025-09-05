@@ -375,12 +375,8 @@ static bool UiGifToRgbaFrames(const GifFileType* gif, bool bLoadAllFrames, float
                     // 透明处理逻辑
                     const GifColorType& color = colormap->Colors[color_idx];
                     uint8_t alpha = 255;
-                    if (transparent_idx != -1 && color_idx == transparent_idx) {
+                    if ((transparent_idx >= 0) && (color_idx == transparent_idx)) {
                         alpha = 0; // 明确指定的透明色
-                    }
-                    else if (frame_idx == 0 && gif->SBackGroundColor != -1 &&
-                        color_idx == gif->SBackGroundColor) {
-                        alpha = 0; // 第一帧的背景色区域透明
                     }
 
 #ifdef DUILIB_BUILD_FOR_WIN
