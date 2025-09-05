@@ -126,6 +126,23 @@ set(UNZIP_SRCS
     ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/contrib/minizip/unzip.c
 )
 
+set(GIFLIB_HDRS
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gif_hash.h
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gif_lib.h
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gif_lib_private.h
+)
+
+set(GIFLIB_SRCS
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/dgif_lib.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/egif_lib.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gif_err.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gif_font.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gif_hash.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/gifalloc.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/openbsd-reallocarray.c
+    ${DUILIB_SRC_ROOT_DIR}/duilib/third_party/giflib/quantize.c
+)
+
 set(SKIA_HDRS
     ${SKIA_SRC_ROOT_DIR}/tools/window/DisplayParams.h
     ${SKIA_SRC_ROOT_DIR}/tools/window/RasterWindowContext.h
@@ -185,6 +202,8 @@ set(LIBRARY_SOURCES
     ${XML_SRC}
     ${UNZIP_HDRS}
     ${UNZIP_SRCS}
+    ${GIFLIB_HDRS}
+    ${GIFLIB_SRCS}
     ${SKIA_HDRS}
     ${SKIA_SRCS}
     ${SKIA_WGL_SRCS}

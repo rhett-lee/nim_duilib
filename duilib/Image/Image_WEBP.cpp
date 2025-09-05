@@ -23,9 +23,9 @@ static bool DecodeImage_WEBP(WebPAnimDecoder* pWebPAnimDecoder,
         return false;
     }
 
-    IRenderFactory* pRenderFactroy = GlobalManager::Instance().GetRenderFactory();
-    ASSERT(pRenderFactroy != nullptr);
-    if (pRenderFactroy == nullptr) {
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
         return false;
     }
     frames.clear();
@@ -53,7 +53,7 @@ static bool DecodeImage_WEBP(WebPAnimDecoder* pWebPAnimDecoder,
             pFrameData->m_nOffsetX = 0;//OffsetX和OffsetY均不需要处理
             pFrameData->m_nOffsetY = 0;
             pFrameData->m_bDataPending = false;
-            pFrameData->m_pBitmap.reset(pRenderFactroy->CreateBitmap());
+            pFrameData->m_pBitmap.reset(pRenderFactory->CreateBitmap());
             ASSERT(pFrameData->m_pBitmap != nullptr);
             if (pFrameData->m_pBitmap == nullptr) {
                 bLoaded = false;

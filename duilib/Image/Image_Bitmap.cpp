@@ -18,12 +18,12 @@ std::unique_ptr<IImage> Image_Bitmap::MakeImage(uint32_t nWidth, uint32_t nHeigh
                                                 BitmapAlphaType alphaType)
 {
     
-    IRenderFactory* pRenderFactroy = GlobalManager::Instance().GetRenderFactory();
-    ASSERT(pRenderFactroy != nullptr);
-    if (pRenderFactroy == nullptr) {
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
         return nullptr;
     }
-    IBitmap* pBitmap = pRenderFactroy->CreateBitmap();
+    IBitmap* pBitmap = pRenderFactory->CreateBitmap();
     ASSERT(pBitmap != nullptr);
     if (pBitmap == nullptr) {
         return nullptr;

@@ -127,7 +127,8 @@
 |apng      |duilib/third_party/libpng| 支持APNG图片格式|zlib/libpng License|
 |libpng    |duilib/third_party/libpng| 支持PNG图片格式|[libpng.LICENSE.txt](licenses/libpng.LICENSE.txt)|
 |zlib      |duilib/third_party/zlib| 支持PNG/APNG图片格式、Zip文件解压|[zlib.LICENSE.txt](licenses/zlib.LICENSE.txt)|
-|cximage   |duilib/third_party/cximage| 支持GIF/ICO图片格式|[cximage.LICENSE.txt](licenses/cximage.LICENSE.txt)|
+|cximage   |duilib/third_party/cximage| 支持ICO图片格式|[cximage.LICENSE.txt](licenses/cximage.LICENSE.txt)|
+|giflib    |duilib/third_party/giflib| 支持GIF图片格式|[giflib.LICENSE.txt](licenses/giflib.LICENSE.txt)|
 |libwebp   |duilib/third_party/libwebp| 支持WebP图片格式|[libWebP.LICENSE.txt](licenses/libwebp.LICENSE.txt)|
 |stb_image |duilib/third_party/stb_image| 支持JPEG/BMP图片格式，调整图片大小|[stb_image.LICENSE.txt](licenses/stb_image.LICENSE.txt)|
 |nanosvg   |duilib/third_party/svg| 支持SVG图片格式|[nanosvg.LICENSE.txt](licenses/nanosvg.LICENSE.txt)|

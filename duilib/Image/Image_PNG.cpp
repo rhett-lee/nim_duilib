@@ -23,9 +23,9 @@ static bool DecodeImage_APNG(APNGDATA* pngData,
         return false;
     }
 
-    IRenderFactory* pRenderFactroy = GlobalManager::Instance().GetRenderFactory();
-    ASSERT(pRenderFactroy != nullptr);
-    if (pRenderFactroy == nullptr) {
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
         return false;
     }
     frames.clear();
@@ -69,7 +69,7 @@ static bool DecodeImage_APNG(APNGDATA* pngData,
         pFrameData->m_nOffsetX = 0;
         pFrameData->m_nOffsetY = 0;
         pFrameData->m_bDataPending = false;
-        pFrameData->m_pBitmap.reset(pRenderFactroy->CreateBitmap());
+        pFrameData->m_pBitmap.reset(pRenderFactory->CreateBitmap());
         ASSERT(pFrameData->m_pBitmap != nullptr);
         if (pFrameData->m_pBitmap == nullptr) {
             return false;

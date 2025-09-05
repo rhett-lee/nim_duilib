@@ -94,6 +94,9 @@
     <Filter Include="WebView2">
       <UniqueIdentifier>{27c3f2eb-b279-490b-b0cc-ff9c309d4884}</UniqueIdentifier>
     </Filter>
+    <Filter Include="third_party\giflib">
+      <UniqueIdentifier>{c409bb08-0a10-482a-8039-6a2bc02d859e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Animation\AnimationPlayer.cpp">
@@ -752,6 +755,30 @@
     </ClCompile>
     <ClCompile Include="Image\Image_WEBP.cpp">
       <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\dgif_lib.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\egif_lib.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\gif_err.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\gif_font.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\gif_hash.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\gifalloc.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\openbsd-reallocarray.c">
+      <Filter>third_party\giflib</Filter>
+    </ClCompile>
+    <ClCompile Include="third_party\giflib\quantize.c">
+      <Filter>third_party\giflib</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1582,6 +1609,15 @@
     </ClInclude>
     <ClInclude Include="Image\Image_WEBP.h">
       <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\giflib\gif_hash.h">
+      <Filter>third_party\giflib</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\giflib\gif_lib.h">
+      <Filter>third_party\giflib</Filter>
+    </ClInclude>
+    <ClInclude Include="third_party\giflib\gif_lib_private.h">
+      <Filter>third_party\giflib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

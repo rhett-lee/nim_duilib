@@ -116,12 +116,12 @@ public:
         }
 
         //生成位图，矢量缩放
-        IRenderFactory* pRenderFactroy = GlobalManager::Instance().GetRenderFactory();
-        ASSERT(pRenderFactroy != nullptr);
-        if (pRenderFactroy == nullptr) {
+        IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+        ASSERT(pRenderFactory != nullptr);
+        if (pRenderFactory == nullptr) {
             return nullptr;
         }
-        std::shared_ptr<IBitmap> pBitmap(pRenderFactroy->CreateBitmap());
+        std::shared_ptr<IBitmap> pBitmap(pRenderFactory->CreateBitmap());
         ASSERT(pBitmap != nullptr);
         if (pBitmap == nullptr) {
             return nullptr;

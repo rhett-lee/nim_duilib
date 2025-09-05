@@ -873,9 +873,9 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
     if (fileData.empty() || !imageLoadAttribute.HasImageFullPath()) {
         return nullptr;
     }
-    IRenderFactory* pRenderFactroy = GlobalManager::Instance().GetRenderFactory();
-    ASSERT(pRenderFactroy != nullptr);
-    if (pRenderFactroy == nullptr) {
+    IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
+    ASSERT(pRenderFactory != nullptr);
+    if (pRenderFactory == nullptr) {
         return nullptr;
     }
 
@@ -932,7 +932,7 @@ std::unique_ptr<ImageInfo> ImageDecoder::LoadImageData(std::vector<uint8_t>& fil
             imageHeight = bitmapData.m_imageHeight;
         }
 
-        IBitmap* pBitmap = pRenderFactroy->CreateBitmap();
+        IBitmap* pBitmap = pRenderFactory->CreateBitmap();
         ASSERT(pBitmap != nullptr);
         if (pBitmap == nullptr) {
             return nullptr;
