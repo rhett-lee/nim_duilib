@@ -46,28 +46,21 @@ void Image_ICO::SetDecodeImageDataAborted()
 
 bool Image_ICO::LoadImageFromMemory(const std::vector<ImageDecoder::ImageData>& imageData,
                                     float fImageSizeScale,
+                                    uint32_t nIconSize,
                                     int32_t nFrameDelayMs)
 {
     ASSERT(!imageData.empty());
     if (imageData.empty()) {
         return false;
     }
-    m_impl->m_nWidth = 0;
-    m_impl->m_nHeight = 0;
-
-    //取最大的ICO图片作为整体的宽度和高度
-    for (const ImageDecoder::ImageData& icoData : imageData) {
-        m_impl->m_nWidth = std::max(icoData.m_imageWidth, m_impl->m_nWidth);
-        m_impl->m_nHeight = std::max(icoData.m_imageHeight, m_impl->m_nHeight);
-    }
-
-    m_impl->m_nWidth = ImageUtil::GetScaledImageSize(m_impl->m_nWidth, fImageSizeScale);
-    m_impl->m_nHeight = ImageUtil::GetScaledImageSize(m_impl->m_nHeight, fImageSizeScale);
-
+    //使用nIconSize参数作为图片的大小
+    m_impl->m_nWidth = ImageUtil::GetScaledImageSize(nIconSize, fImageSizeScale);
+    m_impl->m_nHeight = m_impl->m_nWidth;
     ASSERT((m_impl->m_nWidth > 0) && (m_impl->m_nHeight > 0));
     if ((m_impl->m_nWidth == 0) || (m_impl->m_nHeight == 0)) {
         return false;
     }
+    const uint32_t nImageSize = m_impl->m_nWidth;
 
     IRenderFactory* pRenderFactory = GlobalManager::Instance().GetRenderFactory();
     ASSERT(pRenderFactory != nullptr);
@@ -91,7 +84,24 @@ bool Image_ICO::LoadImageFromMemory(const std::vector<ImageDecoder::ImageData>& 
         if (pFrameData->m_pBitmap == nullptr) {
             return false;
         }
-        pFrameData->m_pBitmap->Init(icoData.m_imageWidth, icoData.m_imageHeight, icoData.m_bitmapData.data(), fImageSizeScale);
+        ASSERT((icoData.m_imageWidth != 0) && (icoData.m_imageHeight != 0));
+        if ((icoData.m_imageWidth == 0) || (icoData.m_imageHeight == 0)) {
+            return false;
+        }
+
+        //图片的宽度和高度，不超过约定值(超过就缩小图片)
+        if ((icoData.m_imageWidth > nImageSize) || (icoData.m_imageHeight > nImageSize)) {
+            float fScaleX = static_cast<float>(nImageSize) / icoData.m_imageWidth;
+            float fScaleY = static_cast<float>(nImageSize) / icoData.m_imageHeight;
+            float fNewImageSizeScale = std::min(fScaleX, fScaleY);
+            pFrameData->m_pBitmap->Init(icoData.m_imageWidth, icoData.m_imageHeight, icoData.m_bitmapData.data(), fNewImageSizeScale);
+        }
+        else {
+            pFrameData->m_pBitmap->Init(icoData.m_imageWidth, icoData.m_imageHeight, icoData.m_bitmapData.data(), fImageSizeScale);
+        }
+        ASSERT(pFrameData->m_pBitmap->GetWidth() <= (uint32_t)m_impl->m_nWidth);
+        ASSERT(pFrameData->m_pBitmap->GetHeight() <= (uint32_t)m_impl->m_nHeight);
+        
         //计算偏移(使小图标居中显示)
         if (pFrameData->m_pBitmap->GetWidth() < m_impl->m_nWidth) {
             pFrameData->m_nOffsetX = (m_impl->m_nWidth - pFrameData->m_pBitmap->GetWidth()) / 2;
@@ -99,6 +109,8 @@ bool Image_ICO::LoadImageFromMemory(const std::vector<ImageDecoder::ImageData>& 
         if (pFrameData->m_pBitmap->GetHeight() < m_impl->m_nHeight) {
             pFrameData->m_nOffsetY = (m_impl->m_nHeight - pFrameData->m_pBitmap->GetHeight()) / 2;
         }
+        ASSERT(pFrameData->m_nOffsetX >= 0);
+        ASSERT(pFrameData->m_nOffsetY >= 0);
         m_impl->m_frames[i] = pFrameData;
     }
     return true;

@@ -18,10 +18,12 @@ public:
     /** 加载图像数据
     * @param [in] imageData 图片文件数据
     * @param [in] fImageSizeScale 图片缩放百分比
+    * @param [in] nIconSize 指定需要加载的ICO图片的大小
     * @param [in] nFrameDelayMs 每帧的时间间隔，毫秒
     */
     bool LoadImageFromMemory(const std::vector<ImageDecoder::ImageData>& imageData,
                              float fImageSizeScale,
+                             uint32_t nIconSize,
                              int32_t nFrameDelayMs);
 
 public:

@@ -75,20 +75,20 @@ std::unique_ptr<IImage> ImageDecoder_ICO::LoadImageData(const DString& /*imageFi
     }
 
     std::vector<ImageDecoder::ImageData> imageData;
-    uint32_t iconSize = 32;
+    uint32_t nIconSize = 0;
     int32_t nFrameDelayMs = 1000; // 每帧的时间间隔，毫秒
     bool bIconAsAnimation = false;
     if (pExtraParam != nullptr) {
-        iconSize = pExtraParam->m_nIconSize;
+        nIconSize = pExtraParam->m_nIconSize;
         bIconAsAnimation = pExtraParam->m_bIconAsAnimation && pExtraParam->m_bLoadAllFrames;
         nFrameDelayMs = pExtraParam->m_nIconFrameDelayMs;
     }
-    if (iconSize == 0) {
-        iconSize = 32;
+    if (nIconSize == 0) {
+        nIconSize = bIconAsAnimation ? 48 : 32;
     }
     //计算期望大小
-    iconSize = ImageUtil::GetScaledImageSize(iconSize, fImageSizeScale);
-    bool bLoaded = CxImageLoader::LoadImageFromMemory(data, bIconAsAnimation, iconSize, imageData);
+    const uint32_t nIconSizeScaled = ImageUtil::GetScaledImageSize(nIconSize, fImageSizeScale);
+    bool bLoaded = CxImageLoader::LoadImageFromMemory(data, bIconAsAnimation, nIconSizeScaled, imageData);
     if (bLoaded) {
         ASSERT(!imageData.empty());        
         if (imageData.size() == 1) {
@@ -99,14 +99,14 @@ std::unique_ptr<IImage> ImageDecoder_ICO::LoadImageData(const DString& /*imageFi
             ASSERT(bitmapData.m_bitmapData.size() == bitmapData.m_imageHeight* bitmapData.m_imageWidth*4);
             if ((bitmapData.m_imageHeight > 0) && (bitmapData.m_imageWidth > 0) &&
                 (bitmapData.m_bitmapData.size() == bitmapData.m_imageHeight * bitmapData.m_imageWidth * 4)) {                
-                float fNewImageSizeScale = static_cast<float>(iconSize) / bitmapData.m_imageWidth;
+                float fNewImageSizeScale = static_cast<float>(nIconSizeScaled) / bitmapData.m_imageWidth;
                 pImage = Image_Bitmap::MakeImage(bitmapData.m_imageWidth, bitmapData.m_imageHeight, bitmapData.m_bitmapData.data(), fNewImageSizeScale);
             }
         }
         else {
             Image_ICO* pImageICO = new Image_ICO;
             std::shared_ptr<IAnimationImage> pAnimationImage(pImageICO);
-            if (pImageICO->LoadImageFromMemory(imageData, fImageSizeScale, nFrameDelayMs)) {
+            if (pImageICO->LoadImageFromMemory(imageData, fImageSizeScale, nIconSize, nFrameDelayMs)) {
                 pImage.reset(new Image_Animation(pAnimationImage, fImageSizeScale));
             }
         }
