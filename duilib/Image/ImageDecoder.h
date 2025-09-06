@@ -1,10 +1,7 @@
-#ifndef UI_IMAGE_IIMAGE_DECODER_H_
-#define UI_IMAGE_IIMAGE_DECODER_H_
+#ifndef UI_IMAGE_IMAGE_DECODER_H_
+#define UI_IMAGE_IMAGE_DECODER_H_
 
 #include "duilib/Core/UiTypes.h"
-#include <memory>
-#include <vector>
-#include <string>
 
 namespace ui
 {
@@ -236,4 +233,4 @@ public:
 
 } //namespace ui
 
-#endif //UI_IMAGE_IIMAGE_DECODER_H_
+#endif //UI_IMAGE_IMAGE_DECODER_H_

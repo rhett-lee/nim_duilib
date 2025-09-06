@@ -700,9 +700,9 @@
     <ClInclude Include="duilib_defs.h" />
     <ClInclude Include="duilib_string.h" />
     <ClInclude Include="duilib_webview2.h" />
-    <ClInclude Include="Image\IImageDecoder.h" />
     <ClInclude Include="Image\Image.h" />
     <ClInclude Include="Image\ImageAttribute.h" />
+    <ClInclude Include="Image\ImageDecoder.h" />
     <ClInclude Include="Image\ImageDecoderFactory.h" />
     <ClInclude Include="Image\ImageDecoderUtil.h" />
     <ClInclude Include="Image\ImageDecoder_GIF.h" />

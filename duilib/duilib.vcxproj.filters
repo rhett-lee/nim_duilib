@@ -1559,9 +1559,6 @@
     <ClInclude Include="Core\ControlDropTargetUtils.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="Image\IImageDecoder.h">
-      <Filter>Image</Filter>
-    </ClInclude>
     <ClInclude Include="Image\ImageDecoderFactory.h">
       <Filter>Image</Filter>
     </ClInclude>
@@ -1623,6 +1620,9 @@
       <Filter>Image</Filter>
     </ClInclude>
     <ClInclude Include="Image\ImageDecoderUtil.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder.h">
       <Filter>Image</Filter>
     </ClInclude>
   </ItemGroup>

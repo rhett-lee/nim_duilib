@@ -3,7 +3,7 @@
 
 #include "duilib/Render/IRender.h"
 #include "duilib/Core/UiTypes.h"
-#include "duilib/Image/IImageDecoder.h"
+#include "duilib/Image/ImageDecoder.h"
 #include "duilib/Image/ImageLoadParam.h"
 
 namespace ui 

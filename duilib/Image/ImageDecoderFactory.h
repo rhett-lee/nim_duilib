@@ -1,7 +1,7 @@
 #ifndef UI_IMAGE_IMAGE_DECODER_FACTORY_H_
 #define UI_IMAGE_IMAGE_DECODER_FACTORY_H_
 
-#include "duilib/Image/IImageDecoder.h"
+#include "duilib/Image/ImageDecoder.h"
 #include "duilib/Image/ImageUtil.h"
 
 namespace ui 

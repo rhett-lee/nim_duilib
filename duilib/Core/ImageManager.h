@@ -2,7 +2,7 @@
 #define UI_CORE_IMAGEMANAGER_H_
 
 #include "duilib/Core/Callback.h"
-#include "duilib/Image/IImageDecoder.h"
+#include "duilib/Image/ImageDecoder.h"
 #include <string>
 #include <vector>
 #include <unordered_map>
