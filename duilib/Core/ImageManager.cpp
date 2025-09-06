@@ -91,7 +91,9 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
 
         //从内存数据加载图片     
         IImageDecoder::ExtraParam extraParam;
+        extraParam.m_bIconAsAnimation = loadParam.IsIconAsAnimation();
         extraParam.m_nIconSize = loadParam.GetIconSize();
+        extraParam.m_nIconFrameDelayMs = loadParam.GetIconFrameDelayMs();
         extraParam.m_fPagMaxFrameRate = loadParam.GetPagMaxFrameRate();
         extraParam.m_bLoadAllFrames = true;
         std::unique_ptr<IImage> pImageData = ImageDecoders.LoadImageData(imageFullPath, fileData, fImageSizeScale, &extraParam);

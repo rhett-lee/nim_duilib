@@ -2406,6 +2406,10 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
     if (imageInfo == nullptr) {
         return false;
     }
+    ASSERT((imageInfo->GetWidth() > 0) && (imageInfo->GetHeight() > 0));
+    if ((imageInfo->GetWidth() <= 0) || (imageInfo->GetHeight() <= 0)) {
+        return false;
+    }
 
     ImageAttribute newImageAttribute = duiImage.GetImageAttribute();
     if (!strModify.empty()) {
@@ -2488,6 +2492,8 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         }
     }
 
+    //计算得到的rcDest备份，多帧情况下，会对rcDest修改
+    const UiRect rcImageDect = rcDest;
     if (pPaintedRect) {
         //返回绘制的目标区域
         *pPaintedRect = rcDest;
@@ -2508,23 +2514,23 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         else {
             pBitmap = pAnimationFrame->m_pBitmap;
 
-            //运用部分参数
+            //运用部分参数(rcDest需要等比例缩小)
+            const int32_t nDestWidth = rcDest.Width();
+            const int32_t nDestHeight = rcDest.Height();
             if (pAnimationFrame->m_nOffsetX != 0) {
-                rcDest.Offset(pAnimationFrame->m_nOffsetX, 0);
+                float fImageScaleX = static_cast<float>(pAnimationFrame->m_pBitmap->GetWidth()) / imageInfo->GetWidth();
+                float fRectScaleX = static_cast<float>(nDestWidth) / imageInfo->GetWidth();
+                rcDest.left += ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetX, fRectScaleX);
+                rcDest.right = rcDest.left + (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nDestWidth, fImageScaleX);
             }
             if (pAnimationFrame->m_nOffsetY != 0) {
-                rcDest.Offset(0, pAnimationFrame->m_nOffsetY);
+                float fImageScaleY = static_cast<float>(pAnimationFrame->m_pBitmap->GetHeight()) / imageInfo->GetHeight();
+                float fRectScaleY = static_cast<float>(nDestHeight) / imageInfo->GetHeight();
+                rcDest.top += ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetY, fRectScaleY);
+                rcDest.bottom = rcDest.top + (int32_t)ImageUtil::GetScaledImageSize((uint32_t)nDestHeight, fImageScaleY);
             }
             ASSERT(pAnimationFrame->m_pBitmap->GetWidth() <= (uint32_t)imageInfo->GetWidth());
-            if (pAnimationFrame->m_pBitmap->GetWidth() >= (uint32_t)imageInfo->GetWidth()) {
-                //容错
-
-            }
             ASSERT(pAnimationFrame->m_pBitmap->GetHeight() <= (uint32_t)imageInfo->GetHeight());
-            if (pAnimationFrame->m_pBitmap->GetHeight() >= (uint32_t)imageInfo->GetHeight()) {
-                //容错
-
-            }
         }
     }
     else {
@@ -2560,6 +2566,20 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
     bool bPainted = false;
     if (pBitmap != nullptr) {
         bPainted = true;
+        //校验rcSource(多帧的情况下，实际图片与总宽高可能不符，需要进一步校验)
+        if ((rcSource.left < 0) || (rcSource.left > (int32_t)pBitmap->GetWidth())) {
+            rcSource.left = 0;
+        }
+        if ((rcSource.top < 0) || (rcSource.top > (int32_t)pBitmap->GetHeight())) {
+            rcSource.top = 0;
+        }
+        if ((rcSource.right < 0) || (rcSource.right > (int32_t)pBitmap->GetWidth())) {
+            rcSource.right = (int32_t)pBitmap->GetWidth();
+        }
+        if ((rcSource.bottom < 0) || (rcSource.bottom > (int32_t)pBitmap->GetHeight())) {
+            rcSource.bottom = (int32_t)pBitmap->GetHeight();
+        }
+
         //图片透明度属性
         uint8_t iFade = (nFade == DUI_NOSET_VALUE) ? newImageAttribute.m_bFade : static_cast<uint8_t>(nFade);
         if (pMatrix != nullptr) {
@@ -2578,7 +2598,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
     }
     //按需启动动画
     if (duiImage.IsMultiFrameImage()) {
-        duiImage.CheckStartImageAnimation(rcDest);
+        duiImage.CheckStartImageAnimation(rcImageDect);
     }
     return bPainted;
 }

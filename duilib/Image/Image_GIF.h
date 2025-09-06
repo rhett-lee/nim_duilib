@@ -15,7 +15,7 @@ public:
 
 public:
     /** 加载图像数据
-    * @param [in] 图片文件数据
+    * @param [in] fileData 图片文件数据
     * @param [in] bLoadAllFrames 是否加载全部帧，如果为false只加载第1帧，如果为true则加载全部帧
     * @param [in] fImageSizeScale 图片缩放百分比
     */

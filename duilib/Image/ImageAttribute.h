@@ -150,13 +150,21 @@ public:
     //如果是动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
     int32_t m_nPlayCount;
 
+    //如果是PAG文件，用于指定动画的帧率，默认为30.0f
+    float m_fPagMaxFrameRate;
+
     //如果是ICO文件，用于指定需要加载的ICO图片的大小
     //(ICO文件中包含很多个不同大小的图片，常见的有256，48，32，16，并且每个大小都有32位真彩、256色、16色之分）
     //目前ICO文件在加载时，只会选择一个大小的ICO图片进行加载，加载后为单张图片
-    uint32_t m_iconSize;
+    //仅当m_bIconAsAnimation为false时有效
+    uint32_t m_nIconSize;
 
-    //如果是PAG文件，用于指定动画的帧率，默认为30.0f
-    float m_fPagMaxFrameRate;
+    //如果是ICO文件，当按多帧图片显示时，每帧播放的时间间隔，毫秒
+    //仅当m_bIconAsAnimation为true时有效
+    int32_t m_nIconFrameDelayMs;
+
+    //如果是ICO文件，指定是否按多帧图片加载（按动画图片显示）
+    bool m_bIconAsAnimation;
 
     //可绘制标志：true表示允许绘制，false表示禁止绘制
     bool m_bPaintEnabled;

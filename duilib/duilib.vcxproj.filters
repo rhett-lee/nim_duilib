@@ -780,6 +780,9 @@
     <ClCompile Include="third_party\giflib\quantize.c">
       <Filter>third_party\giflib</Filter>
     </ClCompile>
+    <ClCompile Include="Image\Image_ICO.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1618,6 +1621,9 @@
     </ClInclude>
     <ClInclude Include="third_party\giflib\gif_lib_private.h">
       <Filter>third_party\giflib</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_ICO.h">
+      <Filter>Image</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

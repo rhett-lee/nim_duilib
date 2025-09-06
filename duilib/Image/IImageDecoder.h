@@ -198,7 +198,9 @@ public:
     struct ExtraParam
     {
         bool m_bLoadAllFrames = true;       //对于多帧图片，是否加载所有帧（true表示加载所有帧；false表示只加载第1帧, 按单帧图片加载）
-        uint32_t m_nIconSize = 32;          //ICO格式，加载图标的大小值（每个ico包含了各种大小的图标，这个参数可以指定加载哪个尺寸的图标）
+        bool m_bIconAsAnimation = false;    //ICO格式，是否按照动画来加载多帧显示（默认情况下，ICO格式是按单帧显示的）
+        uint32_t m_nIconSize = 32;          //ICO格式，加载图标的大小值（仅当m_bIconAsAnimation为false时有效，每个ico包含了各种大小的图标，这个参数可以指定加载哪个尺寸的图标）
+        uint32_t m_nIconFrameDelayMs = 1000;//ICO格式，每帧播放时间间隔，毫秒（仅当m_bIconAsAnimation && m_bLoadAllFrames为true时有效）
         float m_fPagMaxFrameRate = 30.0f;   //PAG格式，解码动画的帧率
     };
 public:

@@ -370,6 +370,7 @@
     <ClCompile Include="Image\Image_Animation.cpp" />
     <ClCompile Include="Image\Image_Bitmap.cpp" />
     <ClCompile Include="Image\Image_GIF.cpp" />
+    <ClCompile Include="Image\Image_ICO.cpp" />
     <ClCompile Include="Image\Image_PNG.cpp" />
     <ClCompile Include="Image\Image_Svg.cpp" />
     <ClCompile Include="Image\Image_WEBP.cpp" />
@@ -717,6 +718,7 @@
     <ClInclude Include="Image\Image_Animation.h" />
     <ClInclude Include="Image\Image_Bitmap.h" />
     <ClInclude Include="Image\Image_GIF.h" />
+    <ClInclude Include="Image\Image_ICO.h" />
     <ClInclude Include="Image\Image_PNG.h" />
     <ClInclude Include="Image\Image_Svg.h" />
     <ClInclude Include="Image\Image_WEBP.h" />

@@ -172,18 +172,8 @@ std::shared_ptr<IAnimationImage::AnimationFrame> ImageInfo::GetFrame(uint32_t nF
                 }
                 if ((pAnimationFrame->m_pBitmap->GetWidth() != nNewWidth) ||
                     (pAnimationFrame->m_pBitmap->GetHeight() != nNewHeight)) {
-                    if (pAnimationFrame->m_nOffsetX < 0) {
-                        pAnimationFrame->m_nOffsetX = -(int32_t)ImageUtil::GetScaledImageSize((uint32_t)-pAnimationFrame->m_nOffsetX, m_fCustomSizeScaleX);
-                    }
-                    else if (pAnimationFrame->m_nOffsetX > 0) {
-                        pAnimationFrame->m_nOffsetX = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)pAnimationFrame->m_nOffsetX, m_fCustomSizeScaleX);
-                    }
-                    if (pAnimationFrame->m_nOffsetY < 0) {
-                        pAnimationFrame->m_nOffsetY = -(int32_t)ImageUtil::GetScaledImageSize((uint32_t)-pAnimationFrame->m_nOffsetY, m_fCustomSizeScaleY);
-                    }
-                    else if (pAnimationFrame->m_nOffsetY > 0) {
-                        pAnimationFrame->m_nOffsetY = (int32_t)ImageUtil::GetScaledImageSize((uint32_t)pAnimationFrame->m_nOffsetY, m_fCustomSizeScaleY);
-                    }
+                    pAnimationFrame->m_nOffsetX = ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetX, m_fCustomSizeScaleX);
+                    pAnimationFrame->m_nOffsetY = ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetY, m_fCustomSizeScaleY);
                     pAnimationFrame->m_pBitmap = ImageUtil::ResizeImageBitmap(pAnimationFrame->m_pBitmap.get(), nNewWidth, nNewHeight);
                     ASSERT(pAnimationFrame->m_pBitmap != nullptr);
                 }

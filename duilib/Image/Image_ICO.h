@@ -1,27 +1,28 @@
-#ifndef UI_IMAGE_IMAGE_PNG_H_
-#define UI_IMAGE_IMAGE_PNG_H_
+#ifndef UI_IMAGE_IMAGE_ICO_H_
+#define UI_IMAGE_IMAGE_ICO_H_
 
 #include "duilib/Image/IImageDecoder.h"
+#include "duilib/Image/ImageDecoder.h"
 
 namespace ui
 {
-/** PNG/APNG格式的图片数据
+/** ICO格式的图片数据(多帧模式)
 */
-class Image_PNG: public IAnimationImage
+class Image_ICO: public IAnimationImage
 {
 public:
-    Image_PNG();
-    virtual ~Image_PNG() override;
+    Image_ICO();
+    virtual ~Image_ICO() override;
 
 public:
     /** 加载图像数据
-    * @param [in] fileData 图片文件数据
-    * @param [in] bLoadAllFrames 是否加载全部帧，如果为false只加载第1帧，如果为true则加载全部帧
+    * @param [in] imageData 图片文件数据
     * @param [in] fImageSizeScale 图片缩放百分比
+    * @param [in] nFrameDelayMs 每帧的时间间隔，毫秒
     */
-    bool LoadImageFromMemory(std::vector<uint8_t>& fileData,
-                             bool bLoadAllFrames,
-                             float fImageSizeScale);
+    bool LoadImageFromMemory(const std::vector<ImageDecoder::ImageData>& imageData,
+                             float fImageSizeScale,
+                             int32_t nFrameDelayMs);
 
 public:
     /** 获取图片宽度
@@ -75,4 +76,4 @@ private:
 
 } //namespace ui
 
-#endif //UI_IMAGE_IMAGE_PNG_H_
+#endif //UI_IMAGE_IMAGE_ICO_H_

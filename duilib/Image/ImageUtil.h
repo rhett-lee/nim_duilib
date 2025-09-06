@@ -29,6 +29,12 @@ public:
     */
     static uint32_t GetScaledImageSize(uint32_t nImageSize, float fImageSizeScale);
 
+    /** 计算出按比例缩放后的偏移量（按比例缩放）
+    * @param [in] nImageOffset 原图片的位置偏移
+    * @param [in] fImageSizeScale 图片的缩放比例，1.0f表示原值
+    */
+    static int32_t GetScaledImageOffset(int32_t nImageOffset, float fImageSizeScale);
+
     /** 计算出按比例缩放后的图片尺寸（按DPI显示百分比缩放）
     * @param [in] nImageSize 原图片的尺寸，宽度或者高度
     * @param [in] nNewDpiScale 新的DPI缩放百分比，100为原值，200表示缩放200%

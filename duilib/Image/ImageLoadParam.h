@@ -26,13 +26,17 @@ public:
     * @param [in] srcHeight 指定的图片高度，像素值或者百分比值，比如"300"，或者"30%"，也可以为空
     * @param [in] nDpiScaleOption 图片大小DPI缩放的设置
     * @param [in] nLoadDpiScale 绘制目标的DPI缩放百分比（举例：100代表缩放百分比为100%，无缩放）
-    * @param [in] nIconSize 加载图标的大小值（仅限ico格式，每个ico包含了各种大小的图标，这个参数可以指定加载哪个尺寸的图标）
+    * @param [in] bIconAsAnimation 如果是ICO文件，指定是否按多帧图片加载（按动画图片显示）
+    * @param [in] nIconFrameDelayMs 如果是ICO文件，当按多帧图片显示时，每帧播放的时间间隔，毫秒（仅当m_bIconAsAnimation为true时有效）
+    * @param [in] nIconSize 如果是ICO文件，用于指定需要加载的ICO图片的大小（仅当m_bIconAsAnimation为false时有效）
     * @param [in] fPagMaxFrameRate PAG格式默认播放的最大帧率（仅限PAG格式）
     */
     ImageLoadParam(DString srcWidth,
                    DString srcHeight,
                    DpiScaleOption nDpiScaleOption,
                    uint32_t nLoadDpiScale = 100,
+                   bool bIconAsAnimation = false,
+                   int32_t nIconFrameDelayMs = 1000,
                    uint32_t nIconSize = 32,
                    float fPagMaxFrameRate = 30.0f);
 
@@ -72,9 +76,19 @@ public:
     uint32_t GetLoadDpiScale() const;
 
 public:
+    /** 如果是ICO文件，指定是否按多帧图片加载（按动画图片显示）
+    */
+    bool IsIconAsAnimation() const;
+
     /** 如果是ICO文件，用于指定需要加载的ICO图片的大小（仅限ico格式）
+    *   仅当IsIconAsAnimation()为false时有效
     */
     uint32_t GetIconSize() const;
+
+    /** 如果是ICO文件，当按多帧图片显示时，每帧播放的时间间隔，毫秒
+    *   仅当IsIconAsAnimation()为true时有效
+    */
+    int32_t GetIconFrameDelayMs() const;
 
     /** PAG格式默认播放的最大帧率（仅限PAG格式）
     */
@@ -119,13 +133,21 @@ private:
     //绘制目标的DPI缩放百分比（举例：100代表缩放百分比为100%，无缩放）
     uint32_t m_nLoadDpiScale;
 
-    //如果是ICO文件，用于指定需要加载的ICO图片的大小（属性名称："icon_size"）
-    //(ICO文件中包含很多个不同大小的图片，常见的有256，48，32，16，并且每个大小都有32位真彩、256色、16色之分）
-    //目前ICO文件在加载时，只会选择一个大小的ICO图片进行加载，加载后为单张图片
-    uint32_t m_nIconSize;
-
     //PAG格式默认播放的最大帧率（仅限PAG格式）
     float m_fPagMaxFrameRate;
+
+    //如果是ICO文件，用于指定需要加载的ICO图片的大小
+    //(ICO文件中包含很多个不同大小的图片，常见的有256，48，32，16，并且每个大小都有32位真彩、256色、16色之分）
+    //目前ICO文件在加载时，只会选择一个大小的ICO图片进行加载，加载后为单张图片
+    //仅当m_bIconAsAnimation为false时有效
+    uint32_t m_nIconSize;
+
+    //如果是ICO文件，当按多帧图片显示时，每帧播放的时间间隔，毫秒
+    //仅当m_bIconAsAnimation为true时有效
+    int32_t m_nIconFrameDelayMs;
+
+    //如果是ICO文件，指定是否按多帧图片加载（按动画图片显示）
+    bool m_bIconAsAnimation;
 };
 
 } // namespace ui

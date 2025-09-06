@@ -2,8 +2,10 @@
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Image/Image_Bitmap.h"
 #include "duilib/Image/ImageDecoder.h"
-#include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Image/ImageUtil.h"
+#include "duilib/Image/Image_ICO.h"
+#include "duilib/Image/Image_Animation.h"
+#include "duilib/Utils/FilePathUtil.h"
 
 namespace ui
 {
@@ -73,21 +75,22 @@ std::unique_ptr<IImage> ImageDecoder_ICO::LoadImageData(const DString& /*imageFi
     }
 
     std::vector<ImageDecoder::ImageData> imageData;
-    uint32_t nOutFrameCount = 0;
-    bool isIconFile = true;
     uint32_t iconSize = 32;
-    bool bLoadAllFrames = false;
+    int32_t nFrameDelayMs = 1000; // 每帧的时间间隔，毫秒
+    bool bIconAsAnimation = false;
     if (pExtraParam != nullptr) {
         iconSize = pExtraParam->m_nIconSize;
+        bIconAsAnimation = pExtraParam->m_bIconAsAnimation && pExtraParam->m_bLoadAllFrames;
+        nFrameDelayMs = pExtraParam->m_nIconFrameDelayMs;
     }
     if (iconSize == 0) {
         iconSize = 32;
     }
     //计算期望大小
     iconSize = ImageUtil::GetScaledImageSize(iconSize, fImageSizeScale);
-    bool bLoaded = CxImageLoader::LoadImageFromMemory(data, imageData, isIconFile, iconSize, bLoadAllFrames, nOutFrameCount);
+    bool bLoaded = CxImageLoader::LoadImageFromMemory(data, bIconAsAnimation, iconSize, imageData);
     if (bLoaded) {
-        ASSERT(imageData.size() == 1);        
+        ASSERT(!imageData.empty());        
         if (imageData.size() == 1) {
             ImageDecoder::ImageData& bitmapData = imageData[0];
             ASSERT(bitmapData.m_imageHeight > 0);
@@ -95,11 +98,16 @@ std::unique_ptr<IImage> ImageDecoder_ICO::LoadImageData(const DString& /*imageFi
             ASSERT(bitmapData.m_imageWidth == bitmapData.m_imageHeight);
             ASSERT(bitmapData.m_bitmapData.size() == bitmapData.m_imageHeight* bitmapData.m_imageWidth*4);
             if ((bitmapData.m_imageHeight > 0) && (bitmapData.m_imageWidth > 0) &&
-                (bitmapData.m_bitmapData.size() == bitmapData.m_imageHeight * bitmapData.m_imageWidth * 4)) {
-                //CxImage加载的数据，需要翻转，以屏幕左上角为顶点
-                ImageUtil::FlipPixelBits(bitmapData.m_bitmapData.data(), bitmapData.m_bitmapData.size(), bitmapData.m_imageWidth, bitmapData.m_imageHeight);
+                (bitmapData.m_bitmapData.size() == bitmapData.m_imageHeight * bitmapData.m_imageWidth * 4)) {                
                 float fNewImageSizeScale = static_cast<float>(iconSize) / bitmapData.m_imageWidth;
                 pImage = Image_Bitmap::MakeImage(bitmapData.m_imageWidth, bitmapData.m_imageHeight, bitmapData.m_bitmapData.data(), fNewImageSizeScale);
+            }
+        }
+        else {
+            Image_ICO* pImageICO = new Image_ICO;
+            std::shared_ptr<IAnimationImage> pAnimationImage(pImageICO);
+            if (pImageICO->LoadImageFromMemory(imageData, fImageSizeScale, nFrameDelayMs)) {
+                pImage.reset(new Image_Animation(pAnimationImage, fImageSizeScale));
             }
         }
     }

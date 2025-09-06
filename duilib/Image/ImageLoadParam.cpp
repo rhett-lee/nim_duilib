@@ -9,10 +9,14 @@ ImageLoadParam::ImageLoadParam(DString srcWidth,
                                DString srcHeight,
                                DpiScaleOption nDpiScaleOption,
                                uint32_t nLoadDpiScale,
+                               bool bIconAsAnimation,
+                               int32_t nIconFrameDelayMs,
                                uint32_t nIconSize,
                                float fPagMaxFrameRate):
     m_nDpiScaleOption(nDpiScaleOption),
     m_nLoadDpiScale(nLoadDpiScale),
+    m_bIconAsAnimation(bIconAsAnimation),
+    m_nIconFrameDelayMs(nIconFrameDelayMs),
     m_nIconSize(nIconSize),
     m_fPagMaxFrameRate(fPagMaxFrameRate)
 {
@@ -82,9 +86,19 @@ uint32_t ImageLoadParam::GetLoadDpiScale() const
     return m_nLoadDpiScale;
 }
 
+bool ImageLoadParam::IsIconAsAnimation() const
+{
+    return m_bIconAsAnimation;
+}
+
 uint32_t ImageLoadParam::GetIconSize() const
 {
     return m_nIconSize;
+}
+
+int32_t ImageLoadParam::GetIconFrameDelayMs() const
+{
+    return m_nIconFrameDelayMs;
 }
 
 float ImageLoadParam::GetPagMaxFrameRate() const

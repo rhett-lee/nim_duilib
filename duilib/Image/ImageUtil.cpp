@@ -31,6 +31,15 @@ uint32_t ImageUtil::GetScaledImageSize(uint32_t nImageSize, float fImageSizeScal
     return nImageSize;
 }
 
+int32_t ImageUtil::GetScaledImageOffset(int32_t nImageOffset, float fImageSizeScale)
+{
+    if (NeedResizeImage(fImageSizeScale)) {
+        //计算后，进行四舍五入
+        nImageOffset = static_cast<int32_t>(nImageOffset * fImageSizeScale + 0.5f);
+    }
+    return nImageOffset;
+}
+
 bool ImageUtil::IsSameImageScale(float fImageSizeScale1, float fImageSizeScale2)
 {
     if (std::fabs(fImageSizeScale1 - fImageSizeScale2) < 0.001f) {

@@ -52,7 +52,9 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
     m_nTiledMargin = r.m_nTiledMargin;
     m_nPlayCount = r.m_nPlayCount;
     m_bHasPlayCount = r.m_bHasPlayCount;
-    m_iconSize = r.m_iconSize;
+    m_nIconSize = r.m_nIconSize;
+    m_bIconAsAnimation = r.m_bIconAsAnimation;
+    m_nIconFrameDelayMs = r.m_nIconFrameDelayMs;
     m_fPagMaxFrameRate = r.m_fPagMaxFrameRate;
     m_bPaintEnabled = r.m_bPaintEnabled;
     m_bAdaptiveDestRect = r.m_bAdaptiveDestRect;
@@ -137,7 +139,9 @@ void ImageAttribute::Init()
     m_nTiledMargin = 0;
     m_nPlayCount = -1;
     m_bHasPlayCount = false;
-    m_iconSize = 0;
+    m_nIconSize = 0;
+    m_bIconAsAnimation = false;
+    m_nIconFrameDelayMs = 1000;
     m_fPagMaxFrameRate = 30.0f;
     m_bPaintEnabled = true;
     m_bAdaptiveDestRect = false;
@@ -318,7 +322,18 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         }
         else if ((name == _T("icon_size")) || (name == _T("iconsize"))) {
             //指定加载ICO文件的图片大小(仅当图片文件是ICO文件时有效)
-            imageAttribute.m_iconSize = (uint32_t)StringUtil::StringToInt32(value);
+            imageAttribute.m_nIconSize = (uint32_t)StringUtil::StringToInt32(value);
+        }
+        else if (name == _T("icon_as_animation")) {
+            //如果是ICO文件，指定是否按多帧图片加载（按动画图片显示）
+            imageAttribute.m_bIconAsAnimation = (value == _T("true"));
+        }
+        else if (name == _T("icon_frame_delay")) {
+            //如果是ICO文件，当按多帧图片显示时，每帧播放的时间间隔，毫秒
+            imageAttribute.m_nIconFrameDelayMs = StringUtil::StringToInt32(value);
+            if (imageAttribute.m_nIconFrameDelayMs <= 0) {
+                imageAttribute.m_nIconFrameDelayMs = 1000;
+            }
         }
         else if (name == _T("pag_max_frame_rate")) {
             //如果是PAG文件，用于指定动画的帧率，默认为30.0f

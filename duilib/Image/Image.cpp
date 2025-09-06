@@ -101,12 +101,16 @@ ImageLoadParam Image::GetImageLoadParam() const
         }
     }
     uint32_t nLoadDpiScale = 100;//此时未知，不需要设置
-    uint32_t nIconSize = m_imageAttribute.m_iconSize;
+    bool bIconAsAnimation = m_imageAttribute.m_bIconAsAnimation;
+    uint32_t nIconSize = m_imageAttribute.m_nIconSize;
+    int32_t nIconFrameDelayMs = m_imageAttribute.m_nIconFrameDelayMs;
     float fPagMaxFrameRate = m_imageAttribute.m_fPagMaxFrameRate;
     return ImageLoadParam(m_imageAttribute.m_srcWidth.c_str(),
                           m_imageAttribute.m_srcHeight.c_str(),
                           nDpiScaleOption,
                           nLoadDpiScale,
+                          bIconAsAnimation,
+                          nIconFrameDelayMs,
                           nIconSize,
                           fPagMaxFrameRate);
 }
