@@ -355,8 +355,8 @@
     <ClCompile Include="duilib.cpp" />
     <ClCompile Include="Image\Image.cpp" />
     <ClCompile Include="Image\ImageAttribute.cpp" />
-    <ClCompile Include="Image\ImageDecoder.cpp" />
     <ClCompile Include="Image\ImageDecoderFactory.cpp" />
+    <ClCompile Include="Image\ImageDecoderUtil.cpp" />
     <ClCompile Include="Image\ImageDecoder_GIF.cpp" />
     <ClCompile Include="Image\ImageDecoder_ICO.cpp" />
     <ClCompile Include="Image\ImageDecoder_Icon.cpp" />
@@ -703,8 +703,8 @@
     <ClInclude Include="Image\IImageDecoder.h" />
     <ClInclude Include="Image\Image.h" />
     <ClInclude Include="Image\ImageAttribute.h" />
-    <ClInclude Include="Image\ImageDecoder.h" />
     <ClInclude Include="Image\ImageDecoderFactory.h" />
+    <ClInclude Include="Image\ImageDecoderUtil.h" />
     <ClInclude Include="Image\ImageDecoder_GIF.h" />
     <ClInclude Include="Image\ImageDecoder_ICO.h" />
     <ClInclude Include="Image\ImageDecoder_Icon.h" />

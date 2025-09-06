@@ -1,7 +1,7 @@
 #include "ImageDecoder_ICO.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Image/Image_Bitmap.h"
-#include "duilib/Image/ImageDecoder.h"
+#include "duilib/Image/ImageDecoderUtil.h"
 #include "duilib/Image/ImageUtil.h"
 #include "duilib/Image/Image_ICO.h"
 #include "duilib/Image/Image_Animation.h"
@@ -74,7 +74,7 @@ std::unique_ptr<IImage> ImageDecoder_ICO::LoadImageData(const DString& /*imageFi
         return pImage;
     }
 
-    std::vector<ImageDecoder::ImageData> imageData;
+    std::vector<UiImageData> imageData;
     uint32_t nIconSize = 0;
     int32_t nFrameDelayMs = 1000; // 每帧的时间间隔，毫秒
     bool bIconAsAnimation = false;
@@ -88,19 +88,19 @@ std::unique_ptr<IImage> ImageDecoder_ICO::LoadImageData(const DString& /*imageFi
     }
     //计算期望大小
     const uint32_t nIconSizeScaled = ImageUtil::GetScaledImageSize(nIconSize, fImageSizeScale);
-    bool bLoaded = CxImageLoader::LoadImageFromMemory(data, bIconAsAnimation, nIconSizeScaled, imageData);
+    bool bLoaded = ImageDecoderUtil::LoadIcoFromMemory(data, bIconAsAnimation, nIconSizeScaled, imageData);
     if (bLoaded) {
         ASSERT(!imageData.empty());        
         if (imageData.size() == 1) {
-            ImageDecoder::ImageData& bitmapData = imageData[0];
+            UiImageData& bitmapData = imageData[0];
             ASSERT(bitmapData.m_imageHeight > 0);
             ASSERT(bitmapData.m_imageWidth > 0);
             ASSERT(bitmapData.m_imageWidth == bitmapData.m_imageHeight);
-            ASSERT(bitmapData.m_bitmapData.size() == bitmapData.m_imageHeight* bitmapData.m_imageWidth*4);
+            ASSERT(bitmapData.m_imageData.size() == bitmapData.m_imageHeight* bitmapData.m_imageWidth*4);
             if ((bitmapData.m_imageHeight > 0) && (bitmapData.m_imageWidth > 0) &&
-                (bitmapData.m_bitmapData.size() == bitmapData.m_imageHeight * bitmapData.m_imageWidth * 4)) {                
+                (bitmapData.m_imageData.size() == bitmapData.m_imageHeight * bitmapData.m_imageWidth * 4)) {
                 float fNewImageSizeScale = static_cast<float>(nIconSizeScaled) / bitmapData.m_imageWidth;
-                pImage = Image_Bitmap::MakeImage(bitmapData.m_imageWidth, bitmapData.m_imageHeight, bitmapData.m_bitmapData.data(), fNewImageSizeScale);
+                pImage = Image_Bitmap::MakeImage(bitmapData.m_imageWidth, bitmapData.m_imageHeight, bitmapData.m_imageData.data(), fNewImageSizeScale);
             }
         }
         else {

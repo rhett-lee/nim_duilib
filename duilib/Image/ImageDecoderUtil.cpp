@@ -1,4 +1,4 @@
-#include "ImageDecoder.h"
+#include "ImageDecoderUtil.h"
 #include "duilib/Image/Image.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/StringUtil.h"
@@ -39,17 +39,22 @@ namespace STBImageLoader
 {
     /** 从内存数据加载图片
     */
-    bool LoadImageFromMemory(std::vector<uint8_t>& fileData, ImageDecoder::ImageData& imageData)
+    static bool LoadImageFromMemory(const std::vector<uint8_t>& fileData, UiImageData& imageData)
     {
         ASSERT(!fileData.empty());
         if (fileData.empty()) {
             return false;
         }
+#ifdef DUILIB_BUILD_FOR_WIN
+        imageData.m_imageDataType = UiImageDataType::kBGRA;
+#else
+        imageData.m_imageDataType = UiImageDataType::kRGBA;
+#endif
         const uint8_t* buffer = fileData.data();
         int len = (int)fileData.size();
         int nWidth = 0;
         int nHeight = 0;
-        std::vector<uint8_t>& argbData = imageData.m_bitmapData;
+        std::vector<uint8_t>& argbData = imageData.m_imageData;
         argbData.clear();
         ASSERT((buffer != nullptr) && (len > 0));
         if ((buffer == nullptr) || (len <= 0)) {
@@ -90,7 +95,6 @@ namespace STBImageLoader
 #endif
             }
 
-            imageData.m_frameInterval = 0;
             imageData.m_imageWidth = nWidth;
             imageData.m_imageHeight = nHeight;
         }
@@ -108,7 +112,7 @@ namespace STBImageLoader
 namespace CxImageLoader
 {
     // 从widthList中找到与nIconSize最匹配的图标大小
-    uint32_t FindBestIconSize(const std::vector<uint32_t>& widthList, uint32_t nIconSize)
+    static uint32_t FindBestIconSize(const std::vector<uint32_t>& widthList, uint32_t nIconSize)
     {
         if (widthList.empty()) {
             // 处理空容器情况，这里返回0作为默认值
@@ -147,10 +151,10 @@ namespace CxImageLoader
         }
     }
 
-    bool LoadImageFromMemory(const std::vector<uint8_t>& fileData,
-                             bool bLoadAllFrames,
-                             uint32_t iconSize,
-                             std::vector<ImageDecoder::ImageData>& imageData)
+    static bool LoadImageFromMemory(const std::vector<uint8_t>& fileData,
+                                    bool bLoadAllFrames,
+                                    uint32_t iconSize,
+                                    std::vector<UiImageData>& imageData)
     {
         ASSERT(!fileData.empty());
         if (fileData.empty()) {
@@ -172,7 +176,6 @@ namespace CxImageLoader
         std::unique_ptr<CxImage> cxIcoImage;   //每个Frame的ICO文件提取接口
         std::unique_ptr<CxMemFile> cxIcoStream;//每个Frame的ICO文件数据流
         //
-        uint32_t lastFrameDelay = 0;
         imageData.clear();
         imageData.resize(frameCount);
         frameNumColors.resize(frameCount);
@@ -190,13 +193,6 @@ namespace CxImageLoader
                 imageData.clear();
                 return false;
             }
-            uint32_t frameDelay = cxFrame->GetFrameDelay();
-            if (frameDelay == 0) {
-                frameDelay = lastFrameDelay;
-            }
-            else {
-                lastFrameDelay = frameDelay;
-            }
             frameNumColors[index] = cxFrame->GetNumColors();////2, 16, 256; 0 for RGB images.
 
             uint32_t nWidth = cxFrame->GetWidth();
@@ -209,9 +205,9 @@ namespace CxImageLoader
 
             int32_t lPx = 0;
             int32_t lPy = 0;
-            ImageDecoder::ImageData& bitmapData = imageData[index];
-            bitmapData.m_bitmapData.resize((size_t)nHeight * nWidth * 4);
-            RGBQUAD* pBit = (RGBQUAD*)bitmapData.m_bitmapData.data();
+            UiImageData& bitmapData = imageData[index];
+            bitmapData.m_imageData.resize((size_t)nHeight * nWidth * 4);
+            RGBQUAD* pBit = (RGBQUAD*)bitmapData.m_imageData.data();
             for (lPy = 0; lPy < (int32_t)nHeight; ++lPy) {
                 for (lPx = 0; lPx < (int32_t)nWidth; ++lPx) {
                     *pBit = cxFrame->GetPixelColor(lPx, lPy, true);
@@ -248,8 +244,10 @@ namespace CxImageLoader
                     }
 #ifdef DUILIB_BUILD_FOR_WIN
                     //数据格式：Window平台BGRA，其他平台RGBA
+                    bitmapData.m_imageDataType = UiImageDataType::kBGRA;
 #else
                     //其他平台，交换R和B值
+                    bitmapData.m_imageDataType = UiImageDataType::kRGBA;
                     uint8_t r = pBit->rgbRed;
                     pBit->rgbRed = pBit->rgbBlue;
                     pBit->rgbBlue = r;
@@ -257,7 +255,6 @@ namespace CxImageLoader
                     ++pBit;
                 }
             }
-            bitmapData.m_frameInterval = frameDelay * 10;
             bitmapData.m_imageWidth = nWidth;
             bitmapData.m_imageHeight = nHeight;
         }
@@ -267,7 +264,7 @@ namespace CxImageLoader
             std::set<uint32_t> widthSet;
             const size_t imageCount = imageData.size();
             for (size_t i = 0; i < imageCount; ++i) {
-                const ImageDecoder::ImageData& icoData = imageData[i];
+                const UiImageData& icoData = imageData[i];
                 widthSet.insert(icoData.m_imageWidth);
             }
             std::vector<uint32_t> widthList;
@@ -280,7 +277,7 @@ namespace CxImageLoader
             }
             bool isIconSizeValid = false;
             for (size_t i = 0; i < imageCount; ++i) {
-                const ImageDecoder::ImageData& icoData = imageData[i];
+                const UiImageData& icoData = imageData[i];
                 if (icoData.m_imageWidth == nBestIconSize) {
                     isIconSizeValid = true;
                     break;
@@ -291,10 +288,10 @@ namespace CxImageLoader
             bool isFound = false;
             for (auto color : colors) {
                 for (size_t i = 0; i < imageCount; ++i) {
-                    const ImageDecoder::ImageData& icoData = imageData[i];
+                    const UiImageData& icoData = imageData[i];
                     uint32_t numColors = frameNumColors[i];
                     if ((!isIconSizeValid || (icoData.m_imageWidth == nBestIconSize)) && (numColors == color)) {
-                        ImageDecoder::ImageData oneData = icoData;
+                        UiImageData oneData = icoData;
                         imageData.resize(1);
                         imageData[0] = oneData;
                         isFound = true;
@@ -306,21 +303,41 @@ namespace CxImageLoader
                 }
             }
             if (imageData.size() > 1) {
-                ImageDecoder::ImageData oneData = imageData.front();
+                UiImageData oneData = imageData.front();
                 imageData.resize(1);
                 imageData[0] = oneData;
             }
         }
 
-        for (ImageDecoder::ImageData& bitmapData : imageData) {
+        for (UiImageData& bitmapData : imageData) {
             //CxImage加载的数据，需要翻转，以屏幕左上角为顶点
-            if (!bitmapData.m_bitmapData.empty()) {
-                ImageUtil::FlipPixelBits(bitmapData.m_bitmapData.data(), bitmapData.m_bitmapData.size(), bitmapData.m_imageWidth, bitmapData.m_imageHeight);
+            if (!bitmapData.m_imageData.empty()) {
+                ImageUtil::FlipPixelBits(bitmapData.m_imageData.data(), bitmapData.m_imageData.size(), bitmapData.m_imageWidth, bitmapData.m_imageHeight);
             }
         }
         return !imageData.empty();
     }
 }//CxImageLoader
+
+DString ImageDecoderUtil::GetSupportedFileExtentions()
+{
+    //位图格式后缀: BMP;DIB
+    return DString(_T("BMP;DIB"));
+}
+
+bool ImageDecoderUtil::LoadImageFromMemory(const std::vector<uint8_t>& fileData,
+                                           UiImageData& imageData)
+{
+    return STBImageLoader::LoadImageFromMemory(fileData, imageData);
+}
+
+bool ImageDecoderUtil::LoadIcoFromMemory(const std::vector<uint8_t>& fileData,
+                                         bool bLoadAllFrames,
+                                         uint32_t iconSize /*仅当bLoadAllFrames为false时有效*/,
+                                         std::vector<UiImageData>& imageData)
+{
+    return CxImageLoader::LoadImageFromMemory(fileData, bLoadAllFrames, iconSize, imageData);
+}
 
 } // namespace ui
 

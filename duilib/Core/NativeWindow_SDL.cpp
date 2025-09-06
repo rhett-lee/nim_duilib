@@ -1,7 +1,6 @@
 #include "NativeWindow_SDL.h"
 #include "MessageLoop_SDL.h"
 #include "WindowDropTarget_SDL.h"
-#include "duilib/Image/ImageDecoder.h"
 #include "duilib/Image/ImageLoadParam.h"
 #include "duilib/Image/ImageInfo.h"
 #include "duilib/Utils/StringUtil.h"

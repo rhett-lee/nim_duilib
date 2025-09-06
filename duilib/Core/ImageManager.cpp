@@ -1,6 +1,5 @@
 #include "ImageManager.h"
 #include "duilib/Image/Image.h"
-#include "duilib/Image/ImageDecoder.h"
 #include "duilib/Image/ImageLoadParam.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/DpiManager.h"

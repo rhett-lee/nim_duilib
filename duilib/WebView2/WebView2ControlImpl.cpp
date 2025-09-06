@@ -12,7 +12,6 @@
 #include "duilib/Utils/StringUtil.h"
 #include "duilib/Utils/FilePath.h"
 #include "duilib/Utils/FilePathUtil.h"
-#include "duilib/Image/ImageDecoder.h"
 #include "duilib/Image/ImageLoadParam.h"
 #include "duilib/Image/ImageInfo.h"
 

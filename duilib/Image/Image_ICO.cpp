@@ -44,7 +44,7 @@ void Image_ICO::SetDecodeImageDataAborted()
 {
 }
 
-bool Image_ICO::LoadImageFromMemory(const std::vector<ImageDecoder::ImageData>& imageData,
+bool Image_ICO::LoadImageFromMemory(const std::vector<UiImageData>& imageData,
                                     float fImageSizeScale,
                                     uint32_t nIconSize,
                                     int32_t nFrameDelayMs)
@@ -72,7 +72,7 @@ bool Image_ICO::LoadImageFromMemory(const std::vector<ImageDecoder::ImageData>& 
     m_impl->m_frames.resize(imageData.size());
     const int32_t nFrameCount = (int32_t)imageData.size();
     for (int i = 0; i < nFrameCount; ++i) {
-        const ImageDecoder::ImageData& icoData = imageData[i];
+        const UiImageData& icoData = imageData[i];
         std::shared_ptr<IAnimationImage::AnimationFrame> pFrameData = std::make_shared<IAnimationImage::AnimationFrame>();
         pFrameData->m_nFrameIndex = i;
         pFrameData->SetDelayMs(nFrameDelayMs);
@@ -94,10 +94,10 @@ bool Image_ICO::LoadImageFromMemory(const std::vector<ImageDecoder::ImageData>& 
             float fScaleX = static_cast<float>(nImageSize) / icoData.m_imageWidth;
             float fScaleY = static_cast<float>(nImageSize) / icoData.m_imageHeight;
             float fNewImageSizeScale = std::min(fScaleX, fScaleY);
-            pFrameData->m_pBitmap->Init(icoData.m_imageWidth, icoData.m_imageHeight, icoData.m_bitmapData.data(), fNewImageSizeScale);
+            pFrameData->m_pBitmap->Init(icoData.m_imageWidth, icoData.m_imageHeight, icoData.m_imageData.data(), fNewImageSizeScale);
         }
         else {
-            pFrameData->m_pBitmap->Init(icoData.m_imageWidth, icoData.m_imageHeight, icoData.m_bitmapData.data(), fImageSizeScale);
+            pFrameData->m_pBitmap->Init(icoData.m_imageWidth, icoData.m_imageHeight, icoData.m_imageData.data(), fImageSizeScale);
         }
         ASSERT(pFrameData->m_pBitmap->GetWidth() <= (uint32_t)m_impl->m_nWidth);
         ASSERT(pFrameData->m_pBitmap->GetHeight() <= (uint32_t)m_impl->m_nHeight);

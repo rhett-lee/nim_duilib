@@ -2,7 +2,7 @@
 #define UI_IMAGE_IMAGE_ICO_H_
 
 #include "duilib/Image/IImageDecoder.h"
-#include "duilib/Image/ImageDecoder.h"
+#include "duilib/Image/ImageDecoderUtil.h"
 
 namespace ui
 {
@@ -21,7 +21,7 @@ public:
     * @param [in] nIconSize 指定需要加载的ICO图片的大小
     * @param [in] nFrameDelayMs 每帧的时间间隔，毫秒
     */
-    bool LoadImageFromMemory(const std::vector<ImageDecoder::ImageData>& imageData,
+    bool LoadImageFromMemory(const std::vector<UiImageData>& imageData,
                              float fImageSizeScale,
                              uint32_t nIconSize,
                              int32_t nFrameDelayMs);

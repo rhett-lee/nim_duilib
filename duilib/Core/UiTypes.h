@@ -21,6 +21,35 @@
 
 namespace ui
 {
+    /** 加载后的图片数据类型
+    */
+    enum class UILIB_API UiImageDataType
+    {
+        kBGRA,  //格式为BGRA格式，位数顺序从高位到低位分别为[第3位:A，第2位:R，第1位:G,第0位:B]（Windows平台使用）
+        kRGBA   //格式为RGBA格式，位数顺序从高位到低位分别为[第3位:A，第2位:B，第1位:G,第0位:R]（其他平台使用）
+    };
+
+    /** 加载后的图片数据
+    */
+    struct UILIB_API UiImageData
+    {
+        /** 位图数据，每帧图片的数据长度固定为：图像数据长度为 (m_imageHeight*m_imageWidth*4)
+        */
+        std::vector<uint8_t> m_imageData;
+
+        /** 位图数据格式
+        */
+        UiImageDataType m_imageDataType;
+
+        /** 图像宽度
+        */
+        uint32_t m_imageWidth = 0;
+
+        /** 图像高度
+        */
+        uint32_t m_imageHeight = 0;
+    };
+
     /** 设置的控件大小
     */
     class UILIB_API UiFixedSize

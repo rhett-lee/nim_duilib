@@ -3,7 +3,6 @@
 #include "duilib/Core/Window.h"
 #include "duilib/Utils/FilePathUtil.h"
 #include "duilib/Utils/FileUtil.h"
-#include "duilib/Image/ImageDecoder.h"
 #include "duilib/Image/ImageLoadParam.h"
 #include "duilib/Image/ImageInfo.h"
 #include <map>
