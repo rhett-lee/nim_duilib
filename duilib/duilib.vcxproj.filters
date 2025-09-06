@@ -783,6 +783,9 @@
     <ClCompile Include="Image\ImageDecoderUtil.cpp">
       <Filter>Image</Filter>
     </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_Common.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1623,6 +1626,9 @@
       <Filter>Image</Filter>
     </ClInclude>
     <ClInclude Include="Image\ImageDecoder.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_Common.h">
       <Filter>Image</Filter>
     </ClInclude>
   </ItemGroup>

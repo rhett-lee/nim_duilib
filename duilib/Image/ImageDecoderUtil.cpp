@@ -325,6 +325,15 @@ DString ImageDecoderUtil::GetSupportedFileExtentions()
     return DString(_T("BMP;DIB"));
 }
 
+bool ImageDecoderUtil::CanDecode(const uint8_t* data, size_t dataLen)
+{
+    if ((data == nullptr) || (dataLen == 0)) {
+        return false;
+    }
+
+    return true;
+}
+
 bool ImageDecoderUtil::LoadImageFromMemory(const std::vector<uint8_t>& fileData,
                                            UiImageData& imageData)
 {

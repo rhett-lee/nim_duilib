@@ -357,6 +357,7 @@
     <ClCompile Include="Image\ImageAttribute.cpp" />
     <ClCompile Include="Image\ImageDecoderFactory.cpp" />
     <ClCompile Include="Image\ImageDecoderUtil.cpp" />
+    <ClCompile Include="Image\ImageDecoder_Common.cpp" />
     <ClCompile Include="Image\ImageDecoder_GIF.cpp" />
     <ClCompile Include="Image\ImageDecoder_ICO.cpp" />
     <ClCompile Include="Image\ImageDecoder_Icon.cpp" />
@@ -705,6 +706,7 @@
     <ClInclude Include="Image\ImageDecoder.h" />
     <ClInclude Include="Image\ImageDecoderFactory.h" />
     <ClInclude Include="Image\ImageDecoderUtil.h" />
+    <ClInclude Include="Image\ImageDecoder_Common.h" />
     <ClInclude Include="Image\ImageDecoder_GIF.h" />
     <ClInclude Include="Image\ImageDecoder_ICO.h" />
     <ClInclude Include="Image\ImageDecoder_Icon.h" />

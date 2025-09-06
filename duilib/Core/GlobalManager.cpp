@@ -15,6 +15,7 @@
 #include "duilib/Image/ImageDecoder_PNG.h"
 #include "duilib/Image/ImageDecoder_SVG.h"
 #include "duilib/Image/ImageDecoder_WEBP.h"
+#include "duilib/Image/ImageDecoder_Common.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN)
     //ToolTip/日期时间等标准控件，需要初始化commctrl
@@ -106,6 +107,10 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_PNG>());
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_WEBP>());
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_Icon>());
+
+    //通用解码器，放在最后
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_Common>());
+    
 
     //初始化定时器
     m_timerManager.Initialize(m_platformData);

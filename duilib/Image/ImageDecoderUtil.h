@@ -12,6 +12,12 @@ public:
     */
     static DString GetSupportedFileExtentions();
 
+    /** 检查该解码器是否支持给定的数据流
+    * @param [in] data 数据的起始地址
+    * @param [in] dataLen 数据的长度
+    */
+    static bool CanDecode(const uint8_t* data, size_t dataLen);
+
     /** 加载图片(通用，支持多种文件格式, 但不支持加载多帧)
     * @param [in] fileData ICO文件数据
     * @param [out] imageData 返回加载的位图数据
