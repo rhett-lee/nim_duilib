@@ -1225,6 +1225,22 @@ void NativeWindow_Windows::SetText(const DString& strText)
 #endif
 }
 
+DString NativeWindow_Windows::GetText() const
+{
+    ASSERT(::IsWindow(m_hWnd));
+    DString text;
+    int nLen = ::GetWindowTextLength(m_hWnd);
+    if (nLen > 0) {
+        std::vector<TCHAR> szText;
+        szText.resize((size_t)nLen + 2);
+        memset(szText.data(), 0, szText.size() * sizeof(TCHAR));
+        ::GetWindowText(m_hWnd, szText.data(), (int)szText.size() - 1);
+        DString localText = szText.data();
+        text = StringConvert::LocalToT(localText);
+    }
+    return text;
+}
+
 void NativeWindow_Windows::SetWindowMaximumSize(const UiSize& szMaxWindow)
 {
     m_szMaxWindow = szMaxWindow;

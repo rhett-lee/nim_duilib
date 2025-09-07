@@ -350,6 +350,7 @@
     <ClCompile Include="Core\WindowCreateParam.cpp" />
     <ClCompile Include="Core\WindowDropTarget_SDL.cpp" />
     <ClCompile Include="Core\WindowDropTarget_Windows.cpp" />
+    <ClCompile Include="Core\WindowManager.cpp" />
     <ClCompile Include="Core\ZipManager.cpp" />
     <ClCompile Include="Core\ZipStreamIO.cpp" />
     <ClCompile Include="duilib.cpp" />
@@ -627,6 +628,7 @@
     <ClInclude Include="Core\WindowCreateParam.h" />
     <ClInclude Include="Core\WindowDropTarget_SDL.h" />
     <ClInclude Include="Core\WindowDropTarget_Windows.h" />
+    <ClInclude Include="Core\WindowManager.h" />
     <ClInclude Include="Core\WindowMessage.h" />
     <ClInclude Include="Core\ZipManager.h" />
     <ClInclude Include="Core\ZipStreamIO.h" />
