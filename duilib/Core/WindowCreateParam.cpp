@@ -16,17 +16,19 @@ WindowCreateParam::WindowCreateParam():
 {
 }
 
-WindowCreateParam::WindowCreateParam(const DString& windowTitle):
+WindowCreateParam::WindowCreateParam(const DString& windowTitle, const DString& windowId):
     WindowCreateParam()
 {
     m_windowTitle = windowTitle;
+    m_windowId = windowId;
 }
 
-WindowCreateParam::WindowCreateParam(const DString& windowTitle, bool bCenterWindow) :
+WindowCreateParam::WindowCreateParam(const DString& windowTitle, bool bCenterWindow, const DString& windowId) :
     WindowCreateParam()
 {
     m_windowTitle = windowTitle;
     m_bCenterWindow = bCenterWindow;
+    m_windowId = windowId;
 }
 
 } // namespace ui

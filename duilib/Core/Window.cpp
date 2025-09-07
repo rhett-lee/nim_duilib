@@ -327,7 +327,7 @@ void Window::PreInitWindow()
     }
 
     //添加到全局管理器
-    GlobalManager::Instance().AddWindow(this);
+    GlobalManager::Instance().Windows().AddWindow(this);
 
     //解析窗口关联的XML文件
     if (m_windowBuilder == nullptr) {
@@ -416,7 +416,7 @@ void Window::OnFinalMessage()
 
 void Window::ClearWindow(bool bSendClose)
 {
-    bool bHasWindow = GlobalManager::Instance().HasWindow(this);
+    bool bHasWindow = GlobalManager::Instance().Windows().HasWindow(this);
     if (bSendClose && bHasWindow) {
         //发送关闭事件
         WPARAM wParam = (WPARAM)GetCloseParam();
@@ -428,7 +428,7 @@ void Window::ClearWindow(bool bSendClose)
     }
     
     //回收控件
-    GlobalManager::Instance().RemoveWindow(this);
+    GlobalManager::Instance().Windows().RemoveWindow(this);
     ReapObjects(GetRoot());
 
     Box* pRoot = m_pRoot.get();
@@ -2224,7 +2224,7 @@ void Window::OnFocusControlChanged()
 Window* Window::WindowFromPoint(const UiPoint& pt, bool bIgnoreChildWindow)
 {
     WindowBase* pWindow = WindowBaseFromPoint(pt, bIgnoreChildWindow);
-    if (!GlobalManager::Instance().HasWindowBase(pWindow)) {
+    if (!GlobalManager::Instance().Windows().HasWindowBase(pWindow)) {
         //不是本进程窗口时，不使用，避免跨进程的窗口时导致崩溃
         pWindow = nullptr;
     }

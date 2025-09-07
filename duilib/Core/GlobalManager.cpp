@@ -125,12 +125,12 @@ void GlobalManager::Shutdown()
     m_imageManager.RemoveAllImages();
     m_zipManager.CloseResZip();    
     m_langManager.ClearStringTable();
+    m_windowManager.Clear();
     
     m_renderFactory.reset();
     m_renderFactory = nullptr;
     m_pfnCreateControlCallbackList.clear();
-    m_globalClass.clear();
-    m_windowList.clear();
+    m_globalClass.clear();    
     m_dwUiThreadId = std::thread::id();
     m_resourcePath.Clear();
     m_languagePath.Clear();
@@ -267,15 +267,14 @@ bool GlobalManager::ReloadResource(const ResourceParam& resParam, bool bInvalida
 
     //更新窗口中的所有子控件状态
     if (bInvalidate) {
-        std::vector<WindowWeakFlag> windowList = m_windowList;
-        for (const WindowWeakFlag& windowFlag : windowList) {
-            Box* pBox = nullptr;
-            if ((windowFlag.m_pWindow != nullptr) && !windowFlag.m_weakFlag.expired()) {
-                pBox = windowFlag.m_pWindow->GetRoot();
-            }
-            if ((pBox != nullptr) && !windowFlag.m_weakFlag.expired()) {
-                pBox->Invalidate();
-            }
+        std::vector<WindowPtr> windowList = Windows().GetAllWindowList();
+        for (const WindowPtr& pWindow : windowList) {
+            if (pWindow != nullptr) {
+                Box* pBox = pWindow->GetRoot();
+                if (pBox != nullptr) {
+                    pBox->Invalidate();
+                }
+            }            
         }
     }
     return true;
@@ -327,18 +326,18 @@ bool GlobalManager::ReloadLanguage(const FilePath& languagePath,
     ASSERT(bReadOk && "ReloadLanguage");
     if (bReadOk && bInvalidate) {
         //刷新界面显示
-        std::vector<WindowWeakFlag> windowList = m_windowList;
-        for (const WindowWeakFlag& windowFlag : windowList) {
-            Box* pBox = nullptr;
-            if ((windowFlag.m_pWindow != nullptr) && !windowFlag.m_weakFlag.expired()) {
-                pBox = windowFlag.m_pWindow->GetRoot();
-                if (windowFlag.m_pWindow->GetText().empty() && 
-                    !windowFlag.m_pWindow->GetTextId().empty()) {
-                    //更新窗口标题栏文本
-                    windowFlag.m_pWindow->SetTextId(windowFlag.m_pWindow->GetTextId());
-                }
+        std::vector<WindowPtr> windowList = Windows().GetAllWindowList();
+        for (const WindowPtr& pWindow : windowList) {
+            if (pWindow == nullptr) {
+                continue;
             }
-            if ((pBox != nullptr) && !windowFlag.m_weakFlag.expired()) {
+            Box* pBox = pWindow->GetRoot();
+            //支持多语言时，TextId优先
+            if (!pWindow->GetTextId().empty()) {
+                //更新窗口标题栏文本
+                pWindow->SetTextId(pWindow->GetTextId());
+            }
+            if (pBox != nullptr) {
                 pBox->Invalidate();
             }
         }
@@ -468,69 +467,16 @@ FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath, cons
     return imageFullPath;
 }
 
-void GlobalManager::AddWindow(Window* pWindow)
-{
-    AssertUIThread();
-    ASSERT(pWindow != nullptr);
-    if (pWindow != nullptr) {
-        WindowWeakFlag flag;
-        flag.m_pWindow = pWindow;
-        flag.m_weakFlag = pWindow->GetWeakFlag();
-        m_windowList.push_back(flag);
-    }    
-}
-
-void GlobalManager::RemoveWindow(Window* pWindow)
-{
-    AssertUIThread();
-    ASSERT(pWindow != nullptr);
-    if (pWindow != nullptr) {
-        for (auto iter = m_windowList.begin(); iter != m_windowList.end(); ++iter) {
-            if (iter->m_pWindow == pWindow) {
-                m_windowList.erase(iter);
-                break;
-            }
-        }
-    }
-}
-
-bool GlobalManager::HasWindow(Window* pWindow) const
-{
-    AssertUIThread();
-    if (pWindow != nullptr) {
-        for (auto iter = m_windowList.begin(); iter != m_windowList.end(); ++iter) {
-            if (iter->m_pWindow == pWindow) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool GlobalManager::HasWindowBase(WindowBase* pWindowBase) const
-{
-    AssertUIThread();
-    if (pWindowBase != nullptr) {
-        for (auto iter = m_windowList.begin(); iter != m_windowList.end(); ++iter) {
-            if (iter->m_pWindow == pWindowBase) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
 void GlobalManager::RemoveAllImages()
 {
     AssertUIThread();
-    std::vector<WindowWeakFlag> windowList = m_windowList;
-    for (const WindowWeakFlag& windowFlag : windowList) {
-        Box* pBox = nullptr;
-        if ((windowFlag.m_pWindow != nullptr) && !windowFlag.m_weakFlag.expired()) {
-            pBox = windowFlag.m_pWindow->GetRoot();
-        }
-        if ((pBox != nullptr) && !windowFlag.m_weakFlag.expired()) {
-            pBox->ClearImageCache();
+    std::vector<WindowPtr> windowList = Windows().GetAllWindowList();
+    for (const WindowPtr& pWindow : windowList) {
+        if (pWindow != nullptr) {
+            Box* pBox = pWindow->GetRoot();
+            if (pBox != nullptr) {
+                pBox->ClearImageCache();
+            }
         }
     }
     m_imageManager.RemoveAllImages();
@@ -614,6 +560,11 @@ LangManager& GlobalManager::Lang()
 CursorManager& GlobalManager::Cursor()
 {
     return m_cursorManager;
+}
+
+WindowManager& GlobalManager::Windows()
+{
+    return m_windowManager;
 }
 
 Box* GlobalManager::CreateBox(const FilePath& strXmlPath, CreateControlCallback callback)

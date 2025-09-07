@@ -275,6 +275,10 @@ public:
     */
     void SetText(const DString& strText);
 
+    /** 获取窗口标题栏文本
+    */
+    DString GetText() const;
+
     /** 设置窗口大小的最小值（宽度和高度，内部不按DPI调整大小，DPI自适应需要调用方来做）
     * @param [in] szMaxWindow 窗口的最大宽度和最小高度，如果值为0，表示不做限制
     */

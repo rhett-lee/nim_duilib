@@ -185,6 +185,8 @@ typedef ControlPtrT<Control> ControlPtr;
 class Box;
 typedef ControlPtrT<Box> BoxPtr;
 
+class Window;
+typedef ControlPtrT<Window> WindowPtr;
 
 } // namespace ui
 

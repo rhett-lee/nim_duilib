@@ -2165,6 +2165,18 @@ void NativeWindow_SDL::SetText(const DString& strText)
     ASSERT_UNUSED_VARIABLE(nRet);
 }
 
+DString NativeWindow_SDL::GetText() const
+{
+    DString windowText;
+    if (m_sdlWindow != nullptr) {
+        const char* szText = SDL_GetWindowTitle(m_sdlWindow);
+        if (szText != nullptr) {
+            windowText = StringConvert::UTF8ToT(szText);
+        }
+    }
+    return windowText;
+}
+
 void NativeWindow_SDL::SetWindowMaximumSize(const UiSize& szMaxWindow)
 {
     m_szMaxWindow = szMaxWindow;

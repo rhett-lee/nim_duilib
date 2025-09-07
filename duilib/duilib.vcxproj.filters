@@ -711,6 +711,9 @@
     <ClCompile Include="Core\ControlDropTargetUtils.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\WindowManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1494,6 +1497,9 @@
       <Filter>Core\Windows</Filter>
     </ClInclude>
     <ClInclude Include="Core\ControlDropTargetUtils.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WindowManager.h">
       <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>

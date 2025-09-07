@@ -70,14 +70,16 @@ public:
 
     /** 提供窗口标题的构造函数
     * @param [in] windowTitle 窗口标题
+    * @param [in] windowId 窗口ID，如果为空，内部会生成一个窗口ID
     */
-    explicit WindowCreateParam(const DString& windowTitle);
+    explicit WindowCreateParam(const DString& windowTitle, const DString& windowId = _T(""));
 
     /** 提供窗口标题, 窗口居中的构造函数
     * @param [in] windowTitle 窗口标题
     * @param [in] bCenterWindow 窗口初始位置居中显示
+    * @param [in] windowId 窗口ID，如果为空，内部会生成一个窗口ID
     */
-    WindowCreateParam(const DString& windowTitle, bool bCenterWindow);
+    WindowCreateParam(const DString& windowTitle, bool bCenterWindow, const DString& windowId = _T(""));
 
 public:
     /** 平台相关数据（可选参数，如不填写则使用默认值：nullptr）
@@ -105,6 +107,10 @@ public:
     /** 窗口的标题（可选参数，默认为空）
     */
     DString m_windowTitle;
+
+    /** 窗口ID（可以为空，如果为空的话，内部会自动生成一个唯一ID）
+    */
+    DString m_windowId;
 
 public:
     /** 窗口的左上角X坐标(如果不设置，则使用默认值)
