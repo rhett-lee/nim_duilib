@@ -59,6 +59,7 @@ public:
     bool IsShowPassword() const;//是否显示密码
     void SetFlashPasswordChar(bool bFlash);
     bool IsFlashPasswordChar() const;
+    DString GetPasswordText() const;
 
     //是否只允许输入数字字符
     bool IsNumberOnly() const;

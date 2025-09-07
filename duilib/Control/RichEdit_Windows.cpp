@@ -1103,6 +1103,11 @@ int32_t RichEdit::GetTextLength() const
 
 DString RichEdit::GetText() const
 {
+    if ((m_pRichHost != nullptr) && m_pRichHost->IsPassword()) {
+        //密码模式: 使用底层接口直接获取文本
+        return m_pRichHost->GetPasswordText();
+    }
+
     UINT uCodePage = 1200;
     int32_t nTextLen = m_richCtrl.GetTextLengthEx(GTL_DEFAULT, uCodePage);
     if (nTextLen < 1) {
