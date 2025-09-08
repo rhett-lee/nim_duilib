@@ -2027,6 +2027,7 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
            eventType == kEventMouseRDoubleClick ||
            eventType == kEventMouseMDoubleClick);
 
+    const bool bWindowFocused = IsWindowFocused();
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();    
     if ((eventType == kEventMouseButtonDown) || (eventType == kEventMouseButtonDown) || (eventType == kEventMouseButtonDown)) {
         SetCapture();
@@ -2045,6 +2046,7 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
         ControlPtr pOldEventClick = m_pEventClick;
         m_pEventClick = pControl;
         bool bOldCheckSetWindowFocus = IsCheckSetWindowFocus();
+        SetCheckSetWindowFocus(false);
         pControl->SetFocus();
         if (windowFlag.expired()) {
             return;
@@ -2072,8 +2074,8 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
             }
         }
     }
-    if (!windowFlag.expired()) {
-        //确保被点击的窗口有输入焦点
+    if (!bWindowFocused && !windowFlag.expired()) {
+        //确保被点击的窗口有输入焦点(解决CEF窗口模式下，输入焦点无法从页面切换到地址栏的问题)
         CheckSetWindowFocus();
     }
 }
