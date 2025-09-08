@@ -342,17 +342,17 @@ void DateTime::HandleEvent(const EventArgs& msg)
         SetCursor(CursorType::kCursorIBeam);
         return;
     }
-    if (msg.eventType == kEventWindowSize) {
+    else if (msg.eventType == kEventWindowSize) {
         if (m_pDateWindow != nullptr) {
             return;
         }
     }
-    if (msg.eventType == kEventScrollChange) {
+    else if (msg.eventType == kEventScrollChange) {
         if (m_pDateWindow != nullptr) {
             return;
         }
     }
-    if (msg.eventType == kEventSetFocus) {
+    else if (msg.eventType == kEventSetFocus) {
         if (m_pDateWindow != nullptr) {
             return;
         }
@@ -371,12 +371,12 @@ void DateTime::HandleEvent(const EventArgs& msg)
             }
         }
     }
-    if (msg.eventType == kEventKillFocus) {
+    else if (msg.eventType == kEventKillFocus) {
         Invalidate();
     }
-    if ((msg.eventType == kEventMouseButtonDown) ||
-        (msg.eventType == kEventMouseDoubleClick) ||
-        (msg.eventType == kEventMouseRButtonDown)) {
+    else if ((msg.eventType == kEventMouseButtonDown) ||
+             (msg.eventType == kEventMouseDoubleClick) ||
+             (msg.eventType == kEventMouseRButtonDown)) {
         if (GetWindow() != nullptr) {
             GetWindow()->ReleaseCapture();
         }
@@ -393,22 +393,24 @@ void DateTime::HandleEvent(const EventArgs& msg)
             }
         }
     }
-    if (msg.eventType == kEventMouseMove) {
+    else if (msg.eventType == kEventMouseMove) {
         return;
     }
-    if (msg.eventType == kEventMouseButtonUp) {
+    else if (msg.eventType == kEventMouseButtonUp) {
         return;
     }
-    if (msg.eventType == kEventContextMenu) {
+    else if (msg.eventType == kEventContextMenu) {
         return;
     }
-    if (msg.eventType == kEventMouseEnter) {
+    else if (msg.eventType == kEventMouseEnter) {
         return;
     }
-    if (msg.eventType == kEventMouseLeave) {
+    else if (msg.eventType == kEventMouseLeave) {
         return;
     }
-    BaseClass::HandleEvent(msg);
+    else {
+        BaseClass::HandleEvent(msg);
+    }
 }
 
 void DateTime::OnInit()
