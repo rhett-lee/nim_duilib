@@ -81,52 +81,71 @@ public:
     */
     bool IsInited() const;
 
-    /**@brief 设置该控件是否可见
+public:
+    /** 设置该控件是否可见
      */
-    virtual void SetVisible(bool bVisible);
+    void SetVisible(bool bVisible);
 
-    /**@brief 判断是否可见
+    /** 判断是否可见
      */
-    virtual bool IsVisible() const { return m_bVisible; }
+    bool IsVisible() const;
 
-    /** 检查控件是否可用
-     * @return 控件可用状态，返回 true 控件可用，否则为 false
+    /** 设置祖先控件是否可见
+    */
+    void SetAncestorVisible(bool bAncestorVisible);
+
+    /**@ 判断祖先是否可见
      */
-    virtual bool IsEnabled() const { return m_bEnabled; }
+    bool IsAncestorVisible() const;
 
     /** 设置控件可用状态
      * @param [in] bEnable 为 true 时控件可用，为 false 时控件为禁用状态则不可用
      */
-    virtual void SetEnabled(bool bEnable);
+    void SetEnabled(bool bEnable);
 
-    /** 检查控件是否响应鼠标事件
-     * @return 返回控件是否响应鼠标事件，返回 true 响应鼠标事件，false 为不响应
+    /** 检查控件是否可用
+     * @return 控件可用状态，返回 true 控件可用，否则为 false
      */
-    virtual bool IsMouseEnabled() const { return m_bMouseEnabled; }
+    bool IsEnabled() const;
+
+    /** 设置祖先控件可用状态
+     * @param [in] bEnable 为 true 时控件可用，为 false 时控件为禁用状态则不可用
+     */
+    void SetAncestorEnabled(bool bAncestorEnable);
+
+    /** 检查祖先控件是否可用
+     * @return 控件可用状态，返回 true 控件可用，否则为 false
+     */
+    bool IsAncestorEnabled() const;
 
     /** 设置控件是否响应鼠标事件
      * @param [in] bEnable 为 true 响应鼠标事件，为 false 时不响应鼠标事件
      */
-    virtual void SetMouseEnabled(bool bEnable);
+    void SetMouseEnabled(bool bEnable);
 
-    /** 检查控件是否响应键盘事件
-     * @return 返回控件是否响应键盘事件，返回 true 响应键盘事件，false 不响应键盘事件
+    /** 检查控件是否响应鼠标事件
+     * @return 返回控件是否响应鼠标事件，返回 true 响应鼠标事件，false 为不响应
      */
-    virtual bool IsKeyboardEnabled() const { return m_bKeyboardEnabled; }
+    bool IsMouseEnabled() const { return m_bMouseEnabled; }
 
     /** 设置控件是否响应键盘事件
      * @param [in] bEnable 为 true 响应键盘事件，为 false 时不响应键盘事件
      */
-    virtual void SetKeyboardEnabled(bool bEnable);
+    void SetKeyboardEnabled(bool bEnable);
 
-    /** 判断控件是否浮动状态，对应 xml 中 float 属性
+    /** 检查控件是否响应键盘事件
+     * @return 返回控件是否响应键盘事件，返回 true 响应键盘事件，false 不响应键盘事件
      */
-    bool IsFloat() const { return m_bFloat; }
+    bool IsKeyboardEnabled() const { return m_bKeyboardEnabled; }
 
     /** 设置控件是否浮动
      * @param [in] bFloat 设置为 true 为浮动，false 为不浮动
      */
     void SetFloat(bool bFloat);
+
+    /** 判断控件是否浮动状态，对应 xml 中 float 属性
+     */
+    bool IsFloat() const { return m_bFloat; }
 
     /** 获取与父控件的相对位置(仅当控件为浮动控件时有效)
     * @return 如果返回的cx和cy都是INT32_MIN，表示无效值，其他值表示有效值
@@ -392,8 +411,33 @@ public:
     const DpiManager& Dpi() const;
 
 protected:
+    /** 可见状态（供内部子类重写可见状态使用, 如果返回true代表可见，返回false表示不可见）
+    */
+    virtual bool IsVisibleInternal() const { return true; }
+
+    /** 设置可见状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetVisible(bool bChanged) { UNUSED_VARIABLE(bChanged); }
+
+    /** 设置可用状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetEnabled(bool bChanged) { UNUSED_VARIABLE(bChanged); }
+
+    /** 设置鼠标可用状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetMouseEnabled(bool bChanged) { UNUSED_VARIABLE(bChanged); }
+
+    /** 设置键盘可用状态
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetKeyboardEnabled(bool bChanged) { UNUSED_VARIABLE(bChanged); }
+
+protected:
     /** 让自己重排
-     */
+    */
     virtual void ArrangeSelf();
 
     /** 执行初始化函数的事件（每个控件在初始化时，会调用该函数，并且只调用一次）
@@ -473,8 +517,14 @@ private:
     //是否可见
     bool m_bVisible;
 
+    //上级容器是否可见
+    bool m_bAncestorVisible;
+
     //控件的Enable状态（当为false的时候，不响应鼠标、键盘等输入消息）
     bool m_bEnabled;
+
+    //上级容器的Enable状态
+    bool m_bAncestorEnabled;
 
     //鼠标消息的Enable状态（当为false的时候，不响应鼠标消息）
     bool m_bMouseEnabled;

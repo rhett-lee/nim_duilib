@@ -23,9 +23,7 @@ public:
 
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
-    virtual void SetEnabled(bool bEnable = true) override;
     virtual void SetFocus() override;
-    virtual void SetVisible(bool bVisible) override;
     virtual bool ButtonUp(const EventArgs& msg) override;
     virtual bool HasHotState() override;
     virtual bool MouseEnter(const EventArgs& msg) override;
@@ -235,6 +233,17 @@ public:
     /** 设置关联横向滚动条的高度
     */
     void SetHScrollbarHeight(int32_t nHScrollbarHeight);
+
+protected:
+    /** 设置可见状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetVisible(bool bChanged) override;
+
+    /** 设置可用状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetEnabled(bool bChanged) override;
 
 private:
     void ScrollTimeHandle();

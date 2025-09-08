@@ -1692,9 +1692,9 @@ void RichEdit::OnInit()
     }
 }
 
-void RichEdit::SetEnabled(bool bEnable /*= true*/)
+void RichEdit::OnSetEnabled(bool bChanged)
 {
-    BaseClass::SetEnabled(bEnable);
+    BaseClass::OnSetEnabled(bChanged);
     if (IsEnabled()) {
         SetState(kControlStateNormal);
         UiColor dwTextColor = GetUiColor(GetTextColor());

@@ -18,7 +18,6 @@ public:
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
-    virtual void SetVisible(bool bVisible) override;
     virtual bool AddItem(Control* pControl) override;
     virtual bool AddItemAt(Control* pControl, size_t iIndex) override;
     virtual bool RemoveItem(Control* pControl) override;
@@ -78,6 +77,12 @@ protected:
     *@param [in] it TAB 项索引
     */
     void OnAnimationComplete(size_t index);
+
+protected:
+    /** 设置可见状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetVisible(bool bChanged) override;
 
 private:
     /** 根据控件索引选择一个子项

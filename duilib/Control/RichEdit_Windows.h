@@ -49,7 +49,6 @@ public:
     //基类的虚函数重写
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& pstrName, const DString& pstrValue) override;
-    virtual void SetEnabled(bool bEnable = true) override;
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
     virtual void SetPos(UiRect rc) override;
     virtual void SetScrollPos(UiSize64 szPos) override;
@@ -952,6 +951,11 @@ protected:
      * @param[in] items 控件列表
      */
     virtual void ArrangeChild(const std::vector<Control*>& items) const;
+
+    /** 设置可用状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetEnabled(bool bChanged) override;
 
 private:
     /** 显示RichEdit上的菜单

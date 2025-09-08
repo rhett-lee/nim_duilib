@@ -19,7 +19,6 @@ public:
     */
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
-    virtual void SetVisible(bool bVisible) override;
     virtual void SetPos(UiRect rc) override;
 
     /** 设置路径
@@ -149,6 +148,11 @@ protected:
     /** 初始化
     */
     virtual void OnInit() override;
+
+    /** 设置可见状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetVisible(bool bChanged) override;
 
 private:
     /** 添加一个路径

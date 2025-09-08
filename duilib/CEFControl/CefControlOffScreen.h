@@ -32,7 +32,6 @@ public:
     /// 重写父类接口，提供个性化功能
     virtual void Init() override;
     virtual void SetPos(UiRect rc) override;
-    virtual void SetVisible(bool bVisible) override;
     virtual void Paint(IRender* pRender, const UiRect& rcPaint) override;
     virtual void SetWindow(Window* pWindow) override;
 
@@ -49,6 +48,11 @@ public:
     virtual std::shared_ptr<IBitmap> MakeImageSnapshot() override;
 
 protected:
+    /** 设置可见状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetVisible(bool bChanged) override;
+
     /** 重新创建Browser控件
     */
     virtual void ReCreateBrowser() override;
