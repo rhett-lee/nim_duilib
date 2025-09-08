@@ -1112,6 +1112,8 @@ private:
 
     bool m_bNoSelOnKillFocus;   //失去焦点的时候，取消文本选择（针对 m_bEnabled && IsReadOnly()）
     bool m_bSelAllOnFocus;      //获取焦点的时候，全选文本（针对 m_bEnabled && !IsReadOnly()）
+    bool m_bHideSelection;      //是否隐藏选择状态
+    bool m_bContextMenuShown;   //是否正在显示右键菜单
 
     bool m_bIsComposition;      //输入法合成窗口是否可见
 

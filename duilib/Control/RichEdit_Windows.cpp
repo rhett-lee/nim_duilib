@@ -309,7 +309,9 @@ RichEdit::RichEdit(Window* pWindow) :
     m_bAllowPrompt(false),
     m_bSelAllEver(false),         
     m_bNoSelOnKillFocus(true), 
-    m_bSelAllOnFocus(false),    
+    m_bSelAllOnFocus(false),
+    m_bHideSelection(false),
+    m_bContextMenuShown(false),
     m_bNoCaretReadonly(false),
     m_bIsCaretVisiable(false),
     m_bIsComposition(false),
@@ -345,6 +347,9 @@ RichEdit::RichEdit(Window* pWindow) :
     m_pRichHost = new RichEditHost(this);
     ASSERT(m_pRichHost->GetTextServices() != nullptr);
     m_richCtrl.SetTextServices(m_pRichHost->GetTextServices());
+
+    //初始化是否隐藏选择文本
+    m_bHideSelection = m_pRichHost->IsHideSelection();
 }
 
 RichEdit::~RichEdit()
@@ -1948,6 +1953,15 @@ bool RichEdit::OnSetFocus(const EventArgs& /*msg*/)
     if (GetState() == kControlStateNormal) {
         SetState(kControlStateHot);
     }
+
+    //确保获取焦点时，需要显示选择状态，否则选择的文本状态无法正常看到
+    if (!IsReadOnly() && IsEnabled()) {
+        if (IsHideSelection()) {
+            if (m_pRichHost != nullptr) {
+                m_pRichHost->SetHideSelection(false);
+            }
+        }
+    }
     Invalidate();
     return true;
 }
@@ -1972,6 +1986,12 @@ bool RichEdit::OnKillFocus(const EventArgs& msg)
         m_pShowPasswordButton->SetFadeVisible(false);
     }
 
+    if (!m_bContextMenuShown) {
+        //失去焦点时，同步选择文本状态
+        if ((m_pRichHost != nullptr) && (m_bHideSelection != m_pRichHost->IsHideSelection())) {
+            m_pRichHost->SetHideSelection(m_bHideSelection);
+        }
+    }
     return BaseClass::OnKillFocus(msg);
 }
 
@@ -3016,15 +3036,19 @@ void RichEdit::ShowPopupMenu(const ui::UiPoint& point)
     DString xml(_T("rich_edit_menu.xml"));
 
     //菜单显示过程中，不隐藏当前选择的文本
-    bool bOldHideSelection = IsHideSelection();
-    SetHideSelection(false);
-
+    m_bContextMenuShown = true;
+    if ((m_pRichHost != nullptr) && m_pRichHost->IsHideSelection()) {
+        m_pRichHost->SetHideSelection(false);
+    }
     //菜单关闭事件
     std::weak_ptr<WeakFlag> richEditFlag = GetWeakFlag();
-    menu->AttachWindowClose([this, richEditFlag, bOldHideSelection](const ui::EventArgs&) {
+    menu->AttachWindowClose([this, richEditFlag](const ui::EventArgs&) {
         if (!richEditFlag.expired()) {
+            m_bContextMenuShown = false;
             //恢复HideSelection属性
-            SetHideSelection(bOldHideSelection);
+            if((m_pRichHost != nullptr) && (m_pRichHost->IsHideSelection() != m_bHideSelection) && !IsFocused()) {
+                m_pRichHost->SetHideSelection(m_bHideSelection);
+            }
         }
         return true;
         });
@@ -3576,6 +3600,7 @@ bool RichEdit::FindRichText(const FindTextParam& findParam, TextCharRange& chrgT
 
 void RichEdit::SetHideSelection(bool fHideSelection)
 {
+    m_bHideSelection = fHideSelection;//记录状态
     if (m_pRichHost != nullptr) {
         m_pRichHost->SetHideSelection(fHideSelection);
     }
