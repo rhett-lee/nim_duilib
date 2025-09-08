@@ -318,9 +318,9 @@ void TabCtrlItem::HandleEvent(const EventArgs& msg)
     }
 }
 
-void TabCtrlItem::SetVisible(bool bVisible)
+void TabCtrlItem::OnSetVisible(bool bChanged)
 {
-    BaseClass::SetVisible(bVisible);
+    BaseClass::OnSetVisible(bChanged);
     CheckIconVisible();
     if (IsVisible() && (m_pCloseBtn != nullptr)) {
         m_pCloseBtn->SetVisible(!IsAutoHideCloseButton() || IsSelected());

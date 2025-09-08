@@ -421,25 +421,10 @@ public:
     /// 一些重要的属性
     /** 以淡入淡出等动画形式设置控件是否可见, 调用的结果与SetVisible相同，只是过程包含了动画效果。
         调用SetFadeVisible以后，不需要再调用SetVisible函数修改可见属性。
-        该函数内部会调用SetVisible这个虚函数。
+        该函数内部会调用SetVisible这个函数。
      * @param[in] bVisible 为 true 时控件可见，为 false 时控件被隐藏
      */
     virtual void SetFadeVisible(bool bVisible);
-
-    /** 设置控件是否可见
-     * @param [in] @param[in] bVisible 为 true 时控件可见，为 false 时控件被隐藏
-     */
-    virtual void SetVisible(bool bVisible) override;
-
-    /** 检查控件是否可用
-     * @return 控件可用状态，返回 true 控件可用，否则为 false
-     */
-    virtual bool IsEnabled() const override;
-
-    /** 设置控件可用状态
-     * @param [in] bEnable 为 true 时控件可用，为 false 时控件为禁用状态则不可用
-     */
-    virtual void SetEnabled(bool bEnable) override;
 
     /** 检查控件是否具有焦点
      * @return 返回控件是否具有检点，为 true 时是当前具有焦点，为 false 时控件没有焦点
@@ -1278,6 +1263,17 @@ public:
     * @return 成功返回字体接口，外部调用不需要释放资源；如果失败则返回nullptr
     */
     IFont* GetIFontById(const DString& strFontId) const;
+
+protected:
+    /** 设置可见状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetVisible(bool bChanged) override;
+
+    /** 设置可用状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetEnabled(bool bChanged) override;
 
 private:
 

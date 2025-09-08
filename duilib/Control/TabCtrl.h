@@ -122,7 +122,6 @@ public:
     */
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
-    virtual void SetVisible(bool bVisible) override;
     virtual DString GetToolTipText() const override;
 
 public:
@@ -294,6 +293,12 @@ protected:
     */
     virtual void PaintTabItemHot(IRender* pRender);
 
+    /** 设置可见状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetVisible(bool bChanged) override;
+
+protected:
     /** 填充路径, 形成圆角矩形
     */
     void AddTabItemPath(IPath* path, const UiRect& rect, UiSize roundSize) const;

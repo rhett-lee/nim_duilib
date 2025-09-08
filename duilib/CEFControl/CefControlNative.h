@@ -23,7 +23,6 @@ public:
     virtual void SetPos(ui::UiRect rc) override;
     virtual bool OnSetFocus(const EventArgs& msg) override;
     virtual bool OnKillFocus(const EventArgs& msg) override;
-    virtual void SetVisible(bool bVisible) override;
     virtual void SetWindow(ui::Window* pWindow) override;
 
 protected:
@@ -50,6 +49,11 @@ protected:
     /** 页面获得了焦点
     */
     virtual void OnGotFocus() override;
+
+    /** 设置可见状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetVisible(bool bChanged) override;
 
 private:
     /** 关闭所有的Browser对象

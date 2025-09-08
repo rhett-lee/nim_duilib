@@ -168,10 +168,10 @@ DString AddressBar::GetPathSeparatorClass() const
     return m_pathSeparatorClass.c_str();
 }
 
-void AddressBar::SetVisible(bool bVisible)
+void AddressBar::OnSetVisible(bool bChanged)
 {
-    BaseClass::SetVisible(bVisible);
-    if (bVisible) {
+    BaseClass::OnSetVisible(bChanged);
+    if (IsVisible()) {
         ShowAddressEdit(false);
         UpdateAddressBarControlsStatus();
     }

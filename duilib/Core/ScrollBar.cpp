@@ -175,10 +175,18 @@ void ScrollBar::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
     BaseClass::ChangeDpiScale(nOldDpiScale, nNewDpiScale);
 }
 
-void ScrollBar::SetEnabled(bool bEnable)
+void ScrollBar::OnSetVisible(bool bChanged)
 {
-    BaseClass::SetEnabled(bEnable);
-    if( bEnable ) {
+    BaseClass::OnSetVisible(bChanged);
+    if (bChanged) {
+        ArrangeSelf();
+    }
+}
+
+void ScrollBar::OnSetEnabled(bool bChanged)
+{
+    BaseClass::OnSetEnabled(bChanged);
+    if(IsEnabled()) {
         m_uButton1State = kControlStateNormal;
         m_uButton2State = kControlStateNormal;
         m_uThumbState = kControlStateNormal;
@@ -188,6 +196,7 @@ void ScrollBar::SetEnabled(bool bEnable)
         m_uButton2State = kControlStateDisabled;
         m_uThumbState = kControlStateDisabled;
     }
+    Invalidate();
 }
 
 void ScrollBar::SetFocus()
@@ -197,15 +206,6 @@ void ScrollBar::SetFocus()
     }
     else {
         Control::SetFocus();
-    }
-}
-
-void ScrollBar::SetVisible(bool bVisible)
-{
-    bool v = BaseClass::IsVisible();
-    BaseClass::SetVisible(bVisible);
-    if( IsVisible() != v) {
-        ArrangeSelf();
     }
 }
 

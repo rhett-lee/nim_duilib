@@ -344,9 +344,9 @@ bool TreeNode::OnNodeCheckStatusChanged(const EventArgs& msg)
     return true;
 }
 
-bool TreeNode::IsVisible() const
+bool TreeNode::IsVisibleInternal() const
 {
-    if (!ListBoxItem::IsVisible()) {
+    if (!BaseClass::IsVisibleInternal()) {
         return false;
     }
     if (m_pParentTreeNode != nullptr) {

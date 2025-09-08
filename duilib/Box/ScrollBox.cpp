@@ -629,15 +629,16 @@ void ScrollBox::PaintChild(IRender* pRender, const UiRect& rcPaint)
     }
 }
 
-void ScrollBox::SetMouseEnabled(bool bEnabled)
+void ScrollBox::OnSetMouseEnabled(bool bChanged)
 {
+    BaseClass::OnSetMouseEnabled(bChanged);
+    bool bEnabled = IsEnabled();
     if (m_pVScrollBar != nullptr) {
         m_pVScrollBar->SetMouseEnabled(bEnabled);
     }
     if (m_pHScrollBar != nullptr) {
         m_pHScrollBar->SetMouseEnabled(bEnabled);
     }
-    Box::SetMouseEnabled(bEnabled);
 }
 
 void ScrollBox::SetParent(Box* pParent)
