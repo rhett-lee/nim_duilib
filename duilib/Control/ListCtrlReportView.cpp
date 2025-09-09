@@ -760,7 +760,7 @@ Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, void* pProcData,
                                          uint32_t uFlags, const UiPoint& ptMouse,
                                          const UiPoint& scrollPos)
 {
-    //重写：ScrollBox::FindControl 函数，让Header优先被查找到，只处理含有UIFIND_TOP_FIRST标志的情况
+    //重写：ScrollBox::FindControl 函数，让Header/置顶的Item优先被查找到，只处理含有UIFIND_TOP_FIRST标志的情况
     if ((uFlags & UIFIND_TOP_FIRST) == 0) {
         return BaseClass::FindControl(Proc, pProcData, uFlags, ptMouse, scrollPos);
     }
@@ -820,7 +820,7 @@ Control* ListCtrlReportView::FindControl(FINDCONTROLPROC Proc, void* pProcData,
 
     UiSize boxScrollOffset = GetScrollOffset();
     UiPoint boxScrollPos(boxScrollOffset.cx, boxScrollOffset.cy);
-    return FindControlInItems(m_items, Proc, pProcData, uFlags, boxPt, boxScrollPos);
+    return FindControlInItems(newItems, Proc, pProcData, uFlags, boxPt, boxScrollPos);
 }
 
 Control* ListCtrlReportView::CreateDataItem()
