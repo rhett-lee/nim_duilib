@@ -6,15 +6,28 @@
 namespace ui {
 
 VirtualListBoxElement::VirtualListBoxElement():
+    m_pVirtualListBox(nullptr),
     m_pfnCountChangedNotify(),
     m_pfnDataChangedNotify()
 {
 }
 
-void VirtualListBoxElement::RegNotifys(const DataChangedNotify& dcNotify, const CountChangedNotify& ccNotify)
+void VirtualListBoxElement::RegNotifys(VirtualListBox* pVirtualListBox,
+                                       const DataChangedNotify& dcNotify,
+                                       const CountChangedNotify& ccNotify)
 {
+    m_pVirtualListBox = pVirtualListBox;
     m_pfnDataChangedNotify = dcNotify;
     m_pfnCountChangedNotify = ccNotify;
+}
+
+void VirtualListBoxElement::UnRegNotifys(VirtualListBox* pVirtualListBox)
+{
+    if (m_pVirtualListBox == pVirtualListBox) {
+        m_pVirtualListBox = nullptr;
+        m_pfnDataChangedNotify = nullptr;
+        m_pfnCountChangedNotify = nullptr;
+    }
 }
 
 void VirtualListBoxElement::EmitDataChanged(size_t nStartIndex, size_t nEndIndex)
@@ -58,7 +71,7 @@ void VirtualListBox::SetDataProvider(VirtualListBoxElement* pProvider)
 {
     if ((m_pDataProvider != pProvider) && (m_pDataProvider != nullptr)) {
         //注销原来的关联关系
-        m_pDataProvider->RegNotifys(nullptr, nullptr);
+        m_pDataProvider->UnRegNotifys(this);
     }
     m_pDataProvider = pProvider;
     if (pProvider != nullptr) {
@@ -66,9 +79,9 @@ void VirtualListBox::SetDataProvider(VirtualListBoxElement* pProvider)
         pProvider->SetMultiSelect(IsMultiSelect());
 
         //注册模型数据变动通知回调
-        pProvider->RegNotifys(
-            UiBind(&VirtualListBox::OnModelDataChanged, this, std::placeholders::_1, std::placeholders::_2),
-            UiBind(&VirtualListBox::OnModelCountChanged, this));
+        pProvider->RegNotifys(this,
+                              UiBind(&VirtualListBox::OnModelDataChanged, this, std::placeholders::_1, std::placeholders::_2),
+                              UiBind(&VirtualListBox::OnModelCountChanged, this));
     }
 }
 
