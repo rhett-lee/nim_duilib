@@ -1644,10 +1644,9 @@ void RichEdit::EndRight()
     BaseClass::EndRight();
 }
 
-void RichEdit::SetEnabled(bool bEnable)
+void RichEdit::OnSetEnabled(bool bChanged)
 {
-    bool bChanged = IsEnabled() != bEnable;
-    BaseClass::SetEnabled(bEnable);
+    BaseClass::OnSetEnabled(bChanged);
     if (IsEnabled()) {
         SetState(kControlStateNormal);
     }

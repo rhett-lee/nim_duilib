@@ -30,7 +30,6 @@ public:
     /// 重写父类方法，提供个性化功能，请参考父类声明
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
-    virtual bool IsVisible() const override;
     virtual bool SupportCheckedMode() const override;
 
     /** DPI发生变化，更新控件大小和布局
@@ -38,6 +37,11 @@ public:
     * @param [in] nNewDpiScale 新的DPI缩放百分比，与Dpi().GetScale()的值一致
     */
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
+
+protected:
+    /** 可见状态（供内部子类重写可见状态使用, 如果返回true代表可见，返回false表示不可见）
+    */
+    virtual bool IsVisibleInternal() const override;
 
 private:
     virtual void PaintStateImages(IRender* pRender) override;

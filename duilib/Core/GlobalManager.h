@@ -13,6 +13,7 @@
 #include "duilib/Core/ResourceParam.h"
 #include "duilib/Core/CursorManager.h"
 #include "duilib/Core/IconManager.h"
+#include "duilib/Core/WindowManager.h"
 #include "duilib/Image/ImageDecoderFactory.h"
 
 #include <string>
@@ -138,22 +139,6 @@ public:
                          const DString& languageNameID = _T("LANGUAGE_DISPLAY_NAME")) const;
 
 public:
-    /** 添加一个窗口接口（主要用于换肤、切换语言之后的重绘、资源同步等操作）
-    * @param [in] pWindow 窗口的接口
-    */
-    void AddWindow(Window* pWindow);
-
-    /** 移除一个窗口
-    * @param [in] pWindow 窗口的接口
-    */
-    void RemoveWindow(Window* pWindow);
-
-    /** 判断当前是否含有窗口
-    * @param [in] pWindow 窗口的接口
-    */
-    bool HasWindow(Window* pWindow) const;
-    bool HasWindowBase(WindowBase* pWindowBase) const;
-
     /** 添加一个全局 Class 属性
      * @param[in] strClassName 全局 Class 名称
      * @param[in] strControlAttrList 属性列表，需要做 XML 转义
@@ -219,6 +204,10 @@ public:
     /** 光标管理器
     */
     CursorManager& Cursor();
+
+    /** 窗口管理器
+    */
+    WindowManager& Windows();
 
 public:
     /** 根据资源加载方式，返回对应的资源路径
@@ -331,20 +320,6 @@ private:
     */
     std::thread::id m_dwUiThreadId;
 
-    /** 所有的窗口列表
-    */
-    struct WindowWeakFlag
-    {
-        /** 窗口的接口
-        */
-        Window* m_pWindow = nullptr;
-        
-        /** 窗口接口的有效期标志
-        */
-        std::weak_ptr<WeakFlag> m_weakFlag;
-    };
-    std::vector<WindowWeakFlag> m_windowList;
-
     /** 颜色管理器
     */
     ColorManager m_colorManager;
@@ -388,6 +363,10 @@ private:
     /** 光标管理器
     */
     CursorManager m_cursorManager;
+
+    /** 窗口管理器
+    */
+    WindowManager m_windowManager;
 
     /** 退出时要执行的函数
     */

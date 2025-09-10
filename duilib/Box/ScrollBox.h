@@ -31,7 +31,6 @@ public:
     virtual bool MouseEnter(const EventArgs& msg) override;
     virtual bool MouseLeave(const EventArgs& msg) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
-    virtual void SetMouseEnabled(bool bEnable = true) override;
     virtual void SetParent(Box* pParent) override;
     virtual void SetWindow(Window* pWindow) override;
     virtual Control* FindControl(FINDCONTROLPROC Proc, void* pProcData,
@@ -269,6 +268,11 @@ protected:
      * @return 返回所需尺寸大小, 包含ScrollBox自身的内边距，不包含外边距
      */
     virtual UiSize64 CalcRequiredSize(const UiRect& rc);
+
+    /** 设置鼠标可用状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetMouseEnabled(bool bChanged) override;
 
 private:
     /** 设置位置大小

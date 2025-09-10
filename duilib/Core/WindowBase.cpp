@@ -1,6 +1,8 @@
 #include "WindowBase.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/WindowCreateAttributes.h"
+#include "duilib/Utils/StringConvert.h"
+#include <random>
 
 namespace ui
 {
@@ -25,12 +27,10 @@ bool WindowBase::CreateWnd(WindowBase* pParentWindow, const WindowCreateParam& c
     //解析XML，读取窗口的属性参数
     WindowCreateAttributes createAttributes;
     GetCreateWindowAttributes(createAttributes);
-
+    SetWindowId(createParam.m_windowId);
+    m_windowClassName = createParam.m_className;
     m_pParentWindow = pParentWindow;
-    m_parentFlag.reset();
-    if (pParentWindow != nullptr) {
-        m_parentFlag = pParentWindow->GetWeakFlag();
-    }
+
     NativeWindow* pNativeWindow = pParentWindow != nullptr ? pParentWindow->NativeWnd() : nullptr;
     return m_pNativeWindow->CreateWnd(pNativeWindow, createParam, createAttributes);
 }
@@ -41,12 +41,10 @@ int32_t WindowBase::DoModal(WindowBase* pParentWindow, const WindowCreateParam& 
     //解析XML，读取窗口的属性参数
     WindowCreateAttributes createAttributes;
     GetCreateWindowAttributes(createAttributes);
-
+    SetWindowId(createParam.m_windowId);
+    m_windowClassName = createParam.m_className;
     m_pParentWindow = pParentWindow;
-    m_parentFlag.reset();
-    if (pParentWindow != nullptr) {
-        m_parentFlag = pParentWindow->GetWeakFlag();
-    }
+
     NativeWindow* pNativeWindow = pParentWindow != nullptr ? pParentWindow->NativeWnd() : nullptr;
     return m_pNativeWindow->DoModal(pNativeWindow, createParam, createAttributes, bCloseByEsc, bCloseByEnter);
 }
@@ -70,7 +68,6 @@ void WindowBase::OnNativeCreateWndMsg(bool bDoModal, const NativeMsg& nativeMsg,
 void WindowBase::ClearWindowBase()
 {
     m_pParentWindow = nullptr;
-    m_parentFlag.reset();
     m_dpi.reset();
 
     //清除Native窗口的资源
@@ -190,12 +187,7 @@ NativeWindow* WindowBase::NativeWnd() const
 
 WindowBase* WindowBase::GetParentWindow() const
 {
-    if (!m_parentFlag.expired()) {
-        return m_pParentWindow;
-    }
-    else {
-        return nullptr;
-    }
+    return m_pParentWindow.get();
 }
 
 bool WindowBase::IsWindow() const
@@ -458,24 +450,55 @@ bool WindowBase::SetWindowIcon(const std::vector<uint8_t>& iconFileData, const D
 void WindowBase::SetText(const DString& strText)
 {
     m_pNativeWindow->SetText(strText);
-    m_text = strText;
 }
 
-const DString& WindowBase::GetText() const
+DString WindowBase::GetText() const
 {
-    return m_text;
+    return m_pNativeWindow->GetText();
 }
 
 void WindowBase::SetTextId(const DString& strTextId)
 {
     ASSERT(IsWindow());
-    m_pNativeWindow->SetText(GlobalManager::Instance().Lang().GetStringViaID(strTextId));
     m_textId = strTextId;
+    m_pNativeWindow->SetText(GlobalManager::Instance().Lang().GetStringViaID(strTextId));  
 }
 
 const DString& WindowBase::GetTextId() const
 {
     return m_textId;
+}
+
+const DString& WindowBase::GetWindowId() const
+{
+    return m_windowId;
+}
+
+//生成12位的随机字符串
+static std::string generate_12digit_random()
+{
+    std::random_device rd;
+    std::mt19937_64 generator(rd());
+    std::uniform_int_distribution<int64_t> distribution(
+        100000000000,  // 最小12位数
+        999999999999   // 最大12位数
+    );
+
+    return std::to_string(distribution(generator));
+}
+
+void WindowBase::SetWindowId(const DString& windowId)
+{
+    m_windowId = windowId;
+    if (m_windowId.empty()) {
+        //随机生成一个Id
+        m_windowId = StringConvert::UTF8ToT(generate_12digit_random());
+    }
+}
+
+const DString& WindowBase::GetWindowClassName() const
+{
+    return m_windowClassName;
 }
 
 const DpiManager& WindowBase::Dpi() const

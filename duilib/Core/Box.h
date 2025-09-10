@@ -35,8 +35,6 @@ public:
     virtual void SetAttribute(const DString& strName, const DString& strValue) override;
     virtual void PaintChild(IRender* pRender, const UiRect& rcPaint) override;
     virtual void PaintFocusRect(IRender* pRender) override;
-    virtual void SetEnabled(bool bEnabled) override;
-    virtual void SetVisible(bool bVisible) override;
     virtual Control* FindControl(FINDCONTROLPROC Proc, void* pProcData, uint32_t uFlags,
                                  const UiPoint& ptMouse = UiPoint(),
                                  const UiPoint& scrollPos = UiPoint()) override;
@@ -211,6 +209,17 @@ protected:
                                 uint32_t uFlags, 
                                 const UiPoint& ptMouse, 
                                 const UiPoint& scrollPos);
+
+protected:
+    /** 设置可见状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetVisible(bool bChanged) override;
+
+    /** 设置可用状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetEnabled(bool bChanged) override;
 
 private:
     /**@brief 向指定位置添加一个控件

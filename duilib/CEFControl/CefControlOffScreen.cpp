@@ -171,12 +171,12 @@ void CefControlOffScreen::SetPos(UiRect rc)
     }
 }
 
-void CefControlOffScreen::SetVisible(bool bVisible)
+void CefControlOffScreen::OnSetVisible(bool bChanged)
 {
     GlobalManager::Instance().AssertUIThread();
-    BaseClass::SetVisible(bVisible);
+    BaseClass::OnSetVisible(bChanged);
     if (m_pBrowserHandler.get() && m_pBrowserHandler->GetBrowserHost().get()) {
-        m_pBrowserHandler->GetBrowserHost()->WasHidden(!bVisible);
+        m_pBrowserHandler->GetBrowserHost()->WasHidden(!IsVisible());
     }
 }
 

@@ -131,10 +131,10 @@ bool CefControlNative::OnKillFocus(const EventArgs& msg)
     return BaseClass::OnKillFocus(msg);
 }
 
-void CefControlNative::SetVisible(bool bVisible)
+void CefControlNative::OnSetVisible(bool bChanged)
 {
     GlobalManager::Instance().AssertUIThread();
-    BaseClass::SetVisible(bVisible);
+    BaseClass::OnSetVisible(bChanged);
 
     //更新页面子窗口的可见性
     SetCefWindowVisible(GetCefWindowHandle(), this);

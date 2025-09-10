@@ -2,6 +2,7 @@
 #define UI_CORE_WINDOW_BASE_H_
 
 #include "duilib/Core/INativeWindow.h"
+#include "duilib/Core/ControlPtrT.h"
 #include "duilib/Utils/FilePath.h"
 
 #if defined (DUILIB_BUILD_FOR_SDL)
@@ -263,7 +264,7 @@ public:
 
     /** 获取窗口标题栏文本
     */
-    const DString& GetText() const;
+    DString GetText() const;
 
     /** 根据语言列表中的文本 ID， 根据ID设置窗口标题栏文本
     * @param [in] strTextId 语言 ID，该 ID 必须在语言文件中存在
@@ -273,6 +274,18 @@ public:
     /** 获取窗口标题栏文本的文本ID
     */
     const DString& GetTextId() const;
+
+    /** 获取窗口ID
+    */
+    const DString& GetWindowId() const;
+
+    /** 设置窗口ID
+    */
+    void SetWindowId(const DString& windowId);
+
+    /** 获取窗口的Class名称
+    */
+    const DString& GetWindowClassName() const;
 
     /** 获取该窗口对应的DPI管理器
     */
@@ -1024,10 +1037,7 @@ private:
 
 private:
     //父窗口
-    WindowBase* m_pParentWindow;
-
-    //父窗口的WeakFlag
-    std::weak_ptr<WeakFlag> m_parentFlag;
+    ControlPtrT<WindowBase> m_pParentWindow;
 
     //该窗口消息过滤器列表
     std::vector<IUIMessageFilter*> m_aMessageFilters;
@@ -1037,10 +1047,13 @@ private:
 
 private:
     //窗口标题栏文本的文本ID
-    DString m_text;
-
-    //窗口标题栏文本的文本ID
     DString m_textId;
+
+    //窗口ID
+    DString m_windowId;
+
+    //窗口的Class名称
+    DString m_windowClassName;
 
     //窗口四边可拉伸范围信息
     UiRect m_rcSizeBox;

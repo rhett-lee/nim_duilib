@@ -327,7 +327,7 @@ void Window::PreInitWindow()
     }
 
     //添加到全局管理器
-    GlobalManager::Instance().AddWindow(this);
+    GlobalManager::Instance().Windows().AddWindow(this);
 
     //解析窗口关联的XML文件
     if (m_windowBuilder == nullptr) {
@@ -416,7 +416,7 @@ void Window::OnFinalMessage()
 
 void Window::ClearWindow(bool bSendClose)
 {
-    bool bHasWindow = GlobalManager::Instance().HasWindow(this);
+    bool bHasWindow = GlobalManager::Instance().Windows().HasWindow(this);
     if (bSendClose && bHasWindow) {
         //发送关闭事件
         WPARAM wParam = (WPARAM)GetCloseParam();
@@ -428,7 +428,7 @@ void Window::ClearWindow(bool bSendClose)
     }
     
     //回收控件
-    GlobalManager::Instance().RemoveWindow(this);
+    GlobalManager::Instance().Windows().RemoveWindow(this);
     ReapObjects(GetRoot());
 
     Box* pRoot = m_pRoot.get();
@@ -2027,6 +2027,7 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
            eventType == kEventMouseRDoubleClick ||
            eventType == kEventMouseMDoubleClick);
 
+    const bool bWindowFocused = IsWindowFocused();
     std::weak_ptr<WeakFlag> windowFlag = GetWeakFlag();    
     if ((eventType == kEventMouseButtonDown) || (eventType == kEventMouseButtonDown) || (eventType == kEventMouseButtonDown)) {
         SetCapture();
@@ -2045,6 +2046,7 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
         ControlPtr pOldEventClick = m_pEventClick;
         m_pEventClick = pControl;
         bool bOldCheckSetWindowFocus = IsCheckSetWindowFocus();
+        SetCheckSetWindowFocus(false);
         pControl->SetFocus();
         if (windowFlag.expired()) {
             return;
@@ -2072,8 +2074,8 @@ void Window::OnButtonDown(EventType eventType, const UiPoint& pt, const NativeMs
             }
         }
     }
-    if (!windowFlag.expired()) {
-        //确保被点击的窗口有输入焦点
+    if (!bWindowFocused && !windowFlag.expired()) {
+        //确保被点击的窗口有输入焦点(解决CEF窗口模式下，输入焦点无法从页面切换到地址栏的问题)
         CheckSetWindowFocus();
     }
 }
@@ -2224,7 +2226,7 @@ void Window::OnFocusControlChanged()
 Window* Window::WindowFromPoint(const UiPoint& pt, bool bIgnoreChildWindow)
 {
     WindowBase* pWindow = WindowBaseFromPoint(pt, bIgnoreChildWindow);
-    if (!GlobalManager::Instance().HasWindowBase(pWindow)) {
+    if (!GlobalManager::Instance().Windows().HasWindowBase(pWindow)) {
         //不是本进程窗口时，不使用，避免跨进程的窗口时导致崩溃
         pWindow = nullptr;
     }

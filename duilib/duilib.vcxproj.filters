@@ -159,6 +159,9 @@
     <ClCompile Include="Core\WindowBuilder.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Core\WindowManager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
     <ClCompile Include="third_party\apng\decoder-apng.cpp">
       <Filter>third_party\apng</Filter>
     </ClCompile>
@@ -897,6 +900,9 @@
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="Core\WindowBuilder.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\WindowManager.h">
       <Filter>Core</Filter>
     </ClInclude>
     <ClInclude Include="third_party\svg\nanosvg.h">

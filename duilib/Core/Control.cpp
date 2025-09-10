@@ -1496,19 +1496,14 @@ void Control::SetFadeVisible(bool bVisible)
     }
 }
 
-void Control::SetVisible(bool bVisible)
+void Control::OnSetVisible(bool bChanged)
 {
-    if (IsVisible() == bVisible) {
-        return;
-    }
-    bool v = IsVisible();
-    BaseClass::SetVisible(bVisible);
-
+    BaseClass::OnSetVisible(bChanged);
     if (!IsVisible()) {
         EnsureNoFocus();
     }
 
-    if (IsVisible() != v) {
+    if (bChanged) {
         ArrangeAncestor();
     }
 
@@ -1519,15 +1514,9 @@ void Control::SetVisible(bool bVisible)
     SendEvent(kEventVisibleChange);
 }
 
-bool Control::IsEnabled() const
+void Control::OnSetEnabled(bool bChanged)
 {
-    return BaseClass::IsEnabled();
-}
-
-void Control::SetEnabled(bool bEnabled)
-{
-    bool bChanged = IsEnabled() != bEnabled;
-    BaseClass::SetEnabled(bEnabled);
+    BaseClass::OnSetEnabled(bChanged);
     if (IsEnabled()) {
         PrivateSetState(kControlStateNormal);
         m_nHotAlpha = 0;

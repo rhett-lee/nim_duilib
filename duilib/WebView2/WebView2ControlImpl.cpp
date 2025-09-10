@@ -1075,7 +1075,7 @@ HRESULT WebView2Control::Impl::CapturePreview(const DString& filePath,
 #ifdef DUILIB_UNICODE
     DString filePathW = filePath;
 #else
-    DString filePathW = StringConvert::MBCSToUnicode(filePath);
+    DStringW filePathW = StringConvert::MBCSToUnicode(filePath);
 #endif
     // 创建文件流
     ui::ComPtr<IStream> stream;
@@ -1419,12 +1419,12 @@ static bool ConvertFavIconImageData(std::vector<uint8_t>& imageFileData, uint32_
 //下载网站图标
 static bool DownloadFaviconToVector(const wchar_t* url, std::vector<uint8_t>& outData)
 {
-    HINTERNET hInternet = ::InternetOpen(L"FaviconDL", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+    HINTERNET hInternet = ::InternetOpenW(L"FaviconDL", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
     if (!hInternet) {
         return false;
     }
 
-    HINTERNET hUrl = ::InternetOpenUrl(hInternet, url, NULL, 0, INTERNET_FLAG_RELOAD | INTERNET_FLAG_SECURE, 0);
+    HINTERNET hUrl = ::InternetOpenUrlW(hInternet, url, NULL, 0, INTERNET_FLAG_RELOAD | INTERNET_FLAG_SECURE, 0);
     if (!hUrl) {
         ::InternetCloseHandle(hInternet);
         return false;
@@ -1469,7 +1469,7 @@ bool WebView2Control::Impl::DownloadFavIconImage()
                 if (m_pControl != nullptr) {
                     nWindowDpi = m_pControl->Dpi().GetScale();
                 }
-                DString fileName = strUrl;
+                DString fileName = StringConvert::WStringToT(strUrl);
                 size_t pos = fileName.rfind(_T("/"));
                 if (pos != DString::npos) {
                     fileName = fileName.substr(pos + 1);

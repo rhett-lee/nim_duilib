@@ -37,16 +37,16 @@ void TabBox::SetAttribute(const DString& strName, const DString& strValue)
     }
 }
 
-void TabBox::SetVisible(bool bVisible)
+void TabBox::OnSetVisible(bool bChanged)
 {
-    if (!IsInited() || !bVisible) {
-        //未初始化或者隐藏时，调用基类的实现
-        BaseClass::SetVisible(bVisible);
+    BaseClass::OnSetVisible(bChanged);
+
+    if (!IsInited() || !IsVisible()) {
+        //未初始化或者隐藏时，不处理
         return;
     }
 
-    //显示时，只能显示一个页面，其他页面需要隐藏
-    BaseClass::SetVisible(bVisible);
+    //显示时，只能显示一个页面，其他页面需要隐藏    
     size_t nCurSel = GetCurSel();
     bool bSelected = false;
     if (Box::IsValidItemIndex(nCurSel)) {

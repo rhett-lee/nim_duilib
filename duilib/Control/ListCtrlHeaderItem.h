@@ -229,7 +229,7 @@ protected:
 protected:
     //禁止外部调用调整可见性的函数，避免数据不同步
     virtual void SetFadeVisible(bool bVisible) override;
-    virtual void SetVisible(bool bVisible) override;
+    void SetVisible(bool bVisible);
 
 private:
     /** 关联的Header接口

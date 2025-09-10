@@ -64,10 +64,18 @@ public:
 
 public:
     /** 注册事件通知回调
-    * @param [in] dcNotify 数据内容变化通知接口
-    * @param [in] ccNotify 数据项个数变化通知接口
+    * @param [in] pVirtualListBox 关联的VirtualListBox对象
+    * @param [in] dcNotify 数据内容变化通知回调函数
+    * @param [in] ccNotify 数据项个数变化通知回调函数
     */
-    void RegNotifys(const DataChangedNotify& dcNotify, const CountChangedNotify& ccNotify);
+    void RegNotifys(VirtualListBox* pVirtualListBox,
+                    const DataChangedNotify& dcNotify,
+                    const CountChangedNotify& ccNotify);
+
+    /** 注销事件通知回调
+    * @param [in] pVirtualListBox 关联的VirtualListBox对象
+    */
+    void UnRegNotifys(VirtualListBox* pVirtualListBox);
 
 protected:
 
@@ -82,12 +90,15 @@ protected:
     void EmitCountChanged();
 
 private:
+    /** 回调函数关联的VirtualListBox对象
+    */
+    VirtualListBox* m_pVirtualListBox;
 
-    /** 数据内容发生变化的响应函数
+    /** 数据内容发生变化的回调函数
     */
     DataChangedNotify m_pfnDataChangedNotify;
 
-    /** 数据个数发生变化的响应函数
+    /** 数据个数发生变化的回调函数
     */
     CountChangedNotify m_pfnCountChangedNotify;
 };

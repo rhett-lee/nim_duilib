@@ -49,7 +49,6 @@ public:
     //基类的虚函数重写
     virtual DString GetType() const override;
     virtual void SetAttribute(const DString& pstrName, const DString& pstrValue) override;
-    virtual void SetEnabled(bool bEnable = true) override;
     virtual void ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale) override;
     virtual void SetPos(UiRect rc) override;
     virtual void SetScrollPos(UiSize64 szPos) override;
@@ -953,6 +952,11 @@ protected:
      */
     virtual void ArrangeChild(const std::vector<Control*>& items) const;
 
+    /** 设置可用状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetEnabled(bool bChanged) override;
+
 private:
     /** 显示RichEdit上的菜单
     * @param [in] point 客户区的坐标
@@ -1108,6 +1112,8 @@ private:
 
     bool m_bNoSelOnKillFocus;   //失去焦点的时候，取消文本选择（针对 m_bEnabled && IsReadOnly()）
     bool m_bSelAllOnFocus;      //获取焦点的时候，全选文本（针对 m_bEnabled && !IsReadOnly()）
+    bool m_bHideSelection;      //是否隐藏选择状态
+    bool m_bContextMenuShown;   //是否正在显示右键菜单
 
     bool m_bIsComposition;      //输入法合成窗口是否可见
 

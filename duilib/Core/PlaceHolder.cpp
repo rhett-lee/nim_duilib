@@ -17,7 +17,9 @@ PlaceHolder::PlaceHolder(Window* pWindow) :
     m_verAlignType(kVerAlignTop),
     m_bFloat(false),
     m_bVisible(true),
+    m_bAncestorVisible(true),
     m_bEnabled(true),
+    m_bAncestorEnabled(true),
     m_bMouseEnabled(true),
     m_bKeyboardEnabled(true),
     m_bIsArranged(true),
@@ -112,31 +114,76 @@ void PlaceHolder::OnInit()
 
 void PlaceHolder::SetVisible(bool bVisible)
 {
+    bool bOldVisible = IsVisible();
     m_bVisible = bVisible;
+    bool bChanged = (bOldVisible != IsVisible());
+    OnSetVisible(bChanged);
+}
+
+bool PlaceHolder::IsVisible() const
+{
+    return m_bVisible && m_bAncestorVisible && IsVisibleInternal();
+}
+
+void PlaceHolder::SetAncestorVisible(bool bAncestorVisible)
+{
+    bool bOldVisible = IsVisible();
+    m_bAncestorVisible = bAncestorVisible;
+    bool bChanged = (bOldVisible != IsVisible());
+    OnSetVisible(bChanged);
+}
+
+bool PlaceHolder::IsAncestorVisible() const
+{
+    return m_bAncestorVisible;
 }
 
 void PlaceHolder::SetEnabled(bool bEnable)
 {
+    bool bOldEnabled = IsEnabled();
     m_bEnabled = bEnable;
+    bool bChanged = (bOldEnabled != IsEnabled());
+    OnSetEnabled(bChanged);
+}
+
+bool PlaceHolder::IsEnabled() const
+{
+    return m_bEnabled && m_bAncestorEnabled;
+}
+
+bool PlaceHolder::IsAncestorEnabled() const
+{
+    return m_bAncestorEnabled;
+}
+
+void PlaceHolder::SetAncestorEnabled(bool bAncestorEnable)
+{
+    bool bOldEnabled = IsEnabled();
+    m_bAncestorEnabled = bAncestorEnable;
+    bool bChanged = (bOldEnabled != IsEnabled());
+    OnSetEnabled(bChanged);
 }
 
 void PlaceHolder::SetMouseEnabled(bool bEnabled)
 {
+    bool bChanged = (m_bMouseEnabled != bEnabled);
     m_bMouseEnabled = bEnabled;
+    OnSetMouseEnabled(bChanged);
 }
 
 void PlaceHolder::SetKeyboardEnabled(bool bEnabled)
 {
+    bool bChanged = (m_bKeyboardEnabled != bEnabled);
     m_bKeyboardEnabled = bEnabled;
+    OnSetKeyboardEnabled(bChanged);
 }
 
 void PlaceHolder::SetFloat(bool bFloat)
 {
-    if (m_bFloat == bFloat) {
-        return;
+    if (m_bFloat != bFloat) {
+        m_bFloat = bFloat;
+        ArrangeAncestor();
     }
-    m_bFloat = bFloat;
-    ArrangeAncestor();
 }
 
 const UiFixedSize& PlaceHolder::GetFixedSize() const

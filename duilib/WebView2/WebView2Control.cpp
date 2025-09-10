@@ -118,10 +118,10 @@ bool WebView2Control::OnKillFocus(const EventArgs& msg)
     return bRet;
 }
 
-void WebView2Control::SetVisible(bool bVisible)
+void WebView2Control::OnSetVisible(bool bChanged)
 {
-    BaseClass::SetVisible(bVisible);
-    m_pImpl->SetVisible(bVisible);
+    BaseClass::OnSetVisible(bChanged);
+    m_pImpl->SetVisible(IsVisible());
 }
 
 void WebView2Control::SetWindow(Window* pWindow)

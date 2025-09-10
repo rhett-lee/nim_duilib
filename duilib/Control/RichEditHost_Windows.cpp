@@ -2,6 +2,7 @@
 #include "RichEdit_Windows.h"
 #include "duilib/Core/GlobalManager.h"
 #include "duilib/Core/Window.h"
+#include "duilib/Utils/StringConvert.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN) && !defined (DUILIB_BUILD_FOR_SDL)
 
@@ -810,6 +811,22 @@ bool RichEditHost::IsFlashPasswordChar() const
     return m_bFlashPasswordChar;
 }
 
+DString RichEditHost::GetPasswordText() const
+{
+    DString pwdText;
+    if (IsPassword() && (m_pTextServices != nullptr)) {        
+        ITextServices* pTextServices = m_pTextServices;
+        BSTR bstrText = nullptr;
+        HRESULT hr = pTextServices->TxGetText(&bstrText);
+        if ((hr == S_OK) && (bstrText != nullptr)) {
+            std::wstring pwdTextW(bstrText, SysStringLen(bstrText));
+            ::SysFreeString(bstrText);
+            pwdText = StringConvert::WStringToT(pwdTextW);
+        }        
+    }
+    return pwdText;
+}
+
 bool RichEditHost::IsNumberOnly() const
 {
     return m_dwStyle & UI_ES_NUMBER;
@@ -1020,6 +1037,12 @@ void RichEditHost::SetHideSelection(bool fHideSelection)
         m_dwStyle &= ~UI_ES_NOHIDESEL;
     }
     OnTxPropertyBitsChange(TXTBIT_HIDESELECTION, fHideSelection ? TXTBIT_HIDESELECTION : 0);
+    if (fHideSelection) {
+        ASSERT(IsHideSelection());
+    }
+    else {
+        ASSERT(!IsHideSelection());
+    }
 }
 
 bool RichEditHost::IsHideSelection() const

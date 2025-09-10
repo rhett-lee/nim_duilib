@@ -302,7 +302,6 @@ public:
     virtual void SetPos(UiRect rc) override;
     virtual bool OnSetFocus(const EventArgs& msg) override;
     virtual bool OnKillFocus(const EventArgs& msg) override;
-    virtual void SetVisible(bool bVisible) override;
     virtual void SetWindow(Window* pWindow) override;
 
     /** 设置是否允许F12快捷键(开发者工具)
@@ -336,6 +335,12 @@ public:
     /** 将网页保存为一张图片, 图片大小与控件大小相同
     */
     std::shared_ptr<IBitmap> MakeImageSnapshot();
+
+protected:
+    /** 设置可见状态事件
+    * @param [in] bChanged true表示状态发生变化，false表示状态未发生变化
+    */
+    virtual void OnSetVisible(bool bChanged) override;
 
 private:
     // PIMPL实现
