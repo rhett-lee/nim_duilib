@@ -254,7 +254,11 @@ void FilePath::TrimRightPathSeparator()
         return;
     }
     const std::filesystem::path::string_type& str = m_filePath.native();
+#ifdef DUILIB_BUILD_FOR_WIN
+    if (str == L"/") {
+#else
     if (str == _T("/")) {
+#endif
         return;
     }
     if (!str.empty() && str[str.size() - 1] == FilePath::GetPathSeparator()) {
