@@ -266,7 +266,7 @@ static bool GetFileInfo_Windows(const DStringW& filePath, uint32_t* pIconId, boo
             shFileInfo.hIcon = nullptr;
         }
         if (szTypeName) {
-            *szTypeName = shFileInfo.szTypeName;
+            *szTypeName = StringConvert::WStringToT(shFileInfo.szTypeName);
         }
         bRet = true;
     }
