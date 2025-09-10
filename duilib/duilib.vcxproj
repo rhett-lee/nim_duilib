@@ -362,6 +362,7 @@
     <ClCompile Include="Image\ImageDecoder_ICO.cpp" />
     <ClCompile Include="Image\ImageDecoder_Icon.cpp" />
     <ClCompile Include="Image\ImageDecoder_JPEG.cpp" />
+    <ClCompile Include="Image\ImageDecoder_LOTTIE.cpp" />
     <ClCompile Include="Image\ImageDecoder_PNG.cpp" />
     <ClCompile Include="Image\ImageDecoder_SVG.cpp" />
     <ClCompile Include="Image\ImageDecoder_WEBP.cpp" />
@@ -374,6 +375,7 @@
     <ClCompile Include="Image\Image_GIF.cpp" />
     <ClCompile Include="Image\Image_ICO.cpp" />
     <ClCompile Include="Image\Image_JPEG.cpp" />
+    <ClCompile Include="Image\Image_LOTTIE.cpp" />
     <ClCompile Include="Image\Image_PNG.cpp" />
     <ClCompile Include="Image\Image_Svg.cpp" />
     <ClCompile Include="Image\Image_WEBP.cpp" />
@@ -713,6 +715,7 @@
     <ClInclude Include="Image\ImageDecoder_ICO.h" />
     <ClInclude Include="Image\ImageDecoder_Icon.h" />
     <ClInclude Include="Image\ImageDecoder_JPEG.h" />
+    <ClInclude Include="Image\ImageDecoder_LOTTIE.h" />
     <ClInclude Include="Image\ImageDecoder_PNG.h" />
     <ClInclude Include="Image\ImageDecoder_SVG.h" />
     <ClInclude Include="Image\ImageDecoder_WEBP.h" />
@@ -725,6 +728,7 @@
     <ClInclude Include="Image\Image_GIF.h" />
     <ClInclude Include="Image\Image_ICO.h" />
     <ClInclude Include="Image\Image_JPEG.h" />
+    <ClInclude Include="Image\Image_LOTTIE.h" />
     <ClInclude Include="Image\Image_PNG.h" />
     <ClInclude Include="Image\Image_Svg.h" />
     <ClInclude Include="Image\Image_WEBP.h" />

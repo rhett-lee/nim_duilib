@@ -792,6 +792,12 @@
     <ClCompile Include="Image\Image_JPEG.cpp">
       <Filter>Image</Filter>
     </ClCompile>
+    <ClCompile Include="Image\ImageDecoder_LOTTIE.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="Image\Image_LOTTIE.cpp">
+      <Filter>Image</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Animation\AnimationManager.h">
@@ -1641,6 +1647,12 @@
       <Filter>Image</Filter>
     </ClInclude>
     <ClInclude Include="Image\Image_JPEG.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\ImageDecoder_LOTTIE.h">
+      <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="Image\Image_LOTTIE.h">
       <Filter>Image</Filter>
     </ClInclude>
   </ItemGroup>

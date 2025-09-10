@@ -19,7 +19,7 @@
         <SkiaLibDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\..\..\skia\out\llvm.x86.debug</SkiaLibDir>
 
         <!-- Skia的lib列表 -->
-        <SkiaLibs>skia.lib;svg.lib;skshaper.lib</SkiaLibs>
+        <SkiaLibs>skia.lib;svg.lib;skshaper.lib;skottie.lib;sksg.lib;jsonreader.lib</SkiaLibs>
 
     </PropertyGroup>
 </Project>
