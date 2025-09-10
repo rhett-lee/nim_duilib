@@ -15,6 +15,7 @@
 #include "duilib/Image/ImageDecoder_PNG.h"
 #include "duilib/Image/ImageDecoder_SVG.h"
 #include "duilib/Image/ImageDecoder_WEBP.h"
+#include "duilib/Image/ImageDecoder_JPEG.h"
 #include "duilib/Image/ImageDecoder_Common.h"
 
 #if defined (DUILIB_BUILD_FOR_WIN)
@@ -102,10 +103,11 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
 
     //初始化图片格式解码器
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_SVG>());
-    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_ICO>());    
-    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_GIF>());
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_PNG>());
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_GIF>());
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_JPEG>());
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_WEBP>());
+    m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_ICO>());
     m_imageDecoderFactory.AddImageDecoder(std::make_shared<ImageDecoder_Icon>());
 
     //通用解码器，放在最后

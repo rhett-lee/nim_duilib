@@ -17,29 +17,32 @@
     
     <!-- WebView2: 需要添加是否支持的宏定义： DUILIB_WEBVIEW2=1 开启，DUILIB_WEBVIEW2=0 关闭 -->
     <Import Project="WebView2Settings.props" />
+    
+    <!-- libjpeg-turbo: 需要添加include路径，需要添加是否支持的宏定义： DUILIB_JPEG_TURBO=1 开启，DUILIB_JPEG_TURBO=0 关闭  -->
+    <Import Project="JpegTurboSettings.props" />
 
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
         <ClCompile>
-            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>$(SkiaReleaseDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);$(JpegTurboIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>$(SkiaReleaseDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
     </ItemDefinitionGroup>
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
         <ClCompile>
-            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>$(SkiaDebugDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);$(JpegTurboIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>$(SkiaDebugDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
     </ItemDefinitionGroup>
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
         <ClCompile>
-            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>$(SkiaReleaseDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);$(JpegTurboIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>$(SkiaReleaseDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
     </ItemDefinitionGroup>
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
         <ClCompile>
-            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>$(SkiaDebugDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);$(SkiaIncludeDir);$(SDLIncludeDir);$(LibCefIncludeDir);$(JpegTurboIncludeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+            <PreprocessorDefinitions>$(SkiaDebugDefinitions);DUILIB_SDL=$(SDLEnabled);DUILIB_WEBVIEW2=$(WebView2Enabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
     </ItemDefinitionGroup>
     

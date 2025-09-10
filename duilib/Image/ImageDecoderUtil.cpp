@@ -6,7 +6,7 @@
 #include "duilib/Image/ImageUtil.h"
 
 #pragma warning (push)
-#pragma warning (disable: 4244)
+#pragma warning (disable: 4244 4505)
 #define STB_IMAGE_IMPLEMENTATION
 #define STBI_NO_STDIO
 #define STBI_NO_TGA
@@ -15,6 +15,9 @@
 #define STBI_NO_PNM
 #define STBI_NO_GIF
 #define STBI_NO_PNG
+#if DUILIB_IMAGE_SUPPORT_JPEG_TURBO
+    #define STBI_NO_JPEG
+#endif
 #include "duilib/third_party/stb_image/stb_image.h"
 
 #define STB_IMAGE_RESIZE_IMPLEMENTATION

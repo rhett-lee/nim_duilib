@@ -22,6 +22,14 @@ bool ImageUtil::NeedResizeImage(float fImageSizeScale)
     return true;
 }
 
+bool ImageUtil::IsValidImageScale(float fImageSizeScale)
+{
+    if (fImageSizeScale < 0.001f) {
+        return false;
+    }
+    return true;
+}
+
 uint32_t ImageUtil::GetScaledImageSize(uint32_t nImageSize, float fImageSizeScale)
 {
     if (NeedResizeImage(fImageSizeScale)) {

@@ -23,6 +23,10 @@ public:
     */
     static bool IsSameImageScale(float fImageSizeScale1, float fImageSizeScale2);
 
+    /** 判断一个缩放比例是否合法
+    */
+    static bool IsValidImageScale(float fImageSizeScale);
+
     /** 计算出按比例缩放后的图片尺寸（按比例缩放）
     * @param [in] nImageSize 原图片的尺寸，宽度或者高度
     * @param [in] fImageSizeScale 图片的缩放比例，1.0f表示原值

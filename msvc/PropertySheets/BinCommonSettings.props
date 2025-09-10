@@ -16,44 +16,47 @@
     <!-- Skia: 需要添加lib路径, lib列表 -->
     <Import Project="SkiaSettings.props" />
     
+    <!-- JpegTurbo: 需要添加lib路径, lib列表 -->
+    <Import Project="JpegTurboSettings.props" />
+    
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
         <ClCompile>
             <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;%(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);$(JpegTurboLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;%(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
         </Link>
     </ItemDefinitionGroup>
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
         <ClCompile>
             <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);$(JpegTurboLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
         </Link>
     </ItemDefinitionGroup>
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
         <ClCompile>
             <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);$(JpegTurboLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
         </Link>
     </ItemDefinitionGroup>
     <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
         <ClCompile>
             <AdditionalIncludeDirectories>$(SolutionDir)\..;$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <PreprocessorDefinitions>DUILIB_SDL=$(SDLEnabled);DUILIB_JPEG_TURBO=$(JpegTurboEnabled);%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
         <Link>
-            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-            <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+            <AdditionalLibraryDirectories>$(SkiaLibDir);$(SDLLibDir);$(JpegTurboLibDir);$(SolutionDir)\..\lib\$(Platform)\;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>$(SkiaLibs);$(SDLLibs);$(JpegTurboLibs);opengl32.lib;Imm32.lib;comctl32.lib;shlwapi.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
         </Link>
     </ItemDefinitionGroup>
     <ItemGroup />

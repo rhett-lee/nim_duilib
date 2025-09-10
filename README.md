@@ -130,11 +130,12 @@
 |cximage   |duilib/third_party/cximage| 支持ICO图片格式|[cximage.LICENSE.txt](licenses/cximage.LICENSE.txt)|
 |giflib    |duilib/third_party/giflib| 支持GIF图片格式|[giflib.LICENSE.txt](licenses/giflib.LICENSE.txt)|
 |libwebp   |duilib/third_party/libwebp| 支持WebP图片格式|[libWebP.LICENSE.txt](licenses/libwebp.LICENSE.txt)|
-|stb_image |duilib/third_party/stb_image| 支持JPEG/BMP图片格式，调整图片大小|[stb_image.LICENSE.txt](licenses/stb_image.LICENSE.txt)|
+|stb_image |duilib/third_party/stb_image| 支持BMP图片格式，调整图片大小|[stb_image.LICENSE.txt](licenses/stb_image.LICENSE.txt)|
+|libjpeg-turbo|duilib/third_party/libjpeg-turbo| 支持JPEG图片格式|[libjpeg-turbo.LICENSE.md](licenses/libjpeg-turbo.LICENSE.md)|
 |nanosvg   |duilib/third_party/svg| 支持SVG图片格式|[nanosvg.LICENSE.txt](licenses/nanosvg.LICENSE.txt)|
 |pugixml   |duilib/third_party/xml| 支持资源描述XML的解析|[pugixml.LICENSE.txt](licenses/pugixml.LICENSE.txt)|
 |ConvertUTF|duilib/third_party/convert_utf| 用于UTF-8/UTF-16编码的相互转换|[llvm.LICENSE.txt](licenses/llvm.LICENSE.txt)|
-|skia      |项目未包含skia源码     | 界面库渲染引擎|[skia.LICENSE.txt](licenses/skia.LICENSE.txt)|
+|skia      |项目未包含skia源码     | 界面库渲染引擎/支持SVG图片格式|[skia.LICENSE.txt](licenses/skia.LICENSE.txt)|
 |SDL       |项目未包含SDL源码      | 跨平台窗口管理|[SDL.LICENSE.txt](licenses/SDL.LICENSE.txt)|
 |duilib    |                       | 最早基于duilib开发|[duilib.LICENSE.txt](licenses/duilib.LICENSE.txt)|
 |NIM_Duilib Framework|             | 基于NIM_Duilib_Framework开发|[NIM_Duilib_Framework.LICENSE.txt](licenses/NIM_Duilib_Framework.LICENSE.txt)|
