@@ -36,8 +36,8 @@
 6. 对代码打支持APNG的补丁：
  - 补丁下载地址：https://sourceforge.net/projects/libpng-apng/ ，如果找不到对应的补丁，可用搜索引擎搜`libpng PNG_APNG_SUPPORTED`，尝试查找
  - 如果找不到对应版本的补丁，可以考虑暂缓更新libpng
- - 更新步骤1：将`libpng-1.6.47-apng.patch.gz`文件解压出`libpng-1.6.47-apng.patch`文件，放在`duilib\third_party\libpng`目录中
- - 更新步骤2：命令行模式，进入`duilib\third_party\libpng`目录，运行命令：`git apply .\libpng-1.6.47-apng.patch`
+ - 更新步骤1：将`libpng-1.6.50-apng.patch.gz`文件解压出`libpng-1.6.50-apng.patch`文件，放在`duilib\third_party\libpng`目录中
+ - 更新步骤2：命令行模式，进入`duilib\third_party\libpng`目录，运行命令：`git apply .\libpng-1.6.50-apng.patch`
  - 更新步骤3：补丁打完以后，检查、测试并提交。
 
 ## libcef 库更新说明
