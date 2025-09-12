@@ -6,8 +6,8 @@
 ## 当前各个第三方库的使用情况
 | 名称        | 更新日期   | 版本号|是否修改| 获取URL | 备注 |
 | :---        | :---       | :---  |:---    | :---    |:---  |
-| apng        | 2025-03-10 |v1.6.47|无 |https://sourceforge.net/projects/libpng-apng/ |通过libpng + libpng-1.6.47-apng.patch来支持的 |
-| libpng      | 2025-03-10 |v1.6.47|有 |https://sourceforge.net/projects/libpng/|参见后续说明，对以下文件有修改：<br>CMakeLists.txt<br>projects\vstudio\libpng\libpng.vcxproj <br>pngstruct.h|
+| apng        | 2025-09-12 |v1.6.50|无 |https://sourceforge.net/projects/libpng-apng/ |通过libpng + libpng-1.6.50-apng.patch来支持的 |
+| libpng      | 2025-09-12 |v1.6.50|有 |https://sourceforge.net/projects/libpng/|参见后续说明，对以下文件有修改：<br>CMakeLists.txt<br>projects\vstudio\libpng\libpng.vcxproj <br>pngstruct.h|
 | cximage     | 2024-05-30 |v7.02  |无 |https://sourceforge.net/projects/cximage/|2011-02-11后已停止更新|
 | giflib      | 2025-09-05 |v5.2.2 |无 |https://sourceforge.net/projects/giflib/||
 | libwebp     | 2025-03-11 |v1.5.0 |无 |https://github.com/webmproject/libwebp|tag/v1.5.0，使用了src目录下的子目录，覆盖后，删除不必要的文件即可（基本方法：新旧版本源码比较，然后看文件增删改，再同步，项目只使用了图片解码功能，没有用到图片编码功能，目前没有用到config.h文件）|
