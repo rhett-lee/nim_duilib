@@ -106,7 +106,7 @@ APNGDATA* loadPng(IPngReader* pSrc, bool bLoadAllFrames, unsigned int& nFrameCou
         png_destroy_read_struct(&png_ptr_read, &info_ptr_read, NULL);
         return NULL;
     }
-#pragma warning (push)
+#pragma warning (pop)
 
     png_set_read_fn(png_ptr_read, pSrc, mypng_read_data);
     png_set_sig_bytes(png_ptr_read, 8);
