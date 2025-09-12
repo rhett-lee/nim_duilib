@@ -50,7 +50,7 @@
 #define STDERR stdout
 
 /* Generate a compiler error if there is an old png.h in the search path. */
-typedef png_libpng_version_1_6_47 Your_png_h_is_not_version_1_6_47;
+typedef png_libpng_version_1_6_50 Your_png_h_is_not_version_1_6_50;
 
 /* Ensure that all version numbers in png.h are consistent with one another. */
 #if (PNG_LIBPNG_VER != PNG_LIBPNG_VER_MAJOR * 10000 + \
@@ -60,7 +60,7 @@ typedef png_libpng_version_1_6_47 Your_png_h_is_not_version_1_6_47;
                                  PNG_LIBPNG_VER_MINOR) || \
     (PNG_LIBPNG_VER_SHAREDLIB != PNG_LIBPNG_VER_SONUM) || \
     (PNG_LIBPNG_VER_SHAREDLIB != PNG_LIBPNG_VER_DLLNUM)
-#  error "Inconsistent version numbers in png.h"
+#  error Inconsistent version numbers in "png.h"
 #endif
 
 /* In version 1.6.1, we added support for the configure test harness, which
@@ -103,10 +103,6 @@ typedef png_libpng_version_1_6_47 Your_png_h_is_not_version_1_6_47;
 #  define PNG_ZBUF_SIZE 8192
 #endif
 
-#ifndef PNG_STDIO_SUPPORTED
-typedef FILE * png_FILE_p;
-#endif
-
 #ifndef PNG_DEBUG
 #  define PNG_DEBUG 0
 #endif
@@ -120,7 +116,7 @@ typedef FILE * png_FILE_p;
 #  define pngtest_debug1(m, p1)     ((void)0)
 #  define pngtest_debug2(m, p1, p2) ((void)0)
 #else /* PNG_DEBUG < 0 */
-#  error "Bad PNG_DEBUG value"
+#  error Bad PNG_DEBUG value
 #endif
 
 /* Turn on CPU timing
@@ -403,7 +399,7 @@ pngtest_read_data(png_structp png_ptr, png_bytep data, size_t length)
     */
    io_ptr = png_get_io_ptr(png_ptr);
    if (io_ptr != NULL)
-      check = fread(data, 1, length, (png_FILE_p)io_ptr);
+      check = fread(data, 1, length, (FILE *)io_ptr);
 
    if (check != length)
       png_error(png_ptr, "Read Error");
@@ -437,7 +433,7 @@ pngtest_write_data(png_structp png_ptr, png_bytep data, size_t length)
    if (png_ptr == NULL)
       png_error(png_ptr, "pngtest_write_data: bad png_ptr");
 
-   check = fwrite(data, 1, length, (png_FILE_p)png_get_io_ptr(png_ptr));
+   check = fwrite(data, 1, length, (FILE *)png_get_io_ptr(png_ptr));
 
    if (check != length)
       png_error(png_ptr, "Write Error");
@@ -858,8 +854,8 @@ pngtest_check_text_support(png_structp png_ptr, png_textp text_ptr,
 static int
 test_one_file(const char *inname, const char *outname)
 {
-   static png_FILE_p fpin;
-   static png_FILE_p fpout;  /* "static" prevents setjmp corruption */
+   static FILE *fpin;
+   static FILE *fpout;  /* "static" prevents setjmp corruption */
    pngtest_error_parameters error_parameters;
    png_structp read_ptr;
    png_infop read_info_ptr, end_info_ptr;
@@ -881,10 +877,6 @@ test_one_file(const char *inname, const char *outname)
    int bit_depth, color_type;
    user_chunk_info my_user_chunk_data;
    int pass, num_passes;
-#ifdef PNG_APNG_SUPPORTED
-   png_uint_32 num_frames;
-   png_uint_32 num_plays;
-#endif
 
    row_buf = NULL;
    error_parameters.file_name = inname;
@@ -1445,22 +1437,6 @@ test_one_file(const char *inname, const char *outname)
       }
    }
 #endif
-
-#ifdef PNG_APNG_SUPPORTED
-   if (png_get_valid(read_ptr, read_info_ptr, PNG_INFO_acTL))
-   {
-      if (png_get_acTL(read_ptr, read_info_ptr, &num_frames, &num_plays))
-      {
-         png_byte is_hidden;
-         pngtest_debug2("Handling acTL chunks (frames %ld, plays %ld)",
-                    num_frames, num_plays);
-         png_set_acTL(write_ptr, write_info_ptr, num_frames, num_plays);
-         is_hidden = png_get_first_frame_is_hidden(read_ptr, read_info_ptr);
-         png_set_first_frame_is_hidden(write_ptr, write_info_ptr, is_hidden);
-      }
-   }
-#endif
-
 #ifdef PNG_WRITE_UNKNOWN_CHUNKS_SUPPORTED
    {
       png_unknown_chunkp unknowns;
@@ -1519,110 +1495,6 @@ test_one_file(const char *inname, const char *outname)
    t_stop = (float)clock();
    t_misc += (t_stop - t_start);
    t_start = t_stop;
-#endif
-#ifdef PNG_APNG_SUPPORTED
-   if (png_get_valid(read_ptr, read_info_ptr, PNG_INFO_acTL))
-   {
-      png_uint_32 frame;
-      for (frame = 0; frame < num_frames; frame++)
-      {
-         png_uint_32 frame_width;
-         png_uint_32 frame_height;
-         png_uint_32 x_offset;
-         png_uint_32 y_offset;
-         png_uint_16 delay_num;
-         png_uint_16 delay_den;
-         png_byte dispose_op;
-         png_byte blend_op;
-         png_read_frame_head(read_ptr, read_info_ptr);
-         if (png_get_valid(read_ptr, read_info_ptr, PNG_INFO_fcTL))
-         {
-            png_get_next_frame_fcTL(read_ptr, read_info_ptr,
-                                    &frame_width, &frame_height,
-                                    &x_offset, &y_offset,
-                                    &delay_num, &delay_den,
-                                    &dispose_op, &blend_op);
-         }
-         else
-         {
-            frame_width = width;
-            frame_height = height;
-            x_offset = 0;
-            y_offset = 0;
-            delay_num = 1;
-            delay_den = 1;
-            dispose_op = PNG_DISPOSE_OP_NONE;
-            blend_op = PNG_BLEND_OP_SOURCE;
-         }
-#ifdef PNG_WRITE_APNG_SUPPORTED
-         png_write_frame_head(write_ptr, write_info_ptr, (png_bytepp)&row_buf,
-                              frame_width, frame_height,
-                              x_offset, y_offset,
-                              delay_num, delay_den,
-                              dispose_op, blend_op);
-#endif
-         for (pass = 0; pass < num_passes; pass++)
-         {
-#           ifdef calc_pass_height
-               png_uint_32 pass_height;
-
-               if (num_passes == 7) /* interlaced */
-               {
-                  if (PNG_PASS_COLS(frame_width, pass) > 0)
-                     pass_height = PNG_PASS_ROWS(frame_height, pass);
-
-                  else
-                     pass_height = 0;
-               }
-
-               else /* not interlaced */
-                  pass_height = frame_height;
-#           else
-#              define pass_height frame_height
-#           endif
-
-            pngtest_debug1("Writing row data for pass %d", pass);
-            for (y = 0; y < pass_height; y++)
-            {
-#ifndef SINGLE_ROWBUF_ALLOC
-               pngtest_debug2("Allocating row buffer (pass %d, y = %u)...", pass, y);
-
-               row_buf = (png_bytep)png_malloc(read_ptr,
-                  png_get_rowbytes(read_ptr, read_info_ptr));
-
-               pngtest_debug2("\t0x%08lx (%lu bytes)", (unsigned long)row_buf,
-                  (unsigned long)png_get_rowbytes(read_ptr, read_info_ptr));
-
-#endif /* !SINGLE_ROWBUF_ALLOC */
-               png_read_rows(read_ptr, (png_bytepp)&row_buf, NULL, 1);
-
-#ifdef PNG_WRITE_SUPPORTED
-#ifdef PNGTEST_TIMING
-               t_stop = (float)clock();
-               t_decode += (t_stop - t_start);
-               t_start = t_stop;
-#endif
-               png_write_rows(write_ptr, (png_bytepp)&row_buf, 1);
-#ifdef PNGTEST_TIMING
-               t_stop = (float)clock();
-               t_encode += (t_stop - t_start);
-               t_start = t_stop;
-#endif
-#endif /* PNG_WRITE_SUPPORTED */
-
-#ifndef SINGLE_ROWBUF_ALLOC
-               pngtest_debug2("Freeing row buffer (pass %d, y = %u)", pass, y);
-               png_free(read_ptr, row_buf);
-               row_buf = NULL;
-#endif /* !SINGLE_ROWBUF_ALLOC */
-            }
-         }
-#ifdef PNG_WRITE_APNG_SUPPORTED
-         png_write_frame_tail(write_ptr, write_info_ptr);
-#endif
-      }
-   }
-   else
 #endif
    for (pass = 0; pass < num_passes; pass++)
    {

@@ -1,6 +1,6 @@
-/* pngstruct.h - header file for PNG reference library
+/* pngstruct.h - internal structures for libpng
  *
- * Copyright (c) 2018-2022 Cosmin Truta
+ * Copyright (c) 2018-2025 Cosmin Truta
  * Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson
  * Copyright (c) 1996-1997 Andreas Dilger
  * Copyright (c) 1995-1996 Guy Eric Schalnat, Group 42, Inc.
@@ -10,11 +10,9 @@
  * and license in png.h
  */
 
-/* The structure that holds the information to read and write PNG files.
- * The only people who need to care about what is inside of this are the
- * people who will be modifying the library for their own special needs.
- * It should NOT be accessed directly by an application.
- */
+#ifndef PNGPRIV_H
+#  error This file must not be included by applications; please include <png.h>
+#endif
 
 #ifndef PNGSTRUCT_H
 #define PNGSTRUCT_H
@@ -26,11 +24,7 @@
    /* We must ensure that zlib uses 'const' in declarations. */
 #  define ZLIB_CONST
 #endif
-
-#ifndef ZLIB_H
-   #include "zlib.h"
-#endif
-
+#include "zlib.h"
 #ifdef const
    /* zlib.h sometimes #defines const to nothing, undo this. */
 #  undef const
@@ -381,7 +375,8 @@ struct png_struct_def
 
 /* New member added in libpng-1.6.36 */
 #if defined(PNG_READ_EXPAND_SUPPORTED) && \
-    defined(PNG_ARM_NEON_IMPLEMENTATION)
+    (defined(PNG_ARM_NEON_IMPLEMENTATION) || \
+     defined(PNG_RISCV_RVV_IMPLEMENTATION))
    png_bytep riffled_palette; /* buffer for accelerated palette expansion */
 #endif
 
@@ -395,27 +390,6 @@ struct png_struct_def
 #ifdef PNG_MNG_FEATURES_SUPPORTED
    png_byte filter_type;
 #endif
-
-#ifdef PNG_APNG_SUPPORTED
-   png_uint_32 apng_flags;
-   png_uint_32 next_seq_num;         /* next fcTL/fdAT chunk sequence number */
-   png_uint_32 first_frame_width;
-   png_uint_32 first_frame_height;
-
-#ifdef PNG_READ_APNG_SUPPORTED
-   png_uint_32 num_frames_read;      /* incremented after all image data of */
-                                     /* a frame is read */
-#ifdef PNG_PROGRESSIVE_READ_SUPPORTED
-   png_progressive_frame_ptr frame_info_fn; /* frame info read callback */
-   png_progressive_frame_ptr frame_end_fn;  /* frame data read callback */
-#endif
-#endif
-
-#ifdef PNG_WRITE_APNG_SUPPORTED
-   png_uint_32 num_frames_to_write;
-   png_uint_32 num_frames_written;
-#endif
-#endif /* PNG_APNG_SUPPORTED */
 
 /* New members added in libpng-1.2.0 */
 
