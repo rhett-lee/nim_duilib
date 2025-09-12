@@ -14,7 +14,19 @@
 #
 # SPDX-License-Identifier: libpng-2.0
 
-cmake_minimum_required(VERSION 3.14...4.0)
+cmake_minimum_required(VERSION 3.18)
+
+# duilib
+# MSVC runtime library flags are selected by an abstraction.
+set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
+if("${DUILIB_MD}" STREQUAL "ON")
+    # MD/MDd
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Debug>:Debug>")
+else()
+    # MT/MTd
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+# duilib end
 
 set(PNGLIB_MAJOR 1)
 set(PNGLIB_MINOR 6)
@@ -70,10 +82,10 @@ if((NOT DFA_XTRA STREQUAL "") AND (NOT PNG_LIBCONF_HEADER STREQUAL ""))
 endif()
 
 # Allow the users to switch on/off various library build types.
-option(PNG_SHARED "Build libpng as a shared library" ON)
+option(PNG_SHARED "Build libpng as a shared library" OFF)
 option(PNG_STATIC "Build libpng as a static library" ON)
 if(APPLE)
-  option(PNG_FRAMEWORK "Build libpng as a framework bundle" ON)
+  option(PNG_FRAMEWORK "Build libpng as a framework bundle" OFF)
 else()
   option(PNG_FRAMEWORK "Build libpng as a framework bundle (not available on this platform)" OFF)
 endif()
@@ -84,7 +96,7 @@ endif()
 # Allow the users to switch on/off the auxiliary build and test artifacts.
 # These artifacts are NOT part of libpng proper, and are subject to change
 # at any time.
-option(PNG_TESTS "Build the libpng tests" ON)
+option(PNG_TESTS "Build the libpng tests" OFF)
 
 # Same as above, but for the third-party tools.
 # Although these tools are targetted at development environments only,
@@ -92,7 +104,7 @@ option(PNG_TESTS "Build the libpng tests" ON)
 if(ANDROID OR IOS)
   option(PNG_TOOLS "Build the libpng tools" OFF)
 else()
-  option(PNG_TOOLS "Build the libpng tools" ON)
+  option(PNG_TOOLS "Build the libpng tools" OFF)
 endif()
 
 # Maintain backwards compatibility with the deprecated option PNG_EXECUTABLES.
@@ -123,6 +135,14 @@ else()
   string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" PNG_TARGET_ARCHITECTURE)
 endif()
 message(STATUS "Building for target architecture: ${PNG_TARGET_ARCHITECTURE}")
+
+# duilib: please build zlib first
+get_filename_component(DUILIB_SRC_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../" ABSOLUTE)
+set(ZLIB_ROOT "${DUILIB_SRC_ROOT_DIR}/duilib/third_party/zlib/")
+set(ZLIB_LIBRARY "${DUILIB_SRC_ROOT_DIR}/duilib/lib/libduilib-zlib.a")
+message(STATUS "ZLIB_ROOT: ${ZLIB_ROOT}")
+message(STATUS "ZLIB_LIBRARY: ${ZLIB_LIBRARY}")
+# duilib end
 
 # Allow the users to specify a custom location of zlib.
 # With CMake 3.12 and newer, this option is no longer necessary.
@@ -702,13 +722,16 @@ if(PNG_SHARED)
                         PUBLIC ${PNG_LINK_LIBRARIES})
 endif()
 
+#duilib
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${DUILIB_SRC_ROOT_DIR}/lib/")
+
 if(PNG_STATIC)
   add_library(png_static STATIC ${libpng_sources})
   add_dependencies(png_static png_genfiles)
   list(APPEND PNG_LIBRARY_TARGETS png_static)
-  set_target_properties(png_static
-                        PROPERTIES OUTPUT_NAME "${PNG_STATIC_OUTPUT_NAME}"
-                                   DEBUG_POSTFIX "${PNG_DEBUG_POSTFIX}")
+#  set_target_properties(png_static
+#                        PROPERTIES OUTPUT_NAME "${PNG_STATIC_OUTPUT_NAME}"
+#                                   DEBUG_POSTFIX "${PNG_DEBUG_POSTFIX}")
   target_include_directories(png_static
                              PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
   target_include_directories(png_static
@@ -718,6 +741,8 @@ if(PNG_STATIC)
                              INTERFACE "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/libpng${PNGLIB_ABI_VERSION}>")
   target_link_libraries(png_static
                         PUBLIC ${PNG_LINK_LIBRARIES})
+  #duilib
+  set_target_properties(png_static PROPERTIES OUTPUT_NAME "duilib-png")
 endif()
 
 if(PNG_FRAMEWORK AND NOT APPLE)
@@ -1064,7 +1089,7 @@ if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL)
 
   if(PNG_STATIC)
     if(NOT WIN32 OR CYGWIN OR MINGW)
-      create_symlink(libpng${CMAKE_STATIC_LIBRARY_SUFFIX} TARGET png_static)
+#      create_symlink(libpng${CMAKE_STATIC_LIBRARY_SUFFIX} TARGET png_static)
       install(FILES "$<TARGET_LINKER_FILE_DIR:png_static>/libpng${CMAKE_STATIC_LIBRARY_SUFFIX}"
               DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     endif()
