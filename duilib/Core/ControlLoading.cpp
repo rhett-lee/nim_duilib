@@ -56,8 +56,8 @@ void ControlLoading::PaintLoading(IRender* pRender)
         return;
     }
 
-    pControl->LoadImageData(*m_pLoadingImage);
-    std::shared_ptr<ImageInfo> spImageInfo = m_pLoadingImage->GetImageCache();
+    pControl->LoadImageInfo(*m_pLoadingImage);
+    std::shared_ptr<ImageInfo> spImageInfo = m_pLoadingImage->GetImageInfo();
     ASSERT(spImageInfo != nullptr);
     if (!spImageInfo) {
         return;

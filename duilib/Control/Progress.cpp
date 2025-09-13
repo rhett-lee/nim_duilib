@@ -227,7 +227,7 @@ void Progress::PaintStateImages(IRender* pRender)
         return;
     }
     //加载图片资源
-    LoadImageData(*m_pProgressImage);
+    LoadImageInfo(*m_pProgressImage);
 
     m_sProgressImageModify.clear();
     if (m_bStretchForeImage) {
@@ -235,7 +235,7 @@ void Progress::PaintStateImages(IRender* pRender)
     }
     else {
         ui::UiRect m_rcSrc = rc;
-        std::shared_ptr<ImageInfo> pProgressImageCache = m_pProgressImage->GetImageCache();
+        std::shared_ptr<ImageInfo> pProgressImageCache = m_pProgressImage->GetImageInfo();
         if (pProgressImageCache != nullptr) {
             if (m_rcSrc.right > pProgressImageCache->GetWidth()) {
                 m_rcSrc.right = pProgressImageCache->GetWidth();

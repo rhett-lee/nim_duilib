@@ -96,8 +96,8 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
     }
     std::shared_ptr<ImageInfo> pItemImageCache;
     if (pItemImage != nullptr) {
-        LoadImageData(*pItemImage);
-        pItemImageCache = pItemImage->GetImageCache();
+        LoadImageInfo(*pItemImage);
+        pItemImageCache = pItemImage->GetImageInfo();
         if (pItemImageCache == nullptr) {
             pItemImage = nullptr;
             pItemImageCache.reset();
@@ -126,8 +126,8 @@ void ListCtrlHeaderItem::PaintText(IRender* pRender)
 
     std::shared_ptr<ImageInfo> pSortImageCache;
     if (pSortImage != nullptr) {
-        LoadImageData(*pSortImage);
-        pSortImageCache = pSortImage->GetImageCache();
+        LoadImageInfo(*pSortImage);
+        pSortImageCache = pSortImage->GetImageInfo();
         if (pSortImageCache == nullptr) {
             pSortImage = nullptr;
             pSortImageCache.reset();

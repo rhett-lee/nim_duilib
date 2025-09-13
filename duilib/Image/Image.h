@@ -101,11 +101,11 @@ public:
     */
     /** 获取图片信息接口
     */
-    const std::shared_ptr<ImageInfo>& GetImageCache() const;
+    const std::shared_ptr<ImageInfo>& GetImageInfo() const;
 
     /** 设置图片信息接口
     */
-    void SetImageCache(const std::shared_ptr<ImageInfo>& imageInfo);
+    void SetImageInfo(const std::shared_ptr<ImageInfo>& imageInfo);
 
     /** 清除图片信息缓存数据, 释放资源
     */
@@ -214,7 +214,7 @@ private:
 
     /** 图片信息
     */
-    std::shared_ptr<ImageInfo> m_imageCache;
+    std::shared_ptr<ImageInfo> m_imageInfo;
 };
 
 } // namespace ui

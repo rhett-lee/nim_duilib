@@ -52,13 +52,13 @@ void ImagePlayer::SetImageAnimationRect(const UiRect& rcImageRect)
 
 void ImagePlayer::GetImageAnimationStatus(ImageAnimationStatus& animStatus)
 {
-    if ((m_pImage != nullptr) && (m_pControl != nullptr) && (m_pImage->GetImageCache() != nullptr)) {
+    if ((m_pImage != nullptr) && (m_pControl != nullptr) && (m_pImage->GetImageInfo() != nullptr)) {
         animStatus.m_name = m_pImage->GetImageAttribute().m_sImageName.c_str();
         animStatus.m_bBkImage = m_pControl->GetBkImage() == m_pImage->GetImageString();
         animStatus.m_nFrameCount = m_pImage->GetFrameCount();
         animStatus.m_nFrameIndex = m_pImage->GetCurrentFrameIndex();
-        animStatus.m_nFrameDelayMs = m_pImage->GetImageCache()->GetFrameDelayMs(animStatus.m_nFrameIndex);
-        animStatus.m_nLoopCount = m_pImage->GetImageCache()->GetLoopCount();
+        animStatus.m_nFrameDelayMs = m_pImage->GetImageInfo()->GetFrameDelayMs(animStatus.m_nFrameIndex);
+        animStatus.m_nLoopCount = m_pImage->GetImageInfo()->GetLoopCount();
     }
     else {
         animStatus.m_name.clear();
@@ -106,8 +106,8 @@ bool ImagePlayer::StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPl
         //无限循环播放
         m_nMaxPlayCount = -1;
     }
-    ASSERT((m_pImage != nullptr) && (m_pControl != nullptr) && (m_pImage->GetImageCache() != nullptr));
-    if ((m_pImage == nullptr) || (m_pControl == nullptr) || (m_pImage->GetImageCache() == nullptr)) {
+    ASSERT((m_pImage != nullptr) && (m_pControl != nullptr) && (m_pImage->GetImageInfo() != nullptr));
+    if ((m_pImage == nullptr) || (m_pControl == nullptr) || (m_pImage->GetImageInfo() == nullptr)) {
         m_bAnimationPlaying = false;
         return false;
     }
@@ -116,7 +116,7 @@ bool ImagePlayer::StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPl
     uint32_t nFrameIndex = GetImageFrameIndex(nStartFrame);
     m_pImage->SetCurrentFrameIndex(nFrameIndex);
     nFrameIndex = m_pImage->GetCurrentFrameIndex();
-    int32_t nTimerInterval = m_pImage->GetImageCache()->GetFrameDelayMs(nFrameIndex);
+    int32_t nTimerInterval = m_pImage->GetImageInfo()->GetFrameDelayMs(nFrameIndex);
     ASSERT(nTimerInterval > 0);
     if (nTimerInterval <= 0) {
         m_bAnimationPlaying = false;
@@ -153,7 +153,7 @@ void ImagePlayer::PlayingImageAnimation()
         m_bAnimationPlaying = false;
         return;
     }
-    std::shared_ptr<ImageInfo> pImageInfo = m_pImage->GetImageCache();    
+    std::shared_ptr<ImageInfo> pImageInfo = m_pImage->GetImageInfo();
     if (pImageInfo == nullptr) {
         m_animWeakFlag.Cancel();
         m_bAnimationPlaying = false;
@@ -264,8 +264,8 @@ uint32_t ImagePlayer::GetImageFrameIndex(AnimationImagePos frame) const
         ret = 0;
         break;
     case AnimationImagePos::kFrameLast:
-        if (m_pImage->GetImageCache() != nullptr) {
-            uint32_t nFrameCount = m_pImage->GetImageCache()->GetFrameCount();
+        if (m_pImage->GetImageInfo() != nullptr) {
+            uint32_t nFrameCount = m_pImage->GetImageInfo()->GetFrameCount();
             ret = nFrameCount > 0 ? nFrameCount - 1 : 0;
         }
         break;
@@ -294,8 +294,8 @@ bool ImagePlayer::IsMultiFrameImage() const
     if ((m_pControl != nullptr) && 
         (m_pImage != nullptr) &&
         (m_pImage->IsImagePaintEnabled()) &&
-        (m_pImage->GetImageCache() != nullptr) &&
-        (m_pImage->GetImageCache()->IsMultiFrameImage())) {
+        (m_pImage->GetImageInfo() != nullptr) &&
+        (m_pImage->GetImageInfo()->IsMultiFrameImage())) {
         return true;
     }
     return false;

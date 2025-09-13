@@ -288,9 +288,9 @@ int32_t TreeNode::GetExpandImagePadding(void) const
         }
     }
     if (pImage != nullptr) {
-        LoadImageData(*pImage);
-        if (pImage->GetImageCache() != nullptr) {
-            imageWidth = pImage->GetImageCache()->GetWidth();
+        LoadImageInfo(*pImage);
+        if (pImage->GetImageInfo() != nullptr) {
+            imageWidth = pImage->GetImageInfo()->GetWidth();
         }
     }
     if (imageWidth > 0) {

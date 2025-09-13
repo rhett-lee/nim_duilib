@@ -755,7 +755,7 @@ public:
     /** 根据图片属性设置, 加载图片信息到缓存中
      * @param[in,out] duiImage 传入时标注图片的路径信息，如果成功则会缓存图片并记录到该参数的成员中
      */
-    bool LoadImageData(Image& duiImage) const;
+    bool LoadImageInfo(Image& duiImage) const;
 
     /** 清理图片缓存, 清理后，如果使用则会重新加载
      */

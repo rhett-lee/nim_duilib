@@ -135,8 +135,8 @@ void CircleProgress::PaintStateImages(IRender* pRender)
 
     std::shared_ptr<ImageInfo> pIndicatorImageInfo;
     if (m_pIndicatorImage != nullptr) {
-        LoadImageData(*m_pIndicatorImage);
-        pIndicatorImageInfo = m_pIndicatorImage->GetImageCache();
+        LoadImageInfo(*m_pIndicatorImage);
+        pIndicatorImageInfo = m_pIndicatorImage->GetImageInfo();
         ASSERT(pIndicatorImageInfo != nullptr);
     }    
 

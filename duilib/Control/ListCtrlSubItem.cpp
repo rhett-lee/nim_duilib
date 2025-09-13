@@ -200,8 +200,8 @@ ImagePtr ListCtrlSubItem::LoadItemImage() const
         }
     }
     if (pItemImage != nullptr) {
-        LoadImageData(*pItemImage);
-        std::shared_ptr<ImageInfo> pItemImageCache = pItemImage->GetImageCache();
+        LoadImageInfo(*pItemImage);
+        std::shared_ptr<ImageInfo> pItemImageCache = pItemImage->GetImageInfo();
         if (pItemImageCache == nullptr) {
             pItemImage = nullptr;
         }
@@ -253,10 +253,10 @@ void ListCtrlSubItem::PaintText(IRender* pRender)
     }
 
     if (imageSize.cx <= 0) {
-        imageSize.cx = pItemImage->GetImageCache()->GetWidth();
+        imageSize.cx = pItemImage->GetImageInfo()->GetWidth();
     }
     if (imageSize.cy <= 0) {
-        imageSize.cy = pItemImage->GetImageCache()->GetHeight();
+        imageSize.cy = pItemImage->GetImageInfo()->GetHeight();
     }
 
     //图标靠左侧，文字按原来的方式绘制
@@ -327,7 +327,7 @@ UiSize ListCtrlSubItem::EstimateText(UiSize szAvailable)
 
     ImagePtr pItemImage = LoadItemImage();
     if (pItemImage != nullptr) {
-        rc.left += pItemImage->GetImageCache()->GetWidth();
+        rc.left += pItemImage->GetImageInfo()->GetWidth();
         rc.left += nIconTextSpacing;
     }   
 

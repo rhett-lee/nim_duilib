@@ -988,8 +988,8 @@ UiSize Control::GetStateImageSize(StateImageType imageType, ControlStateType sta
     }
     UiSize imageSize;
     if (pImage != nullptr) {
-        LoadImageData(*pImage);
-        std::shared_ptr<ImageInfo> imageInfo = pImage->GetImageCache();
+        LoadImageInfo(*pImage);
+        std::shared_ptr<ImageInfo> imageInfo = pImage->GetImageInfo();
         if (imageInfo != nullptr) {
             imageSize.cx = imageInfo->GetWidth();
             imageSize.cy = imageInfo->GetHeight();
@@ -1122,8 +1122,8 @@ UiSize Control::GetBkImageSize() const
 {
     UiSize imageSize;
     if (m_pBkImage != nullptr) {
-        LoadImageData(*m_pBkImage);
-        std::shared_ptr<ImageInfo> imageInfo = m_pBkImage->GetImageCache();
+        LoadImageInfo(*m_pBkImage);
+        std::shared_ptr<ImageInfo> imageInfo = m_pBkImage->GetImageInfo();
         if (imageInfo != nullptr) {
             imageSize.cx = imageInfo->GetWidth();
             imageSize.cy = imageInfo->GetHeight();
@@ -1811,8 +1811,8 @@ UiSize Control::EstimateImage(UiSize szAvailable)
     Image* image = GetEstimateImage();
     if (image != nullptr) {
         //加载图片：需要获取图片的宽和高
-        LoadImageData(*image);
-        imageCache = image->GetImageCache();
+        LoadImageInfo(*image);
+        imageCache = image->GetImageInfo();
     }
     //控件自身的内边距
     const UiPadding rcControlPadding = GetControlPadding();
@@ -2473,8 +2473,8 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         return false;
     }
 
-    LoadImageData(duiImage);
-    std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageCache();
+    LoadImageInfo(duiImage);
+    std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageInfo();
     ASSERT(imageInfo != nullptr);
     if (imageInfo == nullptr) {
         return false;
@@ -3531,7 +3531,7 @@ bool Control::StartImageAnimation(const DString& imageName,
     if (pImage == nullptr) {
         return false;
     }
-    if (!LoadImageData(*pImage)) {
+    if (!LoadImageInfo(*pImage)) {
         return false;
     }
     return pImage->StartImageAnimation(nStartFrame, nPlayCount);
@@ -3573,14 +3573,14 @@ bool Control::SetImageAnimationFrame(const DString& imageName, int32_t nFrameInd
     return false;
 }
 
-bool Control::LoadImageData(Image& duiImage) const
+bool Control::LoadImageInfo(Image& duiImage) const
 {
     GlobalManager::Instance().AssertUIThread();
     //DPI缩放百分比
     const uint32_t nLoadDpiScale = Dpi().GetScale();
-    if (duiImage.GetImageCache() != nullptr) {
+    if (duiImage.GetImageInfo() != nullptr) {
         //如果图片缓存存在，并且DPI缩放百分比没变化，则不再加载（当图片变化的时候，会清空这个缓存）
-        if (duiImage.GetImageCache()->GetLoadDpiScale() == nLoadDpiScale) {
+        if (duiImage.GetImageInfo()->GetLoadDpiScale() == nLoadDpiScale) {
             return true;
         }        
     }
@@ -3637,9 +3637,9 @@ bool Control::LoadImageData(Image& duiImage) const
             imageLoadParam.SetDpiScaleOption(ImageLoadParam::DpiScaleOption::kOff);
         }
     }
-    std::shared_ptr<ImageInfo> imageCache = duiImage.GetImageCache();
-    if ((imageCache == nullptr) || 
-        (imageCache->GetLoadKey() != imageLoadParam.GetLoadKey(nLoadDpiScale))) {
+    std::shared_ptr<ImageInfo> imageInfo = duiImage.GetImageInfo();
+    if ((imageInfo == nullptr) ||
+        (imageInfo->GetLoadKey() != imageLoadParam.GetLoadKey(nLoadDpiScale))) {
         //第1种情况：如果图片没有加载则执行加载图片；
         //第2种情况：如果图片发生变化，则重新加载该图片
         Control* pThis = const_cast<Control*>(this);
@@ -3647,10 +3647,10 @@ bool Control::LoadImageData(Image& duiImage) const
                 //图片加载完成后，重绘该控件
                 pThis->Invalidate();
             });
-        imageCache = GlobalManager::Instance().Image().GetImage(imageLoadParam, asyncLoadCallback);
-        duiImage.SetImageCache(imageCache);
+        imageInfo = GlobalManager::Instance().Image().GetImage(imageLoadParam, asyncLoadCallback);
+        duiImage.SetImageInfo(imageInfo);
     }
-    return imageCache ? true : false;
+    return imageInfo ? true : false;
 }
 
 void Control::ClearImageCache()

@@ -114,14 +114,14 @@ ImageLoadParam Image::GetImageLoadParam() const
                           fPagMaxFrameRate);
 }
 
-const std::shared_ptr<ImageInfo>& Image::GetImageCache() const
+const std::shared_ptr<ImageInfo>& Image::GetImageInfo() const
 {
-    return m_imageCache;
+    return m_imageInfo;
 }
 
-void Image::SetImageCache(const std::shared_ptr<ImageInfo>& imageInfo)
+void Image::SetImageInfo(const std::shared_ptr<ImageInfo>& imageInfo)
 {
-    m_imageCache = imageInfo;
+    m_imageInfo = imageInfo;
 }
 
 void Image::ClearImageCache()
@@ -131,7 +131,7 @@ void Image::ClearImageCache()
         m_pImagePlayer->StopImageAnimation(AnimationImagePos::kFrameCurrent, false);
     }
     m_nCurrentFrame = 0;
-    m_imageCache.reset();
+    m_imageInfo.reset();
 }
 
 void Image::SetCurrentFrameIndex(uint32_t nCurrentFrame)
@@ -150,65 +150,65 @@ uint32_t Image::GetCurrentFrameIndex() const
 
 uint32_t Image::GetFrameCount() const
 {
-    if (!m_imageCache) {
+    if (!m_imageInfo) {
         return 0;
     }
-    return m_imageCache->GetFrameCount();
+    return m_imageInfo->GetFrameCount();
 }
 
 int32_t Image::GetLoopCount() const
 {
-    if (!m_imageCache) {
+    if (!m_imageInfo) {
         return -1;
     }
-    return m_imageCache->GetLoopCount();
+    return m_imageInfo->GetLoopCount();
 }
 
 bool Image::IsMultiFrameImage() const
 {
-    if (!m_imageCache) {
+    if (!m_imageInfo) {
         return false;
     }
-    return m_imageCache->IsMultiFrameImage();
+    return m_imageInfo->IsMultiFrameImage();
 }
 
 std::shared_ptr<IAnimationImage::AnimationFrame> Image::GetCurrentFrame() const
 {
-    ASSERT((m_imageCache != nullptr) && m_imageCache->IsMultiFrameImage());
-    if (!m_imageCache || !m_imageCache->IsMultiFrameImage()) {
+    ASSERT((m_imageInfo != nullptr) && m_imageInfo->IsMultiFrameImage());
+    if (!m_imageInfo || !m_imageInfo->IsMultiFrameImage()) {
         return nullptr;
     }
     //多帧图片
-    if (m_nCurrentFrame < m_imageCache->GetFrameCount()) {
-        return m_imageCache->GetFrame(m_nCurrentFrame);
+    if (m_nCurrentFrame < m_imageInfo->GetFrameCount()) {
+        return m_imageInfo->GetFrame(m_nCurrentFrame);
     }
     else {
         uint32_t nCurrentFrame = 0;
-        if (m_imageCache->GetFrameCount() > 0) {
-            nCurrentFrame = m_nCurrentFrame % m_imageCache->GetFrameCount();
+        if (m_imageInfo->GetFrameCount() > 0) {
+            nCurrentFrame = m_nCurrentFrame % m_imageInfo->GetFrameCount();
         }
-        return m_imageCache->GetFrame(nCurrentFrame);
+        return m_imageInfo->GetFrame(nCurrentFrame);
     }
 }
 
 std::shared_ptr<IBitmap> Image::GetCurrentBitmap() const
 {
-    ASSERT((m_imageCache != nullptr) && !m_imageCache->IsMultiFrameImage());
-    if (!m_imageCache || m_imageCache->IsMultiFrameImage()) {
+    ASSERT((m_imageInfo != nullptr) && !m_imageInfo->IsMultiFrameImage());
+    if (!m_imageInfo || m_imageInfo->IsMultiFrameImage()) {
         return nullptr;
     }
     //单帧图片
-    return m_imageCache->GetBitmap();
+    return m_imageInfo->GetBitmap();
 }
 
 std::shared_ptr<IBitmap> Image::GetCurrentBitmap(const UiRect& rcDest, UiRect& rcSource) const
 {
-    ASSERT((m_imageCache != nullptr) && !m_imageCache->IsMultiFrameImage());
-    if (!m_imageCache || m_imageCache->IsMultiFrameImage()) {
+    ASSERT((m_imageInfo != nullptr) && !m_imageInfo->IsMultiFrameImage());
+    if (!m_imageInfo || m_imageInfo->IsMultiFrameImage()) {
         return nullptr;
     }
 
-    if (!m_imageCache->IsSvgImage()) {
+    if (!m_imageInfo->IsSvgImage()) {
         //不是SVG图片，不支持矢量缩放
         return GetCurrentBitmap();
     }
@@ -222,14 +222,14 @@ std::shared_ptr<IBitmap> Image::GetCurrentBitmap(const UiRect& rcDest, UiRect& r
     }
     const bool bFullImage = (rcSource.left == 0) &&
                             (rcSource.top == 0)  &&
-                            (rcSource.right == m_imageCache->GetWidth()) &&
-                            (rcSource.bottom == m_imageCache->GetHeight());
+                            (rcSource.right == m_imageInfo->GetWidth()) &&
+                            (rcSource.bottom == m_imageInfo->GetHeight());
 
     float fSizeScaleX = static_cast<float>(rcDest.Width()) / rcSource.Width();
     float fSizeScaleY = static_cast<float>(rcDest.Height()) / rcSource.Height();
     float fImageSizeScale = fSizeScaleX < fSizeScaleY ? fSizeScaleX : fSizeScaleY;
 
-    std::shared_ptr<IBitmap> pBitmap = m_imageCache->GetSvgBitmap(fImageSizeScale);
+    std::shared_ptr<IBitmap> pBitmap = m_imageInfo->GetSvgBitmap(fImageSizeScale);
     if (pBitmap == nullptr) {
         pBitmap = GetCurrentBitmap();
     }

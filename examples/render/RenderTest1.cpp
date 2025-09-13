@@ -47,22 +47,22 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     //绘图相同接口
     Image image;
     image.SetImageString(_T("autumn.png"), Dpi());
-    LoadImageData(image);
-    rect.right = rect.left + image.GetImageCache()->GetWidth();
-    rect.bottom = rect.top + image.GetImageCache()->GetHeight();
+    LoadImageInfo(image);
+    rect.right = rect.left + image.GetImageInfo()->GetWidth();
+    rect.bottom = rect.top + image.GetImageInfo()->GetHeight();
 
-    UiRect rcImageSource(0, 0, image.GetImageCache()->GetWidth(), image.GetImageCache()->GetHeight());
+    UiRect rcImageSource(0, 0, image.GetImageInfo()->GetWidth(), image.GetImageInfo()->GetHeight());
     pRender->DrawImage(rcPaint, image.GetCurrentBitmap().get(), rect, UiRect(), rcImageSource, UiRect());
 
     //半透明绘制图片
     rect.left = rect.right + marginLeft;
-    rect.right = rect.left + image.GetImageCache()->GetWidth();
+    rect.right = rect.left + image.GetImageInfo()->GetWidth();
     pRender->DrawImage(rcPaint, image.GetCurrentBitmap().get(), rect, UiRect(), rcImageSource, UiRect(), 100);
 
     //缩小绘制
     rect.left = rect.right + marginLeft;
-    rect.right = rect.left + image.GetImageCache()->GetWidth() / 2;
-    rect.bottom = rect.top + image.GetImageCache()->GetHeight() / 2;
+    rect.right = rect.left + image.GetImageInfo()->GetWidth() / 2;
+    rect.bottom = rect.top + image.GetImageInfo()->GetHeight() / 2;
     pRender->DrawImage(rcPaint, image.GetCurrentBitmap().get(), rect, UiRect(), rcImageSource, UiRect());
 
     //BitBlt/StretchBlt/AlphaBlend三个绘制函数
@@ -70,18 +70,18 @@ void RenderTest1::Paint(IRender* pRender, const UiRect& rcPaint)
     ASSERT(pSrcRender != nullptr);
 
     rect.left = rect.right + marginLeft;
-    rect.right = rect.left + image.GetImageCache()->GetWidth();
-    rect.bottom = rect.top + image.GetImageCache()->GetHeight();
+    rect.right = rect.left + image.GetImageInfo()->GetWidth();
+    rect.bottom = rect.top + image.GetImageInfo()->GetHeight();
     pRender->BitBlt(rect.left, rect.top, rect.Width(), rect.Height(), pSrcRender, 0, 0, RopMode::kSrcCopy);
 
     rect.left = rect.right + marginLeft;
-    rect.right = rect.left + image.GetImageCache()->GetWidth() / 2;
-    rect.bottom = rect.top + image.GetImageCache()->GetHeight() / 2;
+    rect.right = rect.left + image.GetImageInfo()->GetWidth() / 2;
+    rect.bottom = rect.top + image.GetImageInfo()->GetHeight() / 2;
     pRender->StretchBlt(rect.left, rect.top, rect.Width(), rect.Height(), pSrcRender, 0, 0, pSrcRender->GetWidth(), pSrcRender->GetHeight(), RopMode::kSrcCopy);
 
     rect.left = rect.right + marginLeft;
-    rect.right = rect.left + image.GetImageCache()->GetWidth() ;
-    rect.bottom = rect.top + image.GetImageCache()->GetHeight() ;
+    rect.right = rect.left + image.GetImageInfo()->GetWidth() ;
+    rect.bottom = rect.top + image.GetImageInfo()->GetHeight() ;
     pRender->AlphaBlend(rect.left, rect.top, rect.Width() , rect.Height() , pSrcRender, 0, 0, pSrcRender->GetWidth(), pSrcRender->GetHeight(), 96);
 
     delete pSrcRender;
