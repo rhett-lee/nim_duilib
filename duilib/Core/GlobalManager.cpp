@@ -29,6 +29,42 @@
 
 namespace ui 
 {
+/** 库内部的工作线程
+*/
+class UiWorkerThread : public ui::FrameworkThread
+{
+public:
+    struct Param
+    {
+        DString name;
+        int32_t nIdentifier;
+    };
+public:
+    UiWorkerThread(const DString& threadName, int32_t nThreadIdentifier):
+        FrameworkThread(threadName, nThreadIdentifier)
+    { }
+    virtual ~UiWorkerThread() override {}
+
+private:
+    /** 运行前初始化，在进入消息循环前调用
+    */
+    virtual void OnInit() override
+    {
+#if defined (DUILIB_BUILD_FOR_WIN)
+        HRESULT hr = ::CoInitialize(nullptr);
+        ASSERT_UNUSED_VARIABLE((hr == S_OK) || (hr == S_FALSE));
+#endif
+    }
+
+    /** 退出时清理，在退出消息循环后调用
+    */
+    virtual void OnCleanup() override
+    {
+#if defined (DUILIB_BUILD_FOR_WIN)
+        ::CoUninitialize();
+#endif
+    }
+};
 
 GlobalManager::GlobalManager():
     m_platformData(nullptr)
@@ -127,21 +163,34 @@ bool GlobalManager::Startup(const ResourceParam& resParam,
         return false;
     }
 
+    //保存回调函数
+    if (callback != nullptr) {
+        m_pfnCreateControlCallbackList.push_back(callback);
+    }
+
+    //初始化线程池
+    StartInnerThread(ThreadIdentifier::kThreadWorker);
+    StartInnerThread(ThreadIdentifier::kThreadImage1);
+    StartInnerThread(ThreadIdentifier::kThreadImage2);
+
     //加载资源
     if (!ReloadResource(resParam, false)) {
         m_renderFactory.reset();
         return false;
-    }
-
-    //保存回调函数
-    if (callback != nullptr) {
-        m_pfnCreateControlCallbackList.push_back(callback);
     }
     return true;
 }
 
 void GlobalManager::Shutdown()
 {
+    //终止线程池
+    for (std::shared_ptr<FrameworkThread> pThread: m_threadList) {
+        if (pThread != nullptr) {
+            pThread->Stop();
+        }
+    }
+    m_threadList.clear();
+
     m_threadManager.Clear();
     m_timerManager.Clear();
     m_colorManager.Clear();    
@@ -175,6 +224,73 @@ void GlobalManager::Shutdown()
     ::CoUninitialize();
     ::OleUninitialize();
 #endif
+}
+
+bool GlobalManager::StopInnerThread(int32_t nThreadIdentifier)
+{
+    AssertUIThread();
+    ASSERT((nThreadIdentifier == ui::kThreadWorker)  ||
+           (nThreadIdentifier == ui::kThreadNetwork) ||
+           (nThreadIdentifier == ui::kThreadImage1)  ||
+           (nThreadIdentifier == ui::kThreadImage2));
+    if ((nThreadIdentifier != ui::kThreadWorker)  &&
+        (nThreadIdentifier != ui::kThreadNetwork) &&
+        (nThreadIdentifier != ui::kThreadImage1)  &&
+        (nThreadIdentifier != ui::kThreadImage2)) {
+        return false;
+    }
+    bool bRet = false;
+    for (auto iter = m_threadList.begin(); iter != m_threadList.end(); ++iter) {
+        auto pThread = *iter;
+        if ((pThread != nullptr) && (nThreadIdentifier == pThread->GetThreadIdentifier())) {
+            m_threadList.erase(iter);
+            pThread->Stop();
+            bRet = true;
+            break;
+        }
+    }
+    return bRet;
+}
+
+bool GlobalManager::StartInnerThread(int32_t nThreadIdentifier)
+{
+    AssertUIThread();
+    ASSERT((nThreadIdentifier == ui::kThreadWorker)  ||
+           (nThreadIdentifier == ui::kThreadNetwork) ||
+           (nThreadIdentifier == ui::kThreadImage1)  ||
+           (nThreadIdentifier == ui::kThreadImage2));
+    if ((nThreadIdentifier != ui::kThreadWorker)  &&
+        (nThreadIdentifier != ui::kThreadNetwork) &&
+        (nThreadIdentifier != ui::kThreadImage1)  &&
+        (nThreadIdentifier != ui::kThreadImage2)) {
+        return false;
+    }
+    bool bRet = false;
+    for (auto iter = m_threadList.begin(); iter != m_threadList.end(); ++iter) {
+        auto pThread = *iter;
+        if ((pThread != nullptr) && (nThreadIdentifier == pThread->GetThreadIdentifier())) {
+            bRet = true;
+            break;
+        }
+    }
+    if (!bRet) {
+        //初始化线程池
+        std::vector<UiWorkerThread::Param> threadParams = { {_T("Worker"), ThreadIdentifier::kThreadWorker},
+                                                            {_T("Network"), ThreadIdentifier::kThreadNetwork},
+                                                            {_T("Image1"), ThreadIdentifier::kThreadImage1},
+                                                            {_T("Image2"), ThreadIdentifier::kThreadImage2} };
+        for (const UiWorkerThread::Param& param : threadParams) {
+            if (param.nIdentifier != nThreadIdentifier) {
+                continue;
+            }
+            auto pThread = std::make_shared<UiWorkerThread>(param.name, param.nIdentifier);
+            m_threadList.push_back(pThread);
+            pThread->Start();
+            bRet = true;
+            break;
+        }
+    }
+    return bRet;
 }
 
 const FilePath& GlobalManager::GetResourcePath() const

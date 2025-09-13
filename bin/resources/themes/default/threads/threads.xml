@@ -19,7 +19,7 @@
                 <Button class="btn_global_blue_80x30" name="start_threads" text="启动子线程" margin="2,8,2,2"/>
                 <Button class="btn_global_blue_80x30" name="stop_threads" text="停止子线程" margin="2,8,2,2"/>
                 <Label text="在以下线程中执行任务，线程标识符：" height="100%" width="auto" text_align="right,vcenter" margin="8,0,0,0"/>
-                <RichEdit class="rich_edit_spin2" name="threads_identifier" text="1" bkcolor="white" valign="center"/>
+                <RichEdit class="rich_edit_spin simple_border" name="threads_identifier" text="1" bkcolor="white" valign="center"/>
                 <Button class="btn_global_blue_80x30" name="run_task_in_threads" width="180" text="在子线程中执行任务" margin="8,8,2,2"/>
                 <Label text="00:00:00" name="running_time" height="100%" width="100%" text_align="hcenter,vcenter" margin="8,0,0,0"/>
             </HBox>

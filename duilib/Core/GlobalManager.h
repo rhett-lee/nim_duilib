@@ -157,6 +157,15 @@ public:
     void RemoveAllClasss();
 
 public:
+    /** 停止一个内部线程(内部默认启动kThreadWorker/kThreadImage1/kThreadImage2这3个线程，如果不需要可停止掉)
+    */
+    bool StopInnerThread(int32_t nThreadIdentifier);
+
+    /** 启动一个内部线程（kThreadWorker/kThreadNetwork/kThreadImage1/kThreadImage2）
+    */
+    bool StartInnerThread(int32_t nThreadIdentifier);
+
+public:
     /** 获取绘制接口类对象
     */
     IRenderFactory* GetRenderFactory();
@@ -371,6 +380,10 @@ private:
     /** 退出时要执行的函数
     */
     std::vector<std::function<void()>> m_atExitFunctions;
+
+    /** 库内部使用的线程池
+    */
+    std::vector <std::shared_ptr<FrameworkThread>> m_threadList;
 };
 
 } // namespace ui

@@ -113,12 +113,17 @@ void ControlForm::OnInitWindow()
         check_combo->AddTextItem(_T("星期日"));
     }
 
+    int32_t nThreadIdentifier = ui::ThreadIdentifier::kThreadWorker;
+    if (!ui::GlobalManager::Instance().Thread().HasThread(nThreadIdentifier)) {
+        nThreadIdentifier = ui::ThreadIdentifier::kThreadUI;
+    }
+
     /* Load xml file content in global misc thread, and post update RichEdit task to UI thread */
-    ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadMisc, UiBind(&ControlForm::LoadRichEditData, this));
+    ui::GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, UiBind(&ControlForm::LoadRichEditData, this));
 
     /* Post repeat task to update progress value 200 milliseconds once */
-    /* Using ToWeakCallback to protect closure when if [ControlForm] was destoryed */
-    ui::GlobalManager::Instance().Thread().PostRepeatedTask(ui::kThreadMisc,
+    /* Using ToWeakCallback to protect closure when if [ControlForm] was destoryed */    
+    ui::GlobalManager::Instance().Thread().PostRepeatedTask(nThreadIdentifier,
         ui::UiBind(this, [this]() {
             float fProgress = (float)(std::time(nullptr) % 100);
             ui::GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, UiBind(&ControlForm::OnProgressValueChagned, this, fProgress));

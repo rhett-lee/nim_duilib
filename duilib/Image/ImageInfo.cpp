@@ -296,7 +296,7 @@ bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
             m_nLoopCount = -1;
         }
         if (pAnimationImage->IsDecodeImageDataEnabled()) {
-            //开始延迟解码(优先在子线程中解码)
+            //开始延迟解码(优先在子线程中解码) //TODO: 线程管理
             pAnimationImage->SetDecodeImageDataStarted();
             int32_t nDecodeImageThread = ThreadIdentifier::kThreadWorker;
             if (!GlobalManager::Instance().Thread().HasThread(nDecodeImageThread)) {

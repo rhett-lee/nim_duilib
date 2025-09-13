@@ -107,8 +107,13 @@ void MainForm::ExecuteTaskInThread()
 {
     ASSERT(!ui::GlobalManager::Instance().IsInUIThread());
 
+    DString systemThreadId = ui::FrameworkThread::ThreadIdToString(std::this_thread::get_id());
+    int32_t nUIThreadIdentifier = ui::GlobalManager::Instance().Thread().GetCurrentThreadIdentifier();
+
     //执行具体的计算任务，此处只是显示一条日志（也是通过线程间通信，让主线程更新日志数据到界面）
-    DString log = ui::StringUtil::Printf(_T("[执行线程ID:%s]: MainForm::ExecuteTaskInThread 在子线程中执行"), ui::FrameworkThread::ThreadIdToString(std::this_thread::get_id()).c_str());
+    DString log = ui::StringUtil::Printf(_T("[操作系统线程ID:%s][界面库线程标识符:%d]: MainForm::ExecuteTaskInThread 在子线程中执行"),
+                                         systemThreadId.c_str(),
+                                         nUIThreadIdentifier);
     PrintLog(log);
 }
 
@@ -139,8 +144,8 @@ void MainForm::UpdateUI()
         ui::Button* pRunTaskButton = dynamic_cast<ui::Button*>(FindControl(_T("run_task_in_threads")));
         if (pThreadIdentifier != nullptr) {
             if (m_pMainThread->GetPoolThreadCount() > 0) {
-                pThreadIdentifier->SetMinNumber(1);
-                pThreadIdentifier->SetMaxNumber(m_pMainThread->GetPoolThreadCount() + 2);
+                pThreadIdentifier->SetMinNumber(ui::kThreadUser);
+                pThreadIdentifier->SetMaxNumber(ui::kThreadUser + m_pMainThread->GetPoolThreadCount() - 1);
                 pThreadIdentifier->SetText(_T("1"));
                 if (pRunTaskButton != nullptr) {
                     pRunTaskButton->SetEnabled(true);

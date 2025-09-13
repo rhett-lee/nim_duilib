@@ -1455,11 +1455,11 @@ bool WebView2Control::Impl::DownloadFavIconImage()
     }
 
     int32_t nThreadIdentifier = ui::kThreadUI;
-    if (GlobalManager::Instance().Thread().HasThread(ui::kThreadWorker)) {
-        nThreadIdentifier = ui::kThreadWorker;
+    if (!GlobalManager::Instance().Thread().HasThread(ui::kThreadNetwork)) {
+        GlobalManager::Instance().StartInnerThread(ui::kThreadNetwork);        
     }
-    else if (GlobalManager::Instance().Thread().HasThread(ui::kThreadMisc)) {
-        nThreadIdentifier = ui::kThreadMisc;
+    if (GlobalManager::Instance().Thread().HasThread(ui::kThreadNetwork)) {
+        nThreadIdentifier = ui::kThreadNetwork;
     }
     GlobalManager::Instance().Thread().PostTask(nThreadIdentifier, m_pControl->ToWeakCallback([this, strUrl]() {
             //转到子线程中，下载图标
