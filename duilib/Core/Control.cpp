@@ -1499,7 +1499,8 @@ void Control::SetFadeVisible(bool bVisible)
 void Control::OnSetVisible(bool bChanged)
 {
     BaseClass::OnSetVisible(bChanged);
-    if (!IsVisible()) {
+    const bool bVisible = IsVisible();
+    if (!bVisible) {
         EnsureNoFocus();
     }
 
@@ -1507,11 +1508,13 @@ void Control::OnSetVisible(bool bChanged)
         ArrangeAncestor();
     }
 
-    if (!IsVisible()) {
+    if (!bVisible) {
         CheckStopGifPlay();
     }
-
-    SendEvent(kEventVisibleChange);
+    if (bChanged) {
+        WPARAM wParam = bVisible ? 1 : 0;
+        SendEvent(kEventVisibleChange, wParam);
+    }
 }
 
 void Control::OnSetEnabled(bool bChanged)
