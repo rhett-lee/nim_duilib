@@ -102,6 +102,9 @@ public:
     //图片文件文件名，含相对路径，不包含属性
     UiString m_sImagePath;
 
+    //图片名称（控件内唯一字符串，用于标识图片资源）
+    UiString m_sImageName;
+
     //设置图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
     UiString m_srcWidth;
 
@@ -144,11 +147,17 @@ public:
     //九宫格绘制时，不绘制中间部分（比如窗口阴影，只需要绘制边框，不需要绘制中间部分，以避免不必要的绘制动作）
     bool m_bWindowShadowMode;
 
+    //如果是动画图片，是否自动播放
+    bool m_bAutoPlay;
+
+    //如果是动画图片，可以指定播放次数
+    //    - 1: 表示一直播放
+    //    0  : 表示无有效的播放次数，使用图片的默认值(或者预设值)
+    //    > 0: 具体的播放次数，达到播放次数后，停止播放
+    int32_t m_nPlayCount;
+
     //平铺时的边距（仅当bTiledX为true或者bTiledY为true时有效）
     int32_t m_nTiledMargin;
-
-    //如果是动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
-    int32_t m_nPlayCount;
 
     //如果是PAG文件，用于指定动画的帧率，默认为30.0f
     float m_fPagMaxFrameRate;
@@ -168,9 +177,6 @@ public:
 
     //是否自动适应目标区域（等比例缩放图片）
     bool m_bAdaptiveDestRect;
-
-    //是否含有m_nPlayCount值
-    bool m_bHasPlayCount;
 
 private:
 

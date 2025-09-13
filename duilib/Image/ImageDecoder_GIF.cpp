@@ -82,7 +82,7 @@ std::unique_ptr<IImage> ImageDecoder_GIF::LoadImageData(const DString& /*imageFi
     if (!bLoadAllFrames || (pImageGIF->GetFrameCount() == 1)) {
         //单帧，加载位图图片
         IAnimationImage::AnimationFrame frame;
-        if (pImageGIF->ReadFrame(0, &frame)) {
+        if (pImageGIF->ReadFrameData(0, &frame)) {
             return Image_Bitmap::MakeImage(frame.m_pBitmap, fImageSizeScale);
         }
         else {

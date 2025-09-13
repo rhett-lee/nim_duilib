@@ -69,7 +69,7 @@ std::unique_ptr<IImage> ImageDecoder_PNG::LoadImageData(const DString& /*imageFi
     if (!bLoadAllFrames || (pImagePNG->GetFrameCount() == 1)) {
         //单帧，加载位图图片
         IAnimationImage::AnimationFrame frame;
-        if (pImagePNG->ReadFrame(0, &frame)) {
+        if (pImagePNG->ReadFrameData(0, &frame)) {
             return Image_Bitmap::MakeImage(frame.m_pBitmap, fImageSizeScale);
         }
         else {

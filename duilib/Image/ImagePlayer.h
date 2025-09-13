@@ -4,6 +4,7 @@
 #include "duilib/Core/UiTypes.h"
 #include "duilib/Utils/Delegate.h"
 #include "duilib/Core/Callback.h"
+#include "duilib/Core/ControlPtrT.h"
 #include <map>
 
 namespace ui 
@@ -31,52 +32,41 @@ public:
     */
     void SetImage(Image* pImage);
 
-    /** 设置动画的显示区域
+    /** 设置动画的显示区域（在绘制前调用）
     */
-    void SetImageRect(const UiRect& rcImageRect);
+    void SetImageAnimationRect(const UiRect& rcImageRect);
 
-    /** 播放动画
+    /** 播放动画（按需检测是否应该自动播放图片动画, 正常情况下，图片动画会自动播放）
      */
-    bool StartImageAnimation();
-
-    /** 停止播放动画
-     */
-    void StopImageAnimation();
+    void CheckStartImageAnimation();
 
     /** 播放动画
      * @param [in] nStartFrame 从哪一帧开始播放，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举
-     * @param [in] nPlayCount 指定播放次数, 如果是-1表示一直播放
-     * @param [in] bHasPlayCount nPlayCount值是否有效
+     * @param [in] nPlayCount 指定播放次数
+                   -1: 表示一直播放
+                    0: 表示无有效的播放次数，使用图片的默认值(或者预设值)
+                   >0: 具体的播放次数，达到播放次数后，停止播放
      */
-    bool StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPlayCount, bool bHasPlayCount = true);
+    bool StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPlayCount);
 
-    /** 停止播放动画
-     * @param [in] bTriggerEvent 是否将停止事件通知给订阅者，参考 AttachImageAnimationStop 方法
+    /** 停止播放动画     
      * @param [in] nStopFrame 播放结束停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举
+     * @param [in] bTriggerEvent 是否将停止事件通知给订阅者，参考 AttachImageAnimationStop 方法
      */
-    void StopImageAnimation(bool bTriggerEvent, AnimationImagePos nStopFrame);
+    void StopImageAnimation(AnimationImagePos nStopFrame, bool bTriggerEvent);
 
     /** 是否正在播放动画
     */
     bool IsAnimationPlaying() const;
 
-    /** 监听动画播放完成通知
-     * @param[in] callback 要监听动画停止播放的回调函数
-     */
-    void AttachImageAnimationStop(const EventCallback& callback) { m_OnAnimationEvent[m_nVirtualEventStop] += callback; };
-
 private:
-    /** 向监听者发送播放停止事件
-    */
-    void BroadcastAnimationEvent(int32_t nVirtualEvent) const;
-
     /** 获取动画帧号
     */
     uint32_t GetImageFrameIndex(AnimationImagePos frame) const;
 
     /** 定时器播放动画回调函数
     */
-    void PlayAnimation();
+    void PlayingImageAnimation();
 
     /** 重绘图片
     */
@@ -86,18 +76,18 @@ private:
     */
     bool IsMultiFrameImage() const;
 
+    /** 获取动画图片的播放状态
+    */
+    void GetImageAnimationStatus(ImageAnimationStatus& animStatus);
+
 private:
     /** 图片动画播放的取消机制
     */
-    WeakCallbackFlag m_aniWeakFlag;
-
-    /** 动画播放事件的回调注册管理容器(目前只有播放完成一个事件)
-    */
-    AnimationEventMap m_OnAnimationEvent;
+    WeakCallbackFlag m_animWeakFlag;
 
     /** 关联的Control对象
     */
-    Control* m_pControl;
+    ControlPtr m_pControl;
 
     /** 图片接口
     */
@@ -105,15 +95,7 @@ private:
 
     /** 动画的显示区域
     */
-    UiRect m_rcImageRect;
-
-    /** 是否正在播放动画图片
-    */
-    bool m_bAnimationPlaying;
-
-    /** 是否自动开始播放
-    */
-    bool m_bAutoPlay;
+    UiRect m_rcImageAnimationRect;
 
     /** 已播放次数
     */
@@ -123,9 +105,13 @@ private:
     */
     int32_t m_nMaxPlayCount;
 
-    /** 动画图片播放完成事件的ID
+    /** 是否正在播放动画图片
     */
-    const int32_t m_nVirtualEventStop;
+    bool m_bAnimationPlaying;
+
+    /** 是否自动开始播放
+    */
+    bool m_bAutoPlay;
 };
 
 } // namespace ui

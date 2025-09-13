@@ -159,10 +159,13 @@ public:
     */
     void SetControl(Control* pControl);
 
-    /** 播放动画
-    * @param [in] rcImageRect 动画图片的显示区域
+    /** 设置动画的显示区域（在绘制前调用）
     */
-    bool CheckStartImageAnimation(const UiRect& rcImageRect);
+    void SetImageAnimationRect(const UiRect& rcImageRect);
+
+    /** 播放动画
+    */
+    void CheckStartImageAnimation();
 
     /** 停止播放动画
      */
@@ -170,22 +173,26 @@ public:
 
     /** 播放动画
      * @param [in] nStartFrame 从哪一帧开始播放，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举
-     * @param [in] nPlayCount 指定播放次数, 如果是-1表示一直播放
+     * @param [in] nPlayCount 指定播放次数
+                   -1: 表示一直播放
+                    0: 表示无有效的播放次数，使用图片的默认值(或者预设值)
+                   >0: 具体的播放次数，达到播放次数后，停止播放
      */
-    bool StartImageAnimation(AnimationImagePos nStartFrame = AnimationImagePos::kFrameFirst, int32_t nPlayCount = -1);
+    bool StartImageAnimation(AnimationImagePos nStartFrame = AnimationImagePos::kFrameFirst,
+                             int32_t nPlayCount = 0);
 
-    /** 停止播放动画
-     * @param [in] bTriggerEvent 是否将停止事件通知给订阅者，参考 AttachImageAnimationStop 方法
+    /** 停止播放动画     
      * @param [in] nStopFrame 播放结束停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举
+     * @param [in] bTriggerEvent 是否将停止事件通知给订阅者，参考 AttachImageAnimationStop 方法
      */
-    void StopImageAnimation(bool bTriggerEvent = false, AnimationImagePos nStopFrame = AnimationImagePos::kFrameCurrent);
-
-    /** 监听动画播放完成通知
-     * @param[in] callback 要监听动画停止播放的回调函数
-     */
-    void AttachImageAnimationStop(const EventCallback& callback);
-
+    void StopImageAnimation(AnimationImagePos nStopFrame = AnimationImagePos::kFrameCurrent,
+                            bool bTriggerEvent = false);
     /** @} */
+
+private:
+    /** 初始化动画播放器
+    */
+    ImagePlayer* InitImagePlayer();
 
 private:
 

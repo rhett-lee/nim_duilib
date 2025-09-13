@@ -354,6 +354,7 @@
     <ClCompile Include="Core\ZipManager.cpp" />
     <ClCompile Include="Core\ZipStreamIO.cpp" />
     <ClCompile Include="duilib.cpp" />
+    <ClCompile Include="Image\APngDecoder.cpp" />
     <ClCompile Include="Image\Image.cpp" />
     <ClCompile Include="Image\ImageAttribute.cpp" />
     <ClCompile Include="Image\ImageDecoderFactory.cpp" />
@@ -401,7 +402,6 @@
     <ClCompile Include="RenderSkia\SkUtils.cpp" />
     <ClCompile Include="Render\AutoClip.cpp" />
     <ClCompile Include="Render\BitmapAlpha.cpp" />
-    <ClCompile Include="third_party\apng\decoder-apng.cpp" />
     <ClCompile Include="third_party\convert_utf\ConvertUTF.cpp" />
     <ClCompile Include="third_party\giflib\dgif_lib.c">
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">TurnOffAllWarnings</WarningLevel>
@@ -707,6 +707,7 @@
     <ClInclude Include="duilib_defs.h" />
     <ClInclude Include="duilib_string.h" />
     <ClInclude Include="duilib_webview2.h" />
+    <ClInclude Include="Image\APngDecoder.h" />
     <ClInclude Include="Image\Image.h" />
     <ClInclude Include="Image\ImageAttribute.h" />
     <ClInclude Include="Image\ImageDecoder.h" />
@@ -758,7 +759,6 @@
     <ClInclude Include="Render\AutoClip.h" />
     <ClInclude Include="Render\BitmapAlpha.h" />
     <ClInclude Include="Render\IRender.h" />
-    <ClInclude Include="third_party\apng\decoder-apng.h" />
     <ClInclude Include="third_party\convert_utf\ConvertUTF.h" />
     <ClInclude Include="third_party\giflib\gif_hash.h" />
     <ClInclude Include="third_party\giflib\gif_lib.h" />

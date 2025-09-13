@@ -701,39 +701,67 @@ public:
      */
     void SetRenderOffsetY(int64_t renderOffsetY);
 
+public:
     /// 动画图片
     /** 播放动画
+     * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
      * @param [in] nStartFrame 从哪一帧开始播放，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举
-     * @param [in] nPlayCount 指定播放次数, 如果是-1表示一直播放
+     * @param [in] nPlayCount 指定播放次数
+                   -1: 表示一直播放
+                    0: 表示无有效的播放次数，使用图片的默认值(或者预设值)
+                   >0: 具体的播放次数，达到播放次数后，停止播放
      */
-    bool StartImageAnimation(AnimationImagePos nStartFrame = AnimationImagePos::kFrameFirst, int32_t nPlayCount = -1);
+    bool StartImageAnimation(const DString& imageName = _T(""),
+                             AnimationImagePos nStartFrame = AnimationImagePos::kFrameCurrent,
+                             int32_t nPlayCount = 0);
 
     /** 停止播放动画
-     * @param [in] bTriggerEvent 是否将停止事件通知给订阅者，参考 AttachImageAnimationStop 方法
+     * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
      * @param [in] nStopFrame 播放结束停止在哪一帧，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举
+     * @param [in] bTriggerEvent 是否将停止事件通知给订阅者，参考 AttachImageAnimationStop 方法
      */
-    void StopImageAnimation(bool bTriggerEvent = false, AnimationImagePos nStopFrame = AnimationImagePos::kFrameCurrent);
+    bool StopImageAnimation(const DString& imageName = _T(""),
+                            AnimationImagePos nStopFrame = AnimationImagePos::kFrameCurrent,
+                            bool bTriggerEvent = true);
 
-    /** 监听动画播放完成通知
+    /** 播放动画的当前帧
+     * @param [in] imageName 图片资源名称，即XML中配置图片资源中的name字段名称，如果为空串则表示是背景图片
+     * @param [in] nFrameIndex 从0开始的图片帧索引号
+     */
+    bool SetImageAnimationFrame(const DString& imageName, int32_t nFrameIndex);
+
+    /** 监听动画播放开始通知(所有图片动画)
      * @param[in] callback 要监听动画停止播放的回调函数
      */
-    void AttachImageAnimationStop(const EventCallback& callback);
+    void AttachImageAnimationStart(const EventCallback& callback) { AttachEvent(kEventImageAnimationStart, callback); }
 
-    /** @brief 获取动画管理器接口
+    /** 监听动画播放图片帧的通知(所有图片动画)
+     * @param[in] callback 要监听动画停止播放的回调函数
+     */
+    void AttachImageAnimationPlayFrame(const EventCallback& callback) { AttachEvent(kEventImageAnimationPlayFrame, callback); }
+
+    /** 监听动画播放停止通知(所有图片动画)
+     * @param[in] callback 要监听动画停止播放的回调函数
+     */
+    void AttachImageAnimationStop(const EventCallback& callback) { AttachEvent(kEventImageAnimationStop, callback); }
+
+public:
+    /** 获取控件动画管理器接口(控件动画)
      */
     AnimationManager& GetAnimationManager();
 
-    /// 图片缓存
-    /**@brief 根据图片路径, 加载图片信息到缓存中。
-     *        加载策略：如果图片没有加载则执行加载图片；如果图片路径发生变化，则重新加载该图片。
-     * @param[in，out] duiImage 传入时标注图片的路径信息，如果成功则会缓存图片并记录到该参数的成员中
+public:
+    /// 图片资源
+    /** 根据图片属性设置, 加载图片信息到缓存中
+     * @param[in,out] duiImage 传入时标注图片的路径信息，如果成功则会缓存图片并记录到该参数的成员中
      */
     bool LoadImageData(Image& duiImage) const;
 
-    /**@brief 清理图片缓存
+    /** 清理图片缓存, 清理后，如果使用则会重新加载
      */
     virtual void ClearImageCache();
 
+public:
     /** 屏幕坐标转换为客户区坐标
     */
     virtual bool ScreenToClient(UiPoint& pt);
@@ -1025,6 +1053,10 @@ public:
     */
     bool FireAllEvents(const EventArgs& msg);
 
+    /** 判断是否含有某个类型的事件回调函数(包含所有类型的事件，只要Attach过eventType这个类型就返回true)
+    */
+    bool HasEventCallback(EventType eventType) const;
+
     /** @} */
 
 protected:
@@ -1179,7 +1211,7 @@ protected:
     */
     void DoPaintFocusRect(IRender* pRender);
 
-    /** 停止播放动画(背景图片的动画等)
+    /** 停止该控件内的所有动画播放(背景图片的动画等)
     */
     void CheckStopImageAnimation();
 
@@ -1293,6 +1325,22 @@ private:
     /** 获取渐变颜色的方向
     */
     int8_t GetColor2Direction(const UiString& bkColor2Direction) const;
+
+    /** 解析并处理动画播放属性
+    */
+    void ParseStartImageAnimation(const DString& value);
+
+    /** 解析并处理动画停止属性
+    */
+    void ParseStopImageAnimation(const DString& value);
+
+    /** 解析并处理动画设置当前帧属性
+    */
+    void ParseSetImageAnimationFrame(const DString& value);
+
+    /** 获取指定名称的图片资源接口
+    */
+    Image* FindImageByName(const DString& imageName) const;
 
 private:
     /** 获取AttachXXX接口的监听事件管理器

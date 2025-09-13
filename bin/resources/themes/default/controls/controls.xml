@@ -26,7 +26,7 @@
                     <Button class="btn_global_white_80x30" text="white"/>
                     <Button class="btn_global_red_80x30" text="red"/>
                     <Button class="btn_global_color_gray" text="控件测试" name="test_btn" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
-                    <Button class="btn_global_color_gray" name="show_color_picker" text="拾色器" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
+                    <Button class="btn_global_color_gray" name="animation_btn" text="动画测试" width="80" height="30" border_round="3,3" margin="0,2,0,0"/>
                 </VBox>
                 <!-- Checkbox -->
                 <VBox width="120">
@@ -34,7 +34,7 @@
                     <CheckBox class="checkbox_1" text="多选框2" margin="0,3,0,3"/>
                     <CheckBox class="checkbox_2"  text="多选框3" margin="0,3,0,3"/>
                     <Button class="btn_global_color_gray" name="domodal2" text="模态对话框" width="130" height="30" border_round="3,3" margin="0,12,0,0"/>
-                    <Button class="btn_global_color_gray" name="show_color_picker2" text="拾色器(模态)" width="130" height="30" border_round="3,3" margin="0,2,0,0"/>
+                    <Button class="btn_global_color_gray" name="show_color_picker" text="拾色器(模态)" width="130" height="30" border_round="3,3" margin="0,2,0,0"/>
                 </VBox>
                 <!-- Option -->
                 <VBox width="120" margin="20,0,0,0">

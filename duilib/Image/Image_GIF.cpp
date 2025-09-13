@@ -246,8 +246,8 @@ static int32_t UiGifGetFrameDelayMs(const SavedImage& frame)
  * 4. 跨平台颜色格式处理（Windows和其他平台不同）
  */
 static bool UiGifToRgbaFrames(const GifFileType* gif, bool bLoadAllFrames, float fImageSizeScale,
-                               std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>>& out_frames,
-                               volatile bool* pAbortFlag)
+                              std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>>& out_frames,
+                              volatile bool* pAbortFlag)
 {
     // 参数有效性检查
     ASSERT((gif != nullptr) && (gif->SavedImages != nullptr) && (gif->ImageCount > 0));
@@ -494,6 +494,9 @@ struct Image_GIF::TImpl
 
     //各个图片帧的数据(延迟解码的数据)
     std::vector<std::shared_ptr<IAnimationImage::AnimationFrame>> m_delayFrames;
+
+    //每一帧的播放延迟时间，毫秒
+    std::vector<int32_t> m_framesDelayMs;
 };
 
 Image_GIF::Image_GIF()
@@ -562,6 +565,14 @@ bool Image_GIF::LoadImageFromMemory(std::vector<uint8_t>& fileData,
         m_impl->m_fileData.swap(fileData);
         return false;
     }
+
+    //解出每一帧的播放时间
+    m_impl->m_framesDelayMs.clear();
+    for (int frame_idx = 0; frame_idx < m_impl->m_nFrameCount; ++frame_idx) {
+        const SavedImage& frame = dec->SavedImages[frame_idx];
+        m_impl->m_framesDelayMs.push_back(UiGifGetFrameDelayMs(frame));
+    }
+
     m_impl->m_gifDecoder = dec;
     return true;
 }
@@ -588,9 +599,7 @@ bool Image_GIF::DecodeImageData()
 {
     if (!IsDecodeImageDataEnabled()) {
         return false;
-    }
-    std::vector<uint8_t> fileData;
-    m_impl->m_fileData.swap(fileData);
+    }    
     float fImageSizeScale = m_impl->m_fImageSizeScale;
 
     //加载所有帧
@@ -607,6 +616,8 @@ bool Image_GIF::DecodeImageData()
     //不管是否成功，释放资源
     UiGifFreeDecoder(m_impl->m_gifDecoder, nullptr);
     m_impl->m_gifDecoder = nullptr;
+    std::vector<uint8_t> fileData;
+    m_impl->m_fileData.swap(fileData);
     return bLoaded;
 }
 
@@ -635,7 +646,31 @@ int32_t Image_GIF::GetLoopCount() const
     return m_impl->m_nLoops;
 }
 
-bool Image_GIF::ReadFrame(int32_t nFrameIndex, AnimationFrame* pAnimationFrame)
+bool Image_GIF::IsFrameDataReady(uint32_t nFrameIndex)
+{
+    if (nFrameIndex < (int32_t)m_impl->m_frames.size()) {
+        return true;
+    }
+    return false;
+}
+
+int32_t Image_GIF::GetFrameDelayMs(uint32_t nFrameIndex)
+{
+    if (nFrameIndex < m_impl->m_frames.size()) {
+        auto pAnimationFrame = m_impl->m_frames[nFrameIndex];
+        if (pAnimationFrame != nullptr) {
+            return pAnimationFrame->GetDelayMs();
+        }
+    }
+    if (nFrameIndex < m_impl->m_framesDelayMs.size()) {
+        IAnimationImage::AnimationFrame frame;
+        frame.SetDelayMs(m_impl->m_framesDelayMs[nFrameIndex]);
+        return frame.GetDelayMs();
+    }
+    return IMAGE_ANIMATION_DELAY_MS;
+}
+
+bool Image_GIF::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFrame)
 {
     ASSERT(pAnimationFrame != nullptr);
     if (pAnimationFrame == nullptr) {

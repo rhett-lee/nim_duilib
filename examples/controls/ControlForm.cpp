@@ -1,7 +1,7 @@
 #include "ControlForm.h"
 #include "AboutForm.h"
 #include "TestForm.h"
-#include "duilib/Utils/StringUtil.h"
+#include "AnimationForm.h"
 
 #include <fstream>
 
@@ -145,19 +145,10 @@ void ControlForm::OnInitWindow()
     AttachRichEditEvents(static_cast<ui::RichEdit*>(FindControl(_T("edit"))));
     AttachRichEditEvents(static_cast<ui::RichEdit*>(FindControl(_T("edit2"))));
 
-    //显示拾色器
+    //显示模态对话框的拾色器
     ui::Button* pShowColorPicker = dynamic_cast<ui::Button*>(FindControl(_T("show_color_picker")));
     if (pShowColorPicker != nullptr) {
         pShowColorPicker->AttachClick([this](const ui::EventArgs& args) {
-            ShowColorPicker(false);            
-            return true;
-        });
-    }
-
-    //显示模态对话框的拾色器
-    ui::Button* pShowColorPicker2 = dynamic_cast<ui::Button*>(FindControl(_T("show_color_picker2")));
-    if (pShowColorPicker2 != nullptr) {
-        pShowColorPicker2->AttachClick([this](const ui::EventArgs& args) {
             ShowColorPicker(true);
             return true;
             });
@@ -265,6 +256,15 @@ void ControlForm::OnInitWindow()
     if (pTestBtn != nullptr) {
         pTestBtn->AttachClick([this](const ui::EventArgs&) {
             ShowTestWindow();
+            return true;
+            });
+    }
+
+    //动画测试按钮的响应函数
+    ui::Button* pAnimationBtn = dynamic_cast<ui::Button*>(FindControl(_T("animation_btn")));
+    if (pAnimationBtn != nullptr) {
+        pAnimationBtn->AttachClick([this](const ui::EventArgs&) {
+            ShowAnimationWindow();
             return true;
             });
     }
@@ -407,6 +407,18 @@ void ControlForm::ShowTestWindow()
     createParam.m_dwStyle = ui::kWS_POPUP;
     createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
     createParam.m_windowTitle = _T("TestWindow");
+    createParam.m_bCenterWindow = true;
+    testForm->CreateWnd(this, createParam);
+    testForm->ShowModalFake();
+}
+
+void ControlForm::ShowAnimationWindow()
+{
+    AnimationForm* testForm = new AnimationForm();
+    ui::WindowCreateParam createParam;
+    createParam.m_dwStyle = ui::kWS_POPUP;
+    createParam.m_dwExStyle = ui::kWS_EX_LAYERED;
+    createParam.m_windowTitle = _T("AnimationWindow");
     createParam.m_bCenterWindow = true;
     testForm->CreateWnd(this, createParam);
     testForm->ShowModalFake();

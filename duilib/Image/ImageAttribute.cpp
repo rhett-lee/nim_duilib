@@ -31,6 +31,7 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
 
     m_sImageString = r.m_sImageString;
     m_sImagePath = r.m_sImagePath;
+    m_sImageName = r.m_sImageName;
     m_srcWidth = r.m_srcWidth;
     m_srcHeight = r.m_srcHeight;
 
@@ -50,8 +51,8 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
     m_bFullTiledY = r.m_bFullTiledY;
     m_bWindowShadowMode = r.m_bWindowShadowMode;
     m_nTiledMargin = r.m_nTiledMargin;
+    m_bAutoPlay = r.m_bAutoPlay;
     m_nPlayCount = r.m_nPlayCount;
-    m_bHasPlayCount = r.m_bHasPlayCount;
     m_nIconSize = r.m_nIconSize;
     m_bIconAsAnimation = r.m_bIconAsAnimation;
     m_nIconFrameDelayMs = r.m_nIconFrameDelayMs;
@@ -118,6 +119,7 @@ void ImageAttribute::Init()
 {
     m_sImageString.clear();
     m_sImagePath.clear();
+    m_sImageName.clear();
     m_srcWidth.clear();
     m_srcHeight.clear();
 
@@ -137,8 +139,8 @@ void ImageAttribute::Init()
     m_bFullTiledY = true;
     m_bWindowShadowMode = false;
     m_nTiledMargin = 0;
-    m_nPlayCount = -1;
-    m_bHasPlayCount = false;
+    m_bAutoPlay = true;
+    m_nPlayCount = -1;    
     m_nIconSize = 0;
     m_bIconAsAnimation = false;
     m_nIconFrameDelayMs = 1000;
@@ -214,6 +216,10 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         if (name == _T("file") || name == _T("res")) {
             //图片资源文件名，根据此设置去加载图片资源
             imageAttribute.m_sImagePath = value;
+        }
+        else if (name == _T("name")) {
+            //图片资源名称
+            imageAttribute.m_sImageName = value;
         }
         else if (name == _T("width")) {
             //设置图片宽度，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
@@ -340,12 +346,18 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
             imageAttribute.m_fPagMaxFrameRate = (float)StringUtil::StringToInt32(value);
         }
         else if ((name == _T("play_count")) || (name == _T("playcount"))) {
-            //如果是动画图片，可以指定播放次数 -1 ：一直播放，缺省值。
+            //如果是动画图片，取值代表的含义
+            //  -1: 表示一直播放
+            //  0 : 表示无有效的播放次数，使用图片的默认值
+            // > 0: 具体的播放次数，达到播放次数后，停止播放
             imageAttribute.m_nPlayCount = StringUtil::StringToInt32(value);
             if (imageAttribute.m_nPlayCount < 0) {
                 imageAttribute.m_nPlayCount = -1;
             }
-            imageAttribute.m_bHasPlayCount = true;
+        }
+        else if (name == _T("auto_play")) {
+            //如果是动画图片，是否自动播放
+            imageAttribute.m_bAutoPlay = (value == _T("true"));
         }
         else if (name == _T("adaptive_dest_rect")) {
             //自动适应目标区域（等比例缩放图片）

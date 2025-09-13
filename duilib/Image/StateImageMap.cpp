@@ -145,4 +145,18 @@ void StateImageMap::StopImageAnimation()
     }
 }
 
+Image* StateImageMap::FindImageByName(const DString& imageName) const
+{
+    if (imageName.empty()) {
+        return nullptr;
+    }
+    for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+        Image* pImage = iter->second.FindImageByName(imageName);
+        if (pImage != nullptr) {
+            return pImage;
+        }
+    }
+    return nullptr;
+}
+
 }//namespace ui 

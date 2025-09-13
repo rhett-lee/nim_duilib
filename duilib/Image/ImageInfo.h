@@ -65,10 +65,20 @@ public:
     std::shared_ptr<IBitmap> GetBitmap();
 
 public:
+    /** 查询是某帧的图片数据是否有准备完成（多线程解码时，帧数据在后台线程解码）
+    * @param [in] nFrameIndex 图片帧的索引号，从0开始编号的下标值，取值范围:[0, GetFrameCount())
+    */
+    bool IsFrameDataReady(uint32_t nFrameIndex);
+
     /** 获取一个图片帧数据
-    * @param [in] nFrameIndex 图片帧的序号，取值范围:[0, GetFrameCount())
+    * @param [in] nFrameIndex 图片帧的索引号，从0开始编号的下标值，取值范围:[0, GetFrameCount())
     */
     std::shared_ptr<IAnimationImage::AnimationFrame> GetFrame(uint32_t nFrameIndex);
+
+    /** 获取一个图片帧的播放持续时间，单位为毫秒
+    * @param [in] nFrameIndex 图片帧的索引号，从0开始编号的下标值，取值范围:[0, GetFrameCount())
+    */
+    int32_t GetFrameDelayMs(uint32_t nFrameIndex);
 
     /** 获取图片的帧数
     */
@@ -102,6 +112,10 @@ private:
     /** 释放图片资源（延迟释放，以便于共享）
     */
     void ReleaseImage();
+
+    /** 获取多帧图片的接口
+    */
+    std::shared_ptr<IAnimationImage> GetAnimationImage(uint32_t nFrameIndex) const;
 
 private:
     /** 实际图片的KEY, 用于图片的生命周期管理（多个DPI的图片，实际可能指向同一个文件）

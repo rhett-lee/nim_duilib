@@ -113,7 +113,7 @@ std::shared_ptr<IBitmap> ImageInfo::GetBitmap()
     return nullptr;
 }
 
-std::shared_ptr<IAnimationImage::AnimationFrame> ImageInfo::GetFrame(uint32_t nFrameIndex)
+std::shared_ptr<IAnimationImage> ImageInfo::GetAnimationImage(uint32_t nFrameIndex) const
 {
     ASSERT(m_imageType == ImageType::kImageAnimation);
     if (m_imageType != ImageType::kImageAnimation) {
@@ -129,6 +129,35 @@ std::shared_ptr<IAnimationImage::AnimationFrame> ImageInfo::GetFrame(uint32_t nF
     if (nFrameIndex >= nFrameCount) {
         return nullptr;
     }
+    std::shared_ptr<IImage> pImageData = m_pImageData;
+    ASSERT(pImageData != nullptr);
+    if (pImageData == nullptr) {
+        return nullptr;
+    }
+
+    std::shared_ptr<IAnimationImage> pAnimationImage;
+    ImageType imageType = pImageData->GetImageType();
+    if (imageType == ImageType::kImageAnimation) {
+        pAnimationImage = pImageData->GetImageAnimation();
+        ASSERT(pAnimationImage != nullptr);
+    }
+    return pAnimationImage;
+}
+
+std::shared_ptr<IAnimationImage::AnimationFrame> ImageInfo::GetFrame(uint32_t nFrameIndex)
+{
+    std::shared_ptr<IAnimationImage> pAnimationImage = GetAnimationImage(nFrameIndex);
+    ASSERT(pAnimationImage != nullptr);
+    if (pAnimationImage == nullptr) {
+        //动画图片接口异常
+        return nullptr;
+    }
+    const uint32_t nFrameCount = GetFrameCount();
+    ASSERT(nFrameCount > 0);
+    if (nFrameCount == 0) {
+        //动画图片帧数异常
+        return nullptr;
+    }
 
     //查询缓存，如果缓存中有该帧，则直接返回
     if (nFrameIndex < m_frameList.size()) {
@@ -136,65 +165,64 @@ std::shared_ptr<IAnimationImage::AnimationFrame> ImageInfo::GetFrame(uint32_t nF
             return m_frameList[nFrameIndex];
         }
     }
-    
-    //设置图片内部数据(延迟解码)
-    std::shared_ptr<IImage> pImageData = m_pImageData;
-    ASSERT(pImageData != nullptr);
-    if (pImageData == nullptr) {
-        return nullptr;
-    }
 
     std::shared_ptr<IAnimationImage::AnimationFrame> pAnimationFrame;
-    ImageType imageType = pImageData->GetImageType();
-    if (imageType == ImageType::kImageAnimation) {
-        std::shared_ptr<IAnimationImage> pAnimationImage = pImageData->GetImageAnimation();
-        ASSERT(pAnimationImage != nullptr);
-        if (pAnimationImage == nullptr) {
-            return nullptr;
+    pAnimationFrame = std::make_shared<IAnimationImage::AnimationFrame>();
+    if (pAnimationImage->ReadFrameData(nFrameIndex, pAnimationFrame.get())) {
+        pAnimationFrame->m_nFrameIndex = nFrameIndex;
+        if (pAnimationFrame->m_bDataPending) {
+            //数据解码未完成，直接返回
+            ASSERT(pAnimationFrame->m_pBitmap == nullptr);
+            return pAnimationFrame;
         }
-        pAnimationFrame = std::make_shared<IAnimationImage::AnimationFrame>();
-        if (pAnimationImage->ReadFrame(nFrameIndex, pAnimationFrame.get())) {
-            pAnimationFrame->m_nFrameIndex = nFrameIndex;
-            if (pAnimationFrame->m_bDataPending) {
-                //数据解码未完成，直接返回
-                ASSERT(pAnimationFrame->m_pBitmap == nullptr);
-                return pAnimationFrame;
+        ASSERT(pAnimationFrame->GetDelayMs() > 0);
+        ASSERT(pAnimationFrame->m_pBitmap != nullptr);
+        if (pAnimationFrame->m_pBitmap != nullptr) {
+            //如果图片属性修改了图片大小，需要跟随调整
+            uint32_t nNewWidth = pAnimationFrame->m_pBitmap->GetWidth();
+            uint32_t nNewHeight = pAnimationFrame->m_pBitmap->GetHeight();
+            if (m_bHasCustomSizeScale) {
+                nNewWidth = ImageUtil::GetScaledImageSize(nNewWidth, m_fCustomSizeScaleX);
+                nNewHeight = ImageUtil::GetScaledImageSize(nNewHeight, m_fCustomSizeScaleY);
             }
-            ASSERT(pAnimationFrame->GetDelayMs() > 0);         
-            ASSERT(pAnimationFrame->m_pBitmap != nullptr);
-            if (pAnimationFrame->m_pBitmap != nullptr) {
-                //如果图片属性修改了图片大小，需要跟随调整
-                uint32_t nNewWidth = pAnimationFrame->m_pBitmap->GetWidth();
-                uint32_t nNewHeight = pAnimationFrame->m_pBitmap->GetHeight();
-                if (m_bHasCustomSizeScale) {
-                    nNewWidth = ImageUtil::GetScaledImageSize(nNewWidth, m_fCustomSizeScaleX);
-                    nNewHeight = ImageUtil::GetScaledImageSize(nNewHeight, m_fCustomSizeScaleY);
-                }
-                if ((pAnimationFrame->m_pBitmap->GetWidth() != nNewWidth) ||
-                    (pAnimationFrame->m_pBitmap->GetHeight() != nNewHeight)) {
-                    pAnimationFrame->m_nOffsetX = ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetX, m_fCustomSizeScaleX);
-                    pAnimationFrame->m_nOffsetY = ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetY, m_fCustomSizeScaleY);
-                    pAnimationFrame->m_pBitmap = ImageUtil::ResizeImageBitmap(pAnimationFrame->m_pBitmap.get(), nNewWidth, nNewHeight);
-                    ASSERT(pAnimationFrame->m_pBitmap != nullptr);
-                }
-            }
-            if (pAnimationFrame->m_pBitmap != nullptr) {
-                //生成缓存
-                if (m_frameList.size() != nFrameCount) {
-                    m_frameList.resize(nFrameCount);
-                }
-                m_frameList[nFrameIndex] = pAnimationFrame;
+            if ((pAnimationFrame->m_pBitmap->GetWidth() != nNewWidth) ||
+                (pAnimationFrame->m_pBitmap->GetHeight() != nNewHeight)) {
+                pAnimationFrame->m_nOffsetX = ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetX, m_fCustomSizeScaleX);
+                pAnimationFrame->m_nOffsetY = ImageUtil::GetScaledImageOffset(pAnimationFrame->m_nOffsetY, m_fCustomSizeScaleY);
+                pAnimationFrame->m_pBitmap = ImageUtil::ResizeImageBitmap(pAnimationFrame->m_pBitmap.get(), nNewWidth, nNewHeight);
+                ASSERT(pAnimationFrame->m_pBitmap != nullptr);
             }
         }
-        else {
-            ASSERT(0);
+        if (pAnimationFrame->m_pBitmap != nullptr) {
+            //生成缓存
+            if (m_frameList.size() != nFrameCount) {
+                m_frameList.resize(nFrameCount);
+            }
+            //m_frameList[nFrameIndex] = pAnimationFrame;
         }
-    }
-    else {
-        //未知错误
-        ASSERT(0);
     }
     return pAnimationFrame;
+}
+
+bool ImageInfo::IsFrameDataReady(uint32_t nFrameIndex)
+{
+    std::shared_ptr<IAnimationImage> pAnimationImage = GetAnimationImage(nFrameIndex);
+    ASSERT(pAnimationImage != nullptr);
+    if (pAnimationImage != nullptr) {
+        return pAnimationImage->IsFrameDataReady(nFrameIndex);
+    }
+    return false;
+}
+
+int32_t ImageInfo::GetFrameDelayMs(uint32_t nFrameIndex)
+{
+    std::shared_ptr<IAnimationImage> pAnimationImage = GetAnimationImage(nFrameIndex);
+    ASSERT(pAnimationImage != nullptr);
+    if (pAnimationImage != nullptr) {
+        return pAnimationImage->GetFrameDelayMs(nFrameIndex);
+    }
+    //避免返回0，否则外部的业务逻辑有问题
+    return IMAGE_ANIMATION_DELAY_MS;
 }
 
 bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,

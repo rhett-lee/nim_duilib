@@ -93,6 +93,10 @@ public:
     */
     void StopImageAnimation();
 
+    /** 获取指定名称的图片接口
+    */
+    Image* FindImageByName(const DString& imageName) const;
+
 private:
     //关联的控件接口
     Control* m_pControl;

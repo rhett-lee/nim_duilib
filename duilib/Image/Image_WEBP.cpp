@@ -289,7 +289,19 @@ int32_t Image_WEBP::GetLoopCount() const
     return m_impl->m_nLoops;
 }
 
-bool Image_WEBP::ReadFrame(int32_t nFrameIndex, AnimationFrame* pAnimationFrame)
+bool Image_WEBP::IsFrameDataReady(uint32_t nFrameIndex)
+{
+    //TODO: 待实现
+    return false;
+}
+
+int32_t Image_WEBP::GetFrameDelayMs(uint32_t nFrameIndex)
+{
+    //TODO: 待实现
+    return 5000;
+}
+
+bool Image_WEBP::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFrame)
 {
     ASSERT(pAnimationFrame != nullptr);
     if (pAnimationFrame == nullptr) {

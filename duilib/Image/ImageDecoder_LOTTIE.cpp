@@ -60,7 +60,7 @@ std::unique_ptr<IImage> ImageDecoder_LOTTIE::LoadImageData(const DString& /*imag
     if (!bLoadAllFrames || (pImageLOTTIE->GetFrameCount() == 1)) {
         //单帧，加载位图图片
         IAnimationImage::AnimationFrame frame;
-        if (pImageLOTTIE->ReadFrame(0, &frame)) {
+        if (pImageLOTTIE->ReadFrameData(0, &frame)) {
             return Image_Bitmap::MakeImage(frame.m_pBitmap, fImageSizeScale);
         }
         else {

@@ -221,6 +221,28 @@ namespace ui
         kFrameLast    = 2    // 最后一帧
     };
 
+    //图片动画的播放状态
+    struct ImageAnimationStatus
+    {
+        //图片的名称：XML设置中，图片属性中的name字段值，用于区别是那张图片资源
+        DString m_name;
+
+        //当前动画图片是否为背景图片
+        bool m_bBkImage;
+
+        //图片总帧数
+        int32_t m_nFrameCount;
+
+        //图片当前播放帧索引号（从0开始的序号）
+        int32_t m_nFrameIndex;
+
+        //当前帧播放持续时间，毫秒
+        int32_t m_nFrameDelayMs;
+
+        //循环播放的次数(正整数表示循环播放的次数，-1表示一直循环播放)
+        int32_t m_nLoopCount;
+    };
+
     //光标: Windows平台可参考：https://learn.microsoft.com/zh-cn/windows/win32/menurc/about-cursors
     enum class CursorType : uint8_t
     {
@@ -381,6 +403,10 @@ namespace ui
         kEventDropData,             //wParam 是ControlDropType，代表来源类型，
                                     //lParam 代表关联数据：当wParam为kControlDropTypeWindows时，lParam是ControlDropData_Windows的指针
                                     //                   当wParam为kControlDropTypeSDL时，lParam是ControlDropData_SDL的指针
+
+        kEventImageAnimationStart,      // 开始播放图片动画(背景图片)：wParam 为数据指针：ImageAnimationStatus*
+        kEventImageAnimationPlayFrame,  // 图片动画播放某帧(背景图片)：wParam 为数据指针：ImageAnimationStatus*
+        kEventImageAnimationStop,       // 停止播放图片动画(背景图片)：wParam 为数据指针：ImageAnimationStatus*
 
         kEventLast                  //无使用者
     };

@@ -85,8 +85,9 @@
 | loading_image | | string | SetLoadingImage| 加载中状态的图片 |
 | loading_bkcolor | | string | SetLoadingBkColor| 加载中状态的背景色 |
 | paint_order | | string | SetPaintOrder| 设置绘制顺序：0 表示常规绘制，非0表示指定绘制顺序，值越大表示越晚绘制 |
-| start_gif_play | | int | StartGifPlay| 播放动画，参数表示播放循环次数 |
-| stop_gif_play | | int | StopGifPlay| 停止动画，参数表示停止在哪一帧 |
+| start_image_animation     | | string | StartImageAnimation   | 播放动画，最多3个参数，每个参数用','分割，详见函数的参数列表 |
+| stop_image_animation      | | string | StopImageAnimation    | 停止动画，最多3个参数，每个参数用','分割 ，详见函数的参数列表 |
+| set_image_animation_frame | | string | SetImageAnimationFrame| 设置动画当前帧，最多2个参数，每个参数用','分割，详见函数的参数列表|
 | box_shadow | | string | SetBoxShadow|设置控件的阴影属性，举例：boxshadow="color='red' offset='0,0' blurradius='8' spreadradius='8' |
 | cache | false | bool |SetUseCache |是否启用控件绘制缓存,如“true”|
 | enable_drag_drop |false| bool | SetEnableDragDrop | 是否允许拖放操作|

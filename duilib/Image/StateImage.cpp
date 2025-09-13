@@ -242,4 +242,21 @@ void StateImage::StopImageAnimation()
     }
 }
 
+Image* StateImage::FindImageByName(const DString& imageName) const
+{
+    if (imageName.empty()) {
+        return nullptr;
+    }
+    for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+        Image* pImage = iter->second;
+        ASSERT(pImage != nullptr);
+        if (pImage != nullptr) {
+            if (pImage->GetImageAttribute().m_sImageName == imageName) {
+                return pImage;
+            }
+        }
+    }
+    return nullptr;
+}
+
 }

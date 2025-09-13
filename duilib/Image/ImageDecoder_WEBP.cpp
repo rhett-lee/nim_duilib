@@ -64,7 +64,7 @@ std::unique_ptr<IImage> ImageDecoder_WEBP::LoadImageData(const DString& /*imageF
     if (!bLoadAllFrames || (pImageWEBP->GetFrameCount() == 1)) {
         //单帧，加载位图图片
         IAnimationImage::AnimationFrame frame;
-        if (pImageWEBP->ReadFrame(0, &frame)) {
+        if (pImageWEBP->ReadFrameData(0, &frame)) {
             return Image_Bitmap::MakeImage(frame.m_pBitmap, fImageSizeScale);
         }
         else {

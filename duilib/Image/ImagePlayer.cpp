@@ -13,8 +13,7 @@ ImagePlayer::ImagePlayer():
     m_bAnimationPlaying(false),
     m_bAutoPlay(true),
     m_nCycledCount(0),
-    m_nMaxPlayCount(-1),
-    m_nVirtualEventStop(1)
+    m_nMaxPlayCount(-1)
 {
 }
 
@@ -32,192 +31,222 @@ void ImagePlayer::SetImage(Image* pImage)
     m_pImage = pImage;
     if (m_pImage != nullptr) {
         ASSERT(m_pImage->IsMultiFrameImage());
-        //初始化播放循环次数        
-        if (m_pImage->GetImageAttribute().m_bHasPlayCount) {
-            m_nMaxPlayCount = m_pImage->GetImageAttribute().m_nPlayCount;
-        }
-        else {
+        //初始化播放循环次数
+        m_nMaxPlayCount = m_pImage->GetImageAttribute().m_nPlayCount;
+        if (m_nMaxPlayCount == 0) {
             m_nMaxPlayCount = m_pImage->GetLoopCount();
         }
+        if (m_nMaxPlayCount <= 0) {
+            m_nMaxPlayCount = -1;
+        }
+
+        //初始化是否自动播放
+        m_bAutoPlay = m_pImage->GetImageAttribute().m_bAutoPlay;
     }
 }
 
-void ImagePlayer::SetImageRect(const UiRect& rcImageRect)
+void ImagePlayer::SetImageAnimationRect(const UiRect& rcImageRect)
 {
-    m_rcImageRect = rcImageRect;
+    m_rcImageAnimationRect = rcImageRect;
 }
 
-bool ImagePlayer::StartImageAnimation()
+void ImagePlayer::GetImageAnimationStatus(ImageAnimationStatus& animStatus)
+{
+    if ((m_pImage != nullptr) && (m_pControl != nullptr) && (m_pImage->GetImageCache() != nullptr)) {
+        animStatus.m_name = m_pImage->GetImageAttribute().m_sImageName.c_str();
+        animStatus.m_bBkImage = m_pControl->GetBkImage() == m_pImage->GetImageString();
+        animStatus.m_nFrameCount = m_pImage->GetFrameCount();
+        animStatus.m_nFrameIndex = m_pImage->GetCurrentFrameIndex();
+        animStatus.m_nFrameDelayMs = m_pImage->GetImageCache()->GetFrameDelayMs(animStatus.m_nFrameIndex);
+        animStatus.m_nLoopCount = m_pImage->GetImageCache()->GetLoopCount();
+    }
+    else {
+        animStatus.m_name.clear();
+        animStatus.m_bBkImage = false;
+        animStatus.m_nFrameCount = 0;
+        animStatus.m_nFrameIndex = 0;
+        animStatus.m_nFrameDelayMs = 0;
+        animStatus.m_nLoopCount = 0;
+    }
+}
+
+void ImagePlayer::CheckStartImageAnimation()
 {
     if (!m_bAutoPlay) {
-        return false;
+        return;
     }
     if (IsMultiFrameImage()) {
         if (IsAnimationPlaying()) {
-            return true;
+            return;
         }
         else {
             int32_t nPlayCount = m_pImage->GetImageAttribute().m_nPlayCount;
-            bool bHasPlayCount = m_pImage->GetImageAttribute().m_bHasPlayCount;
-            return StartImageAnimation(AnimationImagePos::kFrameCurrent, nPlayCount, bHasPlayCount);
+            bool bRet = StartImageAnimation(AnimationImagePos::kFrameCurrent, nPlayCount);
+            ASSERT_UNUSED_VARIABLE(bRet);
         }
     }
     else {
         m_bAnimationPlaying = false;
-        m_aniWeakFlag.Cancel();
-        return false;
+        m_animWeakFlag.Cancel();
+        return;
     }
 }
 
-bool ImagePlayer::StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPlayCount, bool bHasPlayCount)
+bool ImagePlayer::StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPlayCount)
 {
-    m_aniWeakFlag.Cancel();
+    m_animWeakFlag.Cancel();
     if (!IsMultiFrameImage()) {
         m_bAnimationPlaying = false;
         return false;
     }
-    if (bHasPlayCount) {
-        if (nPlayCount <= 0) {
-            nPlayCount = -1;//无限循环播放
-        }
+    if (nPlayCount != 0) {
         m_nMaxPlayCount = nPlayCount;
+    }
+    if (m_nMaxPlayCount <= 0) {
+        //无限循环播放
+        m_nMaxPlayCount = -1;
+    }
+    ASSERT((m_pImage != nullptr) && (m_pControl != nullptr) && (m_pImage->GetImageCache() != nullptr));
+    if ((m_pImage == nullptr) || (m_pControl == nullptr) || (m_pImage->GetImageCache() == nullptr)) {
+        m_bAnimationPlaying = false;
+        return false;
     }
 
     //确定从哪一帧开始播放
     uint32_t nFrameIndex = GetImageFrameIndex(nStartFrame);
     m_pImage->SetCurrentFrameIndex(nFrameIndex);
     nFrameIndex = m_pImage->GetCurrentFrameIndex();
-
-    std::shared_ptr<IAnimationImage::AnimationFrame> pAnimationFrame = m_pImage->GetImageCache()->GetFrame(nFrameIndex);
-    ASSERT(pAnimationFrame != nullptr);
-    if (pAnimationFrame == nullptr) {
+    int32_t nTimerInterval = m_pImage->GetImageCache()->GetFrameDelayMs(nFrameIndex);
+    ASSERT(nTimerInterval > 0);
+    if (nTimerInterval <= 0) {
+        m_bAnimationPlaying = false;
         return false;
     }
-    int32_t nTimerInterval = pAnimationFrame->GetDelayMs();
-    ASSERT(nTimerInterval > 0);
     m_nCycledCount = 0;
     m_bAnimationPlaying = true;
     RedrawImage();
-    auto animationPlayCallback = UiBind(&ImagePlayer::PlayAnimation, this);
-    bool bRet = GlobalManager::Instance().Timer().AddTimer(m_aniWeakFlag.GetWeakFlag(),
+    auto animationPlayCallback = UiBind(&ImagePlayer::PlayingImageAnimation, this);
+    bool bRet = GlobalManager::Instance().Timer().AddTimer(m_animWeakFlag.GetWeakFlag(),
                                                            animationPlayCallback,
                                                            nTimerInterval) != 0;
+    if ((m_pControl != nullptr) && (m_pImage != nullptr)) {
+        if (m_pControl->HasEventCallback(kEventImageAnimationStart)) {
+            //触发一次动画开始事件
+            ImageAnimationStatus animStatus;
+            GetImageAnimationStatus(animStatus);
+            m_pControl->SendEvent(kEventImageAnimationStart, (WPARAM)&animStatus);
+        }
+    }
     return bRet;
 }
 
-void ImagePlayer::PlayAnimation()
+void ImagePlayer::PlayingImageAnimation()
 {
     //定时器触发，播放下一帧
     if (!IsAnimationPlaying() || !IsMultiFrameImage()) {
-        m_aniWeakFlag.Cancel();
+        m_animWeakFlag.Cancel();
         m_bAnimationPlaying = false;
         return;
     }
-
+    if ((m_pImage == nullptr) || (m_pControl == nullptr)) {
+        m_animWeakFlag.Cancel();
+        m_bAnimationPlaying = false;
+        return;
+    }
+    std::shared_ptr<ImageInfo> pImageInfo = m_pImage->GetImageCache();    
+    if (pImageInfo == nullptr) {
+        m_animWeakFlag.Cancel();
+        m_bAnimationPlaying = false;
+        return;
+    }
     uint32_t nFrameIndex = m_pImage->GetCurrentFrameIndex();
-    std::shared_ptr<IAnimationImage::AnimationFrame> pAnimationFrame = m_pImage->GetImageCache()->GetFrame(nFrameIndex);
-    ASSERT(pAnimationFrame != nullptr);
-    if (pAnimationFrame == nullptr) {
-        StopImageAnimation(true, AnimationImagePos::kFrameCurrent);
+    if (!pImageInfo->IsFrameDataReady(nFrameIndex)) {
+        //当前帧的数据尚未完成解码，如果未完成解码，应该是还没绘制: 跳过一个帧的时间
+        //TODO：（待优化实现方式：等下一帧解码完成后，立即显示）
         return;
-    }
-
-    //检查当前帧和下一帧图片是否完成解码
-    if (pAnimationFrame->m_bDataPending) {
-        //该帧图片数据尚未完成解码
-        return;
-    }
+    }    
     else {
+        //检查下一帧图片是否完成解码：下一帧
         uint32_t nNextFrameIndex = nFrameIndex + 1;
-        if (nNextFrameIndex >= m_pImage->GetImageCache()->GetFrameCount()) {
+        if (nNextFrameIndex >= pImageInfo->GetFrameCount()) {
             nNextFrameIndex = 0;
         }
-        std::shared_ptr<IAnimationImage::AnimationFrame> pNextAnimationFrame = m_pImage->GetImageCache()->GetFrame(nNextFrameIndex);
-        ASSERT(pAnimationFrame != nullptr);
-        if (pNextAnimationFrame == nullptr) {
-            StopImageAnimation(true, AnimationImagePos::kFrameCurrent);
-            return;
-        }
-        if (pNextAnimationFrame->m_bDataPending) {
-            //下一帧图片数据尚未完成解码
+        if (!pImageInfo->IsFrameDataReady(nFrameIndex)) {
+            //下一帧图片数据尚未完成解码: 不切换到下一帧
+            //TODO：（待优化实现方式：等下一帧解码完成后，立即显示）
             return;
         }
     }
 
     //播放下一帧
-    int32_t nPreTimerInterval = pAnimationFrame->GetDelayMs();
+    int32_t nPreTimerInterval = pImageInfo->GetFrameDelayMs(nFrameIndex);
     ASSERT(nPreTimerInterval > 0);
     nFrameIndex++;
-    if (nFrameIndex >= m_pImage->GetImageCache()->GetFrameCount()) {
+    if (nFrameIndex >= pImageInfo->GetFrameCount()) {
+        //完成一次播放
         nFrameIndex = 0;
         m_nCycledCount += 1;
         if ((m_nMaxPlayCount > 0) && (m_nCycledCount >= m_nMaxPlayCount)) {
             //达到最大播放次数，停止播放
-            StopImageAnimation(true, AnimationImagePos::kFrameLast);
+            StopImageAnimation(AnimationImagePos::kFrameLast, true);
             return;
         }
     }
-    pAnimationFrame = m_pImage->GetImageCache()->GetFrame(nFrameIndex);
-    ASSERT(pAnimationFrame != nullptr);
-    if (pAnimationFrame == nullptr) {
-        StopImageAnimation(true, AnimationImagePos::kFrameCurrent);
-        return;
-    }
-    int32_t nNowTimerInterval = pAnimationFrame->GetDelayMs();
+    int32_t nNowTimerInterval = pImageInfo->GetFrameDelayMs(nFrameIndex);
     ASSERT(nNowTimerInterval > 0);
     bool bRet = true;
     if (nPreTimerInterval != nNowTimerInterval) {
-        m_aniWeakFlag.Cancel();
-        auto animationPlayCallback = UiBind(&ImagePlayer::PlayAnimation, this);
-        bRet = GlobalManager::Instance().Timer().AddTimer(m_aniWeakFlag.GetWeakFlag(),
+        //帧与帧之间的播放时间发生变化，重启定时器，按新的播放时间差启动
+        m_animWeakFlag.Cancel();
+        auto animationPlayCallback = UiBind(&ImagePlayer::PlayingImageAnimation, this);
+        bRet = GlobalManager::Instance().Timer().AddTimer(m_animWeakFlag.GetWeakFlag(),
                                                           animationPlayCallback,
                                                           nNowTimerInterval) != 0;
+        ASSERT(bRet);
     }
     if (bRet) {
+        //切换到下一帧, 重绘图片
         m_pImage->SetCurrentFrameIndex(nFrameIndex);
         RedrawImage();
+
+        //触发播放进度
+        if (m_pControl->HasEventCallback(kEventImageAnimationPlayFrame)) {
+            //触发一次动画开始事件
+            ImageAnimationStatus animStatus;
+            GetImageAnimationStatus(animStatus);
+            m_pControl->SendEvent(kEventImageAnimationPlayFrame, (WPARAM)&animStatus);
+        }
     }
     else {
         //启动定时器失败
-        StopImageAnimation(true, AnimationImagePos::kFrameCurrent);
+        StopImageAnimation(AnimationImagePos::kFrameCurrent, true);
     }
 }
 
-void ImagePlayer::StopImageAnimation()
+void ImagePlayer::StopImageAnimation(AnimationImagePos nStopFrame, bool bTriggerEvent)
 {
     m_bAnimationPlaying = false;
-    m_aniWeakFlag.Cancel();
-}
-
-void ImagePlayer::StopImageAnimation(bool bTriggerEvent, AnimationImagePos nStopFrame)
-{
-    m_bAnimationPlaying = false;
-    m_aniWeakFlag.Cancel();
-    if (IsMultiFrameImage()) {        
+    m_animWeakFlag.Cancel();
+    if (IsMultiFrameImage() && (m_pImage != nullptr)) {
         uint32_t index = GetImageFrameIndex(nStopFrame);
         m_pImage->SetCurrentFrameIndex(index);
         RedrawImage();
     }
-    //标记为手动停止，不自动播放动画
+    //一旦停止，标记为手动停止，不再自动播放动画
     m_bAutoPlay = false;
-    if (bTriggerEvent) {
-        BroadcastAnimationEvent(m_nVirtualEventStop);
+    if (bTriggerEvent && (m_pControl != nullptr) && (m_pImage != nullptr)) {
+        if (m_pControl->HasEventCallback(kEventImageAnimationStop)) {
+            //触发一次动画停止事件
+            ImageAnimationStatus animStatus;
+            GetImageAnimationStatus(animStatus);
+            m_pControl->SendEvent(kEventImageAnimationStop, (WPARAM)&animStatus);
+        }
     }
 }
 
 bool ImagePlayer::IsAnimationPlaying() const
 {
     return m_bAnimationPlaying;
-}
-
-void ImagePlayer::BroadcastAnimationEvent(int32_t nVirtualEvent) const
-{
-    auto callback = m_OnAnimationEvent.find(nVirtualEvent);
-    if (callback != m_OnAnimationEvent.end()) {
-        EventArgs param;
-        param.SetSender(m_pControl);
-        callback->second(param);
-    }
 }
 
 uint32_t ImagePlayer::GetImageFrameIndex(AnimationImagePos frame) const
@@ -235,7 +264,7 @@ uint32_t ImagePlayer::GetImageFrameIndex(AnimationImagePos frame) const
         ret = 0;
         break;
     case AnimationImagePos::kFrameLast:
-        {
+        if (m_pImage->GetImageCache() != nullptr) {
             uint32_t nFrameCount = m_pImage->GetImageCache()->GetFrameCount();
             ret = nFrameCount > 0 ? nFrameCount - 1 : 0;
         }
@@ -250,7 +279,13 @@ void ImagePlayer::RedrawImage()
 {
     if (m_pControl != nullptr) {
         //重绘图片
-        m_pControl->InvalidateRect(m_rcImageRect);
+        if (m_rcImageAnimationRect.IsEmpty()) {
+            //首次播放，区域为空，重回整个控件
+            m_pControl->Invalidate();
+        }
+        else {
+            m_pControl->InvalidateRect(m_rcImageAnimationRect);
+        }
     }
 }
 

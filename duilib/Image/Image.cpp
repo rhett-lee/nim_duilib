@@ -14,7 +14,7 @@ Image::Image() :
 Image::~Image()
 {
     if (m_pImagePlayer != nullptr) {
-        m_pImagePlayer->StopImageAnimation();
+        m_pImagePlayer->StopImageAnimation(AnimationImagePos::kFrameCurrent, false);
         delete m_pImagePlayer;
     }
 }
@@ -76,7 +76,6 @@ void Image::SetImagePaintEnabled(bool bEnable)
 void Image::SetImagePlayCount(int32_t nPlayCount)
 {
     m_imageAttribute.m_nPlayCount = nPlayCount;
-    m_imageAttribute.m_bHasPlayCount = true;
 }
 
 void Image::SetImageFade(uint8_t nFade)
@@ -127,6 +126,10 @@ void Image::SetImageCache(const std::shared_ptr<ImageInfo>& imageInfo)
 
 void Image::ClearImageCache()
 {
+    //停止播放动画
+    if (m_pImagePlayer != nullptr) {
+        m_pImagePlayer->StopImageAnimation(AnimationImagePos::kFrameCurrent, false);
+    }
     m_nCurrentFrame = 0;
     m_imageCache.reset();
 }
@@ -134,6 +137,10 @@ void Image::ClearImageCache()
 void Image::SetCurrentFrameIndex(uint32_t nCurrentFrame)
 {
     m_nCurrentFrame = nCurrentFrame;
+    uint32_t nFrameCount = GetFrameCount();
+    if ((m_nCurrentFrame >= nFrameCount) && (nFrameCount > 0)) {
+        nCurrentFrame = m_nCurrentFrame % nFrameCount;
+    }
 }
 
 uint32_t Image::GetCurrentFrameIndex() const
@@ -257,62 +264,61 @@ void Image::SetControl(Control* pControl)
     }
 }
 
-bool Image::CheckStartImageAnimation(const UiRect& rcImageRect)
+ImagePlayer* Image::InitImagePlayer()
 {
     if (!IsMultiFrameImage() || (m_pControl == nullptr)) {
-        return false;
+        return nullptr;
     }
     if (m_pImagePlayer == nullptr) {
         m_pImagePlayer = new ImagePlayer;
         m_pImagePlayer->SetImage(this);
         m_pImagePlayer->SetControl(m_pControl);
     }
-    m_pImagePlayer->SetImageRect(rcImageRect);
-    if (m_pImagePlayer->IsAnimationPlaying()) {
-        return true;
+    return m_pImagePlayer;
+}
+
+void Image::SetImageAnimationRect(const UiRect& rcImageRect)
+{
+    ImagePlayer* pImagePlayer = InitImagePlayer();
+    ASSERT(pImagePlayer != nullptr);
+    if (pImagePlayer != nullptr) {
+        pImagePlayer->SetImageAnimationRect(rcImageRect);
     }
-    return m_pImagePlayer->StartImageAnimation();
+}
+
+void Image::CheckStartImageAnimation()
+{
+    ImagePlayer* pImagePlayer = InitImagePlayer();
+    if (pImagePlayer != nullptr) {
+        pImagePlayer->CheckStartImageAnimation();
+    }
 }
 
 void Image::CheckStopImageAnimation()
 {
     if (m_pImagePlayer != nullptr) {
-        m_pImagePlayer->StopImageAnimation();
+        m_pImagePlayer->StopImageAnimation(AnimationImagePos::kFrameCurrent, true);
     }
 }
 
 bool Image::StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPlayCount)
 {
-    if (!IsMultiFrameImage() || (m_pControl == nullptr)) {
-        return false;
+    bool bRet = false;
+    ImagePlayer* pImagePlayer = InitImagePlayer();
+    if (pImagePlayer != nullptr) {
+        if (pImagePlayer->IsAnimationPlaying()) {
+            pImagePlayer->StopImageAnimation(AnimationImagePos::kFrameCurrent, false);
+        }
+        bRet = pImagePlayer->StartImageAnimation(nStartFrame, nPlayCount);
     }
-    if (m_pImagePlayer == nullptr) {
-        m_pImagePlayer = new ImagePlayer;
-        m_pImagePlayer->SetImage(this);
-        m_pImagePlayer->SetControl(m_pControl);
-    }
-    if (m_pImagePlayer->IsAnimationPlaying()) {
-        m_pImagePlayer->StopImageAnimation();
-    }
-    m_pImagePlayer->SetImageRect(UiRect());
-    return m_pImagePlayer->StartImageAnimation(nStartFrame, nPlayCount);
+    return bRet;
 }
 
-void Image::StopImageAnimation(bool bTriggerEvent, AnimationImagePos nStopFrame)
+void Image::StopImageAnimation(AnimationImagePos nStopFrame, bool bTriggerEvent)
 {
     if (m_pImagePlayer != nullptr) {
-        m_pImagePlayer->StopImageAnimation(bTriggerEvent, nStopFrame);
+        m_pImagePlayer->StopImageAnimation(nStopFrame, bTriggerEvent);
     }
-}
-
-void Image::AttachImageAnimationStop(const EventCallback& callback)
-{
-    if (m_pImagePlayer == nullptr) {
-        m_pImagePlayer = new ImagePlayer;
-        m_pImagePlayer->SetImage(this);
-        m_pImagePlayer->SetControl(m_pControl);
-    }
-    m_pImagePlayer->AttachImageAnimationStop(callback);
 }
 
 }

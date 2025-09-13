@@ -136,7 +136,26 @@ int32_t Image_ICO::GetLoopCount() const
     return -1;
 }
 
-bool Image_ICO::ReadFrame(int32_t nFrameIndex, AnimationFrame* pAnimationFrame)
+bool Image_ICO::IsFrameDataReady(uint32_t nFrameIndex)
+{
+    if (nFrameIndex < (int32_t)m_impl->m_frames.size()) {
+        return true;
+    }
+    return false;
+}
+
+int32_t Image_ICO::GetFrameDelayMs(uint32_t nFrameIndex)
+{
+    if (nFrameIndex < m_impl->m_frames.size()) {
+        auto pAnimationFrame = m_impl->m_frames[nFrameIndex];
+        if (pAnimationFrame != nullptr) {
+            return pAnimationFrame->GetDelayMs();
+        }
+    }
+    return IMAGE_ANIMATION_DELAY_MS;
+}
+
+bool Image_ICO::ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFrame)
 {
     ASSERT(pAnimationFrame != nullptr);
     if (pAnimationFrame == nullptr) {

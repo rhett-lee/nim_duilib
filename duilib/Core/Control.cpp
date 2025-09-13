@@ -460,13 +460,14 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
         uint8_t nPaintOrder = TruncateToUInt8(StringUtil::StringToInt32(strValue));
         SetPaintOrder(nPaintOrder);
     }
-    else if (strName == _T("start_gif_play")) {
-        int32_t nPlayCount = StringUtil::StringToInt32(strValue);
-        StartImageAnimation(AnimationImagePos::kFrameCurrent, nPlayCount);
+    else if ((strName == _T("start_image_animation")) || (strName == _T("start_gif_play"))) {
+        ParseStartImageAnimation(strValue);
     }
-    else if (strName == _T("stop_gif_play")) {
-        AnimationImagePos nStopFrame = (AnimationImagePos)StringUtil::StringToInt32(strValue);
-        StopImageAnimation(false, nStopFrame);
+    else if ((strName == _T("stop_image_animation")) || (strName == _T("stop_gif_play"))) {
+        ParseStopImageAnimation(strValue);
+    }
+    else if (strName == _T("set_image_animation_frame")) {
+        ParseSetImageAnimationFrame(strValue);
     }
     else if (strName == _T("enable_drag_drop")) {
         //是否允许拖放操作
@@ -483,6 +484,89 @@ void Control::SetAttribute(const DString& strName, const DString& strValue)
     else {
         ASSERT(!"Control::SetAttribute失败: 发现不能识别的属性");
     }
+}
+
+void Control::ParseStartImageAnimation(const DString& value)
+{
+    std::vector<DString> paramList;
+    auto params = StringUtil::Split(value, _T(","));
+    for (DString& v : params) {
+        StringUtil::Trim(v);
+        paramList.push_back(v);
+    }
+    DString imageName;
+    AnimationImagePos nStartFrame = AnimationImagePos::kFrameCurrent;
+    int32_t nPlayCount = 0;
+    if (paramList.size() > 0) {
+        imageName = paramList[0];
+    }
+    if (paramList.size() > 1) {
+        int32_t nFrame = StringUtil::StringToInt32(paramList[1]);
+        if (nFrame == 0) {
+            nStartFrame = AnimationImagePos::kFrameFirst;
+        }
+        else if (nFrame == 2) {
+            nStartFrame = AnimationImagePos::kFrameLast;
+        }
+        else {
+            ASSERT(nFrame == 1);
+        }
+    }
+    if (paramList.size() > 2) {
+        nPlayCount = StringUtil::StringToInt32(paramList[2]);
+    }
+    StartImageAnimation(imageName, nStartFrame, nPlayCount);
+}
+
+void Control::ParseStopImageAnimation(const DString& value)
+{
+    std::vector<DString> paramList;
+    auto params = StringUtil::Split(value, _T(","));
+    for (DString& v : params) {
+        StringUtil::Trim(v);
+        paramList.push_back(v);
+    }
+    DString imageName;
+    AnimationImagePos nStartFrame = AnimationImagePos::kFrameCurrent;
+    bool bTriggerEvent = true;
+    if (paramList.size() > 0) {
+        imageName = paramList[0];
+    }
+    if (paramList.size() > 1) {
+        int32_t nFrame = StringUtil::StringToInt32(paramList[1]);
+        if (nFrame == 0) {
+            nStartFrame = AnimationImagePos::kFrameFirst;
+        }
+        else if (nFrame == 2) {
+            nStartFrame = AnimationImagePos::kFrameLast;
+        }
+        else {
+            ASSERT(nFrame == 1);
+        }
+    }
+    if (paramList.size() > 2) {
+        bTriggerEvent = (paramList[2] == _T("true")) || (paramList[2] == _T("1"));
+    }
+    StopImageAnimation(imageName, nStartFrame, bTriggerEvent);
+}
+
+void Control::ParseSetImageAnimationFrame(const DString& value)
+{
+    std::vector<DString> paramList;
+    auto params = StringUtil::Split(value, _T(","));
+    for (DString& v : params) {
+        StringUtil::Trim(v);
+        paramList.push_back(v);
+    }
+    DString imageName;
+    int32_t nFrameIndex = -1;
+    if (paramList.size() > 0) {
+        imageName = paramList[0];
+    }
+    if (paramList.size() > 1) {
+        nFrameIndex = StringUtil::StringToInt32(paramList[1]);        
+    }
+    SetImageAnimationFrame(imageName, nFrameIndex);
 }
 
 void Control::ChangeDpiScale(uint32_t nOldDpiScale, uint32_t nNewDpiScale)
@@ -2487,6 +2571,10 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
         //返回绘制的目标区域
         *pPaintedRect = rcDest;
     }
+    //设置动画图片的区域
+    if (duiImage.IsMultiFrameImage()) {
+        duiImage.SetImageAnimationRect(rcImageDect);
+    }
 
     //获取需要绘制的位图图片
     std::shared_ptr<IBitmap> pBitmap;
@@ -2587,7 +2675,7 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
     }
     //按需启动动画
     if (duiImage.IsMultiFrameImage()) {
-        duiImage.CheckStartImageAnimation(rcImageDect);
+        duiImage.CheckStartImageAnimation();
     }
     return bPainted;
 }
@@ -3407,6 +3495,7 @@ void Control::SetRenderOffsetY(int64_t renderOffsetY)
 
 void Control::CheckStopImageAnimation()
 {
+    //停止该控件内的所有动画
     if (m_pBkImage != nullptr) {
         m_pBkImage->CheckStopImageAnimation();
     }
@@ -3415,35 +3504,78 @@ void Control::CheckStopImageAnimation()
     }
 }
 
-bool Control::StartImageAnimation(AnimationImagePos nStartFrame, int32_t nPlayCount)
+Image* Control::FindImageByName(const DString& imageName) const
 {
-    if (m_pBkImage == nullptr) {
-        return false;
+    Image* pImage = nullptr;
+    if (imageName.empty()) {
+        //为空则使用背景图片
+        pImage = m_pBkImage.get();
     }
-    if (!LoadImageData(*m_pBkImage)) {
-        return false;
+    else if ((m_pBkImage != nullptr) && (m_pBkImage->GetImageAttribute().m_sImageName == imageName)) {
+        //背景图片
+        pImage = m_pBkImage.get();
     }
-    return m_pBkImage->StartImageAnimation(nStartFrame, nPlayCount);
+    else if (m_pImageMap != nullptr) {
+        //状态图片
+        pImage = m_pImageMap->FindImageByName(imageName);
+    }
+    return pImage;
 }
 
-void Control::StopImageAnimation(bool bTriggerEvent, AnimationImagePos stopType)
+bool Control::StartImageAnimation(const DString& imageName,
+                                  AnimationImagePos nStartFrame,
+                                  int32_t nPlayCount)
 {
-    if (m_pBkImage != nullptr) {
-        m_pBkImage->StopImageAnimation(bTriggerEvent, stopType);
+    GlobalManager::Instance().AssertUIThread();
+    Image* pImage = FindImageByName(imageName);
+    if (pImage == nullptr) {
+        return false;
     }
+    if (!LoadImageData(*pImage)) {
+        return false;
+    }
+    return pImage->StartImageAnimation(nStartFrame, nPlayCount);
 }
 
-void Control::AttachImageAnimationStop(const EventCallback& callback)
+bool Control::StopImageAnimation(const DString& imageName,
+                                 AnimationImagePos nStopFrame,
+                                 bool bTriggerEvent)
 {
-    if (m_pBkImage == nullptr) {
-        m_pBkImage = std::make_unique<Image>();
-        m_pBkImage->SetControl(this);
+    GlobalManager::Instance().AssertUIThread();
+    Image* pImage = FindImageByName(imageName);
+    if (pImage == nullptr) {
+        return false;
     }
-    m_pBkImage->AttachImageAnimationStop(callback);
+    if (pImage != nullptr) {
+        pImage->StopImageAnimation(nStopFrame, bTriggerEvent);
+        return true;
+    }
+    return false;
+}
+
+bool Control::SetImageAnimationFrame(const DString& imageName, int32_t nFrameIndex)
+{
+    GlobalManager::Instance().AssertUIThread();
+    ASSERT(nFrameIndex >= 0);
+    if (nFrameIndex < 0) {
+        return false;
+    }
+    Image* pImage = FindImageByName(imageName);
+    if (pImage == nullptr) {
+        return false;
+    }
+    if (pImage != nullptr) {
+        pImage->SetCurrentFrameIndex((uint32_t)nFrameIndex);
+        //重绘
+        Invalidate();
+        return true;
+    }
+    return false;
 }
 
 bool Control::LoadImageData(Image& duiImage) const
 {
+    GlobalManager::Instance().AssertUIThread();
     //DPI缩放百分比
     const uint32_t nLoadDpiScale = Dpi().GetScale();
     if (duiImage.GetImageCache() != nullptr) {
@@ -3700,6 +3832,38 @@ bool Control::FireAllEvents(const EventArgs& msg)
         }
     }
     return bRet && !weakflag.expired();
+}
+
+bool Control::HasEventCallback(EventType eventType) const
+{
+    if (m_pEventMapData == nullptr) {
+        return false;
+    }
+    if (!m_pEventMapData->m_attachEvent.empty()) {
+        const EventMap& eventMap = m_pEventMapData->m_attachEvent;
+        if (eventMap.find(eventType) != eventMap.end()) {
+            return true;
+        }
+    }
+    if (m_pEventMapData->m_pXmlEvent != nullptr){
+        const EventMap& eventMap = *m_pEventMapData->m_pXmlEvent;
+        if (!eventMap.empty() && eventMap.find(eventType) != eventMap.end()) {
+            return true;
+        }
+    }
+    if (m_pEventMapData->m_pBubbledEvent != nullptr) {
+        const EventMap& eventMap = *m_pEventMapData->m_pBubbledEvent;
+        if (!eventMap.empty() && eventMap.find(eventType) != eventMap.end()) {
+            return true;
+        }
+    }
+    if (m_pEventMapData->m_pXmlBubbledEvent != nullptr) {
+        const EventMap& eventMap = *m_pEventMapData->m_pXmlBubbledEvent;
+        if (!eventMap.empty() && eventMap.find(eventType) != eventMap.end()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool Control::HasUiColor(const DString& colorName) const

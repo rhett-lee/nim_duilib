@@ -41,12 +41,22 @@ public:
     */
     virtual int32_t GetLoopCount() const override;
 
+    /** 查询是某帧的图片数据是否有准备完成（多线程解码时，帧数据在后台线程解码）
+    * @param [in] nFrameIndex 图片帧的索引号，从0开始编号的下标值，取值范围:[0, GetFrameCount())
+    */
+    virtual bool IsFrameDataReady(uint32_t nFrameIndex) override;
+
+    /** 获取一个图片帧的播放持续时间，单位为毫秒
+    * @param [in] nFrameIndex 图片帧的索引号，从0开始编号的下标值，取值范围:[0, GetFrameCount())
+    */
+    virtual int32_t GetFrameDelayMs(uint32_t nFrameIndex) override;
+
     /** 读取一帧数据
-    * @param [in] nFrameIndex 帧的索引号，从0开始编号的下标值
+    * @param [in] nFrameIndex 图片帧的索引号，从0开始编号的下标值，取值范围:[0, GetFrameCount())
     * @param [out] pAnimationFrame 返回该帧的图片位图数据
     * @return 成功返回true，失败则返回false
     */
-    virtual bool ReadFrame(int32_t nFrameIndex, AnimationFrame* pAnimationFrame) override;
+    virtual bool ReadFrameData(int32_t nFrameIndex, AnimationFrame* pAnimationFrame) override;
 
 public:
     /** 是否需要解码数据
