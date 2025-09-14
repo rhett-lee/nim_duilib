@@ -128,10 +128,14 @@ void Image::ClearImageCache()
 {
     //停止播放动画
     if (m_pImagePlayer != nullptr) {
+        bool bAutoPlay = m_pImagePlayer->IsAutoPlay();
         m_pImagePlayer->StopImageAnimation(AnimationImagePos::kFrameCurrent, false);
+        //需要保留原来的自动播放属性，否则换肤后，加载新动画就不会自动播放了
+        m_pImagePlayer->SetAutoPlay(bAutoPlay);
     }
     m_nCurrentFrame = 0;
     m_imageInfo.reset();
+    m_rcDrawDestRect.Clear();
 }
 
 void Image::SetCurrentFrameIndex(uint32_t nCurrentFrame)
@@ -277,12 +281,15 @@ ImagePlayer* Image::InitImagePlayer()
     return m_pImagePlayer;
 }
 
-void Image::SetImageAnimationRect(const UiRect& rcImageRect)
+void Image::SetDrawDestRect(const UiRect& rcImageRect)
 {
-    ImagePlayer* pImagePlayer = InitImagePlayer();
-    ASSERT(pImagePlayer != nullptr);
-    if (pImagePlayer != nullptr) {
-        pImagePlayer->SetImageAnimationRect(rcImageRect);
+    m_rcDrawDestRect = rcImageRect;
+    if (IsMultiFrameImage()) {
+        ImagePlayer* pImagePlayer = InitImagePlayer();
+        ASSERT(pImagePlayer != nullptr);
+        if (pImagePlayer != nullptr) {
+            pImagePlayer->SetImageAnimationRect(rcImageRect);
+        }
     }
 }
 

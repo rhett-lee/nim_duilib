@@ -26,29 +26,30 @@ ImageLoadParam::ImageLoadParam(DString srcWidth,
     m_srcHeight = srcHeight;
 }
 
-void ImageLoadParam::SetImageFullPath(const DString& imageFullPath)
+void ImageLoadParam::SetImageLoadPath(const ImageLoadPath& imageLoadPath)
 {
-    FilePath fullPath(imageFullPath);
+    m_srcImageLoadPath = imageLoadPath;
+    FilePath fullPath(imageLoadPath.m_imageFullPath.c_str());
     fullPath.NormalizeFilePath();
-    m_srcImageFullPath = fullPath.ToString();
+    m_srcImageLoadPath.m_imageFullPath = fullPath.NativePath();//路径规范化    
 }
 
-DString ImageLoadParam::GetImageFullPath() const
+const ImageLoadPath& ImageLoadParam::GetImageLoadPath() const
 {
-    ASSERT(!m_srcImageFullPath.empty());
-    return m_srcImageFullPath.c_str();
+    ASSERT(!m_srcImageLoadPath.m_imageFullPath.empty());
+    return m_srcImageLoadPath;
 }
 
-bool ImageLoadParam::HasImageFullPath() const
+bool ImageLoadParam::HasImageLoadPath() const
 {
-    return !m_srcImageFullPath.empty();
+    return !m_srcImageLoadPath.m_imageFullPath.empty();
 }
 
 DString ImageLoadParam::GetLoadKey(uint32_t nLoadDpiScale) const
 {
     //格式为(中括号内容为可选)：<图片路径>[@nLoadDpiScale][@srcWidth:srcHeight]
-    ASSERT(!m_srcImageFullPath.empty());
-    DString fullPath = m_srcImageFullPath.c_str();
+    ASSERT(!m_srcImageLoadPath.m_imageFullPath.empty());
+    DString fullPath = m_srcImageLoadPath.m_imageFullPath;
     if ((nLoadDpiScale != 0) && (nLoadDpiScale != 100)) {
         //追加缩放百分比
         fullPath += _T("@");

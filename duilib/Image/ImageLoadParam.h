@@ -7,6 +7,28 @@ namespace ui
 {
 class Control;
 
+/** 图片加载的路径信息
+*/
+enum class UILIB_API ImageLoadPathType
+{
+    kUnknownPath,   //未知类型路径
+    kLocalPath,     //本地绝对路径(非资源路径)
+    kLocalResPath,  //本地绝对路径(资源路径内)
+    kZipResPath,    //压缩包内相对路径
+    kVirtualPath    //虚拟路径，比如:"icon:1"这种
+};
+
+/** 图片加载的路径信息
+*/
+struct UILIB_API ImageLoadPath
+{
+    //图片路径（本地绝对路径或者压缩包内的相对路径）
+    DString m_imageFullPath;
+
+    //图片路径类型
+    ImageLoadPathType m_pathType = ImageLoadPathType::kUnknownPath;
+};
+
 /** 图片加载参数，用于加载一个图片
 */
 class UILIB_API ImageLoadParam
@@ -48,15 +70,15 @@ public:
 public:
     /** 设置图片路径（本地绝对路径或者压缩包内的相对路径）
     */
-    void SetImageFullPath(const DString& imageFullPath);
+    void SetImageLoadPath(const ImageLoadPath& imageLoadPath);
 
     /** 获取图片路径（UTF8或者UTF16编码，本地绝对路径或者压缩包内的相对路径）
     */
-    DString GetImageFullPath() const;
+    const ImageLoadPath& GetImageLoadPath() const;
 
     /** 是否含有图片路径
     */
-    bool HasImageFullPath() const;
+    bool HasImageLoadPath() const;
 
 public:
     /** 设置图片大小的DPI缩放选项
@@ -118,7 +140,7 @@ private:
 
 private:
     //(属性名称："file")本地绝对路径或者压缩包内的相对路径，不包含属性
-    UiString m_srcImageFullPath;
+    ImageLoadPath m_srcImageLoadPath;
 
     //设置图片宽度(属性名称："width")，可以放大或缩小图像：pixels或者百分比%，比如300，或者30%
     UiString m_srcWidth;

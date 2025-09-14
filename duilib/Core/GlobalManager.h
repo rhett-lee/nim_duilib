@@ -224,12 +224,18 @@ public:
      * @param [in] windowResPath 窗口对应的资源相对目录，比如："controls\\"
      * @param [in] windowXmlPath 窗口对应XML所在的相对目录，比如："controls\\menu\\"
      * @param [in] resPath 资源文件路径，比如："../public/button/btn_wnd_gray_min_hovered.png"
+     * @param [out] bLocalPath 返回true表示文件为本地路径，返回false表示文件为zip压缩包内路径
+     * @param [out] bResPath 返回true表示文件在程序资源路径内，返回false表示文件不在程序资源路径内
      * @return 返回可用的完整的资源路径，如果资源路径不存在，则返回空
                返回有效的路径格式如下：
               （1）如果是使用ZIP压缩包，返回："resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
               （2）如果未使用ZIP压缩包，返回："<程序所在目录>\resources\themes\default\public\button\btn_wnd_gray_min_hovered.png"
      */
-    FilePath GetExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath, const FilePath& resPath);
+    FilePath GetExistsResFullPath(const FilePath& windowResPath,
+                                  const FilePath& windowXmlPath,
+                                  const FilePath& resPath,
+                                  bool& bLocalPath,
+                                  bool& bResPath);
 
     /** 根据 XML 创建一个 Box
      * @param[in] strXmlPath XML 文件路径
@@ -285,6 +291,12 @@ private:
     /** 从缓存中删除所有图片
      */
     void RemoveAllImages();
+
+    /** 检查图片文件路径是否存在
+    * @param [in,out] imageFullPath 如果不存在清空，如果存在保留
+    * @param [out] bLocalPath 返回true表示文件为本地路径，返回false表示文件为zip压缩包内路径
+    */
+    void CheckImagePath(FilePath& imageFullPath, bool& bLocalPath);
 
 private:
 

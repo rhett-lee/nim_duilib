@@ -2447,9 +2447,12 @@ bool Control::OnImeEndComposition(const EventArgs& /*msg*/)
     return false;
 }
 
-bool Control::PaintImage(IRender* pRender, Image* pImage,
-                        const DString& strModify, int32_t nFade, 
-                        IMatrix* pMatrix, UiRect* pDestRect, UiRect* pPaintedRect) const
+bool Control::PaintImage(IRender* pRender,
+                         Image* pImage,
+                         const DString& strModify, int32_t nFade, 
+                         IMatrix* pMatrix,
+                         const UiRect* pDestRect,
+                         UiRect* pPaintedRect) const
 {
     //注解：strModify参数，目前外部传入的主要是："destscale='false' dest='%d,%d,%d,%d'"
     //                   也有一个类传入了：_T(" corner='%d,%d,%d,%d'")。
@@ -2569,12 +2572,10 @@ bool Control::PaintImage(IRender* pRender, Image* pImage,
     const UiRect rcImageDect = rcDest;
     if (pPaintedRect) {
         //返回绘制的目标区域
-        *pPaintedRect = rcDest;
+        *pPaintedRect = rcImageDect;
     }
     //设置动画图片的区域
-    if (duiImage.IsMultiFrameImage()) {
-        duiImage.SetImageAnimationRect(rcImageDect);
-    }
+    duiImage.SetDrawDestRect(rcImageDect);
 
     //获取需要绘制的位图图片
     std::shared_ptr<IBitmap> pBitmap;
@@ -3594,7 +3595,8 @@ bool Control::LoadImageInfo(Image& duiImage) const
     if (sImagePath.empty()) {
         return false;
     }
-    FilePath imageFullPath;
+    ImageLoadPath imageLoadPath; //图片加载路径信息
+    imageLoadPath.m_pathType = ImageLoadPathType::kUnknownPath;    
     IconManager& iconManager = GlobalManager::Instance().Icon();
     if (iconManager.IsIconString(sImagePath)) {
         uint32_t nIconID = iconManager.GetIconID(sImagePath);
@@ -3605,30 +3607,51 @@ bool Control::LoadImageInfo(Image& duiImage) const
             DString oldImageString = duiImage.GetImageString();
             duiImage.SetImageString(iconImageString, pWindow->Dpi());
             duiImage.UpdateImageAttribute(oldImageString, pWindow->Dpi());
-            sImagePath = duiImage.GetImagePath();
+            sImagePath = duiImage.GetImagePath();//更新图片路径为资源指定的路径
+            ASSERT(!sImagePath.empty());
             if (sImagePath.empty()) {
                 return false;
             }
         }
         else {
-            //ICON图标数据
-            imageFullPath = sImagePath;
+            //ICON图标数据，虚拟路径
+            imageLoadPath.m_pathType = ImageLoadPathType::kVirtualPath;
         }
     }
-
-    if(imageFullPath.IsEmpty()) {
-        //非图标数据：获取图片资源的完整路径（磁盘绝对路径或者zip压缩包内的相对路径）
-        imageFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), FilePath(sImagePath));
+    if (imageLoadPath.m_pathType == ImageLoadPathType::kVirtualPath) {
+        //ICON图标数据，虚拟路径
+        imageLoadPath.m_imageFullPath = sImagePath;
     }
-    ASSERT(!imageFullPath.IsEmpty());
-    if (imageFullPath.IsEmpty()) {
+    else {
+        //非图标数据：获取图片资源的完整路径（磁盘绝对路径或者zip压缩包内的相对路径）       
+        FilePath resPath(sImagePath);
+        bool bLocalPath = true;
+        bool bResPath = true;
+        FilePath imageFullPath = GlobalManager::Instance().GetExistsResFullPath(pWindow->GetResourcePath(), pWindow->GetXmlPath(), resPath, bLocalPath, bResPath);
+        if (!imageFullPath.IsEmpty()) {
+            imageLoadPath.m_imageFullPath = imageFullPath.NativePath();
+            if (bLocalPath) {
+                if (bResPath) {
+                    imageLoadPath.m_pathType = ImageLoadPathType::kLocalResPath;
+                }
+                else {
+                    imageLoadPath.m_pathType = ImageLoadPathType::kLocalPath;
+                }
+            }
+            else {
+                imageLoadPath.m_pathType = ImageLoadPathType::kZipResPath;
+            }
+        }
+    }
+    ASSERT(!imageLoadPath.m_imageFullPath.empty());
+    if (imageLoadPath.m_imageFullPath.empty()) {
         //图片资源文件不存在
         return false;
     }
 
     ImageLoadParam imageLoadParam = duiImage.GetImageLoadParam();
     imageLoadParam.SetLoadDpiScale(nLoadDpiScale);//设置加载的DPI百分比
-    imageLoadParam.SetImageFullPath(imageFullPath.ToString());
+    imageLoadParam.SetImageLoadPath(imageLoadPath);
     if (imageLoadParam.GetDpiScaleOption() == ImageLoadParam::DpiScaleOption::kDefault) {
         if (GlobalManager::Instance().Image().IsDpiScaleAllImages()) {
             imageLoadParam.SetDpiScaleOption(ImageLoadParam::DpiScaleOption::kOn);

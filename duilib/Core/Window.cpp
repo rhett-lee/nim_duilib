@@ -186,7 +186,9 @@ bool Window::SetWindowIcon(const DString& iconFilePath)
         return false;
     }
     bool bRet = false;
-    FilePath iconFullPath = GlobalManager::Instance().GetExistsResFullPath(GetResourcePath(), GetXmlPath(), FilePath(iconFilePath));
+    bool bLocalPath = true;
+    bool bResPath = true;
+    FilePath iconFullPath = GlobalManager::Instance().GetExistsResFullPath(GetResourcePath(), GetXmlPath(), FilePath(iconFilePath), bLocalPath, bResPath);
     ASSERT(!iconFullPath.IsEmpty());
     if (iconFullPath.IsEmpty()) {
         return false;

@@ -59,6 +59,14 @@ public:
     */
     bool IsAnimationPlaying() const;
 
+    /** 设置是否自动开始播放
+    */
+    void SetAutoPlay(bool bAutoPlay);
+
+    /** 获取是否自动开始播放
+    */
+    bool IsAutoPlay() const;
+
 private:
     /** 获取动画帧号
     */

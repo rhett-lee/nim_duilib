@@ -33,11 +33,15 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
     }
 
     //重新加载资源
-    DString imageFullPath = loadParam.GetImageFullPath();               //图片的路径（本地路径或者压缩包内相对路径）
+    const ImageLoadPath& imageLoadPath = loadParam.GetImageLoadPath();
+    DString imageFullPath = imageLoadPath.m_imageFullPath;              //图片的路径（本地路径或者压缩包内相对路径）
     uint32_t nImageDpiScale = 100;                                      //原始图片，未经DPI缩放时，DPI缩放比例是100
     const bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();   //是否使用Zip压缩包
     const bool bEnableImageDpiScale = IsDpiScaleAllImages();            //仅在DPI缩放图片功能开启的情况下，查找对应DPI的图片是否存在
-    if (bEnableImageDpiScale) {
+    if (bEnableImageDpiScale &&
+        ((imageLoadPath.m_pathType == ImageLoadPathType::kLocalResPath) ||
+         (imageLoadPath.m_pathType == ImageLoadPathType::kZipResPath))) {
+        //只有在资源目录下的文件，才执行查找适配DPI的功能
         DString dpiImageFullPath;
         uint32_t dpiImageDpiScale = nImageDpiScale;
         if (GetDpiScaleImageFullPath(loadParam.GetLoadDpiScale(), isUseZip, imageFullPath, dpiImageFullPath, dpiImageDpiScale)) {
@@ -49,9 +53,10 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         }
     }
     if (nImageDpiScale == 0) {
-        nImageDpiScale = 100;
+        nImageDpiScale = 100;//原图无缩放
     }
-    float fImageSizeScale = static_cast<float>(loadParam.GetLoadDpiScale()) / static_cast<float>(nImageDpiScale);//加载的比例
+    //加载的比例（按相对原图来计算，确保各个DPI适配图的显示效果相同）
+    float fImageSizeScale = static_cast<float>(loadParam.GetLoadDpiScale()) / static_cast<float>(nImageDpiScale);
 
     std::shared_ptr<IImage> spImageData;
     //查询缓存，如果缓存存在，则可共享图片资源，无需重复加载
@@ -72,6 +77,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         //从内存数据加载图片
         ImageDecoderFactory& ImageDecoders = GlobalManager::Instance().ImageDecoders();
         std::vector<uint8_t> fileData;
+        //TODO：可去掉此函数
         if (!ImageDecoders.IsVirtualImageFile(imageFullPath)) {
             //实体图片文件，必须有图片数据用于解码图片
             FilePath imageFilePath(imageFullPath);

@@ -249,6 +249,16 @@ bool ImagePlayer::IsAnimationPlaying() const
     return m_bAnimationPlaying;
 }
 
+void ImagePlayer::SetAutoPlay(bool bAutoPlay)
+{
+    m_bAutoPlay = bAutoPlay;
+}
+
+bool ImagePlayer::IsAutoPlay() const
+{
+    return m_bAutoPlay;
+}
+
 uint32_t ImagePlayer::GetImageFrameIndex(AnimationImagePos frame) const
 {
     if (!IsMultiFrameImage()) {

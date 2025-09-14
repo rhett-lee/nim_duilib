@@ -554,57 +554,94 @@ bool GlobalManager::GetLanguageList(std::vector<std::pair<DString, DString>>& la
     return true;
 }
 
-FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath, const FilePath& windowXmlPath, const FilePath& resPath)
+void GlobalManager::CheckImagePath(FilePath& imageFullPath, bool& bLocalPath)
 {
-    if (resPath.IsEmpty() || !resPath.IsRelativePath()) {
+    imageFullPath.NormalizeFilePath();
+    if (m_zipManager.IsZipResExist(imageFullPath)) {
+        bLocalPath = false;
+    }
+    else if (imageFullPath.IsExistsFile()) {
+        bLocalPath = true;
+    }
+    else {
+        //如果文件不存在，返回空
+        imageFullPath.Clear();
+    }
+}
+
+FilePath GlobalManager::GetExistsResFullPath(const FilePath& windowResPath,
+                                             const FilePath& windowXmlPath,
+                                             const FilePath& resPath,
+                                             bool& bLocalPath,
+                                             bool& bResPath)
+{
+    bLocalPath = true;
+    bResPath = true;
+    ASSERT(!resPath.IsEmpty());
+    if (resPath.IsEmpty()) {
         return resPath;
     }
-
-    //首先在窗口的资源目录中查找（命中率高）
-    const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);
     FilePath imageFullPath;
-    DString resPathString = resPath.ToString();
-    if ((resPathString.find(_T("public/")) == 0) || ((resPathString.find(_T("/public/")) == 0))) {
-        //优先从公共目录匹配
-        imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
-        imageFullPath.NormalizeFilePath();
-        if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
-            //如果文件不存在，返回空
-            imageFullPath.Clear();
-        }
-    }
+#ifdef DUILIB_BUILD_FOR_WIN
+    const bool bOSWindows = true;
+#else
+    const bool bOSWindows = false;
+#endif
 
-    if (imageFullPath.IsEmpty()) {
-        //在窗口指定的目录中查找
-        imageFullPath = FilePathUtil::JoinFilePath(windowResFullPath, resPath);
+    bool bWindows = bOSWindows;//避免编译警告
+    if (bWindows && resPath.IsAbsolutePath()) {
+        //Windows平台的绝对路径: 外部文件
+        imageFullPath = resPath;
         imageFullPath.NormalizeFilePath();
-        if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
+        if (imageFullPath.IsExistsFile()) {
+            bLocalPath = true;
+            bResPath = false;
+        }
+        else {
             //如果文件不存在，返回空
             imageFullPath.Clear();
         }
     }
-
-    if (imageFullPath.IsEmpty()) {
-        //其次在公共目录中查找（命中率高）
-        imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
-        imageFullPath.NormalizeFilePath();
-        if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
-            //如果文件不存在，返回空
-            imageFullPath.Clear();
+    else {
+        //相对路径：首先在窗口的资源目录中查找（命中率高）
+        const FilePath windowResFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), windowResPath);        
+        DString resPathString = resPath.ToString();
+        if ((resPathString.find(_T("public/")) == 0) || ((resPathString.find(_T("/public/")) == 0))) {
+            //优先从公共目录匹配
+            imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
+            CheckImagePath(imageFullPath, bLocalPath);
+        }
+        if (imageFullPath.IsEmpty()) {
+            //在窗口指定的目录中查找
+            imageFullPath = FilePathUtil::JoinFilePath(windowResFullPath, resPath);
+            CheckImagePath(imageFullPath, bLocalPath);
+        }
+        if (imageFullPath.IsEmpty()) {
+            //其次在公共目录中查找（命中率高）
+            imageFullPath = FilePathUtil::JoinFilePath(GlobalManager::GetResourcePath(), resPath);
+            CheckImagePath(imageFullPath, bLocalPath);
+        }
+        if (imageFullPath.IsEmpty() && !windowXmlPath.IsEmpty()) {
+            //最后在XML文件所在目录中查找
+            const FilePath windowXmlFullPath = FilePathUtil::JoinFilePath(windowResFullPath, windowXmlPath);
+            imageFullPath = FilePathUtil::JoinFilePath(windowXmlFullPath, resPath);
+            CheckImagePath(imageFullPath, bLocalPath);
+        }
+        if (!bWindows && imageFullPath.IsEmpty() && resPath.IsAbsolutePath()) {
+            //注意：非Windows的绝对路径与相对路径形式相同，都是以'/'开头，所以放在最后判断
+            imageFullPath = resPath;
+            imageFullPath.NormalizeFilePath();
+            if (imageFullPath.IsExistsFile()) {
+                bLocalPath = true;
+                bResPath = false;
+            }
+            else {
+                //如果文件不存在，返回空
+                imageFullPath.Clear();
+            }
         }
     }
-
-    if (imageFullPath.IsEmpty() && !windowXmlPath.IsEmpty()) {
-        //最后在XML文件所在目录中查找
-        const FilePath windowXmlFullPath = FilePathUtil::JoinFilePath(windowResFullPath, windowXmlPath);
-        imageFullPath = FilePathUtil::JoinFilePath(windowXmlFullPath, resPath);
-        imageFullPath.NormalizeFilePath();
-        if (!m_zipManager.IsZipResExist(imageFullPath) && !imageFullPath.IsExistsFile()) {
-            //如果文件不存在，返回空
-            imageFullPath.Clear();
-        }
-    }
-    ASSERT(!imageFullPath.IsEmpty());
+    ASSERT(!imageFullPath.IsEmpty() && !resPath.IsEmpty() && "Image File Not Found!");
     return imageFullPath;
 }
 

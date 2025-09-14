@@ -602,11 +602,12 @@ public:
      * @param [out] pPaintedRect 返回图片绘制的最终目标矩形区域
      * @return 成功返回 true，失败返回 false
      */
-    bool PaintImage(IRender* pRender, Image* pImage,
+    bool PaintImage(IRender* pRender,
+                    Image* pImage,
                     const DString& strModify = _T(""),
                     int32_t nFade = DUI_NOSET_VALUE,
                     IMatrix* pMatrix = nullptr,
-                    UiRect* pDestRect = nullptr,
+                    const UiRect* pDestRect = nullptr,
                     UiRect* pPaintedRect = nullptr) const;
 
     /** 获取绘制上下文对象

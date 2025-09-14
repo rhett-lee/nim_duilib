@@ -159,9 +159,9 @@ public:
     */
     void SetControl(Control* pControl);
 
-    /** 设置动画的显示区域（在绘制前调用）
+    /** 设置图片的显示区域（在绘制前调用）
     */
-    void SetImageAnimationRect(const UiRect& rcImageRect);
+    void SetDrawDestRect(const UiRect& rcImageRect);
 
     /** 播放动画
     */
@@ -215,6 +215,10 @@ private:
     /** 图片信息
     */
     std::shared_ptr<ImageInfo> m_imageInfo;
+
+    /** 该图片绘制的目标区域
+    */
+    UiRect m_rcDrawDestRect;
 };
 
 } // namespace ui
