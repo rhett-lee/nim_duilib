@@ -158,8 +158,8 @@ set(SKIA_SRCS
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Windows平台，单独依赖的几个Skia源码文件
     set(SKIA_WGL_SRCS
-        ${SKIA_SRC_ROOT_DIR}/tools/gpu/gl/win/SkWGL.h
-        ${SKIA_SRC_ROOT_DIR}/tools/gpu/gl/win/SkWGL_win.cpp
+        ${SKIA_SRC_ROOT_DIR}/tools/ganesh/gl/win/SkWGL.h
+        ${SKIA_SRC_ROOT_DIR}/tools/ganesh/gl/win/SkWGL_win.cpp
     )
 endif()
 

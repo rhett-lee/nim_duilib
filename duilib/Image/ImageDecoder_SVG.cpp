@@ -239,7 +239,7 @@ std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const DString& /*imageFi
     int32_t nSvgImageHeight = int32_t(svgSize.height() + 0.5f);
     if ((nSvgImageWidth < 1) || (nSvgImageHeight < 1)) {
         auto viewBox = svgDom->getRoot()->getViewBox();
-        if (viewBox.isValid()) {
+        if (viewBox.has_value()) {
             nSvgImageWidth = int32_t(viewBox->width() + 0.5f);
             nSvgImageHeight = int32_t(viewBox->height() + 0.5f);
         }
@@ -247,7 +247,7 @@ std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const DString& /*imageFi
     else {
         //如果viewBox不存在，则设置一个，否则图片缩放时存在异常（此处逻辑保持与NanoSvg保持一致）
         auto viewBox = svgDom->getRoot()->getViewBox();
-        if (!viewBox.isValid()) {
+        if (!viewBox.has_value()) {
             svgDom->getRoot()->setViewBox(SkRect::MakeIWH(nSvgImageWidth, nSvgImageHeight));
         }
     }

@@ -6,5 +6,5 @@
 
 #if defined (_MSC_VER)
     #pragma warning (push)
-    #pragma warning (disable: 4244 4201 4100 4267)
+    #pragma warning (disable: 4244 4201 4100 4267 5030)
 #endif

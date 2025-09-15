@@ -426,9 +426,6 @@
     <ClCompile Include="..\..\skia\tools\window\GLWindowContext.cpp">
       <Filter>RenderSkia\Skia</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\skia\tools\gpu\gl\win\SkWGL_win.cpp">
-      <Filter>RenderSkia\Skia</Filter>
-    </ClCompile>
     <ClCompile Include="RenderSkia\Render_Skia_SDL.cpp">
       <Filter>RenderSkia\SDL</Filter>
     </ClCompile>
@@ -797,6 +794,9 @@
     </ClCompile>
     <ClCompile Include="Image\APngDecoder.cpp">
       <Filter>Image</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\skia\tools\ganesh\gl\win\SkWGL_win.cpp">
+      <Filter>RenderSkia\Skia</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1289,9 +1289,6 @@
     <ClInclude Include="..\..\skia\tools\window\RasterWindowContext.h">
       <Filter>RenderSkia\Skia</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\skia\tools\gpu\gl\win\SkWGL.h">
-      <Filter>RenderSkia\Skia</Filter>
-    </ClInclude>
     <ClInclude Include="RenderSkia\Render_Skia_SDL.h">
       <Filter>RenderSkia\SDL</Filter>
     </ClInclude>
@@ -1657,6 +1654,9 @@
     </ClInclude>
     <ClInclude Include="Image\APngDecoder.h">
       <Filter>Image</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\skia\tools\ganesh\gl\win\SkWGL.h">
+      <Filter>RenderSkia\Skia</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

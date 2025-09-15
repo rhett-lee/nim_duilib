@@ -800,7 +800,7 @@ public:
                     SkScalar x, SkScalar y,
                     const SkFont& font, const SkPaint& /*paint*/,
                     bool /*hasMoreText*/, bool /*isLastLine*/) override {
-        const int count = font.countText(text, length, textEncoding);
+        const int count = (int)font.countText(text, length, textEncoding);
         SkTextBlobBuilder::RunBuffer runBuffer = fBuilder.allocRun(font, count, x, y);
 
         SkSpan<SkGlyphID> glyphsSpan(runBuffer.glyphs, count);
@@ -826,7 +826,7 @@ bool SkTextBox::TextToGlyphs(const void* text, size_t byteLength, SkTextEncoding
     glyphs.clear();
     glyphs.resize(byteLength, { 0, });
     SkSpan<SkGlyphID> glyphsSpan(glyphs.data(), glyphs.size());
-    int glyphsCount = font.textToGlyphs(text, byteLength, textEncoding, glyphsSpan);
+    int glyphsCount = (int)font.textToGlyphs(text, byteLength, textEncoding, glyphsSpan);
     if (glyphsCount <= 0) {
         return false;
     }
