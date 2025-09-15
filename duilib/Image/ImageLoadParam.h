@@ -76,10 +76,6 @@ public:
     */
     const ImageLoadPath& GetImageLoadPath() const;
 
-    /** 是否含有图片路径
-    */
-    bool HasImageLoadPath() const;
-
 public:
     /** 设置图片大小的DPI缩放选项
     */
@@ -123,20 +119,26 @@ public:
     */
     DString GetLoadKey(uint32_t nLoadDpiScale) const;
 
-    /** 获取图片加载后应当缩放的宽度和高度
-       （如果只设置了宽度或者高度，那么会按锁定纵横比的方式对整个图片进行缩放）
-    * @param [in,out] nImageWidth 传入原始图片的宽度，返回计算后的宽度（返回的值，已根据配置进行DPI缩放）
-    * @param [in,out] nImageHeight 传入原始图片的高度，返回计算后的高度（返回的值，已根据配置进行DPI缩放）
-    * @param [in] bNeedDpiScale 是否做DPI缩放，如果设置了DPI，图片的宽度和高度会根据配置进行DPI缩放
-    * @return 返回true表示图片大小有缩放，返回false表示图片大小无缩放
+    /** 获取图片加载的固定设置大小
+    * @param [out] nImageWidth 图片设置的宽度，如果返回0则无数据，比如：width='300'
+    * @param [out] nImageHeight 图片设置的高度，如果返回0则无数据，比如：height='300'
     */
-    bool CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nImageHeight, bool bNeedDpiScale) const;
+    bool GetImageFixedSize(uint32_t& nImageWidth, uint32_t& nImageHeight, bool bNeedDpiScale) const;
+
+    /** 获取图片加载的固定百分比设置大小
+    * @param [out] fImageWidthPercent 图片设置的宽度，如果返回1.0f则无数据，比如：width='300%'
+    * @param [out] fImageHeightPercent 图片设置的高度，如果返回1.0f则无数据，比如：height='300%'
+    */
+    bool GetImageFixedPercent(float& fImageWidthPercent, float& fImageHeightPercent, bool bNeedDpiScale) const;
 
 private:
-    /** 获取设置的缩放后的大小(无DPI缩放)
-    * @return 返回缩放后的大小，如果失败则返回0
+    /** 获取图片加载的固定设置大小
     */
-    uint32_t GetScacledSize(const DString& srcSize, uint32_t nImageSize, bool bImageSizeDpiScaled) const;
+    bool GetScaledFixedSize(const DString& srcSize, uint32_t& nScaledSize, bool bNeedDpiScale) const;
+
+    /** 获取图片加载的百分比设置大小
+    */
+    bool GetScaledFixedPercent(const DString& srcSize, float& fScaledPercent, bool bNeedDpiScale) const;
 
 private:
     //(属性名称："file")本地绝对路径或者压缩包内的相对路径，不包含属性

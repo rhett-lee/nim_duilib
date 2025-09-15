@@ -29,12 +29,6 @@ public:
     void Clear();
 
 public:
-    /** 判断一个文件名是否为虚拟文件名
-    * @param [in] imageFileString 实体文件名(比如："File.jpg"，可以带路径), 或者虚拟文件名（比如： "icon:1"）
-    * @return 返回true表示imageFileString为虚拟文件名，返回false表示imageFileString为实体文件名
-    */
-    bool IsVirtualImageFile(const DString& imageFileString) const;
-
     /** 加载解码图片数据，返回解码后的图像数据
     * @param [in] imageFileString 实体文件名(比如："File.jpg"，可以带路径), 或者虚拟文件名（比如： "icon:1"）
     * @param [in] data 数据的起始地址（当imageFileString为虚拟文件名时，可为nullptr）

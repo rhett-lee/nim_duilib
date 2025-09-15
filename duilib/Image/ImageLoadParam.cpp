@@ -40,11 +40,6 @@ const ImageLoadPath& ImageLoadParam::GetImageLoadPath() const
     return m_srcImageLoadPath;
 }
 
-bool ImageLoadParam::HasImageLoadPath() const
-{
-    return !m_srcImageLoadPath.m_imageFullPath.empty();
-}
-
 DString ImageLoadParam::GetLoadKey(uint32_t nLoadDpiScale) const
 {
     //格式为(中括号内容为可选)：<图片路径>[@nLoadDpiScale][@srcWidth:srcHeight]
@@ -107,88 +102,80 @@ float ImageLoadParam::GetPagMaxFrameRate() const
     return m_fPagMaxFrameRate;
 }
 
-bool ImageLoadParam::CalcImageLoadSize(uint32_t& nImageWidth, uint32_t& nImageHeight, bool bNeedDpiScale) const
+bool ImageLoadParam::GetImageFixedSize(uint32_t& nImageWidth, uint32_t& nImageHeight, bool bNeedDpiScale) const
 {
-    const uint32_t nOldImageWidth = nImageWidth;
-    const uint32_t nOldImageHeight = nImageHeight;
-    ASSERT((nImageWidth != 0) && (nImageHeight != 0));
-    if ((nImageWidth == 0) || (nImageHeight == 0)) {
-        return false;
+    if (!GetScaledFixedSize(m_srcWidth.c_str(), nImageWidth, bNeedDpiScale)) {
+        nImageWidth = 0;
     }
-    uint32_t nScaledWidth = GetScacledSize(m_srcWidth.c_str(), nImageWidth, !bNeedDpiScale);
-    uint32_t nScaledHeight = GetScacledSize(m_srcHeight.c_str(), nImageHeight, !bNeedDpiScale);
-    bool isScaled = false;
-    if ((nScaledWidth > 0) && (nScaledHeight > 0)) {
-        //宽和高都有具体设置的值
-        nImageWidth = nScaledWidth;
-        nImageHeight = nScaledHeight;
-        isScaled = true;
+    if (!GetScaledFixedSize(m_srcHeight.c_str(), nImageHeight, bNeedDpiScale)) {
+        nImageHeight = 0;
     }
-    else if ((nScaledWidth > 0) && (nScaledHeight == 0)) {
-        //设置了宽度，高度按图片原始比例自适应
-        nImageHeight = static_cast<uint32_t>(nImageHeight * nScaledWidth * 1.0 / nImageWidth);
-        nImageWidth = nScaledWidth;
-        isScaled = true;
-    }
-    else if ((nScaledWidth == 0) && (nScaledHeight > 0)) {
-        //设置了高度宽度按图片原始比例自适应
-        nImageWidth = static_cast<uint32_t>(nImageWidth * nScaledHeight * 1.0 / nImageHeight + 0.5);
-        nImageHeight = nScaledHeight;
-        isScaled = true;
-    }
-    if (!isScaled) {
-        nImageWidth = nOldImageWidth;
-        nImageHeight = nOldImageHeight;
-    }
-    //按照配置进行DPI缩放
-    if (bNeedDpiScale) {
-        uint32_t nLoadDpiScale = GetLoadDpiScale();
-        if ((nLoadDpiScale > 0) && (nLoadDpiScale != 100)) {
-            ASSERT(m_nDpiScaleOption != DpiScaleOption::kDefault);
-            if (m_nDpiScaleOption != DpiScaleOption::kOff) {
-                nImageWidth = static_cast<uint32_t>(nImageWidth * nLoadDpiScale * 1.0 / 100.0 + 0.5);
-                nImageHeight = static_cast<uint32_t>(nImageHeight * nLoadDpiScale * 1.0 / 100.0 + 0.5);
-            }
-        }
-    }
-    if ((nOldImageWidth == nImageWidth) && (nOldImageHeight == nImageHeight)) {
-        isScaled = false;
-    }
-    else {
-        isScaled = true;
-    }
-    return isScaled;
+    return (nImageHeight > 0) || (nImageWidth > 0);
 }
 
-uint32_t ImageLoadParam::GetScacledSize(const DString& srcSize, uint32_t nImageSize, bool bImageSizeDpiScaled) const
+bool ImageLoadParam::GetScaledFixedSize(const DString& srcSize, uint32_t& nScaledSize, bool bNeedDpiScale) const
 {
-    if (srcSize.empty()) {
-        return 0;
-    }
-    uint32_t nScaledSize = 0;
-    if (srcSize.back() == _T('%')) {
-        //按照百分比缩放
-        double ratio = StringUtil::StringToDouble(srcSize);
-        nScaledSize = static_cast<uint32_t>(nImageSize * ratio / 100.0 + 0.5);
-    }
-    else {
-        //设置固定值
-        nScaledSize = StringUtil::StringToInt32(srcSize.c_str());
-        if (bImageSizeDpiScaled) {
-            uint32_t nLoadDpiScale = GetLoadDpiScale();
-            if ((nLoadDpiScale > 0) && (nLoadDpiScale != 100)) {
-                ASSERT(m_nDpiScaleOption != DpiScaleOption::kDefault);
-                if (m_nDpiScaleOption != DpiScaleOption::kOff) {
-                    nScaledSize = static_cast<uint32_t>(nScaledSize * nLoadDpiScale * 1.0 / 100.0 + 0.5);
+    nScaledSize = 0;
+    if (!srcSize.empty()) {
+        if (srcSize.back() == _T('%')) {
+            //按照百分比缩放
+            nScaledSize = 0;
+        }
+        else {
+            //设置固定值
+            nScaledSize = StringUtil::StringToInt32(srcSize.c_str());
+            if (bNeedDpiScale && (nScaledSize > 0)) {
+                uint32_t nLoadDpiScale = GetLoadDpiScale();
+                if ((nLoadDpiScale > 0) && (nLoadDpiScale != 100)) {
+                    ASSERT(m_nDpiScaleOption != DpiScaleOption::kDefault);
+                    if (m_nDpiScaleOption != DpiScaleOption::kOff) {
+                        nScaledSize = static_cast<uint32_t>(nScaledSize * nLoadDpiScale * 1.0 / 100.0 + 0.5);
+                    }
                 }
             }
         }
     }
+    return nScaledSize > 0;
+}
 
-    if (nScaledSize != nImageSize) {
-        return nScaledSize;
+bool ImageLoadParam::GetImageFixedPercent(float& fImageWidthPercent, float& fImageHeightPercent, bool bNeedDpiScale) const
+{
+    bool bRetWidth = GetScaledFixedPercent(m_srcWidth.c_str(), fImageWidthPercent, bNeedDpiScale);
+    if (!bRetWidth) {
+        fImageWidthPercent = 1.0f;
     }
-    return 0;
+    bool bRetHeight = GetScaledFixedPercent(m_srcHeight.c_str(), fImageHeightPercent, bNeedDpiScale);
+    if (!bRetHeight) {
+        fImageHeightPercent = 1.0f;
+    }
+    return bRetWidth || bRetHeight;
+}
+
+bool ImageLoadParam::GetScaledFixedPercent(const DString& srcSize, float& fScaledPercent, bool bNeedDpiScale) const
+{
+    bool bRet = false;
+    fScaledPercent = 1.0f;
+    if (!srcSize.empty()) {
+        if (srcSize.back() == _T('%')) {
+            //按照百分比缩放(实际值需要除以100)
+            double fRatio = StringUtil::StringToDouble(srcSize);            
+            if (fRatio > 1) {//最小值为1%
+                bRet = true;                
+                fRatio /= 100;
+                fScaledPercent = static_cast<float>(fRatio);
+            }
+        }
+    }
+    if (bRet && bNeedDpiScale) {
+        uint32_t nLoadDpiScale = GetLoadDpiScale();
+        if ((nLoadDpiScale > 0) && (nLoadDpiScale != 100)) {
+            ASSERT(m_nDpiScaleOption != DpiScaleOption::kDefault);
+            if (m_nDpiScaleOption != DpiScaleOption::kOff) {
+                fScaledPercent = fScaledPercent * nLoadDpiScale / 100.0f;
+            }
+        }
+    }
+    return bRet && !ImageUtil::IsSameImageScale(fScaledPercent, 1.0f);
 }
 
 }

@@ -14,6 +14,7 @@ ImageInfo::ImageInfo():
     m_nHeight(0),
     m_asyncLoadCallback(nullptr),
     m_imageType(ImageType::kImageBitmap),
+    m_bBitmapSizeDpiScaled(false),
     m_bHasCustomSizeScale(false),
     m_fCustomSizeScaleX(0),
     m_fCustomSizeScaleY(0)
@@ -226,42 +227,47 @@ int32_t ImageInfo::GetFrameDelayMs(uint32_t nFrameIndex)
 }
 
 bool ImageInfo::SetImageData(const ImageLoadParam& loadParam,
+                             int32_t nImageInfoWidth,
+                             int32_t nImageInfoHeight,
                              const std::shared_ptr<IImage>& pImageData,
+                             bool bBitmapSizeDpiScaled,
                              StdClosure asyncLoadCallback)
 {
     ASSERT(pImageData != nullptr);
     if (pImageData == nullptr) {
         return false;
     }
-    const int32_t nWidth = pImageData->GetWidth();
-    const int32_t nHeight = pImageData->GetHeight();
-    ASSERT(nWidth > 0);
-    ASSERT(nHeight > 0);
-    if ((nWidth <= 0) || (nHeight <= 0)) {
+    ASSERT((nImageInfoWidth > 0) && (nImageInfoHeight > 0));
+    if ((nImageInfoWidth <= 0) || (nImageInfoHeight <= 0)) {
         return false;
     }
 
+    const int32_t nImageWidth = pImageData->GetWidth();
+    const int32_t nImageHeight = pImageData->GetWidth();
+    ASSERT((nImageWidth > 0) && (nImageHeight > 0));
+    if ((nImageWidth <= 0) || (nImageHeight <= 0)) {
+        return false;
+    }
+    
     //设置宽度和高度
-    uint32_t nImageWidth = (uint32_t)nWidth;
-    uint32_t nImageHeight = (uint32_t)nHeight;
-    if (loadParam.CalcImageLoadSize(nImageWidth, nImageHeight, false)) {
-        m_nWidth = (int32_t)nImageWidth;
-        m_nHeight = (int32_t)nImageHeight;
-        ASSERT(m_nWidth > 0);
-        ASSERT(m_nHeight > 0);
-        if ((m_nWidth <= 0) || (m_nHeight <= 0)) {
-            return false;
-        }
+    m_nWidth = nImageInfoWidth;
+    m_nHeight = nImageInfoHeight;
+    m_bBitmapSizeDpiScaled = bBitmapSizeDpiScaled;
+
+    m_bHasCustomSizeScale = false;
+    if (nImageInfoWidth != nImageWidth) {
+        m_fCustomSizeScaleX = static_cast<float>(nImageInfoWidth) / nImageWidth;
         m_bHasCustomSizeScale = true;
-        m_fCustomSizeScaleX = static_cast<float>(m_nWidth) / nWidth;
-        m_fCustomSizeScaleY = static_cast<float>(m_nHeight) / nHeight;
     }
     else {
-        m_nWidth = nWidth;
-        m_nHeight = nHeight;
-        m_bHasCustomSizeScale = false;
-        m_fCustomSizeScaleX = 0;
-        m_fCustomSizeScaleY = 0;
+        m_fCustomSizeScaleX = 1.0f;
+    }
+    if (nImageInfoHeight != nImageHeight) {
+        m_fCustomSizeScaleY = static_cast<float>(nImageInfoHeight) / nImageHeight;
+        m_bHasCustomSizeScale = true;
+    }
+    else {
+        m_fCustomSizeScaleY = 1.0f;
     }
 
     m_loadParam = loadParam;
@@ -348,7 +354,7 @@ DString ImageInfo::GetLoadKey() const
 
 bool ImageInfo::IsBitmapSizeDpiScaled() const
 {
-    return ImageUtil::NeedResizeImage(m_fImageSizeScale);
+    return m_bBitmapSizeDpiScaled;
 }
 
 uint32_t ImageInfo::GetLoadDpiScale() const

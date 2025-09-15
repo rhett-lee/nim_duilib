@@ -46,22 +46,6 @@ void ImageDecoderFactory::Clear()
     m_imageDecoders.clear();
 }
 
-bool ImageDecoderFactory::IsVirtualImageFile(const DString& imageFileString) const
-{
-    for (std::shared_ptr<IImageDecoder> pImageDecoder : m_imageDecoders) {
-        if (pImageDecoder != nullptr) {
-            bool bVirtualFile = false;
-            if (pImageDecoder->CanDecode(imageFileString, bVirtualFile)) {
-                if (bVirtualFile) {
-                    //该文件为虚拟文件名
-                    return true;
-                }
-            }
-        }
-    }
-    return false;
-}
-
 std::unique_ptr<IImage> ImageDecoderFactory::LoadImageData(const DString& imageFileString,
                                                            const uint8_t* data, size_t dataLen,
                                                            float fImageSizeScale,
@@ -119,16 +103,7 @@ std::unique_ptr<IImage> ImageDecoderFactory::LoadImageData(const DString& imageF
             }
         }
     }
-
-    ///TEST
-    if (pImageData == nullptr) {
-        int32_t nHeight = 32;
-        int32_t nWidth = 32;
-        std::vector<uint8_t> data2;
-        data2.resize(nHeight * nWidth * 4);
-        pImageData = Image_Bitmap::MakeImage(nWidth, nHeight, data2.data(), fImageSizeScale);
-    }
-    ///TEST
+    ASSERT(pImageData != nullptr);
     return pImageData;
 }
 

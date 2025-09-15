@@ -200,6 +200,40 @@ public:
 class IImageDecoder
 {
 public:
+    /** 图片解码的输入参数
+    */
+    struct Param
+    {
+    public:
+        //文件路径
+        DString m_imagePath;
+
+        //文件数据（如果为空表示未加载文件数据，需要根据文件路径去读取文件数据）
+        std::shared_ptr<std::vector<uint8_t>> m_pFileData;
+
+        //请求加载的缩放比例
+        float m_fImageSizeScale = 1.0f;
+
+        //是否为程序资源目录以外的外部图片(外部文件的尺寸可能很大，加载策略会有所不同；而程序资源目录内的图片尺寸一般不会很大)
+        bool m_bExternalImagePath = false;
+
+    public:
+        //如果是多帧图片，是否加载所有帧（true表示加载所有帧；false表示只加载第1帧, 按单帧图片加载）
+        bool m_bLoadAllFrames = true;
+
+        //ICO格式，是否按照动画来加载多帧显示（默认情况下，ICO格式是按单帧显示的）
+        bool m_bIconAsAnimation = false;
+
+        //ICO格式，加载图标的大小值
+        uint32_t m_nIconSize = 0;
+
+        //ICO格式，每帧播放时间间隔，毫秒（仅当m_bIconAsAnimation && m_bLoadAllFrames为true时有效）
+        uint32_t m_nIconFrameDelayMs = 1000;
+
+        //PAG格式，解码动画的帧率
+        float m_fPagMaxFrameRate = 30.0f;
+    };
+
     /** 图片解码的额外参数
     */
     struct ExtraParam

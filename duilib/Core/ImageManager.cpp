@@ -33,30 +33,49 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
     }
 
     //重新加载资源
+    //计算设置的比例, 影响加载的缩放百分比（通过width='300'或者width='300%'这种形式设置的图片属性）
+    uint32_t nImageFixedWidth = 0;
+    uint32_t nImageFixedHeight = 0;
+    const bool bHasFixedSize = loadParam.GetImageFixedSize(nImageFixedWidth, nImageFixedHeight, true);
+
+    float fImageFixedWidthPercent = 1.0f;
+    float fImageFixedHeightPercent = 1.0f;
+    const bool bHasFixedPercent = loadParam.GetImageFixedPercent(fImageFixedWidthPercent, fImageFixedHeightPercent, false);
+
     const ImageLoadPath& imageLoadPath = loadParam.GetImageLoadPath();
     DString imageFullPath = imageLoadPath.m_imageFullPath;              //图片的路径（本地路径或者压缩包内相对路径）
     uint32_t nImageDpiScale = 100;                                      //原始图片，未经DPI缩放时，DPI缩放比例是100
     const bool isUseZip = GlobalManager::Instance().Zip().IsUseZip();   //是否使用Zip压缩包
-    const bool bEnableImageDpiScale = IsDpiScaleAllImages();            //仅在DPI缩放图片功能开启的情况下，查找对应DPI的图片是否存在
-    if (bEnableImageDpiScale &&
+    const bool bEnableImageDpiScale = IsDpiScaleAllImages() &&          //仅在DPI缩放图片功能开启的情况下，查找对应DPI的图片是否存在
+                                      (loadParam.GetDpiScaleOption() != ImageLoadParam::DpiScaleOption::kOff); //图片属性：dpi_scale="false"，只使用原图，不需要缩放
+    if (bEnableImageDpiScale && 
         ((imageLoadPath.m_pathType == ImageLoadPathType::kLocalResPath) ||
          (imageLoadPath.m_pathType == ImageLoadPathType::kZipResPath))) {
-        //只有在资源目录下的文件，才执行查找适配DPI的功能
+        //只有在资源目录下的文件，才执行查找适配DPI图片的功能
         DString dpiImageFullPath;
         uint32_t dpiImageDpiScale = nImageDpiScale;
         if (GetDpiScaleImageFullPath(loadParam.GetLoadDpiScale(), isUseZip, imageFullPath, dpiImageFullPath, dpiImageDpiScale)) {
-            //标记DPI自适应图片属性，如果路径不同，说明已经选择了对应DPI下的文件
-            imageFullPath = dpiImageFullPath;
-            nImageDpiScale = dpiImageDpiScale;
-            ASSERT(!imageFullPath.empty());
-            ASSERT(nImageDpiScale != 0);
+            //标记DPI自适应图片属性，如果路径不同，说明已经选择了对应DPI下的文件            
+            ASSERT((dpiImageDpiScale != 0) && !dpiImageFullPath.empty());
+            if ((dpiImageDpiScale != 0) && !dpiImageFullPath.empty()) {
+                imageFullPath = dpiImageFullPath;
+                nImageDpiScale = dpiImageDpiScale;
+                ASSERT(!imageFullPath.empty());
+            }
         }
     }
-    if (nImageDpiScale == 0) {
-        nImageDpiScale = 100;//原图无缩放
+
+    float fImageSizeScale = 1.0f;
+    if (bEnableImageDpiScale) {
+        //加载的比例（按相对原图来计算，确保各个DPI适配图的显示效果相同）
+        //1.如果图片宽高用于评估显示空间的大小：必须按照DPI缩放比来缩放，这样才能在不同DPI下界面显示效果相同
+        //2.如果不需要用图片的宽度和高度评估显示空间大小，那么这个加载比例只影响图片显示效果，不影响布局
+        fImageSizeScale = static_cast<float>(loadParam.GetLoadDpiScale()) / static_cast<float>(nImageDpiScale);
+        if (bHasFixedSize || bHasFixedPercent) {
+            //如果设置了图片的width或者height属性，只使用原图，不需要缩放（因为加载后要执行缩放操作）
+            fImageSizeScale = 1.0f;
+        }
     }
-    //加载的比例（按相对原图来计算，确保各个DPI适配图的显示效果相同）
-    float fImageSizeScale = static_cast<float>(loadParam.GetLoadDpiScale()) / static_cast<float>(nImageDpiScale);
 
     std::shared_ptr<IImage> spImageData;
     //查询缓存，如果缓存存在，则可共享图片资源，无需重复加载
@@ -65,10 +84,10 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
     if (iterImageData != m_imageDataMap.end()) {
         spImageData = iterImageData->second.lock();
         if (spImageData != nullptr) {
-            ASSERT(ImageUtil::IsSameImageScale(spImageData->GetImageSizeScale(), fImageSizeScale));
             if (!ImageUtil::IsSameImageScale(spImageData->GetImageSizeScale(), fImageSizeScale)) {
-                //未知错误
-                return nullptr;
+                //在动态切换DPI后，比例会发生变化，需要重新加载，不可共享原来加载的图片
+                m_imageDataMap.erase(iterImageData);
+                spImageData.reset();
             }
         }
     }
@@ -77,8 +96,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         //从内存数据加载图片
         ImageDecoderFactory& ImageDecoders = GlobalManager::Instance().ImageDecoders();
         std::vector<uint8_t> fileData;
-        //TODO：可去掉此函数
-        if (!ImageDecoders.IsVirtualImageFile(imageFullPath)) {
+        if (imageLoadPath.m_pathType != ImageLoadPathType::kVirtualPath) {
             //实体图片文件，必须有图片数据用于解码图片
             FilePath imageFilePath(imageFullPath);
             if (isUseZip && !imageFilePath.IsAbsolutePath()) {
@@ -93,15 +111,25 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
                 return nullptr;
             }
         }
+        IImageDecoder::Param decodeParam;
+        decodeParam.m_imagePath = imageFullPath;//前面的流程，当是本地文件时，已经确保文件存在
+        if (!fileData.empty()) {
+            decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>();
+            decodeParam.m_pFileData->swap(fileData);
+        }
+        decodeParam.m_fImageSizeScale = fImageSizeScale;
+        decodeParam.m_bExternalImagePath = (imageLoadPath.m_pathType == ImageLoadPathType::kLocalPath) ? true : false;
 
-        //从内存数据加载图片     
+        decodeParam.m_bIconAsAnimation = loadParam.IsIconAsAnimation();   //ICO格式相关参数
+        decodeParam.m_nIconSize = loadParam.GetIconSize();                //ICO格式相关参数
+        decodeParam.m_nIconFrameDelayMs = loadParam.GetIconFrameDelayMs();//ICO格式相关参数
+        decodeParam.m_fPagMaxFrameRate = loadParam.GetPagMaxFrameRate();  //PAG格式相关参数
+        decodeParam.m_bLoadAllFrames = true; //所有多帧图片相关参数
+
+        //加载图片     
         IImageDecoder::ExtraParam extraParam;
-        extraParam.m_bIconAsAnimation = loadParam.IsIconAsAnimation();   //ICO格式相关参数
-        extraParam.m_nIconSize = loadParam.GetIconSize();                //ICO格式相关参数
-        extraParam.m_nIconFrameDelayMs = loadParam.GetIconFrameDelayMs();//ICO格式相关参数
-        extraParam.m_fPagMaxFrameRate = loadParam.GetPagMaxFrameRate();  //PAG格式相关参数
-        extraParam.m_bLoadAllFrames = true;//所有多帧图片相关参数
-        std::unique_ptr<IImage> pImageData = ImageDecoders.LoadImageData(imageFullPath, fileData, fImageSizeScale, &extraParam);
+        std::vector<uint8_t> emptyData; //TODO: 
+        std::unique_ptr<IImage> pImageData = ImageDecoders.LoadImageData(imageFullPath, decodeParam.m_pFileData != nullptr ? *decodeParam.m_pFileData : emptyData, fImageSizeScale, &extraParam);
         if (pImageData == nullptr) {
             //加载失败
             return nullptr;
@@ -120,9 +148,78 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         //加载失败
         return nullptr;
     }
+    //计算ImageInfo的宽度和高度（注意：与图片的实际宽度和高度值可能不相同）
+    //ImageInfo的宽度和高度: 影响布局
+    //图片的宽度和高度：用于绘制
+    int32_t nImageInfoWidth = spImageData->GetWidth();
+    int32_t nImageInfoHeight = spImageData->GetHeight();
+    const float fRealImageSizeScale = spImageData->GetImageSizeScale(); //实际加载的缩放比例
+    if ((nImageDpiScale != 100) && ImageUtil::IsValidImageScale(fRealImageSizeScale)) {
+        const float fSizeScale = static_cast<float>(loadParam.GetLoadDpiScale()) / 100.0f;
+        //用的是图片自适应图片（非原图），需要用原图大小来计算ImageInfo大小
+        int32_t nCalcSize = static_cast<int32_t>(nImageInfoWidth * 1.0f / fRealImageSizeScale + 0.5f);
+        nCalcSize = static_cast<int32_t>(nCalcSize * 100.0f / nImageDpiScale + 0.5f);//原图大小
+        nCalcSize = ImageUtil::GetScaledImageSize((uint32_t)nCalcSize, fSizeScale);
+        if (nCalcSize > 0) {
+            nImageInfoWidth = nCalcSize;
+        }
+        nCalcSize = static_cast<int32_t>(nImageInfoHeight * 1.0f / fRealImageSizeScale + 0.5f);
+        nCalcSize = static_cast<int32_t>(nCalcSize * 100.0f / nImageDpiScale + 0.5f);//原图大小
+        nCalcSize = ImageUtil::GetScaledImageSize((uint32_t)nCalcSize, fSizeScale);
+        if (nCalcSize > 0) {
+            nImageInfoHeight = nCalcSize;
+        }
+    }
+
+    if (bHasFixedSize || bHasFixedPercent) {
+        //有设置图片属性：通过width='300'或者width='300%'这种形式设置的图片属性
+        bool bFixedWidthSet = (nImageFixedWidth > 0) || ImageUtil::NeedResizeImage(fImageFixedWidthPercent);
+        bool bFixedHeightSet = (nImageFixedHeight > 0) || ImageUtil::NeedResizeImage(fImageFixedHeightPercent);
+        if (bFixedWidthSet && bFixedHeightSet) {
+            //宽度和高度均设置
+            if (nImageFixedWidth > 0) {
+                nImageInfoWidth = nImageFixedWidth;
+            }
+            else if (ImageUtil::NeedResizeImage(fImageFixedWidthPercent)) {
+                nImageInfoWidth = ImageUtil::GetScaledImageSize((uint32_t)nImageInfoWidth, fImageFixedWidthPercent);
+            }
+
+            if (nImageFixedHeight > 0) {
+                nImageInfoHeight = nImageFixedHeight;
+            }
+            else if (ImageUtil::NeedResizeImage(fImageFixedHeightPercent)) {
+                nImageInfoHeight = ImageUtil::GetScaledImageSize((uint32_t)nImageInfoHeight, fImageFixedHeightPercent);
+            }
+        }
+        else if (bFixedWidthSet) {
+            //只设置了宽度，高度同比例缩放
+            int32_t nOldImageInfoWidth = nImageInfoWidth;
+            if (nImageFixedWidth > 0) {
+                nImageInfoWidth = nImageFixedWidth;
+            }
+            else if (ImageUtil::NeedResizeImage(fImageFixedWidthPercent)) {
+                nImageInfoWidth = ImageUtil::GetScaledImageSize((uint32_t)nImageInfoWidth, fImageFixedWidthPercent);
+            }
+            float fNewScale = static_cast<float>(nImageInfoWidth) / nOldImageInfoWidth;
+            nImageInfoHeight = ImageUtil::GetScaledImageSize((uint32_t)nImageInfoHeight, fNewScale);
+        }
+        else if (bFixedHeightSet) {
+            //只设置了高度，宽度同比例缩放
+            int32_t nOldImageInfoHeight = nImageInfoHeight;
+            if (nImageFixedHeight > 0) {
+                nImageInfoHeight = nImageFixedHeight;
+            }
+            else if (ImageUtil::NeedResizeImage(fImageFixedHeightPercent)) {
+                nImageInfoHeight = ImageUtil::GetScaledImageSize((uint32_t)nImageInfoHeight, fImageFixedHeightPercent);
+            }
+            float fNewScale = static_cast<float>(nImageInfoHeight) / nOldImageInfoHeight;
+            nImageInfoWidth = ImageUtil::GetScaledImageSize((uint32_t)nImageInfoWidth, fNewScale);
+        }
+    }
+    bool bBitmapSizeDpiScaled = bEnableImageDpiScale;
     std::shared_ptr<ImageInfo> imageInfo(new ImageInfo,&ImageManager::OnImageInfoDestroy);
     imageInfo->SetImageKey(imageKey);
-    if (imageInfo->SetImageData(loadParam, spImageData, asyncLoadCallback)) {
+    if (imageInfo->SetImageData(loadParam, nImageInfoWidth, nImageInfoHeight, spImageData, bBitmapSizeDpiScaled, asyncLoadCallback)) {
         ASSERT(loadKey == imageInfo->GetLoadKey());
         m_imageInfoMap[loadKey] = imageInfo;
     }

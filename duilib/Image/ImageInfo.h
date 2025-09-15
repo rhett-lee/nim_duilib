@@ -31,22 +31,28 @@ public:
     */
     uint32_t GetLoadDpiScale() const;
 
-    /** 获取图片宽度
+    /** 获取图片宽度（注意：这个宽度与图片位图的宽度不一定相同，这个宽度用于计算布局的宽度）
     */
     int32_t GetWidth() const;
 
-    /** 获取图片高度
+    /** 获取图片高度（注意：这个宽度与图片位图的宽度不一定相同，这个宽度用于计算布局的宽度）
     */
     int32_t GetHeight() const;
 
 public:
     /** 设置原图数据接口
     * @param [in] loadParam 加载参数
+    * @param [in] nImageInfoWidth 图片信息的宽度
+    * @param [in] nImageInfoHeight 图片信息的高度
     * @param [in] pImageData 原图数据接口
+    * @param [in] bBitmapSizeDpiScaled 加载的图片宽高是否做过DPI自适应
     * @param [in] asyncLoadCallback 加载完成后的通知函数（仅当异步加载完成时通知）
     */
     bool SetImageData(const ImageLoadParam& loadParam,
+                      int32_t nImageInfoWidth,
+                      int32_t nImageInfoHeight,
                       const std::shared_ptr<IImage>& pImageData,
+                      bool bBitmapSizeDpiScaled,
                       StdClosure asyncLoadCallback);
 
 public:
@@ -125,6 +131,10 @@ private:
     /** 图片的加载参数
     */
     ImageLoadParam m_loadParam;
+
+    /** 是否做过DPI自适应
+    */
+    bool m_bBitmapSizeDpiScaled;
 
     /** 是否有用户自定义的缩放比例
     */
