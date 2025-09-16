@@ -879,7 +879,6 @@ std::string Control::GetUTF8BkImage() const
 
 void Control::SetBkImage(const DString& strImage)
 {
-    CheckStopImageAnimation();
     if (!strImage.empty()) {
         if (m_pBkImage == nullptr) {
             m_pBkImage = std::make_unique<Image>();
@@ -1592,7 +1591,7 @@ void Control::OnSetVisible(bool bChanged)
     }
 
     if (!IsVisible()) {
-        CheckStopImageAnimation();
+        PauseImageAnimation();
     }
 
     SendEvent(kEventVisibleChange);
@@ -1610,7 +1609,7 @@ void Control::OnSetEnabled(bool bChanged)
     }
 
     if (!IsEnabled()) {
-        CheckStopImageAnimation();
+        PauseImageAnimation();
     }
     if (bChanged) {
         Invalidate();
@@ -3494,14 +3493,14 @@ void Control::SetRenderOffsetY(int64_t renderOffsetY)
     }
 }
 
-void Control::CheckStopImageAnimation()
+void Control::PauseImageAnimation()
 {
     //停止该控件内的所有动画
     if (m_pBkImage != nullptr) {
-        m_pBkImage->CheckStopImageAnimation();
+        m_pBkImage->PauseImageAnimation();
     }
     if (m_pImageMap != nullptr) {
-        m_pImageMap->StopImageAnimation();
+        m_pImageMap->PauseImageAnimation();
     }
 }
 

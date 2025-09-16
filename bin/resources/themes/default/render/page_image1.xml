@@ -32,9 +32,9 @@
     </HBox>
     <HBox>
         <HBox width="auto" height="300" margin="20, 10, 0, 0">
-            <Control width="256" height="256" bkimage="file='fan.gif' width='256' height='256' playcount='0' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender">
-                <Event type="mouseenter" receiver="" applyattribute="start_gif_play={-1}" />
-                <Event type="mouseleave" receiver="" applyattribute="stop_gif_play={1}" />
+            <Control width="256" height="256" bkimage="file='fan.gif' width='256' height='256' auto_play='false' play_count='-1' valign='center' halign='center'" hot_color="AliceBlue" pushed_color="Lavender">
+                <Event type="mouseenter" receiver="" applyattribute="start_image_animation={}" />
+                <Event type="mouseleave" receiver="" applyattribute="stop_image_animation={}" />
             </Control>
             <Control width="256" height="256" bkimage="file='public/shadow/shadow_big_round.svg' width='256' height='256' valign='center' halign='center'"/>
             <Control width="256" height="256" bkimage="file='public/shadow/shadow_menu_round.svg' width='256' height='256' valign='center' halign='center'"/>

@@ -301,10 +301,12 @@ void Image::CheckStartImageAnimation()
     }
 }
 
-void Image::CheckStopImageAnimation()
+void Image::PauseImageAnimation()
 {
-    if (m_pImagePlayer != nullptr) {
+    if ((m_pImagePlayer != nullptr) && m_pImagePlayer->IsAnimationPlaying()) {
+        bool bAutoPlay = m_pImagePlayer->IsAutoPlay();
         m_pImagePlayer->StopImageAnimation(AnimationImagePos::kFrameCurrent, true);
+        m_pImagePlayer->SetAutoPlay(bAutoPlay);
     }
 }
 

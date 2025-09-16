@@ -1212,9 +1212,9 @@ protected:
     */
     void DoPaintFocusRect(IRender* pRender);
 
-    /** 停止该控件内的所有动画播放(背景图片的动画等)
+    /** 暂停该控件内的所有动画播放(背景图片的动画等)
     */
-    void CheckStopImageAnimation();
+    void PauseImageAnimation();
 
     /** 计算控件大小(宽和高)
         如果设置了图片并设置 width 或 height 任意一项为 auto，将根据图片大小和文本大小来计算最终大小

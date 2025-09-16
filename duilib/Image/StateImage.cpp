@@ -242,6 +242,14 @@ void StateImage::StopImageAnimation()
     }
 }
 
+void StateImage::PauseImageAnimation()
+{
+    for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+        ASSERT(iter->second != nullptr);
+        iter->second->PauseImageAnimation();
+    }
+}
+
 Image* StateImage::FindImageByName(const DString& imageName) const
 {
     if (imageName.empty()) {

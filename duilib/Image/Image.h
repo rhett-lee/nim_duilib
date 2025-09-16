@@ -167,9 +167,9 @@ public:
     */
     void CheckStartImageAnimation();
 
-    /** 停止播放动画
+    /** 暂停播放动画
      */
-    void CheckStopImageAnimation();
+    void PauseImageAnimation();
 
     /** 播放动画
      * @param [in] nStartFrame 从哪一帧开始播放，可设置第一帧、当前帧和最后一帧。请参考 AnimationImagePos 枚举

@@ -79,6 +79,10 @@ public:
     */
     void StopImageAnimation();
 
+    /** 暂停播放动画
+     */
+    void PauseImageAnimation();
+
     /** 获取指定名称的图片接口
     */
     Image* FindImageByName(const DString& imageName) const;

@@ -145,6 +145,13 @@ void StateImageMap::StopImageAnimation()
     }
 }
 
+void StateImageMap::PauseImageAnimation()
+{
+    for (auto iter = m_stateImageMap.begin(); iter != m_stateImageMap.end(); ++iter) {
+        iter->second.PauseImageAnimation();
+    }
+}
+
 Image* StateImageMap::FindImageByName(const DString& imageName) const
 {
     if (imageName.empty()) {
