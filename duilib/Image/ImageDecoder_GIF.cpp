@@ -20,10 +20,9 @@ DString ImageDecoder_GIF::GetFormatName() const
     return _T("GIF");
 }
 
-bool ImageDecoder_GIF::CanDecode(const DString& imageFileString, bool& bVirtualFile) const
+bool ImageDecoder_GIF::CanDecode(const DString& imageFilePath) const
 {
-    bVirtualFile = false;
-    DString fileExt = FilePathUtil::GetFileExtension(imageFileString);
+    DString fileExt = FilePathUtil::GetFileExtension(imageFilePath);
     StringUtil::MakeUpperString(fileExt);
     if (fileExt == _T("GIF")) {
         return true;
@@ -61,21 +60,17 @@ bool ImageDecoder_GIF::CanDecode(const uint8_t* data, size_t dataLen) const
     return bGIF87a || bGIF89a;
 }
 
-std::unique_ptr<IImage> ImageDecoder_GIF::LoadImageData(const DString& /*imageFileString*/,
-                                                        std::vector<uint8_t>& data,
-                                                        float fImageSizeScale,
-                                                        const IImageDecoder::ExtraParam* pExtraParam)
+std::unique_ptr<IImage> ImageDecoder_GIF::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    if (data.empty()) {
+    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
         return nullptr;
     }
-    bool bLoadAllFrames = true;
-    if (pExtraParam) {
-        bLoadAllFrames = pExtraParam->m_bLoadAllFrames;
-    }
+    std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
+    bool bLoadAllFrames = decodeParam.m_bLoadAllFrames;
+    float fImageSizeScale = decodeParam.m_fImageSizeScale;
     Image_GIF* pImageGIF = new Image_GIF;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImageGIF);
-    if (!pImageGIF->LoadImageFromMemory(data, bLoadAllFrames, fImageSizeScale)) {
+    if (!pImageGIF->LoadImageFromMemory(fileData, bLoadAllFrames, fImageSizeScale)) {
         ASSERT(0);
         return nullptr;
     }

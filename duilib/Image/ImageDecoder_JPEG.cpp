@@ -20,11 +20,10 @@ DString ImageDecoder_JPEG::GetFormatName() const
     return _T("JPEG");
 }
 
-bool ImageDecoder_JPEG::CanDecode(const DString& imageFileString, bool& bVirtualFile) const
+bool ImageDecoder_JPEG::CanDecode(const DString& imageFilePath) const
 {
-    bVirtualFile = false;
     DString fileExtentions = _T("JPG;JPEG;JPE;JIF;JFIF;JFI");
-    DString fileExt = FilePathUtil::GetFileExtension(imageFileString);
+    DString fileExt = FilePathUtil::GetFileExtension(imageFilePath);
     StringUtil::MakeUpperString(fileExt);
 
     std::list<DString> fileExtList = StringUtil::Split(fileExtentions, _T(";"));
@@ -54,18 +53,16 @@ bool ImageDecoder_JPEG::CanDecode(const uint8_t* data, size_t dataLen) const
     return bJPEG;
 }
 
-std::unique_ptr<IImage> ImageDecoder_JPEG::LoadImageData(const DString& /*imageFileString*/,
-                                                           std::vector<uint8_t>& data,
-                                                           float fImageSizeScale,
-                                                           const IImageDecoder::ExtraParam* /*pExtraParam*/)
+std::unique_ptr<IImage> ImageDecoder_JPEG::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    ASSERT(!data.empty());
-    if (data.empty()) {
+    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
         return nullptr;
     }
+    std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
+    float fImageSizeScale = decodeParam.m_fImageSizeScale;
     Image_JPEG* pImageJPEG = new Image_JPEG;
     std::unique_ptr<IImage> pImage(pImageJPEG);
-    if (!pImageJPEG->LoadImageData(data, fImageSizeScale)) {
+    if (!pImageJPEG->LoadImageData(fileData, fImageSizeScale)) {
         pImage.reset();
     }     
     return pImage;

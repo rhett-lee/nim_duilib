@@ -111,7 +111,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
                 return nullptr;
             }
         }
-        IImageDecoder::Param decodeParam;
+        ImageDecodeParam decodeParam;
         decodeParam.m_imagePath = imageFullPath;//前面的流程，当是本地文件时，已经确保文件存在
         if (!fileData.empty()) {
             decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>();
@@ -127,9 +127,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         decodeParam.m_bLoadAllFrames = true; //所有多帧图片相关参数
 
         //加载图片     
-        IImageDecoder::ExtraParam extraParam;
-        std::vector<uint8_t> emptyData; //TODO: 
-        std::unique_ptr<IImage> pImageData = ImageDecoders.LoadImageData(imageFullPath, decodeParam.m_pFileData != nullptr ? *decodeParam.m_pFileData : emptyData, fImageSizeScale, &extraParam);
+        std::unique_ptr<IImage> pImageData = ImageDecoders.LoadImageData(decodeParam);
         if (pImageData == nullptr) {
             //加载失败
             return nullptr;

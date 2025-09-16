@@ -30,50 +30,14 @@ public:
 
 public:
     /** 加载解码图片数据，返回解码后的图像数据
-    * @param [in] imageFileString 实体文件名(比如："File.jpg"，可以带路径), 或者虚拟文件名（比如： "icon:1"）
-    * @param [in] data 数据的起始地址（当imageFileString为虚拟文件名时，可为nullptr）
-    * @param [in] dataLen 数据的长度（当imageFileString为虚拟文件名时，可为0）
-    * @param [in] fImageSizeScale 解码图片大小的缩放比(解码后对图片执行resize操作，按比例调整图片的宽和高)
-    * @param [in] pExtraParam 图片解码的额外参数
+    * @param [in] decodeParam 图片解码的相关参数
     */
-    std::unique_ptr<IImage> LoadImageData(const DString& imageFileString,
-                                          const uint8_t* data, size_t dataLen,
-                                          float fImageSizeScale = 1.0f,
-                                          const IImageDecoder::ExtraParam* pExtraParam = nullptr);
-
-    /** 加载解码图片数据，返回解码后的图像数据
-    * @param [in] imageFileString 实体文件名(比如："File.jpg"，可以带路径), 或者虚拟文件名（比如： "icon:1"）
-    * @param [in] data 待解码的数据, 容器的数据会被交换到内部实现（当imageFileString为虚拟文件名时，可为空）
-    * @param [in] fImageSizeScale 解码图片大小的缩放比(解码后对图片执行resize操作，按比例调整图片的宽和高)
-    * @param [in] pExtraParam 图片解码的额外参数
-    */
-    std::unique_ptr<IImage> LoadImageData(const DString& imageFileString,
-                                          std::vector<uint8_t>& data,
-                                          float fImageSizeScale = 1.0f,
-                                          const IImageDecoder::ExtraParam* pExtraParam = nullptr);
+    std::unique_ptr<IImage> LoadImageData(const ImageDecodeParam& decodeParam);
 
     /** 解码一个文件数据为位图(不支持多帧图片，如果图片为多帧，则只解码第一帧)
-    * @param [in] imageFileString 实体文件名(比如："File.jpg"，可以带路径), 或者虚拟文件名（比如： "icon:1"）
-    * @param [in] data 数据的起始地址（当imageFileString为虚拟文件名时，可为nullptr）
-    * @param [in] dataLen 数据的长度（当imageFileString为虚拟文件名时，可为0）
-    * @param [in] fImageSizeScale 解码图片大小的缩放比(解码后对图片执行resize操作，按比例调整图片的宽和高)
-    * @param [in] pExtraParam 图片解码的额外参数
+    * @param [in] decodeParam 图片解码的相关参数
     */
-    std::shared_ptr<IBitmap> DecodeImageData(const DString& imageFileString,
-                                             const uint8_t* data, size_t dataLen,
-                                             float fImageSizeScale = 1.0f,
-                                             const IImageDecoder::ExtraParam* pExtraParam = nullptr);
-
-    /** 解码一个文件数据为位图(不支持多帧图片，如果图片为多帧，则只解码第一帧)
-    * @param [in] imageFileString 实体文件名(比如："File.jpg"，可以带路径), 或者虚拟文件名（比如： "icon:1"）
-    * @param [in] data 待解码的数据, 容器的数据会被交换到内部实现（当imageFileString为虚拟文件名时，可为空）
-    * @param [in] fImageSizeScale 解码图片大小的缩放比(解码后对图片执行resize操作，按比例调整图片的宽和高)
-    * @param [in] pExtraParam 图片解码的额外参数
-    */
-    std::shared_ptr<IBitmap> DecodeImageData(const DString& imageFileString,
-                                             std::vector<uint8_t>& data,
-                                             float fImageSizeScale = 1.0f,
-                                             const IImageDecoder::ExtraParam* pExtraParam = nullptr);
+    std::shared_ptr<IBitmap> DecodeImageData(const ImageDecodeParam& decodeParam);
 
 private:
     /** 图片解码器

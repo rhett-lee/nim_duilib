@@ -20,10 +20,9 @@ DString ImageDecoder_WEBP::GetFormatName() const
     return _T("WEBP");
 }
 
-bool ImageDecoder_WEBP::CanDecode(const DString& imageFileString, bool& bVirtualFile) const
+bool ImageDecoder_WEBP::CanDecode(const DString& imageFilePath) const
 {
-    bVirtualFile = false;
-    DString fileExt = FilePathUtil::GetFileExtension(imageFileString);
+    DString fileExt = FilePathUtil::GetFileExtension(imageFilePath);
     StringUtil::MakeUpperString(fileExt);
     if (fileExt == _T("WEBP")) {
         return true;
@@ -43,21 +42,17 @@ bool ImageDecoder_WEBP::CanDecode(const uint8_t* data, size_t dataLen) const
     return false;
 }
 
-std::unique_ptr<IImage> ImageDecoder_WEBP::LoadImageData(const DString& /*imageFileString*/,
-                                                         std::vector<uint8_t>& data,
-                                                         float fImageSizeScale,
-                                                         const IImageDecoder::ExtraParam* pExtraParam)
+std::unique_ptr<IImage> ImageDecoder_WEBP::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    if (data.empty()) {
+    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
         return nullptr;
     }
-    bool bLoadAllFrames = true;
-    if (pExtraParam) {
-        bLoadAllFrames = pExtraParam->m_bLoadAllFrames;
-    }
+    std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
+    bool bLoadAllFrames = decodeParam.m_bLoadAllFrames;
+    float fImageSizeScale = decodeParam.m_fImageSizeScale;
     Image_WEBP* pImageWEBP = new Image_WEBP;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImageWEBP);
-    if (!pImageWEBP->LoadImageFromMemory(data, bLoadAllFrames, fImageSizeScale)) {
+    if (!pImageWEBP->LoadImageFromMemory(fileData, bLoadAllFrames, fImageSizeScale)) {
         ASSERT(0);
         return nullptr;
     }

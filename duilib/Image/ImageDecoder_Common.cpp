@@ -19,14 +19,13 @@ DString ImageDecoder_Common::GetFormatName() const
     return ImageDecoderUtil::GetSupportedFileExtentions();
 }
 
-bool ImageDecoder_Common::CanDecode(const DString& imageFileString, bool& bVirtualFile) const
+bool ImageDecoder_Common::CanDecode(const DString& imageFilePath) const
 {
-    bVirtualFile = false;
     DString fileExtentions = ImageDecoderUtil::GetSupportedFileExtentions();
     if (fileExtentions.empty()) {
         return false;
     }
-    DString fileExt = FilePathUtil::GetFileExtension(imageFileString);
+    DString fileExt = FilePathUtil::GetFileExtension(imageFilePath);
     StringUtil::MakeUpperString(fileExt);
 
     std::list<DString> fileExtList = StringUtil::Split(fileExtentions, _T(";"));
@@ -44,14 +43,16 @@ bool ImageDecoder_Common::CanDecode(const uint8_t* data, size_t dataLen) const
     return ImageDecoderUtil::CanDecode(data, dataLen);
 }
 
-std::unique_ptr<IImage> ImageDecoder_Common::LoadImageData(const DString& /*imageFileString*/,
-                                                           std::vector<uint8_t>& data,
-                                                           float fImageSizeScale,
-                                                           const IImageDecoder::ExtraParam* /*pExtraParam*/)
+std::unique_ptr<IImage> ImageDecoder_Common::LoadImageData(const ImageDecodeParam& decodeParam)
 {
+    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
+        return nullptr;
+    }
+    std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
+    float fImageSizeScale = decodeParam.m_fImageSizeScale;
     std::unique_ptr<IImage> pImage;
     UiImageData imageData;
-    if (ImageDecoderUtil::LoadImageFromMemory(data, imageData)) {
+    if (ImageDecoderUtil::LoadImageFromMemory(fileData, imageData)) {
         pImage = Image_Bitmap::MakeImage(imageData.m_imageWidth, imageData.m_imageHeight, imageData.m_imageData.data(), fImageSizeScale);
     }    
     return pImage;

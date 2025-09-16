@@ -46,59 +46,60 @@ void ImageDecoderFactory::Clear()
     m_imageDecoders.clear();
 }
 
-std::unique_ptr<IImage> ImageDecoderFactory::LoadImageData(const DString& imageFileString,
-                                                           const uint8_t* data, size_t dataLen,
-                                                           float fImageSizeScale,
-                                                           const IImageDecoder::ExtraParam* pExtraParam)
+std::unique_ptr<IImage> ImageDecoderFactory::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    std::vector<uint8_t> imageData;
-    if ((data != nullptr) && (dataLen > 0)) {
-        imageData.resize(dataLen);
-        memcpy(imageData.data(), data, dataLen);
+    const bool bHasFileData = (decodeParam.m_pFileData != nullptr) && !decodeParam.m_pFileData->empty(); //图片文件数据
+    const DString& imageFilePath = decodeParam.m_imagePath; //图片文件路径
+    ASSERT(!imageFilePath.empty() || bHasFileData);
+    if (imageFilePath.empty() && !bHasFileData) {
+        return nullptr;
     }
-    return LoadImageData(imageFileString, imageData, fImageSizeScale, pExtraParam);
-}
 
-std::unique_ptr<IImage> ImageDecoderFactory::LoadImageData(const DString& imageFileString,
-                                                           std::vector<uint8_t>& data,
-                                                           float fImageSizeScale,
-                                                           const IImageDecoder::ExtraParam* pExtraParam)
-{
-    bool bCanRetry = true;
+    //文件头数据，用做图片格式的签名校验
+    const std::vector<uint8_t>& signatureData = bHasFileData ? *decodeParam.m_pFileData : decodeParam.m_fileHeaderData; 
+    std::vector<std::shared_ptr<IImageDecoder>> untriedDecoders;//未尝试的解码器
+
     std::unique_ptr<IImage> pImageData;
     for (std::shared_ptr<IImageDecoder> pImageDecoder : m_imageDecoders) {
-        if (pImageDecoder != nullptr) {
-            if (data.empty()) {
-                //按虚拟文件名处理，无实体文件数据
-                bool bVirtualFile = false;
-                if (pImageDecoder->CanDecode(imageFileString, bVirtualFile)) {
-                    if (bVirtualFile) {
-                        pImageData = pImageDecoder->LoadImageData(imageFileString, data, fImageSizeScale, pExtraParam);
-                        break;
-                    }
+        ASSERT(pImageDecoder != nullptr);
+        if (pImageDecoder == nullptr) {
+            continue;
+        }
+        bool bCanDecode = false;
+        if (!imageFilePath.empty()) {
+            //文件名不为空, 优先按文件后缀匹配解码器
+            if (pImageDecoder->CanDecode(imageFilePath)) {
+                if (signatureData.empty()) {
+                    bCanDecode = true;
                 }
-            }
-            else {
-                bool bVirtualFile = false;
-                if (pImageDecoder->CanDecode(imageFileString, bVirtualFile) &&
-                    !bVirtualFile &&
-                    pImageDecoder->CanDecode(data.data(), data.size())) {
-                    pImageData = pImageDecoder->LoadImageData(imageFileString, data, fImageSizeScale, pExtraParam);
-                    bCanRetry = false;
-                    break;
+                else if (pImageDecoder->CanDecode(signatureData.data(), signatureData.size())) {                    
+                    bCanDecode = true;
                 }
             }
         }
+        else if (!signatureData.empty()) {
+            //文件名为空，按文件数据签名匹配解码器
+            if (pImageDecoder->CanDecode(signatureData.data(), signatureData.size())) {
+                bCanDecode = true;
+            }
+        }
+        if (bCanDecode) {
+            pImageData = pImageDecoder->LoadImageData(decodeParam);
+            if (pImageData != nullptr) {
+                break;
+            }
+        }
+        else {
+            untriedDecoders.push_back(pImageDecoder);
+        }
     }
-    if ((pImageData == nullptr) && bCanRetry && !data.empty()) {
+    if ((pImageData == nullptr) && !signatureData.empty() && !untriedDecoders.empty()) {
         //如果按扩展名无法匹配，则按图片数据流尝试加载(从而使得扩展名与文件格式不一致的情况下，也能正常加载图片)
-        for (std::shared_ptr<IImageDecoder> pImageDecoder : m_imageDecoders) {
-            if (pImageDecoder != nullptr) {
-                if (pImageDecoder->CanDecode(data.data(), data.size())) {
-                    pImageData = pImageDecoder->LoadImageData(imageFileString, data, fImageSizeScale, pExtraParam);
-                    if (pImageData != nullptr) {
-                        break;
-                    }
+        for (std::shared_ptr<IImageDecoder> pImageDecoder : untriedDecoders) {
+            if (pImageDecoder->CanDecode(signatureData.data(), signatureData.size())) {
+                pImageData = pImageDecoder->LoadImageData(decodeParam);
+                if (pImageData != nullptr) {
+                    break;
                 }
             }
         }
@@ -107,31 +108,12 @@ std::unique_ptr<IImage> ImageDecoderFactory::LoadImageData(const DString& imageF
     return pImageData;
 }
 
-std::shared_ptr<IBitmap> ImageDecoderFactory::DecodeImageData(const DString& imageFileString,
-                                                              const uint8_t* data, size_t dataLen,
-                                                              float fImageSizeScale,
-                                                              const IImageDecoder::ExtraParam* pExtraParam)
-{
-    std::vector<uint8_t> imageData;
-    if ((data != nullptr) && (dataLen > 0)) {
-        imageData.resize(dataLen);
-        memcpy(imageData.data(), data, dataLen);
-    }
-    return DecodeImageData(imageFileString, imageData, fImageSizeScale, pExtraParam);
-}
-
-std::shared_ptr<IBitmap> ImageDecoderFactory::DecodeImageData(const DString& imageFileString,
-                                                              std::vector<uint8_t>& data,
-                                                              float fImageSizeScale,
-                                                              const IImageDecoder::ExtraParam* pExtraParam)
+std::shared_ptr<IBitmap> ImageDecoderFactory::DecodeImageData(const ImageDecodeParam& decodeParam)
 {
     std::shared_ptr<IBitmap> pBitmap;
-    IImageDecoder::ExtraParam extraParam;
-    if (pExtraParam != nullptr) {
-        extraParam = *pExtraParam;
-    }
-    extraParam.m_bLoadAllFrames = false; //只加载单帧图片，不支持多帧
-    std::shared_ptr<IImage> pImage = LoadImageData(imageFileString, data, fImageSizeScale, &extraParam);
+    ImageDecodeParam newDecodeParam = decodeParam;
+    newDecodeParam.m_bLoadAllFrames = false;//只加载单帧图片，不支持多帧
+    std::shared_ptr<IImage> pImage = LoadImageData(newDecodeParam);
     ASSERT(pImage != nullptr);
     if (pImage != nullptr) {
         ASSERT(pImage->GetImageType() == ImageType::kImageBitmap);

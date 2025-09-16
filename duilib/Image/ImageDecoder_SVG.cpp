@@ -52,7 +52,7 @@ namespace NanoSvgDecoder
     */
     bool ImageSizeFromMemory(const std::vector<uint8_t>& data, int32_t& nSvgImageWidth, int32_t& nSvgImageHeight)
     {
-        std::vector<uint8_t> fileData = data;
+        std::vector<uint8_t> fileData = data;//此处需要复制数据，因为在解析的过程中，会破坏原来的数据
         ASSERT(!fileData.empty());
         if (fileData.empty()) {
             return false;
@@ -182,10 +182,9 @@ DString ImageDecoder_SVG::GetFormatName() const
     return _T("SVG");
 }
 
-bool ImageDecoder_SVG::CanDecode(const DString& imageFileString, bool& bVirtualFile) const
+bool ImageDecoder_SVG::CanDecode(const DString& imageFilePath) const
 {
-    bVirtualFile = false;
-    DString fileExt = FilePathUtil::GetFileExtension(imageFileString);
+    DString fileExt = FilePathUtil::GetFileExtension(imageFilePath);
     StringUtil::MakeUpperString(fileExt);
     if (fileExt == _T("SVG")) {
         return true;
@@ -207,29 +206,25 @@ bool ImageDecoder_SVG::CanDecode(const uint8_t* data, size_t dataLen) const
     return (headerStr.substr(0, 5) == "<?xml") || (headerStr.substr(0, 4) == "<svg");
 }
 
-std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const DString& /*imageFileString*/,
-                                                        std::vector<uint8_t>& data,
-                                                        float fImageSizeScale,
-                                                        const IImageDecoder::ExtraParam* /*pExtraParam*/)
+std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    std::unique_ptr<IImage> pImage;
-    ASSERT(!data.empty());
-    if (data.empty()) {
-        return pImage;
+    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
+        return nullptr;
     }
-    std::unique_ptr<SkMemoryStream> spMemStream = SkMemoryStream::MakeCopy(data.data(), data.size());
+    const std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
+    std::unique_ptr<SkMemoryStream> spMemStream = SkMemoryStream::MakeCopy(fileData.data(), fileData.size());
     ASSERT(spMemStream != nullptr);
     if (spMemStream == nullptr) {
-        return pImage;
+        return nullptr;
     }
     sk_sp<SkSVGDOM> svgDom = SkSVGDOM::MakeFromStream(*spMemStream);
     ASSERT(svgDom != nullptr);
     if (svgDom == nullptr) {
-        return pImage;
+        return nullptr;
     }
     ASSERT(svgDom->getRoot() != nullptr);
     if (svgDom->getRoot() == nullptr) {
-        return pImage;
+        return nullptr;
     }
     spMemStream.reset();
 
@@ -253,23 +248,24 @@ std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const DString& /*imageFi
     }
     if ((nSvgImageWidth < 1) || (nSvgImageHeight < 1)) {
         //如果图片中没有直接定义宽和高，利用NanoSvg库获取
-        if (!NanoSvgDecoder::ImageSizeFromMemory(data, nSvgImageWidth, nSvgImageHeight)) {
+        if (!NanoSvgDecoder::ImageSizeFromMemory(fileData, nSvgImageWidth, nSvgImageHeight)) {
             ASSERT(0);
-            return pImage;
+            return nullptr;
         }
     }
 
     ASSERT((nSvgImageWidth > 0) && (nSvgImageHeight > 0));
     if ((nSvgImageWidth < 1) || (nSvgImageHeight < 1)) {
-        return pImage;
+        return nullptr;
     }
 
     //计算缩放后的大小
+    float fImageSizeScale = decodeParam.m_fImageSizeScale;
     uint32_t nImageWidth = ImageUtil::GetScaledImageSize((uint32_t)nSvgImageWidth, fImageSizeScale);
     uint32_t nImageHeight = ImageUtil::GetScaledImageSize((uint32_t)nSvgImageHeight, fImageSizeScale);
     ASSERT((nImageHeight > 0) && (nImageHeight > 0));
     if ((nImageWidth < 1) || (nImageHeight < 1)) {
-        return pImage;
+        return nullptr;
     }
 
     SvgImageImpl* pSvgImageImpl = new SvgImageImpl;
@@ -279,7 +275,7 @@ std::unique_ptr<IImage> ImageDecoder_SVG::LoadImageData(const DString& /*imageFi
     pSvgImageImpl->m_spMemStream = std::move(spMemStream);
     pSvgImageImpl->m_svgDom = svgDom;
 
-    pImage = Image_Svg::MakeImage(pSvgImage, fImageSizeScale);
+    std::unique_ptr<IImage> pImage = Image_Svg::MakeImage(pSvgImage, fImageSizeScale);
     return pImage;
 }
 

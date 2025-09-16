@@ -20,10 +20,9 @@ DString ImageDecoder_LOTTIE::GetFormatName() const
     return _T("LOTTIE");
 }
 
-bool ImageDecoder_LOTTIE::CanDecode(const DString& imageFileString, bool& bVirtualFile) const
+bool ImageDecoder_LOTTIE::CanDecode(const DString& imageFilePath) const
 {
-    bVirtualFile = false;
-    DString fileExt = FilePathUtil::GetFileExtension(imageFileString);
+    DString fileExt = FilePathUtil::GetFileExtension(imageFilePath);
     StringUtil::MakeUpperString(fileExt);
     if ((fileExt == _T("JSON")) && (fileExt == _T("LOTTIE"))) {
         return true;
@@ -39,21 +38,17 @@ bool ImageDecoder_LOTTIE::CanDecode(const uint8_t* data, size_t dataLen) const
     return true;
 }
 
-std::unique_ptr<IImage> ImageDecoder_LOTTIE::LoadImageData(const DString& /*imageFileString*/,
-                                                           std::vector<uint8_t>& data,
-                                                           float fImageSizeScale,
-                                                           const IImageDecoder::ExtraParam* pExtraParam)
+std::unique_ptr<IImage> ImageDecoder_LOTTIE::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    if (data.empty()) {
+    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
         return nullptr;
     }
-    bool bLoadAllFrames = true;
-    if (pExtraParam) {
-        bLoadAllFrames = pExtraParam->m_bLoadAllFrames;
-    }
+    std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
+    bool bLoadAllFrames = decodeParam.m_bLoadAllFrames;
+    float fImageSizeScale = decodeParam.m_fImageSizeScale;
     Image_LOTTIE* pImageLOTTIE = new Image_LOTTIE;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImageLOTTIE);
-    if (!pImageLOTTIE->LoadImageFromMemory(data, bLoadAllFrames, fImageSizeScale)) {
+    if (!pImageLOTTIE->LoadImageFromMemory(fileData, bLoadAllFrames, fImageSizeScale)) {
         ASSERT(0);
         return nullptr;
     }

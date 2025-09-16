@@ -22,10 +22,9 @@ DString ImageDecoder_ICO::GetFormatName() const
     return _T("ICO/CUR");
 }
 
-bool ImageDecoder_ICO::CanDecode(const DString& imageFileString, bool& bVirtualFile) const
+bool ImageDecoder_ICO::CanDecode(const DString& imageFilePath) const
 {
-    bVirtualFile = false;
-    DString fileExt = FilePathUtil::GetFileExtension(imageFileString);
+    DString fileExt = FilePathUtil::GetFileExtension(imageFilePath);
     StringUtil::MakeUpperString(fileExt);
     if ((fileExt == _T("ICO")) || (fileExt == _T("CUR"))) {
         return true;
@@ -64,31 +63,25 @@ bool ImageDecoder_ICO::CanDecode(const uint8_t* data, size_t dataLen) const
     return bICO || bCur;
 }
 
-std::unique_ptr<IImage> ImageDecoder_ICO::LoadImageData(const DString& /*imageFileString*/,
-                                                        std::vector<uint8_t>& data,
-                                                        float fImageSizeScale,
-                                                        const IImageDecoder::ExtraParam* pExtraParam)
+std::unique_ptr<IImage> ImageDecoder_ICO::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    std::unique_ptr<IImage> pImage;
-    if (data.empty()) {
-        return pImage;
+    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
+        return nullptr;
     }
-
-    std::vector<UiImageData> imageData;
-    uint32_t nIconSize = 0;
-    int32_t nFrameDelayMs = 1000; // 每帧的时间间隔，毫秒
-    bool bIconAsAnimation = false;
-    if (pExtraParam != nullptr) {
-        nIconSize = pExtraParam->m_nIconSize;
-        bIconAsAnimation = pExtraParam->m_bIconAsAnimation && pExtraParam->m_bLoadAllFrames;
-        nFrameDelayMs = pExtraParam->m_nIconFrameDelayMs;
-    }
+    std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
+    float fImageSizeScale = decodeParam.m_fImageSizeScale;
+    uint32_t nIconSize = decodeParam.m_nIconSize;
+    int32_t nFrameDelayMs = decodeParam.m_nIconFrameDelayMs; // 每帧的时间间隔，毫秒
+    bool bIconAsAnimation = decodeParam.m_bIconAsAnimation;
     if (nIconSize == 0) {
         nIconSize = bIconAsAnimation ? 48 : 32;
     }
+
+    std::unique_ptr<IImage> pImage;
+    std::vector<UiImageData> imageData;
     //计算期望大小
     const uint32_t nIconSizeScaled = ImageUtil::GetScaledImageSize(nIconSize, fImageSizeScale);
-    bool bLoaded = ImageDecoderUtil::LoadIcoFromMemory(data, bIconAsAnimation, nIconSizeScaled, imageData);
+    bool bLoaded = ImageDecoderUtil::LoadIcoFromMemory(fileData, bIconAsAnimation, nIconSizeScaled, imageData);
     if (bLoaded) {
         ASSERT(!imageData.empty());        
         if (imageData.size() == 1) {

@@ -195,55 +195,47 @@ public:
     virtual std::shared_ptr<IAnimationImage> GetImageAnimation() const { return nullptr; }
 };
 
+/** 图片解码的输入参数
+*/
+struct ImageDecodeParam
+{
+public:
+    //文件路径
+    DString m_imagePath;
+
+    //文件头数据(1KB数据，用于选择图片解码器)
+    std::vector<uint8_t> m_fileHeaderData;
+
+    //文件数据（如果为空表示未加载文件数据，需要根据文件路径去读取文件数据）
+    std::shared_ptr<std::vector<uint8_t>> m_pFileData;
+
+    //请求加载的缩放比例
+    float m_fImageSizeScale = 1.0f;
+
+    //是否为程序资源目录以外的外部图片(外部文件的尺寸可能很大，加载策略会有所不同；而程序资源目录内的图片尺寸一般不会很大)
+    bool m_bExternalImagePath = false;
+
+public:
+    //如果是多帧图片，是否加载所有帧（true表示加载所有帧；false表示只加载第1帧, 按单帧图片加载）
+    bool m_bLoadAllFrames = true;
+
+    //ICO格式，是否按照动画来加载多帧显示（默认情况下，ICO格式是按单帧显示的）
+    bool m_bIconAsAnimation = false;
+
+    //ICO格式，加载图标的大小值
+    uint32_t m_nIconSize = 0;
+
+    //ICO格式，每帧播放时间间隔，毫秒（仅当m_bIconAsAnimation && m_bLoadAllFrames为true时有效）
+    uint32_t m_nIconFrameDelayMs = 1000;
+
+    //PAG格式，解码动画的帧率
+    float m_fPagMaxFrameRate = 30.0f;
+};
+
 /** 图片解码器接口
 */
 class IImageDecoder
 {
-public:
-    /** 图片解码的输入参数
-    */
-    struct Param
-    {
-    public:
-        //文件路径
-        DString m_imagePath;
-
-        //文件数据（如果为空表示未加载文件数据，需要根据文件路径去读取文件数据）
-        std::shared_ptr<std::vector<uint8_t>> m_pFileData;
-
-        //请求加载的缩放比例
-        float m_fImageSizeScale = 1.0f;
-
-        //是否为程序资源目录以外的外部图片(外部文件的尺寸可能很大，加载策略会有所不同；而程序资源目录内的图片尺寸一般不会很大)
-        bool m_bExternalImagePath = false;
-
-    public:
-        //如果是多帧图片，是否加载所有帧（true表示加载所有帧；false表示只加载第1帧, 按单帧图片加载）
-        bool m_bLoadAllFrames = true;
-
-        //ICO格式，是否按照动画来加载多帧显示（默认情况下，ICO格式是按单帧显示的）
-        bool m_bIconAsAnimation = false;
-
-        //ICO格式，加载图标的大小值
-        uint32_t m_nIconSize = 0;
-
-        //ICO格式，每帧播放时间间隔，毫秒（仅当m_bIconAsAnimation && m_bLoadAllFrames为true时有效）
-        uint32_t m_nIconFrameDelayMs = 1000;
-
-        //PAG格式，解码动画的帧率
-        float m_fPagMaxFrameRate = 30.0f;
-    };
-
-    /** 图片解码的额外参数
-    */
-    struct ExtraParam
-    {
-        bool m_bLoadAllFrames = true;       //对于多帧图片，是否加载所有帧（true表示加载所有帧；false表示只加载第1帧, 按单帧图片加载）
-        bool m_bIconAsAnimation = false;    //ICO格式，是否按照动画来加载多帧显示（默认情况下，ICO格式是按单帧显示的）
-        uint32_t m_nIconSize = 32;          //ICO格式，加载图标的大小值
-        uint32_t m_nIconFrameDelayMs = 1000;//ICO格式，每帧播放时间间隔，毫秒（仅当m_bIconAsAnimation && m_bLoadAllFrames为true时有效）
-        float m_fPagMaxFrameRate = 30.0f;   //PAG格式，解码动画的帧率
-    };
 public:
     virtual ~IImageDecoder() = default;
         
@@ -252,27 +244,20 @@ public:
     virtual DString GetFormatName() const = 0;
 
     /** 检查该解码器是否支持给定的文件名
-    * @param [in] imageFileString 实体文件名(比如："File.jpg"，可以带路径), 或者虚拟文件名（比如： "icon:1"）
-    * @param [out] bVirtualFile 返回true代表虚拟文件名，返回false代表实体文件名
+    * @param [in] imageFilePath 实体文件名(比如："File.jpg"，可以带路径), 或者虚拟文件名（比如： "icon:1"）
     */
-    virtual bool CanDecode(const DString& imageFileString, bool& bVirtualFile) const = 0;
+    virtual bool CanDecode(const DString& imageFilePath) const = 0;
          
     /** 检查该解码器是否支持给定的数据流
     * @param [in] data 数据的起始地址
     * @param [in] dataLen 数据的长度
     */
     virtual bool CanDecode(const uint8_t* data, size_t dataLen) const = 0;
-   
+
     /** 加载解码图片数据，返回解码后的图像数据
-    * @param [in] imageFileString 实体文件名(比如："File.jpg"，可以带路径), 或者虚拟文件名（比如： "icon:1"）
-    * @param [in] data 待解码的数据, 容器的数据会被交换到内部实现（当imageFileString为虚拟文件名时，可为空）
-    * @param [in] fImageSizeScale 解码图片大小的缩放比(解码后对图片执行resize操作，按比例调整图片的宽和高)
-    * @param [in] pExtraParam 图片解码的额外参数
+    @param [in] decodeParam 图片解码的相关参数
     */
-    virtual std::unique_ptr<IImage> LoadImageData(const DString& imageFileString,
-                                                  std::vector<uint8_t>& data,
-                                                  float fImageSizeScale = 1.0f,
-                                                  const IImageDecoder::ExtraParam* pExtraParam = nullptr) = 0;
+    virtual std::unique_ptr<IImage> LoadImageData(const ImageDecodeParam& decodeParam) = 0;
 };
 
 } //namespace ui

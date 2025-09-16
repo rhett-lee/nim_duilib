@@ -17,13 +17,12 @@ DString ImageDecoder_Icon::GetFormatName() const
     return _T("ICON");
 }
 
-bool ImageDecoder_Icon::CanDecode(const DString& imageFileString, bool& bVirtualFile) const
+bool ImageDecoder_Icon::CanDecode(const DString& imageFilePath) const
 {
     IconManager& iconManager = GlobalManager::Instance().Icon();
-    if (iconManager.IsIconString(imageFileString)) {
-        uint32_t nIconID = iconManager.GetIconID(imageFileString);
+    if (iconManager.IsIconString(imageFilePath)) {
+        uint32_t nIconID = iconManager.GetIconID(imageFilePath);
         if (!iconManager.IsImageString(nIconID)) {
-            bVirtualFile = true;
             return true;
         }
     }
@@ -35,18 +34,16 @@ bool ImageDecoder_Icon::CanDecode(const uint8_t* /*data*/, size_t /*dataLen*/) c
     return false;
 }
 
-std::unique_ptr<IImage> ImageDecoder_Icon::LoadImageData(const DString& imageFileString,
-                                                         std::vector<uint8_t>& /*data*/,
-                                                         float fImageSizeScale,
-                                                         const IImageDecoder::ExtraParam* /*pExtraParam*/)
+std::unique_ptr<IImage> ImageDecoder_Icon::LoadImageData(const ImageDecodeParam& decodeParam)
 {
     std::unique_ptr<IImage> pImage;
     IconManager& iconManager = GlobalManager::Instance().Icon();
-    if (iconManager.IsIconString(imageFileString)) {
-        uint32_t nIconID = iconManager.GetIconID(imageFileString);
+    if (iconManager.IsIconString(decodeParam.m_imagePath)) {
+        uint32_t nIconID = iconManager.GetIconID(decodeParam.m_imagePath);
         if (!iconManager.IsImageString(nIconID)) {
             IconBitmapData bitmapData;
             if (iconManager.GetIconBitmapData(nIconID, bitmapData)) {
+                float fImageSizeScale = decodeParam.m_fImageSizeScale;
                 pImage = Image_Bitmap::MakeImage(bitmapData.m_nBitmapWidth, bitmapData.m_nBitmapHeight, bitmapData.m_bitmapData.data(), fImageSizeScale);
             }
         }

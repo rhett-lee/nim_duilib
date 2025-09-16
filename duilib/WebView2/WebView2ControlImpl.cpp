@@ -1395,7 +1395,12 @@ static bool ConvertFavIconImageData(std::vector<uint8_t>& imageFileData, uint32_
         //按DPI缩放图片尺寸
         fImageSizeScale = static_cast<float>(nWindowDpi) / 100.0f;
     }
-    std::shared_ptr<IBitmap> pBitmap = imageDecoders.DecodeImageData(fileName, imageFileData, fImageSizeScale);
+    ImageDecodeParam decodeParam;
+    decodeParam.m_imagePath = fileName;
+    decodeParam.m_fImageSizeScale = fImageSizeScale;
+    decodeParam.m_pFileData = std::make_shared<std::vector<uint8_t>>();
+    decodeParam.m_pFileData->swap(imageFileData);
+    std::shared_ptr<IBitmap> pBitmap = imageDecoders.DecodeImageData(decodeParam);
     if (pBitmap == nullptr) {
         return false;
     }

@@ -20,10 +20,9 @@ DString ImageDecoder_PNG::GetFormatName() const
     return _T("PNG/APNG");
 }
 
-bool ImageDecoder_PNG::CanDecode(const DString& imageFileString, bool& bVirtualFile) const
+bool ImageDecoder_PNG::CanDecode(const DString& imageFilePath) const
 {
-    bVirtualFile = false;
-    DString fileExt = FilePathUtil::GetFileExtension(imageFileString);
+    DString fileExt = FilePathUtil::GetFileExtension(imageFilePath);
     StringUtil::MakeUpperString(fileExt);
     if (fileExt == _T("PNG")) {
         return true;
@@ -48,21 +47,17 @@ bool ImageDecoder_PNG::CanDecode(const uint8_t* data, size_t dataLen) const
     return bPNG;
 }
 
-std::unique_ptr<IImage> ImageDecoder_PNG::LoadImageData(const DString& /*imageFileString*/,
-                                                        std::vector<uint8_t>& data,
-                                                        float fImageSizeScale,
-                                                        const IImageDecoder::ExtraParam* pExtraParam)
+std::unique_ptr<IImage> ImageDecoder_PNG::LoadImageData(const ImageDecodeParam& decodeParam)
 {
-    if (data.empty()) {
+    if ((decodeParam.m_pFileData == nullptr) || decodeParam.m_pFileData->empty()) {
         return nullptr;
     }
-    bool bLoadAllFrames = true;
-    if (pExtraParam) {
-        bLoadAllFrames = pExtraParam->m_bLoadAllFrames;
-    }
+    std::vector<uint8_t>& fileData = *decodeParam.m_pFileData;
+    bool bLoadAllFrames = decodeParam.m_bLoadAllFrames;
+    float fImageSizeScale = decodeParam.m_fImageSizeScale;
     Image_PNG* pImagePNG = new Image_PNG;
     std::shared_ptr<IAnimationImage> pAnimationImage(pImagePNG);
-    if (!pImagePNG->LoadImageFromMemory(data, bLoadAllFrames, fImageSizeScale)) {
+    if (!pImagePNG->LoadImageFromMemory(fileData, bLoadAllFrames, fImageSizeScale)) {
         ASSERT(0);
         return nullptr;
     }
