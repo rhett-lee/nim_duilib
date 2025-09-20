@@ -249,7 +249,9 @@ void TimerManager::WorkerThreadProc()
 
             bool bRet = m_threadMsg.PostMsg(WM_USER_DEFINED_TIMER, 0, 0, nullptr);
             taskGuard.lock();
-            ASSERT_UNUSED_VARIABLE(bRet);
+            if (m_bRunning) {
+                ASSERT_UNUSED_VARIABLE(bRet);
+            }            
             //LogUtil::OutputLine(StringUtil::Printf(_T("PostMessage: send timer event")));
 
             if (m_bRunning && m_bHasPenddingPoll) {

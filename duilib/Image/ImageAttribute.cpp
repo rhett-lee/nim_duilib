@@ -1,5 +1,6 @@
 #include "ImageAttribute.h"
 #include "duilib/Core/DpiManager.h"
+#include "duilib/Core/GlobalManager.h"
 #include "duilib/Utils/AttributeUtil.h"
 
 namespace ui 
@@ -52,6 +53,7 @@ ImageAttribute& ImageAttribute::operator=(const ImageAttribute& r)
     m_bWindowShadowMode = r.m_bWindowShadowMode;
     m_nTiledMargin = r.m_nTiledMargin;
     m_bAutoPlay = r.m_bAutoPlay;
+    m_bAsyncLoad = r.m_bAsyncLoad;
     m_nPlayCount = r.m_nPlayCount;
     m_nIconSize = r.m_nIconSize;
     m_bIconAsAnimation = r.m_bIconAsAnimation;
@@ -140,6 +142,7 @@ void ImageAttribute::Init()
     m_bWindowShadowMode = false;
     m_nTiledMargin = 0;
     m_bAutoPlay = true;
+    m_bAsyncLoad = GlobalManager::Instance().Image().IsImageAsyncLoad();
     m_nPlayCount = -1;    
     m_nIconSize = 0;
     m_bIconAsAnimation = false;
@@ -358,6 +361,10 @@ void ImageAttribute::ModifyAttribute(const DString& strImageString, const DpiMan
         else if (name == _T("auto_play")) {
             //如果是动画图片，是否自动播放
             imageAttribute.m_bAutoPlay = (value == _T("true"));
+        }
+        else if (name == _T("async_load")) {
+            //该图片是否支持异步加载（即放在子线程中加载图片数据，避免主界面卡顿）
+            imageAttribute.m_bAsyncLoad = (value == _T("true"));
         }
         else if (name == _T("adaptive_dest_rect")) {
             //自动适应目标区域（等比例缩放图片）

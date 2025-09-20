@@ -149,6 +149,7 @@ Font标签的id属性，定义了一个字体ID，该字体ID表示定义了一�
 | icon_as_animation | false | bool | 如果是ICO文件，指定是否按多帧图片加载（按动画图片显示） |
 | icon_frame_delay | 1000 | int | 如果是ICO文件，当按多帧图片显示时，每帧播放的时间间隔，毫秒 |
 | auto_play | true | bool | 如果是动画图片，是否自动播放 |
+| async_load | true | bool | 该图片是否支持异步加载（即放在子线程中加载图片数据，避免主界面卡顿）， <br>可通过GlobalManager::Instance().Image().SetImageAsyncLoad函数修改此默认值 |
 | play_count | -1 | int | 如果是动画图片，用于设置播放次数，取值代表的含义: <br> -1: 表示一直播放 <br> 0 : 表示无有效的播放次数，使用图片的默认值(如果动画图片无此功能，则会一直播放) <br> >0: 具体的播放次数，达到播放次数后，停止播放 |
 | pag_max_frame_rate | 30 | int | 用于指定动画的帧率(仅当图片文件是PAG文件时有效) |
 

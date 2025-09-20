@@ -61,6 +61,14 @@ public:
     */
     bool IsAutoMatchScaleImage() const;
 
+    /** 设置默认是否启用图片数据的多线程异步加载
+    */
+    void SetImageAsyncLoad(bool bImageAsyncLoad);
+
+    /** 获取默认是否启用图片数据的多线程异步加载
+    */
+    bool IsImageAsyncLoad() const;
+
 private:
     /** 图片信息被销毁的回调函数，用于释放图片资源
      * @param[in] pImageInfo 图片对应的 ImageInfo 对象
@@ -115,6 +123,10 @@ private:
     /** 是否智能匹配临近的缩放百分比图片
     */
     bool m_bAutoMatchScaleImage;
+
+    /** 默认是否启用图片数据的多线程异步加载
+    */
+    bool m_bImageAsyncLoad;
 
     /** 图片资源映射表（图片加载Key与图片UI数据的映射表）
     *   KEY: 由 ImageLoadParam::GetLoadKey 函数获取

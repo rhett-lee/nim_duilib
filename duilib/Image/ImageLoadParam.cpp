@@ -5,16 +5,29 @@
 
 namespace ui 
 {
+ImageLoadParam::ImageLoadParam():
+    m_nDpiScaleOption(ImageLoadParam::DpiScaleOption::kDefault),
+    m_nLoadDpiScale(100),
+    m_bAsyncDecode(false),
+    m_bIconAsAnimation(false),
+    m_nIconFrameDelayMs(1000),
+    m_nIconSize(0),
+    m_fPagMaxFrameRate(30.0f)
+{
+}
+
 ImageLoadParam::ImageLoadParam(DString srcWidth,
                                DString srcHeight,
                                DpiScaleOption nDpiScaleOption,
                                uint32_t nLoadDpiScale,
+                               bool bAsyncDecode,
                                bool bIconAsAnimation,
                                int32_t nIconFrameDelayMs,
                                uint32_t nIconSize,
                                float fPagMaxFrameRate):
     m_nDpiScaleOption(nDpiScaleOption),
     m_nLoadDpiScale(nLoadDpiScale),
+    m_bAsyncDecode(bAsyncDecode),
     m_bIconAsAnimation(bIconAsAnimation),
     m_nIconFrameDelayMs(nIconFrameDelayMs),
     m_nIconSize(nIconSize),
@@ -100,6 +113,11 @@ int32_t ImageLoadParam::GetIconFrameDelayMs() const
 float ImageLoadParam::GetPagMaxFrameRate() const
 {
     return m_fPagMaxFrameRate;
+}
+
+bool ImageLoadParam::IsAsyncDecodeEnabled() const
+{
+    return m_bAsyncDecode;
 }
 
 bool ImageLoadParam::GetImageFixedSize(uint32_t& nImageWidth, uint32_t& nImageHeight, bool bNeedDpiScale) const

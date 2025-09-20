@@ -11,7 +11,8 @@ namespace ui
 {
 ImageManager::ImageManager():
     m_bDpiScaleAllImages(true),
-    m_bAutoMatchScaleImage(true)
+    m_bAutoMatchScaleImage(true),
+    m_bImageAsyncLoad(true)
 {
 }
 
@@ -120,6 +121,7 @@ std::shared_ptr<ImageInfo> ImageManager::GetImage(const ImageLoadParam& loadPara
         decodeParam.m_fImageSizeScale = fImageSizeScale;
         decodeParam.m_bExternalImagePath = (imageLoadPath.m_pathType == ImageLoadPathType::kLocalPath) ? true : false;
 
+        decodeParam.m_bAsyncDecode = loadParam.IsAsyncDecodeEnabled();    //是否支持多线程图片解码 
         decodeParam.m_bIconAsAnimation = loadParam.IsIconAsAnimation();   //ICO格式相关参数
         decodeParam.m_nIconSize = loadParam.GetIconSize();                //ICO格式相关参数
         decodeParam.m_nIconFrameDelayMs = loadParam.GetIconFrameDelayMs();//ICO格式相关参数
@@ -309,6 +311,16 @@ void ImageManager::SetAutoMatchScaleImage(bool bAutoMatchScaleImage)
 bool ImageManager::IsAutoMatchScaleImage() const
 {
     return m_bAutoMatchScaleImage;
+}
+
+void ImageManager::SetImageAsyncLoad(bool bImageAsyncLoad)
+{
+    m_bImageAsyncLoad = bImageAsyncLoad;
+}
+
+bool ImageManager::IsImageAsyncLoad() const
+{
+    return m_bImageAsyncLoad;
 }
 
 bool ImageManager::GetDpiScaleImageFullPath(uint32_t dpiScale,

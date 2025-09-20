@@ -99,6 +99,7 @@ ImageLoadParam Image::GetImageLoadParam() const
         }
     }
     uint32_t nLoadDpiScale = 100;//此时未知，不需要设置
+    bool bAsyncDecode = m_imageAttribute.m_bAsyncLoad;
     bool bIconAsAnimation = m_imageAttribute.m_bIconAsAnimation;
     uint32_t nIconSize = m_imageAttribute.m_nIconSize;
     int32_t nIconFrameDelayMs = m_imageAttribute.m_nIconFrameDelayMs;
@@ -107,6 +108,7 @@ ImageLoadParam Image::GetImageLoadParam() const
                           m_imageAttribute.m_srcHeight.c_str(),
                           nDpiScaleOption,
                           nLoadDpiScale,
+                          bAsyncDecode,
                           bIconAsAnimation,
                           nIconFrameDelayMs,
                           nIconSize,

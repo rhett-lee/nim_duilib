@@ -43,11 +43,16 @@ public:
         kOff        //关闭：图片属性：dpi_scale="false"
     };
 public:
+    /** 默认构造函数
+    */
+    ImageLoadParam();
+
     /** 构造函数
     * @param [in] srcWidth 指定的图片宽度，像素值或者百分比值，比如"300"，或者"30%"，也可以为空
     * @param [in] srcHeight 指定的图片高度，像素值或者百分比值，比如"300"，或者"30%"，也可以为空
     * @param [in] nDpiScaleOption 图片大小DPI缩放的设置
     * @param [in] nLoadDpiScale 绘制目标的DPI缩放百分比（举例：100代表缩放百分比为100%，无缩放）
+    * @param [in] bAsyncDecode 是否支持异步线程解码图片数据
     * @param [in] bIconAsAnimation 如果是ICO文件，指定是否按多帧图片加载（按动画图片显示）
     * @param [in] nIconFrameDelayMs 如果是ICO文件，当按多帧图片显示时，每帧播放的时间间隔，毫秒（仅当m_bIconAsAnimation为true时有效）
     * @param [in] nIconSize 如果是ICO文件，用于指定需要加载的ICO图片的大小
@@ -56,11 +61,12 @@ public:
     ImageLoadParam(DString srcWidth,
                    DString srcHeight,
                    DpiScaleOption nDpiScaleOption,
-                   uint32_t nLoadDpiScale = 100,
-                   bool bIconAsAnimation = false,
-                   int32_t nIconFrameDelayMs = 1000,
-                   uint32_t nIconSize = 32,
-                   float fPagMaxFrameRate = 30.0f);
+                   uint32_t nLoadDpiScale /*= 100*/,
+                   bool bAsyncDecode /*= false*/,
+                   bool bIconAsAnimation /*= false*/,
+                   int32_t nIconFrameDelayMs /*= 1000*/,
+                   uint32_t nIconSize /*= 0*/,
+                   float fPagMaxFrameRate /*= 30.0f*/);
 
     /** 拷贝构造和复制
     */
@@ -110,6 +116,10 @@ public:
     /** PAG格式默认播放的最大帧率（仅限PAG格式）
     */
     float GetPagMaxFrameRate() const;
+
+    /** 是否支持异步线程解码图片数据
+    */
+    bool IsAsyncDecodeEnabled() const;
 
 public:
     /** 获取加载图片的缓存KEY
@@ -168,6 +178,9 @@ private:
 
     //如果是ICO文件，指定是否按多帧图片加载（按动画图片显示）
     bool m_bIconAsAnimation;
+
+    //是否支持异步线程解码图片数据
+    bool m_bAsyncDecode;
 };
 
 } // namespace ui

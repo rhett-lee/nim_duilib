@@ -2637,7 +2637,10 @@ bool Control::PaintImage(IRender* pRender,
             //绘制图片无拉伸时
             pBitmap = duiImage.GetCurrentBitmap();
         }
-        ASSERT(pBitmap != nullptr);
+        if (!duiImage.GetImageAttribute().m_bAsyncLoad) {
+            //异步加载时，可能会返回空的
+            ASSERT(pBitmap != nullptr);
+        }
     }
 
     bool bPainted = false;
@@ -3607,7 +3610,6 @@ static void AsyncDecodeImageData(const TAsyncImageDecode& imageDecode)
         return;
     }
 
-    ASSERT(pImage->GetAsyncDecodeTaskId() == 0);
     if (pImage->GetAsyncDecodeTaskId() != 0) {
         //不能并行执行任务
         return;
@@ -3695,7 +3697,8 @@ static void AsyncDecodeImageData(const TAsyncImageDecode& imageDecode)
             }
             if (pImage->AsyncDecode(nCurFrameIndex, IsAborted)) {
                 //通知UI
-                GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, AsyncDecodeImageFinishNotify);
+                size_t nTaskId = GlobalManager::Instance().Thread().PostTask(ui::kThreadUI, AsyncDecodeImageFinishNotify);
+                ASSERT_UNUSED_VARIABLE(nTaskId > 0);
             }
             else {
                 ASSERT(0);

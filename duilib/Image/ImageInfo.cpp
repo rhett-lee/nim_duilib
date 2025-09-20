@@ -6,7 +6,6 @@ namespace ui
 {
 
 ImageInfo::ImageInfo():    
-    m_loadParam(_T(""), _T(""), ImageLoadParam::DpiScaleOption::kDefault),
     m_fImageSizeScale(IMAGE_SIZE_SCALE_NONE),
     m_nLoopCount(-1),
     m_nFrameCount(0),
@@ -96,7 +95,6 @@ std::shared_ptr<IBitmap> ImageInfo::GetBitmap()
             return nullptr;
         }
         std::shared_ptr<IBitmap> pBitmap = pIBitmapImage->GetBitmap();
-        ASSERT(pBitmap != nullptr);
         if (pBitmap == nullptr) {
             return nullptr;
         }
